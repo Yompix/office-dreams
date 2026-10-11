@@ -7352,6 +7352,7 @@ const ACT = {
     if (what === 'go' && t) {
       if (t.url) openLink(t.url);
       if (t.kind === 'visit') netApi.taskStart(id).then(() => setTimeout(() => loadHub('tasks', true), 9000));
+      else if (t.kind === 'channel') netApi.taskStart(id);
       return;
     }
     if (what === 'claim') {

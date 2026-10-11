@@ -204,7 +204,7 @@ function taskView(ctx, u, now) {
 }
 function taskStart(ctx, u, id, now) {
   const t = taskList(ctx, u).find((x) => x.id === id);
-  if (!t || t.verify !== 'visit') return { ok: false, err: 'unavailable' };
+  if (!t || (t.verify !== 'visit' && t.verify !== 'channel')) return { ok: false, err: 'unavailable' };
   ctx.db.run('INSERT OR IGNORE INTO task_starts(uid,task,ts) VALUES(?,?,?)', u.id, id, now);
   return { ok: true };
 }
@@ -223,8 +223,14 @@ async function taskClaim(ctx, uid, id, now) {
     const r = await ctx.tg.call('getChatMember', { chat_id: ctx.cfg.channel, user_id: uid });
     const st = r && r.ok && r.result ? r.result.status : '';
     const member = ['creator', 'administrator', 'member'].includes(st) || (st === 'restricted' && r.result.is_member);
-    if (!r.ok && /not enough rights|chat not found|bot is not a member|CHAT_ADMIN_REQUIRED/i.test(r.description || '')) return { ok: false, err: 'verify_unavailable' };
-    if (!member) return { ok: false, err: 'not_member' };
+    if (!member && !(r && r.ok)) {
+      // the bot cannot see the channel's members (not an admin there, wrong channel name, Telegram hiccup):
+      // don't punish the player — fall back to "opened the channel and came back" like a visit task
+      ctx.log && ctx.log('channel check failed:', ctx.cfg.channel, (r && r.description) || 'no response');
+      ctx.cache.channelErr = { at: now, err: (r && r.description) || 'no response' };
+      const s0 = ctx.db.get('SELECT ts FROM task_starts WHERE uid=? AND task=?', uid, id);
+      if (!s0 || now - s0.ts < 8000) return { ok: false, err: 'not_member' };
+    } else if (!member) return { ok: false, err: 'not_member' };
   }
   // commit with a FRESH user row (the awaited call above may have interleaved with a sync)
   return ctx.db.tx(() => {

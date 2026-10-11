@@ -4,6 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
+function normChannel(v) {
+  v = String(v || '').trim();
+  if (!v) return '';
+  if (/^-?\d+$/.test(v)) return v;
+  const m = /(?:t(?:elegram)?\.me\/)?@?([A-Za-z0-9_]{4,})\/?$/.exec(v.replace(/^https?:\/\//, ''));
+  return m ? '@' + m[1] : v;
+}
 function loadEnvFile(file) {
   let txt;
   try { txt = fs.readFileSync(file, 'utf8'); } catch { return; }
@@ -43,7 +50,7 @@ function build(env) {
     dbPath: str('DB_PATH') === ':memory:' ? ':memory:' : path.resolve(ROOT, str('DB_PATH', 'data/officedreams.sqlite')),
     devAuth: bool('DEV_AUTH', false), // NEVER enable in production: accepts unsigned users
     trustProxy: bool('TRUST_PROXY', false),
-    channel: str('CHANNEL'), // e.g. @officedreams_news (bot must be admin of the channel)
+    channel: normChannel(str('CHANNEL') || str('CHANNEL_URL')), // e.g. @officedreams_news (bot must be admin of the channel)
     channelUrl: str('CHANNEL_URL'),
     chatUrl: str('CHAT_URL'),
     xUrl: str('X_URL'),

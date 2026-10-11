@@ -652,6 +652,19 @@ const Ton = require('../server/ton.js');
       assert.ok(ua && ua.n === 1, JSON.stringify(st.json.countries));
       assert.ok(st.json.countries.some((r) => r.c === '?'));
     });
+    await test('channel task: if the bot cannot see channel members, opening the channel is enough (no stuck task)', async () => {
+      const P = new Player(env5, 8501); await P.auth();
+      P.play(600); await P.sync();
+      const prev = env5.ctx.tg.call;
+      env5.ctx.tg.call = async (m, b) => (m === 'getChatMember' ? { ok: false, description: 'Bad Request: member list is inaccessible' } : prev(m, b));
+      let r = await P.api('POST', '/api/tasks/claim', { id: 'channel' });
+      assert.equal(r.json.err, 'not_member', 'not opened yet');
+      assert.ok((await P.api('POST', '/api/tasks/start', { id: 'channel' })).json.ok);
+      env5.advance(9000);
+      r = await P.api('POST', '/api/tasks/claim', { id: 'channel' });
+      assert.ok(r.json.ok, JSON.stringify(r.json));
+      env5.ctx.tg.call = prev;
+    });
     await env5.close();
   }
   summary();

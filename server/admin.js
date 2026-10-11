@@ -136,7 +136,15 @@ function create(ctx) {
         Eco.persistUser(ctx, u);
         return json(res, 200, { ok: true, state: u.risk_state });
       }
-      if (p === '/admin/api/drafts') return json(res, 200, { ok: true, drafts: DRAFTS, channel: ctx.cfg.channel, link: appLink(ctx) });
+      if (p === '/admin/api/drafts') {
+        let check = 'CHANNEL not set';
+        if (ctx.cfg.channel) {
+          const me = await ctx.tg.call('getMe', {});
+          const r = me && me.ok ? await ctx.tg.call('getChatMember', { chat_id: ctx.cfg.channel, user_id: me.result.id }) : me;
+          check = r && r.ok ? (r.result.status === 'administrator' ? 'ok: bot is admin of ' + ctx.cfg.channel : 'bot is "' + r.result.status + '" — make it an ADMIN of ' + ctx.cfg.channel) : 'error: ' + ((r && r.description) || 'no response');
+        }
+        return json(res, 200, { ok: true, drafts: DRAFTS, channel: ctx.cfg.channel, check, lastErr: ctx.cache.channelErr || null, link: appLink(ctx) });
+      }
       if (p === '/admin/api/post' && req.method === 'POST') {
         const b = JSON.parse((await readBody(req)) || '{}');
         const text = String(b.text || '').slice(0, 4000);
@@ -216,7 +224,7 @@ $('#lk').onclick=()=>lookup($('#uid').value);
 posts();
 $('#csv').onclick=()=>dl('snapshot?fmt=csv');$('#jsn').onclick=()=>dl('snapshot?fmt=json');
 queue()}catch(e){say(e.message==='key'?'wrong key':'error: '+e.message)}}
-let DR=[];async function posts(){try{const d=await api('drafts');DR=d.drafts;$('#dr').innerHTML=DR.map((x,i)=>'<option value="'+i+'">'+esc(x.title)+'</option>').join('');$('#pch').textContent=d.channel?('→ '+d.channel):'CHANNEL not set';$('#dru').onclick=()=>{$('#ptx').value=DR[$('#dr').value].text};$('#ptx').value=DR[0]?DR[0].text:'';
+let DR=[];async function posts(){try{const d=await api('drafts');DR=d.drafts;$('#dr').innerHTML=DR.map((x,i)=>'<option value="'+i+'">'+esc(x.title)+'</option>').join('');$('#pch').textContent=d.channel?('→ '+d.channel+' · '+d.check):'CHANNEL not set';$('#dru').onclick=()=>{$('#ptx').value=DR[$('#dr').value].text};$('#ptx').value=DR[0]?DR[0].text:'';
 $('#ppub').onclick=async()=>{if(!confirm('Publish to '+d.channel+'?'))return;try{const r=await api('post',{method:'POST',body:JSON.stringify({text:$('#ptx').value,button:$('#pbtn').checked,buttonText:$('#pbt').value,photo:$('#pph').checked})});say('posted #'+r.id)}catch(e){say('error: '+e.message)}}}catch(e){}}
 async function dl(p){const r=await fetch('/admin/api/'+p,{headers:{'x-admin-key':KEY}});const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=p.includes('json')?'snapshot.json':'snapshot.csv';a.click()}
 async function queue(){const r=await api('risk?state='+$('#st').value);$('#rqo').innerHTML=tbl(['ID','Name','Country','Pts','Risk','Why','Days','Act'],r.rows.map(u=>[u.id,esc(u.name),ctry(u.country),u.pts,u.risk,esc(u.risk_note||''),u.days_played,btns(u.id)]));wire()}
