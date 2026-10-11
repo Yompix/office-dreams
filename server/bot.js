@@ -49,7 +49,17 @@ const SHOP_TXT = {
   uk: { gems_s: ['Жменя кристалів', '15 кристалів для бустів'], gems_m: ['Мішок кристалів', '70 кристалів для бустів'], gems_l: ['Скриня кристалів', '400 кристалів для бустів'], starter: ['Стартовий набір', '40 кристалів + $5 000 (один раз)'], pass30: ['Office Pass · 30 днів', '+25% до денної стелі очок і 20 кристалів'] },
 };
 const tx = (lang) => T[lang] || T.en;
-const shopTxt = (lang, sku) => (SHOP_TXT[lang] || SHOP_TXT.en)[sku] || [sku, sku];
+const CASH_TXT = {
+  en: { cash_s: 'Stack of coins', cash_m: 'Case of coins', cash_l: 'Vault of coins', d: (n) => `$${n} to hire, upgrade and buy floors` },
+  ru: { cash_s: 'Пачка монет', cash_m: 'Кейс монет', cash_l: 'Сейф монет', d: (n) => `$${n} на найм, прокачку и этажи` },
+  uk: { cash_s: 'Пачка монет', cash_m: 'Кейс монет', cash_l: 'Сейф монет', d: (n) => `$${n} на найм, прокачку і поверхи` },
+};
+const nfmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const shopTxt = (lang, sku, cash) => {
+  const c = CASH_TXT[lang] || CASH_TXT.en;
+  if (c[sku]) return [c[sku], c.d(nfmt(cash || 0))];
+  return (SHOP_TXT[lang] || SHOP_TXT.en)[sku] || [sku, sku];
+};
 const appUrl = (ctx) => ctx.cfg.publicUrl + '/';
 
 async function send(ctx, chatId, text, markup) {

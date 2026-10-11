@@ -650,8 +650,8 @@ function hubShop() {
   if (!sh) return `<div class="loading">${L('ui.loading')}</div>`;
   return `<section class="panel">
     <div class="sec-h"><div><h2 class="h2">${I('cart', 16)} ${L('shop.title')}</h2><p class="sub">${L('shop.sub')}</p></div></div>
-    <div class="shop">${sh.items.map((it) => `<div class="sku ${it.sku === 'pass30' ? 'pass' : it.sku === 'starter' ? 'starter' : ''} ${it.owned ? 'owned' : ''}">
-      <div class="sku-art">${it.sku === 'pass30' ? I('star3', 28) : it.sku === 'starter' ? I('gift', 28) : I('gem', 28)}</div>
+    <div class="shop">${sh.items.map((it) => `<div class="sku ${it.sku === 'pass30' ? 'pass' : it.sku === 'starter' ? 'starter' : it.sku.startsWith('cash') ? 'cashp' : ''} ${it.owned ? 'owned' : ''}">
+      <div class="sku-art">${it.sku === 'pass30' ? I('star3', 28) : it.sku === 'starter' ? I('gift', 28) : it.sku.startsWith('cash') ? I('coin', 28) : I('gem', 28)}</div>
       <b>${esc(it.title || it.sku)}</b>
       <small>${esc(it.desc || '')}</small>
       ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<div class="pay2"><button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>${it.ton ? `<button class="btn sm tonb" data-act="payton:${it.sku}">${I('ton', 14)} ${it.ton} TON</button>` : ''}</div>`}

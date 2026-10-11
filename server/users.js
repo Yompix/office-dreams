@@ -47,7 +47,7 @@ function saveState(ctx, uid, s, now = Date.now()) {
 function grantState(ctx, uid, g) {
   const s = loadState(ctx, uid);
   if (!s) return false;
-  if (g.cash) { s.cash += g.cash; if (g.cash > 0) s.earned += g.cash; }
+  if (g.cash) { s.cash += g.cash; if (g.cash > 0 && !g.bought) s.earned += g.cash; }
   if (g.gems) s.gems = Math.max(0, s.gems + g.gems);
   if (g.energy) s.energy = Math.max(s.energy, E.maxEnergy(s));
   s.rev++;

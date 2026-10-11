@@ -240,8 +240,8 @@ async function main() {
   await click(page, '[data-act="sub:drop:shop"]');
   await sleep(800);
   await shot(page, '13_shop');
-  ok((await page.$$('.sku')).length === 5, 'shop items');
-  ok((await page.$$('.sku .tonb')).length === 5, 'every item can be paid with TON');
+  ok((await page.$$('.sku')).length === 8, 'shop items');
+  ok((await page.$$('.sku .tonb')).length === 8, 'every item can be paid with TON');
 
   /* ---------------- second player via invite link (English) ---------------- */
   const code = (await ev(page, 'NET.eco.ref.code'));

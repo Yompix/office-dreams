@@ -260,7 +260,11 @@ function leaderboard(ctx, uid, now = Date.now()) {
 }
 
 /* ---- Telegram Stars shop ---- */
+// coin packs scale with the studio: N days of its income, never less than a floor
 const SHOP = [
+  { sku: 'cash_s', stars: 25, cashDays: 1, cashMin: 3000 },
+  { sku: 'cash_m', stars: 100, cashDays: 5, cashMin: 15000 },
+  { sku: 'cash_l', stars: 400, cashDays: 25, cashMin: 100000 },
   { sku: 'gems_s', stars: 25, gems: 15 },
   { sku: 'gems_m', stars: 100, gems: 70 },
   { sku: 'gems_l', stars: 500, gems: 400 },
@@ -268,9 +272,16 @@ const SHOP = [
   { sku: 'pass30', stars: 150, gems: 20, passDays: 30 },
 ];
 const shopItem = (sku) => SHOP.find((x) => x.sku === sku) || null;
+// how many coins a pack gives this player right now
+function packCash(ctx, uid, it) {
+  if (!it.cashDays) return it.cash || 0;
+  const s = U.loadState(ctx, uid);
+  const inc = s ? s.income3 || 0 : 0;
+  return Math.max(it.cashMin, Math.round((inc * it.cashDays) / 100) * 100);
+}
 function shopView(ctx, u) {
   const bought = new Set(ctx.db.all('SELECT DISTINCT sku FROM purchases WHERE uid=?', u.id).map((r) => r.sku));
-  return SHOP.map((it) => ({ ...it, owned: !!it.once && bought.has(it.sku) }));
+  return SHOP.map((it) => ({ ...it, cash: packCash(ctx, u.id, it), owned: !!it.once && bought.has(it.sku) }));
 }
 function canBuy(ctx, uid, sku) {
   const it = shopItem(sku);
@@ -285,7 +296,7 @@ function fulfil(ctx, uid, sku, chargeId, stars, now = Date.now(), extra = {}) {
   return ctx.db.tx(() => {
     const ins = ctx.db.run('INSERT OR IGNORE INTO purchases(charge_id,uid,sku,stars,ts,meta) VALUES(?,?,?,?,?,?)', String(chargeId), uid, sku, stars, now, extra.meta || null);
     if (!ins.changes) return { ok: true, dup: true };
-    U.grantState(ctx, uid, { cash: it.cash || 0, gems: it.gems || 0 });
+    U.grantState(ctx, uid, { cash: packCash(ctx, uid, it), gems: it.gems || 0, bought: true });
     if (it.passDays) {
       const u = U.getUser(ctx, uid);
       const from = Math.max(now, u.pass_until || 0);
@@ -381,6 +392,7 @@ function ecoView(ctx, u, now) {
 }
 
 module.exports = {
+  packCash,
   CHECKIN, RISK_MULT, SHOP, supporterUntil, adCash, adInfo, adReward, persistUser, rollDay, dailyD, ledgerAdd, actVector, priceActivity, credit, payReferrals, checkin, checkinInfo,
   friendCounts, refLink, checkReferralActivation, friendsList, taskList, taskView, taskStart, taskClaim, leaderboard,
   shopItem, shopView, canBuy, fulfil, pieSchedule, pieFor, ecoView, r1, r3,

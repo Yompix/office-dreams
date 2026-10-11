@@ -241,13 +241,13 @@ async function handleApi(ctx, req, res, url, ip) {
   if (method === 'GET' && p === '/api/shop') {
     const lang = u0.lang;
     const tonOn = TonPay.enabled(cfg);
-    return sendJson(res, 200, { ok: true, ton: tonOn, items: Eco.shopView(ctx, u0).map((it) => ({ ...it, ton: tonOn ? TonPay.tonPrice(cfg, it) : null, title: Bot.shopTxt(lang, it.sku)[0], desc: Bot.shopTxt(lang, it.sku)[1] })) });
+    return sendJson(res, 200, { ok: true, ton: tonOn, items: Eco.shopView(ctx, u0).map((it) => { const t = Bot.shopTxt(lang, it.sku, it.cash); return { ...it, ton: tonOn ? TonPay.tonPrice(cfg, it) : null, title: t[0], desc: t[1] }; }) });
   }
   if (method === 'POST' && p === '/api/shop/invoice') {
     const sku = String(body.sku || '');
     const it = Eco.shopItem(sku);
     if (!it || !Eco.canBuy(ctx, uid, sku)) return bad(res, 409, 'unavailable');
-    const [title, desc] = Bot.shopTxt(u0.lang, sku);
+    const [title, desc] = Bot.shopTxt(u0.lang, sku, Eco.packCash(ctx, uid, it));
     const r = await ctx.tg.call('createInvoiceLink', {
       title, description: desc, payload: `${uid}:${sku}:${crypto.randomBytes(4).toString('hex')}`,
       provider_token: '', currency: 'XTR', prices: [{ label: title, amount: it.stars }],
