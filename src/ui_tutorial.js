@@ -1,0 +1,112 @@
+/* ============================================================
+   OFFICE DREAMS — interactive tutorial (coach marks).
+   A glowing ring points at the button to press, a bubble explains
+   why. Steps finish by themselves when the player does the thing.
+   ============================================================ */
+const TUT = [
+  { k: 'tut.genre', tab: ['studio', 'games'], target: '.genres', done: () => UI.genrePicked || S.stats.started >= 1 },
+  { k: 'tut.start', tab: ['studio', 'games'], target: '[data-act="start"]', done: () => S.stats.started >= 1 },
+  { k: 'tut.tap', tab: ['office'], target: '#workbtn', done: () => S.stats.taps >= 15 },
+  { k: 'tut.energy', tab: ['office'], target: '.energy', manual: true },
+  { k: 'tut.release', tab: ['office'], target: '.pmini', manual: true },
+  { k: 'tut.hire', tab: ['office'], target: '.side [data-act="go:studio:team"]', done: () => hiredCount(S) >= 1, skippable: true },
+  { k: 'tut.quests', tab: null, target: '#tabs [data-act="tab:quests"]', manual: true },
+  { k: 'tut.points', tab: ['drop', 'home'], target: '.ptsp', manual: true },
+  { k: 'tut.token', tab: ['drop', 'token'], target: '.tokhero', manual: true },
+  { k: 'tut.friends', tab: ['drop', 'friends'], target: '.invite', manual: true },
+  { k: 'tut.done', tab: ['office'], target: null, manual: true },
+];
+const COACH = { i: -1, el: null, scrolled: -1 };
+
+function tutLoad() {
+  const v = lsGet('od2_tut');
+  COACH.i = v === null ? -1 : Number(v);
+}
+function tutSave() { lsSet('od2_tut', String(COACH.i)); }
+function tutStart() {
+  COACH.i = 0;
+  tutSave();
+  tutGoto();
+}
+function tutStop() {
+  COACH.i = TUT.length;
+  tutSave();
+  if (COACH.el) COACH.el.hidden = true;
+}
+function tutActive() { return COACH.i >= 0 && COACH.i < TUT.length; }
+function tutGoto() {
+  const st = TUT[COACH.i];
+  if (!st) return;
+  COACH.scrolled = -1;
+  if (st.tab) go(st.tab[0], st.tab[1]);
+}
+function tutNext() {
+  COACH.i++;
+  tutSave();
+  if (COACH.i >= TUT.length) { tutStop(); confetti(60); return; }
+  // skip steps that are already done (e.g. the player hired before we asked)
+  while (tutActive() && TUT[COACH.i].done && TUT[COACH.i].done()) { COACH.i++; tutSave(); }
+  if (!tutActive()) { tutStop(); return; }
+  tutGoto();
+}
+function tutEl() {
+  if (COACH.el) return COACH.el;
+  const el = document.createElement('div');
+  el.id = 'coach';
+  el.innerHTML = '<div class="c-ring"></div><div class="c-bub" role="dialog" aria-live="polite"><div class="c-step px"></div><p class="c-text"></p><div class="c-btns"></div></div>';
+  document.body.appendChild(el);
+  COACH.el = el;
+  return el;
+}
+// called a few times per second from the main loop
+function tutUpdate() {
+  if (!tutActive() || !S) { if (COACH.el) COACH.el.hidden = true; return; }
+  const st = TUT[COACH.i];
+  if (st.done && st.done()) { tutNext(); return; }
+  const el = tutEl();
+  // never cover a modal (release, event…) — wait for it to close
+  if (UI.modal) { el.hidden = true; return; }
+  el.hidden = false;
+  const ring = el.querySelector('.c-ring'), bub = el.querySelector('.c-bub');
+  const onTab = !st.tab || (UI.tab === st.tab[0] && (!st.tab[1] || UI.sub[st.tab[0]] === st.tab[1]));
+  const target = st.target && onTab ? document.querySelector(st.target) : null;
+  // text + buttons (re-rendered only when the step or language changes)
+  const sig = COACH.i + LANG + (target ? 1 : 0);
+  if (bub.dataset.sig !== sig) {
+    bub.dataset.sig = sig;
+    el.querySelector('.c-step').textContent = (COACH.i + 1) + '/' + TUT.length;
+    el.querySelector('.c-text').textContent = L(st.k);
+    const btns = [];
+    if (st.target && !target && st.tab) btns.push(`<button class="btn sm" data-act="tut:go">${L('tut.show')}</button>`);
+    if (st.manual) btns.push(`<button class="btn sm glow" data-act="tut:next">${L(COACH.i === TUT.length - 1 ? 'tut.finish' : 'tut.next')}</button>`);
+    if (st.skippable) btns.push(`<button class="btn sm ghost" data-act="tut:next">${L('tut.later')}</button>`);
+    btns.push(`<button class="linkbtn" data-act="tut:skip">${L('tut.skip')}</button>`);
+    el.querySelector('.c-btns').innerHTML = btns.join('');
+  }
+  if (!target) {
+    ring.hidden = true;
+    bub.className = 'c-bub center';
+    return;
+  }
+  let r = target.getBoundingClientRect();
+  if ((r.top < 70 || r.bottom > window.innerHeight - 80) && COACH.scrolled !== COACH.i) {
+    COACH.scrolled = COACH.i;
+    target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  r = target.getBoundingClientRect();
+  ring.hidden = false;
+  const pad = 6;
+  ring.style.left = (r.left - pad) + 'px';
+  ring.style.top = (r.top - pad) + 'px';
+  ring.style.width = (r.width + pad * 2) + 'px';
+  ring.style.height = (r.height + pad * 2) + 'px';
+  const below = r.top + r.height / 2 < window.innerHeight * 0.5;
+  bub.className = 'c-bub ' + (below ? 'below' : 'above');
+  const bw = Math.min(320, window.innerWidth - 24);
+  const cx = Math.max(12, Math.min(window.innerWidth - bw - 12, r.left + r.width / 2 - bw / 2));
+  bub.style.left = cx + 'px';
+  bub.style.width = bw + 'px';
+  if (below) { bub.style.top = (r.bottom + pad + 14) + 'px'; bub.style.bottom = 'auto'; }
+  else { bub.style.bottom = (window.innerHeight - r.top + pad + 14) + 'px'; bub.style.top = 'auto'; }
+  bub.style.setProperty('--ax', Math.max(18, Math.min(bw - 18, r.left + r.width / 2 - cx)) + 'px');
+}

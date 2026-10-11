@@ -302,6 +302,21 @@ const Ton = require('../server/ton.js');
     assert.equal(r.json.eco.D, 375);
     assert.ok(r.json.eco.pass > clock.t);
   });
+  await test('supporters (a Stars purchase in the last 30 days) get +10% on gameplay points only', async () => {
+    const A = new Player(env, 5101); await A.auth();
+    const B = new Player(env, 5102); await B.auth();
+    Eco.fulfil(ctx, 5102, 'gems_s', 'ch_sup', 25, clock.t);
+    const ua = U.getUser(ctx, 5101), ub = U.getUser(ctx, 5102);
+    const ga = Eco.credit(ctx, ua, 'play', 100, { now: clock.t });
+    const gb = Eco.credit(ctx, ub, 'play', 100, { now: clock.t });
+    assert.ok(Math.abs(gb / ga - 1.1) < 0.001, `boost ${gb / ga}`);
+    const fa = Eco.credit(ctx, ua, 'task', 20, { now: clock.t, fixed: true });
+    const fb = Eco.credit(ctx, ub, 'task', 20, { now: clock.t, fixed: true });
+    assert.equal(fa, fb); // tasks / check-ins are not boosted
+    assert.ok(Eco.ecoView(ctx, ub, clock.t).sup > clock.t);
+    const later = clock.t + 31 * 86400e3;
+    assert.equal(Eco.ecoView(ctx, ub, later).sup, 0); // expires
+  });
   await test('wallet: TON Connect proof verification (synthetic wallet), unverified fallback, duplicates flagged', async () => {
     const P = new Player(env, 5004); await P.auth();
     const pl = await P.api('GET', '/api/ton/payload');

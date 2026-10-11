@@ -21,6 +21,10 @@ function persistUser(ctx, u) {
   ctx.db.run(UPDATE_SQL, ...USER_COLS.map((c) => (u[c] === undefined ? null : u[c])), u.id);
 }
 
+function supporterUntil(ctx, uid) {
+  const r = ctx.db.get('SELECT MAX(ts) AS t FROM purchases WHERE uid=?', uid);
+  return r && r.t ? r.t + ctx.cfg.eco.supporterDays * U.DAY : 0;
+}
 const dailyD = (ctx, u, now) => ctx.cfg.eco.dailyD * (u.pass_until > now ? ctx.cfg.eco.passBoost : 1);
 function rollDay(u, dk) {
   if (u.pts_day !== dk) { u.pts_day = dk; u.raw_today = 0; u.eff_today = 0; u.ref_today = 0; }
@@ -69,6 +73,7 @@ function credit(ctx, u, kind, raw, o = {}) {
     eff = D * (1 - Math.exp(-next / D)) - D * (1 - Math.exp(-prev / D));
     u.raw_today = next;
     u.eff_today += eff;
+    if (supporterUntil(ctx, u.id) > now) eff *= ctx.cfg.eco.supporterBoost; // small thank-you for supporting the game
   }
   const pts = r3(eff * mult);
   if (pts > 0) {
@@ -325,6 +330,8 @@ function ecoView(ctx, u, now) {
     D: Math.round(D),
     used: r3(Math.min(1, u.eff_today / D)),
     pass: u.pass_until > now ? u.pass_until : 0,
+    sup: (() => { const t = supporterUntil(ctx, u.id); return t > now ? t : 0; })(),
+    supBoost: ctx.cfg.eco.supporterBoost,
     checkin: ci,
     ref: { code: u.ref_code, link: refLink(ctx, u.ref_code), total: fr.total, active: fr.active, pts: r1(u.ref_pts), l1: ctx.cfg.eco.refL1, l2: ctx.cfg.eco.refL2, cashEach: ctx.cfg.eco.inviteCash, gemsEach: ctx.cfg.eco.inviteGems },
     risk: u.risk_state === 'ok' ? 0 : u.risk_state === 'watch' ? 1 : 2,
@@ -335,7 +342,7 @@ function ecoView(ctx, u, now) {
 }
 
 module.exports = {
-  CHECKIN, RISK_MULT, SHOP, persistUser, rollDay, dailyD, ledgerAdd, actVector, priceActivity, credit, payReferrals, checkin, checkinInfo,
+  CHECKIN, RISK_MULT, SHOP, supporterUntil, persistUser, rollDay, dailyD, ledgerAdd, actVector, priceActivity, credit, payReferrals, checkin, checkinInfo,
   friendCounts, refLink, checkReferralActivation, friendsList, taskList, taskView, taskStart, taskClaim, leaderboard,
   shopItem, shopView, canBuy, fulfil, pieSchedule, pieFor, ecoView, r1, r3,
 };

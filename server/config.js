@@ -55,6 +55,9 @@ function build(env) {
     eco: {
       dailyD: num('POINTS_DAILY_D', 300), // diminishing-returns scale per day (≈ practical daily cap)
       passBoost: num('PASS_BOOST', 1.25),
+      // supporters (any Stars purchase in the last N days) get a small bonus on gameplay points — never points for money directly
+      supporterBoost: num('SUPPORTER_BOOST', 1.1),
+      supporterDays: num('SUPPORTER_DAYS', 30),
       refL1: num('REF_L1', 0.10),
       refL2: num('REF_L2', 0.02),
       refDailyCap: num('REF_DAILY_CAP', 150),

@@ -131,6 +131,7 @@ function drawTowerCv(t) {
 function onWorkDown(e) {
   if (e && e.isTrusted === false) return;
   ensureAudio();
+  if (!MUSIC.on) musicSync();
   noteTapAttempt(true);
   const ms = Math.max(0, Math.min(Math.floor(TICK * 1000) - 1, Math.floor((UI.acc || 0) * 1000)));
   const r = netAct('tap', ms);
@@ -162,6 +163,7 @@ function result(r, okText) {
   return r && r.ok;
 }
 function go(tab, sub) {
+  if (UI.modal && !UI.modal.sticky) closeModal();
   if (tab === 'drop' && !sub) sub = UI.sub.drop;
   UI.tab = tab;
   if (sub) UI.sub[tab] = sub;
@@ -175,6 +177,15 @@ const ACT = {
   sub: (g, s) => { UI.sub[g] = s; render(true); if (g === 'drop') loadHub(s); },
   work: () => { if (UI.tab !== 'office') go('office'); const b = $('#workbtn'); if (b) { b.classList.add('pulse'); setTimeout(() => b.classList.remove('pulse'), 1200); } },
   sel: (r) => { UI.sel = r; render(); },
+  help: () => showHelp(),
+  tut: (what) => {
+    if (what === 'next') tutNext();
+    else if (what === 'skip') tutStop();
+    else if (what === 'go') tutGoto();
+    else if (what === 'restart') { closeModal(); tutStart(); }
+  },
+  music: () => { S.settings.music = S.settings.music === false; savePrefs(); ensureAudio(); musicSync(); showSettings(); },
+  mnext: () => { ensureAudio(); if (S.settings.music === false) { S.settings.music = true; savePrefs(); } musicNext(false); musicSync(); showSettings(); },
   pump: () => { UI.sel = 'you'; go('studio', 'team'); },
   hire: (r) => { if (result(netAct('hire', r), L('toast.hired', { role: '$role.' + r + '.name' }))) confettiSmall(); },
   ups: (r) => result(netAct('ups', r), L('toast.upgraded')),
@@ -182,7 +193,7 @@ const ACT = {
   buy: (id) => result(netAct('buy', id), L('toast.bought', { item: '$item.' + id + '.name' })),
   flr: (id) => { if (result(netAct('flr', id), L('toast.floor', { name: '$floor.' + id + '.name' }))) { confetti(120); haptic('ok'); } },
   bst: (id) => result(netAct('bst', id), L('toast.boost', { name: '$boost.' + id + '.name' })),
-  genre: (g) => { S.sel.genre = g; S.sel.name = GENRES[g].names[UI.nameSeed++ % GENRES[g].names.length]; savePrefs(); render(); },
+  genre: (g) => { UI.genrePicked = true; S.sel.genre = g; S.sel.name = GENRES[g].names[UI.nameSeed++ % GENRES[g].names.length]; savePrefs(); render(); },
   tier: (t) => {
     if (!tierUnlocked(S, t)) { toast(L('toast.tier_locked', { name: '$floor.' + TIERS[t].need + '.name', sub: '$floor.' + TIERS[t].need + '.sub' }), 'bad', 'lock'); return; }
     S.sel.tier = t; savePrefs(); render();
@@ -232,7 +243,7 @@ const ACT = {
       else errToast(r && r.err);
     });
   },
-  start_game: () => { closeModal(true); lsSet('od2_intro', '1'); ensureAudio(); sfx('up'); if (S.stats.started === 0) go('studio', 'games'); },
+  start_game: () => { closeModal(true); lsSet('od2_intro', '1'); ensureAudio(); musicSync(); sfx('up'); if (S.stats.started === 0) tutStart(); },
   checkin: () => {
     if (UI.ciBusy) return;
     UI.ciBusy = true;
@@ -383,12 +394,33 @@ function showSettings() {
   openModal(`<h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
     <div class="setrow"><span>${I('globe', 16)} ${L('set.lang')}</span><div class="langs">${LANG_LIST.map((c) => `<button class="${LANG === c ? 'on' : ''}" data-act="lang:${c}">${L('lang.' + c)}</button>`).join('')}</div></div>
     <div class="setrow"><span>${I(S.settings.sound ? 'sound' : 'mute', 16)} ${L('set.sound')}</span><button class="toggle" data-act="sound" aria-pressed="${!!S.settings.sound}"><span class="sw"></span></button></div>
+    <div class="setrow"><span>${I('sound', 16)} ${L('set.music')}</span><button class="toggle" data-act="music" aria-pressed="${S.settings.music !== false}"><span class="sw"></span></button></div>
+    <div class="setrow"><span class="mut">♪ ${L('music.' + TRACKS[MUSIC.track].id)}</span><button class="btn ghost sm" data-act="mnext">${L('set.next_track')} ›</button></div>
+    <div class="setrow"><span>${I('info', 16)} ${L('help.title')}</span><button class="btn ghost sm" data-act="help">${L('ui.open')}</button></div>
     ${NET.mode === 'demo' ? `<div class="setrow"><span>${I('bolt', 16)} ${L('set.speed')}</span><div class="langs">${[1, 2, 5].map((v) => `<button class="${NET.speed === v ? 'on' : ''}" data-act="speed:${v}">×${v}</button>`).join('')}</div></div>` : ''}
     ${links.channel || links.chat ? `<div class="setrow"><span>${I('plane', 16)} ${L('set.community')}</span><div class="langs">${links.channel ? `<button data-act="link:channel">${L('set.channel')}</button>` : ''}${links.chat ? `<button data-act="link:chat">${L('set.chat')}</button>` : ''}</div></div>` : ''}
     <div class="about"><p class="sub">${L('set.about')}</p>
       ${NET.me ? `<p class="mut sm">ID ${NET.me.id} · v${BUILD.version}</p>` : `<p class="mut sm">${L('net.demo')} · v${BUILD.version}</p>`}</div>
     ${armed ? `<div class="danger"><p class="sub">${L(NET.mode === 'demo' ? 'set.reset_q' : 'set.forget_q')}</p><button class="btn red" data-act="reset:yes">${L('set.confirm')}</button></div>`
       : `<button class="linkbtn red" data-act="reset">${L(NET.mode === 'demo' ? 'set.reset' : 'set.forget')}</button>`}`, { id: 'settings' });
+}
+function showHelp() {
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
+  openModal(`<h2 class="h2">${I('info', 16)} ${L('help.title')}</h2>
+    <div class="help">
+      <h3 class="h3">${L('help.play')}</h3>
+      <ol class="steps">
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li>
+      </ol>
+      <h3 class="h3">${L('help.money')}</h3>
+      <ul class="cur">
+        <li>${I('coin', 18)}<div><b>${L('res.cash')}</b><small>${L('help.cash')}</small></div></li>
+        <li>${I('gem', 18)}<div><b>${L('res.gems')}</b><small>${L('help.gems')}</small></div></li>
+        <li>${I('pts', 18)}<div><b>${L('res.pts')}</b><small>${L('help.pts', { sym })}</small></div></li>
+        <li>${I('ton', 18)}<div><b>${sym}</b><small>${L('help.token', { sym })}</small></div></li>
+      </ul>
+    </div>
+    <div class="row2"><button class="btn" data-act="go:drop:token">${L('help.more_token')}</button><button class="btn ghost" data-act="tut:restart">${L('help.tutorial')}</button></div>`, { id: 'help' });
 }
 function showOffline(sec, cash) {
   openModal(`<div class="center">
@@ -517,7 +549,7 @@ function frame(now) {
     if (UI.tapFlash > 0) UI.tapFlash = Math.max(0, UI.tapFlash - dt);
     netPump(Date.now());
     UI.liveAcc += dt;
-    if (UI.liveAcc >= 0.2) { UI.liveAcc = 0; render(); live(); }
+    if (UI.liveAcc >= 0.2) { UI.liveAcc = 0; render(); live(); tutUpdate(); }
     UI.sceneAcc += dt;
     if (UI.sceneAcc >= 0.045) { UI.sceneAcc = 0; drawScene(now / 1000); }
     UI.towerAcc += dt;
@@ -533,6 +565,7 @@ function wireInput() {
     if (!el || el.disabled) return;
     if (el.closest('.ovl') === null && UI.modal && !$('#ovl').hidden) return;
     ensureAudio();
+    musicSync();
     const parts = el.dataset.act.split(':');
     const f = ACT[parts[0]];
     if (f) f.apply(null, parts.slice(1));
@@ -548,6 +581,7 @@ function wireInput() {
   });
   $('#ovl').addEventListener('click', (e) => { if (e.target.id === 'ovl') closeModal(); });
   document.addEventListener('visibilitychange', () => {
+    musicSync();
     if (document.hidden) netFlush();
     else { UI.last = performance.now(); if (NET.mode === 'online') setTimeout(() => netSync(), 300); }
   });
@@ -600,6 +634,8 @@ async function boot() {
   }
   if (!lsGet('od2_lang') && NET.me && NET.me.lang) setLang(NET.me.lang);
   UI.booted = true;
+  tutLoad();
+  if (COACH.i < 0 && lsGet('od2_intro')) COACH.i = TUT.length; // players from before the tutorial existed
   render(true);
   const sp = $('#splash');
   if (sp) { sp.classList.add('out'); setTimeout(() => sp.remove(), 700); }

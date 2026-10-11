@@ -10,9 +10,9 @@ const TABS = [
 ];
 const SUBS = {
   studio: ['team', 'games'],
-  drop: ['home', 'friends', 'tasks', 'top', 'shop'],
+  drop: ['home', 'token', 'friends', 'tasks', 'top', 'shop'],
 };
-const SUB_ICO = { team: 'team', games: 'games', home: 'pts', friends: 'users', tasks: 'list', top: 'trophy', shop: 'cart' };
+const SUB_ICO = { team: 'team', games: 'games', home: 'pts', token: 'ton', friends: 'users', tasks: 'list', top: 'trophy', shop: 'cart' };
 
 /* ---------- derived helpers ---------- */
 const projectPct = () => (S.project ? Math.min(1, S.project.pts / S.project.need) * 100 : 0);
@@ -210,7 +210,7 @@ function tabOffice() {
   return `
   <section class="panel officep">
     <div class="op-head">
-      <div class="op-t"><h2 class="op-title">${L('office.title')}</h2><p class="sub">${L('office.slogan')}</p></div>
+      <div class="op-t"><h2 class="op-title">${L('office.title')} <button class="helpbtn" data-act="help" aria-label="${esc(L('help.title'))}">?</button></h2><p class="sub">${L('office.slogan')}</p></div>
       <div class="op-chips"><span class="chip cashc">${I('coin', 14)}<b data-t="cash"></b></span><span class="chip gemc">${I('gem', 14)}<b data-t="gems"></b></span></div>
     </div>
     <div class="op-body">
@@ -519,7 +519,7 @@ function hubHome() {
     <div class="season px">${esc((NET.cfg && NET.cfg.season && NET.cfg.season.name) || 'Season 0')}</div>
     <div class="bigpts">${I('pts', 34)}<b id="bigpts">${fmtPts(e.pts)}</b></div>
     <small class="mut">${L('hub.pts_label')}</small>
-    <div class="today"><span>${L('hub.today')}: <b class="grn">+${fmtPts(e.today)}</b></span>${e.pass ? `<span class="chip yel">${I('star', 12)} Office Pass</span>` : ''}</div>
+    <div class="today"><span>${L('hub.today')}: <b class="grn">+${fmtPts(e.today)}</b></span>${e.pass ? `<span class="chip yel">${I('star', 12)} Office Pass</span>` : ''}${e.sup ? `<span class="chip mag">${I('heart', 12)} ${L('sup.badge', { p: Math.round(((e.supBoost || 1.1) - 1) * 100) })}</span>` : ''}</div>
     <div class="meter"><div class="bar mag"><i style="width:${usedPct}%"></i></div><small>${L('hub.daily_meter', { p: usedPct })}</small></div>
     ${src.length ? `<div class="srcs">${src.map((k) => `<span class="chip">${L('src.' + k)} <b>+${fmtPts(e.bySrc[k])}</b></span>`).join('')}</div>` : ''}
   </section>
@@ -640,12 +640,43 @@ function hubShop() {
       <small>${esc(it.desc || '')}</small>
       ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>`}
     </div>`).join('')}</div>
-    <p class="hint">${L('shop.hint')}</p>
+    <p class="hint">${L('shop.hint', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
   </section>`;
+}
+function hubToken() {
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
+  const alloc = [[45, 'players', 'cy'], [15, 'liq', 'blue'], [15, 'team', 'vio'], [10, 'mkt', 'mag'], [10, 'treasury', 'yel'], [5, 'early', 'grn']];
+  const road = [['s1', 'now'], ['s2', 'next'], ['s3', 'later']];
+  return `<section class="panel tokhero">
+    <div class="tok-coin">${I('ton', 40)}</div>
+    <h2 class="op-title">${sym}</h2>
+    <p class="sub">${L('tok.what', { sym })}</p>
+    <div class="srcs"><span class="chip cy">TON · Jetton</span><span class="chip">${L('tok.supply')}</span><span class="chip yel">${L('tok.status')}</span></div>
+  </section>
+  <section class="panel">
+    <h2 class="h2">${I('pts', 16)} ${L('tok.how')}</h2>
+    <div class="formula">${L('tok.formula')}</div>
+    <ul class="bul"><li>${L('tok.how1')}</li><li>${L('tok.how2')}</li><li>${L('tok.how3')}</li><li>${L('tok.how4', { sym })}</li></ul>
+  </section>
+  <section class="panel">
+    <h2 class="h2">${I('chart', 16)} ${L('tok.alloc')}</h2>
+    <div class="alloc">${alloc.map((a) => `<div class="al-row"><span class="al-p px">${a[0]}%</span><div class="al-t"><b>${L('tok.a_' + a[1])}</b><div class="al-bar"><i class="c-${a[2]}" style="width:${a[0] / 45 * 100}%"></i></div></div></div>`).join('')}</div>
+    <p class="hint">${L('tok.team_vest')}</p>
+  </section>
+  <section class="panel">
+    <h2 class="h2">${I('arrow', 16)} ${L('tok.road')}</h2>
+    <ol class="road">${road.map((r, i) => `<li class="rd ${r[1]}"><span class="rd-n px">${i + 1}</span><div><b>${L('tok.' + r[0])}</b><small>${L('tok.' + r[0] + 'd', { sym })}</small></div><span class="chip ${r[1] === 'now' ? 'grn' : ''}">${L('tok.' + r[1])}</span></li>`).join('')}</ol>
+  </section>
+  <section class="panel supp">
+    <h2 class="h2">${I('heart', 16)} ${L('tok.sup')}</h2>
+    <p class="sub">${L('tok.sup_t', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
+    <button class="btn gold" data-act="sub:drop:shop">${L('tok.sup_btn')}</button>
+  </section>
+  <p class="hint pad">${L('hub.disclaimer', { sym })}</p>`;
 }
 function tabDrop() {
   const sub = UI.sub.drop;
-  const body = sub === 'home' ? hubHome() : sub === 'friends' ? hubFriends() : sub === 'tasks' ? hubTasks() : sub === 'top' ? hubTop() : hubShop();
+  const body = sub === 'home' ? hubHome() : sub === 'token' ? hubToken() : sub === 'friends' ? hubFriends() : sub === 'tasks' ? hubTasks() : sub === 'top' ? hubTop() : hubShop();
   return segHTML('drop') + body;
 }
 

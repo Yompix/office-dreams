@@ -65,8 +65,15 @@ async function main() {
   await click(page, '[data-act="start_game"]');
   await shot(page, '02_games_new');
   ok(await ev(page, 'UI.tab') === 'studio', 'start leads to studio/games');
+  await sleep(600);
+  ok(await page.$('#coach .c-bub') !== null, 'tutorial bubble shown');
+  await shot(page, '02b_tutorial');
   await click(page, '[data-act="genre:plat"]');
+  await sleep(500);
   await click(page, '[data-act="start"]');
+  await sleep(600);
+  ok(await ev(page, 'COACH.i') === 2, 'tutorial advanced to the tap step: ' + await ev(page, 'COACH.i'));
+  await shot(page, '02c_tutorial_tap');
   ok(await ev(page, '!!S.project'), 'project started');
   // tap like a human: irregular intervals
   const btn = await page.$('#workbtn');
@@ -77,6 +84,7 @@ async function main() {
   }
   await sleep(300);
   await shot(page, '03_office_tapping');
+  await ev(page, 'tutStop()');
   const taps = await ev(page, 'S.stats.taps');
   ok(taps >= 15, 'taps registered: ' + taps);
   // the server confirms the progress
@@ -148,6 +156,16 @@ async function main() {
   const eco2 = await ev(page, 'NET.eco');
   ok(eco2.checkin.done, 'checked in');
   await shot(page, '10_drop_checked');
+  await click(page, '[data-act="sub:drop:token"]');
+  await sleep(600);
+  await shot(page, '10b_token');
+  await page.evaluate(() => document.querySelector('#main').scrollTo(0, 700));
+  await sleep(300);
+  await shot(page, '10c_token_more');
+  await ev(page, 'showHelp()');
+  await sleep(400);
+  await shot(page, '10d_help');
+  await ev(page, 'closeModal()');
   await click(page, '[data-act="sub:drop:friends"]');
   await sleep(800);
   await shot(page, '11_friends');
@@ -174,6 +192,7 @@ async function main() {
   await p2.waitForSelector('.welcome', { timeout: 15000 });
   ok(await ev(p2, 'LANG') === 'en', 'english for p2');
   await click(p2, '[data-act="start_game"]');
+  await ev(p2, 'tutStop()');
   const u2 = U.getUser(ctx, 1002);
   ok(u2 && u2.ref1 === 1001, 'referral linked');
   await ev(p2, 'go("drop","top")');

@@ -40,7 +40,10 @@ for (const t of ['cash', 'rep', 'burnout', 'opportunity']) need.add('tag.' + t);
 for (const k of ['play', 'checkin', 'task', 'ref1', 'ref2', 'ref_act']) need.add('src.' + k);
 for (const k of ['channel', 'chat', 'x', 'wallet', 'play3', 'play14', 'streak3', 'streak7', 'invite1', 'invite3', 'invite10']) need.add('task.' + k);
 for (const k of ['office', 'studio', 'quests', 'empire', 'drop']) need.add('tab.' + k);
-for (const k of ['team', 'games', 'home', 'friends', 'tasks', 'top', 'shop']) need.add('sub.' + k);
+for (const k of ['team', 'games', 'home', 'token', 'friends', 'tasks', 'top', 'shop']) need.add('sub.' + k);
+for (const k of ['office', 'night', 'release', 'rush']) need.add('music.' + k);
+for (const k of ['players', 'liq', 'team', 'mkt', 'treasury', 'early']) need.add('tok.a_' + k);
+for (const k of ['s1', 's2', 's3', 's1d', 's2d', 's3d', 'now', 'next', 'later']) need.add('tok.' + k);
 for (const k of ['en', 'ru', 'uk']) need.add('lang.' + k);
 for (const k of ['cash', 'gems', 'energy', 'owned', 'max', 'hire_first', 'prev_floor', 'locked', 'busy', 'unavailable', 'claimed', 'notyet']) need.add('err.' + k);
 for (const id of E.EVENT_IDS) {
@@ -56,8 +59,8 @@ for (const id of E.EVENT_IDS) {
 const engSrc = fs.readFileSync(path.join(root, 'src/engine.js'), 'utf8');
 for (const m of engSrc.matchAll(/'((?:log|toast)\.[a-z_]+)'/g)) need.add(m[1]);
 // literal keys used by the UI
-const KEY_NS = /^(ui|u|res|net|tab|sub|boot|intro|next|office|buff|fin|daily|role|team|genre|tier|games|quests|goals|goal|log|tag|floor|item|boost|rank|empire|ipo|end|rel|off|hub|src|ci|risk|wallet|fr|task|top|shop|chal|set|demo|toast|err|lang|side)\.[a-z0-9_.]+$/;
-for (const f of ['ui_core.js', 'ui_tabs.js', 'ui_main.js', 'net.js']) {
+const KEY_NS = /^(ui|u|res|net|tab|sub|boot|intro|next|office|buff|fin|daily|role|team|genre|tier|games|quests|goals|goal|log|tag|floor|item|boost|rank|empire|ipo|end|rel|off|hub|src|ci|risk|wallet|fr|task|top|shop|chal|set|demo|toast|err|lang|side|tut|tok|help|sup|music)\.[a-z0-9_.]+$/;
+for (const f of ['ui_core.js', 'ui_tabs.js', 'ui_main.js', 'net.js', 'ui_tutorial.js', 'music.js']) {
   const src = fs.readFileSync(path.join(root, 'src', f), 'utf8');
   for (const m of src.matchAll(/'([a-z0-9_]+\.[a-z0-9_.]+)'/g)) {
     const k = m[1];
