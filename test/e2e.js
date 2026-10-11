@@ -28,7 +28,7 @@ async function main() {
   const mock = await startMock({});
   const cfg = build({
     BOT_TOKEN: '123456:TEST', BOT_USERNAME: 'od_test_bot', APP_SHORTNAME: 'play', DB_PATH: ':memory:', TG_API_BASE: mock.url, BOT_MODE: 'off',
-    DEV_AUTH: '1', SESSION_SECRET: 'e2e', CHANNEL: '@od_news', CHANNEL_URL: 'https://t.me/od_news', CHAT_URL: 'https://t.me/od_chat', PUBLIC_URL: '',
+    DEV_AUTH: '1', SESSION_SECRET: 'e2e', ADSGRAM_BLOCK_ID: '999', CHANNEL: '@od_news', CHANNEL_URL: 'https://t.me/od_news', CHAT_URL: 'https://t.me/od_chat', PUBLIC_URL: '',
   });
   const { ctx, handler } = createApp(cfg, { log: () => {} });
   const server = http.createServer(handler);
@@ -46,6 +46,7 @@ async function main() {
       if (u.startsWith(base + '/?') || u === base + '/') return route.fulfill({ status: 200, contentType: 'text/html', body: DEBUG_HTML });
       if (u.startsWith(base)) return route.continue();
       if (u.includes('fonts.googleapis.com')) return route.fulfill({ status: 200, contentType: 'text/css', body: FONT_CSS });
+      if (u.includes('sad.adsgram.ai')) return route.fulfill({ status: 200, contentType: 'application/javascript', body: 'window.Adsgram={init:function(){return{show:function(){return new Promise(function(r){setTimeout(function(){r({done:true})},300)})}}}};' });
       return route.fulfill({ status: 200, contentType: 'application/javascript', body: '' });
     });
     return page;
@@ -85,6 +86,14 @@ async function main() {
   await sleep(300);
   await shot(page, '03_office_tapping');
   await ev(page, 'tutStop()');
+  // rewarded ad (fake ad network): energy refilled, cash and a few points
+  ok(!!(await page.$('[data-act="ad"]')), 'ad button shown');
+  const e0 = await ev(page, 'S.energy');
+  await click(page, '[data-act="ad"]');
+  await sleep(2500);
+  ok((await ev(page, 'S.energy')) > e0 + 10, 'energy refilled by the ad: ' + e0 + ' -> ' + await ev(page, 'S.energy'));
+  ok((await ev(page, 'NET.eco.ads.left')) === 7, 'ad counted');
+  await shot(page, '03b_after_ad');
   const taps = await ev(page, 'S.stats.taps');
   ok(taps >= 15, 'taps registered: ' + taps);
   // the server confirms the progress

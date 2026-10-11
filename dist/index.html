@@ -655,6 +655,16 @@ button.cell:active { transform: scale(0.94); }
 .c-text { font-size: 14px; font-weight: 700; line-height: 1.4; }
 .c-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .c-btns .linkbtn { margin-left: auto; font-size: 12px; color: var(--mut); }
+
+/* ---------- rewarded ad button ---------- */
+.adbtn { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; width: 100%; padding: 9px 12px; border-radius: 14px; text-align: left; background: linear-gradient(160deg, rgba(255, 210, 63, 0.16), rgba(255, 63, 208, 0.12)); border: 1.5px solid rgba(255, 210, 63, 0.55); }
+.adbtn.hot { animation: glowp2 1.4s ease-in-out infinite; border-color: var(--yel); }
+.adbtn.off { display: flex; gap: 6px; color: var(--mut); font-size: 12px; background: var(--well); border-color: var(--line-soft); }
+.ad-ico { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; background: linear-gradient(180deg, #ffe680, #ffc21a); color: #3a2400; font-size: 14px; box-shadow: 0 0 12px rgba(255, 210, 63, 0.6); }
+.ad-t { display: grid; min-width: 0; }
+.ad-t b { font-size: 14px; }
+.ad-t small { color: var(--ink2); font-size: 11px; }
+.ad-n { font-size: 9px; color: var(--yel); }
 </style>
 </head>
 <body>
@@ -1651,6 +1661,18 @@ LANGS.en = {
   'help.token': 'The game’s token on TON. Launches after Season 0; points turn into {sym}.',
   'help.more_token': 'About the token',
   'help.tutorial': 'Replay tutorial',
+  'ads.btn': 'Watch an ad',
+  'ads.gives': 'Full energy + {cash} + {pts} pts',
+  'ads.none': 'No more ads today — come back tomorrow',
+  'ads.ok': 'Reward: energy full, +{cash}, +{pts} pts',
+  'ads.ok_cb': 'Thanks for watching! Reward is on its way',
+  'ads.skipped': 'Watch the ad to the end to get the reward',
+  'src.ad': 'Ads',
+  'err.ads_wait': 'Next ad in {s} s',
+  'err.ads_limit': 'Daily ad limit reached',
+  'err.ads_off': 'Ads are not available',
+  'err.ads_fail': 'No ad available right now, try later',
+  'err.ads_callback': 'Reward is credited automatically',
 };
 
 /* ---- src/lang_ru.js ---- */
@@ -1909,6 +1931,18 @@ LANGS.ru = {
   'help.token': 'Токен игры в TON. Запуск после Сезона 0; очки превратятся в {sym}.',
   'help.more_token': 'Про токен',
   'help.tutorial': 'Пройти обучение снова',
+  'ads.btn': 'Посмотреть рекламу',
+  'ads.gives': 'Полная энергия + {cash} + {pts} очк.',
+  'ads.none': 'Реклама на сегодня закончилась — возвращайся завтра',
+  'ads.ok': 'Награда: энергия полная, +{cash}, +{pts} очк.',
+  'ads.ok_cb': 'Спасибо за просмотр! Награда уже начисляется',
+  'ads.skipped': 'Досмотри рекламу до конца, чтобы получить награду',
+  'src.ad': 'Реклама',
+  'err.ads_wait': 'Следующая реклама через {s} с',
+  'err.ads_limit': 'Дневной лимит рекламы исчерпан',
+  'err.ads_off': 'Реклама недоступна',
+  'err.ads_fail': 'Сейчас нет рекламы, попробуй позже',
+  'err.ads_callback': 'Награда начисляется автоматически',
 };
 
 /* ---- src/lang_uk.js ---- */
@@ -2167,6 +2201,18 @@ LANGS.uk = {
   'help.token': 'Токен гри в TON. Запуск після Сезону 0; бали перетворяться на {sym}.',
   'help.more_token': 'Про токен',
   'help.tutorial': 'Пройти навчання знову',
+  'ads.btn': 'Переглянути рекламу',
+  'ads.gives': 'Повна енергія + {cash} + {pts} бал.',
+  'ads.none': 'Реклама на сьогодні скінчилася — повертайся завтра',
+  'ads.ok': 'Нагорода: енергія повна, +{cash}, +{pts} бал.',
+  'ads.ok_cb': 'Дякуємо за перегляд! Нагорода вже нараховується',
+  'ads.skipped': 'Додивися рекламу до кінця, щоб отримати нагороду',
+  'src.ad': 'Реклама',
+  'err.ads_wait': 'Наступна реклама через {s} с',
+  'err.ads_limit': 'Денний ліміт реклами вичерпано',
+  'err.ads_off': 'Реклама недоступна',
+  'err.ads_fail': 'Зараз немає реклами, спробуй пізніше',
+  'err.ads_callback': 'Нагорода нараховується автоматично',
 };
 
 /* ---- src/engine.js ---- */
@@ -4664,6 +4710,7 @@ const netApi = {
   forget: () => api('POST', '/api/forget', { confirm: true }),
   wallet: (body) => api('POST', '/api/wallet', body),
   tonPayload: () => api('GET', '/api/ton/payload'),
+  adClaim: () => api('POST', '/api/ads/claim', {}),
 };
 // make sure the server has seen our latest actions before a call that depends on the game state
 async function syncThen(fn) {
@@ -4672,6 +4719,30 @@ async function syncThen(fn) {
     await netSync();
   }
   return fn();
+}
+
+/* ---------- rewarded ads (Adsgram) ---------- */
+let adCtl = null;
+async function showAd() {
+  const a = NET.mode === 'online' && NET.cfg && NET.cfg.ads;
+  if (!a) return { ok: false, err: 'ads_off' };
+  try {
+    if (!window.Adsgram) await loadScript('https://sad.adsgram.ai/js/sad.min.js');
+    if (!adCtl) adCtl = window.Adsgram.init({ blockId: String(a.block) });
+    const res = await adCtl.show();
+    if (!res || !res.done) return { ok: false, err: 'ads_skip' };
+  } catch (e) {
+    return { ok: false, err: e && e.done === false && !e.error ? 'ads_skip' : 'ads_fail' };
+  }
+  if (a.callback) {
+    // the ad network tells our server directly; give it a moment, then pull the new state
+    await new Promise((r) => setTimeout(r, 2500));
+    await netSync({ full: true });
+    return { ok: true, callback: true };
+  }
+  const r = await netApi.adClaim();
+  if (r && r.ok) NET.syncSoon = true;
+  return r || { ok: false, err: 'net' };
 }
 
 /* ---------- TON Connect ---------- */
@@ -5519,6 +5590,19 @@ function dailyCard() {
   </section>`;
 }
 
+/* ---------- rewarded ads ---------- */
+const adCashEst = () => Math.round(Math.min(20000, Math.max(100, S.income3 * 0.3)) / 10) * 10;
+function adButton() {
+  const a = NET.cfg && NET.cfg.ads, e = NET.eco && NET.eco.ads;
+  if (NET.mode !== 'online' || !a || !e) return '';
+  if (e.left <= 0) return `<div class="adbtn off">${I('info', 14)} ${L('ads.none')}</div>`;
+  return `<button class="adbtn ${S.energy < 2 ? 'hot' : ''}" data-act="ad">
+    <span class="ad-ico">▶</span>
+    <span class="ad-t"><b>${L('ads.btn')}</b><small>${L('ads.gives', { cash: money(adCashEst()), pts: e.pts })}</small></span>
+    <span class="ad-n px">${e.left}/${e.max}</span>
+  </button>`;
+}
+
 /* ---------- OFFICE ---------- */
 function tabOffice() {
   const tp = tapPower(S);
@@ -5569,6 +5653,7 @@ function tabOffice() {
       <small>+$${fmtSmall(tp.cash)} · +${tp.pts.toFixed(1)} ${L('ui.wp')}</small></span>
     </button>
     <div class="energy">${I('bolt', 14, 'yel')}<div class="bar yel"><i data-w="energy"></i></div><span class="px" data-t="energy"></span></div>
+    ${adButton()}
   </section>
   ${eventBanner()}
   ${dailyCard()}
@@ -6424,6 +6509,26 @@ const ACT = {
     }
   },
   pay: (sku) => buySku(sku),
+  ad: () => {
+    if (UI.adBusy) return;
+    const e = NET.eco && NET.eco.ads;
+    if (e && e.next > Date.now()) return toast(L('err.ads_wait', { s: Math.ceil((e.next - Date.now()) / 1000) }), 'bad');
+    UI.adBusy = true;
+    musicStop();
+    showAd().then((r) => {
+      UI.adBusy = false;
+      musicSync();
+      if (r && r.ok) {
+        toast(r.callback ? L('ads.ok_cb') : L('ads.ok', { cash: money(r.cash), pts: r.pts }), 'good', 'bolt');
+        confettiSmall(); sfx('coin'); haptic('ok');
+        UI.ecoVer = (UI.ecoVer || 0) + 1;
+        setTimeout(() => netSync({ full: true }), 600);
+      } else if (r && r.err === 'ads_wait' && r.next) toast(L('err.ads_wait', { s: Math.ceil((r.next - Date.now()) / 1000) }), 'bad');
+      else if (r && r.err !== 'ads_skip') errToast(r.err);
+      else toast(L('ads.skipped'), '');
+      render(true);
+    });
+  },
   wallet: (what) => {
     if (what === 'connect') {
       tonConnect().then((r) => { if (!r.ok) { if (r.err === 'tonconnect' || r.err === 'not_configured') showManualWallet(); else errToast(r.err); } });

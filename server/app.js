@@ -125,6 +125,7 @@ function publicConfig(ctx) {
     tickMs: E.TICK * 1000,
     turnstile: c.turnstile.site || '',
     checkin: Eco.CHECKIN,
+    ads: c.ads.blockId ? { block: c.ads.blockId, perDay: c.ads.perDay, cooldown: c.ads.cooldownSec, pts: c.ads.pts, callback: !!c.ads.callbackKey } : null,
   };
 }
 function authUid(ctx, req) {
@@ -184,6 +185,14 @@ async function handleApi(ctx, req, res, url, ip) {
     if (!body || typeof body !== 'object') body = {};
   }
   if (method === 'POST' && p === '/api/auth') return handleAuth(ctx, req, res, body, ip, now);
+  // ad network server-to-server callback (only when ADS_CALLBACK_KEY is set): /api/ads/cb?key=...&uid=<telegram id>
+  if (p === '/api/ads/cb') {
+    const key = url.searchParams.get('key') || '';
+    if (!cfg.ads.callbackKey || key.length !== cfg.ads.callbackKey.length || !crypto.timingSafeEqual(Buffer.from(key), Buffer.from(cfg.ads.callbackKey))) return bad(res, 403, 'key');
+    const cuid = Number(url.searchParams.get('uid') || url.searchParams.get('userid') || url.searchParams.get('userId'));
+    if (!Number.isSafeInteger(cuid) || cuid <= 0) return bad(res, 400, 'uid');
+    return sendJson(res, 200, Eco.adReward(ctx, cuid, 'cb', now));
+  }
 
   const uid = authUid(ctx, req);
   if (!uid) return bad(res, 401, 'auth');
@@ -230,6 +239,11 @@ async function handleApi(ctx, req, res, url, ip) {
     });
     if (!r.ok) return bad(res, 502, 'invoice');
     return sendJson(res, 200, { ok: true, url: r.result });
+  }
+  if (method === 'POST' && p === '/api/ads/claim') {
+    if (cfg.ads.callbackKey) return sendJson(res, 200, { ok: false, err: 'ads_callback', eco: Eco.ecoView(ctx, u0, now) });
+    const r = Eco.adReward(ctx, uid, 'client', now);
+    return sendJson(res, 200, Object.assign(r, { eco: Eco.ecoView(ctx, U.getUser(ctx, uid), now) }));
   }
   if (method === 'GET' && p === '/api/ton/payload') return sendJson(res, 200, { ok: true, payload: Ton.makePayload(cfg.sessionSecret, now) });
   if (method === 'POST' && p === '/api/wallet') return handleWallet(ctx, res, uid, body, now);

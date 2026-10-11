@@ -307,6 +307,7 @@ const netApi = {
   forget: () => api('POST', '/api/forget', { confirm: true }),
   wallet: (body) => api('POST', '/api/wallet', body),
   tonPayload: () => api('GET', '/api/ton/payload'),
+  adClaim: () => api('POST', '/api/ads/claim', {}),
 };
 // make sure the server has seen our latest actions before a call that depends on the game state
 async function syncThen(fn) {
@@ -315,6 +316,30 @@ async function syncThen(fn) {
     await netSync();
   }
   return fn();
+}
+
+/* ---------- rewarded ads (Adsgram) ---------- */
+let adCtl = null;
+async function showAd() {
+  const a = NET.mode === 'online' && NET.cfg && NET.cfg.ads;
+  if (!a) return { ok: false, err: 'ads_off' };
+  try {
+    if (!window.Adsgram) await loadScript('https://sad.adsgram.ai/js/sad.min.js');
+    if (!adCtl) adCtl = window.Adsgram.init({ blockId: String(a.block) });
+    const res = await adCtl.show();
+    if (!res || !res.done) return { ok: false, err: 'ads_skip' };
+  } catch (e) {
+    return { ok: false, err: e && e.done === false && !e.error ? 'ads_skip' : 'ads_fail' };
+  }
+  if (a.callback) {
+    // the ad network tells our server directly; give it a moment, then pull the new state
+    await new Promise((r) => setTimeout(r, 2500));
+    await netSync({ full: true });
+    return { ok: true, callback: true };
+  }
+  const r = await netApi.adClaim();
+  if (r && r.ok) NET.syncSoon = true;
+  return r || { ok: false, err: 'net' };
 }
 
 /* ---------- TON Connect ---------- */

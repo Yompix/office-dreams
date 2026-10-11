@@ -498,5 +498,47 @@ const Ton = require('../server/ton.js');
   });
 
   await env.close();
+
+  console.log('Rewarded ads');
+  {
+    const env2 = await makeEnv({ ADSGRAM_BLOCK_ID: '1234' });
+    await test('ads: reward energy + cash + a few points, cooldown and daily cap', async () => {
+      const P = new Player(env2, 8001); await P.auth();
+      const cfg = await httpJson(env2.base, 'GET', '/api/config');
+      assert.equal(cfg.json.ads.block, '1234');
+      assert.equal(P.eco.ads.left, 8);
+      const st0 = U.loadState(env2.ctx, 8001); st0.energy = 0; U.saveState(env2.ctx, 8001, st0, env2.clock.t);
+      let r = await httpJson(env2.base, 'POST', '/api/ads/claim', {}, P.headers());
+      assert.ok(r.json.ok, JSON.stringify(r.json));
+      assert.equal(r.json.pts, 4);
+      assert.ok(r.json.cash >= 100);
+      const st = U.loadState(env2.ctx, 8001);
+      assert.equal(st.energy, E.maxEnergy(st));
+      r = await httpJson(env2.base, 'POST', '/api/ads/claim', {}, P.headers());
+      assert.equal(r.json.err, 'ads_wait');
+      let got = 1;
+      for (let i = 0; i < 12; i++) {
+        env2.advance(46e3);
+        r = await httpJson(env2.base, 'POST', '/api/ads/claim', {}, P.headers());
+        if (r.json.ok) got++;
+      }
+      assert.equal(got, 8);
+      assert.equal(r.json.err, 'ads_limit');
+      const u = U.getUser(env2.ctx, 8001);
+      assert.ok(u.pts <= 8 * 4 + 1, 'ads cannot farm unlimited points: ' + u.pts);
+    });
+    await env2.close();
+    const env3 = await makeEnv({ ADSGRAM_BLOCK_ID: '1234', ADS_CALLBACK_KEY: 'cbsecret123' });
+    await test('ads callback mode: only the ad network callback with the key grants rewards', async () => {
+      const P = new Player(env3, 8101); await P.auth();
+      let r = await httpJson(env3.base, 'POST', '/api/ads/claim', {}, P.headers());
+      assert.equal(r.json.err, 'ads_callback');
+      r = await httpJson(env3.base, 'GET', '/api/ads/cb?key=wrong-key!&uid=8101');
+      assert.equal(r.status, 403);
+      r = await httpJson(env3.base, 'GET', '/api/ads/cb?key=cbsecret123&uid=8101');
+      assert.ok(r.json.ok);
+    });
+    await env3.close();
+  }
   summary();
 })();

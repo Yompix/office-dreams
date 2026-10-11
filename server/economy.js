@@ -301,6 +301,43 @@ function fulfil(ctx, uid, sku, chargeId, stars, now = Date.now()) {
   });
 }
 
+/* ---- rewarded ads ---- */
+// cash reward scales with the studio's income so it stays meaningful but never dominates
+function adCash(s) {
+  return Math.round(Math.min(20000, Math.max(100, (s ? s.income3 : 0) * 0.3)) / 10) * 10;
+}
+function adInfo(ctx, uid, now) {
+  const a = ctx.cfg.ads;
+  if (!a.blockId) return null;
+  const dk = U.dayKey(now);
+  const r = ctx.db.get('SELECT COUNT(*) AS n, MAX(ts) AS last FROM ad_views WHERE uid=? AND day=?', uid, dk);
+  const left = Math.max(0, a.perDay - r.n);
+  return { left, max: a.perDay, next: r.last ? r.last + a.cooldownSec * 1000 : 0, pts: a.pts };
+}
+function adReward(ctx, uid, src, now) {
+  const a = ctx.cfg.ads;
+  if (!a.blockId) return { ok: false, err: 'ads_off' };
+  return ctx.db.tx(() => {
+    const u = U.getUser(ctx, uid);
+    if (!u || u.deleted) return { ok: false, err: 'unavailable' };
+    const info = adInfo(ctx, uid, now);
+    if (info.left <= 0) return { ok: false, err: 'ads_limit' };
+    if (info.next > now) return { ok: false, err: 'ads_wait', next: info.next };
+    const s = U.loadState(ctx, uid);
+    const cash = adCash(s);
+    ctx.db.run('INSERT INTO ad_views(uid,ts,day,src) VALUES(?,?,?,?)', uid, now, U.dayKey(now), src);
+    U.grantState(ctx, uid, { cash, energy: true });
+    const pts = credit(ctx, u, 'ad', a.pts, { fixed: true, now });
+    persistUser(ctx, u);
+    ctx.db.run(
+      `INSERT INTO revenue(day,stars,usd,n) VALUES(?,0,?,0)
+       ON CONFLICT(day) DO UPDATE SET usd=usd+excluded.usd`,
+      U.dayKey(now), a.usdPerView
+    );
+    return { ok: true, cash, pts, ads: adInfo(ctx, uid, now) };
+  });
+}
+
 /* ---- emission brake (used after the token launch; shown in the admin panel) ---- */
 function pieSchedule(ctx, daysSinceLaunch) {
   const year = Math.floor(Math.max(0, daysSinceLaunch) / 365);
@@ -332,6 +369,7 @@ function ecoView(ctx, u, now) {
     pass: u.pass_until > now ? u.pass_until : 0,
     sup: (() => { const t = supporterUntil(ctx, u.id); return t > now ? t : 0; })(),
     supBoost: ctx.cfg.eco.supporterBoost,
+    ads: adInfo(ctx, u.id, now),
     checkin: ci,
     ref: { code: u.ref_code, link: refLink(ctx, u.ref_code), total: fr.total, active: fr.active, pts: r1(u.ref_pts), l1: ctx.cfg.eco.refL1, l2: ctx.cfg.eco.refL2, cashEach: ctx.cfg.eco.inviteCash, gemsEach: ctx.cfg.eco.inviteGems },
     risk: u.risk_state === 'ok' ? 0 : u.risk_state === 'watch' ? 1 : 2,
@@ -342,7 +380,7 @@ function ecoView(ctx, u, now) {
 }
 
 module.exports = {
-  CHECKIN, RISK_MULT, SHOP, supporterUntil, persistUser, rollDay, dailyD, ledgerAdd, actVector, priceActivity, credit, payReferrals, checkin, checkinInfo,
+  CHECKIN, RISK_MULT, SHOP, supporterUntil, adCash, adInfo, adReward, persistUser, rollDay, dailyD, ledgerAdd, actVector, priceActivity, credit, payReferrals, checkin, checkinInfo,
   friendCounts, refLink, checkReferralActivation, friendsList, taskList, taskView, taskStart, taskClaim, leaderboard,
   shopItem, shopView, canBuy, fulfil, pieSchedule, pieFor, ecoView, r1, r3,
 };

@@ -49,6 +49,7 @@ function grantState(ctx, uid, g) {
   if (!s) return false;
   if (g.cash) { s.cash += g.cash; if (g.cash > 0) s.earned += g.cash; }
   if (g.gems) s.gems = Math.max(0, s.gems + g.gems);
+  if (g.energy) s.energy = Math.max(s.energy, E.maxEnergy(s));
   s.rev++;
   saveState(ctx, uid, s);
   return true;

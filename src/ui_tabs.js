@@ -193,6 +193,19 @@ function dailyCard() {
   </section>`;
 }
 
+/* ---------- rewarded ads ---------- */
+const adCashEst = () => Math.round(Math.min(20000, Math.max(100, S.income3 * 0.3)) / 10) * 10;
+function adButton() {
+  const a = NET.cfg && NET.cfg.ads, e = NET.eco && NET.eco.ads;
+  if (NET.mode !== 'online' || !a || !e) return '';
+  if (e.left <= 0) return `<div class="adbtn off">${I('info', 14)} ${L('ads.none')}</div>`;
+  return `<button class="adbtn ${S.energy < 2 ? 'hot' : ''}" data-act="ad">
+    <span class="ad-ico">▶</span>
+    <span class="ad-t"><b>${L('ads.btn')}</b><small>${L('ads.gives', { cash: money(adCashEst()), pts: e.pts })}</small></span>
+    <span class="ad-n px">${e.left}/${e.max}</span>
+  </button>`;
+}
+
 /* ---------- OFFICE ---------- */
 function tabOffice() {
   const tp = tapPower(S);
@@ -243,6 +256,7 @@ function tabOffice() {
       <small>+$${fmtSmall(tp.cash)} · +${tp.pts.toFixed(1)} ${L('ui.wp')}</small></span>
     </button>
     <div class="energy">${I('bolt', 14, 'yel')}<div class="bar yel"><i data-w="energy"></i></div><span class="px" data-t="energy"></span></div>
+    ${adButton()}
   </section>
   ${eventBanner()}
   ${dailyCard()}

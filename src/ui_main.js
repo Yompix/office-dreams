@@ -290,6 +290,26 @@ const ACT = {
     }
   },
   pay: (sku) => buySku(sku),
+  ad: () => {
+    if (UI.adBusy) return;
+    const e = NET.eco && NET.eco.ads;
+    if (e && e.next > Date.now()) return toast(L('err.ads_wait', { s: Math.ceil((e.next - Date.now()) / 1000) }), 'bad');
+    UI.adBusy = true;
+    musicStop();
+    showAd().then((r) => {
+      UI.adBusy = false;
+      musicSync();
+      if (r && r.ok) {
+        toast(r.callback ? L('ads.ok_cb') : L('ads.ok', { cash: money(r.cash), pts: r.pts }), 'good', 'bolt');
+        confettiSmall(); sfx('coin'); haptic('ok');
+        UI.ecoVer = (UI.ecoVer || 0) + 1;
+        setTimeout(() => netSync({ full: true }), 600);
+      } else if (r && r.err === 'ads_wait' && r.next) toast(L('err.ads_wait', { s: Math.ceil((r.next - Date.now()) / 1000) }), 'bad');
+      else if (r && r.err !== 'ads_skip') errToast(r.err);
+      else toast(L('ads.skipped'), '');
+      render(true);
+    });
+  },
   wallet: (what) => {
     if (what === 'connect') {
       tonConnect().then((r) => { if (!r.ok) { if (r.err === 'tonconnect' || r.err === 'not_configured') showManualWallet(); else errToast(r.err); } });
