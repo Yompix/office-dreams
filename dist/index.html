@@ -6864,11 +6864,6 @@ function hubToken() {
     <ol class="road">${road.map((r, i) => `<li class="rd ${r[1]}"><span class="rd-n px">${i + 1}</span><div><b>${L('tok.' + r[0])}</b><small>${L('tok.' + r[0] + 'd', { sym })}</small></div><span class="chip ${r[1] === 'now' ? 'grn' : ''}">${L('tok.' + r[1])}</span></li>`).join('')}</ol>
   </section>
   ${donatePanel()}
-  <section class="panel supp">
-    <h2 class="h2">${I('heart', 16)} ${L('tok.sup')}</h2>
-    <p class="sub">${L('tok.sup_t', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
-    <button class="btn gold" data-act="sub:drop:shop">${L('tok.sup_btn')}</button>
-  </section>
   <p class="hint pad">${L('hub.disclaimer', { sym })}</p>`;
 }
 function tabDrop() {
