@@ -138,7 +138,9 @@ function doSync(ctx, uid, body, now = Date.now()) {
     // behaviour + risk
     const ti = tapInfo(clean.batch);
     AB.noteBatch(ctx, u, { taps: ti.taps, actions: ti.actions, tp: cleanTp(body.tp), secs: rep / 1000 }, now);
-    if (now - (u.risk_at || 0) > 5 * 60e3) AB.evaluate(ctx, u, now);
+    // invited players about to unlock the inviter's bonus get a fresh risk check first (no stale "ok")
+    const aboutToActivate = u.ref1 && !u.ref_active && s.stats.released >= 1;
+    if (aboutToActivate || now - (u.risk_at || 0) > 5 * 60e3) AB.evaluate(ctx, u, now);
     const refAct = Eco.checkReferralActivation(ctx, u, s, now);
     const challenge = AB.maybeChallenge(ctx, u, now);
 

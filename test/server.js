@@ -183,20 +183,20 @@ const Ton = require('../server/ton.js');
     const self = new Player(env, 1001); const sr = await self.auth('ref_' + code);
     assert.equal(U.getUser(ctx, 1001).ref1, null);
   });
-  await test('inviter is rewarded only when the friend really plays (2 days + a released game)', async () => {
+  await test('inviter is rewarded only when the friend really plays (first released game)', async () => {
     const B = R.B;
     const a0 = U.getUser(ctx, 1001).pts, gems0 = U.loadState(ctx, 1001).gems;
-    for (let i = 0; i < 6; i++) { B.play(160); await B.sync(); }
-    assert.ok(B.S.stats.released >= 1, 'friend released a game');
-    assert.equal(U.getUser(ctx, 2001).ref_active, 0, 'not active after one day');
-    env.advance(DAY);
     B.play(40); await B.sync();
-    assert.equal(U.getUser(ctx, 2001).ref_active, 1, 'active on day 2');
+    assert.equal(U.getUser(ctx, 2001).ref_active, 0, 'not active before the first game');
+    for (let i = 0; i < 6 && !B.S.stats.released; i++) { B.play(160); await B.sync(); }
+    assert.ok(B.S.stats.released >= 1, 'friend released a game');
+    B.play(40); await B.sync();
+    assert.equal(U.getUser(ctx, 2001).ref_active, 1, 'active after the first released game');
     const gemsAfter = U.loadState(ctx, 1001).gems;
     assert.equal(gemsAfter - gems0, ctx.cfg.eco.inviteGems);
     assert.ok(U.getUser(ctx, 1001).pts - a0 >= ctx.cfg.eco.refActivationBonus - 0.01);
   });
-  await test('inviter earns 10% of the friend\'s points; L2 earns 2%; daily cap respected', async () => {
+  await test('inviter earns 10% of the friend\'s points; no second level by default; daily cap respected', async () => {
     const B = R.B;
     const before = U.getUser(ctx, 1001);
     const bBefore = U.getUser(ctx, 2001).pts;
@@ -217,7 +217,7 @@ const Ton = require('../server/ton.js');
     C.play(240); await C.sync();
     const cGain = U.getUser(ctx, 3001).pts - cB;
     const l2 = Eco && ctx.db.get("SELECT SUM(pts) AS p FROM ledger WHERE uid=1001 AND kind='ref2'").p;
-    assert.ok(l2 > 0, 'L2 payout exists');
+    assert.ok(!l2, 'no L2 payout by default (one simple rule)');
     assert.ok(cGain > 1);
     const cap = ctx.cfg.eco.refDailyCap;
     assert.ok(U.getUser(ctx, 1001).ref_today <= cap + 0.01);

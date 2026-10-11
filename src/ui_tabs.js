@@ -576,34 +576,40 @@ function hubFriends() {
   if (!e) return `<div class="loading">${L('ui.loading')}</div>`;
   const r = e.ref || {};
   const f = UI.hub.friends;
+  const act = r.active || 0;
+  const goals = [[1, 20], [3, 60], [10, 200]];
   return `${demoNote()}
   <section class="panel invite">
     <div class="inv-art">${I('users', 30)}${I('gift', 22)}</div>
-    <h2 class="h2">${L('fr.title')}</h2>
-    <p class="sub">${L('fr.sub', { cash: money(r.cashEach || 500), gems: r.gemsEach || 2 })}</p>
-    <div class="stats3">
-      <div><small>${L('fr.invited')}</small><b>${r.total || 0}</b></div>
-      <div><small>${L('fr.active')}</small><b>${r.active || 0}</b></div>
-      <div><small>${L('fr.earned')}</small><b class="mag">${fmtPts(r.pts || 0)}</b></div>
+    <h2 class="h2">${L('fr.title2')}</h2>
+    <div class="rw2">
+      <div class="rw-box"><small>${L('fr.you_get')}</small><b class="mag">+${r.ptsEach || 25} ${L('res.pts_s')}</b><b>+${money(r.cashEach || 500)}</b><b>+${r.gemsEach || 2} 💎</b></div>
+      <div class="rw-box"><small>${L('fr.friend_gets')}</small><b>+${money(r.welcome || 300)}</b><small class="mut">${L('fr.on_start')}</small></div>
     </div>
-    ${r.link ? `<div class="linkbox"><code>${esc(r.link)}</code></div>
-    <div class="row2"><button class="btn big glow" data-act="share">${I('share', 16)} ${L('fr.share')}</button><button class="btn ghost" data-act="copy">${I('copy', 16)}</button></div>` : `<button class="btn" disabled>${L('fr.no_link')}</button>`}
+    ${r.link ? `<button class="btn big glow wide" data-act="share">${I('share', 16)} ${L('fr.share2')}</button>
+    <button class="btn ghost sm" data-act="copy">${I('copy', 14)} ${L('fr.copy')}</button>` : `<button class="btn" disabled>${L('fr.no_link')}</button>`}
   </section>
   <section class="panel">
-    <h2 class="h2">${L('fr.rules')}</h2>
-    <ul class="bul">
-      <li>${L('fr.rule1', { p: Math.round((r.l1 || 0.1) * 100) })}</li>
-      <li>${L('fr.rule2', { p: Math.round((r.l2 || 0.02) * 100) })}</li>
-      <li>${L('fr.rule3')}</li>
-      <li>${L('fr.rule4')}</li>
-    </ul>
+    <h2 class="h2">${L('fr.how')}</h2>
+    <ol class="steps3">
+      <li><span>1</span>${L('fr.step1')}</li>
+      <li><span>2</span>${L('fr.step2')}</li>
+      <li><span>3</span>${L('fr.step3')}</li>
+    </ol>
+    <p class="hint">${L('fr.plus', { p: Math.round((r.l1 || 0.1) * 100) })}</p>
   </section>
   <section class="panel">
-    <div class="sec-h"><h2 class="h2">${L('fr.list')}</h2>${f && f.l2 ? `<small class="mut">${L('fr.l2', { n: f.l2 })}</small>` : ''}</div>
+    <div class="sec-h"><h2 class="h2">${L('fr.goals')}</h2><small class="mut">${L('fr.active_n', { n: act })}</small></div>
+    <div class="ladder">${goals.map(([n, p]) => `<div class="rung ${act >= n ? 'on' : ''}"><b>${n}</b><small>${L('fr.friends_n')}</small><span class="mag">+${p} ${L('res.pts_s')}</span></div>`).join('')}</div>
+    <p class="hint">${L('fr.goals_hint')}</p>
+  </section>
+  <section class="panel">
+    <div class="sec-h"><h2 class="h2">${L('fr.list')}</h2><small class="mut">${r.total || 0}</small></div>
     ${!f ? `<div class="loading">${L('ui.loading')}</div>` : f.friends && f.friends.length ? `<div class="flist">${f.friends.map((x) => `<div class="fr">
       <span class="fav">${esc((x.name || '?').slice(0, 1).toUpperCase())}</span>
-      <div class="f-t"><b>${esc(x.name || '—')}</b><small class="${x.active ? 'grn' : 'mut'}">${x.active ? L('fr.is_active') : L('fr.not_active')}</small></div>
+      <div class="f-t"><b>${esc(x.name || '—')}</b><small class="${x.active ? 'grn' : 'mut'}">${x.active ? '✅ ' + L('fr.is_active2') : '⏳ ' + L('fr.not_active2')}</small></div>
       <b class="mag">+${fmtPts(x.earned)}</b></div>`).join('')}</div>` : `<p class="sub">${L('fr.empty')}</p>`}
+    <p class="hint">${L('fr.fair')}</p>
   </section>`;
 }
 function taskRow(t) {

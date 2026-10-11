@@ -74,7 +74,7 @@ function build(env) {
       supporterBoost: num('SUPPORTER_BOOST', 1.1),
       supporterDays: num('SUPPORTER_DAYS', 30),
       refL1: num('REF_L1', 0.10),
-      refL2: num('REF_L2', 0.02),
+      refL2: num('REF_L2', 0), // second level off by default: one simple rule is easier to explain
       refDailyCap: num('REF_DAILY_CAP', 150),
       refActivationBonus: num('REF_ACTIVATION_PTS', 25),
       refActivationsPerDay: num('REF_ACTIVATIONS_PER_DAY', 5),

@@ -226,7 +226,8 @@ async function main() {
   await click(page, '[data-act="sub:drop:friends"]');
   await sleep(800);
   await shot(page, '11_friends');
-  ok((await page.textContent('.linkbox code')).includes('t.me/od_test_bot/play?startapp=ref_'), 'invite link shown');
+  ok((await ev(page, 'NET.eco.ref.link')).includes('t.me/od_test_bot/play?startapp=ref_'), 'invite link ready');
+  ok(!!(await page.$('[data-act="share"]')) && !!(await page.$('.steps3')), 'simple invite screen: one button + 3 steps');
   await click(page, '[data-act="sub:drop:tasks"]');
   await sleep(800);
   await shot(page, '12_tasks');
@@ -267,6 +268,9 @@ async function main() {
   ok(await ev(p2, 'LANG') === 'ru', 'switched to russian');
 
   // friends list of p1 shows p2
+  console.log('  (p1 modal before friends list:', await ev(page, 'JSON.stringify(UI.modal)'), ')');
+  await ev(page, 'UI.modal && closeModal(true)');
+  await sleep(300);
   await click(page, '[data-act="sub:drop:friends"]');
   await ev(page, 'loadHub("friends", true)');
   await sleep(900);

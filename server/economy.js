@@ -135,10 +135,10 @@ function refLink(ctx, code) {
   if (!botUsername) return '';
   return appShort ? `https://t.me/${botUsername}/${appShort}?startapp=ref_${code}` : `https://t.me/${botUsername}?start=ref_${code}`;
 }
-// a friend becomes "active" once they really played: released a game on a 2nd day. Only then the inviter is rewarded.
+// a friend becomes "active" once they really played: released their first game. Only then the inviter is rewarded.
 function checkReferralActivation(ctx, u, s, now) {
   if (u.ref_active || !u.ref1) return null;
-  if (u.days_played < 2 || s.stats.released < 1 || u.risk_state !== 'ok' || u.risk >= 25) return null;
+  if (s.stats.released < 1 || s.stats.taps < 50 || u.risk_state !== 'ok' || u.risk >= 25) return null;
   const { eco } = ctx.cfg;
   const r = U.getUser(ctx, u.ref1);
   if (!r || r.deleted || r.risk_state === 'banned') return null;
@@ -410,7 +410,7 @@ function ecoView(ctx, u, now) {
     supBoost: ctx.cfg.eco.supporterBoost,
     ads: adInfo(ctx, u.id, now),
     checkin: ci,
-    ref: { code: u.ref_code, link: refLink(ctx, u.ref_code), total: fr.total, active: fr.active, pts: r1(u.ref_pts), l1: ctx.cfg.eco.refL1, l2: ctx.cfg.eco.refL2, cashEach: ctx.cfg.eco.inviteCash, gemsEach: ctx.cfg.eco.inviteGems },
+    ref: { code: u.ref_code, link: refLink(ctx, u.ref_code), total: fr.total, active: fr.active, pts: r1(u.ref_pts), l1: ctx.cfg.eco.refL1, l2: ctx.cfg.eco.refL2, cashEach: ctx.cfg.eco.inviteCash, gemsEach: ctx.cfg.eco.inviteGems, ptsEach: ctx.cfg.eco.refActivationBonus, welcome: ctx.cfg.eco.welcomeCash },
     risk: u.risk_state === 'ok' ? 0 : u.risk_state === 'watch' ? 1 : 2,
     wallet: u.wallet ? { addr: u.wallet, ok: !!u.wallet_ok } : null,
     days: u.days_played,
