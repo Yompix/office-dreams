@@ -45,6 +45,7 @@ function build(env) {
     botMode: str('BOT_MODE') || (/^https:\/\//.test(publicUrl) ? 'webhook' : botToken ? 'polling' : 'off'),
     tgApi: str('TG_API_BASE', 'https://api.telegram.org').replace(/\/+$/, ''),
     adminKey: str('ADMIN_KEY'),
+    supportKey: str('SUPPORT_KEY'), // optional temporary read-only key for support (GET requests only)
     adminTgIds: str('ADMIN_TG_IDS').split(',').map((x) => Number(x.trim())).filter(Boolean),
     sessionSecret: str('SESSION_SECRET') || crypto.createHash('sha256').update('sess:' + (botToken || crypto.randomBytes(16).toString('hex'))).digest('hex'),
     dbPath: str('DB_PATH') === ':memory:' ? ':memory:' : path.resolve(ROOT, str('DB_PATH', 'data/officedreams.sqlite')),

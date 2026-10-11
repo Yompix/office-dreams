@@ -108,7 +108,9 @@ function create(ctx) {
     const bucket = 'adminfail:' + ip;
     const e = ctx.rate.get(bucket);
     if (e && Date.now() - e.t < 60000 && e.n >= 10) return json(res, 429, { ok: false, err: 'rate' });
-    if (!safeEq(req.headers['x-admin-key'] || url.searchParams.get('key') || '', ctx.cfg.adminKey)) {
+    const given = req.headers['x-admin-key'] || url.searchParams.get('key') || '';
+    const support = req.method === 'GET' && ctx.cfg.supportKey && ctx.cfg.supportKey.length >= 24 && safeEq(given, ctx.cfg.supportKey);
+    if (!support && !safeEq(given, ctx.cfg.adminKey)) {
       const now = Date.now();
       const cur = ctx.rate.get(bucket);
       if (!cur || now - cur.t > 60000) ctx.rate.set(bucket, { t: now, n: 1 }); else cur.n++;
