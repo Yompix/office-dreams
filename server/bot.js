@@ -174,6 +174,17 @@ async function notifyReferral(ctx, referrerId, friendName) {
   await send(ctx, referrerId, tx(r.lang).joined(friendName));
 }
 
+const ACT_TXT = {
+  en: (n, p) => `🎉 <b>${esc(n)}</b> released their first game — your invite counts! You got <b>+${p} points</b>, coins and gems.`,
+  ru: (n, p) => `🎉 <b>${esc(n)}</b> выпустил свою первую игру — приглашение засчитано! Тебе <b>+${p} очков</b>, монеты и кристаллы.`,
+  uk: (n, p) => `🎉 <b>${esc(n)}</b> випустив свою першу гру — запрошення зараховано! Тобі <b>+${p} балів</b>, монети й кристали.`,
+};
+async function notifyRefActive(ctx, referrerId, friendName, pts) {
+  const r = U.getUser(ctx, referrerId);
+  if (!r || r.blocked || r.deleted) return;
+  await send(ctx, referrerId, (ACT_TXT[r.lang] || ACT_TXT.en)(friendName, Math.round(pts)));
+}
+
 /* one-time setup: commands, menu button, descriptions, webhook */
 async function setup(ctx) {
   const { cfg, tg } = ctx;
@@ -221,4 +232,4 @@ function startPolling(ctx) {
   return { stop() { stop = true; } };
 }
 
-module.exports = { T, tx, shopTxt, donateTxt, thanksTxt, handleUpdate, notifyReferral, setup, startPolling, send };
+module.exports = { T, tx, shopTxt, donateTxt, thanksTxt, notifyRefActive, handleUpdate, notifyReferral, setup, startPolling, send };

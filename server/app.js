@@ -167,7 +167,7 @@ async function handleAuth(ctx, req, res, body, ip, now) {
   }
   const platform = ['android', 'ios', 'tdesktop', 'macos', 'weba', 'webk', 'webz', 'android_x', 'web'].includes(body.platform) ? body.platform : 'unknown';
   const fp = typeof body.fp === 'string' ? body.fp.slice(0, 300) : '';
-  const { user, created } = U.ensureUser(ctx, tu, { startParam, platform, ip, dev: fp, now });
+  const { user, created, lateBound } = U.ensureUser(ctx, tu, { startParam, platform, ip, dev: fp, now });
   if (user.deleted) return bad(res, 403, 'deleted');
   {
     const tz = typeof body.tz === 'string' && /^[A-Za-z0-9_+\-/]{1,64}$/.test(body.tz) ? body.tz : null;
@@ -177,8 +177,8 @@ async function handleAuth(ctx, req, res, body, ip, now) {
   }
   const r = Sync.doSync(ctx, user.id, {}, now);
   const token = TG.makeToken(cfg.sessionSecret, user.id, 12 * 3600, now);
-  if (created && user.ref1) Bot.notifyReferral(ctx, user.ref1, user.name).catch(() => {});
-  if (created && user.ref1) {
+  if ((created || lateBound) && user.ref1) Bot.notifyReferral(ctx, user.ref1, user.name).catch(() => {});
+  if ((created || lateBound) && user.ref1) {
     // a new account that came through an invite: evaluate the cluster signals immediately
     const fresh = U.getUser(ctx, user.id);
     AB.evaluate(ctx, fresh, now);

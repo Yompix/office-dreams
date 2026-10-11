@@ -51,6 +51,10 @@ function stats(ctx, price) {
     pie: { price: price || 0, yesterdayUsd: y ? y.usd : 0, ...pie },
     top: db.all('SELECT id,name,username,country,pts,ref_pts,risk_state,risk,wallet FROM users WHERE deleted=0 ORDER BY pts DESC LIMIT 20'),
     dist: [1, 10, 50, 200, 1000].map((t) => ({ over: t, n: one('SELECT COUNT(*) AS n FROM users WHERE pts>=? AND deleted=0', t).n })),
+    refRecent: db.all(`SELECT f.id, f.name, f.username, f.country, f.created_at, f.ref_active, f.risk_state, f.days_played, f.ref_src,
+        i.id AS inv_id, i.name AS inv_name, i.username AS inv_username,
+        (SELECT json_extract(s.json,'$.stats.released') FROM states s WHERE s.uid=f.id) AS released
+      FROM users f JOIN users i ON i.id=f.ref1 WHERE f.deleted=0 ORDER BY f.created_at DESC LIMIT 50`),
     blocked: { countries: ctx.cfg.blockedCountries, langs: ctx.cfg.blockedLangs, attempts: ctx.cache.blocked || 0 },
     countries: db.all(`SELECT COALESCE(country,'?') AS c, COUNT(*) AS n,
         SUM(CASE WHEN last_seen>? THEN 1 ELSE 0 END) AS d1, SUM(CASE WHEN last_seen>? THEN 1 ELSE 0 END) AS d7,
@@ -235,6 +239,7 @@ h+='<h2>Players live <span id="lvdot" class="pill">●</span></h2><div class="ro
 h+='<h2>Risk states</h2><div class="grid">'+['ok','watch','quarantine','banned'].map(k=>kv(k,s.risk[k]||0)).join('')+'</div>';
 h+='<h2>Stars revenue (last 14 days)</h2>'+tbl(['Date','Purchases','Stars','USD (net est.)'],s.revenue.map(r=>[r.date,r.n,r.stars,'$'+r.usd]));
 h+='<h2>Emission brake preview (after token launch)</h2><div class="card">Token price (USD): <input id="price" size="8" value="'+(s.pie.price||'')+'" placeholder="0.001"> <button id="pp">Calculate</button><br>Yesterday net revenue: <b>$'+(Math.round(s.pie.yesterdayUsd*100)/100)+'</b> → schedule <b>'+s.pie.schedule+'</b>, brake <b>'+s.pie.brake+'</b> → daily pie <b>'+s.pie.pie+'</b> tokens</div>';
+h+='<h2>Referrals (last 50)</h2>'+tbl(['Friend','Invited by','Joined','Status','Why'],(s.refRecent||[]).map(r=>[ctry(r.country)+' '+esc(r.name)+(r.username?' @'+esc(r.username):'')+' <span class="k">'+r.id+'</span>',esc(r.inv_name)+(r.inv_username?' @'+esc(r.inv_username):''),new Date(r.created_at).toISOString().slice(0,16).replace('T',' '),r.ref_active?'<span class="ok">active ✓</span>':'<span class="watch">waiting</span>',r.ref_active?'bonus paid':r.risk_state!=='ok'?'risk: '+r.risk_state:!r.released?'no game released yet':'checking on next sync']));
 h+='<h2>Countries</h2><div class="k">Blocked: '+s.blocked.countries.map(ctry).join(', ')+' · languages: '+esc(s.blocked.langs.join(', '))+' · blocked logins since restart: '+s.blocked.attempts+'</div>'+tbl(['Country','Players','Active 24h','Active 7d','New today','Paying','Avg points'],s.countries.map(r=>[ctry(r.c),r.n,r.d1,r.d7,r.today,r.payers,r.avgPts]));
 h+='<h2>Top players</h2>'+tbl(['ID','Name','Country','Points','From refs','Risk','Wallet'],s.top.map(u=>[u.id,esc(u.name)+(u.username?' @'+esc(u.username):''),ctry(u.country),u.pts,u.ref_pts,'<span class="'+u.risk_state+'">'+u.risk_state+' ('+u.risk+')</span>',esc((u.wallet||'').slice(0,14))]));
 h+='<h2>Review queue</h2><div class="row"><select id="st"><option>watch</option><option>quarantine</option><option>banned</option></select><button id="rq">Show</button><button id="sw">Run sweep</button></div><div id="rqo"></div>';

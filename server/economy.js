@@ -449,7 +449,15 @@ function ecoView(ctx, u, now) {
     wallet: u.wallet ? { addr: u.wallet, ok: !!u.wallet_ok } : null,
     days: u.days_played,
     mult: RISK_MULT[u.risk_state] === undefined ? 0 : RISK_MULT[u.risk_state],
+    ptsAll: ptsAll(ctx, now),
   };
+}
+function ptsAll(ctx, now) {
+  const c = ctx.cache.ptsAll;
+  if (c && now - c.t < 30000) return c.v;
+  const v = r1(ctx.db.get("SELECT COALESCE(SUM(pts),0) AS s FROM users WHERE deleted=0 AND risk_state IN ('ok','watch')").s);
+  ctx.cache.ptsAll = { t: now, v };
+  return v;
 }
 
 module.exports = {

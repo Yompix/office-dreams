@@ -735,6 +735,56 @@ button.cell:active { transform: scale(0.94); }
 .don-own { display: grid; gap: 4px; margin: 6px 0 10px; }
 .don-own input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.25); color: inherit; font: inherit; font-size: 16px; }
 .donate .h3 { margin: 14px 0 6px; font-size: 15px; }
+
+/* ---- token tab v2 ---- */
+.tokhero2 { text-align: center; display: grid; gap: 8px; justify-items: center; background: radial-gradient(120% 80% at 50% 0%, rgba(34, 230, 255, 0.18), transparent 60%), radial-gradient(90% 70% at 50% 100%, rgba(255, 63, 208, 0.14), transparent 70%), var(--panel, #0d1240); overflow: hidden; }
+.coin3d { width: 96px; height: 96px; perspective: 400px; margin-top: 4px; }
+.coin-face { width: 100%; height: 100%; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #9ff3ff, #22a8e6 45%, #0b4fa0 80%); box-shadow: 0 0 30px rgba(34, 230, 255, 0.7), inset 0 -6px 14px rgba(0, 0, 0, 0.35), inset 0 4px 10px rgba(255, 255, 255, 0.5); animation: coinspin 6s ease-in-out infinite; color: #fff; }
+@keyframes coinspin { 0%, 100% { transform: rotateY(0) translateY(0); } 25% { transform: rotateY(180deg) translateY(-4px); } 50% { transform: rotateY(360deg) translateY(0); } }
+.hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin-top: 6px; }
+.hero-stats div { display: grid; gap: 2px; padding: 10px 4px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); }
+.hero-stats b { font-size: 15px; color: #ffd23f; text-shadow: 0 0 10px rgba(255, 210, 63, 0.5); }
+.hero-stats small { font-size: 11px; opacity: 0.8; }
+.myshare { border-color: rgba(46, 230, 107, 0.45); background: linear-gradient(135deg, rgba(46, 230, 107, 0.12), rgba(34, 230, 255, 0.06)), var(--panel, #0d1240); }
+.ms-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 10px; align-items: stretch; margin: 6px 0; }
+.ms-big { display: grid; align-content: center; gap: 2px; padding: 12px; border-radius: 14px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(46, 230, 107, 0.35); }
+.ms-big small { opacity: 0.8; font-size: 11px; }
+.ms-big b { font-size: 24px; color: #2ee66b; text-shadow: 0 0 14px rgba(46, 230, 107, 0.6); }
+.ms-big span { font-weight: 800; letter-spacing: 0.08em; opacity: 0.9; }
+.ms-side { display: grid; gap: 8px; }
+.ms-side div { display: grid; gap: 2px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); }
+.ms-side small { font-size: 11px; opacity: 0.8; }
+.ms-side b { font-size: 17px; }
+.donut-wrap { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; align-items: center; }
+.donut { width: 150px; height: 150px; filter: drop-shadow(0 0 12px rgba(34, 230, 255, 0.35)); }
+.donut circle { transition: stroke-width 0.2s; }
+.donut .d-big { font: 800 26px var(--px, monospace); fill: #fff; }
+.donut .d-sm { font: 600 10px system-ui, sans-serif; fill: #aab3ff; }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.legend li { display: flex; gap: 8px; align-items: flex-start; }
+.legend i { flex: none; width: 10px; height: 10px; border-radius: 3px; margin-top: 4px; }
+.legend div { display: grid; min-width: 0; }
+.legend b { font-size: 13px; }
+.legend small { font-size: 11px; line-height: 1.3; }
+@media (max-width: 380px) { .donut-wrap { grid-template-columns: 1fr; justify-items: center; } }
+.ybars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; align-items: end; margin: 10px 0 12px; }
+.yb { display: grid; justify-items: center; gap: 3px; }
+.yb-bar { width: 100%; height: 90px; display: flex; align-items: flex-end; border-radius: 8px; background: rgba(255, 255, 255, 0.04); overflow: hidden; }
+.yb-bar i { display: block; width: 100%; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, #22e6ff, #8a5cff); box-shadow: 0 0 12px rgba(34, 230, 255, 0.5); }
+.yb b { font-size: 11px; }
+.yb small { font-size: 10px; opacity: 0.75; }
+.road2 { list-style: none; margin: 8px 0 0; padding: 0 0 0 4px; position: relative; display: grid; gap: 12px; }
+.road2::before { content: ''; position: absolute; left: 17px; top: 10px; bottom: 10px; width: 3px; border-radius: 2px; background: linear-gradient(180deg, #2ee66b, #22e6ff 30%, #8a5cff 70%, #ff3fd0); box-shadow: 0 0 10px rgba(34, 230, 255, 0.5); }
+.road2 li { display: flex; gap: 12px; align-items: flex-start; position: relative; }
+.road2 .rdot { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 12px; background: #141a4d; border: 2px solid #4a55b0; z-index: 1; }
+.road2 li.now .rdot { background: #2ee66b; border-color: #b6ffcb; color: #052; box-shadow: 0 0 16px rgba(46, 230, 107, 0.8); animation: glowp2 1.6s ease-in-out infinite; }
+.road2 li.next .rdot { border-color: #22e6ff; color: #22e6ff; }
+.rd2 { display: grid; gap: 3px; min-width: 0; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); flex: 1; }
+.road2 li.now .rd2 { background: rgba(46, 230, 107, 0.1); border: 1px solid rgba(46, 230, 107, 0.35); }
+.rd2-h { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.rd2 small { line-height: 1.35; opacity: 0.85; }
+.uses { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.use { padding: 12px 10px; border-radius: 12px; background: linear-gradient(135deg, rgba(138, 92, 255, 0.16), rgba(34, 230, 255, 0.08)); border: 1px solid var(--line); font-weight: 700; font-size: 13px; line-height: 1.3; }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -1766,6 +1816,45 @@ LANGS.en = {
   'don.thanks': "Thank you for your support! 💖",
   'top.countries': "Battle of countries",
   'top.players_n': "{n} players",
+  'tk2.supply': "tokens, minted once",
+  'tk2.to_players': "to players",
+  'tk2.bln_s': 'B',
+  'tk2.season0': 'Season 0 airdrop',
+  'tk2.mln': "M",
+  'tk2.bln': "billion",
+  'tk2.my': "Your airdrop today",
+  'tk2.est': "If Season 0 ended today",
+  'tk2.my_pts': "Your points",
+  'tk2.my_share': "Your share",
+  'tk2.est_hint': "Estimate of your part of the Season 0 early airdrop (50M {sym}). It changes every day as everyone plays — and bots are removed before the snapshot.",
+  'tk2.d_players': "paid out daily for playing, for years",
+  'tk2.d_liq': "exchange liquidity, locked",
+  'tk2.d_team': "4-year unlock, nothing in year one",
+  'tk2.d_mkt': "tournaments, partners, growth",
+  'tk2.d_treasury': "reserve for the project's future",
+  'tk2.d_early': "Season 0 points → tokens at launch",
+  'tk2.years': "Rewards for years, not one day",
+  'tk2.years_t': "The players' pool (450M) is paid out every day and halves every year — playing pays off for a long time.",
+  'tk2.year': "Year {n}",
+  'tk2.road': "Roadmap",
+  'tk2.r1': "Season 0 · Game & points",
+  'tk2.r1d': "Office, team, game releases, points for playing, friends, anti-bot protection.",
+  'tk2.r2': "Wallets & verification",
+  'tk2.r2d': "Connect a TON wallet, final bot check, points snapshot.",
+  'tk2.r3': "{sym} launch",
+  'tk2.r3d': "Listing on a TON exchange, locked liquidity, airdrop unlocked in parts so the price isn't dumped.",
+  'tk2.r4': "Season 1 · {sym} in the game",
+  'tk2.r4d': "Studio tournaments with prize pools, guilds, a daily token pool for playing.",
+  'tk2.r5': "Season 2 · NFT & market",
+  'tk2.r5d': "Unique employees and floors as NFTs, trading between players.",
+  'tk2.r6': "Only better from there",
+  'tk2.r6d': "New cities and offices, events, players vote on features, part of the game's revenue goes to the players' pool.",
+  'tk2.uses': "What {sym} is for",
+  'tk2.u1': "🏆 Tournaments & prize pools",
+  'tk2.u2': "🏢 Exclusive offices & upgrades",
+  'tk2.u3': "🗳 A vote on what we build next",
+  'tk2.u4': "💎 Daily rewards for playing",
+  'tk2.uses_hint': "Plans may change as the project grows — every update is announced in the official channel.",
   'fb.moved': 'New office — welcome in!',
   'fb.look': 'Your office got a new look',
   'fb.title': 'NEW FLOOR!',
@@ -2112,6 +2201,45 @@ LANGS.ru = {
   'don.thanks': "Спасибо за поддержку! 💖",
   'top.countries': "Битва стран",
   'top.players_n': "{n} игроков",
+  'tk2.supply': "токенов, выпуск один раз",
+  'tk2.to_players': "игрокам",
+  'tk2.bln_s': 'млрд',
+  'tk2.season0': 'аирдроп Сезона 0',
+  'tk2.mln': "млн",
+  'tk2.bln': "миллиард",
+  'tk2.my': "Твой аирдроп сегодня",
+  'tk2.est': "Если бы Сезон 0 закончился сегодня",
+  'tk2.my_pts': "Твои очки",
+  'tk2.my_share': "Твоя доля",
+  'tk2.est_hint': "Оценка твоей части раннего аирдропа Сезона 0 (50 млн {sym}). Меняется каждый день, пока все играют, — а ботов уберём до снимка.",
+  'tk2.d_players': "выплачивается каждый день за игру, годами",
+  'tk2.d_liq': "ликвидность на бирже, заблокирована",
+  'tk2.d_team': "открывается 4 года, в первый год — ничего",
+  'tk2.d_mkt': "турниры, партнёры, рост",
+  'tk2.d_treasury': "резерв на будущее проекта",
+  'tk2.d_early': "очки Сезона 0 → токены на запуске",
+  'tk2.years': "Награды годами, а не один день",
+  'tk2.years_t': "Пул игроков (450 млн) раздаётся каждый день и уменьшается вдвое каждый год — играть выгодно долго.",
+  'tk2.year': "Год {n}",
+  'tk2.road': "Дорожная карта",
+  'tk2.r1': "Сезон 0 · Игра и очки",
+  'tk2.r1d': "Офис, команда, релизы игр, очки за игру, друзья, защита от ботов.",
+  'tk2.r2': "Кошельки и проверка",
+  'tk2.r2d': "Подключение TON-кошелька, финальная проверка на ботов, снимок очков.",
+  'tk2.r3': "Запуск {sym}",
+  'tk2.r3d': "Листинг на бирже TON, ликвидность заблокирована, аирдроп открывается частями — без обвала цены.",
+  'tk2.r4': "Сезон 1 · {sym} в игре",
+  'tk2.r4d': "Турниры студий с призовыми, гильдии, ежедневный пул токенов за игру.",
+  'tk2.r5': "Сезон 2 · NFT и рынок",
+  'tk2.r5d': "Уникальные сотрудники и этажи как NFT, обмен между игроками.",
+  'tk2.r6': "Дальше — только лучше",
+  'tk2.r6d': "Новые города и офисы, ивенты, голосование игроков за новые функции, часть дохода игры — в пул игроков.",
+  'tk2.uses': "Зачем нужен {sym}",
+  'tk2.u1': "🏆 Турниры и призовые фонды",
+  'tk2.u2': "🏢 Эксклюзивные офисы и улучшения",
+  'tk2.u3': "🗳 Голос за развитие игры",
+  'tk2.u4': "💎 Ежедневные награды за игру",
+  'tk2.uses_hint': "Планы могут уточняться по мере роста проекта — все обновления публикуем в официальном канале.",
   'fb.moved': 'Новый офис — заходите!',
   'fb.look': 'Офис сменил обстановку',
   'fb.title': 'НОВЫЙ ЭТАЖ!',
@@ -2458,6 +2586,45 @@ LANGS.uk = {
   'don.thanks': "Дякуємо за підтримку! 💖",
   'top.countries': "Битва країн",
   'top.players_n': "{n} гравців",
+  'tk2.supply': "токенів, випуск один раз",
+  'tk2.to_players': "гравцям",
+  'tk2.bln_s': 'млрд',
+  'tk2.season0': 'аірдроп Сезону 0',
+  'tk2.mln': "млн",
+  'tk2.bln': "мільярд",
+  'tk2.my': "Твій аірдроп сьогодні",
+  'tk2.est': "Якби Сезон 0 закінчився сьогодні",
+  'tk2.my_pts': "Твої бали",
+  'tk2.my_share': "Твоя частка",
+  'tk2.est_hint': "Оцінка твоєї частини раннього аірдропу Сезону 0 (50 млн {sym}). Змінюється щодня, поки всі грають, — а ботів приберемо до знімка.",
+  'tk2.d_players': "виплачується щодня за гру, роками",
+  'tk2.d_liq': "ліквідність на біржі, заблокована",
+  'tk2.d_team': "відкривається 4 роки, у перший рік — нічого",
+  'tk2.d_mkt': "турніри, партнери, ріст",
+  'tk2.d_treasury': "резерв на майбутнє проєкту",
+  'tk2.d_early': "бали Сезону 0 → токени на запуску",
+  'tk2.years': "Нагороди роками, а не один день",
+  'tk2.years_t': "Пул гравців (450 млн) роздається щодня й зменшується вдвічі щороку — грати вигідно довго.",
+  'tk2.year': "Рік {n}",
+  'tk2.road': "Дорожня карта",
+  'tk2.r1': "Сезон 0 · Гра і бали",
+  'tk2.r1d': "Офіс, команда, релізи ігор, бали за гру, друзі, захист від ботів.",
+  'tk2.r2': "Гаманці й перевірка",
+  'tk2.r2d': "Підключення TON-гаманця, фінальна перевірка на ботів, знімок балів.",
+  'tk2.r3': "Запуск {sym}",
+  'tk2.r3d': "Лістинг на біржі TON, ліквідність заблокована, аірдроп відкривається частинами — без обвалу ціни.",
+  'tk2.r4': "Сезон 1 · {sym} у грі",
+  'tk2.r4d': "Турніри студій із призовими, гільдії, щоденний пул токенів за гру.",
+  'tk2.r5': "Сезон 2 · NFT і ринок",
+  'tk2.r5d': "Унікальні працівники й поверхи як NFT, обмін між гравцями.",
+  'tk2.r6': "Далі — тільки краще",
+  'tk2.r6d': "Нові міста й офіси, івенти, голосування гравців за нові функції, частина доходу гри — у пул гравців.",
+  'tk2.uses': "Навіщо потрібен {sym}",
+  'tk2.u1': "🏆 Турніри та призові фонди",
+  'tk2.u2': "🏢 Ексклюзивні офіси й покращення",
+  'tk2.u3': "🗳 Голос за розвиток гри",
+  'tk2.u4': "💎 Щоденні нагороди за гру",
+  'tk2.uses_hint': "Плани можуть уточнюватися з ростом проєкту — усі оновлення публікуємо в офіційному каналі.",
   'fb.moved': 'Новий офіс — заходьте!',
   'fb.look': 'Офіс змінив обстановку',
   'fb.title': 'НОВИЙ ПОВЕРХ!',
@@ -6827,27 +6994,73 @@ function donatePanel() {
 }
 function hubToken() {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
-  const alloc = [[45, 'players', 'cy'], [15, 'liq', 'blue'], [15, 'team', 'vio'], [10, 'mkt', 'mag'], [10, 'treasury', 'yel'], [5, 'early', 'grn']];
-  const road = [['s1', 'now'], ['s2', 'next'], ['s3', 'later']];
-  return `<section class="panel tokhero">
-    <div class="tok-coin">${I('ton', 40)}</div>
+  const e = NET.eco || {};
+  const SUPPLY = 1e9;
+  const alloc = [[45, 'players', '#22e6ff'], [15, 'liq', '#4ca3ff'], [15, 'team', '#8a5cff'], [10, 'mkt', '#ff3fd0'], [10, 'treasury', '#ffd23f'], [5, 'early', '#2ee66b']];
+  // donut: one circle per slice, offset by the slices before it
+  const R = 54, CIRC = 2 * Math.PI * R;
+  let acc = 0;
+  const arcs = alloc.map((a) => {
+    const len = (a[0] / 100) * CIRC;
+    const s = `<circle r="${R}" cx="70" cy="70" fill="none" stroke="${a[2]}" stroke-width="18" stroke-dasharray="${(len - 2).toFixed(2)} ${(CIRC - len + 2).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" />`;
+    acc += len;
+    return s;
+  }).join('');
+  const big = (n) => (n >= 1e6 ? fmt(Math.round(n / 1e6)) + ' ' + L('tk2.mln') : fmt(Math.round(n)));
+  // your share of the Season 0 early airdrop (5%) if the snapshot were taken today
+  const early = SUPPLY * 0.05;
+  const my = e.pts || 0, all = Math.max(e.ptsAll || 0, my, 1);
+  const est = my > 0 ? (early * my) / all : 0;
+  const share = my > 0 ? (my / all) * 100 : 0;
+  // players pool: 45% paid daily, halving every year
+  const years = [1, 2, 3, 4, 5, 6].map((y) => [y, (SUPPLY * 0.45) / Math.pow(2, y)]);
+  const ymax = years[0][1];
+  const road = [['r1', 'now'], ['r2', 'next'], ['r3', 'next'], ['r4', 'later'], ['r5', 'later'], ['r6', 'later']];
+  const uses = ['u1', 'u2', 'u3', 'u4'];
+  return `<section class="panel tokhero2">
+    <div class="coin3d"><div class="coin-face">${I('ton', 46)}</div></div>
     <h2 class="op-title">${sym}</h2>
     <p class="sub">${L('tok.what', { sym })}</p>
-    <div class="srcs"><span class="chip cy">TON · Jetton</span><span class="chip">${L('tok.supply')}</span><span class="chip yel">${L('tok.status')}</span></div>
+    <div class="hero-stats">
+      <div><b class="px">1 ${L('tk2.bln_s')}</b><small>${L('tk2.supply')}</small></div>
+      <div><b class="px">45%</b><small>${L('tk2.to_players')}</small></div>
+      <div><b class="px">${big(SUPPLY * 0.05)}</b><small>${L('tk2.season0')}</small></div>
+    </div>
   </section>
-  <section class="panel">
-    <h2 class="h2">${I('pts', 16)} ${L('tok.how')}</h2>
-    <div class="formula">${L('tok.formula')}</div>
-    <ul class="bul"><li>${L('tok.how1')}</li><li>${L('tok.how2')}</li><li>${L('tok.how3')}</li><li>${L('tok.how4', { sym })}</li></ul>
+  <section class="panel myshare">
+    <h2 class="h2">🎁 ${L('tk2.my')}</h2>
+    <div class="ms-grid">
+      <div class="ms-big"><small>${L('tk2.est')}</small><b class="px">≈ ${big(est)}</b><span>${sym}</span></div>
+      <div class="ms-side">
+        <div><small>${L('tk2.my_pts')}</small><b class="mag">${fmtPts(my)}</b></div>
+        <div><small>${L('tk2.my_share')}</small><b class="cy">${share >= 0.01 ? share.toFixed(2) : share > 0 ? '<0.01' : '0'}%</b></div>
+      </div>
+    </div>
+    <p class="hint">${L('tk2.est_hint', { sym })}</p>
   </section>
   <section class="panel">
     <h2 class="h2">${I('chart', 16)} ${L('tok.alloc')}</h2>
-    <div class="alloc">${alloc.map((a) => `<div class="al-row"><span class="al-p px">${a[0]}%</span><div class="al-t"><b>${L('tok.a_' + a[1])}</b><div class="al-bar"><i class="c-${a[2]}" style="width:${a[0] / 45 * 100}%"></i></div></div></div>`).join('')}</div>
-    <p class="hint">${L('tok.team_vest')}</p>
+    <div class="donut-wrap">
+      <svg class="donut" viewBox="0 0 140 140" role="img" aria-label="${esc(L('tok.alloc'))}"><g transform="rotate(-90 70 70)">${arcs}</g>
+        <text x="70" y="66" text-anchor="middle" class="d-big">1</text><text x="70" y="84" text-anchor="middle" class="d-sm">${esc(L('tk2.bln'))}</text></svg>
+      <ul class="legend">${alloc.map((a) => `<li><i style="background:${a[2]};box-shadow:0 0 8px ${a[2]}"></i><div><b>${a[0]}% · ${big((SUPPLY * a[0]) / 100)}</b><small>${L('tok.a_' + a[1])}</small><small class="mut">${L('tk2.d_' + a[1])}</small></div></li>`).join('')}</ul>
+    </div>
   </section>
   <section class="panel">
-    <h2 class="h2">${I('arrow', 16)} ${L('tok.road')}</h2>
-    <ol class="road">${road.map((r, i) => `<li class="rd ${r[1]}"><span class="rd-n px">${i + 1}</span><div><b>${L('tok.' + r[0])}</b><small>${L('tok.' + r[0] + 'd', { sym })}</small></div><span class="chip ${r[1] === 'now' ? 'grn' : ''}">${L('tok.' + r[1])}</span></li>`).join('')}</ol>
+    <h2 class="h2">⏳ ${L('tk2.years')}</h2>
+    <p class="sub">${L('tk2.years_t')}</p>
+    <div class="ybars">${years.map(([y, v]) => `<div class="yb"><div class="yb-bar"><i style="height:${Math.max(4, (v / ymax) * 100).toFixed(1)}%"></i></div><b>${big(v)}</b><small>${L('tk2.year', { n: y })}</small></div>`).join('')}</div>
+    <div class="formula">${L('tok.formula')}</div>
+    <ul class="bul"><li>${L('tok.how2')}</li><li>${L('tok.how3')}</li><li>${L('tok.how4', { sym })}</li><li>${L('tok.team_vest')}</li></ul>
+  </section>
+  <section class="panel">
+    <h2 class="h2">🚀 ${L('tk2.road')}</h2>
+    <ol class="road2">${road.map((r, i) => `<li class="${r[1]}"><span class="rdot">${r[1] === 'now' ? '●' : i + 1}</span><div class="rd2"><div class="rd2-h"><b>${L('tk2.' + r[0], { sym })}</b><span class="chip ${r[1] === 'now' ? 'grn' : r[1] === 'next' ? 'cy' : ''}">${L('tok.' + r[1])}</span></div><small>${L('tk2.' + r[0] + 'd', { sym })}</small></div></li>`).join('')}</ol>
+  </section>
+  <section class="panel">
+    <h2 class="h2">💡 ${L('tk2.uses', { sym })}</h2>
+    <div class="uses">${uses.map((u) => `<div class="use">${L('tk2.' + u)}</div>`).join('')}</div>
+    <p class="hint">${L('tk2.uses_hint')}</p>
   </section>
   ${donatePanel()}
   <p class="hint pad">${L('hub.disclaimer', { sym })}</p>`;

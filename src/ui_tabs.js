@@ -712,27 +712,73 @@ function donatePanel() {
 }
 function hubToken() {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
-  const alloc = [[45, 'players', 'cy'], [15, 'liq', 'blue'], [15, 'team', 'vio'], [10, 'mkt', 'mag'], [10, 'treasury', 'yel'], [5, 'early', 'grn']];
-  const road = [['s1', 'now'], ['s2', 'next'], ['s3', 'later']];
-  return `<section class="panel tokhero">
-    <div class="tok-coin">${I('ton', 40)}</div>
+  const e = NET.eco || {};
+  const SUPPLY = 1e9;
+  const alloc = [[45, 'players', '#22e6ff'], [15, 'liq', '#4ca3ff'], [15, 'team', '#8a5cff'], [10, 'mkt', '#ff3fd0'], [10, 'treasury', '#ffd23f'], [5, 'early', '#2ee66b']];
+  // donut: one circle per slice, offset by the slices before it
+  const R = 54, CIRC = 2 * Math.PI * R;
+  let acc = 0;
+  const arcs = alloc.map((a) => {
+    const len = (a[0] / 100) * CIRC;
+    const s = `<circle r="${R}" cx="70" cy="70" fill="none" stroke="${a[2]}" stroke-width="18" stroke-dasharray="${(len - 2).toFixed(2)} ${(CIRC - len + 2).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" />`;
+    acc += len;
+    return s;
+  }).join('');
+  const big = (n) => (n >= 1e6 ? fmt(Math.round(n / 1e6)) + ' ' + L('tk2.mln') : fmt(Math.round(n)));
+  // your share of the Season 0 early airdrop (5%) if the snapshot were taken today
+  const early = SUPPLY * 0.05;
+  const my = e.pts || 0, all = Math.max(e.ptsAll || 0, my, 1);
+  const est = my > 0 ? (early * my) / all : 0;
+  const share = my > 0 ? (my / all) * 100 : 0;
+  // players pool: 45% paid daily, halving every year
+  const years = [1, 2, 3, 4, 5, 6].map((y) => [y, (SUPPLY * 0.45) / Math.pow(2, y)]);
+  const ymax = years[0][1];
+  const road = [['r1', 'now'], ['r2', 'next'], ['r3', 'next'], ['r4', 'later'], ['r5', 'later'], ['r6', 'later']];
+  const uses = ['u1', 'u2', 'u3', 'u4'];
+  return `<section class="panel tokhero2">
+    <div class="coin3d"><div class="coin-face">${I('ton', 46)}</div></div>
     <h2 class="op-title">${sym}</h2>
     <p class="sub">${L('tok.what', { sym })}</p>
-    <div class="srcs"><span class="chip cy">TON · Jetton</span><span class="chip">${L('tok.supply')}</span><span class="chip yel">${L('tok.status')}</span></div>
+    <div class="hero-stats">
+      <div><b class="px">1 ${L('tk2.bln_s')}</b><small>${L('tk2.supply')}</small></div>
+      <div><b class="px">45%</b><small>${L('tk2.to_players')}</small></div>
+      <div><b class="px">${big(SUPPLY * 0.05)}</b><small>${L('tk2.season0')}</small></div>
+    </div>
   </section>
-  <section class="panel">
-    <h2 class="h2">${I('pts', 16)} ${L('tok.how')}</h2>
-    <div class="formula">${L('tok.formula')}</div>
-    <ul class="bul"><li>${L('tok.how1')}</li><li>${L('tok.how2')}</li><li>${L('tok.how3')}</li><li>${L('tok.how4', { sym })}</li></ul>
+  <section class="panel myshare">
+    <h2 class="h2">🎁 ${L('tk2.my')}</h2>
+    <div class="ms-grid">
+      <div class="ms-big"><small>${L('tk2.est')}</small><b class="px">≈ ${big(est)}</b><span>${sym}</span></div>
+      <div class="ms-side">
+        <div><small>${L('tk2.my_pts')}</small><b class="mag">${fmtPts(my)}</b></div>
+        <div><small>${L('tk2.my_share')}</small><b class="cy">${share >= 0.01 ? share.toFixed(2) : share > 0 ? '<0.01' : '0'}%</b></div>
+      </div>
+    </div>
+    <p class="hint">${L('tk2.est_hint', { sym })}</p>
   </section>
   <section class="panel">
     <h2 class="h2">${I('chart', 16)} ${L('tok.alloc')}</h2>
-    <div class="alloc">${alloc.map((a) => `<div class="al-row"><span class="al-p px">${a[0]}%</span><div class="al-t"><b>${L('tok.a_' + a[1])}</b><div class="al-bar"><i class="c-${a[2]}" style="width:${a[0] / 45 * 100}%"></i></div></div></div>`).join('')}</div>
-    <p class="hint">${L('tok.team_vest')}</p>
+    <div class="donut-wrap">
+      <svg class="donut" viewBox="0 0 140 140" role="img" aria-label="${esc(L('tok.alloc'))}"><g transform="rotate(-90 70 70)">${arcs}</g>
+        <text x="70" y="66" text-anchor="middle" class="d-big">1</text><text x="70" y="84" text-anchor="middle" class="d-sm">${esc(L('tk2.bln'))}</text></svg>
+      <ul class="legend">${alloc.map((a) => `<li><i style="background:${a[2]};box-shadow:0 0 8px ${a[2]}"></i><div><b>${a[0]}% · ${big((SUPPLY * a[0]) / 100)}</b><small>${L('tok.a_' + a[1])}</small><small class="mut">${L('tk2.d_' + a[1])}</small></div></li>`).join('')}</ul>
+    </div>
   </section>
   <section class="panel">
-    <h2 class="h2">${I('arrow', 16)} ${L('tok.road')}</h2>
-    <ol class="road">${road.map((r, i) => `<li class="rd ${r[1]}"><span class="rd-n px">${i + 1}</span><div><b>${L('tok.' + r[0])}</b><small>${L('tok.' + r[0] + 'd', { sym })}</small></div><span class="chip ${r[1] === 'now' ? 'grn' : ''}">${L('tok.' + r[1])}</span></li>`).join('')}</ol>
+    <h2 class="h2">⏳ ${L('tk2.years')}</h2>
+    <p class="sub">${L('tk2.years_t')}</p>
+    <div class="ybars">${years.map(([y, v]) => `<div class="yb"><div class="yb-bar"><i style="height:${Math.max(4, (v / ymax) * 100).toFixed(1)}%"></i></div><b>${big(v)}</b><small>${L('tk2.year', { n: y })}</small></div>`).join('')}</div>
+    <div class="formula">${L('tok.formula')}</div>
+    <ul class="bul"><li>${L('tok.how2')}</li><li>${L('tok.how3')}</li><li>${L('tok.how4', { sym })}</li><li>${L('tok.team_vest')}</li></ul>
+  </section>
+  <section class="panel">
+    <h2 class="h2">🚀 ${L('tk2.road')}</h2>
+    <ol class="road2">${road.map((r, i) => `<li class="${r[1]}"><span class="rdot">${r[1] === 'now' ? '●' : i + 1}</span><div class="rd2"><div class="rd2-h"><b>${L('tk2.' + r[0], { sym })}</b><span class="chip ${r[1] === 'now' ? 'grn' : r[1] === 'next' ? 'cy' : ''}">${L('tok.' + r[1])}</span></div><small>${L('tk2.' + r[0] + 'd', { sym })}</small></div></li>`).join('')}</ol>
+  </section>
+  <section class="panel">
+    <h2 class="h2">💡 ${L('tk2.uses', { sym })}</h2>
+    <div class="uses">${uses.map((u) => `<div class="use">${L('tk2.' + u)}</div>`).join('')}</div>
+    <p class="hint">${L('tk2.uses_hint')}</p>
   </section>
   ${donatePanel()}
   <p class="hint pad">${L('hub.disclaimer', { sym })}</p>`;

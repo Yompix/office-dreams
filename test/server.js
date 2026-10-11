@@ -725,6 +725,25 @@ const Ton = require('../server/ton.js');
       assert.equal(Eco.vipOf(env5.ctx, 8801).lvl >= 2, true, 'VIP grew');
       assert.equal(U.getUser(env5.ctx, 8801).pts, pts0, 'donations never buy points');
     });
+    await test('late invite: a friend who opened the game before tapping the link is still attached (48 h)', async () => {
+      const A = new Player(env5, 8901); await A.auth();
+      const code = U.getUser(env5.ctx, 8901).ref_code;
+      const B = new Player(env5, 8902, { fp: 'b-own-phone' }); await B.auth();
+      assert.equal(U.getUser(env5.ctx, 8902).ref1, null);
+      const cash0 = U.loadState(env5.ctx, 8902).cash;
+      await B.auth('ref_' + code);
+      assert.equal(U.getUser(env5.ctx, 8902).ref1, 8901, 'attached late');
+      assert.equal(U.loadState(env5.ctx, 8902).cash - cash0, env5.ctx.cfg.eco.welcomeCash, 'welcome bonus');
+      // no cycles, no re-binding, no binding after 48 h
+      await A.auth('ref_' + U.getUser(env5.ctx, 8902).ref_code);
+      assert.equal(U.getUser(env5.ctx, 8901).ref1, null, 'inviter cannot become their friend\'s friend');
+      const C = new Player(env5, 8903); await C.auth();
+      env5.advance(49 * 3600e3);
+      await C.auth('ref_' + code);
+      assert.equal(U.getUser(env5.ctx, 8903).ref1, null, 'too late');
+      const st = await httpJson(env5.base, 'GET', '/admin/api/stats', undefined, { 'x-admin-key': 'adminkey123' });
+      assert.ok(st.json.refRecent.some((r) => r.id === 8902 && r.inv_id === 8901), 'admin sees the referral');
+    });
     await env5.close();
   }
   summary();

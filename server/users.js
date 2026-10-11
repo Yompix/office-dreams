@@ -70,12 +70,13 @@ function recordFp(ctx, uid, kind, hash, now) {
 }
 
 /* Create or refresh a user from validated Telegram data. */
+const LATE_REF_MS = 48 * 3600 * 1000;
 function ensureUser(ctx, tu, o = {}) {
   const now = o.now || Date.now();
   const { db, cfg } = ctx;
   return db.tx(() => {
     let u = getUser(ctx, tu.id);
-    let created = false;
+    let created = false, lateBound = false;
     const name = String(tu.first_name || tu.username || 'Player').replace(/[\u0000-\u001f<>]/g, '').slice(0, 40);
     const username = tu.username ? String(tu.username).slice(0, 40) : null;
     if (!u) {
@@ -100,10 +101,22 @@ function ensureUser(ctx, tu, o = {}) {
       db.run('UPDATE users SET username=?, name=?, premium=?, platform=COALESCE(NULLIF(?, \'\'), platform), last_seen=? WHERE id=?',
         username, name, tu.is_premium ? 1 : 0, o.platform || '', now, tu.id);
       u = getUser(ctx, tu.id);
+      // late invite: the friend had already opened the game (e.g. from a channel post) before tapping the invite link
+      const code = parseRef(o.startParam) || pendingRef(ctx, tu.id);
+      if (code && !u.ref1 && !u.ref_active && now - u.created_at < LATE_REF_MS) {
+        const r = db.get('SELECT id, ref1, risk_state, deleted, created_at FROM users WHERE ref_code=?', code);
+        if (r && r.id !== tu.id && r.ref1 !== tu.id && !r.deleted && r.risk_state !== 'banned' && r.created_at <= u.created_at) {
+          db.run('UPDATE users SET ref1=?, ref2=?, ref_src=? WHERE id=?', r.id, r.ref1 || null, code, tu.id);
+          grantState(ctx, tu.id, { cash: cfg.eco.welcomeCash });
+          lateBound = true;
+          u = getUser(ctx, tu.id);
+        }
+      }
+      if (code) db.run('DELETE FROM pending_refs WHERE uid=?', tu.id);
     }
     if (o.ip) recordFp(ctx, tu.id, 'ip', hashIp(ctx, o.ip), now);
     if (o.dev) recordFp(ctx, tu.id, 'dev', hashDev(ctx, o.dev), now);
-    return { user: u, created };
+    return { user: u, created, lateBound };
   });
 }
 

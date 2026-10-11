@@ -142,6 +142,7 @@ function doSync(ctx, uid, body, now = Date.now()) {
     const aboutToActivate = u.ref1 && !u.ref_active && s.stats.released >= 1;
     if (aboutToActivate || now - (u.risk_at || 0) > 5 * 60e3) AB.evaluate(ctx, u, now);
     const refAct = Eco.checkReferralActivation(ctx, u, s, now);
+    if (refAct && refAct.bonus > 0) require('./bot.js').notifyRefActive(ctx, refAct.referrer, u.name, refAct.bonus).catch(() => {});
     const challenge = AB.maybeChallenge(ctx, u, now);
 
     u.seq += 1;
