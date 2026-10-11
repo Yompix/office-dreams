@@ -170,7 +170,7 @@ const Ton = require('../server/ton.js');
   const R = {};
   await test('invite link: friend joins with start_param, gets a welcome bonus', async () => {
     const link = A.eco.ref.link;
-    assert.ok(link.startsWith('https://t.me/od_test_bot/play?startapp=ref_'), link);
+    assert.ok(link.startsWith('https://t.me/od_test_bot?start=ref_'), link);
     const code = A.eco.ref.code;
     R.B = new Player(env, 2001, { name: 'Bob', fp: 'bob-phone' });
     const r = await R.B.auth('ref_' + code);
@@ -744,7 +744,7 @@ const Ton = require('../server/ton.js');
       const st = await httpJson(env5.base, 'GET', '/admin/api/stats', undefined, { 'x-admin-key': 'adminkey123' });
       assert.ok(st.json.refRecent.some((r) => r.id === 8902 && r.inv_id === 8901), 'admin sees the referral');
     });
-    await test('invite: start param from the page (unsigned) and manual invite code both attach the friend', async () => {
+    await test('invite: bot deep link (/start ref_CODE) and the start param the page saw both attach the friend', async () => {
       const A = new Player(env5, 9001); await A.auth();
       const code = U.getUser(env5.ctx, 9001).ref_code;
       // Telegram dropped start_param from initData, the page still saw it
@@ -753,15 +753,14 @@ const Ton = require('../server/ton.js');
       const r = await httpJson(env5.base, 'POST', '/api/auth', { initData, platform: 'ios', fp: 'b-phone', start: 'ref_' + code });
       assert.equal(r.status, 200);
       assert.equal(U.getUser(env5.ctx, 9002).ref1, 9001);
-      // manual code
-      const C = new Player(env5, 9003, { fp: 'c-phone' }); await C.auth();
-      assert.equal((await C.api('POST', '/api/ref/claim', { code: 'nope00' })).json.err, 'ref_code');
-      assert.equal((await C.api('POST', '/api/ref/claim', { code: U.getUser(env5.ctx, 9003).ref_code })).json.err, 'ref_self');
-      const ok = await C.api('POST', '/api/ref/claim', { code: 'https://t.me/x/play?startapp=ref_' + code });
-      assert.ok(ok.json.ok, JSON.stringify(ok.json));
-      assert.equal(U.getUser(env5.ctx, 9003).ref1, 9001);
-      assert.equal((await C.api('POST', '/api/ref/claim', { code })).json.err, 'ref_has');
-      assert.equal(ok.json.eco.canClaimRef, false);
+      // the invite link is the bot deep link; /start ref_CODE is remembered and carried by the Play button
+      assert.equal(Eco.refLink(env5.ctx, code), 'https://t.me/od_test_bot?start=ref_' + code);
+      const Bot = require('../server/bot.js');
+      await Bot.handleUpdate(env5.ctx, { message: { message_id: 5, from: { id: 9004, first_name: 'Iphone' }, chat: { id: 9004, type: 'private' }, text: '/start ref_' + code } });
+      const msg = env5.mock.calls.filter((c) => c.method === 'sendMessage' && c.body.chat_id === 9004).pop();
+      assert.ok(msg && JSON.stringify(msg.body.reply_markup).includes('start=ref_' + code), 'Play button carries the code');
+      const D = new Player(env5, 9004, { fp: 'd-phone' }); await D.auth(); // opened via the Play button, no start_param at all
+      assert.equal(U.getUser(env5.ctx, 9004).ref1, 9001, 'attached through /start');
     });
     await env5.close();
   }

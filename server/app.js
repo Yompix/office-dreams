@@ -275,17 +275,6 @@ async function handleApi(ctx, req, res, url, ip) {
     if (!r.ok) return bad(res, 502, 'invoice');
     return sendJson(res, 200, { ok: true, url: r.result });
   }
-  if (method === 'POST' && p === '/api/ref/claim') {
-    const r = U.claimRef(ctx, uid, String(body.code || ''), now);
-    if (r.ok) {
-      const fresh = U.getUser(ctx, uid);
-      Bot.notifyReferral(ctx, fresh.ref1, fresh.name).catch(() => {});
-      AB.evaluate(ctx, fresh, now);
-      Eco.persistUser(ctx, fresh);
-      ctx.log('ref claimed', uid, '→', fresh.ref1);
-    }
-    return sendJson(res, 200, Object.assign(r, { eco: Eco.ecoView(ctx, U.getUser(ctx, uid), now) }));
-  }
   if (method === 'GET' && p === '/api/donate') return sendJson(res, 200, Object.assign({ ok: true, ton: TonPay.enabled(cfg), tonMin: TonPay.enabled(cfg) ? TonPay.donateMinTon(cfg) : null, tonPerStar: cfg.tonPay.starUsd / cfg.tonPay.usd }, Eco.fundView(ctx, uid, now)));
   if (method === 'POST' && p === '/api/donate/invoice') {
     const stars = Math.floor(Number(body.stars));

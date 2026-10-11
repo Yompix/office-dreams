@@ -133,7 +133,9 @@ function friendCounts(ctx, uid) {
 function refLink(ctx, code) {
   const { botUsername, appShort } = ctx.cfg;
   if (!botUsername) return '';
-  return appShort ? `https://t.me/${botUsername}/${appShort}?startapp=ref_${code}` : `https://t.me/${botUsername}?start=ref_${code}`;
+  // the classic bot deep link: Telegram always delivers "/start ref_CODE" to the bot on every platform,
+  // the bot remembers it and the Play button carries it into the game as well
+  return `https://t.me/${botUsername}?start=ref_${code}`;
 }
 // a friend becomes "active" once they really played: released their first game. Only then the inviter is rewarded.
 function checkReferralActivation(ctx, u, s, now) {
@@ -450,7 +452,6 @@ function ecoView(ctx, u, now) {
     days: u.days_played,
     mult: RISK_MULT[u.risk_state] === undefined ? 0 : RISK_MULT[u.risk_state],
     ptsAll: ptsAll(ctx, now),
-    canClaimRef: !u.ref1 && now - u.created_at < 48 * 3600 * 1000,
   };
 }
 function ptsAll(ctx, now) {

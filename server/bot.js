@@ -79,10 +79,10 @@ async function send(ctx, chatId, text, markup) {
   if (markup) p.reply_markup = markup;
   return ctx.tg.call('sendMessage', p);
 }
-function playMarkup(ctx, lang) {
+function playMarkup(ctx, lang, start) {
   const t = tx(lang);
   const rows = [];
-  if (/^https:/.test(ctx.cfg.publicUrl)) rows.push([{ text: t.play, web_app: { url: appUrl(ctx) } }]);
+  if (/^https:/.test(ctx.cfg.publicUrl)) rows.push([{ text: t.play, web_app: { url: appUrl(ctx) + (start ? '?start=' + encodeURIComponent(start) : '') } }]);
   return rows.length ? { inline_keyboard: rows } : undefined;
 }
 function shareMarkup(ctx, lang, link) {
@@ -106,7 +106,7 @@ async function handleMessage(ctx, m) {
     const code = U.parseRef(arg);
     if (code) U.setPendingRef(ctx, from.id, code, ctx.now());
     ctx.log && ctx.log('bot /start', from.id, arg || '(no param)');
-    await send(ctx, m.chat.id, t.start, playMarkup(ctx, lang));
+    await send(ctx, m.chat.id, t.start, playMarkup(ctx, lang, code ? 'ref_' + code : ''));
   } else if (name === 'invite') {
     const u = U.getUser(ctx, from.id);
     if (!u) return send(ctx, m.chat.id, t.start, playMarkup(ctx, lang));

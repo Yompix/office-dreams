@@ -122,7 +122,7 @@ function authBody() {
   try { body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
   try {
     const hp = new URLSearchParams((location.hash || '').replace(/^#/, ''));
-    const sp = (TG && TG.initDataUnsafe && TG.initDataUnsafe.start_param) || qs('tgWebAppStartParam') || hp.get('tgWebAppStartParam') || qs('startapp') || '';
+    const sp = (TG && TG.initDataUnsafe && TG.initDataUnsafe.start_param) || qs('tgWebAppStartParam') || hp.get('tgWebAppStartParam') || qs('startapp') || qs('start') || '';
     if (sp) body.start = String(sp).slice(0, 64);
   } catch (e) {}
   const init = tgInitData();
@@ -309,7 +309,6 @@ const netApi = {
   shop: () => (NET.mode === 'online' ? api('GET', '/api/shop') : Promise.resolve({ ok: true, items: [], demo: true })),
   invoice: (sku) => api('POST', '/api/shop/invoice', { sku }),
   tonOrder: (sku) => api('POST', '/api/shop/ton', { sku }),
-  refClaim: (code) => api('POST', '/api/ref/claim', { code }),
   donateInfo: () => (NET.mode === 'online' ? api('GET', '/api/donate') : Promise.resolve({ ok: true, demo: true, stars: 0, donors: 0, usd: 0, goalUsd: 5000, min: 100, max: 10000, mine: 0, top: [] })),
   donateInvoice: (stars) => api('POST', '/api/donate/invoice', { stars }),
   donateTon: (ton) => api('POST', '/api/donate/ton', { ton }),
