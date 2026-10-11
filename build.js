@@ -21,9 +21,7 @@ const js = FILES.map((f) => '/* ---- ' + f + ' ---- */\n' + strip(read(f))).join
 if (/<\/script/i.test(js) || /<!--/.test(js)) throw new Error('JS contains a sequence that breaks inline <script>');
 
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=Press+Start+2P&display=swap';
-const SHELL = `<div id="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-<canvas id="bgfx" aria-hidden="true"></canvas>
-<div id="app">
+const SHELL = `<div id="app">
   <header id="hud"></header>
   <main id="main"></main>
   <nav id="tabs" role="tablist"></nav>

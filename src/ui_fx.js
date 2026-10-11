@@ -236,52 +236,13 @@ function shake(strong) {
 /* ============================================================
    v2 visual layer: living background, tap ripples, staggered entrances
    ============================================================ */
-const VFX = { cv: null, ctx: null, parts: [], t0: 0, raf: 0, reduce: false, last: 0 };
+const VFX = { reduce: false };
 function vfxInit() {
   try { VFX.reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
-  VFX.cv = document.getElementById('bgfx');
-  if (!VFX.cv || VFX.reduce) return;
-  VFX.ctx = VFX.cv.getContext('2d');
-  const size = () => {
-    const d = Math.min(2, window.devicePixelRatio || 1);
-    VFX.cv.width = Math.round(innerWidth * d * 0.5);
-    VFX.cv.height = Math.round(innerHeight * d * 0.5);
-  };
-  size();
-  addEventListener('resize', size);
-  const cols = ['#3fd0ff', '#ff3fd0', '#8a5cff', '#ffd23f', '#9ff4ff'];
-  for (let i = 0; i < 46; i++) {
-    VFX.parts.push({ x: Math.random(), y: Math.random(), z: 0.3 + Math.random() * 0.7, r: 0.6 + Math.random() * 1.8, c: cols[i % cols.length], ph: Math.random() * 6.28, sp: 0.004 + Math.random() * 0.012 });
-  }
-  const loop = (now) => {
-    VFX.raf = requestAnimationFrame(loop);
-    if (document.hidden || now - VFX.last < 33) return; // ~30 fps is plenty for ambience
-    const dt = Math.min(0.1, (now - (VFX.last || now)) / 1000);
-    VFX.last = now;
-    const c = VFX.ctx, W = VFX.cv.width, H = VFX.cv.height;
-    c.clearRect(0, 0, W, H);
-    c.globalCompositeOperation = 'lighter';
-    for (const p of VFX.parts) {
-      p.y -= p.sp * p.z * dt * 6;
-      p.x += Math.sin(now / 2400 + p.ph) * 0.0004 * p.z;
-      if (p.y < -0.05) { p.y = 1.05; p.x = Math.random(); }
-      const tw = 0.45 + 0.55 * Math.abs(Math.sin(now / 900 * p.z + p.ph));
-      const x = p.x * W, y = p.y * H, r = p.r * p.z * (W / 400) * 1.4;
-      const g = c.createRadialGradient(x, y, 0, x, y, r * 5);
-      g.addColorStop(0, p.c);
-      g.addColorStop(1, 'transparent');
-      c.globalAlpha = 0.5 * tw * p.z;
-      c.fillStyle = g;
-      c.fillRect(x - r * 5, y - r * 5, r * 10, r * 10);
-    }
-    c.globalAlpha = 1;
-    c.globalCompositeOperation = 'source-over';
-  };
-  VFX.raf = requestAnimationFrame(loop);
 }
 // a soft ripple wherever a button is pressed
 function vfxRipple(e) {
-  const el = e.target && e.target.closest && e.target.closest('.btn, .tab, .seg button, .sbtn, .chip[data-act], .sku, .pill');
+  const el = e.target && e.target.closest && e.target.closest('.btn, .sbtn');
   if (!el || VFX.reduce) return;
   const r = el.getBoundingClientRect();
   const s = document.createElement('span');
@@ -290,7 +251,6 @@ function vfxRipple(e) {
   s.style.width = s.style.height = d + 'px';
   s.style.left = (e.clientX - r.left - d / 2) + 'px';
   s.style.top = (e.clientY - r.top - d / 2) + 'px';
-  if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
   el.classList.add('has-rip');
   el.appendChild(s);
   setTimeout(() => s.remove(), 650);
