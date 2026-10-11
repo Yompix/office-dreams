@@ -812,6 +812,21 @@ function drawDynamic(B, st, t) {
     drawCat(B, cp[0], cp[1], t);
   });
 
+  // a courier walks around the office now and then (pure function of time)
+  {
+    const period = 34, ph = (t % period) / period;
+    if (ph < 0.62) {
+      const path = [[1.7, 8.35], [8.35, 8.35], [8.35, 3.2]];
+      const q = ph / 0.62; // 0..1 along out-and-back
+      const u = q < 0.5 ? q * 2 : (1 - q) * 2;
+      const segA = Math.hypot(path[1][0] - path[0][0], path[1][1] - path[0][1]), segB = Math.hypot(path[2][0] - path[1][0], path[2][1] - path[1][1]);
+      let d = u * (segA + segB), gx, gy;
+      if (d < segA) { gx = path[0][0] + (path[1][0] - path[0][0]) * (d / segA); gy = path[0][1]; }
+      else { d -= segA; gx = path[1][0]; gy = path[1][1] + (path[2][1] - path[1][1]) * (d / segB); }
+      const pause = Math.abs(u - 1) < 0.04;
+      add(gx + gy, () => drawWalker(B, gx, gy, pause ? 0 : Math.floor(t * 6) % 2, t, pause));
+    }
+  }
   // plants
   add(3.0, () => drawPlant(B, 0.55, 0.6, t, 1, true));
   add(20, () => drawPlant(B, 8.55, 0.6, t, 2, true));
@@ -824,6 +839,28 @@ function drawDynamic(B, st, t) {
   list.sort((a, b) => a.key - b.key);
   for (const o of list) o.fn();
   drawParticles(B, st, t);
+}
+
+function drawWalker(B, gx, gy, frame, t, pause) {
+  const p = P(gx, gy, 0);
+  const x = p[0], y = p[1];
+  const L = LOOK.npc;
+  // shadow
+  B.blend(x - 3, y, PAL.ink, 0.35); B.blend(x - 2, y, PAL.ink, 0.45); B.blend(x - 1, y, PAL.ink, 0.5); B.blend(x, y, PAL.ink, 0.5); B.blend(x + 1, y, PAL.ink, 0.45); B.blend(x + 2, y, PAL.ink, 0.35);
+  // legs
+  const lo = frame ? 1 : 0;
+  B.rect(x - 2, y - 4 + lo, 2, 4 - lo, C('#262b66'));
+  B.rect(x + 1, y - 4 + (1 - lo), 2, 4 - (1 - lo), C('#262b66'));
+  // body + box
+  B.rect(x - 3, y - 10, 7, 6, L.shirt);
+  B.rect(x - 2, y - 9, 6, 4, C('#c98a4b')); B.rect(x - 2, y - 9, 6, 1, C('#e3a86a')); B.px(x + 1, y - 8, C('#74461f'));
+  // head
+  B.rect(x - 2, y - 15, 5, 5, L.skin);
+  B.rect(x - 2, y - 16, 5, 2, L.hair);
+  B.px(x - 1, y - 13, PAL.ink); B.px(x + 1, y - 13, PAL.ink);
+  // cap
+  B.rect(x - 3, y - 16, 7, 1, PAL.cyan);
+  if (pause && Math.floor(t * 2) % 2) { B.rect(x + 4, y - 22, 5, 5, PAL.white); B.px(x + 6, y - 21, PAL.mag); B.px(x + 5, y - 20, PAL.mag); B.px(x + 7, y - 20, PAL.mag); B.px(x + 6, y - 19, PAL.mag); }
 }
 
 /* ---------- ambient particles (pure function of time → no state) ---------- */
@@ -1006,7 +1043,8 @@ function drawCover(B, genre, seed) {
   B.rect(0, 0, W, 1, mixC(Bc, PAL.white, 0.4));
 }
 
-function drawTower(B, floorsOwned, t) {
+function drawTower(B, floorsOwned, t, build) {
+  // build: {row, k} — the floor being built (row 0 = f5 … 4 = f1), k 0..1 construction progress
   // front-facing tower. floorsOwned: {b,f1..f5}. 80x120
   const W = B.w, H = B.h;
   for (let y = 0; y < H; y++) B.rect(0, y, W, 1, mixC(C('#0a0d2c'), C('#241b62'), y / H));
@@ -1018,13 +1056,15 @@ function drawTower(B, floorsOwned, t) {
   const accents = [PAL.yel, PAL.cyan, PAL.mag, PAL.grn, PAL.blu];
   for (let r = 0; r < rows; r++) {
     const y = topY + r * fh;
-    const own = !!ownedList[r];
+    const building = build && build.row === r;
+    const own = building ? build.k >= 0.15 : !!ownedList[r];
     B.rect(bx, y, bw, fh, own ? C('#1d2a73') : C('#10143a'));
     B.rect(bx, y, bw, 1, own ? accents[r] : C('#262b66'));
     B.rect(bx, y, 1, fh, C('#0a0d2c')); B.rect(bx + bw - 1, y, 1, fh, C('#0a0d2c'));
     for (let w = 0; w < 5; w++) {
       const wx = bx + 4 + w * 9, wy = y + 4;
       let col = C('#161a4a');
+      if (building && build.k < 0.15 + (w + 1) * 0.15) { B.rect(wx, wy, 7, 8, C('#161a4a')); continue; }
       if (own) {
         const h = hash01(r * 17 + w * 5);
         col = h < 0.34 ? PAL.cyan : h < 0.67 ? PAL.mag : PAL.yel;
@@ -1033,7 +1073,14 @@ function drawTower(B, floorsOwned, t) {
       B.rect(wx, wy, 7, 8, col);
       if (own) B.rect(wx, wy + 7, 7, 1, shadeC(col, 0.6));
     }
-    if (!own) {
+    if (building && build.k < 1) {
+      // scaffolding + sparks while the floor is being built
+      for (let i = 0; i < bw; i += 4) B.px(bx + i, y + ((i / 4) % 2 ? 2 : fh - 3), C('#ffd23f'));
+      B.rect(bx - 3, y, 1, fh, C('#c8841a')); B.rect(bx + bw + 2, y, 1, fh, C('#c8841a'));
+      const sx = bx + Math.floor(hash01(Math.floor(t * 12)) * bw), sy = y + Math.floor(hash01(Math.floor(t * 12) + 7) * fh);
+      B.glow(sx, sy, 4, PAL.yel, 0.9);
+    }
+    if (!own && !building) {
       // lock
       const lx = bx + Math.floor(bw / 2) - 3, ly = y + 5;
       B.rect(lx, ly + 3, 7, 6, C('#5b63c7'));

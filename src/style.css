@@ -682,3 +682,18 @@ button.cell:active { transform: scale(0.94); }
 #app.shake2 { animation: shk2 0.55s ease-in-out; }
 @keyframes shk { 20% { transform: translate(-3px, 1px); } 40% { transform: translate(3px, -1px); } 60% { transform: translate(-2px, 1px); } 80% { transform: translate(2px, 0); } }
 @keyframes shk2 { 15% { transform: translate(-6px, 2px) rotate(-0.4deg); } 30% { transform: translate(6px, -2px) rotate(0.4deg); } 45% { transform: translate(-5px, 1px); } 60% { transform: translate(4px, -1px); } 80% { transform: translate(-2px, 0); } }
+
+/* bug hunt */
+.bug { position: absolute; width: 38px; height: 38px; margin: -19px 0 0 -19px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: radial-gradient(circle, rgba(125, 255, 106, 0.35), transparent 70%); cursor: pointer; z-index: 3; transition: left 0.26s linear, top 0.26s linear; }
+.bug span { font-size: 20px; line-height: 1; display: block; transform: scaleX(calc(var(--dir, 1) * -1)); animation: crawl 0.22s steps(2) infinite; filter: drop-shadow(0 0 4px rgba(125, 255, 106, 0.9)); }
+.bug.late { background: radial-gradient(circle, rgba(255, 63, 90, 0.5), transparent 70%); animation: buglate 0.5s ease-in-out infinite; }
+.bug.splat { transition: none; animation: ideapop 0.45s ease-out forwards; }
+.bug.splat span { transform: none; animation: none; }
+@keyframes crawl { 50% { margin-top: -2px; rotate: 8deg; } }
+@keyframes buglate { 50% { scale: 1.15; } }
+/* floor construction */
+.fbuild .fb-cv { width: 150px; height: 232px; margin: 10px auto 12px; display: block; }
+.fbuild .fb-cv.done { animation: pflash 0.7s ease-out; }
+.fbuild .fb-perk { opacity: 0.5; transition: opacity 0.4s, color 0.4s; }
+.fbuild .fb-perk.lit { opacity: 1; color: var(--grn, #7dff6a); }
+.flt.cash { color: #7dff6a; text-shadow: 0 0 10px rgba(125, 255, 106, 0.9), 0 2px 0 #000; }

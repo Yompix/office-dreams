@@ -192,7 +192,7 @@ const ACT = {
   ups: (r) => result(netAct('ups', r), L('toast.upgraded')),
   upy: () => result(netAct('upy'), L('toast.upgraded')),
   buy: (id) => result(netAct('buy', id), L('toast.bought', { item: '$item.' + id + '.name' })),
-  flr: (id) => { if (result(netAct('flr', id), L('toast.floor', { name: '$floor.' + id + '.name' }))) { confetti(120); haptic('ok'); } },
+  flr: (id) => { const r = netAct('flr', id); if (r.ok) showFloorBuild(id); else result(r); },
   bst: (id) => result(netAct('bst', id), L('toast.boost', { name: '$boost.' + id + '.name' })),
   genre: (g) => { UI.genrePicked = true; S.sel.genre = g; S.sel.name = GENRES[g].names[UI.nameSeed++ % GENRES[g].names.length]; savePrefs(); render(); },
   tier: (t) => {
@@ -373,6 +373,40 @@ function showEvent() {
   openModal(eventCard(true), { id: 'event', mcls: 'evm' });
   sfx('coin');
 }
+/* ---------- floor purchase: the tower builds the new floor ---------- */
+function showFloorBuild(id) {
+  const row = 5 - Number(id.slice(1)); // f5 → 0 … f1 → 4
+  openModal(`<div class="rel fbuild">
+    <small class="px glow-t">${L('fb.title')}</small>
+    <canvas class="tower fb-cv" width="80" height="124"></canvas>
+    <h2 class="h2 big">${L('floor.' + id + '.name')} · ${L('floor.' + id + '.sub')}</h2>
+    <p class="ev-text fb-perk">${L('floor.' + id + '.perk')}</p>
+    <button class="btn big glow" data-act="close">${L('fb.ok')}</button>
+  </div>`, { id: 'floor', mcls: 'relm' });
+  const cv = $('.fb-cv');
+  const ctx = cv && cv.getContext('2d');
+  if (!ctx) return;
+  const B = new Buf(80, 124);
+  const img = new ImageData(new Uint8ClampedArray(B.d.buffer), 80, 124);
+  const t0 = performance.now(), DUR = 2200;
+  let done = false, lastBeat = -1;
+  sfx('up');
+  const frame = (now) => {
+    if (!cv.isConnected) return;
+    const k = Math.min(1, (now - t0) / DUR);
+    try { drawTower(B, S.floors, now / 1000, { row, k }); ctx.putImageData(img, 0, 0); } catch (e) {}
+    const beat = Math.floor(k * 6);
+    if (beat !== lastBeat && k < 1) { lastBeat = beat; haptic('light'); if (beat) sfx('tap'); }
+    if (k >= 1 && !done) {
+      done = true;
+      cv.classList.add('done');
+      confetti(140); haptic('ok'); sfx('floor');
+      $('.fb-perk') && $('.fb-perk').classList.add('lit');
+    }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
 function showRelease(d) {
   const g = d.game;
   const stars = Math.round(g.score / 2);
@@ -431,7 +465,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">
@@ -535,6 +569,8 @@ hooks.emit = function (type, data) {
   else if (type === 'toast') toast(L(data.k), data.kind);
   else if (type === 'ending') modalOrQueue(showEnding);
   else if (type === 'ipo') toast(L('toast.ipo', { n: data.n }), 'good', 'crown');
+  else if (type === 'bug') { sfx('blip'); updateSceneFx(); if (!lsGet('od2_bug_hint')) { lsSet('od2_bug_hint', '1'); toast(L('bug.hint'), 'bad', 'star'); } }
+  else if (type === 'bugEscaped') { toast(L('bug.escaped', { n: fmt(data.loss) }), 'bad'); updateSceneFx(); }
   else if (type === 'idea') { sfx('pop'); updateSceneFx(); if (!lsGet('od2_idea_hint')) { lsSet('od2_idea_hint', '1'); toast(L('idea.hint'), 'good', 'star'); } }
 };
 

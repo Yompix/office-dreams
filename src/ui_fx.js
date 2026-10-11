@@ -39,6 +39,7 @@ function onSceneTap(e) {
   const [x, y] = m.toScene(e.clientX, e.clientY);
   const near = (k, rad) => { const p = spotOf(k); return p && Math.hypot(p[0] - x, p[1] - y) <= rad; };
   if (S.idea && near(S.idea.role, 16)) return grabIdea();
+  if (S.bug) { const b = bugSpot(); if (b && Math.hypot(b[0] - x, b[1] - y) <= 14) return squash(); }
   if (near('cat', 9)) return petCat(e);
   for (const r of ROLES) {
     if (near(r, 15)) return S.staff[r].lvl > 0 ? talk(r) : (UI.sel = r, go('studio', 'team'));
@@ -77,9 +78,59 @@ function sayBubble(kind, html) {
 }
 
 /* ---------- ideas: catch the light bulb ---------- */
+/* ---------- bugs: squash them before they eat progress ---------- */
+const BUG_TTL = 10;
+function bugSpot() {
+  if (!S.bug) return null;
+  const k = 1 - Math.max(0, S.bug.ttl) / BUG_TTL; // 0 → 1 across the floor
+  const lane = S.bug.lane || 0;
+  const dir = lane === 1 ? -1 : 1;
+  const x0 = CAM.sx + 14, x1 = CAM.sx + CAM.sw - 14;
+  const x = dir > 0 ? x0 + (x1 - x0) * k : x1 - (x1 - x0) * k;
+  const y = [106, 121, 136][lane] + Math.sin(k * 40) * 3;
+  return [x, y, dir];
+}
+function updateBug(box, m) {
+  let b = box.querySelector('.bug');
+  if (!S.bug || UI.tab !== 'office') { if (b && !b.classList.contains('splat')) b.remove(); return; }
+  const p = bugSpot();
+  const [cx, cy] = m.toCss(p[0], p[1]);
+  if (!b || b.classList.contains('splat')) {
+    b = document.createElement('button');
+    b.className = 'bug';
+    b.setAttribute('aria-label', L('bug.squash'));
+    b.innerHTML = '<span>🐞</span>';
+    b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); squash(); });
+    box.appendChild(b);
+  }
+  b.style.left = cx + 'px';
+  b.style.top = cy + 'px';
+  b.style.setProperty('--dir', p[2]);
+  b.classList.toggle('late', S.bug.ttl < 3.5);
+}
+function squash() {
+  const b = $('.scene .bug');
+  const r = b ? b.getBoundingClientRect() : null;
+  const res = netAct('bug');
+  if (!res.ok) return;
+  haptic('heavy');
+  sfx('hit');
+  shake(false);
+  if (b) { b.classList.add('splat'); b.innerHTML = '<span>💥</span>'; setTimeout(() => b.remove(), 450); }
+  if (r) {
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    burst(x, y, 12, ['#7dff6a', '#3fd0ff', '#ffd23f']);
+    floatText(x, y - 16, L('bug.got', { n: money(res.cash) }), 'cash');
+    flyTo(x, y, '.pill.cash', I('coin', 14), 5);
+  }
+  render();
+}
+
 function updateSceneFx() {
   const box = $('.scene .scene-fx');
   if (!box) return;
+  const mm = sceneMap();
+  if (mm) updateBug(box, mm);
   let b = box.querySelector('.idea');
   if (!S.idea || UI.tab !== 'office') { if (b) b.remove(); return; }
   const m = sceneMap();

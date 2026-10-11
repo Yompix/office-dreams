@@ -1,6 +1,6 @@
 /* ============================================================
    OFFICE DREAMS — background music: a tiny chiptune sequencer.
-   Four original looping tracks, synthesized with WebAudio
+   Fourteen original looping tracks, synthesized with WebAudio
    (no audio files, nothing to download). Starts after the first
    user gesture (browser autoplay rules).
    ============================================================ */
@@ -44,6 +44,96 @@ const TRACKS = [
     bass: [0, null, 0, 0, null, 0, null, 0, 0, null, 0, 0, null, 2, null, 3],
     kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1], hat: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1],
     arpVol: 0.4, leadVol: 0.7,
+  },
+  {
+    id: 'lofi', bpm: 78, swing: 0.16,
+    chords: [[53, 'M7'], [52, 'm7'], [50, 'm7'], [48, 'M7']], // Fmaj7 Em7 Dm7 Cmaj7
+    arp: [0, null, null, 3, null, null, 2, null, 1, null, null, 3, null, 2, null, null],
+    lead: [[null, null, 6, null, null, 5, null, null, 7, null, null, null, 6, null, null, null], [5, null, null, null, 4, null, 3, null, null, null, 4, null, null, null, null, null]],
+    bass: [0, null, null, null, null, null, 2, null, 0, null, null, null, null, null, null, 1],
+    kick: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    arpVol: 0.4, leadVol: 0.5,
+  },
+  {
+    id: 'synth', bpm: 108, swing: 0,
+    chords: [[50, 'm'], [46, 'M'], [48, 'M'], [45, 'm']], // Dm Bb C Am
+    arp: [0, 0, 4, 0, 2, 0, 4, 2, 0, 0, 4, 0, 2, 0, 5, 2],
+    lead: [[6, null, null, null, 5, null, null, null, 4, null, 5, null, 6, null, null, null], [7, null, null, 6, null, null, 5, null, 6, null, null, null, null, null, 4, null]],
+    bass: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2],
+    kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+    arpVol: 0.5, leadVol: 0.65,
+  },
+  {
+    id: 'arcade', bpm: 140, swing: 0,
+    chords: [[48, 'M'], [45, 'm'], [53, 'M'], [55, 'M']], // C Am F G
+    arp: [0, 1, 2, 4, 2, 1, 0, 1, 2, 4, 5, 4, 2, 1, 0, 1],
+    lead: [[4, null, 4, 5, 6, null, 4, null, 7, null, 6, null, 5, null, null, null], [6, 5, 4, null, 5, null, 6, null, 4, null, 2, null, 4, null, null, null]],
+    bass: [0, null, 2, null, 0, null, 2, null, 0, null, 2, null, 0, 2, 3, 2],
+    kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], snare: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0], hat: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    arpVol: 0.42, leadVol: 0.7,
+  },
+  {
+    id: 'rain', bpm: 72, swing: 0.1,
+    chords: [[48, 'm'], [44, 'M'], [51, 'M'], [46, 'M']], // Cm Ab Eb Bb
+    arp: [4, null, 2, null, 1, null, 0, null, 4, null, 2, null, 1, null, 2, null],
+    lead: [[null, null, null, null, null, null, 6, null, null, null, 5, null, null, null, null, null], [null, null, 4, null, null, null, null, null, 5, null, null, null, 2, null, null, null]],
+    bass: [0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    kick: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], hat: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    arpVol: 0.5, leadVol: 0.5,
+  },
+  {
+    id: 'boss', bpm: 132, swing: 0,
+    chords: [[52, 'm'], [52, 'm'], [50, 'M'], [48, 'M']], // Em Em D C
+    arp: [0, 0, 1, 0, 0, 2, 0, 1, 0, 0, 1, 0, 3, 2, 1, 0],
+    lead: [[4, null, null, 4, null, null, 5, null, 6, null, 5, null, 4, null, 3, null], [7, null, 6, null, 5, null, 4, null, 5, 5, null, 6, null, null, null, null]],
+    bass: [0, 0, null, 0, 0, null, 0, 0, 0, 0, null, 0, 2, null, 1, null],
+    kick: [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1], hat: [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
+    arpVol: 0.4, leadVol: 0.75,
+  },
+  {
+    id: 'sunrise', bpm: 100, swing: 0.04,
+    chords: [[55, 'M'], [50, 'M'], [52, 'm'], [48, 'M']], // G D Em C
+    arp: [0, 2, 4, 2, 1, 2, 4, 2, 0, 2, 4, 2, 1, 2, 5, 2],
+    lead: [[null, null, 4, null, 5, null, 6, null, null, null, 6, null, 5, null, 4, null], [5, null, null, null, 6, null, null, 7, null, null, 6, null, null, null, null, null]],
+    bass: [0, null, null, 2, null, null, 0, null, 1, null, null, 2, null, null, 0, null],
+    kick: [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+    arpVol: 0.45, leadVol: 0.6,
+  },
+  {
+    id: 'coffee', bpm: 90, swing: 0.22,
+    chords: [[50, 'm7'], [55, 'M'], [48, 'M7'], [57, 'm7']], // Dm7 G Cmaj7 Am7
+    arp: [0, null, 1, 2, null, 3, null, 2, 0, null, 1, 2, null, 3, 2, null],
+    lead: [[4, null, 5, null, null, 6, null, 7, null, 6, null, null, 5, null, null, null], [null, 7, null, 6, null, null, 4, null, 5, null, null, 3, null, null, null, null]],
+    bass: [0, null, null, 1, null, null, 2, null, 3, null, null, 2, null, null, 1, null],
+    kick: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1],
+    arpVol: 0.4, leadVol: 0.6,
+  },
+  {
+    id: 'cyber', bpm: 120, swing: 0,
+    chords: [[54, 'm'], [50, 'M'], [57, 'M'], [52, 'M']], // F#m D A E
+    arp: [0, 4, 0, 2, 0, 4, 0, 1, 0, 4, 0, 2, 0, 4, 1, 2],
+    lead: [[null, null, null, null, 6, null, 5, 4, null, null, null, null, 4, null, 5, null], [6, null, null, null, null, null, 7, null, 6, null, 5, null, 4, null, null, null]],
+    bass: [0, null, 0, null, null, 0, null, 0, 0, null, 0, null, null, 0, 2, null],
+    kick: [1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0],
+    arpVol: 0.48, leadVol: 0.65,
+  },
+  {
+    id: 'victory', bpm: 116, swing: 0,
+    chords: [[46, 'M'], [53, 'M'], [55, 'm'], [51, 'M']], // Bb F Gm Eb
+    arp: [0, 1, 2, 1, 0, 1, 2, 1, 4, 2, 1, 2, 4, 2, 1, 2],
+    lead: [[4, null, null, 5, 6, null, null, null, 7, null, 6, null, 5, 6, null, null], [4, null, 5, null, 6, null, 7, null, 8, null, null, null, 7, null, null, null]],
+    bass: [0, null, null, null, 2, null, null, null, 0, null, null, null, 2, null, 1, null],
+    kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+    arpVol: 0.45, leadVol: 0.75,
+  },
+  {
+    id: 'dream', bpm: 88, swing: 0.06,
+    chords: [[51, 'M7'], [46, 'M7'], [48, 'm7'], [53, 'M']], // Ebmaj7 Bbmaj7 Cm7 F
+    arp: [0, 3, 2, 3, 1, 3, 2, 3, 0, 3, 2, 3, 1, 3, 4, 3],
+    lead: [[null, null, null, null, 7, null, null, null, 6, null, null, null, 5, null, null, null], [6, null, null, null, null, null, 5, null, 4, null, null, null, null, null, null, null]],
+    bass: [0, null, null, null, null, null, null, null, 2, null, null, null, null, null, null, null],
+    kick: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+    arpVol: 0.5, leadVol: 0.5,
   },
 ];
 const MUSIC = { on: false, ctx: null, out: null, noise: null, track: 0, step: 0, bar: 0, loops: 0, next: 0, timer: 0 };

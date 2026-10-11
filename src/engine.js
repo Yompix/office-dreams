@@ -133,6 +133,8 @@ function newState(seed) {
     nextEventDay: 2,
     idea: null, // {role, ttl}: a light bulb over an employee — tap it for a burst of progress
     ideaCd: 30,
+    bug: null, // {ttl, lane}: a bug crawling across the office — squash it before it eats progress
+    bugCd: 50,
     evCool: {},
     log: [],
     legacy: 0,
@@ -465,6 +467,17 @@ function catchIdea(s) {
   emit('sfx', 'coin');
   if (p.pts >= p.need) release(s);
   return { ok: true, bonus, cash };
+}
+
+function squashBug(s) {
+  if (!s.bug) return fail('unavailable');
+  const cash = Math.round(tapPower(s).cash * 8);
+  s.bug = null;
+  giveCash(s, cash);
+  s.dayIncome += cash;
+  s.stats.bugs = (s.stats.bugs || 0) + 1;
+  bump(s);
+  return { ok: true, cash };
 }
 
 /* ---------- long-term loop: IPO (prestige) ---------- */
@@ -940,6 +953,25 @@ function tick(s, dt) {
       emit('idea', s.idea);
     }
   }
+  // bugs: crawl across the floor; if nobody squashes one, it eats a bit of the project
+  if (s.bug) {
+    s.bug.ttl -= dt;
+    if (s.bug.ttl <= 0 || !s.project) {
+      if (s.bug.ttl <= 0 && s.project && !s.off) {
+        const loss = Math.round(s.project.need * 0.02);
+        s.project.pts = Math.max(0, s.project.pts - loss);
+        emit('bugEscaped', { loss });
+      }
+      s.bug = null;
+    }
+  } else if (!s.off && s.project && s.stats.released >= 1) {
+    s.bugCd -= dt;
+    if (s.bugCd <= 0) {
+      s.bug = { ttl: 10, lane: Math.floor(rand(s) * 3) };
+      s.bugCd = 45 + rand(s) * 40;
+      emit('bug', s.bug);
+    }
+  }
   if (s.project) {
     s.project.pts += wpTotal(s) * dt;
     if (s.off) s.project.pts = Math.min(s.project.pts, s.project.need - 1); // the team waits for you to ship
@@ -996,6 +1028,7 @@ const ACTIONS = {
   ev: (s, a) => chooseEvent(s, a[0] | 0),
   ipo: (s) => prestige(s),
   idea: (s) => catchIdea(s),
+  bug: (s) => squashBug(s),
 };
 function applyAction(s, a) {
   const f = ACTIONS[a[0]];
@@ -1060,7 +1093,7 @@ if (typeof module !== 'undefined') {
     hooks, newState, tick, advance, advanceTicks, advanceOffline, doTap, hire, upgradeStaff, upgradeYou, buyItem, buyFloor, buyBoost, startProject, setAuto, release, claimGoal,
     claimDaily, dailyProgress, dailyCash, syncDay, canPrestige, prestige, applyAction, replay,
     chooseEvent, spawnEvent, eventView, wpTotal, wpRole, tapPower, salaryTotal, salaryOf, upCost, youUpCost, qualityFor, expectedScore,
-    projectNeed, tierUnlocked, nextFloor, checkGoals, catchIdea, hiredCount, serialize, deserialize, encodeSave, decodeSave, rankOf, fmt, cleanName, stateHash,
+    projectNeed, tierUnlocked, nextFloor, checkGoals, catchIdea, squashBug, hiredCount, serialize, deserialize, encodeSave, decodeSave, rankOf, fmt, cleanName, stateHash,
     dailySalesRate, salesMult, maxEnergy, newName, endDay, floorOn, scoreMult, clockText, legacyMult, rand,
   };
 }

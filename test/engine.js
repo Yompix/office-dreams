@@ -9,7 +9,7 @@ E.hooks.emit = () => {};
 function randomLog(seed, n) {
   let r = seed >>> 0;
   const rnd = () => ((r = (Math.imul(r, 1664525) + 1013904223) >>> 0) / 4294967296);
-  const acts = [['tap'], ['tap'], ['tap'], ['tap'], ['hire', 'prog'], ['hire', 'art'], ['ups', 'prog'], ['upy'], ['buy', 'coffee'], ['flr', 'f1'], ['new', 'puzzle', 'mini', 'Block Dreams'], ['new', 'plat', 'mini', ''], ['auto', true], ['clm', 'tap10'], ['clm', 'rel1'], ['dly', 'tap'], ['ev', 0], ['ev', 1], ['bst', 'turbo'], ['idea'], ['idea'], ['idea']];
+  const acts = [['tap'], ['tap'], ['tap'], ['tap'], ['hire', 'prog'], ['hire', 'art'], ['ups', 'prog'], ['upy'], ['buy', 'coffee'], ['flr', 'f1'], ['new', 'puzzle', 'mini', 'Block Dreams'], ['new', 'plat', 'mini', ''], ['auto', true], ['clm', 'tap10'], ['clm', 'rel1'], ['dly', 'tap'], ['ev', 0], ['ev', 1], ['bst', 'turbo'], ['idea'], ['idea'], ['idea'], ['bug'], ['bug']];
   const log = [];
   for (let i = 0; i < n; i++) log.push([Math.floor(rnd() * 12)].concat(acts[Math.floor(rnd() * acts.length)]));
   return log;

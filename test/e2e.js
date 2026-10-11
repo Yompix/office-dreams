@@ -121,7 +121,16 @@ async function main() {
   await shot(page, '04_team');
   await click(page, '[data-act="tab:empire"]');
   await click(page, '[data-act="flr:f1"]');
+  await sleep(1300);
+  ok(!!(await page.$('.fbuild .fb-cv')), 'floor construction modal opened');
+  await shot(page, '05a_floor_build');
+  await sleep(1300);
+  await shot(page, '05b_floor_built');
+  await click(page, '.fbuild [data-act="close"]');
+  await sleep(300);
   await click(page, '[data-act="flr:f2"]');
+  await sleep(300);
+  await click(page, '.fbuild [data-act="close"]');
   await click(page, '[data-act="buy:coffee"]');
   await click(page, '[data-act="buy:monitor2"]');
   await sleep(1200);
@@ -174,11 +183,25 @@ async function main() {
   await sleep(1500);
   ok((U.loadState(ctx, 1001).stats.ideas || 0) === 1, 'server confirmed the idea');
 
+  // bug hunt (visual): spawn a bug locally, check it crawls and can be squashed
+  await ev(page, '(S.bug = {ttl: 7, lane: 1}, updateSceneFx(), 1)');
+  await sleep(700);
+  await shot(page, '07e_bug');
+  const bugBtn = await page.$('.scene .bug');
+  ok(!!bugBtn, 'bug rendered on the floor');
+  if (bugBtn) { const bb = await bugBtn.boundingBox(); await page.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2); }
+  await sleep(150);
+  await shot(page, '07f_bug_squash');
+  ok(!(await ev(page, '!!S.bug')), 'bug squashed');
+  await ev(page, 'netSync()');
+  await sleep(1500);
+
   // release modal look (purely visual, local)
   await ev(page, 'showRelease({game:{name:"Neon Run",genre:"plat",tier:"mini",score:8.7,total:4200},repGain:2.3,gemGain:0})');
   await sleep(900);
   await shot(page, '08_release');
   await click(page, '[data-act="close"]');
+  await sleep(400);
 
   // airdrop hub
   await click(page, '[data-act="tab:drop"]');
