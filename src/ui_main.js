@@ -39,7 +39,7 @@ function render(force) {
   $('#hud').innerHTML = hudHTML();
   $('#tabs').innerHTML = tabsHTML();
   main.innerHTML = '<div class="page" data-tab="' + UI.tab + '">' + tabHTML() + '</div>';
-  if (UI.renderedTab !== where) main.firstChild.classList.add('enter');
+  if (UI.renderedTab !== where) { main.firstChild.classList.add('enter'); vfxStagger(); }
   main.scrollTop = keep;
   UI.renderedTab = where;
   bindCanvases();
@@ -96,6 +96,7 @@ function sceneState() {
     working: !!S.project && (hiredCount(S) > 0 || UI.tapFlash > 0),
     staff: S.staff, items: S.items, turbo: S.buffs.turbo > 0, canHire,
     tapFlash: UI.tapFlash, floors: S.floors, hype: S.buffs.hype > 0,
+    rain: !!(MUSIC.on && TRACKS[MUSIC.track] && TRACKS[MUSIC.track].rain),
   };
 }
 function drawScene(t) {
@@ -717,6 +718,7 @@ function frame(now) {
 
 /* ---------- input wiring ---------- */
 function wireInput() {
+  document.addEventListener('pointerdown', vfxRipple, { passive: true });
   // donation amount typed by hand: keep it without re-rendering (so the keyboard stays open)
   document.addEventListener('input', (e) => {
     if (!e.target || e.target.id !== 'donin') return;
@@ -788,6 +790,7 @@ async function boot() {
   const tgLang = TG && TG.initDataUnsafe && TG.initDataUnsafe.user && TG.initDataUnsafe.user.language_code;
   setLang(lsGet('od2_lang') || detectLang(tgLang));
   splash(L('boot.connecting'));
+  vfxInit();
   wireInput();
   let res;
   try { res = await netBoot(BUILD.mode === 'demo'); } catch (e) { res = { ok: false, err: 'server' }; }

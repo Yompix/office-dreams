@@ -785,7 +785,92 @@ button.cell:active { transform: scale(0.94); }
 .rd2 small { line-height: 1.35; opacity: 0.85; }
 .uses { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .use { padding: 12px 10px; border-radius: 12px; background: linear-gradient(135deg, rgba(138, 92, 255, 0.16), rgba(34, 230, 255, 0.08)); border: 1px solid var(--line); font-weight: 700; font-size: 13px; line-height: 1.3; }
+
+/* ============================================================
+   v2 — "neon lo-fi" refresh: aurora sky, glass panels, motion
+   ============================================================ */
+:root { --glass: rgba(14, 20, 70, 0.55); --glass2: rgba(8, 12, 46, 0.72); --edge: rgba(150, 175, 255, 0.18); --r: 20px; }
+body::after { opacity: 0.18; }
+/* aurora: four huge blurred lights drifting slowly behind everything */
+#aurora { position: fixed; inset: -20%; z-index: 0; pointer-events: none; filter: blur(60px); opacity: 0.55; }
+#aurora i { position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%; mix-blend-mode: screen; animation: aur 26s ease-in-out infinite alternate; }
+#aurora i:nth-child(1) { left: -10%; top: -15%; background: radial-gradient(circle, rgba(138, 92, 255, 0.55), transparent 65%); }
+#aurora i:nth-child(2) { right: -15%; top: 5%; background: radial-gradient(circle, rgba(63, 208, 255, 0.4), transparent 65%); animation-duration: 31s; animation-delay: -8s; }
+#aurora i:nth-child(3) { left: 10%; bottom: -25%; background: radial-gradient(circle, rgba(255, 63, 208, 0.38), transparent 65%); animation-duration: 36s; animation-delay: -14s; }
+#aurora i:nth-child(4) { right: 0; bottom: -10%; background: radial-gradient(circle, rgba(255, 170, 90, 0.22), transparent 65%); animation-duration: 40s; animation-delay: -20s; }
+@keyframes aur { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(8vw, 6vh) scale(1.15); } 100% { transform: translate(-6vw, -4vh) scale(0.92); } }
+#bgfx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+/* glass HUD with a living underline */
+#hud { background: linear-gradient(180deg, rgba(6, 9, 38, 0.82), rgba(6, 9, 38, 0.55)); border-bottom: 0; -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3); position: relative; }
+#hud::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, #3fd0ff, #ff3fd0, #8a5cff, transparent); background-size: 200% 100%; animation: flow 6s linear infinite; opacity: 0.8; }
+.me .av { border-radius: 14px; animation: avglow 3.5s ease-in-out infinite; }
+@keyframes avglow { 50% { box-shadow: 0 0 20px rgba(63, 208, 255, 0.85), 0 0 0 3px rgba(63, 208, 255, 0.15); } }
+.pill { position: relative; overflow: hidden; background: rgba(4, 8, 40, 0.6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.pill::after { content: ''; position: absolute; top: 0; bottom: 0; width: 30%; left: -40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent); transform: skewX(-20deg); animation: shine 6s ease-in-out infinite; }
+.pill.gem::after { animation-delay: 2s; } .pill.pts::after { animation-delay: 4s; }
+.pill .ico { animation: icobob 3s ease-in-out infinite; }
+@keyframes icobob { 50% { transform: translateY(-1.5px) rotate(-6deg); } }
+
+/* glass panels with a gradient rim */
+.panel { background: linear-gradient(155deg, var(--glass), var(--glass2)); -webkit-backdrop-filter: blur(14px) saturate(1.25); backdrop-filter: blur(14px) saturate(1.25); border: 1px solid transparent; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.07); }
+.panel::after { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; background: linear-gradient(140deg, rgba(63, 208, 255, 0.55), rgba(138, 92, 255, 0.15) 35%, rgba(255, 63, 208, 0.12) 65%, rgba(255, 63, 208, 0.5)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.panel::before { height: 2px; top: -1px; left: 18%; right: 18%; border-radius: 2px; background: linear-gradient(90deg, transparent, #3fd0ff, #ff3fd0, transparent); background-size: 200% 100%; animation: flow 5s linear infinite; opacity: 0.85; filter: blur(0.3px); }
+.h2 { background: linear-gradient(90deg, #9ff4ff, #c8b6ff 50%, #ff9ee9); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 0 8px rgba(63, 208, 255, 0.35)); animation: hshift 8s ease-in-out infinite alternate; }
+.h2 .ico, .h2 img { filter: none; }
+@keyframes hshift { to { background-position: 100% 0; } }
+.h2.big { color: var(--ink); background: none; -webkit-background-clip: border-box; background-clip: border-box; animation: none; filter: none; }
+
+/* page entrance: blocks cascade in */
+.page.enter { animation: none; }
+.page.enter > * { animation: rise 0.55s cubic-bezier(.2, .9, .25, 1.15) both; animation-delay: calc(var(--i, 0) * 55ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(18px) scale(0.97); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+
+/* floating tab bar */
+#tabs { left: 10px; right: 10px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); padding: 6px; border-radius: 22px; background: rgba(8, 12, 46, 0.72); border: 1px solid var(--edge); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 30px rgba(63, 120, 255, 0.18); -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); }
+#main { padding-bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + 30px); }
+.tab { border-radius: 16px; transition: color 0.25s, background 0.3s, transform 0.15s; }
+.tab:active { transform: scale(0.92); }
+.tab.on { background: linear-gradient(180deg, rgba(63, 208, 255, 0.24), rgba(138, 92, 255, 0.14)); box-shadow: inset 0 0 0 1px rgba(159, 244, 255, 0.45), 0 0 22px rgba(63, 208, 255, 0.3); }
+.tab.on .ico { animation: tabpop 0.5s cubic-bezier(.3, 1.8, .4, 1); }
+.tab.on::after { content: ''; position: absolute; bottom: 3px; left: 50%; width: 16px; height: 3px; margin-left: -8px; border-radius: 3px; background: linear-gradient(90deg, #3fd0ff, #ff3fd0); box-shadow: 0 0 8px #3fd0ff; animation: tabbar 0.4s ease-out; }
+@keyframes tabpop { 0% { transform: scale(0.6) rotate(-12deg); } 60% { transform: translateY(-3px) scale(1.25) rotate(4deg); } 100% { transform: translateY(-2px) scale(1.12); } }
+@keyframes tabbar { from { width: 0; margin-left: 0; opacity: 0; } }
+
+/* buttons: rounder, livelier, with ripples */
+.btn { border-radius: 16px; }
+.btn.big { border-radius: 18px; }
+.btn:not(:disabled):hover { filter: brightness(1.08); }
+.has-rip { overflow: hidden; }
+.rip { position: absolute; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 60%); transform: scale(0); animation: rip 0.6s ease-out forwards; z-index: 3; }
+@keyframes rip { to { transform: scale(1); opacity: 0; } }
+
+/* chips, bars, stats: softer and shinier */
+.chip { background: rgba(10, 16, 60, 0.6); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.bar { background: rgba(2, 4, 24, 0.7); border-color: rgba(150, 175, 255, 0.15); }
+.bar i { background: linear-gradient(90deg, #2f7bff, #3fd0ff, #9ff4ff, #3fd0ff); background-size: 300% 100%; animation: flow 3s linear infinite; }
+.bar.yel i { animation: barslide 1s linear infinite; background-size: 24px 100%; }
+@keyframes barslide { to { background-position: 24px 0; } }
+.stats3 > div { background: rgba(4, 8, 40, 0.5); border-color: rgba(150, 175, 255, 0.14); transition: transform 0.2s; }
+.stats3 > div:active { transform: scale(0.97); }
+
+/* the office card glows a bit more */
+.scene { box-shadow: 0 0 0 1px rgba(63, 208, 255, 0.35), 0 0 40px rgba(63, 208, 255, 0.18), inset 0 0 40px rgba(0, 0, 0, 0.5); }
+
+/* modals pop in with depth */
+.modal { -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); animation: mpop 0.45s cubic-bezier(.2, 1.4, .35, 1); }
+@keyframes mpop { from { transform: translateY(30px) scale(0.9); opacity: 0; filter: blur(6px); } }
+
+/* toasts slide with a glow trail */
+.toast { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); background: rgba(8, 12, 54, 0.82); border-radius: 16px; }
+
+/* splash */
+#splash .sp-logo { animation: logoglow 2.4s ease-in-out infinite; }
+@keyframes logoglow { 50% { filter: drop-shadow(0 0 18px rgba(63, 208, 255, 0.9)) drop-shadow(0 0 32px rgba(255, 63, 208, 0.6)); transform: scale(1.03); } }
+@media (prefers-reduced-motion: reduce) { #aurora i, .pill::after, .pill .ico, .h2, .panel::before, .page.enter > * { animation: none !important; } }
 </style>
+<div id="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<canvas id="bgfx" aria-hidden="true"></canvas>
 <div id="app">
   <header id="hud"></header>
   <main id="main"></main>
@@ -4742,8 +4827,81 @@ function drawBadge(B, x, y, kind, t) {
   }
 }
 
+/* ---------- life outside the window & small ambient touches ---------- */
+function inGlass(k, v) { return k >= WIN.k0 + 2 && k <= WIN.k1 - 2 && v >= WIN.v0 + 1 && v <= WIN.v1 - 2; }
+function glassPx(B, k, v, c, a) { if (inGlass(k, v)) { if (a === undefined) wallPx(B, 'R', k, v, c); else wallBlend(B, 'R', k, v, c, a); } }
+function drawWindowLife(B, st, t) {
+  const f = clampN(st.f || 0, 0, 1);
+  const night = f > 0.8 || f < 0.04;
+  const k0 = WIN.k0 + 2, k1 = WIN.k1 - 2, span = k1 - k0;
+  // a plane crossing the sky, its light blinking
+  {
+    const P = 47, ph = (t % P) / P;
+    if (ph < 0.55) {
+      const k = Math.round(k1 - (ph / 0.55) * (span + 10));
+      const v = 45 + Math.round(Math.sin(ph * 6) * 0.5);
+      const body = night ? C('#9aa4d8') : C('#f4f6ff');
+      for (let i = 0; i < 5; i++) glassPx(B, k + i, v, body);
+      glassPx(B, k + 3, v + 1, body); glassPx(B, k + 2, v - 1, body); glassPx(B, k + 4, v + 1, body);
+      if (Math.floor(t * 2.5) % 2) glassPx(B, k + 5, v, PAL.red);
+      for (let i = 1; i < 10; i++) glassPx(B, k + 5 + i, v, PAL.white, 0.25 - i * 0.022); // contrail
+    }
+  }
+  // birds by day, shooting stars by night
+  if (!night) {
+    const P = 29, ph = (t % P) / P;
+    if (ph < 0.6) {
+      const base = k0 + (ph / 0.6) * (span + 16) - 8;
+      for (let b = 0; b < 3; b++) {
+        const k = Math.round(base - b * 5), v = 38 + b * 2 + Math.round(Math.sin(t * 3 + b) * 1);
+        const flap = Math.floor(t * 6 + b) % 2;
+        const col = C('#1d1f4a');
+        glassPx(B, k, v, col); glassPx(B, k - 1, v + flap, col); glassPx(B, k + 1, v + flap, col);
+      }
+    }
+  } else {
+    const P = 13, ph = (t % P) / P;
+    if (ph < 0.12) {
+      const q = ph / 0.12, k = Math.round(k0 + 12 + q * 40), v = Math.round(48 - q * 10);
+      for (let i = 0; i < 6; i++) glassPx(B, k - i, v + Math.round(i / 4), PAL.white, 0.9 - i * 0.14);
+    }
+  }
+  // rain on the glass while the rainy track plays
+  if (st.rain) {
+    for (let i = 0; i < 26; i++) {
+      const k = k0 + Math.floor(hash01(i * 7 + 1) * span);
+      const v = WIN.v1 - 2 - Math.floor(((t * (14 + hash01(i) * 10) + hash01(i * 3) * 40) % 34));
+      glassPx(B, k, v, C('#bfe6ff'), 0.55); glassPx(B, k, v + 1, C('#bfe6ff'), 0.3);
+    }
+  }
+}
+// neon sign hum: now and then one word flickers
+function drawNeonFlicker(B, t) {
+  const w = Math.floor(t / 3.7) % THEME.words.length;
+  const on = (t % 3.7) < 0.18 && Math.floor(t * 20) % 2 === 0;
+  if (!on) return;
+  const k0 = 22, k1 = 60;
+  const word = THEME.words[w][0];
+  const tw = textWidth(word);
+  const kk = k0 + 1 + Math.floor((k1 - k0 - 1 - tw) / 2);
+  wallGlyphs(B, 'L', kk, 46 - w * 8 - 1, word, C('#1a1d4a'), null);
+}
+// golden dust floating in the window light by day
+function drawDust(B, st, t) {
+  const f = clampN(st.f || 0, 0, 1);
+  if (f > 0.78) return;
+  for (let i = 0; i < 14; i++) {
+    const gx = 4.6 + hash01(i * 5) * 3.6, gy = 1.2 + hash01(i * 11) * 3.2;
+    const z = 14 + ((t * (2 + hash01(i) * 3) + hash01(i * 2) * 30) % 30);
+    const p = P(gx + Math.sin(t * 0.6 + i) * 0.15, gy, z);
+    B.blend(p[0], p[1], C('#fff2c4'), 0.35 + 0.3 * Math.sin(t * 2 + i));
+  }
+}
+
 /* ---------- dynamic layer ---------- */
 function drawDynamic(B, st, t) {
+  drawWindowLife(B, st, t);
+  drawNeonFlicker(B, t);
   const items = st.items || {};
   const typingGlobal = !!st.working;
   const frame = Math.floor(t * 5) % 2;
@@ -4849,6 +5007,7 @@ function drawDynamic(B, st, t) {
 
   list.sort((a, b) => a.key - b.key);
   for (const o of list) o.fn();
+  drawDust(B, st, t);
   drawParticles(B, st, t);
 }
 
@@ -7317,6 +7476,75 @@ function shake(strong) {
   setTimeout(() => a.classList.remove('shake', 'shake2'), 600);
 }
 
+/* ============================================================
+   v2 visual layer: living background, tap ripples, staggered entrances
+   ============================================================ */
+const VFX = { cv: null, ctx: null, parts: [], t0: 0, raf: 0, reduce: false, last: 0 };
+function vfxInit() {
+  try { VFX.reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  VFX.cv = document.getElementById('bgfx');
+  if (!VFX.cv || VFX.reduce) return;
+  VFX.ctx = VFX.cv.getContext('2d');
+  const size = () => {
+    const d = Math.min(2, window.devicePixelRatio || 1);
+    VFX.cv.width = Math.round(innerWidth * d * 0.5);
+    VFX.cv.height = Math.round(innerHeight * d * 0.5);
+  };
+  size();
+  addEventListener('resize', size);
+  const cols = ['#3fd0ff', '#ff3fd0', '#8a5cff', '#ffd23f', '#9ff4ff'];
+  for (let i = 0; i < 46; i++) {
+    VFX.parts.push({ x: Math.random(), y: Math.random(), z: 0.3 + Math.random() * 0.7, r: 0.6 + Math.random() * 1.8, c: cols[i % cols.length], ph: Math.random() * 6.28, sp: 0.004 + Math.random() * 0.012 });
+  }
+  const loop = (now) => {
+    VFX.raf = requestAnimationFrame(loop);
+    if (document.hidden || now - VFX.last < 33) return; // ~30 fps is plenty for ambience
+    const dt = Math.min(0.1, (now - (VFX.last || now)) / 1000);
+    VFX.last = now;
+    const c = VFX.ctx, W = VFX.cv.width, H = VFX.cv.height;
+    c.clearRect(0, 0, W, H);
+    c.globalCompositeOperation = 'lighter';
+    for (const p of VFX.parts) {
+      p.y -= p.sp * p.z * dt * 6;
+      p.x += Math.sin(now / 2400 + p.ph) * 0.0004 * p.z;
+      if (p.y < -0.05) { p.y = 1.05; p.x = Math.random(); }
+      const tw = 0.45 + 0.55 * Math.abs(Math.sin(now / 900 * p.z + p.ph));
+      const x = p.x * W, y = p.y * H, r = p.r * p.z * (W / 400) * 1.4;
+      const g = c.createRadialGradient(x, y, 0, x, y, r * 5);
+      g.addColorStop(0, p.c);
+      g.addColorStop(1, 'transparent');
+      c.globalAlpha = 0.5 * tw * p.z;
+      c.fillStyle = g;
+      c.fillRect(x - r * 5, y - r * 5, r * 10, r * 10);
+    }
+    c.globalAlpha = 1;
+    c.globalCompositeOperation = 'source-over';
+  };
+  VFX.raf = requestAnimationFrame(loop);
+}
+// a soft ripple wherever a button is pressed
+function vfxRipple(e) {
+  const el = e.target && e.target.closest && e.target.closest('.btn, .tab, .seg button, .sbtn, .chip[data-act], .sku, .pill');
+  if (!el || VFX.reduce) return;
+  const r = el.getBoundingClientRect();
+  const s = document.createElement('span');
+  s.className = 'rip';
+  const d = Math.max(r.width, r.height) * 2.2;
+  s.style.width = s.style.height = d + 'px';
+  s.style.left = (e.clientX - r.left - d / 2) + 'px';
+  s.style.top = (e.clientY - r.top - d / 2) + 'px';
+  if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+  el.classList.add('has-rip');
+  el.appendChild(s);
+  setTimeout(() => s.remove(), 650);
+}
+// entrance cascade: each block of a freshly opened page rises in after the previous one
+function vfxStagger() {
+  const page = document.querySelector('#main > .page.enter');
+  if (!page) return;
+  Array.prototype.forEach.call(page.children, (el, i) => el.style.setProperty('--i', Math.min(i, 10)));
+}
+
 /* ---- src/ui_tutorial.js ---- */
 /* ============================================================
    OFFICE DREAMS — interactive tutorial (coach marks).
@@ -7473,7 +7701,7 @@ function render(force) {
   $('#hud').innerHTML = hudHTML();
   $('#tabs').innerHTML = tabsHTML();
   main.innerHTML = '<div class="page" data-tab="' + UI.tab + '">' + tabHTML() + '</div>';
-  if (UI.renderedTab !== where) main.firstChild.classList.add('enter');
+  if (UI.renderedTab !== where) { main.firstChild.classList.add('enter'); vfxStagger(); }
   main.scrollTop = keep;
   UI.renderedTab = where;
   bindCanvases();
@@ -7530,6 +7758,7 @@ function sceneState() {
     working: !!S.project && (hiredCount(S) > 0 || UI.tapFlash > 0),
     staff: S.staff, items: S.items, turbo: S.buffs.turbo > 0, canHire,
     tapFlash: UI.tapFlash, floors: S.floors, hype: S.buffs.hype > 0,
+    rain: !!(MUSIC.on && TRACKS[MUSIC.track] && TRACKS[MUSIC.track].rain),
   };
 }
 function drawScene(t) {
@@ -8151,6 +8380,7 @@ function frame(now) {
 
 /* ---------- input wiring ---------- */
 function wireInput() {
+  document.addEventListener('pointerdown', vfxRipple, { passive: true });
   // donation amount typed by hand: keep it without re-rendering (so the keyboard stays open)
   document.addEventListener('input', (e) => {
     if (!e.target || e.target.id !== 'donin') return;
@@ -8222,6 +8452,7 @@ async function boot() {
   const tgLang = TG && TG.initDataUnsafe && TG.initDataUnsafe.user && TG.initDataUnsafe.user.language_code;
   setLang(lsGet('od2_lang') || detectLang(tgLang));
   splash(L('boot.connecting'));
+  vfxInit();
   wireInput();
   let res;
   try { res = await netBoot(BUILD.mode === 'demo'); } catch (e) { res = { ok: false, err: 'server' }; }

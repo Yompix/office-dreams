@@ -138,8 +138,10 @@ async function main() {
   await shot(page, '05_empire');
   ok(await ev(page, 'S.floors.f2 === 1'), 'floors bought');
   // release the game quickly: client and server must agree
-  await ev(page, 'S.project && (S.project.pts = S.project.need - 1)'); // local only → server will correct it
+  await ev(page, 'UI.modal && closeModal(true)');
+  await sleep(300);
   await click(page, '[data-act="tab:office"]');
+  await ev(page, 'S.project && (S.project.pts = S.project.need - 1)'); // local only → server will correct it
   await sleep(600);
   await ev(page, 'netSync()');
   await sleep(1500);

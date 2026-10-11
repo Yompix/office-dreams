@@ -877,8 +877,81 @@ function drawBadge(B, x, y, kind, t) {
   }
 }
 
+/* ---------- life outside the window & small ambient touches ---------- */
+function inGlass(k, v) { return k >= WIN.k0 + 2 && k <= WIN.k1 - 2 && v >= WIN.v0 + 1 && v <= WIN.v1 - 2; }
+function glassPx(B, k, v, c, a) { if (inGlass(k, v)) { if (a === undefined) wallPx(B, 'R', k, v, c); else wallBlend(B, 'R', k, v, c, a); } }
+function drawWindowLife(B, st, t) {
+  const f = clampN(st.f || 0, 0, 1);
+  const night = f > 0.8 || f < 0.04;
+  const k0 = WIN.k0 + 2, k1 = WIN.k1 - 2, span = k1 - k0;
+  // a plane crossing the sky, its light blinking
+  {
+    const P = 47, ph = (t % P) / P;
+    if (ph < 0.55) {
+      const k = Math.round(k1 - (ph / 0.55) * (span + 10));
+      const v = 45 + Math.round(Math.sin(ph * 6) * 0.5);
+      const body = night ? C('#9aa4d8') : C('#f4f6ff');
+      for (let i = 0; i < 5; i++) glassPx(B, k + i, v, body);
+      glassPx(B, k + 3, v + 1, body); glassPx(B, k + 2, v - 1, body); glassPx(B, k + 4, v + 1, body);
+      if (Math.floor(t * 2.5) % 2) glassPx(B, k + 5, v, PAL.red);
+      for (let i = 1; i < 10; i++) glassPx(B, k + 5 + i, v, PAL.white, 0.25 - i * 0.022); // contrail
+    }
+  }
+  // birds by day, shooting stars by night
+  if (!night) {
+    const P = 29, ph = (t % P) / P;
+    if (ph < 0.6) {
+      const base = k0 + (ph / 0.6) * (span + 16) - 8;
+      for (let b = 0; b < 3; b++) {
+        const k = Math.round(base - b * 5), v = 38 + b * 2 + Math.round(Math.sin(t * 3 + b) * 1);
+        const flap = Math.floor(t * 6 + b) % 2;
+        const col = C('#1d1f4a');
+        glassPx(B, k, v, col); glassPx(B, k - 1, v + flap, col); glassPx(B, k + 1, v + flap, col);
+      }
+    }
+  } else {
+    const P = 13, ph = (t % P) / P;
+    if (ph < 0.12) {
+      const q = ph / 0.12, k = Math.round(k0 + 12 + q * 40), v = Math.round(48 - q * 10);
+      for (let i = 0; i < 6; i++) glassPx(B, k - i, v + Math.round(i / 4), PAL.white, 0.9 - i * 0.14);
+    }
+  }
+  // rain on the glass while the rainy track plays
+  if (st.rain) {
+    for (let i = 0; i < 26; i++) {
+      const k = k0 + Math.floor(hash01(i * 7 + 1) * span);
+      const v = WIN.v1 - 2 - Math.floor(((t * (14 + hash01(i) * 10) + hash01(i * 3) * 40) % 34));
+      glassPx(B, k, v, C('#bfe6ff'), 0.55); glassPx(B, k, v + 1, C('#bfe6ff'), 0.3);
+    }
+  }
+}
+// neon sign hum: now and then one word flickers
+function drawNeonFlicker(B, t) {
+  const w = Math.floor(t / 3.7) % THEME.words.length;
+  const on = (t % 3.7) < 0.18 && Math.floor(t * 20) % 2 === 0;
+  if (!on) return;
+  const k0 = 22, k1 = 60;
+  const word = THEME.words[w][0];
+  const tw = textWidth(word);
+  const kk = k0 + 1 + Math.floor((k1 - k0 - 1 - tw) / 2);
+  wallGlyphs(B, 'L', kk, 46 - w * 8 - 1, word, C('#1a1d4a'), null);
+}
+// golden dust floating in the window light by day
+function drawDust(B, st, t) {
+  const f = clampN(st.f || 0, 0, 1);
+  if (f > 0.78) return;
+  for (let i = 0; i < 14; i++) {
+    const gx = 4.6 + hash01(i * 5) * 3.6, gy = 1.2 + hash01(i * 11) * 3.2;
+    const z = 14 + ((t * (2 + hash01(i) * 3) + hash01(i * 2) * 30) % 30);
+    const p = P(gx + Math.sin(t * 0.6 + i) * 0.15, gy, z);
+    B.blend(p[0], p[1], C('#fff2c4'), 0.35 + 0.3 * Math.sin(t * 2 + i));
+  }
+}
+
 /* ---------- dynamic layer ---------- */
 function drawDynamic(B, st, t) {
+  drawWindowLife(B, st, t);
+  drawNeonFlicker(B, t);
   const items = st.items || {};
   const typingGlobal = !!st.working;
   const frame = Math.floor(t * 5) % 2;
@@ -984,6 +1057,7 @@ function drawDynamic(B, st, t) {
 
   list.sort((a, b) => a.key - b.key);
   for (const o of list) o.fn();
+  drawDust(B, st, t);
   drawParticles(B, st, t);
 }
 
