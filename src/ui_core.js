@@ -146,6 +146,18 @@ function errToast(err) {
 function openModal(html, opt) {
   opt = opt || {};
   const ovl = $('#ovl');
+  // same window refreshed (a toggle, a language switch): swap the content in place — no flash, no re-animation
+  if (UI.modal && opt.id && UI.modal.id === opt.id && !ovl.hidden) {
+    const m0 = $('.modal', ovl);
+    if (m0) {
+      const keep = m0.scrollTop;
+      m0.className = 'modal ' + (opt.mcls || '');
+      m0.innerHTML = (opt.sticky ? '' : '<button class="m-x" data-act="close" aria-label="' + esc(L('ui.close')) + '">' + I('close', 14) + '</button>') + html;
+      m0.scrollTop = keep;
+      UI.modal.sticky = !!opt.sticky;
+      return;
+    }
+  }
   UI.modal = { sticky: !!opt.sticky, id: opt.id || '' };
   ovl.className = 'ovl ' + (opt.cls || '');
   ovl.innerHTML = '<div class="modal ' + (opt.mcls || '') + '" role="dialog" aria-modal="true">' +

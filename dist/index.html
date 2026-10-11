@@ -885,6 +885,15 @@ body::after { bottom: -48px; height: calc(46vh + 48px); animation: gridmove 6s l
 /* fixed bars on their own layers so scrolling never repaints them */
 #hud, #tabs { will-change: transform; transform: translateZ(0); }
 .scene { contain: paint; }
+
+/* ---- video feedback fixes ---- */
+/* tab switch: the new page is visible at once and just settles in (no blank frame) */
+.page.enter > * { animation: none; }
+.page.enter { animation: settle 0.22s cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes settle { from { opacity: 0.55; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* tab bar docked to the bottom edge again: nothing peeks out underneath it */
+#tabs { left: 0; right: 0; bottom: 0; border-radius: 22px 22px 0 0; border-bottom: 0; padding: 6px 8px calc(env(safe-area-inset-bottom, 0px) + 6px); background: rgba(6, 9, 40, 0.985); }
+#main { padding-bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + 16px); }
 </style>
 </head>
 <body>
@@ -6057,6 +6066,18 @@ function errToast(err) {
 function openModal(html, opt) {
   opt = opt || {};
   const ovl = $('#ovl');
+  // same window refreshed (a toggle, a language switch): swap the content in place — no flash, no re-animation
+  if (UI.modal && opt.id && UI.modal.id === opt.id && !ovl.hidden) {
+    const m0 = $('.modal', ovl);
+    if (m0) {
+      const keep = m0.scrollTop;
+      m0.className = 'modal ' + (opt.mcls || '');
+      m0.innerHTML = (opt.sticky ? '' : '<button class="m-x" data-act="close" aria-label="' + esc(L('ui.close')) + '">' + I('close', 14) + '</button>') + html;
+      m0.scrollTop = keep;
+      UI.modal.sticky = !!opt.sticky;
+      return;
+    }
+  }
   UI.modal = { sticky: !!opt.sticky, id: opt.id || '' };
   ovl.className = 'ovl ' + (opt.cls || '');
   ovl.innerHTML = '<div class="modal ' + (opt.mcls || '') + '" role="dialog" aria-modal="true">' +
