@@ -4970,6 +4970,7 @@ async function netBoot(forceDemo) {
 }
 function authBody() {
   const body = { platform: (TG && TG.platform) || 'web', fp: fingerprint() };
+  try { body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
   const init = tgInitData();
   if (init) body.initData = init;
   else if (NET.cfg && NET.cfg.dev) {

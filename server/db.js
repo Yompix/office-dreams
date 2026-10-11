@@ -62,6 +62,11 @@ function open(file) {
   if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
   db.exec(SCHEMA);
+  // additive migrations for databases created by older versions
+  const cols = new Set(db.prepare('PRAGMA table_info(users)').all().map((c) => c.name));
+  if (!cols.has('country')) db.exec('ALTER TABLE users ADD COLUMN country TEXT');
+  if (!cols.has('tz')) db.exec('ALTER TABLE users ADD COLUMN tz TEXT');
+  db.exec('CREATE INDEX IF NOT EXISTS users_country ON users(country)');
   const cache = new Map();
   const prep = (sql) => {
     let st = cache.get(sql);

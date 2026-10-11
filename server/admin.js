@@ -49,8 +49,13 @@ function stats(ctx, price) {
     wallets: { bound: one('SELECT COUNT(*) AS n FROM users WHERE wallet IS NOT NULL').n, verified: one('SELECT COUNT(*) AS n FROM users WHERE wallet_ok=1').n },
     revenue: revRows.map((r) => ({ day: r.day, date: new Date(r.day * U.DAY).toISOString().slice(0, 10), stars: r.stars, usd: Math.round(r.usd * 100) / 100, n: r.n })),
     pie: { price: price || 0, yesterdayUsd: y ? y.usd : 0, ...pie },
-    top: db.all('SELECT id,name,username,pts,ref_pts,risk_state,risk,wallet FROM users WHERE deleted=0 ORDER BY pts DESC LIMIT 20'),
+    top: db.all('SELECT id,name,username,country,pts,ref_pts,risk_state,risk,wallet FROM users WHERE deleted=0 ORDER BY pts DESC LIMIT 20'),
     dist: [1, 10, 50, 200, 1000].map((t) => ({ over: t, n: one('SELECT COUNT(*) AS n FROM users WHERE pts>=? AND deleted=0', t).n })),
+    countries: db.all(`SELECT COALESCE(country,'?') AS c, COUNT(*) AS n,
+        SUM(CASE WHEN last_seen>? THEN 1 ELSE 0 END) AS d1, SUM(CASE WHEN last_seen>? THEN 1 ELSE 0 END) AS d7,
+        SUM(CASE WHEN created_at>=? THEN 1 ELSE 0 END) AS today, SUM(CASE WHEN id IN (SELECT DISTINCT uid FROM purchases) THEN 1 ELSE 0 END) AS payers,
+        ROUND(AVG(pts),1) AS avgPts
+      FROM users WHERE deleted=0 GROUP BY COALESCE(country,'?') ORDER BY n DESC LIMIT 100`, now - 86400e3, now - 7 * 86400e3, dk * U.DAY),
   };
 }
 function userDetail(ctx, id) {
@@ -109,7 +114,7 @@ function create(ctx) {
       if (p === '/admin/api/stats') return json(res, 200, { ok: true, ...stats(ctx, Number(url.searchParams.get('price')) || 0) });
       if (p === '/admin/api/risk') {
         const st = url.searchParams.get('state') || 'watch';
-        const rows = ctx.db.all('SELECT id,name,username,pts,risk,risk_state,risk_note,created_at,last_seen,premium,platform,ref1,days_played FROM users WHERE risk_state=? AND deleted=0 ORDER BY risk DESC LIMIT 200', st);
+        const rows = ctx.db.all('SELECT id,name,username,country,pts,risk,risk_state,risk_note,created_at,last_seen,premium,platform,ref1,days_played FROM users WHERE risk_state=? AND deleted=0 ORDER BY risk DESC LIMIT 200', st);
         return json(res, 200, { ok: true, rows });
       }
       if (p === '/admin/api/user' && req.method === 'GET') {
@@ -150,10 +155,10 @@ function create(ctx) {
       }
       if (p === '/admin/api/sweep' && req.method === 'POST') return json(res, 200, { ok: true, ...AB.sweep(ctx, now, 5000) });
       if (p === '/admin/api/snapshot') {
-        const rows = ctx.db.all("SELECT id,username,name,wallet,wallet_ok,pts,ref_pts,risk_state FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch') ORDER BY pts DESC");
+        const rows = ctx.db.all("SELECT id,username,name,country,wallet,wallet_ok,pts,ref_pts,risk_state FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch') ORDER BY pts DESC");
         if (url.searchParams.get('fmt') === 'json') return json(res, 200, { ok: true, season: ctx.cfg.season, at: now, rows });
-        const csv = ['tg_id,username,wallet,wallet_verified,points,referral_points,risk_state']
-          .concat(rows.map((r) => [r.id, r.username, r.wallet, r.wallet_ok, r.pts, r.ref_pts, r.risk_state].map(csvCell).join(','))).join('\n');
+        const csv = ['tg_id,username,country,wallet,wallet_verified,points,referral_points,risk_state']
+          .concat(rows.map((r) => [r.id, r.username, r.country, r.wallet, r.wallet_ok, r.pts, r.ref_pts, r.risk_state].map(csvCell).join(','))).join('\n');
         res.writeHead(200, { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': 'attachment; filename="officedreams-season' + ctx.cfg.season.id + '-snapshot.csv"' });
         return res.end(csv);
       }
@@ -188,6 +193,8 @@ th{color:var(--mut);font-weight:600}.w{overflow-x:auto}.pill{padding:1px 8px;bor
 const $=(s)=>document.querySelector(s);const esc=(s)=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let KEY=sessionStorage.getItem('odk')||'';$('#key').value=KEY;
 async function api(path,opt){const r=await fetch('/admin/api/'+path,Object.assign({headers:{'x-admin-key':KEY,'content-type':'application/json'}},opt||{}));const j=await r.json().catch(()=>({ok:false}));if(!r.ok||j.ok===false)throw new Error(j.err||r.status);return j}
+const DN=(()=>{try{return new Intl.DisplayNames(['uk','en'],{type:'region'})}catch(e){return null}})();
+function ctry(c){if(!c||c==='?')return '❓ unknown';const f=String.fromCodePoint(...[...c].map(x=>127397+x.charCodeAt(0)));let n=c;try{n=DN?DN.of(c):c}catch(e){}return f+' '+esc(n)}
 function say(t){const m=$('#msg');m.hidden=!t;m.textContent=t||''}
 const tbl=(head,rows)=>'<div class="w"><table><tr>'+head.map(h=>'<th>'+h+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</table></div>';
 async function load(){try{say('loading…');const s=await api('stats');say('');
@@ -196,7 +203,8 @@ let h='<h2>Overview</h2><div class="grid">'+kv('Players',s.users)+kv('DAU',s.dau
 h+='<h2>Risk states</h2><div class="grid">'+['ok','watch','quarantine','banned'].map(k=>kv(k,s.risk[k]||0)).join('')+'</div>';
 h+='<h2>Stars revenue (last 14 days)</h2>'+tbl(['Date','Purchases','Stars','USD (net est.)'],s.revenue.map(r=>[r.date,r.n,r.stars,'$'+r.usd]));
 h+='<h2>Emission brake preview (after token launch)</h2><div class="card">Token price (USD): <input id="price" size="8" value="'+(s.pie.price||'')+'" placeholder="0.001"> <button id="pp">Calculate</button><br>Yesterday net revenue: <b>$'+(Math.round(s.pie.yesterdayUsd*100)/100)+'</b> → schedule <b>'+s.pie.schedule+'</b>, brake <b>'+s.pie.brake+'</b> → daily pie <b>'+s.pie.pie+'</b> tokens</div>';
-h+='<h2>Top players</h2>'+tbl(['ID','Name','Points','From refs','Risk','Wallet'],s.top.map(u=>[u.id,esc(u.name)+(u.username?' @'+esc(u.username):''),u.pts,u.ref_pts,'<span class="'+u.risk_state+'">'+u.risk_state+' ('+u.risk+')</span>',esc((u.wallet||'').slice(0,14))]));
+h+='<h2>Countries</h2>'+tbl(['Country','Players','Active 24h','Active 7d','New today','Paying','Avg points'],s.countries.map(r=>[ctry(r.c),r.n,r.d1,r.d7,r.today,r.payers,r.avgPts]));
+h+='<h2>Top players</h2>'+tbl(['ID','Name','Country','Points','From refs','Risk','Wallet'],s.top.map(u=>[u.id,esc(u.name)+(u.username?' @'+esc(u.username):''),ctry(u.country),u.pts,u.ref_pts,'<span class="'+u.risk_state+'">'+u.risk_state+' ('+u.risk+')</span>',esc((u.wallet||'').slice(0,14))]));
 h+='<h2>Review queue</h2><div class="row"><select id="st"><option>watch</option><option>quarantine</option><option>banned</option></select><button id="rq">Show</button><button id="sw">Run sweep</button></div><div id="rqo"></div>';
 h+='<h2>Player lookup</h2><div class="row"><input id="uid" placeholder="Telegram ID" size="16"><button id="lk">Find</button></div><div id="uo"></div>';
 h+='<h2>Channel post</h2><div class="card"><div class="row"><select id="dr"></select><button id="dru">Use draft</button></div><textarea id="ptx" rows="9" style="width:100%;background:#0c133a;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit"></textarea><div class="row"><label><input type="checkbox" id="pbtn" checked> ▶️ Play button</label><input id="pbt" value="▶️ Играть / Play" size="18"><label><input type="checkbox" id="pph" checked> picture</label><button id="ppub" class="g">Publish to channel</button><span id="pch" class="pill"></span></div><div class="k">HTML allowed: &lt;b&gt; &lt;i&gt; &lt;a href&gt; &lt;code&gt;. Picture posts: max 1024 characters.</div></div>';
@@ -211,7 +219,7 @@ queue()}catch(e){say(e.message==='key'?'wrong key':'error: '+e.message)}}
 let DR=[];async function posts(){try{const d=await api('drafts');DR=d.drafts;$('#dr').innerHTML=DR.map((x,i)=>'<option value="'+i+'">'+esc(x.title)+'</option>').join('');$('#pch').textContent=d.channel?('→ '+d.channel):'CHANNEL not set';$('#dru').onclick=()=>{$('#ptx').value=DR[$('#dr').value].text};$('#ptx').value=DR[0]?DR[0].text:'';
 $('#ppub').onclick=async()=>{if(!confirm('Publish to '+d.channel+'?'))return;try{const r=await api('post',{method:'POST',body:JSON.stringify({text:$('#ptx').value,button:$('#pbtn').checked,buttonText:$('#pbt').value,photo:$('#pph').checked})});say('posted #'+r.id)}catch(e){say('error: '+e.message)}}}catch(e){}}
 async function dl(p){const r=await fetch('/admin/api/'+p,{headers:{'x-admin-key':KEY}});const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=p.includes('json')?'snapshot.json':'snapshot.csv';a.click()}
-async function queue(){const r=await api('risk?state='+$('#st').value);$('#rqo').innerHTML=tbl(['ID','Name','Pts','Risk','Why','Days','Act'],r.rows.map(u=>[u.id,esc(u.name),u.pts,u.risk,esc(u.risk_note||''),u.days_played,btns(u.id)]));wire()}
+async function queue(){const r=await api('risk?state='+$('#st').value);$('#rqo').innerHTML=tbl(['ID','Name','Country','Pts','Risk','Why','Days','Act'],r.rows.map(u=>[u.id,esc(u.name),ctry(u.country),u.pts,u.risk,esc(u.risk_note||''),u.days_played,btns(u.id)]));wire()}
 function btns(id){return ['clear','watch','quarantine','ban'].map(a=>'<button data-id="'+id+'" data-a="'+a+'" class="'+(a==='clear'?'g':a==='ban'?'b':'')+'">'+a+'</button>').join(' ')}
 function wire(){document.querySelectorAll('button[data-a]').forEach(b=>b.onclick=async()=>{await api('user',{method:'POST',body:JSON.stringify({id:b.dataset.id,action:b.dataset.a})});say(b.dataset.id+' → '+b.dataset.a);queue()})}
 async function lookup(id){try{const d=await api('user?id='+encodeURIComponent(id));const u=d.user;

@@ -68,7 +68,7 @@ class Player {
   headers() { return this.token ? { authorization: 'Bearer ' + this.token } : {}; }
   async auth(startParam, extra = {}) {
     const initData = extra.initData || TG.signInitData(BOT_TOKEN, this.user, { start_param: startParam }, this.env.clock.t);
-    const r = await httpJson(this.env.base, 'POST', '/api/auth', { initData, platform: this.o.platform || 'android', fp: this.o.fp || ('dev-' + this.id) });
+    const r = await httpJson(this.env.base, 'POST', '/api/auth', { initData, platform: this.o.platform || 'android', fp: this.o.fp || ('dev-' + this.id), tz: extra.tz });
     if (r.json && r.json.token) {
       this.token = r.json.token;
       const S = E.deserialize(r.json.state);

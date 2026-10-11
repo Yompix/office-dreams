@@ -459,7 +459,7 @@ const Ton = require('../server/ton.js');
     assert.equal(d.json.user.id, 1001);
     const snap = await fetch(base + '/admin/api/snapshot?fmt=csv', { headers: H });
     const csv = await snap.text();
-    assert.ok(csv.startsWith('tg_id,username,wallet'));
+    assert.ok(csv.startsWith('tg_id,username,country,wallet'));
     assert.ok(!/^6101,/m.test(csv), 'banned players are not in the snapshot');
     assert.ok(/^1001,/m.test(csv));
     const page = await fetch(base + '/admin'); assert.equal(page.status, 200);
@@ -639,6 +639,18 @@ const Ton = require('../server/ton.js');
       const data = Buffer.from(root.data || root.bytes);
       assert.equal(data.readUInt32BE(0), 0);
       assert.equal(data.subarray(4).toString('utf8'), 'OD-0123456789');
+    });
+    await test('countries: detected from the device time zone, shown in admin stats', async () => {
+      const A = new Player(env5, 8401); await A.auth('', { tz: 'Europe/Kiev' });
+      const B = new Player(env5, 8402); await B.auth('', { tz: 'Europe/Berlin' });
+      const C = new Player(env5, 8403); await C.auth('', { tz: '../../etc/passwd' });
+      assert.equal(U.getUser(env5.ctx, 8401).country, 'UA');
+      assert.equal(U.getUser(env5.ctx, 8402).country, 'DE');
+      assert.equal(U.getUser(env5.ctx, 8403).country, null);
+      const st = await httpJson(env5.base, 'GET', '/admin/api/stats', undefined, { 'x-admin-key': 'adminkey123' });
+      const ua = st.json.countries.find((r) => r.c === 'UA');
+      assert.ok(ua && ua.n === 1, JSON.stringify(st.json.countries));
+      assert.ok(st.json.countries.some((r) => r.c === '?'));
     });
     await env5.close();
   }
