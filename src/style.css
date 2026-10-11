@@ -697,3 +697,5 @@ button.cell:active { transform: scale(0.94); }
 .fbuild .fb-perk { opacity: 0.5; transition: opacity 0.4s, color 0.4s; }
 .fbuild .fb-perk.lit { opacity: 1; color: var(--grn, #7dff6a); }
 .flt.cash { color: #7dff6a; text-shadow: 0 0 10px rgba(125, 255, 106, 0.9), 0 2px 0 #000; }
+.scene.moving canvas { animation: movein 1.2s ease-out; }
+@keyframes movein { 0% { filter: brightness(0); transform: scale(0.94); } 35% { filter: brightness(2.2) saturate(0.4); } 100% { filter: none; transform: none; } }

@@ -101,6 +101,9 @@ function drawScene(t) {
   try {
     const cv = UI.sceneCv;
     if (UI.sceneSize !== cv.clientWidth + 'x' + cv.clientHeight) sizeScene();
+    const tier = themeTier(S.floors);
+    if (UI.sceneTier !== undefined && tier > UI.sceneTier) movedIn(tier);
+    UI.sceneTier = tier;
     SCENE.render(sceneState(), t);
     SCENE_OFF.getContext('2d').putImageData(SCENE_IMG, 0, 0);
     const ctx = UI.sceneCtx;
@@ -373,6 +376,13 @@ function showEvent() {
   openModal(eventCard(true), { id: 'event', mcls: 'evm' });
   sfx('coin');
 }
+/* ---------- moving into a new floor: the office gets a new look ---------- */
+function movedIn(tier) {
+  const box = $('.scene');
+  if (box) { box.classList.remove('moving'); void box.offsetWidth; box.classList.add('moving'); setTimeout(() => box.classList.remove('moving'), 1300); }
+  const id = 'f' + tier;
+  setTimeout(() => { sayBubble('you', `<b>${esc(L('floor.' + id + '.sub'))}</b><br>${esc(L('fb.moved'))}`); sfx('up'); }, 700);
+}
 /* ---------- floor purchase: the tower builds the new floor ---------- */
 function showFloorBuild(id) {
   const row = 5 - Number(id.slice(1)); // f5 → 0 … f1 → 4
@@ -381,6 +391,7 @@ function showFloorBuild(id) {
     <canvas class="tower fb-cv" width="80" height="124"></canvas>
     <h2 class="h2 big">${L('floor.' + id + '.name')} · ${L('floor.' + id + '.sub')}</h2>
     <p class="ev-text fb-perk">${L('floor.' + id + '.perk')}</p>
+    <p class="sub">🎨 ${L('fb.look')}</p>
     <button class="btn big glow" data-act="close">${L('fb.ok')}</button>
   </div>`, { id: 'floor', mcls: 'relm' });
   const cv = $('.fb-cv');

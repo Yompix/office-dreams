@@ -249,6 +249,8 @@ LANGS.ru = {
   'music.cyber': 'Cyber Deadline',
   'music.victory': 'Victory Lap',
   'music.dream': 'Office Dreams',
+  'fb.moved': 'Новый офис — заходите!',
+  'fb.look': 'Офис сменил обстановку',
   'fb.title': 'НОВЫЙ ЭТАЖ!',
   'fb.ok': 'Заселяемся!',
   'bug.hint': '🐞 По офису ползёт баг! Раздави, пока он не съел прогресс',

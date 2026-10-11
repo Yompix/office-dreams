@@ -147,6 +147,13 @@ const GLYPH = {
   S: ['.111', '1...', '.11.', '...1', '111.'],
   ' ': ['..', '..', '..', '..', '..'],
   '!': ['1', '1', '1', '.', '1'],
+  P: ['111.', '1..1', '111.', '1...', '1...'],
+  T: ['111', '.1.', '.1.', '.1.', '.1.'],
+  H: ['1..1', '1..1', '1111', '1..1', '1..1'],
+  G: ['.111', '1...', '1.11', '1..1', '.111'],
+  Y: ['1.1', '1.1', '.1.', '.1.', '.1.'],
+  V: ['1...1', '1...1', '.1.1.', '.1.1.', '..1..'],
+  X: ['1...1', '.1.1.', '..1..', '.1.1.', '1...1'],
 };
 function textWidth(str) {
   let w = 0;
@@ -209,6 +216,44 @@ const PAL = {
   white: C('#ffffff'), ink: C('#07081c'),
 };
 
+/* ---------- office themes: every floor you move to looks different ---------- */
+// tier 0 = basement (the original neon loft) … 5 = CEO penthouse
+const THEMES = [
+  { id: 'b', wallR: '#38387f', wallL: '#2a2e6a', stripR: 'cyan', stripL: 'mag', floorA: '#1c2456', floorB: '#232d68', grid: '#33418f', floor: 'check',
+    slab: '#0d1033', slabEdge: '#1d8fb0', wood: ['#c98a4b', '#9a6232', '#74461f', '#e3a86a'], rug: ['#2a1760', '#3a1d7e', 'cyan', 'mag'],
+    words: [['DREAM', 'cyan'], ['WORK', 'mag'], ['EARN', 'yel'], ['BUILD', 'grn']], poster: ['#ff3fd0', '#3b1a8f', '#ffd23f'], deco: 'none', view: 0, glow: ['mag', 'cyan'] },
+  { id: 'f1', wallR: '#1f5a66', wallL: '#174652', stripR: 'grn', stripL: 'cyan', floorA: '#6b4527', floorB: '#7a5130', grid: '#4a2e18', floor: 'wood',
+    slab: '#1a1208', slabEdge: '#2ee6a0', wood: ['#e0c08a', '#b8955e', '#8c6d40', '#f4dcae'], rug: ['#0f3d33', '#15574a', 'grn', 'cyan'],
+    words: [['PLAN', 'grn'], ['SAVE', 'cyan'], ['COUNT', 'yel'], ['GROW', 'grn']], poster: ['#2ee6a0', '#0f3d4a', '#ffffff'], deco: 'binders', view: 4, glow: ['grn', 'cyan'] },
+  { id: 'f2', wallR: '#6a3a86', wallL: '#552c6e', stripR: 'yel', stripL: 'mag', floorA: '#4b4486', floorB: '#58519a', grid: '#7b72c4', floor: 'check',
+    slab: '#1f1640', slabEdge: '#ffd23f', wood: ['#f2f0ff', '#c9c4ec', '#a29bd6', '#ffffff'], rug: ['#7a3a10', '#b8601c', 'yel', 'org'],
+    words: [['PIXEL', 'yel'], ['DRAW', 'mag'], ['COLOR', 'cyan'], ['STYLE', 'org']], poster: ['#ffd23f', '#ff3fd0', '#22e6ff'], deco: 'palette', view: 8, glow: ['yel', 'mag'] },
+  { id: 'f3', wallR: '#7a3328', wallL: '#62281f', stripR: 'org', stripL: 'yel', floorA: '#3a1f3e', floorB: '#3a1f3e', grid: '#4a2850', floor: 'carpet',
+    slab: '#1e0d1c', slabEdge: '#ff8a3d', wood: ['#3a3f5a', '#2a2e44', '#1e2133', '#6a7090'], rug: ['#5a0f22', '#8a1a35', 'red', 'org'],
+    words: [['HYPE', 'org'], ['VIRAL', 'mag'], ['LIKES', 'red'], ['SHARE', 'yel']], poster: ['#ff4d6a', '#ff8a3d', '#ffffff'], deco: 'tv', view: 12, glow: ['org', 'red'] },
+  { id: 'f4', wallR: '#163a32', wallL: '#102c26', stripR: 'grn', stripL: 'cyan', floorA: '#141a28', floorB: '#1a2234', grid: '#2ee66b', floor: 'metal',
+    slab: '#05080f', slabEdge: '#2ee66b', wood: ['#2a2f3d', '#1d212c', '#14171f', '#2ee66b'], rug: ['#06222a', '#0b3340', 'cyan', 'grn'],
+    words: [['CODE', 'grn'], ['PLAY', 'cyan'], ['LEVEL', 'yel'], ['BOSS', 'red']], poster: ['#2ee66b', '#06222a', '#22e6ff'], deco: 'invader', view: 16, glow: ['grn', 'cyan'] },
+  { id: 'f5', wallR: '#2a2438', wallL: '#1f1a2c', stripR: 'yel', stripL: 'yel', floorA: '#d8d2ee', floorB: '#c4bce0', grid: '#ece6ff', floor: 'marble',
+    slab: '#141018', slabEdge: '#ffd23f', wood: ['#5a2e1c', '#43200f', '#2e1508', '#ffd23f'], rug: ['#5a0a1a', '#7a1026', 'yel', 'yel'],
+    words: [['EMPIRE', 'yel'], ['VISION', 'yel'], ['CEO', 'white'], ['WIN', 'yel']], poster: ['#ffd23f', '#1f1a2c', '#ffffff'], deco: 'trophy', view: 20, glow: ['yel', 'org'] },
+];
+let THEME = THEMES[0];
+const pc = (v) => (typeof v === 'string' && v[0] !== '#' ? PAL[v] : C(v));
+function themeTier(floors) {
+  if (!floors) return 0;
+  for (let i = 5; i >= 1; i--) if (floors['f' + i]) return i;
+  return 0;
+}
+function applyTheme(tier) {
+  THEME = THEMES[clampN(tier | 0, 0, 5)];
+  const T = THEME;
+  PAL.wallR = C(T.wallR); PAL.wallL = C(T.wallL);
+  PAL.floorA = C(T.floorA); PAL.floorB = C(T.floorB); PAL.grid = C(T.grid);
+  PAL.slab = C(T.slab); PAL.slabEdge = C(T.slabEdge);
+  PAL.woodT = C(T.wood[0]); PAL.woodL = C(T.wood[1]); PAL.woodR = C(T.wood[2]); PAL.woodE = C(T.wood[3]);
+}
+
 /* ---------- sky ---------- */
 const SKY_KEYS = [
   [0.0, C('#3a2f7a'), C('#ff8a6b'), 0.55],
@@ -258,7 +303,7 @@ function windowPixel(kx, v, sky) {
   let col = mixC(sky.top, sky.bot, clampN(y01 * 1.05, 0, 1));
   // stars
   if (sky.night > 0 && hash01(lx * 131 + ly * 17) < 0.035 * sky.night && ly > 16) col = mixC(col, PAL.white, 0.8);
-  const fh = SKYLINE.far[lx], nh = SKYLINE.near[lx];
+  const fh = SKYLINE.far[lx] - THEME.view, nh = SKYLINE.near[lx] - THEME.view * 1.3;
   if (ly < fh + 6) {
     if (ly < fh + 6 && ly <= fh + 5 && ly < fh + 6 && ly < fh + 6) {
       /* far layer lives from 0..fh+6 */
@@ -321,7 +366,7 @@ function drawWalls(B, f) {
   const H = SCN.WALL;
   for (const side of ['R', 'L']) {
     const base = side === 'R' ? PAL.wallR : PAL.wallL;
-    const strip = side === 'R' ? PAL.cyan : PAL.mag;
+    const strip = PAL[side === 'R' ? THEME.stripR : THEME.stripL];
     for (let k = 0; k < 108; k++) {
       for (let v = 0; v <= H + 1; v++) {
         let col;
@@ -364,7 +409,7 @@ function drawWalls(B, f) {
         const edge = k === k0 || k === k1 || v === v0 || v === v1;
         wallPx(B, 'L', k, v, edge ? C('#3c3f94') : C('#0b0d2b'));
       }
-    const words = [['DREAM', PAL.cyan, 46], ['WORK', PAL.mag, 38], ['EARN', PAL.yel, 30], ['BUILD', PAL.grn, 22]];
+    const words = THEME.words.map((w, i) => [w[0], pc(w[1]), 46 - i * 8]);
     for (const w of words) {
       const tw = textWidth(w[0]);
       const kk = k0 + 1 + Math.floor((k1 - k0 - 1 - tw) / 2);
@@ -378,13 +423,15 @@ function drawWalls(B, f) {
       for (let v = v0; v <= v1; v++) {
         const edge = k === k0 || k === k1 || v === v0 || v === v1;
         const t = (v - v0) / (v1 - v0);
-        let col = mixC(C('#ff3fd0'), C('#3b1a8f'), t);
-        if (!edge && v < v0 + 9 && Math.hypot(k - 16, v - (v0 + 7)) < 4.2) col = C('#ffd23f'); // sun
+        const pp = THEME.poster;
+        let col = mixC(C(pp[0]), C(pp[1]), t);
+        if (!edge && v < v0 + 9 && Math.hypot(k - 16, v - (v0 + 7)) < 4.2) col = C(pp[2]); // sun
         if (!edge && v < v0 + 6 && v > v0 + 3 && (k + v) % 2 === 0 && Math.hypot(k - 16, v - (v0 + 7)) < 5) col = C('#ff8a3d');
         if (!edge && v >= v0 + 1 && v <= v0 + 7 && ((k * 7 + 3) % 5) === 0 && v < v0 + 4 + (k % 3)) col = C('#1a0f4d');
         wallPx(B, 'R', k, v, edge ? C('#e8e8ff') : col);
       }
   }
+  drawWallDeco(B);
   // wall clock plate (left wall) — hands drawn dynamically
   {
     const kc = 82, vc = 38;
@@ -400,6 +447,55 @@ function drawWalls(B, f) {
   }
 }
 
+function drawWallDeco(B) {
+  const d = THEME.deco;
+  const box = (k0, k1, v0, v1, fill, edge) => {
+    for (let k = k0; k <= k1; k++) for (let v = v0; v <= v1; v++) wallPx(B, 'L', k, v, k === k0 || k === k1 || v === v0 || v === v1 ? edge : fill);
+  };
+  if (d === 'binders') {
+    // accounting: a shelf of colourful binders and a rising chart
+    box(92, 106, 16, 30, C('#0c2a30'), C('#e8f6ff'));
+    const cols = [PAL.grn, PAL.cyan, PAL.yel, PAL.org, PAL.blu, PAL.mag];
+    for (let i = 0; i < 6; i++) for (let v = 18; v <= 27 - (i % 2); v++) { wallPx(B, 'L', 94 + i * 2, v, cols[i]); }
+    box(92, 106, 34, 50, C('#f2fff9'), C('#2a6a66'));
+    const pts = [[94, 37], [97, 39], [100, 38], [103, 44], [105, 47]];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [ka, va] = pts[i], [kb, vb] = pts[i + 1];
+      for (let k = ka; k <= kb; k++) wallPx(B, 'L', k, Math.round(va + ((vb - va) * (k - ka)) / (kb - ka)), PAL.grn);
+    }
+  } else if (d === 'palette') {
+    // design: colour swatches + a painting
+    box(92, 106, 36, 50, C('#fff8ec'), C('#ffd23f'));
+    for (let k = 93; k <= 105; k++) for (let v = 37; v <= 49; v++) {
+      const h = Math.hypot(k - 99, v - 43);
+      if (h < 5) wallPx(B, 'L', k, v, h < 2.5 ? PAL.mag : PAL.cyan);
+      else if (v < 40) wallPx(B, 'L', k, v, PAL.yel);
+    }
+    const sw = [PAL.red, PAL.org, PAL.yel, PAL.grn, PAL.cyan, PAL.blu, PAL.mag];
+    sw.forEach((c, i) => { for (let v = 18; v <= 30; v++) { wallPx(B, 'L', 92 + i * 2, v, c); wallPx(B, 'L', 93 + i * 2, v, c); } });
+  } else if (d === 'tv') {
+    // marketing: a big screen with growth bars and a heart
+    box(90, 107, 18, 48, C('#0a0c24'), C('#3a3f5a'));
+    const bars = [6, 10, 8, 15, 21];
+    bars.forEach((h, i) => { for (let v = 21; v < 21 + h; v++) { wallPx(B, 'L', 93 + i * 3, v, PAL.org); wallPx(B, 'L', 94 + i * 3, v, PAL.org); } });
+    const heart = ['.11.11.', '1111111', '1111111', '.11111.', '..111..', '...1...'];
+    heart.forEach((row, r) => [...row].forEach((ch, c) => { if (ch === '1') wallPx(B, 'L', 92 + c, 45 - r, PAL.red); }));
+  } else if (d === 'invader') {
+    // game dev: a pixel space invader poster
+    box(91, 107, 16, 50, C('#03140f'), C('#2ee66b'));
+    const inv = ['..1.....1..', '...1...1...', '..1111111..', '.11.111.11.', '11111111111', '1.1111111.1', '1.1.....1.1', '...11.11...'];
+    inv.forEach((row, r) => [...row].forEach((ch, c) => { if (ch === '1') wallPx(B, 'L', 94 + c, 42 - r, PAL.grn); }));
+    for (let k = 93; k <= 105; k += 2) wallPx(B, 'L', k, 22, PAL.cyan);
+  } else if (d === 'trophy') {
+    // CEO: a golden trophy in a frame and a gold-framed company portrait
+    box(91, 107, 16, 50, C('#120e1c'), C('#ffd23f'));
+    const cup = ['1111111', '1111111', '.11111.', '..111..', '...1...', '...1...', '..111..', '.11111.'];
+    cup.forEach((row, r) => [...row].forEach((ch, c) => { if (ch === '1') wallPx(B, 'L', 96 + c, 44 - r, r < 2 ? C('#fff1a8') : PAL.yel); }));
+    wallPx(B, 'L', 95, 43, PAL.yel); wallPx(B, 'L', 94, 42, PAL.yel); wallPx(B, 'L', 103, 43, PAL.yel); wallPx(B, 'L', 104, 42, PAL.yel);
+    for (let k = 93; k <= 105; k++) wallPx(B, 'L', k, 24, PAL.yel);
+  }
+}
+
 function drawFloor(B) {
   const N = SCN.N;
   // slab thickness
@@ -409,26 +505,76 @@ function drawFloor(B) {
   B.poly([Bt, Rr, [Rr[0], Rr[1] + T], [Bt[0], Bt[1] + T]], shadeC(PAL.slab, 0.78));
   B.line(L[0], L[1] + 1, Bt[0], Bt[1] + 1, PAL.slabEdge);
   B.line(Bt[0], Bt[1] + 1, Rr[0], Rr[1] + 1, mixC(PAL.slabEdge, PAL.mag, 0.5));
+  const kind = THEME.floor;
+  if (kind === 'wood') {
+    // parquet planks running along gx, staggered seams
+    for (let j = 0; j < N * 3; j++) {
+      const off = (j % 3) * 0.33;
+      for (let i = -1; i < N; i++) {
+        const a = Math.max(0, i + off), b = Math.min(N, i + 1 + off);
+        if (b <= a) continue;
+        const h = hash01(i * 13 + j * 7);
+        isoQuad(B, a, j / 3, b, (j + 1) / 3, 0, mixC(PAL.floorA, PAL.floorB, h));
+        const p = P(a, j / 3, 0), q = P(a, (j + 1) / 3, 0);
+        B.line(p[0], p[1], q[0], q[1], PAL.grid);
+      }
+      const p = P(0, j / 3, 0), q = P(N, j / 3, 0);
+      B.line(p[0], p[1], q[0], q[1], mixC(PAL.grid, PAL.floorA, 0.4));
+    }
+    return;
+  }
   for (let i = 0; i < N; i++)
     for (let j = 0; j < N; j++) {
-      const col = (i + j) & 1 ? PAL.floorA : PAL.floorB;
+      let col = (i + j) & 1 ? PAL.floorA : PAL.floorB;
+      if (kind === 'carpet') col = mixC(PAL.floorA, C('#000000'), hash01(i * 5 + j * 11) * 0.12);
       isoQuad(B, i, j, i + 1, j + 1, 0, col);
     }
+  if (kind === 'carpet') {
+    // soft fibre speckle, no grid
+    for (let n = 0; n < 900; n++) {
+      const gx = hash01(n * 3 + 1) * N, gy = hash01(n * 7 + 2) * N;
+      const p = P(gx, gy, 0);
+      B.blend(p[0], p[1], hash01(n) < 0.5 ? PAL.white : C('#000000'), 0.07);
+    }
+    return;
+  }
+  const gcol = kind === 'metal' ? mixC(PAL.floorB, PAL.grid, 0.35) : kind === 'marble' ? PAL.grid : mixC(PAL.floorB, PAL.grid, 0.55);
   for (let i = 0; i <= N; i++) {
     const a = P(i, 0, 0), b = P(i, N, 0), c = P(0, i, 0), d = P(N, i, 0);
-    B.line(a[0], a[1], b[0], b[1], mixC(PAL.floorB, PAL.grid, 0.55));
-    B.line(c[0], c[1], d[0], d[1], mixC(PAL.floorB, PAL.grid, 0.55));
+    B.line(a[0], a[1], b[0], b[1], gcol);
+    B.line(c[0], c[1], d[0], d[1], gcol);
+  }
+  if (kind === 'marble') {
+    // thin grey veins across the stone
+    for (let v = 0; v < 14; v++) {
+      let gx = hash01(v * 5 + 3) * N, gy = hash01(v * 9 + 1) * N;
+      for (let s = 0; s < 22; s++) {
+        const p = P(gx, gy, 0);
+        B.blend(p[0], p[1], C('#8a83b0'), 0.35);
+        gx += 0.09 + (hash01(v * 31 + s) - 0.5) * 0.08; gy += (hash01(v * 17 + s * 3) - 0.5) * 0.12;
+      }
+    }
+  } else if (kind === 'metal') {
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+      for (const [a, b] of [[0.15, 0.15], [0.85, 0.15], [0.15, 0.85], [0.85, 0.85]]) { const p = P(i + a, j + b, 0); B.px(p[0], p[1], C('#3a4560')); }
+      if ((i * 3 + j) % 7 === 0) { const p = P(i + 0.5, j + 0.5, 0); B.glow(p[0], p[1], 5, PAL.grn, 0.12); }
+    }
   }
 }
 
 function drawRug(B) {
-  isoQuad(B, 3.9, 3.9, 8.3, 7.5, 0, C('#2a1760'));
-  isoQuad(B, 4.1, 4.1, 8.1, 7.3, 0, C('#3a1d7e'));
+  const r = THEME.rug, e1 = pc(r[2]), e2 = pc(r[3]);
+  isoQuad(B, 3.9, 3.9, 8.3, 7.5, 0, C(r[0]));
+  isoQuad(B, 4.1, 4.1, 8.1, 7.3, 0, C(r[1]));
   const a = P(3.9, 3.9, 0), b = P(8.3, 3.9, 0), c = P(8.3, 7.5, 0), d = P(3.9, 7.5, 0);
-  B.line(a[0], a[1], b[0], b[1], PAL.cyan);
-  B.line(b[0], b[1], c[0], c[1], PAL.mag);
-  B.line(c[0], c[1], d[0], d[1], PAL.mag);
-  B.line(d[0], d[1], a[0], a[1], PAL.cyan);
+  B.line(a[0], a[1], b[0], b[1], e1);
+  B.line(b[0], b[1], c[0], c[1], e2);
+  B.line(c[0], c[1], d[0], d[1], e2);
+  B.line(d[0], d[1], a[0], a[1], e1);
+  if (THEME.id === 'f5') { // CEO rug: inner gold border
+    const a2 = P(4.3, 4.3, 0), b2 = P(7.9, 4.3, 0), c2 = P(7.9, 7.1, 0), d2 = P(4.3, 7.1, 0);
+    B.line(a2[0], a2[1], b2[0], b2[1], e1); B.line(b2[0], b2[1], c2[0], c2[1], e1); B.line(c2[0], c2[1], d2[0], d2[1], e1); B.line(d2[0], d2[1], a2[0], a2[1], e1);
+  }
 }
 
 function drawBase(B, f) {
@@ -442,8 +588,8 @@ function drawBase(B, f) {
   drawRug(B);
   drawWalls(B, f);
   // soft neon ambience on the floor
-  B.glow(SCN.OX, SCN.OY + 70, 52, PAL.mag, 0.10);
-  B.glow(SCN.OX - 36, SCN.OY + 46, 40, PAL.cyan, 0.07);
+  B.glow(SCN.OX, SCN.OY + 70, 52, PAL[THEME.glow[0]], 0.10);
+  B.glow(SCN.OX - 36, SCN.OY + 46, 40, PAL[THEME.glow[1]], 0.07);
 }
 
 /* ---------- characters ---------- */
@@ -925,11 +1071,15 @@ function createScene() {
     H: SCN.H,
     frame,
     render(st, t) {
-      const key = Math.round(clampN(st.f || 0, 0, 1) * 120);
+      const tier = themeTier(st.floors);
+      const fk = Math.round(clampN(st.f || 0, 0, 1) * 120);
+      const key = tier * 1000 + fk;
       if (key !== baseKey) {
-        drawBase(base, key / 120);
+        applyTheme(tier);
+        drawBase(base, fk / 120);
         baseKey = key;
       }
+      applyTheme(tier);
       frame.d.set(base.d);
       drawDynamic(frame, st, t || 0);
       return frame;
@@ -1116,5 +1266,5 @@ function drawTower(B, floorsOwned, t, build) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { Buf, C, SCN, PAL, createScene, drawPortrait, drawCover, drawTower, mixC, shadeC, hash01, LOOK, GLYPH, skyAt, textWidth, eachGlyphPixel };
+  module.exports = { Buf, C, SCN, PAL, THEMES, themeTier, applyTheme, createScene, drawPortrait, drawCover, drawTower, mixC, shadeC, hash01, LOOK, GLYPH, skyAt, textWidth, eachGlyphPixel };
 }

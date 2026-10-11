@@ -249,6 +249,8 @@ LANGS.uk = {
   'music.cyber': 'Cyber Deadline',
   'music.victory': 'Victory Lap',
   'music.dream': 'Office Dreams',
+  'fb.moved': 'Новий офіс — заходьте!',
+  'fb.look': 'Офіс змінив обстановку',
   'fb.title': 'НОВИЙ ПОВЕРХ!',
   'fb.ok': 'Заселяємось!',
   'bug.hint': '🐞 Офісом повзе баг! Розчави, поки він не з’їв прогрес',

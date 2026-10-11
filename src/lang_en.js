@@ -274,6 +274,8 @@ LANGS.en = {
   'music.cyber': 'Cyber Deadline',
   'music.victory': 'Victory Lap',
   'music.dream': 'Office Dreams',
+  'fb.moved': 'New office — welcome in!',
+  'fb.look': 'Your office got a new look',
   'fb.title': 'NEW FLOOR!',
   'fb.ok': 'Move in!',
   'bug.hint': '🐞 A bug crawls through the office! Tap it before it eats your progress',
