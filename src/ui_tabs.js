@@ -589,6 +589,11 @@ function hubFriends() {
     ${r.link ? `<button class="btn big glow wide" data-act="share">${I('share', 16)} ${L('fr.share2')}</button>
     <button class="btn ghost sm" data-act="copy">${I('copy', 14)} ${L('fr.copy')}</button>` : `<button class="btn" disabled>${L('fr.no_link')}</button>`}
   </section>
+  ${e.canClaimRef ? `<section class="panel refcode">
+    <h2 class="h2">🎟 ${L('fr.code_t')}</h2>
+    <p class="sub">${L('fr.code_s', { cash: money(r.welcome || 300) })}</p>
+    <div class="row2"><input id="refin" placeholder="${esc(L('fr.code_ph'))}" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn glow" data-act="refclaim">${L('fr.code_btn')}</button></div>
+  </section>` : ''}
   <section class="panel">
     <h2 class="h2">${L('fr.how')}</h2>
     <ol class="steps3">

@@ -31,7 +31,7 @@ function render(force) {
   const sig = [S.rev, UI.tab, UI.sub.studio, UI.sub.drop, UI.sel, affordSig(), UI.ecoVer || 0, UI.hubVer || 0, LANG, NET.online, NET.mode, S.sel.genre, S.sel.tier, S.sel.name].join('|');
   if (!force && sig === UI.lastSig) return;
   // don't rebuild the page under someone typing a donation amount (keyboard would close)
-  if (!force && document.activeElement && document.activeElement.id === 'donin') { $('#hud').innerHTML = hudHTML(); return; }
+  if (!force && document.activeElement && (document.activeElement.id === 'donin' || document.activeElement.id === 'refin')) { $('#hud').innerHTML = hudHTML(); return; }
   UI.lastSig = sig;
   const main = $('#main');
   const where = UI.tab + ':' + (UI.sub[UI.tab] || '');
@@ -298,6 +298,17 @@ const ACT = {
   },
   pay: (sku) => buySku(sku),
   payton: (sku) => buyTon(sku),
+  refclaim: () => {
+    const el = $('#refin');
+    const code = el ? el.value.trim() : '';
+    if (!code) return;
+    netApi.refClaim(code).then((r) => {
+      if (r && r.eco) setEco(r.eco);
+      if (r && r.ok) { toast(L('fr.code_ok', { cash: money(r.cash) }), 'good', 'gift'); confetti(120); haptic('ok'); netSync({ full: true }); loadHub('friends', true); }
+      else errToast(r && r.err);
+      UI.hubVer = (UI.hubVer || 0) + 1; render(true);
+    });
+  },
   donamt: (n) => { UI.donAmt = Number(n); UI.hubVer = (UI.hubVer || 0) + 1; render(true); },
   donstars: () => donateStars(),
   donton: () => donateTon(),

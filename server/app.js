@@ -152,7 +152,9 @@ async function handleAuth(ctx, req, res, body, ip, now) {
     const v = TG.validateInitData(body.initData, cfg.botToken, 86400, now);
     if (!v.ok) return bad(res, 401, 'initdata_' + v.err);
     tu = v.user;
-    startParam = v.startParam;
+    // some Telegram clients drop start_param from the signed data — accept the copy the page saw (only used for invites)
+    startParam = v.startParam || (typeof body.start === 'string' ? body.start.slice(0, 64) : '');
+    if (startParam) ctx.log('auth start param', tu.id, startParam);
   }
   // closed regions: decided before an account is created
   const tzIn = typeof body.tz === 'string' && /^[A-Za-z0-9_+\-/]{1,64}$/.test(body.tz) ? body.tz : null;
@@ -272,6 +274,17 @@ async function handleApi(ctx, req, res, url, ip) {
     });
     if (!r.ok) return bad(res, 502, 'invoice');
     return sendJson(res, 200, { ok: true, url: r.result });
+  }
+  if (method === 'POST' && p === '/api/ref/claim') {
+    const r = U.claimRef(ctx, uid, String(body.code || ''), now);
+    if (r.ok) {
+      const fresh = U.getUser(ctx, uid);
+      Bot.notifyReferral(ctx, fresh.ref1, fresh.name).catch(() => {});
+      AB.evaluate(ctx, fresh, now);
+      Eco.persistUser(ctx, fresh);
+      ctx.log('ref claimed', uid, '→', fresh.ref1);
+    }
+    return sendJson(res, 200, Object.assign(r, { eco: Eco.ecoView(ctx, U.getUser(ctx, uid), now) }));
   }
   if (method === 'GET' && p === '/api/donate') return sendJson(res, 200, Object.assign({ ok: true, ton: TonPay.enabled(cfg), tonMin: TonPay.enabled(cfg) ? TonPay.donateMinTon(cfg) : null, tonPerStar: cfg.tonPay.starUsd / cfg.tonPay.usd }, Eco.fundView(ctx, uid, now)));
   if (method === 'POST' && p === '/api/donate/invoice') {

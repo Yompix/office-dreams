@@ -105,6 +105,7 @@ async function handleMessage(ctx, m) {
   if (name === 'start') {
     const code = U.parseRef(arg);
     if (code) U.setPendingRef(ctx, from.id, code, ctx.now());
+    ctx.log && ctx.log('bot /start', from.id, arg || '(no param)');
     await send(ctx, m.chat.id, t.start, playMarkup(ctx, lang));
   } else if (name === 'invite') {
     const u = U.getUser(ctx, from.id);

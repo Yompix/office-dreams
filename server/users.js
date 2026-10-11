@@ -71,6 +71,24 @@ function recordFp(ctx, uid, kind, hash, now) {
 
 /* Create or refresh a user from validated Telegram data. */
 const LATE_REF_MS = 48 * 3600 * 1000;
+// a player types a friend's invite code (or link) during their first 48 h
+function claimRef(ctx, uid, raw, now = Date.now()) {
+  const m = /(?:ref_)?([A-Za-z0-9]{4,16})\s*$/.exec(String(raw || '').trim());
+  if (!m) return { ok: false, err: 'ref_code' };
+  const code = m[1].toLowerCase();
+  return ctx.db.tx(() => {
+    const u = getUser(ctx, uid);
+    if (!u) return { ok: false, err: 'unavailable' };
+    if (u.ref1) return { ok: false, err: 'ref_has' };
+    if (now - u.created_at > LATE_REF_MS) return { ok: false, err: 'ref_late' };
+    const r = ctx.db.get('SELECT id, ref1, risk_state, deleted, created_at FROM users WHERE ref_code=?', code);
+    if (!r || r.deleted || r.risk_state === 'banned') return { ok: false, err: 'ref_code' };
+    if (r.id === uid || r.ref1 === uid) return { ok: false, err: 'ref_self' };
+    ctx.db.run('UPDATE users SET ref1=?, ref2=?, ref_src=? WHERE id=?', r.id, r.ref1 || null, code, uid);
+    grantState(ctx, uid, { cash: ctx.cfg.eco.welcomeCash });
+    return { ok: true, cash: ctx.cfg.eco.welcomeCash };
+  });
+}
 function ensureUser(ctx, tu, o = {}) {
   const now = o.now || Date.now();
   const { db, cfg } = ctx;
@@ -120,4 +138,4 @@ function ensureUser(ctx, tu, o = {}) {
   });
 }
 
-module.exports = { DAY, dayKey, sha, newRefCode, parseRef, langOf, hashIp, hashDev, getUser, loadState, saveState, grantState, pendingRef, setPendingRef, recordFp, ensureUser };
+module.exports = { claimRef, DAY, dayKey, sha, newRefCode, parseRef, langOf, hashIp, hashDev, getUser, loadState, saveState, grantState, pendingRef, setPendingRef, recordFp, ensureUser };

@@ -450,6 +450,7 @@ function ecoView(ctx, u, now) {
     days: u.days_played,
     mult: RISK_MULT[u.risk_state] === undefined ? 0 : RISK_MULT[u.risk_state],
     ptsAll: ptsAll(ctx, now),
+    canClaimRef: !u.ref1 && now - u.created_at < 48 * 3600 * 1000,
   };
 }
 function ptsAll(ctx, now) {
