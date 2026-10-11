@@ -68,6 +68,24 @@ function userDetail(ctx, id) {
   };
 }
 
+
+/* ---- ready-made channel posts (HTML, Telegram subset) ---- */
+const DRAFTS = [
+  { id: 'launch_ru', title: 'Запуск (RU)', text: '🏢 <b>Office Dreams запущена!</b>\n\nПострой свою неоновую игровую студию прямо в Telegram:\n🎮 выпускай игры и хиты\n👥 нанимай команду\n🏙 открывай этажи — от подвала до офиса CEO\n\n💎 За реальный прогресс начисляются <b>очки аирдропа</b> — в будущем они обменяются на токен <b>OFFICE</b> в сети TON.\n\n🚀 Сезон 0 уже начался — чем раньше начнёшь, тем больше успеешь!' },
+  { id: 'launch_uk', title: 'Запуск (UK)', text: '🏢 <b>Office Dreams запущено!</b>\n\nПобудуй свою неонову ігрову студію просто в Telegram:\n🎮 випускай ігри й хіти\n👥 наймай команду\n🏙 відкривай поверхи — від підвалу до офісу CEO\n\n💎 За справжній прогрес нараховуються <b>бали аірдропу</b> — у майбутньому вони обміняються на токен <b>OFFICE</b> у мережі TON.\n\n🚀 Сезон 0 уже почався — що раніше почнеш, то більше встигнеш!' },
+  { id: 'launch_en', title: 'Launch (EN)', text: '🏢 <b>Office Dreams is live!</b>\n\nBuild your own neon game studio right inside Telegram:\n🎮 ship games and hits\n👥 hire a team\n🏙 open floors — from the basement to the CEO office\n\n💎 Real progress earns <b>airdrop points</b> — later exchanged for the <b>OFFICE</b> token on TON.\n\n🚀 Season 0 has started — the earlier you join, the more you get!' },
+  { id: 'points_ru', title: 'Как заработать очки (RU)', text: '💎 <b>Как заработать очки аирдропа</b>\n\n1️⃣ Выпускай игры — чем выше оценка, тем больше очков\n2️⃣ Нанимай и прокачивай команду\n3️⃣ Отвечай на квесты и забирай цели\n4️⃣ Отмечайся каждый день — серия до 40 очков\n5️⃣ Смотри рекламу — энергия, деньги и бонусные очки\n6️⃣ Приглашай друзей — 10% от их очков\n\n⚠️ Боты и мультиаккаунты получают ноль. Играй честно — получай больше!' },
+  { id: 'points_uk', title: 'Як заробити бали (UK)', text: '💎 <b>Як заробити бали аірдропу</b>\n\n1️⃣ Випускай ігри — що вища оцінка, то більше балів\n2️⃣ Наймай і прокачуй команду\n3️⃣ Відповідай на квести й забирай цілі\n4️⃣ Відмічайся щодня — серія до 40 балів\n5️⃣ Дивись рекламу — енергія, гроші й бонусні бали\n6️⃣ Запрошуй друзів — 10% від їхніх балів\n\n⚠️ Боти й мультиакаунти отримують нуль. Грай чесно — отримуй більше!' },
+  { id: 'friends_ru', title: 'Друзья (RU)', text: '👥 <b>Зови друзей — получай больше</b>\n\n🎁 За каждого активного друга: <b>$500 и 2 кристалла</b> в игре\n💎 Плюс <b>10%</b> от его очков и <b>2%</b> от очков его друзей — навсегда\n\nДруг становится активным, когда поиграет 2 дня и выпустит игру.\nСвою ссылку найдёшь во вкладке «Аирдроп → Друзья».' },
+  { id: 'token_ru', title: 'Токен OFFICE (RU)', text: '🪙 <b>Что такое OFFICE</b>\n\nOFFICE — собственный токен игры в сети <b>TON</b>.\n\n📊 1 000 000 000 токенов, выпуск один раз\n👥 45% — игрокам (ежедневный пул)\n🎁 5% — ранний аирдроп за очки Сезона 0\n🔒 Токены команды открываются 4 года\n\nОчки → токены после завершения Сезона 0. Подробности — в игре, вкладка «Аирдроп → Токен».\n\n<i>Очки не являются деньгами и не гарантируют выплат.</i>' },
+  { id: 'official_ru', title: 'Официальный бот (RU)', text: '🏢 <b>Office Dreams — официальная игра</b>\n\n✅ Это единственный официальный бот\n⚠️ Других ботов нет — остерегайтесь подделок!\n\n📢 Канал проекта: @officedream\n💬 Вопросы и предложения: @vtmjs' },
+  { id: 'official_uk', title: 'Офіційний бот (UK)', text: '🏢 <b>Office Dreams — офіційна гра</b>\n\n✅ Це єдиний офіційний бот\n⚠️ Інших ботів немає — остерігайтеся підробок!\n\n📢 Канал проєкту: @officedream\n💬 Питання та пропозиції: @vtmjs' },
+];
+function appLink(ctx) {
+  const c = ctx.cfg;
+  return c.botUsername ? (c.appShort ? `https://t.me/${c.botUsername}/${c.appShort}` : `https://t.me/${c.botUsername}`) : '';
+}
+
 function create(ctx) {
   return async function admin(req, res, url, ip) {
     const p = url.pathname;
@@ -112,6 +130,23 @@ function create(ctx) {
         AB.logRisk(ctx, u.id, 'admin_' + b.action, 0, null, now);
         Eco.persistUser(ctx, u);
         return json(res, 200, { ok: true, state: u.risk_state });
+      }
+      if (p === '/admin/api/drafts') return json(res, 200, { ok: true, drafts: DRAFTS, channel: ctx.cfg.channel, link: appLink(ctx) });
+      if (p === '/admin/api/post' && req.method === 'POST') {
+        const b = JSON.parse((await readBody(req)) || '{}');
+        const text = String(b.text || '').slice(0, 4000);
+        if (!ctx.cfg.channel) return json(res, 400, { ok: false, err: 'CHANNEL is not set' });
+        if (!text.trim()) return json(res, 400, { ok: false, err: 'empty' });
+        const link = appLink(ctx);
+        const markup = b.button && link ? { inline_keyboard: [[{ text: String(b.buttonText || '▶️ Играть / Play').slice(0, 40), url: link }]] } : undefined;
+        let r;
+        if (b.photo && ctx.cfg.publicUrl) {
+          r = await ctx.tg.call('sendPhoto', { chat_id: ctx.cfg.channel, photo: ctx.cfg.publicUrl + '/cover-640x360.png', caption: text.slice(0, 1024), parse_mode: 'HTML', reply_markup: markup });
+        } else {
+          r = await ctx.tg.call('sendMessage', { chat_id: ctx.cfg.channel, text, parse_mode: 'HTML', link_preview_options: { is_disabled: true }, reply_markup: markup });
+        }
+        if (!r.ok) return json(res, 502, { ok: false, err: r.description || 'telegram' });
+        return json(res, 200, { ok: true, id: r.result && r.result.message_id });
       }
       if (p === '/admin/api/sweep' && req.method === 'POST') return json(res, 200, { ok: true, ...AB.sweep(ctx, now, 5000) });
       if (p === '/admin/api/snapshot') {
@@ -164,13 +199,17 @@ h+='<h2>Emission brake preview (after token launch)</h2><div class="card">Token 
 h+='<h2>Top players</h2>'+tbl(['ID','Name','Points','From refs','Risk','Wallet'],s.top.map(u=>[u.id,esc(u.name)+(u.username?' @'+esc(u.username):''),u.pts,u.ref_pts,'<span class="'+u.risk_state+'">'+u.risk_state+' ('+u.risk+')</span>',esc((u.wallet||'').slice(0,14))]));
 h+='<h2>Review queue</h2><div class="row"><select id="st"><option>watch</option><option>quarantine</option><option>banned</option></select><button id="rq">Show</button><button id="sw">Run sweep</button></div><div id="rqo"></div>';
 h+='<h2>Player lookup</h2><div class="row"><input id="uid" placeholder="Telegram ID" size="16"><button id="lk">Find</button></div><div id="uo"></div>';
+h+='<h2>Channel post</h2><div class="card"><div class="row"><select id="dr"></select><button id="dru">Use draft</button></div><textarea id="ptx" rows="9" style="width:100%;background:#0c133a;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit"></textarea><div class="row"><label><input type="checkbox" id="pbtn" checked> ▶️ Play button</label><input id="pbt" value="▶️ Играть / Play" size="18"><label><input type="checkbox" id="pph" checked> picture</label><button id="ppub" class="g">Publish to channel</button><span id="pch" class="pill"></span></div><div class="k">HTML allowed: &lt;b&gt; &lt;i&gt; &lt;a href&gt; &lt;code&gt;. Picture posts: max 1024 characters.</div></div>';
 h+='<h2>Airdrop snapshot</h2><div class="row"><button id="csv">Download CSV</button><button id="jsn">Open JSON</button></div>';
 $('#out').innerHTML=h;
 $('#pp').onclick=async()=>{const p=$('#price').value;const s2=await api('stats?price='+encodeURIComponent(p));alert('daily pie: '+s2.pie.pie+' (schedule '+s2.pie.schedule+', brake '+s2.pie.brake+')')};
 $('#rq').onclick=queue;$('#sw').onclick=async()=>{const r=await api('sweep',{method:'POST'});say('checked '+r.checked+', changed '+r.changed)};
 $('#lk').onclick=()=>lookup($('#uid').value);
+posts();
 $('#csv').onclick=()=>dl('snapshot?fmt=csv');$('#jsn').onclick=()=>dl('snapshot?fmt=json');
 queue()}catch(e){say(e.message==='key'?'wrong key':'error: '+e.message)}}
+let DR=[];async function posts(){try{const d=await api('drafts');DR=d.drafts;$('#dr').innerHTML=DR.map((x,i)=>'<option value="'+i+'">'+esc(x.title)+'</option>').join('');$('#pch').textContent=d.channel?('→ '+d.channel):'CHANNEL not set';$('#dru').onclick=()=>{$('#ptx').value=DR[$('#dr').value].text};$('#ptx').value=DR[0]?DR[0].text:'';
+$('#ppub').onclick=async()=>{if(!confirm('Publish to '+d.channel+'?'))return;try{const r=await api('post',{method:'POST',body:JSON.stringify({text:$('#ptx').value,button:$('#pbtn').checked,buttonText:$('#pbt').value,photo:$('#pph').checked})});say('posted #'+r.id)}catch(e){say('error: '+e.message)}}}catch(e){}}
 async function dl(p){const r=await fetch('/admin/api/'+p,{headers:{'x-admin-key':KEY}});const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=p.includes('json')?'snapshot.json':'snapshot.csv';a.click()}
 async function queue(){const r=await api('risk?state='+$('#st').value);$('#rqo').innerHTML=tbl(['ID','Name','Pts','Risk','Why','Days','Act'],r.rows.map(u=>[u.id,esc(u.name),u.pts,u.risk,esc(u.risk_note||''),u.days_played,btns(u.id)]));wire()}
 function btns(id){return ['clear','watch','quarantine','ban'].map(a=>'<button data-id="'+id+'" data-a="'+a+'" class="'+(a==='clear'?'g':a==='ban'?'b':'')+'">'+a+'</button>').join(' ')}

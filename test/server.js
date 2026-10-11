@@ -497,6 +497,20 @@ const Ton = require('../server/ton.js');
     assert.equal((await fetch(base + '/../../etc/passwd')).status, 404);
   });
 
+  await test('admin: channel post with a Play button (drafts + publish)', async () => {
+    const h = { 'x-admin-key': 'adminkey123' };
+    const d = await httpJson(base, 'GET', '/admin/api/drafts', undefined, h);
+    assert.ok(d.json.drafts.length >= 5 && d.json.channel === '@od_news');
+    const r = await httpJson(base, 'POST', '/admin/api/post', { text: d.json.drafts[0].text, button: true, photo: true }, h);
+    assert.ok(r.json.ok, JSON.stringify(r.json));
+    const call = env.mock.calls.filter((c) => c.method === 'sendPhoto').pop();
+    assert.equal(call.body.chat_id, '@od_news');
+    assert.equal(call.body.reply_markup.inline_keyboard[0][0].url, 'https://t.me/od_test_bot/play');
+    assert.equal((await httpJson(base, 'POST', '/admin/api/post', { text: 'x' })).status, 401);
+    const page = await (await fetch(base + '/admin')).text();
+    assert.ok(page.includes('Publish to channel'));
+  });
+
   await env.close();
 
   console.log('Rewarded ads');
