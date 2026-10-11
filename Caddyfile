@@ -1,0 +1,5 @@
+# Replace game.example.com with your domain (its DNS A-record must point to this server)
+game.example.com {
+	encode gzip
+	reverse_proxy game:8080
+}

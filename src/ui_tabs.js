@@ -1,0 +1,642 @@
+/* ============================================================
+   OFFICE DREAMS — screens (HTML builders)
+   ============================================================ */
+const TABS = [
+  { id: 'office', ico: 'office' },
+  { id: 'studio', ico: 'games' },
+  { id: 'quests', ico: 'quest' },
+  { id: 'empire', ico: 'empire' },
+  { id: 'drop', ico: 'drop' },
+];
+const SUBS = {
+  studio: ['team', 'games'],
+  drop: ['home', 'friends', 'tasks', 'top', 'shop'],
+};
+const SUB_ICO = { team: 'team', games: 'games', home: 'pts', friends: 'users', tasks: 'list', top: 'trophy', shop: 'cart' };
+
+/* ---------- derived helpers ---------- */
+const projectPct = () => (S.project ? Math.min(1, S.project.pts / S.project.need) * 100 : 0);
+function projectETA() {
+  if (!S.project) return '';
+  const rem = S.project.need - S.project.pts;
+  return '≈ ' + fmtDur(rem / Math.max(0.1, wpTotal(S)) / (NET.speed || 1));
+}
+const claimableGoals = () => GOALS.filter((g) => S.goals[g.id] === 1);
+const dailyClaimable = () => DAILY.filter((d) => !S.dq.done[d.id] && dailyProgress(S, d) >= d.need);
+function checkinReady() {
+  const e = NET.eco;
+  return !!(e && e.checkin && !e.checkin.done && S.stats.taps >= 20);
+}
+function nextStep() {
+  if (S.pending) return { k: 'next.event', act: 'event' };
+  if (claimableGoals().length) return { k: 'next.claim', act: 'tab:quests' };
+  if (S.stats.started === 0) return { k: 'next.start', act: 'go:studio:games' };
+  if (S.stats.taps < 10) return { k: 'next.tap', act: 'work' };
+  if (!S.project) return { k: 'next.start2', act: 'go:studio:games' };
+  if (hiredCount(S) === 0 && S.cash >= ROLE.prog.hire) return { k: 'next.hire', act: 'go:studio:team' };
+  if (checkinReady()) return { k: 'next.checkin', act: 'checkin' };
+  if (dailyClaimable().length) return { k: 'next.daily', act: 'tab:quests' };
+  const nf = nextFloor(S);
+  const f = nf && FLOORS.find((x) => x.id === nf);
+  if (f && S.cash >= f.price) return { k: 'next.floor', act: 'tab:empire' };
+  if (S.energy < 2) return { k: 'next.rest', act: '' };
+  if (S.stats.released >= 1 && NET.eco && NET.eco.ref && NET.eco.ref.total === 0 && NET.mode === 'online') return { k: 'next.invite', act: 'go:drop:friends' };
+  return { k: 'next.work', act: 'work' };
+}
+function buffChips() {
+  const out = [];
+  if (S.buffs.turbo > 0) out.push(`<span class="chip cy">${I('bolt', 12)} ${L('buff.turbo')} <b data-t="buff:turbo"></b></span>`);
+  if (S.buffs.hype > 0) out.push(`<span class="chip mag">${I('fire', 12)} ${L('buff.hype')} <b data-t="buff:hype"></b></span>`);
+  if (S.buffs.invest > 0) out.push(`<span class="chip yel">${I('chart', 12)} ${L('buff.invest')}</span>`);
+  return out.join('');
+}
+
+/* ---------- live bindings (updated 4×/s without re-render) ---------- */
+const LIVE = {
+  cash: () => fmtHud(S.cash),
+  gems: () => String(S.gems),
+  day: () => L('ui.day', { n: S.day }),
+  clock: () => clockText(S),
+  energy: () => Math.floor(S.energy) + '/' + maxEnergy(S),
+  ppct: () => Math.floor(projectPct()) + '%',
+  peta: () => projectETA(),
+  dayleft: () => fmtDur((DAY_SEC - S.clock) / (NET.speed || 1)),
+  buff: (id) => fmtDur(S.buffs[id] / (NET.speed || 1)),
+  gearn: (id) => { const g = S.games.find((x) => String(x.id) === id); return g ? money(g.earned) : ''; },
+  dprog: (id) => { const d = DAILY.find((x) => x.id === id); return d ? dailyProgress(S, d) + '/' + d.need : ''; },
+  sales: () => money(dailySalesRate(S)),
+};
+const WLIVE = {
+  daybar: () => (S.clock / DAY_SEC) * 100,
+  energy: () => (S.energy / maxEnergy(S)) * 100,
+  proj: () => projectPct(),
+  gprog: (id) => { const g = S.games.find((x) => String(x.id) === id); return g ? Math.min(100, (g.earned / Math.max(1, g.total)) * 100) : 0; },
+  dprog: (id) => { const d = DAILY.find((x) => x.id === id); return d ? (dailyProgress(S, d) / d.need) * 100 : 0; },
+};
+function live() {
+  $$('[data-t]').forEach((el) => {
+    const parts = el.dataset.t.split(':');
+    const f = LIVE[parts[0]];
+    if (!f) return;
+    const v = f(parts[1]);
+    if (el._v !== v) { el.textContent = v; el._v = v; }
+  });
+  $$('[data-w]').forEach((el) => {
+    const parts = el.dataset.w.split(':');
+    const f = WLIVE[parts[0]];
+    if (!f) return;
+    const v = Math.max(0, Math.min(100, f(parts[1]))).toFixed(1) + '%';
+    if (el._v !== v) { el.style.width = v; el._v = v; }
+  });
+  const wb = $('#workbtn');
+  if (wb) wb.classList.toggle('tired', S.energy < 2);
+}
+
+/* ---------- shell pieces ---------- */
+function hudHTML() {
+  const name = (NET.me && NET.me.name) || (TG && TG.initDataUnsafe && TG.initDataUnsafe.user && TG.initDataUnsafe.user.first_name) || L('ui.founder');
+  return `
+  <button class="me" data-act="settings" aria-label="${esc(L('set.title'))}">
+    ${imgTag(portrait('you', 90), 'av')}
+    <span class="me-t"><b>${esc(name)}</b><small>${esc(L('rank.' + rankOf(S)))}</small></span>
+  </button>
+  <div class="res">
+    <span class="pill cash" title="${esc(L('res.cash'))}">${I('coin', 16)}<b data-t="cash"></b></span>
+    <span class="pill gem" title="${esc(L('res.gems'))}">${I('gem', 16)}<b data-t="gems"></b></span>
+    <button class="pill pts" data-act="go:drop:home" title="${esc(L('res.pts'))}">${I('pts', 16)}<b id="hudpts">${fmtPts(NET.eco ? NET.eco.pts : 0)}</b></button>
+  </div>
+  <div class="dayrow">
+    <span class="px dchip" data-t="day"></span><span class="px dchip mut" data-t="clock"></span>
+    <div class="bar thin"><i data-w="daybar"></i></div>
+    <span class="net ${NET.mode === 'demo' ? 'demo' : NET.online ? 'on' : 'off'}" title="${esc(NET.mode === 'demo' ? L('net.demo') : NET.online ? L('net.on') : L('net.off'))}">${NET.mode === 'demo' ? 'DEMO' : NET.online ? 'LIVE' : 'OFF'}</span>
+  </div>`;
+}
+function tabsHTML() {
+  const dots = {
+    office: false,
+    studio: !S.project,
+    quests: !!S.pending || claimableGoals().length > 0 || dailyClaimable().length > 0,
+    empire: (() => { const nf = nextFloor(S); const f = nf && FLOORS.find((x) => x.id === nf); return !!(f && S.cash >= f.price); })(),
+    drop: checkinReady() || !!(UI.hub.tasks && UI.hub.tasks.some((t) => t.claimable)),
+  };
+  return TABS.map((t) => `<button role="tab" class="tab ${UI.tab === t.id ? 'on' : ''}" data-act="tab:${t.id}" aria-selected="${UI.tab === t.id}">
+    ${I(t.ico, 22)}<span>${L('tab.' + t.id)}</span>${dots[t.id] && UI.tab !== t.id ? '<i class="dot"></i>' : ''}
+  </button>`).join('');
+}
+function segHTML(group) {
+  return `<div class="seg" role="tablist">${SUBS[group].map((id) => `<button class="${UI.sub[group] === id ? 'on' : ''}" data-act="sub:${group}:${id}">${I(SUB_ICO[id], 14)}<span>${L('sub.' + id)}</span></button>`).join('')}</div>`;
+}
+
+/* ---------- shared components ---------- */
+function goalReward(rw, pts) {
+  const out = [];
+  if (rw.cash) out.push('+' + money(rw.cash));
+  if (rw.gems) out.push('+' + rw.gems + ' ' + L('res.gems_s'));
+  if (rw.rep) out.push('+' + rw.rep + ' ' + L('res.rep_s'));
+  return out.join(' · ');
+}
+function goalRow(g) {
+  const st = S.goals[g.id] || 0;
+  const icon = st === 2 ? I('check', 16, 'grn') : st === 1 ? I('star', 16, 'yel') : I('lock', 16, 'dim');
+  return `<div class="goal st${st}">
+    ${icon}
+    <div class="goal-t"><span>${esc(L('goal.' + g.id))}</span><small>${esc(goalReward(g.rw))} <em class="ptag">+${I('pts', 10)}</em></small></div>
+    ${st === 1 ? `<button class="btn sm glow" data-act="claim:${g.id}">${L('ui.claim')}</button>` : st === 2 ? `<small class="mut">${L('ui.received')}</small>` : ''}
+  </div>`;
+}
+function eventBanner() {
+  if (!S.pending) return '';
+  const ev = eventView(S);
+  return `<button class="panel banner" data-act="event">
+    ${imgTag(portrait(EV_FACE[ev.id] || 'npc', 80), 'av')}
+    <span class="banner-t"><b>${esc(L(ev.k + '.who'))}</b><small>${esc(L(ev.k + '.title'))}</small></span>
+    <span class="btn pink sm">${L('ui.open')}</span>
+  </button>`;
+}
+function tagChips(tags) {
+  return (tags || []).map((t) => `<span class="tag t-${t}">${L('tag.' + t)}</span>`).join('');
+}
+function eventCard(inModal) {
+  const ev = eventView(S);
+  if (!ev) return '';
+  return `<section class="${inModal ? '' : 'panel '}evcard">
+    <div class="ev-head">${imgTag(portrait(EV_FACE[ev.id] || 'npc', 80), 'av lg')}
+      <div><small class="px who">${esc(L(ev.k + '.who'))}</small><h3 class="h3">${esc(L(ev.k + '.title'))}</h3></div></div>
+    <p class="ev-text">${esc(L(ev.k + '.text', ev.p))}</p>
+    <div class="choices">${ev.choices.map((c) => `<button class="choice ${c.style}" data-act="ev:${c.i}" ${c.disabled ? 'disabled' : ''}>
+      <span class="c-l">${esc(L(ev.k + '.c' + c.i, c.lp))}</span>
+      <span class="c-tags">${tagChips(c.tags)}${c.disabled ? `<span class="tag t-no">${c.needEnergy && S.energy < c.needEnergy ? L('err.energy') : L('err.cash')}</span>` : ''}</span>
+    </button>`).join('')}</div>
+  </section>`;
+}
+function outcomeCard(o) {
+  if (!o) return '';
+  return `<section class="panel outcome">
+    <div class="ev-head">${imgTag(portrait(EV_FACE[o.id] || 'npc', 80), 'av')}
+      <div><small class="px who">${esc(L('ev.' + o.id + '.who'))}</small><h3 class="h3">${esc(L('ev.' + o.id + '.title'))}</h3></div></div>
+    <p class="mut sm">${L('ui.you_chose')}: <b>${esc(L('ev.' + o.id + '.c' + o.i, o.lp))}</b></p>
+    <p class="ev-text">${esc(L(o.rk, o.p))}</p>
+  </section>`;
+}
+function dailyCard() {
+  const allDone = DAILY.every((d) => S.dq.done[d.id]);
+  return `<section class="panel">
+    <div class="sec-h"><div><h2 class="h2">${I('calendar', 16)} ${L('daily.title')}</h2><p class="sub">${L('daily.sub', { cash: money(dailyCash(S)) })}</p></div></div>
+    <div class="dlist">${DAILY.map((d) => {
+      const done = S.dq.done[d.id], ready = !done && dailyProgress(S, d) >= d.need;
+      return `<div class="drow ${done ? 'done' : ready ? 'ready' : ''}">
+        <div class="d-t"><span>${L('daily.' + d.id, { n: d.need })}</span><div class="bar thin grn"><i data-w="dprog:${d.id}"></i></div></div>
+        ${done ? I('check', 16, 'grn') : ready ? `<button class="btn sm glow" data-act="dly:${d.id}">${L('ui.claim')}</button>` : `<small class="px mut" data-t="dprog:${d.id}"></small>`}
+      </div>`;
+    }).join('')}</div>
+    <p class="hint">${allDone ? L('daily.all_done') : L('daily.all_bonus')}</p>
+  </section>`;
+}
+
+/* ---------- OFFICE ---------- */
+function tabOffice() {
+  const tp = tapPower(S);
+  const ns = nextStep();
+  const p = S.project;
+  return `
+  <section class="scene">
+    <div class="scene-wrap">
+      <canvas id="scene" width="512" height="352" aria-label="${esc(L('office.scene'))}"></canvas>
+      <canvas id="bloom" width="256" height="176" aria-hidden="true"></canvas>
+      <div class="scan" aria-hidden="true"></div>
+    </div>
+    <div class="scene-top">
+      <span class="chip trend">${I('fire', 12)} ${L('ui.trend')}: <b>${L('genre.' + S.trend.hot)}</b></span>
+      ${buffChips()}
+    </div>
+    <button class="bubble" data-act="${ns.act}"><i class="blink"></i><span>${esc(L(ns.k))}</span>${ns.act ? '<b class="chev">›</b>' : ''}</button>
+  </section>
+  <section class="panel workp">
+    ${p ? `<div class="pmini" data-act="go:studio:games">
+      ${imgTag(coverURL(p.genre, p.name), 'cover sm')}
+      <div class="pm-t"><b>${esc(p.name)}</b><small>${L('genre.' + p.genre)} · ${L('tier.' + p.tier)}</small>
+        <div class="bar proj"><i data-w="proj"></i><span class="px" data-t="ppct"></span></div></div>
+      <small class="mut eta" data-t="peta"></small>
+    </div>` : `<button class="pmini empty" data-act="go:studio:games">${I('plus', 16)}<span>${L('office.no_project')}</span><b class="chev">›</b></button>`}
+    <button class="workbtn" id="workbtn" aria-label="${esc(L('office.work'))}">
+      <span class="wb-ring"></span>
+      <span class="wb-in">${I('bolt', 26)}<span class="wb-l">${L('office.work')}</span>
+      <small>+$${fmtSmall(tp.cash)} · +${tp.pts.toFixed(1)} ${L('ui.wp')}</small></span>
+    </button>
+    <div class="energy">${I('bolt', 14, 'yel')}<div class="bar yel"><i data-w="energy"></i></div><span class="px" data-t="energy"></span></div>
+  </section>
+  ${eventBanner()}
+  ${dailyCard()}
+  <section class="panel fin">
+    <div class="stats3">
+      <div><small>${L('fin.sales')}</small><b data-t="sales"></b></div>
+      <div><small>${L('fin.salary')}</small><b>${money(salaryTotal(S))}</b></div>
+      <div><small>${L('fin.dayleft')}</small><b data-t="dayleft"></b></div>
+    </div>
+  </section>`;
+}
+
+/* ---------- STUDIO: team ---------- */
+const moodClass = (m) => (m >= 60 ? 'ok' : m >= 35 ? 'mid' : 'low');
+function pips(l) {
+  let h = '';
+  for (let i = 1; i <= MAX_LVL; i++) h += `<span class="pip ${i <= l ? 'on' : ''}"></span>`;
+  return `<div class="pips" aria-label="${esc(L('ui.level', { n: l }))}">${h}</div>`;
+}
+function empRow(r) {
+  if (r === 'you') {
+    return `<button class="emp ${UI.sel === 'you' ? 'on' : ''}" data-act="sel:you">
+      ${imgTag(portrait('you', 90), 'av')}
+      <span class="emp-t"><b>${L('role.you.name')}</b><small>${L('ui.level', { n: S.you.lvl })}</small></span>
+      <span class="emp-m ok">${I('bolt', 14)}<small>${maxEnergy(S)}</small></span>
+    </button>`;
+  }
+  const st = S.staff[r], hired = st.lvl > 0;
+  const canHire = !hired && S.cash >= ROLE[r].hire;
+  return `<button class="emp ${hired ? '' : 'vac'} ${UI.sel === r ? 'on' : ''}" data-act="sel:${r}">
+    ${imgTag(portrait(r, hired ? st.mood : 80), 'av')}
+    <span class="emp-t"><b>${L('role.' + r + '.name')}</b><small>${hired ? L('ui.level', { n: st.lvl }) + ' · ' + money(salaryOf(S, r)) + L('ui.per_day') : L('team.vacancy') + ' · ' + money(ROLE[r].hire)}</small></span>
+    ${hired ? `<span class="emp-m ${moodClass(st.mood)}">${I('heart', 14)}<small>${Math.round(st.mood)}%</small></span>` : canHire ? '<i class="dot"></i>' : ''}
+  </button>`;
+}
+function detailPanel() {
+  const r = UI.sel;
+  if (r === 'you') {
+    const l = S.you.lvl, max = l >= MAX_LVL, cost = youUpCost(l), tp = tapPower(S);
+    return `<section class="panel detail">
+      <div class="d-head"><h3 class="h3">${L('role.you.name')}</h3><span class="lvl px">LV ${l}</span></div>
+      <div class="d-body">${imgTag(portrait('you', 90), 'd-art')}
+        <ul class="stats">
+          <li><span>${L('team.tap_pts')}</span><b class="grn">+${tp.pts.toFixed(1)}</b></li>
+          <li><span>${L('team.tap_cash')}</span><b>$${fmtSmall(tp.cash)}</b></li>
+          <li><span>${L('team.max_energy')}</span><b>${maxEnergy(S)}</b></li>
+          <li><span>${L('team.passive')}</span><b>+${(0.35 * (1 + 0.08 * (l - 1))).toFixed(2)}/${L('u.s')}</b></li>
+        </ul></div>
+      ${pips(l)}
+      ${max ? `<p class="hint">${L('team.max')}</p>` : `<button class="btn" data-act="upy" ${S.cash >= cost ? '' : 'disabled'}>${L('ui.upgrade')} <b class="px">${money(cost)}</b></button>
+      <p class="hint">${L('team.you_next')}</p>`}
+    </section>`;
+  }
+  const st = S.staff[r], hired = st.lvl > 0;
+  if (!hired) {
+    return `<section class="panel detail">
+      <div class="d-head"><h3 class="h3">${L('role.' + r + '.name')}</h3><span class="lvl">${L('team.vacancy')}</span></div>
+      <div class="d-body">${imgTag(portrait(r, 80), 'd-art')}
+        <ul class="stats">
+          <li><span>${L('team.role')}</span><b>${L('role.' + r + '.perk')}</b></li>
+          <li><span>${L('team.salary')}</span><b>${money(salaryOf(S, r, 1))}${L('ui.per_day')}</b></li>
+        </ul></div>
+      <button class="btn" data-act="hire:${r}" ${S.cash >= ROLE[r].hire ? '' : 'disabled'}>${L('team.hire')} <b class="px">${money(ROLE[r].hire)}</b></button>
+      <p class="hint">${L(r === 'mkt' ? 'team.hint_mkt' : 'team.hint_dev')}</p>
+    </section>`;
+  }
+  const l = st.lvl, max = l >= MAX_LVL, cost = upCost(r, l);
+  const outLine = r === 'mkt'
+    ? `<li><span>${L('team.sales_bonus')}</span><b class="grn">+${Math.round(0.07 * l * moodF(st.mood) * 100)}%</b></li>`
+    : `<li><span>${L('team.work_pts')}</span><b class="grn">+${wpRole(S, r).toFixed(1)}/${L('u.s')}</b></li>`;
+  return `<section class="panel detail">
+    <div class="d-head"><h3 class="h3">${L('role.' + r + '.name')}</h3><span class="lvl px">LV ${l}</span></div>
+    <div class="d-body">${imgTag(portrait(r, st.mood), 'd-art')}
+      <ul class="stats">
+        <li><span>${L('team.speed')}</span><b class="grn">+${Math.round((speedOf(l) - 1) * 100)}%</b></li>
+        <li><span>${L('team.mood')}</span><b class="${moodClass(st.mood)}">${Math.round(st.mood)}%</b></li>
+        ${outLine}
+        <li><span>${L('team.salary')}</span><b>${money(salaryOf(S, r))}${L('ui.per_day')}</b></li>
+      </ul></div>
+    ${pips(l)}
+    ${max ? `<p class="hint">${L('team.max')}</p>` : `<button class="btn" data-act="ups:${r}" ${S.cash >= cost ? '' : 'disabled'}>${L('ui.upgrade')} <b class="px">${money(cost)}</b></button>
+    <p class="hint">${L('team.next', { sal: money(salaryOf(S, r, l + 1)) })}</p>`}
+  </section>`;
+}
+function tabTeam() {
+  return `<div class="team">
+    <div class="emp-list">${['you'].concat(ROLES).map(empRow).join('')}</div>
+    ${detailPanel()}
+  </div>
+  <p class="hint pad">${L('team.hint')}</p>`;
+}
+
+/* ---------- STUDIO: games ---------- */
+function genreBtn(g) {
+  const sel = S.sel.genre === g;
+  const hot = S.trend.hot === g, cold = S.trend.cold === g;
+  return `<button class="gbtn ${sel ? 'on' : ''}" data-act="genre:${g}">
+    ${I(g, 24)}<span>${L('genre.' + g)}</span>
+    <em class="trend ${hot ? 'hot' : cold ? 'cold' : ''}">${hot ? '▲ ×1.5' : cold ? '▼ ×0.75' : '×1'}</em>
+  </button>`;
+}
+function tierBtn(t) {
+  const ok = tierUnlocked(S, t);
+  return `<button class="tbtn ${S.sel.tier === t ? 'on' : ''} ${ok ? '' : 'locked'}" data-act="tier:${t}">
+    <span>${L('tier.' + t)}</span>${ok ? `<small>×${TIERS[t].rev} ${L('games.rev')}</small>` : `<small>${I('lock', 10)} ${L('floor.' + TIERS[t].need + '.name')}</small>`}
+  </button>`;
+}
+function currentProjectCard() {
+  const p = S.project;
+  if (!p) return '';
+  return `<section class="panel proj">
+    <div class="sec-h"><h2 class="h2">${L('games.current')}</h2></div>
+    <div class="proj-row">
+      ${imgTag(coverURL(p.genre, p.name), 'cover lg')}
+      <div class="proj-t">
+        <b>${esc(p.name)}</b>
+        <small>${L('genre.' + p.genre)} · ${L('tier.' + p.tier)} · ${L('games.score_est')} ${expectedScore(S, p.genre).toFixed(1)}</small>
+        <div class="bar proj"><i data-w="proj"></i><span class="px" data-t="ppct"></span></div>
+        <small class="mut" data-t="peta"></small>
+      </div>
+    </div>
+    <div class="row2">
+      <button class="btn green" data-act="tab:office">${I('bolt', 16)} ${L('games.speed_up')}</button>
+      <button class="toggle" data-act="auto" aria-pressed="${S.auto}"><span class="sw"></span><span>${L('games.auto')}</span></button>
+    </div>
+  </section>`;
+}
+function newProjectCard() {
+  const sel = S.sel, ok = tierUnlocked(S, sel.tier);
+  const need = projectNeed(sel.genre, sel.tier);
+  const sec = need / Math.max(0.1, wpTotal(S)) / (NET.speed || 1);
+  const score = expectedScore(S, sel.genre);
+  return `<section class="panel newp">
+    <div class="sec-h"><div><h2 class="h2">${L('games.new')}</h2><p class="sub">${L('games.new_sub')}</p></div></div>
+    <div class="genres">${GENRE_ORDER.map(genreBtn).join('')}</div>
+    <div class="tiers">${TIER_ORDER.map(tierBtn).join('')}</div>
+    <div class="namerow">${imgTag(coverURL(sel.genre, sel.name), 'cover sm')}<div><small>${L('games.name')}</small><b>${esc(sel.name)}</b></div><button class="btn ghost sm" data-act="rename">${I('refresh', 12)} ${L('games.other')}</button></div>
+    <div class="stats3">
+      <div><small>${L('games.need')}</small><b>${fmt(need)}</b></div>
+      <div><small>${L('games.time')}</small><b>${fmtDur(sec)}</b></div>
+      <div><small>${L('games.score_est')}</small><b>${score.toFixed(1)}</b></div>
+    </div>
+    <button class="btn big" data-act="start" ${ok && !S.project ? '' : 'disabled'}>${S.project ? L('games.busy') : ok ? L('games.start') : L('games.locked')}</button>
+    <p class="hint">${L('games.hint')}</p>
+  </section>`;
+}
+const scoreClass = (v) => (v >= 8 ? 'hi' : v >= 6 ? 'mid' : 'lo');
+function gameRow(g) {
+  return `<div class="game">
+    ${imgTag(coverURL(g.genre, g.name), 'cover')}
+    <div class="g-t"><b>${esc(g.name)}</b><small>${L('genre.' + g.genre)} · ${L('tier.' + g.tier)} · ${L('ui.day', { n: g.day })}</small>
+      <div class="bar thin"><i data-w="gprog:${g.id}"></i></div>
+      <small class="${g.active ? 'grn' : 'mut'}">${g.active ? L('games.on_sale', { rate: money(g.rate) }) : L('games.off_sale')} · <span data-t="gearn:${g.id}"></span></small></div>
+    <span class="score px ${scoreClass(g.score)}">${g.score.toFixed(1)}</span>
+  </div>`;
+}
+function tabGames() {
+  return `${currentProjectCard()}${S.project ? '' : newProjectCard()}
+  <section class="panel">
+    <div class="sec-h"><h2 class="h2">${L('games.released')}</h2><small class="mut">${S.stats.released}</small></div>
+    ${S.games.length ? `<div class="glist">${S.games.slice(0, 12).map(gameRow).join('')}</div>` : `<p class="sub">${L('games.none')}</p>`}
+  </section>
+  ${S.project ? newProjectCard() : ''}`;
+}
+function tabStudio() {
+  return segHTML('studio') + (UI.sub.studio === 'team' ? tabTeam() : tabGames());
+}
+
+/* ---------- QUESTS ---------- */
+function logRow(e) {
+  return `<li class="log ${e.kind}"><span class="px">${L('ui.day_s', { n: e.day })}</span><span>${esc(L(e.k, e.p))}</span></li>`;
+}
+function tabQuests() {
+  const goalsSorted = GOALS.slice().sort((a, b) => {
+    const r = (g) => (S.goals[g.id] === 1 ? 0 : S.goals[g.id] === 2 ? 2 : 1);
+    return r(a) - r(b);
+  });
+  const doneN = GOALS.filter((g) => S.goals[g.id] === 2).length;
+  return `${S.pending ? eventCard(false) : `<section class="panel calm"><p class="sub">${I('quest', 16)} ${L('quests.none', { n: Math.max(1, S.nextEventDay - S.day) })}</p></section>`}
+  ${S.lastOutcome && !S.pending ? outcomeCard(S.lastOutcome) : ''}
+  ${dailyCard()}
+  <section class="panel">
+    <div class="sec-h"><div><h2 class="h2">${I('star', 16)} ${L('goals.title')}</h2><p class="sub">${L('goals.sub')}</p></div><small class="px mut">${doneN}/${GOALS.length}</small></div>
+    <div class="goals">${goalsSorted.map(goalRow).join('')}</div>
+  </section>
+  <section class="panel">
+    <h2 class="h2">${L('log.title')}</h2>
+    <ul class="logs">${S.log.slice(0, 16).map(logRow).join('') || `<li class="mut">${L('log.empty')}</li>`}</ul>
+  </section>`;
+}
+
+/* ---------- EMPIRE ---------- */
+function floorRow(f) {
+  const own = floorOn(S, f.id), next = nextFloor(S) === f.id;
+  return `<div class="floor ${own ? 'own' : next ? 'next' : 'locked'}">
+    <span class="f-no px">${f.id === 'b' ? 'B' : f.id.slice(1)}</span>
+    <div class="f-t"><b>${L('floor.' + f.id + '.name')} · ${L('floor.' + f.id + '.sub')}</b><small>${L('floor.' + f.id + '.perk')}</small></div>
+    ${own ? I('check', 16, 'grn') : next ? `<button class="btn sm" data-act="flr:${f.id}" ${S.cash >= f.price ? '' : 'disabled'}>${money(f.price)}</button>` : `<small class="mut px">${money(f.price)}</small>`}
+  </div>`;
+}
+function itemRow(it) {
+  const own = !!S.items[it.id];
+  return `<div class="item ${own ? 'own' : ''}">
+    <div class="f-t"><b>${L('item.' + it.id + '.name')}</b><small>${L('item.' + it.id + '.perk')}</small></div>
+    ${own ? I('check', 16, 'grn') : `<button class="btn sm" data-act="buy:${it.id}" ${S.cash >= it.price ? '' : 'disabled'}>${money(it.price)}</button>`}
+  </div>`;
+}
+function boostRow(b) {
+  const on = S.buffs[b.id] > 0;
+  return `<div class="item">
+    <div class="f-t"><b>${L('boost.' + b.id + '.name')}${on ? ` <span class="chip cy sm" data-t="buff:${b.id}"></span>` : ''}</b><small>${L('boost.' + b.id + '.perk')}</small></div>
+    <button class="btn sm pink" data-act="bst:${b.id}" ${S.gems >= b.price ? '' : 'disabled'}>${I('gem', 12)} ${b.price}</button>
+  </div>`;
+}
+function tabEmpire() {
+  const nf = nextFloor(S);
+  return `<section class="panel towerp">
+    <canvas id="tower" class="tower" width="80" height="124" aria-label="${esc(L('empire.tower'))}"></canvas>
+    <div class="tw-t">
+      <small class="px mut">${L('empire.rank')}</small>
+      <b class="rank">${L('rank.' + rankOf(S))}</b>
+      <ul class="stats">
+        <li><span>${L('empire.earned')}</span><b>${money(S.earned)}</b></li>
+        <li><span>${L('empire.rep')}</span><b>${S.rep.toFixed(1)}</b></li>
+        <li><span>${L('empire.best')}</span><b>${S.stats.best ? S.stats.best.toFixed(1) : '—'}</b></li>
+        ${S.legacy ? `<li><span>${L('empire.legacy')}</span><b class="yel">+${Math.round(S.legacy * 15)}%</b></li>` : ''}
+      </ul>
+    </div>
+  </section>
+  ${canPrestige(S) ? `<section class="panel ipo">
+    <h2 class="h2">${I('crown', 16)} ${L('ipo.title')}</h2><p class="sub">${L('ipo.text', { gems: 3 + S.legacy })}</p>
+    <button class="btn gold" data-act="ipo">${L('ipo.btn')}</button></section>` : ''}
+  <section class="panel">
+    <div class="sec-h"><div><h2 class="h2">${L('empire.floors')}</h2><p class="sub">${nf ? L('empire.floors_sub') : L('empire.all_floors')}</p></div></div>
+    <div class="floors">${FLOORS.slice().reverse().map(floorRow).join('')}</div>
+  </section>
+  <section class="panel">
+    <h2 class="h2">${L('empire.shop')}</h2>
+    <div class="items">${ITEMS.map(itemRow).join('')}</div>
+  </section>
+  <section class="panel">
+    <h2 class="h2">${L('empire.boosts')}</h2>
+    <div class="items">${BOOSTS.map(boostRow).join('')}</div>
+    <p class="hint">${L('empire.gems_hint')}</p>
+  </section>`;
+}
+
+/* ---------- AIRDROP HUB ---------- */
+function demoNote() {
+  return NET.mode === 'demo' ? `<div class="note">${I('info', 14)} ${L('demo.note')}</div>` : '';
+}
+function riskNote(e) {
+  if (!e || !e.risk) return '';
+  return `<div class="note warn">${I('shield', 14)} ${L(e.risk === 1 ? 'risk.watch' : 'risk.hold')}</div>`;
+}
+function checkinStrip(e) {
+  const ci = e.checkin;
+  const cur = ci.done ? ci.streak : ci.streak + 1;
+  const slot = ((Math.max(1, cur) - 1) % 7);
+  return `<div class="ci-row">${ci.table.map((v, i) => {
+    const past = ci.done ? i <= slot : i < slot;
+    const now = !ci.done && i === slot;
+    return `<div class="ci ${past ? 'got' : ''} ${now ? 'now' : ''}"><small>${L('ui.day_s', { n: i + 1 })}</small><b>${v}</b>${past ? I('check', 10) : I('pts', 10)}</div>`;
+  }).join('')}</div>`;
+}
+function hubHome() {
+  const e = NET.eco;
+  if (!e) return `<div class="loading">${L('ui.loading')}</div>`;
+  const usedPct = Math.round((e.used || 0) * 100);
+  const src = Object.keys(e.bySrc || {}).filter((k) => e.bySrc[k] > 0);
+  const ci = e.checkin;
+  return `${demoNote()}${riskNote(e)}
+  <section class="panel ptsp">
+    <div class="season px">${esc((NET.cfg && NET.cfg.season && NET.cfg.season.name) || 'Season 0')}</div>
+    <div class="bigpts">${I('pts', 34)}<b id="bigpts">${fmtPts(e.pts)}</b></div>
+    <small class="mut">${L('hub.pts_label')}</small>
+    <div class="today"><span>${L('hub.today')}: <b class="grn">+${fmtPts(e.today)}</b></span>${e.pass ? `<span class="chip yel">${I('star', 12)} Office Pass</span>` : ''}</div>
+    <div class="meter"><div class="bar mag"><i style="width:${usedPct}%"></i></div><small>${L('hub.daily_meter', { p: usedPct })}</small></div>
+    ${src.length ? `<div class="srcs">${src.map((k) => `<span class="chip">${L('src.' + k)} <b>+${fmtPts(e.bySrc[k])}</b></span>`).join('')}</div>` : ''}
+  </section>
+  <section class="panel">
+    <div class="sec-h"><div><h2 class="h2">${I('calendar', 16)} ${L('hub.checkin')}</h2><p class="sub">${L('hub.checkin_sub', { n: ci.streak })}</p></div></div>
+    ${checkinStrip(e)}
+    ${ci.done ? `<button class="btn" disabled>${L('hub.checked')}</button>` : S.stats.taps < 20 ? `<button class="btn" disabled>${L('hub.checkin_play')}</button>` : `<button class="btn big glow" data-act="checkin">${L('hub.checkin_btn', { n: ci.next })}</button>`}
+  </section>
+  ${walletCard(e)}
+  <section class="panel how">
+    <h2 class="h2">${I('info', 16)} ${L('hub.how')}</h2>
+    <ul class="bul">
+      <li>${L('hub.how1')}</li>
+      <li>${L('hub.how2', { D: e.D })}</li>
+      <li>${L('hub.how3')}</li>
+      <li>${L('hub.how4')}</li>
+    </ul>
+    <p class="hint">${L('hub.disclaimer', { sym: esc((NET.cfg && NET.cfg.symbol) || 'OFFICE') })}</p>
+  </section>`;
+}
+function shortAddr(a) {
+  a = String(a || '');
+  return a.length > 14 ? a.slice(0, 6) + '…' + a.slice(-6) : a;
+}
+function walletCard(e) {
+  if (NET.mode === 'demo') return '';
+  const w = e.wallet;
+  return `<section class="panel wallet">
+    <div class="sec-h"><div><h2 class="h2">${I('ton', 16)} ${L('wallet.title')}</h2><p class="sub">${L('wallet.sub')}</p></div></div>
+    ${w ? `<div class="waddr">${I(w.ok ? 'check' : 'info', 14, w.ok ? 'grn' : 'yel')}<code>${esc(UI.walletFriendly || shortAddr(w.addr))}</code><small class="${w.ok ? 'grn' : 'yel'}">${w.ok ? L('wallet.verified') : L('wallet.unverified')}</small></div>
+      <div class="row2"><button class="btn ghost sm" data-act="wallet:connect">${L('wallet.change')}</button><button class="btn ghost sm" data-act="wallet:off">${L('wallet.disconnect')}</button></div>`
+    : `<button class="btn blue big" data-act="wallet:connect">${I('ton', 16)} ${L('wallet.connect')}</button>
+       <button class="linkbtn" data-act="wallet:manual">${L('wallet.manual')}</button>`}
+  </section>`;
+}
+function hubFriends() {
+  const e = NET.eco;
+  if (!e) return `<div class="loading">${L('ui.loading')}</div>`;
+  const r = e.ref || {};
+  const f = UI.hub.friends;
+  return `${demoNote()}
+  <section class="panel invite">
+    <div class="inv-art">${I('users', 30)}${I('gift', 22)}</div>
+    <h2 class="h2">${L('fr.title')}</h2>
+    <p class="sub">${L('fr.sub', { cash: money(r.cashEach || 500), gems: r.gemsEach || 2 })}</p>
+    <div class="stats3">
+      <div><small>${L('fr.invited')}</small><b>${r.total || 0}</b></div>
+      <div><small>${L('fr.active')}</small><b>${r.active || 0}</b></div>
+      <div><small>${L('fr.earned')}</small><b class="mag">${fmtPts(r.pts || 0)}</b></div>
+    </div>
+    ${r.link ? `<div class="linkbox"><code>${esc(r.link)}</code></div>
+    <div class="row2"><button class="btn big glow" data-act="share">${I('share', 16)} ${L('fr.share')}</button><button class="btn ghost" data-act="copy">${I('copy', 16)}</button></div>` : `<button class="btn" disabled>${L('fr.no_link')}</button>`}
+  </section>
+  <section class="panel">
+    <h2 class="h2">${L('fr.rules')}</h2>
+    <ul class="bul">
+      <li>${L('fr.rule1', { p: Math.round((r.l1 || 0.1) * 100) })}</li>
+      <li>${L('fr.rule2', { p: Math.round((r.l2 || 0.02) * 100) })}</li>
+      <li>${L('fr.rule3')}</li>
+      <li>${L('fr.rule4')}</li>
+    </ul>
+  </section>
+  <section class="panel">
+    <div class="sec-h"><h2 class="h2">${L('fr.list')}</h2>${f && f.l2 ? `<small class="mut">${L('fr.l2', { n: f.l2 })}</small>` : ''}</div>
+    ${!f ? `<div class="loading">${L('ui.loading')}</div>` : f.friends && f.friends.length ? `<div class="flist">${f.friends.map((x) => `<div class="fr">
+      <span class="fav">${esc((x.name || '?').slice(0, 1).toUpperCase())}</span>
+      <div class="f-t"><b>${esc(x.name || '—')}</b><small class="${x.active ? 'grn' : 'mut'}">${x.active ? L('fr.is_active') : L('fr.not_active')}</small></div>
+      <b class="mag">+${fmtPts(x.earned)}</b></div>`).join('')}</div>` : `<p class="sub">${L('fr.empty')}</p>`}
+  </section>`;
+}
+function taskRow(t) {
+  const ico = { channel: 'plane', chat: 'users', x: 'share', wallet: 'ton', play3: 'calendar', play14: 'calendar', streak3: 'fire', streak7: 'fire', invite1: 'users', invite3: 'users', invite10: 'users' }[t.id] || 'star';
+  let right;
+  if (t.done) right = I('check', 18, 'grn');
+  else if (t.kind === 'tg') right = `<small class="mut">${L('task.tg_only')}</small>`;
+  else if (t.claimable) right = `<button class="btn sm glow" data-act="task:claim:${t.id}">${L('ui.claim')}</button>`;
+  else if (t.kind === 'visit' || t.kind === 'channel') right = `<button class="btn sm blue" data-act="task:go:${t.id}">${L('task.go')}</button>${t.kind === 'channel' || t.started ? `<button class="btn sm ghost" data-act="task:claim:${t.id}">${L('task.check')}</button>` : ''}`;
+  else right = `<small class="px mut">${t.cur || 0}/${t.max}</small>`;
+  return `<div class="task ${t.done ? 'done' : ''}">
+    <span class="t-ico">${I(ico, 18)}</span>
+    <div class="f-t"><b>${L('task.' + t.id)}</b><small class="mag">+${t.pts} ${L('res.pts_s')}</small></div>
+    <div class="t-r">${right}</div>
+  </div>`;
+}
+function hubTasks() {
+  const t = UI.hub.tasks;
+  return `${demoNote()}<section class="panel">
+    <div class="sec-h"><div><h2 class="h2">${I('list', 16)} ${L('task.title')}</h2><p class="sub">${L('task.sub')}</p></div></div>
+    ${t ? `<div class="tasks">${t.slice().sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || (b.claimable ? 1 : 0) - (a.claimable ? 1 : 0)).map(taskRow).join('')}</div>` : `<div class="loading">${L('ui.loading')}</div>`}
+  </section>`;
+}
+function hubTop() {
+  const b = UI.hub.board;
+  if (!b) return `<div class="loading">${L('ui.loading')}</div>`;
+  const top3 = b.top.slice(0, 3);
+  const pod = [top3[1], top3[0], top3[2]];
+  return `${demoNote()}
+  <section class="panel myrank">
+    ${I('trophy', 28)}
+    <div><small class="mut">${L('top.you')}</small><b class="px">${b.me ? '#' + b.me.rank : '—'}</b></div>
+    <div class="r"><small class="mut">${L('top.players', { n: b.total })}</small><b class="mag">${b.me ? fmtPts(b.me.pts) : '0'}</b></div>
+  </section>
+  ${top3.length ? `<section class="podium">${pod.map((x, i) => x ? `<div class="pod p${[2, 1, 3][i]} ${x.me ? 'me' : ''}"><span class="pav">${esc((x.name || '?').slice(0, 1).toUpperCase())}</span><b>${esc(x.name || '—')}</b><small>${fmtPts(x.pts)}</small><div class="step px">${[2, 1, 3][i]}</div></div>` : '<div class="pod empty"></div>').join('')}</section>` : ''}
+  <section class="panel">
+    ${b.top.length > 3 ? `<ol class="board">${b.top.slice(3).map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${esc(x.name || '—')}</b><span class="mag">${fmtPts(x.pts)}</span></li>`).join('')}</ol>` : `<p class="sub">${b.top.length ? L('top.few') : L('top.empty')}</p>`}
+    <p class="hint">${L('top.hint')}</p>
+  </section>`;
+}
+function hubShop() {
+  const sh = UI.hub.shop;
+  if (NET.mode === 'demo') return `${demoNote()}<section class="panel"><p class="sub">${L('shop.demo')}</p></section>`;
+  if (!sh) return `<div class="loading">${L('ui.loading')}</div>`;
+  return `<section class="panel">
+    <div class="sec-h"><div><h2 class="h2">${I('cart', 16)} ${L('shop.title')}</h2><p class="sub">${L('shop.sub')}</p></div></div>
+    <div class="shop">${sh.items.map((it) => `<div class="sku ${it.sku === 'pass30' ? 'pass' : it.sku === 'starter' ? 'starter' : ''} ${it.owned ? 'owned' : ''}">
+      <div class="sku-art">${it.sku === 'pass30' ? I('star3', 28) : it.sku === 'starter' ? I('gift', 28) : I('gem', 28)}</div>
+      <b>${esc(it.title || it.sku)}</b>
+      <small>${esc(it.desc || '')}</small>
+      ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>`}
+    </div>`).join('')}</div>
+    <p class="hint">${L('shop.hint')}</p>
+  </section>`;
+}
+function tabDrop() {
+  const sub = UI.sub.drop;
+  const body = sub === 'home' ? hubHome() : sub === 'friends' ? hubFriends() : sub === 'tasks' ? hubTasks() : sub === 'top' ? hubTop() : hubShop();
+  return segHTML('drop') + body;
+}
+
+/* ---------- tab dispatcher ---------- */
+function tabHTML() {
+  switch (UI.tab) {
+    case 'studio': return tabStudio();
+    case 'quests': return tabQuests();
+    case 'empire': return tabEmpire();
+    case 'drop': return tabDrop();
+    default: return tabOffice();
+  }
+}

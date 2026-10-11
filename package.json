@@ -1,0 +1,18 @@
+{
+  "name": "office-dreams",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Office Dreams \u2014 neon game-studio tycoon for Telegram Mini Apps with an anti-bot airdrop-points economy",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "node build.js && node scripts/make-assets.js",
+    "start": "node server/index.js",
+    "setup-bot": "node scripts/setup-bot.js",
+    "dev": "DEV_AUTH=1 PORT=8080 node server/index.js",
+    "test": "node build.js && node test/i18n.js && node test/engine.js && node test/events.js && node test/server.js",
+    "test:e2e": "node test/e2e.js"
+  }
+}

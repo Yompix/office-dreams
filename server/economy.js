@@ -1,0 +1,341 @@
+'use strict';
+/* Airdrop-points economy.
+ *  - points are priced by the SERVER from verified progress (never from client claims)
+ *  - diminishing returns inside a day:  eff = D * (1 - exp(-raw / D))  => soft daily cap ≈ D
+ *  - referral bonuses are paid out of the same pie (10% L1 / 2% L2), capped per day
+ *  - nothing here promises token amounts: points are shares of a fixed daily "pie" that is decided at launch
+ */
+const E = require('../src/engine.js');
+const U = require('./users.js');
+
+const CHECKIN = [10, 12, 15, 18, 22, 28, 40];
+const RISK_MULT = { ok: 1, watch: 0.5, quarantine: 0, banned: 0 };
+const r1 = (x) => Math.round(x * 10) / 10;
+const r3 = (x) => Math.round(x * 1000) / 1000;
+
+const USER_COLS = ['pts', 'pts_day', 'raw_today', 'eff_today', 'ref_today', 'ref_pts', 'streak', 'last_checkin', 'days_played', 'last_play_day', 'act',
+  'wall_ref', 'seq', 'tk_total', 'risk', 'risk_hard', 'risk_at', 'risk_state', 'risk_note', 'human_until', 'challenge', 'ref_active', 'ref_active_at', 'wallet', 'wallet_ok', 'wallet_at',
+  'pass_until', 'lang', 'last_seen', 'blocked', 'deleted', 'premium', 'username', 'name'];
+const UPDATE_SQL = 'UPDATE users SET ' + USER_COLS.map((c) => c + '=?').join(',') + ' WHERE id=?';
+function persistUser(ctx, u) {
+  ctx.db.run(UPDATE_SQL, ...USER_COLS.map((c) => (u[c] === undefined ? null : u[c])), u.id);
+}
+
+const dailyD = (ctx, u, now) => ctx.cfg.eco.dailyD * (u.pass_until > now ? ctx.cfg.eco.passBoost : 1);
+function rollDay(u, dk) {
+  if (u.pts_day !== dk) { u.pts_day = dk; u.raw_today = 0; u.eff_today = 0; u.ref_today = 0; }
+}
+function ledgerAdd(ctx, uid, dk, kind, ref, raw, pts) {
+  ctx.db.run(
+    `INSERT INTO ledger(uid,day,kind,ref,raw,pts,n) VALUES(?,?,?,?,?,?,1)
+     ON CONFLICT(uid,day,kind,ref) DO UPDATE SET raw=raw+excluded.raw, pts=pts+excluded.pts, n=n+1`,
+    uid, dk, kind, ref, raw, pts
+  );
+}
+
+/* ---- activity pricing ---- */
+function actVector(s) {
+  const t = s.stats;
+  return { taps: t.taps, relW: t.relW, ups: t.ups, evs: t.evs, flrW: t.flrW, goalW: t.goalW, dqW: t.dqW };
+}
+function priceActivity(prev, cur) {
+  const d = (k) => Math.max(0, (cur[k] || 0) - (prev[k] || 0));
+  const W = E.PTS_W;
+  const parts = {
+    taps: d('taps') * W.tap,
+    release: d('relW') * W.rel,
+    upgrades: d('ups') * W.up,
+    events: d('evs') * W.ev,
+    floors: d('flrW'),
+    goals: d('goalW'),
+    daily: d('dqW'),
+  };
+  let raw = 0;
+  for (const k in parts) raw += parts[k];
+  return { raw, parts };
+}
+
+/* ---- crediting ---- */
+function credit(ctx, u, kind, raw, o = {}) {
+  if (!(raw > 0)) return 0;
+  const now = o.now || Date.now();
+  const dk = U.dayKey(now);
+  rollDay(u, dk);
+  const mult = RISK_MULT[u.risk_state] === undefined ? 0 : RISK_MULT[u.risk_state];
+  let eff = raw;
+  if (!o.fixed) {
+    const D = dailyD(ctx, u, now);
+    const prev = u.raw_today, next = prev + raw;
+    eff = D * (1 - Math.exp(-next / D)) - D * (1 - Math.exp(-prev / D));
+    u.raw_today = next;
+    u.eff_today += eff;
+  }
+  const pts = r3(eff * mult);
+  if (pts > 0) {
+    u.pts = r3(u.pts + pts);
+    ledgerAdd(ctx, u.id, dk, kind, 0, raw, pts);
+    if (!o.noRef) payReferrals(ctx, u, pts, now);
+  }
+  return pts;
+}
+
+function payReferrals(ctx, u, pts, now) {
+  if (!u.ref_active) return;
+  const { eco } = ctx.cfg;
+  const dk = U.dayKey(now);
+  for (const [lvl, rid, rate] of [[1, u.ref1, eco.refL1], [2, u.ref2, eco.refL2]]) {
+    if (!rid || rid === u.id) continue;
+    const r = U.getUser(ctx, rid);
+    if (!r || r.deleted) continue;
+    const m = RISK_MULT[r.risk_state] === undefined ? 0 : RISK_MULT[r.risk_state];
+    if (m <= 0) continue;
+    rollDay(r, dk);
+    const room = Math.max(0, eco.refDailyCap - r.ref_today);
+    const amt = r3(Math.min(pts * rate, room) * m);
+    if (amt <= 0) continue;
+    r.pts = r3(r.pts + amt);
+    r.ref_pts = r3(r.ref_pts + amt);
+    r.ref_today = r3(r.ref_today + amt);
+    ctx.db.run('UPDATE users SET pts=?, ref_pts=?, ref_today=?, pts_day=?, raw_today=?, eff_today=? WHERE id=?', r.pts, r.ref_pts, r.ref_today, r.pts_day, r.raw_today, r.eff_today, r.id);
+    ledgerAdd(ctx, r.id, dk, 'ref' + lvl, u.id, 0, amt);
+  }
+}
+
+/* ---- daily check-in ---- */
+function checkinInfo(u, now) {
+  const dk = U.dayKey(now);
+  const alive = u.last_checkin === dk || u.last_checkin === dk - 1;
+  const streak = alive ? u.streak : 0;
+  const nextStreak = u.last_checkin === dk ? streak : streak + 1;
+  return { done: u.last_checkin === dk, streak, next: CHECKIN[(Math.max(1, nextStreak) - 1) % 7], table: CHECKIN };
+}
+function checkin(ctx, u, s, now) {
+  const dk = U.dayKey(now);
+  if (u.last_checkin === dk) return { ok: false, err: 'done' };
+  if (s.stats.taps < 20) return { ok: false, err: 'play_first' };
+  const streak = u.last_checkin === dk - 1 ? u.streak + 1 : 1;
+  u.streak = streak;
+  u.last_checkin = dk;
+  const got = credit(ctx, u, 'checkin', CHECKIN[(streak - 1) % 7], { fixed: true, now, meta: { streak } });
+  return { ok: true, pts: got, streak };
+}
+
+/* ---- referral ---- */
+function friendCounts(ctx, uid) {
+  const a = ctx.db.get('SELECT COUNT(*) AS n, COALESCE(SUM(ref_active),0) AS act FROM users WHERE ref1=?', uid);
+  return { total: a.n, active: a.act };
+}
+function refLink(ctx, code) {
+  const { botUsername, appShort } = ctx.cfg;
+  if (!botUsername) return '';
+  return appShort ? `https://t.me/${botUsername}/${appShort}?startapp=ref_${code}` : `https://t.me/${botUsername}?start=ref_${code}`;
+}
+// a friend becomes "active" once they really played: released a game on a 2nd day. Only then the inviter is rewarded.
+function checkReferralActivation(ctx, u, s, now) {
+  if (u.ref_active || !u.ref1) return null;
+  if (u.days_played < 2 || s.stats.released < 1 || u.risk_state !== 'ok' || u.risk >= 25) return null;
+  const { eco } = ctx.cfg;
+  const r = U.getUser(ctx, u.ref1);
+  if (!r || r.deleted || r.risk_state === 'banned') return null;
+  const dk = U.dayKey(now);
+  u.ref_active = 1;
+  u.ref_active_at = now;
+  let bonus = 0;
+  const todayN = ctx.db.get(`SELECT COUNT(*) AS n FROM users WHERE ref1=? AND ref_active_at>=?`, r.id, dk * U.DAY).n;
+  const lifeN = ctx.db.get(`SELECT COUNT(*) AS n FROM users WHERE ref1=? AND ref_active=1`, r.id).n;
+  if (todayN <= eco.refActivationsPerDay && lifeN <= eco.refActivationMax && (RISK_MULT[r.risk_state] || 0) > 0) {
+    rollDay(r, dk);
+    bonus = r3(eco.refActivationBonus * RISK_MULT[r.risk_state]);
+    r.pts = r3(r.pts + bonus);
+    r.ref_pts = r3(r.ref_pts + bonus);
+    ctx.db.run('UPDATE users SET pts=?, ref_pts=? WHERE id=?', r.pts, r.ref_pts, r.id);
+    ledgerAdd(ctx, r.id, dk, 'ref_act', u.id, 0, bonus);
+    U.grantState(ctx, r.id, { cash: eco.inviteCash, gems: eco.inviteGems });
+  }
+  return { referrer: r.id, bonus };
+}
+function friendsList(ctx, uid) {
+  const rows = ctx.db.all('SELECT id,name,username,ref_active,pts,created_at FROM users WHERE ref1=? AND deleted=0 ORDER BY created_at DESC LIMIT 60', uid);
+  const earned = {};
+  for (const e of ctx.db.all("SELECT ref, SUM(pts) AS p FROM ledger WHERE uid=? AND kind IN ('ref1','ref2','ref_act') GROUP BY ref", uid)) earned[e.ref] = r1(e.p);
+  const l2 = ctx.db.get('SELECT COUNT(*) AS n FROM users WHERE ref2=? AND ref_active=1', uid).n;
+  return {
+    friends: rows.map((r) => ({ id: r.id, name: r.name, active: !!r.ref_active, earned: earned[r.id] || 0, since: r.created_at })),
+    l2,
+  };
+}
+
+/* ---- tasks ---- */
+function taskList(ctx, u) {
+  const c = ctx.cfg;
+  const fr = friendCounts(ctx, u.id);
+  const list = [];
+  if (c.channel) list.push({ id: 'channel', pts: 40, url: c.channelUrl, verify: 'channel' });
+  if (c.chatUrl) list.push({ id: 'chat', pts: 20, url: c.chatUrl, verify: 'visit' });
+  if (c.xUrl) list.push({ id: 'x', pts: 20, url: c.xUrl, verify: 'visit' });
+  list.push(
+    { id: 'wallet', pts: 30, verify: 'auto', cur: u.wallet ? 1 : 0, max: 1 },
+    { id: 'play3', pts: 25, verify: 'auto', cur: Math.min(3, u.days_played), max: 3 },
+    { id: 'streak3', pts: 15, verify: 'auto', cur: Math.min(3, u.streak), max: 3 },
+    { id: 'streak7', pts: 50, verify: 'auto', cur: Math.min(7, u.streak), max: 7 },
+    { id: 'play14', pts: 80, verify: 'auto', cur: Math.min(14, u.days_played), max: 14 },
+    { id: 'invite1', pts: 20, verify: 'auto', cur: Math.min(1, fr.active), max: 1 },
+    { id: 'invite3', pts: 60, verify: 'auto', cur: Math.min(3, fr.active), max: 3 },
+    { id: 'invite10', pts: 200, verify: 'auto', cur: Math.min(10, fr.active), max: 10 }
+  );
+  return list;
+}
+function taskView(ctx, u, now) {
+  const done = new Set(ctx.db.all('SELECT task FROM tasks_done WHERE uid=?', u.id).map((r) => r.task));
+  const started = {};
+  for (const r of ctx.db.all('SELECT task, ts FROM task_starts WHERE uid=?', u.id)) started[r.task] = r.ts;
+  return taskList(ctx, u).map((t) => ({
+    id: t.id, pts: t.pts, url: t.url || '', kind: t.verify,
+    done: done.has(t.id),
+    claimable: !done.has(t.id) && (t.verify === 'auto' ? t.cur >= t.max : t.verify === 'visit' ? !!started[t.id] && now - started[t.id] >= 8000 : true),
+    started: !!started[t.id],
+    cur: t.cur === undefined ? undefined : t.cur, max: t.max,
+  }));
+}
+function taskStart(ctx, u, id, now) {
+  const t = taskList(ctx, u).find((x) => x.id === id);
+  if (!t || t.verify !== 'visit') return { ok: false, err: 'unavailable' };
+  ctx.db.run('INSERT OR IGNORE INTO task_starts(uid,task,ts) VALUES(?,?,?)', u.id, id, now);
+  return { ok: true };
+}
+async function taskClaim(ctx, uid, id, now) {
+  const u = U.getUser(ctx, uid);
+  if (!u) return { ok: false, err: 'unavailable' };
+  const t = taskList(ctx, u).find((x) => x.id === id);
+  if (!t) return { ok: false, err: 'unavailable' };
+  if (ctx.db.get('SELECT 1 AS x FROM tasks_done WHERE uid=? AND task=?', uid, id)) return { ok: false, err: 'done' };
+  if (t.verify === 'auto') {
+    if (t.cur < t.max) return { ok: false, err: 'notyet' };
+  } else if (t.verify === 'visit') {
+    const st = ctx.db.get('SELECT ts FROM task_starts WHERE uid=? AND task=?', uid, id);
+    if (!st || now - st.ts < 8000) return { ok: false, err: 'notyet' };
+  } else if (t.verify === 'channel') {
+    const r = await ctx.tg.call('getChatMember', { chat_id: ctx.cfg.channel, user_id: uid });
+    const st = r && r.ok && r.result ? r.result.status : '';
+    const member = ['creator', 'administrator', 'member'].includes(st) || (st === 'restricted' && r.result.is_member);
+    if (!r.ok && /not enough rights|chat not found|bot is not a member|CHAT_ADMIN_REQUIRED/i.test(r.description || '')) return { ok: false, err: 'verify_unavailable' };
+    if (!member) return { ok: false, err: 'not_member' };
+  }
+  // commit with a FRESH user row (the awaited call above may have interleaved with a sync)
+  return ctx.db.tx(() => {
+    const res = ctx.db.run('INSERT OR IGNORE INTO tasks_done(uid,task,ts) VALUES(?,?,?)', uid, id, now);
+    if (!res.changes) return { ok: false, err: 'done' };
+    const fresh = U.getUser(ctx, uid);
+    const got = credit(ctx, fresh, 'task', t.pts, { fixed: true, now, meta: { task: id } });
+    persistUser(ctx, fresh);
+    return { ok: true, pts: got };
+  });
+}
+
+/* ---- leaderboard (cached 20 s) ---- */
+function leaderboard(ctx, uid, now = Date.now()) {
+  const c = ctx.cache.lb;
+  let top;
+  if (c && now - c.t < 20000) top = c.top;
+  else {
+    top = ctx.db.all("SELECT id,name,username,pts,premium FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch') ORDER BY pts DESC LIMIT 100");
+    ctx.cache.lb = { t: now, top };
+  }
+  const me = ctx.db.get('SELECT pts, risk_state FROM users WHERE id=?', uid);
+  let rank = null;
+  if (me && me.pts > 0 && (me.risk_state === 'ok' || me.risk_state === 'watch')) {
+    rank = ctx.db.get("SELECT COUNT(*)+1 AS r FROM users WHERE deleted=0 AND pts>? AND risk_state IN ('ok','watch')", me.pts).r;
+  }
+  const total = ctx.db.get("SELECT COUNT(*) AS n FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch')").n;
+  return {
+    top: top.slice(0, 50).map((r, i) => ({ rank: i + 1, name: r.name, id: r.id === uid ? r.id : undefined, me: r.id === uid, pts: r1(r.pts), premium: !!r.premium })),
+    me: rank ? { rank, pts: r1(me.pts) } : null,
+    total,
+  };
+}
+
+/* ---- Telegram Stars shop ---- */
+const SHOP = [
+  { sku: 'gems_s', stars: 25, gems: 15 },
+  { sku: 'gems_m', stars: 100, gems: 70 },
+  { sku: 'gems_l', stars: 500, gems: 400 },
+  { sku: 'starter', stars: 50, gems: 40, cash: 5000, once: true },
+  { sku: 'pass30', stars: 150, gems: 20, passDays: 30 },
+];
+const shopItem = (sku) => SHOP.find((x) => x.sku === sku) || null;
+function shopView(ctx, u) {
+  const bought = new Set(ctx.db.all('SELECT DISTINCT sku FROM purchases WHERE uid=?', u.id).map((r) => r.sku));
+  return SHOP.map((it) => ({ ...it, owned: !!it.once && bought.has(it.sku) }));
+}
+function canBuy(ctx, uid, sku) {
+  const it = shopItem(sku);
+  if (!it) return false;
+  if (it.once && ctx.db.get('SELECT 1 AS x FROM purchases WHERE uid=? AND sku=?', uid, sku)) return false;
+  return true;
+}
+// idempotent: Telegram may deliver successful_payment more than once
+function fulfil(ctx, uid, sku, chargeId, stars, now = Date.now()) {
+  const it = shopItem(sku);
+  if (!it) return { ok: false, err: 'sku' };
+  return ctx.db.tx(() => {
+    const ins = ctx.db.run('INSERT OR IGNORE INTO purchases(charge_id,uid,sku,stars,ts,meta) VALUES(?,?,?,?,?,?)', String(chargeId), uid, sku, stars, now, null);
+    if (!ins.changes) return { ok: true, dup: true };
+    U.grantState(ctx, uid, { cash: it.cash || 0, gems: it.gems || 0 });
+    if (it.passDays) {
+      const u = U.getUser(ctx, uid);
+      const from = Math.max(now, u.pass_until || 0);
+      ctx.db.run('UPDATE users SET pass_until=? WHERE id=?', from + it.passDays * U.DAY, uid);
+    }
+    const dk = U.dayKey(now);
+    ctx.db.run(
+      `INSERT INTO revenue(day,stars,usd,n) VALUES(?,?,?,1)
+       ON CONFLICT(day) DO UPDATE SET stars=stars+excluded.stars, usd=usd+excluded.usd, n=n+1`,
+      dk, stars, stars * ctx.cfg.starUsd
+    );
+    return { ok: true, item: it };
+  });
+}
+
+/* ---- emission brake (used after the token launch; shown in the admin panel) ---- */
+function pieSchedule(ctx, daysSinceLaunch) {
+  const year = Math.floor(Math.max(0, daysSinceLaunch) / 365);
+  return ctx.cfg.eco.pieYear1 / Math.pow(2, year);
+}
+function pieFor(ctx, daysSinceLaunch, yesterdayUsd, tokenUsd) {
+  const sched = pieSchedule(ctx, daysSinceLaunch);
+  const brake = tokenUsd > 0 ? (ctx.cfg.eco.pieShare * yesterdayUsd) / tokenUsd : 0;
+  return { schedule: Math.round(sched), brake: Math.round(brake), pie: Math.round(Math.min(sched, brake)) };
+}
+
+/* ---- view for the client ---- */
+function ecoView(ctx, u, now) {
+  const dk = U.dayKey(now);
+  rollDay(u, dk);
+  const D = dailyD(ctx, u, now);
+  const todayRows = ctx.db.all('SELECT kind, SUM(pts) AS p FROM ledger WHERE uid=? AND day=? GROUP BY kind', u.id, dk);
+  const bySrc = {};
+  let today = 0;
+  for (const r of todayRows) { bySrc[r.kind] = r1(r.p); today += r.p; }
+  const fr = friendCounts(ctx, u.id);
+  const ci = checkinInfo(u, now);
+  return {
+    pts: r1(u.pts),
+    today: r1(today),
+    bySrc,
+    D: Math.round(D),
+    used: r3(Math.min(1, u.eff_today / D)),
+    pass: u.pass_until > now ? u.pass_until : 0,
+    checkin: ci,
+    ref: { code: u.ref_code, link: refLink(ctx, u.ref_code), total: fr.total, active: fr.active, pts: r1(u.ref_pts), l1: ctx.cfg.eco.refL1, l2: ctx.cfg.eco.refL2, cashEach: ctx.cfg.eco.inviteCash, gemsEach: ctx.cfg.eco.inviteGems },
+    risk: u.risk_state === 'ok' ? 0 : u.risk_state === 'watch' ? 1 : 2,
+    wallet: u.wallet ? { addr: u.wallet, ok: !!u.wallet_ok } : null,
+    days: u.days_played,
+    mult: RISK_MULT[u.risk_state] === undefined ? 0 : RISK_MULT[u.risk_state],
+  };
+}
+
+module.exports = {
+  CHECKIN, RISK_MULT, SHOP, persistUser, rollDay, dailyD, ledgerAdd, actVector, priceActivity, credit, payReferrals, checkin, checkinInfo,
+  friendCounts, refLink, checkReferralActivation, friendsList, taskList, taskView, taskStart, taskClaim, leaderboard,
+  shopItem, shopView, canBuy, fulfil, pieSchedule, pieFor, ecoView, r1, r3,
+};

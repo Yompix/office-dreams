@@ -1,0 +1,28 @@
+# One-command deploy on any VPS with Docker:  docker compose up -d
+# Caddy gets a free HTTPS certificate automatically for the domain in Caddyfile.
+services:
+  game:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - PORT=8080
+      - TRUST_PROXY=1
+      - DB_PATH=data/officedreams.sqlite
+    volumes:
+      - ./data:/app/data
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - game
+volumes:
+  caddy_data:
+  caddy_config:
