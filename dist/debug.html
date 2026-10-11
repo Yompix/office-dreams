@@ -697,6 +697,21 @@ button.cell:active { transform: scale(0.94); }
 #app.shake2 { animation: shk2 0.55s ease-in-out; }
 @keyframes shk { 20% { transform: translate(-3px, 1px); } 40% { transform: translate(3px, -1px); } 60% { transform: translate(-2px, 1px); } 80% { transform: translate(2px, 0); } }
 @keyframes shk2 { 15% { transform: translate(-6px, 2px) rotate(-0.4deg); } 30% { transform: translate(6px, -2px) rotate(0.4deg); } 45% { transform: translate(-5px, 1px); } 60% { transform: translate(4px, -1px); } 80% { transform: translate(-2px, 0); } }
+
+/* bug hunt */
+.bug { position: absolute; width: 38px; height: 38px; margin: -19px 0 0 -19px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: radial-gradient(circle, rgba(125, 255, 106, 0.35), transparent 70%); cursor: pointer; z-index: 3; transition: left 0.26s linear, top 0.26s linear; }
+.bug span { font-size: 20px; line-height: 1; display: block; transform: scaleX(calc(var(--dir, 1) * -1)); animation: crawl 0.22s steps(2) infinite; filter: drop-shadow(0 0 4px rgba(125, 255, 106, 0.9)); }
+.bug.late { background: radial-gradient(circle, rgba(255, 63, 90, 0.5), transparent 70%); animation: buglate 0.5s ease-in-out infinite; }
+.bug.splat { transition: none; animation: ideapop 0.45s ease-out forwards; }
+.bug.splat span { transform: none; animation: none; }
+@keyframes crawl { 50% { margin-top: -2px; rotate: 8deg; } }
+@keyframes buglate { 50% { scale: 1.15; } }
+/* floor construction */
+.fbuild .fb-cv { width: 150px; height: 232px; margin: 10px auto 12px; display: block; }
+.fbuild .fb-cv.done { animation: pflash 0.7s ease-out; }
+.fbuild .fb-perk { opacity: 0.5; transition: opacity 0.4s, color 0.4s; }
+.fbuild .fb-perk.lit { opacity: 1; color: var(--grn, #7dff6a); }
+.flt.cash { color: #7dff6a; text-shadow: 0 0 10px rgba(125, 255, 106, 0.9), 0 2px 0 #000; }
 </style>
 </head>
 <body>
@@ -1679,6 +1694,23 @@ LANGS.en = {
   'music.night': 'Night Shift',
   'music.release': 'Release Day',
   'music.rush': 'Crypto Rush',
+  'music.lofi': 'Lo-Fi Break',
+  'music.synth': 'Synthwave Drive',
+  'music.arcade': 'Arcade Hero',
+  'music.rain': 'Rainy Window',
+  'music.boss': 'Boss Fight',
+  'music.sunrise': 'Morning Standup',
+  'music.coffee': 'Coffee Break',
+  'music.cyber': 'Cyber Deadline',
+  'music.victory': 'Victory Lap',
+  'music.dream': 'Office Dreams',
+  'fb.title': 'NEW FLOOR!',
+  'fb.ok': 'Move in!',
+  'bug.hint': '🐞 A bug crawls through the office! Tap it before it eats your progress',
+  'bug.escaped': '🐞 The bug escaped and ate {n} progress',
+  'bug.squash': 'Squash the bug',
+  'bug.got': 'Bug fixed +{n}',
+  'help.p7': '🐞 Bugs crawl across the floor sometimes — squash them for cash, or they eat project progress.',
   'help.title': 'How to play',
   'help.play': 'In 5 steps',
   'help.p1': 'In “Studio → Games” pick a genre and start a project.',
@@ -1965,6 +1997,23 @@ LANGS.ru = {
   'music.night': 'Night Shift',
   'music.release': 'Release Day',
   'music.rush': 'Crypto Rush',
+  'music.lofi': 'Lo-Fi Break',
+  'music.synth': 'Synthwave Drive',
+  'music.arcade': 'Arcade Hero',
+  'music.rain': 'Rainy Window',
+  'music.boss': 'Boss Fight',
+  'music.sunrise': 'Morning Standup',
+  'music.coffee': 'Coffee Break',
+  'music.cyber': 'Cyber Deadline',
+  'music.victory': 'Victory Lap',
+  'music.dream': 'Office Dreams',
+  'fb.title': 'НОВЫЙ ЭТАЖ!',
+  'fb.ok': 'Заселяемся!',
+  'bug.hint': '🐞 По офису ползёт баг! Раздави, пока он не съел прогресс',
+  'bug.escaped': '🐞 Баг сбежал и съел {n} прогресса',
+  'bug.squash': 'Раздавить баг',
+  'bug.got': 'Баг исправлен +{n}',
+  'help.p7': '🐞 Иногда по полу ползут баги — дави их ради денег, иначе они съедят прогресс проекта.',
   'help.title': 'Как играть',
   'help.play': 'За 5 шагов',
   'help.p1': 'В «Студия → Игры» выбери жанр и начни проект.',
@@ -2251,6 +2300,23 @@ LANGS.uk = {
   'music.night': 'Night Shift',
   'music.release': 'Release Day',
   'music.rush': 'Crypto Rush',
+  'music.lofi': 'Lo-Fi Break',
+  'music.synth': 'Synthwave Drive',
+  'music.arcade': 'Arcade Hero',
+  'music.rain': 'Rainy Window',
+  'music.boss': 'Boss Fight',
+  'music.sunrise': 'Morning Standup',
+  'music.coffee': 'Coffee Break',
+  'music.cyber': 'Cyber Deadline',
+  'music.victory': 'Victory Lap',
+  'music.dream': 'Office Dreams',
+  'fb.title': 'НОВИЙ ПОВЕРХ!',
+  'fb.ok': 'Заселяємось!',
+  'bug.hint': '🐞 Офісом повзе баг! Розчави, поки він не з’їв прогрес',
+  'bug.escaped': '🐞 Баг втік і з’їв {n} прогресу',
+  'bug.squash': 'Розчавити баг',
+  'bug.got': 'Баг виправлено +{n}',
+  'help.p7': '🐞 Іноді підлогою повзуть баги — чави їх заради грошей, інакше вони з’їдять прогрес проєкту.',
   'help.title': 'Як грати',
   'help.play': 'За 5 кроків',
   'help.p1': 'У «Студія → Ігри» обери жанр і почни проєкт.',
@@ -2431,6 +2497,8 @@ function newState(seed) {
     nextEventDay: 2,
     idea: null, // {role, ttl}: a light bulb over an employee — tap it for a burst of progress
     ideaCd: 30,
+    bug: null, // {ttl, lane}: a bug crawling across the office — squash it before it eats progress
+    bugCd: 50,
     evCool: {},
     log: [],
     legacy: 0,
@@ -2763,6 +2831,17 @@ function catchIdea(s) {
   emit('sfx', 'coin');
   if (p.pts >= p.need) release(s);
   return { ok: true, bonus, cash };
+}
+
+function squashBug(s) {
+  if (!s.bug) return fail('unavailable');
+  const cash = Math.round(tapPower(s).cash * 8);
+  s.bug = null;
+  giveCash(s, cash);
+  s.dayIncome += cash;
+  s.stats.bugs = (s.stats.bugs || 0) + 1;
+  bump(s);
+  return { ok: true, cash };
 }
 
 /* ---------- long-term loop: IPO (prestige) ---------- */
@@ -3238,6 +3317,25 @@ function tick(s, dt) {
       emit('idea', s.idea);
     }
   }
+  // bugs: crawl across the floor; if nobody squashes one, it eats a bit of the project
+  if (s.bug) {
+    s.bug.ttl -= dt;
+    if (s.bug.ttl <= 0 || !s.project) {
+      if (s.bug.ttl <= 0 && s.project && !s.off) {
+        const loss = Math.round(s.project.need * 0.02);
+        s.project.pts = Math.max(0, s.project.pts - loss);
+        emit('bugEscaped', { loss });
+      }
+      s.bug = null;
+    }
+  } else if (!s.off && s.project && s.stats.released >= 1) {
+    s.bugCd -= dt;
+    if (s.bugCd <= 0) {
+      s.bug = { ttl: 10, lane: Math.floor(rand(s) * 3) };
+      s.bugCd = 45 + rand(s) * 40;
+      emit('bug', s.bug);
+    }
+  }
   if (s.project) {
     s.project.pts += wpTotal(s) * dt;
     if (s.off) s.project.pts = Math.min(s.project.pts, s.project.need - 1); // the team waits for you to ship
@@ -3294,6 +3392,7 @@ const ACTIONS = {
   ev: (s, a) => chooseEvent(s, a[0] | 0),
   ipo: (s) => prestige(s),
   idea: (s) => catchIdea(s),
+  bug: (s) => squashBug(s),
 };
 function applyAction(s, a) {
   const f = ACTIONS[a[0]];
@@ -4255,6 +4354,21 @@ function drawDynamic(B, st, t) {
     drawCat(B, cp[0], cp[1], t);
   });
 
+  // a courier walks around the office now and then (pure function of time)
+  {
+    const period = 34, ph = (t % period) / period;
+    if (ph < 0.62) {
+      const path = [[1.7, 8.35], [8.35, 8.35], [8.35, 3.2]];
+      const q = ph / 0.62; // 0..1 along out-and-back
+      const u = q < 0.5 ? q * 2 : (1 - q) * 2;
+      const segA = Math.hypot(path[1][0] - path[0][0], path[1][1] - path[0][1]), segB = Math.hypot(path[2][0] - path[1][0], path[2][1] - path[1][1]);
+      let d = u * (segA + segB), gx, gy;
+      if (d < segA) { gx = path[0][0] + (path[1][0] - path[0][0]) * (d / segA); gy = path[0][1]; }
+      else { d -= segA; gx = path[1][0]; gy = path[1][1] + (path[2][1] - path[1][1]) * (d / segB); }
+      const pause = Math.abs(u - 1) < 0.04;
+      add(gx + gy, () => drawWalker(B, gx, gy, pause ? 0 : Math.floor(t * 6) % 2, t, pause));
+    }
+  }
   // plants
   add(3.0, () => drawPlant(B, 0.55, 0.6, t, 1, true));
   add(20, () => drawPlant(B, 8.55, 0.6, t, 2, true));
@@ -4267,6 +4381,28 @@ function drawDynamic(B, st, t) {
   list.sort((a, b) => a.key - b.key);
   for (const o of list) o.fn();
   drawParticles(B, st, t);
+}
+
+function drawWalker(B, gx, gy, frame, t, pause) {
+  const p = P(gx, gy, 0);
+  const x = p[0], y = p[1];
+  const L = LOOK.npc;
+  // shadow
+  B.blend(x - 3, y, PAL.ink, 0.35); B.blend(x - 2, y, PAL.ink, 0.45); B.blend(x - 1, y, PAL.ink, 0.5); B.blend(x, y, PAL.ink, 0.5); B.blend(x + 1, y, PAL.ink, 0.45); B.blend(x + 2, y, PAL.ink, 0.35);
+  // legs
+  const lo = frame ? 1 : 0;
+  B.rect(x - 2, y - 4 + lo, 2, 4 - lo, C('#262b66'));
+  B.rect(x + 1, y - 4 + (1 - lo), 2, 4 - (1 - lo), C('#262b66'));
+  // body + box
+  B.rect(x - 3, y - 10, 7, 6, L.shirt);
+  B.rect(x - 2, y - 9, 6, 4, C('#c98a4b')); B.rect(x - 2, y - 9, 6, 1, C('#e3a86a')); B.px(x + 1, y - 8, C('#74461f'));
+  // head
+  B.rect(x - 2, y - 15, 5, 5, L.skin);
+  B.rect(x - 2, y - 16, 5, 2, L.hair);
+  B.px(x - 1, y - 13, PAL.ink); B.px(x + 1, y - 13, PAL.ink);
+  // cap
+  B.rect(x - 3, y - 16, 7, 1, PAL.cyan);
+  if (pause && Math.floor(t * 2) % 2) { B.rect(x + 4, y - 22, 5, 5, PAL.white); B.px(x + 6, y - 21, PAL.mag); B.px(x + 5, y - 20, PAL.mag); B.px(x + 7, y - 20, PAL.mag); B.px(x + 6, y - 19, PAL.mag); }
 }
 
 /* ---------- ambient particles (pure function of time → no state) ---------- */
@@ -4449,7 +4585,8 @@ function drawCover(B, genre, seed) {
   B.rect(0, 0, W, 1, mixC(Bc, PAL.white, 0.4));
 }
 
-function drawTower(B, floorsOwned, t) {
+function drawTower(B, floorsOwned, t, build) {
+  // build: {row, k} — the floor being built (row 0 = f5 … 4 = f1), k 0..1 construction progress
   // front-facing tower. floorsOwned: {b,f1..f5}. 80x120
   const W = B.w, H = B.h;
   for (let y = 0; y < H; y++) B.rect(0, y, W, 1, mixC(C('#0a0d2c'), C('#241b62'), y / H));
@@ -4461,13 +4598,15 @@ function drawTower(B, floorsOwned, t) {
   const accents = [PAL.yel, PAL.cyan, PAL.mag, PAL.grn, PAL.blu];
   for (let r = 0; r < rows; r++) {
     const y = topY + r * fh;
-    const own = !!ownedList[r];
+    const building = build && build.row === r;
+    const own = building ? build.k >= 0.15 : !!ownedList[r];
     B.rect(bx, y, bw, fh, own ? C('#1d2a73') : C('#10143a'));
     B.rect(bx, y, bw, 1, own ? accents[r] : C('#262b66'));
     B.rect(bx, y, 1, fh, C('#0a0d2c')); B.rect(bx + bw - 1, y, 1, fh, C('#0a0d2c'));
     for (let w = 0; w < 5; w++) {
       const wx = bx + 4 + w * 9, wy = y + 4;
       let col = C('#161a4a');
+      if (building && build.k < 0.15 + (w + 1) * 0.15) { B.rect(wx, wy, 7, 8, C('#161a4a')); continue; }
       if (own) {
         const h = hash01(r * 17 + w * 5);
         col = h < 0.34 ? PAL.cyan : h < 0.67 ? PAL.mag : PAL.yel;
@@ -4476,7 +4615,14 @@ function drawTower(B, floorsOwned, t) {
       B.rect(wx, wy, 7, 8, col);
       if (own) B.rect(wx, wy + 7, 7, 1, shadeC(col, 0.6));
     }
-    if (!own) {
+    if (building && build.k < 1) {
+      // scaffolding + sparks while the floor is being built
+      for (let i = 0; i < bw; i += 4) B.px(bx + i, y + ((i / 4) % 2 ? 2 : fh - 3), C('#ffd23f'));
+      B.rect(bx - 3, y, 1, fh, C('#c8841a')); B.rect(bx + bw + 2, y, 1, fh, C('#c8841a'));
+      const sx = bx + Math.floor(hash01(Math.floor(t * 12)) * bw), sy = y + Math.floor(hash01(Math.floor(t * 12) + 7) * fh);
+      B.glow(sx, sy, 4, PAL.yel, 0.9);
+    }
+    if (!own && !building) {
       // lock
       const lx = bx + Math.floor(bw / 2) - 3, ly = y + 5;
       B.rect(lx, ly + 3, 7, 6, C('#5b63c7'));
@@ -5364,7 +5510,7 @@ function openLink(url) {
 /* ---- src/music.js ---- */
 /* ============================================================
    OFFICE DREAMS — background music: a tiny chiptune sequencer.
-   Four original looping tracks, synthesized with WebAudio
+   Fourteen original looping tracks, synthesized with WebAudio
    (no audio files, nothing to download). Starts after the first
    user gesture (browser autoplay rules).
    ============================================================ */
@@ -5408,6 +5554,96 @@ const TRACKS = [
     bass: [0, null, 0, 0, null, 0, null, 0, 0, null, 0, 0, null, 2, null, 3],
     kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1], hat: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1],
     arpVol: 0.4, leadVol: 0.7,
+  },
+  {
+    id: 'lofi', bpm: 78, swing: 0.16,
+    chords: [[53, 'M7'], [52, 'm7'], [50, 'm7'], [48, 'M7']], // Fmaj7 Em7 Dm7 Cmaj7
+    arp: [0, null, null, 3, null, null, 2, null, 1, null, null, 3, null, 2, null, null],
+    lead: [[null, null, 6, null, null, 5, null, null, 7, null, null, null, 6, null, null, null], [5, null, null, null, 4, null, 3, null, null, null, 4, null, null, null, null, null]],
+    bass: [0, null, null, null, null, null, 2, null, 0, null, null, null, null, null, null, 1],
+    kick: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    arpVol: 0.4, leadVol: 0.5,
+  },
+  {
+    id: 'synth', bpm: 108, swing: 0,
+    chords: [[50, 'm'], [46, 'M'], [48, 'M'], [45, 'm']], // Dm Bb C Am
+    arp: [0, 0, 4, 0, 2, 0, 4, 2, 0, 0, 4, 0, 2, 0, 5, 2],
+    lead: [[6, null, null, null, 5, null, null, null, 4, null, 5, null, 6, null, null, null], [7, null, null, 6, null, null, 5, null, 6, null, null, null, null, null, 4, null]],
+    bass: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2],
+    kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+    arpVol: 0.5, leadVol: 0.65,
+  },
+  {
+    id: 'arcade', bpm: 140, swing: 0,
+    chords: [[48, 'M'], [45, 'm'], [53, 'M'], [55, 'M']], // C Am F G
+    arp: [0, 1, 2, 4, 2, 1, 0, 1, 2, 4, 5, 4, 2, 1, 0, 1],
+    lead: [[4, null, 4, 5, 6, null, 4, null, 7, null, 6, null, 5, null, null, null], [6, 5, 4, null, 5, null, 6, null, 4, null, 2, null, 4, null, null, null]],
+    bass: [0, null, 2, null, 0, null, 2, null, 0, null, 2, null, 0, 2, 3, 2],
+    kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], snare: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0], hat: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    arpVol: 0.42, leadVol: 0.7,
+  },
+  {
+    id: 'rain', bpm: 72, swing: 0.1,
+    chords: [[48, 'm'], [44, 'M'], [51, 'M'], [46, 'M']], // Cm Ab Eb Bb
+    arp: [4, null, 2, null, 1, null, 0, null, 4, null, 2, null, 1, null, 2, null],
+    lead: [[null, null, null, null, null, null, 6, null, null, null, 5, null, null, null, null, null], [null, null, 4, null, null, null, null, null, 5, null, null, null, 2, null, null, null]],
+    bass: [0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    kick: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], hat: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    arpVol: 0.5, leadVol: 0.5,
+  },
+  {
+    id: 'boss', bpm: 132, swing: 0,
+    chords: [[52, 'm'], [52, 'm'], [50, 'M'], [48, 'M']], // Em Em D C
+    arp: [0, 0, 1, 0, 0, 2, 0, 1, 0, 0, 1, 0, 3, 2, 1, 0],
+    lead: [[4, null, null, 4, null, null, 5, null, 6, null, 5, null, 4, null, 3, null], [7, null, 6, null, 5, null, 4, null, 5, 5, null, 6, null, null, null, null]],
+    bass: [0, 0, null, 0, 0, null, 0, 0, 0, 0, null, 0, 2, null, 1, null],
+    kick: [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1], hat: [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
+    arpVol: 0.4, leadVol: 0.75,
+  },
+  {
+    id: 'sunrise', bpm: 100, swing: 0.04,
+    chords: [[55, 'M'], [50, 'M'], [52, 'm'], [48, 'M']], // G D Em C
+    arp: [0, 2, 4, 2, 1, 2, 4, 2, 0, 2, 4, 2, 1, 2, 5, 2],
+    lead: [[null, null, 4, null, 5, null, 6, null, null, null, 6, null, 5, null, 4, null], [5, null, null, null, 6, null, null, 7, null, null, 6, null, null, null, null, null]],
+    bass: [0, null, null, 2, null, null, 0, null, 1, null, null, 2, null, null, 0, null],
+    kick: [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+    arpVol: 0.45, leadVol: 0.6,
+  },
+  {
+    id: 'coffee', bpm: 90, swing: 0.22,
+    chords: [[50, 'm7'], [55, 'M'], [48, 'M7'], [57, 'm7']], // Dm7 G Cmaj7 Am7
+    arp: [0, null, 1, 2, null, 3, null, 2, 0, null, 1, 2, null, 3, 2, null],
+    lead: [[4, null, 5, null, null, 6, null, 7, null, 6, null, null, 5, null, null, null], [null, 7, null, 6, null, null, 4, null, 5, null, null, 3, null, null, null, null]],
+    bass: [0, null, null, 1, null, null, 2, null, 3, null, null, 2, null, null, 1, null],
+    kick: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1],
+    arpVol: 0.4, leadVol: 0.6,
+  },
+  {
+    id: 'cyber', bpm: 120, swing: 0,
+    chords: [[54, 'm'], [50, 'M'], [57, 'M'], [52, 'M']], // F#m D A E
+    arp: [0, 4, 0, 2, 0, 4, 0, 1, 0, 4, 0, 2, 0, 4, 1, 2],
+    lead: [[null, null, null, null, 6, null, 5, 4, null, null, null, null, 4, null, 5, null], [6, null, null, null, null, null, 7, null, 6, null, 5, null, 4, null, null, null]],
+    bass: [0, null, 0, null, null, 0, null, 0, 0, null, 0, null, null, 0, 2, null],
+    kick: [1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0],
+    arpVol: 0.48, leadVol: 0.65,
+  },
+  {
+    id: 'victory', bpm: 116, swing: 0,
+    chords: [[46, 'M'], [53, 'M'], [55, 'm'], [51, 'M']], // Bb F Gm Eb
+    arp: [0, 1, 2, 1, 0, 1, 2, 1, 4, 2, 1, 2, 4, 2, 1, 2],
+    lead: [[4, null, null, 5, 6, null, null, null, 7, null, 6, null, 5, 6, null, null], [4, null, 5, null, 6, null, 7, null, 8, null, null, null, 7, null, null, null]],
+    bass: [0, null, null, null, 2, null, null, null, 0, null, null, null, 2, null, 1, null],
+    kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+    arpVol: 0.45, leadVol: 0.75,
+  },
+  {
+    id: 'dream', bpm: 88, swing: 0.06,
+    chords: [[51, 'M7'], [46, 'M7'], [48, 'm7'], [53, 'M']], // Ebmaj7 Bbmaj7 Cm7 F
+    arp: [0, 3, 2, 3, 1, 3, 2, 3, 0, 3, 2, 3, 1, 3, 4, 3],
+    lead: [[null, null, null, null, 7, null, null, null, 6, null, null, null, 5, null, null, null], [6, null, null, null, null, null, 5, null, 4, null, null, null, null, null, null, null]],
+    bass: [0, null, null, null, null, null, null, null, 2, null, null, null, null, null, null, null],
+    kick: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+    arpVol: 0.5, leadVol: 0.5,
   },
 ];
 const MUSIC = { on: false, ctx: null, out: null, noise: null, track: 0, step: 0, bar: 0, loops: 0, next: 0, timer: 0 };
@@ -6284,6 +6520,7 @@ function onSceneTap(e) {
   const [x, y] = m.toScene(e.clientX, e.clientY);
   const near = (k, rad) => { const p = spotOf(k); return p && Math.hypot(p[0] - x, p[1] - y) <= rad; };
   if (S.idea && near(S.idea.role, 16)) return grabIdea();
+  if (S.bug) { const b = bugSpot(); if (b && Math.hypot(b[0] - x, b[1] - y) <= 14) return squash(); }
   if (near('cat', 9)) return petCat(e);
   for (const r of ROLES) {
     if (near(r, 15)) return S.staff[r].lvl > 0 ? talk(r) : (UI.sel = r, go('studio', 'team'));
@@ -6322,9 +6559,59 @@ function sayBubble(kind, html) {
 }
 
 /* ---------- ideas: catch the light bulb ---------- */
+/* ---------- bugs: squash them before they eat progress ---------- */
+const BUG_TTL = 10;
+function bugSpot() {
+  if (!S.bug) return null;
+  const k = 1 - Math.max(0, S.bug.ttl) / BUG_TTL; // 0 → 1 across the floor
+  const lane = S.bug.lane || 0;
+  const dir = lane === 1 ? -1 : 1;
+  const x0 = CAM.sx + 14, x1 = CAM.sx + CAM.sw - 14;
+  const x = dir > 0 ? x0 + (x1 - x0) * k : x1 - (x1 - x0) * k;
+  const y = [106, 121, 136][lane] + Math.sin(k * 40) * 3;
+  return [x, y, dir];
+}
+function updateBug(box, m) {
+  let b = box.querySelector('.bug');
+  if (!S.bug || UI.tab !== 'office') { if (b && !b.classList.contains('splat')) b.remove(); return; }
+  const p = bugSpot();
+  const [cx, cy] = m.toCss(p[0], p[1]);
+  if (!b || b.classList.contains('splat')) {
+    b = document.createElement('button');
+    b.className = 'bug';
+    b.setAttribute('aria-label', L('bug.squash'));
+    b.innerHTML = '<span>🐞</span>';
+    b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); squash(); });
+    box.appendChild(b);
+  }
+  b.style.left = cx + 'px';
+  b.style.top = cy + 'px';
+  b.style.setProperty('--dir', p[2]);
+  b.classList.toggle('late', S.bug.ttl < 3.5);
+}
+function squash() {
+  const b = $('.scene .bug');
+  const r = b ? b.getBoundingClientRect() : null;
+  const res = netAct('bug');
+  if (!res.ok) return;
+  haptic('heavy');
+  sfx('hit');
+  shake(false);
+  if (b) { b.classList.add('splat'); b.innerHTML = '<span>💥</span>'; setTimeout(() => b.remove(), 450); }
+  if (r) {
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    burst(x, y, 12, ['#7dff6a', '#3fd0ff', '#ffd23f']);
+    floatText(x, y - 16, L('bug.got', { n: money(res.cash) }), 'cash');
+    flyTo(x, y, '.pill.cash', I('coin', 14), 5);
+  }
+  render();
+}
+
 function updateSceneFx() {
   const box = $('.scene .scene-fx');
   if (!box) return;
+  const mm = sceneMap();
+  if (mm) updateBug(box, mm);
   let b = box.querySelector('.idea');
   if (!S.idea || UI.tab !== 'office') { if (b) b.remove(); return; }
   const m = sceneMap();
@@ -6736,7 +7023,7 @@ const ACT = {
   ups: (r) => result(netAct('ups', r), L('toast.upgraded')),
   upy: () => result(netAct('upy'), L('toast.upgraded')),
   buy: (id) => result(netAct('buy', id), L('toast.bought', { item: '$item.' + id + '.name' })),
-  flr: (id) => { if (result(netAct('flr', id), L('toast.floor', { name: '$floor.' + id + '.name' }))) { confetti(120); haptic('ok'); } },
+  flr: (id) => { const r = netAct('flr', id); if (r.ok) showFloorBuild(id); else result(r); },
   bst: (id) => result(netAct('bst', id), L('toast.boost', { name: '$boost.' + id + '.name' })),
   genre: (g) => { UI.genrePicked = true; S.sel.genre = g; S.sel.name = GENRES[g].names[UI.nameSeed++ % GENRES[g].names.length]; savePrefs(); render(); },
   tier: (t) => {
@@ -6917,6 +7204,40 @@ function showEvent() {
   openModal(eventCard(true), { id: 'event', mcls: 'evm' });
   sfx('coin');
 }
+/* ---------- floor purchase: the tower builds the new floor ---------- */
+function showFloorBuild(id) {
+  const row = 5 - Number(id.slice(1)); // f5 → 0 … f1 → 4
+  openModal(`<div class="rel fbuild">
+    <small class="px glow-t">${L('fb.title')}</small>
+    <canvas class="tower fb-cv" width="80" height="124"></canvas>
+    <h2 class="h2 big">${L('floor.' + id + '.name')} · ${L('floor.' + id + '.sub')}</h2>
+    <p class="ev-text fb-perk">${L('floor.' + id + '.perk')}</p>
+    <button class="btn big glow" data-act="close">${L('fb.ok')}</button>
+  </div>`, { id: 'floor', mcls: 'relm' });
+  const cv = $('.fb-cv');
+  const ctx = cv && cv.getContext('2d');
+  if (!ctx) return;
+  const B = new Buf(80, 124);
+  const img = new ImageData(new Uint8ClampedArray(B.d.buffer), 80, 124);
+  const t0 = performance.now(), DUR = 2200;
+  let done = false, lastBeat = -1;
+  sfx('up');
+  const frame = (now) => {
+    if (!cv.isConnected) return;
+    const k = Math.min(1, (now - t0) / DUR);
+    try { drawTower(B, S.floors, now / 1000, { row, k }); ctx.putImageData(img, 0, 0); } catch (e) {}
+    const beat = Math.floor(k * 6);
+    if (beat !== lastBeat && k < 1) { lastBeat = beat; haptic('light'); if (beat) sfx('tap'); }
+    if (k >= 1 && !done) {
+      done = true;
+      cv.classList.add('done');
+      confetti(140); haptic('ok'); sfx('floor');
+      $('.fb-perk') && $('.fb-perk').classList.add('lit');
+    }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
 function showRelease(d) {
   const g = d.game;
   const stars = Math.round(g.score / 2);
@@ -6975,7 +7296,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">
@@ -7079,6 +7400,8 @@ hooks.emit = function (type, data) {
   else if (type === 'toast') toast(L(data.k), data.kind);
   else if (type === 'ending') modalOrQueue(showEnding);
   else if (type === 'ipo') toast(L('toast.ipo', { n: data.n }), 'good', 'crown');
+  else if (type === 'bug') { sfx('blip'); updateSceneFx(); if (!lsGet('od2_bug_hint')) { lsSet('od2_bug_hint', '1'); toast(L('bug.hint'), 'bad', 'star'); } }
+  else if (type === 'bugEscaped') { toast(L('bug.escaped', { n: fmt(data.loss) }), 'bad'); updateSceneFx(); }
   else if (type === 'idea') { sfx('pop'); updateSceneFx(); if (!lsGet('od2_idea_hint')) { lsSet('od2_idea_hint', '1'); toast(L('idea.hint'), 'good', 'star'); } }
 };
 
