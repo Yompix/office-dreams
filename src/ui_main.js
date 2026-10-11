@@ -73,11 +73,11 @@ function sizeScene() {
   const cv = UI.sceneCv;
   if (!cv) return;
   const w = cv.clientWidth || 300, h = cv.clientHeight || 220;
-  const dpr = Math.min(3, window.devicePixelRatio || 1);
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
   const W = Math.round(w * dpr), H = Math.round(h * dpr);
   if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
   if (UI.bloomCv) {
-    const bw = Math.max(1, Math.round(w / 3)), bh = Math.max(1, Math.round(h / 3));
+    const bw = Math.max(1, Math.round(w / 7)), bh = Math.max(1, Math.round(h / 7));
     if (UI.bloomCv.width !== bw || UI.bloomCv.height !== bh) { UI.bloomCv.width = bw; UI.bloomCv.height = bh; }
   }
   UI.sceneSize = w + 'x' + h;
