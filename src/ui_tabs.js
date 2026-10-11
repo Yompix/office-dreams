@@ -521,6 +521,7 @@ function demoNote() {
   return NET.mode === 'demo' ? `<div class="note">${I('info', 14)} ${L('demo.note')}</div>` : '';
 }
 function riskNote(e) {
+  if (e && e.dev) return `<div class="note">${I('gear', 14)} ${L('risk.dev')}</div>`;
   if (!e || !e.risk) return '';
   return `<div class="note warn">${I('shield', 14)} ${L(e.risk === 1 ? 'risk.watch' : 'risk.hold')}</div>`;
 }

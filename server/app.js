@@ -177,6 +177,7 @@ async function handleAuth(ctx, req, res, body, ip, now) {
     const country = (tz && TZC[tz]) || (/^[A-Z]{2}$/.test(cf) && cf !== 'XX' && cf !== 'T1' ? cf : null);
     ctx.db.run('UPDATE users SET tz=COALESCE(?,tz), country=COALESCE(?,country), last_seen=? WHERE id=?', tz, country, now, user.id);
   }
+  Eco.devSetup(ctx, user.id);
   const r = Sync.doSync(ctx, user.id, {}, now);
   const token = TG.makeToken(cfg.sessionSecret, user.id, 12 * 3600, now);
   if ((created || lateBound) && user.ref1) Bot.notifyReferral(ctx, user.ref1, user.name).catch(() => {});

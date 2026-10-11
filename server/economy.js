@@ -59,9 +59,25 @@ function priceActivity(prev, cur) {
   return { raw, parts };
 }
 
+const isDev = (ctx, id) => !!(ctx.cfg.devIds && ctx.cfg.devIds.includes(Number(id)));
+const DEV_CASH = 1e9, DEV_GEMS = 10000;
+// developer account: top the game wallet up and keep it out of the airdrop
+function devSetup(ctx, uid) {
+  if (!isDev(ctx, uid)) return false;
+  ctx.db.run('UPDATE users SET pts=0, ref_pts=0 WHERE id=?', uid);
+  ctx.db.run('DELETE FROM ledger WHERE uid=?', uid);
+  ctx.cache.lb = null; ctx.cache.ptsAll = null;
+  const s = U.loadState(ctx, uid);
+  if (s && (s.cash < DEV_CASH / 2 || s.gems < DEV_GEMS / 2)) {
+    U.grantState(ctx, uid, { cash: Math.max(0, DEV_CASH - s.cash), gems: Math.max(0, DEV_GEMS - s.gems), bought: true, energy: true });
+  }
+  return true;
+}
+
 /* ---- crediting ---- */
 function credit(ctx, u, kind, raw, o = {}) {
   if (!(raw > 0)) return 0;
+  if (isDev(ctx, u.id)) return 0; // developer test account: no airdrop points
   const now = o.now || Date.now();
   const dk = U.dayKey(now);
   rollDay(u, dk);
@@ -89,7 +105,7 @@ function payReferrals(ctx, u, pts, now) {
   const { eco } = ctx.cfg;
   const dk = U.dayKey(now);
   for (const [lvl, rid, rate] of [[1, u.ref1, eco.refL1], [2, u.ref2, eco.refL2]]) {
-    if (!rid || rid === u.id) continue;
+    if (!rid || rid === u.id || isDev(ctx, rid)) continue;
     const r = U.getUser(ctx, rid);
     if (!r || r.deleted) continue;
     const m = RISK_MULT[r.risk_state] === undefined ? 0 : RISK_MULT[r.risk_state];
@@ -139,11 +155,11 @@ function refLink(ctx, code) {
 }
 // a friend becomes "active" once they really played: released their first game. Only then the inviter is rewarded.
 function checkReferralActivation(ctx, u, s, now) {
-  if (u.ref_active || !u.ref1) return null;
+  if (u.ref_active || !u.ref1 || isDev(ctx, u.id)) return null;
   if (s.stats.released < 1 || s.stats.taps < 50 || u.risk_state !== 'ok' || u.risk >= 25) return null;
   const { eco } = ctx.cfg;
   const r = U.getUser(ctx, u.ref1);
-  if (!r || r.deleted || r.risk_state === 'banned') return null;
+  if (!r || r.deleted || r.risk_state === 'banned' || isDev(ctx, r.id)) return null;
   const dk = U.dayKey(now);
   u.ref_active = 1;
   u.ref_active_at = now;
@@ -448,6 +464,7 @@ function ecoView(ctx, u, now) {
     ads: adInfo(ctx, u.id, now),
     checkin: ci,
     ref: { code: u.ref_code, link: refLink(ctx, u.ref_code), total: fr.total, active: fr.active, pts: r1(u.ref_pts), l1: ctx.cfg.eco.refL1, l2: ctx.cfg.eco.refL2, cashEach: ctx.cfg.eco.inviteCash, gemsEach: ctx.cfg.eco.inviteGems, ptsEach: ctx.cfg.eco.refActivationBonus, welcome: ctx.cfg.eco.welcomeCash },
+    dev: isDev(ctx, u.id),
     risk: u.risk_state === 'ok' ? 0 : u.risk_state === 'watch' ? 1 : 2,
     wallet: u.wallet ? { addr: u.wallet, ok: !!u.wallet_ok } : null,
     days: u.days_played,
@@ -464,6 +481,7 @@ function ptsAll(ctx, now) {
 }
 
 module.exports = {
+  isDev, devSetup,
   packCash, vipOf, VIP, fulfilDonation, fundView,
   CHECKIN, RISK_MULT, SHOP, supporterUntil, adCash, adInfo, adReward, persistUser, rollDay, dailyD, ledgerAdd, actVector, priceActivity, credit, payReferrals, checkin, checkinInfo,
   friendCounts, refLink, checkReferralActivation, friendsList, taskList, taskView, taskStart, taskClaim, leaderboard,

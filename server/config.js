@@ -46,6 +46,8 @@ function build(env) {
     tgApi: str('TG_API_BASE', 'https://api.telegram.org').replace(/\/+$/, ''),
     adminKey: str('ADMIN_KEY'),
     supportKey: str('SUPPORT_KEY'), // optional temporary read-only key for support (GET requests only)
+    // developer test accounts: plenty of coins for testing, never earn airdrop points or appear in the top
+    devIds: str('DEV_IDS').split(',').map((x) => Number(x.trim())).filter((x) => Number.isSafeInteger(x) && x > 0),
     adminTgIds: str('ADMIN_TG_IDS').split(',').map((x) => Number(x.trim())).filter(Boolean),
     sessionSecret: str('SESSION_SECRET') || crypto.createHash('sha256').update('sess:' + (botToken || crypto.randomBytes(16).toString('hex'))).digest('hex'),
     dbPath: str('DB_PATH') === ':memory:' ? ':memory:' : path.resolve(ROOT, str('DB_PATH', 'data/officedreams.sqlite')),

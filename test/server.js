@@ -764,5 +764,31 @@ const Ton = require('../server/ton.js');
     });
     await env5.close();
   }
+  {
+    const env6 = await makeEnv({ DEV_IDS: '7777' });
+    await test('developer account: lots of coins, no airdrop points, not in the top, gives no referral points', async () => {
+      const D = new Player(env6, 7777); await D.auth();
+      env6.ctx.db.run('UPDATE users SET pts=55 WHERE id=7777');
+      await D.auth();
+      const s = U.loadState(env6.ctx, 7777);
+      assert.ok(s.cash >= 1e9 - 1 && s.gems >= 10000, 'coins topped up');
+      const u = U.getUser(env6.ctx, 7777);
+      assert.equal(u.pts, 0, 'points wiped');
+      assert.equal(Eco.credit(env6.ctx, u, 'play', 100), 0, 'never earns points');
+      assert.ok(!Eco.leaderboard(env6.ctx, 7777).top.some((r) => r.me), 'not in the top');
+      const N = new Player(env6, 7778); await N.auth();
+      assert.equal(Eco.isDev(env6.ctx, 7778), false, 'only the listed id');
+    });
+    await test('game topics sync with the server (no desync)', async () => {
+      const A = new Player(env6, 7790); await A.auth();
+      A.cl.act('new', 'horror', 'mini', 'Night', 'zombie');
+      for (let i = 0; i < 60; i++) { for (let k = 0; k < 3; k++) A.attempt(40 + k * 60); A.tick(1); }
+      const r = await A.sync();
+      assert.equal(r.json.ok, true, 'sync accepted: ' + JSON.stringify(r.json.err));
+      assert.equal(r.json.hash, E.stateHash(A.cl.S), 'same state on both sides');
+      assert.equal(U.loadState(env6.ctx, 7790).project.topic, 'zombie', 'server stored the topic');
+    });
+    await env6.close();
+  }
   summary();
 })();

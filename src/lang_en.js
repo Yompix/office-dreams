@@ -438,4 +438,5 @@ LANGS.en = {
   'sky.text': 'The company went public and moved into a spacious loft above the city: panoramic windows and 4 interns working next to your team. Rebuild the tower — now with a permanent bonus.',
   'sky.ok': 'Let’s work!',
   'sky.badge': 'Skyscraper',
+  'risk.dev': 'Developer account: test mode. Plenty of coins, no airdrop points, not shown in the top.',
 };
