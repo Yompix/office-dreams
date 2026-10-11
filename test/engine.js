@@ -61,12 +61,13 @@ for (let seed = 1; seed <= 20; seed++) {
   ok(s.goals.ipo1 === 1, 'ipo goal unlocked');
 }
 
-// 5. a fresh game is winnable: a simple bot reaches floor 2 within 2 game hours of real play
+// 5. a fresh game is winnable but coins stay scarce: a simple bot opens floor 1 within 2 h and floor 2 within 8 h of non-stop play
 {
   const s = E.newState(42);
   E.syncDay(s, 20000);
-  let sec = 0;
-  while (sec < 7200 && !s.floors.f2) {
+  let sec = 0, f1At = 0;
+  while (sec < 8 * 3600 && !s.floors.f2) {
+    if (s.floors.f1 && !f1At) f1At = sec;
     if (!s.project) E.startProject(s, s.trend.hot, 'mini', '');
     for (let i = 0; i < 4; i++) E.doTap(s);
     for (const r of E.ROLES) if (s.staff[r].lvl === 0 && s.cash > E.ROLE[r].hire * 2) E.hire(s, r);
@@ -76,8 +77,10 @@ for (let seed = 1; seed <= 20; seed++) {
     E.advance(s, 1);
     sec++;
   }
+  ok(f1At > 0 && f1At <= 7200, 'floor 1 in ' + Math.round(f1At / 60) + ' min of play');
   ok(s.floors.f2 === 1, 'reach floor 2 in ' + Math.round(sec / 60) + ' min of play');
-  console.log('  pacing: floor 2 after', Math.round(sec / 60), 'min, released', s.stats.released, 'games');
+  ok(sec > 7200, 'floor 2 is not trivial: ' + Math.round(sec / 60) + ' min');
+  console.log('  pacing: floor 1 after', Math.round(f1At / 60), 'min; floor 2 after', Math.round(sec / 60), 'min, released', s.stats.released, 'games');
 }
 console.log(`engine: ${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);

@@ -260,28 +260,47 @@ function leaderboard(ctx, uid, now = Date.now()) {
 }
 
 /* ---- Telegram Stars shop ---- */
-// coin packs scale with the studio: N days of its income, never less than a floor
+// coins are scarce: fixed packs, bigger packs give a bigger bonus, the first purchase of each pack is doubled
 const SHOP = [
-  { sku: 'cash_s', stars: 25, cashDays: 1, cashMin: 3000 },
-  { sku: 'cash_m', stars: 100, cashDays: 5, cashMin: 15000 },
-  { sku: 'cash_l', stars: 400, cashDays: 25, cashMin: 100000 },
+  { sku: 'cash1', stars: 50, coins: 2000, bonus: 0 },
+  { sku: 'cash2', stars: 150, coins: 6000, bonus: 10 },
+  { sku: 'cash3', stars: 500, coins: 20000, bonus: 25 },
+  { sku: 'cash4', stars: 1000, coins: 40000, bonus: 40 },
+  { sku: 'cash5', stars: 2500, coins: 100000, bonus: 60 },
   { sku: 'gems_s', stars: 25, gems: 15 },
   { sku: 'gems_m', stars: 100, gems: 70 },
   { sku: 'gems_l', stars: 500, gems: 400 },
-  { sku: 'starter', stars: 50, gems: 40, cash: 5000, once: true },
+  { sku: 'starter', stars: 50, gems: 40, cash: 3000, once: true },
   { sku: 'pass30', stars: 150, gems: 20, passDays: 30 },
 ];
 const shopItem = (sku) => SHOP.find((x) => x.sku === sku) || null;
+// VIP: lifetime support (Stars, TON counted at its Stars price) raises the coin bonus on every pack — never airdrop points
+const VIP = [
+  { lvl: 0, stars: 0, bonus: 0 },
+  { lvl: 1, stars: 100, bonus: 5 },
+  { lvl: 2, stars: 500, bonus: 10 },
+  { lvl: 3, stars: 1500, bonus: 15 },
+  { lvl: 4, stars: 5000, bonus: 20 },
+  { lvl: 5, stars: 15000, bonus: 30 },
+];
+function vipOf(ctx, uid) {
+  const spent = ctx.db.get('SELECT COALESCE(SUM(stars),0) AS s FROM purchases WHERE uid=?', uid).s;
+  let cur = VIP[0];
+  for (const v of VIP) if (spent >= v.stars) cur = v;
+  const next = VIP.find((v) => v.lvl === cur.lvl + 1) || null;
+  return { lvl: cur.lvl, bonus: cur.bonus, spent, next: next ? { lvl: next.lvl, stars: next.stars, bonus: next.bonus, left: next.stars - spent } : null };
+}
 // how many coins a pack gives this player right now
-function packCash(ctx, uid, it) {
-  if (!it.cashDays) return it.cash || 0;
-  const s = U.loadState(ctx, uid);
-  const inc = s ? s.income3 || 0 : 0;
-  return Math.max(it.cashMin, Math.round((inc * it.cashDays) / 100) * 100);
+function packCash(ctx, uid, it, vip, first) {
+  if (!it.coins) return it.cash || 0;
+  if (!vip) vip = vipOf(ctx, uid);
+  if (first === undefined) first = !ctx.db.get('SELECT 1 AS x FROM purchases WHERE uid=? AND sku=?', uid, it.sku);
+  return Math.round((it.coins * (1 + (it.bonus + vip.bonus) / 100) * (first ? 2 : 1)) / 10) * 10;
 }
 function shopView(ctx, u) {
   const bought = new Set(ctx.db.all('SELECT DISTINCT sku FROM purchases WHERE uid=?', u.id).map((r) => r.sku));
-  return SHOP.map((it) => ({ ...it, cash: packCash(ctx, u.id, it), owned: !!it.once && bought.has(it.sku) }));
+  const vip = vipOf(ctx, u.id);
+  return SHOP.map((it) => ({ ...it, first: !!it.coins && !bought.has(it.sku), cash: packCash(ctx, u.id, it, vip, !bought.has(it.sku)), owned: !!it.once && bought.has(it.sku) }));
 }
 function canBuy(ctx, uid, sku) {
   const it = shopItem(sku);
@@ -294,9 +313,11 @@ function fulfil(ctx, uid, sku, chargeId, stars, now = Date.now(), extra = {}) {
   const it = shopItem(sku);
   if (!it) return { ok: false, err: 'sku' };
   return ctx.db.tx(() => {
+    if (ctx.db.get('SELECT 1 AS x FROM purchases WHERE charge_id=?', String(chargeId))) return { ok: true, dup: true };
+    const coins = packCash(ctx, uid, it);
     const ins = ctx.db.run('INSERT OR IGNORE INTO purchases(charge_id,uid,sku,stars,ts,meta) VALUES(?,?,?,?,?,?)', String(chargeId), uid, sku, stars, now, extra.meta || null);
     if (!ins.changes) return { ok: true, dup: true };
-    U.grantState(ctx, uid, { cash: packCash(ctx, uid, it), gems: it.gems || 0, bought: true });
+    U.grantState(ctx, uid, { cash: coins, gems: it.gems || 0, bought: true });
     if (it.passDays) {
       const u = U.getUser(ctx, uid);
       const from = Math.max(now, u.pass_until || 0);
@@ -392,7 +413,7 @@ function ecoView(ctx, u, now) {
 }
 
 module.exports = {
-  packCash,
+  packCash, vipOf, VIP,
   CHECKIN, RISK_MULT, SHOP, supporterUntil, adCash, adInfo, adReward, persistUser, rollDay, dailyD, ledgerAdd, actVector, priceActivity, credit, payReferrals, checkin, checkinInfo,
   friendCounts, refLink, checkReferralActivation, friendsList, taskList, taskView, taskStart, taskClaim, leaderboard,
   shopItem, shopView, canBuy, fulfil, pieSchedule, pieFor, ecoView, r1, r3,

@@ -241,7 +241,7 @@ async function handleApi(ctx, req, res, url, ip) {
   if (method === 'GET' && p === '/api/shop') {
     const lang = u0.lang;
     const tonOn = TonPay.enabled(cfg);
-    return sendJson(res, 200, { ok: true, ton: tonOn, items: Eco.shopView(ctx, u0).map((it) => { const t = Bot.shopTxt(lang, it.sku, it.cash); return { ...it, ton: tonOn ? TonPay.tonPrice(cfg, it) : null, title: t[0], desc: t[1] }; }) });
+    return sendJson(res, 200, { ok: true, ton: tonOn, vip: Eco.vipOf(ctx, uid), items: Eco.shopView(ctx, u0).map((it) => { const t = Bot.shopTxt(lang, it.sku, it.cash); return { ...it, ton: tonOn ? TonPay.tonPrice(cfg, it) : null, title: t[0], desc: t[1] }; }) });
   }
   if (method === 'POST' && p === '/api/shop/invoice') {
     const sku = String(body.sku || '');

@@ -644,18 +644,29 @@ function hubTop() {
     <p class="hint">${L('top.hint')}</p>
   </section>`;
 }
+function vipPanel(v) {
+  if (!v) return '';
+  return `<div class="vip-card">
+    <div class="vip-h"><span class="vip-badge px">VIP ${v.lvl}</span><span>${L('shop.vip', { p: v.bonus })}</span></div>
+    <div class="vip-bar"><i style="width:${(v.next ? Math.min(100, (v.spent / v.next.stars) * 100) : 100).toFixed(1)}%"></i></div>
+    <small>${v.next ? L('shop.vip_next', { n: v.next.left, lvl: v.next.lvl, p: v.next.bonus }) : L('shop.vip_max')}</small>
+  </div>`;
+}
 function hubShop() {
   const sh = UI.hub.shop;
   if (NET.mode === 'demo') return `${demoNote()}<section class="panel"><p class="sub">${L('shop.demo')}</p></section>`;
   if (!sh) return `<div class="loading">${L('ui.loading')}</div>`;
   return `<section class="panel">
     <div class="sec-h"><div><h2 class="h2">${I('cart', 16)} ${L('shop.title')}</h2><p class="sub">${L('shop.sub')}</p></div></div>
+    ${vipPanel(sh.vip)}
     <div class="shop">${sh.items.map((it) => `<div class="sku ${it.sku === 'pass30' ? 'pass' : it.sku === 'starter' ? 'starter' : it.sku.startsWith('cash') ? 'cashp' : ''} ${it.owned ? 'owned' : ''}">
       <div class="sku-art">${it.sku === 'pass30' ? I('star3', 28) : it.sku === 'starter' ? I('gift', 28) : it.sku.startsWith('cash') ? I('coin', 28) : I('gem', 28)}</div>
+      ${it.first || it.bonus ? `<div class="sku-tags">${it.first ? `<span class="tag x2">${L('shop.first')}</span>` : ''}${it.bonus ? `<span class="tag bon">+${it.bonus}%</span>` : ''}</div>` : ''}
       <b>${esc(it.title || it.sku)}</b>
       <small>${esc(it.desc || '')}</small>
       ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<div class="pay2"><button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>${it.ton ? `<button class="btn sm tonb" data-act="payton:${it.sku}">${I('ton', 14)} ${it.ton} TON</button>` : ''}</div>`}
     </div>`).join('')}</div>
+    <p class="hint">${L('shop.vip_hint')}</p>
     ${sh.ton ? `<p class="hint">${L('shop.ton_hint')}</p>` : ''}
     <p class="hint">${L('shop.hint', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
   </section>`;

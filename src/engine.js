@@ -11,6 +11,9 @@ const MAX_LVL = 10;
 const SALE_DECAY = 0.7;
 const OFFLINE_CAP = 6 * 3600; // passive income is credited for at most 6 h away
 const STATE_V = 2;
+// economy tuning knobs: coins are meant to be scarce — progress takes weeks, not hours
+// tuned with a progression sim: an active player (30 min/day) opens floor 1 on day ~2, floor 3 in ~2 weeks, the CEO floor in ~6 weeks
+const ECON = { rev: 0.12, upGrowth: 2.15, salK: 0.5, tapK: 1 };
 
 const ROLES = ['prog', 'art', 'mkt', 'des'];
 const ROLE = {
@@ -42,10 +45,10 @@ const TIER_ORDER = ['mini', 'indie', 'big', 'aaa'];
 const FLOORS = [
   { id: 'b', price: 0, fw: 0 },
   { id: 'f1', price: 1500, fw: 15 },
-  { id: 'f2', price: 6000, fw: 25 },
-  { id: 'f3', price: 40000, fw: 40 },
-  { id: 'f4', price: 200000, fw: 60 },
-  { id: 'f5', price: 900000, fw: 100 },
+  { id: 'f2', price: 12000, fw: 25 },
+  { id: 'f3', price: 80000, fw: 40 },
+  { id: 'f4', price: 350000, fw: 60 },
+  { id: 'f5', price: 1500000, fw: 100 },
 ];
 const FLOOR_ORDER = ['b', 'f1', 'f2', 'f3', 'f4', 'f5'];
 
@@ -161,13 +164,13 @@ const legacyMult = (s) => 1 + 0.15 * s.legacy;
 function salaryOf(s, role, lvl) {
   const l = lvl === undefined ? s.staff[role].lvl : lvl;
   if (l <= 0) return 0;
-  return Math.round(ROLE[role].sal * Math.pow(1.3, l - 1) * (floorOn(s, 'f1') ? 0.9 : 1));
+  return Math.round(ROLE[role].sal * ECON.salK * Math.pow(1.3, l - 1) * (floorOn(s, 'f1') ? 0.9 : 1));
 }
 function upCost(role, lvl) {
-  return Math.round(ROLE[role].up * Math.pow(1.75, lvl - 1));
+  return Math.round(ROLE[role].up * Math.pow(ECON.upGrowth, lvl - 1));
 }
 function youUpCost(lvl) {
-  return Math.round(80 * Math.pow(1.75, lvl - 1));
+  return Math.round(80 * Math.pow(ECON.upGrowth, lvl - 1));
 }
 function maxEnergy(s) {
   return 40 + 10 * (s.you.lvl - 1);
@@ -198,7 +201,7 @@ function wpTotal(s) {
 function tapPower(s) {
   const k = 1 + 0.18 * (s.you.lvl - 1);
   const boost = (s.items.monitor2 ? 1.2 : 1) * (s.buffs.turbo > 0 ? 1.5 : 1);
-  return { pts: 3 * k * boost, cash: 1.4 * k * (1 + 0.05 * FLOOR_ORDER.filter((f) => floorOn(s, f)).length) * (1 + 0.1 * s.legacy) };
+  return { pts: 3 * k * boost, cash: 1.4 * ECON.tapK * k * (1 + 0.05 * FLOOR_ORDER.filter((f) => floorOn(s, f)).length) * (1 + 0.1 * s.legacy) };
 }
 function salaryTotal(s) {
   let t = 0;
@@ -416,7 +419,7 @@ function release(s) {
   let score = 3 + 7 * q + rnd(s, -0.55, 0.55) + (hot ? 0.3 : 0);
   score = Math.round(clamp(score, 1, 10) * 10) / 10;
   const trend = hot ? 1.5 : cold ? 0.75 : 1;
-  const total = g.rev * t.rev * scoreMult(score) * trend * salesMult(s, p.tier);
+  const total = g.rev * t.rev * ECON.rev * scoreMult(score) * trend * salesMult(s, p.tier);
   const game = {
     id: s.stats.released + 1,
     name: p.name,
@@ -1089,7 +1092,7 @@ function stateHash(s) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    TICK, DAY_SEC, MAX_LVL, OFFLINE_CAP, STATE_V, ROLES, ROLE, GENRES, GENRE_ORDER, TIERS, TIER_ORDER, FLOORS, FLOOR_ORDER, ITEMS, BOOSTS, GOALS, DAILY, DAILY_ALL_PTS, EVENTS, EVENT_IDS, PTS_W,
+    ECON, TICK, DAY_SEC, MAX_LVL, OFFLINE_CAP, STATE_V, ROLES, ROLE, GENRES, GENRE_ORDER, TIERS, TIER_ORDER, FLOORS, FLOOR_ORDER, ITEMS, BOOSTS, GOALS, DAILY, DAILY_ALL_PTS, EVENTS, EVENT_IDS, PTS_W,
     hooks, newState, tick, advance, advanceTicks, advanceOffline, doTap, hire, upgradeStaff, upgradeYou, buyItem, buyFloor, buyBoost, startProject, setAuto, release, claimGoal,
     claimDaily, dailyProgress, dailyCash, syncDay, canPrestige, prestige, applyAction, replay,
     chooseEvent, spawnEvent, eventView, wpTotal, wpRole, tapPower, salaryTotal, salaryOf, upCost, youUpCost, qualityFor, expectedScore,

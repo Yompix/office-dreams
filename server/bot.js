@@ -44,15 +44,15 @@ const T = {
   },
 };
 const SHOP_TXT = {
-  en: { gems_s: ['Handful of gems', '15 gems for boosts'], gems_m: ['Bag of gems', '70 gems for boosts'], gems_l: ['Chest of gems', '400 gems for boosts'], starter: ['Starter pack', '40 gems + $5,000 cash (one time)'], pass30: ['Office Pass · 30 days', '+25% daily points ceiling and 20 gems'] },
-  ru: { gems_s: ['Горсть кристаллов', '15 кристаллов для бустов'], gems_m: ['Мешок кристаллов', '70 кристаллов для бустов'], gems_l: ['Сундук кристаллов', '400 кристаллов для бустов'], starter: ['Стартовый набор', '40 кристаллов + $5 000 (один раз)'], pass30: ['Office Pass · 30 дней', '+25% к дневному потолку очков и 20 кристаллов'] },
-  uk: { gems_s: ['Жменя кристалів', '15 кристалів для бустів'], gems_m: ['Мішок кристалів', '70 кристалів для бустів'], gems_l: ['Скриня кристалів', '400 кристалів для бустів'], starter: ['Стартовий набір', '40 кристалів + $5 000 (один раз)'], pass30: ['Office Pass · 30 днів', '+25% до денної стелі очок і 20 кристалів'] },
+  en: { gems_s: ['Handful of gems', '15 gems for boosts'], gems_m: ['Bag of gems', '70 gems for boosts'], gems_l: ['Chest of gems', '400 gems for boosts'], starter: ['Starter pack', '40 gems + $3,000 cash (one time)'], pass30: ['Office Pass · 30 days', '+25% daily points ceiling and 20 gems'] },
+  ru: { gems_s: ['Горсть кристаллов', '15 кристаллов для бустов'], gems_m: ['Мешок кристаллов', '70 кристаллов для бустов'], gems_l: ['Сундук кристаллов', '400 кристаллов для бустов'], starter: ['Стартовый набор', '40 кристаллов + $3 000 (один раз)'], pass30: ['Office Pass · 30 дней', '+25% к дневному потолку очков и 20 кристаллов'] },
+  uk: { gems_s: ['Жменя кристалів', '15 кристалів для бустів'], gems_m: ['Мішок кристалів', '70 кристалів для бустів'], gems_l: ['Скриня кристалів', '400 кристалів для бустів'], starter: ['Стартовий набір', '40 кристалів + $3 000 (один раз)'], pass30: ['Office Pass · 30 днів', '+25% до денної стелі очок і 20 кристалів'] },
 };
 const tx = (lang) => T[lang] || T.en;
 const CASH_TXT = {
-  en: { cash_s: 'Stack of coins', cash_m: 'Case of coins', cash_l: 'Vault of coins', d: (n) => `$${n} to hire, upgrade and buy floors` },
-  ru: { cash_s: 'Пачка монет', cash_m: 'Кейс монет', cash_l: 'Сейф монет', d: (n) => `$${n} на найм, прокачку и этажи` },
-  uk: { cash_s: 'Пачка монет', cash_m: 'Кейс монет', cash_l: 'Сейф монет', d: (n) => `$${n} на найм, прокачку і поверхи` },
+  en: { cash1: 'Handful of coins', cash2: 'Stack of coins', cash3: 'Case of coins', cash4: 'Safe of coins', cash5: 'Bank vault', d: (n) => `$${n} to hire, upgrade and buy floors` },
+  ru: { cash1: 'Горсть монет', cash2: 'Пачка монет', cash3: 'Кейс монет', cash4: 'Сейф монет', cash5: 'Банковское хранилище', d: (n) => `$${n} на найм, прокачку и этажи` },
+  uk: { cash1: 'Жменя монет', cash2: 'Пачка монет', cash3: 'Кейс монет', cash4: 'Сейф монет', cash5: 'Банківське сховище', d: (n) => `$${n} на найм, прокачку і поверхи` },
 };
 const nfmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 const shopTxt = (lang, sku, cash) => {

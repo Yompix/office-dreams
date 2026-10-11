@@ -607,21 +607,28 @@ const Ton = require('../server/ton.js');
       assert.equal(r.paid, 1);
       assert.equal((await Q.api('POST', '/api/shop/ton', { sku: 'starter' })).json.err, 'unavailable', 'one-time item cannot be bought again');
       assert.ok(Eco.supporterUntil(env5.ctx, 8302, env5.clock.t) > env5.clock.t);
-      // coin packs: scale with the studio's income, never below the floor, and do not count as "earned"
-      const st = U.loadState(env5.ctx, 8302); st.income3 = 40000; U.saveState(env5.ctx, 8302, st, env5.clock.t);
-      const sh = (await Q.api('GET', '/api/shop')).json.items;
-      assert.equal(sh[0].sku, 'cash_s');
-      assert.equal(sh.find((x) => x.sku === 'cash_s').cash, 40000);
-      assert.equal(sh.find((x) => x.sku === 'cash_m').cash, 200000);
-      assert.ok(/200 000/.test(sh.find((x) => x.sku === 'cash_m').desc), sh.find((x) => x.sku === 'cash_m').desc);
-      const before = U.loadState(env5.ctx, 8302);
-      const o3 = (await Q.api('POST', '/api/shop/ton', { sku: 'cash_m' })).json;
-      chain.push(tx(o3.order.amount, o3.order.comment, 'h_cash'));
-      env5.advance(6000);
-      assert.equal((await Q.api('POST', '/api/shop/ton/check', { id: o3.order.id })).json.paid, true);
-      const after = U.loadState(env5.ctx, 8302);
-      assert.equal(after.cash - before.cash, 200000);
-      assert.equal(after.earned, before.earned, 'bought coins do not unlock earning goals');
+      // coin packs: fixed amounts, bigger pack = bigger bonus, first buy of a pack is doubled, VIP adds a bonus
+      let sh = (await Q.api('GET', '/api/shop')).json;
+      assert.equal(sh.items[0].sku, 'cash1');
+      assert.equal(sh.vip.lvl, 0);
+      assert.equal(sh.vip.next.left, 50, 'starter (50⭐ via TON) counts toward VIP');
+      const c3 = sh.items.find((x) => x.sku === 'cash3');
+      assert.ok(c3.first && c3.cash === 50000, JSON.stringify(c3));
+      const buy = async (sku, h) => {
+        const before = U.loadState(env5.ctx, 8302);
+        const o3 = (await Q.api('POST', '/api/shop/ton', { sku })).json;
+        chain.push(tx(o3.order.amount, o3.order.comment, h));
+        env5.advance(6000);
+        assert.equal((await Q.api('POST', '/api/shop/ton/check', { id: o3.order.id })).json.paid, true);
+        const after = U.loadState(env5.ctx, 8302);
+        assert.equal(after.earned, before.earned, 'bought coins do not unlock earning goals');
+        return after.cash - before.cash;
+      };
+      assert.equal(await buy('cash3', 'h_c1'), 50000, '20 000 +25% ×2 first purchase');
+      sh = (await Q.api('GET', '/api/shop')).json;
+      assert.equal(sh.vip.lvl, 2, '550⭐ → VIP 2');
+      assert.equal(sh.items.find((x) => x.sku === 'cash3').cash, 27000, 'second purchase: 20 000 × (1 + 25% + VIP 10%)');
+      assert.equal(await buy('cash3', 'h_c2'), 27000);
     });
     await test('TON comment BOC built by the client parses as a text comment', async () => {
       const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'src', 'net.js'), 'utf8');
