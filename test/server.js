@@ -676,6 +676,21 @@ const Ton = require('../server/ton.js');
       assert.deepEqual(st.json.blocked.countries, ['IN', 'ID', 'PK', 'BD', 'NG']);
       assert.ok(st.json.blocked.attempts >= 3);
     });
+    await test('admin live table: online players with nick, ID and country; search by nick / ID / country', async () => {
+      const H = { 'x-admin-key': 'adminkey123' };
+      const P = new Player(env5, 8701, { username: 'neo_ua' }); await P.auth('', { tz: 'Europe/Kyiv' });
+      let r = await httpJson(env5.base, 'GET', '/admin/api/live', undefined, H);
+      assert.ok(r.json.ok && r.json.total > 0);
+      r = await httpJson(env5.base, 'GET', '/admin/api/live?mode=all&q=@neo', undefined, H);
+      assert.equal(r.json.rows.length, 1);
+      assert.equal(r.json.rows[0].country, 'UA');
+      assert.equal(r.json.rows[0].username, 'neo_ua');
+      r = await httpJson(env5.base, 'GET', '/admin/api/live?mode=all&q=8701', undefined, H);
+      assert.equal(r.json.rows[0].id, 8701);
+      r = await httpJson(env5.base, 'GET', '/admin/api/live?mode=all&q=ua', undefined, H);
+      assert.ok(r.json.rows.every((x) => x.country === 'UA') && r.json.rows.length >= 1);
+      assert.equal((await httpJson(env5.base, 'GET', '/admin/api/live')).status, 401);
+    });
     await env5.close();
   }
   summary();

@@ -173,7 +173,7 @@ async function handleAuth(ctx, req, res, body, ip, now) {
     const tz = typeof body.tz === 'string' && /^[A-Za-z0-9_+\-/]{1,64}$/.test(body.tz) ? body.tz : null;
     const cf = String(req.headers['cf-ipcountry'] || '').toUpperCase();
     const country = (tz && TZC[tz]) || (/^[A-Z]{2}$/.test(cf) && cf !== 'XX' && cf !== 'T1' ? cf : null);
-    if (tz || country) ctx.db.run('UPDATE users SET tz=COALESCE(?,tz), country=COALESCE(?,country) WHERE id=?', tz, country, user.id);
+    ctx.db.run('UPDATE users SET tz=COALESCE(?,tz), country=COALESCE(?,country), last_seen=? WHERE id=?', tz, country, now, user.id);
   }
   const r = Sync.doSync(ctx, user.id, {}, now);
   const token = TG.makeToken(cfg.sessionSecret, user.id, 12 * 3600, now);

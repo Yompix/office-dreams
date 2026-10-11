@@ -67,6 +67,7 @@ function open(file) {
   if (!cols.has('country')) db.exec('ALTER TABLE users ADD COLUMN country TEXT');
   if (!cols.has('tz')) db.exec('ALTER TABLE users ADD COLUMN tz TEXT');
   db.exec('CREATE INDEX IF NOT EXISTS users_country ON users(country)');
+  db.exec('CREATE INDEX IF NOT EXISTS users_seen ON users(last_seen DESC)');
   const cache = new Map();
   const prep = (sql) => {
     let st = cache.get(sql);

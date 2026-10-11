@@ -112,6 +112,28 @@ function create(ctx) {
     }
     const now = Date.now();
     try {
+      // live players table: who is in the game right now (or everyone), newest activity first — cheap, polled every few seconds
+      if (p === '/admin/api/live') {
+        const now2 = Date.now();
+        const mode = url.searchParams.get('mode') === 'all' ? 'all' : 'online';
+        const q = String(url.searchParams.get('q') || '').trim().replace(/^@/, '');
+        const where = ['deleted=0'];
+        const args = [];
+        if (mode === 'online') { where.push('last_seen>?'); args.push(now2 - 5 * 60e3); }
+        if (q) {
+          if (/^\d+$/.test(q)) { where.push('id=?'); args.push(Number(q)); }
+          else if (/^[A-Za-z]{2}$/.test(q)) { where.push('country=?'); args.push(q.toUpperCase()); }
+          else { where.push('(username LIKE ? OR name LIKE ?)'); args.push('%' + q + '%', '%' + q + '%'); }
+        }
+        const rows = ctx.db.all(`SELECT id,username,name,country,pts,platform,risk_state,created_at,last_seen,days_played FROM users WHERE ${where.join(' AND ')} ORDER BY last_seen DESC LIMIT 200`, ...args);
+        const one = (sql, ...a) => ctx.db.get(sql, ...a).n;
+        return json(res, 200, {
+          ok: true, now: now2, rows,
+          online1: one('SELECT COUNT(*) AS n FROM users WHERE deleted=0 AND last_seen>?', now2 - 60e3),
+          online5: one('SELECT COUNT(*) AS n FROM users WHERE deleted=0 AND last_seen>?', now2 - 5 * 60e3),
+          total: one('SELECT COUNT(*) AS n FROM users WHERE deleted=0'),
+        });
+      }
       if (p === '/admin/api/stats') return json(res, 200, { ok: true, ...stats(ctx, Number(url.searchParams.get('price')) || 0) });
       if (p === '/admin/api/risk') {
         const st = url.searchParams.get('state') || 'watch';
@@ -181,7 +203,7 @@ function create(ctx) {
 
 const PAGE = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Office Dreams · Admin</title>
-<style>
+<style>a{color:#5fd4ff;text-decoration:none}a:hover{text-decoration:underline}
 :root{--bg:#0a0f2e;--card:#121a4a;--fg:#e8ecff;--mut:#8f9ad6;--acc:#ffd23f;--ok:#40e0a0;--bad:#ff5c8a;--line:#26327a}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,sans-serif;padding:16px;max-width:1100px;margin:auto}
 h1{font-size:20px;margin:0 0 12px;color:var(--acc)}h2{font-size:15px;margin:22px 0 8px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
@@ -209,6 +231,7 @@ const tbl=(head,rows)=>'<div class="w"><table><tr>'+head.map(h=>'<th>'+h+'</th>'
 async function load(){try{say('loading…');const s=await api('stats');say('');
 const kv=(k,v)=>'<div class="card"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
 let h='<h2>Overview</h2><div class="grid">'+kv('Players',s.users)+kv('DAU',s.dau)+kv('WAU',s.wau)+kv('New today',s.newToday)+kv('Points total',s.ptsTotal)+kv('Points today',s.ptsToday)+kv('Friends (active)',s.refs.total+' ('+s.refs.active+')')+kv('Wallets (verified)',s.wallets.bound+' ('+s.wallets.verified+')')+'</div>';
+h+='<h2>Players live <span id="lvdot" class="pill">●</span></h2><div class="row"><select id="lvm"><option value="online">online (5 min)</option><option value="all">all players</option></select><input id="lvq" placeholder="search: @nick, name, ID or country code (UA)" size="34"><span id="lvc" class="k"></span></div><div id="lvo"></div>';
 h+='<h2>Risk states</h2><div class="grid">'+['ok','watch','quarantine','banned'].map(k=>kv(k,s.risk[k]||0)).join('')+'</div>';
 h+='<h2>Stars revenue (last 14 days)</h2>'+tbl(['Date','Purchases','Stars','USD (net est.)'],s.revenue.map(r=>[r.date,r.n,r.stars,'$'+r.usd]));
 h+='<h2>Emission brake preview (after token launch)</h2><div class="card">Token price (USD): <input id="price" size="8" value="'+(s.pie.price||'')+'" placeholder="0.001"> <button id="pp">Calculate</button><br>Yesterday net revenue: <b>$'+(Math.round(s.pie.yesterdayUsd*100)/100)+'</b> → schedule <b>'+s.pie.schedule+'</b>, brake <b>'+s.pie.brake+'</b> → daily pie <b>'+s.pie.pie+'</b> tokens</div>';
@@ -224,7 +247,15 @@ $('#rq').onclick=queue;$('#sw').onclick=async()=>{const r=await api('sweep',{met
 $('#lk').onclick=()=>lookup($('#uid').value);
 posts();
 $('#csv').onclick=()=>dl('snapshot?fmt=csv');$('#jsn').onclick=()=>dl('snapshot?fmt=json');
-queue()}catch(e){say(e.message==='key'?'wrong key':'error: '+e.message)}}
+queue();liveStart()}catch(e){say(e.message==='key'?'wrong key':'error: '+e.message)}}
+let LVT=0,LVB=false;
+function ago(ms){const s=Math.max(0,Math.round(ms/1000));return s<60?s+'s':s<3600?Math.round(s/60)+'m':s<86400?Math.round(s/3600)+'h':Math.round(s/86400)+'d'}
+async function live(){if(LVB||document.hidden)return;LVB=true;try{const m=$('#lvm').value,q=$('#lvq').value;const r=await api('live?mode='+m+'&q='+encodeURIComponent(q));
+$('#lvc').textContent='online now: '+r.online1+' · last 5 min: '+r.online5+' · total: '+r.total;
+$('#lvo').innerHTML=tbl(['','ID','Nick','Name','Country','Points','Seen','Joined','Days','Device','Risk'],r.rows.map(u=>{const on=r.now-u.last_seen<60e3;return ['<span style="color:'+(on?'#2ee66b':'#5a6290')+'">●</span>','<a href="#" data-lk="'+u.id+'">'+u.id+'</a>',u.username?'<a href="https://t.me/'+esc(u.username)+'" target="_blank">@'+esc(u.username)+'</a>':'—',esc(u.name),ctry(u.country),u.pts,ago(r.now-u.last_seen),ago(r.now-u.created_at),u.days_played,esc(u.platform||''),'<span class="'+u.risk_state+'">'+u.risk_state+'</span>']}));
+$('#lvo').querySelectorAll('[data-lk]').forEach(a=>a.onclick=(e)=>{e.preventDefault();$('#uid').value=a.dataset.lk;lookup(a.dataset.lk);$('#uid').scrollIntoView({behavior:'smooth'})});
+const d=$('#lvdot');d.style.color='#2ee66b';setTimeout(()=>d.style.color='',400)}catch(e){}finally{LVB=false}}
+function liveStart(){clearInterval(LVT);live();LVT=setInterval(live,4000);$('#lvm').onchange=live;let t;$('#lvq').oninput=()=>{clearTimeout(t);t=setTimeout(live,300)}}
 let DR=[];async function posts(){try{const d=await api('drafts');DR=d.drafts;$('#dr').innerHTML=DR.map((x,i)=>'<option value="'+i+'">'+esc(x.title)+'</option>').join('');$('#pch').textContent=d.channel?('→ '+d.channel+' · '+d.check):'CHANNEL not set';$('#dru').onclick=()=>{$('#ptx').value=DR[$('#dr').value].text};$('#ptx').value=DR[0]?DR[0].text:'';
 $('#ppub').onclick=async()=>{if(!confirm('Publish to '+d.channel+'?'))return;try{const r=await api('post',{method:'POST',body:JSON.stringify({text:$('#ptx').value,button:$('#pbtn').checked,buttonText:$('#pbt').value,photo:$('#pph').checked})});say('posted #'+r.id)}catch(e){say('error: '+e.message)}}}catch(e){}}
 async function dl(p){const r=await fetch('/admin/api/'+p,{headers:{'x-admin-key':KEY}});const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=p.includes('json')?'snapshot.json':'snapshot.csv';a.click()}
