@@ -726,6 +726,15 @@ button.cell:active { transform: scale(0.94); }
 .rung { display: grid; justify-items: center; gap: 2px; padding: 10px 6px; border-radius: 12px; border: 1px dashed var(--line); opacity: 0.75; }
 .rung b { font-size: 22px; }
 .rung.on { opacity: 1; border-style: solid; border-color: rgba(46, 230, 107, 0.6); box-shadow: inset 0 0 18px rgba(46, 230, 107, 0.15); }
+.donate .fund { display: grid; gap: 6px; margin: 10px 0; padding: 12px; border-radius: 12px; background: rgba(255, 210, 63, 0.08); border: 1px solid rgba(255, 210, 63, 0.35); }
+.donate .fund-h { display: flex; align-items: baseline; gap: 8px; }
+.donate .fund-h b { font-size: 22px; color: #ffd23f; }
+.don-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.don-chips .chip { cursor: pointer; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.05); color: inherit; padding: 6px 10px; border-radius: 999px; font: inherit; font-weight: 700; }
+.don-chips .chip.on { background: linear-gradient(180deg, #ffe27a, #e0a100); color: #2a1a00; border-color: transparent; }
+.don-own { display: grid; gap: 4px; margin: 6px 0 10px; }
+.don-own input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.25); color: inherit; font: inherit; font-size: 16px; }
+.donate .h3 { margin: 14px 0 6px; font-size: 15px; }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -1745,6 +1754,18 @@ LANGS.en = {
   'fr.is_active2': "played — bonus received",
   'fr.not_active2': "waiting for their first game",
   'fr.fair': "Fake accounts don't count.",
+  'don.title': "Bring the airdrop closer",
+  'don.sub': "Donate any amount to the launch fund: it pays for the token listing and liquidity. The sooner the goal is reached, the sooner OFFICE launches.",
+  'don.of': "of {goal} goal",
+  'don.donors': "Supporters: {n}",
+  'don.mine': "you: {n} ⭐",
+  'don.own': "Your amount (from {min} ⭐)",
+  'don.give': "Donate {n}",
+  'don.note': "Up to {max} ⭐ per payment — you can donate as many times as you like. Every donation raises your VIP level. Donations don't buy points or tokens.",
+  'don.wall': "Wall of thanks",
+  'don.thanks': "Thank you for your support! 💖",
+  'top.countries': "Battle of countries",
+  'top.players_n': "{n} players",
   'fb.moved': 'New office — welcome in!',
   'fb.look': 'Your office got a new look',
   'fb.title': 'NEW FLOOR!',
@@ -2079,6 +2100,18 @@ LANGS.ru = {
   'fr.is_active2': "играет — бонус получен",
   'fr.not_active2': "ждём его первую игру",
   'fr.fair': "Фейковые аккаунты не засчитываются.",
+  'don.title': "Приблизь аирдроп",
+  'don.sub': "Задонать любую сумму в фонд запуска: он идёт на листинг токена и ликвидность. Чем быстрее соберём цель — тем быстрее запуск OFFICE.",
+  'don.of': "из {goal} цели",
+  'don.donors': "Поддержали: {n}",
+  'don.mine': "ты: {n} ⭐",
+  'don.own': "Своя сумма (от {min} ⭐)",
+  'don.give': "Задонатить {n}",
+  'don.note': "До {max} ⭐ за один платёж — донатить можно сколько угодно раз. Каждый донат повышает твой VIP. Донат не покупает очки или токены.",
+  'don.wall': "Доска благодарности",
+  'don.thanks': "Спасибо за поддержку! 💖",
+  'top.countries': "Битва стран",
+  'top.players_n': "{n} игроков",
   'fb.moved': 'Новый офис — заходите!',
   'fb.look': 'Офис сменил обстановку',
   'fb.title': 'НОВЫЙ ЭТАЖ!',
@@ -2413,6 +2446,18 @@ LANGS.uk = {
   'fr.is_active2': "грає — бонус отримано",
   'fr.not_active2': "чекаємо його першу гру",
   'fr.fair': "Фейкові акаунти не зараховуються.",
+  'don.title': "Наблизь аірдроп",
+  'don.sub': "Задонать будь-яку суму у фонд запуску: він іде на лістинг токена та ліквідність. Що швидше зберемо ціль — то швидше запуск OFFICE.",
+  'don.of': "з {goal} цілі",
+  'don.donors': "Підтримали: {n}",
+  'don.mine': "ти: {n} ⭐",
+  'don.own': "Своя сума (від {min} ⭐)",
+  'don.give': "Задонатити {n}",
+  'don.note': "До {max} ⭐ за один платіж — донатити можна скільки завгодно разів. Кожен донат підвищує твій VIP. Донат не купує бали чи токени.",
+  'don.wall': "Дошка подяки",
+  'don.thanks': "Дякуємо за підтримку! 💖",
+  'top.countries': "Битва країн",
+  'top.players_n': "{n} гравців",
   'fb.moved': 'Новий офіс — заходьте!',
   'fb.look': 'Офіс змінив обстановку',
   'fb.title': 'НОВИЙ ПОВЕРХ!',
@@ -5223,6 +5268,9 @@ const netApi = {
   shop: () => (NET.mode === 'online' ? api('GET', '/api/shop') : Promise.resolve({ ok: true, items: [], demo: true })),
   invoice: (sku) => api('POST', '/api/shop/invoice', { sku }),
   tonOrder: (sku) => api('POST', '/api/shop/ton', { sku }),
+  donateInfo: () => (NET.mode === 'online' ? api('GET', '/api/donate') : Promise.resolve({ ok: true, demo: true, stars: 0, donors: 0, usd: 0, goalUsd: 5000, min: 100, max: 10000, mine: 0, top: [] })),
+  donateInvoice: (stars) => api('POST', '/api/donate/invoice', { stars }),
+  donateTon: (ton) => api('POST', '/api/donate/ton', { ton }),
   tonCheck: (id) => api('POST', '/api/shop/ton/check', { id }),
   challenge: (id, a, ts) => api('POST', '/api/challenge', { id, a, ts }),
   lang: (lang) => (NET.mode === 'online' ? api('POST', '/api/lang', { lang }) : Promise.resolve({ ok: true })),
@@ -6711,11 +6759,22 @@ function hubTop() {
     <div><small class="mut">${L('top.you')}</small><b class="px">${b.me ? '#' + b.me.rank : '—'}</b></div>
     <div class="r"><small class="mut">${L('top.players', { n: b.total })}</small><b class="mag">${b.me ? fmtPts(b.me.pts) : '0'}</b></div>
   </section>
-  ${top3.length ? `<section class="podium">${pod.map((x, i) => x ? `<div class="pod p${[2, 1, 3][i]} ${x.me ? 'me' : ''}"><span class="pav">${esc((x.name || '?').slice(0, 1).toUpperCase())}</span><b>${esc(x.name || '—')}</b><small>${fmtPts(x.pts)}</small><div class="step px">${[2, 1, 3][i]}</div></div>` : '<div class="pod empty"></div>').join('')}</section>` : ''}
+  ${top3.length ? `<section class="podium">${pod.map((x, i) => x ? `<div class="pod p${[2, 1, 3][i]} ${x.me ? 'me' : ''}"><span class="pav">${esc((x.name || '?').slice(0, 1).toUpperCase())}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><small>${fmtPts(x.pts)}</small><div class="step px">${[2, 1, 3][i]}</div></div>` : '<div class="pod empty"></div>').join('')}</section>` : ''}
   <section class="panel">
-    ${b.top.length > 3 ? `<ol class="board">${b.top.slice(3).map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${esc(x.name || '—')}</b><span class="mag">${fmtPts(x.pts)}</span></li>`).join('')}</ol>` : `<p class="sub">${b.top.length ? L('top.few') : L('top.empty')}</p>`}
+    ${b.top.length > 3 ? `<ol class="board">${b.top.slice(3).map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><span class="mag">${fmtPts(x.pts)}</span></li>`).join('')}</ol>` : `<p class="sub">${b.top.length ? L('top.few') : L('top.empty')}</p>`}
     <p class="hint">${L('top.hint')}</p>
-  </section>`;
+  </section>
+  ${b.countries && b.countries.length ? `<section class="panel">
+    <h2 class="h2">${I('trophy', 16)} ${L('top.countries')}</h2>
+    <ol class="board">${b.countries.map((x) => `<li><span class="px rk">${x.rank}</span><b>${flag(x.c)} ${esc(countryName(x.c))} <small class="mut">· ${L('top.players_n', { n: x.n })}</small></b><span class="mag">${fmtPts(x.pts)}</span></li>`).join('')}</ol>
+  </section>` : ''}`;
+}
+function flag(c) {
+  if (!c || !/^[A-Z]{2}$/.test(c)) return '';
+  return String.fromCodePoint(...[...c].map((x) => 127397 + x.charCodeAt(0)));
+}
+function countryName(c) {
+  try { return new Intl.DisplayNames([LANG], { type: 'region' }).of(c) || c; } catch (e) { return c; }
 }
 function vipPanel(v) {
   if (!v) return '';
@@ -6744,6 +6803,28 @@ function hubShop() {
     <p class="hint">${L('shop.hint', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
   </section>`;
 }
+function donatePanel() {
+  const d = UI.hub.donate;
+  if (!d) return '';
+  const pct = Math.min(100, (d.usd / Math.max(1, d.goalUsd)) * 100);
+  const amt = donAmount();
+  const chips = [100, 250, 500, 1000, 2500, 5000].filter((n) => n >= d.min && n <= d.max);
+  const tonAmt = d.ton ? Math.max(d.tonMin || 1, Math.round(amt * (d.tonPerStar || 0.011) * 10) / 10) : 0;
+  return `<section class="panel donate">
+    <h2 class="h2">🚀 ${L('don.title')}</h2>
+    <p class="sub">${L('don.sub')}</p>
+    <div class="fund">
+      <div class="fund-h"><b class="px">$${fmt(Math.round(d.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(d.goalUsd) })}</small></div>
+      <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
+      <small class="mut">${L('don.donors', { n: d.donors })}${d.mine ? ' · ' + L('don.mine', { n: fmt(d.mine) }) : ''}</small>
+    </div>
+    <div class="don-chips">${chips.map((n) => `<button class="chip ${n === amt ? 'on' : ''}" data-act="donamt:${n}">${fmt(n)} ⭐</button>`).join('')}</div>
+    <label class="don-own"><small>${L('don.own', { min: d.min })}</small><input id="donin" type="number" inputmode="numeric" min="${d.min}" max="${d.max}" step="10" value="${amt}"></label>
+    <div class="pay2"><button class="btn gold" data-act="donstars">⭐ ${L('don.give', { n: fmt(amt) })}</button>${d.ton ? `<button class="btn tonb" data-act="donton">${I('ton', 14)} ${tonAmt} TON</button>` : ''}</div>
+    <p class="hint">${L('don.note', { max: fmt(d.max) })}</p>
+    ${d.top && d.top.length ? `<h3 class="h3">💖 ${L('don.wall')}</h3><ol class="board">${d.top.map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><span class="yel">${fmt(x.stars)} ⭐</span></li>`).join('')}</ol>` : ''}
+  </section>`;
+}
 function hubToken() {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
   const alloc = [[45, 'players', 'cy'], [15, 'liq', 'blue'], [15, 'team', 'vio'], [10, 'mkt', 'mag'], [10, 'treasury', 'yel'], [5, 'early', 'grn']];
@@ -6768,6 +6849,7 @@ function hubToken() {
     <h2 class="h2">${I('arrow', 16)} ${L('tok.road')}</h2>
     <ol class="road">${road.map((r, i) => `<li class="rd ${r[1]}"><span class="rd-n px">${i + 1}</span><div><b>${L('tok.' + r[0])}</b><small>${L('tok.' + r[0] + 'd', { sym })}</small></div><span class="chip ${r[1] === 'now' ? 'grn' : ''}">${L('tok.' + r[1])}</span></li>`).join('')}</ol>
   </section>
+  ${donatePanel()}
   <section class="panel supp">
     <h2 class="h2">${I('heart', 16)} ${L('tok.sup')}</h2>
     <p class="sub">${L('tok.sup_t', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
@@ -7175,6 +7257,8 @@ function render(force) {
   if (!S) return;
   const sig = [S.rev, UI.tab, UI.sub.studio, UI.sub.drop, UI.sel, affordSig(), UI.ecoVer || 0, UI.hubVer || 0, LANG, NET.online, NET.mode, S.sel.genre, S.sel.tier, S.sel.name].join('|');
   if (!force && sig === UI.lastSig) return;
+  // don't rebuild the page under someone typing a donation amount (keyboard would close)
+  if (!force && document.activeElement && document.activeElement.id === 'donin') { $('#hud').innerHTML = hudHTML(); return; }
   UI.lastSig = sig;
   const main = $('#main');
   const where = UI.tab + ':' + (UI.sub[UI.tab] || '');
@@ -7441,6 +7525,9 @@ const ACT = {
   },
   pay: (sku) => buySku(sku),
   payton: (sku) => buyTon(sku),
+  donamt: (n) => { UI.donAmt = Number(n); UI.hubVer = (UI.hubVer || 0) + 1; render(true); },
+  donstars: () => donateStars(),
+  donton: () => donateTon(),
   ad: () => {
     if (UI.adBusy) return;
     const e = NET.eco && NET.eco.ads;
@@ -7484,17 +7571,18 @@ function confettiSmall() { confetti(40); }
 /* ---------- hub data ---------- */
 function loadHub(sub, force) {
   const now = Date.now();
-  const key = sub === 'top' ? 'board' : sub;
-  if (!['tasks', 'friends', 'board', 'shop', 'home'].includes(key)) return;
+  const key = sub === 'top' ? 'board' : sub === 'token' ? 'donate' : sub;
+  if (!['tasks', 'friends', 'board', 'shop', 'home', 'donate'].includes(key)) return;
   if (key === 'home') { if (NET.mode === 'online' && (force || now - (UI.hub.loadedAt.home || 0) > 30000)) { UI.hub.loadedAt.home = now; netSync(); } if (!UI.hub.tasks) loadHub('tasks'); return; }
   if (!force && UI.hub[key] && now - (UI.hub.loadedAt[key] || 0) < 20000) return;
   UI.hub.loadedAt[key] = now;
-  const p = key === 'tasks' ? netApi.tasks() : key === 'friends' ? netApi.friends() : key === 'board' ? netApi.leaderboard() : netApi.shop();
+  const p = key === 'tasks' ? netApi.tasks() : key === 'friends' ? netApi.friends() : key === 'board' ? netApi.leaderboard() : key === 'donate' ? netApi.donateInfo() : netApi.shop();
   p.then((r) => {
     if (!r || !r.ok) return;
     if (key === 'tasks') UI.hub.tasks = r.tasks;
     else if (key === 'friends') UI.hub.friends = r;
     else if (key === 'board') UI.hub.board = r;
+    else if (key === 'donate') UI.hub.donate = r;
     else UI.hub.shop = r;
     UI.hubVer = (UI.hubVer || 0) + 1;
     render();
@@ -7505,6 +7593,48 @@ function paidJuice() {
   confetti(140); sfx('floor'); haptic('ok');
   [1500, 4000, 9000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
   setTimeout(() => loadHub('shop', true), 2500);
+}
+/* ---------- donations toward the launch ---------- */
+function donAmount() {
+  const d = UI.hub.donate || {};
+  const v = Math.floor(Number(UI.donAmt || 100));
+  return Math.max(d.min || 100, Math.min(d.max || 10000, v || 0));
+}
+function donated() {
+  toast(L('don.thanks'), 'good', 'heart');
+  confetti(160); sfx('floor'); haptic('ok');
+  [2000, 6000].forEach((ms) => setTimeout(() => loadHub('token', true), ms));
+  setTimeout(() => netSync({ full: true }), 3000);
+}
+function donateStars() {
+  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
+  const n = donAmount();
+  netApi.donateInvoice(n).then((r) => {
+    if (!r || !r.ok || !r.url) return errToast((r && r.err) || 'invoice');
+    const after = (status) => { if (status === 'paid') donated(); else if (status === 'failed') errToast('pay_failed'); };
+    if (TG && TG.openInvoice) TG.openInvoice(r.url, after); else openLink(r.url);
+  });
+}
+async function donateTon() {
+  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
+  if (UI.tonBusy) return toast(L('shop.ton_wait'), '');
+  const d = UI.hub.donate || {};
+  const ton = Math.max(d.tonMin || 1, Math.round(donAmount() * (d.tonPerStar || 0.011) * 10) / 10);
+  UI.tonBusy = true;
+  try {
+    const r = await netApi.donateTon(ton);
+    if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
+    const p = await tonPay(r.order);
+    if (!p.ok) { if (p.err === 'need_wallet') { toast(L('shop.ton_connect'), '', 'ton'); tonConnect(); } else if (p.err === 'ton_rejected') toast(L('err.ton_rejected'), 'bad'); else errToast(p.err); return; }
+    toast(L('shop.ton_wait'), '', 'ton');
+    for (let i = 0; i < 30; i++) {
+      await new Promise((res) => setTimeout(res, 4000));
+      const c = await netApi.tonCheck(r.order.id);
+      if (c && c.paid) return donated();
+      if (c && c.expired) break;
+    }
+    toast(L('shop.ton_later'), '', 'ton');
+  } finally { UI.tonBusy = false; }
 }
 async function buyTon(sku) {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
@@ -7814,6 +7944,18 @@ function frame(now) {
 
 /* ---------- input wiring ---------- */
 function wireInput() {
+  // donation amount typed by hand: keep it without re-rendering (so the keyboard stays open)
+  document.addEventListener('input', (e) => {
+    if (!e.target || e.target.id !== 'donin') return;
+    UI.donAmt = Number(e.target.value) || 0;
+    const n = donAmount();
+    const b = $('[data-act="donstars"]');
+    if (b) b.textContent = '⭐ ' + L('don.give', { n: fmt(n) });
+    const d = UI.hub.donate || {};
+    const t = $('[data-act="donton"]');
+    if (t && d.ton) t.innerHTML = I('ton', 14) + ' ' + Math.max(d.tonMin || 1, Math.round(n * (d.tonPerStar || 0.011) * 10) / 10) + ' TON';
+    document.querySelectorAll('.don-chips .chip').forEach((c) => c.classList.toggle('on', c.dataset.act === 'donamt:' + n));
+  });
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-act]');
     if (!el || el.disabled) return;

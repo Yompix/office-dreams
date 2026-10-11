@@ -219,6 +219,10 @@ async function main() {
   await page.evaluate(() => document.querySelector('#main').scrollTo(0, 700));
   await sleep(300);
   await shot(page, '10c_token_more');
+  ok(!!(await page.$('.donate [data-act="donstars"]')), 'donation panel shown');
+  await page.evaluate(() => document.querySelector('.donate').scrollIntoView());
+  await sleep(300);
+  await shot(page, '10e_donate');
   await ev(page, 'showHelp()');
   await sleep(400);
   await shot(page, '10d_help');

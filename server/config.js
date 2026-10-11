@@ -59,6 +59,8 @@ function build(env) {
     tonconnectCdn: str('TONCONNECT_CDN', 'https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js'),
     turnstile: { site: str('TURNSTILE_SITEKEY'), secret: str('TURNSTILE_SECRET') },
     starUsd: num('STAR_USD', 0.013),
+    // donations toward the token launch: any amount from the minimum up; shown as a shared progress bar
+    donate: { minStars: num('DONATE_MIN_STARS', 100), maxStars: num('DONATE_MAX_STARS', 10000), goalUsd: num('DONATE_GOAL_USD', 5000) },
     // regions closed to the game (ISO country codes, from the device time zone) and Telegram app languages
     blockedCountries: str('BLOCKED_COUNTRIES', 'IN,ID,PK,BD,NG').toUpperCase().split(',').map((x) => x.trim()).filter(Boolean),
     blockedLangs: str('BLOCKED_LANGS', 'hi,id,ur,bn,ha,yo,ig').toLowerCase().split(',').map((x) => x.trim()).filter(Boolean),

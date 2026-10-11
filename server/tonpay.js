@@ -25,6 +25,21 @@ function tonPrice(cfg, it) {
 }
 const toNano = (ton) => (BigInt(Math.round(ton * 100)) * NANO) / 100n;
 
+// smallest TON donation = the Stars minimum at the shop's Star price
+function donateMinTon(cfg) {
+  return Math.ceil(((cfg.donate.minStars * cfg.tonPay.starUsd) / cfg.tonPay.usd) * 10) / 10;
+}
+function createDonation(ctx, uid, ton, now) {
+  if (!enabled(ctx.cfg)) return { ok: false, err: 'not_configured' };
+  const min = donateMinTon(ctx.cfg);
+  if (!Number.isFinite(ton) || ton < min || ton > 100000) return { ok: false, err: 'amount', min };
+  const recent = ctx.db.get('SELECT COUNT(*) AS n FROM ton_orders WHERE uid=? AND ts>?', uid, now - 3600 * 1000).n;
+  if (recent >= 10) return { ok: false, err: 'rate' };
+  const id = crypto.randomBytes(5).toString('hex');
+  const nano = toNano(Math.round(ton * 100) / 100).toString();
+  ctx.db.run("INSERT INTO ton_orders(id,uid,sku,nano,ts,status,tx) VALUES(?,?,'donate',?,?,'pending',NULL)", id, uid, nano, now);
+  return { ok: true, order: { id, sku: 'donate', ton, amount: nano, to: ctx.cfg.tonPay.wallet, comment: 'OD-' + id, validUntil: Math.floor(now / 1000) + 15 * 60 } };
+}
 function createOrder(ctx, uid, sku, now) {
   if (!enabled(ctx.cfg)) return { ok: false, err: 'not_configured' };
   const it = Eco.shopItem(sku);
@@ -75,6 +90,15 @@ async function incoming(ctx, now) {
 async function settle(ctx, order, list, now) {
   const tx = list.find((x) => x.comment === 'OD-' + order.id && x.value >= BigInt(order.nano));
   if (!tx) return null;
+  if (order.sku === 'donate') {
+    // a donation counts what actually arrived (people may send more than they typed)
+    const tonIn = Number((tx.value * 100n) / NANO) / 100;
+    const usd = tonIn * ctx.cfg.tonPay.usd;
+    const stars = Math.round(usd / ctx.cfg.tonPay.starUsd);
+    const r = Eco.fulfilDonation(ctx, order.uid, 'ton:' + (tx.hash || tx.lt), stars, now, { usd, meta: JSON.stringify({ ton: tonIn, usd, from: tx.from, order: order.id }) });
+    ctx.db.run("UPDATE ton_orders SET status='paid', tx=? WHERE id=?", tx.hash || tx.lt, order.id);
+    return r;
+  }
   const it = Eco.shopItem(order.sku);
   const ton = Number(BigInt(order.nano) * 100n / NANO) / 100;
   const r = Eco.fulfil(ctx, order.uid, order.sku, 'ton:' + (tx.hash || tx.lt), it.stars, now, { usd: ton * ctx.cfg.tonPay.usd, meta: JSON.stringify({ ton, from: tx.from, order: order.id }) });
@@ -105,7 +129,7 @@ async function sweep(ctx, now = ctx.now()) {
     if (r && r.ok && !r.dup) {
       paid++;
       const lang = (U.getUser(ctx, o.uid) || {}).lang || 'en';
-      try { await Bot.send(ctx, o.uid, Bot.tx(lang).paid(Bot.shopTxt(lang, o.sku)[0])); } catch (_) { /* player may have blocked the bot */ }
+      try { await Bot.send(ctx, o.uid, o.sku === 'donate' ? Bot.thanksTxt(lang, r.stars) : Bot.tx(lang).paid(Bot.shopTxt(lang, o.sku)[0])); } catch (_) { /* player may have blocked the bot */ }
     }
   }
   return { paid };
@@ -113,4 +137,4 @@ async function sweep(ctx, now = ctx.now()) {
 
 function walletValid(addr) { return !!Ton.parseAddress(addr); }
 
-module.exports = { enabled, tonPrice, createOrder, checkOrder, sweep, walletValid, commentOf };
+module.exports = { enabled, tonPrice, donateMinTon, createDonation, createOrder, checkOrder, sweep, walletValid, commentOf };

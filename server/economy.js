@@ -247,10 +247,12 @@ async function taskClaim(ctx, uid, id, now) {
 function leaderboard(ctx, uid, now = Date.now()) {
   const c = ctx.cache.lb;
   let top;
-  if (c && now - c.t < 20000) top = c.top;
+  let countries;
+  if (c && now - c.t < 20000) { top = c.top; countries = c.countries; }
   else {
-    top = ctx.db.all("SELECT id,name,username,pts,premium FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch') ORDER BY pts DESC LIMIT 100");
-    ctx.cache.lb = { t: now, top };
+    top = ctx.db.all("SELECT id,name,username,pts,premium,country FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch') ORDER BY pts DESC LIMIT 100");
+    countries = ctx.db.all("SELECT country AS c, COUNT(*) AS n, SUM(pts) AS p FROM users WHERE deleted=0 AND pts>0 AND country IS NOT NULL AND risk_state IN ('ok','watch') GROUP BY country ORDER BY p DESC LIMIT 10");
+    ctx.cache.lb = { t: now, top, countries };
   }
   const me = ctx.db.get('SELECT pts, risk_state FROM users WHERE id=?', uid);
   let rank = null;
@@ -259,7 +261,8 @@ function leaderboard(ctx, uid, now = Date.now()) {
   }
   const total = ctx.db.get("SELECT COUNT(*) AS n FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch')").n;
   return {
-    top: top.slice(0, 50).map((r, i) => ({ rank: i + 1, name: r.name, id: r.id === uid ? r.id : undefined, me: r.id === uid, pts: r1(r.pts), premium: !!r.premium })),
+    top: top.slice(0, 50).map((r, i) => ({ rank: i + 1, name: r.name, id: r.id === uid ? r.id : undefined, me: r.id === uid, pts: r1(r.pts), premium: !!r.premium, country: r.country || null })),
+    countries: (countries || []).map((x, i) => ({ rank: i + 1, c: x.c, n: x.n, pts: r1(x.p) })),
     me: rank ? { rank, pts: r1(me.pts) } : null,
     total,
   };
@@ -337,6 +340,37 @@ function fulfil(ctx, uid, sku, chargeId, stars, now = Date.now(), extra = {}) {
     );
     return { ok: true, item: it };
   });
+}
+
+/* ---- donations: support the road to the token launch (no items, no points — counts toward VIP & supporter) ---- */
+function fulfilDonation(ctx, uid, chargeId, stars, now = Date.now(), extra = {}) {
+  return ctx.db.tx(() => {
+    const ins = ctx.db.run('INSERT OR IGNORE INTO purchases(charge_id,uid,sku,stars,ts,meta) VALUES(?,?,?,?,?,?)', String(chargeId), uid, 'donate', stars, now, extra.meta || null);
+    if (!ins.changes) return { ok: true, dup: true };
+    const usd = extra.usd !== undefined ? extra.usd : stars * ctx.cfg.starUsd;
+    ctx.db.run(
+      `INSERT INTO revenue(day,stars,usd,n) VALUES(?,?,?,1)
+       ON CONFLICT(day) DO UPDATE SET stars=stars+excluded.stars, usd=usd+excluded.usd, n=n+1`,
+      U.dayKey(now), extra.usd !== undefined ? 0 : stars, usd
+    );
+    ctx.cache.fund = null;
+    return { ok: true, stars };
+  });
+}
+// shared progress toward the launch fund (cached a few seconds)
+function fundView(ctx, uid, now = Date.now()) {
+  let f = ctx.cache.fund;
+  if (!f || now - f.t > 5000) {
+    const r = ctx.db.get("SELECT COALESCE(SUM(stars),0) AS s, COUNT(DISTINCT uid) AS d FROM purchases WHERE sku='donate'");
+    const usd = ctx.db.get("SELECT COALESCE(SUM(CAST(json_extract(meta,'$.usd') AS REAL)),0) AS u FROM purchases WHERE sku='donate' AND meta IS NOT NULL").u;
+    const starsOnly = ctx.db.get("SELECT COALESCE(SUM(stars),0) AS s FROM purchases WHERE sku='donate' AND (meta IS NULL OR json_extract(meta,'$.usd') IS NULL)").s;
+    const top = ctx.db.all("SELECT p.uid, u.name, u.country, SUM(p.stars) AS s FROM purchases p JOIN users u ON u.id=p.uid WHERE p.sku='donate' AND u.deleted=0 GROUP BY p.uid ORDER BY s DESC LIMIT 10");
+    f = { t: now, stars: r.s, donors: r.d, usd: Math.round((usd + starsOnly * ctx.cfg.starUsd) * 100) / 100, top };
+    ctx.cache.fund = f;
+  }
+  const mine = uid ? ctx.db.get("SELECT COALESCE(SUM(stars),0) AS s FROM purchases WHERE sku='donate' AND uid=?", uid).s : 0;
+  const d = ctx.cfg.donate;
+  return { stars: f.stars, donors: f.donors, usd: f.usd, goalUsd: d.goalUsd, min: d.minStars, max: d.maxStars, mine, top: f.top.map((x, i) => ({ rank: i + 1, name: x.name, country: x.country, stars: x.s, me: x.uid === uid })) };
 }
 
 /* ---- rewarded ads ---- */
@@ -419,7 +453,7 @@ function ecoView(ctx, u, now) {
 }
 
 module.exports = {
-  packCash, vipOf, VIP,
+  packCash, vipOf, VIP, fulfilDonation, fundView,
   CHECKIN, RISK_MULT, SHOP, supporterUntil, adCash, adInfo, adReward, persistUser, rollDay, dailyD, ledgerAdd, actVector, priceActivity, credit, payReferrals, checkin, checkinInfo,
   friendCounts, refLink, checkReferralActivation, friendsList, taskList, taskView, taskStart, taskClaim, leaderboard,
   shopItem, shopView, canBuy, fulfil, pieSchedule, pieFor, ecoView, r1, r3,

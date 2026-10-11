@@ -644,11 +644,22 @@ function hubTop() {
     <div><small class="mut">${L('top.you')}</small><b class="px">${b.me ? '#' + b.me.rank : '—'}</b></div>
     <div class="r"><small class="mut">${L('top.players', { n: b.total })}</small><b class="mag">${b.me ? fmtPts(b.me.pts) : '0'}</b></div>
   </section>
-  ${top3.length ? `<section class="podium">${pod.map((x, i) => x ? `<div class="pod p${[2, 1, 3][i]} ${x.me ? 'me' : ''}"><span class="pav">${esc((x.name || '?').slice(0, 1).toUpperCase())}</span><b>${esc(x.name || '—')}</b><small>${fmtPts(x.pts)}</small><div class="step px">${[2, 1, 3][i]}</div></div>` : '<div class="pod empty"></div>').join('')}</section>` : ''}
+  ${top3.length ? `<section class="podium">${pod.map((x, i) => x ? `<div class="pod p${[2, 1, 3][i]} ${x.me ? 'me' : ''}"><span class="pav">${esc((x.name || '?').slice(0, 1).toUpperCase())}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><small>${fmtPts(x.pts)}</small><div class="step px">${[2, 1, 3][i]}</div></div>` : '<div class="pod empty"></div>').join('')}</section>` : ''}
   <section class="panel">
-    ${b.top.length > 3 ? `<ol class="board">${b.top.slice(3).map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${esc(x.name || '—')}</b><span class="mag">${fmtPts(x.pts)}</span></li>`).join('')}</ol>` : `<p class="sub">${b.top.length ? L('top.few') : L('top.empty')}</p>`}
+    ${b.top.length > 3 ? `<ol class="board">${b.top.slice(3).map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><span class="mag">${fmtPts(x.pts)}</span></li>`).join('')}</ol>` : `<p class="sub">${b.top.length ? L('top.few') : L('top.empty')}</p>`}
     <p class="hint">${L('top.hint')}</p>
-  </section>`;
+  </section>
+  ${b.countries && b.countries.length ? `<section class="panel">
+    <h2 class="h2">${I('trophy', 16)} ${L('top.countries')}</h2>
+    <ol class="board">${b.countries.map((x) => `<li><span class="px rk">${x.rank}</span><b>${flag(x.c)} ${esc(countryName(x.c))} <small class="mut">· ${L('top.players_n', { n: x.n })}</small></b><span class="mag">${fmtPts(x.pts)}</span></li>`).join('')}</ol>
+  </section>` : ''}`;
+}
+function flag(c) {
+  if (!c || !/^[A-Z]{2}$/.test(c)) return '';
+  return String.fromCodePoint(...[...c].map((x) => 127397 + x.charCodeAt(0)));
+}
+function countryName(c) {
+  try { return new Intl.DisplayNames([LANG], { type: 'region' }).of(c) || c; } catch (e) { return c; }
 }
 function vipPanel(v) {
   if (!v) return '';
@@ -677,6 +688,28 @@ function hubShop() {
     <p class="hint">${L('shop.hint', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
   </section>`;
 }
+function donatePanel() {
+  const d = UI.hub.donate;
+  if (!d) return '';
+  const pct = Math.min(100, (d.usd / Math.max(1, d.goalUsd)) * 100);
+  const amt = donAmount();
+  const chips = [100, 250, 500, 1000, 2500, 5000].filter((n) => n >= d.min && n <= d.max);
+  const tonAmt = d.ton ? Math.max(d.tonMin || 1, Math.round(amt * (d.tonPerStar || 0.011) * 10) / 10) : 0;
+  return `<section class="panel donate">
+    <h2 class="h2">🚀 ${L('don.title')}</h2>
+    <p class="sub">${L('don.sub')}</p>
+    <div class="fund">
+      <div class="fund-h"><b class="px">$${fmt(Math.round(d.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(d.goalUsd) })}</small></div>
+      <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
+      <small class="mut">${L('don.donors', { n: d.donors })}${d.mine ? ' · ' + L('don.mine', { n: fmt(d.mine) }) : ''}</small>
+    </div>
+    <div class="don-chips">${chips.map((n) => `<button class="chip ${n === amt ? 'on' : ''}" data-act="donamt:${n}">${fmt(n)} ⭐</button>`).join('')}</div>
+    <label class="don-own"><small>${L('don.own', { min: d.min })}</small><input id="donin" type="number" inputmode="numeric" min="${d.min}" max="${d.max}" step="10" value="${amt}"></label>
+    <div class="pay2"><button class="btn gold" data-act="donstars">⭐ ${L('don.give', { n: fmt(amt) })}</button>${d.ton ? `<button class="btn tonb" data-act="donton">${I('ton', 14)} ${tonAmt} TON</button>` : ''}</div>
+    <p class="hint">${L('don.note', { max: fmt(d.max) })}</p>
+    ${d.top && d.top.length ? `<h3 class="h3">💖 ${L('don.wall')}</h3><ol class="board">${d.top.map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><span class="yel">${fmt(x.stars)} ⭐</span></li>`).join('')}</ol>` : ''}
+  </section>`;
+}
 function hubToken() {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
   const alloc = [[45, 'players', 'cy'], [15, 'liq', 'blue'], [15, 'team', 'vio'], [10, 'mkt', 'mag'], [10, 'treasury', 'yel'], [5, 'early', 'grn']];
@@ -701,6 +734,7 @@ function hubToken() {
     <h2 class="h2">${I('arrow', 16)} ${L('tok.road')}</h2>
     <ol class="road">${road.map((r, i) => `<li class="rd ${r[1]}"><span class="rd-n px">${i + 1}</span><div><b>${L('tok.' + r[0])}</b><small>${L('tok.' + r[0] + 'd', { sym })}</small></div><span class="chip ${r[1] === 'now' ? 'grn' : ''}">${L('tok.' + r[1])}</span></li>`).join('')}</ol>
   </section>
+  ${donatePanel()}
   <section class="panel supp">
     <h2 class="h2">${I('heart', 16)} ${L('tok.sup')}</h2>
     <p class="sub">${L('tok.sup_t', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>

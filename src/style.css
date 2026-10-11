@@ -723,3 +723,12 @@ button.cell:active { transform: scale(0.94); }
 .rung { display: grid; justify-items: center; gap: 2px; padding: 10px 6px; border-radius: 12px; border: 1px dashed var(--line); opacity: 0.75; }
 .rung b { font-size: 22px; }
 .rung.on { opacity: 1; border-style: solid; border-color: rgba(46, 230, 107, 0.6); box-shadow: inset 0 0 18px rgba(46, 230, 107, 0.15); }
+.donate .fund { display: grid; gap: 6px; margin: 10px 0; padding: 12px; border-radius: 12px; background: rgba(255, 210, 63, 0.08); border: 1px solid rgba(255, 210, 63, 0.35); }
+.donate .fund-h { display: flex; align-items: baseline; gap: 8px; }
+.donate .fund-h b { font-size: 22px; color: #ffd23f; }
+.don-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.don-chips .chip { cursor: pointer; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.05); color: inherit; padding: 6px 10px; border-radius: 999px; font: inherit; font-weight: 700; }
+.don-chips .chip.on { background: linear-gradient(180deg, #ffe27a, #e0a100); color: #2a1a00; border-color: transparent; }
+.don-own { display: grid; gap: 4px; margin: 6px 0 10px; }
+.don-own input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.25); color: inherit; font: inherit; font-size: 16px; }
+.donate .h3 { margin: 14px 0 6px; font-size: 15px; }

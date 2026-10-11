@@ -30,6 +30,8 @@ function render(force) {
   if (!S) return;
   const sig = [S.rev, UI.tab, UI.sub.studio, UI.sub.drop, UI.sel, affordSig(), UI.ecoVer || 0, UI.hubVer || 0, LANG, NET.online, NET.mode, S.sel.genre, S.sel.tier, S.sel.name].join('|');
   if (!force && sig === UI.lastSig) return;
+  // don't rebuild the page under someone typing a donation amount (keyboard would close)
+  if (!force && document.activeElement && document.activeElement.id === 'donin') { $('#hud').innerHTML = hudHTML(); return; }
   UI.lastSig = sig;
   const main = $('#main');
   const where = UI.tab + ':' + (UI.sub[UI.tab] || '');
@@ -296,6 +298,9 @@ const ACT = {
   },
   pay: (sku) => buySku(sku),
   payton: (sku) => buyTon(sku),
+  donamt: (n) => { UI.donAmt = Number(n); UI.hubVer = (UI.hubVer || 0) + 1; render(true); },
+  donstars: () => donateStars(),
+  donton: () => donateTon(),
   ad: () => {
     if (UI.adBusy) return;
     const e = NET.eco && NET.eco.ads;
@@ -339,17 +344,18 @@ function confettiSmall() { confetti(40); }
 /* ---------- hub data ---------- */
 function loadHub(sub, force) {
   const now = Date.now();
-  const key = sub === 'top' ? 'board' : sub;
-  if (!['tasks', 'friends', 'board', 'shop', 'home'].includes(key)) return;
+  const key = sub === 'top' ? 'board' : sub === 'token' ? 'donate' : sub;
+  if (!['tasks', 'friends', 'board', 'shop', 'home', 'donate'].includes(key)) return;
   if (key === 'home') { if (NET.mode === 'online' && (force || now - (UI.hub.loadedAt.home || 0) > 30000)) { UI.hub.loadedAt.home = now; netSync(); } if (!UI.hub.tasks) loadHub('tasks'); return; }
   if (!force && UI.hub[key] && now - (UI.hub.loadedAt[key] || 0) < 20000) return;
   UI.hub.loadedAt[key] = now;
-  const p = key === 'tasks' ? netApi.tasks() : key === 'friends' ? netApi.friends() : key === 'board' ? netApi.leaderboard() : netApi.shop();
+  const p = key === 'tasks' ? netApi.tasks() : key === 'friends' ? netApi.friends() : key === 'board' ? netApi.leaderboard() : key === 'donate' ? netApi.donateInfo() : netApi.shop();
   p.then((r) => {
     if (!r || !r.ok) return;
     if (key === 'tasks') UI.hub.tasks = r.tasks;
     else if (key === 'friends') UI.hub.friends = r;
     else if (key === 'board') UI.hub.board = r;
+    else if (key === 'donate') UI.hub.donate = r;
     else UI.hub.shop = r;
     UI.hubVer = (UI.hubVer || 0) + 1;
     render();
@@ -360,6 +366,48 @@ function paidJuice() {
   confetti(140); sfx('floor'); haptic('ok');
   [1500, 4000, 9000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
   setTimeout(() => loadHub('shop', true), 2500);
+}
+/* ---------- donations toward the launch ---------- */
+function donAmount() {
+  const d = UI.hub.donate || {};
+  const v = Math.floor(Number(UI.donAmt || 100));
+  return Math.max(d.min || 100, Math.min(d.max || 10000, v || 0));
+}
+function donated() {
+  toast(L('don.thanks'), 'good', 'heart');
+  confetti(160); sfx('floor'); haptic('ok');
+  [2000, 6000].forEach((ms) => setTimeout(() => loadHub('token', true), ms));
+  setTimeout(() => netSync({ full: true }), 3000);
+}
+function donateStars() {
+  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
+  const n = donAmount();
+  netApi.donateInvoice(n).then((r) => {
+    if (!r || !r.ok || !r.url) return errToast((r && r.err) || 'invoice');
+    const after = (status) => { if (status === 'paid') donated(); else if (status === 'failed') errToast('pay_failed'); };
+    if (TG && TG.openInvoice) TG.openInvoice(r.url, after); else openLink(r.url);
+  });
+}
+async function donateTon() {
+  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
+  if (UI.tonBusy) return toast(L('shop.ton_wait'), '');
+  const d = UI.hub.donate || {};
+  const ton = Math.max(d.tonMin || 1, Math.round(donAmount() * (d.tonPerStar || 0.011) * 10) / 10);
+  UI.tonBusy = true;
+  try {
+    const r = await netApi.donateTon(ton);
+    if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
+    const p = await tonPay(r.order);
+    if (!p.ok) { if (p.err === 'need_wallet') { toast(L('shop.ton_connect'), '', 'ton'); tonConnect(); } else if (p.err === 'ton_rejected') toast(L('err.ton_rejected'), 'bad'); else errToast(p.err); return; }
+    toast(L('shop.ton_wait'), '', 'ton');
+    for (let i = 0; i < 30; i++) {
+      await new Promise((res) => setTimeout(res, 4000));
+      const c = await netApi.tonCheck(r.order.id);
+      if (c && c.paid) return donated();
+      if (c && c.expired) break;
+    }
+    toast(L('shop.ton_later'), '', 'ton');
+  } finally { UI.tonBusy = false; }
 }
 async function buyTon(sku) {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
@@ -669,6 +717,18 @@ function frame(now) {
 
 /* ---------- input wiring ---------- */
 function wireInput() {
+  // donation amount typed by hand: keep it without re-rendering (so the keyboard stays open)
+  document.addEventListener('input', (e) => {
+    if (!e.target || e.target.id !== 'donin') return;
+    UI.donAmt = Number(e.target.value) || 0;
+    const n = donAmount();
+    const b = $('[data-act="donstars"]');
+    if (b) b.textContent = '⭐ ' + L('don.give', { n: fmt(n) });
+    const d = UI.hub.donate || {};
+    const t = $('[data-act="donton"]');
+    if (t && d.ton) t.innerHTML = I('ton', 14) + ' ' + Math.max(d.tonMin || 1, Math.round(n * (d.tonPerStar || 0.011) * 10) / 10) + ' TON';
+    document.querySelectorAll('.don-chips .chip').forEach((c) => c.classList.toggle('on', c.dataset.act === 'donamt:' + n));
+  });
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-act]');
     if (!el || el.disabled) return;

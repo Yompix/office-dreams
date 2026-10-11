@@ -691,6 +691,40 @@ const Ton = require('../server/ton.js');
       assert.ok(r.json.rows.every((x) => x.country === 'UA') && r.json.rows.length >= 1);
       assert.equal((await httpJson(env5.base, 'GET', '/admin/api/live')).status, 401);
     });
+    await test('donations: Stars (min 100, any amount via repeat) and TON; fund progress, VIP grows, no points', async () => {
+      const P = new Player(env5, 8801, { username: 'donor' }); await P.auth('', { tz: 'Europe/Kyiv' });
+      const pts0 = U.getUser(env5.ctx, 8801).pts;
+      assert.equal((await P.api('POST', '/api/donate/invoice', { stars: 50 })).json.err, 'amount');
+      const inv = await P.api('POST', '/api/donate/invoice', { stars: 300 });
+      assert.ok(inv.json.ok && inv.json.url, JSON.stringify(inv.json));
+      const call = env5.mock.calls.filter((c) => c.method === 'createInvoiceLink').pop().body;
+      assert.equal(call.prices[0].amount, 300);
+      // Telegram confirms the payment
+      const Bot = require('../server/bot.js');
+      await Bot.handleUpdate(env5.ctx, { pre_checkout_query: { id: 'pq1', from: { id: 8801 }, currency: 'XTR', total_amount: 300, invoice_payload: call.payload } });
+      assert.ok(env5.mock.calls.some((c) => c.method === 'answerPreCheckoutQuery' && c.body.pre_checkout_query_id === 'pq1' && c.body.ok));
+      const pay = { message_id: 1, from: { id: 8801 }, chat: { id: 8801, type: 'private' }, successful_payment: { currency: 'XTR', total_amount: 300, invoice_payload: call.payload, telegram_payment_charge_id: 'don-1' } };
+      await Bot.handleUpdate(env5.ctx, { message: pay });
+      await Bot.handleUpdate(env5.ctx, { message: pay }); // duplicate delivery
+      let f = (await P.api('GET', '/api/donate')).json;
+      assert.equal(f.mine, 300);
+      assert.ok(f.stars >= 300 && f.donors >= 1);
+      assert.equal(f.top[0].name !== undefined, true);
+      // TON donation: whatever actually arrived counts
+      const o = (await P.api('POST', '/api/donate/ton', { ton: f.tonMin })).json;
+      assert.ok(o.ok, JSON.stringify(o));
+      assert.equal((await P.api('POST', '/api/donate/ton', { ton: 0.1 })).json.err, 'amount');
+      const prev = env5.ctx.tonApi;
+      env5.ctx.tonApi = async () => [{ transaction_id: { lt: '9', hash: 'h_don' }, in_msg: { source: 'EQx', value: '5000000000', message: o.order.comment } }];
+      env5.advance(6000);
+      assert.equal((await P.api('POST', '/api/shop/ton/check', { id: o.order.id })).json.paid, true);
+      env5.ctx.tonApi = prev;
+      env5.advance(6000);
+      f = (await P.api('GET', '/api/donate')).json;
+      assert.ok(f.mine > 300 + 400, 'TON counted by the amount received: ' + f.mine);
+      assert.equal(Eco.vipOf(env5.ctx, 8801).lvl >= 2, true, 'VIP grew');
+      assert.equal(U.getUser(env5.ctx, 8801).pts, pts0, 'donations never buy points');
+    });
     await env5.close();
   }
   summary();

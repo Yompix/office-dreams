@@ -55,6 +55,18 @@ const CASH_TXT = {
   uk: { cash1: 'Жменя монет', cash2: 'Пачка монет', cash3: 'Кейс монет', cash4: 'Сейф монет', cash5: 'Банківське сховище', d: (n) => `$${n} на найм, прокачку і поверхи` },
 };
 const nfmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const DONATE_TXT = {
+  en: (n) => ['Support the launch', `${n} ⭐ toward the OFFICE token launch. Thank you!`],
+  ru: (n) => ['Поддержка запуска', `${n} ⭐ на запуск токена OFFICE. Спасибо!`],
+  uk: (n) => ['Підтримка запуску', `${n} ⭐ на запуск токена OFFICE. Дякуємо!`],
+};
+const donateTxt = (lang, n) => (DONATE_TXT[lang] || DONATE_TXT.en)(n);
+const THANKS = {
+  en: (n) => `💖 Thank you for supporting Office Dreams! <b>${n} ⭐</b> went to the launch fund. Your VIP level has grown.`,
+  ru: (n) => `💖 Спасибо за поддержку Office Dreams! <b>${n} ⭐</b> ушли в фонд запуска. Твой VIP-уровень вырос.`,
+  uk: (n) => `💖 Дякуємо за підтримку Office Dreams! <b>${n} ⭐</b> пішли у фонд запуску. Твій VIP-рівень зріс.`,
+};
+const thanksTxt = (lang, n) => (THANKS[lang] || THANKS.en)(n);
 const shopTxt = (lang, sku, cash) => {
   const c = CASH_TXT[lang] || CASH_TXT.en;
   if (c[sku]) return [c[sku], c.d(nfmt(cash || 0))];
@@ -113,6 +125,13 @@ async function handlePayment(ctx, m) {
   const sp = m.successful_payment;
   const parts = String(sp.invoice_payload || '').split(':');
   const uid = Number(parts[0]), sku = parts[1];
+  if (sku === 'donate') {
+    const n = Number(parts[2]);
+    if (!uid || uid !== m.from.id || sp.currency !== 'XTR' || sp.total_amount !== n) return;
+    const r = Eco.fulfilDonation(ctx, uid, sp.telegram_payment_charge_id, n, ctx.now());
+    if (r.ok && !r.dup) await send(ctx, m.chat.id, thanksTxt((U.getUser(ctx, uid) || {}).lang || 'en', n));
+    return;
+  }
   if (!uid || uid !== m.from.id || !Eco.shopItem(sku) || sp.currency !== 'XTR') return;
   const it = Eco.shopItem(sku);
   if (sp.total_amount !== it.stars) return;
@@ -129,7 +148,9 @@ async function handleUpdate(ctx, up) {
       const q = up.pre_checkout_query;
       const parts = String(q.invoice_payload || '').split(':');
       const it = Eco.shopItem(parts[1]);
-      const good = it && Number(parts[0]) === q.from.id && q.currency === 'XTR' && q.total_amount === it.stars && Eco.canBuy(ctx, q.from.id, it.sku);
+      const dn = parts[1] === 'donate' ? Number(parts[2]) : 0;
+      const goodDonate = dn > 0 && Number(parts[0]) === q.from.id && q.currency === 'XTR' && q.total_amount === dn && dn >= ctx.cfg.donate.minStars && dn <= ctx.cfg.donate.maxStars;
+      const good = goodDonate || it && Number(parts[0]) === q.from.id && q.currency === 'XTR' && q.total_amount === it.stars && Eco.canBuy(ctx, q.from.id, it.sku);
       await ctx.tg.call('answerPreCheckoutQuery', good ? { pre_checkout_query_id: q.id, ok: true } : { pre_checkout_query_id: q.id, ok: false, error_message: 'This item is not available.' });
     } else if (up.message) {
       await handleMessage(ctx, up.message);
@@ -200,4 +221,4 @@ function startPolling(ctx) {
   return { stop() { stop = true; } };
 }
 
-module.exports = { T, tx, shopTxt, handleUpdate, notifyReferral, setup, startPolling, send };
+module.exports = { T, tx, shopTxt, donateTxt, thanksTxt, handleUpdate, notifyReferral, setup, startPolling, send };

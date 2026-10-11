@@ -273,6 +273,19 @@ async function handleApi(ctx, req, res, url, ip) {
     if (!r.ok) return bad(res, 502, 'invoice');
     return sendJson(res, 200, { ok: true, url: r.result });
   }
+  if (method === 'GET' && p === '/api/donate') return sendJson(res, 200, Object.assign({ ok: true, ton: TonPay.enabled(cfg), tonMin: TonPay.enabled(cfg) ? TonPay.donateMinTon(cfg) : null, tonPerStar: cfg.tonPay.starUsd / cfg.tonPay.usd }, Eco.fundView(ctx, uid, now)));
+  if (method === 'POST' && p === '/api/donate/invoice') {
+    const stars = Math.floor(Number(body.stars));
+    if (!Number.isFinite(stars) || stars < cfg.donate.minStars || stars > cfg.donate.maxStars) return bad(res, 400, 'amount');
+    const T = Bot.donateTxt(u0.lang, stars);
+    const r = await ctx.tg.call('createInvoiceLink', {
+      title: T[0], description: T[1], payload: `${uid}:donate:${stars}:${crypto.randomBytes(4).toString('hex')}`,
+      provider_token: '', currency: 'XTR', prices: [{ label: T[0], amount: stars }],
+    });
+    if (!r.ok) return bad(res, 502, 'invoice');
+    return sendJson(res, 200, { ok: true, url: r.result });
+  }
+  if (method === 'POST' && p === '/api/donate/ton') return sendJson(res, 200, TonPay.createDonation(ctx, uid, Number(body.ton), now));
   if (method === 'POST' && p === '/api/shop/ton') return sendJson(res, 200, TonPay.createOrder(ctx, uid, String(body.sku || ''), now));
   if (method === 'POST' && p === '/api/shop/ton/check') {
     const r = await TonPay.checkOrder(ctx, uid, String(body.id || ''), now);
