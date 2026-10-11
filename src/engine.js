@@ -33,6 +33,28 @@ const GENRES = {
 };
 const GENRE_ORDER = ['rpg', 'plat', 'shoot', 'sim', 'horror', 'puzzle'];
 
+// game topics: some genre + topic pairs are hits, some flop (the player discovers them by releasing games)
+const TOPIC_ORDER = ['space', 'fantasy', 'zombie', 'cyber', 'cats', 'pirate', 'sport', 'mystery'];
+const COMBOS = {
+  rpg: { good: ['fantasy', 'pirate'], bad: ['sport', 'cats'] },
+  plat: { good: ['cats', 'space'], bad: ['mystery', 'zombie'] },
+  shoot: { good: ['zombie', 'cyber'], bad: ['cats', 'mystery'] },
+  sim: { good: ['sport', 'cats'], bad: ['zombie', 'fantasy'] },
+  horror: { good: ['zombie', 'mystery'], bad: ['sport', 'cats'] },
+  puzzle: { good: ['mystery', 'cyber'], bad: ['sport', 'pirate'] },
+};
+const COMBO_BONUS = 0.8; // score points for a perfect pair (and minus for a bad one)
+function comboOf(genre, topic) {
+  const c = COMBOS[genre];
+  if (!c || !topic) return 0;
+  return c.good.includes(topic) ? 1 : c.bad.includes(topic) ? -1 : 0;
+}
+// what the player already knows about a pair: 1 / 0 / -1, or null when never released
+function comboKnown(s, genre, topic) {
+  const v = s.combos && s.combos[genre + ':' + topic];
+  return v === undefined ? null : v;
+}
+
 const TIERS = {
   mini: { pts: 1, rev: 1, rep: 0.6, need: 'b', fit: 1e9, w: 1 },
   indie: { pts: 3.5, rev: 5.2, rep: 1.2, need: 'f2', fit: 1e9, w: 2 },
@@ -121,7 +143,8 @@ function newState(seed) {
     floors: { b: 1, f1: 0, f2: 0, f3: 0, f4: 0, f5: 0 },
     items: { coffee: 0, chairs: 0, monitor2: 0, lamp: 0, lounge: 0, rack: 0 },
     project: null,
-    sel: { genre: 'puzzle', tier: 'mini', name: 'Block Dreams' }, // local UI preference, not synced
+    sel: { genre: 'puzzle', tier: 'mini', name: 'Block Dreams', topic: 'mystery' }, // local UI preference, not synced
+    combos: {}, // discovered genre:topic pairs
     auto: false,
     games: [],
     trend: { hot: 'plat', cold: 'horror' },
@@ -247,9 +270,10 @@ function qualityFor(s, genre) {
 function scoreMult(score) {
   return clamp(Math.pow(score / 6, 1.9), 0.1, 3.5);
 }
-function expectedScore(s, genre) {
+function expectedScore(s, genre, topic) {
   const hot = s.trend.hot === genre ? 0.3 : 0;
-  return clamp(3 + 7 * qualityFor(s, genre) + hot, 1, 10);
+  const k = topic ? comboKnown(s, genre, topic) || 0 : 0; // only pairs the player has already tried count
+  return clamp(3 + 7 * qualityFor(s, genre) + hot + k * COMBO_BONUS, 1, 10);
 }
 // language-independent rank id; UI shows L('rank.' + id)
 function rankOf(s) {
@@ -392,12 +416,13 @@ function buyBoost(s, id) {
   emit('sfx', 'up');
   return OK;
 }
-function startProject(s, genre, tier, name) {
+function startProject(s, genre, tier, name, topic) {
   if (s.project) return fail('busy');
   if (!GENRES[genre] || !TIERS[tier]) return fail('unavailable');
   if (!tierUnlocked(s, tier)) return fail('locked');
   const nm = cleanName(name) || newName(s, genre);
-  s.project = { genre, tier, name: nm, pts: 0, need: projectNeed(genre, tier), day: s.day };
+  const tp = TOPIC_ORDER.includes(topic) ? topic : null;
+  s.project = { genre, tier, name: nm, pts: 0, need: projectNeed(genre, tier), day: s.day, topic: tp };
   s.stats.started++;
   addLog(s, 'log.start', { name: nm }, 'info');
   bump(s);
@@ -416,8 +441,16 @@ function release(s) {
   const g = GENRES[p.genre], t = TIERS[p.tier];
   const q = qualityFor(s, p.genre);
   const hot = s.trend.hot === p.genre, cold = s.trend.cold === p.genre;
-  let score = 3 + 7 * q + rnd(s, -0.55, 0.55) + (hot ? 0.3 : 0);
+  const combo = comboOf(p.genre, p.topic);
+  let score = 3 + 7 * q + rnd(s, -0.55, 0.55) + (hot ? 0.3 : 0) + combo * COMBO_BONUS;
   score = Math.round(clamp(score, 1, 10) * 10) / 10;
+  let found = false;
+  if (p.topic) {
+    if (!s.combos) s.combos = {};
+    const key = p.genre + ':' + p.topic;
+    found = s.combos[key] === undefined;
+    s.combos[key] = combo;
+  }
   const trend = hot ? 1.5 : cold ? 0.75 : 1;
   const total = g.rev * t.rev * ECON.rev * scoreMult(score) * trend * salesMult(s, p.tier);
   const game = {
@@ -425,6 +458,7 @@ function release(s) {
     name: p.name,
     genre: p.genre,
     tier: p.tier,
+    topic: p.topic || null,
     score,
     total: Math.round(total),
     rate: total * (1 - SALE_DECAY),
@@ -448,11 +482,11 @@ function release(s) {
   addLog(s, 'log.release', { name: game.name, score: score.toFixed(1) }, score >= 7 ? 'good' : 'info');
   s.project = null;
   bump(s);
-  emit('release', { game, repGain, gemGain });
+  emit('release', { game, repGain, gemGain, combo: p.topic ? combo : null, found });
   emit('sfx', score >= 7 ? 'hit' : 'release');
   checkGoals(s);
   if (s.auto && tierUnlocked(s, p.tier)) {
-    startProject(s, p.genre, p.tier, newName(s, p.genre));
+    startProject(s, p.genre, p.tier, newName(s, p.genre), p.topic);
   }
 }
 
@@ -1024,7 +1058,7 @@ const ACTIONS = {
   buy: (s, a) => buyItem(s, String(a[0])),
   flr: (s, a) => buyFloor(s, String(a[0])),
   bst: (s, a) => buyBoost(s, String(a[0])),
-  new: (s, a) => startProject(s, String(a[0]), String(a[1]), a[2]),
+  new: (s, a) => startProject(s, String(a[0]), String(a[1]), a[2], a[3] === undefined ? null : String(a[3])),
   auto: (s, a) => setAuto(s, a[0]),
   clm: (s, a) => claimGoal(s, String(a[0])),
   dly: (s, a) => claimDaily(s, String(a[0])),
@@ -1071,6 +1105,8 @@ function deserialize(str) {
   if (s.project && !GENRES[s.project.genre]) s.project = null;
   if (!GENRES[s.sel.genre]) s.sel = { genre: 'puzzle', tier: 'mini', name: 'Block Dreams' };
   if (!TIERS[s.sel.tier]) s.sel.tier = 'mini';
+  if (!TOPIC_ORDER.includes(s.sel.topic)) s.sel.topic = 'mystery';
+  if (!s.combos || typeof s.combos !== 'object') s.combos = {};
   if (s.pending && !EVENTS[s.pending.id]) s.pending = null;
   return s;
 }
@@ -1092,7 +1128,7 @@ function stateHash(s) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    ECON, TICK, DAY_SEC, MAX_LVL, OFFLINE_CAP, STATE_V, ROLES, ROLE, GENRES, GENRE_ORDER, TIERS, TIER_ORDER, FLOORS, FLOOR_ORDER, ITEMS, BOOSTS, GOALS, DAILY, DAILY_ALL_PTS, EVENTS, EVENT_IDS, PTS_W,
+    ECON, TOPIC_ORDER, COMBOS, COMBO_BONUS, comboOf, comboKnown, TICK, DAY_SEC, MAX_LVL, OFFLINE_CAP, STATE_V, ROLES, ROLE, GENRES, GENRE_ORDER, TIERS, TIER_ORDER, FLOORS, FLOOR_ORDER, ITEMS, BOOSTS, GOALS, DAILY, DAILY_ALL_PTS, EVENTS, EVENT_IDS, PTS_W,
     hooks, newState, tick, advance, advanceTicks, advanceOffline, doTap, hire, upgradeStaff, upgradeYou, buyItem, buyFloor, buyBoost, startProject, setAuto, release, claimGoal,
     claimDaily, dailyProgress, dailyCash, syncDay, canPrestige, prestige, applyAction, replay,
     chooseEvent, spawnEvent, eventView, wpTotal, wpRole, tapPower, salaryTotal, salaryOf, upCost, youUpCost, qualityFor, expectedScore,

@@ -82,5 +82,25 @@ for (let seed = 1; seed <= 20; seed++) {
   ok(sec > 7200, 'floor 2 is not trivial: ' + Math.round(sec / 60) + ' min');
   console.log('  pacing: floor 1 after', Math.round(f1At / 60), 'min; floor 2 after', Math.round(sec / 60), 'min, released', s.stats.released, 'games');
 }
+// game topics: perfect pairs raise the score, bad ones lower it, and the studio remembers what it tried
+{
+  const run = (topic) => {
+    const s = E.newState(77);
+    s.staff.prog.lvl = 3; s.staff.art.lvl = 3; s.staff.des.lvl = 3;
+    E.startProject(s, 'rpg', 'mini', 'T', topic);
+    s.project.pts = s.project.need;
+    E.release(s);
+    return s;
+  };
+  const good = run('fantasy'), bad = run('sport'), none = run(undefined);
+  ok(good.games[0].score > none.games[0].score && bad.games[0].score < none.games[0].score, 'topic combo moves the score: ' + good.games[0].score + ' / ' + none.games[0].score + ' / ' + bad.games[0].score);
+  ok(E.comboKnown(good, 'rpg', 'fantasy') === 1 && E.comboKnown(bad, 'rpg', 'sport') === -1 && E.comboKnown(none, 'rpg', 'fantasy') === null, 'combos are discovered on release');
+  ok(E.expectedScore(good, 'rpg', 'fantasy') > E.expectedScore(good, 'rpg', 'space'), 'known perfect pair shows in the forecast');
+  const s2 = E.newState(5);
+  ok(E.applyAction(s2, ['new', 'puzzle', 'mini', 'X', 'nonsense']).ok && s2.project.topic === null, 'unknown topic is ignored');
+  const back = E.deserialize(E.serialize(good));
+  ok(back.combos['rpg:fantasy'] === 1 && back.games[0].topic === 'fantasy', 'combos survive save/load');
+  for (const g of E.GENRE_ORDER) ok(E.COMBOS[g].good.concat(E.COMBOS[g].bad).every((t) => E.TOPIC_ORDER.includes(t)), 'combo table valid for ' + g);
+}
 console.log(`engine: ${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);

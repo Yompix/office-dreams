@@ -902,6 +902,35 @@ body::after { bottom: -48px; height: calc(46vh + 48px); animation: gridmove 6s l
 .task.two > .t-r { grid-column: 1 / -1; grid-row: 2; }
 .task.two .tbtns { display: grid; grid-template-columns: 1fr 1fr; }
 .task.two .tbtns { width: 100%; }
+
+/* ---------- v1.3: game topics, critics, skyscraper ---------- */
+.tp-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.tp-h small { color: var(--cy2); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; font-size: 11px; }
+.tp-st { font-size: 11.5px; color: var(--mut, #9aa3d6); min-width: 0; }
+.tp-st.c-good b { color: var(--grn); } .tp-st.c-bad b { color: var(--red); } .tp-st.c-ok b { color: var(--cy2); } .tp-st.c-new b { color: var(--yel); }
+.topics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+.tpbtn { position: relative; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 2px; border-radius: 10px; background: var(--well); border: 1.5px solid var(--line-soft); font-weight: 700; font-size: 11px; min-width: 0; transition: transform 0.15s, border-color 0.15s; }
+.tpbtn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.tpbtn em { font-style: normal; font-size: 10px; opacity: 0.85; }
+.tpbtn.c-good em { color: var(--grn); } .tpbtn.c-bad em { color: var(--red); } .tpbtn.c-ok em { color: var(--cy2); } .tpbtn.c-new em { color: var(--yel); }
+.tpbtn.on { border-color: var(--mag); background: rgba(255, 63, 208, 0.1); box-shadow: 0 0 12px rgba(255, 63, 208, 0.35); transform: translateY(-1px); }
+.combo-l { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; font-size: 12.5px; font-weight: 700; background: var(--well); border: 1.5px solid var(--line-soft); display: grid; gap: 2px; }
+.combo-l small { font-weight: 600; opacity: 0.75; font-size: 11px; }
+.combo-l.c-good { border-color: rgba(52, 227, 122, 0.6); color: var(--grn); }
+.combo-l.c-bad { border-color: rgba(255, 84, 112, 0.6); color: var(--red); }
+.crit-h { display: block; margin-top: 10px; color: var(--cy2); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; font-size: 10.5px; }
+.crits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 6px 0 10px; }
+.crit { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; text-align: left; padding: 7px 8px; border-radius: 10px; background: var(--well); border: 1px solid var(--line-soft); opacity: 0; animation: critin 0.35s ease-out forwards; animation-delay: calc(0.45s + var(--i) * 0.18s); }
+.crit b { grid-row: span 2; font-size: 13px; padding: 5px 6px; border-radius: 8px; }
+.crit b i { font-style: normal; font-size: 8px; opacity: 0.7; }
+.crit b.hi { color: #062; background: var(--grn); } .crit b.mid { color: #3a2400; background: var(--yel); } .crit b.lo { color: #fff; background: #5a3a7a; }
+.crit span { font-size: 11px; font-weight: 800; color: var(--cy2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crit em { font-size: 11px; font-style: normal; opacity: 0.85; line-height: 1.25; }
+@keyframes critin { from { opacity: 0; transform: translateY(6px) scale(0.96); } to { opacity: 1; transform: none; } }
+.sky-pic { border-radius: 14px; overflow: hidden; border: 2px solid var(--yel); box-shadow: 0 0 22px rgba(255, 210, 63, 0.45); margin: 8px 0; animation: skyin 0.7s cubic-bezier(.2,1.2,.4,1) both; }
+.sky-pic img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+@keyframes skyin { from { opacity: 0; transform: translateY(18px) scale(0.92); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .crit, .sky-pic { animation: none; opacity: 1; } }
 </style>
 </head>
 <body>
@@ -1712,9 +1741,9 @@ LANGS.en = {
   'empire.legacy': 'IPO bonus', 'empire.floors': 'Floors', 'empire.floors_sub': 'Each floor unlocks new perks and bigger projects.',
   'empire.all_floors': 'The whole tower is yours!', 'empire.shop': 'Office upgrades', 'empire.boosts': 'Boosts',
   'empire.gems_hint': 'Gems come from hits, goals, quests, friends and the shop.',
-  'ipo.title': 'IPO', 'ipo.text': 'Take the company public: start over with a permanent +15% income bonus and {gems} gems.', 'ipo.btn': 'Go public',
-  'ipo.confirm': 'Your studio restarts from the basement, but keeps goals, stats, a permanent +15% income bonus and gets {gems} gems. Ready?',
-  'end.title': 'The tower is yours!', 'end.text': 'Five floors of neon, a team of pros and a stream of hits. You did it. Now you can take the company public and go even bigger.', 'end.ok': 'Keep playing',
+  'ipo.title': 'IPO · Move to the Skyscraper', 'ipo.text': 'Take the company public and move into the Skyscraper: a big loft with 4 interns, a permanent +15% income bonus and {gems} gems.', 'ipo.btn': 'Go public',
+  'ipo.confirm': 'Your studio moves into the Skyscraper: a bigger office, but the tower has to be rebuilt. Goals and stats stay, plus a permanent +15% income bonus and {gems} gems. Ready?',
+  'end.title': 'The tower is yours!', 'end.text': 'Five floors of neon, a team of pros and a stream of hits. You did it. Now take the company public and move into the Skyscraper.', 'end.ok': 'Keep playing',
   // release modal
   'rel.title': 'RELEASE!', 'rel.forecast': 'Sales forecast', 'rel.rep': 'Reputation', 'rel.ok': 'Awesome!',
   'rel.hit': 'A smash hit! Critics are in love.', 'rel.good': 'Players love it! Great reviews.', 'rel.fine': 'A solid release. Players are buying.', 'rel.bad': 'Rough launch. A stronger team makes better games.',
@@ -1771,7 +1800,7 @@ LANGS.en = {
   // toasts
   'toast.release': 'Released “{name}”: score {score}',
   'toast.goal': 'Goal complete: {t}', 'toast.event': 'New message: {t}', 'toast.day': 'Day {n} done: income {inc}, salaries {sal}',
-  'toast.salary_short': 'Not enough money for salaries! The team is upset.', 'toast.ipo': 'IPO #{n} complete! +15% income forever.',
+  'toast.salary_short': 'Not enough money for salaries! The team is upset.', 'toast.ipo': 'IPO #{n}! You moved into the Skyscraper. +15% income forever.',
   'toast.hired': '{role} joined the team!', 'toast.upgraded': 'Level up!', 'toast.bought': 'Bought: {item}', 'toast.floor': '{name} is open!',
   'toast.boost': '{name} activated', 'toast.tier_locked': 'Unlocks on {name} · {sub}', 'toast.started': 'Project “{name}” started!',
   'toast.reward': 'Reward: {r}', 'toast.daily': 'Mission reward: +{cash}', 'toast.checkin': 'Check-in: +{n} pts (streak {s})', 'toast.task': 'Task done: +{n} pts',
@@ -2026,6 +2055,38 @@ LANGS.en = {
   'talk.low3': 'I need a break…',
   'help.p6': 'Catch 💡 ideas over your team’s heads — a burst of progress! Tap people in the office to chat.',
   'idea.hint': '💡 Someone has an idea! Tap the light bulb for a burst of progress',
+  'topic.space': 'Space',
+  'topic.fantasy': 'Fantasy',
+  'topic.zombie': 'Zombies',
+  'topic.cyber': 'Cyberpunk',
+  'topic.cats': 'Cats',
+  'topic.pirate': 'Pirates',
+  'topic.sport': 'Sports',
+  'topic.mystery': 'Detective',
+  'games.topic': 'Game topic',
+  'games.topic_hint': 'Genre + topic affect the score. Release a game and the studio remembers whether the pair works.',
+  'combo.good': 'Perfect pair',
+  'combo.ok': 'Okay',
+  'combo.bad': 'Doesn’t work',
+  'combo.new': 'Not tried yet',
+  'rel.combo_good': '🔥 Perfect pair: {genre} + {topic}! Higher score.',
+  'rel.combo_ok': '{genre} + {topic} is a decent mix.',
+  'rel.combo_bad': '😬 Players don’t like {genre} + {topic}. Try another topic next time.',
+  'rel.found': '📒 Saved to the studio notebook',
+  'crit.title': 'What critics say',
+  'crit.hi1': 'Masterpiece of the year!',
+  'crit.hi2': 'Impossible to put down.',
+  'crit.hi3': 'A new genre classic.',
+  'crit.mid1': 'Solid and full of heart.',
+  'crit.mid2': 'Room to improve, but plays well.',
+  'crit.mid3': 'A pleasant evening, guaranteed.',
+  'crit.lo1': 'Raw and dull.',
+  'crit.lo2': 'Good idea, weak execution.',
+  'crit.lo3': 'Waiting for patches.',
+  'sky.title': 'Welcome to the Skyscraper!',
+  'sky.text': 'The company went public and moved into a spacious loft above the city: panoramic windows and 4 interns working next to your team. Rebuild the tower — now with a permanent bonus.',
+  'sky.ok': 'Let’s work!',
+  'sky.badge': 'Skyscraper',
 };
 
 /* ---- src/lang_ru.js ---- */
@@ -2112,9 +2173,9 @@ LANGS.ru = {
   'empire.legacy': 'Бонус IPO', 'empire.floors': 'Этажи', 'empire.floors_sub': 'Каждый этаж открывает новые бонусы и крупные проекты.',
   'empire.all_floors': 'Вся башня твоя!', 'empire.shop': 'Улучшения офиса', 'empire.boosts': 'Бусты',
   'empire.gems_hint': 'Кристаллы дают хиты, цели, квесты, друзья и магазин.',
-  'ipo.title': 'IPO', 'ipo.text': 'Выведи компанию на биржу: начни заново с вечным бонусом +15% к доходу и {gems} кристаллами.', 'ipo.btn': 'Провести IPO',
-  'ipo.confirm': 'Студия начнёт снова с подвала, но сохранит цели, статистику, получит вечный бонус +15% к доходу и {gems} кристаллов. Готов?',
-  'end.title': 'Башня твоя!', 'end.text': 'Пять неоновых этажей, команда профи и поток хитов. У тебя получилось. Теперь можно вывести компанию на IPO и вырасти ещё больше.', 'end.ok': 'Играть дальше',
+  'ipo.title': 'IPO · Переезд в Небоскрёб', 'ipo.text': 'Выведи компанию на биржу и переезжай в Небоскрёб: большой лофт с 4 стажёрами, вечный бонус +15% к доходу и {gems} кристаллов.', 'ipo.btn': 'Провести IPO',
+  'ipo.confirm': 'Студия переедет в Небоскрёб: офис станет больше, а башню нужно будет отстроить заново. Цели и статистика сохранятся, плюс вечный бонус +15% к доходу и {gems} кристаллов. Готов?',
+  'end.title': 'Башня твоя!', 'end.text': 'Пять неоновых этажей, команда профи и поток хитов. У тебя получилось. Теперь можно вывести компанию на IPO и переехать в Небоскрёб.', 'end.ok': 'Играть дальше',
   'rel.title': 'РЕЛИЗ!', 'rel.forecast': 'Прогноз продаж', 'rel.rep': 'Репутация', 'rel.ok': 'Супер!',
   'rel.hit': 'Это хит! Критики в восторге.', 'rel.good': 'Игрокам нравится! Отличные отзывы.', 'rel.fine': 'Крепкий релиз. Игру покупают.', 'rel.bad': 'Слабый старт. Сильная команда делает игры лучше.',
   'off.title': 'Пока тебя не было', 'off.text': 'Твои игры продавались {t}.', 'off.hint': 'Команда ждёт тебя, чтобы выпускать новые игры — заходи почаще!', 'off.ok': 'Забрать',
@@ -2159,7 +2220,7 @@ LANGS.ru = {
   'demo.note': 'Демо-режим: очки, друзья и рейтинг симулируются на этом устройстве. Настоящая игра — в Telegram.', 'demo.you': 'Ты',
   'toast.release': 'Релиз «{name}»: оценка {score}',
   'toast.goal': 'Цель выполнена: {t}', 'toast.event': 'Новое сообщение: {t}', 'toast.day': 'День {n} завершён: доход {inc}, зарплаты {sal}',
-  'toast.salary_short': 'Не хватило денег на зарплаты! Команда расстроена.', 'toast.ipo': 'IPO №{n} проведено! +15% к доходу навсегда.',
+  'toast.salary_short': 'Не хватило денег на зарплаты! Команда расстроена.', 'toast.ipo': 'IPO №{n}! Вы переехали в Небоскрёб. +15% к доходу навсегда.',
   'toast.hired': '{role} в команде!', 'toast.upgraded': 'Новый уровень!', 'toast.bought': 'Куплено: {item}', 'toast.floor': '{name} открыт!',
   'toast.boost': '{name} активирован', 'toast.tier_locked': 'Откроется на этаже: {name} · {sub}', 'toast.started': 'Проект «{name}» начат!',
   'toast.reward': 'Награда: {r}', 'toast.daily': 'Награда за задание: +{cash}', 'toast.checkin': 'Отметка: +{n} очк. (серия {s})', 'toast.task': 'Задание выполнено: +{n} очк.',
@@ -2412,6 +2473,38 @@ LANGS.ru = {
   'talk.low3': 'Мне нужен отдых…',
   'help.p6': 'Лови 💡 идеи над головами команды — это рывок прогресса! Нажимай на людей в офисе, чтобы поболтать.',
   'idea.hint': '💡 У сотрудника идея! Нажми на лампочку — будет рывок прогресса',
+  'topic.space': 'Космос',
+  'topic.fantasy': 'Фэнтези',
+  'topic.zombie': 'Зомби',
+  'topic.cyber': 'Киберпанк',
+  'topic.cats': 'Котики',
+  'topic.pirate': 'Пираты',
+  'topic.sport': 'Спорт',
+  'topic.mystery': 'Детектив',
+  'games.topic': 'Тема игры',
+  'games.topic_hint': 'Жанр + тема влияют на оценку. Выпусти игру — и студия запомнит, заходит ли пара.',
+  'combo.good': 'Идеальная пара',
+  'combo.ok': 'Нормально',
+  'combo.bad': 'Не заходит',
+  'combo.new': 'Ещё не пробовали',
+  'rel.combo_good': '🔥 Идеальная пара: {genre} + {topic}! Оценка выше.',
+  'rel.combo_ok': '{genre} + {topic} — нормальное сочетание.',
+  'rel.combo_bad': '😬 {genre} + {topic} не заходит игрокам. В следующий раз попробуй другую тему.',
+  'rel.found': '📒 Записано в блокнот студии',
+  'crit.title': 'Что говорят критики',
+  'crit.hi1': 'Шедевр года!',
+  'crit.hi2': 'Невозможно оторваться.',
+  'crit.hi3': 'Новая классика жанра.',
+  'crit.mid1': 'Крепко и с душой.',
+  'crit.mid2': 'Есть что улучшить, но играется хорошо.',
+  'crit.mid3': 'Приятный вечер гарантирован.',
+  'crit.lo1': 'Сыро и скучно.',
+  'crit.lo2': 'Идея есть, исполнения — нет.',
+  'crit.lo3': 'Ждём патчей.',
+  'sky.title': 'Добро пожаловать в Небоскрёб!',
+  'sky.text': 'Компания вышла на биржу и переехала в просторный лофт на вершине города: панорамные окна и 4 стажёра, которые работают рядом с командой. Отстрой башню заново — теперь с вечным бонусом.',
+  'sky.ok': 'За работу!',
+  'sky.badge': 'Небоскрёб',
 };
 
 /* ---- src/lang_uk.js ---- */
@@ -2498,9 +2591,9 @@ LANGS.uk = {
   'empire.legacy': 'Бонус IPO', 'empire.floors': 'Поверхи', 'empire.floors_sub': 'Кожен поверх відкриває нові бонуси й великі проєкти.',
   'empire.all_floors': 'Уся вежа твоя!', 'empire.shop': 'Покращення офісу', 'empire.boosts': 'Бусти',
   'empire.gems_hint': 'Кристали дають хіти, цілі, квести, друзі та магазин.',
-  'ipo.title': 'IPO', 'ipo.text': 'Виведи компанію на біржу: почни заново з вічним бонусом +15% до доходу та {gems} кристалами.', 'ipo.btn': 'Провести IPO',
-  'ipo.confirm': 'Студія почне знову з підвалу, але збереже цілі, статистику, отримає вічний бонус +15% до доходу і {gems} кристалів. Готовий?',
-  'end.title': 'Вежа твоя!', 'end.text': 'П’ять неонових поверхів, команда профі й потік хітів. У тебе вийшло. Тепер можна вивести компанію на IPO і вирости ще більше.', 'end.ok': 'Грати далі',
+  'ipo.title': 'IPO · Переїзд у Хмарочос', 'ipo.text': 'Виведи компанію на біржу й переїдь у Хмарочос: великий лофт з 4 стажерами, вічний бонус +15% до доходу та {gems} кристалів.', 'ipo.btn': 'Провести IPO',
+  'ipo.confirm': 'Студія переїде в Хмарочос: офіс стане більшим, а вежу треба буде відбудувати заново. Цілі й статистика збережуться, плюс вічний бонус +15% до доходу і {gems} кристалів. Готовий?',
+  'end.title': 'Вежа твоя!', 'end.text': 'П’ять неонових поверхів, команда профі й потік хітів. У тебе вийшло. Тепер можна вивести компанію на IPO і переїхати в Хмарочос.', 'end.ok': 'Грати далі',
   'rel.title': 'РЕЛІЗ!', 'rel.forecast': 'Прогноз продажів', 'rel.rep': 'Репутація', 'rel.ok': 'Супер!',
   'rel.hit': 'Це хіт! Критики в захваті.', 'rel.good': 'Гравцям подобається! Чудові відгуки.', 'rel.fine': 'Міцний реліз. Гру купують.', 'rel.bad': 'Слабкий старт. Сильна команда робить ігри кращими.',
   'off.title': 'Поки тебе не було', 'off.text': 'Твої ігри продавалися {t}.', 'off.hint': 'Команда чекає на тебе, щоб випускати нові ігри — заходь частіше!', 'off.ok': 'Забрати',
@@ -2545,7 +2638,7 @@ LANGS.uk = {
   'demo.note': 'Демо-режим: бали, друзі й рейтинг симулюються на цьому пристрої. Справжня гра — в Telegram.', 'demo.you': 'Ти',
   'toast.release': 'Реліз «{name}»: оцінка {score}',
   'toast.goal': 'Ціль виконано: {t}', 'toast.event': 'Нове повідомлення: {t}', 'toast.day': 'День {n} завершено: дохід {inc}, зарплати {sal}',
-  'toast.salary_short': 'Забракло грошей на зарплати! Команда засмучена.', 'toast.ipo': 'IPO №{n} проведено! +15% до доходу назавжди.',
+  'toast.salary_short': 'Забракло грошей на зарплати! Команда засмучена.', 'toast.ipo': 'IPO №{n}! Ви переїхали в Хмарочос. +15% до доходу назавжди.',
   'toast.hired': '{role} у команді!', 'toast.upgraded': 'Новий рівень!', 'toast.bought': 'Куплено: {item}', 'toast.floor': '{name} відкрито!',
   'toast.boost': '{name} активовано', 'toast.tier_locked': 'Відкриється на поверсі: {name} · {sub}', 'toast.started': 'Проєкт «{name}» почато!',
   'toast.reward': 'Нагорода: {r}', 'toast.daily': 'Нагорода за завдання: +{cash}', 'toast.checkin': 'Відмітка: +{n} бал. (серія {s})', 'toast.task': 'Завдання виконано: +{n} бал.',
@@ -2798,6 +2891,38 @@ LANGS.uk = {
   'talk.low3': 'Мені потрібен відпочинок…',
   'help.p6': 'Лови 💡 ідеї над головами команди — це ривок прогресу! Натискай на людей в офісі, щоб поговорити.',
   'idea.hint': '💡 У працівника ідея! Натисни на лампочку — буде ривок прогресу',
+  'topic.space': 'Космос',
+  'topic.fantasy': 'Фентезі',
+  'topic.zombie': 'Зомбі',
+  'topic.cyber': 'Кіберпанк',
+  'topic.cats': 'Котики',
+  'topic.pirate': 'Пірати',
+  'topic.sport': 'Спорт',
+  'topic.mystery': 'Детектив',
+  'games.topic': 'Тема гри',
+  'games.topic_hint': 'Жанр + тема впливають на оцінку. Випусти гру — і студія запам’ятає, чи пара заходить.',
+  'combo.good': 'Ідеальна пара',
+  'combo.ok': 'Нормально',
+  'combo.bad': 'Не заходить',
+  'combo.new': 'Ще не пробували',
+  'rel.combo_good': '🔥 Ідеальна пара: {genre} + {topic}! Оцінка вища.',
+  'rel.combo_ok': '{genre} + {topic} — нормальне поєднання.',
+  'rel.combo_bad': '😬 {genre} + {topic} не заходить гравцям. Наступного разу спробуй іншу тему.',
+  'rel.found': '📒 Записано в блокнот студії',
+  'crit.title': 'Що кажуть критики',
+  'crit.hi1': 'Шедевр року!',
+  'crit.hi2': 'Неможливо відірватися.',
+  'crit.hi3': 'Нова класика жанру.',
+  'crit.mid1': 'Міцно і з душею.',
+  'crit.mid2': 'Є що покращити, але грається добре.',
+  'crit.mid3': 'Приємний вечір гарантовано.',
+  'crit.lo1': 'Сиро і нудно.',
+  'crit.lo2': 'Ідея є, виконання — ні.',
+  'crit.lo3': 'Чекаємо патчів.',
+  'sky.title': 'Ласкаво просимо в Хмарочос!',
+  'sky.text': 'Компанія вийшла на біржу й переїхала в просторий лофт на вершині міста: панорамні вікна і 4 стажери, що працюють поруч із командою. Відбудуй вежу знову — тепер з вічним бонусом.',
+  'sky.ok': 'До роботи!',
+  'sky.badge': 'Хмарочос',
 };
 
 /* ---- src/engine.js ---- */
@@ -2835,6 +2960,28 @@ const GENRES = {
   puzzle: { pts: 300, rev: 520, w: { prog: 0.25, art: 0.25, des: 0.5 }, names: ['Block Dreams', 'Color Link', 'Brain Grid', 'Tile Alchemy', 'Logic Loop'] },
 };
 const GENRE_ORDER = ['rpg', 'plat', 'shoot', 'sim', 'horror', 'puzzle'];
+
+// game topics: some genre + topic pairs are hits, some flop (the player discovers them by releasing games)
+const TOPIC_ORDER = ['space', 'fantasy', 'zombie', 'cyber', 'cats', 'pirate', 'sport', 'mystery'];
+const COMBOS = {
+  rpg: { good: ['fantasy', 'pirate'], bad: ['sport', 'cats'] },
+  plat: { good: ['cats', 'space'], bad: ['mystery', 'zombie'] },
+  shoot: { good: ['zombie', 'cyber'], bad: ['cats', 'mystery'] },
+  sim: { good: ['sport', 'cats'], bad: ['zombie', 'fantasy'] },
+  horror: { good: ['zombie', 'mystery'], bad: ['sport', 'cats'] },
+  puzzle: { good: ['mystery', 'cyber'], bad: ['sport', 'pirate'] },
+};
+const COMBO_BONUS = 0.8; // score points for a perfect pair (and minus for a bad one)
+function comboOf(genre, topic) {
+  const c = COMBOS[genre];
+  if (!c || !topic) return 0;
+  return c.good.includes(topic) ? 1 : c.bad.includes(topic) ? -1 : 0;
+}
+// what the player already knows about a pair: 1 / 0 / -1, or null when never released
+function comboKnown(s, genre, topic) {
+  const v = s.combos && s.combos[genre + ':' + topic];
+  return v === undefined ? null : v;
+}
 
 const TIERS = {
   mini: { pts: 1, rev: 1, rep: 0.6, need: 'b', fit: 1e9, w: 1 },
@@ -2924,7 +3071,8 @@ function newState(seed) {
     floors: { b: 1, f1: 0, f2: 0, f3: 0, f4: 0, f5: 0 },
     items: { coffee: 0, chairs: 0, monitor2: 0, lamp: 0, lounge: 0, rack: 0 },
     project: null,
-    sel: { genre: 'puzzle', tier: 'mini', name: 'Block Dreams' }, // local UI preference, not synced
+    sel: { genre: 'puzzle', tier: 'mini', name: 'Block Dreams', topic: 'mystery' }, // local UI preference, not synced
+    combos: {}, // discovered genre:topic pairs
     auto: false,
     games: [],
     trend: { hot: 'plat', cold: 'horror' },
@@ -3050,9 +3198,10 @@ function qualityFor(s, genre) {
 function scoreMult(score) {
   return clamp(Math.pow(score / 6, 1.9), 0.1, 3.5);
 }
-function expectedScore(s, genre) {
+function expectedScore(s, genre, topic) {
   const hot = s.trend.hot === genre ? 0.3 : 0;
-  return clamp(3 + 7 * qualityFor(s, genre) + hot, 1, 10);
+  const k = topic ? comboKnown(s, genre, topic) || 0 : 0; // only pairs the player has already tried count
+  return clamp(3 + 7 * qualityFor(s, genre) + hot + k * COMBO_BONUS, 1, 10);
 }
 // language-independent rank id; UI shows L('rank.' + id)
 function rankOf(s) {
@@ -3195,12 +3344,13 @@ function buyBoost(s, id) {
   emit('sfx', 'up');
   return OK;
 }
-function startProject(s, genre, tier, name) {
+function startProject(s, genre, tier, name, topic) {
   if (s.project) return fail('busy');
   if (!GENRES[genre] || !TIERS[tier]) return fail('unavailable');
   if (!tierUnlocked(s, tier)) return fail('locked');
   const nm = cleanName(name) || newName(s, genre);
-  s.project = { genre, tier, name: nm, pts: 0, need: projectNeed(genre, tier), day: s.day };
+  const tp = TOPIC_ORDER.includes(topic) ? topic : null;
+  s.project = { genre, tier, name: nm, pts: 0, need: projectNeed(genre, tier), day: s.day, topic: tp };
   s.stats.started++;
   addLog(s, 'log.start', { name: nm }, 'info');
   bump(s);
@@ -3219,8 +3369,16 @@ function release(s) {
   const g = GENRES[p.genre], t = TIERS[p.tier];
   const q = qualityFor(s, p.genre);
   const hot = s.trend.hot === p.genre, cold = s.trend.cold === p.genre;
-  let score = 3 + 7 * q + rnd(s, -0.55, 0.55) + (hot ? 0.3 : 0);
+  const combo = comboOf(p.genre, p.topic);
+  let score = 3 + 7 * q + rnd(s, -0.55, 0.55) + (hot ? 0.3 : 0) + combo * COMBO_BONUS;
   score = Math.round(clamp(score, 1, 10) * 10) / 10;
+  let found = false;
+  if (p.topic) {
+    if (!s.combos) s.combos = {};
+    const key = p.genre + ':' + p.topic;
+    found = s.combos[key] === undefined;
+    s.combos[key] = combo;
+  }
   const trend = hot ? 1.5 : cold ? 0.75 : 1;
   const total = g.rev * t.rev * ECON.rev * scoreMult(score) * trend * salesMult(s, p.tier);
   const game = {
@@ -3228,6 +3386,7 @@ function release(s) {
     name: p.name,
     genre: p.genre,
     tier: p.tier,
+    topic: p.topic || null,
     score,
     total: Math.round(total),
     rate: total * (1 - SALE_DECAY),
@@ -3251,11 +3410,11 @@ function release(s) {
   addLog(s, 'log.release', { name: game.name, score: score.toFixed(1) }, score >= 7 ? 'good' : 'info');
   s.project = null;
   bump(s);
-  emit('release', { game, repGain, gemGain });
+  emit('release', { game, repGain, gemGain, combo: p.topic ? combo : null, found });
   emit('sfx', score >= 7 ? 'hit' : 'release');
   checkGoals(s);
   if (s.auto && tierUnlocked(s, p.tier)) {
-    startProject(s, p.genre, p.tier, newName(s, p.genre));
+    startProject(s, p.genre, p.tier, newName(s, p.genre), p.topic);
   }
 }
 
@@ -3827,7 +3986,7 @@ const ACTIONS = {
   buy: (s, a) => buyItem(s, String(a[0])),
   flr: (s, a) => buyFloor(s, String(a[0])),
   bst: (s, a) => buyBoost(s, String(a[0])),
-  new: (s, a) => startProject(s, String(a[0]), String(a[1]), a[2]),
+  new: (s, a) => startProject(s, String(a[0]), String(a[1]), a[2], a[3] === undefined ? null : String(a[3])),
   auto: (s, a) => setAuto(s, a[0]),
   clm: (s, a) => claimGoal(s, String(a[0])),
   dly: (s, a) => claimDaily(s, String(a[0])),
@@ -3874,6 +4033,8 @@ function deserialize(str) {
   if (s.project && !GENRES[s.project.genre]) s.project = null;
   if (!GENRES[s.sel.genre]) s.sel = { genre: 'puzzle', tier: 'mini', name: 'Block Dreams' };
   if (!TIERS[s.sel.tier]) s.sel.tier = 'mini';
+  if (!TOPIC_ORDER.includes(s.sel.topic)) s.sel.topic = 'mystery';
+  if (!s.combos || typeof s.combos !== 'object') s.combos = {};
   if (s.pending && !EVENTS[s.pending.id]) s.pending = null;
   return s;
 }
@@ -4156,6 +4317,8 @@ function eachGlyphPixel(str, cb) {
 
 /* ---------- scene geometry ---------- */
 const SCN = { W: 256, H: 176, OX: 128, OY: 62, HW: 12, HH: 6, WALL: 58, N: 9 };
+// two rooms: the studio (9×9) and, after the first IPO, the skyscraper open space (12×12)
+const ROOM = { big: false, init: false };
 function P(gx, gy, z) {
   return [Math.round(SCN.OX + (gx - gy) * SCN.HW), Math.round(SCN.OY + (gx + gy) * SCN.HH - (z || 0))];
 }
@@ -4261,8 +4424,15 @@ function skyAt(f) {
 
 /* skyline (window-local columns) */
 const WIN = { k0: 30, k1: 102, v0: 18, v1: 50 };
+function setRoom(big) {
+  big = !!big;
+  if (ROOM.init && ROOM.big === big) return;
+  ROOM.init = true; ROOM.big = big;
+  SCN.N = big ? 12 : 9; SCN.W = big ? 320 : 256; SCN.H = big ? 216 : 176; SCN.OX = big ? 160 : 128;
+  WIN.k1 = big ? 136 : 102; // the skyscraper gets a panoramic window
+}
 const SKYLINE = (() => {
-  const w = WIN.k1 - WIN.k0 + 1;
+  const w = 140;
   const far = new Array(w).fill(0), near = new Array(w).fill(0), farId = new Array(w).fill(0), nearId = new Array(w).fill(0);
   let x = 0, id = 1, s = 11;
   const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
@@ -4351,7 +4521,7 @@ function drawWalls(B, f) {
   for (const side of ['R', 'L']) {
     const base = side === 'R' ? PAL.wallR : PAL.wallL;
     const strip = PAL[side === 'R' ? THEME.stripR : THEME.stripL];
-    for (let k = 0; k < 108; k++) {
+    for (let k = 0; k < SCN.N * 12; k++) {
       for (let v = 0; v <= H + 1; v++) {
         let col;
         if (v >= H) col = mixC(base, PAL.white, 0.22);
@@ -4585,6 +4755,10 @@ const LOOK = {
   you: { hair: C('#17102b'), skin: C('#7a4a2e'), shirt: C('#3b6bff'), style: 'short', screen: C('#22e6ff') },
   boss: { hair: C('#a3a9c4'), skin: C('#e2b18a'), shirt: C('#2b2f66'), style: 'short', screen: C('#ffd23f') },
   inv: { hair: C('#2b1a12'), skin: C('#d9a37a'), shirt: C('#1f8a5f'), style: 'short', screen: C('#2ee66b') },
+  in1: { hair: C('#2b1a12'), skin: C('#c98c62'), shirt: C('#ff8a3d'), style: 'short', screen: C('#ff8a3d') },
+  in2: { hair: C('#e8c15a'), skin: C('#f3cba6'), shirt: C('#2ee66b'), style: 'long', screen: C('#2ee66b') },
+  in3: { hair: C('#1b1433'), skin: C('#8a5a3c'), shirt: C('#a46bff'), style: 'spiky', screen: C('#a46bff') },
+  in4: { hair: C('#b0352a'), skin: C('#e2aa7c'), shirt: C('#22c8d8'), style: 'long', screen: C('#22c8d8') },
   npc: { hair: C('#4a2f8a'), skin: C('#e8bf98'), shirt: C('#7a56e0'), style: 'spiky', screen: C('#ff3fd0') },
 };
 const STATION = {
@@ -4594,6 +4768,13 @@ const STATION = {
   mkt: { side: 'L', gx: 0.2, gy: 6.0, chair: [2.2, 7.0] },
 };
 
+// extra desks of the skyscraper open space (decor: interns at work)
+const INTERNS = [
+  { side: 'R', gx: 8.6, gy: 0.2, chair: [9.6, 2.2] },
+  { side: 'L', gx: 0.2, gy: 8.6, chair: [2.2, 9.6] },
+  { side: 'R', gx: 8.9, gy: 8.4, chair: [9.9, 10.4] },
+  { side: 'R', gx: 4.6, gy: 8.9, chair: [5.6, 10.9] },
+];
 function drawDesk(B, s) {
   const len = 2.0, dep = 1.0, H = 13;
   const woodT = PAL.woodT, woodL = PAL.woodL, woodR = PAL.woodR;
@@ -4796,17 +4977,18 @@ function drawLamp(B, t) {
   B.glow(q[0], q[1], 18, C('#ff6fd2'), 0.12);
 }
 function drawLounge(B, t) {
+  const dx = ROOM.big ? 3 : 0;
   // mini arcade cabinet against the far right
-  isoBox(B, 8.0, 3.9, 0, 0.8, 0.8, 24, C('#3b3f99'), C('#2a2e72'), C('#1b1e52'), C('#7f86f0'));
-  faceGX(B, 3.95, 4.65, 8.8, 12, 21, C('#0a0e2e'));
-  const pg = (z, a, c) => { const p = P(8.8, 4.0 + a, z); B.px(p[0], p[1], c); };
+  isoBox(B, 8.0 + dx, 3.9, 0, 0.8, 0.8, 24, C('#3b3f99'), C('#2a2e72'), C('#1b1e52'), C('#7f86f0'));
+  faceGX(B, 3.95, 4.65, 8.8 + dx, 12, 21, C('#0a0e2e'));
+  const pg = (z, a, c) => { const p = P(8.8 + dx, 4.0 + a, z); B.px(p[0], p[1], c); };
   const s = Math.floor(t * 4) % 4;
   pg(17, 0.1 + s * 0.12, PAL.yel);
   pg(14, 0.5 - s * 0.1, PAL.cyan);
   pg(19, 0.3, PAL.mag);
   // beanbags
-  isoBox(B, 7.6, 5.1, 0, 0.9, 0.9, 6, C('#ff7ae0'), C('#cf3fb0'), C('#9b2a86'), C('#ffd1f4'));
-  isoBox(B, 7.9, 6.3, 0, 0.9, 0.9, 6, C('#7ad8ff'), C('#3b9fe0'), C('#2a78b4'), C('#d4f3ff'));
+  isoBox(B, 7.6 + dx, 5.1, 0, 0.9, 0.9, 6, C('#ff7ae0'), C('#cf3fb0'), C('#9b2a86'), C('#ffd1f4'));
+  isoBox(B, 7.9 + dx, 6.3, 0, 0.9, 0.9, 6, C('#7ad8ff'), C('#3b9fe0'), C('#2a78b4'), C('#d4f3ff'));
 }
 function drawMonitor2(B, t) {
   // extra monitor on the player's desk
@@ -5019,7 +5201,8 @@ function drawDynamic(B, st, t) {
   {
     const period = 34, ph = (t % period) / period;
     if (ph < 0.62) {
-      const path = [[1.7, 8.35], [8.35, 8.35], [8.35, 3.2]];
+      const E = SCN.N - 0.65;
+      const path = [[1.7, E], [E, E], [E, 3.2]];
       const q = ph / 0.62; // 0..1 along out-and-back
       const u = q < 0.5 ? q * 2 : (1 - q) * 2;
       const segA = Math.hypot(path[1][0] - path[0][0], path[1][1] - path[0][1]), segB = Math.hypot(path[2][0] - path[1][0], path[2][1] - path[1][1]);
@@ -5032,8 +5215,26 @@ function drawDynamic(B, st, t) {
   }
   // plants
   add(3.0, () => drawPlant(B, 0.55, 0.6, t, 1, true));
-  add(20, () => drawPlant(B, 8.55, 0.6, t, 2, true));
-  add(21, () => drawPlant(B, 0.6, 8.5, t, 3, true));
+  add(SCN.N + 11, () => drawPlant(B, SCN.N - 0.45, 0.6, t, 2, true));
+  add(SCN.N + 12, () => drawPlant(B, 0.6, SCN.N - 0.5, t, 3, true));
+  // the skyscraper: interns fill the extra desks
+  if (ROOM.big) {
+    INTERNS.forEach((s, idx) => {
+      const key = s.side === 'R' ? s.gx + 2 + s.chair[1] + 0.5 : s.gy + 2 + s.chair[0] + 0.5;
+      add(key, () => {
+        const look = LOOK['in' + (idx + 1)];
+        drawDesk(B, s);
+        drawMonitor(B, s, look, true, t, idx + 7, 'prog', typingGlobal);
+        if (s.side === 'R') isoBox(B, s.gx + 0.15, s.gy + 0.6, 13, 0.2, 0.2, 3, C('#ffffff'), C('#d9d9ff'), C('#aaaadd'));
+        else isoBox(B, s.gx + 0.6, s.gy + 0.15, 13, 0.2, 0.2, 3, C('#ffffff'), C('#d9d9ff'), C('#aaaadd'));
+        const acc = C('#22b8d6');
+        drawChairParts(B, s, acc);
+        const a = P(s.chair[0], s.chair[1], 9);
+        drawWorkerBack(B, a[0], a[1], look, typingGlobal, (frame + idx) % 2, t + idx);
+        drawChairBack(B, s, acc);
+      });
+    });
+  }
   if (items.coffee) add(2.6, () => drawCoffee(B, t));
   if (items.rack) add(3.1, () => drawRack(B, t));
   if (items.lamp) add(9.9, () => drawLamp(B, t));
@@ -5121,14 +5322,17 @@ function drawParticles(B, st, t) {
 }
 
 /* ---------- scene object ---------- */
-function createScene() {
+function createScene(big) {
+  setRoom(big);
   const frame = new Buf(SCN.W, SCN.H), base = new Buf(SCN.W, SCN.H);
   let baseKey = -1;
   return {
     W: SCN.W,
     H: SCN.H,
+    big: !!big,
     frame,
     render(st, t) {
+      setRoom(big);
       const tier = themeTier(st.floors);
       const fk = Math.round(clampN(st.f || 0, 0, 1) * 120);
       const key = tier * 1000 + fk;
@@ -5524,7 +5728,7 @@ function savePrefs() {
 }
 function applyPrefs(st) {
   const p = loadPrefs();
-  if (p.sel && GENRES[p.sel.genre] && TIERS[p.sel.tier]) st.sel = { genre: p.sel.genre, tier: p.sel.tier, name: String(p.sel.name || '').slice(0, 22) || st.sel.name };
+  if (p.sel && GENRES[p.sel.genre] && TIERS[p.sel.tier]) st.sel = { genre: p.sel.genre, tier: p.sel.tier, name: String(p.sel.name || '').slice(0, 22) || st.sel.name, topic: TOPIC_ORDER.includes(p.sel.topic) ? p.sel.topic : 'mystery' };
   if (p.settings && typeof p.settings === 'object') st.settings = Object.assign({ sound: true }, p.settings);
 }
 
@@ -6846,6 +7050,12 @@ function genreBtn(g) {
     <em class="trend ${hot ? 'hot' : cold ? 'cold' : ''}">${hot ? '▲ ×1.5' : cold ? '▼ ×0.75' : '×1'}</em>
   </button>`;
 }
+const comboCls = (k) => (k === 1 ? 'good' : k === -1 ? 'bad' : k === 0 ? 'ok' : 'new');
+function topicBtn(tp) {
+  const cls = comboCls(comboKnown(S, S.sel.genre, tp));
+  const mark = { good: '★', bad: '✕', ok: '✓', new: '?' }[cls];
+  return `<button class="tpbtn ${S.sel.topic === tp ? 'on' : ''} c-${cls}" data-act="topic:${tp}"><span>${L('topic.' + tp)}</span><em>${mark}</em></button>`;
+}
 function tierBtn(t) {
   const ok = tierUnlocked(S, t);
   return `<button class="tbtn ${S.sel.tier === t ? 'on' : ''} ${ok ? '' : 'locked'}" data-act="tier:${t}">
@@ -6861,7 +7071,7 @@ function currentProjectCard() {
       ${imgTag(coverURL(p.genre, p.name), 'cover lg')}
       <div class="proj-t">
         <b>${esc(p.name)}</b>
-        <small>${L('genre.' + p.genre)} · ${L('tier.' + p.tier)} · ${L('games.score_est')} ${expectedScore(S, p.genre).toFixed(1)}</small>
+        <small>${L('genre.' + p.genre)}${p.topic ? ' · ' + L('topic.' + p.topic) : ''} · ${L('tier.' + p.tier)} · ${L('games.score_est')} ${expectedScore(S, p.genre, p.topic).toFixed(1)}</small>
         <div class="bar proj"><i data-w="proj"></i><span class="px" data-t="ppct"></span></div>
         <small class="mut" data-t="peta"></small>
       </div>
@@ -6876,10 +7086,13 @@ function newProjectCard() {
   const sel = S.sel, ok = tierUnlocked(S, sel.tier);
   const need = projectNeed(sel.genre, sel.tier);
   const sec = need / Math.max(0.1, wpTotal(S)) / (NET.speed || 1);
-  const score = expectedScore(S, sel.genre);
+  const score = expectedScore(S, sel.genre, sel.topic);
+  const cc = comboCls(comboKnown(S, sel.genre, sel.topic));
   return `<section class="panel newp">
     <div class="sec-h"><div><h2 class="h2">${L('games.new')}</h2><p class="sub">${L('games.new_sub')}</p></div></div>
     <div class="genres">${GENRE_ORDER.map(genreBtn).join('')}</div>
+    <div class="tp-h"><small>${L('games.topic')}</small><span class="tp-st c-${cc}">${L('genre.' + sel.genre)} + ${L('topic.' + sel.topic)}: <b>${L('combo.' + cc)}</b></span></div>
+    <div class="topics">${TOPIC_ORDER.map(topicBtn).join('')}</div>
     <div class="tiers">${TIER_ORDER.map(tierBtn).join('')}</div>
     <div class="namerow">${imgTag(coverURL(sel.genre, sel.name), 'cover sm')}<div><small>${L('games.name')}</small><b>${esc(sel.name)}</b></div><button class="btn ghost sm" data-act="rename">${I('refresh', 12)} ${L('games.other')}</button></div>
     <div class="stats3">
@@ -6888,14 +7101,14 @@ function newProjectCard() {
       <div><small>${L('games.score_est')}</small><b>${score.toFixed(1)}</b></div>
     </div>
     <button class="btn big" data-act="start" ${ok && !S.project ? '' : 'disabled'}>${S.project ? L('games.busy') : ok ? L('games.start') : L('games.locked')}</button>
-    <p class="hint">${L('games.hint')}</p>
+    <p class="hint">${L('games.hint')} ${L('games.topic_hint')}</p>
   </section>`;
 }
 const scoreClass = (v) => (v >= 8 ? 'hi' : v >= 6 ? 'mid' : 'lo');
 function gameRow(g) {
   return `<div class="game">
     ${imgTag(coverURL(g.genre, g.name), 'cover')}
-    <div class="g-t"><b>${esc(g.name)}</b><small>${L('genre.' + g.genre)} · ${L('tier.' + g.tier)} · ${L('ui.day', { n: g.day })}</small>
+    <div class="g-t"><b>${esc(g.name)}</b><small>${L('genre.' + g.genre)}${g.topic ? ' · ' + L('topic.' + g.topic) : ''} · ${L('tier.' + g.tier)} · ${L('ui.day', { n: g.day })}</small>
       <div class="bar thin"><i data-w="gprog:${g.id}"></i></div>
       <small class="${g.active ? 'grn' : 'mut'}">${g.active ? L('games.on_sale', { rate: money(g.rate) }) : L('games.off_sale')} · <span data-t="gearn:${g.id}"></span></small></div>
     <span class="score px ${scoreClass(g.score)}">${g.score.toFixed(1)}</span>
@@ -6970,6 +7183,7 @@ function tabEmpire() {
         <li><span>${L('empire.earned')}</span><b>${money(S.earned)}</b></li>
         <li><span>${L('empire.rep')}</span><b>${S.rep.toFixed(1)}</b></li>
         <li><span>${L('empire.best')}</span><b>${S.stats.best ? S.stats.best.toFixed(1) : '—'}</b></li>
+        ${S.legacy ? `<li><span>🏙️ ${L('sky.badge')}</span><b class="cy">×${S.legacy}</b></li>` : ''}
         ${S.legacy ? `<li><span>${L('empire.legacy')}</span><b class="yel">+${Math.round(S.legacy * 15)}%</b></li>` : ''}
       </ul>
     </div>
@@ -7719,14 +7933,24 @@ function render(force) {
 
 /* ---------- canvases: office scene (+ bloom layer) and tower ---------- */
 let SCENE = null, SCENE_OFF = null, SCENE_IMG = null, TOWER_B = null, TOWER_IMG = null;
-function bindCanvases() {
-  if (!SCENE) {
-    SCENE = createScene();
-    SCENE_OFF = document.createElement('canvas');
-    SCENE_OFF.width = SCN.W;
-    SCENE_OFF.height = SCN.H;
-    SCENE_IMG = new ImageData(new Uint8ClampedArray(SCENE.frame.d.buffer), SCN.W, SCN.H);
+// two rooms: the normal office and the skyscraper loft after the move (IPO); each keeps its own buffers
+const SCENES = {};
+const CAMS = { small: { sx: 26, sy: 0, sw: 204, sh: 176 }, big: { sx: 24, sy: 0, sw: 272, sh: 216 } };
+function useRoom(big) {
+  const k = big ? 'big' : 'small';
+  if (!SCENES[k]) {
+    const sc = createScene(big);
+    const off = document.createElement('canvas');
+    off.width = sc.W; off.height = sc.H;
+    SCENES[k] = { sc, off, img: new ImageData(new Uint8ClampedArray(sc.frame.d.buffer), sc.W, sc.H) };
   }
+  const r = SCENES[k];
+  SCENE = r.sc; SCENE_OFF = r.off; SCENE_IMG = r.img;
+  Object.assign(CAM, CAMS[k]);
+  setRoom(big);
+}
+function bindCanvases() {
+  useRoom(isBig());
   UI.sceneCv = $('#scene');
   UI.bloomCv = $('#bloom');
   UI.towerCv = $('#tower');
@@ -7739,6 +7963,7 @@ function bindCanvases() {
 }
 // the scene canvas fills its box; the room is drawn "contain"-fitted with a slight zoom (sides of the floor cropped)
 const CAM = { sx: 26, sy: 0, sw: 204, sh: 176 };
+const isBig = () => (S.legacy || 0) >= 1;
 function sizeScene() {
   const cv = UI.sceneCv;
   if (!cv) return;
@@ -7766,6 +7991,7 @@ function sceneState() {
     working: !!S.project && (hiredCount(S) > 0 || UI.tapFlash > 0),
     staff: S.staff, items: S.items, turbo: S.buffs.turbo > 0, canHire,
     tapFlash: UI.tapFlash, floors: S.floors, hype: S.buffs.hype > 0,
+    big: isBig(),
     rain: !!(MUSIC.on && TRACKS[MUSIC.track] && TRACKS[MUSIC.track].rain),
   };
 }
@@ -7774,6 +8000,7 @@ function drawScene(t) {
   try {
     const cv = UI.sceneCv;
     if (UI.sceneSize !== cv.clientWidth + 'x' + cv.clientHeight) sizeScene();
+    if (SCENE.big !== isBig()) useRoom(isBig());
     const tier = themeTier(S.floors);
     if (UI.sceneTier !== undefined && tier > UI.sceneTier) movedIn(tier);
     UI.sceneTier = tier;
@@ -7875,9 +8102,10 @@ const ACT = {
     if (!tierUnlocked(S, t)) { toast(L('toast.tier_locked', { name: '$floor.' + TIERS[t].need + '.name', sub: '$floor.' + TIERS[t].need + '.sub' }), 'bad', 'lock'); return; }
     S.sel.tier = t; savePrefs(); render();
   },
+  topic: (t) => { if (!TOPIC_ORDER.includes(t)) return; S.sel.topic = t; savePrefs(); render(); },
   rename: () => { const n = GENRES[S.sel.genre].names; S.sel.name = n[UI.nameSeed++ % n.length]; savePrefs(); render(); },
   start: () => {
-    const r = netAct('new', S.sel.genre, S.sel.tier, S.sel.name);
+    const r = netAct('new', S.sel.genre, S.sel.tier, S.sel.name, S.sel.topic);
     if (r.ok) { toast(L('toast.started', { name: S.project.name }), 'good'); go('office'); ACT.work(); } else errToast(r.err);
   },
   auto: () => { netAct('auto', !S.auto); render(); },
@@ -8188,6 +8416,9 @@ function showRelease(d) {
     <p class="sub">${L('genre.' + g.genre)} · ${L('tier.' + g.tier)}</p>
     <div class="stars">${st}</div>
     <p class="ev-text">${L(g.score >= 9 ? 'rel.hit' : g.score >= 7 ? 'rel.good' : g.score >= 5 ? 'rel.fine' : 'rel.bad')}</p>
+    ${g.topic && d.combo !== null && d.combo !== undefined ? `<p class="combo-l c-${d.combo === 1 ? 'good' : d.combo === -1 ? 'bad' : 'ok'}">${L(d.combo === 1 ? 'rel.combo_good' : d.combo === -1 ? 'rel.combo_bad' : 'rel.combo_ok', { genre: L('genre.' + g.genre), topic: L('topic.' + g.topic) })}${d.found ? `<small>${L('rel.found')}</small>` : ''}</p>` : ''}
+    <small class="crit-h">${L('crit.title')}</small>
+    <div class="crits">${critics(g).map((c, i) => `<div class="crit" style="--i:${i}"><b class="px ${scoreClass(c.v)}">${c.v}<i>/10</i></b><span>${esc(c.n)}</span><em>${L(c.q)}</em></div>`).join('')}</div>
     <div class="stats3">
       <div><small>${L('rel.forecast')}</small><b>${money(g.total)}</b></div>
       <div><small>${L('rel.rep')}</small><b class="${d.repGain > 0 ? 'grn' : d.repGain < 0 ? 'red' : ''}">${d.repGain > 0 ? '+' : ''}${(Math.round(d.repGain * 10) / 10)}</b></div>
@@ -8197,6 +8428,37 @@ function showRelease(d) {
   </div>`, { id: 'release', mcls: 'relm' });
   if (g.score >= 7) confetti(g.score >= 9 ? 180 : 110);
   haptic('ok');
+}
+// four invented review outlets; their scores scatter a little around the game score (stable per game)
+const CRITICS = ['Pixel Weekly', 'NeonGamer', 'Byte Review', 'Retro Mag'];
+function critics(g) {
+  let h = (Math.imul(g.id + 7, 2654435761) ^ (g.name || '').length * 977) >>> 0;
+  const q0 = h % 3;
+  return CRITICS.map((n, i) => {
+    h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
+    const v = Math.max(1, Math.min(10, Math.round(g.score + ((h % 7) - 3) / 4)));
+    const band = v >= 8 ? 'hi' : v >= 5 ? 'mid' : 'lo';
+    return { n, v, q: 'crit.' + band + (1 + ((q0 + i) % 3)) };
+  });
+}
+// the big move after the IPO: a peek at the new skyscraper loft
+function showSkyscraper() {
+  let src = '';
+  try {
+    useRoom(true);
+    SCENE.render(sceneState(), performance.now() / 1000);
+    SCENE_OFF.getContext('2d').putImageData(SCENE_IMG, 0, 0);
+    src = SCENE_OFF.toDataURL();
+  } catch (e) {}
+  openModal(`<div class="rel sky">
+    <small class="px glow-t">IPO · ${esc(L('sky.badge'))}</small>
+    ${src ? `<div class="sky-pic"><img src="${src}" alt="" width="320" height="216"></div>` : ''}
+    <h2 class="h2 big">${L('sky.title')}</h2>
+    <p class="ev-text">${L('sky.text')}</p>
+    <button class="btn big gold" data-act="close">${L('sky.ok')}</button>
+  </div>`, { id: 'sky', mcls: 'relm' });
+  confetti(140);
+  sfx('hit');
 }
 function showWelcome() {
   openModal(`<div class="welcome">
@@ -8329,7 +8591,7 @@ hooks.emit = function (type, data) {
   else if (type === 'release') {
     releaseJuice(data);
     // a big celebration for the first releases and for hits; later routine releases get a toast
-    if (S.stats.released <= 3 || data.game.score >= 8.5 || data.gemGain) modalOrQueue(() => showRelease(data));
+    if (S.stats.released <= 3 || data.game.score >= 8.5 || data.gemGain || (data.found && data.combo)) modalOrQueue(() => showRelease(data));
     else { toast(L('toast.release', { name: data.game.name, score: data.game.score.toFixed(1) }), data.game.score >= 7 ? 'good' : '', 'games'); if (data.game.score >= 7) confettiSmall(); }
   }
   else if (type === 'goal') { toast(L('toast.goal', { t: '$goal.' + data.id }), 'good', 'star'); }
@@ -8337,7 +8599,7 @@ hooks.emit = function (type, data) {
   else if (type === 'day') toast(L('toast.day', { n: data.day, inc: money(data.income), sal: money(data.salary) }), '');
   else if (type === 'toast') toast(L(data.k), data.kind);
   else if (type === 'ending') modalOrQueue(showEnding);
-  else if (type === 'ipo') toast(L('toast.ipo', { n: data.n }), 'good', 'crown');
+  else if (type === 'ipo') { toast(L('toast.ipo', { n: data.n }), 'good', 'crown'); setTimeout(() => modalOrQueue(showSkyscraper), 500); }
   else if (type === 'bug') { sfx('blip'); updateSceneFx(); if (!lsGet('od2_bug_hint')) { lsSet('od2_bug_hint', '1'); toast(L('bug.hint'), 'bad', 'star'); } }
   else if (type === 'bugEscaped') { toast(L('bug.escaped', { n: fmt(data.loss) }), 'bad'); updateSceneFx(); }
   else if (type === 'idea') { sfx('pop'); updateSceneFx(); if (!lsGet('od2_idea_hint')) { lsSet('od2_idea_hint', '1'); toast(L('idea.hint'), 'good', 'star'); } }
@@ -8499,7 +8761,7 @@ async function boot() {
   setTimeout(() => { if (checkinReady() && lsGet('od2_ci') !== String(Math.floor(Date.now() / 86400000))) modalOrQueue(showCheckin); }, 2500);
 }
 
-BUILD.mode = "auto"; BUILD.version = "1.0.0";
+BUILD.mode = "auto"; BUILD.version = "1.3.0";
 boot();
 })();
 </script>

@@ -172,6 +172,8 @@ function eachGlyphPixel(str, cb) {
 
 /* ---------- scene geometry ---------- */
 const SCN = { W: 256, H: 176, OX: 128, OY: 62, HW: 12, HH: 6, WALL: 58, N: 9 };
+// two rooms: the studio (9×9) and, after the first IPO, the skyscraper open space (12×12)
+const ROOM = { big: false, init: false };
 function P(gx, gy, z) {
   return [Math.round(SCN.OX + (gx - gy) * SCN.HW), Math.round(SCN.OY + (gx + gy) * SCN.HH - (z || 0))];
 }
@@ -277,8 +279,15 @@ function skyAt(f) {
 
 /* skyline (window-local columns) */
 const WIN = { k0: 30, k1: 102, v0: 18, v1: 50 };
+function setRoom(big) {
+  big = !!big;
+  if (ROOM.init && ROOM.big === big) return;
+  ROOM.init = true; ROOM.big = big;
+  SCN.N = big ? 12 : 9; SCN.W = big ? 320 : 256; SCN.H = big ? 216 : 176; SCN.OX = big ? 160 : 128;
+  WIN.k1 = big ? 136 : 102; // the skyscraper gets a panoramic window
+}
 const SKYLINE = (() => {
-  const w = WIN.k1 - WIN.k0 + 1;
+  const w = 140;
   const far = new Array(w).fill(0), near = new Array(w).fill(0), farId = new Array(w).fill(0), nearId = new Array(w).fill(0);
   let x = 0, id = 1, s = 11;
   const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
@@ -367,7 +376,7 @@ function drawWalls(B, f) {
   for (const side of ['R', 'L']) {
     const base = side === 'R' ? PAL.wallR : PAL.wallL;
     const strip = PAL[side === 'R' ? THEME.stripR : THEME.stripL];
-    for (let k = 0; k < 108; k++) {
+    for (let k = 0; k < SCN.N * 12; k++) {
       for (let v = 0; v <= H + 1; v++) {
         let col;
         if (v >= H) col = mixC(base, PAL.white, 0.22);
@@ -601,6 +610,10 @@ const LOOK = {
   you: { hair: C('#17102b'), skin: C('#7a4a2e'), shirt: C('#3b6bff'), style: 'short', screen: C('#22e6ff') },
   boss: { hair: C('#a3a9c4'), skin: C('#e2b18a'), shirt: C('#2b2f66'), style: 'short', screen: C('#ffd23f') },
   inv: { hair: C('#2b1a12'), skin: C('#d9a37a'), shirt: C('#1f8a5f'), style: 'short', screen: C('#2ee66b') },
+  in1: { hair: C('#2b1a12'), skin: C('#c98c62'), shirt: C('#ff8a3d'), style: 'short', screen: C('#ff8a3d') },
+  in2: { hair: C('#e8c15a'), skin: C('#f3cba6'), shirt: C('#2ee66b'), style: 'long', screen: C('#2ee66b') },
+  in3: { hair: C('#1b1433'), skin: C('#8a5a3c'), shirt: C('#a46bff'), style: 'spiky', screen: C('#a46bff') },
+  in4: { hair: C('#b0352a'), skin: C('#e2aa7c'), shirt: C('#22c8d8'), style: 'long', screen: C('#22c8d8') },
   npc: { hair: C('#4a2f8a'), skin: C('#e8bf98'), shirt: C('#7a56e0'), style: 'spiky', screen: C('#ff3fd0') },
 };
 const STATION = {
@@ -610,6 +623,13 @@ const STATION = {
   mkt: { side: 'L', gx: 0.2, gy: 6.0, chair: [2.2, 7.0] },
 };
 
+// extra desks of the skyscraper open space (decor: interns at work)
+const INTERNS = [
+  { side: 'R', gx: 8.6, gy: 0.2, chair: [9.6, 2.2] },
+  { side: 'L', gx: 0.2, gy: 8.6, chair: [2.2, 9.6] },
+  { side: 'R', gx: 8.9, gy: 8.4, chair: [9.9, 10.4] },
+  { side: 'R', gx: 4.6, gy: 8.9, chair: [5.6, 10.9] },
+];
 function drawDesk(B, s) {
   const len = 2.0, dep = 1.0, H = 13;
   const woodT = PAL.woodT, woodL = PAL.woodL, woodR = PAL.woodR;
@@ -812,17 +832,18 @@ function drawLamp(B, t) {
   B.glow(q[0], q[1], 18, C('#ff6fd2'), 0.12);
 }
 function drawLounge(B, t) {
+  const dx = ROOM.big ? 3 : 0;
   // mini arcade cabinet against the far right
-  isoBox(B, 8.0, 3.9, 0, 0.8, 0.8, 24, C('#3b3f99'), C('#2a2e72'), C('#1b1e52'), C('#7f86f0'));
-  faceGX(B, 3.95, 4.65, 8.8, 12, 21, C('#0a0e2e'));
-  const pg = (z, a, c) => { const p = P(8.8, 4.0 + a, z); B.px(p[0], p[1], c); };
+  isoBox(B, 8.0 + dx, 3.9, 0, 0.8, 0.8, 24, C('#3b3f99'), C('#2a2e72'), C('#1b1e52'), C('#7f86f0'));
+  faceGX(B, 3.95, 4.65, 8.8 + dx, 12, 21, C('#0a0e2e'));
+  const pg = (z, a, c) => { const p = P(8.8 + dx, 4.0 + a, z); B.px(p[0], p[1], c); };
   const s = Math.floor(t * 4) % 4;
   pg(17, 0.1 + s * 0.12, PAL.yel);
   pg(14, 0.5 - s * 0.1, PAL.cyan);
   pg(19, 0.3, PAL.mag);
   // beanbags
-  isoBox(B, 7.6, 5.1, 0, 0.9, 0.9, 6, C('#ff7ae0'), C('#cf3fb0'), C('#9b2a86'), C('#ffd1f4'));
-  isoBox(B, 7.9, 6.3, 0, 0.9, 0.9, 6, C('#7ad8ff'), C('#3b9fe0'), C('#2a78b4'), C('#d4f3ff'));
+  isoBox(B, 7.6 + dx, 5.1, 0, 0.9, 0.9, 6, C('#ff7ae0'), C('#cf3fb0'), C('#9b2a86'), C('#ffd1f4'));
+  isoBox(B, 7.9 + dx, 6.3, 0, 0.9, 0.9, 6, C('#7ad8ff'), C('#3b9fe0'), C('#2a78b4'), C('#d4f3ff'));
 }
 function drawMonitor2(B, t) {
   // extra monitor on the player's desk
@@ -1035,7 +1056,8 @@ function drawDynamic(B, st, t) {
   {
     const period = 34, ph = (t % period) / period;
     if (ph < 0.62) {
-      const path = [[1.7, 8.35], [8.35, 8.35], [8.35, 3.2]];
+      const E = SCN.N - 0.65;
+      const path = [[1.7, E], [E, E], [E, 3.2]];
       const q = ph / 0.62; // 0..1 along out-and-back
       const u = q < 0.5 ? q * 2 : (1 - q) * 2;
       const segA = Math.hypot(path[1][0] - path[0][0], path[1][1] - path[0][1]), segB = Math.hypot(path[2][0] - path[1][0], path[2][1] - path[1][1]);
@@ -1048,8 +1070,26 @@ function drawDynamic(B, st, t) {
   }
   // plants
   add(3.0, () => drawPlant(B, 0.55, 0.6, t, 1, true));
-  add(20, () => drawPlant(B, 8.55, 0.6, t, 2, true));
-  add(21, () => drawPlant(B, 0.6, 8.5, t, 3, true));
+  add(SCN.N + 11, () => drawPlant(B, SCN.N - 0.45, 0.6, t, 2, true));
+  add(SCN.N + 12, () => drawPlant(B, 0.6, SCN.N - 0.5, t, 3, true));
+  // the skyscraper: interns fill the extra desks
+  if (ROOM.big) {
+    INTERNS.forEach((s, idx) => {
+      const key = s.side === 'R' ? s.gx + 2 + s.chair[1] + 0.5 : s.gy + 2 + s.chair[0] + 0.5;
+      add(key, () => {
+        const look = LOOK['in' + (idx + 1)];
+        drawDesk(B, s);
+        drawMonitor(B, s, look, true, t, idx + 7, 'prog', typingGlobal);
+        if (s.side === 'R') isoBox(B, s.gx + 0.15, s.gy + 0.6, 13, 0.2, 0.2, 3, C('#ffffff'), C('#d9d9ff'), C('#aaaadd'));
+        else isoBox(B, s.gx + 0.6, s.gy + 0.15, 13, 0.2, 0.2, 3, C('#ffffff'), C('#d9d9ff'), C('#aaaadd'));
+        const acc = C('#22b8d6');
+        drawChairParts(B, s, acc);
+        const a = P(s.chair[0], s.chair[1], 9);
+        drawWorkerBack(B, a[0], a[1], look, typingGlobal, (frame + idx) % 2, t + idx);
+        drawChairBack(B, s, acc);
+      });
+    });
+  }
   if (items.coffee) add(2.6, () => drawCoffee(B, t));
   if (items.rack) add(3.1, () => drawRack(B, t));
   if (items.lamp) add(9.9, () => drawLamp(B, t));
@@ -1137,14 +1177,17 @@ function drawParticles(B, st, t) {
 }
 
 /* ---------- scene object ---------- */
-function createScene() {
+function createScene(big) {
+  setRoom(big);
   const frame = new Buf(SCN.W, SCN.H), base = new Buf(SCN.W, SCN.H);
   let baseKey = -1;
   return {
     W: SCN.W,
     H: SCN.H,
+    big: !!big,
     frame,
     render(st, t) {
+      setRoom(big);
       const tier = themeTier(st.floors);
       const fk = Math.round(clampN(st.f || 0, 0, 1) * 120);
       const key = tier * 1000 + fk;
@@ -1340,5 +1383,5 @@ function drawTower(B, floorsOwned, t, build) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { Buf, C, SCN, PAL, THEMES, themeTier, applyTheme, createScene, drawPortrait, drawCover, drawTower, mixC, shadeC, hash01, LOOK, GLYPH, skyAt, textWidth, eachGlyphPixel };
+  module.exports = { Buf, C, SCN, ROOM, setRoom, INTERNS, PAL, THEMES, themeTier, applyTheme, createScene, drawPortrait, drawCover, drawTower, mixC, shadeC, hash01, LOOK, GLYPH, skyAt, textWidth, eachGlyphPixel };
 }
