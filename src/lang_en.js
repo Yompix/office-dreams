@@ -12,6 +12,7 @@ LANGS.en = {
   'sub.team': 'Team', 'sub.games': 'Games', 'sub.home': 'Points', 'sub.friends': 'Friends', 'sub.tasks': 'Tasks', 'sub.top': 'Top', 'sub.shop': 'Shop',
   // boot
   'boot.connecting': 'Connecting to the office…', 'boot.err_server': 'The server is not responding. Check your connection and try again.',
+  'boot.err_region': 'Sorry, the game is not available in your region.',
   'boot.err_tg': 'Open the game inside Telegram to play.', 'boot.open_tg': 'Open in Telegram', 'boot.retry': 'Try again',
   'boot.session': 'Session expired', 'boot.session_t': 'Close the game and open it again from the bot.',
   // intro

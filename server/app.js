@@ -154,6 +154,17 @@ async function handleAuth(ctx, req, res, body, ip, now) {
     tu = v.user;
     startParam = v.startParam;
   }
+  // closed regions: decided before an account is created
+  const tzIn = typeof body.tz === 'string' && /^[A-Za-z0-9_+\-/]{1,64}$/.test(body.tz) ? body.tz : null;
+  const cfIn = String(req.headers['cf-ipcountry'] || '').toUpperCase();
+  const ctryIn = (tzIn && TZC[tzIn]) || (/^[A-Z]{2}$/.test(cfIn) ? cfIn : null);
+  const langIn = String(tu.language_code || '').toLowerCase().split('-')[0];
+  if ((ctryIn && cfg.blockedCountries.includes(ctryIn)) || (langIn && cfg.blockedLangs.includes(langIn))) {
+    ctx.cache.blocked = (ctx.cache.blocked || 0) + 1;
+    const ex = U.getUser(ctx, tu.id);
+    if (ex && !ex.country && ctryIn) ctx.db.run('UPDATE users SET country=? WHERE id=?', ctryIn, ex.id);
+    return bad(res, 403, 'region');
+  }
   const platform = ['android', 'ios', 'tdesktop', 'macos', 'weba', 'webk', 'webz', 'android_x', 'web'].includes(body.platform) ? body.platform : 'unknown';
   const fp = typeof body.fp === 'string' ? body.fp.slice(0, 300) : '';
   const { user, created } = U.ensureUser(ctx, tu, { startParam, platform, ip, dev: fp, now });

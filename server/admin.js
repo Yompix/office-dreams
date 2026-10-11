@@ -51,6 +51,7 @@ function stats(ctx, price) {
     pie: { price: price || 0, yesterdayUsd: y ? y.usd : 0, ...pie },
     top: db.all('SELECT id,name,username,country,pts,ref_pts,risk_state,risk,wallet FROM users WHERE deleted=0 ORDER BY pts DESC LIMIT 20'),
     dist: [1, 10, 50, 200, 1000].map((t) => ({ over: t, n: one('SELECT COUNT(*) AS n FROM users WHERE pts>=? AND deleted=0', t).n })),
+    blocked: { countries: ctx.cfg.blockedCountries, langs: ctx.cfg.blockedLangs, attempts: ctx.cache.blocked || 0 },
     countries: db.all(`SELECT COALESCE(country,'?') AS c, COUNT(*) AS n,
         SUM(CASE WHEN last_seen>? THEN 1 ELSE 0 END) AS d1, SUM(CASE WHEN last_seen>? THEN 1 ELSE 0 END) AS d7,
         SUM(CASE WHEN created_at>=? THEN 1 ELSE 0 END) AS today, SUM(CASE WHEN id IN (SELECT DISTINCT uid FROM purchases) THEN 1 ELSE 0 END) AS payers,
@@ -163,7 +164,7 @@ function create(ctx) {
       }
       if (p === '/admin/api/sweep' && req.method === 'POST') return json(res, 200, { ok: true, ...AB.sweep(ctx, now, 5000) });
       if (p === '/admin/api/snapshot') {
-        const rows = ctx.db.all("SELECT id,username,name,country,wallet,wallet_ok,pts,ref_pts,risk_state FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch') ORDER BY pts DESC");
+        const rows = ctx.db.all("SELECT id,username,name,country,wallet,wallet_ok,pts,ref_pts,risk_state FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch') ORDER BY pts DESC").filter((r) => !ctx.cfg.blockedCountries.includes(r.country));
         if (url.searchParams.get('fmt') === 'json') return json(res, 200, { ok: true, season: ctx.cfg.season, at: now, rows });
         const csv = ['tg_id,username,country,wallet,wallet_verified,points,referral_points,risk_state']
           .concat(rows.map((r) => [r.id, r.username, r.country, r.wallet, r.wallet_ok, r.pts, r.ref_pts, r.risk_state].map(csvCell).join(','))).join('\n');
@@ -211,7 +212,7 @@ let h='<h2>Overview</h2><div class="grid">'+kv('Players',s.users)+kv('DAU',s.dau
 h+='<h2>Risk states</h2><div class="grid">'+['ok','watch','quarantine','banned'].map(k=>kv(k,s.risk[k]||0)).join('')+'</div>';
 h+='<h2>Stars revenue (last 14 days)</h2>'+tbl(['Date','Purchases','Stars','USD (net est.)'],s.revenue.map(r=>[r.date,r.n,r.stars,'$'+r.usd]));
 h+='<h2>Emission brake preview (after token launch)</h2><div class="card">Token price (USD): <input id="price" size="8" value="'+(s.pie.price||'')+'" placeholder="0.001"> <button id="pp">Calculate</button><br>Yesterday net revenue: <b>$'+(Math.round(s.pie.yesterdayUsd*100)/100)+'</b> → schedule <b>'+s.pie.schedule+'</b>, brake <b>'+s.pie.brake+'</b> → daily pie <b>'+s.pie.pie+'</b> tokens</div>';
-h+='<h2>Countries</h2>'+tbl(['Country','Players','Active 24h','Active 7d','New today','Paying','Avg points'],s.countries.map(r=>[ctry(r.c),r.n,r.d1,r.d7,r.today,r.payers,r.avgPts]));
+h+='<h2>Countries</h2><div class="k">Blocked: '+s.blocked.countries.map(ctry).join(', ')+' · languages: '+esc(s.blocked.langs.join(', '))+' · blocked logins since restart: '+s.blocked.attempts+'</div>'+tbl(['Country','Players','Active 24h','Active 7d','New today','Paying','Avg points'],s.countries.map(r=>[ctry(r.c),r.n,r.d1,r.d7,r.today,r.payers,r.avgPts]));
 h+='<h2>Top players</h2>'+tbl(['ID','Name','Country','Points','From refs','Risk','Wallet'],s.top.map(u=>[u.id,esc(u.name)+(u.username?' @'+esc(u.username):''),ctry(u.country),u.pts,u.ref_pts,'<span class="'+u.risk_state+'">'+u.risk_state+' ('+u.risk+')</span>',esc((u.wallet||'').slice(0,14))]));
 h+='<h2>Review queue</h2><div class="row"><select id="st"><option>watch</option><option>quarantine</option><option>banned</option></select><button id="rq">Show</button><button id="sw">Run sweep</button></div><div id="rqo"></div>';
 h+='<h2>Player lookup</h2><div class="row"><input id="uid" placeholder="Telegram ID" size="16"><button id="lk">Find</button></div><div id="uo"></div>';

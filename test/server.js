@@ -665,6 +665,17 @@ const Ton = require('../server/ton.js');
       assert.ok(r.json.ok, JSON.stringify(r.json));
       env5.ctx.tg.call = prev;
     });
+    await test('closed regions: India / Indonesia cannot sign in (time zone or app language)', async () => {
+      const A = new Player(env5, 8601); assert.equal((await A.auth('', { tz: 'Asia/Kolkata' })).status, 403);
+      assert.equal(A.last.err, 'region');
+      assert.ok(!U.getUser(env5.ctx, 8601), 'no account is created');
+      const B = new Player(env5, 8602); assert.equal((await B.auth('', { tz: 'Asia/Jakarta' })).status, 403);
+      const C = new Player(env5, 8603); C.user.language_code = 'id'; assert.equal((await C.auth('', { tz: 'Europe/Kyiv' })).status, 403);
+      const D = new Player(env5, 8604); assert.equal((await D.auth('', { tz: 'Europe/Kyiv' })).status, 200);
+      const st = await httpJson(env5.base, 'GET', '/admin/api/stats', undefined, { 'x-admin-key': 'adminkey123' });
+      assert.deepEqual(st.json.blocked.countries, ['IN', 'ID']);
+      assert.ok(st.json.blocked.attempts >= 3);
+    });
     await env5.close();
   }
   summary();

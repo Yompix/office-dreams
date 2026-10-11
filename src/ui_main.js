@@ -733,12 +733,12 @@ async function boot() {
   try { res = await netBoot(BUILD.mode === 'demo'); } catch (e) { res = { ok: false, err: 'server' }; }
   if (!res.ok) {
     const sp = $('#splash');
-    splash(L('boot.err_' + (res.err === 'no_telegram' ? 'tg' : 'server')), true);
+    splash(L('boot.err_' + (res.err === 'no_telegram' ? 'tg' : res.err === 'region' ? 'region' : 'server')), true);
     const box = sp && $('.sp-actions', sp);
     if (box) {
       box.innerHTML = res.err === 'no_telegram' && NET.cfg && NET.cfg.bot
         ? `<button class="btn big glow" data-act="openbot">${L('boot.open_tg')}</button>`
-        : `<button class="btn big" data-act="retry">${L('boot.retry')}</button>`;
+        : res.err === 'region' ? '' : `<button class="btn big" data-act="retry">${L('boot.retry')}</button>`;
     }
     return;
   }
