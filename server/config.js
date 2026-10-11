@@ -60,8 +60,8 @@ function build(env) {
     turnstile: { site: str('TURNSTILE_SITEKEY'), secret: str('TURNSTILE_SECRET') },
     starUsd: num('STAR_USD', 0.013),
     // regions closed to the game (ISO country codes, from the device time zone) and Telegram app languages
-    blockedCountries: str('BLOCKED_COUNTRIES', 'IN,ID').toUpperCase().split(',').map((x) => x.trim()).filter(Boolean),
-    blockedLangs: str('BLOCKED_LANGS', 'hi,id').toLowerCase().split(',').map((x) => x.trim()).filter(Boolean),
+    blockedCountries: str('BLOCKED_COUNTRIES', 'IN,ID,PK,BD,NG').toUpperCase().split(',').map((x) => x.trim()).filter(Boolean),
+    blockedLangs: str('BLOCKED_LANGS', 'hi,id,ur,bn,ha,yo,ig').toLowerCase().split(',').map((x) => x.trim()).filter(Boolean),
     // pay with TON: the shop wallet that receives transfers; prices follow the Stars price list
     tonPay: {
       wallet: str('TON_PAY_WALLET'),

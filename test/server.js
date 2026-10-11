@@ -673,7 +673,7 @@ const Ton = require('../server/ton.js');
       const C = new Player(env5, 8603); C.user.language_code = 'id'; assert.equal((await C.auth('', { tz: 'Europe/Kyiv' })).status, 403);
       const D = new Player(env5, 8604); assert.equal((await D.auth('', { tz: 'Europe/Kyiv' })).status, 200);
       const st = await httpJson(env5.base, 'GET', '/admin/api/stats', undefined, { 'x-admin-key': 'adminkey123' });
-      assert.deepEqual(st.json.blocked.countries, ['IN', 'ID']);
+      assert.deepEqual(st.json.blocked.countries, ['IN', 'ID', 'PK', 'BD', 'NG']);
       assert.ok(st.json.blocked.attempts >= 3);
     });
     await env5.close();
