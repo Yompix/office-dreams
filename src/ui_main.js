@@ -146,6 +146,7 @@ function onWorkDown(e) {
     haptic('light');
     floatText(x, y - 10, '+$' + fmtSmall(tp.cash), 'cash');
     if (Math.random() < 0.35) burst(x, y, 5, ['#ffd23f', '#3fd0ff', '#ff3fd0']);
+    comboTap(x, y);
     if (btn) { btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit'); }
   } else if (performance.now() - (UI.tiredAt || 0) > 1800) {
     UI.tiredAt = performance.now();
@@ -206,10 +207,10 @@ const ACT = {
   auto: () => { netAct('auto', !S.auto); render(); },
   claim: (id) => {
     const r = netAct('clm', id);
-    if (r.ok) { toast(L('toast.reward', { r: goalReward(r.goal.rw) }), 'good', 'star'); confettiSmall(); haptic('ok'); } else errToast(r.err);
+    if (r.ok) { toast(L('toast.reward', { r: goalReward(r.goal.rw) }), 'good', 'star'); confettiSmall(); haptic('ok'); if (r.goal.rw.cash) centerFly('.pill.cash', I('coin', 16), 6); if (r.goal.rw.gems) centerFly('.pill.gem', I('gem', 16), 3); centerFly('.pill.pts', I('pts', 14), 3); } else errToast(r.err);
     render();
   },
-  dly: (id) => { const r = netAct('dly', id); if (r.ok) { toast(L('toast.daily', { cash: money(dailyCash(S)) }), 'good'); haptic('ok'); } else errToast(r.err); render(); },
+  dly: (id) => { const r = netAct('dly', id); if (r.ok) { toast(L('toast.daily', { cash: money(dailyCash(S)) }), 'good'); haptic('ok'); centerFly('.pill.cash', I('coin', 16), 6); } else errToast(r.err); render(); },
   event: () => modalOrQueue(showEvent),
   ev: (i) => {
     const r = netAct('ev', Number(i));
@@ -253,7 +254,7 @@ const ACT = {
         lsSet('od2_ci', String(Math.floor(Date.now() / 86400000)));
         if (UI.modal && UI.modal.id === 'checkin') closeModal();
         toast(L('toast.checkin', { n: fmtPts(r.pts), s: r.streak }), 'good', 'calendar');
-        confetti(90); sfx('pts'); haptic('ok');
+        confetti(90); sfx('pts'); haptic('ok'); centerFly('.pill.pts', I('pts', 16), 8);
         UI.ecoVer = (UI.ecoVer || 0) + 1;
         render(true);
         loadHub('tasks', true);
@@ -301,7 +302,7 @@ const ACT = {
       musicSync();
       if (r && r.ok) {
         toast(r.callback ? L('ads.ok_cb') : L('ads.ok', { cash: money(r.cash), pts: r.pts }), 'good', 'bolt');
-        confettiSmall(); sfx('coin'); haptic('ok');
+        confettiSmall(); sfx('coin'); haptic('ok'); centerFly('.pill.cash', I('coin', 16), 6); centerFly('.pill.pts', I('pts', 14), 3);
         UI.ecoVer = (UI.ecoVer || 0) + 1;
         setTimeout(() => netSync({ full: true }), 600);
       } else if (r && r.err === 'ads_wait' && r.next) toast(L('err.ads_wait', { s: Math.ceil((r.next - Date.now()) / 1000) }), 'bad');
@@ -430,7 +431,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">
@@ -508,11 +509,22 @@ function answerChallenge(ans) {
   });
 }
 
+function releaseJuice(d) {
+  const sc = $('.scene');
+  const r = sc ? sc.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 3, width: 0, height: 0 };
+  const x = r.left + r.width / 2, y = r.top + r.height / 2;
+  flyTo(x, y, '.pill.cash', I('coin', 16), d.game.score >= 8 ? 12 : 7);
+  if (d.gemGain) flyTo(x, y, '.pill.gem', I('gem', 16), 3);
+  if (d.game.score >= 8) shake(d.game.score >= 9);
+}
+function centerFly(sel, html, n) { flyTo(innerWidth / 2, innerHeight * 0.45, sel, html, n); }
+
 /* ---------- engine → UI events ---------- */
 hooks.emit = function (type, data) {
   if (!UI.booted) return;
   if (type === 'sfx') sfx(data);
   else if (type === 'release') {
+    releaseJuice(data);
     // a big celebration for the first releases and for hits; later routine releases get a toast
     if (S.stats.released <= 3 || data.game.score >= 8.5 || data.gemGain) modalOrQueue(() => showRelease(data));
     else { toast(L('toast.release', { name: data.game.name, score: data.game.score.toFixed(1) }), data.game.score >= 7 ? 'good' : '', 'games'); if (data.game.score >= 7) confettiSmall(); }
@@ -523,6 +535,7 @@ hooks.emit = function (type, data) {
   else if (type === 'toast') toast(L(data.k), data.kind);
   else if (type === 'ending') modalOrQueue(showEnding);
   else if (type === 'ipo') toast(L('toast.ipo', { n: data.n }), 'good', 'crown');
+  else if (type === 'idea') { sfx('pop'); updateSceneFx(); if (!lsGet('od2_idea_hint')) { lsSet('od2_idea_hint', '1'); toast(L('idea.hint'), 'good', 'star'); } }
 };
 
 /* ---------- network → UI ---------- */
@@ -593,7 +606,8 @@ function wireInput() {
   // the work button reacts on pointerdown (fast tapping), keyboard via click with detail 0
   document.addEventListener('pointerdown', (e) => {
     const b = e.target.closest('#workbtn');
-    if (b) { e.preventDefault(); onWorkDown(e); }
+    if (b) { e.preventDefault(); onWorkDown(e); return; }
+    if (e.target.id === 'scene' && e.isTrusted !== false) { ensureAudio(); onSceneTap(e); }
   }, { passive: false });
   document.addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.id === 'workbtn') { e.preventDefault(); onWorkDown(e); }

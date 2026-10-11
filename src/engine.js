@@ -131,6 +131,8 @@ function newState(seed) {
     income3: 0,
     pending: null,
     nextEventDay: 2,
+    idea: null, // {role, ttl}: a light bulb over an employee — tap it for a burst of progress
+    ideaCd: 30,
     evCool: {},
     log: [],
     legacy: 0,
@@ -447,6 +449,22 @@ function release(s) {
   if (s.auto && tierUnlocked(s, p.tier)) {
     startProject(s, p.genre, p.tier, newName(s, p.genre));
   }
+}
+
+function catchIdea(s) {
+  if (!s.idea || !s.project) return fail('unavailable');
+  const p = s.project;
+  const bonus = Math.round(Math.max(20, p.need * 0.06));
+  const cash = Math.round(tapPower(s).cash * 12);
+  s.idea = null;
+  p.pts += bonus;
+  giveCash(s, cash);
+  s.dayIncome += cash;
+  s.stats.ideas = (s.stats.ideas || 0) + 1;
+  bump(s);
+  emit('sfx', 'coin');
+  if (p.pts >= p.need) release(s);
+  return { ok: true, bonus, cash };
 }
 
 /* ---------- long-term loop: IPO (prestige) ---------- */
@@ -909,6 +927,19 @@ function tick(s, dt) {
   s.clock += dt;
   s.energy = Math.min(maxEnergy(s), s.energy + energyRegen(s) * dt);
   for (const k in s.buffs) if (s.buffs[k] > 0) s.buffs[k] = Math.max(0, s.buffs[k] - dt);
+  // ideas: while the team works, now and then someone gets an idea the player can catch
+  if (s.idea) {
+    s.idea.ttl -= dt;
+    if (s.idea.ttl <= 0 || !s.project) s.idea = null;
+  } else if (!s.off && s.project && hiredCount(s) > 0) {
+    s.ideaCd -= dt;
+    if (s.ideaCd <= 0) {
+      const hired = ROLES.filter((r) => s.staff[r].lvl > 0);
+      s.idea = { role: pick(s, hired), ttl: 12 };
+      s.ideaCd = 25 + rand(s) * 20;
+      emit('idea', s.idea);
+    }
+  }
   if (s.project) {
     s.project.pts += wpTotal(s) * dt;
     if (s.off) s.project.pts = Math.min(s.project.pts, s.project.need - 1); // the team waits for you to ship
@@ -964,6 +995,7 @@ const ACTIONS = {
   dly: (s, a) => claimDaily(s, String(a[0])),
   ev: (s, a) => chooseEvent(s, a[0] | 0),
   ipo: (s) => prestige(s),
+  idea: (s) => catchIdea(s),
 };
 function applyAction(s, a) {
   const f = ACTIONS[a[0]];
@@ -1028,7 +1060,7 @@ if (typeof module !== 'undefined') {
     hooks, newState, tick, advance, advanceTicks, advanceOffline, doTap, hire, upgradeStaff, upgradeYou, buyItem, buyFloor, buyBoost, startProject, setAuto, release, claimGoal,
     claimDaily, dailyProgress, dailyCash, syncDay, canPrestige, prestige, applyAction, replay,
     chooseEvent, spawnEvent, eventView, wpTotal, wpRole, tapPower, salaryTotal, salaryOf, upCost, youUpCost, qualityFor, expectedScore,
-    projectNeed, tierUnlocked, nextFloor, checkGoals, hiredCount, serialize, deserialize, encodeSave, decodeSave, rankOf, fmt, cleanName, stateHash,
+    projectNeed, tierUnlocked, nextFloor, checkGoals, catchIdea, hiredCount, serialize, deserialize, encodeSave, decodeSave, rankOf, fmt, cleanName, stateHash,
     dailySalesRate, salesMult, maxEnergy, newName, endDay, floorOn, scoreMult, clockText, legacyMult, rand,
   };
 }

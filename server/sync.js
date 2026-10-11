@@ -16,7 +16,7 @@ const MAX_ACTIONS = 600;
 const MAX_TICKS = 24000; // 100 min per batch
 const SLACK_MS = 12000;
 const OFFLINE_MIN_MS = 30000;
-const ACTION_NAMES = new Set(['tap', 'hire', 'ups', 'upy', 'buy', 'flr', 'bst', 'new', 'auto', 'clm', 'dly', 'ev', 'ipo']);
+const ACTION_NAMES = new Set(['tap', 'hire', 'ups', 'upy', 'buy', 'flr', 'bst', 'new', 'auto', 'clm', 'dly', 'ev', 'ipo', 'idea']);
 
 function cleanTp(tp) {
   // client-reported statistics of ALL tap attempts in this batch: [count, mean ms, M2]

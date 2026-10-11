@@ -149,6 +149,31 @@ async function main() {
   await ev(page, 'netSync()');
   await sleep(1200);
 
+  // interactive office: talk to an employee, catch an idea
+  await ev(page, 'go("office")');
+  await page.evaluate(() => document.querySelector('#main').scrollTo(0, 0));
+  await sleep(500);
+  const spot = await ev(page, '(()=>{const m=sceneMap();const p=spotOf("prog");const c=m.toCss(p[0],p[1]);return [m.r.left+c[0], m.r.top+c[1]]})()');
+  await page.mouse.click(spot[0], spot[1]);
+  await sleep(400);
+  ok(!!(await page.$('.scene .say')), 'tapping an employee shows a speech bubble');
+  await shot(page, '07b_talk');
+  let waited = 0;
+  while (!(await ev(page, '!!S.idea')) && waited < 60000) { await sleep(1000); waited += 1000; }
+  ok(await ev(page, '!!S.idea'), 'an idea appeared after ' + waited + ' ms');
+  await sleep(600);
+  await shot(page, '07c_idea');
+  const pts0 = await ev(page, 'S.project ? S.project.pts : 0');
+  const ideaBtn = await page.$('.scene .idea');
+  ok(!!ideaBtn, 'idea bubble rendered');
+  if (ideaBtn) { const bb = await ideaBtn.boundingBox(); await page.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2); }
+  await sleep(500);
+  ok((await ev(page, 'S.stats.ideas || 0')) === 1, 'idea caught');
+  await shot(page, '07d_idea_caught');
+  await ev(page, 'netSync()');
+  await sleep(1500);
+  ok((U.loadState(ctx, 1001).stats.ideas || 0) === 1, 'server confirmed the idea');
+
   // release modal look (purely visual, local)
   await ev(page, 'showRelease({game:{name:"Neon Run",genre:"plat",tier:"mini",score:8.7,total:4200},repGain:2.3,gemGain:0})');
   await sleep(900);

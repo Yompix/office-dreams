@@ -653,6 +653,38 @@ button.cell:active { transform: scale(0.94); }
 .ad-t b { font-size: 14px; }
 .ad-t small { color: var(--ink2); font-size: 11px; }
 .ad-n { font-size: 9px; color: var(--yel); }
+
+/* ---------- interactive scene layer ---------- */
+.scene-fx { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.scene-fx > * { pointer-events: auto; }
+#scene { cursor: pointer; }
+.idea { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle, rgba(255, 246, 194, 0.95), rgba(255, 210, 63, 0.75) 55%, rgba(255, 155, 47, 0.25)); box-shadow: 0 0 18px rgba(255, 210, 63, 0.95), 0 0 40px rgba(255, 210, 63, 0.5); animation: ideain 0.45s cubic-bezier(.2, 1.6, .4, 1), bob 1.2s ease-in-out infinite 0.45s; }
+.idea .i-bulb { font-size: 20px; line-height: 1; filter: drop-shadow(0 0 4px #fff); }
+.idea svg { position: absolute; inset: -4px; width: 48px; height: 48px; transform: rotate(-90deg); }
+.idea circle { fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 100.5; stroke-dashoffset: calc(100.5 * (1 - var(--left, 1))); opacity: 0.85; transition: stroke-dashoffset 0.25s linear; }
+.idea.pop { animation: ideapop 0.35s ease-out forwards; }
+@keyframes ideain { from { transform: scale(0) rotate(-40deg); } }
+@keyframes ideapop { to { transform: scale(2.2); opacity: 0; } }
+.say { position: absolute; transform: translate(-50%, -100%); max-width: 170px; padding: 6px 9px; border-radius: 10px; font-size: 11px; line-height: 1.3; color: #0b1033; background: #fff; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45); pointer-events: none; white-space: normal; animation: sayin 0.3s cubic-bezier(.2, 1.5, .4, 1); transition: opacity 0.35s, transform 0.35s; }
+.say::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 10px; height: 10px; margin-left: -5px; background: #fff; transform: rotate(45deg); }
+.say b { color: #4a2fb0; }
+.say.out { opacity: 0; transform: translate(-50%, -120%); }
+@keyframes sayin { from { transform: translate(-50%, -80%) scale(0.6); opacity: 0; } }
+.flt.heart { color: #ff4f9a; font-size: 18px; text-shadow: 0 0 8px rgba(255, 79, 154, 0.9); }
+.fly { position: fixed; z-index: 66; pointer-events: none; font-size: 16px; color: var(--yel); filter: drop-shadow(0 0 6px rgba(255, 210, 63, 0.9)); }
+.fly.spark-fly { color: var(--cy2); filter: drop-shadow(0 0 6px rgba(63, 208, 255, 0.9)); }
+.workp { position: relative; }
+.combo { position: absolute; right: 18px; top: -12px; z-index: 3; padding: 6px 9px; border-radius: 10px; font-size: 10px; color: #fff; background: linear-gradient(90deg, #ff3fd0, #8a5cff); box-shadow: 0 0 16px rgba(255, 63, 208, 0.8); opacity: 0; transform: scale(0.6) rotate(-6deg); transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
+.combo.on { opacity: 1; transform: scale(1) rotate(-6deg); }
+.combo.bump { animation: cbump 0.18s ease-out; }
+.combo[data-lvl="1"] { background: linear-gradient(90deg, #ff9b2f, #ff3fd0); }
+.combo[data-lvl="2"] { background: linear-gradient(90deg, #ffd23f, #ff9b2f); color: #3a2400; }
+.combo[data-lvl="3"] { background: linear-gradient(90deg, #3fd0ff, #34e37a, #ffd23f); color: #04130a; box-shadow: 0 0 26px rgba(63, 208, 255, 0.9); }
+@keyframes cbump { 50% { transform: scale(1.25) rotate(-6deg); } }
+#app.shake { animation: shk 0.45s ease-in-out; }
+#app.shake2 { animation: shk2 0.55s ease-in-out; }
+@keyframes shk { 20% { transform: translate(-3px, 1px); } 40% { transform: translate(3px, -1px); } 60% { transform: translate(-2px, 1px); } 80% { transform: translate(2px, 0); } }
+@keyframes shk2 { 15% { transform: translate(-6px, 2px) rotate(-0.4deg); } 30% { transform: translate(6px, -2px) rotate(0.4deg); } 45% { transform: translate(-5px, 1px); } 60% { transform: translate(4px, -1px); } 80% { transform: translate(-2px, 0); } }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -1659,6 +1691,22 @@ LANGS.en = {
   'err.ads_off': 'Ads are not available',
   'err.ads_fail': 'No ad available right now, try later',
   'err.ads_callback': 'Reward is credited automatically',
+  'idea.catch': 'Catch the idea',
+  'idea.thanks1': 'Brilliant! Let’s build it!',
+  'idea.thanks2': 'Yes! That’s the one!',
+  'idea.thanks3': 'Boss, you’re a genius!',
+  'talk.ok1': 'Writing a masterpiece!',
+  'talk.ok2': 'This game will be a hit!',
+  'talk.ok3': 'Love working here!',
+  'talk.ok4': 'Just one more feature…',
+  'talk.mid1': 'Could use some coffee…',
+  'talk.mid2': 'Long day, huh?',
+  'talk.mid3': 'A raise would be nice…',
+  'talk.low1': 'I’m burning out 😩',
+  'talk.low2': 'When is the party?',
+  'talk.low3': 'I need a break…',
+  'help.p6': 'Catch 💡 ideas over your team’s heads — a burst of progress! Tap people in the office to chat.',
+  'idea.hint': '💡 Someone has an idea! Tap the light bulb for a burst of progress',
 };
 
 /* ---- src/lang_ru.js ---- */
@@ -1929,6 +1977,22 @@ LANGS.ru = {
   'err.ads_off': 'Реклама недоступна',
   'err.ads_fail': 'Сейчас нет рекламы, попробуй позже',
   'err.ads_callback': 'Награда начисляется автоматически',
+  'idea.catch': 'Поймать идею',
+  'idea.thanks1': 'Гениально! Делаем!',
+  'idea.thanks2': 'Да! Вот оно!',
+  'idea.thanks3': 'Шеф, ты гений!',
+  'talk.ok1': 'Пишу шедевр!',
+  'talk.ok2': 'Эта игра будет хитом!',
+  'talk.ok3': 'Обожаю тут работать!',
+  'talk.ok4': 'Ещё одну фичу…',
+  'talk.mid1': 'Сейчас бы кофе…',
+  'talk.mid2': 'Длинный день, да?',
+  'talk.mid3': 'Прибавка не помешала бы…',
+  'talk.low1': 'Я выгораю 😩',
+  'talk.low2': 'Когда корпоратив?',
+  'talk.low3': 'Мне нужен отдых…',
+  'help.p6': 'Лови 💡 идеи над головами команды — это рывок прогресса! Нажимай на людей в офисе, чтобы поболтать.',
+  'idea.hint': '💡 У сотрудника идея! Нажми на лампочку — будет рывок прогресса',
 };
 
 /* ---- src/lang_uk.js ---- */
@@ -2199,6 +2263,22 @@ LANGS.uk = {
   'err.ads_off': 'Реклама недоступна',
   'err.ads_fail': 'Зараз немає реклами, спробуй пізніше',
   'err.ads_callback': 'Нагорода нараховується автоматично',
+  'idea.catch': 'Зловити ідею',
+  'idea.thanks1': 'Геніально! Робимо!',
+  'idea.thanks2': 'Так! Ось воно!',
+  'idea.thanks3': 'Шефе, ти геній!',
+  'talk.ok1': 'Пишу шедевр!',
+  'talk.ok2': 'Ця гра буде хітом!',
+  'talk.ok3': 'Обожнюю тут працювати!',
+  'talk.ok4': 'Ще одну фічу…',
+  'talk.mid1': 'Зараз би кави…',
+  'talk.mid2': 'Довгий день, так?',
+  'talk.mid3': 'Надбавка не завадила б…',
+  'talk.low1': 'Я вигораю 😩',
+  'talk.low2': 'Коли корпоратив?',
+  'talk.low3': 'Мені потрібен відпочинок…',
+  'help.p6': 'Лови 💡 ідеї над головами команди — це ривок прогресу! Натискай на людей в офісі, щоб поговорити.',
+  'idea.hint': '💡 У працівника ідея! Натисни на лампочку — буде ривок прогресу',
 };
 
 /* ---- src/engine.js ---- */
@@ -2335,6 +2415,8 @@ function newState(seed) {
     income3: 0,
     pending: null,
     nextEventDay: 2,
+    idea: null, // {role, ttl}: a light bulb over an employee — tap it for a burst of progress
+    ideaCd: 30,
     evCool: {},
     log: [],
     legacy: 0,
@@ -2651,6 +2733,22 @@ function release(s) {
   if (s.auto && tierUnlocked(s, p.tier)) {
     startProject(s, p.genre, p.tier, newName(s, p.genre));
   }
+}
+
+function catchIdea(s) {
+  if (!s.idea || !s.project) return fail('unavailable');
+  const p = s.project;
+  const bonus = Math.round(Math.max(20, p.need * 0.06));
+  const cash = Math.round(tapPower(s).cash * 12);
+  s.idea = null;
+  p.pts += bonus;
+  giveCash(s, cash);
+  s.dayIncome += cash;
+  s.stats.ideas = (s.stats.ideas || 0) + 1;
+  bump(s);
+  emit('sfx', 'coin');
+  if (p.pts >= p.need) release(s);
+  return { ok: true, bonus, cash };
 }
 
 /* ---------- long-term loop: IPO (prestige) ---------- */
@@ -3113,6 +3211,19 @@ function tick(s, dt) {
   s.clock += dt;
   s.energy = Math.min(maxEnergy(s), s.energy + energyRegen(s) * dt);
   for (const k in s.buffs) if (s.buffs[k] > 0) s.buffs[k] = Math.max(0, s.buffs[k] - dt);
+  // ideas: while the team works, now and then someone gets an idea the player can catch
+  if (s.idea) {
+    s.idea.ttl -= dt;
+    if (s.idea.ttl <= 0 || !s.project) s.idea = null;
+  } else if (!s.off && s.project && hiredCount(s) > 0) {
+    s.ideaCd -= dt;
+    if (s.ideaCd <= 0) {
+      const hired = ROLES.filter((r) => s.staff[r].lvl > 0);
+      s.idea = { role: pick(s, hired), ttl: 12 };
+      s.ideaCd = 25 + rand(s) * 20;
+      emit('idea', s.idea);
+    }
+  }
   if (s.project) {
     s.project.pts += wpTotal(s) * dt;
     if (s.off) s.project.pts = Math.min(s.project.pts, s.project.need - 1); // the team waits for you to ship
@@ -3168,6 +3279,7 @@ const ACTIONS = {
   dly: (s, a) => claimDaily(s, String(a[0])),
   ev: (s, a) => chooseEvent(s, a[0] | 0),
   ipo: (s) => prestige(s),
+  idea: (s) => catchIdea(s),
 };
 function applyAction(s, a) {
   const f = ACTIONS[a[0]];
@@ -5050,6 +5162,11 @@ const SFX = {
   floor: () => { [392, 523, 659, 784, 1046].forEach((f, i) => beep(f, 0.14, 'square', 0.045, i * 0.08)); },
   bad: () => beep(180, 0.2, 'sawtooth', 0.04),
   pts: () => { beep(1568, 0.05, 'triangle', 0.05); beep(2093, 0.09, 'triangle', 0.05, 0.05); },
+  meow: () => { beep(880, 0.08, 'triangle', 0.05); beep(660, 0.16, 'triangle', 0.04, 0.07); },
+  blip: () => beep(1046, 0.05, 'triangle', 0.04),
+  idea: () => { [784, 988, 1175, 1568].forEach((f, i) => beep(f, 0.08, 'triangle', 0.05, i * 0.05)); },
+  combo: () => { [659, 880, 1319].forEach((f, i) => beep(f, 0.07, 'square', 0.035, i * 0.05)); },
+  pop: () => beep(1318, 0.06, 'sine', 0.05),
 };
 function sfx(n) { try { if (SFX[n]) SFX[n](); } catch (e) {} }
 function haptic(kind) {
@@ -5494,6 +5611,7 @@ function live() {
   });
   const wb = $('#workbtn');
   if (wb) wb.classList.toggle('tired', S.energy < 2);
+  updateSceneFx();
 }
 
 /* ---------- shell pieces ---------- */
@@ -5637,6 +5755,7 @@ function tabOffice() {
           <canvas id="bloom" width="256" height="176" aria-hidden="true"></canvas>
           <div class="scan" aria-hidden="true"></div>
         </div>
+        <div class="scene-fx"></div>
         <div class="scene-top">
           <span class="chip trend">${I('fire', 12)} <b>${L('genre.' + S.trend.hot)}</b></span>
           ${buffChips()}
@@ -6109,6 +6228,191 @@ function tabHTML() {
   }
 }
 
+/* ---- src/ui_fx.js ---- */
+/* ============================================================
+   OFFICE DREAMS — interactivity & juice:
+   tappable office scene, catchable ideas, talking employees,
+   coins flying to the HUD, tap combos, screen shake
+   ============================================================ */
+
+/* ---------- scene <-> screen coordinates ---------- */
+function sceneMap() {
+  const cv = UI.sceneCv;
+  if (!cv || !cv.isConnected) return null;
+  const r = cv.getBoundingClientRect();
+  if (!r.width) return null;
+  const f = camFit(cv.width, cv.height, true); // canvas pixels
+  const kx = r.width / cv.width, ky = r.height / cv.height;
+  return {
+    r,
+    // scene pixel → position inside the .scene box (CSS px)
+    toCss: (x, y) => [f[0] * kx + ((x - CAM.sx) / CAM.sw) * f[2] * kx, f[1] * ky + ((y - CAM.sy) / CAM.sh) * f[3] * ky],
+    // client point → scene pixel
+    toScene: (cx, cy) => [CAM.sx + (((cx - r.left) / kx - f[0]) / f[2]) * CAM.sw, CAM.sy + (((cy - r.top) / ky - f[1]) / f[3]) * CAM.sh],
+    scale: (f[2] * kx) / CAM.sw,
+  };
+}
+const HEAD_DY = 20; // sprite head is ~20 scene px above the seat point
+function spotOf(kind) {
+  if (kind === 'you') { const a = P(5.1, 5.1, 9); return [a[0], a[1] - HEAD_DY]; }
+  if (kind === 'laptop') return P(6.3, 5.4, 16);
+  if (kind === 'cat') { const a = P(6.5, 6.1, 13); return [a[0] - 3, a[1] - 3]; }
+  const st = STATION[kind];
+  if (!st) return null;
+  const a = P(st.chair[0], st.chair[1], 9);
+  return [a[0], a[1] - HEAD_DY];
+}
+
+/* ---------- tapping the office ---------- */
+function onSceneTap(e) {
+  const m = sceneMap();
+  if (!m) return;
+  const [x, y] = m.toScene(e.clientX, e.clientY);
+  const near = (k, rad) => { const p = spotOf(k); return p && Math.hypot(p[0] - x, p[1] - y) <= rad; };
+  if (S.idea && near(S.idea.role, 16)) return grabIdea();
+  if (near('cat', 9)) return petCat(e);
+  for (const r of ROLES) {
+    if (near(r, 15)) return S.staff[r].lvl > 0 ? talk(r) : (UI.sel = r, go('studio', 'team'));
+  }
+  if (near('you', 16) || near('laptop', 12)) return onWorkDown(e);
+}
+function petCat(e) {
+  sfx('meow');
+  haptic('light');
+  for (let i = 0; i < 4; i++) setTimeout(() => floatText(e.clientX + (Math.random() * 30 - 15), e.clientY - 10, '❤', 'heart'), i * 90);
+}
+const TALK = { ok: 4, mid: 3, low: 3 };
+function talk(role) {
+  const st = S.staff[role];
+  const mood = moodClass(st.mood);
+  const line = L('talk.' + mood + (1 + Math.floor(Math.random() * TALK[mood])));
+  sayBubble(role, `<b>${esc(L('role.' + role + '.name'))}</b> · ${Math.round(st.mood)}%<br>${esc(line)}`);
+  sfx('blip');
+  haptic('light');
+}
+function sayBubble(kind, html) {
+  const box = $('.scene .scene-fx');
+  const m = sceneMap();
+  if (!box || !m) return;
+  const p = spotOf(kind);
+  const [cx, cy] = m.toCss(p[0], p[1] - 6);
+  box.querySelectorAll('.say').forEach((n) => n.remove());
+  const el = document.createElement('div');
+  el.className = 'say';
+  el.innerHTML = html;
+  el.style.left = cx + 'px';
+  el.style.top = cy + 'px';
+  box.appendChild(el);
+  setTimeout(() => el.classList.add('out'), 2300);
+  setTimeout(() => el.remove(), 2700);
+}
+
+/* ---------- ideas: catch the light bulb ---------- */
+function updateSceneFx() {
+  const box = $('.scene .scene-fx');
+  if (!box) return;
+  let b = box.querySelector('.idea');
+  if (!S.idea || UI.tab !== 'office') { if (b) b.remove(); return; }
+  const m = sceneMap();
+  if (!m) return;
+  const p = spotOf(S.idea.role);
+  if (!p) return;
+  const [cx, cy] = m.toCss(p[0], p[1] - 14);
+  if (!b) {
+    b = document.createElement('button');
+    b.className = 'idea';
+    b.setAttribute('aria-label', L('idea.catch'));
+    b.innerHTML = '<span class="i-bulb">💡</span><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="16"/></svg>';
+    b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); grabIdea(); });
+    box.appendChild(b);
+  }
+  b.style.left = cx + 'px';
+  b.style.top = cy + 'px';
+  b.style.setProperty('--left', Math.max(0, Math.min(1, S.idea.ttl / 12)).toFixed(3));
+}
+function grabIdea() {
+  const role = S.idea && S.idea.role;
+  const b = $('.scene .idea');
+  const r = b ? b.getBoundingClientRect() : null;
+  const res = netAct('idea');
+  if (!res.ok) return;
+  haptic('medium');
+  sfx('idea');
+  if (b) { b.classList.add('pop'); setTimeout(() => b.remove(), 350); }
+  if (r) {
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    burst(x, y, 14, ['#ffd23f', '#fff6c2', '#3fd0ff', '#ff3fd0']);
+    floatText(x, y - 18, '+' + fmt(res.bonus) + ' ' + L('ui.wp'), 'pts');
+    flyTo(x, y, '.pmini .bar', '✦', 6, 'spark-fly');
+    flyTo(x, y, '.pill.cash', I('coin', 14), 4);
+  }
+  if (role) setTimeout(() => sayBubble(role, esc(L(`idea.thanks${1 + Math.floor(Math.random() * 3)}`))), 200);
+  render();
+}
+
+/* ---------- things flying into the HUD ---------- */
+function flyTo(x, y, targetSel, html, n, cls) {
+  const t = $(targetSel);
+  const layer = $('#fxl');
+  if (!t || !layer) return;
+  const tr = t.getBoundingClientRect();
+  const tx = tr.left + tr.width / 2, ty = tr.top + tr.height / 2;
+  for (let i = 0; i < (n || 6); i++) {
+    const el = document.createElement('div');
+    el.className = 'fly ' + (cls || '');
+    el.innerHTML = html;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    layer.appendChild(el);
+    const sx = (Math.random() - 0.5) * 70, sy = -30 - Math.random() * 50;
+    const dur = 650 + Math.random() * 300;
+    if (el.animate) {
+      el.animate([
+        { transform: 'translate(-50%,-50%) scale(0.6)', opacity: 0 },
+        { transform: `translate(calc(-50% + ${sx}px), calc(-50% + ${sy}px)) scale(1.15)`, opacity: 1, offset: 0.3 },
+        { transform: `translate(calc(-50% + ${tx - x}px), calc(-50% + ${ty - y}px)) scale(0.5)`, opacity: 0.9 },
+      ], { duration: dur, delay: i * 45, easing: 'cubic-bezier(.5,0,.6,1)', fill: 'both' });
+    }
+    setTimeout(() => el.remove(), dur + i * 45 + 50);
+  }
+  setTimeout(() => { t.classList.remove('flash'); void t.offsetWidth; t.classList.add('flash'); }, 700);
+}
+
+/* ---------- tap combo (pure juice) ---------- */
+const COMBO = { n: 0, last: 0, el: null };
+function comboTap(x, y) {
+  const now = performance.now();
+  COMBO.n = now - COMBO.last < 450 ? COMBO.n + 1 : 1;
+  COMBO.last = now;
+  const wrap = $('.workp');
+  if (!wrap) return;
+  if (!COMBO.el || !COMBO.el.isConnected) {
+    COMBO.el = document.createElement('div');
+    COMBO.el.className = 'combo px';
+    wrap.appendChild(COMBO.el);
+  }
+  if (COMBO.n < 5) { COMBO.el.classList.remove('on'); return; }
+  COMBO.el.textContent = 'COMBO ×' + COMBO.n;
+  COMBO.el.classList.remove('bump'); void COMBO.el.offsetWidth; COMBO.el.classList.add('on', 'bump');
+  COMBO.el.dataset.lvl = COMBO.n >= 50 ? 3 : COMBO.n >= 25 ? 2 : COMBO.n >= 10 ? 1 : 0;
+  if (COMBO.n === 10 || COMBO.n === 25 || COMBO.n === 50 || (COMBO.n > 50 && COMBO.n % 25 === 0)) {
+    burst(x, y, 18, ['#ff3fd0', '#ffd23f', '#3fd0ff', '#34e37a']);
+    sfx('combo');
+    haptic('heavy');
+  }
+  clearTimeout(COMBO.t);
+  COMBO.t = setTimeout(() => { if (COMBO.el) COMBO.el.classList.remove('on'); COMBO.n = 0; }, 900);
+}
+
+/* ---------- screen shake ---------- */
+function shake(strong) {
+  const a = $('#app');
+  if (!a) return;
+  a.classList.remove('shake', 'shake2'); void a.offsetWidth;
+  a.classList.add(strong ? 'shake2' : 'shake');
+  setTimeout(() => a.classList.remove('shake', 'shake2'), 600);
+}
+
 /* ---- src/ui_tutorial.js ---- */
 /* ============================================================
    OFFICE DREAMS — interactive tutorial (coach marks).
@@ -6372,6 +6676,7 @@ function onWorkDown(e) {
     haptic('light');
     floatText(x, y - 10, '+$' + fmtSmall(tp.cash), 'cash');
     if (Math.random() < 0.35) burst(x, y, 5, ['#ffd23f', '#3fd0ff', '#ff3fd0']);
+    comboTap(x, y);
     if (btn) { btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit'); }
   } else if (performance.now() - (UI.tiredAt || 0) > 1800) {
     UI.tiredAt = performance.now();
@@ -6432,10 +6737,10 @@ const ACT = {
   auto: () => { netAct('auto', !S.auto); render(); },
   claim: (id) => {
     const r = netAct('clm', id);
-    if (r.ok) { toast(L('toast.reward', { r: goalReward(r.goal.rw) }), 'good', 'star'); confettiSmall(); haptic('ok'); } else errToast(r.err);
+    if (r.ok) { toast(L('toast.reward', { r: goalReward(r.goal.rw) }), 'good', 'star'); confettiSmall(); haptic('ok'); if (r.goal.rw.cash) centerFly('.pill.cash', I('coin', 16), 6); if (r.goal.rw.gems) centerFly('.pill.gem', I('gem', 16), 3); centerFly('.pill.pts', I('pts', 14), 3); } else errToast(r.err);
     render();
   },
-  dly: (id) => { const r = netAct('dly', id); if (r.ok) { toast(L('toast.daily', { cash: money(dailyCash(S)) }), 'good'); haptic('ok'); } else errToast(r.err); render(); },
+  dly: (id) => { const r = netAct('dly', id); if (r.ok) { toast(L('toast.daily', { cash: money(dailyCash(S)) }), 'good'); haptic('ok'); centerFly('.pill.cash', I('coin', 16), 6); } else errToast(r.err); render(); },
   event: () => modalOrQueue(showEvent),
   ev: (i) => {
     const r = netAct('ev', Number(i));
@@ -6479,7 +6784,7 @@ const ACT = {
         lsSet('od2_ci', String(Math.floor(Date.now() / 86400000)));
         if (UI.modal && UI.modal.id === 'checkin') closeModal();
         toast(L('toast.checkin', { n: fmtPts(r.pts), s: r.streak }), 'good', 'calendar');
-        confetti(90); sfx('pts'); haptic('ok');
+        confetti(90); sfx('pts'); haptic('ok'); centerFly('.pill.pts', I('pts', 16), 8);
         UI.ecoVer = (UI.ecoVer || 0) + 1;
         render(true);
         loadHub('tasks', true);
@@ -6527,7 +6832,7 @@ const ACT = {
       musicSync();
       if (r && r.ok) {
         toast(r.callback ? L('ads.ok_cb') : L('ads.ok', { cash: money(r.cash), pts: r.pts }), 'good', 'bolt');
-        confettiSmall(); sfx('coin'); haptic('ok');
+        confettiSmall(); sfx('coin'); haptic('ok'); centerFly('.pill.cash', I('coin', 16), 6); centerFly('.pill.pts', I('pts', 14), 3);
         UI.ecoVer = (UI.ecoVer || 0) + 1;
         setTimeout(() => netSync({ full: true }), 600);
       } else if (r && r.err === 'ads_wait' && r.next) toast(L('err.ads_wait', { s: Math.ceil((r.next - Date.now()) / 1000) }), 'bad');
@@ -6656,7 +6961,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">
@@ -6734,11 +7039,22 @@ function answerChallenge(ans) {
   });
 }
 
+function releaseJuice(d) {
+  const sc = $('.scene');
+  const r = sc ? sc.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 3, width: 0, height: 0 };
+  const x = r.left + r.width / 2, y = r.top + r.height / 2;
+  flyTo(x, y, '.pill.cash', I('coin', 16), d.game.score >= 8 ? 12 : 7);
+  if (d.gemGain) flyTo(x, y, '.pill.gem', I('gem', 16), 3);
+  if (d.game.score >= 8) shake(d.game.score >= 9);
+}
+function centerFly(sel, html, n) { flyTo(innerWidth / 2, innerHeight * 0.45, sel, html, n); }
+
 /* ---------- engine → UI events ---------- */
 hooks.emit = function (type, data) {
   if (!UI.booted) return;
   if (type === 'sfx') sfx(data);
   else if (type === 'release') {
+    releaseJuice(data);
     // a big celebration for the first releases and for hits; later routine releases get a toast
     if (S.stats.released <= 3 || data.game.score >= 8.5 || data.gemGain) modalOrQueue(() => showRelease(data));
     else { toast(L('toast.release', { name: data.game.name, score: data.game.score.toFixed(1) }), data.game.score >= 7 ? 'good' : '', 'games'); if (data.game.score >= 7) confettiSmall(); }
@@ -6749,6 +7065,7 @@ hooks.emit = function (type, data) {
   else if (type === 'toast') toast(L(data.k), data.kind);
   else if (type === 'ending') modalOrQueue(showEnding);
   else if (type === 'ipo') toast(L('toast.ipo', { n: data.n }), 'good', 'crown');
+  else if (type === 'idea') { sfx('pop'); updateSceneFx(); if (!lsGet('od2_idea_hint')) { lsSet('od2_idea_hint', '1'); toast(L('idea.hint'), 'good', 'star'); } }
 };
 
 /* ---------- network → UI ---------- */
@@ -6819,7 +7136,8 @@ function wireInput() {
   // the work button reacts on pointerdown (fast tapping), keyboard via click with detail 0
   document.addEventListener('pointerdown', (e) => {
     const b = e.target.closest('#workbtn');
-    if (b) { e.preventDefault(); onWorkDown(e); }
+    if (b) { e.preventDefault(); onWorkDown(e); return; }
+    if (e.target.id === 'scene' && e.isTrusted !== false) { ensureAudio(); onSceneTap(e); }
   }, { passive: false });
   document.addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.id === 'workbtn') { e.preventDefault(); onWorkDown(e); }

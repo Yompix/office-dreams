@@ -106,6 +106,11 @@ const SFX = {
   floor: () => { [392, 523, 659, 784, 1046].forEach((f, i) => beep(f, 0.14, 'square', 0.045, i * 0.08)); },
   bad: () => beep(180, 0.2, 'sawtooth', 0.04),
   pts: () => { beep(1568, 0.05, 'triangle', 0.05); beep(2093, 0.09, 'triangle', 0.05, 0.05); },
+  meow: () => { beep(880, 0.08, 'triangle', 0.05); beep(660, 0.16, 'triangle', 0.04, 0.07); },
+  blip: () => beep(1046, 0.05, 'triangle', 0.04),
+  idea: () => { [784, 988, 1175, 1568].forEach((f, i) => beep(f, 0.08, 'triangle', 0.05, i * 0.05)); },
+  combo: () => { [659, 880, 1319].forEach((f, i) => beep(f, 0.07, 'square', 0.035, i * 0.05)); },
+  pop: () => beep(1318, 0.06, 'sine', 0.05),
 };
 function sfx(n) { try { if (SFX[n]) SFX[n](); } catch (e) {} }
 function haptic(kind) {
