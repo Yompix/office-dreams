@@ -699,3 +699,5 @@ button.cell:active { transform: scale(0.94); }
 .flt.cash { color: #7dff6a; text-shadow: 0 0 10px rgba(125, 255, 106, 0.9), 0 2px 0 #000; }
 .scene.moving canvas { animation: movein 1.2s ease-out; }
 @keyframes movein { 0% { filter: brightness(0); transform: scale(0.94); } 35% { filter: brightness(2.2) saturate(0.4); } 100% { filter: none; transform: none; } }
+.pay2 { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.btn.tonb { background: linear-gradient(180deg, #3aa8ff, #0a6fd8); color: #fff; box-shadow: 0 3px 0 #064a94, 0 0 14px rgba(58, 168, 255, 0.45); }

@@ -571,6 +571,54 @@ const Ton = require('../server/ton.js');
       assert.equal((await pb('ymid=evil&rt=valued')).status, 400);
     });
     await env4.close();
+
+    const shopWallet = Ton.toFriendly({ wc: 0, hash: crypto.createHash('sha256').update('shop').digest() }, { bounceable: false });
+    const env5 = await makeEnv({ TON_PAY_WALLET: shopWallet, TON_USD: '2', TON_STAR_USD: '0.016' });
+    await test('TON payments: order → on-chain transfer with comment → item granted once', async () => {
+      let chain = [];
+      env5.ctx.tonApi = async () => chain;
+      const P = new Player(env5, 8301); await P.auth();
+      const cfg = await httpJson(env5.base, 'GET', '/api/config');
+      assert.equal(cfg.json.tonPay, true);
+      const shop = await P.api('GET', '/api/shop');
+      const gs = shop.json.items.find((x) => x.sku === 'gems_s');
+      assert.equal(gs.ton, 0.2, '25 stars × $0.016 / $2 = 0.2 TON');
+      const o = (await P.api('POST', '/api/shop/ton', { sku: 'gems_s' })).json;
+      assert.ok(o.ok && o.order.to === shopWallet && o.order.amount === '200000000' && /^OD-[0-9a-f]{10}$/.test(o.order.comment), JSON.stringify(o));
+      const gems0 = U.loadState(env5.ctx, 8301).gems;
+      const check = async () => { env5.advance(6000); return (await P.api('POST', '/api/shop/ton/check', { id: o.order.id })).json; };
+      assert.equal((await check()).paid, false);
+      const tx = (val, comment, hash) => ({ transaction_id: { lt: '1', hash }, in_msg: { source: 'EQsender', value: val, message: comment } });
+      chain = [tx('199000000', o.order.comment, 'h_low'), tx('500000000', 'OD-0000000000', 'h_other')];
+      assert.equal((await check()).paid, false, 'too little or wrong comment does not pay');
+      chain.push({ transaction_id: { lt: '2', hash: 'h_ok' }, in_msg: { source: 'EQsender', value: '200000000', msg_data: { '@type': 'msg.dataText', text: Buffer.from(o.order.comment).toString('base64') } } });
+      assert.equal((await check()).paid, true);
+      assert.equal(U.loadState(env5.ctx, 8301).gems - gems0, 15);
+      assert.equal((await check()).paid, true);
+      assert.equal(U.loadState(env5.ctx, 8301).gems - gems0, 15, 'never granted twice');
+      // another player cannot check someone else's order
+      const Q = new Player(env5, 8302); await Q.auth();
+      assert.equal((await Q.api('POST', '/api/shop/ton/check', { id: o.order.id })).json.err, 'unavailable');
+      // background sweep credits an order the player never checked, and the supporter bonus turns on
+      const o2 = (await Q.api('POST', '/api/shop/ton', { sku: 'starter' })).json;
+      chain.push(tx('600000000', o2.order.comment, 'h_q'));
+      env5.advance(6000);
+      const r = await require('../server/tonpay.js').sweep(env5.ctx, env5.clock.t);
+      assert.equal(r.paid, 1);
+      assert.equal((await Q.api('POST', '/api/shop/ton', { sku: 'starter' })).json.err, 'unavailable', 'one-time item cannot be bought again');
+      assert.ok(Eco.supporterUntil(env5.ctx, 8302, env5.clock.t) > env5.clock.t);
+    });
+    await test('TON comment BOC built by the client parses as a text comment', async () => {
+      const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'src', 'net.js'), 'utf8');
+      const fn = new Function(src.match(/function commentBoc\(text\) \{[\s\S]*?\n\}/)[0] + '; return commentBoc;')();
+      const boc = Buffer.from(fn('OD-0123456789'), 'base64');
+      const parsed = Ton.bocParse(boc);
+      const root = parsed.cells ? parsed.cells[parsed.roots[0]] : parsed[0];
+      const data = Buffer.from(root.data || root.bytes);
+      assert.equal(data.readUInt32BE(0), 0);
+      assert.equal(data.subarray(4).toString('utf8'), 'OD-0123456789');
+    });
+    await env5.close();
   }
   summary();
 })();

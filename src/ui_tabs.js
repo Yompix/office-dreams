@@ -654,8 +654,9 @@ function hubShop() {
       <div class="sku-art">${it.sku === 'pass30' ? I('star3', 28) : it.sku === 'starter' ? I('gift', 28) : I('gem', 28)}</div>
       <b>${esc(it.title || it.sku)}</b>
       <small>${esc(it.desc || '')}</small>
-      ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>`}
+      ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<div class="pay2"><button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>${it.ton ? `<button class="btn sm tonb" data-act="payton:${it.sku}">${I('ton', 14)} ${it.ton} TON</button>` : ''}</div>`}
     </div>`).join('')}</div>
+    ${sh.ton ? `<p class="hint">${L('shop.ton_hint')}</p>` : ''}
     <p class="hint">${L('shop.hint', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
   </section>`;
 }

@@ -134,7 +134,7 @@ LANGS.en = {
   'top.you': 'Your place', 'top.players': 'Players: {n}', 'top.empty': 'Nobody here yet — be the first!', 'top.few': 'Only the top three so far.',
   'top.hint': 'The leaderboard updates every few seconds. Accounts under review are hidden.',
   // shop
-  'shop.title': 'Shop', 'shop.sub': 'Paid with Telegram Stars. Purchases give in-game items only.',
+  'shop.title': 'Shop', 'shop.sub': 'Pay with Telegram Stars or TON. Purchases give in-game items only.',
   'shop.hint': 'Purchases give in-game items and a Supporter status: +{p}% to gameplay points for 30 days. Office Pass also raises your daily ceiling by 25%.', 'shop.owned': 'Owned',
   'shop.paid': 'Payment received! Items are on their way.', 'shop.demo': 'The shop works in the Telegram version.',
   // challenge
@@ -274,6 +274,11 @@ LANGS.en = {
   'music.cyber': 'Cyber Deadline',
   'music.victory': 'Victory Lap',
   'music.dream': 'Office Dreams',
+  'shop.ton_hint': 'Pay with ⭐ Stars or 💎 TON — same items. TON is sent from your connected wallet and credited automatically after the blockchain confirms it (usually 10–30 s).',
+  'shop.ton_wait': 'Waiting for the TON transfer to confirm…',
+  'shop.ton_connect': 'Connect your TON wallet first, then tap the price again',
+  'shop.ton_later': 'The transfer is still on its way — the item will be credited automatically (we will message you in the bot)',
+  'err.ton_rejected': 'Payment cancelled in the wallet',
   'fb.moved': 'New office — welcome in!',
   'fb.look': 'Your office got a new look',
   'fb.title': 'NEW FLOOR!',

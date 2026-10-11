@@ -53,6 +53,9 @@ CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
 CREATE TABLE IF NOT EXISTS ad_views (id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER, ts INTEGER, day INTEGER, src TEXT);
 CREATE INDEX IF NOT EXISTS ad_views_u ON ad_views(uid, day);
 CREATE INDEX IF NOT EXISTS ad_views_src ON ad_views(src);
+CREATE TABLE IF NOT EXISTS ton_orders (id TEXT PRIMARY KEY, uid INTEGER, sku TEXT, nano TEXT, ts INTEGER, status TEXT, tx TEXT);
+CREATE INDEX IF NOT EXISTS ton_orders_u ON ton_orders(uid, ts);
+CREATE INDEX IF NOT EXISTS ton_orders_s ON ton_orders(status, ts);
 `;
 
 function open(file) {

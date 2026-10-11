@@ -702,6 +702,8 @@ button.cell:active { transform: scale(0.94); }
 .flt.cash { color: #7dff6a; text-shadow: 0 0 10px rgba(125, 255, 106, 0.9), 0 2px 0 #000; }
 .scene.moving canvas { animation: movein 1.2s ease-out; }
 @keyframes movein { 0% { filter: brightness(0); transform: scale(0.94); } 35% { filter: brightness(2.2) saturate(0.4); } 100% { filter: none; transform: none; } }
+.pay2 { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.btn.tonb { background: linear-gradient(180deg, #3aa8ff, #0a6fd8); color: #fff; box-shadow: 0 3px 0 #064a94, 0 0 14px rgba(58, 168, 255, 0.45); }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -1552,7 +1554,7 @@ LANGS.en = {
   'top.you': 'Your place', 'top.players': 'Players: {n}', 'top.empty': 'Nobody here yet — be the first!', 'top.few': 'Only the top three so far.',
   'top.hint': 'The leaderboard updates every few seconds. Accounts under review are hidden.',
   // shop
-  'shop.title': 'Shop', 'shop.sub': 'Paid with Telegram Stars. Purchases give in-game items only.',
+  'shop.title': 'Shop', 'shop.sub': 'Pay with Telegram Stars or TON. Purchases give in-game items only.',
   'shop.hint': 'Purchases give in-game items and a Supporter status: +{p}% to gameplay points for 30 days. Office Pass also raises your daily ceiling by 25%.', 'shop.owned': 'Owned',
   'shop.paid': 'Payment received! Items are on their way.', 'shop.demo': 'The shop works in the Telegram version.',
   // challenge
@@ -1692,6 +1694,11 @@ LANGS.en = {
   'music.cyber': 'Cyber Deadline',
   'music.victory': 'Victory Lap',
   'music.dream': 'Office Dreams',
+  'shop.ton_hint': 'Pay with ⭐ Stars or 💎 TON — same items. TON is sent from your connected wallet and credited automatically after the blockchain confirms it (usually 10–30 s).',
+  'shop.ton_wait': 'Waiting for the TON transfer to confirm…',
+  'shop.ton_connect': 'Connect your TON wallet first, then tap the price again',
+  'shop.ton_later': 'The transfer is still on its way — the item will be credited automatically (we will message you in the bot)',
+  'err.ton_rejected': 'Payment cancelled in the wallet',
   'fb.moved': 'New office — welcome in!',
   'fb.look': 'Your office got a new look',
   'fb.title': 'NEW FLOOR!',
@@ -1863,7 +1870,7 @@ LANGS.ru = {
   'task.invite1': 'Пригласи 1 активного друга', 'task.invite3': 'Пригласи 3 активных друзей', 'task.invite10': 'Пригласи 10 активных друзей',
   'top.you': 'Твоё место', 'top.players': 'Игроков: {n}', 'top.empty': 'Здесь пока никого — будь первым!', 'top.few': 'Пока только тройка лидеров.',
   'top.hint': 'Рейтинг обновляется каждые несколько секунд. Аккаунты на проверке скрыты.',
-  'shop.title': 'Магазин', 'shop.sub': 'Оплата Telegram Stars. Покупки дают только игровые предметы.',
+  'shop.title': 'Магазин', 'shop.sub': 'Оплата Telegram Stars или TON. Покупки дают только игровые предметы.',
   'shop.hint': 'Покупки дают игровые предметы и статус Сапортера: +{p}% к очкам за игру на 30 дней. Office Pass ещё и поднимает дневной потолок на 25%.', 'shop.owned': 'Куплено',
   'shop.paid': 'Оплата получена! Предметы уже в пути.', 'shop.demo': 'Магазин работает в версии для Telegram.',
   'chal.title': 'Быстрая проверка', 'chal.sub': 'Убедимся, что ты человек — это 2 секунды.', 'chal.odd': 'Нажми на тот, что отличается:',
@@ -1997,6 +2004,11 @@ LANGS.ru = {
   'music.cyber': 'Cyber Deadline',
   'music.victory': 'Victory Lap',
   'music.dream': 'Office Dreams',
+  'shop.ton_hint': 'Плати ⭐ Stars или 💎 TON — товары те же. TON уходит с подключённого кошелька и зачисляется сам, когда блокчейн подтвердит (обычно 10–30 с).',
+  'shop.ton_wait': 'Ждём подтверждения перевода TON…',
+  'shop.ton_connect': 'Сначала подключи TON-кошелёк, потом нажми на цену ещё раз',
+  'shop.ton_later': 'Перевод ещё идёт — покупка зачислится автоматически (бот пришлёт сообщение)',
+  'err.ton_rejected': 'Оплата отменена в кошельке',
   'fb.moved': 'Новый офис — заходите!',
   'fb.look': 'Офис сменил обстановку',
   'fb.title': 'НОВЫЙ ЭТАЖ!',
@@ -2168,7 +2180,7 @@ LANGS.uk = {
   'task.invite1': 'Запроси 1 активного друга', 'task.invite3': 'Запроси 3 активних друзів', 'task.invite10': 'Запроси 10 активних друзів',
   'top.you': 'Твоє місце', 'top.players': 'Гравців: {n}', 'top.empty': 'Тут поки нікого — будь першим!', 'top.few': 'Поки лише трійка лідерів.',
   'top.hint': 'Рейтинг оновлюється кожні кілька секунд. Акаунти на перевірці приховані.',
-  'shop.title': 'Магазин', 'shop.sub': 'Оплата Telegram Stars. Покупки дають лише ігрові предмети.',
+  'shop.title': 'Магазин', 'shop.sub': 'Оплата Telegram Stars або TON. Покупки дають лише ігрові предмети.',
   'shop.hint': 'Покупки дають ігрові предмети й статус Саппортера: +{p}% до балів за гру на 30 днів. Office Pass ще й піднімає денну стелю на 25%.', 'shop.owned': 'Куплено',
   'shop.paid': 'Оплату отримано! Предмети вже в дорозі.', 'shop.demo': 'Магазин працює у версії для Telegram.',
   'chal.title': 'Швидка перевірка', 'chal.sub': 'Переконаємося, що ти людина — це 2 секунди.', 'chal.odd': 'Натисни на той, що відрізняється:',
@@ -2302,6 +2314,11 @@ LANGS.uk = {
   'music.cyber': 'Cyber Deadline',
   'music.victory': 'Victory Lap',
   'music.dream': 'Office Dreams',
+  'shop.ton_hint': 'Плати ⭐ Stars або 💎 TON — товари ті самі. TON іде з підключеного гаманця і зараховується сам, коли блокчейн підтвердить (зазвичай 10–30 с).',
+  'shop.ton_wait': 'Чекаємо підтвердження переказу TON…',
+  'shop.ton_connect': 'Спочатку підключи TON-гаманець, потім натисни на ціну ще раз',
+  'shop.ton_later': 'Переказ ще йде — покупка зарахується автоматично (бот надішле повідомлення)',
+  'err.ton_rejected': 'Оплату скасовано в гаманці',
   'fb.moved': 'Новий офіс — заходьте!',
   'fb.look': 'Офіс змінив обстановку',
   'fb.title': 'НОВИЙ ПОВЕРХ!',
@@ -5107,6 +5124,8 @@ const netApi = {
   leaderboard: () => (NET.mode === 'online' ? api('GET', '/api/leaderboard') : Promise.resolve(demoBoard())),
   shop: () => (NET.mode === 'online' ? api('GET', '/api/shop') : Promise.resolve({ ok: true, items: [], demo: true })),
   invoice: (sku) => api('POST', '/api/shop/invoice', { sku }),
+  tonOrder: (sku) => api('POST', '/api/shop/ton', { sku }),
+  tonCheck: (id) => api('POST', '/api/shop/ton/check', { id }),
   challenge: (id, a, ts) => api('POST', '/api/challenge', { id, a, ts }),
   lang: (lang) => (NET.mode === 'online' ? api('POST', '/api/lang', { lang }) : Promise.resolve({ ok: true })),
   forget: () => api('POST', '/api/forget', { confirm: true }),
@@ -5185,19 +5204,7 @@ async function tonConnect() {
   const tc = NET.cfg.tonconnect || {};
   if (!tc.manifest) return { ok: false, err: 'not_configured' };
   try {
-    if (!window.TON_CONNECT_UI) await loadScript(tc.cdn);
-    if (!tonUI) {
-      const opts = { manifestUrl: tc.manifest };
-      if (NET.cfg.bot && NET.cfg.app) opts.actionsConfiguration = { twaReturnUrl: 'https://t.me/' + NET.cfg.bot + '/' + NET.cfg.app };
-      tonUI = new window.TON_CONNECT_UI.TonConnectUI(opts);
-      tonUI.onStatusChange(async (w) => {
-        if (!w || !w.account) return;
-        const tp = w.connectItems && w.connectItems.tonProof;
-        const body = tp && tp.proof ? { account: w.account, proof: tp.proof } : { address: w.account.address };
-        const r = await netApi.wallet(body);
-        UIH.onWallet && UIH.onWallet(r);
-      });
-    }
+    await ensureTonUI();
     if (tonUI.connected) { try { await tonUI.disconnect(); } catch (e) {} }
     const pl = await netApi.tonPayload();
     if (pl && pl.payload) tonUI.setConnectRequestParameters({ state: 'ready', value: { tonProof: pl.payload } });
@@ -5205,6 +5212,53 @@ async function tonConnect() {
     return { ok: true };
   } catch (e) {
     return { ok: false, err: 'tonconnect' };
+  }
+}
+// one TON Connect instance; restores a wallet connected earlier
+async function ensureTonUI() {
+  const tc = (NET.cfg && NET.cfg.tonconnect) || {};
+  if (!tc.manifest) throw new Error('not_configured');
+  if (!window.TON_CONNECT_UI) await loadScript(tc.cdn);
+  if (!tonUI) {
+    const opts = { manifestUrl: tc.manifest };
+    if (NET.cfg.bot && NET.cfg.app) opts.actionsConfiguration = { twaReturnUrl: 'https://t.me/' + NET.cfg.bot + '/' + NET.cfg.app };
+    tonUI = new window.TON_CONNECT_UI.TonConnectUI(opts);
+    tonUI.onStatusChange(async (w) => {
+      if (!w || !w.account) return;
+      const tp = w.connectItems && w.connectItems.tonProof;
+      const body = tp && tp.proof ? { account: w.account, proof: tp.proof } : { address: w.account.address };
+      const r = await netApi.wallet(body);
+      UIH.onWallet && UIH.onWallet(r);
+    });
+  }
+  try { await Promise.race([tonUI.connectionRestored, new Promise((r) => setTimeout(r, 3000))]); } catch (e) {}
+  return tonUI;
+}
+// a text comment as a one-cell BOC (op 0 + utf8), base64 — what wallets show as "comment"
+function commentBoc(text) {
+  const t = new TextEncoder().encode(text);
+  const data = new Uint8Array(4 + t.length);
+  data.set(t, 4);
+  const cell = new Uint8Array(2 + data.length);
+  cell[0] = 0; cell[1] = data.length * 2;
+  cell.set(data, 2);
+  const head = [0xb5, 0xee, 0x9c, 0x72, 0x01, 0x01, 0x01, 0x01, 0x00, cell.length, 0x00];
+  const out = new Uint8Array(head.length + cell.length);
+  out.set(head, 0); out.set(cell, head.length);
+  let bin = '';
+  out.forEach((b) => { bin += String.fromCharCode(b); });
+  return btoa(bin);
+}
+// pay a shop order with TON through the connected wallet
+async function tonPay(order) {
+  let ui;
+  try { ui = await ensureTonUI(); } catch (e) { return { ok: false, err: 'tonconnect' }; }
+  if (!ui.connected) return { ok: false, err: 'need_wallet' };
+  try {
+    await ui.sendTransaction({ validUntil: order.validUntil, messages: [{ address: order.to, amount: String(order.amount), payload: commentBoc(order.comment) }] });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, err: 'ton_rejected' };
   }
 }
 async function tonDisconnect() {
@@ -6569,8 +6623,9 @@ function hubShop() {
       <div class="sku-art">${it.sku === 'pass30' ? I('star3', 28) : it.sku === 'starter' ? I('gift', 28) : I('gem', 28)}</div>
       <b>${esc(it.title || it.sku)}</b>
       <small>${esc(it.desc || '')}</small>
-      ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>`}
+      ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<div class="pay2"><button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>${it.ton ? `<button class="btn sm tonb" data-act="payton:${it.sku}">${I('ton', 14)} ${it.ton} TON</button>` : ''}</div>`}
     </div>`).join('')}</div>
+    ${sh.ton ? `<p class="hint">${L('shop.ton_hint')}</p>` : ''}
     <p class="hint">${L('shop.hint', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
   </section>`;
 }
@@ -7269,6 +7324,7 @@ const ACT = {
     }
   },
   pay: (sku) => buySku(sku),
+  payton: (sku) => buyTon(sku),
   ad: () => {
     if (UI.adBusy) return;
     const e = NET.eco && NET.eco.ads;
@@ -7328,17 +7384,44 @@ function loadHub(sub, force) {
     render();
   });
 }
+function paidJuice() {
+  toast(L('shop.paid'), 'good', 'gem');
+  confetti(140); sfx('floor'); haptic('ok');
+  [1500, 4000, 9000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
+  setTimeout(() => loadHub('shop', true), 2500);
+}
+async function buyTon(sku) {
+  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
+  if (UI.tonBusy) return toast(L('shop.ton_wait'), '');
+  UI.tonBusy = true;
+  try {
+    const r = await netApi.tonOrder(sku);
+    if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
+    const p = await tonPay(r.order);
+    if (!p.ok) {
+      if (p.err === 'need_wallet') { toast(L('shop.ton_connect'), '', 'ton'); tonConnect(); }
+      else if (p.err === 'ton_rejected') toast(L('err.ton_rejected'), 'bad');
+      else errToast(p.err);
+      return;
+    }
+    toast(L('shop.ton_wait'), '', 'ton');
+    // the transfer needs a few seconds to land in a block; then the server sees it
+    for (let i = 0; i < 30; i++) {
+      await new Promise((res) => setTimeout(res, 4000));
+      const c = await netApi.tonCheck(r.order.id);
+      if (c && c.paid) return paidJuice();
+      if (c && c.expired) break;
+    }
+    toast(L('shop.ton_later'), '', 'ton');
+  } finally { UI.tonBusy = false; }
+}
 function buySku(sku) {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
   netApi.invoice(sku).then((r) => {
     if (!r || !r.ok || !r.url) return errToast((r && r.err) || 'invoice');
     const after = (status) => {
-      if (status === 'paid') {
-        toast(L('shop.paid'), 'good', 'gem');
-        confetti(140); sfx('floor'); haptic('ok');
-        [1500, 4000, 9000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
-        setTimeout(() => loadHub('shop', true), 2500);
-      } else if (status === 'failed') errToast('pay_failed');
+      if (status === 'paid') paidJuice();
+      else if (status === 'failed') errToast('pay_failed');
     };
     if (TG && TG.openInvoice) TG.openInvoice(r.url, after);
     else openLink(r.url);

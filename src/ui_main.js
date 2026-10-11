@@ -294,6 +294,7 @@ const ACT = {
     }
   },
   pay: (sku) => buySku(sku),
+  payton: (sku) => buyTon(sku),
   ad: () => {
     if (UI.adBusy) return;
     const e = NET.eco && NET.eco.ads;
@@ -353,17 +354,44 @@ function loadHub(sub, force) {
     render();
   });
 }
+function paidJuice() {
+  toast(L('shop.paid'), 'good', 'gem');
+  confetti(140); sfx('floor'); haptic('ok');
+  [1500, 4000, 9000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
+  setTimeout(() => loadHub('shop', true), 2500);
+}
+async function buyTon(sku) {
+  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
+  if (UI.tonBusy) return toast(L('shop.ton_wait'), '');
+  UI.tonBusy = true;
+  try {
+    const r = await netApi.tonOrder(sku);
+    if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
+    const p = await tonPay(r.order);
+    if (!p.ok) {
+      if (p.err === 'need_wallet') { toast(L('shop.ton_connect'), '', 'ton'); tonConnect(); }
+      else if (p.err === 'ton_rejected') toast(L('err.ton_rejected'), 'bad');
+      else errToast(p.err);
+      return;
+    }
+    toast(L('shop.ton_wait'), '', 'ton');
+    // the transfer needs a few seconds to land in a block; then the server sees it
+    for (let i = 0; i < 30; i++) {
+      await new Promise((res) => setTimeout(res, 4000));
+      const c = await netApi.tonCheck(r.order.id);
+      if (c && c.paid) return paidJuice();
+      if (c && c.expired) break;
+    }
+    toast(L('shop.ton_later'), '', 'ton');
+  } finally { UI.tonBusy = false; }
+}
 function buySku(sku) {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
   netApi.invoice(sku).then((r) => {
     if (!r || !r.ok || !r.url) return errToast((r && r.err) || 'invoice');
     const after = (status) => {
-      if (status === 'paid') {
-        toast(L('shop.paid'), 'good', 'gem');
-        confetti(140); sfx('floor'); haptic('ok');
-        [1500, 4000, 9000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
-        setTimeout(() => loadHub('shop', true), 2500);
-      } else if (status === 'failed') errToast('pay_failed');
+      if (status === 'paid') paidJuice();
+      else if (status === 'failed') errToast('pay_failed');
     };
     if (TG && TG.openInvoice) TG.openInvoice(r.url, after);
     else openLink(r.url);

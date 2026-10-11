@@ -279,11 +279,11 @@ function canBuy(ctx, uid, sku) {
   return true;
 }
 // idempotent: Telegram may deliver successful_payment more than once
-function fulfil(ctx, uid, sku, chargeId, stars, now = Date.now()) {
+function fulfil(ctx, uid, sku, chargeId, stars, now = Date.now(), extra = {}) {
   const it = shopItem(sku);
   if (!it) return { ok: false, err: 'sku' };
   return ctx.db.tx(() => {
-    const ins = ctx.db.run('INSERT OR IGNORE INTO purchases(charge_id,uid,sku,stars,ts,meta) VALUES(?,?,?,?,?,?)', String(chargeId), uid, sku, stars, now, null);
+    const ins = ctx.db.run('INSERT OR IGNORE INTO purchases(charge_id,uid,sku,stars,ts,meta) VALUES(?,?,?,?,?,?)', String(chargeId), uid, sku, stars, now, extra.meta || null);
     if (!ins.changes) return { ok: true, dup: true };
     U.grantState(ctx, uid, { cash: it.cash || 0, gems: it.gems || 0 });
     if (it.passDays) {
@@ -295,7 +295,7 @@ function fulfil(ctx, uid, sku, chargeId, stars, now = Date.now()) {
     ctx.db.run(
       `INSERT INTO revenue(day,stars,usd,n) VALUES(?,?,?,1)
        ON CONFLICT(day) DO UPDATE SET stars=stars+excluded.stars, usd=usd+excluded.usd, n=n+1`,
-      dk, stars, stars * ctx.cfg.starUsd
+      dk, extra.usd !== undefined ? 0 : stars, extra.usd !== undefined ? extra.usd : stars * ctx.cfg.starUsd
     );
     return { ok: true, item: it };
   });

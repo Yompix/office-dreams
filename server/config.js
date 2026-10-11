@@ -52,6 +52,14 @@ function build(env) {
     tonconnectCdn: str('TONCONNECT_CDN', 'https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js'),
     turnstile: { site: str('TURNSTILE_SITEKEY'), secret: str('TURNSTILE_SECRET') },
     starUsd: num('STAR_USD', 0.013),
+    // pay with TON: the shop wallet that receives transfers; prices follow the Stars price list
+    tonPay: {
+      wallet: str('TON_PAY_WALLET'),
+      usd: num('TON_USD', 1.45), // price of 1 TON in USD — update now and then
+      starUsd: num('TON_STAR_USD', 0.016), // what a player pays for one Star, so TON prices match
+      api: str('TONCENTER_URL', 'https://toncenter.com/api/v2').replace(/\/+$/, ''),
+      key: str('TONCENTER_KEY'),
+    },
     eco: {
       dailyD: num('POINTS_DAILY_D', 300), // diminishing-returns scale per day (≈ practical daily cap)
       passBoost: num('PASS_BOOST', 1.25),

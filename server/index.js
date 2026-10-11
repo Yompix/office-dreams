@@ -5,6 +5,7 @@ const cfg = require('./config.js');
 const { createApp } = require('./app.js');
 const Bot = require('./bot.js');
 const AB = require('./antibot.js');
+const TonPay = require('./tonpay.js');
 
 function main() {
   if (!cfg.botToken && !cfg.devAuth) {
@@ -25,6 +26,8 @@ function main() {
   }, 60000));
   timers.push(setInterval(() => { try { const r = AB.sweep(ctx); if (r.changed) ctx.log('antibot sweep', r); } catch (e) { ctx.log('sweep error', e); } }, 5 * 60000));
   timers.push(setInterval(() => { try { ctx.db.raw.exec('PRAGMA wal_checkpoint(PASSIVE)'); } catch (_) { /* ignore */ } }, 10 * 60000));
+  // TON payments: credit transfers that arrived after the player closed the game
+  timers.push(setInterval(() => { TonPay.sweep(ctx).then((r) => { if (r.paid) ctx.log('ton payments credited', r); }).catch((e) => ctx.log('ton sweep', e.message)); }, 60000));
 
   let poller = null;
   if (cfg.botToken && cfg.botMode !== 'off') {

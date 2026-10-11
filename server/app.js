@@ -15,6 +15,7 @@ const Sync = require('./sync.js');
 const Ton = require('./ton.js');
 const Bot = require('./bot.js');
 const Admin = require('./admin.js');
+const TonPay = require('./tonpay.js');
 
 function createContext(cfg, opts = {}) {
   const db = DB.open(opts.dbPath || cfg.dbPath);
@@ -122,6 +123,7 @@ function publicConfig(ctx) {
     links: { channel: c.channelUrl, chat: c.chatUrl, x: c.xUrl },
     eco: { D: c.eco.dailyD, l1: c.eco.refL1, l2: c.eco.refL2, cashEach: c.eco.inviteCash, gemsEach: c.eco.inviteGems, pass: c.eco.passBoost },
     shop: Eco.SHOP,
+    tonPay: TonPay.enabled(c),
     tickMs: E.TICK * 1000,
     turnstile: c.turnstile.site || '',
     checkin: Eco.CHECKIN,
@@ -238,7 +240,8 @@ async function handleApi(ctx, req, res, url, ip) {
   if (method === 'GET' && p === '/api/leaderboard') return sendJson(res, 200, Object.assign({ ok: true }, Eco.leaderboard(ctx, uid, now)));
   if (method === 'GET' && p === '/api/shop') {
     const lang = u0.lang;
-    return sendJson(res, 200, { ok: true, items: Eco.shopView(ctx, u0).map((it) => ({ ...it, title: Bot.shopTxt(lang, it.sku)[0], desc: Bot.shopTxt(lang, it.sku)[1] })) });
+    const tonOn = TonPay.enabled(cfg);
+    return sendJson(res, 200, { ok: true, ton: tonOn, items: Eco.shopView(ctx, u0).map((it) => ({ ...it, ton: tonOn ? TonPay.tonPrice(cfg, it) : null, title: Bot.shopTxt(lang, it.sku)[0], desc: Bot.shopTxt(lang, it.sku)[1] })) });
   }
   if (method === 'POST' && p === '/api/shop/invoice') {
     const sku = String(body.sku || '');
@@ -251,6 +254,11 @@ async function handleApi(ctx, req, res, url, ip) {
     });
     if (!r.ok) return bad(res, 502, 'invoice');
     return sendJson(res, 200, { ok: true, url: r.result });
+  }
+  if (method === 'POST' && p === '/api/shop/ton') return sendJson(res, 200, TonPay.createOrder(ctx, uid, String(body.sku || ''), now));
+  if (method === 'POST' && p === '/api/shop/ton/check') {
+    const r = await TonPay.checkOrder(ctx, uid, String(body.id || ''), now);
+    return sendJson(res, 200, Object.assign(r, { eco: Eco.ecoView(ctx, U.getUser(ctx, uid), now) }));
   }
   if (method === 'POST' && p === '/api/ads/claim') {
     if (cfg.ads.callbackKey) return sendJson(res, 200, { ok: false, err: 'ads_callback', eco: Eco.ecoView(ctx, u0, now) });
