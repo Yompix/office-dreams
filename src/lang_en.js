@@ -127,7 +127,7 @@ LANGS.en = {
   'fr.list': 'Your friends', 'fr.l2': '+{n} active at level 2', 'fr.is_active': 'active', 'fr.not_active': 'not active yet', 'fr.empty': 'No friends yet. Share your link!',
   'fr.share_text': 'Build your own neon game studio with me in Office Dreams! 🏢🎮',
   // tasks
-  'task.title': 'Tasks', 'task.sub': 'One-time tasks with airdrop points.', 'task.go': 'Go', 'task.check': 'Check', 'task.tg_only': 'in Telegram',
+  'task.title': 'Tasks', 'task.sub': 'One-time tasks with airdrop points.', 'task.go': 'Go', 'task.sub_btn': "Subscribe", 'task.check': 'Check', 'task.tg_only': 'in Telegram',
   'task.channel': 'Subscribe to the channel', 'task.chat': 'Join the community chat', 'task.x': 'Follow us on X', 'task.wallet': 'Connect a TON wallet',
   'task.play3': 'Play on 3 different days', 'task.play14': 'Play on 14 different days', 'task.streak3': '3-day check-in streak', 'task.streak7': '7-day check-in streak',
   'task.invite1': 'Invite 1 active friend', 'task.invite3': 'Invite 3 active friends', 'task.invite10': 'Invite 10 active friends',

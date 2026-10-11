@@ -894,6 +894,14 @@ body::after { bottom: -48px; height: calc(46vh + 48px); animation: gridmove 6s l
 /* tab bar docked to the bottom edge again: nothing peeks out underneath it */
 #tabs { left: 0; right: 0; bottom: 0; border-radius: 22px 22px 0 0; border-bottom: 0; padding: 6px 8px calc(env(safe-area-inset-bottom, 0px) + 6px); background: rgba(6, 9, 40, 0.985); }
 #main { padding-bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + 16px); }
+.tbtns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+/* two-button tasks: buttons on their own row, full width */
+.task.two { grid-template-columns: auto minmax(0, 1fr); }
+.task.two > .t-ico { grid-column: 1; grid-row: 1; }
+.task.two > .f-t { grid-column: 2; grid-row: 1; }
+.task.two > .t-r { grid-column: 1 / -1; grid-row: 2; }
+.task.two .tbtns { display: grid; grid-template-columns: 1fr 1fr; }
+.task.two .tbtns { width: 100%; }
 </style>
 </head>
 <body>
@@ -1739,7 +1747,7 @@ LANGS.en = {
   'fr.list': 'Your friends', 'fr.l2': '+{n} active at level 2', 'fr.is_active': 'active', 'fr.not_active': 'not active yet', 'fr.empty': 'No friends yet. Share your link!',
   'fr.share_text': 'Build your own neon game studio with me in Office Dreams! 🏢🎮',
   // tasks
-  'task.title': 'Tasks', 'task.sub': 'One-time tasks with airdrop points.', 'task.go': 'Go', 'task.check': 'Check', 'task.tg_only': 'in Telegram',
+  'task.title': 'Tasks', 'task.sub': 'One-time tasks with airdrop points.', 'task.go': 'Go', 'task.sub_btn': "Subscribe", 'task.check': 'Check', 'task.tg_only': 'in Telegram',
   'task.channel': 'Subscribe to the channel', 'task.chat': 'Join the community chat', 'task.x': 'Follow us on X', 'task.wallet': 'Connect a TON wallet',
   'task.play3': 'Play on 3 different days', 'task.play14': 'Play on 14 different days', 'task.streak3': '3-day check-in streak', 'task.streak7': '7-day check-in streak',
   'task.invite1': 'Invite 1 active friend', 'task.invite3': 'Invite 3 active friends', 'task.invite10': 'Invite 10 active friends',
@@ -2133,7 +2141,7 @@ LANGS.ru = {
   'fr.rule4': 'Фейковые аккаунты не засчитываются и могут заморозить награды пригласившего.',
   'fr.list': 'Твои друзья', 'fr.l2': '+{n} активных на 2 уровне', 'fr.is_active': 'активен', 'fr.not_active': 'ещё не активен', 'fr.empty': 'Пока никого. Поделись ссылкой!',
   'fr.share_text': 'Строй со мной свою неоновую игровую студию в Office Dreams! 🏢🎮',
-  'task.title': 'Задания', 'task.sub': 'Разовые задания с очками аирдропа.', 'task.go': 'Перейти', 'task.check': 'Проверить', 'task.tg_only': 'в Telegram',
+  'task.title': 'Задания', 'task.sub': 'Разовые задания с очками аирдропа.', 'task.go': 'Перейти', 'task.sub_btn': "Подписаться", 'task.check': 'Проверить', 'task.tg_only': 'в Telegram',
   'task.channel': 'Подпишись на канал', 'task.chat': 'Вступи в чат сообщества', 'task.x': 'Подпишись на нас в X', 'task.wallet': 'Подключи TON-кошелёк',
   'task.play3': 'Поиграй 3 разных дня', 'task.play14': 'Поиграй 14 разных дней', 'task.streak3': 'Серия отметок 3 дня', 'task.streak7': 'Серия отметок 7 дней',
   'task.invite1': 'Пригласи 1 активного друга', 'task.invite3': 'Пригласи 3 активных друзей', 'task.invite10': 'Пригласи 10 активных друзей',
@@ -2519,7 +2527,7 @@ LANGS.uk = {
   'fr.rule4': 'Фейкові акаунти не зараховуються й можуть заморозити нагороди того, хто запросив.',
   'fr.list': 'Твої друзі', 'fr.l2': '+{n} активних на 2 рівні', 'fr.is_active': 'активний', 'fr.not_active': 'ще не активний', 'fr.empty': 'Поки нікого. Поділися посиланням!',
   'fr.share_text': 'Будуй зі мною свою неонову ігрову студію в Office Dreams! 🏢🎮',
-  'task.title': 'Завдання', 'task.sub': 'Разові завдання з балами аірдропу.', 'task.go': 'Перейти', 'task.check': 'Перевірити', 'task.tg_only': 'у Telegram',
+  'task.title': 'Завдання', 'task.sub': 'Разові завдання з балами аірдропу.', 'task.go': 'Перейти', 'task.sub_btn': "Підписатись", 'task.check': 'Перевірити', 'task.tg_only': 'у Telegram',
   'task.channel': 'Підпишись на канал', 'task.chat': 'Вступи в чат спільноти', 'task.x': 'Підпишись на нас у X', 'task.wallet': 'Підключи TON-гаманець',
   'task.play3': 'Пограй 3 різні дні', 'task.play14': 'Пограй 14 різних днів', 'task.streak3': 'Серія відміток 3 дні', 'task.streak7': 'Серія відміток 7 днів',
   'task.invite1': 'Запроси 1 активного друга', 'task.invite3': 'Запроси 3 активних друзів', 'task.invite10': 'Запроси 10 активних друзів',
@@ -7096,9 +7104,11 @@ function taskRow(t) {
   if (t.done) right = I('check', 18, 'grn');
   else if (t.kind === 'tg') right = `<small class="mut">${L('task.tg_only')}</small>`;
   else if (t.claimable) right = `<button class="btn sm glow" data-act="task:claim:${t.id}">${L('ui.claim')}</button>`;
-  else if (t.kind === 'visit' || t.kind === 'channel') right = `<button class="btn sm blue" data-act="task:go:${t.id}">${L('task.go')}</button>${t.kind === 'channel' || t.started ? `<button class="btn sm ghost" data-act="task:claim:${t.id}">${L('task.check')}</button>` : ''}`;
+  else if (t.kind === 'channel') right = `<div class="tbtns"><button class="btn sm blue" data-act="task:go:${t.id}">${L('task.sub_btn')}</button><button class="btn sm ghost" data-act="task:claim:${t.id}">${L('task.check')}</button></div>`;
+  else if (t.kind === 'visit') right = `<div class="tbtns"><button class="btn sm blue" data-act="task:go:${t.id}">${L('task.go')}</button>${t.started ? `<button class="btn sm ghost" data-act="task:claim:${t.id}">${L('task.check')}</button>` : ''}</div>`;
   else right = `<small class="px mut">${t.cur || 0}/${t.max}</small>`;
-  return `<div class="task ${t.done ? 'done' : ''}">
+  const two = !t.done && !t.claimable && (t.kind === 'channel' || (t.kind === 'visit' && t.started));
+  return `<div class="task ${t.done ? 'done' : ''} ${two ? 'two' : ''}">
     <span class="t-ico">${I(ico, 18)}</span>
     <div class="f-t"><b>${L('task.' + t.id)}</b><small class="mag">+${t.pts} ${L('res.pts_s')}</small></div>
     <div class="t-r">${right}</div>
@@ -7944,7 +7954,17 @@ const ACT = {
     if (what === 'go' && t) {
       if (t.url) openLink(t.url);
       if (t.kind === 'visit') netApi.taskStart(id).then(() => setTimeout(() => loadHub('tasks', true), 9000));
-      else if (t.kind === 'channel') netApi.taskStart(id);
+      else if (t.kind === 'channel') {
+        netApi.taskStart(id);
+        // when the player comes back from the channel, check right away
+        const back = () => {
+          if (document.hidden) return;
+          document.removeEventListener('visibilitychange', back);
+          setTimeout(() => ACT.task('claim', id), 1200);
+        };
+        document.addEventListener('visibilitychange', back);
+        setTimeout(() => document.removeEventListener('visibilitychange', back), 5 * 60000);
+      }
       return;
     }
     if (what === 'claim') {

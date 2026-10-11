@@ -284,7 +284,17 @@ const ACT = {
     if (what === 'go' && t) {
       if (t.url) openLink(t.url);
       if (t.kind === 'visit') netApi.taskStart(id).then(() => setTimeout(() => loadHub('tasks', true), 9000));
-      else if (t.kind === 'channel') netApi.taskStart(id);
+      else if (t.kind === 'channel') {
+        netApi.taskStart(id);
+        // when the player comes back from the channel, check right away
+        const back = () => {
+          if (document.hidden) return;
+          document.removeEventListener('visibilitychange', back);
+          setTimeout(() => ACT.task('claim', id), 1200);
+        };
+        document.addEventListener('visibilitychange', back);
+        setTimeout(() => document.removeEventListener('visibilitychange', back), 5 * 60000);
+      }
       return;
     }
     if (what === 'claim') {

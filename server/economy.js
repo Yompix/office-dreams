@@ -199,7 +199,7 @@ function taskView(ctx, u, now) {
   return taskList(ctx, u).map((t) => ({
     id: t.id, pts: t.pts, url: t.url || '', kind: t.verify,
     done: done.has(t.id),
-    claimable: !done.has(t.id) && (t.verify === 'auto' ? t.cur >= t.max : t.verify === 'visit' ? !!started[t.id] && now - started[t.id] >= 8000 : true),
+    claimable: !done.has(t.id) && (t.verify === 'auto' ? t.cur >= t.max : t.verify === 'visit' ? !!started[t.id] && now - started[t.id] >= 8000 : t.verify === 'channel' ? false : true),
     started: !!started[t.id],
     cur: t.cur === undefined ? undefined : t.cur, max: t.max,
   }));
@@ -231,7 +231,8 @@ async function taskClaim(ctx, uid, id, now) {
       ctx.log && ctx.log('channel check failed:', ctx.cfg.channel, (r && r.description) || 'no response');
       ctx.cache.channelErr = { at: now, err: (r && r.description) || 'no response' };
       const s0 = ctx.db.get('SELECT ts FROM task_starts WHERE uid=? AND task=?', uid, id);
-      if (!s0 || now - s0.ts < 8000) return { ok: false, err: 'not_member' };
+      if (!s0) { ctx.db.run('INSERT OR IGNORE INTO task_starts(uid,task,ts) VALUES(?,?,?)', uid, id, now); return { ok: false, err: 'not_member' }; }
+      if (now - s0.ts < 3000) return { ok: false, err: 'not_member' };
     } else if (!member) return { ok: false, err: 'not_member' };
   }
   // commit with a FRESH user row (the awaited call above may have interleaved with a sync)

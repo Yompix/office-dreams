@@ -618,9 +618,11 @@ function taskRow(t) {
   if (t.done) right = I('check', 18, 'grn');
   else if (t.kind === 'tg') right = `<small class="mut">${L('task.tg_only')}</small>`;
   else if (t.claimable) right = `<button class="btn sm glow" data-act="task:claim:${t.id}">${L('ui.claim')}</button>`;
-  else if (t.kind === 'visit' || t.kind === 'channel') right = `<button class="btn sm blue" data-act="task:go:${t.id}">${L('task.go')}</button>${t.kind === 'channel' || t.started ? `<button class="btn sm ghost" data-act="task:claim:${t.id}">${L('task.check')}</button>` : ''}`;
+  else if (t.kind === 'channel') right = `<div class="tbtns"><button class="btn sm blue" data-act="task:go:${t.id}">${L('task.sub_btn')}</button><button class="btn sm ghost" data-act="task:claim:${t.id}">${L('task.check')}</button></div>`;
+  else if (t.kind === 'visit') right = `<div class="tbtns"><button class="btn sm blue" data-act="task:go:${t.id}">${L('task.go')}</button>${t.started ? `<button class="btn sm ghost" data-act="task:claim:${t.id}">${L('task.check')}</button>` : ''}</div>`;
   else right = `<small class="px mut">${t.cur || 0}/${t.max}</small>`;
-  return `<div class="task ${t.done ? 'done' : ''}">
+  const two = !t.done && !t.claimable && (t.kind === 'channel' || (t.kind === 'visit' && t.started));
+  return `<div class="task ${t.done ? 'done' : ''} ${two ? 'two' : ''}">
     <span class="t-ico">${I(ico, 18)}</span>
     <div class="f-t"><b>${L('task.' + t.id)}</b><small class="mag">+${t.pts} ${L('res.pts_s')}</small></div>
     <div class="t-r">${right}</div>
