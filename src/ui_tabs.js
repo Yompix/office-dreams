@@ -198,18 +198,37 @@ function tabOffice() {
   const tp = tapPower(S);
   const ns = nextStep();
   const p = S.project;
+  const qDot = !!S.pending || claimableGoals().length > 0 || dailyClaimable().length > 0;
+  const side = [
+    ['list', 'tab:quests', 'side.tasks', 'yel', qDot],
+    ['office', 'go:studio:games', 'side.pc', 'cy', !S.project],
+    ['cart', 'tab:empire', 'side.shop', 'mag', false],
+    ['users', 'go:studio:team', 'side.team', 'cy', ROLES.some((r) => S.staff[r].lvl === 0 && S.cash >= ROLE[r].hire)],
+    ['up', 'pump', 'side.up', 'grn', S.cash >= youUpCost(S.you.lvl) && S.you.lvl < MAX_LVL],
+    ['gear', 'settings', 'side.set', 'cy', false],
+  ];
   return `
-  <section class="scene">
-    <div class="scene-wrap">
-      <canvas id="scene" width="512" height="352" aria-label="${esc(L('office.scene'))}"></canvas>
-      <canvas id="bloom" width="256" height="176" aria-hidden="true"></canvas>
-      <div class="scan" aria-hidden="true"></div>
+  <section class="panel officep">
+    <div class="op-head">
+      <div class="op-t"><h2 class="op-title">${L('office.title')}</h2><p class="sub">${L('office.slogan')}</p></div>
+      <div class="op-chips"><span class="chip cashc">${I('coin', 14)}<b data-t="cash"></b></span><span class="chip gemc">${I('gem', 14)}<b data-t="gems"></b></span></div>
     </div>
-    <div class="scene-top">
-      <span class="chip trend">${I('fire', 12)} ${L('ui.trend')}: <b>${L('genre.' + S.trend.hot)}</b></span>
-      ${buffChips()}
+    <div class="op-body">
+      <div class="scene">
+        <div class="scene-wrap">
+          <canvas id="scene" width="512" height="352" aria-label="${esc(L('office.scene'))}"></canvas>
+          <canvas id="bloom" width="256" height="176" aria-hidden="true"></canvas>
+          <div class="scan" aria-hidden="true"></div>
+        </div>
+        <div class="scene-top">
+          <span class="chip trend">${I('fire', 12)} <b>${L('genre.' + S.trend.hot)}</b></span>
+          ${buffChips()}
+        </div>
+        <button class="bubble" data-act="${ns.act}"><b class="b-h">${L('office.bubble_h')}</b><span>${esc(L(ns.k))}</span></button>
+        <span class="daychip px"><span data-t="day"></span>, <span data-t="clock"></span></span>
+      </div>
+      <nav class="side" aria-label="${esc(L('office.title'))}">${side.map((x) => `<button class="sbtn s-${x[3]}" data-act="${x[1]}"><span class="s-ico">${I(x[0], 16)}</span><span class="s-l">${L(x[2])}</span>${x[4] ? '<i class="dot"></i>' : ''}</button>`).join('')}</nav>
     </div>
-    <button class="bubble" data-act="${ns.act}"><i class="blink"></i><span>${esc(L(ns.k))}</span>${ns.act ? '<b class="chev">›</b>' : ''}</button>
   </section>
   <section class="panel workp">
     ${p ? `<div class="pmini" data-act="go:studio:games">

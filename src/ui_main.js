@@ -65,14 +65,26 @@ function bindCanvases() {
   drawScene(performance.now() / 1000);
   drawTowerCv(performance.now() / 1000);
 }
+// the scene canvas fills its box; the room is drawn "contain"-fitted with a slight zoom (sides of the floor cropped)
+const CAM = { sx: 26, sy: 0, sw: 204, sh: 176 };
 function sizeScene() {
   const cv = UI.sceneCv;
   if (!cv) return;
-  const w = cv.clientWidth || 360;
-  const dpr = window.devicePixelRatio || 1;
-  const k = Math.max(2, Math.min(6, Math.round((w * dpr) / SCN.W)));
-  if (cv.width !== SCN.W * k) { cv.width = SCN.W * k; cv.height = SCN.H * k; }
-  UI.sceneK = k;
+  const w = cv.clientWidth || 300, h = cv.clientHeight || 220;
+  const dpr = Math.min(3, window.devicePixelRatio || 1);
+  const W = Math.round(w * dpr), H = Math.round(h * dpr);
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  if (UI.bloomCv) {
+    const bw = Math.max(1, Math.round(w / 3)), bh = Math.max(1, Math.round(h / 3));
+    if (UI.bloomCv.width !== bw || UI.bloomCv.height !== bh) { UI.bloomCv.width = bw; UI.bloomCv.height = bh; }
+  }
+  UI.sceneSize = w + 'x' + h;
+}
+function camFit(W, H, crisp) {
+  let s = Math.min(W / CAM.sw, H / CAM.sh);
+  if (crisp && s >= 3) s = Math.floor(s);
+  const dw = CAM.sw * s, dh = CAM.sh * s;
+  return [Math.round((W - dw) / 2), Math.round((H - dh) / 2), Math.round(dw), Math.round(dh)];
 }
 function sceneState() {
   const canHire = {};
@@ -87,12 +99,20 @@ function sceneState() {
 function drawScene(t) {
   if (!SCENE || !UI.sceneCtx || UI.tab !== 'office') return;
   try {
+    const cv = UI.sceneCv;
+    if (UI.sceneSize !== cv.clientWidth + 'x' + cv.clientHeight) sizeScene();
     SCENE.render(sceneState(), t);
     SCENE_OFF.getContext('2d').putImageData(SCENE_IMG, 0, 0);
-    const k = UI.sceneK || 2, ctx = UI.sceneCtx;
+    const ctx = UI.sceneCtx;
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(SCENE_OFF, 0, 0, SCN.W * k, SCN.H * k);
-    if (UI.bloomCtx) UI.bloomCtx.drawImage(SCENE_OFF, 0, 0);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    const f = camFit(cv.width, cv.height, true);
+    ctx.drawImage(SCENE_OFF, CAM.sx, CAM.sy, CAM.sw, CAM.sh, f[0], f[1], f[2], f[3]);
+    if (UI.bloomCtx) {
+      const b = UI.bloomCv, g = camFit(b.width, b.height, false);
+      UI.bloomCtx.clearRect(0, 0, b.width, b.height);
+      UI.bloomCtx.drawImage(SCENE_OFF, CAM.sx, CAM.sy, CAM.sw, CAM.sh, g[0], g[1], g[2], g[3]);
+    }
   } catch (e) {}
 }
 function drawTowerCv(t) {
@@ -155,6 +175,7 @@ const ACT = {
   sub: (g, s) => { UI.sub[g] = s; render(true); if (g === 'drop') loadHub(s); },
   work: () => { if (UI.tab !== 'office') go('office'); const b = $('#workbtn'); if (b) { b.classList.add('pulse'); setTimeout(() => b.classList.remove('pulse'), 1200); } },
   sel: (r) => { UI.sel = r; render(); },
+  pump: () => { UI.sel = 'you'; go('studio', 'team'); },
   hire: (r) => { if (result(netAct('hire', r), L('toast.hired', { role: '$role.' + r + '.name' }))) confettiSmall(); },
   ups: (r) => result(netAct('ups', r), L('toast.upgraded')),
   upy: () => result(netAct('upy'), L('toast.upgraded')),
