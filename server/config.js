@@ -73,12 +73,15 @@ function build(env) {
     },
     // rewarded ads (Adsgram). Rewards are small and capped: the token pie is fixed anyway, ads only add a share of it + revenue
     ads: {
-      blockId: str('ADSGRAM_BLOCK_ID'),
+      // provider: Monetag when MONETAG_ZONE is set, otherwise Adsgram when ADSGRAM_BLOCK_ID is set
+      provider: str('MONETAG_ZONE') ? 'monetag' : str('ADSGRAM_BLOCK_ID') ? 'adsgram' : '',
+      blockId: str('MONETAG_ZONE') || str('ADSGRAM_BLOCK_ID'),
+      sdk: str('MONETAG_SDK_URL', 'https://libtl.com/sdk.js'),
       perDay: num('ADS_PER_DAY', 8),
       cooldownSec: num('ADS_COOLDOWN_SEC', 45),
       pts: num('ADS_POINTS', 4),
       usdPerView: num('ADS_USD_PER_VIEW', 0.001),
-      callbackKey: str('ADS_CALLBACK_KEY'), // if set, rewards are granted only by the ad network's server callback
+      callbackKey: str('ADS_CALLBACK_KEY') || str('MONETAG_POSTBACK_KEY'), // if set, rewards are granted only by the ad network's server callback
     },
     minGameMs: 2000,
     limits: { syncPerMin: 40, authPerMinIp: 20, apiPerMin: 90 },

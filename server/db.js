@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS pending_refs (uid INTEGER PRIMARY KEY, code TEXT, ts 
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
 CREATE TABLE IF NOT EXISTS ad_views (id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER, ts INTEGER, day INTEGER, src TEXT);
 CREATE INDEX IF NOT EXISTS ad_views_u ON ad_views(uid, day);
+CREATE INDEX IF NOT EXISTS ad_views_src ON ad_views(src);
 `;
 
 function open(file) {

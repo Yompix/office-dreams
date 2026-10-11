@@ -4709,14 +4709,35 @@ async function syncThen(fn) {
 
 /* ---------- rewarded ads (Adsgram) ---------- */
 let adCtl = null;
+function loadMonetag(a) {
+  return new Promise((res, rej) => {
+    const fn = 'show_' + a.block;
+    if (typeof window[fn] === 'function') return res(window[fn]);
+    const s = document.createElement('script');
+    s.src = a.sdk;
+    s.async = true;
+    s.setAttribute('data-zone', String(a.block));
+    s.setAttribute('data-sdk', fn);
+    s.onload = () => setTimeout(() => (typeof window[fn] === 'function' ? res(window[fn]) : rej(new Error('sdk'))), 50);
+    s.onerror = () => rej(new Error('load'));
+    document.head.appendChild(s);
+  });
+}
 async function showAd() {
   const a = NET.mode === 'online' && NET.cfg && NET.cfg.ads;
   if (!a) return { ok: false, err: 'ads_off' };
   try {
-    if (!window.Adsgram) await loadScript('https://sad.adsgram.ai/js/sad.min.js');
-    if (!adCtl) adCtl = window.Adsgram.init({ blockId: String(a.block) });
-    const res = await adCtl.show();
-    if (!res || !res.done) return { ok: false, err: 'ads_skip' };
+    if (a.provider === 'monetag') {
+      const show = await loadMonetag(a);
+      const ymid = (NET.me ? NET.me.id : 0) + '-' + Date.now().toString(36);
+      // resolves when the rewarded interstitial is closed (after Monetag confirms the view when postbacks are on)
+      await show({ type: 'end', ymid, requestVar: 'reward_btn' });
+    } else {
+      if (!window.Adsgram) await loadScript('https://sad.adsgram.ai/js/sad.min.js');
+      if (!adCtl) adCtl = window.Adsgram.init({ blockId: String(a.block) });
+      const res = await adCtl.show();
+      if (!res || !res.done) return { ok: false, err: 'ads_skip' };
+    }
   } catch (e) {
     return { ok: false, err: e && e.done === false && !e.error ? 'ads_skip' : 'ads_fail' };
   }

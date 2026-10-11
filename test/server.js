@@ -539,6 +539,24 @@ const Ton = require('../server/ton.js');
       assert.ok(r.json.ok);
     });
     await env3.close();
+    const env4 = await makeEnv({ MONETAG_ZONE: '777001', MONETAG_POSTBACK_KEY: 'mtsecret999' });
+    await test('Monetag: config, postback rewards only valued impressions, once per ymid', async () => {
+      const P = new Player(env4, 8201); await P.auth();
+      const cfg = await httpJson(env4.base, 'GET', '/api/config');
+      assert.equal(cfg.json.ads.provider, 'monetag');
+      assert.equal(cfg.json.ads.block, '777001');
+      assert.ok(cfg.json.ads.sdk.startsWith('https://'));
+      const pb = (q) => httpJson(env4.base, 'GET', '/api/ads/monetag?key=mtsecret999&' + q);
+      let r = await pb('ymid=8201-abc123&rt=non_valued&et=impression');
+      assert.ok(r.json.skipped);
+      r = await pb('ymid=8201-abc123&rt=valued&et=impression');
+      assert.ok(r.json.ok && r.json.pts === 4, JSON.stringify(r.json));
+      r = await pb('ymid=8201-abc123&rt=valued&et=impression');
+      assert.ok(r.json.dup, 'retry is not paid twice');
+      assert.equal((await httpJson(env4.base, 'GET', '/api/ads/monetag?key=nope&ymid=8201-x1y2z3&rt=valued')).status, 403);
+      assert.equal((await pb('ymid=evil&rt=valued')).status, 400);
+    });
+    await env4.close();
   }
   summary();
 })();

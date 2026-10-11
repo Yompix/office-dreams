@@ -125,7 +125,7 @@ function publicConfig(ctx) {
     tickMs: E.TICK * 1000,
     turnstile: c.turnstile.site || '',
     checkin: Eco.CHECKIN,
-    ads: c.ads.blockId ? { block: c.ads.blockId, perDay: c.ads.perDay, cooldown: c.ads.cooldownSec, pts: c.ads.pts, callback: !!c.ads.callbackKey } : null,
+    ads: c.ads.blockId ? { provider: c.ads.provider, block: c.ads.blockId, sdk: c.ads.provider === 'monetag' ? c.ads.sdk : '', perDay: c.ads.perDay, cooldown: c.ads.cooldownSec, pts: c.ads.pts, callback: !!c.ads.callbackKey } : null,
   };
 }
 function authUid(ctx, req) {
@@ -192,6 +192,18 @@ async function handleApi(ctx, req, res, url, ip) {
     const cuid = Number(url.searchParams.get('uid') || url.searchParams.get('userid') || url.searchParams.get('userId'));
     if (!Number.isSafeInteger(cuid) || cuid <= 0) return bad(res, 400, 'uid');
     return sendJson(res, 200, Eco.adReward(ctx, cuid, 'cb', now));
+  }
+  // Monetag postback: /api/ads/monetag?key=...&ymid={ymid}&rt={reward_event_type}&et={event_type}
+  if (p === '/api/ads/monetag') {
+    const key = url.searchParams.get('key') || '';
+    if (!cfg.ads.callbackKey || key.length !== cfg.ads.callbackKey.length || !crypto.timingSafeEqual(Buffer.from(key), Buffer.from(cfg.ads.callbackKey))) return bad(res, 403, 'key');
+    const ymid = String(url.searchParams.get('ymid') || '');
+    const m = /^(\d{1,15})-([a-z0-9]{4,20})$/.exec(ymid);
+    if (!m) return bad(res, 400, 'ymid');
+    const rt = url.searchParams.get('rt') || url.searchParams.get('reward_event_type') || '';
+    const et = url.searchParams.get('et') || url.searchParams.get('event_type') || 'impression';
+    if (rt !== 'valued' || et !== 'impression') return sendJson(res, 200, { ok: true, skipped: true }); // unpaid / fraud traffic gets nothing
+    return sendJson(res, 200, Eco.adReward(ctx, Number(m[1]), 'mt:' + ymid, now));
   }
 
   const uid = authUid(ctx, req);

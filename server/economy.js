@@ -320,6 +320,7 @@ function adReward(ctx, uid, src, now) {
   return ctx.db.tx(() => {
     const u = U.getUser(ctx, uid);
     if (!u || u.deleted) return { ok: false, err: 'unavailable' };
+    if (src !== 'client' && src !== 'cb' && ctx.db.get('SELECT 1 AS x FROM ad_views WHERE src=?', src)) return { ok: true, dup: true }; // postback retries
     const info = adInfo(ctx, uid, now);
     if (info.left <= 0) return { ok: false, err: 'ads_limit' };
     if (info.next > now) return { ok: false, err: 'ads_wait', next: info.next };
