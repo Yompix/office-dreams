@@ -9,6 +9,7 @@ const E = require('../src/engine.js');
 const DB = require('./db.js');
 const TG = require('./tg.js');
 const U = require('./users.js');
+const PvP = require('./pvp.js');
 const Eco = require('./economy.js');
 const AB = require('./antibot.js');
 const Sync = require('./sync.js');
@@ -235,6 +236,24 @@ async function handleApi(ctx, req, res, url, ip) {
     if (!hit(ctx, 'sync:' + uid, cfg.limits.syncPerMin, 60000, now)) return bad(res, 429, 'rate');
     const r = Sync.doSync(ctx, uid, body, now);
     return sendJson(res, r.status, r.json);
+  }
+  if (p.startsWith('/api/pvp')) {
+    // Studio Battle polls a few times a second while a fight is on: its own, roomier limit
+    if (!hit(ctx, 'pvp:' + uid, 420, 60000, now)) return bad(res, 429, 'rate');
+    const pu = U.getUser(ctx, uid);
+    if (!pu || pu.deleted) return bad(res, 404, 'nouser');
+    if (method === 'GET' && p === '/api/pvp') return sendJson(res, 200, Object.assign(PvP.info(ctx, uid, now), { link: Eco.refLink(ctx, pu.ref_code).replace('start=ref_', 'start=duel_') }));
+    if (method === 'POST' && p === '/api/pvp/find') {
+      return sendJson(res, 200, PvP.find(ctx, uid, body, now, {
+        onDuel: (bt, me, from) => {
+          const r = bt.res && bt.res[me];
+          if (r) Bot.notifyDuel(ctx, from, pu.name, r.win > 0, r.my, r.op).catch(() => {});
+        },
+      }));
+    }
+    if (method === 'POST' && p === '/api/pvp/tick') return sendJson(res, 200, PvP.tick(ctx, uid, body, now));
+    if (method === 'POST' && p === '/api/pvp/cancel') return sendJson(res, 200, PvP.cancel(ctx, uid));
+    return bad(res, 404, 'route');
   }
   if (!hit(ctx, 'api:' + uid, cfg.limits.apiPerMin, 60000, now)) return bad(res, 429, 'rate');
   const u0 = U.getUser(ctx, uid);

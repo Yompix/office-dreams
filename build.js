@@ -12,7 +12,7 @@ const css = read('src/style.css').trim();
 const FILES = [
   'src/icons.js', 'src/i18n.js', 'src/lang_en.js', 'src/lang_ru.js', 'src/lang_uk.js',
   'src/engine.js', 'src/sync_client.js', 'src/render.js',
-  'src/net.js', 'src/ui_core.js', 'src/music.js', 'src/ui_tabs.js', 'src/ui_fx.js', 'src/ui_tutorial.js', 'src/ui_main.js',
+  'src/net.js', 'src/ui_core.js', 'src/music.js', 'src/ui_tabs.js', 'src/ui_fx.js', 'src/ui_tutorial.js', 'src/ui_pvp.js', 'src/ui_main.js',
 ];
 // node-only export blocks are harmless in the browser (module is undefined) but we strip them to keep the bundle lean
 const strip = (src) => src.replace(/\nif \(typeof module !== 'undefined'\)[\s\S]*$/, '\n');

@@ -219,7 +219,7 @@ function tabOffice() {
     ['cart', 'tab:empire', 'side.shop', 'mag', false],
     ['users', 'go:studio:team', 'side.team', 'cy', ROLES.some((r) => S.staff[r].lvl === 0 && S.cash >= ROLE[r].hire)],
     ['up', 'pump', 'side.up', 'grn', S.cash >= youUpCost(S.you.lvl) && S.you.lvl < MAX_LVL],
-    ['gear', 'settings', 'side.set', 'cy', false],
+    ['sword', 'pvp', 'side.pvp', 'mag', lsGet('od2_pv_day') !== String(Math.floor(Date.now() / 86400000))],
   ];
   return `
   <section class="panel officep">

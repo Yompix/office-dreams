@@ -178,6 +178,8 @@ function go(tab, sub) {
   if (tab === 'drop') loadHub(UI.sub.drop);
 }
 const ACT = {
+  pvp: () => pvOpen(),
+  pvduel: (code) => { closeModal(); pvOpen('duel_' + code); },
   close: () => closeModal(),
   tab: (t) => { if (UI.tab === t && t === 'office') return; go(t); },
   go: (t, s) => go(t, s),
@@ -717,9 +719,10 @@ function frame(now) {
     if (UI.tapFlash > 0) UI.tapFlash = Math.max(0, UI.tapFlash - dt);
     netPump(Date.now());
     UI.liveAcc += dt;
-    if (UI.liveAcc >= 0.2) { UI.liveAcc = 0; render(); live(); tutUpdate(); }
+    // while the battle arena is open the office behind it is not redrawn (all the phone's power goes to the fight)
+    if (UI.liveAcc >= 0.2 && !UI.pvp) { UI.liveAcc = 0; render(); live(); tutUpdate(); }
     UI.sceneAcc += dt;
-    if (UI.sceneAcc >= 0.045) { UI.sceneAcc = 0; drawScene(now / 1000); }
+    if (UI.sceneAcc >= 0.045 && !UI.pvp) { UI.sceneAcc = 0; drawScene(now / 1000); }
     UI.towerAcc += dt;
     if (UI.towerAcc >= 0.25) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
   }
@@ -773,6 +776,7 @@ function wireInput() {
     try {
       TG.BackButton.onClick(() => {
         if (UI.modal) closeModal();
+        else if (UI.pvp) pvClose();
         else if (UI.tab !== 'office') go('office');
       });
     } catch (e) {}
@@ -826,5 +830,6 @@ async function boot() {
   if (!lsGet('od2_intro') && S.stats.taps < 5) setTimeout(showWelcome, 450);
   else if (S.pending) setTimeout(() => modalOrQueue(showEvent), 700);
   if (NET.mode === 'online') { setTimeout(() => loadHub('tasks'), 1500); }
+  setTimeout(pvCheckDuel, 1200);
   setTimeout(() => { if (checkinReady() && lsGet('od2_ci') !== String(Math.floor(Date.now() / 86400000))) modalOrQueue(showCheckin); }, 2500);
 }

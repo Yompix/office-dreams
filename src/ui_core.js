@@ -175,16 +175,16 @@ function closeModal(force) {
   ovl.innerHTML = '';
   syncBackButton();
   const next = UI.queue.shift();
-  if (next) setTimeout(next, 220);
+  if (next) setTimeout(() => (UI.pvp ? UI.queue.unshift(next) : next()), 220);
 }
 function modalOrQueue(fn) {
-  if (UI.modal) UI.queue.push(fn);
+  if (UI.modal || UI.pvp) UI.queue.push(fn); // nothing pops up over a running battle
   else fn();
 }
 function syncBackButton() {
   if (!TG || !TG.BackButton) return;
   try {
-    if (UI.modal || UI.tab !== 'office') TG.BackButton.show();
+    if (UI.modal || UI.pvp || UI.tab !== 'office') TG.BackButton.show();
     else TG.BackButton.hide();
   } catch (e) {}
 }

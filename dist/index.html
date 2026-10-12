@@ -902,6 +902,119 @@ body::after { bottom: -48px; height: calc(46vh + 48px); animation: gridmove 6s l
 .task.two > .t-r { grid-column: 1 / -1; grid-row: 2; }
 .task.two .tbtns { display: grid; grid-template-columns: 1fr 1fr; }
 .task.two .tbtns { width: 100%; }
+
+/* ---------- Studio Battle (PvP) arena ---------- */
+.pvp { position: fixed; inset: 0; z-index: 60; overflow-y: auto; overscroll-behavior: contain; background: #050720; animation: pvin 0.22s ease-out; -webkit-tap-highlight-color: transparent; }
+.pvp.out { animation: pvout 0.2s ease-in forwards; }
+@keyframes pvin { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
+@keyframes pvout { to { opacity: 0; transform: scale(0.98); } }
+body.pv-on #app { visibility: hidden; }
+.pv-bg { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.pv-bg i { position: absolute; width: 120vmax; height: 120vmax; border-radius: 50%; opacity: 0.55; }
+.pv-bg i:first-child { left: -70vmax; top: -60vmax; background: radial-gradient(closest-side, rgba(63, 208, 255, 0.35), transparent); }
+.pv-bg i:last-child { right: -70vmax; bottom: -60vmax; background: radial-gradient(closest-side, rgba(255, 63, 208, 0.35), transparent); }
+.pv-box { position: relative; max-width: 520px; margin: 0 auto; padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px calc(env(safe-area-inset-bottom, 0px) + 24px); display: grid; gap: 12px; min-height: 100%; align-content: start; }
+.pv-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pv-title { font-size: 15px; color: #fff; display: flex; align-items: center; gap: 8px; text-shadow: 0 0 10px var(--mag), 0 0 24px rgba(255, 63, 208, 0.6); }
+.pv-title .ico { color: var(--mag2); }
+.pv-x { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; color: var(--mut); background: rgba(255, 255, 255, 0.06); }
+.pv-sub { color: var(--mut); font-size: 13px; margin: -4px 0 0; }
+.pv-card { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 18px; background: linear-gradient(135deg, rgba(63, 208, 255, 0.12), rgba(255, 63, 208, 0.12)); border: 1.5px solid rgba(255, 255, 255, 0.12); }
+.pv-crest { flex: none; width: 74px; height: 84px; display: grid; place-items: center; font-size: 38px; clip-path: polygon(50% 0, 100% 18%, 100% 66%, 50% 100%, 0 66%, 0 18%); background: linear-gradient(180deg, #8a5a2b, #4a2c12); }
+.pv-crest.l1 { background: linear-gradient(180deg, #c9d3e6, #6b7690); }
+.pv-crest.l2 { background: linear-gradient(180deg, #ffd23f, #b07800); }
+.pv-crest.l3 { background: linear-gradient(180deg, #9ff4ff, #2a7fb0); }
+.pv-crest.l4 { background: linear-gradient(180deg, #ff3fd0, #3fd0ff); }
+.pv-crest span { filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.4)); }
+.pv-me { display: grid; gap: 5px; min-width: 0; flex: 1; }
+.pv-lg { font-weight: 800; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--cy2); }
+.pv-lg.l2 { color: var(--yel); } .pv-lg.l4 { color: var(--mag2); }
+.pv-tr b { font-size: 22px; color: var(--yel); text-shadow: 0 0 12px rgba(255, 210, 63, 0.6); }
+.pv-tr small { color: var(--mut); }
+.pv-prog { height: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.45); overflow: hidden; }
+.pv-prog i { display: block; height: 100%; background: linear-gradient(90deg, var(--yel), var(--mag)); transform-origin: left; }
+.pv-stats { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; color: var(--mut); }
+.pv-power { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 14px; background: var(--well); border: 1px solid var(--line-soft); }
+.pv-power > b { font-size: 16px; color: var(--grn); text-shadow: 0 0 10px rgba(52, 227, 122, 0.6); }
+.pv-power div { display: grid; gap: 2px; } .pv-power strong { font-size: 13px; } .pv-power small { color: var(--mut); font-size: 11.5px; }
+.pv-daily { display: grid; gap: 6px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 210, 63, 0.07); border: 1px solid rgba(255, 210, 63, 0.3); }
+.pv-daily small { color: #ffe9a6; font-size: 12px; line-height: 1.35; }
+.pv-dots { display: flex; gap: 6px; } .pv-dots i { width: 14px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.1); } .pv-dots i.on { background: var(--yel); box-shadow: 0 0 8px rgba(255, 210, 63, 0.7); }
+.pv-find { font-size: 17px; }
+.pv-online { display: flex; align-items: center; gap: 8px; justify-content: center; color: var(--mut); font-size: 12px; margin: 0; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--grn); box-shadow: 0 0 8px var(--grn); animation: softpulse 1.6s ease-in-out infinite; }
+.pv-how, .pv-topl { padding: 12px 14px; border-radius: 16px; background: var(--well); border: 1px solid var(--line-soft); }
+.pv-how h3, .pv-topl h3 { margin: 0 0 6px; font-size: 13px; color: var(--cy2); text-transform: uppercase; letter-spacing: 1px; display: flex; gap: 6px; align-items: center; }
+.pv-how ol { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; color: #d9defa; }
+.pv-topl .board li.me { background: rgba(63, 208, 255, 0.12); border-radius: 8px; }
+/* search */
+.st-search { justify-items: center; text-align: center; align-content: center; min-height: 90vh; }
+.pv-radar { position: relative; width: 190px; height: 190px; display: grid; place-items: center; margin: 18px 0 6px; }
+.pv-radar i { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255, 63, 208, 0.7); opacity: 0; animation: radar 2.4s ease-out infinite; }
+.pv-radar i:nth-child(2) { animation-delay: 0.8s; border-color: rgba(63, 208, 255, 0.7); } .pv-radar i:nth-child(3) { animation-delay: 1.6s; }
+.pv-radar span { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: radial-gradient(circle, #ff3fd0, #5a1572); box-shadow: 0 0 30px rgba(255, 63, 208, 0.8); animation: softpulse 1.2s ease-in-out infinite; }
+@keyframes radar { from { transform: scale(0.35); opacity: 0.9; } to { transform: scale(1); opacity: 0; } }
+.pv-st-t { margin: 0; font-size: 18px; }
+.pv-timer { font-size: 22px; color: var(--cy2); }
+/* fight */
+.st-fight { min-height: 100%; }
+.pv-fight { position: relative; display: grid; gap: 10px; min-height: calc(100vh - 40px); align-content: start; overflow: hidden; }
+.pv-ftop { display: flex; justify-content: space-between; align-items: center; }
+.pv-kind { font-size: 12px; font-weight: 700; color: var(--mut); }
+.pv-clock { font-size: 26px; color: #fff; text-shadow: 0 0 12px var(--cy); }
+.pv-clock.hot { color: var(--red); text-shadow: 0 0 14px var(--red); animation: softpulse 0.5s ease-in-out infinite; }
+.pv-row { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; padding: 12px; border-radius: 16px; background: var(--well); border: 1.5px solid rgba(63, 208, 255, 0.45); }
+.pv-row.op { border-color: rgba(255, 63, 208, 0.5); }
+.pv-who { display: grid; gap: 2px; min-width: 0; }
+.pv-who b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pv-who small { color: var(--mut); font-size: 11.5px; }
+.pv-sc { grid-row: span 2; align-self: center; font-size: 20px; color: var(--cy2); text-shadow: 0 0 10px var(--cy); min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
+.pv-row.op .pv-sc { color: var(--mag2); text-shadow: 0 0 10px var(--mag); }
+.pv-bar { height: 14px; border-radius: 8px; background: rgba(0, 0, 0, 0.5); overflow: hidden; }
+.pv-bar i { display: block; height: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, #1a6f9f, #3fd0ff, #9ff4ff); transition: transform 0.12s linear; }
+.pv-row.op .pv-bar i { background: linear-gradient(90deg, #9a1f86, #ff3fd0, #ff8ae6); }
+.pv-vs { justify-self: center; font-size: 14px; color: var(--yel); text-shadow: 0 0 10px rgba(255, 210, 63, 0.8); margin: -4px 0; }
+.pv-lead { text-align: center; font-weight: 800; font-size: 15px; min-height: 20px; }
+.pv-lead.lead { color: var(--grn); } .pv-lead.behind { color: var(--red); } .pv-lead.tie { color: var(--yel); }
+.pv-tap { justify-self: center; width: min(68vw, 250px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; align-content: center; gap: 4px; color: #fff; background: radial-gradient(circle at 50% 35%, #ff8ae6, #ff3fd0 45%, #6b0f5e); box-shadow: 0 0 0 6px rgba(255, 63, 208, 0.25), 0 0 40px rgba(255, 63, 208, 0.6), inset 0 -10px 0 rgba(0, 0, 0, 0.25); touch-action: manipulation; user-select: none; -webkit-user-select: none; margin-top: 4px; }
+.pv-tap span { font-size: 24px; text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35); }
+.pv-tap small { font-weight: 800; opacity: 0.9; }
+.pv-tap:disabled { filter: grayscale(0.7) brightness(0.6); }
+.pv-tap.hit { animation: tapbump 0.12s ease-out; }
+@keyframes tapbump { 50% { transform: scale(0.93); } }
+.pv-plus { position: absolute; pointer-events: none; font-size: 13px; color: var(--yel); text-shadow: 0 0 8px rgba(255, 210, 63, 0.9), 0 2px 0 #000; animation: pvplus 0.65s ease-out forwards; }
+@keyframes pvplus { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, -54px); } }
+.pv-emotes { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.pv-emotes button { width: 44px; height: 44px; border-radius: 12px; font-size: 22px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line-soft); }
+.pv-emotes button:active { transform: scale(0.9); }
+.pv-emo { position: absolute; right: 14px; top: -14px; font-size: 30px; pointer-events: none; animation: emo 1.6s ease-out forwards; }
+.pv-row.me .pv-emo { right: auto; left: 40%; }
+@keyframes emo { 0% { opacity: 0; transform: scale(0.4); } 15% { opacity: 1; transform: scale(1.25); } 30% { transform: scale(1); } 80% { opacity: 1; transform: translateY(-8px); } 100% { opacity: 0; transform: translateY(-20px); } }
+.pv-count { position: fixed; inset: 0; z-index: 2; display: grid; place-items: center; font-size: 64px; color: #fff; text-shadow: 0 0 20px var(--mag), 0 0 50px var(--mag); background: rgba(5, 7, 32, 0.55); pointer-events: none; }
+.pv-count.pop { animation: cnt 0.6s ease-out; }
+.pv-count.go { color: var(--grn); text-shadow: 0 0 20px var(--grn), 0 0 50px var(--grn); }
+@keyframes cnt { from { transform: scale(1.8); opacity: 0; } 40% { opacity: 1; } to { transform: scale(1); } }
+/* result */
+.st-result { align-content: center; min-height: 90vh; }
+.pv-res { display: grid; gap: 12px; justify-items: center; text-align: center; }
+.pv-banner { font-size: 30px; padding: 14px 22px; color: #fff; animation: skyin 0.6s cubic-bezier(.2,1.3,.4,1) both; }
+.pv-res.win .pv-banner { color: var(--yel); text-shadow: 0 0 16px var(--yel), 0 0 40px rgba(255, 210, 63, 0.7); }
+.pv-res.lose .pv-banner { color: #ff9bb8; text-shadow: 0 0 16px var(--red); }
+.pv-final { display: flex; align-items: center; gap: 14px; }
+.pv-final div { display: grid; gap: 4px; min-width: 0; } .pv-final small { color: var(--mut); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pv-final b { font-size: 24px; color: var(--cy2); } .pv-final div:last-child b { color: var(--mag2); }
+.pv-gain { display: grid; gap: 8px; justify-items: center; padding: 12px 16px; border-radius: 16px; background: var(--well); border: 1px solid var(--line-soft); width: 100%; }
+.pv-trg { font-weight: 800; font-size: 16px; } .pv-trg.up { color: var(--grn); } .pv-trg.down { color: #ff9bb8; }
+.pv-rw { display: flex; gap: 10px; align-items: baseline; } .pv-rw b { font-size: 18px; }
+.pv-res .btn { width: 100%; }
+@keyframes skyin { from { opacity: 0; transform: translateY(18px) scale(0.92); } to { opacity: 1; transform: none; } }
+.pv-invite { display: grid; gap: 10px; justify-items: center; text-align: center; }
+.pv-inv-ic { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: radial-gradient(circle, #ff3fd0, #5a1572); box-shadow: 0 0 30px rgba(255, 63, 208, 0.7); }
+.pv-invite .btn { width: 100%; }
+@media (prefers-reduced-motion: reduce) { .pv-radar i, .pv-radar span, .live-dot, .pv-clock.hot { animation: none; } }
+.pv-row .pv-who { grid-column: 1; grid-row: 1; }
+.pv-row .pv-bar { grid-column: 1; grid-row: 2; align-self: center; }
+.pv-row .pv-sc { grid-column: 2; grid-row: 1 / 3; }
 </style>
 </head>
 <body>
@@ -1542,6 +1655,19 @@ const ICONS = {
     '...........',
     '...........',
   ],
+  sword: [
+    '#.........#',
+    '##.......##',
+    '.##.....##.',
+    '..##...##..',
+    '...##.##...',
+    '....###....',
+    '...##.##...',
+    '.y##...##y.',
+    '..y.....y..',
+    '.y.y...y.y.',
+    'y.........y',
+  ],
   star3: [
     '.....y.....',
     '....yyy....',
@@ -2027,6 +2153,72 @@ LANGS.en = {
   'help.p6': 'Catch 💡 ideas over your team’s heads — a burst of progress! Tap people in the office to chat.',
   'idea.hint': '💡 Someone has an idea! Tap the light bulb for a burst of progress',
   'risk.dev': 'Developer account: test mode. Plenty of coins, no airdrop points, not shown in the top.',
+  'side.pvp': 'Battle',
+  'pv.title': 'Studio Battle',
+  'pv.sub': '30 seconds, two players — whoever builds more wins',
+  'pv.league0': 'Bronze league',
+  'pv.league1': 'Silver league',
+  'pv.league2': 'Gold league',
+  'pv.league3': 'Platinum league',
+  'pv.league4': 'Neon league',
+  'pv.trophies': 'trophies',
+  'pv.next': 'To the next league: {n}',
+  'pv.max': 'Top league!',
+  'pv.wl': '{w} wins · {l} losses',
+  'pv.best': 'Best: {n}',
+  'pv.rank': 'Rank: #{n}',
+  'pv.power': 'Studio power',
+  'pv.power_hint': 'Your team multiplies every tap: hire and upgrade people to hit harder.',
+  'pv.left': 'Rewarded battles today: {n} of {all}',
+  'pv.reward': 'Win: +{cash}',
+  'pv.first': 'First win of the day: +2 💎',
+  'pv.no_left': 'No rewards left today — battles still count for trophies',
+  'pv.find': 'Find an opponent',
+  'pv.duel': 'Challenge a friend',
+  'pv.duel_hint': 'Your friend fights your best recorded run, and you get a message with the result.',
+  'pv.duel_need': 'Play at least one battle first — then you have something to show.',
+  'pv.online': 'Searching now: {s} · fighting: {f}',
+  'pv.top': 'Top fighters',
+  'pv.empty': 'Nobody has fought yet. Be the first!',
+  'pv.how': 'How to play',
+  'pv.how1': 'Tap the button as fast as you can for 30 seconds.',
+  'pv.how2': 'Every tap is multiplied by your studio power.',
+  'pv.how3': 'More points — victory, trophies and coins.',
+  'pv.searching': 'Looking for an opponent…',
+  'pv.search_hint': 'If nobody is online right now, you will play against a recorded run of a real player.',
+  'pv.cancel': 'Cancel',
+  'pv.vs': 'VS',
+  'pv.you': 'You',
+  'pv.k_live': '🟢 Online',
+  'pv.k_rec': '📼 Player recording',
+  'pv.k_bot': '🤖 Training bot',
+  'pv.k_friend': '🤝 Friend challenge',
+  'pv.bot': 'Training bot',
+  'pv.ready': 'Get ready!',
+  'pv.go': 'GO!',
+  'pv.tap': 'TAP!',
+  'pv.lead': 'You are ahead! 🔥',
+  'pv.behind': 'Catch up! 💨',
+  'pv.tie': 'Even!',
+  'pv.wait': 'Counting the result…',
+  'pv.win': 'VICTORY!',
+  'pv.lose': 'DEFEAT',
+  'pv.draw': 'DRAW',
+  'pv.res_tr': 'Trophies: {d} → {tr}',
+  'pv.res_cash': 'Reward',
+  'pv.res_none': 'No rewards left today, but trophies still count.',
+  'pv.res_left': 'Rewarded battles left: {n}',
+  'pv.again': 'Battle again',
+  'pv.close': 'Close',
+  'pv.share_text': '⚔️ I challenge you to a Studio Battle! Try to beat my studio 😎',
+  'pv.invite_t': 'You have been challenged!',
+  'pv.invite': 'A friend challenges you to a Studio Battle. 30 seconds — who is faster?',
+  'pv.accept': 'Accept the challenge',
+  'pv.later': 'Later',
+  'pv.err_self': 'That is your own challenge 🙂 Send it to a friend!',
+  'pv.err_norun': 'This player has no recorded battle yet — finding another opponent.',
+  'pv.err': 'Could not connect to the battle. Try again.',
+  'pv.demo': 'Demo: here you fight a training bot. Online battles are in Telegram.',
 };
 
 /* ---- src/lang_ru.js ---- */
@@ -2414,6 +2606,72 @@ LANGS.ru = {
   'help.p6': 'Лови 💡 идеи над головами команды — это рывок прогресса! Нажимай на людей в офисе, чтобы поболтать.',
   'idea.hint': '💡 У сотрудника идея! Нажми на лампочку — будет рывок прогресса',
   'risk.dev': 'Аккаунт разработчика: тестовый режим. Монет вдоволь, баллы аирдропа не начисляются, в топе тебя нет.',
+  'side.pvp': 'Битва',
+  'pv.title': 'Битва студий',
+  'pv.sub': '30 секунд, два игрока, кто сделает больше — тот победил',
+  'pv.league0': 'Бронзовая лига',
+  'pv.league1': 'Серебряная лига',
+  'pv.league2': 'Золотая лига',
+  'pv.league3': 'Платиновая лига',
+  'pv.league4': 'Неоновая лига',
+  'pv.trophies': 'кубков',
+  'pv.next': 'До следующей лиги: {n}',
+  'pv.max': 'Высшая лига!',
+  'pv.wl': '{w} побед · {l} поражений',
+  'pv.best': 'Рекорд: {n}',
+  'pv.rank': 'Место в топе: #{n}',
+  'pv.power': 'Сила студии',
+  'pv.power_hint': 'Команда умножает каждый тап: нанимай и прокачивай людей — и бьёшь сильнее.',
+  'pv.left': 'Бои с наградой сегодня: {n} из {all}',
+  'pv.reward': 'Победа: +{cash}',
+  'pv.first': 'Первая победа дня: +2 💎',
+  'pv.no_left': 'Награды на сегодня закончились — дальше бои за кубки',
+  'pv.find': 'Найти соперника',
+  'pv.duel': 'Бросить вызов другу',
+  'pv.duel_hint': 'Друг сражается с твоей лучшей записью, а тебе придёт сообщение, кто победил.',
+  'pv.duel_need': 'Сначала сыграй хотя бы один бой — тогда будет что показать другу.',
+  'pv.online': 'Сейчас ищут: {s} · сражаются: {f}',
+  'pv.top': 'Лучшие бойцы',
+  'pv.empty': 'Ещё никто не сражался. Стань первым!',
+  'pv.how': 'Как играть',
+  'pv.how1': 'Тапай кнопку как можно быстрее 30 секунд.',
+  'pv.how2': 'Каждый тап умножается на силу твоей студии.',
+  'pv.how3': 'Больше очков — победа, кубки и монеты.',
+  'pv.searching': 'Ищем соперника…',
+  'pv.search_hint': 'Если сейчас никого нет онлайн — сыграешь против записи игры реального игрока.',
+  'pv.cancel': 'Отмена',
+  'pv.vs': 'VS',
+  'pv.you': 'Ты',
+  'pv.k_live': '🟢 Онлайн',
+  'pv.k_rec': '📼 Запись игрока',
+  'pv.k_bot': '🤖 Тренировочный бот',
+  'pv.k_friend': '🤝 Вызов друга',
+  'pv.bot': 'Тренировочный бот',
+  'pv.ready': 'Готовься!',
+  'pv.go': 'ВПЕРЁД!',
+  'pv.tap': 'ТАП!',
+  'pv.lead': 'Ты впереди! 🔥',
+  'pv.behind': 'Догоняй! 💨',
+  'pv.tie': 'Ровно!',
+  'pv.wait': 'Считаем результат…',
+  'pv.win': 'ПОБЕДА!',
+  'pv.lose': 'ПОРАЖЕНИЕ',
+  'pv.draw': 'НИЧЬЯ',
+  'pv.res_tr': 'Кубки: {d} → {tr}',
+  'pv.res_cash': 'Награда',
+  'pv.res_none': 'Награды на сегодня закончились, но кубки считаются.',
+  'pv.res_left': 'Боёв с наградой осталось: {n}',
+  'pv.again': 'Ещё бой',
+  'pv.close': 'Закрыть',
+  'pv.share_text': '⚔️ Бросаю тебе вызов в Битве студий! Попробуй победить мою студию 😎',
+  'pv.invite_t': 'Тебя вызвали на бой!',
+  'pv.invite': 'Друг бросает тебе вызов в Битве студий. 30 секунд — кто быстрее?',
+  'pv.accept': 'Принять вызов',
+  'pv.later': 'Позже',
+  'pv.err_self': 'Это твой собственный вызов 🙂 Отправь его другу!',
+  'pv.err_norun': 'У этого игрока ещё нет записанного боя — ищем другого соперника.',
+  'pv.err': 'Не удалось подключиться к битве. Попробуй ещё раз.',
+  'pv.demo': 'Демо: здесь ты сражаешься с тренировочным ботом. Онлайн-битвы — в Telegram.',
 };
 
 /* ---- src/lang_uk.js ---- */
@@ -2801,6 +3059,72 @@ LANGS.uk = {
   'help.p6': 'Лови 💡 ідеї над головами команди — це ривок прогресу! Натискай на людей в офісі, щоб поговорити.',
   'idea.hint': '💡 У працівника ідея! Натисни на лампочку — буде ривок прогресу',
   'risk.dev': 'Акаунт розробника: тестовий режим. Монет вдосталь, бали аірдропу не нараховуються, у топі тебе немає.',
+  'side.pvp': 'Битва',
+  'pv.title': 'Битва студій',
+  'pv.sub': '30 секунд, двоє гравців, хто зробить більше — той переміг',
+  'pv.league0': 'Бронзова ліга',
+  'pv.league1': 'Срібна ліга',
+  'pv.league2': 'Золота ліга',
+  'pv.league3': 'Платинова ліга',
+  'pv.league4': 'Неонова ліга',
+  'pv.trophies': 'кубків',
+  'pv.next': 'До наступної ліги: {n}',
+  'pv.max': 'Найвища ліга!',
+  'pv.wl': '{w} перемог · {l} поразок',
+  'pv.best': 'Рекорд: {n}',
+  'pv.rank': 'Місце в топі: #{n}',
+  'pv.power': 'Сила студії',
+  'pv.power_hint': 'Команда множить кожен тап: найми й прокачай людей — і б’єш сильніше.',
+  'pv.left': 'Бої з нагородою сьогодні: {n} з {all}',
+  'pv.reward': 'Перемога: +{cash}',
+  'pv.first': 'Перша перемога дня: +2 💎',
+  'pv.no_left': 'Нагороди на сьогодні вичерпано — далі бої за кубки',
+  'pv.find': 'Знайти суперника',
+  'pv.duel': 'Кинути виклик другу',
+  'pv.duel_hint': 'Друг б’ється з твоїм найкращим записом, а тобі прийде повідомлення, хто переміг.',
+  'pv.duel_need': 'Спершу зіграй хоча б один бій — тоді буде що показати другу.',
+  'pv.online': 'Зараз шукають: {s} · б’ються: {f}',
+  'pv.top': 'Найкращі бійці',
+  'pv.empty': 'Ще ніхто не бився. Стань першим!',
+  'pv.how': 'Як грати',
+  'pv.how1': 'Тапай кнопку якнайшвидше 30 секунд.',
+  'pv.how2': 'Кожен тап множиться на силу твоєї студії.',
+  'pv.how3': 'Більше очок — перемога, кубки й монети.',
+  'pv.searching': 'Шукаємо суперника…',
+  'pv.search_hint': 'Якщо зараз ніхто не онлайн — зіграєш проти запису гри реального гравця.',
+  'pv.cancel': 'Скасувати',
+  'pv.vs': 'VS',
+  'pv.you': 'Ти',
+  'pv.k_live': '🟢 Онлайн',
+  'pv.k_rec': '📼 Запис гравця',
+  'pv.k_bot': '🤖 Тренувальний бот',
+  'pv.k_friend': '🤝 Виклик друга',
+  'pv.bot': 'Тренувальний бот',
+  'pv.ready': 'Готуйся!',
+  'pv.go': 'ВПЕРЕД!',
+  'pv.tap': 'ТАП!',
+  'pv.lead': 'Ти попереду! 🔥',
+  'pv.behind': 'Наздоганяй! 💨',
+  'pv.tie': 'Рівно!',
+  'pv.wait': 'Рахуємо результат…',
+  'pv.win': 'ПЕРЕМОГА!',
+  'pv.lose': 'ПОРАЗКА',
+  'pv.draw': 'НІЧИЯ',
+  'pv.res_tr': 'Кубки: {d} → {tr}',
+  'pv.res_cash': 'Нагорода',
+  'pv.res_none': 'Нагороди на сьогодні вичерпано, але кубки рахуються.',
+  'pv.res_left': 'Боїв з нагородою лишилось: {n}',
+  'pv.again': 'Ще бій',
+  'pv.close': 'Закрити',
+  'pv.share_text': '⚔️ Кидаю тобі виклик у Битві студій! Спробуй перемогти мою студію 😎',
+  'pv.invite_t': 'Тебе викликали на бій!',
+  'pv.invite': 'Друг кидає тобі виклик у Битві студій. 30 секунд — хто швидший?',
+  'pv.accept': 'Прийняти виклик',
+  'pv.later': 'Пізніше',
+  'pv.err_self': 'Це твій власний виклик 🙂 Надішли його другу!',
+  'pv.err_norun': 'Цей гравець ще не має записаного бою — шукаємо іншого суперника.',
+  'pv.err': 'Не вдалося підключитися до битви. Спробуй ще раз.',
+  'pv.demo': 'Демо: тут ти б’єшся з тренувальним ботом. Онлайн-битви — у Telegram.',
 };
 
 /* ---- src/engine.js ---- */
@@ -6106,16 +6430,16 @@ function closeModal(force) {
   ovl.innerHTML = '';
   syncBackButton();
   const next = UI.queue.shift();
-  if (next) setTimeout(next, 220);
+  if (next) setTimeout(() => (UI.pvp ? UI.queue.unshift(next) : next()), 220);
 }
 function modalOrQueue(fn) {
-  if (UI.modal) UI.queue.push(fn);
+  if (UI.modal || UI.pvp) UI.queue.push(fn); // nothing pops up over a running battle
   else fn();
 }
 function syncBackButton() {
   if (!TG || !TG.BackButton) return;
   try {
-    if (UI.modal || UI.tab !== 'office') TG.BackButton.show();
+    if (UI.modal || UI.pvp || UI.tab !== 'office') TG.BackButton.show();
     else TG.BackButton.hide();
   } catch (e) {}
 }
@@ -6708,7 +7032,7 @@ function tabOffice() {
     ['cart', 'tab:empire', 'side.shop', 'mag', false],
     ['users', 'go:studio:team', 'side.team', 'cy', ROLES.some((r) => S.staff[r].lvl === 0 && S.cash >= ROLE[r].hire)],
     ['up', 'pump', 'side.up', 'grn', S.cash >= youUpCost(S.you.lvl) && S.you.lvl < MAX_LVL],
-    ['gear', 'settings', 'side.set', 'cy', false],
+    ['sword', 'pvp', 'side.pvp', 'mag', lsGet('od2_pv_day') !== String(Math.floor(Date.now() / 86400000))],
   ];
   return `
   <section class="panel officep">
@@ -7671,6 +7995,422 @@ function tutUpdate() {
   bub.style.setProperty('--ax', Math.max(18, Math.min(bw - 18, r.left + r.width / 2 - cx)) + 'px');
 }
 
+/* ---- src/ui_pvp.js ---- */
+/* ============================================================
+   OFFICE DREAMS — Studio Battle (PvP)
+   A full-screen arena over the game: lobby → search → 3-2-1 →
+   30 s tap race → result. The server owns the clock, the score
+   and the rewards; this file only shows them and counts taps.
+   ============================================================ */
+const PV = {
+  open: false, st: 'lobby', info: null, v: null, n: 0, off: 0, busy: false, timer: null, raf: 0,
+  emote: null, opEk: 0, meEk: 0, opDisp: 0, bid: '', fails: 0, lastSfx: 0, duel: '', tapsShown: 0, resAt: 0,
+};
+const PV_EMOTES = ['😎', '🔥', '😂', '😱', '👏', '💀'];
+const PV_LEAGUE = ['🥉', '🥈', '🥇', '💠', '🌈'];
+const PV_LEAGUES = [0, 150, 400, 800, 1400];
+const PV_DUR = 30000;
+
+/* ---------- transport: the real server, or a local training bot in the demo ---------- */
+const PVL = { tr: 0, w: 0, l: 0, d: 0, best: 0, b: null, q: 0 };
+function pvMult(s) { return Math.round((1 + Math.min(1, Math.log2(1 + Math.max(0, wpTotal(s))) / 6)) * 100) / 100; }
+function pvLeague(tr) { let i = 0; while (i + 1 < PV_LEAGUES.length && tr >= PV_LEAGUES[i + 1]) i++; return i; }
+function pvBotLine(seed, rate) {
+  let x = seed >>> 0 || 7;
+  const rnd = () => { x = (Math.imul(x, 1103515245) + 12345) >>> 0; return x / 4294967296; };
+  const out = [];
+  let n = 0;
+  for (let i = 0; i < 60; i++) { const r = i < 2 ? 0 : rate * (0.75 + rnd() * 0.5) * (i > 52 ? 1.15 : 1); n += Math.round(r * 0.5); out.push(n); }
+  return out;
+}
+function pvLocal(path, body) {
+  const now = Date.now();
+  const L0 = PVL;
+  const lineN = (b, t) => { const el = Math.min(t, b.end) - b.start; if (el <= 0) return 0; const i = Math.min(59, Math.floor(el / 500)); const p = i ? b.line[i - 1] : 0; return Math.round(p + (b.line[i] - p) * Math.min(1, (el - i * 500) / 500)); };
+  const viewL = () => {
+    const b = L0.b;
+    if (!b) return L0.q ? { ok: true, st: 'search', now, since: L0.q } : { ok: true, st: 'idle', now };
+    const done = now > b.end + 600;
+    const opn = lineN(b, now), sm = Math.round(b.n * b.mult * 10), so = Math.round(opn * b.mult * 10);
+    if (done && !b.res) {
+      const win = sm > so ? 1 : sm < so ? -1 : 0;
+      const d = win > 0 ? 20 : win < 0 ? -12 : 0;
+      L0.tr = Math.max(0, L0.tr + d);
+      if (win > 0) L0.w++; else if (win < 0) L0.l++; else L0.d++;
+      L0.best = Math.max(L0.best, sm);
+      b.res = { win, dTr: d, tr: L0.tr, league: pvLeague(L0.tr), cash: 0, gems: 0, rewarded: false, left: 0, my: sm, op: so, demo: true };
+    }
+    return { ok: true, st: done ? 'result' : 'battle', id: b.id, now, start: b.start, end: b.end, me: { n: b.n, mult: b.mult, score: sm, kind: 'live', tr: L0.tr, league: pvLeague(L0.tr) }, op: { name: '', kind: 'bot', tr: L0.tr, league: pvLeague(L0.tr), mult: b.mult, n: opn, score: so, e: b.e }, res: done ? b.res : null };
+  };
+  if (path === 'info') return { ok: true, demo: true, me: { tr: L0.tr, league: pvLeague(L0.tr), next: PV_LEAGUES[pvLeague(L0.tr) + 1] || null, w: L0.w, l: L0.l, d: L0.d, best: L0.best, left: 0, daily: 5, mult: pvMult(S), reward: 0, rank: null, hasRun: false }, online: { searching: 0, fighting: 0 }, top: [] };
+  if (path === 'find') { if (L0.b && !L0.b.res) return viewL(); L0.b = null; L0.q = now; return viewL(); }
+  if (path === 'cancel') { L0.q = 0; return { ok: true, st: 'idle' }; }
+  if (path === 'tick') {
+    if (L0.q && !L0.b && now - L0.q > 1600) { L0.q = 0; const seed = (now % 100000) + 1; L0.b = { id: 'demo' + seed, start: now + 3500, end: now + 3500 + PV_DUR, n: 0, mult: pvMult(S), line: pvBotLine(seed, 5.5 + L0.tr / 300), e: null }; }
+    const b = L0.b;
+    if (b && !b.res && body.n > b.n && now >= b.start && now <= b.end + 600) b.n = Math.min(body.n, Math.floor((15 * Math.min(PV_DUR, now - b.start)) / 1000) + 8);
+    if (b && !b.res && now > b.start && now < b.end && Math.random() < 0.04) b.e = { i: Math.floor(Math.random() * 6), at: now, k: ((b.e && b.e.k) || 0) + 1 };
+    return viewL();
+  }
+  return { ok: false };
+}
+function pvCall(path, body) {
+  if (NET.mode !== 'online') return Promise.resolve(pvLocal(path, body || {}));
+  const route = { info: ['GET', '/api/pvp'], find: ['POST', '/api/pvp/find'], tick: ['POST', '/api/pvp/tick'], cancel: ['POST', '/api/pvp/cancel'] }[path];
+  return http(route[0], route[1], route[0] === 'GET' ? null : body || {}, { timeout: 8000 }).then((r) => {
+    if (r.status === 401) return reauth().then((ok) => (ok ? http(route[0], route[1], route[0] === 'GET' ? null : body || {}, { timeout: 8000 }).then((x) => x.j) : null));
+    return r.j;
+  }).catch(() => null);
+}
+
+/* ---------- open / close ---------- */
+function pvEl() {
+  let el = $('#pvp');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'pvp';
+    el.className = 'pvp';
+    el.hidden = true;
+    document.body.appendChild(el);
+    el.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-pv]');
+      if (!b || b.disabled) return;
+      e.stopPropagation();
+      const [a, x] = b.dataset.pv.split(':');
+      if (PV_ACT[a]) PV_ACT[a](x);
+    });
+    el.addEventListener('pointerdown', (e) => {
+      const t = e.target.closest('.pv-tap');
+      if (t) { e.preventDefault(); pvTap(e); }
+    }, { passive: false });
+  }
+  return el;
+}
+function pvOpen(duel) {
+  ensureAudio();
+  const el = pvEl();
+  PV.open = true;
+  UI.pvp = true;
+  PV.duel = duel || '';
+  el.hidden = false;
+  el.classList.remove('out');
+  document.body.classList.add('pv-on');
+  lsSet('od2_pv_day', String(Math.floor(Date.now() / 86400000)));
+  syncBackButton();
+  if (PV.st === 'fight' || PV.st === 'search') { pvRender(); return; }
+  PV.st = 'lobby';
+  pvRender();
+  pvLoadInfo().then(() => { if (PV.duel) pvFind(PV.duel); });
+}
+function pvClose(force) {
+  if (!PV.open) return;
+  if (PV.st === 'fight' && !force) return; // a running battle is not abandoned by an accidental back swipe
+  if (PV.st === 'search') pvCall('cancel');
+  pvStop();
+  PV.open = false;
+  UI.pvp = false;
+  PV.st = 'lobby';
+  const el = pvEl();
+  el.classList.add('out');
+  setTimeout(() => { if (!PV.open) { el.hidden = true; el.innerHTML = ''; } }, 220);
+  document.body.classList.remove('pv-on');
+  syncBackButton();
+  render(true);
+  if (!UI.modal && UI.queue.length) setTimeout(UI.queue.shift(), 300);
+}
+function pvStop() {
+  if (PV.timer) { clearInterval(PV.timer); PV.timer = null; }
+  if (PV.raf) { cancelAnimationFrame(PV.raf); PV.raf = 0; }
+}
+function pvLoop() {
+  if (!PV.timer) PV.timer = setInterval(pvTick, 350);
+  if (!PV.raf) PV.raf = requestAnimationFrame(pvFrame);
+}
+async function pvLoadInfo() {
+  const r = await pvCall('info');
+  if (r && r.ok) { PV.info = r; if (PV.st === 'lobby' && PV.open) pvRender(); }
+  return r;
+}
+
+/* ---------- actions ---------- */
+const PV_ACT = {
+  close: () => pvClose(),
+  find: () => pvFind(''),
+  cancel: () => { pvCall('cancel'); pvStop(); PV.st = 'lobby'; pvRender(); },
+  again: () => { PV.st = 'lobby'; PV.v = null; pvFind(''); },
+  lobby: () => { PV.st = 'lobby'; PV.v = null; pvStop(); pvRender(); pvLoadInfo(); },
+  share: () => {
+    const link = PV.info && PV.info.link;
+    if (!link) return;
+    const url = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(L('pv.share_text'));
+    if (TG && TG.openTelegramLink) TG.openTelegramLink(url); else openLink(url);
+  },
+  emo: (i) => {
+    if (PV.st !== 'fight') return;
+    const k = Number(i);
+    PV.emote = k;
+    pvPopEmote('me', PV_EMOTES[k]);
+    haptic('light');
+  },
+};
+async function pvFind(duel) {
+  PV.st = 'search';
+  PV.v = null;
+  PV.n = 0;
+  PV.since = Date.now();
+  pvRender();
+  const r = await pvCall('find', duel ? { duel } : {});
+  PV.duel = '';
+  if (!r || !r.ok) {
+    if (r && (r.err === 'self' || r.err === 'norun')) {
+      toast(L(r.err === 'self' ? 'pv.err_self' : 'pv.err_norun'), r.err === 'self' ? '' : 'bad');
+      if (r.err === 'norun') return pvFind('');
+    } else toast(L('pv.err'), 'bad');
+    PV.st = 'lobby';
+    pvRender();
+    return;
+  }
+  pvApply(r);
+  pvLoop();
+}
+async function pvTick() {
+  if (PV.busy || !PV.open) return;
+  if (PV.st !== 'search' && PV.st !== 'fight') return;
+  PV.busy = true;
+  const body = { n: PV.n };
+  if (PV.v && PV.v.id) body.b = PV.v.id;
+  if (PV.emote !== null) { body.e = PV.emote; PV.emote = null; }
+  const r = await pvCall('tick', body);
+  PV.busy = false;
+  if (!r || !r.ok) { if (++PV.fails > 25) { toast(L('pv.err'), 'bad'); PV_ACT.lobby(); } return; }
+  PV.fails = 0;
+  pvApply(r);
+}
+function pvApply(r) {
+  if (typeof r.now === 'number') PV.off = r.now - Date.now();
+  if (r.st === 'idle') { if (PV.st === 'search' || PV.st === 'fight') { PV.st = 'lobby'; pvStop(); pvRender(); } return; }
+  if (r.st === 'search') { if (PV.st !== 'search') { PV.st = 'search'; pvRender(); } return; }
+  if (r.st === 'battle') {
+    const fresh = !PV.v || PV.v.id !== r.id;
+    PV.v = r;
+    if (fresh) { PV.n = Math.max(0, r.me.n || 0); PV.opDisp = 0; PV.opEk = r.op.e ? r.op.e.k : 0; PV.st = 'fight'; pvRender(); sfx('up'); haptic('medium'); }
+    if (r.op.e && r.op.e.k !== PV.opEk) { PV.opEk = r.op.e.k; pvPopEmote('op', PV_EMOTES[r.op.e.i] || '🔥'); }
+    return;
+  }
+  if (r.st === 'result') {
+    PV.v = r;
+    pvStop();
+    PV.st = 'result';
+    pvRender();
+    const res = r.res || {};
+    if (res.win > 0) { confetti(170); sfx('hit'); haptic('ok'); } else if (res.win < 0) { sfx('bad'); haptic('err'); } else sfx('release');
+    // coins land in the game state on the server: fetch it right away
+    if (NET.mode === 'online' && res.rewarded) setTimeout(() => netSync({ full: true }), 400);
+    pvLoadInfo();
+  }
+}
+
+/* ---------- tapping ---------- */
+function pvPhase() {
+  const v = PV.v;
+  if (!v) return 'none';
+  const now = Date.now() + PV.off;
+  return now < v.start ? 'count' : now <= v.end ? 'fight' : 'over';
+}
+function pvTap(e) {
+  if (PV.st !== 'fight' || pvPhase() !== 'fight') return;
+  PV.n++;
+  const t = performance.now();
+  if (t - PV.lastSfx > 70) { PV.lastSfx = t; sfx('tap'); }
+  haptic('light');
+  const box = $('.pv-fight');
+  if (!box) return;
+  const r = box.getBoundingClientRect();
+  const x = (e && e.clientX ? e.clientX : r.left + r.width / 2) - r.left + (Math.random() * 30 - 15);
+  const y = (e && e.clientY ? e.clientY : r.top + r.height * 0.7) - r.top - 16;
+  if (box.querySelectorAll('.pv-plus').length > 14) box.querySelector('.pv-plus').remove();
+  const p = document.createElement('span');
+  p.className = 'pv-plus px';
+  p.textContent = '+' + Math.round((PV.v.me.mult || 1) * 10);
+  p.style.left = x + 'px';
+  p.style.top = y + 'px';
+  box.appendChild(p);
+  setTimeout(() => p.remove(), 650);
+  const btn = $('.pv-tap');
+  if (btn) { btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit'); }
+}
+function pvPopEmote(who, ch) {
+  const host = $(who === 'me' ? '.pv-row.me' : '.pv-row.op');
+  if (!host) return;
+  const s = document.createElement('span');
+  s.className = 'pv-emo';
+  s.textContent = ch;
+  host.appendChild(s);
+  setTimeout(() => s.remove(), 1600);
+}
+
+/* ---------- per-frame updates of the arena (no re-render while fighting) ---------- */
+function pvFrame() {
+  PV.raf = 0;
+  if (!PV.open) return;
+  if (PV.st === 'search') {
+    const t = $('#pvSearchT');
+    if (t) { const s = Math.floor((Date.now() - (PV.since || Date.now())) / 1000); t.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+  } else if (PV.st === 'fight' && PV.v) {
+    const v = PV.v, now = Date.now() + PV.off, ph = pvPhase();
+    const cnt = $('#pvCount'), clock = $('#pvClock'), tap = $('.pv-tap');
+    if (ph === 'count') {
+      const k = Math.ceil((v.start - now) / 1000);
+      if (cnt) { const txt = k > 3 ? L('pv.ready') : String(Math.max(1, k)); if (cnt.dataset.k !== txt) { cnt.dataset.k = txt; cnt.textContent = txt; cnt.classList.remove('pop'); void cnt.offsetWidth; cnt.classList.add('pop'); if (k <= 3) sfx('blip'); } cnt.hidden = false; }
+      if (tap) tap.disabled = true;
+      if (clock) clock.textContent = '0:30';
+    } else {
+      if (cnt && !cnt.hidden) {
+        if (cnt.dataset.k !== 'go') { cnt.dataset.k = 'go'; cnt.textContent = L('pv.go'); cnt.classList.remove('pop'); void cnt.offsetWidth; cnt.classList.add('pop', 'go'); sfx('combo'); setTimeout(() => { cnt.hidden = true; }, 650); }
+      }
+      if (tap) tap.disabled = ph !== 'fight';
+      const left = Math.max(0, Math.ceil((v.end - now) / 1000));
+      if (clock) { clock.textContent = ph === 'over' ? '0:00' : '0:' + String(left).padStart(2, '0'); clock.classList.toggle('hot', left <= 5 && ph === 'fight'); }
+      if (ph === 'over') { const w = $('#pvLead'); if (w) w.textContent = L('pv.wait'); }
+    }
+    const meS = Math.round(PV.n * (v.me.mult || 1) * 10);
+    const target = v.op.score || 0;
+    PV.opDisp += (target - PV.opDisp) * 0.18;
+    if (Math.abs(target - PV.opDisp) < 1) PV.opDisp = target;
+    const opS = Math.round(PV.opDisp);
+    const top = Math.max(meS, opS, 200);
+    const bm = $('#pvBarMe'), bo = $('#pvBarOp'), sm = $('#pvScMe'), so = $('#pvScOp'), lead = $('#pvLead');
+    if (bm) bm.style.transform = 'scaleX(' + (meS / top).toFixed(3) + ')';
+    if (bo) bo.style.transform = 'scaleX(' + (opS / top).toFixed(3) + ')';
+    if (sm) sm.textContent = fmt(meS);
+    if (so) so.textContent = fmt(opS);
+    if (lead && ph === 'fight') {
+      const k = meS > opS ? 'lead' : meS < opS ? 'behind' : 'tie';
+      if (lead.dataset.k !== k) { lead.dataset.k = k; lead.textContent = L('pv.' + k); lead.className = 'pv-lead ' + k; }
+    }
+  }
+  if (PV.st === 'search' || PV.st === 'fight') PV.raf = requestAnimationFrame(pvFrame);
+}
+
+/* ---------- screens ---------- */
+function pvOpName(op) { return op.kind === 'bot' ? L('pv.bot') : (op.name || '?'); }
+function pvLeagueChip(lg) { return `<span class="pv-lg l${lg}">${PV_LEAGUE[lg]} ${L('pv.league' + lg)}</span>`; }
+function pvRender() {
+  const el = pvEl();
+  let html = '';
+  if (PV.st === 'lobby') html = pvLobby();
+  else if (PV.st === 'search') html = pvSearch();
+  else if (PV.st === 'fight') html = pvFight();
+  else if (PV.st === 'result') html = pvResult();
+  el.innerHTML = `<div class="pv-bg" aria-hidden="true"><i></i><i></i></div><div class="pv-box st-${PV.st}">${html}</div>`;
+  if (PV.st === 'search' || PV.st === 'fight') { if (!PV.raf) PV.raf = requestAnimationFrame(pvFrame); }
+}
+function pvLobby() {
+  const inf = PV.info;
+  const me = inf && inf.me;
+  const head = `<div class="pv-head"><h2 class="pv-title px">${I('sword', 18)} ${L('pv.title')}</h2><button class="pv-x" data-pv="close" aria-label="${esc(L('pv.close'))}">${I('close', 14)}</button></div>
+    <p class="pv-sub">${L('pv.sub')}</p>`;
+  if (!me) return head + '<div class="loading"></div>';
+  const lg = me.league;
+  const nextTxt = me.next ? L('pv.next', { n: fmt(me.next - me.tr) }) : L('pv.max');
+  const prog = me.next ? Math.min(1, (me.tr - PV_LEAGUES[lg]) / (me.next - PV_LEAGUES[lg])) : 1;
+  const dots = Array.from({ length: me.daily }, (_, i) => `<i class="${i < me.left ? 'on' : ''}"></i>`).join('');
+  return head + `
+    ${inf.demo ? `<div class="note">${I('info', 14)} ${L('pv.demo')}</div>` : ''}
+    <section class="pv-card">
+      <div class="pv-crest l${lg}"><span>${PV_LEAGUE[lg]}</span></div>
+      <div class="pv-me">
+        ${pvLeagueChip(lg)}
+        <div class="pv-tr"><b class="px">${fmt(me.tr)}</b> <small>${L('pv.trophies')}</small></div>
+        <div class="pv-prog"><i style="transform:scaleX(${prog.toFixed(3)})"></i></div>
+        <small class="mut">${nextTxt}</small>
+      </div>
+    </section>
+    <div class="pv-stats">
+      <div><small>${L('pv.wl', { w: me.w, l: me.l })}</small></div>
+      <div><small>${L('pv.best', { n: fmt(me.best) })}${me.rank ? ' · ' + L('pv.rank', { n: me.rank }) : ''}</small></div>
+    </div>
+    <div class="pv-power"><b class="px">×${me.mult.toFixed(2)}</b><div><strong>${L('pv.power')}</strong><small>${L('pv.power_hint')}</small></div></div>
+    ${inf.demo ? '' : `<div class="pv-daily"><div class="pv-dots">${dots}</div><small>${me.left > 0 ? L('pv.left', { n: me.left, all: me.daily }) + ' · ' + L('pv.reward', { cash: money(me.reward) }) + (me.firstWin ? '<br>' + L('pv.first') : '') : L('pv.no_left')}</small></div>`}
+    <button class="btn big glow pv-find" data-pv="find">${I('sword', 18)} ${L('pv.find')}</button>
+    ${inf.demo ? '' : `<button class="btn ghost pv-duelb" data-pv="share" ${me.hasRun ? '' : 'disabled'}>🤝 ${L('pv.duel')}</button>
+    <p class="hint">${me.hasRun ? L('pv.duel_hint') : L('pv.duel_need')}</p>`}
+    ${inf.online && !inf.demo ? `<p class="pv-online"><i class="live-dot"></i>${L('pv.online', { s: inf.online.searching, f: inf.online.fighting })}</p>` : ''}
+    <section class="pv-how"><h3>${L('pv.how')}</h3><ol><li>${L('pv.how1')}</li><li>${L('pv.how2')}</li><li>${L('pv.how3')}</li></ol></section>
+    ${inf.demo ? '' : `<section class="pv-topl"><h3>${I('trophy', 14)} ${L('pv.top')}</h3>
+      ${inf.top.length ? `<ol class="board">${inf.top.slice(0, 10).map((r) => `<li class="${r.me ? 'me' : ''}"><span class="px rk">${r.rank}</span><b>${PV_LEAGUE[r.league]} ${flag(r.country)} ${esc(r.name)}</b><span class="yel px">${fmt(r.tr)}</span></li>`).join('')}</ol>` : `<p class="sub">${L('pv.empty')}</p>`}
+    </section>`}`;
+}
+function pvSearch() {
+  return `<div class="pv-head"><h2 class="pv-title px">${I('sword', 18)} ${L('pv.title')}</h2></div>
+    <div class="pv-radar" aria-hidden="true"><i></i><i></i><i></i><span>${I('sword', 34)}</span></div>
+    <h3 class="pv-st-t">${L('pv.searching')}</h3>
+    <b class="px pv-timer" id="pvSearchT">0:00</b>
+    <p class="hint">${L('pv.search_hint')}</p>
+    <button class="btn ghost" data-pv="cancel">${L('pv.cancel')}</button>`;
+}
+function pvSideCard(sd, mine) {
+  const name = mine ? (NET.me && NET.me.name) || L('pv.you') : pvOpName(sd);
+  return `<div class="pv-who"><b>${mine ? '' : flag(sd.country) + ' '}${esc(name)}</b><small>${mine ? L('pv.you') : L('pv.k_' + sd.kind)} · ${PV_LEAGUE[sd.league || 0]} ${fmt(sd.tr || 0)} · ×${(sd.mult || 1).toFixed(2)}</small></div>`;
+}
+function pvFight() {
+  const v = PV.v;
+  return `<div class="pv-fight">
+    <div class="pv-ftop"><span class="pv-kind">${L('pv.k_' + v.op.kind)}</span><b class="px pv-clock" id="pvClock">0:30</b></div>
+    <div class="pv-row me">${pvSideCard(v.me, true)}<div class="pv-bar"><i id="pvBarMe"></i></div><b class="px pv-sc" id="pvScMe">0</b></div>
+    <div class="pv-vs px">${L('pv.vs')}</div>
+    <div class="pv-row op">${pvSideCard(v.op, false)}<div class="pv-bar"><i id="pvBarOp"></i></div><b class="px pv-sc" id="pvScOp">0</b></div>
+    <div class="pv-lead" id="pvLead">&nbsp;</div>
+    <button class="pv-tap" disabled aria-label="${esc(L('pv.tap'))}"><span class="px">${L('pv.tap')}</span><small>+${Math.round(v.me.mult * 10)}</small></button>
+    <div class="pv-emotes">${PV_EMOTES.map((e, i) => `<button data-pv="emo:${i}" aria-label="emote">${e}</button>`).join('')}</div>
+    <div class="pv-count px" id="pvCount"></div>
+  </div>`;
+}
+function pvResult() {
+  const v = PV.v, r = v.res || { win: 0, dTr: 0, tr: 0, my: 0, op: 0 };
+  const k = r.win > 0 ? 'win' : r.win < 0 ? 'lose' : 'draw';
+  return `<div class="pv-res ${k}">
+    <div class="pv-banner px">${L('pv.' + k)}</div>
+    <div class="pv-final">
+      <div><small>${L('pv.you')}</small><b class="px">${fmt(r.my)}</b></div>
+      <span class="px">:</span>
+      <div><small>${esc(pvOpName(v.op))}</small><b class="px">${fmt(r.op)}</b></div>
+    </div>
+    <p class="pv-kind">${L('pv.k_' + v.op.kind)}</p>
+    <div class="pv-gain">
+      <div class="pv-trg ${r.dTr > 0 ? 'up' : r.dTr < 0 ? 'down' : ''}">🏆 ${L('pv.res_tr', { d: (r.dTr > 0 ? '+' : '') + r.dTr, tr: fmt(r.tr) })}</div>
+      ${r.rewarded ? `<div class="pv-rw"><small>${L('pv.res_cash')}</small><b class="grn">+${money(r.cash)}</b>${r.gems ? `<b class="mag">+${r.gems} 💎</b>` : ''}</div><small class="mut">${L('pv.res_left', { n: r.left })}</small>` : r.demo ? '' : `<small class="mut">${L('pv.res_none')}</small>`}
+    </div>
+    <button class="btn big glow" data-pv="again">${I('sword', 16)} ${L('pv.again')}</button>
+    ${NET.mode === 'online' ? `<button class="btn ghost" data-pv="share">🤝 ${L('pv.duel')}</button>` : ''}
+    <button class="linkbtn" data-pv="lobby">${L('pv.close')}</button>
+  </div>`;
+}
+
+/* ---------- a friend's challenge link opened the game ---------- */
+function pvStartParam() {
+  try {
+    const hp = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+    return String((TG && TG.initDataUnsafe && TG.initDataUnsafe.start_param) || qs('tgWebAppStartParam') || hp.get('tgWebAppStartParam') || qs('startapp') || qs('start') || '');
+  } catch (e) { return ''; }
+}
+function pvCheckDuel() {
+  const sp = pvStartParam();
+  const m = /^duel_([A-Za-z0-9]{4,16})$/.exec(sp);
+  if (!m || NET.mode !== 'online') return;
+  const code = m[1].toLowerCase();
+  if (NET.eco && NET.eco.ref && NET.eco.ref.code === code) return;
+  if (lsGet('od2_duel_seen') === code) return;
+  lsSet('od2_duel_seen', code);
+  modalOrQueue(() => openModal(`<div class="pv-invite">
+    <div class="pv-inv-ic">${I('sword', 40)}</div>
+    <h2 class="h2 big">${L('pv.invite_t')}</h2>
+    <p class="ev-text">${L('pv.invite')}</p>
+    <button class="btn big glow" data-act="pvduel:${code}">${L('pv.accept')}</button>
+    <button class="linkbtn" data-act="close">${L('pv.later')}</button>
+  </div>`, { id: 'duel', mcls: 'relm' }));
+}
+
 /* ---- src/ui_main.js ---- */
 /* ============================================================
    OFFICE DREAMS — UI main: render loop, actions, modals, boot
@@ -7852,6 +8592,8 @@ function go(tab, sub) {
   if (tab === 'drop') loadHub(UI.sub.drop);
 }
 const ACT = {
+  pvp: () => pvOpen(),
+  pvduel: (code) => { closeModal(); pvOpen('duel_' + code); },
   close: () => closeModal(),
   tab: (t) => { if (UI.tab === t && t === 'office') return; go(t); },
   go: (t, s) => go(t, s),
@@ -8391,9 +9133,10 @@ function frame(now) {
     if (UI.tapFlash > 0) UI.tapFlash = Math.max(0, UI.tapFlash - dt);
     netPump(Date.now());
     UI.liveAcc += dt;
-    if (UI.liveAcc >= 0.2) { UI.liveAcc = 0; render(); live(); tutUpdate(); }
+    // while the battle arena is open the office behind it is not redrawn (all the phone's power goes to the fight)
+    if (UI.liveAcc >= 0.2 && !UI.pvp) { UI.liveAcc = 0; render(); live(); tutUpdate(); }
     UI.sceneAcc += dt;
-    if (UI.sceneAcc >= 0.045) { UI.sceneAcc = 0; drawScene(now / 1000); }
+    if (UI.sceneAcc >= 0.045 && !UI.pvp) { UI.sceneAcc = 0; drawScene(now / 1000); }
     UI.towerAcc += dt;
     if (UI.towerAcc >= 0.25) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
   }
@@ -8447,6 +9190,7 @@ function wireInput() {
     try {
       TG.BackButton.onClick(() => {
         if (UI.modal) closeModal();
+        else if (UI.pvp) pvClose();
         else if (UI.tab !== 'office') go('office');
       });
     } catch (e) {}
@@ -8500,6 +9244,7 @@ async function boot() {
   if (!lsGet('od2_intro') && S.stats.taps < 5) setTimeout(showWelcome, 450);
   else if (S.pending) setTimeout(() => modalOrQueue(showEvent), 700);
   if (NET.mode === 'online') { setTimeout(() => loadHub('tasks'), 1500); }
+  setTimeout(pvCheckDuel, 1200);
   setTimeout(() => { if (checkinReady() && lsGet('od2_ci') !== String(Math.floor(Date.now() / 86400000))) modalOrQueue(showCheckin); }, 2500);
 }
 

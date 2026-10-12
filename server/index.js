@@ -5,6 +5,7 @@ const cfg = require('./config.js');
 const { createApp } = require('./app.js');
 const Bot = require('./bot.js');
 const AB = require('./antibot.js');
+const PvP = require('./pvp.js');
 const TonPay = require('./tonpay.js');
 
 function main() {
@@ -24,6 +25,7 @@ function main() {
     const now = Date.now();
     for (const [k, v] of ctx.rate) if (now - v.t > 120000) ctx.rate.delete(k);
   }, 60000));
+  timers.push(setInterval(() => { try { PvP.sweep(ctx); } catch (e) { ctx.log('pvp sweep', e.message); } }, 5000));
   timers.push(setInterval(() => { try { const r = AB.sweep(ctx); if (r.changed) ctx.log('antibot sweep', r); } catch (e) { ctx.log('sweep error', e); } }, 5 * 60000));
   timers.push(setInterval(() => { try { ctx.db.raw.exec('PRAGMA wal_checkpoint(PASSIVE)'); } catch (_) { /* ignore */ } }, 10 * 60000));
   // TON payments: credit transfers that arrived after the player closed the game

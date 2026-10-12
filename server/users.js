@@ -15,7 +15,7 @@ function newRefCode(ctx) {
   return crypto.randomBytes(8).toString('hex');
 }
 const parseRef = (sp) => {
-  const m = /^ref_([A-Za-z0-9]{4,16})$/.exec(String(sp || ''));
+  const m = /^(?:ref|duel)_([A-Za-z0-9]{4,16})$/.exec(String(sp || ''));
   return m ? m[1].toLowerCase() : null;
 };
 const langOf = (code) => {

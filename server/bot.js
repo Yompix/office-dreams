@@ -106,7 +106,8 @@ async function handleMessage(ctx, m) {
     const code = U.parseRef(arg);
     if (code) U.setPendingRef(ctx, from.id, code, ctx.now());
     ctx.log && ctx.log('bot /start', from.id, arg || '(no param)');
-    await send(ctx, m.chat.id, t.start, playMarkup(ctx, lang, code ? 'ref_' + code : ''));
+    // a duel link is also an invite: the Play button carries it into the game
+    await send(ctx, m.chat.id, t.start, playMarkup(ctx, lang, code ? (/^duel_/i.test(arg) ? 'duel_' : 'ref_') + code : ''));
   } else if (name === 'invite') {
     const u = U.getUser(ctx, from.id);
     if (!u) return send(ctx, m.chat.id, t.start, playMarkup(ctx, lang));
@@ -180,6 +181,18 @@ const ACT_TXT = {
   ru: (n, p) => `🎉 <b>${esc(n)}</b> выпустил свою первую игру — приглашение засчитано! Тебе <b>+${p} очков</b>, монеты и кристаллы.`,
   uk: (n, p) => `🎉 <b>${esc(n)}</b> випустив свою першу гру — запрошення зараховано! Тобі <b>+${p} балів</b>, монети й кристали.`,
 };
+// a friend accepted your Studio Battle challenge
+const DUEL_TXT = {
+  en: (n, won, a, b) => `⚔️ <b>${n}</b> accepted your Studio Battle challenge and ${won ? 'beat you' : 'lost'}: <b>${a} : ${b}</b>. ${won ? 'Time for a rematch!' : 'Your studio held on! 💪'}`,
+  ru: (n, won, a, b) => `⚔️ <b>${n}</b> принял твой вызов в Битве студий и ${won ? 'победил' : 'проиграл'}: <b>${a} : ${b}</b>. ${won ? 'Пора на реванш!' : 'Твоя студия выстояла! 💪'}`,
+  uk: (n, won, a, b) => `⚔️ <b>${n}</b> прийняв твій виклик у Битві студій і ${won ? 'переміг' : 'програв'}: <b>${a} : ${b}</b>. ${won ? 'Час на реванш!' : 'Твоя студія вистояла! 💪'}`,
+};
+async function notifyDuel(ctx, challengerId, friendName, friendWon, friendScore, myScore) {
+  const r = U.getUser(ctx, challengerId);
+  if (!r || r.blocked || r.deleted) return;
+  const esc = (x) => String(x).replace(/[<>&]/g, '');
+  await send(ctx, challengerId, (DUEL_TXT[r.lang] || DUEL_TXT.en)(esc(friendName), friendWon, friendScore, myScore), playMarkup(ctx, r.lang));
+}
 async function notifyRefActive(ctx, referrerId, friendName, pts) {
   const r = U.getUser(ctx, referrerId);
   if (!r || r.blocked || r.deleted) return;
@@ -233,4 +246,4 @@ function startPolling(ctx) {
   return { stop() { stop = true; } };
 }
 
-module.exports = { T, tx, shopTxt, donateTxt, thanksTxt, notifyRefActive, handleUpdate, notifyReferral, setup, startPolling, send };
+module.exports = { T, tx, shopTxt, donateTxt, thanksTxt, notifyRefActive, notifyDuel, handleUpdate, notifyReferral, setup, startPolling, send };
