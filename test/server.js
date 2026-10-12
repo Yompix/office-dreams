@@ -779,15 +779,6 @@ const Ton = require('../server/ton.js');
       const N = new Player(env6, 7778); await N.auth();
       assert.equal(Eco.isDev(env6.ctx, 7778), false, 'only the listed id');
     });
-    await test('game topics sync with the server (no desync)', async () => {
-      const A = new Player(env6, 7790); await A.auth();
-      A.cl.act('new', 'horror', 'mini', 'Night', 'zombie');
-      for (let i = 0; i < 60; i++) { for (let k = 0; k < 3; k++) A.attempt(40 + k * 60); A.tick(1); }
-      const r = await A.sync();
-      assert.equal(r.json.ok, true, 'sync accepted: ' + JSON.stringify(r.json.err));
-      assert.equal(r.json.hash, E.stateHash(A.cl.S), 'same state on both sides');
-      assert.equal(U.loadState(env6.ctx, 7790).project.topic, 'zombie', 'server stored the topic');
-    });
     await env6.close();
   }
   summary();

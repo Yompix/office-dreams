@@ -49,24 +49,14 @@ function render(force) {
 
 /* ---------- canvases: office scene (+ bloom layer) and tower ---------- */
 let SCENE = null, SCENE_OFF = null, SCENE_IMG = null, TOWER_B = null, TOWER_IMG = null;
-// two rooms: the normal office and the skyscraper loft after the move (IPO); each keeps its own buffers
-const SCENES = {};
-const CAMS = { small: { sx: 26, sy: 0, sw: 204, sh: 176 }, big: { sx: 24, sy: 0, sw: 272, sh: 216 } };
-function useRoom(big) {
-  const k = big ? 'big' : 'small';
-  if (!SCENES[k]) {
-    const sc = createScene(big);
-    const off = document.createElement('canvas');
-    off.width = sc.W; off.height = sc.H;
-    SCENES[k] = { sc, off, img: new ImageData(new Uint8ClampedArray(sc.frame.d.buffer), sc.W, sc.H) };
-  }
-  const r = SCENES[k];
-  SCENE = r.sc; SCENE_OFF = r.off; SCENE_IMG = r.img;
-  Object.assign(CAM, CAMS[k]);
-  setRoom(big);
-}
 function bindCanvases() {
-  useRoom(isBig());
+  if (!SCENE) {
+    SCENE = createScene();
+    SCENE_OFF = document.createElement('canvas');
+    SCENE_OFF.width = SCN.W;
+    SCENE_OFF.height = SCN.H;
+    SCENE_IMG = new ImageData(new Uint8ClampedArray(SCENE.frame.d.buffer), SCN.W, SCN.H);
+  }
   UI.sceneCv = $('#scene');
   UI.bloomCv = $('#bloom');
   UI.towerCv = $('#tower');
@@ -79,7 +69,6 @@ function bindCanvases() {
 }
 // the scene canvas fills its box; the room is drawn "contain"-fitted with a slight zoom (sides of the floor cropped)
 const CAM = { sx: 26, sy: 0, sw: 204, sh: 176 };
-const isBig = () => (S.legacy || 0) >= 1;
 function sizeScene() {
   const cv = UI.sceneCv;
   if (!cv) return;
@@ -107,7 +96,6 @@ function sceneState() {
     working: !!S.project && (hiredCount(S) > 0 || UI.tapFlash > 0),
     staff: S.staff, items: S.items, turbo: S.buffs.turbo > 0, canHire,
     tapFlash: UI.tapFlash, floors: S.floors, hype: S.buffs.hype > 0,
-    big: isBig(),
     rain: !!(MUSIC.on && TRACKS[MUSIC.track] && TRACKS[MUSIC.track].rain),
   };
 }
@@ -116,7 +104,6 @@ function drawScene(t) {
   try {
     const cv = UI.sceneCv;
     if (UI.sceneSize !== cv.clientWidth + 'x' + cv.clientHeight) sizeScene();
-    if (SCENE.big !== isBig()) useRoom(isBig());
     const tier = themeTier(S.floors);
     if (UI.sceneTier !== undefined && tier > UI.sceneTier) movedIn(tier);
     UI.sceneTier = tier;
@@ -218,10 +205,9 @@ const ACT = {
     if (!tierUnlocked(S, t)) { toast(L('toast.tier_locked', { name: '$floor.' + TIERS[t].need + '.name', sub: '$floor.' + TIERS[t].need + '.sub' }), 'bad', 'lock'); return; }
     S.sel.tier = t; savePrefs(); render();
   },
-  topic: (t) => { if (!TOPIC_ORDER.includes(t)) return; S.sel.topic = t; savePrefs(); render(); },
   rename: () => { const n = GENRES[S.sel.genre].names; S.sel.name = n[UI.nameSeed++ % n.length]; savePrefs(); render(); },
   start: () => {
-    const r = netAct('new', S.sel.genre, S.sel.tier, S.sel.name, S.sel.topic);
+    const r = netAct('new', S.sel.genre, S.sel.tier, S.sel.name);
     if (r.ok) { toast(L('toast.started', { name: S.project.name }), 'good'); go('office'); ACT.work(); } else errToast(r.err);
   },
   auto: () => { netAct('auto', !S.auto); render(); },
@@ -532,9 +518,6 @@ function showRelease(d) {
     <p class="sub">${L('genre.' + g.genre)} · ${L('tier.' + g.tier)}</p>
     <div class="stars">${st}</div>
     <p class="ev-text">${L(g.score >= 9 ? 'rel.hit' : g.score >= 7 ? 'rel.good' : g.score >= 5 ? 'rel.fine' : 'rel.bad')}</p>
-    ${g.topic && d.combo !== null && d.combo !== undefined ? `<p class="combo-l c-${d.combo === 1 ? 'good' : d.combo === -1 ? 'bad' : 'ok'}">${L(d.combo === 1 ? 'rel.combo_good' : d.combo === -1 ? 'rel.combo_bad' : 'rel.combo_ok', { genre: L('genre.' + g.genre), topic: L('topic.' + g.topic) })}${d.found ? `<small>${L('rel.found')}</small>` : ''}</p>` : ''}
-    <small class="crit-h">${L('crit.title')}</small>
-    <div class="crits">${critics(g).map((c, i) => `<div class="crit" style="--i:${i}"><b class="px ${scoreClass(c.v)}">${c.v}<i>/10</i></b><span>${esc(c.n)}</span><em>${L(c.q)}</em></div>`).join('')}</div>
     <div class="stats3">
       <div><small>${L('rel.forecast')}</small><b>${money(g.total)}</b></div>
       <div><small>${L('rel.rep')}</small><b class="${d.repGain > 0 ? 'grn' : d.repGain < 0 ? 'red' : ''}">${d.repGain > 0 ? '+' : ''}${(Math.round(d.repGain * 10) / 10)}</b></div>
@@ -544,37 +527,6 @@ function showRelease(d) {
   </div>`, { id: 'release', mcls: 'relm' });
   if (g.score >= 7) confetti(g.score >= 9 ? 180 : 110);
   haptic('ok');
-}
-// four invented review outlets; their scores scatter a little around the game score (stable per game)
-const CRITICS = ['Pixel Weekly', 'NeonGamer', 'Byte Review', 'Retro Mag'];
-function critics(g) {
-  let h = (Math.imul(g.id + 7, 2654435761) ^ (g.name || '').length * 977) >>> 0;
-  const q0 = h % 3;
-  return CRITICS.map((n, i) => {
-    h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
-    const v = Math.max(1, Math.min(10, Math.round(g.score + ((h % 7) - 3) / 4)));
-    const band = v >= 8 ? 'hi' : v >= 5 ? 'mid' : 'lo';
-    return { n, v, q: 'crit.' + band + (1 + ((q0 + i) % 3)) };
-  });
-}
-// the big move after the IPO: a peek at the new skyscraper loft
-function showSkyscraper() {
-  let src = '';
-  try {
-    useRoom(true);
-    SCENE.render(sceneState(), performance.now() / 1000);
-    SCENE_OFF.getContext('2d').putImageData(SCENE_IMG, 0, 0);
-    src = SCENE_OFF.toDataURL();
-  } catch (e) {}
-  openModal(`<div class="rel sky">
-    <small class="px glow-t">IPO · ${esc(L('sky.badge'))}</small>
-    ${src ? `<div class="sky-pic"><img src="${src}" alt="" width="320" height="216"></div>` : ''}
-    <h2 class="h2 big">${L('sky.title')}</h2>
-    <p class="ev-text">${L('sky.text')}</p>
-    <button class="btn big gold" data-act="close">${L('sky.ok')}</button>
-  </div>`, { id: 'sky', mcls: 'relm' });
-  confetti(140);
-  sfx('hit');
 }
 function showWelcome() {
   openModal(`<div class="welcome">
@@ -707,7 +659,7 @@ hooks.emit = function (type, data) {
   else if (type === 'release') {
     releaseJuice(data);
     // a big celebration for the first releases and for hits; later routine releases get a toast
-    if (S.stats.released <= 3 || data.game.score >= 8.5 || data.gemGain || (data.found && data.combo)) modalOrQueue(() => showRelease(data));
+    if (S.stats.released <= 3 || data.game.score >= 8.5 || data.gemGain) modalOrQueue(() => showRelease(data));
     else { toast(L('toast.release', { name: data.game.name, score: data.game.score.toFixed(1) }), data.game.score >= 7 ? 'good' : '', 'games'); if (data.game.score >= 7) confettiSmall(); }
   }
   else if (type === 'goal') { toast(L('toast.goal', { t: '$goal.' + data.id }), 'good', 'star'); }
@@ -715,7 +667,7 @@ hooks.emit = function (type, data) {
   else if (type === 'day') toast(L('toast.day', { n: data.day, inc: money(data.income), sal: money(data.salary) }), '');
   else if (type === 'toast') toast(L(data.k), data.kind);
   else if (type === 'ending') modalOrQueue(showEnding);
-  else if (type === 'ipo') { toast(L('toast.ipo', { n: data.n }), 'good', 'crown'); setTimeout(() => modalOrQueue(showSkyscraper), 500); }
+  else if (type === 'ipo') toast(L('toast.ipo', { n: data.n }), 'good', 'crown');
   else if (type === 'bug') { sfx('blip'); updateSceneFx(); if (!lsGet('od2_bug_hint')) { lsSet('od2_bug_hint', '1'); toast(L('bug.hint'), 'bad', 'star'); } }
   else if (type === 'bugEscaped') { toast(L('bug.escaped', { n: fmt(data.loss) }), 'bad'); updateSceneFx(); }
   else if (type === 'idea') { sfx('pop'); updateSceneFx(); if (!lsGet('od2_idea_hint')) { lsSet('od2_idea_hint', '1'); toast(L('idea.hint'), 'good', 'star'); } }

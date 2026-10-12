@@ -29,7 +29,6 @@ for (const l of ['ru', 'uk']) {
 const need = new Set();
 for (const r of E.ROLES) { need.add(`role.${r}.name`); need.add(`role.${r}.perk`); }
 for (const g of E.GENRE_ORDER) need.add('genre.' + g);
-for (const t of E.TOPIC_ORDER) need.add('topic.' + t);
 for (const t of E.TIER_ORDER) need.add('tier.' + t);
 for (const f of E.FLOORS) for (const s of ['name', 'sub', 'perk']) need.add(`floor.${f.id}.${s}`);
 for (const i of E.ITEMS) for (const s of ['name', 'perk']) need.add(`item.${i.id}.${s}`);
@@ -62,7 +61,7 @@ for (const id of E.EVENT_IDS) {
 const engSrc = fs.readFileSync(path.join(root, 'src/engine.js'), 'utf8');
 for (const m of engSrc.matchAll(/'((?:log|toast)\.[a-z_]+)'/g)) need.add(m[1]);
 // literal keys used by the UI
-const KEY_NS = /^(ui|u|res|net|tab|sub|boot|intro|next|office|buff|fin|daily|role|team|genre|tier|games|quests|goals|goal|log|tag|floor|item|boost|rank|empire|ipo|end|rel|off|hub|src|ci|risk|wallet|fr|task|top|shop|chal|set|demo|toast|err|lang|side|tut|tok|help|sup|music|ads|idea|talk|bug|fb|tk2|don|topic|combo|crit|sky)\.[a-z0-9_.]+$/;
+const KEY_NS = /^(ui|u|res|net|tab|sub|boot|intro|next|office|buff|fin|daily|role|team|genre|tier|games|quests|goals|goal|log|tag|floor|item|boost|rank|empire|ipo|end|rel|off|hub|src|ci|risk|wallet|fr|task|top|shop|chal|set|demo|toast|err|lang|side|tut|tok|help|sup|music|ads|idea|talk|bug|fb|tk2|don)\.[a-z0-9_.]+$/;
 for (const f of ['ui_core.js', 'ui_tabs.js', 'ui_main.js', 'net.js', 'ui_tutorial.js', 'music.js', 'ui_fx.js']) {
   const src = fs.readFileSync(path.join(root, 'src', f), 'utf8');
   for (const m of src.matchAll(/'([a-z0-9_]+\.[a-z0-9_.]+)'/g)) {

@@ -360,12 +360,6 @@ function genreBtn(g) {
     <em class="trend ${hot ? 'hot' : cold ? 'cold' : ''}">${hot ? '▲ ×1.5' : cold ? '▼ ×0.75' : '×1'}</em>
   </button>`;
 }
-const comboCls = (k) => (k === 1 ? 'good' : k === -1 ? 'bad' : k === 0 ? 'ok' : 'new');
-function topicBtn(tp) {
-  const cls = comboCls(comboKnown(S, S.sel.genre, tp));
-  const mark = { good: '★', bad: '✕', ok: '✓', new: '?' }[cls];
-  return `<button class="tpbtn ${S.sel.topic === tp ? 'on' : ''} c-${cls}" data-act="topic:${tp}"><span>${L('topic.' + tp)}</span><em>${mark}</em></button>`;
-}
 function tierBtn(t) {
   const ok = tierUnlocked(S, t);
   return `<button class="tbtn ${S.sel.tier === t ? 'on' : ''} ${ok ? '' : 'locked'}" data-act="tier:${t}">
@@ -381,7 +375,7 @@ function currentProjectCard() {
       ${imgTag(coverURL(p.genre, p.name), 'cover lg')}
       <div class="proj-t">
         <b>${esc(p.name)}</b>
-        <small>${L('genre.' + p.genre)}${p.topic ? ' · ' + L('topic.' + p.topic) : ''} · ${L('tier.' + p.tier)} · ${L('games.score_est')} ${expectedScore(S, p.genre, p.topic).toFixed(1)}</small>
+        <small>${L('genre.' + p.genre)} · ${L('tier.' + p.tier)} · ${L('games.score_est')} ${expectedScore(S, p.genre).toFixed(1)}</small>
         <div class="bar proj"><i data-w="proj"></i><span class="px" data-t="ppct"></span></div>
         <small class="mut" data-t="peta"></small>
       </div>
@@ -396,13 +390,10 @@ function newProjectCard() {
   const sel = S.sel, ok = tierUnlocked(S, sel.tier);
   const need = projectNeed(sel.genre, sel.tier);
   const sec = need / Math.max(0.1, wpTotal(S)) / (NET.speed || 1);
-  const score = expectedScore(S, sel.genre, sel.topic);
-  const cc = comboCls(comboKnown(S, sel.genre, sel.topic));
+  const score = expectedScore(S, sel.genre);
   return `<section class="panel newp">
     <div class="sec-h"><div><h2 class="h2">${L('games.new')}</h2><p class="sub">${L('games.new_sub')}</p></div></div>
     <div class="genres">${GENRE_ORDER.map(genreBtn).join('')}</div>
-    <div class="tp-h"><small>${L('games.topic')}</small><span class="tp-st c-${cc}">${L('genre.' + sel.genre)} + ${L('topic.' + sel.topic)}: <b>${L('combo.' + cc)}</b></span></div>
-    <div class="topics">${TOPIC_ORDER.map(topicBtn).join('')}</div>
     <div class="tiers">${TIER_ORDER.map(tierBtn).join('')}</div>
     <div class="namerow">${imgTag(coverURL(sel.genre, sel.name), 'cover sm')}<div><small>${L('games.name')}</small><b>${esc(sel.name)}</b></div><button class="btn ghost sm" data-act="rename">${I('refresh', 12)} ${L('games.other')}</button></div>
     <div class="stats3">
@@ -411,14 +402,14 @@ function newProjectCard() {
       <div><small>${L('games.score_est')}</small><b>${score.toFixed(1)}</b></div>
     </div>
     <button class="btn big" data-act="start" ${ok && !S.project ? '' : 'disabled'}>${S.project ? L('games.busy') : ok ? L('games.start') : L('games.locked')}</button>
-    <p class="hint">${L('games.hint')} ${L('games.topic_hint')}</p>
+    <p class="hint">${L('games.hint')}</p>
   </section>`;
 }
 const scoreClass = (v) => (v >= 8 ? 'hi' : v >= 6 ? 'mid' : 'lo');
 function gameRow(g) {
   return `<div class="game">
     ${imgTag(coverURL(g.genre, g.name), 'cover')}
-    <div class="g-t"><b>${esc(g.name)}</b><small>${L('genre.' + g.genre)}${g.topic ? ' · ' + L('topic.' + g.topic) : ''} · ${L('tier.' + g.tier)} · ${L('ui.day', { n: g.day })}</small>
+    <div class="g-t"><b>${esc(g.name)}</b><small>${L('genre.' + g.genre)} · ${L('tier.' + g.tier)} · ${L('ui.day', { n: g.day })}</small>
       <div class="bar thin"><i data-w="gprog:${g.id}"></i></div>
       <small class="${g.active ? 'grn' : 'mut'}">${g.active ? L('games.on_sale', { rate: money(g.rate) }) : L('games.off_sale')} · <span data-t="gearn:${g.id}"></span></small></div>
     <span class="score px ${scoreClass(g.score)}">${g.score.toFixed(1)}</span>
@@ -493,7 +484,6 @@ function tabEmpire() {
         <li><span>${L('empire.earned')}</span><b>${money(S.earned)}</b></li>
         <li><span>${L('empire.rep')}</span><b>${S.rep.toFixed(1)}</b></li>
         <li><span>${L('empire.best')}</span><b>${S.stats.best ? S.stats.best.toFixed(1) : '—'}</b></li>
-        ${S.legacy ? `<li><span>🏙️ ${L('sky.badge')}</span><b class="cy">×${S.legacy}</b></li>` : ''}
         ${S.legacy ? `<li><span>${L('empire.legacy')}</span><b class="yel">+${Math.round(S.legacy * 15)}%</b></li>` : ''}
       </ul>
     </div>

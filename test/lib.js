@@ -9,7 +9,8 @@ const { createSyncClient } = require('../src/sync_client.js');
 const { startMock } = require('./mock-telegram.js');
 
 const BOT_TOKEN = '123456:TEST-TOKEN-abcdefghijklmnopqrstuvwxyz';
-const T0 = Date.UTC(2026, 9, 11, 12, 0, 0);
+// noon (UTC) of the real current day: session tokens are checked against the real clock
+const T0 = (() => { const d = new Date(); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12, 0, 0); })();
 
 async function makeEnv(envExtra = {}) {
   const mock = await startMock({});

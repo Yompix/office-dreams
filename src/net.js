@@ -197,7 +197,7 @@ function savePrefs() {
 }
 function applyPrefs(st) {
   const p = loadPrefs();
-  if (p.sel && GENRES[p.sel.genre] && TIERS[p.sel.tier]) st.sel = { genre: p.sel.genre, tier: p.sel.tier, name: String(p.sel.name || '').slice(0, 22) || st.sel.name, topic: TOPIC_ORDER.includes(p.sel.topic) ? p.sel.topic : 'mystery' };
+  if (p.sel && GENRES[p.sel.genre] && TIERS[p.sel.tier]) st.sel = { genre: p.sel.genre, tier: p.sel.tier, name: String(p.sel.name || '').slice(0, 22) || st.sel.name };
   if (p.settings && typeof p.settings === 'object') st.settings = Object.assign({ sound: true }, p.settings);
 }
 
