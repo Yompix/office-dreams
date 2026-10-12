@@ -85,7 +85,7 @@ async function main() {
   }
   await sleep(300);
   await shot(page, '03_office_tapping');
-  await ev(page, 'tutStop()');
+  await ev(page, "tutStop(); tipDone('pvp')");
   // rewarded ad (fake ad network): energy refilled, cash and a few points
   ok(!!(await page.$('[data-act="ad"]')), 'ad button shown');
   const e0 = await ev(page, 'S.energy');
@@ -257,7 +257,7 @@ async function main() {
   await p2.waitForSelector('.welcome', { timeout: 15000 });
   ok(await ev(p2, 'LANG') === 'en', 'english for p2');
   await click(p2, '[data-act="start_game"]');
-  await ev(p2, 'tutStop()');
+  await ev(p2, "tutStop(); tipDone('pvp')");
   const u2 = U.getUser(ctx, 1002);
   ok(u2 && u2.ref1 === 1001, 'referral linked');
   await ev(p2, 'go("drop","top")');

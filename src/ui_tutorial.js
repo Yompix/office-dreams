@@ -14,15 +14,26 @@ const TUT = [
   { k: 'tut.points', tab: ['drop', 'home'], target: '.ptsp', manual: true },
   { k: 'tut.token', tab: ['drop', 'token'], target: '.tokhero', manual: true },
   { k: 'tut.friends', tab: ['drop', 'friends'], target: '.invite', manual: true },
+  { k: 'tut.pvp', tab: ['office'], target: '.side [data-act="pvp"]', manual: true, done: () => !!lsGet('od2_tip_pvp') },
   { k: 'tut.done', tab: ['office'], target: null, manual: true },
 ];
 const COACH = { i: -1, el: null, scrolled: -1 };
+// one-off "new feature" hints for players who already finished the tutorial
+const TIPS = [
+  { id: 'pvp', k: 'tut.pvp_new', tab: ['office'], target: '.side [data-act="pvp"]', act: 'pvp', when: () => S.stats.taps >= 15 },
+];
+const OLD_TUT_DONE = 11; // the tutorial had 11 steps before the battle step was added: 11+ means "finished"
 
 function tutLoad() {
   const v = lsGet('od2_tut');
-  COACH.i = v === null ? -1 : Number(v);
+  COACH.i = v === null ? -1 : v === 'done' || Number(v) >= OLD_TUT_DONE ? TUT.length : Number(v);
 }
-function tutSave() { lsSet('od2_tut', String(COACH.i)); }
+function tipActive() {
+  if (COACH.i < TUT.length || UI.pvp) return null;
+  return TIPS.find((t) => !lsGet('od2_tip_' + t.id) && t.when()) || null;
+}
+function tipDone(id) { lsSet('od2_tip_' + id, '1'); }
+function tutSave() { lsSet('od2_tut', COACH.i >= TUT.length ? 'done' : String(COACH.i)); }
 function tutStart() {
   COACH.i = 0;
   tutSave();
@@ -41,6 +52,7 @@ function tutGoto() {
   if (st.tab) go(st.tab[0], st.tab[1]);
 }
 function tutNext() {
+  if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.pvp') tipDone('pvp'); // seen in the tutorial: no "new" hint later
   COACH.i++;
   tutSave();
   if (COACH.i >= TUT.length) { tutStop(); confetti(60); return; }
@@ -60,9 +72,11 @@ function tutEl() {
 }
 // called a few times per second from the main loop
 function tutUpdate() {
-  if (!tutActive() || !S) { if (COACH.el) COACH.el.hidden = true; return; }
-  const st = TUT[COACH.i];
-  if (st.done && st.done()) { tutNext(); return; }
+  if (!S) return;
+  const tip = tutActive() ? null : tipActive();
+  if (!tutActive() && !tip) { if (COACH.el) COACH.el.hidden = true; return; }
+  const st = tip || TUT[COACH.i];
+  if (!tip && st.done && st.done()) { tutNext(); return; }
   const el = tutEl();
   // never cover a modal (release, event…) — wait for it to close
   if (UI.modal) { el.hidden = true; return; }
@@ -70,8 +84,15 @@ function tutUpdate() {
   const ring = el.querySelector('.c-ring'), bub = el.querySelector('.c-bub');
   const onTab = !st.tab || (UI.tab === st.tab[0] && (!st.tab[1] || UI.sub[st.tab[0]] === st.tab[1]));
   const target = st.target && onTab ? document.querySelector(st.target) : null;
+  if (tip && !target) { el.hidden = true; return; } // a hint waits for its screen, it never drags the player around
   // text + buttons (re-rendered only when the step or language changes)
-  const sig = COACH.i + LANG + (target ? 1 : 0);
+  const sig = (tip ? 'tip' + tip.id : COACH.i) + LANG + (target ? 1 : 0);
+  if (bub.dataset.sig !== sig && tip) {
+    bub.dataset.sig = sig;
+    el.querySelector('.c-step').textContent = L('tut.new');
+    el.querySelector('.c-text').textContent = L(st.k);
+    el.querySelector('.c-btns').innerHTML = `<button class="btn sm glow" data-act="tip:go:${tip.id}">${L('tut.try')}</button><button class="btn sm ghost" data-act="tip:later:${tip.id}">${L('tut.later')}</button>`;
+  }
   if (bub.dataset.sig !== sig) {
     bub.dataset.sig = sig;
     el.querySelector('.c-step').textContent = (COACH.i + 1) + '/' + TUT.length;

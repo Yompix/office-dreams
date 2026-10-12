@@ -98,6 +98,8 @@ function pvOpen(duel) {
   el.classList.remove('out');
   document.body.classList.add('pv-on');
   lsSet('od2_pv_day', String(Math.floor(Date.now() / 86400000)));
+  tipDone('pvp');
+  if (COACH.el) COACH.el.hidden = true; // no coach bubbles over the arena
   syncBackButton();
   if (PV.st === 'fight' || PV.st === 'search') { pvRender(); return; }
   PV.st = 'lobby';
@@ -203,6 +205,7 @@ function pvApply(r) {
     PV.v = r;
     pvStop();
     PV.st = 'result';
+    lsSet('od2_pv_first', '1');
     pvRender();
     const res = r.res || {};
     if (res.win > 0) { confetti(170); sfx('hit'); haptic('ok'); } else if (res.win < 0) { sfx('bad'); haptic('err'); } else sfx('release');
@@ -362,7 +365,7 @@ function pvFight() {
     <div class="pv-row me">${pvSideCard(v.me, true)}<div class="pv-bar"><i id="pvBarMe"></i></div><b class="px pv-sc" id="pvScMe">0</b></div>
     <div class="pv-vs px">${L('pv.vs')}</div>
     <div class="pv-row op">${pvSideCard(v.op, false)}<div class="pv-bar"><i id="pvBarOp"></i></div><b class="px pv-sc" id="pvScOp">0</b></div>
-    <div class="pv-lead" id="pvLead">&nbsp;</div>
+    <div class="pv-lead" id="pvLead">${lsGet('od2_pv_first') ? '&nbsp;' : L('pv.first_hint')}</div>
     <button class="pv-tap" disabled aria-label="${esc(L('pv.tap'))}"><span class="px">${L('pv.tap')}</span><small>+${Math.round(v.me.mult * 10)}</small></button>
     <div class="pv-emotes">${PV_EMOTES.map((e, i) => `<button data-pv="emo:${i}" aria-label="emote">${e}</button>`).join('')}</div>
     <div class="pv-count px" id="pvCount"></div>

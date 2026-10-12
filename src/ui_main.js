@@ -193,6 +193,12 @@ const ACT = {
     else if (what === 'go') tutGoto();
     else if (what === 'restart') { closeModal(); tutStart(); }
   },
+  tip: (what, id) => {
+    tipDone(id);
+    if (COACH.el) COACH.el.hidden = true;
+    const t = TIPS.find((x) => x.id === id);
+    if (what === 'go' && t && ACT[t.act]) ACT[t.act]();
+  },
   music: () => { S.settings.music = S.settings.music === false; savePrefs(); ensureAudio(); musicSync(); showSettings(); },
   mnext: () => { ensureAudio(); if (S.settings.music === false) { S.settings.music = true; savePrefs(); } musicNext(false); musicSync(); showSettings(); },
   pump: () => { UI.sel = 'you'; go('studio', 'team'); },
@@ -566,7 +572,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">
