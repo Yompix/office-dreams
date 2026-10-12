@@ -224,8 +224,8 @@ function tabOffice() {
   return `
   <section class="panel officep">
     <div class="op-head">
-      <div class="op-t"><h2 class="op-title">${L('office.title')} <button class="helpbtn" data-act="help" aria-label="${esc(L('help.title'))}">?</button></h2><p class="sub">${L('office.slogan')}</p></div>
-      <div class="op-chips"><span class="chip cashc">${I('coin', 14)}<b data-t="cash"></b></span><span class="chip gemc">${I('gem', 14)}<b data-t="gems"></b></span></div>
+      ${(() => { const sn = studioName(); return `<button class="op-studio ${sn ? '' : 'empty'}" data-act="studio">${I('office', 12)}<span>${sn ? esc(sn) : L('st.unnamed')}</span><i>✎</i></button>`; })()}
+      <button class="helpbtn" data-act="help" aria-label="${esc(L('help.title'))}">?</button>
     </div>
     <div class="op-body">
       <div class="scene">
@@ -453,10 +453,16 @@ function tabQuests() {
 /* ---------- EMPIRE ---------- */
 function floorRow(f) {
   const own = floorOn(S, f.id), next = nextFloor(S) === f.id;
-  return `<div class="floor ${own ? 'own' : next ? 'next' : 'locked'}">
+  const lv = renoLvl(S, f.id), cost = renoCost(S, f.id), R0 = RENO[f.id];
+  const stars = own ? `<span class="f-stars" aria-label="${lv}/5">${Array.from({ length: RENO_MAX }, (_, i) => `<i class="${i < lv ? 'on' : ''}">★</i>`).join('')}</span>` : '';
+  const renoLine = own ? `<small class="f-reno">🔨 ${lv ? L('reno.now', { b: L('reno.k_' + R0.k, { p: Math.round(R0.v * lv * 100) }) }) : ''}${cost !== null ? (lv ? ' · ' : '') + L('reno.next', { b: L('reno.k_' + R0.k, { p: Math.round(R0.v * (lv + 1) * 100) }) }) : ''}</small>` : '';
+  const btn = own
+    ? cost !== null ? `<button class="btn sm reno" data-act="reno:${f.id}" ${S.cash >= cost ? '' : 'disabled'}><span>★${lv + 1}</span>${money(cost)}</button>` : `<span class="f-max px">★5</span>`
+    : next ? `<button class="btn sm" data-act="flr:${f.id}" ${S.cash >= f.price ? '' : 'disabled'}>${money(f.price)}</button>` : `<small class="mut px">${money(f.price)}</small>`;
+  return `<div class="floor ${own ? 'own lv' + lv : next ? 'next' : 'locked'}">
     <span class="f-no px">${f.id === 'b' ? 'B' : f.id.slice(1)}</span>
-    <div class="f-t"><b>${L('floor.' + f.id + '.name')} · ${L('floor.' + f.id + '.sub')}</b><small>${L('floor.' + f.id + '.perk')}</small></div>
-    ${own ? I('check', 16, 'grn') : next ? `<button class="btn sm" data-act="flr:${f.id}" ${S.cash >= f.price ? '' : 'disabled'}>${money(f.price)}</button>` : `<small class="mut px">${money(f.price)}</small>`}
+    <div class="f-t"><b>${L('floor.' + f.id + '.name')} · ${L('floor.' + f.id + '.sub')} ${stars}</b><small>${L('floor.' + f.id + '.perk')}</small>${renoLine}</div>
+    ${btn}
   </div>`;
 }
 function itemRow(it) {
@@ -492,7 +498,7 @@ function tabEmpire() {
     <h2 class="h2">${I('crown', 16)} ${L('ipo.title')}</h2><p class="sub">${L('ipo.text', { gems: 3 + S.legacy })}</p>
     <button class="btn gold" data-act="ipo">${L('ipo.btn')}</button></section>` : ''}
   <section class="panel">
-    <div class="sec-h"><div><h2 class="h2">${L('empire.floors')}</h2><p class="sub">${nf ? L('empire.floors_sub') : L('empire.all_floors')}</p></div></div>
+    <div class="sec-h"><div><h2 class="h2">${L('empire.floors')}</h2><p class="sub">${nf ? L('empire.floors_sub') : L('empire.all_floors')} ${L('empire.reno_sub')}</p></div><span class="reno-total px" title="${esc(L('empire.stars'))}">★ ${renoStars(S)}/${FLOOR_ORDER.length * RENO_MAX}</span></div>
     <div class="floors">${FLOORS.slice().reverse().map(floorRow).join('')}</div>
   </section>
   <section class="panel">

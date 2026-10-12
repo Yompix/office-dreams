@@ -128,7 +128,7 @@ function drawTowerCv(t) {
       TOWER_B = new Buf(80, 124);
       TOWER_IMG = new ImageData(new Uint8ClampedArray(TOWER_B.d.buffer), 80, 124);
     }
-    drawTower(TOWER_B, S.floors, t);
+    drawTower(TOWER_B, S.floors, t, null, S.flv);
     UI.towerCtx.putImageData(TOWER_IMG, 0, 0);
   } catch (e) {}
 }
@@ -207,6 +207,9 @@ const ACT = {
   upy: () => result(netAct('upy'), L('toast.upgraded')),
   buy: (id) => result(netAct('buy', id), L('toast.bought', { item: '$item.' + id + '.name' })),
   flr: (id) => { const r = netAct('flr', id); if (r.ok) showFloorBuild(id); else result(r); },
+  reno: (id) => { const r = netAct('reno', id); if (r.ok) showRenoDone(id); else result(r); tipDone('reno'); },
+  studio: () => showStudio(),
+  stsave: () => saveStudio(),
   bst: (id) => result(netAct('bst', id), L('toast.boost', { name: '$boost.' + id + '.name' })),
   genre: (g) => { UI.genrePicked = true; S.sel.genre = g; S.sel.name = GENRES[g].names[UI.nameSeed++ % GENRES[g].names.length]; savePrefs(); render(); },
   tier: (t) => {
@@ -501,7 +504,7 @@ function showFloorBuild(id) {
   const frame = (now) => {
     if (!cv.isConnected) return;
     const k = Math.min(1, (now - t0) / DUR);
-    try { drawTower(B, S.floors, now / 1000, { row, k }); ctx.putImageData(img, 0, 0); } catch (e) {}
+    try { drawTower(B, S.floors, now / 1000, { row, k }, S.flv); ctx.putImageData(img, 0, 0); } catch (e) {}
     const beat = Math.floor(k * 6);
     if (beat !== lastBeat && k < 1) { lastBeat = beat; haptic('light'); if (beat) sfx('tap'); }
     if (k >= 1 && !done) {
@@ -514,6 +517,83 @@ function showFloorBuild(id) {
   };
   requestAnimationFrame(frame);
 }
+/* ---------- floor renovation: a sweep of light across the floor, a new star ---------- */
+function renoText(id, lvl) {
+  const R0 = RENO[id];
+  return L('reno.k_' + R0.k, { p: Math.round(R0.v * lvl * 100) });
+}
+function showRenoDone(id) {
+  const lvl = renoLvl(S, id);
+  const row = id === 'b' ? 5 : 5 - Number(id.slice(1));
+  const stars = Array.from({ length: RENO_MAX }, (_, i) => `<span class="${i < lvl ? 'on' : ''} ${i === lvl - 1 ? 'new' : ''}">★</span>`).join('');
+  const legend = renoStars(S) >= FLOOR_ORDER.length * RENO_MAX;
+  openModal(`<div class="rel fbuild reno-m">
+    <small class="px glow-t">${L('reno.done_t')}</small>
+    <canvas class="tower fb-cv" width="80" height="124"></canvas>
+    <h2 class="h2 big">${L('floor.' + id + '.name')} · ${L('floor.' + id + '.sub')}</h2>
+    <div class="reno-stars">${stars}</div>
+    <p class="ev-text fb-perk">${L('reno.done', { b: renoText(id, lvl) })}</p>
+    ${legend ? `<p class="reno-legend">👑 ${L('reno.legend')}</p>` : ''}
+    <button class="btn big glow" data-act="close">${L('reno.ok')}</button>
+  </div>`, { id: 'reno', mcls: 'relm' });
+  const cv = $('.fb-cv');
+  const ctx = cv && cv.getContext('2d');
+  if (!ctx) return;
+  const B = new Buf(80, 124);
+  const img = new ImageData(new Uint8ClampedArray(B.d.buffer), 80, 124);
+  const t0 = performance.now(), DUR = 1600;
+  let done = false;
+  sfx('up');
+  const frame = (now) => {
+    if (!cv.isConnected) return;
+    const k = Math.min(1, (now - t0) / DUR);
+    try { drawTower(B, S.floors, now / 1000, { row, k, reno: true }, S.flv); ctx.putImageData(img, 0, 0); } catch (e) {}
+    if (k >= 1 && !done) {
+      done = true;
+      cv.classList.add('done');
+      const st = $('.reno-stars');
+      if (st) st.classList.add('lit');
+      confetti(legend ? 220 : 90); haptic('ok'); sfx('floor');
+      $('.fb-perk') && $('.fb-perk').classList.add('lit');
+    }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+/* ---------- studio name: unique per player ---------- */
+function studioName() {
+  if (NET.mode === 'online') return (NET.me && NET.me.studio) || '';
+  return lsGet('od2_studio') || '';
+}
+function showStudio(err, val) {
+  const cur = val !== undefined ? val : studioName();
+  openModal(`<div class="st-m">
+    <h2 class="h2">${I('office', 16)} ${L('st.title')}</h2>
+    <p class="sub">${L('st.text')}</p>
+    <input id="stin" class="st-in" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="${esc(L('st.ph'))}" value="${esc(cur)}">
+    <p class="st-err ${err ? 'on' : ''}">${err ? esc(L('st.' + err)) : '&nbsp;'}</p>
+    <button class="btn big glow" data-act="stsave">${L('st.save')}</button>
+  </div>`, { id: 'studio' });
+  setTimeout(() => { const i = $('#stin'); if (i) { i.focus(); try { i.setSelectionRange(i.value.length, i.value.length); } catch (e) {} } }, 250);
+}
+async function saveStudio() {
+  const inp = $('#stin');
+  const v = inp ? inp.value.trim() : '';
+  if (v.length < 3 || v.length > 20) return showStudio('len', v);
+  const btn = $('[data-act="stsave"]');
+  if (btn) btn.disabled = true;
+  let r;
+  if (NET.mode === 'online') r = await api('POST', '/api/studio', { name: v });
+  else { lsSet('od2_studio', v); r = { ok: true, studio: v }; }
+  if (!r || !r.ok) return showStudio((r && ['taken', 'len', 'chars', 'bad', 'rate'].includes(r.err) ? r.err : 'taken'), v);
+  if (NET.me) NET.me.studio = r.studio;
+  closeModal();
+  toast(L('st.saved', { name: r.studio }), 'good', 'check');
+  sfx('coin');
+  render(true);
+}
+
 function showRelease(d) {
   const g = d.game;
   const stars = Math.round(g.score / 2);
@@ -572,7 +652,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">

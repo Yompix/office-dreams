@@ -51,6 +51,17 @@ const FLOORS = [
   { id: 'f5', price: 1500000, fw: 100 },
 ];
 const FLOOR_ORDER = ['b', 'f1', 'f2', 'f3', 'f4', 'f5'];
+// renovation: every owned floor can be refitted up to ★5; each star strengthens that floor's speciality
+const RENO = {
+  b: { k: 'tap', v: 0.06, base: 900 },
+  f1: { k: 'sal', v: 0.04, base: 1500 },
+  f2: { k: 'wp', v: 0.04, base: 12000 },
+  f3: { k: 'sales', v: 0.05, base: 80000 },
+  f4: { k: 'wp', v: 0.04, base: 350000 },
+  f5: { k: 'sales', v: 0.05, base: 1500000 },
+};
+const RENO_MAX = 5;
+const RENO_COST = [0.6, 1.2, 2.4, 4.8, 9.6]; // × the floor's base price, by the current star count
 
 const ITEMS = [
   { id: 'coffee', price: 350 },
@@ -119,6 +130,7 @@ function newState(seed) {
       des: { lvl: 0, mood: 85 },
     },
     floors: { b: 1, f1: 0, f2: 0, f3: 0, f4: 0, f5: 0 },
+    flv: { b: 0, f1: 0, f2: 0, f3: 0, f4: 0, f5: 0 }, // renovation stars per floor
     items: { coffee: 0, chairs: 0, monitor2: 0, lamp: 0, lounge: 0, rack: 0 },
     project: null,
     sel: { genre: 'puzzle', tier: 'mini', name: 'Block Dreams' }, // local UI preference, not synced
@@ -161,10 +173,18 @@ const hiredCount = (s) => ROLES.filter((r) => s.staff[r].lvl > 0).length;
 const moodF = (m) => 0.7 + 0.3 * (m / 100);
 const speedOf = (l) => 1 + 0.18 * (l - 1);
 const legacyMult = (s) => 1 + 0.15 * s.legacy;
+const renoLvl = (s, id) => (s.flv && s.flv[id]) || 0;
+function renoBonus(s, k) {
+  let b = 0;
+  for (const id of FLOOR_ORDER) if (RENO[id].k === k) b += RENO[id].v * renoLvl(s, id);
+  return b;
+}
+const renoStars = (s) => FLOOR_ORDER.reduce((n, id) => n + renoLvl(s, id), 0);
+const renoCost = (s, id) => (renoLvl(s, id) >= RENO_MAX ? null : Math.round(RENO[id].base * RENO_COST[renoLvl(s, id)]));
 function salaryOf(s, role, lvl) {
   const l = lvl === undefined ? s.staff[role].lvl : lvl;
   if (l <= 0) return 0;
-  return Math.round(ROLE[role].sal * ECON.salK * Math.pow(1.3, l - 1) * (floorOn(s, 'f1') ? 0.9 : 1));
+  return Math.round(ROLE[role].sal * ECON.salK * Math.pow(1.3, l - 1) * (floorOn(s, 'f1') ? 0.9 : 1) * (1 - renoBonus(s, 'sal')));
 }
 function upCost(role, lvl) {
   return Math.round(ROLE[role].up * Math.pow(ECON.upGrowth, lvl - 1));
@@ -183,6 +203,7 @@ function wpMult(s) {
   if (s.items.chairs) m *= 1.06;
   if (s.items.monitor2) m *= 1.1;
   if (floorOn(s, 'f4')) m *= 1.12;
+  m *= 1 + renoBonus(s, 'wp');
   if (s.buffs.turbo > 0) m *= 2;
   return m;
 }
@@ -201,7 +222,7 @@ function wpTotal(s) {
 function tapPower(s) {
   const k = 1 + 0.18 * (s.you.lvl - 1);
   const boost = (s.items.monitor2 ? 1.2 : 1) * (s.buffs.turbo > 0 ? 1.5 : 1);
-  return { pts: 3 * k * boost, cash: 1.4 * ECON.tapK * k * (1 + 0.05 * FLOOR_ORDER.filter((f) => floorOn(s, f)).length) * (1 + 0.1 * s.legacy) };
+  return { pts: 3 * k * boost, cash: 1.4 * ECON.tapK * k * (1 + 0.05 * FLOOR_ORDER.filter((f) => floorOn(s, f)).length) * (1 + 0.1 * s.legacy) * (1 + renoBonus(s, 'tap')) };
 }
 function salaryTotal(s) {
   let t = 0;
@@ -213,6 +234,7 @@ function salesMult(s, tier) {
   if (tier) m /= 1 + s.rep / TIERS[tier].fit;
   if (floorOn(s, 'f3')) m *= 1.2;
   if (floorOn(s, 'f5')) m *= 1.15;
+  m *= 1 + renoBonus(s, 'sales');
   if (s.items.rack) m *= 1.06;
   if (s.items.lounge) m *= 1.04;
   const mk = s.staff.mkt;
@@ -382,6 +404,25 @@ function buyFloor(s, id) {
   emit('sfx', 'floor');
   return OK;
 }
+function renovate(s, id) {
+  const f = FLOORS.find((x) => x.id === id);
+  if (!f || !RENO[id]) return fail('unavailable');
+  if (!floorOn(s, id)) return fail('locked');
+  const cost = renoCost(s, id);
+  if (cost === null) return fail('max');
+  if (s.cash < cost) return fail('cash');
+  if (!s.flv) s.flv = { b: 0, f1: 0, f2: 0, f3: 0, f4: 0, f5: 0 };
+  s.cash -= cost;
+  s.flv[id] = renoLvl(s, id) + 1;
+  s.stats.ups++;
+  s.stats.flrW += Math.max(2, Math.round(f.fw * 0.15));
+  addLog(s, 'log.reno', { name: '$floor.' + id + '.name', n: s.flv[id] }, 'good');
+  bump(s);
+  checkGoals(s);
+  emit('reno', { id, lvl: s.flv[id] });
+  emit('sfx', 'floor');
+  return OK;
+}
 function buyBoost(s, id) {
   const b = BOOSTS.find((x) => x.id === id);
   if (!b) return fail('unavailable');
@@ -529,6 +570,9 @@ const GOALS = [
   { id: 'f3', rw: { gems: 4 }, pts: 30, test: (s) => s.floors.f3 > 0 },
   { id: 'earn50k', rw: { gems: 5 }, pts: 35, test: (s) => s.earned >= 50000 },
   { id: 'f5', rw: { gems: 8 }, pts: 80, test: (s) => s.floors.f5 > 0 },
+  { id: 'reno1', rw: { gems: 2 }, pts: 6, test: (s) => renoStars(s) >= 1 },
+  { id: 'reno15', rw: { gems: 5 }, pts: 25, test: (s) => renoStars(s) >= 15 },
+  { id: 'renomax', rw: { gems: 15 }, pts: 60, test: (s) => renoStars(s) >= FLOOR_ORDER.length * RENO_MAX },
   { id: 'ipo1', rw: { gems: 5 }, pts: 60, test: (s) => s.legacy >= 1 },
   { id: 'ipo3', rw: { gems: 10 }, pts: 120, test: (s) => s.legacy >= 3 },
 ];
@@ -1023,6 +1067,7 @@ const ACTIONS = {
   upy: (s) => upgradeYou(s),
   buy: (s, a) => buyItem(s, String(a[0])),
   flr: (s, a) => buyFloor(s, String(a[0])),
+  reno: (s, a) => renovate(s, String(a[0])),
   bst: (s, a) => buyBoost(s, String(a[0])),
   new: (s, a) => startProject(s, String(a[0]), String(a[1]), a[2]),
   auto: (s, a) => setAuto(s, a[0]),
@@ -1092,7 +1137,7 @@ function stateHash(s) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    ECON, TICK, DAY_SEC, MAX_LVL, OFFLINE_CAP, STATE_V, ROLES, ROLE, GENRES, GENRE_ORDER, TIERS, TIER_ORDER, FLOORS, FLOOR_ORDER, ITEMS, BOOSTS, GOALS, DAILY, DAILY_ALL_PTS, EVENTS, EVENT_IDS, PTS_W,
+    ECON, RENO, RENO_MAX, RENO_COST, renoLvl, renoBonus, renoStars, renoCost, renovate, TICK, DAY_SEC, MAX_LVL, OFFLINE_CAP, STATE_V, ROLES, ROLE, GENRES, GENRE_ORDER, TIERS, TIER_ORDER, FLOORS, FLOOR_ORDER, ITEMS, BOOSTS, GOALS, DAILY, DAILY_ALL_PTS, EVENTS, EVENT_IDS, PTS_W,
     hooks, newState, tick, advance, advanceTicks, advanceOffline, doTap, hire, upgradeStaff, upgradeYou, buyItem, buyFloor, buyBoost, startProject, setAuto, release, claimGoal,
     claimDaily, dailyProgress, dailyCash, syncDay, canPrestige, prestige, applyAction, replay,
     chooseEvent, spawnEvent, eventView, wpTotal, wpRole, tapPower, salaryTotal, salaryOf, upCost, youUpCost, qualityFor, expectedScore,

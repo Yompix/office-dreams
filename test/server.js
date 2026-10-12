@@ -864,6 +864,24 @@ const Ton = require('../server/ton.js');
       const self = await A.api('POST', '/api/pvp/find', { duel: code });
       assert.equal(self.json.err, 'self');
     });
+    await test('studio names are unique (case, spaces, look-alike letters), shown in the battle top', async () => {
+      let r = await A.api('POST', '/api/studio', { name: '  Ola  ' });
+      assert.equal(r.json.ok, true); assert.equal(r.json.studio, 'Ola');
+      for (const n of ['OLA', 'O la', 'О-la', 'ola!']) {
+        r = await B.api('POST', '/api/studio', { name: n });
+        assert.equal(r.json.err, 'taken', n);
+      }
+      r = await B.api('POST', '/api/studio', { name: 'x' }); assert.equal(r.json.err, 'len');
+      r = await B.api('POST', '/api/studio', { name: 'Office Dreams' }); assert.equal(r.json.err, 'taken');
+      r = await B.api('POST', '/api/studio', { name: 'Bob Games' }); assert.equal(r.json.ok, true);
+      r = await A.api('POST', '/api/studio', { name: 'Ola' }); assert.equal(r.json.ok, true, 'keeping your own name is fine');
+      const me = await A.auth();
+      assert.equal(me.json.me.studio, 'Ola');
+      const info = await A.api('GET', '/api/pvp');
+      assert.ok(info.json.top.some((x) => x.name === 'Ola'), 'battle top shows the studio');
+      const lb = await A.api('GET', '/api/leaderboard');
+      assert.ok(lb.status === 200);
+    });
     await env7.close();
   }
   summary();

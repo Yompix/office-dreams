@@ -82,5 +82,30 @@ for (let seed = 1; seed <= 20; seed++) {
   ok(sec > 7200, 'floor 2 is not trivial: ' + Math.round(sec / 60) + ' min');
   console.log('  pacing: floor 1 after', Math.round(f1At / 60), 'min; floor 2 after', Math.round(sec / 60), 'min, released', s.stats.released, 'games');
 }
+// floor renovation: ★1..★5 per open floor, costs grow, bonuses apply, saved with the game
+{
+  const s = E.newState(9);
+  s.cash = 1e9;
+  ok(!E.renovate(s, 'f3').ok, 'a closed floor cannot be renovated');
+  const t0 = E.tapPower(s).cash;
+  ok(E.renovate(s, 'b').ok && s.flv.b === 1, 'basement ★1');
+  ok(E.tapPower(s).cash > t0 * 1.05, 'basement stars add cash per tap');
+  for (const id of ['f1', 'f2', 'f3', 'f4', 'f5']) s.floors[id] = 1;
+  const sal0 = E.salaryOf(s, 'prog', 3), sales0 = E.salesMult(s), wp0 = E.wpTotal(s);
+  E.renovate(s, 'f1'); E.renovate(s, 'f3'); E.renovate(s, 'f2');
+  ok(E.salaryOf(s, 'prog', 3) < sal0 && E.salesMult(s) > sales0 && E.wpTotal(s) > wp0, 'salaries / sales / speed bonuses');
+  const c1 = E.renoCost(s, 'f5');
+  E.renovate(s, 'f5');
+  ok(E.renoCost(s, 'f5') === c1 * 2, 'each star costs twice the previous one');
+  for (const id of E.FLOOR_ORDER) while (E.renoLvl(s, id) < E.RENO_MAX) ok(E.renovate(s, id).ok, 'renovate ' + id);
+  ok(E.renovate(s, 'f5').err === 'max' && E.renoStars(s) === 30, 'all floors at ★5');
+  E.checkGoals(s);
+  ok(['reno1', 'reno15', 'renomax'].every((g) => s.goals[g]), 'renovation goals reached');
+  const back = E.deserialize(E.serialize(s));
+  ok(back.flv.f5 === 5, 'stars survive save/load');
+  const old = JSON.parse(E.serialize(E.newState(3))); delete old.flv;
+  ok(E.deserialize(old).flv.b === 0, 'old saves get empty renovation');
+  ok(E.applyAction(E.newState(4), ['reno', 'b']).err === 'cash', 'reno is a synced action');
+}
 console.log(`engine: ${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);

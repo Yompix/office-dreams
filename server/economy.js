@@ -269,7 +269,7 @@ function leaderboard(ctx, uid, now = Date.now()) {
   let countries;
   if (c && now - c.t < 20000) { top = c.top; countries = c.countries; }
   else {
-    top = ctx.db.all("SELECT id,name,username,pts,premium,country FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch') ORDER BY pts DESC LIMIT 100");
+    top = ctx.db.all("SELECT id,name,studio,username,pts,premium,country FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch') ORDER BY pts DESC LIMIT 100");
     countries = ctx.db.all("SELECT country AS c, COUNT(*) AS n, SUM(pts) AS p FROM users WHERE deleted=0 AND pts>0 AND country IS NOT NULL AND risk_state IN ('ok','watch') GROUP BY country ORDER BY p DESC LIMIT 10");
     ctx.cache.lb = { t: now, top, countries };
   }
@@ -280,7 +280,7 @@ function leaderboard(ctx, uid, now = Date.now()) {
   }
   const total = ctx.db.get("SELECT COUNT(*) AS n FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch')").n;
   return {
-    top: top.slice(0, 50).map((r, i) => ({ rank: i + 1, name: r.name, id: r.id === uid ? r.id : undefined, me: r.id === uid, pts: r1(r.pts), premium: !!r.premium, country: r.country || null })),
+    top: top.slice(0, 50).map((r, i) => ({ rank: i + 1, name: r.studio || r.name, id: r.id === uid ? r.id : undefined, me: r.id === uid, pts: r1(r.pts), premium: !!r.premium, country: r.country || null })),
     countries: (countries || []).map((x, i) => ({ rank: i + 1, c: x.c, n: x.n, pts: r1(x.p) })),
     me: rank ? { rank, pts: r1(me.pts) } : null,
     total,

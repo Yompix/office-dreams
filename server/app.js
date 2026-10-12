@@ -10,6 +10,7 @@ const DB = require('./db.js');
 const TG = require('./tg.js');
 const U = require('./users.js');
 const PvP = require('./pvp.js');
+const Studio = require('./studio.js');
 const Eco = require('./economy.js');
 const AB = require('./antibot.js');
 const Sync = require('./sync.js');
@@ -191,7 +192,7 @@ async function handleAuth(ctx, req, res, body, ip, now) {
   return sendJson(res, 200, Object.assign({}, r.json, {
     token,
     created,
-    me: { id: user.id, name: user.name, lang: user.lang },
+    me: { id: user.id, name: user.name, lang: user.lang, studio: user.studio || null },
   }));
 }
 
@@ -247,7 +248,7 @@ async function handleApi(ctx, req, res, url, ip) {
       return sendJson(res, 200, PvP.find(ctx, uid, body, now, {
         onDuel: (bt, me, from) => {
           const r = bt.res && bt.res[me];
-          if (r) Bot.notifyDuel(ctx, from, pu.name, r.win > 0, r.my, r.op).catch(() => {});
+          if (r) Bot.notifyDuel(ctx, from, Studio.shown(pu), r.win > 0, r.my, r.op).catch(() => {});
         },
       }));
     }
@@ -320,6 +321,11 @@ async function handleApi(ctx, req, res, url, ip) {
   }
   if (method === 'GET' && p === '/api/ton/payload') return sendJson(res, 200, { ok: true, payload: Ton.makePayload(cfg.sessionSecret, now) });
   if (method === 'POST' && p === '/api/wallet') return handleWallet(ctx, res, uid, body, now);
+  if (method === 'POST' && p === '/api/studio') {
+    if (body.check) return sendJson(res, 200, Studio.isFree(ctx, uid, body.name));
+    if (!hit(ctx, 'studio:' + uid, 10, 3600000, now)) return bad(res, 429, 'rate');
+    return sendJson(res, 200, Studio.setStudio(ctx, uid, body.name));
+  }
   if (method === 'POST' && p === '/api/lang') {
     const lang = ['en', 'ru', 'uk'].includes(body.lang) ? body.lang : null;
     if (!lang) return bad(res, 400, 'lang');

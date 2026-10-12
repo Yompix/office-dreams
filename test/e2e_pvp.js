@@ -50,7 +50,7 @@ async function main() {
   const ready = async (page) => {
     await page.waitForSelector('#tabs button', { timeout: 15000 });
     await sleep(600);
-    await ev(page, "closeModal(true); UI.queue = []; lsSet('od2_intro','1'); tutStop && tutStop();");
+    await ev(page, "closeModal(true); UI.queue = []; lsSet('od2_intro','1'); tutStop(); TIPS.forEach((t) => tipDone(t.id));");
   };
 
   const A = await newPage('A');

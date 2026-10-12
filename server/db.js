@@ -66,6 +66,9 @@ function open(file) {
   const cols = new Set(db.prepare('PRAGMA table_info(users)').all().map((c) => c.name));
   if (!cols.has('country')) db.exec('ALTER TABLE users ADD COLUMN country TEXT');
   if (!cols.has('tz')) db.exec('ALTER TABLE users ADD COLUMN tz TEXT');
+  if (!cols.has('studio')) db.exec('ALTER TABLE users ADD COLUMN studio TEXT');
+  if (!cols.has('studio_key')) db.exec('ALTER TABLE users ADD COLUMN studio_key TEXT');
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS users_studio ON users(studio_key) WHERE studio_key IS NOT NULL');
   db.exec('CREATE INDEX IF NOT EXISTS users_country ON users(country)');
   db.exec('CREATE INDEX IF NOT EXISTS users_seen ON users(last_seen DESC)');
   const cache = new Map();

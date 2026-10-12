@@ -1015,6 +1015,41 @@ body.pv-on #app { visibility: hidden; }
 .pv-row .pv-who { grid-column: 1; grid-row: 1; }
 .pv-row .pv-bar { grid-column: 1; grid-row: 2; align-self: center; }
 .pv-row .pv-sc { grid-column: 2; grid-row: 1 / 3; }
+
+/* ---------- office header: the studio's name ---------- */
+.op-head { align-items: center; }
+.op-studio { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; padding: 5px 10px; border-radius: 10px; font-weight: 800; font-size: 14px; color: #fff; background: rgba(63, 208, 255, 0.08); border: 1px solid rgba(63, 208, 255, 0.35); }
+.op-studio span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.op-studio .ico { color: var(--cy); flex: none; }
+.op-studio i { font-style: normal; opacity: 0.6; font-size: 12px; }
+.op-studio.empty { color: var(--yel); border-style: dashed; border-color: rgba(255, 210, 63, 0.55); background: rgba(255, 210, 63, 0.06); }
+.st-m { display: grid; gap: 10px; }
+.st-in { width: 100%; padding: 12px 14px; border-radius: 12px; font: 700 16px/1.2 var(--ui); color: #fff; background: rgba(3, 6, 34, 0.9); border: 1.5px solid rgba(63, 208, 255, 0.5); outline: none; }
+.st-in:focus { border-color: var(--cy); box-shadow: 0 0 14px rgba(63, 208, 255, 0.35); }
+.st-err { margin: -4px 0 0; min-height: 16px; font-size: 12.5px; color: var(--red); }
+/* ---------- floor renovation ---------- */
+.reno-total { font-size: 10px; color: var(--yel); padding: 6px 8px; border-radius: 8px; background: rgba(255, 210, 63, 0.08); border: 1px solid rgba(255, 210, 63, 0.3); white-space: nowrap; align-self: flex-start; }
+.f-stars { display: inline-flex; gap: 1px; margin-left: 4px; font-size: 11px; vertical-align: 1px; }
+.f-stars i { font-style: normal; color: rgba(255, 255, 255, 0.18); }
+.f-stars i.on { color: var(--yel); text-shadow: 0 0 6px rgba(255, 210, 63, 0.8); }
+.f-reno { display: block; margin-top: 2px; color: #ffe08a !important; font-size: 11.5px; }
+.btn.reno { display: grid; justify-items: center; gap: 1px; line-height: 1.1; background: linear-gradient(180deg, #ffd23f, #c8841a); color: #2a1a00; box-shadow: 0 0 12px rgba(255, 210, 63, 0.35); }
+.btn.reno span { font-size: 11px; font-weight: 900; }
+.btn.reno:disabled { background: rgba(255, 210, 63, 0.15); color: rgba(255, 230, 160, 0.6); box-shadow: none; }
+.f-max { font-size: 11px; color: var(--yel); text-shadow: 0 0 8px rgba(255, 210, 63, 0.9); padding: 6px 8px; border-radius: 8px; border: 1px solid rgba(255, 210, 63, 0.5); }
+.floor.own .f-no { position: relative; overflow: hidden; }
+.floor.own .f-no::after { content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent); transform: skewX(-20deg); animation: fsweep 3.2s ease-in-out infinite; }
+.floor.lv3 .f-no, .floor.lv4 .f-no { box-shadow: 0 0 10px rgba(52, 227, 122, 0.45); }
+.floor.lv5 { border-color: rgba(255, 210, 63, 0.6); box-shadow: 0 0 14px rgba(255, 210, 63, 0.18); }
+.floor.lv5 .f-no { background: rgba(255, 210, 63, 0.25); color: var(--yel); box-shadow: 0 0 12px rgba(255, 210, 63, 0.6); }
+@keyframes fsweep { 0%, 60% { transform: translateX(0) skewX(-20deg); } 100% { transform: translateX(400%) skewX(-20deg); } }
+.reno-stars { display: flex; gap: 6px; justify-content: center; font-size: 26px; }
+.reno-stars span { color: rgba(255, 255, 255, 0.15); transition: transform 0.3s; }
+.reno-stars span.on { color: var(--yel); text-shadow: 0 0 10px rgba(255, 210, 63, 0.9); }
+.reno-stars span.new { opacity: 0; transform: scale(2.4); }
+.reno-stars.lit span.new { opacity: 1; transform: none; transition: transform 0.45s cubic-bezier(.2,1.6,.4,1), opacity 0.2s; }
+.reno-legend { font-weight: 800; color: var(--yel); text-shadow: 0 0 12px rgba(255, 210, 63, 0.7); margin: 0; }
+@media (prefers-reduced-motion: reduce) { .floor.own .f-no::after { animation: none; } }
 </style>
 </head>
 <body>
@@ -2225,6 +2260,38 @@ LANGS.en = {
   'tut.try': 'Try it',
   'pv.first_hint': '👆 After the countdown, tap the big button as fast as you can!',
   'help.p8': '⚔ Studio Battle: 30 seconds against other players. Tap, collect trophies and challenge friends.',
+  'st.unnamed': 'Name your studio',
+  'st.title': 'Studio name',
+  'st.text': 'Names are unique: if another player already took it, pick another. It is shown in battles and the top.',
+  'st.ph': 'e.g. Neon Cats',
+  'st.save': 'Save',
+  'st.saved': 'Studio named: {name}',
+  'st.taken': 'This name is taken — try another one',
+  'st.len': '3 to 20 characters',
+  'st.chars': 'Only letters, digits, spaces and - _ . ! & ?',
+  'st.bad': 'This name is not allowed',
+  'st.rate': 'Too many tries, try again later',
+  'reno.k_tap': '+{p}% cash per tap',
+  'reno.k_sal': '−{p}% salaries',
+  'reno.k_wp': '+{p}% team speed',
+  'reno.k_sales': '+{p}% sales',
+  'reno.now': 'Now: {b}',
+  'reno.next': 'Next ★: {b}',
+  'reno.done_t': 'Renovation done!',
+  'reno.done': 'The floor got better: {b}',
+  'reno.ok': 'Great!',
+  'reno.legend': 'Tower legend! Every floor at ★5 — a golden crown shines over the roof.',
+  'empire.reno_sub': 'Open floors can be renovated up to ★5 — each star boosts the bonus.',
+  'empire.stars': 'Renovation stars',
+  'log.reno': 'Renovated: {name} ★{n}',
+  'goal.reno1': 'Renovate a floor for the first time',
+  'goal.reno15': 'Collect 15 renovation ★',
+  'goal.renomax': 'Renovate every floor to ★5',
+  'tut.studio': 'Name your studio! The name is unique — other players see it in battles and the top.',
+  'tut.studio_new': 'Name your studio! Tap here — the name is unique and shown in battles and the top.',
+  'tut.reno_new': 'Floor renovation 🔨 Every open floor can be upgraded to ★5: more cash, sales and speed. The whole tower at ★5 — "Tower legend" with a crown!',
+  'help.p9': '🔨 Floor renovation: in "Empire" raise every floor to ★5 — and the tower comes alive.',
+  'tut.got': 'Got it',
 };
 
 /* ---- src/lang_ru.js ---- */
@@ -2684,6 +2751,38 @@ LANGS.ru = {
   'tut.try': 'Попробовать',
   'pv.first_hint': '👆 После отсчёта тапай большую кнопку как можно быстрее!',
   'help.p8': '⚔ Битва студий: 30 секунд против других игроков. Тапай, собирай кубки и бросай вызов друзьям.',
+  'st.unnamed': 'Назови свою студию',
+  'st.title': 'Название студии',
+  'st.text': 'Название уникальное: если его уже взял другой игрок, придумай другое. Его видят в битвах и в топе.',
+  'st.ph': 'Напр. Neon Cats',
+  'st.save': 'Сохранить',
+  'st.saved': 'Студия названа: {name}',
+  'st.taken': 'Это название уже занято — придумай другое',
+  'st.len': 'От 3 до 20 символов',
+  'st.chars': 'Только буквы, цифры, пробел и - _ . ! & ?',
+  'st.bad': 'Такое название не подходит',
+  'st.rate': 'Слишком много попыток, попробуй позже',
+  'reno.k_tap': '+{p}% денег за тап',
+  'reno.k_sal': '−{p}% зарплат',
+  'reno.k_wp': '+{p}% скорости команды',
+  'reno.k_sales': '+{p}% продаж',
+  'reno.now': 'Сейчас: {b}',
+  'reno.next': 'Следующая ★: {b}',
+  'reno.done_t': 'Ремонт завершён!',
+  'reno.done': 'Этаж стал лучше: {b}',
+  'reno.ok': 'Отлично!',
+  'reno.legend': 'Легенда башни! Все этажи на ★5 — над крышей сияет золотая корона.',
+  'empire.reno_sub': 'Открытые этажи можно ремонтировать до ★5 — каждая звезда усиливает бонус.',
+  'empire.stars': 'Звёзды ремонта',
+  'log.reno': 'Ремонт: {name} ★{n}',
+  'goal.reno1': 'Сделай первый ремонт этажа',
+  'goal.reno15': 'Собери 15 ★ ремонта',
+  'goal.renomax': 'Отремонтируй все этажи до ★5',
+  'tut.studio': 'Назови свою студию! Название уникальное — его видят другие игроки в битвах и топе.',
+  'tut.studio_new': 'Назови свою студию! Нажми сюда — название уникальное, его видят в битвах и топе.',
+  'tut.reno_new': 'Ремонт этажей 🔨 Каждый открытый этаж можно улучшить до ★5: больше денег, продаж и скорости. Вся башня на ★5 — «Легенда башни» с короной!',
+  'help.p9': '🔨 Ремонт этажей: в «Империи» поднимай каждый этаж до ★5 — и башня оживает.',
+  'tut.got': 'Понятно',
 };
 
 /* ---- src/lang_uk.js ---- */
@@ -3143,6 +3242,38 @@ LANGS.uk = {
   'tut.try': 'Спробувати',
   'pv.first_hint': '👆 Після відліку тапай велику кнопку якнайшвидше!',
   'help.p8': '⚔ Битва студій: 30 секунд проти інших гравців. Тапай, збирай кубки й кидай виклик друзям.',
+  'st.unnamed': 'Назви свою студію',
+  'st.title': 'Назва студії',
+  'st.text': 'Назва унікальна: якщо її вже взяв інший гравець, придумай іншу. Її бачать у битвах і в топі.',
+  'st.ph': 'Напр. Neon Cats',
+  'st.save': 'Зберегти',
+  'st.saved': 'Студію названо: {name}',
+  'st.taken': 'Ця назва вже зайнята — придумай іншу',
+  'st.len': 'Від 3 до 20 символів',
+  'st.chars': 'Тільки літери, цифри, пробіл і - _ . ! & ?',
+  'st.bad': 'Така назва не підходить',
+  'st.rate': 'Забагато спроб, спробуй пізніше',
+  'reno.k_tap': '+{p}% грошей за тап',
+  'reno.k_sal': '−{p}% зарплат',
+  'reno.k_wp': '+{p}% швидкості команди',
+  'reno.k_sales': '+{p}% продажів',
+  'reno.now': 'Зараз: {b}',
+  'reno.next': 'Наступна ★: {b}',
+  'reno.done_t': 'Ремонт завершено!',
+  'reno.done': 'Поверх став кращим: {b}',
+  'reno.ok': 'Чудово!',
+  'reno.legend': 'Легенда вежі! Усі поверхи на ★5 — над дахом сяє золота корона.',
+  'empire.reno_sub': 'Відкриті поверхи можна ремонтувати до ★5 — кожна зірка посилює бонус.',
+  'empire.stars': 'Зірки ремонту',
+  'log.reno': 'Ремонт: {name} ★{n}',
+  'goal.reno1': 'Зроби перший ремонт поверху',
+  'goal.reno15': 'Збери 15 ★ ремонту',
+  'goal.renomax': 'Відремонтуй усі поверхи до ★5',
+  'tut.studio': 'Назви свою студію! Назва унікальна — її бачать інші гравці в битвах і топі.',
+  'tut.studio_new': 'Назви свою студію! Натисни тут — назва унікальна, її бачать у битвах і топі.',
+  'tut.reno_new': 'Ремонт поверхів 🔨 Кожен відкритий поверх можна покращити до ★5: більше грошей, продажів і швидкості. Уся вежа на ★5 — «Легенда вежі» з короною!',
+  'help.p9': '🔨 Ремонт поверхів: у «Імперії» підвищуй кожен поверх до ★5 — і вежа оживає.',
+  'tut.got': 'Зрозуміло',
 };
 
 /* ---- src/engine.js ---- */
@@ -3199,6 +3330,17 @@ const FLOORS = [
   { id: 'f5', price: 1500000, fw: 100 },
 ];
 const FLOOR_ORDER = ['b', 'f1', 'f2', 'f3', 'f4', 'f5'];
+// renovation: every owned floor can be refitted up to ★5; each star strengthens that floor's speciality
+const RENO = {
+  b: { k: 'tap', v: 0.06, base: 900 },
+  f1: { k: 'sal', v: 0.04, base: 1500 },
+  f2: { k: 'wp', v: 0.04, base: 12000 },
+  f3: { k: 'sales', v: 0.05, base: 80000 },
+  f4: { k: 'wp', v: 0.04, base: 350000 },
+  f5: { k: 'sales', v: 0.05, base: 1500000 },
+};
+const RENO_MAX = 5;
+const RENO_COST = [0.6, 1.2, 2.4, 4.8, 9.6]; // × the floor's base price, by the current star count
 
 const ITEMS = [
   { id: 'coffee', price: 350 },
@@ -3267,6 +3409,7 @@ function newState(seed) {
       des: { lvl: 0, mood: 85 },
     },
     floors: { b: 1, f1: 0, f2: 0, f3: 0, f4: 0, f5: 0 },
+    flv: { b: 0, f1: 0, f2: 0, f3: 0, f4: 0, f5: 0 }, // renovation stars per floor
     items: { coffee: 0, chairs: 0, monitor2: 0, lamp: 0, lounge: 0, rack: 0 },
     project: null,
     sel: { genre: 'puzzle', tier: 'mini', name: 'Block Dreams' }, // local UI preference, not synced
@@ -3309,10 +3452,18 @@ const hiredCount = (s) => ROLES.filter((r) => s.staff[r].lvl > 0).length;
 const moodF = (m) => 0.7 + 0.3 * (m / 100);
 const speedOf = (l) => 1 + 0.18 * (l - 1);
 const legacyMult = (s) => 1 + 0.15 * s.legacy;
+const renoLvl = (s, id) => (s.flv && s.flv[id]) || 0;
+function renoBonus(s, k) {
+  let b = 0;
+  for (const id of FLOOR_ORDER) if (RENO[id].k === k) b += RENO[id].v * renoLvl(s, id);
+  return b;
+}
+const renoStars = (s) => FLOOR_ORDER.reduce((n, id) => n + renoLvl(s, id), 0);
+const renoCost = (s, id) => (renoLvl(s, id) >= RENO_MAX ? null : Math.round(RENO[id].base * RENO_COST[renoLvl(s, id)]));
 function salaryOf(s, role, lvl) {
   const l = lvl === undefined ? s.staff[role].lvl : lvl;
   if (l <= 0) return 0;
-  return Math.round(ROLE[role].sal * ECON.salK * Math.pow(1.3, l - 1) * (floorOn(s, 'f1') ? 0.9 : 1));
+  return Math.round(ROLE[role].sal * ECON.salK * Math.pow(1.3, l - 1) * (floorOn(s, 'f1') ? 0.9 : 1) * (1 - renoBonus(s, 'sal')));
 }
 function upCost(role, lvl) {
   return Math.round(ROLE[role].up * Math.pow(ECON.upGrowth, lvl - 1));
@@ -3331,6 +3482,7 @@ function wpMult(s) {
   if (s.items.chairs) m *= 1.06;
   if (s.items.monitor2) m *= 1.1;
   if (floorOn(s, 'f4')) m *= 1.12;
+  m *= 1 + renoBonus(s, 'wp');
   if (s.buffs.turbo > 0) m *= 2;
   return m;
 }
@@ -3349,7 +3501,7 @@ function wpTotal(s) {
 function tapPower(s) {
   const k = 1 + 0.18 * (s.you.lvl - 1);
   const boost = (s.items.monitor2 ? 1.2 : 1) * (s.buffs.turbo > 0 ? 1.5 : 1);
-  return { pts: 3 * k * boost, cash: 1.4 * ECON.tapK * k * (1 + 0.05 * FLOOR_ORDER.filter((f) => floorOn(s, f)).length) * (1 + 0.1 * s.legacy) };
+  return { pts: 3 * k * boost, cash: 1.4 * ECON.tapK * k * (1 + 0.05 * FLOOR_ORDER.filter((f) => floorOn(s, f)).length) * (1 + 0.1 * s.legacy) * (1 + renoBonus(s, 'tap')) };
 }
 function salaryTotal(s) {
   let t = 0;
@@ -3361,6 +3513,7 @@ function salesMult(s, tier) {
   if (tier) m /= 1 + s.rep / TIERS[tier].fit;
   if (floorOn(s, 'f3')) m *= 1.2;
   if (floorOn(s, 'f5')) m *= 1.15;
+  m *= 1 + renoBonus(s, 'sales');
   if (s.items.rack) m *= 1.06;
   if (s.items.lounge) m *= 1.04;
   const mk = s.staff.mkt;
@@ -3530,6 +3683,25 @@ function buyFloor(s, id) {
   emit('sfx', 'floor');
   return OK;
 }
+function renovate(s, id) {
+  const f = FLOORS.find((x) => x.id === id);
+  if (!f || !RENO[id]) return fail('unavailable');
+  if (!floorOn(s, id)) return fail('locked');
+  const cost = renoCost(s, id);
+  if (cost === null) return fail('max');
+  if (s.cash < cost) return fail('cash');
+  if (!s.flv) s.flv = { b: 0, f1: 0, f2: 0, f3: 0, f4: 0, f5: 0 };
+  s.cash -= cost;
+  s.flv[id] = renoLvl(s, id) + 1;
+  s.stats.ups++;
+  s.stats.flrW += Math.max(2, Math.round(f.fw * 0.15));
+  addLog(s, 'log.reno', { name: '$floor.' + id + '.name', n: s.flv[id] }, 'good');
+  bump(s);
+  checkGoals(s);
+  emit('reno', { id, lvl: s.flv[id] });
+  emit('sfx', 'floor');
+  return OK;
+}
 function buyBoost(s, id) {
   const b = BOOSTS.find((x) => x.id === id);
   if (!b) return fail('unavailable');
@@ -3677,6 +3849,9 @@ const GOALS = [
   { id: 'f3', rw: { gems: 4 }, pts: 30, test: (s) => s.floors.f3 > 0 },
   { id: 'earn50k', rw: { gems: 5 }, pts: 35, test: (s) => s.earned >= 50000 },
   { id: 'f5', rw: { gems: 8 }, pts: 80, test: (s) => s.floors.f5 > 0 },
+  { id: 'reno1', rw: { gems: 2 }, pts: 6, test: (s) => renoStars(s) >= 1 },
+  { id: 'reno15', rw: { gems: 5 }, pts: 25, test: (s) => renoStars(s) >= 15 },
+  { id: 'renomax', rw: { gems: 15 }, pts: 60, test: (s) => renoStars(s) >= FLOOR_ORDER.length * RENO_MAX },
   { id: 'ipo1', rw: { gems: 5 }, pts: 60, test: (s) => s.legacy >= 1 },
   { id: 'ipo3', rw: { gems: 10 }, pts: 120, test: (s) => s.legacy >= 3 },
 ];
@@ -4171,6 +4346,7 @@ const ACTIONS = {
   upy: (s) => upgradeYou(s),
   buy: (s, a) => buyItem(s, String(a[0])),
   flr: (s, a) => buyFloor(s, String(a[0])),
+  reno: (s, a) => renovate(s, String(a[0])),
   bst: (s, a) => buyBoost(s, String(a[0])),
   new: (s, a) => startProject(s, String(a[0]), String(a[1]), a[2]),
   auto: (s, a) => setAuto(s, a[0]),
@@ -5596,22 +5772,52 @@ function drawCover(B, genre, seed) {
   B.rect(0, 0, W, 1, mixC(Bc, PAL.white, 0.4));
 }
 
-function drawTower(B, floorsOwned, t, build) {
-  // build: {row, k} — the floor being built (row 0 = f5 … 4 = f1), k 0..1 construction progress
-  // front-facing tower. floorsOwned: {b,f1..f5}. 80x120
+function drawTower(B, floorsOwned, t, build, flv) {
+  // build: {row, k, reno} — the floor being built or renovated (row 0 = f5 … 4 = f1, 5 = basement), k 0..1 progress
+  // front-facing tower. floorsOwned: {b,f1..f5}; flv: renovation stars per floor. 80x124
   const W = B.w, H = B.h;
+  const lv = flv || {};
   for (let y = 0; y < H; y++) B.rect(0, y, W, 1, mixC(C('#0a0d2c'), C('#241b62'), y / H));
-  for (let i = 0; i < 26; i++) B.px(Math.floor(hash01(i * 3 + 7) * W), Math.floor(hash01(i * 5 + 1) * 46), mixC(C('#0a0d2c'), C('#c9d2ff'), 0.4 + hash01(i) * 0.4));
+  // twinkling stars
+  for (let i = 0; i < 26; i++) {
+    const tw = 0.4 + hash01(i) * 0.4 + 0.2 * Math.sin(t * (1 + hash01(i + 9) * 2) + i);
+    B.px(Math.floor(hash01(i * 3 + 7) * W), Math.floor(hash01(i * 5 + 1) * 46), mixC(C('#0a0d2c'), C('#c9d2ff'), Math.max(0.15, Math.min(1, tw))));
+  }
+  // drifting clouds
+  for (let c = 0; c < 2; c++) {
+    const cx = Math.floor(((t * (1.6 + c) + c * 47) % (W + 30)) - 15), cy = 10 + c * 17;
+    for (let i = 0; i < 12; i++) B.blend(cx + i, cy + (i > 2 && i < 9 ? -1 : 0), C('#8f97e8'), 0.16);
+    for (let i = 3; i < 9; i++) B.blend(cx + i, cy - 2, C('#8f97e8'), 0.12);
+  }
   const bw = 52, bx = Math.floor((W - bw) / 2);
   const rows = 5, fh = 17, topY = 18;
   const groundY = topY + rows * fh;
-  const ownedList = [floorsOwned.f5, floorsOwned.f4, floorsOwned.f3, floorsOwned.f2, floorsOwned.f1];
+  const ids = ['f5', 'f4', 'f3', 'f2', 'f1'];
+  const ownedList = ids.map((id) => floorsOwned[id]);
   const accents = [PAL.yel, PAL.cyan, PAL.mag, PAL.grn, PAL.blu];
+  const allStars = ['b', 'f1', 'f2', 'f3', 'f4', 'f5'].reduce((n, id) => n + (lv[id] || 0), 0);
+  // searchlights once the top floor is open
+  if (floorsOwned.f5) {
+    for (let k = 0; k < 2; k++) {
+      const ang = Math.sin(t * 0.7 + k * 2.4) * 0.6 + (k ? 0.5 : -0.5);
+      const ox = bx + Math.floor(bw / 2) + (k ? 6 : -6), oy = topY - 8;
+      for (let d = 2; d < 40; d++) {
+        const x = Math.round(ox + Math.sin(ang) * d), y = Math.round(oy - Math.cos(ang) * d);
+        if (y < 0) break;
+        B.blend(x, y, k ? PAL.cyan : PAL.mag, 0.22 * (1 - d / 40));
+        B.blend(x + 1, y, k ? PAL.cyan : PAL.mag, 0.12 * (1 - d / 40));
+      }
+    }
+  }
   for (let r = 0; r < rows; r++) {
     const y = topY + r * fh;
-    const building = build && build.row === r;
+    const id = ids[r];
+    const st = lv[id] || 0;
+    const building = build && build.row === r && !build.reno;
+    const renoing = build && build.row === r && build.reno;
     const own = building ? build.k >= 0.15 : !!ownedList[r];
-    B.rect(bx, y, bw, fh, own ? C('#1d2a73') : C('#10143a'));
+    const shownSt = renoing ? Math.max(0, st - (build.k < 0.8 ? 1 : 0)) : st;
+    B.rect(bx, y, bw, fh, own ? (shownSt >= 3 ? C('#24338a') : C('#1d2a73')) : C('#10143a'));
     B.rect(bx, y, bw, 1, own ? accents[r] : C('#262b66'));
     B.rect(bx, y, 1, fh, C('#0a0d2c')); B.rect(bx + bw - 1, y, 1, fh, C('#0a0d2c'));
     for (let w = 0; w < 5; w++) {
@@ -5621,17 +5827,54 @@ function drawTower(B, floorsOwned, t, build) {
       if (own) {
         const h = hash01(r * 17 + w * 5);
         col = h < 0.34 ? PAL.cyan : h < 0.67 ? PAL.mag : PAL.yel;
-        if (hash01(r * 3 + w + Math.floor(t * 0.5)) < 0.12) col = mixC(col, C('#161a4a'), 0.6);
+        // renovated floors are busier: fewer dark windows
+        if (hash01(r * 3 + w + Math.floor(t * 0.5)) < 0.12 - shownSt * 0.02) col = mixC(col, C('#161a4a'), 0.6);
       }
       B.rect(wx, wy, 7, 8, col);
       if (own) B.rect(wx, wy + 7, 7, 1, shadeC(col, 0.6));
     }
+    if (own && shownSt >= 3) {
+      // people walking past the windows
+      for (let p = 0; p < (shownSt >= 5 ? 2 : 1); p++) {
+        const span = 44, px = bx + 4 + Math.floor((t * (5 + p * 3) + r * 13 + p * 20) % span);
+        const dir = Math.floor((t * (5 + p * 3) + r * 13 + p * 20) / span) % 2;
+        const x = dir ? bx + 4 + span - (px - bx - 4) : px;
+        B.rect(x, y + 7, 2, 5, C('#0b0e30'));
+        B.rect(x, y + 6, 2, 1, C('#0b0e30'));
+      }
+    }
+    if (own && shownSt >= 2) {
+      // neon trim under the floor, breathing
+      const a = 0.55 + 0.45 * Math.sin(t * 2 + r);
+      for (let i = 1; i < bw - 1; i++) B.blend(bx + i, y + fh - 1, accents[r], a);
+    }
+    if (own && shownSt >= 4) {
+      // blinking side sign
+      const on = Math.floor(t * 2 + r) % 3 !== 0;
+      B.rect(bx + bw, y + 3, 2, fh - 6, on ? accents[(r + 2) % 5] : C('#2a2f66'));
+      if (on) B.glow(bx + bw + 1, y + Math.floor(fh / 2), 3, accents[(r + 2) % 5], 0.35);
+    }
+    if (own && shownSt >= 5) {
+      B.rect(bx, y, bw, 1, PAL.yel);
+      if (hash01(Math.floor(t * 3) + r * 7) > 0.8) B.glow(bx + 2 + Math.floor(hash01(Math.floor(t * 3) + r) * (bw - 4)), y + 2, 3, PAL.yel, 0.8);
+    }
+    // renovation stars on the floor's left edge
+    for (let i = 0; i < shownSt; i++) B.px(bx - 2, y + 2 + i * 3, PAL.yel);
     if (building && build.k < 1) {
       // scaffolding + sparks while the floor is being built
       for (let i = 0; i < bw; i += 4) B.px(bx + i, y + ((i / 4) % 2 ? 2 : fh - 3), C('#ffd23f'));
       B.rect(bx - 3, y, 1, fh, C('#c8841a')); B.rect(bx + bw + 2, y, 1, fh, C('#c8841a'));
       const sx = bx + Math.floor(hash01(Math.floor(t * 12)) * bw), sy = y + Math.floor(hash01(Math.floor(t * 12) + 7) * fh);
       B.glow(sx, sy, 4, PAL.yel, 0.9);
+    }
+    if (renoing && build.k < 1) {
+      // a sweep of light across the renovated floor, sparkles behind it
+      const sx = bx + Math.floor(build.k * bw);
+      for (let yy = y; yy < y + fh; yy++) { B.blend(sx, yy, C('#ffffff'), 0.85); B.blend(sx - 1, yy, PAL.yel, 0.6); B.blend(sx - 2, yy, PAL.yel, 0.3); }
+      for (let i = 0; i < 3; i++) {
+        const gx = bx + Math.floor(hash01(Math.floor(t * 14) + i * 5) * Math.max(1, sx - bx)), gy = y + Math.floor(hash01(Math.floor(t * 14) + i * 9 + 3) * fh);
+        B.glow(gx, gy, 3, i % 2 ? PAL.yel : PAL.cyan, 0.85);
+      }
     }
     if (!own && !building) {
       // lock
@@ -5641,31 +5884,66 @@ function drawTower(B, floorsOwned, t, build) {
       B.rect(lx + 3, ly + 5, 1, 2, C('#10143a'));
     }
   }
+  // elevator running between the open floors
+  const ownedRows = [];
+  for (let r = 0; r < rows; r++) if (ownedList[r]) ownedRows.push(r);
+  if (ownedRows.length >= 2) {
+    const ex = bx + bw - 4;
+    const top = topY + ownedRows[0] * fh + 3, bot = topY + (rows - 1) * fh + fh - 6;
+    B.rect(ex, top, 2, bot - top + 4, C('#0d1140'));
+    const ph = (Math.sin(t * 0.6) + 1) / 2;
+    const ey = Math.round(top + (bot - top) * ph);
+    B.rect(ex, ey, 2, 4, PAL.yel);
+    B.blend(ex - 1, ey + 1, PAL.yel, 0.35); B.blend(ex + 2, ey + 1, PAL.yel, 0.35);
+  }
   // roof
   B.rect(bx - 2, topY - 4, bw + 4, 4, C('#2a2f80'));
   B.rect(bx - 2, topY - 4, bw + 4, 1, floorsOwned.f5 ? PAL.yel : C('#4a50b0'));
   B.rect(bx + 10, topY - 8, bw - 20, 4, floorsOwned.f5 ? PAL.mag : C('#3a2060'));
   B.rect(bx + Math.floor(bw / 2), topY - 18, 1, 10, C('#8a90e0'));
   if (Math.floor(t * 1.4) % 2) B.rect(bx + Math.floor(bw / 2) - 1, topY - 20, 3, 3, PAL.red);
+  if (allStars >= 30) {
+    // "Tower legend": a golden crown on the roof and fireworks over the city
+    const cx = bx + Math.floor(bw / 2);
+    B.rect(cx - 6, topY - 12, 13, 3, PAL.yel);
+    B.px(cx - 6, topY - 14, PAL.yel); B.px(cx - 6, topY - 13, PAL.yel); B.px(cx, topY - 15, PAL.yel); B.px(cx, topY - 14, PAL.yel); B.px(cx, topY - 13, PAL.yel); B.px(cx + 6, topY - 14, PAL.yel); B.px(cx + 6, topY - 13, PAL.yel);
+    B.px(cx - 3, topY - 11, PAL.red); B.px(cx + 3, topY - 11, PAL.cyan);
+    const fw = Math.floor(t / 1.6), fk = (t / 1.6) % 1;
+    const fx = 8 + Math.floor(hash01(fw) * (W - 16)), fy = 6 + Math.floor(hash01(fw + 3) * 20);
+    const fc = [PAL.mag, PAL.cyan, PAL.yel, PAL.grn][fw % 4];
+    if (fk < 0.7) for (let i = 0; i < 8; i++) { const ang = (i / 8) * Math.PI * 2, d = 1 + fk * 9; B.blend(Math.round(fx + Math.cos(ang) * d), Math.round(fy + Math.sin(ang) * d), fc, 1 - fk); }
+  }
   // ground
   B.rect(0, groundY, W, 4, C('#1b1f55'));
   B.rect(0, groundY, W, 1, PAL.cyan);
+  // a car driving by on the street
+  const carX = Math.floor(((t * 9) % (W + 20)) - 10);
+  B.rect(carX, groundY + 1, 6, 2, PAL.mag); B.px(carX + 6, groundY + 2, PAL.yel); B.px(carX - 1, groundY + 2, PAL.red);
   // basement
   const by = groundY + 4;
   B.rect(0, by, W, H - by, C('#120f2e'));
   const own = !!floorsOwned.b;
+  const bst = lv.b || 0;
+  const bReno = build && build.row === 5 && build.reno;
+  const bShown = bReno ? Math.max(0, bst - (build.k < 0.8 ? 1 : 0)) : bst;
   B.rect(bx, by, bw, H - by, own ? C('#1a1650') : C('#0e0c26'));
   for (let i = 0; i < 4; i++) {
     const rx = bx + 4 + i * 12;
     B.rect(rx, by + 3, 9, H - by - 5, C('#262b66'));
     for (let l = 0; l < 4; l++) {
-      const on = hash01(i * 5 + l + Math.floor(t * 2 + i)) > 0.4;
+      const on = hash01(i * 5 + l + Math.floor(t * (2 + bShown) + i)) > 0.4 - bShown * 0.05;
       B.px(rx + 2, by + 6 + l * 4, own && on ? PAL.grn : C('#1a1d45'));
       B.px(rx + 5, by + 6 + l * 4, own && on ? PAL.cyan : C('#1a1d45'));
     }
   }
+  for (let i = 0; i < bShown; i++) B.px(bx - 2, by + 3 + i * 3, PAL.yel);
+  if (bReno && build.k < 1) {
+    const sx = bx + Math.floor(build.k * bw);
+    for (let yy = by; yy < H; yy++) { B.blend(sx, yy, C('#ffffff'), 0.85); B.blend(sx - 1, yy, PAL.yel, 0.5); }
+  }
   // door
   B.rect(bx + Math.floor(bw / 2) - 3, groundY - 7, 6, 7, C('#0a0d2c'));
+  if (floorsOwned.f1) B.rect(bx + Math.floor(bw / 2) - 3, groundY - 7, 6, 1, PAL.cyan);
 }
 
 
@@ -7055,8 +7333,8 @@ function tabOffice() {
   return `
   <section class="panel officep">
     <div class="op-head">
-      <div class="op-t"><h2 class="op-title">${L('office.title')} <button class="helpbtn" data-act="help" aria-label="${esc(L('help.title'))}">?</button></h2><p class="sub">${L('office.slogan')}</p></div>
-      <div class="op-chips"><span class="chip cashc">${I('coin', 14)}<b data-t="cash"></b></span><span class="chip gemc">${I('gem', 14)}<b data-t="gems"></b></span></div>
+      ${(() => { const sn = studioName(); return `<button class="op-studio ${sn ? '' : 'empty'}" data-act="studio">${I('office', 12)}<span>${sn ? esc(sn) : L('st.unnamed')}</span><i>✎</i></button>`; })()}
+      <button class="helpbtn" data-act="help" aria-label="${esc(L('help.title'))}">?</button>
     </div>
     <div class="op-body">
       <div class="scene">
@@ -7284,10 +7562,16 @@ function tabQuests() {
 /* ---------- EMPIRE ---------- */
 function floorRow(f) {
   const own = floorOn(S, f.id), next = nextFloor(S) === f.id;
-  return `<div class="floor ${own ? 'own' : next ? 'next' : 'locked'}">
+  const lv = renoLvl(S, f.id), cost = renoCost(S, f.id), R0 = RENO[f.id];
+  const stars = own ? `<span class="f-stars" aria-label="${lv}/5">${Array.from({ length: RENO_MAX }, (_, i) => `<i class="${i < lv ? 'on' : ''}">★</i>`).join('')}</span>` : '';
+  const renoLine = own ? `<small class="f-reno">🔨 ${lv ? L('reno.now', { b: L('reno.k_' + R0.k, { p: Math.round(R0.v * lv * 100) }) }) : ''}${cost !== null ? (lv ? ' · ' : '') + L('reno.next', { b: L('reno.k_' + R0.k, { p: Math.round(R0.v * (lv + 1) * 100) }) }) : ''}</small>` : '';
+  const btn = own
+    ? cost !== null ? `<button class="btn sm reno" data-act="reno:${f.id}" ${S.cash >= cost ? '' : 'disabled'}><span>★${lv + 1}</span>${money(cost)}</button>` : `<span class="f-max px">★5</span>`
+    : next ? `<button class="btn sm" data-act="flr:${f.id}" ${S.cash >= f.price ? '' : 'disabled'}>${money(f.price)}</button>` : `<small class="mut px">${money(f.price)}</small>`;
+  return `<div class="floor ${own ? 'own lv' + lv : next ? 'next' : 'locked'}">
     <span class="f-no px">${f.id === 'b' ? 'B' : f.id.slice(1)}</span>
-    <div class="f-t"><b>${L('floor.' + f.id + '.name')} · ${L('floor.' + f.id + '.sub')}</b><small>${L('floor.' + f.id + '.perk')}</small></div>
-    ${own ? I('check', 16, 'grn') : next ? `<button class="btn sm" data-act="flr:${f.id}" ${S.cash >= f.price ? '' : 'disabled'}>${money(f.price)}</button>` : `<small class="mut px">${money(f.price)}</small>`}
+    <div class="f-t"><b>${L('floor.' + f.id + '.name')} · ${L('floor.' + f.id + '.sub')} ${stars}</b><small>${L('floor.' + f.id + '.perk')}</small>${renoLine}</div>
+    ${btn}
   </div>`;
 }
 function itemRow(it) {
@@ -7323,7 +7607,7 @@ function tabEmpire() {
     <h2 class="h2">${I('crown', 16)} ${L('ipo.title')}</h2><p class="sub">${L('ipo.text', { gems: 3 + S.legacy })}</p>
     <button class="btn gold" data-act="ipo">${L('ipo.btn')}</button></section>` : ''}
   <section class="panel">
-    <div class="sec-h"><div><h2 class="h2">${L('empire.floors')}</h2><p class="sub">${nf ? L('empire.floors_sub') : L('empire.all_floors')}</p></div></div>
+    <div class="sec-h"><div><h2 class="h2">${L('empire.floors')}</h2><p class="sub">${nf ? L('empire.floors_sub') : L('empire.all_floors')} ${L('empire.reno_sub')}</p></div><span class="reno-total px" title="${esc(L('empire.stars'))}">★ ${renoStars(S)}/${FLOOR_ORDER.length * RENO_MAX}</span></div>
     <div class="floors">${FLOORS.slice().reverse().map(floorRow).join('')}</div>
   </section>
   <section class="panel">
@@ -7916,6 +8200,7 @@ const TUT = [
   { k: 'tut.points', tab: ['drop', 'home'], target: '.ptsp', manual: true },
   { k: 'tut.token', tab: ['drop', 'token'], target: '.tokhero', manual: true },
   { k: 'tut.friends', tab: ['drop', 'friends'], target: '.invite', manual: true },
+  { k: 'tut.studio', tab: ['office'], target: '.op-studio', done: () => !!studioName(), skippable: true },
   { k: 'tut.pvp', tab: ['office'], target: '.side [data-act="pvp"]', manual: true, done: () => !!lsGet('od2_tip_pvp') },
   { k: 'tut.done', tab: ['office'], target: null, manual: true },
 ];
@@ -7923,6 +8208,8 @@ const COACH = { i: -1, el: null, scrolled: -1 };
 // one-off "new feature" hints for players who already finished the tutorial
 const TIPS = [
   { id: 'pvp', k: 'tut.pvp_new', tab: ['office'], target: '.side [data-act="pvp"]', act: 'pvp', when: () => S.stats.taps >= 15 },
+  { id: 'studio', k: 'tut.studio_new', tab: ['office'], target: '.op-studio', act: 'studio', when: () => S.stats.taps >= 15 && !studioName() },
+  { id: 'reno', k: 'tut.reno_new', tab: ['empire'], target: '.floor .reno', act: '', when: () => renoStars(S) === 0 },
 ];
 const OLD_TUT_DONE = 11; // the tutorial had 11 steps before the battle step was added: 11+ means "finished"
 
@@ -7955,6 +8242,7 @@ function tutGoto() {
 }
 function tutNext() {
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.pvp') tipDone('pvp'); // seen in the tutorial: no "new" hint later
+  if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.studio') tipDone('studio');
   COACH.i++;
   tutSave();
   if (COACH.i >= TUT.length) { tutStop(); confetti(60); return; }
@@ -7993,7 +8281,9 @@ function tutUpdate() {
     bub.dataset.sig = sig;
     el.querySelector('.c-step').textContent = L('tut.new');
     el.querySelector('.c-text').textContent = L(st.k);
-    el.querySelector('.c-btns').innerHTML = `<button class="btn sm glow" data-act="tip:go:${tip.id}">${L('tut.try')}</button><button class="btn sm ghost" data-act="tip:later:${tip.id}">${L('tut.later')}</button>`;
+    el.querySelector('.c-btns').innerHTML = tip.act
+      ? `<button class="btn sm glow" data-act="tip:go:${tip.id}">${L('tut.try')}</button><button class="btn sm ghost" data-act="tip:later:${tip.id}">${L('tut.later')}</button>`
+      : `<button class="btn sm glow" data-act="tip:later:${tip.id}">${L('tut.got')}</button>`;
   }
   if (bub.dataset.sig !== sig) {
     bub.dataset.sig = sig;
@@ -8584,7 +8874,7 @@ function drawTowerCv(t) {
       TOWER_B = new Buf(80, 124);
       TOWER_IMG = new ImageData(new Uint8ClampedArray(TOWER_B.d.buffer), 80, 124);
     }
-    drawTower(TOWER_B, S.floors, t);
+    drawTower(TOWER_B, S.floors, t, null, S.flv);
     UI.towerCtx.putImageData(TOWER_IMG, 0, 0);
   } catch (e) {}
 }
@@ -8663,6 +8953,9 @@ const ACT = {
   upy: () => result(netAct('upy'), L('toast.upgraded')),
   buy: (id) => result(netAct('buy', id), L('toast.bought', { item: '$item.' + id + '.name' })),
   flr: (id) => { const r = netAct('flr', id); if (r.ok) showFloorBuild(id); else result(r); },
+  reno: (id) => { const r = netAct('reno', id); if (r.ok) showRenoDone(id); else result(r); tipDone('reno'); },
+  studio: () => showStudio(),
+  stsave: () => saveStudio(),
   bst: (id) => result(netAct('bst', id), L('toast.boost', { name: '$boost.' + id + '.name' })),
   genre: (g) => { UI.genrePicked = true; S.sel.genre = g; S.sel.name = GENRES[g].names[UI.nameSeed++ % GENRES[g].names.length]; savePrefs(); render(); },
   tier: (t) => {
@@ -8957,7 +9250,7 @@ function showFloorBuild(id) {
   const frame = (now) => {
     if (!cv.isConnected) return;
     const k = Math.min(1, (now - t0) / DUR);
-    try { drawTower(B, S.floors, now / 1000, { row, k }); ctx.putImageData(img, 0, 0); } catch (e) {}
+    try { drawTower(B, S.floors, now / 1000, { row, k }, S.flv); ctx.putImageData(img, 0, 0); } catch (e) {}
     const beat = Math.floor(k * 6);
     if (beat !== lastBeat && k < 1) { lastBeat = beat; haptic('light'); if (beat) sfx('tap'); }
     if (k >= 1 && !done) {
@@ -8970,6 +9263,83 @@ function showFloorBuild(id) {
   };
   requestAnimationFrame(frame);
 }
+/* ---------- floor renovation: a sweep of light across the floor, a new star ---------- */
+function renoText(id, lvl) {
+  const R0 = RENO[id];
+  return L('reno.k_' + R0.k, { p: Math.round(R0.v * lvl * 100) });
+}
+function showRenoDone(id) {
+  const lvl = renoLvl(S, id);
+  const row = id === 'b' ? 5 : 5 - Number(id.slice(1));
+  const stars = Array.from({ length: RENO_MAX }, (_, i) => `<span class="${i < lvl ? 'on' : ''} ${i === lvl - 1 ? 'new' : ''}">★</span>`).join('');
+  const legend = renoStars(S) >= FLOOR_ORDER.length * RENO_MAX;
+  openModal(`<div class="rel fbuild reno-m">
+    <small class="px glow-t">${L('reno.done_t')}</small>
+    <canvas class="tower fb-cv" width="80" height="124"></canvas>
+    <h2 class="h2 big">${L('floor.' + id + '.name')} · ${L('floor.' + id + '.sub')}</h2>
+    <div class="reno-stars">${stars}</div>
+    <p class="ev-text fb-perk">${L('reno.done', { b: renoText(id, lvl) })}</p>
+    ${legend ? `<p class="reno-legend">👑 ${L('reno.legend')}</p>` : ''}
+    <button class="btn big glow" data-act="close">${L('reno.ok')}</button>
+  </div>`, { id: 'reno', mcls: 'relm' });
+  const cv = $('.fb-cv');
+  const ctx = cv && cv.getContext('2d');
+  if (!ctx) return;
+  const B = new Buf(80, 124);
+  const img = new ImageData(new Uint8ClampedArray(B.d.buffer), 80, 124);
+  const t0 = performance.now(), DUR = 1600;
+  let done = false;
+  sfx('up');
+  const frame = (now) => {
+    if (!cv.isConnected) return;
+    const k = Math.min(1, (now - t0) / DUR);
+    try { drawTower(B, S.floors, now / 1000, { row, k, reno: true }, S.flv); ctx.putImageData(img, 0, 0); } catch (e) {}
+    if (k >= 1 && !done) {
+      done = true;
+      cv.classList.add('done');
+      const st = $('.reno-stars');
+      if (st) st.classList.add('lit');
+      confetti(legend ? 220 : 90); haptic('ok'); sfx('floor');
+      $('.fb-perk') && $('.fb-perk').classList.add('lit');
+    }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+/* ---------- studio name: unique per player ---------- */
+function studioName() {
+  if (NET.mode === 'online') return (NET.me && NET.me.studio) || '';
+  return lsGet('od2_studio') || '';
+}
+function showStudio(err, val) {
+  const cur = val !== undefined ? val : studioName();
+  openModal(`<div class="st-m">
+    <h2 class="h2">${I('office', 16)} ${L('st.title')}</h2>
+    <p class="sub">${L('st.text')}</p>
+    <input id="stin" class="st-in" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="${esc(L('st.ph'))}" value="${esc(cur)}">
+    <p class="st-err ${err ? 'on' : ''}">${err ? esc(L('st.' + err)) : '&nbsp;'}</p>
+    <button class="btn big glow" data-act="stsave">${L('st.save')}</button>
+  </div>`, { id: 'studio' });
+  setTimeout(() => { const i = $('#stin'); if (i) { i.focus(); try { i.setSelectionRange(i.value.length, i.value.length); } catch (e) {} } }, 250);
+}
+async function saveStudio() {
+  const inp = $('#stin');
+  const v = inp ? inp.value.trim() : '';
+  if (v.length < 3 || v.length > 20) return showStudio('len', v);
+  const btn = $('[data-act="stsave"]');
+  if (btn) btn.disabled = true;
+  let r;
+  if (NET.mode === 'online') r = await api('POST', '/api/studio', { name: v });
+  else { lsSet('od2_studio', v); r = { ok: true, studio: v }; }
+  if (!r || !r.ok) return showStudio((r && ['taken', 'len', 'chars', 'bad', 'rate'].includes(r.err) ? r.err : 'taken'), v);
+  if (NET.me) NET.me.studio = r.studio;
+  closeModal();
+  toast(L('st.saved', { name: r.studio }), 'good', 'check');
+  sfx('coin');
+  render(true);
+}
+
 function showRelease(d) {
   const g = d.game;
   const stars = Math.round(g.score / 2);
@@ -9028,7 +9398,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">

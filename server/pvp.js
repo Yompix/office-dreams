@@ -10,6 +10,7 @@
 const crypto = require('crypto');
 const E = require('../src/engine.js');
 const U = require('./users.js');
+const Studio = require('./studio.js');
 
 const P = {
   COUNTDOWN: 3500, // ms from match to the start whistle
@@ -68,7 +69,7 @@ function side(ctx, uid) {
   const u = U.getUser(ctx, uid);
   const s = U.loadState(ctx, uid);
   const st = statsOf(ctx, uid);
-  return { uid, name: (u && u.name) || 'Player', country: (u && u.country) || null, tr: st.tr, mult: multOf(s), n: 0, rec: new Array(SLOTS).fill(0), emote: null, kind: 'live' };
+  return { uid, name: Studio.shown(u), country: (u && u.country) || null, tr: st.tr, mult: multOf(s), n: 0, rec: new Array(SLOTS).fill(0), emote: null, kind: 'live' };
 }
 
 /* ---- opponents that are not online: recordings and bots ---- */
@@ -183,7 +184,7 @@ function finish(ctx, bt, now) {
       if (me.n >= 20) {
         const u = U.getUser(ctx, me.uid);
         ctx.db.run('INSERT INTO pvp_runs(uid,name,country,tr,mult,taps,n,score,ts) VALUES(?,?,?,?,?,?,?,?,?)',
-          me.uid, (u && u.name) || me.name, (u && u.country) || null, st.tr, me.mult, JSON.stringify(me.rec), me.n, sm, now);
+          me.uid, u ? Studio.shown(u) : me.name, (u && u.country) || null, st.tr, me.mult, JSON.stringify(me.rec), me.n, sm, now);
       }
     }
     if (Math.random() < 0.02) ctx.db.run('DELETE FROM pvp_runs WHERE id NOT IN (SELECT id FROM pvp_runs ORDER BY id DESC LIMIT 3000)');
@@ -284,7 +285,7 @@ function info(ctx, uid, now) {
   rollDay(st, now);
   const s = U.loadState(ctx, uid);
   const m = mem(ctx);
-  const top = ctx.db.all('SELECT p.uid, p.tr, p.w, u.name, u.country FROM pvp_stats p JOIN users u ON u.id=p.uid WHERE u.deleted=0 AND p.tr>0 ORDER BY p.tr DESC, p.w DESC LIMIT 20');
+  const top = ctx.db.all('SELECT p.uid, p.tr, p.w, u.name, u.studio, u.country FROM pvp_stats p JOIN users u ON u.id=p.uid WHERE u.deleted=0 AND p.tr>0 ORDER BY p.tr DESC, p.w DESC LIMIT 20');
   const rank = st.tr > 0 ? ctx.db.get('SELECT COUNT(*)+1 AS r FROM pvp_stats WHERE tr>?', st.tr).r : null;
   let fighting = 0;
   for (const bt of m.battles.values()) if (!bt.done) fighting += (bt.a.kind === 'live') + (bt.b.kind === 'live');
@@ -293,7 +294,7 @@ function info(ctx, uid, now) {
     ok: true,
     me: { tr: st.tr, league: leagueOf(st.tr), next: LEAGUES[leagueOf(st.tr) + 1] || null, w: st.w, l: st.l, d: st.d, best: st.best, left: Math.max(0, P.DAILY - st.n), daily: P.DAILY, mult: multOf(s), reward: cashReward(s), firstWin: st.wins_day === 0, rank, hasRun },
     online: { searching: m.queue.size, fighting },
-    top: top.map((r, i) => ({ rank: i + 1, name: r.name, country: r.country, tr: r.tr, w: r.w, league: leagueOf(r.tr), me: r.uid === uid })),
+    top: top.map((r, i) => ({ rank: i + 1, name: Studio.shown(r), country: r.country, tr: r.tr, w: r.w, league: leagueOf(r.tr), me: r.uid === uid })),
     leagues: LEAGUES,
   };
 }

@@ -14,6 +14,7 @@ const TUT = [
   { k: 'tut.points', tab: ['drop', 'home'], target: '.ptsp', manual: true },
   { k: 'tut.token', tab: ['drop', 'token'], target: '.tokhero', manual: true },
   { k: 'tut.friends', tab: ['drop', 'friends'], target: '.invite', manual: true },
+  { k: 'tut.studio', tab: ['office'], target: '.op-studio', done: () => !!studioName(), skippable: true },
   { k: 'tut.pvp', tab: ['office'], target: '.side [data-act="pvp"]', manual: true, done: () => !!lsGet('od2_tip_pvp') },
   { k: 'tut.done', tab: ['office'], target: null, manual: true },
 ];
@@ -21,6 +22,8 @@ const COACH = { i: -1, el: null, scrolled: -1 };
 // one-off "new feature" hints for players who already finished the tutorial
 const TIPS = [
   { id: 'pvp', k: 'tut.pvp_new', tab: ['office'], target: '.side [data-act="pvp"]', act: 'pvp', when: () => S.stats.taps >= 15 },
+  { id: 'studio', k: 'tut.studio_new', tab: ['office'], target: '.op-studio', act: 'studio', when: () => S.stats.taps >= 15 && !studioName() },
+  { id: 'reno', k: 'tut.reno_new', tab: ['empire'], target: '.floor .reno', act: '', when: () => renoStars(S) === 0 },
 ];
 const OLD_TUT_DONE = 11; // the tutorial had 11 steps before the battle step was added: 11+ means "finished"
 
@@ -53,6 +56,7 @@ function tutGoto() {
 }
 function tutNext() {
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.pvp') tipDone('pvp'); // seen in the tutorial: no "new" hint later
+  if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.studio') tipDone('studio');
   COACH.i++;
   tutSave();
   if (COACH.i >= TUT.length) { tutStop(); confetti(60); return; }
@@ -91,7 +95,9 @@ function tutUpdate() {
     bub.dataset.sig = sig;
     el.querySelector('.c-step').textContent = L('tut.new');
     el.querySelector('.c-text').textContent = L(st.k);
-    el.querySelector('.c-btns').innerHTML = `<button class="btn sm glow" data-act="tip:go:${tip.id}">${L('tut.try')}</button><button class="btn sm ghost" data-act="tip:later:${tip.id}">${L('tut.later')}</button>`;
+    el.querySelector('.c-btns').innerHTML = tip.act
+      ? `<button class="btn sm glow" data-act="tip:go:${tip.id}">${L('tut.try')}</button><button class="btn sm ghost" data-act="tip:later:${tip.id}">${L('tut.later')}</button>`
+      : `<button class="btn sm glow" data-act="tip:later:${tip.id}">${L('tut.got')}</button>`;
   }
   if (bub.dataset.sig !== sig) {
     bub.dataset.sig = sig;

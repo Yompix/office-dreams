@@ -1267,22 +1267,52 @@ function drawCover(B, genre, seed) {
   B.rect(0, 0, W, 1, mixC(Bc, PAL.white, 0.4));
 }
 
-function drawTower(B, floorsOwned, t, build) {
-  // build: {row, k} — the floor being built (row 0 = f5 … 4 = f1), k 0..1 construction progress
-  // front-facing tower. floorsOwned: {b,f1..f5}. 80x120
+function drawTower(B, floorsOwned, t, build, flv) {
+  // build: {row, k, reno} — the floor being built or renovated (row 0 = f5 … 4 = f1, 5 = basement), k 0..1 progress
+  // front-facing tower. floorsOwned: {b,f1..f5}; flv: renovation stars per floor. 80x124
   const W = B.w, H = B.h;
+  const lv = flv || {};
   for (let y = 0; y < H; y++) B.rect(0, y, W, 1, mixC(C('#0a0d2c'), C('#241b62'), y / H));
-  for (let i = 0; i < 26; i++) B.px(Math.floor(hash01(i * 3 + 7) * W), Math.floor(hash01(i * 5 + 1) * 46), mixC(C('#0a0d2c'), C('#c9d2ff'), 0.4 + hash01(i) * 0.4));
+  // twinkling stars
+  for (let i = 0; i < 26; i++) {
+    const tw = 0.4 + hash01(i) * 0.4 + 0.2 * Math.sin(t * (1 + hash01(i + 9) * 2) + i);
+    B.px(Math.floor(hash01(i * 3 + 7) * W), Math.floor(hash01(i * 5 + 1) * 46), mixC(C('#0a0d2c'), C('#c9d2ff'), Math.max(0.15, Math.min(1, tw))));
+  }
+  // drifting clouds
+  for (let c = 0; c < 2; c++) {
+    const cx = Math.floor(((t * (1.6 + c) + c * 47) % (W + 30)) - 15), cy = 10 + c * 17;
+    for (let i = 0; i < 12; i++) B.blend(cx + i, cy + (i > 2 && i < 9 ? -1 : 0), C('#8f97e8'), 0.16);
+    for (let i = 3; i < 9; i++) B.blend(cx + i, cy - 2, C('#8f97e8'), 0.12);
+  }
   const bw = 52, bx = Math.floor((W - bw) / 2);
   const rows = 5, fh = 17, topY = 18;
   const groundY = topY + rows * fh;
-  const ownedList = [floorsOwned.f5, floorsOwned.f4, floorsOwned.f3, floorsOwned.f2, floorsOwned.f1];
+  const ids = ['f5', 'f4', 'f3', 'f2', 'f1'];
+  const ownedList = ids.map((id) => floorsOwned[id]);
   const accents = [PAL.yel, PAL.cyan, PAL.mag, PAL.grn, PAL.blu];
+  const allStars = ['b', 'f1', 'f2', 'f3', 'f4', 'f5'].reduce((n, id) => n + (lv[id] || 0), 0);
+  // searchlights once the top floor is open
+  if (floorsOwned.f5) {
+    for (let k = 0; k < 2; k++) {
+      const ang = Math.sin(t * 0.7 + k * 2.4) * 0.6 + (k ? 0.5 : -0.5);
+      const ox = bx + Math.floor(bw / 2) + (k ? 6 : -6), oy = topY - 8;
+      for (let d = 2; d < 40; d++) {
+        const x = Math.round(ox + Math.sin(ang) * d), y = Math.round(oy - Math.cos(ang) * d);
+        if (y < 0) break;
+        B.blend(x, y, k ? PAL.cyan : PAL.mag, 0.22 * (1 - d / 40));
+        B.blend(x + 1, y, k ? PAL.cyan : PAL.mag, 0.12 * (1 - d / 40));
+      }
+    }
+  }
   for (let r = 0; r < rows; r++) {
     const y = topY + r * fh;
-    const building = build && build.row === r;
+    const id = ids[r];
+    const st = lv[id] || 0;
+    const building = build && build.row === r && !build.reno;
+    const renoing = build && build.row === r && build.reno;
     const own = building ? build.k >= 0.15 : !!ownedList[r];
-    B.rect(bx, y, bw, fh, own ? C('#1d2a73') : C('#10143a'));
+    const shownSt = renoing ? Math.max(0, st - (build.k < 0.8 ? 1 : 0)) : st;
+    B.rect(bx, y, bw, fh, own ? (shownSt >= 3 ? C('#24338a') : C('#1d2a73')) : C('#10143a'));
     B.rect(bx, y, bw, 1, own ? accents[r] : C('#262b66'));
     B.rect(bx, y, 1, fh, C('#0a0d2c')); B.rect(bx + bw - 1, y, 1, fh, C('#0a0d2c'));
     for (let w = 0; w < 5; w++) {
@@ -1292,17 +1322,54 @@ function drawTower(B, floorsOwned, t, build) {
       if (own) {
         const h = hash01(r * 17 + w * 5);
         col = h < 0.34 ? PAL.cyan : h < 0.67 ? PAL.mag : PAL.yel;
-        if (hash01(r * 3 + w + Math.floor(t * 0.5)) < 0.12) col = mixC(col, C('#161a4a'), 0.6);
+        // renovated floors are busier: fewer dark windows
+        if (hash01(r * 3 + w + Math.floor(t * 0.5)) < 0.12 - shownSt * 0.02) col = mixC(col, C('#161a4a'), 0.6);
       }
       B.rect(wx, wy, 7, 8, col);
       if (own) B.rect(wx, wy + 7, 7, 1, shadeC(col, 0.6));
     }
+    if (own && shownSt >= 3) {
+      // people walking past the windows
+      for (let p = 0; p < (shownSt >= 5 ? 2 : 1); p++) {
+        const span = 44, px = bx + 4 + Math.floor((t * (5 + p * 3) + r * 13 + p * 20) % span);
+        const dir = Math.floor((t * (5 + p * 3) + r * 13 + p * 20) / span) % 2;
+        const x = dir ? bx + 4 + span - (px - bx - 4) : px;
+        B.rect(x, y + 7, 2, 5, C('#0b0e30'));
+        B.rect(x, y + 6, 2, 1, C('#0b0e30'));
+      }
+    }
+    if (own && shownSt >= 2) {
+      // neon trim under the floor, breathing
+      const a = 0.55 + 0.45 * Math.sin(t * 2 + r);
+      for (let i = 1; i < bw - 1; i++) B.blend(bx + i, y + fh - 1, accents[r], a);
+    }
+    if (own && shownSt >= 4) {
+      // blinking side sign
+      const on = Math.floor(t * 2 + r) % 3 !== 0;
+      B.rect(bx + bw, y + 3, 2, fh - 6, on ? accents[(r + 2) % 5] : C('#2a2f66'));
+      if (on) B.glow(bx + bw + 1, y + Math.floor(fh / 2), 3, accents[(r + 2) % 5], 0.35);
+    }
+    if (own && shownSt >= 5) {
+      B.rect(bx, y, bw, 1, PAL.yel);
+      if (hash01(Math.floor(t * 3) + r * 7) > 0.8) B.glow(bx + 2 + Math.floor(hash01(Math.floor(t * 3) + r) * (bw - 4)), y + 2, 3, PAL.yel, 0.8);
+    }
+    // renovation stars on the floor's left edge
+    for (let i = 0; i < shownSt; i++) B.px(bx - 2, y + 2 + i * 3, PAL.yel);
     if (building && build.k < 1) {
       // scaffolding + sparks while the floor is being built
       for (let i = 0; i < bw; i += 4) B.px(bx + i, y + ((i / 4) % 2 ? 2 : fh - 3), C('#ffd23f'));
       B.rect(bx - 3, y, 1, fh, C('#c8841a')); B.rect(bx + bw + 2, y, 1, fh, C('#c8841a'));
       const sx = bx + Math.floor(hash01(Math.floor(t * 12)) * bw), sy = y + Math.floor(hash01(Math.floor(t * 12) + 7) * fh);
       B.glow(sx, sy, 4, PAL.yel, 0.9);
+    }
+    if (renoing && build.k < 1) {
+      // a sweep of light across the renovated floor, sparkles behind it
+      const sx = bx + Math.floor(build.k * bw);
+      for (let yy = y; yy < y + fh; yy++) { B.blend(sx, yy, C('#ffffff'), 0.85); B.blend(sx - 1, yy, PAL.yel, 0.6); B.blend(sx - 2, yy, PAL.yel, 0.3); }
+      for (let i = 0; i < 3; i++) {
+        const gx = bx + Math.floor(hash01(Math.floor(t * 14) + i * 5) * Math.max(1, sx - bx)), gy = y + Math.floor(hash01(Math.floor(t * 14) + i * 9 + 3) * fh);
+        B.glow(gx, gy, 3, i % 2 ? PAL.yel : PAL.cyan, 0.85);
+      }
     }
     if (!own && !building) {
       // lock
@@ -1312,31 +1379,66 @@ function drawTower(B, floorsOwned, t, build) {
       B.rect(lx + 3, ly + 5, 1, 2, C('#10143a'));
     }
   }
+  // elevator running between the open floors
+  const ownedRows = [];
+  for (let r = 0; r < rows; r++) if (ownedList[r]) ownedRows.push(r);
+  if (ownedRows.length >= 2) {
+    const ex = bx + bw - 4;
+    const top = topY + ownedRows[0] * fh + 3, bot = topY + (rows - 1) * fh + fh - 6;
+    B.rect(ex, top, 2, bot - top + 4, C('#0d1140'));
+    const ph = (Math.sin(t * 0.6) + 1) / 2;
+    const ey = Math.round(top + (bot - top) * ph);
+    B.rect(ex, ey, 2, 4, PAL.yel);
+    B.blend(ex - 1, ey + 1, PAL.yel, 0.35); B.blend(ex + 2, ey + 1, PAL.yel, 0.35);
+  }
   // roof
   B.rect(bx - 2, topY - 4, bw + 4, 4, C('#2a2f80'));
   B.rect(bx - 2, topY - 4, bw + 4, 1, floorsOwned.f5 ? PAL.yel : C('#4a50b0'));
   B.rect(bx + 10, topY - 8, bw - 20, 4, floorsOwned.f5 ? PAL.mag : C('#3a2060'));
   B.rect(bx + Math.floor(bw / 2), topY - 18, 1, 10, C('#8a90e0'));
   if (Math.floor(t * 1.4) % 2) B.rect(bx + Math.floor(bw / 2) - 1, topY - 20, 3, 3, PAL.red);
+  if (allStars >= 30) {
+    // "Tower legend": a golden crown on the roof and fireworks over the city
+    const cx = bx + Math.floor(bw / 2);
+    B.rect(cx - 6, topY - 12, 13, 3, PAL.yel);
+    B.px(cx - 6, topY - 14, PAL.yel); B.px(cx - 6, topY - 13, PAL.yel); B.px(cx, topY - 15, PAL.yel); B.px(cx, topY - 14, PAL.yel); B.px(cx, topY - 13, PAL.yel); B.px(cx + 6, topY - 14, PAL.yel); B.px(cx + 6, topY - 13, PAL.yel);
+    B.px(cx - 3, topY - 11, PAL.red); B.px(cx + 3, topY - 11, PAL.cyan);
+    const fw = Math.floor(t / 1.6), fk = (t / 1.6) % 1;
+    const fx = 8 + Math.floor(hash01(fw) * (W - 16)), fy = 6 + Math.floor(hash01(fw + 3) * 20);
+    const fc = [PAL.mag, PAL.cyan, PAL.yel, PAL.grn][fw % 4];
+    if (fk < 0.7) for (let i = 0; i < 8; i++) { const ang = (i / 8) * Math.PI * 2, d = 1 + fk * 9; B.blend(Math.round(fx + Math.cos(ang) * d), Math.round(fy + Math.sin(ang) * d), fc, 1 - fk); }
+  }
   // ground
   B.rect(0, groundY, W, 4, C('#1b1f55'));
   B.rect(0, groundY, W, 1, PAL.cyan);
+  // a car driving by on the street
+  const carX = Math.floor(((t * 9) % (W + 20)) - 10);
+  B.rect(carX, groundY + 1, 6, 2, PAL.mag); B.px(carX + 6, groundY + 2, PAL.yel); B.px(carX - 1, groundY + 2, PAL.red);
   // basement
   const by = groundY + 4;
   B.rect(0, by, W, H - by, C('#120f2e'));
   const own = !!floorsOwned.b;
+  const bst = lv.b || 0;
+  const bReno = build && build.row === 5 && build.reno;
+  const bShown = bReno ? Math.max(0, bst - (build.k < 0.8 ? 1 : 0)) : bst;
   B.rect(bx, by, bw, H - by, own ? C('#1a1650') : C('#0e0c26'));
   for (let i = 0; i < 4; i++) {
     const rx = bx + 4 + i * 12;
     B.rect(rx, by + 3, 9, H - by - 5, C('#262b66'));
     for (let l = 0; l < 4; l++) {
-      const on = hash01(i * 5 + l + Math.floor(t * 2 + i)) > 0.4;
+      const on = hash01(i * 5 + l + Math.floor(t * (2 + bShown) + i)) > 0.4 - bShown * 0.05;
       B.px(rx + 2, by + 6 + l * 4, own && on ? PAL.grn : C('#1a1d45'));
       B.px(rx + 5, by + 6 + l * 4, own && on ? PAL.cyan : C('#1a1d45'));
     }
   }
+  for (let i = 0; i < bShown; i++) B.px(bx - 2, by + 3 + i * 3, PAL.yel);
+  if (bReno && build.k < 1) {
+    const sx = bx + Math.floor(build.k * bw);
+    for (let yy = by; yy < H; yy++) { B.blend(sx, yy, C('#ffffff'), 0.85); B.blend(sx - 1, yy, PAL.yel, 0.5); }
+  }
   // door
   B.rect(bx + Math.floor(bw / 2) - 3, groundY - 7, 6, 7, C('#0a0d2c'));
+  if (floorsOwned.f1) B.rect(bx + Math.floor(bw / 2) - 3, groundY - 7, 6, 1, PAL.cyan);
 }
 
 if (typeof module !== 'undefined') {
