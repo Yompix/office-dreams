@@ -163,8 +163,10 @@ function loadScript(src, data) {
 async function adsRender() {
   const p = $("adsP"), box = $("adsBtns"); if (!p) return;
   try { ADSI = await api("/api/ads"); } catch (e) { ADSI = null; }
-  if (!ADSI || !ADSI.nets.length) { $("adsCard").hidden = true; return; }
-  p.textContent = T("ads_p", ADSI.reward, ADSI.left, ADSI.day);
+  if (!ADSI || (!ADSI.nets.length && !(ADSI.offers || []).length)) { $("adsCard").hidden = true; return; }
+  p.textContent = ADSI.nets.length ? T("ads_p", ADSI.reward, ADSI.left, ADSI.day) : T("offers_p");
+  const of = ADSI.offers || [];
+  if (of.length) { box.insertAdjacentHTML("afterend", `<div class="sec" style="margin-top:14px">${T("offers_t")}</div><div class="tlist" style="margin-top:8px">${of.map((o, i) => `<div class="row"><div class="grow"><b>${esc(o.name)}</b><small>${T("offers_s")}</small></div><button class="btn sm cy" data-of="${i}">${T("offers_go")}</button></div>`).join("")}</div>`); $$("[data-of]", $("adsCard")).forEach((b) => (b.onclick = () => openLink(of[Number(b.dataset.of)].url))); }
   box.innerHTML = ADSI.nets.map((n) => `<button class="btn gr sm" data-ad="${n.net}"${ADSI.left ? "" : " disabled"}>▶ ${ADSI.nets.length > 1 ? ADS_NAME[n.net] || n.net : T("ads_go")}</button>`).join("");
   box.onclick = (e) => { const b = e.target.closest("[data-ad]"); if (b) adsShow(ADSI.nets.find((n) => n.net === b.dataset.ad)); };
 }

@@ -72,7 +72,7 @@ rep('      if (ws.data.sub === "mx") mxLeave(uid).catch(() => {});', '      if (
 ads = open(D + 'server/ads.ts', encoding='utf8').read()
 rep(p3, ads + p3)
 rep('  { const sr = await supApi(url, req, u, body); if (sr) return sr; }\n', '  { const sr = await supApi(url, req, u, body); if (sr) return sr; }\n  { const ar = await adsApi(url, req, u, body); if (ar) return ar; }\n')
-rep('  const u = await authFrom(req.headers.get("x-init-data")', '  { const ac = await adsCb(url, req); if (ac) return ac; }\n  const u = await authFrom(req.headers.get("x-init-data")')
+rep('  const u = await authFrom(req.headers.get("x-init-data")', '  { const ac = await adsCb(url, req); if (ac) return ac; const oc = await offerCb(url, req); if (oc) return oc; }\n  const u = await authFrom(req.headers.get("x-init-data")')
 
 # 5) графіка з бази та новий фронтенд
 assets = '''

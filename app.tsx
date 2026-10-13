@@ -958,7 +958,7 @@ async function adsApi(url: string, req: Request, u: any, body: any) {
   if (url === "/api/ads") {
     await adsInit();
     const c = await db`select count(*)::int as n from ad_views where uid = ${u.id} and at > now() - interval '1 day'`;
-    return json({ nets: Object.entries(ADS_NETS).filter(([, v]) => v).map(([net, id]) => ({ net, id })), reward: ADS_REWARD, day: ADS_DAY, left: Math.max(0, ADS_DAY - N(c[0].n)), gap: ADS_GAP / 1000, server: !!ADS_SECRET, uid: String(u.id).replace(/^tg/, "") });
+    return json({ offers: OFFERS.map((o) => ({ net: o.net, name: o.name || o.net, url: o.url.split("{uid}").join(String(u.id).replace(/^tg/, "")) })), nets: Object.entries(ADS_NETS).filter(([, v]) => v).map(([net, id]) => ({ net, id })), reward: ADS_REWARD, day: ADS_DAY, left: Math.max(0, ADS_DAY - N(c[0].n)), gap: ADS_GAP / 1000, server: !!ADS_SECRET, uid: String(u.id).replace(/^tg/, "") });
   }
   if (url === "/api/ads/claim" && req.method === "POST") {
     if (ADS_SECRET) return json({ ok: true, wait: true });
@@ -966,6 +966,37 @@ async function adsApi(url: string, req: Request, u: any, body: any) {
     const r: any = await adsCredit(u.id, net); return r.error ? err(r.error) : json(r);
   }
   return null;
+}
+
+// ---------- Офервол і опитування (BitLabs, CPX Research, AdGem, Lootably, Ayet, Torox …) ----------
+// OFFERWALLS = [{"net":"bitlabs","name":"BitLabs","url":"https://...{uid}..."}] — посилання з кабінету мережі, де id гравця замінено на {uid}
+// Мережа сама надсилає підтвердження: /api/ads/offer/<net>?s=СЕКРЕТ&uid=..&coins=..&tx=..&status=..
+let OFFERS: { net: string; name: string; url: string }[] = [];
+try { OFFERS = JSON.parse(String(env.OFFERWALLS || "[]")).filter((o: any) => o && o.net && o.url); } catch { OFFERS = []; }
+async function offerCb(url: string, req: Request) {
+  if (!url.startsWith("/api/ads/offer/")) return null;
+  const q = new URL(req.url).searchParams;
+  const sec = String(env.OFFER_SECRET || ADS_SECRET);
+  if (!sec || q.get("s") !== sec) return new Response("forbidden", { status: 403 });
+  const net = url.slice(15).replace(/[^\w-]/g, "");
+  const uid = "tg" + String(q.get("uid") || "").replace(/\D/g, "");
+  const coins = Math.round(Number(q.get("coins") || 0)); const tx = String(q.get("tx") || "").slice(0, 120);
+  const st = String(q.get("status") || "1").toLowerCase();
+  if (uid === "tg" || !tx || !Number.isFinite(coins) || coins === 0) return new Response("bad", { status: 400 });
+  if (!(await getUserRow(uid))) return new Response("1"); // невідомий гравець — підтверджуємо, щоб мережа не повторювала
+  const back = st === "2" || st === "reversed" || st === "rejected" || st === "chargeback" || coins < 0;
+  const amt = back ? -Math.abs(coins) : Math.abs(coins);
+  let fresh = false;
+  try {
+    await db.begin(async (t: any) => {
+      const r = await adj(t, uid, amt, back ? "offer_back" : "offer", net + ":" + tx + (back ? ":b" : ""), net);
+      if (r) fresh = true;
+      if (r) await t`update users set deposited = greatest(0, deposited + ${amt}) where id = ${uid}`;
+    });
+  } catch (e: any) { console.error("offer", net, e.message); }
+  pushBal(uid);
+  if (fresh && !back) tg("sendMessage", { chat_id: uid.slice(2), text: `🎁 +${amt} монет за виконане завдання` }).catch(() => {});
+  return new Response("1");
 }
 
 // ---------- Графіка (згенерована, лежить у таблиці assets) ----------
@@ -990,7 +1021,7 @@ async function handle(req: Request) {
   if (url === "/admin") return new Response(ADMIN_HTML, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" } });
   if (url.startsWith("/a/")) return serveAsset(url.slice(3));
   if (!url.startsWith("/api/")) return new Response((globalThis as any).__WEB || HTML.replace("gain.value=0.11,", "gain.value=0,").replace("</body>", () => INJECT + ((globalThis as any).__FX || "") + "</body>"), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" } });
-  { const ac = await adsCb(url, req); if (ac) return ac; }
+  { const ac = await adsCb(url, req); if (ac) return ac; const oc = await offerCb(url, req); if (oc) return oc; }
   const u = await authFrom(req.headers.get("x-init-data") || "", req.headers.get("x-dev-user") || "");
   if (!u) return json({ error: "unauthorized" }, 401);
   let body: any = {}; if (req.method === "POST") { try { body = await req.json(); } catch { body = {}; } }
