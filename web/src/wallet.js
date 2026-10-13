@@ -1,5 +1,5 @@
 /* ===== ГАМАНЕЦЬ, ПРОФІЛЬ, ТЕХПІДТРИМКА, ЗАПУСК ===== */
-const KIND = { dep_stars: "k_dep_stars", dep_ton: "k_dep_ton", dep_card: "k_dep_card", withdraw: "k_withdraw", wd_refund: "k_wd_refund", wd_fee_refund: "k_wd_refund", duel_win: "k_win", jp_win: "k_jp_win", mx_win: "k_win", mx_stake: "k_stake", mx_refund: "k_refund", mx_refund_c: "k_refund", pk_buyin: "k_pk_in", pk_cashout: "k_pk_out", grant: "k_grant", ref_bonus: "k_ref", refund_pk: "k_refund", refund_duel: "k_refund", refund_jp: "k_refund", refund_mx: "k_refund" };
+const KIND = { dep_stars: "k_dep_stars", dep_ton: "k_dep_ton", dep_card: "k_dep_card", withdraw: "k_withdraw", wd_refund: "k_wd_refund", wd_fee_refund: "k_wd_refund", duel_win: "k_win", jp_win: "k_jp_win", mx_win: "k_win", mx_stake: "k_stake", mx_refund: "k_refund", mx_refund_c: "k_refund", pk_buyin: "k_pk_in", pk_cashout: "k_pk_out", grant: "k_grant", ref_bonus: "k_ref", ad_reward: "k_ad", refund_pk: "k_refund", refund_duel: "k_refund", refund_jp: "k_refund", refund_mx: "k_refund" };
 const tDate = (t) => new Date(t).toLocaleString(["uk-UA", "ru-RU", "en-GB"][S.li], { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 let CARD = null;
 

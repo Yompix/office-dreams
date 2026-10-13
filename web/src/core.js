@@ -92,7 +92,7 @@ const MUS = (function () {
   document.addEventListener("pointerdown", kick, { passive: true });
   document.addEventListener("touchend", kick, { passive: true });
   document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); else if (S.mus) play(); if (AC) document.hidden ? AC.suspend() : AC.resume(); });
-  return { sync: () => (S.mus ? play() : pause()) };
+  return { sync: () => (S.mus ? play() : pause()), pause };
 })();
 
 /* ---------- тости, модалка, шторка, оверлеї ---------- */

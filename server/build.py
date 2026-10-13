@@ -68,6 +68,12 @@ rep('  if (tableOf(uid)) throw new Error("seated");', '  { const f0 = tableOf(ui
 rep('      case "pk.leave": await pkLeave(d.uid); break;', '      case "pk.leave": await pkLeave(d.uid); break;\n      case "pk.where": { const f = tableOf(d.uid); if (f) { d.sub = "pk:" + f.t.id; send(ws, { t: "pk", table: tableView(f.t, d.uid), back: true }); } break; }')
 rep('      if (ws.data.sub === "mx") mxLeave(uid).catch(() => {});', '      if (![...socks].some((w) => w.data.uid === uid)) mxLeave(uid).catch(() => {});')
 
+# 4b) реклама за винагороду
+ads = open(D + 'server/ads.ts', encoding='utf8').read()
+rep(p3, ads + p3)
+rep('  { const sr = await supApi(url, req, u, body); if (sr) return sr; }\n', '  { const sr = await supApi(url, req, u, body); if (sr) return sr; }\n  { const ar = await adsApi(url, req, u, body); if (ar) return ar; }\n')
+rep('  const u = await authFrom(req.headers.get("x-init-data")', '  { const ac = await adsCb(url, req); if (ac) return ac; }\n  const u = await authFrom(req.headers.get("x-init-data")')
+
 # 5) графіка з бази та новий фронтенд
 assets = '''
 // ---------- Графіка (згенерована, лежить у таблиці assets) ----------

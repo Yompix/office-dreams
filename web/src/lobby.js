@@ -139,6 +139,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && S.
 function openBonus() {
   const spDone = SP && SP.state === "member";
   sheet(`<div class="shH"><span class="gi"><img src="/a/i-gift.webp" alt=""></span><div><h3>${T("bonus_t")}</h3></div><button class="x" data-xs>✕</button></div>
+  <div class="card" id="adsCard"><div class="refh"><span style="font-size:34px">📺</span><div><b>${T("ads_t")}</b><p id="adsP">${T("loading")}</p></div></div><div id="adsBtns" class="btns" style="margin-top:12px"></div></div>
   ${SP && SP.link ? `<div class="card"><div class="refh"><span style="font-size:34px">📢</span><div><b>${esc(SP.title || T("sp_s"))}</b><p>${spDone ? T("sp_ok") : T("sp_t")}</p></div></div>${spDone ? "" : `<button class="btn cy w sm" id="bSp" style="margin-top:12px">${S.spOpened ? T("sp_check") : T("sp_go")}</button>`}</div>` : ""}
   <div class="card"><div class="refh"><img src="/a/i-friends.webp" alt=""><div><b>${T("ref_t")}</b><p>${T("ref_p", Math.round((S.me ? S.me.cfg.refPct : 0.2) * 100))}</p></div></div><button class="btn pk w sm" id="bRef" style="margin-top:12px">${T("ref_invite")}</button></div>
   <div class="card"><div class="refh"><img src="/a/i-robot.webp" alt=""><div><b>${T("training")}</b><p>${T("train_p")}</p></div></div><button class="btn dk w sm" id="bTr" style="margin-top:12px">${T("train_go")}</button></div>`);
@@ -146,8 +147,44 @@ function openBonus() {
   $("bRef").onclick = () => { closeSheet(); shareRef(); };
   $("bTr").onclick = () => { closeSheet(); openTraining(); };
   $("shIn").querySelector("[data-xs]").onclick = closeSheet;
+  adsRender();
 }
 $("bGift").onclick = openBonus;
+
+/* ---------- реклама за монети ---------- */
+let ADSI = null, adsBusy = false;
+const ADS_NAME = { adsgram: "Adsgram", monetag: "Monetag" };
+function loadScript(src, data) {
+  return new Promise((res, rej) => {
+    if (document.querySelector(`script[src="${src}"]`)) return res();
+    const s = document.createElement("script"); s.src = src; Object.assign(s.dataset, data || {}); s.onload = () => res(); s.onerror = () => rej(new Error("ads_load")); document.head.appendChild(s);
+  });
+}
+async function adsRender() {
+  const p = $("adsP"), box = $("adsBtns"); if (!p) return;
+  try { ADSI = await api("/api/ads"); } catch (e) { ADSI = null; }
+  if (!ADSI || !ADSI.nets.length) { $("adsCard").hidden = true; return; }
+  p.textContent = T("ads_p", ADSI.reward, ADSI.left, ADSI.day);
+  box.innerHTML = ADSI.nets.map((n) => `<button class="btn gr sm" data-ad="${n.net}"${ADSI.left ? "" : " disabled"}>▶ ${ADSI.nets.length > 1 ? ADS_NAME[n.net] || n.net : T("ads_go")}</button>`).join("");
+  box.onclick = (e) => { const b = e.target.closest("[data-ad]"); if (b) adsShow(ADSI.nets.find((n) => n.net === b.dataset.ad)); };
+}
+async function adsShow(n) {
+  if (!n || adsBusy) return; adsBusy = true; MUS.pause && MUS.pause();
+  try {
+    if (n.net === "adsgram") {
+      await loadScript("https://sad.adsgram.ai/js/sad.min.js");
+      const r = await window.Adsgram.init({ blockId: n.id }).show();
+      if (r && r.done === false) throw new Error("ads_skip");
+    } else if (n.net === "monetag") {
+      await loadScript("https://libtl.com/sdk.js", { zone: n.id, sdk: "show_" + n.id });
+      const f = window["show_" + n.id]; if (!f) throw new Error("ads_load");
+      await f({ ymid: ADSI.uid });
+    }
+    if (ADSI.server) { toast(T("ads_cb"), "good"); setTimeout(() => { refreshMe(); adsRender(); }, 5000); }
+    else { const r = await api("/api/ads/claim", { net: n.net }); toast("+" + r.reward + " 🪙", "good"); sfx.win(); adsRender(); }
+  } catch (e) { const m = (e && e.message) || ""; toast(DICT["e_" + m] ? T("e_" + m) : T("e_ads_none"), "bad"); }
+  adsBusy = false; MUS.sync();
+}
 $("lJp").onclick = openJP;
 
 /* ---------- бокове меню: мова, звук, підтримка ---------- */
