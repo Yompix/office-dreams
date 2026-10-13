@@ -984,7 +984,7 @@ async function offerCb(url: string, req: Request) {
   const st = String(q.get("status") || "1").toLowerCase();
   if (uid === "tg" || !tx || !Number.isFinite(coins) || coins === 0) return new Response("bad", { status: 400 });
   if (!(await getUserRow(uid))) return new Response("1"); // невідомий гравець — підтверджуємо, щоб мережа не повторювала
-  const back = st === "2" || st === "reversed" || st === "rejected" || st === "chargeback" || coins < 0;
+  const back = q.get("back") === "1" || st === "2" || st === "reversed" || st === "rejected" || st === "chargeback" || coins < 0;
   const amt = back ? -Math.abs(coins) : Math.abs(coins);
   let fresh = false;
   try {
