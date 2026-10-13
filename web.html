@@ -703,7 +703,7 @@ const DICT = {
   ton_note: ["Монети зарахуються автоматично через 1–2 хвилини після переказу.", "Монеты зачислятся автоматически через 1–2 минуты после перевода.", "Coins arrive automatically 1–2 minutes after the transfer."],
   amount: ["Сума", "Сумма", "Amount"], card_create: ["Створити заявку", "Создать заявку", "Create request"], card_reqs: ["Мої заявки", "Мои заявки", "My requests"],
   card_pay: ["Переведи {0} {1} на картку:", "Переведи {0} {1} на карту:", "Send {0} {1} to this card:"], card_note: ["Після переказу натисни кнопку нижче — ми перевіримо й зарахуємо монети.", "После перевода нажми кнопку ниже — мы проверим и зачислим монеты.", "After the transfer tap the button below — we'll check and credit your coins."],
-  card_paid: ["Я оплатив", "Я оплатил", "I've paid"], card_claimed: ["Перевіряємо оплату", "Проверяем оплату", "Checking your payment"],
+  card_holder: ["Отримувач", "Получатель", "Cardholder"], card_paid: ["Я оплатив", "Я оплатил", "I've paid"], card_claimed: ["Перевіряємо оплату", "Проверяем оплату", "Checking your payment"],
   wd_coins: ["Монет, від {0}", "Монет, от {0}", "Coins, from {0}"], wd_addr: ["TON-адреса (UQ… або EQ…)", "TON-адрес (UQ… или EQ…)", "TON address (UQ… or EQ…)"], wd_card: ["Номер картки", "Номер карты", "Card number"],
   fee: ["Комісія", "Комиссия", "Fee"], you_get: ["Отримаєш", "Получишь", "You get"], fill_all: ["Заповни всі поля", "Заполни все поля", "Fill in all fields"], wd_ok: ["Заявку на вивід створено", "Заявка на вывод создана", "Withdrawal requested"],
   need_turn: ["Щоб вивести, зіграй ще на {0} монет.", "Чтобы вывести, сыграй ещё на {0} монет.", "Play {0} more coins to withdraw."], my_wd: ["Мої виводи", "Мои выводы", "My withdrawals"], no_ops: ["Операцій ще немає", "Операций пока нет", "No transactions yet"],
@@ -1762,7 +1762,7 @@ async function cardDep(d) {
   $("cGo").onclick = async () => { const amount = Number(a.value); if (!amount) return; try { await api("/api/card/dep", { cur, amount }); sfx.chip(); cardDep(d); } catch (e) { errToast(e); } };
   const cl = $("cClaim"); if (cl) cl.onclick = async () => { try { await api("/api/card/claim", { id: Number(cl.dataset.id) }); toast(T("card_claimed"), "good"); cardDep(d); } catch (e) { errToast(e); } };
 }
-const cardPay = (x) => `<div class="card" style="--bc:var(--gold);display:flex;flex-direction:column;gap:10px"><b class="fd" style="font-size:16px">${T("card_pay", x.amount, x.cur)}</b><div class="copy"><span style="font:400 17px var(--fd);letter-spacing:1px">${esc(CARD.cardFmt)}</span><button data-cp="${esc(CARD.card)}">${T("copy")}</button></div><p class="dim" style="font-size:12px">${T("card_note")}</p><button class="btn gr w" id="cClaim" data-id="${x.id}">${T("card_paid")}</button></div>`;
+const cardPay = (x) => `<div class="card" style="--bc:var(--gold);display:flex;flex-direction:column;gap:10px"><b class="fd" style="font-size:16px">${T("card_pay", x.amount, x.cur)}</b><div class="copy"><span style="font:400 17px var(--fd);letter-spacing:1px">${esc(CARD.cardFmt)}</span><button data-cp="${esc(CARD.card)}">${T("copy")}</button></div>${CARD.info.holder ? `<div class="kv"><span class="dim">${T("card_holder")}</span><b>${esc(CARD.info.holder)}</b></div>` : ""}<p class="dim" style="font-size:12px">${T("card_note")}</p><button class="btn gr w" id="cClaim" data-id="${x.id}">${T("card_paid")}</button></div>`;
 
 async function wdView(box) {
   const c = S.me.cfg, how = S.wdHow || "ton";

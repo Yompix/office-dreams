@@ -51,7 +51,7 @@ async function cardDep(d) {
   $("cGo").onclick = async () => { const amount = Number(a.value); if (!amount) return; try { await api("/api/card/dep", { cur, amount }); sfx.chip(); cardDep(d); } catch (e) { errToast(e); } };
   const cl = $("cClaim"); if (cl) cl.onclick = async () => { try { await api("/api/card/claim", { id: Number(cl.dataset.id) }); toast(T("card_claimed"), "good"); cardDep(d); } catch (e) { errToast(e); } };
 }
-const cardPay = (x) => `<div class="card" style="--bc:var(--gold);display:flex;flex-direction:column;gap:10px"><b class="fd" style="font-size:16px">${T("card_pay", x.amount, x.cur)}</b><div class="copy"><span style="font:400 17px var(--fd);letter-spacing:1px">${esc(CARD.cardFmt)}</span><button data-cp="${esc(CARD.card)}">${T("copy")}</button></div><p class="dim" style="font-size:12px">${T("card_note")}</p><button class="btn gr w" id="cClaim" data-id="${x.id}">${T("card_paid")}</button></div>`;
+const cardPay = (x) => `<div class="card" style="--bc:var(--gold);display:flex;flex-direction:column;gap:10px"><b class="fd" style="font-size:16px">${T("card_pay", x.amount, x.cur)}</b><div class="copy"><span style="font:400 17px var(--fd);letter-spacing:1px">${esc(CARD.cardFmt)}</span><button data-cp="${esc(CARD.card)}">${T("copy")}</button></div>${CARD.info.holder ? `<div class="kv"><span class="dim">${T("card_holder")}</span><b>${esc(CARD.info.holder)}</b></div>` : ""}<p class="dim" style="font-size:12px">${T("card_note")}</p><button class="btn gr w" id="cClaim" data-id="${x.id}">${T("card_paid")}</button></div>`;
 
 async function wdView(box) {
   const c = S.me.cfg, how = S.wdHow || "ton";

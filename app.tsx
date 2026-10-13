@@ -1296,7 +1296,7 @@ async function dispatchWd(id: number, ton: number, who: string, fee: number, add
 // ---------- Картка (USD/EUR, ручне підтвердження) ----------
 const luhn = (n: string) => { let sum = 0, alt = false; for (let i = n.length - 1; i >= 0; i--) { let d = Number(n[i]); if (alt) { d *= 2; if (d > 9) d -= 9; } sum += d; alt = !alt; } return sum % 10 === 0; };
 const grp4 = (n: string) => n.replace(/(.{4})/g, "$1 ").trim();
-const cardInfo = () => ({ rates: CARD_IN, out: CARD_RATE, min: CARD_MIN, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN });
+const cardInfo = () => ({ holder: String(env.CARD_HOLDER || ""), rates: CARD_IN, out: CARD_RATE, min: CARD_MIN, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN });
 async function cardDepDecide(id: number, ok: boolean): Promise<boolean> {
   let uid = "", coins = 0;
   const done = await db.begin(async (t: any) => {

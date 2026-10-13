@@ -46,7 +46,7 @@ ratesTick(); setInterval(ratesTick, 10 * 60 * 1000);""")
 rep('const coins = Math.floor(amount * CARD_RATE[cur]);', 'const coins = Math.floor(amount * CARD_IN[cur]);')
 rep('const coins = Math.floor((val / 1e9) * TON_COINS);', 'const coins = Math.floor((val / 1e9) * TON_IN);')
 rep('tonCoins: TON_COINS, rake', 'tonCoins: TON_IN, tonOut: TON_COINS, rake')
-rep('const cardInfo = () => ({ rates: CARD_RATE,', 'const cardInfo = () => ({ rates: CARD_IN, out: CARD_RATE,')
+rep('const cardInfo = () => ({ rates: CARD_RATE,', 'const cardInfo = () => ({ holder: String(env.CARD_HOLDER || ""), rates: CARD_IN, out: CARD_RATE,')
 
 # 2) нові PvP-ігри: замінюємо весь блок mx
 a = s.index('// ---------- PvP-ігри 1 на 1 (камінь')
