@@ -11,7 +11,7 @@ const devUser = () => { let v = ls("dev"); if (!v) { v = Math.random().toString(
 const S = {
   me: null, L: null, tab: "lobby", li: 0,
   snd: (ls("snd") ?? "1") === "1", vib: (ls("vib") ?? "1") === "1", mus: (ls("mus") ?? "1") === "1",
-  stake: Number(ls("stake")) || 100, pkMode: "6", wTab: "dep", wMeth: "stars",
+  stake: Number(ls("stake")) || 100, pkMode: "6", wTab: "dep", wMeth: "ton",
   match: null, tbl: null, tblId: 0, tblAt: 0, room: null, jpOpen: false, jpSeen: 0, supOpen: false, stack: [],
 };
 

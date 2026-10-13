@@ -260,8 +260,8 @@ function endModal(e, m) {
   const why = { timeout: won ? "why_to_w" : "why_to_l", resign: won ? "why_rs_w" : "why_rs_l", boom: won ? "why_boom_w" : "why_boom_l", mate: "why_mate", draw: "why_draw", cards: "why_cards", bj: "why_bj", four: "why_four", ttt: "why_ttt", checkers: won ? "why_checkers" : "why_checkers_l", rps: "why_rps" }[e.reason];
   const amt = e.local ? "" : won ? `<div class="res w">+${fmt(e.win - m.stake)} <i class="coin" style="width:24px;height:24px"></i></div>` : draw ? `<div class="res d">${T("refunded")}</div>` : `<div class="res l">−${fmt(m.stake)}</div>`;
   modal(`<h3 class="${won ? "gold" : ""}" style="font-size:30px">${won ? T("victory") : draw ? T("draw") : T("defeat")}</h3>${why ? `<p>${T(why)}</p>` : ""}${amt}<div class="btns"><button class="btn dk" id="eLobby">${T("to_lobby")}</button><button class="btn ${won ? "gr" : "pk"}" id="eAgain">${T("again")}</button></div>`);
-  $("eLobby").onclick = () => { closeModal(); mxClose(); go("lobby"); };
-  $("eAgain").onclick = () => { closeModal(); mxClose(); if (e.local) botStart(m.game); else { S.stake = m.stake; openRoom(m.game); } };
+  $("eLobby").onclick = () => { closeModal(); mxClose(); go("lobby"); if (!e.local) adsInter(); };
+  $("eAgain").onclick = () => { closeModal(); mxClose(); if (!e.local) adsInter(); if (e.local) botStart(m.game); else { S.stake = m.stake; openRoom(m.game); } };
   if (won) { sfx.big(); hap("success"); burst(70); setTimeout(() => burst(50, innerWidth * 0.25, innerHeight * 0.35), 250); setTimeout(() => burst(50, innerWidth * 0.75, innerHeight * 0.35), 450); if (!e.local) rain(60); }
   else if (draw) { sfx.click(); hap("warning"); } else { sfx.lose(); hap("error"); }
 }

@@ -9,7 +9,7 @@ function renderWallet(opt) {
   $$("#wSeg button").forEach((b) => b.classList.toggle("on", b.dataset.w === S.wTab));
   const box = $("wBody"), c = S.me && S.me.cfg; if (!c) { box.innerHTML = `<div class="empty">${T("connecting")}</div>`; return; }
   if (S.wTab === "dep") {
-    const M = [["stars", "i-star", T("m_stars")], ["ton", "i-ton", "TON"], ["card", "i-card", T("m_card")]];
+    const M = [["ton", "i-ton", "TON"], ["card", "i-card", T("m_card")]];
     box.innerHTML = `<div class="meth">${M.map(([k, ic, n]) => `<button data-m="${k}" class="${S.wMeth === k ? "on" : ""}"><img src="/a/${ic}.webp" alt="">${n}</button>`).join("")}</div><div id="wDep" style="display:flex;flex-direction:column;gap:12px"></div>`;
     $$(".meth [data-m]", box).forEach((b) => (b.onclick = () => { S.wMeth = b.dataset.m; sfx.click(); renderWallet(); }));
     const d = $("wDep");

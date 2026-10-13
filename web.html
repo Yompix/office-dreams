@@ -460,7 +460,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 .wtop .coin{width:44px;height:44px}
 .wtop b{display:block;font:400 30px/1 var(--fd);color:var(--gold);text-shadow:0 0 14px #ffc93366}
 .wtop small{color:var(--dim);font-size:12px}
-.meth{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding-top:10px}
+.meth{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding-top:10px}
 .meth button{--b:2px;--bc:var(--line2);height:84px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:7px;background:linear-gradient(#1f0f55,#120836);font:400 14px var(--fd);box-shadow:0 -2px 0 0 var(--bc),0 2px 0 0 var(--bc),-2px 0 0 0 var(--bc),2px 0 0 0 var(--bc)}
 .meth button img{width:56px;margin-top:-14px;filter:drop-shadow(0 4px 5px #000a)}
 .meth button.on{--bc:var(--gold);background:linear-gradient(#4a2f0a,#1f0f55)}
@@ -751,7 +751,7 @@ const devUser = () => { let v = ls("dev"); if (!v) { v = Math.random().toString(
 const S = {
   me: null, L: null, tab: "lobby", li: 0,
   snd: (ls("snd") ?? "1") === "1", vib: (ls("vib") ?? "1") === "1", mus: (ls("mus") ?? "1") === "1",
-  stake: Number(ls("stake")) || 100, pkMode: "6", wTab: "dep", wMeth: "stars",
+  stake: Number(ls("stake")) || 100, pkMode: "6", wTab: "dep", wMeth: "ton",
   match: null, tbl: null, tblId: 0, tblAt: 0, room: null, jpOpen: false, jpSeen: 0, supOpen: false, stack: [],
 };
 
@@ -1136,6 +1136,18 @@ async function adsRender() {
   box.innerHTML = ADSI.nets.map((n) => `<button class="btn gr sm" data-ad="${n.net}"${ADSI.left ? "" : " disabled"}>▶ ${ADSI.nets.length > 1 ? ADS_NAME[n.net] || n.net : T("ads_go")}</button>`).join("");
   box.onclick = (e) => { const b = e.target.closest("[data-ad]"); if (b) adsShow(ADSI.nets.find((n) => n.net === b.dataset.ad)); };
 }
+/* звичайна реклама між іграми (без винагороди): кожна 3-тя завершена гра, не частіше ніж раз на 2 хвилини */
+let interN = 0, interAt = 0;
+async function adsInter() {
+  try {
+    if (++interN % 3 || Date.now() - interAt < 120000) return;
+    if (!ADSI) ADSI = await api("/api/ads");
+    const n = (ADSI.nets || []).find((x) => x.net === "monetag"); if (!n) return;
+    await loadScript("https://libtl.com/sdk.js", { zone: n.id, sdk: "show_" + n.id });
+    const f = window["show_" + n.id]; if (!f) return; interAt = Date.now();
+    const p = f(); if (p && p.catch) p.catch(() => {});
+  } catch (e) {}
+}
 async function adsShow(n) {
   if (!n || adsBusy) return; adsBusy = true; MUS.pause && MUS.pause();
   try {
@@ -1159,7 +1171,7 @@ $("lJp").onclick = openJP;
 function openDrawer() {
   const sw = (id, on) => `<span class="sw${on ? " on" : ""}" id="${id}"></span>`;
   $("drw").innerHTML = `<div class="dh"><img src="/a/i-settings.webp" alt=""><b>${T("settings")}</b></div>
-  <div><span class="lbl">${T("language")}</span><div class="seg" id="dLang">${["УКР", "РУС", "ENG"].map((x, i) => `<button class="${i === S.li ? "on" : ""}" data-l="${LANGS[i]}">${x}</button>`).join("")}</div></div>
+  <div><span class="lbl">${T("language")}</span><div class="seg" id="dLang">${["🇺🇦 УКР", "🇷🇺 РУС", "🇬🇧 ENG"].map((x, i) => `<button class="${i === S.li ? "on" : ""}" data-l="${LANGS[i]}">${x}</button>`).join("")}</div></div>
   <button class="li" data-t="mus"><span>🎵 ${T("music")}</span>${sw("dMus", S.mus)}</button>
   <button class="li" data-t="snd"><span>🔊 ${T("sounds")}</span>${sw("dSnd", S.snd)}</button>
   <button class="li" data-t="vib"><span>📳 ${T("vibration")}</span>${sw("dVib", S.vib)}</button>
@@ -1454,8 +1466,8 @@ function endModal(e, m) {
   const why = { timeout: won ? "why_to_w" : "why_to_l", resign: won ? "why_rs_w" : "why_rs_l", boom: won ? "why_boom_w" : "why_boom_l", mate: "why_mate", draw: "why_draw", cards: "why_cards", bj: "why_bj", four: "why_four", ttt: "why_ttt", checkers: won ? "why_checkers" : "why_checkers_l", rps: "why_rps" }[e.reason];
   const amt = e.local ? "" : won ? `<div class="res w">+${fmt(e.win - m.stake)} <i class="coin" style="width:24px;height:24px"></i></div>` : draw ? `<div class="res d">${T("refunded")}</div>` : `<div class="res l">−${fmt(m.stake)}</div>`;
   modal(`<h3 class="${won ? "gold" : ""}" style="font-size:30px">${won ? T("victory") : draw ? T("draw") : T("defeat")}</h3>${why ? `<p>${T(why)}</p>` : ""}${amt}<div class="btns"><button class="btn dk" id="eLobby">${T("to_lobby")}</button><button class="btn ${won ? "gr" : "pk"}" id="eAgain">${T("again")}</button></div>`);
-  $("eLobby").onclick = () => { closeModal(); mxClose(); go("lobby"); };
-  $("eAgain").onclick = () => { closeModal(); mxClose(); if (e.local) botStart(m.game); else { S.stake = m.stake; openRoom(m.game); } };
+  $("eLobby").onclick = () => { closeModal(); mxClose(); go("lobby"); if (!e.local) adsInter(); };
+  $("eAgain").onclick = () => { closeModal(); mxClose(); if (!e.local) adsInter(); if (e.local) botStart(m.game); else { S.stake = m.stake; openRoom(m.game); } };
   if (won) { sfx.big(); hap("success"); burst(70); setTimeout(() => burst(50, innerWidth * 0.25, innerHeight * 0.35), 250); setTimeout(() => burst(50, innerWidth * 0.75, innerHeight * 0.35), 450); if (!e.local) rain(60); }
   else if (draw) { sfx.click(); hap("warning"); } else { sfx.lose(); hap("error"); }
 }
@@ -1691,7 +1703,7 @@ function duelResult(r) {
   }
   function done() {
     const f = $("dFin"); if (!f) return; f.style.visibility = "visible"; f.style.animation = "pop .4s cubic-bezier(.2,1.5,.4,1)";
-    $("dOk").onclick = closeModal; $("dAg").onclick = () => { closeModal(); S.stake = r.stake; openRoom(r.game); };
+    $("dOk").onclick = () => { closeModal(); adsInter(); }; $("dAg").onclick = () => { closeModal(); S.stake = r.stake; openRoom(r.game); };
     if (won) { sfx.big(); burst(70); hap("success"); } else { sfx.lose(); hap("error"); }
   }
 }
@@ -1707,7 +1719,7 @@ function renderWallet(opt) {
   $$("#wSeg button").forEach((b) => b.classList.toggle("on", b.dataset.w === S.wTab));
   const box = $("wBody"), c = S.me && S.me.cfg; if (!c) { box.innerHTML = `<div class="empty">${T("connecting")}</div>`; return; }
   if (S.wTab === "dep") {
-    const M = [["stars", "i-star", T("m_stars")], ["ton", "i-ton", "TON"], ["card", "i-card", T("m_card")]];
+    const M = [["ton", "i-ton", "TON"], ["card", "i-card", T("m_card")]];
     box.innerHTML = `<div class="meth">${M.map(([k, ic, n]) => `<button data-m="${k}" class="${S.wMeth === k ? "on" : ""}"><img src="/a/${ic}.webp" alt="">${n}</button>`).join("")}</div><div id="wDep" style="display:flex;flex-direction:column;gap:12px"></div>`;
     $$(".meth [data-m]", box).forEach((b) => (b.onclick = () => { S.wMeth = b.dataset.m; sfx.click(); renderWallet(); }));
     const d = $("wDep");

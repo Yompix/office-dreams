@@ -156,7 +156,7 @@ function duelResult(r) {
   }
   function done() {
     const f = $("dFin"); if (!f) return; f.style.visibility = "visible"; f.style.animation = "pop .4s cubic-bezier(.2,1.5,.4,1)";
-    $("dOk").onclick = closeModal; $("dAg").onclick = () => { closeModal(); S.stake = r.stake; openRoom(r.game); };
+    $("dOk").onclick = () => { closeModal(); adsInter(); }; $("dAg").onclick = () => { closeModal(); S.stake = r.stake; openRoom(r.game); };
     if (won) { sfx.big(); burst(70); hap("success"); } else { sfx.lose(); hap("error"); }
   }
 }

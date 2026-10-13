@@ -170,6 +170,18 @@ async function adsRender() {
   box.innerHTML = ADSI.nets.map((n) => `<button class="btn gr sm" data-ad="${n.net}"${ADSI.left ? "" : " disabled"}>▶ ${ADSI.nets.length > 1 ? ADS_NAME[n.net] || n.net : T("ads_go")}</button>`).join("");
   box.onclick = (e) => { const b = e.target.closest("[data-ad]"); if (b) adsShow(ADSI.nets.find((n) => n.net === b.dataset.ad)); };
 }
+/* звичайна реклама між іграми (без винагороди): кожна 3-тя завершена гра, не частіше ніж раз на 2 хвилини */
+let interN = 0, interAt = 0;
+async function adsInter() {
+  try {
+    if (++interN % 3 || Date.now() - interAt < 120000) return;
+    if (!ADSI) ADSI = await api("/api/ads");
+    const n = (ADSI.nets || []).find((x) => x.net === "monetag"); if (!n) return;
+    await loadScript("https://libtl.com/sdk.js", { zone: n.id, sdk: "show_" + n.id });
+    const f = window["show_" + n.id]; if (!f) return; interAt = Date.now();
+    const p = f(); if (p && p.catch) p.catch(() => {});
+  } catch (e) {}
+}
 async function adsShow(n) {
   if (!n || adsBusy) return; adsBusy = true; MUS.pause && MUS.pause();
   try {
@@ -193,7 +205,7 @@ $("lJp").onclick = openJP;
 function openDrawer() {
   const sw = (id, on) => `<span class="sw${on ? " on" : ""}" id="${id}"></span>`;
   $("drw").innerHTML = `<div class="dh"><img src="/a/i-settings.webp" alt=""><b>${T("settings")}</b></div>
-  <div><span class="lbl">${T("language")}</span><div class="seg" id="dLang">${["УКР", "РУС", "ENG"].map((x, i) => `<button class="${i === S.li ? "on" : ""}" data-l="${LANGS[i]}">${x}</button>`).join("")}</div></div>
+  <div><span class="lbl">${T("language")}</span><div class="seg" id="dLang">${["🇺🇦 УКР", "🇷🇺 РУС", "🇬🇧 ENG"].map((x, i) => `<button class="${i === S.li ? "on" : ""}" data-l="${LANGS[i]}">${x}</button>`).join("")}</div></div>
   <button class="li" data-t="mus"><span>🎵 ${T("music")}</span>${sw("dMus", S.mus)}</button>
   <button class="li" data-t="snd"><span>🔊 ${T("sounds")}</span>${sw("dSnd", S.snd)}</button>
   <button class="li" data-t="vib"><span>📳 ${T("vibration")}</span>${sw("dVib", S.vib)}</button>
