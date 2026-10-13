@@ -27,6 +27,27 @@ rep(p5, "if (upd.chat_join_request || upd.my_chat_member) await spUpd(upd); else
 # номер картки береться лише зі змінної середовища (код публічний)
 rep('(env.CARD_NUM || "4426010004771033")', '(env.CARD_NUM || "")')
 
+# курси: 1 монета ≈ 0,001 $; TON і євро — за живим курсом, на поповнення запас 3%
+rep('const STAR_COINS = Number(env.STAR_COINS || 4);', 'const STAR_COINS = Number(env.STAR_COINS || 10);')
+rep('const TON_COINS = Number(env.TON_COINS || 1000);', 'let TON_COINS = Number(env.TON_COINS || 1370); let TON_IN = Math.round(TON_COINS * 0.97);')
+rep('const CARD_RATE: Record<string, number> = { USD: Number(env.USD_COINS || 200), EUR: Number(env.EUR_COINS || 230) };',
+    """const CARD_RATE: Record<string, number> = { USD: Number(env.USD_COINS || 1000), EUR: Number(env.EUR_COINS || 1150) };
+const CARD_IN: Record<string, number> = { USD: Math.round(CARD_RATE.USD * 0.97), EUR: Math.round(CARD_RATE.EUR * 0.97) };
+async function ratesTick() {
+  try {
+    const j: any = await (await fetch("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network,toncoin,tether&vs_currencies=usd,eur", { signal: AbortSignal.timeout(10000) })).json();
+    const ton = Number(j["the-open-network"]?.usd || j.toncoin?.usd), eur = Number(j.tether?.eur);
+    if (ton > 0.05 && ton < 200 && !env.TON_COINS) { TON_COINS = Math.round(ton * CARD_RATE.USD); TON_IN = Math.round(TON_COINS * 0.97); }
+    if (eur > 0.5 && eur < 1.5 && !env.EUR_COINS) { CARD_RATE.EUR = Math.round(CARD_RATE.USD / eur); CARD_IN.EUR = Math.round(CARD_RATE.EUR * 0.97); }
+    console.log("rates TON", TON_COINS, "/", TON_IN, "EUR", CARD_RATE.EUR, "/", CARD_IN.EUR);
+  } catch (e: any) { console.error("rates", e.message); }
+}
+ratesTick(); setInterval(ratesTick, 10 * 60 * 1000);""")
+rep('const coins = Math.floor(amount * CARD_RATE[cur]);', 'const coins = Math.floor(amount * CARD_IN[cur]);')
+rep('const coins = Math.floor((val / 1e9) * TON_COINS);', 'const coins = Math.floor((val / 1e9) * TON_IN);')
+rep('tonCoins: TON_COINS, rake', 'tonCoins: TON_IN, tonOut: TON_COINS, rake')
+rep('const cardInfo = () => ({ rates: CARD_RATE,', 'const cardInfo = () => ({ rates: CARD_IN, out: CARD_RATE,')
+
 # 2) нові PvP-ігри: замінюємо весь блок mx
 a = s.index('// ---------- PvP-ігри 1 на 1 (камінь')
 b = s.index('async function onMessage(ws: any, raw: string)')

@@ -9,8 +9,8 @@ const BOT_TOKEN = env.BOT_TOKEN || "";
 const WEBAPP_URL = (env.WEBAPP_URL || "").replace(/\/$/, "");
 const ADMIN_ID = String(env.ADMIN_ID || "1274614664");
 const TON_ADDR = env.TON_ADDR || "UQBPWOOfBN1O5vLtUqs81jqQqiO2MRJKoIdfzq0RxHS7D9T-";
-const STAR_COINS = Number(env.STAR_COINS || 4); // 1 зірка = стільки монет
-const TON_COINS = Number(env.TON_COINS || 1000); // 1 TON = стільки монет
+const STAR_COINS = Number(env.STAR_COINS || 10); // 1 зірка = стільки монет
+let TON_COINS = Number(env.TON_COINS || 1370); let TON_IN = Math.round(TON_COINS * 0.97); // 1 TON = стільки монет
 const RAKE = Number(env.RAKE || 0.10); // комісія з банку
 const REF_PCT = Number(env.REF_PCT || 0.20); // частка рейку, що йде запрошувачу
 const WD_FEE = Number(env.WD_FEE || 0.05), WD_FEE_MIN = Number(env.WD_FEE_MIN || 50), WD_MIN = Number(env.WD_MIN || 1000);
@@ -20,7 +20,18 @@ const WALLET_VER = (env.WALLET_VERSION || "v5r1").toLowerCase();
 const AUTO_MAX = Number(env.AUTO_PAY_MAX_TON || 5), AUTO_DAY = Number(env.AUTO_PAY_DAY_TON || 30);
 let autoOn = false;
 const CARD_NUM = (env.CARD_NUM || "").replace(/\D/g, "");
-const CARD_RATE: Record<string, number> = { USD: Number(env.USD_COINS || 200), EUR: Number(env.EUR_COINS || 230) };
+const CARD_RATE: Record<string, number> = { USD: Number(env.USD_COINS || 1000), EUR: Number(env.EUR_COINS || 1150) };
+const CARD_IN: Record<string, number> = { USD: Math.round(CARD_RATE.USD * 0.97), EUR: Math.round(CARD_RATE.EUR * 0.97) };
+async function ratesTick() {
+  try {
+    const j: any = await (await fetch("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network,toncoin,tether&vs_currencies=usd,eur", { signal: AbortSignal.timeout(10000) })).json();
+    const ton = Number(j["the-open-network"]?.usd || j.toncoin?.usd), eur = Number(j.tether?.eur);
+    if (ton > 0.05 && ton < 200 && !env.TON_COINS) { TON_COINS = Math.round(ton * CARD_RATE.USD); TON_IN = Math.round(TON_COINS * 0.97); }
+    if (eur > 0.5 && eur < 1.5 && !env.EUR_COINS) { CARD_RATE.EUR = Math.round(CARD_RATE.USD / eur); CARD_IN.EUR = Math.round(CARD_RATE.EUR * 0.97); }
+    console.log("rates TON", TON_COINS, "/", TON_IN, "EUR", CARD_RATE.EUR, "/", CARD_IN.EUR);
+  } catch (e: any) { console.error("rates", e.message); }
+}
+ratesTick(); setInterval(ratesTick, 10 * 60 * 1000);
 const CARD_MIN: Record<string, number> = { USD: 5, EUR: 5 }, CARD_MAX = 5000;
 let BOT_USER = "";
 let HTML = "";
@@ -937,7 +948,7 @@ async function handle(req: Request) {
 
   if (url === "/api/me") return json({
     id: u.id, name: u.name, balance: N(u.balance), ageOk: u.age_ok, supporter: u.supporter, bot: BOT_USER, admin: isAdmin(u.id),
-    cfg: { starCoins: STAR_COINS, tonCoins: TON_COINS, rake: RAKE, refPct: REF_PCT, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN, tonAddr: TON_ADDR, comment: "dp" + numId, packs: STAR_PACKS, minBet: MIN_BET, maxBet: MAX_BET },
+    cfg: { starCoins: STAR_COINS, tonCoins: TON_IN, tonOut: TON_COINS, rake: RAKE, refPct: REF_PCT, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN, tonAddr: TON_ADDR, comment: "dp" + numId, packs: STAR_PACKS, minBet: MIN_BET, maxBet: MAX_BET },
     turnover: N(u.turnover), deposited: N(u.deposited),
   });
   if (url === "/api/age" && req.method === "POST") { await db`update users set age_ok = true where id = ${u.id}`; return json({ ok: true }); }
@@ -981,7 +992,7 @@ async function handle(req: Request) {
       if (amount < CARD_MIN[cur]) return err("min_amount");
       const open = await db`select count(*)::int as c from card_dep where user_id = ${u.id} and status in ('new','claimed')`;
       if (N(open[0].c) >= 3) return err("too_many");
-      const coins = Math.floor(amount * CARD_RATE[cur]);
+      const coins = Math.floor(amount * CARD_IN[cur]);
       const r = await db`insert into card_dep(user_id, cur, amount, coins) values(${u.id}, ${cur}, ${amount}, ${coins}) returning id`;
       return json({ ok: true, id: N(r[0].id) });
     }
@@ -1202,7 +1213,7 @@ async function dispatchWd(id: number, ton: number, who: string, fee: number, add
 // ---------- Картка (USD/EUR, ручне підтвердження) ----------
 const luhn = (n: string) => { let sum = 0, alt = false; for (let i = n.length - 1; i >= 0; i--) { let d = Number(n[i]); if (alt) { d *= 2; if (d > 9) d -= 9; } sum += d; alt = !alt; } return sum % 10 === 0; };
 const grp4 = (n: string) => n.replace(/(.{4})/g, "$1 ").trim();
-const cardInfo = () => ({ rates: CARD_RATE, min: CARD_MIN, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN });
+const cardInfo = () => ({ rates: CARD_IN, out: CARD_RATE, min: CARD_MIN, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN });
 async function cardDepDecide(id: number, ok: boolean): Promise<boolean> {
   let uid = "", coins = 0;
   const done = await db.begin(async (t: any) => {
@@ -1288,7 +1299,7 @@ async function tonPoll() {
     for (const tx of j.result || []) {
       const m = tx.in_msg; if (!m || !m.source) continue;
       const mm = /^dp(\d+)$/.exec(String(m.message || "").trim()); if (!mm) continue;
-      const uid = "tg" + mm[1]; const val = N(m.value); const coins = Math.floor((val / 1e9) * TON_COINS);
+      const uid = "tg" + mm[1]; const val = N(m.value); const coins = Math.floor((val / 1e9) * TON_IN);
       if (coins < 100) continue;
       if (!(await getUserRow(uid))) continue;
       const hash = String(tx.transaction_id.hash);

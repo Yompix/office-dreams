@@ -66,7 +66,7 @@ async function wdView(box) {
   $$("#wdCur [data-c]", box).forEach((b) => (b.onclick = () => { S.cardCur = b.dataset.c; wdView(box); }));
   if (how === "card" && !CARD) { try { CARD = await api("/api/card/list"); } catch (e) {} }
   const inp = $("wdC");
-  const prev = () => { const n = Math.floor(Number(inp.value) || 0); if (n < c.wdMin) { $("wdGet").textContent = "—"; return; } const fee = Math.max(c.wdFeeMin, Math.ceil(n * c.wdFee)); $("wdFee").textContent = fmt(fee); const cur = S.cardCur || "USD"; $("wdGet").textContent = how === "ton" ? ((n - fee) / c.tonCoins).toFixed(3) + " TON" : CARD ? (Math.floor(((n - fee) / CARD.info.rates[cur]) * 100) / 100).toFixed(2) + " " + cur : "…"; };
+  const prev = () => { const n = Math.floor(Number(inp.value) || 0); if (n < c.wdMin) { $("wdGet").textContent = "—"; return; } const fee = Math.max(c.wdFeeMin, Math.ceil(n * c.wdFee)); $("wdFee").textContent = fmt(fee); const cur = S.cardCur || "USD"; $("wdGet").textContent = how === "ton" ? ((n - fee) / (c.tonOut || c.tonCoins)).toFixed(3) + " TON" : CARD ? (Math.floor(((n - fee) / (CARD.info.out || CARD.info.rates)[cur]) * 100) / 100).toFixed(2) + " " + cur : "…"; };
   inp.oninput = prev; $("wdAll").onclick = () => { inp.value = S.me.balance; prev(); };
   $("wdGo").onclick = async () => {
     const coins = Math.floor(Number(inp.value) || 0), addr = $("wdA").value.trim(); if (!coins || !addr) { toast(T("fill_all"), "bad"); return; }
