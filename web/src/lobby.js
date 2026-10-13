@@ -140,6 +140,7 @@ function openBonus() {
   const spDone = SP && SP.state === "member";
   sheet(`<div class="shH"><span class="gi"><img src="/a/i-gift.webp" alt=""></span><div><h3>${T("bonus_t")}</h3></div><button class="x" data-xs>✕</button></div>
   <div class="card" id="adsCard"><div class="refh"><span style="font-size:34px">📺</span><div><b>${T("ads_t")}</b><p id="adsP">${T("loading")}</p></div></div><div id="adsBtns" class="btns" style="margin-top:12px"></div></div>
+  <div class="card" style="opacity:.75"><div class="refh"><span style="font-size:34px">🔒</span><div><b>${T("soon_t")}</b><p>${T("soon_p")}</p></div></div></div>
   ${SP && SP.link ? `<div class="card"><div class="refh"><span style="font-size:34px">📢</span><div><b>${esc(SP.title || T("sp_s"))}</b><p>${spDone ? T("sp_ok") : T("sp_t")}</p></div></div>${spDone ? "" : `<button class="btn cy w sm" id="bSp" style="margin-top:12px">${S.spOpened ? T("sp_check") : T("sp_go")}</button>`}</div>` : ""}
   <div class="card"><div class="refh"><img src="/a/i-friends.webp" alt=""><div><b>${T("ref_t")}</b><p>${T("ref_p", Math.round((S.me ? S.me.cfg.refPct : 0.2) * 100))}</p></div></div><button class="btn pk w sm" id="bRef" style="margin-top:12px">${T("ref_invite")}</button></div>
   <div class="card"><div class="refh"><img src="/a/i-robot.webp" alt=""><div><b>${T("training")}</b><p>${T("train_p")}</p></div></div><button class="btn dk w sm" id="bTr" style="margin-top:12px">${T("train_go")}</button></div>`);
