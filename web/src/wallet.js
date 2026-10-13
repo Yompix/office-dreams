@@ -1,5 +1,5 @@
 /* ===== ГАМАНЕЦЬ, ПРОФІЛЬ, ТЕХПІДТРИМКА, ЗАПУСК ===== */
-const KIND = { dep_stars: "k_dep_stars", dep_ton: "k_dep_ton", dep_card: "k_dep_card", withdraw: "k_withdraw", wd_refund: "k_wd_refund", wd_fee_refund: "k_wd_refund", duel_win: "k_win", jp_win: "k_jp_win", mx_win: "k_win", mx_stake: "k_stake", mx_refund: "k_refund", mx_refund_c: "k_refund", pk_buyin: "k_pk_in", pk_cashout: "k_pk_out", grant: "k_grant", ref_bonus: "k_ref" };
+const KIND = { dep_stars: "k_dep_stars", dep_ton: "k_dep_ton", dep_card: "k_dep_card", withdraw: "k_withdraw", wd_refund: "k_wd_refund", wd_fee_refund: "k_wd_refund", duel_win: "k_win", jp_win: "k_jp_win", mx_win: "k_win", mx_stake: "k_stake", mx_refund: "k_refund", mx_refund_c: "k_refund", pk_buyin: "k_pk_in", pk_cashout: "k_pk_out", grant: "k_grant", ref_bonus: "k_ref", refund_pk: "k_refund", refund_duel: "k_refund", refund_jp: "k_refund", refund_mx: "k_refund" };
 const tDate = (t) => new Date(t).toLocaleString(["uk-UA", "ru-RU", "en-GB"][S.li], { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 let CARD = null;
 
@@ -88,7 +88,7 @@ async function histView(box) {
   box.innerHTML = `<div class="empty">${T("loading")}</div>`;
   try {
     const w = await api("/api/wallet");
-    box.innerHTML = w.ledger.length ? `<div class="tlist hist">${w.ledger.map((r) => `<div class="row"><div class="grow"><b>${KIND[r.kind] ? T(KIND[r.kind]) : esc(r.kind)}</b><small>${tDate(r.t)}${r.note && /^(chess|checkers|four|mines|rps|ttt|bj|card)$/.test(r.note) ? " · " + T("g_" + r.note) : ""}</small></div><b class="${r.amount > 0 ? "pos" : r.amount < 0 ? "neg" : ""}">${r.amount > 0 ? "+" : ""}${fmt(r.amount)}</b></div>`).join("")}</div>` : `<div class="empty">${T("no_ops")}</div>`;
+    box.innerHTML = w.ledger.length ? `<div class="tlist hist">${w.ledger.map((r) => `<div class="row"><div class="grow"><b>${KIND[r.kind] ? T(KIND[r.kind]) : esc(r.kind)}</b><small>${tDate(r.t)}${r.note && /^(chess|checkers|four|mines|rps|ttt|bj|card)\b/.test(r.note) ? " · " + T("g_" + r.note.split(" ")[0]) : ""}</small></div><b class="${r.amount > 0 ? "pos" : r.amount < 0 ? "neg" : ""}">${r.amount > 0 ? "+" : ""}${fmt(r.amount)}</b></div>`).join("")}</div>` : `<div class="empty">${T("no_ops")}</div>`;
   } catch (e) { box.innerHTML = `<div class="empty">${errText(e)}</div>`; }
 }
 

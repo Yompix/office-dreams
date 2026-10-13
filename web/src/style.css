@@ -406,7 +406,7 @@ canvas{image-rendering:pixelated}
 .potx{font:400 16px var(--fd);color:var(--gold);text-shadow:0 0 10px #000;display:flex;align-items:center;gap:5px;min-height:20px}
 .tmsg{font:400 14px var(--fd);text-align:center;white-space:pre-line;color:#fff;text-shadow:0 2px 6px #000}
 .tmsg.win{color:var(--mint)}
-.mine{position:absolute;left:50%;top:60%;transform:translate(-50%,-50%);display:flex;gap:6px;z-index:3}
+.mine{position:absolute;left:50%;top:65%;transform:translate(-50%,-50%);display:flex;gap:6px;z-index:3}
 .mine .cd{--w:66px}
 .mine .cd:first-child{transform:rotate(-6deg)}
 .mine .cd:last-child{transform:rotate(6deg)}
