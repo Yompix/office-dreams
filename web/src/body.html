@@ -1,0 +1,105 @@
+<div id="app">
+  <header id="top">
+    <button class="ib" id="bMenu" aria-label="menu"><svg viewBox="0 0 12 12"><path d="M1 2h10v2H1zM1 5h10v2H1zM1 8h10v2H1z"/></svg></button>
+    <button id="who" data-go="profile"><canvas id="myAv" width="10" height="10"></canvas><div><b id="myName">…</b><small data-i="player"></small></div></button>
+    <button class="ib" id="bGift" aria-label="bonus"><img src="/a/i-gift.webp" alt=""><i class="dot" id="giftDot" hidden>1</i></button>
+    <button class="ib" id="bSup" aria-label="support"><img src="/a/i-support.webp" alt=""><i class="dot" id="supDot" hidden></i></button>
+    <button class="bal" id="bBal"><i class="coin"></i><b class="balTxt">0</b><span class="plus">+</span></button>
+  </header>
+
+  <main id="views">
+    <section class="view on" id="v-lobby">
+      <div class="hero px" id="hero"><img src="/a/hero.webp" alt="Pixel Casino"><span class="onl"><i></i><b id="onl">0</b>&nbsp;<span data-i="online"></span></span><span class="age18">18+</span></div>
+      <button class="spb" id="spB" hidden><span class="ic">📢</span><div><b id="spT"></b><small id="spS"></small></div><span class="go" id="spG"></span></button>
+      <div class="big2">
+        <button class="tile t-cards" data-go="cards"><img src="/a/i-cards.webp" alt=""><b data-i="t_cards"></b><small id="lcCards"><i></i><span></span></small></button>
+        <button class="tile t-pvp" data-go="games"><img src="/a/i-pvp.webp" alt=""><b data-i="t_pvp"></b><small id="lcGames"><i></i><span></span></small></button>
+      </div>
+      <div class="quick4">
+        <button class="qt" data-room="chess"><img src="/a/i-chess.webp" alt=""><span data-i="g_chess"></span><i class="dot cnt" hidden></i></button>
+        <button class="qt" data-room="checkers"><img src="/a/i-checkers.webp" alt=""><span data-i="g_checkers"></span><i class="dot cnt" hidden></i></button>
+        <button class="qt" data-room="four"><img src="/a/i-four.webp" alt=""><span data-i="g_four"></span><i class="dot cnt" hidden></i></button>
+        <button class="qt" data-room="mines"><img src="/a/i-mines.webp" alt=""><span data-i="g_mines"></span><i class="dot cnt" hidden></i></button>
+      </div>
+      <button class="tile t-jp" id="lJp"><img src="/a/i-jackpot.webp" alt=""><div class="tx"><b data-i="t_jp"></b><small id="lcJp"><i></i><span></span></small></div><span class="pot"><i class="coin"></i><span id="lcPot">0</span></span><span class="bar"><i id="lcJpBar"></i></span></button>
+    </section>
+
+    <section class="view" id="v-games">
+      <div class="h1"><h2 data-i="t_pvp_full"></h2><small id="gOnl"></small></div>
+      <div class="scroll"><div class="grid3" id="gGrid"></div></div>
+    </section>
+
+    <section class="view" id="v-cards">
+      <div class="h1"><h2 data-i="t_cards"></h2><small id="cOnl"></small></div>
+      <div class="scroll">
+        <div class="modes">
+          <button class="tile mode on" data-mode="6"><img src="/a/i-cards.webp" alt=""><b data-i="pk6"></b><small><i></i><span id="pk6n"></span></small></button>
+          <button class="tile mode" data-mode="2"><img src="/a/i-headsup.webp" alt=""><b data-i="pk2"></b><small><i></i><span id="pk2n"></span></small></button>
+        </div>
+        <div class="tlist" id="tList"></div>
+        <div class="sec" data-i="card_duels"></div>
+        <div class="cduo">
+          <button class="tile" data-room="bj"><img src="/a/i-21.webp" alt=""><b data-i="g_bj"></b><small id="lcBj"><i></i><span></span></small></button>
+          <button class="tile" data-room="card"><span class="ico hc" id="hcIco"></span><b data-i="g_card"></b><small id="lcCard"><i></i><span></span></small></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="v-wallet">
+      <div class="wtop card px"><i class="coin"></i><div><b class="balTxt">0</b><small data-i="coins_bal"></small></div></div>
+      <div class="seg" id="wSeg"><button class="on" data-w="dep" data-i="w_dep"></button><button data-w="wd" data-i="w_wd"></button><button data-w="hist" data-i="w_hist"></button></div>
+      <div class="scroll" id="wBody"></div>
+    </section>
+
+    <section class="view" id="v-profile">
+      <div class="prof card px"><canvas id="pAv" width="10" height="10"></canvas><div><b id="pName"></b><small id="pId"></small></div></div>
+      <div class="scroll" id="pBody"></div>
+    </section>
+  </main>
+
+  <nav id="nav">
+    <button class="nb on" data-go="lobby"><svg viewBox="0 0 12 12" id="nvLobby"></svg><span data-i="n_lobby"></span></button>
+    <button class="nb" data-go="games"><svg viewBox="0 0 12 12" id="nvGames"></svg><span data-i="n_games"></span></button>
+    <button class="nb" data-go="cards"><svg viewBox="0 0 12 12" id="nvCards"></svg><span data-i="n_cards"></span></button>
+    <button class="nb" data-go="wallet"><svg viewBox="0 0 12 12" id="nvWallet"></svg><span data-i="n_wallet"></span></button>
+    <button class="nb" data-go="profile"><svg viewBox="0 0 12 12" id="nvProfile"></svg><span data-i="n_profile"></span></button>
+  </nav>
+</div>
+
+<div id="drawer"><div class="bk"></div><div class="pn" id="drw"></div></div>
+<div id="sheet"><div class="sh" id="shIn"></div></div>
+
+<div class="ov" id="match">
+  <div class="ovH"><button class="flag" id="mRes" data-i="resign"></button><h3 id="mTitle"></h3><span class="pill"><i class="coin"></i><span id="mPot">0</span></span></div>
+  <div class="pl" id="mOpp"><canvas width="10" height="10"></canvas><div class="nm"><b></b><small></small><div class="capt"></div></div><div class="ring"><span></span></div></div>
+  <div class="mbw" id="mBoard"></div>
+  <div class="mst" id="mSt"></div>
+  <div class="pl" id="mMe"><canvas width="10" height="10"></canvas><div class="nm"><b></b><small></small><div class="capt"></div></div><div class="ring"><span></span></div></div>
+  <div class="mfoot" id="mFoot"></div>
+</div>
+
+<div class="ov" id="poker">
+  <div class="ovH"><button class="x" id="pkBack">‹</button><h3 id="pkTitle"></h3><span class="pill"><i class="coin"></i><span class="balTxt">0</span></span></div>
+  <div class="ptab" id="pkTab"><div class="pmid"><div class="potx" id="pkPot"></div><div class="board" id="pkBoard"></div><div class="tmsg" id="pkMsg"></div></div><div class="mine" id="pkMine"></div></div>
+  <div class="dock" id="pkDock"></div>
+</div>
+
+<div class="ov" id="jp">
+  <div class="ovH"><button class="x" data-close="jp">‹</button><h3 data-i="t_jp"></h3><span class="pill"><i class="coin"></i><span class="balTxt">0</span></span></div>
+  <div class="wheelw"><div class="ptr"></div><div class="wheel" id="jpW"></div><div class="whole"><b><i class="coin"></i><span id="jpPot">0</span></b><small id="jpT"></small></div></div>
+  <div class="scroll" style="margin:0;padding:16px 14px calc(14px + env(safe-area-inset-bottom))">
+    <div class="chips" id="jpBets" style="justify-content:center"></div>
+    <div class="jpl" id="jpList"></div>
+  </div>
+</div>
+
+<div class="ov" id="sup">
+  <div class="suH"><button class="x" data-close="sup">‹</button><img src="/a/i-support.webp" alt=""><div><b data-i="sup_t"></b><small><i></i><span data-i="sup_on"></span></small></div></div>
+  <div class="suL" id="suL"></div>
+  <div class="suF"><textarea id="suIn" rows="1" maxlength="1000"></textarea><button class="btn" id="suSend">➤</button></div>
+</div>
+
+<div id="modal"><div id="mbox"></div></div>
+<div id="gate"><div class="b18">18+</div><p data-i="gate_p"></p><button class="btn pk w" id="gateOk" data-i="gate_ok"></button></div>
+<canvas id="fx"></canvas>
+<div id="toasts"></div>

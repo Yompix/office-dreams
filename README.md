@@ -1,2 +1,5 @@
-# Pixel Casino (web build)
-Окрема гілка для Telegram Mini App Pixel Casino. Сервер Railway підтягує файли звідси при старті.
+# Pixel Casino — збірка
+
+- `app.tsx` — сервер (Bun), збирається `server/build.py` з базового коду + `server/games.ts`.
+- `web.html` — інтерфейс Mini App, збирається `web/build.py` з `web/src/*`.
+- Завантажувач на Railway бере обидва файли з цієї гілки й перевіряє sha256.
