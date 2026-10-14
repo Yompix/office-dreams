@@ -64,6 +64,13 @@ async function initDb() {
   await db`alter table users add column if not exists ref_by text`;
   await db`alter table users add column if not exists lang text not null default ''`;
   await db`alter table users add column if not exists wd_ready_at timestamptz`;
+  if (!(await db`select 1 from parts where name = 'mig_grant_dep'`).length) {
+    await db.begin(async (t: any) => {
+      const r = await t`update users u set deposited = greatest(0, u.deposited + g.s) from (select user_id, sum(amount) as s from ledger where kind = 'grant' group by user_id) g where g.user_id = u.id returning u.id`;
+      await t`insert into parts(name, body) values('mig_grant_dep', ${String(r.length)})`;
+      console.log("grant → deposited:", r.length);
+    });
+  }
   await db`create index if not exists users_ref on users(ref_by)`;
   await db`insert into users(id, name, age_ok) values('house', 'house', true) on conflict do nothing`;
   await db`insert into users(id, name, age_ok) values(${BOT_ID}, ${BOT_NAME}, true) on conflict do nothing`;
@@ -138,6 +145,8 @@ const needAge = (u: any) => { if (!u.age_ok) throw new Error("age"); };
 const socks = new Set<any>();
 const send = (ws: any, o: any) => { try { ws.send(JSON.stringify(o)); } catch {} };
 const toUser = (uid: string, o: any) => { for (const w of socks) if (w.data.uid === uid) send(w, o); };
+// монети від адміна, як і з поповнень та реклами, треба один раз прокрутити в іграх, перш ніж виводити
+async function grantTx(t: any, uid: string, coins: number) { await adj(t, uid, coins, "grant", null, "admin"); await t`update users set deposited = greatest(0, deposited + ${coins}) where id = ${uid}`; }
 async function pushBal(uid: string) { if (uid === "house" || uid === BOT_ID) return; toUser(uid, { t: "bal", balance: await getBal(uid) }); wdReadyCheck(uid).catch(() => {}); }
 // гравець уперше набрав мінімум для виводу й відіграв поповнення — сповіщаємо адміна й самого гравця
 async function wdReadyCheck(uid: string) {
@@ -1296,7 +1305,7 @@ async function handle(req: Request) {
       const id = String(body.id || ""); const coins = Math.trunc(Number(body.coins));
       if (!Number.isFinite(coins) || coins === 0 || id === "house") return err("bad_amount");
       if (!(await getUserRow(id))) return err("gone");
-      try { await db.begin((t: any) => adj(t, id, coins, "grant", null, "admin")); } catch (e: any) { return err(e.message === "no_funds" ? "no_funds" : "fail"); }
+      try { await db.begin((t: any) => grantTx(t, id, coins)); } catch (e: any) { return err(e.message === "no_funds" ? "no_funds" : "fail"); }
       pushBal(id);
       return json({ ok: true, balance: await getBal(id) });
     }
@@ -1344,7 +1353,7 @@ async function onCommand(m: any) {
   if (text.startsWith("/grant")) {
     const [, id, amt] = text.split(/\s+/); const coins = Math.floor(Number(amt)); const uid = id && id.startsWith("tg") ? id : "tg" + id;
     const ex = await getUserRow(uid); if (!ex || !Number.isFinite(coins) || coins === 0) return void tg("sendMessage", { chat_id: chat, text: "Формат: /grant <telegram_id> <монети>. Гравець має хоч раз відкрити гру." });
-    await db.begin((t: any) => adj(t, uid, coins, "grant", null, "admin")); pushBal(uid);
+    await db.begin((t: any) => grantTx(t, uid, coins)); pushBal(uid);
     tg("sendMessage", { chat_id: chat, text: `Готово: ${uid} ${coins > 0 ? "+" : ""}${coins}` });
   } else if (/^\/bot(\s|@|$)/.test(text)) {
     const a = (text.split(/\s+/)[1] || "").toLowerCase();
