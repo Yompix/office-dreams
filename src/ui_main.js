@@ -53,9 +53,9 @@ function bindCanvases() {
   if (!SCENE) {
     SCENE = createScene();
     SCENE_OFF = document.createElement('canvas');
-    SCENE_OFF.width = SCN.W;
-    SCENE_OFF.height = SCN.H;
-    SCENE_IMG = new ImageData(new Uint8ClampedArray(SCENE.frame.d.buffer), SCN.W, SCN.H);
+    SCENE_OFF.width = SCN.W * 2;
+    SCENE_OFF.height = SCN.H * 2;
+    SCENE_IMG = new ImageData(new Uint8ClampedArray(SCENE.hi.d.buffer), SCN.W * 2, SCN.H * 2);
   }
   UI.sceneCv = $('#scene');
   UI.bloomCv = $('#bloom');
@@ -84,7 +84,7 @@ function sizeScene() {
 }
 function camFit(W, H, crisp) {
   let s = Math.min(W / CAM.sw, H / CAM.sh);
-  if (crisp && s >= 3) s = Math.floor(s);
+  if (crisp && s >= 6) s = Math.floor(s / 2) * 2;
   const dw = CAM.sw * s, dh = CAM.sh * s;
   return [Math.round((W - dw) / 2), Math.round((H - dh) / 2), Math.round(dw), Math.round(dh)];
 }
@@ -107,17 +107,17 @@ function drawScene(t) {
     const tier = themeTier(S.floors);
     if (UI.sceneTier !== undefined && tier > UI.sceneTier) movedIn(tier);
     UI.sceneTier = tier;
-    SCENE.render(sceneState(), t);
+    SCENE.renderHD(sceneState(), t);
     SCENE_OFF.getContext('2d').putImageData(SCENE_IMG, 0, 0);
     const ctx = UI.sceneCtx;
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, cv.width, cv.height);
     const f = camFit(cv.width, cv.height, true);
-    ctx.drawImage(SCENE_OFF, CAM.sx, CAM.sy, CAM.sw, CAM.sh, f[0], f[1], f[2], f[3]);
+    ctx.drawImage(SCENE_OFF, CAM.sx * 2, CAM.sy * 2, CAM.sw * 2, CAM.sh * 2, f[0], f[1], f[2], f[3]);
     if (UI.bloomCtx) {
       const b = UI.bloomCv, g = camFit(b.width, b.height, false);
       UI.bloomCtx.clearRect(0, 0, b.width, b.height);
-      UI.bloomCtx.drawImage(SCENE_OFF, CAM.sx, CAM.sy, CAM.sw, CAM.sh, g[0], g[1], g[2], g[3]);
+      UI.bloomCtx.drawImage(SCENE_OFF, CAM.sx * 2, CAM.sy * 2, CAM.sw * 2, CAM.sh * 2, g[0], g[1], g[2], g[3]);
     }
   } catch (e) {}
 }

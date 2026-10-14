@@ -1137,13 +1137,95 @@ function drawParticles(B, st, t) {
 }
 
 /* ---------- scene object ---------- */
+/* ============================================================
+   HD pass: the room is drawn at 256×176, then upscaled ×2 with Scale2x (EPX) so diagonals
+   and round shapes get smooth pixel-art edges, and lit: soft light from monitors, the window,
+   lamps and neon, contact shadows, a vignette and a colour grade per office theme.
+   ============================================================ */
+function scale2x(S, D) {
+  const w = S.w, h = S.h, s = S.d, d = D.d, W = D.w;
+  for (let y = 0; y < h; y++) {
+    const row = y * w, up = (y > 0 ? y - 1 : y) * w, dn = (y < h - 1 ? y + 1 : y) * w, o0 = 2 * y * W, o1 = o0 + W;
+    for (let x = 0; x < w; x++) {
+      const P0 = s[row + x], A = s[up + x], D0 = s[dn + x], Cl = s[row + (x > 0 ? x - 1 : x)], B0 = s[row + (x < w - 1 ? x + 1 : x)];
+      const X = 2 * x;
+      if (Cl !== B0 && A !== D0) {
+        d[o0 + X] = Cl === A ? A : P0;
+        d[o0 + X + 1] = A === B0 ? B0 : P0;
+        d[o1 + X] = D0 === Cl ? Cl : P0;
+        d[o1 + X + 1] = B0 === D0 ? D0 : P0;
+      } else { d[o0 + X] = d[o0 + X + 1] = d[o1 + X] = d[o1 + X + 1] = P0; }
+    }
+  }
+}
+// light map (×2 resolution, values ~0..1.6): rebuilt only when the theme, hour or furniture change
+function buildLight(L, W, H, st) {
+  const sky = skyAt(st.f || 0), night = sky.night, day = 1 - Math.abs((st.f || 0) - 0.45) * 1.6;
+  const amb = 0.62 + 0.22 * clampN(day, 0, 1) - 0.12 * night;
+  L.fill(amb);
+  const add = (cx, cy, rx, ry, k) => {
+    const x0 = Math.max(0, Math.floor(cx - rx)), x1 = Math.min(W - 1, Math.ceil(cx + rx)), y0 = Math.max(0, Math.floor(cy - ry)), y1 = Math.min(H - 1, Math.ceil(cy + ry));
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const dx = (x - cx) / rx, dy = (y - cy) / ry, q = 1 - (dx * dx + dy * dy); if (q <= 0) continue;
+      L[y * W + x] += k * q * q;
+    }
+  };
+  const P2 = (gx, gy, z) => { const p = P(gx, gy, z); return [p[0] * 2, p[1] * 2]; };
+  // daylight through the window, falling on the floor near the right wall
+  const w = wallXY('R', 66, 34);
+  add(w[0] * 2, w[1] * 2, 170, 70, 0.32 * clampN(day, 0.15, 1) * (1 - night * 0.8));
+  { const f = P2(5.2, 1.8, 0); add(f[0], f[1], 150, 60, 0.26 * clampN(day, 0, 1) * (1 - night)); }
+  // desk monitors and the player's laptop
+  for (const role of ['prog', 'art', 'des', 'mkt']) {
+    const sn = STATION[role], hired = st.staff && st.staff[role] && st.staff[role].lvl > 0;
+    const m = sn.side === 'R' ? P2(sn.gx + 1.0, sn.gy + 0.9, 16) : P2(sn.gx + 0.9, sn.gy + 1.0, 16);
+    add(m[0], m[1], 64, 40, hired ? 0.26 + 0.18 * night : 0.06);
+  }
+  { const l = P2(6.2, 5.3, 16); add(l[0], l[1], 70, 44, 0.24 + 0.2 * night); }
+  // neon words on the left wall and the strip lights
+  { const n = wallXY('L', 40, 34); add(n[0] * 2, n[1] * 2, 110, 80, 0.16 + 0.22 * night); }
+  if (st.items && st.items.lamp) { const l = P2(1.2, 6.8, 24); add(l[0], l[1], 120, 80, 0.3 + 0.25 * night); }
+  if (st.items && st.items.coffee) { const c = P2(1.1, 1.2, 14); add(c[0], c[1], 60, 36, 0.14 + 0.12 * night); }
+  // vignette
+  const cx = W / 2, cy = H * 0.52;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const dx = (x - cx) / (W * 0.62), dy = (y - cy) / (H * 0.62);
+    L[y * W + x] *= 1 - 0.42 * Math.min(1, dx * dx + dy * dy);
+  }
+}
+function applyLight(D, L, tint) {
+  const d = D.d, n = d.length, tr = cR(tint) / 255, tg = cG(tint) / 255, tb = cB(tint) / 255;
+  for (let i = 0; i < n; i++) {
+    const c = d[i], l = L[i];
+    let r = c & 255, g = (c >> 8) & 255, b = (c >> 16) & 255;
+    // bright pixels (screens, neon, lamps) glow on their own: light them less
+    const lum = (r * 3 + g * 6 + b) / 2550, self = lum > 0.62 ? (lum - 0.62) * 2.2 : 0;
+    const k = l + (1 - l) * Math.min(1, self);
+    // shadows lean towards the theme's accent colour, lights towards warm white
+    const sh = l < 1 ? (1 - l) * 0.18 : 0;
+    r = r * k + 255 * tr * sh * 0.35; g = g * k + 255 * tg * sh * 0.35; b = b * k + 255 * tb * sh * 0.35;
+    if (l > 1) { const h = (l - 1) * 40; r += h; g += h * 0.9; b += h * 0.75; }
+    d[i] = (0xff000000 | ((b > 255 ? 255 : b) << 16) | ((g > 255 ? 255 : g) << 8) | (r > 255 ? 255 : r)) >>> 0;
+  }
+}
+
 function createScene() {
   const frame = new Buf(SCN.W, SCN.H), base = new Buf(SCN.W, SCN.H);
-  let baseKey = -1;
+  const hi = new Buf(SCN.W * 2, SCN.H * 2), light = new Float32Array(SCN.W * 2 * SCN.H * 2);
+  let baseKey = -1, lightKey = '';
   return {
     W: SCN.W,
     H: SCN.H,
     frame,
+    hi,
+    renderHD(st, t) {
+      this.render(st, t);
+      scale2x(frame, hi);
+      const lk = themeTier(st.floors) + ':' + Math.round((st.f || 0) * 48) + ':' + JSON.stringify(st.items || {}) + ':' + ['prog', 'art', 'des', 'mkt'].map((r) => (st.staff && st.staff[r] && st.staff[r].lvl > 0 ? 1 : 0)).join('');
+      if (lk !== lightKey) { buildLight(light, hi.w, hi.h, st); lightKey = lk; }
+      applyLight(hi, light, PAL[THEME.glow[0]] || PAL.cyan);
+      return hi;
+    },
     render(st, t) {
       const tier = themeTier(st.floors);
       const fk = Math.round(clampN(st.f || 0, 0, 1) * 120);
