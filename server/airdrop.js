@@ -72,7 +72,57 @@ function snapshot(ctx, now) {
 }
 
 /* ---- automatic: runs every minute and after donations ---- */
+/* one-time mint: if the distributor wallet still holds the mint authority and nothing was minted yet,
+   mint the full supply (AIRDROP_MINT_TOTAL, 100M) to it and switch minting off forever. Runs only with AIRDROP_MINT=1. */
+let minting = false;
+async function autoMint(ctx) {
+  if (!ctx.cfg.airdrop.mint || minting || ctx.cache.minted) return null;
+  const from = distributor(ctx.cfg);
+  if (!from || !ctx.cfg.token || !Sol.isAddr(ctx.cfg.token.addr)) return null;
+  minting = true;
+  try {
+    const { web3, spl } = lib();
+    const mint = new web3.PublicKey(ctx.cfg.token.addr.trim());
+    const info = await Sol.rpc(ctx, 'getAccountInfo', [mint.toBase58(), { encoding: 'jsonParsed' }]);
+    const v = info && info.value;
+    const p = v && v.data && v.data.parsed && v.data.parsed.info;
+    if (!p) return { ok: false, err: 'mint not found' };
+    if (p.mintAuthority !== from.publicKey.toBase58()) { ctx.cache.minted = true; return { ok: false, err: 'mint authority is ' + (p.mintAuthority || 'disabled') }; }
+    if (p.supply !== '0') { ctx.cache.minted = true; return { ok: false, err: 'already minted: ' + p.supply }; }
+    const prog = new web3.PublicKey(v.owner);
+    const dec = Number(p.decimals);
+    const ata = spl.getAssociatedTokenAddressSync(mint, from.publicKey, false, prog);
+    const total = BigInt(Math.round(ctx.cfg.airdrop.mintTotal)) * 10n ** BigInt(dec);
+    const tx = new web3.Transaction().add(
+      spl.createAssociatedTokenAccountIdempotentInstruction(from.publicKey, ata, from.publicKey, mint, prog),
+      spl.createMintToCheckedInstruction(mint, ata, from.publicKey, total, dec, [], prog),
+      spl.createSetAuthorityInstruction(mint, from.publicKey, spl.AuthorityType.MintTokens, null, [], prog),
+    );
+    tx.feePayer = from.publicKey;
+    tx.recentBlockhash = (await Sol.rpc(ctx, 'getLatestBlockhash', [{ commitment: 'confirmed' }])).value.blockhash;
+    tx.sign(from);
+    const sig = Sol.b58encode(tx.signature);
+    await Sol.rpc(ctx, 'sendTransaction', [tx.serialize().toString('base64'), { encoding: 'base64', preflightCommitment: 'confirmed' }]);
+    for (let i = 0; i < 30; i++) {
+      const s = await Sol.rpc(ctx, 'getSignatureStatuses', [[sig]]).catch(() => null);
+      const st = s && s.value && s.value[0];
+      if (st && st.err) throw new Error('rejected: ' + JSON.stringify(st.err));
+      if (st && (st.confirmationStatus === 'confirmed' || st.confirmationStatus === 'finalized')) {
+        ctx.cache.minted = true;
+        ctx.log && ctx.log('token minted', { total: String(ctx.cfg.airdrop.mintTotal), tx: sig });
+        return { ok: true, tx: sig };
+      }
+      if (!ctx.solRpc) await new Promise((r) => setTimeout(r, 2000));
+    }
+    return { ok: false, err: 'not confirmed yet', tx: sig };
+  } catch (e) {
+    ctx.log && ctx.log('token mint failed', e.message);
+    return { ok: false, err: e.message };
+  } finally { minting = false; }
+}
+
 async function tick(ctx, now = Date.now()) {
+  await autoMint(ctx);
   const st = state(ctx);
   if (st.status === 'season') {
     if (!ctx.cfg.airdrop.auto) return { st: st.status };
@@ -195,4 +245,4 @@ function adminView(ctx) {
   return { ok: true, state: st, entered: ent, keyMismatch: !!wrong, wallet: ctx.cfg.airdrop.wallet || null, allocs: c.n, sent: c.sent || 0, failed: c.failed || 0, mint: (ctx.cfg.token && ctx.cfg.token.addr) || null, distributor: d ? d.publicKey.toBase58() : null, fund: Eco.fundView(ctx, 0) };
 }
 
-module.exports = { entered, feePaid, tick, snapshot, view, claim, adminView, state, announce, tokenReady };
+module.exports = { autoMint, entered, feePaid, tick, snapshot, view, claim, adminView, state, announce, tokenReady };

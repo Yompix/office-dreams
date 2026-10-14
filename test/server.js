@@ -956,6 +956,30 @@ const AB = require('../server/antibot.js');
       assert.equal(r.ok, true, JSON.stringify(r));
     });
     await env9.close();
+    // one-time mint of the whole supply by the server (the distributor holds the mint authority)
+    const env10 = await makeEnv({ TOKEN_ADDRESS: mint, AIRDROP_SECRET: Sol.b58encode(dist.secretKey), AIRDROP_MINT: '1' });
+    let supply = '0', sentTx = [];
+    env10.ctx.solRpc = async (method, params) => {
+      if (method === 'getAccountInfo') return { value: { owner: spl.TOKEN_2022_PROGRAM_ID.toBase58(), data: { parsed: { info: { mintAuthority: supply === '0' ? dist.publicKey.toBase58() : null, supply, decimals: 6 } } } } };
+      if (method === 'getLatestBlockhash') return { value: { blockhash: web3.Keypair.generate().publicKey.toBase58() } };
+      if (method === 'sendTransaction') { sentTx.push(params[0]); supply = '100000000000000'; return 'ok'; }
+      if (method === 'getSignatureStatuses') return { value: [{ err: null, confirmationStatus: 'confirmed' }] };
+      return null;
+    };
+    await test('token mint: the server mints exactly 100M to the distributor once and disables minting', async () => {
+      const r = await Ad.autoMint(env10.ctx);
+      assert.equal(r.ok, true, JSON.stringify(r));
+      const tx = web3.Transaction.from(Buffer.from(sentTx[0], 'base64'));
+      assert.ok(tx.verifySignatures());
+      assert.equal(tx.instructions.length, 3);
+      assert.equal(tx.instructions[1].data.readBigUInt64LE(1), 100000000n * 1000000n, 'exactly 100M');
+      assert.equal(tx.instructions[2].data[0], 6, 'SetAuthority');
+      assert.equal(tx.instructions[2].data[2], 0, 'new authority: none');
+      env10.ctx.cache.minted = false;
+      const again = await Ad.autoMint(env10.ctx);
+      assert.equal(again.ok, false); assert.equal(sentTx.length, 1, 'never twice');
+    });
+    await env10.close();
   }
   summary();
 })();

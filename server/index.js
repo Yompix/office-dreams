@@ -34,6 +34,7 @@ function main() {
   timers.push(setInterval(() => { SolPay.sweep(ctx).then((r) => { if (r.paid) ctx.log('sol payments credited', r); }).catch((e) => ctx.log('sol sweep', e.message)); }, 30000));
   // airdrop: starts by itself once the launch fund reaches its goal
   timers.push(setInterval(() => { Airdrop.tick(ctx).catch((e) => ctx.log('airdrop', e.message)); }, 60000));
+  setTimeout(() => Airdrop.tick(ctx).catch((e) => ctx.log('airdrop', e.message)), 5000);
   const sp = () => SolPay.refreshPrice(ctx).catch(() => {});
   sp(); timers.push(setInterval(sp, 10 * 60000));
 
