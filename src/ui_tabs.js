@@ -575,7 +575,7 @@ function hubHome() {
       <li>${L('hub.how3')}</li>
       <li>${L('hub.how4')}</li>
     </ul>
-    <p class="hint">${L('hub.disclaimer', { sym: esc((NET.cfg && NET.cfg.symbol) || 'OFFICE') })}</p>
+    <p class="hint">${L('hub.disclaimer', { sym: esc((NET.cfg && NET.cfg.symbol) || 'OFFX') })}</p>
   </section>`;
 }
 function shortAddr(a) {
@@ -737,7 +737,7 @@ function mktSpark(hist, up) {
     <circle cx="${pts[pts.length - 1][0]}" cy="${pts[pts.length - 1][1]}" r="4" fill="${col}" class="mk-dot"/></svg>`;
 }
 function mktSoon(mini) {
-  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE'), ch = NET.cfg && NET.cfg.links && NET.cfg.links.channel;
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFX'), ch = NET.cfg && NET.cfg.links && NET.cfg.links.channel;
   if (mini) return `<section class="panel mkt mini soon" data-act="mktab">${NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 22)}</span>`}<div class="mk-mini-t"><b>${L('mk.soon_t', { sym })}</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></section>`;
   return `<section class="panel mkt soon">
     <div class="mk-h">${NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 26)}</span>`}<div class="mk-name"><b>${sym} × Solana</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></div>
@@ -752,7 +752,7 @@ function mktPanel(mini) {
   if (!NET.cfg.market) return mktSoon(mini);
   const r = UI.hub.mkt;
   if (!r || !r.on) return mini ? '' : `<section class="panel mkt"><div class="loading">${L('ui.loading')}</div></section>`;
-  const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFICE');
+  const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFX');
   if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p></section>`;
   const ch = m.ch24, up = ch === null ? true : ch >= 0;
   const chip = ch === null ? '' : `<span class="mk-ch ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</span>`;
@@ -779,7 +779,7 @@ function mktPanel(mini) {
 function airdropCard(e, mini) {
   const a = e && e.airdrop;
   if (!a || NET.mode === 'demo') return '';
-  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFX');
   const amt = fmt(Math.floor(a.amount || 0));
   if (a.st === 'season') {
     if (mini) return '';
@@ -812,14 +812,14 @@ function solCard(e) {
   if (NET.mode === 'demo') return '';
   const w = e.sol;
   return `<section class="panel wallet solw">
-    <div class="sec-h"><div><h2 class="h2">${I('sol', 16)} ${L('sol.title')}</h2><p class="sub">${L('sol.sub', { sym: esc((NET.cfg && NET.cfg.symbol) || 'OFFICE') })}</p></div></div>
+    <div class="sec-h"><div><h2 class="h2">${I('sol', 16)} ${L('sol.title')}</h2><p class="sub">${L('sol.sub', { sym: esc((NET.cfg && NET.cfg.symbol) || 'OFFX') })}</p></div></div>
     ${w ? `<div class="waddr">${I('check', 14, 'grn')}<code>${esc(shortAddr(w))}</code></div>
       <div class="row2"><button class="btn ghost sm" data-act="sol:set">${L('wallet.change')}</button><button class="btn ghost sm" data-act="sol:off">${L('wallet.disconnect')}</button></div>`
     : `<button class="btn big glow wide" data-act="sol:set">${I('sol', 16)} ${L('sol.add')}</button>`}
   </section>`;
 }
 function hubToken() {
-  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFX');
   const e = NET.eco || {};
   const SUPPLY = 1e8;
   const big = (n) => (n >= 1e6 ? (n < 1e7 && n % 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') : fmt(Math.round(n / 1e6))) + ' ' + L('tk2.mln') : fmt(Math.round(n)));

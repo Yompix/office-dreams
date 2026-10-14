@@ -2150,7 +2150,7 @@ LANGS.en = {
   'tut.hire': 'Hire your first employee ($140): they work even when you don’t tap.',
   'tut.quests': 'Quests: story events with choices, goals and daily missions — all give rewards.',
   'tut.points': 'Airdrop points. Real progress earns them — releases, upgrades, quests, check-ins, friends.',
-  'tut.token': 'The OFFICE token: the season’s points will be exchanged for it. Here you can see how it works.',
+  'tut.token': 'The OFFX token: the season’s points will be exchanged for it. Here you can see how it works.',
   'tut.friends': 'Invite friends: you get a share of their points and in-game bonuses.',
   'tut.done': 'That’s it! Play a little every day, fight in Studio Battle and invite friends. Good luck with your studio!',
   'tut.show': 'Show me',
@@ -2407,7 +2407,7 @@ LANGS.en = {
   'fr.not_active2': "waiting for their first game",
   'fr.fair': "Fake accounts don't count.",
   'don.title': "Bring the airdrop closer",
-  'don.sub': "Donate any amount to the launch fund: it pays for the token listing and liquidity. The sooner the goal is reached, the sooner OFFICE launches.",
+  'don.sub': "Donate any amount to the launch fund: it pays for the token listing and liquidity. The sooner the goal is reached, the sooner OFFX launches.",
   'don.of': "of {goal} goal",
   'don.donors': "Supporters: {n}",
   'don.mine': "you: {n} ⭐",
@@ -2825,7 +2825,7 @@ LANGS.ru = {
   'tut.hire': 'Найми первого сотрудника ($140): он работает, даже когда ты не нажимаешь.',
   'tut.quests': 'Квесты: события с выбором, цели и задания дня — за всё дают награды.',
   'tut.points': 'Очки аирдропа. Их дают за реальный прогресс: релизы, улучшения, квесты, отметки, друзей.',
-  'tut.token': 'Токен OFFICE: очки сезона будут обменяны на него. Здесь видно, как всё устроено.',
+  'tut.token': 'Токен OFFX: очки сезона будут обменяны на него. Здесь видно, как всё устроено.',
   'tut.friends': 'Приглашай друзей: тебе идёт доля их очков и игровые бонусы.',
   'tut.done': 'Всё! Заходи каждый день, сражайся в Битве студий и зови друзей. Удачи со студией!',
   'tut.show': 'Показать',
@@ -3082,7 +3082,7 @@ LANGS.ru = {
   'fr.not_active2': "ждём его первую игру",
   'fr.fair': "Фейковые аккаунты не засчитываются.",
   'don.title': "Приблизь аирдроп",
-  'don.sub': "Задонать любую сумму в фонд запуска: он идёт на листинг токена и ликвидность. Чем быстрее соберём цель — тем быстрее запуск OFFICE.",
+  'don.sub': "Задонать любую сумму в фонд запуска: он идёт на листинг токена и ликвидность. Чем быстрее соберём цель — тем быстрее запуск OFFX.",
   'don.of': "из {goal} цели",
   'don.donors': "Поддержали: {n}",
   'don.mine': "ты: {n} ⭐",
@@ -3500,7 +3500,7 @@ LANGS.uk = {
   'tut.hire': 'Найми першого працівника ($140): він працює, навіть коли ти не натискаєш.',
   'tut.quests': 'Квести: події з вибором, цілі й завдання дня — за все дають нагороди.',
   'tut.points': 'Бали аірдропу. Їх дають за справжній прогрес: релізи, покращення, квести, відмітки, друзів.',
-  'tut.token': 'Токен OFFICE: бали сезону буде обміняно на нього. Тут видно, як усе влаштовано.',
+  'tut.token': 'Токен OFFX: бали сезону буде обміняно на нього. Тут видно, як усе влаштовано.',
   'tut.friends': 'Запрошуй друзів: тобі йде частка їхніх балів та ігрові бонуси.',
   'tut.done': 'Усе! Заходь щодня, бийся в Битві студій і клич друзів. Успіху зі студією!',
   'tut.show': 'Показати',
@@ -3757,7 +3757,7 @@ LANGS.uk = {
   'fr.not_active2': "чекаємо його першу гру",
   'fr.fair': "Фейкові акаунти не зараховуються.",
   'don.title': "Наблизь аірдроп",
-  'don.sub': "Задонать будь-яку суму у фонд запуску: він іде на лістинг токена та ліквідність. Що швидше зберемо ціль — то швидше запуск OFFICE.",
+  'don.sub': "Задонать будь-яку суму у фонд запуску: він іде на лістинг токена та ліквідність. Що швидше зберемо ціль — то швидше запуск OFFX.",
   'don.of': "з {goal} цілі",
   'don.donors': "Підтримали: {n}",
   'don.mine': "ти: {n} ⭐",
@@ -7650,7 +7650,7 @@ const dayKeyNow = () => Math.floor(Date.now() / 86400000);
 function demoBoot() {
   NET.mode = 'demo';
   NET.cfg = {
-    v: 2, demo: true, season: { id: 0, name: 'Season 0' }, symbol: 'OFFICE', links: {},
+    v: 2, demo: true, season: { id: 0, name: 'Season 0' }, symbol: 'OFFX', links: {},
     eco: { D: 300, l1: 0.1, l2: 0.02, cashEach: 500, gemsEach: 2, pass: 1.25 }, checkin: [10, 12, 15, 18, 22, 28, 40], shop: [],
   };
   let saved = null;
@@ -8922,7 +8922,7 @@ function hubHome() {
       <li>${L('hub.how3')}</li>
       <li>${L('hub.how4')}</li>
     </ul>
-    <p class="hint">${L('hub.disclaimer', { sym: esc((NET.cfg && NET.cfg.symbol) || 'OFFICE') })}</p>
+    <p class="hint">${L('hub.disclaimer', { sym: esc((NET.cfg && NET.cfg.symbol) || 'OFFX') })}</p>
   </section>`;
 }
 function shortAddr(a) {
@@ -9084,7 +9084,7 @@ function mktSpark(hist, up) {
     <circle cx="${pts[pts.length - 1][0]}" cy="${pts[pts.length - 1][1]}" r="4" fill="${col}" class="mk-dot"/></svg>`;
 }
 function mktSoon(mini) {
-  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE'), ch = NET.cfg && NET.cfg.links && NET.cfg.links.channel;
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFX'), ch = NET.cfg && NET.cfg.links && NET.cfg.links.channel;
   if (mini) return `<section class="panel mkt mini soon" data-act="mktab">${NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 22)}</span>`}<div class="mk-mini-t"><b>${L('mk.soon_t', { sym })}</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></section>`;
   return `<section class="panel mkt soon">
     <div class="mk-h">${NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 26)}</span>`}<div class="mk-name"><b>${sym} × Solana</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></div>
@@ -9099,7 +9099,7 @@ function mktPanel(mini) {
   if (!NET.cfg.market) return mktSoon(mini);
   const r = UI.hub.mkt;
   if (!r || !r.on) return mini ? '' : `<section class="panel mkt"><div class="loading">${L('ui.loading')}</div></section>`;
-  const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFICE');
+  const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFX');
   if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p></section>`;
   const ch = m.ch24, up = ch === null ? true : ch >= 0;
   const chip = ch === null ? '' : `<span class="mk-ch ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</span>`;
@@ -9126,7 +9126,7 @@ function mktPanel(mini) {
 function airdropCard(e, mini) {
   const a = e && e.airdrop;
   if (!a || NET.mode === 'demo') return '';
-  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFX');
   const amt = fmt(Math.floor(a.amount || 0));
   if (a.st === 'season') {
     if (mini) return '';
@@ -9159,14 +9159,14 @@ function solCard(e) {
   if (NET.mode === 'demo') return '';
   const w = e.sol;
   return `<section class="panel wallet solw">
-    <div class="sec-h"><div><h2 class="h2">${I('sol', 16)} ${L('sol.title')}</h2><p class="sub">${L('sol.sub', { sym: esc((NET.cfg && NET.cfg.symbol) || 'OFFICE') })}</p></div></div>
+    <div class="sec-h"><div><h2 class="h2">${I('sol', 16)} ${L('sol.title')}</h2><p class="sub">${L('sol.sub', { sym: esc((NET.cfg && NET.cfg.symbol) || 'OFFX') })}</p></div></div>
     ${w ? `<div class="waddr">${I('check', 14, 'grn')}<code>${esc(shortAddr(w))}</code></div>
       <div class="row2"><button class="btn ghost sm" data-act="sol:set">${L('wallet.change')}</button><button class="btn ghost sm" data-act="sol:off">${L('wallet.disconnect')}</button></div>`
     : `<button class="btn big glow wide" data-act="sol:set">${I('sol', 16)} ${L('sol.add')}</button>`}
   </section>`;
 }
 function hubToken() {
-  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFX');
   const e = NET.eco || {};
   const SUPPLY = 1e8;
   const big = (n) => (n >= 1e6 ? (n < 1e7 && n % 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') : fmt(Math.round(n / 1e6))) + ' ' + L('tk2.mln') : fmt(Math.round(n)));
@@ -10789,7 +10789,7 @@ function showSettings() {
       : `<button class="linkbtn red" data-act="reset">${L(NET.mode === 'demo' ? 'set.reset' : 'set.forget')}</button>`}`, { id: 'settings' });
 }
 function showHelp() {
-  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFX');
   openModal(`<h2 class="h2">${I('info', 16)} ${L('help.title')}</h2>
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>

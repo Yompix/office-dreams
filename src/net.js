@@ -397,7 +397,7 @@ const dayKeyNow = () => Math.floor(Date.now() / 86400000);
 function demoBoot() {
   NET.mode = 'demo';
   NET.cfg = {
-    v: 2, demo: true, season: { id: 0, name: 'Season 0' }, symbol: 'OFFICE', links: {},
+    v: 2, demo: true, season: { id: 0, name: 'Season 0' }, symbol: 'OFFX', links: {},
     eco: { D: 300, l1: 0.1, l2: 0.02, cashEach: 500, gemsEach: 2, pass: 1.25 }, checkin: [10, 12, 15, 18, 22, 28, 40], shop: [],
   };
   let saved = null;

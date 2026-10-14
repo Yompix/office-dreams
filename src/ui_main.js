@@ -724,7 +724,7 @@ function showSettings() {
       : `<button class="linkbtn red" data-act="reset">${L(NET.mode === 'demo' ? 'set.reset' : 'set.forget')}</button>`}`, { id: 'settings' });
 }
 function showHelp() {
-  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFX');
   openModal(`<h2 class="h2">${I('info', 16)} ${L('help.title')}</h2>
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>

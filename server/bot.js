@@ -56,9 +56,9 @@ const CASH_TXT = {
 };
 const nfmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 const DONATE_TXT = {
-  en: (n) => ['Support the launch', `${n} ⭐ toward the OFFICE token launch. Thank you!`],
-  ru: (n) => ['Поддержка запуска', `${n} ⭐ на запуск токена OFFICE. Спасибо!`],
-  uk: (n) => ['Підтримка запуску', `${n} ⭐ на запуск токена OFFICE. Дякуємо!`],
+  en: (n) => ['Support the launch', `${n} ⭐ toward the OFFX token launch. Thank you!`],
+  ru: (n) => ['Поддержка запуска', `${n} ⭐ на запуск токена OFFX. Спасибо!`],
+  uk: (n) => ['Підтримка запуску', `${n} ⭐ на запуск токена OFFX. Дякуємо!`],
 };
 const donateTxt = (lang, n) => (DONATE_TXT[lang] || DONATE_TXT.en)(n);
 const THANKS = {

@@ -58,7 +58,7 @@ function build(env) {
     chatUrl: str('CHAT_URL'),
     xUrl: str('X_URL'),
     season: { id: num('SEASON_ID', 0), name: str('SEASON_NAME', 'Season 0') },
-    tokenSymbol: str('TOKEN_SYMBOL', 'OFFICE'),
+    tokenSymbol: str('TOKEN_SYMBOL', 'OFFX'),
     // the launched token on Solana (SPL mint address): live price from Jupiter + DexScreener, buy button, holdings
     token: { addr: str('TOKEN_ADDRESS'), rpc: str('SOLANA_RPC', 'https://api.mainnet-beta.solana.com') },
     // airdrop of the whole supply by Season 0 points: starts by itself when the launch fund reaches DONATE_GOAL_USD;
