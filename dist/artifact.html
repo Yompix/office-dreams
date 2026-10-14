@@ -1038,6 +1038,44 @@ body.pv-on #app { visibility: hidden; }
 .reno-stars.lit span.new { opacity: 1; transform: none; transition: transform 0.45s cubic-bezier(.2,1.6,.4,1), opacity 0.2s; }
 .reno-legend { font-weight: 800; color: var(--yel); text-shadow: 0 0 12px rgba(255, 210, 63, 0.7); margin: 0; }
 @media (prefers-reduced-motion: reduce) { .floor.own .f-no::after { animation: none; } }
+
+/* ---------- token market (STON.fi) ---------- */
+.mkt{display:flex;flex-direction:column;gap:12px;background:radial-gradient(120% 90% at 0% 0%,rgba(46,230,107,.14),transparent 60%),radial-gradient(120% 90% at 100% 0%,rgba(34,230,255,.12),transparent 60%),var(--panel,#120c2e)}
+.mk-h{display:flex;align-items:center;gap:12px}
+.mk-logo{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;background:#0b0624;box-shadow:0 0 0 2px rgba(34,230,255,.5),0 0 16px rgba(34,230,255,.35);object-fit:cover}
+.mk-name{flex:1;min-width:0;display:flex;flex-direction:column}
+.mk-name b{font-size:18px;letter-spacing:.5px}
+.mk-name small{opacity:.7;font-size:12px}
+.mk-live{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#2ee66b;padding:4px 8px;border-radius:8px;background:rgba(46,230,107,.12);box-shadow:inset 0 0 0 1px rgba(46,230,107,.4)}
+.mk-live i{width:7px;height:7px;border-radius:50%;background:#2ee66b;box-shadow:0 0 8px #2ee66b;animation:mkp 1.4s ease-in-out infinite}
+@keyframes mkp{50%{opacity:.25}}
+.mk-price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.mk-price b{font-size:34px;line-height:1;text-shadow:0 0 18px rgba(34,230,255,.45)}
+.mk-ch{font-weight:800;font-size:14px;padding:3px 8px;border-radius:8px}
+.mk-ch.up{color:#2ee66b;background:rgba(46,230,107,.14)}
+.mk-ch.dn{color:#ff4d6d;background:rgba(255,77,109,.14)}
+.mk-ton{opacity:.7;font-size:13px;margin-top:-6px}
+.mk-rng{align-self:flex-start}
+.mk-chart{width:100%;height:96px;display:block;border-radius:12px;background:rgba(0,0,0,.18)}
+.mk-dot{animation:mkp 1.4s ease-in-out infinite}
+.mk-nochart{height:96px;display:grid;place-items:center;text-align:center;font-size:12px;opacity:.6;border-radius:12px;background:rgba(0,0,0,.18);padding:0 16px}
+.mk-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mk-stats div{display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:10px;background:rgba(255,255,255,.04);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.mk-stats small{font-size:11px;opacity:.65}
+.mk-stats b{font-size:14px}
+.mk-mine{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:rgba(34,230,255,.07);box-shadow:inset 0 0 0 1px rgba(34,230,255,.25)}
+.mk-mine small{flex:1;min-width:140px;opacity:.85}
+.mk-mine b{font-size:16px;color:#22e6ff}
+.mk-buy{background:linear-gradient(180deg,#38f08a,#14b85a)!important;color:#05210f!important;box-shadow:0 6px 0 #0b6b34,0 0 26px rgba(46,230,107,.45)!important}
+.mk-how{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:13px;opacity:.85}
+.mkt.mini{flex-direction:row;align-items:center;gap:10px;cursor:pointer;padding:12px 14px}
+.mkt.mini .mk-logo{width:36px;height:36px}
+.mk-mini-t{display:flex;flex-direction:column;flex:1;min-width:0}
+.mk-mini-t small{opacity:.65;font-size:11px}
+.mk-mini-p{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.mk-mini-p b{font-size:17px}
+.mk-mini-p .mk-ch{font-size:11px;padding:1px 6px}
+.mk-go{font-weight:800;font-size:13px;color:#2ee66b;white-space:nowrap}
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -1995,6 +2033,25 @@ LANGS.en = {
   'tut.finish': 'Let’s go!',
   'tut.later': 'Later',
   'tut.skip': 'Skip tutorial',
+  'mk.live': "live price",
+  'mk.buy': "Buy on STON.fi",
+  'mk.buy_s': "Buy",
+  'mk.chart': "Open chart",
+  'mk.vol': "Volume 24h",
+  'mk.liq': "Liquidity",
+  'mk.cap': "Market cap",
+  'mk.bal': "In your wallet",
+  'mk.bal_load': "Loading balance…",
+  'mk.bal_none': "Connect a TON wallet to see your tokens",
+  'mk.r_24h': "24h",
+  'mk.r_7d': "7d",
+  'mk.r_30d': "30d",
+  'mk.collecting': "The chart appears once price data builds up",
+  'mk.no_price': "The price is loading. You can already buy.",
+  'mk.h1': "Tap “Buy on STON.fi” — the TON → token swap opens",
+  'mk.h2': "Connect your TON wallet in STON.fi and choose how much {sym} to buy",
+  'mk.h3': "{sym} lands in your wallet right away — the balance shows here",
+  'mk.risk': "The token price moves and can go up or down. Only buy what you can afford to lose. This is not financial advice.",
   'tok.what': '{sym} is the game’s own token on the TON blockchain. Airdrop points you collect now will be exchanged for it.',
   'tok.supply': '1,000,000,000 — minted once',
   'tok.status': 'Season 0: collecting points',
@@ -2486,6 +2543,25 @@ LANGS.ru = {
   'tut.finish': 'Поехали!',
   'tut.later': 'Позже',
   'tut.skip': 'Пропустить обучение',
+  'mk.live': "курс в реальном времени",
+  'mk.buy': "Купить на STON.fi",
+  'mk.buy_s': "Купить",
+  'mk.chart': "Открыть график",
+  'mk.vol': "Объём 24ч",
+  'mk.liq': "Ликвидность",
+  'mk.cap': "Капитализация",
+  'mk.bal': "У тебя в кошельке",
+  'mk.bal_load': "Загружаем баланс…",
+  'mk.bal_none': "Подключи TON-кошелёк, чтобы видеть свои токены",
+  'mk.r_24h': "24ч",
+  'mk.r_7d': "7д",
+  'mk.r_30d': "30д",
+  'mk.collecting': "График появится, когда накопятся данные о цене",
+  'mk.no_price': "Курс пока загружается. Купить можно уже сейчас.",
+  'mk.h1': "Нажми «Купить на STON.fi» — откроется обмен TON на токен",
+  'mk.h2': "Подключи свой TON-кошелёк в STON.fi и выбери, сколько {sym} купить",
+  'mk.h3': "Токены {sym} сразу попадут в твой кошелёк — баланс появится здесь",
+  'mk.risk': "Курс токена меняется и может как расти, так и падать. Покупай только на сумму, которую не жалко потерять. Это не финансовый совет.",
   'tok.what': '{sym} — собственный токен игры в блокчейне TON. Очки аирдропа, которые ты собираешь сейчас, будут обменяны на него.',
   'tok.supply': '1 000 000 000 — выпуск один раз',
   'tok.status': 'Сезон 0: собираем очки',
@@ -2977,6 +3053,25 @@ LANGS.uk = {
   'tut.finish': 'Поїхали!',
   'tut.later': 'Пізніше',
   'tut.skip': 'Пропустити навчання',
+  'mk.live': "курс у реальному часі",
+  'mk.buy': "Купити на STON.fi",
+  'mk.buy_s': "Купити",
+  'mk.chart': "Відкрити графік",
+  'mk.vol': "Обсяг 24г",
+  'mk.liq': "Ліквідність",
+  'mk.cap': "Капіталізація",
+  'mk.bal': "У тебе в гаманці",
+  'mk.bal_load': "Завантажуємо баланс…",
+  'mk.bal_none': "Підключи TON-гаманець, щоб бачити свої токени",
+  'mk.r_24h': "24г",
+  'mk.r_7d': "7д",
+  'mk.r_30d': "30д",
+  'mk.collecting': "Графік з’явиться, коли накопичаться дані про ціну",
+  'mk.no_price': "Курс поки завантажується. Купити можна вже зараз.",
+  'mk.h1': "Натисни «Купити на STON.fi» — відкриється обмін TON на токен",
+  'mk.h2': "Підключи свій TON-гаманець у STON.fi й обери, скільки {sym} купити",
+  'mk.h3': "Токени {sym} одразу потраплять у твій гаманець — баланс з’явиться тут",
+  'mk.risk': "Курс токена змінюється і може як рости, так і падати. Купуй лише на суму, яку не шкода втратити. Це не фінансова порада.",
   'tok.what': '{sym} — власний токен гри в блокчейні TON. Бали аірдропу, які ти збираєш зараз, буде обміняно на нього.',
   'tok.supply': '1 000 000 000 — випуск один раз',
   'tok.status': 'Сезон 0: збираємо бали',
@@ -6254,6 +6349,8 @@ const netApi = {
   forget: () => api('POST', '/api/forget', { confirm: true }),
   wallet: (body) => api('POST', '/api/wallet', body),
   tonPayload: () => api('GET', '/api/ton/payload'),
+  market: (range) => api('GET', '/api/market?range=' + encodeURIComponent(range || '24h')),
+  marketBal: () => api('GET', '/api/market/bal'),
   adClaim: () => api('POST', '/api/ads/claim', {}),
 };
 // make sure the server has seen our latest actions before a call that depends on the game state
@@ -7632,7 +7729,7 @@ function hubHome() {
   const usedPct = Math.round((e.used || 0) * 100);
   const src = Object.keys(e.bySrc || {}).filter((k) => e.bySrc[k] > 0);
   const ci = e.checkin;
-  return `${demoNote()}${riskNote(e)}
+  return `${demoNote()}${riskNote(e)}${mktPanel(true)}
   <section class="panel ptsp">
     <div class="season px">${esc((NET.cfg && NET.cfg.season && NET.cfg.season.name) || 'Season 0')}</div>
     <div class="bigpts">${I('pts', 34)}<b id="bigpts">${fmtPts(e.pts)}</b></div>
@@ -7814,6 +7911,46 @@ function donatePanel() {
     ${d.top && d.top.length ? `<h3 class="h3">💖 ${L('don.wall')}</h3><ol class="board">${d.top.map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><span class="yel">${fmt(x.stars)} ⭐</span></li>`).join('')}</ol>` : ''}
   </section>`;
 }
+/* ---------- token market: live price on STON.fi, chart, holdings, buy ---------- */
+function fmtUsdP(v) { if (!v) return '$0'; if (v >= 1) return '$' + v.toFixed(3); if (v >= 0.01) return '$' + v.toFixed(4); return '$' + v.toPrecision(3); }
+function fmtUsdBig(v) { if (v === null || v === undefined) return '—'; return v >= 1e6 ? '$' + (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? '$' + (v / 1e3).toFixed(1) + 'K' : '$' + v.toFixed(0); }
+function mktSpark(hist, up) {
+  if (!hist || hist.length < 2) return `<div class="mk-nochart">${L('mk.collecting')}</div>`;
+  const W = 320, H = 96, ys = hist.map((p) => p[1]), lo = Math.min(...ys), hi = Math.max(...ys), sp = hi - lo || hi || 1;
+  const pts = hist.map((p, i) => [(i / (hist.length - 1)) * W, H - 6 - ((p[1] - lo) / sp) * (H - 14)]);
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+  const col = up ? '#2ee66b' : '#ff4d6d';
+  return `<svg class="mk-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="mkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".45"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${d}L${W} ${H}L0 ${H}Z" fill="url(#mkg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 6px ${col})"/>
+    <circle cx="${pts[pts.length - 1][0]}" cy="${pts[pts.length - 1][1]}" r="4" fill="${col}" class="mk-dot"/></svg>`;
+}
+function mktPanel(mini) {
+  if (!NET.cfg || !NET.cfg.market) return '';
+  const r = UI.hub.mkt;
+  if (!r || !r.on) return mini ? '' : `<section class="panel mkt"><div class="loading">${L('ui.loading')}</div></section>`;
+  const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFICE');
+  if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p><button class="btn big glow wide" data-act="mkbuy">${L('mk.buy')}</button></section>`;
+  const ch = m.ch24, up = ch === null ? true : ch >= 0;
+  const chip = ch === null ? '' : `<span class="mk-ch ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</span>`;
+  const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : `<span class="mk-logo">${I('ton', 26)}</span>`;
+  if (mini) return `<section class="panel mkt mini" data-act="mktab">${logo}<div class="mk-mini-t"><b>${sym}</b><small>${L('mk.live')}</small></div><div class="mk-mini-p"><b class="px">${fmtUsdP(m.usd)}</b>${chip}</div><span class="mk-go">${L('mk.buy_s')} ›</span></section>`;
+  const bal = UI.hub.mktBal, hasW = !!(NET.eco && NET.eco.wallet);
+  const rng = ['24h', '7d', '30d'].map((x) => `<button class="${(r.range || '24h') === x ? 'on' : ''}" data-act="mkrange:${x}">${L('mk.r_' + x)}</button>`).join('');
+  return `<section class="panel mkt">
+    <div class="mk-h">${logo}<div class="mk-name"><b>${sym}</b><small>STON.fi · ${L('mk.live')}</small></div><span class="mk-live"><i></i>LIVE</span></div>
+    <div class="mk-price"><b class="px">${fmtUsdP(m.usd)}</b>${chip}</div>
+    ${m.ton ? `<div class="mk-ton">≈ ${m.ton < 0.001 ? m.ton.toPrecision(3) : m.ton.toFixed(5)} TON</div>` : ''}
+    <div class="mk-rng seg">${rng}</div>
+    ${mktSpark(r.hist, up)}
+    <div class="mk-stats"><div><small>${L('mk.vol')}</small><b>${fmtUsdBig(m.vol24)}</b></div><div><small>${L('mk.liq')}</small><b>${fmtUsdBig(m.liq)}</b></div><div><small>${L('mk.cap')}</small><b>${fmtUsdBig(m.fdv)}</b></div></div>
+    <div class="mk-mine">${hasW ? (bal === null || bal === undefined ? `<small>${L('mk.bal_load')}</small>` : `<small>${L('mk.bal')}</small><b>${fmt(Math.floor(bal))} ${sym}</b><span class="mut">≈ ${fmtUsdP(bal * m.usd).replace('$0', '$0.00')}</span>`) : `<small>${L('mk.bal_none')}</small><button class="btn ghost sm" data-act="wallet:connect">${L('wallet.connect')}</button>`}</div>
+    <button class="btn big glow wide mk-buy" data-act="mkbuy">${I('ton', 18)} ${L('mk.buy')}</button>
+    <button class="btn ghost sm wide" data-act="mkchart">${I('chart', 14)} ${L('mk.chart')}</button>
+    <ol class="mk-how"><li>${L('mk.h1')}</li><li>${L('mk.h2', { sym })}</li><li>${L('mk.h3', { sym })}</li></ol>
+    <p class="hint">${L('mk.risk')}</p>
+  </section>`;
+}
+
 function hubToken() {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
   const e = NET.eco || {};
@@ -7839,7 +7976,7 @@ function hubToken() {
   const ymax = years[0][1];
   const road = [['r1', 'now'], ['r2', 'next'], ['r3', 'next'], ['r4', 'later'], ['r5', 'later'], ['r6', 'later']];
   const uses = ['u1', 'u2', 'u3', 'u4'];
-  return `<section class="panel tokhero2">
+  return `${mktPanel()}<section class="panel tokhero2">
     <div class="coin3d"><div class="coin-face">${I('ton', 46)}</div></div>
     <h2 class="op-title">${sym}</h2>
     <p class="sub">${L('tok.what', { sym })}</p>
@@ -9090,14 +9227,30 @@ const ACT = {
   },
   chal: (ans) => answerChallenge(ans),
   retry: () => location.reload(),
+  mkbuy: () => { const m = UI.hub.mkt; if (m && m.buy) { openLink(m.buy); haptic && haptic('medium'); } },
+  mkchart: () => { const m = UI.hub.mkt; if (m && m.chart) openLink(m.chart); },
+  mkrange: (r) => { UI.mktRange = r; loadMarket(true); render(true); },
+  mktab: () => { UI.sub.drop = 'token'; render(true); loadHub('token'); },
   openbot: () => { if (NET.cfg && NET.cfg.bot) openLink('https://t.me/' + NET.cfg.bot + (NET.cfg.app ? '/' + NET.cfg.app : '')); },
   link: (k) => { const l = NET.cfg && NET.cfg.links && NET.cfg.links[k]; if (l) openLink(l); },
 };
 function confettiSmall() { confetti(40); }
 
+/* ---------- token market (STON.fi): price, chart, holdings; refreshed while the token tab is open ---------- */
+function loadMarket(force) {
+  if (NET.mode !== 'online' || !NET.cfg || !NET.cfg.market) return;
+  const now = Date.now();
+  if (!force && now - (UI.hub.loadedAt.mkt || 0) < 15000) return;
+  UI.hub.loadedAt.mkt = now;
+  netApi.market(UI.mktRange || '24h').then((r) => { if (r && r.ok) { UI.hub.mkt = r; UI.hubVer = (UI.hubVer || 0) + 1; render(); } }).catch(() => {});
+  netApi.marketBal().then((r) => { if (r && r.ok && r.bal !== UI.hub.mktBal) { UI.hub.mktBal = r.bal; UI.hubVer = (UI.hubVer || 0) + 1; render(); } }).catch(() => {});
+}
+setInterval(() => { if (UI.tab === 'drop' && (UI.sub.drop === 'token' || UI.sub.drop === 'home') && !document.hidden) loadMarket(); }, 15000);
+
 /* ---------- hub data ---------- */
 function loadHub(sub, force) {
   const now = Date.now();
+  if (sub === 'token' || sub === 'home') loadMarket(force);
   const key = sub === 'top' ? 'board' : sub === 'token' ? 'donate' : sub;
   if (!['tasks', 'friends', 'board', 'shop', 'home', 'donate'].includes(key)) return;
   if (key === 'home') { if (NET.mode === 'online' && (force || now - (UI.hub.loadedAt.home || 0) > 30000)) { UI.hub.loadedAt.home = now; netSync(); } if (!UI.hub.tasks) loadHub('tasks'); return; }
