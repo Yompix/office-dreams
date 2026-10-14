@@ -16,6 +16,8 @@ const RAKE = Number(env.RAKE || 0.10); // комісія з банку
 const REF_PCT = Number(env.REF_PCT || 0.20); // частка рейку, що йде запрошувачу
 const WD_FEE = Number(env.WD_FEE || 0.05), WD_FEE_MIN = Number(env.WD_FEE_MIN || 50), WD_MIN = Number(env.WD_MIN || 1000);
 const MIN_BET = 10, MAX_BET = 5000;
+// бот-суперник: сідає грати, коли на виклик ніхто не відповів; грає чесно (без підглядання), окремий рахунок 'bot'
+const BOT_ON = env.BOT_ON === "1", BOT_WAIT = Number(env.BOT_WAIT || 15) * 1000, BOT_ID = "bot", BOT_NAME = "🤖 Бот";
 const WALLET_MNEMONIC = env.WALLET_MNEMONIC || ""; // гаманець автовиплат (необов'язково)
 const WALLET_VER = (env.WALLET_VERSION || "v5r1").toLowerCase();
 const AUTO_MAX = Number(env.AUTO_PAY_MAX_TON || 5), AUTO_DAY = Number(env.AUTO_PAY_DAY_TON || 30);
@@ -58,6 +60,8 @@ async function initDb() {
   await db`alter table users add column if not exists lang text not null default ''`;
   await db`create index if not exists users_ref on users(ref_by)`;
   await db`insert into users(id, name, age_ok) values('house', 'house', true) on conflict do nothing`;
+  await db`insert into users(id, name, age_ok) values(${BOT_ID}, ${BOT_NAME}, true) on conflict do nothing`;
+  const bb = await getBal(BOT_ID); if (bb < 1000000) await db.begin((t: any) => adj(t, BOT_ID, 10000000 - bb, "bot_seed", null, null));
 }
 
 // змінити баланс (атомарно з записом у журнал); повертає false, якщо ref уже оброблено
@@ -128,14 +132,14 @@ const needAge = (u: any) => { if (!u.age_ok) throw new Error("age"); };
 const socks = new Set<any>();
 const send = (ws: any, o: any) => { try { ws.send(JSON.stringify(o)); } catch {} };
 const toUser = (uid: string, o: any) => { for (const w of socks) if (w.data.uid === uid) send(w, o); };
-async function pushBal(uid: string) { if (uid === "house") return; toUser(uid, { t: "bal", balance: await getBal(uid) }); }
+async function pushBal(uid: string) { if (uid === "house" || uid === BOT_ID) return; toUser(uid, { t: "bal", balance: await getBal(uid) }); }
 
 // ---------- Реферальна програма ----------
 const L3 = (lc: any, uk: string, ru: string, en: string) => { lc = String(lc || "").slice(0, 2).toLowerCase(); return lc === "ru" || lc === "be" ? ru : lc === "uk" || lc === "" ? uk : en; };
 // прив'язка запрошувача: лише новому гравцеві, який ще не грав і не поповнював
 async function setRef(uid: string, refId: string, name = "") {
   if (!refId || refId === uid) return;
-  const r = await db`update users set ref_by = ${refId} where id = ${uid} and ref_by is null and turnover = 0 and deposited = 0 and exists (select 1 from users where id = ${refId} and id <> 'house' and not banned) returning id`;
+  const r = await db`update users set ref_by = ${refId} where id = ${uid} and ref_by is null and turnover = 0 and deposited = 0 and exists (select 1 from users where id = ${refId} and id not in ('house', 'bot') and not banned) returning id`;
   if (!r.length || !BOT_TOKEN || !refId.startsWith("tg")) return;
   const lc = (await db`select lang from users where id = ${refId}`)[0]?.lang || "";
   const pct = Math.round(REF_PCT * 100);
@@ -149,7 +153,7 @@ async function refPay(t: any, parts: [string, number][], rake: number, tag: stri
     const b = Math.floor(((rake * w) / W) * REF_PCT); if (b <= 0) continue;
     const r = await t`select ref_by from users where id = ${uid}`;
     const rb = r[0]?.ref_by; if (!rb || rb === uid) continue;
-    const ok = await t`select 1 from users where id = ${rb} and id <> 'house' and not banned`; if (!ok.length) continue;
+    const ok = await t`select 1 from users where id = ${rb} and id not in ('house', 'bot') and not banned`; if (!ok.length) continue;
     await adj(t, "house", -b, "ref_cost", null, tag + " " + uid);
     await adj(t, rb, b, "ref_bonus", null, uid);
     setTimeout(() => pushBal(rb), 600);
@@ -157,7 +161,7 @@ async function refPay(t: any, parts: [string, number][], rake: number, tag: stri
 }
 
 // ---------- Дуелі ----------
-type Duel = { id: number; uid: string; name: string; stake: number; game: string };
+type Duel = { id: number; uid: string; name: string; stake: number; game: string; at: number };
 const duels = new Map<number, Duel>(); let duelSeq = 1;
 const checkStake = (n: any) => { n = Math.floor(Number(n)); if (!Number.isFinite(n) || n < MIN_BET || n > MAX_BET) throw new Error("bad_bet"); return n; };
 const rakeOf = (pot: number) => Math.floor(pot * RAKE);
@@ -168,7 +172,7 @@ async function duelCreate(ws: any, m: any) {
   if ([...duels.values()].filter((d) => d.uid === uid).length >= 3) throw new Error("too_many");
   const id = duelSeq++;
   await db.begin(async (t: any) => { await adj(t, uid, -stake, "duel_stake", null, "d" + id); await holdAdd(t, "duel", String(id), uid, stake); await t`update users set turnover = turnover + ${stake} where id = ${uid}`; });
-  duels.set(id, { id, uid, name, stake, game });
+  duels.set(id, { id, uid, name, stake, game, at: Date.now() });
   pushBal(uid); sendLobby();
 }
 async function duelCancel(ws: any, m: any) {
@@ -179,7 +183,10 @@ async function duelCancel(ws: any, m: any) {
 }
 async function duelJoin(ws: any, m: any) {
   const { uid, name } = ws.data; const u = await getUserRow(uid); needAge(u);
-  const d = duels.get(Number(m.id)); if (!d) throw new Error("gone"); if (d.uid === uid) throw new Error("own");
+  await duelJoinAs(uid, name, Number(m.id));
+}
+async function duelJoinAs(uid: string, name: string, did: number) {
+  const d = duels.get(did); if (!d) throw new Error("gone"); if (d.uid === uid) throw new Error("own");
   duels.delete(d.id);
   let ra = 0, rb = 0;
   let winner: string;
@@ -508,8 +515,8 @@ function sendLobby() {
 // rps — камінь-ножиці-папір, ttt — хрестики-нулики, card — висока карта,
 // four — «Неон-4» (чотири в ряд), mines — «Сапер-дуель», bj — «21-дуель», checkers — шашки, chess — шахи
 type MxGame = "rps" | "ttt" | "card" | "four" | "mines" | "bj" | "checkers" | "chess";
-type Chal = { id: number; uid: string; name: string; stake: number; game: MxGame };
-type Match = { id: number; game: MxGame; stake: number; p: string[]; names: string[]; st: any; turn: number; deadline: number; timer: any; tk: number; over: boolean };
+type Chal = { id: number; uid: string; name: string; stake: number; game: MxGame; at: number };
+type Match = { id: number; game: MxGame; stake: number; p: string[]; names: string[]; st: any; turn: number; deadline: number; timer: any; tk: number; over: boolean; bk?: string; bAt?: number; bBusy?: boolean };
 const chals = new Map<number, Chal>(), matches = new Map<number, Match>(); let mxSeq = Date.now(); // унікальні номери й після перезапуску (ref у журналі не повторюється)
 const mxJoining = new Set<string>();
 const MX_GAMES = ["rps", "ttt", "card", "four", "mines", "bj", "checkers", "chess"];
@@ -653,14 +660,17 @@ async function mxCreate(ws: any, m: any) {
   if ([...chals.values()].some((c) => c.uid === uid)) throw new Error("too_many");
   const id = mxSeq++;
   await db.begin(async (t: any) => { await adj(t, uid, -stake, "mx_stake", null, game + " c" + id); await holdAdd(t, "mx", String(id), uid, stake); await t`update users set turnover = turnover + ${stake} where id = ${uid}`; });
-  chals.set(id, { id, uid, name, stake, game });
+  chals.set(id, { id, uid, name, stake, game, at: Date.now() });
   pushBal(uid); mxLobby();
 }
 async function mxJoin(ws: any, m: any) {
   const { uid, name } = ws.data; const u = await getUserRow(uid); needAge(u);
   if (mxActive(uid) || mxJoining.has(uid)) throw new Error("in_match");
   if ([...chals.values()].some((c) => c.uid === uid)) throw new Error("has_chal");
-  const c = chals.get(Number(m.id)); if (!c) throw new Error("gone"); if (c.uid === uid) throw new Error("own");
+  await mxJoinAs(uid, name, Number(m.id));
+}
+async function mxJoinAs(uid: string, name: string, cid: number) {
+  const c = chals.get(cid); if (!c) throw new Error("gone"); if (c.uid === uid) throw new Error("own");
   chals.delete(c.id); mxJoining.add(uid);
   try {
     await db.begin(async (t: any) => { await adj(t, uid, -c.stake, "mx_stake", null, c.game + " c" + c.id); await holdAdd(t, "mx", String(c.id), uid, c.stake); await t`update users set turnover = turnover + ${c.stake} where id = ${uid}`; });
@@ -749,6 +759,63 @@ async function mxMove(ws: any, m: any) {
   } else throw new Error("bad_move");
   mm.turn = 1 - i; mxArm(mm); mxSend(mm);
 }
+
+// ---------- Бот-суперник ----------
+const pick = <T,>(a: T[]) => a[rnd(a.length)];
+const botDelay = (g: string) => (g === "chess" ? 1500 + rnd(3000) : g === "checkers" ? 1000 + rnd(2000) : g === "rps" ? 1500 + rnd(4000) : 800 + rnd(1600));
+function botTtt(b: string[], me: string) {
+  const op = me === "X" ? "O" : "X", free = b.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0);
+  const winAt = (v: string) => free.find((i) => TTT_LINES.some((l) => l.includes(i) && l.every((k) => k === i || b[k] === v)));
+  let c = winAt(me); if (c === undefined) c = winAt(op); if (c === undefined && !b[4]) c = 4;
+  if (c === undefined) { const cs = free.filter((i) => [0, 2, 6, 8].includes(i)); c = cs.length && rnd(10) < 7 ? pick(cs) : pick(free); }
+  return c;
+}
+function botFour(b: number[], me: number) {
+  const op = 3 - me, drop = (bb: number[], col: number) => { for (let r = F_H - 1; r >= 0; r--) if (!bb[r * F_W + col]) return r * F_W + col; return -1; };
+  const cols = [0, 1, 2, 3, 4, 5, 6].filter((c) => drop(b, c) >= 0);
+  const wins = (v: number) => cols.find((c) => { const bb = b.slice(), at = drop(bb, c); bb[at] = v; return fourWin(bb, at); });
+  let c = wins(me); if (c !== undefined) return c; c = wins(op); if (c !== undefined) return c;
+  const safe = cols.filter((c) => { const bb = b.slice(); bb[drop(bb, c)] = me; return !cols.some((c2) => { const at = drop(bb, c2); if (at < 0) return false; const b2 = bb.slice(); b2[at] = op; return fourWin(b2, at); }); });
+  const pool = safe.length ? safe : cols; let best = pool[0], bw = -1;
+  for (const k of pool) { const w = 4 - Math.abs(3 - k) + Math.random() * 2.5; if (w > bw) { bw = w; best = k; } }
+  return best;
+}
+const CH_VAL: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+function botChess(g: any) {
+  const ms = g.moves({ verbose: true }); if (!ms.length) return null;
+  for (const m of ms) { g.move(m); const mate = g.isCheckmate(); g.undo(); if (mate) return m; }
+  const caps = ms.filter((m: any) => m.captured).sort((a: any, b: any) => CH_VAL[b.captured] - CH_VAL[b.piece] / 10 - (CH_VAL[a.captured] - CH_VAL[a.piece] / 10));
+  if (caps.length && rnd(10) < 8) return caps[0];
+  return pick(ms);
+}
+async function botAct(m: Match) {
+  const i = m.p.indexOf(BOT_ID), s = m.st, g = m.game; if (i < 0 || m.over || m.bBusy || !s) return;
+  let mv: any = null;
+  if (g === "rps") { if (s.ch[i] === null) mv = { move: pick(["r", "p", "s"]) }; }
+  else if (g === "bj") { if (!s.done[i]) mv = { act: bjTotal(s.hands[i]) < 17 ? "hit" : "stand" }; }
+  else if (m.turn === i) {
+    if (g === "ttt") mv = { cell: botTtt(s.b, i === 0 ? "X" : "O") };
+    else if (g === "four") mv = { col: botFour(s.b, i + 1) };
+    else if (g === "mines") mv = { cell: pick(s.open.map((v: any, k: number) => (v === -1 ? k : -1)).filter((k: number) => k >= 0)) };
+    else if (g === "checkers") { const st = ckSteps(s, i), last = i === 0 ? 0 : 7, pr = st.filter((x) => !isKing(s.b[x.from]) && Math.floor(x.to / 8) === last), x = pr.length ? pr[0] : pick(st); if (x) mv = { from: x.from, to: x.to }; }
+    else if (g === "chess") { const x = botChess(s.g); if (x) mv = { from: x.from, to: x.to, promo: x.promotion || "q" }; }
+  }
+  if (!mv) return;
+  const key = m.tk + ":" + (g === "rps" ? s.round : "") + ":" + m.turn;
+  if (m.bk !== key) { m.bk = key; m.bAt = Date.now() + Math.min(botDelay(g), Math.max(500, m.deadline - Date.now() - 2500)); return; }
+  if (Date.now() < (m.bAt || 0)) return;
+  m.bBusy = true;
+  try { await mxMove({ data: { uid: BOT_ID } }, { id: m.id, ...mv }); } catch (e: any) { console.error("bot move", g, e.message); m.bAt = Date.now() + 1000; }
+  finally { m.bBusy = false; }
+}
+async function botTick() {
+  if (!BOT_ON) return;
+  const online = new Set([...socks].map((x: any) => x.data.uid)), now = Date.now();
+  for (const c of [...chals.values()]) if (c.uid !== BOT_ID && now - c.at > BOT_WAIT && online.has(c.uid) && (c.game !== "chess" || ChessLib)) { try { await mxJoinAs(BOT_ID, BOT_NAME, c.id); } catch (e: any) { console.error("bot join", e.message); } }
+  for (const d of [...duels.values()]) if (d.uid !== BOT_ID && now - d.at > BOT_WAIT && online.has(d.uid)) { try { await duelJoinAs(BOT_ID, BOT_NAME, d.id); } catch (e: any) { console.error("bot duel", e.message); } }
+  for (const m of [...matches.values()]) if (!m.over && m.p.includes(BOT_ID)) await botAct(m);
+}
+setInterval(() => { botTick().catch((e) => console.error("bot", e.message)); }, 500);
 
 async function onMessage(ws: any, raw: string) {
   let m: any; try { m = JSON.parse(raw); } catch { return; }
@@ -1140,7 +1207,7 @@ async function handle(req: Request) {
   if (url.startsWith("/api/admin/")) {
     if (!isAdmin(u.id)) return json({ error: "forbidden" }, 403);
     if (url === "/api/admin/stats") {
-      const [h, c, w, hd, dp, pd, dy] = await Promise.all([getBal("house"), db`select count(*)::int as c from users where id <> 'house'`, db`select count(*)::int as c, coalesce(sum(coins - fee),0) as s from withdrawals where status = 'pending'`, db`select coalesce(sum(amount),0) as s from holds`,
+      const [h, c, w, hd, dp, pd, dy] = await Promise.all([getBal("house"), db`select count(*)::int as c from users where id not in ('house', 'bot')`, db`select count(*)::int as c, coalesce(sum(coins - fee),0) as s from withdrawals where status = 'pending'`, db`select coalesce(sum(amount),0) as s from holds`,
         db`select coalesce(sum(deposited),0) as s from users`, db`select coalesce(sum(ton),0) as s from withdrawals where status = 'paid'`, db`select coalesce(sum(amount),0) as s from ledger where user_id = 'house' and created > now() - interval '1 day'`]);
       return json({ house: h, users: N(c[0].c), pendingWd: N(w[0].c), pendingCoins: N(w[0].s), held: N(hd[0].s), deposited: N(dp[0].s), paidTon: N(pd[0].s), day: N(dy[0].s), online: new Set([...socks].map((x) => x.data.uid)).size, tonCoins: TON_COINS, pendingCard: N((await db`select (select count(*) from card_dep where status = 'claimed') + (select count(*) from card_wd where status = 'pending') as c`)[0].c), payer: payer ? { addr: payer.addr, balance: await payer.balance().then((b) => Number(b) / 1e9).catch(() => null), autoOn, max: AUTO_MAX, day: AUTO_DAY } : null });
     }
@@ -1171,8 +1238,8 @@ async function handle(req: Request) {
     if (url === "/api/admin/users") {
       const q = (new URL(req.url).searchParams.get("q") || "").trim().slice(0, 40);
       const rows = q
-        ? await db`select id, name, balance, deposited, turnover, banned, supporter from users where id <> 'house' and (name ilike ${"%" + q + "%"} or id = ${q} or id = ${"tg" + q}) order by balance desc limit 30`
-        : await db`select id, name, balance, deposited, turnover, banned, supporter from users where id <> 'house' order by created desc limit 30`;
+        ? await db`select id, name, balance, deposited, turnover, banned, supporter from users where id not in ('house', 'bot') and (name ilike ${"%" + q + "%"} or id = ${q} or id = ${"tg" + q}) order by balance desc limit 30`
+        : await db`select id, name, balance, deposited, turnover, banned, supporter from users where id not in ('house', 'bot') order by created desc limit 30`;
       return json({ items: rows.map((r: any) => ({ id: r.id, name: r.name, balance: N(r.balance), deposited: N(r.deposited), turnover: N(r.turnover), banned: r.banned, supporter: r.supporter })) });
     }
     if (url === "/api/admin/grant" && req.method === "POST") {
@@ -1230,8 +1297,9 @@ async function onCommand(m: any) {
     await db.begin((t: any) => adj(t, uid, coins, "grant", null, "admin")); pushBal(uid);
     tg("sendMessage", { chat_id: chat, text: `Готово: ${uid} ${coins > 0 ? "+" : ""}${coins}` });
   } else if (text.startsWith("/stats")) {
-    const [h, c, w, hd] = await Promise.all([getBal("house"), db`select count(*)::int as c from users where id <> 'house'`, db`select count(*)::int as c from withdrawals where status = 'pending'`, db`select coalesce(sum(amount),0) as s from holds`]);
-    tg("sendMessage", { chat_id: chat, text: `📊 Дохід казино (рейк+комісії): ${h} монет ≈ ${(h / TON_COINS).toFixed(2)} TON\nГравців: ${N(c[0].c)}\nВиводів в очікуванні: ${N(w[0].c)}\nМонет на столах/в іграх: ${N(hd[0].s)}` });
+    const bt = await getBal(BOT_ID).catch(() => 0);
+    const [h, c, w, hd] = await Promise.all([getBal("house"), db`select count(*)::int as c from users where id not in ('house', 'bot')`, db`select count(*)::int as c from withdrawals where status = 'pending'`, db`select coalesce(sum(amount),0) as s from holds`]);
+    tg("sendMessage", { chat_id: chat, text: `📊 Дохід казино (рейк+комісії): ${h} монет ≈ ${(h / TON_COINS).toFixed(2)} TON\nГравців: ${N(c[0].c)}\nВиводів в очікуванні: ${N(w[0].c)}\nМонет на столах/в іграх: ${N(hd[0].s)}\n🤖 Бот: ${BOT_ON ? "увімкнено" : "вимкнено"}, результат ${bt - 10000000 >= 0 ? "+" : ""}${bt - 10000000} монет` });
   } else if (text.startsWith("/pending")) {
     const ws = await db`select * from withdrawals where status = 'pending' order by id`;
     if (!ws.length) return void tg("sendMessage", { chat_id: chat, text: "Немає виводів в очікуванні" });
