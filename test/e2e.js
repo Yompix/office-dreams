@@ -28,7 +28,7 @@ async function main() {
   const mock = await startMock({});
   const cfg = build({
     BOT_TOKEN: '123456:TEST', BOT_USERNAME: 'od_test_bot', APP_SHORTNAME: 'play', DB_PATH: ':memory:', TG_API_BASE: mock.url, BOT_MODE: 'off',
-    DEV_AUTH: '1', SESSION_SECRET: 'e2e', ADSGRAM_BLOCK_ID: '999', CHANNEL: '@od_news', CHANNEL_URL: 'https://t.me/od_news', CHAT_URL: 'https://t.me/od_chat', PUBLIC_URL: '', TON_PAY_WALLET: 'UQBth0nE_gC3V8G8HDdqmfMdG9OLQi1E9baqLWpsXpdcuvmA',
+    DEV_AUTH: '1', SESSION_SECRET: 'e2e', ADSGRAM_BLOCK_ID: '999', CHANNEL: '@od_news', CHANNEL_URL: 'https://t.me/od_news', CHAT_URL: 'https://t.me/od_chat', PUBLIC_URL: '', TON_PAY_WALLET: 'UQCVnGKCqV4RlcKVppaFi6CZic2oB3JTpgW4ZF7ifPO0UTsG',
   });
   const { ctx, handler } = createApp(cfg, { log: () => {} });
   const server = http.createServer(handler);

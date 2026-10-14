@@ -69,7 +69,7 @@ function build(env) {
     blockedLangs: str('BLOCKED_LANGS', 'hi,id,ur,bn,ha,yo,ig').toLowerCase().split(',').map((x) => x.trim()).filter(Boolean),
     // pay with TON: the shop wallet that receives transfers; prices follow the Stars price list
     tonPay: {
-      wallet: str('TON_PAY_WALLET'),
+      wallet: str('TON_PAY_WALLET', 'UQCVnGKCqV4RlcKVppaFi6CZic2oB3JTpgW4ZF7ifPO0UTsG'),
       usd: num('TON_USD', 1.45), // price of 1 TON in USD — update now and then
       starUsd: num('TON_STAR_USD', 0.016), // what a player pays for one Star, so TON prices match
       api: str('TONCENTER_URL', 'https://toncenter.com/api/v2').replace(/\/+$/, ''),
