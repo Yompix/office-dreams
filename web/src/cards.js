@@ -140,6 +140,16 @@ function jpTimer() {
 
 /* ---------- дуелі: кості й монетка ---------- */
 const DIE_P = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+/* 3D-кубик: шість граней, обертання до потрібної грані з кількома зайвими обертами */
+const DIE_ROT = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] };
+const DIE_FACE = { 1: "", 2: "rotateY(90deg)", 3: "rotateX(90deg)", 4: "rotateX(-90deg)", 5: "rotateY(-90deg)", 6: "rotateY(180deg)" };
+const die3 = (side) => `<div class="d3w ${side}"><div class="d3">${[1, 2, 3, 4, 5, 6].map((n) => `<div class="f" style="transform:${DIE_FACE[n]} translateZ(37px)">${[...Array(9)].map((_, i) => `<i${DIE_P[n].includes(i) ? ' class="p"' : ""}></i>`).join("")}</div>`).join("")}</div><i class="d3s"></i></div>`;
+function dieRoll(w, n, dl) {
+  const d = w.querySelector(".d3"), [rx, ry] = DIE_ROT[n], sx = (Math.random() < 0.5 ? -1 : 1) * 360 * (2 + Math.floor(Math.random() * 2)), sy = (Math.random() < 0.5 ? -1 : 1) * 360 * 2;
+  d.style.transform = `rotateX(${Math.random() * 360}deg) rotateY(${Math.random() * 360}deg) rotateZ(${Math.random() * 90}deg)`;
+  void d.offsetWidth; d.style.transition = `transform 1.25s cubic-bezier(.15,.7,.25,1) ${dl}s`; d.style.transform = `rotateX(${rx + sx}deg) rotateY(${ry + sy}deg) rotateZ(0deg)`;
+  w.style.animationDelay = dl + "s"; w.classList.add("throw");
+}
 const dieHtml = (n, cls) => `<div class="die ${cls || ""}">${[...Array(9)].map((_, i) => `<i${DIE_P[n].includes(i) ? ' class="p"' : ""}></i>`).join("")}</div>`;
 function duelResult(r) {
   if (S.room) closeSheet();
@@ -147,12 +157,20 @@ function duelResult(r) {
   const head = `<h3>${T("g_" + r.game)} · <span class="gold">${fmt(r.stake)}</span></h3><p>${T("vs")} ${esc(opp.name)}</p>`;
   const fin = `<div class="res ${won ? "w" : "l"}">${won ? T("victory") + " +" + fmt(r.win - r.stake) : T("defeat") + " −" + fmt(r.stake)}</div><div class="btns"><button class="btn dk" id="dOk">OK</button><button class="btn ${won ? "gr" : "pk"}" id="dAg">${T("again")}</button></div>`;
   if (r.game === "dice") {
-    modal(head + `<div class="dice2" id="dd">${dieHtml(1 + Math.floor(Math.random() * 6), "roll")}<b class="dim">VS</b>${dieHtml(1 + Math.floor(Math.random() * 6), "roll")}</div><div id="dFin" style="display:flex;flex-direction:column;gap:14px;visibility:hidden">${fin}</div>`);
-    const iv = setInterval(() => { const d = $("dd"); if (!d) return clearInterval(iv); d.innerHTML = `${dieHtml(1 + Math.floor(Math.random() * 6), "roll")}<b class="dim">VS</b>${dieHtml(1 + Math.floor(Math.random() * 6), "roll")}`; sfx.tick(); }, 110);
-    setTimeout(() => { clearInterval(iv); const d = $("dd"); if (!d) return; d.innerHTML = `${dieHtml(my.roll, won ? "" : "lo")}<b class="dim">VS</b>${dieHtml(opp.roll, won ? "lo" : "")}`; done(); }, 1200);
+    modal(head + `<div class="dice3" id="dd">${die3("me")}<b class="dim">VS</b>${die3("op")}</div><div class="dnums" id="dn"><b>${esc(T("you"))}</b><b>${esc(opp.name)}</b></div><div id="dFin" style="display:flex;flex-direction:column;gap:14px;visibility:hidden">${fin}</div>`);
+    const ws = $$("#dd .d3w"); dieRoll(ws[0], my.roll, 0); dieRoll(ws[1], opp.roll, 0.12);
+    [0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => setTimeout(() => beep(300 + Math.random() * 500, 0.03, "square", 0.025), 80 + i * 120));
+    setTimeout(() => { sfx.place(); hap("medium"); }, 1150);
+    setTimeout(() => {
+      const d = $("dd"); if (!d) return; const W = ws[won ? 0 : 1], L = ws[won ? 1 : 0];
+      W.classList.add("win"); L.classList.add("lo"); burstAt(W, 26, ["#ffc933", "#fff3a0", "#ffffff"]); flashAt(W, "#ffc933");
+      $("dn").innerHTML = `<b class="${won ? "w" : ""}">${my.roll}</b><b class="${won ? "" : "w"}">${opp.roll}</b>`; done();
+    }, 1500);
   } else {
-    modal(head + `<div class="coin3 ${won ? "" : "l"}">${won ? "★" : "✕"}</div><div id="dFin" style="display:flex;flex-direction:column;gap:14px;visibility:hidden">${fin}</div>`);
-    setTimeout(done, 1450);
+    modal(head + `<div class="coinw"><div class="coin4 ${won ? "hw" : "tl"}"><i class="cf h">★</i><i class="cf t">✕</i></div><i class="cs"></i></div><div id="dFin" style="display:flex;flex-direction:column;gap:14px;visibility:hidden">${fin}</div>`);
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].forEach((i) => setTimeout(() => beep(1500 + (i % 2) * 300, 0.02, "square", 0.02), i * 115));
+    setTimeout(() => { sfx.place(); hap("medium"); }, 1300);
+    setTimeout(() => { const c = $$(".coin4")[0]; if (!c) return; c.classList.add("land"); if (won) { burstAt(c, 30, ["#ffc933", "#fff3a0", "#ffffff"]); flashAt(c, "#ffc933"); } done(); }, 1550);
   }
   function done() {
     const f = $("dFin"); if (!f) return; f.style.visibility = "visible"; f.style.animation = "pop .4s cubic-bezier(.2,1.5,.4,1)";

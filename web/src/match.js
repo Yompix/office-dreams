@@ -1,7 +1,6 @@
 /* ===== МАТЧІ 1 НА 1: шахи, шашки, неон-4, сапер, КНП, хрестики, 21, висока карта + тренування з ботом ===== */
 const MX_MS = { rps: 20000, ttt: 25000, four: 25000, mines: 20000, bj: 30000, checkers: 60000, chess: 90000, card: 5000 };
 const TURN_GAMES = ["ttt", "four", "mines", "checkers", "chess"];
-const RPS_E = { r: "✊", p: "✋", s: "✌️" };
 
 /* ---------- піксельні шахові фігури ---------- */
 const PIECE_PX = {
@@ -42,7 +41,7 @@ function mxEnd(e) {
   S.match = { m, at: Date.now(), over: true, local: !!e.local, end: e, prev };
   S.pend = false; S.sel = null;
   showMatch(); renderMatch();
-  const d = m.game === "card" ? 1800 : m.game === "rps" ? 1300 : e.reason === "boom" ? 1000 : 750;
+  const d = m.game === "card" ? 1800 : m.game === "rps" ? 2700 : e.reason === "boom" ? 1500 : e.reason === "four" || e.reason === "ttt" ? 1500 : 850;
   clearTimeout(S.endT); S.endT = setTimeout(() => endModal(e, m), d);
 }
 function myTurnOf(m) {
@@ -123,7 +122,11 @@ function rChess(m, M, box) {
   }
   box.innerHTML = h + "</div>";
   const bd = $("bd"), sq = fit(bd, 1) / 8;
-  if (isNew && !M.over) { const pe = bd.querySelector(`[data-p="${last[1]}"]`), fromD = flip ? 63 - last[0] : last[0], toD = flip ? 63 - last[1] : last[1]; if (pe) moveAnim(pe, fromD, toD, sq); sfx.move(); }
+  if (isNew && !M.over) { const pe = bd.querySelector(`[data-p="${last[1]}"]`), fromD = flip ? 63 - last[0] : last[0], toD = flip ? 63 - last[1] : last[1]; if (pe) moveAnim(pe, fromD, toD, sq); sfx.move();
+    const pc = M.prev && M.prev.st && M.prev.st.cap ? M.prev.st.cap.length : 0, tsq = bd.querySelector(`[data-i="${last[1]}"]`);
+    if ((s.cap || []).length > pc) setTimeout(() => { burstAt(tsq, 18, ["#ff5fc8", "#ffffff", "#ffc933"]); flashAt(tsq, "#ff2fb0"); sfx.place(); hap("medium"); }, 260);
+    if (s.check) setTimeout(() => { shakeEl(bd); beep(880, 0.12, "square", 0.04); beep(660, 0.16, "square", 0.04, 0.12); hap("warning"); }, 300);
+  }
   // забрані фігури
   const capOf = (col) => (s.cap || []).filter((x) => x[0] === col).map((x) => `<i style="background-image:url(${PIECE[x]})"></i>`).join("");
   $("mMe").querySelector(".capt").innerHTML = capOf(myC === "w" ? "b" : "w");
@@ -160,7 +163,12 @@ function rCheckers(m, M, box) {
   }
   box.innerHTML = h + "</div>";
   const bd = $("bd"), sq = fit(bd, 1) / 8;
-  if (isNew) { const pe = bd.querySelector(`[data-p="${last[1]}"]`); if (pe) moveAnim(pe, flip ? 63 - last[0] : last[0], flip ? 63 - last[1] : last[1], sq); sfx.move(); }
+  if (isNew) {
+    const pe = bd.querySelector(`[data-p="${last[1]}"]`); if (pe) moveAnim(pe, flip ? 63 - last[0] : last[0], flip ? 63 - last[1] : last[1], sq); sfx.move();
+    const cnt = (a) => a.filter((x) => x).length, pb = M.prev && M.prev.st && M.prev.st.b;
+    if (pb && cnt(b) < cnt(pb)) { const fx = Math.abs(last[0] - last[1]) > 9, mid = bd.querySelector(`[data-i="${fx ? (last[0] + last[1]) / 2 : last[1]}"]`) || bd.querySelector(`[data-i="${last[1]}"]`); setTimeout(() => { burstAt(mid, 16, ["#27e6ff", "#ff2fb0", "#ffffff"]); flashAt(mid, "#ffffff"); sfx.place(); hap("medium"); }, 200); }
+    if (b[last[1]] && b[last[1]] === b[last[1]].toUpperCase() && pb && pb[last[0]] && pb[last[0]] !== pb[last[0]].toUpperCase()) { const k = bd.querySelector(`[data-p="${last[1]}"]`); if (k) k.classList.add("crown"); setTimeout(() => { burstAt(k, 20, ["#ffc933", "#fff3a0"]); sfx.win(); }, 300); }
+  }
   bd.onclick = (e) => {
     const q = e.target.closest(".sq"); if (!q || M.over || !myTurnOf(m) || S.pend) return; const i = Number(q.dataset.i);
     if (S.sel !== null && S.sel !== undefined && tgs.includes(i)) { const from = S.sel; S.sel = null; mxSendMove({ from, to: i }); renderMatch(); return; }
@@ -177,7 +185,8 @@ function rFour(m, M, box) {
   for (let i = 0; i < 42; i++) { const v = s.b[i]; h += `<div class="c" data-c="${i % 7}">${v ? `<i class="${v === me ? "me" : "op"}${i === s.last && isNew ? " drop" : ""}${line.includes(i) ? " wl" : ""}" style="--r:${Math.floor(i / 7)}"></i>` : ""}</div>`; }
   box.innerHTML = h + "</div>";
   const bd = $("bd"); fit(bd, 7 / 6, 440);
-  if (isNew) setTimeout(sfx.place, 120 + Math.floor(s.last / 7) * 60);
+  if (isNew) setTimeout(() => { sfx.place(); const d = bd.querySelector("i.drop"); if (d) d.parentElement.classList.add("land"); hap("light"); }, 120 + Math.floor(s.last / 7) * 60);
+  if (line.length && M.over && isNew) setTimeout(() => line.forEach((k, j) => setTimeout(() => { const c = bd.children[k]; if (c) { c.classList.add("wlc"); burstAt(c, 10, ["#ffffff", "#ffc933", "#ff2fb0"]); beep(600 + j * 150, 0.08, "square", 0.04); } }, j * 110)), 450);
   bd.onclick = (e) => { const c = e.target.closest("[data-c]"); if (!c || !my) return; const col = Number(c.dataset.c); if (s.b[col]) return; mxSendMove({ col }); renderMatch(); };
 }
 
@@ -192,32 +201,87 @@ function rMines(m, M, box) {
   }
   box.innerHTML = h + `</div><div class="mleft">${T("mines_left", s.left)}</div></div>`;
   const bd = $("bd"); fit(bd, 1, 400);
-  if (po && s.open.some((v, i) => po[i] === -1 && v !== -1)) { s.boom >= 0 ? (sfx.boom(), hap("error")) : sfx.click(); }
+  if (po && s.open.some((v, i) => po[i] === -1 && v !== -1)) {
+    if (s.boom >= 0) { const c = bd.querySelector(`[data-c="${s.boom}"]`); sfx.boom(); hap("error"); flashAt(c, "#ff6a2a"); burstAt(c, 40, ["#ff6a2a", "#ffc933", "#ff4d6d", "#ffffff", "#5a4a8a"]); shakeEl($("match"), "bigshk"); bd.querySelectorAll(".bomb:not(.boom)").forEach((e, j) => (e.style.animationDelay = 0.25 + j * 0.08 + "s")); }
+    else { sfx.click(); bd.querySelectorAll(".nw").forEach((c) => burstAt(c, 4, ["#27e6ff", "#ffffff"])); }
+  }
   bd.onclick = (e) => { const c = e.target.closest("[data-c]"); if (!c || !my || c.classList.contains("o")) return; mxSendMove({ cell: Number(c.dataset.c) }); };
 }
 
 function rTtt(m, M, box) {
   const s = m.st, pb = M.prev && M.prev.st && M.prev.st.b, my = !M.over && myTurnOf(m) && !S.pend;
   let h = `<div class="bt" id="bd">`;
-  for (let i = 0; i < 9; i++) { const v = s.b[i]; h += `<button class="${v}${v && pb && !pb[i] ? " nw" : ""}" data-c="${i}">${v === "X" ? "✕" : v === "O" ? "◯" : ""}</button>`; }
+  const XO = { X: `<svg viewBox="0 0 100 100"><path d="M24 24L76 76"/><path d="M76 24L24 76"/></svg>`, O: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="27"/></svg>` };
+  for (let i = 0; i < 9; i++) { const v = s.b[i]; h += `<button class="${v}${v && (!pb || !pb[i]) && pb ? " nw" : ""}" data-c="${i}">${XO[v] || ""}</button>`; }
+  const wl = M.over ? T_LINES.find((l) => s.b[l[0]] && l.every((k) => s.b[k] === s.b[l[0]])) : null;
+  if (wl) { const P = (k) => [(k % 3) * 33.33 + 16.67, Math.floor(k / 3) * 33.33 + 16.67], a = P(wl[0]), z = P(wl[2]), ex = (z[0] - a[0]) * 0.18, ey = (z[1] - a[1]) * 0.18; h += `<svg class="twl ${s.b[wl[0]]}" viewBox="0 0 100 100"><path d="M${a[0] - ex} ${a[1] - ey}L${z[0] + ex} ${z[1] + ey}"/></svg>`; }
   box.innerHTML = h + "</div>";
-  const bd = $("bd"), w = fit(bd, 1, 330); bd.querySelectorAll("button").forEach((b) => (b.style.fontSize = Math.round(w / 5) + "px"));
-  if (pb && s.b.some((v, i) => v && !pb[i])) sfx.place();
+  const bd = $("bd"); fit(bd, 1, 330);
+  if (pb && s.b.some((v, i) => v && !pb[i])) { sfx.place(); hap("light"); }
+  if (wl && pb && !S.tttWl) { S.tttWl = 1; setTimeout(() => { S.tttWl = 0; wl.forEach((k, j) => setTimeout(() => burstAt(bd.children[k], 10, s.b[wl[0]] === "X" ? ["#ff2fb0", "#ffffff"] : ["#27e6ff", "#ffffff"]), j * 90)); beep(700, 0.1, "square", 0.04); beep(1050, 0.14, "square", 0.04, 0.1); }, 300); }
   bd.onclick = (e) => { const c = e.target.closest("[data-c]"); if (!c || !my || s.b[c.dataset.c]) return; mxSendMove({ cell: Number(c.dataset.c) }); };
 }
 
+/* КНП: руки качаються «камінь… ножиці… папір!», потім показ жестів, удар, ефект перемоги */
+function rpsHand(el, k, side) { if (!el) return; const i = el.querySelector("img"); i.src = HAND.url(k, side); el.dataset.k = k; }
 function rRps(m, M, box) {
-  const s = m.st, over = M.over, reveal = over && typeof s.opp === "string";
-  const prevH = M.prev && M.prev.st && M.prev.st.hist ? M.prev.st.hist.length : 0, drew = s.hist.length > prevH;
-  const oppH = reveal ? `<div class="hand rv">${RPS_E[s.opp]}</div>` : `<div class="hand q${over ? "" : ""}">${s.opp ? "✓" : "?"}</div>`;
-  const meH = s.mine ? `<div class="hand${reveal ? " rv" : ""}">${RPS_E[s.mine]}</div>` : `<div class="hand q">?</div>`;
-  box.innerHTML = `<div class="rps"><div class="rounds">${[1, 2, 3, 4, 5].map((r) => `<i class="${r <= s.round ? "on" : ""}"></i>`).join("")}</div>
-  <div class="vs">${oppH}<span>VS</span>${meH}</div>
-  ${drew ? `<div class="pill" style="color:var(--cyan)">${T("rps_draw")} ${RPS_E[s.hist[s.hist.length - 1].me]} = ${RPS_E[s.hist[s.hist.length - 1].opp]}</div>` : ""}
-  ${over ? "" : `<div class="pick">${["r", "p", "s"].map((k) => `<button data-k="${k}" class="${s.mine === k ? "on" : ""}"${s.mine ? " disabled" : ""}>${RPS_E[k]}<span>${T("rps_" + k)}</span></button>`).join("")}</div>`}</div>`;
-  if (drew) { sfx.click(); hap("warning"); }
-  const p = box.querySelector(".pick");
-  if (p) p.onclick = (e) => { const b = e.target.closest("[data-k]"); if (!b || s.mine) return; sfx.chip(); s.mine = b.dataset.k; mxSendMove({ move: b.dataset.k }); renderMatch(); };
+  const s = m.st, over = M.over, nH = s.hist.length;
+  let w = box.querySelector(".rps");
+  if (!w || w.dataset.mid !== String(m.id) + (M.local ? "L" : "")) {
+    box.innerHTML = `<div class="rps" data-mid="${m.id}${M.local ? "L" : ""}"><div class="rounds"></div>
+    <div class="arena"><div class="rh op" id="rhO"><img alt=""></div><div class="rbub" id="rBub"></div><div class="rcall" id="rCall"><span>VS</span></div><div class="rh me" id="rhM"><img alt=""></div></div>
+    <div class="pick">${["r", "p", "s"].map((k) => `<button data-k="${k}"><img src="${HAND.url(k, "me")}" alt=""><span>${T("rps_" + k)}</span></button>`).join("")}</div></div>`;
+    w = box.querySelector(".rps"); rpsHand($("rhO"), "r", "op"); rpsHand($("rhM"), "r", "me");
+    S.rpsSeen = over ? "" : m.id + ":" + nH; S.rpsBusy = 0;
+    w.querySelector(".pick").onclick = (e) => { const b = e.target.closest("[data-k]"), st = S.match && S.match.m.st; if (!b || !st || st.mine || S.match.over || S.rpsBusy) return; sfx.chip(); hap("light"); st.mine = b.dataset.k; mxSendMove({ move: b.dataset.k }); renderMatch(); };
+  }
+  w.querySelector(".rounds").innerHTML = [1, 2, 3, 4, 5].map((r) => `<i class="${r < s.round ? "on" : r === s.round ? "cur" : ""}"></i>`).join("");
+  // що показувати: фінал або щойно зіграну нічию
+  const tok = over ? m.id + ":end" : m.id + ":" + nH;
+  if (tok !== S.rpsSeen && (over ? s.mine && typeof s.opp === "string" : nH > 0)) {
+    S.rpsSeen = tok;
+    const h = over ? { me: s.mine, opp: s.opp } : s.hist[nH - 1];
+    const wn = M.end ? (M.local ? M.end.winner === 0 : M.end.winner === myId()) : false;
+    const res = h.me === h.opp ? 0 : over ? (wn ? 1 : -1) : 0;
+    rpsPlay(h, res, () => { if (S.match && S.match.m.id === m.id) renderMatch(); });
+  }
+  const busy = S.rpsBusy > Date.now();
+  const bub = $("rBub");
+  if (!busy && !over) { bub.className = "rbub" + (s.opp ? " ok" : ""); bub.innerHTML = s.opp ? "✓ " + T("rps_ready") : "<i></i><i></i><i></i>"; }
+  else if (!busy) bub.className = "rbub off";
+  if (!busy && !over) { $("rCall").innerHTML = s.mine ? `<small>${T("rps_wait")}</small>` : `<span>VS</span>`; ["rhO", "rhM"].forEach((id) => { const e = $(id); if (!e.classList.contains("idle")) { e.className = "rh " + (id === "rhO" ? "op" : "me") + " idle"; rpsHand(e, "r", id === "rhO" ? "op" : "me"); } }); }
+  const pk = w.querySelector(".pick");
+  pk.classList.toggle("off", busy || over);
+  $$("button", pk).forEach((b) => { b.disabled = !!s.mine; b.classList.toggle("on", s.mine === b.dataset.k); });
+  if (busy) $("mSt").textContent = "";
+}
+function rpsPlay(h, res, done) {
+  const hm = $("rhM"), ho = $("rhO"), call = $("rCall"), bub = $("rBub"), ar = hm && hm.parentElement;
+  if (!hm || !ho) return;
+  S.rpsBusy = Date.now() + 2500;
+  bub.className = "rbub off";
+  rpsHand(hm, "r", "me"); rpsHand(ho, "r", "op"); hm.className = "rh me pump"; ho.className = "rh op pump";
+  const words = T("rps_chant").split("|");
+  words.forEach((wd, i) => setTimeout(() => { if (!call.isConnected) return; call.innerHTML = `<b class="cw${i === 2 ? " last" : ""}">${wd}</b>`; beep(i === 2 ? 330 : 200, 0.07, "square", 0.05); hap("light"); }, 60 + i * 340));
+  setTimeout(() => {
+    if (!hm.isConnected) return;
+    rpsHand(hm, h.me, "me"); rpsHand(ho, h.opp, "op"); hm.className = "rh me pop"; ho.className = "rh op pop"; sfx.chip(); hap("medium");
+  }, 1080);
+  setTimeout(() => {
+    if (!hm.isConnected) return;
+    if (!res) {
+      hm.className = "rh me pop tie"; ho.className = "rh op pop tie"; flashAt(call, "#27e6ff"); burstAt(call, 16, ["#27e6ff", "#ffffff", "#b05cff"]);
+      call.innerHTML = `<b class="cw tie">${T("rps_again")}</b>`; beep(520, 0.12, "triangle", 0.05); beep(520, 0.12, "triangle", 0.05, 0.14); hap("warning");
+      return;
+    }
+    const W = res > 0 ? hm : ho, L = res > 0 ? ho : hm, g = res > 0 ? h.me : h.opp;
+    W.className = W.className.replace(" pop", "") + " win"; L.className = L.className.replace(" pop", "") + " lose hit-" + g;
+    flashAt(call, res > 0 ? "#ffc933" : "#ff4d6d"); shakeEl(ar);
+    burstAt(L, g === "r" ? 26 : 20, g === "r" ? ["#9a8ad0", "#5a4a8a", "#ffffff"] : g === "s" ? ["#ffffff", "#bff8ff", "#27e6ff"] : ["#ffffff", "#fff3a0", "#e9e2ff"]);
+    call.innerHTML = `<b class="cw ${res > 0 ? "good" : "bad"}">${T("rps_w_" + g)}</b>`;
+    g === "r" ? sfx.boom() : g === "s" ? (beep(1800, 0.05, "square", 0.04), beep(1400, 0.06, "square", 0.04, 0.06)) : beep(400, 0.25, "sine", 0.06, 0, 900);
+  }, 1380);
+  setTimeout(() => { S.rpsBusy = 0; done && done(); }, 2500);
 }
 
 function rBj(m, M, box) {
@@ -228,6 +292,11 @@ function rBj(m, M, box) {
   box.innerHTML = `<div class="bj"><div><div class="hand">${oppCards.map((c, k) => cardHtml(c, oppCls(k))).join("")}</div><div class="tot${s.oppT > 21 ? " bust" : ""}">${T("total")} <b>${over ? s.oppT : "?"}</b>${s.oppDone && !over ? " · " + T("stood") : ""}</div></div>
   <div><div class="tot${s.mineT > 21 ? " bust" : ""}">${T("total")} <b>${s.mineT}</b>${s.done && !over ? " · " + T("stood") : ""}</div><div class="hand">${s.mine.map((c, k) => cardHtml(c, myCls(k))).join("")}</div></div></div>`;
   if (!pr || s.mine.length > pr.mine.length || s.oppN > pr.oppN || (over && pr.oppT === null)) sfx.card();
+  const tots = box.querySelectorAll(".tot");
+  if (pr && s.mineT > 21 && pr.mineT <= 21) setTimeout(() => { shakeEl(tots[1]); sfx.lose(); hap("error"); }, 350);
+  if (pr && s.mineT === 21 && pr.mineT !== 21) setTimeout(() => { tots[1].classList.add("bj21"); burstAt(tots[1], 24, ["#ffc933", "#fff3a0", "#ffffff"]); sfx.win(); hap("success"); }, 350);
+  if (s.mineT === 21) tots[1].classList.add("bj21");
+  if (over && pr && pr.oppT === null && s.oppT > 21) setTimeout(() => shakeEl(tots[0]), 600);
   if (!over) {
     const dis = s.done || S.pend ? " disabled" : "";
     $("mFoot").innerHTML = `<button class="btn cy" id="bjHit"${dis}>${T("bj_hit")}</button><button class="btn pk" id="bjStand"${dis}>${T("bj_stand")}</button>`;
@@ -242,6 +311,7 @@ function rCard(m, M, box) {
   if (me === undefined) return;
   setTimeout(() => { const o = $("hcO"); if (o) { o.innerHTML = cardHtml(op, "flip" + (!won ? " win" : "")); sfx.card(); } }, 600);
   setTimeout(() => { const x = $("hcM"); if (x) { x.innerHTML = cardHtml(me, "flip" + (won ? " win" : "")); sfx.card(); } }, 1050);
+  setTimeout(() => { const w = $(won ? "hcM" : "hcO"), l = $(won ? "hcO" : "hcM"); if (!w) return; w.classList.add("hcw"); l.classList.add("hcl"); burstAt(w, 26, ["#ffc933", "#fff3a0", "#ffffff"]); flashAt(w, "#ffc933"); }, 1500);
 }
 
 /* таймер ходу */
