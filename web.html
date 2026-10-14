@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Pixel Casino</title><meta name="theme-color" content="#0b0624">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700&family=Tiny5:wght@400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700&family=Russo+One&family=Tiny5:wght@400..800&display=swap" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>:root{
   --bg:#0b0624;--bg2:#140a38;--panel:#1b0f4a;--line:#3a2590;--line2:#2a1a70;
@@ -526,132 +526,207 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 .seat.empty::before{content:"";width:34px;height:34px;border:2px dashed #ffffff40;border-radius:50%}
 .seat.empty .sn{min-width:0;background:none;box-shadow:none;font-size:11px;color:#ffffff80}
 
-/* ===== АНІМАЦІЇ: неоновий фон, сяйво плиток, відблиски, монети, зарахування ===== */
+/* ===== ОФОРМЛЕННЯ ЗА КОНЦЕПТОМ: неонові рамки зі скругленням, світіння, глянцеві кнопки ===== */
+:root{
+  --bg:#08051c;--bg2:#120a33;--panel:#160c3e;--line:#3b2a8f;--line2:#2c1f6e;
+  --pink:#ff2fd0;--cyan:#2fd8ff;--gold:#ffc933;--mint:#45ff6a;--red:#ff4d5e;--violet:#a03dff;--orange:#ff7a2f;
+  --fd:"Russo One","Exo 2",system-ui,sans-serif;
+  --r:12px;
+}
+html,body{background:var(--bg)}
+#app{background:
+  radial-gradient(120% 45% at 50% -6%,#3a1290 0%,transparent 60%),
+  radial-gradient(80% 35% at 100% 40%,#2a0f6a55 0%,transparent 70%),
+  radial-gradient(90% 40% at 50% 112%,#5a0f6e 0%,transparent 70%),var(--bg)}
 
-/* ---------- живий фон: піксельні зірки + неонова сітка ---------- */
-#bgfx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-#app>#top,#app>#views{position:relative;z-index:1}
-#bgfx .st{position:absolute;left:0;top:0;width:2px;height:2px;background:transparent;animation:stDrift 60s linear infinite}
-#bgfx .st.s2{width:3px;height:3px;animation-duration:90s;opacity:.7}
-#bgfx .st::after{content:"";position:absolute;inset:0;box-shadow:inherit;animation:stTw 3.2s steps(3) infinite}
-#bgfx .st.s2::after{animation-duration:4.6s;animation-delay:-1.3s}
-@keyframes stDrift{to{transform:translateY(40px)}}
-@keyframes stTw{50%{opacity:.25}}
-#bgfx .grid{position:absolute;left:-60%;right:-60%;bottom:0;height:34%;opacity:.42;
-  background:linear-gradient(#ff2fb055 2px,transparent 2px) 0 0/100% 34px,linear-gradient(90deg,#27e6ff33 2px,transparent 2px) 50% 0/34px 100%;
-  transform:perspective(240px) rotateX(60deg);transform-origin:50% 100%;animation:gridMv 1.8s linear infinite;
-  -webkit-mask-image:linear-gradient(transparent,#000 75%);mask-image:linear-gradient(transparent,#000 75%)}
-@keyframes gridMv{to{background-position:0 34px,50% 0}}
-#bgfx .glow{position:absolute;left:50%;bottom:-30%;width:140%;height:60%;transform:translateX(-50%);background:radial-gradient(closest-side,#ff2fb033,transparent);animation:glowB 6s ease-in-out infinite}
-@keyframes glowB{50%{opacity:.45;transform:translateX(-50%) scale(1.08)}}
+/* єдина неонова рамка: колір задає --nc (за замовчуванням — тьмяно-фіолетовий) */
+.px,.tile,.qt,.gt,.ib,.chip,.row,.fld,.seg,.card,.meth button,.pack,.stat,.empty,.copy{
+  --nc:var(--bc,var(--line));border-radius:var(--r);
+  box-shadow:0 0 0 2px var(--nc),0 0 14px -2px color-mix(in srgb,var(--nc) 70%,transparent),inset 0 0 18px color-mix(in srgb,var(--nc) 22%,transparent)}
+.row,.fld,.copy,.empty,.stat{--nc:var(--line2)}
 
-/* ---------- відблиск, що пробігає по кнопках і плитках ---------- */
-.shn{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2}
-.shn::before{content:"";position:absolute;top:-10%;bottom:-10%;width:38%;left:-70%;background:linear-gradient(100deg,transparent,#ffffff1f 40%,#ffffff4a 50%,#ffffff1f 60%,transparent);transform:skewX(-20deg);animation:shn var(--sp,5.5s) ease-in-out infinite;animation-delay:var(--sd,0s)}
-@keyframes shn{0%,62%{left:-70%}100%{left:135%}}
-.btn .shn::before{--sp:3.8s}
-.bal,.meth button,.pack{position:relative}
+/* ---------- верхня панель ---------- */
+#top{padding:10px 14px 8px;gap:8px}
+.ib{border-radius:10px;background:linear-gradient(#1c1150,#0f0830)}
+#who canvas{border-radius:50%;box-shadow:0 0 0 2px var(--pink),0 0 12px #ff2fd088}
+#who b{font:400 15px/1.1 var(--fd)}
+.bal{border-radius:12px;padding:0 4px 0 10px;background:linear-gradient(#1c1150,#0f0830);box-shadow:0 0 0 2px #6a4ad8,0 0 14px -2px #a03dffaa}
+.bal b{font:400 17px var(--fd);color:#fff;text-shadow:none}
+.bal .plus{border-radius:8px;background:linear-gradient(#7d5aff,#4a26c8);color:#fff;box-shadow:0 0 0 2px #b8a2ff,inset 0 -3px 0 #2f128a;font:400 20px/1 var(--fd)}
 
-/* ---------- неонове дихання рамок ---------- */
-@keyframes neon{50%{box-shadow:0 calc(var(--b)*-1) 0 0 var(--bc),0 var(--b) 0 0 var(--bc),calc(var(--b)*-1) 0 0 0 var(--bc),var(--b) 0 0 0 var(--bc),0 0 20px 3px color-mix(in srgb,var(--bc) 50%,transparent),inset 0 0 22px color-mix(in srgb,var(--bc) 18%,transparent)}}
-.big2 .tile,.t-jp,.mode.on,.cduo .tile,.meth button.on,.wtop,.prof{animation:neon 2.8s ease-in-out infinite}
-.big2 .tile:nth-child(2){animation-delay:-1.4s}
-.cduo .tile:nth-child(2){animation-delay:-1.1s}
-.t-jp{animation-duration:2.2s}
+/* ---------- лобі ---------- */
+.hero{--nc:var(--pink);border-radius:16px;box-shadow:0 0 0 2px #ff5fe0,0 0 22px -2px #ff2fd0aa,0 0 50px -10px #a03dff}
+.hero img{border-radius:16px}
+.hero::after{border-radius:16px;background:linear-gradient(transparent 50%,#08051cbb)}
+.onl,.age18{border-radius:8px}
 
-/* герой: неонова вивіска, що мерехтить, і монетки, що злітають */
-.hero{animation:heroB 5s ease-in-out infinite}
-@keyframes heroB{0%,100%{box-shadow:0 -3px 0 0 #5a2fd0,0 3px 0 0 #5a2fd0,-3px 0 0 0 #5a2fd0,3px 0 0 0 #5a2fd0,0 0 18px #8a3dff44}
-  50%{box-shadow:0 -3px 0 0 var(--pink),0 3px 0 0 var(--pink),-3px 0 0 0 var(--pink),3px 0 0 0 var(--pink),0 0 26px #ff2fb066}
-  52%{box-shadow:0 -3px 0 0 #5a2fd0,0 3px 0 0 #5a2fd0,-3px 0 0 0 #5a2fd0,3px 0 0 0 #5a2fd0,0 0 6px #8a3dff22}
-  54%{box-shadow:0 -3px 0 0 var(--pink),0 3px 0 0 var(--pink),-3px 0 0 0 var(--pink),3px 0 0 0 var(--pink),0 0 26px #ff2fb066}}
-.hero .fly{position:absolute;bottom:-20px;width:14px;height:14px;background:var(--coin) center/contain no-repeat;image-rendering:pixelated;z-index:1;opacity:0;animation:flyUp var(--d,7s) linear infinite;animation-delay:var(--dl,0s)}
-@keyframes flyUp{0%{opacity:0;transform:translateY(0) scaleX(1)}10%{opacity:.9}25%{transform:translateY(-25%) scaleX(-1)}50%{transform:translateY(-60px) translateX(var(--x,8px)) scaleX(1)}75%{transform:translateY(-100px) scaleX(-1)}90%{opacity:.7}100%{opacity:0;transform:translateY(-150px) translateX(calc(var(--x,8px)*-1)) scaleX(1)}}
-.onl b{display:inline-block}
-.onl b.bump{animation:bump .5s cubic-bezier(.2,1.6,.4,1)}
-@keyframes bump{40%{transform:scale(1.45);color:var(--mint)}}
+.tile{border-radius:14px;background:linear-gradient(165deg,color-mix(in srgb,var(--nc) 26%,#1a0f4a),#0e0730 75%)}
+.tile::after{border-radius:14px;background:linear-gradient(#ffffff14,transparent 40%)}
+.tile b{font:400 22px/1 var(--fd);text-shadow:0 0 12px var(--nc),0 2px 0 #0009;text-transform:uppercase}
+.tile small{font:500 12px var(--fb)}
+.t-cards{--bc:var(--pink)}
+.t-pvp{--bc:var(--cyan)}
 
-/* іконки плиток «дихають» і похитуються */
-.quick4 .qt img,.grid3 .gt img,.grid3 .gt .ico,.cduo .tile img,.mode img,.meth button img,.refh img{animation:bob 3.4s ease-in-out infinite}
-.quick4 .qt:nth-child(2) img,.grid3 .gt:nth-child(3n+2) img{animation-delay:-.9s}
-.quick4 .qt:nth-child(3) img,.grid3 .gt:nth-child(3n) img{animation-delay:-1.8s}
-.quick4 .qt:nth-child(4) img{animation-delay:-2.6s}
-.grid3 .gt:nth-child(n+4) img{animation-duration:3.9s}
-.t-jp img{animation:chest 2.6s ease-in-out infinite;transform-origin:50% 90%}
-@keyframes chest{0%,70%,100%{transform:rotate(0)}75%{transform:rotate(-7deg) scale(1.06)}80%{transform:rotate(6deg) scale(1.06)}85%{transform:rotate(-4deg)}90%{transform:rotate(0)}}
-.t-jp .pot{animation:potG 1.8s ease-in-out infinite}
-@keyframes potG{50%{text-shadow:0 0 18px #ffc933,0 0 4px #fff}}
-.qt::after,.gt::after{content:"";position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 100%,#8a3dff33,transparent 70%);pointer-events:none;opacity:.8}
+/* 4 швидкі ігри — кольорові картки з неоновою табличкою, як у концепті */
+.quick4 .qt{border-radius:12px;background:linear-gradient(170deg,color-mix(in srgb,var(--nc) 22%,#160c40),#0b0628 80%)}
+.quick4 .qt:nth-child(1){--bc:var(--cyan)}
+.quick4 .qt:nth-child(2){--bc:var(--orange)}
+.quick4 .qt:nth-child(3){--bc:var(--violet)}
+.quick4 .qt:nth-child(4){--bc:var(--mint)}
+.qt span{font:400 11px var(--fd);text-transform:uppercase;letter-spacing:.3px;color:#fff;text-shadow:0 0 8px var(--nc)}
 
-/* монета крутиться ребром (піксельно, кроками) */
-.bal .coin,.wtop .coin,.t-jp .pot .coin,.pill .coin,.whole .coin{animation:cspin 3.2s steps(1) infinite}
-.wtop .coin{animation-duration:2.6s}
-@keyframes cspin{0%,72%{transform:scaleX(1)}76%{transform:scaleX(.6)}80%{transform:scaleX(.15)}84%{transform:scaleX(-.6)}88%{transform:scaleX(-1)}91%{transform:scaleX(-.15)}95%{transform:scaleX(.6)}}
-.bal{animation:balG 3s ease-in-out infinite}
-@keyframes balG{50%{box-shadow:0 -2px 0 0 var(--gold),0 2px 0 0 var(--gold),-2px 0 0 0 var(--gold),2px 0 0 0 var(--gold),0 0 22px #ffc93366}}
-.bal .plus{animation:plusP 2.4s ease-in-out infinite}
-@keyframes plusP{0%,80%,100%{transform:scale(1)}88%{transform:scale(1.18)}}
-.bal.hit{animation:balHit .28s ease-out}
-@keyframes balHit{40%{transform:scale(1.12)}}
+
+.t-jp{--bc:var(--gold);border-radius:14px;background:linear-gradient(100deg,#5a3a0a,#2a1050 55%,#160c40)}
+.t-jp .bar{border-radius:0 0 14px 14px;overflow:hidden}
+.t-jp .pot{font:400 20px var(--fd)}
+
+/* ---------- 1 на 1 ---------- */
+.h1 h2{font:400 26px/1.1 var(--fd);text-transform:uppercase;text-shadow:0 0 16px #ff2fd099}
+.gt{border-radius:14px;background:linear-gradient(170deg,color-mix(in srgb,var(--nc) 22%,#160c40),#0b0628 80%)}
+.grid3 .gt:nth-child(6n+1){--bc:var(--cyan)}
+.grid3 .gt:nth-child(6n+2){--bc:var(--orange)}
+.grid3 .gt:nth-child(6n+3){--bc:var(--violet)}
+.grid3 .gt:nth-child(6n+4){--bc:var(--red)}
+.grid3 .gt:nth-child(6n+5){--bc:var(--pink)}
+.grid3 .gt:nth-child(6n){--bc:var(--gold)}
+.gt b{font:400 13px/1.1 var(--fd);text-transform:uppercase;text-shadow:0 0 8px var(--nc)}
+.gt small{font:500 11px var(--fb)}
+.gt.hot{--bc:var(--mint);animation:none;box-shadow:0 0 0 2px var(--mint),0 0 20px -2px #45ff6acc,inset 0 0 20px #45ff6a33}
+.gt.train{--bc:#2fd8a0;background:linear-gradient(170deg,#0f3a3a,#081a24)}
+
+/* ---------- карти ---------- */
+.mode{border-radius:14px}
+.mode.on{--bc:var(--pink)}
+.mode:not(.on){--bc:var(--line2);opacity:.8}
+.cduo .tile{--bc:var(--violet)}
+.cduo .tile:nth-child(2){--bc:var(--cyan)}
+.row{border-radius:12px;background:linear-gradient(90deg,#1a0f48,#110838)}
+.row b{font:400 15px var(--fd)}
+.seatsMini i{border-radius:3px}
+.sec{font:400 13px var(--fd);text-transform:uppercase;letter-spacing:.6px;color:#b4a6f0}
+
+/* ---------- кнопки: глянцеві, зі світлом, як «КРУТИТЬ» і «ЗАБРАТЬ» ---------- */
+.btn{border-radius:12px;font:400 17px var(--fd);text-transform:uppercase;letter-spacing:.3px;
+  --g:#ffc933;color:#3a1c00;background:linear-gradient(#fff07a,#ffc21f 45%,#f09a00);
+  box-shadow:0 0 0 2px #fff3b0,0 4px 0 #a85a00,0 0 18px -2px var(--g),inset 0 2px 0 #ffffffaa}
+.btn:active{transform:translateY(2px);box-shadow:0 0 0 2px #fff3b0,0 2px 0 #a85a00,0 0 12px -2px var(--g)}
+.btn.gr{--g:#45ff6a;color:#05300a;background:linear-gradient(#a6ff6a,#45e83a 45%,#1fae22);box-shadow:0 0 0 2px #d6ffb8,0 4px 0 #0f6a14,0 0 20px -2px var(--g),inset 0 2px 0 #ffffffaa}
+.btn.pk{--g:#c84dff;color:#fff;text-shadow:0 1px 0 #4a0a7a;background:linear-gradient(#e07aff,#b03dff 45%,#7a1fe0);box-shadow:0 0 0 2px #f0c8ff,0 4px 0 #46108a,0 0 20px -2px var(--g),inset 0 2px 0 #ffffff88}
+.btn.cy{--g:#2fd8ff;color:#022a3a;background:linear-gradient(#a8f4ff,#3fd6ff 45%,#139ad0);box-shadow:0 0 0 2px #d4fbff,0 4px 0 #0a5a80,0 0 20px -2px var(--g),inset 0 2px 0 #ffffffaa}
+.btn.rd{--g:#ff4d5e;color:#fff;background:linear-gradient(#ff8a96,#ff3d54 45%,#c41a32);box-shadow:0 0 0 2px #ffc8d0,0 4px 0 #6a0a1a,0 0 20px -2px var(--g),inset 0 2px 0 #ffffff88}
+.btn.dk{--g:#3b6cff;color:#cfe0ff;background:linear-gradient(#1d1458,#120a3a);box-shadow:0 0 0 2px #4a6cff,0 4px 0 #0a0628,0 0 14px -4px var(--g)}
+.btn.xs{box-shadow:0 0 0 2px #4a6cff}
+.btn:disabled{filter:grayscale(.7) brightness(.6)}
+
+/* ---------- перемикачі, поля, панелі ---------- */
+.seg{border-radius:12px;padding:4px;gap:4px;background:#0e0730}
+.seg button{border-radius:9px;font:400 13px var(--fd);text-transform:uppercase}
+.seg button.on{background:linear-gradient(#ff6ae0,#d01aa8);color:#fff;box-shadow:0 0 0 2px #ffb0ee,0 0 14px #ff2fd088}
+.chip{border-radius:10px;font:400 14px var(--fd)}
+.chip.on{border-radius:10px;box-shadow:0 0 0 2px #fff3b0,0 0 14px #ffc93388}
+.fld{border-radius:12px;background:#0d0629}
+.fld:focus-within{--nc:var(--cyan)}
+.card{border-radius:14px;background:linear-gradient(170deg,#1c104e,#0e0730)}
+.copy{border-radius:10px;background:#0b0526}
+.copy button{border-radius:8px}
+.empty{border-radius:12px}
+.kv b{font:400 14px var(--fd)}
+.lbl{font:500 12px var(--fb)}
 
 /* ---------- нижнє меню ---------- */
-.nb.on svg{animation:navPop .5s cubic-bezier(.3,1.6,.5,1)}
-@keyframes navPop{from{transform:translateY(6px) scale(.6)}}
-.nb.on::before{animation:navBar .4s cubic-bezier(.2,1.4,.4,1),navGlow 2s ease-in-out .4s infinite}
-@keyframes navBar{from{transform:scaleX(0)}}
-@keyframes navGlow{50%{box-shadow:0 0 18px var(--pink),0 0 4px #fff}}
+#nav{background:linear-gradient(#120a38,#08051c);border-top:0;box-shadow:0 -2px 0 #3b2a8f,0 -10px 30px #a03dff22}
+.nb{font:400 10px var(--fd);text-transform:uppercase;color:#8576c8}
+.nb.on{color:#fff}
+.nb.on::before{left:24%;right:24%;top:-5px;border-radius:3px}
+.nb.on svg{color:var(--pink);filter:drop-shadow(0 0 6px var(--pink))}
 
-/* ---------- поява вмісту при вході у вкладку ---------- */
-.view.enter .tlist>.row,.view.enter .packs>.pack,.view.enter .meth>button,.view.enter .stats>.stat,.view.enter .grid3>.gt,.view.enter #wDep>*{animation:rowIn .5s cubic-bezier(.2,.9,.25,1.1) backwards}
+/* ---------- шторка, модалка, оверлеї ---------- */
+.sh{border-radius:20px 20px 0 0;border-top:0;box-shadow:0 -2px 0 var(--pink),0 -12px 40px #ff2fd033}
+#mbox{border-radius:18px;box-shadow:0 0 0 2px var(--pink),0 0 40px #ff2fd055}
+.x{border-radius:10px}
+.pill{border-radius:10px}
+.tst{border-radius:12px;font:400 14px var(--fd)}
+#drawer .pn{border-right:0;box-shadow:2px 0 0 var(--cyan),10px 0 40px #2fd8ff22}
+
+/* ---------- гаманець ---------- */
+.wtop{--bc:var(--gold);border-radius:16px;background:linear-gradient(110deg,#4a2f0a,#1c104e 55%)}
+.wtop b{font:400 30px/1 var(--fd)}
+.meth button{border-radius:14px;font:400 13px var(--fd);text-transform:uppercase}
+.meth button:nth-child(1){--bc:var(--cyan)}
+.meth button:nth-child(2){--bc:var(--violet)}
+.meth button:nth-child(3){--bc:var(--pink)}
+.meth button:not(.on){opacity:.7}
+.meth button.on{background:linear-gradient(170deg,color-mix(in srgb,var(--nc) 30%,#1a0f4a),#0e0730 80%)}
+.pack{border-radius:12px}
+.pack b{font:400 16px var(--fd)}
+
+/* ---------- профіль ---------- */
+.prof{--bc:var(--pink);border-radius:16px;background:linear-gradient(110deg,#3a0f5a,#160c40 60%)}
+.prof canvas{border-radius:50%;box-shadow:0 0 0 3px var(--gold),0 0 18px #ffc93377}
+.prof b{font:400 22px/1.1 var(--fd)}
+.stat{border-radius:12px;background:linear-gradient(#1a0f48,#0e0730)}
+.stat b{font:400 18px var(--fd)}
+.stat small{font:500 11px var(--fb)}
+.refh b{font:400 17px var(--fd)}
+
+/* ---------- ігрові оверлеї ---------- */
+.pl canvas,.seat canvas{border-radius:50%}
+.ring{box-shadow:0 0 10px #45ff6a55}
+.flag{border-radius:10px}
+.ovH h3{font:400 18px var(--fd);text-transform:uppercase}
+.b8,.b4,.bm{border-radius:10px}
+.bm button{border-radius:8px}
+.rps .hand,.rps .pick button{border-radius:14px}
+.res{font:400 28px var(--fd);text-transform:uppercase}
+#gate .b18{font:400 64px/1 var(--fd)}
+
+/* ===== АНІМАЦІЇ (легкі): без мерехтіння, лише transform/opacity ===== */
+
+/* іконки плиток плавно похитуються */
+.quick4 .qt img,.cduo .tile img,.mode img,.meth button img{animation:bob 3.6s ease-in-out infinite}
+.quick4 .qt:nth-child(2) img{animation-delay:-.9s}
+.quick4 .qt:nth-child(3) img{animation-delay:-1.8s}
+.quick4 .qt:nth-child(4) img{animation-delay:-2.7s}
+
+/* монета в балансі зрідка повертається ребром (плавно) */
+.bal .coin,.wtop .coin{animation:cspin 5s ease-in-out infinite}
+@keyframes cspin{0%,82%,100%{transform:scaleX(1)}91%{transform:scaleX(-1)}}
+.bal.hit{animation:balHit .28s ease-out}
+@keyframes balHit{40%{transform:scale(1.1)}}
+
+/* нижнє меню */
+.nb.on svg{animation:navPop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes navPop{from{transform:translateY(6px) scale(.7)}}
+
+/* поява вмісту при вході у вкладку */
+.view.enter .tlist>.row,.view.enter .packs>.pack,.view.enter .meth>button,.view.enter .stats>.stat,.view.enter .grid3>.gt{animation:rowIn .45s cubic-bezier(.2,.9,.25,1.05) backwards}
 .view.enter .grid3>.gt{animation-name:popIn}
-.view.enter :is(.tlist,.packs,.meth,.stats,.grid3,#wDep)>:nth-child(2){animation-delay:.05s}
-.view.enter :is(.tlist,.packs,.meth,.stats,.grid3,#wDep)>:nth-child(3){animation-delay:.1s}
-.view.enter :is(.tlist,.packs,.meth,.stats,.grid3,#wDep)>:nth-child(4){animation-delay:.15s}
-.view.enter :is(.tlist,.packs,.meth,.stats,.grid3,#wDep)>:nth-child(5){animation-delay:.2s}
-.view.enter :is(.tlist,.packs,.meth,.stats,.grid3,#wDep)>:nth-child(6){animation-delay:.25s}
-.view.enter :is(.tlist,.packs,.meth,.stats,.grid3,#wDep)>:nth-child(7){animation-delay:.3s}
-.view.enter :is(.tlist,.packs,.meth,.stats,.grid3,#wDep)>:nth-child(n+8){animation-delay:.35s}
-@keyframes rowIn{from{opacity:0;transform:translateX(-22px)}}
-@keyframes popIn{from{opacity:0;transform:scale(.6) translateY(10px)}}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(2){animation-delay:.04s}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(3){animation-delay:.08s}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(4){animation-delay:.12s}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(5){animation-delay:.16s}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(6){animation-delay:.2s}
+.view.enter :is(.tlist,.packs,.meth,.stats,.grid3)>:nth-child(n+7){animation-delay:.24s}
+@keyframes rowIn{from{opacity:0;transform:translateY(12px)}}
+@keyframes popIn{from{opacity:0;transform:scale(.85)}}
+.stat b.cnt{animation:bump .5s cubic-bezier(.2,1.6,.4,1) .5s}
+@keyframes bump{40%{transform:scale(1.25)}}
 
-.seatsMini i.f{animation:seatP 1.8s ease-in-out infinite}
-@keyframes seatP{50%{box-shadow:0 0 10px var(--cyan)}}
-.seg button.on{animation:segIn .3s cubic-bezier(.2,1.5,.4,1)}
-@keyframes segIn{from{transform:scale(.85)}}
-.pack:hover,.pack:active{--bc:var(--gold)}
-.pack b{transition:transform .15s}
-.pack:active b{transform:scale(1.1)}
-
-/* профіль: аватар у неоновому кільці */
-.prof canvas{animation:avG 3s ease-in-out infinite}
-@keyframes avG{50%{box-shadow:0 0 0 3px var(--cyan),0 0 24px #27e6ff88}}
-
-.stat b.cnt{animation:bump .6s cubic-bezier(.2,1.6,.4,1) .55s}
-
-/* ---------- ефектне зарахування монет ---------- */
-#depfx{position:fixed;inset:0;z-index:65;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(closest-side,#2a0f66ee,#0b0624f2);overflow:hidden;text-align:center}
+/* ---------- зарахування монет ---------- */
+#depfx{position:fixed;inset:0;z-index:65;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(closest-side,#2a0f66f0,#0b0624f5);overflow:hidden;text-align:center}
 #depfx.on{display:flex;animation:fade .25s}
-#depfx.out{animation:dOut .45s ease-in forwards}
+#depfx.out{animation:dOut .4s ease-in forwards}
 @keyframes dOut{to{opacity:0}}
-#depfx .rays{position:absolute;left:50%;top:44%;width:180vmax;height:180vmax;margin:-90vmax 0 0 -90vmax;background:repeating-conic-gradient(#ffc93322 0 7deg,transparent 7deg 18deg);-webkit-mask-image:radial-gradient(closest-side,#000 10%,transparent 70%);mask-image:radial-gradient(closest-side,#000 10%,transparent 70%);animation:rays 14s linear infinite,fade .8s}
+#depfx .rays{position:absolute;left:50%;top:44%;width:900px;height:900px;margin:-450px 0 0 -450px;border-radius:50%;background:radial-gradient(closest-side,transparent 20%,#0b0624 70%),repeating-conic-gradient(#ffc93324 0 8deg,transparent 8deg 20deg);animation:rays 16s linear infinite}
 @keyframes rays{to{transform:rotate(360deg)}}
-#depfx .ring{position:absolute;left:50%;top:44%;width:150px;height:150px;margin:-75px 0 0 -75px;border:4px solid var(--gold);opacity:0;animation:ring 1.6s ease-out .25s infinite}
-#depfx .ring.r2{animation-delay:1.05s;border-color:var(--pink)}
-@keyframes ring{0%{opacity:.9;transform:scale(.5) rotate(45deg)}100%{opacity:0;transform:scale(2.6) rotate(45deg)}}
-#depfx .dc{position:relative;width:140px;height:140px;margin-top:-6vh;animation:dcIn .7s cubic-bezier(.2,1.6,.4,1) backwards}
-#depfx .dc i{position:absolute;inset:0;background:var(--coin) center/contain no-repeat;image-rendering:pixelated;filter:drop-shadow(0 0 24px #ffc933aa);animation:cspin 1.4s steps(1) infinite}
-@keyframes dcIn{from{transform:scale(0) rotate(-200deg)}}
-#depfx .lbl2{font:400 16px var(--fd);color:#cfe0ff;letter-spacing:1px;animation:rowIn .5s .35s backwards}
-#depfx .amt{display:flex;align-items:center;gap:8px;font:700 54px/1 var(--fd);color:var(--gold);text-shadow:0 0 22px #ffc933aa,0 4px 0 #8a4a00;animation:amtIn .6s cubic-bezier(.2,1.6,.4,1) .3s backwards}
+#depfx .dc{position:relative;width:132px;height:132px;margin-top:-6vh;animation:dcIn .7s cubic-bezier(.2,1.5,.4,1) backwards}
+#depfx .dc i{position:absolute;inset:0;background:var(--coin) center/contain no-repeat;image-rendering:pixelated;filter:drop-shadow(0 0 22px #ffc933aa);animation:cspin 2.4s ease-in-out infinite}
+@keyframes dcIn{from{transform:scale(0) rotate(-180deg)}}
+#depfx .lbl2{font:400 17px var(--fd);color:#e6dcff;letter-spacing:.5px;animation:rowIn .5s .35s backwards}
+#depfx .amt{font:400 52px/1 var(--fd);color:var(--gold);text-shadow:0 0 22px #ffc933aa,0 4px 0 #8a4a00;animation:amtIn .6s cubic-bezier(.2,1.6,.4,1) .3s backwards}
 @keyframes amtIn{from{opacity:0;transform:scale(.3)}}
-#depfx .amt.tick{animation:amtT .12s}
-@keyframes amtT{50%{transform:scale(1.06)}}
-#depfx .tap{position:absolute;bottom:calc(30px + env(safe-area-inset-bottom));font:400 12px var(--fd);color:#8a7cc0;animation:wt 1.4s steps(2) infinite}
-.fcn{position:fixed;left:0;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;z-index:66;pointer-events:none;background:var(--coin) center/contain no-repeat;image-rendering:pixelated;filter:drop-shadow(0 0 8px #ffc933aa);will-change:transform}
-.wtop.hit{animation:wHit .5s cubic-bezier(.2,1.6,.4,1)}
-@keyframes wHit{40%{transform:scale(1.04)}}
-
-@media (prefers-reduced-motion:reduce){#bgfx,.hero .fly,.shn{display:none}}
+#depfx .tap{position:absolute;bottom:calc(30px + env(safe-area-inset-bottom));font:400 12px var(--fd);color:#8a7cc0}
+.fcn{position:fixed;left:0;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;z-index:66;pointer-events:none;background:var(--coin) center/contain no-repeat;image-rendering:pixelated;will-change:transform}
 </style></head><body>
 <div id="app">
   <header id="top">
@@ -2011,62 +2086,27 @@ async function boot() {
 }
 boot();
 
-/* ===== АНІМАЦІЇ ІНТЕРФЕЙСУ: живий фон, відблиски, іскри, лічильники, зарахування монет ===== */
+/* ===== АНІМАЦІЇ ІНТЕРФЕЙСУ: іскри, каскадна поява, лічильники, зарахування монет ===== */
 const FX = (function () {
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------- живий фон за всім інтерфейсом ---------- */
-  (function bg() {
-    const b = document.createElement("div"); b.id = "bgfx";
-    const stars = (n, sz) => { let s = []; for (let i = 0; i < n; i++) { const c = ["#ffffff", "#ffd6f2", "#c8f6ff", "#fff3a0"][i % 4]; s.push(`${Math.round(Math.random() * 520)}px ${Math.round(Math.random() * 1000) - 40}px 0 ${c}`); } return s.join(","); };
-    b.innerHTML = `<i class="st" style="box-shadow:${stars(46)}"></i><i class="st s2" style="box-shadow:${stars(18)}"></i><div class="glow"></div><div class="grid"></div>`;
-    $("app").prepend(b);
-  })();
-
-  /* ---------- монетки, що злітають над вивіскою в лобі ---------- */
-  (function heroCoins() {
-    const h = $("hero"); if (!h || calm) return;
-    [[14, 7.5, 0, 10], [32, 9, -3.2, -8], [58, 8, -5.5, 12], [79, 10, -1.6, -10], [90, 8.5, -6.8, 6]].forEach(([x, d, dl, dx]) => {
-      const f = document.createElement("i"); f.className = "fly";
-      f.style.cssText = `left:${x}%;--d:${d}s;--dl:${dl}s;--x:${dx}px`; h.appendChild(f);
-    });
-  })();
-
-  /* ---------- відблиск на кнопках і плитках (додається й до нових елементів) ---------- */
-  const SHINE = ".tile,.qt,.gt,.bal,.meth button.on,.pack,.btn.pk,.btn.gr,.btn.cy,.btn.w:not(.dk),.spb";
-  let decT = 0;
-  function decorate() {
-    decT = 0;
-    $$(SHINE).forEach((el, i) => {
-      if (el.querySelector(":scope>.shn")) return;
-      const s = document.createElement("s"); s.className = "shn"; s.setAttribute("aria-hidden", "true");
-      s.style.setProperty("--sd", (-(i * 0.73) % 5).toFixed(2) + "s"); el.appendChild(s);
-    });
-    countStats();
-  }
-  if (!calm) {
-    new MutationObserver(() => { if (!decT) decT = requestAnimationFrame(decorate); }).observe(document.body, { childList: true, subtree: true });
-    decorate();
-  }
-
   /* ---------- іскри при натисканні ---------- */
-  const TAP = ".btn,.tile,.qt,.gt,.pack,.chip,.meth button,.bal,.nb";
+  const TAP = ".btn,.tile,.qt,.gt,.pack,.chip,.meth button,.bal";
   document.addEventListener("pointerdown", (e) => {
     if (calm) return;
     const el = e.target.closest(TAP); if (!el || el.disabled) return;
-    let c = getComputedStyle(el).getPropertyValue("--bc").trim();
-    if (!c || c === "var(--ink)" || /^#1a0636|^#3a2590|^#2a1a70/i.test(c)) c = el.matches(".btn.pk,.nb") ? "#ff2fb0" : el.matches(".btn.cy") ? "#27e6ff" : el.matches(".btn.gr") ? "#3dff7a" : "#ffc933";
-    spark(e.clientX, e.clientY, [c, "#ffffff"], el.matches(".tile,.gt") ? 14 : 9);
+    const c = el.matches(".btn.pk") ? "#d34dff" : el.matches(".btn.cy") ? "#2fd8ff" : el.matches(".btn.gr") ? "#5dff4a" : (getComputedStyle(el).getPropertyValue("--nc").trim() || "#ffc933");
+    spark(e.clientX, e.clientY, [c, "#ffffff"], el.matches(".tile,.gt,.qt") ? 12 : 8);
   }, { passive: true });
   function spark(x, y, cols, n) {
     for (let i = 0; i < n; i++) {
-      const a = (Math.PI * 2 * i) / n + Math.random() * 0.4, v = 2.2 + Math.random() * 2.8;
-      parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1.5, s: 3 + (i % 2) * 2, c: cols[i % cols.length], life: 18 + Math.random() * 14 });
+      const a = (Math.PI * 2 * i) / n + Math.random() * 0.4, v = 2 + Math.random() * 2.6;
+      parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1.4, s: 3 + (i % 2) * 2, c: cols[i % cols.length], life: 16 + Math.random() * 12 });
     }
     if (!fxRun) { fxRun = true; requestAnimationFrame(fxLoop); }
   }
 
-  /* ---------- позначка «вхід у вкладку» — список з'являється каскадом ---------- */
+  /* ---------- вхід у вкладку: список з'являється каскадом ---------- */
   let enterT = 0, enterAt = 0;
   const _go = go;
   go = function (tab, opt) {
@@ -2074,7 +2114,7 @@ const FX = (function () {
     if (was === tab) return;
     const v = $("v-" + tab); if (!v) return;
     enterAt = Date.now(); clearTimeout(enterT); $$(".view.enter").forEach((x) => x.classList.remove("enter"));
-    v.classList.add("enter"); enterT = setTimeout(() => v.classList.remove("enter"), 900);
+    v.classList.add("enter"); enterT = setTimeout(() => v.classList.remove("enter"), 800);
   };
 
   /* ---------- лічильники у профілі рахують від нуля ---------- */
@@ -2085,19 +2125,14 @@ const FX = (function () {
       const to = Number(b.textContent.replace(/[^\d−-]/g, "").replace("−", "-")) || 0;
       if (seen[i] === to || !to || Date.now() - enterAt > 1500) { seen[i] = to; return; }
       seen[i] = to; b.classList.add("cnt");
-      const t0 = performance.now(), D = 900;
+      const t0 = performance.now(), D = 800;
       const step = (t) => { const k = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - k, 3); b.textContent = fmt(to * e); if (k < 1 && b.isConnected) requestAnimationFrame(step); };
       requestAnimationFrame(step);
     });
   }
+  if (!calm) { const pb = $("pBody"); if (pb) new MutationObserver(countStats).observe(pb, { childList: true }); }
 
-  /* ---------- «онлайн» підстрибує, коли число змінюється ---------- */
-  (function () {
-    const o = $("onl"); if (!o) return; let last = o.textContent;
-    new MutationObserver(() => { if (o.textContent !== last) { last = o.textContent; o.classList.remove("bump"); void o.offsetWidth; o.classList.add("bump"); } }).observe(o, { childList: true, characterData: true, subtree: true });
-  })();
-
-  /* ---------- зарахування монет: велика монета, промені, лічильник і монетки летять у баланс ---------- */
+  /* ---------- зарахування монет: велика монета, лічильник, монетки летять у баланс ---------- */
   const LBL = ["Монети зараховано!", "Монеты зачислены!", "Coins credited!"];
   const TAPL = ["торкніться, щоб продовжити", "нажмите, чтобы продолжить", "tap to continue"];
   const ov = document.createElement("div"); ov.id = "depfx"; document.body.appendChild(ov);
@@ -2107,56 +2142,55 @@ const FX = (function () {
 
   function credit(d, to) {
     busy = true; target = to; phase = 1; timers.forEach(clearTimeout); timers = [];
-    ov.innerHTML = `<div class="rays"></div><div class="ring"></div><div class="ring r2"></div><div class="dc"><i></i></div><div class="lbl2">${LBL[S.li]}</div><div class="amt"><span>+0</span></div><div class="tap">${TAPL[S.li]}</div>`;
+    ov.innerHTML = `<div class="rays"></div><div class="dc"><i></i></div><div class="lbl2">${LBL[S.li]}</div><div class="amt">+0</div><div class="tap">${TAPL[S.li]}</div>`;
     ov.classList.remove("out"); ov.classList.add("on");
     sfx.open(); hap("success");
-    later(() => { sfx.big(); burst(60, innerWidth / 2, innerHeight * 0.4); }, 380);
-    const a = ov.querySelector(".amt"), sp = a.firstChild, t0 = performance.now() + 350, D = Math.min(1600, 700 + Math.log10(d + 1) * 250);
+    later(() => { sfx.big(); burst(50, innerWidth / 2, innerHeight * 0.4); }, 380);
+    const a = ov.querySelector(".amt"), t0 = performance.now() + 350, D = Math.min(1500, 700 + Math.log10(d + 1) * 220);
     let lastTick = 0;
     const step = (t) => {
       if (phase !== 1) return;
       const k = Math.max(0, Math.min(1, (t - t0) / D)), e = 1 - Math.pow(1 - k, 3);
-      sp.textContent = "+" + fmt(d * e);
-      if (k > 0 && t - lastTick > 70 && k < 1) { lastTick = t; sfx.tick(); a.classList.remove("tick"); void a.offsetWidth; a.classList.add("tick"); }
-      if (k < 1) requestAnimationFrame(step); else { sp.textContent = "+" + fmt(d); later(() => fly(d), 900); }
+      a.textContent = "+" + fmt(d * e);
+      if (k > 0 && k < 1 && t - lastTick > 80) { lastTick = t; sfx.tick(); }
+      if (k < 1) requestAnimationFrame(step); else { a.textContent = "+" + fmt(d); later(fly, 900); }
     };
     requestAnimationFrame(step);
   }
-  ov.addEventListener("click", () => { if (phase === 1) { const sp = ov.querySelector(".amt span"); phase = 2; timers.forEach(clearTimeout); timers = []; fly(); } });
+  ov.addEventListener("click", () => { if (phase === 1) { timers.forEach(clearTimeout); timers = []; fly(); } });
 
   function fly() {
-    phase = 2;
-    const dc = ov.querySelector(".dc"), from = dc ? dc.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
-    const bal = $("bBal"), coinEl = bal.querySelector(".coin") || bal, to = coinEl.getBoundingClientRect();
+    if (phase !== 1) return; phase = 2;
+    const dc = ov.querySelector(".dc"), from = dc.getBoundingClientRect();
+    const bal = $("bBal"), to = (bal.querySelector(".coin") || bal).getBoundingClientRect();
     const fx0 = from.left + from.width / 2, fy0 = from.top + from.height / 2, tx = to.left + to.width / 2, ty = to.top + to.height / 2;
     ov.classList.add("out");
-    const N = 14; let done = 0;
+    const N = 12; let done = 0;
     for (let i = 0; i < N; i++) {
       const c = document.createElement("i"); c.className = "fcn"; document.body.appendChild(c);
-      const sx = fx0 + (Math.random() - 0.5) * 90, sy = fy0 + (Math.random() - 0.5) * 90;
-      const mx = (sx + tx) / 2 + (Math.random() - 0.5) * 220, my = Math.min(sy, ty) + (Math.random() * 0.4 + 0.1) * (sy - ty);
+      const sx = fx0 + (Math.random() - 0.5) * 80, sy = fy0 + (Math.random() - 0.5) * 80;
+      const mx = (sx + tx) / 2 + (Math.random() - 0.5) * 200, my = Math.min(sy, ty) + (Math.random() * 0.4 + 0.1) * (sy - ty);
       const an = c.animate([
         { transform: `translate(${fx0}px,${fy0}px) scale(.4)`, opacity: 0 },
-        { transform: `translate(${sx}px,${sy}px) scale(1.4)`, opacity: 1, offset: 0.18 },
-        { transform: `translate(${mx}px,${my}px) scale(1.1)`, offset: 0.6 },
+        { transform: `translate(${sx}px,${sy}px) scale(1.3)`, opacity: 1, offset: 0.18 },
+        { transform: `translate(${mx}px,${my}px) scale(1.05)`, offset: 0.6 },
         { transform: `translate(${tx}px,${ty}px) scale(.55)`, opacity: 1 },
-      ], { duration: 820 + Math.random() * 260, delay: i * 55, easing: "cubic-bezier(.45,0,.7,1)", fill: "both" });
+      ], { duration: 800 + Math.random() * 240, delay: i * 55, easing: "cubic-bezier(.45,0,.7,1)", fill: "both" });
       an.onfinish = () => {
         c.remove(); done++;
-        bal.classList.remove("hit"); void bal.offsetWidth; bal.classList.add("hit"); sfx.chip(); if (done % 3 === 0) hap("light");
+        bal.classList.remove("hit"); void bal.offsetWidth; bal.classList.add("hit"); sfx.chip();
         if (done === 1) _setBal(target, true);
         if (done === N) finish(tx, ty);
       };
     }
   }
   function finish(x, y) {
-    burst(28, x, y, ["#ffc933", "#fff3a0", "#ffffff"]); sfx.win(); hap("success");
+    burst(24, x, y, ["#ffc933", "#fff3a0", "#ffffff"]); sfx.win(); hap("success");
     ov.classList.remove("on", "out"); ov.innerHTML = ""; phase = 0; busy = false;
     if (S.me && S.me.balance !== balShown) _setBal(S.me.balance, true);
-    const w = document.querySelector("#v-wallet.on .wtop"); if (w) { w.classList.remove("hit"); void w.offsetWidth; w.classList.add("hit"); }
   }
 
-  /* перехоплюємо оновлення балансу: якщо монет побільшало поза грою — показуємо свято */
+  /* баланс: якщо монет побільшало поза грою — показуємо анімацію зарахування */
   const _setBal = setBal;
   setBal = function (n, animate) {
     n = Math.round(n);
@@ -2165,7 +2199,6 @@ const FX = (function () {
     if (animate && d >= 1 && S.me && quiet() && !calm && !document.hidden) { S.me.balance = n; credit(d, n); return; }
     _setBal(n, animate);
   };
-  /* старе «+N» у гаманці більше не потрібне — його замінює анімація */
   const _onMsg = onMsg;
   onMsg = function (m) { if (m && m.t === "bal") { setBal(m.balance, true); return; } _onMsg(m); };
 
