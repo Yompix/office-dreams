@@ -19,8 +19,10 @@ const MIN_BET = 10, MAX_BET = 5000;
 // бот-суперник: сідає грати, коли на виклик ніхто не відповів; грає чесно (без підглядання), окремий рахунок 'bot'
 let botOn = env.BOT_ON === "1"; const BOT_WAIT = Number(env.BOT_WAIT || 15) * 1000, BOT_ID = "bot", BOT_NAME = "🤖 Бот";
 // імена бота: щоразу інше, значок 🤖 лишається, щоб було видно, що це бот
-const BOT_NAMES = ["Макс", "Лена", "Артем", "Катя", "Денис", "Оля", "Ігор", "Настя", "Влад", "Юля", "Саша", "Діма", "Марина", "Костя", "Віка", "Рома", "Таня", "Женя", "Олег", "Іра"];
-const botName = () => "🤖 " + BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+let BOT_NAMES = ["Макс", "Лена", "Артем", "Катя", "Денис", "Оля", "Ігор", "Настя", "Влад", "Юля", "Саша", "Діма", "Марина", "Костя", "Віка", "Рома", "Таня", "Женя", "Олег", "Іра"];
+let botIcon = "🤖"; // мітку можна змінити командою /boticon, але не прибрати
+const botName = () => botIcon + " " + BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+const cleanBotName = (x: string) => x.replace(/[<>&"'`\\\n\r\t]/g, "").trim().slice(0, 16);
 const WALLET_MNEMONIC = env.WALLET_MNEMONIC || ""; // гаманець автовиплат (необов'язково)
 const WALLET_VER = (env.WALLET_VERSION || "v5r1").toLowerCase();
 const AUTO_MAX = Number(env.AUTO_PAY_MAX_TON || 5), AUTO_DAY = Number(env.AUTO_PAY_DAY_TON || 30);
@@ -1299,11 +1301,25 @@ async function onCommand(m: any) {
     const ex = await getUserRow(uid); if (!ex || !Number.isFinite(coins) || coins === 0) return void tg("sendMessage", { chat_id: chat, text: "Формат: /grant <telegram_id> <монети>. Гравець має хоч раз відкрити гру." });
     await db.begin((t: any) => adj(t, uid, coins, "grant", null, "admin")); pushBal(uid);
     tg("sendMessage", { chat_id: chat, text: `Готово: ${uid} ${coins > 0 ? "+" : ""}${coins}` });
-  } else if (text.startsWith("/bot")) {
+  } else if (/^\/bot(\s|@|$)/.test(text)) {
     const a = (text.split(/\s+/)[1] || "").toLowerCase();
     if (a === "on" || a === "off") { botOn = a === "on"; await db`insert into parts(name, body) values('cfg_bot', ${botOn ? "1" : "0"}) on conflict (name) do update set body = excluded.body`; }
     const bt = await getBal(BOT_ID).catch(() => 0);
-    tg("sendMessage", { chat_id: chat, text: `🤖 Бот: ${botOn ? "увімкнено" : "вимкнено"} (сідає через ${BOT_WAIT / 1000} с)\nРезультат: ${bt - 10000000 >= 0 ? "+" : ""}${bt - 10000000} монет\n/bot on — увімкнути, /bot off — вимкнути` });
+    tg("sendMessage", { chat_id: chat, text: `🤖 Бот: ${botOn ? "увімкнено" : "вимкнено"} (сідає через ${BOT_WAIT / 1000} с)\nРезультат: ${bt - 10000000 >= 0 ? "+" : ""}${bt - 10000000} монет\n/bot on — увімкнути, /bot off — вимкнути\n/botnames — імена, /boticon — мітка` });
+  } else if (text.startsWith("/botnames")) {
+    const rest = text.slice(9).trim(), sp = rest.indexOf(" "), cmd = (sp < 0 ? rest : rest.slice(0, sp)).toLowerCase(), arg = sp < 0 ? "" : rest.slice(sp + 1);
+    const list = arg.split(",").map(cleanBotName).filter(Boolean);
+    let msg = "";
+    if (cmd === "add" && list.length) { BOT_NAMES = [...new Set([...BOT_NAMES, ...list])].slice(0, 60); msg = "Додано: " + list.join(", "); }
+    else if (cmd === "del" && list.length) { const left = BOT_NAMES.filter((n) => !list.includes(n)); if (left.length) { BOT_NAMES = left; msg = "Прибрано: " + list.join(", "); } else msg = "Має лишитися хоча б одне ім'я"; }
+    else if (cmd === "set" && list.length) { BOT_NAMES = [...new Set(list)].slice(0, 60); msg = "Список замінено"; }
+    else if (cmd) msg = "Формат:\n/botnames — список\n/botnames add Ім'я1, Ім'я2\n/botnames del Ім'я\n/botnames set Ім'я1, Ім'я2, …";
+    if (msg && !msg.startsWith("Формат") && !msg.startsWith("Має")) await db`insert into parts(name, body) values('cfg_botnames', ${JSON.stringify(BOT_NAMES)}) on conflict (name) do update set body = excluded.body`;
+    tg("sendMessage", { chat_id: chat, text: (msg ? msg + "\n\n" : "") + `Імена бота (${BOT_NAMES.length}): ${BOT_NAMES.join(", ")}\nМітка: ${botIcon}` });
+  } else if (text.startsWith("/boticon")) {
+    const v = cleanBotName(text.slice(8)).slice(0, 8);
+    if (v) { botIcon = v; await db`insert into parts(name, body) values('cfg_boticon', ${botIcon}) on conflict (name) do update set body = excluded.body`; }
+    tg("sendMessage", { chat_id: chat, text: v ? `Мітка бота тепер: ${botIcon}\nПриклад: ${botName()}` : `Мітка зараз: ${botIcon}\nЗмінити: /boticon [бот] (або інший значок чи слово, до 8 символів). Прибрати мітку не можна — гравці мають бачити, що грають з ботом.` });
   } else if (text.startsWith("/stats")) {
     const bt = await getBal(BOT_ID).catch(() => 0);
     const [h, c, w, hd] = await Promise.all([getBal("house"), db`select count(*)::int as c from users where id not in ('house', 'bot')`, db`select count(*)::int as c from withdrawals where status = 'pending'`, db`select coalesce(sum(amount),0) as s from holds`]);
@@ -1473,6 +1489,8 @@ await initDb(); await recoverHolds();
 await initPayer();
 autoOn = (await db`select body from parts where name = 'cfg_auto'`)[0]?.body === "1";
 { const b = (await db`select body from parts where name = 'cfg_bot'`)[0]?.body; if (b === "1" || b === "0") botOn = b === "1"; }
+{ const n = (await db`select body from parts where name = 'cfg_botnames'`)[0]?.body; try { const a = n ? JSON.parse(n).map(cleanBotName).filter(Boolean) : []; if (a.length) BOT_NAMES = a; } catch {} }
+{ const ic = (await db`select body from parts where name = 'cfg_boticon'`)[0]?.body; if (ic && cleanBotName(ic)) botIcon = cleanBotName(ic).slice(0, 8); }
 {
   const prs = await db`select name, body from parts where name like 'html%' order by name`;
   HTML = prs.map((r: any) => r.body).join("");
