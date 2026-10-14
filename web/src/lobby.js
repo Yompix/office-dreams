@@ -136,9 +136,26 @@ async function spClick() {
 $("spB").onclick = spClick;
 document.addEventListener("visibilitychange", () => { if (!document.hidden && S.spOpened && SP && SP.state !== "member") setTimeout(() => spLoad(true), 600); });
 
+/* прогрес до виводу: скільки монет ще треба і скільки відіграти; оцінка в переглядах реклами */
+const wpBox = () => `<div class="card wp" id="wpCard"><div class="empty" style="padding:6px">${T("loading")}</div></div>`;
+async function wpRender(withBtn) {
+  try { await refreshMe(); } catch (e) {}
+  const el = $("wpCard"), me = S.me; if (!el || !me) return;
+  const c = me.cfg, min = c.wdMin, bal = me.balance, dep = me.deposited || 0, turn = me.turnover || 0;
+  const needC = Math.max(0, min - bal), needT = Math.max(0, dep - turn), ready = !needC && !needT;
+  const rw = (ADSI && ADSI.nets && ADSI.nets.length && ADSI.reward) || 0, usd = (n) => "$" + (n / 1000).toFixed(2);
+  const bar = (v, of, cls) => `<div class="wpb ${cls || ""}"><i style="width:${Math.min(100, of ? (v / of) * 100 : 100).toFixed(1)}%"></i></div>`;
+  el.innerHTML = `<div class="refh"><span style="font-size:30px">${ready ? "🎉" : "🎯"}</span><div><b>${ready ? T("wp_ok") : T("wp_t")}</b><p>${ready ? T("wp_ok_p", fmt(bal), usd(bal)) : T("wp_p", fmt(min), usd(min))}</p></div></div>
+  <div class="kv"><span class="dim">${T("wp_bal")}</span><b>${fmt(Math.min(bal, min))} / ${fmt(min)}</b></div>${bar(bal, min, needC ? "" : "ok")}
+  ${dep ? `<div class="kv"><span class="dim">${T("wp_turn")}</span><b>${fmt(Math.min(turn, dep))} / ${fmt(dep)}</b></div>${bar(turn, dep, needT ? "cy" : "ok")}` : ""}
+  ${ready ? (withBtn ? `<button class="btn gr w sm" id="wpGo">${T("w_wd")}</button>` : "") : `<p class="dim" style="font-size:12px;margin:0">${[needC ? T("wp_need_c", fmt(needC)) + (rw ? " · " + T("wp_ads", fmt(Math.ceil(needC / rw))) : "") : "", needT ? T("wp_need_t", fmt(needT)) : ""].filter(Boolean).join("<br>")}</p>`}`;
+  const g = $("wpGo"); if (g) g.onclick = () => { closeSheet(); go("wallet"); renderWallet("wd"); };
+}
+
 function openBonus() {
   const spDone = SP && SP.state === "member";
   sheet(`<div class="shH"><span class="gi"><img src="/a/i-gift.webp" alt=""></span><div><h3>${T("bonus_t")}</h3></div><button class="x" data-xs>✕</button></div>
+  ${wpBox()}
   <div class="card" id="adsCard"><div class="refh"><span style="font-size:34px">📺</span><div><b>${T("ads_t")}</b><p id="adsP">${T("loading")}</p></div></div><div id="adsBtns" class="btns" style="margin-top:12px"></div></div>
   <div class="card" style="opacity:.75"><div class="refh"><span style="font-size:34px">🔒</span><div><b>${T("soon_t")}</b><p>${T("soon_p")}</p></div></div></div>
   ${SP && SP.link ? `<div class="card"><div class="refh"><span style="font-size:34px">📢</span><div><b>${esc(SP.title || T("sp_s"))}</b><p>${spDone ? T("sp_ok") : T("sp_t")}</p></div></div>${spDone ? "" : `<button class="btn cy w sm" id="bSp" style="margin-top:12px">${S.spOpened ? T("sp_check") : T("sp_go")}</button>`}</div>` : ""}
@@ -148,7 +165,7 @@ function openBonus() {
   $("bRef").onclick = () => { closeSheet(); shareRef(); };
   $("bTr").onclick = () => { closeSheet(); openTraining(); };
   $("shIn").querySelector("[data-xs]").onclick = closeSheet;
-  adsRender();
+  adsRender().then(() => wpRender(true));
 }
 $("bGift").onclick = openBonus;
 

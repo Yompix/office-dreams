@@ -541,6 +541,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 .coinw .cs{position:absolute;bottom:10px;width:90px;height:14px;border-radius:50%;background:#000a;filter:blur(3px);animation:cshadow 1.5s cubic-bezier(.3,0,.3,1)}
 @keyframes cshadow{45%{transform:scale(.45);opacity:.4}85%{transform:scale(1);opacity:1}}
 .res{font:400 28px var(--fd)}
+.wp{display:flex;flex-direction:column;gap:8px}
+.wpb{height:10px;background:#120836;box-shadow:inset 0 0 0 2px var(--line);overflow:hidden}
+.wpb i{display:block;height:100%;background:linear-gradient(90deg,#c88a00,var(--gold));box-shadow:0 0 10px var(--gold);transition:width .6s cubic-bezier(.2,.8,.3,1)}
+.wpb.cy i{background:linear-gradient(90deg,#0a8aa8,var(--cyan));box-shadow:0 0 10px var(--cyan)}
+.wpb.ok i{background:linear-gradient(90deg,#0a8a3a,var(--mint));box-shadow:0 0 10px var(--mint)}
 .rmb{display:flex;flex-direction:column;gap:6px;text-align:left;margin-top:4px}
 .rmb .lbl{margin:0}
 .rmb .chip:disabled{opacity:.35}

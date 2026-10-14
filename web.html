@@ -548,6 +548,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 .coinw .cs{position:absolute;bottom:10px;width:90px;height:14px;border-radius:50%;background:#000a;filter:blur(3px);animation:cshadow 1.5s cubic-bezier(.3,0,.3,1)}
 @keyframes cshadow{45%{transform:scale(.45);opacity:.4}85%{transform:scale(1);opacity:1}}
 .res{font:400 28px var(--fd)}
+.wp{display:flex;flex-direction:column;gap:8px}
+.wpb{height:10px;background:#120836;box-shadow:inset 0 0 0 2px var(--line);overflow:hidden}
+.wpb i{display:block;height:100%;background:linear-gradient(90deg,#c88a00,var(--gold));box-shadow:0 0 10px var(--gold);transition:width .6s cubic-bezier(.2,.8,.3,1)}
+.wpb.cy i{background:linear-gradient(90deg,#0a8aa8,var(--cyan));box-shadow:0 0 10px var(--cyan)}
+.wpb.ok i{background:linear-gradient(90deg,#0a8a3a,var(--mint));box-shadow:0 0 10px var(--mint)}
 .rmb{display:flex;flex-direction:column;gap:6px;text-align:left;margin-top:4px}
 .rmb .lbl{margin:0}
 .rmb .chip:disabled{opacity:.35}
@@ -781,6 +786,11 @@ const DICT = {
   your_turn: ["Твій хід", "Твой ход", "Your move"], opp_turn: ["Хід суперника", "Ход соперника", "Rival's move"], opp_thinks: ["Суперник думає…", "Соперник думает…", "Rival is thinking…"],
   pick: ["Обирай!", "Выбирай!", "Pick one!"], bj_turn: ["Ще карту чи досить?", "Ещё карту или хватит?", "Hit or stand?"], bj_hit: ["Ще карту", "Ещё карту", "Hit"], bj_stand: ["Досить", "Хватит", "Stand"],
   total: ["Очки", "Очки", "Total"], stood: ["зупинився", "остановился", "stands"], mines_left: ["Безпечних клітинок: {0}", "Безопасных клеток: {0}", "Safe cells left: {0}"],
+  wp_t: ["До виводу", "До вывода", "To withdrawal"], wp_p: ["Вивід від {0} монет ({1})", "Вывод от {0} монет ({1})", "Withdrawals from {0} coins ({1})"],
+  wp_ok: ["Можна виводити!", "Можно выводить!", "Ready to withdraw!"], wp_ok_p: ["На балансі {0} монет ≈ {1}", "На балансе {0} монет ≈ {1}", "Balance {0} coins ≈ {1}"],
+  wp_bal: ["Монети", "Монеты", "Coins"], wp_turn: ["Зіграно з поповнень і реклами", "Сыграно из пополнений и рекламы", "Played from deposits and ads"],
+  wp_need_c: ["Ще {0} монет", "Ещё {0} монет", "{0} more coins"], wp_ads: ["≈ {0} переглядів реклами", "≈ {0} просмотров рекламы", "≈ {0} ad views"],
+  wp_need_t: ["Зіграй ще на {0} монет — монети з поповнень і реклами треба один раз поставити в іграх", "Сыграй ещё на {0} монет — монеты с пополнений и рекламы нужно один раз поставить в играх", "Play {0} more coins — coins from deposits and ads must be wagered once"],
   rematch: ["Реванш", "Реванш", "Rematch"], rm_stake: ["Ставка на реванш", "Ставка на реванш", "Rematch stake"], rm_wait: ["Чекаємо суперника…", "Ждём соперника…", "Waiting for opponent…"],
   rm_offer: ["{0} пропонує реванш на {1}", "{0} предлагает реванш на {1}", "{0} offers a rematch for {1}"], rm_accept: ["Прийняти", "Принять", "Accept"],
   rps_chant: ["Камінь…|Ножиці…|Папір!", "Камень…|Ножницы…|Бумага!", "Rock…|Paper…|Scissors!"], rps_ready: ["Готовий", "Готов", "Ready"], rps_wait: ["Чекаємо суперника…", "Ждём соперника…", "Waiting for opponent…"],
@@ -1274,9 +1284,26 @@ async function spClick() {
 $("spB").onclick = spClick;
 document.addEventListener("visibilitychange", () => { if (!document.hidden && S.spOpened && SP && SP.state !== "member") setTimeout(() => spLoad(true), 600); });
 
+/* прогрес до виводу: скільки монет ще треба і скільки відіграти; оцінка в переглядах реклами */
+const wpBox = () => `<div class="card wp" id="wpCard"><div class="empty" style="padding:6px">${T("loading")}</div></div>`;
+async function wpRender(withBtn) {
+  try { await refreshMe(); } catch (e) {}
+  const el = $("wpCard"), me = S.me; if (!el || !me) return;
+  const c = me.cfg, min = c.wdMin, bal = me.balance, dep = me.deposited || 0, turn = me.turnover || 0;
+  const needC = Math.max(0, min - bal), needT = Math.max(0, dep - turn), ready = !needC && !needT;
+  const rw = (ADSI && ADSI.nets && ADSI.nets.length && ADSI.reward) || 0, usd = (n) => "$" + (n / 1000).toFixed(2);
+  const bar = (v, of, cls) => `<div class="wpb ${cls || ""}"><i style="width:${Math.min(100, of ? (v / of) * 100 : 100).toFixed(1)}%"></i></div>`;
+  el.innerHTML = `<div class="refh"><span style="font-size:30px">${ready ? "🎉" : "🎯"}</span><div><b>${ready ? T("wp_ok") : T("wp_t")}</b><p>${ready ? T("wp_ok_p", fmt(bal), usd(bal)) : T("wp_p", fmt(min), usd(min))}</p></div></div>
+  <div class="kv"><span class="dim">${T("wp_bal")}</span><b>${fmt(Math.min(bal, min))} / ${fmt(min)}</b></div>${bar(bal, min, needC ? "" : "ok")}
+  ${dep ? `<div class="kv"><span class="dim">${T("wp_turn")}</span><b>${fmt(Math.min(turn, dep))} / ${fmt(dep)}</b></div>${bar(turn, dep, needT ? "cy" : "ok")}` : ""}
+  ${ready ? (withBtn ? `<button class="btn gr w sm" id="wpGo">${T("w_wd")}</button>` : "") : `<p class="dim" style="font-size:12px;margin:0">${[needC ? T("wp_need_c", fmt(needC)) + (rw ? " · " + T("wp_ads", fmt(Math.ceil(needC / rw))) : "") : "", needT ? T("wp_need_t", fmt(needT)) : ""].filter(Boolean).join("<br>")}</p>`}`;
+  const g = $("wpGo"); if (g) g.onclick = () => { closeSheet(); go("wallet"); renderWallet("wd"); };
+}
+
 function openBonus() {
   const spDone = SP && SP.state === "member";
   sheet(`<div class="shH"><span class="gi"><img src="/a/i-gift.webp" alt=""></span><div><h3>${T("bonus_t")}</h3></div><button class="x" data-xs>✕</button></div>
+  ${wpBox()}
   <div class="card" id="adsCard"><div class="refh"><span style="font-size:34px">📺</span><div><b>${T("ads_t")}</b><p id="adsP">${T("loading")}</p></div></div><div id="adsBtns" class="btns" style="margin-top:12px"></div></div>
   <div class="card" style="opacity:.75"><div class="refh"><span style="font-size:34px">🔒</span><div><b>${T("soon_t")}</b><p>${T("soon_p")}</p></div></div></div>
   ${SP && SP.link ? `<div class="card"><div class="refh"><span style="font-size:34px">📢</span><div><b>${esc(SP.title || T("sp_s"))}</b><p>${spDone ? T("sp_ok") : T("sp_t")}</p></div></div>${spDone ? "" : `<button class="btn cy w sm" id="bSp" style="margin-top:12px">${S.spOpened ? T("sp_check") : T("sp_go")}</button>`}</div>` : ""}
@@ -1286,7 +1313,7 @@ function openBonus() {
   $("bRef").onclick = () => { closeSheet(); shareRef(); };
   $("bTr").onclick = () => { closeSheet(); openTraining(); };
   $("shIn").querySelector("[data-xs]").onclick = closeSheet;
-  adsRender();
+  adsRender().then(() => wpRender(true));
 }
 $("bGift").onclick = openBonus;
 
@@ -2058,7 +2085,7 @@ const cardPay = (x) => `<div class="card" style="--bc:var(--gold);display:flex;f
 
 async function wdView(box) {
   const c = S.me.cfg, how = S.wdHow || "ton";
-  box.innerHTML = `<div class="seg" id="wdHow"><button class="${how === "ton" ? "on" : ""}" data-h="ton">TON</button><button class="${how === "card" ? "on" : ""}" data-h="card">${T("m_card")}</button></div>
+  box.innerHTML = `${wpBox()}<div class="seg" id="wdHow"><button class="${how === "ton" ? "on" : ""}" data-h="ton">TON</button><button class="${how === "card" ? "on" : ""}" data-h="card">${T("m_card")}</button></div>
   <div class="card" style="display:flex;flex-direction:column;gap:12px">
    <div class="fld"><i class="coin"></i><input id="wdC" type="number" inputmode="numeric" placeholder="${T("wd_coins", fmt(c.wdMin))}"><button class="btn xs dk" id="wdAll">MAX</button></div>
    ${how === "ton" ? `<div class="fld"><input id="wdA" placeholder="${T("wd_addr")}" autocomplete="off"></div>` : `<div class="seg" id="wdCur"><button class="${(S.cardCur || "USD") === "USD" ? "on" : ""}" data-c="USD">USD</button><button class="${S.cardCur === "EUR" ? "on" : ""}" data-c="EUR">EUR</button></div><div class="fld"><input id="wdA" inputmode="numeric" placeholder="${T("wd_card")}" autocomplete="off"></div>`}
@@ -2067,6 +2094,7 @@ async function wdView(box) {
    <button class="btn pk w" id="wdGo">${T("w_wd")}</button><p class="dim" id="wdNote" style="font-size:12px"></p></div><div id="wdList"></div>`;
   $$("#wdHow [data-h]", box).forEach((b) => (b.onclick = () => { S.wdHow = b.dataset.h; sfx.click(); wdView(box); }));
   $$("#wdCur [data-c]", box).forEach((b) => (b.onclick = () => { S.cardCur = b.dataset.c; wdView(box); }));
+  wpRender(false);
   if (how === "card" && !CARD) { try { CARD = await api("/api/card/list"); } catch (e) {} }
   const inp = $("wdC");
   const prev = () => { const n = Math.floor(Number(inp.value) || 0); if (n < c.wdMin) { $("wdGet").textContent = "—"; return; } const fee = Math.max(c.wdFeeMin, Math.ceil(n * c.wdFee)); $("wdFee").textContent = fmt(fee); const cur = S.cardCur || "USD"; $("wdGet").textContent = how === "ton" ? ((n - fee) / (c.tonOut || c.tonCoins)).toFixed(3) + " TON" : CARD ? (Math.floor(((n - fee) / (CARD.info.out || CARD.info.rates)[cur]) * 100) / 100).toFixed(2) + " " + cur : "…"; };

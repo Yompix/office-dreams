@@ -63,6 +63,7 @@ async function initDb() {
   await db`create table if not exists card_wd(id bigserial primary key, user_id text not null, card text not null, cur text not null, amount numeric not null, coins bigint not null, fee bigint not null, status text not null default 'pending', created timestamptz not null default now())`;
   await db`alter table users add column if not exists ref_by text`;
   await db`alter table users add column if not exists lang text not null default ''`;
+  await db`alter table users add column if not exists wd_ready_at timestamptz`;
   await db`create index if not exists users_ref on users(ref_by)`;
   await db`insert into users(id, name, age_ok) values('house', 'house', true) on conflict do nothing`;
   await db`insert into users(id, name, age_ok) values(${BOT_ID}, ${BOT_NAME}, true) on conflict do nothing`;
@@ -137,7 +138,18 @@ const needAge = (u: any) => { if (!u.age_ok) throw new Error("age"); };
 const socks = new Set<any>();
 const send = (ws: any, o: any) => { try { ws.send(JSON.stringify(o)); } catch {} };
 const toUser = (uid: string, o: any) => { for (const w of socks) if (w.data.uid === uid) send(w, o); };
-async function pushBal(uid: string) { if (uid === "house" || uid === BOT_ID) return; toUser(uid, { t: "bal", balance: await getBal(uid) }); }
+async function pushBal(uid: string) { if (uid === "house" || uid === BOT_ID) return; toUser(uid, { t: "bal", balance: await getBal(uid) }); wdReadyCheck(uid).catch(() => {}); }
+// гравець уперше набрав мінімум для виводу й відіграв поповнення — сповіщаємо адміна й самого гравця
+async function wdReadyCheck(uid: string) {
+  const u = (await db`select name, balance, deposited, turnover, wd_ready_at from users where id = ${uid}`)[0]; if (!u) return;
+  const bal = N(u.balance), ok = bal >= WD_MIN && N(u.turnover) >= N(u.deposited);
+  if (!ok) { if (u.wd_ready_at && bal < WD_MIN / 2) await db`update users set wd_ready_at = null where id = ${uid}`; return; }
+  if (u.wd_ready_at) return;
+  const r = await db`update users set wd_ready_at = now() where id = ${uid} and wd_ready_at is null returning id`; if (!r.length) return;
+  let ads: any = { n: 0 }; try { ads = (await db`select count(*)::int as n from ad_views where uid = ${uid}`)[0]; } catch {}
+  alertAdmin(`🎯 Гравець дійшов до виводу: ${u.name} (${uid})\nБаланс ${bal} монет ≈ $${(bal / CARD_RATE.USD).toFixed(2)} · поповнив ${N(u.deposited)} · обіг ${N(u.turnover)} · реклам переглянуто ${N(ads.n)}`);
+  if (BOT_TOKEN && uid.startsWith("tg")) tg("sendMessage", { chat_id: uid.slice(2), text: `🎉 Ти набрав ${bal} монет — уже можна вивести! Гаманець → Вивести.` }).catch(() => {});
+}
 
 // ---------- Реферальна програма ----------
 const L3 = (lc: any, uk: string, ru: string, en: string) => { lc = String(lc || "").slice(0, 2).toLowerCase(); return lc === "ru" || lc === "be" ? ru : lc === "uk" || lc === "" ? uk : en; };
@@ -1026,7 +1038,7 @@ async function spStats(chat: any) {
 // ---------- Реклама за винагороду (Adsgram, Monetag) ----------
 // Гравець дивиться рекламу й отримує монети. Монети з реклами треба один раз прокрутити в іграх (додаються до «поповнено»),
 // тож з них капає комісія, а ферми акаунтів не можуть просто вивести їх.
-const ADS_REWARD = Number(env.ADS_REWARD || 1), ADS_DAY = Number(env.ADS_DAY || 50), ADS_GAP = Number(env.ADS_GAP || 25) * 1000;
+let ADS_REWARD = Number(env.ADS_REWARD || 1); let ADS_CPM = Number(env.ADS_CPM || 1); const ADS_DAY = Number(env.ADS_DAY || 50), ADS_GAP = Number(env.ADS_GAP || 25) * 1000;
 const ADS_SECRET = String(env.ADS_SECRET || "");
 const ADS_NETS: Record<string, string> = { adsgram: String(env.ADSGRAM_BLOCK || ""), monetag: String(env.MONETAG_ZONE || "") };
 let adsReady: any = null;
@@ -1339,6 +1351,20 @@ async function onCommand(m: any) {
     if (a === "on" || a === "off") { botOn = a === "on"; await db`insert into parts(name, body) values('cfg_bot', ${botOn ? "1" : "0"}) on conflict (name) do update set body = excluded.body`; }
     const bt = await getBal(BOT_ID).catch(() => 0);
     tg("sendMessage", { chat_id: chat, text: `🤖 Бот: ${botOn ? "увімкнено" : "вимкнено"} (сідає через ${BOT_WAIT / 1000} с)\nРезультат: ${bt - 10000000 >= 0 ? "+" : ""}${bt - 10000000} монет\n/bot on — увімкнути, /bot off — вимкнути\n/botnames — імена, /boticon — мітка` });
+  } else if (/^\/ads(\s|@|$)/.test(text)) {
+    const [, a, v] = text.split(/\s+/); const x = Number(v);
+    if (a === "cpm" && x > 0 && x < 100) { ADS_CPM = x; await db`insert into parts(name, body) values('cfg_adscpm', ${String(x)}) on conflict (name) do update set body = excluded.body`; }
+    if (a === "reward" && Number.isInteger(x) && x >= 1 && x <= 100) { ADS_REWARD = x; await db`insert into parts(name, body) values('cfg_adsreward', ${String(x)}) on conflict (name) do update set body = excluded.body`; }
+    await adsInit();
+    const per = async (iv: string) => (await db`select count(*)::int as n from ad_views where at > now() - ${iv}::interval`)[0].n;
+    const paid = async (iv: string) => N((await db`select coalesce(sum(amount),0) as s from ledger where kind = 'ad_reward' and created > now() - ${iv}::interval`)[0].s);
+    const lines: string[] = [];
+    for (const [nm, iv] of [["Сьогодні", "1 day"], ["7 днів", "7 days"], ["30 днів", "30 days"]]) {
+      const n = N(await per(iv)), c = await paid(iv), inc = (n * ADS_CPM) / 1000, out = c / CARD_RATE.USD;
+      lines.push(`${nm}: ${n} переглядів · дохід ≈ $${inc.toFixed(2)} · гравцям ${c} монет ($${out.toFixed(2)}) · тобі ≈ $${(inc - out).toFixed(2)}`);
+    }
+    const perView = ADS_CPM / 1000, give = ADS_REWARD / CARD_RATE.USD, share = perView ? Math.round((give / perView) * 100) : 0;
+    tg("sendMessage", { chat_id: chat, text: `📺 Реклама\n${lines.join("\n")}\n\nCPM (дохід за 1000 переглядів): $${ADS_CPM}\nГравцю за перегляд: ${ADS_REWARD} мон. = $${give.toFixed(4)} (${share}% доходу)\nТобі з перегляду ≈ $${(perView - give).toFixed(4)}\n\n/ads cpm 1.5 — вписати CPM з кабінетів Adsgram/Monetag\n/ads reward 1 — монет за перегляд\nДохід — оцінка за CPM; точну суму дивись у кабінетах мереж.` });
   } else if (text.startsWith("/botnames")) {
     const rest = text.slice(9).trim(), sp = rest.indexOf(" "), cmd = (sp < 0 ? rest : rest.slice(0, sp)).toLowerCase(), arg = sp < 0 ? "" : rest.slice(sp + 1);
     const list = arg.split(",").map(cleanBotName).filter(Boolean);
@@ -1523,6 +1549,8 @@ await initPayer();
 autoOn = (await db`select body from parts where name = 'cfg_auto'`)[0]?.body === "1";
 { const b = (await db`select body from parts where name = 'cfg_bot'`)[0]?.body; if (b === "1" || b === "0") botOn = b === "1"; }
 { const n = (await db`select body from parts where name = 'cfg_botnames'`)[0]?.body; try { const a = n ? JSON.parse(n).map(cleanBotName).filter(Boolean) : []; if (a.length) BOT_NAMES = a; } catch {} }
+{ const v = Number((await db`select body from parts where name = 'cfg_adscpm'`)[0]?.body); if (v > 0) ADS_CPM = v; }
+{ const v = Number((await db`select body from parts where name = 'cfg_adsreward'`)[0]?.body); if (v >= 1) ADS_REWARD = v; }
 { const ic = (await db`select body from parts where name = 'cfg_boticon'`)[0]?.body; if (ic && cleanBotName(ic)) botIcon = cleanBotName(ic).slice(0, 8); }
 {
   const prs = await db`select name, body from parts where name like 'html%' order by name`;

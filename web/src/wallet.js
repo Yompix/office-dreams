@@ -55,7 +55,7 @@ const cardPay = (x) => `<div class="card" style="--bc:var(--gold);display:flex;f
 
 async function wdView(box) {
   const c = S.me.cfg, how = S.wdHow || "ton";
-  box.innerHTML = `<div class="seg" id="wdHow"><button class="${how === "ton" ? "on" : ""}" data-h="ton">TON</button><button class="${how === "card" ? "on" : ""}" data-h="card">${T("m_card")}</button></div>
+  box.innerHTML = `${wpBox()}<div class="seg" id="wdHow"><button class="${how === "ton" ? "on" : ""}" data-h="ton">TON</button><button class="${how === "card" ? "on" : ""}" data-h="card">${T("m_card")}</button></div>
   <div class="card" style="display:flex;flex-direction:column;gap:12px">
    <div class="fld"><i class="coin"></i><input id="wdC" type="number" inputmode="numeric" placeholder="${T("wd_coins", fmt(c.wdMin))}"><button class="btn xs dk" id="wdAll">MAX</button></div>
    ${how === "ton" ? `<div class="fld"><input id="wdA" placeholder="${T("wd_addr")}" autocomplete="off"></div>` : `<div class="seg" id="wdCur"><button class="${(S.cardCur || "USD") === "USD" ? "on" : ""}" data-c="USD">USD</button><button class="${S.cardCur === "EUR" ? "on" : ""}" data-c="EUR">EUR</button></div><div class="fld"><input id="wdA" inputmode="numeric" placeholder="${T("wd_card")}" autocomplete="off"></div>`}
@@ -64,6 +64,7 @@ async function wdView(box) {
    <button class="btn pk w" id="wdGo">${T("w_wd")}</button><p class="dim" id="wdNote" style="font-size:12px"></p></div><div id="wdList"></div>`;
   $$("#wdHow [data-h]", box).forEach((b) => (b.onclick = () => { S.wdHow = b.dataset.h; sfx.click(); wdView(box); }));
   $$("#wdCur [data-c]", box).forEach((b) => (b.onclick = () => { S.cardCur = b.dataset.c; wdView(box); }));
+  wpRender(false);
   if (how === "card" && !CARD) { try { CARD = await api("/api/card/list"); } catch (e) {} }
   const inp = $("wdC");
   const prev = () => { const n = Math.floor(Number(inp.value) || 0); if (n < c.wdMin) { $("wdGet").textContent = "—"; return; } const fee = Math.max(c.wdFeeMin, Math.ceil(n * c.wdFee)); $("wdFee").textContent = fmt(fee); const cur = S.cardCur || "USD"; $("wdGet").textContent = how === "ton" ? ((n - fee) / (c.tonOut || c.tonCoins)).toFixed(3) + " TON" : CARD ? (Math.floor(((n - fee) / (CARD.info.out || CARD.info.rates)[cur]) * 100) / 100).toFixed(2) + " " + cur : "…"; };
