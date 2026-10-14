@@ -5392,6 +5392,30 @@ function drawPlayerFront(B, ax, ay, t, typing, frame, blink) {
    and motion. Each role has its own look: the coder in a hoodie, the artist with a bun
    and a pencil, the designer in headphones, the marketer with a ponytail and a blazer.
    ============================================================ */
+// seated legs as small iso boxes (drawn with PS = 2): thighs on the seat, shins down to the floor, sneakers;
+// dir = the way the person faces in grid units ([0,-1] right-wall desks, [-1,0] left-wall desks, [1,0] player)
+const PANTS = { prog: '#2b4a8a', art: '#3a2a55', des: '#2a2e44', mkt: '#1e2240', you: '#232a5a', npc: '#262b66' };
+function drawLegsHD(B, cx, cy, dir, pants, t, seed, tap) {
+  const pc0 = C(pants), pT = shadeC(pc0, 1.25), pL = pc0, pR = shadeC(pc0, 0.7);
+  const shoe = C('#f2f0ff'), shoeL = C('#c9c4ec'), shoeR = C('#9a94c8'), sole = C('#3a3f8a');
+  const [dx, dy] = dir, px = -dy, py = dx; // perpendicular
+  for (const side of [-1, 1]) {
+    const o = side * 0.13, w = 0.15;
+    const ox = cx + px * o, oy = cy + py * o;
+    const tapZ = tap && side === 1 && Math.floor(t * 6 + seed) % 2 ? 0.8 : 0;
+    // thigh: from the seat centre forward 0.42
+    const ax = Math.min(ox, ox + dx * 0.42) - (dx ? 0 : w / 2), ay = Math.min(oy, oy + dy * 0.42) - (dy ? 0 : w / 2);
+    isoBox(B, ax, ay, 8.6, dx ? 0.42 : w, dy ? 0.42 : w, 2.2, pT, pL, pR);
+    // shin straight down at the knee
+    const kx = ox + dx * 0.42, ky = oy + dy * 0.42;
+    isoBox(B, kx - (dx ? (dx > 0 ? 0 : 0.14) : w / 2), ky - (dy ? (dy > 0 ? 0 : 0.14) : w / 2), 1.2 + tapZ, dx ? 0.14 : w, dy ? 0.14 : w, 8 - tapZ, pL, pL, pR);
+    // sneaker pointing forward
+    const fx = kx + dx * 0.02, fy = ky + dy * 0.02;
+    const sx = Math.min(fx, fx + dx * 0.24) - (dx ? 0 : (w + 0.02) / 2), sy = Math.min(fy, fy + dy * 0.24) - (dy ? 0 : (w + 0.02) / 2);
+    isoBox(B, sx, sy, tapZ, dx ? 0.24 : w + 0.02, dy ? 0.24 : w + 0.02, 0.6, sole, sole, sole);
+    isoBox(B, sx, sy, 0.6 + tapZ, dx ? 0.24 : w + 0.02, dy ? 0.24 : w + 0.02, 1.4, shoe, shoeL, shoeR);
+  }
+}
 const HD_ROLE = { prog: 'hoodie', art: 'bun', des: 'phones', mkt: 'blazer' };
 function hdShade(c, k) { return shadeC(c, k); }
 function drawWorkerHD(B, X, Y, look, role, typing, t, seed, mood) {
@@ -5777,7 +5801,7 @@ function drawDynamic(B, st, t) {
         };
         if (HDQ) {
           // a lower mesh backrest in HD so the shoulders and back of the worker show
-          HDQ.push((H) => { drawWorkerHD(H, a[0] * 2, a[1] * 2, look, role, typingGlobal, t, idx, info.mood); PS = 2; drawChairBack(H, s, shadeC(chairAccent, 0.6), 5.5); PS = 1; badge(up2(H)); });
+          HDQ.push((H) => { PS = 2; drawLegsHD(H, s.chair[0], s.chair[1], s.side === 'R' ? [0, -1] : [-1, 0], PANTS[role], t, idx, typingGlobal); PS = 1; drawWorkerHD(H, a[0] * 2, a[1] * 2, look, role, typingGlobal, t, idx, info.mood); PS = 2; drawChairBack(H, s, shadeC(chairAccent, 0.6), 5.5); PS = 1; badge(up2(H)); });
         } else {
           drawWorkerBack(B, a[0], a[1], look, typingGlobal, frame, t);
           drawChairBack(B, s, chairAccent);
@@ -5819,7 +5843,7 @@ function drawDynamic(B, st, t) {
     const cp = P(6.5, 6.1, 13);
     if (HDQ) {
       desk(B);
-      HDQ.push((HB) => { drawPlayerHD(HB, a[0] * 2, a[1] * 2, t, typingP, blink, st.tapFlash > 0); PS = 2; desk(HB); PS = 1; drawCatHD(HB, cp[0] * 2, cp[1] * 2, t); });
+      HDQ.push((HB) => { PS = 2; drawLegsHD(HB, cx, cy, [1, 0], PANTS.you, t, 0, typingP); PS = 1; drawPlayerHD(HB, a[0] * 2, a[1] * 2, t, typingP, blink, st.tapFlash > 0); PS = 2; desk(HB); PS = 1; drawCatHD(HB, cp[0] * 2, cp[1] * 2, t); });
     } else {
       drawPlayerFront(B, a[0], a[1], t, typingP, frame, blink);
       desk(B);
