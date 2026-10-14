@@ -700,7 +700,8 @@ const DICT = {
   m_stars: ["Зірки", "Звёзды", "Stars"], m_card: ["Картка", "Карта", "Card"], rate: ["Курс", "Курс", "Rate"],
   stars_note: ["1 ⭐ = {0} монети. Оплата прямо в Telegram.", "1 ⭐ = {0} монеты. Оплата прямо в Telegram.", "1 ⭐ = {0} coins. Pay right inside Telegram."],
   ton_addr: ["Адреса", "Адрес", "Address"], ton_cmt: ["Коментар (обов'язково)", "Комментарий (обязательно)", "Comment (required)"], ton_open: ["Відкрити гаманець", "Открыть кошелёк", "Open wallet"],
-  ton_note: ["Монети зарахуються автоматично через 1–2 хвилини після переказу.", "Монеты зачислятся автоматически через 1–2 минуты после перевода.", "Coins arrive automatically 1–2 minutes after the transfer."],
+  ton_note: ["Монети зарахуються автоматично через 1–2 хвилини після переказу. Перекази, менші за мінімум, не зараховуються.", "Монеты зачислятся автоматически через 1–2 минуты после перевода. Переводы меньше минимума не зачисляются.", "Coins arrive automatically 1–2 minutes after the transfer. Transfers below the minimum are not credited."],
+  ton_min: ["Мінімум", "Минимум", "Minimum"],
   amount: ["Сума", "Сумма", "Amount"], card_create: ["Створити заявку", "Создать заявку", "Create request"], card_reqs: ["Мої заявки", "Мои заявки", "My requests"],
   card_pay: ["Переведи {0} {1} на картку:", "Переведи {0} {1} на карту:", "Send {0} {1} to this card:"], card_note: ["Після переказу натисни кнопку нижче — ми перевіримо й зарахуємо монети.", "После перевода нажми кнопку ниже — мы проверим и зачислим монеты.", "After the transfer tap the button below — we'll check and credit your coins."],
   card_holder: ["Отримувач", "Получатель", "Cardholder"], card_paid: ["Я оплатив", "Я оплатил", "I've paid"], card_claimed: ["Перевіряємо оплату", "Проверяем оплату", "Checking your payment"],
@@ -1728,7 +1729,7 @@ function renderWallet(opt) {
       d.innerHTML = `<div class="packs">${c.packs.map((s) => `<button class="pack" data-s="${s}"><b>⭐ ${fmt(s)}</b><small><i class="coin"></i>${fmt(s * c.starCoins)}</small></button>`).join("")}</div><p class="dim" style="font-size:12px;text-align:center">${T("stars_note", c.starCoins)}</p>`;
       $$("[data-s]", d).forEach((b) => (b.onclick = () => buyStars(Number(b.dataset.s))));
     } else if (S.wMeth === "ton") {
-      d.innerHTML = `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="kv"><span class="dim">${T("rate")}</span><b>1 TON = ${fmt(c.tonCoins)} <i class="coin"></i></b></div>
+      d.innerHTML = `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="kv"><span class="dim">${T("rate")}</span><b>1 TON = ${fmt(c.tonCoins)} <i class="coin"></i></b></div><div class="kv"><span class="dim">${T("ton_min")}</span><b>${c.tonMin || 0.01} TON</b></div>
       <span class="lbl" style="margin:0">${T("ton_addr")}</span><div class="copy"><span>${esc(c.tonAddr)}</span><button data-cp="${esc(c.tonAddr)}">${T("copy")}</button></div>
       <span class="lbl" style="margin:0">${T("ton_cmt")}</span><div class="copy"><span class="gold" style="font:400 16px var(--fd)">${esc(c.comment)}</span><button data-cp="${esc(c.comment)}">${T("copy")}</button></div>
       <button class="btn cy w" id="tOpen">${T("ton_open")}</button><p class="dim" style="font-size:12px">${T("ton_note")}</p></div>`;

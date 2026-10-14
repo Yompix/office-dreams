@@ -17,7 +17,7 @@ function renderWallet(opt) {
       d.innerHTML = `<div class="packs">${c.packs.map((s) => `<button class="pack" data-s="${s}"><b>⭐ ${fmt(s)}</b><small><i class="coin"></i>${fmt(s * c.starCoins)}</small></button>`).join("")}</div><p class="dim" style="font-size:12px;text-align:center">${T("stars_note", c.starCoins)}</p>`;
       $$("[data-s]", d).forEach((b) => (b.onclick = () => buyStars(Number(b.dataset.s))));
     } else if (S.wMeth === "ton") {
-      d.innerHTML = `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="kv"><span class="dim">${T("rate")}</span><b>1 TON = ${fmt(c.tonCoins)} <i class="coin"></i></b></div>
+      d.innerHTML = `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="kv"><span class="dim">${T("rate")}</span><b>1 TON = ${fmt(c.tonCoins)} <i class="coin"></i></b></div><div class="kv"><span class="dim">${T("ton_min")}</span><b>${c.tonMin || 0.01} TON</b></div>
       <span class="lbl" style="margin:0">${T("ton_addr")}</span><div class="copy"><span>${esc(c.tonAddr)}</span><button data-cp="${esc(c.tonAddr)}">${T("copy")}</button></div>
       <span class="lbl" style="margin:0">${T("ton_cmt")}</span><div class="copy"><span class="gold" style="font:400 16px var(--fd)">${esc(c.comment)}</span><button data-cp="${esc(c.comment)}">${T("copy")}</button></div>
       <button class="btn cy w" id="tOpen">${T("ton_open")}</button><p class="dim" style="font-size:12px">${T("ton_note")}</p></div>`;

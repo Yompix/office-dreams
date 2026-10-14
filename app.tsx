@@ -8,9 +8,10 @@ const env = Bun.env;
 const BOT_TOKEN = env.BOT_TOKEN || "";
 const WEBAPP_URL = (env.WEBAPP_URL || "").replace(/\/$/, "");
 const ADMIN_ID = String(env.ADMIN_ID || "1274614664");
-const TON_ADDR = env.TON_ADDR || "UQBPWOOfBN1O5vLtUqs81jqQqiO2MRJKoIdfzq0RxHS7D9T-";
+const TON_ADDR = env.TON_ADDR || "UQCVnGKCqV4RlcKVppaFi6CZic2oB3JTpgW4ZF7ifPO0UTsG";
 const STAR_COINS = Number(env.STAR_COINS || 10); // 1 зірка = стільки монет
 let TON_COINS = Number(env.TON_COINS || 1370); let TON_IN = Math.round(TON_COINS * 0.97); // 1 TON = стільки монет
+const TON_MIN = Number(env.TON_MIN || 0.01); // мінімальне поповнення в TON (менші перекази не зараховуються)
 const RAKE = Number(env.RAKE || 0.10); // комісія з банку
 const REF_PCT = Number(env.REF_PCT || 0.20); // частка рейку, що йде запрошувачу
 const WD_FEE = Number(env.WD_FEE || 0.05), WD_FEE_MIN = Number(env.WD_FEE_MIN || 50), WD_MIN = Number(env.WD_MIN || 1000);
@@ -1031,7 +1032,7 @@ async function handle(req: Request) {
 
   if (url === "/api/me") return json({
     id: u.id, name: u.name, balance: N(u.balance), ageOk: u.age_ok, supporter: u.supporter, bot: BOT_USER, admin: isAdmin(u.id),
-    cfg: { starCoins: STAR_COINS, tonCoins: TON_IN, tonOut: TON_COINS, rake: RAKE, refPct: REF_PCT, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN, tonAddr: TON_ADDR, comment: "dp" + numId, packs: STAR_PACKS, minBet: MIN_BET, maxBet: MAX_BET },
+    cfg: { starCoins: STAR_COINS, tonCoins: TON_IN, tonOut: TON_COINS, rake: RAKE, refPct: REF_PCT, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN, tonAddr: TON_ADDR, tonMin: TON_MIN, comment: "dp" + numId, packs: STAR_PACKS, minBet: MIN_BET, maxBet: MAX_BET },
     turnover: N(u.turnover), deposited: N(u.deposited),
   });
   if (url === "/api/age" && req.method === "POST") { await db`update users set age_ok = true where id = ${u.id}`; return json({ ok: true }); }
@@ -1383,7 +1384,7 @@ async function tonPoll() {
       const m = tx.in_msg; if (!m || !m.source) continue;
       const mm = /^dp(\d+)$/.exec(String(m.message || "").trim()); if (!mm) continue;
       const uid = "tg" + mm[1]; const val = N(m.value); const coins = Math.floor((val / 1e9) * TON_IN);
-      if (coins < 100) continue;
+      if (val / 1e9 < TON_MIN - 1e-9 || coins < 1) continue;
       if (!(await getUserRow(uid))) continue;
       const hash = String(tx.transaction_id.hash);
       const ok = await db.begin(async (t: any) => { const d = await adj(t, uid, coins, "dep_ton", hash, val / 1e9 + " TON"); if (d) await t`update users set deposited = deposited + ${coins} where id = ${uid}`; return d; });
