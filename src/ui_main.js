@@ -381,6 +381,19 @@ const ACT = {
       netApi.wallet({ address: v }).then((r) => { UIH.onWallet(r); if (r && r.ok) closeModal(); });
     }
   },
+  sol: (what) => {
+    if (what === 'set') return showSolWallet();
+    if (what === 'off') return netApi.sol({ disconnect: true }).then((r) => { if (r && r.ok) { UI.hub.mktBal = null; toast(L('sol.off_ok'), 'good', 'sol'); } render(true); });
+    if (what === 'save') {
+      const inp = $('#soladdr');
+      const v = inp ? inp.value.trim() : '';
+      if (!v) return;
+      netApi.sol({ address: v }).then((r) => {
+        if (r && r.ok) { closeModal(); toast(L('sol.ok'), 'good', 'sol'); confettiSmall(); UI.hub.mktBal = undefined; UI.hub.loadedAt.mkt = 0; loadMarket(true); } else errToast((r && r.err) || 'sol_address');
+        render(true);
+      });
+    }
+  },
   chal: (ans) => answerChallenge(ans),
   retry: () => location.reload(),
   mkbuy: () => { const m = UI.hub.mkt; if (m && m.buy) { openLink(m.buy); haptic && haptic('medium'); } },
@@ -745,6 +758,14 @@ function showManualWallet() {
     <input id="waddr" class="inp" placeholder="UQ…" autocomplete="off" spellcheck="false" maxlength="80">
     <button class="btn big" data-act="wallet:save">${L('wallet.save')}</button>`, { id: 'wallet' });
   const inp = $('#waddr');
+  if (inp) inp.addEventListener('keydown', (e) => e.stopPropagation());
+}
+function showSolWallet() {
+  openModal(`<h2 class="h2">${I('sol', 16)} ${L('sol.title')}</h2>
+    <p class="sub">${L('sol.manual_t')}</p>
+    <input id="soladdr" class="inp" placeholder="7xKX…" autocomplete="off" spellcheck="false" maxlength="48" value="${esc((NET.eco && NET.eco.sol) || '')}">
+    <button class="btn big" data-act="sol:save">${L('wallet.save')}</button>`, { id: 'sol' });
+  const inp = $('#soladdr');
   if (inp) inp.addEventListener('keydown', (e) => e.stopPropagation());
 }
 function showChallenge(ch) {

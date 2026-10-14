@@ -317,6 +317,7 @@ const netApi = {
   lang: (lang) => (NET.mode === 'online' ? api('POST', '/api/lang', { lang }) : Promise.resolve({ ok: true })),
   forget: () => api('POST', '/api/forget', { confirm: true }),
   wallet: (body) => api('POST', '/api/wallet', body),
+  sol: (body) => api('POST', '/api/sol', body),
   tonPayload: () => api('GET', '/api/ton/payload'),
   market: (range) => api('GET', '/api/market?range=' + encodeURIComponent(range || '24h')),
   marketBal: () => api('GET', '/api/market/bal'),

@@ -734,7 +734,7 @@ function donatePanel() {
     ${d.top && d.top.length ? `<h3 class="h3">💖 ${L('don.wall')}</h3><ol class="board">${d.top.map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><span class="yel">${fmt(x.stars)} ⭐</span></li>`).join('')}</ol>` : ''}
   </section>`;
 }
-/* ---------- token market: live price on STON.fi, chart, holdings, buy ---------- */
+/* ---------- token market: live price on Solana (Jupiter), chart, holdings, buy ---------- */
 function fmtUsdP(v) { if (!v) return '$0'; if (v >= 1) return '$' + v.toFixed(3); if (v >= 0.01) return '$' + v.toFixed(4); return '$' + v.toPrecision(3); }
 function fmtUsdBig(v) { if (v === null || v === undefined) return '—'; return v >= 1e6 ? '$' + (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? '$' + (v / 1e3).toFixed(1) + 'K' : '$' + v.toFixed(0); }
 function mktSpark(hist, up) {
@@ -749,9 +749,9 @@ function mktSpark(hist, up) {
 }
 function mktSoon(mini) {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE'), ch = NET.cfg && NET.cfg.links && NET.cfg.links.channel;
-  if (mini) return `<section class="panel mkt mini soon" data-act="mktab"><span class="mk-logo">${I('ton', 22)}</span><div class="mk-mini-t"><b>${L('mk.soon_t', { sym })}</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></section>`;
+  if (mini) return `<section class="panel mkt mini soon" data-act="mktab"><span class="mk-logo">${I('sol', 22)}</span><div class="mk-mini-t"><b>${L('mk.soon_t', { sym })}</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></section>`;
   return `<section class="panel mkt soon">
-    <div class="mk-h"><span class="mk-logo">${I('ton', 26)}</span><div class="mk-name"><b>${sym} × STON.fi</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></div>
+    <div class="mk-h"><span class="mk-logo">${I('sol', 26)}</span><div class="mk-name"><b>${sym} × Solana</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></div>
     <h2 class="h2">${L('mk.soon_t', { sym })}</h2>
     <p class="sub">${L('mk.soon_p', { sym })}</p>
     <ul class="bul"><li>${L('mk.soon_1', { sym })}</li><li>${L('mk.soon_2')}</li><li>${L('mk.soon_3', { sym })}</li></ul>
@@ -767,25 +767,35 @@ function mktPanel(mini) {
   if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p><button class="btn big glow wide" data-act="mkbuy">${L('mk.buy')}</button></section>`;
   const ch = m.ch24, up = ch === null ? true : ch >= 0;
   const chip = ch === null ? '' : `<span class="mk-ch ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</span>`;
-  const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : `<span class="mk-logo">${I('ton', 26)}</span>`;
+  const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : `<span class="mk-logo">${I('sol', 26)}</span>`;
   if (mini) return `<section class="panel mkt mini" data-act="mktab">${logo}<div class="mk-mini-t"><b>${sym}</b><small>${L('mk.live')}</small></div><div class="mk-mini-p"><b class="px">${fmtUsdP(m.usd)}</b>${chip}</div><span class="mk-go">${L('mk.buy_s')} ›</span></section>`;
-  const bal = UI.hub.mktBal, hasW = !!(NET.eco && NET.eco.wallet);
+  const bal = UI.hub.mktBal, hasW = !!(NET.eco && NET.eco.sol);
   const rng = ['24h', '7d', '30d'].map((x) => `<button class="${(r.range || '24h') === x ? 'on' : ''}" data-act="mkrange:${x}">${L('mk.r_' + x)}</button>`).join('');
   return `<section class="panel mkt">
-    <div class="mk-h">${logo}<div class="mk-name"><b>${sym}</b><small>STON.fi · ${L('mk.live')}</small></div><span class="mk-live"><i></i>LIVE</span></div>
+    <div class="mk-h">${logo}<div class="mk-name"><b>${sym}</b><small>Solana · Jupiter · ${L('mk.live')}</small></div><span class="mk-live"><i></i>LIVE</span></div>
     <div class="mk-price"><b class="px">${fmtUsdP(m.usd)}</b>${chip}</div>
-    ${m.ton ? `<div class="mk-ton">≈ ${m.ton < 0.001 ? m.ton.toPrecision(3) : m.ton.toFixed(5)} TON</div>` : ''}
+    ${m.ton ? `<div class="mk-ton">≈ ${m.ton < 0.001 ? m.ton.toFixed(Math.min(14, 2 - Math.floor(Math.log10(m.ton)))) : m.ton.toFixed(5)} SOL</div>` : ''}
     <div class="mk-rng seg">${rng}</div>
     ${mktSpark(r.hist, up)}
     <div class="mk-stats"><div><small>${L('mk.vol')}</small><b>${fmtUsdBig(m.vol24)}</b></div><div><small>${L('mk.liq')}</small><b>${fmtUsdBig(m.liq)}</b></div><div><small>${L('mk.cap')}</small><b>${fmtUsdBig(m.fdv)}</b></div></div>
-    <div class="mk-mine">${hasW ? (bal === null || bal === undefined ? `<small>${L('mk.bal_load')}</small>` : `<small>${L('mk.bal')}</small><b>${fmt(Math.floor(bal))} ${sym}</b><span class="mut">≈ ${fmtUsdP(bal * m.usd).replace('$0', '$0.00')}</span>`) : `<small>${L('mk.bal_none')}</small><button class="btn ghost sm" data-act="wallet:connect">${L('wallet.connect')}</button>`}</div>
-    <button class="btn big glow wide mk-buy" data-act="mkbuy">${I('ton', 18)} ${L('mk.buy')}</button>
+    <div class="mk-mine">${hasW ? (bal === null || bal === undefined ? `<small>${L('mk.bal_load')}</small>` : `<small>${L('mk.bal')}</small><b>${fmt(Math.floor(bal))} ${sym}</b><span class="mut">≈ ${(bal * m.usd >= 1000 ? fmtUsdBig(bal * m.usd) : fmtUsdP(bal * m.usd).replace('$0', '$0.00'))}</span>`) : `<small>${L('mk.bal_none')}</small><button class="btn ghost sm" data-act="sol:set">${L('sol.add')}</button>`}</div>
+    <button class="btn big glow wide mk-buy" data-act="mkbuy">${I('sol', 18)} ${L('mk.buy')}</button>
     <button class="btn ghost sm wide" data-act="mkchart">${I('chart', 14)} ${L('mk.chart')}</button>
     <ol class="mk-how"><li>${L('mk.h1')}</li><li>${L('mk.h2', { sym })}</li><li>${L('mk.h3', { sym })}</li></ol>
     <p class="hint">${L('mk.risk')}</p>
   </section>`;
 }
 
+function solCard(e) {
+  if (NET.mode === 'demo') return '';
+  const w = e.sol;
+  return `<section class="panel wallet solw">
+    <div class="sec-h"><div><h2 class="h2">${I('sol', 16)} ${L('sol.title')}</h2><p class="sub">${L('sol.sub', { sym: esc((NET.cfg && NET.cfg.symbol) || 'OFFICE') })}</p></div></div>
+    ${w ? `<div class="waddr">${I('check', 14, 'grn')}<code>${esc(shortAddr(w))}</code></div>
+      <div class="row2"><button class="btn ghost sm" data-act="sol:set">${L('wallet.change')}</button><button class="btn ghost sm" data-act="sol:off">${L('wallet.disconnect')}</button></div>`
+    : `<button class="btn big glow wide" data-act="sol:set">${I('sol', 16)} ${L('sol.add')}</button>`}
+  </section>`;
+}
 function hubToken() {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
   const e = NET.eco || {};
@@ -815,7 +825,7 @@ function hubToken() {
   const road = [['r1', 'now'], ['r2', 'next'], ['r3', 'next'], ['r4', 'later'], ['r5', 'later'], ['r6', 'later']];
   const uses = ['u1', 'u2', 'u3', 'u4'];
   return `${mktPanel()}<section class="panel tokhero2">
-    <div class="coin3d"><div class="coin-face">${I('ton', 46)}</div></div>
+    <div class="coin3d"><div class="coin-face">${I('sol', 46)}</div></div>
     <h2 class="op-title">${sym}</h2>
     <p class="sub">${L('tok.what', { sym })}</p>
     <div class="hero-stats">
@@ -835,6 +845,7 @@ function hubToken() {
     </div>
     <p class="hint">${L('tk2.est_hint', { sym })}</p>
   </section>
+  ${solCard(e)}
   <section class="panel">
     <h2 class="h2">${I('chart', 16)} ${L('tok.alloc')}</h2>
     <div class="donut-wrap">

@@ -14,7 +14,7 @@ const r1 = (x) => Math.round(x * 10) / 10;
 const r3 = (x) => Math.round(x * 1000) / 1000;
 
 const USER_COLS = ['pts', 'pts_day', 'raw_today', 'eff_today', 'ref_today', 'ref_pts', 'streak', 'last_checkin', 'days_played', 'last_play_day', 'act',
-  'wall_ref', 'seq', 'tk_total', 'risk', 'risk_hard', 'risk_at', 'risk_state', 'risk_note', 'human_until', 'challenge', 'ref_active', 'ref_active_at', 'wallet', 'wallet_ok', 'wallet_at',
+  'wall_ref', 'seq', 'tk_total', 'risk', 'risk_hard', 'risk_at', 'risk_state', 'risk_note', 'human_until', 'challenge', 'ref_active', 'ref_active_at', 'wallet', 'wallet_ok', 'wallet_at', 'sol', 'sol_at',
   'pass_until', 'lang', 'last_seen', 'blocked', 'deleted', 'premium', 'username', 'name'];
 const UPDATE_SQL = 'UPDATE users SET ' + USER_COLS.map((c) => c + '=?').join(',') + ' WHERE id=?';
 function persistUser(ctx, u) {
@@ -467,6 +467,7 @@ function ecoView(ctx, u, now) {
     dev: isDev(ctx, u.id),
     risk: u.risk_state === 'ok' ? 0 : u.risk_state === 'watch' ? 1 : 2,
     wallet: u.wallet ? { addr: u.wallet, ok: !!u.wallet_ok } : null,
+    sol: u.sol || null,
     days: u.days_played,
     mult: RISK_MULT[u.risk_state] === undefined ? 0 : RISK_MULT[u.risk_state],
     ptsAll: ptsAll(ctx, now),

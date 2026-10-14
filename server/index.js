@@ -32,7 +32,7 @@ function main() {
   // TON payments: credit transfers that arrived after the player closed the game
   timers.push(setInterval(() => { TonPay.sweep(ctx).then((r) => { if (r.paid) ctx.log('ton payments credited', r); }).catch((e) => ctx.log('ton sweep', e.message)); }, 60000));
 
-  // token price (STON.fi): poll right away and then every minute
+  // token price (Jupiter, Solana): poll right away and then every minute
   const mk = () => Market.poll(ctx, Date.now()).catch((e) => ctx.log('market', e.message));
   mk(); timers.push(setInterval(mk, Market.POLL_MS));
 

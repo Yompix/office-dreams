@@ -59,8 +59,8 @@ function build(env) {
     xUrl: str('X_URL'),
     season: { id: num('SEASON_ID', 0), name: str('SEASON_NAME', 'Season 0') },
     tokenSymbol: str('TOKEN_SYMBOL', 'OFFICE'),
-    // the launched token on TON (jetton master address): live price from STON.fi, buy button, holdings
-    token: { addr: str('TOKEN_ADDRESS'), v3: str('TONCENTER_V3', 'https://toncenter.com/api/v3') },
+    // the launched token on Solana (SPL mint address): live price from Jupiter + DexScreener, buy button, holdings
+    token: { addr: str('TOKEN_ADDRESS'), rpc: str('SOLANA_RPC', 'https://api.mainnet-beta.solana.com') },
     tonconnectCdn: str('TONCONNECT_CDN', 'https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js'),
     turnstile: { site: str('TURNSTILE_SITEKEY'), secret: str('TURNSTILE_SECRET') },
     starUsd: num('STAR_USD', 0.013),

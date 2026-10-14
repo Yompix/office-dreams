@@ -7,6 +7,7 @@ const ICON_PAL = {
   b: '#2aa5ff', d: '#1666c8', W: '#ffffff',
   r: '#ff4d6a', p: '#ff9bb8', R: '#b3253f',
   m: '#ff3fd0', M: '#9a1f86', c: '#3fd0ff', C: '#1a6f9f', g: '#34e37a', G: '#12a955', s: '#2aa5ff',
+  v: '#9945ff', n: '#14f195', h: '#4fb0e8',
 };
 const ICONS = {
   office: [
@@ -189,6 +190,19 @@ const ICONS = {
     '.oyykkkyo..',
     '..oyyyyo...',
     '...oooo....',
+    '...........',
+  ],
+  sol: [
+    '...........',
+    '..vvvvvvvv.',
+    '.vvvvvvvv..',
+    '...........',
+    '.hhhhhhhh..',
+    '..hhhhhhhh.',
+    '...........',
+    '..nnnnnnnn.',
+    '.nnnnnnnn..',
+    '...........',
     '...........',
   ],
   ton: [

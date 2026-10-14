@@ -325,6 +325,7 @@ async function handleApi(ctx, req, res, url, ip) {
   }
   if (method === 'GET' && p === '/api/ton/payload') return sendJson(res, 200, { ok: true, payload: Ton.makePayload(cfg.sessionSecret, now) });
   if (method === 'POST' && p === '/api/wallet') return handleWallet(ctx, res, uid, body, now);
+  if (method === 'POST' && p === '/api/sol') return handleSol(ctx, res, uid, body, now);
   if (method === 'POST' && p === '/api/studio') {
     if (body.check) return sendJson(res, 200, Studio.isFree(ctx, uid, body.name));
     if (!hit(ctx, 'studio:' + uid, 10, 3600000, now)) return bad(res, 429, 'rate');
@@ -353,7 +354,7 @@ async function handleApi(ctx, req, res, url, ip) {
       ctx.db.run('DELETE FROM fps WHERE uid=?', uid);
       ctx.db.run('DELETE FROM beh WHERE uid=?', uid);
       ctx.db.run('DELETE FROM pending_refs WHERE uid=?', uid);
-      ctx.db.run("UPDATE users SET deleted=1, username=NULL, name='deleted', wallet=NULL, wallet_ok=0 WHERE id=?", uid);
+      ctx.db.run("UPDATE users SET deleted=1, username=NULL, name='deleted', wallet=NULL, wallet_ok=0, sol=NULL WHERE id=?", uid);
     });
     return sendJson(res, 200, { ok: true });
   }
@@ -394,6 +395,31 @@ function handleWallet(ctx, res, uid, body, now) {
     AB.evaluate(ctx, u, now);
     Eco.persistUser(ctx, u);
     return sendJson(res, 200, { ok: true, level, friendly: Ton.toFriendly(addr, { bounceable: false, testnet: !!addr.testnet }), eco: Eco.ecoView(ctx, u, now) });
+  });
+}
+
+/* Solana wallet for the token airdrop and the balance in the market card (an address, no signature) */
+function handleSol(ctx, res, uid, body, now) {
+  return ctx.db.tx(() => {
+    const u = U.getUser(ctx, uid);
+    if (body.address === null || body.disconnect) {
+      u.sol = null; u.sol_at = now;
+      Eco.persistUser(ctx, u);
+      return sendJson(res, 200, { ok: true, eco: Eco.ecoView(ctx, u, now) });
+    }
+    const addr = String(body.address || '').trim();
+    if (!Market.isSolAddr(addr)) return sendJson(res, 200, { ok: false, err: 'sol_address' });
+    if (addr !== u.sol) {
+      const others = ctx.db.all('SELECT id FROM users WHERE sol=? AND id!=? AND deleted=0', addr, uid);
+      if (others.length) {
+        AB.addHard(ctx, u, 15, 'wallet_dup', { sol: 1, dup: others.length }, now);
+        for (const o of others) { const ou = U.getUser(ctx, o.id); AB.addHard(ctx, ou, 5, 'wallet_dup', { sol: 1, with: uid }, now); Eco.persistUser(ctx, ou); }
+      }
+    }
+    u.sol = addr; u.sol_at = now;
+    AB.evaluate(ctx, u, now);
+    Eco.persistUser(ctx, u);
+    return sendJson(res, 200, { ok: true, eco: Eco.ecoView(ctx, u, now) });
   });
 }
 

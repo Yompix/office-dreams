@@ -1162,6 +1162,7 @@ const ICON_PAL = {
   b: '#2aa5ff', d: '#1666c8', W: '#ffffff',
   r: '#ff4d6a', p: '#ff9bb8', R: '#b3253f',
   m: '#ff3fd0', M: '#9a1f86', c: '#3fd0ff', C: '#1a6f9f', g: '#34e37a', G: '#12a955', s: '#2aa5ff',
+  v: '#9945ff', n: '#14f195', h: '#4fb0e8',
 };
 const ICONS = {
   office: [
@@ -1344,6 +1345,19 @@ const ICONS = {
     '.oyykkkyo..',
     '..oyyyyo...',
     '...oooo....',
+    '...........',
+  ],
+  sol: [
+    '...........',
+    '..vvvvvvvv.',
+    '.vvvvvvvv..',
+    '...........',
+    '.hhhhhhhh..',
+    '..hhhhhhhh.',
+    '...........',
+    '..nnnnnnnn.',
+    '.nnnnnnnn..',
+    '...........',
     '...........',
   ],
   ton: [
@@ -2111,7 +2125,7 @@ LANGS.en = {
   'tut.later': 'Later',
   'tut.skip': 'Skip tutorial',
   'mk.live': "live price",
-  'mk.buy': "Buy on STON.fi",
+  'mk.buy': "Buy on Jupiter",
   'mk.buy_s': "Buy",
   'mk.chart': "Open chart",
   'mk.vol': "Volume 24h",
@@ -2119,14 +2133,14 @@ LANGS.en = {
   'mk.cap': "Market cap",
   'mk.bal': "In your wallet",
   'mk.bal_load': "Loading balance…",
-  'mk.bal_none': "Connect a TON wallet to see your tokens",
+  'mk.bal_none': "Add your Solana wallet to see your tokens",
   'mk.r_24h': "24h",
   'mk.r_7d': "7d",
   'mk.r_30d': "30d",
   'mk.collecting': "The chart appears once price data builds up",
   'mk.no_price': "The price is loading. You can already buy.",
-  'mk.h1': "Tap “Buy on STON.fi” — the TON → token swap opens",
-  'mk.h2': "Connect your TON wallet in STON.fi and choose how much {sym} to buy",
+  'mk.h1': "Tap “Buy on Jupiter” — the SOL → token swap opens",
+  'mk.h2': "Connect Phantom, Solflare or another Solana wallet and choose how much {sym} to buy",
   'mk.h3': "{sym} lands in your wallet right away — the balance shows here",
   'mk.risk': "The token price moves and can go up or down. Only buy what you can afford to lose. This is not financial advice.",
   'role.qa.name': "QA tester",
@@ -2157,12 +2171,12 @@ LANGS.en = {
   'loc.here': "You are here",
   'loc.next': "After the IPO the studio moves to: {name}",
   'mk.soon': "Soon",
-  'mk.soon_t': "Coming soon: buy {sym} on STON.fi",
-  'mk.soon_s': "Listing on the TON exchange",
-  'mk.soon_p': "Very soon {sym} will be listed on STON.fi — and you’ll be able to buy it right here, in the game.",
-  'mk.soon_1': "The “Buy” button will open the TON → {sym} swap on STON.fi",
+  'mk.soon_t': "Soon: buy {sym} on Solana",
+  'mk.soon_s': "Listing on Solana",
+  'mk.soon_p': "Very soon {sym} will be listed on Solana — and you will be able to buy it right here, from the game.",
+  'mk.soon_1': "The “Buy” button will open the SOL → {sym} swap on Jupiter",
   'mk.soon_2': "Price, chart and volume will update in real time",
-  'mk.soon_3': "Bought {sym} lands in your TON wallet right away",
+  'mk.soon_3': "Bought {sym} land straight in your Solana wallet",
   'mk.soon_ch': "Follow the news in the channel",
   'office.bubble_h.v2': "Back to it!",
   'office.bubble_h.v3': "Crunch time?",
@@ -2228,7 +2242,7 @@ LANGS.en = {
   'tk3.locked': "locked",
   'tk3.at_tge': "at launch",
   'tk3.v_players': "not a single token at launch — paid out daily for playing, from day one",
-  'tk3.v_liq': "all of it goes to the {sym}/TON pool; the LP tokens are locked for 2 years",
+  'tk3.v_liq': "all of it goes to the {sym}/SOL pool; the LP tokens are locked for 2 years",
   'tk3.v_team': "12-month cliff, then monthly unlock over 36 months",
   'tk3.v_mkt': "1/24 per month, only for tournaments and partners",
   'tk3.v_treasury': "locked for 12 months, after that only by players’ vote",
@@ -2240,7 +2254,14 @@ LANGS.en = {
   'tk3.r4': "Holding {sym} in the game gives bonuses — there is a reason to keep it, not sell it.",
   'tk3.r5': "Part of the game income goes to the players’ pool and buy-backs.",
   'tk3.risk': "The price of a token is set by the market. These rules make dumping harder, but they are not a promise of profit.",
-  'tok.what': '{sym} is the game’s own token on the TON blockchain. Airdrop points you collect now will be exchanged for it.',
+  'sol.title': "Solana wallet",
+  'sol.sub': "Your {sym} airdrop will be sent here. TON wallet stays for purchases in the shop.",
+  'sol.add': "Add Solana wallet",
+  'sol.manual_t': "Paste your Solana wallet address (Phantom, Solflare, Backpack…). It is 32–44 letters and digits. Never share your seed phrase — the address is enough.",
+  'sol.ok': "Solana wallet saved",
+  'sol.off_ok': "Solana wallet removed",
+  'err.sol_address': "This is not a Solana address",
+  'tok.what': "{sym} is the game’s own token on the Solana blockchain. The airdrop points you collect now will be exchanged for it.",
   'tok.supply': "100,000,000 — minted once, no more ever",
   'tok.status': 'Season 0: collecting points',
   'tok.how': 'How the airdrop works',
@@ -2248,7 +2269,7 @@ LANGS.en = {
   'tok.how1': 'The pool is fixed in advance and halves every year — more players do not print more tokens.',
   'tok.how2': 'Bots and multi-accounts get nothing, so honest players get bigger shares.',
   'tok.how3': 'In-game $ and gems are never exchanged for the token — only points.',
-  'tok.how4': 'After launch you claim {sym} to your TON wallet; part unlocks gradually so the price is not dumped.',
+  'tok.how4': "After launch you claim {sym} to your Solana wallet; part unlocks gradually so the price is not dumped.",
   'tok.alloc': 'Who gets the 100 million',
   'tok.a_players': 'Players: daily reward pool',
   'tok.a_liq': 'Liquidity and listing',
@@ -2261,9 +2282,9 @@ LANGS.en = {
   'tok.s1': 'Season 0: points',
   'tok.s1d': 'Play, invite friends, collect points. Bots are filtered out.',
   'tok.s2': 'Wallets and checks',
-  'tok.s2d': 'Connect a TON wallet, final anti-bot review, points snapshot.',
+  'tok.s2d': "Adding a Solana wallet, a final bot check, a snapshot of points.",
   'tok.s3': 'Token launch (TGE)',
-  'tok.s3d': '{sym} launches on TON, points become tokens, trading on a TON exchange.',
+  'tok.s3d': "{sym} launches on Solana, points become tokens, trading on Solana exchanges.",
   'tok.now': 'now',
   'tok.next': 'next',
   'tok.later': 'later',
@@ -2326,7 +2347,7 @@ LANGS.en = {
   'tk2.my_share': "Your share",
   'tk2.est_hint': "Estimate of your part of the Season 0 early airdrop (8M {sym}). It changes every day as everyone plays — and bots are removed before the snapshot.",
   'tk2.d_players': "paid out daily for playing, halves every year",
-  'tk2.d_liq': "in the STON.fi pool, LP locked for 2 years",
+  'tk2.d_liq': "in a Solana DEX pool, LP locked for 2 years",
   'tk2.d_team': "nothing for 12 months, then 36 months of unlock",
   'tk2.d_mkt': "unlocked monthly over 24 months",
   'tk2.d_treasury': "locked for 12 months, spent by players’ vote",
@@ -2338,9 +2359,9 @@ LANGS.en = {
   'tk2.r1': "Season 0 · Game & points",
   'tk2.r1d': "Office, team, game releases, points for playing, friends, anti-bot protection.",
   'tk2.r2': "Wallets & verification",
-  'tk2.r2d': "Connect a TON wallet, final bot check, points snapshot.",
+  'tk2.r2d': "Adding a Solana wallet, a final bot check, a snapshot of points.",
   'tk2.r3': "{sym} launch",
-  'tk2.r3d': "Listing on a TON exchange, locked liquidity, airdrop unlocked in parts so the price isn't dumped.",
+  'tk2.r3d': "Listing on Solana (Jupiter), locked liquidity, airdrop unlocked in parts so the price is not dumped.",
   'tk2.r4': "Season 1 · {sym} in the game",
   'tk2.r4d': "Studio tournaments with prize pools, guilds, a daily token pool for playing.",
   'tk2.r5': "Season 2 · NFT & market",
@@ -2387,7 +2408,7 @@ LANGS.en = {
   'help.cash': 'In-game money: salaries, hiring, upgrades and floors. Stays in the game.',
   'help.gems': 'For boosts (Turbo, Hype). From hits, goals, quests, friends and the shop.',
   'help.pts': 'Your airdrop score. Grows only from real progress; later exchanged for {sym}.',
-  'help.token': 'The game’s token on TON. Launches after Season 0; points turn into {sym}.',
+  'help.token': "The game’s token on Solana. Launches after Season 0; points turn into {sym}.",
   'help.more_token': 'About the token',
   'help.tutorial': 'Replay tutorial',
   'ads.btn': 'Watch an ad',
@@ -2732,7 +2753,7 @@ LANGS.ru = {
   'tut.later': 'Позже',
   'tut.skip': 'Пропустить обучение',
   'mk.live': "курс в реальном времени",
-  'mk.buy': "Купить на STON.fi",
+  'mk.buy': "Купить на Jupiter",
   'mk.buy_s': "Купить",
   'mk.chart': "Открыть график",
   'mk.vol': "Объём 24ч",
@@ -2740,14 +2761,14 @@ LANGS.ru = {
   'mk.cap': "Капитализация",
   'mk.bal': "У тебя в кошельке",
   'mk.bal_load': "Загружаем баланс…",
-  'mk.bal_none': "Подключи TON-кошелёк, чтобы видеть свои токены",
+  'mk.bal_none': "Добавь Solana-кошелёк, чтобы видеть свои токены",
   'mk.r_24h': "24ч",
   'mk.r_7d': "7д",
   'mk.r_30d': "30д",
   'mk.collecting': "График появится, когда накопятся данные о цене",
   'mk.no_price': "Курс пока загружается. Купить можно уже сейчас.",
-  'mk.h1': "Нажми «Купить на STON.fi» — откроется обмен TON на токен",
-  'mk.h2': "Подключи свой TON-кошелёк в STON.fi и выбери, сколько {sym} купить",
+  'mk.h1': "Нажми «Купить на Jupiter» — откроется обмен SOL на токен",
+  'mk.h2': "Подключи Phantom, Solflare или другой Solana-кошелёк и выбери, сколько {sym} купить",
   'mk.h3': "Токены {sym} сразу попадут в твой кошелёк — баланс появится здесь",
   'mk.risk': "Курс токена меняется и может как расти, так и падать. Покупай только на сумму, которую не жалко потерять. Это не финансовый совет.",
   'role.qa.name': "QA-тестер",
@@ -2778,12 +2799,12 @@ LANGS.ru = {
   'loc.here': "Вы здесь",
   'loc.next': "После IPO студия переедет: {name}",
   'mk.soon': "Скоро",
-  'mk.soon_t': "Скоро: покупка {sym} на STON.fi",
-  'mk.soon_s': "Листинг на бирже TON",
-  'mk.soon_p': "Совсем скоро токен {sym} появится на бирже STON.fi — и купить его можно будет прямо отсюда, из игры.",
-  'mk.soon_1': "Кнопка «Купить» откроет обмен TON → {sym} в STON.fi",
+  'mk.soon_t': "Скоро: покупка {sym} в Solana",
+  'mk.soon_s': "Листинг в сети Solana",
+  'mk.soon_p': "Совсем скоро токен {sym} появится в сети Solana — и купить его можно будет прямо отсюда, из игры.",
+  'mk.soon_1': "Кнопка «Купить» откроет обмен SOL → {sym} в Jupiter",
   'mk.soon_2': "Курс, график и объём торгов будут обновляться в реальном времени",
-  'mk.soon_3': "Купленные {sym} сразу появятся в твоём TON-кошельке",
+  'mk.soon_3': "Купленные {sym} сразу появятся в твоём Solana-кошельке",
   'mk.soon_ch': "Следить за новостями в канале",
   'office.bubble_h.v2': "За дело!",
   'office.bubble_h.v3': "Начальник, тут дело!",
@@ -2849,7 +2870,7 @@ LANGS.ru = {
   'tk3.locked': "заблокировано",
   'tk3.at_tge': "на старте",
   'tk3.v_players': "на старте — ни одного токена, раздаётся каждый день за игру с первого дня",
-  'tk3.v_liq': "всё уходит в пул {sym}/TON, LP-токены заблокированы на 2 года",
+  'tk3.v_liq': "всё уходит в пул {sym}/SOL, LP-токены заблокированы на 2 года",
   'tk3.v_team': "12 месяцев блокировки, потом открывается помесячно 36 месяцев",
   'tk3.v_mkt': "по 1/24 в месяц, только на турниры и партнёров",
   'tk3.v_treasury': "заблокировано на 12 месяцев, потом — только по голосованию игроков",
@@ -2861,7 +2882,14 @@ LANGS.ru = {
   'tk3.r4': "Держать {sym} в игре выгодно — бонусы за холд, а не за продажу.",
   'tk3.r5': "Часть дохода игры идёт в пул игроков и на выкуп токена.",
   'tk3.risk': "Цену токена определяет рынок. Эти правила усложняют слив, но не являются обещанием прибыли.",
-  'tok.what': '{sym} — собственный токен игры в блокчейне TON. Очки аирдропа, которые ты собираешь сейчас, будут обменяны на него.',
+  'sol.title': "Solana-кошелёк",
+  'sol.sub': "Сюда придёт твой аирдроп {sym}. TON-кошелёк остаётся для покупок в магазине.",
+  'sol.add': "Добавить Solana-кошелёк",
+  'sol.manual_t': "Вставь адрес своего Solana-кошелька (Phantom, Solflare, Backpack…). Это 32–44 буквы и цифры. Никому не давай сид-фразу — нужен только адрес.",
+  'sol.ok': "Solana-кошелёк сохранён",
+  'sol.off_ok': "Solana-кошелёк отвязан",
+  'err.sol_address': "Это не адрес Solana",
+  'tok.what': "{sym} — собственный токен игры в блокчейне Solana. Очки аирдропа, которые ты собираешь сейчас, будут обменяны на него.",
   'tok.supply': "100 000 000 — выпуск один раз, больше не будет никогда",
   'tok.status': 'Сезон 0: собираем очки',
   'tok.how': 'Как работает аирдроп',
@@ -2869,7 +2897,7 @@ LANGS.ru = {
   'tok.how1': 'Пул заранее фиксирован и каждый год уменьшается вдвое — больше игроков не печатают больше токенов.',
   'tok.how2': 'Боты и мультиаккаунты не получают ничего, поэтому доли честных игроков больше.',
   'tok.how3': 'Игровые $ и кристаллы никогда не обмениваются на токен — только очки.',
-  'tok.how4': 'После запуска ты заберёшь {sym} на свой TON-кошелёк; часть открывается постепенно, чтобы цену не обвалили.',
+  'tok.how4': "После запуска ты заберёшь {sym} на свой Solana-кошелёк; часть открывается постепенно, чтобы цену не обвалили.",
   'tok.alloc': 'Кому достанутся 100 миллионов',
   'tok.a_players': 'Игрокам: ежедневный пул наград',
   'tok.a_liq': 'Ликвидность и листинг',
@@ -2882,9 +2910,9 @@ LANGS.ru = {
   'tok.s1': 'Сезон 0: очки',
   'tok.s1d': 'Играй, зови друзей, собирай очки. Боты отсеиваются.',
   'tok.s2': 'Кошельки и проверка',
-  'tok.s2d': 'Подключение TON-кошелька, финальная проверка на ботов, снимок очков.',
+  'tok.s2d': "Привязка Solana-кошелька, финальная проверка на ботов, снимок очков.",
   'tok.s3': 'Запуск токена (TGE)',
-  'tok.s3d': '{sym} выходит в TON, очки превращаются в токены, торговля на бирже TON.',
+  'tok.s3d': "{sym} выходит в Solana, очки превращаются в токены, торговля на биржах Solana.",
   'tok.now': 'сейчас',
   'tok.next': 'дальше',
   'tok.later': 'потом',
@@ -2947,7 +2975,7 @@ LANGS.ru = {
   'tk2.my_share': "Твоя доля",
   'tk2.est_hint': "Оценка твоей части раннего аирдропа Сезона 0 (8 млн {sym}). Меняется каждый день, пока все играют, — а ботов уберём до снимка.",
   'tk2.d_players': "выплачивается каждый день за игру, вдвое меньше каждый год",
-  'tk2.d_liq': "в пуле STON.fi, LP заблокированы на 2 года",
+  'tk2.d_liq': "в пуле Solana DEX, LP заблокированы на 2 года",
   'tk2.d_team': "12 месяцев — ничего, потом открывается 36 месяцев",
   'tk2.d_mkt': "открывается помесячно 24 месяца",
   'tk2.d_treasury': "заблокировано на 12 месяцев, тратится по голосованию игроков",
@@ -2959,9 +2987,9 @@ LANGS.ru = {
   'tk2.r1': "Сезон 0 · Игра и очки",
   'tk2.r1d': "Офис, команда, релизы игр, очки за игру, друзья, защита от ботов.",
   'tk2.r2': "Кошельки и проверка",
-  'tk2.r2d': "Подключение TON-кошелька, финальная проверка на ботов, снимок очков.",
+  'tk2.r2d': "Привязка Solana-кошелька, финальная проверка на ботов, снимок очков.",
   'tk2.r3': "Запуск {sym}",
-  'tk2.r3d': "Листинг на бирже TON, ликвидность заблокирована, аирдроп открывается частями — без обвала цены.",
+  'tk2.r3d': "Листинг в Solana (Jupiter), ликвидность заблокирована, аирдроп открывается частями — без обвала цены.",
   'tk2.r4': "Сезон 1 · {sym} в игре",
   'tk2.r4d': "Турниры студий с призовыми, гильдии, ежедневный пул токенов за игру.",
   'tk2.r5': "Сезон 2 · NFT и рынок",
@@ -3008,7 +3036,7 @@ LANGS.ru = {
   'help.cash': 'Игровые деньги: зарплаты, найм, улучшения и этажи. Остаются в игре.',
   'help.gems': 'Для бустов (Турбо, Хайп). Дают хиты, цели, квесты, друзья и магазин.',
   'help.pts': 'Твой счёт для аирдропа. Растёт только от реального прогресса; позже меняется на {sym}.',
-  'help.token': 'Токен игры в TON. Запуск после Сезона 0; очки превратятся в {sym}.',
+  'help.token': "Токен игры в Solana. Запуск после Сезона 0; очки превратятся в {sym}.",
   'help.more_token': 'Про токен',
   'help.tutorial': 'Пройти обучение снова',
   'ads.btn': 'Посмотреть рекламу',
@@ -3353,7 +3381,7 @@ LANGS.uk = {
   'tut.later': 'Пізніше',
   'tut.skip': 'Пропустити навчання',
   'mk.live': "курс у реальному часі",
-  'mk.buy': "Купити на STON.fi",
+  'mk.buy': "Купити на Jupiter",
   'mk.buy_s': "Купити",
   'mk.chart': "Відкрити графік",
   'mk.vol': "Обсяг 24г",
@@ -3361,14 +3389,14 @@ LANGS.uk = {
   'mk.cap': "Капіталізація",
   'mk.bal': "У тебе в гаманці",
   'mk.bal_load': "Завантажуємо баланс…",
-  'mk.bal_none': "Підключи TON-гаманець, щоб бачити свої токени",
+  'mk.bal_none': "Додай Solana-гаманець, щоб бачити свої токени",
   'mk.r_24h': "24г",
   'mk.r_7d': "7д",
   'mk.r_30d': "30д",
   'mk.collecting': "Графік з’явиться, коли накопичаться дані про ціну",
   'mk.no_price': "Курс поки завантажується. Купити можна вже зараз.",
-  'mk.h1': "Натисни «Купити на STON.fi» — відкриється обмін TON на токен",
-  'mk.h2': "Підключи свій TON-гаманець у STON.fi й обери, скільки {sym} купити",
+  'mk.h1': "Натисни «Купити на Jupiter» — відкриється обмін SOL на токен",
+  'mk.h2': "Підключи Phantom, Solflare чи інший Solana-гаманець і вибери, скільки {sym} купити",
   'mk.h3': "Токени {sym} одразу потраплять у твій гаманець — баланс з’явиться тут",
   'mk.risk': "Курс токена змінюється і може як рости, так і падати. Купуй лише на суму, яку не шкода втратити. Це не фінансова порада.",
   'role.qa.name': "QA-тестер",
@@ -3399,12 +3427,12 @@ LANGS.uk = {
   'loc.here': "Ви тут",
   'loc.next': "Після IPO студія переїде: {name}",
   'mk.soon': "Незабаром",
-  'mk.soon_t': "Незабаром: купівля {sym} на STON.fi",
-  'mk.soon_s': "Лістинг на біржі TON",
-  'mk.soon_p': "Зовсім скоро токен {sym} зʼявиться на біржі STON.fi — і купити його можна буде просто звідси, з гри.",
-  'mk.soon_1': "Кнопка «Купити» відкриє обмін TON → {sym} у STON.fi",
+  'mk.soon_t': "Скоро: купівля {sym} у Solana",
+  'mk.soon_s': "Лістинг у мережі Solana",
+  'mk.soon_p': "Зовсім скоро токен {sym} з’явиться в мережі Solana — і купити його можна буде просто звідси, з гри.",
+  'mk.soon_1': "Кнопка «Купити» відкриє обмін SOL → {sym} у Jupiter",
   'mk.soon_2': "Курс, графік і обсяг торгів оновлюватимуться в реальному часі",
-  'mk.soon_3': "Куплені {sym} одразу зʼявляться у твоєму TON-гаманці",
+  'mk.soon_3': "Куплені {sym} одразу з’являться у твоєму Solana-гаманці",
   'mk.soon_ch': "Стежити за новинами в каналі",
   'office.bubble_h.v2': "До справи!",
   'office.bubble_h.v3': "Начальнику, є справа!",
@@ -3470,7 +3498,7 @@ LANGS.uk = {
   'tk3.locked': "заблоковано",
   'tk3.at_tge': "на старті",
   'tk3.v_players': "на старті — жодного токена, роздається щодня за гру з першого дня",
-  'tk3.v_liq': "усе йде в пул {sym}/TON, LP-токени заблоковані на 2 роки",
+  'tk3.v_liq': "усе йде в пул {sym}/SOL, LP-токени заблоковані на 2 роки",
   'tk3.v_team': "12 місяців блокування, потім відкривається щомісяця 36 місяців",
   'tk3.v_mkt': "по 1/24 на місяць, лише на турніри й партнерів",
   'tk3.v_treasury': "заблоковано на 12 місяців, потім — лише за голосуванням гравців",
@@ -3482,7 +3510,14 @@ LANGS.uk = {
   'tk3.r4': "Тримати {sym} у грі вигідно — бонуси за холд, а не за продаж.",
   'tk3.r5': "Частина доходу гри йде в пул гравців і на викуп токена.",
   'tk3.risk': "Ціну токена визначає ринок. Ці правила ускладнюють злив, але не є обіцянкою прибутку.",
-  'tok.what': '{sym} — власний токен гри в блокчейні TON. Бали аірдропу, які ти збираєш зараз, буде обміняно на нього.',
+  'sol.title': "Solana-гаманець",
+  'sol.sub': "Сюди прийде твій аірдроп {sym}. TON-гаманець лишається для покупок у магазині.",
+  'sol.add': "Додати Solana-гаманець",
+  'sol.manual_t': "Встав адресу свого Solana-гаманця (Phantom, Solflare, Backpack…). Це 32–44 літери й цифри. Нікому не давай сид-фразу — потрібна лише адреса.",
+  'sol.ok': "Solana-гаманець збережено",
+  'sol.off_ok': "Solana-гаманець відв’язано",
+  'err.sol_address': "Це не адреса Solana",
+  'tok.what': "{sym} — власний токен гри в блокчейні Solana. Бали аірдропу, які ти збираєш зараз, буде обміняно на нього.",
   'tok.supply': "100 000 000 — випуск один раз, більше не буде ніколи",
   'tok.status': 'Сезон 0: збираємо бали',
   'tok.how': 'Як працює аірдроп',
@@ -3490,7 +3525,7 @@ LANGS.uk = {
   'tok.how1': 'Пул заздалегідь фіксований і щороку зменшується вдвічі — більше гравців не друкують більше токенів.',
   'tok.how2': 'Боти й мультиакаунти не отримують нічого, тому частки чесних гравців більші.',
   'tok.how3': 'Ігрові $ і кристали ніколи не обмінюються на токен — лише бали.',
-  'tok.how4': 'Після запуску ти забереш {sym} на свій TON-гаманець; частина відкривається поступово, щоб ціну не обвалили.',
+  'tok.how4': "Після запуску ти забереш {sym} на свій Solana-гаманець; частина відкривається поступово, щоб ціну не обвалили.",
   'tok.alloc': 'Кому дістанеться 100 мільйонів',
   'tok.a_players': 'Гравцям: щоденний пул нагород',
   'tok.a_liq': 'Ліквідність і лістинг',
@@ -3503,9 +3538,9 @@ LANGS.uk = {
   'tok.s1': 'Сезон 0: бали',
   'tok.s1d': 'Грай, клич друзів, збирай бали. Боти відсіюються.',
   'tok.s2': 'Гаманці й перевірка',
-  'tok.s2d': 'Підключення TON-гаманця, фінальна перевірка на ботів, знімок балів.',
+  'tok.s2d': "Прив’язка Solana-гаманця, фінальна перевірка на ботів, знімок балів.",
   'tok.s3': 'Запуск токена (TGE)',
-  'tok.s3d': '{sym} виходить у TON, бали перетворюються на токени, торгівля на біржі TON.',
+  'tok.s3d': "{sym} виходить у Solana, бали перетворюються на токени, торгівля на біржах Solana.",
   'tok.now': 'зараз',
   'tok.next': 'далі',
   'tok.later': 'потім',
@@ -3568,7 +3603,7 @@ LANGS.uk = {
   'tk2.my_share': "Твоя частка",
   'tk2.est_hint': "Оцінка твоєї частини раннього аірдропу Сезону 0 (8 млн {sym}). Змінюється щодня, поки всі грають, — а ботів приберемо до знімка.",
   'tk2.d_players': "виплачується щодня за гру, щороку вдвічі менше",
-  'tk2.d_liq': "у пулі STON.fi, LP заблоковані на 2 роки",
+  'tk2.d_liq': "у пулі Solana DEX, LP заблоковані на 2 роки",
   'tk2.d_team': "12 місяців — нічого, потім відкривається 36 місяців",
   'tk2.d_mkt': "відкривається щомісяця 24 місяці",
   'tk2.d_treasury': "заблоковано на 12 місяців, витрачається за голосуванням гравців",
@@ -3580,9 +3615,9 @@ LANGS.uk = {
   'tk2.r1': "Сезон 0 · Гра і бали",
   'tk2.r1d': "Офіс, команда, релізи ігор, бали за гру, друзі, захист від ботів.",
   'tk2.r2': "Гаманці й перевірка",
-  'tk2.r2d': "Підключення TON-гаманця, фінальна перевірка на ботів, знімок балів.",
+  'tk2.r2d': "Прив’язка Solana-гаманця, фінальна перевірка на ботів, знімок балів.",
   'tk2.r3': "Запуск {sym}",
-  'tk2.r3d': "Лістинг на біржі TON, ліквідність заблокована, аірдроп відкривається частинами — без обвалу ціни.",
+  'tk2.r3d': "Лістинг у Solana (Jupiter), ліквідність заблокована, аірдроп відкривається частинами — без обвалу ціни.",
   'tk2.r4': "Сезон 1 · {sym} у грі",
   'tk2.r4d': "Турніри студій із призовими, гільдії, щоденний пул токенів за гру.",
   'tk2.r5': "Сезон 2 · NFT і ринок",
@@ -3629,7 +3664,7 @@ LANGS.uk = {
   'help.cash': 'Ігрові гроші: зарплати, найм, покращення й поверхи. Лишаються в грі.',
   'help.gems': 'Для бустів (Турбо, Хайп). Дають хіти, цілі, квести, друзі й магазин.',
   'help.pts': 'Твій рахунок для аірдропу. Росте лише від справжнього прогресу; пізніше обмінюється на {sym}.',
-  'help.token': 'Токен гри в TON. Запуск після Сезону 0; бали перетворяться на {sym}.',
+  'help.token': "Токен гри в Solana. Запуск після Сезону 0; бали перетворяться на {sym}.",
   'help.more_token': 'Про токен',
   'help.tutorial': 'Пройти навчання знову',
   'ads.btn': 'Переглянути рекламу',
@@ -7358,6 +7393,7 @@ const netApi = {
   lang: (lang) => (NET.mode === 'online' ? api('POST', '/api/lang', { lang }) : Promise.resolve({ ok: true })),
   forget: () => api('POST', '/api/forget', { confirm: true }),
   wallet: (body) => api('POST', '/api/wallet', body),
+  sol: (body) => api('POST', '/api/sol', body),
   tonPayload: () => api('GET', '/api/ton/payload'),
   market: (range) => api('GET', '/api/market?range=' + encodeURIComponent(range || '24h')),
   marketBal: () => api('GET', '/api/market/bal'),
@@ -8936,7 +8972,7 @@ function donatePanel() {
     ${d.top && d.top.length ? `<h3 class="h3">💖 ${L('don.wall')}</h3><ol class="board">${d.top.map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><span class="yel">${fmt(x.stars)} ⭐</span></li>`).join('')}</ol>` : ''}
   </section>`;
 }
-/* ---------- token market: live price on STON.fi, chart, holdings, buy ---------- */
+/* ---------- token market: live price on Solana (Jupiter), chart, holdings, buy ---------- */
 function fmtUsdP(v) { if (!v) return '$0'; if (v >= 1) return '$' + v.toFixed(3); if (v >= 0.01) return '$' + v.toFixed(4); return '$' + v.toPrecision(3); }
 function fmtUsdBig(v) { if (v === null || v === undefined) return '—'; return v >= 1e6 ? '$' + (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? '$' + (v / 1e3).toFixed(1) + 'K' : '$' + v.toFixed(0); }
 function mktSpark(hist, up) {
@@ -8951,9 +8987,9 @@ function mktSpark(hist, up) {
 }
 function mktSoon(mini) {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE'), ch = NET.cfg && NET.cfg.links && NET.cfg.links.channel;
-  if (mini) return `<section class="panel mkt mini soon" data-act="mktab"><span class="mk-logo">${I('ton', 22)}</span><div class="mk-mini-t"><b>${L('mk.soon_t', { sym })}</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></section>`;
+  if (mini) return `<section class="panel mkt mini soon" data-act="mktab"><span class="mk-logo">${I('sol', 22)}</span><div class="mk-mini-t"><b>${L('mk.soon_t', { sym })}</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></section>`;
   return `<section class="panel mkt soon">
-    <div class="mk-h"><span class="mk-logo">${I('ton', 26)}</span><div class="mk-name"><b>${sym} × STON.fi</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></div>
+    <div class="mk-h"><span class="mk-logo">${I('sol', 26)}</span><div class="mk-name"><b>${sym} × Solana</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></div>
     <h2 class="h2">${L('mk.soon_t', { sym })}</h2>
     <p class="sub">${L('mk.soon_p', { sym })}</p>
     <ul class="bul"><li>${L('mk.soon_1', { sym })}</li><li>${L('mk.soon_2')}</li><li>${L('mk.soon_3', { sym })}</li></ul>
@@ -8969,25 +9005,35 @@ function mktPanel(mini) {
   if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p><button class="btn big glow wide" data-act="mkbuy">${L('mk.buy')}</button></section>`;
   const ch = m.ch24, up = ch === null ? true : ch >= 0;
   const chip = ch === null ? '' : `<span class="mk-ch ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</span>`;
-  const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : `<span class="mk-logo">${I('ton', 26)}</span>`;
+  const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : `<span class="mk-logo">${I('sol', 26)}</span>`;
   if (mini) return `<section class="panel mkt mini" data-act="mktab">${logo}<div class="mk-mini-t"><b>${sym}</b><small>${L('mk.live')}</small></div><div class="mk-mini-p"><b class="px">${fmtUsdP(m.usd)}</b>${chip}</div><span class="mk-go">${L('mk.buy_s')} ›</span></section>`;
-  const bal = UI.hub.mktBal, hasW = !!(NET.eco && NET.eco.wallet);
+  const bal = UI.hub.mktBal, hasW = !!(NET.eco && NET.eco.sol);
   const rng = ['24h', '7d', '30d'].map((x) => `<button class="${(r.range || '24h') === x ? 'on' : ''}" data-act="mkrange:${x}">${L('mk.r_' + x)}</button>`).join('');
   return `<section class="panel mkt">
-    <div class="mk-h">${logo}<div class="mk-name"><b>${sym}</b><small>STON.fi · ${L('mk.live')}</small></div><span class="mk-live"><i></i>LIVE</span></div>
+    <div class="mk-h">${logo}<div class="mk-name"><b>${sym}</b><small>Solana · Jupiter · ${L('mk.live')}</small></div><span class="mk-live"><i></i>LIVE</span></div>
     <div class="mk-price"><b class="px">${fmtUsdP(m.usd)}</b>${chip}</div>
-    ${m.ton ? `<div class="mk-ton">≈ ${m.ton < 0.001 ? m.ton.toPrecision(3) : m.ton.toFixed(5)} TON</div>` : ''}
+    ${m.ton ? `<div class="mk-ton">≈ ${m.ton < 0.001 ? m.ton.toFixed(Math.min(14, 2 - Math.floor(Math.log10(m.ton)))) : m.ton.toFixed(5)} SOL</div>` : ''}
     <div class="mk-rng seg">${rng}</div>
     ${mktSpark(r.hist, up)}
     <div class="mk-stats"><div><small>${L('mk.vol')}</small><b>${fmtUsdBig(m.vol24)}</b></div><div><small>${L('mk.liq')}</small><b>${fmtUsdBig(m.liq)}</b></div><div><small>${L('mk.cap')}</small><b>${fmtUsdBig(m.fdv)}</b></div></div>
-    <div class="mk-mine">${hasW ? (bal === null || bal === undefined ? `<small>${L('mk.bal_load')}</small>` : `<small>${L('mk.bal')}</small><b>${fmt(Math.floor(bal))} ${sym}</b><span class="mut">≈ ${fmtUsdP(bal * m.usd).replace('$0', '$0.00')}</span>`) : `<small>${L('mk.bal_none')}</small><button class="btn ghost sm" data-act="wallet:connect">${L('wallet.connect')}</button>`}</div>
-    <button class="btn big glow wide mk-buy" data-act="mkbuy">${I('ton', 18)} ${L('mk.buy')}</button>
+    <div class="mk-mine">${hasW ? (bal === null || bal === undefined ? `<small>${L('mk.bal_load')}</small>` : `<small>${L('mk.bal')}</small><b>${fmt(Math.floor(bal))} ${sym}</b><span class="mut">≈ ${(bal * m.usd >= 1000 ? fmtUsdBig(bal * m.usd) : fmtUsdP(bal * m.usd).replace('$0', '$0.00'))}</span>`) : `<small>${L('mk.bal_none')}</small><button class="btn ghost sm" data-act="sol:set">${L('sol.add')}</button>`}</div>
+    <button class="btn big glow wide mk-buy" data-act="mkbuy">${I('sol', 18)} ${L('mk.buy')}</button>
     <button class="btn ghost sm wide" data-act="mkchart">${I('chart', 14)} ${L('mk.chart')}</button>
     <ol class="mk-how"><li>${L('mk.h1')}</li><li>${L('mk.h2', { sym })}</li><li>${L('mk.h3', { sym })}</li></ol>
     <p class="hint">${L('mk.risk')}</p>
   </section>`;
 }
 
+function solCard(e) {
+  if (NET.mode === 'demo') return '';
+  const w = e.sol;
+  return `<section class="panel wallet solw">
+    <div class="sec-h"><div><h2 class="h2">${I('sol', 16)} ${L('sol.title')}</h2><p class="sub">${L('sol.sub', { sym: esc((NET.cfg && NET.cfg.symbol) || 'OFFICE') })}</p></div></div>
+    ${w ? `<div class="waddr">${I('check', 14, 'grn')}<code>${esc(shortAddr(w))}</code></div>
+      <div class="row2"><button class="btn ghost sm" data-act="sol:set">${L('wallet.change')}</button><button class="btn ghost sm" data-act="sol:off">${L('wallet.disconnect')}</button></div>`
+    : `<button class="btn big glow wide" data-act="sol:set">${I('sol', 16)} ${L('sol.add')}</button>`}
+  </section>`;
+}
 function hubToken() {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
   const e = NET.eco || {};
@@ -9017,7 +9063,7 @@ function hubToken() {
   const road = [['r1', 'now'], ['r2', 'next'], ['r3', 'next'], ['r4', 'later'], ['r5', 'later'], ['r6', 'later']];
   const uses = ['u1', 'u2', 'u3', 'u4'];
   return `${mktPanel()}<section class="panel tokhero2">
-    <div class="coin3d"><div class="coin-face">${I('ton', 46)}</div></div>
+    <div class="coin3d"><div class="coin-face">${I('sol', 46)}</div></div>
     <h2 class="op-title">${sym}</h2>
     <p class="sub">${L('tok.what', { sym })}</p>
     <div class="hero-stats">
@@ -9037,6 +9083,7 @@ function hubToken() {
     </div>
     <p class="hint">${L('tk2.est_hint', { sym })}</p>
   </section>
+  ${solCard(e)}
   <section class="panel">
     <h2 class="h2">${I('chart', 16)} ${L('tok.alloc')}</h2>
     <div class="donut-wrap">
@@ -10300,6 +10347,19 @@ const ACT = {
       netApi.wallet({ address: v }).then((r) => { UIH.onWallet(r); if (r && r.ok) closeModal(); });
     }
   },
+  sol: (what) => {
+    if (what === 'set') return showSolWallet();
+    if (what === 'off') return netApi.sol({ disconnect: true }).then((r) => { if (r && r.ok) { UI.hub.mktBal = null; toast(L('sol.off_ok'), 'good', 'sol'); } render(true); });
+    if (what === 'save') {
+      const inp = $('#soladdr');
+      const v = inp ? inp.value.trim() : '';
+      if (!v) return;
+      netApi.sol({ address: v }).then((r) => {
+        if (r && r.ok) { closeModal(); toast(L('sol.ok'), 'good', 'sol'); confettiSmall(); UI.hub.mktBal = undefined; UI.hub.loadedAt.mkt = 0; loadMarket(true); } else errToast((r && r.err) || 'sol_address');
+        render(true);
+      });
+    }
+  },
   chal: (ans) => answerChallenge(ans),
   retry: () => location.reload(),
   mkbuy: () => { const m = UI.hub.mkt; if (m && m.buy) { openLink(m.buy); haptic && haptic('medium'); } },
@@ -10664,6 +10724,14 @@ function showManualWallet() {
     <input id="waddr" class="inp" placeholder="UQ…" autocomplete="off" spellcheck="false" maxlength="80">
     <button class="btn big" data-act="wallet:save">${L('wallet.save')}</button>`, { id: 'wallet' });
   const inp = $('#waddr');
+  if (inp) inp.addEventListener('keydown', (e) => e.stopPropagation());
+}
+function showSolWallet() {
+  openModal(`<h2 class="h2">${I('sol', 16)} ${L('sol.title')}</h2>
+    <p class="sub">${L('sol.manual_t')}</p>
+    <input id="soladdr" class="inp" placeholder="7xKX…" autocomplete="off" spellcheck="false" maxlength="48" value="${esc((NET.eco && NET.eco.sol) || '')}">
+    <button class="btn big" data-act="sol:save">${L('wallet.save')}</button>`, { id: 'sol' });
+  const inp = $('#soladdr');
   if (inp) inp.addEventListener('keydown', (e) => e.stopPropagation());
 }
 function showChallenge(ch) {

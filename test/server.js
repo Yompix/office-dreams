@@ -365,6 +365,20 @@ const Ton = require('../server/ton.js');
     assert.ok(U.getUser(ctx, 5005).risk_hard > h0);
     assert.ok(U.getUser(ctx, 5004).risk_hard > 0);
   });
+  await test('solana wallet: base58 address is saved for the airdrop, bad ones rejected, a shared address raises risk', async () => {
+    const P = new Player(env, 5011); await P.auth();
+    const sol = '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
+    assert.equal((await P.api('POST', '/api/sol', { address: 'UQCVnGKCqV4RlcKVppaFi6CZic2oB3JTpgW4ZF7ifPO0UTsG' })).json.err, 'sol_address');
+    assert.equal((await P.api('POST', '/api/sol', { address: '0OIl' + sol.slice(4) })).json.err, 'sol_address');
+    const ok = await P.api('POST', '/api/sol', { address: ' ' + sol + ' ' });
+    assert.equal(ok.json.ok, true); assert.equal(ok.json.eco.sol, sol);
+    const Q = new Player(env, 5012); await Q.auth();
+    const h0 = U.getUser(ctx, 5012).risk_hard;
+    await Q.api('POST', '/api/sol', { address: sol });
+    assert.ok(U.getUser(ctx, 5012).risk_hard > h0);
+    const off = await P.api('POST', '/api/sol', { disconnect: true });
+    assert.equal(off.json.eco.sol, null);
+  });
 
   console.log('Anti-bot');
   await test('a normal player stays "ok"', async () => {
