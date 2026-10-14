@@ -17,7 +17,10 @@ const REF_PCT = Number(env.REF_PCT || 0.20); // частка рейку, що й
 const WD_FEE = Number(env.WD_FEE || 0.05), WD_FEE_MIN = Number(env.WD_FEE_MIN || 50), WD_MIN = Number(env.WD_MIN || 1000);
 const MIN_BET = 10, MAX_BET = 5000;
 // бот-суперник: сідає грати, коли на виклик ніхто не відповів; грає чесно (без підглядання), окремий рахунок 'bot'
-const BOT_ON = env.BOT_ON === "1", BOT_WAIT = Number(env.BOT_WAIT || 15) * 1000, BOT_ID = "bot", BOT_NAME = "🤖 Бот";
+let botOn = env.BOT_ON === "1"; const BOT_WAIT = Number(env.BOT_WAIT || 15) * 1000, BOT_ID = "bot", BOT_NAME = "🤖 Бот";
+// імена бота: щоразу інше, значок 🤖 лишається, щоб було видно, що це бот
+const BOT_NAMES = ["Макс", "Лена", "Артем", "Катя", "Денис", "Оля", "Ігор", "Настя", "Влад", "Юля", "Саша", "Діма", "Марина", "Костя", "Віка", "Рома", "Таня", "Женя", "Олег", "Іра"];
+const botName = () => "🤖 " + BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
 const WALLET_MNEMONIC = env.WALLET_MNEMONIC || ""; // гаманець автовиплат (необов'язково)
 const WALLET_VER = (env.WALLET_VERSION || "v5r1").toLowerCase();
 const AUTO_MAX = Number(env.AUTO_PAY_MAX_TON || 5), AUTO_DAY = Number(env.AUTO_PAY_DAY_TON || 30);
@@ -809,10 +812,10 @@ async function botAct(m: Match) {
   finally { m.bBusy = false; }
 }
 async function botTick() {
-  if (!BOT_ON) return;
+  if (!botOn) return;
   const online = new Set([...socks].map((x: any) => x.data.uid)), now = Date.now();
-  for (const c of [...chals.values()]) if (c.uid !== BOT_ID && now - c.at > BOT_WAIT && online.has(c.uid) && (c.game !== "chess" || ChessLib)) { try { await mxJoinAs(BOT_ID, BOT_NAME, c.id); } catch (e: any) { console.error("bot join", e.message); } }
-  for (const d of [...duels.values()]) if (d.uid !== BOT_ID && now - d.at > BOT_WAIT && online.has(d.uid)) { try { await duelJoinAs(BOT_ID, BOT_NAME, d.id); } catch (e: any) { console.error("bot duel", e.message); } }
+  for (const c of [...chals.values()]) if (c.uid !== BOT_ID && now - c.at > BOT_WAIT && online.has(c.uid) && (c.game !== "chess" || ChessLib)) { try { await mxJoinAs(BOT_ID, botName(), c.id); } catch (e: any) { console.error("bot join", e.message); } }
+  for (const d of [...duels.values()]) if (d.uid !== BOT_ID && now - d.at > BOT_WAIT && online.has(d.uid)) { try { await duelJoinAs(BOT_ID, botName(), d.id); } catch (e: any) { console.error("bot duel", e.message); } }
   for (const m of [...matches.values()]) if (!m.over && m.p.includes(BOT_ID)) await botAct(m);
 }
 setInterval(() => { botTick().catch((e) => console.error("bot", e.message)); }, 500);
@@ -1296,10 +1299,15 @@ async function onCommand(m: any) {
     const ex = await getUserRow(uid); if (!ex || !Number.isFinite(coins) || coins === 0) return void tg("sendMessage", { chat_id: chat, text: "Формат: /grant <telegram_id> <монети>. Гравець має хоч раз відкрити гру." });
     await db.begin((t: any) => adj(t, uid, coins, "grant", null, "admin")); pushBal(uid);
     tg("sendMessage", { chat_id: chat, text: `Готово: ${uid} ${coins > 0 ? "+" : ""}${coins}` });
+  } else if (text.startsWith("/bot")) {
+    const a = (text.split(/\s+/)[1] || "").toLowerCase();
+    if (a === "on" || a === "off") { botOn = a === "on"; await db`insert into parts(name, body) values('cfg_bot', ${botOn ? "1" : "0"}) on conflict (name) do update set body = excluded.body`; }
+    const bt = await getBal(BOT_ID).catch(() => 0);
+    tg("sendMessage", { chat_id: chat, text: `🤖 Бот: ${botOn ? "увімкнено" : "вимкнено"} (сідає через ${BOT_WAIT / 1000} с)\nРезультат: ${bt - 10000000 >= 0 ? "+" : ""}${bt - 10000000} монет\n/bot on — увімкнути, /bot off — вимкнути` });
   } else if (text.startsWith("/stats")) {
     const bt = await getBal(BOT_ID).catch(() => 0);
     const [h, c, w, hd] = await Promise.all([getBal("house"), db`select count(*)::int as c from users where id not in ('house', 'bot')`, db`select count(*)::int as c from withdrawals where status = 'pending'`, db`select coalesce(sum(amount),0) as s from holds`]);
-    tg("sendMessage", { chat_id: chat, text: `📊 Дохід казино (рейк+комісії): ${h} монет ≈ ${(h / TON_COINS).toFixed(2)} TON\nГравців: ${N(c[0].c)}\nВиводів в очікуванні: ${N(w[0].c)}\nМонет на столах/в іграх: ${N(hd[0].s)}\n🤖 Бот: ${BOT_ON ? "увімкнено" : "вимкнено"}, результат ${bt - 10000000 >= 0 ? "+" : ""}${bt - 10000000} монет` });
+    tg("sendMessage", { chat_id: chat, text: `📊 Дохід казино (рейк+комісії): ${h} монет ≈ ${(h / TON_COINS).toFixed(2)} TON\nГравців: ${N(c[0].c)}\nВиводів в очікуванні: ${N(w[0].c)}\nМонет на столах/в іграх: ${N(hd[0].s)}\n🤖 Бот: ${botOn ? "увімкнено" : "вимкнено"}, результат ${bt - 10000000 >= 0 ? "+" : ""}${bt - 10000000} монет` });
   } else if (text.startsWith("/pending")) {
     const ws = await db`select * from withdrawals where status = 'pending' order by id`;
     if (!ws.length) return void tg("sendMessage", { chat_id: chat, text: "Немає виводів в очікуванні" });
@@ -1464,6 +1472,7 @@ async function tonPoll() {
 await initDb(); await recoverHolds();
 await initPayer();
 autoOn = (await db`select body from parts where name = 'cfg_auto'`)[0]?.body === "1";
+{ const b = (await db`select body from parts where name = 'cfg_bot'`)[0]?.body; if (b === "1" || b === "0") botOn = b === "1"; }
 {
   const prs = await db`select name, body from parts where name like 'html%' order by name`;
   HTML = prs.map((r: any) => r.body).join("");
