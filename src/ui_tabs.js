@@ -537,7 +537,7 @@ function hubHome() {
   const usedPct = Math.round((e.used || 0) * 100);
   const src = Object.keys(e.bySrc || {}).filter((k) => e.bySrc[k] > 0);
   const ci = e.checkin;
-  return `${demoNote()}${riskNote(e)}
+  return `${demoNote()}${riskNote(e)}${mktPanel(true)}
   <section class="panel ptsp">
     <div class="season px">${esc((NET.cfg && NET.cfg.season && NET.cfg.season.name) || 'Season 0')}</div>
     <div class="bigpts">${I('pts', 34)}<b id="bigpts">${fmtPts(e.pts)}</b></div>
@@ -719,6 +719,46 @@ function donatePanel() {
     ${d.top && d.top.length ? `<h3 class="h3">💖 ${L('don.wall')}</h3><ol class="board">${d.top.map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><span class="yel">${fmt(x.stars)} ⭐</span></li>`).join('')}</ol>` : ''}
   </section>`;
 }
+/* ---------- token market: live price on STON.fi, chart, holdings, buy ---------- */
+function fmtUsdP(v) { if (!v) return '$0'; if (v >= 1) return '$' + v.toFixed(3); if (v >= 0.01) return '$' + v.toFixed(4); return '$' + v.toPrecision(3); }
+function fmtUsdBig(v) { if (v === null || v === undefined) return '—'; return v >= 1e6 ? '$' + (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? '$' + (v / 1e3).toFixed(1) + 'K' : '$' + v.toFixed(0); }
+function mktSpark(hist, up) {
+  if (!hist || hist.length < 2) return `<div class="mk-nochart">${L('mk.collecting')}</div>`;
+  const W = 320, H = 96, ys = hist.map((p) => p[1]), lo = Math.min(...ys), hi = Math.max(...ys), sp = hi - lo || hi || 1;
+  const pts = hist.map((p, i) => [(i / (hist.length - 1)) * W, H - 6 - ((p[1] - lo) / sp) * (H - 14)]);
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+  const col = up ? '#2ee66b' : '#ff4d6d';
+  return `<svg class="mk-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="mkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".45"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${d}L${W} ${H}L0 ${H}Z" fill="url(#mkg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 6px ${col})"/>
+    <circle cx="${pts[pts.length - 1][0]}" cy="${pts[pts.length - 1][1]}" r="4" fill="${col}" class="mk-dot"/></svg>`;
+}
+function mktPanel(mini) {
+  if (!NET.cfg || !NET.cfg.market) return '';
+  const r = UI.hub.mkt;
+  if (!r || !r.on) return mini ? '' : `<section class="panel mkt"><div class="loading">${L('ui.loading')}</div></section>`;
+  const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFICE');
+  if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p><button class="btn big glow wide" data-act="mkbuy">${L('mk.buy')}</button></section>`;
+  const ch = m.ch24, up = ch === null ? true : ch >= 0;
+  const chip = ch === null ? '' : `<span class="mk-ch ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</span>`;
+  const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : `<span class="mk-logo">${I('ton', 26)}</span>`;
+  if (mini) return `<section class="panel mkt mini" data-act="mktab">${logo}<div class="mk-mini-t"><b>${sym}</b><small>${L('mk.live')}</small></div><div class="mk-mini-p"><b class="px">${fmtUsdP(m.usd)}</b>${chip}</div><span class="mk-go">${L('mk.buy_s')} ›</span></section>`;
+  const bal = UI.hub.mktBal, hasW = !!(NET.eco && NET.eco.wallet);
+  const rng = ['24h', '7d', '30d'].map((x) => `<button class="${(r.range || '24h') === x ? 'on' : ''}" data-act="mkrange:${x}">${L('mk.r_' + x)}</button>`).join('');
+  return `<section class="panel mkt">
+    <div class="mk-h">${logo}<div class="mk-name"><b>${sym}</b><small>STON.fi · ${L('mk.live')}</small></div><span class="mk-live"><i></i>LIVE</span></div>
+    <div class="mk-price"><b class="px">${fmtUsdP(m.usd)}</b>${chip}</div>
+    ${m.ton ? `<div class="mk-ton">≈ ${m.ton < 0.001 ? m.ton.toPrecision(3) : m.ton.toFixed(5)} TON</div>` : ''}
+    <div class="mk-rng seg">${rng}</div>
+    ${mktSpark(r.hist, up)}
+    <div class="mk-stats"><div><small>${L('mk.vol')}</small><b>${fmtUsdBig(m.vol24)}</b></div><div><small>${L('mk.liq')}</small><b>${fmtUsdBig(m.liq)}</b></div><div><small>${L('mk.cap')}</small><b>${fmtUsdBig(m.fdv)}</b></div></div>
+    <div class="mk-mine">${hasW ? (bal === null || bal === undefined ? `<small>${L('mk.bal_load')}</small>` : `<small>${L('mk.bal')}</small><b>${fmt(Math.floor(bal))} ${sym}</b><span class="mut">≈ ${fmtUsdP(bal * m.usd).replace('$0', '$0.00')}</span>`) : `<small>${L('mk.bal_none')}</small><button class="btn ghost sm" data-act="wallet:connect">${L('wallet.connect')}</button>`}</div>
+    <button class="btn big glow wide mk-buy" data-act="mkbuy">${I('ton', 18)} ${L('mk.buy')}</button>
+    <button class="btn ghost sm wide" data-act="mkchart">${I('chart', 14)} ${L('mk.chart')}</button>
+    <ol class="mk-how"><li>${L('mk.h1')}</li><li>${L('mk.h2', { sym })}</li><li>${L('mk.h3', { sym })}</li></ol>
+    <p class="hint">${L('mk.risk')}</p>
+  </section>`;
+}
+
 function hubToken() {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
   const e = NET.eco || {};
@@ -744,7 +784,7 @@ function hubToken() {
   const ymax = years[0][1];
   const road = [['r1', 'now'], ['r2', 'next'], ['r3', 'next'], ['r4', 'later'], ['r5', 'later'], ['r6', 'later']];
   const uses = ['u1', 'u2', 'u3', 'u4'];
-  return `<section class="panel tokhero2">
+  return `${mktPanel()}<section class="panel tokhero2">
     <div class="coin3d"><div class="coin-face">${I('ton', 46)}</div></div>
     <h2 class="op-title">${sym}</h2>
     <p class="sub">${L('tok.what', { sym })}</p>

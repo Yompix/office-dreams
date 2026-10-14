@@ -358,14 +358,30 @@ const ACT = {
   },
   chal: (ans) => answerChallenge(ans),
   retry: () => location.reload(),
+  mkbuy: () => { const m = UI.hub.mkt; if (m && m.buy) { openLink(m.buy); haptic && haptic('medium'); } },
+  mkchart: () => { const m = UI.hub.mkt; if (m && m.chart) openLink(m.chart); },
+  mkrange: (r) => { UI.mktRange = r; loadMarket(true); render(true); },
+  mktab: () => { UI.sub.drop = 'token'; render(true); loadHub('token'); },
   openbot: () => { if (NET.cfg && NET.cfg.bot) openLink('https://t.me/' + NET.cfg.bot + (NET.cfg.app ? '/' + NET.cfg.app : '')); },
   link: (k) => { const l = NET.cfg && NET.cfg.links && NET.cfg.links[k]; if (l) openLink(l); },
 };
 function confettiSmall() { confetti(40); }
 
+/* ---------- token market (STON.fi): price, chart, holdings; refreshed while the token tab is open ---------- */
+function loadMarket(force) {
+  if (NET.mode !== 'online' || !NET.cfg || !NET.cfg.market) return;
+  const now = Date.now();
+  if (!force && now - (UI.hub.loadedAt.mkt || 0) < 15000) return;
+  UI.hub.loadedAt.mkt = now;
+  netApi.market(UI.mktRange || '24h').then((r) => { if (r && r.ok) { UI.hub.mkt = r; UI.hubVer = (UI.hubVer || 0) + 1; render(); } }).catch(() => {});
+  netApi.marketBal().then((r) => { if (r && r.ok && r.bal !== UI.hub.mktBal) { UI.hub.mktBal = r.bal; UI.hubVer = (UI.hubVer || 0) + 1; render(); } }).catch(() => {});
+}
+setInterval(() => { if (UI.tab === 'drop' && (UI.sub.drop === 'token' || UI.sub.drop === 'home') && !document.hidden) loadMarket(); }, 15000);
+
 /* ---------- hub data ---------- */
 function loadHub(sub, force) {
   const now = Date.now();
+  if (sub === 'token' || sub === 'home') loadMarket(force);
   const key = sub === 'top' ? 'board' : sub === 'token' ? 'donate' : sub;
   if (!['tasks', 'friends', 'board', 'shop', 'home', 'donate'].includes(key)) return;
   if (key === 'home') { if (NET.mode === 'online' && (force || now - (UI.hub.loadedAt.home || 0) > 30000)) { UI.hub.loadedAt.home = now; netSync(); } if (!UI.hub.tasks) loadHub('tasks'); return; }

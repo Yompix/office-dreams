@@ -318,6 +318,8 @@ const netApi = {
   forget: () => api('POST', '/api/forget', { confirm: true }),
   wallet: (body) => api('POST', '/api/wallet', body),
   tonPayload: () => api('GET', '/api/ton/payload'),
+  market: (range) => api('GET', '/api/market?range=' + encodeURIComponent(range || '24h')),
+  marketBal: () => api('GET', '/api/market/bal'),
   adClaim: () => api('POST', '/api/ads/claim', {}),
 };
 // make sure the server has seen our latest actions before a call that depends on the game state

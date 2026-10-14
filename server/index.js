@@ -7,6 +7,7 @@ const Bot = require('./bot.js');
 const AB = require('./antibot.js');
 const PvP = require('./pvp.js');
 const TonPay = require('./tonpay.js');
+const Market = require('./market.js');
 
 function main() {
   if (!cfg.botToken && !cfg.devAuth) {
@@ -30,6 +31,10 @@ function main() {
   timers.push(setInterval(() => { try { ctx.db.raw.exec('PRAGMA wal_checkpoint(PASSIVE)'); } catch (_) { /* ignore */ } }, 10 * 60000));
   // TON payments: credit transfers that arrived after the player closed the game
   timers.push(setInterval(() => { TonPay.sweep(ctx).then((r) => { if (r.paid) ctx.log('ton payments credited', r); }).catch((e) => ctx.log('ton sweep', e.message)); }, 60000));
+
+  // token price (STON.fi): poll right away and then every minute
+  const mk = () => Market.poll(ctx, Date.now()).catch((e) => ctx.log('market', e.message));
+  mk(); timers.push(setInterval(mk, Market.POLL_MS));
 
   let poller = null;
   if (cfg.botToken && cfg.botMode !== 'off') {

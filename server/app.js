@@ -18,6 +18,7 @@ const Ton = require('./ton.js');
 const Bot = require('./bot.js');
 const Admin = require('./admin.js');
 const TonPay = require('./tonpay.js');
+const Market = require('./market.js');
 const TZC = require('./tzcountry.json');
 
 function createContext(cfg, opts = {}) {
@@ -127,6 +128,7 @@ function publicConfig(ctx) {
     eco: { D: c.eco.dailyD, l1: c.eco.refL1, l2: c.eco.refL2, cashEach: c.eco.inviteCash, gemsEach: c.eco.inviteGems, pass: c.eco.passBoost },
     shop: Eco.SHOP,
     tonPay: TonPay.enabled(c),
+    market: Market.enabled(c),
     tickMs: E.TICK * 1000,
     turnstile: c.turnstile.site || '',
     checkin: Eco.CHECKIN,
@@ -202,6 +204,7 @@ async function handleApi(ctx, req, res, url, ip) {
   const p = url.pathname;
   const now = ctx.now();
   if (method === 'GET' && p === '/api/config') return sendJson(res, 200, publicConfig(ctx));
+  if (method === 'GET' && p === '/api/market') return sendJson(res, 200, Market.view(ctx, now, String(url.searchParams.get('range') || '24h')));
   let body = {};
   if (method === 'POST') {
     let raw = '';
@@ -270,6 +273,7 @@ async function handleApi(ctx, req, res, url, ip) {
     });
     return sendJson(res, 200, out);
   }
+  if (method === 'GET' && p === '/api/market/bal') return sendJson(res, 200, await Market.balance(ctx, u0, now));
   if (method === 'GET' && p === '/api/tasks') return sendJson(res, 200, { ok: true, tasks: Eco.taskView(ctx, u0, now) });
   if (method === 'POST' && p === '/api/tasks/start') return sendJson(res, 200, Eco.taskStart(ctx, u0, String(body.id || ''), now));
   if (method === 'POST' && p === '/api/tasks/claim') {

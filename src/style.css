@@ -1035,3 +1035,41 @@ body.pv-on #app { visibility: hidden; }
 .reno-stars.lit span.new { opacity: 1; transform: none; transition: transform 0.45s cubic-bezier(.2,1.6,.4,1), opacity 0.2s; }
 .reno-legend { font-weight: 800; color: var(--yel); text-shadow: 0 0 12px rgba(255, 210, 63, 0.7); margin: 0; }
 @media (prefers-reduced-motion: reduce) { .floor.own .f-no::after { animation: none; } }
+
+/* ---------- token market (STON.fi) ---------- */
+.mkt{display:flex;flex-direction:column;gap:12px;background:radial-gradient(120% 90% at 0% 0%,rgba(46,230,107,.14),transparent 60%),radial-gradient(120% 90% at 100% 0%,rgba(34,230,255,.12),transparent 60%),var(--panel,#120c2e)}
+.mk-h{display:flex;align-items:center;gap:12px}
+.mk-logo{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;background:#0b0624;box-shadow:0 0 0 2px rgba(34,230,255,.5),0 0 16px rgba(34,230,255,.35);object-fit:cover}
+.mk-name{flex:1;min-width:0;display:flex;flex-direction:column}
+.mk-name b{font-size:18px;letter-spacing:.5px}
+.mk-name small{opacity:.7;font-size:12px}
+.mk-live{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#2ee66b;padding:4px 8px;border-radius:8px;background:rgba(46,230,107,.12);box-shadow:inset 0 0 0 1px rgba(46,230,107,.4)}
+.mk-live i{width:7px;height:7px;border-radius:50%;background:#2ee66b;box-shadow:0 0 8px #2ee66b;animation:mkp 1.4s ease-in-out infinite}
+@keyframes mkp{50%{opacity:.25}}
+.mk-price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.mk-price b{font-size:34px;line-height:1;text-shadow:0 0 18px rgba(34,230,255,.45)}
+.mk-ch{font-weight:800;font-size:14px;padding:3px 8px;border-radius:8px}
+.mk-ch.up{color:#2ee66b;background:rgba(46,230,107,.14)}
+.mk-ch.dn{color:#ff4d6d;background:rgba(255,77,109,.14)}
+.mk-ton{opacity:.7;font-size:13px;margin-top:-6px}
+.mk-rng{align-self:flex-start}
+.mk-chart{width:100%;height:96px;display:block;border-radius:12px;background:rgba(0,0,0,.18)}
+.mk-dot{animation:mkp 1.4s ease-in-out infinite}
+.mk-nochart{height:96px;display:grid;place-items:center;text-align:center;font-size:12px;opacity:.6;border-radius:12px;background:rgba(0,0,0,.18);padding:0 16px}
+.mk-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mk-stats div{display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:10px;background:rgba(255,255,255,.04);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.mk-stats small{font-size:11px;opacity:.65}
+.mk-stats b{font-size:14px}
+.mk-mine{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:rgba(34,230,255,.07);box-shadow:inset 0 0 0 1px rgba(34,230,255,.25)}
+.mk-mine small{flex:1;min-width:140px;opacity:.85}
+.mk-mine b{font-size:16px;color:#22e6ff}
+.mk-buy{background:linear-gradient(180deg,#38f08a,#14b85a)!important;color:#05210f!important;box-shadow:0 6px 0 #0b6b34,0 0 26px rgba(46,230,107,.45)!important}
+.mk-how{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:13px;opacity:.85}
+.mkt.mini{flex-direction:row;align-items:center;gap:10px;cursor:pointer;padding:12px 14px}
+.mkt.mini .mk-logo{width:36px;height:36px}
+.mk-mini-t{display:flex;flex-direction:column;flex:1;min-width:0}
+.mk-mini-t small{opacity:.65;font-size:11px}
+.mk-mini-p{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.mk-mini-p b{font-size:17px}
+.mk-mini-p .mk-ch{font-size:11px;padding:1px 6px}
+.mk-go{font-weight:800;font-size:13px;color:#2ee66b;white-space:nowrap}
