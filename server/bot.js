@@ -7,7 +7,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>]/g, (c) => ({ '&': '
 
 const T = {
   en: {
-    start: '🏢 <b>Office Dreams</b>\n\nBuild a neon game studio: hire a team, ship hit games, climb floor by floor and collect airdrop points.\n\n👥 Invite friends — you both get bonuses and you earn a share of their points.\n\nTap <b>Play</b> to begin!',
+    start: '🏢 <b>Office Dreams</b>\n\nBuild a neon game studio: hire a team, ship hit games, climb floor by floor and collect airdrop points.\n\n🪙 Points turn into the <b>OFFX</b> token on Solana: 90,000,000 OFFX are split between players.\n👥 Invite friends — you both get bonuses.\n\n💬 Admin: @vtmjs\n\nTap <b>Play</b> to begin!',
     play: '🎮 Play', invite: '👥 Invite friends', share: '📤 Share link',
     inviteText: '🏢 Come build a neon game studio with me in Office Dreams! We both get bonuses:',
     inviteMsg: (link) => `👥 <b>Your invite link</b>\n\n<code>${link}</code>\n\nFor every friend who really plays you get bonus coins and ${'10%'} of their points.`,
@@ -15,11 +15,11 @@ const T = {
     joined: (n) => `🎉 Your friend <b>${esc(n)}</b> joined Office Dreams! Bonuses arrive when they start playing for real.`,
     paid: (t) => `✅ Payment received: <b>${esc(t)}</b>. Enjoy!`,
     cmdStart: 'Open the game', cmdInvite: 'Invite friends', cmdHelp: 'Help',
-    desc: 'Neon game-studio tycoon. Hire a team, ship games, climb 5 floors, invite friends and collect airdrop points. Play right here in Telegram!',
-    short: 'Build a neon game studio · play, invite, earn airdrop points',
+    desc: '🏢 Office Dreams — a neon game-studio tycoon right in Telegram.\n\n🎮 Hire a team, ship games, climb the floors of your office.\n🪙 Collect airdrop points: 90,000,000 OFFX (Solana) are split between players.\n👥 Invite friends — bonuses for both.\n\n💬 Admin: @vtmjs',
+    short: 'Neon game-studio tycoon · earn points for the OFFX airdrop on Solana · admin @vtmjs',
   },
   ru: {
-    start: '🏢 <b>Office Dreams</b>\n\nСтрой неоновую студию игр: нанимай команду, выпускай хиты, поднимайся с этажа на этаж и собирай поинты для аирдропа.\n\n👥 Приглашай друзей — бонусы получаете оба, а ты ещё и долю их очков.\n\nЖми <b>Играть</b>!',
+    start: '🏢 <b>Office Dreams</b>\n\nСтрой неоновую студию игр: нанимай команду, выпускай хиты, поднимайся с этажа на этаж и собирай очки аирдропа.\n\n🪙 Очки превращаются в токен <b>OFFX</b> на Solana: 90 000 000 OFFX делятся между игроками.\n👥 Приглашай друзей — бонусы получаете оба.\n\n💬 Админ: @vtmjs\n\nЖми <b>Играть</b>!',
     play: '🎮 Играть', invite: '👥 Пригласить друзей', share: '📤 Поделиться',
     inviteText: '🏢 Присоединяйся ко мне в Office Dreams — строим неоновую студию игр! Бонусы получим оба:',
     inviteMsg: (link) => `👥 <b>Твоя ссылка-приглашение</b>\n\n<code>${link}</code>\n\nЗа каждого друга, который реально играет, ты получаешь бонусные монеты и 10% его очков.`,
@@ -27,11 +27,11 @@ const T = {
     joined: (n) => `🎉 Твой друг <b>${esc(n)}</b> зашёл в Office Dreams! Бонусы придут, когда он начнёт играть по-настоящему.`,
     paid: (t) => `✅ Оплата получена: <b>${esc(t)}</b>. Приятной игры!`,
     cmdStart: 'Открыть игру', cmdInvite: 'Пригласить друзей', cmdHelp: 'Помощь',
-    desc: 'Неоновый тайкун игровой студии. Нанимай команду, выпускай игры, покоряй 5 этажей, приглашай друзей и собирай поинты для аирдропа. Играй прямо в Telegram!',
-    short: 'Строй неоновую студию игр · играй, приглашай, собирай поинты',
+    desc: '🏢 Office Dreams — неоновый тайкун игровой студии прямо в Telegram.\n\n🎮 Нанимай команду, выпускай игры, покоряй этажи офиса.\n🪙 Собирай очки аирдропа: 90 000 000 OFFX (Solana) делятся между игроками.\n👥 Приглашай друзей — бонусы обоим.\n\n💬 Админ: @vtmjs',
+    short: 'Неоновый тайкун игровой студии · очки за аирдроп OFFX на Solana · админ @vtmjs',
   },
   uk: {
-    start: '🏢 <b>Office Dreams</b>\n\nБудуй неонову студію ігор: наймай команду, випускай хіти, піднімайся з поверху на поверх і збирай поінти для аірдропу.\n\n👥 Запрошуй друзів — бонуси отримуєте обоє, а ти ще й частку їхніх очок.\n\nНатисни <b>Грати</b>!',
+    start: '🏢 <b>Office Dreams</b>\n\nБудуй неонову студію ігор: наймай команду, випускай хіти, піднімайся з поверху на поверх і збирай бали аірдропу.\n\n🪙 Бали перетворюються на токен <b>OFFX</b> у Solana: 90 000 000 OFFX діляться між гравцями.\n👥 Запрошуй друзів — бонуси отримуєте обоє.\n\n💬 Адмін: @vtmjs\n\nНатисни <b>Грати</b>!',
     play: '🎮 Грати', invite: '👥 Запросити друзів', share: '📤 Поділитися',
     inviteText: '🏢 Приєднуйся до мене в Office Dreams — будуємо неонову студію ігор! Бонуси отримаємо обоє:',
     inviteMsg: (link) => `👥 <b>Твоє посилання-запрошення</b>\n\n<code>${link}</code>\n\nЗа кожного друга, який справді грає, ти отримуєш бонусні монети та 10% його очок.`,
@@ -39,8 +39,8 @@ const T = {
     joined: (n) => `🎉 Твій друг <b>${esc(n)}</b> зайшов в Office Dreams! Бонуси прийдуть, коли він почне грати по-справжньому.`,
     paid: (t) => `✅ Оплату отримано: <b>${esc(t)}</b>. Гарної гри!`,
     cmdStart: 'Відкрити гру', cmdInvite: 'Запросити друзів', cmdHelp: 'Допомога',
-    desc: 'Неоновий тайкун ігрової студії. Наймай команду, випускай ігри, підкорюй 5 поверхів, запрошуй друзів і збирай поінти для аірдропу. Грай прямо в Telegram!',
-    short: 'Будуй неонову студію ігор · грай, запрошуй, збирай поінти',
+    desc: '🏢 Office Dreams — неоновий тайкун ігрової студії просто в Telegram.\n\n🎮 Наймай команду, випускай ігри, підкорюй поверхи офісу.\n🪙 Збирай бали аірдропу: 90 000 000 OFFX (Solana) діляться між гравцями.\n👥 Запрошуй друзів — бонуси обом.\n\n💬 Адмін: @vtmjs',
+    short: 'Неоновий тайкун ігрової студії · бали за аірдроп OFFX у Solana · адмін @vtmjs',
   },
 };
 const SHOP_TXT = {
