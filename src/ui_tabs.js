@@ -789,28 +789,12 @@ function hubToken() {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
   const e = NET.eco || {};
   const SUPPLY = 1e8;
-  const alloc = [[40, 'players', '#22e6ff'], [20, 'liq', '#4ca3ff'], [12, 'team', '#8a5cff'], [10, 'mkt', '#ff3fd0'], [10, 'treasury', '#ffd23f'], [8, 'early', '#2ee66b']];
-  // listing terms: share of each part that is free on listing day (the rest unlocks over time)
-  const vest = { players: 0, liq: 100, team: 0, mkt: 4, treasury: 0, early: 20 };
-  const circ = alloc.reduce((t, a) => t + (a[1] === 'liq' ? 0 : (a[0] * vest[a[1]]) / 100), 0);
-  // donut: one circle per slice, offset by the slices before it
-  const R = 54, CIRC = 2 * Math.PI * R;
-  let acc = 0;
-  const arcs = alloc.map((a) => {
-    const len = (a[0] / 100) * CIRC;
-    const s = `<circle r="${R}" cx="70" cy="70" fill="none" stroke="${a[2]}" stroke-width="18" stroke-dasharray="${(len - 2).toFixed(2)} ${(CIRC - len + 2).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" />`;
-    acc += len;
-    return s;
-  }).join('');
   const big = (n) => (n >= 1e6 ? (n < 1e7 && n % 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') : fmt(Math.round(n / 1e6))) + ' ' + L('tk2.mln') : fmt(Math.round(n)));
-  // your share of the Season 0 early airdrop (8%) if the snapshot were taken today
-  const early = SUPPLY * 0.08;
+  // the whole supply is airdropped to players by points: your share if the snapshot were taken today
+  const early = SUPPLY;
   const my = e.pts || 0, all = Math.max(e.ptsAll || 0, my, 1);
   const est = my > 0 ? (early * my) / all : 0;
   const share = my > 0 ? (my / all) * 100 : 0;
-  // players pool: 40% paid daily, halving every year
-  const years = [1, 2, 3, 4, 5, 6].map((y) => [y, (SUPPLY * 0.40) / Math.pow(2, y)]);
-  const ymax = years[0][1];
   const road = [['r1', 'now'], ['r2', 'next'], ['r3', 'next'], ['r4', 'later'], ['r5', 'later'], ['r6', 'later']];
   const uses = ['u1', 'u2', 'u3', 'u4'];
   return `${mktPanel()}<section class="panel tokhero2">
@@ -819,8 +803,8 @@ function hubToken() {
     <p class="sub">${L('tok.what', { sym })}</p>
     <div class="hero-stats">
       <div><b class="px">100 ${L('tk2.bln_s')}</b><small>${L('tk2.supply')}</small></div>
-      <div><b class="px">40%</b><small>${L('tk2.to_players')}</small></div>
-      <div><b class="px">${big(SUPPLY * 0.08)}</b><small>${L('tk2.season0')}</small></div>
+      <div><b class="px">100%</b><small>${L('tk2.to_players')}</small></div>
+      <div><b class="px">0%</b><small>${L('tk4.team0')}</small></div>
     </div>
   </section>
   <section class="panel myshare">
@@ -836,27 +820,11 @@ function hubToken() {
   </section>
   ${solCard(e)}
   <section class="panel">
-    <h2 class="h2">${I('chart', 16)} ${L('tok.alloc')}</h2>
-    <div class="donut-wrap">
-      <svg class="donut" viewBox="0 0 140 140" role="img" aria-label="${esc(L('tok.alloc'))}"><g transform="rotate(-90 70 70)">${arcs}</g>
-        <text x="70" y="66" text-anchor="middle" class="d-big">100</text><text x="70" y="84" text-anchor="middle" class="d-sm">${esc(L('tk2.bln'))}</text></svg>
-      <ul class="legend">${alloc.map((a) => `<li><i style="background:${a[2]};box-shadow:0 0 8px ${a[2]}"></i><div><b>${a[0]}% · ${big((SUPPLY * a[0]) / 100)}</b><small>${L('tok.a_' + a[1])}</small><small class="mut">${L('tk2.d_' + a[1])}</small></div></li>`).join('')}</ul>
-    </div>
-  </section>
-  <section class="panel listing">
-    <h2 class="h2">🔒 ${L('tk3.title')}</h2>
-    <p class="sub">${L('tk3.sub', { sym })}</p>
-    <ul class="vest">${alloc.map((a) => `<li><div class="v-h"><i style="background:${a[2]}"></i><b>${L('tok.a_' + a[1])}</b><span class="chip">${a[1] === 'liq' ? L('tk3.locked') : vest[a[1]] + '% ' + L('tk3.at_tge')}</span></div><div class="v-bar"><i style="width:${a[1] === 'liq' ? 100 : Math.max(2, vest[a[1]])}%;background:${a[1] === 'liq' ? 'repeating-linear-gradient(45deg,' + a[2] + ' 0 6px,transparent 6px 10px)' : a[2]}"></i></div><small class="mut">${L('tk3.v_' + a[1], { sym })}</small></li>`).join('')}</ul>
-    <div class="formula">${L('tk3.circ', { p: circ.toFixed(1).replace(/\.0$/, ''), n: big((SUPPLY * circ) / 100) })}</div>
-    <ul class="bul"><li>${L('tk3.r1')}</li><li>${L('tk3.r2')}</li><li>${L('tk3.r3')}</li><li>${L('tk3.r4', { sym })}</li><li>${L('tk3.r5')}</li></ul>
-    <p class="hint">${L('tk3.risk')}</p>
-  </section>
-  <section class="panel">
-    <h2 class="h2">⏳ ${L('tk2.years')}</h2>
-    <p class="sub">${L('tk2.years_t')}</p>
-    <div class="ybars">${years.map(([y, v]) => `<div class="yb"><div class="yb-bar"><i style="height:${Math.max(4, (v / ymax) * 100).toFixed(1)}%"></i></div><b>${big(v)}</b><small>${L('tk2.year', { n: y })}</small></div>`).join('')}</div>
-    <div class="formula">${L('tok.formula')}</div>
-    <ul class="bul"><li>${L('tok.how2')}</li><li>${L('tok.how3')}</li><li>${L('tok.how4', { sym })}</li><li>${L('tok.team_vest')}</li></ul>
+    <h2 class="h2">${I('chart', 16)} ${L('tk4.title')}</h2>
+    <p class="sub">${L('tk4.sub', { sym })}</p>
+    <div class="formula">${L('tk4.formula', { sym })}</div>
+    <ul class="bul"><li>${L('tk4.b1', { sym })}</li><li>${L('tk4.b2')}</li><li>${L('tk4.b3')}</li><li>${L('tk4.b4', { sym })}</li><li>${L('tk4.b5', { sym })}</li></ul>
+    <p class="hint">${L('tk4.risk')}</p>
   </section>
   <section class="panel">
     <h2 class="h2">🚀 ${L('tk2.road')}</h2>
