@@ -136,7 +136,8 @@ code { font: 600 12px/1.3 ui-monospace, Menlo, Consolas, monospace; word-break: 
 
 #main { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 10px 12px calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + 16px); scrollbar-width: none; }
 #main::-webkit-scrollbar { display: none; }
-.page { display: grid; gap: 12px; }
+.page { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+.page > * { min-width: 0; }
 .page.enter { animation: pagein 0.32s cubic-bezier(.2, .8, .2, 1); }
 @keyframes pagein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
@@ -1160,6 +1161,14 @@ img.mk-logo { object-fit: contain; background: none; }
 .ad-amt b { font-size: 26px; color: #14f195; text-shadow: 0 0 12px rgba(20, 241, 149, 0.55); }
 .ad-ok { display: flex; align-items: center; gap: 8px; font-weight: 800; color: #14f195; margin: 4px 0; }
 .adrop .fund-h { display: flex; align-items: baseline; gap: 8px; margin: 6px 0; }
+/* donate shortcuts */
+.don-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.don-row .btn { min-width: 0; }
+.mk-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mk-acts .btn { min-width: 0; }
+.donate input, .don-own input { width: 100%; box-sizing: border-box; min-width: 0; }
+.mk-price { min-width: 0; flex-wrap: wrap; }
+.mk-price b.long { font-size: 26px; letter-spacing: 0; }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -2333,6 +2342,8 @@ LANGS.en = {
   'err.ad_entered': "You have already entered",
   'tk4.b6': "To take part: a one-time $1 deposit in SOL (it filters out bots and fills the launch fund). Claiming the tokens costs a small fee in SOL.",
   'err.ad_closed': "The airdrop has already started — entry is closed",
+  'don.btn': "Donate",
+  'don.btn_long': "Bring the airdrop closer with Stars",
   'tok.what': "{sym} is the game’s own token on the Solana blockchain. The airdrop points you collect now will be exchanged for it.",
   'tok.supply': "100,000,000 — minted once, no more ever",
   'tok.status': 'Season 0: collecting points',
@@ -3008,6 +3019,8 @@ LANGS.ru = {
   'err.ad_entered': "Ты уже участвуешь",
   'tk4.b6': "Чтобы участвовать — разовый депозит $1 в SOL (отсекает ботов и пополняет фонд запуска). За вывод токенов — небольшая комиссия в SOL.",
   'err.ad_closed': "Аирдроп уже начался — приём участников закрыт",
+  'don.btn': "Донат",
+  'don.btn_long': "Приблизить аирдроп звёздами",
   'tok.what': "{sym} — собственный токен игры в блокчейне Solana. Очки аирдропа, которые ты собираешь сейчас, будут обменяны на него.",
   'tok.supply': "100 000 000 — выпуск один раз, больше не будет никогда",
   'tok.status': 'Сезон 0: собираем очки',
@@ -3683,6 +3696,8 @@ LANGS.uk = {
   'err.ad_entered': "Ти вже береш участь",
   'tk4.b6': "Щоб брати участь — разовий депозит $1 у SOL (відсікає ботів і поповнює фонд запуску). За вивід токенів — невелика комісія в SOL.",
   'err.ad_closed': "Аірдроп уже почався — прийом учасників закрито",
+  'don.btn': "Донат",
+  'don.btn_long': "Наблизити аірдроп зірками",
   'tok.what': "{sym} — власний токен гри в блокчейні Solana. Бали аірдропу, які ти збираєш зараз, буде обміняно на нього.",
   'tok.supply': "100 000 000 — випуск один раз, більше не буде ніколи",
   'tok.status': 'Сезон 0: збираємо бали',
@@ -9095,13 +9110,13 @@ function mktPanel(mini) {
   const rng = ['24h', '7d', '30d'].map((x) => `<button class="${(r.range || '24h') === x ? 'on' : ''}" data-act="mkrange:${x}">${L('mk.r_' + x)}</button>`).join('');
   return `<section class="panel mkt">
     <div class="mk-h">${logo}<div class="mk-name"><b>${sym}</b><small>Solana · Jupiter · ${L('mk.live')}</small></div><span class="mk-live"><i></i>LIVE</span></div>
-    <div class="mk-price"><b class="px">${fmtUsdP(m.usd)}</b>${chip}</div>
+    <div class="mk-price"><b class="px ${fmtUsdP(m.usd).length > 8 ? 'long' : ''}">${fmtUsdP(m.usd)}</b>${chip}</div>
     ${m.ton ? `<div class="mk-ton">≈ ${m.ton < 0.001 ? m.ton.toFixed(Math.min(14, 2 - Math.floor(Math.log10(m.ton)))) : m.ton.toFixed(5)} SOL</div>` : ''}
     <div class="mk-rng seg">${rng}</div>
     ${mktSpark(r.hist, up)}
     <div class="mk-stats"><div><small>${L('mk.vol')}</small><b>${fmtUsdBig(m.vol24)}</b></div><div><small>${L('mk.liq')}</small><b>${fmtUsdBig(m.liq)}</b></div><div><small>${L('mk.cap')}</small><b>${fmtUsdBig(m.fdv)}</b></div></div>
     <div class="mk-mine">${hasW ? (bal === null || bal === undefined ? `<small>${L('mk.bal_load')}</small>` : `<small>${L('mk.bal')}</small><b>${fmt(Math.floor(bal))} ${sym}</b><span class="mut">≈ ${(bal * m.usd >= 1000 ? fmtUsdBig(bal * m.usd) : fmtUsdP(bal * m.usd).replace('$0', '$0.00'))}</span>`) : `<small>${L('mk.bal_none')}</small><button class="btn ghost sm" data-act="sol:set">${L('sol.add')}</button>`}</div>
-    <button class="btn big glow wide mk-buy" data-act="mkbuy">${I('sol', 18)} ${L('mk.buy')}</button>
+    <div class="mk-acts"><button class="btn big glow mk-buy" data-act="mkbuy">${I('sol', 18)} ${L('mk.buy_s')}</button><button class="btn big gold" data-act="donopen">⭐ ${L('don.btn')}</button></div>
     <button class="btn ghost sm wide" data-act="mkchart">${I('chart', 14)} ${L('mk.chart')}</button>
     <ol class="mk-how"><li>${L('mk.h1')}</li><li>${L('mk.h2', { sym })}</li><li>${L('mk.h3', { sym })}</li></ol>
     <p class="hint">${L('mk.risk')}</p>
@@ -9115,16 +9130,16 @@ function airdropCard(e, mini) {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFX');
   const amt = fmt(Math.floor(a.amount || 0));
   if (a.st === 'season') {
-    if (mini) return '';
     const pct = Math.min(100, (a.usd / Math.max(1, a.goal)) * 100);
     return `<section class="panel adrop">
       <h2 class="h2">🪂 ${L('ad.wait_t', { sym })}</h2>
-      <p class="sub">${L('ad.wait_s', { goal: '$' + fmt(a.goal), sym })}</p>
+      ${mini ? '' : `<p class="sub">${L('ad.wait_s', { goal: '$' + fmt(a.goal), sym })}</p>`}
       <div class="fund-h"><b class="px">$${fmt(Math.round(a.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(a.goal) })}</small></div>
       <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
       ${a.entry ? (a.entry.done ? `<div class="ad-ok">${I('check', 16, 'grn')} ${L('ad.entered')}</div>` : `<p class="sub">${L('ad.entry_t', { usd: '$' + a.entry.usd, sol: a.entry.sol })}</p>
         <button class="btn big glow wide" data-act="adentry">${I('sol', 16)} ${L('ad.entry_btn', { sol: a.entry.sol })}</button>
         <p class="hint">${L('ad.entry_hint')}</p>`) : ''}
+      <button class="btn big gold wide" data-act="donopen" style="margin-top:8px">⭐ ${L('don.btn_long')}</button>
     </section>`;
   }
   let act;
@@ -10397,7 +10412,7 @@ const ACT = {
   pay: (sku) => buySku(sku),
   paysol: (sku) => buySol(sku),
   solpay: (what) => solPayAct(what),
-  donamt: (n) => { UI.donAmt = Number(n); UI.hubVer = (UI.hubVer || 0) + 1; render(true); },
+  donamt: (n) => { UI.donAmt = Number(n); UI.hubVer = (UI.hubVer || 0) + 1; render(true); if (UI.modal && UI.modal.id === 'donate') openModal(donatePanel(), { id: 'donate' }); },
   donstars: () => donateStars(),
   donsol: () => donateSol(),
   ad: () => {
@@ -10427,6 +10442,10 @@ const ACT = {
     UI.adBusy = false;
     if (r && r.ok) { toast(L('ad.ok'), 'good', 'sol'); confetti(160); sfx('floor'); haptic('ok'); } else errToast((r && r.err) || 'unavailable');
     render(true);
+  },
+  donopen: () => {
+    const show = () => openModal(donatePanel() || `<div class="loading">${L('ui.loading')}</div>`, { id: 'donate' });
+    if (UI.hub.donate) show(); else { show(); loadHub('donate', true); const t = setInterval(() => { if (UI.hub.donate) { clearInterval(t); if (UI.modal && UI.modal.id === 'donate') show(); } }, 300); setTimeout(() => clearInterval(t), 8000); }
   },
   adentry: () => airdropPay('adentry'),
   adfee: () => airdropPay('adfee'),

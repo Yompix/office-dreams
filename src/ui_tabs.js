@@ -762,13 +762,13 @@ function mktPanel(mini) {
   const rng = ['24h', '7d', '30d'].map((x) => `<button class="${(r.range || '24h') === x ? 'on' : ''}" data-act="mkrange:${x}">${L('mk.r_' + x)}</button>`).join('');
   return `<section class="panel mkt">
     <div class="mk-h">${logo}<div class="mk-name"><b>${sym}</b><small>Solana · Jupiter · ${L('mk.live')}</small></div><span class="mk-live"><i></i>LIVE</span></div>
-    <div class="mk-price"><b class="px">${fmtUsdP(m.usd)}</b>${chip}</div>
+    <div class="mk-price"><b class="px ${fmtUsdP(m.usd).length > 8 ? 'long' : ''}">${fmtUsdP(m.usd)}</b>${chip}</div>
     ${m.ton ? `<div class="mk-ton">≈ ${m.ton < 0.001 ? m.ton.toFixed(Math.min(14, 2 - Math.floor(Math.log10(m.ton)))) : m.ton.toFixed(5)} SOL</div>` : ''}
     <div class="mk-rng seg">${rng}</div>
     ${mktSpark(r.hist, up)}
     <div class="mk-stats"><div><small>${L('mk.vol')}</small><b>${fmtUsdBig(m.vol24)}</b></div><div><small>${L('mk.liq')}</small><b>${fmtUsdBig(m.liq)}</b></div><div><small>${L('mk.cap')}</small><b>${fmtUsdBig(m.fdv)}</b></div></div>
     <div class="mk-mine">${hasW ? (bal === null || bal === undefined ? `<small>${L('mk.bal_load')}</small>` : `<small>${L('mk.bal')}</small><b>${fmt(Math.floor(bal))} ${sym}</b><span class="mut">≈ ${(bal * m.usd >= 1000 ? fmtUsdBig(bal * m.usd) : fmtUsdP(bal * m.usd).replace('$0', '$0.00'))}</span>`) : `<small>${L('mk.bal_none')}</small><button class="btn ghost sm" data-act="sol:set">${L('sol.add')}</button>`}</div>
-    <button class="btn big glow wide mk-buy" data-act="mkbuy">${I('sol', 18)} ${L('mk.buy')}</button>
+    <div class="mk-acts"><button class="btn big glow mk-buy" data-act="mkbuy">${I('sol', 18)} ${L('mk.buy_s')}</button><button class="btn big gold" data-act="donopen">⭐ ${L('don.btn')}</button></div>
     <button class="btn ghost sm wide" data-act="mkchart">${I('chart', 14)} ${L('mk.chart')}</button>
     <ol class="mk-how"><li>${L('mk.h1')}</li><li>${L('mk.h2', { sym })}</li><li>${L('mk.h3', { sym })}</li></ol>
     <p class="hint">${L('mk.risk')}</p>
@@ -782,16 +782,16 @@ function airdropCard(e, mini) {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFX');
   const amt = fmt(Math.floor(a.amount || 0));
   if (a.st === 'season') {
-    if (mini) return '';
     const pct = Math.min(100, (a.usd / Math.max(1, a.goal)) * 100);
     return `<section class="panel adrop">
       <h2 class="h2">🪂 ${L('ad.wait_t', { sym })}</h2>
-      <p class="sub">${L('ad.wait_s', { goal: '$' + fmt(a.goal), sym })}</p>
+      ${mini ? '' : `<p class="sub">${L('ad.wait_s', { goal: '$' + fmt(a.goal), sym })}</p>`}
       <div class="fund-h"><b class="px">$${fmt(Math.round(a.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(a.goal) })}</small></div>
       <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
       ${a.entry ? (a.entry.done ? `<div class="ad-ok">${I('check', 16, 'grn')} ${L('ad.entered')}</div>` : `<p class="sub">${L('ad.entry_t', { usd: '$' + a.entry.usd, sol: a.entry.sol })}</p>
         <button class="btn big glow wide" data-act="adentry">${I('sol', 16)} ${L('ad.entry_btn', { sol: a.entry.sol })}</button>
         <p class="hint">${L('ad.entry_hint')}</p>`) : ''}
+      <button class="btn big gold wide" data-act="donopen" style="margin-top:8px">⭐ ${L('don.btn_long')}</button>
     </section>`;
   }
   let act;

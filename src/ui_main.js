@@ -346,7 +346,7 @@ const ACT = {
   pay: (sku) => buySku(sku),
   paysol: (sku) => buySol(sku),
   solpay: (what) => solPayAct(what),
-  donamt: (n) => { UI.donAmt = Number(n); UI.hubVer = (UI.hubVer || 0) + 1; render(true); },
+  donamt: (n) => { UI.donAmt = Number(n); UI.hubVer = (UI.hubVer || 0) + 1; render(true); if (UI.modal && UI.modal.id === 'donate') openModal(donatePanel(), { id: 'donate' }); },
   donstars: () => donateStars(),
   donsol: () => donateSol(),
   ad: () => {
@@ -376,6 +376,10 @@ const ACT = {
     UI.adBusy = false;
     if (r && r.ok) { toast(L('ad.ok'), 'good', 'sol'); confetti(160); sfx('floor'); haptic('ok'); } else errToast((r && r.err) || 'unavailable');
     render(true);
+  },
+  donopen: () => {
+    const show = () => openModal(donatePanel() || `<div class="loading">${L('ui.loading')}</div>`, { id: 'donate' });
+    if (UI.hub.donate) show(); else { show(); loadHub('donate', true); const t = setInterval(() => { if (UI.hub.donate) { clearInterval(t); if (UI.modal && UI.modal.id === 'donate') show(); } }, 300); setTimeout(() => clearInterval(t), 8000); }
   },
   adentry: () => airdropPay('adentry'),
   adfee: () => airdropPay('adfee'),

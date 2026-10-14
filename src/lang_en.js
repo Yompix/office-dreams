@@ -415,6 +415,8 @@ LANGS.en = {
   'err.ad_entered': "You have already entered",
   'tk4.b6': "To take part: a one-time $1 deposit in SOL (it filters out bots and fills the launch fund). Claiming the tokens costs a small fee in SOL.",
   'err.ad_closed': "The airdrop has already started — entry is closed",
+  'don.btn': "Donate",
+  'don.btn_long': "Bring the airdrop closer with Stars",
   'tok.what': "{sym} is the game’s own token on the Solana blockchain. The airdrop points you collect now will be exchanged for it.",
   'tok.supply': "100,000,000 — minted once, no more ever",
   'tok.status': 'Season 0: collecting points',
