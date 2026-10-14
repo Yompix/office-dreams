@@ -78,6 +78,7 @@ function createAirdropOrder(ctx, uid, kind, now) {
   if (kind === 'adentry') {
     if (!(ctx.cfg.airdrop.entryUsd > 0)) return { ok: false, err: 'unavailable' };
     if (ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku='adentry'", uid)) return { ok: false, err: 'ad_entered' };
+    if (require('./airdrop.js').state(ctx).status !== 'season') return { ok: false, err: 'ad_closed' }; // the snapshot is taken: entry is closed
     return newOrder(ctx, uid, 'adentry', entrySol(ctx.cfg), now);
   }
   if (kind === 'adfee') {

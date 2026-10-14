@@ -945,6 +945,7 @@ const AB = require('../server/antibot.js');
       await Ad.tick(env9.ctx, env9.clock.t);
       assert.equal((await A.api('GET', '/api/friends')).json.eco.airdrop.amount, 100000000);
       assert.equal((await B.api('GET', '/api/friends')).json.eco.airdrop.amount, 0);
+      assert.equal((await B.api('POST', '/api/airdrop/order', { kind: 'adentry' })).json.err, 'ad_closed', 'no deposits after the snapshot');
       await A.api('POST', '/api/sol', { address: web3.Keypair.generate().publicKey.toBase58() });
       assert.equal((await A.api('POST', '/api/airdrop/claim', {})).json.err, 'ad_fee', 'fee first');
       const f = (await A.api('POST', '/api/airdrop/order', { kind: 'adfee' })).json;
