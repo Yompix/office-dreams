@@ -1086,3 +1086,43 @@ body.pv-on #app { visibility: hidden; }
 .loc-next{margin:6px 0 10px;font-weight:700;color:#ffd23f}
 .mkt.soon{background:radial-gradient(120% 90% at 0% 0%,rgba(76,163,255,.18),transparent 60%),radial-gradient(120% 90% at 100% 0%,rgba(255,63,208,.14),transparent 60%),var(--panel,#120c2e)}
 .mk-soon-chip{font-size:11px;font-weight:800;letter-spacing:.5px;color:#ffd23f;padding:4px 9px;border-radius:8px;background:rgba(255,210,63,.12);box-shadow:inset 0 0 0 1px rgba(255,210,63,.45);animation:mkp 1.8s ease-in-out infinite;white-space:nowrap}
+
+/* ============================================================
+   v3 skin: neon glass, living borders, city skyline, tab glow
+   ============================================================ */
+@property --neo-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+/* hero panels get a slowly rotating neon edge */
+.panel.officep, .panel.mkt:not(.mini), .panel.towerp, .panel.ipo, .panel.tokhero2, .panel.invite, .panel.ptsp, .panel.workp {
+  border-color: transparent;
+  background:
+    linear-gradient(160deg, var(--panel-a), var(--panel-b)) padding-box,
+    conic-gradient(from var(--neo-a), rgba(63, 208, 255, 0.85), rgba(255, 63, 208, 0.85), rgba(255, 210, 63, 0.7), rgba(46, 230, 107, 0.7), rgba(63, 208, 255, 0.85)) border-box;
+  border-width: 1.5px; border-style: solid;
+  animation: neoSpin 9s linear infinite;
+}
+.panel.mkt:not(.mini) { background: radial-gradient(120% 90% at 0% 0%, rgba(46, 230, 107, 0.14), transparent 60%) padding-box, linear-gradient(160deg, var(--panel-a), var(--panel-b)) padding-box, conic-gradient(from var(--neo-a), rgba(46, 230, 107, 0.9), rgba(34, 230, 255, 0.8), rgba(255, 63, 208, 0.6), rgba(46, 230, 107, 0.9)) border-box; }
+@keyframes neoSpin { to { --neo-a: 360deg; } }
+/* glass feel on every panel: a soft top sheen */
+.panel { overflow: visible; }
+.panel::after { content: ''; position: absolute; inset: 1px; border-radius: inherit; pointer-events: none; background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 28%); }
+/* headings: brighter neon */
+.h2 { color: #c4f8ff; text-shadow: 0 0 10px rgba(63, 208, 255, 0.55), 0 0 22px rgba(255, 63, 208, 0.18); }
+/* tappable cards press in */
+.panel[data-act] { cursor: pointer; transition: transform 0.12s; }
+.panel[data-act]:active { transform: scale(0.98); }
+/* tab bar: glowing pill under the active tab, icon hop on change */
+#tabs .tab.on::after { content: ''; position: absolute; left: 28%; right: 28%; bottom: 2px; height: 3px; border-radius: 3px; background: linear-gradient(90deg, #3fd0ff, #ff3fd0); box-shadow: 0 0 10px #3fd0ff, 0 0 18px rgba(255, 63, 208, 0.6); animation: tabBar 0.35s cubic-bezier(0.2, 1.6, 0.4, 1); }
+#tabs .tab.on .ico { animation: tabHop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1); }
+@keyframes tabBar { from { transform: scaleX(0); opacity: 0; } }
+@keyframes tabHop { 40% { transform: translateY(-7px) scale(1.2); } }
+/* the big WORK button breathes */
+.btn.green.big:not(:disabled), .btn.big.glow:not(:disabled) { position: relative; }
+/* city skyline at the bottom of the screen with lit windows */
+#skyline { position: fixed; left: 0; right: 0; bottom: 0; height: 30vh; z-index: 0; pointer-events: none; image-rendering: pixelated; background-repeat: repeat-x; background-position: bottom center; background-size: auto 100%; opacity: 0.38; mask-image: linear-gradient(180deg, transparent, #000 35%); -webkit-mask-image: linear-gradient(180deg, transparent, #000 35%); }
+/* floating neon motes */
+#motes { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+#motes i { position: absolute; bottom: -10px; width: 3px; height: 3px; border-radius: 50%; background: #3fd0ff; box-shadow: 0 0 8px #3fd0ff; opacity: 0; animation: mote linear infinite; }
+#motes i:nth-child(3n) { background: #ff3fd0; box-shadow: 0 0 8px #ff3fd0; }
+#motes i:nth-child(4n) { background: #ffd23f; box-shadow: 0 0 8px #ffd23f; width: 2px; height: 2px; }
+@keyframes mote { 0% { transform: translateY(0); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.6; } 100% { transform: translateY(-105vh) translateX(30px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #motes { display: none; } .panel { animation: none !important; } }

@@ -47,6 +47,31 @@ function render(force) {
   syncBackButton();
 }
 
+/* ---------- backdrop: pixel city skyline with lit windows + floating neon motes ---------- */
+function makeBackdrop() {
+  if (document.getElementById('skyline')) return;
+  const W = 240, H = 90, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d');
+  let seed = 7; const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  for (const [layer, col, hmin, hmax] of [[0, '#120c3a', 30, 70], [1, '#0a0828', 18, 50]]) {
+    let x = 0;
+    while (x < W) {
+      const bw = 8 + Math.floor(rnd() * 16), bh = hmin + Math.floor(rnd() * (hmax - hmin));
+      g.fillStyle = col; g.fillRect(x, H - bh, bw, bh);
+      if (rnd() < 0.3) { g.fillRect(x + (bw >> 1), H - bh - 6, 1, 6); g.fillStyle = '#ff3fd0'; g.fillRect(x + (bw >> 1), H - bh - 7, 1, 1); }
+      for (let wy = H - bh + 3; wy < H - 2; wy += 4) for (let wx = x + 2; wx < x + bw - 2; wx += 3) {
+        if (rnd() < (layer ? 0.32 : 0.18)) { const r = rnd(); g.fillStyle = r < 0.55 ? '#ffd23f' : r < 0.8 ? '#3fd0ff' : '#ff3fd0'; g.globalAlpha = layer ? 0.9 : 0.5; g.fillRect(wx, wy, 1, 2); g.globalAlpha = 1; }
+      }
+      x += bw + (layer ? 1 : 3);
+    }
+  }
+  const sk = document.createElement('div'); sk.id = 'skyline'; sk.style.backgroundImage = 'url(' + cv.toDataURL() + ')';
+  const mo = document.createElement('div'); mo.id = 'motes';
+  for (let i = 0; i < 14; i++) { const m = document.createElement('i'); m.style.left = (Math.random() * 100).toFixed(1) + '%'; m.style.animationDuration = (12 + Math.random() * 14).toFixed(1) + 's'; m.style.animationDelay = (-Math.random() * 20).toFixed(1) + 's'; mo.appendChild(m); }
+  document.body.prepend(mo); document.body.prepend(sk);
+}
+try { makeBackdrop(); } catch (e) {}
+
 /* ---------- canvases: office scene (+ bloom layer) and tower ---------- */
 let SCENE = null, SCENE_OFF = null, SCENE_IMG = null, TOWER_B = null, TOWER_IMG = null;
 function bindCanvases() {
