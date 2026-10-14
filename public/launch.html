@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Запуск OFFICE</title>
+<link rel="icon" href="/token-512.png">
+<style>
+  :root { --bg: #070a1f; --panel: #10163a; --line: rgba(120, 140, 255, 0.22); --ink: #eef1ff; --ink2: #a6addb; --cy: #22e6ff; --mag: #ff3fd0; --grn: #14f195; --vio: #9945ff; --yel: #ffd23f; --red: #ff5470; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { background: radial-gradient(1200px 500px at 50% -200px, rgba(153, 69, 255, 0.28), transparent), var(--bg); min-height: 100vh; }
+  main { max-width: 560px; margin: 0 auto; padding: 20px 16px 60px; }
+  h1 { font-size: 22px; margin: 6px 0 2px; letter-spacing: 0.3px; }
+  h2 { font-size: 16px; margin: 0 0 8px; display: flex; align-items: center; gap: 8px; }
+  p { margin: 6px 0; color: var(--ink2); }
+  .top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .top img { width: 52px; height: 52px; image-rendering: pixelated; filter: drop-shadow(0 0 10px rgba(255, 210, 63, 0.5)); }
+  .net { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 1px; padding: 3px 8px; border-radius: 999px; background: rgba(255, 210, 63, 0.14); color: var(--yel); border: 1px solid rgba(255, 210, 63, 0.4); }
+  .steps { display: flex; gap: 6px; margin: 12px 0 16px; }
+  .steps i { flex: 1; height: 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.1); }
+  .steps i.on { background: linear-gradient(90deg, var(--vio), var(--grn)); box-shadow: 0 0 10px rgba(20, 241, 149, 0.5); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin: 12px 0; }
+  .card.done { border-color: rgba(20, 241, 149, 0.5); }
+  .n { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 12px; font-weight: 800; background: rgba(153, 69, 255, 0.25); color: #d9c2ff; }
+  .done .n { background: var(--grn); color: #04210f; }
+  button, .btn { appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 800; padding: 12px 16px; border-radius: 12px; color: #fff; background: linear-gradient(180deg, #a35bff, #6a2bd8); box-shadow: 0 3px 0 #3f1694, 0 0 16px rgba(153, 69, 255, 0.4); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  button.wide, .btn.wide { width: 100%; }
+  button.ghost { background: transparent; border: 1px solid var(--line); box-shadow: none; color: var(--ink); padding: 8px 12px; font-size: 13px; }
+  button.go { background: linear-gradient(180deg, #2ef2a0, #0fb873); color: #04210f; box-shadow: 0 3px 0 #08734a, 0 0 16px rgba(20, 241, 149, 0.45); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  label { display: block; font-size: 12px; color: var(--ink2); margin: 10px 0 4px; }
+  input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: #0a0f2c; color: var(--ink); font: inherit; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-all; }
+  .kv { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
+  .kv:last-child { border-bottom: 0; }
+  .kv b { color: var(--ink); text-align: right; }
+  ul { margin: 8px 0; padding-left: 18px; color: var(--ink2); }
+  li { margin: 4px 0; }
+  .ok { color: var(--grn); } .warn { color: var(--yel); } .bad { color: var(--red); }
+  .res { margin-top: 12px; padding: 12px; border-radius: 12px; background: rgba(20, 241, 149, 0.08); border: 1px solid rgba(20, 241, 149, 0.35); }
+  .res .mono { color: var(--grn); font-size: 14px; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .note { font-size: 13px; padding: 10px 12px; border-radius: 12px; background: rgba(255, 84, 112, 0.08); border: 1px solid rgba(255, 84, 112, 0.3); color: #ffc4cf; }
+  .st { margin-top: 10px; font-size: 14px; min-height: 20px; }
+  .hide { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <img src="/token-512.png" alt="">
+    <div><h1>Запуск OFFICE</h1><span class="net" id="net">DEVNET · ТЕСТОВАЯ СЕТЬ</span></div>
+  </div>
+  <p>Этап 1 из 6 — <b>создать токен</b>. Все действия подписываешь ты сам в Phantom: страница видит только твой публичный адрес, ключи и сид-фраза остаются у тебя.</p>
+  <div class="steps"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+
+  <section class="card" id="c1">
+    <h2><span class="n">1</span> Подключи Phantom</h2>
+    <p id="c1t">Нужен кошелёк Phantom (расширение в браузере или приложение на телефоне).</p>
+    <div id="nophantom" class="hide">
+      <a class="btn wide" id="openPhantom" href="#">Открыть эту страницу в Phantom</a>
+      <p>На компьютере: установи расширение с <a href="https://phantom.app/download" target="_blank" rel="noopener" style="color:var(--cy)">phantom.app</a> и обнови страницу.</p>
+    </div>
+    <button class="wide" id="connect">Подключить Phantom</button>
+    <div id="acct" class="hide">
+      <div class="kv"><span>Адрес</span><b class="mono" id="addr"></b></div>
+      <div class="kv"><span>Баланс</span><b id="bal">…</b></div>
+      <p class="warn" id="netHint">В Phantom включи тестовую сеть: Настройки → Developer Settings → Testnet Mode → Solana Devnet.</p>
+      <div class="acts"><button class="ghost" id="airdrop">Получить 1 тестовый SOL</button><a class="btn ghost" style="background:transparent;border:1px solid var(--line);box-shadow:none;padding:8px 12px;font-size:13px" href="https://faucet.solana.com" target="_blank" rel="noopener">Кран faucet.solana.com</a></div>
+      <div class="st" id="st1"></div>
+    </div>
+  </section>
+
+  <section class="card" id="c2">
+    <h2><span class="n">2</span> Создай токен</h2>
+    <div class="row">
+      <div><label>Название</label><input id="name" value="Office Dreams" maxlength="32"></div>
+      <div><label>Тикер</label><input id="sym" value="OFFICE" maxlength="10"></div>
+    </div>
+    <label>Описание и логотип (ссылка, её можно поменять позже)</label>
+    <input id="uri" class="mono">
+    <ul>
+      <li>Стандарт Token-2022 с встроенными метаданными: название, тикер и логотип видны в Phantom, Jupiter и DexScreener.</li>
+      <li>6 знаков после запятой.</li>
+      <li><b>Без права заморозки</b> — никто не сможет заморозить токены у игроков.</li>
+      <li>Право выпуска пока у тебя: на этапе 2 выпустим ровно 100 000 000 и <b>навсегда закроем</b> допечатку.</li>
+      <li>Стоимость: около <b id="cost">0.003</b> SOL (хранение данных токена в сети).</li>
+    </ul>
+    <button class="wide go" id="create" disabled>Создать токен OFFICE</button>
+    <div class="st" id="st2"></div>
+    <div class="res hide" id="res">
+      <div>✅ Токен создан. Адрес токена (mint):</div>
+      <div class="mono" id="mint"></div>
+      <div class="acts"><button class="ghost" id="copy">Копировать адрес</button><a class="btn ghost" id="explorer" target="_blank" rel="noopener" style="background:transparent;border:1px solid var(--line);box-shadow:none;padding:8px 12px;font-size:13px">Открыть в Solana Explorer</a></div>
+      <p>Сохрани этот адрес и пришли его в чат — дальше этап 2: выпуск 100 млн и закрытие допечатки.</p>
+    </div>
+  </section>
+
+  <p class="note">⚠️ Никогда и никому не отправляй сид-фразу и приватный ключ. Ни эта страница, ни я их не просим. Перед каждой подписью Phantom показывает, что произойдёт, — читай и подтверждай только то, что ожидаешь.</p>
+</main>
+
+<script src="/launch-lib.js"></script>
+<script type="module">
+const W = SOLLIB.web3, S = SOLLIB.spl;
+
+const NET = 'devnet', RPC = 'https://api.devnet.solana.com';
+const SIM = new URLSearchParams(location.search).has('simulate'); // dry run for testing: simulate instead of sending
+const conn = new W.Connection(RPC, 'confirmed');
+const $ = (id) => document.getElementById(id);
+const P = S.TOKEN_2022_PROGRAM_ID;
+const prov = () => (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom ? window.phantom.solana : window.solana && window.solana.isPhantom ? window.solana : null);
+let me = null;
+
+$('uri').value = location.origin + '/token.json';
+const store = { get: () => { try { return JSON.parse(localStorage.getItem('od_launch_' + NET) || '{}'); } catch (e) { return {}; } }, set: (o) => { try { localStorage.setItem('od_launch_' + NET, JSON.stringify(Object.assign(store.get(), o))); } catch (e) {} } };
+const say = (el, html, cls) => { $(el).className = 'st ' + (cls || ''); $(el).innerHTML = html; };
+const short = (a) => a.slice(0, 4) + '…' + a.slice(-4);
+
+function showMint(mint, sig) {
+  $('res').classList.remove('hide');
+  $('mint').textContent = mint;
+  $('explorer').href = `https://explorer.solana.com/address/${mint}?cluster=${NET}`;
+  $('c2').classList.add('done');
+  $('create').disabled = true; $('create').textContent = 'Токен уже создан';
+}
+const saved = store.get();
+if (saved.mint) showMint(saved.mint);
+
+if (!prov()) {
+  $('connect').classList.add('hide');
+  $('nophantom').classList.remove('hide');
+  $('openPhantom').href = 'https://phantom.app/ul/browse/' + encodeURIComponent(location.href) + '?ref=' + encodeURIComponent(location.origin);
+}
+
+async function refreshBal() {
+  try { const l = await conn.getBalance(me); $('bal').textContent = (l / 1e9).toFixed(4) + ' SOL'; $('create').disabled = !!store.get().mint || l < 4e6; if (l < 4e6) say('st1', 'Нужно хотя бы 0.004 SOL на devnet — нажми «Получить 1 тестовый SOL» или открой кран.', 'warn'); else say('st1', ''); }
+  catch (e) { $('bal').textContent = '—'; }
+}
+$('connect').onclick = async () => {
+  try {
+    const r = await prov().connect();
+    me = new W.PublicKey(r.publicKey.toString());
+    $('addr').textContent = short(me.toBase58()); $('addr').title = me.toBase58();
+    $('acct').classList.remove('hide'); $('connect').classList.add('hide');
+    $('c1').classList.add('done'); $('c1t').textContent = 'Кошелёк подключён.';
+    refreshBal();
+  } catch (e) { say('st1', 'Подключение отменено.', 'bad'); $('acct').classList.remove('hide'); }
+};
+$('airdrop').onclick = async () => {
+  if (!me) return;
+  say('st1', 'Запрашиваем тестовый SOL…');
+  try { const sig = await conn.requestAirdrop(me, 1e9); await conn.confirmTransaction(sig, 'confirmed'); say('st1', 'Получено 1 SOL (тестовый).', 'ok'); refreshBal(); }
+  catch (e) { say('st1', 'Кран devnet сейчас перегружен. Открой faucet.solana.com, вставь свой адрес и запроси SOL там.', 'warn'); }
+};
+
+const enc = (s) => new TextEncoder().encode(s).length;
+async function buildCreate(mintKp, name, symbol, uri) {
+  const metaLen = S.TYPE_SIZE + S.LENGTH_SIZE + 32 + 32 + 4 + enc(name) + 4 + enc(symbol) + 4 + enc(uri) + 4;
+  const mintLen = S.getMintLen([S.ExtensionType.MetadataPointer]);
+  const lamports = await conn.getMinimumBalanceForRentExemption(mintLen + metaLen);
+  const tx = new W.Transaction().add(
+    W.SystemProgram.createAccount({ fromPubkey: me, newAccountPubkey: mintKp.publicKey, space: mintLen, lamports, programId: P }),
+    S.createInitializeMetadataPointerInstruction(mintKp.publicKey, me, mintKp.publicKey, P),
+    S.createInitializeMintInstruction(mintKp.publicKey, 6, me, null, P),
+    S.createInitializeInstruction({ programId: P, metadata: mintKp.publicKey, updateAuthority: me, mint: mintKp.publicKey, mintAuthority: me, name, symbol, uri }),
+  );
+  tx.feePayer = me;
+  const bh = await conn.getLatestBlockhash('confirmed');
+  tx.recentBlockhash = bh.blockhash;
+  return { tx, bh, lamports };
+}
+
+$('create').onclick = async () => {
+  const name = $('name').value.trim(), symbol = $('sym').value.trim().toUpperCase(), uri = $('uri').value.trim();
+  if (!me || !name || !symbol || !/^(https:\/\/|http:\/\/localhost)/.test(uri)) return say('st2', 'Заполни название, тикер и ссылку https://…', 'bad');
+  $('create').disabled = true;
+  try {
+    const mintKp = W.Keypair.generate();
+    const { tx, bh, lamports } = await buildCreate(mintKp, name, symbol, uri);
+    $('cost').textContent = (lamports / 1e9 + 0.00001).toFixed(4);
+    if (SIM) {
+      const r = await conn.simulateTransaction(new W.VersionedTransaction(tx.compileMessage()), { sigVerify: false, replaceRecentBlockhash: true });
+      window.__sim = r.value;
+      return say('st2', r.value.err ? 'Проверка: ошибка ' + JSON.stringify(r.value.err) : 'Проверка: транзакция корректна (симуляция).', r.value.err ? 'bad' : 'ok');
+    }
+    say('st2', 'Подтверди транзакцию в Phantom…');
+    tx.partialSign(mintKp);
+    const signed = await prov().signTransaction(tx);
+    say('st2', 'Отправляем в сеть…');
+    const sig = await conn.sendRawTransaction(signed.serialize());
+    await conn.confirmTransaction({ signature: sig, blockhash: bh.blockhash, lastValidBlockHeight: bh.lastValidBlockHeight }, 'confirmed');
+    const mint = mintKp.publicKey.toBase58();
+    store.set({ mint, sig, owner: me.toBase58(), at: Date.now() });
+    say('st2', 'Готово!', 'ok');
+    showMint(mint, sig);
+    refreshBal();
+  } catch (e) {
+    say('st2', /reject|cancel|denied/i.test(String(e && e.message)) ? 'Ты отклонил транзакцию — ничего не произошло.' : 'Не получилось: ' + String((e && e.message) || e).slice(0, 160), 'bad');
+    $('create').disabled = false;
+  }
+};
+$('copy').onclick = () => { navigator.clipboard && navigator.clipboard.writeText($('mint').textContent).then(() => { $('copy').textContent = 'Скопировано'; }); };
+window.__ready = true;
+</script>
+</body>
+</html>

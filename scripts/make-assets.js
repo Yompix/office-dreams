@@ -105,4 +105,30 @@ const MAG = R.C('#ff3fd0'), CY = R.C('#22e6ff'), WHITE = R.C('#ffffff'), DARK = 
   }
   fs.writeFileSync(path.join(OUT, 'icon-180.png'), png(W, H, img));
 }
+// token logo 512×512: a pixel OFFICE coin (64×64 ×8) for the token metadata (wallets, Jupiter, DexScreener)
+{
+  const N = 64, b = new R.Buf(N, N);
+  b.clear(0);
+  const c = 31.5, gold = R.C('#ffd23f'), gold2 = R.C('#e0a21a'), gold3 = R.C('#9a6408'), hi = R.C('#fff3b0'), ink = R.C('#3a2204');
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const d = Math.hypot(x - c, y - c);
+    if (d > 31.5) continue;
+    if (d > 29.5) { b.px(x, y, ink); continue; }
+    if (d > 26.5) { b.px(x, y, (x + y < 62) ? gold : gold3); continue; } // rim: lit top-left, shaded bottom-right
+    if (d > 25.5) { b.px(x, y, gold3); continue; }
+    const t = (x - y) / 52 + 0.5; // face: soft diagonal light
+    b.px(x, y, t > 0.62 ? gold2 : gold);
+  }
+  for (let i = 0; i < 9; i++) { b.px(14 + i, 12 - Math.floor(i / 3), hi); b.px(14 + i, 13 - Math.floor(i / 3), hi); } // shine
+  // "OD" in the middle: hand-drawn 9×13 letters ×2 with a dark outline
+  const O = ['..#####..', '.##...##.', '##.....##', '##.....##', '##.....##', '##.....##', '##.....##', '##.....##', '##.....##', '##.....##', '##.....##', '.##...##.', '..#####..'];
+  const D = ['######...', '##...##..', '##....##.', '##.....##', '##.....##', '##.....##', '##.....##', '##.....##', '##.....##', '##.....##', '##....##.', '##...##..', '######...'];
+  const k = 2, ox = Math.round((N - (9 * k * 2 + 4)) / 2), oy = Math.round((N - 13 * k) / 2);
+  const pts = [];
+  [[O, ox], [D, ox + 9 * k + 4]].forEach(([g, gx]) => g.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') for (let dy = 0; dy < k; dy++) for (let dx = 0; dx < k; dx++) pts.push([gx + x * k + dx, oy + y * k + dy]); })));
+  for (const [x, y] of pts) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [2, 2]]) b.px(x + dx, y + dy, ink);
+  for (const [x, y] of pts) b.px(x, y, R.C('#fff8d6'));
+  const img = compose(512, 512, [{ buf: b, k: 8, ox: 0, oy: 0 }], [0, 0, 0, 0]);
+  fs.writeFileSync(path.join(OUT, 'token-512.png'), png(512, 512, img));
+}
 for (const f of fs.readdirSync(OUT)) console.log('public/' + f, (fs.statSync(path.join(OUT, f)).size / 1024).toFixed(1) + ' KB');

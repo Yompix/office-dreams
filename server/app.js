@@ -78,7 +78,7 @@ function sendText(res, status, text, type = 'text/plain; charset=utf-8', extra =
 }
 
 /* ---------- static ---------- */
-const MIME = { '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.webp': 'image/webp', '.jpg': 'image/jpeg' };
+const MIME = { '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.js': 'text/javascript; charset=utf-8', '.webp': 'image/webp', '.jpg': 'image/jpeg' };
 function makeStatic(cfg) {
   const distIndex = path.join(cfg.root, 'dist', 'index.html');
   let cached = null;
@@ -404,6 +404,18 @@ function createApp(cfg, opts = {}) {
         sendText(res, 200, 'ok');
         Bot.handleUpdate(ctx, up);
         return;
+      }
+      // token metadata (the URI written into the OFFICE mint) and the launch page (the owner signs everything in Phantom)
+      if (p === '/token.json') {
+        const base = cfg.publicUrl || `http://${req.headers.host}`;
+        const app = cfg.botUsername ? `https://t.me/${cfg.botUsername}${cfg.appShort ? '/' + cfg.appShort : ''}` : base;
+        res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'public, max-age=300', 'access-control-allow-origin': '*', ...SEC_HEADERS });
+        return res.end(JSON.stringify({ name: 'Office Dreams', symbol: cfg.tokenSymbol || 'OFFICE', description: 'OFFICE — the token of Office Dreams, a pixel game studio tycoon in Telegram. 100,000,000 supply, minted once.', image: base + '/token-512.png', external_url: app }));
+      }
+      if (p === '/launch') {
+        const f = path.join(cfg.root, 'public', 'launch.html');
+        res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', ...SEC_HEADERS });
+        return fs.createReadStream(f).pipe(res);
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') return sendText(res, 405, 'method');
       return serve(req, res, p);
