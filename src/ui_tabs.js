@@ -483,6 +483,15 @@ function boostRow(b) {
     <button class="btn sm pink" data-act="bst:${b.id}" ${S.gems >= b.price ? '' : 'disabled'}>${I('gem', 12)} ${b.price}</button>
   </div>`;
 }
+/* locations: after every IPO the studio moves to a new city with its own office look */
+const LOCS = ['home', 'tokyo', 'valley', 'orbit'];
+function locPanel() {
+  const cur = Math.min(3, S.legacy || 0);
+  return `<section class="panel locs">
+    <h2 class="h2">🌍 ${L('loc.title')}</h2><p class="sub">${L('loc.sub')}</p>
+    <div class="loc-list">${LOCS.map((id, i) => `<div class="loc ${i === cur ? 'on' : i < cur ? 'done' : 'lock'}"><span class="loc-ic">${['🏙️', '🗼', '🌴', '🛰️'][i]}</span><div><b>${L('loc.' + id)}</b><small>${i === 0 ? L('loc.start') : L('loc.after', { n: i })}${i === 3 ? ' +' : ''}</small></div>${i === cur ? `<span class="chip">${L('loc.here')}</span>` : i > cur ? '🔒' : '✓'}</div>`).join('')}</div>
+  </section>`;
+}
 function tabEmpire() {
   const nf = nextFloor(S);
   return `<section class="panel towerp">
@@ -500,7 +509,9 @@ function tabEmpire() {
   </section>
   ${canPrestige(S) ? `<section class="panel ipo">
     <h2 class="h2">${I('crown', 16)} ${L('ipo.title')}</h2><p class="sub">${L('ipo.text', { gems: 3 + S.legacy })}</p>
+    <p class="loc-next">✈️ ${L('loc.next', { name: L('loc.' + LOCS[Math.min(3, (S.legacy || 0) + 1)]) })}</p>
     <button class="btn gold" data-act="ipo">${L('ipo.btn')}</button></section>` : ''}
+  ${locPanel()}
   <section class="panel">
     <div class="sec-h"><div><h2 class="h2">${L('empire.floors')}</h2><p class="sub">${nf ? L('empire.floors_sub') : L('empire.all_floors')} ${L('empire.reno_sub')}</p></div><span class="reno-total px" title="${esc(L('empire.stars'))}">★ ${renoStars(S)}/${FLOOR_ORDER.length * RENO_MAX}</span></div>
     <div class="floors">${FLOORS.slice().reverse().map(floorRow).join('')}</div>

@@ -94,7 +94,7 @@ function sceneState() {
   return {
     f: S.clock / DAY_SEC,
     working: !!S.project && (hiredCount(S) > 0 || UI.tapFlash > 0),
-    staff: S.staff, items: S.items, turbo: S.buffs.turbo > 0, canHire,
+    staff: S.staff, items: S.items, turbo: S.buffs.turbo > 0, canHire, legacy: S.legacy || 0,
     tapFlash: UI.tapFlash, floors: S.floors, hype: S.buffs.hype > 0,
     rain: !!(MUSIC.on && TRACKS[MUSIC.track] && TRACKS[MUSIC.track].rain),
   };

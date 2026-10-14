@@ -267,6 +267,62 @@ const THEMES = [
     words: [['EMPIRE', 'yel'], ['VISION', 'yel'], ['CEO', 'white'], ['WIN', 'yel']], poster: ['#ffd23f', '#1f1a2c', '#ffffff'], deco: 'trophy', view: 20, glow: ['yel', 'org'] },
 ];
 let THEME = THEMES[0];
+/* ---------- locations after an IPO: the studio moves to a new city (legacy 1, 2, 3+) ---------- */
+const ERAS = [
+  null,
+  { id: 'tokyo', words: [['TOKYO', 'mag'], ['NEON', 'cyan'], ['ANIME', 'yel'], ['GAME', 'mag']], tint: '#ff3fd0', k: 0.16 },
+  { id: 'valley', words: [['STARTUP', 'yel'], ['SCALE', 'grn'], ['CLOUD', 'cyan'], ['AI', 'org']], tint: '#ffb347', k: 0.14 },
+  { id: 'orbit', words: [['ORBIT', 'cyan'], ['STARS', 'white'], ['MOON', 'yel'], ['MARS', 'red']], tint: '#4ca3ff', k: 0.2 },
+];
+let ERA = null;
+const eraIndex = (legacy) => Math.min(3, Math.max(0, legacy | 0));
+const wordsNow = () => (ERA ? ERA.words : THEME.words);
+function applyEra(legacy) {
+  ERA = ERAS[eraIndex(legacy)];
+  if (!ERA) return;
+  const t = C(ERA.tint), k = ERA.k;
+  PAL.wallR = mixC(PAL.wallR, t, k); PAL.wallL = mixC(PAL.wallL, t, k * 0.85);
+  PAL.floorA = mixC(PAL.floorA, t, k * 0.5); PAL.floorB = mixC(PAL.floorB, t, k * 0.5);
+  if (ERA.id === 'orbit') { PAL.floorA = mixC(PAL.floorA, C('#c8d0e8'), 0.25); PAL.floorB = mixC(PAL.floorB, C('#c8d0e8'), 0.3); }
+}
+// what you see through the window in each location (ly = 0 at the bottom of the glass)
+function eraWindow(lx, ly, gh, sky, col) {
+  const id = ERA.id;
+  if (id === 'orbit') {
+    let c = mixC(C('#02030f'), C('#0b1240'), ly / gh);
+    if (hash01(lx * 131 + ly * 17) < 0.06) c = mixC(c, PAL.white, 0.5 + hash01(lx + ly * 7) * 0.5);
+    // the Earth rising at the bottom, with an atmosphere rim and day/night side
+    const ex = 34, ey = -20, r = 30, d = Math.hypot(lx - ex, ly - ey);
+    if (d < r + 2.5 && d >= r) c = mixC(c, C('#7ad8ff'), 0.8 - (d - r) * 0.28);
+    else if (d < r) {
+      const n = hash01(Math.floor(lx / 3) * 13 + Math.floor(ly / 2) * 7) + 0.4 * Math.sin(lx * 0.31 + ly * 0.5);
+      c = n > 0.85 ? C('#2ea05a') : n > 0.7 ? C('#3fb86a') : C('#1f5fd0');
+      if (hash01(lx * 7 + ly * 29) < 0.12) c = mixC(c, PAL.white, 0.7);
+      c = shadeC(c, 0.55 + 0.45 * clampN((lx - ex + r) / (2 * r), 0, 1));
+    }
+    // the Moon, high on the right
+    const mx = 60, my = 25, md = Math.hypot(lx - mx, ly - my);
+    if (md < 5) c = md < 4 ? mixC(C('#d8d4ee'), C('#9a94c8'), hash01(lx * 3 + ly * 5) * 0.5) : mixC(c, C('#d8d4ee'), 0.4);
+    return c;
+  }
+  if (id === 'tokyo') {
+    // a pink dusk over Mt. Fuji behind the city
+    let c = mixC(col, C('#ff6f91'), 0.28);
+    const fuji = 22 - Math.abs(lx - 46) * 0.62;
+    if (ly < fuji) { c = ly > fuji - 4 ? C('#f6e8ff') : mixC(C('#3a2a6a'), C('#5a3a8a'), ly / 22); }
+    return c;
+  }
+  // valley: sunny sky, hills and palms instead of skyscrapers
+  let c = col;
+  const hill = 9 + 4 * Math.sin(lx * 0.13) + 2 * Math.sin(lx * 0.41 + 1);
+  if (ly < hill) c = mixC(C('#3fa05a'), C('#2a7a44'), 1 - ly / hill);
+  for (const px of [12, 39, 63]) {
+    const dx = lx - px;
+    if (dx === 0 && ly < hill + 13 && ly >= hill - 1) c = C('#6b4a2a');
+    if (ly > hill + 10 && ly < hill + 15 && Math.abs(dx) < 6 - Math.abs(ly - hill - 12.5) * 1.6) c = C('#2e8a3a');
+  }
+  return c;
+}
 const pc = (v) => (typeof v === 'string' && v[0] !== '#' ? PAL[v] : C(v));
 function themeTier(floors) {
   if (!floors) return 0;
@@ -329,6 +385,8 @@ function windowPixel(kx, v, sky) {
   const gh = WIN.v1 - WIN.v0; // glass height
   const y01 = 1 - ly / gh;
   let col = mixC(sky.top, sky.bot, clampN(y01 * 1.05, 0, 1));
+  if (ERA && ERA.id !== 'tokyo') return eraWindow(lx, ly, gh, sky, col);
+  if (ERA) col = eraWindow(lx, ly, gh, sky, col);
   // stars
   if (sky.night > 0 && hash01(lx * 131 + ly * 17) < 0.035 * sky.night && ly > 16) col = mixC(col, PAL.white, 0.8);
   const fh = SKYLINE.far[lx] - THEME.view, nh = SKYLINE.near[lx] - THEME.view * 1.3;
@@ -437,7 +495,7 @@ function drawWalls(B, f) {
         const edge = k === k0 || k === k1 || v === v0 || v === v1;
         wallPx(B, 'L', k, v, edge ? C('#3c3f94') : C('#0b0d2b'));
       }
-    const words = THEME.words.map((w, i) => [w[0], pc(w[1]), 46 - i * 8]);
+    const words = wordsNow().map((w, i) => [w[0], pc(w[1]), 46 - i * 8]);
     for (const w of words) {
       const tw = textWidth(w[0]);
       const kk = k0 + 1 + Math.floor((k1 - k0 - 1 - tw) / 2);
@@ -1244,11 +1302,11 @@ function drawWindowLife(B, st, t) {
 }
 // neon sign hum: now and then one word flickers
 function drawNeonFlicker(B, t) {
-  const w = Math.floor(t / 3.7) % THEME.words.length;
+  const w = Math.floor(t / 3.7) % wordsNow().length;
   const on = (t % 3.7) < 0.18 && Math.floor(t * 20) % 2 === 0;
   if (!on) return;
   const k0 = 22, k1 = 60;
-  const word = THEME.words[w][0];
+  const word = wordsNow()[w][0];
   const tw = textWidth(word);
   const kk = k0 + 1 + Math.floor((k1 - k0 - 1 - tw) / 2);
   wallGlyphs(B, 'L', kk, 46 - w * 8 - 1, word, C('#1a1d4a'), null);
@@ -1431,6 +1489,14 @@ function drawWalker(B, gx, gy, frame, t, pause) {
 /* ---------- ambient particles (pure function of time → no state) ---------- */
 function drawParticles(B, st, t) {
   const cols = [PAL.cyan, PAL.mag, PAL.yel, PAL.grn];
+  if (ERA && ERA.id === 'tokyo') { // cherry petals drifting through the office
+    for (let i = 0; i < 16; i++) {
+      const sp = 9 + hash01(i * 5) * 7, x = Math.round(((hash01(i * 13) * B.w + t * sp * 0.9) % (B.w + 20)) - 10 + Math.sin(t * 1.3 + i) * 4);
+      const y = Math.round((hash01(i * 7 + 2) * B.h + t * sp) % B.h);
+      const c = i % 3 ? C('#ffb0d8') : C('#ffd8ec');
+      B.px(x, y, c); if ((Math.floor(t * 3) + i) % 2) B.px(x + 1, y, shadeC(c, 0.85));
+    }
+  }
   // code bits rising from the screens of employees who are working
   if (st.working) {
     ['prog', 'art', 'des', 'mkt'].forEach((role, ri) => {
@@ -1569,21 +1635,21 @@ function createScene() {
       try { this.render(st, t); } finally { HDQ = null; }
       scale2x(frame, hi);
       for (const fn of q) { try { fn(hi); } finally { PS = 1; } }
-      const lk = themeTier(st.floors) + ':' + Math.round((st.f || 0) * 48) + ':' + JSON.stringify(st.items || {}) + ':' + ['prog', 'art', 'des', 'mkt'].map((r) => (st.staff && st.staff[r] && st.staff[r].lvl > 0 ? 1 : 0)).join('');
+      const lk = eraIndex(st.legacy) + ':' + themeTier(st.floors) + ':' + Math.round((st.f || 0) * 48) + ':' + JSON.stringify(st.items || {}) + ':' + ['prog', 'art', 'des', 'mkt'].map((r) => (st.staff && st.staff[r] && st.staff[r].lvl > 0 ? 1 : 0)).join('');
       if (lk !== lightKey) { buildLight(light, hi.w, hi.h, st); lightKey = lk; }
       applyLight(hi, light, PAL[THEME.glow[0]] || PAL.cyan);
       return hi;
     },
     render(st, t) {
-      const tier = themeTier(st.floors);
+      const tier = themeTier(st.floors), era = eraIndex(st.legacy);
       const fk = Math.round(clampN(st.f || 0, 0, 1) * 120);
-      const key = tier * 1000 + fk;
+      const key = era * 100000 + tier * 1000 + fk;
       if (key !== baseKey) {
-        applyTheme(tier);
+        applyTheme(tier); applyEra(st.legacy);
         drawBase(base, fk / 120);
         baseKey = key;
       }
-      applyTheme(tier);
+      applyTheme(tier); applyEra(st.legacy);
       frame.d.set(base.d);
       drawDynamic(frame, st, t || 0);
       return frame;

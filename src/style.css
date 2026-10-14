@@ -1073,3 +1073,14 @@ body.pv-on #app { visibility: hidden; }
 .mk-mini-p b{font-size:17px}
 .mk-mini-p .mk-ch{font-size:11px;padding:1px 6px}
 .mk-go{font-weight:800;font-size:13px;color:#2ee66b;white-space:nowrap}
+
+/* ---------- studio locations (after IPO) ---------- */
+.loc-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.loc{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+.loc>div{flex:1;min-width:0;display:flex;flex-direction:column}
+.loc small{opacity:.65;font-size:12px}
+.loc-ic{font-size:24px;width:34px;text-align:center}
+.loc.on{background:rgba(255,210,63,.1);box-shadow:inset 0 0 0 1px rgba(255,210,63,.5),0 0 18px rgba(255,210,63,.18)}
+.loc.lock{opacity:.55}
+.loc.done{opacity:.8}
+.loc-next{margin:6px 0 10px;font-weight:700;color:#ffd23f}
