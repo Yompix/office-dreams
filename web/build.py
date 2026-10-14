@@ -1,9 +1,9 @@
 # Збирає новий фронтенд в один файл web.html
 import hashlib, os
 D = os.path.dirname(os.path.abspath(__file__)) + '/src/'
-css = open(D + 'style.css', encoding='utf8').read()
+css = open(D + 'style.css', encoding='utf8').read() + '\n' + open(D + 'fx.css', encoding='utf8').read()
 body = open(D + 'body.html', encoding='utf8').read()
-js = '\n'.join(open(D + f, encoding='utf8').read() for f in ['i18n.js', 'core.js', 'lobby.js', 'match.js', 'cards.js', 'wallet.js'])
+js = '\n'.join(open(D + f, encoding='utf8').read() for f in ['i18n.js', 'core.js', 'lobby.js', 'match.js', 'cards.js', 'wallet.js', 'fx.js'])
 html = f'''<!doctype html>
 <html lang="uk"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
