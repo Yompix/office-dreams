@@ -114,6 +114,22 @@ class Buf {
       }
     }
   }
+  ell(cx, cy, rx, ry, c) {
+    const y0 = Math.ceil(cy - ry), y1 = Math.floor(cy + ry);
+    for (let y = y0; y <= y1; y++) {
+      const dy = (y - cy) / ry, w = rx * Math.sqrt(Math.max(0, 1 - dy * dy));
+      const x0 = Math.ceil(cx - w - 0.001), x1 = Math.floor(cx + w + 0.001);
+      if (y < 0 || y >= this.h) continue;
+      for (let x = Math.max(0, x0); x <= Math.min(this.w - 1, x1); x++) this.d[y * this.w + x] = c;
+    }
+  }
+  arc(cx, cy, rx, ry, a0, a1, c, th) {
+    const n = Math.ceil((rx + ry) * Math.abs(a1 - a0));
+    for (let i = 0; i <= n; i++) {
+      const a = a0 + ((a1 - a0) * i) / n, x = Math.round(cx + Math.cos(a) * rx), y = Math.round(cy - Math.sin(a) * ry);
+      this.px(x, y, c); if (th > 1) { this.px(x, y + 1, c); this.px(x + 1, y, c); }
+    }
+  }
   sprite(x, y, rows, pal, flip) {
     for (let j = 0; j < rows.length; j++) {
       const row = rows[j];
@@ -172,8 +188,20 @@ function eachGlyphPixel(str, cb) {
 
 /* ---------- scene geometry ---------- */
 const SCN = { W: 256, H: 176, OX: 128, OY: 62, HW: 12, HH: 6, WALL: 58, N: 9 };
+let PS = 1; // projection scale: 2 while drawing the HD layer
+let HDQ = null; // when set, characters are queued here and drawn later at ×2 on the HD buffer
 function P(gx, gy, z) {
-  return [Math.round(SCN.OX + (gx - gy) * SCN.HW), Math.round(SCN.OY + (gx + gy) * SCN.HH - (z || 0))];
+  return [Math.round((SCN.OX + (gx - gy) * SCN.HW) * PS), Math.round((SCN.OY + (gx + gy) * SCN.HH - (z || 0)) * PS)];
+}
+// draws a low-res routine onto the ×2 buffer as chunky 2×2 pixels (badges and other tiny UI marks)
+function up2(B) {
+  return {
+    w: B.w >> 1, h: B.h >> 1,
+    px: (x, y, c) => B.rect(x * 2, y * 2, 2, 2, c),
+    rect: (x, y, w, h, c) => B.rect(x * 2, y * 2, w * 2, h * 2, c),
+    blend: (x, y, c, a) => { B.blend(x * 2, y * 2, c, a); B.blend(x * 2 + 1, y * 2, c, a); B.blend(x * 2, y * 2 + 1, c, a); B.blend(x * 2 + 1, y * 2 + 1, c, a); },
+    glow: (x, y, r, c, a) => B.glow(x * 2, y * 2, r * 2, c, a),
+  };
 }
 function isoQuad(B, x0, y0, x1, y1, z, col) {
   B.poly([P(x0, y0, z), P(x1, y0, z), P(x1, y1, z), P(x0, y1, z)], col);
@@ -692,10 +720,10 @@ function drawChairParts(B, s, accent, seatOnly) {
   isoBox(B, cx - 0.08, cy - 0.08, 0, 0.16, 0.16, 6, C('#252a66'), C('#1a1e4d'), C('#12163a'));
   isoBox(B, cx - 0.36, cy - 0.36, 6, 0.72, 0.72, 3, accent, shadeC(accent, 0.78), shadeC(accent, 0.6));
 }
-function drawChairBack(B, s, accent) {
-  const [cx, cy] = s.chair;
-  if (s.side === 'R') isoBox(B, cx - 0.3, cy + 0.3, 9, 0.6, 0.1, 10, shadeC(accent, 1.2), accent, shadeC(accent, 0.6));
-  else isoBox(B, cx + 0.3, cy - 0.3, 9, 0.1, 0.6, 10, shadeC(accent, 1.2), accent, shadeC(accent, 0.6));
+function drawChairBack(B, s, accent, dz) {
+  const [cx, cy] = s.chair, h = dz || 10;
+  if (s.side === 'R') isoBox(B, cx - 0.3, cy + 0.3, 9, 0.6, 0.1, h, shadeC(accent, 1.2), accent, shadeC(accent, 0.6));
+  else isoBox(B, cx + 0.3, cy - 0.3, 9, 0.1, 0.6, h, shadeC(accent, 1.2), accent, shadeC(accent, 0.6));
 }
 
 function drawWorkerBack(B, ax, ay, look, typing, frame, t) {
@@ -757,6 +785,161 @@ function drawPlayerFront(B, ax, ay, t, typing, frame, blink) {
     B.px(ax - 2, ay - 18, PAL.white); B.px(ax + 1, ay - 18, PAL.white);
   }
   B.rect(ax - 1, ay - 15, 2, 1, C('#4a2616'));
+}
+
+/* ============================================================
+   HD characters (drawn at ×2 on the upscaled buffer): more pixels for faces, hair, clothes
+   and motion. Each role has its own look: the coder in a hoodie, the artist with a bun
+   and a pencil, the designer in headphones, the marketer with a ponytail and a blazer.
+   ============================================================ */
+const HD_ROLE = { prog: 'hoodie', art: 'bun', des: 'phones', mkt: 'blazer' };
+function hdShade(c, k) { return shadeC(c, k); }
+function drawWorkerHD(B, X, Y, look, role, typing, t, seed, mood) {
+  const kind = HD_ROLE[role] || 'hoodie';
+  const sh = look.shirt, s1 = hdShade(sh, 0.78), s2 = hdShade(sh, 0.58), hl = mixC(sh, PAL.white, 0.28);
+  const hair = look.hair, h1 = hdShade(hair, 0.72), h2 = mixC(hair, PAL.white, 0.3), skin = look.skin, sk1 = hdShade(skin, 0.8);
+  const tk = typing ? Math.floor(t * 9 + seed) % 2 : 0;
+  const breathe = Math.sin(t * 1.7 + seed) > 0.75 ? 1 : 0;
+  const by = Y - breathe; // whole upper body rises a little when breathing
+  // upper arms + elbows (hands are in front of the body, on the keyboard)
+  B.rect(X - 13, by - 21, 4, 11, s1); B.rect(X + 9, by - 21, 4, 11, s2);
+  B.ell(X - 11, by - 9 + tk, 2.5, 2, s2); B.ell(X + 11, by - 9 + (1 - tk), 2.5, 2, s2);
+  // torso with rounded shoulders
+  B.poly([[X - 10, by - 23], [X + 10, by - 23], [X + 9, by - 4], [X - 9, by - 4]], sh);
+  B.ell(X - 9, by - 21, 3.5, 3, sh); B.ell(X + 9, by - 21, 3.5, 3, s1);
+  B.poly([[X + 4, by - 23], [X + 10, by - 23], [X + 9, by - 4], [X + 4, by - 4]], s1);
+  B.rect(X - 9, by - 24, 7, 1, hl); B.rect(X - 10, by - 22, 1, 6, hl);
+  B.rect(X, by - 19, 1, 12, s2); // spine fold
+  B.rect(X - 9, by - 6, 18, 2, s2); // waist
+  if (kind === 'hoodie') {
+    B.ell(X, by - 23, 7.5, 3.5, s2); B.ell(X, by - 23.5, 5.5, 2, s1);
+    B.rect(X - 2, by - 16, 5, 1, hdShade(sh, 0.5)); // pocket seam
+  } else if (kind === 'bun') {
+    B.line(X - 8, by - 23, X + 6, by - 6, s2); B.line(X + 8, by - 23, X - 6, by - 6, s2); // apron straps
+    B.ell(X + 7, by - 12, 1.5, 1.5, PAL.yel);
+  } else if (kind === 'phones') {
+    B.rect(X - 4, by - 17, 8, 6, hdShade(sh, 0.66)); B.rect(X - 3, by - 16, 6, 4, mixC(look.screen, sh, 0.35)); // print on the back
+  } else {
+    B.rect(X, by - 23, 1, 19, s2); B.rect(X - 1, by - 8, 3, 4, s2); // blazer seam + vent
+    B.poly([[X - 6, by - 24], [X + 6, by - 24], [X + 3, by - 20], [X - 3, by - 20]], hdShade(sh, 0.5)); // collar
+  }
+  // neck
+  B.rect(X - 2, by - 28, 5, 5, sk1);
+  // head
+  const hx = X, hy = by - 35;
+  B.ell(hx - 6.5, hy + 1, 1.6, 2.6, skin); B.ell(hx + 6.5, hy + 1, 1.6, 2.6, sk1); // ears
+  B.ell(hx, hy, 6.5, 7, hair);
+  B.ell(hx + 2, hy + 1, 4, 5.5, h1); // shading on the far side
+  B.ell(hx - 2, hy - 2, 3.5, 4, hair);
+  if (kind === 'bun') {
+    B.ell(hx, hy - 8, 3.5, 3, hair); B.ell(hx + 1, hy - 7.5, 2, 1.8, h1); B.rect(hx - 1, hy - 10, 2, 1, h2);
+    B.line(hx - 4, hy - 12, hx + 4, hy - 5, PAL.yel); B.px(hx + 4, hy - 5, C('#ff8a3d')); // pencil in the bun
+  } else if (kind === 'blazer') {
+    const sw = Math.round(Math.sin(t * 2.2 + seed) * 1.2);
+    B.ell(hx + sw, hy + 8, 2.5, 4, hair); B.ell(hx + sw + 1, hy + 9, 1.5, 3, h1); B.rect(hx - 1 + sw, hy + 4, 3, 2, PAL.mag); // ponytail + scrunchie
+  } else if (look.style === 'spiky') {
+    for (const [dx, h] of [[-5, 3], [-2, 5], [1, 4], [4, 5]]) B.poly([[hx + dx - 2, hy - 5], [hx + dx + 2, hy - 5], [hx + dx + 1, hy - 5 - h]], hair);
+  }
+  // hair highlights
+  B.rect(hx - 4, hy - 5, 3, 1, h2); B.rect(hx - 5, hy - 3, 1, 3, h2); B.px(hx - 1, hy - 6, h2);
+  if (kind === 'phones') {
+    B.arc(hx, hy - 1, 7.5, 8, 0.15, Math.PI - 0.15, PAL.cyan, 2);
+    B.ell(hx - 7.5, hy + 1, 2, 3, C('#141845')); B.ell(hx + 7.5, hy + 1, 2, 3, C('#141845'));
+    B.px(hx - 8, hy, PAL.cyan); B.px(hx + 8, hy, PAL.cyan);
+  }
+  if (mood < 35) { B.px(hx + 7, hy - 6, C('#7ac8ff')); B.px(hx + 7, hy - 5, C('#7ac8ff')); } // sweat drop
+}
+
+function drawPlayerHD(B, X, Y, t, typing, blink, tap) {
+  const L = LOOK.you, j = L.shirt, j1 = shadeC(j, 0.78), j2 = shadeC(j, 0.58), jh = mixC(j, PAL.white, 0.3);
+  const skin = L.skin, sk1 = shadeC(skin, 0.82), sk2 = shadeC(skin, 0.68), hair = L.hair, hh = mixC(hair, PAL.white, 0.3);
+  const tk = typing ? Math.floor(t * 9) % 2 : 0;
+  const bob = tap ? 1 : 0;
+  const y = Y - bob;
+  // arms reaching to the laptop
+  B.rect(X - 13, y - 21, 4, 12, j1); B.rect(X + 9, y - 21, 4, 12, j2);
+  B.ell(X - 10, y - 8 + tk, 3, 2.2, skin); B.ell(X + 10, y - 8 + (1 - tk), 3, 2.2, sk1);
+  // jacket, shirt, lanyard
+  B.poly([[X - 10, y - 23], [X + 10, y - 23], [X + 9, y - 4], [X - 9, y - 4]], j);
+  B.ell(X - 9, y - 21, 3.5, 3, j); B.ell(X + 9, y - 21, 3.5, 3, j1);
+  B.poly([[X + 4, y - 23], [X + 10, y - 23], [X + 9, y - 4], [X + 4, y - 4]], j1);
+  B.poly([[X - 3, y - 23], [X + 3, y - 23], [X + 1, y - 10], [X - 1, y - 10]], PAL.white);
+  B.poly([[X - 6, y - 23], [X - 2, y - 23], [X - 1, y - 12], [X - 4, y - 18]], jh); // lapels
+  B.poly([[X + 2, y - 23], [X + 6, y - 23], [X + 4, y - 18], [X + 1, y - 12]], j2);
+  B.line(X - 3, y - 22, X, y - 13, PAL.cyan); B.line(X + 3, y - 22, X, y - 13, PAL.cyan); B.rect(X - 2, y - 13, 4, 3, PAL.cyan); B.rect(X - 1, y - 12, 2, 1, PAL.white); // badge
+  // neck + head
+  B.rect(X - 2, y - 27, 5, 4, sk1);
+  const hx = X, hy = y - 35;
+  B.ell(hx, hy, 6.5, 7.5, skin);
+  B.ell(hx + 3, hy + 1, 3.5, 6, sk1);
+  B.ell(hx - 6.5, hy + 1, 1.5, 2.5, skin); B.ell(hx + 6.5, hy + 1, 1.5, 2.5, sk1);
+  // hair: top + fringe + sideburns
+  B.ell(hx, hy - 5, 7, 4, hair); B.rect(hx - 7, hy - 5, 2, 6, hair); B.rect(hx + 5, hy - 5, 2, 6, hair);
+  B.poly([[hx - 6, hy - 5], [hx + 1, hy - 5], [hx - 3, hy - 1]], hair);
+  B.rect(hx - 3, hy - 8, 4, 1, hh); B.px(hx + 2, hy - 7, hh);
+  // face
+  B.rect(hx - 4, hy - 1, 3, 1, shadeC(hair, 1.2)); B.rect(hx + 1, hy - 1, 3, 1, shadeC(hair, 1.2)); // brows
+  if (blink) { B.rect(hx - 4, hy + 1, 3, 1, sk2); B.rect(hx + 1, hy + 1, 3, 1, sk2); }
+  else {
+    B.rect(hx - 4, hy, 3, 3, PAL.white); B.rect(hx + 1, hy, 3, 3, PAL.white);
+    B.rect(hx - 3, hy + 1, 2, 2, PAL.ink); B.rect(hx + 2, hy + 1, 2, 2, PAL.ink);
+    B.px(hx - 3, hy + 1, PAL.white); B.px(hx + 2, hy + 1, PAL.white);
+  }
+  B.px(hx, hy + 3, sk2); B.px(hx, hy + 4, sk2); // nose
+  B.blend(hx - 5, hy + 4, C('#ff6f91'), 0.35); B.blend(hx + 5, hy + 4, C('#ff6f91'), 0.35); // cheeks
+  if (tap) { B.rect(hx - 2, hy + 5, 5, 2, C('#4a1616')); B.rect(hx - 1, hy + 5, 3, 1, PAL.white); }
+  else { B.rect(hx - 2, hy + 6, 4, 1, C('#4a2616')); B.px(hx - 3, hy + 5, C('#4a2616')); B.px(hx + 2, hy + 5, C('#4a2616')); }
+  // headphones with a soft glow
+  B.arc(hx, hy - 1, 8, 9, 0.2, Math.PI - 0.2, PAL.cyan, 2);
+  B.ell(hx - 8, hy + 1, 2, 3.2, C('#1a1e4d')); B.ell(hx + 8, hy + 1, 2, 3.2, C('#1a1e4d'));
+  B.rect(hx - 9, hy, 1, 3, PAL.cyan); B.rect(hx + 8, hy, 1, 3, PAL.cyan);
+  if (Math.floor(t * 2) % 2) B.glow(hx, hy - 9, 7, PAL.cyan, 0.18);
+}
+
+function drawWalkerHD(B, X, Y, t, pause) {
+  const L = LOOK.npc, f = pause ? 0 : Math.floor(t * 8) % 4;
+  const step = [0, 2, 0, -2][f], lift = [0, 1, 0, 1][f];
+  // shadow
+  for (let i = -7; i <= 7; i++) B.blend(X + i, Y, PAL.ink, 0.45 * (1 - Math.abs(i) / 8)), B.blend(X + i, Y + 1, PAL.ink, 0.25 * (1 - Math.abs(i) / 8));
+  // legs + shoes
+  const pants = C('#262b66'), shoe = C('#0f1130');
+  B.rect(X - 4 + step, Y - 10 + lift, 3, 10 - lift, pants); B.rect(X + 1 - step, Y - 10 + (1 - lift), 3, 10 - (1 - lift), shadeC(pants, 0.8));
+  B.rect(X - 5 + step, Y - 2, 5, 2, shoe); B.rect(X - step, Y - 2, 5, 2, shoe);
+  // body
+  B.poly([[X - 6, Y - 22], [X + 6, Y - 22], [X + 6, Y - 9], [X - 6, Y - 9]], L.shirt);
+  B.rect(X + 2, Y - 22, 4, 13, shadeC(L.shirt, 0.78));
+  // the parcel
+  const by = Y - 20 + (f % 2);
+  B.rect(X - 6, by, 13, 9, C('#c98a4b')); B.rect(X - 6, by, 13, 2, C('#e3a86a')); B.rect(X + 3, by, 4, 9, C('#9a6232'));
+  B.rect(X - 1, by, 2, 9, C('#f4dcae')); B.rect(X - 6, by + 4, 13, 1, C('#f4dcae'));
+  B.ell(X - 7, by + 5, 2, 2, L.skin); B.ell(X + 7, by + 5, 2, 2, shadeC(L.skin, 0.8)); // hands
+  // head + cap
+  const hx = X, hy = Y - 29;
+  B.ell(hx, hy, 5, 5.5, L.skin); B.ell(hx + 2, hy + 1, 3, 4, shadeC(L.skin, 0.84));
+  B.ell(hx, hy - 3, 5.5, 3, PAL.cyan); B.rect(hx - 7, hy - 2, 7, 2, shadeC(PAL.cyan, 0.7)); B.px(hx - 1, hy - 5, PAL.white);
+  B.rect(hx - 3, hy, 2, 2, PAL.ink); B.rect(hx + 1, hy, 2, 2, PAL.ink); B.rect(hx - 1, hy + 3, 3, 1, C('#4a2616'));
+  if (pause && Math.floor(t * 2) % 2) { // a little heart when he drops the parcel off
+    B.ell(X + 11, Y - 40, 2.5, 2.5, PAL.mag); B.ell(X + 15, Y - 40, 2.5, 2.5, PAL.mag); B.poly([[X + 8.5, Y - 39], [X + 17.5, Y - 39], [X + 13, Y - 34]], PAL.mag);
+  }
+}
+
+function drawCatHD(B, X, Y, t) {
+  const k = C('#14142b'), k2 = C('#2a2a4d'), k3 = C('#3a3a66'), e = C('#ffe14d');
+  const tail = Math.sin(t * 2.2) * 3;
+  // tail curling up behind
+  for (let i = 0; i < 9; i++) { const a = i / 8; B.ell(X + 8 + a * 3, Y - 2 - a * 8 + Math.sin(a * 3) * tail * a, 1.6, 1.6, k); }
+  // body loaf
+  B.ell(X, Y - 4, 8, 4.5, k); B.ell(X - 1, Y - 6, 6, 2, k2); B.rect(X - 6, Y - 1, 3, 1, k3); B.rect(X - 1, Y - 1, 3, 1, k3);
+  // head
+  const hx = X - 8, hy = Y - 10;
+  B.ell(hx, hy, 5, 4.2, k);
+  B.poly([[hx - 5, hy - 2], [hx - 2, hy - 3], [hx - 4.5, hy - 7]], k); B.poly([[hx + 1, hy - 3], [hx + 4.5, hy - 2], [hx + 3.5, hy - 7]], k);
+  B.px(hx - 4, hy - 4, C('#ff6f91')); B.px(hx + 3, hy - 4, C('#ff6f91'));
+  const blink = (t % 5.3) > 5.05;
+  if (blink) { B.rect(hx - 3, hy, 2, 1, e); B.rect(hx + 1, hy, 2, 1, e); }
+  else { B.rect(hx - 3, hy - 1, 2, 2, e); B.rect(hx + 1, hy - 1, 2, 2, e); B.px(hx - 2, hy - 1, PAL.ink); B.px(hx + 2, hy - 1, PAL.ink); B.px(hx - 2, hy, PAL.ink); B.px(hx + 2, hy, PAL.ink); }
+  B.px(hx, hy + 2, C('#ff6f91'));
+  B.rect(hx - 2, hy + 2, 5, 1, k3); // chest patch
 }
 
 /* ---------- props ---------- */
@@ -987,11 +1170,19 @@ function drawDynamic(B, st, t) {
       drawChairParts(B, s, chairAccent);
       const a = P(s.chair[0], s.chair[1], 9);
       if (hired) {
-        drawWorkerBack(B, a[0], a[1], look, typingGlobal, frame, t);
-        drawChairBack(B, s, chairAccent);
-        if (info.mood < 35) drawBadge(B, a[0] + 8, a[1] - 22, 'warn', t);
-        else if (st.turbo) drawBadge(B, a[0] + 7, a[1] - 22, 'bolt', t);
-        else if (!typingGlobal) drawBadge(B, a[0] + 6, a[1] - 22, 'zz', t);
+        const badge = (BB) => {
+          if (info.mood < 35) drawBadge(BB, a[0] + 8, a[1] - 22, 'warn', t);
+          else if (st.turbo) drawBadge(BB, a[0] + 7, a[1] - 22, 'bolt', t);
+          else if (!typingGlobal) drawBadge(BB, a[0] + 6, a[1] - 22, 'zz', t);
+        };
+        if (HDQ) {
+          // a lower mesh backrest in HD so the shoulders and back of the worker show
+          HDQ.push((H) => { drawWorkerHD(H, a[0] * 2, a[1] * 2, look, role, typingGlobal, t, idx, info.mood); PS = 2; drawChairBack(H, s, shadeC(chairAccent, 0.6), 5.5); PS = 1; badge(up2(H)); });
+        } else {
+          drawWorkerBack(B, a[0], a[1], look, typingGlobal, frame, t);
+          drawChairBack(B, s, chairAccent);
+          badge(B);
+        }
       } else {
         drawChairBack(B, s, chairAccent);
         if (st.canHire && st.canHire[role]) drawBadge(B, a[0], a[1] - 12, 'plus', t);
@@ -1009,26 +1200,31 @@ function drawDynamic(B, st, t) {
     isoBox(B, cx - 0.42, cy - 0.3, 9, 0.1, 0.6, 11, shadeC(chairAccent, 1.2), chairAccent, shadeC(chairAccent, 0.6));
     isoBox(B, cx - 0.36, cy - 0.36, 6, 0.72, 0.72, 3, chairAccent, shadeC(chairAccent, 0.78), shadeC(chairAccent, 0.6));
     const a = P(cx, cy, 9);
-    const blink = (t % 4.2) > 4.0;
-    drawPlayerFront(B, a[0], a[1], t, typingGlobal || st.tapFlash > 0, frame, blink);
-    // desk
-    const H = 13;
-    isoBox(B, 5.9, 4.4, 0, 0.1, 0.12, H - 3, PAL.woodL, PAL.woodL, PAL.woodR);
-    isoBox(B, 5.9, 6.52, 0, 1.2, 0.12, H - 3, PAL.woodL, PAL.woodL, PAL.woodR);
-    isoBox(B, 6.9, 4.4, 0, 0.1, 0.12, H - 3, PAL.woodL, PAL.woodL, PAL.woodR);
-    isoBox(B, 5.9, 4.4, H - 3, 1.2, 2.24, 3, PAL.woodT, PAL.woodL, PAL.woodR, PAL.woodE);
-    // laptop (lid facing +gx)
-    isoBox(B, 6.05, 5.1, H, 0.45, 0.6, 1, C('#2b2f66'), C('#1a1d45'), C('#14163a'));
-    isoBox(B, 6.45, 5.1, H, 0.07, 0.6, 9, C('#3a3f8a'), C('#2a2e72'), C('#1d2058'));
-    const lp = P(6.52, 5.4, H + 5);
-    B.px(lp[0], lp[1], t % 1.6 < 0.9 ? PAL.cyan : PAL.mag);
-    B.px(lp[0] + 1, lp[1], t % 1.6 < 0.9 ? PAL.cyan : PAL.mag);
-    B.glow(lp[0] - 9, lp[1] + 4, 14, PAL.cyan, 0.1);
-    if (items.monitor2) drawMonitor2(B, t);
-    // mug and cat
-    isoBox(B, 6.1, 4.55, H, 0.2, 0.2, 3, C('#ffffff'), C('#d9d9ff'), C('#aaaadd'));
-    const cp = P(6.5, 6.1, H);
-    drawCat(B, cp[0], cp[1], t);
+    const blink = (t % 4.2) > 4.0, typingP = typingGlobal || st.tapFlash > 0;
+    const desk = (DB) => {
+      const H = 13;
+      isoBox(DB, 5.9, 4.4, 0, 0.1, 0.12, H - 3, PAL.woodL, PAL.woodL, PAL.woodR);
+      isoBox(DB, 5.9, 6.52, 0, 1.2, 0.12, H - 3, PAL.woodL, PAL.woodL, PAL.woodR);
+      isoBox(DB, 6.9, 4.4, 0, 0.1, 0.12, H - 3, PAL.woodL, PAL.woodL, PAL.woodR);
+      isoBox(DB, 5.9, 4.4, H - 3, 1.2, 2.24, 3, PAL.woodT, PAL.woodL, PAL.woodR, PAL.woodE);
+      // laptop (lid facing +gx)
+      isoBox(DB, 6.05, 5.1, H, 0.45, 0.6, 1, C('#2b2f66'), C('#1a1d45'), C('#14163a'));
+      isoBox(DB, 6.45, 5.1, H, 0.07, 0.6, 9, C('#3a3f8a'), C('#2a2e72'), C('#1d2058'));
+      const lp = P(6.52, 5.4, H + 5);
+      DB.rect(lp[0], lp[1], 2 * PS, PS, t % 1.6 < 0.9 ? PAL.cyan : PAL.mag);
+      DB.glow(lp[0] - 9 * PS, lp[1] + 4 * PS, 14 * PS, PAL.cyan, 0.1);
+      if (items.monitor2) drawMonitor2(DB, t);
+      isoBox(DB, 6.1, 4.55, H, 0.2, 0.2, 3, C('#ffffff'), C('#d9d9ff'), C('#aaaadd'));
+    };
+    const cp = P(6.5, 6.1, 13);
+    if (HDQ) {
+      desk(B);
+      HDQ.push((HB) => { drawPlayerHD(HB, a[0] * 2, a[1] * 2, t, typingP, blink, st.tapFlash > 0); PS = 2; desk(HB); PS = 1; drawCatHD(HB, cp[0] * 2, cp[1] * 2, t); });
+    } else {
+      drawPlayerFront(B, a[0], a[1], t, typingP, frame, blink);
+      desk(B);
+      drawCat(B, cp[0], cp[1], t);
+    }
   });
 
   // a courier walks around the office now and then (pure function of time)
@@ -1043,7 +1239,10 @@ function drawDynamic(B, st, t) {
       if (d < segA) { gx = path[0][0] + (path[1][0] - path[0][0]) * (d / segA); gy = path[0][1]; }
       else { d -= segA; gx = path[1][0]; gy = path[1][1] + (path[2][1] - path[1][1]) * (d / segB); }
       const pause = Math.abs(u - 1) < 0.04;
-      add(gx + gy, () => drawWalker(B, gx, gy, pause ? 0 : Math.floor(t * 6) % 2, t, pause));
+      add(gx + gy, () => {
+        if (HDQ) { const p = P(gx, gy, 0); HDQ.push((H) => drawWalkerHD(H, p[0] * 2, p[1] * 2, t, pause)); }
+        else drawWalker(B, gx, gy, pause ? 0 : Math.floor(t * 6) % 2, t, pause);
+      });
     }
   }
   // plants
@@ -1219,8 +1418,11 @@ function createScene() {
     frame,
     hi,
     renderHD(st, t) {
-      this.render(st, t);
+      const q = [];
+      HDQ = q;
+      try { this.render(st, t); } finally { HDQ = null; }
       scale2x(frame, hi);
+      for (const fn of q) { try { fn(hi); } finally { PS = 1; } }
       const lk = themeTier(st.floors) + ':' + Math.round((st.f || 0) * 48) + ':' + JSON.stringify(st.items || {}) + ':' + ['prog', 'art', 'des', 'mkt'].map((r) => (st.staff && st.staff[r] && st.staff[r].lvl > 0 ? 1 : 0)).join('');
       if (lk !== lightKey) { buildLight(light, hi.w, hi.h, st); lightKey = lk; }
       applyLight(hi, light, PAL[THEME.glow[0]] || PAL.cyan);
