@@ -227,9 +227,9 @@ const ACT = {
   music: () => { S.settings.music = S.settings.music === false; savePrefs(); ensureAudio(); musicSync(); showSettings(); },
   mnext: () => { ensureAudio(); if (S.settings.music === false) { S.settings.music = true; savePrefs(); } musicNext(false); musicSync(); showSettings(); },
   pump: () => { UI.sel = 'you'; go('studio', 'team'); },
-  hire: (r) => { if (result(netAct('hire', r), L('toast.hired', { role: '$role.' + r + '.name' }))) confettiSmall(); },
-  ups: (r) => result(netAct('ups', r), L('toast.upgraded')),
-  upy: () => result(netAct('upy'), L('toast.upgraded')),
+  hire: (r) => { if (result(netAct('hire', r), LR('toast.hired', { role: '$role.' + r + '.name' }))) confettiSmall(); },
+  ups: (r) => result(netAct('ups', r), LR('toast.upgraded')),
+  upy: () => result(netAct('upy'), LR('toast.upgraded')),
   buy: (id) => result(netAct('buy', id), L('toast.bought', { item: '$item.' + id + '.name' })),
   flr: (id) => { const r = netAct('flr', id); if (r.ok) showFloorBuild(id); else result(r); },
   reno: (id) => { const r = netAct('reno', id); if (r.ok) showRenoDone(id); else result(r); tipDone('reno'); },
@@ -244,7 +244,7 @@ const ACT = {
   rename: () => { const n = GENRES[S.sel.genre].names; S.sel.name = n[UI.nameSeed++ % n.length]; savePrefs(); render(); },
   start: () => {
     const r = netAct('new', S.sel.genre, S.sel.tier, S.sel.name);
-    if (r.ok) { toast(L('toast.started', { name: S.project.name }), 'good'); go('office'); ACT.work(); } else errToast(r.err);
+    if (r.ok) { toast(LR('toast.started', { name: S.project.name }), 'good'); go('office'); ACT.work(); } else errToast(r.err);
   },
   auto: () => { netAct('auto', !S.auto); render(); },
   claim: (id) => {
@@ -789,11 +789,11 @@ hooks.emit = function (type, data) {
     releaseJuice(data);
     // a big celebration for the first releases and for hits; later routine releases get a toast
     if (S.stats.released <= 3 || data.game.score >= 8.5 || data.gemGain) modalOrQueue(() => showRelease(data));
-    else { toast(L('toast.release', { name: data.game.name, score: data.game.score.toFixed(1) }), data.game.score >= 7 ? 'good' : '', 'games'); if (data.game.score >= 7) confettiSmall(); }
+    else { toast(LR('toast.release', { name: data.game.name, score: data.game.score.toFixed(1) }), data.game.score >= 7 ? 'good' : '', 'games'); if (data.game.score >= 7) confettiSmall(); }
   }
-  else if (type === 'goal') { toast(L('toast.goal', { t: '$goal.' + data.id }), 'good', 'star'); }
-  else if (type === 'event') { toast(L('toast.event', { t: '$ev.' + data.id + '.title' }), 'good', 'quest'); modalOrQueue(showEvent); }
-  else if (type === 'day') toast(L('toast.day', { n: data.day, inc: money(data.income), sal: money(data.salary) }), '');
+  else if (type === 'goal') { toast(LR('toast.goal', { t: '$goal.' + data.id }), 'good', 'star'); }
+  else if (type === 'event') { toast(LR('toast.event', { t: '$ev.' + data.id + '.title' }), 'good', 'quest'); modalOrQueue(showEvent); }
+  else if (type === 'day') toast(LR('toast.day', { n: data.day, inc: money(data.income), sal: money(data.salary) }), '');
   else if (type === 'toast') toast(L(data.k), data.kind);
   else if (type === 'ending') modalOrQueue(showEnding);
   else if (type === 'ipo') toast(L('toast.ipo', { n: data.n }), 'good', 'crown');

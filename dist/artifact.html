@@ -1129,6 +1129,15 @@ body.pv-on #app { visibility: hidden; }
 #motes i:nth-child(4n) { background: #ffd23f; box-shadow: 0 0 8px #ffd23f; width: 2px; height: 2px; }
 @keyframes mote { 0% { transform: translateY(0); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.6; } 100% { transform: translateY(-105vh) translateX(30px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { #motes { display: none; } .panel { animation: none !important; } }
+/* listing terms: what is free on listing day */
+.vest { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 9px; }
+.vest .v-h { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.vest .v-h i { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+.vest .v-h b { flex: 1; min-width: 0; }
+.vest .v-h .chip { flex: none; font-size: 11px; }
+.vest .v-bar { height: 7px; margin: 5px 0 3px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.vest .v-bar i { display: block; height: 100%; border-radius: 4px; }
+.listing .bul { margin: 10px 0 6px; }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -1854,6 +1863,21 @@ function L(k, p) {
   });
 }
 
+/* LR('key') → a random wording of the same message: 'key', 'key.v2', 'key.v3'…
+   Never repeats the previous pick for that key. hold (ms) keeps the same pick for a while
+   (for text that is re-rendered all the time, like the office bubble). */
+const LR_LAST = {};
+function LR(k, p, hold) {
+  const d = LANGS[LANG] || LANGS.en || {};
+  let n = 1; while (d[k + '.v' + (n + 1)] !== undefined) n++;
+  if (n === 1) return L(k, p);
+  const now = Date.now(), m = LR_LAST[k];
+  let i;
+  if (hold && m && now - m.at < hold) i = m.i;
+  else { i = m ? Math.floor(Math.random() * (n - 1)) : Math.floor(Math.random() * n); if (m && i >= m.i) i++; LR_LAST[k] = { i, at: now }; }
+  return L(i ? k + '.v' + (i + 1) : k, p);
+}
+
 
 /* ---- src/lang_en.js ---- */
 LANGS.en = {
@@ -2140,8 +2164,84 @@ LANGS.en = {
   'mk.soon_2': "Price, chart and volume will update in real time",
   'mk.soon_3': "Bought {sym} lands in your TON wallet right away",
   'mk.soon_ch': "Follow the news in the channel",
+  'office.bubble_h.v2': "Back to it!",
+  'office.bubble_h.v3': "Crunch time?",
+  'office.bubble_h.v4': "Psst, boss!",
+  'office.bubble_h.v5': "Coffee’s ready",
+  'office.bubble_h.v6': "Hey, chief!",
+  'next.event.v2': "The phone is ringing — pick it up!",
+  'next.event.v3': "Someone wants a word with you. Answer?",
+  'next.event.v4': "New call on line one — tap to take it.",
+  'next.claim.v2': "A reward is waiting for you in Quests!",
+  'next.claim.v3': "Nice — a goal is done. Grab the prize!",
+  'next.claim.v4': "Your reward is not going to collect itself.",
+  'next.tap.v2': "Each WORK tap writes a bit more code!",
+  'next.tap.v3': "The project won’t build itself — tap WORK!",
+  'next.tap.v4': "Warm up: tap WORK a few times.",
+  'next.checkin.v2': "Check in for today and keep your streak!",
+  'next.checkin.v3': "Free points for showing up — check in!",
+  'next.checkin.v4': "Your daily check-in is waiting.",
+  'next.daily.v2': "A daily task is done — collect the cash!",
+  'next.daily.v3': "Mission accomplished. Money’s in Quests.",
+  'next.daily.v4': "Daily reward ready — go get it!",
+  'next.floor.v2': "Time to move up — a new floor is affordable!",
+  'next.floor.v3': "Enough cash for a bigger office!",
+  'next.floor.v4': "The next floor is waiting for your studio.",
+  'next.hire.v2': "Working alone is hard — hire a programmer!",
+  'next.hire.v3': "You can afford your first hire. Go for it!",
+  'next.hire.v4': "A programmer would speed things up a lot.",
+  'next.rest.v2': "Take a breather — energy comes back on its own.",
+  'next.rest.v3': "You’re tired, the team isn’t. Energy will refill soon.",
+  'next.rest.v4': "Coffee break! The team keeps going meanwhile.",
+  'next.invite.v2': "Games are better with friends — invite one!",
+  'next.invite.v3': "Bring a friend to the studio: bonuses for both.",
+  'next.invite.v4': "Know someone who loves games? Send an invite.",
+  'next.work.v2': "The release is getting closer — keep tapping!",
+  'next.work.v3': "Players are waiting for your game!",
+  'next.work.v4': "One more push and it ships.",
+  'next.work.v5': "Good pace! Don’t stop now.",
+  'next.work.v6': "The team believes in this one.",
+  'toast.day.v2': "Day {n} wrapped: earned {inc}, paid {sal} in salaries",
+  'toast.day.v3': "End of day {n}. Income {inc} · salaries {sal}",
+  'toast.day.v4': "Day {n} is over — {inc} in, {sal} to the team",
+  'toast.day.v5': "Lights off after day {n}: +{inc}, salaries −{sal}",
+  'toast.goal.v2': "Done! {t}",
+  'toast.goal.v3': "Goal reached: {t}",
+  'toast.goal.v4': "Checked off: {t}",
+  'toast.event.v2': "Incoming: {t}",
+  'toast.event.v3': "Someone writes: {t}",
+  'toast.event.v4': "Ding! {t}",
+  'toast.release.v2': "“{name}” is out! Critics say {score}",
+  'toast.release.v3': "Shipped “{name}” — score {score}",
+  'toast.release.v4': "“{name}” hits the stores: {score}",
+  'toast.hired.v2': "Welcome aboard: {role}!",
+  'toast.hired.v3': "{role} signed the contract!",
+  'toast.hired.v4': "New face in the office: {role}",
+  'toast.upgraded.v2': "Skills improved!",
+  'toast.upgraded.v3': "Even better now!",
+  'toast.upgraded.v4': "Upgrade done!",
+  'toast.started.v2': "Work on “{name}” begins!",
+  'toast.started.v3': "“{name}” is in development!",
+  'toast.started.v4': "New project: “{name}”. Let’s go!",
+  'tk3.title': "Listing terms",
+  'tk3.sub': "Only 100M {sym} will ever exist — 10× fewer than planned before. Most of them unlock slowly, so nobody can dump the market on day one.",
+  'tk3.locked': "locked",
+  'tk3.at_tge': "at launch",
+  'tk3.v_players': "not a single token at launch — paid out daily for playing, from day one",
+  'tk3.v_liq': "all of it goes to the {sym}/TON pool; the LP tokens are locked for 2 years",
+  'tk3.v_team': "12-month cliff, then monthly unlock over 36 months",
+  'tk3.v_mkt': "1/24 per month, only for tournaments and partners",
+  'tk3.v_treasury': "locked for 12 months, after that only by players’ vote",
+  'tk3.v_early': "20% on launch day, the rest unlocks daily over 6 months",
+  'tk3.circ': "Free in players’ hands on launch day: only {p}% ({n})",
+  'tk3.r1': "No presale and no private rounds at a discount — no one bought cheaper than you.",
+  'tk3.r2': "The pool lock and the team vesting will be public on-chain: anyone can check them.",
+  'tk3.r3': "Bots and multi-accounts get nothing from the airdrop.",
+  'tk3.r4': "Holding {sym} in the game gives bonuses — there is a reason to keep it, not sell it.",
+  'tk3.r5': "Part of the game income goes to the players’ pool and buy-backs.",
+  'tk3.risk': "The price of a token is set by the market. These rules make dumping harder, but they are not a promise of profit.",
   'tok.what': '{sym} is the game’s own token on the TON blockchain. Airdrop points you collect now will be exchanged for it.',
-  'tok.supply': '1,000,000,000 — minted once',
+  'tok.supply': "100,000,000 — minted once, no more ever",
   'tok.status': 'Season 0: collecting points',
   'tok.how': 'How the airdrop works',
   'tok.formula': 'Your share = the daily pool × your points ÷ points of all players',
@@ -2149,14 +2249,14 @@ LANGS.en = {
   'tok.how2': 'Bots and multi-accounts get nothing, so honest players get bigger shares.',
   'tok.how3': 'In-game $ and gems are never exchanged for the token — only points.',
   'tok.how4': 'After launch you claim {sym} to your TON wallet; part unlocks gradually so the price is not dumped.',
-  'tok.alloc': 'Who gets the 1 billion',
+  'tok.alloc': 'Who gets the 100 million',
   'tok.a_players': 'Players: daily reward pool',
   'tok.a_liq': 'Liquidity and listing',
   'tok.a_team': 'Team and advisors',
   'tok.a_mkt': 'Marketing, partners, tournaments',
   'tok.a_treasury': 'Project treasury (reserve)',
   'tok.a_early': 'Early airdrop for Season 0 points',
-  'tok.team_vest': 'Team tokens unlock over 4 years with nothing in the first year — the team cannot sell first.',
+  'tok.team_vest': "Team tokens: nothing for the first 12 months, then they unlock over 3 years — the team cannot sell first.",
   'tok.road': 'Roadmap',
   'tok.s1': 'Season 0: points',
   'tok.s1d': 'Play, invite friends, collect points. Bots are filtered out.',
@@ -2216,23 +2316,23 @@ LANGS.en = {
   'top.players_n': "{n} players",
   'tk2.supply': "tokens, minted once",
   'tk2.to_players': "to players",
-  'tk2.bln_s': 'B',
+  'tk2.bln_s': "M",
   'tk2.season0': 'Season 0 airdrop',
   'tk2.mln': "M",
-  'tk2.bln': "billion",
+  'tk2.bln': "million",
   'tk2.my': "Your airdrop today",
   'tk2.est': "If Season 0 ended today",
   'tk2.my_pts': "Your points",
   'tk2.my_share': "Your share",
-  'tk2.est_hint': "Estimate of your part of the Season 0 early airdrop (50M {sym}). It changes every day as everyone plays — and bots are removed before the snapshot.",
-  'tk2.d_players': "paid out daily for playing, for years",
-  'tk2.d_liq': "exchange liquidity, locked",
-  'tk2.d_team': "4-year unlock, nothing in year one",
-  'tk2.d_mkt': "tournaments, partners, growth",
-  'tk2.d_treasury': "reserve for the project's future",
-  'tk2.d_early': "Season 0 points → tokens at launch",
+  'tk2.est_hint': "Estimate of your part of the Season 0 early airdrop (8M {sym}). It changes every day as everyone plays — and bots are removed before the snapshot.",
+  'tk2.d_players': "paid out daily for playing, halves every year",
+  'tk2.d_liq': "in the STON.fi pool, LP locked for 2 years",
+  'tk2.d_team': "nothing for 12 months, then 36 months of unlock",
+  'tk2.d_mkt': "unlocked monthly over 24 months",
+  'tk2.d_treasury': "locked for 12 months, spent by players’ vote",
+  'tk2.d_early': "Season 0 points → 20% at launch, the rest over 6 months",
   'tk2.years': "Rewards for years, not one day",
-  'tk2.years_t': "The players' pool (450M) is paid out every day and halves every year — playing pays off for a long time.",
+  'tk2.years_t': "The players’ pool (40M) is paid out every day and halves every year — playing pays off for a long time.",
   'tk2.year': "Year {n}",
   'tk2.road': "Roadmap",
   'tk2.r1': "Season 0 · Game & points",
@@ -2685,8 +2785,84 @@ LANGS.ru = {
   'mk.soon_2': "Курс, график и объём торгов будут обновляться в реальном времени",
   'mk.soon_3': "Купленные {sym} сразу появятся в твоём TON-кошельке",
   'mk.soon_ch': "Следить за новостями в канале",
+  'office.bubble_h.v2': "За дело!",
+  'office.bubble_h.v3': "Начальник, тут дело!",
+  'office.bubble_h.v4': "Псс, босс!",
+  'office.bubble_h.v5': "Кофе готов",
+  'office.bubble_h.v6': "Шеф, глянь!",
+  'next.event.v2': "Звонит телефон — возьми трубку!",
+  'next.event.v3': "С тобой хотят поговорить. Ответишь?",
+  'next.event.v4': "Входящий звонок — нажми, чтобы принять.",
+  'next.claim.v2': "В заданиях тебя ждёт награда!",
+  'next.claim.v3': "Отлично, цель закрыта. Забирай приз!",
+  'next.claim.v4': "Награда сама себя не заберёт.",
+  'next.tap.v2': "Каждое нажатие РАБОТАТЬ — ещё строчка кода!",
+  'next.tap.v3': "Проект сам себя не сделает — жми РАБОТАТЬ!",
+  'next.tap.v4': "Разомнись: нажми РАБОТАТЬ пару раз.",
+  'next.checkin.v2': "Отметься сегодня и не теряй серию!",
+  'next.checkin.v3': "Бесплатные очки за то, что зашёл, — отметься!",
+  'next.checkin.v4': "Ежедневная отметка ждёт тебя.",
+  'next.daily.v2': "Задание дня готово — забери деньги!",
+  'next.daily.v3': "Миссия выполнена. Деньги ждут в заданиях.",
+  'next.daily.v4': "Дневная награда готова — забирай!",
+  'next.floor.v2': "Пора расти — новый этаж уже по карману!",
+  'next.floor.v3': "Хватает денег на офис побольше!",
+  'next.floor.v4': "Следующий этаж ждёт твою студию.",
+  'next.hire.v2': "Одному тяжело — найми программиста!",
+  'next.hire.v3': "Денег хватает на первого сотрудника. Вперёд!",
+  'next.hire.v4': "Программист сильно ускорит работу.",
+  'next.rest.v2': "Передохни — энергия вернётся сама.",
+  'next.rest.v3': "Ты устал, а команда нет. Энергия скоро восстановится.",
+  'next.rest.v4': "Кофе-брейк! Команда пока работает за тебя.",
+  'next.invite.v2': "С друзьями веселее — пригласи кого-нибудь!",
+  'next.invite.v3': "Позови друга в студию: бонусы обоим.",
+  'next.invite.v4': "Знаешь, кто любит игры? Отправь приглашение.",
+  'next.work.v2': "Релиз всё ближе — жми дальше!",
+  'next.work.v3': "Игроки ждут твою игру!",
+  'next.work.v4': "Ещё немного — и в релиз.",
+  'next.work.v5': "Хороший темп! Не останавливайся.",
+  'next.work.v6': "Команда верит в этот проект.",
+  'toast.day.v2': "День {n} позади: заработано {inc}, зарплаты {sal}",
+  'toast.day.v3': "Итоги дня {n}. Доход {inc} · зарплаты {sal}",
+  'toast.day.v4': "День {n} закрыт — пришло {inc}, команде {sal}",
+  'toast.day.v5': "Свет выключен, день {n} окончен: +{inc}, зарплаты −{sal}",
+  'toast.goal.v2': "Готово! {t}",
+  'toast.goal.v3': "Цель достигнута: {t}",
+  'toast.goal.v4': "Галочка поставлена: {t}",
+  'toast.event.v2': "Входящее: {t}",
+  'toast.event.v3': "Тебе пишут: {t}",
+  'toast.event.v4': "Дзынь! {t}",
+  'toast.release.v2': "«{name}» вышла! Критики ставят {score}",
+  'toast.release.v3': "Релиз «{name}» — оценка {score}",
+  'toast.release.v4': "«{name}» уже в магазинах: {score}",
+  'toast.hired.v2': "Добро пожаловать: {role}!",
+  'toast.hired.v3': "{role} подписал контракт!",
+  'toast.hired.v4': "Новое лицо в офисе: {role}",
+  'toast.upgraded.v2': "Навыки выросли!",
+  'toast.upgraded.v3': "Теперь ещё лучше!",
+  'toast.upgraded.v4': "Улучшение готово!",
+  'toast.started.v2': "Работа над «{name}» началась!",
+  'toast.started.v3': "«{name}» в разработке!",
+  'toast.started.v4': "Новый проект: «{name}». Поехали!",
+  'tk3.title': "Условия листинга",
+  'tk3.sub': "Всего будет только 100 млн {sym} — в 10 раз меньше, чем планировалось. Большая часть открывается медленно, поэтому обвалить рынок в первый день не получится.",
+  'tk3.locked': "заблокировано",
+  'tk3.at_tge': "на старте",
+  'tk3.v_players': "на старте — ни одного токена, раздаётся каждый день за игру с первого дня",
+  'tk3.v_liq': "всё уходит в пул {sym}/TON, LP-токены заблокированы на 2 года",
+  'tk3.v_team': "12 месяцев блокировки, потом открывается помесячно 36 месяцев",
+  'tk3.v_mkt': "по 1/24 в месяц, только на турниры и партнёров",
+  'tk3.v_treasury': "заблокировано на 12 месяцев, потом — только по голосованию игроков",
+  'tk3.v_early': "20% в день запуска, остальное открывается каждый день 6 месяцев",
+  'tk3.circ': "Свободно у игроков в день запуска: всего {p}% ({n})",
+  'tk3.r1': "Без пресейла и закрытых раундов со скидкой — никто не купил дешевле тебя.",
+  'tk3.r2': "Блокировка пула и вестинг команды будут открыты в блокчейне — проверить может каждый.",
+  'tk3.r3': "Боты и мультиаккаунты не получают ничего из аирдропа.",
+  'tk3.r4': "Держать {sym} в игре выгодно — бонусы за холд, а не за продажу.",
+  'tk3.r5': "Часть дохода игры идёт в пул игроков и на выкуп токена.",
+  'tk3.risk': "Цену токена определяет рынок. Эти правила усложняют слив, но не являются обещанием прибыли.",
   'tok.what': '{sym} — собственный токен игры в блокчейне TON. Очки аирдропа, которые ты собираешь сейчас, будут обменяны на него.',
-  'tok.supply': '1 000 000 000 — выпуск один раз',
+  'tok.supply': "100 000 000 — выпуск один раз, больше не будет никогда",
   'tok.status': 'Сезон 0: собираем очки',
   'tok.how': 'Как работает аирдроп',
   'tok.formula': 'Твоя доля = пул дня × твои очки ÷ очки всех игроков',
@@ -2694,14 +2870,14 @@ LANGS.ru = {
   'tok.how2': 'Боты и мультиаккаунты не получают ничего, поэтому доли честных игроков больше.',
   'tok.how3': 'Игровые $ и кристаллы никогда не обмениваются на токен — только очки.',
   'tok.how4': 'После запуска ты заберёшь {sym} на свой TON-кошелёк; часть открывается постепенно, чтобы цену не обвалили.',
-  'tok.alloc': 'Кому достанется 1 миллиард',
+  'tok.alloc': 'Кому достанутся 100 миллионов',
   'tok.a_players': 'Игрокам: ежедневный пул наград',
   'tok.a_liq': 'Ликвидность и листинг',
   'tok.a_team': 'Команда и советники',
   'tok.a_mkt': 'Маркетинг, партнёры, турниры',
   'tok.a_treasury': 'Казна проекта (резерв)',
   'tok.a_early': 'Ранний аирдроп за очки Сезона 0',
-  'tok.team_vest': 'Токены команды открываются 4 года, а первый год — ничего: команда не может продать первой.',
+  'tok.team_vest': "Токены команды: первые 12 месяцев — ничего, потом открываются 3 года. Команда не может продать первой.",
   'tok.road': 'Дорожная карта',
   'tok.s1': 'Сезон 0: очки',
   'tok.s1d': 'Играй, зови друзей, собирай очки. Боты отсеиваются.',
@@ -2761,23 +2937,23 @@ LANGS.ru = {
   'top.players_n': "{n} игроков",
   'tk2.supply': "токенов, выпуск один раз",
   'tk2.to_players': "игрокам",
-  'tk2.bln_s': 'млрд',
+  'tk2.bln_s': "млн",
   'tk2.season0': 'аирдроп Сезона 0',
   'tk2.mln': "млн",
-  'tk2.bln': "миллиард",
+  'tk2.bln': "миллионов",
   'tk2.my': "Твой аирдроп сегодня",
   'tk2.est': "Если бы Сезон 0 закончился сегодня",
   'tk2.my_pts': "Твои очки",
   'tk2.my_share': "Твоя доля",
-  'tk2.est_hint': "Оценка твоей части раннего аирдропа Сезона 0 (50 млн {sym}). Меняется каждый день, пока все играют, — а ботов уберём до снимка.",
-  'tk2.d_players': "выплачивается каждый день за игру, годами",
-  'tk2.d_liq': "ликвидность на бирже, заблокирована",
-  'tk2.d_team': "открывается 4 года, в первый год — ничего",
-  'tk2.d_mkt': "турниры, партнёры, рост",
-  'tk2.d_treasury': "резерв на будущее проекта",
-  'tk2.d_early': "очки Сезона 0 → токены на запуске",
+  'tk2.est_hint': "Оценка твоей части раннего аирдропа Сезона 0 (8 млн {sym}). Меняется каждый день, пока все играют, — а ботов уберём до снимка.",
+  'tk2.d_players': "выплачивается каждый день за игру, вдвое меньше каждый год",
+  'tk2.d_liq': "в пуле STON.fi, LP заблокированы на 2 года",
+  'tk2.d_team': "12 месяцев — ничего, потом открывается 36 месяцев",
+  'tk2.d_mkt': "открывается помесячно 24 месяца",
+  'tk2.d_treasury': "заблокировано на 12 месяцев, тратится по голосованию игроков",
+  'tk2.d_early': "очки Сезона 0 → 20% на запуске, остальное за 6 месяцев",
   'tk2.years': "Награды годами, а не один день",
-  'tk2.years_t': "Пул игроков (450 млн) раздаётся каждый день и уменьшается вдвое каждый год — играть выгодно долго.",
+  'tk2.years_t': "Пул игроков (40 млн) раздаётся каждый день и уменьшается вдвое каждый год — играть выгодно долго.",
   'tk2.year': "Год {n}",
   'tk2.road': "Дорожная карта",
   'tk2.r1': "Сезон 0 · Игра и очки",
@@ -3230,8 +3406,84 @@ LANGS.uk = {
   'mk.soon_2': "Курс, графік і обсяг торгів оновлюватимуться в реальному часі",
   'mk.soon_3': "Куплені {sym} одразу зʼявляться у твоєму TON-гаманці",
   'mk.soon_ch': "Стежити за новинами в каналі",
+  'office.bubble_h.v2': "До справи!",
+  'office.bubble_h.v3': "Начальнику, є справа!",
+  'office.bubble_h.v4': "Псс, босе!",
+  'office.bubble_h.v5': "Кава готова",
+  'office.bubble_h.v6': "Шефе, глянь!",
+  'next.event.v2': "Дзвонить телефон — візьми слухавку!",
+  'next.event.v3': "З тобою хочуть поговорити. Відповіси?",
+  'next.event.v4': "Вхідний дзвінок — натисни, щоб прийняти.",
+  'next.claim.v2': "У завданнях на тебе чекає нагорода!",
+  'next.claim.v3': "Чудово, ціль закрито. Забирай приз!",
+  'next.claim.v4': "Нагорода сама себе не забере.",
+  'next.tap.v2': "Кожне натискання ПРАЦЮВАТИ — ще рядок коду!",
+  'next.tap.v3': "Проєкт сам себе не зробить — тисни ПРАЦЮВАТИ!",
+  'next.tap.v4': "Розімнися: натисни ПРАЦЮВАТИ кілька разів.",
+  'next.checkin.v2': "Відмітся сьогодні й не втрачай серію!",
+  'next.checkin.v3': "Безкоштовні бали за те, що зайшов, — відмітся!",
+  'next.checkin.v4': "Щоденна відмітка чекає на тебе.",
+  'next.daily.v2': "Завдання дня готове — забери гроші!",
+  'next.daily.v3': "Місію виконано. Гроші чекають у завданнях.",
+  'next.daily.v4': "Денна нагорода готова — забирай!",
+  'next.floor.v2': "Час рости — новий поверх уже по кишені!",
+  'next.floor.v3': "Вистачає грошей на більший офіс!",
+  'next.floor.v4': "Наступний поверх чекає на твою студію.",
+  'next.hire.v2': "Самому важко — найми програміста!",
+  'next.hire.v3': "Грошей вистачає на першого працівника. Вперед!",
+  'next.hire.v4': "Програміст сильно пришвидшить роботу.",
+  'next.rest.v2': "Перепочинь — енергія повернеться сама.",
+  'next.rest.v3': "Ти втомився, а команда ні. Енергія скоро відновиться.",
+  'next.rest.v4': "Кава-брейк! Команда поки працює за тебе.",
+  'next.invite.v2': "З друзями веселіше — запроси когось!",
+  'next.invite.v3': "Поклич друга в студію: бонуси обом.",
+  'next.invite.v4': "Знаєш, хто любить ігри? Надішли запрошення.",
+  'next.work.v2': "Реліз усе ближче — тисни далі!",
+  'next.work.v3': "Гравці чекають на твою гру!",
+  'next.work.v4': "Ще трохи — і в реліз.",
+  'next.work.v5': "Гарний темп! Не зупиняйся.",
+  'next.work.v6': "Команда вірить у цей проєкт.",
+  'toast.day.v2': "День {n} позаду: зароблено {inc}, зарплати {sal}",
+  'toast.day.v3': "Підсумки дня {n}. Дохід {inc} · зарплати {sal}",
+  'toast.day.v4': "День {n} закрито — надійшло {inc}, команді {sal}",
+  'toast.day.v5': "Світло вимкнено, день {n} скінчився: +{inc}, зарплати −{sal}",
+  'toast.goal.v2': "Готово! {t}",
+  'toast.goal.v3': "Ціль досягнуто: {t}",
+  'toast.goal.v4': "Галочку поставлено: {t}",
+  'toast.event.v2': "Вхідне: {t}",
+  'toast.event.v3': "Тобі пишуть: {t}",
+  'toast.event.v4': "Дзень! {t}",
+  'toast.release.v2': "«{name}» вийшла! Критики ставлять {score}",
+  'toast.release.v3': "Реліз «{name}» — оцінка {score}",
+  'toast.release.v4': "«{name}» уже в магазинах: {score}",
+  'toast.hired.v2': "Ласкаво просимо: {role}!",
+  'toast.hired.v3': "{role} підписав контракт!",
+  'toast.hired.v4': "Нове обличчя в офісі: {role}",
+  'toast.upgraded.v2': "Навички зросли!",
+  'toast.upgraded.v3': "Тепер ще краще!",
+  'toast.upgraded.v4': "Покращення готове!",
+  'toast.started.v2': "Робота над «{name}» почалася!",
+  'toast.started.v3': "«{name}» у розробці!",
+  'toast.started.v4': "Новий проєкт: «{name}». Поїхали!",
+  'tk3.title': "Умови лістингу",
+  'tk3.sub': "Усього буде лише 100 млн {sym} — у 10 разів менше, ніж планувалося. Більша частина відкривається повільно, тож обвалити ринок у перший день не вийде.",
+  'tk3.locked': "заблоковано",
+  'tk3.at_tge': "на старті",
+  'tk3.v_players': "на старті — жодного токена, роздається щодня за гру з першого дня",
+  'tk3.v_liq': "усе йде в пул {sym}/TON, LP-токени заблоковані на 2 роки",
+  'tk3.v_team': "12 місяців блокування, потім відкривається щомісяця 36 місяців",
+  'tk3.v_mkt': "по 1/24 на місяць, лише на турніри й партнерів",
+  'tk3.v_treasury': "заблоковано на 12 місяців, потім — лише за голосуванням гравців",
+  'tk3.v_early': "20% у день запуску, решта відкривається щодня 6 місяців",
+  'tk3.circ': "Вільно в гравців у день запуску: лише {p}% ({n})",
+  'tk3.r1': "Без пресейлу й закритих раундів зі знижкою — ніхто не купив дешевше за тебе.",
+  'tk3.r2': "Блокування пулу й вестинг команди будуть відкриті в блокчейні — перевірити може кожен.",
+  'tk3.r3': "Боти й мультиакаунти не отримують нічого з аірдропу.",
+  'tk3.r4': "Тримати {sym} у грі вигідно — бонуси за холд, а не за продаж.",
+  'tk3.r5': "Частина доходу гри йде в пул гравців і на викуп токена.",
+  'tk3.risk': "Ціну токена визначає ринок. Ці правила ускладнюють злив, але не є обіцянкою прибутку.",
   'tok.what': '{sym} — власний токен гри в блокчейні TON. Бали аірдропу, які ти збираєш зараз, буде обміняно на нього.',
-  'tok.supply': '1 000 000 000 — випуск один раз',
+  'tok.supply': "100 000 000 — випуск один раз, більше не буде ніколи",
   'tok.status': 'Сезон 0: збираємо бали',
   'tok.how': 'Як працює аірдроп',
   'tok.formula': 'Твоя частка = пул дня × твої бали ÷ бали всіх гравців',
@@ -3239,14 +3491,14 @@ LANGS.uk = {
   'tok.how2': 'Боти й мультиакаунти не отримують нічого, тому частки чесних гравців більші.',
   'tok.how3': 'Ігрові $ і кристали ніколи не обмінюються на токен — лише бали.',
   'tok.how4': 'Після запуску ти забереш {sym} на свій TON-гаманець; частина відкривається поступово, щоб ціну не обвалили.',
-  'tok.alloc': 'Кому дістанеться 1 мільярд',
+  'tok.alloc': 'Кому дістанеться 100 мільйонів',
   'tok.a_players': 'Гравцям: щоденний пул нагород',
   'tok.a_liq': 'Ліквідність і лістинг',
   'tok.a_team': 'Команда й радники',
   'tok.a_mkt': 'Маркетинг, партнери, турніри',
   'tok.a_treasury': 'Казна проєкту (резерв)',
   'tok.a_early': 'Ранній аірдроп за бали Сезону 0',
-  'tok.team_vest': 'Токени команди відкриваються 4 роки, а перший рік — нічого: команда не може продати першою.',
+  'tok.team_vest': "Токени команди: перші 12 місяців — нічого, потім відкриваються 3 роки. Команда не може продати першою.",
   'tok.road': 'Дорожня карта',
   'tok.s1': 'Сезон 0: бали',
   'tok.s1d': 'Грай, клич друзів, збирай бали. Боти відсіюються.',
@@ -3306,23 +3558,23 @@ LANGS.uk = {
   'top.players_n': "{n} гравців",
   'tk2.supply': "токенів, випуск один раз",
   'tk2.to_players': "гравцям",
-  'tk2.bln_s': 'млрд',
+  'tk2.bln_s': "млн",
   'tk2.season0': 'аірдроп Сезону 0',
   'tk2.mln': "млн",
-  'tk2.bln': "мільярд",
+  'tk2.bln': "мільйонів",
   'tk2.my': "Твій аірдроп сьогодні",
   'tk2.est': "Якби Сезон 0 закінчився сьогодні",
   'tk2.my_pts': "Твої бали",
   'tk2.my_share': "Твоя частка",
-  'tk2.est_hint': "Оцінка твоєї частини раннього аірдропу Сезону 0 (50 млн {sym}). Змінюється щодня, поки всі грають, — а ботів приберемо до знімка.",
-  'tk2.d_players': "виплачується щодня за гру, роками",
-  'tk2.d_liq': "ліквідність на біржі, заблокована",
-  'tk2.d_team': "відкривається 4 роки, у перший рік — нічого",
-  'tk2.d_mkt': "турніри, партнери, ріст",
-  'tk2.d_treasury': "резерв на майбутнє проєкту",
-  'tk2.d_early': "бали Сезону 0 → токени на запуску",
+  'tk2.est_hint': "Оцінка твоєї частини раннього аірдропу Сезону 0 (8 млн {sym}). Змінюється щодня, поки всі грають, — а ботів приберемо до знімка.",
+  'tk2.d_players': "виплачується щодня за гру, щороку вдвічі менше",
+  'tk2.d_liq': "у пулі STON.fi, LP заблоковані на 2 роки",
+  'tk2.d_team': "12 місяців — нічого, потім відкривається 36 місяців",
+  'tk2.d_mkt': "відкривається щомісяця 24 місяці",
+  'tk2.d_treasury': "заблоковано на 12 місяців, витрачається за голосуванням гравців",
+  'tk2.d_early': "бали Сезону 0 → 20% на запуску, решта за 6 місяців",
   'tk2.years': "Нагороди роками, а не один день",
-  'tk2.years_t': "Пул гравців (450 млн) роздається щодня й зменшується вдвічі щороку — грати вигідно довго.",
+  'tk2.years_t': "Пул гравців (40 млн) роздається щодня й зменшується вдвічі щороку — грати вигідно довго.",
   'tk2.year': "Рік {n}",
   'tk2.road': "Дорожня карта",
   'tk2.r1': "Сезон 0 · Гра і бали",
@@ -8189,7 +8441,7 @@ function tabOffice() {
           <span class="chip trend">${I('fire', 12)} <b>${L('genre.' + S.trend.hot)}</b></span>
           ${buffChips()}
         </div>
-        <button class="bubble" data-act="${ns.act}"><b class="b-h">${L('office.bubble_h')}</b><span>${esc(L(ns.k))}</span></button>
+        <button class="bubble" data-act="${ns.act}"><b class="b-h">${LR('office.bubble_h', null, 40000)}</b><span>${esc(LR(ns.k, null, 40000))}</span></button>
         <span class="daychip px"><span data-t="day"></span>, <span data-t="clock"></span></span>
       </div>
       <nav class="side" aria-label="${esc(L('office.title'))}">${side.map((x) => `<button class="sbtn s-${x[3]}" data-act="${x[1]}"><span class="s-ico">${I(x[0], 16)}</span><span class="s-l">${L(x[2])}</span>${x[4] ? '<i class="dot"></i>' : ''}</button>`).join('')}</nav>
@@ -8739,8 +8991,11 @@ function mktPanel(mini) {
 function hubToken() {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
   const e = NET.eco || {};
-  const SUPPLY = 1e9;
-  const alloc = [[45, 'players', '#22e6ff'], [15, 'liq', '#4ca3ff'], [15, 'team', '#8a5cff'], [10, 'mkt', '#ff3fd0'], [10, 'treasury', '#ffd23f'], [5, 'early', '#2ee66b']];
+  const SUPPLY = 1e8;
+  const alloc = [[40, 'players', '#22e6ff'], [20, 'liq', '#4ca3ff'], [12, 'team', '#8a5cff'], [10, 'mkt', '#ff3fd0'], [10, 'treasury', '#ffd23f'], [8, 'early', '#2ee66b']];
+  // listing terms: share of each part that is free on listing day (the rest unlocks over time)
+  const vest = { players: 0, liq: 100, team: 0, mkt: 4, treasury: 0, early: 20 };
+  const circ = alloc.reduce((t, a) => t + (a[1] === 'liq' ? 0 : (a[0] * vest[a[1]]) / 100), 0);
   // donut: one circle per slice, offset by the slices before it
   const R = 54, CIRC = 2 * Math.PI * R;
   let acc = 0;
@@ -8750,14 +9005,14 @@ function hubToken() {
     acc += len;
     return s;
   }).join('');
-  const big = (n) => (n >= 1e6 ? fmt(Math.round(n / 1e6)) + ' ' + L('tk2.mln') : fmt(Math.round(n)));
-  // your share of the Season 0 early airdrop (5%) if the snapshot were taken today
-  const early = SUPPLY * 0.05;
+  const big = (n) => (n >= 1e6 ? (n < 1e7 && n % 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') : fmt(Math.round(n / 1e6))) + ' ' + L('tk2.mln') : fmt(Math.round(n)));
+  // your share of the Season 0 early airdrop (8%) if the snapshot were taken today
+  const early = SUPPLY * 0.08;
   const my = e.pts || 0, all = Math.max(e.ptsAll || 0, my, 1);
   const est = my > 0 ? (early * my) / all : 0;
   const share = my > 0 ? (my / all) * 100 : 0;
-  // players pool: 45% paid daily, halving every year
-  const years = [1, 2, 3, 4, 5, 6].map((y) => [y, (SUPPLY * 0.45) / Math.pow(2, y)]);
+  // players pool: 40% paid daily, halving every year
+  const years = [1, 2, 3, 4, 5, 6].map((y) => [y, (SUPPLY * 0.40) / Math.pow(2, y)]);
   const ymax = years[0][1];
   const road = [['r1', 'now'], ['r2', 'next'], ['r3', 'next'], ['r4', 'later'], ['r5', 'later'], ['r6', 'later']];
   const uses = ['u1', 'u2', 'u3', 'u4'];
@@ -8766,9 +9021,9 @@ function hubToken() {
     <h2 class="op-title">${sym}</h2>
     <p class="sub">${L('tok.what', { sym })}</p>
     <div class="hero-stats">
-      <div><b class="px">1 ${L('tk2.bln_s')}</b><small>${L('tk2.supply')}</small></div>
-      <div><b class="px">45%</b><small>${L('tk2.to_players')}</small></div>
-      <div><b class="px">${big(SUPPLY * 0.05)}</b><small>${L('tk2.season0')}</small></div>
+      <div><b class="px">100 ${L('tk2.bln_s')}</b><small>${L('tk2.supply')}</small></div>
+      <div><b class="px">40%</b><small>${L('tk2.to_players')}</small></div>
+      <div><b class="px">${big(SUPPLY * 0.08)}</b><small>${L('tk2.season0')}</small></div>
     </div>
   </section>
   <section class="panel myshare">
@@ -8786,9 +9041,17 @@ function hubToken() {
     <h2 class="h2">${I('chart', 16)} ${L('tok.alloc')}</h2>
     <div class="donut-wrap">
       <svg class="donut" viewBox="0 0 140 140" role="img" aria-label="${esc(L('tok.alloc'))}"><g transform="rotate(-90 70 70)">${arcs}</g>
-        <text x="70" y="66" text-anchor="middle" class="d-big">1</text><text x="70" y="84" text-anchor="middle" class="d-sm">${esc(L('tk2.bln'))}</text></svg>
+        <text x="70" y="66" text-anchor="middle" class="d-big">100</text><text x="70" y="84" text-anchor="middle" class="d-sm">${esc(L('tk2.bln'))}</text></svg>
       <ul class="legend">${alloc.map((a) => `<li><i style="background:${a[2]};box-shadow:0 0 8px ${a[2]}"></i><div><b>${a[0]}% · ${big((SUPPLY * a[0]) / 100)}</b><small>${L('tok.a_' + a[1])}</small><small class="mut">${L('tk2.d_' + a[1])}</small></div></li>`).join('')}</ul>
     </div>
+  </section>
+  <section class="panel listing">
+    <h2 class="h2">🔒 ${L('tk3.title')}</h2>
+    <p class="sub">${L('tk3.sub', { sym })}</p>
+    <ul class="vest">${alloc.map((a) => `<li><div class="v-h"><i style="background:${a[2]}"></i><b>${L('tok.a_' + a[1])}</b><span class="chip">${a[1] === 'liq' ? L('tk3.locked') : vest[a[1]] + '% ' + L('tk3.at_tge')}</span></div><div class="v-bar"><i style="width:${a[1] === 'liq' ? 100 : Math.max(2, vest[a[1]])}%;background:${a[1] === 'liq' ? 'repeating-linear-gradient(45deg,' + a[2] + ' 0 6px,transparent 6px 10px)' : a[2]}"></i></div><small class="mut">${L('tk3.v_' + a[1], { sym })}</small></li>`).join('')}</ul>
+    <div class="formula">${L('tk3.circ', { p: circ.toFixed(1).replace(/\.0$/, ''), n: big((SUPPLY * circ) / 100) })}</div>
+    <ul class="bul"><li>${L('tk3.r1')}</li><li>${L('tk3.r2')}</li><li>${L('tk3.r3')}</li><li>${L('tk3.r4', { sym })}</li><li>${L('tk3.r5')}</li></ul>
+    <p class="hint">${L('tk3.risk')}</p>
   </section>
   <section class="panel">
     <h2 class="h2">⏳ ${L('tk2.years')}</h2>
@@ -9883,9 +10146,9 @@ const ACT = {
   music: () => { S.settings.music = S.settings.music === false; savePrefs(); ensureAudio(); musicSync(); showSettings(); },
   mnext: () => { ensureAudio(); if (S.settings.music === false) { S.settings.music = true; savePrefs(); } musicNext(false); musicSync(); showSettings(); },
   pump: () => { UI.sel = 'you'; go('studio', 'team'); },
-  hire: (r) => { if (result(netAct('hire', r), L('toast.hired', { role: '$role.' + r + '.name' }))) confettiSmall(); },
-  ups: (r) => result(netAct('ups', r), L('toast.upgraded')),
-  upy: () => result(netAct('upy'), L('toast.upgraded')),
+  hire: (r) => { if (result(netAct('hire', r), LR('toast.hired', { role: '$role.' + r + '.name' }))) confettiSmall(); },
+  ups: (r) => result(netAct('ups', r), LR('toast.upgraded')),
+  upy: () => result(netAct('upy'), LR('toast.upgraded')),
   buy: (id) => result(netAct('buy', id), L('toast.bought', { item: '$item.' + id + '.name' })),
   flr: (id) => { const r = netAct('flr', id); if (r.ok) showFloorBuild(id); else result(r); },
   reno: (id) => { const r = netAct('reno', id); if (r.ok) showRenoDone(id); else result(r); tipDone('reno'); },
@@ -9900,7 +10163,7 @@ const ACT = {
   rename: () => { const n = GENRES[S.sel.genre].names; S.sel.name = n[UI.nameSeed++ % n.length]; savePrefs(); render(); },
   start: () => {
     const r = netAct('new', S.sel.genre, S.sel.tier, S.sel.name);
-    if (r.ok) { toast(L('toast.started', { name: S.project.name }), 'good'); go('office'); ACT.work(); } else errToast(r.err);
+    if (r.ok) { toast(LR('toast.started', { name: S.project.name }), 'good'); go('office'); ACT.work(); } else errToast(r.err);
   },
   auto: () => { netAct('auto', !S.auto); render(); },
   claim: (id) => {
@@ -10445,11 +10708,11 @@ hooks.emit = function (type, data) {
     releaseJuice(data);
     // a big celebration for the first releases and for hits; later routine releases get a toast
     if (S.stats.released <= 3 || data.game.score >= 8.5 || data.gemGain) modalOrQueue(() => showRelease(data));
-    else { toast(L('toast.release', { name: data.game.name, score: data.game.score.toFixed(1) }), data.game.score >= 7 ? 'good' : '', 'games'); if (data.game.score >= 7) confettiSmall(); }
+    else { toast(LR('toast.release', { name: data.game.name, score: data.game.score.toFixed(1) }), data.game.score >= 7 ? 'good' : '', 'games'); if (data.game.score >= 7) confettiSmall(); }
   }
-  else if (type === 'goal') { toast(L('toast.goal', { t: '$goal.' + data.id }), 'good', 'star'); }
-  else if (type === 'event') { toast(L('toast.event', { t: '$ev.' + data.id + '.title' }), 'good', 'quest'); modalOrQueue(showEvent); }
-  else if (type === 'day') toast(L('toast.day', { n: data.day, inc: money(data.income), sal: money(data.salary) }), '');
+  else if (type === 'goal') { toast(LR('toast.goal', { t: '$goal.' + data.id }), 'good', 'star'); }
+  else if (type === 'event') { toast(LR('toast.event', { t: '$ev.' + data.id + '.title' }), 'good', 'quest'); modalOrQueue(showEvent); }
+  else if (type === 'day') toast(LR('toast.day', { n: data.day, inc: money(data.income), sal: money(data.salary) }), '');
   else if (type === 'toast') toast(L(data.k), data.kind);
   else if (type === 'ending') modalOrQueue(showEnding);
   else if (type === 'ipo') toast(L('toast.ipo', { n: data.n }), 'good', 'crown');

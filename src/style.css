@@ -1126,3 +1126,12 @@ body.pv-on #app { visibility: hidden; }
 #motes i:nth-child(4n) { background: #ffd23f; box-shadow: 0 0 8px #ffd23f; width: 2px; height: 2px; }
 @keyframes mote { 0% { transform: translateY(0); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.6; } 100% { transform: translateY(-105vh) translateX(30px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { #motes { display: none; } .panel { animation: none !important; } }
+/* listing terms: what is free on listing day */
+.vest { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 9px; }
+.vest .v-h { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.vest .v-h i { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+.vest .v-h b { flex: 1; min-width: 0; }
+.vest .v-h .chip { flex: none; font-size: 11px; }
+.vest .v-bar { height: 7px; margin: 5px 0 3px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.vest .v-bar i { display: block; height: 100%; border-radius: 4px; }
+.listing .bul { margin: 10px 0 6px; }

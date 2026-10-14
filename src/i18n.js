@@ -35,4 +35,19 @@ function L(k, p) {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { LANGS, LANG_LIST, setLang, detectLang, L, hasKey, getLang: () => LANG };
+/* LR('key') → a random wording of the same message: 'key', 'key.v2', 'key.v3'…
+   Never repeats the previous pick for that key. hold (ms) keeps the same pick for a while
+   (for text that is re-rendered all the time, like the office bubble). */
+const LR_LAST = {};
+function LR(k, p, hold) {
+  const d = LANGS[LANG] || LANGS.en || {};
+  let n = 1; while (d[k + '.v' + (n + 1)] !== undefined) n++;
+  if (n === 1) return L(k, p);
+  const now = Date.now(), m = LR_LAST[k];
+  let i;
+  if (hold && m && now - m.at < hold) i = m.i;
+  else { i = m ? Math.floor(Math.random() * (n - 1)) : Math.floor(Math.random() * n); if (m && i >= m.i) i++; LR_LAST[k] = { i, at: now }; }
+  return L(i ? k + '.v' + (i + 1) : k, p);
+}
+
+if (typeof module !== 'undefined') module.exports = { LANGS, LANG_LIST, setLang, detectLang, L, LR, hasKey, getLang: () => LANG };
