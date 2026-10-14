@@ -823,8 +823,8 @@ function hubToken() {
   const e = NET.eco || {};
   const SUPPLY = 1e8;
   const big = (n) => (n >= 1e6 ? (n < 1e7 && n % 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') : fmt(Math.round(n / 1e6))) + ' ' + L('tk2.mln') : fmt(Math.round(n)));
-  // the whole supply is airdropped to players by points: your share if the snapshot were taken today
-  const early = SUPPLY;
+  // 90% of the supply is airdropped to players by points (10% goes to the liquidity pool): your share if the snapshot were taken today
+  const early = SUPPLY * 0.9;
   const my = e.pts || 0, all = Math.max(e.ptsAll || 0, my, 1);
   const est = my > 0 ? (early * my) / all : 0;
   const share = my > 0 ? (my / all) * 100 : 0;
@@ -836,8 +836,8 @@ function hubToken() {
     <p class="sub">${L('tok.what', { sym })}</p>
     <div class="hero-stats">
       <div><b class="px">100 ${L('tk2.bln_s')}</b><small>${L('tk2.supply')}</small></div>
-      <div><b class="px">100%</b><small>${L('tk2.to_players')}</small></div>
-      <div><b class="px">0%</b><small>${L('tk4.team0')}</small></div>
+      <div><b class="px">90%</b><small>${L('tk2.to_players')}</small></div>
+      <div><b class="px">10%</b><small>${L('tk4.team0')}</small></div>
     </div>
   </section>
   <section class="panel myshare">

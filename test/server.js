@@ -864,7 +864,7 @@ const AB = require('../server/antibot.js');
       if (method === 'getSignatureStatuses') return { value: [{ err: null, confirmationStatus: 'confirmed' }] };
       return null;
     };
-    await test('airdrop: starts by itself at the fund goal, splits 100M by points, announces, each player claims once', async () => {
+    await test('airdrop: starts by itself at the fund goal, splits 90M by points, announces, each player claims once', async () => {
       const A = new Player(env8, 8601), B = new Player(env8, 8602), C = new Player(env8, 8603);
       await A.auth(); await B.auth(); await C.auth();
       env8.ctx.db.run('UPDATE users SET pts=? WHERE id=?', 300, 8601);
@@ -882,11 +882,11 @@ const AB = require('../server/antibot.js');
       assert.equal((await Ad.tick(env8.ctx, env8.clock.t)).st, 'claim');
       await new Promise((r) => setTimeout(r, 100));
       const msgs = env8.mock.calls.filter((c) => c.method === 'sendMessage');
-      assert.ok(msgs.some((m) => m.body.chat_id === 8601 && /75\s?000\s?000/.test(m.body.text)), 'player told their share');
+      assert.ok(msgs.some((m) => m.body.chat_id === 8601 && /67\s?500\s?000/.test(m.body.text)), 'player told their share');
       assert.ok(msgs.some((m) => m.body.chat_id === '@od_news'), 'channel announcement');
       v = (await A.api('GET', '/api/friends')).json.eco.airdrop;
-      assert.equal(v.st, 'claim'); assert.equal(v.amount, 75000000, '300 of 400 points → 75M');
-      assert.equal((await B.api('GET', '/api/friends')).json.eco.airdrop.amount, 25000000);
+      assert.equal(v.st, 'claim'); assert.equal(v.amount, 67500000, '300 of 400 points → 67.5M of 90M');
+      assert.equal((await B.api('GET', '/api/friends')).json.eco.airdrop.amount, 22500000);
       assert.equal((await C.api('GET', '/api/friends')).json.eco.airdrop.amount, 0, 'quarantined account gets nothing');
       // claim: needs a Solana wallet, then one signed transfer from the distributor
       assert.equal((await A.api('POST', '/api/airdrop/claim', {})).json.err, 'sol_need');
@@ -901,7 +901,7 @@ const AB = require('../server/antibot.js');
       assert.equal(tx.instructions.length, 2, 'create the token account (idempotent) + transfer');
       const dst = spl.getAssociatedTokenAddressSync(new web3.PublicKey(mint), new web3.PublicKey(wallet), true, spl.TOKEN_2022_PROGRAM_ID);
       assert.ok(tx.instructions[1].keys.some((k) => k.pubkey.equals(dst)), 'to the player wallet');
-      assert.equal(tx.instructions[1].data.readBigUInt64LE(1), 75000000n * 1000000n, 'exact share in base units');
+      assert.equal(tx.instructions[1].data.readBigUInt64LE(1), 67500000n * 1000000n, 'exact share in base units');
       // never twice
       const again = (await A.api('POST', '/api/airdrop/claim', {})).json;
       assert.ok(again.ok && again.already); assert.equal(sent.length, 1);
@@ -943,7 +943,7 @@ const AB = require('../server/antibot.js');
       // B never entered → no share; A gets everything
       Ad.snapshot(env9.ctx, env9.clock.t);
       await Ad.tick(env9.ctx, env9.clock.t);
-      assert.equal((await A.api('GET', '/api/friends')).json.eco.airdrop.amount, 100000000);
+      assert.equal((await A.api('GET', '/api/friends')).json.eco.airdrop.amount, 90000000);
       assert.equal((await B.api('GET', '/api/friends')).json.eco.airdrop.amount, 0);
       assert.equal((await B.api('POST', '/api/airdrop/order', { kind: 'adentry' })).json.err, 'ad_closed', 'no deposits after the snapshot');
       await A.api('POST', '/api/sol', { address: web3.Keypair.generate().publicKey.toBase58() });

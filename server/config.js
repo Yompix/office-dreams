@@ -63,7 +63,7 @@ function build(env) {
     token: { addr: str('TOKEN_ADDRESS'), rpc: str('SOLANA_RPC', 'https://api.mainnet-beta.solana.com') },
     // airdrop of the whole supply by Season 0 points: starts by itself when the launch fund reaches DONATE_GOAL_USD;
     // AIRDROP_SECRET = secret key of a separate distributor wallet that holds the tokens (base58 as exported from Phantom)
-    airdrop: { wallet: str('AIRDROP_WALLET'), entryUsd: num('AIRDROP_ENTRY_USD', 1), feeSol: num('AIRDROP_CLAIM_FEE_SOL', 0.01), supply: num('AIRDROP_SUPPLY', 100000000), decimals: num('TOKEN_DECIMALS', 6), secret: str('AIRDROP_SECRET'), auto: str('AIRDROP_AUTO', '1') !== '0' },
+    airdrop: { wallet: str('AIRDROP_WALLET'), entryUsd: num('AIRDROP_ENTRY_USD', 1), feeSol: num('AIRDROP_CLAIM_FEE_SOL', 0.01), supply: num('AIRDROP_SUPPLY', 90000000), decimals: num('TOKEN_DECIMALS', 6), secret: str('AIRDROP_SECRET'), auto: str('AIRDROP_AUTO', '1') !== '0' },
     turnstile: { site: str('TURNSTILE_SITEKEY'), secret: str('TURNSTILE_SECRET') },
     starUsd: num('STAR_USD', 0.013),
     // donations toward the token launch: any amount from the minimum up; shown as a shared progress bar

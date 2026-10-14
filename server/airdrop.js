@@ -1,6 +1,6 @@
 'use strict';
 /*
- * OFFICE airdrop: the whole supply is split between players by Season 0 points.
+ * OFFICE airdrop: 90M of the 100M supply is split between players by Season 0 points (10M go to the liquidity pool).
  *
  *  season   → points are collected; the airdrop starts by itself once the launch fund reaches its goal ($5000)
  *  snapshot → points are frozen into fixed shares (bots, closed regions and the developer account get nothing);
@@ -88,9 +88,9 @@ async function tick(ctx, now = Date.now()) {
 
 /* ---- announcement: channel post + a message to every player (Telegram allows ~30 messages a second) ---- */
 const ANN = {
-  en: (sym, amt) => `🎉 <b>The ${sym} airdrop has started!</b>\n\nThe launch fund reached its goal, so Season 0 points are now turned into ${sym}: all 100,000,000 go to players.\n\n${amt ? `🎁 Your share: <b>${amt} ${sym}</b>\n\n` : ''}Open the game → Airdrop → Token, add your Solana wallet and press «Claim».`,
-  ru: (sym, amt) => `🎉 <b>Аирдроп ${sym} начался!</b>\n\nФонд запуска собран, поэтому очки Сезона 0 превращаются в ${sym}: все 100 000 000 получают игроки.\n\n${amt ? `🎁 Твоя доля: <b>${amt} ${sym}</b>\n\n` : ''}Открой игру → Аирдроп → Токен, добавь Solana-кошелёк и нажми «Забрать».`,
-  uk: (sym, amt) => `🎉 <b>Аірдроп ${sym} почався!</b>\n\nФонд запуску зібрано, тож бали Сезону 0 перетворюються на ${sym}: усі 100 000 000 отримують гравці.\n\n${amt ? `🎁 Твоя частка: <b>${amt} ${sym}</b>\n\n` : ''}Відкрий гру → Аірдроп → Токен, додай Solana-гаманець і натисни «Забрати».`,
+  en: (sym, amt) => `🎉 <b>The ${sym} airdrop has started!</b>\n\nThe launch fund reached its goal, so Season 0 points are now turned into ${sym}: 90,000,000 go to players (10,000,000 are in the liquidity pool).\n\n${amt ? `🎁 Your share: <b>${amt} ${sym}</b>\n\n` : ''}Open the game → Airdrop → Token, add your Solana wallet and press «Claim».`,
+  ru: (sym, amt) => `🎉 <b>Аирдроп ${sym} начался!</b>\n\nФонд запуска собран, поэтому очки Сезона 0 превращаются в ${sym}: 90 000 000 получают игроки (10 000 000 — в пуле ликвидности).\n\n${amt ? `🎁 Твоя доля: <b>${amt} ${sym}</b>\n\n` : ''}Открой игру → Аирдроп → Токен, добавь Solana-кошелёк и нажми «Забрать».`,
+  uk: (sym, amt) => `🎉 <b>Аірдроп ${sym} почався!</b>\n\nФонд запуску зібрано, тож бали Сезону 0 перетворюються на ${sym}: 90 000 000 отримують гравці (10 000 000 — у пулі ліквідності).\n\n${amt ? `🎁 Твоя частка: <b>${amt} ${sym}</b>\n\n` : ''}Відкрий гру → Аірдроп → Токен, додай Solana-гаманець і натисни «Забрати».`,
 };
 const human = (ctx, amount) => {
   const v = Number(BigInt(amount || 0)) / 10 ** ctx.cfg.airdrop.decimals;
