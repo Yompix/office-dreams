@@ -15,12 +15,17 @@ const STATE_V = 2;
 // tuned with a progression sim: an active player (30 min/day) opens floor 1 on day ~2, floor 3 in ~2 weeks, the CEO floor in ~6 weeks
 const ECON = { rev: 0.12, upGrowth: 2.15, salK: 0.5, tapK: 1 };
 
-const ROLES = ['prog', 'art', 'mkt', 'des'];
+const ROLES = ['prog', 'art', 'mkt', 'des', 'qa', 'snd', 'prod', 'cm'];
+// need = the floor that unlocks the vacancy; the four later roles each add their own kind of bonus
 const ROLE = {
   prog: { wp: 1.0, hire: 140, up: 110, sal: 36 },
   art: { wp: 0.8, hire: 180, up: 120, sal: 34 },
   mkt: { wp: 0, hire: 300, up: 150, sal: 32 },
   des: { wp: 0.8, hire: 230, up: 135, sal: 38 },
+  qa: { wp: 0, hire: 2600, up: 1100, sal: 70, need: 'f1' }, // tester: higher review scores
+  snd: { wp: 0.7, hire: 16000, up: 6500, sal: 240, need: 'f2' }, // sound designer: works on games + a sales bonus
+  prod: { wp: 0, hire: 90000, up: 32000, sal: 900, need: 'f3' }, // producer: the whole team works faster
+  cm: { wp: 0, hire: 380000, up: 130000, sal: 3200, need: 'f4' }, // community manager: sales fade slower
 };
 
 const GENRES = {
@@ -128,6 +133,10 @@ function newState(seed) {
       art: { lvl: 0, mood: 85 },
       mkt: { lvl: 0, mood: 85 },
       des: { lvl: 0, mood: 85 },
+      qa: { lvl: 0, mood: 85 },
+      snd: { lvl: 0, mood: 85 },
+      prod: { lvl: 0, mood: 85 },
+      cm: { lvl: 0, mood: 85 },
     },
     floors: { b: 1, f1: 0, f2: 0, f3: 0, f4: 0, f5: 0 },
     flv: { b: 0, f1: 0, f2: 0, f3: 0, f4: 0, f5: 0 }, // renovation stars per floor
@@ -171,6 +180,13 @@ function bump(s) {
 const floorOn = (s, id) => s.floors[id] > 0;
 const hiredCount = (s) => ROLES.filter((r) => s.staff[r].lvl > 0).length;
 const moodF = (m) => 0.7 + 0.3 * (m / 100);
+// strength of a support role: level × mood factor (0 when not hired)
+const roleK = (s, r) => (s.staff[r] && s.staff[r].lvl > 0 ? s.staff[r].lvl * moodF(s.staff[r].mood) : 0);
+const roleLocked = (s, r) => !!(ROLE[r].need && !(s.floors[ROLE[r].need] > 0));
+const qaBonus = (s) => 0.12 * roleK(s, 'qa');
+const prodBonus = (s) => 0.04 * roleK(s, 'prod');
+const sndBonus = (s) => 0.03 * roleK(s, 'snd');
+const saleDecay = (s) => Math.min(0.8, SALE_DECAY + 0.01 * roleK(s, 'cm'));
 const speedOf = (l) => 1 + 0.18 * (l - 1);
 const legacyMult = (s) => 1 + 0.15 * s.legacy;
 const renoLvl = (s, id) => (s.flv && s.flv[id]) || 0;
@@ -204,6 +220,7 @@ function wpMult(s) {
   if (s.items.monitor2) m *= 1.1;
   if (floorOn(s, 'f4')) m *= 1.12;
   m *= 1 + renoBonus(s, 'wp');
+  m *= 1 + prodBonus(s);
   if (s.buffs.turbo > 0) m *= 2;
   return m;
 }
@@ -216,7 +233,7 @@ function wpRole(s, r) {
 }
 function wpTotal(s) {
   let sum = 0.35 * (1 + 0.08 * (s.you.lvl - 1)) * wpMult(s);
-  for (const r of ['prog', 'art', 'des']) sum += wpRole(s, r);
+  for (const r of ['prog', 'art', 'des', 'snd']) sum += wpRole(s, r);
   return sum;
 }
 function tapPower(s) {
@@ -239,6 +256,7 @@ function salesMult(s, tier) {
   if (s.items.lounge) m *= 1.04;
   const mk = s.staff.mkt;
   if (mk.lvl > 0) m *= 1 + 0.07 * mk.lvl * moodF(mk.mood);
+  m *= 1 + sndBonus(s);
   return m * legacyMult(s);
 }
 function dailySalesRate(s) {
@@ -271,7 +289,7 @@ function scoreMult(score) {
 }
 function expectedScore(s, genre) {
   const hot = s.trend.hot === genre ? 0.3 : 0;
-  return clamp(3 + 7 * qualityFor(s, genre) + hot, 1, 10);
+  return clamp(3 + 7 * qualityFor(s, genre) + hot + qaBonus(s), 1, 10);
 }
 // language-independent rank id; UI shows L('rank.' + id)
 function rankOf(s) {
@@ -328,6 +346,7 @@ function doTap(s) {
 function hire(s, role) {
   const st = s.staff[role];
   if (st.lvl > 0) return fail('owned');
+  if (roleLocked(s, role)) return fail('locked');
   const price = ROLE[role].hire;
   if (s.cash < price) return fail('cash');
   s.cash -= price;
@@ -457,7 +476,7 @@ function release(s) {
   const g = GENRES[p.genre], t = TIERS[p.tier];
   const q = qualityFor(s, p.genre);
   const hot = s.trend.hot === p.genre, cold = s.trend.cold === p.genre;
-  let score = 3 + 7 * q + rnd(s, -0.55, 0.55) + (hot ? 0.3 : 0);
+  let score = 3 + 7 * q + rnd(s, -0.55, 0.55) + (hot ? 0.3 : 0) + qaBonus(s);
   score = Math.round(clamp(score, 1, 10) * 10) / 10;
   const trend = hot ? 1.5 : cold ? 0.75 : 1;
   const total = g.rev * t.rev * ECON.rev * scoreMult(score) * trend * salesMult(s, p.tier);
@@ -963,7 +982,7 @@ function endDay(s) {
   if (floorOn(s, 'f5')) giveCash(s, Math.round(Math.max(50, s.income3 * 0.1)));
   for (const g of s.games) {
     if (!g.active) continue;
-    g.rate *= SALE_DECAY;
+    g.rate *= saleDecay(s);
     if (g.rate < 1) g.active = false;
   }
   s.income3 = s.income3 === 0 ? s.dayIncome : s.income3 * 0.6 + s.dayIncome * 0.4;
@@ -1137,7 +1156,7 @@ function stateHash(s) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    ECON, RENO, RENO_MAX, RENO_COST, renoLvl, renoBonus, renoStars, renoCost, renovate, TICK, DAY_SEC, MAX_LVL, OFFLINE_CAP, STATE_V, ROLES, ROLE, GENRES, GENRE_ORDER, TIERS, TIER_ORDER, FLOORS, FLOOR_ORDER, ITEMS, BOOSTS, GOALS, DAILY, DAILY_ALL_PTS, EVENTS, EVENT_IDS, PTS_W,
+    ECON, roleK, roleLocked, qaBonus, prodBonus, sndBonus, saleDecay, RENO, RENO_MAX, RENO_COST, renoLvl, renoBonus, renoStars, renoCost, renovate, TICK, DAY_SEC, MAX_LVL, OFFLINE_CAP, STATE_V, ROLES, ROLE, GENRES, GENRE_ORDER, TIERS, TIER_ORDER, FLOORS, FLOOR_ORDER, ITEMS, BOOSTS, GOALS, DAILY, DAILY_ALL_PTS, EVENTS, EVENT_IDS, PTS_W,
     hooks, newState, tick, advance, advanceTicks, advanceOffline, doTap, hire, upgradeStaff, upgradeYou, buyItem, buyFloor, buyBoost, startProject, setAuto, release, claimGoal,
     claimDaily, dailyProgress, dailyCash, syncDay, canPrestige, prestige, applyAction, replay,
     chooseEvent, spawnEvent, eventView, wpTotal, wpRole, tapPower, salaryTotal, salaryOf, upCost, youUpCost, qualityFor, expectedScore,

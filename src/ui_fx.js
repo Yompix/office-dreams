@@ -26,6 +26,8 @@ function spotOf(kind) {
   if (kind === 'you') { const a = P(5.1, 5.1, 9); return [a[0], a[1] - HEAD_DY]; }
   if (kind === 'laptop') return P(6.3, 5.4, 16);
   if (kind === 'cat') { const a = P(6.5, 6.1, 13); return [a[0] - 3, a[1] - 3]; }
+  const sp = STAND[kind];
+  if (sp) { const a = P(sp.gx, sp.gy, 0); return [a[0], a[1] - (sp.pose === 'pad' ? 17 : 26)]; }
   const st = STATION[kind];
   if (!st) return null;
   const a = P(st.chair[0], st.chair[1], 9);

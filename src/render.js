@@ -630,6 +630,17 @@ const LOOK = {
   boss: { hair: C('#a3a9c4'), skin: C('#e2b18a'), shirt: C('#2b2f66'), style: 'short', screen: C('#ffd23f') },
   inv: { hair: C('#2b1a12'), skin: C('#d9a37a'), shirt: C('#1f8a5f'), style: 'short', screen: C('#2ee66b') },
   npc: { hair: C('#4a2f8a'), skin: C('#e8bf98'), shirt: C('#7a56e0'), style: 'spiky', screen: C('#ff3fd0') },
+  qa: { hair: C('#3a2414'), skin: C('#c68a5e'), shirt: C('#2ee66b'), style: 'short', screen: C('#2ee66b') },
+  snd: { hair: C('#14121c'), skin: C('#8a5a3a'), shirt: C('#8a3dff'), style: 'spiky', screen: C('#b48cff') },
+  prod: { hair: C('#e8cf8a'), skin: C('#f0c8a0'), shirt: C('#2b2f66'), style: 'long', screen: C('#ffd23f') },
+  cm: { hair: C('#ff7ab8'), skin: C('#f3cba6'), shirt: C('#ff8a3d'), style: 'long', screen: C('#ff8a3d') },
+};
+// the four later hires don't sit at desks: each has a spot and a pose of their own
+const STAND = {
+  qa: { gx: 7.75, gy: 7.75, pose: 'pad' },
+  snd: { gx: 3.15, gy: 3.05, pose: 'mix' },
+  prod: { gx: 3.6, gy: 7.85, pose: 'tablet' },
+  cm: { gx: 5.7, gy: 1.75, pose: 'phone' },
 };
 const STATION = {
   prog: { side: 'R', gx: 3.4, gy: 0.2, chair: [4.4, 2.2] },
@@ -966,6 +977,105 @@ function drawCatHD(B, X, Y, t) {
   B.rect(hx - 2, hy + 2, 5, 1, k3); // chest patch
 }
 
+/* ---------- the later hires: standing / sitting figures with their own poses ---------- */
+function drawStandLow(B, x, y, look, pose, t) {
+  const sit = pose === 'pad';
+  const leg = sit ? 0 : 5;
+  B.blend(x - 3, y, PAL.ink, 0.4); B.blend(x - 2, y, PAL.ink, 0.5); B.blend(x - 1, y, PAL.ink, 0.5); B.blend(x, y, PAL.ink, 0.5); B.blend(x + 1, y, PAL.ink, 0.5); B.blend(x + 2, y, PAL.ink, 0.4);
+  if (!sit) { B.rect(x - 2, y - leg, 2, leg, C('#262b66')); B.rect(x + 1, y - leg, 2, leg, C('#1d2158')); }
+  else B.rect(x - 4, y - 2, 9, 2, C('#262b66'));
+  B.rect(x - 3, y - leg - 7, 7, 7, look.shirt);
+  B.rect(x - 2, y - leg - 12, 5, 5, look.skin);
+  B.rect(x - 2, y - leg - 13, 5, 2, look.hair);
+  B.px(x - 1, y - leg - 10, PAL.ink); B.px(x + 1, y - leg - 10, PAL.ink);
+}
+function drawStandHD(B, X, Y, look, pose, t, seed) {
+  const sh = look.shirt, s1 = shadeC(sh, 0.78), s2 = shadeC(sh, 0.58), hl = mixC(sh, PAL.white, 0.28);
+  const skin = look.skin, sk1 = shadeC(skin, 0.82), sk2 = shadeC(skin, 0.66), hair = look.hair, h1 = shadeC(hair, 0.72), h2 = mixC(hair, PAL.white, 0.3);
+  const sit = pose === 'pad';
+  // soft shadow on the floor
+  for (let i = -10; i <= 10; i++) { const k = 1 - Math.abs(i) / 11; B.blend(X + i, Y, PAL.ink, 0.5 * k); B.blend(X + i, Y + 1, PAL.ink, 0.3 * k); B.blend(X + i, Y - 1, PAL.ink, 0.2 * k); }
+  let top;
+  if (sit) {
+    // floor cushion + crossed legs
+    B.ell(X, Y - 3, 12, 4.5, C('#ff7ae0')); B.ell(X, Y - 4, 11, 3, C('#ffb0ee'));
+    B.ell(X - 5, Y - 7, 6, 2.8, C('#2a3a6a')); B.ell(X + 5, Y - 7, 6, 2.8, C('#22305a'));
+    B.rect(X - 11, Y - 8, 4, 2, PAL.white); B.rect(X + 7, Y - 8, 4, 2, C('#d8d4ff'));
+    top = Y - 9;
+  } else {
+    const shift = pose === 'phone' ? Math.round(Math.sin(t * 1.3 + seed)) : 0;
+    B.rect(X - 5 + shift, Y - 18, 4, 16, C('#262b66')); B.rect(X + 1 + shift, Y - 18, 4, 16, C('#1d2158'));
+    B.rect(X - 6 + shift, Y - 3, 6, 3, PAL.white); B.rect(X + 1 + shift, Y - 3, 6, 3, C('#d8d4ff')); B.rect(X - 6 + shift, Y - 1, 13, 1, C('#3a3f8a'));
+    top = Y - 18;
+  }
+  // torso
+  const ty = top - 18;
+  B.poly([[X - 8, ty], [X + 8, ty], [X + 7, top + 1], [X - 7, top + 1]], sh);
+  B.poly([[X + 3, ty], [X + 8, ty], [X + 7, top + 1], [X + 3, top + 1]], s1);
+  B.ell(X - 8, ty + 2, 3, 2.5, sh); B.ell(X + 8, ty + 2, 3, 2.5, s1);
+  B.rect(X - 7, ty, 6, 1, hl);
+  if (pose === 'tablet') { B.poly([[X - 3, ty], [X + 3, ty], [X + 1, ty + 9], [X - 1, ty + 9]], PAL.white); B.rect(X - 1, ty + 1, 2, 9, PAL.yel); } // shirt + tie
+  if (pose === 'pad') B.rect(X - 4, ty + 6, 8, 2, s2); // hoodie pocket
+  if (pose === 'mix') B.rect(X - 4, ty + 4, 8, 6, mixC(look.screen, sh, 0.4));
+  // arms by pose
+  const tap = Math.floor(t * 6 + seed) % 2;
+  if (pose === 'phone') {
+    B.rect(X - 11, ty + 2, 3, 12, s1); B.ell(X - 10, ty + 15, 2.2, 2, sk1); // arm down
+    B.poly([[X + 8, ty + 1], [X + 11, ty + 1], [X + 8, ty - 9], [X + 5, ty - 9]], s1); B.ell(X + 6, ty - 11, 2.2, 2.2, skin); // hand up at the ear
+    B.rect(X + 6, ty - 17, 3, 7, C('#2a2e44')); B.px(X + 7, ty - 15, PAL.cyan);
+  } else if (pose === 'tablet') {
+    B.rect(X - 11, ty + 2, 3, 9, s1); B.rect(X + 8, ty + 2, 3, 9, s2);
+    B.poly([[X - 9, ty + 10], [X + 9, ty + 10], [X + 8, ty + 18], [X - 8, ty + 18]], C('#1a1d45')); // tablet
+    B.poly([[X - 7, ty + 11], [X + 7, ty + 11], [X + 6, ty + 16], [X - 6, ty + 16]], C('#2a6fcf'));
+    B.rect(X - 5, ty + 12, 7, 1, PAL.white); B.rect(X - 5, ty + 14, 4, 1, PAL.yel);
+    B.ell(X - 9, ty + 13, 2, 2, skin); B.ell(X + 4 + tap * 2, ty + 12, 1.8, 1.8, sk1);
+  } else if (pose === 'pad') {
+    B.rect(X - 11, ty + 3, 3, 8, s1); B.rect(X + 8, ty + 3, 3, 8, s2);
+    B.poly([[X - 8, ty + 11], [X + 8, ty + 11], [X + 6, ty + 16], [X - 6, ty + 16]], C('#1a1d45')); // gamepad
+    B.px(X - 4, ty + 13, PAL.red); B.px(X + 3, ty + 12 + tap, PAL.cyan); B.px(X + 5, ty + 13 - tap, PAL.yel);
+    B.ell(X - 8, ty + 13, 2, 2, skin); B.ell(X + 8, ty + 13, 2, 2, sk1);
+  } else { // mix: hands on the console in front
+    B.rect(X - 11, ty + 2, 3, 10, s1); B.rect(X + 8, ty + 2, 3, 10, s2);
+  }
+  // neck + head (front view) with a little bob to the beat for the sound designer
+  const bob = pose === 'mix' ? (Math.floor(t * 4) % 2) : 0;
+  const hx = X, hy = ty - 9 + bob;
+  B.rect(X - 2, ty - 3, 5, 4, sk1);
+  B.ell(hx, hy, 6, 7, skin); B.ell(hx + 3, hy + 1, 3, 5.5, sk1);
+  B.ell(hx - 6, hy + 1, 1.4, 2.4, skin); B.ell(hx + 6, hy + 1, 1.4, 2.4, sk1);
+  if (look.style === 'long') { B.ell(hx, hy - 4, 7, 4.5, hair); B.rect(hx - 7, hy - 4, 3, 13, hair); B.rect(hx + 4, hy - 4, 3, 13, h1); B.poly([[hx - 5, hy - 5], [hx + 3, hy - 5], [hx - 2, hy]], hair); }
+  else if (look.style === 'spiky') { B.ell(hx, hy - 4, 6.5, 4, hair); for (const [dx, h] of [[-4, 4], [-1, 6], [2, 5], [5, 4]]) B.poly([[hx + dx - 2, hy - 6], [hx + dx + 2, hy - 6], [hx + dx, hy - 6 - h]], hair); }
+  else { B.ell(hx, hy - 4, 6.5, 4, hair); B.rect(hx - 6, hy - 4, 2, 4, hair); B.rect(hx + 4, hy - 4, 2, 4, hair); }
+  B.rect(hx - 3, hy - 7, 3, 1, h2);
+  if (pose === 'pad') { B.ell(hx, hy - 6, 7, 2.5, PAL.grn); B.rect(hx - 10, hy - 5, 5, 2, shadeC(PAL.grn, 0.7)); } // cap
+  // face
+  const blink = (t + seed) % 4.6 > 4.4;
+  if (pose === 'tablet') { B.rect(hx - 5, hy - 1, 4, 2, PAL.ink); B.rect(hx + 1, hy - 1, 4, 2, PAL.ink); B.rect(hx - 1, hy - 1, 2, 1, PAL.ink); B.px(hx - 4, hy - 1, PAL.white); } // sunglasses
+  else if (blink) { B.rect(hx - 4, hy + 1, 3, 1, sk2); B.rect(hx + 1, hy + 1, 3, 1, sk2); }
+  else { B.rect(hx - 4, hy, 3, 2, PAL.white); B.rect(hx + 1, hy, 3, 2, PAL.white); B.rect(hx - 3, hy, 2, 2, PAL.ink); B.rect(hx + 2, hy, 2, 2, PAL.ink); }
+  B.px(hx, hy + 3, sk2);
+  B.blend(hx - 4, hy + 4, C('#ff6f91'), 0.35); B.blend(hx + 4, hy + 4, C('#ff6f91'), 0.35);
+  const talk = pose === 'phone' && Math.floor(t * 5 + seed) % 2;
+  B.rect(hx - 2, hy + 5, 4, talk ? 2 : 1, C('#4a2616'));
+  if (pose === 'mix') { // studio headphones + notes floating up
+    B.arc(hx, hy - 1, 7.5, 8.5, 0.2, Math.PI - 0.2, C('#b48cff'), 2);
+    B.ell(hx - 7.5, hy + 1, 2.4, 3.4, C('#1a1e4d')); B.ell(hx + 7.5, hy + 1, 2.4, 3.4, C('#1a1e4d'));
+    for (let i = 0; i < 2; i++) { const ph = (t * 0.6 + i * 0.5 + seed) % 1; const nx = hx + 10 + i * 6 + Math.sin(ph * 6) * 2, ny = hy - 4 - ph * 22; const c = i ? PAL.cyan : C('#b48cff'); B.rect(nx, ny, 2, 2, c); B.rect(nx + 1, ny - 5, 1, 5, c); B.rect(nx + 2, ny - 5, 2, 1, c); }
+  }
+  if (pose === 'phone') { // likes popping up from the conversation
+    const ph = (t * 0.45 + seed) % 1;
+    if (ph < 0.7) { const ly = hy - 10 - ph * 20, a = ph < 0.55 ? 1 : 1 - (ph - 0.55) / 0.15; B.ell(hx + 14, ly, 4.5, 4, mixC(PAL.bg0, PAL.red, a)); B.ell(hx + 12.6, ly - 0.5, 1.2, 1.2, mixC(PAL.bg0, PAL.white, a)); B.ell(hx + 15.4, ly - 0.5, 1.2, 1.2, mixC(PAL.bg0, PAL.white, a)); B.poly([[hx + 11.6, ly], [hx + 16.4, ly], [hx + 14, ly + 2.6]], mixC(PAL.bg0, PAL.white, a)); }
+  }
+  if (pose === 'tablet' && (t + seed) % 6 < 1.2) { B.ell(hx + 12, hy - 10, 4, 4, PAL.grn); B.line(hx + 10, hy - 10, hx + 11, hy - 8, PAL.white); B.line(hx + 11, hy - 8, hx + 14, hy - 12, PAL.white); } // task done
+}
+// the sound designer's little mixing console (geometry, so it scales with PS)
+function drawConsole(B, gx, gy, t) {
+  // stands in front of the sound designer (towards the camera)
+  isoBox(B, gx + 0.22, gy - 0.5, 0, 0.42, 1.0, 9, C('#2b2f66'), C('#1a1d45'), C('#12143a'), C('#5560c8'));
+  isoBox(B, gx + 0.22, gy - 0.5, 9, 0.42, 1.0, 1.2, C('#1a1d45'), C('#14163a'), C('#0d0f2c'));
+  for (let i = 0; i < 6; i++) { const lv = (Math.sin(t * 7 + i * 1.7) + 1) / 2; const p = P(gx + 0.42, gy - 0.4 + i * 0.16, 10.4); B.rect(p[0], p[1] - Math.round(lv * 2 * PS), PS, PS + Math.round(lv * 2 * PS), i % 2 ? PAL.cyan : C('#b48cff')); }
+}
+
 /* ---------- props ---------- */
 function drawPlant(B, gx, gy, t, seed, big) {
   const p = P(gx, gy, 0);
@@ -1269,6 +1379,18 @@ function drawDynamic(B, st, t) {
       });
     }
   }
+  // the later hires at their own spots
+  ['qa', 'snd', 'prod', 'cm'].forEach((role, i) => {
+    const info = st.staff && st.staff[role];
+    if (!info || info.lvl <= 0) return;
+    const sp = STAND[role], look = LOOK[role];
+    if (sp.pose === 'mix') add(sp.gx + sp.gy + 0.5, () => drawConsole(B, sp.gx, sp.gy, t));
+    add(sp.gx + sp.gy, () => {
+      const p = P(sp.gx, sp.gy, 0);
+      if (HDQ) HDQ.push((H) => { drawStandHD(H, p[0] * 2, p[1] * 2, look, sp.pose, t, i * 1.7); if (sp.pose === 'mix') { PS = 2; drawConsole(H, sp.gx, sp.gy, t); PS = 1; } });
+      else drawStandLow(B, p[0], p[1], look, sp.pose, t);
+    });
+  });
   // plants
   add(3.0, () => drawPlant(B, 0.55, 0.6, t, 1, true));
   add(20, () => drawPlant(B, 8.55, 0.6, t, 2, true));
@@ -1476,8 +1598,8 @@ function drawPortrait(B, kind, mood) {
   // 24x24 bust on neon backdrop
   const L = LOOK[kind] || LOOK.prog;
   const W = B.w, H = B.h;
-  const bgA = { prog: '#0e2b4a', art: '#3a0f45', des: '#3d3208', mkt: '#0f2c52', you: '#101a5a', boss: '#2a2308', inv: '#0b3a2a', npc: '#26104a' }[kind] || '#101a5a';
-  const bgB = { prog: '#1a7a8f', art: '#b02a96', des: '#a8761a', mkt: '#2a6fcf', you: '#2a4be0', boss: '#a8761a', inv: '#1f9a6a', npc: '#7a3ad0' }[kind] || '#2a4be0';
+  const bgA = { prog: '#0e2b4a', art: '#3a0f45', des: '#3d3208', mkt: '#0f2c52', you: '#101a5a', boss: '#2a2308', inv: '#0b3a2a', npc: '#26104a', qa: '#0b3a1e', snd: '#22104a', prod: '#1a1a3a', cm: '#3a1a08' }[kind] || '#101a5a';
+  const bgB = { prog: '#1a7a8f', art: '#b02a96', des: '#a8761a', mkt: '#2a6fcf', you: '#2a4be0', boss: '#a8761a', inv: '#1f9a6a', npc: '#7a3ad0', qa: '#1fae5a', snd: '#7a3ad0', prod: '#c9a640', cm: '#e06a2a' }[kind] || '#2a4be0';
   for (let y = 0; y < H; y++) B.rect(0, y, W, 1, mixC(C(bgA), C(bgB), (y / H) * 0.9));
   for (let i = 0; i < 6; i++) B.px(Math.floor(hash01(i * 7 + kind.length) * W), Math.floor(hash01(i * 11 + 3) * 10), mixC(C(bgB), PAL.white, 0.5));
   const cx = Math.floor(W / 2);
@@ -1519,6 +1641,10 @@ function drawPortrait(B, kind, mood) {
   if (kind === 'prog') { // glasses
     B.rect(cx - 4, 9, 4, 1, PAL.cyan); B.rect(cx, 9, 4, 1, PAL.cyan); B.rect(cx - 4, 12, 4, 1, PAL.cyan); B.rect(cx, 12, 4, 1, PAL.cyan);
   }
+  if (kind === 'qa') { B.rect(cx - 6, 3, 12, 2, PAL.grn); B.rect(cx - 7, 4, 3, 1, PAL.grn); B.rect(cx - 4, H - 4, 8, 3, C('#1a1d45')); B.px(cx - 3, H - 3, PAL.red); B.px(cx + 2, H - 3, PAL.cyan); } // cap + gamepad
+  if (kind === 'snd') { B.rect(cx - 7, 7, 2, 6, C('#1a1e4d')); B.rect(cx + 5, 7, 2, 6, C('#1a1e4d')); B.rect(cx - 6, 2, 12, 1, C('#b48cff')); B.px(cx - 7, 9, C('#b48cff')); B.px(cx + 6, 9, C('#b48cff')); } // studio headphones
+  if (kind === 'prod') { B.rect(cx - 1, H - 8, 2, 7, PAL.yel); B.rect(cx - 4, 10, 3, 1, PAL.ink); B.rect(cx + 1, 10, 3, 1, PAL.ink); } // tie + sunglasses
+  if (kind === 'cm') { B.rect(cx + 5, 8, 2, 5, C('#2a2e44')); B.px(cx + 5, 9, PAL.cyan); B.rect(cx - 6, 3, 3, 2, PAL.yel); } // phone at the ear + hair clip
 }
 
 const GENRE_ART = {

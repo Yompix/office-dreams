@@ -286,11 +286,11 @@ function empRow(r) {
       <span class="emp-m ok">${I('bolt', 14)}<small>${maxEnergy(S)}</small></span>
     </button>`;
   }
-  const st = S.staff[r], hired = st.lvl > 0;
-  const canHire = !hired && S.cash >= ROLE[r].hire;
-  return `<button class="emp ${hired ? '' : 'vac'} ${UI.sel === r ? 'on' : ''}" data-act="sel:${r}">
+  const st = S.staff[r], hired = st.lvl > 0, locked = !hired && roleLocked(S, r);
+  const canHire = !hired && !locked && S.cash >= ROLE[r].hire;
+  return `<button class="emp ${hired ? '' : 'vac'} ${locked ? 'lock' : ''} ${UI.sel === r ? 'on' : ''}" data-act="sel:${r}">
     ${imgTag(portrait(r, hired ? st.mood : 80), 'av')}
-    <span class="emp-t"><b>${L('role.' + r + '.name')}</b><small>${hired ? L('ui.level', { n: st.lvl }) + ' · ' + money(salaryOf(S, r)) + L('ui.per_day') : L('team.vacancy') + ' · ' + money(ROLE[r].hire)}</small></span>
+    <span class="emp-t"><b>${L('role.' + r + '.name')}</b><small>${hired ? L('ui.level', { n: st.lvl }) + ' · ' + money(salaryOf(S, r)) + L('ui.per_day') : locked ? '🔒 ' + L('team.locked_s', { floor: L('floor.' + ROLE[r].need + '.name') }) : L('team.vacancy') + ' · ' + money(ROLE[r].hire)}</small></span>
     ${hired ? `<span class="emp-m ${moodClass(st.mood)}">${I('heart', 14)}<small>${Math.round(st.mood)}%</small></span>` : canHire ? '<i class="dot"></i>' : ''}
   </button>`;
 }
@@ -321,14 +321,18 @@ function detailPanel() {
           <li><span>${L('team.role')}</span><b>${L('role.' + r + '.perk')}</b></li>
           <li><span>${L('team.salary')}</span><b>${money(salaryOf(S, r, 1))}${L('ui.per_day')}</b></li>
         </ul></div>
-      <button class="btn" data-act="hire:${r}" ${S.cash >= ROLE[r].hire ? '' : 'disabled'}>${L('team.hire')} <b class="px">${money(ROLE[r].hire)}</b></button>
-      <p class="hint">${L(r === 'mkt' ? 'team.hint_mkt' : 'team.hint_dev')}</p>
+      ${roleLocked(S, r) ? `<button class="btn" disabled>🔒 ${L('team.locked', { floor: L('floor.' + ROLE[r].need + '.name') })}</button>` : `<button class="btn" data-act="hire:${r}" ${S.cash >= ROLE[r].hire ? '' : 'disabled'}>${L('team.hire')} <b class="px">${money(ROLE[r].hire)}</b></button>`}
+      <p class="hint">${L(r === 'mkt' ? 'team.hint_mkt' : ROLE[r].need ? 'team.hint_' + r : 'team.hint_dev')}</p>
     </section>`;
   }
   const l = st.lvl, max = l >= MAX_LVL, cost = upCost(r, l);
-  const outLine = r === 'mkt'
-    ? `<li><span>${L('team.sales_bonus')}</span><b class="grn">+${Math.round(0.07 * l * moodF(st.mood) * 100)}%</b></li>`
-    : `<li><span>${L('team.work_pts')}</span><b class="grn">+${wpRole(S, r).toFixed(1)}/${L('u.s')}</b></li>`;
+  const k = l * moodF(st.mood), li = (key, v) => `<li><span>${L(key)}</span><b class="grn">${v}</b></li>`;
+  const outLine = r === 'mkt' ? li('team.sales_bonus', `+${Math.round(0.07 * k * 100)}%`)
+    : r === 'qa' ? li('team.score_bonus', `+${(0.12 * k).toFixed(1)}`)
+    : r === 'prod' ? li('team.team_speed', `+${Math.round(4 * k)}%`)
+    : r === 'cm' ? li('team.tail', `−${Math.round((1 - saleDecay(S)) * 100)}%`)
+    : r === 'snd' ? li('team.work_pts', `+${wpRole(S, r).toFixed(1)}/${L('u.s')}`) + li('team.sales_bonus', `+${Math.round(3 * k)}%`)
+    : li('team.work_pts', `+${wpRole(S, r).toFixed(1)}/${L('u.s')}`);
   return `<section class="panel detail">
     <div class="d-head"><h3 class="h3">${L('role.' + r + '.name')}</h3><span class="lvl px">LV ${l}</span></div>
     <div class="d-body">${imgTag(portrait(r, st.mood), 'd-art')}
