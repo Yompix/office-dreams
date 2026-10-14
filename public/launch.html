@@ -259,6 +259,7 @@ const upd3 = () => { $('mintBtn').disabled = !me || !!store.get().minted || !isA
 $('mintIn').oninput = upd3; $('distIn').oninput = upd3;
 const st3 = store.get();
 if (st3.dist) $('distIn').value = st3.dist;
+else fetch('/api/config').then((r) => r.json()).then((c) => { if (c && c.airdropWallet && !$('distIn').value) { $('distIn').value = c.airdropWallet; upd3(); } }).catch(() => {});
 if (st3.minted) { $('res3').classList.remove('hide'); $('c3').classList.add('done'); $('mintBtn').textContent = 'Уже выпущено'; $('explorer3').href = `https://explorer.solana.com/address/${st3.mintedMint}` + (MAIN ? '' : '?cluster=devnet'); }
 $('mintBtn').onclick = async () => {
   const mint = new W.PublicKey($('mintIn').value.trim()), to = new W.PublicKey($('distIn').value.trim());

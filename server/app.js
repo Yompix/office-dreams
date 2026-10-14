@@ -127,6 +127,7 @@ function publicConfig(ctx) {
     eco: { D: c.eco.dailyD, l1: c.eco.refL1, l2: c.eco.refL2, cashEach: c.eco.inviteCash, gemsEach: c.eco.inviteGems, pass: c.eco.passBoost },
     shop: Eco.SHOP,
     solPay: SolPay.enabled(c),
+    airdropWallet: c.airdrop.wallet || '',
     market: Market.enabled(c),
     tickMs: E.TICK * 1000,
     turnstile: c.turnstile.site || '',
@@ -323,6 +324,7 @@ async function handleApi(ctx, req, res, url, ip) {
     return sendJson(res, 200, Object.assign(r, { eco: Eco.ecoView(ctx, U.getUser(ctx, uid), now) }));
   }
   if (method === 'POST' && p === '/api/sol') return handleSol(ctx, res, uid, body, now);
+  if (method === 'POST' && p === '/api/airdrop/order') return sendJson(res, 200, SolPay.createAirdropOrder(ctx, uid, String(body.kind || ''), now));
   if (method === 'POST' && p === '/api/airdrop/claim') {
     if (!hit(ctx, 'adclaim:' + uid, 6)) return sendJson(res, 200, { ok: false, err: 'airdrop_wait' });
     const r = await Airdrop.claim(ctx, uid, now);

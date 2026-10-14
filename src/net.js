@@ -318,6 +318,7 @@ const netApi = {
   forget: () => api('POST', '/api/forget', { confirm: true }),
   sol: (body) => api('POST', '/api/sol', body),
   adClaim: () => api('POST', '/api/airdrop/claim', {}),
+  adOrder: (kind) => api('POST', '/api/airdrop/order', { kind }),
   market: (range) => api('GET', '/api/market?range=' + encodeURIComponent(range || '24h')),
   marketBal: () => api('GET', '/api/market/bal'),
   adClaim: () => api('POST', '/api/ads/claim', {}),

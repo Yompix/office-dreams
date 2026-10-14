@@ -853,7 +853,7 @@ const AB = require('../server/antibot.js');
     const { web3, spl } = require('../server/vendor/solana.js');
     const dist = web3.Keypair.generate(), mint = web3.Keypair.generate().publicKey.toBase58();
     const Sol = require('../server/sol.js');
-    const env8 = await makeEnv({ DONATE_GOAL_USD: '100', TOKEN_ADDRESS: mint, AIRDROP_SECRET: Sol.b58encode(dist.secretKey) });
+    const env8 = await makeEnv({ DONATE_GOAL_USD: '100', TOKEN_ADDRESS: mint, AIRDROP_SECRET: Sol.b58encode(dist.secretKey), AIRDROP_ENTRY_USD: '0', AIRDROP_CLAIM_FEE_SOL: '0' });
     const Ad = require('../server/airdrop.js');
     const sent = [];
     env8.ctx.fastAnnounce = true;
@@ -911,6 +911,50 @@ const AB = require('../server/antibot.js');
       assert.equal(adm.json.sent, 1); assert.equal(adm.json.distributor, dist.publicKey.toBase58());
     });
     await env8.close();
+    // entry deposit (anti-bot, counts toward the fund) and the claim fee, both paid in SOL to the shop wallet
+    const shop = Sol.randomKey();
+    const env9 = await makeEnv({ DONATE_GOAL_USD: '100', TOKEN_ADDRESS: mint, AIRDROP_SECRET: Sol.b58encode(dist.secretKey), SOL_PAY_WALLET: shop, SOL_USD: '100', AIRDROP_ENTRY_USD: '1', AIRDROP_CLAIM_FEE_SOL: '0.01' });
+    const chain9 = [];
+    const pay9 = (lamports, ref, sig) => chain9.unshift({ sig, lamports, ref, t: Math.floor(env9.clock.t / 1000) });
+    env9.ctx.fastAnnounce = true;
+    env9.ctx.solRpc = async (method, params) => {
+      if (method === 'getSignaturesForAddress') return chain9.map((x) => ({ signature: x.sig, err: null, blockTime: x.t }));
+      if (method === 'getTransaction') { const x = chain9.find((y) => y.sig === params[0]); return { blockTime: x.t, meta: { err: null, preBalances: [5e9, 0, 0], postBalances: [5e9 - x.lamports, x.lamports, 0] }, transaction: { message: { accountKeys: ['Sender1111111111111111111111111111111111111', shop, x.ref] } } }; }
+      if (method === 'getAccountInfo') return { value: { owner: spl.TOKEN_2022_PROGRAM_ID.toBase58() } };
+      if (method === 'getLatestBlockhash') return { value: { blockhash: web3.Keypair.generate().publicKey.toBase58(), lastValidBlockHeight: 10 } };
+      if (method === 'sendTransaction') return 'ok';
+      if (method === 'getSignatureStatuses') return { value: [{ err: null, confirmationStatus: 'confirmed' }] };
+      return null;
+    };
+    await test('airdrop entry deposit: only players who paid it share the 100M; claiming needs the fee; deposits fill the fund', async () => {
+      const A = new Player(env9, 8701), B = new Player(env9, 8702);
+      await A.auth(); await B.auth();
+      env9.ctx.db.run('UPDATE users SET pts=? WHERE id IN (8701, 8702)', 100);
+      let v = (await A.api('GET', '/api/friends')).json.eco.airdrop;
+      assert.equal(v.entry.done, false); assert.equal(v.entry.sol, 0.01, '$1 at $100/SOL');
+      const o = (await A.api('POST', '/api/airdrop/order', { kind: 'adentry' })).json;
+      assert.ok(o.ok, JSON.stringify(o));
+      pay9(Number(o.order.lamports), o.order.ref, 'e1'); env9.advance(6000);
+      assert.equal((await A.api('POST', '/api/shop/sol/check', { id: o.order.id })).json.paid, true);
+      assert.equal((await A.api('POST', '/api/airdrop/order', { kind: 'adentry' })).json.err, 'ad_entered');
+      assert.equal(Eco.supporterUntil(env9.ctx, 8701, env9.clock.t), 0, 'the deposit gives no points bonus');
+      assert.equal(U.getUser(env9.ctx, 8701).pts, 100, 'and no points');
+      assert.ok(Eco.fundView(env9.ctx, 0).usd >= 1, 'counts toward the launch fund');
+      // B never entered → no share; A gets everything
+      Ad.snapshot(env9.ctx, env9.clock.t);
+      await Ad.tick(env9.ctx, env9.clock.t);
+      assert.equal((await A.api('GET', '/api/friends')).json.eco.airdrop.amount, 100000000);
+      assert.equal((await B.api('GET', '/api/friends')).json.eco.airdrop.amount, 0);
+      await A.api('POST', '/api/sol', { address: web3.Keypair.generate().publicKey.toBase58() });
+      assert.equal((await A.api('POST', '/api/airdrop/claim', {})).json.err, 'ad_fee', 'fee first');
+      const f = (await A.api('POST', '/api/airdrop/order', { kind: 'adfee' })).json;
+      assert.ok(Number(f.order.lamports) >= 10000000 && Number(f.order.lamports) < 11000000);
+      pay9(Number(f.order.lamports), f.order.ref, 'f1'); env9.advance(6000);
+      assert.equal((await A.api('POST', '/api/shop/sol/check', { id: f.order.id })).json.paid, true);
+      const r = (await A.api('POST', '/api/airdrop/claim', {})).json;
+      assert.equal(r.ok, true, JSON.stringify(r));
+    });
+    await env9.close();
   }
   summary();
 })();

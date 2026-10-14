@@ -377,6 +377,8 @@ const ACT = {
     if (r && r.ok) { toast(L('ad.ok'), 'good', 'sol'); confetti(160); sfx('floor'); haptic('ok'); } else errToast((r && r.err) || 'unavailable');
     render(true);
   },
+  adentry: () => airdropPay('adentry'),
+  adfee: () => airdropPay('adfee'),
   adtx: () => { const a = NET.eco && NET.eco.airdrop; if (a && a.tx) openLink('https://solscan.io/tx/' + a.tx); },
   sol: (what) => {
     if (what === 'set') return showSolWallet();
@@ -471,6 +473,16 @@ async function donateSol() {
   const r = await netApi.donateSol(solDonAmount());
   if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
   showSolPay(r.order, donated);
+}
+async function airdropPay(kind) {
+  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
+  const r = await netApi.adOrder(kind).catch(() => null);
+  if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
+  showSolPay(r.order, () => {
+    toast(L(kind === 'adentry' ? 'ad.entered' : 'ad.fee_ok'), 'good', 'sol'); confettiSmall(); haptic('ok');
+    [800, 3000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
+    loadHub('friends', true);
+  });
 }
 async function buySol(sku) {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');

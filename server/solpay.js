@@ -71,6 +71,21 @@ function createOrder(ctx, uid, sku, now) {
   if (!it || !Eco.canBuy(ctx, uid, sku)) return { ok: false, err: 'unavailable' };
   return newOrder(ctx, uid, sku, solPrice(ctx.cfg, it), now);
 }
+/* airdrop: the entry deposit (anti-bot, counts toward the launch fund) and the claim fee, both in SOL */
+const entrySol = (cfg) => Math.max(0.001, Math.ceil((cfg.airdrop.entryUsd / solUsd(cfg)) * 1000) / 1000);
+function createAirdropOrder(ctx, uid, kind, now) {
+  if (!enabled(ctx.cfg)) return { ok: false, err: 'not_configured' };
+  if (kind === 'adentry') {
+    if (!(ctx.cfg.airdrop.entryUsd > 0)) return { ok: false, err: 'unavailable' };
+    if (ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku='adentry'", uid)) return { ok: false, err: 'ad_entered' };
+    return newOrder(ctx, uid, 'adentry', entrySol(ctx.cfg), now);
+  }
+  if (kind === 'adfee') {
+    if (!(ctx.cfg.airdrop.feeSol > 0)) return { ok: false, err: 'unavailable' };
+    return newOrder(ctx, uid, 'adfee', ctx.cfg.airdrop.feeSol, now);
+  }
+  return { ok: false, err: 'unavailable' };
+}
 function createDonation(ctx, uid, sol, now) {
   if (!enabled(ctx.cfg)) return { ok: false, err: 'not_configured' };
   const min = donateMinSol(ctx.cfg);
@@ -109,7 +124,15 @@ function settle(ctx, order, list, now) {
   const sol = tx.lamports / LAMPORTS, usd = sol * solUsd(ctx.cfg);
   const meta = JSON.stringify({ sol, usd, from: tx.from, order: order.id });
   let r;
-  if (order.sku === 'donate') {
+  if (order.sku === 'adentry' || order.sku === 'adfee') {
+    r = ctx.db.tx(() => {
+      const ins = ctx.db.run('INSERT OR IGNORE INTO purchases(charge_id,uid,sku,stars,ts,meta) VALUES(?,?,?,?,?,?)', 'sol:' + tx.sig, order.uid, order.sku, 0, now, meta);
+      if (!ins.changes) return { ok: true, dup: true };
+      ctx.db.run(`INSERT INTO revenue(day,stars,usd,n) VALUES(?,0,?,1) ON CONFLICT(day) DO UPDATE SET usd=usd+excluded.usd, n=n+1`, U.dayKey(now), usd);
+      ctx.cache.fund = null;
+      return { ok: true };
+    });
+  } else if (order.sku === 'donate') {
     // a donation counts what actually arrived (people may send more than they typed)
     r = Eco.fulfilDonation(ctx, order.uid, 'sol:' + tx.sig, Math.round(usd / ctx.cfg.solPay.starUsd), now, { usd, meta });
   } else {
@@ -142,10 +165,10 @@ async function sweep(ctx, now = ctx.now()) {
     if (r && r.ok && !r.dup) {
       paid++;
       const lang = (U.getUser(ctx, o.uid) || {}).lang || 'en';
-      try { await Bot.send(ctx, o.uid, o.sku === 'donate' ? Bot.thanksTxt(lang, r.stars) : Bot.tx(lang).paid(Bot.shopTxt(lang, o.sku)[0])); } catch (_) { /* player may have blocked the bot */ }
+      if (o.sku !== 'adentry' && o.sku !== 'adfee') try { await Bot.send(ctx, o.uid, o.sku === 'donate' ? Bot.thanksTxt(lang, r.stars) : Bot.tx(lang).paid(Bot.shopTxt(lang, o.sku)[0])); } catch (_) { /* player may have blocked the bot */ }
     }
   }
   return { paid };
 }
 
-module.exports = { enabled, solPrice, donateMinSol, solUsd, refreshPrice, createOrder, createDonation, checkOrder, sweep, fmtSol };
+module.exports = { enabled, entrySol, createAirdropOrder, solPrice, donateMinSol, solUsd, refreshPrice, createOrder, createDonation, checkOrder, sweep, fmtSol };

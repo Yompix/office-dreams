@@ -44,12 +44,16 @@ function distributor(cfg) {
 }
 const tokenReady = (cfg) => !!(cfg.token && Sol.isAddr(cfg.token.addr) && distributor(cfg));
 
+const entered = (ctx, uid) => !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku='adentry'", uid);
+const feePaid = (ctx, uid) => !(ctx.cfg.airdrop.feeSol > 0) || !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku='adfee'", uid);
+
 /* ---- start: snapshot of points → fixed shares ---- */
 function snapshot(ctx, now) {
   init(ctx);
   const st = state(ctx);
   if (st.status !== 'season') return { ok: false, err: 'already' };
   const rows = ctx.db.all("SELECT id, pts, country FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch')")
+    .filter((r) => !(ctx.cfg.airdrop.entryUsd > 0) || entered(ctx, r.id))
     .filter((r) => !ctx.cfg.blockedCountries.includes(r.country) && !Eco.isDev(ctx, r.id));
   const total = rows.reduce((t, r) => t + r.pts, 0);
   const units = BigInt(Math.round(ctx.cfg.airdrop.supply)) * 10n ** BigInt(ctx.cfg.airdrop.decimals);
@@ -114,6 +118,8 @@ function view(ctx, u) {
     st: st.status, usd: f.usd, goal: f.goalUsd, at: st.at, players: st.n,
     amount: a ? Number(BigInt(a.amount)) / 10 ** ctx.cfg.airdrop.decimals : 0,
     claim: a ? a.status || '' : '', tx: a && a.status === 'sent' ? a.tx : null,
+    entry: ctx.cfg.airdrop.entryUsd > 0 ? { usd: ctx.cfg.airdrop.entryUsd, sol: require('./solpay.js').entrySol(ctx.cfg), done: entered(ctx, u.id) } : null,
+    fee: ctx.cfg.airdrop.feeSol > 0 ? { sol: ctx.cfg.airdrop.feeSol, paid: feePaid(ctx, u.id) } : null,
   };
 }
 
@@ -126,6 +132,7 @@ async function claim(ctx, uid, now = Date.now()) {
   const a = ctx.db.get('SELECT * FROM airdrop_alloc WHERE uid=?', uid);
   if (!a || BigInt(a.amount) <= 0n) return { ok: false, err: 'airdrop_none' };
   if (a.status === 'sent') return { ok: true, tx: a.tx, already: true };
+  if (!feePaid(ctx, uid)) return { ok: false, err: 'ad_fee' };
   // a transfer is in flight: check how it ended before allowing another one
   if (a.status === 'sending' && a.tx) {
     const s = (await Sol.rpc(ctx, 'getSignatureStatuses', [[a.tx], { searchTransactionHistory: true }]).catch(() => null));
@@ -183,7 +190,9 @@ function adminView(ctx) {
   const st = state(ctx);
   const c = ctx.db.get("SELECT COUNT(*) AS n, SUM(CASE WHEN status='sent' THEN 1 ELSE 0 END) AS sent, SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) AS failed FROM airdrop_alloc");
   const d = distributor(ctx.cfg);
-  return { ok: true, state: st, allocs: c.n, sent: c.sent || 0, failed: c.failed || 0, mint: (ctx.cfg.token && ctx.cfg.token.addr) || null, distributor: d ? d.publicKey.toBase58() : null, fund: Eco.fundView(ctx, 0) };
+  const ent = ctx.db.get("SELECT COUNT(DISTINCT uid) AS n FROM purchases WHERE sku='adentry'").n;
+  const wrong = d && ctx.cfg.airdrop.wallet && d.publicKey.toBase58() !== ctx.cfg.airdrop.wallet;
+  return { ok: true, state: st, entered: ent, keyMismatch: !!wrong, wallet: ctx.cfg.airdrop.wallet || null, allocs: c.n, sent: c.sent || 0, failed: c.failed || 0, mint: (ctx.cfg.token && ctx.cfg.token.addr) || null, distributor: d ? d.publicKey.toBase58() : null, fund: Eco.fundView(ctx, 0) };
 }
 
-module.exports = { tick, snapshot, view, claim, adminView, state, announce, tokenReady };
+module.exports = { entered, feePaid, tick, snapshot, view, claim, adminView, state, announce, tokenReady };

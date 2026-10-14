@@ -22,7 +22,7 @@ function persistUser(ctx, u) {
 }
 
 function supporterUntil(ctx, uid) {
-  const r = ctx.db.get('SELECT MAX(ts) AS t FROM purchases WHERE uid=?', uid);
+  const r = ctx.db.get('SELECT MAX(ts) AS t FROM purchases WHERE uid=? AND sku NOT IN (\'adentry\', \'adfee\')', uid);
   return r && r.t ? r.t + ctx.cfg.eco.supporterDays * U.DAY : 0;
 }
 const dailyD = (ctx, u, now) => ctx.cfg.eco.dailyD * (u.pass_until > now ? ctx.cfg.eco.passBoost : 1);
@@ -381,7 +381,7 @@ function fundView(ctx, uid, now = Date.now()) {
   let f = ctx.cache.fund;
   if (!f || now - f.t > 5000) {
     const r = ctx.db.get("SELECT COALESCE(SUM(stars),0) AS s, COUNT(DISTINCT uid) AS d FROM purchases WHERE sku='donate'");
-    const usd = ctx.db.get("SELECT COALESCE(SUM(CAST(json_extract(meta,'$.usd') AS REAL)),0) AS u FROM purchases WHERE sku='donate' AND meta IS NOT NULL").u;
+    const usd = ctx.db.get("SELECT COALESCE(SUM(CAST(json_extract(meta,'$.usd') AS REAL)),0) AS u FROM purchases WHERE sku IN ('donate','adentry') AND meta IS NOT NULL").u;
     const starsOnly = ctx.db.get("SELECT COALESCE(SUM(stars),0) AS s FROM purchases WHERE sku='donate' AND (meta IS NULL OR json_extract(meta,'$.usd') IS NULL)").s;
     const top = ctx.db.all("SELECT p.uid, u.name, u.country, SUM(p.stars) AS s FROM purchases p JOIN users u ON u.id=p.uid WHERE p.sku='donate' AND u.deleted=0 GROUP BY p.uid ORDER BY s DESC LIMIT 10");
     f = { t: now, stars: r.s, donors: r.d, usd: Math.round((usd + starsOnly * ctx.cfg.starUsd) * 100) / 100, top };

@@ -789,6 +789,9 @@ function airdropCard(e, mini) {
       <p class="sub">${L('ad.wait_s', { goal: '$' + fmt(a.goal), sym })}</p>
       <div class="fund-h"><b class="px">$${fmt(Math.round(a.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(a.goal) })}</small></div>
       <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
+      ${a.entry ? (a.entry.done ? `<div class="ad-ok">${I('check', 16, 'grn')} ${L('ad.entered')}</div>` : `<p class="sub">${L('ad.entry_t', { usd: '$' + a.entry.usd, sol: a.entry.sol })}</p>
+        <button class="btn big glow wide" data-act="adentry">${I('sol', 16)} ${L('ad.entry_btn', { sol: a.entry.sol })}</button>
+        <p class="hint">${L('ad.entry_hint')}</p>`) : ''}
     </section>`;
   }
   let act;
@@ -796,6 +799,7 @@ function airdropCard(e, mini) {
   else if (a.claim === 'sent') act = `<div class="ad-ok">${I('check', 16, 'grn')} ${L('ad.sent')}</div>${a.tx ? `<button class="linkbtn" data-act="adtx">${L('ad.tx')}</button>` : ''}`;
   else if (!e.sol) act = `<button class="btn big glow wide" data-act="sol:set">${I('sol', 16)} ${L('ad.need_wallet')}</button>`;
   else if (a.st !== 'claim') act = `<p class="hint">${L('ad.soon')}</p>`;
+  else if (a.fee && !a.fee.paid) act = `<p class="sub">${L('ad.fee_t', { sol: a.fee.sol })}</p><button class="btn big glow wide" data-act="adfee">${I('sol', 16)} ${L('ad.fee_btn', { sol: a.fee.sol })}</button>`;
   else act = `<button class="btn big glow wide" data-act="adclaim" ${UI.adBusy ? 'disabled' : ''}>${UI.adBusy ? L('ad.sending') : L('ad.claim', { n: amt, sym })}</button>`;
   return `<section class="panel adrop live ${mini ? 'mini' : ''}">
     <h2 class="h2">🎉 ${L('ad.live_t', { sym })}</h2>
@@ -852,7 +856,7 @@ function hubToken() {
     <h2 class="h2">${I('chart', 16)} ${L('tk4.title')}</h2>
     <p class="sub">${L('tk4.sub', { sym })}</p>
     <div class="formula">${L('tk4.formula', { sym })}</div>
-    <ul class="bul"><li>${L('tk4.b1', { sym })}</li><li>${L('tk4.b2')}</li><li>${L('tk4.b3')}</li><li>${L('tk4.b4', { sym })}</li><li>${L('tk4.b5', { sym })}</li></ul>
+    <ul class="bul"><li>${L('tk4.b1', { sym })}</li><li>${L('tk4.b2')}</li><li>${L('tk4.b3')}</li><li>${L('tk4.b4', { sym })}</li><li>${L('tk4.b6')}</li><li>${L('tk4.b5', { sym })}</li></ul>
     <p class="hint">${L('tk4.risk')}</p>
   </section>
   <section class="panel">
