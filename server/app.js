@@ -127,7 +127,7 @@ function publicConfig(ctx) {
     eco: { D: c.eco.dailyD, l1: c.eco.refL1, l2: c.eco.refL2, cashEach: c.eco.inviteCash, gemsEach: c.eco.inviteGems, pass: c.eco.passBoost },
     shop: Eco.SHOP,
     solPay: SolPay.enabled(c),
-    airdropWallet: c.airdrop.wallet || '',
+    airdropWallet: Airdrop.distributorAddr(ctx),
     market: Market.enabled(c),
     tickMs: E.TICK * 1000,
     turnstile: c.turnstile.site || '',

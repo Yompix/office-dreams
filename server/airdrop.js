@@ -33,16 +33,35 @@ function lib() {
   try { LIB = require('./vendor/solana.js'); } finally { console.warn = w; }
   return LIB;
 }
-function distributor(cfg) {
+/* the distributor wallet: AIRDROP_SECRET if set, otherwise a key the server generated once and keeps in its database */
+const keyCache = new WeakMap();
+function distributor(ctx) {
+  if (keyCache.has(ctx)) return keyCache.get(ctx);
+  const cfg = ctx.cfg;
+  let kp = null;
   const s = cfg.airdrop && cfg.airdrop.secret;
-  if (!s) return null;
   try {
-    const bytes = s.trim().startsWith('[') ? JSON.parse(s) : Sol.b58decode(s.trim());
-    if (!bytes || bytes.length !== 64) return null;
-    return lib().web3.Keypair.fromSecretKey(Uint8Array.from(bytes));
-  } catch (e) { return null; }
+    if (s) {
+      const bytes = s.trim().startsWith('[') ? JSON.parse(s) : Sol.b58decode(s.trim());
+      if (bytes && bytes.length === 64) kp = lib().web3.Keypair.fromSecretKey(Uint8Array.from(bytes));
+    } else if (cfg.airdrop && cfg.airdrop.genKey) {
+      init(ctx);
+      ctx.db.raw.exec('CREATE TABLE IF NOT EXISTS airdrop_key (id INTEGER PRIMARY KEY CHECK (id = 1), secret TEXT, at INTEGER)');
+      let row = ctx.db.get('SELECT secret FROM airdrop_key WHERE id=1');
+      if (!row) {
+        const k = lib().web3.Keypair.generate();
+        ctx.db.run('INSERT OR IGNORE INTO airdrop_key(id, secret, at) VALUES (1, ?, ?)', Sol.b58encode(k.secretKey), Date.now());
+        row = ctx.db.get('SELECT secret FROM airdrop_key WHERE id=1');
+        ctx.log && ctx.log('airdrop distributor wallet generated', k.publicKey.toBase58());
+      }
+      kp = lib().web3.Keypair.fromSecretKey(Uint8Array.from(Sol.b58decode(row.secret)));
+    }
+  } catch (e) { kp = null; }
+  keyCache.set(ctx, kp);
+  return kp;
 }
-const tokenReady = (cfg) => !!(cfg.token && Sol.isAddr(cfg.token.addr) && distributor(cfg));
+const distributorAddr = (ctx) => { const d = distributor(ctx); return d ? d.publicKey.toBase58() : (ctx.cfg.airdrop.wallet || ''); };
+const tokenReady = (ctx) => !!(ctx.cfg.token && Sol.isAddr(ctx.cfg.token.addr) && distributor(ctx));
 
 const entered = (ctx, uid) => !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku='adentry'", uid);
 const feePaid = (ctx, uid) => !(ctx.cfg.airdrop.feeSol > 0) || !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku='adfee'", uid);
@@ -65,7 +84,7 @@ function snapshot(ctx, now) {
       const amount = totalI > 0n ? (units * BigInt(Math.round(r.pts * 10)) * SCALE) / totalI : 0n;
       if (amount > 0n) ctx.db.run('INSERT INTO airdrop_alloc(uid, pts, amount) VALUES (?,?,?)', r.id, r.pts, amount.toString());
     }
-    ctx.db.run("UPDATE airdrop_state SET status=?, at=?, pts=?, n=? WHERE id=1", tokenReady(ctx.cfg) ? 'claim' : 'snapshot', now, total, rows.length);
+    ctx.db.run("UPDATE airdrop_state SET status=?, at=?, pts=?, n=? WHERE id=1", tokenReady(ctx) ? 'claim' : 'snapshot', now, total, rows.length);
   });
   ctx.log && ctx.log('airdrop snapshot', { players: rows.length, pts: total });
   return { ok: true, players: rows.length, pts: total };
@@ -77,7 +96,7 @@ function snapshot(ctx, now) {
 let minting = false;
 async function autoMint(ctx) {
   if (!ctx.cfg.airdrop.mint || minting || ctx.cache.minted) return null;
-  const from = distributor(ctx.cfg);
+  const from = distributor(ctx);
   if (!from || !ctx.cfg.token || !Sol.isAddr(ctx.cfg.token.addr)) return null;
   minting = true;
   try {
@@ -131,7 +150,7 @@ async function tick(ctx, now = Date.now()) {
     snapshot(ctx, now);
   }
   const s2 = state(ctx);
-  if (s2.status === 'snapshot' && tokenReady(ctx.cfg)) ctx.db.run("UPDATE airdrop_state SET status='claim' WHERE id=1");
+  if (s2.status === 'snapshot' && tokenReady(ctx)) ctx.db.run("UPDATE airdrop_state SET status='claim' WHERE id=1");
   if (!s2.announced) { ctx.db.run('UPDATE airdrop_state SET announced=1 WHERE id=1'); announce(ctx).catch((e) => ctx.log && ctx.log('airdrop announce', e.message)); }
   return { st: state(ctx).status };
 }
@@ -199,7 +218,7 @@ async function claim(ctx, uid, now = Date.now()) {
   if (!lock.changes) return { ok: false, err: 'airdrop_wait' };
   try {
     const { web3, spl } = lib();
-    const from = distributor(ctx.cfg);
+    const from = distributor(ctx);
     const mint = new web3.PublicKey(ctx.cfg.token.addr.trim());
     const owner = new web3.PublicKey(u.sol);
     const info = await Sol.rpc(ctx, 'getAccountInfo', [mint.toBase58(), { encoding: 'base64' }]);
@@ -239,10 +258,10 @@ async function claim(ctx, uid, now = Date.now()) {
 function adminView(ctx) {
   const st = state(ctx);
   const c = ctx.db.get("SELECT COUNT(*) AS n, SUM(CASE WHEN status='sent' THEN 1 ELSE 0 END) AS sent, SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) AS failed FROM airdrop_alloc");
-  const d = distributor(ctx.cfg);
+  const d = distributor(ctx);
   const ent = ctx.db.get("SELECT COUNT(DISTINCT uid) AS n FROM purchases WHERE sku='adentry'").n;
-  const wrong = d && ctx.cfg.airdrop.wallet && d.publicKey.toBase58() !== ctx.cfg.airdrop.wallet;
+  const wrong = d && ctx.cfg.airdrop.secret && ctx.cfg.airdrop.wallet && d.publicKey.toBase58() !== ctx.cfg.airdrop.wallet;
   return { ok: true, state: st, entered: ent, keyMismatch: !!wrong, wallet: ctx.cfg.airdrop.wallet || null, allocs: c.n, sent: c.sent || 0, failed: c.failed || 0, mint: (ctx.cfg.token && ctx.cfg.token.addr) || null, distributor: d ? d.publicKey.toBase58() : null, fund: Eco.fundView(ctx, 0) };
 }
 
-module.exports = { autoMint, entered, feePaid, tick, snapshot, view, claim, adminView, state, announce, tokenReady };
+module.exports = { distributorAddr, autoMint, entered, feePaid, tick, snapshot, view, claim, adminView, state, announce, tokenReady };
