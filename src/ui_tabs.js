@@ -747,8 +747,20 @@ function mktSpark(hist, up) {
     <path d="${d}L${W} ${H}L0 ${H}Z" fill="url(#mkg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 6px ${col})"/>
     <circle cx="${pts[pts.length - 1][0]}" cy="${pts[pts.length - 1][1]}" r="4" fill="${col}" class="mk-dot"/></svg>`;
 }
+function mktSoon(mini) {
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE'), ch = NET.cfg && NET.cfg.links && NET.cfg.links.channel;
+  if (mini) return `<section class="panel mkt mini soon" data-act="mktab"><span class="mk-logo">${I('ton', 22)}</span><div class="mk-mini-t"><b>${L('mk.soon_t', { sym })}</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></section>`;
+  return `<section class="panel mkt soon">
+    <div class="mk-h"><span class="mk-logo">${I('ton', 26)}</span><div class="mk-name"><b>${sym} × STON.fi</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></div>
+    <h2 class="h2">${L('mk.soon_t', { sym })}</h2>
+    <p class="sub">${L('mk.soon_p', { sym })}</p>
+    <ul class="bul"><li>${L('mk.soon_1', { sym })}</li><li>${L('mk.soon_2')}</li><li>${L('mk.soon_3', { sym })}</li></ul>
+    ${ch ? `<button class="btn big glow wide" data-act="link:channel">${L('mk.soon_ch')}</button>` : ''}
+  </section>`;
+}
 function mktPanel(mini) {
-  if (!NET.cfg || !NET.cfg.market) return '';
+  if (!NET.cfg) return '';
+  if (!NET.cfg.market) return mktSoon(mini);
   const r = UI.hub.mkt;
   if (!r || !r.on) return mini ? '' : `<section class="panel mkt"><div class="loading">${L('ui.loading')}</div></section>`;
   const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFICE');

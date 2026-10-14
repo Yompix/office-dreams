@@ -1087,6 +1087,8 @@ body.pv-on #app { visibility: hidden; }
 .loc.lock{opacity:.55}
 .loc.done{opacity:.8}
 .loc-next{margin:6px 0 10px;font-weight:700;color:#ffd23f}
+.mkt.soon{background:radial-gradient(120% 90% at 0% 0%,rgba(76,163,255,.18),transparent 60%),radial-gradient(120% 90% at 100% 0%,rgba(255,63,208,.14),transparent 60%),var(--panel,#120c2e)}
+.mk-soon-chip{font-size:11px;font-weight:800;letter-spacing:.5px;color:#ffd23f;padding:4px 9px;border-radius:8px;background:rgba(255,210,63,.12);box-shadow:inset 0 0 0 1px rgba(255,210,63,.45);animation:mkp 1.8s ease-in-out infinite;white-space:nowrap}
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -2090,6 +2092,14 @@ LANGS.en = {
   'loc.after': "After IPO #{n}",
   'loc.here': "You are here",
   'loc.next': "After the IPO the studio moves to: {name}",
+  'mk.soon': "Soon",
+  'mk.soon_t': "Coming soon: buy {sym} on STON.fi",
+  'mk.soon_s': "Listing on the TON exchange",
+  'mk.soon_p': "Very soon {sym} will be listed on STON.fi — and you’ll be able to buy it right here, in the game.",
+  'mk.soon_1': "The “Buy” button will open the TON → {sym} swap on STON.fi",
+  'mk.soon_2': "Price, chart and volume will update in real time",
+  'mk.soon_3': "Bought {sym} lands in your TON wallet right away",
+  'mk.soon_ch': "Follow the news in the channel",
   'tok.what': '{sym} is the game’s own token on the TON blockchain. Airdrop points you collect now will be exchanged for it.',
   'tok.supply': '1,000,000,000 — minted once',
   'tok.status': 'Season 0: collecting points',
@@ -2627,6 +2637,14 @@ LANGS.ru = {
   'loc.after': "После IPO №{n}",
   'loc.here': "Вы здесь",
   'loc.next': "После IPO студия переедет: {name}",
+  'mk.soon': "Скоро",
+  'mk.soon_t': "Скоро: покупка {sym} на STON.fi",
+  'mk.soon_s': "Листинг на бирже TON",
+  'mk.soon_p': "Совсем скоро токен {sym} появится на бирже STON.fi — и купить его можно будет прямо отсюда, из игры.",
+  'mk.soon_1': "Кнопка «Купить» откроет обмен TON → {sym} в STON.fi",
+  'mk.soon_2': "Курс, график и объём торгов будут обновляться в реальном времени",
+  'mk.soon_3': "Купленные {sym} сразу появятся в твоём TON-кошельке",
+  'mk.soon_ch': "Следить за новостями в канале",
   'tok.what': '{sym} — собственный токен игры в блокчейне TON. Очки аирдропа, которые ты собираешь сейчас, будут обменяны на него.',
   'tok.supply': '1 000 000 000 — выпуск один раз',
   'tok.status': 'Сезон 0: собираем очки',
@@ -3164,6 +3182,14 @@ LANGS.uk = {
   'loc.after': "Після IPO №{n}",
   'loc.here': "Ви тут",
   'loc.next': "Після IPO студія переїде: {name}",
+  'mk.soon': "Незабаром",
+  'mk.soon_t': "Незабаром: купівля {sym} на STON.fi",
+  'mk.soon_s': "Лістинг на біржі TON",
+  'mk.soon_p': "Зовсім скоро токен {sym} зʼявиться на біржі STON.fi — і купити його можна буде просто звідси, з гри.",
+  'mk.soon_1': "Кнопка «Купити» відкриє обмін TON → {sym} у STON.fi",
+  'mk.soon_2': "Курс, графік і обсяг торгів оновлюватимуться в реальному часі",
+  'mk.soon_3': "Куплені {sym} одразу зʼявляться у твоєму TON-гаманці",
+  'mk.soon_ch': "Стежити за новинами в каналі",
   'tok.what': '{sym} — власний токен гри в блокчейні TON. Бали аірдропу, які ти збираєш зараз, буде обміняно на нього.',
   'tok.supply': '1 000 000 000 — випуск один раз',
   'tok.status': 'Сезон 0: збираємо бали',
@@ -8550,8 +8576,20 @@ function mktSpark(hist, up) {
     <path d="${d}L${W} ${H}L0 ${H}Z" fill="url(#mkg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 6px ${col})"/>
     <circle cx="${pts[pts.length - 1][0]}" cy="${pts[pts.length - 1][1]}" r="4" fill="${col}" class="mk-dot"/></svg>`;
 }
+function mktSoon(mini) {
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE'), ch = NET.cfg && NET.cfg.links && NET.cfg.links.channel;
+  if (mini) return `<section class="panel mkt mini soon" data-act="mktab"><span class="mk-logo">${I('ton', 22)}</span><div class="mk-mini-t"><b>${L('mk.soon_t', { sym })}</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></section>`;
+  return `<section class="panel mkt soon">
+    <div class="mk-h"><span class="mk-logo">${I('ton', 26)}</span><div class="mk-name"><b>${sym} × STON.fi</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></div>
+    <h2 class="h2">${L('mk.soon_t', { sym })}</h2>
+    <p class="sub">${L('mk.soon_p', { sym })}</p>
+    <ul class="bul"><li>${L('mk.soon_1', { sym })}</li><li>${L('mk.soon_2')}</li><li>${L('mk.soon_3', { sym })}</li></ul>
+    ${ch ? `<button class="btn big glow wide" data-act="link:channel">${L('mk.soon_ch')}</button>` : ''}
+  </section>`;
+}
 function mktPanel(mini) {
-  if (!NET.cfg || !NET.cfg.market) return '';
+  if (!NET.cfg) return '';
+  if (!NET.cfg.market) return mktSoon(mini);
   const r = UI.hub.mkt;
   if (!r || !r.on) return mini ? '' : `<section class="panel mkt"><div class="loading">${L('ui.loading')}</div></section>`;
   const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFICE');
