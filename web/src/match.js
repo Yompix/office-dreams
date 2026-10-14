@@ -100,6 +100,8 @@ function fit(el, ratio, max) {
   const b = $("mBoard"), w = b.clientWidth - 24, h = b.clientHeight - 8;
   const bw = Math.max(160, Math.min(w, h * ratio, max || 460)); el.style.width = bw + "px"; el.style.height = bw / ratio + "px"; return bw;
 }
+/* анімація ходу програється один раз: повторна перемальовка (вибір фігури, тап) не повторює її */
+function fxFresh(k) { if (S.fxKey === k) return false; S.fxKey = k; return true; }
 /* куди «стрибає» фігура: зсув від клітинки from до to в пікселях */
 function moveAnim(el, fromD, toD, sq) { if (fromD < 0) return; const dx = ((fromD % 8) - (toD % 8)) * sq, dy = (Math.floor(fromD / 8) - Math.floor(toD / 8)) * sq; el.style.setProperty("--dx", dx + "px"); el.style.setProperty("--dy", dy + "px"); el.classList.add("mv"); }
 
@@ -107,7 +109,7 @@ function rChess(m, M, box) {
   const s = m.st, b = fenBoard(s.fen), flip = m.you === 1, myC = m.you === 0 ? "w" : "b";
   const d2i = (d) => (flip ? 63 - d : d);
   const moves = s.moves || [], last = s.last ? [sqIdx(s.last[0]), sqIdx(s.last[1])] : null;
-  const pl = M.prev && M.prev.st && M.prev.st.last, isNew = last && (!pl || pl[0] !== s.last[0] || pl[1] !== s.last[1]);
+  const pl = M.prev && M.prev.st && M.prev.st.last, isNew = last && (!pl || pl[0] !== s.last[0] || pl[1] !== s.last[1]) && fxFresh("ch" + m.id + s.fen);
   const turnC = s.fen.split(" ")[1];
   const kingAt = s.check ? b.findIndex((p) => p === (turnC === "w" ? "K" : "k")) : -1;
   const sel = S.sel, tgs = sel !== null && sel !== undefined ? moves.filter((x) => sqIdx(x[0]) === sel).map((x) => sqIdx(x[1])) : [];
@@ -153,7 +155,7 @@ function rCheckers(m, M, box) {
   const steps = s.steps || [], canFrom = new Set(steps.map((x) => x[0]));
   if (s.chain >= 0 && myTurnOf(m)) S.sel = s.chain;
   const sel = S.sel, tgs = sel !== null && sel !== undefined ? steps.filter((x) => x[0] === sel).map((x) => x[1]) : [];
-  const last = s.last, pl = M.prev && M.prev.st && M.prev.st.last, isNew = last && (!pl || pl[0] !== last[0] || pl[1] !== last[1]);
+  const last = s.last, pl = M.prev && M.prev.st && M.prev.st.last, isNew = last && (!pl || pl[0] !== last[0] || pl[1] !== last[1]) && fxFresh("ck" + m.id + b.join("") + s.chain);
   let h = `<div class="b8" id="bd">`;
   for (let d = 0; d < 64; d++) {
     const i = d2i(d), r = Math.floor(i / 8), c = i % 8, p = b[i];
@@ -179,7 +181,7 @@ function rCheckers(m, M, box) {
 
 function rFour(m, M, box) {
   const s = m.st, me = m.you + 1, line = s.line || [], pb = M.prev && M.prev.st && M.prev.st.b;
-  const isNew = s.last >= 0 && (!pb || !pb[s.last]);
+  const isNew = s.last >= 0 && (!pb || !pb[s.last]) && fxFresh("f" + m.id + s.b.join("") + M.over);
   const my = !M.over && myTurnOf(m) && !S.pend;
   let h = `<div class="b4${my ? " my" : ""}" id="bd">`;
   for (let i = 0; i < 42; i++) { const v = s.b[i]; h += `<div class="c" data-c="${i % 7}">${v ? `<i class="${v === me ? "me" : "op"}${i === s.last && isNew ? " drop" : ""}${line.includes(i) ? " wl" : ""}" style="--r:${Math.floor(i / 7)}"></i>` : ""}</div>`; }
@@ -191,7 +193,7 @@ function rFour(m, M, box) {
 }
 
 function rMines(m, M, box) {
-  const s = m.st, po = M.prev && M.prev.st && M.prev.st.open, bombs = new Set(s.bombs || []), my = !M.over && myTurnOf(m) && !S.pend;
+  const s = m.st, po = fxFresh("m" + m.id + s.open.join(",") + M.over) ? M.prev && M.prev.st && M.prev.st.open : null, bombs = new Set(s.bombs || []), my = !M.over && myTurnOf(m) && !S.pend;
   let h = `<div><div class="bm${my ? " my" : ""}" id="bd">`;
   for (let i = 0; i < 36; i++) {
     const v = s.open[i], nw = po && po[i] === -1 && v !== -1;
@@ -209,7 +211,7 @@ function rMines(m, M, box) {
 }
 
 function rTtt(m, M, box) {
-  const s = m.st, pb = M.prev && M.prev.st && M.prev.st.b, my = !M.over && myTurnOf(m) && !S.pend;
+  const s = m.st, pb = fxFresh("t" + m.id + s.b.join("") + M.over) ? M.prev && M.prev.st && M.prev.st.b : null, my = !M.over && myTurnOf(m) && !S.pend;
   let h = `<div class="bt" id="bd">`;
   const XO = { X: `<svg viewBox="0 0 100 100"><path d="M24 24L76 76"/><path d="M76 24L24 76"/></svg>`, O: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="27"/></svg>` };
   for (let i = 0; i < 9; i++) { const v = s.b[i]; h += `<button class="${v}${v && (!pb || !pb[i]) && pb ? " nw" : ""}" data-c="${i}">${XO[v] || ""}</button>`; }
@@ -285,7 +287,7 @@ function rpsPlay(h, res, done) {
 }
 
 function rBj(m, M, box) {
-  const s = m.st, pr = M.prev && M.prev.st, over = M.over;
+  const s = m.st, over = M.over, pr = fxFresh("b" + m.id + s.mine.length + ":" + s.oppN + ":" + over) ? M.prev && M.prev.st : m.st;
   const oppCards = over ? s.opp : [s.opp[0], ...Array(Math.max(0, s.oppN - 1)).fill(-1)];
   const oppCls = (k) => (!pr ? "deal" : over ? (pr.oppT === null && k >= 1 ? "flip" : k >= pr.oppN ? "deal" : "") : k >= pr.oppN ? "deal" : "");
   const myCls = (k) => (!pr || k >= pr.mine.length ? "deal" : "");
@@ -309,6 +311,7 @@ function rCard(m, M, box) {
   const s = m.st, me = s.mine, op = s.opp, won = M.end && M.end.winner === myId();
   box.innerHTML = `<div class="hc2"><div id="hcO">${cardHtml(-1, "deal")}</div><em>VS</em><div id="hcM">${cardHtml(-1, "deal")}</div></div>`;
   if (me === undefined) return;
+  if (!fxFresh("c" + m.id)) { box.innerHTML = `<div class="hc2"><div id="hcO" class="${won ? "hcl" : "hcw"}">${cardHtml(op, won ? "" : "win")}</div><em>VS</em><div id="hcM" class="${won ? "hcw" : "hcl"}">${cardHtml(me, won ? "win" : "")}</div></div>`; return; }
   setTimeout(() => { const o = $("hcO"); if (o) { o.innerHTML = cardHtml(op, "flip" + (!won ? " win" : "")); sfx.card(); } }, 600);
   setTimeout(() => { const x = $("hcM"); if (x) { x.innerHTML = cardHtml(me, "flip" + (won ? " win" : "")); sfx.card(); } }, 1050);
   setTimeout(() => { const w = $(won ? "hcM" : "hcO"), l = $(won ? "hcO" : "hcM"); if (!w) return; w.classList.add("hcw"); l.classList.add("hcl"); burstAt(w, 26, ["#ffc933", "#fff3a0", "#ffffff"]); flashAt(w, "#ffc933"); }, 1500);
