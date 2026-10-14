@@ -240,7 +240,7 @@ $('create').onclick = async () => {
     tx.partialSign(mintKp);
     const signed = await prov().signTransaction(tx);
     say('st2', 'Отправляем в сеть…');
-    const sig = await conn.sendRawTransaction(signed.serialize());
+    const sig = await conn.sendRawTransaction(signed.serialize(), { skipPreflight: true, maxRetries: 5 });
     await confirm(sig, bh.lastValidBlockHeight);
     const mint = mintKp.publicKey.toBase58();
     store.set({ mint, sig, owner: me.toBase58(), at: Date.now() });
@@ -286,7 +286,7 @@ $('mintBtn').onclick = async () => {
     say('st3', 'Подтверди транзакцию в Phantom…');
     const signed = await prov().signTransaction(tx);
     say('st3', 'Отправляем в сеть…');
-    const sig = await conn.sendRawTransaction(signed.serialize());
+    const sig = await conn.sendRawTransaction(signed.serialize(), { skipPreflight: true, maxRetries: 5 });
     await confirm(sig, bh.lastValidBlockHeight);
     store.set({ minted: true, mintedMint: mint.toBase58(), dist: to.toBase58(), mintSig: sig });
     say('st3', 'Готово!', 'ok');

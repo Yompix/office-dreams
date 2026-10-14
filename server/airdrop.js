@@ -102,7 +102,7 @@ async function autoMint(ctx) {
     tx.recentBlockhash = (await Sol.rpc(ctx, 'getLatestBlockhash', [{ commitment: 'confirmed' }])).value.blockhash;
     tx.sign(from);
     const sig = Sol.b58encode(tx.signature);
-    await Sol.rpc(ctx, 'sendTransaction', [tx.serialize().toString('base64'), { encoding: 'base64', preflightCommitment: 'confirmed' }]);
+    await Sol.rpc(ctx, 'sendTransaction', [tx.serialize().toString('base64'), { encoding: 'base64', skipPreflight: true, maxRetries: 5 }]);
     for (let i = 0; i < 30; i++) {
       const s = await Sol.rpc(ctx, 'getSignatureStatuses', [[sig]]).catch(() => null);
       const st = s && s.value && s.value[0];
@@ -216,7 +216,7 @@ async function claim(ctx, uid, now = Date.now()) {
     tx.sign(from);
     const sig = Sol.b58encode(tx.signature);
     ctx.db.run('UPDATE airdrop_alloc SET tx=?, tx_at=? WHERE uid=?', sig, now, uid);
-    await Sol.rpc(ctx, 'sendTransaction', [tx.serialize().toString('base64'), { encoding: 'base64', preflightCommitment: 'confirmed' }]);
+    await Sol.rpc(ctx, 'sendTransaction', [tx.serialize().toString('base64'), { encoding: 'base64', skipPreflight: true, maxRetries: 5 }]);
     for (let i = 0; i < 30; i++) {
       const s = await Sol.rpc(ctx, 'getSignatureStatuses', [[sig]]).catch(() => null);
       const v = s && s.value && s.value[0];
