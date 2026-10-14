@@ -5626,26 +5626,34 @@ function drawPlayerFront(B, ax, ay, t, typing, frame, blink) {
    ============================================================ */
 // seated legs as small iso boxes (drawn with PS = 2): thighs on the seat, shins down to the floor, sneakers;
 // dir = the way the person faces in grid units ([0,-1] right-wall desks, [-1,0] left-wall desks, [1,0] player)
-const PANTS = { prog: '#2b4a8a', art: '#3a2a55', des: '#2a2e44', mkt: '#1e2240', you: '#232a5a', npc: '#262b66' };
+const PANTS = { prog: '#4a6fd0', art: '#7a52b8', des: '#5a6a8a', mkt: '#3f58b0', you: '#3e4fa0', npc: '#262b66' };
 function drawLegsHD(B, cx, cy, dir, pants, t, seed, tap) {
-  const pc0 = C(pants), pT = shadeC(pc0, 1.25), pL = pc0, pR = shadeC(pc0, 0.7);
-  const shoe = C('#f2f0ff'), shoeL = C('#c9c4ec'), shoeR = C('#9a94c8'), sole = C('#3a3f8a');
-  const [dx, dy] = dir, px = -dy, py = dx; // perpendicular
-  for (const side of [-1, 1]) {
-    const o = side * 0.13, w = 0.15;
-    const ox = cx + px * o, oy = cy + py * o;
-    const tapZ = tap && side === 1 && Math.floor(t * 6 + seed) % 2 ? 0.8 : 0;
-    // thigh: from the seat centre forward 0.42
-    const ax = Math.min(ox, ox + dx * 0.42) - (dx ? 0 : w / 2), ay = Math.min(oy, oy + dy * 0.42) - (dy ? 0 : w / 2);
-    isoBox(B, ax, ay, 8.6, dx ? 0.42 : w, dy ? 0.42 : w, 2.2, pT, pL, pR);
-    // shin straight down at the knee
-    const kx = ox + dx * 0.42, ky = oy + dy * 0.42;
-    isoBox(B, kx - (dx ? (dx > 0 ? 0 : 0.14) : w / 2), ky - (dy ? (dy > 0 ? 0 : 0.14) : w / 2), 1.2 + tapZ, dx ? 0.14 : w, dy ? 0.14 : w, 8 - tapZ, pL, pL, pR);
-    // sneaker pointing forward
-    const fx = kx + dx * 0.02, fy = ky + dy * 0.02;
-    const sx = Math.min(fx, fx + dx * 0.24) - (dx ? 0 : (w + 0.02) / 2), sy = Math.min(fy, fy + dy * 0.24) - (dy ? 0 : (w + 0.02) / 2);
-    isoBox(B, sx, sy, tapZ, dx ? 0.24 : w + 0.02, dy ? 0.24 : w + 0.02, 0.6, sole, sole, sole);
-    isoBox(B, sx, sy, 0.6 + tapZ, dx ? 0.24 : w + 0.02, dy ? 0.24 : w + 0.02, 1.4, shoe, shoeL, shoeR);
+  // drawn in screen space from iso points: hip → knee → ankle, tapered limbs with a knee highlight,
+  // rounded sneakers with a sole; PS is 2 while this runs
+  const pc0 = C(pants), pHi = mixC(pc0, PAL.white, 0.22), pLo = shadeC(pc0, 0.62);
+  const shoe = C('#f4f2ff'), shoeLo = C('#b8b2e6'), sole = C('#2a2e72'), lace = C('#ff3fd0');
+  const [dx, dy] = dir, px = -dy, py = dx;
+  const seg = (a, b, w0, w1, col, edge) => {
+    const vx = b[0] - a[0], vy = b[1] - a[1], L = Math.hypot(vx, vy) || 1, nx = -vy / L, ny = vx / L;
+    B.poly([[a[0] + nx * w0, a[1] + ny * w0], [b[0] + nx * w1, b[1] + ny * w1], [b[0] - nx * w1, b[1] - ny * w1], [a[0] - nx * w0, a[1] - ny * w0]], col);
+    if (edge) B.poly([[a[0] + nx * w0, a[1] + ny * w0], [b[0] + nx * w1, b[1] + ny * w1], [b[0] + nx * (w1 - 1.4), b[1] + ny * (w1 - 1.4)], [a[0] + nx * (w0 - 1.4), a[1] + ny * (w0 - 1.4)]], edge);
+    B.ell(b[0], b[1], w1, w1, col);
+  };
+  for (const side of [1, -1]) { // far leg first
+    const o = side * 0.12, ox = cx + px * o, oy = cy + py * o;
+    const tapZ = tap && side === -1 && Math.floor(t * 6 + seed) % 2 ? 1 : 0;
+    const hip = P(ox, oy, 9.6), knee = P(ox + dx * 0.44, oy + dy * 0.44, 9.4), ankle = P(ox + dx * 0.5, oy + dy * 0.5, 1.6 + tapZ);
+    const toe = P(ox + dx * 0.72, oy + dy * 0.72, 0.9 + tapZ), heel = P(ox + dx * 0.44, oy + dy * 0.44, 0.9 + tapZ);
+    const far = side === 1, base = far ? shadeC(pc0, 0.82) : pc0;
+    seg(hip, knee, 4.2, 3.8, base, far ? null : pHi);           // thigh
+    seg(knee, ankle, 3.6, 2.8, far ? pLo : shadeC(pc0, 0.9), null); // shin
+    B.ell(knee[0], knee[1] - 1, 2.2, 1.6, far ? base : pHi);       // knee highlight
+    // sneaker: rounded toe box, sole, a lace stripe
+    const mx = (heel[0] + toe[0]) / 2, my = (heel[1] + toe[1]) / 2;
+    B.ell(mx, my + 1.5, Math.abs(toe[0] - heel[0]) / 2 + 3.4, 2.4, sole);
+    B.ell(mx, my, Math.abs(toe[0] - heel[0]) / 2 + 3, 2.6, far ? shoeLo : shoe);
+    B.ell(toe[0], toe[1], 2.6, 2.2, far ? shoeLo : shoe);
+    B.line(Math.round(ankle[0] - 1), Math.round(ankle[1] + 1), Math.round(mx), Math.round(my - 1), lace);
   }
 }
 const HD_ROLE = { prog: 'hoodie', art: 'bun', des: 'phones', mkt: 'blazer' };
@@ -6423,7 +6431,80 @@ function createScene() {
 /* ============================================================
    Portraits, covers, tower
    ============================================================ */
+/* HD portrait 48×48: outlined bust with shading, detailed eyes, brows, mood and role accessories */
+const PORT_EYE = { prog: '#3a7ad0', art: '#2e9a5a', des: '#7a4a2a', mkt: '#5a3ad0', you: '#3a2a1a', boss: '#4a5a7a', inv: '#2a5a3a', npc: '#6a3ab0', qa: '#2a6a3a', snd: '#3a2a5a', prod: '#2a4a8a', cm: '#8a3a6a' };
+function drawPortraitHD(B, kind, mood) {
+  const L = LOOK[kind] || LOOK.prog, W = B.w, H = B.h, m = mood === undefined ? 80 : mood;
+  const bgA = C({ prog: '#0e2b4a', art: '#3a0f45', des: '#3d3208', mkt: '#0f2c52', you: '#101a5a', boss: '#2a2308', inv: '#0b3a2a', npc: '#26104a', qa: '#0b3a1e', snd: '#22104a', prod: '#1a1a3a', cm: '#3a1a08' }[kind] || '#101a5a');
+  const bgB = C({ prog: '#1a7a8f', art: '#b02a96', des: '#a8761a', mkt: '#2a6fcf', you: '#2a4be0', boss: '#a8761a', inv: '#1f9a6a', npc: '#7a3ad0', qa: '#1fae5a', snd: '#7a3ad0', prod: '#c9a640', cm: '#e06a2a' }[kind] || '#2a4be0');
+  for (let y = 0; y < H; y++) B.rect(0, y, W, 1, mixC(bgA, bgB, (y / H) * 0.85));
+  B.glow(24, 18, 22, mixC(bgB, PAL.white, 0.35), 0.35);
+  for (let i = 0; i < 10; i++) B.px(Math.floor(hash01(i * 7 + kind.length) * W), Math.floor(hash01(i * 11 + 3) * 22), mixC(bgB, PAL.white, 0.55));
+  const skin = L.skin, sk1 = shadeC(skin, 0.84), sk2 = shadeC(skin, 0.68), hair = L.hair, h1 = shadeC(hair, 0.7), h2 = mixC(hair, PAL.white, 0.32);
+  const sh = L.shirt, s1 = shadeC(sh, 0.76), s2 = shadeC(sh, 0.56), ink = C('#0a0820');
+  const cx = 24, hy = 21;
+  const long = L.style === 'long' || kind === 'art';
+  // silhouette outline (drawn 1px larger in ink first)
+  B.ell(cx, H + 2, 19, 12, ink); B.ell(cx, hy, 11, 13, ink); B.rect(cx - 4, hy + 9, 9, 6, ink);
+  if (long) { B.ell(cx, hy - 2, 13, 13, ink); B.rect(cx - 13, hy, 26, 17, ink); }
+  // shoulders + shirt
+  B.ell(cx, H + 2, 18, 11, sh); B.ell(cx + 6, H + 3, 11, 9, s1); B.rect(cx - 18, H - 2, 36, 2, s2);
+  if (kind === 'you' || kind === 'prod' || kind === 'boss' || kind === 'inv') { // jacket, shirt, tie
+    B.poly([[cx - 5, H - 10], [cx + 5, H - 10], [cx + 2, H], [cx - 2, H]], PAL.white);
+    B.poly([[cx - 1, H - 9], [cx + 1, H - 9], [cx + 2, H], [cx - 2, H]], kind === 'prod' ? PAL.yel : kind === 'boss' ? PAL.red : kind === 'you' ? PAL.cyan : C('#1f8a5f'));
+    B.poly([[cx - 9, H - 10], [cx - 4, H - 10], [cx - 2, H], [cx - 7, H]], mixC(sh, PAL.white, 0.2));
+  } else if (kind === 'prog' || kind === 'qa') { B.ell(cx, H - 9, 8, 3, s2); B.rect(cx - 3, H - 7, 1, 5, PAL.white); B.rect(cx + 3, H - 7, 1, 5, PAL.white); } // hoodie strings
+  else B.poly([[cx - 6, H - 10], [cx + 6, H - 10], [cx, H - 5]], s2); // v-neck
+  // neck
+  B.rect(cx - 4, hy + 8, 9, 7, sk1); B.rect(cx - 4, hy + 13, 9, 2, sk2);
+  // long hair behind the head
+  if (long) { B.ell(cx, hy - 2, 12, 12, hair); B.rect(cx - 12, hy, 24, 16, hair); B.rect(cx + 4, hy, 8, 16, h1); }
+  // head
+  B.ell(cx - 10, hy + 1, 2.4, 3.6, skin); B.ell(cx + 10, hy + 1, 2.4, 3.6, sk1); // ears
+  B.ell(cx, hy, 10, 12, skin);
+  B.ell(cx + 5, hy + 2, 5, 9, sk1); // shade on the right side of the face
+  B.ell(cx, hy + 10, 6, 2.4, sk1); // jaw
+  // hair on top
+  if (L.style === 'spiky' && kind !== 'art') {
+    B.ell(cx, hy - 7, 10.5, 6.5, hair);
+    for (const [dx, h] of [[-8, 4], [-4, 7], [0, 8], [4, 7], [8, 4]]) B.poly([[cx + dx - 3, hy - 9], [cx + dx + 3, hy - 9], [cx + dx, hy - 9 - h]], hair);
+    B.rect(cx - 10, hy - 7, 3, 6, hair); B.rect(cx + 8, hy - 7, 3, 6, h1);
+  } else if (long) {
+    B.ell(cx, hy - 8, 11, 6, hair); B.poly([[cx - 10, hy - 8], [cx + 3, hy - 8], [cx - 6, hy - 1]], hair); B.poly([[cx + 2, hy - 9], [cx + 10, hy - 6], [cx + 9, hy + 1]], h1);
+  } else {
+    B.ell(cx, hy - 8, 10.5, 6, hair); B.rect(cx - 10, hy - 8, 3, 6, hair); B.rect(cx + 8, hy - 8, 3, 6, h1);
+    B.poly([[cx - 9, hy - 7], [cx + 5, hy - 7], [cx - 4, hy - 3]], hair);
+  }
+  B.rect(cx - 6, hy - 12, 5, 1, h2); B.rect(cx - 7, hy - 10, 2, 1, h2); B.px(cx + 1, hy - 12, h2);
+  if (kind === 'art') { B.ell(cx, hy - 15, 5, 4, hair); B.ell(cx + 1, hy - 14, 3, 2.5, h1); B.line(cx - 6, hy - 19, cx + 6, hy - 11, PAL.yel); B.px(cx + 6, hy - 11, C('#ff8a3d')); }
+  if (kind === 'boss') { B.rect(cx - 9, hy - 9, 18, 2, mixC(hair, PAL.white, 0.5)); }
+  // eyebrows
+  const browY = hy - 4 + (m < 35 ? 1 : 0), bc = shadeC(hair, kind === 'prod' ? 0.6 : 1.1);
+  if (m < 35) { B.line(cx - 7, browY - 1, cx - 3, browY + 1, bc); B.line(cx + 3, browY + 1, cx + 7, browY - 1, bc); }
+  else { B.rect(cx - 7, browY, 5, 1, bc); B.rect(cx + 2, browY, 5, 1, bc); B.px(cx - 8, browY + 1, bc); B.px(cx + 7, browY + 1, bc); }
+  // eyes: white, iris, pupil, highlight
+  const ey = hy - 1, iris = C(PORT_EYE[kind] || '#3a2a1a');
+  if (kind === 'prod') { B.rect(cx - 9, ey - 2, 8, 4, ink); B.rect(cx + 1, ey - 2, 8, 4, ink); B.rect(cx - 1, ey - 1, 2, 1, ink); B.rect(cx - 8, ey - 1, 3, 1, C('#5a6aa8')); B.rect(cx + 2, ey - 1, 3, 1, C('#5a6aa8')); }
+  else for (const ex of [cx - 5, cx + 4]) {
+    B.rect(ex - 2, ey - 1, 4, 3, PAL.white); B.rect(ex - 1, ey - 1, 2, 3, iris); B.px(ex, ey, ink); B.px(ex - 1, ey - 1, PAL.white);
+    B.rect(ex - 2, ey - 2, 4, 1, shadeC(skin, 0.55)); // upper lid
+  }
+  // nose + cheeks + mouth by mood
+  B.rect(cx, hy + 2, 1, 3, sk2); B.px(cx + 1, hy + 4, sk2);
+  B.blend(cx - 7, hy + 4, C('#ff6f91'), 0.4); B.blend(cx - 6, hy + 4, C('#ff6f91'), 0.4); B.blend(cx + 6, hy + 4, C('#ff6f91'), 0.4); B.blend(cx + 7, hy + 4, C('#ff6f91'), 0.4);
+  const mc = C('#5a2018');
+  if (m >= 60) { B.rect(cx - 3, hy + 7, 7, 2, mc); B.rect(cx - 2, hy + 7, 5, 1, PAL.white); B.px(cx - 4, hy + 6, mc); B.px(cx + 4, hy + 6, mc); }
+  else if (m >= 35) B.rect(cx - 2, hy + 7, 5, 1, mc);
+  else { B.rect(cx - 2, hy + 7, 5, 1, mc); B.px(cx - 3, hy + 8, mc); B.px(cx + 3, hy + 8, mc); B.ell(cx + 9, hy - 6, 1.2, 2, C('#7ac8ff')); }
+  // role accessories
+  if (kind === 'prog') { for (const ex of [cx - 5, cx + 4]) { B.rect(ex - 3, ey - 3, 6, 1, PAL.cyan); B.rect(ex - 3, ey + 2, 6, 1, PAL.cyan); B.rect(ex - 3, ey - 3, 1, 6, PAL.cyan); B.rect(ex + 2, ey - 3, 1, 6, PAL.cyan); } B.rect(cx - 1, ey - 1, 2, 1, PAL.cyan); }
+  if (kind === 'you' || kind === 'des' || kind === 'snd') { const hc = kind === 'snd' ? C('#b48cff') : PAL.cyan; B.arc(cx, hy - 1, 12, 13, 0.25, Math.PI - 0.25, hc, 2); B.ell(cx - 11, hy + 1, 3, 4.5, C('#1a1e4d')); B.ell(cx + 11, hy + 1, 3, 4.5, C('#1a1e4d')); B.rect(cx - 12, hy - 1, 1, 4, hc); B.rect(cx + 12, hy - 1, 1, 4, hc); }
+  if (kind === 'qa') { B.ell(cx, hy - 10, 11, 4, PAL.grn); B.rect(cx - 15, hy - 9, 8, 3, shadeC(PAL.grn, 0.7)); B.px(cx, hy - 12, PAL.white); }
+  if (kind === 'cm') { B.rect(cx + 10, hy - 4, 4, 10, C('#2a2e44')); B.rect(cx + 11, hy - 3, 2, 7, PAL.cyan); B.rect(cx - 9, hy - 11, 5, 3, PAL.yel); }
+  if (kind === 'mkt') { B.ell(cx + 10, hy + 9, 2, 2, PAL.mag); } // earring
+}
 function drawPortrait(B, kind, mood) {
+  if (B.w >= 48) return drawPortraitHD(B, kind, mood);
   // 24x24 bust on neon backdrop
   const L = LOOK[kind] || LOOK.prog;
   const W = B.w, H = B.h;
@@ -7361,7 +7442,7 @@ function pxURL(key, w, h, draw) {
   imgCache[key] = url;
   return url;
 }
-const portrait = (kind, mood) => pxURL('p:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 24, 24, (B) => drawPortrait(B, kind, mood));
+const portrait = (kind, mood) => pxURL('p2:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 48, 48, (B) => drawPortrait(B, kind, mood));
 const seedOf = (name) => {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 97;

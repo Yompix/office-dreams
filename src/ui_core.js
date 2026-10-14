@@ -50,7 +50,7 @@ function pxURL(key, w, h, draw) {
   imgCache[key] = url;
   return url;
 }
-const portrait = (kind, mood) => pxURL('p:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 24, 24, (B) => drawPortrait(B, kind, mood));
+const portrait = (kind, mood) => pxURL('p2:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 48, 48, (B) => drawPortrait(B, kind, mood));
 const seedOf = (name) => {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 97;
