@@ -17,12 +17,7 @@ const REF_PCT = Number(env.REF_PCT || 0.20); // частка рейку, що й
 const WD_FEE = Number(env.WD_FEE || 0.05), WD_FEE_MIN = Number(env.WD_FEE_MIN || 50), WD_MIN = Number(env.WD_MIN || 1000);
 const MIN_BET = 10, MAX_BET = 5000;
 // бот-суперник: сідає грати, коли на виклик ніхто не відповів; грає чесно (без підглядання), окремий рахунок 'bot'
-let botOn = env.BOT_ON === "1"; const BOT_WAIT = Number(env.BOT_WAIT || 15) * 1000, BOT_ID = "bot", BOT_NAME = "🤖 Бот";
-// імена бота: щоразу інше, значок 🤖 лишається, щоб було видно, що це бот
-let BOT_NAMES = ["Макс", "Лена", "Артем", "Катя", "Денис", "Оля", "Ігор", "Настя", "Влад", "Юля", "Саша", "Діма", "Марина", "Костя", "Віка", "Рома", "Таня", "Женя", "Олег", "Іра"];
-let botIcon = "🤖"; // мітку можна змінити командою /boticon, але не прибрати
-const botName = () => botIcon + " " + BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
-const cleanBotName = (x: string) => x.replace(/[<>&"'`\\\n\r\t]/g, "").trim().slice(0, 16);
+const BOT_ID = "bot"; // рахунок колишнього тестового бота: прихований зі списків гравців
 const WALLET_MNEMONIC = env.WALLET_MNEMONIC || ""; // гаманець автовиплат (необов'язково)
 const WALLET_VER = (env.WALLET_VERSION || "v5r1").toLowerCase();
 const AUTO_MAX = Number(env.AUTO_PAY_MAX_TON || 5), AUTO_DAY = Number(env.AUTO_PAY_DAY_TON || 30);
@@ -73,8 +68,6 @@ async function initDb() {
   }
   await db`create index if not exists users_ref on users(ref_by)`;
   await db`insert into users(id, name, age_ok) values('house', 'house', true) on conflict do nothing`;
-  await db`insert into users(id, name, age_ok) values(${BOT_ID}, ${BOT_NAME}, true) on conflict do nothing`;
-  const bb = await getBal(BOT_ID); if (bb < 1000000) await db.begin((t: any) => adj(t, BOT_ID, 10000000 - bb, "bot_seed", null, null));
 }
 
 // змінити баланс (атомарно з записом у журнал); повертає false, якщо ref уже оброблено
@@ -548,7 +541,7 @@ function sendLobby() {
 // four — «Неон-4» (чотири в ряд), mines — «Сапер-дуель», bj — «21-дуель», checkers — шашки, chess — шахи
 type MxGame = "rps" | "ttt" | "card" | "four" | "mines" | "bj" | "checkers" | "chess";
 type Chal = { id: number; uid: string; name: string; stake: number; game: MxGame; at: number; priv?: string };
-type Match = { id: number; game: MxGame; stake: number; p: string[]; names: string[]; st: any; turn: number; deadline: number; timer: any; tk: number; over: boolean; bk?: string; bAt?: number; bBusy?: boolean };
+type Match = { id: number; game: MxGame; stake: number; p: string[]; names: string[]; st: any; turn: number; deadline: number; timer: any; tk: number; over: boolean; };
 const chals = new Map<number, Chal>(), matches = new Map<number, Match>(); let mxSeq = Date.now(); // унікальні номери й після перезапуску (ref у журналі не повторюється)
 const mxJoining = new Set<string>();
 const MX_GAMES = ["rps", "ttt", "card", "four", "mines", "bj", "checkers", "chess"];
@@ -804,7 +797,7 @@ async function rematch(uid: string, m: any) {
   if (!pr) throw new Error("gone");
   const i = pr.p.indexOf(uid); if (i < 0) throw new Error("gone");
   const o = 1 - i, other = pr.p[o], key = kind + id;
-  if (kind === "mx" && ((uid !== BOT_ID && mxActive(uid)) || (other !== BOT_ID && mxActive(other)))) throw new Error("in_match");
+  if (kind === "mx" && (mxActive(uid) || mxActive(other))) throw new Error("in_match");
   if ((await getBal(uid)) < stake) throw new Error("no_funds");
   const pend = rms.get(key);
   if (pend && pend.uid === other && pend.stake === stake && Date.now() - pend.at < 90000) {
@@ -815,65 +808,8 @@ async function rematch(uid: string, m: any) {
   }
   rms.set(key, { uid, stake, at: Date.now() });
   toUser(other, { t: "rm.req", kind, id, stake, name: pr.names[i] });
-  if (other === BOT_ID && botOn) setTimeout(() => { if (rms.get(key)?.uid === uid) rematch(BOT_ID, { kind, id, stake }).catch((e) => { console.error("bot rematch", e.message); toUser(uid, { t: "err", e: e.message }); }); }, 1200 + rnd(1500));
 }
 
-// ---------- Бот-суперник ----------
-const pick = <T,>(a: T[]) => a[rnd(a.length)];
-const botDelay = (g: string) => (g === "chess" ? 1500 + rnd(3000) : g === "checkers" ? 1000 + rnd(2000) : g === "rps" ? 1500 + rnd(4000) : 800 + rnd(1600));
-function botTtt(b: string[], me: string) {
-  const op = me === "X" ? "O" : "X", free = b.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0);
-  const winAt = (v: string) => free.find((i) => TTT_LINES.some((l) => l.includes(i) && l.every((k) => k === i || b[k] === v)));
-  let c = winAt(me); if (c === undefined) c = winAt(op); if (c === undefined && !b[4]) c = 4;
-  if (c === undefined) { const cs = free.filter((i) => [0, 2, 6, 8].includes(i)); c = cs.length && rnd(10) < 7 ? pick(cs) : pick(free); }
-  return c;
-}
-function botFour(b: number[], me: number) {
-  const op = 3 - me, drop = (bb: number[], col: number) => { for (let r = F_H - 1; r >= 0; r--) if (!bb[r * F_W + col]) return r * F_W + col; return -1; };
-  const cols = [0, 1, 2, 3, 4, 5, 6].filter((c) => drop(b, c) >= 0);
-  const wins = (v: number) => cols.find((c) => { const bb = b.slice(), at = drop(bb, c); bb[at] = v; return fourWin(bb, at); });
-  let c = wins(me); if (c !== undefined) return c; c = wins(op); if (c !== undefined) return c;
-  const safe = cols.filter((c) => { const bb = b.slice(); bb[drop(bb, c)] = me; return !cols.some((c2) => { const at = drop(bb, c2); if (at < 0) return false; const b2 = bb.slice(); b2[at] = op; return fourWin(b2, at); }); });
-  const pool = safe.length ? safe : cols; let best = pool[0], bw = -1;
-  for (const k of pool) { const w = 4 - Math.abs(3 - k) + Math.random() * 2.5; if (w > bw) { bw = w; best = k; } }
-  return best;
-}
-const CH_VAL: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
-function botChess(g: any) {
-  const ms = g.moves({ verbose: true }); if (!ms.length) return null;
-  for (const m of ms) { g.move(m); const mate = g.isCheckmate(); g.undo(); if (mate) return m; }
-  const caps = ms.filter((m: any) => m.captured).sort((a: any, b: any) => CH_VAL[b.captured] - CH_VAL[b.piece] / 10 - (CH_VAL[a.captured] - CH_VAL[a.piece] / 10));
-  if (caps.length && rnd(10) < 8) return caps[0];
-  return pick(ms);
-}
-async function botAct(m: Match) {
-  const i = m.p.indexOf(BOT_ID), s = m.st, g = m.game; if (i < 0 || m.over || m.bBusy || !s) return;
-  let mv: any = null;
-  if (g === "rps") { if (s.ch[i] === null) mv = { move: pick(["r", "p", "s"]) }; }
-  else if (g === "bj") { if (!s.done[i]) mv = { act: bjTotal(s.hands[i]) < 17 ? "hit" : "stand" }; }
-  else if (m.turn === i) {
-    if (g === "ttt") mv = { cell: botTtt(s.b, i === 0 ? "X" : "O") };
-    else if (g === "four") mv = { col: botFour(s.b, i + 1) };
-    else if (g === "mines") mv = { cell: pick(s.open.map((v: any, k: number) => (v === -1 ? k : -1)).filter((k: number) => k >= 0)) };
-    else if (g === "checkers") { const st = ckSteps(s, i), last = i === 0 ? 0 : 7, pr = st.filter((x) => !isKing(s.b[x.from]) && Math.floor(x.to / 8) === last), x = pr.length ? pr[0] : pick(st); if (x) mv = { from: x.from, to: x.to }; }
-    else if (g === "chess") { const x = botChess(s.g); if (x) mv = { from: x.from, to: x.to, promo: x.promotion || "q" }; }
-  }
-  if (!mv) return;
-  const key = m.tk + ":" + (g === "rps" ? s.round : "") + ":" + m.turn;
-  if (m.bk !== key) { m.bk = key; m.bAt = Date.now() + Math.min(botDelay(g), Math.max(500, m.deadline - Date.now() - 2500)); return; }
-  if (Date.now() < (m.bAt || 0)) return;
-  m.bBusy = true;
-  try { await mxMove({ data: { uid: BOT_ID } }, { id: m.id, ...mv }); } catch (e: any) { console.error("bot move", g, e.message); m.bAt = Date.now() + 1000; }
-  finally { m.bBusy = false; }
-}
-async function botTick() {
-  if (!botOn) return;
-  const online = new Set([...socks].map((x: any) => x.data.uid)), now = Date.now();
-  for (const c of [...chals.values()]) if (!c.priv && c.uid !== BOT_ID && now - c.at > BOT_WAIT && online.has(c.uid) && (c.game !== "chess" || ChessLib)) { try { await mxJoinAs(BOT_ID, botName(), c.id); } catch (e: any) { console.error("bot join", e.message); } }
-  for (const d of [...duels.values()]) if (!d.priv && d.uid !== BOT_ID && now - d.at > BOT_WAIT && online.has(d.uid)) { try { await duelJoinAs(BOT_ID, botName(), d.id); } catch (e: any) { console.error("bot duel", e.message); } }
-  for (const m of [...matches.values()]) if (!m.over && m.p.includes(BOT_ID)) await botAct(m);
-}
-setInterval(() => { botTick().catch((e) => console.error("bot", e.message)); }, 500);
 
 async function onMessage(ws: any, raw: string) {
   let m: any; try { m = JSON.parse(raw); } catch { return; }
@@ -1355,11 +1291,6 @@ async function onCommand(m: any) {
     const ex = await getUserRow(uid); if (!ex || !Number.isFinite(coins) || coins === 0) return void tg("sendMessage", { chat_id: chat, text: "Формат: /grant <telegram_id> <монети>. Гравець має хоч раз відкрити гру." });
     await db.begin((t: any) => grantTx(t, uid, coins)); pushBal(uid);
     tg("sendMessage", { chat_id: chat, text: `Готово: ${uid} ${coins > 0 ? "+" : ""}${coins}` });
-  } else if (/^\/bot(\s|@|$)/.test(text)) {
-    const a = (text.split(/\s+/)[1] || "").toLowerCase();
-    if (a === "on" || a === "off") { botOn = a === "on"; await db`insert into parts(name, body) values('cfg_bot', ${botOn ? "1" : "0"}) on conflict (name) do update set body = excluded.body`; }
-    const bt = await getBal(BOT_ID).catch(() => 0);
-    tg("sendMessage", { chat_id: chat, text: `🤖 Бот: ${botOn ? "увімкнено" : "вимкнено"} (сідає через ${BOT_WAIT / 1000} с)\nРезультат: ${bt - 10000000 >= 0 ? "+" : ""}${bt - 10000000} монет\n/bot on — увімкнути, /bot off — вимкнути\n/botnames — імена, /boticon — мітка` });
   } else if (/^\/ads(\s|@|$)/.test(text)) {
     const [, a, v] = text.split(/\s+/); const x = Number(v);
     if (a === "cpm" && x > 0 && x < 100) { ADS_CPM = x; await db`insert into parts(name, body) values('cfg_adscpm', ${String(x)}) on conflict (name) do update set body = excluded.body`; }
@@ -1374,24 +1305,9 @@ async function onCommand(m: any) {
     }
     const perView = ADS_CPM / 1000, give = ADS_REWARD / CARD_RATE.USD, share = perView ? Math.round((give / perView) * 100) : 0;
     tg("sendMessage", { chat_id: chat, text: `📺 Реклама\n${lines.join("\n")}\n\nCPM (дохід за 1000 переглядів): $${ADS_CPM}\nГравцю за перегляд: ${ADS_REWARD} мон. = $${give.toFixed(4)} (${share}% доходу)\nТобі з перегляду ≈ $${(perView - give).toFixed(4)}\n\n/ads cpm 1.5 — вписати CPM з кабінетів Adsgram/Monetag\n/ads reward 1 — монет за перегляд\nДохід — оцінка за CPM; точну суму дивись у кабінетах мереж.` });
-  } else if (text.startsWith("/botnames")) {
-    const rest = text.slice(9).trim(), sp = rest.indexOf(" "), cmd = (sp < 0 ? rest : rest.slice(0, sp)).toLowerCase(), arg = sp < 0 ? "" : rest.slice(sp + 1);
-    const list = arg.split(",").map(cleanBotName).filter(Boolean);
-    let msg = "";
-    if (cmd === "add" && list.length) { BOT_NAMES = [...new Set([...BOT_NAMES, ...list])].slice(0, 60); msg = "Додано: " + list.join(", "); }
-    else if (cmd === "del" && list.length) { const left = BOT_NAMES.filter((n) => !list.includes(n)); if (left.length) { BOT_NAMES = left; msg = "Прибрано: " + list.join(", "); } else msg = "Має лишитися хоча б одне ім'я"; }
-    else if (cmd === "set" && list.length) { BOT_NAMES = [...new Set(list)].slice(0, 60); msg = "Список замінено"; }
-    else if (cmd) msg = "Формат:\n/botnames — список\n/botnames add Ім'я1, Ім'я2\n/botnames del Ім'я\n/botnames set Ім'я1, Ім'я2, …";
-    if (msg && !msg.startsWith("Формат") && !msg.startsWith("Має")) await db`insert into parts(name, body) values('cfg_botnames', ${JSON.stringify(BOT_NAMES)}) on conflict (name) do update set body = excluded.body`;
-    tg("sendMessage", { chat_id: chat, text: (msg ? msg + "\n\n" : "") + `Імена бота (${BOT_NAMES.length}): ${BOT_NAMES.join(", ")}\nМітка: ${botIcon}` });
-  } else if (text.startsWith("/boticon")) {
-    const v = cleanBotName(text.slice(8)).slice(0, 8);
-    if (v) { botIcon = v; await db`insert into parts(name, body) values('cfg_boticon', ${botIcon}) on conflict (name) do update set body = excluded.body`; }
-    tg("sendMessage", { chat_id: chat, text: v ? `Мітка бота тепер: ${botIcon}\nПриклад: ${botName()}` : `Мітка зараз: ${botIcon}\nЗмінити: /boticon [бот] (або інший значок чи слово, до 8 символів). Прибрати мітку не можна — гравці мають бачити, що грають з ботом.` });
   } else if (text.startsWith("/stats")) {
-    const bt = await getBal(BOT_ID).catch(() => 0);
-    const [h, c, w, hd] = await Promise.all([getBal("house"), db`select count(*)::int as c from users where id not in ('house', 'bot')`, db`select count(*)::int as c from withdrawals where status = 'pending'`, db`select coalesce(sum(amount),0) as s from holds`]);
-    tg("sendMessage", { chat_id: chat, text: `📊 Дохід казино (рейк+комісії): ${h} монет ≈ ${(h / TON_COINS).toFixed(2)} TON\nГравців: ${N(c[0].c)}\nВиводів в очікуванні: ${N(w[0].c)}\nМонет на столах/в іграх: ${N(hd[0].s)}\n🤖 Бот: ${botOn ? "увімкнено" : "вимкнено"}, результат ${bt - 10000000 >= 0 ? "+" : ""}${bt - 10000000} монет` });
+        const [h, c, w, hd] = await Promise.all([getBal("house"), db`select count(*)::int as c from users where id not in ('house', 'bot')`, db`select count(*)::int as c from withdrawals where status = 'pending'`, db`select coalesce(sum(amount),0) as s from holds`]);
+    tg("sendMessage", { chat_id: chat, text: `📊 Дохід казино (рейк+комісії): ${h} монет ≈ ${(h / TON_COINS).toFixed(2)} TON\nГравців: ${N(c[0].c)}\nВиводів в очікуванні: ${N(w[0].c)}\nМонет на столах/в іграх: ${N(hd[0].s)}` });
   } else if (text.startsWith("/pending")) {
     const ws = await db`select * from withdrawals where status = 'pending' order by id`;
     if (!ws.length) return void tg("sendMessage", { chat_id: chat, text: "Немає виводів в очікуванні" });
@@ -1556,11 +1472,8 @@ async function tonPoll() {
 await initDb(); await recoverHolds();
 await initPayer();
 autoOn = (await db`select body from parts where name = 'cfg_auto'`)[0]?.body === "1";
-{ const b = (await db`select body from parts where name = 'cfg_bot'`)[0]?.body; if (b === "1" || b === "0") botOn = b === "1"; }
-{ const n = (await db`select body from parts where name = 'cfg_botnames'`)[0]?.body; try { const a = n ? JSON.parse(n).map(cleanBotName).filter(Boolean) : []; if (a.length) BOT_NAMES = a; } catch {} }
 { const v = Number((await db`select body from parts where name = 'cfg_adscpm'`)[0]?.body); if (v > 0) ADS_CPM = v; }
 { const v = Number((await db`select body from parts where name = 'cfg_adsreward'`)[0]?.body); if (v >= 1) ADS_REWARD = v; }
-{ const ic = (await db`select body from parts where name = 'cfg_boticon'`)[0]?.body; if (ic && cleanBotName(ic)) botIcon = cleanBotName(ic).slice(0, 8); }
 {
   const prs = await db`select name, body from parts where name like 'html%' order by name`;
   HTML = prs.map((r: any) => r.body).join("");
