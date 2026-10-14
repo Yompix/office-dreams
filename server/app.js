@@ -395,6 +395,19 @@ function createApp(cfg, opts = {}) {
     const p = url.pathname;
     try {
       if (p === '/healthz') return sendJson(res, 200, { ok: true, up: Math.round(process.uptime()) });
+      // Solana JSON-RPC relay for the launch page (mainnet from the browser); read calls + sending already-signed transactions only
+      if (req.method === 'POST' && p === '/api/solrpc') {
+        if (!hit(ctx, 'solrpc:' + ip, 120)) return sendJson(res, 429, { jsonrpc: '2.0', id: null, error: { code: 429, message: 'rate' } });
+        let j;
+        try { j = JSON.parse(await readBody(req, 65536)); } catch { return sendJson(res, 400, { jsonrpc: '2.0', id: null, error: { code: -32700, message: 'parse' } }); }
+        const OK = ['getBalance', 'getLatestBlockhash', 'getMinimumBalanceForRentExemption', 'sendTransaction', 'getSignatureStatuses', 'getAccountInfo', 'simulateTransaction', 'getTokenAccountsByOwner', 'getTokenAccountBalance', 'getTokenSupply', 'getMultipleAccounts', 'getFeeForMessage'];
+        if (!j || Array.isArray(j) || !OK.includes(j.method)) return sendJson(res, 400, { jsonrpc: '2.0', id: (j && j.id) || null, error: { code: -32601, message: 'method not allowed' } });
+        try {
+          const r = await fetch(cfg.token.rpc || 'https://api.mainnet-beta.solana.com', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: j.id, method: j.method, params: j.params || [] }), signal: AbortSignal.timeout(15000) });
+          res.writeHead(r.status, { 'content-type': 'application/json', ...SEC_HEADERS });
+          return res.end(await r.text());
+        } catch (e) { return sendJson(res, 502, { jsonrpc: '2.0', id: j.id, error: { code: 502, message: 'upstream' } }); }
+      }
       if (p.startsWith('/api/')) return await handleApi(ctx, req, res, url, ip);
       if (p.startsWith('/admin')) return await admin(req, res, url, ip);
       if (req.method === 'POST' && p === '/tg/' + cfg.webhookSecret) {

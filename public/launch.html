@@ -45,6 +45,10 @@
   .note { font-size: 13px; padding: 10px 12px; border-radius: 12px; background: rgba(255, 84, 112, 0.08); border: 1px solid rgba(255, 84, 112, 0.3); color: #ffc4cf; }
   .st { margin-top: 10px; font-size: 14px; min-height: 20px; }
   .hide { display: none !important; }
+  .seg { display: flex; gap: 6px; padding: 4px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); margin: 4px 0 10px; }
+  .seg a { flex: 1; text-align: center; padding: 8px 6px; border-radius: 9px; color: var(--ink2); text-decoration: none; font-size: 13px; font-weight: 700; }
+  .seg a.on { background: linear-gradient(180deg, #a35bff, #6a2bd8); color: #fff; }
+  .net.main { background: rgba(20, 241, 149, 0.14); color: var(--grn); border-color: rgba(20, 241, 149, 0.45); }
 </style>
 </head>
 <body>
@@ -53,6 +57,8 @@
     <img src="/token-512.png" alt="">
     <div><h1>Запуск OFFICE</h1><span class="net" id="net">DEVNET · ТЕСТОВАЯ СЕТЬ</span></div>
   </div>
+  <div class="seg"><a id="netDev" href="?net=devnet">Тестовая сеть (devnet)</a><a id="netMain" href="?net=mainnet">Настоящая сеть (mainnet)</a></div>
+  <p class="note hide" id="mainNote">Это <b>настоящая сеть</b>: тратятся настоящие SOL. Создание токена стоит около 0.003 SOL. В Phantom выключи Testnet Mode. Phantom может показать предупреждение о новом сайте — это нормально для нового домена, но всё равно читай, что подписываешь.</p>
   <p>Этап 1 из 6 — <b>создать токен</b>. Все действия подписываешь ты сам в Phantom: страница видит только твой публичный адрес, ключи и сид-фраза остаются у тебя.</p>
   <div class="steps"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
 
@@ -68,7 +74,7 @@
       <div class="kv"><span>Адрес</span><b class="mono" id="addr"></b></div>
       <div class="kv"><span>Баланс</span><b id="bal">…</b></div>
       <p class="warn" id="netHint">В Phantom включи тестовую сеть: Настройки → Developer Settings → Testnet Mode → Solana Devnet.</p>
-      <div class="acts"><button class="ghost" id="airdrop">Получить 1 тестовый SOL</button><a class="btn ghost" style="background:transparent;border:1px solid var(--line);box-shadow:none;padding:8px 12px;font-size:13px" href="https://faucet.solana.com" target="_blank" rel="noopener">Кран faucet.solana.com</a></div>
+      <div class="acts" id="devActs"><button class="ghost" id="airdrop">Получить 1 тестовый SOL</button><a class="btn ghost" style="background:transparent;border:1px solid var(--line);box-shadow:none;padding:8px 12px;font-size:13px" href="https://faucet.solana.com" target="_blank" rel="noopener">Кран faucet.solana.com</a></div>
       <div class="st" id="st1"></div>
     </div>
   </section>
@@ -105,9 +111,28 @@
 <script type="module">
 const W = SOLLIB.web3, S = SOLLIB.spl;
 
-const NET = 'devnet', RPC = 'https://api.devnet.solana.com';
+const NET = new URLSearchParams(location.search).get('net') === 'mainnet' ? 'mainnet' : 'devnet';
+const RPC = NET === 'mainnet' ? location.origin + '/api/solrpc' : 'https://api.devnet.solana.com';
+const MAIN = NET === 'mainnet';
+document.getElementById(MAIN ? 'netMain' : 'netDev').classList.add('on');
+if (MAIN) {
+  document.getElementById('net').textContent = 'MAINNET · НАСТОЯЩАЯ СЕТЬ'; document.getElementById('net').classList.add('main');
+  document.getElementById('mainNote').classList.remove('hide');
+  document.getElementById('netHint').textContent = 'В Phantom должна быть выключена тестовая сеть (Testnet Mode — off).';
+  document.getElementById('devActs').classList.add('hide');
+}
 const SIM = new URLSearchParams(location.search).has('simulate'); // dry run for testing: simulate instead of sending
-const conn = new W.Connection(RPC, 'confirmed');
+const conn = new W.Connection(RPC, { commitment: 'confirmed', disableRetryOnRateLimit: true });
+// confirmation by polling (no websocket needed, works through the relay)
+async function confirm(sig, lastValid) {
+  for (let i = 0; i < 90; i++) {
+    const st = (await conn.getSignatureStatuses([sig])).value[0];
+    if (st && st.err) throw new Error('транзакция отклонена сетью: ' + JSON.stringify(st.err));
+    if (st && (st.confirmationStatus === 'confirmed' || st.confirmationStatus === 'finalized')) return;
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  throw new Error('нет подтверждения — проверь в Explorer');
+}
 const $ = (id) => document.getElementById(id);
 const P = S.TOKEN_2022_PROGRAM_ID;
 const prov = () => (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom ? window.phantom.solana : window.solana && window.solana.isPhantom ? window.solana : null);
@@ -121,7 +146,7 @@ const short = (a) => a.slice(0, 4) + '…' + a.slice(-4);
 function showMint(mint, sig) {
   $('res').classList.remove('hide');
   $('mint').textContent = mint;
-  $('explorer').href = `https://explorer.solana.com/address/${mint}?cluster=${NET}`;
+  $('explorer').href = `https://explorer.solana.com/address/${mint}` + (MAIN ? '' : '?cluster=devnet');
   $('c2').classList.add('done');
   $('create').disabled = true; $('create').textContent = 'Токен уже создан';
 }
@@ -135,7 +160,7 @@ if (!prov()) {
 }
 
 async function refreshBal() {
-  try { const l = await conn.getBalance(me); $('bal').textContent = (l / 1e9).toFixed(4) + ' SOL'; $('create').disabled = !!store.get().mint || l < 4e6; if (l < 4e6) say('st1', 'Нужно хотя бы 0.004 SOL на devnet — нажми «Получить 1 тестовый SOL» или открой кран.', 'warn'); else say('st1', ''); }
+  try { const l = await conn.getBalance(me); $('bal').textContent = (l / 1e9).toFixed(4) + ' SOL'; $('create').disabled = !!store.get().mint || l < 4e6; if (l < 4e6) say('st1', MAIN ? 'Нужно хотя бы 0.004 SOL на кошельке.' : 'Нужно хотя бы 0.004 SOL на devnet — нажми «Получить 1 тестовый SOL» или открой кран. Не выходит — переключись на настоящую сеть сверху.', 'warn'); else say('st1', ''); }
   catch (e) { $('bal').textContent = '—'; }
 }
 $('connect').onclick = async () => {
@@ -151,8 +176,8 @@ $('connect').onclick = async () => {
 $('airdrop').onclick = async () => {
   if (!me) return;
   say('st1', 'Запрашиваем тестовый SOL…');
-  try { const sig = await conn.requestAirdrop(me, 1e9); await conn.confirmTransaction(sig, 'confirmed'); say('st1', 'Получено 1 SOL (тестовый).', 'ok'); refreshBal(); }
-  catch (e) { say('st1', 'Кран devnet сейчас перегружен. Открой faucet.solana.com, вставь свой адрес и запроси SOL там.', 'warn'); }
+  try { const sig = await conn.requestAirdrop(me, 1e9); await confirm(sig); say('st1', 'Получено 1 SOL (тестовый).', 'ok'); refreshBal(); }
+  catch (e) { say('st1', 'Кран devnet сейчас перегружен. Открой faucet.solana.com (может попросить войти через GitHub) — или просто переключись сверху на настоящую сеть: создание стоит около 0.003 SOL.', 'warn'); }
 };
 
 const enc = (s) => new TextEncoder().encode(s).length;
@@ -190,7 +215,7 @@ $('create').onclick = async () => {
     const signed = await prov().signTransaction(tx);
     say('st2', 'Отправляем в сеть…');
     const sig = await conn.sendRawTransaction(signed.serialize());
-    await conn.confirmTransaction({ signature: sig, blockhash: bh.blockhash, lastValidBlockHeight: bh.lastValidBlockHeight }, 'confirmed');
+    await confirm(sig, bh.lastValidBlockHeight);
     const mint = mintKp.publicKey.toBase58();
     store.set({ mint, sig, owner: me.toBase58(), at: Date.now() });
     say('st2', 'Готово!', 'ok');
