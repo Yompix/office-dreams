@@ -46,10 +46,10 @@ function stats(ctx, price) {
     ptsToday: Eco.r1(one('SELECT COALESCE(SUM(pts),0) AS s FROM ledger WHERE day=?', dk).s),
     risk,
     refs: { total: one('SELECT COUNT(*) AS n FROM users WHERE ref1 IS NOT NULL').n, active: one('SELECT COUNT(*) AS n FROM users WHERE ref_active=1').n },
-    wallets: { bound: one('SELECT COUNT(*) AS n FROM users WHERE wallet IS NOT NULL').n, verified: one('SELECT COUNT(*) AS n FROM users WHERE wallet_ok=1').n },
+    wallets: { bound: one('SELECT COUNT(*) AS n FROM users WHERE sol IS NOT NULL').n, verified: one('SELECT COUNT(*) AS n FROM users WHERE sol IS NOT NULL').n },
     revenue: revRows.map((r) => ({ day: r.day, date: new Date(r.day * U.DAY).toISOString().slice(0, 10), stars: r.stars, usd: Math.round(r.usd * 100) / 100, n: r.n })),
     pie: { price: price || 0, yesterdayUsd: y ? y.usd : 0, ...pie },
-    top: db.all('SELECT id,name,username,country,pts,ref_pts,risk_state,risk,wallet FROM users WHERE deleted=0 ORDER BY pts DESC LIMIT 20'),
+    top: db.all('SELECT id,name,username,country,pts,ref_pts,risk_state,risk,sol AS wallet FROM users WHERE deleted=0 ORDER BY pts DESC LIMIT 20'),
     dist: [1, 10, 50, 200, 1000].map((t) => ({ over: t, n: one('SELECT COUNT(*) AS n FROM users WHERE pts>=? AND deleted=0', t).n })),
     refRecent: db.all(`SELECT f.id, f.name, f.username, f.country, f.created_at, f.ref_active, f.risk_state, f.days_played, f.ref_src,
         i.id AS inv_id, i.name AS inv_name, i.username AS inv_username,
@@ -192,10 +192,10 @@ function create(ctx) {
       }
       if (p === '/admin/api/sweep' && req.method === 'POST') return json(res, 200, { ok: true, ...AB.sweep(ctx, now, 5000) });
       if (p === '/admin/api/snapshot') {
-        const rows = ctx.db.all("SELECT id,username,name,country,wallet,wallet_ok,pts,ref_pts,risk_state FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch') ORDER BY pts DESC").filter((r) => !ctx.cfg.blockedCountries.includes(r.country));
+        const rows = ctx.db.all("SELECT id,username,name,country,sol,pts,ref_pts,risk_state FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch') ORDER BY pts DESC").filter((r) => !ctx.cfg.blockedCountries.includes(r.country));
         if (url.searchParams.get('fmt') === 'json') return json(res, 200, { ok: true, season: ctx.cfg.season, at: now, rows });
-        const csv = ['tg_id,username,country,wallet,wallet_verified,points,referral_points,risk_state']
-          .concat(rows.map((r) => [r.id, r.username, r.country, r.wallet, r.wallet_ok, r.pts, r.ref_pts, r.risk_state].map(csvCell).join(','))).join('\n');
+        const csv = ['tg_id,username,country,solana_wallet,points,referral_points,risk_state']
+          .concat(rows.map((r) => [r.id, r.username, r.country, r.sol, r.pts, r.ref_pts, r.risk_state].map(csvCell).join(','))).join('\n');
         res.writeHead(200, { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': 'attachment; filename="officedreams-season' + ctx.cfg.season.id + '-snapshot.csv"' });
         return res.end(csv);
       }

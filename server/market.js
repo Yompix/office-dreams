@@ -11,18 +11,8 @@ const SOL_MINT = 'So11111111111111111111111111111111111111112';
 let last = null, lastAt = 0, histAt = 0, ready = false;
 const balCache = new Map();
 
-/* base58 → bytes; a Solana address (wallet or mint) is 32 bytes */
-const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-function b58decode(s) {
-  if (typeof s !== 'string' || !s || s.length > 64) return null;
-  let n = 0n;
-  for (const ch of s) { const i = B58.indexOf(ch); if (i < 0) return null; n = n * 58n + BigInt(i); }
-  const out = [];
-  while (n > 0n) { out.unshift(Number(n & 255n)); n >>= 8n; }
-  for (const ch of s) { if (ch !== '1') break; out.unshift(0); }
-  return out;
-}
-const isSolAddr = (s) => { s = String(s || '').trim(); const b = s.length >= 32 && s.length <= 44 ? b58decode(s) : null; return !!b && b.length === 32; };
+const Sol = require('./sol.js');
+const isSolAddr = Sol.isAddr;
 
 const enabled = (cfg) => !!(cfg.token && cfg.token.addr && isSolAddr(cfg.token.addr));
 function init(ctx) {
@@ -97,10 +87,8 @@ async function balance(ctx, u, now) {
   const hit = balCache.get(u.sol);
   if (hit && now - hit.at < BAL_TTL) return { ok: true, bal: hit.bal };
   try {
-    const j = await getJson(ctx.cfg.token.rpc || 'https://api.mainnet-beta.solana.com', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getTokenAccountsByOwner', params: [u.sol, { mint: ctx.cfg.token.addr.trim() }, { encoding: 'jsonParsed' }] }),
-    });
+    const res = await Sol.rpc(ctx, 'getTokenAccountsByOwner', [u.sol, { mint: ctx.cfg.token.addr.trim() }, { encoding: 'jsonParsed' }]);
+    const j = { result: res };
     if (!j || !j.result) throw new Error('rpc');
     const bal = (j.result.value || []).reduce((t, a) => {
       const ta = a.account && a.account.data && a.account.data.parsed && a.account.data.parsed.info && a.account.data.parsed.info.tokenAmount;

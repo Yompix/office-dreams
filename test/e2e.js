@@ -28,7 +28,7 @@ async function main() {
   const mock = await startMock({});
   const cfg = build({
     BOT_TOKEN: '123456:TEST', BOT_USERNAME: 'od_test_bot', APP_SHORTNAME: 'play', DB_PATH: ':memory:', TG_API_BASE: mock.url, BOT_MODE: 'off',
-    DEV_AUTH: '1', SESSION_SECRET: 'e2e', ADSGRAM_BLOCK_ID: '999', CHANNEL: '@od_news', CHANNEL_URL: 'https://t.me/od_news', CHAT_URL: 'https://t.me/od_chat', PUBLIC_URL: '', TON_PAY_WALLET: 'UQBth0nE_gC3V8G8HDdqmfMdG9OLQi1E9baqLWpsXpdcuvmA',
+    DEV_AUTH: '1', SESSION_SECRET: 'e2e', ADSGRAM_BLOCK_ID: '999', CHANNEL: '@od_news', CHANNEL_URL: 'https://t.me/od_news', CHAT_URL: 'https://t.me/od_chat', PUBLIC_URL: '', SOL_PAY_WALLET: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
   });
   const { ctx, handler } = createApp(cfg, { log: () => {} });
   const server = http.createServer(handler);
@@ -248,7 +248,12 @@ async function main() {
   await sleep(800);
   await shot(page, '13_shop');
   ok((await page.$$('.sku')).length === 10, 'shop items');
-  ok((await page.$$('.sku .tonb')).length === 10, 'every item can be paid with TON');
+  ok((await page.$$('.sku .solb')).length === 10, 'every item can be paid with SOL');
+  await click(page, '.sku .solb');
+  await sleep(900);
+  ok(!!(await page.$('.sp-amt')) && (await page.textContent('.sp-to code')).includes('9WzDXw'), 'SOL payment window: exact amount and shop address');
+  await click(page, '[data-act="close"]');
+  await sleep(400);
 
   /* ---------------- second player via invite link (English) ---------------- */
   const code = (await ev(page, 'NET.eco.ref.code'));

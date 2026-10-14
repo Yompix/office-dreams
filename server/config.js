@@ -61,7 +61,6 @@ function build(env) {
     tokenSymbol: str('TOKEN_SYMBOL', 'OFFICE'),
     // the launched token on Solana (SPL mint address): live price from Jupiter + DexScreener, buy button, holdings
     token: { addr: str('TOKEN_ADDRESS'), rpc: str('SOLANA_RPC', 'https://api.mainnet-beta.solana.com') },
-    tonconnectCdn: str('TONCONNECT_CDN', 'https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js'),
     turnstile: { site: str('TURNSTILE_SITEKEY'), secret: str('TURNSTILE_SECRET') },
     starUsd: num('STAR_USD', 0.013),
     // donations toward the token launch: any amount from the minimum up; shown as a shared progress bar
@@ -69,13 +68,11 @@ function build(env) {
     // regions closed to the game (ISO country codes, from the device time zone) and Telegram app languages
     blockedCountries: str('BLOCKED_COUNTRIES', 'IN,ID,PK,BD,NG').toUpperCase().split(',').map((x) => x.trim()).filter(Boolean),
     blockedLangs: str('BLOCKED_LANGS', 'hi,id,ur,bn,ha,yo,ig').toLowerCase().split(',').map((x) => x.trim()).filter(Boolean),
-    // pay with TON: the shop wallet that receives transfers; prices follow the Stars price list
-    tonPay: {
-      wallet: str('TON_PAY_WALLET'),
-      usd: num('TON_USD', 1.45), // price of 1 TON in USD — update now and then
-      starUsd: num('TON_STAR_USD', 0.016), // what a player pays for one Star, so TON prices match
-      api: str('TONCENTER_URL', 'https://toncenter.com/api/v2').replace(/\/+$/, ''),
-      key: str('TONCENTER_KEY'),
+    // pay with SOL (Solana Pay): the shop wallet that receives transfers; prices follow the Stars price list
+    solPay: {
+      wallet: str('SOL_PAY_WALLET'),
+      usd: num('SOL_USD', 150), // fallback price of 1 SOL in USD; the live price comes from Jupiter
+      starUsd: num('SOL_STAR_USD', 0.016), // what a player pays for one Star, so SOL prices match
     },
     eco: {
       dailyD: num('POINTS_DAILY_D', 300), // diminishing-returns scale per day (≈ practical daily cap)

@@ -6,7 +6,7 @@ const { createApp } = require('./app.js');
 const Bot = require('./bot.js');
 const AB = require('./antibot.js');
 const PvP = require('./pvp.js');
-const TonPay = require('./tonpay.js');
+const SolPay = require('./solpay.js');
 const Market = require('./market.js');
 
 function main() {
@@ -29,8 +29,10 @@ function main() {
   timers.push(setInterval(() => { try { PvP.sweep(ctx); } catch (e) { ctx.log('pvp sweep', e.message); } }, 5000));
   timers.push(setInterval(() => { try { const r = AB.sweep(ctx); if (r.changed) ctx.log('antibot sweep', r); } catch (e) { ctx.log('sweep error', e); } }, 5 * 60000));
   timers.push(setInterval(() => { try { ctx.db.raw.exec('PRAGMA wal_checkpoint(PASSIVE)'); } catch (_) { /* ignore */ } }, 10 * 60000));
-  // TON payments: credit transfers that arrived after the player closed the game
-  timers.push(setInterval(() => { TonPay.sweep(ctx).then((r) => { if (r.paid) ctx.log('ton payments credited', r); }).catch((e) => ctx.log('ton sweep', e.message)); }, 60000));
+  // SOL payments: credit transfers that arrived after the player closed the game; keep the SOL price fresh
+  timers.push(setInterval(() => { SolPay.sweep(ctx).then((r) => { if (r.paid) ctx.log('sol payments credited', r); }).catch((e) => ctx.log('sol sweep', e.message)); }, 30000));
+  const sp = () => SolPay.refreshPrice(ctx).catch(() => {});
+  sp(); timers.push(setInterval(sp, 10 * 60000));
 
   // token price (Jupiter, Solana): poll right away and then every minute
   const mk = () => Market.poll(ctx, Date.now()).catch((e) => ctx.log('market', e.message));

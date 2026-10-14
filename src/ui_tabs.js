@@ -12,7 +12,7 @@ const SUBS = {
   studio: ['team', 'games'],
   drop: ['home', 'token', 'friends', 'tasks', 'top', 'shop'],
 };
-const SUB_ICO = { team: 'team', games: 'games', home: 'pts', token: 'ton', friends: 'users', tasks: 'list', top: 'trophy', shop: 'cart' };
+const SUB_ICO = { team: 'team', games: 'games', home: 'pts', token: 'sol', friends: 'users', tasks: 'list', top: 'trophy', shop: 'cart' };
 
 /* ---------- derived helpers ---------- */
 const projectPct = () => (S.project ? Math.min(1, S.project.pts / S.project.need) * 100 : 0);
@@ -566,7 +566,7 @@ function hubHome() {
     ${checkinStrip(e)}
     ${ci.done ? `<button class="btn" disabled>${L('hub.checked')}</button>` : S.stats.taps < 20 ? `<button class="btn" disabled>${L('hub.checkin_play')}</button>` : `<button class="btn big glow" data-act="checkin">${L('hub.checkin_btn', { n: ci.next })}</button>`}
   </section>
-  ${walletCard(e)}
+  ${solCard(e)}
   <section class="panel how">
     <h2 class="h2">${I('info', 16)} ${L('hub.how')}</h2>
     <ul class="bul">
@@ -581,17 +581,6 @@ function hubHome() {
 function shortAddr(a) {
   a = String(a || '');
   return a.length > 14 ? a.slice(0, 6) + '…' + a.slice(-6) : a;
-}
-function walletCard(e) {
-  if (NET.mode === 'demo') return '';
-  const w = e.wallet;
-  return `<section class="panel wallet">
-    <div class="sec-h"><div><h2 class="h2">${I('ton', 16)} ${L('wallet.title')}</h2><p class="sub">${L('wallet.sub')}</p></div></div>
-    ${w ? `<div class="waddr">${I(w.ok ? 'check' : 'info', 14, w.ok ? 'grn' : 'yel')}<code>${esc(UI.walletFriendly || shortAddr(w.addr))}</code><small class="${w.ok ? 'grn' : 'yel'}">${w.ok ? L('wallet.verified') : L('wallet.unverified')}</small></div>
-      <div class="row2"><button class="btn ghost sm" data-act="wallet:connect">${L('wallet.change')}</button><button class="btn ghost sm" data-act="wallet:off">${L('wallet.disconnect')}</button></div>`
-    : `<button class="btn blue big" data-act="wallet:connect">${I('ton', 16)} ${L('wallet.connect')}</button>
-       <button class="linkbtn" data-act="wallet:manual">${L('wallet.manual')}</button>`}
-  </section>`;
 }
 function hubFriends() {
   const e = NET.eco;
@@ -635,7 +624,7 @@ function hubFriends() {
   </section>`;
 }
 function taskRow(t) {
-  const ico = { channel: 'plane', chat: 'users', x: 'share', wallet: 'ton', play3: 'calendar', play14: 'calendar', streak3: 'fire', streak7: 'fire', invite1: 'users', invite3: 'users', invite10: 'users' }[t.id] || 'star';
+  const ico = { channel: 'plane', chat: 'users', x: 'share', wallet: 'sol', play3: 'calendar', play14: 'calendar', streak3: 'fire', streak7: 'fire', invite1: 'users', invite3: 'users', invite10: 'users' }[t.id] || 'star';
   let right;
   if (t.done) right = I('check', 18, 'grn');
   else if (t.kind === 'tg') right = `<small class="mut">${L('task.tg_only')}</small>`;
@@ -705,10 +694,10 @@ function hubShop() {
       ${it.first || it.bonus ? `<div class="sku-tags">${it.first ? `<span class="tag x2">${L('shop.first')}</span>` : ''}${it.bonus ? `<span class="tag bon">+${it.bonus}%</span>` : ''}</div>` : ''}
       <b>${esc(it.title || it.sku)}</b>
       <small>${esc(it.desc || '')}</small>
-      ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<div class="pay2"><button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>${it.ton ? `<button class="btn sm tonb" data-act="payton:${it.sku}">${I('ton', 14)} ${it.ton} TON</button>` : ''}</div>`}
+      ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<div class="pay2"><button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>${it.sol ? `<button class="btn sm solb" data-act="paysol:${it.sku}">${I('sol', 14)} ${it.sol} SOL</button>` : ''}</div>`}
     </div>`).join('')}</div>
     <p class="hint">${L('shop.vip_hint')}</p>
-    ${sh.ton ? `<p class="hint">${L('shop.ton_hint')}</p>` : ''}
+    ${sh.sol ? `<p class="hint">${L('shop.sol_hint')}</p>` : ''}
     <p class="hint">${L('shop.hint', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
   </section>`;
 }
@@ -718,7 +707,7 @@ function donatePanel() {
   const pct = Math.min(100, (d.usd / Math.max(1, d.goalUsd)) * 100);
   const amt = donAmount();
   const chips = [100, 250, 500, 1000, 2500, 5000].filter((n) => n >= d.min && n <= d.max);
-  const tonAmt = d.ton ? Math.max(d.tonMin || 1, Math.round(amt * (d.tonPerStar || 0.011) * 10) / 10) : 0;
+  const solAmt = d.sol ? solDonAmount() : 0;
   return `<section class="panel donate">
     <h2 class="h2">🚀 ${L('don.title')}</h2>
     <p class="sub">${L('don.sub')}</p>
@@ -729,7 +718,7 @@ function donatePanel() {
     </div>
     <div class="don-chips">${chips.map((n) => `<button class="chip ${n === amt ? 'on' : ''}" data-act="donamt:${n}">${fmt(n)} ⭐</button>`).join('')}</div>
     <label class="don-own"><small>${L('don.own', { min: d.min })}</small><input id="donin" type="number" inputmode="numeric" min="${d.min}" max="${d.max}" step="10" value="${amt}"></label>
-    <div class="pay2"><button class="btn gold" data-act="donstars">⭐ ${L('don.give', { n: fmt(amt) })}</button>${d.ton ? `<button class="btn tonb" data-act="donton">${I('ton', 14)} ${tonAmt} TON</button>` : ''}</div>
+    <div class="pay2"><button class="btn gold" data-act="donstars">⭐ ${L('don.give', { n: fmt(amt) })}</button>${d.sol ? `<button class="btn solb" data-act="donsol">${I('sol', 14)} ${solAmt} SOL</button>` : ''}</div>
     <p class="hint">${L('don.note', { max: fmt(d.max) })}</p>
     ${d.top && d.top.length ? `<h3 class="h3">💖 ${L('don.wall')}</h3><ol class="board">${d.top.map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><span class="yel">${fmt(x.stars)} ⭐</span></li>`).join('')}</ol>` : ''}
   </section>`;

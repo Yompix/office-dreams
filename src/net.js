@@ -308,17 +308,15 @@ const netApi = {
   leaderboard: () => (NET.mode === 'online' ? api('GET', '/api/leaderboard') : Promise.resolve(demoBoard())),
   shop: () => (NET.mode === 'online' ? api('GET', '/api/shop') : Promise.resolve({ ok: true, items: [], demo: true })),
   invoice: (sku) => api('POST', '/api/shop/invoice', { sku }),
-  tonOrder: (sku) => api('POST', '/api/shop/ton', { sku }),
+  solOrder: (sku) => api('POST', '/api/shop/sol', { sku }),
   donateInfo: () => (NET.mode === 'online' ? api('GET', '/api/donate') : Promise.resolve({ ok: true, demo: true, stars: 0, donors: 0, usd: 0, goalUsd: 5000, min: 100, max: 10000, mine: 0, top: [] })),
   donateInvoice: (stars) => api('POST', '/api/donate/invoice', { stars }),
-  donateTon: (ton) => api('POST', '/api/donate/ton', { ton }),
-  tonCheck: (id) => api('POST', '/api/shop/ton/check', { id }),
+  donateSol: (sol) => api('POST', '/api/donate/sol', { sol }),
+  solCheck: (id) => api('POST', '/api/shop/sol/check', { id }),
   challenge: (id, a, ts) => api('POST', '/api/challenge', { id, a, ts }),
   lang: (lang) => (NET.mode === 'online' ? api('POST', '/api/lang', { lang }) : Promise.resolve({ ok: true })),
   forget: () => api('POST', '/api/forget', { confirm: true }),
-  wallet: (body) => api('POST', '/api/wallet', body),
   sol: (body) => api('POST', '/api/sol', body),
-  tonPayload: () => api('GET', '/api/ton/payload'),
   market: (range) => api('GET', '/api/market?range=' + encodeURIComponent(range || '24h')),
   marketBal: () => api('GET', '/api/market/bal'),
   adClaim: () => api('POST', '/api/ads/claim', {}),
@@ -377,8 +375,7 @@ async function showAd() {
   return r || { ok: false, err: 'net' };
 }
 
-/* ---------- TON Connect ---------- */
-let tonUI = null;
+/* ---------- external scripts (ads SDK, QR code) ---------- */
 function loadScript(src) {
   return new Promise((res, rej) => {
     const s = document.createElement('script');
@@ -389,73 +386,6 @@ function loadScript(src) {
     document.head.appendChild(s);
   });
 }
-async function tonConnect() {
-  if (NET.mode !== 'online' || !NET.cfg) return { ok: false, err: 'demo' };
-  const tc = NET.cfg.tonconnect || {};
-  if (!tc.manifest) return { ok: false, err: 'not_configured' };
-  try {
-    await ensureTonUI();
-    if (tonUI.connected) { try { await tonUI.disconnect(); } catch (e) {} }
-    const pl = await netApi.tonPayload();
-    if (pl && pl.payload) tonUI.setConnectRequestParameters({ state: 'ready', value: { tonProof: pl.payload } });
-    await tonUI.openModal();
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, err: 'tonconnect' };
-  }
-}
-// one TON Connect instance; restores a wallet connected earlier
-async function ensureTonUI() {
-  const tc = (NET.cfg && NET.cfg.tonconnect) || {};
-  if (!tc.manifest) throw new Error('not_configured');
-  if (!window.TON_CONNECT_UI) await loadScript(tc.cdn);
-  if (!tonUI) {
-    const opts = { manifestUrl: tc.manifest };
-    if (NET.cfg.bot && NET.cfg.app) opts.actionsConfiguration = { twaReturnUrl: 'https://t.me/' + NET.cfg.bot + '/' + NET.cfg.app };
-    tonUI = new window.TON_CONNECT_UI.TonConnectUI(opts);
-    tonUI.onStatusChange(async (w) => {
-      if (!w || !w.account) return;
-      const tp = w.connectItems && w.connectItems.tonProof;
-      const body = tp && tp.proof ? { account: w.account, proof: tp.proof } : { address: w.account.address };
-      const r = await netApi.wallet(body);
-      UIH.onWallet && UIH.onWallet(r);
-    });
-  }
-  try { await Promise.race([tonUI.connectionRestored, new Promise((r) => setTimeout(r, 3000))]); } catch (e) {}
-  return tonUI;
-}
-// a text comment as a one-cell BOC (op 0 + utf8), base64 — what wallets show as "comment"
-function commentBoc(text) {
-  const t = new TextEncoder().encode(text);
-  const data = new Uint8Array(4 + t.length);
-  data.set(t, 4);
-  const cell = new Uint8Array(2 + data.length);
-  cell[0] = 0; cell[1] = data.length * 2;
-  cell.set(data, 2);
-  const head = [0xb5, 0xee, 0x9c, 0x72, 0x01, 0x01, 0x01, 0x01, 0x00, cell.length, 0x00];
-  const out = new Uint8Array(head.length + cell.length);
-  out.set(head, 0); out.set(cell, head.length);
-  let bin = '';
-  out.forEach((b) => { bin += String.fromCharCode(b); });
-  return btoa(bin);
-}
-// pay a shop order with TON through the connected wallet
-async function tonPay(order) {
-  let ui;
-  try { ui = await ensureTonUI(); } catch (e) { return { ok: false, err: 'tonconnect' }; }
-  if (!ui.connected) return { ok: false, err: 'need_wallet' };
-  try {
-    await ui.sendTransaction({ validUntil: order.validUntil, messages: [{ address: order.to, amount: String(order.amount), payload: commentBoc(order.comment) }] });
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, err: 'ton_rejected' };
-  }
-}
-async function tonDisconnect() {
-  try { if (tonUI && tonUI.connected) await tonUI.disconnect(); } catch (e) {}
-  return netApi.wallet({ disconnect: true });
-}
-
 /* ============================================================
    DEMO backend (local only)
    ============================================================ */

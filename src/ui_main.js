@@ -344,10 +344,11 @@ const ACT = {
     }
   },
   pay: (sku) => buySku(sku),
-  payton: (sku) => buyTon(sku),
+  paysol: (sku) => buySol(sku),
+  solpay: (what) => solPayAct(what),
   donamt: (n) => { UI.donAmt = Number(n); UI.hubVer = (UI.hubVer || 0) + 1; render(true); },
   donstars: () => donateStars(),
-  donton: () => donateTon(),
+  donsol: () => donateSol(),
   ad: () => {
     if (UI.adBusy) return;
     const e = NET.eco && NET.eco.ads;
@@ -367,19 +368,6 @@ const ACT = {
       else toast(L('ads.skipped'), '');
       render(true);
     });
-  },
-  wallet: (what) => {
-    if (what === 'connect') {
-      tonConnect().then((r) => { if (!r.ok) { if (r.err === 'tonconnect' || r.err === 'not_configured') showManualWallet(); else errToast(r.err); } });
-    } else if (what === 'off') {
-      tonDisconnect().then((r) => { UI.walletFriendly = ''; if (r && r.ok) toast(L('wallet.off_ok'), 'good'); render(true); });
-    } else if (what === 'manual') showManualWallet();
-    else if (what === 'save') {
-      const inp = $('#waddr');
-      const v = inp ? inp.value.trim() : '';
-      if (!v) return;
-      netApi.wallet({ address: v }).then((r) => { UIH.onWallet(r); if (r && r.ok) closeModal(); });
-    }
   },
   sol: (what) => {
     if (what === 'set') return showSolWallet();
@@ -405,7 +393,7 @@ const ACT = {
 };
 function confettiSmall() { confetti(40); }
 
-/* ---------- token market (STON.fi): price, chart, holdings; refreshed while the token tab is open ---------- */
+/* ---------- token market (Solana): price, chart, holdings; refreshed while the token tab is open ---------- */
 function loadMarket(force) {
   if (NET.mode !== 'online' || !NET.cfg || !NET.cfg.market) return;
   const now = Date.now();
@@ -464,51 +452,65 @@ function donateStars() {
     if (TG && TG.openInvoice) TG.openInvoice(r.url, after); else openLink(r.url);
   });
 }
-async function donateTon() {
-  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
-  if (UI.tonBusy) return toast(L('shop.ton_wait'), '');
+/* ---------- paying with SOL (Solana Pay): exact amount + address + QR, the server watches the chain ---------- */
+function solDonAmount() {
   const d = UI.hub.donate || {};
-  const ton = Math.max(d.tonMin || 1, Math.round(donAmount() * (d.tonPerStar || 0.011) * 10) / 10);
-  UI.tonBusy = true;
-  try {
-    const r = await netApi.donateTon(ton);
-    if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
-    const p = await tonPay(r.order);
-    if (!p.ok) { if (p.err === 'need_wallet') { toast(L('shop.ton_connect'), '', 'ton'); tonConnect(); } else if (p.err === 'ton_rejected') toast(L('err.ton_rejected'), 'bad'); else errToast(p.err); return; }
-    toast(L('shop.ton_wait'), '', 'ton');
-    for (let i = 0; i < 30; i++) {
-      await new Promise((res) => setTimeout(res, 4000));
-      const c = await netApi.tonCheck(r.order.id);
-      if (c && c.paid) return donated();
-      if (c && c.expired) break;
-    }
-    toast(L('shop.ton_later'), '', 'ton');
-  } finally { UI.tonBusy = false; }
+  return Math.max(d.solMin || 0.01, Math.round(donAmount() * (d.solPerStar || 0.0001) * 1000) / 1000);
 }
-async function buyTon(sku) {
+async function donateSol() {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
-  if (UI.tonBusy) return toast(L('shop.ton_wait'), '');
-  UI.tonBusy = true;
-  try {
-    const r = await netApi.tonOrder(sku);
-    if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
-    const p = await tonPay(r.order);
-    if (!p.ok) {
-      if (p.err === 'need_wallet') { toast(L('shop.ton_connect'), '', 'ton'); tonConnect(); }
-      else if (p.err === 'ton_rejected') toast(L('err.ton_rejected'), 'bad');
-      else errToast(p.err);
-      return;
+  const r = await netApi.donateSol(solDonAmount());
+  if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
+  showSolPay(r.order, donated);
+}
+async function buySol(sku) {
+  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
+  const r = await netApi.solOrder(sku);
+  if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
+  showSolPay(r.order, paidJuice);
+}
+function qrSVG(text) {
+  if (!window.qrcode) return '';
+  const q = window.qrcode(0, 'M'); q.addData(text); q.make();
+  const n = q.getModuleCount(); let d = '';
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (q.isDark(y, x)) d += `M${x} ${y}h1v1h-1z`;
+  return `<svg viewBox="-2 -2 ${n + 4} ${n + 4}" shape-rendering="crispEdges"><rect x="-2" y="-2" width="${n + 4}" height="${n + 4}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+}
+function showSolPay(o, onPaid) {
+  UI.solOrder = o; UI.solPaid = onPaid;
+  openModal(`<h2 class="h2">${I('sol', 16)} ${L('pay.title')}</h2>
+    <p class="sub">${L('pay.sub')}</p>
+    <div class="sp-amt"><small>${L('pay.amount')}</small><b class="px">${esc(o.sol)} SOL</b><button class="btn ghost sm" data-act="solpay:camt">${I('copy', 12)} ${L('pay.copy')}</button></div>
+    <p class="hint yel">${L('pay.exact')}</p>
+    <div class="sp-to"><small>${L('pay.to')}</small><code>${esc(o.to)}</code><button class="btn ghost sm" data-act="solpay:cto">${I('copy', 12)} ${L('pay.copy')}</button></div>
+    <div class="sp-qr" id="spqr"></div>
+    <button class="btn big glow wide" data-act="solpay:open">${I('sol', 16)} ${L('pay.open')}</button>
+    <p class="sp-st" id="spst"><i class="spin"></i> ${L('pay.waiting')}</p>`, { id: 'solpay' });
+  const qr = () => { const el = $('#spqr'); if (el) el.innerHTML = qrSVG(o.url); };
+  if (window.qrcode) qr(); else loadScript('https://unpkg.com/qrcode-generator@1.4.4/qrcode.js').then(qr).catch(() => {});
+  pollSol(o);
+}
+async function pollSol(o) {
+  const until = Date.now() + 30 * 60000;
+  while (Date.now() < until && UI.solOrder === o) {
+    await new Promise((res) => setTimeout(res, 5000));
+    if (UI.solOrder !== o) return;
+    const c = await netApi.solCheck(o.id).catch(() => null);
+    if (c && c.paid) {
+      UI.solOrder = null;
+      if (UI.modal && UI.modal.id === 'solpay') closeModal();
+      return UI.solPaid && UI.solPaid();
     }
-    toast(L('shop.ton_wait'), '', 'ton');
-    // the transfer needs a few seconds to land in a block; then the server sees it
-    for (let i = 0; i < 30; i++) {
-      await new Promise((res) => setTimeout(res, 4000));
-      const c = await netApi.tonCheck(r.order.id);
-      if (c && c.paid) return paidJuice();
-      if (c && c.expired) break;
-    }
-    toast(L('shop.ton_later'), '', 'ton');
-  } finally { UI.tonBusy = false; }
+    if (c && c.expired) break;
+  }
+  if (UI.solOrder === o) { const st = $('#spst'); if (st) st.textContent = L('pay.later'); }
+}
+function solPayAct(what) {
+  const o = UI.solOrder;
+  if (!o) return;
+  if (what === 'camt') copyText(o.sol, (ok) => toast(ok ? L('pay.copied') : L('toast.copy_fail'), ok ? 'good' : 'bad', 'copy'));
+  else if (what === 'cto') copyText(o.to, (ok) => toast(ok ? L('pay.copied') : L('toast.copy_fail'), ok ? 'good' : 'bad', 'copy'));
+  else if (what === 'open') { try { window.location.href = o.url; } catch (e) { toast(L('pay.no_wallet'), 'bad'); } }
 }
 function buySku(sku) {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
@@ -713,7 +715,7 @@ function showHelp() {
         <li>${I('coin', 18)}<div><b>${L('res.cash')}</b><small>${L('help.cash')}</small></div></li>
         <li>${I('gem', 18)}<div><b>${L('res.gems')}</b><small>${L('help.gems')}</small></div></li>
         <li>${I('pts', 18)}<div><b>${L('res.pts')}</b><small>${L('help.pts', { sym })}</small></div></li>
-        <li>${I('ton', 18)}<div><b>${sym}</b><small>${L('help.token', { sym })}</small></div></li>
+        <li>${I('sol', 18)}<div><b>${sym}</b><small>${L('help.token', { sym })}</small></div></li>
       </ul>
     </div>
     <div class="row2"><button class="btn" data-act="go:drop:token">${L('help.more_token')}</button><button class="btn ghost" data-act="tut:restart">${L('help.tutorial')}</button></div>`, { id: 'help' });
@@ -751,14 +753,6 @@ function showEnding() {
     <p class="ev-text">${L('end.text')}</p>
     <button class="btn big gold" data-act="close">${L('end.ok')}</button></div>`, { id: 'ending' });
   confetti(200);
-}
-function showManualWallet() {
-  openModal(`<h2 class="h2">${I('ton', 16)} ${L('wallet.manual')}</h2>
-    <p class="sub">${L('wallet.manual_t')}</p>
-    <input id="waddr" class="inp" placeholder="UQ…" autocomplete="off" spellcheck="false" maxlength="80">
-    <button class="btn big" data-act="wallet:save">${L('wallet.save')}</button>`, { id: 'wallet' });
-  const inp = $('#waddr');
-  if (inp) inp.addEventListener('keydown', (e) => e.stopPropagation());
 }
 function showSolWallet() {
   openModal(`<h2 class="h2">${I('sol', 16)} ${L('sol.title')}</h2>
@@ -846,16 +840,6 @@ UIH.onChallenge = (ch) => showChallenge(ch);
 UIH.onRefAct = () => { toast(L('toast.ref_act'), 'good', 'users'); confetti(100); loadHub('friends', true); };
 UIH.onDropped = (err) => toast(L(err === 'clock' ? 'toast.clock' : 'toast.synced'), err === 'clock' ? 'bad' : '');
 UIH.onFatal = () => openModal(`<div class="center">${I('info', 30)}<h2 class="h2">${L('boot.session')}</h2><p class="sub">${L('boot.session_t')}</p><button class="btn big" data-act="retry">${L('boot.retry')}</button></div>`, { sticky: true, id: 'fatal' });
-UIH.onWallet = (r) => {
-  if (r && r.ok) {
-    UI.walletFriendly = r.friendly || '';
-    toast(L(r.level ? 'wallet.ok_verified' : 'wallet.ok'), 'good', 'ton');
-    confettiSmall();
-    loadHub('tasks', true);
-  } else errToast((r && r.err) || 'address');
-  render(true);
-};
-
 /* ---------- main loop ---------- */
 function frame(now) {
   const dt = Math.min(0.25, Math.max(0, (now - (UI.last || now)) / 1000));
@@ -888,8 +872,8 @@ function wireInput() {
     const b = $('[data-act="donstars"]');
     if (b) b.textContent = '⭐ ' + L('don.give', { n: fmt(n) });
     const d = UI.hub.donate || {};
-    const t = $('[data-act="donton"]');
-    if (t && d.ton) t.innerHTML = I('ton', 14) + ' ' + Math.max(d.tonMin || 1, Math.round(n * (d.tonPerStar || 0.011) * 10) / 10) + ' TON';
+    const t = $('[data-act="donsol"]');
+    if (t && d.sol) t.innerHTML = I('sol', 14) + ' ' + solDonAmount() + ' SOL';
     document.querySelectorAll('.don-chips .chip').forEach((c) => c.classList.toggle('on', c.dataset.act === 'donamt:' + n));
   });
   document.addEventListener('click', (e) => {

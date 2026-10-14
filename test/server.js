@@ -5,7 +5,6 @@ const { makeEnv, httpJson, Player, test, summary, E, TG, BOT_TOKEN } = require('
 const U = require('../server/users.js');
 const Eco = require('../server/economy.js');
 const AB = require('../server/antibot.js');
-const Ton = require('../server/ton.js');
 
 (async () => {
   const env = await makeEnv();
@@ -317,54 +316,6 @@ const Ton = require('../server/ton.js');
     const later = clock.t + 31 * 86400e3;
     assert.equal(Eco.ecoView(ctx, ub, later).sup, 0); // expires
   });
-  await test('wallet: TON Connect proof verification (synthetic wallet), unverified fallback, duplicates flagged', async () => {
-    const P = new Player(env, 5004); await P.auth();
-    const pl = await P.api('GET', '/api/ton/payload');
-    const payload = pl.json.payload;
-    // build a wallet: Ed25519 key, data cell containing the public key, state-init hash == address
-    const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
-    const pub = publicKey.export({ format: 'der', type: 'spki' }).subarray(12);
-    const dataCell = { data: Buffer.concat([Buffer.alloc(4), Buffer.from([0, 0, 0, 1]), pub, Buffer.from([0])]), refs: [] };
-    const codeCell = { data: Buffer.from('deadbeef', 'hex'), refs: [] };
-    const root = { data: Buffer.from([0x34]), refs: [codeCell, dataCell] };
-    const bocBuf = Ton.bocBuild(root);
-    const parsed = Ton.bocParse(bocBuf);
-    const hash = parsed.cells[parsed.roots[0]].hash;
-    const raw = '0:' + hash.toString('hex');
-    const domain = 'game.example.test';
-    const ts = Math.floor(clock.t / 1000);
-    const wc = Buffer.alloc(4); wc.writeInt32BE(0);
-    const tsb = Buffer.alloc(8); tsb.writeBigUInt64LE(BigInt(ts));
-    const dl = Buffer.alloc(4); dl.writeUInt32LE(domain.length);
-    const msg = Buffer.concat([Buffer.from('ton-proof-item-v2/'), wc, hash, dl, Buffer.from(domain), tsb, Buffer.from(payload)]);
-    const full = Buffer.concat([Buffer.from([0xff, 0xff]), Buffer.from('ton-connect'), Ton.sha256(msg)]);
-    const signature = crypto.sign(null, Ton.sha256(full), privateKey).toString('base64');
-    const account = { address: raw, chain: '-239', publicKey: pub.toString('hex'), walletStateInit: bocBuf.toString('base64') };
-    const proof = { timestamp: ts, domain: { lengthBytes: domain.length, value: domain }, payload, signature };
-    const ok = await P.api('POST', '/api/wallet', { account, proof });
-    assert.equal(ok.json.ok, true); assert.equal(ok.json.level, 1, 'fully verified');
-    assert.ok(/^UQ/.test(ok.json.friendly) || ok.json.friendly.length === 48);
-    assert.equal(ok.json.eco.wallet.ok, true);
-    // tampered signature / wrong domain / forged address => stored as unverified or rejected, never "verified"
-    const bad1 = await P.api('POST', '/api/wallet', { account, proof: { ...proof, signature: Buffer.alloc(64, 1).toString('base64') } });
-    assert.equal(bad1.json.level, 0);
-    const bad2 = await P.api('POST', '/api/wallet', { account, proof: { ...proof, domain: { lengthBytes: 8, value: 'evil.com' } } });
-    assert.equal(bad2.json.level, 0);
-    const other = '0:' + 'ab'.repeat(32);
-    const bad3 = await P.api('POST', '/api/wallet', { account: { ...account, address: other }, proof });
-    assert.equal(bad3.json.level, 0);
-    // manual friendly address (no proof) => unverified
-    const fr = Ton.toFriendly({ wc: 0, hash: Buffer.alloc(32, 7) });
-    const man = await P.api('POST', '/api/wallet', { address: fr });
-    assert.equal(man.json.ok, true); assert.equal(man.json.level, 0);
-    assert.equal((await P.api('POST', '/api/wallet', { address: 'EQnotanaddress' })).json.err, 'address');
-    // the same wallet on a second account raises risk on both
-    const Q = new Player(env, 5005); await Q.auth();
-    const h0 = U.getUser(ctx, 5005).risk_hard;
-    await Q.api('POST', '/api/wallet', { address: fr });
-    assert.ok(U.getUser(ctx, 5005).risk_hard > h0);
-    assert.ok(U.getUser(ctx, 5004).risk_hard > 0);
-  });
   await test('solana wallet: base58 address is saved for the airdrop, bad ones rejected, a shared address raises risk', async () => {
     const P = new Player(env, 5011); await P.auth();
     const sol = '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
@@ -473,7 +424,7 @@ const Ton = require('../server/ton.js');
     assert.equal(d.json.user.id, 1001);
     const snap = await fetch(base + '/admin/api/snapshot?fmt=csv', { headers: H });
     const csv = await snap.text();
-    assert.ok(csv.startsWith('tg_id,username,country,wallet'));
+    assert.ok(csv.startsWith('tg_id,username,country,solana_wallet'));
     assert.ok(!/^6101,/m.test(csv), 'banned players are not in the snapshot');
     assert.ok(/^1001,/m.test(csv));
     const page = await fetch(base + '/admin'); assert.equal(page.status, 200);
@@ -586,73 +537,74 @@ const Ton = require('../server/ton.js');
     });
     await env4.close();
 
-    const shopWallet = Ton.toFriendly({ wc: 0, hash: crypto.createHash('sha256').update('shop').digest() }, { bounceable: false });
-    const env5 = await makeEnv({ TON_PAY_WALLET: shopWallet, TON_USD: '2', TON_STAR_USD: '0.016' });
-    await test('TON payments: order → on-chain transfer with comment → item granted once', async () => {
-      let chain = [];
-      env5.ctx.tonApi = async () => chain;
+    const shopWallet = require('../server/sol.js').randomKey();
+    // a fake Solana chain: transfers into the shop wallet, served through getSignaturesForAddress / getTransaction
+    const chain = [];
+    const solTx = (lamports, ref, sig) => chain.unshift({ sig, lamports, ref, from: 'Sender1111111111111111111111111111111111111', t: Math.floor(env5.clock.t / 1000) });
+    const env5 = await makeEnv({ SOL_PAY_WALLET: shopWallet, SOL_USD: '100', SOL_STAR_USD: '0.016' });
+    env5.ctx.solRpc = async (method, params) => {
+      if (method === 'getSignaturesForAddress') return chain.map((x) => ({ signature: x.sig, err: null, blockTime: x.t }));
+      const x = chain.find((y) => y.sig === params[0]);
+      const keys = [x.from, shopWallet].concat(x.ref ? [x.ref] : []);
+      return { blockTime: x.t, meta: { err: null, preBalances: [5e9, 1e9, 0], postBalances: [5e9 - x.lamports - 5000, 1e9 + x.lamports, 0] }, transaction: { message: { accountKeys: keys } } };
+    };
+    await test('SOL payments (Solana Pay): order → transfer with the reference or the exact amount → item granted once', async () => {
+      const SolPay = require('../server/solpay.js');
       const P = new Player(env5, 8301); await P.auth();
       const cfg = await httpJson(env5.base, 'GET', '/api/config');
-      assert.equal(cfg.json.tonPay, true);
+      assert.equal(cfg.json.solPay, true);
       const shop = await P.api('GET', '/api/shop');
       const gs = shop.json.items.find((x) => x.sku === 'gems_s');
-      assert.equal(gs.ton, 0.2, '25 stars × $0.016 / $2 = 0.2 TON');
-      const o = (await P.api('POST', '/api/shop/ton', { sku: 'gems_s' })).json;
-      assert.ok(o.ok && o.order.to === shopWallet && o.order.amount === '200000000' && /^OD-[0-9a-f]{10}$/.test(o.order.comment), JSON.stringify(o));
+      assert.equal(gs.sol, 0.004, '25 stars × $0.016 / $100 = 0.004 SOL');
+      const o = (await P.api('POST', '/api/shop/sol', { sku: 'gems_s' })).json;
+      assert.ok(o.ok && o.order.to === shopWallet && /^solana:/.test(o.order.url) && o.order.url.includes('reference=' + o.order.ref), JSON.stringify(o));
+      const lam = Number(o.order.lamports);
+      assert.ok(lam > 4000000 && lam < 5000000 && lam % 1000 === 0, 'base price + a unique µSOL tail');
       const gems0 = U.loadState(env5.ctx, 8301).gems;
-      const check = async () => { env5.advance(6000); return (await P.api('POST', '/api/shop/ton/check', { id: o.order.id })).json; };
+      const check = async (Pl, id) => { env5.advance(6000); return (await (Pl || P).api('POST', '/api/shop/sol/check', { id: id || o.order.id })).json; };
       assert.equal((await check()).paid, false);
-      const tx = (val, comment, hash) => ({ transaction_id: { lt: '1', hash }, in_msg: { source: 'EQsender', value: val, message: comment } });
-      chain = [tx('199000000', o.order.comment, 'h_low'), tx('500000000', 'OD-0000000000', 'h_other')];
-      assert.equal((await check()).paid, false, 'too little or wrong comment does not pay');
-      chain.push({ transaction_id: { lt: '2', hash: 'h_ok' }, in_msg: { source: 'EQsender', value: '200000000', msg_data: { '@type': 'msg.dataText', text: Buffer.from(o.order.comment).toString('base64') } } });
+      solTx(lam - 1000, null, 'sig_low'); solTx(lam + 1000, null, 'sig_other');
+      assert.equal((await check()).paid, false, 'a different amount without the reference does not pay');
+      solTx(lam, o.order.ref, 'sig_ok');
       assert.equal((await check()).paid, true);
       assert.equal(U.loadState(env5.ctx, 8301).gems - gems0, 15);
       assert.equal((await check()).paid, true);
       assert.equal(U.loadState(env5.ctx, 8301).gems - gems0, 15, 'never granted twice');
       // another player cannot check someone else's order
       const Q = new Player(env5, 8302); await Q.auth();
-      assert.equal((await Q.api('POST', '/api/shop/ton/check', { id: o.order.id })).json.err, 'unavailable');
-      // background sweep credits an order the player never checked, and the supporter bonus turns on
-      const o2 = (await Q.api('POST', '/api/shop/ton', { sku: 'starter' })).json;
-      chain.push(tx('600000000', o2.order.comment, 'h_q'));
+      assert.equal((await check(Q)).err, 'unavailable');
+      // a plain transfer of the exact amount (no reference) is matched by the background sweep
+      const o2 = (await Q.api('POST', '/api/shop/sol', { sku: 'starter' })).json;
+      solTx(Number(o2.order.lamports), null, 'sig_q');
       env5.advance(6000);
-      const r = await require('../server/tonpay.js').sweep(env5.ctx, env5.clock.t);
+      const r = await SolPay.sweep(env5.ctx, env5.clock.t);
       assert.equal(r.paid, 1);
-      assert.equal((await Q.api('POST', '/api/shop/ton', { sku: 'starter' })).json.err, 'unavailable', 'one-time item cannot be bought again');
+      assert.equal((await Q.api('POST', '/api/shop/sol', { sku: 'starter' })).json.err, 'unavailable', 'one-time item cannot be bought again');
       assert.ok(Eco.supporterUntil(env5.ctx, 8302, env5.clock.t) > env5.clock.t);
+      // one transaction never pays two orders
+      const o4 = (await Q.api('POST', '/api/shop/sol', { sku: 'gems_s' })).json;
+      assert.equal((await check(Q, o4.order.id)).paid, false, 'old transfers do not pay a new order');
       // coin packs: fixed amounts, bigger pack = bigger bonus, first buy of a pack is doubled, VIP adds a bonus
       let sh = (await Q.api('GET', '/api/shop')).json;
       assert.equal(sh.items[0].sku, 'cash1');
       assert.equal(sh.vip.lvl, 0);
-      assert.equal(sh.vip.next.left, 50, 'starter (50⭐ via TON) counts toward VIP');
+      assert.equal(sh.vip.next.left, 50, 'starter (50⭐ via SOL) counts toward VIP');
       const c3 = sh.items.find((x) => x.sku === 'cash3');
       assert.ok(c3.first && c3.cash === 50000, JSON.stringify(c3));
       const buy = async (sku, h) => {
         const before = U.loadState(env5.ctx, 8302);
-        const o3 = (await Q.api('POST', '/api/shop/ton', { sku })).json;
-        chain.push(tx(o3.order.amount, o3.order.comment, h));
-        env5.advance(6000);
-        assert.equal((await Q.api('POST', '/api/shop/ton/check', { id: o3.order.id })).json.paid, true);
+        const o3 = (await Q.api('POST', '/api/shop/sol', { sku })).json;
+        solTx(Number(o3.order.lamports) + 7, o3.order.ref, h);
+        assert.equal((await check(Q, o3.order.id)).paid, true);
         const after = U.loadState(env5.ctx, 8302);
         assert.equal(after.earned, before.earned, 'bought coins do not unlock earning goals');
         return after.cash - before.cash;
       };
-      assert.equal(await buy('cash3', 'h_c1'), 50000, '20 000 +25% ×2 first purchase');
+      assert.equal(await buy('cash3', 'sig_c1'), 50000, '20 000 +25% ×2 first purchase');
       sh = (await Q.api('GET', '/api/shop')).json;
       assert.equal(sh.vip.lvl, 2, '550⭐ → VIP 2');
       assert.equal(sh.items.find((x) => x.sku === 'cash3').cash, 27000, 'second purchase: 20 000 × (1 + 25% + VIP 10%)');
-      assert.equal(await buy('cash3', 'h_c2'), 27000);
-    });
-    await test('TON comment BOC built by the client parses as a text comment', async () => {
-      const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'src', 'net.js'), 'utf8');
-      const fn = new Function(src.match(/function commentBoc\(text\) \{[\s\S]*?\n\}/)[0] + '; return commentBoc;')();
-      const boc = Buffer.from(fn('OD-0123456789'), 'base64');
-      const parsed = Ton.bocParse(boc);
-      const root = parsed.cells ? parsed.cells[parsed.roots[0]] : parsed[0];
-      const data = Buffer.from(root.data || root.bytes);
-      assert.equal(data.readUInt32BE(0), 0);
-      assert.equal(data.subarray(4).toString('utf8'), 'OD-0123456789');
+      assert.equal(await buy('cash3', 'sig_c2'), 27000);
     });
     await test('countries: detected from the device time zone, shown in admin stats', async () => {
       const A = new Player(env5, 8401); await A.auth('', { tz: 'Europe/Kiev' });
@@ -724,18 +676,16 @@ const Ton = require('../server/ton.js');
       assert.equal(f.mine, 300);
       assert.ok(f.stars >= 300 && f.donors >= 1);
       assert.equal(f.top[0].name !== undefined, true);
-      // TON donation: whatever actually arrived counts
-      const o = (await P.api('POST', '/api/donate/ton', { ton: f.tonMin })).json;
+      // SOL donation: whatever actually arrived counts
+      const o = (await P.api('POST', '/api/donate/sol', { sol: f.solMin })).json;
       assert.ok(o.ok, JSON.stringify(o));
-      assert.equal((await P.api('POST', '/api/donate/ton', { ton: 0.1 })).json.err, 'amount');
-      const prev = env5.ctx.tonApi;
-      env5.ctx.tonApi = async () => [{ transaction_id: { lt: '9', hash: 'h_don' }, in_msg: { source: 'EQx', value: '5000000000', message: o.order.comment } }];
+      assert.equal((await P.api('POST', '/api/donate/sol', { sol: 0.0001 })).json.err, 'amount');
+      solTx(1e8, o.order.ref, 'sig_don'); // 0.1 SOL = $10 = 625 ⭐
       env5.advance(6000);
-      assert.equal((await P.api('POST', '/api/shop/ton/check', { id: o.order.id })).json.paid, true);
-      env5.ctx.tonApi = prev;
+      assert.equal((await P.api('POST', '/api/shop/sol/check', { id: o.order.id })).json.paid, true);
       env5.advance(6000);
       f = (await P.api('GET', '/api/donate')).json;
-      assert.ok(f.mine > 300 + 400, 'TON counted by the amount received: ' + f.mine);
+      assert.ok(f.mine > 300 + 400, 'SOL counted by the amount received: ' + f.mine);
       assert.equal(Eco.vipOf(env5.ctx, 8801).lvl >= 2, true, 'VIP grew');
       assert.equal(U.getUser(env5.ctx, 8801).pts, pts0, 'donations never buy points');
     });

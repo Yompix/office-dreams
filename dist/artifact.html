@@ -703,7 +703,7 @@ button.cell:active { transform: scale(0.94); }
 .scene.moving canvas { animation: movein 1.2s ease-out; }
 @keyframes movein { 0% { filter: brightness(0); transform: scale(0.94); } 35% { filter: brightness(2.2) saturate(0.4); } 100% { filter: none; transform: none; } }
 .pay2 { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-.btn.tonb { background: linear-gradient(180deg, #3aa8ff, #0a6fd8); color: #fff; box-shadow: 0 3px 0 #064a94, 0 0 14px rgba(58, 168, 255, 0.45); }
+.btn.solb { background: linear-gradient(180deg, #a35bff, #6a2bd8); color: #fff; box-shadow: 0 3px 0 #3f1694, 0 0 14px rgba(153, 69, 255, 0.5); }
 .sku.cashp { border-color: rgba(46, 230, 107, 0.45); box-shadow: inset 0 0 22px rgba(46, 230, 107, 0.12); }
 .vip-card { margin: 4px 0 14px; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(255, 210, 63, 0.45); background: linear-gradient(135deg, rgba(255, 210, 63, 0.14), rgba(255, 63, 208, 0.08)); display: grid; gap: 8px; }
 .vip-h { display: flex; align-items: center; gap: 10px; font-weight: 700; }
@@ -1138,6 +1138,17 @@ body.pv-on #app { visibility: hidden; }
 .vest .v-bar { height: 7px; margin: 5px 0 3px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
 .vest .v-bar i { display: block; height: 100%; border-radius: 4px; }
 .listing .bul { margin: 10px 0 6px; }
+/* SOL payment modal */
+.sp-amt, .sp-to { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; padding: 10px 12px; margin: 8px 0; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(153, 69, 255, 0.35); }
+.sp-amt small, .sp-to small { grid-column: 1 / -1; color: var(--ink2); font-size: 12px; }
+.sp-amt b { font-size: 20px; color: #14f195; text-shadow: 0 0 10px rgba(20, 241, 149, 0.5); word-break: break-all; }
+.sp-to code { font-size: 12px; word-break: break-all; color: var(--ink); }
+.sp-qr { width: 172px; margin: 10px auto; border-radius: 12px; overflow: hidden; }
+.sp-qr:empty { display: none; }
+.sp-qr svg { display: block; width: 100%; height: auto; }
+.sp-st { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px 0 0; color: var(--ink2); font-size: 13px; text-align: center; }
+.sp-st .spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(20, 241, 149, 0.3); border-top-color: #14f195; animation: spspin 0.8s linear infinite; }
+@keyframes spspin { to { transform: rotate(360deg); } }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -2010,10 +2021,8 @@ LANGS.en = {
   'risk.watch': 'Unusual activity detected. Points are halved for now — just play normally and it will clear.',
   'risk.hold': 'Your points are on hold while we check the account. If you play fair, it will be lifted.',
   // wallet
-  'wallet.title': 'TON wallet', 'wallet.sub': 'Link the wallet that will receive future rewards.', 'wallet.connect': 'Connect wallet',
-  'wallet.manual': 'Enter address manually', 'wallet.manual_t': 'Paste your TON wallet address (starts with UQ or EQ). Never share your seed phrase with anyone!',
-  'wallet.save': 'Save', 'wallet.change': 'Change', 'wallet.disconnect': 'Disconnect', 'wallet.verified': 'verified', 'wallet.unverified': 'not verified',
-  'wallet.ok': 'Wallet saved', 'wallet.ok_verified': 'Wallet connected and verified!', 'wallet.off_ok': 'Wallet disconnected',
+
+  'wallet.save': 'Save', 'wallet.change': 'Change', 'wallet.disconnect': 'Disconnect',
   // friends
   'fr.title': 'Invite friends', 'fr.sub': 'For every friend who really plays you get {cash} and {gems} gems in the game, and your friend gets a welcome bonus.',
   'fr.invited': 'Invited', 'fr.active': 'Active', 'fr.earned': 'Points from friends', 'fr.share': 'Invite', 'fr.no_link': 'Link unavailable',
@@ -2024,14 +2033,14 @@ LANGS.en = {
   'fr.share_text': 'Build your own neon game studio with me in Office Dreams! 🏢🎮',
   // tasks
   'task.title': 'Tasks', 'task.sub': 'One-time tasks with airdrop points.', 'task.go': 'Go', 'task.sub_btn': "Subscribe", 'task.check': 'Check', 'task.tg_only': 'in Telegram',
-  'task.channel': 'Subscribe to the channel', 'task.chat': 'Join the community chat', 'task.x': 'Follow us on X', 'task.wallet': 'Connect a TON wallet',
+  'task.channel': 'Subscribe to the channel', 'task.chat': 'Join the community chat', 'task.x': 'Follow us on X', 'task.wallet': "Add a Solana wallet",
   'task.play3': 'Play on 3 different days', 'task.play14': 'Play on 14 different days', 'task.streak3': '3-day check-in streak', 'task.streak7': '7-day check-in streak',
   'task.invite1': 'Invite 1 active friend', 'task.invite3': 'Invite 3 active friends', 'task.invite10': 'Invite 10 active friends',
   // top
   'top.you': 'Your place', 'top.players': 'Players: {n}', 'top.empty': 'Nobody here yet — be the first!', 'top.few': 'Only the top three so far.',
   'top.hint': 'The leaderboard updates every few seconds. Accounts under review are hidden.',
   // shop
-  'shop.title': 'Shop', 'shop.sub': 'Pay with Telegram Stars or TON. Purchases give in-game items only.',
+  'shop.title': 'Shop', 'shop.sub': 'Pay with Telegram Stars or SOL. Purchases give in-game items only.',
   'shop.hint': 'Purchases give in-game items and a Supporter status: +{p}% to gameplay points for 30 days. Office Pass also raises your daily ceiling by 25%.', 'shop.owned': 'Owned',
   'shop.paid': 'Payment received! Items are on their way.', 'shop.demo': 'The shop works in the Telegram version.',
   // challenge
@@ -2059,8 +2068,8 @@ LANGS.en = {
   'err.busy': 'A project is already in progress', 'err.unavailable': 'Not available right now', 'err.claimed': 'Already claimed', 'err.notyet': 'Not completed yet',
   'err.net': 'No connection. Retrying…', 'err.rate': 'Too fast — try again in a moment', 'err.done': 'Already done', 'err.not_member': 'Subscribe to the channel first',
   'err.verify_unavailable': 'Check is temporarily unavailable', 'err.play_first': 'Play a little first (20 taps)', 'err.wrong': 'Wrong answer', 'err.expired': 'The check has expired',
-  'err.address': 'Invalid TON address', 'err.invoice': 'Payments are unavailable right now', 'err.pay_failed': 'Payment failed', 'err.demo': 'Available in the Telegram version',
-  'err.not_configured': 'Not configured yet', 'err.tonconnect': 'Could not open the wallet connection', 'err.server': 'Server error', 'err.json': 'Server error', 'err.auth': 'Please reopen the game',
+'err.invoice': 'Payments are unavailable right now', 'err.pay_failed': 'Payment failed', 'err.demo': 'Available in the Telegram version',
+  'err.not_configured': 'Not configured yet','err.server': 'Server error', 'err.json': 'Server error', 'err.auth': 'Please reopen the game',
   'err.unavailable_sku': 'Not available',
   // ===== events =====
   'ev.deadline.who': 'Boss', 'ev.deadline.title': 'Urgent deadline', 'ev.deadline.text': 'We need to ship a game by the weekend. Can you handle it?',
@@ -2080,7 +2089,7 @@ LANGS.en = {
   'ev.poach.c0': 'Raise the salary (−${cost})', 'ev.poach.c1': 'Have a heart-to-heart', 'ev.poach.c2': 'Let them go',
   'ev.poach.r0': 'They stayed and are happy. Mood +20.', 'ev.poach.r1a': 'The talk helped: they stay. Mood +10.', 'ev.poach.r1b': 'The talk didn’t go well. They stayed, but mood −20.',
   'ev.poach.r2': 'The experienced employee left; a newbie took the seat. Level −1.',
-  'ev.hackathon.who': 'Organizer', 'ev.hackathon.title': 'TON hackathon', 'ev.hackathon.text': 'Registration for a hackathon is open. Prize: {gems} gems. Are you in?',
+  'ev.hackathon.who': 'Organizer', 'ev.hackathon.title': 'Solana hackathon', 'ev.hackathon.text': 'Registration for a hackathon is open. Prize: {gems} gems. Are you in?',
   'ev.hackathon.c0': 'Join yourself (energy −30)', 'ev.hackathon.c1': 'Send the team', 'ev.hackathon.c2': 'Skip it',
   'ev.hackathon.r0': 'You took a prize: +{gems} gems and +2 reputation.', 'ev.hackathon.r1': 'The team brought back {gems} gems but got tired (mood −5).',
   'ev.hackathon.r2': 'You decided to skip it. Back to work.',
@@ -2091,7 +2100,7 @@ LANGS.en = {
   'ev.party.who': 'Team', 'ev.party.title': 'Office party', 'ev.party.text': 'The team asks to celebrate the recent work. What do you say?',
   'ev.party.c0': 'Throw a party (−${cost})', 'ev.party.c1': 'Order pizza (−${cost})', 'ev.party.c2': 'Back to work!',
   'ev.party.r0': 'Great party. Team mood +18.', 'ev.party.r1': 'The pizza vanished in five minutes. Mood +7.', 'ev.party.r2': 'The team went back to work without enthusiasm. Mood −3.',
-  'ev.phishing.who': 'Mail', 'ev.phishing.title': 'Suspicious email', 'ev.phishing.text': 'Email: “You received 5 TON! Confirm your wallet at ton-reward-claim.xyz”. You don’t know the sender.',
+  'ev.phishing.who': 'Mail', 'ev.phishing.title': 'Suspicious email', 'ev.phishing.text': 'Email: “You received 5 SOL! Confirm your wallet at sol-reward-claim.xyz”. You don’t know the sender.',
   'ev.phishing.c0': 'Follow the link', 'ev.phishing.c1': 'Delete the email', 'ev.phishing.c2': 'Report to support',
   'ev.phishing.r0': 'It was phishing! You lost ${loss}. Real rewards never ask for wallet data via a link in an email.',
   'ev.phishing.r1': 'Right call. Vigilance bonus: +1 gem.', 'ev.phishing.r2': 'Support thanked you. +1 gem and +1 reputation.',
@@ -2255,12 +2264,24 @@ LANGS.en = {
   'tk3.r5': "Part of the game income goes to the players’ pool and buy-backs.",
   'tk3.risk': "The price of a token is set by the market. These rules make dumping harder, but they are not a promise of profit.",
   'sol.title': "Solana wallet",
-  'sol.sub': "Your {sym} airdrop will be sent here. TON wallet stays for purchases in the shop.",
+  'sol.sub': "Your {sym} airdrop will be sent here.",
   'sol.add': "Add Solana wallet",
   'sol.manual_t': "Paste your Solana wallet address (Phantom, Solflare, Backpack…). It is 32–44 letters and digits. Never share your seed phrase — the address is enough.",
   'sol.ok': "Solana wallet saved",
   'sol.off_ok': "Solana wallet removed",
   'err.sol_address': "This is not a Solana address",
+  'shop.sol_hint': "Pay with ⭐ Stars or ◎ SOL — same items. Send the exact SOL amount from any Solana wallet; it is credited automatically when the network confirms it (usually under a minute).",
+  'pay.title': "Pay with SOL",
+  'pay.sub': "Open your Solana wallet (Phantom, Solflare, Backpack…) or scan the QR code, and send exactly this amount.",
+  'pay.amount': "Amount",
+  'pay.exact': "Send exactly this amount — the last digits identify your payment.",
+  'pay.to': "To address",
+  'pay.copy': "Copy",
+  'pay.copied': "Copied",
+  'pay.open': "Open in wallet",
+  'pay.waiting': "Waiting for the transfer… you can close this window, it will still be credited.",
+  'pay.later': "No transfer seen yet. If you have paid, it will be credited automatically within 48 hours.",
+  'pay.no_wallet': "No Solana wallet app found — copy the address and amount instead",
   'tok.what': "{sym} is the game’s own token on the Solana blockchain. The airdrop points you collect now will be exchanged for it.",
   'tok.supply': "100,000,000 — minted once, no more ever",
   'tok.status': 'Season 0: collecting points',
@@ -2295,16 +2316,13 @@ LANGS.en = {
   'set.music': 'Music',
   'set.next_track': 'Next track',
   'music.office': 'Neon Office',
-  'shop.ton_hint': 'Pay with ⭐ Stars or 💎 TON — same items. TON is sent from your connected wallet and credited automatically after the blockchain confirms it (usually 10–30 s).',
-  'shop.ton_wait': 'Waiting for the TON transfer to confirm…',
-  'shop.ton_connect': 'Connect your TON wallet first, then tap the price again',
-  'shop.ton_later': 'The transfer is still on its way — the item will be credited automatically (we will message you in the bot)',
-  'err.ton_rejected': 'Payment cancelled in the wallet',
+
+
   'shop.first': 'x2 first buy',
   'shop.vip': '+{p}% coins on every pack',
   'shop.vip_next': '{n}⭐ more to VIP {lvl} → +{p}% coins',
   'shop.vip_max': 'Maximum VIP level — thank you!',
-  'shop.vip_hint': 'VIP grows with every purchase (Stars or TON) and adds bonus coins. It never changes airdrop points.',
+  'shop.vip_hint': 'VIP grows with every purchase (Stars or SOL) and adds bonus coins. It never changes airdrop points.',
   'fr.title2': "Invite a friend — you both get a bonus",
   'fr.you_get': "You get",
   'fr.friend_gets': "Your friend gets",
@@ -2648,10 +2666,8 @@ LANGS.ru = {
   'ci.text': 'Заходи каждый день: чем длиннее серия, тем больше награда.',
   'risk.watch': 'Замечена необычная активность. Пока очки начисляются наполовину — просто играй как обычно, и это пройдёт.',
   'risk.hold': 'Очки временно заморожены, пока мы проверяем аккаунт. Если играешь честно — ограничение снимут.',
-  'wallet.title': 'TON-кошелёк', 'wallet.sub': 'Привяжи кошелёк, на который придут будущие награды.', 'wallet.connect': 'Подключить кошелёк',
-  'wallet.manual': 'Ввести адрес вручную', 'wallet.manual_t': 'Вставь адрес TON-кошелька (начинается с UQ или EQ). Никому не сообщай сид-фразу!',
-  'wallet.save': 'Сохранить', 'wallet.change': 'Сменить', 'wallet.disconnect': 'Отвязать', 'wallet.verified': 'подтверждён', 'wallet.unverified': 'не подтверждён',
-  'wallet.ok': 'Кошелёк сохранён', 'wallet.ok_verified': 'Кошелёк подключён и подтверждён!', 'wallet.off_ok': 'Кошелёк отвязан',
+
+  'wallet.save': 'Сохранить', 'wallet.change': 'Сменить', 'wallet.disconnect': 'Отвязать',
   'fr.title': 'Приглашай друзей', 'fr.sub': 'За каждого друга, который реально играет, ты получаешь {cash} и {gems} кристалла в игре, а друг — приветственный бонус.',
   'fr.invited': 'Приглашено', 'fr.active': 'Активных', 'fr.earned': 'Очки от друзей', 'fr.share': 'Пригласить', 'fr.no_link': 'Ссылка недоступна',
   'fr.rules': 'Правила', 'fr.rule1': 'Ты получаешь {p}% от очков друзей (из общего пула — у них ничего не отнимается).',
@@ -2660,12 +2676,12 @@ LANGS.ru = {
   'fr.list': 'Твои друзья', 'fr.l2': '+{n} активных на 2 уровне', 'fr.is_active': 'активен', 'fr.not_active': 'ещё не активен', 'fr.empty': 'Пока никого. Поделись ссылкой!',
   'fr.share_text': 'Строй со мной свою неоновую игровую студию в Office Dreams! 🏢🎮',
   'task.title': 'Задания', 'task.sub': 'Разовые задания с очками аирдропа.', 'task.go': 'Перейти', 'task.sub_btn': "Подписаться", 'task.check': 'Проверить', 'task.tg_only': 'в Telegram',
-  'task.channel': 'Подпишись на канал', 'task.chat': 'Вступи в чат сообщества', 'task.x': 'Подпишись на нас в X', 'task.wallet': 'Подключи TON-кошелёк',
+  'task.channel': 'Подпишись на канал', 'task.chat': 'Вступи в чат сообщества', 'task.x': 'Подпишись на нас в X', 'task.wallet': "Привяжи Solana-кошелёк",
   'task.play3': 'Поиграй 3 разных дня', 'task.play14': 'Поиграй 14 разных дней', 'task.streak3': 'Серия отметок 3 дня', 'task.streak7': 'Серия отметок 7 дней',
   'task.invite1': 'Пригласи 1 активного друга', 'task.invite3': 'Пригласи 3 активных друзей', 'task.invite10': 'Пригласи 10 активных друзей',
   'top.you': 'Твоё место', 'top.players': 'Игроков: {n}', 'top.empty': 'Здесь пока никого — будь первым!', 'top.few': 'Пока только тройка лидеров.',
   'top.hint': 'Рейтинг обновляется каждые несколько секунд. Аккаунты на проверке скрыты.',
-  'shop.title': 'Магазин', 'shop.sub': 'Оплата Telegram Stars или TON. Покупки дают только игровые предметы.',
+  'shop.title': 'Магазин', 'shop.sub': 'Оплата Telegram Stars или SOL. Покупки дают только игровые предметы.',
   'shop.hint': 'Покупки дают игровые предметы и статус Сапортера: +{p}% к очкам за игру на 30 дней. Office Pass ещё и поднимает дневной потолок на 25%.', 'shop.owned': 'Куплено',
   'shop.paid': 'Оплата получена! Предметы уже в пути.', 'shop.demo': 'Магазин работает в версии для Telegram.',
   'chal.title': 'Быстрая проверка', 'chal.sub': 'Убедимся, что ты человек — это 2 секунды.', 'chal.odd': 'Нажми на тот, что отличается:',
@@ -2688,8 +2704,8 @@ LANGS.ru = {
   'err.busy': 'Проект уже в работе', 'err.unavailable': 'Сейчас недоступно', 'err.claimed': 'Уже получено', 'err.notyet': 'Ещё не выполнено',
   'err.net': 'Нет связи. Повторяем…', 'err.rate': 'Слишком быстро — попробуй через секунду', 'err.done': 'Уже выполнено', 'err.not_member': 'Сначала подпишись на канал',
   'err.verify_unavailable': 'Проверка временно недоступна', 'err.play_first': 'Сначала немного поиграй (20 нажатий)', 'err.wrong': 'Неверный ответ', 'err.expired': 'Проверка устарела',
-  'err.address': 'Неверный адрес TON', 'err.invoice': 'Оплата сейчас недоступна', 'err.pay_failed': 'Оплата не прошла', 'err.demo': 'Доступно в версии для Telegram',
-  'err.not_configured': 'Ещё не настроено', 'err.tonconnect': 'Не удалось открыть подключение кошелька', 'err.server': 'Ошибка сервера', 'err.json': 'Ошибка сервера', 'err.auth': 'Перезапусти игру',
+'err.invoice': 'Оплата сейчас недоступна', 'err.pay_failed': 'Оплата не прошла', 'err.demo': 'Доступно в версии для Telegram',
+  'err.not_configured': 'Ещё не настроено','err.server': 'Ошибка сервера', 'err.json': 'Ошибка сервера', 'err.auth': 'Перезапусти игру',
   'err.unavailable_sku': 'Недоступно',
   'ev.deadline.who': 'Босс', 'ev.deadline.title': 'Срочный дедлайн', 'ev.deadline.text': 'Нам нужно срочно выпустить игру к выходным. Справишься?',
   'ev.deadline.c0': 'Да, конечно! (+${bonus})', 'ev.deadline.c1': 'Попросить больше времени', 'ev.deadline.c2': 'Сказать, что я занят',
@@ -2708,7 +2724,7 @@ LANGS.ru = {
   'ev.poach.c0': 'Поднять зарплату (−${cost})', 'ev.poach.c1': 'Поговорить по душам', 'ev.poach.c2': 'Отпустить',
   'ev.poach.r0': 'Сотрудник остался и доволен. Настроение +20.', 'ev.poach.r1a': 'Разговор помог: сотрудник остаётся. Настроение +10.', 'ev.poach.r1b': 'Разговор не сложился. Сотрудник остался, но настроение −20.',
   'ev.poach.r2': 'Опытный сотрудник ушёл, на его место пришёл новичок. Уровень −1.',
-  'ev.hackathon.who': 'Организатор', 'ev.hackathon.title': 'Хакатон на TON', 'ev.hackathon.text': 'Открыта регистрация на хакатон. Приз: {gems} кристалла. Участвуешь?',
+  'ev.hackathon.who': 'Организатор', 'ev.hackathon.title': 'Хакатон на Solana', 'ev.hackathon.text': 'Открыта регистрация на хакатон. Приз: {gems} кристалла. Участвуешь?',
   'ev.hackathon.c0': 'Участвовать лично (энергия −30)', 'ev.hackathon.c1': 'Отправить команду', 'ev.hackathon.c2': 'Пропустить',
   'ev.hackathon.r0': 'Ты занял призовое место: +{gems} крист. и +2 к репутации.', 'ev.hackathon.r1': 'Команда привезла {gems} крист., но устала (настроение −5).',
   'ev.hackathon.r2': 'Ты решил не участвовать. Работаем дальше.',
@@ -2719,7 +2735,7 @@ LANGS.ru = {
   'ev.party.who': 'Команда', 'ev.party.title': 'Корпоратив', 'ev.party.text': 'Команда просит отметить недавнюю работу. Что скажешь?',
   'ev.party.c0': 'Устроить вечеринку (−${cost})', 'ev.party.c1': 'Заказать пиццу (−${cost})', 'ev.party.c2': 'Работаем!',
   'ev.party.r0': 'Вечеринка удалась. Настроение команды +18.', 'ev.party.r1': 'Пицца исчезла за пять минут. Настроение +7.', 'ev.party.r2': 'Команда без восторга вернулась к работе. Настроение −3.',
-  'ev.phishing.who': 'Почта', 'ev.phishing.title': 'Подозрительное письмо', 'ev.phishing.text': 'Письмо: «Вам начислено 5 TON! Подтвердите кошелёк по ссылке ton-reward-claim.xyz». Отправитель незнаком.',
+  'ev.phishing.who': 'Почта', 'ev.phishing.title': 'Подозрительное письмо', 'ev.phishing.text': 'Письмо: «Вам начислено 5 SOL! Подтвердите кошелёк по ссылке sol-reward-claim.xyz». Отправитель незнаком.',
   'ev.phishing.c0': 'Перейти по ссылке', 'ev.phishing.c1': 'Удалить письмо', 'ev.phishing.c2': 'Сообщить в поддержку',
   'ev.phishing.r0': 'Это был фишинг! Потеряно ${loss}. Настоящие награды никогда не просят данные кошелька по ссылке из письма.',
   'ev.phishing.r1': 'Верное решение. Бонус за бдительность: +1 кристалл.', 'ev.phishing.r2': 'Поддержка поблагодарила. +1 кристалл и +1 к репутации.',
@@ -2883,12 +2899,24 @@ LANGS.ru = {
   'tk3.r5': "Часть дохода игры идёт в пул игроков и на выкуп токена.",
   'tk3.risk': "Цену токена определяет рынок. Эти правила усложняют слив, но не являются обещанием прибыли.",
   'sol.title': "Solana-кошелёк",
-  'sol.sub': "Сюда придёт твой аирдроп {sym}. TON-кошелёк остаётся для покупок в магазине.",
+  'sol.sub': "Сюда придёт твой аирдроп {sym}.",
   'sol.add': "Добавить Solana-кошелёк",
   'sol.manual_t': "Вставь адрес своего Solana-кошелька (Phantom, Solflare, Backpack…). Это 32–44 буквы и цифры. Никому не давай сид-фразу — нужен только адрес.",
   'sol.ok': "Solana-кошелёк сохранён",
   'sol.off_ok': "Solana-кошелёк отвязан",
   'err.sol_address': "Это не адрес Solana",
+  'shop.sol_hint': "Плати ⭐ Stars или ◎ SOL — товары те же. Отправь точную сумму SOL с любого Solana-кошелька — покупка зачислится сама, когда сеть подтвердит перевод (обычно меньше минуты).",
+  'pay.title': "Оплата в SOL",
+  'pay.sub': "Открой свой Solana-кошелёк (Phantom, Solflare, Backpack…) или отсканируй QR-код и отправь ровно эту сумму.",
+  'pay.amount': "Сумма",
+  'pay.exact': "Отправь ровно эту сумму — по последним цифрам мы узнаём твой платёж.",
+  'pay.to': "На адрес",
+  'pay.copy': "Копировать",
+  'pay.copied': "Скопировано",
+  'pay.open': "Открыть в кошельке",
+  'pay.waiting': "Ждём перевод… окно можно закрыть — оплата всё равно зачислится.",
+  'pay.later': "Перевод пока не виден. Если ты оплатил, он зачислится сам в течение 48 часов.",
+  'pay.no_wallet': "Приложение Solana-кошелька не найдено — скопируй адрес и сумму",
   'tok.what': "{sym} — собственный токен игры в блокчейне Solana. Очки аирдропа, которые ты собираешь сейчас, будут обменяны на него.",
   'tok.supply': "100 000 000 — выпуск один раз, больше не будет никогда",
   'tok.status': 'Сезон 0: собираем очки',
@@ -2923,16 +2951,13 @@ LANGS.ru = {
   'set.music': 'Музыка',
   'set.next_track': 'Следующий трек',
   'music.office': 'Neon Office',
-  'shop.ton_hint': 'Плати ⭐ Stars или 💎 TON — товары те же. TON уходит с подключённого кошелька и зачисляется сам, когда блокчейн подтвердит (обычно 10–30 с).',
-  'shop.ton_wait': 'Ждём подтверждения перевода TON…',
-  'shop.ton_connect': 'Сначала подключи TON-кошелёк, потом нажми на цену ещё раз',
-  'shop.ton_later': 'Перевод ещё идёт — покупка зачислится автоматически (бот пришлёт сообщение)',
-  'err.ton_rejected': 'Оплата отменена в кошельке',
+
+
   'shop.first': 'x2 первая покупка',
   'shop.vip': '+{p}% монет к каждому набору',
   'shop.vip_next': 'Ещё {n}⭐ до VIP {lvl} → +{p}% монет',
   'shop.vip_max': 'Максимальный VIP — спасибо!',
-  'shop.vip_hint': 'VIP растёт с каждой покупкой (Stars или TON) и даёт бонусные монеты. На очки аирдропа не влияет.',
+  'shop.vip_hint': 'VIP растёт с каждой покупкой (Stars или SOL) и даёт бонусные монеты. На очки аирдропа не влияет.',
   'fr.title2': "Пригласи друга — бонус получите оба",
   'fr.you_get': "Ты получаешь",
   'fr.friend_gets': "Друг получает",
@@ -3276,10 +3301,8 @@ LANGS.uk = {
   'ci.text': 'Заходь щодня: що довша серія, то більша нагорода.',
   'risk.watch': 'Помічено незвичну активність. Поки бали нараховуються наполовину — просто грай як зазвичай, і це мине.',
   'risk.hold': 'Бали тимчасово заморожені, поки ми перевіряємо акаунт. Якщо граєш чесно — обмеження знімуть.',
-  'wallet.title': 'TON-гаманець', 'wallet.sub': 'Прив’яжи гаманець, на який прийдуть майбутні нагороди.', 'wallet.connect': 'Підключити гаманець',
-  'wallet.manual': 'Ввести адресу вручну', 'wallet.manual_t': 'Встав адресу TON-гаманця (починається з UQ або EQ). Нікому не повідомляй сід-фразу!',
-  'wallet.save': 'Зберегти', 'wallet.change': 'Змінити', 'wallet.disconnect': 'Відв’язати', 'wallet.verified': 'підтверджено', 'wallet.unverified': 'не підтверджено',
-  'wallet.ok': 'Гаманець збережено', 'wallet.ok_verified': 'Гаманець підключено й підтверджено!', 'wallet.off_ok': 'Гаманець відв’язано',
+
+  'wallet.save': 'Зберегти', 'wallet.change': 'Змінити', 'wallet.disconnect': 'Відв’язати',
   'fr.title': 'Запрошуй друзів', 'fr.sub': 'За кожного друга, який справді грає, ти отримуєш {cash} і {gems} кристали в грі, а друг — вітальний бонус.',
   'fr.invited': 'Запрошено', 'fr.active': 'Активних', 'fr.earned': 'Бали від друзів', 'fr.share': 'Запросити', 'fr.no_link': 'Посилання недоступне',
   'fr.rules': 'Правила', 'fr.rule1': 'Ти отримуєш {p}% від балів друзів (із загального пулу — у них нічого не забирається).',
@@ -3288,12 +3311,12 @@ LANGS.uk = {
   'fr.list': 'Твої друзі', 'fr.l2': '+{n} активних на 2 рівні', 'fr.is_active': 'активний', 'fr.not_active': 'ще не активний', 'fr.empty': 'Поки нікого. Поділися посиланням!',
   'fr.share_text': 'Будуй зі мною свою неонову ігрову студію в Office Dreams! 🏢🎮',
   'task.title': 'Завдання', 'task.sub': 'Разові завдання з балами аірдропу.', 'task.go': 'Перейти', 'task.sub_btn': "Підписатись", 'task.check': 'Перевірити', 'task.tg_only': 'у Telegram',
-  'task.channel': 'Підпишись на канал', 'task.chat': 'Вступи в чат спільноти', 'task.x': 'Підпишись на нас у X', 'task.wallet': 'Підключи TON-гаманець',
+  'task.channel': 'Підпишись на канал', 'task.chat': 'Вступи в чат спільноти', 'task.x': 'Підпишись на нас у X', 'task.wallet': "Прив’яжи Solana-гаманець",
   'task.play3': 'Пограй 3 різні дні', 'task.play14': 'Пограй 14 різних днів', 'task.streak3': 'Серія відміток 3 дні', 'task.streak7': 'Серія відміток 7 днів',
   'task.invite1': 'Запроси 1 активного друга', 'task.invite3': 'Запроси 3 активних друзів', 'task.invite10': 'Запроси 10 активних друзів',
   'top.you': 'Твоє місце', 'top.players': 'Гравців: {n}', 'top.empty': 'Тут поки нікого — будь першим!', 'top.few': 'Поки лише трійка лідерів.',
   'top.hint': 'Рейтинг оновлюється кожні кілька секунд. Акаунти на перевірці приховані.',
-  'shop.title': 'Магазин', 'shop.sub': 'Оплата Telegram Stars або TON. Покупки дають лише ігрові предмети.',
+  'shop.title': 'Магазин', 'shop.sub': 'Оплата Telegram Stars або SOL. Покупки дають лише ігрові предмети.',
   'shop.hint': 'Покупки дають ігрові предмети й статус Саппортера: +{p}% до балів за гру на 30 днів. Office Pass ще й піднімає денну стелю на 25%.', 'shop.owned': 'Куплено',
   'shop.paid': 'Оплату отримано! Предмети вже в дорозі.', 'shop.demo': 'Магазин працює у версії для Telegram.',
   'chal.title': 'Швидка перевірка', 'chal.sub': 'Переконаємося, що ти людина — це 2 секунди.', 'chal.odd': 'Натисни на той, що відрізняється:',
@@ -3316,8 +3339,8 @@ LANGS.uk = {
   'err.busy': 'Проєкт уже в роботі', 'err.unavailable': 'Зараз недоступно', 'err.claimed': 'Вже отримано', 'err.notyet': 'Ще не виконано',
   'err.net': 'Немає зв’язку. Повторюємо…', 'err.rate': 'Занадто швидко — спробуй за секунду', 'err.done': 'Вже виконано', 'err.not_member': 'Спершу підпишись на канал',
   'err.verify_unavailable': 'Перевірка тимчасово недоступна', 'err.play_first': 'Спершу трохи пограй (20 натискань)', 'err.wrong': 'Неправильна відповідь', 'err.expired': 'Перевірка застаріла',
-  'err.address': 'Неправильна адреса TON', 'err.invoice': 'Оплата зараз недоступна', 'err.pay_failed': 'Оплата не пройшла', 'err.demo': 'Доступно у версії для Telegram',
-  'err.not_configured': 'Ще не налаштовано', 'err.tonconnect': 'Не вдалося відкрити підключення гаманця', 'err.server': 'Помилка сервера', 'err.json': 'Помилка сервера', 'err.auth': 'Перезапусти гру',
+'err.invoice': 'Оплата зараз недоступна', 'err.pay_failed': 'Оплата не пройшла', 'err.demo': 'Доступно у версії для Telegram',
+  'err.not_configured': 'Ще не налаштовано','err.server': 'Помилка сервера', 'err.json': 'Помилка сервера', 'err.auth': 'Перезапусти гру',
   'err.unavailable_sku': 'Недоступно',
   'ev.deadline.who': 'Бос', 'ev.deadline.title': 'Терміновий дедлайн', 'ev.deadline.text': 'Нам треба терміново випустити гру до вихідних. Впораєшся?',
   'ev.deadline.c0': 'Так, звісно! (+${bonus})', 'ev.deadline.c1': 'Попросити більше часу', 'ev.deadline.c2': 'Сказати, що я зайнятий',
@@ -3336,7 +3359,7 @@ LANGS.uk = {
   'ev.poach.c0': 'Підняти зарплату (−${cost})', 'ev.poach.c1': 'Поговорити по душах', 'ev.poach.c2': 'Відпустити',
   'ev.poach.r0': 'Працівник лишився й задоволений. Настрій +20.', 'ev.poach.r1a': 'Розмова допомогла: працівник лишається. Настрій +10.', 'ev.poach.r1b': 'Розмова не склалася. Працівник лишився, але настрій −20.',
   'ev.poach.r2': 'Досвідчений працівник пішов, на його місце прийшов новачок. Рівень −1.',
-  'ev.hackathon.who': 'Організатор', 'ev.hackathon.title': 'Хакатон на TON', 'ev.hackathon.text': 'Відкрито реєстрацію на хакатон. Приз: {gems} кристали. Береш участь?',
+  'ev.hackathon.who': 'Організатор', 'ev.hackathon.title': 'Хакатон на Solana', 'ev.hackathon.text': 'Відкрито реєстрацію на хакатон. Приз: {gems} кристали. Береш участь?',
   'ev.hackathon.c0': 'Взяти участь особисто (енергія −30)', 'ev.hackathon.c1': 'Відправити команду', 'ev.hackathon.c2': 'Пропустити',
   'ev.hackathon.r0': 'Ти посів призове місце: +{gems} крист. і +2 до репутації.', 'ev.hackathon.r1': 'Команда привезла {gems} крист., але втомилася (настрій −5).',
   'ev.hackathon.r2': 'Ти вирішив не брати участі. Працюємо далі.',
@@ -3347,7 +3370,7 @@ LANGS.uk = {
   'ev.party.who': 'Команда', 'ev.party.title': 'Корпоратив', 'ev.party.text': 'Команда просить відсвяткувати нещодавню роботу. Що скажеш?',
   'ev.party.c0': 'Влаштувати вечірку (−${cost})', 'ev.party.c1': 'Замовити піцу (−${cost})', 'ev.party.c2': 'Працюємо!',
   'ev.party.r0': 'Вечірка вдалася. Настрій команди +18.', 'ev.party.r1': 'Піца зникла за п’ять хвилин. Настрій +7.', 'ev.party.r2': 'Команда без захвату повернулася до роботи. Настрій −3.',
-  'ev.phishing.who': 'Пошта', 'ev.phishing.title': 'Підозрілий лист', 'ev.phishing.text': 'Лист: «Вам нараховано 5 TON! Підтвердіть гаманець за посиланням ton-reward-claim.xyz». Відправник незнайомий.',
+  'ev.phishing.who': 'Пошта', 'ev.phishing.title': 'Підозрілий лист', 'ev.phishing.text': 'Лист: «Вам нараховано 5 SOL! Підтвердіть гаманець за посиланням sol-reward-claim.xyz». Відправник незнайомий.',
   'ev.phishing.c0': 'Перейти за посиланням', 'ev.phishing.c1': 'Видалити лист', 'ev.phishing.c2': 'Повідомити підтримку',
   'ev.phishing.r0': 'Це був фішинг! Втрачено ${loss}. Справжні нагороди ніколи не просять дані гаманця за посиланням з листа.',
   'ev.phishing.r1': 'Правильне рішення. Бонус за пильність: +1 кристал.', 'ev.phishing.r2': 'Підтримка подякувала. +1 кристал і +1 до репутації.',
@@ -3511,12 +3534,24 @@ LANGS.uk = {
   'tk3.r5': "Частина доходу гри йде в пул гравців і на викуп токена.",
   'tk3.risk': "Ціну токена визначає ринок. Ці правила ускладнюють злив, але не є обіцянкою прибутку.",
   'sol.title': "Solana-гаманець",
-  'sol.sub': "Сюди прийде твій аірдроп {sym}. TON-гаманець лишається для покупок у магазині.",
+  'sol.sub': "Сюди прийде твій аірдроп {sym}.",
   'sol.add': "Додати Solana-гаманець",
   'sol.manual_t': "Встав адресу свого Solana-гаманця (Phantom, Solflare, Backpack…). Це 32–44 літери й цифри. Нікому не давай сид-фразу — потрібна лише адреса.",
   'sol.ok': "Solana-гаманець збережено",
   'sol.off_ok': "Solana-гаманець відв’язано",
   'err.sol_address': "Це не адреса Solana",
+  'shop.sol_hint': "Плати ⭐ Stars або ◎ SOL — товари ті самі. Надішли точну суму SOL з будь-якого Solana-гаманця — покупка зарахується сама, коли мережа підтвердить переказ (зазвичай менше хвилини).",
+  'pay.title': "Оплата в SOL",
+  'pay.sub': "Відкрий свій Solana-гаманець (Phantom, Solflare, Backpack…) або відскануй QR-код і надішли рівно цю суму.",
+  'pay.amount': "Сума",
+  'pay.exact': "Надішли рівно цю суму — за останніми цифрами ми впізнаємо твій платіж.",
+  'pay.to': "На адресу",
+  'pay.copy': "Копіювати",
+  'pay.copied': "Скопійовано",
+  'pay.open': "Відкрити в гаманці",
+  'pay.waiting': "Чекаємо переказ… вікно можна закрити — оплата все одно зарахується.",
+  'pay.later': "Переказ поки не видно. Якщо ти оплатив, він зарахується сам протягом 48 годин.",
+  'pay.no_wallet': "Застосунок Solana-гаманця не знайдено — скопіюй адресу й суму",
   'tok.what': "{sym} — власний токен гри в блокчейні Solana. Бали аірдропу, які ти збираєш зараз, буде обміняно на нього.",
   'tok.supply': "100 000 000 — випуск один раз, більше не буде ніколи",
   'tok.status': 'Сезон 0: збираємо бали',
@@ -3551,16 +3586,13 @@ LANGS.uk = {
   'set.music': 'Музика',
   'set.next_track': 'Наступний трек',
   'music.office': 'Neon Office',
-  'shop.ton_hint': 'Плати ⭐ Stars або 💎 TON — товари ті самі. TON іде з підключеного гаманця і зараховується сам, коли блокчейн підтвердить (зазвичай 10–30 с).',
-  'shop.ton_wait': 'Чекаємо підтвердження переказу TON…',
-  'shop.ton_connect': 'Спочатку підключи TON-гаманець, потім натисни на ціну ще раз',
-  'shop.ton_later': 'Переказ ще йде — покупка зарахується автоматично (бот надішле повідомлення)',
-  'err.ton_rejected': 'Оплату скасовано в гаманці',
+
+
   'shop.first': 'x2 перша покупка',
   'shop.vip': '+{p}% монет до кожного набору',
   'shop.vip_next': 'Ще {n}⭐ до VIP {lvl} → +{p}% монет',
   'shop.vip_max': 'Максимальний VIP — дякуємо!',
-  'shop.vip_hint': 'VIP росте з кожною покупкою (Stars або TON) і дає бонусні монети. На бали аірдропу не впливає.',
+  'shop.vip_hint': 'VIP росте з кожною покупкою (Stars або SOL) і дає бонусні монети. На бали аірдропу не впливає.',
   'fr.title2': "Запроси друга — бонус отримаєте обидва",
   'fr.you_get': "Ти отримуєш",
   'fr.friend_gets': "Друг отримує",
@@ -7384,17 +7416,15 @@ const netApi = {
   leaderboard: () => (NET.mode === 'online' ? api('GET', '/api/leaderboard') : Promise.resolve(demoBoard())),
   shop: () => (NET.mode === 'online' ? api('GET', '/api/shop') : Promise.resolve({ ok: true, items: [], demo: true })),
   invoice: (sku) => api('POST', '/api/shop/invoice', { sku }),
-  tonOrder: (sku) => api('POST', '/api/shop/ton', { sku }),
+  solOrder: (sku) => api('POST', '/api/shop/sol', { sku }),
   donateInfo: () => (NET.mode === 'online' ? api('GET', '/api/donate') : Promise.resolve({ ok: true, demo: true, stars: 0, donors: 0, usd: 0, goalUsd: 5000, min: 100, max: 10000, mine: 0, top: [] })),
   donateInvoice: (stars) => api('POST', '/api/donate/invoice', { stars }),
-  donateTon: (ton) => api('POST', '/api/donate/ton', { ton }),
-  tonCheck: (id) => api('POST', '/api/shop/ton/check', { id }),
+  donateSol: (sol) => api('POST', '/api/donate/sol', { sol }),
+  solCheck: (id) => api('POST', '/api/shop/sol/check', { id }),
   challenge: (id, a, ts) => api('POST', '/api/challenge', { id, a, ts }),
   lang: (lang) => (NET.mode === 'online' ? api('POST', '/api/lang', { lang }) : Promise.resolve({ ok: true })),
   forget: () => api('POST', '/api/forget', { confirm: true }),
-  wallet: (body) => api('POST', '/api/wallet', body),
   sol: (body) => api('POST', '/api/sol', body),
-  tonPayload: () => api('GET', '/api/ton/payload'),
   market: (range) => api('GET', '/api/market?range=' + encodeURIComponent(range || '24h')),
   marketBal: () => api('GET', '/api/market/bal'),
   adClaim: () => api('POST', '/api/ads/claim', {}),
@@ -7453,8 +7483,7 @@ async function showAd() {
   return r || { ok: false, err: 'net' };
 }
 
-/* ---------- TON Connect ---------- */
-let tonUI = null;
+/* ---------- external scripts (ads SDK, QR code) ---------- */
 function loadScript(src) {
   return new Promise((res, rej) => {
     const s = document.createElement('script');
@@ -7465,73 +7494,6 @@ function loadScript(src) {
     document.head.appendChild(s);
   });
 }
-async function tonConnect() {
-  if (NET.mode !== 'online' || !NET.cfg) return { ok: false, err: 'demo' };
-  const tc = NET.cfg.tonconnect || {};
-  if (!tc.manifest) return { ok: false, err: 'not_configured' };
-  try {
-    await ensureTonUI();
-    if (tonUI.connected) { try { await tonUI.disconnect(); } catch (e) {} }
-    const pl = await netApi.tonPayload();
-    if (pl && pl.payload) tonUI.setConnectRequestParameters({ state: 'ready', value: { tonProof: pl.payload } });
-    await tonUI.openModal();
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, err: 'tonconnect' };
-  }
-}
-// one TON Connect instance; restores a wallet connected earlier
-async function ensureTonUI() {
-  const tc = (NET.cfg && NET.cfg.tonconnect) || {};
-  if (!tc.manifest) throw new Error('not_configured');
-  if (!window.TON_CONNECT_UI) await loadScript(tc.cdn);
-  if (!tonUI) {
-    const opts = { manifestUrl: tc.manifest };
-    if (NET.cfg.bot && NET.cfg.app) opts.actionsConfiguration = { twaReturnUrl: 'https://t.me/' + NET.cfg.bot + '/' + NET.cfg.app };
-    tonUI = new window.TON_CONNECT_UI.TonConnectUI(opts);
-    tonUI.onStatusChange(async (w) => {
-      if (!w || !w.account) return;
-      const tp = w.connectItems && w.connectItems.tonProof;
-      const body = tp && tp.proof ? { account: w.account, proof: tp.proof } : { address: w.account.address };
-      const r = await netApi.wallet(body);
-      UIH.onWallet && UIH.onWallet(r);
-    });
-  }
-  try { await Promise.race([tonUI.connectionRestored, new Promise((r) => setTimeout(r, 3000))]); } catch (e) {}
-  return tonUI;
-}
-// a text comment as a one-cell BOC (op 0 + utf8), base64 — what wallets show as "comment"
-function commentBoc(text) {
-  const t = new TextEncoder().encode(text);
-  const data = new Uint8Array(4 + t.length);
-  data.set(t, 4);
-  const cell = new Uint8Array(2 + data.length);
-  cell[0] = 0; cell[1] = data.length * 2;
-  cell.set(data, 2);
-  const head = [0xb5, 0xee, 0x9c, 0x72, 0x01, 0x01, 0x01, 0x01, 0x00, cell.length, 0x00];
-  const out = new Uint8Array(head.length + cell.length);
-  out.set(head, 0); out.set(cell, head.length);
-  let bin = '';
-  out.forEach((b) => { bin += String.fromCharCode(b); });
-  return btoa(bin);
-}
-// pay a shop order with TON through the connected wallet
-async function tonPay(order) {
-  let ui;
-  try { ui = await ensureTonUI(); } catch (e) { return { ok: false, err: 'tonconnect' }; }
-  if (!ui.connected) return { ok: false, err: 'need_wallet' };
-  try {
-    await ui.sendTransaction({ validUntil: order.validUntil, messages: [{ address: order.to, amount: String(order.amount), payload: commentBoc(order.comment) }] });
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, err: 'ton_rejected' };
-  }
-}
-async function tonDisconnect() {
-  try { if (tonUI && tonUI.connected) await tonUI.disconnect(); } catch (e) {}
-  return netApi.wallet({ disconnect: true });
-}
-
 /* ============================================================
    DEMO backend (local only)
    ============================================================ */
@@ -8250,7 +8212,7 @@ const SUBS = {
   studio: ['team', 'games'],
   drop: ['home', 'token', 'friends', 'tasks', 'top', 'shop'],
 };
-const SUB_ICO = { team: 'team', games: 'games', home: 'pts', token: 'ton', friends: 'users', tasks: 'list', top: 'trophy', shop: 'cart' };
+const SUB_ICO = { team: 'team', games: 'games', home: 'pts', token: 'sol', friends: 'users', tasks: 'list', top: 'trophy', shop: 'cart' };
 
 /* ---------- derived helpers ---------- */
 const projectPct = () => (S.project ? Math.min(1, S.project.pts / S.project.need) * 100 : 0);
@@ -8804,7 +8766,7 @@ function hubHome() {
     ${checkinStrip(e)}
     ${ci.done ? `<button class="btn" disabled>${L('hub.checked')}</button>` : S.stats.taps < 20 ? `<button class="btn" disabled>${L('hub.checkin_play')}</button>` : `<button class="btn big glow" data-act="checkin">${L('hub.checkin_btn', { n: ci.next })}</button>`}
   </section>
-  ${walletCard(e)}
+  ${solCard(e)}
   <section class="panel how">
     <h2 class="h2">${I('info', 16)} ${L('hub.how')}</h2>
     <ul class="bul">
@@ -8819,17 +8781,6 @@ function hubHome() {
 function shortAddr(a) {
   a = String(a || '');
   return a.length > 14 ? a.slice(0, 6) + '…' + a.slice(-6) : a;
-}
-function walletCard(e) {
-  if (NET.mode === 'demo') return '';
-  const w = e.wallet;
-  return `<section class="panel wallet">
-    <div class="sec-h"><div><h2 class="h2">${I('ton', 16)} ${L('wallet.title')}</h2><p class="sub">${L('wallet.sub')}</p></div></div>
-    ${w ? `<div class="waddr">${I(w.ok ? 'check' : 'info', 14, w.ok ? 'grn' : 'yel')}<code>${esc(UI.walletFriendly || shortAddr(w.addr))}</code><small class="${w.ok ? 'grn' : 'yel'}">${w.ok ? L('wallet.verified') : L('wallet.unverified')}</small></div>
-      <div class="row2"><button class="btn ghost sm" data-act="wallet:connect">${L('wallet.change')}</button><button class="btn ghost sm" data-act="wallet:off">${L('wallet.disconnect')}</button></div>`
-    : `<button class="btn blue big" data-act="wallet:connect">${I('ton', 16)} ${L('wallet.connect')}</button>
-       <button class="linkbtn" data-act="wallet:manual">${L('wallet.manual')}</button>`}
-  </section>`;
 }
 function hubFriends() {
   const e = NET.eco;
@@ -8873,7 +8824,7 @@ function hubFriends() {
   </section>`;
 }
 function taskRow(t) {
-  const ico = { channel: 'plane', chat: 'users', x: 'share', wallet: 'ton', play3: 'calendar', play14: 'calendar', streak3: 'fire', streak7: 'fire', invite1: 'users', invite3: 'users', invite10: 'users' }[t.id] || 'star';
+  const ico = { channel: 'plane', chat: 'users', x: 'share', wallet: 'sol', play3: 'calendar', play14: 'calendar', streak3: 'fire', streak7: 'fire', invite1: 'users', invite3: 'users', invite10: 'users' }[t.id] || 'star';
   let right;
   if (t.done) right = I('check', 18, 'grn');
   else if (t.kind === 'tg') right = `<small class="mut">${L('task.tg_only')}</small>`;
@@ -8943,10 +8894,10 @@ function hubShop() {
       ${it.first || it.bonus ? `<div class="sku-tags">${it.first ? `<span class="tag x2">${L('shop.first')}</span>` : ''}${it.bonus ? `<span class="tag bon">+${it.bonus}%</span>` : ''}</div>` : ''}
       <b>${esc(it.title || it.sku)}</b>
       <small>${esc(it.desc || '')}</small>
-      ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<div class="pay2"><button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>${it.ton ? `<button class="btn sm tonb" data-act="payton:${it.sku}">${I('ton', 14)} ${it.ton} TON</button>` : ''}</div>`}
+      ${it.owned ? `<button class="btn sm" disabled>${L('shop.owned')}</button>` : `<div class="pay2"><button class="btn sm gold" data-act="pay:${it.sku}">⭐ ${it.stars}</button>${it.sol ? `<button class="btn sm solb" data-act="paysol:${it.sku}">${I('sol', 14)} ${it.sol} SOL</button>` : ''}</div>`}
     </div>`).join('')}</div>
     <p class="hint">${L('shop.vip_hint')}</p>
-    ${sh.ton ? `<p class="hint">${L('shop.ton_hint')}</p>` : ''}
+    ${sh.sol ? `<p class="hint">${L('shop.sol_hint')}</p>` : ''}
     <p class="hint">${L('shop.hint', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
   </section>`;
 }
@@ -8956,7 +8907,7 @@ function donatePanel() {
   const pct = Math.min(100, (d.usd / Math.max(1, d.goalUsd)) * 100);
   const amt = donAmount();
   const chips = [100, 250, 500, 1000, 2500, 5000].filter((n) => n >= d.min && n <= d.max);
-  const tonAmt = d.ton ? Math.max(d.tonMin || 1, Math.round(amt * (d.tonPerStar || 0.011) * 10) / 10) : 0;
+  const solAmt = d.sol ? solDonAmount() : 0;
   return `<section class="panel donate">
     <h2 class="h2">🚀 ${L('don.title')}</h2>
     <p class="sub">${L('don.sub')}</p>
@@ -8967,7 +8918,7 @@ function donatePanel() {
     </div>
     <div class="don-chips">${chips.map((n) => `<button class="chip ${n === amt ? 'on' : ''}" data-act="donamt:${n}">${fmt(n)} ⭐</button>`).join('')}</div>
     <label class="don-own"><small>${L('don.own', { min: d.min })}</small><input id="donin" type="number" inputmode="numeric" min="${d.min}" max="${d.max}" step="10" value="${amt}"></label>
-    <div class="pay2"><button class="btn gold" data-act="donstars">⭐ ${L('don.give', { n: fmt(amt) })}</button>${d.ton ? `<button class="btn tonb" data-act="donton">${I('ton', 14)} ${tonAmt} TON</button>` : ''}</div>
+    <div class="pay2"><button class="btn gold" data-act="donstars">⭐ ${L('don.give', { n: fmt(amt) })}</button>${d.sol ? `<button class="btn solb" data-act="donsol">${I('sol', 14)} ${solAmt} SOL</button>` : ''}</div>
     <p class="hint">${L('don.note', { max: fmt(d.max) })}</p>
     ${d.top && d.top.length ? `<h3 class="h3">💖 ${L('don.wall')}</h3><ol class="board">${d.top.map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><span class="yel">${fmt(x.stars)} ⭐</span></li>`).join('')}</ol>` : ''}
   </section>`;
@@ -10310,10 +10261,11 @@ const ACT = {
     }
   },
   pay: (sku) => buySku(sku),
-  payton: (sku) => buyTon(sku),
+  paysol: (sku) => buySol(sku),
+  solpay: (what) => solPayAct(what),
   donamt: (n) => { UI.donAmt = Number(n); UI.hubVer = (UI.hubVer || 0) + 1; render(true); },
   donstars: () => donateStars(),
-  donton: () => donateTon(),
+  donsol: () => donateSol(),
   ad: () => {
     if (UI.adBusy) return;
     const e = NET.eco && NET.eco.ads;
@@ -10333,19 +10285,6 @@ const ACT = {
       else toast(L('ads.skipped'), '');
       render(true);
     });
-  },
-  wallet: (what) => {
-    if (what === 'connect') {
-      tonConnect().then((r) => { if (!r.ok) { if (r.err === 'tonconnect' || r.err === 'not_configured') showManualWallet(); else errToast(r.err); } });
-    } else if (what === 'off') {
-      tonDisconnect().then((r) => { UI.walletFriendly = ''; if (r && r.ok) toast(L('wallet.off_ok'), 'good'); render(true); });
-    } else if (what === 'manual') showManualWallet();
-    else if (what === 'save') {
-      const inp = $('#waddr');
-      const v = inp ? inp.value.trim() : '';
-      if (!v) return;
-      netApi.wallet({ address: v }).then((r) => { UIH.onWallet(r); if (r && r.ok) closeModal(); });
-    }
   },
   sol: (what) => {
     if (what === 'set') return showSolWallet();
@@ -10371,7 +10310,7 @@ const ACT = {
 };
 function confettiSmall() { confetti(40); }
 
-/* ---------- token market (STON.fi): price, chart, holdings; refreshed while the token tab is open ---------- */
+/* ---------- token market (Solana): price, chart, holdings; refreshed while the token tab is open ---------- */
 function loadMarket(force) {
   if (NET.mode !== 'online' || !NET.cfg || !NET.cfg.market) return;
   const now = Date.now();
@@ -10430,51 +10369,65 @@ function donateStars() {
     if (TG && TG.openInvoice) TG.openInvoice(r.url, after); else openLink(r.url);
   });
 }
-async function donateTon() {
-  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
-  if (UI.tonBusy) return toast(L('shop.ton_wait'), '');
+/* ---------- paying with SOL (Solana Pay): exact amount + address + QR, the server watches the chain ---------- */
+function solDonAmount() {
   const d = UI.hub.donate || {};
-  const ton = Math.max(d.tonMin || 1, Math.round(donAmount() * (d.tonPerStar || 0.011) * 10) / 10);
-  UI.tonBusy = true;
-  try {
-    const r = await netApi.donateTon(ton);
-    if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
-    const p = await tonPay(r.order);
-    if (!p.ok) { if (p.err === 'need_wallet') { toast(L('shop.ton_connect'), '', 'ton'); tonConnect(); } else if (p.err === 'ton_rejected') toast(L('err.ton_rejected'), 'bad'); else errToast(p.err); return; }
-    toast(L('shop.ton_wait'), '', 'ton');
-    for (let i = 0; i < 30; i++) {
-      await new Promise((res) => setTimeout(res, 4000));
-      const c = await netApi.tonCheck(r.order.id);
-      if (c && c.paid) return donated();
-      if (c && c.expired) break;
-    }
-    toast(L('shop.ton_later'), '', 'ton');
-  } finally { UI.tonBusy = false; }
+  return Math.max(d.solMin || 0.01, Math.round(donAmount() * (d.solPerStar || 0.0001) * 1000) / 1000);
 }
-async function buyTon(sku) {
+async function donateSol() {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
-  if (UI.tonBusy) return toast(L('shop.ton_wait'), '');
-  UI.tonBusy = true;
-  try {
-    const r = await netApi.tonOrder(sku);
-    if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
-    const p = await tonPay(r.order);
-    if (!p.ok) {
-      if (p.err === 'need_wallet') { toast(L('shop.ton_connect'), '', 'ton'); tonConnect(); }
-      else if (p.err === 'ton_rejected') toast(L('err.ton_rejected'), 'bad');
-      else errToast(p.err);
-      return;
+  const r = await netApi.donateSol(solDonAmount());
+  if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
+  showSolPay(r.order, donated);
+}
+async function buySol(sku) {
+  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
+  const r = await netApi.solOrder(sku);
+  if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
+  showSolPay(r.order, paidJuice);
+}
+function qrSVG(text) {
+  if (!window.qrcode) return '';
+  const q = window.qrcode(0, 'M'); q.addData(text); q.make();
+  const n = q.getModuleCount(); let d = '';
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (q.isDark(y, x)) d += `M${x} ${y}h1v1h-1z`;
+  return `<svg viewBox="-2 -2 ${n + 4} ${n + 4}" shape-rendering="crispEdges"><rect x="-2" y="-2" width="${n + 4}" height="${n + 4}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+}
+function showSolPay(o, onPaid) {
+  UI.solOrder = o; UI.solPaid = onPaid;
+  openModal(`<h2 class="h2">${I('sol', 16)} ${L('pay.title')}</h2>
+    <p class="sub">${L('pay.sub')}</p>
+    <div class="sp-amt"><small>${L('pay.amount')}</small><b class="px">${esc(o.sol)} SOL</b><button class="btn ghost sm" data-act="solpay:camt">${I('copy', 12)} ${L('pay.copy')}</button></div>
+    <p class="hint yel">${L('pay.exact')}</p>
+    <div class="sp-to"><small>${L('pay.to')}</small><code>${esc(o.to)}</code><button class="btn ghost sm" data-act="solpay:cto">${I('copy', 12)} ${L('pay.copy')}</button></div>
+    <div class="sp-qr" id="spqr"></div>
+    <button class="btn big glow wide" data-act="solpay:open">${I('sol', 16)} ${L('pay.open')}</button>
+    <p class="sp-st" id="spst"><i class="spin"></i> ${L('pay.waiting')}</p>`, { id: 'solpay' });
+  const qr = () => { const el = $('#spqr'); if (el) el.innerHTML = qrSVG(o.url); };
+  if (window.qrcode) qr(); else loadScript('https://unpkg.com/qrcode-generator@1.4.4/qrcode.js').then(qr).catch(() => {});
+  pollSol(o);
+}
+async function pollSol(o) {
+  const until = Date.now() + 30 * 60000;
+  while (Date.now() < until && UI.solOrder === o) {
+    await new Promise((res) => setTimeout(res, 5000));
+    if (UI.solOrder !== o) return;
+    const c = await netApi.solCheck(o.id).catch(() => null);
+    if (c && c.paid) {
+      UI.solOrder = null;
+      if (UI.modal && UI.modal.id === 'solpay') closeModal();
+      return UI.solPaid && UI.solPaid();
     }
-    toast(L('shop.ton_wait'), '', 'ton');
-    // the transfer needs a few seconds to land in a block; then the server sees it
-    for (let i = 0; i < 30; i++) {
-      await new Promise((res) => setTimeout(res, 4000));
-      const c = await netApi.tonCheck(r.order.id);
-      if (c && c.paid) return paidJuice();
-      if (c && c.expired) break;
-    }
-    toast(L('shop.ton_later'), '', 'ton');
-  } finally { UI.tonBusy = false; }
+    if (c && c.expired) break;
+  }
+  if (UI.solOrder === o) { const st = $('#spst'); if (st) st.textContent = L('pay.later'); }
+}
+function solPayAct(what) {
+  const o = UI.solOrder;
+  if (!o) return;
+  if (what === 'camt') copyText(o.sol, (ok) => toast(ok ? L('pay.copied') : L('toast.copy_fail'), ok ? 'good' : 'bad', 'copy'));
+  else if (what === 'cto') copyText(o.to, (ok) => toast(ok ? L('pay.copied') : L('toast.copy_fail'), ok ? 'good' : 'bad', 'copy'));
+  else if (what === 'open') { try { window.location.href = o.url; } catch (e) { toast(L('pay.no_wallet'), 'bad'); } }
 }
 function buySku(sku) {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
@@ -10679,7 +10632,7 @@ function showHelp() {
         <li>${I('coin', 18)}<div><b>${L('res.cash')}</b><small>${L('help.cash')}</small></div></li>
         <li>${I('gem', 18)}<div><b>${L('res.gems')}</b><small>${L('help.gems')}</small></div></li>
         <li>${I('pts', 18)}<div><b>${L('res.pts')}</b><small>${L('help.pts', { sym })}</small></div></li>
-        <li>${I('ton', 18)}<div><b>${sym}</b><small>${L('help.token', { sym })}</small></div></li>
+        <li>${I('sol', 18)}<div><b>${sym}</b><small>${L('help.token', { sym })}</small></div></li>
       </ul>
     </div>
     <div class="row2"><button class="btn" data-act="go:drop:token">${L('help.more_token')}</button><button class="btn ghost" data-act="tut:restart">${L('help.tutorial')}</button></div>`, { id: 'help' });
@@ -10717,14 +10670,6 @@ function showEnding() {
     <p class="ev-text">${L('end.text')}</p>
     <button class="btn big gold" data-act="close">${L('end.ok')}</button></div>`, { id: 'ending' });
   confetti(200);
-}
-function showManualWallet() {
-  openModal(`<h2 class="h2">${I('ton', 16)} ${L('wallet.manual')}</h2>
-    <p class="sub">${L('wallet.manual_t')}</p>
-    <input id="waddr" class="inp" placeholder="UQ…" autocomplete="off" spellcheck="false" maxlength="80">
-    <button class="btn big" data-act="wallet:save">${L('wallet.save')}</button>`, { id: 'wallet' });
-  const inp = $('#waddr');
-  if (inp) inp.addEventListener('keydown', (e) => e.stopPropagation());
 }
 function showSolWallet() {
   openModal(`<h2 class="h2">${I('sol', 16)} ${L('sol.title')}</h2>
@@ -10812,16 +10757,6 @@ UIH.onChallenge = (ch) => showChallenge(ch);
 UIH.onRefAct = () => { toast(L('toast.ref_act'), 'good', 'users'); confetti(100); loadHub('friends', true); };
 UIH.onDropped = (err) => toast(L(err === 'clock' ? 'toast.clock' : 'toast.synced'), err === 'clock' ? 'bad' : '');
 UIH.onFatal = () => openModal(`<div class="center">${I('info', 30)}<h2 class="h2">${L('boot.session')}</h2><p class="sub">${L('boot.session_t')}</p><button class="btn big" data-act="retry">${L('boot.retry')}</button></div>`, { sticky: true, id: 'fatal' });
-UIH.onWallet = (r) => {
-  if (r && r.ok) {
-    UI.walletFriendly = r.friendly || '';
-    toast(L(r.level ? 'wallet.ok_verified' : 'wallet.ok'), 'good', 'ton');
-    confettiSmall();
-    loadHub('tasks', true);
-  } else errToast((r && r.err) || 'address');
-  render(true);
-};
-
 /* ---------- main loop ---------- */
 function frame(now) {
   const dt = Math.min(0.25, Math.max(0, (now - (UI.last || now)) / 1000));
@@ -10854,8 +10789,8 @@ function wireInput() {
     const b = $('[data-act="donstars"]');
     if (b) b.textContent = '⭐ ' + L('don.give', { n: fmt(n) });
     const d = UI.hub.donate || {};
-    const t = $('[data-act="donton"]');
-    if (t && d.ton) t.innerHTML = I('ton', 14) + ' ' + Math.max(d.tonMin || 1, Math.round(n * (d.tonPerStar || 0.011) * 10) / 10) + ' TON';
+    const t = $('[data-act="donsol"]');
+    if (t && d.sol) t.innerHTML = I('sol', 14) + ' ' + solDonAmount() + ' SOL';
     document.querySelectorAll('.don-chips .chip').forEach((c) => c.classList.toggle('on', c.dataset.act === 'donamt:' + n));
   });
   document.addEventListener('click', (e) => {

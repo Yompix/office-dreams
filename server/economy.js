@@ -197,7 +197,7 @@ function taskList(ctx, u) {
   if (c.chatUrl) list.push({ id: 'chat', pts: 20, url: c.chatUrl, verify: 'visit' });
   if (c.xUrl) list.push({ id: 'x', pts: 20, url: c.xUrl, verify: 'visit' });
   list.push(
-    { id: 'wallet', pts: 30, verify: 'auto', cur: u.wallet ? 1 : 0, max: 1 },
+    { id: 'wallet', pts: 30, verify: 'auto', cur: u.sol ? 1 : 0, max: 1 },
     { id: 'play3', pts: 25, verify: 'auto', cur: Math.min(3, u.days_played), max: 3 },
     { id: 'streak3', pts: 15, verify: 'auto', cur: Math.min(3, u.streak), max: 3 },
     { id: 'streak7', pts: 50, verify: 'auto', cur: Math.min(7, u.streak), max: 7 },
@@ -302,7 +302,7 @@ const SHOP = [
   { sku: 'pass30', stars: 150, gems: 20, passDays: 30 },
 ];
 const shopItem = (sku) => SHOP.find((x) => x.sku === sku) || null;
-// VIP: lifetime support (Stars, TON counted at its Stars price) raises the coin bonus on every pack — never airdrop points
+// VIP: lifetime support (Stars, SOL counted at its Stars price) raises the coin bonus on every pack — never airdrop points
 const VIP = [
   { lvl: 0, stars: 0, bonus: 0 },
   { lvl: 1, stars: 100, bonus: 5 },

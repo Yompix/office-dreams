@@ -14,10 +14,9 @@ const Studio = require('./studio.js');
 const Eco = require('./economy.js');
 const AB = require('./antibot.js');
 const Sync = require('./sync.js');
-const Ton = require('./ton.js');
 const Bot = require('./bot.js');
 const Admin = require('./admin.js');
-const TonPay = require('./tonpay.js');
+const SolPay = require('./solpay.js');
 const Market = require('./market.js');
 const TZC = require('./tzcountry.json');
 
@@ -122,12 +121,11 @@ function publicConfig(ctx) {
     app: c.appShort,
     season: c.season,
     symbol: c.tokenSymbol,
-    tonconnect: { cdn: c.tonconnectCdn, manifest: c.publicUrl ? c.publicUrl + '/tonconnect-manifest.json' : '' },
     dev: c.devAuth,
     links: { channel: c.channelUrl, chat: c.chatUrl, x: c.xUrl },
     eco: { D: c.eco.dailyD, l1: c.eco.refL1, l2: c.eco.refL2, cashEach: c.eco.inviteCash, gemsEach: c.eco.inviteGems, pass: c.eco.passBoost },
     shop: Eco.SHOP,
-    tonPay: TonPay.enabled(c),
+    solPay: SolPay.enabled(c),
     market: Market.enabled(c),
     tickMs: E.TICK * 1000,
     turnstile: c.turnstile.site || '',
@@ -285,8 +283,8 @@ async function handleApi(ctx, req, res, url, ip) {
   if (method === 'GET' && p === '/api/leaderboard') return sendJson(res, 200, Object.assign({ ok: true }, Eco.leaderboard(ctx, uid, now)));
   if (method === 'GET' && p === '/api/shop') {
     const lang = u0.lang;
-    const tonOn = TonPay.enabled(cfg);
-    return sendJson(res, 200, { ok: true, ton: tonOn, vip: Eco.vipOf(ctx, uid), items: Eco.shopView(ctx, u0).map((it) => { const t = Bot.shopTxt(lang, it.sku, it.cash); return { ...it, ton: tonOn ? TonPay.tonPrice(cfg, it) : null, title: t[0], desc: t[1] }; }) });
+    const solOn = SolPay.enabled(cfg);
+    return sendJson(res, 200, { ok: true, sol: solOn, vip: Eco.vipOf(ctx, uid), items: Eco.shopView(ctx, u0).map((it) => { const t = Bot.shopTxt(lang, it.sku, it.cash); return { ...it, sol: solOn ? SolPay.solPrice(cfg, it) : null, title: t[0], desc: t[1] }; }) });
   }
   if (method === 'POST' && p === '/api/shop/invoice') {
     const sku = String(body.sku || '');
@@ -300,7 +298,7 @@ async function handleApi(ctx, req, res, url, ip) {
     if (!r.ok) return bad(res, 502, 'invoice');
     return sendJson(res, 200, { ok: true, url: r.result });
   }
-  if (method === 'GET' && p === '/api/donate') return sendJson(res, 200, Object.assign({ ok: true, ton: TonPay.enabled(cfg), tonMin: TonPay.enabled(cfg) ? TonPay.donateMinTon(cfg) : null, tonPerStar: cfg.tonPay.starUsd / cfg.tonPay.usd }, Eco.fundView(ctx, uid, now)));
+  if (method === 'GET' && p === '/api/donate') return sendJson(res, 200, Object.assign({ ok: true, sol: SolPay.enabled(cfg), solMin: SolPay.enabled(cfg) ? SolPay.donateMinSol(cfg) : null, solPerStar: cfg.solPay.starUsd / SolPay.solUsd(cfg) }, Eco.fundView(ctx, uid, now)));
   if (method === 'POST' && p === '/api/donate/invoice') {
     const stars = Math.floor(Number(body.stars));
     if (!Number.isFinite(stars) || stars < cfg.donate.minStars || stars > cfg.donate.maxStars) return bad(res, 400, 'amount');
@@ -312,10 +310,10 @@ async function handleApi(ctx, req, res, url, ip) {
     if (!r.ok) return bad(res, 502, 'invoice');
     return sendJson(res, 200, { ok: true, url: r.result });
   }
-  if (method === 'POST' && p === '/api/donate/ton') return sendJson(res, 200, TonPay.createDonation(ctx, uid, Number(body.ton), now));
-  if (method === 'POST' && p === '/api/shop/ton') return sendJson(res, 200, TonPay.createOrder(ctx, uid, String(body.sku || ''), now));
-  if (method === 'POST' && p === '/api/shop/ton/check') {
-    const r = await TonPay.checkOrder(ctx, uid, String(body.id || ''), now);
+  if (method === 'POST' && p === '/api/donate/sol') return sendJson(res, 200, SolPay.createDonation(ctx, uid, Number(body.sol), now));
+  if (method === 'POST' && p === '/api/shop/sol') return sendJson(res, 200, SolPay.createOrder(ctx, uid, String(body.sku || ''), now));
+  if (method === 'POST' && p === '/api/shop/sol/check') {
+    const r = await SolPay.checkOrder(ctx, uid, String(body.id || ''), now);
     return sendJson(res, 200, Object.assign(r, { eco: Eco.ecoView(ctx, U.getUser(ctx, uid), now) }));
   }
   if (method === 'POST' && p === '/api/ads/claim') {
@@ -323,8 +321,6 @@ async function handleApi(ctx, req, res, url, ip) {
     const r = Eco.adReward(ctx, uid, 'client', now);
     return sendJson(res, 200, Object.assign(r, { eco: Eco.ecoView(ctx, U.getUser(ctx, uid), now) }));
   }
-  if (method === 'GET' && p === '/api/ton/payload') return sendJson(res, 200, { ok: true, payload: Ton.makePayload(cfg.sessionSecret, now) });
-  if (method === 'POST' && p === '/api/wallet') return handleWallet(ctx, res, uid, body, now);
   if (method === 'POST' && p === '/api/sol') return handleSol(ctx, res, uid, body, now);
   if (method === 'POST' && p === '/api/studio') {
     if (body.check) return sendJson(res, 200, Studio.isFree(ctx, uid, body.name));
@@ -359,43 +355,6 @@ async function handleApi(ctx, req, res, url, ip) {
     return sendJson(res, 200, { ok: true });
   }
   return bad(res, 404, 'route');
-}
-
-function handleWallet(ctx, res, uid, body, now) {
-  const { cfg } = ctx;
-  return ctx.db.tx(() => {
-    const u = U.getUser(ctx, uid);
-    if (body.address === null || body.disconnect) {
-      u.wallet = null; u.wallet_ok = 0; u.wallet_at = now;
-      Eco.persistUser(ctx, u);
-      return sendJson(res, 200, { ok: true, eco: Eco.ecoView(ctx, u, now) });
-    }
-    let addr, level = 0;
-    if (body.proof && body.account) {
-      let domain = '';
-      try { domain = new URL(cfg.publicUrl).host; } catch { /* dev */ }
-      const r = Ton.verifyTonProof({ account: body.account, proof: body.proof }, { secret: cfg.sessionSecret, domain, now });
-      addr = r.addr || Ton.parseAddress(body.account.address);
-      if (r.ok) level = r.level === 'full' ? 1 : 2;
-    } else {
-      addr = Ton.parseAddress(body.address);
-    }
-    if (!addr) return sendJson(res, 200, { ok: false, err: 'address' });
-    const raw = Ton.rawAddress(addr);
-    const dup = ctx.db.get('SELECT COUNT(*) AS n FROM users WHERE wallet=? AND id!=? AND deleted=0', raw, uid).n;
-    if (dup > 0) {
-      AB.addHard(ctx, u, 15, 'wallet_dup', { dup }, now);
-      for (const o of ctx.db.all('SELECT id FROM users WHERE wallet=? AND id!=?', raw, uid)) {
-        const ou = U.getUser(ctx, o.id);
-        AB.addHard(ctx, ou, 5, 'wallet_dup', { with: uid }, now);
-        Eco.persistUser(ctx, ou);
-      }
-    }
-    u.wallet = raw; u.wallet_ok = level; u.wallet_at = now;
-    AB.evaluate(ctx, u, now);
-    Eco.persistUser(ctx, u);
-    return sendJson(res, 200, { ok: true, level, friendly: Ton.toFriendly(addr, { bounceable: false, testnet: !!addr.testnet }), eco: Eco.ecoView(ctx, u, now) });
-  });
 }
 
 /* Solana wallet for the token airdrop and the balance in the market card (an address, no signature) */
@@ -445,9 +404,6 @@ function createApp(cfg, opts = {}) {
         sendText(res, 200, 'ok');
         Bot.handleUpdate(ctx, up);
         return;
-      }
-      if (p === '/tonconnect-manifest.json') {
-        return sendJson(res, 200, { url: cfg.publicUrl || `http://${req.headers.host}`, name: 'Office Dreams', iconUrl: (cfg.publicUrl || `http://${req.headers.host}`) + '/icon-180.png' });
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') return sendText(res, 405, 'method');
       return serve(req, res, p);
