@@ -140,6 +140,13 @@ function create(ctx) {
           total: one('SELECT COUNT(*) AS n FROM users WHERE deleted=0'),
         });
       }
+      if (p === '/admin/api/airdrop' && req.method === 'GET') return json(res, 200, require('./airdrop.js').adminView(ctx));
+      if (p === '/admin/api/airdrop/start' && req.method === 'POST') {
+        const Ad = require('./airdrop.js');
+        const r = Ad.snapshot(ctx, Date.now());
+        if (r.ok) Ad.tick(ctx).catch(() => {});
+        return json(res, 200, r);
+      }
       if (p === '/admin/api/stats') return json(res, 200, { ok: true, ...stats(ctx, Number(url.searchParams.get('price')) || 0) });
       if (p === '/admin/api/risk') {
         const st = url.searchParams.get('state') || 'watch';
@@ -248,10 +255,13 @@ h+='<h2>Review queue</h2><div class="row"><select id="st"><option>watch</option>
 h+='<h2>Player lookup</h2><div class="row"><input id="uid" placeholder="Telegram ID" size="16"><button id="lk">Find</button></div><div id="uo"></div>';
 h+='<h2>Channel post</h2><div class="card"><div class="row"><select id="dr"></select><button id="dru">Use draft</button></div><textarea id="ptx" rows="9" style="width:100%;background:#0c133a;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit"></textarea><div class="row"><label><input type="checkbox" id="pbtn" checked> ▶️ Play button</label><input id="pbt" value="▶️ Играть / Play" size="18"><label><input type="checkbox" id="pph" checked> picture</label><button id="ppub" class="g">Publish to channel</button><span id="pch" class="pill"></span></div><div class="k">HTML allowed: &lt;b&gt; &lt;i&gt; &lt;a href&gt; &lt;code&gt;. Picture posts: max 1024 characters.</div></div>';
 h+='<h2>Airdrop snapshot</h2><div class="row"><button id="csv">Download CSV</button><button id="jsn">Open JSON</button></div>';
+h+='<h2>OFFICE airdrop</h2><div class="card" id="ado">…</div><div class="row"><button id="ads">Start airdrop now (snapshot)</button></div>';
 $('#out').innerHTML=h;
 $('#pp').onclick=async()=>{const p=$('#price').value;const s2=await api('stats?price='+encodeURIComponent(p));alert('daily pie: '+s2.pie.pie+' (schedule '+s2.pie.schedule+', brake '+s2.pie.brake+')')};
 $('#rq').onclick=queue;$('#sw').onclick=async()=>{const r=await api('sweep',{method:'POST'});say('checked '+r.checked+', changed '+r.changed)};
 $('#lk').onclick=()=>lookup($('#uid').value);
+const adl=async()=>{const a=await api('airdrop');$('#ado').innerHTML='Status: <b>'+a.state.status+'</b>'+(a.state.at?' since '+new Date(a.state.at).toISOString().slice(0,16).replace('T',' '):'')+' · fund <b>$'+a.fund.usd+'</b> / $'+a.fund.goalUsd+' (starts by itself at the goal)<br>Players with a share: <b>'+a.allocs+'</b> · claimed <b>'+a.sent+'</b> · failed '+a.failed+'<br>Token: <span class="k">'+esc(a.mint||'TOKEN_ADDRESS not set')+'</span><br>Distributor: <span class="k">'+esc(a.distributor||'AIRDROP_SECRET not set')+'</span>';$('#ads').disabled=a.state.status!=='season'};adl();
+$('#ads').onclick=async()=>{if(!confirm('Freeze Season 0 points and start the airdrop now? This cannot be undone.'))return;const r=await api('airdrop/start',{method:'POST'});say(r.ok?'snapshot: '+r.players+' players':'error: '+r.err);adl()};
 posts();
 $('#csv').onclick=()=>dl('snapshot?fmt=csv');$('#jsn').onclick=()=>dl('snapshot?fmt=json');
 queue();liveStart()}catch(e){say(e.message==='key'?'wrong key':'error: '+e.message)}}

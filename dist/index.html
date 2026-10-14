@@ -1165,6 +1165,13 @@ body.pv-on #app { visibility: hidden; }
 .coin-face.logo { background: none; box-shadow: none; }
 .coin-face.logo img { width: 112px; height: 112px; filter: drop-shadow(0 0 16px rgba(153, 69, 255, 0.6)) drop-shadow(0 0 8px rgba(20, 241, 149, 0.4)); }
 img.mk-logo { object-fit: contain; background: none; }
+/* OFFICE airdrop card */
+.adrop.live { border-color: rgba(20, 241, 149, 0.55); box-shadow: 0 0 22px rgba(20, 241, 149, 0.18); }
+.ad-amt { display: flex; align-items: baseline; gap: 8px; margin: 6px 0 10px; }
+.ad-amt small { color: var(--ink2); flex: 1; }
+.ad-amt b { font-size: 26px; color: #14f195; text-shadow: 0 0 12px rgba(20, 241, 149, 0.55); }
+.ad-ok { display: flex; align-items: center; gap: 8px; font-weight: 800; color: #14f195; margin: 4px 0; }
+.adrop .fund-h { display: flex; align-items: baseline; gap: 8px; margin: 6px 0; }
 </style>
 </head>
 <body>
@@ -2165,7 +2172,7 @@ LANGS.en = {
   'mk.r_7d': "7d",
   'mk.r_30d': "30d",
   'mk.collecting': "The chart appears once price data builds up",
-  'mk.no_price': "The price is loading. You can already buy.",
+  'mk.no_price': "Trading has not opened yet — the price will appear here as soon as there is a market.",
   'mk.h1': "Tap “Buy on Jupiter” — the SOL → token swap opens",
   'mk.h2': "Connect Phantom, Solflare or another Solana wallet and choose how much {sym} to buy",
   'mk.h3': "{sym} lands in your wallet right away — the balance shows here",
@@ -2310,6 +2317,25 @@ LANGS.en = {
   'tk4.b4': "After the snapshot the tokens go to the Solana wallet linked in the game.",
   'tk4.b5': "{sym} is worth what the market pays for it: the longer players hold instead of selling, the stronger the project.",
   'tk4.risk': "This is not a promise of profit: the price can rise or fall, and points are not money.",
+  'ad.wait_t': "The {sym} airdrop starts by itself",
+  'ad.wait_s': "As soon as the launch fund reaches {goal}, Season 0 points are frozen and all 100,000,000 {sym} are split between players. Nobody presses a button — it is automatic.",
+  'ad.live_t': "The {sym} airdrop has started!",
+  'ad.yours': "Your share",
+  'ad.none': "You had no Season 0 points at the snapshot, so there is no share this time.",
+  'ad.sent': "Sent to your Solana wallet",
+  'ad.tx': "View the transfer",
+  'ad.need_wallet': "Add a Solana wallet to claim",
+  'ad.soon': "Claiming opens very soon — we will send a message.",
+  'ad.claim': "Claim {n} {sym}",
+  'ad.sending': "Sending…",
+  'ad.how': "Shares were fixed at the snapshot: {n} players. Bots and multi-accounts got nothing.",
+  'ad.ok': "Tokens sent! Check your Solana wallet",
+  'err.airdrop_notyet': "The airdrop has not started yet",
+  'err.airdrop_soon': "Claiming opens very soon",
+  'err.sol_need': "Add a Solana wallet first",
+  'err.airdrop_none': "You have no share in this airdrop",
+  'err.airdrop_wait': "The transfer is on its way — try again in a minute",
+  'err.airdrop_failed': "The transfer failed — try again a bit later",
   'tok.what': "{sym} is the game’s own token on the Solana blockchain. The airdrop points you collect now will be exchanged for it.",
   'tok.supply': "100,000,000 — minted once, no more ever",
   'tok.status': 'Season 0: collecting points',
@@ -2810,7 +2836,7 @@ LANGS.ru = {
   'mk.r_7d': "7д",
   'mk.r_30d': "30д",
   'mk.collecting': "График появится, когда накопятся данные о цене",
-  'mk.no_price': "Курс пока загружается. Купить можно уже сейчас.",
+  'mk.no_price': "Торговля ещё не открылась — курс появится здесь, как только будет рынок.",
   'mk.h1': "Нажми «Купить на Jupiter» — откроется обмен SOL на токен",
   'mk.h2': "Подключи Phantom, Solflare или другой Solana-кошелёк и выбери, сколько {sym} купить",
   'mk.h3': "Токены {sym} сразу попадут в твой кошелёк — баланс появится здесь",
@@ -2955,6 +2981,25 @@ LANGS.ru = {
   'tk4.b4': "После снимка токены придут на Solana-кошелёк, привязанный в игре.",
   'tk4.b5': "{sym} стоит столько, сколько за него дают на рынке: чем дольше игроки держат, а не продают, тем сильнее проект.",
   'tk4.risk': "Это не обещание прибыли: цена может расти и падать, а очки — не деньги.",
+  'ad.wait_t': "Аирдроп {sym} начнётся сам",
+  'ad.wait_s': "Как только фонд запуска наберёт {goal}, очки Сезона 0 фиксируются, и все 100 000 000 {sym} делятся между игроками. Никто не нажимает кнопку — всё автоматически.",
+  'ad.live_t': "Аирдроп {sym} начался!",
+  'ad.yours': "Твоя доля",
+  'ad.none': "На момент снимка у тебя не было очков Сезона 0, поэтому в этот раз доли нет.",
+  'ad.sent': "Отправлено на твой Solana-кошелёк",
+  'ad.tx': "Посмотреть перевод",
+  'ad.need_wallet': "Добавь Solana-кошелёк, чтобы забрать",
+  'ad.soon': "Выдача откроется совсем скоро — пришлём сообщение.",
+  'ad.claim': "Забрать {n} {sym}",
+  'ad.sending': "Отправляем…",
+  'ad.how': "Доли зафиксированы при снимке: {n} игроков. Боты и мультиаккаунты не получили ничего.",
+  'ad.ok': "Токены отправлены! Проверь Solana-кошелёк",
+  'err.airdrop_notyet': "Аирдроп ещё не начался",
+  'err.airdrop_soon': "Выдача откроется совсем скоро",
+  'err.sol_need': "Сначала добавь Solana-кошелёк",
+  'err.airdrop_none': "У тебя нет доли в этом аирдропе",
+  'err.airdrop_wait': "Перевод уже в пути — попробуй через минуту",
+  'err.airdrop_failed': "Перевод не прошёл — попробуй чуть позже",
   'tok.what': "{sym} — собственный токен игры в блокчейне Solana. Очки аирдропа, которые ты собираешь сейчас, будут обменяны на него.",
   'tok.supply': "100 000 000 — выпуск один раз, больше не будет никогда",
   'tok.status': 'Сезон 0: собираем очки',
@@ -3455,7 +3500,7 @@ LANGS.uk = {
   'mk.r_7d': "7д",
   'mk.r_30d': "30д",
   'mk.collecting': "Графік з’явиться, коли накопичаться дані про ціну",
-  'mk.no_price': "Курс поки завантажується. Купити можна вже зараз.",
+  'mk.no_price': "Торгівля ще не відкрилася — курс з’явиться тут, щойно буде ринок.",
   'mk.h1': "Натисни «Купити на Jupiter» — відкриється обмін SOL на токен",
   'mk.h2': "Підключи Phantom, Solflare чи інший Solana-гаманець і вибери, скільки {sym} купити",
   'mk.h3': "Токени {sym} одразу потраплять у твій гаманець — баланс з’явиться тут",
@@ -3600,6 +3645,25 @@ LANGS.uk = {
   'tk4.b4': "Після знімка токени прийдуть на Solana-гаманець, прив’язаний у грі.",
   'tk4.b5': "{sym} коштує стільки, скільки за нього дають на ринку: що довше гравці тримають, а не продають, то сильніший проєкт.",
   'tk4.risk': "Це не обіцянка прибутку: ціна може зростати й падати, а бали — не гроші.",
+  'ad.wait_t': "Аірдроп {sym} почнеться сам",
+  'ad.wait_s': "Щойно фонд запуску збере {goal}, бали Сезону 0 фіксуються, і всі 100 000 000 {sym} діляться між гравцями. Ніхто не натискає кнопку — усе автоматично.",
+  'ad.live_t': "Аірдроп {sym} почався!",
+  'ad.yours': "Твоя частка",
+  'ad.none': "На момент знімка в тебе не було балів Сезону 0, тож цього разу частки немає.",
+  'ad.sent': "Надіслано на твій Solana-гаманець",
+  'ad.tx': "Переглянути переказ",
+  'ad.need_wallet': "Додай Solana-гаманець, щоб забрати",
+  'ad.soon': "Видача відкриється зовсім скоро — надішлемо повідомлення.",
+  'ad.claim': "Забрати {n} {sym}",
+  'ad.sending': "Надсилаємо…",
+  'ad.how': "Частки зафіксовано під час знімка: {n} гравців. Боти й мультиакаунти не отримали нічого.",
+  'ad.ok': "Токени надіслано! Перевір Solana-гаманець",
+  'err.airdrop_notyet': "Аірдроп ще не почався",
+  'err.airdrop_soon': "Видача відкриється зовсім скоро",
+  'err.sol_need': "Спочатку додай Solana-гаманець",
+  'err.airdrop_none': "У тебе немає частки в цьому аірдропі",
+  'err.airdrop_wait': "Переказ уже в дорозі — спробуй за хвилину",
+  'err.airdrop_failed': "Переказ не пройшов — спробуй трохи пізніше",
   'tok.what': "{sym} — власний токен гри в блокчейні Solana. Бали аірдропу, які ти збираєш зараз, буде обміняно на нього.",
   'tok.supply': "100 000 000 — випуск один раз, більше не буде ніколи",
   'tok.status': 'Сезон 0: збираємо бали',
@@ -7473,6 +7537,7 @@ const netApi = {
   lang: (lang) => (NET.mode === 'online' ? api('POST', '/api/lang', { lang }) : Promise.resolve({ ok: true })),
   forget: () => api('POST', '/api/forget', { confirm: true }),
   sol: (body) => api('POST', '/api/sol', body),
+  adClaim: () => api('POST', '/api/airdrop/claim', {}),
   market: (range) => api('GET', '/api/market?range=' + encodeURIComponent(range || '24h')),
   marketBal: () => api('GET', '/api/market/bal'),
   adClaim: () => api('POST', '/api/ads/claim', {}),
@@ -8800,7 +8865,7 @@ function hubHome() {
   const usedPct = Math.round((e.used || 0) * 100);
   const src = Object.keys(e.bySrc || {}).filter((k) => e.bySrc[k] > 0);
   const ci = e.checkin;
-  return `${demoNote()}${riskNote(e)}${mktPanel(true)}
+  return `${demoNote()}${riskNote(e)}${airdropCard(e, true)}${mktPanel(true)}
   <section class="panel ptsp">
     <div class="season px">${esc((NET.cfg && NET.cfg.season && NET.cfg.season.name) || 'Season 0')}</div>
     <div class="bigpts">${I('pts', 34)}<b id="bigpts">${fmtPts(e.pts)}</b></div>
@@ -9001,7 +9066,7 @@ function mktPanel(mini) {
   const r = UI.hub.mkt;
   if (!r || !r.on) return mini ? '' : `<section class="panel mkt"><div class="loading">${L('ui.loading')}</div></section>`;
   const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFICE');
-  if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p><button class="btn big glow wide" data-act="mkbuy">${L('mk.buy')}</button></section>`;
+  if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p></section>`;
   const ch = m.ch24, up = ch === null ? true : ch >= 0;
   const chip = ch === null ? '' : `<span class="mk-ch ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</span>`;
   const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : (NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 26)}</span>`);
@@ -9023,6 +9088,35 @@ function mktPanel(mini) {
   </section>`;
 }
 
+/* the OFFICE airdrop: fund progress → snapshot → claim */
+function airdropCard(e, mini) {
+  const a = e && e.airdrop;
+  if (!a || NET.mode === 'demo') return '';
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
+  const amt = fmt(Math.floor(a.amount || 0));
+  if (a.st === 'season') {
+    if (mini) return '';
+    const pct = Math.min(100, (a.usd / Math.max(1, a.goal)) * 100);
+    return `<section class="panel adrop">
+      <h2 class="h2">🪂 ${L('ad.wait_t', { sym })}</h2>
+      <p class="sub">${L('ad.wait_s', { goal: '$' + fmt(a.goal), sym })}</p>
+      <div class="fund-h"><b class="px">$${fmt(Math.round(a.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(a.goal) })}</small></div>
+      <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
+    </section>`;
+  }
+  let act;
+  if (!(a.amount > 0)) act = `<p class="hint">${L('ad.none')}</p>`;
+  else if (a.claim === 'sent') act = `<div class="ad-ok">${I('check', 16, 'grn')} ${L('ad.sent')}</div>${a.tx ? `<button class="linkbtn" data-act="adtx">${L('ad.tx')}</button>` : ''}`;
+  else if (!e.sol) act = `<button class="btn big glow wide" data-act="sol:set">${I('sol', 16)} ${L('ad.need_wallet')}</button>`;
+  else if (a.st !== 'claim') act = `<p class="hint">${L('ad.soon')}</p>`;
+  else act = `<button class="btn big glow wide" data-act="adclaim" ${UI.adBusy ? 'disabled' : ''}>${UI.adBusy ? L('ad.sending') : L('ad.claim', { n: amt, sym })}</button>`;
+  return `<section class="panel adrop live ${mini ? 'mini' : ''}">
+    <h2 class="h2">🎉 ${L('ad.live_t', { sym })}</h2>
+    ${a.amount > 0 ? `<div class="ad-amt"><small>${L('ad.yours')}</small><b class="px">${amt}</b><span>${sym}</span></div>` : ''}
+    ${act}
+    ${mini ? '' : `<p class="hint">${L('ad.how', { n: fmt(a.players || 0), sym })}</p>`}
+  </section>`;
+}
 function solCard(e) {
   if (NET.mode === 'demo') return '';
   const w = e.sol;
@@ -9045,7 +9139,7 @@ function hubToken() {
   const share = my > 0 ? (my / all) * 100 : 0;
   const road = [['r1', 'now'], ['r2', 'next'], ['r3', 'next'], ['r4', 'later'], ['r5', 'later'], ['r6', 'later']];
   const uses = ['u1', 'u2', 'u3', 'u4'];
-  return `${mktPanel()}<section class="panel tokhero2">
+  return `${airdropCard(e)}${mktPanel()}<section class="panel tokhero2">
     <div class="coin3d"><div class="coin-face logo">${NET.mode === 'online' ? '<img src="/token.png" alt="">' : I('sol', 46)}</div></div>
     <h2 class="op-title">${sym}</h2>
     <p class="sub">${L('tok.what', { sym })}</p>
@@ -10302,6 +10396,15 @@ const ACT = {
       render(true);
     });
   },
+  adclaim: async () => {
+    if (UI.adBusy) return;
+    UI.adBusy = true; render(true);
+    const r = await netApi.adClaim().catch(() => null);
+    UI.adBusy = false;
+    if (r && r.ok) { toast(L('ad.ok'), 'good', 'sol'); confetti(160); sfx('floor'); haptic('ok'); } else errToast((r && r.err) || 'unavailable');
+    render(true);
+  },
+  adtx: () => { const a = NET.eco && NET.eco.airdrop; if (a && a.tx) openLink('https://solscan.io/tx/' + a.tx); },
   sol: (what) => {
     if (what === 'set') return showSolWallet();
     if (what === 'off') return netApi.sol({ disconnect: true }).then((r) => { if (r && r.ok) { UI.hub.mktBal = null; toast(L('sol.off_ok'), 'good', 'sol'); } render(true); });

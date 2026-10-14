@@ -369,6 +369,15 @@ const ACT = {
       render(true);
     });
   },
+  adclaim: async () => {
+    if (UI.adBusy) return;
+    UI.adBusy = true; render(true);
+    const r = await netApi.adClaim().catch(() => null);
+    UI.adBusy = false;
+    if (r && r.ok) { toast(L('ad.ok'), 'good', 'sol'); confetti(160); sfx('floor'); haptic('ok'); } else errToast((r && r.err) || 'unavailable');
+    render(true);
+  },
+  adtx: () => { const a = NET.eco && NET.eco.airdrop; if (a && a.tx) openLink('https://solscan.io/tx/' + a.tx); },
   sol: (what) => {
     if (what === 'set') return showSolWallet();
     if (what === 'off') return netApi.sol({ disconnect: true }).then((r) => { if (r && r.ok) { UI.hub.mktBal = null; toast(L('sol.off_ok'), 'good', 'sol'); } render(true); });

@@ -12,3 +12,10 @@ cp <repo>/scripts/launch/*.js .
 npx esbuild entry.js --bundle --minify --format=iife --global-name=SOLLIB --platform=browser \
   --define:global=globalThis --alias:crypto=./crypto-shim.js --inject:./buffer-shim.js --outfile=<repo>/public/launch-lib.js
 ```
+
+`server/vendor/solana.js` is the same libraries bundled for Node (the server signs airdrop transfers with it):
+
+```bash
+npx esbuild node-entry.js --bundle --minify --platform=node --target=node22 --format=cjs \
+  --external:bufferutil --external:utf-8-validate --outfile=<repo>/server/vendor/solana.js
+```

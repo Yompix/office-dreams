@@ -59,8 +59,8 @@
   </div>
   <div class="seg"><a id="netDev" href="?net=devnet">Тестовая сеть (devnet)</a><a id="netMain" href="?net=mainnet">Настоящая сеть (mainnet)</a></div>
   <p class="note hide" id="mainNote">Это <b>настоящая сеть</b>: тратятся настоящие SOL. Создание токена стоит около 0.003 SOL. В Phantom выключи Testnet Mode. Phantom может показать предупреждение о новом сайте — это нормально для нового домена, но всё равно читай, что подписываешь.</p>
-  <p>Этап 1 из 3 — <b>создать токен</b>. Дальше: 2 — выпуск ровно 100 млн и закрытие допечатки, 3 — раздача игрокам по очкам. Все действия подписываешь ты сам в Phantom: страница видит только твой публичный адрес, ключи и сид-фраза остаются у тебя.</p>
-  <div class="steps"><i class="on"></i><i></i><i></i></div>
+  <p>Создать токен OFFICE и выпустить ровно 100 млн. Раздачу игрокам потом делает сама игра, когда фонд наберёт цель. Все действия подписываешь ты сам в Phantom: страница видит только твой публичный адрес, ключи и сид-фраза остаются у тебя.</p>
+  
 
   <section class="card" id="c1">
     <h2><span class="n">1</span> Подключи Phantom</h2>
@@ -101,6 +101,31 @@
       <div class="mono" id="mint"></div>
       <div class="acts"><button class="ghost" id="copy">Копировать адрес</button><a class="btn ghost" id="explorer" target="_blank" rel="noopener" style="background:transparent;border:1px solid var(--line);box-shadow:none;padding:8px 12px;font-size:13px">Открыть в Solana Explorer</a></div>
       <p>Сохрани этот адрес и пришли его в чат — дальше этап 2: выпуск 100 млн и закрытие допечатки.</p>
+    </div>
+  </section>
+
+  <section class="card" id="c3">
+    <h2><span class="n">3</span> Выпусти 100 000 000 и закрой допечатку</h2>
+    <p>Все монеты выпускаются один раз на <b>кошелёк раздачи</b> — с него игра сама раздаст их игрокам, когда начнётся аирдроп.</p>
+    <ul>
+      <li>Создай в Phantom <b>отдельный аккаунт</b> (например «Аирдроп»): нажми на свой аккаунт вверху → «Добавить / Подключить кошелёк» → «Создать новый». Скопируй его адрес и вставь ниже.</li>
+      <li>Не используй основной кошелёк: ключ кошелька раздачи потом будет у сервера игры.</li>
+    </ul>
+    <label>Адрес токена (mint)</label>
+    <input id="mintIn" class="mono" placeholder="адрес из шага 2">
+    <label>Адрес кошелька раздачи</label>
+    <input id="distIn" class="mono" placeholder="адрес отдельного аккаунта Phantom">
+    <ul>
+      <li>Выпуск: ровно <b>100 000 000</b> OFFICE.</li>
+      <li>Сразу после этого право выпуска <b>отключается навсегда</b> — больше никто и никогда не сможет допечатать.</li>
+      <li>Стоимость: около 0.0025 SOL.</li>
+    </ul>
+    <button class="wide go" id="mintBtn" disabled>Выпустить 100 000 000 OFFICE</button>
+    <div class="st" id="st3"></div>
+    <div class="res hide" id="res3">
+      <div>✅ Готово: 100 000 000 OFFICE на кошельке раздачи, допечатка закрыта навсегда.</div>
+      <div class="acts"><a class="btn ghost" id="explorer3" target="_blank" rel="noopener" style="background:transparent;border:1px solid var(--line);box-shadow:none;padding:8px 12px;font-size:13px">Открыть в Solana Explorer</a></div>
+      <p>Дальше: пришли в чат адрес токена. Ключ кошелька раздачи <b>не присылай</b> — вставь его сам в Railway (Variables → <code>AIRDROP_SECRET</code>), я подскажу, где это.</p>
     </div>
   </section>
 
@@ -149,6 +174,7 @@ function showMint(mint, sig) {
   $('explorer').href = `https://explorer.solana.com/address/${mint}` + (MAIN ? '' : '?cluster=devnet');
   $('c2').classList.add('done');
   $('create').disabled = true; $('create').textContent = 'Токен уже создан';
+  if (!$('mintIn').value) $('mintIn').value = mint;
 }
 const saved = store.get();
 if (saved.mint) showMint(saved.mint);
@@ -170,7 +196,7 @@ $('connect').onclick = async () => {
     $('addr').textContent = short(me.toBase58()); $('addr').title = me.toBase58();
     $('acct').classList.remove('hide'); $('connect').classList.add('hide');
     $('c1').classList.add('done'); $('c1t').textContent = 'Кошелёк подключён.';
-    refreshBal();
+    refreshBal(); upd3();
   } catch (e) { say('st1', 'Подключение отменено.', 'bad'); $('acct').classList.remove('hide'); }
 };
 $('airdrop').onclick = async () => {
@@ -224,6 +250,50 @@ $('create').onclick = async () => {
   } catch (e) {
     say('st2', /reject|cancel|denied/i.test(String(e && e.message)) ? 'Ты отклонил транзакцию — ничего не произошло.' : 'Не получилось: ' + String((e && e.message) || e).slice(0, 160), 'bad');
     $('create').disabled = false;
+  }
+};
+/* ---- stage 2: mint the whole supply to the distributor wallet and switch minting off forever ---- */
+const SUPPLY = 100000000n, DEC = 6;
+const isAddr = (s) => { try { return new W.PublicKey(s.trim()).toBytes().length === 32; } catch (e) { return false; } };
+const upd3 = () => { $('mintBtn').disabled = !me || !!store.get().minted || !isAddr($('mintIn').value) || !isAddr($('distIn').value); };
+$('mintIn').oninput = upd3; $('distIn').oninput = upd3;
+const st3 = store.get();
+if (st3.dist) $('distIn').value = st3.dist;
+if (st3.minted) { $('res3').classList.remove('hide'); $('c3').classList.add('done'); $('mintBtn').textContent = 'Уже выпущено'; $('explorer3').href = `https://explorer.solana.com/address/${st3.mintedMint}` + (MAIN ? '' : '?cluster=devnet'); }
+$('mintBtn').onclick = async () => {
+  const mint = new W.PublicKey($('mintIn').value.trim()), to = new W.PublicKey($('distIn').value.trim());
+  $('mintBtn').disabled = true;
+  try {
+    if (!SIM) {
+      say('st3', 'Проверяем токен…');
+      const m = await S.getMint(conn, mint, 'confirmed', P).catch(() => null);
+      if (!m) throw new Error('токен не найден в этой сети — проверь адрес и сеть сверху');
+      if (!m.mintAuthority || !m.mintAuthority.equals(me)) throw new Error('право выпуска этого токена не у подключённого кошелька (или уже закрыто)');
+      if (m.supply > 0n) throw new Error('у этого токена уже есть выпуск: ' + (Number(m.supply) / 10 ** m.decimals));
+      if (m.decimals !== DEC) throw new Error('у токена ' + m.decimals + ' знаков, а ожидалось ' + DEC);
+    }
+    const ata = S.getAssociatedTokenAddressSync(mint, to, true, P);
+    const tx = new W.Transaction().add(
+      S.createAssociatedTokenAccountIdempotentInstruction(me, ata, to, mint, P),
+      S.createMintToCheckedInstruction(mint, ata, me, SUPPLY * 10n ** BigInt(DEC), DEC, [], P),
+      S.createSetAuthorityInstruction(mint, me, S.AuthorityType.MintTokens, null, [], P),
+    );
+    tx.feePayer = me;
+    const bh = await conn.getLatestBlockhash('confirmed');
+    tx.recentBlockhash = bh.blockhash;
+    if (SIM) { window.__sim3 = true; return say('st3', 'Проверка: транзакция собрана.', 'ok'); }
+    say('st3', 'Подтверди транзакцию в Phantom…');
+    const signed = await prov().signTransaction(tx);
+    say('st3', 'Отправляем в сеть…');
+    const sig = await conn.sendRawTransaction(signed.serialize());
+    await confirm(sig, bh.lastValidBlockHeight);
+    store.set({ minted: true, mintedMint: mint.toBase58(), dist: to.toBase58(), mintSig: sig });
+    say('st3', 'Готово!', 'ok');
+    $('res3').classList.remove('hide'); $('c3').classList.add('done'); $('mintBtn').textContent = 'Уже выпущено';
+    $('explorer3').href = `https://explorer.solana.com/address/${mint.toBase58()}` + (MAIN ? '' : '?cluster=devnet');
+  } catch (e) {
+    say('st3', /reject|cancel|denied/i.test(String(e && e.message)) ? 'Ты отклонил транзакцию — ничего не произошло.' : 'Не получилось: ' + String((e && e.message) || e).slice(0, 200), 'bad');
+    upd3();
   }
 };
 $('copy').onclick = () => { navigator.clipboard && navigator.clipboard.writeText($('mint').textContent).then(() => { $('copy').textContent = 'Скопировано'; }); };

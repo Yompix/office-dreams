@@ -8,7 +8,8 @@
 
 const POLL_MS = 60000, HIST_MS = 5 * 60000, HIST_KEEP = 30 * 86400000, BAL_TTL = 60000;
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
-let last = null, lastAt = 0, histAt = 0, ready = false;
+let last = null, lastAt = 0, histAt = 0;
+const ready = new WeakSet();
 const balCache = new Map();
 
 const Sol = require('./sol.js');
@@ -16,7 +17,7 @@ const isSolAddr = Sol.isAddr;
 
 const enabled = (cfg) => !!(cfg.token && cfg.token.addr && isSolAddr(cfg.token.addr));
 function init(ctx) {
-  if (ready) return; ready = true;
+  if (ready.has(ctx.db)) return; ready.add(ctx.db);
   ctx.db.raw.exec('CREATE TABLE IF NOT EXISTS price_hist (ts INTEGER PRIMARY KEY, usd REAL, ton REAL)');
 }
 async function getJson(url, opts) {

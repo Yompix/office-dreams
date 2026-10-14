@@ -552,7 +552,7 @@ function hubHome() {
   const usedPct = Math.round((e.used || 0) * 100);
   const src = Object.keys(e.bySrc || {}).filter((k) => e.bySrc[k] > 0);
   const ci = e.checkin;
-  return `${demoNote()}${riskNote(e)}${mktPanel(true)}
+  return `${demoNote()}${riskNote(e)}${airdropCard(e, true)}${mktPanel(true)}
   <section class="panel ptsp">
     <div class="season px">${esc((NET.cfg && NET.cfg.season && NET.cfg.season.name) || 'Season 0')}</div>
     <div class="bigpts">${I('pts', 34)}<b id="bigpts">${fmtPts(e.pts)}</b></div>
@@ -753,7 +753,7 @@ function mktPanel(mini) {
   const r = UI.hub.mkt;
   if (!r || !r.on) return mini ? '' : `<section class="panel mkt"><div class="loading">${L('ui.loading')}</div></section>`;
   const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFICE');
-  if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p><button class="btn big glow wide" data-act="mkbuy">${L('mk.buy')}</button></section>`;
+  if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p></section>`;
   const ch = m.ch24, up = ch === null ? true : ch >= 0;
   const chip = ch === null ? '' : `<span class="mk-ch ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</span>`;
   const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : (NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 26)}</span>`);
@@ -775,6 +775,35 @@ function mktPanel(mini) {
   </section>`;
 }
 
+/* the OFFICE airdrop: fund progress → snapshot → claim */
+function airdropCard(e, mini) {
+  const a = e && e.airdrop;
+  if (!a || NET.mode === 'demo') return '';
+  const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE');
+  const amt = fmt(Math.floor(a.amount || 0));
+  if (a.st === 'season') {
+    if (mini) return '';
+    const pct = Math.min(100, (a.usd / Math.max(1, a.goal)) * 100);
+    return `<section class="panel adrop">
+      <h2 class="h2">🪂 ${L('ad.wait_t', { sym })}</h2>
+      <p class="sub">${L('ad.wait_s', { goal: '$' + fmt(a.goal), sym })}</p>
+      <div class="fund-h"><b class="px">$${fmt(Math.round(a.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(a.goal) })}</small></div>
+      <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
+    </section>`;
+  }
+  let act;
+  if (!(a.amount > 0)) act = `<p class="hint">${L('ad.none')}</p>`;
+  else if (a.claim === 'sent') act = `<div class="ad-ok">${I('check', 16, 'grn')} ${L('ad.sent')}</div>${a.tx ? `<button class="linkbtn" data-act="adtx">${L('ad.tx')}</button>` : ''}`;
+  else if (!e.sol) act = `<button class="btn big glow wide" data-act="sol:set">${I('sol', 16)} ${L('ad.need_wallet')}</button>`;
+  else if (a.st !== 'claim') act = `<p class="hint">${L('ad.soon')}</p>`;
+  else act = `<button class="btn big glow wide" data-act="adclaim" ${UI.adBusy ? 'disabled' : ''}>${UI.adBusy ? L('ad.sending') : L('ad.claim', { n: amt, sym })}</button>`;
+  return `<section class="panel adrop live ${mini ? 'mini' : ''}">
+    <h2 class="h2">🎉 ${L('ad.live_t', { sym })}</h2>
+    ${a.amount > 0 ? `<div class="ad-amt"><small>${L('ad.yours')}</small><b class="px">${amt}</b><span>${sym}</span></div>` : ''}
+    ${act}
+    ${mini ? '' : `<p class="hint">${L('ad.how', { n: fmt(a.players || 0), sym })}</p>`}
+  </section>`;
+}
 function solCard(e) {
   if (NET.mode === 'demo') return '';
   const w = e.sol;
@@ -797,7 +826,7 @@ function hubToken() {
   const share = my > 0 ? (my / all) * 100 : 0;
   const road = [['r1', 'now'], ['r2', 'next'], ['r3', 'next'], ['r4', 'later'], ['r5', 'later'], ['r6', 'later']];
   const uses = ['u1', 'u2', 'u3', 'u4'];
-  return `${mktPanel()}<section class="panel tokhero2">
+  return `${airdropCard(e)}${mktPanel()}<section class="panel tokhero2">
     <div class="coin3d"><div class="coin-face logo">${NET.mode === 'online' ? '<img src="/token.png" alt="">' : I('sol', 46)}</div></div>
     <h2 class="op-title">${sym}</h2>
     <p class="sub">${L('tok.what', { sym })}</p>

@@ -61,7 +61,7 @@ for (const id of E.EVENT_IDS) {
 const engSrc = fs.readFileSync(path.join(root, 'src/engine.js'), 'utf8');
 for (const m of engSrc.matchAll(/'((?:log|toast)\.[a-z_]+)'/g)) need.add(m[1]);
 // literal keys used by the UI
-const KEY_NS = /^(ui|u|res|net|tab|sub|boot|intro|next|office|buff|fin|daily|role|team|genre|tier|games|quests|goals|goal|log|tag|floor|item|boost|rank|empire|ipo|end|rel|off|hub|src|ci|risk|wallet|fr|task|top|shop|chal|set|demo|toast|err|lang|side|tut|tok|help|sup|music|ads|idea|talk|bug|fb|tk2|don|pv|st|reno|pay|sol|mk|tk3|tk4)\.[a-z0-9_.]+$/;
+const KEY_NS = /^(ui|u|res|net|tab|sub|boot|intro|next|office|buff|fin|daily|role|team|genre|tier|games|quests|goals|goal|log|tag|floor|item|boost|rank|empire|ipo|end|rel|off|hub|src|ci|risk|wallet|fr|task|top|shop|chal|set|demo|toast|err|lang|side|tut|tok|help|sup|music|ads|idea|talk|bug|fb|tk2|don|pv|st|reno|pay|sol|mk|tk3|tk4|ad)\.[a-z0-9_.]+$/;
 for (const f of ['ui_core.js', 'ui_tabs.js', 'ui_main.js', 'net.js', 'ui_tutorial.js', 'music.js', 'ui_fx.js']) {
   const src = fs.readFileSync(path.join(root, 'src', f), 'utf8');
   for (const m of src.matchAll(/'([a-z0-9_]+\.[a-z0-9_.]+)'/g)) {

@@ -17,6 +17,7 @@ const Sync = require('./sync.js');
 const Bot = require('./bot.js');
 const Admin = require('./admin.js');
 const SolPay = require('./solpay.js');
+const Airdrop = require('./airdrop.js');
 const Market = require('./market.js');
 const TZC = require('./tzcountry.json');
 
@@ -322,6 +323,11 @@ async function handleApi(ctx, req, res, url, ip) {
     return sendJson(res, 200, Object.assign(r, { eco: Eco.ecoView(ctx, U.getUser(ctx, uid), now) }));
   }
   if (method === 'POST' && p === '/api/sol') return handleSol(ctx, res, uid, body, now);
+  if (method === 'POST' && p === '/api/airdrop/claim') {
+    if (!hit(ctx, 'adclaim:' + uid, 6)) return sendJson(res, 200, { ok: false, err: 'airdrop_wait' });
+    const r = await Airdrop.claim(ctx, uid, now);
+    return sendJson(res, 200, Object.assign(r, { eco: Eco.ecoView(ctx, U.getUser(ctx, uid), now) }));
+  }
   if (method === 'POST' && p === '/api/studio') {
     if (body.check) return sendJson(res, 200, Studio.isFree(ctx, uid, body.name));
     if (!hit(ctx, 'studio:' + uid, 10, 3600000, now)) return bad(res, 429, 'rate');

@@ -1150,3 +1150,10 @@ body.pv-on #app { visibility: hidden; }
 .coin-face.logo { background: none; box-shadow: none; }
 .coin-face.logo img { width: 112px; height: 112px; filter: drop-shadow(0 0 16px rgba(153, 69, 255, 0.6)) drop-shadow(0 0 8px rgba(20, 241, 149, 0.4)); }
 img.mk-logo { object-fit: contain; background: none; }
+/* OFFICE airdrop card */
+.adrop.live { border-color: rgba(20, 241, 149, 0.55); box-shadow: 0 0 22px rgba(20, 241, 149, 0.18); }
+.ad-amt { display: flex; align-items: baseline; gap: 8px; margin: 6px 0 10px; }
+.ad-amt small { color: var(--ink2); flex: 1; }
+.ad-amt b { font-size: 26px; color: #14f195; text-shadow: 0 0 12px rgba(20, 241, 149, 0.55); }
+.ad-ok { display: flex; align-items: center; gap: 8px; font-weight: 800; color: #14f195; margin: 4px 0; }
+.adrop .fund-h { display: flex; align-items: baseline; gap: 8px; margin: 6px 0; }

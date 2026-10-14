@@ -848,5 +848,69 @@ const AB = require('../server/antibot.js');
     });
     await env7.close();
   }
+  {
+    console.log('OFFICE airdrop');
+    const { web3, spl } = require('../server/vendor/solana.js');
+    const dist = web3.Keypair.generate(), mint = web3.Keypair.generate().publicKey.toBase58();
+    const Sol = require('../server/sol.js');
+    const env8 = await makeEnv({ DONATE_GOAL_USD: '100', TOKEN_ADDRESS: mint, AIRDROP_SECRET: Sol.b58encode(dist.secretKey) });
+    const Ad = require('../server/airdrop.js');
+    const sent = [];
+    env8.ctx.fastAnnounce = true;
+    env8.ctx.solRpc = async (method, params) => {
+      if (method === 'getAccountInfo') return { value: { owner: spl.TOKEN_2022_PROGRAM_ID.toBase58() } };
+      if (method === 'getLatestBlockhash') return { value: { blockhash: web3.Keypair.generate().publicKey.toBase58(), lastValidBlockHeight: 10 } };
+      if (method === 'sendTransaction') { sent.push(params[0]); return 'ok'; }
+      if (method === 'getSignatureStatuses') return { value: [{ err: null, confirmationStatus: 'confirmed' }] };
+      return null;
+    };
+    await test('airdrop: starts by itself at the fund goal, splits 100M by points, announces, each player claims once', async () => {
+      const A = new Player(env8, 8601), B = new Player(env8, 8602), C = new Player(env8, 8603);
+      await A.auth(); await B.auth(); await C.auth();
+      env8.ctx.db.run('UPDATE users SET pts=? WHERE id=?', 300, 8601);
+      env8.ctx.db.run('UPDATE users SET pts=? WHERE id=?', 100, 8602);
+      env8.ctx.db.run("UPDATE users SET pts=?, risk_state='quarantine' WHERE id=?", 500, 8603); // a bot: excluded
+      // below the goal nothing happens
+      Eco.fulfilDonation(env8.ctx, 8601, 'd1', 1000, env8.clock.t, { usd: 60, meta: JSON.stringify({ usd: 60 }) });
+      assert.equal((await Ad.tick(env8.ctx, env8.clock.t)).st, 'season');
+      assert.equal((await A.api('POST', '/api/airdrop/claim', {})).json.err, 'airdrop_notyet');
+      let v = (await A.api('GET', '/api/friends')).json.eco.airdrop;
+      assert.equal(v.st, 'season'); assert.equal(v.goal, 100);
+      // the goal is reached → snapshot + claim open (token and distributor are configured)
+      Eco.fulfilDonation(env8.ctx, 8602, 'd2', 1000, env8.clock.t, { usd: 50, meta: JSON.stringify({ usd: 50 }) });
+      env8.mock.calls.length = 0;
+      assert.equal((await Ad.tick(env8.ctx, env8.clock.t)).st, 'claim');
+      await new Promise((r) => setTimeout(r, 100));
+      const msgs = env8.mock.calls.filter((c) => c.method === 'sendMessage');
+      assert.ok(msgs.some((m) => m.body.chat_id === 8601 && /75\s?000\s?000/.test(m.body.text)), 'player told their share');
+      assert.ok(msgs.some((m) => m.body.chat_id === '@od_news'), 'channel announcement');
+      v = (await A.api('GET', '/api/friends')).json.eco.airdrop;
+      assert.equal(v.st, 'claim'); assert.equal(v.amount, 75000000, '300 of 400 points → 75M');
+      assert.equal((await B.api('GET', '/api/friends')).json.eco.airdrop.amount, 25000000);
+      assert.equal((await C.api('GET', '/api/friends')).json.eco.airdrop.amount, 0, 'quarantined account gets nothing');
+      // claim: needs a Solana wallet, then one signed transfer from the distributor
+      assert.equal((await A.api('POST', '/api/airdrop/claim', {})).json.err, 'sol_need');
+      const wallet = web3.Keypair.generate().publicKey.toBase58();
+      await A.api('POST', '/api/sol', { address: wallet });
+      const r = (await A.api('POST', '/api/airdrop/claim', {})).json;
+      assert.equal(r.ok, true, JSON.stringify(r)); assert.equal(r.eco.airdrop.claim, 'sent');
+      assert.equal(sent.length, 1);
+      const tx = web3.Transaction.from(Buffer.from(sent[0], 'base64'));
+      assert.ok(tx.verifySignatures(), 'signed by the distributor');
+      assert.equal(tx.feePayer.toBase58(), dist.publicKey.toBase58());
+      assert.equal(tx.instructions.length, 2, 'create the token account (idempotent) + transfer');
+      const dst = spl.getAssociatedTokenAddressSync(new web3.PublicKey(mint), new web3.PublicKey(wallet), true, spl.TOKEN_2022_PROGRAM_ID);
+      assert.ok(tx.instructions[1].keys.some((k) => k.pubkey.equals(dst)), 'to the player wallet');
+      assert.equal(tx.instructions[1].data.readBigUInt64LE(1), 75000000n * 1000000n, 'exact share in base units');
+      // never twice
+      const again = (await A.api('POST', '/api/airdrop/claim', {})).json;
+      assert.ok(again.ok && again.already); assert.equal(sent.length, 1);
+      assert.equal((await C.api('POST', '/api/airdrop/claim', {})).json.err, 'sol_need');
+      // admin view
+      const adm = await httpJson(env8.base, 'GET', '/admin/api/airdrop', undefined, { 'x-admin-key': 'adminkey123' });
+      assert.equal(adm.json.sent, 1); assert.equal(adm.json.distributor, dist.publicKey.toBase58());
+    });
+    await env8.close();
+  }
   summary();
 })();

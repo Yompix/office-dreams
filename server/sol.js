@@ -4,7 +4,7 @@ const crypto = require('crypto');
 
 const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 function b58decode(s) {
-  if (typeof s !== 'string' || !s || s.length > 64) return null;
+  if (typeof s !== 'string' || !s || s.length > 128) return null;
   let n = 0n;
   for (const ch of s) { const i = B58.indexOf(ch); if (i < 0) return null; n = n * 58n + BigInt(i); }
   const out = [];

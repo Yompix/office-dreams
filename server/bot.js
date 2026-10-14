@@ -246,4 +246,4 @@ function startPolling(ctx) {
   return { stop() { stop = true; } };
 }
 
-module.exports = { T, tx, shopTxt, donateTxt, thanksTxt, notifyRefActive, notifyDuel, handleUpdate, notifyReferral, setup, startPolling, send };
+module.exports = { playMarkup, T, tx, shopTxt, donateTxt, thanksTxt, notifyRefActive, notifyDuel, handleUpdate, notifyReferral, setup, startPolling, send };
