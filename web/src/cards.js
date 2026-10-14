@@ -155,7 +155,7 @@ function duelResult(r) {
   if (S.room) closeSheet();
   const me = myId(), won = r.winner === me, mineA = r.a.uid === me, opp = mineA ? r.b : r.a, my = mineA ? r.a : r.b;
   const head = `<h3>${T("g_" + r.game)} · <span class="gold">${fmt(r.stake)}</span></h3><p>${T("vs")} ${esc(opp.name)}</p>`;
-  const fin = `<div class="res ${won ? "w" : "l"}">${won ? T("victory") + " +" + fmt(r.win - r.stake) : T("defeat") + " −" + fmt(r.stake)}</div><div class="btns"><button class="btn dk" id="dOk">OK</button><button class="btn ${won ? "gr" : "pk"}" id="dAg">${T("again")}</button></div>`;
+  const fin = `<div class="res ${won ? "w" : "l"}">${won ? T("victory") + " +" + fmt(r.win - r.stake) : T("defeat") + " −" + fmt(r.stake)}</div>${rmHtml()}<div class="btns"><button class="btn dk" id="dOk">OK</button><button class="btn ${won ? "gr" : "pk"}" id="dAg">${T("again")}</button></div>`;
   if (r.game === "dice") {
     modal(head + `<div class="dice3" id="dd">${die3("me")}<b class="dim">VS</b>${die3("op")}</div><div class="dnums" id="dn"><b>${esc(T("you"))}</b><b>${esc(opp.name)}</b></div><div id="dFin" style="display:flex;flex-direction:column;gap:14px;visibility:hidden">${fin}</div>`);
     const ws = $$("#dd .d3w"); dieRoll(ws[0], my.roll, 0); dieRoll(ws[1], opp.roll, 0.12);
@@ -174,7 +174,7 @@ function duelResult(r) {
   }
   function done() {
     const f = $("dFin"); if (!f) return; f.style.visibility = "visible"; f.style.animation = "pop .4s cubic-bezier(.2,1.5,.4,1)";
-    $("dOk").onclick = () => { closeModal(); adsInter(); }; $("dAg").onclick = () => { closeModal(); S.stake = r.stake; openRoom(r.game); };
+    $("dOk").onclick = () => { S.rm = null; closeModal(); adsInter(); }; rmAttach("duel", r.id, r.stake, won);
     if (won) { sfx.big(); burst(70); hap("success"); } else { sfx.lose(); hap("error"); }
   }
 }

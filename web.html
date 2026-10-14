@@ -548,6 +548,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 .coinw .cs{position:absolute;bottom:10px;width:90px;height:14px;border-radius:50%;background:#000a;filter:blur(3px);animation:cshadow 1.5s cubic-bezier(.3,0,.3,1)}
 @keyframes cshadow{45%{transform:scale(.45);opacity:.4}85%{transform:scale(1);opacity:1}}
 .res{font:400 28px var(--fd)}
+.rmb{display:flex;flex-direction:column;gap:6px;text-align:left;margin-top:4px}
+.rmb .lbl{margin:0}
+.rmb .chip:disabled{opacity:.35}
+.rmo{display:flex;align-items:center;gap:10px;padding:10px;background:#0f2a1a;box-shadow:0 0 0 2px var(--mint),0 0 16px #3dff7a44;font:400 14px var(--fd);animation:pop .3s cubic-bezier(.2,1.6,.4,1)}
+.rmo span{flex:1}
 .res.w{color:var(--mint);text-shadow:0 0 16px #3dff7a99}
 .res.l{color:var(--red)}
 .res.d{color:var(--cyan)}
@@ -776,6 +781,8 @@ const DICT = {
   your_turn: ["Твій хід", "Твой ход", "Your move"], opp_turn: ["Хід суперника", "Ход соперника", "Rival's move"], opp_thinks: ["Суперник думає…", "Соперник думает…", "Rival is thinking…"],
   pick: ["Обирай!", "Выбирай!", "Pick one!"], bj_turn: ["Ще карту чи досить?", "Ещё карту или хватит?", "Hit or stand?"], bj_hit: ["Ще карту", "Ещё карту", "Hit"], bj_stand: ["Досить", "Хватит", "Stand"],
   total: ["Очки", "Очки", "Total"], stood: ["зупинився", "остановился", "stands"], mines_left: ["Безпечних клітинок: {0}", "Безопасных клеток: {0}", "Safe cells left: {0}"],
+  rematch: ["Реванш", "Реванш", "Rematch"], rm_stake: ["Ставка на реванш", "Ставка на реванш", "Rematch stake"], rm_wait: ["Чекаємо суперника…", "Ждём соперника…", "Waiting for opponent…"],
+  rm_offer: ["{0} пропонує реванш на {1}", "{0} предлагает реванш на {1}", "{0} offers a rematch for {1}"], rm_accept: ["Прийняти", "Принять", "Accept"],
   rps_chant: ["Камінь…|Ножиці…|Папір!", "Камень…|Ножницы…|Бумага!", "Rock…|Paper…|Scissors!"], rps_ready: ["Готовий", "Готов", "Ready"], rps_wait: ["Чекаємо суперника…", "Ждём соперника…", "Waiting for opponent…"],
   rps_again: ["Нічия! Ще раунд", "Ничья! Ещё раунд", "Tie! One more round"], rps_w_r: ["Камінь ламає ножиці!", "Камень ломает ножницы!", "Rock crushes scissors!"],
   rps_w_s: ["Ножиці ріжуть папір!", "Ножницы режут бумагу!", "Scissors cut paper!"], rps_w_p: ["Папір накриває камінь!", "Бумага накрывает камень!", "Paper covers rock!"],
@@ -1028,8 +1035,9 @@ function onMsg(m) {
     case "lobby": S.L = m; renderLive(); break;
     case "pk": if (m.back && m.table.you >= 0) pkAdopt(m.table); else pkUpdate(m.table); break;
     case "bal": { const d = m.balance - (S.me ? S.me.balance : m.balance); setBal(m.balance, true); if (d > 0 && S.tab === "wallet") { toast("+" + fmt(d), "good"); sfx.win(); } break; }
-    case "err": errToast(m.e); if (S.tblId && (!S.tbl || S.tbl.you < 0) && $("poker").classList.contains("on")) pkClose(true); break;
+    case "err": errToast(m.e); rmFail(); if (S.tblId && (!S.tbl || S.tbl.you < 0) && $("poker").classList.contains("on")) pkClose(true); break;
     case "duel.result": duelResult(m); break;
+    case "rm.req": rmReq(m); break;
     case "mx.state": mxState(m.m); break;
     case "mx.end": mxEnd(m); break;
     case "sup": supPoll(); break;
@@ -1399,7 +1407,7 @@ function fenBoard(fen) { const b = []; for (const r of fen.split(" ")[0].split("
 /* ---------- стан матчу ---------- */
 function mxState(m) {
   const prev = S.match && S.match.m && S.match.m.id === m.id ? S.match.m : null;
-  if (!prev) { closeSheet(); S.sel = null; }
+  if (!prev) { closeSheet(); S.sel = null; if (S.rm) { S.rm = null; closeModal(); } }
   const wasMine = prev && myTurnOf(prev);
   S.match = { m, at: Date.now(), over: false, local: false, prev };
   S.pend = false;
@@ -1703,12 +1711,41 @@ function endModal(e, m) {
   const me = e.local ? 0 : myId(), won = e.local ? e.winner === 0 : e.winner === me, draw = e.local ? e.winner === null : !e.winner;
   const why = { timeout: won ? "why_to_w" : "why_to_l", resign: won ? "why_rs_w" : "why_rs_l", boom: won ? "why_boom_w" : "why_boom_l", mate: "why_mate", draw: "why_draw", cards: "why_cards", bj: "why_bj", four: "why_four", ttt: "why_ttt", checkers: won ? "why_checkers" : "why_checkers_l", rps: "why_rps" }[e.reason];
   const amt = e.local ? "" : won ? `<div class="res w">+${fmt(e.win - m.stake)} <i class="coin" style="width:24px;height:24px"></i></div>` : draw ? `<div class="res d">${T("refunded")}</div>` : `<div class="res l">−${fmt(m.stake)}</div>`;
-  modal(`<h3 class="${won ? "gold" : ""}" style="font-size:30px">${won ? T("victory") : draw ? T("draw") : T("defeat")}</h3>${why ? `<p>${T(why)}</p>` : ""}${amt}<div class="btns"><button class="btn dk" id="eLobby">${T("to_lobby")}</button><button class="btn ${won ? "gr" : "pk"}" id="eAgain">${T("again")}</button></div>`);
-  $("eLobby").onclick = () => { closeModal(); mxClose(); go("lobby"); if (!e.local) adsInter(); };
-  $("eAgain").onclick = () => { closeModal(); mxClose(); if (!e.local) adsInter(); if (e.local) botStart(m.game); else { S.stake = m.stake; openRoom(m.game); } };
+  modal(`<h3 class="${won ? "gold" : ""}" style="font-size:30px">${won ? T("victory") : draw ? T("draw") : T("defeat")}</h3>${why ? `<p>${T(why)}</p>` : ""}${amt}${e.local ? "" : rmHtml()}<div class="btns"><button class="btn dk" id="eLobby">${T("to_lobby")}</button><button class="btn ${won ? "gr" : "pk"}" id="eAgain">${T("again")}</button></div>`);
+  if (!e.local) rmAttach("mx", m.id, m.stake, won);
+  $("eLobby").onclick = () => { S.rm = null; closeModal(); mxClose(); go("lobby"); if (!e.local) adsInter(); };
+  if (e.local) $("eAgain").onclick = () => { closeModal(); mxClose(); botStart(m.game); };
   if (won) { sfx.big(); hap("success"); burst(70); setTimeout(() => burst(50, innerWidth * 0.25, innerHeight * 0.35), 250); setTimeout(() => burst(50, innerWidth * 0.75, innerHeight * 0.35), 450); if (!e.local) rain(60); }
   else if (draw) { sfx.click(); hap("warning"); } else { sfx.lose(); hap("error"); }
 }
+
+/* ---------- реванш: та сама гра з тим самим суперником, ставку можна змінити ---------- */
+const rmHtml = () => `<div class="rmb"><span class="lbl">${T("rm_stake")}</span><div class="chips g3" id="rmCh">${STAKES.map((v) => `<button class="chip" data-rs="${v}"><i class="coin" style="width:14px;height:14px"></i>${fmt(v)}</button>`).join("")}</div><div class="rmo" id="rmOf" hidden></div></div>`;
+function rmAttach(kind, id, stake, won) {
+  S.rm = { kind, id, stake, sent: false };
+  const btn = $("eAgain") || $("dAg"); btn.className = "btn " + (won ? "gr" : "pk");
+  const paint = () => {
+    const R = S.rm; if (!R) return; const bal = S.me ? S.me.balance : 0;
+    $$("#rmCh [data-rs]").forEach((b) => { const v = Number(b.dataset.rs); b.classList.toggle("on", v === R.stake); b.disabled = R.sent || v > bal; });
+    btn.disabled = R.sent || R.stake > bal; btn.textContent = R.sent ? T("rm_wait") : T("rematch") + " · " + fmt(R.stake);
+  };
+  S.rmPaint = paint; paint();
+  $("rmCh").onclick = (ev) => { const b = ev.target.closest("[data-rs]"); if (!b || S.rm.sent) return; S.rm.stake = Number(b.dataset.rs); sfx.chip(); paint(); };
+  btn.onclick = () => rmSend();
+}
+function rmSend(stake) {
+  const R = S.rm; if (!R) return; if (stake) R.stake = stake;
+  if (wsSend({ t: "rematch", kind: R.kind, id: R.id, stake: R.stake })) { R.sent = true; sfx.chip(); hap("medium"); S.rmPaint && S.rmPaint(); }
+}
+function rmReq(q) {
+  const R = S.rm;
+  if (!R || R.kind !== q.kind || R.id !== q.id || !$("rmOf")) { toast(T("rm_offer", q.name, fmt(q.stake))); return; }
+  const o = $("rmOf"); o.hidden = false;
+  o.innerHTML = `<span>${T("rm_offer", esc(q.name), `<b class="gold">${fmt(q.stake)}</b>`)}</span><button class="btn gr sm" id="rmAcc">${T("rm_accept")}</button>`;
+  $("rmAcc").onclick = () => { o.hidden = true; rmSend(q.stake); };
+  sfx.turn(); hap("medium");
+}
+function rmFail() { if (S.rm && S.rm.sent) { S.rm.sent = false; S.rmPaint && S.rmPaint(); } }
 
 /* ---------- тренування з ботом (без монет) ---------- */
 function openTraining() {
@@ -1940,7 +1977,7 @@ function duelResult(r) {
   if (S.room) closeSheet();
   const me = myId(), won = r.winner === me, mineA = r.a.uid === me, opp = mineA ? r.b : r.a, my = mineA ? r.a : r.b;
   const head = `<h3>${T("g_" + r.game)} · <span class="gold">${fmt(r.stake)}</span></h3><p>${T("vs")} ${esc(opp.name)}</p>`;
-  const fin = `<div class="res ${won ? "w" : "l"}">${won ? T("victory") + " +" + fmt(r.win - r.stake) : T("defeat") + " −" + fmt(r.stake)}</div><div class="btns"><button class="btn dk" id="dOk">OK</button><button class="btn ${won ? "gr" : "pk"}" id="dAg">${T("again")}</button></div>`;
+  const fin = `<div class="res ${won ? "w" : "l"}">${won ? T("victory") + " +" + fmt(r.win - r.stake) : T("defeat") + " −" + fmt(r.stake)}</div>${rmHtml()}<div class="btns"><button class="btn dk" id="dOk">OK</button><button class="btn ${won ? "gr" : "pk"}" id="dAg">${T("again")}</button></div>`;
   if (r.game === "dice") {
     modal(head + `<div class="dice3" id="dd">${die3("me")}<b class="dim">VS</b>${die3("op")}</div><div class="dnums" id="dn"><b>${esc(T("you"))}</b><b>${esc(opp.name)}</b></div><div id="dFin" style="display:flex;flex-direction:column;gap:14px;visibility:hidden">${fin}</div>`);
     const ws = $$("#dd .d3w"); dieRoll(ws[0], my.roll, 0); dieRoll(ws[1], opp.roll, 0.12);
@@ -1959,7 +1996,7 @@ function duelResult(r) {
   }
   function done() {
     const f = $("dFin"); if (!f) return; f.style.visibility = "visible"; f.style.animation = "pop .4s cubic-bezier(.2,1.5,.4,1)";
-    $("dOk").onclick = () => { closeModal(); adsInter(); }; $("dAg").onclick = () => { closeModal(); S.stake = r.stake; openRoom(r.game); };
+    $("dOk").onclick = () => { S.rm = null; closeModal(); adsInter(); }; rmAttach("duel", r.id, r.stake, won);
     if (won) { sfx.big(); burst(70); hap("success"); } else { sfx.lose(); hap("error"); }
   }
 }

@@ -187,8 +187,9 @@ function onMsg(m) {
     case "lobby": S.L = m; renderLive(); break;
     case "pk": if (m.back && m.table.you >= 0) pkAdopt(m.table); else pkUpdate(m.table); break;
     case "bal": { const d = m.balance - (S.me ? S.me.balance : m.balance); setBal(m.balance, true); if (d > 0 && S.tab === "wallet") { toast("+" + fmt(d), "good"); sfx.win(); } break; }
-    case "err": errToast(m.e); if (S.tblId && (!S.tbl || S.tbl.you < 0) && $("poker").classList.contains("on")) pkClose(true); break;
+    case "err": errToast(m.e); rmFail(); if (S.tblId && (!S.tbl || S.tbl.you < 0) && $("poker").classList.contains("on")) pkClose(true); break;
     case "duel.result": duelResult(m); break;
+    case "rm.req": rmReq(m); break;
     case "mx.state": mxState(m.m); break;
     case "mx.end": mxEnd(m); break;
     case "sup": supPoll(); break;

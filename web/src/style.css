@@ -541,6 +541,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 .coinw .cs{position:absolute;bottom:10px;width:90px;height:14px;border-radius:50%;background:#000a;filter:blur(3px);animation:cshadow 1.5s cubic-bezier(.3,0,.3,1)}
 @keyframes cshadow{45%{transform:scale(.45);opacity:.4}85%{transform:scale(1);opacity:1}}
 .res{font:400 28px var(--fd)}
+.rmb{display:flex;flex-direction:column;gap:6px;text-align:left;margin-top:4px}
+.rmb .lbl{margin:0}
+.rmb .chip:disabled{opacity:.35}
+.rmo{display:flex;align-items:center;gap:10px;padding:10px;background:#0f2a1a;box-shadow:0 0 0 2px var(--mint),0 0 16px #3dff7a44;font:400 14px var(--fd);animation:pop .3s cubic-bezier(.2,1.6,.4,1)}
+.rmo span{flex:1}
 .res.w{color:var(--mint);text-shadow:0 0 16px #3dff7a99}
 .res.l{color:var(--red)}
 .res.d{color:var(--cyan)}

@@ -44,6 +44,8 @@ const DICT = {
   your_turn: ["Твій хід", "Твой ход", "Your move"], opp_turn: ["Хід суперника", "Ход соперника", "Rival's move"], opp_thinks: ["Суперник думає…", "Соперник думает…", "Rival is thinking…"],
   pick: ["Обирай!", "Выбирай!", "Pick one!"], bj_turn: ["Ще карту чи досить?", "Ещё карту или хватит?", "Hit or stand?"], bj_hit: ["Ще карту", "Ещё карту", "Hit"], bj_stand: ["Досить", "Хватит", "Stand"],
   total: ["Очки", "Очки", "Total"], stood: ["зупинився", "остановился", "stands"], mines_left: ["Безпечних клітинок: {0}", "Безопасных клеток: {0}", "Safe cells left: {0}"],
+  rematch: ["Реванш", "Реванш", "Rematch"], rm_stake: ["Ставка на реванш", "Ставка на реванш", "Rematch stake"], rm_wait: ["Чекаємо суперника…", "Ждём соперника…", "Waiting for opponent…"],
+  rm_offer: ["{0} пропонує реванш на {1}", "{0} предлагает реванш на {1}", "{0} offers a rematch for {1}"], rm_accept: ["Прийняти", "Принять", "Accept"],
   rps_chant: ["Камінь…|Ножиці…|Папір!", "Камень…|Ножницы…|Бумага!", "Rock…|Paper…|Scissors!"], rps_ready: ["Готовий", "Готов", "Ready"], rps_wait: ["Чекаємо суперника…", "Ждём соперника…", "Waiting for opponent…"],
   rps_again: ["Нічия! Ще раунд", "Ничья! Ещё раунд", "Tie! One more round"], rps_w_r: ["Камінь ламає ножиці!", "Камень ломает ножницы!", "Rock crushes scissors!"],
   rps_w_s: ["Ножиці ріжуть папір!", "Ножницы режут бумагу!", "Scissors cut paper!"], rps_w_p: ["Папір накриває камінь!", "Бумага накрывает камень!", "Paper covers rock!"],

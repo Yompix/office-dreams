@@ -166,8 +166,9 @@ async function refPay(t: any, parts: [string, number][], rake: number, tag: stri
 }
 
 // ---------- Дуелі ----------
-type Duel = { id: number; uid: string; name: string; stake: number; game: string; at: number };
+type Duel = { id: number; uid: string; name: string; stake: number; game: string; at: number; priv?: string };
 const duels = new Map<number, Duel>(); let duelSeq = 1;
+const lastDuels = new Map<number, { game: string; p: string[]; names: string[]; at: number }>(); // для реваншу
 const checkStake = (n: any) => { n = Math.floor(Number(n)); if (!Number.isFinite(n) || n < MIN_BET || n > MAX_BET) throw new Error("bad_bet"); return n; };
 const rakeOf = (pot: number) => Math.floor(pot * RAKE);
 
@@ -175,10 +176,13 @@ async function duelCreate(ws: any, m: any) {
   const { uid, name } = ws.data; const u = await getUserRow(uid); needAge(u);
   const stake = checkStake(m.stake); const game = m.game === "dice" ? "dice" : "coin";
   if ([...duels.values()].filter((d) => d.uid === uid).length >= 3) throw new Error("too_many");
+  await duelCreateAs(uid, name, stake, game);
+}
+async function duelCreateAs(uid: string, name: string, stake: number, game: string, priv?: string) {
   const id = duelSeq++;
   await db.begin(async (t: any) => { await adj(t, uid, -stake, "duel_stake", null, "d" + id); await holdAdd(t, "duel", String(id), uid, stake); await t`update users set turnover = turnover + ${stake} where id = ${uid}`; });
-  duels.set(id, { id, uid, name, stake, game, at: Date.now() });
-  pushBal(uid); sendLobby();
+  duels.set(id, { id, uid, name, stake, game, at: Date.now(), priv });
+  pushBal(uid); sendLobby(); return id;
 }
 async function duelCancel(ws: any, m: any) {
   const d = duels.get(Number(m.id)); if (!d || d.uid !== ws.data.uid) return;
@@ -191,7 +195,7 @@ async function duelJoin(ws: any, m: any) {
   await duelJoinAs(uid, name, Number(m.id));
 }
 async function duelJoinAs(uid: string, name: string, did: number) {
-  const d = duels.get(did); if (!d) throw new Error("gone"); if (d.uid === uid) throw new Error("own");
+  const d = duels.get(did); if (!d) throw new Error("gone"); if (d.uid === uid) throw new Error("own"); if (d.priv && d.priv !== uid) throw new Error("gone");
   duels.delete(d.id);
   let ra = 0, rb = 0;
   let winner: string;
@@ -209,6 +213,8 @@ async function duelJoinAs(uid: string, name: string, did: number) {
     });
   } catch (e) { duels.set(d.id, d); throw e; }
   const res = { t: "duel.result", id: d.id, game: d.game, stake: d.stake, win, rake, winner, a: { uid: d.uid, name: d.name, roll: ra }, b: { uid, name, roll: rb } };
+  lastDuels.set(d.id, { game: d.game, p: [d.uid, uid], names: [d.name, name], at: Date.now() });
+  for (const [k, v] of lastDuels) if (Date.now() - v.at > 120000) lastDuels.delete(k);
   toUser(d.uid, res); if (uid !== d.uid) toUser(uid, res);
   pushBal(d.uid); pushBal(uid); sendLobby();
 }
@@ -506,8 +512,8 @@ async function afterHand(t: Table) {
 function lobbyView() {
   return {
     t: "lobby", tables: tables.map((t) => ({ id: t.id, sb: t.sb, bb: t.bb, min: t.min, max: t.max, players: t.seats.filter(Boolean).length, seats: t.n })),
-    mx: [...chals.values()].map((c) => ({ id: c.id, uid: c.uid, name: c.name, stake: c.stake, game: c.game })), on: new Set([...socks].map((x: any) => x.data.uid)).size,
-    duels: [...duels.values()].map((d) => ({ id: d.id, uid: d.uid, name: d.name, stake: d.stake, game: d.game })), jp: jpView(), rake: RAKE,
+    mx: [...chals.values()].filter((c) => !c.priv).map((c) => ({ id: c.id, uid: c.uid, name: c.name, stake: c.stake, game: c.game })), on: new Set([...socks].map((x: any) => x.data.uid)).size,
+    duels: [...duels.values()].filter((d) => !d.priv).map((d) => ({ id: d.id, uid: d.uid, name: d.name, stake: d.stake, game: d.game })), jp: jpView(), rake: RAKE,
   };
 }
 let lobbyQueued = false;
@@ -520,7 +526,7 @@ function sendLobby() {
 // rps — камінь-ножиці-папір, ttt — хрестики-нулики, card — висока карта,
 // four — «Неон-4» (чотири в ряд), mines — «Сапер-дуель», bj — «21-дуель», checkers — шашки, chess — шахи
 type MxGame = "rps" | "ttt" | "card" | "four" | "mines" | "bj" | "checkers" | "chess";
-type Chal = { id: number; uid: string; name: string; stake: number; game: MxGame; at: number };
+type Chal = { id: number; uid: string; name: string; stake: number; game: MxGame; at: number; priv?: string };
 type Match = { id: number; game: MxGame; stake: number; p: string[]; names: string[]; st: any; turn: number; deadline: number; timer: any; tk: number; over: boolean; bk?: string; bAt?: number; bBusy?: boolean };
 const chals = new Map<number, Chal>(), matches = new Map<number, Match>(); let mxSeq = Date.now(); // унікальні номери й після перезапуску (ref у журналі не повторюється)
 const mxJoining = new Set<string>();
@@ -529,7 +535,7 @@ const MX_MOVE_MS: Record<string, number> = { rps: 20000, ttt: 25000, four: 25000
 const TTT_LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
 const mxActive = (uid: string) => [...matches.values()].find((m) => !m.over && m.p.includes(uid));
 const toMx = (uid: string, o: any) => { for (const w of socks) if (w.data.uid === uid) send(w, o); };
-const mxLobbyView = () => ({ t: "mx.lobby", chals: [...chals.values()].map((c) => ({ id: c.id, uid: c.uid, name: c.name, stake: c.stake, game: c.game })) });
+const mxLobbyView = () => ({ t: "mx.lobby", chals: [...chals.values()].filter((c) => !c.priv).map((c) => ({ id: c.id, uid: c.uid, name: c.name, stake: c.stake, game: c.game })) });
 let mxQueued = false;
 function mxLobby() {
   sendLobby();
@@ -663,10 +669,13 @@ async function mxCreate(ws: any, m: any) {
   if (game === "chess" && !ChessLib) throw new Error("bad_game");
   if (mxActive(uid) || mxJoining.has(uid)) throw new Error("in_match");
   if ([...chals.values()].some((c) => c.uid === uid)) throw new Error("too_many");
+  await mxCreateAs(uid, name, stake, game);
+}
+async function mxCreateAs(uid: string, name: string, stake: number, game: MxGame, priv?: string) {
   const id = mxSeq++;
   await db.begin(async (t: any) => { await adj(t, uid, -stake, "mx_stake", null, game + " c" + id); await holdAdd(t, "mx", String(id), uid, stake); await t`update users set turnover = turnover + ${stake} where id = ${uid}`; });
-  chals.set(id, { id, uid, name, stake, game, at: Date.now() });
-  pushBal(uid); mxLobby();
+  chals.set(id, { id, uid, name, stake, game, at: Date.now(), priv });
+  pushBal(uid); mxLobby(); return id;
 }
 async function mxJoin(ws: any, m: any) {
   const { uid, name } = ws.data; const u = await getUserRow(uid); needAge(u);
@@ -675,7 +684,7 @@ async function mxJoin(ws: any, m: any) {
   await mxJoinAs(uid, name, Number(m.id));
 }
 async function mxJoinAs(uid: string, name: string, cid: number) {
-  const c = chals.get(cid); if (!c) throw new Error("gone"); if (c.uid === uid) throw new Error("own");
+  const c = chals.get(cid); if (!c) throw new Error("gone"); if (c.uid === uid) throw new Error("own"); if (c.priv && c.priv !== uid) throw new Error("gone");
   chals.delete(c.id); mxJoining.add(uid);
   try {
     await db.begin(async (t: any) => { await adj(t, uid, -c.stake, "mx_stake", null, c.game + " c" + c.id); await holdAdd(t, "mx", String(c.id), uid, c.stake); await t`update users set turnover = turnover + ${c.stake} where id = ${uid}`; });
@@ -765,6 +774,29 @@ async function mxMove(ws: any, m: any) {
   mm.turn = 1 - i; mxArm(mm); mxSend(mm);
 }
 
+// ---------- Реванш: обидва гравці погодилися на ту саму ставку — одразу нова гра ----------
+const rms = new Map<string, { uid: string; stake: number; at: number }>();
+async function rematch(uid: string, m: any) {
+  const kind = m.kind === "duel" ? "duel" : "mx", id = Number(m.id), stake = checkStake(m.stake);
+  let pr: { game: string; p: string[]; names: string[] } | undefined;
+  if (kind === "mx") { const mm = matches.get(id); if (mm && mm.over) pr = mm; } else pr = lastDuels.get(id);
+  if (!pr) throw new Error("gone");
+  const i = pr.p.indexOf(uid); if (i < 0) throw new Error("gone");
+  const o = 1 - i, other = pr.p[o], key = kind + id;
+  if (kind === "mx" && ((uid !== BOT_ID && mxActive(uid)) || (other !== BOT_ID && mxActive(other)))) throw new Error("in_match");
+  if ((await getBal(uid)) < stake) throw new Error("no_funds");
+  const pend = rms.get(key);
+  if (pend && pend.uid === other && pend.stake === stake && Date.now() - pend.at < 90000) {
+    rms.delete(key);
+    if (kind === "mx") { const cid = await mxCreateAs(other, pr.names[o], stake, pr.game as MxGame, uid); try { await mxJoinAs(uid, pr.names[i], cid); } catch (e) { const c = chals.get(cid); if (c) await mxRefundChal(c); throw e; } }
+    else { const did = await duelCreateAs(other, pr.names[o], stake, pr.game, uid); try { await duelJoinAs(uid, pr.names[i], did); } catch (e) { const d = duels.get(did); if (d) { duels.delete(did); await db.begin(async (t: any) => { await adj(t, d.uid, d.stake, "duel_refund", null, "d" + d.id); await holdDel(t, "duel", String(d.id), d.uid); }); pushBal(d.uid); } throw e; } }
+    return;
+  }
+  rms.set(key, { uid, stake, at: Date.now() });
+  toUser(other, { t: "rm.req", kind, id, stake, name: pr.names[i] });
+  if (other === BOT_ID && botOn) setTimeout(() => { if (rms.get(key)?.uid === uid) rematch(BOT_ID, { kind, id, stake }).catch((e) => { console.error("bot rematch", e.message); toUser(uid, { t: "err", e: e.message }); }); }, 1200 + rnd(1500));
+}
+
 // ---------- Бот-суперник ----------
 const pick = <T,>(a: T[]) => a[rnd(a.length)];
 const botDelay = (g: string) => (g === "chess" ? 1500 + rnd(3000) : g === "checkers" ? 1000 + rnd(2000) : g === "rps" ? 1500 + rnd(4000) : 800 + rnd(1600));
@@ -816,8 +848,8 @@ async function botAct(m: Match) {
 async function botTick() {
   if (!botOn) return;
   const online = new Set([...socks].map((x: any) => x.data.uid)), now = Date.now();
-  for (const c of [...chals.values()]) if (c.uid !== BOT_ID && now - c.at > BOT_WAIT && online.has(c.uid) && (c.game !== "chess" || ChessLib)) { try { await mxJoinAs(BOT_ID, botName(), c.id); } catch (e: any) { console.error("bot join", e.message); } }
-  for (const d of [...duels.values()]) if (d.uid !== BOT_ID && now - d.at > BOT_WAIT && online.has(d.uid)) { try { await duelJoinAs(BOT_ID, botName(), d.id); } catch (e: any) { console.error("bot duel", e.message); } }
+  for (const c of [...chals.values()]) if (!c.priv && c.uid !== BOT_ID && now - c.at > BOT_WAIT && online.has(c.uid) && (c.game !== "chess" || ChessLib)) { try { await mxJoinAs(BOT_ID, botName(), c.id); } catch (e: any) { console.error("bot join", e.message); } }
+  for (const d of [...duels.values()]) if (!d.priv && d.uid !== BOT_ID && now - d.at > BOT_WAIT && online.has(d.uid)) { try { await duelJoinAs(BOT_ID, botName(), d.id); } catch (e: any) { console.error("bot duel", e.message); } }
   for (const m of [...matches.values()]) if (!m.over && m.p.includes(BOT_ID)) await botAct(m);
 }
 setInterval(() => { botTick().catch((e) => console.error("bot", e.message)); }, 500);
@@ -834,6 +866,7 @@ async function onMessage(ws: any, raw: string) {
       case "mx.join": await mxJoin(ws, m); break;
       case "mx.sync": { const a = mxActive(d.uid); if (a) send(ws, { t: "mx.state", m: mxView(a, d.uid) }); break; }
       case "mx.move": await mxMove(ws, m); break;
+      case "rematch": await rematch(d.uid, m); break;
       case "mx.leave": await mxLeave(d.uid); d.sub = ""; break;
       case "duel.create": await duelCreate(ws, m); break;
       case "duel.cancel": await duelCancel(ws, m); break;

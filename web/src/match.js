@@ -28,7 +28,7 @@ function fenBoard(fen) { const b = []; for (const r of fen.split(" ")[0].split("
 /* ---------- стан матчу ---------- */
 function mxState(m) {
   const prev = S.match && S.match.m && S.match.m.id === m.id ? S.match.m : null;
-  if (!prev) { closeSheet(); S.sel = null; }
+  if (!prev) { closeSheet(); S.sel = null; if (S.rm) { S.rm = null; closeModal(); } }
   const wasMine = prev && myTurnOf(prev);
   S.match = { m, at: Date.now(), over: false, local: false, prev };
   S.pend = false;
@@ -332,12 +332,41 @@ function endModal(e, m) {
   const me = e.local ? 0 : myId(), won = e.local ? e.winner === 0 : e.winner === me, draw = e.local ? e.winner === null : !e.winner;
   const why = { timeout: won ? "why_to_w" : "why_to_l", resign: won ? "why_rs_w" : "why_rs_l", boom: won ? "why_boom_w" : "why_boom_l", mate: "why_mate", draw: "why_draw", cards: "why_cards", bj: "why_bj", four: "why_four", ttt: "why_ttt", checkers: won ? "why_checkers" : "why_checkers_l", rps: "why_rps" }[e.reason];
   const amt = e.local ? "" : won ? `<div class="res w">+${fmt(e.win - m.stake)} <i class="coin" style="width:24px;height:24px"></i></div>` : draw ? `<div class="res d">${T("refunded")}</div>` : `<div class="res l">−${fmt(m.stake)}</div>`;
-  modal(`<h3 class="${won ? "gold" : ""}" style="font-size:30px">${won ? T("victory") : draw ? T("draw") : T("defeat")}</h3>${why ? `<p>${T(why)}</p>` : ""}${amt}<div class="btns"><button class="btn dk" id="eLobby">${T("to_lobby")}</button><button class="btn ${won ? "gr" : "pk"}" id="eAgain">${T("again")}</button></div>`);
-  $("eLobby").onclick = () => { closeModal(); mxClose(); go("lobby"); if (!e.local) adsInter(); };
-  $("eAgain").onclick = () => { closeModal(); mxClose(); if (!e.local) adsInter(); if (e.local) botStart(m.game); else { S.stake = m.stake; openRoom(m.game); } };
+  modal(`<h3 class="${won ? "gold" : ""}" style="font-size:30px">${won ? T("victory") : draw ? T("draw") : T("defeat")}</h3>${why ? `<p>${T(why)}</p>` : ""}${amt}${e.local ? "" : rmHtml()}<div class="btns"><button class="btn dk" id="eLobby">${T("to_lobby")}</button><button class="btn ${won ? "gr" : "pk"}" id="eAgain">${T("again")}</button></div>`);
+  if (!e.local) rmAttach("mx", m.id, m.stake, won);
+  $("eLobby").onclick = () => { S.rm = null; closeModal(); mxClose(); go("lobby"); if (!e.local) adsInter(); };
+  if (e.local) $("eAgain").onclick = () => { closeModal(); mxClose(); botStart(m.game); };
   if (won) { sfx.big(); hap("success"); burst(70); setTimeout(() => burst(50, innerWidth * 0.25, innerHeight * 0.35), 250); setTimeout(() => burst(50, innerWidth * 0.75, innerHeight * 0.35), 450); if (!e.local) rain(60); }
   else if (draw) { sfx.click(); hap("warning"); } else { sfx.lose(); hap("error"); }
 }
+
+/* ---------- реванш: та сама гра з тим самим суперником, ставку можна змінити ---------- */
+const rmHtml = () => `<div class="rmb"><span class="lbl">${T("rm_stake")}</span><div class="chips g3" id="rmCh">${STAKES.map((v) => `<button class="chip" data-rs="${v}"><i class="coin" style="width:14px;height:14px"></i>${fmt(v)}</button>`).join("")}</div><div class="rmo" id="rmOf" hidden></div></div>`;
+function rmAttach(kind, id, stake, won) {
+  S.rm = { kind, id, stake, sent: false };
+  const btn = $("eAgain") || $("dAg"); btn.className = "btn " + (won ? "gr" : "pk");
+  const paint = () => {
+    const R = S.rm; if (!R) return; const bal = S.me ? S.me.balance : 0;
+    $$("#rmCh [data-rs]").forEach((b) => { const v = Number(b.dataset.rs); b.classList.toggle("on", v === R.stake); b.disabled = R.sent || v > bal; });
+    btn.disabled = R.sent || R.stake > bal; btn.textContent = R.sent ? T("rm_wait") : T("rematch") + " · " + fmt(R.stake);
+  };
+  S.rmPaint = paint; paint();
+  $("rmCh").onclick = (ev) => { const b = ev.target.closest("[data-rs]"); if (!b || S.rm.sent) return; S.rm.stake = Number(b.dataset.rs); sfx.chip(); paint(); };
+  btn.onclick = () => rmSend();
+}
+function rmSend(stake) {
+  const R = S.rm; if (!R) return; if (stake) R.stake = stake;
+  if (wsSend({ t: "rematch", kind: R.kind, id: R.id, stake: R.stake })) { R.sent = true; sfx.chip(); hap("medium"); S.rmPaint && S.rmPaint(); }
+}
+function rmReq(q) {
+  const R = S.rm;
+  if (!R || R.kind !== q.kind || R.id !== q.id || !$("rmOf")) { toast(T("rm_offer", q.name, fmt(q.stake))); return; }
+  const o = $("rmOf"); o.hidden = false;
+  o.innerHTML = `<span>${T("rm_offer", esc(q.name), `<b class="gold">${fmt(q.stake)}</b>`)}</span><button class="btn gr sm" id="rmAcc">${T("rm_accept")}</button>`;
+  $("rmAcc").onclick = () => { o.hidden = true; rmSend(q.stake); };
+  sfx.turn(); hap("medium");
+}
+function rmFail() { if (S.rm && S.rm.sent) { S.rm.sent = false; S.rmPaint && S.rmPaint(); } }
 
 /* ---------- тренування з ботом (без монет) ---------- */
 function openTraining() {
