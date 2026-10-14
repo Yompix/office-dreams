@@ -738,9 +738,9 @@ function mktSpark(hist, up) {
 }
 function mktSoon(mini) {
   const sym = esc((NET.cfg && NET.cfg.symbol) || 'OFFICE'), ch = NET.cfg && NET.cfg.links && NET.cfg.links.channel;
-  if (mini) return `<section class="panel mkt mini soon" data-act="mktab"><span class="mk-logo">${I('sol', 22)}</span><div class="mk-mini-t"><b>${L('mk.soon_t', { sym })}</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></section>`;
+  if (mini) return `<section class="panel mkt mini soon" data-act="mktab">${NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 22)}</span>`}<div class="mk-mini-t"><b>${L('mk.soon_t', { sym })}</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></section>`;
   return `<section class="panel mkt soon">
-    <div class="mk-h"><span class="mk-logo">${I('sol', 26)}</span><div class="mk-name"><b>${sym} × Solana</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></div>
+    <div class="mk-h">${NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 26)}</span>`}<div class="mk-name"><b>${sym} × Solana</b><small>${L('mk.soon_s')}</small></div><span class="mk-soon-chip">${L('mk.soon')}</span></div>
     <h2 class="h2">${L('mk.soon_t', { sym })}</h2>
     <p class="sub">${L('mk.soon_p', { sym })}</p>
     <ul class="bul"><li>${L('mk.soon_1', { sym })}</li><li>${L('mk.soon_2')}</li><li>${L('mk.soon_3', { sym })}</li></ul>
@@ -756,7 +756,7 @@ function mktPanel(mini) {
   if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p><button class="btn big glow wide" data-act="mkbuy">${L('mk.buy')}</button></section>`;
   const ch = m.ch24, up = ch === null ? true : ch >= 0;
   const chip = ch === null ? '' : `<span class="mk-ch ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</span>`;
-  const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : `<span class="mk-logo">${I('sol', 26)}</span>`;
+  const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : (NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 26)}</span>`);
   if (mini) return `<section class="panel mkt mini" data-act="mktab">${logo}<div class="mk-mini-t"><b>${sym}</b><small>${L('mk.live')}</small></div><div class="mk-mini-p"><b class="px">${fmtUsdP(m.usd)}</b>${chip}</div><span class="mk-go">${L('mk.buy_s')} ›</span></section>`;
   const bal = UI.hub.mktBal, hasW = !!(NET.eco && NET.eco.sol);
   const rng = ['24h', '7d', '30d'].map((x) => `<button class="${(r.range || '24h') === x ? 'on' : ''}" data-act="mkrange:${x}">${L('mk.r_' + x)}</button>`).join('');
@@ -814,7 +814,7 @@ function hubToken() {
   const road = [['r1', 'now'], ['r2', 'next'], ['r3', 'next'], ['r4', 'later'], ['r5', 'later'], ['r6', 'later']];
   const uses = ['u1', 'u2', 'u3', 'u4'];
   return `${mktPanel()}<section class="panel tokhero2">
-    <div class="coin3d"><div class="coin-face">${I('sol', 46)}</div></div>
+    <div class="coin3d"><div class="coin-face logo">${NET.mode === 'online' ? '<img src="/token.png" alt="">' : I('sol', 46)}</div></div>
     <h2 class="op-title">${sym}</h2>
     <p class="sub">${L('tok.what', { sym })}</p>
     <div class="hero-stats">

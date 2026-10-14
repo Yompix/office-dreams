@@ -1146,3 +1146,7 @@ body.pv-on #app { visibility: hidden; }
 .sp-st { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px 0 0; color: var(--ink2); font-size: 13px; text-align: center; }
 .sp-st .spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(20, 241, 149, 0.3); border-top-color: #14f195; animation: spspin 0.8s linear infinite; }
 @keyframes spspin { to { transform: rotate(360deg); } }
+.coin3d { width: 112px; height: 112px; }
+.coin-face.logo { background: none; box-shadow: none; }
+.coin-face.logo img { width: 112px; height: 112px; filter: drop-shadow(0 0 16px rgba(153, 69, 255, 0.6)) drop-shadow(0 0 8px rgba(20, 241, 149, 0.4)); }
+img.mk-logo { object-fit: contain; background: none; }
