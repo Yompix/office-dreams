@@ -130,11 +130,29 @@ async function main() {
   await click(page, '[data-act="flr:f2"]');
   await sleep(300);
   await click(page, '.fbuild [data-act="close"]');
+  await sleep(300);
+  await page.evaluate(() => document.querySelector('#main').scrollTo(0, 0));
+  await shot(page, '05_empire');
+  // the shop lives in the city mall now: the side bar button walks straight in
+  await ev(page, 'go("office")');
+  await sleep(300);
+  await click(page, '.side [data-act="city:visit:mall"]');
+  await sleep(600);
+  ok(await ev(page, 'UI.tab === "city" && CT.inside === "mall"'), 'shop button opens the mall inside the city');
+  await shot(page, '05c_mall');
   await click(page, '[data-act="buy:coffee"]');
   await click(page, '[data-act="buy:monitor2"]');
   await sleep(1200);
-  await page.evaluate(() => document.querySelector('#main').scrollTo(0, 0));
-  await shot(page, '05_empire');
+  ok(await ev(page, 'S.items.coffee === 1 && S.items.monitor2 === 1'), 'bought in the mall');
+  for (const b of ['cafe', 'academy', 'deals', 'games', 'arena']) {
+    await ev(page, `CT.x = CITY_B.find((x) => x.id === '${b}').x + 4; cityGo('${b}'); 1`);
+    await sleep(900);
+    ok(await ev(page, `CT.inside === '${b}' && !!document.querySelector('#citypanel')`), 'entered ' + b);
+    await shot(page, '05d_in_' + b);
+  }
+  await click(page, '[data-act="city:talk"]');
+  await click(page, '[data-act="city:out"]');
+  ok(await ev(page, '!CT.inside'), 'back on the street');
   ok(await ev(page, 'S.floors.f2 === 1'), 'floors bought');
   // release the game quickly: client and server must agree
   await ev(page, 'UI.modal && closeModal(true)');

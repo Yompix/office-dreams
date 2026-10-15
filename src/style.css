@@ -1257,3 +1257,7 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 /* nothing may widen the page sideways (spinning glows, rotated borders): a horizontal shift looked like the screen "sliding right" */
 .panel.ptsp { overflow: hidden; }
 @supports (overflow: clip) { #main, #main > .page { overflow-x: clip; } }
+/* city: inside a building */
+.ct-scene.in #citycv { cursor: pointer; }
+.ct-say { display: flex; gap: 8px; align-items: flex-start; width: 100%; margin-top: 8px; padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(8, 10, 34, 0.75); color: #eef1ff; font: 600 14px/1.4 var(--ui, sans-serif); text-align: left; cursor: pointer; animation: rise 0.3s cubic-bezier(.2, .9, .3, 1.1) both; }
+.ct-panel .h3.sm { font-size: 14px; margin: 14px 0 6px; color: var(--mut, #a6addb); }

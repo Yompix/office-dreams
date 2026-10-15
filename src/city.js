@@ -6,16 +6,18 @@
    (engine: CITY / coffeeBreak / startTraining / takeContract / storePromo).
    ============================================================ */
 const CITY_H = 120; // logical pixels; the canvas is scaled up crisp
-const CITY_W = 432; // world width
+const CITY_W = 640; // world width
 const CITY_B = [
   { id: 'office', x: 4, w: 70, h: 94, wall: '#181c58', trim: '#2b3290', sign: 'OFFICE', neon: '#3fd0ff' },
   { id: 'cafe', x: 90, w: 64, h: 62, wall: '#3a1d48', trim: '#5a2e6a', sign: 'CAFE', neon: '#ffb03f' },
   { id: 'academy', x: 170, w: 82, h: 86, wall: '#16384a', trim: '#22566e', sign: 'ACADEMY', neon: '#2ee66b' },
   { id: 'deals', x: 268, w: 66, h: 72, wall: '#3a2a18', trim: '#5a4226', sign: 'DEALS', neon: '#ffd23f' },
   { id: 'games', x: 350, w: 78, h: 66, wall: '#3e1638', trim: '#5e2456', sign: 'GAMES', neon: '#ff3fd0' },
+  { id: 'mall', x: 444, w: 84, h: 78, wall: '#1d2350', trim: '#2e3880', sign: 'MALL', neon: '#22e6ff' },
+  { id: 'arena', x: 544, w: 92, h: 90, wall: '#2a0f2e', trim: '#4a1a52', sign: 'ARENA', neon: '#ff4d6d' },
 ];
 const CITY_SIDEWALK = 98;
-const CT = { x: 39, tx: null, dir: 1, walk: 0, cam: 0, sel: null, t: 0, npcs: null, cars: null, sky: null, last: 0 };
+const CT = { x: 39, tx: null, dir: 1, walk: 0, cam: 0, sel: null, inside: null, say: '', sayN: 0, t: 0, npcs: null, cars: null, sky: null, last: 0 };
 
 /* ---------- state helpers (engine city state, game-time seconds) ---------- */
 function cityS() { return (S && S.city) || { cof: 0, promo: 0, trn: null, ctr: null, offer: null, ctrNext: 0, done: 0 }; }
@@ -30,9 +32,11 @@ function cityReady() {
     academy: !c.trn && trainable().some((r) => S.cash >= CITY.trnCost(r, S.staff[r].lvl)),
     deals: !!c.offer,
     games: S.t >= c.promo && S.games.some((g) => g.active) && S.cash >= promoCost(S),
+    mall: ITEMS.some((it) => !S.items[it.id] && S.cash >= it.price),
+    arena: lsGet('od2_pv_day') !== String(Math.floor(Date.now() / 86400000)),
   };
 }
-function citySig() { const r = cityReady(), c = cityS(); return (r.cafe ? 1 : 0) + '' + (r.academy ? 1 : 0) + (r.deals ? 1 : 0) + (r.games ? 1 : 0) + (c.trn ? 't' : '') + (c.ctr ? 'c' : ''); }
+function citySig() { const r = cityReady(), c = cityS(); return Object.keys(r).map((k) => (r[k] ? 1 : 0)).join('') + (c.trn ? 't' : '') + (c.ctr ? 'c' : '') + (CT.inside || '') + CT.sayN; }
 
 /* ---------- drawing ---------- */
 function cityRand(seed) { let s = seed; return () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff; }
@@ -57,7 +61,10 @@ const CITY_LOOKS = [
   { skin: '#f0c9a0', hair: '#c96a2a', top: '#d04a8a', pants: '#2a2a4a', acc: null },
   { skin: '#c99a70', hair: '#2a1a10', top: '#2e9a5a', pants: '#3a2a1a', acc: null },
   { skin: '#e8b890', hair: '#e8e0d0', top: '#7a4ad0', pants: '#1a1a2a', acc: null },
+  { skin: '#d8a880', hair: '#3a2a1a', top: '#2a2c44', pants: '#14141e', acc: null }, // a client in a suit
 ];
+// a person at double size (inside buildings)
+function cityPerson2(g, x, y, look, frame, dir, still) { g.save(); g.translate(Math.round(x), Math.round(y)); g.scale(2, 2); cityPerson(g, 0, 0, look, frame, dir, still); g.restore(); }
 // a 9×20 pixel person standing on (x, y); frame 0..3 walk cycle, dir ±1
 function cityPerson(g, x, y, look, frame, dir, still) {
   const L0 = CITY_LOOKS[look];
@@ -87,6 +94,7 @@ function cityDraw(now) {
   if (cv.width !== VW || cv.height !== CITY_H) { cv.width = VW; cv.height = CITY_H; }
   const t = now / 1000, dt = Math.min(0.1, Math.max(0, t - (CT.last || t)));
   CT.last = t; CT.t += dt;
+  if (CT.inside) { cityInterior(g, VW, t); return; }
   // walking
   if (CT.tx !== null) {
     const d = CT.tx - CT.x, step = 46 * dt;
@@ -198,6 +206,12 @@ function cityTap(e) {
   const cv = UI.cityCv;
   if (!cv) return;
   const r = cv.getBoundingClientRect();
+  if (CT.inside) {
+    // inside: the left edge is the door, anywhere else talks to the person behind the counter
+    const fx = (e.clientX - r.left) / r.width;
+    if (fx < 0.16) cityAct('out'); else cityTalk();
+    return;
+  }
   const wx = ((e.clientX - r.left) / r.width) * cv.width + Math.round(CT.cam);
   const b = CITY_B.find((x) => wx >= x.x - 4 && wx <= x.x + x.w + 4);
   if (b) cityGo(b.id); else { CT.tx = Math.max(6, Math.min(CITY_W - 6, wx)); CT.sel = null; }
@@ -206,6 +220,7 @@ function cityGo(id) {
   const b = CITY_B.find((x) => x.id === id);
   if (!b) return;
   CT.sel = null;
+  if (CT.inside) { CT.inside = null; CT.say = ''; }
   CT.tx = b.x + b.w / 2;
   sfx('blip');
   if (Math.abs(CT.tx - CT.x) < 1) { CT.tx = null; cityArrive(); }
@@ -216,6 +231,7 @@ function cityArrive() {
   if (!b) return;
   if (b.id === 'office') { go('office'); return; }
   CT.sel = b.id;
+  cityEnter(b.id);
   sfx('pop'); haptic('light');
   render(true);
   setTimeout(() => { const p = $('#citypanel'); if (p) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 60);
@@ -227,7 +243,7 @@ function cityPanel(id) {
   if (id === 'cafe') {
     const left = cityLeft(c.cof);
     return `<h3 class="h3">☕ ${L('city.cafe')}</h3><p class="sub">${L('city.cafe_t', { min: CITY.cofCd / 60 })}</p>
-      ${left > 0 ? `<button class="btn big wide" disabled>${L('city.wait')} <span data-t="cityleft:cof"></span></button>` : `<button class="btn big glow wide" data-act="city:cof">☕ ${L('city.cafe_btn')}</button>`}`;
+      ${left > 0 ? `<button class="btn big wide" disabled>${L('city.wait')} <span data-t="cityleft:cof"></span></button>` : `<button class="btn big glow wide" data-act="city:cof" ${S.cash >= CITY.cofCost(S) ? '' : 'disabled'}>☕ ${L('city.cafe_btn')} · ${money(CITY.cofCost(S))}</button>`}`;
   }
   if (id === 'academy') {
     if (c.trn) {
@@ -258,6 +274,18 @@ function cityPanel(id) {
       ${!g ? `<p class="hint">${L('city.games_none')}</p>` : left > 0 ? `<button class="btn big wide" disabled>${L('city.wait')} <span data-t="cityleft:promo"></span></button>`
         : `<div class="ct-row">${imgTag(coverURL(g.genre, g.name), 'cover sm')}<div><b>${esc(g.name)}</b><small>${L('city.games_boost')}</small></div></div><button class="btn big glow wide" data-act="city:prm" ${S.cash >= cost ? '' : 'disabled'}>${L('city.games_btn', { cost: money(cost) })}</button>`}`;
   }
+  if (id === 'mall') {
+    return `<h3 class="h3">🛋️ ${L('city.mall')}</h3><p class="sub">${L('city.mall_t')}</p>
+      <h3 class="h3 sm">${L('empire.shop')}</h3><div class="items">${ITEMS.map(itemRow).join('')}</div>
+      <h3 class="h3 sm">${L('empire.boosts')}</h3><div class="items">${BOOSTS.map(boostRow).join('')}</div>
+      <p class="hint">${L('empire.gems_hint')}</p>`;
+  }
+  if (id === 'arena') {
+    const fresh = cityReady().arena;
+    return `<h3 class="h3">⚔️ ${L('city.arena')}</h3><p class="sub">${L('city.arena_t')}</p>
+      <button class="btn big glow wide" data-act="pvp">⚔️ ${L('city.arena_btn')}</button>
+      ${fresh ? `<p class="hint">🎁 ${L('city.arena_daily')}</p>` : ''}`;
+  }
   return '';
 }
 function tabCity() {
@@ -267,8 +295,9 @@ function tabCity() {
     return `<button class="ct-chip ${CT.sel === b.id ? 'on' : ''}" data-act="city:go:${b.id}" style="--n:${b.neon}"><span>${L('city.ico_' + b.id)}</span><small>${L('city.' + b.id)}</small>${st}</button>`;
   }).join('');
   return `<section class="panel cityp">
-    <div class="ct-head"><button class="btn ghost sm" data-act="city:home">‹ ${L('city.back')}</button><h2 class="h2">🌆 ${L('city.title')}</h2></div>
-    <div class="ct-scene"><canvas id="citycv" width="240" height="${CITY_H}" aria-label="${esc(L('city.title'))}"></canvas>${CT.sel ? '' : `<span class="ct-tip">${L('city.tip')}</span>`}</div>
+    <div class="ct-head">${CT.inside ? `<button class="btn ghost sm" data-act="city:out">‹ ${L('city.out')}</button><h2 class="h2">${L('city.ico_' + CT.inside)} ${L('city.' + CT.inside)}</h2>` : `<button class="btn ghost sm" data-act="city:home">‹ ${L('city.back')}</button><h2 class="h2">🌆 ${L('city.title')}</h2>`}</div>
+    <div class="ct-scene ${CT.inside ? 'in' : ''}"><canvas id="citycv" width="240" height="${CITY_H}" aria-label="${esc(L('city.title'))}"></canvas>${CT.inside || CT.sel ? '' : `<span class="ct-tip">${L('city.tip')}</span>`}</div>
+    ${CT.inside && CT.say ? `<button class="ct-say" data-act="city:talk"><span>💬</span>${esc(CT.say)}</button>` : ''}
     <div class="ct-chips">${chips}</div>
   </section>
   ${CT.sel ? `<section class="panel ct-panel" id="citypanel">${cityPanel(CT.sel)}</section>` : ''}
@@ -285,16 +314,137 @@ function cityBanner() {
   if (c.ctr) items.push(`📋 <span data-t="cityleft:ctr"></span>`);
   else if (r.deals) items.push('📋 ' + L('city.rdy_deals'));
   if (r.games) items.push('🎮 ' + L('city.rdy_games'));
+  if (r.mall) items.push('🛋️ ' + L('city.rdy_mall'));
   return `<button class="panel citybn ${items.length ? 'hot' : ''}" data-act="city:open"><span class="cb-ico">🌆</span><span class="cb-t"><b>${L('city.go')}</b><small>${items.length ? items.join(' · ') : L('city.go_s')}</small></span><b class="chev">›</b></button>`;
 }
 function cityAct(what, arg) {
   if (what === 'open') { go('city'); return; }
   if (what === 'home') { go('office'); return; }
   if (what === 'go') { cityGo(arg); return; }
+  if (what === 'out') { CT.inside = null; CT.sel = null; CT.say = ''; sfx('blip'); render(true); return; }
+  if (what === 'talk') { cityTalk(); return; }
+  // from the office side bar: step out right at that building and go in
+  if (what === 'visit') { const b = CITY_B.find((x) => x.id === arg); if (!b) return; CT.x = b.x + b.w / 2; CT.tx = null; CT.cam = Math.max(0, CT.x - 80); go('city'); cityArrive(); return; }
   if (what === 'make') { const k = cityS().ctr; if (k) { S.sel.genre = k.genre; if (tierUnlocked(S, k.tier)) S.sel.tier = k.tier; } go('studio', 'games'); return; }
   const map = { cof: 'city.ok_cof', trn: 'city.ok_trn', trd: '', ctr: 'city.ok_ctr', ctx: '', prm: 'city.ok_prm' };
   if (!(what in map)) return;
   const r = arg ? netAct(what, arg) : netAct(what);
   if (r && r.ok) { if (map[what]) toast(L(map[what]), 'good'); haptic('medium'); if (what === 'cof' || what === 'prm') confettiSmall(); } else errToast(r && r.err);
   render(true);
+}
+
+/* ---------- inside the buildings ---------- */
+const CITY_SAY = { cafe: 3, academy: 3, deals: 3, games: 3, mall: 3, arena: 3 };
+function cityEnter(id) {
+  CT.inside = id;
+  CT.sayI = Math.floor(Math.random() * (CITY_SAY[id] || 1));
+  CT.say = L('city.say_' + id + '_' + (CT.sayI + 1));
+  CT.sayN++;
+}
+function cityTalk() {
+  const id = CT.inside;
+  if (!id || !CITY_SAY[id]) return;
+  CT.sayI = (CT.sayI + 1) % CITY_SAY[id];
+  CT.say = L('city.say_' + id + '_' + (CT.sayI + 1));
+  CT.sayN++; CT.talkT = CT.t;
+  sfx('pop'); haptic('light');
+  render(true);
+}
+function cityRoom(g, VW, wall, floor, trim) {
+  px(g, 0, 0, VW, 86, wall);
+  for (let x = 0; x < VW; x += 16) px(g, x, 0, 1, 86, 'rgba(0,0,0,.12)');
+  px(g, 0, 84, VW, 3, trim);
+  px(g, 0, 87, VW, CITY_H - 87, floor);
+  for (let y = 92; y < CITY_H; y += 7) px(g, 0, y, VW, 1, 'rgba(0,0,0,.18)');
+  // the door we came in through, on the left
+  px(g, 2, 46, 18, 41, '#0a0c22'); px(g, 4, 48, 14, 39, '#1c2050'); px(g, 15, 66, 2, 3, '#ffd23f');
+}
+function cityGlow(g, x, y, w, h, col, a) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = a; px(g, x, y, w, h, col); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
+function cityLamp(g, x, t) { px(g, x, 0, 1, 14, '#5a5f8a'); px(g, x - 3, 14, 7, 3, '#ffd890'); cityGlow(g, x - 10, 16, 21, 22, '#ffc070', 0.08 + 0.02 * Math.sin(t * 6 + x)); }
+function cityInterior(g, VW, t) {
+  const id = CT.inside, cx = Math.round(VW * 0.64), fr = Math.floor(CT.t * 6);
+  const talking = CT.talkT && CT.t - CT.talkT < 1.2;
+  const bob = talking ? Math.round(Math.sin(CT.t * 14)) : 0;
+  if (id === 'cafe') {
+    cityRoom(g, VW, '#3a1d48', '#2a1430', '#5a2e6a');
+    // menu board
+    px(g, 30, 10, 54, 30, '#120a1a'); px(g, 30, 10, 54, 1, '#7a4a2a'); signText(g, 'MENU', 46, 14, '#ffb03f');
+    for (let i = 0; i < 3; i++) { px(g, 35, 23 + i * 5, 26, 1, '#c8b0e0'); px(g, 72, 23 + i * 5, 7, 1, '#ffd23f'); }
+    cityLamp(g, Math.round(VW * 0.45), t); cityLamp(g, Math.round(VW * 0.82), t);
+    cityPerson2(g, cx, 78 + bob, 1, fr, -1, !talking); // barista behind the counter
+    px(g, cx - 40, 66, 84, 4, '#a8683a'); px(g, cx - 40, 70, 84, 18, '#7a4a2a'); px(g, cx - 40, 70, 84, 1, '#5a321a');
+    // coffee machine with steam
+    const mx = cx + 22;
+    px(g, mx, 48, 16, 18, '#9aa0c0'); px(g, mx + 1, 49, 14, 3, '#c8cce8'); px(g, mx + 6, 58, 4, 4, '#2a2a3a'); px(g, mx + 3, 53, 2, 2, Math.sin(t * 4) > 0 ? '#ff4d6d' : '#7a2a3a');
+    for (let i = 0; i < 4; i++) { const sy = 44 - ((t * 12 + i * 5) % 18); g.globalAlpha = 0.5 - (44 - sy) / 40; px(g, mx + 7 + Math.round(Math.sin(t * 3 + i) * 2), Math.round(sy), 1, 2, '#ffffff'); }
+    g.globalAlpha = 1;
+    px(g, cx - 30, 61, 5, 5, '#f0e8d8'); px(g, cx - 29, 60, 3, 1, '#6a3a1a'); // a cup on the counter
+  } else if (id === 'academy') {
+    cityRoom(g, VW, '#16384a', '#1a2a3a', '#22566e');
+    const bw = Math.min(120, VW - 70), bx = Math.round((VW - bw) / 2) + 10;
+    px(g, bx - 2, 8, bw + 4, 40, '#7a5a3a'); px(g, bx, 10, bw, 36, '#1c3a2a');
+    signText(g, 'LEARN', bx + 8, 15, '#e8f0e8');
+    for (let i = 0; i < 3; i++) px(g, bx + 8, 26 + i * 6, 20 + ((i * 37) % 40), 1, 'rgba(232,240,232,.7)');
+    px(g, bx + bw - 30, 24, 18, 14, 'rgba(232,240,232,.25)'); // a sketch of a sprite
+    // bookshelf
+    px(g, VW - 22, 20, 18, 64, '#4a3020');
+    const bc = ['#ff4d6d', '#3fd0ff', '#ffd23f', '#2ee66b', '#ff3fd0'];
+    for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) px(g, VW - 20 + k * 4, 24 + r * 15, 3, 11, bc[(r + k) % 5]);
+    cityPerson2(g, bx + bw - 10, 88 + bob, 3, fr, -1, !talking); // the teacher
+    for (let i = 0; i < 3; i++) { const dx = 36 + i * Math.round((VW - 90) / 3); px(g, dx, 96, 26, 3, '#a8683a'); px(g, dx + 2, 99, 2, 10, '#5a3a20'); px(g, dx + 22, 99, 2, 10, '#5a3a20'); px(g, dx + 8, 92, 10, 4, '#2a2e5a'); }
+  } else if (id === 'deals') {
+    cityRoom(g, VW, '#3a2a18', '#24180e', '#5a4226');
+    // cork board with contracts pinned on it
+    const bw = Math.min(90, Math.round(VW * 0.45));
+    px(g, 26, 10, bw, 44, '#8a6a3a'); px(g, 26, 10, bw, 2, '#5a4226');
+    const nc = ['#fff2a0', '#a0e8ff', '#ffb0d8', '#c0ffb0'], pins = Math.min(9, 3 + cityS().done);
+    for (let i = 0; i < pins; i++) { const nx = 30 + (i % 4) * Math.floor((bw - 8) / 4), ny = 15 + Math.floor(i / 4) * 13; px(g, nx, ny, 14, 10, nc[i % 4]); px(g, nx + 2, ny + 3, 9, 1, '#8a8070'); px(g, nx + 2, ny + 6, 6, 1, '#8a8070'); px(g, nx + 6, ny - 1, 2, 2, '#ff4d6d'); }
+    // a window with the city at night
+    const wx = VW - 46; px(g, wx, 12, 38, 30, '#0a1030'); for (let i = 0; i < 8; i++) px(g, wx + 3 + i * 4, 26 + (i * 7) % 12, 3, 16, '#1a1650'); px(g, wx, 26, 38, 1, '#5a4226'); px(g, wx + 18, 12, 1, 30, '#5a4226');
+    cityPerson2(g, cx, 82 + bob, 4, fr, -1, !talking); // the client
+    px(g, cx - 34, 70, 70, 4, '#6a4a2a'); px(g, cx - 34, 74, 70, 14, '#4a3020');
+    px(g, cx - 20, 66, 14, 4, '#f0f0f0'); px(g, cx + 8, 64, 10, 6, '#2a2e5a'); px(g, cx + 9, 65, 8, 4, '#3fd0ff');
+  } else if (id === 'games') {
+    cityRoom(g, VW, '#3e1638', '#24102a', '#5e2456');
+    signText(g, 'GAMES', Math.round(VW / 2 - 12), 6, '#ff3fd0'); cityGlow(g, Math.round(VW / 2 - 16), 3, 32, 11, '#ff3fd0', 0.25);
+    const cols = ['#3fd0ff', '#ff4d6d', '#ffd23f', '#2ee66b', '#ff3fd0', '#a070ff'];
+    const own = Math.min(40, S.games.length);
+    for (let r = 0; r < 3; r++) {
+      const sy = 22 + r * 20; px(g, 24, sy + 14, VW - 48, 2, '#7a4a2a');
+      for (let x = 28, i = 0; x < VW - 30; x += 7, i++) { const n = r * 30 + i, mine = n < own; px(g, x, sy + 2, 5, 12, mine ? cols[n % 6] : '#4a2a4a'); if (mine) px(g, x + 1, sy + 4, 3, 2, '#ffffff'); }
+    }
+    cityPerson2(g, cx + 14, 90 + bob, 2, fr, -1, !talking);
+    px(g, cx - 10, 78, 48, 4, '#a8683a'); px(g, cx - 10, 82, 48, 10, '#7a4a2a');
+  } else if (id === 'mall') {
+    cityRoom(g, VW, '#1d2350', '#121638', '#2e3880');
+    const items = ['chairs', 'monitor2', 'lamp', 'coffee', 'lounge', 'rack'], n = items.length, step = Math.floor((VW - 40) / n);
+    items.forEach((it, i) => {
+      const x = 28 + i * step, own = S.items[it], top = 58;
+      px(g, x - 2, top + 14, 20, 12, '#2e3880'); px(g, x - 2, top + 14, 20, 1, '#4a56b0');
+      if (it === 'chairs') { px(g, x + 4, top, 8, 9, '#ff4d6d'); px(g, x + 3, top + 8, 10, 3, '#c03a52'); px(g, x + 7, top + 11, 2, 3, '#888'); }
+      else if (it === 'monitor2') { px(g, x + 1, top + 1, 14, 9, '#20243a'); px(g, x + 2, top + 2, 12, 7, '#3fd0ff'); px(g, x + 7, top + 10, 2, 4, '#888'); }
+      else if (it === 'lamp') { px(g, x + 4, top, 8, 4, '#ffd23f'); px(g, x + 7, top + 4, 2, 10, '#aaa'); cityGlow(g, x, top + 3, 16, 10, '#ffd23f', 0.15); }
+      else if (it === 'coffee') { px(g, x + 3, top + 2, 10, 12, '#9aa0c0'); px(g, x + 6, top + 9, 4, 3, '#2a2a3a'); }
+      else if (it === 'lounge') { px(g, x, top + 6, 16, 6, '#2ee66b'); px(g, x, top + 3, 3, 9, '#1fa850'); px(g, x + 13, top + 3, 3, 9, '#1fa850'); }
+      else { px(g, x + 3, top - 2, 10, 16, '#2a2e44'); for (let k = 0; k < 4; k++) px(g, x + 5, top + k * 4, 6, 1, Math.sin(t * 5 + k + i) > 0 ? '#2ee66b' : '#1a4a2a'); }
+      if (own) { px(g, x + 12, top - 6, 6, 6, '#2ee66b'); px(g, x + 13, top - 3, 1, 1, '#04210f'); px(g, x + 14, top - 2, 1, 1, '#04210f'); px(g, x + 15, top - 4, 1, 2, '#04210f'); }
+    });
+    cityLamp(g, Math.round(VW * 0.3), t); cityLamp(g, Math.round(VW * 0.7), t);
+    cityPerson2(g, Math.round(VW * 0.5), 112 + bob, 3, fr, -1, !talking);
+  } else if (id === 'arena') {
+    cityRoom(g, VW, '#0a0a20', '#120a24', '#ff4d6d');
+    const sw = Math.min(110, VW - 60), sx = Math.round((VW - sw) / 2) + 8;
+    px(g, sx - 2, 6, sw + 4, 40, '#2a2a40'); px(g, sx, 8, sw, 36, '#05061a');
+    const flash = Math.sin(t * 3) > 0;
+    signText(g, 'VS', sx + Math.round(sw / 2) - 4, 22, flash ? '#ffd23f' : '#ff4d6d');
+    px(g, sx + 8, 18, 18, 18, '#3fd0ff'); px(g, sx + sw - 26, 18, 18, 18, '#ff3fd0');
+    cityGlow(g, sx, 8, sw, 36, '#ff4d6d', 0.08);
+    // spotlights
+    for (let k = 0; k < 2; k++) { const lx = k ? VW - 30 : 30, sway = Math.round(Math.sin(t * 1.3 + k * 2) * 18); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.07; for (let i = 0; i < 70; i += 3) { const hw = 1 + Math.round(i * 0.25); px(g, lx + Math.round(sway * i / 70) - hw, i, hw * 2, 3, k ? '#ff3fd0' : '#3fd0ff'); } g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
+    // the crowd cheering
+    for (let x = 24; x < VW - 4; x += 9) { const hop = Math.max(0, Math.round(Math.sin(t * 7 + x * 0.7) * 2)); px(g, x, 104 - hop, 7, 16, '#1a1030'); px(g, x + 1, 99 - hop, 5, 5, '#2a1a40'); if ((x / 9) % 3 < 1 && hop) px(g, x + 2, 94 - hop, 1, 4, '#ffd23f'); }
+    cityPerson2(g, cx, 92 + bob, 2, fr, -1, !talking);
+  }
+  // the player, standing by the door
+  cityPerson2(g, 30, 116, 0, 0, 1, true);
 }

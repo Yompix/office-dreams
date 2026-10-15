@@ -317,7 +317,8 @@ function newName(s, genre) {
 
 /* ---------- the city: coffee shop, academy, contract board, game store ---------- */
 const CITY = {
-  cofCd: 900, // coffee break: full energy + team mood, every 15 min
+  cofCd: 900, // coffee break: +60% energy + team mood, every 15 min, for a small bill
+  cofCost: (s) => Math.max(20, Math.round(incomeEstimate(s) * 0.12 / 10) * 10),
   promoCd: 1800, // store promo for the newest game, every 30 min
   trnSec: (lvl) => 600 + 300 * lvl, // academy course length (10 min at level 1 … 55 min at level 9)
   trnCost: (role, lvl) => Math.round(upCost(role, lvl) * 0.4), // a course is 60% cheaper than an upgrade, but takes time
@@ -329,8 +330,11 @@ const cityOf = (s) => s.city || (s.city = { cof: 0, promo: 0, trn: null, ctr: nu
 function coffeeBreak(s) {
   const c = cityOf(s);
   if (s.t < c.cof) return fail('cooldown');
+  const cost = CITY.cofCost(s);
+  if (s.cash < cost) return fail('cash');
+  s.cash -= cost;
   c.cof = s.t + CITY.cofCd;
-  s.energy = maxEnergy(s);
+  s.energy = Math.min(maxEnergy(s), s.energy + maxEnergy(s) * 0.6);
   moodAll(s, 6);
   bump(s);
   emit('sfx', 'coin');
@@ -398,7 +402,7 @@ function makeOffer(s) {
   const genre = pick(s, pool), tier = bestTier(s);
   const min = clamp(Math.floor(expectedScore(s, genre)), 5, 9);
   const cash = Math.round(Math.max(300, incomeEstimate(s) * 3 * Math.sqrt(TIERS[tier].rev)) / 10) * 10;
-  return { genre, tier, min, cash, gems: tier === 'mini' ? 2 : 3 };
+  return { genre, tier, min, cash, gems: tier === 'mini' ? 1 : 2 };
 }
 function takeContract(s) {
   const c = cityOf(s);

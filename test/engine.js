@@ -111,7 +111,8 @@ for (let seed = 1; seed <= 20; seed++) {
 {
   const s = E.newState(21);
   s.cash = 1e6; s.energy = 3;
-  ok(E.applyAction(s, ['cof']).ok && s.energy === E.maxEnergy(s), 'coffee refills energy');
+  const c0 = s.cash;
+  ok(E.applyAction(s, ['cof']).ok && Math.abs(s.energy - (3 + E.maxEnergy(s) * 0.6)) < 1e-9 && s.cash === c0 - E.CITY.cofCost(s), 'coffee: +60% energy for a small bill');
   ok(E.applyAction(s, ['cof']).err === 'cooldown', 'coffee has a cooldown');
   E.advance(s, E.CITY.cofCd + 1);
   ok(E.applyAction(s, ['cof']).ok, 'coffee again after the cooldown');

@@ -231,7 +231,7 @@ function tabOffice() {
   const side = [
     ['list', 'tab:quests', 'side.tasks', 'yel', qDot],
     ['office', 'go:studio:games', 'side.pc', 'cy', !S.project],
-    ['cart', 'tab:empire', 'side.shop', 'mag', false],
+    ['cart', 'city:visit:mall', 'side.shop', 'mag', ITEMS.some((it) => !S.items[it.id] && S.cash >= it.price)],
     ['users', 'go:studio:team', 'side.team', 'cy', ROLES.some((r) => S.staff[r].lvl === 0 && S.cash >= ROLE[r].hire)],
     ['up', 'pump', 'side.up', 'grn', S.cash >= youUpCost(S.you.lvl) && S.you.lvl < MAX_LVL],
     ['sword', 'pvp', 'side.pvp', 'mag', lsGet('od2_pv_day') !== String(Math.floor(Date.now() / 86400000))],
@@ -542,15 +542,7 @@ function tabEmpire() {
     <div class="sec-h"><div><h2 class="h2">${L('empire.floors')}</h2><p class="sub">${nf ? L('empire.floors_sub') : L('empire.all_floors')} ${L('empire.reno_sub')}</p></div><span class="reno-total px" title="${esc(L('empire.stars'))}">★ ${renoStars(S)}/${FLOOR_ORDER.length * RENO_MAX}</span></div>
     <div class="floors">${FLOORS.slice().reverse().map(floorRow).join('')}</div>
   </section>
-  <section class="panel">
-    <h2 class="h2">${L('empire.shop')}</h2>
-    <div class="items">${ITEMS.map(itemRow).join('')}</div>
-  </section>
-  <section class="panel">
-    <h2 class="h2">${L('empire.boosts')}</h2>
-    <div class="items">${BOOSTS.map(boostRow).join('')}</div>
-    <p class="hint">${L('empire.gems_hint')}</p>
-  </section>`;
+  <button class="panel citybn" data-act="city:visit:mall"><span class="cb-ico">🛋️</span><span class="cb-t"><b>${L('city.mall')}</b><small>${L('city.moved')}</small></span><b class="chev">›</b></button>`;
 }
 
 /* ---------- AIRDROP HUB ---------- */
