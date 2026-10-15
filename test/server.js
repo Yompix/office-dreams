@@ -880,7 +880,8 @@ const AB = require('../server/antibot.js');
       Eco.fulfilDonation(env8.ctx, 8602, 'd2', 1000, env8.clock.t, { usd: 50, meta: JSON.stringify({ usd: 50 }) });
       env8.mock.calls.length = 0;
       assert.equal((await Ad.tick(env8.ctx, env8.clock.t)).st, 'claim');
-      await new Promise((r) => setTimeout(r, 100));
+      // the announcement is sent in the background: wait for it (up to 3 s)
+      for (let i = 0; i < 60 && !env8.mock.calls.some((c) => c.method === 'sendMessage' && c.body.chat_id === 8601); i++) await new Promise((r) => setTimeout(r, 50));
       const msgs = env8.mock.calls.filter((c) => c.method === 'sendMessage');
       assert.ok(msgs.some((m) => m.body.chat_id === 8601 && /67\s?500\s?000/.test(m.body.text)), 'player told their share');
       assert.ok(msgs.some((m) => m.body.chat_id === '@od_news'), 'channel announcement');

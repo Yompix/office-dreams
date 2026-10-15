@@ -1169,6 +1169,17 @@ img.mk-logo { object-fit: contain; background: none; }
 .donate input, .don-own input { width: 100%; box-sizing: border-box; min-width: 0; }
 .mk-price { min-width: 0; flex-wrap: wrap; }
 .mk-price b.long { font-size: 26px; letter-spacing: 0; }
+/* ---- performance on phones ---- */
+/* neon edges stay, but no longer rotate: animating a custom property repaints the gradient every frame */
+.panel.officep, .panel.mkt:not(.mini), .panel.towerp, .panel.ipo, .panel.tokhero2, .panel.invite, .panel.ptsp, .panel.workp { animation: none; --neo-a: 210deg; }
+/* the light sweep runs only on highlighted buttons, not on every button of the page */
+.btn::after { animation: none; will-change: auto; display: none; }
+.btn.glow:not(:disabled)::after, .btn.big.gold::after { display: block; animation: shine2 5s ease-in-out infinite; will-change: transform; }
+/* fewer, cheaper floating motes (no glow shadow) */
+#motes i { box-shadow: none !important; }
+#motes i:nth-child(n+9) { display: none; }
+/* no animations while the app is in the background or for players who asked for less motion */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -10944,10 +10955,18 @@ function frame(now) {
     UI.liveAcc += dt;
     // while the battle arena is open the office behind it is not redrawn (all the phone's power goes to the fight)
     if (UI.liveAcc >= 0.2 && !UI.pvp) { UI.liveAcc = 0; render(); live(); tutUpdate(); }
+    // the office scene adapts to the phone: slower phones get fewer scene frames instead of a laggy UI
     UI.sceneAcc += dt;
-    if (UI.sceneAcc >= 0.045 && !UI.pvp) { UI.sceneAcc = 0; drawScene(now / 1000); }
+    if (UI.sceneAcc >= (UI.sceneStep || 0.045) && !UI.pvp && UI.tab === 'office' && !document.hidden) {
+      UI.sceneAcc = 0;
+      const t0 = performance.now();
+      drawScene(now / 1000);
+      const ms = performance.now() - t0;
+      UI.sceneMs = UI.sceneMs === undefined ? ms : UI.sceneMs * 0.9 + ms * 0.1;
+      UI.sceneStep = UI.sceneMs > 22 ? 0.1 : UI.sceneMs > 12 ? 0.066 : 0.045;
+    }
     UI.towerAcc += dt;
-    if (UI.towerAcc >= 0.25) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
+    if (UI.towerAcc >= 0.25 && UI.tab === 'empire' && !document.hidden) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
   }
   requestAnimationFrame(frame);
 }

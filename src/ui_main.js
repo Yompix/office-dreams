@@ -878,10 +878,18 @@ function frame(now) {
     UI.liveAcc += dt;
     // while the battle arena is open the office behind it is not redrawn (all the phone's power goes to the fight)
     if (UI.liveAcc >= 0.2 && !UI.pvp) { UI.liveAcc = 0; render(); live(); tutUpdate(); }
+    // the office scene adapts to the phone: slower phones get fewer scene frames instead of a laggy UI
     UI.sceneAcc += dt;
-    if (UI.sceneAcc >= 0.045 && !UI.pvp) { UI.sceneAcc = 0; drawScene(now / 1000); }
+    if (UI.sceneAcc >= (UI.sceneStep || 0.045) && !UI.pvp && UI.tab === 'office' && !document.hidden) {
+      UI.sceneAcc = 0;
+      const t0 = performance.now();
+      drawScene(now / 1000);
+      const ms = performance.now() - t0;
+      UI.sceneMs = UI.sceneMs === undefined ? ms : UI.sceneMs * 0.9 + ms * 0.1;
+      UI.sceneStep = UI.sceneMs > 22 ? 0.1 : UI.sceneMs > 12 ? 0.066 : 0.045;
+    }
     UI.towerAcc += dt;
-    if (UI.towerAcc >= 0.25) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
+    if (UI.towerAcc >= 0.25 && UI.tab === 'empire' && !document.hidden) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
   }
   requestAnimationFrame(frame);
 }
