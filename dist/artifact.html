@@ -1229,7 +1229,7 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .ct-head .h2 { margin: 0; }
 .ct-scene { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid rgba(120, 140, 255, 0.3); box-shadow: 0 0 24px rgba(63, 208, 255, 0.15) inset; background: #070a26; }
 #citycv { display: block; width: 100%; height: clamp(200px, 52vw, 300px); image-rendering: pixelated; image-rendering: crisp-edges; touch-action: manipulation; cursor: pointer; }
-.ct-tip { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); font-size: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(6, 8, 30, 0.75); color: #cfe6ff; pointer-events: none; white-space: nowrap; animation: ctTip 2.4s ease-in-out infinite; }
+.ct-tip { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); font-size: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(6, 8, 30, 0.75); color: #cfe6ff; pointer-events: none; white-space: nowrap; max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; animation: ctTip 2.4s ease-in-out infinite; }
 @keyframes ctTip { 50% { opacity: 0.55; } }
 .ct-chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
 .ct-chip { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 12px; border: 1px solid rgba(120, 140, 255, 0.25); background: rgba(16, 22, 64, 0.7); color: inherit; font: inherit; cursor: pointer; }
@@ -1257,6 +1257,9 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .citybn.hot { border-color: rgba(255, 210, 63, 0.6); box-shadow: 0 0 18px rgba(255, 210, 63, 0.2); }
 .citybn.hot .cb-ico { animation: ctBob 1.6s ease-in-out infinite; }
 @keyframes ctBob { 50% { transform: translateY(-3px); } }
+/* nothing may widen the page sideways (spinning glows, rotated borders): a horizontal shift looked like the screen "sliding right" */
+.panel.ptsp { overflow: hidden; }
+@supports (overflow: clip) { #main, #main > .page { overflow-x: clip; } }
 </style>
 <div id="app">
   <header id="hud"></header>
