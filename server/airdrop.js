@@ -283,7 +283,8 @@ function adminView(ctx) {
   const st = state(ctx);
   const c = ctx.db.get("SELECT COUNT(*) AS n, SUM(CASE WHEN status='sent' THEN 1 ELSE 0 END) AS sent, SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) AS failed FROM airdrop_alloc");
   const d = distributor(ctx);
-  const ent = ctx.db.get("SELECT COUNT(DISTINCT uid) AS n FROM purchases WHERE sku='adentry'").n;
+  // verified players: any contribution counts (SOL deposit, Stars entry, donation or a shop purchase), as in entered()
+  const ent = ctx.db.all("SELECT DISTINCT uid FROM purchases WHERE sku<>'adfee'").filter((r) => !Eco.isDev(ctx, r.uid)).length;
   const wrong = d && ctx.cfg.airdrop.secret && ctx.cfg.airdrop.wallet && d.publicKey.toBase58() !== ctx.cfg.airdrop.wallet;
   return { ok: true, state: st, entered: ent, keyMismatch: !!wrong, wallet: ctx.cfg.airdrop.wallet || null, allocs: c.n, sent: c.sent || 0, failed: c.failed || 0, mint: (ctx.cfg.token && ctx.cfg.token.addr) || null, distributor: d ? d.publicKey.toBase58() : null, fund: Eco.fundView(ctx, 0) };
 }
