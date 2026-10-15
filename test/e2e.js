@@ -136,9 +136,12 @@ async function main() {
   // the shop lives in the city mall now: the side bar button walks straight in
   await ev(page, 'go("office")');
   await sleep(300);
-  await click(page, '.side [data-act="city:visit:mall"]');
-  await sleep(600);
-  ok(await ev(page, 'UI.tab === "city" && CT.inside === "mall"'), 'shop button opens the mall inside the city');
+  await click(page, '.side [data-act="city:open"]');
+  await sleep(400);
+  ok(await ev(page, 'UI.tab === "city"'), 'the side bar opens the city');
+  await click(page, '[data-act="city:go:mall"]');
+  await page.waitForFunction(() => window.__ev('CT.inside === "mall"'), null, { timeout: 8000 }).catch(() => {});
+  ok(await ev(page, 'CT.inside === "mall"'), 'walked into the mall');
   await shot(page, '05c_mall');
   await click(page, '[data-act="buy:coffee"]');
   await click(page, '[data-act="buy:monitor2"]');

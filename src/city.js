@@ -97,7 +97,7 @@ function cityDraw(now) {
   if (CT.inside) { cityInterior(g, VW, t); return; }
   // walking
   if (CT.tx !== null) {
-    const d = CT.tx - CT.x, step = 46 * dt;
+    const d = CT.tx - CT.x, step = (CT.spd || 46) * dt;
     if (Math.abs(d) <= step) { CT.x = CT.tx; CT.tx = null; cityArrive(); } else { CT.dir = d > 0 ? 1 : -1; CT.x += CT.dir * step; CT.walk += dt * 9; }
   }
   const camT = Math.max(0, Math.min(CITY_W - VW, CT.x - VW / 2));
@@ -214,7 +214,7 @@ function cityTap(e) {
   }
   const wx = ((e.clientX - r.left) / r.width) * cv.width + Math.round(CT.cam);
   const b = CITY_B.find((x) => wx >= x.x - 4 && wx <= x.x + x.w + 4);
-  if (b) cityGo(b.id); else { CT.tx = Math.max(6, Math.min(CITY_W - 6, wx)); CT.sel = null; }
+  if (b) cityGo(b.id); else { CT.tx = Math.max(6, Math.min(CITY_W - 6, wx)); CT.spd = Math.max(46, Math.abs(CT.tx - CT.x) / 1.4); CT.sel = null; }
 }
 function cityGo(id) {
   const b = CITY_B.find((x) => x.id === id);
@@ -222,6 +222,7 @@ function cityGo(id) {
   CT.sel = null;
   if (CT.inside) { CT.inside = null; CT.say = ''; }
   CT.tx = b.x + b.w / 2;
+  CT.spd = Math.max(46, Math.abs(CT.tx - CT.x) / 1.4); // far buildings: a brisk run, never a long walk
   sfx('blip');
   if (Math.abs(CT.tx - CT.x) < 1) { CT.tx = null; cityArrive(); }
   render(true);

@@ -416,6 +416,7 @@ const ACT = {
   mkrange: (r) => { UI.mktRange = r; loadMarket(true); render(true); },
   mktab: () => { UI.sub.drop = 'token'; render(true); loadHub('token'); },
   openbot: () => { if (NET.cfg && NET.cfg.bot) openLink('https://t.me/' + NET.cfg.bot + (NET.cfg.app ? '/' + NET.cfg.app : '')); },
+  gwtx: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.pay && g.pay.tx) openLink('https://solscan.io/tx/' + g.pay.tx); },
   gwsponsor: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.url) openLink(g.url); },
   site: () => { const l = NET.cfg && NET.cfg.links && NET.cfg.links.site; if (l) openLink(l + (LANG === 'en' ? '' : '?lang=' + LANG)); },
   link: (k) => { const l = NET.cfg && NET.cfg.links && NET.cfg.links[k]; if (l) openLink(l); },

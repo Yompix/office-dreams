@@ -1297,6 +1297,8 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .gwbn .cb-ico { font-size: 28px; animation: ctBob 1.6s ease-in-out infinite; }
 .gwbn .cb-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .gwbn .cb-t small { color: var(--mut); font-size: 12px; }
+.gw-pay { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-top: 10px; padding: 10px 12px; border-radius: 12px; font-size: 14px; background: rgba(255, 210, 63, 0.08); border: 1px solid rgba(255, 210, 63, 0.3); }
+.gw-pay.sent { background: rgba(46, 230, 107, 0.1); border-color: rgba(46, 230, 107, 0.45); }
 </style>
 </head>
 <body>
@@ -2861,7 +2863,7 @@ LANGS.en = {
   "gw.done_s": "results are in",
   "gw.place": "place {n}",
   "gw.sub": "The {n} most active verified players win. Only points earned during the giveaway count: just play!",
-  "gw.sub_done": "The giveaway is over. Winners got a message from the bot; the admin @vtmjs hands out the prizes.",
+  "gw.sub_done": "The giveaway is over. Prizes are sent to the winners in SOL, straight to their Solana wallets.",
   "gw.my": "My giveaway points",
   "gw.rank": "My place",
   "gw.need": "Verified players only",
@@ -2872,6 +2874,11 @@ LANGS.en = {
   "gw.sponsor": "The sponsor",
   "gw.rules": "The server counts the points, the same way as for the airdrop: bots, farming and dev accounts are excluded.",
   "u.d": "d",
+  "gw.pay_sent": "Your ${p} prize was sent to your wallet in SOL!",
+  "gw.pay_wallet": "You won ${p}! Connect a Solana wallet and the prize arrives automatically.",
+  "gw.pay_soon": "Your ${p} prize is on its way to your wallet…",
+  "gw.wallet_hint": "Prizes arrive in SOL automatically: connect your wallet in advance.",
+  "side.city": "City",
 };
 
 /* ---- src/lang_ru.js ---- */
@@ -3656,7 +3663,7 @@ LANGS.ru = {
   "gw.done_s": "итоги готовы",
   "gw.place": "{n} место",
   "gw.sub": "Побеждают {n} самых активных верифицированных игрока. Считаются очки, заработанные во время розыгрыша — просто играй!",
-  "gw.sub_done": "Розыгрыш завершён. Победителям пришло сообщение от бота, призы выдаёт админ @vtmjs.",
+  "gw.sub_done": "Розыгрыш завершён. Призы отправляются победителям в SOL на их Solana-кошельки автоматически.",
   "gw.my": "Мои очки в розыгрыше",
   "gw.rank": "Моё место",
   "gw.need": "Участвуют только верифицированные",
@@ -3667,6 +3674,11 @@ LANGS.ru = {
   "gw.sponsor": "Спонсор розыгрыша",
   "gw.rules": "Очки считает сервер — так же, как для аирдропа: боты, накрутка и dev-аккаунты не участвуют.",
   "u.d": "д",
+  "gw.pay_sent": "Твой приз ${p} отправлен на кошелёк в SOL!",
+  "gw.pay_wallet": "Ты выиграл ${p}! Подключи Solana-кошелёк — приз придёт автоматически.",
+  "gw.pay_soon": "Приз ${p} отправляется на твой кошелёк…",
+  "gw.wallet_hint": "Приз приходит в SOL автоматически — подключи кошелёк заранее.",
+  "side.city": "Город",
 };
 
 /* ---- src/lang_uk.js ---- */
@@ -4451,7 +4463,7 @@ LANGS.uk = {
   "gw.done_s": "підсумки готові",
   "gw.place": "{n} місце",
   "gw.sub": "Перемагають {n} найактивніших верифікованих гравці. Рахуються бали, зароблені під час розіграшу — просто грай!",
-  "gw.sub_done": "Розіграш завершено. Переможцям прийшло повідомлення від бота, призи видає адмін @vtmjs.",
+  "gw.sub_done": "Розіграш завершено. Призи надсилаються переможцям у SOL на їхні Solana-гаманці автоматично.",
   "gw.my": "Мої бали в розіграші",
   "gw.rank": "Моє місце",
   "gw.need": "Беруть участь лише верифіковані",
@@ -4462,6 +4474,11 @@ LANGS.uk = {
   "gw.sponsor": "Спонсор розіграшу",
   "gw.rules": "Бали рахує сервер — так само, як для аірдропу: боти, накрутка й dev-акаунти не беруть участі.",
   "u.d": "д",
+  "gw.pay_sent": "Твій приз ${p} надіслано на гаманець у SOL!",
+  "gw.pay_wallet": "Ти виграв ${p}! Підключи Solana-гаманець — приз прийде автоматично.",
+  "gw.pay_soon": "Приз ${p} надсилається на твій гаманець…",
+  "gw.wallet_hint": "Приз приходить у SOL автоматично — підключи гаманець заздалегідь.",
+  "side.city": "Місто",
 };
 
 /* ---- src/engine.js ---- */
@@ -9266,7 +9283,7 @@ function tabOffice() {
   const side = [
     ['list', 'tab:quests', 'side.tasks', 'yel', qDot],
     ['office', 'go:studio:games', 'side.pc', 'cy', !S.project],
-    ['cart', 'city:visit:mall', 'side.shop', 'mag', ITEMS.some((it) => !S.items[it.id] && S.cash >= it.price)],
+    ['empire', 'city:open', 'side.city', 'mag', Object.values(cityReady()).some(Boolean)],
     ['users', 'go:studio:team', 'side.team', 'cy', ROLES.some((r) => S.staff[r].lvl === 0 && S.cash >= ROLE[r].hire)],
     ['up', 'pump', 'side.up', 'grn', S.cash >= youUpCost(S.you.lvl) && S.you.lvl < MAX_LVL],
     ['sword', 'pvp', 'side.pvp', 'mag', lsGet('od2_pv_day') !== String(Math.floor(Date.now() / 86400000))],
@@ -9842,6 +9859,8 @@ function giveawayCard(e, mini) {
     <p class="sub">${L(g.done ? 'gw.sub_done' : 'gw.sub', { n: g.prizes.length })}</p>
     ${prizes}
     <div class="gw-me">${g.verified ? `<div><small>${L('gw.my')}</small><b class="px">${fmtPts(g.me.score)}</b></div><div><small>${L('gw.rank')}</small><b class="px">${g.me.rank ? '#' + g.me.rank : '—'}</b></div>` : `<div class="gw-need"><b>${L('gw.need')}</b><small>${L('gw.need_t')}</small></div><button class="btn sm glow" data-act="go:drop:token">${L('gw.verify')}</button>`}</div>
+    ${g.pay ? `<div class="gw-pay ${g.pay.st}">${g.pay.st === 'sent' ? `✅ ${L('gw.pay_sent', { p: g.pay.usd })} ${g.pay.tx ? `<button class="linkbtn" data-act="gwtx">${L('ad.tx')}</button>` : ''}` : !NET.eco.sol ? `👛 ${L('gw.pay_wallet', { p: g.pay.usd })} <button class="btn sm glow" data-act="sol:set">${L('sol.add')}</button>` : `⏳ ${L('gw.pay_soon', { p: g.pay.usd })}`}</div>`
+      : g.verified && !NET.eco.sol && !g.done ? `<div class="gw-pay wait">👛 ${L('gw.wallet_hint')} <button class="btn sm" data-act="sol:set">${L('sol.add')}</button></div>` : ''}
     <h3 class="h3">🏆 ${L('gw.top')}</h3>
     ${top}
     ${g.url ? `<button class="btn ghost wide" data-act="gwsponsor" style="margin-top:10px">🤝 ${L('gw.sponsor')}</button>` : ''}
@@ -10908,7 +10927,7 @@ function cityDraw(now) {
   if (CT.inside) { cityInterior(g, VW, t); return; }
   // walking
   if (CT.tx !== null) {
-    const d = CT.tx - CT.x, step = 46 * dt;
+    const d = CT.tx - CT.x, step = (CT.spd || 46) * dt;
     if (Math.abs(d) <= step) { CT.x = CT.tx; CT.tx = null; cityArrive(); } else { CT.dir = d > 0 ? 1 : -1; CT.x += CT.dir * step; CT.walk += dt * 9; }
   }
   const camT = Math.max(0, Math.min(CITY_W - VW, CT.x - VW / 2));
@@ -11025,7 +11044,7 @@ function cityTap(e) {
   }
   const wx = ((e.clientX - r.left) / r.width) * cv.width + Math.round(CT.cam);
   const b = CITY_B.find((x) => wx >= x.x - 4 && wx <= x.x + x.w + 4);
-  if (b) cityGo(b.id); else { CT.tx = Math.max(6, Math.min(CITY_W - 6, wx)); CT.sel = null; }
+  if (b) cityGo(b.id); else { CT.tx = Math.max(6, Math.min(CITY_W - 6, wx)); CT.spd = Math.max(46, Math.abs(CT.tx - CT.x) / 1.4); CT.sel = null; }
 }
 function cityGo(id) {
   const b = CITY_B.find((x) => x.id === id);
@@ -11033,6 +11052,7 @@ function cityGo(id) {
   CT.sel = null;
   if (CT.inside) { CT.inside = null; CT.say = ''; }
   CT.tx = b.x + b.w / 2;
+  CT.spd = Math.max(46, Math.abs(CT.tx - CT.x) / 1.4); // far buildings: a brisk run, never a long walk
   sfx('blip');
   if (Math.abs(CT.tx - CT.x) < 1) { CT.tx = null; cityArrive(); }
   render(true);
@@ -11679,6 +11699,7 @@ const ACT = {
   mkrange: (r) => { UI.mktRange = r; loadMarket(true); render(true); },
   mktab: () => { UI.sub.drop = 'token'; render(true); loadHub('token'); },
   openbot: () => { if (NET.cfg && NET.cfg.bot) openLink('https://t.me/' + NET.cfg.bot + (NET.cfg.app ? '/' + NET.cfg.app : '')); },
+  gwtx: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.pay && g.pay.tx) openLink('https://solscan.io/tx/' + g.pay.tx); },
   gwsponsor: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.url) openLink(g.url); },
   site: () => { const l = NET.cfg && NET.cfg.links && NET.cfg.links.site; if (l) openLink(l + (LANG === 'en' ? '' : '?lang=' + LANG)); },
   link: (k) => { const l = NET.cfg && NET.cfg.links && NET.cfg.links[k]; if (l) openLink(l); },

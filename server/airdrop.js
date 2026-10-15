@@ -297,4 +297,4 @@ function adminView(ctx) {
   return { ok: true, state: st, entered: ent, keyMismatch: !!wrong, wallet: ctx.cfg.airdrop.wallet || null, allocs: c.n, sent: c.sent || 0, failed: c.failed || 0, mint: (ctx.cfg.token && ctx.cfg.token.addr) || null, distributor: d ? d.publicKey.toBase58() : null, fund: Eco.fundView(ctx, 0) };
 }
 
-module.exports = { verifiedCount, distributorAddr, autoMint, entered, entryStars, entryBlock, fulfilEntryStars, feePaid, tick, snapshot, view, claim, adminView, state, announce, tokenReady };
+module.exports = { lib, distributor, verifiedCount, distributorAddr, autoMint, entered, entryStars, entryBlock, fulfilEntryStars, feePaid, tick, snapshot, view, claim, adminView, state, announce, tokenReady };

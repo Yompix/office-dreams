@@ -12,7 +12,8 @@ const inited = new WeakSet();
 function init(ctx) {
   if (inited.has(ctx.db)) return;
   ctx.db.raw.exec(`CREATE TABLE IF NOT EXISTS giveaway (id INTEGER PRIMARY KEY AUTOINCREMENT, gkey TEXT UNIQUE, start INTEGER, end_at INTEGER, prizes TEXT, url TEXT, status TEXT, winners TEXT, announced INTEGER DEFAULT 0);
-    CREATE TABLE IF NOT EXISTS giveaway_base (gid INTEGER, uid INTEGER, pts REAL, PRIMARY KEY (gid, uid));`);
+    CREATE TABLE IF NOT EXISTS giveaway_base (gid INTEGER, uid INTEGER, pts REAL, PRIMARY KEY (gid, uid));
+    CREATE TABLE IF NOT EXISTS giveaway_pay (gid INTEGER, uid INTEGER, rank INTEGER, usd REAL, lamports INTEGER, to_addr TEXT, status TEXT DEFAULT 'wait', tx TEXT, tx_at INTEGER, err TEXT, told INTEGER DEFAULT 0, PRIMARY KEY (gid, uid));`);
   inited.add(ctx.db);
 }
 const conf = (ctx) => ctx.cfg.giveaway || {};
@@ -71,15 +72,26 @@ function view(ctx, uid, now = Date.now()) {
     id: g.id, start: g.start, end: g.end_at, prizes: g.prizes, url: g.url, done: g.status === 'done',
     verified: verified(ctx, uid),
     me: { score: mine ? mine.score : myScore(ctx, g, uid), rank: mine ? mine.rank : null },
+    pay: (() => { const p = ctx.db.get('SELECT usd, status, tx FROM giveaway_pay WHERE gid=? AND uid=?', g.id, uid); return p ? { usd: p.usd, st: p.status, tx: p.tx } : null; })(),
     top: rows.slice(0, 10).map((r) => ({ rank: r.rank, name: r.name, country: r.country, score: r.score, prize: r.prize || g.prizes[r.rank - 1] || 0, me: r.uid === uid })),
     n: rows.length,
   };
 }
 /* ---- the end: freeze the winners, tell them, post the result ---- */
 const WIN_TXT = {
-  en: (p, r) => `🏆 <b>You won the sponsor giveaway!</b>\nPlace <b>#${r}</b> — prize <b>$${p}</b>.\n\nWrite to the admin @vtmjs to receive it.`,
-  ru: (p, r) => `🏆 <b>Ты выиграл розыгрыш от спонсора!</b>\nМесто <b>#${r}</b> — приз <b>$${p}</b>.\n\nНапиши админу @vtmjs, чтобы получить его.`,
-  uk: (p, r) => `🏆 <b>Ти виграв розіграш від спонсора!</b>\nМісце <b>#${r}</b> — приз <b>$${p}</b>.\n\nНапиши адміну @vtmjs, щоб отримати його.`,
+  en: (p, r, w) => `🏆 <b>You won the sponsor giveaway!</b>\nPlace <b>#${r}</b> — prize <b>$${p}</b>.\n\n${w ? 'The prize is being sent in SOL to your Solana wallet automatically.' : '👛 Connect a Solana wallet in the game (Airdrop → Token) — the prize will arrive there in SOL automatically.'}`,
+  ru: (p, r, w) => `🏆 <b>Ты выиграл розыгрыш от спонсора!</b>\nМесто <b>#${r}</b> — приз <b>$${p}</b>.\n\n${w ? 'Приз уже отправляется в SOL на твой Solana-кошелёк — автоматически.' : '👛 Подключи Solana-кошелёк в игре (Аирдроп → Токен) — приз придёт туда в SOL автоматически.'}`,
+  uk: (p, r, w) => `🏆 <b>Ти виграв розіграш від спонсора!</b>\nМісце <b>#${r}</b> — приз <b>$${p}</b>.\n\n${w ? 'Приз уже надсилається в SOL на твій Solana-гаманець — автоматично.' : '👛 Підключи Solana-гаманець у грі (Аірдроп → Токен) — приз прийде туди в SOL автоматично.'}`,
+};
+const PAID_TXT = {
+  en: (p, sol, tx) => `✅ <b>Your prize is sent!</b> $${p} = <b>${sol} SOL</b> is in your wallet.\n<a href="https://solscan.io/tx/${tx}">View the transaction</a>`,
+  ru: (p, sol, tx) => `✅ <b>Приз отправлен!</b> $${p} = <b>${sol} SOL</b> уже на твоём кошельке.\n<a href="https://solscan.io/tx/${tx}">Посмотреть транзакцию</a>`,
+  uk: (p, sol, tx) => `✅ <b>Приз надіслано!</b> $${p} = <b>${sol} SOL</b> уже на твоєму гаманці.\n<a href="https://solscan.io/tx/${tx}">Переглянути транзакцію</a>`,
+};
+const RESULT_TXT = {
+  en: (list) => `🏆 <b>Sponsor giveaway results</b>\n\n${list}\n\nCongratulations! Prizes are sent in SOL automatically.`,
+  ru: (list) => `🏆 <b>Итоги розыгрыша от спонсора</b>\n\n${list}\n\nПоздравляем! Призы отправляются в SOL автоматически.`,
+  uk: (list) => `🏆 <b>Підсумки розіграшу від спонсора</b>\n\n${list}\n\nВітаємо! Призи надсилаються в SOL автоматично.`,
 };
 const START_TXT = {
   en: (sum, d) => `🎁 <b>Sponsor giveaway: $${sum} for 3 players!</b>\n\nFor ${d} days the most active <b>verified</b> players win. Just play: releases, upgrades, quests — every point counts.\n\nNot verified yet? Any contribution (a $1 deposit, Stars or a purchase) — and you are in.`,
@@ -110,25 +122,97 @@ async function tick(ctx, now = Date.now()) {
     ctx.cache.gwBoard = null;
     ctx.log && ctx.log('giveaway finished', win.map((w) => w.uid + ':' + w.prize));
     for (const w of win) {
-      const u = ctx.db.get('SELECT lang FROM users WHERE id=?', w.uid);
-      try { await Bot.send(ctx, w.uid, (WIN_TXT[(u && u.lang)] || WIN_TXT.en)(w.prize, w.rank)); } catch (_) { /* blocked the bot */ }
+      ctx.db.run('INSERT OR IGNORE INTO giveaway_pay(gid,uid,rank,usd) VALUES(?,?,?,?)', g.id, w.uid, w.rank, w.prize);
+      const u = ctx.db.get('SELECT lang, sol FROM users WHERE id=?', w.uid) || {};
+      try { await Bot.send(ctx, w.uid, (WIN_TXT[u.lang] || WIN_TXT.en)(w.prize, w.rank, !!u.sol)); } catch (_) { /* blocked the bot */ }
     }
     if (ctx.cfg.channel && win.length) {
       const medal = ['🥇', '🥈', '🥉'];
       const list = win.map((w, i) => `${medal[i] || '🏅'} <b>${String(w.name).replace(/[<>&]/g, '')}</b> — $${w.prize}`).join('\n');
-      try { await Bot.send(ctx, ctx.cfg.channel, `🏆 <b>Итоги розыгрыша от спонсора</b>\n\n${list}\n\nПоздравляем! Призы выдаёт админ @vtmjs.`); } catch (_) { /* ignore */ }
+      try { await Bot.send(ctx, ctx.cfg.channel, ['uk', 'ru', 'en'].map((l) => RESULT_TXT[l](list)).join('\n\n— — —\n\n')); } catch (_) { /* ignore */ }
     }
   }
+  await payTick(ctx, now);
   return current(ctx);
+}
+/* ---- prizes: sent in SOL from the server wallet to the winner's connected Solana wallet ---- */
+const FEE_LAMPORTS = 10000;
+async function payOne(ctx, row, now) {
+  const Sol = require('./sol.js'), SolPay = require('./solpay.js'), Airdrop = require('./airdrop.js'), Bot = require('./bot.js');
+  const u = ctx.db.get('SELECT lang, sol FROM users WHERE id=?', row.uid) || {};
+  if (!u.sol) { if (row.status !== 'wait') ctx.db.run("UPDATE giveaway_pay SET status='wait' WHERE gid=? AND uid=?", row.gid, row.uid); return 'wait'; }
+  // a transfer is already out: see how it ended
+  if (row.status === 'sending' && row.tx) {
+    const st = await Sol.rpc(ctx, 'getSignatureStatuses', [[row.tx], { searchTransactionHistory: true }]).catch(() => null);
+    const v = st && st.value && st.value[0];
+    if (v && !v.err && (v.confirmationStatus === 'confirmed' || v.confirmationStatus === 'finalized')) return done(row, u);
+    if (!v || !v.err) { if (now - (row.tx_at || 0) < 180000) return 'sending'; }
+  }
+  const from = Airdrop.distributor(ctx);
+  if (!from) return 'no_key';
+  const lamports = row.lamports || Math.round((row.usd / SolPay.solUsd(ctx.cfg)) * 1e9);
+  const bal = await Sol.rpc(ctx, 'getBalance', [from.publicKey.toBase58(), { commitment: 'confirmed' }]).catch(() => null);
+  const have = bal && typeof bal.value === 'number' ? bal.value : -1;
+  if (have >= 0 && have < lamports + FEE_LAMPORTS + 900000) { // keep a little for the airdrop transfer fees
+    ctx.db.run("UPDATE giveaway_pay SET status='no_funds', lamports=? WHERE gid=? AND uid=?", lamports, row.gid, row.uid);
+    return 'no_funds';
+  }
+  const lock = ctx.db.run("UPDATE giveaway_pay SET status='sending', lamports=?, to_addr=?, tx=NULL, tx_at=?, err=NULL WHERE gid=? AND uid=? AND status<>'sent' AND (status<>'sending' OR tx IS NULL OR tx_at < ?)", lamports, u.sol, now, row.gid, row.uid, now - 180000);
+  if (!lock.changes) return 'sending';
+  try {
+    const { web3 } = Airdrop.lib();
+    const tx = new web3.Transaction().add(web3.SystemProgram.transfer({ fromPubkey: from.publicKey, toPubkey: new web3.PublicKey(u.sol), lamports }));
+    tx.feePayer = from.publicKey;
+    const bh = await Sol.rpc(ctx, 'getLatestBlockhash', [{ commitment: 'confirmed' }]);
+    tx.recentBlockhash = bh.value.blockhash;
+    tx.sign(from);
+    const sig = Sol.b58encode(tx.signature);
+    ctx.db.run('UPDATE giveaway_pay SET tx=? WHERE gid=? AND uid=?', sig, row.gid, row.uid);
+    await Sol.rpc(ctx, 'sendTransaction', [tx.serialize().toString('base64'), { encoding: 'base64', skipPreflight: true, maxRetries: 5 }]);
+    for (let i = 0; i < 20; i++) {
+      const st = await Sol.rpc(ctx, 'getSignatureStatuses', [[sig]]).catch(() => null);
+      const v = st && st.value && st.value[0];
+      if (v && v.err) throw new Error('rejected: ' + JSON.stringify(v.err));
+      if (v && (v.confirmationStatus === 'confirmed' || v.confirmationStatus === 'finalized')) return done(Object.assign({}, row, { tx: sig, lamports }), u);
+      if (!ctx.solRpc) await new Promise((r) => setTimeout(r, 2000));
+    }
+    return 'sending'; // the next tick checks it
+  } catch (e) {
+    ctx.db.run("UPDATE giveaway_pay SET status='failed', err=? WHERE gid=? AND uid=?", String(e.message || e).slice(0, 300), row.gid, row.uid);
+    ctx.log && ctx.log('giveaway payout failed', row.uid, e.message);
+    return 'failed';
+  }
+  function done(r, usr) {
+    const upd = ctx.db.run("UPDATE giveaway_pay SET status='sent', told=1 WHERE gid=? AND uid=? AND status<>'sent'", r.gid, r.uid);
+    if (upd.changes) {
+      const sol = (Number(r.lamports) / 1e9).toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+      Bot.send(ctx, r.uid, (PAID_TXT[usr.lang] || PAID_TXT.en)(r.usd, sol, r.tx)).catch(() => {});
+      ctx.log && ctx.log('giveaway prize sent', r.uid, r.usd, r.tx);
+    }
+    return 'sent';
+  }
+}
+let paying = false;
+async function payTick(ctx, now = Date.now()) {
+  if (paying) return;
+  paying = true;
+  try {
+    init(ctx);
+    const rows = ctx.db.all("SELECT * FROM giveaway_pay WHERE status<>'sent' ORDER BY rank");
+    for (const r of rows) await payOne(ctx, r, now);
+  } finally { paying = false; }
 }
 function adminView(ctx) {
   const g = current(ctx);
   if (!g) return { ok: true, giveaway: null };
   const rows = board(ctx, g).slice(0, 10).map((r) => {
     const u = ctx.db.get('SELECT username, sol FROM users WHERE id=?', r.uid) || {};
-    return Object.assign({}, r, { username: u.username || null, sol: u.sol || null, prize: r.prize || g.prizes[r.rank - 1] || 0 });
+    const pay = ctx.db.get('SELECT status, tx FROM giveaway_pay WHERE gid=? AND uid=?', g.id, r.uid);
+    return Object.assign({}, r, { username: u.username || null, sol: u.sol || null, prize: r.prize || g.prizes[r.rank - 1] || 0, pay: pay ? pay.status : null, tx: pay ? pay.tx : null });
   });
-  return { ok: true, giveaway: { key: g.gkey, start: g.start, end: g.end_at, status: g.status, prizes: g.prizes, url: g.url }, top: rows };
+  let wallet = null;
+  try { const d = require('./airdrop.js').distributor(ctx); wallet = d ? d.publicKey.toBase58() : null; } catch (_) { /* no key */ }
+  return { ok: true, giveaway: { key: g.gkey, start: g.start, end: g.end_at, status: g.status, prizes: g.prizes, url: g.url }, top: rows, payWallet: wallet };
 }
 
-module.exports = { init, ensure, current, view, tick, board, adminView };
+module.exports = { init, ensure, current, view, tick, board, adminView, payTick };

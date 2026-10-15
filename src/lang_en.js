@@ -804,7 +804,7 @@ LANGS.en = {
   "gw.done_s": "results are in",
   "gw.place": "place {n}",
   "gw.sub": "The {n} most active verified players win. Only points earned during the giveaway count: just play!",
-  "gw.sub_done": "The giveaway is over. Winners got a message from the bot; the admin @vtmjs hands out the prizes.",
+  "gw.sub_done": "The giveaway is over. Prizes are sent to the winners in SOL, straight to their Solana wallets.",
   "gw.my": "My giveaway points",
   "gw.rank": "My place",
   "gw.need": "Verified players only",
@@ -815,4 +815,9 @@ LANGS.en = {
   "gw.sponsor": "The sponsor",
   "gw.rules": "The server counts the points, the same way as for the airdrop: bots, farming and dev accounts are excluded.",
   "u.d": "d",
+  "gw.pay_sent": "Your ${p} prize was sent to your wallet in SOL!",
+  "gw.pay_wallet": "You won ${p}! Connect a Solana wallet and the prize arrives automatically.",
+  "gw.pay_soon": "Your ${p} prize is on its way to your wallet…",
+  "gw.wallet_hint": "Prizes arrive in SOL automatically: connect your wallet in advance.",
+  "side.city": "City",
 };

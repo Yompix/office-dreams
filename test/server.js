@@ -1051,7 +1051,7 @@ const AB = require('../server/antibot.js');
   }
   {
     console.log('Sponsor giveaway');
-    const envG = await makeEnv({ GIVEAWAY_ON: '1', GIVEAWAY_KEY: 'g-test', GIVEAWAY_DAYS: '3', GIVEAWAY_PRIZES: '20,10,5' });
+    const envG = await makeEnv({ GIVEAWAY_ON: '1', GIVEAWAY_KEY: 'g-test', GIVEAWAY_DAYS: '3', GIVEAWAY_PRIZES: '20,10,5', AIRDROP_GENKEY: '1', SOL_USD: '100' });
     const Give = require('../server/giveaway.js');
     const ctxG = envG.ctx; ctxG.fastAnnounce = true;
     const ids = [8101, 8102, 8103, 8104, 8105];
@@ -1077,6 +1077,30 @@ const AB = require('../server/antibot.js');
       ctxG.db.run('UPDATE users SET pts=pts+1000 WHERE id=8104');
       ctxG.cache.gwBoard = null;
       assert.equal(Give.view(ctxG, 8104, envG.clock.t).top[0].name, 'P8102', 'results are frozen after the end');
+    });
+    await test('giveaway: prizes go out in SOL to connected wallets; a winner without a wallet gets it after connecting', async () => {
+      const sent = [];
+      ctxG.solRpc = async (method, params) => {
+        if (method === 'getBalance') return { value: 5e9 };
+        if (method === 'getLatestBlockhash') return { value: { blockhash: '11111111111111111111111111111111' } };
+        if (method === 'sendTransaction') { sent.push(params[0]); return 'sig'; }
+        if (method === 'getSignatureStatuses') return { value: [{ err: null, confirmationStatus: 'confirmed' }] };
+        throw new Error('unexpected ' + method);
+      };
+      ctxG.db.run('UPDATE users SET sol=? WHERE id IN (8102, 8103)', '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM');
+      await Give.payTick(ctxG, envG.clock.t);
+      const st = (id) => ctxG.db.get('SELECT status, lamports FROM giveaway_pay WHERE uid=?', id);
+      assert.equal(st(8102).status, 'sent'); assert.equal(st(8102).lamports, 200000000, '$20 at $100/SOL = 0.2 SOL');
+      assert.equal(st(8103).status, 'sent');
+      assert.equal(st(8101).status, 'wait', 'no wallet yet');
+      assert.equal(sent.length, 2);
+      await Give.payTick(ctxG, envG.clock.t);
+      assert.equal(sent.length, 2, 'never paid twice');
+      ctxG.db.run('UPDATE users SET sol=? WHERE id=8101', '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM');
+      await Give.payTick(ctxG, envG.clock.t);
+      assert.equal(st(8101).status, 'sent');
+      assert.equal(Give.view(ctxG, 8101, envG.clock.t).pay.st, 'sent');
+      ctxG.solRpc = null;
     });
     await envG.close();
   }
