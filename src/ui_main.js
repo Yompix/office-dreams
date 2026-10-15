@@ -382,6 +382,7 @@ const ACT = {
     if (UI.hub.donate) show(); else { show(); loadHub('donate', true); const t = setInterval(() => { if (UI.hub.donate) { clearInterval(t); if (UI.modal && UI.modal.id === 'donate') show(); } }, 300); setTimeout(() => clearInterval(t), 8000); }
   },
   adentry: () => airdropPay('adentry'),
+  adentrystars: () => airdropStars(),
   adfee: () => airdropPay('adfee'),
   adtx: () => { const a = NET.eco && NET.eco.airdrop; if (a && a.tx) openLink('https://solscan.io/tx/' + a.tx); },
   sol: (what) => {
@@ -487,6 +488,19 @@ async function airdropPay(kind) {
     [800, 3000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
     loadHub('friends', true);
   });
+}
+// the same entry deposit, paid in Telegram Stars
+async function airdropStars() {
+  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
+  const r = await netApi.adStars().catch(() => null);
+  if (!r || !r.ok || !r.url) return errToast((r && r.err) || 'invoice');
+  const after = (status) => {
+    if (status === 'paid') {
+      toast(L('ver.title'), 'good', 'gem'); confettiSmall(); haptic('ok');
+      [1500, 4000, 9000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
+    } else if (status === 'failed') errToast('pay_failed');
+  };
+  if (TG && TG.openInvoice) TG.openInvoice(r.url, after); else openLink(r.url);
 }
 async function buySol(sku) {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
@@ -714,7 +728,13 @@ function showWelcome() {
 function showSettings() {
   const armed = Date.now() - (UI.resetArm || 0) < 10000;
   const links = NET.cfg && NET.cfg.links ? NET.cfg.links : {};
-  openModal(`<h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
+  const pname = (NET.me && NET.me.name) || L('ui.founder');
+  const ver = isVerified();
+  const canVer = NET.mode === 'online' && NET.eco && NET.eco.airdrop && NET.eco.airdrop.st === 'season' && NET.eco.airdrop.entry;
+  openModal(`<div class="profcard${ver ? ' on' : ''}">${imgTag(portrait('you', 90), 'av')}<div class="pc-t"><b>${esc(pname)}${ver ? `<i class="vbadge">${I('check', 10)}</i>` : ''}</b>
+      <small>${ver ? `<span class="vtxt">${L('ver.badge')}</span> · ${L('ad.entered')}` : esc(L('rank.' + rankOf(S)))}</small></div></div>
+    ${!ver && canVer ? `<button class="btn glow wide" data-act="go:drop:token">${I('check', 14)} ${L('ver.get')}</button>` : ''}
+    <h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
     <div class="setrow"><span>${I('globe', 16)} ${L('set.lang')}</span><div class="langs">${LANG_LIST.map((c) => `<button class="${LANG === c ? 'on' : ''}" data-act="lang:${c}">${L('lang.' + c)}</button>`).join('')}</div></div>
     <div class="setrow"><span>${I(S.settings.sound ? 'sound' : 'mute', 16)} ${L('set.sound')}</span><button class="toggle" data-act="sound" aria-pressed="${!!S.settings.sound}"><span class="sw"></span></button></div>
     <div class="setrow"><span>${I('sound', 16)} ${L('set.music')}</span><button class="toggle" data-act="music" aria-pressed="${S.settings.music !== false}"><span class="sw"></span></button></div>

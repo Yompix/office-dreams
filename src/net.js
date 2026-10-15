@@ -319,6 +319,7 @@ const netApi = {
   sol: (body) => api('POST', '/api/sol', body),
   adClaim: () => api('POST', '/api/airdrop/claim', {}),
   adOrder: (kind) => api('POST', '/api/airdrop/order', { kind }),
+  adStars: () => api('POST', '/api/airdrop/stars', {}),
   market: (range) => api('GET', '/api/market?range=' + encodeURIComponent(range || '24h')),
   marketBal: () => api('GET', '/api/market/bal'),
   adClaim: () => api('POST', '/api/ads/claim', {}),

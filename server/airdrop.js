@@ -64,6 +64,27 @@ const distributorAddr = (ctx) => { const d = distributor(ctx); return d ? d.publ
 const tokenReady = (ctx) => !!(ctx.cfg.token && Sol.isAddr(ctx.cfg.token.addr) && distributor(ctx));
 
 const entered = (ctx, uid) => !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku='adentry'", uid);
+// the entry deposit can also be paid in Telegram Stars (same $ value, rounded up to 5 Stars)
+const entryStars = (cfg) => (cfg.airdrop.entryStars > 0 ? Math.round(cfg.airdrop.entryStars) : Math.ceil(cfg.airdrop.entryUsd / cfg.starUsd / 5) * 5);
+// null when this player may pay the entry deposit now, otherwise the error code
+function entryBlock(ctx, uid) {
+  if (!(ctx.cfg.airdrop.entryUsd > 0)) return 'unavailable';
+  if (entered(ctx, uid)) return 'ad_entered';
+  if (state(ctx).status !== 'season') return 'ad_closed';
+  return null;
+}
+// idempotent: Telegram may deliver successful_payment more than once
+function fulfilEntryStars(ctx, uid, chargeId, stars, now = Date.now()) {
+  return ctx.db.tx(() => {
+    if (entered(ctx, uid)) return { ok: true, dup: true };
+    const usd = Math.round(stars * ctx.cfg.starUsd * 100) / 100;
+    const ins = ctx.db.run('INSERT OR IGNORE INTO purchases(charge_id,uid,sku,stars,ts,meta) VALUES(?,?,?,?,?,?)', String(chargeId), uid, 'adentry', 0, now, JSON.stringify({ usd, stars, via: 'stars' }));
+    if (!ins.changes) return { ok: true, dup: true };
+    ctx.db.run(`INSERT INTO revenue(day,stars,usd,n) VALUES(?,?,?,1) ON CONFLICT(day) DO UPDATE SET stars=stars+excluded.stars, usd=usd+excluded.usd, n=n+1`, U.dayKey(now), stars, usd);
+    ctx.cache.fund = null;
+    return { ok: true };
+  });
+}
 const feePaid = (ctx, uid) => !(ctx.cfg.airdrop.feeSol > 0) || !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku='adfee'", uid);
 
 /* ---- start: snapshot of points → fixed shares ---- */
@@ -187,7 +208,7 @@ function view(ctx, u) {
     st: st.status, usd: f.usd, goal: f.goalUsd, at: st.at, players: st.n,
     amount: a ? Number(BigInt(a.amount)) / 10 ** ctx.cfg.airdrop.decimals : 0,
     claim: a ? a.status || '' : '', tx: a && a.status === 'sent' ? a.tx : null,
-    entry: ctx.cfg.airdrop.entryUsd > 0 ? { usd: ctx.cfg.airdrop.entryUsd, sol: require('./solpay.js').entrySol(ctx.cfg), done: entered(ctx, u.id) } : null,
+    entry: ctx.cfg.airdrop.entryUsd > 0 ? { usd: ctx.cfg.airdrop.entryUsd, sol: require('./solpay.js').entrySol(ctx.cfg), stars: entryStars(ctx.cfg), done: entered(ctx, u.id) } : null,
     fee: ctx.cfg.airdrop.feeSol > 0 ? { sol: ctx.cfg.airdrop.feeSol, paid: feePaid(ctx, u.id) } : null,
   };
 }
@@ -264,4 +285,4 @@ function adminView(ctx) {
   return { ok: true, state: st, entered: ent, keyMismatch: !!wrong, wallet: ctx.cfg.airdrop.wallet || null, allocs: c.n, sent: c.sent || 0, failed: c.failed || 0, mint: (ctx.cfg.token && ctx.cfg.token.addr) || null, distributor: d ? d.publicKey.toBase58() : null, fund: Eco.fundView(ctx, 0) };
 }
 
-module.exports = { distributorAddr, autoMint, entered, feePaid, tick, snapshot, view, claim, adminView, state, announce, tokenReady };
+module.exports = { distributorAddr, autoMint, entered, entryStars, entryBlock, fulfilEntryStars, feePaid, tick, snapshot, view, claim, adminView, state, announce, tokenReady };

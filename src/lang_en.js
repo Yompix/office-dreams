@@ -412,6 +412,8 @@ LANGS.en = {
   'ver.title': "You are verified!",
   'ver.text': "Deposit received — you are a confirmed player and take part in the OFFX airdrop. Now just play: your share depends on your points.",
   'ver.ok': "Great",
+  'ver.get': "Get verified",
+  'ad.entry_stars': "Or with {n} Stars",
   'ad.fee_t': "Claim fee: {sol} SOL (network costs and the project).",
   'ad.fee_btn': "Pay the fee · {sol} SOL",
   'ad.fee_ok': "Fee paid — now press «Claim»",

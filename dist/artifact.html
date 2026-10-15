@@ -1164,6 +1164,13 @@ img.mk-logo { object-fit: contain; background: none; }
 .vbadge.big { width: 36px; height: 36px; margin: 0; flex: none; }
 .vbadge.huge { width: 72px; height: 72px; margin: 0 auto 6px; box-shadow: 0 0 30px rgba(20, 241, 149, 0.8); }
 .vtxt { color: #14f195; font-weight: 800; }
+.profcard { display: flex; align-items: center; gap: 12px; padding: 12px; margin-right: 34px; border-radius: 16px; background: rgba(255, 255, 255, 0.04); border: 1.5px solid var(--line-soft); }
+.profcard.on { border-color: rgba(20, 241, 149, 0.6); box-shadow: 0 0 16px rgba(20, 241, 149, 0.2); }
+.profcard .av { width: 54px; height: 54px; border-radius: 14px; border: 2px solid var(--cy); flex: none; }
+.profcard.on .av { border-color: #14f195; }
+.pc-t { display: grid; gap: 3px; min-width: 0; }
+.pc-t b { font-size: 17px; font-weight: 800; }
+.pc-t small { font-size: 12px; color: var(--ink2); }
 .vcard { display: flex; align-items: center; gap: 12px; padding: 12px; margin: 6px 0; border-radius: 14px; background: rgba(20, 241, 149, 0.1); border: 1.5px solid rgba(20, 241, 149, 0.55); box-shadow: 0 0 18px rgba(20, 241, 149, 0.2); }
 .vcard b { display: block; color: #14f195; font-size: 15px; }
 .vcard small { display: block; color: var(--ink2); font-size: 12px; line-height: 1.35; margin-top: 2px; }
@@ -2346,6 +2353,8 @@ LANGS.en = {
   'ver.title': "You are verified!",
   'ver.text': "Deposit received — you are a confirmed player and take part in the OFFX airdrop. Now just play: your share depends on your points.",
   'ver.ok': "Great",
+  'ver.get': "Get verified",
+  'ad.entry_stars': "Or with {n} Stars",
   'ad.fee_t': "Claim fee: {sol} SOL (network costs and the project).",
   'ad.fee_btn': "Pay the fee · {sol} SOL",
   'ad.fee_ok': "Fee paid — now press «Claim»",
@@ -3027,6 +3036,8 @@ LANGS.ru = {
   'ver.title': "Ты верифицирован!",
   'ver.text': "Депозит получен — ты подтверждённый игрок и участвуешь в аирдропе OFFX. Дальше просто играй: твоя доля зависит от очков.",
   'ver.ok': "Отлично",
+  'ver.get': "Пройти верификацию",
+  'ad.entry_stars': "Или за {n} звёзд",
   'ad.fee_t': "Комиссия за вывод: {sol} SOL (расходы сети и проекта).",
   'ad.fee_btn': "Оплатить комиссию · {sol} SOL",
   'ad.fee_ok': "Комиссия оплачена — теперь нажми «Забрать»",
@@ -3708,6 +3719,8 @@ LANGS.uk = {
   'ver.title': "Ти верифікований!",
   'ver.text': "Депозит отримано — ти підтверджений гравець і береш участь в аірдропі OFFX. Далі просто грай: твоя частка залежить від балів.",
   'ver.ok': "Чудово",
+  'ver.get': "Пройти верифікацію",
+  'ad.entry_stars': "Або за {n} зірок",
   'ad.fee_t': "Комісія за вивід: {sol} SOL (витрати мережі й проєкту).",
   'ad.fee_btn': "Оплатити комісію · {sol} SOL",
   'ad.fee_ok': "Комісію оплачено — тепер натисни «Забрати»",
@@ -7592,6 +7605,7 @@ const netApi = {
   sol: (body) => api('POST', '/api/sol', body),
   adClaim: () => api('POST', '/api/airdrop/claim', {}),
   adOrder: (kind) => api('POST', '/api/airdrop/order', { kind }),
+  adStars: () => api('POST', '/api/airdrop/stars', {}),
   market: (range) => api('GET', '/api/market?range=' + encodeURIComponent(range || '24h')),
   marketBal: () => api('GET', '/api/market/bal'),
   adClaim: () => api('POST', '/api/ads/claim', {}),
@@ -9162,6 +9176,7 @@ function airdropCard(e, mini) {
       <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
       ${a.entry ? (a.entry.done ? `<div class="vcard"><i class="vbadge big">${I('check', 18)}</i><div><b>${L('ver.title')}</b><small>${L('ver.text')}</small></div></div>` : `<p class="sub">${L('ad.entry_t', { usd: '$' + a.entry.usd, sol: a.entry.sol })}</p>
         <button class="btn big glow wide" data-act="adentry">${I('sol', 16)} ${L('ad.entry_btn', { sol: a.entry.sol })}</button>
+        ${a.entry.stars ? `<button class="btn big gold wide" data-act="adentrystars" style="margin-top:8px">⭐ ${L('ad.entry_stars', { n: fmt(a.entry.stars) })}</button>` : ''}
         <p class="hint">${L('ad.entry_hint')}</p>`) : ''}
       <button class="btn big gold wide" data-act="donopen" style="margin-top:8px">⭐ ${L('don.btn_long')}</button>
     </section>`;
@@ -10472,6 +10487,7 @@ const ACT = {
     if (UI.hub.donate) show(); else { show(); loadHub('donate', true); const t = setInterval(() => { if (UI.hub.donate) { clearInterval(t); if (UI.modal && UI.modal.id === 'donate') show(); } }, 300); setTimeout(() => clearInterval(t), 8000); }
   },
   adentry: () => airdropPay('adentry'),
+  adentrystars: () => airdropStars(),
   adfee: () => airdropPay('adfee'),
   adtx: () => { const a = NET.eco && NET.eco.airdrop; if (a && a.tx) openLink('https://solscan.io/tx/' + a.tx); },
   sol: (what) => {
@@ -10577,6 +10593,19 @@ async function airdropPay(kind) {
     [800, 3000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
     loadHub('friends', true);
   });
+}
+// the same entry deposit, paid in Telegram Stars
+async function airdropStars() {
+  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
+  const r = await netApi.adStars().catch(() => null);
+  if (!r || !r.ok || !r.url) return errToast((r && r.err) || 'invoice');
+  const after = (status) => {
+    if (status === 'paid') {
+      toast(L('ver.title'), 'good', 'gem'); confettiSmall(); haptic('ok');
+      [1500, 4000, 9000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
+    } else if (status === 'failed') errToast('pay_failed');
+  };
+  if (TG && TG.openInvoice) TG.openInvoice(r.url, after); else openLink(r.url);
 }
 async function buySol(sku) {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
@@ -10804,7 +10833,13 @@ function showWelcome() {
 function showSettings() {
   const armed = Date.now() - (UI.resetArm || 0) < 10000;
   const links = NET.cfg && NET.cfg.links ? NET.cfg.links : {};
-  openModal(`<h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
+  const pname = (NET.me && NET.me.name) || L('ui.founder');
+  const ver = isVerified();
+  const canVer = NET.mode === 'online' && NET.eco && NET.eco.airdrop && NET.eco.airdrop.st === 'season' && NET.eco.airdrop.entry;
+  openModal(`<div class="profcard${ver ? ' on' : ''}">${imgTag(portrait('you', 90), 'av')}<div class="pc-t"><b>${esc(pname)}${ver ? `<i class="vbadge">${I('check', 10)}</i>` : ''}</b>
+      <small>${ver ? `<span class="vtxt">${L('ver.badge')}</span> · ${L('ad.entered')}` : esc(L('rank.' + rankOf(S)))}</small></div></div>
+    ${!ver && canVer ? `<button class="btn glow wide" data-act="go:drop:token">${I('check', 14)} ${L('ver.get')}</button>` : ''}
+    <h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
     <div class="setrow"><span>${I('globe', 16)} ${L('set.lang')}</span><div class="langs">${LANG_LIST.map((c) => `<button class="${LANG === c ? 'on' : ''}" data-act="lang:${c}">${L('lang.' + c)}</button>`).join('')}</div></div>
     <div class="setrow"><span>${I(S.settings.sound ? 'sound' : 'mute', 16)} ${L('set.sound')}</span><button class="toggle" data-act="sound" aria-pressed="${!!S.settings.sound}"><span class="sw"></span></button></div>
     <div class="setrow"><span>${I('sound', 16)} ${L('set.music')}</span><button class="toggle" data-act="music" aria-pressed="${S.settings.music !== false}"><span class="sw"></span></button></div>

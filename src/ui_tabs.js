@@ -795,6 +795,7 @@ function airdropCard(e, mini) {
       <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
       ${a.entry ? (a.entry.done ? `<div class="vcard"><i class="vbadge big">${I('check', 18)}</i><div><b>${L('ver.title')}</b><small>${L('ver.text')}</small></div></div>` : `<p class="sub">${L('ad.entry_t', { usd: '$' + a.entry.usd, sol: a.entry.sol })}</p>
         <button class="btn big glow wide" data-act="adentry">${I('sol', 16)} ${L('ad.entry_btn', { sol: a.entry.sol })}</button>
+        ${a.entry.stars ? `<button class="btn big gold wide" data-act="adentrystars" style="margin-top:8px">⭐ ${L('ad.entry_stars', { n: fmt(a.entry.stars) })}</button>` : ''}
         <p class="hint">${L('ad.entry_hint')}</p>`) : ''}
       <button class="btn big gold wide" data-act="donopen" style="margin-top:8px">⭐ ${L('don.btn_long')}</button>
     </section>`;

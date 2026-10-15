@@ -1161,6 +1161,13 @@ img.mk-logo { object-fit: contain; background: none; }
 .vbadge.big { width: 36px; height: 36px; margin: 0; flex: none; }
 .vbadge.huge { width: 72px; height: 72px; margin: 0 auto 6px; box-shadow: 0 0 30px rgba(20, 241, 149, 0.8); }
 .vtxt { color: #14f195; font-weight: 800; }
+.profcard { display: flex; align-items: center; gap: 12px; padding: 12px; margin-right: 34px; border-radius: 16px; background: rgba(255, 255, 255, 0.04); border: 1.5px solid var(--line-soft); }
+.profcard.on { border-color: rgba(20, 241, 149, 0.6); box-shadow: 0 0 16px rgba(20, 241, 149, 0.2); }
+.profcard .av { width: 54px; height: 54px; border-radius: 14px; border: 2px solid var(--cy); flex: none; }
+.profcard.on .av { border-color: #14f195; }
+.pc-t { display: grid; gap: 3px; min-width: 0; }
+.pc-t b { font-size: 17px; font-weight: 800; }
+.pc-t small { font-size: 12px; color: var(--ink2); }
 .vcard { display: flex; align-items: center; gap: 12px; padding: 12px; margin: 6px 0; border-radius: 14px; background: rgba(20, 241, 149, 0.1); border: 1.5px solid rgba(20, 241, 149, 0.55); box-shadow: 0 0 18px rgba(20, 241, 149, 0.2); }
 .vcard b { display: block; color: #14f195; font-size: 15px; }
 .vcard small { display: block; color: var(--ink2); font-size: 12px; line-height: 1.35; margin-top: 2px; }
