@@ -446,7 +446,7 @@ function createApp(cfg, opts = {}) {
         const base = cfg.publicUrl || `http://${req.headers.host}`;
         const app = cfg.botUsername ? `https://t.me/${cfg.botUsername}${cfg.appShort ? '/' + cfg.appShort : ''}` : base;
         res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'public, max-age=300', 'access-control-allow-origin': '*', ...SEC_HEADERS });
-        return res.end(JSON.stringify({ name: 'OFFICE', symbol: cfg.tokenSymbol || 'OFFX', description: 'OFFX — the token of Office Dreams, a pixel game studio tycoon in Telegram. 100,000,000 supply, minted once.', image: base + '/token.png', external_url: app,
+        return res.end(JSON.stringify({ name: 'OFFICE', symbol: cfg.tokenSymbol || 'OFFX', description: 'OFFX powers Office Dreams, a neon pixel tycoon in Telegram: build your own game studio from a basement desk to a skyscraper, hire a team, ship hits and battle other studios. 90% of the supply goes to players by their progress; fixed 100,000,000 supply, minting disabled. Play: t.me/officedream1_bot/play', image: base + '/token.png', external_url: app,
           // Metaplex-style fields: some indexers look for the logo here
           properties: { category: 'image', files: [{ uri: base + '/token.png', type: 'image/png' }] },
           extensions: { website: app, telegram: app } }));
