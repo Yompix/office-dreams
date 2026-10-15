@@ -63,7 +63,10 @@ function distributor(ctx) {
 const distributorAddr = (ctx) => { const d = distributor(ctx); return d ? d.publicKey.toBase58() : (ctx.cfg.airdrop.wallet || ''); };
 const tokenReady = (ctx) => !!(ctx.cfg.token && Sol.isAddr(ctx.cfg.token.addr) && distributor(ctx));
 
-const entered = (ctx, uid) => !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku='adentry'", uid);
+// verified player = made any real contribution: the $1 entry deposit, a donation (Stars / SOL / earlier TON) or a shop
+// purchase — paying people are not bots. The claim fee does not count (it comes after the snapshot). The developer
+// test account is never verified (it plays with free coins and is kept out of the airdrop).
+const entered = (ctx, uid) => !Eco.isDev(ctx, uid) && !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku<>'adfee'", uid);
 // the entry deposit can also be paid in Telegram Stars (same $ value, rounded up to 5 Stars)
 const entryStars = (cfg) => (cfg.airdrop.entryStars > 0 ? Math.round(cfg.airdrop.entryStars) : Math.ceil(cfg.airdrop.entryUsd / cfg.starUsd / 5) * 5);
 // null when this player may pay the entry deposit now, otherwise the error code

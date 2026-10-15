@@ -39,8 +39,19 @@ function tipDone(id) { lsSet('od2_tip_' + id, '1'); }
 function tutSave() { lsSet('od2_tut', COACH.i >= TUT.length ? 'done' : String(COACH.i)); }
 function tutStart() {
   COACH.i = 0;
+  // steps the player has already done are skipped right away, so the counter starts at 1
+  while (tutActive() && TUT[COACH.i].done && TUT[COACH.i].done()) COACH.i++;
+  lsSet('od2_tut_from', String(COACH.i));
   tutSave();
+  if (!tutActive()) { tutStop(); return; }
   tutGoto();
+}
+// numbering over the steps this player actually sees: "1/10", not "4/13" when the first steps were already done
+function tutStepText() {
+  const from = Math.min(COACH.i, Math.max(0, Number(lsGet('od2_tut_from')) || 0));
+  const ahead = TUT.slice(COACH.i + 1).filter((s) => !(s.done && s.done())).length; // later steps already done are skipped
+  const n = COACH.i - from + 1;
+  return n + '/' + (n + ahead);
 }
 function tutStop() {
   COACH.i = TUT.length;
@@ -101,7 +112,7 @@ function tutUpdate() {
   }
   if (bub.dataset.sig !== sig) {
     bub.dataset.sig = sig;
-    el.querySelector('.c-step').textContent = (COACH.i + 1) + '/' + TUT.length;
+    el.querySelector('.c-step').textContent = tutStepText();
     el.querySelector('.c-text').textContent = L(st.k);
     const btns = [];
     if (st.target && !target && st.tab) btns.push(`<button class="btn sm" data-act="tut:go">${L('tut.show')}</button>`);

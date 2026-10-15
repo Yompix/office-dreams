@@ -293,6 +293,23 @@ const AB = require('../server/antibot.js');
     await new Promise((r) => setTimeout(r, 60));
     assert.equal(ctx.db.get('SELECT 1 AS x FROM purchases WHERE charge_id=?', 'ch_3'), undefined, 'amount mismatch is ignored');
   });
+  await test('verification: any contribution (donation, shop purchase, old TON payment) verifies; the claim fee and the developer account do not', async () => {
+    const Ad = require('../server/airdrop.js');
+    const ids = [6201, 6202, 6203, 6204];
+    for (const id of ids) { const P = new Player(env, id); await P.auth(); }
+    assert.equal(Ad.entered(ctx, 6201), false, 'nothing paid → not verified');
+    Eco.fulfilDonation(ctx, 6201, 'v_don', 100, clock.t);
+    assert.equal(Ad.entered(ctx, 6201), true, 'a Stars donation verifies');
+    Eco.fulfil(ctx, 6202, 'gems_s', 'v_shop', 25, clock.t);
+    assert.equal(Ad.entered(ctx, 6202), true, 'a shop purchase verifies');
+    ctx.db.run("INSERT INTO purchases(charge_id,uid,sku,stars,ts,meta) VALUES('ton:old1',6203,'donate',0,?,'{\"usd\":2}')", clock.t);
+    assert.equal(Ad.entered(ctx, 6203), true, 'a payment from the TON days verifies');
+    ctx.db.run("INSERT INTO purchases(charge_id,uid,sku,stars,ts,meta) VALUES('sol:fee1',6204,'adfee',0,?,'{}')", clock.t);
+    assert.equal(Ad.entered(ctx, 6204), false, 'the claim fee alone does not');
+    const dev0 = ctx.cfg.devIds; ctx.cfg.devIds = [6201];
+    assert.equal(Ad.entered(ctx, 6201), false, 'the developer test account is never verified');
+    ctx.cfg.devIds = dev0;
+  });
   await test('airdrop entry in Stars: invoice, pre-checkout, verified once, counts toward the fund, no second entry', async () => {
     const P = new Player(env, 5009); await P.auth();
     const Ad = require('../server/airdrop.js');

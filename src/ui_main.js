@@ -382,7 +382,6 @@ const ACT = {
     if (UI.hub.donate) show(); else { show(); loadHub('donate', true); const t = setInterval(() => { if (UI.hub.donate) { clearInterval(t); if (UI.modal && UI.modal.id === 'donate') show(); } }, 300); setTimeout(() => clearInterval(t), 8000); }
   },
   adentry: () => airdropPay('adentry'),
-  adentrystars: () => airdropStars(),
   adfee: () => airdropPay('adfee'),
   adtx: () => { const a = NET.eco && NET.eco.airdrop; if (a && a.tx) openLink('https://solscan.io/tx/' + a.tx); },
   sol: (what) => {
@@ -488,19 +487,6 @@ async function airdropPay(kind) {
     [800, 3000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
     loadHub('friends', true);
   });
-}
-// the same entry deposit, paid in Telegram Stars
-async function airdropStars() {
-  if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
-  const r = await netApi.adStars().catch(() => null);
-  if (!r || !r.ok || !r.url) return errToast((r && r.err) || 'invoice');
-  const after = (status) => {
-    if (status === 'paid') {
-      toast(L('ver.title'), 'good', 'gem'); confettiSmall(); haptic('ok');
-      [1500, 4000, 9000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
-    } else if (status === 'failed') errToast('pay_failed');
-  };
-  if (TG && TG.openInvoice) TG.openInvoice(r.url, after); else openLink(r.url);
 }
 async function buySol(sku) {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
@@ -753,7 +739,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li><li>${L('help.p10')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">
