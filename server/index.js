@@ -35,6 +35,9 @@ function main() {
   // airdrop: starts by itself once the launch fund reaches its goal
   timers.push(setInterval(() => { Airdrop.tick(ctx).catch((e) => ctx.log('airdrop', e.message)); }, 60000));
   setTimeout(() => Airdrop.tick(ctx).catch((e) => ctx.log('airdrop', e.message)), 5000);
+  // sponsor giveaway: starts with its config, finishes and pays out by itself
+  const gw = () => require('./giveaway.js').tick(ctx).catch((e) => ctx.log('giveaway', e.message));
+  setTimeout(gw, 8000); timers.push(setInterval(gw, 60000));
   const sp = () => SolPay.refreshPrice(ctx).catch(() => {});
   sp(); timers.push(setInterval(sp, 10 * 60000));
 

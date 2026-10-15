@@ -71,6 +71,7 @@ const LIVE = {
   gearn: (id) => { const g = S.games.find((x) => String(x.id) === id); return g ? money(g.earned) : ''; },
   dprog: (id) => { const d = DAILY.find((x) => x.id === id); return d ? dailyProgress(S, d) + '/' + d.need : ''; },
   sales: () => money(dailySalesRate(S)),
+  gwleft: () => { const g = NET.eco && NET.eco.giveaway; return g ? gwLeft(g.end) : ''; },
   cityleft: (k) => { const c = S.city || {}; const u = k === 'trn' ? c.trn && c.trn.end : k === 'ctr' ? c.ctr && c.ctr.until : k === 'next' ? c.ctrNext : c[k]; return mmss((u || 0) - S.t); },
 };
 const WLIVE = {
@@ -279,6 +280,7 @@ function tabOffice() {
     <div class="energy">${I('bolt', 14, 'yel')}<div class="bar yel"><i data-w="energy"></i></div><span class="px" data-t="energy"></span></div>
     ${adButton()}
   </section>
+  ${giveawayCard(NET.eco, true)}
   ${cityBanner()}
   ${eventBanner()}
   ${dailyCard()}
@@ -570,7 +572,7 @@ function hubHome() {
   const usedPct = Math.round((e.used || 0) * 100);
   const src = Object.keys(e.bySrc || {}).filter((k) => e.bySrc[k] > 0);
   const ci = e.checkin;
-  return `${demoNote()}${riskNote(e)}${airdropCard(e, true)}${mktPanel(true)}
+  return `${demoNote()}${riskNote(e)}${giveawayCard(e)}${airdropCard(e, true)}${mktPanel(true)}
   <section class="panel ptsp">
     <div class="season px">${esc((NET.cfg && NET.cfg.season && NET.cfg.season.name) || 'Season 0')}</div>
     <div class="bigpts">${I('pts', 34)}<b id="bigpts">${fmtPts(e.pts)}</b></div>
@@ -788,6 +790,30 @@ function mktPanel(mini) {
   </section>`;
 }
 
+/* sponsor giveaway: prizes for the most active verified players over a few days */
+function gwLeft(end) {
+  const s = Math.max(0, Math.round((end - Date.now()) / 1000)), d = Math.floor(s / 86400);
+  return d > 0 ? d + L('u.d') + ' ' + fmtDur(s - d * 86400) : fmtDur(s);
+}
+function giveawayCard(e, mini) {
+  const g = e && e.giveaway;
+  if (!g || NET.mode === 'demo') return '';
+  const sum = g.prizes.reduce((a, b) => a + b, 0), medal = ['🥇', '🥈', '🥉'];
+  const prizes = `<div class="gw-prizes">${g.prizes.map((p, i) => `<div class="gw-p p${i + 1}"><span>${medal[i] || '🏅'}</span><b class="px">$${p}</b><small>${L('gw.place', { n: i + 1 })}</small></div>`).join('')}</div>`;
+  if (mini) return `<button class="panel gwbn" data-act="go:drop:home"><span class="cb-ico">🎁</span><span class="cb-t"><b>${L('gw.title_s', { sum })}</b><small>${g.done ? L('gw.done_s') : `${L('gw.left')} <span data-t="gwleft"></span>`}${g.me.rank ? ' · #' + g.me.rank : ''}</small></span><b class="chev">›</b></button>`;
+  const top = g.top.length ? `<ol class="board gw-board">${g.top.map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${medal[x.rank - 1] || x.rank}</span><b>${flag(x.country)} ${esc(x.name)}</b><span class="mag">${fmtPts(x.score)}${x.rank <= g.prizes.length ? ` · <i class="yel">$${g.prizes[x.rank - 1]}</i>` : ''}</span></li>`).join('')}</ol>` : `<p class="hint">${L('gw.empty')}</p>`;
+  return `<section class="panel gw" id="gwcard">
+    <div class="gw-h"><span class="gw-tag px">${L('gw.tag')}</span>${g.done ? `<span class="chip grn">${L('gw.done')}</span>` : `<span class="chip yel">⏳ <span data-t="gwleft"></span></span>`}</div>
+    <h2 class="h2">🎁 ${L('gw.title', { sum })}</h2>
+    <p class="sub">${L(g.done ? 'gw.sub_done' : 'gw.sub', { n: g.prizes.length })}</p>
+    ${prizes}
+    <div class="gw-me">${g.verified ? `<div><small>${L('gw.my')}</small><b class="px">${fmtPts(g.me.score)}</b></div><div><small>${L('gw.rank')}</small><b class="px">${g.me.rank ? '#' + g.me.rank : '—'}</b></div>` : `<div class="gw-need"><b>${L('gw.need')}</b><small>${L('gw.need_t')}</small></div><button class="btn sm glow" data-act="go:drop:token">${L('gw.verify')}</button>`}</div>
+    <h3 class="h3">🏆 ${L('gw.top')}</h3>
+    ${top}
+    ${g.url ? `<button class="btn ghost wide" data-act="gwsponsor" style="margin-top:10px">🤝 ${L('gw.sponsor')}</button>` : ''}
+    <p class="hint">${L('gw.rules')}</p>
+  </section>`;
+}
 /* the OFFICE airdrop: fund progress → snapshot → claim */
 function airdropCard(e, mini) {
   const a = e && e.airdrop;

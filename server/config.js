@@ -63,6 +63,8 @@ function build(env) {
     token: { addr: str('TOKEN_ADDRESS'), rpc: str('SOLANA_RPC', 'https://api.mainnet-beta.solana.com') },
     // airdrop of the whole supply by Season 0 points: starts by itself when the launch fund reaches DONATE_GOAL_USD;
     // AIRDROP_SECRET = secret key of a separate distributor wallet that holds the tokens (base58 as exported from Phantom)
+    // sponsor giveaway: $ prizes for the most active verified players over a few days (see server/giveaway.js)
+    giveaway: { on: str('GIVEAWAY_ON', '0') === '1', key: str('GIVEAWAY_KEY', 'sponsor1'), days: num('GIVEAWAY_DAYS', 3), prizes: str('GIVEAWAY_PRIZES', '20,10,5').split(',').map((x) => Number(x.trim())).filter((x) => x > 0), url: str('GIVEAWAY_URL', 'https://t.me/+xQvTJbd14bNiNzli') },
     airdrop: { genKey: str('AIRDROP_GENKEY', '0') === '1', mint: str('AIRDROP_MINT', '0') === '1', mintTotal: num('AIRDROP_MINT_TOTAL', 100000000), wallet: str('AIRDROP_WALLET'), entryUsd: num('AIRDROP_ENTRY_USD', 1), entryStars: num('AIRDROP_ENTRY_STARS', 0), feeSol: num('AIRDROP_CLAIM_FEE_SOL', 0.01), supply: num('AIRDROP_SUPPLY', 90000000), decimals: num('TOKEN_DECIMALS', 6), secret: str('AIRDROP_SECRET'), auto: str('AIRDROP_AUTO', '1') !== '0' },
     turnstile: { site: str('TURNSTILE_SITEKEY'), secret: str('TURNSTILE_SECRET') },
     starUsd: num('STAR_USD', 0.013),

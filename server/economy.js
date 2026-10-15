@@ -469,6 +469,7 @@ function ecoView(ctx, u, now) {
     wallet: u.wallet ? { addr: u.wallet, ok: !!u.wallet_ok } : null,
     sol: u.sol || null,
     airdrop: require('./airdrop.js').view(ctx, u),
+    giveaway: require('./giveaway.js').view(ctx, u.id, now),
     days: u.days_played,
     mult: RISK_MULT[u.risk_state] === undefined ? 0 : RISK_MULT[u.risk_state],
     ptsAll: ptsAll(ctx, now),

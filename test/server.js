@@ -1049,5 +1049,36 @@ const AB = require('../server/antibot.js');
     });
     await env11.close();
   }
+  {
+    console.log('Sponsor giveaway');
+    const envG = await makeEnv({ GIVEAWAY_ON: '1', GIVEAWAY_KEY: 'g-test', GIVEAWAY_DAYS: '3', GIVEAWAY_PRIZES: '20,10,5' });
+    const Give = require('../server/giveaway.js');
+    const ctxG = envG.ctx; ctxG.fastAnnounce = true;
+    const ids = [8101, 8102, 8103, 8104, 8105];
+    for (const id of ids) { const P = new Player(envG, id, { name: 'P' + id }); await P.auth(); }
+    await test('giveaway: only verified players rank, by points earned during the window; the end freezes winners', async () => {
+      await Give.tick(ctxG, envG.clock.t);
+      const g = Give.current(ctxG);
+      assert.ok(g && g.status === 'live', 'started from config');
+      // points earned after the start; 8105 is the most active but never verified
+      const add = { 8101: 50, 8102: 120, 8103: 80, 8104: 10, 8105: 500 };
+      for (const id of ids) ctxG.db.run('UPDATE users SET pts=pts+? WHERE id=?', add[id], id);
+      for (const id of [8101, 8102, 8103, 8104]) ctxG.db.run("INSERT INTO purchases(charge_id,uid,sku,stars,ts) VALUES(?,?,?,?,?)", 'g' + id, id, 'donate', 100, envG.clock.t);
+      ctxG.cache.gwBoard = null;
+      const v = Give.view(ctxG, 8103, envG.clock.t);
+      assert.deepEqual(v.top.map((r) => r.name), ['P8102', 'P8103', 'P8101', 'P8104']);
+      assert.equal(v.me.rank, 2);
+      assert.equal(Give.view(ctxG, 8105, envG.clock.t).verified, false, 'not verified: not in the ranking');
+      envG.advance(3 * 86400e3 + 1000);
+      await Give.tick(ctxG, envG.clock.t);
+      const done = Give.current(ctxG);
+      assert.equal(done.status, 'done');
+      assert.deepEqual(done.winners.map((w) => [w.uid, w.prize]), [[8102, 20], [8103, 10], [8101, 5]]);
+      ctxG.db.run('UPDATE users SET pts=pts+1000 WHERE id=8104');
+      ctxG.cache.gwBoard = null;
+      assert.equal(Give.view(ctxG, 8104, envG.clock.t).top[0].name, 'P8102', 'results are frozen after the end');
+    });
+    await envG.close();
+  }
   summary();
 })();

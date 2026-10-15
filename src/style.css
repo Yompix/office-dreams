@@ -1261,3 +1261,24 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .ct-scene.in #citycv { cursor: pointer; }
 .ct-say { display: flex; gap: 8px; align-items: flex-start; width: 100%; margin-top: 8px; padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(8, 10, 34, 0.75); color: #eef1ff; font: 600 14px/1.4 var(--ui, sans-serif); text-align: left; cursor: pointer; animation: rise 0.3s cubic-bezier(.2, .9, .3, 1.1) both; }
 .ct-panel .h3.sm { font-size: 14px; margin: 14px 0 6px; color: var(--mut, #a6addb); }
+/* sponsor giveaway */
+.panel.gw { border-color: rgba(255, 210, 63, 0.6); background: radial-gradient(120% 80% at 100% 0%, rgba(255, 210, 63, 0.16), transparent 60%), linear-gradient(160deg, #241a5a, #0c1040); box-shadow: 0 0 26px rgba(255, 210, 63, 0.16); }
+.gw-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.gw-tag { font-size: 9px; color: #2a1d00; background: var(--yel); padding: 5px 9px; border-radius: 6px; box-shadow: 0 0 12px rgba(255, 210, 63, 0.55); }
+.gw-prizes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.gw-p { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px; border-radius: 14px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.12); }
+.gw-p span { font-size: 26px; line-height: 1; }
+.gw-p b { font-size: 15px; color: #fff; }
+.gw-p small { font-size: 11px; color: var(--mut); }
+.gw-p.p1 { border-color: rgba(255, 210, 63, 0.7); box-shadow: 0 0 16px rgba(255, 210, 63, 0.3); transform: translateY(-3px); }
+.gw-p.p1 b { color: var(--yel); }
+.gw-me { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 12px; border-radius: 14px; background: rgba(0, 0, 0, 0.28); border: 1px dashed rgba(255, 255, 255, 0.18); }
+.gw-me > div { display: flex; flex-direction: column; }
+.gw-me small { color: var(--mut); font-size: 12px; }
+.gw-me b.px { font-size: 15px; margin-top: 4px; }
+.gw-need b { font-size: 14px; }
+.gw-board li .yel { font-style: normal; }
+.gwbn { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; color: inherit; font: inherit; cursor: pointer; padding: 12px 14px; border-color: rgba(255, 210, 63, 0.6); background: linear-gradient(100deg, rgba(90, 60, 10, 0.9), rgba(16, 22, 64, 0.9)); box-shadow: 0 0 18px rgba(255, 210, 63, 0.18); }
+.gwbn .cb-ico { font-size: 28px; animation: ctBob 1.6s ease-in-out infinite; }
+.gwbn .cb-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.gwbn .cb-t small { color: var(--mut); font-size: 12px; }

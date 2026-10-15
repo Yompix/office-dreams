@@ -1276,6 +1276,27 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .ct-scene.in #citycv { cursor: pointer; }
 .ct-say { display: flex; gap: 8px; align-items: flex-start; width: 100%; margin-top: 8px; padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(8, 10, 34, 0.75); color: #eef1ff; font: 600 14px/1.4 var(--ui, sans-serif); text-align: left; cursor: pointer; animation: rise 0.3s cubic-bezier(.2, .9, .3, 1.1) both; }
 .ct-panel .h3.sm { font-size: 14px; margin: 14px 0 6px; color: var(--mut, #a6addb); }
+/* sponsor giveaway */
+.panel.gw { border-color: rgba(255, 210, 63, 0.6); background: radial-gradient(120% 80% at 100% 0%, rgba(255, 210, 63, 0.16), transparent 60%), linear-gradient(160deg, #241a5a, #0c1040); box-shadow: 0 0 26px rgba(255, 210, 63, 0.16); }
+.gw-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.gw-tag { font-size: 9px; color: #2a1d00; background: var(--yel); padding: 5px 9px; border-radius: 6px; box-shadow: 0 0 12px rgba(255, 210, 63, 0.55); }
+.gw-prizes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.gw-p { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px; border-radius: 14px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.12); }
+.gw-p span { font-size: 26px; line-height: 1; }
+.gw-p b { font-size: 15px; color: #fff; }
+.gw-p small { font-size: 11px; color: var(--mut); }
+.gw-p.p1 { border-color: rgba(255, 210, 63, 0.7); box-shadow: 0 0 16px rgba(255, 210, 63, 0.3); transform: translateY(-3px); }
+.gw-p.p1 b { color: var(--yel); }
+.gw-me { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 12px; border-radius: 14px; background: rgba(0, 0, 0, 0.28); border: 1px dashed rgba(255, 255, 255, 0.18); }
+.gw-me > div { display: flex; flex-direction: column; }
+.gw-me small { color: var(--mut); font-size: 12px; }
+.gw-me b.px { font-size: 15px; margin-top: 4px; }
+.gw-need b { font-size: 14px; }
+.gw-board li .yel { font-style: normal; }
+.gwbn { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; color: inherit; font: inherit; cursor: pointer; padding: 12px 14px; border-color: rgba(255, 210, 63, 0.6); background: linear-gradient(100deg, rgba(90, 60, 10, 0.9), rgba(16, 22, 64, 0.9)); box-shadow: 0 0 18px rgba(255, 210, 63, 0.18); }
+.gwbn .cb-ico { font-size: 28px; animation: ctBob 1.6s ease-in-out infinite; }
+.gwbn .cb-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.gwbn .cb-t small { color: var(--mut); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -2832,6 +2853,25 @@ LANGS.en = {
   "city.say_arena_1": "It’s hot in the arena today! Ready to fight?",
   "city.say_arena_2": "A strong team multiplies every tap: level yours up.",
   "city.say_arena_3": "Wins lift you up the league. The top is waiting!",
+  "gw.tag": "GIVEAWAY",
+  "gw.title": "${sum} sponsor giveaway",
+  "gw.title_s": "${sum} sponsor giveaway",
+  "gw.left": "ends in",
+  "gw.done": "Finished",
+  "gw.done_s": "results are in",
+  "gw.place": "place {n}",
+  "gw.sub": "The {n} most active verified players win. Only points earned during the giveaway count: just play!",
+  "gw.sub_done": "The giveaway is over. Winners got a message from the bot; the admin @vtmjs hands out the prizes.",
+  "gw.my": "My giveaway points",
+  "gw.rank": "My place",
+  "gw.need": "Verified players only",
+  "gw.need_t": "Any contribution: a $1 deposit, Stars or a purchase",
+  "gw.verify": "Verify",
+  "gw.top": "Leaderboard",
+  "gw.empty": "Nobody has scored yet: be the first!",
+  "gw.sponsor": "The sponsor",
+  "gw.rules": "The server counts the points, the same way as for the airdrop: bots, farming and dev accounts are excluded.",
+  "u.d": "d",
 };
 
 /* ---- src/lang_ru.js ---- */
@@ -3608,6 +3648,25 @@ LANGS.ru = {
   "city.say_arena_1": "Сегодня на арене жарко! Готов к битве?",
   "city.say_arena_2": "Сильная команда умножает каждый тап — качай своих.",
   "city.say_arena_3": "Победы поднимают тебя в лиге. Вершина ждёт!",
+  "gw.tag": "РОЗЫГРЫШ",
+  "gw.title": "Розыгрыш ${sum} от спонсора",
+  "gw.title_s": "Розыгрыш ${sum} от спонсора",
+  "gw.left": "осталось",
+  "gw.done": "Завершён",
+  "gw.done_s": "итоги готовы",
+  "gw.place": "{n} место",
+  "gw.sub": "Побеждают {n} самых активных верифицированных игрока. Считаются очки, заработанные во время розыгрыша — просто играй!",
+  "gw.sub_done": "Розыгрыш завершён. Победителям пришло сообщение от бота, призы выдаёт админ @vtmjs.",
+  "gw.my": "Мои очки в розыгрыше",
+  "gw.rank": "Моё место",
+  "gw.need": "Участвуют только верифицированные",
+  "gw.need_t": "Любой вклад: $1 депозит, звёзды или покупка",
+  "gw.verify": "Пройти",
+  "gw.top": "Таблица лидеров",
+  "gw.empty": "Пока никто не набрал очков — стань первым!",
+  "gw.sponsor": "Спонсор розыгрыша",
+  "gw.rules": "Очки считает сервер — так же, как для аирдропа: боты, накрутка и dev-аккаунты не участвуют.",
+  "u.d": "д",
 };
 
 /* ---- src/lang_uk.js ---- */
@@ -4384,6 +4443,25 @@ LANGS.uk = {
   "city.say_arena_1": "Сьогодні на арені спекотно! Готовий до битви?",
   "city.say_arena_2": "Сильна команда множить кожен тап — прокачуй своїх.",
   "city.say_arena_3": "Перемоги піднімають тебе в лізі. Вершина чекає!",
+  "gw.tag": "РОЗІГРАШ",
+  "gw.title": "Розіграш ${sum} від спонсора",
+  "gw.title_s": "Розіграш ${sum} від спонсора",
+  "gw.left": "залишилось",
+  "gw.done": "Завершено",
+  "gw.done_s": "підсумки готові",
+  "gw.place": "{n} місце",
+  "gw.sub": "Перемагають {n} найактивніших верифікованих гравці. Рахуються бали, зароблені під час розіграшу — просто грай!",
+  "gw.sub_done": "Розіграш завершено. Переможцям прийшло повідомлення від бота, призи видає адмін @vtmjs.",
+  "gw.my": "Мої бали в розіграші",
+  "gw.rank": "Моє місце",
+  "gw.need": "Беруть участь лише верифіковані",
+  "gw.need_t": "Будь-який внесок: $1 депозит, зірки чи покупка",
+  "gw.verify": "Пройти",
+  "gw.top": "Таблиця лідерів",
+  "gw.empty": "Поки ніхто не набрав балів — стань першим!",
+  "gw.sponsor": "Спонсор розіграшу",
+  "gw.rules": "Бали рахує сервер — так само, як для аірдропу: боти, накрутка й dev-акаунти не беруть участі.",
+  "u.d": "д",
 };
 
 /* ---- src/engine.js ---- */
@@ -9027,6 +9105,7 @@ const LIVE = {
   gearn: (id) => { const g = S.games.find((x) => String(x.id) === id); return g ? money(g.earned) : ''; },
   dprog: (id) => { const d = DAILY.find((x) => x.id === id); return d ? dailyProgress(S, d) + '/' + d.need : ''; },
   sales: () => money(dailySalesRate(S)),
+  gwleft: () => { const g = NET.eco && NET.eco.giveaway; return g ? gwLeft(g.end) : ''; },
   cityleft: (k) => { const c = S.city || {}; const u = k === 'trn' ? c.trn && c.trn.end : k === 'ctr' ? c.ctr && c.ctr.until : k === 'next' ? c.ctrNext : c[k]; return mmss((u || 0) - S.t); },
 };
 const WLIVE = {
@@ -9235,6 +9314,7 @@ function tabOffice() {
     <div class="energy">${I('bolt', 14, 'yel')}<div class="bar yel"><i data-w="energy"></i></div><span class="px" data-t="energy"></span></div>
     ${adButton()}
   </section>
+  ${giveawayCard(NET.eco, true)}
   ${cityBanner()}
   ${eventBanner()}
   ${dailyCard()}
@@ -9526,7 +9606,7 @@ function hubHome() {
   const usedPct = Math.round((e.used || 0) * 100);
   const src = Object.keys(e.bySrc || {}).filter((k) => e.bySrc[k] > 0);
   const ci = e.checkin;
-  return `${demoNote()}${riskNote(e)}${airdropCard(e, true)}${mktPanel(true)}
+  return `${demoNote()}${riskNote(e)}${giveawayCard(e)}${airdropCard(e, true)}${mktPanel(true)}
   <section class="panel ptsp">
     <div class="season px">${esc((NET.cfg && NET.cfg.season && NET.cfg.season.name) || 'Season 0')}</div>
     <div class="bigpts">${I('pts', 34)}<b id="bigpts">${fmtPts(e.pts)}</b></div>
@@ -9744,6 +9824,30 @@ function mktPanel(mini) {
   </section>`;
 }
 
+/* sponsor giveaway: prizes for the most active verified players over a few days */
+function gwLeft(end) {
+  const s = Math.max(0, Math.round((end - Date.now()) / 1000)), d = Math.floor(s / 86400);
+  return d > 0 ? d + L('u.d') + ' ' + fmtDur(s - d * 86400) : fmtDur(s);
+}
+function giveawayCard(e, mini) {
+  const g = e && e.giveaway;
+  if (!g || NET.mode === 'demo') return '';
+  const sum = g.prizes.reduce((a, b) => a + b, 0), medal = ['🥇', '🥈', '🥉'];
+  const prizes = `<div class="gw-prizes">${g.prizes.map((p, i) => `<div class="gw-p p${i + 1}"><span>${medal[i] || '🏅'}</span><b class="px">$${p}</b><small>${L('gw.place', { n: i + 1 })}</small></div>`).join('')}</div>`;
+  if (mini) return `<button class="panel gwbn" data-act="go:drop:home"><span class="cb-ico">🎁</span><span class="cb-t"><b>${L('gw.title_s', { sum })}</b><small>${g.done ? L('gw.done_s') : `${L('gw.left')} <span data-t="gwleft"></span>`}${g.me.rank ? ' · #' + g.me.rank : ''}</small></span><b class="chev">›</b></button>`;
+  const top = g.top.length ? `<ol class="board gw-board">${g.top.map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${medal[x.rank - 1] || x.rank}</span><b>${flag(x.country)} ${esc(x.name)}</b><span class="mag">${fmtPts(x.score)}${x.rank <= g.prizes.length ? ` · <i class="yel">$${g.prizes[x.rank - 1]}</i>` : ''}</span></li>`).join('')}</ol>` : `<p class="hint">${L('gw.empty')}</p>`;
+  return `<section class="panel gw" id="gwcard">
+    <div class="gw-h"><span class="gw-tag px">${L('gw.tag')}</span>${g.done ? `<span class="chip grn">${L('gw.done')}</span>` : `<span class="chip yel">⏳ <span data-t="gwleft"></span></span>`}</div>
+    <h2 class="h2">🎁 ${L('gw.title', { sum })}</h2>
+    <p class="sub">${L(g.done ? 'gw.sub_done' : 'gw.sub', { n: g.prizes.length })}</p>
+    ${prizes}
+    <div class="gw-me">${g.verified ? `<div><small>${L('gw.my')}</small><b class="px">${fmtPts(g.me.score)}</b></div><div><small>${L('gw.rank')}</small><b class="px">${g.me.rank ? '#' + g.me.rank : '—'}</b></div>` : `<div class="gw-need"><b>${L('gw.need')}</b><small>${L('gw.need_t')}</small></div><button class="btn sm glow" data-act="go:drop:token">${L('gw.verify')}</button>`}</div>
+    <h3 class="h3">🏆 ${L('gw.top')}</h3>
+    ${top}
+    ${g.url ? `<button class="btn ghost wide" data-act="gwsponsor" style="margin-top:10px">🤝 ${L('gw.sponsor')}</button>` : ''}
+    <p class="hint">${L('gw.rules')}</p>
+  </section>`;
+}
 /* the OFFICE airdrop: fund progress → snapshot → claim */
 function airdropCard(e, mini) {
   const a = e && e.airdrop;
@@ -11575,6 +11679,7 @@ const ACT = {
   mkrange: (r) => { UI.mktRange = r; loadMarket(true); render(true); },
   mktab: () => { UI.sub.drop = 'token'; render(true); loadHub('token'); },
   openbot: () => { if (NET.cfg && NET.cfg.bot) openLink('https://t.me/' + NET.cfg.bot + (NET.cfg.app ? '/' + NET.cfg.app : '')); },
+  gwsponsor: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.url) openLink(g.url); },
   site: () => { const l = NET.cfg && NET.cfg.links && NET.cfg.links.site; if (l) openLink(l + (LANG === 'en' ? '' : '?lang=' + LANG)); },
   link: (k) => { const l = NET.cfg && NET.cfg.links && NET.cfg.links[k]; if (l) openLink(l); },
 };
