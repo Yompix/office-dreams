@@ -235,7 +235,7 @@ const ACT = {
     const t = TIPS.find((x) => x.id === id);
     if (what === 'go' && t && ACT[t.act]) ACT[t.act]();
   },
-  music: () => { S.settings.music = S.settings.music === false; savePrefs(); ensureAudio(); musicSync(); showSettings(); },
+  music: () => { S.settings.music = S.settings.music !== true; savePrefs(); ensureAudio(); musicSync(); showSettings(); },
   mnext: () => { ensureAudio(); if (S.settings.music === false) { S.settings.music = true; savePrefs(); } musicNext(false); musicSync(); showSettings(); },
   pump: () => { UI.sel = 'you'; go('studio', 'team'); },
   hire: (r) => { if (result(netAct('hire', r), LR('toast.hired', { role: '$role.' + r + '.name' }))) confettiSmall(); },
@@ -419,6 +419,7 @@ const ACT = {
   gwtx: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.pay && g.pay.tx) openLink('https://solscan.io/tx/' + g.pay.tx); },
   gwsponsor: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.url) { UI.gwBack = Date.now(); openLink(g.url); } },
   gwcheck: () => gwCheck(true),
+  meterhelp: (k) => openModal(`<h2 class="h2">${k === 'mood' ? '😊' : '⭐'} ${L(k === 'mood' ? 'office.mood' : 'office.rep')}</h2><p class="sub">${L('mh.' + k + '_t')}</p><ul class="bul">${[1, 2, 3, 4, 5].map((i) => `<li>${L('mh.' + k + i)}</li>`).join('')}</ul><button class="btn big glow wide" data-act="${k === 'mood' ? 'city:visit:cafe' : 'go:studio:games'}">${L('mh.' + k + '_btn')}</button>`, { id: 'meterhelp' }),
   site: () => { const l = NET.cfg && NET.cfg.links && NET.cfg.links.site; if (l) openLink(l + (LANG === 'en' ? '' : '?lang=' + LANG)); },
   link: (k) => { const l = NET.cfg && NET.cfg.links && NET.cfg.links[k]; if (l) openLink(l); },
 };
@@ -758,7 +759,7 @@ function showSettings() {
     <h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
     <div class="setrow"><span>${I('globe', 16)} ${L('set.lang')}</span><div class="langs">${LANG_LIST.map((c) => `<button class="${LANG === c ? 'on' : ''}" data-act="lang:${c}">${L('lang.' + c)}</button>`).join('')}</div></div>
     <div class="setrow"><span>${I(S.settings.sound ? 'sound' : 'mute', 16)} ${L('set.sound')}</span><button class="toggle" data-act="sound" aria-pressed="${!!S.settings.sound}"><span class="sw"></span></button></div>
-    <div class="setrow"><span>${I('sound', 16)} ${L('set.music')}</span><button class="toggle" data-act="music" aria-pressed="${S.settings.music !== false}"><span class="sw"></span></button></div>
+    <div class="setrow"><span>${I('sound', 16)} ${L('set.music')}</span><button class="toggle" data-act="music" aria-pressed="${S.settings.music === true}"><span class="sw"></span></button></div>
     <div class="setrow"><span class="mut">♪ ${L('music.' + TRACKS[MUSIC.track].id)}</span><button class="btn ghost sm" data-act="mnext">${L('set.next_track')} ›</button></div>
     <div class="setrow"><span>${I('info', 16)} ${L('help.title')}</span><button class="btn ghost sm" data-act="help">${L('ui.open')}</button></div>
     ${NET.mode === 'demo' ? `<div class="setrow"><span>${I('bolt', 16)} ${L('set.speed')}</span><div class="langs">${[1, 2, 5].map((v) => `<button class="${NET.speed === v ? 'on' : ''}" data-act="speed:${v}">×${v}</button>`).join('')}</div></div>` : ''}

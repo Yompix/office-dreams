@@ -1292,3 +1292,5 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .gw-req span { flex: 1; min-width: 140px; display: flex; flex-direction: column; }
 .gw-req small { color: var(--mut); font-size: 12px; }
 .gw-lock { margin-top: 0; }
+.opm[data-act] { cursor: pointer; }
+.opm[data-act]:active { transform: scale(0.98); }

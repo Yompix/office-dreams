@@ -242,8 +242,8 @@ function tabOffice() {
     <div class="op-head">
       ${(() => { const sn = studioName(); return `<button class="op-studio ${sn ? '' : 'empty'}" data-act="studio">${I('office', 12)}<span>${sn ? esc(sn) : L('st.unnamed')}</span><i>✎</i></button>`; })()}
       <div class="op-meters">
-        <div class="opm rep" title="${esc(L('office.rep'))}"><span>⭐ ${L('office.rep')}</span><b class="px" data-t="replv"></b><i class="opm-bar"><i data-w="rep"></i></i></div>
-        <div class="opm mood" title="${esc(L('office.mood'))}"><span>😊 ${L('office.mood')}</span><b class="px" data-t="moodv"></b><i class="opm-bar"><i data-w="mood"></i></i></div>
+        <div class="opm rep" data-act="meterhelp:rep" title="${esc(L('office.rep'))}"><span>⭐ ${L('office.rep')}</span><b class="px" data-t="replv"></b><i class="opm-bar"><i data-w="rep"></i></i></div>
+        <div class="opm mood" data-act="meterhelp:mood" title="${esc(L('office.mood'))}"><span>😊 ${L('office.mood')}</span><b class="px" data-t="moodv"></b><i class="opm-bar"><i data-w="mood"></i></i></div>
       </div>
       <button class="helpbtn" data-act="help" aria-label="${esc(L('help.title'))}">?</button>
     </div>

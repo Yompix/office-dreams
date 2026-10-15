@@ -1307,6 +1307,8 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .gw-req span { flex: 1; min-width: 140px; display: flex; flex-direction: column; }
 .gw-req small { color: var(--mut); font-size: 12px; }
 .gw-lock { margin-top: 0; }
+.opm[data-act] { cursor: pointer; }
+.opm[data-act]:active { transform: scale(0.98); }
 </style>
 </head>
 <body>
@@ -2875,7 +2877,7 @@ LANGS.en = {
   "gw.my": "My giveaway points",
   "gw.rank": "My place",
   "gw.need": "Verified players only",
-  "gw.need_t": "Any contribution: a $1 deposit, Stars or a purchase",
+  "gw.need_t": "Any contribution: easiest with Telegram Stars (~80 ⭐, bought right in Telegram with a card), or $1 in SOL",
   "gw.verify": "Verify",
   "gw.top": "Leaderboard",
   "gw.empty": "Nobody has scored yet: be the first!",
@@ -2896,6 +2898,20 @@ LANGS.en = {
   "gw.sub_ok": "Subscription confirmed: you are in!",
   "gw.sub_no": "No subscription found yet. Join the channel and tap “Check”.",
   "gw.lock": "Meet both conditions and your points start counting in the giveaway.",
+  "mh.mood_t": "A happy team works faster and makes better games. Here’s how to lift the mood:",
+  "mh.mood1": "☕ The coffee shop in the city: +6% for the whole team every 15 minutes",
+  "mh.mood2": "💰 Pay salaries on time: the mood grows every day. No money for salaries: −22%!",
+  "mh.mood3": "🛋️ The Mall: a coffee machine, chairs and a lounge raise the mood every day",
+  "mh.mood4": "🎓 An academy course or an upgrade makes an employee happy (+5…8%)",
+  "mh.mood5": "⚠️ Crunch choices in quests pay well but lower the mood",
+  "mh.mood_btn": "☕ To the coffee shop",
+  "mh.rep_t": "Reputation unlocks bigger projects and better clients. How to grow it:",
+  "mh.rep1": "🎮 Ship games rated above 5: the higher the score, the more reputation",
+  "mh.rep2": "🔥 A trending genre adds to the score",
+  "mh.rep3": "📋 Contracts from the city board: +1 reputation each",
+  "mh.rep4": "💡 The neon lamp in the Mall: +15% reputation from releases",
+  "mh.rep5": "⚠️ A game rated below 4 lowers reputation: don’t rush a release without a team",
+  "mh.rep_btn": "🎮 Make a game",
 };
 
 /* ---- src/lang_ru.js ---- */
@@ -3684,7 +3700,7 @@ LANGS.ru = {
   "gw.my": "Мои очки в розыгрыше",
   "gw.rank": "Моё место",
   "gw.need": "Участвуют только верифицированные",
-  "gw.need_t": "Любой вклад: $1 депозит, звёзды или покупка",
+  "gw.need_t": "Любой вклад: проще всего — звёздами Telegram (~80 ⭐, покупаются прямо в Telegram картой), или $1 в SOL",
   "gw.verify": "Пройти",
   "gw.top": "Таблица лидеров",
   "gw.empty": "Пока никто не набрал очков — стань первым!",
@@ -3705,6 +3721,20 @@ LANGS.ru = {
   "gw.sub_ok": "Подписка подтверждена — ты участвуешь!",
   "gw.sub_no": "Подписка пока не найдена. Подпишись на канал и нажми «Проверить».",
   "gw.lock": "Выполни оба условия — и твои очки начнут считаться в розыгрыше.",
+  "mh.mood_t": "Довольная команда работает быстрее и делает игры лучше. Вот как поднять настроение:",
+  "mh.mood1": "☕ Кофейня в городе — +6% всей команде раз в 15 минут",
+  "mh.mood2": "💰 Плати зарплату вовремя — каждый день настроение растёт само. Нет денег на зарплату — −22%!",
+  "mh.mood3": "🛋️ Торговый центр: кофемашина, кресла и игровая зона поднимают настроение каждый день",
+  "mh.mood4": "🎓 Курс в академии и прокачка — сотрудник радуется (+5…8%)",
+  "mh.mood5": "⚠️ Авралы в квестах («сдать в срок») дают деньги, но снижают настроение",
+  "mh.mood_btn": "☕ В кофейню",
+  "mh.rep_t": "Репутация открывает большие проекты и лучших заказчиков. Как её растить:",
+  "mh.rep1": "🎮 Выпускай игры с оценкой выше 5 — чем выше оценка, тем больше репутации",
+  "mh.rep2": "🔥 Жанр в тренде даёт бонус к оценке",
+  "mh.rep3": "📋 Заказы на бирже в городе — +1 репутации за каждый",
+  "mh.rep4": "💡 Неоновая лампа в ТЦ — +15% репутации за релизы",
+  "mh.rep5": "⚠️ Игра с оценкой ниже 4 снижает репутацию — не торопись с релизом без команды",
+  "mh.rep_btn": "🎮 Сделать игру",
 };
 
 /* ---- src/lang_uk.js ---- */
@@ -4493,7 +4523,7 @@ LANGS.uk = {
   "gw.my": "Мої бали в розіграші",
   "gw.rank": "Моє місце",
   "gw.need": "Беруть участь лише верифіковані",
-  "gw.need_t": "Будь-який внесок: $1 депозит, зірки чи покупка",
+  "gw.need_t": "Будь-який внесок: найпростіше — зірками Telegram (~80 ⭐, купуються просто в Telegram карткою), або $1 у SOL",
   "gw.verify": "Пройти",
   "gw.top": "Таблиця лідерів",
   "gw.empty": "Поки ніхто не набрав балів — стань першим!",
@@ -4514,6 +4544,20 @@ LANGS.uk = {
   "gw.sub_ok": "Підписку підтверджено — ти береш участь!",
   "gw.sub_no": "Підписку поки не знайдено. Підпишись на канал і натисни «Перевірити».",
   "gw.lock": "Виконай обидві умови — і твої бали почнуть рахуватися в розіграші.",
+  "mh.mood_t": "Задоволена команда працює швидше й робить кращі ігри. Ось як підняти настрій:",
+  "mh.mood1": "☕ Кав’ярня в місті — +6% усій команді раз на 15 хвилин",
+  "mh.mood2": "💰 Плати зарплату вчасно — щодня настрій росте сам. Немає грошей на зарплату — −22%!",
+  "mh.mood3": "🛋️ Торговий центр: кавомашина, крісла та ігрова зона піднімають настрій щодня",
+  "mh.mood4": "🎓 Курс в академії та прокачка — співробітник радіє (+5…8%)",
+  "mh.mood5": "⚠️ Аврали в квестах («здати вчасно») дають гроші, але знижують настрій",
+  "mh.mood_btn": "☕ У кав’ярню",
+  "mh.rep_t": "Репутація відкриває великі проєкти та найкращих замовників. Як її підняти:",
+  "mh.rep1": "🎮 Випускай ігри з оцінкою вище 5 — що вища оцінка, то більше репутації",
+  "mh.rep2": "🔥 Жанр у тренді дає бонус до оцінки",
+  "mh.rep3": "📋 Замовлення на біржі в місті — +1 репутації за кожне",
+  "mh.rep4": "💡 Неонова лампа в ТЦ — +15% репутації за релізи",
+  "mh.rep5": "⚠️ Гра з оцінкою нижче 4 знижує репутацію — не поспішай із релізом без команди",
+  "mh.rep_btn": "🎮 Зробити гру",
 };
 
 /* ---- src/engine.js ---- */
@@ -9081,7 +9125,7 @@ function musicNext(auto) {
 }
 // follow the player's preference; called after every user gesture and when the page is hidden/shown
 function musicSync() {
-  const want = !!(S && S.settings && S.settings.music !== false) && !document.hidden;
+  const want = !!(S && S.settings && S.settings.music === true) && !document.hidden; // off by default: players turn it on themselves
   if (want && UI.audio) musicStart();
   else if (!want) musicStop();
 }
@@ -9331,8 +9375,8 @@ function tabOffice() {
     <div class="op-head">
       ${(() => { const sn = studioName(); return `<button class="op-studio ${sn ? '' : 'empty'}" data-act="studio">${I('office', 12)}<span>${sn ? esc(sn) : L('st.unnamed')}</span><i>✎</i></button>`; })()}
       <div class="op-meters">
-        <div class="opm rep" title="${esc(L('office.rep'))}"><span>⭐ ${L('office.rep')}</span><b class="px" data-t="replv"></b><i class="opm-bar"><i data-w="rep"></i></i></div>
-        <div class="opm mood" title="${esc(L('office.mood'))}"><span>😊 ${L('office.mood')}</span><b class="px" data-t="moodv"></b><i class="opm-bar"><i data-w="mood"></i></i></div>
+        <div class="opm rep" data-act="meterhelp:rep" title="${esc(L('office.rep'))}"><span>⭐ ${L('office.rep')}</span><b class="px" data-t="replv"></b><i class="opm-bar"><i data-w="rep"></i></i></div>
+        <div class="opm mood" data-act="meterhelp:mood" title="${esc(L('office.mood'))}"><span>😊 ${L('office.mood')}</span><b class="px" data-t="moodv"></b><i class="opm-bar"><i data-w="mood"></i></i></div>
       </div>
       <button class="helpbtn" data-act="help" aria-label="${esc(L('help.title'))}">?</button>
     </div>
@@ -11563,7 +11607,7 @@ const ACT = {
     const t = TIPS.find((x) => x.id === id);
     if (what === 'go' && t && ACT[t.act]) ACT[t.act]();
   },
-  music: () => { S.settings.music = S.settings.music === false; savePrefs(); ensureAudio(); musicSync(); showSettings(); },
+  music: () => { S.settings.music = S.settings.music !== true; savePrefs(); ensureAudio(); musicSync(); showSettings(); },
   mnext: () => { ensureAudio(); if (S.settings.music === false) { S.settings.music = true; savePrefs(); } musicNext(false); musicSync(); showSettings(); },
   pump: () => { UI.sel = 'you'; go('studio', 'team'); },
   hire: (r) => { if (result(netAct('hire', r), LR('toast.hired', { role: '$role.' + r + '.name' }))) confettiSmall(); },
@@ -11747,6 +11791,7 @@ const ACT = {
   gwtx: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.pay && g.pay.tx) openLink('https://solscan.io/tx/' + g.pay.tx); },
   gwsponsor: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.url) { UI.gwBack = Date.now(); openLink(g.url); } },
   gwcheck: () => gwCheck(true),
+  meterhelp: (k) => openModal(`<h2 class="h2">${k === 'mood' ? '😊' : '⭐'} ${L(k === 'mood' ? 'office.mood' : 'office.rep')}</h2><p class="sub">${L('mh.' + k + '_t')}</p><ul class="bul">${[1, 2, 3, 4, 5].map((i) => `<li>${L('mh.' + k + i)}</li>`).join('')}</ul><button class="btn big glow wide" data-act="${k === 'mood' ? 'city:visit:cafe' : 'go:studio:games'}">${L('mh.' + k + '_btn')}</button>`, { id: 'meterhelp' }),
   site: () => { const l = NET.cfg && NET.cfg.links && NET.cfg.links.site; if (l) openLink(l + (LANG === 'en' ? '' : '?lang=' + LANG)); },
   link: (k) => { const l = NET.cfg && NET.cfg.links && NET.cfg.links[k]; if (l) openLink(l); },
 };
@@ -12086,7 +12131,7 @@ function showSettings() {
     <h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
     <div class="setrow"><span>${I('globe', 16)} ${L('set.lang')}</span><div class="langs">${LANG_LIST.map((c) => `<button class="${LANG === c ? 'on' : ''}" data-act="lang:${c}">${L('lang.' + c)}</button>`).join('')}</div></div>
     <div class="setrow"><span>${I(S.settings.sound ? 'sound' : 'mute', 16)} ${L('set.sound')}</span><button class="toggle" data-act="sound" aria-pressed="${!!S.settings.sound}"><span class="sw"></span></button></div>
-    <div class="setrow"><span>${I('sound', 16)} ${L('set.music')}</span><button class="toggle" data-act="music" aria-pressed="${S.settings.music !== false}"><span class="sw"></span></button></div>
+    <div class="setrow"><span>${I('sound', 16)} ${L('set.music')}</span><button class="toggle" data-act="music" aria-pressed="${S.settings.music === true}"><span class="sw"></span></button></div>
     <div class="setrow"><span class="mut">♪ ${L('music.' + TRACKS[MUSIC.track].id)}</span><button class="btn ghost sm" data-act="mnext">${L('set.next_track')} ›</button></div>
     <div class="setrow"><span>${I('info', 16)} ${L('help.title')}</span><button class="btn ghost sm" data-act="help">${L('ui.open')}</button></div>
     ${NET.mode === 'demo' ? `<div class="setrow"><span>${I('bolt', 16)} ${L('set.speed')}</span><div class="langs">${[1, 2, 5].map((v) => `<button class="${NET.speed === v ? 'on' : ''}" data-act="speed:${v}">×${v}</button>`).join('')}</div></div>` : ''}

@@ -244,7 +244,7 @@ function musicNext(auto) {
 }
 // follow the player's preference; called after every user gesture and when the page is hidden/shown
 function musicSync() {
-  const want = !!(S && S.settings && S.settings.music !== false) && !document.hidden;
+  const want = !!(S && S.settings && S.settings.music === true) && !document.hidden; // off by default: players turn it on themselves
   if (want && UI.audio) musicStart();
   else if (!want) musicStop();
 }
