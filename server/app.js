@@ -324,6 +324,19 @@ async function handleApi(ctx, req, res, url, ip) {
     return sendJson(res, 200, Object.assign(r, { eco: Eco.ecoView(ctx, U.getUser(ctx, uid), now) }));
   }
   if (method === 'POST' && p === '/api/sol') return handleSol(ctx, res, uid, body, now);
+  if (method === 'POST' && p === '/api/airdrop/stars') {
+    // the airdrop entry deposit paid in Telegram Stars
+    const blk = Airdrop.entryBlock(ctx, uid);
+    if (blk) return bad(res, 409, blk);
+    const stars = Airdrop.entryStars(cfg);
+    const T = Bot.entryTxt(u0.lang, stars);
+    const r = await ctx.tg.call('createInvoiceLink', {
+      title: T[0], description: T[1], payload: `${uid}:adentry:${stars}:${crypto.randomBytes(4).toString('hex')}`,
+      provider_token: '', currency: 'XTR', prices: [{ label: T[0], amount: stars }],
+    });
+    if (!r.ok) return bad(res, 502, 'invoice');
+    return sendJson(res, 200, { ok: true, url: r.result });
+  }
   if (method === 'POST' && p === '/api/airdrop/order') return sendJson(res, 200, SolPay.createAirdropOrder(ctx, uid, String(body.kind || ''), now));
   if (method === 'POST' && p === '/api/airdrop/claim') {
     if (!hit(ctx, 'adclaim:' + uid, 6)) return sendJson(res, 200, { ok: false, err: 'airdrop_wait' });

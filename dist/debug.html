@@ -120,7 +120,6 @@ code { font: 600 12px/1.3 ui-monospace, Menlo, Consolas, monospace; word-break: 
   background: linear-gradient(180deg, rgba(5, 8, 36, 0.96), rgba(5, 8, 36, 0.78));
   border-bottom: 1px solid var(--line-soft);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
 }
 .me { display: flex; align-items: center; gap: 8px; min-width: 0; text-align: left; }
 .me .av { width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--cy); box-shadow: 0 0 12px rgba(63, 208, 255, 0.55); background: #101a5a; }
@@ -151,7 +150,7 @@ code { font: 600 12px/1.3 ui-monospace, Menlo, Consolas, monospace; word-break: 
 .page { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
 .page > * { min-width: 0; }
 .page.enter { animation: pagein 0.32s cubic-bezier(.2, .8, .2, 1); }
-@keyframes pagein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes pagein { from { opacity: 0.6; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 #tabs {
   position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto;
@@ -159,7 +158,6 @@ code { font: 600 12px/1.3 ui-monospace, Menlo, Consolas, monospace; word-break: 
   padding: 6px 8px calc(env(safe-area-inset-bottom, 0px) + 6px);
   background: linear-gradient(0deg, rgba(4, 6, 30, 0.98), rgba(6, 9, 40, 0.9));
   border-top: 1px solid var(--line-soft);
-  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
 }
 .tab { position: relative; display: grid; justify-items: center; gap: 3px; padding: 7px 2px 6px; border-radius: 12px; color: var(--mut); font: 700 11px/1 var(--ui); transition: color 0.2s, background 0.2s; }
 .tab .ico { transition: transform 0.25s; }
@@ -276,8 +274,8 @@ code { font: 600 12px/1.3 ui-monospace, Menlo, Consolas, monospace; word-break: 
 #confetti { position: fixed; inset: 0; z-index: 90; pointer-events: none; width: 100%; height: 100%; }
 
 /* ---------- modal ---------- */
-.ovl { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(2, 3, 18, 0.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: fade 0.2s ease; }
-@keyframes fade { from { opacity: 0; } }
+.ovl { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(2, 3, 18, 0.86); animation: fade 0.18s ease; }
+@keyframes fade { from { opacity: 0.4; } }
 .modal {
   position: relative; width: 100%; max-width: 420px; max-height: calc(100% - 20px); overflow-y: auto; scrollbar-width: none;
   display: grid; gap: 12px; padding: 20px 16px 16px; border-radius: 22px;
@@ -287,7 +285,7 @@ code { font: 600 12px/1.3 ui-monospace, Menlo, Consolas, monospace; word-break: 
   animation: pop 0.34s cubic-bezier(.2, 1.4, .4, 1);
 }
 .modal::-webkit-scrollbar { display: none; }
-@keyframes pop { from { transform: scale(0.86) translateY(20px); opacity: 0; } }
+@keyframes pop { from { transform: scale(0.92) translateY(14px); opacity: 0.55; } }
 .m-x { position: absolute; z-index: 5; top: 10px; right: 10px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; color: var(--mut); background: rgba(255, 255, 255, 0.05); }
 .setrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line-soft); flex-wrap: wrap; }
 .setrow > span { display: flex; gap: 8px; align-items: center; font-weight: 700; }
@@ -400,7 +398,7 @@ code { font: 600 12px/1.3 ui-monospace, Menlo, Consolas, monospace; word-break: 
 .drow .px { font-size: 9px; }
 
 /* ---------- segmented ---------- */
-.seg { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(3, 6, 30, 0.8); border: 1px solid var(--line-soft); overflow-x: auto; scrollbar-width: none; position: sticky; top: -10px; z-index: 5; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.seg { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(3, 6, 30, 0.97); border: 1px solid var(--line-soft); overflow-x: auto; scrollbar-width: none; position: sticky; top: -10px; z-index: 5; }
 .seg::-webkit-scrollbar { display: none; }
 .seg button { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 9px 10px; border-radius: 10px; font: 700 12px/1 var(--ui); color: var(--mut); white-space: nowrap; }
 .seg button.on { color: #fff; background: linear-gradient(180deg, #3a6bff, #2342c8); box-shadow: 0 0 14px rgba(63, 120, 255, 0.5); }
@@ -828,7 +826,7 @@ body::after { opacity: 0.22; }
 /* page entrance: blocks rise in one after another (transform/opacity only) */
 .page.enter { animation: none; }
 .page.enter > * { animation: rise 0.42s cubic-bezier(.2, .9, .3, 1.1) both; animation-delay: calc(var(--i, 0) * 45ms); }
-@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0.5; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 /* floating tab bar (solid, no blur) */
 #tabs { left: 10px; right: 10px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); padding: 6px; border-radius: 22px; background: rgba(8, 12, 46, 0.97); border: 1px solid rgba(150, 175, 255, 0.2); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55); -webkit-backdrop-filter: none; backdrop-filter: none; }
 #main { padding-bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + 30px); }
@@ -1172,6 +1170,22 @@ img.mk-logo { object-fit: contain; background: none; }
 .ad-amt small { color: var(--ink2); flex: 1; }
 .ad-amt b { font-size: 26px; color: #14f195; text-shadow: 0 0 12px rgba(20, 241, 149, 0.55); }
 .ad-ok { display: flex; align-items: center; gap: 8px; font-weight: 800; color: #14f195; margin: 4px 0; }
+/* verified player (entry deposit paid) */
+.vbadge { display: inline-grid; place-items: center; width: 15px; height: 15px; margin-left: 5px; vertical-align: -2px; border-radius: 50%; background: #14f195; color: #04140c; box-shadow: 0 0 8px rgba(20, 241, 149, 0.7); }
+.vbadge .ico { fill: currentColor; color: #04140c; }
+.vbadge.big { width: 36px; height: 36px; margin: 0; flex: none; }
+.vbadge.huge { width: 72px; height: 72px; margin: 0 auto 6px; box-shadow: 0 0 30px rgba(20, 241, 149, 0.8); }
+.vtxt { color: #14f195; font-weight: 800; }
+.profcard { display: flex; align-items: center; gap: 12px; padding: 12px; margin-right: 34px; border-radius: 16px; background: rgba(255, 255, 255, 0.04); border: 1.5px solid var(--line-soft); }
+.profcard.on { border-color: rgba(20, 241, 149, 0.6); box-shadow: 0 0 16px rgba(20, 241, 149, 0.2); }
+.profcard .av { width: 54px; height: 54px; border-radius: 14px; border: 2px solid var(--cy); flex: none; }
+.profcard.on .av { border-color: #14f195; }
+.pc-t { display: grid; gap: 3px; min-width: 0; }
+.pc-t b { font-size: 17px; font-weight: 800; }
+.pc-t small { font-size: 12px; color: var(--ink2); }
+.vcard { display: flex; align-items: center; gap: 12px; padding: 12px; margin: 6px 0; border-radius: 14px; background: rgba(20, 241, 149, 0.1); border: 1.5px solid rgba(20, 241, 149, 0.55); box-shadow: 0 0 18px rgba(20, 241, 149, 0.2); }
+.vcard b { display: block; color: #14f195; font-size: 15px; }
+.vcard small { display: block; color: var(--ink2); font-size: 12px; line-height: 1.35; margin-top: 2px; }
 .adrop .fund-h { display: flex; align-items: baseline; gap: 8px; margin: 6px 0; }
 /* donate shortcuts */
 .don-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
@@ -2356,10 +2370,17 @@ LANGS.en = {
   'err.airdrop_none': "You have no share in this airdrop",
   'err.airdrop_wait': "The transfer is on its way — try again in a minute",
   'err.airdrop_failed': "The transfer failed — try again a bit later",
-  'ad.entry_t': "To take part, make a one-time deposit of {usd} (≈ {sol} SOL). It proves you are a real player — bots will not pay — and goes to the launch fund.",
+  'ad.entry_t': "To take part, get verified: any contribution — a {usd} deposit (≈ {sol} SOL), a Stars donation or a shop purchase. It proves you are a real player — bots will not pay — and goes to the launch fund.",
   'ad.entry_btn': "Take part · {sol} SOL",
-  'ad.entry_hint': "The deposit is not refunded and gives no points: your share depends only on how much you really play.",
+  'ad.entry_hint': "A contribution is not refunded and gives no points: your share depends only on how much you really play. Once is enough.",
   'ad.entered': "You are in the airdrop",
+  'ver.badge': "Verified",
+  'ver.title': "You are verified!",
+  'ver.text': "Contribution received — you are a confirmed player and take part in the OFFX airdrop. Now just play: your share depends on your points.",
+  'ver.ok': "Great",
+  'ver.get': "Get verified",
+  'ad.entry_stars': "Or with Stars — from {n}",
+  'help.p10': "✅ Verification: any contribution — a $1 deposit in SOL, a Stars donation or a shop purchase (including earlier ones in TON) — makes you a confirmed player. Only verified players get an airdrop share.",
   'ad.fee_t': "Claim fee: {sol} SOL (network costs and the project).",
   'ad.fee_btn': "Pay the fee · {sol} SOL",
   'ad.fee_ok': "Fee paid — now press «Claim»",
@@ -3033,10 +3054,17 @@ LANGS.ru = {
   'err.airdrop_none': "У тебя нет доли в этом аирдропе",
   'err.airdrop_wait': "Перевод уже в пути — попробуй через минуту",
   'err.airdrop_failed': "Перевод не прошёл — попробуй чуть позже",
-  'ad.entry_t': "Чтобы участвовать, внеси разовый депозит {usd} (≈ {sol} SOL). Это подтверждает, что ты реальный игрок — боты платить не станут, — и он идёт в фонд запуска.",
+  'ad.entry_t': "Чтобы участвовать, пройди верификацию: любой вклад — депозит {usd} (≈ {sol} SOL), донат звёздами или покупка в магазине. Это подтверждает, что ты реальный игрок — боты платить не станут, — и идёт в фонд запуска.",
   'ad.entry_btn': "Участвовать · {sol} SOL",
-  'ad.entry_hint': "Депозит не возвращается и не даёт очков: твоя доля зависит только от того, сколько ты реально играешь.",
+  'ad.entry_hint': "Вклад не возвращается и не даёт очков: твоя доля зависит только от того, сколько ты реально играешь. Достаточно одного раза.",
   'ad.entered': "Ты участвуешь в аирдропе",
+  'ver.badge': "Верифицирован",
+  'ver.title': "Ты верифицирован!",
+  'ver.text': "Вклад получен — ты подтверждённый игрок и участвуешь в аирдропе OFFX. Дальше просто играй: твоя доля зависит от очков.",
+  'ver.ok': "Отлично",
+  'ver.get': "Пройти верификацию",
+  'ad.entry_stars': "Или звёздами — от {n}",
+  'help.p10': "✅ Верификация: любой вклад — депозит $1 в SOL, донат звёздами или покупка в магазине (в том числе раньше в TON) — делает тебя подтверждённым игроком. Долю аирдропа получают только верифицированные.",
   'ad.fee_t': "Комиссия за вывод: {sol} SOL (расходы сети и проекта).",
   'ad.fee_btn': "Оплатить комиссию · {sol} SOL",
   'ad.fee_ok': "Комиссия оплачена — теперь нажми «Забрать»",
@@ -3710,10 +3738,17 @@ LANGS.uk = {
   'err.airdrop_none': "У тебе немає частки в цьому аірдропі",
   'err.airdrop_wait': "Переказ уже в дорозі — спробуй за хвилину",
   'err.airdrop_failed': "Переказ не пройшов — спробуй трохи пізніше",
-  'ad.entry_t': "Щоб брати участь, внеси разовий депозит {usd} (≈ {sol} SOL). Це підтверджує, що ти справжній гравець — боти платити не стануть, — і він іде у фонд запуску.",
+  'ad.entry_t': "Щоб брати участь, пройди верифікацію: будь-який внесок — депозит {usd} (≈ {sol} SOL), донат зірками або покупка в магазині. Це підтверджує, що ти справжній гравець — боти платити не стануть, — і йде у фонд запуску.",
   'ad.entry_btn': "Брати участь · {sol} SOL",
-  'ad.entry_hint': "Депозит не повертається й не дає балів: твоя частка залежить лише від того, скільки ти справді граєш.",
+  'ad.entry_hint': "Внесок не повертається й не дає балів: твоя частка залежить лише від того, скільки ти справді граєш. Достатньо одного разу.",
   'ad.entered': "Ти береш участь в аірдропі",
+  'ver.badge': "Верифікований",
+  'ver.title': "Ти верифікований!",
+  'ver.text': "Внесок отримано — ти підтверджений гравець і береш участь в аірдропі OFFX. Далі просто грай: твоя частка залежить від балів.",
+  'ver.ok': "Чудово",
+  'ver.get': "Пройти верифікацію",
+  'ad.entry_stars': "Або зірками — від {n}",
+  'help.p10': "✅ Верифікація: будь-який внесок — депозит $1 у SOL, донат зірками або покупка в магазині (зокрема раніше в TON) — робить тебе підтвердженим гравцем. Частку аірдропу отримують лише верифіковані.",
   'ad.fee_t': "Комісія за вивід: {sol} SOL (витрати мережі й проєкту).",
   'ad.fee_btn': "Оплатити комісію · {sol} SOL",
   'ad.fee_ok': "Комісію оплачено — тепер натисни «Забрати»",
@@ -8467,12 +8502,17 @@ function live() {
 }
 
 /* ---------- shell pieces ---------- */
+// the player paid the one-time airdrop entry deposit: a verified real player
+function isVerified() {
+  const a = NET.eco && NET.eco.airdrop;
+  return !!(a && a.entry && a.entry.done);
+}
 function hudHTML() {
   const name = (NET.me && NET.me.name) || (TG && TG.initDataUnsafe && TG.initDataUnsafe.user && TG.initDataUnsafe.user.first_name) || L('ui.founder');
   return `
   <button class="me" data-act="settings" aria-label="${esc(L('set.title'))}">
     ${imgTag(portrait('you', 90), 'av')}
-    <span class="me-t"><b>${esc(name)}</b><small>${esc(L('rank.' + rankOf(S)))}</small></span>
+    <span class="me-t"><b>${esc(name)}${isVerified() ? `<i class="vbadge" title="${esc(L('ver.badge'))}">${I('check', 10)}</i>` : ''}</b><small>${isVerified() ? `<span class="vtxt">${esc(L('ver.badge'))}</span>` : esc(L('rank.' + rankOf(S)))}</small></span>
   </button>
   <div class="res">
     <span class="pill cash" title="${esc(L('res.cash'))}">${I('coin', 16)}<b data-t="cash"></b></span>
@@ -9161,10 +9201,10 @@ function airdropCard(e, mini) {
       ${mini ? '' : `<p class="sub">${L('ad.wait_s', { goal: '$' + fmt(a.goal), sym })}</p>`}
       <div class="fund-h"><b class="px">$${fmt(Math.round(a.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(a.goal) })}</small></div>
       <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
-      ${a.entry ? (a.entry.done ? `<div class="ad-ok">${I('check', 16, 'grn')} ${L('ad.entered')}</div>` : `<p class="sub">${L('ad.entry_t', { usd: '$' + a.entry.usd, sol: a.entry.sol })}</p>
-        <button class="btn big glow wide" data-act="adentry">${I('sol', 16)} ${L('ad.entry_btn', { sol: a.entry.sol })}</button>
-        <p class="hint">${L('ad.entry_hint')}</p>`) : ''}
-      <button class="btn big gold wide" data-act="donopen" style="margin-top:8px">⭐ ${L('don.btn_long')}</button>
+      ${a.entry ? (a.entry.done ? `<div class="vcard"><i class="vbadge big">${I('check', 18)}</i><div><b>${L('ver.title')}</b><small>${L('ver.text')}</small></div></div>` : `<p class="sub">${L('ad.entry_t', { usd: '$' + a.entry.usd, sol: a.entry.sol })}</p>
+        <button class="btn big glow wide" data-act="adentry">${I('sol', 16)} ${L('ad.entry_btn', { sol: a.entry.sol })}</button>`) : ''}
+      <button class="btn big gold wide" data-act="donopen" style="margin-top:8px">⭐ ${a.entry && !a.entry.done ? L('ad.entry_stars', { n: fmt((UI.hub.donate && UI.hub.donate.min) || 100) }) : L('don.btn_long')}</button>
+      ${a.entry && !a.entry.done ? `<p class="hint">${L('ad.entry_hint')}</p>` : ''}
     </section>`;
   }
   let act;
@@ -9570,8 +9610,19 @@ function tipDone(id) { lsSet('od2_tip_' + id, '1'); }
 function tutSave() { lsSet('od2_tut', COACH.i >= TUT.length ? 'done' : String(COACH.i)); }
 function tutStart() {
   COACH.i = 0;
+  // steps the player has already done are skipped right away, so the counter starts at 1
+  while (tutActive() && TUT[COACH.i].done && TUT[COACH.i].done()) COACH.i++;
+  lsSet('od2_tut_from', String(COACH.i));
   tutSave();
+  if (!tutActive()) { tutStop(); return; }
   tutGoto();
+}
+// numbering over the steps this player actually sees: "1/10", not "4/13" when the first steps were already done
+function tutStepText() {
+  const from = Math.min(COACH.i, Math.max(0, Number(lsGet('od2_tut_from')) || 0));
+  const ahead = TUT.slice(COACH.i + 1).filter((s) => !(s.done && s.done())).length; // later steps already done are skipped
+  const n = COACH.i - from + 1;
+  return n + '/' + (n + ahead);
 }
 function tutStop() {
   COACH.i = TUT.length;
@@ -9632,7 +9683,7 @@ function tutUpdate() {
   }
   if (bub.dataset.sig !== sig) {
     bub.dataset.sig = sig;
-    el.querySelector('.c-step').textContent = (COACH.i + 1) + '/' + TUT.length;
+    el.querySelector('.c-step').textContent = tutStepText();
     el.querySelector('.c-text').textContent = L(st.k);
     const btns = [];
     if (st.target && !target && st.tab) btns.push(`<button class="btn sm" data-act="tut:go">${L('tut.show')}</button>`);
@@ -10574,7 +10625,7 @@ async function airdropPay(kind) {
   const r = await netApi.adOrder(kind).catch(() => null);
   if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
   showSolPay(r.order, () => {
-    toast(L(kind === 'adentry' ? 'ad.entered' : 'ad.fee_ok'), 'good', 'sol'); confettiSmall(); haptic('ok');
+    toast(L(kind === 'adentry' ? 'ver.title' : 'ad.fee_ok'), 'good', 'sol'); confettiSmall(); haptic('ok');
     [800, 3000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
     loadHub('friends', true);
   });
@@ -10805,7 +10856,13 @@ function showWelcome() {
 function showSettings() {
   const armed = Date.now() - (UI.resetArm || 0) < 10000;
   const links = NET.cfg && NET.cfg.links ? NET.cfg.links : {};
-  openModal(`<h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
+  const pname = (NET.me && NET.me.name) || L('ui.founder');
+  const ver = isVerified();
+  const canVer = NET.mode === 'online' && NET.eco && NET.eco.airdrop && NET.eco.airdrop.st === 'season' && NET.eco.airdrop.entry;
+  openModal(`<div class="profcard${ver ? ' on' : ''}">${imgTag(portrait('you', 90), 'av')}<div class="pc-t"><b>${esc(pname)}${ver ? `<i class="vbadge">${I('check', 10)}</i>` : ''}</b>
+      <small>${ver ? `<span class="vtxt">${L('ver.badge')}</span> · ${L('ad.entered')}` : esc(L('rank.' + rankOf(S)))}</small></div></div>
+    ${!ver && canVer ? `<button class="btn glow wide" data-act="go:drop:token">${I('check', 14)} ${L('ver.get')}</button>` : ''}
+    <h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
     <div class="setrow"><span>${I('globe', 16)} ${L('set.lang')}</span><div class="langs">${LANG_LIST.map((c) => `<button class="${LANG === c ? 'on' : ''}" data-act="lang:${c}">${L('lang.' + c)}</button>`).join('')}</div></div>
     <div class="setrow"><span>${I(S.settings.sound ? 'sound' : 'mute', 16)} ${L('set.sound')}</span><button class="toggle" data-act="sound" aria-pressed="${!!S.settings.sound}"><span class="sw"></span></button></div>
     <div class="setrow"><span>${I('sound', 16)} ${L('set.music')}</span><button class="toggle" data-act="music" aria-pressed="${S.settings.music !== false}"><span class="sw"></span></button></div>
@@ -10824,7 +10881,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li><li>${L('help.p10')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">
@@ -10936,6 +10993,17 @@ hooks.emit = function (type, data) {
 /* ---------- network → UI ---------- */
 UIH.onEco = (e) => {
   UI.ecoVer = (UI.ecoVer || 0) + 1;
+  // the entry deposit just got confirmed: tell the player clearly, once per device
+  const ver = isVerified();
+  if (ver && UI.wasVer === false && !lsGet('od2_ver_seen')) {
+    lsSet('od2_ver_seen', '1');
+    modalOrQueue(() => {
+      openModal(`<div class="center"><i class="vbadge huge">${I('check', 34)}</i><h2 class="h2">${L('ver.title')}</h2><p class="sub">${L('ver.text')}</p><button class="btn big glow wide" data-act="close">${L('ver.ok')}</button></div>`, { id: 'verified' });
+      confetti(120); sfx('floor'); haptic('ok');
+    });
+  }
+  if (ver) lsSet('od2_ver_seen', '1');
+  UI.wasVer = ver;
   const el = $('#hudpts');
   if (el) countUp(el, e.pts, 900, fmtPts);
   const big = $('#bigpts');
@@ -10958,7 +11026,8 @@ UIH.onDropped = (err) => toast(L(err === 'clock' ? 'toast.clock' : 'toast.synced
 UIH.onFatal = () => openModal(`<div class="center">${I('info', 30)}<h2 class="h2">${L('boot.session')}</h2><p class="sub">${L('boot.session_t')}</p><button class="btn big" data-act="retry">${L('boot.retry')}</button></div>`, { sticky: true, id: 'fatal' });
 /* ---------- main loop ---------- */
 function frame(now) {
-  const dt = Math.min(0.25, Math.max(0, (now - (UI.last || now)) / 1000));
+  // up to 1 s per frame: a slow phone keeps game time in step with real time (no jumps when the server corrects it)
+  const dt = Math.min(1, Math.max(0, (now - (UI.last || now)) / 1000));
   UI.last = now;
   if (S) {
     UI.acc = (UI.acc || 0) + dt * (NET.mode === 'demo' ? NET.speed : 1);
@@ -10971,7 +11040,8 @@ function frame(now) {
     if (UI.liveAcc >= 0.2 && !UI.pvp) { UI.liveAcc = 0; render(); live(); tutUpdate(); }
     // the office scene adapts to the phone: slower phones get fewer scene frames instead of a laggy UI
     UI.sceneAcc += dt;
-    if (UI.sceneAcc >= (UI.sceneStep || 0.045) && !UI.pvp && UI.tab === 'office' && !document.hidden) {
+    // not redrawn behind an open window (it covers them) or on other tabs; slower phones get fewer scene frames
+    if (UI.sceneAcc >= (UI.sceneStep || 0.045) && !UI.pvp && !UI.modal && UI.tab === 'office' && !document.hidden) {
       UI.sceneAcc = 0;
       const t0 = performance.now();
       drawScene(now / 1000);
@@ -10980,7 +11050,7 @@ function frame(now) {
       UI.sceneStep = UI.sceneMs > 22 ? 0.1 : UI.sceneMs > 12 ? 0.066 : 0.045;
     }
     UI.towerAcc += dt;
-    if (UI.towerAcc >= 0.25 && UI.tab === 'empire' && !document.hidden) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
+    if (UI.towerAcc >= 0.25 && !UI.modal && UI.tab === 'empire' && !document.hidden) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
   }
   requestAnimationFrame(frame);
 }

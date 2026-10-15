@@ -483,7 +483,7 @@ async function airdropPay(kind) {
   const r = await netApi.adOrder(kind).catch(() => null);
   if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
   showSolPay(r.order, () => {
-    toast(L(kind === 'adentry' ? 'ad.entered' : 'ad.fee_ok'), 'good', 'sol'); confettiSmall(); haptic('ok');
+    toast(L(kind === 'adentry' ? 'ver.title' : 'ad.fee_ok'), 'good', 'sol'); confettiSmall(); haptic('ok');
     [800, 3000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
     loadHub('friends', true);
   });
@@ -714,7 +714,13 @@ function showWelcome() {
 function showSettings() {
   const armed = Date.now() - (UI.resetArm || 0) < 10000;
   const links = NET.cfg && NET.cfg.links ? NET.cfg.links : {};
-  openModal(`<h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
+  const pname = (NET.me && NET.me.name) || L('ui.founder');
+  const ver = isVerified();
+  const canVer = NET.mode === 'online' && NET.eco && NET.eco.airdrop && NET.eco.airdrop.st === 'season' && NET.eco.airdrop.entry;
+  openModal(`<div class="profcard${ver ? ' on' : ''}">${imgTag(portrait('you', 90), 'av')}<div class="pc-t"><b>${esc(pname)}${ver ? `<i class="vbadge">${I('check', 10)}</i>` : ''}</b>
+      <small>${ver ? `<span class="vtxt">${L('ver.badge')}</span> · ${L('ad.entered')}` : esc(L('rank.' + rankOf(S)))}</small></div></div>
+    ${!ver && canVer ? `<button class="btn glow wide" data-act="go:drop:token">${I('check', 14)} ${L('ver.get')}</button>` : ''}
+    <h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
     <div class="setrow"><span>${I('globe', 16)} ${L('set.lang')}</span><div class="langs">${LANG_LIST.map((c) => `<button class="${LANG === c ? 'on' : ''}" data-act="lang:${c}">${L('lang.' + c)}</button>`).join('')}</div></div>
     <div class="setrow"><span>${I(S.settings.sound ? 'sound' : 'mute', 16)} ${L('set.sound')}</span><button class="toggle" data-act="sound" aria-pressed="${!!S.settings.sound}"><span class="sw"></span></button></div>
     <div class="setrow"><span>${I('sound', 16)} ${L('set.music')}</span><button class="toggle" data-act="music" aria-pressed="${S.settings.music !== false}"><span class="sw"></span></button></div>
@@ -733,7 +739,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li><li>${L('help.p10')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">
@@ -845,6 +851,17 @@ hooks.emit = function (type, data) {
 /* ---------- network → UI ---------- */
 UIH.onEco = (e) => {
   UI.ecoVer = (UI.ecoVer || 0) + 1;
+  // the entry deposit just got confirmed: tell the player clearly, once per device
+  const ver = isVerified();
+  if (ver && UI.wasVer === false && !lsGet('od2_ver_seen')) {
+    lsSet('od2_ver_seen', '1');
+    modalOrQueue(() => {
+      openModal(`<div class="center"><i class="vbadge huge">${I('check', 34)}</i><h2 class="h2">${L('ver.title')}</h2><p class="sub">${L('ver.text')}</p><button class="btn big glow wide" data-act="close">${L('ver.ok')}</button></div>`, { id: 'verified' });
+      confetti(120); sfx('floor'); haptic('ok');
+    });
+  }
+  if (ver) lsSet('od2_ver_seen', '1');
+  UI.wasVer = ver;
   const el = $('#hudpts');
   if (el) countUp(el, e.pts, 900, fmtPts);
   const big = $('#bigpts');
@@ -867,7 +884,8 @@ UIH.onDropped = (err) => toast(L(err === 'clock' ? 'toast.clock' : 'toast.synced
 UIH.onFatal = () => openModal(`<div class="center">${I('info', 30)}<h2 class="h2">${L('boot.session')}</h2><p class="sub">${L('boot.session_t')}</p><button class="btn big" data-act="retry">${L('boot.retry')}</button></div>`, { sticky: true, id: 'fatal' });
 /* ---------- main loop ---------- */
 function frame(now) {
-  const dt = Math.min(0.25, Math.max(0, (now - (UI.last || now)) / 1000));
+  // up to 1 s per frame: a slow phone keeps game time in step with real time (no jumps when the server corrects it)
+  const dt = Math.min(1, Math.max(0, (now - (UI.last || now)) / 1000));
   UI.last = now;
   if (S) {
     UI.acc = (UI.acc || 0) + dt * (NET.mode === 'demo' ? NET.speed : 1);
@@ -880,7 +898,8 @@ function frame(now) {
     if (UI.liveAcc >= 0.2 && !UI.pvp) { UI.liveAcc = 0; render(); live(); tutUpdate(); }
     // the office scene adapts to the phone: slower phones get fewer scene frames instead of a laggy UI
     UI.sceneAcc += dt;
-    if (UI.sceneAcc >= (UI.sceneStep || 0.045) && !UI.pvp && UI.tab === 'office' && !document.hidden) {
+    // not redrawn behind an open window (it covers them) or on other tabs; slower phones get fewer scene frames
+    if (UI.sceneAcc >= (UI.sceneStep || 0.045) && !UI.pvp && !UI.modal && UI.tab === 'office' && !document.hidden) {
       UI.sceneAcc = 0;
       const t0 = performance.now();
       drawScene(now / 1000);
@@ -889,7 +908,7 @@ function frame(now) {
       UI.sceneStep = UI.sceneMs > 22 ? 0.1 : UI.sceneMs > 12 ? 0.066 : 0.045;
     }
     UI.towerAcc += dt;
-    if (UI.towerAcc >= 0.25 && UI.tab === 'empire' && !document.hidden) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
+    if (UI.towerAcc >= 0.25 && !UI.modal && UI.tab === 'empire' && !document.hidden) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
   }
   requestAnimationFrame(frame);
 }

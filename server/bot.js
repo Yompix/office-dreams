@@ -67,6 +67,18 @@ const THANKS = {
   uk: (n) => `💖 Дякуємо за підтримку Office Dreams! <b>${n} ⭐</b> пішли у фонд запуску. Твій VIP-рівень зріс.`,
 };
 const thanksTxt = (lang, n) => (THANKS[lang] || THANKS.en)(n);
+// the airdrop entry deposit paid in Stars
+const ENTRY_TXT = {
+  en: (n) => ['OFFX airdrop entry', `One-time ${n} ⭐ deposit: confirms you are a real player and goes to the launch fund. Not refunded, gives no points.`],
+  ru: (n) => ['Участие в аирдропе OFFX', `Разовый депозит ${n} ⭐: подтверждает, что ты реальный игрок, и идёт в фонд запуска. Не возвращается и не даёт очков.`],
+  uk: (n) => ['Участь в аірдропі OFFX', `Разовий депозит ${n} ⭐: підтверджує, що ти справжній гравець, і йде у фонд запуску. Не повертається й не дає балів.`],
+};
+const entryTxt = (lang, n) => (ENTRY_TXT[lang] || ENTRY_TXT.en)(n);
+const VERIFIED = {
+  en: '✅ <b>You are verified!</b> The deposit is received — you take part in the OFFX airdrop. Now just play: your share depends on your points.',
+  ru: '✅ <b>Ты верифицирован!</b> Депозит получен — ты участвуешь в аирдропе OFFX. Дальше просто играй: твоя доля зависит от очков.',
+  uk: '✅ <b>Ти верифікований!</b> Депозит отримано — ти береш участь в аірдропі OFFX. Далі просто грай: твоя частка залежить від балів.',
+};
 const shopTxt = (lang, sku, cash) => {
   const c = CASH_TXT[lang] || CASH_TXT.en;
   if (c[sku]) return [c[sku], c.d(nfmt(cash || 0))];
@@ -134,6 +146,14 @@ async function handlePayment(ctx, m) {
     if (r.ok && !r.dup) await send(ctx, m.chat.id, thanksTxt((U.getUser(ctx, uid) || {}).lang || 'en', n));
     return;
   }
+  if (sku === 'adentry') {
+    // paid already: the entry is recorded even if the snapshot happened meanwhile (the Stars were charged)
+    const n = Number(parts[2]);
+    if (!uid || uid !== m.from.id || sp.currency !== 'XTR' || sp.total_amount !== n) return;
+    const r = require('./airdrop.js').fulfilEntryStars(ctx, uid, sp.telegram_payment_charge_id, n, ctx.now());
+    if (r.ok && !r.dup) { const lang = (U.getUser(ctx, uid) || {}).lang || 'en'; await send(ctx, m.chat.id, VERIFIED[lang] || VERIFIED.en); }
+    return;
+  }
   if (!uid || uid !== m.from.id || !Eco.shopItem(sku) || sp.currency !== 'XTR') return;
   const it = Eco.shopItem(sku);
   if (sp.total_amount !== it.stars) return;
@@ -152,7 +172,9 @@ async function handleUpdate(ctx, up) {
       const it = Eco.shopItem(parts[1]);
       const dn = parts[1] === 'donate' ? Number(parts[2]) : 0;
       const goodDonate = dn > 0 && Number(parts[0]) === q.from.id && q.currency === 'XTR' && q.total_amount === dn && dn >= ctx.cfg.donate.minStars && dn <= ctx.cfg.donate.maxStars;
-      const good = goodDonate || it && Number(parts[0]) === q.from.id && q.currency === 'XTR' && q.total_amount === it.stars && Eco.canBuy(ctx, q.from.id, it.sku);
+      const AD = parts[1] === 'adentry' ? require('./airdrop.js') : null;
+      const goodEntry = !!AD && Number(parts[0]) === q.from.id && q.currency === 'XTR' && q.total_amount === Number(parts[2]) && q.total_amount === AD.entryStars(ctx.cfg) && !AD.entryBlock(ctx, q.from.id);
+      const good = goodDonate || goodEntry || it && Number(parts[0]) === q.from.id && q.currency === 'XTR' && q.total_amount === it.stars && Eco.canBuy(ctx, q.from.id, it.sku);
       await ctx.tg.call('answerPreCheckoutQuery', good ? { pre_checkout_query_id: q.id, ok: true } : { pre_checkout_query_id: q.id, ok: false, error_message: 'This item is not available.' });
     } else if (up.message) {
       await handleMessage(ctx, up.message);
@@ -246,4 +268,4 @@ function startPolling(ctx) {
   return { stop() { stop = true; } };
 }
 
-module.exports = { playMarkup, T, tx, shopTxt, donateTxt, thanksTxt, notifyRefActive, notifyDuel, handleUpdate, notifyReferral, setup, startPolling, send };
+module.exports = { playMarkup, T, tx, shopTxt, donateTxt, thanksTxt, entryTxt, notifyRefActive, notifyDuel, handleUpdate, notifyReferral, setup, startPolling, send };
