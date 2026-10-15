@@ -178,12 +178,12 @@ function checkReferralActivation(ctx, u, s, now) {
   return { referrer: r.id, bonus };
 }
 function friendsList(ctx, uid) {
-  const rows = ctx.db.all('SELECT id,name,username,ref_active,pts,created_at FROM users WHERE ref1=? AND deleted=0 ORDER BY created_at DESC LIMIT 60', uid);
+  const rows = ctx.db.all('SELECT id,name,studio,username,ref_active,pts,created_at FROM users WHERE ref1=? AND deleted=0 ORDER BY created_at DESC LIMIT 60', uid);
   const earned = {};
   for (const e of ctx.db.all("SELECT ref, SUM(pts) AS p FROM ledger WHERE uid=? AND kind IN ('ref1','ref2','ref_act') GROUP BY ref", uid)) earned[e.ref] = r1(e.p);
   const l2 = ctx.db.get('SELECT COUNT(*) AS n FROM users WHERE ref2=? AND ref_active=1', uid).n;
   return {
-    friends: rows.map((r) => ({ id: r.id, name: r.name, active: !!r.ref_active, earned: earned[r.id] || 0, since: r.created_at })),
+    friends: rows.map((r) => ({ id: r.id, name: require('./studio.js').shown(r), active: !!r.ref_active, earned: earned[r.id] || 0, since: r.created_at })),
     l2,
   };
 }
