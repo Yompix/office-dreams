@@ -86,6 +86,7 @@ const shopTxt = (lang, sku, cash) => {
 };
 const appUrl = (ctx) => ctx.cfg.publicUrl + '/';
 
+const isOwner = (ctx, id) => (ctx.cfg.adminTgIds || []).includes(id) || (ctx.cfg.devIds || []).includes(Number(id));
 async function send(ctx, chatId, text, markup) {
   const p = { chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true };
   if (markup) p.reply_markup = markup;
@@ -131,10 +132,21 @@ async function handleMessage(ctx, m) {
     await send(ctx, m.chat.id, t.inviteMsg(link), shareMarkup(ctx, lang, link));
   } else if (name === 'help') {
     await send(ctx, m.chat.id, t.help);
-  } else if (name === 'stats' && ctx.cfg.adminTgIds.includes(from.id)) {
-    const n = ctx.db.get('SELECT COUNT(*) AS n FROM users').n;
-    const dau = ctx.db.get('SELECT COUNT(*) AS n FROM users WHERE last_seen>?', Date.now() - 86400e3).n;
-    await send(ctx, m.chat.id, `Users: <b>${n}</b>\nDAU: <b>${dau}</b>`);
+  } else if ((name === 'stats' || name === 'giveaway') && isOwner(ctx, from.id)) {
+    // owner-only commands (ADMIN_TG_IDS or the developer accounts in DEV_IDS)
+    if (name === 'stats') {
+      const n = ctx.db.get('SELECT COUNT(*) AS n FROM users').n;
+      const dau = ctx.db.get('SELECT COUNT(*) AS n FROM users WHERE last_seen>?', Date.now() - 86400e3).n;
+      const ver = require('./airdrop.js').verifiedCount(ctx);
+      const f = Eco.fundView(ctx, 0);
+      return send(ctx, m.chat.id, `📊 <b>Office Dreams</b>\nPlayers: <b>${n}</b>\nActive 24h: <b>${dau}</b>\nVerified: <b>${ver}</b>\nFund: <b>$${f.usd}</b> / $${f.goalUsd}`);
+    }
+    const a = require('./giveaway.js').adminView(ctx);
+    if (!a.giveaway) return send(ctx, m.chat.id, 'No giveaway running.');
+    const g = a.giveaway, e = (v) => String(v == null ? '' : v).replace(/[<>&]/g, '');
+    const left = Math.max(0, g.end - Date.now()), h = Math.floor(left / 3600e3), mi = Math.floor((left % 3600e3) / 60e3);
+    const rows = a.top.length ? a.top.map((r) => `${r.rank}. <b>${e(r.name)}</b>${r.username ? ' @' + e(r.username) : ''} <code>${r.uid}</code> — ${r.score} pts${r.prize ? ' → $' + r.prize : ''} ${r.sol ? '👛' : '⚠️ no wallet'}${r.pay ? ' · ' + e(r.pay) : ''}`).join('\n') : 'Nobody qualifies yet (verified + subscribed).';
+    return send(ctx, m.chat.id, `🎁 <b>Giveaway</b> · ${g.status}${g.status === 'live' ? ` · ${h}h ${mi}m left` : ''}\nPrizes: $${g.prizes.join(' / $')}\n\n${rows}\n\nPrize wallet: <code>${e(a.payWallet || '—')}</code>`);
   }
 }
 
