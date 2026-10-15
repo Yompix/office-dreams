@@ -11924,7 +11924,7 @@ async function boot() {
     const box = sp && $('.sp-actions', sp);
     if (box) {
       box.innerHTML = res.err === 'no_telegram' && NET.cfg && NET.cfg.bot
-        ? `<button class="btn big glow" data-act="openbot">${L('boot.open_tg')}</button>`
+        ? `<button class="btn big glow" data-act="openbot">${L('boot.open_tg')}</button><a class="btn ghost" href="/site" style="margin-top:10px">About the project · OFFX</a>`
         : res.err === 'region' ? '' : `<button class="btn big" data-act="retry">${L('boot.retry')}</button>`;
     }
     return;

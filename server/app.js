@@ -449,7 +449,23 @@ function createApp(cfg, opts = {}) {
         return res.end(JSON.stringify({ name: 'OFFICE', symbol: cfg.tokenSymbol || 'OFFX', description: 'OFFX powers Office Dreams, a neon pixel tycoon in Telegram: build your own game studio from a basement desk to a skyscraper, hire a team, ship hits and battle other studios. 90% of the supply goes to players by their progress; fixed 100,000,000 supply, minting disabled. Play: t.me/officedream1_bot/play', image: base + '/token.png', external_url: app,
           // Metaplex-style fields: some indexers look for the logo here
           properties: { category: 'image', files: [{ uri: base + '/token.png', type: 'image/png' }] },
-          extensions: { website: app, telegram: app } }));
+          extensions: { website: base + '/site', telegram: app } }));
+      }
+      // the project's website (for people who find OFFX outside Telegram: Jupiter, DexScreener, X)
+      if (p === '/site' || p === '/about') {
+        const base = cfg.publicUrl || `https://${req.headers.host}`;
+        const play = cfg.botUsername ? `https://t.me/${cfg.botUsername}${cfg.appShort ? '/' + cfg.appShort : ''}` : base;
+        const mint = cfg.token && cfg.token.addr ? cfg.token.addr : '';
+        const ch = cfg.channelUrl || (cfg.channel && /^@\w+$/.test(cfg.channel) ? 'https://t.me/' + cfg.channel.slice(1) : '');
+        const esc = (v) => String(v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        const html = fs.readFileSync(path.join(cfg.root, 'public', 'site.html'), 'utf8')
+          .replace(/\{\{PLAY\}\}/g, esc(play)).replace(/\{\{BASE\}\}/g, esc(base)).replace(/\{\{MINT\}\}/g, esc(mint))
+          .replace(/\{\{BUY\}\}/g, esc(mint ? 'https://jup.ag/swap/SOL-' + mint : play))
+          .replace(/\{\{CHART\}\}/g, esc(mint ? 'https://dexscreener.com/solana/' + mint : play))
+          .replace('{{CHANNEL_BTN}}', ch ? `<a class="btn ghost" href="${esc(ch)}">📣 Channel</a>` : '')
+          .replace('{{CHANNEL_SM}}', ch ? `<a class="btn ghost sm" href="${esc(ch)}">Channel</a>` : '');
+        res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=300', ...SEC_HEADERS });
+        return res.end(html);
       }
       if (p === '/pay') {
         const f = path.join(cfg.root, 'public', 'pay.html');
