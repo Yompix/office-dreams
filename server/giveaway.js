@@ -59,6 +59,37 @@ async function checkSub(ctx, g, uid, now = Date.now()) {
   ctx.cache.gwBoard = null;
   return !!ok;
 }
+// the sponsor channel is private (an invite link): find its id among the channels where the bot is an admin
+const linkKey = (u) => String(u || '').trim().replace(/^https?:\/\//, '').replace(/^telegram\.me\//, 't.me/').replace(/\/$/, '').toLowerCase();
+async function learnChat(ctx, chat) {
+  const want = linkKey(conf(ctx).url);
+  let match = false;
+  try {
+    const r = await ctx.tg.call('getChat', { chat_id: chat.id });
+    const inv = r && r.ok && r.result && r.result.invite_link;
+    const un = r && r.ok && r.result && r.result.username;
+    match = !!want && ((inv && linkKey(inv) === want) || (un && want === 't.me/' + String(un).toLowerCase()));
+  } catch (_) { /* ignore */ }
+  const own = ctx.cfg.channel && chat.username && ('@' + chat.username).toLowerCase() === String(ctx.cfg.channel).toLowerCase();
+  // a channel that is not the project's own is taken as the sponsor's; our own channel only if its link is the giveaway link
+  if (match || !own) {
+    ctx.db.kvSet('gw_chat', String(chat.id));
+    ctx.db.kvSet('gw_chat_title', String(chat.title || ''));
+    ctx.cache.gwBoard = null;
+    ctx.log && ctx.log('giveaway subscription check uses', chat.id, chat.title, match ? '(link matches)' : '');
+  }
+}
+// on start: maybe the bot was made an admin earlier — try the project channel
+async function probeChat(ctx) {
+  if (subChat(ctx) || !ctx.cfg.channel) return;
+  try {
+    const r = await ctx.tg.call('getChat', { chat_id: ctx.cfg.channel });
+    if (r && r.ok && r.result) {
+      const want = linkKey(conf(ctx).url), inv = r.result.invite_link;
+      if (want && inv && linkKey(inv) === want) { ctx.db.kvSet('gw_chat', String(r.result.id)); ctx.log && ctx.log('giveaway subscription check uses the project channel', r.result.id); }
+    }
+  } catch (_) { /* ignore */ }
+}
 const verified = (ctx, uid) => !Eco.isDev(ctx, uid) && !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku<>'adfee'", uid);
 function board(ctx, g, now = Date.now()) {
   if (g.winners) return g.winners;
@@ -118,9 +149,11 @@ const START_TXT = {
   ru: (sum, d) => `🎁 <b>Розыгрыш от спонсора: $${sum} на 3 игроков!</b>\n\n${d} дня побеждают самые активные <b>верифицированные</b> игроки. Просто играй: релизы, улучшения, квесты — каждое очко на счету.\n\nЕщё не верифицирован? Любой вклад ($1 депозит, звёзды или покупка) — и ты в игре.`,
   uk: (sum, d) => `🎁 <b>Розіграш від спонсора: $${sum} на 3 гравців!</b>\n\n${d} дні перемагають найактивніші <b>верифіковані</b> гравці. Просто грай: релізи, покращення, квести — кожен бал на рахунку.\n\nЩе не верифікований? Будь-який внесок ($1 депозит, зірки чи покупка) — і ти в грі.`,
 };
+let probed = false;
 async function tick(ctx, now = Date.now()) {
   const g = ensure(ctx, now);
   if (!g) return null;
+  if (!probed && g.status === 'live') { probed = true; await probeChat(ctx); }
   const Bot = require('./bot.js');
   // tell everyone once when it starts (the bot never spams: one message per giveaway)
   if (!g.announced && g.status === 'live') {
@@ -240,4 +273,4 @@ function adminView(ctx) {
   return { ok: true, giveaway: { key: g.gkey, start: g.start, end: g.end_at, status: g.status, prizes: g.prizes, url: g.url }, top: rows, payWallet: wallet };
 }
 
-module.exports = { init, ensure, current, view, tick, board, adminView, payTick, checkSub, subChat };
+module.exports = { init, ensure, current, view, tick, board, adminView, payTick, checkSub, subChat, learnChat };
