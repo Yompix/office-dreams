@@ -153,7 +153,15 @@ let probed = false;
 async function tick(ctx, now = Date.now()) {
   const g = ensure(ctx, now);
   if (!g) return null;
-  if (!probed && g.status === 'live') { probed = true; await probeChat(ctx); }
+  if (!probed && g.status === 'live') {
+    probed = true;
+    await probeChat(ctx);
+    const chat = subChat(ctx);
+    if (chat) { // say in the log whether the bot can see the channel (it must be an admin there)
+      const r = await ctx.tg.call('getChat', { chat_id: chat }).catch(() => null);
+      ctx.log && ctx.log('giveaway channel', chat, r && r.ok ? 'ok: ' + (r.result.title || '') : 'NOT reachable: ' + ((r && r.description) || '?'));
+    }
+  }
   const Bot = require('./bot.js');
   // tell everyone once when it starts (the bot never spams: one message per giveaway)
   if (!g.announced && g.status === 'live') {
