@@ -28,7 +28,7 @@ function affordSig() {
 }
 function render(force) {
   if (!S) return;
-  const sig = [S.rev, UI.tab, UI.sub.studio, UI.sub.drop, UI.sel, affordSig(), UI.ecoVer || 0, UI.hubVer || 0, LANG, NET.online, NET.mode, S.sel.genre, S.sel.tier, S.sel.name].join('|');
+  const sig = [S.rev, UI.tab, UI.sub.studio, UI.sub.drop, UI.sel, affordSig(), UI.ecoVer || 0, UI.hubVer || 0, LANG, NET.online, NET.mode, S.sel.genre, S.sel.tier, S.sel.name, citySig(), CT.sel].join('|');
   if (!force && sig === UI.lastSig) return;
   // don't rebuild the page under someone typing a donation amount (keyboard would close)
   if (!force && document.activeElement && document.activeElement.id === 'donin') { morph($('#hud'), hudHTML()); return; }
@@ -88,6 +88,9 @@ function bindCanvases() {
   UI.sceneCv = $('#scene');
   UI.bloomCv = $('#bloom');
   UI.towerCv = $('#tower');
+  UI.cityCv = $('#citycv');
+  UI.cityCtx = UI.cityCv ? UI.cityCv.getContext('2d') : null;
+  if (UI.cityCtx) { UI.cityCtx.imageSmoothingEnabled = false; cityDraw(performance.now()); }
   UI.sceneCtx = UI.sceneCv ? UI.sceneCv.getContext('2d') : null;
   UI.bloomCtx = UI.bloomCv ? UI.bloomCv.getContext('2d') : null;
   UI.towerCtx = UI.towerCv ? UI.towerCv.getContext('2d') : null;
@@ -209,6 +212,8 @@ function go(tab, sub) {
   if (tab === 'drop') loadHub(UI.sub.drop);
 }
 const ACT = {
+  city: (w, a) => cityAct(w, a),
+  cityopen: () => { tipDone('city'); go('city'); },
   pvp: () => pvOpen(),
   pvduel: (code) => { closeModal(); pvOpen('duel_' + code); },
   close: () => closeModal(),
@@ -752,7 +757,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li><li>${L('help.p10')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li><li>${L('help.p10')}</li><li>${L('help.p11')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">
@@ -855,6 +860,8 @@ hooks.emit = function (type, data) {
   else if (type === 'day') toast(LR('toast.day', { n: data.day, inc: money(data.income), sal: money(data.salary) }), '');
   else if (type === 'toast') toast(L(data.k), data.kind);
   else if (type === 'ending') modalOrQueue(showEnding);
+  else if (type === 'trained') { toast(L('city.trained', { role: L('role.' + data.role + '.name'), n: data.lvl }), 'good', 'up'); confettiSmall(); }
+  else if (type === 'contract') { toast(L('city.ok_deal', { cash: money(data.cash), gems: data.gems }), 'good', 'gem'); confetti(120); sfx('floor'); }
   else if (type === 'ipo') toast(L('toast.ipo', { n: data.n }), 'good', 'crown');
   else if (type === 'bug') { sfx('blip'); updateSceneFx(); if (!lsGet('od2_bug_hint')) { lsSet('od2_bug_hint', '1'); toast(L('bug.hint'), 'bad', 'star'); } }
   else if (type === 'bugEscaped') { toast(L('bug.escaped', { n: fmt(data.loss) }), 'bad'); updateSceneFx(); }
@@ -922,6 +929,8 @@ function frame(now) {
       const m = UI.sceneMs, st = UI.sceneStep || 0.045;
       UI.sceneStep = st === 0.045 ? (m > 14 ? 0.066 : st) : st === 0.066 ? (m > 24 ? 0.1 : m < 10 ? 0.045 : st) : (m < 18 ? 0.066 : st);
     }
+    UI.cityAcc = (UI.cityAcc || 0) + dt;
+    if (UI.cityAcc >= 0.033 && !UI.modal && UI.tab === 'city' && !document.hidden) { UI.cityAcc = 0; cityDraw(now); }
     UI.towerAcc += dt;
     if (UI.towerAcc >= 0.25 && !UI.modal && UI.tab === 'empire' && !document.hidden) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
   }
@@ -958,6 +967,7 @@ function wireInput() {
     const b = e.target.closest('#workbtn');
     if (b) { e.preventDefault(); onWorkDown(e); return; }
     if (e.target.id === 'scene' && e.isTrusted !== false) { ensureAudio(); onSceneTap(e); }
+    if (e.target.id === 'citycv') { ensureAudio(); cityTap(e); }
   }, { passive: false });
   document.addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.id === 'workbtn') { e.preventDefault(); onWorkDown(e); }

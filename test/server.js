@@ -92,6 +92,19 @@ const AB = require('../server/antibot.js');
     assert.equal(r.json.state.gems, 3);
     assert.equal(r.json.fails, 4);
   });
+  await test('city actions are replayed by the server', async () => {
+    const P = new Player(env, 1009); await P.auth();
+    P.tick(8);
+    P.cl.act('tap'); P.cl.act('tap');
+    P.tick(4);
+    const r0 = P.cl.act('cof');
+    assert.equal(r0.ok, true);
+    const r = await P.sync();
+    assert.equal(r.json.ok, true, JSON.stringify(r.json).slice(0, 200));
+    assert.ok(r.json.state ? r.json.state.city.cof > 0 : true);
+    assert.equal(r.json.hash, E.stateHash(P.cl.S));
+    assert.ok(U.loadState(ctx, 1009).city.cof > 0, 'server stored the coffee cooldown');
+  });
   await test('time cannot be sped up: claiming more ticks than wall time is rejected and logged', async () => {
     const P = new Player(env, 1003); await P.auth();
     P.tick(40);

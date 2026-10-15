@@ -162,6 +162,8 @@ function newState(seed) {
     evCool: {},
     log: [],
     legacy: 0,
+    // the city around the office: timers are in total game seconds (s.t), which also run while away (capped)
+    city: { cof: 0, promo: 0, trn: null, ctr: null, offer: null, ctrNext: 0, done: 0 },
     dk: 0,
     dq: { dk: 0, base: { taps: 0, released: 0, evs: 0, ups: 0 }, done: {} },
     settings: { sound: true }, // local, not synced
@@ -311,6 +313,135 @@ function incomeEstimate(s) {
 }
 function newName(s, genre) {
   return pick(s, GENRES[genre].names);
+}
+
+/* ---------- the city: coffee shop, academy, contract board, game store ---------- */
+const CITY = {
+  cofCd: 900, // coffee break: full energy + team mood, every 15 min
+  promoCd: 1800, // store promo for the newest game, every 30 min
+  trnSec: (lvl) => 600 + 300 * lvl, // academy course length (10 min at level 1 … 55 min at level 9)
+  trnCost: (role, lvl) => Math.round(upCost(role, lvl) * 0.4), // a course is 60% cheaper than an upgrade, but takes time
+  trnGems: 2, // finish a course right now
+  ctrSec: 3600, // a contract must be shipped within an hour
+  ctrCd: 300, // a new offer 5 min after the last one ended
+};
+const cityOf = (s) => s.city || (s.city = { cof: 0, promo: 0, trn: null, ctr: null, offer: null, ctrNext: 0, done: 0 });
+function coffeeBreak(s) {
+  const c = cityOf(s);
+  if (s.t < c.cof) return fail('cooldown');
+  c.cof = s.t + CITY.cofCd;
+  s.energy = maxEnergy(s);
+  moodAll(s, 6);
+  bump(s);
+  emit('sfx', 'coin');
+  return OK;
+}
+function storePromo(s) {
+  const c = cityOf(s);
+  const g = s.games.find((x) => x.active);
+  if (!g) return fail('no_game');
+  if (s.t < c.promo) return fail('cooldown');
+  const cost = promoCost(s);
+  if (s.cash < cost) return fail('cash');
+  s.cash -= cost;
+  g.rate *= 1.35;
+  c.promo = s.t + CITY.promoCd;
+  addLog(s, 'log.promo', { name: g.name }, 'good');
+  bump(s);
+  emit('sfx', 'hit');
+  return OK;
+}
+function promoCost(s) {
+  return Math.round(Math.max(80, incomeEstimate(s) * 0.4) / 10) * 10;
+}
+function startTraining(s, role) {
+  const c = cityOf(s), st = s.staff[role];
+  if (!st || st.lvl <= 0) return fail('hire_first');
+  if (st.lvl >= MAX_LVL) return fail('max');
+  if (c.trn) return fail('trn_busy');
+  const cost = CITY.trnCost(role, st.lvl);
+  if (s.cash < cost) return fail('cash');
+  s.cash -= cost;
+  c.trn = { role, end: s.t + CITY.trnSec(st.lvl) };
+  bump(s);
+  emit('sfx', 'up');
+  return OK;
+}
+function finishTraining(s, now) {
+  const c = cityOf(s);
+  if (!c.trn) return fail('unavailable');
+  if (now) {
+    if (s.gems < CITY.trnGems) return fail('gems');
+    s.gems -= CITY.trnGems;
+  }
+  const st = s.staff[c.trn.role];
+  const role = c.trn.role;
+  c.trn = null;
+  if (st && st.lvl > 0 && st.lvl < MAX_LVL) {
+    st.lvl++;
+    st.mood = Math.min(100, st.mood + 8);
+    s.stats.ups++;
+    addLog(s, 'log.trained', { role: '$role.' + role + '.name', lvl: st.lvl }, 'good');
+    emit('trained', { role, lvl: st.lvl });
+  }
+  bump(s);
+  checkGoals(s);
+  return OK;
+}
+function bestTier(s) {
+  let t = 'mini';
+  for (const x of ['indie', 'big']) if (tierUnlocked(s, x)) t = x;
+  return t;
+}
+function makeOffer(s) {
+  const pool = GENRE_ORDER.filter((g) => g !== s.trend.cold);
+  const genre = pick(s, pool), tier = bestTier(s);
+  const min = clamp(Math.floor(expectedScore(s, genre)), 5, 9);
+  const cash = Math.round(Math.max(300, incomeEstimate(s) * 3 * Math.sqrt(TIERS[tier].rev)) / 10) * 10;
+  return { genre, tier, min, cash, gems: tier === 'mini' ? 2 : 3 };
+}
+function takeContract(s) {
+  const c = cityOf(s);
+  if (c.ctr) return fail('ctr_busy');
+  if (!c.offer) return fail('unavailable');
+  c.ctr = Object.assign({}, c.offer, { until: s.t + CITY.ctrSec });
+  c.offer = null;
+  bump(s);
+  emit('sfx', 'coin');
+  return OK;
+}
+function dropContract(s) {
+  const c = cityOf(s);
+  if (!c.ctr) return fail('unavailable');
+  c.ctr = null;
+  c.ctrNext = s.t + CITY.ctrCd;
+  bump(s);
+  return OK;
+}
+// a released game may fulfil the active contract
+function checkContract(s, game) {
+  const c = cityOf(s), k = c.ctr;
+  if (!k || game.genre !== k.genre || game.score < k.min || TIER_ORDER.indexOf(game.tier) < TIER_ORDER.indexOf(k.tier)) return;
+  giveCash(s, k.cash);
+  giveGems(s, k.gems);
+  s.rep = round2(s.rep + 1);
+  s.stats.evs++;
+  c.done++;
+  c.ctr = null;
+  c.ctrNext = s.t + CITY.ctrCd;
+  addLog(s, 'log.contract', { cash: fmt(k.cash), gems: k.gems }, 'good');
+  emit('contract', k);
+}
+function cityTick(s) {
+  const c = cityOf(s);
+  if (c.trn && s.t >= c.trn.end) finishTraining(s, false);
+  if (c.ctr && s.t >= c.ctr.until) {
+    c.ctr = null;
+    c.ctrNext = s.t + CITY.ctrCd;
+    if (!s.off) emit('toast', { k: 'toast.ctr_late', kind: 'bad' });
+    bump(s);
+  }
+  if (!c.ctr && !c.offer && s.stats.released >= 1 && s.t >= c.ctrNext) { c.offer = makeOffer(s); bump(s); }
 }
 
 /* ---------- log (language-independent: key + params) ---------- */
@@ -507,6 +638,7 @@ function release(s) {
   }
   addLog(s, 'log.release', { name: game.name, score: score.toFixed(1) }, score >= 7 ? 'good' : 'info');
   s.project = null;
+  checkContract(s, game);
   bump(s);
   emit('release', { game, repGain, gemGain });
   emit('sfx', score >= 7 ? 'hit' : 'release');
@@ -561,6 +693,7 @@ function prestige(s) {
   n.endingSeen = true;
   n.t = s.t;
   n.tk = s.tk;
+  n.city = Object.assign({}, cityOf(s), { trn: null, ctr: null, offer: null });
   n.rev = s.rev + 1;
   for (const k of Object.keys(s)) delete s[k];
   Object.assign(s, n);
@@ -1057,7 +1190,7 @@ function tick(s, dt) {
     s.clock -= DAY_SEC;
     endDay(s);
   }
-  if ((Math.round(s.tk) & 3) === 0) checkGoals(s); // once per game second, identical on client and server
+  if ((Math.round(s.tk) & 3) === 0) { checkGoals(s); cityTick(s); } // once per game second, identical on client and server
 }
 // live play: integer number of fixed ticks (identical on client and server)
 function advanceTicks(s, n) {
@@ -1096,6 +1229,12 @@ const ACTIONS = {
   ipo: (s) => prestige(s),
   idea: (s) => catchIdea(s),
   bug: (s) => squashBug(s),
+  cof: (s) => coffeeBreak(s),
+  prm: (s) => storePromo(s),
+  trn: (s, a) => (ROLES.includes(a[0]) ? startTraining(s, a[0]) : fail('unavailable')),
+  trd: (s) => finishTraining(s, true),
+  ctr: (s) => takeContract(s),
+  ctx: (s) => dropContract(s),
 };
 function applyAction(s, a) {
   const f = ACTIONS[a[0]];
@@ -1161,6 +1300,7 @@ if (typeof module !== 'undefined') {
     claimDaily, dailyProgress, dailyCash, syncDay, canPrestige, prestige, applyAction, replay,
     chooseEvent, spawnEvent, eventView, wpTotal, wpRole, tapPower, salaryTotal, salaryOf, upCost, youUpCost, qualityFor, expectedScore,
     projectNeed, tierUnlocked, nextFloor, checkGoals, catchIdea, squashBug, hiredCount, serialize, deserialize, encodeSave, decodeSave, rankOf, fmt, cleanName, stateHash,
+    CITY, coffeeBreak, storePromo, promoCost, startTraining, finishTraining, takeContract, dropContract, cityTick,
     dailySalesRate, salesMult, maxEnergy, newName, endDay, floorOn, scoreMult, clockText, legacyMult, rand,
   };
 }

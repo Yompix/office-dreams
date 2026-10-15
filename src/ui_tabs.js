@@ -71,6 +71,7 @@ const LIVE = {
   gearn: (id) => { const g = S.games.find((x) => String(x.id) === id); return g ? money(g.earned) : ''; },
   dprog: (id) => { const d = DAILY.find((x) => x.id === id); return d ? dailyProgress(S, d) + '/' + d.need : ''; },
   sales: () => money(dailySalesRate(S)),
+  cityleft: (k) => { const c = S.city || {}; const u = k === 'trn' ? c.trn && c.trn.end : k === 'ctr' ? c.ctr && c.ctr.until : k === 'next' ? c.ctrNext : c[k]; return mmss((u || 0) - S.t); },
 };
 const WLIVE = {
   rep: () => repLevel().pct,
@@ -80,6 +81,7 @@ const WLIVE = {
   proj: () => projectPct(),
   gprog: (id) => { const g = S.games.find((x) => String(x.id) === id); return g ? Math.min(100, (g.earned / Math.max(1, g.total)) * 100) : 0; },
   dprog: (id) => { const d = DAILY.find((x) => x.id === id); return d ? (dailyProgress(S, d) / d.need) * 100 : 0; },
+  citytrn: () => { const c = S.city && S.city.trn; if (!c) return 0; const tot = CITY.trnSec(S.staff[c.role].lvl); return (1 - (c.end - S.t) / tot) * 100; },
 };
 function live() {
   $$('[data-t]').forEach((el) => {
@@ -277,6 +279,7 @@ function tabOffice() {
     <div class="energy">${I('bolt', 14, 'yel')}<div class="bar yel"><i data-w="energy"></i></div><span class="px" data-t="energy"></span></div>
     ${adButton()}
   </section>
+  ${cityBanner()}
   ${eventBanner()}
   ${dailyCard()}
   <section class="panel fin">
@@ -902,6 +905,7 @@ function tabHTML() {
     case 'quests': return tabQuests();
     case 'empire': return tabEmpire();
     case 'drop': return tabDrop();
+    case 'city': return tabCity();
     default: return tabOffice();
   }
 }

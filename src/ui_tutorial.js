@@ -12,10 +12,11 @@ const TUT = [
   { k: 'tut.hire', tab: ['office'], target: '.side [data-act="go:studio:team"]', done: () => hiredCount(S) >= 1, skippable: true },
   { k: 'tut.quests', tab: null, target: '#tabs [data-act="tab:quests"]', manual: true },
   { k: 'tut.points', tab: ['drop', 'home'], target: '.ptsp', manual: true },
-  { k: 'tut.token', tab: ['drop', 'token'], target: '.tokhero', manual: true },
+  { k: 'tut.token', tab: ['drop', 'token'], target: '.adrop, .tokhero2', manual: true },
   { k: 'tut.friends', tab: ['drop', 'friends'], target: '.invite', manual: true },
   { k: 'tut.studio', tab: ['office'], target: '.op-studio', done: () => !!studioName(), skippable: true },
   { k: 'tut.pvp', tab: ['office'], target: '.side [data-act="pvp"]', manual: true, done: () => !!lsGet('od2_tip_pvp') },
+  { k: 'tut.city', tab: ['office'], target: '.citybn', manual: true, done: () => !!lsGet('od2_tip_city') },
   { k: 'tut.done', tab: ['office'], target: null, manual: true },
 ];
 const COACH = { i: -1, el: null, scrolled: -1 };
@@ -23,6 +24,7 @@ const COACH = { i: -1, el: null, scrolled: -1 };
 const TIPS = [
   { id: 'pvp', k: 'tut.pvp_new', tab: ['office'], target: '.side [data-act="pvp"]', act: 'pvp', when: () => S.stats.taps >= 15 },
   { id: 'studio', k: 'tut.studio_new', tab: ['office'], target: '.op-studio', act: 'studio', when: () => S.stats.taps >= 15 && !studioName() },
+  { id: 'city', k: 'tut.city_new', tab: ['office'], target: '.citybn', act: 'cityopen', when: () => S.stats.taps >= 15 },
   { id: 'reno', k: 'tut.reno_new', tab: ['empire'], target: '.floor .reno', act: '', when: () => renoStars(S) === 0 },
 ];
 const OLD_TUT_DONE = 11; // the tutorial had 11 steps before the battle step was added: 11+ means "finished"
@@ -70,6 +72,7 @@ function tutGoto() {
 function tutNext() {
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.pvp') tipDone('pvp'); // seen in the tutorial: no "new" hint later
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.studio') tipDone('studio');
+  if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.city') tipDone('city');
   COACH.i++;
   tutSave();
   if (COACH.i >= TUT.length) { tutStop(); confetti(60); return; }

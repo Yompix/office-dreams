@@ -1220,3 +1220,37 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 @media (min-width: 440px) { .s-l { font-size: 11px !important; } }
 .adrop .don-in { margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(120, 140, 255, 0.25); }
 .adrop .don-in .h3 { margin-top: 0; }
+/* ---------- the city ---------- */
+.cityp { padding: 12px; }
+.ct-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.ct-head .h2 { margin: 0; }
+.ct-scene { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid rgba(120, 140, 255, 0.3); box-shadow: 0 0 24px rgba(63, 208, 255, 0.15) inset; background: #070a26; }
+#citycv { display: block; width: 100%; height: clamp(200px, 52vw, 300px); image-rendering: pixelated; image-rendering: crisp-edges; touch-action: manipulation; cursor: pointer; }
+.ct-tip { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); font-size: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(6, 8, 30, 0.75); color: #cfe6ff; pointer-events: none; white-space: nowrap; animation: ctTip 2.4s ease-in-out infinite; }
+@keyframes ctTip { 50% { opacity: 0.55; } }
+.ct-chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.ct-chip { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 12px; border: 1px solid rgba(120, 140, 255, 0.25); background: rgba(16, 22, 64, 0.7); color: inherit; font: inherit; cursor: pointer; }
+.ct-chip span { font-size: 20px; line-height: 1; }
+.ct-chip small { font-size: 11px; color: var(--ink2, #a6addb); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ct-chip b { font-size: 9px; color: #2ee66b; }
+.ct-chip.on { border-color: var(--n); box-shadow: 0 0 12px color-mix(in srgb, var(--n) 45%, transparent); }
+.ct-chip .dot { position: absolute; top: 4px; right: 6px; }
+.ct-panel { animation: rise 0.3s cubic-bezier(.2, .9, .3, 1.1) both; }
+.ct-panel .h3 { margin-top: 0; }
+.ct-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed rgba(120, 140, 255, 0.2); }
+.ct-row:last-of-type { border-bottom: 0; }
+.ct-row > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ct-row small { color: var(--ink2, #a6addb); font-size: 12px; }
+.ct-row .av, .ct-row .cover { width: 42px; height: 42px; border-radius: 10px; flex: none; }
+.ct-deal { display: flex; flex-direction: column; gap: 6px; padding: 12px; margin: 6px 0 12px; border-radius: 12px; background: rgba(255, 210, 63, 0.07); border: 1px solid rgba(255, 210, 63, 0.3); }
+.ct-deal b { font-size: 16px; }
+.ct-rw { display: flex; flex-wrap: wrap; gap: 6px; }
+.ct-panel .bar { margin: 8px 0 12px; }
+.ct-panel .linkbtn { display: block; margin: 10px auto 0; }
+.citybn { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; color: inherit; font: inherit; cursor: pointer; padding: 12px 14px; background: linear-gradient(100deg, rgba(42, 18, 80, 0.9), rgba(16, 22, 64, 0.9)); }
+.citybn .cb-ico { font-size: 28px; }
+.citybn .cb-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.citybn .cb-t small { color: var(--ink2, #a6addb); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.citybn.hot { border-color: rgba(255, 210, 63, 0.6); box-shadow: 0 0 18px rgba(255, 210, 63, 0.2); }
+.citybn.hot .cb-ico { animation: ctBob 1.6s ease-in-out infinite; }
+@keyframes ctBob { 50% { transform: translateY(-3px); } }

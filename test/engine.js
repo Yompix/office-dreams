@@ -107,5 +107,49 @@ for (let seed = 1; seed <= 20; seed++) {
   ok(E.deserialize(old).flv.b === 0, 'old saves get empty renovation');
   ok(E.applyAction(E.newState(4), ['reno', 'b']).err === 'cash', 'reno is a synced action');
 }
+// the city: coffee break, academy course, contract board, store promo — all on game-time timers
+{
+  const s = E.newState(21);
+  s.cash = 1e6; s.energy = 3;
+  ok(E.applyAction(s, ['cof']).ok && s.energy === E.maxEnergy(s), 'coffee refills energy');
+  ok(E.applyAction(s, ['cof']).err === 'cooldown', 'coffee has a cooldown');
+  E.advance(s, E.CITY.cofCd + 1);
+  ok(E.applyAction(s, ['cof']).ok, 'coffee again after the cooldown');
+  ok(E.applyAction(s, ['trn', 'prog']).err === 'hire_first', 'only hired staff can study');
+  E.hire(s, 'prog');
+  const cash0 = s.cash;
+  ok(E.applyAction(s, ['trn', 'prog']).ok && s.cash === cash0 - E.CITY.trnCost('prog', 1), 'course paid');
+  ok(E.applyAction(s, ['trn', 'prog']).err === 'trn_busy', 'one course at a time');
+  E.advance(s, E.CITY.trnSec(1) + 2);
+  ok(s.staff.prog.lvl === 2 && !s.city.trn, 'course finished by itself: level up');
+  E.applyAction(s, ['trn', 'prog']);
+  s.gems = 5;
+  ok(E.applyAction(s, ['trd']).ok && s.staff.prog.lvl === 3 && s.gems === 3, 'finish a course for gems');
+  ok(!s.city.offer, 'no contract before the first game');
+  ok(E.applyAction(s, ['prm']).err === 'no_game', 'promo needs a game');
+  E.startProject(s, 'puzzle', 'mini', 'A');
+  while (s.project) E.advance(s, 5);
+  E.advance(s, 2);
+  ok(!!s.city.offer, 'a contract is offered after the first release');
+  ok(E.applyAction(s, ['ctr']).ok && s.city.ctr && !s.city.offer, 'contract taken');
+  const k = s.city.ctr, gems0 = s.gems, evs0 = s.stats.evs;
+  E.startProject(s, k.genre, k.tier, 'B');
+  s.staff.prog.lvl = 10; s.staff.art = { lvl: 10, mood: 100 }; s.staff.des = { lvl: 10, mood: 100 }; s.staff.qa = { lvl: 10, mood: 100 };
+  while (s.project) E.advance(s, 5);
+  ok(s.games[0].score >= k.min ? (s.gems >= gems0 + k.gems && s.stats.evs === evs0 + 1 && !s.city.ctr) : !!s.city.ctr, 'contract paid on a matching release');
+  const r0 = s.games[0].rate;
+  ok(E.applyAction(s, ['prm']).ok && s.games[0].rate > r0 * 1.3, 'promo boosts sales');
+  ok(E.applyAction(s, ['prm']).err === 'cooldown', 'promo cooldown');
+  E.advance(s, 400);
+  if (s.city.offer) { E.applyAction(s, ['ctr']); E.advance(s, E.CITY.ctrSec + 2); ok(!s.city.ctr, 'an unfinished contract expires'); }
+  const old = JSON.parse(E.serialize(E.newState(3))); delete old.city;
+  ok(E.deserialize(old).city.cof === 0, 'old saves get a city');
+  // client and server replay give the same city
+  const a = E.newState(77), b = E.newState(77);
+  a.cash = b.cash = 1e5;
+  const acts = [[0, 'hire', 'prog'], [4, 'trn', 'prog'], [8, 'cof'], [3, 'new', 'plat', 'mini', 'Z']];
+  E.replay(a, acts, 9000); E.replay(b, acts, 9000);
+  ok(JSON.stringify(a.city) === JSON.stringify(b.city) && E.stateHash(a) === E.stateHash(b), 'city is deterministic');
+}
 console.log(`engine: ${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);

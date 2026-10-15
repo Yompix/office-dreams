@@ -1223,6 +1223,40 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 @media (min-width: 440px) { .s-l { font-size: 11px !important; } }
 .adrop .don-in { margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(120, 140, 255, 0.25); }
 .adrop .don-in .h3 { margin-top: 0; }
+/* ---------- the city ---------- */
+.cityp { padding: 12px; }
+.ct-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.ct-head .h2 { margin: 0; }
+.ct-scene { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid rgba(120, 140, 255, 0.3); box-shadow: 0 0 24px rgba(63, 208, 255, 0.15) inset; background: #070a26; }
+#citycv { display: block; width: 100%; height: clamp(200px, 52vw, 300px); image-rendering: pixelated; image-rendering: crisp-edges; touch-action: manipulation; cursor: pointer; }
+.ct-tip { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); font-size: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(6, 8, 30, 0.75); color: #cfe6ff; pointer-events: none; white-space: nowrap; animation: ctTip 2.4s ease-in-out infinite; }
+@keyframes ctTip { 50% { opacity: 0.55; } }
+.ct-chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.ct-chip { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 12px; border: 1px solid rgba(120, 140, 255, 0.25); background: rgba(16, 22, 64, 0.7); color: inherit; font: inherit; cursor: pointer; }
+.ct-chip span { font-size: 20px; line-height: 1; }
+.ct-chip small { font-size: 11px; color: var(--ink2, #a6addb); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ct-chip b { font-size: 9px; color: #2ee66b; }
+.ct-chip.on { border-color: var(--n); box-shadow: 0 0 12px color-mix(in srgb, var(--n) 45%, transparent); }
+.ct-chip .dot { position: absolute; top: 4px; right: 6px; }
+.ct-panel { animation: rise 0.3s cubic-bezier(.2, .9, .3, 1.1) both; }
+.ct-panel .h3 { margin-top: 0; }
+.ct-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed rgba(120, 140, 255, 0.2); }
+.ct-row:last-of-type { border-bottom: 0; }
+.ct-row > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ct-row small { color: var(--ink2, #a6addb); font-size: 12px; }
+.ct-row .av, .ct-row .cover { width: 42px; height: 42px; border-radius: 10px; flex: none; }
+.ct-deal { display: flex; flex-direction: column; gap: 6px; padding: 12px; margin: 6px 0 12px; border-radius: 12px; background: rgba(255, 210, 63, 0.07); border: 1px solid rgba(255, 210, 63, 0.3); }
+.ct-deal b { font-size: 16px; }
+.ct-rw { display: flex; flex-wrap: wrap; gap: 6px; }
+.ct-panel .bar { margin: 8px 0 12px; }
+.ct-panel .linkbtn { display: block; margin: 10px auto 0; }
+.citybn { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; color: inherit; font: inherit; cursor: pointer; padding: 12px 14px; background: linear-gradient(100deg, rgba(42, 18, 80, 0.9), rgba(16, 22, 64, 0.9)); }
+.citybn .cb-ico { font-size: 28px; }
+.citybn .cb-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.citybn .cb-t small { color: var(--ink2, #a6addb); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.citybn.hot { border-color: rgba(255, 210, 63, 0.6); box-shadow: 0 0 18px rgba(255, 210, 63, 0.2); }
+.citybn.hot .cb-ico { animation: ctBob 1.6s ease-in-out infinite; }
+@keyframes ctBob { 50% { transform: translateY(-3px); } }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -2687,6 +2721,63 @@ LANGS.en = {
   'tut.reno_new': 'Floor renovation 🔨 Every open floor can be upgraded to ★5: more cash, sales and speed. The whole tower at ★5 — "Tower legend" with a crown!',
   'help.p9': '🔨 Floor renovation: in "Empire" raise every floor to ★5 — and the tower comes alive.',
   'tut.got': 'Got it',
+  "city.title": "The city",
+  "city.back": "Office",
+  "city.tip": "Tap a building to walk there",
+  "city.hint": "City timers keep running while you are away. Come back later: the coffee will be ready again and the course will be over.",
+  "city.go": "Go to the city",
+  "city.go_s": "Coffee shop, academy, contracts, game store",
+  "city.rdy_cafe": "coffee is ready",
+  "city.rdy_academy": "a course is open",
+  "city.rdy_deals": "a new contract",
+  "city.rdy_games": "promo",
+  "city.ico_cafe": "☕",
+  "city.ico_academy": "🎓",
+  "city.ico_deals": "📋",
+  "city.ico_games": "🎮",
+  "city.cafe": "Coffee shop",
+  "city.cafe_t": "A coffee break for the whole studio: full energy for you and +6% mood for the team. Once every {min} minutes.",
+  "city.cafe_btn": "Grab a coffee",
+  "city.wait": "Ready in",
+  "city.academy": "Academy",
+  "city.academy_t": "Send an employee on a course: +1 level for 60% less than an upgrade, but it takes time. They keep working while they study.",
+  "city.academy_none": "Hire someone first: there is nobody to train yet.",
+  "city.trn_now": "studying: LV {a} → {b}",
+  "city.trn_now_btn": "Finish now · {n}",
+  "city.trn_hint": "The course finishes by itself, even if you leave the game.",
+  "city.trained": "{role} finished the course: level {n}!",
+  "city.deals": "Contract board",
+  "city.deals_first": "Clients don't know you yet. Ship your first game and contracts will appear.",
+  "city.deals_wait": "A new client is on the way.",
+  "city.deal_offer": "The client wants:",
+  "city.deal_active": "Your contract:",
+  "city.deal_req": "a {genre} game ({tier}) rated {min}+",
+  "city.deal_left": "Time left:",
+  "city.deal_time": "You get {m} minutes once you take it. The reward is paid automatically when a matching game ships.",
+  "city.deal_take": "Take the contract",
+  "city.deal_make": "Start this game",
+  "city.deal_drop": "Drop the contract",
+  "city.ok_ctr": "Contract taken! Ship a matching game in time.",
+  "city.ok_deal": "Contract done: +{cash}, +{gems} 💎, reputation up!",
+  "city.games": "Game store",
+  "city.games_t": "Get your newest game on the front shelf: +35% sales. Once every 30 minutes.",
+  "city.games_none": "Nothing to promote right now: ship a game.",
+  "city.games_boost": "to the front shelf: +35% sales",
+  "city.games_btn": "Promote for {cost}",
+  "city.ok_cof": "☕ Full energy, happy team!",
+  "city.ok_trn": "🎓 The course has started!",
+  "city.ok_prm": "🎮 Your game is on the shelf: sales are up!",
+  "log.promo": "Store promo: “{name}”",
+  "log.trained": "Course done: {role}, level {lvl}",
+  "log.contract": "Contract done: +{cash}, +{gems} 💎",
+  "toast.ctr_late": "The contract expired. A new client will come soon.",
+  "err.cooldown": "Not ready yet: come back later",
+  "err.trn_busy": "One course at a time",
+  "err.ctr_busy": "Finish your current contract first",
+  "err.no_game": "Ship a game first",
+  "tut.city_new": "🌆 New: the city! Step out of the office: the coffee shop gives energy, the academy trains staff, contracts wait on the board. Timers run even while you are away.",
+  "help.p11": "🌆 City: coffee shop (energy), academy (cheap upgrades that take time), contract board (gems and cash for a game of the right genre), game store (+35% sales).",
+  "tut.city": "🌆 The city: step outside! The coffee shop gives energy, the academy trains staff cheaply, the board pays gems for contracts. Come here when you see “!”.",
 };
 
 /* ---- src/lang_ru.js ---- */
@@ -3373,6 +3464,63 @@ LANGS.ru = {
   'tut.reno_new': 'Ремонт этажей 🔨 Каждый открытый этаж можно улучшить до ★5: больше денег, продаж и скорости. Вся башня на ★5 — «Легенда башни» с короной!',
   'help.p9': '🔨 Ремонт этажей: в «Империи» поднимай каждый этаж до ★5 — и башня оживает.',
   'tut.got': 'Понятно',
+  "city.title": "Город",
+  "city.back": "В офис",
+  "city.tip": "Нажми на здание — пойдёшь туда",
+  "city.hint": "Таймеры города идут, даже когда ты не в игре. Загляни позже — кофе снова будет готов, а курс закончится.",
+  "city.go": "Выйти в город",
+  "city.go_s": "Кофейня, академия, заказы, магазин игр",
+  "city.rdy_cafe": "кофе готов",
+  "city.rdy_academy": "можно учиться",
+  "city.rdy_deals": "новый заказ",
+  "city.rdy_games": "промо",
+  "city.ico_cafe": "☕",
+  "city.ico_academy": "🎓",
+  "city.ico_deals": "📋",
+  "city.ico_games": "🎮",
+  "city.cafe": "Кофейня",
+  "city.cafe_t": "Кофе-брейк для всей студии: полная энергия тебе и +6% настроения команде. Раз в {min} минут.",
+  "city.cafe_btn": "Выпить кофе",
+  "city.wait": "Будет через",
+  "city.academy": "Академия",
+  "city.academy_t": "Отправь сотрудника на курс: уровень +1 на 60% дешевле прокачки, но нужно подождать. Он продолжает работать, пока учится.",
+  "city.academy_none": "Сначала найми сотрудника — учить пока некого.",
+  "city.trn_now": "учится: LV {a} → {b}",
+  "city.trn_now_btn": "Закончить сейчас · {n}",
+  "city.trn_hint": "Курс закончится сам, даже если ты выйдешь из игры.",
+  "city.trained": "{role} закончил курс — уровень {n}!",
+  "city.deals": "Биржа заказов",
+  "city.deals_first": "Заказчики пока тебя не знают. Выпусти первую игру — и появятся заказы.",
+  "city.deals_wait": "Новый заказчик скоро придёт.",
+  "city.deal_offer": "Заказчик просит:",
+  "city.deal_active": "Твой заказ:",
+  "city.deal_req": "{genre} ({tier}) с оценкой от {min}",
+  "city.deal_left": "Осталось:",
+  "city.deal_time": "Срок — {m} минут после того, как возьмёшь заказ. Награда засчитается сама при релизе подходящей игры.",
+  "city.deal_take": "Взять заказ",
+  "city.deal_make": "Начать такую игру",
+  "city.deal_drop": "Отказаться от заказа",
+  "city.ok_ctr": "Заказ взят! Выпусти подходящую игру вовремя.",
+  "city.ok_deal": "Заказ выполнен: +{cash}, +{gems} 💎, репутация растёт!",
+  "city.games": "Магазин игр",
+  "city.games_t": "Договорись о витрине для своей новой игры: продажи +35%. Раз в 30 минут.",
+  "city.games_none": "Сейчас нечего продвигать — выпусти игру.",
+  "city.games_boost": "на витрину: продажи +35%",
+  "city.games_btn": "Промо за {cost}",
+  "city.ok_cof": "☕ Энергия полная, команда довольна!",
+  "city.ok_trn": "🎓 Курс начался!",
+  "city.ok_prm": "🎮 Игра на витрине — продажи выросли!",
+  "log.promo": "Промо в магазине: «{name}»",
+  "log.trained": "Курс окончен: {role}, уровень {lvl}",
+  "log.contract": "Заказ выполнен: +{cash}, +{gems} 💎",
+  "toast.ctr_late": "Срок заказа вышел. Новый заказчик скоро придёт.",
+  "err.cooldown": "Ещё не готово — загляни позже",
+  "err.trn_busy": "Один курс за раз",
+  "err.ctr_busy": "Сначала закончи текущий заказ",
+  "err.no_game": "Сначала выпусти игру",
+  "tut.city_new": "🌆 Новинка: город! Выйди из офиса — кофейня даёт энергию, академия учит сотрудников, на бирже ждут заказы. Таймеры идут, даже когда ты не в игре.",
+  "help.p11": "🌆 Город: кофейня (энергия), академия (дешёвая прокачка с ожиданием), биржа заказов (кристаллы и деньги за игру нужного жанра), магазин игр (продажи +35%).",
+  "tut.city": "🌆 Город: выйди из офиса! Кофейня даёт энергию, академия дёшево прокачивает сотрудников, биржа платит кристаллами за заказы. Загляни сюда, когда увидишь «!».",
 };
 
 /* ---- src/lang_uk.js ---- */
@@ -4059,6 +4207,63 @@ LANGS.uk = {
   'tut.reno_new': 'Ремонт поверхів 🔨 Кожен відкритий поверх можна покращити до ★5: більше грошей, продажів і швидкості. Уся вежа на ★5 — «Легенда вежі» з короною!',
   'help.p9': '🔨 Ремонт поверхів: у «Імперії» підвищуй кожен поверх до ★5 — і вежа оживає.',
   'tut.got': 'Зрозуміло',
+  "city.title": "Місто",
+  "city.back": "В офіс",
+  "city.tip": "Натисни на будівлю — підеш туди",
+  "city.hint": "Таймери міста йдуть, навіть коли ти не в грі. Зазирни пізніше — кава знову буде готова, а курс закінчиться.",
+  "city.go": "Вийти в місто",
+  "city.go_s": "Кав’ярня, академія, замовлення, магазин ігор",
+  "city.rdy_cafe": "кава готова",
+  "city.rdy_academy": "можна вчитися",
+  "city.rdy_deals": "нове замовлення",
+  "city.rdy_games": "промо",
+  "city.ico_cafe": "☕",
+  "city.ico_academy": "🎓",
+  "city.ico_deals": "📋",
+  "city.ico_games": "🎮",
+  "city.cafe": "Кав’ярня",
+  "city.cafe_t": "Кава-брейк для всієї студії: повна енергія тобі і +6% настрою команді. Раз на {min} хвилин.",
+  "city.cafe_btn": "Випити кави",
+  "city.wait": "Буде через",
+  "city.academy": "Академія",
+  "city.academy_t": "Відправ співробітника на курс: рівень +1 на 60% дешевше за прокачку, але треба почекати. Він далі працює, поки вчиться.",
+  "city.academy_none": "Спершу найми співробітника — вчити поки нікого.",
+  "city.trn_now": "вчиться: LV {a} → {b}",
+  "city.trn_now_btn": "Закінчити зараз · {n}",
+  "city.trn_hint": "Курс закінчиться сам, навіть якщо ти вийдеш із гри.",
+  "city.trained": "{role} закінчив курс — рівень {n}!",
+  "city.deals": "Біржа замовлень",
+  "city.deals_first": "Замовники поки тебе не знають. Випусти першу гру — і з’являться замовлення.",
+  "city.deals_wait": "Новий замовник скоро прийде.",
+  "city.deal_offer": "Замовник просить:",
+  "city.deal_active": "Твоє замовлення:",
+  "city.deal_req": "{genre} ({tier}) з оцінкою від {min}",
+  "city.deal_left": "Залишилось:",
+  "city.deal_time": "Термін — {m} хвилин після того, як візьмеш замовлення. Нагорода зарахується сама при релізі відповідної гри.",
+  "city.deal_take": "Взяти замовлення",
+  "city.deal_make": "Почати таку гру",
+  "city.deal_drop": "Відмовитися від замовлення",
+  "city.ok_ctr": "Замовлення взято! Випусти відповідну гру вчасно.",
+  "city.ok_deal": "Замовлення виконано: +{cash}, +{gems} 💎, репутація росте!",
+  "city.games": "Магазин ігор",
+  "city.games_t": "Домовся про вітрину для своєї нової гри: продажі +35%. Раз на 30 хвилин.",
+  "city.games_none": "Зараз нічого просувати — випусти гру.",
+  "city.games_boost": "на вітрину: продажі +35%",
+  "city.games_btn": "Промо за {cost}",
+  "city.ok_cof": "☕ Енергія повна, команда задоволена!",
+  "city.ok_trn": "🎓 Курс почався!",
+  "city.ok_prm": "🎮 Гра на вітрині — продажі зросли!",
+  "log.promo": "Промо в магазині: «{name}»",
+  "log.trained": "Курс закінчено: {role}, рівень {lvl}",
+  "log.contract": "Замовлення виконано: +{cash}, +{gems} 💎",
+  "toast.ctr_late": "Термін замовлення минув. Новий замовник скоро прийде.",
+  "err.cooldown": "Ще не готово — зазирни пізніше",
+  "err.trn_busy": "Один курс за раз",
+  "err.ctr_busy": "Спершу заверши поточне замовлення",
+  "err.no_game": "Спершу випусти гру",
+  "tut.city_new": "🌆 Новинка: місто! Вийди з офісу — кав’ярня дає енергію, академія вчить співробітників, на біржі чекають замовлення. Таймери йдуть, навіть коли ти не в грі.",
+  "help.p11": "🌆 Місто: кав’ярня (енергія), академія (дешева прокачка з очікуванням), біржа замовлень (кристали та гроші за гру потрібного жанру), магазин ігор (продажі +35%).",
+  "tut.city": "🌆 Місто: вийди з офісу! Кав’ярня дає енергію, академія дешево прокачує співробітників, біржа платить кристалами за замовлення. Зазирни сюди, коли побачиш «!».",
 };
 
 /* ---- src/engine.js ---- */
@@ -4226,6 +4431,8 @@ function newState(seed) {
     evCool: {},
     log: [],
     legacy: 0,
+    // the city around the office: timers are in total game seconds (s.t), which also run while away (capped)
+    city: { cof: 0, promo: 0, trn: null, ctr: null, offer: null, ctrNext: 0, done: 0 },
     dk: 0,
     dq: { dk: 0, base: { taps: 0, released: 0, evs: 0, ups: 0 }, done: {} },
     settings: { sound: true }, // local, not synced
@@ -4375,6 +4582,135 @@ function incomeEstimate(s) {
 }
 function newName(s, genre) {
   return pick(s, GENRES[genre].names);
+}
+
+/* ---------- the city: coffee shop, academy, contract board, game store ---------- */
+const CITY = {
+  cofCd: 900, // coffee break: full energy + team mood, every 15 min
+  promoCd: 1800, // store promo for the newest game, every 30 min
+  trnSec: (lvl) => 600 + 300 * lvl, // academy course length (10 min at level 1 … 55 min at level 9)
+  trnCost: (role, lvl) => Math.round(upCost(role, lvl) * 0.4), // a course is 60% cheaper than an upgrade, but takes time
+  trnGems: 2, // finish a course right now
+  ctrSec: 3600, // a contract must be shipped within an hour
+  ctrCd: 300, // a new offer 5 min after the last one ended
+};
+const cityOf = (s) => s.city || (s.city = { cof: 0, promo: 0, trn: null, ctr: null, offer: null, ctrNext: 0, done: 0 });
+function coffeeBreak(s) {
+  const c = cityOf(s);
+  if (s.t < c.cof) return fail('cooldown');
+  c.cof = s.t + CITY.cofCd;
+  s.energy = maxEnergy(s);
+  moodAll(s, 6);
+  bump(s);
+  emit('sfx', 'coin');
+  return OK;
+}
+function storePromo(s) {
+  const c = cityOf(s);
+  const g = s.games.find((x) => x.active);
+  if (!g) return fail('no_game');
+  if (s.t < c.promo) return fail('cooldown');
+  const cost = promoCost(s);
+  if (s.cash < cost) return fail('cash');
+  s.cash -= cost;
+  g.rate *= 1.35;
+  c.promo = s.t + CITY.promoCd;
+  addLog(s, 'log.promo', { name: g.name }, 'good');
+  bump(s);
+  emit('sfx', 'hit');
+  return OK;
+}
+function promoCost(s) {
+  return Math.round(Math.max(80, incomeEstimate(s) * 0.4) / 10) * 10;
+}
+function startTraining(s, role) {
+  const c = cityOf(s), st = s.staff[role];
+  if (!st || st.lvl <= 0) return fail('hire_first');
+  if (st.lvl >= MAX_LVL) return fail('max');
+  if (c.trn) return fail('trn_busy');
+  const cost = CITY.trnCost(role, st.lvl);
+  if (s.cash < cost) return fail('cash');
+  s.cash -= cost;
+  c.trn = { role, end: s.t + CITY.trnSec(st.lvl) };
+  bump(s);
+  emit('sfx', 'up');
+  return OK;
+}
+function finishTraining(s, now) {
+  const c = cityOf(s);
+  if (!c.trn) return fail('unavailable');
+  if (now) {
+    if (s.gems < CITY.trnGems) return fail('gems');
+    s.gems -= CITY.trnGems;
+  }
+  const st = s.staff[c.trn.role];
+  const role = c.trn.role;
+  c.trn = null;
+  if (st && st.lvl > 0 && st.lvl < MAX_LVL) {
+    st.lvl++;
+    st.mood = Math.min(100, st.mood + 8);
+    s.stats.ups++;
+    addLog(s, 'log.trained', { role: '$role.' + role + '.name', lvl: st.lvl }, 'good');
+    emit('trained', { role, lvl: st.lvl });
+  }
+  bump(s);
+  checkGoals(s);
+  return OK;
+}
+function bestTier(s) {
+  let t = 'mini';
+  for (const x of ['indie', 'big']) if (tierUnlocked(s, x)) t = x;
+  return t;
+}
+function makeOffer(s) {
+  const pool = GENRE_ORDER.filter((g) => g !== s.trend.cold);
+  const genre = pick(s, pool), tier = bestTier(s);
+  const min = clamp(Math.floor(expectedScore(s, genre)), 5, 9);
+  const cash = Math.round(Math.max(300, incomeEstimate(s) * 3 * Math.sqrt(TIERS[tier].rev)) / 10) * 10;
+  return { genre, tier, min, cash, gems: tier === 'mini' ? 2 : 3 };
+}
+function takeContract(s) {
+  const c = cityOf(s);
+  if (c.ctr) return fail('ctr_busy');
+  if (!c.offer) return fail('unavailable');
+  c.ctr = Object.assign({}, c.offer, { until: s.t + CITY.ctrSec });
+  c.offer = null;
+  bump(s);
+  emit('sfx', 'coin');
+  return OK;
+}
+function dropContract(s) {
+  const c = cityOf(s);
+  if (!c.ctr) return fail('unavailable');
+  c.ctr = null;
+  c.ctrNext = s.t + CITY.ctrCd;
+  bump(s);
+  return OK;
+}
+// a released game may fulfil the active contract
+function checkContract(s, game) {
+  const c = cityOf(s), k = c.ctr;
+  if (!k || game.genre !== k.genre || game.score < k.min || TIER_ORDER.indexOf(game.tier) < TIER_ORDER.indexOf(k.tier)) return;
+  giveCash(s, k.cash);
+  giveGems(s, k.gems);
+  s.rep = round2(s.rep + 1);
+  s.stats.evs++;
+  c.done++;
+  c.ctr = null;
+  c.ctrNext = s.t + CITY.ctrCd;
+  addLog(s, 'log.contract', { cash: fmt(k.cash), gems: k.gems }, 'good');
+  emit('contract', k);
+}
+function cityTick(s) {
+  const c = cityOf(s);
+  if (c.trn && s.t >= c.trn.end) finishTraining(s, false);
+  if (c.ctr && s.t >= c.ctr.until) {
+    c.ctr = null;
+    c.ctrNext = s.t + CITY.ctrCd;
+    if (!s.off) emit('toast', { k: 'toast.ctr_late', kind: 'bad' });
+    bump(s);
+  }
+  if (!c.ctr && !c.offer && s.stats.released >= 1 && s.t >= c.ctrNext) { c.offer = makeOffer(s); bump(s); }
 }
 
 /* ---------- log (language-independent: key + params) ---------- */
@@ -4571,6 +4907,7 @@ function release(s) {
   }
   addLog(s, 'log.release', { name: game.name, score: score.toFixed(1) }, score >= 7 ? 'good' : 'info');
   s.project = null;
+  checkContract(s, game);
   bump(s);
   emit('release', { game, repGain, gemGain });
   emit('sfx', score >= 7 ? 'hit' : 'release');
@@ -4625,6 +4962,7 @@ function prestige(s) {
   n.endingSeen = true;
   n.t = s.t;
   n.tk = s.tk;
+  n.city = Object.assign({}, cityOf(s), { trn: null, ctr: null, offer: null });
   n.rev = s.rev + 1;
   for (const k of Object.keys(s)) delete s[k];
   Object.assign(s, n);
@@ -5121,7 +5459,7 @@ function tick(s, dt) {
     s.clock -= DAY_SEC;
     endDay(s);
   }
-  if ((Math.round(s.tk) & 3) === 0) checkGoals(s); // once per game second, identical on client and server
+  if ((Math.round(s.tk) & 3) === 0) { checkGoals(s); cityTick(s); } // once per game second, identical on client and server
 }
 // live play: integer number of fixed ticks (identical on client and server)
 function advanceTicks(s, n) {
@@ -5160,6 +5498,12 @@ const ACTIONS = {
   ipo: (s) => prestige(s),
   idea: (s) => catchIdea(s),
   bug: (s) => squashBug(s),
+  cof: (s) => coffeeBreak(s),
+  prm: (s) => storePromo(s),
+  trn: (s, a) => (ROLES.includes(a[0]) ? startTraining(s, a[0]) : fail('unavailable')),
+  trd: (s) => finishTraining(s, true),
+  ctr: (s) => takeContract(s),
+  ctx: (s) => dropContract(s),
 };
 function applyAction(s, a) {
   const f = ACTIONS[a[0]];
@@ -8559,6 +8903,7 @@ const LIVE = {
   gearn: (id) => { const g = S.games.find((x) => String(x.id) === id); return g ? money(g.earned) : ''; },
   dprog: (id) => { const d = DAILY.find((x) => x.id === id); return d ? dailyProgress(S, d) + '/' + d.need : ''; },
   sales: () => money(dailySalesRate(S)),
+  cityleft: (k) => { const c = S.city || {}; const u = k === 'trn' ? c.trn && c.trn.end : k === 'ctr' ? c.ctr && c.ctr.until : k === 'next' ? c.ctrNext : c[k]; return mmss((u || 0) - S.t); },
 };
 const WLIVE = {
   rep: () => repLevel().pct,
@@ -8568,6 +8913,7 @@ const WLIVE = {
   proj: () => projectPct(),
   gprog: (id) => { const g = S.games.find((x) => String(x.id) === id); return g ? Math.min(100, (g.earned / Math.max(1, g.total)) * 100) : 0; },
   dprog: (id) => { const d = DAILY.find((x) => x.id === id); return d ? (dailyProgress(S, d) / d.need) * 100 : 0; },
+  citytrn: () => { const c = S.city && S.city.trn; if (!c) return 0; const tot = CITY.trnSec(S.staff[c.role].lvl); return (1 - (c.end - S.t) / tot) * 100; },
 };
 function live() {
   $$('[data-t]').forEach((el) => {
@@ -8765,6 +9111,7 @@ function tabOffice() {
     <div class="energy">${I('bolt', 14, 'yel')}<div class="bar yel"><i data-w="energy"></i></div><span class="px" data-t="energy"></span></div>
     ${adButton()}
   </section>
+  ${cityBanner()}
   ${eventBanner()}
   ${dailyCard()}
   <section class="panel fin">
@@ -9390,6 +9737,7 @@ function tabHTML() {
     case 'quests': return tabQuests();
     case 'empire': return tabEmpire();
     case 'drop': return tabDrop();
+    case 'city': return tabCity();
     default: return tabOffice();
   }
 }
@@ -9676,10 +10024,11 @@ const TUT = [
   { k: 'tut.hire', tab: ['office'], target: '.side [data-act="go:studio:team"]', done: () => hiredCount(S) >= 1, skippable: true },
   { k: 'tut.quests', tab: null, target: '#tabs [data-act="tab:quests"]', manual: true },
   { k: 'tut.points', tab: ['drop', 'home'], target: '.ptsp', manual: true },
-  { k: 'tut.token', tab: ['drop', 'token'], target: '.tokhero', manual: true },
+  { k: 'tut.token', tab: ['drop', 'token'], target: '.adrop, .tokhero2', manual: true },
   { k: 'tut.friends', tab: ['drop', 'friends'], target: '.invite', manual: true },
   { k: 'tut.studio', tab: ['office'], target: '.op-studio', done: () => !!studioName(), skippable: true },
   { k: 'tut.pvp', tab: ['office'], target: '.side [data-act="pvp"]', manual: true, done: () => !!lsGet('od2_tip_pvp') },
+  { k: 'tut.city', tab: ['office'], target: '.citybn', manual: true, done: () => !!lsGet('od2_tip_city') },
   { k: 'tut.done', tab: ['office'], target: null, manual: true },
 ];
 const COACH = { i: -1, el: null, scrolled: -1 };
@@ -9687,6 +10036,7 @@ const COACH = { i: -1, el: null, scrolled: -1 };
 const TIPS = [
   { id: 'pvp', k: 'tut.pvp_new', tab: ['office'], target: '.side [data-act="pvp"]', act: 'pvp', when: () => S.stats.taps >= 15 },
   { id: 'studio', k: 'tut.studio_new', tab: ['office'], target: '.op-studio', act: 'studio', when: () => S.stats.taps >= 15 && !studioName() },
+  { id: 'city', k: 'tut.city_new', tab: ['office'], target: '.citybn', act: 'cityopen', when: () => S.stats.taps >= 15 },
   { id: 'reno', k: 'tut.reno_new', tab: ['empire'], target: '.floor .reno', act: '', when: () => renoStars(S) === 0 },
 ];
 const OLD_TUT_DONE = 11; // the tutorial had 11 steps before the battle step was added: 11+ means "finished"
@@ -9734,6 +10084,7 @@ function tutGoto() {
 function tutNext() {
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.pvp') tipDone('pvp'); // seen in the tutorial: no "new" hint later
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.studio') tipDone('studio');
+  if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.city') tipDone('city');
   COACH.i++;
   tutSave();
   if (COACH.i >= TUT.length) { tutStop(); confetti(60); return; }
@@ -10235,6 +10586,308 @@ function pvCheckDuel() {
   </div>`, { id: 'duel', mcls: 'relm' }));
 }
 
+/* ---- src/city.js ---- */
+/* ============================================================
+   OFFICE DREAMS — the city outside the office.
+   A side-scrolling neon street: the player walks (tap a building) to
+   the coffee shop, the academy, the contract board and the game store.
+   Every place does something real for the studio, on game-time timers
+   (engine: CITY / coffeeBreak / startTraining / takeContract / storePromo).
+   ============================================================ */
+const CITY_H = 120; // logical pixels; the canvas is scaled up crisp
+const CITY_W = 432; // world width
+const CITY_B = [
+  { id: 'office', x: 4, w: 70, h: 94, wall: '#181c58', trim: '#2b3290', sign: 'OFFICE', neon: '#3fd0ff' },
+  { id: 'cafe', x: 90, w: 64, h: 62, wall: '#3a1d48', trim: '#5a2e6a', sign: 'CAFE', neon: '#ffb03f' },
+  { id: 'academy', x: 170, w: 82, h: 86, wall: '#16384a', trim: '#22566e', sign: 'ACADEMY', neon: '#2ee66b' },
+  { id: 'deals', x: 268, w: 66, h: 72, wall: '#3a2a18', trim: '#5a4226', sign: 'DEALS', neon: '#ffd23f' },
+  { id: 'games', x: 350, w: 78, h: 66, wall: '#3e1638', trim: '#5e2456', sign: 'GAMES', neon: '#ff3fd0' },
+];
+const CITY_SIDEWALK = 98;
+const CT = { x: 39, tx: null, dir: 1, walk: 0, cam: 0, sel: null, t: 0, npcs: null, cars: null, sky: null, last: 0 };
+
+/* ---------- state helpers (engine city state, game-time seconds) ---------- */
+function cityS() { return (S && S.city) || { cof: 0, promo: 0, trn: null, ctr: null, offer: null, ctrNext: 0, done: 0 }; }
+const cityLeft = (until) => Math.max(0, Math.ceil(until - S.t));
+function mmss(sec) { sec = Math.max(0, Math.ceil(sec)); const m = Math.floor(sec / 60), s = sec % 60; return m + ':' + String(s).padStart(2, '0'); }
+function trainable() { return ROLES.filter((r) => S.staff[r].lvl > 0 && S.staff[r].lvl < MAX_LVL); }
+// what is waiting for the player in the city (drives the office banner and the "!" over doors)
+function cityReady() {
+  const c = cityS();
+  return {
+    cafe: S.t >= c.cof,
+    academy: !c.trn && trainable().some((r) => S.cash >= CITY.trnCost(r, S.staff[r].lvl)),
+    deals: !!c.offer,
+    games: S.t >= c.promo && S.games.some((g) => g.active) && S.cash >= promoCost(S),
+  };
+}
+function citySig() { const r = cityReady(), c = cityS(); return (r.cafe ? 1 : 0) + '' + (r.academy ? 1 : 0) + (r.deals ? 1 : 0) + (r.games ? 1 : 0) + (c.trn ? 't' : '') + (c.ctr ? 'c' : ''); }
+
+/* ---------- drawing ---------- */
+function cityRand(seed) { let s = seed; return () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff; }
+function cityInit() {
+  if (CT.sky) return;
+  const r = cityRand(42);
+  CT.sky = [];
+  for (let i = 0; i < 40; i++) CT.sky.push([Math.floor(r() * CITY_W), Math.floor(r() * 50), r()]);
+  CT.far = [];
+  let x = -10;
+  while (x < CITY_W + 40) { const w = 10 + Math.floor(r() * 18), h = 30 + Math.floor(r() * 46); CT.far.push([x, w, h, Math.floor(r() * 1e6)]); x += w + 2; }
+  CT.npcs = [0, 1, 2].map((i) => ({ x: 60 + i * 140, v: (i % 2 ? -1 : 1) * (8 + i * 3), look: i, pause: 0 }));
+  CT.cars = [0, 1].map((i) => ({ x: i * 260, v: i ? -46 : 38, col: ['#ff4d6d', '#3fd0ff'][i] }));
+}
+function px(g, x, y, w, h, c) { g.fillStyle = c; g.fillRect(x, y, w, h); }
+function signText(g, str, x, y, col) {
+  g.fillStyle = col;
+  eachGlyphPixel(str, (gx, gy) => g.fillRect(x + gx, y + gy, 1, 1));
+}
+const CITY_LOOKS = [
+  { skin: '#8a5a3c', hair: '#1a1018', top: '#2a4bd0', pants: '#1a1f3a', acc: '#3fd0ff' }, // the player: blue hoodie + headphones
+  { skin: '#f0c9a0', hair: '#c96a2a', top: '#d04a8a', pants: '#2a2a4a', acc: null },
+  { skin: '#c99a70', hair: '#2a1a10', top: '#2e9a5a', pants: '#3a2a1a', acc: null },
+  { skin: '#e8b890', hair: '#e8e0d0', top: '#7a4ad0', pants: '#1a1a2a', acc: null },
+];
+// a 9×20 pixel person standing on (x, y); frame 0..3 walk cycle, dir ±1
+function cityPerson(g, x, y, look, frame, dir, still) {
+  const L0 = CITY_LOOKS[look];
+  x = Math.round(x); y = Math.round(y);
+  const st = still ? 0 : [0, 1, 0, -1][frame & 3];
+  px(g, x - 4, y, 9, 1, 'rgba(0,0,0,.35)'); // shadow
+  // legs + shoes
+  px(g, x - 2 + st, y - 6, 2, 5, L0.pants); px(g, x + 1 - st, y - 6, 2, 5, L0.pants);
+  px(g, x - 2 + st, y - 1, 2 + (dir > 0 ? 1 : 0), 1, '#e8ecff'); px(g, x + 1 - st - (dir < 0 ? 1 : 0), y - 1, 2 + (dir < 0 ? 1 : 0), 1, '#e8ecff');
+  // body + arms
+  px(g, x - 3, y - 13, 7, 7, L0.top);
+  px(g, x - 3, y - 7, 7, 1, 'rgba(0,0,0,.25)');
+  px(g, x - 4, y - 12 + (still ? 0 : st), 1, 5, L0.top); px(g, x + 4, y - 12 - (still ? 0 : st), 1, 5, L0.top);
+  px(g, x - 4, y - 7 + (still ? 0 : st), 1, 1, L0.skin); px(g, x + 4, y - 7 - (still ? 0 : st), 1, 1, L0.skin);
+  // head
+  px(g, x - 2, y - 19, 5, 6, L0.skin);
+  px(g, x - 2, y - 20, 5, 2, L0.hair); px(g, x + (dir > 0 ? -2 : 2), y - 18, 1, 2, L0.hair);
+  px(g, x + (dir > 0 ? 1 : -1), y - 17, 1, 1, '#0a0a18'); // eye
+  if (L0.acc) { px(g, x - 3, y - 18, 1, 3, L0.acc); px(g, x + 3, y - 18, 1, 3, L0.acc); px(g, x - 2, y - 21, 5, 1, L0.acc); }
+}
+function cityDraw(now) {
+  const cv = UI.cityCv, g = UI.cityCtx;
+  if (!cv || !g || !S) return;
+  cityInit();
+  const cw = cv.clientWidth || 360, ch = cv.clientHeight || 240;
+  const VW = Math.max(120, Math.min(CITY_W, Math.round(CITY_H * cw / ch)));
+  if (cv.width !== VW || cv.height !== CITY_H) { cv.width = VW; cv.height = CITY_H; }
+  const t = now / 1000, dt = Math.min(0.1, Math.max(0, t - (CT.last || t)));
+  CT.last = t; CT.t += dt;
+  // walking
+  if (CT.tx !== null) {
+    const d = CT.tx - CT.x, step = 46 * dt;
+    if (Math.abs(d) <= step) { CT.x = CT.tx; CT.tx = null; cityArrive(); } else { CT.dir = d > 0 ? 1 : -1; CT.x += CT.dir * step; CT.walk += dt * 9; }
+  }
+  const camT = Math.max(0, Math.min(CITY_W - VW, CT.x - VW / 2));
+  CT.cam += (camT - CT.cam) * Math.min(1, dt * 6);
+  const cam = Math.round(CT.cam);
+  // sky: night ↔ dusk by the game clock
+  const f = S.clock / DAY_SEC, night = f > 0.62 || f < 0.08 ? 1 : f > 0.45 ? (f - 0.45) / 0.17 : 0.25;
+  const sky = g.createLinearGradient(0, 0, 0, CITY_SIDEWALK);
+  sky.addColorStop(0, night > 0.6 ? '#070a26' : '#1a1050');
+  sky.addColorStop(1, night > 0.6 ? '#2a1250' : '#a0407a');
+  g.fillStyle = sky; g.fillRect(0, 0, VW, CITY_H);
+  for (const s of CT.sky) { const sx = ((s[0] - cam * 0.1) % CITY_W + CITY_W) % CITY_W; if (sx < VW && (Math.sin(t * 2 + s[2] * 9) > -0.6)) px(g, sx, s[1], 1, 1, s[2] > 0.8 ? '#ffd23f' : '#c8d0ff'); }
+  // moon
+  px(g, VW - 28, 8, 8, 8, '#f0e8c8'); px(g, VW - 26, 8, 6, 2, '#d8d0b0');
+  // far skyline (parallax)
+  for (const b of CT.far) {
+    const bx = Math.round(b[0] - cam * 0.35);
+    if (bx > VW || bx + b[1] < 0) continue;
+    px(g, bx, CITY_SIDEWALK - b[2], b[1], b[2], '#120c3a');
+    const wr = cityRand(b[3]);
+    for (let wy = CITY_SIDEWALK - b[2] + 3; wy < CITY_SIDEWALK - 4; wy += 4) for (let wx = bx + 2; wx < bx + b[1] - 2; wx += 3) if (wr() < 0.22) px(g, wx, wy, 1, 2, wr() < 0.6 ? '#5a4a20' : '#20406a');
+  }
+  const ready = cityReady();
+  // buildings
+  for (const b of CITY_B) {
+    const bx = b.x - cam, top = CITY_SIDEWALK - b.h;
+    if (bx > VW || bx + b.w < 0) continue;
+    const sel = CT.sel === b.id;
+    px(g, bx, top, b.w, b.h, b.wall);
+    px(g, bx, top, b.w, 2, b.trim); px(g, bx - 1, top + 2, b.w + 2, 2, b.trim);
+    // windows
+    const wr = cityRand(b.x + 7);
+    for (let wy = top + 8; wy < CITY_SIDEWALK - 26; wy += 9) for (let wx = bx + 6; wx < bx + b.w - 8; wx += 10) {
+      const lit = wr() < 0.7, flick = lit && Math.sin(t * 0.7 + wx) > 0.97;
+      px(g, wx, wy, 6, 5, lit && !flick ? (wr() < 0.5 ? '#ffd27a' : '#7ad8ff') : '#0c0f2e');
+      px(g, wx, wy + 5, 6, 1, b.trim);
+    }
+    // neon sign with a soft glow
+    const sw = textWidth(b.sign), sx = Math.round(bx + (b.w - sw) / 2), sy = CITY_SIDEWALK - 25;
+    const pulse = 0.55 + 0.25 * Math.sin(t * 3 + b.x);
+    g.globalCompositeOperation = 'lighter'; g.globalAlpha = pulse * 0.3; px(g, sx - 4, sy - 4, sw + 8, 13, b.neon); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    px(g, sx - 2, sy - 2, sw + 4, 9, '#0a0a1e');
+    signText(g, b.sign, sx, sy, b.neon);
+    // door + light spill
+    const dx = Math.round(bx + b.w / 2 - 6);
+    px(g, dx, CITY_SIDEWALK - 15, 12, 15, '#0a0c22');
+    px(g, dx + 1, CITY_SIDEWALK - 14, 10, 14, sel ? b.neon : '#2a2a5a');
+    g.globalAlpha = 0.18; px(g, dx - 4, CITY_SIDEWALK, 20, 3, b.neon); g.globalAlpha = 1;
+    // something waits inside: a bouncing "!"
+    if (ready[b.id]) {
+      const by = Math.round(top - 9 + Math.sin(t * 5) * 2);
+      px(g, bx + b.w / 2 - 3, by - 1, 7, 10, '#0a0a1e');
+      px(g, bx + b.w / 2 - 2, by, 5, 8, '#ffd23f');
+      px(g, bx + b.w / 2, by + 1, 1, 4, '#0a0a1e'); px(g, bx + b.w / 2, by + 6, 1, 1, '#0a0a1e');
+    }
+  }
+  // street lamps
+  for (let lx = 82; lx < CITY_W; lx += 80) {
+    const x = lx - cam;
+    if (x < -20 || x > VW + 20) continue;
+    px(g, x, CITY_SIDEWALK - 30, 1, 30, '#3a3f6a'); px(g, x - 1, CITY_SIDEWALK - 31, 4, 2, '#5a5f8a');
+    // a warm cone of light down to the pavement
+    g.globalCompositeOperation = 'lighter';
+    g.globalAlpha = 0.07 + 0.02 * Math.sin(t * 8 + lx);
+    for (let i = 0; i < 29; i += 2) { const hw = 1 + Math.round(i * 0.38); px(g, x + 1 - hw, CITY_SIDEWALK - 28 + i, hw * 2 + 1, 2, '#ffc070'); }
+    g.globalAlpha = 0.2; px(g, x - 9, CITY_SIDEWALK, 20, 2, '#ffc070');
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    px(g, x + 1, CITY_SIDEWALK - 29, 2, 1, '#fff2c0');
+  }
+  // sidewalk + road
+  px(g, 0, CITY_SIDEWALK, VW, 6, '#2a2e5a'); px(g, 0, CITY_SIDEWALK, VW, 1, '#4a4f8a');
+  for (let x = -((cam) % 12); x < VW; x += 12) px(g, x, CITY_SIDEWALK + 1, 1, 5, '#22264e');
+  px(g, 0, CITY_SIDEWALK + 6, VW, CITY_H - CITY_SIDEWALK - 6, '#121430');
+  for (let x = -((cam) % 24); x < VW; x += 24) px(g, x, CITY_SIDEWALK + 13, 10, 1, '#5a5a3a');
+  // cars
+  for (const c of CT.cars) {
+    c.x += c.v * dt;
+    if (c.x > CITY_W + 60) c.x = -60; if (c.x < -60) c.x = CITY_W + 60;
+    const x = Math.round(c.x - cam), y = c.v > 0 ? CITY_SIDEWALK + 8 : CITY_SIDEWALK + 15;
+    if (x < -40 || x > VW + 40) continue;
+    px(g, x, y, 22, 5, c.col); px(g, x + 5, y - 3, 11, 3, c.col); px(g, x + 6, y - 2, 9, 2, '#1a2a4a');
+    px(g, x + 3, y + 5, 4, 2, '#0a0a0a'); px(g, x + 15, y + 5, 4, 2, '#0a0a0a');
+    // headlight beam: fades out in three steps
+    g.globalCompositeOperation = 'lighter';
+    for (let k = 0; k < 3; k++) { g.globalAlpha = 0.22 - k * 0.06; px(g, c.v > 0 ? x + 22 + k * 4 : x - 4 - k * 4, y + 1 - (k ? 1 : 0), 4, 2 + (k ? 2 : 0), '#fff2c0'); }
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    px(g, c.v > 0 ? x + 21 : x, y + 1, 1, 2, '#fff8e0');
+  }
+  // pedestrians
+  for (const n of CT.npcs) {
+    if (n.pause > 0) n.pause -= dt; else { n.x += n.v * dt; if (Math.random() < dt * 0.08) n.pause = 1 + Math.random() * 2; }
+    if (n.x > CITY_W + 10) n.x = -10; if (n.x < -10) n.x = CITY_W + 10;
+    const x = n.x - cam;
+    if (x > -10 && x < VW + 10) cityPerson(g, x, CITY_SIDEWALK + 3, 1 + n.look, Math.floor(CT.t * 7 + n.look), n.v > 0 ? 1 : -1, n.pause > 0);
+  }
+  // the player
+  cityPerson(g, CT.x - cam, CITY_SIDEWALK + 4, 0, Math.floor(CT.walk), CT.dir, CT.tx === null);
+  // rain with the rainy lo-fi track
+  if (MUSIC.on && TRACKS[MUSIC.track] && TRACKS[MUSIC.track].rain) {
+    g.fillStyle = 'rgba(160,190,255,.35)';
+    for (let i = 0; i < 40; i++) { const rx = (i * 37 + CT.t * 30) % VW, ry = (i * 53 + CT.t * 140) % CITY_H; g.fillRect(Math.round(rx), Math.round(ry), 1, 3); }
+  }
+}
+/* ---------- input ---------- */
+function cityTap(e) {
+  const cv = UI.cityCv;
+  if (!cv) return;
+  const r = cv.getBoundingClientRect();
+  const wx = ((e.clientX - r.left) / r.width) * cv.width + Math.round(CT.cam);
+  const b = CITY_B.find((x) => wx >= x.x - 4 && wx <= x.x + x.w + 4);
+  if (b) cityGo(b.id); else { CT.tx = Math.max(6, Math.min(CITY_W - 6, wx)); CT.sel = null; }
+}
+function cityGo(id) {
+  const b = CITY_B.find((x) => x.id === id);
+  if (!b) return;
+  CT.sel = null;
+  CT.tx = b.x + b.w / 2;
+  sfx('blip');
+  if (Math.abs(CT.tx - CT.x) < 1) { CT.tx = null; cityArrive(); }
+  render(true);
+}
+function cityArrive() {
+  const b = CITY_B.find((x) => CT.x >= x.x && CT.x <= x.x + x.w);
+  if (!b) return;
+  if (b.id === 'office') { go('office'); return; }
+  CT.sel = b.id;
+  sfx('pop'); haptic('light');
+  render(true);
+  setTimeout(() => { const p = $('#citypanel'); if (p) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 60);
+}
+
+/* ---------- screen ---------- */
+function cityPanel(id) {
+  const c = cityS();
+  if (id === 'cafe') {
+    const left = cityLeft(c.cof);
+    return `<h3 class="h3">☕ ${L('city.cafe')}</h3><p class="sub">${L('city.cafe_t', { min: CITY.cofCd / 60 })}</p>
+      ${left > 0 ? `<button class="btn big wide" disabled>${L('city.wait')} <span data-t="cityleft:cof"></span></button>` : `<button class="btn big glow wide" data-act="city:cof">☕ ${L('city.cafe_btn')}</button>`}`;
+  }
+  if (id === 'academy') {
+    if (c.trn) {
+      return `<h3 class="h3">🎓 ${L('city.academy')}</h3>
+        <div class="ct-row">${imgTag(portrait(c.trn.role, S.staff[c.trn.role].mood), 'av')}<div><b>${L('role.' + c.trn.role + '.name')}</b><small>${L('city.trn_now', { a: S.staff[c.trn.role].lvl, b: S.staff[c.trn.role].lvl + 1 })}</small></div><b class="px grn" data-t="cityleft:trn"></b></div>
+        <div class="bar"><i data-w="citytrn"></i></div>
+        <button class="btn wide gem" data-act="city:trd" ${S.gems < CITY.trnGems ? 'disabled' : ''}>${L('city.trn_now_btn', { n: CITY.trnGems })} 💎</button>
+        <p class="hint">${L('city.trn_hint')}</p>`;
+    }
+    const rs = trainable();
+    return `<h3 class="h3">🎓 ${L('city.academy')}</h3><p class="sub">${L('city.academy_t')}</p>
+      ${rs.length ? rs.map((r) => { const lv = S.staff[r].lvl, cost = CITY.trnCost(r, lv); return `<div class="ct-row">${imgTag(portrait(r, S.staff[r].mood), 'av')}<div><b>${L('role.' + r + '.name')}</b><small>LV ${lv} → ${lv + 1} · ${mmss(CITY.trnSec(lv))} · <s class="was">${money(upCost(r, lv))}</s></small></div><button class="btn sm ${S.cash >= cost ? 'glow' : ''}" data-act="city:trn:${r}" ${S.cash >= cost ? '' : 'disabled'}>${money(cost)}</button></div>`; }).join('') : `<p class="hint">${L('city.academy_none')}</p>`}`;
+  }
+  if (id === 'deals') {
+    const k = c.ctr || c.offer;
+    if (!k) return `<h3 class="h3">📋 ${L('city.deals')}</h3><p class="sub">${S.stats.released ? L('city.deals_wait') : L('city.deals_first')}</p>${S.stats.released ? `<button class="btn big wide" disabled>${L('city.wait')} <span data-t="cityleft:next"></span></button>` : ''}`;
+    const req = L('city.deal_req', { genre: L('genre.' + k.genre), tier: L('tier.' + k.tier), min: k.min });
+    return `<h3 class="h3">📋 ${L('city.deals')}</h3>
+      <div class="ct-deal"><small>${L(c.ctr ? 'city.deal_active' : 'city.deal_offer')}</small><b>${req}</b>
+        <div class="ct-rw"><span class="chip yel">${money(k.cash)}</span><span class="chip mag">+${k.gems} 💎</span><span class="chip cy">+⭐</span></div>
+        ${c.ctr ? `<small class="mut">${L('city.deal_left')} <b data-t="cityleft:ctr"></b></small>` : `<small class="mut">${L('city.deal_time', { m: CITY.ctrSec / 60 })}</small>`}</div>
+      ${c.ctr ? `<button class="btn big glow wide" data-act="city:make">${I('games', 16)} ${L('city.deal_make')}</button><button class="linkbtn" data-act="city:ctx">${L('city.deal_drop')}</button>`
+        : `<button class="btn big glow wide" data-act="city:ctr">${L('city.deal_take')}</button>`}`;
+  }
+  if (id === 'games') {
+    const g = S.games.find((x) => x.active), left = cityLeft(c.promo), cost = promoCost(S);
+    return `<h3 class="h3">🎮 ${L('city.games')}</h3><p class="sub">${L('city.games_t')}</p>
+      ${!g ? `<p class="hint">${L('city.games_none')}</p>` : left > 0 ? `<button class="btn big wide" disabled>${L('city.wait')} <span data-t="cityleft:promo"></span></button>`
+        : `<div class="ct-row">${imgTag(coverURL(g.genre, g.name), 'cover sm')}<div><b>${esc(g.name)}</b><small>${L('city.games_boost')}</small></div></div><button class="btn big glow wide" data-act="city:prm" ${S.cash >= cost ? '' : 'disabled'}>${L('city.games_btn', { cost: money(cost) })}</button>`}`;
+  }
+  return '';
+}
+function tabCity() {
+  const r = cityReady(), c = cityS();
+  const chips = CITY_B.filter((b) => b.id !== 'office').map((b) => {
+    const st = b.id === 'academy' && c.trn ? `<b class="px" data-t="cityleft:trn"></b>` : b.id === 'deals' && c.ctr ? `<b class="px" data-t="cityleft:ctr"></b>` : r[b.id] ? '<i class="dot"></i>' : '';
+    return `<button class="ct-chip ${CT.sel === b.id ? 'on' : ''}" data-act="city:go:${b.id}" style="--n:${b.neon}"><span>${L('city.ico_' + b.id)}</span><small>${L('city.' + b.id)}</small>${st}</button>`;
+  }).join('');
+  return `<section class="panel cityp">
+    <div class="ct-head"><button class="btn ghost sm" data-act="city:home">‹ ${L('city.back')}</button><h2 class="h2">🌆 ${L('city.title')}</h2></div>
+    <div class="ct-scene"><canvas id="citycv" width="240" height="${CITY_H}" aria-label="${esc(L('city.title'))}"></canvas>${CT.sel ? '' : `<span class="ct-tip">${L('city.tip')}</span>`}</div>
+    <div class="ct-chips">${chips}</div>
+  </section>
+  ${CT.sel ? `<section class="panel ct-panel" id="citypanel">${cityPanel(CT.sel)}</section>` : ''}
+  <p class="hint pad">${L('city.hint')}</p>`;
+}
+// the city entry on the office screen: shows what is waiting outside
+function cityBanner() {
+  if (!S.stats.taps) return '';
+  const r = cityReady(), c = cityS();
+  const items = [];
+  if (r.cafe) items.push('☕ ' + L('city.rdy_cafe'));
+  if (c.trn) items.push(`🎓 <span data-t="cityleft:trn"></span>`);
+  else if (r.academy) items.push('🎓 ' + L('city.rdy_academy'));
+  if (c.ctr) items.push(`📋 <span data-t="cityleft:ctr"></span>`);
+  else if (r.deals) items.push('📋 ' + L('city.rdy_deals'));
+  if (r.games) items.push('🎮 ' + L('city.rdy_games'));
+  return `<button class="panel citybn ${items.length ? 'hot' : ''}" data-act="city:open"><span class="cb-ico">🌆</span><span class="cb-t"><b>${L('city.go')}</b><small>${items.length ? items.join(' · ') : L('city.go_s')}</small></span><b class="chev">›</b></button>`;
+}
+function cityAct(what, arg) {
+  if (what === 'open') { go('city'); return; }
+  if (what === 'home') { go('office'); return; }
+  if (what === 'go') { cityGo(arg); return; }
+  if (what === 'make') { const k = cityS().ctr; if (k) { S.sel.genre = k.genre; if (tierUnlocked(S, k.tier)) S.sel.tier = k.tier; } go('studio', 'games'); return; }
+  const map = { cof: 'city.ok_cof', trn: 'city.ok_trn', trd: '', ctr: 'city.ok_ctr', ctx: '', prm: 'city.ok_prm' };
+  if (!(what in map)) return;
+  const r = arg ? netAct(what, arg) : netAct(what);
+  if (r && r.ok) { if (map[what]) toast(L(map[what]), 'good'); haptic('medium'); if (what === 'cof' || what === 'prm') confettiSmall(); } else errToast(r && r.err);
+  render(true);
+}
+
 /* ---- src/ui_main.js ---- */
 /* ============================================================
    OFFICE DREAMS — UI main: render loop, actions, modals, boot
@@ -10266,7 +10919,7 @@ function affordSig() {
 }
 function render(force) {
   if (!S) return;
-  const sig = [S.rev, UI.tab, UI.sub.studio, UI.sub.drop, UI.sel, affordSig(), UI.ecoVer || 0, UI.hubVer || 0, LANG, NET.online, NET.mode, S.sel.genre, S.sel.tier, S.sel.name].join('|');
+  const sig = [S.rev, UI.tab, UI.sub.studio, UI.sub.drop, UI.sel, affordSig(), UI.ecoVer || 0, UI.hubVer || 0, LANG, NET.online, NET.mode, S.sel.genre, S.sel.tier, S.sel.name, citySig(), CT.sel].join('|');
   if (!force && sig === UI.lastSig) return;
   // don't rebuild the page under someone typing a donation amount (keyboard would close)
   if (!force && document.activeElement && document.activeElement.id === 'donin') { morph($('#hud'), hudHTML()); return; }
@@ -10326,6 +10979,9 @@ function bindCanvases() {
   UI.sceneCv = $('#scene');
   UI.bloomCv = $('#bloom');
   UI.towerCv = $('#tower');
+  UI.cityCv = $('#citycv');
+  UI.cityCtx = UI.cityCv ? UI.cityCv.getContext('2d') : null;
+  if (UI.cityCtx) { UI.cityCtx.imageSmoothingEnabled = false; cityDraw(performance.now()); }
   UI.sceneCtx = UI.sceneCv ? UI.sceneCv.getContext('2d') : null;
   UI.bloomCtx = UI.bloomCv ? UI.bloomCv.getContext('2d') : null;
   UI.towerCtx = UI.towerCv ? UI.towerCv.getContext('2d') : null;
@@ -10447,6 +11103,8 @@ function go(tab, sub) {
   if (tab === 'drop') loadHub(UI.sub.drop);
 }
 const ACT = {
+  city: (w, a) => cityAct(w, a),
+  cityopen: () => { tipDone('city'); go('city'); },
   pvp: () => pvOpen(),
   pvduel: (code) => { closeModal(); pvOpen('duel_' + code); },
   close: () => closeModal(),
@@ -10990,7 +11648,7 @@ function showHelp() {
     <div class="help">
       <h3 class="h3">${L('help.play')}</h3>
       <ol class="steps">
-        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li><li>${L('help.p10')}</li>
+        <li>${L('help.p1')}</li><li>${L('help.p2')}</li><li>${L('help.p3')}</li><li>${L('help.p4')}</li><li>${L('help.p5')}</li><li>${L('help.p6')}</li><li>${L('help.p7')}</li><li>${L('help.p8')}</li><li>${L('help.p9')}</li><li>${L('help.p10')}</li><li>${L('help.p11')}</li>
       </ol>
       <h3 class="h3">${L('help.money')}</h3>
       <ul class="cur">
@@ -11093,6 +11751,8 @@ hooks.emit = function (type, data) {
   else if (type === 'day') toast(LR('toast.day', { n: data.day, inc: money(data.income), sal: money(data.salary) }), '');
   else if (type === 'toast') toast(L(data.k), data.kind);
   else if (type === 'ending') modalOrQueue(showEnding);
+  else if (type === 'trained') { toast(L('city.trained', { role: L('role.' + data.role + '.name'), n: data.lvl }), 'good', 'up'); confettiSmall(); }
+  else if (type === 'contract') { toast(L('city.ok_deal', { cash: money(data.cash), gems: data.gems }), 'good', 'gem'); confetti(120); sfx('floor'); }
   else if (type === 'ipo') toast(L('toast.ipo', { n: data.n }), 'good', 'crown');
   else if (type === 'bug') { sfx('blip'); updateSceneFx(); if (!lsGet('od2_bug_hint')) { lsSet('od2_bug_hint', '1'); toast(L('bug.hint'), 'bad', 'star'); } }
   else if (type === 'bugEscaped') { toast(L('bug.escaped', { n: fmt(data.loss) }), 'bad'); updateSceneFx(); }
@@ -11160,6 +11820,8 @@ function frame(now) {
       const m = UI.sceneMs, st = UI.sceneStep || 0.045;
       UI.sceneStep = st === 0.045 ? (m > 14 ? 0.066 : st) : st === 0.066 ? (m > 24 ? 0.1 : m < 10 ? 0.045 : st) : (m < 18 ? 0.066 : st);
     }
+    UI.cityAcc = (UI.cityAcc || 0) + dt;
+    if (UI.cityAcc >= 0.033 && !UI.modal && UI.tab === 'city' && !document.hidden) { UI.cityAcc = 0; cityDraw(now); }
     UI.towerAcc += dt;
     if (UI.towerAcc >= 0.25 && !UI.modal && UI.tab === 'empire' && !document.hidden) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
   }
@@ -11196,6 +11858,7 @@ function wireInput() {
     const b = e.target.closest('#workbtn');
     if (b) { e.preventDefault(); onWorkDown(e); return; }
     if (e.target.id === 'scene' && e.isTrusted !== false) { ensureAudio(); onSceneTap(e); }
+    if (e.target.id === 'citycv') { ensureAudio(); cityTap(e); }
   }, { passive: false });
   document.addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.id === 'workbtn') { e.preventDefault(); onWorkDown(e); }
