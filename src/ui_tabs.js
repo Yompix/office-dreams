@@ -861,6 +861,7 @@ function hubToken() {
       <div><b class="px">90%</b><small>${L('tk2.to_players')}</small></div>
       <div><b class="px">10%</b><small>${L('tk4.team0')}</small></div>
     </div>
+    ${NET.cfg && NET.cfg.links && NET.cfg.links.site ? `<button class="btn ghost wide" data-act="site" style="margin-top:12px">🌐 ${L('tok.site')}</button>` : ''}
   </section>
   <section class="panel myshare">
     <h2 class="h2">🎁 ${L('tk2.my')}</h2>

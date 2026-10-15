@@ -8,7 +8,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>]/g, (c) => ({ '&': '
 const T = {
   en: {
     start: '🏢 <b>Office Dreams</b>\n\nBuild a neon game studio: hire a team, ship hit games, climb floor by floor and collect airdrop points.\n\n🪙 Points turn into the <b>OFFX</b> token on Solana: 90,000,000 OFFX are split between players.\n👥 Invite friends — you both get bonuses.\n\n💬 Admin: @vtmjs\n\nTap <b>Play</b> to begin!',
-    play: '🎮 Play', invite: '👥 Invite friends', share: '📤 Share link',
+    site: '🌐 Website', play: '🎮 Play', invite: '👥 Invite friends', share: '📤 Share link',
     inviteText: '🏢 Come build a neon game studio with me in Office Dreams! We both get bonuses:',
     inviteMsg: (link) => `👥 <b>Your invite link</b>\n\n<code>${link}</code>\n\nFor every friend who really plays you get bonus coins and ${'10%'} of their points.`,
     help: '❓ <b>Help</b>\n\n/start — open the game\n/invite — your invite link\n/help — this message\n\nPoints are earned by playing, daily check-ins, tasks and inviting friends. Bots are filtered automatically.',
@@ -20,7 +20,7 @@ const T = {
   },
   ru: {
     start: '🏢 <b>Office Dreams</b>\n\nСтрой неоновую студию игр: нанимай команду, выпускай хиты, поднимайся с этажа на этаж и собирай очки аирдропа.\n\n🪙 Очки превращаются в токен <b>OFFX</b> на Solana: 90 000 000 OFFX делятся между игроками.\n👥 Приглашай друзей — бонусы получаете оба.\n\n💬 Админ: @vtmjs\n\nЖми <b>Играть</b>!',
-    play: '🎮 Играть', invite: '👥 Пригласить друзей', share: '📤 Поделиться',
+    site: '🌐 Сайт', play: '🎮 Играть', invite: '👥 Пригласить друзей', share: '📤 Поделиться',
     inviteText: '🏢 Присоединяйся ко мне в Office Dreams — строим неоновую студию игр! Бонусы получим оба:',
     inviteMsg: (link) => `👥 <b>Твоя ссылка-приглашение</b>\n\n<code>${link}</code>\n\nЗа каждого друга, который реально играет, ты получаешь бонусные монеты и 10% его очков.`,
     help: '❓ <b>Помощь</b>\n\n/start — открыть игру\n/invite — ссылка для друзей\n/help — это сообщение\n\nОчки дают игра, ежедневный вход, задания и друзья. Боты отсеиваются автоматически.',
@@ -32,7 +32,7 @@ const T = {
   },
   uk: {
     start: '🏢 <b>Office Dreams</b>\n\nБудуй неонову студію ігор: наймай команду, випускай хіти, піднімайся з поверху на поверх і збирай бали аірдропу.\n\n🪙 Бали перетворюються на токен <b>OFFX</b> у Solana: 90 000 000 OFFX діляться між гравцями.\n👥 Запрошуй друзів — бонуси отримуєте обоє.\n\n💬 Адмін: @vtmjs\n\nНатисни <b>Грати</b>!',
-    play: '🎮 Грати', invite: '👥 Запросити друзів', share: '📤 Поділитися',
+    site: '🌐 Сайт', play: '🎮 Грати', invite: '👥 Запросити друзів', share: '📤 Поділитися',
     inviteText: '🏢 Приєднуйся до мене в Office Dreams — будуємо неонову студію ігор! Бонуси отримаємо обоє:',
     inviteMsg: (link) => `👥 <b>Твоє посилання-запрошення</b>\n\n<code>${link}</code>\n\nЗа кожного друга, який справді грає, ти отримуєш бонусні монети та 10% його очок.`,
     help: '❓ <b>Допомога</b>\n\n/start — відкрити гру\n/invite — посилання для друзів\n/help — це повідомлення\n\nОчки дають гра, щоденний вхід, завдання та друзі. Боти відсіюються автоматично.',
@@ -94,7 +94,10 @@ async function send(ctx, chatId, text, markup) {
 function playMarkup(ctx, lang, start) {
   const t = tx(lang);
   const rows = [];
-  if (/^https:/.test(ctx.cfg.publicUrl)) rows.push([{ text: t.play, web_app: { url: appUrl(ctx) + (start ? '?start=' + encodeURIComponent(start) : '') } }]);
+  if (/^https:/.test(ctx.cfg.publicUrl)) {
+    rows.push([{ text: t.play, web_app: { url: appUrl(ctx) + (start ? '?start=' + encodeURIComponent(start) : '') } }]);
+    rows.push([{ text: t.site, url: ctx.cfg.publicUrl + '/site' + (lang === 'en' ? '' : '?lang=' + lang) }]);
+  }
   return rows.length ? { inline_keyboard: rows } : undefined;
 }
 function shareMarkup(ctx, lang, link) {

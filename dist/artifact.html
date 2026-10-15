@@ -2778,6 +2778,7 @@ LANGS.en = {
   "tut.city_new": "🌆 New: the city! Step out of the office: the coffee shop gives energy, the academy trains staff, contracts wait on the board. Timers run even while you are away.",
   "help.p11": "🌆 City: coffee shop (energy), academy (cheap upgrades that take time), contract board (gems and cash for a game of the right genre), game store (+35% sales).",
   "tut.city": "🌆 The city: step outside! The coffee shop gives energy, the academy trains staff cheaply, the board pays gems for contracts. Come here when you see “!”.",
+  "tok.site": "Project website — share it with friends",
 };
 
 /* ---- src/lang_ru.js ---- */
@@ -3521,6 +3522,7 @@ LANGS.ru = {
   "tut.city_new": "🌆 Новинка: город! Выйди из офиса — кофейня даёт энергию, академия учит сотрудников, на бирже ждут заказы. Таймеры идут, даже когда ты не в игре.",
   "help.p11": "🌆 Город: кофейня (энергия), академия (дешёвая прокачка с ожиданием), биржа заказов (кристаллы и деньги за игру нужного жанра), магазин игр (продажи +35%).",
   "tut.city": "🌆 Город: выйди из офиса! Кофейня даёт энергию, академия дёшево прокачивает сотрудников, биржа платит кристаллами за заказы. Загляни сюда, когда увидишь «!».",
+  "tok.site": "Сайт проекта — поделись с друзьями",
 };
 
 /* ---- src/lang_uk.js ---- */
@@ -4264,6 +4266,7 @@ LANGS.uk = {
   "tut.city_new": "🌆 Новинка: місто! Вийди з офісу — кав’ярня дає енергію, академія вчить співробітників, на біржі чекають замовлення. Таймери йдуть, навіть коли ти не в грі.",
   "help.p11": "🌆 Місто: кав’ярня (енергія), академія (дешева прокачка з очікуванням), біржа замовлень (кристали та гроші за гру потрібного жанру), магазин ігор (продажі +35%).",
   "tut.city": "🌆 Місто: вийди з офісу! Кав’ярня дає енергію, академія дешево прокачує співробітників, біржа платить кристалами за замовлення. Зазирни сюди, коли побачиш «!».",
+  "tok.site": "Сайт проєкту — поділися з друзями",
 };
 
 /* ---- src/engine.js ---- */
@@ -9693,6 +9696,7 @@ function hubToken() {
       <div><b class="px">90%</b><small>${L('tk2.to_players')}</small></div>
       <div><b class="px">10%</b><small>${L('tk4.team0')}</small></div>
     </div>
+    ${NET.cfg && NET.cfg.links && NET.cfg.links.site ? `<button class="btn ghost wide" data-act="site" style="margin-top:12px">🌐 ${L('tok.site')}</button>` : ''}
   </section>
   <section class="panel myshare">
     <h2 class="h2">🎁 ${L('tk2.my')}</h2>
@@ -11307,6 +11311,7 @@ const ACT = {
   mkrange: (r) => { UI.mktRange = r; loadMarket(true); render(true); },
   mktab: () => { UI.sub.drop = 'token'; render(true); loadHub('token'); },
   openbot: () => { if (NET.cfg && NET.cfg.bot) openLink('https://t.me/' + NET.cfg.bot + (NET.cfg.app ? '/' + NET.cfg.app : '')); },
+  site: () => { const l = NET.cfg && NET.cfg.links && NET.cfg.links.site; if (l) openLink(l + (LANG === 'en' ? '' : '?lang=' + LANG)); },
   link: (k) => { const l = NET.cfg && NET.cfg.links && NET.cfg.links[k]; if (l) openLink(l); },
 };
 function confettiSmall() { confetti(40); }

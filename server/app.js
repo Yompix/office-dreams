@@ -125,7 +125,7 @@ function publicConfig(ctx) {
     season: c.season,
     symbol: c.tokenSymbol,
     dev: c.devAuth,
-    links: { channel: c.channelUrl, chat: c.chatUrl, x: c.xUrl },
+    links: { channel: c.channelUrl, chat: c.chatUrl, x: c.xUrl, site: /^https:/.test(c.publicUrl) ? c.publicUrl + '/site' : '' },
     eco: { D: c.eco.dailyD, l1: c.eco.refL1, l2: c.eco.refL2, cashEach: c.eco.inviteCash, gemsEach: c.eco.inviteGems, pass: c.eco.passBoost },
     shop: Eco.SHOP,
     solPay: SolPay.enabled(c),
