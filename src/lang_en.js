@@ -365,7 +365,7 @@ LANGS.en = {
   'err.sol_address': "This is not a Solana address",
   'shop.sol_hint': "Pay with ⭐ Stars or ◎ SOL — same items. Send the exact SOL amount from any Solana wallet; it is credited automatically when the network confirms it (usually under a minute).",
   'pay.title': "Pay with SOL",
-  'pay.sub': "Open your Solana wallet (Phantom, Solflare, Backpack…) or scan the QR code, and send exactly this amount.",
+  'pay.sub': "Tap Phantom or Solflare — the wallet opens and you only confirm. Or copy the address and send exactly this amount from any wallet.",
   'pay.amount': "Amount",
   'pay.exact': "Send exactly this amount — the last digits identify your payment.",
   'pay.to': "To address",

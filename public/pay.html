@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Office Dreams · оплата SOL</title>
+<link rel="icon" href="/token.png">
+<style>
+  :root { --bg: #070a1f; --panel: #10163a; --line: rgba(120, 140, 255, 0.22); --ink: #eef1ff; --ink2: #a6addb; --grn: #14f195; --red: #ff5470; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { background: radial-gradient(900px 400px at 50% -150px, rgba(153, 69, 255, 0.3), transparent), var(--bg); min-height: 100vh; }
+  main { max-width: 460px; margin: 0 auto; padding: 28px 18px; text-align: center; }
+  img { width: 84px; height: 84px; filter: drop-shadow(0 0 12px rgba(153, 69, 255, 0.6)); }
+  h1 { font-size: 22px; margin: 10px 0 4px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin: 16px 0; text-align: left; }
+  .kv { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+  .kv:last-child { border-bottom: 0; }
+  .kv span { color: var(--ink2); }
+  .amt { font-size: 26px; font-weight: 800; color: var(--grn); text-align: center; margin: 4px 0 8px; }
+  code { font-size: 12px; word-break: break-all; }
+  button { width: 100%; appearance: none; border: 0; cursor: pointer; font: 800 17px system-ui; padding: 15px; border-radius: 14px; color: #04210f; background: linear-gradient(180deg, #2ef2a0, #0fb873); box-shadow: 0 3px 0 #08734a, 0 0 18px rgba(20, 241, 149, 0.4); }
+  button:disabled { opacity: 0.5; }
+  .st { margin-top: 14px; min-height: 22px; color: var(--ink2); }
+  .ok { color: var(--grn); } .bad { color: var(--red); }
+  a.back { display: inline-block; margin-top: 14px; color: #8ad8ff; }
+</style>
+</head>
+<body>
+<main>
+  <img src="/token.png" alt="">
+  <h1>Оплата в SOL</h1>
+  <div class="card">
+    <div class="amt" id="amt">…</div>
+    <div class="kv"><span>Кому</span><code id="to"></code></div>
+    <div class="kv"><span>Заказ</span><code id="oid"></code></div>
+  </div>
+  <button id="pay" disabled>Подтвердить оплату</button>
+  <div class="st" id="st">Открой эту страницу в Phantom или Solflare.</div>
+  <a class="back" id="back" href="#">← Вернуться в игру</a>
+</main>
+<script src="/launch-lib.js"></script>
+<script>
+(function () {
+  var W = SOLLIB.web3;
+  var q = new URLSearchParams(location.search);
+  var to = q.get('to') || '', lamports = Number(q.get('l') || 0), ref = q.get('ref') || '', id = q.get('id') || '', app = q.get('app') || '';
+  var $ = function (i) { return document.getElementById(i); };
+  var say = function (t, c) { $('st').className = 'st ' + (c || ''); $('st').textContent = t; };
+  $('amt').textContent = (lamports / 1e9).toFixed(9).replace(/0+$/, '').replace(/\.$/, '') + ' SOL';
+  $('to').textContent = to; $('oid').textContent = id;
+  $('back').href = /^https:\/\/t\.me\//.test(app) ? app : 'https://t.me';
+  var ok = false;
+  try { ok = new W.PublicKey(to) && new W.PublicKey(ref) && lamports > 0 && lamports < 1e12; } catch (e) { ok = false; }
+  if (!ok) { say('Неверная ссылка оплаты. Вернись в игру и открой оплату ещё раз.', 'bad'); return; }
+  var prov = function () { return (window.phantom && window.phantom.solana) || (window.solflare && window.solflare.isSolflare ? window.solflare : null) || window.solana || null; };
+  var conn = new W.Connection(location.origin + '/api/solrpc', 'confirmed');
+  var tries = 0;
+  var ready = function () { if (prov()) { $('pay').disabled = false; say('Проверь сумму и нажми «Подтвердить оплату».'); } else if (tries++ < 20) setTimeout(ready, 250); else say('Кошелёк не найден. Открой эту страницу в браузере Phantom или Solflare.', 'bad'); };
+  ready();
+  $('pay').onclick = async function () {
+    $('pay').disabled = true;
+    try {
+      var p = prov();
+      var r = await p.connect();
+      var me = new W.PublicKey((r && r.publicKey ? r.publicKey : p.publicKey).toString());
+      var ix = W.SystemProgram.transfer({ fromPubkey: me, toPubkey: new W.PublicKey(to), lamports: lamports });
+      ix.keys.push({ pubkey: new W.PublicKey(ref), isSigner: false, isWritable: false }); // Solana Pay reference: the game finds this payment by it
+      var tx = new W.Transaction().add(ix);
+      tx.feePayer = me;
+      tx.recentBlockhash = (await conn.getLatestBlockhash('confirmed')).blockhash;
+      say('Подтверди в кошельке…');
+      var res = await p.signAndSendTransaction(tx);
+      say('✅ Оплата отправлена! Вернись в игру — она засчитается сама через несколько секунд.', 'ok');
+      $('back').style.fontWeight = '800';
+    } catch (e) {
+      say(/reject|cancel|denied/i.test(String(e && e.message)) ? 'Ты отменил оплату — ничего не списано.' : 'Не получилось: ' + String((e && e.message) || e).slice(0, 140), 'bad');
+      $('pay').disabled = false;
+    }
+  };
+})();
+</script>
+</body>
+</html>

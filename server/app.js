@@ -446,6 +446,11 @@ function createApp(cfg, opts = {}) {
         res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'public, max-age=300', 'access-control-allow-origin': '*', ...SEC_HEADERS });
         return res.end(JSON.stringify({ name: 'OFFICE', symbol: cfg.tokenSymbol || 'OFFX', description: 'OFFX — the token of Office Dreams, a pixel game studio tycoon in Telegram. 100,000,000 supply, minted once.', image: base + '/token.png', external_url: app }));
       }
+      if (p === '/pay') {
+        const f = path.join(cfg.root, 'public', 'pay.html');
+        res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', ...SEC_HEADERS });
+        return fs.createReadStream(f).pipe(res);
+      }
       if (p === '/launch') {
         const f = path.join(cfg.root, 'public', 'launch.html');
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', ...SEC_HEADERS });

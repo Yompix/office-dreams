@@ -509,7 +509,7 @@ function showSolPay(o, onPaid) {
     <p class="hint yel">${L('pay.exact')}</p>
     <div class="sp-to"><small>${L('pay.to')}</small><code>${esc(o.to)}</code><button class="btn ghost sm" data-act="solpay:cto">${I('copy', 12)} ${L('pay.copy')}</button></div>
     <div class="sp-qr" id="spqr"></div>
-    <button class="btn big glow wide" data-act="solpay:open">${I('sol', 16)} ${L('pay.open')}</button>
+    <div class="don-row"><button class="btn big glow" data-act="solpay:phantom">👻 Phantom</button><button class="btn big" data-act="solpay:solflare">☀️ Solflare</button></div>
     <p class="sp-st" id="spst"><i class="spin"></i> ${L('pay.waiting')}</p>`, { id: 'solpay' });
   const qr = () => { const el = $('#spqr'); if (el) el.innerHTML = qrSVG(o.url); };
   if (window.qrcode) qr(); else loadScript('https://unpkg.com/qrcode-generator@1.4.4/qrcode.js').then(qr).catch(() => {});
@@ -535,7 +535,13 @@ function solPayAct(what) {
   if (!o) return;
   if (what === 'camt') copyText(o.sol, (ok) => toast(ok ? L('pay.copied') : L('toast.copy_fail'), ok ? 'good' : 'bad', 'copy'));
   else if (what === 'cto') copyText(o.to, (ok) => toast(ok ? L('pay.copied') : L('toast.copy_fail'), ok ? 'good' : 'bad', 'copy'));
-  else if (what === 'open') { try { window.location.href = o.url; } catch (e) { toast(L('pay.no_wallet'), 'bad'); } }
+  else if (what === 'phantom' || what === 'solflare') {
+    // open our payment page inside the wallet's own browser (Telegram cannot open solana: links)
+    const app = NET.cfg && NET.cfg.bot ? 'https://t.me/' + NET.cfg.bot + (NET.cfg.app ? '/' + NET.cfg.app : '') : '';
+    const page = location.origin + '/pay?to=' + o.to + '&l=' + o.lamports + '&ref=' + o.ref + '&id=' + o.id + '&app=' + encodeURIComponent(app);
+    const ref = encodeURIComponent(location.origin);
+    openLink(what === 'phantom' ? 'https://phantom.app/ul/browse/' + encodeURIComponent(page) + '?ref=' + ref : 'https://solflare.com/ul/v1/browse/' + encodeURIComponent(page) + '?ref=' + ref);
+  }
 }
 function buySku(sku) {
   if (NET.mode !== 'online') return toast(L('shop.demo'), 'bad');
