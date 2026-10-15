@@ -59,6 +59,15 @@ function priceActivity(prev, cur) {
   return { raw, parts };
 }
 
+// players from closed countries (BLOCKED_COUNTRIES): no points, no airdrop, no giveaways
+function purgeBlocked(ctx) {
+  const list = (ctx.cfg.blockedCountries || []).filter((c) => /^[A-Z]{2}$/.test(c));
+  if (!list.length) return 0;
+  const q = list.map(() => '?').join(',');
+  const r = ctx.db.run(`UPDATE users SET pts=0, ref_pts=0, risk_state='banned', risk_note='region' WHERE country IN (${q}) AND (pts<>0 OR ref_pts<>0 OR risk_state<>'banned')`, ...list);
+  if (r.changes) { ctx.cache.lb = null; ctx.cache.ptsAll = null; ctx.cache.gwBoard = null; ctx.log && ctx.log('closed-region players reset', r.changes); }
+  return r.changes;
+}
 const isDev = (ctx, id) => !!(ctx.cfg.devIds && ctx.cfg.devIds.includes(Number(id)));
 const DEV_CASH = 1e9, DEV_GEMS = 10000;
 // developer account: top the game wallet up and keep it out of the airdrop
@@ -486,7 +495,7 @@ function ptsAll(ctx, now) {
 module.exports = {
   isDev, devSetup,
   packCash, vipOf, VIP, fulfilDonation, fundView,
-  CHECKIN, RISK_MULT, SHOP, supporterUntil, adCash, adInfo, adReward, persistUser, rollDay, dailyD, ledgerAdd, actVector, priceActivity, credit, payReferrals, checkin, checkinInfo,
+  purgeBlocked, CHECKIN, RISK_MULT, SHOP, supporterUntil, adCash, adInfo, adReward, persistUser, rollDay, dailyD, ledgerAdd, actVector, priceActivity, credit, payReferrals, checkin, checkinInfo,
   friendCounts, refLink, checkReferralActivation, friendsList, taskList, taskView, taskStart, taskClaim, leaderboard,
   shopItem, shopView, canBuy, fulfil, pieSchedule, pieFor, ecoView, r1, r3,
 };

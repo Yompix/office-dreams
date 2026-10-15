@@ -1126,5 +1126,26 @@ const AB = require('../server/antibot.js');
     });
     await envS.close();
   }
+  {
+    const envB = await makeEnv({ BLOCKED_COUNTRIES: 'RU,BR' });
+    await test('closed countries: existing players are reset and banned; new sign-ins are refused', async () => {
+      const P = new Player(envB, 8401); await P.auth();
+      const ctxB = envB.ctx;
+      ctxB.db.run("UPDATE users SET country='BR', pts=500, ref_pts=20 WHERE id=8401");
+      const Q = new Player(envB, 8402); await Q.auth();
+      ctxB.db.run("UPDATE users SET country='UA', pts=300 WHERE id=8402");
+      const Eco = require('../server/economy.js');
+      assert.equal(Eco.purgeBlocked(ctxB), 1);
+      const u = ctxB.db.get('SELECT pts, ref_pts, risk_state FROM users WHERE id=8401');
+      assert.deepEqual([u.pts, u.ref_pts, u.risk_state], [0, 0, 'banned']);
+      assert.equal(ctxB.db.get('SELECT pts FROM users WHERE id=8402').pts, 300, 'other countries untouched');
+      assert.equal(Eco.purgeBlocked(ctxB), 0, 'idempotent');
+      const M = new Player(envB, 8403); assert.equal((await M.auth('', { tz: 'Europe/Moscow' })).status, 403);
+      assert.equal(M.last.err, 'region');
+      const B = new Player(envB, 8404); assert.equal((await B.auth('', { tz: 'America/Sao_Paulo' })).status, 403);
+      const K = new Player(envB, 8405); assert.equal((await K.auth('', { tz: 'Europe/Kyiv' })).status, 200, 'Ukraine plays');
+    });
+    await envB.close();
+  }
   summary();
 })();

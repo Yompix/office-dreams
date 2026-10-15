@@ -9,6 +9,7 @@ const PvP = require('./pvp.js');
 const SolPay = require('./solpay.js');
 const Airdrop = require('./airdrop.js');
 const Market = require('./market.js');
+const Eco = require('./economy.js');
 
 function main() {
   if (!cfg.botToken && !cfg.devAuth) {
@@ -28,7 +29,8 @@ function main() {
     for (const [k, v] of ctx.rate) if (now - v.t > 120000) ctx.rate.delete(k);
   }, 60000));
   timers.push(setInterval(() => { try { PvP.sweep(ctx); } catch (e) { ctx.log('pvp sweep', e.message); } }, 5000));
-  timers.push(setInterval(() => { try { const r = AB.sweep(ctx); if (r.changed) ctx.log('antibot sweep', r); } catch (e) { ctx.log('sweep error', e); } }, 5 * 60000));
+  timers.push(setInterval(() => { try { const r = AB.sweep(ctx); if (r.changed) ctx.log('antibot sweep', r); Eco.purgeBlocked(ctx); } catch (e) { ctx.log('sweep error', e); } }, 5 * 60000));
+  try { Eco.purgeBlocked(ctx); } catch (e) { ctx.log('purge error', e.message); }
   timers.push(setInterval(() => { try { ctx.db.raw.exec('PRAGMA wal_checkpoint(PASSIVE)'); } catch (_) { /* ignore */ } }, 10 * 60000));
   // SOL payments: credit transfers that arrived after the player closed the game; keep the SOL price fresh
   timers.push(setInterval(() => { SolPay.sweep(ctx).then((r) => { if (r.paid) ctx.log('sol payments credited', r); }).catch((e) => ctx.log('sol sweep', e.message)); }, 30000));
