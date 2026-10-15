@@ -361,7 +361,13 @@ function cityRoom(g, VW, wall, floor, trim) {
   px(g, 2, 46, 18, 41, '#0a0c22'); px(g, 4, 48, 14, 39, '#1c2050'); px(g, 15, 66, 2, 3, '#ffd23f');
 }
 function cityGlow(g, x, y, w, h, col, a) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = a; px(g, x, y, w, h, col); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
-function cityLamp(g, x, t) { px(g, x, 0, 1, 14, '#5a5f8a'); px(g, x - 3, 14, 7, 3, '#ffd890'); cityGlow(g, x - 10, 16, 21, 22, '#ffc070', 0.08 + 0.02 * Math.sin(t * 6 + x)); }
+function cityLamp(g, x, t) {
+  px(g, x, 0, 1, 14, '#5a5f8a'); px(g, x - 3, 14, 7, 3, '#ffd890');
+  // a soft cone of warm light under the shade (no hard box)
+  g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.06 + 0.015 * Math.sin(t * 6 + x);
+  for (let i = 0; i < 26; i += 2) { const hw = 2 + Math.round(i * 0.45); px(g, x - hw, 17 + i, hw * 2 + 1, 2, '#ffc070'); }
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+}
 function cityInterior(g, VW, t) {
   const id = CT.inside, cx = Math.round(VW * 0.64), fr = Math.floor(CT.t * 6);
   const talking = CT.talkT && CT.t - CT.talkT < 1.2;
