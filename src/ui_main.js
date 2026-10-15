@@ -346,7 +346,7 @@ const ACT = {
   pay: (sku) => buySku(sku),
   paysol: (sku) => buySol(sku),
   solpay: (what) => solPayAct(what),
-  donamt: (n) => { UI.donAmt = Number(n); UI.hubVer = (UI.hubVer || 0) + 1; render(true); if (UI.modal && UI.modal.id === 'donate') openModal(donatePanel(), { id: 'donate' }); },
+  donamt: (n) => { UI.donAmt = Number(n); UI.hubVer = (UI.hubVer || 0) + 1; render(true); },
   donstars: () => donateStars(),
   donsol: () => donateSol(),
   ad: () => {
@@ -378,8 +378,9 @@ const ACT = {
     render(true);
   },
   donopen: () => {
-    const show = () => openModal(donatePanel() || `<div class="loading">${L('ui.loading')}</div>`, { id: 'donate' });
-    if (UI.hub.donate) show(); else { show(); loadHub('donate', true); const t = setInterval(() => { if (UI.hub.donate) { clearInterval(t); if (UI.modal && UI.modal.id === 'donate') show(); } }, 300); setTimeout(() => clearInterval(t), 8000); }
+    // donations live inside the airdrop card on the Token tab
+    go('drop', 'token');
+    setTimeout(() => { const c = $('#adcard'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
   },
   adentry: () => airdropPay('adentry'),
   adfee: () => airdropPay('adfee'),

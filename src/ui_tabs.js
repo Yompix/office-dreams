@@ -724,27 +724,22 @@ function hubShop() {
     <p class="hint">${L('shop.hint', { p: Math.round((((NET.eco && NET.eco.supBoost) || 1.1) - 1) * 100) })}</p>
   </section>`;
 }
-function donatePanel() {
+/* donation controls (Stars / SOL) + wall of thanks, shown inside the airdrop card */
+function donateBits() {
   const d = UI.hub.donate;
-  if (!d) return '';
-  const pct = Math.min(100, (d.usd / Math.max(1, d.goalUsd)) * 100);
+  if (!d) return `<div class="loading">${L('ui.loading')}</div>`;
   const amt = donAmount();
   const chips = [100, 250, 500, 1000, 2500, 5000].filter((n) => n >= d.min && n <= d.max);
   const solAmt = d.sol ? solDonAmount() : 0;
-  return `<section class="panel donate">
-    <h2 class="h2">🚀 ${L('don.title')}</h2>
-    <p class="sub">${L('don.sub')}</p>
-    <div class="fund">
-      <div class="fund-h"><b class="px">$${fmt(Math.round(d.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(d.goalUsd) })}</small></div>
-      <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
-      <small class="mut">${L('don.donors', { n: d.donors })}${d.mine ? ' · ' + L('don.mine', { n: fmt(d.mine) }) : ''}</small>
-    </div>
+  return `<div class="don-in">
+    <h3 class="h3">⭐ ${L('don.title')}</h3>
     <div class="don-chips">${chips.map((n) => `<button class="chip ${n === amt ? 'on' : ''}" data-act="donamt:${n}">${fmt(n)} ⭐</button>`).join('')}</div>
     <label class="don-own"><small>${L('don.own', { min: d.min })}</small><input id="donin" type="number" inputmode="numeric" min="${d.min}" max="${d.max}" step="10" value="${amt}"></label>
     <div class="pay2"><button class="btn gold" data-act="donstars">⭐ ${L('don.give', { n: fmt(amt) })}</button>${d.sol ? `<button class="btn solb" data-act="donsol">${I('sol', 14)} ${solAmt} SOL</button>` : ''}</div>
+    <small class="mut">${L('don.donors', { n: d.donors })}${d.mine ? ' · ' + L('don.mine', { n: fmt(d.mine) }) : ''}</small>
     <p class="hint">${L('don.note', { max: fmt(d.max) })}</p>
     ${d.top && d.top.length ? `<h3 class="h3">💖 ${L('don.wall')}</h3><ol class="board">${d.top.map((x) => `<li class="${x.me ? 'me' : ''}"><span class="px rk">${x.rank}</span><b>${flag(x.country)} ${esc(x.name || '—')}</b><span class="yel">${fmt(x.stars)} ⭐</span></li>`).join('')}</ol>` : ''}
-  </section>`;
+  </div>`;
 }
 /* ---------- token market: live price on Solana (Jupiter), chart, holdings, buy ---------- */
 function fmtUsdP(v) { if (!v) return '$0'; if (v >= 1) return '$' + v.toFixed(3); if (v >= 0.01) return '$' + v.toFixed(4); return '$' + v.toPrecision(3); }
@@ -806,15 +801,16 @@ function airdropCard(e, mini) {
   const amt = fmt(Math.floor(a.amount || 0));
   if (a.st === 'season') {
     const pct = Math.min(100, (a.usd / Math.max(1, a.goal)) * 100);
-    return `<section class="panel adrop">
+    return `<section class="panel adrop" id="adcard">
       <h2 class="h2">🪂 ${L('ad.wait_t', { sym })}</h2>
       ${mini ? '' : `<p class="sub">${L('ad.wait_s', { goal: '$' + fmt(a.goal), sym })}</p>`}
       <div class="fund-h"><b class="px">$${fmt(Math.round(a.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(a.goal) })}</small></div>
       <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
       ${a.entry ? (a.entry.done ? `<div class="vcard"><i class="vbadge big">${I('check', 18)}</i><div><b>${L('ver.title')}</b><small>${L('ver.text')}</small></div></div>` : `<p class="sub">${L('ad.entry_t', { usd: '$' + a.entry.usd, sol: a.entry.sol })}</p>
         <button class="btn big glow wide" data-act="adentry">${I('sol', 16)} ${L('ad.entry_btn', { sol: a.entry.sol })}</button>`) : ''}
-      <button class="btn big gold wide" data-act="donopen" style="margin-top:8px">⭐ ${a.entry && !a.entry.done ? L('ad.entry_stars', { n: fmt((UI.hub.donate && UI.hub.donate.min) || 100) }) : L('don.btn_long')}</button>
+      ${mini ? `<button class="btn big gold wide" data-act="donopen" style="margin-top:8px">⭐ ${a.entry && !a.entry.done ? L('ad.entry_stars', { n: fmt((UI.hub.donate && UI.hub.donate.min) || 100) }) : L('don.btn_long')}</button>` : ''}
       ${a.entry && !a.entry.done ? `<p class="hint">${L('ad.entry_hint')}</p>` : ''}
+      ${mini ? '' : donateBits()}
     </section>`;
   }
   let act;
@@ -891,7 +887,6 @@ function hubToken() {
     <div class="uses">${uses.map((u) => `<div class="use">${L('tk2.' + u)}</div>`).join('')}</div>
     <p class="hint">${L('tk2.uses_hint')}</p>
   </section>
-  ${donatePanel()}
   <p class="hint pad">${L('hub.disclaimer', { sym })}</p>`;
 }
 function tabDrop() {

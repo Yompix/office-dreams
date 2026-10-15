@@ -1218,3 +1218,5 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .s-l { font-size: 9.5px !important; text-align: center !important; }
 .s-ico { width: 30px; height: 30px; }
 @media (min-width: 440px) { .s-l { font-size: 11px !important; } }
+.adrop .don-in { margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(120, 140, 255, 0.25); }
+.adrop .don-in .h3 { margin-top: 0; }
