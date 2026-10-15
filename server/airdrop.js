@@ -202,13 +202,21 @@ async function announce(ctx) {
   return sent;
 }
 
+// how many real players are verified (any contribution; dev accounts excluded), cached for a minute
+function verifiedCount(ctx, now = Date.now()) {
+  const c = ctx.cache.adVer;
+  if (c && now - c.t < 60000) return c.n;
+  const n = ctx.db.all("SELECT DISTINCT uid FROM purchases WHERE sku<>'adfee'").filter((r) => !Eco.isDev(ctx, r.uid)).length;
+  ctx.cache.adVer = { t: now, n };
+  return n;
+}
 /* ---- what the player sees ---- */
 function view(ctx, u) {
   const st = state(ctx);
   const f = Eco.fundView(ctx, 0);
   const a = st.status === 'season' ? null : ctx.db.get('SELECT * FROM airdrop_alloc WHERE uid=?', u.id);
   return {
-    st: st.status, usd: f.usd, goal: f.goalUsd, at: st.at, players: st.n,
+    st: st.status, usd: f.usd, goal: f.goalUsd, at: st.at, players: st.n, verified: verifiedCount(ctx),
     amount: a ? Number(BigInt(a.amount)) / 10 ** ctx.cfg.airdrop.decimals : 0,
     claim: a ? a.status || '' : '', tx: a && a.status === 'sent' ? a.tx : null,
     entry: ctx.cfg.airdrop.entryUsd > 0 ? { usd: ctx.cfg.airdrop.entryUsd, sol: require('./solpay.js').entrySol(ctx.cfg), stars: entryStars(ctx.cfg), done: entered(ctx, u.id) } : null,
@@ -284,9 +292,9 @@ function adminView(ctx) {
   const c = ctx.db.get("SELECT COUNT(*) AS n, SUM(CASE WHEN status='sent' THEN 1 ELSE 0 END) AS sent, SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) AS failed FROM airdrop_alloc");
   const d = distributor(ctx);
   // verified players: any contribution counts (SOL deposit, Stars entry, donation or a shop purchase), as in entered()
-  const ent = ctx.db.all("SELECT DISTINCT uid FROM purchases WHERE sku<>'adfee'").filter((r) => !Eco.isDev(ctx, r.uid)).length;
+  const ent = verifiedCount(ctx);
   const wrong = d && ctx.cfg.airdrop.secret && ctx.cfg.airdrop.wallet && d.publicKey.toBase58() !== ctx.cfg.airdrop.wallet;
   return { ok: true, state: st, entered: ent, keyMismatch: !!wrong, wallet: ctx.cfg.airdrop.wallet || null, allocs: c.n, sent: c.sent || 0, failed: c.failed || 0, mint: (ctx.cfg.token && ctx.cfg.token.addr) || null, distributor: d ? d.publicKey.toBase58() : null, fund: Eco.fundView(ctx, 0) };
 }
 
-module.exports = { distributorAddr, autoMint, entered, entryStars, entryBlock, fulfilEntryStars, feePaid, tick, snapshot, view, claim, adminView, state, announce, tokenReady };
+module.exports = { verifiedCount, distributorAddr, autoMint, entered, entryStars, entryBlock, fulfilEntryStars, feePaid, tick, snapshot, view, claim, adminView, state, announce, tokenReady };

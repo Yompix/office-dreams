@@ -764,4 +764,5 @@ LANGS.en = {
   "help.p11": "🌆 City: coffee shop (energy), academy (cheap upgrades that take time), contract board (gems and cash for a game of the right genre), game store (+35% sales).",
   "tut.city": "🌆 The city: step outside! The coffee shop gives energy, the academy trains staff cheaply, the board pays gems for contracts. Come here when you see “!”.",
   "tok.site": "Project website — share it with friends",
+  "ad.verified_n": "Verified players: {n}",
 };

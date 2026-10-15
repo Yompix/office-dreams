@@ -442,6 +442,12 @@ function createApp(cfg, opts = {}) {
         return;
       }
       // token metadata (the URI written into the OFFICE mint) and the launch page (the owner signs everything in Phantom)
+      // public aggregate numbers (no personal data): verified players and the launch fund
+      if (p === '/stats.json') {
+        const f = Eco.fundView(ctx, 0);
+        res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'public, max-age=60', 'access-control-allow-origin': '*', ...SEC_HEADERS });
+        return res.end(JSON.stringify({ verified: Airdrop.verifiedCount(ctx), fundUsd: f.usd, goalUsd: f.goalUsd }));
+      }
       if (p === '/token.json') {
         const base = cfg.publicUrl || `http://${req.headers.host}`;
         const app = cfg.botUsername ? `https://t.me/${cfg.botUsername}${cfg.appShort ? '/' + cfg.appShort : ''}` : base;

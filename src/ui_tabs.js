@@ -809,6 +809,7 @@ function airdropCard(e, mini) {
       ${mini ? '' : `<p class="sub">${L('ad.wait_s', { goal: '$' + fmt(a.goal), sym })}</p>`}
       <div class="fund-h"><b class="px">$${fmt(Math.round(a.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(a.goal) })}</small></div>
       <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
+      ${a.verified ? `<small class="mut">✅ ${L('ad.verified_n', { n: fmt(a.verified) })}</small>` : ''}
       ${a.entry ? (a.entry.done ? `<div class="vcard"><i class="vbadge big">${I('check', 18)}</i><div><b>${L('ver.title')}</b><small>${L('ver.text')}</small></div></div>` : `<p class="sub">${L('ad.entry_t', { usd: '$' + a.entry.usd, sol: a.entry.sol })}</p>
         <button class="btn big glow wide" data-act="adentry">${I('sol', 16)} ${L('ad.entry_btn', { sol: a.entry.sol })}</button>`) : ''}
       ${mini ? `<button class="btn big gold wide" data-act="donopen" style="margin-top:8px">⭐ ${a.entry && !a.entry.done ? L('ad.entry_stars', { n: fmt((UI.hub.donate && UI.hub.donate.min) || 100) }) : L('don.btn_long')}</button>` : ''}
