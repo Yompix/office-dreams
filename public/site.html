@@ -14,71 +14,125 @@
 <link rel="icon" href="/token.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&family=Press+Start+2P&display=swap">
 <style>
-  :root { --bg: #050820; --panel: rgba(16, 22, 64, 0.72); --line: rgba(120, 140, 255, 0.22); --ink: #eef1ff; --ink2: #a6addb; --cy: #3fd0ff; --mag: #ff3fd0; --grn: #14f195; --pur: #9945ff; --yel: #ffd23f; }
+  :root { --bg: #040619; --panel: rgba(14, 20, 60, 0.66); --line: rgba(120, 140, 255, 0.2); --ink: #eef1ff; --ink2: #a6addb; --cy: #3fd0ff; --mag: #ff3fd0; --grn: #14f195; --pur: #9945ff; --yel: #ffd23f; --ease: cubic-bezier(.2, .9, .25, 1); }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body { margin: 0; color: var(--ink); font: 17px/1.6 'Exo 2', system-ui, sans-serif; background: var(--bg); overflow-x: hidden; }
-  body::before { content: ''; position: fixed; inset: 0; z-index: -2; background: radial-gradient(900px 520px at 15% -10%, rgba(153, 69, 255, 0.35), transparent 60%), radial-gradient(800px 500px at 100% 10%, rgba(20, 241, 149, 0.16), transparent 60%), radial-gradient(900px 600px at 50% 110%, rgba(255, 63, 208, 0.18), transparent 60%), var(--bg); }
-  body::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px); }
+  body { margin: 0; color: var(--ink); font: 17px/1.6 'Exo 2', system-ui, sans-serif; background: var(--bg); overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
   a { color: inherit; }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  img { max-width: 100%; }
+  #bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2; display: block; }
+  .glow { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(800px 480px at 12% -8%, rgba(153, 69, 255, 0.32), transparent 62%), radial-gradient(760px 480px at 100% 6%, rgba(20, 241, 149, 0.13), transparent 60%), radial-gradient(900px 600px at 50% 112%, rgba(255, 63, 208, 0.16), transparent 60%); }
+  .scan { position: fixed; inset: 0; z-index: 30; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.022) 0 1px, transparent 1px 3px); }
+  #prog { position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 40; background: linear-gradient(90deg, var(--cy), var(--mag), var(--yel)); box-shadow: 0 0 12px var(--mag); }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
   .px { font-family: 'Press Start 2P', monospace; letter-spacing: 0.02em; }
   /* nav */
-  nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(12px); background: rgba(5, 8, 32, 0.6); border-bottom: 1px solid var(--line); }
-  nav .wrap { display: flex; align-items: center; gap: 14px; height: 64px; }
-  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; }
-  .brand img { width: 34px; height: 34px; }
+  nav { position: sticky; top: 0; z-index: 20; transition: background 0.3s, border-color 0.3s; border-bottom: 1px solid transparent; }
+  nav.solid { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(4, 6, 25, 0.66); border-color: var(--line); }
+  nav .wrap { display: flex; align-items: center; gap: 12px; height: 66px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .brand img { width: 36px; height: 36px; animation: bob 4s ease-in-out infinite; }
   .brand span { font-size: 11px; }
-  .lang { display: flex; gap: 4px; padding: 3px; border-radius: 11px; border: 1px solid var(--line); background: var(--panel); }
+  nav .links { margin-left: auto; display: flex; gap: 22px; font-weight: 700; font-size: 15px; }
+  nav .links a { text-decoration: none; color: var(--ink2); position: relative; transition: color 0.2s; }
+  nav .links a::after { content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; border-radius: 2px; background: var(--cy); transform: scaleX(0); transition: transform 0.3s var(--ease); }
+  nav .links a:hover, nav .links a.on { color: var(--ink); }
+  nav .links a.on::after { transform: scaleX(1); }
+  .lang { display: flex; gap: 3px; padding: 3px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
   .lang[hidden] { display: none; }
-  .lang button { border: 0; background: transparent; color: var(--ink2); font: 700 12px 'Exo 2', sans-serif; padding: 6px 9px; border-radius: 8px; cursor: pointer; }
-  .lang button.on { background: linear-gradient(180deg, #a96bff, #6d2fe0); color: #fff; }
-  nav .links { margin-left: auto; display: flex; gap: 18px; font-weight: 600; font-size: 15px; }
-  nav .links a { text-decoration: none; color: var(--ink2); }
-  nav .links a:hover { color: var(--ink); }
+  .lang button { border: 0; background: transparent; color: var(--ink2); font: 800 12px 'Exo 2', sans-serif; padding: 6px 10px; border-radius: 9px; cursor: pointer; transition: background 0.25s, color 0.25s; }
+  .lang button.on { background: linear-gradient(180deg, #a96bff, #6d2fe0); color: #fff; box-shadow: 0 0 12px rgba(153, 69, 255, 0.5); }
   /* buttons */
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 22px; border-radius: 14px; font: 800 16px 'Exo 2', sans-serif; text-decoration: none; border: 0; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
-  .btn:hover { transform: translateY(-2px); }
-  .btn.play { color: #04210f; background: linear-gradient(180deg, #45f7a6, #0fb873); box-shadow: 0 4px 0 #08734a, 0 0 28px rgba(20, 241, 149, 0.45); }
-  .btn.buy { color: #fff; background: linear-gradient(180deg, #a96bff, #6d2fe0); box-shadow: 0 4px 0 #43179a, 0 0 24px rgba(153, 69, 255, 0.45); }
+  .btn { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 15px 24px; border-radius: 15px; font: 800 16px 'Exo 2', sans-serif; text-decoration: none; border: 0; cursor: pointer; transition: transform 0.25s var(--ease), box-shadow 0.25s, filter 0.2s; isolation: isolate; }
+  .btn::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%); transform: translateX(-120%); transition: transform 0.7s var(--ease); }
+  .btn:hover::before { transform: translateX(120%); }
+  .btn:hover { transform: translateY(-3px); }
+  .btn:active { transform: translateY(0) scale(0.98); }
+  .btn.play { color: #04210f; background: linear-gradient(180deg, #4dfab0, #0fb873); box-shadow: 0 5px 0 #08734a, 0 0 30px rgba(20, 241, 149, 0.45); }
+  .btn.play.pulse { animation: pulse 2.6s ease-in-out infinite; }
+  .btn.buy { color: #fff; background: linear-gradient(180deg, #b07aff, #6d2fe0); box-shadow: 0 5px 0 #43179a, 0 0 26px rgba(153, 69, 255, 0.45); }
   .btn.ghost { color: var(--ink); background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line); }
-  .btn.sm { padding: 9px 14px; font-size: 14px; border-radius: 11px; }
+  .btn.ghost:hover { border-color: rgba(63, 208, 255, 0.5); box-shadow: 0 0 18px rgba(63, 208, 255, 0.25); }
+  .btn.sm { padding: 9px 15px; font-size: 14px; border-radius: 11px; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 5px 0 #08734a, 0 0 22px rgba(20, 241, 149, 0.35); } 50% { box-shadow: 0 5px 0 #08734a, 0 0 46px rgba(20, 241, 149, 0.7); } }
   /* hero */
-  .hero { padding: 72px 0 40px; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 40px; align-items: center; }
-  .tag { display: inline-flex; gap: 8px; align-items: center; padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel); font-size: 13px; color: var(--ink2); }
-  .tag i { width: 8px; height: 8px; border-radius: 50%; background: var(--grn); box-shadow: 0 0 10px var(--grn); }
-  h1 { font-size: clamp(36px, 6vw, 64px); line-height: 1.05; margin: 18px 0 16px; font-weight: 800; }
-  h1 b { background: linear-gradient(90deg, var(--cy), var(--mag) 55%, var(--yel)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .lead { font-size: 19px; color: var(--ink2); max-width: 560px; margin: 0 0 28px; }
+  .hero { padding: 64px 0 36px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; min-height: calc(100vh - 66px); min-height: calc(100svh - 66px); }
+  .tag { display: inline-flex; gap: 8px; align-items: center; padding: 7px 13px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel); font-size: 13px; color: var(--ink2); }
+  .tag i { width: 8px; height: 8px; border-radius: 50%; background: var(--grn); box-shadow: 0 0 10px var(--grn); animation: blink 1.6s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+  h1 { font-size: clamp(38px, 6.4vw, 70px); line-height: 1.03; margin: 18px 0 18px; font-weight: 900; letter-spacing: -0.01em; }
+  h1 b { background: linear-gradient(90deg, var(--cy), var(--mag), var(--yel), var(--cy)); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 6s linear infinite; }
+  @keyframes shimmer { to { background-position: 300% 0; } }
+  .lead { font-size: 19px; color: var(--ink2); max-width: 560px; margin: 0 0 30px; }
+  .lead b { color: var(--ink); }
   .cta { display: flex; flex-wrap: wrap; gap: 12px; }
-  .coin { position: relative; justify-self: center; width: min(360px, 80vw); aspect-ratio: 1; }
-  .coin::before { content: ''; position: absolute; inset: 8%; border-radius: 50%; background: conic-gradient(from 0deg, var(--pur), var(--cy), var(--grn), var(--mag), var(--pur)); filter: blur(40px); opacity: 0.55; animation: spin 9s linear infinite; }
-  .coin img { position: relative; width: 100%; height: 100%; animation: float 5s ease-in-out infinite; filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.6)); }
+  .hero-in > * { opacity: 0; transform: translateY(24px); animation: rise 0.9s var(--ease) forwards; }
+  .hero-in > *:nth-child(2) { animation-delay: 0.12s; } .hero-in > *:nth-child(3) { animation-delay: 0.24s; } .hero-in > *:nth-child(4) { animation-delay: 0.36s; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  .coinbox { position: relative; justify-self: center; width: min(400px, 82vw); aspect-ratio: 1; perspective: 900px; opacity: 0; animation: pop 1.1s var(--ease) 0.2s forwards; }
+  @keyframes pop { from { opacity: 0; transform: scale(0.7) rotate(-12deg); } to { opacity: 1; transform: none; } }
+  .coinbox::before { content: ''; position: absolute; inset: 6%; border-radius: 50%; background: conic-gradient(from 0deg, var(--pur), var(--cy), var(--grn), var(--mag), var(--pur)); filter: blur(46px); opacity: 0.6; animation: spin 9s linear infinite; }
+  .ring { position: absolute; inset: -4%; border-radius: 50%; border: 1px dashed rgba(63, 208, 255, 0.35); animation: spin 26s linear infinite; }
+  .ring i { position: absolute; width: 10px; height: 10px; border-radius: 3px; background: var(--yel); box-shadow: 0 0 14px var(--yel); top: -5px; left: calc(50% - 5px); }
+  .ring.r2 { inset: 4%; animation-duration: 18s; animation-direction: reverse; border-color: rgba(255, 63, 208, 0.3); }
+  .ring.r2 i { background: var(--mag); box-shadow: 0 0 14px var(--mag); }
+  .coin { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.15s linear; }
+  .coin img { width: 100%; height: 100%; display: block; animation: float 5s ease-in-out infinite; filter: drop-shadow(0 26px 44px rgba(0, 0, 0, 0.65)); }
   @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes float { 50% { transform: translateY(-14px) rotate(-2deg); } }
+  @keyframes float { 50% { transform: translateY(-16px); } }
+  @keyframes bob { 50% { transform: translateY(-3px) rotate(-6deg); } }
+  .scroll-hint { display: block; width: 26px; height: 42px; margin: 34px 0 0; border: 2px solid rgba(255, 255, 255, 0.25); border-radius: 14px; position: relative; }
+  .scroll-hint::after { content: ''; position: absolute; left: 50%; top: 8px; width: 4px; height: 8px; margin-left: -2px; border-radius: 2px; background: var(--cy); animation: wheel 1.8s ease-in-out infinite; }
+  @keyframes wheel { 60% { transform: translateY(12px); opacity: 0; } 100% { opacity: 0; } }
+  /* ticker */
+  .ticker { border-block: 1px solid var(--line); background: rgba(10, 14, 48, 0.6); overflow: hidden; white-space: nowrap; padding: 14px 0; }
+  .ticker div { display: inline-flex; gap: 40px; animation: tick 28s linear infinite; padding-left: 40px; }
+  .ticker span { font-size: 13px; color: var(--ink2); display: inline-flex; gap: 40px; }
+  .ticker b { color: var(--yel); text-shadow: 0 0 10px rgba(255, 210, 63, 0.5); }
+  @keyframes tick { to { transform: translateX(-50%); } }
   /* sections */
-  section { padding: 56px 0; }
-  h2 { font-size: clamp(26px, 4vw, 38px); margin: 0 0 10px; font-weight: 800; }
-  .kick { color: var(--cy); font-size: 11px; margin-bottom: 14px; display: block; }
-  .sub { color: var(--ink2); max-width: 640px; margin: 0 0 28px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 22px; position: relative; overflow: hidden; }
-  .card::after { content: ''; position: absolute; inset: 0 0 auto; height: 2px; background: linear-gradient(90deg, transparent, var(--c, var(--cy)), transparent); opacity: 0.8; }
-  .card .ico { font-size: 34px; line-height: 1; margin-bottom: 12px; display: block; }
-  .card h3 { margin: 0 0 6px; font-size: 19px; }
+  section { padding: 76px 0; }
+  h2 { font-size: clamp(28px, 4.2vw, 44px); line-height: 1.12; margin: 0 0 12px; font-weight: 900; }
+  .kick { color: var(--cy); font-size: 11px; margin-bottom: 14px; display: inline-block; text-shadow: 0 0 10px rgba(63, 208, 255, 0.6); }
+  .sub { color: var(--ink2); max-width: 640px; margin: 0 0 32px; font-size: 18px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 24px; position: relative; overflow: hidden; transition: transform 0.35s var(--ease), border-color 0.3s, box-shadow 0.35s; transform-style: preserve-3d; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .card::after { content: ''; position: absolute; inset: 0 0 auto; height: 2px; background: linear-gradient(90deg, transparent, var(--c, var(--cy)), transparent); }
+  .card::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.3s; background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--c, var(--cy)) 22%, transparent), transparent 70%); }
+  .card:hover { border-color: color-mix(in srgb, var(--c, var(--cy)) 55%, transparent); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px color-mix(in srgb, var(--c, var(--cy)) 20%, transparent); }
+  .card:hover::before { opacity: 1; }
+  .card .ico { font-size: 36px; line-height: 1; margin-bottom: 14px; display: inline-block; transition: transform 0.4s var(--ease); }
+  .card:hover .ico { transform: scale(1.18) rotate(-8deg); }
+  .card h3 { margin: 0 0 6px; font-size: 20px; }
   .card p { margin: 0; color: var(--ink2); font-size: 15px; }
-  .shot { margin-top: 26px; border-radius: 20px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 0 60px rgba(63, 208, 255, 0.15); }
-  .shot img { display: block; width: 100%; image-rendering: pixelated; }
-  /* team */
-  .team { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
-  .team img { width: 64px; height: 64px; border-radius: 16px; border: 2px solid rgba(63, 208, 255, 0.4); background: #0b1250; }
+  /* phone showcase */
+  .show { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 46px; align-items: center; margin-top: 56px; }
+  .phone { position: relative; justify-self: center; width: min(300px, 78vw); aspect-ratio: 390 / 800; border-radius: 42px; padding: 11px; background: linear-gradient(160deg, #2a2f6a, #0d1034); box-shadow: 0 0 0 2px rgba(120, 140, 255, 0.35), 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(63, 208, 255, 0.18); }
+  .phone::before { content: ''; position: absolute; top: 18px; left: 50%; width: 90px; height: 22px; margin-left: -45px; border-radius: 12px; background: #05061a; z-index: 3; }
+  .screen { position: relative; width: 100%; height: 100%; border-radius: 32px; overflow: hidden; background: #060a26; }
+  .screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; opacity: 0; transform: scale(1.06); transition: opacity 0.8s var(--ease), transform 1.2s var(--ease); }
+  .screen img.on { opacity: 1; transform: none; }
+  .tabs { display: flex; flex-direction: column; gap: 10px; }
+  .tabs button { display: flex; align-items: center; gap: 14px; text-align: left; padding: 16px 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: 700 17px 'Exo 2', sans-serif; cursor: pointer; transition: border-color 0.3s, background 0.3s, transform 0.3s var(--ease); position: relative; overflow: hidden; }
+  .tabs button span { font-size: 24px; }
+  .tabs button small { display: block; color: var(--ink2); font-weight: 400; font-size: 14px; }
+  .tabs button i { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: linear-gradient(90deg, var(--cy), var(--mag)); }
+  .tabs button.on { border-color: rgba(63, 208, 255, 0.55); background: rgba(30, 40, 110, 0.7); transform: translateX(6px); }
+  .tabs button.on i { animation: fill 4s linear forwards; }
+  @keyframes fill { to { width: 100%; } }
+  .team { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+  .team img { width: 60px; height: 60px; border-radius: 16px; border: 2px solid rgba(63, 208, 255, 0.35); background: #0b1250; transition: transform 0.3s var(--ease), border-color 0.3s; }
+  .team img:hover { transform: translateY(-6px) scale(1.08); border-color: var(--yel); }
   /* tokenomics */
-  .tok { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
-  .bar { display: flex; height: 26px; border-radius: 99px; overflow: hidden; border: 1px solid var(--line); margin: 18px 0 14px; }
-  .bar i:first-child { width: 90%; background: linear-gradient(90deg, var(--grn), var(--cy)); }
-  .bar i:last-child { width: 10%; background: linear-gradient(90deg, var(--pur), var(--mag)); }
+  .tok { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: stretch; }
+  .big { font-size: clamp(30px, 5vw, 46px); font-weight: 900; line-height: 1; margin: 10px 0 4px; background: linear-gradient(90deg, var(--grn), var(--cy)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .bar { display: flex; height: 28px; border-radius: 99px; overflow: hidden; border: 1px solid var(--line); margin: 20px 0 16px; background: rgba(0, 0, 0, 0.3); }
+  .bar i { width: 0; transition: width 1.6s var(--ease); }
+  .bar i:first-child { background: linear-gradient(90deg, var(--grn), var(--cy)); }
+  .bar i:last-child { background: linear-gradient(90deg, var(--pur), var(--mag)); transition-delay: 0.9s; }
+  .in .bar i:first-child { width: 90%; } .in .bar i:last-child { width: 10%; }
   .legend { display: flex; flex-direction: column; gap: 10px; }
   .legend div { display: flex; gap: 10px; align-items: baseline; }
   .legend b { font-size: 22px; min-width: 64px; }
@@ -90,84 +144,110 @@
   .mint { display: flex; gap: 8px; align-items: center; margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--line); }
   .mint code { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cy); }
   /* steps */
-  .steps { counter-reset: s; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-  .steps .card { padding-top: 54px; }
-  .steps .card::before { counter-increment: s; content: counter(s); position: absolute; top: 18px; left: 22px; font: 14px 'Press Start 2P'; color: var(--yel); text-shadow: 0 0 10px rgba(255, 210, 63, 0.6); }
+  .steps { counter-reset: s; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; position: relative; }
+  .steps .card { padding-top: 62px; }
+  .steps .card::after { height: 2px; }
+  .num { position: absolute; top: 18px; left: 24px; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; font: 13px 'Press Start 2P'; color: #1a1200; background: var(--yel); box-shadow: 0 0 16px rgba(255, 210, 63, 0.55); }
   /* final */
-  .final { text-align: center; padding: 64px 22px; border-radius: 28px; background: linear-gradient(135deg, rgba(153, 69, 255, 0.28), rgba(20, 241, 149, 0.14)); border: 1px solid var(--line); }
+  .final { position: relative; overflow: hidden; text-align: center; padding: 72px 24px; border-radius: 30px; background: linear-gradient(135deg, rgba(153, 69, 255, 0.3), rgba(20, 241, 149, 0.14)); border: 1px solid var(--line); }
+  .final::before { content: ''; position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent, rgba(63, 208, 255, 0.18), transparent 30%); animation: spin 10s linear infinite; }
+  .final > * { position: relative; }
   .final .cta { justify-content: center; }
-  footer { padding: 40px 0 56px; color: var(--ink2); font-size: 14px; }
+  .final .sub { margin: 0 auto 28px; }
+  footer { padding: 44px 0 60px; color: var(--ink2); font-size: 14px; }
   footer .wrap { display: flex; flex-wrap: wrap; gap: 16px 28px; justify-content: space-between; align-items: center; }
   footer .socials { display: flex; gap: 10px; flex-wrap: wrap; }
   .risk { margin-top: 18px; font-size: 13px; color: #8a90c0; max-width: 760px; }
-  .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s, transform 0.6s; }
-  .reveal.in { opacity: 1; transform: none; }
-  @media (max-width: 820px) {
-    .hero { grid-template-columns: 1fr; padding-top: 40px; text-align: center; }
+  /* scroll reveal */
+  .rv { opacity: 0; transform: translateY(34px) scale(0.98); filter: blur(6px); transition: opacity 0.9s var(--ease), transform 0.9s var(--ease), filter 0.9s var(--ease); transition-delay: calc(var(--d, 0) * 90ms); }
+  .rv.in { opacity: 1; transform: none; filter: none; }
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; padding-top: 28px; text-align: center; min-height: 0; gap: 18px; }
     .hero .lead { margin-left: auto; margin-right: auto; }
     .hero .cta { justify-content: center; }
-    .coin { order: -1; width: min(260px, 70vw); }
-    .tok { grid-template-columns: 1fr; }
+    .scroll-hint { margin: 28px auto 0; }
+    .coinbox { order: -1; width: min(270px, 70vw); }
+    .tok, .show { grid-template-columns: 1fr; }
+    .show { gap: 26px; }
+    .tabs { order: 2; }
     nav .links { display: none; }
-    nav .btn { margin-left: 0; }
     .lang { margin-left: auto; }
+    nav .play { padding: 9px 13px; }
+    section { padding: 56px 0; }
   }
-  @media (prefers-reduced-motion: reduce) { .coin img, .coin::before { animation: none; } .reveal { opacity: 1; transform: none; transition: none; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .rv, .hero-in > *, .coinbox { opacity: 1 !important; transform: none !important; filter: none !important; } }
 </style>
 </head>
 <body>
-<nav><div class="wrap">
+<canvas id="bg" aria-hidden="true"></canvas><div class="glow"></div><div class="scan"></div><div id="prog"></div>
+<nav id="nav"><div class="wrap">
   <a class="brand" href="#top"><img src="/token.png" alt=""><span class="px">OFFICE DREAMS</span></a>
-  <div class="lang" id="lang" hidden><button data-l="uk">УКР</button><button data-l="ru">РУС</button></div>
   <div class="links"><a href="#game">Game</a><a href="#token">Token</a><a href="#airdrop">Airdrop</a></div>
+  <div class="lang" id="lang" hidden><button data-l="uk">УКР</button><button data-l="ru">РУС</button></div>
   <a class="btn play sm" href="{{PLAY}}">▶ Play</a>
 </div></nav>
 
 <header class="wrap hero" id="top">
-  <div>
+  <div class="hero-in">
     <span class="tag"><i></i> Live in Telegram · Solana</span>
     <h1>Build a <b>game studio.</b><br>Earn its token.</h1>
     <p class="lead">Office Dreams is a neon pixel tycoon you play right inside Telegram. Start alone at a basement desk, grow into a skyscraper studio — and collect your share of <b>OFFX</b> by actually playing.</p>
     <div class="cta">
-      <a class="btn play" href="{{PLAY}}">▶ Play free in Telegram</a>
+      <a class="btn play pulse" href="{{PLAY}}">▶ Play free in Telegram</a>
       <a class="btn buy" href="{{BUY}}">◎ Buy OFFX</a>
     </div>
   </div>
-  <div class="coin"><img src="/token.png" alt="OFFX coin"></div>
+  <div class="coinbox" id="coinbox"><div class="ring"><i></i></div><div class="ring r2"><i></i></div><div class="coin" id="coin"><img src="/token.png" alt="OFFX coin"></div></div>
 </header>
 
-<section id="game" class="wrap reveal">
-  <span class="kick px">THE GAME</span>
+<div class="ticker" aria-hidden="true"><div><span class="px"><b>★</b>BUILD<b>★</b>HIRE<b>★</b>SHIP<b>★</b>BATTLE<b>★</b>EARN OFFX<b>★</b>SOLANA<b>★</b>TELEGRAM</span><span class="px"><b>★</b>BUILD<b>★</b>HIRE<b>★</b>SHIP<b>★</b>BATTLE<b>★</b>EARN OFFX<b>★</b>SOLANA<b>★</b>TELEGRAM</span></div></div>
+
+<section id="game" class="wrap">
+  <div class="rv"><span class="kick px">THE GAME</span>
   <h2>From one desk to an empire</h2>
-  <p class="sub">A real tycoon, not a tap-to-earn clicker. Every decision shapes your studio.</p>
+  <p class="sub">A real tycoon, not a tap-to-earn clicker. Every decision shapes your studio.</p></div>
   <div class="grid">
-    <div class="card" style="--c:var(--cy)"><span class="ico">🎮</span><h3>Ship hit games</h3><p>Pick genres that ride the trend, release them and watch sales roll in. Great teams make 10/10 hits.</p></div>
-    <div class="card" style="--c:var(--mag)"><span class="ico">👩‍💻</span><h3>Hire a dream team</h3><p>Programmers, artists, sound designers, producers — level them up and keep their mood high.</p></div>
-    <div class="card" style="--c:var(--yel)"><span class="ico">🏢</span><h3>Grow your tower</h3><p>Open new floors, renovate them to ★5, go public with an IPO and start a new era stronger.</p></div>
-    <div class="card" style="--c:var(--grn)"><span class="ico">⚔️</span><h3>Battle other studios</h3><p>Live 30-second studio battles, leagues and trophies. Your team multiplies every tap.</p></div>
-    <div class="card" style="--c:var(--pur)"><span class="ico">🌆</span><h3>Walk the city</h3><p>Coffee breaks, an academy for your staff, client contracts and store promos — on real timers.</p></div>
-    <div class="card" style="--c:var(--cy)"><span class="ico">📅</span><h3>Quests every day</h3><p>Story events with choices, daily missions, streaks and goals. There is always something to do.</p></div>
+    <div class="card rv" style="--c:var(--cy);--d:0"><span class="ico">🎮</span><h3>Ship hit games</h3><p>Pick genres that ride the trend, release them and watch sales roll in. Great teams make 10/10 hits.</p></div>
+    <div class="card rv" style="--c:var(--mag);--d:1"><span class="ico">👩‍💻</span><h3>Hire a dream team</h3><p>Programmers, artists, sound designers, producers — level them up and keep their mood high.</p></div>
+    <div class="card rv" style="--c:var(--yel);--d:2"><span class="ico">🏢</span><h3>Grow your tower</h3><p>Open new floors, renovate them to ★5, go public with an IPO and start a new era stronger.</p></div>
+    <div class="card rv" style="--c:var(--grn);--d:0"><span class="ico">⚔️</span><h3>Battle other studios</h3><p>Live 30-second studio battles, leagues and trophies. Your team multiplies every tap.</p></div>
+    <div class="card rv" style="--c:var(--pur);--d:1"><span class="ico">🌆</span><h3>Walk the city</h3><p>Coffee breaks, an academy for your staff, client contracts and store promos — on real timers.</p></div>
+    <div class="card rv" style="--c:var(--cy);--d:2"><span class="ico">📅</span><h3>Quests every day</h3><p>Story events with choices, daily missions, streaks and goals. There is always something to do.</p></div>
   </div>
-  <div class="team" aria-label="The team">
-    <img src="/portrait-you.jpg" alt=""><img src="/portrait-prog.jpg" alt=""><img src="/portrait-art.jpg" alt=""><img src="/portrait-des.jpg" alt=""><img src="/portrait-mkt.jpg" alt=""><img src="/portrait-qa.jpg" alt=""><img src="/portrait-snd.jpg" alt=""><img src="/portrait-prod.jpg" alt=""><img src="/portrait-cm.jpg" alt="">
+
+  <div class="show">
+    <div class="phone rv"><div class="screen" id="screen">
+      <img src="/shot-office.jpg" alt="Office" class="on"><img src="/shot-city.jpg" alt="City" loading="lazy"><img src="/shot-team.jpg" alt="Team" loading="lazy"><img src="/shot-tower.jpg" alt="Tower" loading="lazy">
+    </div></div>
+    <div class="rv" style="--d:1">
+      <div class="tabs" id="tabs">
+        <button class="on"><span>🖥️</span><div>Your office<small>Watch your team work in real time</small></div><i></i></button>
+        <button><span>🌆</span><div>The city<small>Coffee, academy, contracts, promos</small></div><i></i></button>
+        <button><span>👥</span><div>Your team<small>8 roles, 10 levels each</small></div><i></i></button>
+        <button><span>🏙️</span><div>Your tower<small>Floors, renovation and IPO</small></div><i></i></button>
+      </div>
+      <div class="team" aria-label="The team">
+        <img src="/portrait-you.jpg" alt=""><img src="/portrait-prog.jpg" alt=""><img src="/portrait-art.jpg" alt=""><img src="/portrait-des.jpg" alt=""><img src="/portrait-mkt.jpg" alt=""><img src="/portrait-qa.jpg" alt=""><img src="/portrait-snd.jpg" alt=""><img src="/portrait-prod.jpg" alt=""><img src="/portrait-cm.jpg" alt="">
+      </div>
+    </div>
   </div>
-  <div class="shot"><img src="/cover-640x360.png" alt="Office Dreams gameplay"></div>
 </section>
 
-<section id="token" class="wrap reveal">
-  <span class="kick px">THE TOKEN</span>
+<section id="token" class="wrap">
+  <div class="rv"><span class="kick px">THE TOKEN</span>
   <h2>OFFX — made for players</h2>
-  <p class="sub">A fixed supply, minted once. Most of it belongs to the people who play.</p>
+  <p class="sub">A fixed supply, minted once. Most of it belongs to the people who play.</p></div>
   <div class="tok">
-    <div class="card" style="--c:var(--grn)">
+    <div class="card rv" style="--c:var(--grn)">
       <h3>Tokenomics</h3>
+      <div class="big"><span data-count="100000000">0</span></div>
       <div class="bar"><i></i><i></i></div>
       <div class="legend">
         <div><span class="dot" style="background:var(--grn)"></span><b>90%</b><span>Airdropped to players by their in-game progress</span></div>
         <div><span class="dot" style="background:var(--mag)"></span><b>10%</b><span>Raydium liquidity pool</span></div>
       </div>
     </div>
-    <div class="card" style="--c:var(--pur)">
+    <div class="card rv" style="--c:var(--pur);--d:1">
       <h3>Facts</h3>
       <ul class="facts">
         <li><span>Network</span><b>Solana · Token-2022</b></li>
@@ -181,23 +261,23 @@
   </div>
 </section>
 
-<section id="airdrop" class="wrap reveal">
-  <span class="kick px">THE AIRDROP</span>
+<section id="airdrop" class="wrap">
+  <div class="rv"><span class="kick px">THE AIRDROP</span>
   <h2>Play. Get verified. Claim.</h2>
-  <p class="sub">No presale, no team allocation — the airdrop starts automatically once the launch fund reaches its goal.</p>
+  <p class="sub">No presale, no team allocation — the airdrop starts automatically once the launch fund reaches its goal.</p></div>
   <div class="steps">
-    <div class="card" style="--c:var(--cy)"><h3>Play the game</h3><p>Releases, upgrades, quests and check-ins earn Season points. Points come only from real progress — the server checks every action.</p></div>
-    <div class="card" style="--c:var(--yel)"><h3>Verify once</h3><p>A one-time $1 contribution (SOL or Telegram Stars) proves you are a real player. Bots don’t pay — and the fund grows.</p></div>
-    <div class="card" style="--c:var(--grn)"><h3>Claim your OFFX</h3><p>When the fund hits $5,000, points freeze and 90,000,000 OFFX are split among verified players. Claim straight to your Solana wallet.</p></div>
+    <div class="card rv" style="--c:var(--cy);--d:0"><span class="num">1</span><h3>Play the game</h3><p>Releases, upgrades, quests and check-ins earn Season points. Points come only from real progress — the server checks every action.</p></div>
+    <div class="card rv" style="--c:var(--yel);--d:1"><span class="num">2</span><h3>Verify once</h3><p>A one-time $1 contribution (SOL or Telegram Stars) proves you are a real player. Bots don’t pay — and the fund grows.</p></div>
+    <div class="card rv" style="--c:var(--grn);--d:2"><span class="num">3</span><h3>Claim your OFFX</h3><p>When the fund hits $5,000, points freeze and 90,000,000 OFFX are split among verified players. Claim straight to your Solana wallet.</p></div>
   </div>
 </section>
 
-<section class="wrap reveal">
-  <div class="final">
+<section class="wrap">
+  <div class="final rv">
     <h2>Your studio is waiting</h2>
-    <p class="sub" style="margin:0 auto 26px">Free to play. Opens instantly in Telegram — no downloads, no sign-ups.</p>
+    <p class="sub">Free to play. Opens instantly in Telegram — no downloads, no sign-ups.</p>
     <div class="cta">
-      <a class="btn play" href="{{PLAY}}">▶ Start playing</a>
+      <a class="btn play pulse" href="{{PLAY}}">▶ Start playing</a>
       {{CHANNEL_BTN}}
       <a class="btn ghost" href="{{CHART}}">📈 Chart</a>
     </div>
@@ -216,35 +296,128 @@
 </div></footer>
 
 <script>
-  document.getElementById('copy').onclick = function () {
-    var t = document.getElementById('mint').textContent, b = this;
+(function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function (s) { return document.querySelector(s); };
+
+  /* ---------- language ----------
+     Ukraine (by the phone's time zone, or ?lang=uk from the bot): УКР / РУС switch, Ukrainian first.
+     Russia and other Russian-speaking countries, or a phone set to Russian: Russian only.
+     Everyone else: English only. */
+  var T = {"ru": {"Game": "Игра", "Token": "Токен", "Airdrop": "Аирдроп", "▶ Play": "▶ Играть", "<i></i> Live in Telegram · Solana": "<i></i> Уже в Telegram · Solana", "Build a <b>game studio.</b><br>Earn its token.": "Построй <b>игровую студию.</b><br>Получи её токен.", "Office Dreams is a neon pixel tycoon you play right inside Telegram. Start alone at a basement desk, grow into a skyscraper studio — and collect your share of <b>OFFX</b> by actually playing.": "Office Dreams — неоновый пиксельный тайкун прямо в Telegram. Начни один за столом в подвале, вырасти до студии-небоскрёба — и получи свою долю <b>OFFX</b>, просто играя.", "▶ Play free in Telegram": "▶ Играть бесплатно в Telegram", "◎ Buy OFFX": "◎ Купить OFFX", "THE GAME": "ИГРА", "From one desk to an empire": "От одного стола до империи", "A real tycoon, not a tap-to-earn clicker. Every decision shapes your studio.": "Настоящий тайкун, а не тапалка. Каждое решение меняет твою студию.", "Ship hit games": "Выпускай хиты", "Pick genres that ride the trend, release them and watch sales roll in. Great teams make 10/10 hits.": "Выбирай жанры в тренде, выпускай игры и смотри, как растут продажи. Сильная команда делает хиты на 10/10.", "Hire a dream team": "Собери команду мечты", "Programmers, artists, sound designers, producers — level them up and keep their mood high.": "Программисты, художники, звукорежиссёры, продюсеры — прокачивай их и следи за настроением.", "Grow your tower": "Расти свою башню", "Open new floors, renovate them to ★5, go public with an IPO and start a new era stronger.": "Открывай этажи, делай ремонт до ★5, выходи на IPO и начинай новую эру сильнее.", "Battle other studios": "Сражайся со студиями", "Live 30-second studio battles, leagues and trophies. Your team multiplies every tap.": "Битвы студий онлайн по 30 секунд, лиги и кубки. Команда умножает каждый тап.", "Walk the city": "Гуляй по городу", "Coffee breaks, an academy for your staff, client contracts and store promos — on real timers.": "Кофе-брейки, академия для сотрудников, заказы клиентов и промо в магазине — на реальных таймерах.", "Quests every day": "Квесты каждый день", "Story events with choices, daily missions, streaks and goals. There is always something to do.": "Сюжетные события с выбором, задания дня, серии и цели. Всегда есть чем заняться.", "THE TOKEN": "ТОКЕН", "OFFX — made for players": "OFFX — создан для игроков", "A fixed supply, minted once. Most of it belongs to the people who play.": "Фиксированный выпуск, отчеканен один раз. Большая часть принадлежит тем, кто играет.", "Tokenomics": "Токеномика", "Airdropped to players by their in-game progress": "Раздаётся игрокам по их прогрессу в игре", "Raydium liquidity pool": "Пул ликвидности Raydium", "Facts": "Факты", "Network": "Сеть", "Total supply": "Всего выпущено", "Minting": "Допечатка", "Disabled forever": "Закрыта навсегда", "Freeze authority": "Заморозка", "None": "Нет", "Liquidity": "Ликвидность", "Copy": "Копировать", "THE AIRDROP": "АИРДРОП", "Play. Get verified. Claim.": "Играй. Пройди верификацию. Забирай.", "No presale, no team allocation — the airdrop starts automatically once the launch fund reaches its goal.": "Без пресейла и доли команды — аирдроп стартует сам, когда фонд запуска наберёт цель.", "Play the game": "Играй", "Releases, upgrades, quests and check-ins earn Season points. Points come only from real progress — the server checks every action.": "Релизы, улучшения, квесты и отметки дают очки сезона. Очки — только за реальный прогресс, сервер проверяет каждое действие.", "Verify once": "Верификация один раз", "A one-time $1 contribution (SOL or Telegram Stars) proves you are a real player. Bots don’t pay — and the fund grows.": "Разовый взнос $1 (SOL или звёзды Telegram) подтверждает, что ты реальный игрок. Боты не платят — а фонд растёт.", "Claim your OFFX": "Забери свои OFFX", "When the fund hits $5,000, points freeze and 90,000,000 OFFX are split among verified players. Claim straight to your Solana wallet.": "Когда фонд наберёт $5 000, очки замораживаются и 90 000 000 OFFX делятся между верифицированными игроками. Вывод прямо на твой кошелёк Solana.", "Your studio is waiting": "Твоя студия ждёт", "Free to play. Opens instantly in Telegram — no downloads, no sign-ups.": "Бесплатно. Открывается сразу в Telegram — без скачиваний и регистраций.", "▶ Start playing": "▶ Начать играть", "📣 Channel": "📣 Канал", "📈 Chart": "📈 График", "Telegram game": "Игра в Telegram", "Channel": "Канал", "<b>Office Dreams</b> · OFFX on Solana<br>Creator: <a href=\"https://t.me/vtmjs\">@vtmjs</a>": "<b>Office Dreams</b> · OFFX в сети Solana<br>Создатель: <a href=\"https://t.me/vtmjs\">@vtmjs</a>", "Not financial advice. Season points are not money. OFFX price is set by the market and may go to zero; crypto assets are risky — never invest more than you can afford to lose.": "Не финансовый совет. Очки сезона — не деньги. Цену OFFX определяет рынок, она может упасть до нуля; криптоактивы рискованны — не вкладывай больше, чем готов потерять.", "Your office<small>Watch your team work in real time</small>": "Твой офис<small>Команда работает у тебя на глазах</small>", "The city<small>Coffee, academy, contracts, promos</small>": "Город<small>Кофейня, академия, заказы, промо</small>", "Your team<small>8 roles, 10 levels each</small>": "Твоя команда<small>8 ролей, по 10 уровней</small>", "Your tower<small>Floors, renovation and IPO</small>": "Твоя башня<small>Этажи, ремонт и IPO</small>"}, "uk": {"Game": "Гра", "Token": "Токен", "Airdrop": "Аірдроп", "▶ Play": "▶ Грати", "<i></i> Live in Telegram · Solana": "<i></i> Вже в Telegram · Solana", "Build a <b>game studio.</b><br>Earn its token.": "Збудуй <b>ігрову студію.</b><br>Отримай її токен.", "Office Dreams is a neon pixel tycoon you play right inside Telegram. Start alone at a basement desk, grow into a skyscraper studio — and collect your share of <b>OFFX</b> by actually playing.": "Office Dreams — неоновий піксельний тайкун просто в Telegram. Почни сам за столом у підвалі, вирости до студії-хмарочоса — і отримай свою частку <b>OFFX</b>, просто граючи.", "▶ Play free in Telegram": "▶ Грати безкоштовно в Telegram", "◎ Buy OFFX": "◎ Купити OFFX", "THE GAME": "ГРА", "From one desk to an empire": "Від одного столу до імперії", "A real tycoon, not a tap-to-earn clicker. Every decision shapes your studio.": "Справжній тайкун, а не тапалка. Кожне рішення змінює твою студію.", "Ship hit games": "Випускай хіти", "Pick genres that ride the trend, release them and watch sales roll in. Great teams make 10/10 hits.": "Обирай жанри в тренді, випускай ігри й дивись, як ростуть продажі. Сильна команда робить хіти на 10/10.", "Hire a dream team": "Збери команду мрії", "Programmers, artists, sound designers, producers — level them up and keep their mood high.": "Програмісти, художники, звукорежисери, продюсери — прокачуй їх і стеж за настроєм.", "Grow your tower": "Рости свою вежу", "Open new floors, renovate them to ★5, go public with an IPO and start a new era stronger.": "Відкривай поверхи, роби ремонт до ★5, виходь на IPO і починай нову еру сильнішим.", "Battle other studios": "Змагайся зі студіями", "Live 30-second studio battles, leagues and trophies. Your team multiplies every tap.": "Битви студій онлайн по 30 секунд, ліги й кубки. Команда множить кожен тап.", "Walk the city": "Гуляй містом", "Coffee breaks, an academy for your staff, client contracts and store promos — on real timers.": "Кава-брейки, академія для співробітників, замовлення клієнтів і промо в магазині — на реальних таймерах.", "Quests every day": "Квести щодня", "Story events with choices, daily missions, streaks and goals. There is always something to do.": "Сюжетні події з вибором, завдання дня, серії та цілі. Завжди є чим зайнятися.", "THE TOKEN": "ТОКЕН", "OFFX — made for players": "OFFX — створений для гравців", "A fixed supply, minted once. Most of it belongs to the people who play.": "Фіксований випуск, викарбуваний один раз. Більша частина належить тим, хто грає.", "Tokenomics": "Токеноміка", "Airdropped to players by their in-game progress": "Роздається гравцям за їхнім прогресом у грі", "Raydium liquidity pool": "Пул ліквідності Raydium", "Facts": "Факти", "Network": "Мережа", "Total supply": "Усього випущено", "Minting": "Додрук", "Disabled forever": "Закритий назавжди", "Freeze authority": "Заморожування", "None": "Немає", "Liquidity": "Ліквідність", "Copy": "Копіювати", "THE AIRDROP": "АІРДРОП", "Play. Get verified. Claim.": "Грай. Пройди верифікацію. Забирай.", "No presale, no team allocation — the airdrop starts automatically once the launch fund reaches its goal.": "Без пресейлу й частки команди — аірдроп стартує сам, коли фонд запуску збере ціль.", "Play the game": "Грай", "Releases, upgrades, quests and check-ins earn Season points. Points come only from real progress — the server checks every action.": "Релізи, покращення, квести й відмітки дають бали сезону. Бали — лише за реальний прогрес, сервер перевіряє кожну дію.", "Verify once": "Верифікація один раз", "A one-time $1 contribution (SOL or Telegram Stars) proves you are a real player. Bots don’t pay — and the fund grows.": "Разовий внесок $1 (SOL або зірки Telegram) підтверджує, що ти справжній гравець. Боти не платять — а фонд росте.", "Claim your OFFX": "Забери свої OFFX", "When the fund hits $5,000, points freeze and 90,000,000 OFFX are split among verified players. Claim straight to your Solana wallet.": "Коли фонд збере $5 000, бали заморожуються і 90 000 000 OFFX діляться між верифікованими гравцями. Виведення просто на твій гаманець Solana.", "Your studio is waiting": "Твоя студія чекає", "Free to play. Opens instantly in Telegram — no downloads, no sign-ups.": "Безкоштовно. Відкривається одразу в Telegram — без завантажень і реєстрацій.", "▶ Start playing": "▶ Почати грати", "📣 Channel": "📣 Канал", "📈 Chart": "📈 Графік", "Telegram game": "Гра в Telegram", "Channel": "Канал", "<b>Office Dreams</b> · OFFX on Solana<br>Creator: <a href=\"https://t.me/vtmjs\">@vtmjs</a>": "<b>Office Dreams</b> · OFFX у мережі Solana<br>Творець: <a href=\"https://t.me/vtmjs\">@vtmjs</a>", "Not financial advice. Season points are not money. OFFX price is set by the market and may go to zero; crypto assets are risky — never invest more than you can afford to lose.": "Не фінансова порада. Бали сезону — не гроші. Ціну OFFX визначає ринок, вона може впасти до нуля; криптоактиви ризиковані — не вкладай більше, ніж готовий втратити.", "Your office<small>Watch your team work in real time</small>": "Твій офіс<small>Команда працює в тебе на очах</small>", "The city<small>Coffee, academy, contracts, promos</small>": "Місто<small>Кав’ярня, академія, замовлення, промо</small>", "Your team<small>8 roles, 10 levels each</small>": "Твоя команда<small>8 ролей, по 10 рівнів</small>", "Your tower<small>Floors, renovation and IPO</small>": "Твоя вежа<small>Поверхи, ремонт і IPO</small>"}};
+  var UA = ['Europe/Kyiv', 'Europe/Kiev', 'Europe/Uzhgorod', 'Europe/Zaporozhye', 'Europe/Simferopol'];
+  var RUS = ['Europe/Kaliningrad', 'Europe/Moscow', 'Europe/Kirov', 'Europe/Volgograd', 'Europe/Astrakhan', 'Europe/Saratov', 'Europe/Ulyanovsk', 'Europe/Samara', 'Asia/Yekaterinburg', 'Asia/Omsk', 'Asia/Novosibirsk', 'Asia/Barnaul', 'Asia/Tomsk', 'Asia/Novokuznetsk', 'Asia/Krasnoyarsk', 'Asia/Irkutsk', 'Asia/Chita', 'Asia/Yakutsk', 'Asia/Khandyga', 'Asia/Vladivostok', 'Asia/Ust-Nera', 'Asia/Magadan', 'Asia/Sakhalin', 'Asia/Srednekolymsk', 'Asia/Kamchatka', 'Asia/Anadyr', 'W-SU',
+    'Europe/Minsk', 'Europe/Chisinau', 'Asia/Almaty', 'Asia/Qyzylorda', 'Asia/Qostanay', 'Asia/Aqtobe', 'Asia/Aqtau', 'Asia/Atyrau', 'Asia/Oral', 'Asia/Bishkek', 'Asia/Dushanbe', 'Asia/Tashkent', 'Asia/Samarkand', 'Asia/Ashgabat', 'Asia/Yerevan', 'Asia/Baku', 'Asia/Tbilisi'];
+  var tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+  var langs = (navigator.languages || [navigator.language || '']).map(function (x) { return String(x).toLowerCase(); });
+  var q = (location.search.match(/[?&]lang=(en|ru|uk)/) || [])[1];
+  var region = UA.indexOf(tz) >= 0 || q === 'uk' ? 'ua' : RUS.indexOf(tz) >= 0 || q === 'ru' || langs.some(function (l) { return /^(ru|be|kk)\b/.test(l); }) ? 'ru' : 'en';
+  var els = [].slice.call(document.querySelectorAll('h1,h2,h3,p,.tag,.kick,.btn,.links a,.legend span:not(.dot),.facts span,.facts b,.tabs button div,footer .wrap > div:first-child'));
+  els.forEach(function (el) { el._en = el.innerHTML.replace(/\s+/g, ' ').trim(); });
+  var sw = $('#lang');
+  function apply(l) {
+    document.documentElement.lang = l;
+    els.forEach(function (el) { var v = l !== 'en' && T[l] && T[l][el._en]; el.innerHTML = v || el._en; });
+    [].forEach.call(sw.querySelectorAll('button'), function (b) { b.classList.toggle('on', b.dataset.l === l); });
+  }
+  if (region === 'ua') {
+    var saved = null; try { saved = localStorage.getItem('od_site_lang'); } catch (e) {}
+    sw.hidden = false;
+    sw.onclick = function (e) { var b = e.target.closest('button'); if (!b) return; apply(b.dataset.l); try { localStorage.setItem('od_site_lang', b.dataset.l); } catch (x) {} };
+    apply(saved === 'ru' || saved === 'uk' ? saved : 'uk');
+  } else if (region === 'ru') apply('ru');
+
+  /* ---------- copy the mint ---------- */
+  $('#copy').onclick = function () {
+    var b = this, t = $('#mint').textContent;
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { var o = b.textContent; b.textContent = '✓'; setTimeout(function () { b.textContent = o; }, 1500); }).catch(function () {});
   };
 
-  // language: visitors from Ukraine or Russia (by the phone's time zone) get a УКР / РУС switch; everyone else sees English
-  (function () {
-    var T = {"ru": {"Game": "Игра", "Token": "Токен", "Airdrop": "Аирдроп", "▶ Play": "▶ Играть", "<i></i> Live in Telegram · Solana": "<i></i> Уже в Telegram · Solana", "Build a <b>game studio.</b><br>Earn its token.": "Построй <b>игровую студию.</b><br>Получи её токен.", "Office Dreams is a neon pixel tycoon you play right inside Telegram. Start alone at a basement desk, grow into a skyscraper studio — and collect your share of <b>OFFX</b> by actually playing.": "Office Dreams — неоновый пиксельный тайкун прямо в Telegram. Начни один за столом в подвале, вырасти до студии-небоскрёба — и получи свою долю <b>OFFX</b>, просто играя.", "▶ Play free in Telegram": "▶ Играть бесплатно в Telegram", "◎ Buy OFFX": "◎ Купить OFFX", "THE GAME": "ИГРА", "From one desk to an empire": "От одного стола до империи", "A real tycoon, not a tap-to-earn clicker. Every decision shapes your studio.": "Настоящий тайкун, а не тапалка. Каждое решение меняет твою студию.", "Ship hit games": "Выпускай хиты", "Pick genres that ride the trend, release them and watch sales roll in. Great teams make 10/10 hits.": "Выбирай жанры в тренде, выпускай игры и смотри, как растут продажи. Сильная команда делает хиты на 10/10.", "Hire a dream team": "Собери команду мечты", "Programmers, artists, sound designers, producers — level them up and keep their mood high.": "Программисты, художники, звукорежиссёры, продюсеры — прокачивай их и следи за настроением.", "Grow your tower": "Расти свою башню", "Open new floors, renovate them to ★5, go public with an IPO and start a new era stronger.": "Открывай этажи, делай ремонт до ★5, выходи на IPO и начинай новую эру сильнее.", "Battle other studios": "Сражайся со студиями", "Live 30-second studio battles, leagues and trophies. Your team multiplies every tap.": "Битвы студий онлайн по 30 секунд, лиги и кубки. Команда умножает каждый тап.", "Walk the city": "Гуляй по городу", "Coffee breaks, an academy for your staff, client contracts and store promos — on real timers.": "Кофе-брейки, академия для сотрудников, заказы клиентов и промо в магазине — на реальных таймерах.", "Quests every day": "Квесты каждый день", "Story events with choices, daily missions, streaks and goals. There is always something to do.": "Сюжетные события с выбором, задания дня, серии и цели. Всегда есть чем заняться.", "THE TOKEN": "ТОКЕН", "OFFX — made for players": "OFFX — создан для игроков", "A fixed supply, minted once. Most of it belongs to the people who play.": "Фиксированный выпуск, отчеканен один раз. Большая часть принадлежит тем, кто играет.", "Tokenomics": "Токеномика", "Airdropped to players by their in-game progress": "Раздаётся игрокам по их прогрессу в игре", "Raydium liquidity pool": "Пул ликвидности Raydium", "Facts": "Факты", "Network": "Сеть", "Total supply": "Всего выпущено", "Minting": "Допечатка", "Disabled forever": "Закрыта навсегда", "Freeze authority": "Заморозка", "None": "Нет", "Liquidity": "Ликвидность", "Copy": "Копировать", "THE AIRDROP": "АИРДРОП", "Play. Get verified. Claim.": "Играй. Пройди верификацию. Забирай.", "No presale, no team allocation — the airdrop starts automatically once the launch fund reaches its goal.": "Без пресейла и доли команды — аирдроп стартует сам, когда фонд запуска наберёт цель.", "Play the game": "Играй", "Releases, upgrades, quests and check-ins earn Season points. Points come only from real progress — the server checks every action.": "Релизы, улучшения, квесты и отметки дают очки сезона. Очки — только за реальный прогресс, сервер проверяет каждое действие.", "Verify once": "Верификация один раз", "A one-time $1 contribution (SOL or Telegram Stars) proves you are a real player. Bots don’t pay — and the fund grows.": "Разовый взнос $1 (SOL или звёзды Telegram) подтверждает, что ты реальный игрок. Боты не платят — а фонд растёт.", "Claim your OFFX": "Забери свои OFFX", "When the fund hits $5,000, points freeze and 90,000,000 OFFX are split among verified players. Claim straight to your Solana wallet.": "Когда фонд наберёт $5 000, очки замораживаются и 90 000 000 OFFX делятся между верифицированными игроками. Вывод прямо на твой кошелёк Solana.", "Your studio is waiting": "Твоя студия ждёт", "Free to play. Opens instantly in Telegram — no downloads, no sign-ups.": "Бесплатно. Открывается сразу в Telegram — без скачиваний и регистраций.", "▶ Start playing": "▶ Начать играть", "📣 Channel": "📣 Канал", "📈 Chart": "📈 График", "Telegram game": "Игра в Telegram", "Channel": "Канал", "<b>Office Dreams</b> · OFFX on Solana<br>Creator: <a href=\"https://t.me/vtmjs\">@vtmjs</a>": "<b>Office Dreams</b> · OFFX в сети Solana<br>Создатель: <a href=\"https://t.me/vtmjs\">@vtmjs</a>", "Not financial advice. Season points are not money. OFFX price is set by the market and may go to zero; crypto assets are risky — never invest more than you can afford to lose.": "Не финансовый совет. Очки сезона — не деньги. Цену OFFX определяет рынок, она может упасть до нуля; криптоактивы рискованны — не вкладывай больше, чем готов потерять."}, "uk": {"Game": "Гра", "Token": "Токен", "Airdrop": "Аірдроп", "▶ Play": "▶ Грати", "<i></i> Live in Telegram · Solana": "<i></i> Вже в Telegram · Solana", "Build a <b>game studio.</b><br>Earn its token.": "Збудуй <b>ігрову студію.</b><br>Отримай її токен.", "Office Dreams is a neon pixel tycoon you play right inside Telegram. Start alone at a basement desk, grow into a skyscraper studio — and collect your share of <b>OFFX</b> by actually playing.": "Office Dreams — неоновий піксельний тайкун просто в Telegram. Почни сам за столом у підвалі, вирости до студії-хмарочоса — і отримай свою частку <b>OFFX</b>, просто граючи.", "▶ Play free in Telegram": "▶ Грати безкоштовно в Telegram", "◎ Buy OFFX": "◎ Купити OFFX", "THE GAME": "ГРА", "From one desk to an empire": "Від одного столу до імперії", "A real tycoon, not a tap-to-earn clicker. Every decision shapes your studio.": "Справжній тайкун, а не тапалка. Кожне рішення змінює твою студію.", "Ship hit games": "Випускай хіти", "Pick genres that ride the trend, release them and watch sales roll in. Great teams make 10/10 hits.": "Обирай жанри в тренді, випускай ігри й дивись, як ростуть продажі. Сильна команда робить хіти на 10/10.", "Hire a dream team": "Збери команду мрії", "Programmers, artists, sound designers, producers — level them up and keep their mood high.": "Програмісти, художники, звукорежисери, продюсери — прокачуй їх і стеж за настроєм.", "Grow your tower": "Рости свою вежу", "Open new floors, renovate them to ★5, go public with an IPO and start a new era stronger.": "Відкривай поверхи, роби ремонт до ★5, виходь на IPO і починай нову еру сильнішим.", "Battle other studios": "Змагайся зі студіями", "Live 30-second studio battles, leagues and trophies. Your team multiplies every tap.": "Битви студій онлайн по 30 секунд, ліги й кубки. Команда множить кожен тап.", "Walk the city": "Гуляй містом", "Coffee breaks, an academy for your staff, client contracts and store promos — on real timers.": "Кава-брейки, академія для співробітників, замовлення клієнтів і промо в магазині — на реальних таймерах.", "Quests every day": "Квести щодня", "Story events with choices, daily missions, streaks and goals. There is always something to do.": "Сюжетні події з вибором, завдання дня, серії та цілі. Завжди є чим зайнятися.", "THE TOKEN": "ТОКЕН", "OFFX — made for players": "OFFX — створений для гравців", "A fixed supply, minted once. Most of it belongs to the people who play.": "Фіксований випуск, викарбуваний один раз. Більша частина належить тим, хто грає.", "Tokenomics": "Токеноміка", "Airdropped to players by their in-game progress": "Роздається гравцям за їхнім прогресом у грі", "Raydium liquidity pool": "Пул ліквідності Raydium", "Facts": "Факти", "Network": "Мережа", "Total supply": "Усього випущено", "Minting": "Додрук", "Disabled forever": "Закритий назавжди", "Freeze authority": "Заморожування", "None": "Немає", "Liquidity": "Ліквідність", "Copy": "Копіювати", "THE AIRDROP": "АІРДРОП", "Play. Get verified. Claim.": "Грай. Пройди верифікацію. Забирай.", "No presale, no team allocation — the airdrop starts automatically once the launch fund reaches its goal.": "Без пресейлу й частки команди — аірдроп стартує сам, коли фонд запуску збере ціль.", "Play the game": "Грай", "Releases, upgrades, quests and check-ins earn Season points. Points come only from real progress — the server checks every action.": "Релізи, покращення, квести й відмітки дають бали сезону. Бали — лише за реальний прогрес, сервер перевіряє кожну дію.", "Verify once": "Верифікація один раз", "A one-time $1 contribution (SOL or Telegram Stars) proves you are a real player. Bots don’t pay — and the fund grows.": "Разовий внесок $1 (SOL або зірки Telegram) підтверджує, що ти справжній гравець. Боти не платять — а фонд росте.", "Claim your OFFX": "Забери свої OFFX", "When the fund hits $5,000, points freeze and 90,000,000 OFFX are split among verified players. Claim straight to your Solana wallet.": "Коли фонд збере $5 000, бали заморожуються і 90 000 000 OFFX діляться між верифікованими гравцями. Виведення просто на твій гаманець Solana.", "Your studio is waiting": "Твоя студія чекає", "Free to play. Opens instantly in Telegram — no downloads, no sign-ups.": "Безкоштовно. Відкривається одразу в Telegram — без завантажень і реєстрацій.", "▶ Start playing": "▶ Почати грати", "📣 Channel": "📣 Канал", "📈 Chart": "📈 Графік", "Telegram game": "Гра в Telegram", "Channel": "Канал", "<b>Office Dreams</b> · OFFX on Solana<br>Creator: <a href=\"https://t.me/vtmjs\">@vtmjs</a>": "<b>Office Dreams</b> · OFFX у мережі Solana<br>Творець: <a href=\"https://t.me/vtmjs\">@vtmjs</a>", "Not financial advice. Season points are not money. OFFX price is set by the market and may go to zero; crypto assets are risky — never invest more than you can afford to lose.": "Не фінансова порада. Бали сезону — не гроші. Ціну OFFX визначає ринок, вона може впасти до нуля; криптоактиви ризиковані — не вкладай більше, ніж готовий втратити."}}, RU = ["Europe/Kaliningrad", "Europe/Moscow", "Europe/Kirov", "Europe/Volgograd", "Europe/Astrakhan", "Europe/Saratov", "Europe/Ulyanovsk", "Europe/Samara", "Asia/Yekaterinburg", "Asia/Omsk", "Asia/Novosibirsk", "Asia/Barnaul", "Asia/Tomsk", "Asia/Novokuznetsk", "Asia/Krasnoyarsk", "Asia/Irkutsk", "Asia/Chita", "Asia/Yakutsk", "Asia/Khandyga", "Asia/Vladivostok", "Asia/Ust-Nera", "Asia/Magadan", "Asia/Sakhalin", "Asia/Srednekolymsk", "Asia/Kamchatka", "Asia/Anadyr", "W-SU"], UA = ["Europe/Kyiv", "Europe/Kiev", "Europe/Uzhgorod", "Europe/Zaporozhye", "Europe/Simferopol"];
-    var tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
-    var c = UA.indexOf(tz) >= 0 ? 'UA' : RU.indexOf(tz) >= 0 ? 'RU' : '';
-    var q = (location.search.match(/[?&]lang=(en|ru|uk)/) || [])[1];
-    if (!c && !q) return;
-    var saved = null; try { saved = localStorage.getItem('od_site_lang'); } catch (e) {}
-    var cur = q || saved || (c === 'UA' ? 'uk' : 'ru');
-    var els = [].slice.call(document.querySelectorAll('h1,h2,h3,p,.tag,.kick,.btn,.links a,.legend span:not(.dot),.facts span,.facts b,footer .wrap > div:first-child'));
-    els.forEach(function (el) { el._en = el.innerHTML.replace(/\s+/g, ' ').trim(); });
-    var sw = document.getElementById('lang');
-    function apply(l) {
-      cur = l; document.documentElement.lang = l;
-      els.forEach(function (el) { var v = l !== 'en' && T[l] && T[l][el._en]; el.innerHTML = v || el._en; });
-      [].forEach.call(sw.querySelectorAll('button'), function (b) { b.classList.toggle('on', b.dataset.l === l); });
-      try { localStorage.setItem('od_site_lang', l); } catch (e) {}
+  /* ---------- scroll: reveal, progress bar, solid nav, active link, counters ---------- */
+  function countUp(el) {
+    var to = +el.dataset.count, t0 = performance.now(), d = 1800;
+    (function step(t) { var k = Math.min(1, (t - t0) / d), v = Math.round(to * (1 - Math.pow(1 - k, 3))); el.textContent = v.toLocaleString('en-US'); if (k < 1) requestAnimationFrame(step); })(t0);
+  }
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in'); io.unobserve(e.target);
+      var c = e.target.querySelector('[data-count]'); if (c) countUp(c);
+    });
+  }, { threshold: 0.14, rootMargin: '0px 0px -6% 0px' }) : null;
+  document.querySelectorAll('.rv').forEach(function (el) { if (io && !reduce) io.observe(el); else { el.classList.add('in'); var c = el.querySelector('[data-count]'); if (c) c.textContent = (+c.dataset.count).toLocaleString('en-US'); } });
+  var nav = $('#nav'), prog = $('#prog'), links = [].slice.call(document.querySelectorAll('.links a'));
+  function onScroll() {
+    var y = scrollY, h = document.documentElement.scrollHeight - innerHeight;
+    prog.style.width = (h > 0 ? (y / h) * 100 : 0) + '%';
+    nav.classList.toggle('solid', y > 20);
+    var cur = null;
+    links.forEach(function (a) { var s = document.querySelector(a.getAttribute('href')); if (s && s.getBoundingClientRect().top < innerHeight * 0.4) cur = a; });
+    links.forEach(function (a) { a.classList.toggle('on', a === cur); });
+  }
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* ---------- phone showcase: screens change by themselves, tap a tab to pick one ---------- */
+  var shots = [].slice.call(document.querySelectorAll('#screen img')), tabs = [].slice.call(document.querySelectorAll('#tabs button')), si = 0, timer = null;
+  function show(i) {
+    si = i;
+    shots.forEach(function (im, k) { im.classList.toggle('on', k === i); });
+    tabs.forEach(function (b, k) { b.classList.remove('on'); if (k === i) { void b.offsetWidth; b.classList.add('on'); } });
+    clearTimeout(timer); if (!reduce) timer = setTimeout(function () { show((si + 1) % shots.length); }, 4000);
+  }
+  tabs.forEach(function (b, k) { b.onclick = function () { show(k); }; });
+  show(0);
+
+  /* ---------- the coin follows the pointer / tilts with the phone ---------- */
+  var coin = $('#coin'), box = $('#coinbox');
+  if (!reduce) {
+    addEventListener('pointermove', function (e) {
+      var r = box.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      coin.style.transform = 'rotateY(' + (x * 28).toFixed(1) + 'deg) rotateX(' + (-y * 22).toFixed(1) + 'deg)';
+    }, { passive: true });
+    addEventListener('deviceorientation', function (e) { if (e.gamma == null) return; coin.style.transform = 'rotateY(' + Math.max(-25, Math.min(25, e.gamma)).toFixed(1) + 'deg) rotateX(' + Math.max(-20, Math.min(20, (e.beta || 0) - 40) * -0.5).toFixed(1) + 'deg)'; }, { passive: true });
+    box.onclick = function () { coin.animate([{ transform: coin.style.transform || 'none' }, { transform: 'rotateY(360deg)' }], { duration: 900, easing: 'cubic-bezier(.2,.9,.25,1)' }); };
+  }
+  /* cards: a light spot follows the finger */
+  document.querySelectorAll('.card').forEach(function (c) {
+    c.addEventListener('pointermove', function (e) { var r = c.getBoundingClientRect(); c.style.setProperty('--mx', (e.clientX - r.left) + 'px'); c.style.setProperty('--my', (e.clientY - r.top) + 'px'); }, { passive: true });
+  });
+
+  /* ---------- background: pixel night city with lit windows and drifting neon motes ---------- */
+  var cv = $('#bg'), g = cv.getContext('2d'), W = 0, H = 0, S = 3, city = [], motes = [], stars = [];
+  function rnd(seed) { var s = seed; return function () { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; }; }
+  function build() {
+    var dpr = Math.min(2, devicePixelRatio || 1);
+    S = innerWidth < 700 ? 3 : 4;
+    W = Math.ceil(innerWidth / S); H = Math.ceil(innerHeight / S);
+    cv.width = W; cv.height = H; cv.style.imageRendering = 'pixelated';
+    var r = rnd(7); city = []; stars = []; motes = [];
+    for (var L = 0; L < 2; L++) { var x = -4; while (x < W + 10) { var w = 8 + Math.floor(r() * (L ? 18 : 14)), h = (L ? 18 : 30) + Math.floor(r() * (L ? 34 : 44)), win = []; for (var wy = 3; wy < h - 2; wy += 4) for (var wx = 2; wx < w - 2; wx += 3) if (r() < (L ? 0.3 : 0.16)) win.push([wx, wy, r()]); city.push({ L: L, x: x, w: w, h: h, win: win, ant: r() < 0.25 }); x += w + (L ? 1 : 3); } }
+    for (var i = 0; i < 70; i++) stars.push([Math.floor(r() * W), Math.floor(r() * H * 0.6), r()]);
+    for (var j = 0; j < 22; j++) motes.push({ x: r() * W, y: r() * H, v: 2 + r() * 5, c: ['#3fd0ff', '#ff3fd0', '#ffd23f', '#14f195'][j % 4], p: r() * 6 });
+  }
+  var last = 0, sy = 0;
+  function frame(t) {
+    requestAnimationFrame(frame);
+    if (document.hidden || t - last < 50) return; // ~20 fps is plenty for a backdrop
+    var dt = Math.min(0.1, (t - last) / 1000); last = t;
+    sy += (scrollY - sy) * 0.15;
+    g.clearRect(0, 0, W, H);
+    for (var i = 0; i < stars.length; i++) { var s = stars[i]; if (Math.sin(t / 700 + s[2] * 20) > -0.3) { g.fillStyle = s[2] > 0.85 ? '#ffd23f' : '#9aa6ff'; g.globalAlpha = 0.4 + s[2] * 0.6; g.fillRect(s[0], s[1], 1, 1); } }
+    g.globalAlpha = 1;
+    for (var k = 0; k < city.length; k++) {
+      var b = city[k], par = b.L ? 0.06 : 0.025, base = H + Math.round(sy / S * par * 6), top = base - b.h;
+      g.fillStyle = b.L ? '#0a0826' : '#120c3a'; g.fillRect(b.x, top, b.w, b.h);
+      if (b.ant) { g.fillRect(b.x + (b.w >> 1), top - 6, 1, 6); if (Math.sin(t / 400 + b.x) > 0) { g.fillStyle = '#ff3fd0'; g.fillRect(b.x + (b.w >> 1), top - 7, 1, 1); } }
+      for (var q = 0; q < b.win.length; q++) { var wv = b.win[q]; if (Math.sin(t / 3000 + wv[2] * 50) < -0.92) continue; g.fillStyle = wv[2] < 0.55 ? '#ffd23f' : wv[2] < 0.8 ? '#3fd0ff' : '#ff3fd0'; g.globalAlpha = b.L ? 0.85 : 0.45; g.fillRect(b.x + wv[0], top + wv[1], 1, 2); }
+      g.globalAlpha = 1;
     }
-    sw.hidden = false;
-    sw.onclick = function (e) { var b = e.target.closest('button'); if (b) apply(b.dataset.l); };
-    apply(cur);
-  })();
-  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { threshold: 0.12 }) : null;
-  document.querySelectorAll('.reveal').forEach(function (el) { if (io) io.observe(el); else el.classList.add('in'); });
+    for (var m = 0; m < motes.length; m++) { var o = motes[m]; o.y -= o.v * dt; if (o.y < -2) { o.y = H + 2; } g.fillStyle = o.c; g.globalAlpha = 0.35 + 0.35 * Math.sin(t / 500 + o.p); g.fillRect(Math.round(o.x + Math.sin(t / 1500 + o.p) * 3), Math.round(o.y), 1, 1); }
+    g.globalAlpha = 1;
+  }
+  build(); addEventListener('resize', build);
+  if (!reduce) requestAnimationFrame(frame); else frame(100);
+})();
 </script>
 </body>
 </html>
