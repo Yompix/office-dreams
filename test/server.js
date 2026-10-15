@@ -1104,5 +1104,27 @@ const AB = require('../server/antibot.js');
     });
     await envG.close();
   }
+  {
+    const envS = await makeEnv({ GIVEAWAY_ON: '1', GIVEAWAY_KEY: 's-test', GIVEAWAY_PRIZES: '20,10,5' });
+    const Give = require('../server/giveaway.js');
+    const ctxS = envS.ctx; ctxS.fastAnnounce = true;
+    const ids = [8201, 8202, 8203];
+    for (const id of ids) { const P = new Player(envS, id, { name: 'S' + id }); await P.auth(); }
+    await test('giveaway: when the bot is an admin of the channel, only subscribers take part (checked live at the end)', async () => {
+      await Give.tick(ctxS, envS.clock.t);
+      const g = Give.current(ctxS);
+      ctxS.db.kvSet('gw_chat', '-100777');
+      for (const id of ids) { ctxS.db.run('UPDATE users SET pts=pts+? WHERE id=?', 100 - id % 10, id); ctxS.db.run("INSERT INTO purchases(charge_id,uid,sku,stars,ts) VALUES(?,?,?,?,?)", 's' + id, id, 'donate', 100, envS.clock.t); }
+      envS.mock.members.add(8201); envS.mock.members.add(8203);
+      assert.equal(Give.view(ctxS, 8202, envS.clock.t).sub, false, 'not checked yet = not subscribed');
+      for (const id of ids) await Give.checkSub(ctxS, g, id, envS.clock.t);
+      assert.deepEqual(Give.view(ctxS, 8202, envS.clock.t).top.map((r) => r.name), ['S8201', 'S8203']);
+      envS.mock.members.delete(8203); // left the channel before the end
+      envS.advance(3 * 86400e3 + 1000);
+      await Give.tick(ctxS, envS.clock.t);
+      assert.deepEqual(Give.current(ctxS).winners.map((w) => w.uid), [8201]);
+    });
+    await envS.close();
+  }
   summary();
 })();

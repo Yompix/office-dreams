@@ -1287,6 +1287,14 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .gwbn .cb-t small { color: var(--mut); font-size: 12px; }
 .gw-pay { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-top: 10px; padding: 10px 12px; border-radius: 12px; font-size: 14px; background: rgba(255, 210, 63, 0.08); border: 1px solid rgba(255, 210, 63, 0.3); }
 .gw-pay.sent { background: rgba(46, 230, 107, 0.1); border-color: rgba(46, 230, 107, 0.45); }
+.gw-req { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 10px; }
+.gw-req > div { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.14); flex-wrap: wrap; }
+.gw-req > div.ok { border-color: rgba(46, 230, 107, 0.5); background: rgba(46, 230, 107, 0.08); }
+.gw-req i { font-style: normal; width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 8px; background: rgba(255, 210, 63, 0.18); color: var(--yel); font: 700 13px/1 var(--ui); }
+.gw-req .ok i { background: transparent; }
+.gw-req span { flex: 1; min-width: 140px; display: flex; flex-direction: column; }
+.gw-req small { color: var(--mut); font-size: 12px; }
+.gw-lock { margin-top: 0; }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -2848,7 +2856,7 @@ LANGS.en = {
   "gw.done": "Finished",
   "gw.done_s": "results are in",
   "gw.place": "place {n}",
-  "gw.sub": "The {n} most active verified players win. Only points earned during the giveaway count: just play!",
+  "gw.sub": "The {n} most active players who are verified and joined the channel win. Only points earned during the giveaway count: just play!",
   "gw.sub_done": "The giveaway is over. Prizes are sent to the winners in SOL, straight to their Solana wallets.",
   "gw.my": "My giveaway points",
   "gw.rank": "My place",
@@ -2865,6 +2873,15 @@ LANGS.en = {
   "gw.pay_soon": "Your ${p} prize is on its way to your wallet…",
   "gw.wallet_hint": "Prizes arrive in SOL automatically: connect your wallet in advance.",
   "side.city": "City",
+  "gw.req_ver": "Verification",
+  "gw.req_sub": "Join the channel",
+  "gw.req_sub_t": "Join, come back to the game, and we’ll check",
+  "gw.sub_soon": "The subscription check turns on very soon",
+  "gw.sub_btn": "Join the channel",
+  "gw.check": "Check",
+  "gw.sub_ok": "Subscription confirmed: you are in!",
+  "gw.sub_no": "No subscription found yet. Join the channel and tap “Check”.",
+  "gw.lock": "Meet both conditions and your points start counting in the giveaway.",
 };
 
 /* ---- src/lang_ru.js ---- */
@@ -3648,7 +3665,7 @@ LANGS.ru = {
   "gw.done": "Завершён",
   "gw.done_s": "итоги готовы",
   "gw.place": "{n} место",
-  "gw.sub": "Побеждают {n} самых активных верифицированных игрока. Считаются очки, заработанные во время розыгрыша — просто играй!",
+  "gw.sub": "Побеждают {n} самых активных игрока, которые прошли верификацию и подписаны на канал. Считаются очки, заработанные во время розыгрыша — просто играй!",
   "gw.sub_done": "Розыгрыш завершён. Призы отправляются победителям в SOL на их Solana-кошельки автоматически.",
   "gw.my": "Мои очки в розыгрыше",
   "gw.rank": "Моё место",
@@ -3665,6 +3682,15 @@ LANGS.ru = {
   "gw.pay_soon": "Приз ${p} отправляется на твой кошелёк…",
   "gw.wallet_hint": "Приз приходит в SOL автоматически — подключи кошелёк заранее.",
   "side.city": "Город",
+  "gw.req_ver": "Верификация",
+  "gw.req_sub": "Подписка на канал",
+  "gw.req_sub_t": "Подпишись и вернись в игру — проверим сами",
+  "gw.sub_soon": "Проверка подписки включится совсем скоро",
+  "gw.sub_btn": "Подписаться на канал",
+  "gw.check": "Проверить",
+  "gw.sub_ok": "Подписка подтверждена — ты участвуешь!",
+  "gw.sub_no": "Подписка пока не найдена. Подпишись на канал и нажми «Проверить».",
+  "gw.lock": "Выполни оба условия — и твои очки начнут считаться в розыгрыше.",
 };
 
 /* ---- src/lang_uk.js ---- */
@@ -4448,7 +4474,7 @@ LANGS.uk = {
   "gw.done": "Завершено",
   "gw.done_s": "підсумки готові",
   "gw.place": "{n} місце",
-  "gw.sub": "Перемагають {n} найактивніших верифікованих гравці. Рахуються бали, зароблені під час розіграшу — просто грай!",
+  "gw.sub": "Перемагають {n} найактивніших гравці, які пройшли верифікацію та підписані на канал. Рахуються бали, зароблені під час розіграшу — просто грай!",
   "gw.sub_done": "Розіграш завершено. Призи надсилаються переможцям у SOL на їхні Solana-гаманці автоматично.",
   "gw.my": "Мої бали в розіграші",
   "gw.rank": "Моє місце",
@@ -4465,6 +4491,15 @@ LANGS.uk = {
   "gw.pay_soon": "Приз ${p} надсилається на твій гаманець…",
   "gw.wallet_hint": "Приз приходить у SOL автоматично — підключи гаманець заздалегідь.",
   "side.city": "Місто",
+  "gw.req_ver": "Верифікація",
+  "gw.req_sub": "Підписка на канал",
+  "gw.req_sub_t": "Підпишись і повернись у гру — перевіримо самі",
+  "gw.sub_soon": "Перевірка підписки увімкнеться зовсім скоро",
+  "gw.sub_btn": "Підписатися на канал",
+  "gw.check": "Перевірити",
+  "gw.sub_ok": "Підписку підтверджено — ти береш участь!",
+  "gw.sub_no": "Підписку поки не знайдено. Підпишись на канал і натисни «Перевірити».",
+  "gw.lock": "Виконай обидві умови — і твої бали почнуть рахуватися в розіграші.",
 };
 
 /* ---- src/engine.js ---- */
@@ -8203,6 +8238,7 @@ const netApi = {
   sol: (body) => api('POST', '/api/sol', body),
   adClaim: () => api('POST', '/api/airdrop/claim', {}),
   adOrder: (kind) => api('POST', '/api/airdrop/order', { kind }),
+  gwCheck: () => api('POST', '/api/giveaway/check', {}),
   market: (range) => api('GET', '/api/market?range=' + encodeURIComponent(range || '24h')),
   marketBal: () => api('GET', '/api/market/bal'),
   adClaim: () => api('POST', '/api/ads/claim', {}),
@@ -9844,12 +9880,19 @@ function giveawayCard(e, mini) {
     <h2 class="h2">🎁 ${L('gw.title', { sum })}</h2>
     <p class="sub">${L(g.done ? 'gw.sub_done' : 'gw.sub', { n: g.prizes.length })}</p>
     ${prizes}
-    <div class="gw-me">${g.verified ? `<div><small>${L('gw.my')}</small><b class="px">${fmtPts(g.me.score)}</b></div><div><small>${L('gw.rank')}</small><b class="px">${g.me.rank ? '#' + g.me.rank : '—'}</b></div>` : `<div class="gw-need"><b>${L('gw.need')}</b><small>${L('gw.need_t')}</small></div><button class="btn sm glow" data-act="go:drop:token">${L('gw.verify')}</button>`}</div>
+    ${(() => {
+      const subOk = g.sub !== false; // null = cannot be checked yet
+      const ready = g.verified && subOk;
+      const req = `<div class="gw-req">
+        <div class="${g.verified ? 'ok' : ''}"><i>${g.verified ? '✅' : '1'}</i><span><b>${L('gw.req_ver')}</b><small>${L('gw.need_t')}</small></span>${g.verified ? '' : `<button class="btn sm glow" data-act="go:drop:token">${L('gw.verify')}</button>`}</div>
+        <div class="${g.sub ? 'ok' : ''}"><i>${g.sub ? '✅' : '2'}</i><span><b>${L('gw.req_sub')}</b><small>${g.sub === null ? L('gw.sub_soon') : L('gw.req_sub_t')}</small></span>${g.sub ? '' : `<button class="btn sm glow" data-act="gwsponsor">📢 ${L('gw.sub_btn')}</button>${g.sub === false ? `<button class="btn sm ghost" data-act="gwcheck" ${UI.gwBusy ? 'disabled' : ''}>${L('gw.check')}</button>` : ''}`}</div>
+      </div>`;
+      return g.done ? '' : req + (ready ? `<div class="gw-me"><div><small>${L('gw.my')}</small><b class="px">${fmtPts(g.me.score)}</b></div><div><small>${L('gw.rank')}</small><b class="px">${g.me.rank ? '#' + g.me.rank : '—'}</b></div></div>` : `<p class="hint gw-lock">🔒 ${L('gw.lock')}</p>`);
+    })()}
     ${g.pay ? `<div class="gw-pay ${g.pay.st}">${g.pay.st === 'sent' ? `✅ ${L('gw.pay_sent', { p: g.pay.usd })} ${g.pay.tx ? `<button class="linkbtn" data-act="gwtx">${L('ad.tx')}</button>` : ''}` : !NET.eco.sol ? `👛 ${L('gw.pay_wallet', { p: g.pay.usd })} <button class="btn sm glow" data-act="sol:set">${L('sol.add')}</button>` : `⏳ ${L('gw.pay_soon', { p: g.pay.usd })}`}</div>`
       : g.verified && !NET.eco.sol && !g.done ? `<div class="gw-pay wait">👛 ${L('gw.wallet_hint')} <button class="btn sm" data-act="sol:set">${L('sol.add')}</button></div>` : ''}
     <h3 class="h3">🏆 ${L('gw.top')}</h3>
     ${top}
-    ${g.url ? `<button class="btn ghost wide" data-act="gwsponsor" style="margin-top:10px">🤝 ${L('gw.sponsor')}</button>` : ''}
     <p class="hint">${L('gw.rules')}</p>
   </section>`;
 }
@@ -11686,11 +11729,25 @@ const ACT = {
   mktab: () => { UI.sub.drop = 'token'; render(true); loadHub('token'); },
   openbot: () => { if (NET.cfg && NET.cfg.bot) openLink('https://t.me/' + NET.cfg.bot + (NET.cfg.app ? '/' + NET.cfg.app : '')); },
   gwtx: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.pay && g.pay.tx) openLink('https://solscan.io/tx/' + g.pay.tx); },
-  gwsponsor: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.url) openLink(g.url); },
+  gwsponsor: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.url) { UI.gwBack = Date.now(); openLink(g.url); } },
+  gwcheck: () => gwCheck(true),
   site: () => { const l = NET.cfg && NET.cfg.links && NET.cfg.links.site; if (l) openLink(l + (LANG === 'en' ? '' : '?lang=' + LANG)); },
   link: (k) => { const l = NET.cfg && NET.cfg.links && NET.cfg.links[k]; if (l) openLink(l); },
 };
 function confettiSmall() { confetti(40); }
+/* giveaway: ask the server to check the channel subscription (after the player comes back from the channel) */
+function gwCheck(manual) {
+  const g = NET.eco && NET.eco.giveaway;
+  if (!g || g.done || g.sub !== false || UI.gwBusy || NET.mode !== 'online') return;
+  if (!manual && Date.now() - (UI.gwAt || 0) < 30000) return;
+  UI.gwBusy = true; UI.gwAt = Date.now(); render(true);
+  netApi.gwCheck().then((r) => {
+    UI.gwBusy = false;
+    if (r && r.ok && r.giveaway) { NET.eco.giveaway = r.giveaway; UI.ecoVer = (UI.ecoVer || 0) + 1; if (r.sub) { toast(L('gw.sub_ok'), 'good', 'check'); confettiSmall(); } else if (manual) toast(L('gw.sub_no'), 'bad'); }
+    else if (manual) errToast(r && r.err);
+    render(true);
+  }).catch(() => { UI.gwBusy = false; render(true); });
+}
 
 /* ---------- token market (Solana): price, chart, holdings; refreshed while the token tab is open ---------- */
 function loadMarket(force) {
@@ -12253,6 +12310,7 @@ function wireInput() {
       UI.last = performance.now();
       // back from the background: the phone may have dropped the canvas pixels (a black office) — redraw at once
       sizeScene(); drawScene(UI.last / 1000);
+      if (UI.gwBack && Date.now() - UI.gwBack < 10 * 60000) setTimeout(() => gwCheck(false), 800);
       if (NET.mode === 'online') setTimeout(() => netSync(), 300);
     }
   });

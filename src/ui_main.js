@@ -417,11 +417,25 @@ const ACT = {
   mktab: () => { UI.sub.drop = 'token'; render(true); loadHub('token'); },
   openbot: () => { if (NET.cfg && NET.cfg.bot) openLink('https://t.me/' + NET.cfg.bot + (NET.cfg.app ? '/' + NET.cfg.app : '')); },
   gwtx: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.pay && g.pay.tx) openLink('https://solscan.io/tx/' + g.pay.tx); },
-  gwsponsor: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.url) openLink(g.url); },
+  gwsponsor: () => { const g = NET.eco && NET.eco.giveaway; if (g && g.url) { UI.gwBack = Date.now(); openLink(g.url); } },
+  gwcheck: () => gwCheck(true),
   site: () => { const l = NET.cfg && NET.cfg.links && NET.cfg.links.site; if (l) openLink(l + (LANG === 'en' ? '' : '?lang=' + LANG)); },
   link: (k) => { const l = NET.cfg && NET.cfg.links && NET.cfg.links[k]; if (l) openLink(l); },
 };
 function confettiSmall() { confetti(40); }
+/* giveaway: ask the server to check the channel subscription (after the player comes back from the channel) */
+function gwCheck(manual) {
+  const g = NET.eco && NET.eco.giveaway;
+  if (!g || g.done || g.sub !== false || UI.gwBusy || NET.mode !== 'online') return;
+  if (!manual && Date.now() - (UI.gwAt || 0) < 30000) return;
+  UI.gwBusy = true; UI.gwAt = Date.now(); render(true);
+  netApi.gwCheck().then((r) => {
+    UI.gwBusy = false;
+    if (r && r.ok && r.giveaway) { NET.eco.giveaway = r.giveaway; UI.ecoVer = (UI.ecoVer || 0) + 1; if (r.sub) { toast(L('gw.sub_ok'), 'good', 'check'); confettiSmall(); } else if (manual) toast(L('gw.sub_no'), 'bad'); }
+    else if (manual) errToast(r && r.err);
+    render(true);
+  }).catch(() => { UI.gwBusy = false; render(true); });
+}
 
 /* ---------- token market (Solana): price, chart, holdings; refreshed while the token tab is open ---------- */
 function loadMarket(force) {
@@ -984,6 +998,7 @@ function wireInput() {
       UI.last = performance.now();
       // back from the background: the phone may have dropped the canvas pixels (a black office) — redraw at once
       sizeScene(); drawScene(UI.last / 1000);
+      if (UI.gwBack && Date.now() - UI.gwBack < 10 * 60000) setTimeout(() => gwCheck(false), 800);
       if (NET.mode === 'online') setTimeout(() => netSync(), 300);
     }
   });

@@ -13,6 +13,7 @@ function init(ctx) {
   if (inited.has(ctx.db)) return;
   ctx.db.raw.exec(`CREATE TABLE IF NOT EXISTS giveaway (id INTEGER PRIMARY KEY AUTOINCREMENT, gkey TEXT UNIQUE, start INTEGER, end_at INTEGER, prizes TEXT, url TEXT, status TEXT, winners TEXT, announced INTEGER DEFAULT 0);
     CREATE TABLE IF NOT EXISTS giveaway_base (gid INTEGER, uid INTEGER, pts REAL, PRIMARY KEY (gid, uid));
+    CREATE TABLE IF NOT EXISTS giveaway_sub (gid INTEGER, uid INTEGER, ok INTEGER, at INTEGER, PRIMARY KEY (gid, uid));
     CREATE TABLE IF NOT EXISTS giveaway_pay (gid INTEGER, uid INTEGER, rank INTEGER, usd REAL, lamports INTEGER, to_addr TEXT, status TEXT DEFAULT 'wait', tx TEXT, tx_at INTEGER, err TEXT, told INTEGER DEFAULT 0, PRIMARY KEY (gid, uid));`);
   inited.add(ctx.db);
 }
@@ -41,6 +42,23 @@ function ensure(ctx, now = Date.now()) {
   ctx.log && ctx.log('giveaway started', c.key);
   return current(ctx);
 }
+/* ---- channel subscription (required): checked with getChatMember — the bot must be an admin of the channel ---- */
+function subChat(ctx) { return (conf(ctx).chat || ctx.db.kvGet('gw_chat', '') || '').trim() || null; }
+function subCached(ctx, g, uid) { const r = ctx.db.get('SELECT ok, at FROM giveaway_sub WHERE gid=? AND uid=?', g.id, uid); return r || null; }
+async function checkSub(ctx, g, uid, now = Date.now()) {
+  const chat = subChat(ctx);
+  if (!chat) return null; // cannot be checked yet
+  let ok = 0;
+  try {
+    const r = await ctx.tg.call('getChatMember', { chat_id: chat, user_id: uid });
+    if (!r || !r.ok) { const prev = subCached(ctx, g, uid); return prev ? !!prev.ok : null; } // e.g. the bot is not an admin there
+    const m = r.result, st = m && m.status;
+    ok = st === 'creator' || st === 'administrator' || st === 'member' || (st === 'restricted' && m.is_member) ? 1 : 0;
+  } catch (e) { const prev = subCached(ctx, g, uid); return prev ? !!prev.ok : null; }
+  ctx.db.run('INSERT INTO giveaway_sub(gid,uid,ok,at) VALUES(?,?,?,?) ON CONFLICT(gid,uid) DO UPDATE SET ok=excluded.ok, at=excluded.at', g.id, uid, ok, now);
+  ctx.cache.gwBoard = null;
+  return !!ok;
+}
 const verified = (ctx, uid) => !Eco.isDev(ctx, uid) && !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku<>'adfee'", uid);
 function board(ctx, g, now = Date.now()) {
   if (g.winners) return g.winners;
@@ -50,6 +68,7 @@ function board(ctx, g, now = Date.now()) {
     `SELECT u.id, COALESCE(u.studio, u.name) AS name, u.country, u.pts - COALESCE(b.pts, 0) AS sc
      FROM users u LEFT JOIN giveaway_base b ON b.gid=? AND b.uid=u.id
      WHERE u.deleted=0 AND u.risk_state IN ('ok','watch') AND u.id IN (SELECT DISTINCT uid FROM purchases WHERE sku<>'adfee')
+     ${subChat(ctx) ? 'AND u.id IN (SELECT uid FROM giveaway_sub WHERE gid=' + Number(g.id) + ' AND ok=1)' : ''}
      ORDER BY sc DESC LIMIT 60`, g.id
   ).filter((r) => r.sc > 0.05 && !Eco.isDev(ctx, r.id)).slice(0, 50)
     .map((r, i) => ({ rank: i + 1, uid: r.id, name: r.name || '—', country: r.country || null, score: Math.round(r.sc * 10) / 10 }));
@@ -71,6 +90,7 @@ function view(ctx, uid, now = Date.now()) {
   return {
     id: g.id, start: g.start, end: g.end_at, prizes: g.prizes, url: g.url, done: g.status === 'done',
     verified: verified(ctx, uid),
+    sub: (() => { if (!subChat(ctx)) return null; const c = subCached(ctx, g, uid); return c ? !!c.ok : false; })(),
     me: { score: mine ? mine.score : myScore(ctx, g, uid), rank: mine ? mine.rank : null },
     pay: (() => { const p = ctx.db.get('SELECT usd, status, tx FROM giveaway_pay WHERE gid=? AND uid=?', g.id, uid); return p ? { usd: p.usd, st: p.status, tx: p.tx } : null; })(),
     top: rows.slice(0, 10).map((r) => ({ rank: r.rank, name: r.name, country: r.country, score: r.score, prize: r.prize || g.prizes[r.rank - 1] || 0, me: r.uid === uid })),
@@ -116,8 +136,13 @@ async function tick(ctx, now = Date.now()) {
   }
   if (g.status === 'live' && now >= g.end_at) {
     ctx.cache.gwBoard = null;
-    const rows = board(ctx, g, now);
-    const win = rows.slice(0, g.prizes.length).map((r, i) => Object.assign({}, r, { prize: g.prizes[i] }));
+    let rows = board(ctx, g, now);
+    if (subChat(ctx)) {
+      const keep = [];
+      for (const r of rows) { if (keep.length >= g.prizes.length) break; if (await checkSub(ctx, g, r.uid, now)) keep.push(r); }
+      rows = keep;
+    }
+    const win = rows.slice(0, g.prizes.length).map((r, i) => Object.assign({}, r, { rank: i + 1, prize: g.prizes[i] }));
     ctx.db.run("UPDATE giveaway SET status='done', winners=? WHERE id=?", JSON.stringify(win), g.id);
     ctx.cache.gwBoard = null;
     ctx.log && ctx.log('giveaway finished', win.map((w) => w.uid + ':' + w.prize));
@@ -215,4 +240,4 @@ function adminView(ctx) {
   return { ok: true, giveaway: { key: g.gkey, start: g.start, end: g.end_at, status: g.status, prizes: g.prizes, url: g.url }, top: rows, payWallet: wallet };
 }
 
-module.exports = { init, ensure, current, view, tick, board, adminView, payTick };
+module.exports = { init, ensure, current, view, tick, board, adminView, payTick, checkSub, subChat };

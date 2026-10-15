@@ -186,6 +186,13 @@ async function handleUpdate(ctx, up) {
       if (c.chat.type === 'private') {
         const blocked = ['kicked', 'left'].includes(c.new_chat_member.status) ? 1 : 0;
         ctx.db.run('UPDATE users SET blocked=? WHERE id=?', blocked, c.from.id);
+      } else if (c.chat.type === 'channel' || c.chat.type === 'supergroup') {
+        const own = ctx.cfg.channel && c.chat.username && ('@' + c.chat.username).toLowerCase() === String(ctx.cfg.channel).toLowerCase();
+        if (!own && c.new_chat_member.status === 'administrator') {
+          ctx.db.kvSet('gw_chat', String(c.chat.id));
+          ctx.db.kvSet('gw_chat_title', String(c.chat.title || ''));
+          ctx.log('bot is an admin of', c.chat.id, c.chat.title, '— used for the giveaway subscription check');
+        }
       }
     }
   } catch (e) {

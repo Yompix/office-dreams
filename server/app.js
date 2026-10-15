@@ -339,6 +339,14 @@ async function handleApi(ctx, req, res, url, ip) {
     if (!r.ok) return bad(res, 502, 'invoice');
     return sendJson(res, 200, { ok: true, url: r.result });
   }
+  if (method === 'POST' && p === '/api/giveaway/check') {
+    const Give = require('./giveaway.js');
+    const g = Give.current(ctx);
+    if (!g || g.status !== 'live') return sendJson(res, 200, { ok: false, err: 'unavailable' });
+    if (!hit(ctx, 'gwsub:' + uid, 6, 60000, now)) return sendJson(res, 200, { ok: false, err: 'rate' });
+    const sub = await Give.checkSub(ctx, g, uid, now);
+    return sendJson(res, 200, { ok: true, sub, giveaway: Give.view(ctx, uid, now) });
+  }
   if (method === 'POST' && p === '/api/airdrop/order') return sendJson(res, 200, SolPay.createAirdropOrder(ctx, uid, String(body.kind || ''), now));
   if (method === 'POST' && p === '/api/airdrop/claim') {
     if (!hit(ctx, 'adclaim:' + uid, 6)) return sendJson(res, 200, { ok: false, err: 'airdrop_wait' });

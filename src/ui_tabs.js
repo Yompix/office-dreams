@@ -807,12 +807,19 @@ function giveawayCard(e, mini) {
     <h2 class="h2">🎁 ${L('gw.title', { sum })}</h2>
     <p class="sub">${L(g.done ? 'gw.sub_done' : 'gw.sub', { n: g.prizes.length })}</p>
     ${prizes}
-    <div class="gw-me">${g.verified ? `<div><small>${L('gw.my')}</small><b class="px">${fmtPts(g.me.score)}</b></div><div><small>${L('gw.rank')}</small><b class="px">${g.me.rank ? '#' + g.me.rank : '—'}</b></div>` : `<div class="gw-need"><b>${L('gw.need')}</b><small>${L('gw.need_t')}</small></div><button class="btn sm glow" data-act="go:drop:token">${L('gw.verify')}</button>`}</div>
+    ${(() => {
+      const subOk = g.sub !== false; // null = cannot be checked yet
+      const ready = g.verified && subOk;
+      const req = `<div class="gw-req">
+        <div class="${g.verified ? 'ok' : ''}"><i>${g.verified ? '✅' : '1'}</i><span><b>${L('gw.req_ver')}</b><small>${L('gw.need_t')}</small></span>${g.verified ? '' : `<button class="btn sm glow" data-act="go:drop:token">${L('gw.verify')}</button>`}</div>
+        <div class="${g.sub ? 'ok' : ''}"><i>${g.sub ? '✅' : '2'}</i><span><b>${L('gw.req_sub')}</b><small>${g.sub === null ? L('gw.sub_soon') : L('gw.req_sub_t')}</small></span>${g.sub ? '' : `<button class="btn sm glow" data-act="gwsponsor">📢 ${L('gw.sub_btn')}</button>${g.sub === false ? `<button class="btn sm ghost" data-act="gwcheck" ${UI.gwBusy ? 'disabled' : ''}>${L('gw.check')}</button>` : ''}`}</div>
+      </div>`;
+      return g.done ? '' : req + (ready ? `<div class="gw-me"><div><small>${L('gw.my')}</small><b class="px">${fmtPts(g.me.score)}</b></div><div><small>${L('gw.rank')}</small><b class="px">${g.me.rank ? '#' + g.me.rank : '—'}</b></div></div>` : `<p class="hint gw-lock">🔒 ${L('gw.lock')}</p>`);
+    })()}
     ${g.pay ? `<div class="gw-pay ${g.pay.st}">${g.pay.st === 'sent' ? `✅ ${L('gw.pay_sent', { p: g.pay.usd })} ${g.pay.tx ? `<button class="linkbtn" data-act="gwtx">${L('ad.tx')}</button>` : ''}` : !NET.eco.sol ? `👛 ${L('gw.pay_wallet', { p: g.pay.usd })} <button class="btn sm glow" data-act="sol:set">${L('sol.add')}</button>` : `⏳ ${L('gw.pay_soon', { p: g.pay.usd })}`}</div>`
       : g.verified && !NET.eco.sol && !g.done ? `<div class="gw-pay wait">👛 ${L('gw.wallet_hint')} <button class="btn sm" data-act="sol:set">${L('sol.add')}</button></div>` : ''}
     <h3 class="h3">🏆 ${L('gw.top')}</h3>
     ${top}
-    ${g.url ? `<button class="btn ghost wide" data-act="gwsponsor" style="margin-top:10px">🤝 ${L('gw.sponsor')}</button>` : ''}
     <p class="hint">${L('gw.rules')}</p>
   </section>`;
 }
