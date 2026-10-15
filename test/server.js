@@ -1069,6 +1069,8 @@ const AB = require('../server/antibot.js');
       assert.deepEqual(v.top.map((r) => r.name), ['P8102', 'P8103', 'P8101', 'P8104']);
       assert.equal(v.me.rank, 2);
       assert.equal(Give.view(ctxG, 8105, envG.clock.t).verified, false, 'not verified: not in the ranking');
+      const bm = require('../server/bot.js').giveawayMsg(ctxG, 8103, 'uk', envG.clock.t);
+      assert.match(bm.text, /Розіграш від спонсора/); assert.match(bm.text, /місце <b>#2<\/b>/); assert.match(bm.text, /✅ верифікація/);
       envG.advance(3 * 86400e3 + 1000);
       await Give.tick(ctxG, envG.clock.t);
       const done = Give.current(ctxG);

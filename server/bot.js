@@ -7,40 +7,40 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>]/g, (c) => ({ '&': '
 
 const T = {
   en: {
-    start: '🏢 <b>Office Dreams</b>\n\nBuild a neon game studio: hire a team, ship hit games, climb floor by floor and collect airdrop points.\n\n🪙 Points turn into the <b>OFFX</b> token on Solana: 90,000,000 OFFX are split between players.\n👥 Invite friends — you both get bonuses.\n\n💬 Admin: @vtmjs\n\nTap <b>Play</b> to begin!',
+    start: '🏢 <b>Office Dreams</b>\n\nBuild a neon game studio: hire a team, ship hit games, climb floor by floor and walk the 🏙 city — café, academy, deals, games, mall and arena.\n\n🪙 Play → earn airdrop points → <b>90,000,000 OFFX</b> (Solana) are split between verified players by points.\n✅ Verification: one $1 deposit (SOL or Stars) — it also enters you into giveaways.\n👥 Invite friends — bonuses for both.\n\nPoints are not money; the token price is set by the market.\n💬 Admin: @vtmjs\n\nTap <b>Play</b>!',
     site: '🌐 Website', play: '🎮 Play', invite: '👥 Invite friends', share: '📤 Share link',
     inviteText: '🏢 Come build a neon game studio with me in Office Dreams! We both get bonuses:',
     inviteMsg: (link) => `👥 <b>Your invite link</b>\n\n<code>${link}</code>\n\nFor every friend who really plays you get bonus coins and ${'10%'} of their points.`,
-    help: '❓ <b>Help</b>\n\n/start — open the game\n/invite — your invite link\n/help — this message\n\nPoints are earned by playing, daily check-ins, tasks and inviting friends. Bots are filtered automatically.',
+    help: '❓ <b>Commands</b>\n\n/play — open the game\n/giveaway — giveaway: prizes, time left, your place\n/invite — your invite link\n/site — project website\n/help — this message\n\n🪙 Points come from playing, daily check-ins, tasks, the city and friends. Bots and farms are filtered automatically.\n✅ Airdrop and giveaways need verification: a one-time $1 deposit (Airdrop tab).\n💬 Questions: @vtmjs',
     joined: (n) => `🎉 Your friend <b>${esc(n)}</b> joined Office Dreams! Bonuses arrive when they start playing for real.`,
     paid: (t) => `✅ Payment received: <b>${esc(t)}</b>. Enjoy!`,
-    cmdStart: 'Open the game', cmdInvite: 'Invite friends', cmdHelp: 'Help',
-    desc: '🏢 Office Dreams — a neon game-studio tycoon right in Telegram.\n\n🎮 Hire a team, ship games, climb the floors of your office.\n🪙 Collect airdrop points: 90,000,000 OFFX (Solana) are split between players.\n👥 Invite friends — bonuses for both.\n\n💬 Admin: @vtmjs',
-    short: 'Neon game-studio tycoon · earn points for the OFFX airdrop on Solana · admin @vtmjs',
+    cmdStart: 'Start', cmdPlay: 'Open the game', cmdGiveaway: 'Giveaway: prizes and your place', cmdInvite: 'Invite friends', cmdSite: 'Project website', cmdHelp: 'Help and commands',
+    desc: '🏢 Office Dreams — a neon game-studio tycoon right in Telegram.\n\n🎮 Hire a team, ship games, climb the floors and explore the city.\n🪙 Earn airdrop points: 90,000,000 OFFX (Solana) are split between verified players.\n🎁 Giveaways with real prizes for active players.\n👥 Invite friends — bonuses for both.\n\nPoints are not money; the market sets the token price.\n💬 Admin: @vtmjs',
+    short: 'Neon game-studio tycoon · city, giveaways, OFFX airdrop on Solana · admin @vtmjs',
   },
   ru: {
-    start: '🏢 <b>Office Dreams</b>\n\nСтрой неоновую студию игр: нанимай команду, выпускай хиты, поднимайся с этажа на этаж и собирай очки аирдропа.\n\n🪙 Очки превращаются в токен <b>OFFX</b> на Solana: 90 000 000 OFFX делятся между игроками.\n👥 Приглашай друзей — бонусы получаете оба.\n\n💬 Админ: @vtmjs\n\nЖми <b>Играть</b>!',
+    start: '🏢 <b>Office Dreams</b>\n\nСтрой неоновую студию игр: нанимай команду, выпускай хиты, поднимайся по этажам и гуляй по 🏙 городу — кафе, академия, сделки, игры, торговый центр и арена.\n\n🪙 Играешь → копишь очки аирдропа → <b>90 000 000 OFFX</b> (Solana) делятся между верифицированными игроками по очкам.\n✅ Верификация: разовый депозит $1 (SOL или звёзды) — он же даёт участие в розыгрышах.\n👥 Приглашай друзей — бонусы обоим.\n\nОчки — не деньги, цену токена определяет рынок.\n💬 Админ: @vtmjs\n\nЖми <b>Играть</b>!',
     site: '🌐 Сайт', play: '🎮 Играть', invite: '👥 Пригласить друзей', share: '📤 Поделиться',
     inviteText: '🏢 Присоединяйся ко мне в Office Dreams — строим неоновую студию игр! Бонусы получим оба:',
     inviteMsg: (link) => `👥 <b>Твоя ссылка-приглашение</b>\n\n<code>${link}</code>\n\nЗа каждого друга, который реально играет, ты получаешь бонусные монеты и 10% его очков.`,
-    help: '❓ <b>Помощь</b>\n\n/start — открыть игру\n/invite — ссылка для друзей\n/help — это сообщение\n\nОчки дают игра, ежедневный вход, задания и друзья. Боты отсеиваются автоматически.',
+    help: '❓ <b>Команды</b>\n\n/play — открыть игру\n/giveaway — розыгрыш: призы, сколько осталось, твоё место\n/invite — ссылка для друзей\n/site — сайт проекта\n/help — это сообщение\n\n🪙 Очки дают игра, ежедневный вход, задания, город и друзья. Боты и фермы отсеиваются автоматически.\n✅ Для аирдропа и розыгрышей нужна верификация: разовый депозит $1 (вкладка Аирдроп).\n💬 Вопросы: @vtmjs',
     joined: (n) => `🎉 Твой друг <b>${esc(n)}</b> зашёл в Office Dreams! Бонусы придут, когда он начнёт играть по-настоящему.`,
     paid: (t) => `✅ Оплата получена: <b>${esc(t)}</b>. Приятной игры!`,
-    cmdStart: 'Открыть игру', cmdInvite: 'Пригласить друзей', cmdHelp: 'Помощь',
-    desc: '🏢 Office Dreams — неоновый тайкун игровой студии прямо в Telegram.\n\n🎮 Нанимай команду, выпускай игры, покоряй этажи офиса.\n🪙 Собирай очки аирдропа: 90 000 000 OFFX (Solana) делятся между игроками.\n👥 Приглашай друзей — бонусы обоим.\n\n💬 Админ: @vtmjs',
-    short: 'Неоновый тайкун игровой студии · очки за аирдроп OFFX на Solana · админ @vtmjs',
+    cmdStart: 'Старт', cmdPlay: 'Открыть игру', cmdGiveaway: 'Розыгрыш: призы и твоё место', cmdInvite: 'Пригласить друзей', cmdSite: 'Сайт проекта', cmdHelp: 'Помощь и команды',
+    desc: '🏢 Office Dreams — неоновый тайкун игровой студии прямо в Telegram.\n\n🎮 Нанимай команду, выпускай игры, покоряй этажи и гуляй по городу.\n🪙 Копи очки аирдропа: 90 000 000 OFFX (Solana) делятся между верифицированными игроками.\n🎁 Розыгрыши с реальными призами для активных.\n👥 Приглашай друзей — бонусы обоим.\n\nОчки — не деньги, цену токена определяет рынок.\n💬 Админ: @vtmjs',
+    short: 'Неоновый тайкун студии · город, розыгрыши, аирдроп OFFX на Solana · админ @vtmjs',
   },
   uk: {
-    start: '🏢 <b>Office Dreams</b>\n\nБудуй неонову студію ігор: наймай команду, випускай хіти, піднімайся з поверху на поверх і збирай бали аірдропу.\n\n🪙 Бали перетворюються на токен <b>OFFX</b> у Solana: 90 000 000 OFFX діляться між гравцями.\n👥 Запрошуй друзів — бонуси отримуєте обоє.\n\n💬 Адмін: @vtmjs\n\nНатисни <b>Грати</b>!',
+    start: '🏢 <b>Office Dreams</b>\n\nБудуй неонову студію ігор: наймай команду, випускай хіти, піднімайся поверхами й гуляй 🏙 містом — кафе, академія, угоди, ігри, торговий центр та арена.\n\n🪙 Граєш → збираєш бали аірдропу → <b>90 000 000 OFFX</b> (Solana) діляться між верифікованими гравцями за балами.\n✅ Верифікація: разовий депозит $1 (SOL або зірки) — він же дає участь у розіграшах.\n👥 Запрошуй друзів — бонуси обом.\n\nБали — не гроші, ціну токена визначає ринок.\n💬 Адмін: @vtmjs\n\nНатисни <b>Грати</b>!',
     site: '🌐 Сайт', play: '🎮 Грати', invite: '👥 Запросити друзів', share: '📤 Поділитися',
     inviteText: '🏢 Приєднуйся до мене в Office Dreams — будуємо неонову студію ігор! Бонуси отримаємо обоє:',
     inviteMsg: (link) => `👥 <b>Твоє посилання-запрошення</b>\n\n<code>${link}</code>\n\nЗа кожного друга, який справді грає, ти отримуєш бонусні монети та 10% його очок.`,
-    help: '❓ <b>Допомога</b>\n\n/start — відкрити гру\n/invite — посилання для друзів\n/help — це повідомлення\n\nОчки дають гра, щоденний вхід, завдання та друзі. Боти відсіюються автоматично.',
+    help: '❓ <b>Команди</b>\n\n/play — відкрити гру\n/giveaway — розіграш: призи, скільки лишилось, твоє місце\n/invite — посилання для друзів\n/site — сайт проєкту\n/help — це повідомлення\n\n🪙 Бали дають гра, щоденний вхід, завдання, місто та друзі. Боти й ферми відсіюються автоматично.\n✅ Для аірдропу й розіграшів потрібна верифікація: разовий депозит $1 (вкладка Аірдроп).\n💬 Питання: @vtmjs',
     joined: (n) => `🎉 Твій друг <b>${esc(n)}</b> зайшов в Office Dreams! Бонуси прийдуть, коли він почне грати по-справжньому.`,
     paid: (t) => `✅ Оплату отримано: <b>${esc(t)}</b>. Гарної гри!`,
-    cmdStart: 'Відкрити гру', cmdInvite: 'Запросити друзів', cmdHelp: 'Допомога',
-    desc: '🏢 Office Dreams — неоновий тайкун ігрової студії просто в Telegram.\n\n🎮 Наймай команду, випускай ігри, підкорюй поверхи офісу.\n🪙 Збирай бали аірдропу: 90 000 000 OFFX (Solana) діляться між гравцями.\n👥 Запрошуй друзів — бонуси обом.\n\n💬 Адмін: @vtmjs',
-    short: 'Неоновий тайкун ігрової студії · бали за аірдроп OFFX у Solana · адмін @vtmjs',
+    cmdStart: 'Старт', cmdPlay: 'Відкрити гру', cmdGiveaway: 'Розіграш: призи і твоє місце', cmdInvite: 'Запросити друзів', cmdSite: 'Сайт проєкту', cmdHelp: 'Допомога і команди',
+    desc: '🏢 Office Dreams — неоновий тайкун ігрової студії просто в Telegram.\n\n🎮 Наймай команду, випускай ігри, підкорюй поверхи й гуляй містом.\n🪙 Збирай бали аірдропу: 90 000 000 OFFX (Solana) діляться між верифікованими гравцями.\n🎁 Розіграші з реальними призами для активних.\n👥 Запрошуй друзів — бонуси обом.\n\nБали — не гроші, ціну токена визначає ринок.\n💬 Адмін: @vtmjs',
+    short: 'Неоновий тайкун студії · місто, розіграші, аірдроп OFFX у Solana · адмін @vtmjs',
   },
 };
 const SHOP_TXT = {
@@ -84,6 +84,33 @@ const shopTxt = (lang, sku, cash) => {
   if (c[sku]) return [c[sku], c.d(nfmt(cash || 0))];
   return (SHOP_TXT[lang] || SHOP_TXT.en)[sku] || [sku, sku];
 };
+// /giveaway for players: prizes, time left, the conditions and their own place
+const GW_TXT = {
+  en: { none: '🎁 No giveaway right now. Follow the channel — the next one is announced there.', title: 'Sponsor giveaway', left: (h, m) => `⏳ ${h}h ${m}m left`, done: '🏁 Finished — results below.', prizes: 'Prizes', cond: 'Conditions', ver: 'verification ($1 deposit, Airdrop tab)', sub: 'subscription to the sponsor channel', me: (s, r) => `📈 Your points in the giveaway: <b>${s}</b>${r ? ` · place <b>#${r}</b>` : ''}`, top: 'Top', empty: 'Nobody qualifies yet — be the first!', how: 'Points are counted from the start of the giveaway: play, do tasks and walk the city. Prizes are sent in SOL to the wallet connected in the game.', subBtn: '📢 Subscribe to the channel' },
+  ru: { none: '🎁 Сейчас розыгрыша нет. Следи за каналом — о следующем объявим там.', title: 'Розыгрыш от спонсора', left: (h, m) => `⏳ Осталось ${h} ч ${m} мин`, done: '🏁 Завершён — итоги ниже.', prizes: 'Призы', cond: 'Условия', ver: 'верификация (депозит $1, вкладка Аирдроп)', sub: 'подписка на канал спонсора', me: (s, r) => `📈 Твои очки в розыгрыше: <b>${s}</b>${r ? ` · место <b>#${r}</b>` : ''}`, top: 'Топ', empty: 'Пока никто не прошёл условия — будь первым!', how: 'Очки считаются с начала розыгрыша: играй, выполняй задания, гуляй по городу. Призы приходят в SOL на кошелёк, подключённый в игре.', subBtn: '📢 Подписаться на канал' },
+  uk: { none: '🎁 Зараз розіграшу немає. Стеж за каналом — про наступний оголосимо там.', title: 'Розіграш від спонсора', left: (h, m) => `⏳ Лишилось ${h} год ${m} хв`, done: '🏁 Завершено — підсумки нижче.', prizes: 'Призи', cond: 'Умови', ver: 'верифікація (депозит $1, вкладка Аірдроп)', sub: 'підписка на канал спонсора', me: (s, r) => `📈 Твої бали в розіграші: <b>${s}</b>${r ? ` · місце <b>#${r}</b>` : ''}`, top: 'Топ', empty: 'Поки ніхто не виконав умови — будь першим!', how: 'Бали рахуються з початку розіграшу: грай, виконуй завдання, гуляй містом. Призи приходять у SOL на гаманець, підключений у грі.', subBtn: '📢 Підписатися на канал' },
+};
+function giveawayMsg(ctx, uid, lang, now = Date.now()) {
+  const g = GW_TXT[lang] || GW_TXT.en;
+  const v = require('./giveaway.js').view(ctx, uid, now);
+  if (!v) return { text: g.none };
+  const left = Math.max(0, v.end - now), h = Math.floor(left / 3600e3), mi = Math.floor((left % 3600e3) / 60e3);
+  const mark = (ok) => (ok ? '✅' : '❌');
+  const medal = ['🥇', '🥈', '🥉'];
+  const top = v.top.slice(0, 5).map((r) => `${medal[r.rank - 1] || r.rank + '.'} ${esc(r.name)} — ${nfmt(r.score)}${r.prize ? ' · $' + r.prize : ''}${r.me ? ' ←' : ''}`).join('\n') || g.empty;
+  const lines = [
+    `🎁 <b>${g.title}</b>`, v.done ? g.done : g.left(h, mi), '',
+    `🏆 ${g.prizes}: ${v.prizes.map((p, i) => medal[i] + ' $' + p).join('  ')}`, '',
+    `<b>${g.cond}:</b>`, `${mark(v.verified)} ${g.ver}`,
+  ];
+  if (v.sub !== null) lines.push(`${mark(v.sub)} ${g.sub}`);
+  lines.push('', g.me(nfmt(v.me.score), v.me.rank), '', `<b>${g.top}:</b>`, top, '', g.how);
+  const rows = [];
+  if (v.url && v.sub !== true) rows.push([{ text: g.subBtn, url: v.url }]);
+  const pm = playMarkup(ctx, lang);
+  if (pm) rows.push(pm.inline_keyboard[0]);
+  return { text: lines.join('\n'), markup: rows.length ? { inline_keyboard: rows } : undefined };
+}
 const appUrl = (ctx) => ctx.cfg.publicUrl + '/';
 
 const isOwner = (ctx, id) => (ctx.cfg.adminTgIds || []).includes(id) || (ctx.cfg.devIds || []).includes(Number(id));
@@ -131,7 +158,15 @@ async function handleMessage(ctx, m) {
     if (!link) return;
     await send(ctx, m.chat.id, t.inviteMsg(link), shareMarkup(ctx, lang, link));
   } else if (name === 'help') {
-    await send(ctx, m.chat.id, t.help);
+    await send(ctx, m.chat.id, t.help, playMarkup(ctx, lang));
+  } else if (name === 'play') {
+    await send(ctx, m.chat.id, '🎮 Office Dreams', playMarkup(ctx, lang));
+  } else if (name === 'site') {
+    const pm = playMarkup(ctx, lang);
+    await send(ctx, m.chat.id, '🌐 ' + ctx.cfg.publicUrl + '/site' + (lang === 'en' ? '' : '?lang=' + lang), pm && { inline_keyboard: [pm.inline_keyboard[1]] });
+  } else if (name === 'giveaway' && !(isOwner(ctx, from.id) && arg !== 'me')) {
+    const r = giveawayMsg(ctx, from.id, lang);
+    await send(ctx, m.chat.id, r.text, r.markup);
   } else if ((name === 'stats' || name === 'giveaway') && isOwner(ctx, from.id)) {
     // owner-only commands (ADMIN_TG_IDS or the developer accounts in DEV_IDS)
     if (name === 'stats') {
@@ -248,7 +283,7 @@ async function setup(ctx) {
   for (const lang of ['en', 'ru', 'uk']) {
     const t = tx(lang);
     const extra = lang === 'en' ? {} : { language_code: lang };
-    await tg.call('setMyCommands', { commands: [{ command: 'start', description: t.cmdStart }, { command: 'invite', description: t.cmdInvite }, { command: 'help', description: t.cmdHelp }], ...extra });
+    await tg.call('setMyCommands', { commands: [['play', t.cmdPlay], ['giveaway', t.cmdGiveaway], ['invite', t.cmdInvite], ['site', t.cmdSite], ['help', t.cmdHelp], ['start', t.cmdStart]].map(([command, description]) => ({ command, description })), ...extra });
     await tg.call('setMyDescription', { description: t.desc, ...extra });
     await tg.call('setMyShortDescription', { short_description: t.short, ...extra });
   }
@@ -286,4 +321,4 @@ function startPolling(ctx) {
   return { stop() { stop = true; } };
 }
 
-module.exports = { playMarkup, T, tx, shopTxt, donateTxt, thanksTxt, entryTxt, notifyRefActive, notifyDuel, handleUpdate, notifyReferral, setup, startPolling, send };
+module.exports = { giveawayMsg, playMarkup, T, tx, shopTxt, donateTxt, thanksTxt, entryTxt, notifyRefActive, notifyDuel, handleUpdate, notifyReferral, setup, startPolling, send };
