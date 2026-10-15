@@ -119,7 +119,7 @@ function view(ctx, uid, now = Date.now()) {
   const rows = board(ctx, g, now);
   const mine = rows.find((r) => r.uid === uid);
   return {
-    id: g.id, start: g.start, end: g.end_at, prizes: g.prizes, url: g.url, done: g.status === 'done',
+    id: g.id, start: g.start, end: g.end_at, prizes: g.prizes, url: conf(ctx).url || g.url, done: g.status === 'done', // the current link (it may change after the start)
     verified: verified(ctx, uid),
     sub: (() => { if (!subChat(ctx)) return null; const c = subCached(ctx, g, uid); return c ? !!c.ok : false; })(),
     me: { score: mine ? mine.score : myScore(ctx, g, uid), rank: mine ? mine.rank : null },
