@@ -1191,3 +1191,18 @@ img.mk-logo { object-fit: contain; background: none; }
 #motes i:nth-child(n+9) { display: none; }
 /* no animations while the app is in the background or for players who asked for less motion */
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+/* employee card: the value before the last upgrade */
+.stats b s.was { color: var(--mut); font-weight: 600; font-size: 0.85em; text-decoration: line-through; opacity: 0.75; margin-right: 2px; }
+/* reputation & team mood above the office scene */
+.op-meters { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.opm { min-width: 0; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 6px; padding: 5px 8px; border-radius: 10px; background: rgba(5, 8, 36, 0.7); border: 1px solid var(--line-soft); }
+.opm span { font-size: 10px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.opm b { font-size: 10px; color: #fff; }
+.opm-bar { grid-column: 1 / -1; display: block; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+.opm-bar i { display: block; height: 100%; border-radius: 3px; transition: width 0.4s; }
+.opm.rep .opm-bar i { background: linear-gradient(90deg, #ffd23f, #ff9f1c); box-shadow: 0 0 6px rgba(255, 210, 63, 0.6); }
+.opm.mood .opm-bar i { background: linear-gradient(90deg, #2ee66b, #3fd0ff); box-shadow: 0 0 6px rgba(46, 230, 107, 0.6); }
+.op-head { flex-wrap: wrap; }
+.op-meters { order: 3; flex: 1 0 100%; }
+.opm span { font-size: 11px; }
+.opm b { font-size: 11px; }

@@ -424,6 +424,8 @@ LANGS.en = {
   'err.ad_closed': "The airdrop has already started — entry is closed",
   'don.btn': "Donate",
   'don.btn_long': "Bring the airdrop closer with Stars",
+  'office.rep': "Reputation",
+  'office.mood': "Team mood",
   'tok.what': "{sym} is the game’s own token on the Solana blockchain. The airdrop points you collect now will be exchanged for it.",
   'tok.supply': "100,000,000 — minted once, no more ever",
   'tok.status': 'Season 0: collecting points',

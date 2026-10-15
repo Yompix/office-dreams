@@ -52,7 +52,13 @@ function buffChips() {
 }
 
 /* ---------- live bindings (updated 4×/s without re-render) ---------- */
+// reputation (unbounded) is shown as a level 1–10 with progress inside the level; mood = average of the hired team
+const REP_STEP = (lv) => 5 * lv * lv;
+function repLevel() { const r = S.rep || 0; let lv = 1; while (lv < 10 && r >= REP_STEP(lv)) lv++; const lo = lv > 1 ? REP_STEP(lv - 1) : 0, hi = REP_STEP(lv); return { lv, pct: lv >= 10 && r >= hi ? 100 : ((r - lo) / (hi - lo)) * 100 }; }
+function teamMood() { const h = ROLES.filter((r) => S.staff[r].lvl > 0); return h.length ? h.reduce((t, r) => t + S.staff[r].mood, 0) / h.length : 100; }
 const LIVE = {
+  replv: () => 'LV ' + repLevel().lv,
+  moodv: () => Math.round(teamMood()) + '%',
   cash: () => fmtHud(S.cash),
   gems: () => String(S.gems),
   day: () => L('ui.day', { n: S.day }),
@@ -67,6 +73,8 @@ const LIVE = {
   sales: () => money(dailySalesRate(S)),
 };
 const WLIVE = {
+  rep: () => repLevel().pct,
+  mood: () => teamMood(),
   daybar: () => (S.clock / DAY_SEC) * 100,
   energy: () => (S.energy / maxEnergy(S)) * 100,
   proj: () => projectPct(),
@@ -230,6 +238,10 @@ function tabOffice() {
   <section class="panel officep">
     <div class="op-head">
       ${(() => { const sn = studioName(); return `<button class="op-studio ${sn ? '' : 'empty'}" data-act="studio">${I('office', 12)}<span>${sn ? esc(sn) : L('st.unnamed')}</span><i>✎</i></button>`; })()}
+      <div class="op-meters">
+        <div class="opm rep" title="${esc(L('office.rep'))}"><span>⭐ ${L('office.rep')}</span><b class="px" data-t="replv"></b><i class="opm-bar"><i data-w="rep"></i></i></div>
+        <div class="opm mood" title="${esc(L('office.mood'))}"><span>😊 ${L('office.mood')}</span><b class="px" data-t="moodv"></b><i class="opm-bar"><i data-w="mood"></i></i></div>
+      </div>
       <button class="helpbtn" data-act="help" aria-label="${esc(L('help.title'))}">?</button>
     </div>
     <div class="op-body">
@@ -331,21 +343,27 @@ function detailPanel() {
     </section>`;
   }
   const l = st.lvl, max = l >= MAX_LVL, cost = upCost(r, l);
-  const k = l * moodF(st.mood), li = (key, v) => `<li><span>${L(key)}</span><b class="grn">${v}</b></li>`;
-  const outLine = r === 'mkt' ? li('team.sales_bonus', `+${Math.round(0.07 * k * 100)}%`)
-    : r === 'qa' ? li('team.score_bonus', `+${(0.12 * k).toFixed(1)}`)
-    : r === 'prod' ? li('team.team_speed', `+${Math.round(4 * k)}%`)
-    : r === 'cm' ? li('team.tail', `−${Math.round((1 - saleDecay(S)) * 100)}%`)
-    : r === 'snd' ? li('team.work_pts', `+${wpRole(S, r).toFixed(1)}/${L('u.s')}`) + li('team.sales_bonus', `+${Math.round(3 * k)}%`)
-    : li('team.work_pts', `+${wpRole(S, r).toFixed(1)}/${L('u.s')}`);
+  // every stat shows what it was before the last upgrade (muted), then the value now
+  const S0 = l > 1 ? Object.assign({}, S, { staff: Object.assign({}, S.staff, { [r]: Object.assign({}, st, { lvl: l - 1 }) }) }) : null;
+  const vals = (SS, lv) => {
+    const k = lv * moodF(st.mood), wp = `+${wpRole(SS, r).toFixed(1)}/${L('u.s')}`;
+    const out = r === 'mkt' ? [['team.sales_bonus', `+${Math.round(0.07 * k * 100)}%`]]
+      : r === 'qa' ? [['team.score_bonus', `+${(0.12 * k).toFixed(1)}`]]
+      : r === 'prod' ? [['team.team_speed', `+${Math.round(4 * k)}%`]]
+      : r === 'cm' ? [['team.tail', `−${Math.round((1 - saleDecay(SS)) * 100)}%`]]
+      : r === 'snd' ? [['team.work_pts', wp], ['team.sales_bonus', `+${Math.round(3 * k)}%`]]
+      : [['team.work_pts', wp]];
+    return [['team.speed', `+${Math.round((speedOf(lv) - 1) * 100)}%`, 'grn']].concat(out.map((x) => [x[0], x[1], 'grn']), [['team.salary', money(salaryOf(SS, r)) + L('ui.per_day'), '']]);
+  };
+  const now = vals(S, l), was = S0 ? vals(S0, l - 1) : null;
+  const row = (x, i) => `<li><span>${L(x[0])}</span><b class="${x[2]}">${was && was[i][1] !== x[1] ? `<s class="was">${was[i][1]}</s> ` : ''}${x[1]}</b></li>`;
   return `<section class="panel detail">
     <div class="d-head"><h3 class="h3">${L('role.' + r + '.name')}</h3><span class="lvl px">LV ${l}</span></div>
     <div class="d-body">${imgTag(portrait(r, st.mood), 'd-art')}
       <ul class="stats">
-        <li><span>${L('team.speed')}</span><b class="grn">+${Math.round((speedOf(l) - 1) * 100)}%</b></li>
+        ${row(now[0], 0)}
         <li><span>${L('team.mood')}</span><b class="${moodClass(st.mood)}">${Math.round(st.mood)}%</b></li>
-        ${outLine}
-        <li><span>${L('team.salary')}</span><b>${money(salaryOf(S, r))}${L('ui.per_day')}</b></li>
+        ${now.slice(1).map((x, i) => row(x, i + 1)).join('')}
       </ul></div>
     ${pips(l)}
     ${max ? `<p class="hint">${L('team.max')}</p>` : `<button class="btn" data-act="ups:${r}" ${S.cash >= cost ? '' : 'disabled'}>${L('ui.upgrade')} <b class="px">${money(cost)}</b></button>
