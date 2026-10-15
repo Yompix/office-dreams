@@ -105,7 +105,9 @@ function makeStatic(cfg) {
     if (/^[\w.\-]+$/.test(name) && p === '/' + name && MIME[path.extname(name).toLowerCase()]) {
       const file = path.join(pub, name);
       if (file.startsWith(pub) && fs.existsSync(file)) {
-        res.writeHead(200, { 'content-type': MIME[path.extname(name).toLowerCase()], 'cache-control': 'public, max-age=86400', ...SEC_HEADERS });
+        // images may be loaded by wallets, explorers and DEX sites (the token logo): allow cross-origin use
+        const img = /\.(png|jpg|webp|svg)$/i.test(name);
+        res.writeHead(200, { 'content-type': MIME[path.extname(name).toLowerCase()], 'cache-control': name === 'token.png' ? 'public, max-age=3600' : 'public, max-age=86400', ...(img ? { 'access-control-allow-origin': '*', 'cross-origin-resource-policy': 'cross-origin' } : {}), ...SEC_HEADERS });
         return fs.createReadStream(file).pipe(res);
       }
     }
@@ -444,7 +446,10 @@ function createApp(cfg, opts = {}) {
         const base = cfg.publicUrl || `http://${req.headers.host}`;
         const app = cfg.botUsername ? `https://t.me/${cfg.botUsername}${cfg.appShort ? '/' + cfg.appShort : ''}` : base;
         res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'public, max-age=300', 'access-control-allow-origin': '*', ...SEC_HEADERS });
-        return res.end(JSON.stringify({ name: 'OFFICE', symbol: cfg.tokenSymbol || 'OFFX', description: 'OFFX — the token of Office Dreams, a pixel game studio tycoon in Telegram. 100,000,000 supply, minted once.', image: base + '/token.png', external_url: app }));
+        return res.end(JSON.stringify({ name: 'OFFICE', symbol: cfg.tokenSymbol || 'OFFX', description: 'OFFX — the token of Office Dreams, a pixel game studio tycoon in Telegram. 100,000,000 supply, minted once.', image: base + '/token.png', external_url: app,
+          // Metaplex-style fields: some indexers look for the logo here
+          properties: { category: 'image', files: [{ uri: base + '/token.png', type: 'image/png' }] },
+          extensions: { website: app, telegram: app } }));
       }
       if (p === '/pay') {
         const f = path.join(cfg.root, 'public', 'pay.html');
