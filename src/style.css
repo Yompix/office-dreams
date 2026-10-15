@@ -1206,3 +1206,7 @@ img.mk-logo { object-fit: contain; background: none; }
 .op-meters { order: 3; flex: 1 0 100%; }
 .opm span { font-size: 11px; }
 .opm b { font-size: 11px; }
+/* AI portraits: smooth scaling, a tired/sad employee looks dimmer */
+img[src*="/portrait-"] { image-rendering: auto; object-fit: cover; }
+img[src*="/portrait-"][src$="#m1"] { filter: saturate(0.8) brightness(0.92); }
+img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepia(0.15); }

@@ -50,7 +50,13 @@ function pxURL(key, w, h, draw) {
   imgCache[key] = url;
   return url;
 }
-const portrait = (kind, mood) => pxURL('p2:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 48, 48, (B) => drawPortrait(B, kind, mood));
+// AI-drawn portraits served by the game server (the procedural pixel portrait stays as a fallback offline / for other kinds);
+// the mood rides in the URL fragment so CSS can dim a sad face
+const AI_PORTRAITS = new Set(['you', 'prog', 'des', 'art', 'mkt']);
+const portrait = (kind, mood) => (AI_PORTRAITS.has(kind) && typeof NET !== 'undefined' && NET.mode === 'online')
+  ? '/portrait-' + kind + '.jpg#m' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0)
+  : portraitPx(kind, mood);
+const portraitPx = (kind, mood) => pxURL('p2:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 48, 48, (B) => drawPortrait(B, kind, mood));
 const seedOf = (name) => {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 97;

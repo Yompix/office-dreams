@@ -1209,6 +1209,10 @@ img.mk-logo { object-fit: contain; background: none; }
 .op-meters { order: 3; flex: 1 0 100%; }
 .opm span { font-size: 11px; }
 .opm b { font-size: 11px; }
+/* AI portraits: smooth scaling, a tired/sad employee looks dimmer */
+img[src*="/portrait-"] { image-rendering: auto; object-fit: cover; }
+img[src*="/portrait-"][src$="#m1"] { filter: saturate(0.8) brightness(0.92); }
+img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepia(0.15); }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -7907,7 +7911,13 @@ function pxURL(key, w, h, draw) {
   imgCache[key] = url;
   return url;
 }
-const portrait = (kind, mood) => pxURL('p2:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 48, 48, (B) => drawPortrait(B, kind, mood));
+// AI-drawn portraits served by the game server (the procedural pixel portrait stays as a fallback offline / for other kinds);
+// the mood rides in the URL fragment so CSS can dim a sad face
+const AI_PORTRAITS = new Set(['you', 'prog', 'des', 'art', 'mkt']);
+const portrait = (kind, mood) => (AI_PORTRAITS.has(kind) && typeof NET !== 'undefined' && NET.mode === 'online')
+  ? '/portrait-' + kind + '.jpg#m' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0)
+  : portraitPx(kind, mood);
+const portraitPx = (kind, mood) => pxURL('p2:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 48, 48, (B) => drawPortrait(B, kind, mood));
 const seedOf = (name) => {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 97;
