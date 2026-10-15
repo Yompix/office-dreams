@@ -308,3 +308,56 @@ function openLink(url) {
   } catch (e) {}
   window.open(url, '_blank', 'noopener');
 }
+
+/* ---------- in-place DOM patch: re-renders change only what changed ----------
+   Rebuilding the page with innerHTML recreated the office canvas (a black flash), every image
+   (a texture blink) and restarted CSS animations several times a second. morph() keeps the
+   existing nodes and patches attributes/text, so canvases, images and animations survive. */
+const MORPH_KEEP = ['hit', 'pulse', 'flash', 'has-rip', 'moving', 'tired', 'lit'];
+function morphAttrs(a, b) {
+  const canvas = a.tagName === 'CANVAS', live = a.hasAttribute('data-w');
+  for (let i = a.attributes.length - 1; i >= 0; i--) {
+    const n = a.attributes[i].name;
+    if (b.hasAttribute(n) || n === 'style' || (canvas && (n === 'width' || n === 'height'))) continue;
+    a.removeAttribute(n);
+  }
+  for (let i = 0; i < b.attributes.length; i++) {
+    const n = b.attributes[i].name, v = b.attributes[i].value;
+    if (canvas && (n === 'width' || n === 'height')) continue; // resizing a canvas wipes it
+    if (n === 'style' && live) continue; // bar widths are driven by live()
+    if (n === 'class') {
+      const keep = MORPH_KEEP.filter((c) => a.classList.contains(c) && !b.classList.contains(c));
+      const nv = keep.length ? v + ' ' + keep.join(' ') : v;
+      if (a.getAttribute('class') !== nv) a.setAttribute('class', nv);
+      continue;
+    }
+    if (a.getAttribute(n) !== v) { a.setAttribute(n, v); if (n === 'data-t' || n === 'data-w') a._v = undefined; }
+  }
+  if (a.tagName === 'INPUT' && a !== document.activeElement && a.value !== b.value) a.value = b.value;
+}
+function morphKids(a, b) {
+  const an = a.childNodes, bn = Array.prototype.slice.call(b.childNodes);
+  let i = 0;
+  for (const nb of bn) {
+    let na = an[i];
+    while (na && na.nodeType === 1 && na.classList.contains('rip')) na = an[++i]; // a running press ripple
+    if (!na) { a.appendChild(nb); i++; continue; }
+    if (na.nodeType !== nb.nodeType || (na.nodeType === 1 && (na.tagName !== nb.tagName || na.id !== nb.id))) { a.replaceChild(nb, na); i++; continue; }
+    if (na.nodeType === 3 || na.nodeType === 8) { if (na.nodeValue !== nb.nodeValue) na.nodeValue = nb.nodeValue; i++; continue; }
+    morphAttrs(na, nb);
+    if (na.tagName === 'CANVAS' || (na.hasAttribute('data-t') && na._v !== undefined)) { i++; continue; } // live() owns this text
+    if (na.tagName === 'SVG' || na.tagName === 'svg') { if (na.innerHTML !== nb.innerHTML) na.innerHTML = nb.innerHTML; i++; continue; }
+    morphKids(na, nb);
+    i++;
+  }
+  while (an.length > i) {
+    const x = an[an.length - 1];
+    if (x.nodeType === 1 && x.classList.contains('rip')) { if (an.length - 1 === i) break; a.insertBefore(x, an[i]); continue; }
+    a.removeChild(x);
+  }
+}
+function morph(el, html) {
+  const t = document.createElement('template');
+  t.innerHTML = html;
+  morphKids(el, t.content);
+}

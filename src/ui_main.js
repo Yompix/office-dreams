@@ -31,16 +31,19 @@ function render(force) {
   const sig = [S.rev, UI.tab, UI.sub.studio, UI.sub.drop, UI.sel, affordSig(), UI.ecoVer || 0, UI.hubVer || 0, LANG, NET.online, NET.mode, S.sel.genre, S.sel.tier, S.sel.name].join('|');
   if (!force && sig === UI.lastSig) return;
   // don't rebuild the page under someone typing a donation amount (keyboard would close)
-  if (!force && document.activeElement && document.activeElement.id === 'donin') { $('#hud').innerHTML = hudHTML(); return; }
+  if (!force && document.activeElement && document.activeElement.id === 'donin') { morph($('#hud'), hudHTML()); return; }
   UI.lastSig = sig;
   const main = $('#main');
   const where = UI.tab + ':' + (UI.sub[UI.tab] || '');
   const keep = UI.renderedTab === where ? main.scrollTop : 0;
-  $('#hud').innerHTML = hudHTML();
-  $('#tabs').innerHTML = tabsHTML();
-  main.innerHTML = '<div class="page" data-tab="' + UI.tab + '">' + tabHTML() + '</div>';
-  if (UI.renderedTab !== where) { main.firstChild.classList.add('enter'); vfxStagger(); }
-  main.scrollTop = keep;
+  morph($('#hud'), hudHTML());
+  morph($('#tabs'), tabsHTML());
+  // a new tab/sub-page is built fresh (entrance animation); updates of the same page are patched in place
+  if (UI.renderedTab !== where || !main.firstChild) {
+    main.innerHTML = '<div class="page" data-tab="' + UI.tab + '">' + tabHTML() + '</div>';
+    main.firstChild.classList.add('enter'); vfxStagger();
+    main.scrollTop = keep;
+  } else morph(main.firstChild, tabHTML());
   UI.renderedTab = where;
   bindCanvases();
   live();
@@ -88,7 +91,10 @@ function bindCanvases() {
   UI.sceneCtx = UI.sceneCv ? UI.sceneCv.getContext('2d') : null;
   UI.bloomCtx = UI.bloomCv ? UI.bloomCv.getContext('2d') : null;
   UI.towerCtx = UI.towerCv ? UI.towerCv.getContext('2d') : null;
-  if (UI.sceneCv) sizeScene();
+  if (UI.sceneCv) {
+    sizeScene();
+    if (!UI.sceneCv._wired) { UI.sceneCv._wired = 1; UI.sceneCv.addEventListener('contextrestored', () => { sizeScene(); drawScene(performance.now() / 1000); }); }
+  }
   drawScene(performance.now() / 1000);
   drawTowerCv(performance.now() / 1000);
 }
@@ -911,8 +917,10 @@ function frame(now) {
       const t0 = performance.now();
       drawScene(now / 1000);
       const ms = performance.now() - t0;
-      UI.sceneMs = UI.sceneMs === undefined ? ms : UI.sceneMs * 0.9 + ms * 0.1;
-      UI.sceneStep = UI.sceneMs > 22 ? 0.1 : UI.sceneMs > 12 ? 0.066 : 0.045;
+      // one-off spikes (GC, a theme rebuild) don't count fully; the rate only changes with a margin, so it doesn't flip back and forth
+      UI.sceneMs = UI.sceneMs === undefined ? ms : UI.sceneMs * 0.92 + Math.min(ms, 40) * 0.08;
+      const m = UI.sceneMs, st = UI.sceneStep || 0.045;
+      UI.sceneStep = st === 0.045 ? (m > 14 ? 0.066 : st) : st === 0.066 ? (m > 24 ? 0.1 : m < 10 ? 0.045 : st) : (m < 18 ? 0.066 : st);
     }
     UI.towerAcc += dt;
     if (UI.towerAcc >= 0.25 && !UI.modal && UI.tab === 'empire' && !document.hidden) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
@@ -959,7 +967,12 @@ function wireInput() {
   document.addEventListener('visibilitychange', () => {
     musicSync();
     if (document.hidden) netFlush();
-    else { UI.last = performance.now(); if (NET.mode === 'online') setTimeout(() => netSync(), 300); }
+    else {
+      UI.last = performance.now();
+      // back from the background: the phone may have dropped the canvas pixels (a black office) — redraw at once
+      sizeScene(); drawScene(UI.last / 1000);
+      if (NET.mode === 'online') setTimeout(() => netSync(), 300);
+    }
   });
   window.addEventListener('pagehide', () => netFlush());
   window.addEventListener('resize', () => { sizeScene(); });
@@ -990,6 +1003,11 @@ async function boot() {
       if (TG.setHeaderColor) TG.setHeaderColor('#060a26');
       if (TG.setBackgroundColor) TG.setBackgroundColor('#040719');
       if (TG.disableVerticalSwipes) TG.disableVerticalSwipes();
+      if (TG.onEvent) {
+        const redraw = () => { UI.last = performance.now(); sizeScene(); drawScene(UI.last / 1000); };
+        TG.onEvent('activated', redraw);
+        TG.onEvent('viewportChanged', (e) => { if (!e || e.isStateStable !== false) redraw(); });
+      }
     } catch (e) {}
   }
   const tgLang = TG && TG.initDataUnsafe && TG.initDataUnsafe.user && TG.initDataUnsafe.user.language_code;
