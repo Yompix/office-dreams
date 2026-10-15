@@ -52,7 +52,7 @@ function pxURL(key, w, h, draw) {
 }
 // AI-drawn portraits served by the game server (the procedural pixel portrait stays as a fallback offline / for other kinds);
 // the mood rides in the URL fragment so CSS can dim a sad face
-const AI_PORTRAITS = new Set(['you', 'prog', 'des', 'art', 'mkt']);
+const AI_PORTRAITS = new Set(['you', 'prog', 'des', 'art', 'mkt', 'qa', 'snd', 'prod', 'cm', 'boss', 'inv', 'npc']);
 const portrait = (kind, mood) => (AI_PORTRAITS.has(kind) && typeof NET !== 'undefined' && NET.mode === 'online')
   ? '/portrait-' + kind + '.jpg#m' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0)
   : portraitPx(kind, mood);

@@ -1210,3 +1210,11 @@ img.mk-logo { object-fit: contain; background: none; }
 img[src*="/portrait-"] { image-rendering: auto; object-fit: cover; }
 img[src*="/portrait-"][src$="#m1"] { filter: saturate(0.8) brightness(0.92); }
 img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepia(0.15); }
+/* bigger office: the scene takes the whole width, the action buttons become one row under it */
+.op-body, .op-body { grid-template-columns: minmax(0, 1fr) !important; }
+.scene { min-height: 0; aspect-ratio: 188 / 162; width: 100%; }
+.side { grid-auto-rows: auto; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; padding: 4px; }
+.sbtn, .sbtn { grid-template-columns: 1fr !important; justify-items: center !important; padding: 7px 2px !important; gap: 3px !important; }
+.s-l { font-size: 9.5px !important; text-align: center !important; }
+.s-ico { width: 30px; height: 30px; }
+@media (min-width: 440px) { .s-l { font-size: 11px !important; } }

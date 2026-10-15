@@ -33,6 +33,8 @@ function tutLoad() {
 }
 function tipActive() {
   if (COACH.i < TUT.length || UI.pvp) return null;
+  // no new tips while the player is tapping WORK: a tip would scroll the page under their finger
+  if (Date.now() - (UI.tapAt || 0) < 4000) return null;
   return TIPS.find((t) => !lsGet('od2_tip_' + t.id) && t.when()) || null;
 }
 function tipDone(id) { lsSet('od2_tip_' + id, '1'); }
@@ -138,7 +140,8 @@ function tutUpdate() {
   ring.style.top = (r.top - pad) + 'px';
   ring.style.width = (r.width + pad * 2) + 'px';
   ring.style.height = (r.height + pad * 2) + 'px';
-  const below = r.top + r.height / 2 < window.innerHeight * 0.5;
+  // the office action row sits right above the WORK button: its tips open upwards so they never cover it
+  const below = !target.closest('.side') && r.top + r.height / 2 < window.innerHeight * 0.5;
   bub.className = 'c-bub ' + (below ? 'below' : 'above');
   const bw = Math.min(320, window.innerWidth - 24);
   const cx = Math.max(12, Math.min(window.innerWidth - bw - 12, r.left + r.width / 2 - bw / 2));

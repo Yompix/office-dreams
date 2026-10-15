@@ -1213,6 +1213,14 @@ img.mk-logo { object-fit: contain; background: none; }
 img[src*="/portrait-"] { image-rendering: auto; object-fit: cover; }
 img[src*="/portrait-"][src$="#m1"] { filter: saturate(0.8) brightness(0.92); }
 img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepia(0.15); }
+/* bigger office: the scene takes the whole width, the action buttons become one row under it */
+.op-body, .op-body { grid-template-columns: minmax(0, 1fr) !important; }
+.scene { min-height: 0; aspect-ratio: 188 / 162; width: 100%; }
+.side { grid-auto-rows: auto; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; padding: 4px; }
+.sbtn, .sbtn { grid-template-columns: 1fr !important; justify-items: center !important; padding: 7px 2px !important; gap: 3px !important; }
+.s-l { font-size: 9.5px !important; text-align: center !important; }
+.s-ico { width: 30px; height: 30px; }
+@media (min-width: 440px) { .s-l { font-size: 11px !important; } }
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -7913,7 +7921,7 @@ function pxURL(key, w, h, draw) {
 }
 // AI-drawn portraits served by the game server (the procedural pixel portrait stays as a fallback offline / for other kinds);
 // the mood rides in the URL fragment so CSS can dim a sad face
-const AI_PORTRAITS = new Set(['you', 'prog', 'des', 'art', 'mkt']);
+const AI_PORTRAITS = new Set(['you', 'prog', 'des', 'art', 'mkt', 'qa', 'snd', 'prod', 'cm', 'boss', 'inv', 'npc']);
 const portrait = (kind, mood) => (AI_PORTRAITS.has(kind) && typeof NET !== 'undefined' && NET.mode === 'online')
   ? '/portrait-' + kind + '.jpg#m' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0)
   : portraitPx(kind, mood);
@@ -9639,6 +9647,8 @@ function tutLoad() {
 }
 function tipActive() {
   if (COACH.i < TUT.length || UI.pvp) return null;
+  // no new tips while the player is tapping WORK: a tip would scroll the page under their finger
+  if (Date.now() - (UI.tapAt || 0) < 4000) return null;
   return TIPS.find((t) => !lsGet('od2_tip_' + t.id) && t.when()) || null;
 }
 function tipDone(id) { lsSet('od2_tip_' + id, '1'); }
@@ -9744,7 +9754,8 @@ function tutUpdate() {
   ring.style.top = (r.top - pad) + 'px';
   ring.style.width = (r.width + pad * 2) + 'px';
   ring.style.height = (r.height + pad * 2) + 'px';
-  const below = r.top + r.height / 2 < window.innerHeight * 0.5;
+  // the office action row sits right above the WORK button: its tips open upwards so they never cover it
+  const below = !target.closest('.side') && r.top + r.height / 2 < window.innerHeight * 0.5;
   bub.className = 'c-bub ' + (below ? 'below' : 'above');
   const bw = Math.min(320, window.innerWidth - 24);
   const cx = Math.max(12, Math.min(window.innerWidth - bw - 12, r.left + r.width / 2 - bw / 2));
@@ -10270,7 +10281,7 @@ function bindCanvases() {
   drawTowerCv(performance.now() / 1000);
 }
 // the scene canvas fills its box; the room is drawn "contain"-fitted with a slight zoom (sides of the floor cropped)
-const CAM = { sx: 26, sy: 0, sw: 204, sh: 176 };
+const CAM = { sx: 34, sy: 6, sw: 188, sh: 162 };
 function sizeScene() {
   const cv = UI.sceneCv;
   if (!cv) return;
@@ -10349,7 +10360,7 @@ function onWorkDown(e) {
   const y = e && e.clientY ? e.clientY : rect.top + rect.height / 2;
   if (r.ok) {
     const tp = tapPower(S);
-    UI.tapFlash = 0.5;
+    UI.tapFlash = 0.5; UI.tapAt = Date.now();
     sfx('tap');
     haptic('light');
     floatText(x, y - 10, '+$' + fmtSmall(tp.cash), 'cash');

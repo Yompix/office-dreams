@@ -93,7 +93,7 @@ function bindCanvases() {
   drawTowerCv(performance.now() / 1000);
 }
 // the scene canvas fills its box; the room is drawn "contain"-fitted with a slight zoom (sides of the floor cropped)
-const CAM = { sx: 26, sy: 0, sw: 204, sh: 176 };
+const CAM = { sx: 34, sy: 6, sw: 188, sh: 162 };
 function sizeScene() {
   const cv = UI.sceneCv;
   if (!cv) return;
@@ -172,7 +172,7 @@ function onWorkDown(e) {
   const y = e && e.clientY ? e.clientY : rect.top + rect.height / 2;
   if (r.ok) {
     const tp = tapPower(S);
-    UI.tapFlash = 0.5;
+    UI.tapFlash = 0.5; UI.tapAt = Date.now();
     sfx('tap');
     haptic('light');
     floatText(x, y - 10, '+$' + fmtSmall(tp.cash), 'cash');

@@ -77,9 +77,8 @@ async function main() {
   await shot(page, '02c_tutorial_tap');
   ok(await ev(page, '!!S.project'), 'project started');
   // tap like a human: irregular intervals
-  const btn = await page.$('#workbtn');
-  const box = await btn.boundingBox();
   for (let i = 0; i < 30; i++) {
+    const box = await (await page.$('#workbtn')).boundingBox(); // the tutorial may scroll the page: find the button every time
     await page.mouse.click(box.x + box.width / 2 + (i % 7) * 4, box.y + box.height / 2 + (i % 3) * 3);
     await sleep(110 + ((i * 37) % 90));
   }
