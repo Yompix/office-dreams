@@ -254,7 +254,7 @@ function tabOffice() {
           <canvas id="bloom" width="256" height="176" aria-hidden="true"></canvas>
           <div class="scan" aria-hidden="true"></div>
         </div>
-        <div class="scene-fx"></div>
+        <div class="scene-fx" data-keep></div>
         <div class="scene-top">
           <span class="chip trend">${I('fire', 12)} <b>${L('genre.' + S.trend.hot)}</b></span>
           ${buffChips()}

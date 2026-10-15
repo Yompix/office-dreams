@@ -212,7 +212,7 @@ async function main() {
   await shot(page, '07e_bug');
   const bugBtn = await page.$('.scene .bug');
   ok(!!bugBtn, 'bug rendered on the floor');
-  if (bugBtn) { const bb = await bugBtn.boundingBox(); await page.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2); }
+  if (bugBtn) await page.click('.scene .bug', { force: true, timeout: 3000 }).catch(() => {}); // it crawls: aim at it at the moment of the click
   await sleep(150);
   await shot(page, '07f_bug_squash');
   ok(!(await ev(page, '!!S.bug')), 'bug squashed');

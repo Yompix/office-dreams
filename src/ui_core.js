@@ -314,6 +314,8 @@ function openLink(url) {
    (a texture blink) and restarted CSS animations several times a second. morph() keeps the
    existing nodes and patches attributes/text, so canvases, images and animations survive. */
 const MORPH_KEEP = ['hit', 'pulse', 'flash', 'has-rip', 'moving', 'tired', 'lit'];
+// elements added at runtime by effects (press ripples, the tap combo counter): kept where they are
+const morphDyn = (n) => n && n.nodeType === 1 && (n.classList.contains('rip') || n.classList.contains('combo'));
 function morphAttrs(a, b) {
   const canvas = a.tagName === 'CANVAS', live = a.hasAttribute('data-w');
   for (let i = a.attributes.length - 1; i >= 0; i--) {
@@ -340,19 +342,19 @@ function morphKids(a, b) {
   let i = 0;
   for (const nb of bn) {
     let na = an[i];
-    while (na && na.nodeType === 1 && na.classList.contains('rip')) na = an[++i]; // a running press ripple
+    while (morphDyn(na)) na = an[++i]; // a running press ripple / combo counter
     if (!na) { a.appendChild(nb); i++; continue; }
     if (na.nodeType !== nb.nodeType || (na.nodeType === 1 && (na.tagName !== nb.tagName || na.id !== nb.id))) { a.replaceChild(nb, na); i++; continue; }
     if (na.nodeType === 3 || na.nodeType === 8) { if (na.nodeValue !== nb.nodeValue) na.nodeValue = nb.nodeValue; i++; continue; }
     morphAttrs(na, nb);
-    if (na.tagName === 'CANVAS' || (na.hasAttribute('data-t') && na._v !== undefined)) { i++; continue; } // live() owns this text
+    if (na.tagName === 'CANVAS' || na.hasAttribute('data-keep') || (na.hasAttribute('data-t') && na._v !== undefined)) { i++; continue; } // live() / effects own this content
     if (na.tagName === 'SVG' || na.tagName === 'svg') { if (na.innerHTML !== nb.innerHTML) na.innerHTML = nb.innerHTML; i++; continue; }
     morphKids(na, nb);
     i++;
   }
   while (an.length > i) {
     const x = an[an.length - 1];
-    if (x.nodeType === 1 && x.classList.contains('rip')) { if (an.length - 1 === i) break; a.insertBefore(x, an[i]); continue; }
+    if (morphDyn(x)) { if (an.length - 1 === i) break; a.insertBefore(x, an[i]); continue; }
     a.removeChild(x);
   }
 }
