@@ -146,7 +146,8 @@ async function main() {
   ok(await ev(page, 'S.items.coffee === 1 && S.items.monitor2 === 1'), 'bought in the mall');
   for (const b of ['cafe', 'academy', 'deals', 'games', 'arena']) {
     await ev(page, `CT.x = CITY_B.find((x) => x.id === '${b}').x + 4; cityGo('${b}'); 1`);
-    await sleep(900);
+    await page.waitForFunction((id) => window.__ev(`CT.inside === '${id}'`), b, { timeout: 5000 }).catch(() => {});
+    await sleep(200);
     ok(await ev(page, `CT.inside === '${b}' && !!document.querySelector('#citypanel')`), 'entered ' + b);
     await shot(page, '05d_in_' + b);
   }
