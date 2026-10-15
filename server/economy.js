@@ -280,7 +280,7 @@ function leaderboard(ctx, uid, now = Date.now()) {
   }
   const total = ctx.db.get("SELECT COUNT(*) AS n FROM users WHERE deleted=0 AND pts>0 AND risk_state IN ('ok','watch')").n;
   return {
-    top: top.slice(0, 50).map((r, i) => ({ rank: i + 1, name: r.studio || r.name, id: r.id === uid ? r.id : undefined, me: r.id === uid, pts: r1(r.pts), premium: !!r.premium, country: r.country || null })),
+    top: top.slice(0, 50).map((r, i) => ({ rank: i + 1, name: require('./studio.js').shown(r), id: r.id === uid ? r.id : undefined, me: r.id === uid, pts: r1(r.pts), premium: !!r.premium, country: r.country || null })),
     countries: (countries || []).map((x, i) => ({ rank: i + 1, c: x.c, n: x.n, pts: r1(x.p) })),
     me: rank ? { rank, pts: r1(me.pts) } : null,
     total,
@@ -383,13 +383,13 @@ function fundView(ctx, uid, now = Date.now()) {
     const r = ctx.db.get("SELECT COALESCE(SUM(stars),0) AS s, COUNT(DISTINCT uid) AS d FROM purchases WHERE sku='donate'");
     const usd = ctx.db.get("SELECT COALESCE(SUM(CAST(json_extract(meta,'$.usd') AS REAL)),0) AS u FROM purchases WHERE sku IN ('donate','adentry') AND meta IS NOT NULL").u;
     const starsOnly = ctx.db.get("SELECT COALESCE(SUM(stars),0) AS s FROM purchases WHERE sku='donate' AND (meta IS NULL OR json_extract(meta,'$.usd') IS NULL)").s;
-    const top = ctx.db.all("SELECT p.uid, u.name, u.country, SUM(p.stars) AS s FROM purchases p JOIN users u ON u.id=p.uid WHERE p.sku='donate' AND u.deleted=0 GROUP BY p.uid ORDER BY s DESC LIMIT 10");
+    const top = ctx.db.all("SELECT p.uid, u.name, u.studio, u.country, SUM(p.stars) AS s FROM purchases p JOIN users u ON u.id=p.uid WHERE p.sku='donate' AND u.deleted=0 GROUP BY p.uid ORDER BY s DESC LIMIT 10");
     f = { t: now, stars: r.s, donors: r.d, usd: Math.round((usd + starsOnly * ctx.cfg.starUsd) * 100) / 100, top };
     ctx.cache.fund = f;
   }
   const mine = uid ? ctx.db.get("SELECT COALESCE(SUM(stars),0) AS s FROM purchases WHERE sku='donate' AND uid=?", uid).s : 0;
   const d = ctx.cfg.donate;
-  return { stars: f.stars, donors: f.donors, usd: f.usd, goalUsd: d.goalUsd, min: d.minStars, max: d.maxStars, mine, top: f.top.map((x, i) => ({ rank: i + 1, name: x.name, country: x.country, stars: x.s, me: x.uid === uid })) };
+  return { stars: f.stars, donors: f.donors, usd: f.usd, goalUsd: d.goalUsd, min: d.minStars, max: d.maxStars, mine, top: f.top.map((x, i) => ({ rank: i + 1, name: require('./studio.js').shown({ id: x.uid, name: x.name, studio: x.studio }), country: x.country, stars: x.s, me: x.uid === uid })) };
 }
 
 /* ---- rewarded ads ---- */

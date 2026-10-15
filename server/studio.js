@@ -51,7 +51,16 @@ function isFree(ctx, uid, raw) {
   const other = ctx.db.get('SELECT id FROM users WHERE studio_key=? AND id<>?', c.key, uid);
   return other ? { ok: false, err: 'taken' } : { ok: true, name: c.name };
 }
-// the name other players see: the studio when it has one, otherwise the Telegram name
-const shown = (u) => (u && (u.studio || u.name)) || 'Player';
+// the name other players see: the studio when it has one, otherwise the Telegram name —
+// but a Telegram name that pretends to be staff ("Admin", "Адмін", "Support"…) is shown as "Player #1234"
+const STAFF = ['admin', 'адмін', 'админ', 'adмин', 'moder', 'модер', 'support', 'поддерж', 'підтрим', 'officedream', 'officedreams', 'administrator', 'owner', 'creator', 'создатель', 'творець'];
+function fakeStaff(name) { const k = keyOf(name); return STAFF.some((w) => k.includes(keyOf(w))); }
+const shown = (u) => {
+  if (!u) return 'Player';
+  if (u.studio) return u.studio;
+  const id = u.id || u.uid || 0;
+  if (!u.name || fakeStaff(u.name)) return 'Player #' + String(id).slice(-4);
+  return u.name;
+};
 
-module.exports = { clean, keyOf, check, setStudio, isFree, shown };
+module.exports = { clean, keyOf, check, setStudio, isFree, shown, fakeStaff };

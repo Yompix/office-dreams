@@ -96,13 +96,13 @@ function board(ctx, g, now = Date.now()) {
   const c = ctx.cache.gwBoard;
   if (c && c.gid === g.id && now - c.t < 20000) return c.rows;
   const rows = ctx.db.all(
-    `SELECT u.id, COALESCE(u.studio, u.name) AS name, u.country, u.pts - COALESCE(b.pts, 0) AS sc
+    `SELECT u.id, u.studio, u.name, u.country, u.pts - COALESCE(b.pts, 0) AS sc
      FROM users u LEFT JOIN giveaway_base b ON b.gid=? AND b.uid=u.id
      WHERE u.deleted=0 AND u.risk_state IN ('ok','watch') AND u.id IN (SELECT DISTINCT uid FROM purchases WHERE sku<>'adfee')
      ${subChat(ctx) ? 'AND u.id IN (SELECT uid FROM giveaway_sub WHERE gid=' + Number(g.id) + ' AND ok=1)' : ''}
      ORDER BY sc DESC LIMIT 60`, g.id
   ).filter((r) => r.sc > 0.05 && !Eco.isDev(ctx, r.id)).slice(0, 50)
-    .map((r, i) => ({ rank: i + 1, uid: r.id, name: r.name || '—', country: r.country || null, score: Math.round(r.sc * 10) / 10 }));
+    .map((r, i) => ({ rank: i + 1, uid: r.id, name: require('./studio.js').shown(r), country: r.country || null, score: Math.round(r.sc * 10) / 10 }));
   ctx.cache.gwBoard = { gid: g.id, t: now, rows };
   return rows;
 }
