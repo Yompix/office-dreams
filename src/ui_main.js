@@ -483,7 +483,7 @@ async function airdropPay(kind) {
   const r = await netApi.adOrder(kind).catch(() => null);
   if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
   showSolPay(r.order, () => {
-    toast(L(kind === 'adentry' ? 'ad.entered' : 'ad.fee_ok'), 'good', 'sol'); confettiSmall(); haptic('ok');
+    toast(L(kind === 'adentry' ? 'ver.title' : 'ad.fee_ok'), 'good', 'sol'); confettiSmall(); haptic('ok');
     [800, 3000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
     loadHub('friends', true);
   });
@@ -845,6 +845,17 @@ hooks.emit = function (type, data) {
 /* ---------- network → UI ---------- */
 UIH.onEco = (e) => {
   UI.ecoVer = (UI.ecoVer || 0) + 1;
+  // the entry deposit just got confirmed: tell the player clearly, once per device
+  const ver = isVerified();
+  if (ver && UI.wasVer === false && !lsGet('od2_ver_seen')) {
+    lsSet('od2_ver_seen', '1');
+    modalOrQueue(() => {
+      openModal(`<div class="center"><i class="vbadge huge">${I('check', 34)}</i><h2 class="h2">${L('ver.title')}</h2><p class="sub">${L('ver.text')}</p><button class="btn big glow wide" data-act="close">${L('ver.ok')}</button></div>`, { id: 'verified' });
+      confetti(120); sfx('floor'); haptic('ok');
+    });
+  }
+  if (ver) lsSet('od2_ver_seen', '1');
+  UI.wasVer = ver;
   const el = $('#hudpts');
   if (el) countUp(el, e.pts, 900, fmtPts);
   const big = $('#bigpts');

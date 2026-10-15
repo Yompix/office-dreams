@@ -1158,6 +1158,15 @@ img.mk-logo { object-fit: contain; background: none; }
 .ad-amt small { color: var(--ink2); flex: 1; }
 .ad-amt b { font-size: 26px; color: #14f195; text-shadow: 0 0 12px rgba(20, 241, 149, 0.55); }
 .ad-ok { display: flex; align-items: center; gap: 8px; font-weight: 800; color: #14f195; margin: 4px 0; }
+/* verified player (entry deposit paid) */
+.vbadge { display: inline-grid; place-items: center; width: 15px; height: 15px; margin-left: 5px; vertical-align: -2px; border-radius: 50%; background: #14f195; color: #04140c; box-shadow: 0 0 8px rgba(20, 241, 149, 0.7); }
+.vbadge .ico { fill: currentColor; color: #04140c; }
+.vbadge.big { width: 36px; height: 36px; margin: 0; flex: none; }
+.vbadge.huge { width: 72px; height: 72px; margin: 0 auto 6px; box-shadow: 0 0 30px rgba(20, 241, 149, 0.8); }
+.vtxt { color: #14f195; font-weight: 800; }
+.vcard { display: flex; align-items: center; gap: 12px; padding: 12px; margin: 6px 0; border-radius: 14px; background: rgba(20, 241, 149, 0.1); border: 1.5px solid rgba(20, 241, 149, 0.55); box-shadow: 0 0 18px rgba(20, 241, 149, 0.2); }
+.vcard b { display: block; color: #14f195; font-size: 15px; }
+.vcard small { display: block; color: var(--ink2); font-size: 12px; line-height: 1.35; margin-top: 2px; }
 .adrop .fund-h { display: flex; align-items: baseline; gap: 8px; margin: 6px 0; }
 /* donate shortcuts */
 .don-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
@@ -2333,6 +2342,10 @@ LANGS.en = {
   'ad.entry_btn': "Take part · {sol} SOL",
   'ad.entry_hint': "The deposit is not refunded and gives no points: your share depends only on how much you really play.",
   'ad.entered': "You are in the airdrop",
+  'ver.badge': "Verified",
+  'ver.title': "You are verified!",
+  'ver.text': "Deposit received — you are a confirmed player and take part in the OFFX airdrop. Now just play: your share depends on your points.",
+  'ver.ok': "Great",
   'ad.fee_t': "Claim fee: {sol} SOL (network costs and the project).",
   'ad.fee_btn': "Pay the fee · {sol} SOL",
   'ad.fee_ok': "Fee paid — now press «Claim»",
@@ -3010,6 +3023,10 @@ LANGS.ru = {
   'ad.entry_btn': "Участвовать · {sol} SOL",
   'ad.entry_hint': "Депозит не возвращается и не даёт очков: твоя доля зависит только от того, сколько ты реально играешь.",
   'ad.entered': "Ты участвуешь в аирдропе",
+  'ver.badge': "Верифицирован",
+  'ver.title': "Ты верифицирован!",
+  'ver.text': "Депозит получен — ты подтверждённый игрок и участвуешь в аирдропе OFFX. Дальше просто играй: твоя доля зависит от очков.",
+  'ver.ok': "Отлично",
   'ad.fee_t': "Комиссия за вывод: {sol} SOL (расходы сети и проекта).",
   'ad.fee_btn': "Оплатить комиссию · {sol} SOL",
   'ad.fee_ok': "Комиссия оплачена — теперь нажми «Забрать»",
@@ -3687,6 +3704,10 @@ LANGS.uk = {
   'ad.entry_btn': "Брати участь · {sol} SOL",
   'ad.entry_hint': "Депозит не повертається й не дає балів: твоя частка залежить лише від того, скільки ти справді граєш.",
   'ad.entered': "Ти береш участь в аірдропі",
+  'ver.badge': "Верифікований",
+  'ver.title': "Ти верифікований!",
+  'ver.text': "Депозит отримано — ти підтверджений гравець і береш участь в аірдропі OFFX. Далі просто грай: твоя частка залежить від балів.",
+  'ver.ok': "Чудово",
   'ad.fee_t': "Комісія за вивід: {sol} SOL (витрати мережі й проєкту).",
   'ad.fee_btn': "Оплатити комісію · {sol} SOL",
   'ad.fee_ok': "Комісію оплачено — тепер натисни «Забрати»",
@@ -8440,12 +8461,17 @@ function live() {
 }
 
 /* ---------- shell pieces ---------- */
+// the player paid the one-time airdrop entry deposit: a verified real player
+function isVerified() {
+  const a = NET.eco && NET.eco.airdrop;
+  return !!(a && a.entry && a.entry.done);
+}
 function hudHTML() {
   const name = (NET.me && NET.me.name) || (TG && TG.initDataUnsafe && TG.initDataUnsafe.user && TG.initDataUnsafe.user.first_name) || L('ui.founder');
   return `
   <button class="me" data-act="settings" aria-label="${esc(L('set.title'))}">
     ${imgTag(portrait('you', 90), 'av')}
-    <span class="me-t"><b>${esc(name)}</b><small>${esc(L('rank.' + rankOf(S)))}</small></span>
+    <span class="me-t"><b>${esc(name)}${isVerified() ? `<i class="vbadge" title="${esc(L('ver.badge'))}">${I('check', 10)}</i>` : ''}</b><small>${isVerified() ? `<span class="vtxt">${esc(L('ver.badge'))}</span>` : esc(L('rank.' + rankOf(S)))}</small></span>
   </button>
   <div class="res">
     <span class="pill cash" title="${esc(L('res.cash'))}">${I('coin', 16)}<b data-t="cash"></b></span>
@@ -9134,7 +9160,7 @@ function airdropCard(e, mini) {
       ${mini ? '' : `<p class="sub">${L('ad.wait_s', { goal: '$' + fmt(a.goal), sym })}</p>`}
       <div class="fund-h"><b class="px">$${fmt(Math.round(a.usd))}</b><small class="mut">${L('don.of', { goal: '$' + fmt(a.goal) })}</small></div>
       <div class="vip-bar"><i style="width:${Math.max(2, pct).toFixed(1)}%"></i></div>
-      ${a.entry ? (a.entry.done ? `<div class="ad-ok">${I('check', 16, 'grn')} ${L('ad.entered')}</div>` : `<p class="sub">${L('ad.entry_t', { usd: '$' + a.entry.usd, sol: a.entry.sol })}</p>
+      ${a.entry ? (a.entry.done ? `<div class="vcard"><i class="vbadge big">${I('check', 18)}</i><div><b>${L('ver.title')}</b><small>${L('ver.text')}</small></div></div>` : `<p class="sub">${L('ad.entry_t', { usd: '$' + a.entry.usd, sol: a.entry.sol })}</p>
         <button class="btn big glow wide" data-act="adentry">${I('sol', 16)} ${L('ad.entry_btn', { sol: a.entry.sol })}</button>
         <p class="hint">${L('ad.entry_hint')}</p>`) : ''}
       <button class="btn big gold wide" data-act="donopen" style="margin-top:8px">⭐ ${L('don.btn_long')}</button>
@@ -10547,7 +10573,7 @@ async function airdropPay(kind) {
   const r = await netApi.adOrder(kind).catch(() => null);
   if (!r || !r.ok || !r.order) return errToast((r && r.err) || 'unavailable');
   showSolPay(r.order, () => {
-    toast(L(kind === 'adentry' ? 'ad.entered' : 'ad.fee_ok'), 'good', 'sol'); confettiSmall(); haptic('ok');
+    toast(L(kind === 'adentry' ? 'ver.title' : 'ad.fee_ok'), 'good', 'sol'); confettiSmall(); haptic('ok');
     [800, 3000].forEach((ms) => setTimeout(() => netSync({ full: true }), ms));
     loadHub('friends', true);
   });
@@ -10909,6 +10935,17 @@ hooks.emit = function (type, data) {
 /* ---------- network → UI ---------- */
 UIH.onEco = (e) => {
   UI.ecoVer = (UI.ecoVer || 0) + 1;
+  // the entry deposit just got confirmed: tell the player clearly, once per device
+  const ver = isVerified();
+  if (ver && UI.wasVer === false && !lsGet('od2_ver_seen')) {
+    lsSet('od2_ver_seen', '1');
+    modalOrQueue(() => {
+      openModal(`<div class="center"><i class="vbadge huge">${I('check', 34)}</i><h2 class="h2">${L('ver.title')}</h2><p class="sub">${L('ver.text')}</p><button class="btn big glow wide" data-act="close">${L('ver.ok')}</button></div>`, { id: 'verified' });
+      confetti(120); sfx('floor'); haptic('ok');
+    });
+  }
+  if (ver) lsSet('od2_ver_seen', '1');
+  UI.wasVer = ver;
   const el = $('#hudpts');
   if (el) countUp(el, e.pts, 900, fmtPts);
   const big = $('#bigpts');
