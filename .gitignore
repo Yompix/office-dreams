@@ -3,3 +3,4 @@ data/
 .env
 test/out/
 *.zip
+promo/
