@@ -867,7 +867,8 @@ UIH.onDropped = (err) => toast(L(err === 'clock' ? 'toast.clock' : 'toast.synced
 UIH.onFatal = () => openModal(`<div class="center">${I('info', 30)}<h2 class="h2">${L('boot.session')}</h2><p class="sub">${L('boot.session_t')}</p><button class="btn big" data-act="retry">${L('boot.retry')}</button></div>`, { sticky: true, id: 'fatal' });
 /* ---------- main loop ---------- */
 function frame(now) {
-  const dt = Math.min(0.25, Math.max(0, (now - (UI.last || now)) / 1000));
+  // up to 1 s per frame: a slow phone keeps game time in step with real time (no jumps when the server corrects it)
+  const dt = Math.min(1, Math.max(0, (now - (UI.last || now)) / 1000));
   UI.last = now;
   if (S) {
     UI.acc = (UI.acc || 0) + dt * (NET.mode === 'demo' ? NET.speed : 1);
@@ -879,9 +880,10 @@ function frame(now) {
     // while the battle arena is open the office behind it is not redrawn (all the phone's power goes to the fight)
     if (UI.liveAcc >= 0.2 && !UI.pvp) { UI.liveAcc = 0; render(); live(); tutUpdate(); }
     UI.sceneAcc += dt;
-    if (UI.sceneAcc >= 0.045 && !UI.pvp) { UI.sceneAcc = 0; drawScene(now / 1000); }
+    // the office and the tower are not redrawn behind an open window: it covers them, and the phone needs the power for the window
+    if (UI.sceneAcc >= 0.045 && !UI.pvp && !UI.modal) { UI.sceneAcc = 0; drawScene(now / 1000); }
     UI.towerAcc += dt;
-    if (UI.towerAcc >= 0.25) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
+    if (UI.towerAcc >= 0.25 && !UI.modal) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
   }
   requestAnimationFrame(frame);
 }
