@@ -530,6 +530,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 body.closed #nav .nb[data-go="lobby"],body.closed #nav .nb[data-go="games"],body.closed #nav .nb[data-go="cards"]{display:none}
 body.closed #nav{grid-template-columns:repeat(2,1fr)}
 body.closed #bBal .plus{display:none}
+body.wdoff #wSeg button[data-w="wd"]{display:none}
 
 /* ===== ОФОРМЛЕННЯ ЗА КОНЦЕПТОМ: неонові рамки зі скругленням, світіння, глянцеві кнопки ===== */
 :root{
@@ -847,6 +848,7 @@ const DICT = {
   cl_wd: ["Твої монети нікуди не зникли: виведи залишок у розділі «Вивести».", "Твои монеты никуда не делись: выведи остаток в разделе «Вывести».", "Your coins are safe: cash out your balance in the Withdraw section."],
   cl_until: ["Вивід працює до {0}.", "Вывод работает до {0}.", "Withdrawals are open until {0}."],
   cl_off: ["Поповнення і нові ігри вимкнено.", "Пополнения и новые игры отключены.", "Deposits and new games are off."],
+  cl_all: ["Поповнення, ігри та вивід вимкнено.", "Пополнения, игры и вывод отключены.", "Deposits, games and withdrawals are off."],
   cl_go: ["Вивести залишок", "Вывести остаток", "Cash out my balance"],
   e_closed: ["Проєкт закрито: доступний лише вивід", "Проект закрыт: доступен только вывод", "The project is closed: only withdrawals are available"],
   player: ["Гравець", "Игрок", "Player"], online: ["онлайн", "онлайн", "online"], online_n: ["{0} онлайн", "{0} онлайн", "{0} online"],
@@ -1153,7 +1155,7 @@ function onMsg(m) {
 const TABS = ["lobby", "games", "cards", "wallet", "profile"];
 function go(tab, opt) {
   if (!TABS.includes(tab)) return;
-  if (document.body.classList.contains("closed") && (tab === "lobby" || tab === "games" || tab === "cards")) { tab = "wallet"; opt = "wd"; } // проєкт закрито
+  if (document.body.classList.contains("closed") && (tab === "lobby" || tab === "games" || tab === "cards")) { tab = "wallet"; opt = document.body.classList.contains("wdoff") ? "dep" : "wd"; } // проєкт закрито
   const was = S.tab; S.tab = tab;
   $$(".view").forEach((v) => v.classList.toggle("on", v.id === "v-" + tab));
   $$(".nb").forEach((b) => b.classList.toggle("on", b.dataset.go === tab));
@@ -1934,6 +1936,7 @@ function renderWallet(opt) {
   if (opt) S.wTab = opt;
   $$("#wSeg button").forEach((b) => b.classList.toggle("on", b.dataset.w === S.wTab));
   const box = $("wBody"), c = S.me && S.me.cfg; if (!c) { box.innerHTML = `<div class="empty">${T("connecting")}</div>`; return; }
+  if (c.closed && c.wdOff && S.wTab === "wd") S.wTab = "dep";
   if (S.wTab === "dep" && c.closed) { box.innerHTML = closedCard(); }
   else if (S.wTab === "dep") {
     const M = [["ton", "i-ton", "TON"], ["card", "i-card", T("m_card")]];
@@ -1956,11 +1959,14 @@ function renderWallet(opt) {
 }
 function closedCard() {
   const c = S.me.cfg;
-  return `<div class="card" style="--bc:var(--gold);display:flex;flex-direction:column;gap:10px;text-align:center"><b class="fd" style="font-size:18px">${T("cl_t")}</b><p class="dim">${T("cl_p")}</p><p>${T("cl_wd")}${c.wdUntil ? " " + T("cl_until", esc(c.wdUntil)) : ""}</p><p class="dim" style="font-size:12px">${T("cl_off")}</p><button class="btn gr w" data-go="wallet" data-opt="wd">${T("cl_go")}</button></div>`;
+  return `<div class="card" style="--bc:var(--gold);display:flex;flex-direction:column;gap:10px;text-align:center"><b class="fd" style="font-size:18px">${T("cl_t")}</b><p class="dim">${T("cl_p")}</p>${c.wdOff ? "" : `<p>${T("cl_wd")}${c.wdUntil ? " " + T("cl_until", esc(c.wdUntil)) : ""}</p>`}<p class="dim" style="font-size:12px">${T(c.wdOff ? "cl_all" : "cl_off")}</p>${c.wdOff ? "" : `<button class="btn gr w" data-go="wallet" data-opt="wd">${T("cl_go")}</button>`}</div>`;
 }
 function showClosed() {
   document.body.classList.add("closed");
-  if (S.tab !== "wallet" && S.tab !== "profile") go("wallet", "wd");
+  const off = S.me.cfg.wdOff;
+  if (off) document.body.classList.add("wdoff");
+  if (S.tab !== "wallet" && S.tab !== "profile") go("wallet", off ? "dep" : "wd");
+  if (off) { modal(`<h3>${T("cl_t")}</h3><p>${T("cl_p")}</p><p class="dim">${T("cl_all")}</p>`); return; }
   modal(`<h3>${T("cl_t")}</h3><p>${T("cl_p")}</p><p>${T("cl_wd")}${S.me.cfg.wdUntil ? " " + T("cl_until", esc(S.me.cfg.wdUntil)) : ""}</p><div class="btns"><button class="btn gr" id="clGo">${T("cl_go")}</button></div>`);
   $("clGo").onclick = () => { closeModal(); go("wallet", "wd"); };
 }

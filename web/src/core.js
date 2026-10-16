@@ -199,7 +199,7 @@ function onMsg(m) {
 const TABS = ["lobby", "games", "cards", "wallet", "profile"];
 function go(tab, opt) {
   if (!TABS.includes(tab)) return;
-  if (document.body.classList.contains("closed") && (tab === "lobby" || tab === "games" || tab === "cards")) { tab = "wallet"; opt = "wd"; } // проєкт закрито
+  if (document.body.classList.contains("closed") && (tab === "lobby" || tab === "games" || tab === "cards")) { tab = "wallet"; opt = document.body.classList.contains("wdoff") ? "dep" : "wd"; } // проєкт закрито
   const was = S.tab; S.tab = tab;
   $$(".view").forEach((v) => v.classList.toggle("on", v.id === "v-" + tab));
   $$(".nb").forEach((b) => b.classList.toggle("on", b.dataset.go === tab));

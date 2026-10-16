@@ -8,6 +8,7 @@ function renderWallet(opt) {
   if (opt) S.wTab = opt;
   $$("#wSeg button").forEach((b) => b.classList.toggle("on", b.dataset.w === S.wTab));
   const box = $("wBody"), c = S.me && S.me.cfg; if (!c) { box.innerHTML = `<div class="empty">${T("connecting")}</div>`; return; }
+  if (c.closed && c.wdOff && S.wTab === "wd") S.wTab = "dep";
   if (S.wTab === "dep" && c.closed) { box.innerHTML = closedCard(); }
   else if (S.wTab === "dep") {
     const M = [["ton", "i-ton", "TON"], ["card", "i-card", T("m_card")]];
@@ -30,11 +31,14 @@ function renderWallet(opt) {
 }
 function closedCard() {
   const c = S.me.cfg;
-  return `<div class="card" style="--bc:var(--gold);display:flex;flex-direction:column;gap:10px;text-align:center"><b class="fd" style="font-size:18px">${T("cl_t")}</b><p class="dim">${T("cl_p")}</p><p>${T("cl_wd")}${c.wdUntil ? " " + T("cl_until", esc(c.wdUntil)) : ""}</p><p class="dim" style="font-size:12px">${T("cl_off")}</p><button class="btn gr w" data-go="wallet" data-opt="wd">${T("cl_go")}</button></div>`;
+  return `<div class="card" style="--bc:var(--gold);display:flex;flex-direction:column;gap:10px;text-align:center"><b class="fd" style="font-size:18px">${T("cl_t")}</b><p class="dim">${T("cl_p")}</p>${c.wdOff ? "" : `<p>${T("cl_wd")}${c.wdUntil ? " " + T("cl_until", esc(c.wdUntil)) : ""}</p>`}<p class="dim" style="font-size:12px">${T(c.wdOff ? "cl_all" : "cl_off")}</p>${c.wdOff ? "" : `<button class="btn gr w" data-go="wallet" data-opt="wd">${T("cl_go")}</button>`}</div>`;
 }
 function showClosed() {
   document.body.classList.add("closed");
-  if (S.tab !== "wallet" && S.tab !== "profile") go("wallet", "wd");
+  const off = S.me.cfg.wdOff;
+  if (off) document.body.classList.add("wdoff");
+  if (S.tab !== "wallet" && S.tab !== "profile") go("wallet", off ? "dep" : "wd");
+  if (off) { modal(`<h3>${T("cl_t")}</h3><p>${T("cl_p")}</p><p class="dim">${T("cl_all")}</p>`); return; }
   modal(`<h3>${T("cl_t")}</h3><p>${T("cl_p")}</p><p>${T("cl_wd")}${S.me.cfg.wdUntil ? " " + T("cl_until", esc(S.me.cfg.wdUntil)) : ""}</p><div class="btns"><button class="btn gr" id="clGo">${T("cl_go")}</button></div>`);
   $("clGo").onclick = () => { closeModal(); go("wallet", "wd"); };
 }

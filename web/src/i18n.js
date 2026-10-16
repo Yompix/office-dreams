@@ -5,6 +5,7 @@ const DICT = {
   cl_wd: ["Твої монети нікуди не зникли: виведи залишок у розділі «Вивести».", "Твои монеты никуда не делись: выведи остаток в разделе «Вывести».", "Your coins are safe: cash out your balance in the Withdraw section."],
   cl_until: ["Вивід працює до {0}.", "Вывод работает до {0}.", "Withdrawals are open until {0}."],
   cl_off: ["Поповнення і нові ігри вимкнено.", "Пополнения и новые игры отключены.", "Deposits and new games are off."],
+  cl_all: ["Поповнення, ігри та вивід вимкнено.", "Пополнения, игры и вывод отключены.", "Deposits, games and withdrawals are off."],
   cl_go: ["Вивести залишок", "Вывести остаток", "Cash out my balance"],
   e_closed: ["Проєкт закрито: доступний лише вивід", "Проект закрыт: доступен только вывод", "The project is closed: only withdrawals are available"],
   player: ["Гравець", "Игрок", "Player"], online: ["онлайн", "онлайн", "online"], online_n: ["{0} онлайн", "{0} онлайн", "{0} online"],

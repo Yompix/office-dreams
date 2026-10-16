@@ -17,6 +17,7 @@ const WD_FEE = Number(env.WD_FEE || 0.05), WD_FEE_MIN = Number(env.WD_FEE_MIN ||
 const MIN_BET = 10, MAX_BET = 5000;
 // закриття проєкту: CASINO_CLOSED=1 — без поповнень і нових ігор, лише вивід залишків до WD_UNTIL (рррр-мм-дд)
 const CLOSED = env.CASINO_CLOSED === "1"; const WD_UNTIL = String(env.WD_UNTIL || "");
+const WD_OFF = CLOSED && !WD_UNTIL; // закрито і без дати виводу — вивід вимкнено
 const WD_MIN_NOW = CLOSED ? Math.min(WD_MIN, WD_FEE_MIN + 50) : WD_MIN;
 const WALLET_MNEMONIC = env.WALLET_MNEMONIC || ""; // гаманець автовиплат (необов'язково)
 const WALLET_VER = (env.WALLET_VERSION || "v5r1").toLowerCase();
@@ -1036,7 +1037,7 @@ async function handle(req: Request) {
 
   if (url === "/api/me") return json({
     id: u.id, name: u.name, balance: N(u.balance), ageOk: u.age_ok, supporter: u.supporter, bot: BOT_USER, admin: isAdmin(u.id),
-    cfg: { starCoins: STAR_COINS, tonCoins: TON_IN, tonOut: TON_COINS, rake: RAKE, refPct: REF_PCT, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN, tonAddr: TON_ADDR, comment: "dp" + numId, packs: STAR_PACKS, minBet: MIN_BET, maxBet: MAX_BET, closed: CLOSED, wdUntil: WD_UNTIL, wdMinNow: WD_MIN_NOW },
+    cfg: { starCoins: STAR_COINS, tonCoins: TON_IN, tonOut: TON_COINS, rake: RAKE, refPct: REF_PCT, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN, tonAddr: TON_ADDR, comment: "dp" + numId, packs: STAR_PACKS, minBet: MIN_BET, maxBet: MAX_BET, closed: CLOSED, wdOff: WD_OFF, wdUntil: WD_UNTIL, wdMinNow: WD_MIN_NOW },
     turnover: N(u.turnover), deposited: N(u.deposited),
   });
   if (url === "/api/age" && req.method === "POST") { await db`update users set age_ok = true where id = ${u.id}`; return json({ ok: true }); }
@@ -1094,6 +1095,7 @@ async function handle(req: Request) {
       return json({ ok: true });
     }
     if (url === "/api/card/wd" && req.method === "POST") {
+      if (WD_OFF) return err("closed");
       if (!u.age_ok) return err("age");
       const cur = String(body.cur || ""); const coins = Math.floor(Number(body.coins)); const card = String(body.card || "").replace(/\D/g, "");
       if (!CARD_RATE[cur]) return err("bad_cur");
@@ -1121,6 +1123,7 @@ async function handle(req: Request) {
   }
 
   if (url === "/api/withdraw" && req.method === "POST") {
+    if (WD_OFF) return err("closed");
     if (!u.age_ok) return err("age");
     const coins = Math.floor(Number(body.coins)); const addr = String(body.addr || "").trim();
     if (!Number.isFinite(coins) || coins < WD_MIN_NOW) return err("wd_min", { min: WD_MIN_NOW });
@@ -1227,10 +1230,10 @@ async function onCommand(m: any) {
     const rm = /^r(\d{4,15})$/.exec(ref);
     if (rm) { const nm = String(m.from.first_name || m.from.username || "Player").slice(0, 24); await db`insert into users(id, name, lang) values(${from}, ${nm}, ${String(lc || "").slice(0, 5)}) on conflict (id) do nothing`; await setRef(from, "tg" + rm[1], nm); }
     if (CLOSED) { await tg("sendMessage", { chat_id: chat, text: L3(lc,
-      "🎰 Pixel Casino закрито: проєкт виявився неприбутковим, тому ми його зупиняємо. Дякуємо всім, хто грав!\n\n💰 Твої монети нікуди не зникли: відкрий гру → Гаманець → Вивід і виведи залишок" + (WD_UNTIL ? " до " + WD_UNTIL : "") + ". Поповнення і нові ігри вимкнено. Питання — у техпідтримку в грі.",
-      "🎰 Pixel Casino закрыт: проект оказался неприбыльным, поэтому мы его останавливаем. Спасибо всем, кто играл!\n\n💰 Твои монеты никуда не делись: открой игру → Кошелёк → Вывод и выведи остаток" + (WD_UNTIL ? " до " + WD_UNTIL : "") + ". Пополнения и новые игры отключены. Вопросы — в техподдержку в игре.",
-      "🎰 Pixel Casino is closed: the project turned out to be unprofitable, so we are shutting it down. Thank you all for playing!\n\n💰 Your coins are safe: open the game → Wallet → Withdraw and cash out your balance" + (WD_UNTIL ? " by " + WD_UNTIL : "") + ". Deposits and new games are off. Questions — support in the game."),
-      reply_markup: WEBAPP_URL ? { inline_keyboard: [[{ text: "💰 Вивести / Вывести / Withdraw", web_app: { url: WEBAPP_URL } }]] } : undefined }); return; }
+      "🎰 Pixel Casino закрито: проєкт виявився неприбутковим, тому ми його зупиняємо. Дякуємо всім, хто грав!" + (WD_OFF ? "" : "\n\n💰 Твої монети нікуди не зникли: відкрий гру → Гаманець → Вивід і виведи залишок" + (WD_UNTIL ? " до " + WD_UNTIL : "") + ". Поповнення і нові ігри вимкнено. Питання — у техпідтримку в грі."),
+      "🎰 Pixel Casino закрыт: проект оказался неприбыльным, поэтому мы его останавливаем. Спасибо всем, кто играл!" + (WD_OFF ? "" : "\n\n💰 Твои монеты никуда не делись: открой игру → Кошелёк → Вывод и выведи остаток" + (WD_UNTIL ? " до " + WD_UNTIL : "") + ". Пополнения и новые игры отключены. Вопросы — в техподдержку в игре."),
+      "🎰 Pixel Casino is closed: the project turned out to be unprofitable, so we are shutting it down. Thank you all for playing!" + (WD_OFF ? "" : "\n\n💰 Your coins are safe: open the game → Wallet → Withdraw and cash out your balance" + (WD_UNTIL ? " by " + WD_UNTIL : "") + ". Deposits and new games are off. Questions — support in the game.")),
+      reply_markup: WEBAPP_URL && !WD_OFF ? { inline_keyboard: [[{ text: "💰 Вивести / Вывести / Withdraw", web_app: { url: WEBAPP_URL } }]] } : undefined }); return; }
     await tg("sendMessage", { chat_id: chat, text: L3(lc, "🎰 Pixel Casino — онлайн-казино, де ти граєш проти інших гравців: покер, дуелі, джекпот.\nКазино не грає проти тебе, воно бере лише комісію з банку. Лише 18+.", "🎰 Pixel Casino — онлайн-казино, где ты играешь против других игроков: покер, дуэли, джекпот.\nКазино не играет против тебя, оно берёт только комиссию с банка. Только 18+.", "🎰 Pixel Casino — an online casino where you play against other players: poker, duels, jackpot.\nThe casino doesn't play against you, it only takes a commission from the pot. 18+ only."), reply_markup: { inline_keyboard: [[{ text: L3(lc, "▶ ГРАТИ", "▶ ИГРАТЬ", "▶ PLAY"), web_app: { url: WEBAPP_URL + "/" + (ref ? "?ref=" + ref : "") } }], ...(isAdmin(from) ? [[{ text: "🛠 Адмін-панель", web_app: { url: WEBAPP_URL + "/admin" } }]] : [])] } });
     return;
   }
@@ -1437,6 +1440,6 @@ Bun.serve({
 setInterval(() => { for (const w of socks) w.data.n = 0; }, 2000);
 console.log("Pixel Casino v3 up");
 // закриття: скільки в гравців лишилося монет (щоб знати, чи комусь ще потрібен вивід)
-if (CLOSED) db`select count(*)::int as n, coalesce(sum(balance),0)::bigint as s, count(*) filter (where balance >= ${WD_MIN_NOW})::int as can, coalesce(max(balance),0)::bigint as mx from users where id <> 'house' and balance > 0 and not (id = ${"tg" + ADMIN_ID})`.then((r: any) => console.log("closing balances: players", r[0].n, "coins", String(r[0].s), "can withdraw", r[0].can, "max", String(r[0].mx))).catch((e: any) => console.error("closing balances", e.message));
+if (CLOSED) db`select count(*)::int as n, coalesce(sum(balance),0)::bigint as s, count(*) filter (where balance >= ${WD_MIN_NOW})::int as can, coalesce(max(balance),0)::bigint as mx from users where id <> 'house' and balance > 0 and not (id = ${"tg" + ADMIN_ID})`.then(async (r: any) => { const d = await db`select count(distinct l.user_id)::int as n, coalesce(sum(l.amount),0)::bigint as s from ledger l join users u on u.id = l.user_id where l.kind in ('dep_stars','dep_ton','dep_card') and u.balance > 0 and u.id <> 'house'`; console.log("closing deposits among holders: players", d[0].n, "coins", String(d[0].s)); return r; }).then((r: any) => console.log("closing balances: players", r[0].n, "coins", String(r[0].s), "can withdraw", r[0].can, "max", String(r[0].mx))).catch((e: any) => console.error("closing balances", e.message));
 bot(); tonPoll(); setInterval(tonPoll, 30000);
 

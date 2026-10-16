@@ -523,3 +523,4 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 body.closed #nav .nb[data-go="lobby"],body.closed #nav .nb[data-go="games"],body.closed #nav .nb[data-go="cards"]{display:none}
 body.closed #nav{grid-template-columns:repeat(2,1fr)}
 body.closed #bBal .plus{display:none}
+body.wdoff #wSeg button[data-w="wd"]{display:none}
