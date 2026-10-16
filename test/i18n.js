@@ -41,7 +41,7 @@ for (const k of ['play', 'checkin', 'task', 'ref1', 'ref2', 'ref_act', 'ad']) ne
 for (const k of ['channel', 'chat', 'x', 'wallet', 'play3', 'play14', 'streak3', 'streak7', 'invite1', 'invite3', 'invite10']) need.add('task.' + k);
 for (const k of ['office', 'studio', 'quests', 'empire', 'drop']) need.add('tab.' + k);
 for (const k of ['team', 'games', 'home', 'token', 'friends', 'tasks', 'top', 'shop']) need.add('sub.' + k);
-for (const k of ["neon_rush","pixel_hustle","deadline_funk","startup_sunrise","boss_level","city_run"]) need.add('music.' + k);
+for (const k of ["startup_sunrise","boss_level","coffee_rush","launch_day","team_spirit","gold_hour","final_sprint","server_storm","top_floor","night_shift"]) need.add('music.' + k);
 for (const k of ['players', 'liq', 'team', 'mkt', 'treasury', 'early']) need.add('tok.a_' + k);
 for (const k of ['s1', 's2', 's3', 's1d', 's2d', 's3d', 'now', 'next', 'later']) need.add('tok.' + k);
 for (const k of ['en', 'ru', 'uk']) need.add('lang.' + k);

@@ -11,16 +11,23 @@ const TUT = [
   { k: 'tut.tap', tab: ['office'], target: '#workbtn', done: () => S.stats.taps >= 15 },
   { k: 'tut.energy', tab: ['office'], target: '.energy', manual: true },
   { k: 'tut.release', tab: ['office'], target: '.pmini', manual: true },
+  { k: 'tut.cash', tab: ['office'], target: '.res .cash', manual: true },
+  { k: 'tut.gems', tab: ['office'], target: '.res .gem', manual: true },
   { k: 'tut.hire', tab: ['office'], target: '.side [data-act="go:studio:team"]', done: () => hiredCount(S) >= 1, skippable: true },
   { k: 'tut.mood', tab: ['office'], target: '.opm.mood', manual: true },
+  { k: 'tut.life', tab: ['office'], target: '#scene', manual: true },
   { k: 'tut.quests', tab: null, target: '#tabs [data-act="tab:quests"]', manual: true },
+  { k: 'tut.empire', tab: ['empire'], target: '.floor.next, #tower', manual: true },
   { k: 'tut.city', tab: ['office'], target: '.citybn', manual: true, done: () => !!lsGet('od2_tip_city') },
   { k: 'tut.pvp', tab: ['office'], target: '.side [data-act="pvp"]', manual: true, done: () => !!lsGet('od2_tip_pvp') },
   { k: 'tut.studio', tab: ['office'], target: '.op-studio', done: () => !!studioName(), skippable: true },
+  { k: 'tut.airdrop', tab: ['drop', 'home'], target: null, manual: true },
   { k: 'tut.points', tab: ['drop', 'home'], target: '.ptsp', manual: true },
   { k: 'tut.giveaway', tab: ['drop', 'home'], target: '#gwcard, .gwnone', manual: true, done: () => !!lsGet('od2_tip_gw') },
   { k: 'tut.token', tab: ['drop', 'token'], target: '.adrop, .tokhero2', manual: true },
+  { k: 'tut.wallet', tab: ['drop', 'token'], target: null, manual: true, done: () => !!(NET.eco && NET.eco.sol) },
   { k: 'tut.friends', tab: ['drop', 'friends'], target: '.invite', manual: true },
+  { k: 'tut.help', tab: ['office'], target: '.helpbtn', manual: true },
   { k: 'tut.done', tab: ['office'], target: null, manual: true },
 ];
 const COACH = { i: -1, el: null, scrolled: -1 };
@@ -36,7 +43,9 @@ const OLD_TUT_DONE = 11; // the tutorial had 11 steps before the battle step was
 
 function tutLoad() {
   const v = lsGet('od2_tut');
-  COACH.i = v === null ? -1 : v === 'done' || Number(v) >= OLD_TUT_DONE ? TUT.length : Number(v);
+  // 'v2:<step>' since the full tutorial; plain numbers come from older versions with fewer steps
+  const cur = v && v.slice(0, 3) === 'v2:' ? Number(v.slice(3)) : null;
+  COACH.i = v === null ? -1 : v === 'done' ? TUT.length : cur !== null ? Math.min(cur, TUT.length) : Number(v) >= OLD_TUT_DONE ? TUT.length : 0;
 }
 function tipActive() {
   if (COACH.i < TUT.length || UI.pvp) return null;
@@ -45,22 +54,25 @@ function tipActive() {
   return TIPS.find((t) => !lsGet('od2_tip_' + t.id) && t.when()) || null;
 }
 function tipDone(id) { lsSet('od2_tip_' + id, '1'); }
-function tutSave() { lsSet('od2_tut', COACH.i >= TUT.length ? 'done' : String(COACH.i)); }
+function tutSave() { lsSet('od2_tut', COACH.i >= TUT.length ? 'done' : 'v2:' + COACH.i); }
 function tutStart() {
   COACH.i = 0;
   // steps the player has already done are skipped right away, so the counter starts at 1
   while (tutActive() && TUT[COACH.i].done && TUT[COACH.i].done()) COACH.i++;
   lsSet('od2_tut_from', String(COACH.i));
+  lsSet('od2_tut_n', '1'); lsSet('od2_tut_tot', '');
   tutSave();
   if (!tutActive()) { tutStop(); return; }
   tutGoto();
 }
 // numbering over the steps this player actually sees: "1/10", not "4/13" when the first steps were already done
 function tutStepText() {
-  const from = Math.min(COACH.i, Math.max(0, Number(lsGet('od2_tut_from')) || 0));
+  const n = Math.max(1, Number(lsGet('od2_tut_n')) || 1);
   const ahead = TUT.slice(COACH.i + 1).filter((s) => !(s.done && s.done())).length; // later steps already done are skipped
-  const n = COACH.i - from + 1;
-  return n + '/' + (n + ahead);
+  // the total can only shrink (a later step gets done by itself), never grow
+  const total = Math.min(n + ahead, Math.max(n, Number(lsGet('od2_tut_tot')) || 99));
+  lsSet('od2_tut_tot', String(total));
+  return n + '/' + total;
 }
 function tutStop() {
   COACH.i = TUT.length;
@@ -85,6 +97,7 @@ function tutNext() {
   // skip steps that are already done (e.g. the player hired before we asked)
   while (tutActive() && TUT[COACH.i].done && TUT[COACH.i].done()) { COACH.i++; tutSave(); }
   if (!tutActive()) { tutStop(); return; }
+  lsSet('od2_tut_n', String((Number(lsGet('od2_tut_n')) || 1) + 1));
   tutGoto();
 }
 function tutEl() {

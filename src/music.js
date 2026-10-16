@@ -1,8 +1,7 @@
 /* ============================================================
-   OFFICE DREAMS — background music: 6 original upbeat tracks.
-   Synthesized live with WebAudio (no audio files, no licences):
-   synthwave, chiptune, nu-disco, house, a boss-fight driver and an
-   outrun night ride. Each track has a form — intro → groove → lead →
+   OFFICE DREAMS — background music: 10 original upbeat tracks.
+   Synthesized live with WebAudio (no audio files, no licences): bright
+   house grooves and driving "boss level" synth tracks. Each track has a form — intro → groove → lead →
    break with a filter build → drop — so it never sounds like one loop.
    Tracks follow each other in a shuffled order. Starts after the first
    user gesture (browser autoplay rules).
@@ -31,24 +30,6 @@ function mTrack(t) {
   return t;
 }
 const TRACKS = [
-  mTrack({ id: 'neon_rush', bpm: 112, key: 57, scale: 'minor', chords: [[45, 'min'], [41, 'maj'], [48, 'maj'], [43, 'maj']], // Am F C G — synthwave
-    leadI: 'saw2', bassI: 'saw', arpI: 'pluck', pad: true,
-    leadA: ['4--34---7---6-5-', '5-------4-3-2---', '2---4---6---7-6-', '6-------5-4-3---'],
-    leadB: ['7-7-9-7-6---4---', '7-7-5-7-9-------', '9-9-b-9-7---6---', '8-----7-6-5-4---'],
-    bass: '0.o.0.o.0.o.0.o.', arp: '0124012401240124',
-    kick: 'x...x...x...x...', snare: '....X.......X...', hat: '..x...x...x...x.', ohat: '..............x.' }),
-  mTrack({ id: 'pixel_hustle', bpm: 128, key: 72, scale: 'major', chords: [[48, 'maj'], [43, 'maj'], [45, 'min'], [41, 'maj']], // C G Am F — chiptune
-    leadI: 'square', bassI: 'tri', arpI: 'chip', pad: false,
-    leadA: ['0-2-4-0-4-5-4---', '6-4-1-4-6---4---', '5-4-2-0-2-4-5---', '5-7-5-3-0---2---'],
-    leadB: ['7---4---7-8-9---', '8---6---4-6-8---', '7---9---7-5-4---', '5-3-5-7-5-------'],
-    bass: '0.o.0.o.0.o.0.oo', arp: '0123012301230123',
-    kick: 'x.....x.x.......', snare: '....X.......X..x', hat: 'x.x.x.x.x.x.x.x.' }),
-  mTrack({ id: 'deadline_funk', bpm: 116, key: 62, scale: 'minor', chords: [[38, 'min7'], [46, 'maj7'], [48, 'maj'], [45, 'min7']], // Dm7 Bbmaj7 C Am7 — nu-disco
-    leadI: 'pulse', bassI: 'funk', arpI: null, pad: true, comp: '..x...x...x..x..',
-    leadA: ['....4-2-0---2-3-', '4-------3-2-0---', '....4-2-4-6-7---', '6-------4---7---'],
-    leadB: ['7-7-9-7-....5-4-', '5---4---3---2---', '6-6-7-9-....7---', '8-----7-6-------'],
-    bass: '0..0.o..0.0..o.0',
-    kick: 'x...x...x...x...', snare: '....X.......X...', hat: 'xxxxxxxxxxxxxxxx', ohat: '..x...x...x...x.' }),
   mTrack({ id: 'startup_sunrise', bpm: 122, key: 65, scale: 'major', chords: [[38, 'min'], [46, 'maj'], [41, 'maj'], [48, 'maj']], // Dm Bb F C — house
     leadI: 'bell', bassI: 'sub', arpI: 'pluck', pad: true, comp: '..x...x...x...x.',
     leadA: ['5---4---2---0---', '3-2-3-4-5-------', '4---2---0-2-4---', '4-5-6-4-1-------'],
@@ -61,12 +42,54 @@ const TRACKS = [
     leadB: ['7---7-8-9---b---', '9---7---5-7-9---', 'a---8---a-b-a---', '8---6---4---6-8-'],
     bass: '0000o0000000o000', arp: '0120012001200120',
     kick: 'x...x...x...x.x.', snare: '....X.......X...', hat: 'x.xxx.xxx.xxx.xx' }),
-  mTrack({ id: 'city_run', bpm: 104, key: 66, scale: 'minor', chords: [[42, 'min'], [38, 'maj'], [45, 'maj'], [40, 'maj']], // F#m D A E — outrun night ride
+  mTrack({ id: 'coffee_rush', bpm: 124, key: 67, scale: 'major', chords: [[40, 'min'], [48, 'maj'], [43, 'maj'], [50, 'maj']], // Em C G D — house,
+    leadI: 'bell', bassI: 'sub', arpI: 'pluck', pad: true, comp: '..x...x...x...x.',
+    leadA: ['5---4---2---5---', '3-2-3-4-5-------', '4---2---0-2-4---', '4-5-6-4-1-------'],
+    leadB: ['9-9-7-5-7---5---', 'a-9-7-5-3-------', '7-9-b-9-7---4---', '8-6-4-6-8-------'],
+    bass: '..0...0...0...0.', arp: '0.2.4.2.0.2.4.2.',
+    kick: 'x...x...x...x...', snare: '....x.......x...', hat: 'xxxxxxxxxxxxxxxx', ohat: '..x...x...x...x.' }),
+  mTrack({ id: 'launch_day', bpm: 120, key: 57, scale: 'major', chords: [[42, 'min'], [38, 'maj'], [45, 'maj'], [40, 'maj']], // F#m D A E — piano house,
+    leadI: 'bell', bassI: 'sub', arpI: 'pluck', pad: true, comp: '..x..x....x..x..',
+    leadA: ['5-4-5-7-5---2---', '3---5---7---5---', '4-2-0-2-4---7---', '6-4-1-4-6-------'],
+    leadB: ['c---b-9-7---9---', 'a---9-7-5---7---', '9-7-9-b-9---7---', 'b---8---6---4---'],
+    bass: '..0...0...0..00.', arp: '0124210401242104',
+    kick: 'x...x...x...x...', snare: '....x.......x...', hat: '..x...x...x...x.' }),
+  mTrack({ id: 'team_spirit', bpm: 126, key: 58, scale: 'major', chords: [[43, 'min'], [39, 'maj'], [46, 'maj'], [41, 'maj']], // Gm Eb Bb F — funky house,
+    leadI: 'pulse', bassI: 'funk', arpI: null, pad: true, comp: '..x...x...x...x.',
+    leadA: ['5---7---9---7-5-', '3---5---7-5-3---', '2-4-2-0-2-------', '1---4---6---8---'],
+    leadB: ['c-b-9-b-c-------', 'a---c---a-9-7---', '9-7-9-b-9---7---', '8-6-4-6-8---b---'],
+    bass: '0..0..o.0..0..o.',
+    kick: 'x...x...x...x...', snare: '....x.......x..x', hat: 'x.x.x.x.x.x.x.x.', ohat: '..x...x...x...x.' }),
+  mTrack({ id: 'gold_hour', bpm: 118, key: 52, scale: 'major', chords: [[37, 'min'], [45, 'maj'], [40, 'maj'], [47, 'maj']], // C#m A E B — sunset house,
+    leadI: 'bell', bassI: 'sub', arpI: 'pluck', pad: true, comp: '..x...x...x...x.',
+    leadA: ['5-------4-2-4---', '3---5---7---5---', '4-2-0-2-4-------', '6-4-1-4-6---8---'],
+    leadB: ['9---b---c---b-9-', 'a---c---a-9-7---', 'b-9-7-9-b-------', '8---6---4---6-8-'],
+    bass: '..0...0...0...0.', arp: '0.2.4.2.0.2.4.2.',
+    kick: 'x...x...x...x...', snare: '....x.......x...', hat: '..x...x...x...x.', ohat: '...x...x...x...x' }),
+  mTrack({ id: 'final_sprint', bpm: 136, key: 62, scale: 'harm', chords: [[38, 'min'], [46, 'maj'], [48, 'maj'], [45, 'maj']], // Dm Bb C A — final boss,
     leadI: 'saw2', bassI: 'saw', arpI: 'pluck', pad: true,
-    leadA: ['4-------2-4-7---', '5-------7---9---', '9-------7-4-2---', '8-------6---4-1-'],
-    leadB: ['b---9---7---9-b-', 'c-b-9-7-9-------', 'b---9---b-c-b---', 'a---8---6---8---'],
-    bass: '0o0o0o0o0o0o0o0o', arp: '0124210401242104',
-    kick: 'x...x...x...x...', snare: '....X.......X...', hat: '..x...x...x...x.' }),
+    leadA: ['0-2-4-7-4-2-4---', '5-4-2-4-5---9---', '1-3-4-3-1-------', '6-4-1-4-6---7---'],
+    leadB: ['7---9---b---9-7-', 'c---b---9---b---', 'a---8---a-b-a---', 'b---6---8---b---'],
+    bass: '0000o0000000o000', arp: '0120012001200120',
+    kick: 'x...x...x...x.x.', snare: '....X.......X...', hat: 'x.xxx.xxx.xxx.xx' }),
+  mTrack({ id: 'server_storm', bpm: 140, key: 60, scale: 'harm', chords: [[48, 'min'], [44, 'maj'], [51, 'maj'], [43, 'maj']], // Cm Ab Eb G — storm,
+    leadI: 'saw2', bassI: 'saw', arpI: 'pluck', pad: true,
+    leadA: ['4---4-2-0---2-4-', '5---7---5-4-2---', '2---4---7---4---', '6---4---1---6---'],
+    leadB: ['b-b-9-b-c---b---', 'c---a-9-7---9---', '9---b---9-8-7---', '8---6---4---6-8-'],
+    bass: '00.000.000.000.o', arp: '0124012401240124',
+    kick: 'x..xx...x..xx...', snare: '....X.......X...', hat: 'xxxxxxxxxxxxxxxx' }),
+  mTrack({ id: 'top_floor', bpm: 130, key: 55, scale: 'harm', chords: [[43, 'min'], [39, 'maj'], [41, 'maj'], [50, 'maj']], // Gm Eb F D — the climb,
+    leadI: 'saw2', bassI: 'saw', arpI: 'pluck', pad: true,
+    leadA: ['7---4---2---4-7-', '5---7---9---7---', '8---a---8-4-1---', '6---8---b---8-6-'],
+    leadB: ['7-9-b-9-7---4---', 'c---9---7---9---', 'a---8---a---b---', '8---6---4---6---'],
+    bass: '0.0.o.0.0.0.o.0.', arp: '0210021002100210',
+    kick: 'x...x...x...x...', snare: '....X.......X.x.', hat: 'x.x.x.x.x.x.x.x.', ohat: '..x...x...x...x.' }),
+  mTrack({ id: 'night_shift', bpm: 128, key: 59, scale: 'harm', chords: [[47, 'min'], [43, 'maj'], [50, 'maj'], [42, 'maj']], // Bm G D F# — night shift,
+    leadI: 'saw2', bassI: 'saw', arpI: 'pluck', pad: true,
+    leadA: ['4-2-0-2-4---7---', '5---4---2---0---', '2-4-9-4-2-------', '6-4-1-4-6-------'],
+    leadB: ['b---9---7-9-b---', 'c---b---9---7---', '9---b---9-8-7---', '8---6---4---6-8-'],
+    bass: '0.00o.000.00o.0.', arp: '0124012401240124',
+    kick: 'x...x...x...x...', snare: '....X.......X...', hat: 'x.xxx.xxx.xxx.xx' }),
 ];
 // the form of every track, one entry per pass through its chords (4 bars):
 // k kick · s snare · h hats · b bass · p pad/comp · a arp · l lead (A/B) · up = filter build
