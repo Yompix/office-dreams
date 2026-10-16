@@ -243,6 +243,7 @@ function pvTap(e) {
   setTimeout(() => p.remove(), 650);
   const btn = $('.pv-tap');
   if (btn) { btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit'); }
+  pvHop('#pvFMe');
 }
 function pvPopEmote(who, ch) {
   const host = $(who === 'me' ? '.pv-row.me' : '.pv-row.op');
@@ -283,6 +284,8 @@ function pvFrame() {
     PV.opDisp += (target - PV.opDisp) * 0.18;
     if (Math.abs(target - PV.opDisp) < 1) PV.opDisp = target;
     const opS = Math.round(PV.opDisp);
+    if (opS > (PV.opHopS || 0) + 25 && now - (PV.opHopT || 0) > 160) { PV.opHopS = opS; PV.opHopT = now; pvHop('#pvFOp'); }
+    if (opS < (PV.opHopS || 0)) PV.opHopS = opS;
     const top = Math.max(meS, opS, 200);
     const bm = $('#pvBarMe'), bo = $('#pvBarOp'), sm = $('#pvScMe'), so = $('#pvScOp'), lead = $('#pvLead');
     if (bm) bm.style.transform = 'scaleX(' + (meS / top).toFixed(3) + ')';
@@ -307,7 +310,7 @@ function pvRender() {
   else if (PV.st === 'search') html = pvSearch();
   else if (PV.st === 'fight') html = pvFight();
   else if (PV.st === 'result') html = pvResult();
-  el.innerHTML = `<div class="pv-bg" aria-hidden="true"><i></i><i></i></div><div class="pv-box st-${PV.st}">${html}</div>`;
+  el.innerHTML = `<div class="pv-bg" aria-hidden="true">${artOn() ? '<b class="pv-art"></b>' : ''}<i></i><i></i></div><div class="pv-box st-${PV.st}">${html}</div>`;
   if (PV.st === 'search' || PV.st === 'fight') { if (!PV.raf) PV.raf = requestAnimationFrame(pvFrame); }
 }
 function pvLobby() {
@@ -358,12 +361,20 @@ function pvSideCard(sd, mine) {
   const name = mine ? (NET.me && NET.me.name) || L('pv.you') : pvOpName(sd);
   return `<div class="pv-who"><b>${mine ? '' : flag(sd.country) + ' '}${esc(name)}</b><small>${mine ? L('pv.you') : L('pv.k_' + sd.kind)} · ${PV_LEAGUE[sd.league || 0]} ${fmt(sd.tr || 0)} · ×${(sd.mult || 1).toFixed(2)}</small></div>`;
 }
+// art mode: the two studio heads face each other on the arena stage (the plain "VS" otherwise)
+const PV_LOOKS = ['prog', 'art', 'mkt', 'des', 'qa', 'snd', 'prod', 'cm'];
+function pvOpLook(op) { const k = String(op.name || op.kind || ''); let h = 7; for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) % 997; return PV_LOOKS[h % PV_LOOKS.length]; }
+function pvStage(v) {
+  if (!artOfficeOn()) return `<div class="pv-vs px">${L('pv.vs')}</div>`; // the pictures are reachable once the office one loaded
+  return `<div class="pv-stage"><img class="pv-f me" id="pvFMe" src="art/stand_you.webp" alt=""><span class="pv-vs px">${L('pv.vs')}</span><img class="pv-f op" id="pvFOp" src="art/stand_${pvOpLook(v.op)}.webp" alt=""></div>`;
+}
+function pvHop(id) { const f = $(id); if (f) { f.classList.remove('hit'); void f.offsetWidth; f.classList.add('hit'); } }
 function pvFight() {
   const v = PV.v;
   return `<div class="pv-fight">
     <div class="pv-ftop"><span class="pv-kind">${L('pv.k_' + v.op.kind)}</span><b class="px pv-clock" id="pvClock">0:30</b></div>
     <div class="pv-row me">${pvSideCard(v.me, true)}<div class="pv-bar"><i id="pvBarMe"></i></div><b class="px pv-sc" id="pvScMe">0</b></div>
-    <div class="pv-vs px">${L('pv.vs')}</div>
+    ${pvStage(v)}
     <div class="pv-row op">${pvSideCard(v.op, false)}<div class="pv-bar"><i id="pvBarOp"></i></div><b class="px pv-sc" id="pvScOp">0</b></div>
     <div class="pv-lead" id="pvLead">${lsGet('od2_pv_first') ? '&nbsp;' : L('pv.first_hint')}</div>
     <button class="pv-tap" disabled aria-label="${esc(L('pv.tap'))}"><span class="px">${L('pv.tap')}</span><small>+${Math.round(v.me.mult * 10)}</small></button>
