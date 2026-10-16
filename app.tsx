@@ -1436,5 +1436,7 @@ Bun.serve({
 });
 setInterval(() => { for (const w of socks) w.data.n = 0; }, 2000);
 console.log("Pixel Casino v3 up");
+// закриття: скільки в гравців лишилося монет (щоб знати, чи комусь ще потрібен вивід)
+if (CLOSED) db`select count(*)::int as n, coalesce(sum(balance),0)::bigint as s, count(*) filter (where balance >= ${WD_MIN_NOW})::int as can, coalesce(max(balance),0)::bigint as mx from users where id <> 'house' and balance > 0 and not (id = ${"tg" + ADMIN_ID})`.then((r: any) => console.log("closing balances: players", r[0].n, "coins", String(r[0].s), "can withdraw", r[0].can, "max", String(r[0].mx))).catch((e: any) => console.error("closing balances", e.message));
 bot(); tonPoll(); setInterval(tonPoll, 30000);
 
