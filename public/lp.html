@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ликвидность OFFX</title>
+<link rel="icon" href="/token.png">
+<style>
+  :root { --bg: #070a1f; --panel: #10163a; --line: rgba(120, 140, 255, 0.22); --ink: #eef1ff; --ink2: #a6addb; --cy: #22e6ff; --grn: #14f195; --vio: #9945ff; --yel: #ffd23f; --red: #ff5470; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { background: radial-gradient(1200px 500px at 50% -200px, rgba(153, 69, 255, 0.28), transparent), var(--bg); min-height: 100vh; }
+  main { max-width: 520px; margin: 0 auto; padding: 18px 16px 60px; }
+  h1 { font-size: 22px; margin: 4px 0 0; }
+  h2 { font-size: 16px; margin: 0 0 8px; }
+  p { margin: 6px 0; color: var(--ink2); }
+  .top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .top img { width: 52px; height: 52px; filter: drop-shadow(0 0 10px rgba(153, 69, 255, 0.55)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin: 12px 0; }
+  button, .btn { appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 800; padding: 13px 16px; border-radius: 12px; color: #fff; background: linear-gradient(180deg, #a35bff, #6a2bd8); box-shadow: 0 3px 0 #3f1694; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .wide { width: 100%; }
+  button.go { background: linear-gradient(180deg, #2ef2a0, #0fb873); color: #04210f; box-shadow: 0 3px 0 #08734a, 0 0 16px rgba(20, 241, 149, 0.45); font-size: 17px; }
+  button.chip { padding: 8px 10px; font-size: 13px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line); box-shadow: none; color: var(--ink); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #0a0f2c; color: var(--ink); font: inherit; font-size: 22px; font-weight: 800; }
+  .chips { display: flex; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
+  .kv { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
+  .kv:last-child { border-bottom: 0; }
+  .kv span { color: var(--ink2); } .kv b { text-align: right; }
+  .ok { color: var(--grn); } .warn { color: var(--yel); } .bad { color: var(--red); }
+  .note { font-size: 13px; padding: 10px 12px; border-radius: 12px; background: rgba(255, 210, 63, 0.08); border: 1px solid rgba(255, 210, 63, 0.3); color: #ffe9a6; margin-top: 10px; }
+  .st { margin-top: 10px; font-size: 14px; min-height: 20px; }
+  .hide { display: none !important; }
+  a { color: var(--cy); }
+  .mono { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><img src="/token.png" alt=""><div><h1>Ликвидность OFFX</h1><p style="margin:0">Пул OFFX / SOL на Raydium</p></div></div>
+
+  <div class="card">
+    <h2>📊 Пул сейчас</h2>
+    <div class="kv"><span>SOL в пуле</span><b id="pSol">…</b></div>
+    <div class="kv"><span>OFFX в пуле</span><b id="pOffx">…</b></div>
+    <div class="kv"><span>Ликвидность</span><b id="pUsd">…</b></div>
+    <div class="kv"><span>Цена 1 OFFX</span><b id="pPrice">…</b></div>
+  </div>
+
+  <div class="card" id="cConn">
+    <h2>👛 Кошелёк</h2>
+    <button class="wide" id="connect">Подключить Phantom</button>
+    <div id="nophantom" class="hide">
+      <p>Открой эту страницу внутри приложения Phantom — там всё подписывается одной кнопкой.</p>
+      <a class="btn wide" id="openPhantom" href="#">Открыть в Phantom</a>
+    </div>
+    <div id="acct" class="hide">
+      <div class="kv"><span>Адрес</span><b class="mono" id="addr"></b></div>
+      <div class="kv"><span>Баланс</span><b id="bal">…</b></div>
+    </div>
+  </div>
+
+  <div class="card" id="cAdd">
+    <h2>💧 Добавить в ликвидность</h2>
+    <p>Вводишь сумму в SOL. Одной транзакцией: часть SOL покупает OFFX в этом же пуле, потом SOL и OFFX вместе добавляются в пул. Ты получаешь LP-токены — это твоя доля пула, её можно забрать обратно.</p>
+    <input id="amt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.1">
+    <div class="chips"><button class="chip" data-v="0.02">0.02</button><button class="chip" data-v="0.05">0.05</button><button class="chip" data-v="0.1">0.1</button><button class="chip" data-v="0.25">0.25</button><button class="chip" data-v="max">Макс</button></div>
+    <div id="q" class="hide">
+      <div class="kv"><span>Купится OFFX за</span><b id="qSwap"></b></div>
+      <div class="kv"><span>В пул пойдёт</span><b id="qAdd"></b></div>
+      <div class="kv"><span>Цена OFFX после</span><b id="qPrice"></b></div>
+      <div class="kv"><span>Твоя доля пула после</span><b id="qShare"></b></div>
+    </div>
+    <div id="impact" class="note hide"></div>
+    <button class="go wide" id="go" style="margin-top:12px" disabled>Добавить в ликвидность</button>
+    <div class="st" id="st"></div>
+  </div>
+
+  <div class="card">
+    <h2>🧾 Моя доля</h2>
+    <div class="kv"><span>LP-токены</span><b id="myLp">—</b></div>
+    <div class="kv"><span>Доля пула</span><b id="myShare">—</b></div>
+    <div class="kv"><span>Это примерно</span><b id="myVal">—</b></div>
+    <p style="font-size:13px">Забрать ликвидность можно на raydium.io → Portfolio, подключив этот же кошелёк.</p>
+  </div>
+
+  <p style="font-size:12px">Важно: ликвидность — это не гарантированный заработок. Если цена OFFX упадёт, при выводе вернётся меньше, чем вложено. Подпись делается только в твоём кошельке, сервер ключей не получает.</p>
+</main>
+<script src="/launch-lib.js"></script>
+<script src="/lp-core.js"></script>
+<script>
+const W = SOLLIB.web3, S = SOLLIB.spl;
+const conn = new W.Connection(location.origin + '/api/solrpc', { commitment: 'confirmed', disableRetryOnRateLimit: true });
+const $ = (id) => document.getElementById(id);
+const prov = () => (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom ? window.phantom.solana : window.solana && window.solana.isPhantom ? window.solana : null);
+const say = (html, cls) => { $('st').className = 'st ' + (cls || ''); $('st').innerHTML = html; };
+const fmt = (n, d) => Number(n).toLocaleString('ru-RU', { maximumFractionDigits: d == null ? 2 : d });
+let me = null, pool = null, solUsd = 0, bal = 0, busy = false;
+
+async function loadPool() {
+  pool = await ODLP.readPool(W, conn);
+  const sol = Number(pool.r0) / 1e9, offx = Number(pool.r1) / 10 ** pool.dec1, price = sol / offx;
+  $('pSol').textContent = fmt(sol, 4) + ' SOL';
+  $('pOffx').textContent = fmt(offx, 0);
+  $('pUsd').textContent = solUsd ? '≈ $' + fmt(sol * solUsd * 2, 2) : '—';
+  $('pPrice').textContent = price.toExponential(3) + ' SOL' + (solUsd ? ' ≈ $' + (price * solUsd).toExponential(2) : '');
+  upd();
+}
+async function loadMine() {
+  if (!me) return;
+  try {
+    bal = await conn.getBalance(me);
+    $('bal').textContent = fmt(bal / 1e9, 4) + ' SOL';
+    const m = await ODLP.lpBalance(W, S, conn, me.toBase58());
+    $('myLp').textContent = fmt(Number(m.lp) / 1e9, 4);
+    $('myShare').textContent = (m.share * 100).toFixed(1) + '%';
+    $('myVal').textContent = fmt(m.sol, 4) + ' SOL + ' + fmt(m.offx, 0) + ' OFFX';
+  } catch (e) {}
+  upd();
+}
+const MAXKEEP = 0.012; // SOL kept for fees and new token accounts
+function amtLamports() { const v = parseFloat(String($('amt').value).replace(',', '.')); return isFinite(v) && v > 0 ? Math.floor(v * 1e9) : 0; }
+function upd() {
+  const l = amtLamports();
+  $('go').disabled = busy || !me || !pool || l < 1e6 || l > bal - MAXKEEP * 1e9;
+  if (!pool || !l) { $('q').classList.add('hide'); $('impact').classList.add('hide'); return; }
+  const q = ODLP.quote(pool, l, 100);
+  const x = q.priceAfter / q.priceNow;
+  $('q').classList.remove('hide');
+  $('qSwap').textContent = fmt(Number(q.sIn) / 1e9, 4) + ' SOL → ~' + fmt(Number(q.out) / 10 ** pool.dec1, 0) + ' OFFX';
+  $('qAdd').textContent = fmt(Number(q.a0) / 1e9, 4) + ' SOL + OFFX';
+  $('qPrice').innerHTML = (x >= 1.5 ? '<span class="warn">' : '') + '×' + x.toFixed(2) + (x >= 1.5 ? '</span>' : '');
+  $('qShare').textContent = (q.share * 100).toFixed(1) + '%';
+  const imp = $('impact');
+  if (x >= 1.5) { imp.classList.remove('hide'); imp.innerHTML = `⚠️ Пул сейчас маленький, поэтому эта сумма поднимет цену OFFX примерно в ${x.toFixed(1)} раза. Это нормально для первой ликвидности, но держатели увидят резкий рост. Можно добавлять частями.`; }
+  else imp.classList.add('hide');
+  if (me && l > bal - MAXKEEP * 1e9) say('Не хватает SOL: оставь ~' + MAXKEEP + ' SOL на комиссии.', 'warn'); else if (!busy && $('st').classList.contains('warn')) say('');
+}
+$('amt').oninput = upd;
+document.querySelectorAll('.chip').forEach((b) => b.onclick = () => { $('amt').value = b.dataset.v === 'max' ? Math.max(0, (bal / 1e9 - MAXKEEP)).toFixed(4) : b.dataset.v; upd(); });
+
+if (!prov()) {
+  $('connect').classList.add('hide'); $('nophantom').classList.remove('hide');
+  $('openPhantom').href = 'https://phantom.app/ul/browse/' + encodeURIComponent(location.href) + '?ref=' + encodeURIComponent(location.origin);
+}
+$('connect').onclick = async () => {
+  try {
+    const r = await prov().connect();
+    me = new W.PublicKey(r.publicKey.toString());
+    $('addr').textContent = me.toBase58().slice(0, 4) + '…' + me.toBase58().slice(-4);
+    $('acct').classList.remove('hide'); $('connect').classList.add('hide');
+    loadMine();
+  } catch (e) { say('Подключение отменено.', 'bad'); }
+};
+async function confirmSig(sig) {
+  for (let i = 0; i < 60; i++) {
+    const st = (await conn.getSignatureStatuses([sig])).value[0];
+    if (st && st.err) throw new Error('сеть отклонила транзакцию: ' + JSON.stringify(st.err));
+    if (st && (st.confirmationStatus === 'confirmed' || st.confirmationStatus === 'finalized')) return;
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  throw new Error('нет подтверждения — проверь кошелёк через минуту');
+}
+$('go').onclick = async () => {
+  const l = amtLamports();
+  if (!me || !l) return;
+  busy = true; upd();
+  try {
+    say('Собираем транзакцию…');
+    const z = await ODLP.buildZap(W, S, conn, me.toBase58(), l, 100);
+    const sim = await conn.simulateTransaction(z.tx, { sigVerify: false, replaceRecentBlockhash: true });
+    if (sim.value.err) throw new Error('проверка не прошла (цена могла измениться) — попробуй ещё раз');
+    say('Подтверди в Phantom…');
+    const signed = await prov().signTransaction(z.tx);
+    say('Отправляем в сеть…');
+    const sig = await conn.sendRawTransaction(signed.serialize(), { skipPreflight: true, maxRetries: 5 });
+    await confirmSig(sig);
+    say(`✅ Готово! Ликвидность добавлена. <a href="https://solscan.io/tx/${sig}" target="_blank" rel="noopener">Транзакция</a>`, 'ok');
+    $('amt').value = '';
+    await loadPool(); await loadMine();
+  } catch (e) {
+    say(/reject|cancel|denied/i.test(String(e && e.message)) ? 'Ты отклонил транзакцию — ничего не произошло.' : 'Не получилось: ' + String((e && e.message) || e).slice(0, 200), 'bad');
+  }
+  busy = false; upd();
+};
+fetch('/stats.json').then((r) => r.json()).then((j) => { solUsd = j.solUsd || 0; if (pool) loadPool(); }).catch(() => {});
+loadPool().catch(() => say('Не удалось прочитать пул — обнови страницу.', 'bad'));
+setInterval(() => { if (!busy) loadPool().catch(() => {}); }, 20000);
+window.__ready = true;
+</script>
+</body>
+</html>

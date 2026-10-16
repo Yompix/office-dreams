@@ -454,7 +454,7 @@ function createApp(cfg, opts = {}) {
       if (p === '/stats.json') {
         const f = Eco.fundView(ctx, 0);
         res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'public, max-age=60', 'access-control-allow-origin': '*', ...SEC_HEADERS });
-        return res.end(JSON.stringify({ verified: Airdrop.verifiedCount(ctx), fundUsd: f.usd, goalUsd: f.goalUsd }));
+        return res.end(JSON.stringify({ verified: Airdrop.verifiedCount(ctx), fundUsd: f.usd, goalUsd: f.goalUsd, solUsd: Math.round(require('./solpay.js').solUsd(cfg) * 100) / 100 }));
       }
       if (p === '/token.json') {
         const base = cfg.publicUrl || `http://${req.headers.host}`;
@@ -486,8 +486,9 @@ function createApp(cfg, opts = {}) {
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', ...SEC_HEADERS });
         return fs.createReadStream(f).pipe(res);
       }
-      if (p === '/launch') {
-        const f = path.join(cfg.root, 'public', 'launch.html');
+      if (p === '/launch' || p === '/lp') {
+        // owner tools: everything is signed in the owner's own wallet, the server never holds these keys
+        const f = path.join(cfg.root, 'public', p === '/lp' ? 'lp.html' : 'launch.html');
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', ...SEC_HEADERS });
         return fs.createReadStream(f).pipe(res);
       }
