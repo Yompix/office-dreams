@@ -3,20 +3,24 @@
    A glowing ring points at the button to press, a bubble explains
    why. Steps finish by themselves when the player does the thing.
    ============================================================ */
+const gwOn = () => !!(NET.eco && NET.eco.giveaway && !NET.eco.giveaway.done);
 const TUT = [
+  { k: 'tut.welcome', tab: ['studio', 'games'], target: null, manual: true, done: () => UI.genrePicked || S.stats.started >= 1 }, // skipped as soon as the player just starts playing
   { k: 'tut.genre', tab: ['studio', 'games'], target: '.genres', done: () => UI.genrePicked || S.stats.started >= 1 },
   { k: 'tut.start', tab: ['studio', 'games'], target: '[data-act="start"]', done: () => S.stats.started >= 1 },
   { k: 'tut.tap', tab: ['office'], target: '#workbtn', done: () => S.stats.taps >= 15 },
   { k: 'tut.energy', tab: ['office'], target: '.energy', manual: true },
   { k: 'tut.release', tab: ['office'], target: '.pmini', manual: true },
   { k: 'tut.hire', tab: ['office'], target: '.side [data-act="go:studio:team"]', done: () => hiredCount(S) >= 1, skippable: true },
+  { k: 'tut.mood', tab: ['office'], target: '.opm.mood', manual: true },
   { k: 'tut.quests', tab: null, target: '#tabs [data-act="tab:quests"]', manual: true },
+  { k: 'tut.city', tab: ['office'], target: '.citybn', manual: true, done: () => !!lsGet('od2_tip_city') },
+  { k: 'tut.pvp', tab: ['office'], target: '.side [data-act="pvp"]', manual: true, done: () => !!lsGet('od2_tip_pvp') },
+  { k: 'tut.studio', tab: ['office'], target: '.op-studio', done: () => !!studioName(), skippable: true },
   { k: 'tut.points', tab: ['drop', 'home'], target: '.ptsp', manual: true },
+  { k: 'tut.giveaway', tab: ['drop', 'home'], target: '#gwcard, .gwnone', manual: true, done: () => !!lsGet('od2_tip_gw') },
   { k: 'tut.token', tab: ['drop', 'token'], target: '.adrop, .tokhero2', manual: true },
   { k: 'tut.friends', tab: ['drop', 'friends'], target: '.invite', manual: true },
-  { k: 'tut.studio', tab: ['office'], target: '.op-studio', done: () => !!studioName(), skippable: true },
-  { k: 'tut.pvp', tab: ['office'], target: '.side [data-act="pvp"]', manual: true, done: () => !!lsGet('od2_tip_pvp') },
-  { k: 'tut.city', tab: ['office'], target: '.citybn', manual: true, done: () => !!lsGet('od2_tip_city') },
   { k: 'tut.done', tab: ['office'], target: null, manual: true },
 ];
 const COACH = { i: -1, el: null, scrolled: -1 };
@@ -25,6 +29,7 @@ const TIPS = [
   { id: 'pvp', k: 'tut.pvp_new', tab: ['office'], target: '.side [data-act="pvp"]', act: 'pvp', when: () => S.stats.taps >= 15 },
   { id: 'studio', k: 'tut.studio_new', tab: ['office'], target: '.op-studio', act: 'studio', when: () => S.stats.taps >= 15 && !studioName() },
   { id: 'city', k: 'tut.city_new', tab: ['office'], target: '.citybn', act: 'cityopen', when: () => S.stats.taps >= 15 },
+  { id: 'gw', k: 'tut.gw_new', tab: ['drop', 'home'], target: '#gwcard', act: '', when: () => gwOn() },
   { id: 'reno', k: 'tut.reno_new', tab: ['empire'], target: '.floor .reno', act: '', when: () => renoStars(S) === 0 },
 ];
 const OLD_TUT_DONE = 11; // the tutorial had 11 steps before the battle step was added: 11+ means "finished"
@@ -73,6 +78,7 @@ function tutNext() {
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.pvp') tipDone('pvp'); // seen in the tutorial: no "new" hint later
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.studio') tipDone('studio');
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.city') tipDone('city');
+  if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.giveaway') tipDone('gw');
   COACH.i++;
   tutSave();
   if (COACH.i >= TUT.length) { tutStop(); confetti(60); return; }
@@ -123,7 +129,8 @@ function tutUpdate() {
     if (st.target && !target && st.tab) btns.push(`<button class="btn sm" data-act="tut:go">${L('tut.show')}</button>`);
     if (st.manual) btns.push(`<button class="btn sm glow" data-act="tut:next">${L(COACH.i === TUT.length - 1 ? 'tut.finish' : 'tut.next')}</button>`);
     if (st.skippable) btns.push(`<button class="btn sm ghost" data-act="tut:next">${L('tut.later')}</button>`);
-    btns.push(`<button class="linkbtn" data-act="tut:skip">${L('tut.skip')}</button>`);
+    // on the first screen "skip" is a real button: easy to find for anyone who already knows the game
+    btns.push(COACH.i === 0 ? `<button class="btn sm ghost skip" data-act="tut:skip">${L('tut.skip')}</button>` : `<button class="linkbtn" data-act="tut:skip">${L('tut.skip')}</button>`);
     el.querySelector('.c-btns').innerHTML = btns.join('');
   }
   if (!target) {

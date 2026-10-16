@@ -651,7 +651,7 @@ button.cell:active { transform: scale(0.94); }
 .c-bub.center { left: 12px !important; right: 12px; width: auto !important; top: auto !important; bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px) + 20px) !important; max-width: 420px; margin: 0 auto; }
 .c-bub.center::before { display: none; }
 .c-step { font-size: 8px; color: var(--mag2); }
-.c-text { font-size: 14px; font-weight: 700; line-height: 1.4; }
+.c-text { font-size: 15px; font-weight: 700; line-height: 1.45; }
 .c-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .c-btns .linkbtn { margin-left: auto; font-size: 12px; color: var(--mut); }
 
@@ -1309,6 +1309,10 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .gw-lock { margin-top: 0; }
 .opm[data-act] { cursor: pointer; }
 .opm[data-act]:active { transform: scale(0.98); }
+.gwnone { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.gwnone .cb-ico { font-size: 26px; }
+.gwnone .hint { flex: 1; min-width: 180px; margin: 0; }
+.c-btns .btn.skip { opacity: 0.85; }
 </style>
 </head>
 <body>
@@ -2279,17 +2283,21 @@ LANGS.en = {
   'ev.fan.c0': 'Send merch (−${cost})', 'ev.fan.c1': 'Reply warmly',
   'ev.fan.r0': 'The fan is thrilled and told everyone. Reputation +2, +1 gem.', 'ev.fan.r1': 'A warm reply means a lot. Reputation +1.',
   'sub.token': 'Token',
-  'tut.genre': 'Step 1. Pick a genre. The one marked ▲ is trending and sells ×1.5.',
-  'tut.start': 'Now tap “Start project” — your team gets to work.',
-  'tut.tap': 'Tap WORK! Every tap pushes the game forward and brings cash.',
-  'tut.energy': 'Tapping uses energy. It refills by itself — and your team keeps working without taps.',
-  'tut.release': 'When the bar reaches 100% the game is released and earns money every day.',
-  'tut.hire': 'Hire your first employee ($140): they work even when you don’t tap.',
-  'tut.quests': 'Quests: story events with choices, goals and daily missions — all give rewards.',
-  'tut.points': 'Airdrop points. Real progress earns them — releases, upgrades, quests, check-ins, friends.',
-  'tut.token': 'The OFFX token: the season’s points will be exchanged for it. Here you can see how it works.',
-  'tut.friends': 'Invite friends: you get a share of their points and in-game bonuses.',
-  'tut.done': 'That’s it! Play a little every day, fight in Studio Battle and invite friends. Good luck with your studio!',
+  "tut.welcome": "👋 Hi! A quick 2-minute tour. The glowing frame shows where to tap — just follow it. Don’t need it? Tap “Skip tutorial”. You can replay it any time: ❓ Help → Tutorial.",
+  "tut.mood": "😊 Team mood and ⭐ reputation. A happy team works faster. Tap these bars any time to see how to raise them.",
+  "tut.giveaway": "🎁 Giveaways with prizes run when a sponsor joins us — we announce them in the channel and the bot. To take part: 1) get verified, 2) subscribe to the channel. Then just play — the most active win.",
+  "tut.gw_new": "🎁 A giveaway is on! It runs while there is a sponsor. Get verified and subscribe to the channel — then just play: the most active players win.",
+  "tut.genre": "Step 1. Pick the kind of game your studio will make. The one with ▲ is popular right now and sells ×1.5.",
+  "tut.start": "Tap the glowing “Start project” button — your team starts making the game.",
+  "tut.tap": "👆 Tap the big WORK button several times! Each tap moves the game forward and brings money.",
+  "tut.energy": "⚡ This yellow bar is energy. Taps use it, and it refills by itself. Your team keeps working even when you don’t tap.",
+  "tut.release": "This is your game in progress. At 100% it comes out and earns money every day — even while you are away.",
+  "tut.hire": "👥 Hire your first employee ($140). Staff work on their own, so the game moves without your taps.",
+  "tut.quests": "📋 Quests: tasks of the day and story events. Tap here every day — they give money, gems and points.",
+  "tut.points": "🪙 These are your airdrop points. They grow from real play: releases, upgrades, quests, daily check-ins, friends. Points are not money.",
+  "tut.token": "✅ Verification: a one-time $1 deposit (≈80 ⭐ Telegram Stars or SOL). It proves you are a real player and gives you a share of the 90,000,000 OFFX airdrop. The token price is set by the market.",
+  "tut.friends": "👥 Invite friends with your link: you get a share of their points and bonuses.",
+  "tut.done": "🎉 Done! Come back every day: collect the daily reward, finish quests and play a little. Good luck with your studio!",
   'tut.show': 'Show me',
   'tut.next': 'Next',
   'tut.finish': 'Let’s go!',
@@ -2605,20 +2613,12 @@ LANGS.en = {
   'tk2.u3': "🗳 A vote on what we build next",
   'tk2.u4': "💎 Daily rewards for playing",
   'tk2.uses_hint': "Plans may change as the project grows — every update is announced in the official channel.",
-  'music.lf_window': "Window Seat",
-  'music.lf_rain': "Rainy Office",
-  'music.lf_coffee': "Coffee & Code",
-  'music.lf_midnight': "Midnight Build",
-  'music.lf_sunday': "Lazy Sunday",
-  'music.lf_tape': "Old Tapes",
-  'music.lf_city': "City Lights",
-  'music.lf_dream': "Office Dreams",
-  'music.lf_study': "Deep Focus",
-  'music.lf_neon': "Neon Nights",
-  'music.lf_snow': "First Snow",
-  'music.lf_bus': "Night Bus",
-  'music.lf_rooftop': "Rooftop Break",
-  'music.lf_home': "Way Home",
+  'music.neon_rush': "Neon Rush",
+  'music.pixel_hustle': "Pixel Hustle",
+  'music.deadline_funk': "Deadline Funk",
+  'music.startup_sunrise': "Startup Sunrise",
+  'music.boss_level': "Boss Level",
+  'music.city_run': "City Run",
   'fb.moved': 'New office — welcome in!',
   'fb.look': 'Your office got a new look',
   'fb.title': 'NEW FLOOR!',
@@ -2737,7 +2737,7 @@ LANGS.en = {
   'pv.err_norun': 'This player has no recorded battle yet — finding another opponent.',
   'pv.err': 'Could not connect to the battle. Try again.',
   'pv.demo': 'Demo: here you fight a training bot. Online battles are in Telegram.',
-  'tut.pvp': 'Studio Battle ⚔ — 30 seconds against other players online. Tap as fast as you can, your team multiplies every tap. Wins bring trophies and coins!',
+  "tut.pvp": "⚔ Studio Battle: 30 seconds against a live player — tap as fast as you can. Wins bring trophies and coins.",
   'tut.pvp_new': 'Studio Battle ⚔! Fight other players online — 30 seconds, who is faster. Wins bring trophies and coins.',
   'tut.new': '✨ New',
   'tut.try': 'Try it',
@@ -2770,7 +2770,7 @@ LANGS.en = {
   'goal.reno1': 'Renovate a floor for the first time',
   'goal.reno15': 'Collect 15 renovation ★',
   'goal.renomax': 'Renovate every floor to ★5',
-  'tut.studio': 'Name your studio! The name is unique — other players see it in battles and the top.',
+  "tut.studio": "✏️ Give your studio a name — other players see it in battles and the leaderboard.",
   'tut.studio_new': 'Name your studio! Tap here — the name is unique and shown in battles and the top.',
   'tut.reno_new': 'Floor renovation 🔨 Every open floor can be upgraded to ★5: more cash, sales and speed. The whole tower at ★5 — "Tower legend" with a crown!',
   'help.p9': '🔨 Floor renovation: in "Empire" raise every floor to ★5 — and the tower comes alive.',
@@ -2831,7 +2831,7 @@ LANGS.en = {
   "err.no_game": "Ship a game first",
   "tut.city_new": "🌆 New: the city! Step out of the office: the coffee shop gives energy, the academy trains staff, contracts wait on the board. Timers run even while you are away.",
   "help.p11": "🌆 City: coffee shop (energy), academy (cheap upgrades that take time), contract board (gems and cash for a game of the right genre), game store (+35% sales).",
-  "tut.city": "🌆 The city: step outside! The coffee shop gives energy, the academy trains staff cheaply, the board pays gems for contracts. Come here when you see “!”.",
+  "tut.city": "🌆 The city: tap here to step outside. Café = energy, Academy = training, Board = gems for orders, Mall = upgrades. A “!” means something is ready.",
   "tok.site": "Project website — share it with friends",
   "ad.verified_n": "Verified players: {n}",
   "city.mall": "Mall",
@@ -2865,6 +2865,7 @@ LANGS.en = {
   "city.say_arena_1": "It’s hot in the arena today! Ready to fight?",
   "city.say_arena_2": "A strong team multiplies every tap: level yours up.",
   "city.say_arena_3": "Wins lift you up the league. The top is waiting!",
+  "gw.none": "Giveaways with prizes run when we have a sponsor. We announce every new one in the channel and the bot — stay subscribed!",
   "gw.tag": "GIVEAWAY",
   "gw.title": "${sum} sponsor giveaway",
   "gw.title_s": "${sum} sponsor giveaway",
@@ -2882,7 +2883,7 @@ LANGS.en = {
   "gw.top": "Leaderboard",
   "gw.empty": "Nobody has scored yet: be the first!",
   "gw.sponsor": "The sponsor",
-  "gw.rules": "The server counts the points, the same way as for the airdrop: bots, farming and dev accounts are excluded.",
+  "gw.rules": "The server counts the points, the same way as for the airdrop: bots, farming and dev accounts are excluded. Giveaways run only when there is a sponsor.",
   "u.d": "d",
   "gw.pay_sent": "Your ${p} prize was sent to your wallet in SOL!",
   "gw.pay_wallet": "You won ${p}! Connect a Solana wallet and the prize arrives automatically.",
@@ -3102,17 +3103,21 @@ LANGS.ru = {
   'ev.fan.c0': 'Отправить мерч (−${cost})', 'ev.fan.c1': 'Ответить тепло',
   'ev.fan.r0': 'Фанат в восторге и рассказал всем. Репутация +2, +1 кристалл.', 'ev.fan.r1': 'Тёплый ответ дорогого стоит. Репутация +1.',
   'sub.token': 'Токен',
-  'tut.genre': 'Шаг 1. Выбери жанр. Отмеченный ▲ сейчас в тренде и продаётся ×1.5.',
-  'tut.start': 'Теперь нажми «Начать проект» — команда возьмётся за работу.',
-  'tut.tap': 'Жми РАБОТАТЬ! Каждое нажатие двигает игру и приносит деньги.',
-  'tut.energy': 'Нажатия тратят энергию. Она восстанавливается сама, а команда работает и без нажатий.',
-  'tut.release': 'Когда шкала дойдёт до 100%, игра выйдет и будет приносить деньги каждый день.',
-  'tut.hire': 'Найми первого сотрудника ($140): он работает, даже когда ты не нажимаешь.',
-  'tut.quests': 'Квесты: события с выбором, цели и задания дня — за всё дают награды.',
-  'tut.points': 'Очки аирдропа. Их дают за реальный прогресс: релизы, улучшения, квесты, отметки, друзей.',
-  'tut.token': 'Токен OFFX: очки сезона будут обменяны на него. Здесь видно, как всё устроено.',
-  'tut.friends': 'Приглашай друзей: тебе идёт доля их очков и игровые бонусы.',
-  'tut.done': 'Всё! Заходи каждый день, сражайся в Битве студий и зови друзей. Удачи со студией!',
+  "tut.welcome": "👋 Привет! Короткое знакомство на 2 минуты. Светящаяся рамка показывает, куда нажимать — просто следуй за ней. Не нужно? Нажми «Пропустить обучение». Вернуть его можно всегда: ❓ Помощь → Обучение.",
+  "tut.mood": "😊 Настроение команды и ⭐ репутация. Довольная команда работает быстрее. Нажми на эти полоски в любой момент — подскажем, как их поднять.",
+  "tut.giveaway": "🎁 Розыгрыши с призами проходят, когда у нас есть спонсор — о них объявляем в канале и в боте. Чтобы участвовать: 1) пройди верификацию, 2) подпишись на канал. Дальше просто играй — побеждают самые активные.",
+  "tut.gw_new": "🎁 Идёт розыгрыш! Он проходит, пока есть спонсор. Пройди верификацию и подпишись на канал — дальше просто играй: побеждают самые активные.",
+  "tut.genre": "Шаг 1. Выбери, какую игру будет делать твоя студия. Жанр со значком ▲ сейчас популярен и продаётся ×1.5.",
+  "tut.start": "Нажми светящуюся кнопку «Начать проект» — команда начнёт делать игру.",
+  "tut.tap": "👆 Нажми большую кнопку РАБОТАТЬ несколько раз! Каждое нажатие двигает игру вперёд и приносит деньги.",
+  "tut.energy": "⚡ Жёлтая полоска — энергия. Нажатия её тратят, а восстанавливается она сама. Команда работает, даже когда ты не нажимаешь.",
+  "tut.release": "Это твоя игра в работе. На 100% она выходит и приносит деньги каждый день — даже когда тебя нет в игре.",
+  "tut.hire": "👥 Найми первого сотрудника ($140). Сотрудники работают сами — игра движется без твоих нажатий.",
+  "tut.quests": "📋 Квесты: задания дня и истории с выбором. Заглядывай сюда каждый день — дают деньги, кристаллы и очки.",
+  "tut.points": "🪙 Это твои очки аирдропа. Они растут от реальной игры: релизы, улучшения, квесты, ежедневный вход, друзья. Очки — не деньги.",
+  "tut.token": "✅ Верификация: разовый депозит $1 (≈80 ⭐ звёздами Telegram или в SOL). Он подтверждает, что ты живой игрок, и даёт долю в аирдропе 90 000 000 OFFX. Цену токена определяет рынок.",
+  "tut.friends": "👥 Приглашай друзей по своей ссылке: тебе идёт часть их очков и бонусы.",
+  "tut.done": "🎉 Готово! Заходи каждый день: забирай ежедневную награду, выполняй квесты и немного играй. Удачи твоей студии!",
   'tut.show': 'Показать',
   'tut.next': 'Дальше',
   'tut.finish': 'Поехали!',
@@ -3428,20 +3433,12 @@ LANGS.ru = {
   'tk2.u3': "🗳 Голос за развитие игры",
   'tk2.u4': "💎 Ежедневные награды за игру",
   'tk2.uses_hint': "Планы могут уточняться по мере роста проекта — все обновления публикуем в официальном канале.",
-  'music.lf_window': "У окна",
-  'music.lf_rain': "Дождь в офисе",
-  'music.lf_coffee': "Кофе и код",
-  'music.lf_midnight': "Полночный билд",
-  'music.lf_sunday': "Ленивое воскресенье",
-  'music.lf_tape': "Старые кассеты",
-  'music.lf_city': "Огни города",
-  'music.lf_dream': "Офисные мечты",
-  'music.lf_study': "Глубокий фокус",
-  'music.lf_neon': "Неоновые ночи",
-  'music.lf_snow': "Первый снег",
-  'music.lf_bus': "Ночной автобус",
-  'music.lf_rooftop': "Перерыв на крыше",
-  'music.lf_home': "Дорога домой",
+  'music.neon_rush': "Неоновый рывок",
+  'music.pixel_hustle': "Пиксельная суета",
+  'music.deadline_funk': "Фанк дедлайна",
+  'music.startup_sunrise': "Рассвет стартапа",
+  'music.boss_level': "Уровень босса",
+  'music.city_run': "Ночной город",
   'fb.moved': 'Новый офис — заходите!',
   'fb.look': 'Офис сменил обстановку',
   'fb.title': 'НОВЫЙ ЭТАЖ!',
@@ -3560,7 +3557,7 @@ LANGS.ru = {
   'pv.err_norun': 'У этого игрока ещё нет записанного боя — ищем другого соперника.',
   'pv.err': 'Не удалось подключиться к битве. Попробуй ещё раз.',
   'pv.demo': 'Демо: здесь ты сражаешься с тренировочным ботом. Онлайн-битвы — в Telegram.',
-  'tut.pvp': 'Битва студий ⚔ — 30 секунд против других игроков онлайн. Тапай как можно быстрее, команда умножает каждый тап. Победы дают кубки и монеты!',
+  "tut.pvp": "⚔ Битва студий: 30 секунд против живого игрока — нажимай как можно быстрее. Победы дают кубки и монеты.",
   'tut.pvp_new': 'Битва студий ⚔! Сражайся с другими игроками онлайн — 30 секунд, кто быстрее. Победы дают кубки и монеты.',
   'tut.new': '✨ Новинка',
   'tut.try': 'Попробовать',
@@ -3593,7 +3590,7 @@ LANGS.ru = {
   'goal.reno1': 'Сделай первый ремонт этажа',
   'goal.reno15': 'Собери 15 ★ ремонта',
   'goal.renomax': 'Отремонтируй все этажи до ★5',
-  'tut.studio': 'Назови свою студию! Название уникальное — его видят другие игроки в битвах и топе.',
+  "tut.studio": "✏️ Придумай название студии — его видят другие игроки в битвах и в таблице лидеров.",
   'tut.studio_new': 'Назови свою студию! Нажми сюда — название уникальное, его видят в битвах и топе.',
   'tut.reno_new': 'Ремонт этажей 🔨 Каждый открытый этаж можно улучшить до ★5: больше денег, продаж и скорости. Вся башня на ★5 — «Легенда башни» с короной!',
   'help.p9': '🔨 Ремонт этажей: в «Империи» поднимай каждый этаж до ★5 — и башня оживает.',
@@ -3654,7 +3651,7 @@ LANGS.ru = {
   "err.no_game": "Сначала выпусти игру",
   "tut.city_new": "🌆 Новинка: город! Выйди из офиса — кофейня даёт энергию, академия учит сотрудников, на бирже ждут заказы. Таймеры идут, даже когда ты не в игре.",
   "help.p11": "🌆 Город: кофейня (энергия), академия (дешёвая прокачка с ожиданием), биржа заказов (кристаллы и деньги за игру нужного жанра), магазин игр (продажи +35%).",
-  "tut.city": "🌆 Город: выйди из офиса! Кофейня даёт энергию, академия дёшево прокачивает сотрудников, биржа платит кристаллами за заказы. Загляни сюда, когда увидишь «!».",
+  "tut.city": "🌆 Город: нажми сюда, чтобы выйти на улицу. Кафе = энергия, Академия = обучение, Биржа = кристаллы за заказы, ТЦ = улучшения. «!» значит, что там что-то готово.",
   "tok.site": "Сайт проекта — поделись с друзьями",
   "ad.verified_n": "Верифицировано игроков: {n}",
   "city.mall": "Торговый центр",
@@ -3688,6 +3685,7 @@ LANGS.ru = {
   "city.say_arena_1": "Сегодня на арене жарко! Готов к битве?",
   "city.say_arena_2": "Сильная команда умножает каждый тап — качай своих.",
   "city.say_arena_3": "Победы поднимают тебя в лиге. Вершина ждёт!",
+  "gw.none": "Розыгрыши с призами проходят, когда у нас есть спонсор. О каждом новом объявляем в канале и в боте — оставайся подписан!",
   "gw.tag": "РОЗЫГРЫШ",
   "gw.title": "Розыгрыш ${sum} от спонсора",
   "gw.title_s": "Розыгрыш ${sum} от спонсора",
@@ -3705,7 +3703,7 @@ LANGS.ru = {
   "gw.top": "Таблица лидеров",
   "gw.empty": "Пока никто не набрал очков — стань первым!",
   "gw.sponsor": "Спонсор розыгрыша",
-  "gw.rules": "Очки считает сервер — так же, как для аирдропа: боты, накрутка и dev-аккаунты не участвуют.",
+  "gw.rules": "Очки считает сервер — так же, как для аирдропа: боты, накрутка и dev-аккаунты не участвуют. Розыгрыши проходят только при наличии спонсора.",
   "u.d": "д",
   "gw.pay_sent": "Твой приз ${p} отправлен на кошелёк в SOL!",
   "gw.pay_wallet": "Ты выиграл ${p}! Подключи Solana-кошелёк — приз придёт автоматически.",
@@ -3925,17 +3923,21 @@ LANGS.uk = {
   'ev.fan.c0': 'Надіслати мерч (−${cost})', 'ev.fan.c1': 'Відповісти тепло',
   'ev.fan.r0': 'Фанат у захваті й розповів усім. Репутація +2, +1 кристал.', 'ev.fan.r1': 'Тепла відповідь дорогого варта. Репутація +1.',
   'sub.token': 'Токен',
-  'tut.genre': 'Крок 1. Обери жанр. Позначений ▲ зараз у тренді й продається ×1,5.',
-  'tut.start': 'Тепер натисни «Почати проєкт» — команда візьметься до роботи.',
-  'tut.tap': 'Тисни ПРАЦЮВАТИ! Кожне натискання рухає гру й приносить гроші.',
-  'tut.energy': 'Натискання витрачають енергію. Вона відновлюється сама, а команда працює й без натискань.',
-  'tut.release': 'Коли шкала дійде до 100%, гра вийде й приноситиме гроші щодня.',
-  'tut.hire': 'Найми першого працівника ($140): він працює, навіть коли ти не натискаєш.',
-  'tut.quests': 'Квести: події з вибором, цілі й завдання дня — за все дають нагороди.',
-  'tut.points': 'Бали аірдропу. Їх дають за справжній прогрес: релізи, покращення, квести, відмітки, друзів.',
-  'tut.token': 'Токен OFFX: бали сезону буде обміняно на нього. Тут видно, як усе влаштовано.',
-  'tut.friends': 'Запрошуй друзів: тобі йде частка їхніх балів та ігрові бонуси.',
-  'tut.done': 'Усе! Заходь щодня, бийся в Битві студій і клич друзів. Успіху зі студією!',
+  "tut.welcome": "👋 Привіт! Коротке знайомство на 2 хвилини. Рамка, що світиться, показує, куди натискати — просто йди за нею. Не потрібно? Натисни «Пропустити навчання». Повернути його можна завжди: ❓ Допомога → Навчання.",
+  "tut.mood": "😊 Настрій команди та ⭐ репутація. Задоволена команда працює швидше. Натисни на ці смужки будь-коли — підкажемо, як їх підняти.",
+  "tut.giveaway": "🎁 Розіграші з призами проходять, коли в нас є спонсор — про них оголошуємо в каналі та в боті. Щоб брати участь: 1) пройди верифікацію, 2) підпишись на канал. Далі просто грай — перемагають найактивніші.",
+  "tut.gw_new": "🎁 Триває розіграш! Він проходить, поки є спонсор. Пройди верифікацію й підпишись на канал — далі просто грай: перемагають найактивніші.",
+  "tut.genre": "Крок 1. Обери, яку гру робитиме твоя студія. Жанр зі значком ▲ зараз популярний і продається ×1,5.",
+  "tut.start": "Натисни кнопку «Почати проєкт», що світиться, — команда почне робити гру.",
+  "tut.tap": "👆 Натисни велику кнопку ПРАЦЮВАТИ кілька разів! Кожне натискання рухає гру вперед і приносить гроші.",
+  "tut.energy": "⚡ Жовта смужка — енергія. Натискання її витрачають, а відновлюється вона сама. Команда працює, навіть коли ти не натискаєш.",
+  "tut.release": "Це твоя гра в роботі. На 100% вона виходить і приносить гроші щодня — навіть коли тебе немає в грі.",
+  "tut.hire": "👥 Найми першого працівника ($140). Працівники працюють самі — гра рухається без твоїх натискань.",
+  "tut.quests": "📋 Квести: завдання дня та історії з вибором. Заходь сюди щодня — дають гроші, кристали й бали.",
+  "tut.points": "🪙 Це твої бали аірдропу. Вони ростуть від справжньої гри: релізи, покращення, квести, щоденний вхід, друзі. Бали — не гроші.",
+  "tut.token": "✅ Верифікація: разовий депозит $1 (≈80 ⭐ зірками Telegram або в SOL). Він підтверджує, що ти живий гравець, і дає частку в аірдропі 90 000 000 OFFX. Ціну токена визначає ринок.",
+  "tut.friends": "👥 Запрошуй друзів за своїм посиланням: тобі йде частина їхніх балів і бонуси.",
+  "tut.done": "🎉 Готово! Заходь щодня: забирай щоденну нагороду, виконуй квести й трохи грай. Успіху твоїй студії!",
   'tut.show': 'Показати',
   'tut.next': 'Далі',
   'tut.finish': 'Поїхали!',
@@ -4251,20 +4253,12 @@ LANGS.uk = {
   'tk2.u3': "🗳 Голос за розвиток гри",
   'tk2.u4': "💎 Щоденні нагороди за гру",
   'tk2.uses_hint': "Плани можуть уточнюватися з ростом проєкту — усі оновлення публікуємо в офіційному каналі.",
-  'music.lf_window': "Біля вікна",
-  'music.lf_rain': "Дощ в офісі",
-  'music.lf_coffee': "Кава і код",
-  'music.lf_midnight': "Опівнічний білд",
-  'music.lf_sunday': "Лінива неділя",
-  'music.lf_tape': "Старі касети",
-  'music.lf_city': "Вогні міста",
-  'music.lf_dream': "Офісні мрії",
-  'music.lf_study': "Глибокий фокус",
-  'music.lf_neon': "Неонові ночі",
-  'music.lf_snow': "Перший сніг",
-  'music.lf_bus': "Нічний автобус",
-  'music.lf_rooftop': "Перерва на даху",
-  'music.lf_home': "Дорога додому",
+  'music.neon_rush': "Неоновий ривок",
+  'music.pixel_hustle': "Піксельна метушня",
+  'music.deadline_funk': "Фанк дедлайну",
+  'music.startup_sunrise': "Світанок стартапу",
+  'music.boss_level': "Рівень боса",
+  'music.city_run': "Нічне місто",
   'fb.moved': 'Новий офіс — заходьте!',
   'fb.look': 'Офіс змінив обстановку',
   'fb.title': 'НОВИЙ ПОВЕРХ!',
@@ -4383,7 +4377,7 @@ LANGS.uk = {
   'pv.err_norun': 'Цей гравець ще не має записаного бою — шукаємо іншого суперника.',
   'pv.err': 'Не вдалося підключитися до битви. Спробуй ще раз.',
   'pv.demo': 'Демо: тут ти б’єшся з тренувальним ботом. Онлайн-битви — у Telegram.',
-  'tut.pvp': 'Битва студій ⚔ — 30 секунд проти інших гравців онлайн. Тапай якнайшвидше, команда множить кожен тап. Перемоги дають кубки й монети!',
+  "tut.pvp": "⚔ Битва студій: 30 секунд проти живого гравця — натискай якнайшвидше. Перемоги дають кубки й монети.",
   'tut.pvp_new': 'Битва студій ⚔! Змагайся з іншими гравцями онлайн — 30 секунд, хто швидший. Перемоги дають кубки й монети.',
   'tut.new': '✨ Новинка',
   'tut.try': 'Спробувати',
@@ -4416,7 +4410,7 @@ LANGS.uk = {
   'goal.reno1': 'Зроби перший ремонт поверху',
   'goal.reno15': 'Збери 15 ★ ремонту',
   'goal.renomax': 'Відремонтуй усі поверхи до ★5',
-  'tut.studio': 'Назви свою студію! Назва унікальна — її бачать інші гравці в битвах і топі.',
+  "tut.studio": "✏️ Придумай назву студії — її бачать інші гравці в битвах і в таблиці лідерів.",
   'tut.studio_new': 'Назви свою студію! Натисни тут — назва унікальна, її бачать у битвах і топі.',
   'tut.reno_new': 'Ремонт поверхів 🔨 Кожен відкритий поверх можна покращити до ★5: більше грошей, продажів і швидкості. Уся вежа на ★5 — «Легенда вежі» з короною!',
   'help.p9': '🔨 Ремонт поверхів: у «Імперії» підвищуй кожен поверх до ★5 — і вежа оживає.',
@@ -4477,7 +4471,7 @@ LANGS.uk = {
   "err.no_game": "Спершу випусти гру",
   "tut.city_new": "🌆 Новинка: місто! Вийди з офісу — кав’ярня дає енергію, академія вчить співробітників, на біржі чекають замовлення. Таймери йдуть, навіть коли ти не в грі.",
   "help.p11": "🌆 Місто: кав’ярня (енергія), академія (дешева прокачка з очікуванням), біржа замовлень (кристали та гроші за гру потрібного жанру), магазин ігор (продажі +35%).",
-  "tut.city": "🌆 Місто: вийди з офісу! Кав’ярня дає енергію, академія дешево прокачує співробітників, біржа платить кристалами за замовлення. Зазирни сюди, коли побачиш «!».",
+  "tut.city": "🌆 Місто: натисни сюди, щоб вийти на вулицю. Кафе = енергія, Академія = навчання, Біржа = кристали за замовлення, ТЦ = покращення. «!» означає, що там щось готове.",
   "tok.site": "Сайт проєкту — поділися з друзями",
   "ad.verified_n": "Верифіковано гравців: {n}",
   "city.mall": "Торговий центр",
@@ -4511,6 +4505,7 @@ LANGS.uk = {
   "city.say_arena_1": "Сьогодні на арені спекотно! Готовий до битви?",
   "city.say_arena_2": "Сильна команда множить кожен тап — прокачуй своїх.",
   "city.say_arena_3": "Перемоги піднімають тебе в лізі. Вершина чекає!",
+  "gw.none": "Розіграші з призами проходять, коли в нас є спонсор. Про кожен новий оголошуємо в каналі та в боті — лишайся підписаним!",
   "gw.tag": "РОЗІГРАШ",
   "gw.title": "Розіграш ${sum} від спонсора",
   "gw.title_s": "Розіграш ${sum} від спонсора",
@@ -4528,7 +4523,7 @@ LANGS.uk = {
   "gw.top": "Таблиця лідерів",
   "gw.empty": "Поки ніхто не набрав балів — стань першим!",
   "gw.sponsor": "Спонсор розіграшу",
-  "gw.rules": "Бали рахує сервер — так само, як для аірдропу: боти, накрутка й dev-акаунти не беруть участі.",
+  "gw.rules": "Бали рахує сервер — так само, як для аірдропу: боти, накрутка й dev-акаунти не беруть участі. Розіграші проходять лише за наявності спонсора.",
   "u.d": "д",
   "gw.pay_sent": "Твій приз ${p} надіслано на гаманець у SOL!",
   "gw.pay_wallet": "Ти виграв ${p}! Підключи Solana-гаманець — приз прийде автоматично.",
@@ -8880,205 +8875,249 @@ function morph(el, html) {
 
 /* ---- src/music.js ---- */
 /* ============================================================
-   OFFICE DREAMS — background music: 14 original lo-fi beats.
-   Synthesized live with WebAudio (no audio files): soft electric-piano
-   chords, a sine melody with gentle vibrato, round bass, lazy boom-bap
-   drums, vinyl crackle and a little tape wobble. Starts after the first
+   OFFICE DREAMS — background music: 6 original upbeat tracks.
+   Synthesized live with WebAudio (no audio files, no licences):
+   synthwave, chiptune, nu-disco, house, a boss-fight driver and an
+   outrun night ride. Each track has a form — intro → groove → lead →
+   break with a filter build → drop — so it never sounds like one loop.
+   Tracks follow each other in a shuffled order. Starts after the first
    user gesture (browser autoplay rules).
    ============================================================ */
 const NOTE = (m) => 440 * Math.pow(2, (m - 69) / 12);
-// chord = [root midi, type]; voicings are lo-fi friendly (7ths / 9ths / 11ths)
-const CHORD_TONES = {
-  m7: [0, 3, 7, 10], M7: [0, 4, 7, 11], m9: [0, 3, 10, 14], M9: [0, 4, 11, 14],
-  d7: [0, 4, 7, 10], d9: [0, 4, 10, 14], m11: [0, 3, 10, 17], sus: [0, 5, 7, 10], M6: [0, 4, 7, 9],
-};
-const _ = null;
-// 16 steps per bar. comp: 1 = chord stab (2 = longer); mel: chord-tone index (+4 = octave up), null = rest
+const CHORD_TONES = { min: [0, 3, 7], maj: [0, 4, 7], min7: [0, 3, 7, 10], maj7: [0, 4, 7, 11], sus2: [0, 2, 7] };
+const SCALES = { minor: [0, 2, 3, 5, 7, 8, 10], major: [0, 2, 4, 5, 7, 9, 11], harm: [0, 2, 3, 5, 7, 8, 11] };
+// patterns are 16-step strings: a digit/letter = note (base 36), '-' = hold, '.' = rest; drums: x = hit, X = accent
+function mPat(s) {
+  s = s.replace(/\s/g, '');
+  const out = [];
+  for (let i = 0; i < 16; i++) {
+    const c = s[i];
+    if (!c || c === '.' || c === '-') { out.push(null); continue; }
+    let len = 1;
+    while (s[i + len] === '-') len++;
+    out.push({ v: c === 'o' ? 'o' : parseInt(c, 36), len });
+  }
+  return out;
+}
+const mDrum = (s) => s.replace(/\s/g, '').split('').map((c) => (c === 'X' ? 1 : c === 'x' ? 0.75 : 0));
+function mTrack(t) {
+  t.lead = { A: t.leadA.map(mPat), B: t.leadB.map(mPat) };
+  t.bassP = mPat(t.bass); t.arpP = t.arp ? mPat(t.arp) : null; t.compP = t.comp ? mDrum(t.comp) : null;
+  t.dr = { k: mDrum(t.kick), s: mDrum(t.snare), h: mDrum(t.hat), o: mDrum(t.ohat || '................') };
+  return t;
+}
 const TRACKS = [
-  { id: 'lf_window', bpm: 74, swing: 0.18, chords: [[48, 'M9'], [45, 'm9'], [50, 'm9'], [43, 'd9']], // Cmaj9 Am9 Dm9 G9
-    comp: [2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-    mel: [[_, _, 6, _, 5, _, _, 4, _, _, _, _, 5, _, _, _], [_, _, _, _, 6, _, 7, _, 6, _, 5, _, _, _, _, _]],
-    bass: [0, _, _, _, _, _, _, 0, _, _, 2, _, _, _, _, _], kick: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0] },
-  { id: 'lf_rain', bpm: 68, swing: 0.2, rain: true, chords: [[53, 'M7'], [52, 'm7'], [50, 'm9'], [48, 'M9']], // Fmaj7 Em7 Dm9 Cmaj9
-    comp: [2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0],
-    mel: [[_, _, _, _, 7, _, _, _, 6, _, _, _, 4, _, _, _], [_, _, _, _, _, _, 5, _, _, _, 6, _, _, _, _, _]],
-    bass: [0, _, _, _, _, _, _, _, 0, _, _, _, _, _, 1, _], kick: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0] },
-  { id: 'lf_coffee', bpm: 84, swing: 0.22, chords: [[50, 'm9'], [43, 'd9'], [48, 'M9'], [45, 'm7']], // Dm9 G9 Cmaj9 Am7
-    comp: [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0],
-    mel: [[4, _, 5, _, _, 6, _, _, 7, _, 6, _, 5, _, _, _], [_, 6, _, 5, _, _, 4, _, 5, _, _, _, _, _, _, _]],
-    bass: [0, _, _, 0, _, _, 2, _, 0, _, _, _, 3, _, 2, _], kick: [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1], hat: [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0] },
-  { id: 'lf_midnight', bpm: 70, swing: 0.16, chords: [[45, 'm9'], [41, 'M7'], [48, 'M9'], [52, 'm7']], // Am9 Fmaj7 Cmaj9 Em7
-    comp: [2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-    mel: [[_, _, _, _, _, _, 7, _, _, _, 6, _, _, _, 5, _], [4, _, _, _, _, _, _, _, 5, _, _, _, _, _, _, _]],
-    bass: [0, _, _, _, _, _, _, _, _, _, 0, _, _, _, _, _], kick: [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0] },
-  { id: 'lf_sunday', bpm: 82, swing: 0.14, chords: [[55, 'M7'], [52, 'm7'], [48, 'M7'], [50, 'd7']], // Gmaj7 Em7 Cmaj7 D7
-    comp: [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-    mel: [[4, _, _, 5, _, _, 6, _, _, _, 5, _, 4, _, _, _], [6, _, _, _, 7, _, _, _, 6, _, 5, _, 4, _, 2, _]],
-    bass: [0, _, _, _, 2, _, _, _, 0, _, _, _, 2, _, 3, _], kick: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0] },
-  { id: 'lf_tape', bpm: 76, swing: 0.2, chords: [[51, 'M9'], [46, 'M7'], [48, 'm9'], [53, 'd9']], // Ebmaj9 Bbmaj7 Cm9 F9
-    comp: [2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-    mel: [[_, _, 5, _, 6, _, _, _, 5, _, 4, _, _, _, _, _], [_, _, _, _, _, _, 7, _, 6, _, _, 5, _, _, 4, _]],
-    bass: [0, _, _, _, _, _, 0, _, _, _, 2, _, _, _, _, _], kick: [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1] },
-  { id: 'lf_city', bpm: 88, swing: 0.12, chords: [[50, 'm7'], [43, 'd7'], [48, 'M7'], [45, 'm7']], // Dm7 G7 Cmaj7 Am7
-    comp: [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
-    mel: [[_, _, 4, _, 5, _, 6, 5, _, _, 4, _, _, _, _, _], [7, _, 6, _, _, 5, _, _, 4, _, _, _, 5, _, 6, _]],
-    bass: [0, _, 0, _, _, _, 2, _, 0, _, _, 0, _, _, 3, _], kick: [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1] },
-  { id: 'lf_dream', bpm: 66, swing: 0.1, chords: [[52, 'M9'], [49, 'm9'], [45, 'M9'], [47, 'sus']], // Emaj9 C#m9 Amaj9 Bsus
-    comp: [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-    mel: [[_, _, _, _, 6, _, _, _, _, _, _, _, 7, _, _, _], [_, _, _, _, _, _, _, _, 5, _, _, _, 4, _, _, _]],
-    bass: [0, _, _, _, _, _, _, _, _, _, _, _, 0, _, _, _], kick: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1] },
-  { id: 'lf_study', bpm: 78, swing: 0.18, chords: [[45, 'm7'], [50, 'm9'], [52, 'm7'], [45, 'm9']], // Am7 Dm9 Em7 Am9
-    comp: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-    mel: [[4, _, _, _, _, _, 5, _, 6, _, _, _, 5, _, 4, _], [_, _, 2, _, 4, _, _, _, 5, _, 4, _, 2, _, _, _]],
-    bass: [0, _, _, _, _, _, _, 0, _, _, 0, _, _, _, _, _], kick: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0] },
-  { id: 'lf_neon', bpm: 90, swing: 0.08, chords: [[49, 'm9'], [45, 'M7'], [47, 'd9'], [52, 'M7']], // C#m9 Amaj7 B9 Emaj7
-    comp: [1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0],
-    mel: [[6, _, 5, _, 4, _, _, 5, _, _, 6, _, _, _, 7, _], [6, _, _, _, 5, _, 4, _, 2, _, _, _, 4, _, _, _]],
-    bass: [0, _, _, 0, _, _, 0, _, _, 0, _, _, 2, _, _, _], kick: [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0] },
-  { id: 'lf_snow', bpm: 64, swing: 0.15, chords: [[47, 'm11'], [43, 'M9'], [48, 'M9'], [42, 'm7']], // Bm11 Gmaj9 Cmaj9 F#m7
-    comp: [2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0],
-    mel: [[_, _, _, _, _, _, _, _, 7, _, _, _, 6, _, _, _], [5, _, _, _, _, _, 4, _, _, _, _, _, _, _, _, _]],
-    bass: [0, _, _, _, _, _, _, _, 0, _, _, _, _, _, _, _], kick: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0] },
-  { id: 'lf_bus', bpm: 80, swing: 0.2, chords: [[53, 'M6'], [52, 'm7'], [50, 'm7'], [55, 'd9']], // F6 Em7 Dm7 G9
-    comp: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-    mel: [[4, _, 5, _, 6, _, _, _, 5, _, _, _, _, _, _, _], [_, _, _, _, 4, _, 5, _, 6, _, 7, _, 6, _, _, _]],
-    bass: [0, _, _, _, _, _, _, 2, 0, _, _, _, _, _, 1, _], kick: [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1] },
-  { id: 'lf_rooftop', bpm: 86, swing: 0.16, chords: [[46, 'M9'], [45, 'm7'], [43, 'm9'], [48, 'd9']], // Bbmaj9 Am7 Gm9 C9
-    comp: [1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
-    mel: [[_, _, 6, _, 7, _, 6, _, 4, _, _, _, 5, _, _, _], [6, _, _, _, _, _, 5, _, _, _, 4, _, 5, _, 6, _]],
-    bass: [0, _, _, _, _, _, 0, _, _, 2, _, _, _, _, 3, _], kick: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0], hat: [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0] },
-  { id: 'lf_home', bpm: 72, swing: 0.18, chords: [[48, 'M7'], [52, 'm7'], [45, 'm9'], [41, 'M9']], // Cmaj7 Em7 Am9 Fmaj9
-    comp: [2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-    mel: [[_, _, 4, _, _, _, 5, _, _, _, 6, _, _, _, 7, _], [6, _, _, _, 5, _, _, _, 4, _, _, _, _, _, _, _]],
-    bass: [0, _, _, _, _, _, _, _, 0, _, 2, _, _, _, _, _], kick: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], hat: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0] },
+  mTrack({ id: 'neon_rush', bpm: 112, key: 57, scale: 'minor', chords: [[45, 'min'], [41, 'maj'], [48, 'maj'], [43, 'maj']], // Am F C G — synthwave
+    leadI: 'saw2', bassI: 'saw', arpI: 'pluck', pad: true,
+    leadA: ['4--34---7---6-5-', '5-------4-3-2---', '2---4---6---7-6-', '6-------5-4-3---'],
+    leadB: ['7-7-9-7-6---4---', '7-7-5-7-9-------', '9-9-b-9-7---6---', '8-----7-6-5-4---'],
+    bass: '0.o.0.o.0.o.0.o.', arp: '0124012401240124',
+    kick: 'x...x...x...x...', snare: '....X.......X...', hat: '..x...x...x...x.', ohat: '..............x.' }),
+  mTrack({ id: 'pixel_hustle', bpm: 128, key: 72, scale: 'major', chords: [[48, 'maj'], [43, 'maj'], [45, 'min'], [41, 'maj']], // C G Am F — chiptune
+    leadI: 'square', bassI: 'tri', arpI: 'chip', pad: false,
+    leadA: ['0-2-4-0-4-5-4---', '6-4-1-4-6---4---', '5-4-2-0-2-4-5---', '5-7-5-3-0---2---'],
+    leadB: ['7---4---7-8-9---', '8---6---4-6-8---', '7---9---7-5-4---', '5-3-5-7-5-------'],
+    bass: '0.o.0.o.0.o.0.oo', arp: '0123012301230123',
+    kick: 'x.....x.x.......', snare: '....X.......X..x', hat: 'x.x.x.x.x.x.x.x.' }),
+  mTrack({ id: 'deadline_funk', bpm: 116, key: 62, scale: 'minor', chords: [[38, 'min7'], [46, 'maj7'], [48, 'maj'], [45, 'min7']], // Dm7 Bbmaj7 C Am7 — nu-disco
+    leadI: 'pulse', bassI: 'funk', arpI: null, pad: true, comp: '..x...x...x..x..',
+    leadA: ['....4-2-0---2-3-', '4-------3-2-0---', '....4-2-4-6-7---', '6-------4---7---'],
+    leadB: ['7-7-9-7-....5-4-', '5---4---3---2---', '6-6-7-9-....7---', '8-----7-6-------'],
+    bass: '0..0.o..0.0..o.0',
+    kick: 'x...x...x...x...', snare: '....X.......X...', hat: 'xxxxxxxxxxxxxxxx', ohat: '..x...x...x...x.' }),
+  mTrack({ id: 'startup_sunrise', bpm: 122, key: 65, scale: 'major', chords: [[38, 'min'], [46, 'maj'], [41, 'maj'], [48, 'maj']], // Dm Bb F C — house
+    leadI: 'bell', bassI: 'sub', arpI: 'pluck', pad: true, comp: '..x...x...x...x.',
+    leadA: ['5---4---2---0---', '3-2-3-4-5-------', '4---2---0-2-4---', '4-5-6-4-1-------'],
+    leadB: ['9-9-7-5-7---5---', 'a-9-7-5-3-------', '7-9-b-9-7---4---', '8-6-4-6-8-------'],
+    bass: '..0...0...0...0.', arp: '0.1.2.1.0.1.2.4.',
+    kick: 'x...x...x...x...', snare: '....x.......x...', hat: '..x...x...x...x.', ohat: '..x...x...x...x.' }),
+  mTrack({ id: 'boss_level', bpm: 132, key: 64, scale: 'harm', chords: [[40, 'min'], [48, 'maj'], [50, 'maj'], [47, 'maj']], // Em C D B — boss fight
+    leadI: 'saw2', bassI: 'saw', arpI: 'pluck', pad: true,
+    leadA: ['0-2-4-7-4-2-4---', '5-4-2-4-5---7---', '8-7-3-8-7-------', '6-4-6-8-6-------'],
+    leadB: ['7---7-8-9---b---', '9---7---5-7-9---', 'a---8---a-b-a---', '8---6---4---6-8-'],
+    bass: '0000o0000000o000', arp: '0120012001200120',
+    kick: 'x...x...x...x.x.', snare: '....X.......X...', hat: 'x.xxx.xxx.xxx.xx' }),
+  mTrack({ id: 'city_run', bpm: 104, key: 66, scale: 'minor', chords: [[42, 'min'], [38, 'maj'], [45, 'maj'], [40, 'maj']], // F#m D A E — outrun night ride
+    leadI: 'saw2', bassI: 'saw', arpI: 'pluck', pad: true,
+    leadA: ['4-------2-4-7---', '5-------7---9---', '9-------7-4-2---', '8-------6---4-1-'],
+    leadB: ['b---9---7---9-b-', 'c-b-9-7-9-------', 'b---9---b-c-b---', 'a---8---6---8---'],
+    bass: '0o0o0o0o0o0o0o0o', arp: '0124210401242104',
+    kick: 'x...x...x...x...', snare: '....X.......X...', hat: '..x...x...x...x.' }),
 ];
-const MUSIC = { on: false, ctx: null, out: null, noise: null, vinylBuf: null, vinyl: null, rain: null, track: 0, step: 0, bar: 0, loops: 0, next: 0, timer: 0 };
+// the form of every track, one entry per pass through its chords (4 bars):
+// k kick · s snare · h hats · b bass · p pad/comp · a arp · l lead (A/B) · up = filter build
+const FORM = [
+  { k: 1, h: 1, b: 1, p: 1 },
+  { k: 1, s: 1, h: 1, b: 1, p: 1, a: 1, fill: 1 },
+  { k: 1, s: 1, h: 1, b: 1, p: 1, a: 1, l: 'A' },
+  { k: 1, s: 1, h: 1, b: 1, p: 1, a: 1, l: 'B', fill: 1 },
+  { p: 1, a: 1, l: 'A', up: 1, fill: 1 }, // break: no drums, the filter opens up
+  { k: 1, s: 1, h: 1, b: 1, p: 1, a: 1, l: 'B' },
+  { k: 1, s: 1, h: 1, b: 1, p: 1, a: 1, l: 'A' },
+  { k: 1, s: 1, h: 1, b: 1, p: 1, l: 'B', fill: 1 },
+];
+const MUSIC = { on: false, ctx: null, out: null, lp: null, pad: null, lead: null, dly: null, dlyIn: null, noise: null, track: 0, step: 0, bar: 0, loops: 0, next: 0, timer: 0, order: [] };
 
-function musicInit() {
-  const a = UI.audio;
-  if (!a || MUSIC.ctx) return !!MUSIC.ctx;
+function musicInit(a) {
+  a = a || UI.audio;
+  if (!a) return false;
+  if (MUSIC.ctx === a) return true;
   MUSIC.ctx = a;
   MUSIC.out = a.createGain();
   MUSIC.out.gain.value = 0.0;
-  // warm, dusty top end: lo-fi lives under ~2 kHz
-  const lp = a.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = 1900;
-  lp.Q.value = 0.4;
-  MUSIC.out.connect(lp);
-  lp.connect(a.destination);
-  const len = a.sampleRate * 1;
+  MUSIC.lp = a.createBiquadFilter(); // master tone + the build-up sweep in breaks
+  MUSIC.lp.type = 'lowpass'; MUSIC.lp.frequency.value = 9000; MUSIC.lp.Q.value = 0.7;
+  const comp = a.createDynamicsCompressor();
+  comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = 0.005; comp.release.value = 0.15;
+  MUSIC.out.connect(MUSIC.lp); MUSIC.lp.connect(comp); comp.connect(a.destination);
+  // pads and stabs duck under the kick (the classic "pumping" feel)
+  MUSIC.pad = a.createGain();
+  const plp = a.createBiquadFilter(); plp.type = 'lowpass'; plp.frequency.value = 1600;
+  MUSIC.pad.connect(plp); plp.connect(MUSIC.out);
+  // leads share one filter too: far fewer nodes per note, so weak phones keep up
+  MUSIC.lead = a.createBiquadFilter(); MUSIC.lead.type = 'lowpass'; MUSIC.lead.frequency.value = 3000;
+  MUSIC.lead.connect(MUSIC.out);
+  // a dotted-eighth echo for leads and arps
+  MUSIC.dlyIn = a.createGain(); MUSIC.dlyIn.gain.value = 0.22;
+  MUSIC.dly = a.createDelay(1.5);
+  const fb = a.createGain(), dlp = a.createBiquadFilter();
+  fb.gain.value = 0.32; dlp.type = 'lowpass'; dlp.frequency.value = 2800;
+  MUSIC.dlyIn.connect(MUSIC.dly); MUSIC.dly.connect(dlp); dlp.connect(fb); fb.connect(MUSIC.dly); dlp.connect(MUSIC.out);
+  const len = a.sampleRate;
   MUSIC.noise = a.createBuffer(1, len, a.sampleRate);
   const d = MUSIC.noise.getChannelData(0);
   let seed = 7;
-  const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-  for (let i = 0; i < len; i++) d[i] = rnd() * 2 - 1;
-  // vinyl: soft hiss + sparse crackles, looped under everything
-  const vl = a.sampleRate * 3;
-  const vb = a.createBuffer(1, vl, a.sampleRate);
-  const v = vb.getChannelData(0);
-  for (let i = 0; i < vl; i++) {
-    let x = (rnd() * 2 - 1) * 0.05;
-    if (rnd() < 0.0006) x += (rnd() < 0.5 ? -1 : 1) * (0.4 + rnd() * 0.6);
-    v[i] = x;
-  }
-  MUSIC.vinylBuf = vb;
+  for (let i = 0; i < len; i++) { seed = (seed * 16807) % 2147483647; d[i] = (seed / 2147483647) * 2 - 1; }
   return true;
 }
-function startBed(tr) {
+// one oscillator voice: attack → decay to sustain → release, optional filter envelope, vibrato, echo send
+function mVoice(type, freq, t, dur, vol, o) {
   const a = MUSIC.ctx;
-  try { if (MUSIC.vinyl) MUSIC.vinyl.stop(); } catch (e) {}
-  try { if (MUSIC.rain) MUSIC.rain.stop(); } catch (e) {}
-  MUSIC.vinyl = MUSIC.rain = null;
-  const s = a.createBufferSource(), hp = a.createBiquadFilter(), g = a.createGain();
-  s.buffer = MUSIC.vinylBuf; s.loop = true;
-  hp.type = 'highpass'; hp.frequency.value = 900;
-  g.gain.value = 0.09;
-  s.connect(hp); hp.connect(g); g.connect(MUSIC.out);
-  s.start();
-  MUSIC.vinyl = s;
-  if (tr.rain) { // soft rain against the window
-    const r = a.createBufferSource(), bp = a.createBiquadFilter(), rg = a.createGain();
-    r.buffer = MUSIC.noise; r.loop = true;
-    bp.type = 'bandpass'; bp.frequency.value = 2400; bp.Q.value = 0.3;
-    rg.gain.value = 0.05;
-    r.connect(bp); bp.connect(rg); rg.connect(MUSIC.out);
-    r.start();
-    MUSIC.rain = r;
+  o = o || {};
+  const osc = a.createOscillator(), g = a.createGain();
+  osc.type = type; osc.frequency.value = freq;
+  if (o.det) osc.detune.value = o.det;
+  let node = osc;
+  if (o.lp) {
+    const f = a.createBiquadFilter();
+    f.type = 'lowpass'; f.Q.value = o.q || 1;
+    if (o.env) { f.frequency.setValueAtTime(o.lp, t); f.frequency.exponentialRampToValueAtTime(o.env, t + (o.envT || 0.12)); }
+    else f.frequency.value = o.lp;
+    osc.connect(f); node = f;
   }
-}
-// tape wobble: every note is a few cents off, drifting slowly
-const wobble = (t) => Math.sin(t * 0.7) * 7 + Math.sin(t * 2.3) * 3;
-function mNote(freq, t, dur, type, vol, opt) {
-  const a = MUSIC.ctx;
-  opt = opt || {};
-  const o = a.createOscillator(), g = a.createGain();
-  o.type = type;
-  o.frequency.value = freq;
-  o.detune.value = wobble(t) + (opt.detune || 0);
-  const att = opt.att || 0.012;
+  const at = o.a || 0.006, rel = o.r || 0.06, sus = o.s == null ? 0.7 : o.s;
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(vol, t + att);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  o.connect(g);
-  g.connect(MUSIC.out);
-  if (opt.vib) { // gentle vibrato for the melody
+  g.gain.linearRampToValueAtTime(vol, t + at);
+  g.gain.setTargetAtTime(vol * sus, t + at, o.d || 0.08);
+  g.gain.setTargetAtTime(0.0001, t + Math.max(at, dur), rel);
+  node.connect(g);
+  g.connect(o.bus || MUSIC.out);
+  if (o.send) g.connect(MUSIC.dlyIn);
+  if (o.vib) {
     const l = a.createOscillator(), lg = a.createGain();
-    l.frequency.value = 5.2; lg.gain.value = freq * 0.006;
-    l.connect(lg); lg.connect(o.frequency);
-    l.start(t); l.stop(t + dur + 0.05);
+    l.frequency.value = 5.5; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(freq * 0.007, t + 0.25);
+    l.connect(lg); lg.connect(osc.frequency);
+    l.start(t); l.stop(t + dur + rel * 6);
   }
-  o.start(t);
-  o.stop(t + dur + 0.05);
+  osc.start(t);
+  osc.stop(t + dur + rel * 4);
 }
-// electric-piano-ish: sine body + quiet octave bell, slow decay
-function mKey(m, t, dur, vol) {
-  mNote(NOTE(m), t, dur, 'sine', vol, { att: 0.008 });
-  mNote(NOTE(m + 12), t, dur * 0.45, 'triangle', vol * 0.18, { att: 0.004, detune: 4 });
-}
+const LEAD = {
+  saw2: (f, t, d) => { mVoice('sawtooth', f, t, d, 0.05, { det: -9, vib: d > 0.3, bus: MUSIC.lead, send: 1 }); mVoice('sawtooth', f, t, d, 0.05, { det: 9, bus: MUSIC.lead }); },
+  square: (f, t, d) => mVoice('square', f, t, d, 0.05, { s: 0.6, vib: d > 0.3, bus: MUSIC.lead, send: 1 }),
+  pulse: (f, t, d) => mVoice('square', f, t, d, 0.06, { s: 0.55, d: 0.15, vib: d > 0.3, bus: MUSIC.lead, send: 1 }),
+  bell: (f, t, d) => { mVoice('sine', f, t, d, 0.1, { s: 0.35, d: 0.25, r: 0.25, bus: MUSIC.lead, send: 1 }); mVoice('sine', f * 2, t, d * 0.4, 0.03, { s: 0.2, d: 0.08 }); },
+};
+const BASS = {
+  saw: (f, t, d) => mVoice('sawtooth', f, t, d, 0.11, { lp: 1500, env: 320, envT: 0.11, q: 3, s: 0.8 }),
+  tri: (f, t, d) => mVoice('triangle', f, t, d, 0.2, { s: 0.9 }),
+  funk: (f, t, d) => mVoice('sawtooth', f, t, d, 0.12, { lp: 2600, env: 380, envT: 0.07, q: 7, s: 0.6 }),
+  sub: (f, t, d) => { mVoice('sine', f, t, d, 0.22, { s: 0.9 }); mVoice('sawtooth', f, t, d, 0.04, { lp: 700 }); },
+};
+const ARP = {
+  pluck: (f, t, d) => mVoice('square', f, t, d, 0.032, { lp: 3200, env: 600, envT: 0.1, s: 0.3, send: 1 }),
+  chip: (f, t, d) => mVoice('square', f, t, d, 0.03, { s: 0.5, r: 0.02 }),
+};
 function mKick(t, v) {
   const a = MUSIC.ctx;
   const o = a.createOscillator(), g = a.createGain();
   o.type = 'sine';
-  o.frequency.setValueAtTime(110, t);
-  o.frequency.exponentialRampToValueAtTime(42, t + 0.14);
-  g.gain.setValueAtTime(0.75 * v, t);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+  o.frequency.setValueAtTime(160, t);
+  o.frequency.exponentialRampToValueAtTime(44, t + 0.11);
+  g.gain.setValueAtTime(0.55 * v, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
   o.connect(g); g.connect(MUSIC.out);
-  o.start(t); o.stop(t + 0.3);
+  o.start(t); o.stop(t + 0.34);
+  mNoise(t, 0.012, 3000, 0.08 * v, 'highpass'); // click
+  // duck the pads
+  const pg = MUSIC.pad.gain;
+  pg.setValueAtTime(0.25, t); pg.linearRampToValueAtTime(1, t + 0.22);
 }
 function mNoise(t, dur, freq, vol, type, q) {
   const a = MUSIC.ctx;
   const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
   s.buffer = MUSIC.noise;
-  f.type = type || 'highpass';
-  f.frequency.value = freq;
+  f.type = type || 'highpass'; f.frequency.value = freq;
   if (q) f.Q.value = q;
   g.gain.setValueAtTime(vol, t);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   s.connect(f); f.connect(g); g.connect(MUSIC.out);
   s.start(t, Math.random() * 0.6); s.stop(t + dur + 0.02);
 }
+function mSnare(t, v) {
+  mNoise(t, 0.17, 1900, 0.16 * v, 'bandpass', 0.7);
+  mNoise(t + 0.008, 0.1, 5000, 0.06 * v, 'highpass');
+  mVoice('triangle', 190, t, 0.03, 0.09 * v, { s: 0.2, d: 0.03, r: 0.03 });
+}
+function chordTone(ch, i) {
+  const ts = CHORD_TONES[ch[1]];
+  return ch[0] + ts[i % ts.length] + 12 * Math.floor(i / ts.length);
+}
+function scaleNote(tr, deg) {
+  const sc = SCALES[tr.scale];
+  return tr.key + sc[deg % 7] + 12 * Math.floor(deg / 7);
+}
 function scheduleStep(tr, t) {
   const st = MUSIC.step % 16;
-  const ch = tr.chords[MUSIC.bar % tr.chords.length];
-  const tones = CHORD_TONES[ch[1]].map((x) => ch[0] + x);
-  const tone = (i) => tones[i % tones.length] + 12 * Math.floor(i / tones.length);
+  const ci = MUSIC.bar % tr.chords.length, ch = tr.chords[ci];
+  const sec = FORM[MUSIC.loops % FORM.length];
   const s16 = 60 / tr.bpm / 4;
-  const hum = () => 0.82 + Math.random() * 0.18; // human velocity
-  // chords: lazy, slightly strummed stabs
-  if (tr.comp[st]) {
-    const dur = s16 * (tr.comp[st] === 2 ? 14 : 5);
-    tones.forEach((m, i) => mKey(m + 12, t + i * 0.012, dur, 0.05 * hum()));
+  const hum = () => 0.85 + Math.random() * 0.15;
+  const lastBar = ci === tr.chords.length - 1;
+  // the build-up: in a break the master filter opens over the whole pass
+  if (st === 0 && ci === 0) {
+    const lf = MUSIC.lp.frequency;
+    if (sec.up) { lf.setValueAtTime(700, t); lf.exponentialRampToValueAtTime(9000, t + s16 * 16 * tr.chords.length); }
+    else lf.setValueAtTime(9000, t);
   }
-  // melody arrives on the second pass so every track breathes in first
-  const mel = tr.mel[Math.floor(MUSIC.bar / tr.chords.length) % tr.mel.length];
-  if (MUSIC.loops > 0 && mel[st] !== null) mNote(NOTE(tone(mel[st]) + 24), t + 0.01, s16 * 3.2, 'sine', 0.085 * hum(), { vib: true, att: 0.02 });
-  if (tr.bass[st] !== null) mNote(NOTE(tone(tr.bass[st]) - 12), t, s16 * 3, 'sine', 0.36, { att: 0.01 });
-  if (tr.kick[st]) mKick(t, hum());
-  if (tr.snare[st]) { mNoise(t + 0.015, 0.18, 1500, 0.16 * hum(), 'bandpass', 0.8); mNoise(t + 0.015, 0.08, 400, 0.05, 'lowpass'); }
-  if (tr.hat[st]) mNoise(t, 0.035, 6500, (st % 4 === 2 ? 0.045 : 0.03) * hum(), 'highpass');
+  if (sec.k && tr.dr.k[st]) mKick(t, tr.dr.k[st]);
+  if (sec.s && tr.dr.s[st]) mSnare(t, tr.dr.s[st] * hum());
+  if (sec.fill && lastBar && st >= 12) mSnare(t, 0.35 + (st - 12) * 0.18); // a roll into the next part
+  if (sec.h) {
+    if (tr.dr.h[st]) mNoise(t, 0.03, 8000, 0.05 * tr.dr.h[st] * hum(), 'highpass');
+    if (tr.dr.o[st]) mNoise(t, 0.16, 7000, 0.04 * hum(), 'highpass');
+  }
+  if (sec.b) {
+    const b = tr.bassP[st];
+    if (b) BASS[tr.bassI](NOTE(b.v === 'o' ? ch[0] + 12 : chordTone(ch, b.v)), t, s16 * b.len * 0.9);
+  }
+  if (sec.p) {
+    if (tr.pad && st === 0) chordTones(ch).forEach((m) => { // a wide pad held for the whole bar
+      mVoice('sawtooth', NOTE(m + 12), t, s16 * 15.5, 0.017, { det: -11, a: 0.25, s: 0.85, r: 0.3, bus: MUSIC.pad });
+      mVoice('sawtooth', NOTE(m + 12), t, s16 * 15.5, 0.017, { det: 11, a: 0.25, s: 0.85, r: 0.3, bus: MUSIC.pad });
+    });
+    if (tr.compP && tr.compP[st]) chordTones(ch).forEach((m) => mVoice('square', NOTE(m + 12), t, s16 * 1.2, 0.018, { s: 0.25, d: 0.06, bus: MUSIC.pad }));
+  }
+  if (sec.a && tr.arpP && tr.arpI) {
+    const n = tr.arpP[st];
+    if (n) ARP[tr.arpI](NOTE(chordTone(ch, n.v) + 24), t, s16 * 0.8);
+  }
+  if (sec.l) {
+    const n = tr.lead[sec.l][ci][st];
+    if (n) LEAD[tr.leadI](NOTE(scaleNote(tr, n.v) + (tr.key >= 70 ? 0 : 12)), t + 0.004, s16 * n.len * 0.92);
+  }
 }
+const chordTones = (ch) => CHORD_TONES[ch[1]].map((x) => ch[0] + x);
 function musicTick() {
   if (!MUSIC.on || !MUSIC.ctx) return;
   const a = MUSIC.ctx;
@@ -9086,28 +9125,41 @@ function musicTick() {
   const s16 = 60 / tr.bpm / 4;
   if (MUSIC.next < a.currentTime) MUSIC.next = a.currentTime + 0.05;
   while (MUSIC.next < a.currentTime + 0.2) {
-    const sw = MUSIC.step % 2 === 1 ? tr.swing * s16 : 0;
-    scheduleStep(tr, MUSIC.next + sw);
+    scheduleStep(tr, MUSIC.next);
     MUSIC.next += s16;
-    MUSIC.step++;
-    if (MUSIC.step % 16 === 0) {
-      MUSIC.bar++;
-      if (MUSIC.bar % tr.chords.length === 0) {
-        MUSIC.loops++;
-        if (MUSIC.loops >= 6) musicNext(true); // ~2–3 minutes per track, then the next one
-      }
-    }
+    if (musicAdvance()) break;
   }
+}
+// returns true when the track changed (the next one starts on a fresh beat)
+function musicAdvance() {
+  const tr = TRACKS[MUSIC.track];
+  MUSIC.step++;
+  if (MUSIC.step % 16) return false;
+  MUSIC.bar++;
+  if (MUSIC.bar % tr.chords.length) return false;
+  MUSIC.loops++;
+  if (MUSIC.loops >= FORM.length) { musicNext(true); return true; } // ~1–1.5 minutes per track, then the next one
+  return false;
+}
+// shuffled order: every track plays once before any repeats, never the same one twice in a row
+function musicPick() {
+  if (!MUSIC.order.length) {
+    const o = TRACKS.map((_, i) => i);
+    for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; }
+    if (o[0] === MUSIC.track && o.length > 1) o.push(o.shift());
+    MUSIC.order = o;
+  }
+  return MUSIC.order.shift();
 }
 function musicStart() {
   if (MUSIC.on) return;
   ensureAudio();
   if (!musicInit()) return;
+  if (!MUSIC.started) { MUSIC.started = true; MUSIC.track = musicPick(); }
   MUSIC.on = true;
   MUSIC.next = MUSIC.ctx.currentTime + 0.1;
-  startBed(TRACKS[MUSIC.track]);
   MUSIC.out.gain.cancelScheduledValues(MUSIC.ctx.currentTime);
-  MUSIC.out.gain.setTargetAtTime(0.42, MUSIC.ctx.currentTime, 1.2); // slow fade in
+  MUSIC.out.gain.setTargetAtTime(0.8, MUSIC.ctx.currentTime, 0.8); // fade in
   if (!MUSIC.timer) MUSIC.timer = setInterval(musicTick, 40);
 }
 function musicStop() {
@@ -9115,19 +9167,35 @@ function musicStop() {
   MUSIC.on = false;
   if (MUSIC.out) MUSIC.out.gain.setTargetAtTime(0, MUSIC.ctx.currentTime, 0.2);
   if (MUSIC.timer) { clearInterval(MUSIC.timer); MUSIC.timer = 0; }
-  setTimeout(() => { if (!MUSIC.on) { try { if (MUSIC.vinyl) MUSIC.vinyl.stop(); if (MUSIC.rain) MUSIC.rain.stop(); } catch (e) {} MUSIC.vinyl = MUSIC.rain = null; } }, 800);
 }
 function musicNext(auto) {
-  MUSIC.track = (MUSIC.track + 1) % TRACKS.length;
+  MUSIC.started = true;
+  MUSIC.track = musicPick();
   MUSIC.step = 0; MUSIC.bar = 0; MUSIC.loops = 0;
-  if (MUSIC.on && MUSIC.ctx) startBed(TRACKS[MUSIC.track]);
-  if (!auto && MUSIC.ctx) MUSIC.next = MUSIC.ctx.currentTime + 0.15;
+  if (MUSIC.ctx) {
+    MUSIC.dly.delayTime.setValueAtTime((60 / TRACKS[MUSIC.track].bpm) * 0.75, MUSIC.ctx.currentTime);
+    if (!auto) MUSIC.next = MUSIC.ctx.currentTime + 0.15;
+    else MUSIC.next += 60 / TRACKS[MUSIC.track].bpm; // one beat of air between tracks
+  }
 }
 // follow the player's preference; called after every user gesture and when the page is hidden/shown
 function musicSync() {
-  const want = !!(S && S.settings && S.settings.music === true) && !document.hidden; // off by default: players turn it on themselves
+  const want = !!(S && S.settings && S.settings.music !== false) && !document.hidden; // on by default; the player can switch it off in Settings
   if (want && UI.audio) musicStart();
   else if (!want) musicStop();
+}
+// offline render of one track (used to preview the music outside the game)
+function musicRender(a, idx, seconds) {
+  musicInit(a);
+  MUSIC.track = idx; MUSIC.step = 0; MUSIC.bar = 0; MUSIC.loops = 0;
+  MUSIC.out.gain.value = 0.8;
+  const tr = TRACKS[idx], s16 = 60 / tr.bpm / 4;
+  MUSIC.dly.delayTime.value = (60 / tr.bpm) * 0.75;
+  for (let t = 0.05; t < seconds; t += s16) {
+    scheduleStep(tr, t);
+    MUSIC.step++;
+    if (MUSIC.step % 16 === 0) { MUSIC.bar++; if (MUSIC.bar % tr.chords.length === 0) MUSIC.loops++; }
+  }
 }
 
 /* ---- src/ui_tabs.js ---- */
@@ -9930,7 +9998,8 @@ function gwLeft(end) {
 }
 function giveawayCard(e, mini) {
   const g = e && e.giveaway;
-  if (!g || NET.mode === 'demo') return '';
+  if (NET.mode === 'demo') return '';
+  if (!g) return mini || !e ? '' : `<section class="panel gwnone"><span class="cb-ico">🎁</span><p class="hint">${L('gw.none')}</p>${NET.cfg && NET.cfg.links && NET.cfg.links.channel ? `<button class="btn sm" data-act="link:channel">📢 ${L('set.channel')}</button>` : ''}</section>`;
   const sum = g.prizes.reduce((a, b) => a + b, 0), medal = ['🥇', '🥈', '🥉'];
   const prizes = `<div class="gw-prizes">${g.prizes.map((p, i) => `<div class="gw-p p${i + 1}"><span>${medal[i] || '🏅'}</span><b class="px">$${p}</b><small>${L('gw.place', { n: i + 1 })}</small></div>`).join('')}</div>`;
   if (mini) return `<button class="panel gwbn" data-act="go:drop:home"><span class="cb-ico">🎁</span><span class="cb-t"><b>${L('gw.title_s', { sum })}</b><small>${g.done ? L('gw.done_s') : `${L('gw.left')} <span data-t="gwleft"></span>`}${g.me.rank ? ' · #' + g.me.rank : ''}</small></span><b class="chev">›</b></button>`;
@@ -10345,20 +10414,24 @@ function vfxStagger() {
    A glowing ring points at the button to press, a bubble explains
    why. Steps finish by themselves when the player does the thing.
    ============================================================ */
+const gwOn = () => !!(NET.eco && NET.eco.giveaway && !NET.eco.giveaway.done);
 const TUT = [
+  { k: 'tut.welcome', tab: ['studio', 'games'], target: null, manual: true, done: () => UI.genrePicked || S.stats.started >= 1 }, // skipped as soon as the player just starts playing
   { k: 'tut.genre', tab: ['studio', 'games'], target: '.genres', done: () => UI.genrePicked || S.stats.started >= 1 },
   { k: 'tut.start', tab: ['studio', 'games'], target: '[data-act="start"]', done: () => S.stats.started >= 1 },
   { k: 'tut.tap', tab: ['office'], target: '#workbtn', done: () => S.stats.taps >= 15 },
   { k: 'tut.energy', tab: ['office'], target: '.energy', manual: true },
   { k: 'tut.release', tab: ['office'], target: '.pmini', manual: true },
   { k: 'tut.hire', tab: ['office'], target: '.side [data-act="go:studio:team"]', done: () => hiredCount(S) >= 1, skippable: true },
+  { k: 'tut.mood', tab: ['office'], target: '.opm.mood', manual: true },
   { k: 'tut.quests', tab: null, target: '#tabs [data-act="tab:quests"]', manual: true },
+  { k: 'tut.city', tab: ['office'], target: '.citybn', manual: true, done: () => !!lsGet('od2_tip_city') },
+  { k: 'tut.pvp', tab: ['office'], target: '.side [data-act="pvp"]', manual: true, done: () => !!lsGet('od2_tip_pvp') },
+  { k: 'tut.studio', tab: ['office'], target: '.op-studio', done: () => !!studioName(), skippable: true },
   { k: 'tut.points', tab: ['drop', 'home'], target: '.ptsp', manual: true },
+  { k: 'tut.giveaway', tab: ['drop', 'home'], target: '#gwcard, .gwnone', manual: true, done: () => !!lsGet('od2_tip_gw') },
   { k: 'tut.token', tab: ['drop', 'token'], target: '.adrop, .tokhero2', manual: true },
   { k: 'tut.friends', tab: ['drop', 'friends'], target: '.invite', manual: true },
-  { k: 'tut.studio', tab: ['office'], target: '.op-studio', done: () => !!studioName(), skippable: true },
-  { k: 'tut.pvp', tab: ['office'], target: '.side [data-act="pvp"]', manual: true, done: () => !!lsGet('od2_tip_pvp') },
-  { k: 'tut.city', tab: ['office'], target: '.citybn', manual: true, done: () => !!lsGet('od2_tip_city') },
   { k: 'tut.done', tab: ['office'], target: null, manual: true },
 ];
 const COACH = { i: -1, el: null, scrolled: -1 };
@@ -10367,6 +10440,7 @@ const TIPS = [
   { id: 'pvp', k: 'tut.pvp_new', tab: ['office'], target: '.side [data-act="pvp"]', act: 'pvp', when: () => S.stats.taps >= 15 },
   { id: 'studio', k: 'tut.studio_new', tab: ['office'], target: '.op-studio', act: 'studio', when: () => S.stats.taps >= 15 && !studioName() },
   { id: 'city', k: 'tut.city_new', tab: ['office'], target: '.citybn', act: 'cityopen', when: () => S.stats.taps >= 15 },
+  { id: 'gw', k: 'tut.gw_new', tab: ['drop', 'home'], target: '#gwcard', act: '', when: () => gwOn() },
   { id: 'reno', k: 'tut.reno_new', tab: ['empire'], target: '.floor .reno', act: '', when: () => renoStars(S) === 0 },
 ];
 const OLD_TUT_DONE = 11; // the tutorial had 11 steps before the battle step was added: 11+ means "finished"
@@ -10415,6 +10489,7 @@ function tutNext() {
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.pvp') tipDone('pvp'); // seen in the tutorial: no "new" hint later
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.studio') tipDone('studio');
   if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.city') tipDone('city');
+  if (TUT[COACH.i] && TUT[COACH.i].k === 'tut.giveaway') tipDone('gw');
   COACH.i++;
   tutSave();
   if (COACH.i >= TUT.length) { tutStop(); confetti(60); return; }
@@ -10465,7 +10540,8 @@ function tutUpdate() {
     if (st.target && !target && st.tab) btns.push(`<button class="btn sm" data-act="tut:go">${L('tut.show')}</button>`);
     if (st.manual) btns.push(`<button class="btn sm glow" data-act="tut:next">${L(COACH.i === TUT.length - 1 ? 'tut.finish' : 'tut.next')}</button>`);
     if (st.skippable) btns.push(`<button class="btn sm ghost" data-act="tut:next">${L('tut.later')}</button>`);
-    btns.push(`<button class="linkbtn" data-act="tut:skip">${L('tut.skip')}</button>`);
+    // on the first screen "skip" is a real button: easy to find for anyone who already knows the game
+    btns.push(COACH.i === 0 ? `<button class="btn sm ghost skip" data-act="tut:skip">${L('tut.skip')}</button>` : `<button class="linkbtn" data-act="tut:skip">${L('tut.skip')}</button>`);
     el.querySelector('.c-btns').innerHTML = btns.join('');
   }
   if (!target) {
@@ -11613,7 +11689,7 @@ const ACT = {
     const t = TIPS.find((x) => x.id === id);
     if (what === 'go' && t && ACT[t.act]) ACT[t.act]();
   },
-  music: () => { S.settings.music = S.settings.music !== true; savePrefs(); ensureAudio(); musicSync(); showSettings(); },
+  music: () => { S.settings.music = S.settings.music === false; savePrefs(); ensureAudio(); musicSync(); showSettings(); },
   mnext: () => { ensureAudio(); if (S.settings.music === false) { S.settings.music = true; savePrefs(); } musicNext(false); musicSync(); showSettings(); },
   pump: () => { UI.sel = 'you'; go('studio', 'team'); },
   hire: (r) => { if (result(netAct('hire', r), LR('toast.hired', { role: '$role.' + r + '.name' }))) confettiSmall(); },
@@ -12137,7 +12213,7 @@ function showSettings() {
     <h2 class="h2">${I('gear', 16)} ${L('set.title')}</h2>
     <div class="setrow"><span>${I('globe', 16)} ${L('set.lang')}</span><div class="langs">${LANG_LIST.map((c) => `<button class="${LANG === c ? 'on' : ''}" data-act="lang:${c}">${L('lang.' + c)}</button>`).join('')}</div></div>
     <div class="setrow"><span>${I(S.settings.sound ? 'sound' : 'mute', 16)} ${L('set.sound')}</span><button class="toggle" data-act="sound" aria-pressed="${!!S.settings.sound}"><span class="sw"></span></button></div>
-    <div class="setrow"><span>${I('sound', 16)} ${L('set.music')}</span><button class="toggle" data-act="music" aria-pressed="${S.settings.music === true}"><span class="sw"></span></button></div>
+    <div class="setrow"><span>${I('sound', 16)} ${L('set.music')}</span><button class="toggle" data-act="music" aria-pressed="${S.settings.music !== false}"><span class="sw"></span></button></div>
     <div class="setrow"><span class="mut">♪ ${L('music.' + TRACKS[MUSIC.track].id)}</span><button class="btn ghost sm" data-act="mnext">${L('set.next_track')} ›</button></div>
     <div class="setrow"><span>${I('info', 16)} ${L('help.title')}</span><button class="btn ghost sm" data-act="help">${L('ui.open')}</button></div>
     ${NET.mode === 'demo' ? `<div class="setrow"><span>${I('bolt', 16)} ${L('set.speed')}</span><div class="langs">${[1, 2, 5].map((v) => `<button class="${NET.speed === v ? 'on' : ''}" data-act="speed:${v}">×${v}</button>`).join('')}</div></div>` : ''}

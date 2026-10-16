@@ -73,7 +73,7 @@ async function main() {
   await sleep(500);
   await click(page, '[data-act="start"]');
   await sleep(600);
-  ok(await ev(page, 'COACH.i') === 2, 'tutorial advanced to the tap step: ' + await ev(page, 'COACH.i'));
+  ok(await ev(page, 'COACH.i') === 3, 'tutorial advanced to the tap step: ' + await ev(page, 'COACH.i'));
   await shot(page, '02c_tutorial_tap');
   ok(await ev(page, '!!S.project'), 'project started');
   // tap like a human: irregular intervals

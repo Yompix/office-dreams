@@ -797,7 +797,8 @@ function gwLeft(end) {
 }
 function giveawayCard(e, mini) {
   const g = e && e.giveaway;
-  if (!g || NET.mode === 'demo') return '';
+  if (NET.mode === 'demo') return '';
+  if (!g) return mini || !e ? '' : `<section class="panel gwnone"><span class="cb-ico">🎁</span><p class="hint">${L('gw.none')}</p>${NET.cfg && NET.cfg.links && NET.cfg.links.channel ? `<button class="btn sm" data-act="link:channel">📢 ${L('set.channel')}</button>` : ''}</section>`;
   const sum = g.prizes.reduce((a, b) => a + b, 0), medal = ['🥇', '🥈', '🥉'];
   const prizes = `<div class="gw-prizes">${g.prizes.map((p, i) => `<div class="gw-p p${i + 1}"><span>${medal[i] || '🏅'}</span><b class="px">$${p}</b><small>${L('gw.place', { n: i + 1 })}</small></div>`).join('')}</div>`;
   if (mini) return `<button class="panel gwbn" data-act="go:drop:home"><span class="cb-ico">🎁</span><span class="cb-t"><b>${L('gw.title_s', { sum })}</b><small>${g.done ? L('gw.done_s') : `${L('gw.left')} <span data-t="gwleft"></span>`}${g.me.rank ? ' · #' + g.me.rank : ''}</small></span><b class="chev">›</b></button>`;
