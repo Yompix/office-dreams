@@ -1298,3 +1298,4 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .gwnone .cb-ico { font-size: 26px; }
 .gwnone .hint { flex: 1; min-width: 180px; margin: 0; }
 .c-btns .btn.skip { opacity: 0.85; }
+.ct-found { opacity: 0.85; }

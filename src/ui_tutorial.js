@@ -36,6 +36,7 @@ const TIPS = [
   { id: 'pvp', k: 'tut.pvp_new', tab: ['office'], target: '.side [data-act="pvp"]', act: 'pvp', when: () => S.stats.taps >= 15 },
   { id: 'studio', k: 'tut.studio_new', tab: ['office'], target: '.op-studio', act: 'studio', when: () => S.stats.taps >= 15 && !studioName() },
   { id: 'city', k: 'tut.city_new', tab: ['office'], target: '.citybn', act: 'cityopen', when: () => S.stats.taps >= 15 },
+  { id: 'secrets', k: 'tut.secrets_new', tab: ['city'], target: '.ct-scene', act: '', when: () => true },
   { id: 'gw', k: 'tut.gw_new', tab: ['drop', 'home'], target: '#gwcard', act: '', when: () => gwOn() },
   { id: 'reno', k: 'tut.reno_new', tab: ['empire'], target: '.floor .reno', act: '', when: () => renoStars(S) === 0 },
 ];

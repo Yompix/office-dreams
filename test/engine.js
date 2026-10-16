@@ -107,6 +107,17 @@ for (let seed = 1; seed <= 20; seed++) {
   ok(E.deserialize(old).flv.b === 0, 'old saves get empty renovation');
   ok(E.applyAction(E.newState(4), ['reno', 'b']).err === 'cash', 'reno is a synced action');
 }
+// a find on the street: small cash or (rarely) a gem, never points, once per cooldown
+{
+  const s = E.newState(33);
+  const c0 = s.cash, g0 = s.gems, p0 = s.pts || 0;
+  ok(E.applyAction(s, ['fnd']).ok && (s.cash - c0 === E.CITY.fndCash(s) || s.gems - g0 === 1), 'street find: pocket money or a gem');
+  ok((s.pts || 0) === p0, 'a find gives no points');
+  ok(E.applyAction(s, ['fnd']).err === 'cooldown', 'one find per cooldown');
+  ok(E.CITY.fndCash(s) <= Math.max(10, E.CITY.cofCost(s)), 'a find is worth less than a coffee');
+  E.advance(s, E.CITY.fndCd + 1);
+  ok(E.applyAction(s, ['fnd']).ok, 'another find after the cooldown');
+}
 // the city: coffee break, academy course, contract board, store promo — all on game-time timers
 {
   const s = E.newState(21);

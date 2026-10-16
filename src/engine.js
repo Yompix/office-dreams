@@ -325,6 +325,8 @@ const CITY = {
   trnGems: 2, // finish a course right now
   ctrSec: 3600, // a contract must be shipped within an hour
   ctrCd: 300, // a new offer 5 min after the last one ended
+  fndCd: 300, // something shiny on the street: one find every 5 min
+  fndCash: (s) => Math.max(10, Math.round(incomeEstimate(s) * 0.05 / 5) * 5), // pocket money, about half a coffee
 };
 const cityOf = (s) => s.city || (s.city = { cof: 0, promo: 0, trn: null, ctr: null, offer: null, ctrNext: 0, done: 0 });
 function coffeeBreak(s) {
@@ -338,6 +340,19 @@ function coffeeBreak(s) {
   moodAll(s, 6);
   bump(s);
   emit('sfx', 'coin');
+  return OK;
+}
+// a find on the street (a dropped coin, a lost wallet…): small cash, rarely a gem — never points
+function streetFind(s) {
+  const c = cityOf(s);
+  if (s.t < (c.fnd || 0)) return fail('cooldown');
+  c.fnd = s.t + CITY.fndCd;
+  c.fndN = (c.fndN || 0) + 1;
+  const gem = rand(s) < 1 / 15;
+  if (gem) s.gems += 1; else s.cash += CITY.fndCash(s);
+  bump(s);
+  emit('find', { gem, cash: gem ? 0 : CITY.fndCash(s) });
+  emit('sfx', gem ? 'pts' : 'coin');
   return OK;
 }
 function storePromo(s) {
@@ -1239,6 +1254,7 @@ const ACTIONS = {
   trd: (s) => finishTraining(s, true),
   ctr: (s) => takeContract(s),
   ctx: (s) => dropContract(s),
+  fnd: (s) => streetFind(s),
 };
 function applyAction(s, a) {
   const f = ACTIONS[a[0]];
@@ -1304,7 +1320,7 @@ if (typeof module !== 'undefined') {
     claimDaily, dailyProgress, dailyCash, syncDay, canPrestige, prestige, applyAction, replay,
     chooseEvent, spawnEvent, eventView, wpTotal, wpRole, tapPower, salaryTotal, salaryOf, upCost, youUpCost, qualityFor, expectedScore,
     projectNeed, tierUnlocked, nextFloor, checkGoals, catchIdea, squashBug, hiredCount, serialize, deserialize, encodeSave, decodeSave, rankOf, fmt, cleanName, stateHash,
-    CITY, coffeeBreak, storePromo, promoCost, startTraining, finishTraining, takeContract, dropContract, cityTick,
+    CITY, coffeeBreak, streetFind, storePromo, promoCost, startTraining, finishTraining, takeContract, dropContract, cityTick,
     dailySalesRate, salesMult, maxEnergy, newName, endDay, floorOn, scoreMult, clockText, legacyMult, rand,
   };
 }

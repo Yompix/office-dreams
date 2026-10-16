@@ -17,7 +17,21 @@ const CITY_B = [
   { id: 'arena', x: 544, w: 92, h: 90, wall: '#2a0f2e', trim: '#4a1a52', sign: 'ARENA', neon: '#ff4d6d' },
 ];
 const CITY_SIDEWALK = 98;
-const CT = { x: 39, tx: null, dir: 1, walk: 0, cam: 0, sel: null, inside: null, say: '', sayN: 0, t: 0, npcs: null, cars: null, sky: null, last: 0 };
+const CT = { x: 39, tx: null, dir: 1, walk: 0, cam: 0, sel: null, inside: null, say: '', sayN: 0, t: 0, npcs: null, cars: null, sky: null, last: 0, street: false, catT: -9, steamT: -9, waveT: -9, flickT: -9, found: null };
+// little secrets to discover: tapping things on the street and inside the buildings (cosmetic, just for fun)
+const CITY_SECRETS = ['st.cat', 'st.kiosk', 'st.npc', 'st.car', 'st.moon', 'cafe.menu', 'cafe.machine', 'cafe.cup', 'cafe.cat', 'academy.board', 'academy.shelf', 'academy.desk',
+  'deals.board', 'deals.window', 'deals.laptop', 'games.shelf', 'mall.items', 'arena.screen', 'arena.crowd'];
+// how many variants each line has (keys city.x_<id>_<n>)
+const CITY_X = { 'st.cat': 3, 'st.kiosk': 3, 'st.npc': 4, 'st.car': 2, 'st.moon': 1, 'cafe.menu': 2, 'cafe.machine': 2, 'cafe.cup': 1, 'cafe.cat': 2, 'academy.board': 3, 'academy.shelf': 3, 'academy.desk': 1,
+  'deals.board': 3, 'deals.window': 1, 'deals.laptop': 1, 'arena.screen': 2, 'arena.crowd': 2 };
+const CITY_CAT = 160, CITY_KIOSK = 338;
+function cityFound() {
+  if (!CT.found) { try { CT.found = new Set(JSON.parse(lsGet('od2_city_found') || '[]')); } catch (e) { CT.found = new Set(); } }
+  return CT.found;
+}
+// where today's shiny find lies on the sidewalk (moves after every pick-up)
+function cityFindX() { const n = cityS().fndN || 0; return 96 + ((n * 197 + 53) % 520); }
+const cityFindReady = () => S && S.t >= (cityS().fnd || 0);
 
 /* ---------- state helpers (engine city state, game-time seconds) ---------- */
 function cityS() { return (S && S.city) || { cof: 0, promo: 0, trn: null, ctr: null, offer: null, ctrNext: 0, done: 0 }; }
@@ -161,7 +175,7 @@ function cityDraw(now) {
     px(g, x, CITY_SIDEWALK - 30, 1, 30, '#3a3f6a'); px(g, x - 1, CITY_SIDEWALK - 31, 4, 2, '#5a5f8a');
     // a warm cone of light down to the pavement
     g.globalCompositeOperation = 'lighter';
-    g.globalAlpha = 0.07 + 0.02 * Math.sin(t * 8 + lx);
+    g.globalAlpha = (CT.t - CT.flickT < 1 && Math.sin(CT.t * 40) > 0 ? 0.02 : 0.07) + 0.02 * Math.sin(t * 8 + lx);
     for (let i = 0; i < 29; i += 2) { const hw = 1 + Math.round(i * 0.38); px(g, x + 1 - hw, CITY_SIDEWALK - 28 + i, hw * 2 + 1, 2, '#ffc070'); }
     g.globalAlpha = 0.2; px(g, x - 9, CITY_SIDEWALK, 20, 2, '#ffc070');
     g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
@@ -186,6 +200,25 @@ function cityDraw(now) {
     g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
     px(g, c.v > 0 ? x + 21 : x, y + 1, 1, 2, '#fff8e0');
   }
+  // a vending machine / news kiosk between the buildings
+  { const x = CITY_KIOSK - cam; if (x > -12 && x < VW + 12) {
+    px(g, x, CITY_SIDEWALK - 20, 10, 20, '#2a3a8a'); px(g, x + 1, CITY_SIDEWALK - 19, 8, 9, '#0a1030');
+    for (let k = 0; k < 3; k++) px(g, x + 2, CITY_SIDEWALK - 18 + k * 3, 6, 2, ['#ff4d6d', '#ffd23f', '#2ee66b'][(k + Math.floor(t * 2)) % 3]);
+    px(g, x + 3, CITY_SIDEWALK - 7, 4, 2, '#0a0a1e'); cityGlow(g, x - 2, CITY_SIDEWALK - 22, 14, 24, '#3fd0ff', 0.08);
+  } }
+  // the street cat by the café: sits up and purrs when petted
+  { const x = CITY_CAT - cam, pet = CT.t - CT.catT < 2.2; if (x > -10 && x < VW + 10) {
+    const y = CITY_SIDEWALK + 2, tail = Math.round(Math.sin(t * (pet ? 9 : 2)) * 1.5);
+    px(g, x - 3, y - (pet ? 5 : 3), 7, pet ? 5 : 3, '#ff9a3c'); px(g, x + 3, y - (pet ? 8 : 5), 4, 4, '#ff9a3c'); px(g, x + 3, y - (pet ? 9 : 6), 1, 1, '#ff9a3c'); px(g, x + 6, y - (pet ? 9 : 6), 1, 1, '#ff9a3c');
+    px(g, x + 4, y - (pet ? 7 : 4), 1, 1, '#0a0a1e'); px(g, x - 5, y - 4 + tail, 2, 1, '#ff9a3c'); px(g, x - 4, y - 3, 1, 3, '#ff9a3c');
+    if (pet) for (let k = 0; k < 3; k++) { const hy = y - 12 - ((CT.t - CT.catT) * 10 + k * 4) % 14; g.globalAlpha = 0.8; px(g, x + 2 + k * 3 - 3, Math.round(hy), 2, 2, '#ff4d6d'); g.globalAlpha = 1; }
+  } }
+  // something shiny on the sidewalk: tap it
+  if (cityFindReady()) { const x = cityFindX() - cam, tw = Math.sin(t * 6) > 0; if (x > -6 && x < VW + 6) {
+    px(g, x - 1, CITY_SIDEWALK + 2, 3, 3, '#ffd23f'); px(g, x, CITY_SIDEWALK + 3, 1, 1, '#fff8c0');
+    if (tw) { px(g, x, CITY_SIDEWALK - 1, 1, 2, '#fff8c0'); px(g, x - 3, CITY_SIDEWALK + 3, 2, 1, '#fff8c0'); px(g, x + 3, CITY_SIDEWALK + 3, 2, 1, '#fff8c0'); }
+    cityGlow(g, x - 4, CITY_SIDEWALK - 1, 9, 8, '#ffd23f', 0.18);
+  } }
   // pedestrians
   for (const n of CT.npcs) {
     if (n.pause > 0) n.pause -= dt; else { n.x += n.v * dt; if (Math.random() < dt * 0.08) n.pause = 1 + Math.random() * 2; }
@@ -206,20 +239,33 @@ function cityTap(e) {
   const cv = UI.cityCv;
   if (!cv) return;
   const r = cv.getBoundingClientRect();
+  const lx = ((e.clientX - r.left) / r.width) * cv.width, ly = ((e.clientY - r.top) / r.height) * CITY_H;
   if (CT.inside) {
-    // inside: the left edge is the door, anywhere else talks to the person behind the counter
+    // inside: the left edge is the door; things in the room react; anywhere else talks to the person behind the counter
     const fx = (e.clientX - r.left) / r.width;
-    if (fx < 0.16) cityAct('out'); else cityTalk();
+    if (fx < 0.16) { cityAct('out'); return; }
+    const h = cityHot(CT.inside, cv.width).find((o) => lx >= o.x && lx <= o.x + o.w && ly >= o.y && ly <= o.y + o.h);
+    if (h) cityPoke(CT.inside + '.' + h.k, e); else cityTalk();
     return;
   }
-  const wx = ((e.clientX - r.left) / r.width) * cv.width + Math.round(CT.cam);
+  const wx = lx + Math.round(CT.cam);
+  // the street: the shiny find, the cat, the kiosk, passers-by, cars, the moon
+  if (cityFindReady() && Math.abs(wx - cityFindX()) <= 7 && ly >= CITY_SIDEWALK - 8) { cityPick(e); return; }
+  if (Math.abs(wx - CITY_CAT) <= 8 && ly >= CITY_SIDEWALK - 14 && ly <= CITY_SIDEWALK + 6) { CT.catT = CT.t; sfx('meow'); cityPoke('st.cat', e, '❤️'); return; }
+  if (wx >= CITY_KIOSK - 2 && wx <= CITY_KIOSK + 12 && ly >= CITY_SIDEWALK - 22 && ly <= CITY_SIDEWALK) { cityPoke('st.kiosk', e, '📰'); return; }
+  if (lx >= cv.width - 31 && lx <= cv.width - 17 && ly <= 19) { cityPoke('st.moon', e, '🌙'); return; }
+  const npc = CT.npcs.find((n) => Math.abs(wx - n.x) <= 6 && ly >= CITY_SIDEWALK - 20 && ly <= CITY_SIDEWALK + 5);
+  if (npc) { npc.pause = 2.5; npc.v = -npc.v; cityPoke('st.npc', e, '💬'); return; }
+  const car = CT.cars.find((c) => wx >= c.x - 4 && wx <= c.x + 26 && ly >= CITY_SIDEWALK + 4);
+  if (car) { try { beep(620, 0.09, 'square', 0.05); beep(520, 0.12, 'square', 0.05, 0.12); } catch (x) {} cityPoke('st.car', e, '📯'); return; }
+  if (ly < CITY_SIDEWALK - 26 && CITY_B.every((b) => wx < b.x || wx > b.x + b.w)) { CT.flickT = CT.t; sfx('blip'); return; }
   const b = CITY_B.find((x) => wx >= x.x - 4 && wx <= x.x + x.w + 4);
   if (b) cityGo(b.id); else { CT.tx = Math.max(6, Math.min(CITY_W - 6, wx)); CT.spd = Math.max(46, Math.abs(CT.tx - CT.x) / 1.4); CT.sel = null; }
 }
 function cityGo(id) {
   const b = CITY_B.find((x) => x.id === id);
   if (!b) return;
-  CT.sel = null;
+  CT.sel = null; CT.street = false;
   if (CT.inside) { CT.inside = null; CT.say = ''; }
   CT.tx = b.x + b.w / 2;
   CT.spd = Math.max(46, Math.abs(CT.tx - CT.x) / 1.4); // far buildings: a brisk run, never a long walk
@@ -298,11 +344,12 @@ function tabCity() {
   return `<section class="panel cityp">
     <div class="ct-head">${CT.inside ? `<button class="btn ghost sm" data-act="city:out">‹ ${L('city.out')}</button><h2 class="h2">${L('city.ico_' + CT.inside)} ${L('city.' + CT.inside)}</h2>` : `<button class="btn ghost sm" data-act="city:home">‹ ${L('city.back')}</button><h2 class="h2">🌆 ${L('city.title')}</h2>`}</div>
     <div class="ct-scene ${CT.inside ? 'in' : ''}"><canvas id="citycv" width="240" height="${CITY_H}" aria-label="${esc(L('city.title'))}"></canvas>${CT.inside || CT.sel ? '' : `<span class="ct-tip">${L('city.tip')}</span>`}</div>
-    ${CT.inside && CT.say ? `<button class="ct-say" data-act="city:talk"><span>💬</span>${esc(CT.say)}</button>` : ''}
+    ${CT.say && (CT.inside || CT.street) ? `<button class="ct-say" data-act="city:talk"><span>💬</span>${esc(CT.say)}</button>` : ''}
     <div class="ct-chips">${chips}</div>
   </section>
   ${CT.sel ? `<section class="panel ct-panel" id="citypanel">${cityPanel(CT.sel)}</section>` : ''}
-  <p class="hint pad">${L('city.hint')}</p>`;
+  <p class="hint pad">${L('city.hint')}</p>
+  <p class="hint pad ct-found">🔍 ${L('city.found', { n: CITY_SECRETS.filter((k) => cityFound().has(k)).length, N: CITY_SECRETS.length })}</p>`;
 }
 // the city entry on the office screen: shows what is waiting outside
 function cityBanner() {
@@ -322,8 +369,8 @@ function cityAct(what, arg) {
   if (what === 'open') { go('city'); return; }
   if (what === 'home') { go('office'); return; }
   if (what === 'go') { cityGo(arg); return; }
-  if (what === 'out') { CT.inside = null; CT.sel = null; CT.say = ''; sfx('blip'); render(true); return; }
-  if (what === 'talk') { cityTalk(); return; }
+  if (what === 'out') { CT.inside = null; CT.sel = null; CT.say = ''; CT.street = false; sfx('blip'); render(true); return; }
+  if (what === 'talk') { if (CT.street && !CT.inside) { CT.say = ''; CT.street = false; render(true); return; } cityTalk(); return; }
   // from the office side bar: step out right at that building and go in
   if (what === 'visit') { const b = CITY_B.find((x) => x.id === arg); if (!b) return; CT.x = b.x + b.w / 2; CT.tx = null; CT.cam = Math.max(0, CT.x - 80); go('city'); cityArrive(); return; }
   if (what === 'make') { const k = cityS().ctr; if (k) { S.sel.genre = k.genre; if (tierUnlocked(S, k.tier)) S.sel.tier = k.tier; } go('studio', 'games'); return; }
@@ -334,6 +381,62 @@ function cityAct(what, arg) {
   render(true);
 }
 
+/* ---------- secrets and little reactions ---------- */
+function cityLine(key) {
+  const [id, k] = key.split('.');
+  if (key === 'games.shelf') {
+    const gs = S.games.filter((x) => x.score);
+    if (!gs.length) return L('city.x_games_none');
+    const g = gs[Math.floor(Math.random() * gs.length)];
+    return L('city.x_games_shelf', { name: g.name, score: g.score });
+  }
+  if (key === 'mall.items') {
+    const it = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+    return L('item.' + it.id + '.name') + ' — ' + (S.items[it.id] ? L('city.x_mall_own') : L('item.' + it.id + '.perk') + ' · ' + money(it.price));
+  }
+  const n = CITY_X[key] || 1;
+  return L('city.x_' + id + '_' + k + '_' + (1 + Math.floor(Math.random() * n)));
+}
+function cityPoke(key, e, ico) {
+  const [id, k] = key.split('.');
+  if (key === 'cafe.machine') CT.steamT = CT.t;
+  if (key === 'arena.crowd') CT.waveT = CT.t;
+  if (key === 'cafe.cat') { CT.catT = CT.t; sfx('meow'); } else if (!ico || ico !== '❤️') sfx('pop');
+  haptic('light');
+  CT.say = cityLine(key); CT.sayN++; CT.street = !CT.inside;
+  if (e && e.clientX) floatText(e.clientX, e.clientY - 10, ico || { menu: '📋', machine: '☁️', cup: '☕', cat: '😺', board: '📝', shelf: '📚', desk: '✏️', window: '🌃', laptop: '💻', items: '🛋️', screen: '📺', crowd: '📣' }[k] || '✨', 'gold');
+  const f = cityFound();
+  if (!f.has(key) && CITY_SECRETS.includes(key)) {
+    f.add(key); lsSet('od2_city_found', JSON.stringify([...f]));
+    const n = CITY_SECRETS.filter((x) => f.has(x)).length;
+    if (n === CITY_SECRETS.length) { toast(L('city.found_all'), 'good'); confetti(80); sfx('up'); }
+    else toast(L('city.found_new', { n, N: CITY_SECRETS.length }), 'good');
+  }
+  render(true);
+}
+// pick up the shiny thing on the sidewalk (a real, small reward — the engine checks the cooldown)
+function cityPick(e) {
+  const before = { cash: S.cash, gems: S.gems };
+  const r = netAct('fnd');
+  if (!r || !r.ok) { errToast(r && r.err); return; }
+  const gem = S.gems > before.gems;
+  floatText(e.clientX, e.clientY - 10, gem ? '+1 💎' : '+' + money(S.cash - before.cash), 'gold');
+  burst(e.clientX, e.clientY, 10, ['#ffd23f', '#fff8c0']);
+  toast(gem ? L('city.find_gem') : L('city.find_cash', { cash: money(S.cash - before.cash) }), 'good');
+  haptic('medium');
+  render(true);
+}
+// tappable things inside each building, in canvas pixels (same geometry as cityInterior)
+function cityHot(id, VW) {
+  const cx = Math.round(VW * 0.64);
+  if (id === 'cafe') return [{ k: 'menu', x: 30, y: 10, w: 54, h: 30 }, { k: 'machine', x: cx + 20, y: 42, w: 20, h: 26 }, { k: 'cup', x: cx - 33, y: 56, w: 11, h: 11 }, { k: 'cat', x: Math.round(VW * 0.3) - 9, y: 76, w: 20, h: 14 }];
+  if (id === 'academy') { const bw = Math.min(120, VW - 70), bx = Math.round((VW - bw) / 2) + 10; return [{ k: 'board', x: bx - 2, y: 8, w: bw + 4, h: 40 }, { k: 'shelf', x: VW - 22, y: 20, w: 18, h: 64 }, { k: 'desk', x: 30, y: 88, w: VW - 100, h: 24 }]; }
+  if (id === 'deals') { const bw = Math.min(90, Math.round(VW * 0.45)); return [{ k: 'board', x: 26, y: 10, w: bw, h: 44 }, { k: 'window', x: VW - 46, y: 12, w: 38, h: 30 }, { k: 'laptop', x: cx + 6, y: 60, w: 14, h: 12 }]; }
+  if (id === 'games') return [{ k: 'shelf', x: 24, y: 20, w: VW - 48, h: 60 }];
+  if (id === 'mall') return [{ k: 'items', x: 24, y: 50, w: VW - 40, h: 36 }];
+  if (id === 'arena') { const sw = Math.min(110, VW - 60), sx = Math.round((VW - sw) / 2) + 8; return [{ k: 'screen', x: sx - 2, y: 6, w: sw + 4, h: 40 }, { k: 'crowd', x: 24, y: 92, w: VW - 28, h: 28 }]; }
+  return [];
+}
 /* ---------- inside the buildings ---------- */
 const CITY_SAY = { cafe: 3, academy: 3, deals: 3, games: 3, mall: 3, arena: 3 };
 function cityEnter(id) {
@@ -386,6 +489,15 @@ function cityInterior(g, VW, t) {
     for (let i = 0; i < 4; i++) { const sy = 44 - ((t * 12 + i * 5) % 18); g.globalAlpha = 0.5 - (44 - sy) / 40; px(g, mx + 7 + Math.round(Math.sin(t * 3 + i) * 2), Math.round(sy), 1, 2, '#ffffff'); }
     g.globalAlpha = 1;
     px(g, cx - 30, 61, 5, 5, '#f0e8d8'); px(g, cx - 29, 60, 3, 1, '#6a3a1a'); // a cup on the counter
+    if (CT.t - CT.steamT < 1.6) for (let i = 0; i < 10; i++) { const k = (CT.t - CT.steamT) * 30 + i * 3; g.globalAlpha = Math.max(0, 0.7 - k / 50); px(g, mx + 4 + Math.round(Math.sin(i * 2.1 + k * 0.2) * (2 + k / 6)), Math.round(46 - k), 3, 3, '#ffffff'); }
+    g.globalAlpha = 1;
+    // the café cat asleep on a cushion
+    const kx = Math.round(VW * 0.3), awake = CT.t - CT.catT < 2;
+    px(g, kx - 9, 86, 20, 3, '#5a2e6a');
+    px(g, kx - 6, 80, 12, 6, '#ff9a3c'); px(g, kx + 4, 77, 6, 6, '#ff9a3c'); px(g, kx + 4, 76, 1, 1, '#ff9a3c'); px(g, kx + 9, 76, 1, 1, '#ff9a3c');
+    px(g, kx + 6, 79, awake ? 1 : 2, 1, '#0a0a1e'); px(g, kx - 8, 83 + Math.round(Math.sin(t * 2)), 3, 2, '#ff9a3c');
+    if (!awake) { const zz = (t * 0.8) % 1; g.globalAlpha = 1 - zz; { const zx = kx + 10, zy = Math.round(70 - zz * 8); px(g, zx, zy, 4, 1, '#c8b0e0'); px(g, zx + 2, zy + 1, 1, 1, '#c8b0e0'); px(g, zx + 1, zy + 2, 1, 1, '#c8b0e0'); px(g, zx, zy + 3, 4, 1, '#c8b0e0'); } g.globalAlpha = 1; }
+    else for (let k = 0; k < 3; k++) { const hy = 72 - ((CT.t - CT.catT) * 10 + k * 4) % 14; px(g, kx + k * 4, Math.round(hy), 2, 2, '#ff4d6d'); }
   } else if (id === 'academy') {
     cityRoom(g, VW, '#16384a', '#1a2a3a', '#22566e');
     const bw = Math.min(120, VW - 70), bx = Math.round((VW - bw) / 2) + 10;
@@ -449,7 +561,7 @@ function cityInterior(g, VW, t) {
     // spotlights
     for (let k = 0; k < 2; k++) { const lx = k ? VW - 30 : 30, sway = Math.round(Math.sin(t * 1.3 + k * 2) * 18); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.07; for (let i = 0; i < 70; i += 3) { const hw = 1 + Math.round(i * 0.25); px(g, lx + Math.round(sway * i / 70) - hw, i, hw * 2, 3, k ? '#ff3fd0' : '#3fd0ff'); } g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
     // the crowd cheering
-    for (let x = 24; x < VW - 4; x += 9) { const hop = Math.max(0, Math.round(Math.sin(t * 7 + x * 0.7) * 2)); px(g, x, 104 - hop, 7, 16, '#1a1030'); px(g, x + 1, 99 - hop, 5, 5, '#2a1a40'); if ((x / 9) % 3 < 1 && hop) px(g, x + 2, 94 - hop, 1, 4, '#ffd23f'); }
+    const wave = CT.t - CT.waveT < 1.8; for (let x = 24; x < VW - 4; x += 9) { const hop = wave ? Math.max(0, Math.round(Math.sin((CT.t - CT.waveT) * 9 - x * 0.08) * 6)) : Math.max(0, Math.round(Math.sin(t * 7 + x * 0.7) * 2)); px(g, x, 104 - hop, 7, 16, '#1a1030'); px(g, x + 1, 99 - hop, 5, 5, '#2a1a40'); if ((x / 9) % 3 < 1 && hop) px(g, x + 2, 94 - hop, 1, 4, '#ffd23f'); }
     cityPerson2(g, cx, 92 + bob, 2, fr, -1, !talking);
   }
   // the player, standing by the door
