@@ -613,6 +613,10 @@ const ART_IN = {
     hot: { board: [0.39, 0.07, 0.79, 0.54], window: [0.11, 0.12, 0.31, 0.58], laptop: [0.41, 0.49, 0.51, 0.62] } },
   games: { img: 'games', door: [0, 0.3, 0.06, 0.9], you: [0.12, 0.98], host: [0.74, 0.74, 2, 0.67], talk: [0.69, 0.4, 0.79, 0.68],
     hot: { shelf: [0.17, 0.3, 0.87, 0.67] } },
+  mall: { img: 'mall', door: [0, 0.3, 0.05, 0.9], you: [0.1, 0.98], host: [0.47, 0.84, 3], talk: [0.43, 0.5, 0.51, 0.84],
+    hot: { items: [0.07, 0.5, 0.88, 0.8] } },
+  arena: { img: 'arena', door: [0, 0.3, 0.05, 0.75], you: [0.1, 0.99], host: null, talk: [0.45, 0.55, 0.55, 0.75],
+    hot: { screen: [0.31, 0.22, 0.69, 0.6], crowd: [0, 0.76, 1, 1] } },
 };
 function artFit(cv, im, focusX) {
   const cw = cv.width, ch = cv.height, ar = im.naturalWidth / im.naturalHeight;
