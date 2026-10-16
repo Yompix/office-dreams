@@ -102,6 +102,7 @@ function cityPerson(g, x, y, look, frame, dir, still) {
 function cityDraw(now) {
   const cv = UI.cityCv, g = UI.cityCtx;
   if (!cv || !g || !S) return;
+  if (artOn() && artDraw(now)) return;
   cityInit();
   const cw = cv.clientWidth || 360, ch = cv.clientHeight || 240;
   const VW = Math.max(120, Math.min(CITY_W, Math.round(CITY_H * cw / ch)));
@@ -109,6 +110,7 @@ function cityDraw(now) {
   const t = now / 1000, dt = Math.min(0.1, Math.max(0, t - (CT.last || t)));
   CT.last = t; CT.t += dt;
   if (CT.inside) { cityInterior(g, VW, t); return; }
+  CT.F = null;
   // walking
   if (CT.tx !== null) {
     const d = CT.tx - CT.x, step = (CT.spd || 46) * dt;
@@ -238,6 +240,7 @@ function cityDraw(now) {
 function cityTap(e) {
   const cv = UI.cityCv;
   if (!cv) return;
+  if (artTap(e)) return;
   const r = cv.getBoundingClientRect();
   const lx = ((e.clientX - r.left) / r.width) * cv.width, ly = ((e.clientY - r.top) / r.height) * CITY_H;
   if (CT.inside) {
@@ -368,11 +371,11 @@ function cityBanner() {
 function cityAct(what, arg) {
   if (what === 'open') { go('city'); return; }
   if (what === 'home') { go('office'); return; }
-  if (what === 'go') { cityGo(arg); return; }
+  if (what === 'go') { if (artOn() && artImg(ART_ST.img)) artGo(arg); else cityGo(arg); return; }
   if (what === 'out') { CT.inside = null; CT.sel = null; CT.say = ''; CT.street = false; sfx('blip'); render(true); return; }
   if (what === 'talk') { if (CT.street && !CT.inside) { CT.say = ''; CT.street = false; render(true); return; } cityTalk(); return; }
   // from the office side bar: step out right at that building and go in
-  if (what === 'visit') { const b = CITY_B.find((x) => x.id === arg); if (!b) return; CT.x = b.x + b.w / 2; CT.tx = null; CT.cam = Math.max(0, CT.x - 80); go('city'); cityArrive(); return; }
+  if (what === 'visit') { const b = CITY_B.find((x) => x.id === arg); if (!b) return; if (ART_ST.b[arg]) { CT.ax = (ART_ST.b[arg][0] + ART_ST.b[arg][1]) / 2; CT.atx = null; } CT.x = b.x + b.w / 2; CT.tx = null; CT.cam = Math.max(0, CT.x - 80); go('city'); cityArrive(); return; }
   if (what === 'make') { const k = cityS().ctr; if (k) { S.sel.genre = k.genre; if (tierUnlocked(S, k.tier)) S.sel.tier = k.tier; } go('studio', 'games'); return; }
   const map = { cof: 'city.ok_cof', trn: 'city.ok_trn', trd: '', ctr: 'city.ok_ctr', ctx: '', prm: 'city.ok_prm' };
   if (!(what in map)) return;
@@ -566,4 +569,288 @@ function cityInterior(g, VW, t) {
   }
   // the player, standing by the door
   cityPerson2(g, 30, 116, 0, 0, 1, true);
+}
+
+/* ============================================================
+   ART 2 — the illustrated city (premium pixel-art backgrounds).
+   Test mode only for now: open the game with ?art=2 (remembered).
+   The backgrounds are pictures; people, cars, the cat, lights and
+   every tap target are drawn on top in the same coordinates
+   (fractions of the picture, so any screen size works).
+   ============================================================ */
+const ART = { imgs: {}, on: null };
+function artOn() {
+  if (ART.on === null) {
+    try {
+      const q = new URLSearchParams(location.search).get('art');
+      const sp = window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.start_param;
+      if (q === '2' || sp === 'art2') lsSet('od2_art2', '1');
+      if (q === '1' || sp === 'art1') lsSet('od2_art2', '');
+    } catch (e) {}
+    ART.on = lsGet('od2_art2') === '1';
+  }
+  return ART.on;
+}
+function artImg(name) {
+  let im = ART.imgs[name];
+  if (!im) { im = ART.imgs[name] = new Image(); im.decoding = 'async'; im.src = 'art/' + name + '.webp'; }
+  return im.complete && im.naturalWidth ? im : null;
+}
+// the street picture: shop fronts, the feet line and the road lanes as fractions of the picture
+const ART_ST = {
+  img: 'street_empty', feet: 0.737, lanes: [0.83, 0.91],
+  b: { office: [0, 0.03], cafe: [0.034, 0.18], academy: [0.191, 0.338], deals: [0.349, 0.49], games: [0.498, 0.639], mall: [0.648, 0.788], arena: [0.8, 0.957] },
+  signs: { cafe: [0.105, 0.47, '#ffb03f'], academy: [0.263, 0.47, '#3fd0ff'], deals: [0.42, 0.47, '#ff3fd0'], games: [0.568, 0.47, '#3fd0ff'], mall: [0.718, 0.47, '#ff3fd0'], arena: [0.878, 0.47, '#ffb03f'] },
+  lamps: [0.028, 0.346, 0.495, 0.656, 0.802, 0.968], moon: [0.282, 0.09, 0.04], cat: 0.186, kiosk: 0.356,
+};
+// interiors: picture + tap targets [x0, y0, x1, y1] + where the host stands (null = drawn in the picture)
+const ART_IN = {
+  cafe: { img: 'cafe', door: [0.12, 0.38, 0.26, 0.8], you: [0.2, 0.95], host: null, talk: [0.43, 0.44, 0.51, 0.65],
+    hot: { menu: [0.36, 0.19, 0.61, 0.43], machine: [0.51, 0.5, 0.67, 0.69], cat: [0.74, 0.58, 0.89, 0.72], cup: [0.87, 0.83, 0.93, 0.91] }, steam: [0.6, 0.45], cat: [0.81, 0.6] },
+  academy: { img: 'academy', door: [0, 0.3, 0.06, 0.8], you: [0.1, 0.97], host: [0.55, 0.8, 3], talk: [0.5, 0.48, 0.6, 0.82],
+    hot: { board: [0.14, 0.2, 0.52, 0.65], shelf: [0.54, 0.22, 0.71, 0.69], desk: [0.08, 0.7, 0.9, 1] } },
+  deals: { img: 'deals', door: [0, 0.3, 0.06, 0.9], you: [0.16, 0.98], host: [0.74, 0.9, 4], talk: [0.69, 0.5, 0.79, 0.9],
+    hot: { board: [0.39, 0.07, 0.79, 0.54], window: [0.11, 0.12, 0.31, 0.58], laptop: [0.41, 0.49, 0.51, 0.62] } },
+  games: { img: 'games', door: [0, 0.3, 0.06, 0.9], you: [0.12, 0.98], host: [0.74, 0.74, 2, 0.67], talk: [0.69, 0.4, 0.79, 0.68],
+    hot: { shelf: [0.17, 0.3, 0.87, 0.67] } },
+};
+function artFit(cv, im, focusX) {
+  const cw = cv.width, ch = cv.height, ar = im.naturalWidth / im.naturalHeight;
+  let w = ch * ar, h = ch;
+  if (w < cw) { w = cw; h = cw / ar; }
+  const x = Math.max(cw - w, Math.min(0, cw / 2 - focusX * w)), y = Math.min(0, (ch - h) * 0.6);
+  return { x, y, w, h };
+}
+function artSize(cv) {
+  const dpr = Math.min(3, window.devicePixelRatio || 1), cw = Math.round((cv.clientWidth || 360) * dpr), ch = Math.round((cv.clientHeight || 200) * dpr);
+  if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
+}
+function artSprite(g, F, nx, ny, u, fn) { g.save(); g.translate(Math.round(F.x + nx * F.w), Math.round(F.y + ny * F.h)); g.scale(u, u); fn(); g.restore(); }
+function artGlow(g, x, y, r, col, a) {
+  const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.globalCompositeOperation = 'lighter'; g.globalAlpha = a; g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+}
+function artDraw(now) {
+  const cv = UI.cityCv, g = UI.cityCtx;
+  const pic = CT.inside ? ART_IN[CT.inside] : ART_ST;
+  if (!pic) return false;
+  const im = artImg(pic.img);
+  if (!im) return false;
+  cityInit();
+  artSize(cv);
+  const t = now / 1000, dt = Math.min(0.1, Math.max(0, t - (CT.last || t)));
+  CT.last = t; CT.t += dt;
+  if (CT.ax === undefined) { CT.ax = 0.012; CT.atx = null; }
+  g.imageSmoothingEnabled = true;
+  if (CT.inside) return artInside(g, cv, im, pic, t);
+  // walking along the street (fractions of the picture per second)
+  if (CT.atx !== null) {
+    const d = CT.atx - CT.ax, step = (CT.aspd || 0.2) * dt;
+    if (Math.abs(d) <= step) { CT.ax = CT.atx; CT.atx = null; artArrive(); } else { CT.dir = d > 0 ? 1 : -1; CT.ax += CT.dir * step; CT.walk += dt * 9; }
+  }
+  const F = artFit(cv, im, CT.ax);
+  CT.F = F;
+  g.drawImage(im, F.x, F.y, F.w, F.h);
+  const u = F.h * 0.0056, feet = ART_ST.feet, ready = cityReady();
+  // living neon: signs breathe, lamps glow, the wet road shimmers
+  for (const k in ART_ST.signs) { const s = ART_ST.signs[k]; artGlow(g, F.x + s[0] * F.w, F.y + s[1] * F.h, F.h * 0.11, s[2], 0.16 + 0.1 * Math.sin(t * 2.4 + s[0] * 9)); }
+  ART_ST.lamps.forEach((lx, i) => { const off = CT.t - CT.flickT < 1 && Math.sin(CT.t * 40 + i) > 0; artGlow(g, F.x + lx * F.w, F.y + 0.5 * F.h, F.h * 0.07, '#ffc070', off ? 0.05 : 0.22 + 0.04 * Math.sin(t * 7 + i)); });
+  g.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 14; i++) { const sx = ((i * 0.137 + t * 0.012 * (i % 2 ? 1 : -1)) % 1 + 1) % 1, sy = 0.79 + (i % 5) * 0.04; g.globalAlpha = 0.05 + 0.04 * Math.sin(t * 3 + i); g.fillStyle = i % 3 ? '#3fd0ff' : '#ff3fd0'; g.fillRect(F.x + sx * F.w, F.y + sy * F.h, F.w * 0.05, Math.max(1, F.h * 0.004)); }
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  // "!" over doors where something waits
+  for (const id in ready) {
+    if (!ready[id] || !ART_ST.b[id]) continue;
+    const b = ART_ST.b[id], bx = (b[0] + b[1]) / 2, by = 0.2 + Math.sin(t * 5) * 0.01;
+    artSprite(g, F, bx, by, u * 1.3, () => { px(g, -3, -1, 7, 10, '#0a0a1e'); px(g, -2, 0, 5, 8, '#ffd23f'); px(g, 0, 1, 1, 4, '#0a0a1e'); px(g, 0, 6, 1, 1, '#0a0a1e'); });
+  }
+  // the kiosk, the cat, today's find
+  artGlow(g, F.x + ART_ST.kiosk * F.w, F.y + (feet - 0.06) * F.h, F.h * 0.08, '#3fd0ff', 0.18);
+  artBlit(g, F, sprKiosk(t), ART_ST.kiosk, feet, 0.13);
+  { const pet = CT.t - CT.catT < 2.2, tail = Math.round(Math.sin(t * (pet ? 9 : 2)) * 1.5);
+    artBlit(g, F, sprCat(pet || tail > 0 && pet), ART_ST.cat, feet, 0.05);
+    if (pet) for (let k = 0; k < 3; k++) { const hy = feet - 0.07 - (((CT.t - CT.catT) * 0.05 + k * 0.025) % 0.08); g.fillStyle = '#ff4d6d'; g.fillRect(F.x + (ART_ST.cat + (k - 1) * 0.008) * F.w, F.y + hy * F.h, u * 2, u * 2); } }
+  if (cityFindReady()) { const fx = artFindX(), tw = Math.sin(t * 6) > 0;
+    artGlow(g, F.x + fx * F.w, F.y + (feet + 0.012) * F.h, F.h * 0.03, '#ffd23f', 0.5);
+    artSprite(g, F, fx, feet + 0.012, u, () => { px(g, -1, -1, 3, 3, '#ffd23f'); px(g, 0, 0, 1, 1, '#fff8c0'); if (tw) { px(g, 0, -4, 1, 2, '#fff8c0'); px(g, -4, 0, 2, 1, '#fff8c0'); px(g, 3, 0, 2, 1, '#fff8c0'); } }); }
+  // cars with headlights on the wet road
+  if (!CT.acars) CT.acars = [{ x: 0.1, v: 0.09, col: '#ff4d6d', lane: 0 }, { x: 0.7, v: -0.12, col: '#3fd0ff', lane: 1 }];
+  for (const c of CT.acars) {
+    c.x += c.v * dt; if (c.x > 1.15) c.x = -0.15; if (c.x < -0.15) c.x = 1.15;
+    const cx = F.x + c.x * F.w, cy = F.y + ART_ST.lanes[c.lane] * F.h;
+    artGlow(g, cx + (c.v > 0 ? 1 : -1) * F.h * 0.12, cy, F.h * 0.09, '#fff2c0', 0.25);
+    artBlit(g, F, sprCar(c.col), c.x, ART_ST.lanes[c.lane], 0.075, c.v < 0);
+    artGlow(g, cx - (c.v > 0 ? 1 : -1) * F.h * 0.07, cy - F.h * 0.03, F.h * 0.025, '#ff2a40', 0.35);
+  }
+  // passers-by and the player
+  if (!CT.anpcs) CT.anpcs = [0, 1, 2].map((i) => ({ x: 0.15 + i * 0.3, v: (i % 2 ? -1 : 1) * (0.018 + i * 0.006), look: i, pause: 0 }));
+  for (const n of CT.anpcs) {
+    if (n.pause > 0) n.pause -= dt; else { n.x += n.v * dt; if (Math.random() < dt * 0.08) n.pause = 1 + Math.random() * 2; }
+    if (n.x > 1.03) n.x = -0.03; if (n.x < -0.03) n.x = 1.03;
+    artBlit(g, F, sprPerson(1 + n.look, Math.floor(CT.t * 7 + n.look), n.pause > 0), n.x, feet, 0.13, n.v < 0);
+  }
+  artBlit(g, F, sprPerson(0, Math.floor(CT.walk), CT.atx === null), CT.ax, feet + 0.006, 0.135, CT.dir < 0);
+  return true;
+}
+function artFindX() { const n = cityS().fndN || 0; return 0.06 + ((n * 0.397 + 0.13) % 0.88); }
+function artInside(g, cv, im, pic, t) {
+  const F = artFit(cv, im, 0.5);
+  CT.F = F;
+  g.drawImage(im, F.x, F.y, F.w, F.h);
+  const u = F.h * 0.009, talking = CT.talkT && CT.t - CT.talkT < 1.2;
+  // a warm breathing light over the whole room
+  artGlow(g, F.x + F.w * 0.5, F.y + F.h * 0.15, F.h * 0.8, '#ffc070', 0.05 + 0.02 * Math.sin(t * 1.5));
+  if (pic.steam) { const sx = F.x + pic.steam[0] * F.w, sy = F.y + pic.steam[1] * F.h, burst = CT.t - CT.steamT < 1.6;
+    for (let i = 0; i < (burst ? 12 : 4); i++) { const k = ((t * (burst ? 40 : 14)) + i * 9) % 60; g.globalAlpha = Math.max(0, 0.45 - k / 130); g.fillStyle = '#ffffff'; g.fillRect(sx + Math.sin(i * 2.1 + k * 0.1) * (2 + k / 5) * u * 0.4, sy - k * u * 0.35, u * 1.2, u * 1.2); }
+    g.globalAlpha = 1; }
+  if (pic.cat && CT.t - CT.catT < 2) for (let k = 0; k < 3; k++) { const hy = pic.cat[1] - ((CT.t - CT.catT) * 0.06 + k * 0.03) % 0.12; g.fillStyle = '#ff4d6d'; g.fillRect(F.x + (pic.cat[0] + k * 0.02) * F.w, F.y + hy * F.h, u * 1.4, u * 1.4); }
+  if (pic.host) {
+    // behind a counter: only what is above its top edge (pic.host[3]) is visible
+    if (pic.host[3]) { g.save(); g.beginPath(); g.rect(0, 0, cv.width, F.y + pic.host[3] * F.h); g.clip(); }
+    artBlit(g, F, sprPerson(pic.host[2], Math.floor(CT.t * 6), !talking), pic.host[0], pic.host[1] + (talking ? Math.sin(CT.t * 14) * 0.004 : 0), 0.3, true);
+    if (pic.host[3]) g.restore();
+  }
+  if (talking) { const tk = pic.talk; artGlow(g, F.x + (tk[0] + tk[2]) / 2 * F.w, F.y + tk[1] * F.h, F.h * 0.06, '#ffffff', 0.25); }
+  artBlit(g, F, sprPerson(0, 0, true), pic.you[0], pic.you[1], 0.32, false);
+  return true;
+}
+// taps on the illustrated city; returns false to fall back to the classic handler
+function artTap(e) {
+  const cv = UI.cityCv, F = CT.F;
+  if (!artOn() || !F) return false;
+  const pic = CT.inside ? ART_IN[CT.inside] : ART_ST;
+  if (!pic || !artImg(pic.img)) return false;
+  const r = cv.getBoundingClientRect(), k = cv.width / r.width;
+  const nx = ((e.clientX - r.left) * k - F.x) / F.w, ny = ((e.clientY - r.top) * k - F.y) / F.h;
+  const inR = (b) => nx >= b[0] && nx <= b[2] && ny >= b[1] && ny <= b[3];
+  if (CT.inside) {
+    if (inR(pic.door) || (e.clientX - r.left) / r.width < 0.1) { cityAct('out'); return true; }
+    for (const h in pic.hot) if (inR(pic.hot[h])) { cityPoke(CT.inside + '.' + h, e); return true; }
+    cityTalk(); return true;
+  }
+  const feet = ART_ST.feet;
+  if (cityFindReady() && Math.abs(nx - artFindX()) < 0.025 && Math.abs(ny - feet) < 0.06) { cityPick(e); return true; }
+  if (Math.abs(nx - ART_ST.cat) < 0.025 && ny > feet - 0.07 && ny < feet + 0.04) { CT.catT = CT.t; sfx('meow'); cityPoke('st.cat', e, '❤️'); return true; }
+  if (Math.abs(nx - ART_ST.kiosk) < 0.02 && ny > feet - 0.13 && ny < feet + 0.02) { cityPoke('st.kiosk', e, '📰'); return true; }
+  const m = ART_ST.moon; if (Math.hypot(nx - m[0], (ny - m[1]) * F.h / F.w) < m[2]) { cityPoke('st.moon', e, '🌙'); return true; }
+  const npc = (CT.anpcs || []).find((n) => Math.abs(nx - n.x) < 0.02 && ny > feet - 0.12 && ny < feet + 0.02);
+  if (npc) { npc.pause = 2.5; npc.v = -npc.v; cityPoke('st.npc', e, '💬'); return true; }
+  const car = (CT.acars || []).find((c) => Math.abs(nx - c.x) < 0.05 && Math.abs(ny - ART_ST.lanes[c.lane]) < 0.05);
+  if (car) { try { beep(620, 0.09, 'square', 0.05); beep(520, 0.12, 'square', 0.05, 0.12); } catch (x) {} cityPoke('st.car', e, '📯'); return true; }
+  if (ART_ST.lamps.some((lx) => Math.abs(nx - lx) < 0.015) && ny < feet) { CT.flickT = CT.t; sfx('blip'); return true; }
+  for (const id in ART_ST.b) { const b = ART_ST.b[id]; if (nx >= b[0] && nx <= b[1] && ny < feet + 0.05) { artGo(id); return true; } }
+  CT.atx = Math.max(0.01, Math.min(0.99, nx)); CT.aspd = Math.max(0.15, Math.abs(CT.atx - CT.ax) / 1.4); CT.sel = null; CT.street = false;
+  return true;
+}
+function artGo(id) {
+  const b = ART_ST.b[id];
+  if (!b) return;
+  CT.sel = null; CT.street = false;
+  if (CT.inside) { CT.inside = null; CT.say = ''; }
+  CT.atx = (b[0] + b[1]) / 2;
+  CT.aspd = Math.max(0.15, Math.abs(CT.atx - CT.ax) / 1.4);
+  sfx('blip');
+  if (Math.abs(CT.atx - CT.ax) < 0.003) { CT.atx = null; artArrive(); }
+  render(true);
+}
+function artArrive() {
+  const id = Object.keys(ART_ST.b).find((k) => CT.ax >= ART_ST.b[k][0] - 0.005 && CT.ax <= ART_ST.b[k][1] + 0.005);
+  if (!id) return;
+  if (id === 'office') { go('office'); return; }
+  CT.sel = id;
+  // buildings without an illustrated interior yet keep the classic room
+  cityEnter(id);
+  sfx('pop'); haptic('light');
+  render(true);
+  setTimeout(() => { const p = $('#citypanel'); if (p) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 60);
+}
+
+/* ---------- ART 2 sprites: detailed pixel people, cars, kiosk, cat (built once, cached) ---------- */
+const SPR = {};
+// draw a sprite into an offscreen canvas, then add a dark outline around it
+function sprMake(key, w, h, draw) {
+  if (SPR[key]) return SPR[key];
+  const c = document.createElement('canvas'); c.width = w + 2; c.height = h + 2;
+  const g = c.getContext('2d');
+  g.translate(1, 1); draw(g); g.setTransform(1, 0, 0, 1, 0, 0);
+  const d = g.getImageData(0, 0, c.width, c.height), a = d.data, W = c.width, H = c.height, o = new Uint8ClampedArray(a);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4;
+    if (a[i + 3]) continue;
+    const n = (dx, dy) => { const xx = x + dx, yy = y + dy; return xx >= 0 && yy >= 0 && xx < W && yy < H && a[((yy * W + xx) * 4) + 3] > 0; };
+    if (n(1, 0) || n(-1, 0) || n(0, 1) || n(0, -1)) { o[i] = 16; o[i + 1] = 10; o[i + 2] = 34; o[i + 3] = 235; }
+  }
+  g.putImageData(new ImageData(o, W, H), 0, 0);
+  return (SPR[key] = c);
+}
+const PH = { w: 16, h: 34 };
+const LOOK2 = [
+  { skin: '#a8714a', skinD: '#7e4f32', hair: '#1c1220', hairL: '#3a2a40', top: '#2f55e0', topD: '#1e3aa8', topL: '#5a7cff', pants: '#232a4e', pantsD: '#151a33', shoe: '#e8ecff', acc: '#3fd0ff' }, // the player
+  { skin: '#f2cda6', skinD: '#d2a27c', hair: '#c9622a', hairL: '#e8844a', top: '#d0468a', topD: '#9c2e66', topL: '#f070ac', pants: '#2c2c52', pantsD: '#1c1c38', shoe: '#2a2a3a' },
+  { skin: '#c99a70', skinD: '#a07450', hair: '#2a1a10', hairL: '#4a3220', top: '#2e9a5a', topD: '#1f6e40', topL: '#4ccf80', pants: '#3a2c1c', pantsD: '#261c10', shoe: '#e0d0b0' },
+  { skin: '#ecbe96', skinD: '#c89670', hair: '#e8e0d0', hairL: '#ffffff', top: '#7a4ad0', topD: '#5530a0', topL: '#a070ff', pants: '#1c1c2c', pantsD: '#10101c', shoe: '#2a2a3a' },
+  { skin: '#d8a880', skinD: '#b08058', hair: '#3a2a1a', hairL: '#5a4230', top: '#2a2c44', topD: '#1a1c30', topL: '#44486a', pants: '#14141e', pantsD: '#0a0a12', shoe: '#5a3a20', tie: '#ff4d6d' },
+];
+function sprPerson(look, frame, still) {
+  const f = still ? 0 : frame & 3;
+  return sprMake('p' + look + f + (still ? 's' : ''), PH.w, PH.h, (g) => {
+    const L0 = LOOK2[look], P = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+    const sw = [0, 2, 0, -2][f], bob = f % 2 ? -1 : 0;
+    // legs + shoes (walk cycle)
+    P(4 + (sw > 0 ? 1 : 0), 22 + bob, 3, 9, L0.pants); P(4 + (sw > 0 ? 1 : 0), 22 + bob, 1, 9, L0.pantsD);
+    P(9 - (sw > 0 ? 1 : 0), 22 + bob, 3, 9, L0.pants); P(11 - (sw > 0 ? 1 : 0), 22 + bob, 1, 9, L0.pantsD);
+    P(3 + Math.max(0, sw), 31, 5, 2, L0.shoe); P(8 + Math.min(0, sw) + (sw < 0 ? 0 : 1), 31, 5, 2, L0.shoe);
+    // torso with light from the left
+    P(3, 12 + bob, 10, 11, L0.top); P(3, 12 + bob, 2, 11, L0.topL); P(11, 12 + bob, 2, 11, L0.topD); P(3, 21 + bob, 10, 2, L0.topD);
+    P(6, 12 + bob, 4, 2, L0.topD); // collar
+    if (L0.tie) { P(7, 13 + bob, 2, 7, L0.tie); P(7, 12 + bob, 2, 1, '#ffffff'); }
+    if (look === 0) P(7, 15 + bob, 2, 6, L0.topD); // hoodie zip
+    // arms swinging + hands
+    P(1, 13 + bob + (sw > 0 ? 1 : 0), 2, 8, L0.topD); P(13, 13 + bob - (sw > 0 ? 1 : 0), 2, 8, L0.top);
+    P(1, 21 + bob + (sw > 0 ? 1 : 0), 2, 2, L0.skin); P(13, 21 + bob - (sw > 0 ? 1 : 0), 2, 2, L0.skinD);
+    // neck + head
+    P(6, 10 + bob, 4, 2, L0.skinD);
+    P(4, 2 + bob, 8, 9, L0.skin); P(10, 3 + bob, 2, 8, L0.skinD); P(5, 10 + bob, 6, 1, L0.skinD);
+    // hair with a highlight
+    P(3, 1 + bob, 10, 3, L0.hair); P(3, 3 + bob, 2, 4, L0.hair); P(11, 3 + bob, 2, 3, L0.hair); P(5, 1 + bob, 4, 1, L0.hairL);
+    // eyes, cheeks, mouth
+    P(6, 6 + bob, 1, 2, '#0a0a18'); P(9, 6 + bob, 1, 2, '#0a0a18'); P(6, 6 + bob, 1, 1, '#ffffff');
+    P(5, 8 + bob, 1, 1, 'rgba(255,120,120,.5)'); P(10, 8 + bob, 1, 1, 'rgba(255,120,120,.5)'); P(7, 9 + bob, 2, 1, L0.skinD);
+    if (L0.acc) { P(2, 4 + bob, 2, 4, L0.acc); P(12, 4 + bob, 2, 4, L0.acc); P(3, 0 + bob, 10, 1, L0.acc); } // headphones
+  });
+}
+function sprCar(col) {
+  return sprMake('car' + col, 40, 15, (g) => {
+    const P = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+    P(2, 6, 36, 6, col); P(2, 6, 36, 1, 'rgba(255,255,255,.35)'); P(2, 11, 36, 1, 'rgba(0,0,0,.35)');
+    P(10, 1, 18, 5, col); P(12, 2, 6, 4, '#1a2a4a'); P(19, 2, 7, 4, '#1a2a4a'); P(13, 2, 2, 1, '#6a8ac0'); P(20, 2, 2, 1, '#6a8ac0');
+    P(37, 7, 2, 2, '#fff8e0'); P(1, 7, 2, 2, '#ff2a40');
+    for (const wx of [7, 28]) { P(wx, 10, 6, 5, '#0a0a12'); P(wx + 2, 12, 2, 1, '#8a8aa0'); }
+  });
+}
+function sprKiosk(t) {
+  const f = Math.floor(t * 2) % 3;
+  return sprMake('kiosk' + f, 14, 28, (g) => {
+    const P = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+    P(0, 0, 14, 28, '#2a3a9a'); P(0, 0, 2, 28, '#4a5ad0'); P(12, 0, 2, 28, '#1a2470'); P(0, 0, 14, 3, '#3fd0ff');
+    P(2, 5, 9, 12, '#0a1030'); for (let r = 0; r < 3; r++) for (let k = 0; k < 2; k++) P(3 + k * 4, 6 + r * 4, 3, 3, ['#ff4d6d', '#ffd23f', '#2ee66b'][(r + k + f) % 3]);
+    P(3, 20, 8, 3, '#0a0a1e'); P(11, 8, 1, 6, '#ffd23f');
+  });
+}
+function sprCat(up) {
+  return sprMake('cat' + (up ? 1 : 0), 16, 12, (g) => {
+    const P = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+    const y0 = up ? 0 : 3;
+    P(2, y0 + 5, 9, 6 - (up ? 0 : 1), '#ff9a3c'); P(2, y0 + 5, 9, 1, '#ffb866'); P(4, y0 + 7, 1, 3, '#d8742a'); P(7, y0 + 7, 1, 3, '#d8742a');
+    P(10, y0 + 1, 5, 5, '#ff9a3c'); P(10, y0, 1, 1, '#ff9a3c'); P(14, y0, 1, 1, '#ff9a3c'); P(12, y0 + 3, 1, 1, '#0a0a18'); P(14, y0 + 3, 1, 1, '#0a0a18'); P(13, y0 + 4, 1, 1, '#ff6a8a');
+    P(0, y0 + 4, 2, 2, '#ff9a3c'); P(0, y0 + 2, 1, 2, '#ff9a3c');
+  });
+}
+// blit a sprite standing on (nx, ny) of the picture, h = its height as a fraction of the picture
+function artBlit(g, F, spr, nx, ny, hFrac, flip) {
+  const s = (hFrac * F.h) / spr.height, w = spr.width * s, h = spr.height * s;
+  const X = Math.round(F.x + nx * F.w), Y = Math.round(F.y + ny * F.h);
+  g.save(); g.imageSmoothingEnabled = false; g.translate(X, Y); if (flip) g.scale(-1, 1);
+  g.globalAlpha = 0.35; g.fillStyle = '#000'; g.beginPath(); g.ellipse(0, 0, w * 0.42, Math.max(1.5, h * 0.035), 0, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1;
+  g.drawImage(spr, -w / 2, -h, w, h); g.restore();
 }

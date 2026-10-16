@@ -6,6 +6,7 @@
 
 /* ---------- scene <-> screen coordinates ---------- */
 function sceneMap() {
+  if (artOfficeOn()) return artSceneMap();
   const cv = UI.sceneCv;
   if (!cv || !cv.isConnected) return null;
   const r = cv.getBoundingClientRect();
@@ -23,6 +24,7 @@ function sceneMap() {
 }
 const HEAD_DY = 20; // sprite head is ~20 scene px above the seat point
 function spotOf(kind) {
+  if (artOfficeOn()) return artSpot(kind);
   if (kind === 'you') { const a = P(5.1, 5.1, 9); return [a[0], a[1] - HEAD_DY]; }
   if (kind === 'laptop') return P(6.3, 5.4, 16);
   if (kind === 'cat') { const a = P(6.5, 6.1, 13); return [a[0] - 3, a[1] - 3]; }
@@ -83,6 +85,7 @@ function sayBubble(kind, html) {
 /* ---------- bugs: squash them before they eat progress ---------- */
 const BUG_TTL = 10;
 function bugSpot() {
+  if (artOfficeOn()) return artBugSpot();
   if (!S.bug) return null;
   const k = 1 - Math.max(0, S.bug.ttl) / BUG_TTL; // 0 → 1 across the floor
   const lane = S.bug.lane || 0;

@@ -141,6 +141,11 @@ function drawScene(t) {
     const tier = themeTier(S.floors);
     if (UI.sceneTier !== undefined && tier > UI.sceneTier) movedIn(tier);
     UI.sceneTier = tier;
+    if (artOfficeOn()) {
+      artOfficeDraw(UI.sceneCtx, cv, sceneState(), t);
+      if (UI.bloomCtx) UI.bloomCtx.clearRect(0, 0, UI.bloomCv.width, UI.bloomCv.height);
+      return;
+    }
     SCENE.renderHD(sceneState(), t);
     SCENE_OFF.getContext('2d').putImageData(SCENE_IMG, 0, 0);
     const ctx = UI.sceneCtx;
