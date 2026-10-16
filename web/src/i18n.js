@@ -1,5 +1,12 @@
 /* ===== ТЕКСТИ: українська, російська, англійська ===== */
 const DICT = {
+  cl_t: ["Pixel Casino закрито", "Pixel Casino закрыт", "Pixel Casino is closed"],
+  cl_p: ["Проєкт виявився неприбутковим, тому ми його зупиняємо. Дякуємо всім, хто грав!", "Проект оказался неприбыльным, поэтому мы его останавливаем. Спасибо всем, кто играл!", "The project turned out to be unprofitable, so we are shutting it down. Thank you all for playing!"],
+  cl_wd: ["Твої монети нікуди не зникли: виведи залишок у розділі «Вивести».", "Твои монеты никуда не делись: выведи остаток в разделе «Вывести».", "Your coins are safe: cash out your balance in the Withdraw section."],
+  cl_until: ["Вивід працює до {0}.", "Вывод работает до {0}.", "Withdrawals are open until {0}."],
+  cl_off: ["Поповнення і нові ігри вимкнено.", "Пополнения и новые игры отключены.", "Deposits and new games are off."],
+  cl_go: ["Вивести залишок", "Вывести остаток", "Cash out my balance"],
+  e_closed: ["Проєкт закрито: доступний лише вивід", "Проект закрыт: доступен только вывод", "The project is closed: only withdrawals are available"],
   player: ["Гравець", "Игрок", "Player"], online: ["онлайн", "онлайн", "online"], online_n: ["{0} онлайн", "{0} онлайн", "{0} online"],
   n_lobby: ["Лобі", "Лобби", "Lobby"], n_games: ["1 на 1", "1 на 1", "1 vs 1"], n_cards: ["Карти", "Карты", "Cards"], n_wallet: ["Гаманець", "Кошелёк", "Wallet"], n_profile: ["Профіль", "Профиль", "Profile"],
   t_cards: ["Карти", "Карты", "Cards"], t_pvp: ["1 на 1", "1 на 1", "1 vs 1"], t_pvp_full: ["Ігри 1 на 1", "Игры 1 на 1", "1 vs 1 games"], t_jp: ["Джекпот", "Джекпот", "Jackpot"],

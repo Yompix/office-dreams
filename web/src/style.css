@@ -518,3 +518,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 .seat.empty{opacity:.8}
 .seat.empty::before{content:"";width:34px;height:34px;border:2px dashed #ffffff40;border-radius:50%}
 .seat.empty .sn{min-width:0;background:none;box-shadow:none;font-size:11px;color:#ffffff80}
+
+/* ---------- проєкт закрито: лишаються тільки гаманець і профіль ---------- */
+body.closed #nav .nb[data-go="lobby"],body.closed #nav .nb[data-go="games"],body.closed #nav .nb[data-go="cards"]{display:none}
+body.closed #nav{grid-template-columns:repeat(2,1fr)}
+body.closed #bBal .plus{display:none}

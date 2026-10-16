@@ -8,7 +8,8 @@ function renderWallet(opt) {
   if (opt) S.wTab = opt;
   $$("#wSeg button").forEach((b) => b.classList.toggle("on", b.dataset.w === S.wTab));
   const box = $("wBody"), c = S.me && S.me.cfg; if (!c) { box.innerHTML = `<div class="empty">${T("connecting")}</div>`; return; }
-  if (S.wTab === "dep") {
+  if (S.wTab === "dep" && c.closed) { box.innerHTML = closedCard(); }
+  else if (S.wTab === "dep") {
     const M = [["ton", "i-ton", "TON"], ["card", "i-card", T("m_card")]];
     box.innerHTML = `<div class="meth">${M.map(([k, ic, n]) => `<button data-m="${k}" class="${S.wMeth === k ? "on" : ""}"><img src="/a/${ic}.webp" alt="">${n}</button>`).join("")}</div><div id="wDep" style="display:flex;flex-direction:column;gap:12px"></div>`;
     $$(".meth [data-m]", box).forEach((b) => (b.onclick = () => { S.wMeth = b.dataset.m; sfx.click(); renderWallet(); }));
@@ -26,6 +27,16 @@ function renderWallet(opt) {
   } else if (S.wTab === "wd") wdView(box);
   else histView(box);
   box.onclick = (e) => { const b = e.target.closest("[data-cp]"); if (b) copyTxt(b.dataset.cp); };
+}
+function closedCard() {
+  const c = S.me.cfg;
+  return `<div class="card" style="--bc:var(--gold);display:flex;flex-direction:column;gap:10px;text-align:center"><b class="fd" style="font-size:18px">${T("cl_t")}</b><p class="dim">${T("cl_p")}</p><p>${T("cl_wd")}${c.wdUntil ? " " + T("cl_until", esc(c.wdUntil)) : ""}</p><p class="dim" style="font-size:12px">${T("cl_off")}</p><button class="btn gr w" data-go="wallet" data-opt="wd">${T("cl_go")}</button></div>`;
+}
+function showClosed() {
+  document.body.classList.add("closed");
+  if (S.tab !== "wallet" && S.tab !== "profile") go("wallet", "wd");
+  modal(`<h3>${T("cl_t")}</h3><p>${T("cl_p")}</p><p>${T("cl_wd")}${S.me.cfg.wdUntil ? " " + T("cl_until", esc(S.me.cfg.wdUntil)) : ""}</p><div class="btns"><button class="btn gr" id="clGo">${T("cl_go")}</button></div>`);
+  $("clGo").onclick = () => { closeModal(); go("wallet", "wd"); };
 }
 async function buyStars(stars) {
   try {
@@ -57,7 +68,7 @@ async function wdView(box) {
   const c = S.me.cfg, how = S.wdHow || "ton";
   box.innerHTML = `<div class="seg" id="wdHow"><button class="${how === "ton" ? "on" : ""}" data-h="ton">TON</button><button class="${how === "card" ? "on" : ""}" data-h="card">${T("m_card")}</button></div>
   <div class="card" style="display:flex;flex-direction:column;gap:12px">
-   <div class="fld"><i class="coin"></i><input id="wdC" type="number" inputmode="numeric" placeholder="${T("wd_coins", fmt(c.wdMin))}"><button class="btn xs dk" id="wdAll">MAX</button></div>
+   <div class="fld"><i class="coin"></i><input id="wdC" type="number" inputmode="numeric" placeholder="${T("wd_coins", fmt(c.wdMinNow || c.wdMin))}"><button class="btn xs dk" id="wdAll">MAX</button></div>
    ${how === "ton" ? `<div class="fld"><input id="wdA" placeholder="${T("wd_addr")}" autocomplete="off"></div>` : `<div class="seg" id="wdCur"><button class="${(S.cardCur || "USD") === "USD" ? "on" : ""}" data-c="USD">USD</button><button class="${S.cardCur === "EUR" ? "on" : ""}" data-c="EUR">EUR</button></div><div class="fld"><input id="wdA" inputmode="numeric" placeholder="${T("wd_card")}" autocomplete="off"></div>`}
    <div class="kv"><span class="dim">${T("fee")}</span><b id="wdFee">${Math.round(c.wdFee * 100)}% (${T("min")} ${c.wdFeeMin})</b></div>
    <div class="kv"><span class="dim">${T("you_get")}</span><b id="wdGet" class="gold">—</b></div>
@@ -66,7 +77,7 @@ async function wdView(box) {
   $$("#wdCur [data-c]", box).forEach((b) => (b.onclick = () => { S.cardCur = b.dataset.c; wdView(box); }));
   if (how === "card" && !CARD) { try { CARD = await api("/api/card/list"); } catch (e) {} }
   const inp = $("wdC");
-  const prev = () => { const n = Math.floor(Number(inp.value) || 0); if (n < c.wdMin) { $("wdGet").textContent = "—"; return; } const fee = Math.max(c.wdFeeMin, Math.ceil(n * c.wdFee)); $("wdFee").textContent = fmt(fee); const cur = S.cardCur || "USD"; $("wdGet").textContent = how === "ton" ? ((n - fee) / (c.tonOut || c.tonCoins)).toFixed(3) + " TON" : CARD ? (Math.floor(((n - fee) / (CARD.info.out || CARD.info.rates)[cur]) * 100) / 100).toFixed(2) + " " + cur : "…"; };
+  const prev = () => { const n = Math.floor(Number(inp.value) || 0); if (n < (c.wdMinNow || c.wdMin)) { $("wdGet").textContent = "—"; return; } const fee = Math.max(c.wdFeeMin, Math.ceil(n * c.wdFee)); $("wdFee").textContent = fmt(fee); const cur = S.cardCur || "USD"; $("wdGet").textContent = how === "ton" ? ((n - fee) / (c.tonOut || c.tonCoins)).toFixed(3) + " TON" : CARD ? (Math.floor(((n - fee) / (CARD.info.out || CARD.info.rates)[cur]) * 100) / 100).toFixed(2) + " " + cur : "…"; };
   inp.oninput = prev; $("wdAll").onclick = () => { inp.value = S.me.balance; prev(); };
   $("wdGo").onclick = async () => {
     const coins = Math.floor(Number(inp.value) || 0), addr = $("wdA").value.trim(); if (!coins || !addr) { toast(T("fill_all"), "bad"); return; }
@@ -79,7 +90,7 @@ async function wdView(box) {
   };
   try {
     const w = await api("/api/wallet"), need = w.deposited - w.turnover;
-    if (need > 0 && $("wdNote")) $("wdNote").textContent = T("need_turn", fmt(need));
+    if (need > 0 && !c.closed && $("wdNote")) $("wdNote").textContent = T("need_turn", fmt(need));
     const rows = w.withdrawals.map((r) => `<div class="row"><div class="grow"><b>${r.ton} TON</b><small>${esc(r.addr.slice(0, 6))}…${esc(r.addr.slice(-4))} · ${tDate(r.t)}</small></div><b class="st-${r.status}">${T("st_" + r.status)}</b></div>`).concat(CARD ? CARD.wds.map((r) => `<div class="row"><div class="grow"><b>${r.amount} ${r.cur}</b><small>${T("m_card")}</small></div><b class="st-${r.status}">${T("st_" + r.status)}</b></div>`) : []);
     if (rows.length && $("wdList")) $("wdList").innerHTML = `<div class="sec" style="margin:4px 0 10px">${T("my_wd")}</div><div class="tlist">${rows.join("")}</div>`;
   } catch (e) {}
@@ -168,6 +179,7 @@ async function boot() {
   $("hcIco").innerHTML = cardHtml(51) + cardHtml(24);
   ["lcCards", "lcGames", "lcJp"].forEach((id) => ($(id).querySelector("span").textContent = "…"));
   try { await refreshMe(); } catch (e) { errToast(e); }
+  if (S.me && S.me.cfg && S.me.cfg.closed) showClosed();
   wsConnect(); spLoad(); supPoll();
   setInterval(() => { if (!document.hidden) refreshMe().catch(() => {}); }, 60000);
 }

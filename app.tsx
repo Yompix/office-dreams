@@ -15,6 +15,9 @@ const RAKE = Number(env.RAKE || 0.10); // комісія з банку
 const REF_PCT = Number(env.REF_PCT || 0.20); // частка рейку, що йде запрошувачу
 const WD_FEE = Number(env.WD_FEE || 0.05), WD_FEE_MIN = Number(env.WD_FEE_MIN || 50), WD_MIN = Number(env.WD_MIN || 1000);
 const MIN_BET = 10, MAX_BET = 5000;
+// закриття проєкту: CASINO_CLOSED=1 — без поповнень і нових ігор, лише вивід залишків до WD_UNTIL (рррр-мм-дд)
+const CLOSED = env.CASINO_CLOSED === "1"; const WD_UNTIL = String(env.WD_UNTIL || "");
+const WD_MIN_NOW = CLOSED ? Math.min(WD_MIN, WD_FEE_MIN + 50) : WD_MIN;
 const WALLET_MNEMONIC = env.WALLET_MNEMONIC || ""; // гаманець автовиплат (необов'язково)
 const WALLET_VER = (env.WALLET_VERSION || "v5r1").toLowerCase();
 const AUTO_MAX = Number(env.AUTO_PAY_MAX_TON || 5), AUTO_DAY = Number(env.AUTO_PAY_DAY_TON || 30);
@@ -756,17 +759,17 @@ async function onMessage(ws: any, raw: string) {
     switch (m.t) {
       case "sub": d.sub = String(m.sub || ""); if (d.sub === "lobby") send(ws, lobbyView()); else if (d.sub.startsWith("pk:")) { const t = tables.find((x) => "pk:" + x.id === d.sub); if (t) send(ws, { t: "pk", table: tableView(t, d.uid) }); } break;
       case "mx.sub": d.sub = "mx"; send(ws, mxLobbyView()); { const a = mxActive(d.uid); if (a) send(ws, { t: "mx.state", m: mxView(a, d.uid) }); } break;
-      case "mx.create": await mxCreate(ws, m); break;
+      case "mx.create": if (CLOSED) throw new Error("closed"); await mxCreate(ws, m); break;
       case "mx.cancel": { const c = chals.get(Number(m.id)); if (c && c.uid === d.uid) await mxRefundChal(c); break; }
-      case "mx.join": await mxJoin(ws, m); break;
+      case "mx.join": if (CLOSED) throw new Error("closed"); await mxJoin(ws, m); break;
       case "mx.sync": { const a = mxActive(d.uid); if (a) send(ws, { t: "mx.state", m: mxView(a, d.uid) }); break; }
       case "mx.move": await mxMove(ws, m); break;
       case "mx.leave": await mxLeave(d.uid); d.sub = ""; break;
-      case "duel.create": await duelCreate(ws, m); break;
+      case "duel.create": if (CLOSED) throw new Error("closed"); await duelCreate(ws, m); break;
       case "duel.cancel": await duelCancel(ws, m); break;
-      case "duel.join": await duelJoin(ws, m); break;
-      case "jp.bet": await jpBet(ws, m); break;
-      case "pk.sit": await pkSit(ws, m); break;
+      case "duel.join": if (CLOSED) throw new Error("closed"); await duelJoin(ws, m); break;
+      case "jp.bet": if (CLOSED) throw new Error("closed"); await jpBet(ws, m); break;
+      case "pk.sit": if (CLOSED) throw new Error("closed"); await pkSit(ws, m); break;
       case "pk.leave": await pkLeave(d.uid); break;
       case "pk.where": { const f = tableOf(d.uid); if (f) { d.sub = "pk:" + f.t.id; send(ws, { t: "pk", table: tableView(f.t, d.uid), back: true }); } break; }
       case "pk.act": { const f = tableOf(d.uid); if (!f) throw new Error("not_turn"); await act(f.t, f.i, String(m.a), m.to); break; }
@@ -931,6 +934,7 @@ function adsInit() {
   })());
 }
 async function adsCredit(uid: string, net: string) {
+  if (CLOSED) return { error: "closed" };
   await adsInit();
   const u = await getUserRow(uid); if (!u || u.banned) return { error: "gone" };
   const c = await db`select count(*)::int as n, max(at) as last from ad_views where uid = ${uid} and at > now() - interval '1 day'`;
@@ -983,6 +987,7 @@ async function offerCb(url: string, req: Request) {
   const coins = Math.round(Number(q.get("coins") || 0)); const tx = String(q.get("tx") || "").slice(0, 120);
   const st = String(q.get("status") || "1").toLowerCase();
   if (uid === "tg" || !tx || !Number.isFinite(coins) || coins === 0) return new Response("bad", { status: 400 });
+  if (CLOSED) return new Response("1"); // проєкт закрито: монети більше не нараховуються
   if (!(await getUserRow(uid))) return new Response("1"); // невідомий гравець — підтверджуємо, щоб мережа не повторювала
   const back = q.get("back") === "1" || st === "2" || st === "reversed" || st === "rejected" || st === "chargeback" || coins < 0;
   const amt = back ? -Math.abs(coins) : Math.abs(coins);
@@ -1031,7 +1036,7 @@ async function handle(req: Request) {
 
   if (url === "/api/me") return json({
     id: u.id, name: u.name, balance: N(u.balance), ageOk: u.age_ok, supporter: u.supporter, bot: BOT_USER, admin: isAdmin(u.id),
-    cfg: { starCoins: STAR_COINS, tonCoins: TON_IN, tonOut: TON_COINS, rake: RAKE, refPct: REF_PCT, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN, tonAddr: TON_ADDR, comment: "dp" + numId, packs: STAR_PACKS, minBet: MIN_BET, maxBet: MAX_BET },
+    cfg: { starCoins: STAR_COINS, tonCoins: TON_IN, tonOut: TON_COINS, rake: RAKE, refPct: REF_PCT, wdFee: WD_FEE, wdFeeMin: WD_FEE_MIN, wdMin: WD_MIN, tonAddr: TON_ADDR, comment: "dp" + numId, packs: STAR_PACKS, minBet: MIN_BET, maxBet: MAX_BET, closed: CLOSED, wdUntil: WD_UNTIL, wdMinNow: WD_MIN_NOW },
     turnover: N(u.turnover), deposited: N(u.deposited),
   });
   if (url === "/api/age" && req.method === "POST") { await db`update users set age_ok = true where id = ${u.id}`; return json({ ok: true }); }
@@ -1050,6 +1055,7 @@ async function handle(req: Request) {
   }
 
   if (url === "/api/stars/invoice" && req.method === "POST") {
+    if (CLOSED) return err("closed");
     const donate = !!body.donate; const stars = Math.floor(Number(body.stars));
     if (!BOT_TOKEN) return err("no_bot");
     if (!Number.isFinite(stars) || stars < (donate ? 1 : 25) || stars > 10000) return err("bad_amount");
@@ -1069,6 +1075,7 @@ async function handle(req: Request) {
       return json({ card: CARD_NUM, cardFmt: grp4(CARD_NUM), info: cardInfo(), deps: deps.map((r: any) => ({ id: N(r.id), cur: r.cur, amount: N(r.amount), coins: N(r.coins), status: r.status })), wds: wds.map((r: any) => ({ id: N(r.id), cur: r.cur, amount: N(r.amount), status: r.status })) });
     }
     if (url === "/api/card/dep" && req.method === "POST") {
+      if (CLOSED) return err("closed");
       const cur = String(body.cur || ""); const amount = Math.round(Number(body.amount) * 100) / 100;
       if (!CARD_RATE[cur]) return err("bad_cur");
       if (!Number.isFinite(amount) || amount <= 0 || amount > CARD_MAX) return err("bad_amount");
@@ -1090,9 +1097,9 @@ async function handle(req: Request) {
       if (!u.age_ok) return err("age");
       const cur = String(body.cur || ""); const coins = Math.floor(Number(body.coins)); const card = String(body.card || "").replace(/\D/g, "");
       if (!CARD_RATE[cur]) return err("bad_cur");
-      if (!Number.isFinite(coins) || coins < WD_MIN) return err("wd_min", { min: WD_MIN });
+      if (!Number.isFinite(coins) || coins < WD_MIN_NOW) return err("wd_min", { min: WD_MIN_NOW });
       if (card.length < 16 || card.length > 19 || !luhn(card)) return err("bad_card");
-      if (N(u.turnover) < N(u.deposited)) return err("need_turnover", { need: N(u.deposited) - N(u.turnover) });
+      if (!CLOSED && N(u.turnover) < N(u.deposited)) return err("need_turnover", { need: N(u.deposited) - N(u.turnover) });
       const pend = await db`select count(*)::int as c from card_wd where user_id = ${u.id} and status = 'pending'`;
       if (N(pend[0].c) >= 3) return err("too_many");
       const fee = Math.max(WD_FEE_MIN, Math.ceil(coins * WD_FEE)); const amount = Math.floor(((coins - fee) / CARD_RATE[cur]) * 100) / 100;
@@ -1116,9 +1123,9 @@ async function handle(req: Request) {
   if (url === "/api/withdraw" && req.method === "POST") {
     if (!u.age_ok) return err("age");
     const coins = Math.floor(Number(body.coins)); const addr = String(body.addr || "").trim();
-    if (!Number.isFinite(coins) || coins < WD_MIN) return err("wd_min", { min: WD_MIN });
+    if (!Number.isFinite(coins) || coins < WD_MIN_NOW) return err("wd_min", { min: WD_MIN_NOW });
     if (!/^(UQ|EQ|kQ|0Q)[A-Za-z0-9_-]{46}$/.test(addr)) return err("bad_addr");
-    if (N(u.turnover) < N(u.deposited)) return err("need_turnover", { need: N(u.deposited) - N(u.turnover) });
+    if (!CLOSED && N(u.turnover) < N(u.deposited)) return err("need_turnover", { need: N(u.deposited) - N(u.turnover) });
     const pend = await db`select count(*)::int as c from withdrawals where user_id = ${u.id} and status = 'pending'`;
     if (N(pend[0].c) >= 3) return err("too_many");
     const fee = Math.max(WD_FEE_MIN, Math.ceil(coins * WD_FEE)); const ton = (coins - fee) / TON_COINS;
@@ -1219,6 +1226,11 @@ async function onCommand(m: any) {
     const lc = m.from.language_code;
     const rm = /^r(\d{4,15})$/.exec(ref);
     if (rm) { const nm = String(m.from.first_name || m.from.username || "Player").slice(0, 24); await db`insert into users(id, name, lang) values(${from}, ${nm}, ${String(lc || "").slice(0, 5)}) on conflict (id) do nothing`; await setRef(from, "tg" + rm[1], nm); }
+    if (CLOSED) { await tg("sendMessage", { chat_id: chat, text: L3(lc,
+      "🎰 Pixel Casino закрито: проєкт виявився неприбутковим, тому ми його зупиняємо. Дякуємо всім, хто грав!\n\n💰 Твої монети нікуди не зникли: відкрий гру → Гаманець → Вивід і виведи залишок" + (WD_UNTIL ? " до " + WD_UNTIL : "") + ". Поповнення і нові ігри вимкнено. Питання — у техпідтримку в грі.",
+      "🎰 Pixel Casino закрыт: проект оказался неприбыльным, поэтому мы его останавливаем. Спасибо всем, кто играл!\n\n💰 Твои монеты никуда не делись: открой игру → Кошелёк → Вывод и выведи остаток" + (WD_UNTIL ? " до " + WD_UNTIL : "") + ". Пополнения и новые игры отключены. Вопросы — в техподдержку в игре.",
+      "🎰 Pixel Casino is closed: the project turned out to be unprofitable, so we are shutting it down. Thank you all for playing!\n\n💰 Your coins are safe: open the game → Wallet → Withdraw and cash out your balance" + (WD_UNTIL ? " by " + WD_UNTIL : "") + ". Deposits and new games are off. Questions — support in the game."),
+      reply_markup: WEBAPP_URL ? { inline_keyboard: [[{ text: "💰 Вивести / Вывести / Withdraw", web_app: { url: WEBAPP_URL } }]] } : undefined }); return; }
     await tg("sendMessage", { chat_id: chat, text: L3(lc, "🎰 Pixel Casino — онлайн-казино, де ти граєш проти інших гравців: покер, дуелі, джекпот.\nКазино не грає проти тебе, воно бере лише комісію з банку. Лише 18+.", "🎰 Pixel Casino — онлайн-казино, где ты играешь против других игроков: покер, дуэли, джекпот.\nКазино не играет против тебя, оно берёт только комиссию с банка. Только 18+.", "🎰 Pixel Casino — an online casino where you play against other players: poker, duels, jackpot.\nThe casino doesn't play against you, it only takes a commission from the pot. 18+ only."), reply_markup: { inline_keyboard: [[{ text: L3(lc, "▶ ГРАТИ", "▶ ИГРАТЬ", "▶ PLAY"), web_app: { url: WEBAPP_URL + "/" + (ref ? "?ref=" + ref : "") } }], ...(isAdmin(from) ? [[{ text: "🛠 Адмін-панель", web_app: { url: WEBAPP_URL + "/admin" } }]] : [])] } });
     return;
   }
