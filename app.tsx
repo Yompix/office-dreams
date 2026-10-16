@@ -861,7 +861,7 @@ async function supApi(url: string, req: Request, u: any, body: any) {
   }
   const rows = await db`select id, agent, body, media, created from sup_msg where uid = ${u.id} order by id desc limit 60`;
   const seen = N((await db`select seen from sup_seen where uid = ${u.id}`)[0]?.seen || 0);
-  const list = rows.reverse().map((r: any) => ({ id: N(r.id), me: !r.agent, agent: r.agent || "", text: r.body, media: r.media || "", at: new Date(r.created).getTime() }));
+  const list = rows.reverse().map((r: any) => ({ id: N(r.id), me: !r.agent, agent: r.agent ? String(env.SUPPORT_NAME || "Pixel Casino") : "", // гравці не бачать справжнього імені того, хто відповідає text: r.body, media: r.media || "", at: new Date(r.created).getTime() }));
   const top = list.length ? list[list.length - 1].id : 0;
   const unread = list.filter((x: any) => !x.me && x.id > seen).length;
   if (new URL(req.url).searchParams.get("read") === "1" && top > seen) await db`insert into sup_seen(uid, seen) values(${u.id}, ${top}) on conflict (uid) do update set seen = excluded.seen`;
