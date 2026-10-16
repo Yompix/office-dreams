@@ -102,8 +102,10 @@ function makeStatic(cfg) {
       return res.end(gz ? f.gz : f.raw);
     }
     const name = path.basename(p);
-    if (/^[\w.\-]+$/.test(name) && p === '/' + name && MIME[path.extname(name).toLowerCase()]) {
-      const file = path.join(pub, name);
+    // public/ files, plus the illustrated backgrounds in public/art/
+    const sub = p === '/art/' + name ? 'art' : '';
+    if (/^[\w.\-]+$/.test(name) && (p === '/' + name || sub) && MIME[path.extname(name).toLowerCase()]) {
+      const file = path.join(pub, sub, name);
       if (file.startsWith(pub) && fs.existsSync(file)) {
         // images may be loaded by wallets, explorers and DEX sites (the token logo): allow cross-origin use
         const img = /\.(png|jpg|webp|svg)$/i.test(name);

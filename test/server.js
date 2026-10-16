@@ -520,6 +520,9 @@ const AB = require('../server/antibot.js');
     assert.equal(junk.status, 400);
     assert.equal((await httpJson(base, 'GET', '/api/nothing', undefined, P.headers())).status, 404);
     assert.equal((await fetch(base + '/../../etc/passwd')).status, 404);
+    const art = await fetch(base + '/art/cafe.webp'); assert.equal(art.status, 200, 'illustrated backgrounds are served'); assert.equal(art.headers.get('content-type'), 'image/webp');
+    assert.equal((await fetch(base + '/art/../server/config.js')).status, 404);
+    assert.equal((await fetch(base + '/art/sub/cafe.webp')).status, 404);
   });
 
   await test('admin: channel post with a Play button (drafts + publish)', async () => {
