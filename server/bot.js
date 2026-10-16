@@ -111,6 +111,23 @@ function giveawayMsg(ctx, uid, lang, now = Date.now()) {
   if (pm) rows.push(pm.inline_keyboard[0]);
   return { text: lines.join('\n'), markup: rows.length ? { inline_keyboard: rows } : undefined };
 }
+// owner: where the launch fund comes from — every counted payment, newest first, with totals per method
+function fundReport(ctx) {
+  const rows = ctx.db.all("SELECT p.charge_id AS id, p.uid, p.sku, p.stars, p.ts, p.meta, u.name, u.username FROM purchases p LEFT JOIN users u ON u.id=p.uid WHERE p.sku IN ('donate','adentry') ORDER BY p.ts DESC");
+  const tot = { sol: [0, 0], stars: [0, 0] };
+  const e = (v) => String(v == null ? '' : v).replace(/[<>&]/g, '');
+  const lines = rows.map((r) => {
+    let m = null; try { m = r.meta ? JSON.parse(r.meta) : null; } catch (x) {}
+    const sol = String(r.id).startsWith('sol:');
+    const usd = m && m.usd != null ? Number(m.usd) : r.sku === 'donate' ? r.stars * ctx.cfg.starUsd : 0;
+    const k = sol ? 'sol' : 'stars'; tot[k][0] += usd; tot[k][1]++;
+    const what = sol ? `◎ ${(m && m.sol ? Number(m.sol) : 0).toFixed(4)} SOL` : `⭐ ${r.stars || (m && m.stars) || 0}`;
+    const d = new Date(r.ts).toISOString().slice(5, 16).replace('T', ' ');
+    return `${d} · ${r.sku === 'adentry' ? 'верификация' : 'донат'} · ${what} = <b>$${usd.toFixed(2)}</b> · ${e(r.name)}${r.username ? ' @' + e(r.username) : ''}`;
+  });
+  const sum = tot.sol[0] + tot.stars[0];
+  return `💰 <b>Фонд: $${sum.toFixed(2)}</b>\n⭐ Звёзды: $${tot.stars[0].toFixed(2)} (${tot.stars[1]} опл.)\n◎ SOL: $${tot.sol[0].toFixed(2)} (${tot.sol[1]} опл.)\n\n${lines.slice(0, 30).join('\n') || 'Оплат пока нет.'}${lines.length > 30 ? `\n… и ещё ${lines.length - 30}` : ''}`;
+}
 const appUrl = (ctx) => ctx.cfg.publicUrl + '/';
 
 const isOwner = (ctx, id) => (ctx.cfg.adminTgIds || []).includes(id) || (ctx.cfg.devIds || []).includes(Number(id));
@@ -167,6 +184,8 @@ async function handleMessage(ctx, m) {
   } else if (name === 'giveaway' && !(isOwner(ctx, from.id) && arg !== 'me')) {
     const r = giveawayMsg(ctx, from.id, lang);
     await send(ctx, m.chat.id, r.text, r.markup);
+  } else if (name === 'fund' && isOwner(ctx, from.id)) {
+    return send(ctx, m.chat.id, fundReport(ctx));
   } else if ((name === 'stats' || name === 'giveaway') && isOwner(ctx, from.id)) {
     // owner-only commands (ADMIN_TG_IDS or the developer accounts in DEV_IDS)
     if (name === 'stats') {
@@ -321,4 +340,4 @@ function startPolling(ctx) {
   return { stop() { stop = true; } };
 }
 
-module.exports = { giveawayMsg, playMarkup, T, tx, shopTxt, donateTxt, thanksTxt, entryTxt, notifyRefActive, notifyDuel, handleUpdate, notifyReferral, setup, startPolling, send };
+module.exports = { fundReport, giveawayMsg, playMarkup, T, tx, shopTxt, donateTxt, thanksTxt, entryTxt, notifyRefActive, notifyDuel, handleUpdate, notifyReferral, setup, startPolling, send };
