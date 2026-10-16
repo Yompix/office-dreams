@@ -111,6 +111,11 @@ function giveawayMsg(ctx, uid, lang, now = Date.now()) {
   if (pm) rows.push(pm.inline_keyboard[0]);
   return { text: lines.join('\n'), markup: rows.length ? { inline_keyboard: rows } : undefined };
 }
+const THANK_TXT = {
+  en: (n) => `💖 <b>${n ? n + ', t' : 'T'}hank you so much!</b>\n\nYour contribution to the Office Dreams launch fund is the biggest of all — it truly helps the project grow. We really appreciate your support!\n\n— @vtmjs, creator of Office Dreams`,
+  ru: (n) => `💖 <b>${n ? n + ', с' : 'С'}пасибо огромное!</b>\n\nТвой вклад в фонд запуска Office Dreams — самый большой. Это по-настоящему помогает проекту расти. Мы очень ценим твою поддержку!\n\n— @vtmjs, создатель Office Dreams`,
+  uk: (n) => `💖 <b>${n ? n + ', щ' : 'Щ'}иро дякуємо!</b>\n\nТвій внесок у фонд запуску Office Dreams — найбільший. Це по-справжньому допомагає проєкту рости. Ми дуже цінуємо твою підтримку!\n\n— @vtmjs, творець Office Dreams`,
+};
 // owner: where the launch fund comes from — every counted payment, newest first, with totals per method
 function fundReport(ctx) {
   const rows = ctx.db.all("SELECT p.charge_id AS id, p.uid, p.sku, p.stars, p.ts, p.meta, u.name, u.username FROM purchases p LEFT JOIN users u ON u.id=p.uid WHERE p.sku IN ('donate','adentry') ORDER BY p.ts DESC");
@@ -184,6 +189,15 @@ async function handleMessage(ctx, m) {
   } else if (name === 'giveaway' && !(isOwner(ctx, from.id) && arg !== 'me')) {
     const r = giveawayMsg(ctx, from.id, lang);
     await send(ctx, m.chat.id, r.text, r.markup);
+  } else if (name === 'thank' && isOwner(ctx, from.id)) {
+    // owner: /thank @username [own text] — a personal thank-you from the bot, in the player's language
+    const mm = /^@?(\w{3,32})\s*([\s\S]*)$/.exec(arg);
+    if (!mm) return send(ctx, m.chat.id, 'Формат: /thank @username [свой текст]');
+    const u = ctx.db.get('SELECT id, name, lang FROM users WHERE lower(username)=lower(?) AND deleted=0', mm[1]);
+    if (!u) return send(ctx, m.chat.id, `Игрок @${esc(mm[1])} не найден (он должен хотя бы раз открыть игру).`);
+    const text = mm[2].trim() ? esc(mm[2].trim()) + '\n\n— @vtmjs, Office Dreams' : (THANK_TXT[u.lang] || THANK_TXT.en)(esc(u.name || ''));
+    const r = await send(ctx, u.id, text, playMarkup(ctx, u.lang || 'en')).catch((e) => ({ ok: false, description: String(e && e.message) }));
+    return send(ctx, m.chat.id, r && r.ok ? `✅ Отправлено @${esc(mm[1])}:\n\n${text}` : `⚠️ Не удалось отправить @${esc(mm[1])} (возможно, бот заблокирован): ${esc((r && r.description) || '')}`);
   } else if (name === 'fund' && isOwner(ctx, from.id)) {
     return send(ctx, m.chat.id, fundReport(ctx));
   } else if ((name === 'stats' || name === 'giveaway') && isOwner(ctx, from.id)) {
