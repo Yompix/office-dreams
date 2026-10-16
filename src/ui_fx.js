@@ -51,6 +51,7 @@ function onSceneTap(e) {
   if (near('you', 16) || near('laptop', 12)) return onWorkDown(e);
 }
 function petCat(e) {
+  UI.catPetT = performance.now() / 1000;
   sfx('meow');
   haptic('light');
   for (let i = 0; i < 4; i++) setTimeout(() => floatText(e.clientX + (Math.random() * 30 - 15), e.clientY - 10, '❤', 'heart'), i * 90);

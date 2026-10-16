@@ -607,13 +607,13 @@ const ART_ST = {
 const ART_IN = {
   cafe: { img: 'cafe', door: [0.12, 0.38, 0.26, 0.8], you: [0.2, 0.95], host: null, talk: [0.43, 0.44, 0.51, 0.65],
     hot: { menu: [0.36, 0.19, 0.61, 0.43], machine: [0.51, 0.5, 0.67, 0.69], cat: [0.74, 0.58, 0.89, 0.72], cup: [0.87, 0.83, 0.93, 0.91] }, steam: [0.6, 0.45], cat: [0.81, 0.6] },
-  academy: { img: 'academy', door: [0, 0.3, 0.06, 0.8], you: [0.1, 0.97], host: [0.55, 0.8, 3], talk: [0.5, 0.48, 0.6, 0.82],
+  academy: { img: 'academy', door: [0, 0.3, 0.06, 0.8], you: [0.1, 0.97], host: [0.55, 0.8, 3], who: 'prod', talk: [0.5, 0.48, 0.6, 0.82],
     hot: { board: [0.14, 0.2, 0.52, 0.65], shelf: [0.54, 0.22, 0.71, 0.69], desk: [0.08, 0.7, 0.9, 1] } },
-  deals: { img: 'deals', door: [0, 0.3, 0.06, 0.9], you: [0.16, 0.98], host: [0.74, 0.9, 4], talk: [0.69, 0.5, 0.79, 0.9],
+  deals: { img: 'deals', door: [0, 0.3, 0.06, 0.9], you: [0.16, 0.98], host: [0.74, 0.9, 4], who: 'mkt', talk: [0.69, 0.5, 0.79, 0.9],
     hot: { board: [0.39, 0.07, 0.79, 0.54], window: [0.11, 0.12, 0.31, 0.58], laptop: [0.41, 0.49, 0.51, 0.62] } },
-  games: { img: 'games', door: [0, 0.3, 0.06, 0.9], you: [0.12, 0.98], host: [0.74, 0.74, 2, 0.67], talk: [0.69, 0.4, 0.79, 0.68],
+  games: { img: 'games', door: [0, 0.3, 0.06, 0.9], you: [0.12, 0.98], host: [0.74, 0.74, 2, 0.67], who: 'des', talk: [0.69, 0.4, 0.79, 0.68],
     hot: { shelf: [0.17, 0.3, 0.87, 0.67] } },
-  mall: { img: 'mall', door: [0, 0.3, 0.05, 0.9], you: [0.1, 0.98], host: [0.47, 0.84, 3], talk: [0.43, 0.5, 0.51, 0.84],
+  mall: { img: 'mall', door: [0, 0.3, 0.05, 0.9], you: [0.1, 0.98], host: [0.47, 0.84, 3], who: 'cm', talk: [0.43, 0.5, 0.51, 0.84],
     hot: { items: [0.07, 0.5, 0.88, 0.8] } },
   arena: { img: 'arena', door: [0, 0.3, 0.05, 0.75], you: [0.1, 0.99], host: null, talk: [0.45, 0.55, 0.55, 0.75],
     hot: { screen: [0.31, 0.22, 0.69, 0.6], crowd: [0, 0.76, 1, 1] } },
@@ -669,21 +669,25 @@ function artDraw(now) {
     artSprite(g, F, bx, by, u * 1.3, () => { px(g, -3, -1, 7, 10, '#0a0a1e'); px(g, -2, 0, 5, 8, '#ffd23f'); px(g, 0, 1, 1, 4, '#0a0a1e'); px(g, 0, 6, 1, 1, '#0a0a1e'); });
   }
   // the kiosk, the cat, today's find
-  artGlow(g, F.x + ART_ST.kiosk * F.w, F.y + (feet - 0.06) * F.h, F.h * 0.08, '#3fd0ff', 0.18);
-  artBlit(g, F, sprKiosk(t), ART_ST.kiosk, feet, 0.13);
+  artGlow(g, F.x + ART_ST.kiosk * F.w, F.y + (feet - 0.07) * F.h, F.h * 0.1, '#ff3fd0', 0.16 + 0.05 * Math.sin(t * 2));
+  { const vim = artImg('vending'); if (vim) artPerson(g, F, vim, ART_ST.kiosk, feet, 0.16, false, 0); else artBlit(g, F, sprKiosk(t), ART_ST.kiosk, feet, 0.13); }
   { const pet = CT.t - CT.catT < 2.2, tail = Math.round(Math.sin(t * (pet ? 9 : 2)) * 1.5);
-    artBlit(g, F, sprCat(pet || tail > 0 && pet), ART_ST.cat, feet, 0.05);
+    const cim = artImg(pet ? 'cat_stand' : 'cat_sit');
+    if (cim) artPerson(g, F, cim, ART_ST.cat, feet, pet ? 0.065 : 0.07, pet && Math.sin(CT.t * 3) > 0, 0); else artBlit(g, F, sprCat(pet), ART_ST.cat, feet, 0.05);
     if (pet) for (let k = 0; k < 3; k++) { const hy = feet - 0.07 - (((CT.t - CT.catT) * 0.05 + k * 0.025) % 0.08); g.fillStyle = '#ff4d6d'; g.fillRect(F.x + (ART_ST.cat + (k - 1) * 0.008) * F.w, F.y + hy * F.h, u * 2, u * 2); } }
   if (cityFindReady()) { const fx = artFindX(), tw = Math.sin(t * 6) > 0;
     artGlow(g, F.x + fx * F.w, F.y + (feet + 0.012) * F.h, F.h * 0.03, '#ffd23f', 0.5);
-    artSprite(g, F, fx, feet + 0.012, u, () => { px(g, -1, -1, 3, 3, '#ffd23f'); px(g, 0, 0, 1, 1, '#fff8c0'); if (tw) { px(g, 0, -4, 1, 2, '#fff8c0'); px(g, -4, 0, 2, 1, '#fff8c0'); px(g, 3, 0, 2, 1, '#fff8c0'); } }); }
+    const coin = artImg('coin');
+    if (coin) { g.save(); g.globalAlpha = 0.85 + 0.15 * Math.sin(t * 6); artPerson(g, F, coin, fx, feet + 0.015 + Math.sin(t * 3) * 0.004, 0.04, Math.sin(t * 2) > 0.9, 0); g.restore(); }
+    else artSprite(g, F, fx, feet + 0.012, u, () => { px(g, -1, -1, 3, 3, '#ffd23f'); px(g, 0, 0, 1, 1, '#fff8c0'); if (tw) { px(g, 0, -4, 1, 2, '#fff8c0'); px(g, -4, 0, 2, 1, '#fff8c0'); px(g, 3, 0, 2, 1, '#fff8c0'); } }); }
   // cars with headlights on the wet road
   if (!CT.acars) CT.acars = [{ x: 0.1, v: 0.09, col: '#ff4d6d', lane: 0 }, { x: 0.7, v: -0.12, col: '#3fd0ff', lane: 1 }];
   for (const c of CT.acars) {
     c.x += c.v * dt; if (c.x > 1.15) c.x = -0.15; if (c.x < -0.15) c.x = 1.15;
     const cx = F.x + c.x * F.w, cy = F.y + ART_ST.lanes[c.lane] * F.h;
     artGlow(g, cx + (c.v > 0 ? 1 : -1) * F.h * 0.12, cy, F.h * 0.09, '#fff2c0', 0.25);
-    artBlit(g, F, sprCar(c.col), c.x, ART_ST.lanes[c.lane], 0.075, c.v < 0);
+    const carim = artImg(c.lane ? 'car_cyan' : 'car_red');
+    if (carim) artPerson(g, F, carim, c.x, ART_ST.lanes[c.lane] + 0.03, 0.085, c.v < 0, 0); else artBlit(g, F, sprCar(c.col), c.x, ART_ST.lanes[c.lane], 0.075, c.v < 0);
     artGlow(g, cx - (c.v > 0 ? 1 : -1) * F.h * 0.07, cy - F.h * 0.03, F.h * 0.025, '#ff2a40', 0.35);
   }
   // passers-by and the player
@@ -691,10 +695,22 @@ function artDraw(now) {
   for (const n of CT.anpcs) {
     if (n.pause > 0) n.pause -= dt; else { n.x += n.v * dt; if (Math.random() < dt * 0.08) n.pause = 1 + Math.random() * 2; }
     if (n.x > 1.03) n.x = -0.03; if (n.x < -0.03) n.x = 1.03;
-    artBlit(g, F, sprPerson(1 + n.look, Math.floor(CT.t * 7 + n.look), n.pause > 0), n.x, feet, 0.13, n.v < 0);
+    const nim = artImg('stand_' + ['qa', 'cm', 'art'][n.look]);
+    const step = n.pause > 0 ? 0 : Math.abs(Math.sin(CT.t * 9 + n.look)) * -F.h * 0.006;
+    if (nim) artPerson(g, F, nim, n.x, feet, 0.14, n.v > 0, step, n.pause > 0 ? 0 : Math.sin(CT.t * 9 + n.look) * 0.03);
+    else artBlit(g, F, sprPerson(1 + n.look, Math.floor(CT.t * 7 + n.look), n.pause > 0), n.x, feet, 0.13, n.v < 0);
   }
-  artBlit(g, F, sprPerson(0, Math.floor(CT.walk), CT.atx === null), CT.ax, feet + 0.006, 0.135, CT.dir < 0);
+  { const yim = artImg('stand_you'), moving = CT.atx !== null;
+    if (yim) artPerson(g, F, yim, CT.ax, feet + 0.006, 0.145, CT.dir > 0, moving ? Math.abs(Math.sin(CT.walk * 1.2)) * -F.h * 0.008 : 0, moving ? Math.sin(CT.walk * 1.2) * 0.04 : 0);
+    else artBlit(g, F, sprPerson(0, Math.floor(CT.walk), CT.atx === null), CT.ax, feet + 0.006, 0.135, CT.dir < 0); }
   return true;
+}
+// an AI-drawn character (picture with alpha) standing on (nx, ny); h = height as a fraction of the picture
+function artPerson(g, F, im, nx, ny, hFrac, flip, bob, tilt) {
+  const h = hFrac * F.h, w = h * im.naturalWidth / im.naturalHeight, X = F.x + nx * F.w, Y = F.y + ny * F.h;
+  g.save(); g.globalAlpha = 0.35; g.fillStyle = '#000'; g.beginPath(); g.ellipse(X, Y, w * 0.4, h * 0.035, 0, 0, Math.PI * 2); g.fill(); g.restore();
+  g.save(); g.imageSmoothingEnabled = true; g.translate(X, Y + (bob || 0)); if (tilt) g.rotate(tilt); if (flip) g.scale(-1, 1);
+  g.drawImage(im, -w / 2, -h, w, h); g.restore();
 }
 function artFindX() { const n = cityS().fndN || 0; return 0.06 + ((n * 0.397 + 0.13) % 0.88); }
 function artInside(g, cv, im, pic, t) {
@@ -711,11 +727,13 @@ function artInside(g, cv, im, pic, t) {
   if (pic.host) {
     // behind a counter: only what is above its top edge (pic.host[3]) is visible
     if (pic.host[3]) { g.save(); g.beginPath(); g.rect(0, 0, cv.width, F.y + pic.host[3] * F.h); g.clip(); }
-    artBlit(g, F, sprPerson(pic.host[2], Math.floor(CT.t * 6), !talking), pic.host[0], pic.host[1] + (talking ? Math.sin(CT.t * 14) * 0.004 : 0), 0.3, true);
+    const him = pic.who && artImg('stand_' + pic.who);
+    if (him) artPerson(g, F, him, pic.host[0], pic.host[1], 0.34, false, talking ? Math.sin(CT.t * 14) * F.h * 0.004 : Math.sin(t * 1.6) * F.h * 0.002);
+    else artBlit(g, F, sprPerson(pic.host[2], Math.floor(CT.t * 6), !talking), pic.host[0], pic.host[1] + (talking ? Math.sin(CT.t * 14) * 0.004 : 0), 0.3, true);
     if (pic.host[3]) g.restore();
   }
   if (talking) { const tk = pic.talk; artGlow(g, F.x + (tk[0] + tk[2]) / 2 * F.w, F.y + tk[1] * F.h, F.h * 0.06, '#ffffff', 0.25); }
-  artBlit(g, F, sprPerson(0, 0, true), pic.you[0], pic.you[1], 0.32, false);
+  { const yim = artImg('stand_you'); if (yim) artPerson(g, F, yim, pic.you[0], pic.you[1], 0.36, true, Math.sin(t * 1.8) * F.h * 0.002); else artBlit(g, F, sprPerson(0, 0, true), pic.you[0], pic.you[1], 0.32, false); }
   return true;
 }
 // taps on the illustrated city; returns false to fall back to the classic handler

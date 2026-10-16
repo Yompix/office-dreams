@@ -9,13 +9,18 @@
 const ART_OF = { img: 'office_empty', W: 1456, H: 1088 };
 const ART_K = ART_OF.W / 188; // picture px per virtual scene unit (the classic camera is 188 units wide)
 // desks: chair (feet/seat point), monitor centre — picture pixels
+// seat = where the chair wheels touch the floor; flip = the person faces left (towards a monitor on the left)
 const ART_DESKS = [
-  { seat: [540, 800], mon: [607, 675] }, // front-left: the player
-  { seat: [705, 515], mon: [610, 370] },
-  { seat: [1088, 595], mon: [1190, 450] },
-  { seat: [1186, 890], mon: [1090, 755] },
+  { seat: [705, 520], mon: [610, 370], flip: true },
+  { seat: [1090, 602], mon: [1190, 450], flip: false },
+  { seat: [538, 812], mon: [607, 675], flip: false },
+  { seat: [1188, 900], mon: [1090, 755], flip: true },
 ];
-const ART_STANDS = [[860, 660], [985, 745], [262, 680], [1300, 700], [905, 905]];
+const ART_HERO = [842, 700]; // the boss stands in the middle of the room
+const ART_STANDS = [[985, 760], [262, 690], [1300, 712], [905, 930], [700, 640]];
+// AI-drawn characters (cut out of generated sprite sheets): seat_<role>.webp and stand_<role|you>.webp
+const ART_H = { seat: 0.13, stand: 0.165 };
+function artChar(kind, role) { return artImg(kind + '_' + role); }
 const ART_CAT = [392, 562];
 const ART_SIGN = [292, 183];
 const ART_LAMPS = [[386, 370], [1030, 345], [698, 742], [1236, 945], [175, 560]];
@@ -57,12 +62,12 @@ function sprStand(role, f, still) {
 }
 // who sits where: the player at the front desk, the first three hires at the other desks, the rest stand
 function artPlaces() {
-  const out = { you: { seat: true, x: ART_DESKS[0].seat[0], y: ART_DESKS[0].seat[1], desk: 0 } };
-  let d = 1, s = 0;
+  const out = { you: { seat: false, x: ART_HERO[0], y: ART_HERO[1], hero: true } };
+  let d = 0, s = 0;
   for (const r of ROLES) {
     if (!S.staff[r] || S.staff[r].lvl <= 0) continue;
-    if (d < ART_DESKS.length) { out[r] = { seat: true, x: ART_DESKS[d].seat[0], y: ART_DESKS[d].seat[1], desk: d }; d++; }
-    else if (s < ART_STANDS.length) { out[r] = { seat: false, x: ART_STANDS[s][0], y: ART_STANDS[s][1] }; s++; }
+    if (d < ART_DESKS.length) { const D = ART_DESKS[d]; out[r] = { seat: true, x: D.seat[0], y: D.seat[1], desk: d, flip: D.flip }; d++; }
+    else if (s < ART_STANDS.length) { out[r] = { seat: false, x: ART_STANDS[s][0], y: ART_STANDS[s][1], flip: s % 2 === 1 }; s++; }
   }
   return out;
 }
@@ -87,10 +92,10 @@ function artSceneMap() {
 // head position of someone (virtual scene units), for ideas, bubbles and taps
 function artSpot(kind) {
   if (kind === 'cat') return [ART_CAT[0] / ART_K, (ART_CAT[1] - 30) / ART_K];
-  if (kind === 'laptop') return [ART_DESKS[0].mon[0] / ART_K, ART_DESKS[0].mon[1] / ART_K];
+  if (kind === 'laptop') return [ART_HERO[0] / ART_K, (ART_HERO[1] - 0.08 * ART_OF.H) / ART_K];
   const p = artPlaces()[kind];
   if (!p) return null;
-  const head = p.seat ? 0.075 : 0.13;
+  const head = p.seat ? ART_H.seat * 0.82 : ART_H.stand * 0.86;
   return [p.x / ART_K, (p.y - head * ART_OF.H) / ART_K];
 }
 function artBugSpot() {
@@ -120,16 +125,29 @@ function artOfficeDraw(ctx, cv, st, t) {
     ctx.save(); ctx.imageSmoothingEnabled = false; ctx.translate(Math.round(X(x)), Math.round(Y(y))); if (flip) ctx.scale(-1, 1);
     ctx.drawImage(spr, -w / 2, -h, w, h); ctx.restore();
   };
+  // an AI-drawn character: soft shadow, then the picture; seated people type (quick bob), standing ones breathe
+  const person = (im, x, y, hFrac, flip, bob, sx) => {
+    const h = hFrac * F.h * (1 + (sx || 0)), w = h * im.naturalWidth / im.naturalHeight;
+    ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(X(x), Y(y), w * 0.42, h * 0.05, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.translate(X(x), Y(y) + bob); if (flip) ctx.scale(-1, 1);
+    ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore();
+  };
   for (const p of list) {
+    const im = artChar(p.seat ? 'seat' : 'stand', p.k);
     if (p.seat) {
-      const typing = working && (p.k === 'you' ? st.tapFlash > 0 || Math.sin(t * 2 + p.desk) > 0.3 : true);
-      blit(sprSeat(p.k, typing ? Math.floor(t * 8 + p.desk) & 1 : 0), p.x, p.y, 0.1);
+      const typing = working && Math.sin(t * 1.3 + p.desk * 2) > -0.4;
+      const bob = typing ? (Math.floor(t * 9 + p.desk) % 2) * F.h * 0.002 : Math.sin(t * 1.6 + p.desk) * F.h * 0.0015;
+      if (im) person(im, p.x, p.y, ART_H.seat, p.flip, bob);
+      else blit(sprSeat(p.k, 0), p.x, p.y, 0.1);
     } else {
-      const sway = Math.sin(t * 0.6 + p.x) > 0.6;
-      ctx.save(); ctx.globalAlpha = 0.3; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(X(p.x), Y(p.y), F.h * 0.025, F.h * 0.008, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-      blit(sprStand(p.k, 0, true), p.x, p.y, 0.15, sway);
+      const breathe = Math.sin(t * 1.8 + p.x) * 0.006;
+      const tap = p.hero && st.tapFlash > 0 ? -F.h * 0.006 : 0;
+      if (im) person(im, p.x, p.y, ART_H.stand, p.flip, tap, breathe);
+      else blit(sprStand(p.k, 0, true), p.x, p.y, 0.15, p.flip);
     }
   }
   // the cat on the beanbag
-  blit(sprCat(false), ART_CAT[0], ART_CAT[1], 0.045, Math.sin(t * 0.3) > 0.7);
+  const petted = t - (UI.catPetT || -9) < 2.5, cim = artImg(petted ? 'cat_sit' : 'cat_sleep');
+  if (cim) person(cim, ART_CAT[0], ART_CAT[1] + 6, petted ? 0.075 : 0.05, false, petted ? 0 : Math.sin(t * 1.2) * F.h * 0.0012);
+  else blit(sprCat(false), ART_CAT[0], ART_CAT[1], 0.045, Math.sin(t * 0.3) > 0.7);
 }
