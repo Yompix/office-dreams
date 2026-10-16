@@ -1030,6 +1030,7 @@ function splash(text, err) {
   sp.classList.toggle('err', !!err);
 }
 async function boot() {
+  artOn();
   if (TG) {
     try {
       TG.ready();

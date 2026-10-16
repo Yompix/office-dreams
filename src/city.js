@@ -588,6 +588,7 @@ function artOn() {
       if (q === '1' || sp === 'art1') lsSet('od2_art2', '');
     } catch (e) {}
     ART.on = lsGet('od2_art2') === '1';
+    try { document.body.classList.toggle('art2', ART.on); } catch (e) {} // the art skin in style.css hangs off body.art2
   }
   return ART.on;
 }
