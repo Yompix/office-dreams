@@ -219,6 +219,28 @@ async function main() {
   await ev(page, 'netSync()');
   await sleep(1500);
 
+  // illustrated office (art mode): people, things and the boss are all tappable
+  await ev(page, "(lsSet('od2_art2', '1'), ART.on = null, artOn(), artImg('office_empty'), 1)");
+  waited = 0;
+  while (!(await ev(page, 'artOfficeOn()')) && waited < 8000) { await sleep(250); waited += 250; }
+  ok(await ev(page, 'artOfficeOn()'), 'art office picture loaded');
+  await sleep(400);
+  const artTap = async (px, py) => {
+    const c = await ev(page, `(()=>{const m=sceneMap();const c=m.toCss(${px}/ART_K, ${py}/ART_K);return [m.r.left+c[0], m.r.top+c[1]]})()`);
+    await page.mouse.click(c[0], c[1]);
+    await sleep(350);
+  };
+  await artTap(292, 183);
+  ok(await ev(page, 'artFound().has("neon")'), 'art office: the neon sign reacts and counts as a secret');
+  ok(!!(await page.$('.scene .say')), 'art office: a thing shows a bubble');
+  await shot(page, '07g_art_office');
+  const taps0 = await ev(page, 'S.stats.taps');
+  const hero = await ev(page, 'artPlaces().you');
+  await artTap(hero.x, hero.y - 90);
+  ok((await ev(page, 'S.stats.taps')) > taps0, 'art office: tapping the boss works');
+  await ev(page, "(lsSet('od2_art2', ''), ART.on = null, artOn(), 1)");
+  await sleep(300);
+
   // release modal look (purely visual, local)
   await ev(page, 'showRelease({game:{name:"Neon Run",genre:"plat",tier:"mini",score:8.7,total:4200},repGain:2.3,gemGain:0})');
   await sleep(900);

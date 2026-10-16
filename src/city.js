@@ -630,10 +630,25 @@ function artSize(cv) {
   if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
 }
 function artSprite(g, F, nx, ny, u, fn) { g.save(); g.translate(Math.round(F.x + nx * F.w), Math.round(F.y + ny * F.h)); g.scale(u, u); fn(); g.restore(); }
-function artGlow(g, x, y, r, col, a) {
-  const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)');
-  g.globalCompositeOperation = 'lighter'; g.globalAlpha = a; g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+// soft light: a radial gradient baked once per colour, then stretched (cheaper than a new gradient every frame)
+const ART_GLOW = {};
+function glowSpr(col) {
+  let c = ART_GLOW[col];
+  if (!c) {
+    c = ART_GLOW[col] = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  }
+  return c;
 }
+function artGlow(g, x, y, r, col, a, op) {
+  const sm = g.imageSmoothingEnabled;
+  g.imageSmoothingEnabled = true; g.globalCompositeOperation = op || 'lighter'; g.globalAlpha = Math.max(0, Math.min(1, a));
+  g.drawImage(glowSpr(col), x - r, y - r, r * 2, r * 2);
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.imageSmoothingEnabled = sm;
+}
+// the opposite: a soft dark spot (a lamp switched off)
+function artShade(g, x, y, r, a) { artGlow(g, x, y, r, '#000000', a, 'source-over'); }
 function artDraw(now) {
   const cv = UI.cityCv, g = UI.cityCtx;
   const pic = CT.inside ? ART_IN[CT.inside] : ART_ST;

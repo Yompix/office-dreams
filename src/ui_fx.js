@@ -44,6 +44,7 @@ function onSceneTap(e) {
   const near = (k, rad) => { const p = spotOf(k); return p && Math.hypot(p[0] - x, p[1] - y) <= rad; };
   if (S.idea && near(S.idea.role, 16)) return grabIdea();
   if (S.bug) { const b = bugSpot(); if (b && Math.hypot(b[0] - x, b[1] - y) <= 14) return squash(); }
+  if (artOfficeOn()) return artOfficeTap(e, x * ART_K, y * ART_K);
   if (near('cat', 9)) return petCat(e);
   for (const r of ROLES) {
     if (near(r, 15)) return S.staff[r].lvl > 0 ? talk(r) : (UI.sel = r, go('studio', 'team'));
@@ -66,11 +67,16 @@ function talk(role) {
   haptic('light');
 }
 function sayBubble(kind, html) {
+  const p = spotOf(kind);
+  if (p) sayAt(p[0], p[1], html);
+}
+// a speech bubble above a scene point (kept inside the scene box)
+function sayAt(x, y, html) {
   const box = $('.scene .scene-fx');
   const m = sceneMap();
   if (!box || !m) return;
-  const p = spotOf(kind);
-  const [cx, cy] = m.toCss(p[0], p[1] - 6);
+  let [cx, cy] = m.toCss(x, y - 6);
+  cx = Math.max(90, Math.min(m.r.width - 90, cx));
   box.querySelectorAll('.say').forEach((n) => n.remove());
   const el = document.createElement('div');
   el.className = 'say';
@@ -78,6 +84,8 @@ function sayBubble(kind, html) {
   el.style.left = cx + 'px';
   el.style.top = cy + 'px';
   box.appendChild(el);
+  // no room above (a thing near the top of the picture): show it below the point instead
+  if (cy - el.offsetHeight < 6) { el.classList.add('dn'); el.style.top = cy + 26 + 'px'; }
   setTimeout(() => el.classList.add('out'), 2300);
   setTimeout(() => el.remove(), 2700);
 }

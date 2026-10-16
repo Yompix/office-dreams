@@ -666,6 +666,10 @@ button.cell:active { transform: scale(0.94); }
 .say b { color: #4a2fb0; }
 .say.out { opacity: 0; transform: translate(-50%, -120%); }
 @keyframes sayin { from { transform: translate(-50%, -80%) scale(0.6); opacity: 0; } }
+.say.dn { transform: translate(-50%, 0); animation-name: saydn; }
+.say.dn::after { bottom: auto; top: -5px; }
+.say.dn.out { transform: translate(-50%, 20%); }
+@keyframes saydn { from { transform: translate(-50%, -20%) scale(0.6); opacity: 0; } }
 .flt.heart { color: #ff4f9a; font-size: 18px; text-shadow: 0 0 8px rgba(255, 79, 154, 0.9); }
 .fly { position: fixed; z-index: 66; pointer-events: none; font-size: 16px; color: var(--yel); filter: drop-shadow(0 0 6px rgba(255, 210, 63, 0.9)); }
 .fly.spark-fly { color: var(--cy2); filter: drop-shadow(0 0 6px rgba(63, 208, 255, 0.9)); }
