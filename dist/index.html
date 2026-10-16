@@ -681,6 +681,10 @@ button.cell:active { transform: scale(0.94); }
 .say b { color: #4a2fb0; }
 .say.out { opacity: 0; transform: translate(-50%, -120%); }
 @keyframes sayin { from { transform: translate(-50%, -80%) scale(0.6); opacity: 0; } }
+.say.dn { transform: translate(-50%, 0); animation-name: saydn; }
+.say.dn::after { bottom: auto; top: -5px; }
+.say.dn.out { transform: translate(-50%, 20%); }
+@keyframes saydn { from { transform: translate(-50%, -20%) scale(0.6); opacity: 0; } }
 .flt.heart { color: #ff4f9a; font-size: 18px; text-shadow: 0 0 8px rgba(255, 79, 154, 0.9); }
 .fly { position: fixed; z-index: 66; pointer-events: none; font-size: 16px; color: var(--yel); filter: drop-shadow(0 0 6px rgba(255, 210, 63, 0.9)); }
 .fly.spark-fly { color: var(--cy2); filter: drop-shadow(0 0 6px rgba(63, 208, 255, 0.9)); }
@@ -2832,9 +2836,33 @@ LANGS.en = {
   "city.found": "City secrets: {n}/{N} — tap everything you see: the cat, the kiosk, people, things inside buildings",
   "city.found_new": "🔍 Secret found! {n}/{N}",
   "city.found_all": "🏆 You found every secret in the city!",
+  "of.neon_1": "The neon sign flickers in a new colour ✨",
+  "of.neon_2": "The studio sign shines brightest when the team is in a good mood",
+  "of.rack_1": "The server hums: your progress saves by itself, you can close the game any time ☁️",
+  "of.rack_2": "The lights are blinking… the server is nervous about your release",
+  "of.window_1": "A shooting star! Make a wish for a hit 🌠",
+  "of.window_2": "The city never sleeps. Tap «City» to visit the café, the academy and the arena 🌃",
+  "of.art_1": "The painting «Release Mountain». The summit is your first hit ⛰️",
+  "of.art_2": "Signed on the frame: «The studio artist, day one»",
+  "of.plant_1": "Watered! The plant looks happy 🌱",
+  "of.plant_2": "Plants need a break, and so does your team: keep an eye on the mood",
+  "of.books_1": "«Game Design for Dummies», read to pieces 📚",
+  "of.books_2": "«How to Survive Crunch». The bookmark is on the chapter «Rest»",
+  "of.books_3": "A tip from the book: upgrades in «Level up» make every game faster",
+  "of.pc_1": "The build is compiling… 99%… 99%… 99%… 😅",
+  "of.pc_2": "A draft of the next game is open on the screen",
+  "of.rug_1": "This rug remembers every morning stand-up",
+  "of.stairs_1": "The stairs lead to new floors. You open them in the «Empire» tab ⬆️",
+  "of.lamp_on": "Light on 💡",
+  "of.lamp_off": "Light off. Cosier 🌙",
+  "of.desk_free": "A free desk. Hire someone and work will start here",
+  "of.found_new": "🔍 Office secret found! {n}/{N}",
+  "of.found_all": "🏆 You found every secret in the office!",
+  "of.found": "Office secrets: {n}/{N}. Tap the things in the office: the sign, the server, the windows, plants, lamps",
   "city.find_cash": "Found {cash} on the street! ✨",
   "city.find_gem": "Found a gem on the street! 💎",
   "tut.secrets_new": "✨ New: you can tap everything in the city! Pet the cat, try the kiosk, passers-by, cars and things inside buildings. Collect every city secret — and sometimes something shiny lies on the sidewalk: pick it up 💰",
+  "tut.office_new": "✨ New: everything in the office can be tapped! The neon sign, the server, the windows, lamps (switch them on and off), plants, books, the stairs. Tap a free desk to hire someone. Find all 10 office secrets",
   "city.hint": "City timers keep running while you are away. Come back later: the coffee will be ready again and the course will be over.",
   "city.go": "Go to the city",
   "city.go_s": "Coffee shop, academy, contracts, game store",
@@ -3708,9 +3736,33 @@ LANGS.ru = {
   "city.found": "Секреты города: {n}/{N} — нажимай на всё, что видишь: кота, автомат, прохожих, предметы в зданиях",
   "city.found_new": "🔍 Секрет найден! {n}/{N}",
   "city.found_all": "🏆 Ты нашёл все секреты города!",
+  "of.neon_1": "Неон мигнул новым цветом ✨",
+  "of.neon_2": "Вывеска студии светится ярче всего, когда у команды хорошее настроение",
+  "of.rack_1": "Сервер гудит: прогресс сохраняется сам, игру можно закрыть в любой момент ☁️",
+  "of.rack_2": "Мигают лампочки… сервер переживает за твой релиз",
+  "of.window_1": "Падающая звезда! Загадай хит 🌠",
+  "of.window_2": "Город не спит. Нажми «Город», там кафе, академия и арена 🌃",
+  "of.art_1": "Картина «Гора релиза». Вершина — твой первый хит ⛰️",
+  "of.art_2": "Подпись на раме: «Художник студии, первый день»",
+  "of.plant_1": "Полито! Растение довольно 🌱",
+  "of.plant_2": "Растениям нужен отдых, команде тоже: следи за настроением",
+  "of.books_1": "«Геймдизайн для чайников», зачитана до дыр 📚",
+  "of.books_2": "«Как пережить кранч». Закладка на главе «Отдых»",
+  "of.books_3": "Совет из книги: улучшения в «Прокачке» ускоряют каждую игру",
+  "of.pc_1": "Билд собирается… 99%… 99%… 99%… 😅",
+  "of.pc_2": "На экране открыт черновик следующей игры",
+  "of.rug_1": "Этот ковёр помнит все утренние планёрки",
+  "of.stairs_1": "Лестница ведёт на новые этажи. Их открывают во вкладке «Империя» ⬆️",
+  "of.lamp_on": "Свет включён 💡",
+  "of.lamp_off": "Свет выключен. Так уютнее 🌙",
+  "of.desk_free": "Свободный стол. Найми сотрудника, и здесь закипит работа",
+  "of.found_new": "🔍 Секрет офиса найден! {n}/{N}",
+  "of.found_all": "🏆 Ты нашёл все секреты офиса!",
+  "of.found": "Секреты офиса: {n}/{N}. Нажимай на вещи в офисе: вывеску, сервер, окна, растения, лампы",
   "city.find_cash": "Нашёл на улице {cash}! ✨",
   "city.find_gem": "Нашёл на улице кристалл! 💎",
   "tut.secrets_new": "✨ Новинка: в городе можно трогать всё! Погладь кота, нажми на автомат, прохожих, машины и предметы в зданиях. Собери все секреты города, а на тротуаре иногда лежит что-то блестящее — подбирай 💰",
+  "tut.office_new": "✨ Новинка: в офисе можно нажимать на всё! Вывеску, сервер, окна, лампы (включай и выключай), растения, книги, лестницу. Нажми на свободный стол, чтобы нанять сотрудника. Найди все 10 секретов офиса",
   "city.hint": "Таймеры города идут, даже когда ты не в игре. Загляни позже — кофе снова будет готов, а курс закончится.",
   "city.go": "Выйти в город",
   "city.go_s": "Кофейня, академия, заказы, магазин игр",
@@ -4584,9 +4636,33 @@ LANGS.uk = {
   "city.found": "Секрети міста: {n}/{N} — натискай на все, що бачиш: кота, автомат, перехожих, речі в будівлях",
   "city.found_new": "🔍 Секрет знайдено! {n}/{N}",
   "city.found_all": "🏆 Ти знайшов усі секрети міста!",
+  "of.neon_1": "Неон блимнув новим кольором ✨",
+  "of.neon_2": "Вивіска студії світиться найяскравіше, коли в команди гарний настрій",
+  "of.rack_1": "Сервер гуде: прогрес зберігається сам, гру можна закрити будь-коли ☁️",
+  "of.rack_2": "Блимають лампочки… сервер хвилюється за твій реліз",
+  "of.window_1": "Падаюча зірка! Загадай хіт 🌠",
+  "of.window_2": "Місто не спить. Натисни «Місто», там кафе, академія та арена 🌃",
+  "of.art_1": "Картина «Гора релізу». Вершина — твій перший хіт ⛰️",
+  "of.art_2": "Підпис на рамі: «Художник студії, перший день»",
+  "of.plant_1": "Полито! Рослина задоволена 🌱",
+  "of.plant_2": "Рослинам потрібен відпочинок, команді теж: стеж за настроєм",
+  "of.books_1": "«Геймдизайн для чайників», зачитана до дірок 📚",
+  "of.books_2": "«Як пережити кранч». Закладка на розділі «Відпочинок»",
+  "of.books_3": "Порада з книги: покращення в «Прокачці» прискорюють кожну гру",
+  "of.pc_1": "Білд збирається… 99%… 99%… 99%… 😅",
+  "of.pc_2": "На екрані відкрита чернетка наступної гри",
+  "of.rug_1": "Цей килим пам’ятає всі ранкові планірки",
+  "of.stairs_1": "Сходи ведуть на нові поверхи. Їх відкривають у вкладці «Імперія» ⬆️",
+  "of.lamp_on": "Світло ввімкнено 💡",
+  "of.lamp_off": "Світло вимкнено. Так затишніше 🌙",
+  "of.desk_free": "Вільний стіл. Найми співробітника, і тут закипить робота",
+  "of.found_new": "🔍 Секрет офісу знайдено! {n}/{N}",
+  "of.found_all": "🏆 Ти знайшов усі секрети офісу!",
+  "of.found": "Секрети офісу: {n}/{N}. Натискай на речі в офісі: вивіску, сервер, вікна, рослини, лампи",
   "city.find_cash": "Знайшов на вулиці {cash}! ✨",
   "city.find_gem": "Знайшов на вулиці кристал! 💎",
   "tut.secrets_new": "✨ Новинка: у місті можна торкатися всього! Погладь кота, натисни на автомат, перехожих, машини й речі в будівлях. Збери всі секрети міста, а на тротуарі іноді лежить щось блискуче — підбирай 💰",
+  "tut.office_new": "✨ Новинка: в офісі можна натискати на все! Вивіску, сервер, вікна, лампи (вмикай і вимикай), рослини, книги, сходи. Натисни на вільний стіл, щоб найняти співробітника. Знайди всі 10 секретів офісу",
   "city.hint": "Таймери міста йдуть, навіть коли ти не в грі. Зазирни пізніше — кава знову буде готова, а курс закінчиться.",
   "city.go": "Вийти в місто",
   "city.go_s": "Кав’ярня, академія, замовлення, магазин ігор",
@@ -10396,6 +10472,7 @@ function onSceneTap(e) {
   const near = (k, rad) => { const p = spotOf(k); return p && Math.hypot(p[0] - x, p[1] - y) <= rad; };
   if (S.idea && near(S.idea.role, 16)) return grabIdea();
   if (S.bug) { const b = bugSpot(); if (b && Math.hypot(b[0] - x, b[1] - y) <= 14) return squash(); }
+  if (artOfficeOn()) return artOfficeTap(e, x * ART_K, y * ART_K);
   if (near('cat', 9)) return petCat(e);
   for (const r of ROLES) {
     if (near(r, 15)) return S.staff[r].lvl > 0 ? talk(r) : (UI.sel = r, go('studio', 'team'));
@@ -10418,11 +10495,16 @@ function talk(role) {
   haptic('light');
 }
 function sayBubble(kind, html) {
+  const p = spotOf(kind);
+  if (p) sayAt(p[0], p[1], html);
+}
+// a speech bubble above a scene point (kept inside the scene box)
+function sayAt(x, y, html) {
   const box = $('.scene .scene-fx');
   const m = sceneMap();
   if (!box || !m) return;
-  const p = spotOf(kind);
-  const [cx, cy] = m.toCss(p[0], p[1] - 6);
+  let [cx, cy] = m.toCss(x, y - 6);
+  cx = Math.max(90, Math.min(m.r.width - 90, cx));
   box.querySelectorAll('.say').forEach((n) => n.remove());
   const el = document.createElement('div');
   el.className = 'say';
@@ -10430,6 +10512,8 @@ function sayBubble(kind, html) {
   el.style.left = cx + 'px';
   el.style.top = cy + 'px';
   box.appendChild(el);
+  // no room above (a thing near the top of the picture): show it below the point instead
+  if (cy - el.offsetHeight < 6) { el.classList.add('dn'); el.style.top = cy + 26 + 'px'; }
   setTimeout(() => el.classList.add('out'), 2300);
   setTimeout(() => el.remove(), 2700);
 }
@@ -10660,6 +10744,7 @@ const TIPS = [
   { id: 'studio', k: 'tut.studio_new', tab: ['office'], target: '.op-studio', act: 'studio', when: () => S.stats.taps >= 15 && !studioName() },
   { id: 'city', k: 'tut.city_new', tab: ['office'], target: '.citybn', act: 'cityopen', when: () => S.stats.taps >= 15 },
   { id: 'secrets', k: 'tut.secrets_new', tab: ['city'], target: '.ct-scene', act: '', when: () => true },
+  { id: 'office', k: 'tut.office_new', tab: ['office'], target: '.scene', act: '', when: () => artOfficeOn() && S.stats.taps >= 5 },
   { id: 'gw', k: 'tut.gw_new', tab: ['drop', 'home'], target: '#gwcard', act: '', when: () => gwOn() },
   { id: 'reno', k: 'tut.reno_new', tab: ['empire'], target: '.floor .reno', act: '', when: () => renoStars(S) === 0 },
 ];
@@ -11851,10 +11936,25 @@ function artSize(cv) {
   if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
 }
 function artSprite(g, F, nx, ny, u, fn) { g.save(); g.translate(Math.round(F.x + nx * F.w), Math.round(F.y + ny * F.h)); g.scale(u, u); fn(); g.restore(); }
-function artGlow(g, x, y, r, col, a) {
-  const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)');
-  g.globalCompositeOperation = 'lighter'; g.globalAlpha = a; g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+// soft light: a radial gradient baked once per colour, then stretched (cheaper than a new gradient every frame)
+const ART_GLOW = {};
+function glowSpr(col) {
+  let c = ART_GLOW[col];
+  if (!c) {
+    c = ART_GLOW[col] = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  }
+  return c;
 }
+function artGlow(g, x, y, r, col, a, op) {
+  const sm = g.imageSmoothingEnabled;
+  g.imageSmoothingEnabled = true; g.globalCompositeOperation = op || 'lighter'; g.globalAlpha = Math.max(0, Math.min(1, a));
+  g.drawImage(glowSpr(col), x - r, y - r, r * 2, r * 2);
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.imageSmoothingEnabled = sm;
+}
+// the opposite: a soft dark spot (a lamp switched off)
+function artShade(g, x, y, r, a) { artGlow(g, x, y, r, '#000000', a, 'source-over'); }
 function artDraw(now) {
   const cv = UI.cityCv, g = UI.cityCtx;
   const pic = CT.inside ? ART_IN[CT.inside] : ART_ST;
@@ -12124,7 +12224,27 @@ const ART_H = { seat: 0.13, stand: 0.165 };
 function artChar(kind, role) { return artImg(kind + '_' + role); }
 const ART_CAT = [392, 562];
 const ART_SIGN = [292, 183];
-const ART_LAMPS = [[386, 370], [1030, 345], [698, 742], [1236, 945], [175, 560]];
+const ART_LAMPS = [[386, 370], [1030, 345], [727, 730], [1253, 950], [270, 588], [687, 340], [1067, 427], [1213, 713], [91, 340]];
+// things to tap in the picture (picture px, radius). Each one reacts; the first tap on each kind is an office secret
+// (cosmetic, kept on this device only, like the city secrets)
+const ART_HOT = [
+  { k: 'neon', x: 292, y: 183, r: 95 }, { k: 'rack', x: 146, y: 467, r: 85 }, { k: 'pc', x: 735, y: 353, r: 35, sy: 250 },
+  { k: 'window', x: 1020, y: 230, r: 120 }, { k: 'window', x: 1360, y: 360, r: 100 },
+  { k: 'art', x: 542, y: 218, r: 80 }, { k: 'art', x: 657, y: 195, r: 55 }, { k: 'art', x: 1178, y: 280, r: 55 },
+  { k: 'books', x: 338, y: 465, r: 65 }, { k: 'books', x: 950, y: 380, r: 60 }, { k: 'books', x: 1300, y: 990, r: 80 },
+  { k: 'plant', x: 780, y: 280, r: 65 }, { k: 'plant', x: 1390, y: 770, r: 70 }, { k: 'plant', x: 150, y: 860, r: 70 }, { k: 'plant', x: 810, y: 990, r: 70 }, { k: 'plant', x: 40, y: 550, r: 50 },
+  { k: 'stairs', x: 290, y: 975, r: 90 }, { k: 'rug', x: 900, y: 665, r: 110 },
+];
+const ART_SECRETS = ['neon', 'rack', 'pc', 'window', 'art', 'books', 'plant', 'lamp', 'stairs', 'rug'];
+const ART_X = { neon: 2, rack: 2, pc: 2, window: 2, art: 2, books: 3, plant: 2, stairs: 1, rug: 1 }; // variants of of.<k>_<n>
+const ART_ICO = { neon: '✨', rack: '☁️', pc: '💻', window: '🌠', art: '🖼️', books: '📚', plant: '💧', lamp: '💡', stairs: '⬆️', rug: '🧶' };
+const ART_NEON = [['#ff3fd0', '#3fd0ff'], ['#ffd23f', '#ff4d6d'], ['#5dff9c', '#3fd0ff'], ['#a06aff', '#ff3fd0']];
+// what is going on right now (performance.now() seconds of the last tap on each thing)
+const AFX = { neon: -9, neonC: 0, rack: -9, pc: -9, star: -9, starAt: null, spark: -9, sparkAt: null, drops: -9, dropAt: null, dust: -9, dustAt: null, lampOff: {}, found: null };
+function artFound() {
+  if (!AFX.found) { try { AFX.found = new Set(JSON.parse(lsGet('od2_office_found') || '[]')); } catch (e) { AFX.found = new Set(); } }
+  return AFX.found;
+}
 function artOfficeOn() { return artOn() && !!artImg(ART_OF.img); }
 // role colours for the team sprites
 const ROLE_LOOK = {
@@ -12215,10 +12335,16 @@ function artOfficeDraw(ctx, cv, st, t) {
   ctx.drawImage(im, F.x, F.y, F.w, F.h);
   const working = st.working;
   // living light: the neon sign, desk lamps, monitors (brighter while the team works)
-  artGlow(ctx, X(ART_SIGN[0]), Y(ART_SIGN[1]), F.h * 0.16, Math.sin(t * 1.3) > 0 ? '#ff3fd0' : '#3fd0ff', 0.12 + 0.06 * Math.sin(t * 3));
-  ART_LAMPS.forEach((l, i) => artGlow(ctx, X(l[0]), Y(l[1]), F.h * 0.07, '#ffc070', 0.16 + 0.04 * Math.sin(t * 5 + i * 1.7)));
+  const pal = ART_NEON[AFX.neonC], flick = t - AFX.neon < 1.2;
+  artGlow(ctx, X(ART_SIGN[0]), Y(ART_SIGN[1]), F.h * 0.16, Math.sin(t * 1.3) > 0 ? pal[0] : pal[1], flick ? (Math.sin(t * 57) > 0 ? 0.5 : 0.04) : 0.12 + 0.06 * Math.sin(t * 3));
+  if (AFX.neonC) artGlow(ctx, X(ART_SIGN[0]), Y(ART_SIGN[1]), F.h * 0.09, pal[0], 0.22);
+  ART_LAMPS.forEach((l, i) => {
+    if (AFX.lampOff[i]) artShade(ctx, X(l[0]), Y(l[1]), F.h * 0.1, 0.6);
+    else artGlow(ctx, X(l[0]), Y(l[1]), F.h * 0.07, '#ffc070', 0.16 + 0.04 * Math.sin(t * 5 + i * 1.7));
+  });
   ART_DESKS.forEach((d, i) => artGlow(ctx, X(d.mon[0]), Y(d.mon[1]), F.h * 0.1, '#3fd0ff', (working ? 0.16 : 0.07) + (working ? 0.06 * Math.sin(t * 9 + i * 2) : 0)));
   if (st.turbo || st.hype) artGlow(ctx, F.x + F.w / 2, F.y + F.h / 2, F.h * 0.7, st.turbo ? '#ff4d6d' : '#ffd23f', 0.06 + 0.04 * Math.sin(t * 6));
+  artOfficeFx(ctx, F, s, X, Y, t);
   // the team, back to front
   const places = artPlaces(), list = Object.keys(places).map((k) => Object.assign({ k }, places[k])).sort((a, b) => a.y - b.y);
   const blit = (spr, x, y, hFrac, flip) => {
@@ -12251,6 +12377,115 @@ function artOfficeDraw(ctx, cv, st, t) {
   const petted = t - (UI.catPetT || -9) < 2.5, cim = artImg(petted ? 'cat_sit' : 'cat_sleep');
   if (cim) person(cim, ART_CAT[0], ART_CAT[1] + 6, petted ? 0.075 : 0.05, false, petted ? 0 : Math.sin(t * 1.2) * F.h * 0.0012);
   else blit(sprCat(false), ART_CAT[0], ART_CAT[1], 0.045, Math.sin(t * 0.3) > 0.7);
+}
+// the little reactions to taps: blinking server, a shooting star, sparkles, water drops, dust, the build bar
+function artOfficeFx(ctx, F, s, X, Y, t) {
+  const d = (k) => t - AFX[k];
+  if (d('rack') < 3) {
+    const tick = Math.floor(t * 12), cols = ['#3fd0ff', '#5dff9c', '#ff3fd0', '#ffd23f'];
+    artGlow(ctx, X(146), Y(470), F.h * 0.14, '#3fd0ff', 0.25 * (1 - d('rack') / 3));
+    for (let j = 0; j < 28; j++) {
+      if ((j * 73 + tick * 31) % 100 > 55) continue;
+      ctx.fillStyle = cols[(j + tick) % 4];
+      ctx.fillRect(X(98 + (j % 4) * 28), Y(372 + Math.floor(j / 4) * 31), 9 * s, 4 * s);
+    }
+  }
+  if (d('pc') < 3) {
+    const k = Math.min(0.99, d('pc') / 1.4), x = X(690), y = Y(292), w = 90 * s, h = 12 * s;
+    ctx.fillStyle = 'rgba(8,10,30,0.85)'; ctx.fillRect(x - 2 * s, y - 2 * s, w + 4 * s, h + 4 * s);
+    ctx.fillStyle = '#3fd0ff'; ctx.fillRect(x, y, w * k, h);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold ' + Math.max(8, Math.round(11 * s)) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText(Math.floor(k * 100) + '%', x + w / 2, y - 3 * s); ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+  }
+  if (d('star') < 1.4 && AFX.starAt) {
+    const h = AFX.starAt, k = d('star') / 1.4, x0 = h.x - h.r * 0.75, y0 = h.y - h.r * 0.8, x1 = h.x + h.r * 0.7, y1 = h.y + h.r * 0.1;
+    const hx = x0 + (x1 - x0) * k, hy = y0 + (y1 - y0) * k, tx = hx - (x1 - x0) * 0.35, ty = hy - (y1 - y0) * 0.35;
+    ctx.save(); ctx.beginPath(); ctx.rect(X(h.x - h.r), Y(h.y - h.r), 2 * h.r * s, 2 * h.r * s); ctx.clip();
+    const gr = ctx.createLinearGradient(X(tx), Y(ty), X(hx), Y(hy)); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(255,255,255,0.95)');
+    ctx.strokeStyle = gr; ctx.lineWidth = Math.max(1.5, 4 * s); ctx.lineCap = 'round'; ctx.globalAlpha = 1 - k * 0.6;
+    ctx.beginPath(); ctx.moveTo(X(tx), Y(ty)); ctx.lineTo(X(hx), Y(hy)); ctx.stroke(); ctx.restore();
+    artGlow(ctx, X(hx), Y(hy), F.h * 0.025, '#ffffff', 0.8 * (1 - k));
+  }
+  if (d('spark') < 1.6 && AFX.sparkAt) {
+    const h = AFX.sparkAt, k = d('spark') / 1.6;
+    ctx.fillStyle = '#fff8c0';
+    for (let j = 0; j < 7; j++) {
+      const a = j * 0.9 + 0.4, z = Math.max(0, Math.sin((k * 3 + j * 0.37) * Math.PI)) * 7 * s * (1 - k * 0.5);
+      const x = X(h.x + Math.cos(a) * h.r * 0.85), y = Y(h.y + Math.sin(a) * h.r * 0.85);
+      ctx.fillRect(x - z, y - z * 0.2, z * 2, z * 0.4); ctx.fillRect(x - z * 0.2, y - z, z * 0.4, z * 2);
+    }
+  }
+  if (d('drops') < 1.3 && AFX.dropAt) {
+    const h = AFX.dropAt;
+    ctx.fillStyle = '#7ae0ff';
+    for (let j = 0; j < 7; j++) {
+      const k = d('drops') / 1.3 - j * 0.06;
+      if (k < 0 || k > 1) continue;
+      ctx.globalAlpha = 1 - k; ctx.beginPath();
+      ctx.ellipse(X(h.x + (j - 3) * h.r * 0.18), Y(h.y - h.r * 0.9 + k * h.r * 1.2), 3 * s, 5 * s, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  if (d('dust') < 1 && AFX.dustAt) {
+    const h = AFX.dustAt, k = d('dust');
+    ctx.fillStyle = '#c8c0e0';
+    for (let j = 0; j < 6; j++) {
+      const a = j * 1.05; ctx.globalAlpha = 0.45 * (1 - k); ctx.beginPath();
+      ctx.arc(X(h.x + Math.cos(a) * h.r * 0.5 * (0.4 + k)), Y(h.y + h.r * 0.2 + Math.sin(a) * h.r * 0.18 * (0.4 + k)), (6 + 10 * k) * s, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+// a tap on the illustrated office (picture px): people first, then lamps, then things, then the desks
+function artOfficeTap(e, px, py) {
+  if (Math.hypot(px - ART_CAT[0], py - (ART_CAT[1] - 25)) < 75) return petCat(e);
+  const P = artPlaces();
+  let best = null;
+  for (const k in P) {
+    const p = P[k], im = artChar(p.seat ? 'seat' : 'stand', k), h = (p.seat ? ART_H.seat : ART_H.stand) * ART_OF.H;
+    const w = h * (im ? im.naturalWidth / im.naturalHeight : p.seat ? 0.8 : 0.45);
+    if (Math.abs(px - p.x) < w / 2 + 14 && py < p.y + 18 && py > p.y - h - 14) {
+      const dd = Math.hypot(px - p.x, py - (p.y - h / 2));
+      if (!best || dd < best.d) best = { k, d: dd };
+    }
+  }
+  if (best) return best.k === 'you' ? onWorkDown(e) : talk(best.k);
+  for (let i = 0; i < ART_LAMPS.length; i++) if (Math.hypot(px - ART_LAMPS[i][0], py - ART_LAMPS[i][1]) < 34) return artPoke('lamp', e, { x: ART_LAMPS[i][0], y: ART_LAMPS[i][1], r: 30, i });
+  // a desk: its monitor or chair → whoever works there, or "hire someone" when it is free
+  for (let i = 0; i < ART_DESKS.length; i++) {
+    const D = ART_DESKS[i];
+    if (Math.hypot(px - D.mon[0], py - D.mon[1]) > 75 && Math.hypot(px - D.seat[0], py - D.seat[1] + 50) > 70) continue;
+    const who = Object.keys(P).find((k) => P[k].desk === i);
+    if (who) return talk(who);
+    toast(L('of.desk_free')); sfx('blip'); haptic('light');
+    UI.sel = ROLES.find((r) => !(S.staff[r].lvl > 0)) || UI.sel;
+    return go('studio', 'team');
+  }
+  let hit = null;
+  for (const h of ART_HOT) { const dd = Math.hypot(px - h.x, py - h.y) / h.r; if (dd < 1 && (!hit || dd < hit.d)) hit = { h, d: dd }; }
+  if (hit) return artPoke(hit.h.k, e, hit.h);
+}
+function artPoke(k, e, h) {
+  const t = performance.now() / 1000;
+  let line;
+  if (k === 'lamp') { const off = (AFX.lampOff[h.i] = !AFX.lampOff[h.i]); line = L(off ? 'of.lamp_off' : 'of.lamp_on'); sfx('blip'); }
+  else { line = L('of.' + k + '_' + (1 + Math.floor(Math.random() * (ART_X[k] || 1)))); sfx(k === 'neon' ? 'blip' : 'pop'); }
+  if (k === 'neon') { AFX.neon = t; AFX.neonC = (AFX.neonC + 1) % ART_NEON.length; }
+  else if (k === 'rack' || k === 'pc') AFX[k] = t;
+  else if (k === 'window') { AFX.star = t; AFX.starAt = h; }
+  else if (k === 'art') { AFX.spark = t; AFX.sparkAt = h; }
+  else if (k === 'plant') { AFX.drops = t; AFX.dropAt = h; }
+  else if (k === 'rug' || k === 'books' || k === 'stairs') { AFX.dust = t; AFX.dustAt = h; }
+  haptic('light');
+  if (e && e.clientX) floatText(e.clientX, e.clientY - 10, ART_ICO[k] || '✨', 'gold');
+  sayAt(h.x / ART_K, (h.sy || h.y - h.r * 0.55) / ART_K, esc(line));
+  const f = artFound();
+  if (!f.has(k) && ART_SECRETS.includes(k)) {
+    f.add(k); lsSet('od2_office_found', JSON.stringify([...f]));
+    const n = ART_SECRETS.filter((x) => f.has(x)).length;
+    if (n === ART_SECRETS.length) { toast(L('of.found_all'), 'good'); confetti(80); sfx('up'); }
+    else toast(L('of.found_new', { n, N: ART_SECRETS.length }), 'good');
+  }
 }
 
 /* ---- src/ui_main.js ---- */
