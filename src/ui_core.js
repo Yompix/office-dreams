@@ -58,14 +58,18 @@ const portrait = (kind, mood) => artFace(kind, mood) || ((AI_PORTRAITS.has(kind)
   : portraitPx(kind, mood));
 // Art 2: the face of the drawn character (the same person as in the illustrated office), cut from the standing sprite;
 // '' until the sprite has loaded (the page is redrawn then) or when art mode is off
-const ART_FACES = new Set(['you', 'prog', 'des', 'art', 'mkt', 'qa', 'snd', 'prod', 'cm']);
+const ART_FACES = new Set(['you', 'prog', 'des', 'art', 'mkt', 'qa', 'snd', 'prod', 'cm', 'boss', 'inv', 'npc', 'streamer']);
+// people from the events are drawn characters too (npc_<name>.webp); the streamer is Art 2 only
+const ART_FACE_IMG = { boss: 'npc_boss', inv: 'npc_investor', npc: 'npc_journalist', streamer: 'npc_streamer' };
+const ART_EV_FACE = { blogger: 'streamer', fan: 'streamer' };
+const evFace = (id) => (artOn() && ART_EV_FACE[id]) || EV_FACE[id] || 'npc';
 function artFace(kind, mood) {
   if (!ART_FACES.has(kind) || !artOn()) return '';
   const m = mood >= 60 ? 2 : mood >= 35 ? 1 : 0, key = 'af:' + kind + ':' + m;
   if (!imgCache[key]) {
-    const im = artImg('stand_' + kind);
+    const src = ART_FACE_IMG[kind] || 'stand_' + kind, im = artImg(src);
     if (!im) {
-      const el = ART.imgs['stand_' + kind];
+      const el = ART.imgs[src];
       if (el && !el.odFace) { el.odFace = 1; el.addEventListener('load', () => { clearTimeout(UI.faceT); UI.faceT = setTimeout(() => render(true), 80); }); }
       return '';
     }

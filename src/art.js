@@ -41,9 +41,9 @@ const ART_NEON = [['#ff3fd0', '#3fd0ff'], ['#ffd23f', '#ff4d6d'], ['#5dff9c', '#
 // things bought in the Mall show up in the room: a picture (base point in picture px, height as a fraction of the picture)
 // or a light; tapping them reacts, an empty spot hints where to buy
 const ART_ITEMS = {
-  coffee: { img: 'item_coffee', x: 985, y: 338, h: 0.07, r: 50 },
+  coffee: { img: 'item_coffee', x: 460, y: 520, h: 0.13, r: 60 },
   lounge: { img: 'item_sofa', x: 900, y: 525, h: 0.095, r: 95 },
-  lamp: { x: 1012, y: 520, r: 45 },
+  lamp: { img: 'item_flamp', x: 1000, y: 540, h: 0.21, r: 70, flip: true },
 };
 // what is going on right now (performance.now() seconds of the last tap on each thing)
 const AFX = { steam: -9, neon: -9, neonC: 0, rack: -9, pc: -9, star: -9, starAt: null, spark: -9, sparkAt: null, drops: -9, dropAt: null, dust: -9, dustAt: null, lampOff: {}, found: null };
@@ -208,12 +208,13 @@ function artItems(ctx, F, s, X, Y, t) {
     if (!im) return;
     const h = o.h * F.h, w = h * im.naturalWidth / im.naturalHeight;
     ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(X(o.x), Y(o.y), w * 0.45, h * 0.07, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-    ctx.drawImage(im, X(o.x) - w / 2, Y(o.y) - h, w, h);
+    ctx.save(); ctx.translate(X(o.x), Y(o.y)); if (o.flip) ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore();
+    return { w, h };
   };
   if (it.lounge) pic('lounge');
   if (it.coffee) {
     pic('coffee');
-    const o = ART_ITEMS.coffee, burst = t - AFX.steam < 2, sx = X(o.x - 8), sy = Y(o.y - o.h * ART_OF.H * 0.85);
+    const o = ART_ITEMS.coffee, burst = t - AFX.steam < 2, sx = X(o.x - 30), sy = Y(o.y - o.h * ART_OF.H * 0.62);
     ctx.fillStyle = '#ffffff';
     for (let i = 0; i < (burst ? 10 : 3); i++) {
       const k = ((t * (burst ? 30 : 9)) + i * 11) % 50;
@@ -221,20 +222,15 @@ function artItems(ctx, F, s, X, Y, t) {
       ctx.fillRect(sx + Math.sin(i * 2.1 + k * 0.12) * (2 + k / 4) * s, sy - k * s * 1.2, 5 * s, 5 * s);
     }
     ctx.globalAlpha = 1;
-    artGlow(ctx, X(o.x), Y(o.y - 40), F.h * 0.04, '#3fd0ff', 0.18);
+    artGlow(ctx, X(o.x), Y(o.y - o.h * ART_OF.H * 0.7), F.h * 0.04, '#5dff9c', 0.14);
   }
   if (it.lamp) {
-    // an arc floor lamp: a thin pole curving over to a warm shade
-    const o = ART_ITEMS.lamp, off = AFX.lampOff.floor, bx = X(o.x), by = Y(o.y), hx = X(o.x - 70), hy = Y(o.y - 190);
-    ctx.save(); ctx.strokeStyle = '#1a1622'; ctx.lineWidth = Math.max(2, 7 * s); ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx, Y(o.y - 150)); ctx.quadraticCurveTo(bx, Y(o.y - 205), hx, hy + 6 * s); ctx.stroke();
-    ctx.strokeStyle = '#6a6070'; ctx.lineWidth = Math.max(1, 2 * s);
-    ctx.beginPath(); ctx.moveTo(bx - 2 * s, by); ctx.lineTo(bx - 2 * s, Y(o.y - 150)); ctx.stroke();
-    ctx.fillStyle = '#14101c'; ctx.beginPath(); ctx.ellipse(bx, by, 16 * s, 5 * s, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#2a2234'; ctx.beginPath(); ctx.moveTo(hx - 22 * s, hy + 16 * s); ctx.lineTo(hx - 9 * s, hy); ctx.lineTo(hx + 9 * s, hy); ctx.lineTo(hx + 22 * s, hy + 16 * s); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = off ? '#5a4a3a' : '#ffe0a0'; ctx.fillRect(hx - 20 * s, hy + 14 * s, 40 * s, 3 * s);
-    ctx.restore();
-    if (!off) { artGlow(ctx, hx, hy + 30 * s, F.h * 0.11, '#ffc070', 0.3 + 0.03 * Math.sin(t * 3)); artGlow(ctx, hx, Y(o.y + 10), F.h * 0.08, '#ffc070', 0.12); }
+    // the arc floor lamp leans over the sofa; its shade glows unless switched off
+    const o = ART_ITEMS.lamp, d = pic('lamp'), off = AFX.lampOff.floor;
+    if (d && !off) {
+      const hx = X(o.x) + (o.flip ? -1 : 1) * d.w * 0.31, hy = Y(o.y) - d.h * 0.8;
+      artGlow(ctx, hx, hy, F.h * 0.1, '#ffc070', 0.32 + 0.03 * Math.sin(t * 3)); artGlow(ctx, hx, Y(o.y), F.h * 0.09, '#ffc070', 0.14);
+    } else if (d) artShade(ctx, X(o.x) + (o.flip ? -1 : 1) * d.w * 0.31, Y(o.y) - d.h * 0.8, F.h * 0.04, 0.5);
   }
   if (it.chairs) ART_DESKS.forEach((d, i) => artGlow(ctx, X(d.seat[0]), Y(d.seat[1] - 12), F.h * 0.045, i % 2 ? '#ff3fd0' : '#22d6f0', 0.32 + 0.1 * Math.sin(t * 2 + i)));
   if (it.rack) {
@@ -330,8 +326,8 @@ function artOfficeTap(e, px, py) {
   // the Mall's things (or the empty spot where they would go)
   const it = S.items || {};
   for (const k in ART_ITEMS) {
-    const o = ART_ITEMS[k], cy = k === 'lamp' ? o.y - 150 : o.y - o.h * ART_OF.H / 2, cx = k === 'lamp' ? o.x - 40 : o.x;
-    if (Math.hypot(px - cx, py - cy) > o.r + (k === 'lamp' ? 50 : 0)) continue;
+    const o = ART_ITEMS[k], cy = o.y - o.h * ART_OF.H / 2, cx = o.x;
+    if (Math.hypot(px - cx, py - cy) > o.r) continue;
     if (k === 'lamp') { if (!it.lamp) continue; AFX.lampOff.floor = !AFX.lampOff.floor; return artPoke('flamp', e, { x: cx, y: cy, r: 40 }); }
     if (it[k]) return artPoke(k, e, { x: o.x, y: cy, r: o.r });
     sfx('blip'); haptic('light'); sayAt(o.x / ART_K, (cy - 20) / ART_K, esc(L('of.empty_' + k))); return;

@@ -165,7 +165,7 @@ function eventBanner() {
   if (!S.pending) return '';
   const ev = eventView(S);
   return `<button class="panel banner" data-act="event">
-    ${imgTag(portrait(EV_FACE[ev.id] || 'npc', 80), 'av')}
+    ${imgTag(portrait(evFace(ev.id), 80), 'av')}
     <span class="banner-t"><b>${esc(L(ev.k + '.who'))}</b><small>${esc(L(ev.k + '.title'))}</small></span>
     <span class="btn pink sm">${L('ui.open')}</span>
   </button>`;
@@ -177,7 +177,7 @@ function eventCard(inModal) {
   const ev = eventView(S);
   if (!ev) return '';
   return `<section class="${inModal ? '' : 'panel '}evcard">
-    <div class="ev-head">${imgTag(portrait(EV_FACE[ev.id] || 'npc', 80), 'av lg')}
+    <div class="ev-head">${imgTag(portrait(evFace(ev.id), 80), 'av lg')}
       <div><small class="px who">${esc(L(ev.k + '.who'))}</small><h3 class="h3">${esc(L(ev.k + '.title'))}</h3></div></div>
     <p class="ev-text">${esc(L(ev.k + '.text', ev.p))}</p>
     <div class="choices">${ev.choices.map((c) => `<button class="choice ${c.style}" data-act="ev:${c.i}" ${c.disabled ? 'disabled' : ''}>
@@ -189,7 +189,7 @@ function eventCard(inModal) {
 function outcomeCard(o) {
   if (!o) return '';
   return `<section class="panel outcome">
-    <div class="ev-head">${imgTag(portrait(EV_FACE[o.id] || 'npc', 80), 'av')}
+    <div class="ev-head">${imgTag(portrait(evFace(o.id), 80), 'av')}
       <div><small class="px who">${esc(L('ev.' + o.id + '.who'))}</small><h3 class="h3">${esc(L('ev.' + o.id + '.title'))}</h3></div></div>
     <p class="mut sm">${L('ui.you_chose')}: <b>${esc(L('ev.' + o.id + '.c' + o.i, o.lp))}</b></p>
     <p class="ev-text">${esc(L(o.rk, o.p))}</p>

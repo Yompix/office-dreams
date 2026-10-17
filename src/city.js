@@ -589,6 +589,7 @@ function artOn() {
     } catch (e) {}
     ART.on = lsGet('od2_art2') === '1';
     try { document.body.classList.toggle('art2', ART.on); } catch (e) {} // the art skin in style.css hangs off body.art2
+    if (ART.on) for (const k in ART_FACE_IMG) artImg(ART_FACE_IMG[k]); // event faces are ready before the first event opens
   }
   return ART.on;
 }
@@ -760,10 +761,13 @@ function artWalk(im, ph) {
 }
 // passers-by: the drawn characters with their clothes recoloured (skin, hair and dark tones stay), so the street is not
 // full of your own staff. One canvas per look, made once.
-const ART_LOOKS = [['qa', 0], ['cm', 0], ['art', 0], ['prog', 110], ['mkt', 200], ['des', 150], ['snd', 60], ['prod', 0], ['qa', 240], ['cm', 160], ['prog', 270], ['art', 90]];
+// '@name' is a drawn passer-by (walk_<name>.webp); the rest are recoloured staff
+const ART_LOOKS = [['@grandpa'], ['qa', 0], ['@biz'], ['prog', 110], ['@skater'], ['cm', 160], ['@courier'], ['mkt', 200], ['@rain'], ['des', 150], ['@leather'], ['snd', 60], ['@npc_journalist'], ['art', 90], ['@npc_streamer'], ['qa', 240]];
 const ART_TINT = {};
 function artLook(i) {
-  const [role, hue] = ART_LOOKS[i % ART_LOOKS.length], key = role + hue, im = artImg('stand_' + role);
+  const [role, hue] = ART_LOOKS[i % ART_LOOKS.length];
+  if (role[0] === '@') return artImg(role.startsWith('@npc_') ? role.slice(1) : 'walk_' + role.slice(1));
+  const key = role + hue, im = artImg('stand_' + role);
   if (!im) return null;
   if (!hue) return im;
   if (ART_TINT[key]) return ART_TINT[key];
