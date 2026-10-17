@@ -16,8 +16,16 @@ const ART_DESKS = [
   { seat: [538, 812], mon: [607, 675], flip: false },
   { seat: [1188, 900], mon: [1090, 755], flip: true },
 ];
+// the desks' outline in the picture (with monitors and lamps) and the floor line in front of them: someone standing
+// behind a desk (feet above zy) is drawn first, then the desk is laid over again, so they stand behind it, not on it
+const ART_FRONT = [
+  { d: 0, zy: 510, poly: [[475, 445], [500, 385], [560, 355], [610, 325], [655, 325], [670, 340], [700, 330], [760, 330], [785, 375], [790, 470], [720, 525], [560, 585], [470, 565]] },
+  { d: 1, zy: 595, poly: [[1000, 465], [1070, 420], [1080, 385], [1120, 375], [1135, 400], [1225, 420], [1285, 440], [1305, 470], [1305, 545], [1290, 610], [1240, 625], [1020, 565], [995, 540]] },
+  { d: 2, zy: 800, poly: [[430, 690], [470, 635], [520, 615], [615, 640], [700, 670], [705, 700], [745, 700], [790, 775], [790, 860], [700, 885], [430, 885]] },
+  { d: 3, zy: 880, poly: [[925, 850], [1000, 770], [1005, 728], [1060, 700], [1170, 678], [1220, 688], [1245, 700], [1285, 750], [1285, 820], [1200, 905], [1160, 965], [925, 965]] },
+];
 const ART_HERO = [842, 700]; // the boss stands in the middle of the room
-const ART_STANDS = [[985, 760], [262, 690], [1300, 712], [905, 930], [700, 640]];
+const ART_STANDS = [[1010, 690], [262, 690], [1320, 700], [905, 930], [805, 615]];
 // AI-drawn characters (cut out of generated sprite sheets): seat_<role>.webp and stand_<role|you>.webp
 const ART_H = { seat: 0.13, stand: 0.165 };
 function artChar(kind, role) { return artImg(kind + '_' + role); }
@@ -87,30 +95,151 @@ function sprStand(role, f, still) {
   if (!LOOK2[key]) { LOOK2[key] = L0; }
   return sprPerson(key, f, still);
 }
-// people standing around now and then stroll to a nearby spot on the open floor and come back
-const ART_STROLL = [[1080, 690], [335, 625], [1365, 655], [985, 862], [820, 600]];
-function artStroll(i, t) {
-  const P = 17 + i * 4, ph = ((t + i * 5.3) % P) / P, A = ART_STANDS[i], B = ART_STROLL[i];
-  const ease = (k) => k * k * (3 - 2 * k);
-  let k = 0, dir = 0;
-  if (ph < 0.45) k = 0;
-  else if (ph < 0.58) { k = ease((ph - 0.45) / 0.13); dir = 1; }
-  else if (ph < 0.85) k = 1;
-  else { k = 1 - ease((ph - 0.85) / 0.15); dir = -1; }
-  const right = B[0] > A[0];
-  return { x: A[0] + (B[0] - A[0]) * k, y: A[1] + (B[1] - A[1]) * k, walk: dir !== 0, flip: dir ? (dir > 0) !== right : k > 0.5 ? right : i % 2 === 1 };
+// ---------- the team's life: people standing around go about their day ----------
+// they walk (around the desks) to the coffee machine, the cat, the window, the books, the sofa, or to each other for a chat,
+// stay a while with a little emote over the head, then go back to their spot.
+// floor the feet can't cross (desks, beanbag, server rack, shelves, the stairs), picture px [x0, y0, x1, y1]
+const ART_BLOCK = [[470, 400, 800, 570], [990, 440, 1310, 630], [430, 670, 790, 830], [920, 720, 1290, 960], [325, 525, 495, 620], [40, 320, 250, 640], [850, 300, 1080, 450], [0, 700, 560, 1088], [1150, 880, 1456, 1088], [1370, 600, 1456, 880]];
+// open floor to walk through when the straight way is blocked
+const ART_HUBS = [[460, 645], [820, 600], [900, 700], [870, 880], [300, 660], [1330, 680], [850, 470], [1100, 680]];
+// places to go: where to stand, which way to look (1 = right), the emote, how long, what has to be bought first
+const ART_SPOTS = {
+  coffee: { p: [548, 600], face: -1, emo: '☕', dur: 4.5, need: 'coffee' },
+  cat: { p: [298, 650], face: 1, emo: '😻', dur: 4 },
+  window: { p: [1345, 560], face: 1, emo: '🌃', dur: 5 },
+  books: { p: [930, 470], face: -1, emo: '📖', dur: 5 },
+  plant: { p: [1340, 770], face: 1, emo: '💧', dur: 3.5 },
+  rack: { p: [275, 600], face: -1, emo: '🛠️', dur: 4 },
+  rug: { p: [960, 650], face: 1, emo: '🙆', dur: 3, stretch: true },
+  sofa: { p: [900, 500], face: 1, emo: '😌', dur: 8, need: 'lounge', sit: true },
+};
+const ART_LIFE = { t: 0, a: {}, hop: {} };
+const ART_SPEED = 115; // picture px per second
+function artClear(a, b) {
+  const n = Math.max(2, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 12));
+  for (let i = 1; i < n; i++) {
+    const x = a[0] + (b[0] - a[0]) * i / n, y = a[1] + (b[1] - a[1]) * i / n;
+    if (ART_BLOCK.some((r) => x > r[0] + 3 && x < r[2] - 3 && y > r[1] + 3 && y < r[3] - 3)) return false;
+  }
+  return true;
 }
-// who sits where: the first four hires at the desks, the rest stand (and stroll); the boss stands in the middle
+// the shortest way from a to b through the open-floor points (a tiny Dijkstra; a handful of nodes)
+function artPath(a, b) {
+  if (artClear(a, b)) return [b];
+  const N = [a, ...ART_HUBS, b], dist = N.map(() => Infinity), prev = N.map(() => -1), done = N.map(() => false);
+  dist[0] = 0;
+  for (;;) {
+    let u = -1;
+    for (let i = 0; i < N.length; i++) if (!done[i] && dist[i] < Infinity && (u < 0 || dist[i] < dist[u])) u = i;
+    if (u < 0 || u === N.length - 1) break;
+    done[u] = true;
+    for (let v = 0; v < N.length; v++) {
+      if (done[v] || v === u || !artClear(N[u], N[v])) continue;
+      const d = dist[u] + Math.hypot(N[v][0] - N[u][0], N[v][1] - N[u][1]);
+      if (d < dist[v]) { dist[v] = d; prev[v] = u; }
+    }
+  }
+  if (prev[N.length - 1] < 0) return [b];
+  const out = [];
+  for (let v = N.length - 1; v > 0; v = prev[v]) out.unshift(N[v]);
+  return out;
+}
+function artGoTo(a, p, then) { a.path = artPath([a.x, a.y], p); a.mode = 'walk'; a.then = then; }
+function artEmote(a, emo, t, dur) { a.emo = emo; a.emoT = t; a.emoD = dur || 3; }
+// one step of everyone's day
+function artLifeStep(t, keys) {
+  const L0 = ART_LIFE, dt = Math.min(0.1, Math.max(0, t - L0.t));
+  if (dt === 0 && L0.keys === keys.join()) return;
+  L0.t = t; L0.keys = keys.join();
+  for (const k in L0.a) if (!keys.includes(k)) delete L0.a[k];
+  keys.forEach((k, i) => {
+    if (!L0.a[k]) { const H = ART_STANDS[i]; L0.a[k] = { k, x: H[0], y: H[1], home: i, mode: 'idle', until: t + 2 + Math.random() * 6, flip: i % 2 === 1, path: [], look: t + 3 }; }
+    L0.a[k].home = i;
+  });
+  const it = (S && S.items) || {}, all = Object.values(L0.a);
+  for (const a of all) {
+    if (a.stopT && t < a.stopT) continue;
+    const H = ART_STANDS[a.home];
+    if (a.mode === 'walk') {
+      let step = ART_SPEED * dt;
+      while (step > 0 && a.path.length) {
+        const p = a.path[0], dx = p[0] - a.x, dy = p[1] - a.y, d = Math.hypot(dx, dy);
+        if (Math.abs(dx) > 2) a.flip = dx > 0;
+        if (d <= step) { a.x = p[0]; a.y = p[1]; a.path.shift(); step -= d; } else { a.x += dx / d * step; a.y += dy / d * step; step = 0; }
+      }
+      a.ph = (a.ph || 0) + dt * 1.6;
+      if (!a.path.length) {
+        const th = a.then; a.then = null;
+        if (th && th.spot) {
+          const sp = ART_SPOTS[th.spot];
+          a.mode = 'act'; a.act = th.spot; a.until = t + sp.dur; a.flip = sp.face > 0; artEmote(a, sp.emo, t, sp.dur);
+          if (th.spot === 'coffee') AFX.steam = t;
+          else if (th.spot === 'cat') UI.catPetT = t + 0.3;
+          else if (th.spot === 'plant') { AFX.drops = t; AFX.dropAt = { x: 1390, y: 770, r: 70 }; }
+          else if (th.spot === 'books') { AFX.dust = t; AFX.dustAt = { x: 950, y: 380, r: 60 }; }
+        } else if (th && th.chat) {
+          const b = L0.a[th.chat];
+          if (b && b.mode === 'wait') { a.mode = 'act'; a.act = 'chat'; a.with = b.k; a.until = t + 5; a.flip = b.x > a.x; b.flip = a.x > b.x; artEmote(a, '💬', t, 2.4); b.emoAt = t + 2.5; }
+          else { a.mode = 'idle'; a.until = t + 2; }
+        } else { a.mode = 'idle'; a.until = t + 6 + Math.random() * 9; a.flip = a.home % 2 === 1; }
+      }
+    } else if (a.mode === 'act') {
+      if (a.act === 'chat') { const b = L0.a[a.with]; if (b && b.emoAt && t > b.emoAt) { artEmote(b, ['😂', '👍', '💡', '😮'][Math.floor(Math.random() * 4)], t, 2.3); b.emoAt = 0; } }
+      if (t > a.until) {
+        if (a.act === 'chat') { const b = L0.a[a.with]; if (b) { b.mode = 'idle'; b.until = t + 3 + Math.random() * 5; } }
+        a.act = null; a.with = null; artGoTo(a, H, null);
+      }
+    } else if (a.mode === 'wait') {
+      if (t > a.waitUntil) { a.mode = 'idle'; a.until = t + 3; }
+    } else if (a.mode === 'idle') {
+      // standing about: look around now and then
+      if (t > a.look) { a.flip = !a.flip; a.look = t + 2.5 + Math.random() * 4; }
+      if (t > a.until) {
+        const busy = new Set(all.map((x) => x.act || (x.then && x.then.spot)).filter(Boolean));
+        const opts = Object.keys(ART_SPOTS).filter((k) => !busy.has(k) && (!ART_SPOTS[k].need || it[ART_SPOTS[k].need]));
+        const mates = all.filter((x) => x !== a && x.mode === 'idle');
+        if (mates.length && Math.random() < 0.35) {
+          const b = mates[Math.floor(Math.random() * mates.length)];
+          b.mode = 'wait'; b.emo = null; b.waitUntil = t + 15;
+          const side = b.x > 700 ? -1 : 1, p = [b.x + side * 85, b.y + 6];
+          if (ART_BLOCK.some((r) => p[0] > r[0] && p[0] < r[2] && p[1] > r[1] && p[1] < r[3])) p[0] = b.x - side * 85;
+          artGoTo(a, p, { chat: b.k });
+        } else if (opts.length) {
+          const k = opts[Math.floor(Math.random() * opts.length)];
+          artGoTo(a, ART_SPOTS[k].p, { spot: k });
+        } else a.until = t + 4;
+      }
+    }
+  }
+}
+// who sits where: the first four hires at the desks, the rest stand (and live); the boss stands in the middle
 function artPlaces() {
-  const out = { you: { seat: false, x: ART_HERO[0], y: ART_HERO[1], hero: true } };
   const t = performance.now() / 1000;
-  let d = 0, s = 0;
+  const out = { you: { seat: false, x: ART_HERO[0], y: ART_HERO[1], hero: true, flip: Math.sin(t * 0.21) > 0.55 } };
+  let d = 0;
+  const stand = [];
   for (const r of ROLES) {
     if (!S.staff[r] || S.staff[r].lvl <= 0) continue;
     if (d < ART_DESKS.length) { const D = ART_DESKS[d]; out[r] = { seat: true, x: D.seat[0], y: D.seat[1], desk: d, flip: D.flip }; d++; }
-    else if (s < ART_STANDS.length) { out[r] = Object.assign({ seat: false }, artStroll(s, t)); s++; }
+    else if (stand.length < ART_STANDS.length) stand.push(r);
+  }
+  artLifeStep(t, stand);
+  for (const r of stand) {
+    const a = ART_LIFE.a[r];
+    out[r] = { seat: false, x: a.x, y: a.y, walk: a.mode === 'walk' && !(a.stopT > t), flip: a.flip, ph: a.ph || 0, sit: a.act === 'sofa' && a.mode === 'act', stretch: a.act === 'rug' && a.mode === 'act', life: a };
   }
   return out;
+}
+// the office's light at a picture point: the strongest nearby lamp, monitor, neon or window, and which side it is on
+function artLightAt(x, y) {
+  let best = null;
+  const add = (lx, ly, col, k) => { const s = k / (Math.hypot(lx - x, (ly - y) * 1.3) + 60); if (!best || s > best.s) best = { s, lx, col }; };
+  ART_LAMPS.forEach((l, i) => { if (!AFX.lampOff[i]) add(l[0], l[1], '#ffb860', 1); });
+  ART_DESKS.forEach((d) => add(d.mon[0], d.mon[1], '#48d8ff', 1.25));
+  add(ART_SIGN[0], ART_SIGN[1], ART_NEON[AFX.neonC][0], 1.6);
+  add(1020, 230, '#8aa0ff', 0.9); add(1360, 360, '#8aa0ff', 0.9);
+  if (S && S.items && S.items.lamp && !AFX.lampOff.floor) add(ART_ITEMS.lamp.x - 60, ART_ITEMS.lamp.y - 190, '#ffb860', 1.6);
+  return { side: best.lx < x ? -1 : 1, col: best.col };
 }
 // picture placement inside the scene canvas (cover)
 function artOfficeFit(cv) {
@@ -166,6 +295,7 @@ function artOfficeDraw(ctx, cv, st, t) {
   ART_DESKS.forEach((d, i) => artGlow(ctx, X(d.mon[0]), Y(d.mon[1]), F.h * 0.1 * (mon2 > 1 ? 1.2 : 1), '#3fd0ff', ((working ? 0.16 : 0.07) + (working ? 0.06 * Math.sin(t * 9 + i * 2) : 0)) * mon2));
   if (st.turbo || st.hype) artGlow(ctx, F.x + F.w / 2, F.y + F.h / 2, F.h * 0.7, st.turbo ? '#ff4d6d' : '#ffd23f', 0.06 + 0.04 * Math.sin(t * 6));
   artItems(ctx, F, s, X, Y, t);
+  artAmbient(ctx, F, s, X, Y, t);
   artOfficeFx(ctx, F, s, X, Y, t);
   // the team, back to front
   const places = artPlaces(), list = Object.keys(places).map((k) => Object.assign({ k }, places[k])).sort((a, b) => a.y - b.y);
@@ -174,30 +304,79 @@ function artOfficeDraw(ctx, cv, st, t) {
     ctx.save(); ctx.imageSmoothingEnabled = false; ctx.translate(Math.round(X(x)), Math.round(Y(y))); if (flip) ctx.scale(-1, 1);
     ctx.drawImage(spr, -w / 2, -h, w, h); ctx.restore();
   };
-  // an AI-drawn character: soft shadow, then the picture; seated people type (quick bob), standing ones breathe
-  const person = (im, x, y, hFrac, flip, bob, sx, tilt) => {
-    const h = hFrac * F.h * (1 + (sx || 0)), w = h * (im.naturalWidth || im.width) / (im.naturalHeight || im.height);
-    ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(X(x), Y(y), w * 0.42, h * 0.05, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.translate(X(x), Y(y) + bob); if (tilt) ctx.rotate(tilt); if (flip) ctx.scale(-1, 1);
-    ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore();
+  // an AI-drawn character in the room's light (artLit: night tone + a rim of the nearest light), held down by its shadow.
+  // o: { flip, bob, sx (stretch), sy (squash), tilt, walk (phase), top (draw only the top part: sitting on the sofa) }
+  const person = (im, x, y, hFrac, o) => {
+    o = o || {};
+    const L1 = artLightAt(x, y - hFrac * ART_OF.H * 0.6);
+    im = artLit(im, o.flip ? -L1.side : L1.side, L1.col);
+    if (o.walk != null) im = artWalk(im, o.walk);
+    const h = hFrac * F.h * (1 + (o.sx || 0)), w = h * (im.naturalWidth || im.width) / (im.naturalHeight || im.height) * (1 + (o.sy || 0));
+    if (!o.top) artFeet(ctx, X(x), Y(y), w, h * (o.air ? 0.7 : 1));
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.translate(X(x), Y(y) + (o.bob || 0)); if (o.tilt) ctx.rotate(o.tilt); if (o.flip) ctx.scale(-1, 1);
+    if (o.top) { const sh = (im.naturalHeight || im.height) * o.top; ctx.drawImage(im, 0, 0, im.naturalWidth || im.width, sh, -w / 2, -h * o.top, w, h * o.top); }
+    else ctx.drawImage(im, -w / 2, -h, w, h);
+    ctx.restore();
+  };
+  // a tap makes someone hop (a quick squash before and after)
+  const hop = (k) => {
+    const d = t - (ART_LIFE.hop[k] || -9);
+    if (d > 0.55) return { bob: 0, sy: 0, air: false };
+    const q = d / 0.55, up = Math.sin(Math.min(1, Math.max(0, (q - 0.12) / 0.76)) * Math.PI);
+    return { bob: -up * F.h * 0.03, sy: q < 0.12 || q > 0.88 ? 0.08 : -0.03, air: up > 0.1 };
+  };
+  // a desk laid over again (only when someone is behind it), with its monitors' glow
+  const fronts = ART_FRONT.map((f) => ({ f, behind: false, done: false }));
+  const front = (o) => {
+    o.done = true;
+    if (!o.behind) return;
+    ctx.save(); ctx.beginPath(); o.f.poly.forEach((q, i) => (i ? ctx.lineTo(X(q[0]), Y(q[1])) : ctx.moveTo(X(q[0]), Y(q[1])))); ctx.closePath(); ctx.clip();
+    ctx.drawImage(im, F.x, F.y, F.w, F.h);
+    const d = ART_DESKS[o.f.d]; artGlow(ctx, X(d.mon[0]), Y(d.mon[1]), F.h * 0.1, '#3fd0ff', (working ? 0.16 : 0.07) * mon2);
+    ctx.restore();
   };
   for (const p of list) {
-    const im = artChar(p.seat ? 'seat' : 'stand', p.k);
+    for (const o of fronts) {
+      if (o.done) continue;
+      if (p.y >= o.f.zy) front(o);
+      else if (!p.seat && p.y > Math.min(...o.f.poly.map((q) => q[1])) && p.x > Math.min(...o.f.poly.map((q) => q[0])) - 40 && p.x < Math.max(...o.f.poly.map((q) => q[0])) + 40) o.behind = true;
+    }
+    const im = artChar(p.seat ? 'seat' : 'stand', p.k), hp = hop(p.k);
     if (p.seat) {
       const typing = working && Math.sin(t * 1.3 + p.desk * 2) > -0.4;
+      // now and then someone at a desk leans back and stretches
+      const sp = (t + p.desk * 7.3) % (19 + p.desk * 4), stretch = !typing && sp < 1.6 ? Math.sin(sp / 1.6 * Math.PI) : 0;
       const bob = typing ? (Math.floor(t * 9 + p.desk) % 2) * F.h * 0.002 : Math.sin(t * 1.6 + p.desk) * F.h * 0.0015;
-      if (im) person(im, p.x, p.y, ART_H.seat, p.flip, bob);
+      if (im) person(im, p.x, p.y, ART_H.seat, { flip: p.flip, bob: bob + hp.bob * 0.5, sx: stretch * 0.05, sy: hp.sy, tilt: stretch * (p.flip ? 0.05 : -0.05) });
       else blit(sprSeat(p.k, 0), p.x, p.y, 0.1);
     } else {
       const breathe = p.walk ? 0 : Math.sin(t * 1.8 + p.k.charCodeAt(0)) * 0.006;
       const tap = p.hero && st.tapFlash > 0 ? -F.h * 0.006 : 0;
-      if (im) person(p.walk ? artWalk(im, t * 1.5 + p.k.length * 0.3) : im, p.x, p.y, ART_H.stand, p.flip, tap, breathe);
+      // idle weight shift: a slow sway from the feet
+      const sway = p.walk || p.sit ? 0 : Math.sin(t * 0.9 + p.k.length) * 0.012;
+      const str = p.stretch ? Math.max(0, Math.sin((t % 1.5) / 1.5 * Math.PI)) * 0.05 : 0;
+      if (im && p.sit) person(im, p.x, p.y - ART_H.stand * ART_OF.H * 0.02, ART_H.stand, { flip: p.flip, top: 0.6, bob: hp.bob + Math.sin(t * 1.2) * F.h * 0.001 });
+      else if (im) person(im, p.x, p.y, ART_H.stand, { flip: p.flip, bob: tap + hp.bob, sx: breathe + str, sy: hp.sy, tilt: sway, walk: p.walk ? p.ph : null, air: hp.air });
       else blit(sprStand(p.k, 0, true), p.x, p.y, 0.15, p.flip);
     }
   }
+  fronts.forEach((o) => { if (!o.done) front(o); });
+  // little emotes over people's heads (coffee, the cat, a chat...)
+  for (const p of list) {
+    const a = p.life;
+    if (!a || !a.emo || t - a.emoT > a.emoD) continue;
+    const k = t - a.emoT, pop = Math.min(1, k / 0.18) * (k > a.emoD - 0.25 ? (a.emoD - k) / 0.25 : 1), r = F.h * 0.028 * pop;
+    if (r <= 1) continue;
+    const bx = X(p.x) + (p.flip ? 1 : -1) * F.h * 0.02, by = Y(p.y) - ART_H.stand * F.h * (p.sit ? 0.62 : 1.06) + Math.sin(t * 3) * F.h * 0.003;
+    ctx.save(); ctx.fillStyle = 'rgba(16,12,36,0.88)'; ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = Math.max(1, F.h * 0.003);
+    ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx - r * 0.3, by + r * 0.8); ctx.lineTo(bx, by + r * 1.35); ctx.lineTo(bx + r * 0.25, by + r * 0.85); ctx.fill();
+    ctx.font = Math.round(r * 1.3) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(a.emo, bx, by + r * 0.05);
+    ctx.restore();
+  }
   // the cat on the beanbag
   const petted = t - (UI.catPetT || -9) < 2.5, cim = artImg(petted ? 'cat_sit' : 'cat_sleep');
-  if (cim) person(cim, ART_CAT[0], ART_CAT[1] + 6, petted ? 0.075 : 0.05, false, petted ? 0 : Math.sin(t * 1.2) * F.h * 0.0012);
+  if (cim) person(cim, ART_CAT[0], ART_CAT[1] + 6, petted ? 0.075 : 0.05, { bob: petted ? 0 : Math.sin(t * 1.2) * F.h * 0.0012 });
   else blit(sprCat(false), ART_CAT[0], ART_CAT[1], 0.045, Math.sin(t * 0.3) > 0.7);
 }
 // the Mall's things in the room: coffee machine (steams now and then), sofa, floor lamp, gaming-chair lights, the busy server
@@ -239,6 +418,43 @@ function artItems(ctx, F, s, X, Y, t) {
     for (let j = 0; j < 28; j++) { if ((j * 37 + tick * 13) % 100 > 30) continue; ctx.fillStyle = cols[(j + tick) % 3]; ctx.globalAlpha = 0.8; ctx.fillRect(X(98 + (j % 4) * 28), Y(372 + Math.floor(j / 4) * 31), 9 * s, 4 * s); }
     ctx.globalAlpha = 1; artGlow(ctx, X(146), Y(470), F.h * 0.12, '#3fd0ff', 0.1 + 0.04 * Math.sin(t * 4));
   } else artShade(ctx, X(146), Y(480), F.h * 0.12, 0.25);
+}
+// the room breathes: dust floating in the lamps' light, the city behind the windows (lights going on and off, a plane)
+const ART_WIN = [[[918, 45], [1125, 95], [1125, 300], [918, 290]], [[1255, 180], [1456, 215], [1456, 500], [1258, 455]]];
+let ART_CITYL = null;
+function artAmbient(ctx, F, s, X, Y, t) {
+  if (!ART_CITYL) {
+    // fixed city lights inside the window panes (a tiny seeded random, the same every time)
+    let q = 7;
+    const rnd = () => ((q = (q * 16807) % 2147483647) / 2147483647);
+    ART_CITYL = [];
+    ART_WIN.forEach((w) => { for (let i = 0; i < 26; i++) { const u = rnd(), v = 0.35 + rnd() * 0.6, top = w[0][1] + (w[1][1] - w[0][1]) * u, bot = w[3][1] + (w[2][1] - w[3][1]) * u; ART_CITYL.push({ x: w[0][0] + (w[1][0] - w[0][0]) * u, y: top + (bot - top) * v, p: 3 + rnd() * 9, o: rnd() * 20, c: rnd() < 0.7 ? '#ffd890' : '#9fe0ff' }); } });
+  }
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const l of ART_CITYL) {
+    const ph = (t + l.o) % l.p;
+    if (ph < 0.8) continue; // this window just went dark for a moment
+    ctx.globalAlpha = 0.45 + 0.25 * Math.sin(t * 2 + l.o); ctx.fillStyle = l.c; ctx.fillRect(X(l.x), Y(l.y), Math.max(1, 3 * s), Math.max(1, 3 * s));
+  }
+  // a plane crossing the left window now and then, its lights blinking
+  const pk = (t % 34) / 9;
+  if (pk < 1) {
+    const w = ART_WIN[0], x = w[0][0] + 10 + (w[1][0] - w[0][0] - 20) * pk, y = w[0][1] + 55 + (w[1][1] - w[0][1]) * pk - pk * 20;
+    ctx.globalAlpha = Math.sin(t * 9) > 0.3 ? 0.95 : 0.15; ctx.fillStyle = '#ff4d6d'; ctx.fillRect(X(x), Y(y), Math.max(1.5, 4 * s), Math.max(1.5, 4 * s));
+    ctx.globalAlpha = Math.sin(t * 9 + 2) > 0.6 ? 0.9 : 0.1; ctx.fillStyle = '#ffffff'; ctx.fillRect(X(x - 14), Y(y + 1), Math.max(1.5, 3 * s), Math.max(1.5, 3 * s));
+  }
+  // dust in the lamps' light
+  ctx.fillStyle = '#ffe2a8';
+  ART_LAMPS.slice(0, 6).forEach((lp, i) => {
+    if (AFX.lampOff[i]) return;
+    for (let j = 0; j < 5; j++) {
+      const k = i * 5 + j, a = t * (0.15 + (k % 3) * 0.05) + k * 1.7;
+      const x = lp[0] + Math.sin(a) * 34 + Math.sin(a * 2.3 + k) * 10, y = lp[1] + 25 + Math.cos(a * 0.8 + k) * 30;
+      ctx.globalAlpha = 0.25 + 0.3 * Math.max(0, Math.sin(t * 1.3 + k * 2.1));
+      ctx.fillRect(X(x), Y(y), Math.max(1, 2.2 * s), Math.max(1, 2.2 * s));
+    }
+  });
+  ctx.restore();
 }
 // the little reactions to taps: blinking server, a shooting star, sparkles, water drops, dust, the build bar
 function artOfficeFx(ctx, F, s, X, Y, t) {
@@ -311,7 +527,13 @@ function artOfficeTap(e, px, py) {
       if (!best || dd < best.d) best = { k, d: dd };
     }
   }
-  if (best) return best.k === 'you' ? onWorkDown(e) : talk(best.k);
+  if (best) {
+    // a tap: they hop, stop for a moment and turn to you, with an emote
+    const t = performance.now() / 1000, a = ART_LIFE.a[best.k];
+    if (best.k !== 'you' && t - (ART_LIFE.hop[best.k] || -9) > 0.5) ART_LIFE.hop[best.k] = t;
+    if (a) { a.stopT = t + 1.8; a.flip = a.x < ART_HERO[0]; artEmote(a, ['😄', '👋', '❗', '🙌', '😅'][Math.floor(Math.random() * 5)], t, 1.8); }
+    return best.k === 'you' ? onWorkDown(e) : talk(best.k);
+  }
   for (let i = 0; i < ART_LAMPS.length; i++) if (Math.hypot(px - ART_LAMPS[i][0], py - ART_LAMPS[i][1]) < 34) return artPoke('lamp', e, { x: ART_LAMPS[i][0], y: ART_LAMPS[i][1], r: 30, i });
   // a desk: its monitor or chair → whoever works there, or "hire someone" when it is free
   for (let i = 0; i < ART_DESKS.length; i++) {
