@@ -3,7 +3,8 @@
  *   node test/e2e_pvp.js
  * Screenshots go to test/out/pvp_*.png
  */
-const { chromium } = require('/opt/npm-tools/node_modules/playwright');
+// Playwright: a local install, or the one preinstalled in the cloud session image
+const { chromium } = (() => { for (const p of ['playwright', '/opt/node-tools/node_modules/playwright', '/opt/npm-tools/node_modules/playwright']) { try { return require(p); } catch (e) { /* next */ } } throw new Error('playwright not found'); })();
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
