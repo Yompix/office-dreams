@@ -146,7 +146,7 @@ function drawScene(t) {
       if (UI.bloomCtx) UI.bloomCtx.clearRect(0, 0, UI.bloomCv.width, UI.bloomCv.height);
       return;
     }
-    if (artWait(cv, UI.sceneCtx)) { if (UI.bloomCtx) UI.bloomCtx.clearRect(0, 0, UI.bloomCv.width, UI.bloomCv.height); return; }
+    if (artWait(cv, UI.sceneCtx, ART_OF.img)) { if (UI.bloomCtx) UI.bloomCtx.clearRect(0, 0, UI.bloomCv.width, UI.bloomCv.height); return; }
     SCENE.renderHD(sceneState(), t);
     SCENE_OFF.getContext('2d').putImageData(SCENE_IMG, 0, 0);
     const ctx = UI.sceneCtx;
@@ -955,7 +955,7 @@ function frame(now) {
       UI.sceneStep = st === 0.045 ? (m > 14 ? 0.066 : st) : st === 0.066 ? (m > 24 ? 0.1 : m < 10 ? 0.045 : st) : (m < 18 ? 0.066 : st);
     }
     UI.cityAcc = (UI.cityAcc || 0) + dt;
-    if (UI.cityAcc >= 0.033 && !UI.modal && UI.tab === 'city' && !document.hidden) { UI.cityAcc = 0; cityDraw(now); }
+    if (UI.cityAcc >= 0.033 && !UI.modal && UI.tab === 'city' && !document.hidden) { UI.cityAcc = 0; try { cityDraw(now); } catch (e) { /* one bad frame, not a dead loop */ } }
     UI.towerAcc += dt;
     if (UI.towerAcc >= 0.25 && !UI.modal && UI.tab === 'empire' && !document.hidden) { UI.towerAcc = 0; drawTowerCv(now / 1000); }
   }

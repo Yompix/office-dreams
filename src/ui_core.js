@@ -99,15 +99,17 @@ function artFacesTick() {
   const now = performance.now() / 1000;
   for (const el of document.querySelectorAll('img')) {
     let d = el._af;
+    const src = el.getAttribute('src');
+    if (d && src !== d.base && src !== d.cur) d = el._af = null; // the page reused this <img> for someone else
     if (!d) {
-      const k = ART_FACE_URL.get(el.getAttribute('src'));
+      const k = ART_FACE_URL.get(src);
       if (!k) continue;
-      d = el._af = { kind: k[0], mood: k[1], t0: now, base: el.getAttribute('src'), st: 0, talk: !!el.closest('#ovl, .say, .modal') };
+      d = el._af = { kind: k[0], mood: k[1], t0: now, base: src, st: 0, talk: !!el.closest('#ovl, .say, .modal') };
     }
     const st = artFaceState(d.kind + (d.talk ? 'o' : ''), now, d.talk && now - d.t0 < 2.4);
     if (st === d.st) continue;
     const url = st ? artFace(d.kind, d.mood, st) : d.base;
-    if (url) { el.setAttribute('src', url); d.st = st; }
+    if (url) { el.setAttribute('src', url); d.st = st; d.cur = url; }
   }
 }
 const portraitPx = (kind, mood) => pxURL('p2:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 48, 48, (B) => drawPortrait(B, kind, mood));

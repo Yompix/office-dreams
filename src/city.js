@@ -102,7 +102,7 @@ function cityPerson(g, x, y, look, frame, dir, still) {
 function cityDraw(now) {
   const cv = UI.cityCv, g = UI.cityCtx;
   if (!cv || !g || !S) return;
-  if (artOn() && (artDraw(now) || artWait(cv, g))) return;
+  if (artOn() && (artDraw(now) || artWait(cv, g, (CT.inside ? ART_IN[CT.inside] || {} : ART_ST).img))) return;
   cityInit();
   const cw = cv.clientWidth || 360, ch = cv.clientHeight || 240;
   const VW = Math.max(120, Math.min(CITY_W, Math.round(CITY_H * cw / ch)));
@@ -580,8 +580,9 @@ function cityInterior(g, VW, t) {
    ============================================================ */
 const ART = { imgs: (typeof window !== 'undefined' && window.__artPre) || {}, on: null, t0: 0 };
 // while the new look's picture is still loading, show a dark frame instead of the old drawing (for up to 5 s, then the old one)
-function artWait(cv, g) {
-  if (!artOn() || performance.now() - ART.t0 > 5000) return false;
+function artWait(cv, g, name) {
+  const im = name && ART.imgs[name];
+  if (!artOn() || performance.now() - ((im && im._t0) || ART.t0) > 5000) return false;
   g.fillStyle = '#0a0818'; g.fillRect(0, 0, cv.width, cv.height);
   return true;
 }
@@ -601,7 +602,7 @@ function artOn() {
 }
 function artImg(name) {
   let im = ART.imgs[name];
-  if (!im) { im = ART.imgs[name] = new Image(); im.decoding = 'async'; im.src = 'art/' + name + '.webp'; }
+  if (!im) { im = ART.imgs[name] = new Image(); im.decoding = 'async'; im.src = 'art/' + name + '.webp'; im._t0 = performance.now(); }
   im._n = name;
   return im.complete && im.naturalWidth ? im : null;
 }
@@ -768,17 +769,31 @@ const ART_FACE = {
   walk_rain: { l: [65, 66], r: [101, 66], ew: 23, eh: 19, m: [83, 98], mw: 16 },
   walk_skater: { l: [87, 74], r: [119, 74], ew: 20, eh: 19, m: [103, 104], mw: 15 },
 };
+// the sprite caches stay small: a phone has little canvas memory (iOS refuses new canvases past a limit), so the least
+// recently used variants are dropped and their memory given back. Keys use an id per source picture or canvas.
+let ART_CID = 0;
+const artCid = (im) => im._cid || (im._cid = ++ART_CID);
+function artCacheGet(map, key) { const v = map.get(key); if (v) { map.delete(key); map.set(key, v); } return v; }
+function artCachePut(map, key, v, max) {
+  map.set(key, v);
+  while (map.size > max) {
+    const k = map.keys().next().value, old = map.get(k);
+    map.delete(k);
+    for (const c of Array.isArray(old) ? old : [old]) if (c && c.getContext) c.width = c.height = 0;
+  }
+  return v;
+}
 const ART_FACEV = new Map();
 // st: 1 = eyes closed, 2 = mouth open, 3 = mouth half open (cached per picture)
 function artFaceV(im, st) {
   const P = st && im && ART_FACE[im._n];
   if (!P || (st === 1 && !P.l)) return im;
-  let m = ART_FACEV.get(im);
-  if (!m) ART_FACEV.set(im, (m = {}));
-  if (m[st]) return m[st];
+  const key = artCid(im) + '|' + st, hit = artCacheGet(ART_FACEV, key);
+  if (hit) return hit;
   const w = im.naturalWidth || im.width, h = im.naturalHeight || im.height, c = document.createElement('canvas');
   c.width = w; c.height = h; c._n = im._n;
   const g = c.getContext('2d');
+  if (!g) return im;
   g.drawImage(im, 0, 0);
   try {
     if (st === 1) {
@@ -803,7 +818,7 @@ function artFaceV(im, st) {
       if (st === 2) { g.fillStyle = '#f4ecec'; g.fillRect(Math.round(P.m[0] - mw * 0.3), Math.round(P.m[1] + mh * 0.2 - mh / 2), Math.round(mw * 0.6), Math.max(1, Math.round(mh * 0.16))); }
     }
   } catch (e) { return im; }
-  return (m[st] = c);
+  return artCachePut(ART_FACEV, key, c, 64);
 }
 // what a face does now: blinks every few seconds (each person on their own rhythm); while talking the mouth moves
 function artFaceState(key, t, talking) {
@@ -829,13 +844,13 @@ const ART_TONE = { night: [0.8, 0.76, 0.9, 4, 3, 12, 0.75], warm: [0.95, 0.88, 0
 function artLit(im, side, col, tone) {
   if (!im) return im;
   tone = tone || 'night';
-  let m = ART_LIT.get(im);
-  if (!m) { m = {}; ART_LIT.set(im, m); }
-  const key = side + (col || '') + tone;
-  if (m[key]) return m[key];
+  const key = artCid(im) + '|' + side + (col || '') + tone, hit = artCacheGet(ART_LIT, key);
+  if (hit) return hit;
   const w = im.naturalWidth || im.width, h = im.naturalHeight || im.height;
-  const c = document.createElement('canvas'); c.width = w; c.height = h;
-  const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+  const c = document.createElement('canvas'); c.width = w; c.height = h; c._n = im._n;
+  const g = c.getContext('2d');
+  if (!g) return im;
+  g.drawImage(im, 0, 0);
   try {
     const d = g.getImageData(0, 0, w, h), p = d.data, A = new Uint8Array(w * h), T = ART_TONE[tone] || ART_TONE.night;
     for (let i = 0; i < w * h; i++) A[i] = p[i * 4 + 3];
@@ -859,7 +874,7 @@ function artLit(im, side, col, tone) {
     }
     g.putImageData(d, 0, 0);
   } catch (e) { return im; }
-  return (m[key] = c);
+  return artCachePut(ART_LIT, key, c, 160);
 }
 // the sky and the roofs live: clouds drift past the moon, chimneys smoke, the skyline's windows blink,
 // a plane crosses with its lights blinking, now and then a shooting star
@@ -914,13 +929,15 @@ function artStreetLit(nx) {
 // (sheared its own way), the stepping foot lifts, the body dips when the legs are apart
 const ART_WALK = new Map();
 function artWalk(im, ph) {
-  let fr = ART_WALK.get(im);
+  const key = artCid(im);
+  let fr = artCacheGet(ART_WALK, key);
   if (!fr) {
-    fr = []; ART_WALK.set(im, fr);
+    fr = [];
     const w = im.naturalWidth || im.width, h = im.naturalHeight || im.height, hip = Math.round(h * 0.6), mid = Math.round(w * 0.5), pad = Math.round(w * 0.12), N = 8;
     for (let i = 0; i < N; i++) {
       const c = document.createElement('canvas'); c.width = w + pad * 2; c.height = h;
       const g = c.getContext('2d'), a = Math.sin((i / N) * Math.PI * 2), b = Math.cos((i / N) * Math.PI * 2);
+      if (!g) return im;
       const dip = Math.round(Math.abs(a) * h * 0.012), legH = h - hip;
       g.imageSmoothingEnabled = false;
       // legs apart twice per cycle; the leg that steps through is lifted and drawn behind, then the body over the hip seam
@@ -935,6 +952,7 @@ function artWalk(im, ph) {
       g.drawImage(im, 0, 0, w, hip + 3, pad, dip, w, hip + 3);
       fr.push(c);
     }
+    artCachePut(ART_WALK, key, fr, 14); // 8 frames each: about the walkers on screen
   }
   return fr[Math.floor(((ph % 1) + 1) % 1 * fr.length) % fr.length];
 }
@@ -951,7 +969,9 @@ function artLook(i) {
   if (!hue) return im;
   if (ART_TINT[key]) return ART_TINT[key];
   const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; c._n = im._n;
-  const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+  const g = c.getContext('2d');
+  if (!g) return im;
+  g.drawImage(im, 0, 0);
   try {
     const d = g.getImageData(0, 0, c.width, c.height), p = d.data, top = Math.round(c.height * 0.3) * c.width * 4, hip = Math.round(c.height * 0.6) * c.width * 4; // the top: below the face, above the jeans
     for (let j = top; j < hip; j += 4) {
@@ -1114,8 +1134,8 @@ function artTap(e) {
   const nx = ((e.clientX - r.left) * k - F.x) / F.w, ny = ((e.clientY - r.top) * k - F.y) / F.h;
   const inR = (b) => nx >= b[0] && nx <= b[2] && ny >= b[1] && ny <= b[3];
   if (CT.inside) {
-    if (inR(pic.door) || (e.clientX - r.left) / r.width < 0.1) { cityAct('out'); return true; }
     if (pic.items) for (const id in pic.items) if (inR(pic.items[id])) { artMallItem(id, e); return true; }
+    if (inR(pic.door) || (e.clientX - r.left) / r.width < 0.1) { cityAct('out'); return true; }
     for (const h in pic.hot) if (inR(pic.hot[h])) { cityPoke(CT.inside + '.' + h, e); return true; }
     cityTalk(); return true;
   }
@@ -1125,7 +1145,7 @@ function artTap(e) {
   if (Math.abs(nx - ART_ST.kiosk) < 0.02 && ny > feet - 0.13 && ny < feet + 0.02) { cityPoke('st.kiosk', e, '📰'); return true; }
   const m = ART_ST.moon; if (Math.hypot(nx - m[0], (ny - m[1]) * F.h / F.w) < m[2]) { cityPoke('st.moon', e, '🌙'); return true; }
   const npc = (CT.anpcs || []).find((n) => Math.abs(nx - n.x) < 0.02 && ny > feet - 0.12 && ny < feet + 0.02);
-  if (npc) { npc.pause = 2.5; npc.v = -npc.v; cityPoke('st.npc', e, '💬'); return true; }
+  if (npc) { npc.pause = 2.5; npc.v = -npc.v; npc.talkT = CT.t; cityPoke('st.npc', e, '💬'); return true; }
   const car = (CT.acars || []).find((c) => Math.abs(nx - c.x) < 0.05 && Math.abs(ny - ART_ST.lanes[c.lane]) < 0.05);
   if (car) { try { beep(620, 0.09, 'square', 0.05); beep(520, 0.12, 'square', 0.05, 0.12); } catch (x) {} cityPoke('st.car', e, '📯'); return true; }
   if (ART_ST.lamps.some((lx) => Math.abs(nx - lx) < 0.015) && ny < feet) { CT.flickT = CT.t; sfx('blip'); return true; }
