@@ -8922,9 +8922,9 @@ const ART_FACES = new Set(['you', 'prog', 'des', 'art', 'mkt', 'qa', 'snd', 'pro
 const ART_FACE_IMG = { boss: 'npc_boss', inv: 'npc_investor', npc: 'npc_journalist', streamer: 'npc_streamer' };
 const ART_EV_FACE = { blogger: 'streamer', fan: 'streamer' };
 const evFace = (id) => (artOn() && ART_EV_FACE[id]) || EV_FACE[id] || 'npc';
-function artFace(kind, mood) {
+function artFace(kind, mood, st) {
   if (!ART_FACES.has(kind) || !artOn()) return '';
-  const m = mood >= 60 ? 2 : mood >= 35 ? 1 : 0, key = 'af:' + kind + ':' + m;
+  const m = mood >= 60 ? 2 : mood >= 35 ? 1 : 0, key = 'af:' + kind + ':' + m + (st ? ':' + st : '');
   if (!imgCache[key]) {
     const src = ART_FACE_IMG[kind] || 'stand_' + kind, im = artImg(src);
     if (!im) {
@@ -8938,17 +8938,36 @@ function artFace(kind, mood) {
       const g = cv.getContext('2d'), bg = g.createRadialGradient(S2 / 2, S2 * 0.38, 4, S2 / 2, S2 * 0.45, S2 * 0.7);
       bg.addColorStop(0, '#2c2a8a'); bg.addColorStop(1, '#0c1040');
       g.fillStyle = bg; g.fillRect(0, 0, S2, S2);
-      const k = S2 / s, top = Math.round(6 * k);
-      g.drawImage(im, 0, 0, w, (S2 - top) / k, (S2 - w * k) / 2, top, w * k, S2 - top);
+      const k = S2 / s, top = Math.round(6 * k), fim = artFaceV(im, st || 0);
+      g.drawImage(fim, 0, 0, w, (S2 - top) / k, (S2 - w * k) / 2, top, w * k, S2 - top);
       if (m < 2) { // a tired or sad face looks greyer and darker (same as the mood filter on the other portraits)
         const d = g.getImageData(0, 0, S2, S2), a = d.data, sat = m ? 0.8 : 0.45, br = m ? 0.92 : 0.8;
         for (let i = 0; i < a.length; i += 4) { const l = a[i] * 0.3 + a[i + 1] * 0.59 + a[i + 2] * 0.11; for (let c = 0; c < 3; c++) a[i + c] = (l + (a[i + c] - l) * sat) * br; }
         g.putImageData(d, 0, 0);
       }
       imgCache[key] = cv.toDataURL('image/png');
+      if (!st) { ART_FACE_URL.set(imgCache[key], [kind, mood]); if (!ART_FACE_URL.timer) ART_FACE_URL.timer = setInterval(artFacesTick, 110); }
     } catch (e) { return ''; }
   }
   return imgCache[key];
+}
+// the faces on screen are alive too: they blink, and in a window that just opened (an event, a talk) the person speaks
+const ART_FACE_URL = new Map();
+function artFacesTick() {
+  if (document.hidden) return;
+  const now = performance.now() / 1000;
+  for (const el of document.querySelectorAll('img')) {
+    let d = el._af;
+    if (!d) {
+      const k = ART_FACE_URL.get(el.getAttribute('src'));
+      if (!k) continue;
+      d = el._af = { kind: k[0], mood: k[1], t0: now, base: el.getAttribute('src'), st: 0, talk: !!el.closest('#ovl, .say, .modal') };
+    }
+    const st = artFaceState(d.kind + (d.talk ? 'o' : ''), now, d.talk && now - d.t0 < 2.4);
+    if (st === d.st) continue;
+    const url = st ? artFace(d.kind, d.mood, st) : d.base;
+    if (url) { el.setAttribute('src', url); d.st = st; }
+  }
 }
 const portraitPx = (kind, mood) => pxURL('p2:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 48, 48, (B) => drawPortrait(B, kind, mood));
 const seedOf = (name) => {
@@ -10619,6 +10638,7 @@ function talk(role) {
   haptic('light');
 }
 function sayBubble(kind, html) {
+  ART_LIFE.talk[kind] = performance.now() / 1000; // their mouth moves in the new look
   const p = spotOf(kind);
   if (p) sayAt(p[0], p[1], html);
 }
@@ -11699,7 +11719,7 @@ function cityTap(e) {
   if (wx >= CITY_KIOSK - 2 && wx <= CITY_KIOSK + 12 && ly >= CITY_SIDEWALK - 22 && ly <= CITY_SIDEWALK) { cityPoke('st.kiosk', e, '📰'); return; }
   if (lx >= cv.width - 31 && lx <= cv.width - 17 && ly <= 19) { cityPoke('st.moon', e, '🌙'); return; }
   const npc = CT.npcs.find((n) => Math.abs(wx - n.x) <= 6 && ly >= CITY_SIDEWALK - 20 && ly <= CITY_SIDEWALK + 5);
-  if (npc) { npc.pause = 2.5; npc.v = -npc.v; cityPoke('st.npc', e, '💬'); return; }
+  if (npc) { npc.pause = 2.5; npc.v = -npc.v; npc.talkT = CT.t; cityPoke('st.npc', e, '💬'); return; }
   const car = CT.cars.find((c) => wx >= c.x - 4 && wx <= c.x + 26 && ly >= CITY_SIDEWALK + 4);
   if (car) { try { beep(620, 0.09, 'square', 0.05); beep(520, 0.12, 'square', 0.05, 0.12); } catch (x) {} cityPoke('st.car', e, '📯'); return; }
   if (ly < CITY_SIDEWALK - 26 && CITY_B.every((b) => wx < b.x || wx > b.x + b.w)) { CT.flickT = CT.t; sfx('blip'); return; }
@@ -12043,6 +12063,7 @@ function artOn() {
 function artImg(name) {
   let im = ART.imgs[name];
   if (!im) { im = ART.imgs[name] = new Image(); im.decoding = 'async'; im.src = 'art/' + name + '.webp'; }
+  im._n = name;
   return im.complete && im.naturalWidth ? im : null;
 }
 // the street picture: shop fronts, the feet line and the road lanes as fractions of the picture
@@ -12121,6 +12142,7 @@ function artDraw(now) {
   const F = artFit(cv, im, CT.ax);
   CT.F = F;
   g.drawImage(im, F.x, F.y, F.w, F.h);
+  artStreetLife(g, F, t);
   const u = F.h * 0.0056, feet = ART_ST.feet, ready = cityReady();
   // living neon: signs breathe, lamps glow, the wet road shimmers
   for (const k in ART_ST.signs) { const s = ART_ST.signs[k]; artGlow(g, F.x + s[0] * F.w, F.y + s[1] * F.h, F.h * 0.11, s[2], 0.16 + 0.1 * Math.sin(t * 2.4 + s[0] * 9)); }
@@ -12163,11 +12185,11 @@ function artDraw(now) {
     if (n.pause > 0) n.pause -= dt; else { n.x += n.v * dt; n.ph += dt * Math.abs(n.v) * 52; if (Math.random() < dt * 0.06) n.pause = 1 + Math.random() * 2.5; }
     if (n.x > 1.04 || n.x < -0.04) { n.x = n.x > 1 ? -0.03 : 1.03; n.look = (n.look + 5) % ART_LOOKS.length; n.sz = 0.128 + Math.random() * 0.02; n.v = Math.sign(n.v) * (0.014 + Math.random() * 0.014); }
     const nim = artLook(n.look);
-    if (nim) artPerson(g, F, nim, n.x, feet - (n.look % 3) * 0.004, n.sz, n.v < 0, 0, 0, Object.assign(artStreetLit(n.x), { walk: n.pause > 0 ? null : n.ph }));
+    if (nim) artPerson(g, F, nim, n.x, feet - (n.look % 3) * 0.004, n.sz, n.v < 0, 0, 0, Object.assign(artStreetLit(n.x), { walk: n.pause > 0 ? null : n.ph, face: n.pause > 0 ? artFaceState('n' + n.look, CT.t, CT.t - (n.talkT || -9) < 1.6) : 0 }));
     else artBlit(g, F, sprPerson(1 + (n.look % 3), Math.floor(CT.t * 7 + n.look), n.pause > 0), n.x, feet, 0.13, n.v < 0);
   }
   { const yim = artImg('stand_you'), moving = CT.atx !== null;
-    if (yim) artPerson(g, F, yim, CT.ax, feet + 0.006, 0.145, CT.dir < 0, 0, 0, Object.assign(artStreetLit(CT.ax), { walk: moving ? CT.walk * 0.19 : null }));
+    if (yim) artPerson(g, F, yim, CT.ax, feet + 0.006, 0.145, CT.dir < 0, 0, 0, Object.assign(artStreetLit(CT.ax), { walk: moving ? CT.walk * 0.19 : null, face: moving ? 0 : artFaceState('you', CT.t, false) }));
     else artBlit(g, F, sprPerson(0, Math.floor(CT.walk), CT.atx === null), CT.ax, feet + 0.006, 0.135, CT.dir < 0); }
   return true;
 }
@@ -12175,6 +12197,7 @@ function artDraw(now) {
 // o (people only): { side, col, tone } lights the picture to fit the scene (artLit), walk = walk-cycle phase,
 // refl = a faint reflection on the wet pavement
 function artPerson(g, F, im, nx, ny, hFrac, flip, bob, tilt, o) {
+  if (o && o.face) im = artFaceV(im, o.face);
   if (o && o.col) im = artLit(im, flip ? -o.side : o.side, o.col, o.tone);
   if (o && o.walk != null) im = artWalk(im, o.walk);
   const h = hFrac * F.h, w = h * (im.naturalWidth || im.width) / (im.naturalHeight || im.height), X = F.x + nx * F.w, Y = F.y + ny * F.h;
@@ -12182,6 +12205,75 @@ function artPerson(g, F, im, nx, ny, hFrac, flip, bob, tilt, o) {
   if (o && o.refl) { g.save(); g.globalAlpha = 0.13; g.translate(X, Y); if (flip) g.scale(-1, 1); g.scale(1, -0.45); g.drawImage(im, -w / 2, -h, w, h); g.restore(); }
   g.save(); g.imageSmoothingEnabled = true; g.translate(X, Y + (bob || 0)); if (tilt) g.rotate(tilt); if (flip) g.scale(-1, 1);
   g.drawImage(im, -w / 2, -h, w, h); g.restore();
+}
+// faces: where the eyes and the mouth are on each drawn character (picture px; found by tools/art/faces.py,
+// the last four by eye). With them people blink and move their mouths when they talk.
+const ART_FACE = {
+  npc_boss: { l: [69, 94], r: [117, 94], ew: 33, eh: 19, m: [93, 134], mw: 22 },
+  npc_investor: { l: [75, 100], r: [127, 100], ew: 21, eh: 20, m: [102, 128], mw: 20 },
+  npc_journalist: { l: [73, 100], r: [128, 100], ew: 23, eh: 23, m: [103, 132], mw: 20 },
+  npc_streamer: { l: [75, 106], r: [125, 106], ew: 21, eh: 20, m: [97, 139], mw: 18 },
+  stand_art: { l: [74, 93], r: [106, 93], ew: 21, eh: 22, m: [90, 124], mw: 14 },
+  stand_cm: { l: [84, 73], r: [114, 73], ew: 25, eh: 22, m: [99, 103], mw: 13 },
+  stand_des: { l: [70, 91], r: [102, 91], ew: 24, eh: 21, m: [86, 121], mw: 14 },
+  stand_mkt: { l: [75, 75], r: [106, 75], ew: 23, eh: 21, m: [91, 105], mw: 14 },
+  stand_prod: { l: [66, 85], r: [98, 85], ew: 24, eh: 21, m: [82, 115], mw: 14 },
+  stand_prog: { l: [71, 82], r: [102, 82], ew: 21, eh: 21, m: [86, 111], mw: 14 },
+  stand_qa: { l: [70, 89], r: [101, 89], ew: 24, eh: 21, m: [86, 119], mw: 14 },
+  stand_snd: { l: [77, 79], r: [109, 79], ew: 23, eh: 21, m: [93, 109], mw: 14 },
+  stand_you: { l: [68, 89], r: [99, 89], ew: 19, eh: 30, m: [83, 123], mw: 14 },
+  walk_biz: { l: [53, 66], r: [85, 66], ew: 25, eh: 17, m: [69, 95], mw: 15 },
+  walk_courier: { l: [91, 67], r: [123, 67], ew: 20, eh: 18, m: [107, 96], mw: 15 },
+  walk_grandpa: { l: [83, 70], r: [116, 70], ew: 20, eh: 17, m: [99, 98], mw: 15 },
+  walk_leather: { m: [71, 89], mw: 13 },
+  walk_rain: { l: [65, 66], r: [101, 66], ew: 23, eh: 19, m: [83, 98], mw: 16 },
+  walk_skater: { l: [87, 74], r: [119, 74], ew: 20, eh: 19, m: [103, 104], mw: 15 },
+};
+const ART_FACEV = new Map();
+// st: 1 = eyes closed, 2 = mouth open, 3 = mouth half open (cached per picture)
+function artFaceV(im, st) {
+  const P = st && im && ART_FACE[im._n];
+  if (!P || (st === 1 && !P.l)) return im;
+  let m = ART_FACEV.get(im);
+  if (!m) ART_FACEV.set(im, (m = {}));
+  if (m[st]) return m[st];
+  const w = im.naturalWidth || im.width, h = im.naturalHeight || im.height, c = document.createElement('canvas');
+  c.width = w; c.height = h; c._n = im._n;
+  const g = c.getContext('2d');
+  g.drawImage(im, 0, 0);
+  try {
+    if (st === 1) {
+      const eh = Math.min(P.eh, P.ew * 1.05);
+      for (const e of [P.l, P.r]) {
+        // the lid takes the colour of the skin next to the eye: the first spot below or beside it that looks like skin
+        const out = e === P.l ? -1 : 1;
+        let col = null;
+        for (const [dx, dy] of [[0, 0.8], [0, 1], [0, 1.25], [out * 0.9, 0.3], [-out * 0.9, 0.6], [0, 1.5]]) {
+          const d = g.getImageData(Math.max(0, Math.min(w - 1, Math.round(e[0] + dx * P.ew))), Math.min(h - 1, Math.round(e[1] + dy * eh)), 1, 1).data, L0 = 0.3 * d[0] + 0.59 * d[1] + 0.11 * d[2];
+          if (d[3] > 200 && d[0] >= d[1] && d[1] >= d[2] && d[0] - d[2] > 20 && (d[0] - d[2]) / d[0] > 0.25 && L0 > 50 && L0 < 235) { col = d; break; }
+        }
+        if (!col) continue;
+        g.fillStyle = `rgb(${col[0]},${col[1]},${col[2]})`;
+        g.beginPath(); g.ellipse(e[0], e[1], P.ew / 2 + 1, eh / 2 + 1, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#2a1712'; g.fillRect(Math.round(e[0] - P.ew / 2), Math.round(e[1] + eh * 0.12), Math.round(P.ew), Math.max(2, Math.round(eh * 0.14)));
+      }
+    } else {
+      const k = st === 2 ? 1 : 0.6, mw = P.mw * (0.62 + 0.18 * k), mh = P.mw * 0.42 * k;
+      g.fillStyle = '#3a1218'; g.beginPath(); g.ellipse(P.m[0], P.m[1] + mh * 0.2, mw / 2, mh / 2 + 1, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#d0606a'; g.beginPath(); g.ellipse(P.m[0], P.m[1] + mh * 0.45, mw * 0.3, Math.max(1, mh * 0.22), 0, 0, Math.PI * 2); g.fill();
+      if (st === 2) { g.fillStyle = '#f4ecec'; g.fillRect(Math.round(P.m[0] - mw * 0.3), Math.round(P.m[1] + mh * 0.2 - mh / 2), Math.round(mw * 0.6), Math.max(1, Math.round(mh * 0.16))); }
+    }
+  } catch (e) { return im; }
+  return (m[st] = c);
+}
+// what a face does now: blinks every few seconds (each person on their own rhythm); while talking the mouth moves
+function artFaceState(key, t, talking) {
+  let hsh = 0;
+  for (let i = 0; i < key.length; i++) hsh = (hsh * 31 + key.charCodeAt(i)) % 997;
+  const per = 2.8 + (hsh % 23) / 10, ph = (t + hsh * 0.61) % per;
+  if (ph < 0.13 || (hsh % 3 === 0 && ph > 0.3 && ph < 0.42)) return 1; // some blink twice
+  if (talking) { const f = Math.floor(t * 10 + hsh) % 4; return f === 0 ? 0 : f === 2 ? 2 : 3; }
+  return 0;
 }
 // a shadow that holds someone to the floor: a wide soft one and a dark core right under the feet
 function artFeet(g, X, Y, w, h) {
@@ -12230,6 +12322,48 @@ function artLit(im, side, col, tone) {
   } catch (e) { return im; }
   return (m[key] = c);
 }
+// the sky and the roofs live: clouds drift past the moon, chimneys smoke, the skyline's windows blink,
+// a plane crosses with its lights blinking, now and then a shooting star
+function artStreetLife(g, F, t) {
+  const P = (x, y) => [F.x + x * F.w, F.y + y * F.h];
+  g.save();
+  // clouds: soft dark-violet blobs sliding slowly, a little lit where they pass the moon
+  for (let i = 0; i < 4; i++) {
+    const x = ((i * 0.31 + t * (0.006 + i * 0.002)) % 1.4) - 0.2, y = 0.05 + (i % 2) * 0.05 + i * 0.012;
+    const [cx, cy] = P(x, y), r = F.h * (0.05 + (i % 3) * 0.015), near = Math.abs(x - ART_ST.moon[0]) < 0.08;
+    g.globalAlpha = 0.5; g.fillStyle = near ? '#4a3f8a' : '#1c1840';
+    for (let j = 0; j < 4; j++) { g.beginPath(); g.ellipse(cx + (j - 1.5) * r * 0.9, cy + (j % 2) * r * 0.2, r, r * 0.42, 0, 0, Math.PI * 2); g.fill(); }
+  }
+  // the skyline's windows blink on and off
+  artWinLights(g, F, [0.02, 0.15, 0.98, 0.3], t, 3);
+  artWinLights(g, F, [0.3, 0.12, 0.7, 0.3], t * 0.8, 9);
+  // chimney smoke
+  g.globalCompositeOperation = 'source-over';
+  [[0.083, 0.2], [0.39, 0.225], [0.715, 0.23]].forEach((c, i) => {
+    for (let j = 0; j < 6; j++) {
+      const k = ((t * 0.18 + j / 6 + i * 0.3) % 1), [x, y] = P(c[0] + k * 0.03 + Math.sin(t + j) * 0.004, c[1] - k * 0.1);
+      g.globalAlpha = 0.28 * (1 - k); g.fillStyle = '#9a90c0';
+      g.beginPath(); g.arc(x, y, F.h * (0.008 + k * 0.022), 0, Math.PI * 2); g.fill();
+    }
+  });
+  // a plane high up
+  const pk = (t % 40) / 16;
+  if (pk < 1) {
+    const [x, y] = P(1.05 - pk * 1.1, 0.04 + pk * 0.03), sz = Math.max(1.5, F.h * 0.005);
+    g.globalCompositeOperation = 'lighter';
+    g.globalAlpha = Math.sin(t * 8) > 0.3 ? 0.95 : 0.15; g.fillStyle = '#ff4d6d'; g.fillRect(x, y, sz, sz);
+    g.globalAlpha = Math.sin(t * 8 + 2) > 0.5 ? 0.9 : 0.15; g.fillStyle = '#ffffff'; g.fillRect(x + sz * 4, y + sz * 0.5, sz, sz);
+  }
+  // a shooting star every half a minute or so
+  const sk = (t % 27) / 0.9;
+  if (sk < 1) {
+    const [x0, y0] = P(0.55, 0.03), [x1, y1] = P(0.75, 0.12), hx = x0 + (x1 - x0) * sk, hy = y0 + (y1 - y0) * sk;
+    const gr = g.createLinearGradient(hx - (x1 - x0) * 0.3, hy - (y1 - y0) * 0.3, hx, hy); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(255,255,255,0.9)');
+    g.globalCompositeOperation = 'lighter'; g.globalAlpha = 1 - sk * 0.5; g.strokeStyle = gr; g.lineWidth = Math.max(1.5, F.h * 0.004); g.lineCap = 'round';
+    g.beginPath(); g.moveTo(hx - (x1 - x0) * 0.3, hy - (y1 - y0) * 0.3); g.lineTo(hx, hy); g.stroke();
+  }
+  g.restore();
+}
 // the street's light at a spot: the nearest lamp (warm) or shop sign (its neon colour), and which side it is on
 function artStreetLit(nx) {
   let best = null;
@@ -12277,7 +12411,7 @@ function artLook(i) {
   if (!im) return null;
   if (!hue) return im;
   if (ART_TINT[key]) return ART_TINT[key];
-  const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+  const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; c._n = im._n;
   const g = c.getContext('2d'); g.drawImage(im, 0, 0);
   try {
     const d = g.getImageData(0, 0, c.width, c.height), p = d.data, top = Math.round(c.height * 0.3) * c.width * 4, hip = Math.round(c.height * 0.6) * c.width * 4; // the top: below the face, above the jeans
@@ -12296,6 +12430,109 @@ function artLook(i) {
   return (ART_TINT[key] = c);
 }
 function artFindX() { const n = cityS().fndN || 0; return 0.06 + ((n * 0.397 + 0.13) % 0.88); }
+// life in the rooms (fractions of the picture): lamps breathe with dust in their light, screens and neon flicker,
+// city lights blink in the windows, a visitor drops in now and then; the arena's crowd jumps under sweeping spotlights
+const ART_ROOM = {
+  cafe: { lamps: [[0.33, 0.2], [0.49, 0.2], [0.655, 0.2], [0.19, 0.32]], neon: [[0.08, 0.25, '#ff3fd0'], [0.98, 0.45, '#c060ff']], wins: [[0.79, 0.31, 0.96, 0.57]], screens: [],
+    visitor: { looks: [2, 8, 6, 10, 0], stop: 0.64, h: 0.36 }, baked: { eyes: [[749, 476], [774, 477]], ew: 9, eh: 12, mouth: [760, 500], skin: [760, 489] } },
+  academy: { lamps: [[0.25, 0.12], [0.415, 0.14], [0.105, 0.33], [0.63, 0.18], [0.79, 0.58]], wins: [[0.765, 0.12, 0.92, 0.57]], screens: [[0.255, 0.74, '#a06aff'], [0.49, 0.73, '#3fd0ff'], [0.715, 0.73, '#3fd0ff']] },
+  deals: { lamps: [[0.04, 0.45], [0.825, 0.19], [0.45, 0.43]], wins: [[0.03, 0.06, 0.29, 0.56]], screens: [[0.455, 0.54, '#3fd0ff']], neon: [[0.23, 0.42, '#ff3fd0']] },
+  games: { lamps: [], neon: [[0.135, 0.28, '#ff3fd0'], [0.485, 0.2, '#3fd0ff'], [0.75, 0.2, '#ff3fd0'], [0.355, 0.42, '#ff3fd0'], [0.74, 0.73, '#ff3fd0']],
+    screens: [[0.22, 0.58, '#3fd0ff'], [0.11, 0.53, '#3fd0ff'], [0.94, 0.57, '#3fd0ff']], wins: [[0.0, 0.08, 0.06, 0.72]], visitor: { looks: [4, 0, 6, 14], stop: 0.5, h: 0.34 } },
+  mall: { lamps: [[0.205, 0.42], [0.355, 0.42], [0.545, 0.41], [0.66, 0.42], [0.815, 0.42], [0.115, 0.43]], neon: [[0.5, 0.32, '#3fd0ff'], [0.905, 0.15, '#3fd0ff']],
+    screens: [[0.33, 0.57, '#3fd0ff'], [0.8, 0.6, '#3fd0ff']], wins: [[0.955, 0.42, 1, 0.84]], visitor: { looks: [8, 2, 10, 12], stop: 0.66, h: 0.34 } },
+  arena: { lamps: [], neon: [[0.5, 0.37, '#ff3fd0'], [0.2, 0.62, '#3fd0ff'], [0.8, 0.62, '#ff3fd0']], screens: [], wins: [], spots: [0.18, 0.26, 0.37, 0.455, 0.545, 0.63, 0.74, 0.82], crowd: 0.8 },
+};
+// blink lights in a window rectangle (a few fixed points per window, each with its own rhythm)
+function artWinLights(g, F, w, t, seed) {
+  g.save(); g.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 18; i++) {
+    const a = ((i * 0.618 + seed * 0.37) % 1), b = ((i * 0.414 + seed * 0.21) % 1), per = 3 + (i % 7), ph = (t + i * 1.3 + seed) % per;
+    if (ph < 0.7) continue;
+    g.globalAlpha = 0.35 + 0.25 * Math.sin(t * 1.7 + i);
+    g.fillStyle = i % 3 ? '#ffd890' : '#9fe0ff';
+    const sz = Math.max(1, F.h * 0.004);
+    g.fillRect(F.x + (w[0] + (w[2] - w[0]) * a) * F.w, F.y + (w[1] + (w[3] - w[1]) * (0.3 + b * 0.65)) * F.h, sz, sz);
+  }
+  g.restore();
+}
+function artRoomFx(g, F, room, t, talking) {
+  const R = ART_ROOM[room];
+  if (!R) return;
+  const P = (x, y) => [F.x + x * F.w, F.y + y * F.h];
+  // lamps: a soft breathing glow, a faint cone below and dust floating in it
+  R.lamps.forEach((l, i) => {
+    const [x, y] = P(l[0], l[1]);
+    artGlow(g, x, y + F.h * 0.02, F.h * 0.09, '#ffc070', 0.16 + 0.05 * Math.sin(t * 2.2 + i * 1.9));
+    g.save(); g.globalCompositeOperation = 'lighter'; g.fillStyle = '#ffe2a8';
+    for (let j = 0; j < 5; j++) {
+      const k = i * 5 + j, a = t * (0.2 + (k % 3) * 0.06) + k * 1.7;
+      g.globalAlpha = 0.2 + 0.3 * Math.max(0, Math.sin(t * 1.3 + k * 2.1));
+      g.fillRect(x + Math.sin(a) * F.h * 0.05, y + F.h * (0.06 + 0.05 * (1 + Math.cos(a * 0.8 + k))), Math.max(1, F.h * 0.003), Math.max(1, F.h * 0.003));
+    }
+    g.restore();
+  });
+  (R.neon || []).forEach((n, i) => {
+    const [x, y] = P(n[0], n[1]), glitch = Math.sin(t * 0.7 + i * 3) > 0.97 && Math.sin(t * 50) > 0;
+    artGlow(g, x, y, F.h * 0.1, n[2], glitch ? 0.02 : 0.14 + 0.08 * Math.sin(t * 2.6 + i));
+  });
+  R.screens.forEach((sc, i) => { const [x, y] = P(sc[0], sc[1]); artGlow(g, x, y, F.h * 0.06, sc[2], 0.14 + 0.06 * Math.sin(t * 7 + i * 2) + (Math.sin(t * 13 + i) > 0.9 ? 0.1 : 0)); });
+  R.wins.forEach((w, i) => artWinLights(g, F, w, t, i + room.length));
+  if (R.spots) {
+    // spotlights sweep the stage
+    g.save(); g.globalCompositeOperation = 'lighter';
+    R.spots.forEach((sx, i) => {
+      const [x, y] = P(sx, 0.1), ang = Math.sin(t * (0.5 + (i % 3) * 0.17) + i * 1.3) * 0.35 + (sx - 0.5) * -0.6, len = F.h * 0.75, half = F.h * 0.06;
+      const ex = x + Math.sin(ang) * len, ey = y + Math.cos(ang) * len;
+      const gr = g.createLinearGradient(x, y, ex, ey); const col = i < R.spots.length / 2 ? '63,160,255' : '255,63,208';
+      gr.addColorStop(0, `rgba(${col},0.22)`); gr.addColorStop(1, `rgba(${col},0)`);
+      g.fillStyle = gr; g.beginPath(); g.moveTo(x, y);
+      g.lineTo(ex + Math.cos(ang) * half, ey - Math.sin(ang) * half); g.lineTo(ex - Math.cos(ang) * half, ey + Math.sin(ang) * half); g.closePath(); g.fill();
+    });
+    g.restore();
+  }
+  if (R.crowd) {
+    // the crowd jumps: strips of the picture's bottom bounce on their own beat, glow sticks wave
+    const im = artImg(ART_IN[room].img), n = 16, y0 = R.crowd, sw = im.naturalWidth / n, sh = im.naturalHeight * (1 - y0);
+    for (let i = 0; i < n; i++) {
+      const dy = Math.max(0, Math.sin(t * 5.5 + i * 1.7)) * F.h * 0.012;
+      g.drawImage(im, i * sw, im.naturalHeight * y0, sw + 1, sh, F.x + i * F.w / n, F.y + y0 * F.h - dy, F.w / n + 1, sh * F.h / im.naturalHeight);
+    }
+    g.save(); g.lineCap = 'round'; g.lineWidth = Math.max(2, F.h * 0.008);
+    for (let i = 0; i < 12; i++) {
+      const x = F.x + ((i * 0.083 + 0.04) % 1) * F.w, y = F.y + (0.86 + (i % 3) * 0.03) * F.h, a = Math.sin(t * 4 + i * 2.3) * 0.6, L = F.h * 0.05;
+      g.strokeStyle = i % 2 ? '#3fd0ff' : '#ff3fd0'; g.globalAlpha = 0.85;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.sin(a) * L, y - Math.cos(a) * L); g.stroke();
+    }
+    g.restore();
+  }
+  if (R.baked) {
+    // the barista in the picture blinks and talks back
+    const B = R.baked, im = artImg(ART_IN[room].img), k = F.w / im.naturalWidth;
+    if (!B.col) { try { const c = document.createElement('canvas'); c.width = c.height = 1; const cg = c.getContext('2d'); cg.drawImage(im, B.skin[0], B.skin[1], 1, 1, 0, 0, 1, 1); const d = cg.getImageData(0, 0, 1, 1).data; B.col = `rgb(${d[0]},${d[1]},${d[2]})`; } catch (e) { B.col = '#e0a070'; } }
+    const st = artFaceState('barista', t, talking);
+    if (st === 1) for (const e of B.eyes) { g.fillStyle = B.col; g.fillRect(F.x + (e[0] - B.ew / 2) * k, F.y + (e[1] - B.eh / 2) * k, B.ew * k, B.eh * k); g.fillStyle = '#2a1712'; g.fillRect(F.x + (e[0] - B.ew / 2) * k, F.y + (e[1] + 1) * k, B.ew * k, 2 * k); }
+    else if (st >= 2) { g.fillStyle = '#3a1218'; g.beginPath(); g.ellipse(F.x + B.mouth[0] * k, F.y + B.mouth[1] * k, 4 * k, (st === 2 ? 3 : 1.8) * k, 0, 0, Math.PI * 2); g.fill(); }
+  }
+}
+// a visitor walks in from the right, stays at the counter for a chat, and leaves
+function artVisitor(g, F, room, t, dt) {
+  const R = ART_ROOM[room], V = R && R.visitor;
+  if (!V) return;
+  const v = CT.vis && CT.vis.room === room ? CT.vis : (CT.vis = { room, x: 1.08, mode: 'gone', until: CT.t + 1.5, n: 0, ph: 0 });
+  const spd = 0.11;
+  if (v.mode === 'gone' && CT.t > v.until) { v.mode = 'in'; v.x = 1.08; v.n++; }
+  else if (v.mode === 'in') { v.x -= spd * dt; v.ph += dt * 1.6; if (v.x <= V.stop) { v.x = V.stop; v.mode = 'stay'; v.until = CT.t + 5 + Math.random() * 3; v.talkT = CT.t; } }
+  else if (v.mode === 'stay' && CT.t > v.until) v.mode = 'out';
+  else if (v.mode === 'out') { v.x += spd * dt; v.ph += dt * 1.6; if (v.x > 1.08) { v.mode = 'gone'; v.until = CT.t + 4 + Math.random() * 6; } }
+  if (v.mode === 'gone') return;
+  const nim = artLook(V.looks[v.n % V.looks.length]);
+  if (!nim) return;
+  const walking = v.mode !== 'stay', talk = v.mode === 'stay' && CT.t - v.talkT < 2.5;
+  if (talk) CT.visTalk = CT.t;
+  artPerson(g, F, nim, v.x, 0.985, V.h, v.mode !== 'out', walking ? 0 : Math.sin(t * 1.7) * F.h * 0.002, 0,
+    { side: -1, col: '#ffd090', tone: 'warm', walk: walking ? v.ph : null, face: walking ? 0 : artFaceState('vis' + v.n, CT.t, talk) });
+}
 function artInside(g, cv, im, pic, t) {
   const F = artFit(cv, im, 0.5);
   CT.F = F;
@@ -12303,6 +12540,8 @@ function artInside(g, cv, im, pic, t) {
   const u = F.h * 0.009, talking = CT.talkT && CT.t - CT.talkT < 1.2;
   // a warm breathing light over the whole room
   artGlow(g, F.x + F.w * 0.5, F.y + F.h * 0.15, F.h * 0.8, '#ffc070', 0.05 + 0.02 * Math.sin(t * 1.5));
+  const dt = Math.min(0.1, Math.max(0, t - (CT.inLast || t))); CT.inLast = t;
+  artRoomFx(g, F, CT.inside, t, talking || CT.t - (CT.visTalk || -9) < 0.2);
   if (pic.steam) { const sx = F.x + pic.steam[0] * F.w, sy = F.y + pic.steam[1] * F.h, burst = CT.t - CT.steamT < 1.6;
     for (let i = 0; i < (burst ? 12 : 4); i++) { const k = ((t * (burst ? 40 : 14)) + i * 9) % 60; g.globalAlpha = Math.max(0, 0.45 - k / 130); g.fillStyle = '#ffffff'; g.fillRect(sx + Math.sin(i * 2.1 + k * 0.1) * (2 + k / 5) * u * 0.4, sy - k * u * 0.35, u * 1.2, u * 1.2); }
     g.globalAlpha = 1; }
@@ -12311,7 +12550,7 @@ function artInside(g, cv, im, pic, t) {
     // behind a counter: only what is above its top edge (pic.host[3]) is visible
     if (pic.host[3]) { g.save(); g.beginPath(); g.rect(0, 0, cv.width, F.y + pic.host[3] * F.h); g.clip(); }
     const him = pic.who && artImg('stand_' + pic.who);
-    if (him) artPerson(g, F, him, pic.host[0], pic.host[1], 0.34, true, talking ? Math.sin(CT.t * 14) * F.h * 0.004 : Math.sin(t * 1.6) * F.h * 0.002, 0, { side: -1, col: '#ffd090', tone: 'warm' });
+    if (him) artPerson(g, F, him, pic.host[0], pic.host[1], 0.34, true, talking ? Math.sin(CT.t * 14) * F.h * 0.004 : Math.sin(t * 1.6) * F.h * 0.002, 0, { side: -1, col: '#ffd090', tone: 'warm', face: artFaceState('host' + CT.inside, CT.t, talking) });
     else artBlit(g, F, sprPerson(pic.host[2], Math.floor(CT.t * 6), !talking), pic.host[0], pic.host[1] + (talking ? Math.sin(CT.t * 14) * 0.004 : 0), 0.3, true);
     if (pic.host[3]) g.restore();
   }
@@ -12321,8 +12560,9 @@ function artInside(g, cv, im, pic, t) {
     else if (sel) artGlow(g, cx, cy, F.h * 0.16, '#ffd23f', 0.3 + 0.12 * Math.sin(t * 8));
     else if (S.cash >= ITEMS.find((x) => x.id === id).price) artGlow(g, cx, F.y + b[3] * F.h, F.h * 0.06, '#3fd0ff', 0.12 + 0.08 * Math.sin(t * 3 + cx));
   }
+  artVisitor(g, F, CT.inside, t, dt);
   if (talking) { const tk = pic.talk; artGlow(g, F.x + (tk[0] + tk[2]) / 2 * F.w, F.y + tk[1] * F.h, F.h * 0.06, '#ffffff', 0.25); }
-  { const yim = artImg('stand_you'); if (yim) artPerson(g, F, yim, pic.you[0], pic.you[1], 0.36, false, Math.sin(t * 1.8) * F.h * 0.002, 0, { side: 1, col: '#ffd090', tone: 'warm' }); else artBlit(g, F, sprPerson(0, 0, true), pic.you[0], pic.you[1], 0.32, false); }
+  { const yim = artImg('stand_you'); if (yim) artPerson(g, F, yim, pic.you[0], pic.you[1], 0.36, false, Math.sin(t * 1.8) * F.h * 0.002, 0, { side: 1, col: '#ffd090', tone: 'warm', face: artFaceState('you', CT.t, false) }); else artBlit(g, F, sprPerson(0, 0, true), pic.you[0], pic.you[1], 0.32, false); }
   return true;
 }
 // taps on the illustrated city; returns false to fall back to the classic handler
@@ -12599,7 +12839,7 @@ const ART_SPOTS = {
   rug: { p: [960, 650], face: 1, emo: '🙆', dur: 3, stretch: true },
   sofa: { p: [900, 500], face: 1, emo: '😌', dur: 8, need: 'lounge', sit: true },
 };
-const ART_LIFE = { t: 0, a: {}, hop: {} };
+const ART_LIFE = { t: 0, a: {}, hop: {}, talk: {} };
 const ART_SPEED = 115; // picture px per second
 function artClear(a, b) {
   const n = Math.max(2, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 12));
@@ -12795,6 +13035,7 @@ function artOfficeDraw(ctx, cv, st, t) {
   const person = (im, x, y, hFrac, o) => {
     o = o || {};
     const L1 = artLightAt(x, y - hFrac * ART_OF.H * 0.6);
+    if (o.face) im = artFaceV(im, o.face);
     im = artLit(im, o.flip ? -L1.side : L1.side, L1.col);
     if (o.walk != null) im = artWalk(im, o.walk);
     const h = hFrac * F.h * (1 + (o.sx || 0)), w = h * (im.naturalWidth || im.width) / (im.naturalHeight || im.height) * (1 + (o.sy || 0));
@@ -12841,8 +13082,12 @@ function artOfficeDraw(ctx, cv, st, t) {
       // idle weight shift: a slow sway from the feet
       const sway = p.walk || p.sit ? 0 : Math.sin(t * 0.9 + p.k.length) * 0.012;
       const str = p.stretch ? Math.max(0, Math.sin((t % 1.5) / 1.5 * Math.PI)) * 0.05 : 0;
-      if (im && p.sit) person(im, p.x, p.y - ART_H.stand * ART_OF.H * 0.02, ART_H.stand, { flip: p.flip, top: 0.6, bob: hp.bob + Math.sin(t * 1.2) * F.h * 0.001 });
-      else if (im) person(im, p.x, p.y, ART_H.stand, { flip: p.flip, bob: tap + hp.bob, sx: breathe + str, sy: hp.sy, tilt: sway, walk: p.walk ? p.ph : null, air: hp.air });
+      if (im && p.sit) person(im, p.x, p.y - ART_H.stand * ART_OF.H * 0.02, ART_H.stand, { flip: p.flip, top: 0.6, bob: hp.bob + Math.sin(t * 1.2) * F.h * 0.001, face: artFaceState(p.k, t * 0.6, false) });
+      else if (im) {
+        // someone speaking: their bubble is up, or they chat with a mate
+        const a = p.life, talking = t - (ART_LIFE.talk[p.k] || -9) < 1.8 || (a && a.emo && (a.emo === '💬' || a.act === 'chat' || a.mode === 'wait') && t - a.emoT < a.emoD);
+        person(im, p.x, p.y, ART_H.stand, { flip: p.flip, bob: tap + hp.bob, sx: breathe + str, sy: hp.sy, tilt: sway, walk: p.walk ? p.ph : null, air: hp.air, face: p.walk ? 0 : artFaceState(p.k, t, talking) });
+      }
       else blit(sprStand(p.k, 0, true), p.x, p.y, 0.15, p.flip);
     }
   }

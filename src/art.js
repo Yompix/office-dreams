@@ -113,7 +113,7 @@ const ART_SPOTS = {
   rug: { p: [960, 650], face: 1, emo: '🙆', dur: 3, stretch: true },
   sofa: { p: [900, 500], face: 1, emo: '😌', dur: 8, need: 'lounge', sit: true },
 };
-const ART_LIFE = { t: 0, a: {}, hop: {} };
+const ART_LIFE = { t: 0, a: {}, hop: {}, talk: {} };
 const ART_SPEED = 115; // picture px per second
 function artClear(a, b) {
   const n = Math.max(2, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 12));
@@ -309,6 +309,7 @@ function artOfficeDraw(ctx, cv, st, t) {
   const person = (im, x, y, hFrac, o) => {
     o = o || {};
     const L1 = artLightAt(x, y - hFrac * ART_OF.H * 0.6);
+    if (o.face) im = artFaceV(im, o.face);
     im = artLit(im, o.flip ? -L1.side : L1.side, L1.col);
     if (o.walk != null) im = artWalk(im, o.walk);
     const h = hFrac * F.h * (1 + (o.sx || 0)), w = h * (im.naturalWidth || im.width) / (im.naturalHeight || im.height) * (1 + (o.sy || 0));
@@ -355,8 +356,12 @@ function artOfficeDraw(ctx, cv, st, t) {
       // idle weight shift: a slow sway from the feet
       const sway = p.walk || p.sit ? 0 : Math.sin(t * 0.9 + p.k.length) * 0.012;
       const str = p.stretch ? Math.max(0, Math.sin((t % 1.5) / 1.5 * Math.PI)) * 0.05 : 0;
-      if (im && p.sit) person(im, p.x, p.y - ART_H.stand * ART_OF.H * 0.02, ART_H.stand, { flip: p.flip, top: 0.6, bob: hp.bob + Math.sin(t * 1.2) * F.h * 0.001 });
-      else if (im) person(im, p.x, p.y, ART_H.stand, { flip: p.flip, bob: tap + hp.bob, sx: breathe + str, sy: hp.sy, tilt: sway, walk: p.walk ? p.ph : null, air: hp.air });
+      if (im && p.sit) person(im, p.x, p.y - ART_H.stand * ART_OF.H * 0.02, ART_H.stand, { flip: p.flip, top: 0.6, bob: hp.bob + Math.sin(t * 1.2) * F.h * 0.001, face: artFaceState(p.k, t * 0.6, false) });
+      else if (im) {
+        // someone speaking: their bubble is up, or they chat with a mate
+        const a = p.life, talking = t - (ART_LIFE.talk[p.k] || -9) < 1.8 || (a && a.emo && (a.emo === '💬' || a.act === 'chat' || a.mode === 'wait') && t - a.emoT < a.emoD);
+        person(im, p.x, p.y, ART_H.stand, { flip: p.flip, bob: tap + hp.bob, sx: breathe + str, sy: hp.sy, tilt: sway, walk: p.walk ? p.ph : null, air: hp.air, face: p.walk ? 0 : artFaceState(p.k, t, talking) });
+      }
       else blit(sprStand(p.k, 0, true), p.x, p.y, 0.15, p.flip);
     }
   }

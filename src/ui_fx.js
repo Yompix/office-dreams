@@ -67,6 +67,7 @@ function talk(role) {
   haptic('light');
 }
 function sayBubble(kind, html) {
+  ART_LIFE.talk[kind] = performance.now() / 1000; // their mouth moves in the new look
   const p = spotOf(kind);
   if (p) sayAt(p[0], p[1], html);
 }

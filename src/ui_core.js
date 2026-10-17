@@ -63,9 +63,9 @@ const ART_FACES = new Set(['you', 'prog', 'des', 'art', 'mkt', 'qa', 'snd', 'pro
 const ART_FACE_IMG = { boss: 'npc_boss', inv: 'npc_investor', npc: 'npc_journalist', streamer: 'npc_streamer' };
 const ART_EV_FACE = { blogger: 'streamer', fan: 'streamer' };
 const evFace = (id) => (artOn() && ART_EV_FACE[id]) || EV_FACE[id] || 'npc';
-function artFace(kind, mood) {
+function artFace(kind, mood, st) {
   if (!ART_FACES.has(kind) || !artOn()) return '';
-  const m = mood >= 60 ? 2 : mood >= 35 ? 1 : 0, key = 'af:' + kind + ':' + m;
+  const m = mood >= 60 ? 2 : mood >= 35 ? 1 : 0, key = 'af:' + kind + ':' + m + (st ? ':' + st : '');
   if (!imgCache[key]) {
     const src = ART_FACE_IMG[kind] || 'stand_' + kind, im = artImg(src);
     if (!im) {
@@ -79,17 +79,36 @@ function artFace(kind, mood) {
       const g = cv.getContext('2d'), bg = g.createRadialGradient(S2 / 2, S2 * 0.38, 4, S2 / 2, S2 * 0.45, S2 * 0.7);
       bg.addColorStop(0, '#2c2a8a'); bg.addColorStop(1, '#0c1040');
       g.fillStyle = bg; g.fillRect(0, 0, S2, S2);
-      const k = S2 / s, top = Math.round(6 * k);
-      g.drawImage(im, 0, 0, w, (S2 - top) / k, (S2 - w * k) / 2, top, w * k, S2 - top);
+      const k = S2 / s, top = Math.round(6 * k), fim = artFaceV(im, st || 0);
+      g.drawImage(fim, 0, 0, w, (S2 - top) / k, (S2 - w * k) / 2, top, w * k, S2 - top);
       if (m < 2) { // a tired or sad face looks greyer and darker (same as the mood filter on the other portraits)
         const d = g.getImageData(0, 0, S2, S2), a = d.data, sat = m ? 0.8 : 0.45, br = m ? 0.92 : 0.8;
         for (let i = 0; i < a.length; i += 4) { const l = a[i] * 0.3 + a[i + 1] * 0.59 + a[i + 2] * 0.11; for (let c = 0; c < 3; c++) a[i + c] = (l + (a[i + c] - l) * sat) * br; }
         g.putImageData(d, 0, 0);
       }
       imgCache[key] = cv.toDataURL('image/png');
+      if (!st) { ART_FACE_URL.set(imgCache[key], [kind, mood]); if (!ART_FACE_URL.timer) ART_FACE_URL.timer = setInterval(artFacesTick, 110); }
     } catch (e) { return ''; }
   }
   return imgCache[key];
+}
+// the faces on screen are alive too: they blink, and in a window that just opened (an event, a talk) the person speaks
+const ART_FACE_URL = new Map();
+function artFacesTick() {
+  if (document.hidden) return;
+  const now = performance.now() / 1000;
+  for (const el of document.querySelectorAll('img')) {
+    let d = el._af;
+    if (!d) {
+      const k = ART_FACE_URL.get(el.getAttribute('src'));
+      if (!k) continue;
+      d = el._af = { kind: k[0], mood: k[1], t0: now, base: el.getAttribute('src'), st: 0, talk: !!el.closest('#ovl, .say, .modal') };
+    }
+    const st = artFaceState(d.kind + (d.talk ? 'o' : ''), now, d.talk && now - d.t0 < 2.4);
+    if (st === d.st) continue;
+    const url = st ? artFace(d.kind, d.mood, st) : d.base;
+    if (url) { el.setAttribute('src', url); d.st = st; }
+  }
 }
 const portraitPx = (kind, mood) => pxURL('p2:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 48, 48, (B) => drawPortrait(B, kind, mood));
 const seedOf = (name) => {
