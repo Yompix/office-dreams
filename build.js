@@ -33,6 +33,9 @@ const SHELL = `<div id="app">
 <canvas id="confetti" hidden aria-hidden="true"></canvas>
 <div id="splash"><div class="sp-logo">OFFICE<span>DREAMS</span></div><div class="sp-bar"><i></i></div><div class="sp-status"></div><div class="sp-actions"></div></div>`;
 
+// runs before the first paint: the Art 2 skin and its main pictures are on from the start (no flash of the old look)
+const EARLY = `<script>try{var q=new URLSearchParams(location.search).get('art'),w=window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initDataUnsafe,sp=w&&w.start_param;if(q==='2'||sp==='art2')localStorage.setItem('od2_art2','1');if(q==='1'||sp==='art1')localStorage.setItem('od2_art2','');if(localStorage.getItem('od2_art2')==='1'){document.body.classList.add('art2');window.__artPre={};['office_empty','street_empty','stand_you'].forEach(function(n){var i=new Image();i.src='art/'+n+'.webp';window.__artPre[n]=i;});}}catch(e){}</script>`;
+
 const script = (debug, mode) =>
   `(function () {\n'use strict';\n${js}\nBUILD.mode = ${JSON.stringify(mode)}; BUILD.version = ${JSON.stringify(pkg.version)};\n${debug ? 'window.__ev = function (c) { return eval(c); };\n' : ''}boot();\n})();`;
 
@@ -61,6 +64,7 @@ ${css}
 </style>
 </head>
 <body>
+${EARLY}
 ${SHELL}
 <script>
 ${script(debug, 'auto')}
@@ -74,6 +78,7 @@ const artifact = `<title>Office Dreams</title>
 <style>
 ${css}
 </style>
+${EARLY}
 ${SHELL}
 <script>
 ${script(false, 'demo')}

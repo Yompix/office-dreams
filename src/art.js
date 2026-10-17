@@ -164,7 +164,7 @@ function artLifeStep(t, keys) {
       let step = ART_SPEED * dt;
       while (step > 0 && a.path.length) {
         const p = a.path[0], dx = p[0] - a.x, dy = p[1] - a.y, d = Math.hypot(dx, dy);
-        if (Math.abs(dx) > 2) a.flip = dx > 0;
+        if (Math.abs(dx) > 2) a.flip = dx < 0; // the drawn people face right; flipped = facing left
         if (d <= step) { a.x = p[0]; a.y = p[1]; a.path.shift(); step -= d; } else { a.x += dx / d * step; a.y += dy / d * step; step = 0; }
       }
       a.ph = (a.ph || 0) + dt * 1.6;
@@ -172,14 +172,14 @@ function artLifeStep(t, keys) {
         const th = a.then; a.then = null;
         if (th && th.spot) {
           const sp = ART_SPOTS[th.spot];
-          a.mode = 'act'; a.act = th.spot; a.until = t + sp.dur; a.flip = sp.face > 0; artEmote(a, sp.emo, t, sp.dur);
+          a.mode = 'act'; a.act = th.spot; a.until = t + sp.dur; a.flip = sp.face < 0; artEmote(a, sp.emo, t, sp.dur);
           if (th.spot === 'coffee') AFX.steam = t;
           else if (th.spot === 'cat') UI.catPetT = t + 0.3;
           else if (th.spot === 'plant') { AFX.drops = t; AFX.dropAt = { x: 1390, y: 770, r: 70 }; }
           else if (th.spot === 'books') { AFX.dust = t; AFX.dustAt = { x: 950, y: 380, r: 60 }; }
         } else if (th && th.chat) {
           const b = L0.a[th.chat];
-          if (b && b.mode === 'wait') { a.mode = 'act'; a.act = 'chat'; a.with = b.k; a.until = t + 5; a.flip = b.x > a.x; b.flip = a.x > b.x; artEmote(a, '💬', t, 2.4); b.emoAt = t + 2.5; }
+          if (b && b.mode === 'wait') { a.mode = 'act'; a.act = 'chat'; a.with = b.k; a.until = t + 5; a.flip = b.x < a.x; b.flip = a.x < b.x; artEmote(a, '💬', t, 2.4); b.emoAt = t + 2.5; }
           else { a.mode = 'idle'; a.until = t + 2; }
         } else { a.mode = 'idle'; a.until = t + 6 + Math.random() * 9; a.flip = a.home % 2 === 1; }
       }
@@ -531,7 +531,7 @@ function artOfficeTap(e, px, py) {
     // a tap: they hop, stop for a moment and turn to you, with an emote
     const t = performance.now() / 1000, a = ART_LIFE.a[best.k];
     if (best.k !== 'you' && t - (ART_LIFE.hop[best.k] || -9) > 0.5) ART_LIFE.hop[best.k] = t;
-    if (a) { a.stopT = t + 1.8; a.flip = a.x < ART_HERO[0]; artEmote(a, ['😄', '👋', '❗', '🙌', '😅'][Math.floor(Math.random() * 5)], t, 1.8); }
+    if (a) { a.stopT = t + 1.8; a.flip = a.x > ART_HERO[0]; artEmote(a, ['😄', '👋', '❗', '🙌', '😅'][Math.floor(Math.random() * 5)], t, 1.8); }
     return best.k === 'you' ? onWorkDown(e) : talk(best.k);
   }
   for (let i = 0; i < ART_LAMPS.length; i++) if (Math.hypot(px - ART_LAMPS[i][0], py - ART_LAMPS[i][1]) < 34) return artPoke('lamp', e, { x: ART_LAMPS[i][0], y: ART_LAMPS[i][1], r: 30, i });

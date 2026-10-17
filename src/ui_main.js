@@ -146,6 +146,7 @@ function drawScene(t) {
       if (UI.bloomCtx) UI.bloomCtx.clearRect(0, 0, UI.bloomCv.width, UI.bloomCv.height);
       return;
     }
+    if (artWait(cv, UI.sceneCtx)) { if (UI.bloomCtx) UI.bloomCtx.clearRect(0, 0, UI.bloomCv.width, UI.bloomCv.height); return; }
     SCENE.renderHD(sceneState(), t);
     SCENE_OFF.getContext('2d').putImageData(SCENE_IMG, 0, 0);
     const ctx = UI.sceneCtx;
@@ -163,7 +164,7 @@ function drawScene(t) {
 function drawTowerCv(t) {
   if (!UI.towerCtx || UI.tab !== 'empire') return;
   try {
-    if (artOn() && artTowerDraw(UI.towerCv, UI.towerCtx, t)) return;
+    if (artOn() && (artTowerDraw(UI.towerCv, UI.towerCtx, t) || artWait(UI.towerCv, UI.towerCtx))) return;
     if (!TOWER_B) {
       TOWER_B = new Buf(80, 124);
       TOWER_IMG = new ImageData(new Uint8ClampedArray(TOWER_B.d.buffer), 80, 124);

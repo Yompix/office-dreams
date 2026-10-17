@@ -102,7 +102,7 @@ function cityPerson(g, x, y, look, frame, dir, still) {
 function cityDraw(now) {
   const cv = UI.cityCv, g = UI.cityCtx;
   if (!cv || !g || !S) return;
-  if (artOn() && artDraw(now)) return;
+  if (artOn() && (artDraw(now) || artWait(cv, g))) return;
   cityInit();
   const cw = cv.clientWidth || 360, ch = cv.clientHeight || 240;
   const VW = Math.max(120, Math.min(CITY_W, Math.round(CITY_H * cw / ch)));
@@ -578,7 +578,13 @@ function cityInterior(g, VW, t) {
    every tap target are drawn on top in the same coordinates
    (fractions of the picture, so any screen size works).
    ============================================================ */
-const ART = { imgs: {}, on: null };
+const ART = { imgs: (typeof window !== 'undefined' && window.__artPre) || {}, on: null, t0: 0 };
+// while the new look's picture is still loading, show a dark frame instead of the old drawing (for up to 5 s, then the old one)
+function artWait(cv, g) {
+  if (!artOn() || performance.now() - ART.t0 > 5000) return false;
+  g.fillStyle = '#0a0818'; g.fillRect(0, 0, cv.width, cv.height);
+  return true;
+}
 function artOn() {
   if (ART.on === null) {
     try {
@@ -587,7 +593,7 @@ function artOn() {
       if (q === '2' || sp === 'art2') lsSet('od2_art2', '1');
       if (q === '1' || sp === 'art1') lsSet('od2_art2', '');
     } catch (e) {}
-    ART.on = lsGet('od2_art2') === '1';
+    ART.on = lsGet('od2_art2') === '1'; ART.t0 = performance.now();
     try { document.body.classList.toggle('art2', ART.on); } catch (e) {} // the art skin in style.css hangs off body.art2
     if (ART.on) for (const k in ART_FACE_IMG) artImg(ART_FACE_IMG[k]); // event faces are ready before the first event opens
   }
@@ -716,11 +722,11 @@ function artDraw(now) {
     if (n.pause > 0) n.pause -= dt; else { n.x += n.v * dt; n.ph += dt * Math.abs(n.v) * 52; if (Math.random() < dt * 0.06) n.pause = 1 + Math.random() * 2.5; }
     if (n.x > 1.04 || n.x < -0.04) { n.x = n.x > 1 ? -0.03 : 1.03; n.look = (n.look + 5) % ART_LOOKS.length; n.sz = 0.128 + Math.random() * 0.02; n.v = Math.sign(n.v) * (0.014 + Math.random() * 0.014); }
     const nim = artLook(n.look);
-    if (nim) artPerson(g, F, nim, n.x, feet - (n.look % 3) * 0.004, n.sz, n.v > 0, 0, 0, Object.assign(artStreetLit(n.x), { walk: n.pause > 0 ? null : n.ph }));
+    if (nim) artPerson(g, F, nim, n.x, feet - (n.look % 3) * 0.004, n.sz, n.v < 0, 0, 0, Object.assign(artStreetLit(n.x), { walk: n.pause > 0 ? null : n.ph }));
     else artBlit(g, F, sprPerson(1 + (n.look % 3), Math.floor(CT.t * 7 + n.look), n.pause > 0), n.x, feet, 0.13, n.v < 0);
   }
   { const yim = artImg('stand_you'), moving = CT.atx !== null;
-    if (yim) artPerson(g, F, yim, CT.ax, feet + 0.006, 0.145, CT.dir > 0, 0, 0, Object.assign(artStreetLit(CT.ax), { walk: moving ? CT.walk * 0.19 : null }));
+    if (yim) artPerson(g, F, yim, CT.ax, feet + 0.006, 0.145, CT.dir < 0, 0, 0, Object.assign(artStreetLit(CT.ax), { walk: moving ? CT.walk * 0.19 : null }));
     else artBlit(g, F, sprPerson(0, Math.floor(CT.walk), CT.atx === null), CT.ax, feet + 0.006, 0.135, CT.dir < 0); }
   return true;
 }
@@ -864,7 +870,7 @@ function artInside(g, cv, im, pic, t) {
     // behind a counter: only what is above its top edge (pic.host[3]) is visible
     if (pic.host[3]) { g.save(); g.beginPath(); g.rect(0, 0, cv.width, F.y + pic.host[3] * F.h); g.clip(); }
     const him = pic.who && artImg('stand_' + pic.who);
-    if (him) artPerson(g, F, him, pic.host[0], pic.host[1], 0.34, false, talking ? Math.sin(CT.t * 14) * F.h * 0.004 : Math.sin(t * 1.6) * F.h * 0.002, 0, { side: -1, col: '#ffd090', tone: 'warm' });
+    if (him) artPerson(g, F, him, pic.host[0], pic.host[1], 0.34, true, talking ? Math.sin(CT.t * 14) * F.h * 0.004 : Math.sin(t * 1.6) * F.h * 0.002, 0, { side: -1, col: '#ffd090', tone: 'warm' });
     else artBlit(g, F, sprPerson(pic.host[2], Math.floor(CT.t * 6), !talking), pic.host[0], pic.host[1] + (talking ? Math.sin(CT.t * 14) * 0.004 : 0), 0.3, true);
     if (pic.host[3]) g.restore();
   }
@@ -875,7 +881,7 @@ function artInside(g, cv, im, pic, t) {
     else if (S.cash >= ITEMS.find((x) => x.id === id).price) artGlow(g, cx, F.y + b[3] * F.h, F.h * 0.06, '#3fd0ff', 0.12 + 0.08 * Math.sin(t * 3 + cx));
   }
   if (talking) { const tk = pic.talk; artGlow(g, F.x + (tk[0] + tk[2]) / 2 * F.w, F.y + tk[1] * F.h, F.h * 0.06, '#ffffff', 0.25); }
-  { const yim = artImg('stand_you'); if (yim) artPerson(g, F, yim, pic.you[0], pic.you[1], 0.36, true, Math.sin(t * 1.8) * F.h * 0.002, 0, { side: 1, col: '#ffd090', tone: 'warm' }); else artBlit(g, F, sprPerson(0, 0, true), pic.you[0], pic.you[1], 0.32, false); }
+  { const yim = artImg('stand_you'); if (yim) artPerson(g, F, yim, pic.you[0], pic.you[1], 0.36, false, Math.sin(t * 1.8) * F.h * 0.002, 0, { side: 1, col: '#ffd090', tone: 'warm' }); else artBlit(g, F, sprPerson(0, 0, true), pic.you[0], pic.you[1], 0.32, false); }
   return true;
 }
 // taps on the illustrated city; returns false to fall back to the classic handler
