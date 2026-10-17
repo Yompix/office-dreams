@@ -91,19 +91,20 @@ async function probeChat(ctx) {
   } catch (_) { /* ignore */ }
 }
 const verified = (ctx, uid) => !Eco.isDev(ctx, uid) && !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku<>'adfee'", uid);
-function board(ctx, g, now = Date.now()) {
+// anySub: everyone verified, subscribed or not yet checked (the end checks each of them live)
+function board(ctx, g, now = Date.now(), anySub = false) {
   if (g.winners) return g.winners;
   const c = ctx.cache.gwBoard;
-  if (c && c.gid === g.id && now - c.t < 20000) return c.rows;
+  if (!anySub && c && c.gid === g.id && now - c.t < 20000) return c.rows;
   const rows = ctx.db.all(
     `SELECT u.id, u.studio, u.name, u.country, u.pts - COALESCE(b.pts, 0) AS sc
      FROM users u LEFT JOIN giveaway_base b ON b.gid=? AND b.uid=u.id
      WHERE u.deleted=0 AND u.risk_state IN ('ok','watch') AND u.id IN (SELECT DISTINCT uid FROM purchases WHERE sku<>'adfee')
-     ${subChat(ctx) ? 'AND u.id IN (SELECT uid FROM giveaway_sub WHERE gid=' + Number(g.id) + ' AND ok=1)' : ''}
+     ${subChat(ctx) && !anySub ? 'AND u.id IN (SELECT uid FROM giveaway_sub WHERE gid=' + Number(g.id) + ' AND ok=1)' : ''}
      ORDER BY sc DESC LIMIT 60`, g.id
   ).filter((r) => r.sc > 0.05 && !Eco.isDev(ctx, r.id)).slice(0, 50)
     .map((r, i) => ({ rank: i + 1, uid: r.id, name: require('./studio.js').shown(r), country: r.country || null, score: Math.round(r.sc * 10) / 10 }));
-  ctx.cache.gwBoard = { gid: g.id, t: now, rows };
+  if (!anySub) ctx.cache.gwBoard = { gid: g.id, t: now, rows };
   return rows;
 }
 function myScore(ctx, g, uid) {
@@ -179,8 +180,17 @@ async function tick(ctx, now = Date.now()) {
     ctx.cache.gwBoard = null;
     let rows = board(ctx, g, now);
     if (subChat(ctx)) {
+      // every verified player is checked live, in score order; only a clear "not subscribed" drops a player.
+      // When Telegram cannot tell (an outage, the bot lost its admin rights there) the player keeps the place:
+      // otherwise a hiccup on our side would leave the giveaway with no winners at all
       const keep = [];
-      for (const r of rows) { if (keep.length >= g.prizes.length) break; if (await checkSub(ctx, g, r.uid, now)) keep.push(r); }
+      for (const r of board(ctx, g, now, true)) {
+        if (keep.length >= g.prizes.length) break;
+        const sub = await checkSub(ctx, g, r.uid, now);
+        if (sub === false) continue;
+        if (sub === null) ctx.log && ctx.log('giveaway: subscription of', r.uid, 'cannot be checked, counted');
+        keep.push(r);
+      }
       rows = keep;
     }
     const win = rows.slice(0, g.prizes.length).map((r, i) => Object.assign({}, r, { rank: i + 1, prize: g.prizes[i] }));

@@ -1135,6 +1135,29 @@ const AB = require('../server/antibot.js');
     await envS.close();
   }
   {
+    const envN = await makeEnv({ GIVEAWAY_ON: '1', GIVEAWAY_KEY: 'n-test', GIVEAWAY_PRIZES: '20,10,5' });
+    const Give = require('../server/giveaway.js');
+    const ctxN = envN.ctx; ctxN.fastAnnounce = true;
+    const ids = [8301, 8302, 8303, 8304];
+    for (const id of ids) { const P = new Player(envN, id, { name: 'N' + id }); await P.auth(); }
+    await test('giveaway: if Telegram cannot tell who is subscribed at the end, the top players still win (only a clear "left" drops one)', async () => {
+      await Give.tick(ctxN, envN.clock.t);
+      const g = Give.current(ctxN);
+      ctxN.db.kvSet('gw_chat', '-100778');
+      for (const id of ids) { ctxN.db.run('UPDATE users SET pts=pts+? WHERE id=?', 100 - id % 10, id); ctxN.db.run("INSERT INTO purchases(charge_id,uid,sku,stars,ts) VALUES(?,?,?,?,?)", 'n' + id, id, 'donate', 100, envN.clock.t); }
+      envN.mock.members.add(8301); envN.mock.members.add(8303);
+      await Give.checkSub(ctxN, g, 8301, envN.clock.t); await Give.checkSub(ctxN, g, 8302, envN.clock.t);
+      const prev = ctxN.tg.call;
+      ctxN.tg.call = async (m, b) => (m === 'getChatMember' ? { ok: false, description: 'Bad Request: member list is inaccessible' } : prev(m, b));
+      envN.advance(3 * 86400e3 + 1000);
+      await Give.tick(ctxN, envN.clock.t);
+      ctxN.tg.call = prev;
+      // 8301 subscribed (checked earlier), 8302 was seen NOT subscribed, 8303 and 8304 could not be checked
+      assert.deepEqual(Give.current(ctxN).winners.map((w) => w.uid), [8301, 8303, 8304]);
+    });
+    await envN.close();
+  }
+  {
     const envB = await makeEnv({ BLOCKED_COUNTRIES: 'RU,BR' });
     await test('closed countries: existing players are reset and banned; new sign-ins are refused', async () => {
       const P = new Player(envB, 8401); await P.auth();
