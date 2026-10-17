@@ -283,7 +283,7 @@ async function handleUpdate(ctx, up) {
         ctx.db.run('UPDATE users SET blocked=? WHERE id=?', blocked, c.from.id);
       } else if (c.chat.type === 'channel' || c.chat.type === 'supergroup') {
         ctx.log('bot membership in', c.chat.id, c.chat.title, c.chat.username || '', '→', c.new_chat_member.status);
-        if (c.new_chat_member.status === 'administrator') require('./giveaway.js').learnChat(ctx, c.chat).catch(() => {});
+        if (c.new_chat_member.status === 'administrator') require('./giveaway.js').learnChat(ctx, c.chat, c.from && c.from.id).catch(() => {});
       }
     }
   } catch (e) {

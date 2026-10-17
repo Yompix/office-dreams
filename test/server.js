@@ -1172,6 +1172,70 @@ const AB = require('../server/antibot.js');
     await envN.close();
   }
   {
+    // the end of a giveaway with real prizes: nobody can swap the sponsor channel, the end runs once, a prize is paid once
+    const envE = await makeEnv({ GIVEAWAY_ON: '1', GIVEAWAY_KEY: 'end', GIVEAWAY_PRIZES: '20,10,5', AIRDROP_GENKEY: '1', SOL_USD: '100' });
+    const ctxE = envE.ctx; ctxE.fastAnnounce = true;
+    const Give = require('../server/giveaway.js');
+    const ids = [8501, 8502, 8503, 8504];
+    for (const id of ids) { const P = new Player(envE, id, { name: 'E' + id }); await P.auth(); }
+    await Give.tick(ctxE, envE.clock.t);
+    ctxE.db.kvSet('gw_chat', '-100777');
+    ids.forEach((id, i) => {
+      ctxE.db.run('UPDATE users SET pts=pts+?, sol=? WHERE id=?', id === 8504 ? 1 : 100 - i * 10, '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM', id);
+      ctxE.db.run('INSERT INTO purchases(charge_id,uid,sku,stars,ts) VALUES(?,?,?,?,?)', 'e' + id, id, 'donate', 100, envE.clock.t);
+    });
+    await test('giveaway: a stranger who makes the bot an admin of his own channel cannot replace the sponsor channel', async () => {
+      const up = { update_id: 501, my_chat_member: { chat: { id: -100666, type: 'channel', title: 'Mine' }, from: { id: 8504, first_name: 'X' }, date: 1, old_chat_member: { status: 'left', user: { id: 1 } }, new_chat_member: { status: 'administrator', user: { id: 1 } } } };
+      await httpJson(envE.base, 'POST', '/tg/' + ctxE.cfg.webhookSecret, up, { 'x-telegram-bot-api-secret-token': ctxE.cfg.webhookSecret });
+      await new Promise((r) => setTimeout(r, 80));
+      assert.equal(Give.subChat(ctxE), '-100777');
+    });
+    await test('giveaway: two overlapping end ticks finish it once (3 prize rows, 3 winner messages, 1 post)', async () => {
+      for (const id of [8501, 8502, 8503]) envE.mock.members.add(id);
+      const real = ctxE.tg.call;
+      let dms = 0, posts = 0;
+      ctxE.tg.call = async (m, b) => {
+        if (m === 'sendMessage') { if (String(b.chat_id).startsWith('@')) posts++; else if (/#\d/.test(b.text)) dms++; }
+        if (m === 'getChatMember') await new Promise((r) => setTimeout(r, 60)); // slow Telegram: the next tick starts meanwhile
+        return real(m, b);
+      };
+      ctxE.solRpc = async (method) => {
+        if (method === 'getBalance') return { value: 5e9 };
+        if (method === 'getLatestBlockhash') return { value: { blockhash: '11111111111111111111111111111111' } };
+        if (method === 'sendTransaction') return 'sig';
+        if (method === 'getSignatureStatuses') return { value: [{ err: null, confirmationStatus: 'confirmed' }] };
+        throw new Error('unexpected ' + method);
+      };
+      envE.advance(3 * 86400e3 + 1000);
+      const A = Give.tick(ctxE, envE.clock.t);
+      await new Promise((r) => setTimeout(r, 30));
+      await Promise.all([A, Give.tick(ctxE, envE.clock.t + 60000)]);
+      ctxE.tg.call = real;
+      const pay = ctxE.db.all('SELECT uid, usd FROM giveaway_pay ORDER BY rank');
+      assert.deepEqual(pay.map((r) => [r.uid, r.usd]), [[8501, 20], [8502, 10], [8503, 5]]);
+      assert.deepEqual([dms, posts], [3, 1]);
+    });
+    await test('giveaway: a transfer whose send call timed out is looked up, not sent a second time', async () => {
+      ctxE.db.run("UPDATE giveaway_pay SET status='wait', tx=NULL WHERE uid IN (8501,8502,8503)");
+      const sent = [];
+      let n = 0;
+      ctxE.solRpc = async (method, params) => {
+        if (method === 'getBalance') return { value: 5e9 };
+        if (method === 'getLatestBlockhash') return { value: { blockhash: '1111111111111111111111111111111' + (++n) } };
+        if (method === 'sendTransaction') { sent.push(params[0]); if (sent.length === 1) throw new Error('The operation was aborted due to timeout'); return 'sig'; }
+        if (method === 'getSignatureStatuses') return { value: [{ err: null, confirmationStatus: 'confirmed' }] }; // the first one landed
+        throw new Error('unexpected ' + method);
+      };
+      ctxE.db.run("UPDATE giveaway_pay SET status='sent' WHERE uid IN (8502,8503)");
+      await Give.payTick(ctxE, envE.clock.t + 120000);
+      assert.equal(ctxE.db.get('SELECT status FROM giveaway_pay WHERE uid=8501').status, 'sending');
+      await Give.payTick(ctxE, envE.clock.t + 180000);
+      assert.equal(ctxE.db.get('SELECT status FROM giveaway_pay WHERE uid=8501').status, 'sent');
+      assert.equal(sent.length, 1, 'one transfer only');
+    });
+    await envE.close();
+  }
+  {
     const envB = await makeEnv({ BLOCKED_COUNTRIES: 'RU,BR' });
     await test('closed countries: existing players are reset and banned; new sign-ins are refused', async () => {
       const P = new Player(envB, 8401); await P.auth();

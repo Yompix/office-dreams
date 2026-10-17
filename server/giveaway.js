@@ -61,7 +61,10 @@ async function checkSub(ctx, g, uid, now = Date.now()) {
 }
 // the sponsor channel is private (an invite link): find its id among the channels where the bot is an admin
 const linkKey = (u) => String(u || '').trim().replace(/^https?:\/\//, '').replace(/^telegram\.me\//, 't.me/').replace(/\/$/, '').toLowerCase();
-async function learnChat(ctx, chat) {
+const ownerId = (ctx, id) => id != null && ((ctx.cfg.adminTgIds || []).map(Number).includes(Number(id)) || (ctx.cfg.devIds || []).map(Number).includes(Number(id)));
+// by = who made the bot an admin there. Anyone can make the bot an admin of their own channel, so a channel is taken only when
+// its link is the giveaway link, or the owner added the bot to it and no sponsor channel is known yet for the running giveaway
+async function learnChat(ctx, chat, by) {
   const want = linkKey(conf(ctx).url);
   let match = false;
   try {
@@ -71,13 +74,13 @@ async function learnChat(ctx, chat) {
     match = !!want && ((inv && linkKey(inv) === want) || (un && want === 't.me/' + String(un).toLowerCase()));
   } catch (_) { /* ignore */ }
   const own = ctx.cfg.channel && chat.username && ('@' + chat.username).toLowerCase() === String(ctx.cfg.channel).toLowerCase();
-  // a channel that is not the project's own is taken as the sponsor's; our own channel only if its link is the giveaway link
-  if (match || !own) {
-    ctx.db.kvSet('gw_chat', String(chat.id));
-    ctx.db.kvSet('gw_chat_title', String(chat.title || ''));
-    ctx.cache.gwBoard = null;
-    ctx.log && ctx.log('giveaway subscription check uses', chat.id, chat.title, match ? '(link matches)' : '');
-  }
+  const g = current(ctx), known = (ctx.db.kvGet('gw_chat', '') || '').trim();
+  const take = match || (!own && ownerId(ctx, by) && !(known && g && g.status === 'live'));
+  if (!take) { ctx.log && ctx.log('giveaway: channel', chat.id, chat.title, 'ignored (not the giveaway link, added by', by, ')'); return; }
+  ctx.db.kvSet('gw_chat', String(chat.id));
+  ctx.db.kvSet('gw_chat_title', String(chat.title || ''));
+  ctx.cache.gwBoard = null;
+  ctx.log && ctx.log('giveaway subscription check uses', chat.id, chat.title, match ? '(link matches)' : '');
 }
 // on start: maybe the bot was made an admin earlier — try the project channel
 async function probeChat(ctx) {
@@ -91,7 +94,8 @@ async function probeChat(ctx) {
   } catch (_) { /* ignore */ }
 }
 const verified = (ctx, uid) => !Eco.isDev(ctx, uid) && !!ctx.db.get("SELECT 1 AS y FROM purchases WHERE uid=? AND sku<>'adfee'", uid);
-// anySub: everyone verified, subscribed or not yet checked (the end checks each of them live)
+// players see everyone verified except a known "not subscribed" (the end checks each of them live, in score order);
+// anySub: everyone verified, for that live check
 function board(ctx, g, now = Date.now(), anySub = false) {
   if (g.winners) return g.winners;
   const c = ctx.cache.gwBoard;
@@ -100,7 +104,7 @@ function board(ctx, g, now = Date.now(), anySub = false) {
     `SELECT u.id, u.studio, u.name, u.country, u.pts - COALESCE(b.pts, 0) AS sc
      FROM users u LEFT JOIN giveaway_base b ON b.gid=? AND b.uid=u.id
      WHERE u.deleted=0 AND u.risk_state IN ('ok','watch') AND u.id IN (SELECT DISTINCT uid FROM purchases WHERE sku<>'adfee')
-     ${subChat(ctx) && !anySub ? 'AND u.id IN (SELECT uid FROM giveaway_sub WHERE gid=' + Number(g.id) + ' AND ok=1)' : ''}
+     ${subChat(ctx) && !anySub ? 'AND u.id NOT IN (SELECT uid FROM giveaway_sub WHERE gid=' + Number(g.id) + ' AND ok=0)' : ''}
      ORDER BY sc DESC LIMIT 60`, g.id
   ).filter((r) => r.sc > 0.05 && !Eco.isDev(ctx, r.id)).slice(0, 50)
     .map((r, i) => ({ rank: i + 1, uid: r.id, name: require('./studio.js').shown(r), country: r.country || null, score: Math.round(r.sc * 10) / 10 }));
@@ -176,49 +180,59 @@ async function tick(ctx, now = Date.now()) {
       if (!ctx.fastAnnounce) await new Promise((r) => setTimeout(r, 40));
     }
   }
-  if (g.status === 'live' && now >= g.end_at) {
-    ctx.cache.gwBoard = null;
-    let rows = board(ctx, g, now);
-    if (subChat(ctx)) {
-      // every verified player is checked live, in score order; only a clear "not subscribed" drops a player.
-      // When Telegram cannot tell (an outage, the bot lost its admin rights there) the player keeps the place:
-      // otherwise a hiccup on our side would leave the giveaway with no winners at all
-      const keep = [];
-      for (const r of board(ctx, g, now, true)) {
-        if (keep.length >= g.prizes.length) break;
-        const sub = await checkSub(ctx, g, r.uid, now);
-        if (sub === false) continue;
-        if (sub === null) ctx.log && ctx.log('giveaway: subscription of', r.uid, 'cannot be checked, counted');
-        keep.push(r);
-      }
-      rows = keep;
-    }
-    const win = rows.slice(0, g.prizes.length).map((r, i) => Object.assign({}, r, { rank: i + 1, prize: g.prizes[i] }));
-    ctx.db.run("UPDATE giveaway SET status='done', winners=? WHERE id=?", JSON.stringify(win), g.id);
-    ctx.cache.gwBoard = null;
-    ctx.log && ctx.log('giveaway finished', win.map((w) => w.uid + ':' + w.prize));
-    for (const w of win) {
-      ctx.db.run('INSERT OR IGNORE INTO giveaway_pay(gid,uid,rank,usd) VALUES(?,?,?,?)', g.id, w.uid, w.rank, w.prize);
-      const u = ctx.db.get('SELECT lang, sol FROM users WHERE id=?', w.uid) || {};
-      try { await Bot.send(ctx, w.uid, (WIN_TXT[u.lang] || WIN_TXT.en)(w.prize, w.rank, !!u.sol)); } catch (_) { /* blocked the bot */ }
-    }
-    if (ctx.cfg.channel && win.length) {
-      const medal = ['🥇', '🥈', '🥉'];
-      const list = win.map((w, i) => `${medal[i] || '🏅'} <b>${String(w.name).replace(/[<>&]/g, '')}</b> — $${w.prize}`).join('\n');
-      try { await Bot.send(ctx, ctx.cfg.channel, ['uk', 'ru', 'en'].map((l) => RESULT_TXT[l](list)).join('\n\n— — —\n\n')); } catch (_) { /* ignore */ }
-    }
+  if (g.status === 'live' && now >= g.end_at && !ctx.gwEnding) {
+    ctx.gwEnding = true; // the live checks below can outlast the 60 s tick: a second tick must not run the end again
+    try { await finish(ctx, g, now, Bot); } finally { ctx.gwEnding = false; }
   }
   await payTick(ctx, now);
   return current(ctx);
 }
+async function finish(ctx, g, now, Bot) {
+  ctx.cache.gwBoard = null;
+  let rows = board(ctx, g, now);
+  if (subChat(ctx)) {
+    // every verified player is checked live, in score order; only a clear "not subscribed" drops a player.
+    // When Telegram cannot tell (an outage, the bot lost its admin rights there) the player keeps the place:
+    // otherwise a hiccup on our side would leave the giveaway with no winners at all
+    const keep = [];
+    for (const r of board(ctx, g, now, true)) {
+      if (keep.length >= g.prizes.length) break;
+      const sub = await checkSub(ctx, g, r.uid, now);
+      if (sub === false) continue;
+      if (sub === null) ctx.log && ctx.log('giveaway: subscription of', r.uid, 'cannot be checked, counted');
+      keep.push(r);
+    }
+    rows = keep;
+  }
+  const win = rows.slice(0, g.prizes.length).map((r, i) => Object.assign({}, r, { rank: i + 1, prize: g.prizes[i] }));
+  // only the run that flips 'live' → 'done' goes on; the payout rows are written with it, so a restart cannot lose them
+  const won = ctx.db.tx(() => {
+    if (!ctx.db.run("UPDATE giveaway SET status='done', winners=? WHERE id=? AND status='live'", JSON.stringify(win), g.id).changes) return false;
+    for (const w of win) ctx.db.run('INSERT OR IGNORE INTO giveaway_pay(gid,uid,rank,usd) VALUES(?,?,?,?)', g.id, w.uid, w.rank, w.prize);
+    return true;
+  });
+  ctx.cache.gwBoard = null;
+  if (!won) return;
+  ctx.log && ctx.log('giveaway finished', win.map((w) => w.uid + ':' + w.prize));
+  for (const w of win) {
+    const u = ctx.db.get('SELECT lang, sol FROM users WHERE id=?', w.uid) || {};
+    try { await Bot.send(ctx, w.uid, (WIN_TXT[u.lang] || WIN_TXT.en)(w.prize, w.rank, !!u.sol)); } catch (_) { /* blocked the bot */ }
+  }
+  if (ctx.cfg.channel && win.length) {
+    const medal = ['🥇', '🥈', '🥉'];
+    const list = win.map((w, i) => `${medal[i] || '🏅'} <b>${String(w.name).replace(/[<>&]/g, '')}</b> — $${w.prize}`).join('\n');
+    try { await Bot.send(ctx, ctx.cfg.channel, ['uk', 'ru', 'en'].map((l) => RESULT_TXT[l](list)).join('\n\n— — —\n\n')); } catch (_) { /* ignore */ }
+  }
+}
+
 /* ---- prizes: sent in SOL from the server wallet to the winner's connected Solana wallet ---- */
 const FEE_LAMPORTS = 10000;
 async function payOne(ctx, row, now) {
   const Sol = require('./sol.js'), SolPay = require('./solpay.js'), Airdrop = require('./airdrop.js'), Bot = require('./bot.js');
   const u = ctx.db.get('SELECT lang, sol FROM users WHERE id=?', row.uid) || {};
   if (!u.sol) { if (row.status !== 'wait') ctx.db.run("UPDATE giveaway_pay SET status='wait' WHERE gid=? AND uid=?", row.gid, row.uid); return 'wait'; }
-  // a transfer is already out: see how it ended
-  if (row.status === 'sending' && row.tx) {
+  // a transfer is already out (or its send call failed without an answer): see how it ended before sending anything again
+  if (row.tx) {
     const st = await Sol.rpc(ctx, 'getSignatureStatuses', [[row.tx], { searchTransactionHistory: true }]).catch(() => null);
     const v = st && st.value && st.value[0];
     if (v && !v.err && (v.confirmationStatus === 'confirmed' || v.confirmationStatus === 'finalized')) return done(row, u);
@@ -235,6 +249,7 @@ async function payOne(ctx, row, now) {
   }
   const lock = ctx.db.run("UPDATE giveaway_pay SET status='sending', lamports=?, to_addr=?, tx=NULL, tx_at=?, err=NULL WHERE gid=? AND uid=? AND status<>'sent' AND (status<>'sending' OR tx IS NULL OR tx_at < ?)", lamports, u.sol, now, row.gid, row.uid, now - 180000);
   if (!lock.changes) return 'sending';
+  let sig = null;
   try {
     const { web3 } = Airdrop.lib();
     const tx = new web3.Transaction().add(web3.SystemProgram.transfer({ fromPubkey: from.publicKey, toPubkey: new web3.PublicKey(u.sol), lamports }));
@@ -242,7 +257,7 @@ async function payOne(ctx, row, now) {
     const bh = await Sol.rpc(ctx, 'getLatestBlockhash', [{ commitment: 'confirmed' }]);
     tx.recentBlockhash = bh.value.blockhash;
     tx.sign(from);
-    const sig = Sol.b58encode(tx.signature);
+    sig = Sol.b58encode(tx.signature);
     ctx.db.run('UPDATE giveaway_pay SET tx=? WHERE gid=? AND uid=?', sig, row.gid, row.uid);
     await Sol.rpc(ctx, 'sendTransaction', [tx.serialize().toString('base64'), { encoding: 'base64', skipPreflight: true, maxRetries: 5 }]);
     for (let i = 0; i < 20; i++) {
@@ -254,6 +269,13 @@ async function payOne(ctx, row, now) {
     }
     return 'sending'; // the next tick checks it
   } catch (e) {
+    // signed but no clear answer (a timeout, a lost reply): it may still land, so it stays 'sending' and the next tick
+    // looks it up by its signature; only a transfer the network rejected may be sent again
+    if (sig && !/^rejected:/.test(String(e.message))) {
+      ctx.db.run('UPDATE giveaway_pay SET err=? WHERE gid=? AND uid=?', String(e.message || e).slice(0, 300), row.gid, row.uid);
+      ctx.log && ctx.log('giveaway payout unconfirmed, will check', row.uid, e.message);
+      return 'sending';
+    }
     ctx.db.run("UPDATE giveaway_pay SET status='failed', err=? WHERE gid=? AND uid=?", String(e.message || e).slice(0, 300), row.gid, row.uid);
     ctx.log && ctx.log('giveaway payout failed', row.uid, e.message);
     return 'failed';
@@ -284,7 +306,8 @@ function adminView(ctx) {
   const rows = board(ctx, g).slice(0, 10).map((r) => {
     const u = ctx.db.get('SELECT username, sol FROM users WHERE id=?', r.uid) || {};
     const pay = ctx.db.get('SELECT status, tx FROM giveaway_pay WHERE gid=? AND uid=?', g.id, r.uid);
-    return Object.assign({}, r, { username: u.username || null, sol: u.sol || null, prize: r.prize || g.prizes[r.rank - 1] || 0, pay: pay ? pay.status : null, tx: pay ? pay.tx : null });
+    const sub = subChat(ctx) ? subCached(ctx, g, r.uid) : null;
+    return Object.assign({}, r, { username: u.username || null, sol: u.sol || null, prize: r.prize || g.prizes[r.rank - 1] || 0, pay: pay ? pay.status : null, tx: pay ? pay.tx : null, sub: sub ? !!sub.ok : null });
   });
   let wallet = null;
   try { const d = require('./airdrop.js').distributor(ctx); wallet = d ? d.publicKey.toBase58() : null; } catch (_) { /* no key */ }
