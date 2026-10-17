@@ -163,6 +163,7 @@ function drawScene(t) {
 function drawTowerCv(t) {
   if (!UI.towerCtx || UI.tab !== 'empire') return;
   try {
+    if (artOn() && artTowerDraw(UI.towerCv, UI.towerCtx, t)) return;
     if (!TOWER_B) {
       TOWER_B = new Buf(80, 124);
       TOWER_IMG = new ImageData(new Uint8ClampedArray(TOWER_B.d.buffer), 80, 124);
@@ -991,6 +992,7 @@ function wireInput() {
     if (b) { e.preventDefault(); onWorkDown(e); return; }
     if (e.target.id === 'scene' && e.isTrusted !== false) { ensureAudio(); onSceneTap(e); }
     if (e.target.id === 'citycv') { ensureAudio(); cityTap(e); }
+    if (e.target.id === 'tower' && artOn()) artTowerTap(e);
   }, { passive: false });
   document.addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.id === 'workbtn') { e.preventDefault(); onWorkDown(e); }

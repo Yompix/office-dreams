@@ -615,6 +615,8 @@ const ART_IN = {
   games: { img: 'games', door: [0, 0.3, 0.06, 0.9], you: [0.12, 0.98], host: [0.74, 0.74, 2, 0.67], who: 'des', talk: [0.69, 0.4, 0.79, 0.68],
     hot: { shelf: [0.17, 0.3, 0.87, 0.67] } },
   mall: { img: 'mall', door: [0, 0.3, 0.05, 0.9], you: [0.1, 0.98], host: [0.47, 0.84, 3], who: 'cm', talk: [0.43, 0.5, 0.51, 0.84],
+    // every thing on display is the real item: first tap shows it, a second tap buys it; bought ones glow green
+    items: { coffee: [0.075, 0.55, 0.16, 0.72], chairs: [0.2, 0.51, 0.285, 0.78], monitor2: [0.285, 0.51, 0.42, 0.78], lamp: [0.455, 0.42, 0.6, 0.61], lounge: [0.51, 0.61, 0.69, 0.79], rack: [0.75, 0.48, 0.86, 0.77] },
     hot: { items: [0.07, 0.5, 0.88, 0.8] } },
   arena: { img: 'arena', door: [0, 0.3, 0.05, 0.75], you: [0.1, 0.99], host: null, talk: [0.45, 0.55, 0.55, 0.75],
     hot: { screen: [0.31, 0.22, 0.69, 0.6], crowd: [0, 0.76, 1, 1] } },
@@ -707,26 +709,81 @@ function artDraw(now) {
     artGlow(g, cx - (c.v > 0 ? 1 : -1) * F.h * 0.07, cy - F.h * 0.03, F.h * 0.025, '#ff2a40', 0.35);
   }
   // passers-by and the player
-  if (!CT.anpcs) CT.anpcs = [0, 1, 2].map((i) => ({ x: 0.15 + i * 0.3, v: (i % 2 ? -1 : 1) * (0.018 + i * 0.006), look: i, pause: 0 }));
+  // each passer-by has a look, a size and a pace; one who walks off the edge comes back as someone else
+  if (!CT.anpcs) CT.anpcs = [0, 1, 2, 3, 4].map((i) => ({ x: 0.08 + i * 0.21, v: (i % 2 ? -1 : 1) * (0.016 + (i % 3) * 0.006), look: i * 2 + (i > 2 ? 1 : 0), sz: 0.13 + (i % 3) * 0.007, pause: 0, ph: i * 0.37 }));
   for (const n of CT.anpcs) {
-    if (n.pause > 0) n.pause -= dt; else { n.x += n.v * dt; if (Math.random() < dt * 0.08) n.pause = 1 + Math.random() * 2; }
-    if (n.x > 1.03) n.x = -0.03; if (n.x < -0.03) n.x = 1.03;
-    const nim = artImg('stand_' + ['qa', 'cm', 'art'][n.look]);
-    const step = n.pause > 0 ? 0 : Math.abs(Math.sin(CT.t * 9 + n.look)) * -F.h * 0.006;
-    if (nim) artPerson(g, F, nim, n.x, feet, 0.14, n.v > 0, step, n.pause > 0 ? 0 : Math.sin(CT.t * 9 + n.look) * 0.03);
-    else artBlit(g, F, sprPerson(1 + n.look, Math.floor(CT.t * 7 + n.look), n.pause > 0), n.x, feet, 0.13, n.v < 0);
+    if (n.pause > 0) n.pause -= dt; else { n.x += n.v * dt; n.ph += dt * Math.abs(n.v) * 52; if (Math.random() < dt * 0.06) n.pause = 1 + Math.random() * 2.5; }
+    if (n.x > 1.04 || n.x < -0.04) { n.x = n.x > 1 ? -0.03 : 1.03; n.look = (n.look + 5) % ART_LOOKS.length; n.sz = 0.128 + Math.random() * 0.02; n.v = Math.sign(n.v) * (0.014 + Math.random() * 0.014); }
+    const nim = artLook(n.look);
+    if (nim) artPerson(g, F, n.pause > 0 ? nim : artWalk(nim, n.ph), n.x, feet - (n.look % 3) * 0.004, n.sz, n.v > 0, 0);
+    else artBlit(g, F, sprPerson(1 + (n.look % 3), Math.floor(CT.t * 7 + n.look), n.pause > 0), n.x, feet, 0.13, n.v < 0);
   }
   { const yim = artImg('stand_you'), moving = CT.atx !== null;
-    if (yim) artPerson(g, F, yim, CT.ax, feet + 0.006, 0.145, CT.dir > 0, moving ? Math.abs(Math.sin(CT.walk * 1.2)) * -F.h * 0.008 : 0, moving ? Math.sin(CT.walk * 1.2) * 0.04 : 0);
+    if (yim) artPerson(g, F, moving ? artWalk(yim, CT.walk * 0.19) : yim, CT.ax, feet + 0.006, 0.145, CT.dir > 0, 0);
     else artBlit(g, F, sprPerson(0, Math.floor(CT.walk), CT.atx === null), CT.ax, feet + 0.006, 0.135, CT.dir < 0); }
   return true;
 }
 // an AI-drawn character (picture with alpha) standing on (nx, ny); h = height as a fraction of the picture
 function artPerson(g, F, im, nx, ny, hFrac, flip, bob, tilt) {
-  const h = hFrac * F.h, w = h * im.naturalWidth / im.naturalHeight, X = F.x + nx * F.w, Y = F.y + ny * F.h;
+  const h = hFrac * F.h, w = h * (im.naturalWidth || im.width) / (im.naturalHeight || im.height), X = F.x + nx * F.w, Y = F.y + ny * F.h;
   g.save(); g.globalAlpha = 0.35; g.fillStyle = '#000'; g.beginPath(); g.ellipse(X, Y, w * 0.4, h * 0.035, 0, 0, Math.PI * 2); g.fill(); g.restore();
   g.save(); g.imageSmoothingEnabled = true; g.translate(X, Y + (bob || 0)); if (tilt) g.rotate(tilt); if (flip) g.scale(-1, 1);
   g.drawImage(im, -w / 2, -h, w, h); g.restore();
+}
+// a walk cycle made from one standing picture (8 frames, cached): each leg swings from the hip
+// (sheared its own way), the stepping foot lifts, the body dips when the legs are apart
+const ART_WALK = new Map();
+function artWalk(im, ph) {
+  let fr = ART_WALK.get(im);
+  if (!fr) {
+    fr = []; ART_WALK.set(im, fr);
+    const w = im.naturalWidth || im.width, h = im.naturalHeight || im.height, hip = Math.round(h * 0.6), mid = Math.round(w * 0.5), pad = Math.round(w * 0.12), N = 8;
+    for (let i = 0; i < N; i++) {
+      const c = document.createElement('canvas'); c.width = w + pad * 2; c.height = h;
+      const g = c.getContext('2d'), a = Math.sin((i / N) * Math.PI * 2), b = Math.cos((i / N) * Math.PI * 2);
+      const dip = Math.round(Math.abs(a) * h * 0.012), legH = h - hip;
+      g.imageSmoothingEnabled = false;
+      // legs apart twice per cycle; the leg that steps through is lifted and drawn behind, then the body over the hip seam
+      const legs = [[0, mid, -1], [mid, w - mid, 1]];
+      if (a < 0) legs.reverse();
+      legs.forEach(([sx, sw, sgn], n) => {
+        const k = 0.3 * Math.abs(a) * sgn, lift = n === 0 ? Math.abs(b) * h * 0.03 : 0;
+        g.setTransform(1, 0, k, (legH - lift) / legH, pad - k * (hip + dip), hip + dip - (hip + dip) * (legH - lift) / legH);
+        g.drawImage(im, sx, hip, sw, legH, sx, hip + dip, sw, legH - dip);
+      });
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.drawImage(im, 0, 0, w, hip + 3, pad, dip, w, hip + 3);
+      fr.push(c);
+    }
+  }
+  return fr[Math.floor(((ph % 1) + 1) % 1 * fr.length) % fr.length];
+}
+// passers-by: the drawn characters with their clothes recoloured (skin, hair and dark tones stay), so the street is not
+// full of your own staff. One canvas per look, made once.
+const ART_LOOKS = [['qa', 0], ['cm', 0], ['art', 0], ['prog', 110], ['mkt', 200], ['des', 150], ['snd', 60], ['prod', 0], ['qa', 240], ['cm', 160], ['prog', 270], ['art', 90]];
+const ART_TINT = {};
+function artLook(i) {
+  const [role, hue] = ART_LOOKS[i % ART_LOOKS.length], key = role + hue, im = artImg('stand_' + role);
+  if (!im) return null;
+  if (!hue) return im;
+  if (ART_TINT[key]) return ART_TINT[key];
+  const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+  const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+  try {
+    const d = g.getImageData(0, 0, c.width, c.height), p = d.data, top = Math.round(c.height * 0.3) * c.width * 4, hip = Math.round(c.height * 0.6) * c.width * 4; // the top: below the face, above the jeans
+    for (let j = top; j < hip; j += 4) {
+      const r = p[j] / 255, gg = p[j + 1] / 255, bb = p[j + 2] / 255, mx = Math.max(r, gg, bb), mn = Math.min(r, gg, bb), l = (mx + mn) / 2, dd = mx - mn;
+      if (p[j + 3] < 10 || dd < 0.12 || l < 0.12) continue;
+      let H = mx === r ? ((gg - bb) / dd) % 6 : mx === gg ? (bb - r) / dd + 2 : (r - gg) / dd + 4; H *= 60; if (H < 0) H += 360;
+      if (H < 55 || H > 340) continue; // skin, lips, brown and orange tones stay
+      H = (H + hue) % 360;
+      const sat = dd / (1 - Math.abs(2 * l - 1) || 1), C = (1 - Math.abs(2 * l - 1)) * sat, X = C * (1 - Math.abs(((H / 60) % 2) - 1)), m = l - C / 2;
+      const [R, G, B] = H < 60 ? [C, X, 0] : H < 120 ? [X, C, 0] : H < 180 ? [0, C, X] : H < 240 ? [0, X, C] : H < 300 ? [X, 0, C] : [C, 0, X];
+      p[j] = (R + m) * 255; p[j + 1] = (G + m) * 255; p[j + 2] = (B + m) * 255;
+    }
+    g.putImageData(d, 0, 0);
+  } catch (e) { return im; }
+  return (ART_TINT[key] = c);
 }
 function artFindX() { const n = cityS().fndN || 0; return 0.06 + ((n * 0.397 + 0.13) % 0.88); }
 function artInside(g, cv, im, pic, t) {
@@ -748,6 +805,12 @@ function artInside(g, cv, im, pic, t) {
     else artBlit(g, F, sprPerson(pic.host[2], Math.floor(CT.t * 6), !talking), pic.host[0], pic.host[1] + (talking ? Math.sin(CT.t * 14) * 0.004 : 0), 0.3, true);
     if (pic.host[3]) g.restore();
   }
+  if (pic.items) for (const id in pic.items) {
+    const b = pic.items[id], cx = F.x + (b[0] + b[2]) / 2 * F.w, cy = F.y + (b[1] + b[3]) / 2 * F.h, sel = CT.mallSel === id && CT.t - CT.mallT < 5;
+    if (S.items[id]) { artGlow(g, cx, F.y + b[3] * F.h, F.h * 0.08, '#5dff9c', 0.22); artSprite(g, F, (b[0] + b[2]) / 2, b[1] + 0.02, u * 0.7, () => { px(g, -4, -4, 9, 9, '#0a2a14'); px(g, -3, -3, 7, 7, '#5dff9c'); px(g, -2, 0, 1, 1, '#0a2a14'); px(g, -1, 1, 1, 1, '#0a2a14'); px(g, 0, 0, 1, 1, '#0a2a14'); px(g, 1, -1, 1, 1, '#0a2a14'); px(g, 2, -2, 1, 1, '#0a2a14'); }); }
+    else if (sel) artGlow(g, cx, cy, F.h * 0.16, '#ffd23f', 0.3 + 0.12 * Math.sin(t * 8));
+    else if (S.cash >= ITEMS.find((x) => x.id === id).price) artGlow(g, cx, F.y + b[3] * F.h, F.h * 0.06, '#3fd0ff', 0.12 + 0.08 * Math.sin(t * 3 + cx));
+  }
   if (talking) { const tk = pic.talk; artGlow(g, F.x + (tk[0] + tk[2]) / 2 * F.w, F.y + tk[1] * F.h, F.h * 0.06, '#ffffff', 0.25); }
   { const yim = artImg('stand_you'); if (yim) artPerson(g, F, yim, pic.you[0], pic.you[1], 0.36, true, Math.sin(t * 1.8) * F.h * 0.002); else artBlit(g, F, sprPerson(0, 0, true), pic.you[0], pic.you[1], 0.32, false); }
   return true;
@@ -763,6 +826,7 @@ function artTap(e) {
   const inR = (b) => nx >= b[0] && nx <= b[2] && ny >= b[1] && ny <= b[3];
   if (CT.inside) {
     if (inR(pic.door) || (e.clientX - r.left) / r.width < 0.1) { cityAct('out'); return true; }
+    if (pic.items) for (const id in pic.items) if (inR(pic.items[id])) { artMallItem(id, e); return true; }
     for (const h in pic.hot) if (inR(pic.hot[h])) { cityPoke(CT.inside + '.' + h, e); return true; }
     cityTalk(); return true;
   }
@@ -779,6 +843,22 @@ function artTap(e) {
   for (const id in ART_ST.b) { const b = ART_ST.b[id]; if (nx >= b[0] && nx <= b[1] && ny < feet + 0.05) { artGo(id); return true; } }
   CT.atx = Math.max(0.01, Math.min(0.99, nx)); CT.aspd = Math.max(0.15, Math.abs(CT.atx - CT.ax) / 1.4); CT.sel = null; CT.street = false;
   return true;
+}
+// a thing in the Mall: what it is and costs; tapped again within a few seconds → bought (the usual buy action)
+function artMallItem(id, e) {
+  const it = ITEMS.find((x) => x.id === id), name = L('item.' + id + '.name');
+  if (!it) return;
+  if (!S.items[id] && CT.mallSel === id && CT.t - CT.mallT < 5) {
+    CT.mallSel = null;
+    ACT.buy(id);
+    if (S.items[id]) { CT.say = name + ' — ' + L('city.x_mall_own'); CT.sayN++; confettiSmall(); }
+    render(true);
+    return;
+  }
+  cityPoke('mall.items', e, S.items[id] ? '✅' : '🛍️');
+  if (S.items[id]) { CT.mallSel = null; CT.say = name + ' — ' + L('city.x_mall_own'); }
+  else { CT.mallSel = id; CT.mallT = CT.t; CT.sayN++; CT.say = L('city.x_mall_buy', { item: name, perk: L('item.' + id + '.perk'), price: money(it.price) }); }
+  render(true);
 }
 function artGo(id) {
   const b = ART_ST.b[id];

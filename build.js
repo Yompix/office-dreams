@@ -8,7 +8,8 @@ const path = require('path');
 const read = (f) => fs.readFileSync(path.join(__dirname, f), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
-const css = read('src/style.css').trim();
+// art2.css: the Art 2 skin (every rule under body.art2, so the classic look is untouched)
+const css = (read('src/style.css').trim() + '\n' + read('src/art2.css').trim()).trim();
 const FILES = [
   'src/icons.js', 'src/i18n.js', 'src/lang_en.js', 'src/lang_ru.js', 'src/lang_uk.js',
   'src/engine.js', 'src/sync_client.js', 'src/render.js',

@@ -1,0 +1,65 @@
+/* ============================================================
+   ART 2 skin (test mode, ?art=2). Every rule hangs off body.art2,
+   so the classic look never changes.
+   ============================================================ */
+/* the street: a taller window onto the picture, so people and shop fronts are bigger and the camera follows you */
+body.art2 .ct-scene:not(.in) #citycv { height: clamp(260px, 76vw, 400px); image-rendering: auto; }
+body.art2 #citycv { image-rendering: auto; }
+/* the Empire tower: a tap on a floor lights its card */
+body.art2 .floor.flash { animation: art2flash 1.2s ease-out; }
+@keyframes art2flash { 0% { box-shadow: 0 0 0 2px #ffd23f, 0 0 26px rgba(255, 210, 63, 0.6); } 100% { box-shadow: 0 0 0 0 rgba(255, 210, 63, 0); } }
+body.art2 .tower { cursor: pointer; border-color: rgba(255, 63, 208, 0.45); box-shadow: 0 0 24px rgba(255, 63, 208, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
+
+/* ---------- the whole interface in the look of the drawn office: night city behind, warm plum panels, pixel edges, neon ---------- */
+body.art2 {
+  --panel-a: rgba(44, 24, 54, 0.94);
+  --panel-b: rgba(18, 11, 32, 0.96);
+  --line-soft: rgba(255, 150, 210, 0.2);
+  --well: rgba(10, 6, 22, 0.78);
+  --mut: #b7a6d6;
+  --r: 10px;
+}
+/* the night street behind everything (the same picture as the city), dark enough to read over */
+body.art2::before {
+  background:
+    linear-gradient(180deg, rgba(10, 6, 26, 0.62) 0%, rgba(10, 6, 26, 0.82) 45%, rgba(8, 4, 20, 0.95) 100%),
+    url(art/street_empty.webp) 50% 0 / auto 62vh no-repeat,
+    #0a0618;
+}
+body.art2::after { display: none; }
+body.art2 #hud {
+  background: linear-gradient(180deg, rgba(30, 16, 40, 0.98), rgba(18, 10, 30, 0.93));
+  border-bottom: 2px solid #0c0612;
+  box-shadow: 0 2px 0 rgba(255, 63, 208, 0.35), 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+body.art2 .me .av { border-radius: 8px; border-color: #ff9ad8; box-shadow: 0 0 0 2px #0c0612, 0 0 12px rgba(255, 63, 208, 0.45); background: #2a1638; }
+body.art2 .pill { border-radius: 8px; border-width: 2px; background: rgba(12, 6, 22, 0.85); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35); }
+/* panels: plum wood with a dark pixel outline, a thin warm rim and the neon strip on top */
+body.art2 .panel {
+  border-radius: 10px; border: 2px solid #0c0612;
+  background: linear-gradient(165deg, var(--panel-a), var(--panel-b));
+  box-shadow: 0 0 0 1px rgba(255, 170, 120, 0.14), inset 0 1px 0 rgba(255, 210, 160, 0.12), inset 0 -3px 0 rgba(0, 0, 0, 0.3), 0 10px 26px rgba(0, 0, 0, 0.45);
+}
+body.art2 .panel::before { left: 10%; right: 10%; top: -2px; height: 2px; border-radius: 0; background: linear-gradient(90deg, transparent, #ff3fd0 20%, #3fd0ff 80%, transparent); opacity: 0.9; }
+body.art2 .h2 { font: 400 11px/1.5 var(--px); letter-spacing: 0.5px; color: #ffd9f2; text-shadow: 0 0 8px rgba(255, 63, 208, 0.65), 0 2px 0 #2a0c26; }
+body.art2 .h2.big { font: 800 22px/1.2 var(--ui); letter-spacing: 0; text-shadow: 0 2px 0 #2a0c26; color: var(--ink); }
+/* buttons: chunkier, squarer, with a pixel step under them */
+body.art2 .btn { border-radius: 9px; }
+body.art2 .btn.big { border-radius: 11px; }
+body.art2 .btn.sm { border-radius: 7px; }
+/* the tab bar: a dark sign board with a pink neon pick */
+body.art2 #tabs { border-radius: 12px; background: rgba(20, 10, 30, 0.97); border: 2px solid #0c0612; box-shadow: 0 0 0 1px rgba(255, 150, 210, 0.2), 0 10px 30px rgba(0, 0, 0, 0.6); }
+body.art2 .tab { border-radius: 9px; }
+body.art2 .tab.on { background: linear-gradient(180deg, rgba(255, 63, 208, 0.22), rgba(255, 63, 208, 0.06)); box-shadow: inset 0 0 0 2px rgba(255, 63, 208, 0.55), 0 0 18px rgba(255, 63, 208, 0.25); }
+body.art2 .tab.on .ico { color: #ff8ae6; filter: drop-shadow(0 0 6px rgba(255, 63, 208, 0.8)); }
+body.art2 .tab.on::after { background: linear-gradient(90deg, #ff3fd0, #ffd23f); }
+/* lists inside panels: rows like little shelves */
+body.art2 .floor, body.art2 .item, body.art2 .loc { border-radius: 8px; }
+body.art2 .tower { width: 140px; height: 217px; }
+/* windows (modals): the same plum board with a pink neon edge */
+body.art2 .ovl { background: rgba(8, 3, 16, 0.86); }
+body.art2 .modal {
+  border-radius: 12px; border: 2px solid #0c0612;
+  background: linear-gradient(165deg, #34183f, #1a0c2a 60%, #120822);
+  box-shadow: 0 0 0 2px rgba(255, 63, 208, 0.45), 0 0 36px rgba(255, 63, 208, 0.25), 0 30px 60px rgba(0, 0, 0, 0.6);
+}

@@ -1316,6 +1316,71 @@ img[src*="/portrait-"][src$="#m0"] { filter: saturate(0.45) brightness(0.8) sepi
 .gwnone .hint { flex: 1; min-width: 180px; margin: 0; }
 .c-btns .btn.skip { opacity: 0.85; }
 .ct-found { opacity: 0.85; }
+/* ============================================================
+   ART 2 skin (test mode, ?art=2). Every rule hangs off body.art2,
+   so the classic look never changes.
+   ============================================================ */
+/* the street: a taller window onto the picture, so people and shop fronts are bigger and the camera follows you */
+body.art2 .ct-scene:not(.in) #citycv { height: clamp(260px, 76vw, 400px); image-rendering: auto; }
+body.art2 #citycv { image-rendering: auto; }
+/* the Empire tower: a tap on a floor lights its card */
+body.art2 .floor.flash { animation: art2flash 1.2s ease-out; }
+@keyframes art2flash { 0% { box-shadow: 0 0 0 2px #ffd23f, 0 0 26px rgba(255, 210, 63, 0.6); } 100% { box-shadow: 0 0 0 0 rgba(255, 210, 63, 0); } }
+body.art2 .tower { cursor: pointer; border-color: rgba(255, 63, 208, 0.45); box-shadow: 0 0 24px rgba(255, 63, 208, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
+
+/* ---------- the whole interface in the look of the drawn office: night city behind, warm plum panels, pixel edges, neon ---------- */
+body.art2 {
+  --panel-a: rgba(44, 24, 54, 0.94);
+  --panel-b: rgba(18, 11, 32, 0.96);
+  --line-soft: rgba(255, 150, 210, 0.2);
+  --well: rgba(10, 6, 22, 0.78);
+  --mut: #b7a6d6;
+  --r: 10px;
+}
+/* the night street behind everything (the same picture as the city), dark enough to read over */
+body.art2::before {
+  background:
+    linear-gradient(180deg, rgba(10, 6, 26, 0.62) 0%, rgba(10, 6, 26, 0.82) 45%, rgba(8, 4, 20, 0.95) 100%),
+    url(art/street_empty.webp) 50% 0 / auto 62vh no-repeat,
+    #0a0618;
+}
+body.art2::after { display: none; }
+body.art2 #hud {
+  background: linear-gradient(180deg, rgba(30, 16, 40, 0.98), rgba(18, 10, 30, 0.93));
+  border-bottom: 2px solid #0c0612;
+  box-shadow: 0 2px 0 rgba(255, 63, 208, 0.35), 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+body.art2 .me .av { border-radius: 8px; border-color: #ff9ad8; box-shadow: 0 0 0 2px #0c0612, 0 0 12px rgba(255, 63, 208, 0.45); background: #2a1638; }
+body.art2 .pill { border-radius: 8px; border-width: 2px; background: rgba(12, 6, 22, 0.85); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35); }
+/* panels: plum wood with a dark pixel outline, a thin warm rim and the neon strip on top */
+body.art2 .panel {
+  border-radius: 10px; border: 2px solid #0c0612;
+  background: linear-gradient(165deg, var(--panel-a), var(--panel-b));
+  box-shadow: 0 0 0 1px rgba(255, 170, 120, 0.14), inset 0 1px 0 rgba(255, 210, 160, 0.12), inset 0 -3px 0 rgba(0, 0, 0, 0.3), 0 10px 26px rgba(0, 0, 0, 0.45);
+}
+body.art2 .panel::before { left: 10%; right: 10%; top: -2px; height: 2px; border-radius: 0; background: linear-gradient(90deg, transparent, #ff3fd0 20%, #3fd0ff 80%, transparent); opacity: 0.9; }
+body.art2 .h2 { font: 400 11px/1.5 var(--px); letter-spacing: 0.5px; color: #ffd9f2; text-shadow: 0 0 8px rgba(255, 63, 208, 0.65), 0 2px 0 #2a0c26; }
+body.art2 .h2.big { font: 800 22px/1.2 var(--ui); letter-spacing: 0; text-shadow: 0 2px 0 #2a0c26; color: var(--ink); }
+/* buttons: chunkier, squarer, with a pixel step under them */
+body.art2 .btn { border-radius: 9px; }
+body.art2 .btn.big { border-radius: 11px; }
+body.art2 .btn.sm { border-radius: 7px; }
+/* the tab bar: a dark sign board with a pink neon pick */
+body.art2 #tabs { border-radius: 12px; background: rgba(20, 10, 30, 0.97); border: 2px solid #0c0612; box-shadow: 0 0 0 1px rgba(255, 150, 210, 0.2), 0 10px 30px rgba(0, 0, 0, 0.6); }
+body.art2 .tab { border-radius: 9px; }
+body.art2 .tab.on { background: linear-gradient(180deg, rgba(255, 63, 208, 0.22), rgba(255, 63, 208, 0.06)); box-shadow: inset 0 0 0 2px rgba(255, 63, 208, 0.55), 0 0 18px rgba(255, 63, 208, 0.25); }
+body.art2 .tab.on .ico { color: #ff8ae6; filter: drop-shadow(0 0 6px rgba(255, 63, 208, 0.8)); }
+body.art2 .tab.on::after { background: linear-gradient(90deg, #ff3fd0, #ffd23f); }
+/* lists inside panels: rows like little shelves */
+body.art2 .floor, body.art2 .item, body.art2 .loc { border-radius: 8px; }
+body.art2 .tower { width: 140px; height: 217px; }
+/* windows (modals): the same plum board with a pink neon edge */
+body.art2 .ovl { background: rgba(8, 3, 16, 0.86); }
+body.art2 .modal {
+  border-radius: 12px; border: 2px solid #0c0612;
+  background: linear-gradient(165deg, #34183f, #1a0c2a 60%, #120822);
+  box-shadow: 0 0 0 2px rgba(255, 63, 208, 0.45), 0 0 36px rgba(255, 63, 208, 0.25), 0 30px 60px rgba(0, 0, 0, 0.6);
+}
 </style>
 <div id="app">
   <header id="hud"></header>
@@ -2851,6 +2916,15 @@ LANGS.en = {
   "of.stairs_1": "The stairs lead to new floors. You open them in the «Empire» tab ⬆️",
   "of.lamp_on": "Light on 💡",
   "of.lamp_off": "Light off. Cosier 🌙",
+  "of.coffee_1": "The coffee machine hisses: fresh espresso for the team ☕",
+  "of.coffee_2": "Smells like coffee. The team's energy refills faster",
+  "of.lounge_1": "A sofa for brainstorms. The best ideas come lying down 🛋️",
+  "of.lounge_2": "Someone left a gamepad on the sofa 🎮",
+  "of.flamp_1": "The floor lamp glows softly. Cosy offices make better games",
+  "of.rackon_1": "Your own server hums: builds put themselves together ☁️",
+  "of.empty_lounge": "A sofa would fit here. The Mall in the city sells one 🛋️",
+  "of.empty_coffee": "A coffee machine would fit here. The Mall in the city sells one ☕",
+  "city.x_mall_buy": "{item}: {perk} · {price}. Tap again to buy",
   "of.desk_free": "A free desk. Hire someone and work will start here",
   "of.found_new": "🔍 Office secret found! {n}/{N}",
   "of.found_all": "🏆 You found every secret in the office!",
@@ -3751,6 +3825,15 @@ LANGS.ru = {
   "of.stairs_1": "Лестница ведёт на новые этажи. Их открывают во вкладке «Империя» ⬆️",
   "of.lamp_on": "Свет включён 💡",
   "of.lamp_off": "Свет выключен. Так уютнее 🌙",
+  "of.coffee_1": "Кофемашина зашипела: свежий эспрессо для команды ☕",
+  "of.coffee_2": "Пахнет кофе. Энергия команды растёт быстрее",
+  "of.lounge_1": "Диван для мозговых штурмов. Лучшие идеи приходят лёжа 🛋️",
+  "of.lounge_2": "Кто-то оставил на диване геймпад 🎮",
+  "of.flamp_1": "Торшер светит мягко. В уютном офисе игры выходят лучше",
+  "of.rackon_1": "Свой сервер гудит: билды собираются сами ☁️",
+  "of.empty_lounge": "Тут просится диван. Его продают в Торговом центре в городе 🛋️",
+  "of.empty_coffee": "Тут бы кофемашина. Её продают в Торговом центре в городе ☕",
+  "city.x_mall_buy": "{item}: {perk} · {price}. Нажми ещё раз, чтобы купить",
   "of.desk_free": "Свободный стол. Найми сотрудника, и здесь закипит работа",
   "of.found_new": "🔍 Секрет офиса найден! {n}/{N}",
   "of.found_all": "🏆 Ты нашёл все секреты офиса!",
@@ -4651,6 +4734,15 @@ LANGS.uk = {
   "of.stairs_1": "Сходи ведуть на нові поверхи. Їх відкривають у вкладці «Імперія» ⬆️",
   "of.lamp_on": "Світло ввімкнено 💡",
   "of.lamp_off": "Світло вимкнено. Так затишніше 🌙",
+  "of.coffee_1": "Кавомашина зашипіла: свіже еспресо для команди ☕",
+  "of.coffee_2": "Пахне кавою. Енергія команди росте швидше",
+  "of.lounge_1": "Диван для мозкових штурмів. Найкращі ідеї приходять лежачи 🛋️",
+  "of.lounge_2": "Хтось залишив на дивані геймпад 🎮",
+  "of.flamp_1": "Торшер світить м’яко. У затишному офісі ігри виходять кращими",
+  "of.rackon_1": "Свій сервер гуде: білди збираються самі ☁️",
+  "of.empty_lounge": "Тут проситься диван. Його продають у Торговому центрі в місті 🛋️",
+  "of.empty_coffee": "Тут би кавомашину. Її продають у Торговому центрі в місті ☕",
+  "city.x_mall_buy": "{item}: {perk} · {price}. Натисни ще раз, щоб купити",
   "of.desk_free": "Вільний стіл. Найми співробітника, і тут закипить робота",
   "of.found_new": "🔍 Секрет офісу знайдено! {n}/{N}",
   "of.found_all": "🏆 Ти знайшов усі секрети офісу!",
@@ -11959,6 +12051,8 @@ const ART_IN = {
   games: { img: 'games', door: [0, 0.3, 0.06, 0.9], you: [0.12, 0.98], host: [0.74, 0.74, 2, 0.67], who: 'des', talk: [0.69, 0.4, 0.79, 0.68],
     hot: { shelf: [0.17, 0.3, 0.87, 0.67] } },
   mall: { img: 'mall', door: [0, 0.3, 0.05, 0.9], you: [0.1, 0.98], host: [0.47, 0.84, 3], who: 'cm', talk: [0.43, 0.5, 0.51, 0.84],
+    // every thing on display is the real item: first tap shows it, a second tap buys it; bought ones glow green
+    items: { coffee: [0.075, 0.55, 0.16, 0.72], chairs: [0.2, 0.51, 0.285, 0.78], monitor2: [0.285, 0.51, 0.42, 0.78], lamp: [0.455, 0.42, 0.6, 0.61], lounge: [0.51, 0.61, 0.69, 0.79], rack: [0.75, 0.48, 0.86, 0.77] },
     hot: { items: [0.07, 0.5, 0.88, 0.8] } },
   arena: { img: 'arena', door: [0, 0.3, 0.05, 0.75], you: [0.1, 0.99], host: null, talk: [0.45, 0.55, 0.55, 0.75],
     hot: { screen: [0.31, 0.22, 0.69, 0.6], crowd: [0, 0.76, 1, 1] } },
@@ -12051,26 +12145,81 @@ function artDraw(now) {
     artGlow(g, cx - (c.v > 0 ? 1 : -1) * F.h * 0.07, cy - F.h * 0.03, F.h * 0.025, '#ff2a40', 0.35);
   }
   // passers-by and the player
-  if (!CT.anpcs) CT.anpcs = [0, 1, 2].map((i) => ({ x: 0.15 + i * 0.3, v: (i % 2 ? -1 : 1) * (0.018 + i * 0.006), look: i, pause: 0 }));
+  // each passer-by has a look, a size and a pace; one who walks off the edge comes back as someone else
+  if (!CT.anpcs) CT.anpcs = [0, 1, 2, 3, 4].map((i) => ({ x: 0.08 + i * 0.21, v: (i % 2 ? -1 : 1) * (0.016 + (i % 3) * 0.006), look: i * 2 + (i > 2 ? 1 : 0), sz: 0.13 + (i % 3) * 0.007, pause: 0, ph: i * 0.37 }));
   for (const n of CT.anpcs) {
-    if (n.pause > 0) n.pause -= dt; else { n.x += n.v * dt; if (Math.random() < dt * 0.08) n.pause = 1 + Math.random() * 2; }
-    if (n.x > 1.03) n.x = -0.03; if (n.x < -0.03) n.x = 1.03;
-    const nim = artImg('stand_' + ['qa', 'cm', 'art'][n.look]);
-    const step = n.pause > 0 ? 0 : Math.abs(Math.sin(CT.t * 9 + n.look)) * -F.h * 0.006;
-    if (nim) artPerson(g, F, nim, n.x, feet, 0.14, n.v > 0, step, n.pause > 0 ? 0 : Math.sin(CT.t * 9 + n.look) * 0.03);
-    else artBlit(g, F, sprPerson(1 + n.look, Math.floor(CT.t * 7 + n.look), n.pause > 0), n.x, feet, 0.13, n.v < 0);
+    if (n.pause > 0) n.pause -= dt; else { n.x += n.v * dt; n.ph += dt * Math.abs(n.v) * 52; if (Math.random() < dt * 0.06) n.pause = 1 + Math.random() * 2.5; }
+    if (n.x > 1.04 || n.x < -0.04) { n.x = n.x > 1 ? -0.03 : 1.03; n.look = (n.look + 5) % ART_LOOKS.length; n.sz = 0.128 + Math.random() * 0.02; n.v = Math.sign(n.v) * (0.014 + Math.random() * 0.014); }
+    const nim = artLook(n.look);
+    if (nim) artPerson(g, F, n.pause > 0 ? nim : artWalk(nim, n.ph), n.x, feet - (n.look % 3) * 0.004, n.sz, n.v > 0, 0);
+    else artBlit(g, F, sprPerson(1 + (n.look % 3), Math.floor(CT.t * 7 + n.look), n.pause > 0), n.x, feet, 0.13, n.v < 0);
   }
   { const yim = artImg('stand_you'), moving = CT.atx !== null;
-    if (yim) artPerson(g, F, yim, CT.ax, feet + 0.006, 0.145, CT.dir > 0, moving ? Math.abs(Math.sin(CT.walk * 1.2)) * -F.h * 0.008 : 0, moving ? Math.sin(CT.walk * 1.2) * 0.04 : 0);
+    if (yim) artPerson(g, F, moving ? artWalk(yim, CT.walk * 0.19) : yim, CT.ax, feet + 0.006, 0.145, CT.dir > 0, 0);
     else artBlit(g, F, sprPerson(0, Math.floor(CT.walk), CT.atx === null), CT.ax, feet + 0.006, 0.135, CT.dir < 0); }
   return true;
 }
 // an AI-drawn character (picture with alpha) standing on (nx, ny); h = height as a fraction of the picture
 function artPerson(g, F, im, nx, ny, hFrac, flip, bob, tilt) {
-  const h = hFrac * F.h, w = h * im.naturalWidth / im.naturalHeight, X = F.x + nx * F.w, Y = F.y + ny * F.h;
+  const h = hFrac * F.h, w = h * (im.naturalWidth || im.width) / (im.naturalHeight || im.height), X = F.x + nx * F.w, Y = F.y + ny * F.h;
   g.save(); g.globalAlpha = 0.35; g.fillStyle = '#000'; g.beginPath(); g.ellipse(X, Y, w * 0.4, h * 0.035, 0, 0, Math.PI * 2); g.fill(); g.restore();
   g.save(); g.imageSmoothingEnabled = true; g.translate(X, Y + (bob || 0)); if (tilt) g.rotate(tilt); if (flip) g.scale(-1, 1);
   g.drawImage(im, -w / 2, -h, w, h); g.restore();
+}
+// a walk cycle made from one standing picture (8 frames, cached): each leg swings from the hip
+// (sheared its own way), the stepping foot lifts, the body dips when the legs are apart
+const ART_WALK = new Map();
+function artWalk(im, ph) {
+  let fr = ART_WALK.get(im);
+  if (!fr) {
+    fr = []; ART_WALK.set(im, fr);
+    const w = im.naturalWidth || im.width, h = im.naturalHeight || im.height, hip = Math.round(h * 0.6), mid = Math.round(w * 0.5), pad = Math.round(w * 0.12), N = 8;
+    for (let i = 0; i < N; i++) {
+      const c = document.createElement('canvas'); c.width = w + pad * 2; c.height = h;
+      const g = c.getContext('2d'), a = Math.sin((i / N) * Math.PI * 2), b = Math.cos((i / N) * Math.PI * 2);
+      const dip = Math.round(Math.abs(a) * h * 0.012), legH = h - hip;
+      g.imageSmoothingEnabled = false;
+      // legs apart twice per cycle; the leg that steps through is lifted and drawn behind, then the body over the hip seam
+      const legs = [[0, mid, -1], [mid, w - mid, 1]];
+      if (a < 0) legs.reverse();
+      legs.forEach(([sx, sw, sgn], n) => {
+        const k = 0.3 * Math.abs(a) * sgn, lift = n === 0 ? Math.abs(b) * h * 0.03 : 0;
+        g.setTransform(1, 0, k, (legH - lift) / legH, pad - k * (hip + dip), hip + dip - (hip + dip) * (legH - lift) / legH);
+        g.drawImage(im, sx, hip, sw, legH, sx, hip + dip, sw, legH - dip);
+      });
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.drawImage(im, 0, 0, w, hip + 3, pad, dip, w, hip + 3);
+      fr.push(c);
+    }
+  }
+  return fr[Math.floor(((ph % 1) + 1) % 1 * fr.length) % fr.length];
+}
+// passers-by: the drawn characters with their clothes recoloured (skin, hair and dark tones stay), so the street is not
+// full of your own staff. One canvas per look, made once.
+const ART_LOOKS = [['qa', 0], ['cm', 0], ['art', 0], ['prog', 110], ['mkt', 200], ['des', 150], ['snd', 60], ['prod', 0], ['qa', 240], ['cm', 160], ['prog', 270], ['art', 90]];
+const ART_TINT = {};
+function artLook(i) {
+  const [role, hue] = ART_LOOKS[i % ART_LOOKS.length], key = role + hue, im = artImg('stand_' + role);
+  if (!im) return null;
+  if (!hue) return im;
+  if (ART_TINT[key]) return ART_TINT[key];
+  const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+  const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+  try {
+    const d = g.getImageData(0, 0, c.width, c.height), p = d.data, top = Math.round(c.height * 0.3) * c.width * 4, hip = Math.round(c.height * 0.6) * c.width * 4; // the top: below the face, above the jeans
+    for (let j = top; j < hip; j += 4) {
+      const r = p[j] / 255, gg = p[j + 1] / 255, bb = p[j + 2] / 255, mx = Math.max(r, gg, bb), mn = Math.min(r, gg, bb), l = (mx + mn) / 2, dd = mx - mn;
+      if (p[j + 3] < 10 || dd < 0.12 || l < 0.12) continue;
+      let H = mx === r ? ((gg - bb) / dd) % 6 : mx === gg ? (bb - r) / dd + 2 : (r - gg) / dd + 4; H *= 60; if (H < 0) H += 360;
+      if (H < 55 || H > 340) continue; // skin, lips, brown and orange tones stay
+      H = (H + hue) % 360;
+      const sat = dd / (1 - Math.abs(2 * l - 1) || 1), C = (1 - Math.abs(2 * l - 1)) * sat, X = C * (1 - Math.abs(((H / 60) % 2) - 1)), m = l - C / 2;
+      const [R, G, B] = H < 60 ? [C, X, 0] : H < 120 ? [X, C, 0] : H < 180 ? [0, C, X] : H < 240 ? [0, X, C] : H < 300 ? [X, 0, C] : [C, 0, X];
+      p[j] = (R + m) * 255; p[j + 1] = (G + m) * 255; p[j + 2] = (B + m) * 255;
+    }
+    g.putImageData(d, 0, 0);
+  } catch (e) { return im; }
+  return (ART_TINT[key] = c);
 }
 function artFindX() { const n = cityS().fndN || 0; return 0.06 + ((n * 0.397 + 0.13) % 0.88); }
 function artInside(g, cv, im, pic, t) {
@@ -12092,6 +12241,12 @@ function artInside(g, cv, im, pic, t) {
     else artBlit(g, F, sprPerson(pic.host[2], Math.floor(CT.t * 6), !talking), pic.host[0], pic.host[1] + (talking ? Math.sin(CT.t * 14) * 0.004 : 0), 0.3, true);
     if (pic.host[3]) g.restore();
   }
+  if (pic.items) for (const id in pic.items) {
+    const b = pic.items[id], cx = F.x + (b[0] + b[2]) / 2 * F.w, cy = F.y + (b[1] + b[3]) / 2 * F.h, sel = CT.mallSel === id && CT.t - CT.mallT < 5;
+    if (S.items[id]) { artGlow(g, cx, F.y + b[3] * F.h, F.h * 0.08, '#5dff9c', 0.22); artSprite(g, F, (b[0] + b[2]) / 2, b[1] + 0.02, u * 0.7, () => { px(g, -4, -4, 9, 9, '#0a2a14'); px(g, -3, -3, 7, 7, '#5dff9c'); px(g, -2, 0, 1, 1, '#0a2a14'); px(g, -1, 1, 1, 1, '#0a2a14'); px(g, 0, 0, 1, 1, '#0a2a14'); px(g, 1, -1, 1, 1, '#0a2a14'); px(g, 2, -2, 1, 1, '#0a2a14'); }); }
+    else if (sel) artGlow(g, cx, cy, F.h * 0.16, '#ffd23f', 0.3 + 0.12 * Math.sin(t * 8));
+    else if (S.cash >= ITEMS.find((x) => x.id === id).price) artGlow(g, cx, F.y + b[3] * F.h, F.h * 0.06, '#3fd0ff', 0.12 + 0.08 * Math.sin(t * 3 + cx));
+  }
   if (talking) { const tk = pic.talk; artGlow(g, F.x + (tk[0] + tk[2]) / 2 * F.w, F.y + tk[1] * F.h, F.h * 0.06, '#ffffff', 0.25); }
   { const yim = artImg('stand_you'); if (yim) artPerson(g, F, yim, pic.you[0], pic.you[1], 0.36, true, Math.sin(t * 1.8) * F.h * 0.002); else artBlit(g, F, sprPerson(0, 0, true), pic.you[0], pic.you[1], 0.32, false); }
   return true;
@@ -12107,6 +12262,7 @@ function artTap(e) {
   const inR = (b) => nx >= b[0] && nx <= b[2] && ny >= b[1] && ny <= b[3];
   if (CT.inside) {
     if (inR(pic.door) || (e.clientX - r.left) / r.width < 0.1) { cityAct('out'); return true; }
+    if (pic.items) for (const id in pic.items) if (inR(pic.items[id])) { artMallItem(id, e); return true; }
     for (const h in pic.hot) if (inR(pic.hot[h])) { cityPoke(CT.inside + '.' + h, e); return true; }
     cityTalk(); return true;
   }
@@ -12123,6 +12279,22 @@ function artTap(e) {
   for (const id in ART_ST.b) { const b = ART_ST.b[id]; if (nx >= b[0] && nx <= b[1] && ny < feet + 0.05) { artGo(id); return true; } }
   CT.atx = Math.max(0.01, Math.min(0.99, nx)); CT.aspd = Math.max(0.15, Math.abs(CT.atx - CT.ax) / 1.4); CT.sel = null; CT.street = false;
   return true;
+}
+// a thing in the Mall: what it is and costs; tapped again within a few seconds → bought (the usual buy action)
+function artMallItem(id, e) {
+  const it = ITEMS.find((x) => x.id === id), name = L('item.' + id + '.name');
+  if (!it) return;
+  if (!S.items[id] && CT.mallSel === id && CT.t - CT.mallT < 5) {
+    CT.mallSel = null;
+    ACT.buy(id);
+    if (S.items[id]) { CT.say = name + ' — ' + L('city.x_mall_own'); CT.sayN++; confettiSmall(); }
+    render(true);
+    return;
+  }
+  cityPoke('mall.items', e, S.items[id] ? '✅' : '🛍️');
+  if (S.items[id]) { CT.mallSel = null; CT.say = name + ' — ' + L('city.x_mall_own'); }
+  else { CT.mallSel = id; CT.mallT = CT.t; CT.sayN++; CT.say = L('city.x_mall_buy', { item: name, perk: L('item.' + id + '.perk'), price: money(it.price) }); }
+  render(true);
 }
 function artGo(id) {
   const b = ART_ST.b[id];
@@ -12275,11 +12447,18 @@ const ART_HOT = [
   { k: 'stairs', x: 290, y: 975, r: 90 }, { k: 'rug', x: 900, y: 665, r: 110 },
 ];
 const ART_SECRETS = ['neon', 'rack', 'pc', 'window', 'art', 'books', 'plant', 'lamp', 'stairs', 'rug'];
-const ART_X = { neon: 2, rack: 2, pc: 2, window: 2, art: 2, books: 3, plant: 2, stairs: 1, rug: 1 }; // variants of of.<k>_<n>
-const ART_ICO = { neon: '✨', rack: '☁️', pc: '💻', window: '🌠', art: '🖼️', books: '📚', plant: '💧', lamp: '💡', stairs: '⬆️', rug: '🧶' };
+const ART_X = { neon: 2, rack: 2, pc: 2, window: 2, art: 2, books: 3, plant: 2, stairs: 1, rug: 1, coffee: 2, lounge: 2, flamp: 1, rackon: 1 }; // variants of of.<k>_<n>
+const ART_ICO = { neon: '✨', rack: '☁️', pc: '💻', window: '🌠', art: '🖼️', books: '📚', plant: '💧', lamp: '💡', stairs: '⬆️', rug: '🧶', coffee: '☕', lounge: '🛋️', flamp: '💡', rackon: '☁️' };
 const ART_NEON = [['#ff3fd0', '#3fd0ff'], ['#ffd23f', '#ff4d6d'], ['#5dff9c', '#3fd0ff'], ['#a06aff', '#ff3fd0']];
+// things bought in the Mall show up in the room: a picture (base point in picture px, height as a fraction of the picture)
+// or a light; tapping them reacts, an empty spot hints where to buy
+const ART_ITEMS = {
+  coffee: { img: 'item_coffee', x: 985, y: 338, h: 0.07, r: 50 },
+  lounge: { img: 'item_sofa', x: 900, y: 525, h: 0.095, r: 95 },
+  lamp: { x: 1012, y: 520, r: 45 },
+};
 // what is going on right now (performance.now() seconds of the last tap on each thing)
-const AFX = { neon: -9, neonC: 0, rack: -9, pc: -9, star: -9, starAt: null, spark: -9, sparkAt: null, drops: -9, dropAt: null, dust: -9, dustAt: null, lampOff: {}, found: null };
+const AFX = { steam: -9, neon: -9, neonC: 0, rack: -9, pc: -9, star: -9, starAt: null, spark: -9, sparkAt: null, drops: -9, dropAt: null, dust: -9, dustAt: null, lampOff: {}, found: null };
 function artFound() {
   if (!AFX.found) { try { AFX.found = new Set(JSON.parse(lsGet('od2_office_found') || '[]')); } catch (e) { AFX.found = new Set(); } }
   return AFX.found;
@@ -12395,8 +12574,10 @@ function artOfficeDraw(ctx, cv, st, t) {
     if (AFX.lampOff[i]) artShade(ctx, X(l[0]), Y(l[1]), F.h * 0.1, 0.6);
     else artGlow(ctx, X(l[0]), Y(l[1]), F.h * 0.07, '#ffc070', 0.16 + 0.04 * Math.sin(t * 5 + i * 1.7));
   });
-  ART_DESKS.forEach((d, i) => artGlow(ctx, X(d.mon[0]), Y(d.mon[1]), F.h * 0.1, '#3fd0ff', (working ? 0.16 : 0.07) + (working ? 0.06 * Math.sin(t * 9 + i * 2) : 0)));
+  const mon2 = S.items && S.items.monitor2 ? 1.5 : 1;
+  ART_DESKS.forEach((d, i) => artGlow(ctx, X(d.mon[0]), Y(d.mon[1]), F.h * 0.1 * (mon2 > 1 ? 1.2 : 1), '#3fd0ff', ((working ? 0.16 : 0.07) + (working ? 0.06 * Math.sin(t * 9 + i * 2) : 0)) * mon2));
   if (st.turbo || st.hype) artGlow(ctx, F.x + F.w / 2, F.y + F.h / 2, F.h * 0.7, st.turbo ? '#ff4d6d' : '#ffd23f', 0.06 + 0.04 * Math.sin(t * 6));
+  artItems(ctx, F, s, X, Y, t);
   artOfficeFx(ctx, F, s, X, Y, t);
   // the team, back to front
   const places = artPlaces(), list = Object.keys(places).map((k) => Object.assign({ k }, places[k])).sort((a, b) => a.y - b.y);
@@ -12407,7 +12588,7 @@ function artOfficeDraw(ctx, cv, st, t) {
   };
   // an AI-drawn character: soft shadow, then the picture; seated people type (quick bob), standing ones breathe
   const person = (im, x, y, hFrac, flip, bob, sx, tilt) => {
-    const h = hFrac * F.h * (1 + (sx || 0)), w = h * im.naturalWidth / im.naturalHeight;
+    const h = hFrac * F.h * (1 + (sx || 0)), w = h * (im.naturalWidth || im.width) / (im.naturalHeight || im.height);
     ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(X(x), Y(y), w * 0.42, h * 0.05, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.translate(X(x), Y(y) + bob); if (tilt) ctx.rotate(tilt); if (flip) ctx.scale(-1, 1);
     ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore();
@@ -12422,8 +12603,7 @@ function artOfficeDraw(ctx, cv, st, t) {
     } else {
       const breathe = p.walk ? 0 : Math.sin(t * 1.8 + p.k.charCodeAt(0)) * 0.006;
       const tap = p.hero && st.tapFlash > 0 ? -F.h * 0.006 : 0;
-      const step = p.walk ? -Math.abs(Math.sin(t * 8)) * F.h * 0.006 : 0, tilt = p.walk ? Math.sin(t * 8) * 0.05 : 0;
-      if (im) person(im, p.x, p.y, ART_H.stand, p.flip, tap + step, breathe, tilt);
+      if (im) person(p.walk ? artWalk(im, t * 1.5 + p.k.length * 0.3) : im, p.x, p.y, ART_H.stand, p.flip, tap, breathe);
       else blit(sprStand(p.k, 0, true), p.x, p.y, 0.15, p.flip);
     }
   }
@@ -12431,6 +12611,50 @@ function artOfficeDraw(ctx, cv, st, t) {
   const petted = t - (UI.catPetT || -9) < 2.5, cim = artImg(petted ? 'cat_sit' : 'cat_sleep');
   if (cim) person(cim, ART_CAT[0], ART_CAT[1] + 6, petted ? 0.075 : 0.05, false, petted ? 0 : Math.sin(t * 1.2) * F.h * 0.0012);
   else blit(sprCat(false), ART_CAT[0], ART_CAT[1], 0.045, Math.sin(t * 0.3) > 0.7);
+}
+// the Mall's things in the room: coffee machine (steams now and then), sofa, floor lamp, gaming-chair lights, the busy server
+function artItems(ctx, F, s, X, Y, t) {
+  const it = (S && S.items) || {};
+  const pic = (k) => {
+    const o = ART_ITEMS[k], im = artImg(o.img);
+    if (!im) return;
+    const h = o.h * F.h, w = h * im.naturalWidth / im.naturalHeight;
+    ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(X(o.x), Y(o.y), w * 0.45, h * 0.07, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    ctx.drawImage(im, X(o.x) - w / 2, Y(o.y) - h, w, h);
+  };
+  if (it.lounge) pic('lounge');
+  if (it.coffee) {
+    pic('coffee');
+    const o = ART_ITEMS.coffee, burst = t - AFX.steam < 2, sx = X(o.x - 8), sy = Y(o.y - o.h * ART_OF.H * 0.85);
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < (burst ? 10 : 3); i++) {
+      const k = ((t * (burst ? 30 : 9)) + i * 11) % 50;
+      ctx.globalAlpha = Math.max(0, (burst ? 0.55 : 0.3) - k / 100);
+      ctx.fillRect(sx + Math.sin(i * 2.1 + k * 0.12) * (2 + k / 4) * s, sy - k * s * 1.2, 5 * s, 5 * s);
+    }
+    ctx.globalAlpha = 1;
+    artGlow(ctx, X(o.x), Y(o.y - 40), F.h * 0.04, '#3fd0ff', 0.18);
+  }
+  if (it.lamp) {
+    // an arc floor lamp: a thin pole curving over to a warm shade
+    const o = ART_ITEMS.lamp, off = AFX.lampOff.floor, bx = X(o.x), by = Y(o.y), hx = X(o.x - 70), hy = Y(o.y - 190);
+    ctx.save(); ctx.strokeStyle = '#1a1622'; ctx.lineWidth = Math.max(2, 7 * s); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx, Y(o.y - 150)); ctx.quadraticCurveTo(bx, Y(o.y - 205), hx, hy + 6 * s); ctx.stroke();
+    ctx.strokeStyle = '#6a6070'; ctx.lineWidth = Math.max(1, 2 * s);
+    ctx.beginPath(); ctx.moveTo(bx - 2 * s, by); ctx.lineTo(bx - 2 * s, Y(o.y - 150)); ctx.stroke();
+    ctx.fillStyle = '#14101c'; ctx.beginPath(); ctx.ellipse(bx, by, 16 * s, 5 * s, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#2a2234'; ctx.beginPath(); ctx.moveTo(hx - 22 * s, hy + 16 * s); ctx.lineTo(hx - 9 * s, hy); ctx.lineTo(hx + 9 * s, hy); ctx.lineTo(hx + 22 * s, hy + 16 * s); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = off ? '#5a4a3a' : '#ffe0a0'; ctx.fillRect(hx - 20 * s, hy + 14 * s, 40 * s, 3 * s);
+    ctx.restore();
+    if (!off) { artGlow(ctx, hx, hy + 30 * s, F.h * 0.11, '#ffc070', 0.3 + 0.03 * Math.sin(t * 3)); artGlow(ctx, hx, Y(o.y + 10), F.h * 0.08, '#ffc070', 0.12); }
+  }
+  if (it.chairs) ART_DESKS.forEach((d, i) => artGlow(ctx, X(d.seat[0]), Y(d.seat[1] - 12), F.h * 0.045, i % 2 ? '#ff3fd0' : '#22d6f0', 0.32 + 0.1 * Math.sin(t * 2 + i)));
+  if (it.rack) {
+    // your own server: lights run all the time
+    const tick = Math.floor(t * 5), cols = ['#3fd0ff', '#5dff9c', '#ff3fd0'];
+    for (let j = 0; j < 28; j++) { if ((j * 37 + tick * 13) % 100 > 30) continue; ctx.fillStyle = cols[(j + tick) % 3]; ctx.globalAlpha = 0.8; ctx.fillRect(X(98 + (j % 4) * 28), Y(372 + Math.floor(j / 4) * 31), 9 * s, 4 * s); }
+    ctx.globalAlpha = 1; artGlow(ctx, X(146), Y(470), F.h * 0.12, '#3fd0ff', 0.1 + 0.04 * Math.sin(t * 4));
+  } else artShade(ctx, X(146), Y(480), F.h * 0.12, 0.25);
 }
 // the little reactions to taps: blinking server, a shooting star, sparkles, water drops, dust, the build bar
 function artOfficeFx(ctx, F, s, X, Y, t) {
@@ -12515,6 +12739,16 @@ function artOfficeTap(e, px, py) {
     UI.sel = ROLES.find((r) => !(S.staff[r].lvl > 0)) || UI.sel;
     return go('studio', 'team');
   }
+  // the Mall's things (or the empty spot where they would go)
+  const it = S.items || {};
+  for (const k in ART_ITEMS) {
+    const o = ART_ITEMS[k], cy = k === 'lamp' ? o.y - 150 : o.y - o.h * ART_OF.H / 2, cx = k === 'lamp' ? o.x - 40 : o.x;
+    if (Math.hypot(px - cx, py - cy) > o.r + (k === 'lamp' ? 50 : 0)) continue;
+    if (k === 'lamp') { if (!it.lamp) continue; AFX.lampOff.floor = !AFX.lampOff.floor; return artPoke('flamp', e, { x: cx, y: cy, r: 40 }); }
+    if (it[k]) return artPoke(k, e, { x: o.x, y: cy, r: o.r });
+    sfx('blip'); haptic('light'); sayAt(o.x / ART_K, (cy - 20) / ART_K, esc(L('of.empty_' + k))); return;
+  }
+  if (it.rack && Math.hypot(px - 146, py - 467) < 85) return artPoke('rackon', e, { x: 146, y: 467, r: 85 });
   let hit = null;
   for (const h of ART_HOT) { const dd = Math.hypot(px - h.x, py - h.y) / h.r; if (dd < 1 && (!hit || dd < hit.d)) hit = { h, d: dd }; }
   if (hit) return artPoke(hit.h.k, e, hit.h);
@@ -12526,6 +12760,8 @@ function artPoke(k, e, h) {
   else { line = L('of.' + k + '_' + (1 + Math.floor(Math.random() * (ART_X[k] || 1)))); sfx(k === 'neon' ? 'blip' : 'pop'); }
   if (k === 'neon') { AFX.neon = t; AFX.neonC = (AFX.neonC + 1) % ART_NEON.length; }
   else if (k === 'rack' || k === 'pc') AFX[k] = t;
+  else if (k === 'coffee') AFX.steam = t;
+  else if (k === 'lounge' || k === 'rackon') { AFX.spark = t; AFX.sparkAt = h; }
   else if (k === 'window') { AFX.star = t; AFX.starAt = h; }
   else if (k === 'art') { AFX.spark = t; AFX.sparkAt = h; }
   else if (k === 'plant') { AFX.drops = t; AFX.dropAt = h; }
@@ -12540,6 +12776,105 @@ function artPoke(k, e, h) {
     if (n === ART_SECRETS.length) { toast(L('of.found_all'), 'good'); confetti(80); sfx('up'); }
     else toast(L('of.found_new', { n, N: ART_SECRETS.length }), 'good');
   }
+}
+
+/* ---------- the Empire tower, drawn to match the street (Art 2) ----------
+   The night skyline is cut from the street picture; the tower in front is brick and neon like the office:
+   open floors are lit (people pass the windows from ★3), ★2 adds neon trim, ★4 a side sign, ★5 gold;
+   the top floor brings searchlights, the whole tower at ★5 a crown. Units: 120×186, drawn ×3. Tap a floor → its card. */
+const ART_TW = { k: 3, W: 120, H: 186, x: 30, w: 60, top: 42, fh: 21, lobby: 147, ground: 170 };
+function artTowerDraw(cv, g, t) {
+  const sky = artImg('street_empty');
+  if (!sky) return false;
+  const T = ART_TW, K = T.k;
+  if (cv.width !== T.W * K) { cv.width = T.W * K; cv.height = T.H * K; }
+  const fl = S.floors || {}, lv = S.flv || {}, ids = ['f5', 'f4', 'f3', 'f2', 'f1'];
+  const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  g.setTransform(K, 0, 0, K, 0, 0); g.imageSmoothingEnabled = false;
+  // the sky and skyline from the street picture (its tallest towers), dimmed so ours stands out
+  g.drawImage(sky, 930, 0, 330 * T.W / T.H, 330, 0, 0, T.W, T.H);
+  R(0, 0, T.W, T.H, 'rgba(8,6,30,0.38)');
+  // the wet street
+  R(0, T.ground, T.W, T.H - T.ground, '#120f22'); R(0, T.ground, T.W, 1, '#3a2c52');
+  for (let i = 0; i < 9; i++) { g.globalAlpha = 0.25 + 0.15 * Math.sin(t * 2 + i); R((i * 17 + t * 3) % T.W, T.ground + 4 + (i % 3) * 4, 8, 1, i % 2 ? '#3fd0ff' : '#ff3fd0'); }
+  g.globalAlpha = 1;
+  const allSt = ['b', 'f1', 'f2', 'f3', 'f4', 'f5'].reduce((n, id) => n + (lv[id] || 0), 0), acc = ['#ffd23f', '#3fd0ff', '#ff3fd0', '#5dff9c', '#a06aff'];
+  // searchlights once the top floor is open
+  if (fl.f5) for (let k = 0; k < 2; k++) {
+    const a = Math.sin(t * 0.7 + k * 2.4) * 0.5 + (k ? 0.45 : -0.45), ox = T.x + T.w / 2 + (k ? 8 : -8), oy = T.top - 14;
+    const gr = g.createLinearGradient(ox, oy, ox + Math.sin(a) * 90, oy - Math.cos(a) * 90);
+    gr.addColorStop(0, k ? 'rgba(63,208,255,0.35)' : 'rgba(255,63,208,0.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(ox, oy); g.lineTo(ox + Math.sin(a - 0.08) * 90, oy - Math.cos(a - 0.08) * 90); g.lineTo(ox + Math.sin(a + 0.08) * 90, oy - Math.cos(a + 0.08) * 90); g.closePath(); g.fill();
+  }
+  // the side face (depth) and the brick front
+  R(T.x + T.w, T.top - 2, 6, T.ground - T.top + 2, '#1c1018'); R(T.x + T.w, T.top - 2, 1, T.ground - T.top + 2, '#2c1a24');
+  R(T.x, T.top, T.w, T.ground - T.top, '#3a222c');
+  for (let y = T.top; y < T.ground; y += 3) { R(T.x, y, T.w, 1, '#2a1820'); for (let x = T.x + ((y / 3) % 2 ? 2 : 5); x < T.x + T.w; x += 7) R(x, y, 1, 3, '#2a1820'); }
+  R(T.x, T.top, 1, T.ground - T.top, '#4c3038');
+  ids.forEach((id, r) => {
+    const y = T.top + r * T.fh, own = !!fl[id], st = lv[id] || 0, ac = acc[r];
+    R(T.x - 1, y + T.fh - 2, T.w + 2, 2, own && st >= 5 ? '#ffd23f' : '#4a3440'); // ledge
+    for (let w = 0; w < 3; w++) {
+      const wx = T.x + 5 + w * 18, wy = y + 3, ww = 14, wh = 13;
+      R(wx - 1, wy - 1, ww + 2, wh + 2, '#140c12');
+      if (own) {
+        const warm = (r + w) % 3 !== 1, flick = Math.sin(t * 0.8 + r * 3 + w * 5) > 0.97 - st * 0.01;
+        const gr = g.createLinearGradient(0, wy, 0, wy + wh);
+        gr.addColorStop(0, warm ? '#ffcf8a' : '#7ae8ff'); gr.addColorStop(1, warm ? '#c06a3a' : '#2a6ac0');
+        g.fillStyle = gr; g.fillRect(wx, wy, ww, wh);
+        if (flick) R(wx, wy, ww, wh, 'rgba(20,10,30,0.5)');
+        // a desk and a glowing monitor inside
+        R(wx + 2, wy + 9, ww - 4, 1, '#3a2018'); R(wx + 4, wy + 5, 5, 4, '#10182a'); R(wx + 5, wy + 6, 3, 2, (r + w) % 2 ? '#5dff9c' : '#3fd0ff');
+        R(wx + ww / 2 - 0.5, wy, 1, wh, 'rgba(20,10,20,0.55)'); R(wx, wy + 6, ww, 1, 'rgba(20,10,20,0.4)');
+      } else {
+        R(wx, wy, ww, wh, '#141228'); g.globalAlpha = 0.25; R(wx + 2, wy + wh - 4, 3, 1, '#8a90e0'); R(wx + 4, wy + wh - 6, 3, 1, '#8a90e0'); g.globalAlpha = 1;
+      }
+    }
+    if (own && st >= 3) for (let p = 0; p < (st >= 5 ? 2 : 1); p++) {
+      const span = T.w - 12, q = (t * (6 + p * 3) + r * 13 + p * 20) % (span * 2), x = T.x + 6 + (q < span ? q : span * 2 - q);
+      R(x, y + 8, 3, 6, '#160c18'); R(x + 0.5, y + 6, 2, 2, '#160c18');
+    }
+    if (own && st >= 2) { g.globalAlpha = 0.6 + 0.4 * Math.sin(t * 2 + r); R(T.x, y + T.fh - 3, T.w, 1, ac); g.globalAlpha = 1; artGlow(g, T.x + T.w / 2, y + T.fh - 3, 20, ac, 0.12); }
+    if (own && st >= 4) { const on = Math.floor(t * 2 + r) % 3 !== 0; R(T.x + T.w + 2, y + 4, 2, T.fh - 9, on ? acc[(r + 2) % 5] : '#2a1a2a'); if (on) artGlow(g, T.x + T.w + 3, y + T.fh / 2, 8, acc[(r + 2) % 5], 0.4); }
+    for (let i = 0; i < st; i++) R(T.x - 4, y + 2 + i * 3.6, 2, 2, '#ffd23f');
+    if (!own) { const lx = T.x + T.w / 2 - 3, ly = y + 6; R(lx, ly + 3, 7, 6, '#8a7aa0'); R(lx + 1, ly, 5, 3, '#8a7aa0'); R(lx + 2, ly + 1, 3, 2, '#141228'); R(lx + 3, ly + 5, 1, 2, '#141228'); }
+  });
+  // the lobby: warm glass doors under a neon awning
+  const ly = T.lobby + 2;
+  R(T.x, T.lobby, T.w, T.ground - T.lobby, '#2a1820');
+  R(T.x + 6, ly + 6, T.w - 12, T.ground - ly - 6, '#140c12');
+  const lg = g.createLinearGradient(0, ly + 7, 0, T.ground); lg.addColorStop(0, '#ffd8a0'); lg.addColorStop(1, '#b0602e');
+  g.fillStyle = lg; g.fillRect(T.x + 7, ly + 7, T.w - 14, T.ground - ly - 7);
+  R(T.x + T.w / 2 - 0.5, ly + 7, 1, T.ground - ly - 7, '#3a2018');
+  g.globalAlpha = 0.75 + 0.25 * Math.sin(t * 3); R(T.x + 3, ly + 2, T.w - 6, 2, '#ff3fd0'); g.globalAlpha = 1;
+  artGlow(g, T.x + T.w / 2, ly + 3, 26, '#ff3fd0', 0.22); artGlow(g, T.x + T.w / 2, T.ground, 30, '#ffc070', 0.18);
+  // the roof: a neon sign, the antenna with its red light
+  R(T.x - 2, T.top - 4, T.w + 4, 4, '#2a1820'); R(T.x - 2, T.top - 4, T.w + 4, 1, fl.f5 ? '#ffd23f' : '#5a4050');
+  const sx = T.x + 12, sw = T.w - 24, sy = T.top - 16;
+  R(sx, sy, sw, 11, '#140c18'); g.lineWidth = 1; g.strokeStyle = fl.f5 ? '#ff3fd0' : '#6a3a6a'; g.strokeRect(sx + 0.5, sy + 0.5, sw - 1, 10);
+  g.fillStyle = fl.f5 ? '#3fd0ff' : '#3a5a7a'; g.font = '6px "Press Start 2P", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('OD', sx + sw / 2, sy + 6); g.textAlign = 'start'; g.textBaseline = 'alphabetic';
+  if (fl.f5) artGlow(g, sx + sw / 2, sy + 5, 22, '#ff3fd0', 0.25 + 0.08 * Math.sin(t * 2.5));
+  R(T.x + T.w - 10, T.top - 26, 1, 22, '#8a90a0');
+  if (Math.floor(t * 1.4) % 2) { R(T.x + T.w - 11, T.top - 28, 3, 3, '#ff4d6d'); artGlow(g, T.x + T.w - 9.5, T.top - 26.5, 6, '#ff4d6d', 0.6); }
+  if (allSt >= 30) {
+    // "Tower legend": a golden crown over the sign
+    const cx = T.x + T.w / 2, cy = sy - 6;
+    R(cx - 7, cy, 15, 3, '#ffd23f'); R(cx - 7, cy - 3, 2, 3, '#ffd23f'); R(cx - 1, cy - 4, 2, 4, '#ffd23f'); R(cx + 6, cy - 3, 2, 3, '#ffd23f');
+    artGlow(g, cx, cy, 16, '#ffd23f', 0.35 + 0.15 * Math.sin(t * 3));
+  }
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  return true;
+}
+// a tap on the tower: the floor under the finger lights up in the list below
+function artTowerTap(e) {
+  const cv = e.target, r = cv.getBoundingClientRect(), y = (e.clientY - r.top) / r.height * ART_TW.H;
+  const row = y >= ART_TW.lobby ? 5 : Math.floor((y - ART_TW.top) / ART_TW.fh);
+  if (row < 0 || row > 5) return;
+  const el = document.querySelectorAll('.floors .floor')[row];
+  sfx('blip'); haptic('light');
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
 }
 
 /* ---- src/ui_main.js ---- */
@@ -12708,6 +13043,7 @@ function drawScene(t) {
 function drawTowerCv(t) {
   if (!UI.towerCtx || UI.tab !== 'empire') return;
   try {
+    if (artOn() && artTowerDraw(UI.towerCv, UI.towerCtx, t)) return;
     if (!TOWER_B) {
       TOWER_B = new Buf(80, 124);
       TOWER_IMG = new ImageData(new Uint8ClampedArray(TOWER_B.d.buffer), 80, 124);
@@ -13536,6 +13872,7 @@ function wireInput() {
     if (b) { e.preventDefault(); onWorkDown(e); return; }
     if (e.target.id === 'scene' && e.isTrusted !== false) { ensureAudio(); onSceneTap(e); }
     if (e.target.id === 'citycv') { ensureAudio(); cityTap(e); }
+    if (e.target.id === 'tower' && artOn()) artTowerTap(e);
   }, { passive: false });
   document.addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.id === 'workbtn') { e.preventDefault(); onWorkDown(e); }
