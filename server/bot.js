@@ -135,6 +135,18 @@ function fundReport(ctx) {
 }
 const appUrl = (ctx) => ctx.cfg.publicUrl + '/';
 
+function devText() {
+  return '🛠 <b>Проверка для разработчика</b>\n\n'
+    + '🎨 <b>Новая графика</b> — твой настоящий аккаунт в стиле «Арт 2» (видишь только ты, остальным не включается).\n'
+    + '🕹 <b>Старая графика</b> — вернуть обычный вид.\n'
+    + '🧪 <b>Песочница</b> — отдельная тестовая игра с $5M и 500 💎: покупай, нажимай, ломай. Ничего не уходит на сервер, очки не настоящие.\n'
+    + '♻️ <b>Новая песочница</b> — начать песочницу с нуля.';
+}
+function devMarkup(ctx) {
+  if (!/^https:/.test(ctx.cfg.publicUrl)) return undefined;
+  const b = (text, q) => ({ text, web_app: { url: appUrl(ctx) + q } });
+  return { inline_keyboard: [[b('🎨 Новая графика', '?art=2'), b('🕹 Старая графика', '?art=1')], [b('🧪 Песочница', '?sandbox=1&art=2')], [b('♻️ Новая песочница', '?sandbox=new&art=2')]] };
+}
 const isOwner = (ctx, id) => (ctx.cfg.adminTgIds || []).includes(id) || (ctx.cfg.devIds || []).includes(Number(id));
 async function send(ctx, chatId, text, markup) {
   const p = { chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true };
@@ -198,6 +210,9 @@ async function handleMessage(ctx, m) {
     const text = mm[2].trim() ? esc(mm[2].trim()) + '\n\n— @vtmjs, Office Dreams' : (THANK_TXT[u.lang] || THANK_TXT.en)(esc(u.name || ''));
     const r = await send(ctx, u.id, text, playMarkup(ctx, u.lang || 'en')).catch((e) => ({ ok: false, description: String(e && e.message) }));
     return send(ctx, m.chat.id, r && r.ok ? `✅ Отправлено @${esc(mm[1])}:\n\n${text}` : `⚠️ Не удалось отправить @${esc(mm[1])} (возможно, бот заблокирован): ${esc((r && r.description) || '')}`);
+  } else if ((name === 'dev' || name === 'test') && isOwner(ctx, from.id)) {
+    // owner: buttons to try what is new — the new look on the real account, or a sandbox (local demo with money, nothing reaches the server)
+    return send(ctx, m.chat.id, devText(), devMarkup(ctx));
   } else if (name === 'fund' && isOwner(ctx, from.id)) {
     return send(ctx, m.chat.id, fundReport(ctx));
   } else if ((name === 'stats' || name === 'giveaway') && isOwner(ctx, from.id)) {
@@ -354,4 +369,4 @@ function startPolling(ctx) {
   return { stop() { stop = true; } };
 }
 
-module.exports = { fundReport, giveawayMsg, playMarkup, T, tx, shopTxt, donateTxt, thanksTxt, entryTxt, notifyRefActive, notifyDuel, handleUpdate, notifyReferral, setup, startPolling, send };
+module.exports = { devMarkup, fundReport, giveawayMsg, playMarkup, T, tx, shopTxt, donateTxt, thanksTxt, entryTxt, notifyRefActive, notifyDuel, handleUpdate, notifyReferral, setup, startPolling, send };

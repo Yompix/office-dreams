@@ -13933,7 +13933,10 @@ async function boot() {
   vfxInit();
   wireInput();
   let res;
-  try { res = await netBoot(BUILD.mode === 'demo'); } catch (e) { res = { ok: false, err: 'server' }; }
+  // owner's sandbox (bot /dev): the local demo even inside Telegram, with money to try everything; ?sandbox=new starts it over
+  const sandbox = qs('sandbox');
+  if (sandbox === 'new') { lsSet(DEMO_KEY, ''); lsSet('od2_sbx', ''); }
+  try { res = await netBoot(BUILD.mode === 'demo' || !!sandbox); } catch (e) { res = { ok: false, err: 'server' }; }
   if (!res.ok) {
     const sp = $('#splash');
     splash(L('boot.err_' + (res.err === 'no_telegram' ? 'tg' : res.err === 'region' ? 'region' : 'server')), true);
@@ -13947,6 +13950,11 @@ async function boot() {
   }
   if (!lsGet('od2_lang') && NET.me && NET.me.lang) setLang(NET.me.lang);
   UI.booted = true;
+  if (sandbox && NET.mode === 'demo' && !lsGet('od2_sbx')) {
+    lsSet('od2_sbx', '1'); lsSet('od2_intro', '1'); lsSet('od2_tut', 'done');
+    S.cash = Math.max(S.cash, 5e6); S.gems = Math.max(S.gems, 500);
+    try { demoSave(); } catch (e) {}
+  }
   tutLoad();
   if (COACH.i < 0 && lsGet('od2_intro')) COACH.i = TUT.length; // players from before the tutorial existed
   render(true);

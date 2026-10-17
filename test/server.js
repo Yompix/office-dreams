@@ -353,6 +353,20 @@ const AB = require('../server/antibot.js');
     assert.equal((await P.api('POST', '/api/airdrop/stars', {})).json.err, 'ad_entered');
     assert.equal((await P.api('GET', '/api/friends')).json.eco.airdrop.entry.done, true);
   });
+  await test('owner /dev: buttons for the new look and the sandbox; other players get nothing', async () => {
+    const wh = (u) => httpJson(base, 'POST', '/tg/' + ctx.cfg.webhookSecret, u, { 'x-telegram-bot-api-secret-token': ctx.cfg.webhookSecret });
+    const msg = (id, uid) => ({ update_id: id, message: { message_id: id, from: { id: uid, first_name: 'O' }, chat: { id: uid, type: 'private' }, text: '/dev' } });
+    const pu0 = ctx.cfg.publicUrl, dev0 = ctx.cfg.devIds; ctx.cfg.publicUrl = 'https://od.example'; ctx.cfg.devIds = [6301];
+    const n0 = env.mock.calls.length;
+    await wh(msg(61, 6302)); await new Promise((r) => setTimeout(r, 60));
+    assert.equal(env.mock.calls.slice(n0).filter((c) => c.method === 'sendMessage').length, 0, 'not for players');
+    await wh(msg(62, 6301)); await new Promise((r) => setTimeout(r, 60));
+    const sent = env.mock.calls.slice(n0).filter((c) => c.method === 'sendMessage').pop();
+    ctx.cfg.publicUrl = pu0; ctx.cfg.devIds = dev0;
+    assert.ok(sent, 'owner gets the menu');
+    const urls = sent.body.reply_markup.inline_keyboard.flat().map((b) => b.web_app.url);
+    assert.deepEqual(urls, ['https://od.example/?art=2', 'https://od.example/?art=1', 'https://od.example/?sandbox=1&art=2', 'https://od.example/?sandbox=new&art=2']);
+  });
   await test('Office Pass lifts the daily ceiling by 25%', async () => {
     const P = new Player(env, 5003); await P.auth();
     assert.equal(P.eco.D, 300);
