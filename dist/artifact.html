@@ -8819,9 +8819,40 @@ function pxURL(key, w, h, draw) {
 // AI-drawn portraits served by the game server (the procedural pixel portrait stays as a fallback offline / for other kinds);
 // the mood rides in the URL fragment so CSS can dim a sad face
 const AI_PORTRAITS = new Set(['you', 'prog', 'des', 'art', 'mkt', 'qa', 'snd', 'prod', 'cm', 'boss', 'inv', 'npc']);
-const portrait = (kind, mood) => (AI_PORTRAITS.has(kind) && typeof NET !== 'undefined' && NET.mode === 'online')
+const portrait = (kind, mood) => artFace(kind, mood) || ((AI_PORTRAITS.has(kind) && typeof NET !== 'undefined' && NET.mode === 'online')
   ? '/portrait-' + kind + '.jpg#m' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0)
-  : portraitPx(kind, mood);
+  : portraitPx(kind, mood));
+// Art 2: the face of the drawn character (the same person as in the illustrated office), cut from the standing sprite;
+// '' until the sprite has loaded (the page is redrawn then) or when art mode is off
+const ART_FACES = new Set(['you', 'prog', 'des', 'art', 'mkt', 'qa', 'snd', 'prod', 'cm']);
+function artFace(kind, mood) {
+  if (!ART_FACES.has(kind) || !artOn()) return '';
+  const m = mood >= 60 ? 2 : mood >= 35 ? 1 : 0, key = 'af:' + kind + ':' + m;
+  if (!imgCache[key]) {
+    const im = artImg('stand_' + kind);
+    if (!im) {
+      const el = ART.imgs['stand_' + kind];
+      if (el && !el.odFace) { el.odFace = 1; el.addEventListener('load', () => { clearTimeout(UI.faceT); UI.faceT = setTimeout(() => render(true), 80); }); }
+      return '';
+    }
+    try {
+      const S2 = 96, w = im.naturalWidth, s = w * 1.32, cv = document.createElement('canvas');
+      cv.width = cv.height = S2;
+      const g = cv.getContext('2d'), bg = g.createRadialGradient(S2 / 2, S2 * 0.38, 4, S2 / 2, S2 * 0.45, S2 * 0.7);
+      bg.addColorStop(0, '#2c2a8a'); bg.addColorStop(1, '#0c1040');
+      g.fillStyle = bg; g.fillRect(0, 0, S2, S2);
+      const k = S2 / s, top = Math.round(6 * k);
+      g.drawImage(im, 0, 0, w, (S2 - top) / k, (S2 - w * k) / 2, top, w * k, S2 - top);
+      if (m < 2) { // a tired or sad face looks greyer and darker (same as the mood filter on the other portraits)
+        const d = g.getImageData(0, 0, S2, S2), a = d.data, sat = m ? 0.8 : 0.45, br = m ? 0.92 : 0.8;
+        for (let i = 0; i < a.length; i += 4) { const l = a[i] * 0.3 + a[i + 1] * 0.59 + a[i + 2] * 0.11; for (let c = 0; c < 3; c++) a[i + c] = (l + (a[i + c] - l) * sat) * br; }
+        g.putImageData(d, 0, 0);
+      }
+      imgCache[key] = cv.toDataURL('image/png');
+    } catch (e) { return ''; }
+  }
+  return imgCache[key];
+}
 const portraitPx = (kind, mood) => pxURL('p2:' + kind + ':' + (mood >= 60 ? 2 : mood >= 35 ? 1 : 0), 48, 48, (B) => drawPortrait(B, kind, mood));
 const seedOf = (name) => {
   let h = 0;
