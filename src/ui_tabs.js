@@ -762,13 +762,26 @@ function mktSoon(mini) {
     ${ch ? `<button class="btn big glow wide" data-act="link:channel">${L('mk.soon_ch')}</button>` : ''}
   </section>`;
 }
+// token logo for the market card (uploaded token.png online, a Solana glyph offline)
+function m2logo(NET) { return NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 26)}</span>`; }
 function mktPanel(mini) {
   if (!NET.cfg) return '';
   if (!NET.cfg.market) return mktSoon(mini);
   const r = UI.hub.mkt;
   if (!r || !r.on) return mini ? '' : `<section class="panel mkt"><div class="loading">${L('ui.loading')}</div></section>`;
   const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFX');
-  if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p></section>`;
+  // price feed empty (new/low-liquidity pool): the token is still tradable, so keep Buy + chart, just without the live number
+  if (!m) {
+    const lg = m2logo(NET);
+    if (mini) return `<section class="panel mkt mini" data-act="mktab">${lg}<div class="mk-mini-t"><b>${sym}</b><small>${L('mk.soon_s')}</small></div><span class="mk-go">${L('mk.buy_s')} ›</span></section>`;
+    return `<section class="panel mkt">
+      <div class="mk-h">${lg}<div class="mk-name"><b>${sym}</b><small>Solana · Jupiter</small></div></div>
+      <p class="sub">${L('mk.no_price')}</p>
+      <div class="mk-acts"><button class="btn big glow mk-buy" data-act="mkbuy">${I('sol', 18)} ${L('mk.buy_s')}</button><button class="btn big gold" data-act="donopen">⭐ ${L('don.btn')}</button></div>
+      <button class="btn ghost sm wide" data-act="mkchart">${I('chart', 14)} ${L('mk.chart')}</button>
+      <p class="hint">${L('mk.risk')}</p>
+    </section>`;
+  }
   const ch = m.ch24, up = ch === null ? true : ch >= 0;
   const chip = ch === null ? '' : `<span class="mk-ch ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</span>`;
   const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : (NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 26)}</span>`);

@@ -251,7 +251,7 @@ LANGS.en = {
   'mk.r_7d': "7d",
   'mk.r_30d': "30d",
   'mk.collecting': "The chart appears once price data builds up",
-  'mk.no_price': "Trading has not opened yet — the price will appear here as soon as there is a market.",
+  'mk.no_price': "Live price is temporarily unavailable, but you can still buy the token.",
   'mk.h1': "Tap “Buy on Jupiter” — the SOL → token swap opens",
   'mk.h2': "Connect Phantom, Solflare or another Solana wallet and choose how much {sym} to buy",
   'mk.h3': "{sym} lands in your wallet right away — the balance shows here",
