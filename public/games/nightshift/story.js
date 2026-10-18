@@ -90,6 +90,7 @@ window.STORY = {
       beats: [
         { img: 'booth_dark', cams: [[.5, .5, 1.0, 1.1]], say: ['knock_0'], sfx: [['click', 0]], pad: .4, creep: true },
         { img: 'booth_dark', cams: [[.5, .5, 1.0, 1.12]], say: ['knock_n1'], hush: true, sfx: [['steps_barefoot', 6.2]], pad: 1.4 },
+        { img: 'katya_slam', fx: 'rain', cams: [[.5, .47, 1.25, 1.3]], scare: .25, hit: ['glass_slam'], text: '', pad: 1.3 },
         { img: 'door_katya', fx: 'rain', cams: [[.5, .5, 1.0, 1.08], [.51, .46, 1.8, 2.0]], say: ['l14'], sfx: [['knock', 1.0]], pad: .3 },
         { img: 'katya_face', fx: 'rain', cams: [[.5, .45, 1.0, 1.1]], say: ['ch_katya'], sfx: [['glass_tap', .1]], pad: .4 },
         { img: 'door_katya', fx: 'rain', cams: [[.51, .46, 1.4, 1.6]], say: ['l15'], pad: .4 },
@@ -118,7 +119,7 @@ window.STORY = {
         { img: 'hall_cam_empty', fx: 'cctv', label: 'CAM 04  ХОЛЛ', cams: [[.5, .5, 1.0, 1.1]], say: ['open_7'], pad: .2, creep: true },
         { img: 'elevator_floors', cams: [[.5, .4, 1.1, 1.4]], floors: true, say: ['open_8'], sfx: [['ding', 3.6]], pad: .4 },
         { img: 'corridor_katya', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.49, .49, 1.0, 1.3]], say: ['open_9'], pad: .6 },
-        { img: 'corridor_face', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .45, 1.0, 1.15]], say: ['open_10'], scare: .3, pad: .8 },
+        { img: 'corridor_face', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .45, 1.0, 1.15]], say: ['open_10'], scare: .3, hit: ['jumpscare'], pad: .8 },
         { img: 'note', cams: [[.52, .78, 1.6, 1.9]], say: ['open_11'], rule: '«ТРЕТЬЕ ПРАВИЛО — ЛОЖЬ.\nВПУСТИ ЕЁ.»  — М.', pad: .3 },
         { img: 'note', cams: [[.5, .6, 1.2, 1.3]], say: ['open_12'], heart: true, pad: .4 },
         { img: 'monitors', fx: 'flicker', cams: [[.5, .5, 1.1, 1.3]], say: ['open_13'], sfx: [['static', 0]], heart: true, pad: .3, creep: true }
@@ -202,7 +203,7 @@ window.STORY = {
         { img: 'cam13_mih', fx: 'cctv', label: 'CAM 13', cams: [[.5, .5, 1.0, 1.1]], say: ['cam13b_1'], pad: .3 },
         { img: 'cam13_mih', fx: 'cctv', label: 'CAM 13', cams: [[.5, .45, 1.5, 1.7]], say: ['cam13b_2'],
           rule: '«ПОМОГИ. МИНУС 2.\nСТУЧИ ТРИЖДЫ»', pad: .6 },
-        { img: 'cam13_mih_monster', fx: 'cctv', label: 'CAM 13', cams: [[.6, .4, 1.2, 2.0]], say: ['cam13b_3'], scare: 3.4, pad: .8 }
+        { img: 'cam13_mih_monster', fx: 'cctv', label: 'CAM 13', cams: [[.6, .4, 1.2, 2.0]], say: ['cam13b_3'], scare: 3.4, hit: ['glass_slam'], pad: .8 }
       ],
       then: { choice: 'Минус второй. Стучать трижды.', timeout: 12, def: 1,
               opts: [{ t: 'Спуститься', go: 'down' }, { t: 'Остаться на посту', go: 'rules' }] }
@@ -299,7 +300,7 @@ window.STORY = {
         { img: 'corridor_lit', cams: [[.5, .5, 1.0, 1.15]], say: ['over_floor7_0'], sfx: [['steps', .2]], pad: .2 },
         { img: 'eat_close', cams: [[.5, .55, 1.0, 1.15]], say: ['eat_3'], sfx: [['eat_wet', 0], ['neck_crack', 2.1]], pad: .8 },
         { img: 'corridor_off', cams: [[.5, .5, 1.0, 1.3]], say: ['over_floor7_1'], sfx: [['click', .5], ['click', 1.0], ['click', 1.4], ['click', 1.7]], pad: .1 },
-        { img: 'monster_close', fx: 'strobe', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
+        { img: 'lunge_corridor', fx: 'lunge', scare: 1.35, text: '', pad: 3.0 }
       ],
       then: { over: 'ПРАВИЛО 1 НАРУШЕНО', sub: 'В 03:00 на седьмом включится свет. Не поднимайся.', retry: 'floor7' }
     },
@@ -308,7 +309,7 @@ window.STORY = {
       beats: [
         { img: 'elevator_inside', cams: [[.5, .45, 1.0, 1.2]], say: ['over_lift_0'], sfx: [['ding', 2.2]], pad: .2 },
         { img: 'elevator_inside', cams: [[.5, .3, 1.3, 1.6]], say: ['over_lift_1'], pad: .1 },
-        { img: 'monster_close', fx: 'strobe', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
+        { img: 'lunge_lift', fx: 'lunge', scare: 1.4, text: '', pad: 3.0 }
       ],
       then: { over: 'ПРАВИЛО 2 НАРУШЕНО', sub: 'Если лифт приехал сам — не заходи.', retry: 'lift' }
     },
@@ -316,7 +317,7 @@ window.STORY = {
       music: 'tension',
       beats: [
         { img: 'cam13_monster', fx: 'cctv', label: 'CAM 13', cams: [[.54, .34, 1.0, 1.8]], text: 'Я включил тринадцатую. Он уже смотрел в камеру. Ждал.', say: ['ch_monster'], pad: .3 },
-        { img: 'monster_close', fx: 'strobe', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
+        { img: 'lunge_booth', fx: 'lunge', scare: 1.3, text: '', pad: 3.0 }
       ],
       then: { over: 'ПРАВИЛО 4 НАРУШЕНО', sub: 'Камеру 13 не включай.', retry: 'intro_cams' }
     },
@@ -325,18 +326,18 @@ window.STORY = {
       beats: [
         { img: 'cam13_monster', fx: 'cctv', label: 'CAM 13', cams: [[.54, .34, 2.0, 2.4]], say: ['over_cord_0'], pad: .2 },
         { img: 'booth_dark', fx: 'dark', cams: [[.5, .5, 1.0, 1.2]], say: ['over_cord_1'], pad: .1 },
-        { img: 'monster_booth', fx: 'strobe', cams: [[.5, .45, 1.0, 1.2]], scare: 0, text: '', pad: 1.6 }
+        { img: 'lunge_booth', fx: 'lunge', scare: 1.3, text: '', pad: 3.0 }
       ],
       then: { over: 'ОНО ТЕБЯ УВИДЕЛО', sub: 'Если тринадцатая включилась сама — выдёргивай шнур.', retry: 'cam13' }
     },
     over_hold: {
       music: 'tension',
-      beats: [{ img: 'monster_booth', cams: [[.5, .45, 1.0, 1.2]], scare: .1, text: '', say: ['ch_monster'], pad: .8 }],
+      beats: [{ img: 'booth_dark', fx: 'dark', cams: [[.5, .5, 1.0, 1.1]], say: ['ch_monster'], pad: .1 }, { img: 'lunge_booth', fx: 'lunge', scare: 1.3, text: '', pad: 3.0 }],
       then: { over: 'ОНО УСЛЫШАЛО ТЕБЯ', sub: 'Пока шаги рядом — не дыши.', retry: 'booth_hold' }
     },
     over_run: {
       music: 'tension',
-      beats: [{ img: 'corridor_monster', fx: 'strobe', cams: [[.5, .45, 1.0, 1.2]], scare: .1, text: '', pad: 1.8 }],
+      beats: [{ img: 'lunge_back', fx: 'lunge', scare: 1.2, text: '', pad: 3.0 }],
       then: { over: 'ТЕМНОТА ДОГНАЛА', sub: 'Не оглядывайся. Беги туда, где ещё светло.', retry: 'exit' }
     },
     over_voice: {
@@ -345,7 +346,7 @@ window.STORY = {
         { img: 'basement_door', cams: [[.5, .5, 1.2, 1.4]], say: ['over_voice_0'], sfx: [['door', .2]], pad: .2 },
         { img: 'server_door', cams: [[.4, .5, 1.0, 1.2]], say: ['over_voice_1'], pad: .2 },
         { img: 'server_door', fx: 'dark', cams: [[.4, .5, 1.2, 1.3]], say: ['over_voice_2'], pad: .1 },
-        { img: 'monster_close', fx: 'strobe', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
+        { img: 'lunge_server', fx: 'lunge', scare: 1.4, text: '', pad: 3.0 }
       ],
       then: { over: 'ЗА ДВЕРЬЮ БЫЛО ОНО', sub: 'Он умеет звать. Стучать — нет.', retry: 'basement' }
     },
@@ -353,7 +354,7 @@ window.STORY = {
       music: 'tension',
       beats: [
         { img: 'server_door', fx: 'dark', cams: [[.65, .5, 1.2, 1.5]], say: ['over_door_0'], sfx: [['door_slams', 0], ['door', 1.2]], pad: .1 },
-        { img: 'monster_close', fx: 'strobe', cams: [[.5, .45, 1.0, 1.2]], scare: 0, text: '', pad: 1.6 }
+        { img: 'lunge_server', fx: 'lunge', scare: 1.4, text: '', pad: 3.0 }
       ],
       then: { over: 'ЗАСОВ НЕ ВЫДЕРЖАЛ', sub: 'Держи дверь до рассвета. Не сбавляй.', retry: 'hold_door' }
     },
@@ -361,7 +362,7 @@ window.STORY = {
       music: 'tension', time: '05:41',
       beats: [
         { img: null, phone: 'call2', say: ['over_answer_0'], pad: .2 },
-        { img: 'hall_cam_katya', fx: 'cctv', label: 'CAM 04  ХОЛЛ', cams: [[.5, .5, 1.0, 1.1], [.47, .47, 2.2, 2.6]], say: ['over_answer_1'], scare: 3.6, pad: 1.4 }
+        { img: 'hall_cam_katya', fx: 'cctv', label: 'CAM 04  ХОЛЛ', cams: [[.5, .5, 1.0, 1.1], [.47, .47, 2.2, 2.6]], say: ['over_answer_1'], scare: 3.6, hit: ['jumpscare'], pad: 1.4 }
       ],
       then: { over: 'ТЫ ОТВЕТИЛ', sub: 'Ответить — значит впустить.', retry: 'call540' }
     },
@@ -372,7 +373,7 @@ window.STORY = {
   cams: [
     { id: 'CAM 01', name: 'ВХОД', img: 'entrance_empty', c: [.5, .5, 1.0], note: 'Пусто. Дождь стеной.' },
     { id: 'CAM 04', name: 'ХОЛЛ', img: 'hall_cam', c: [.44, .46, 2.4], note: 'У лифта кто-то стоит?.. Нет. Показалось.', creep: true },
-    { id: 'CAM 07', name: 'ЭТАЖ 7', img: 'corridor_dark', c: [.5, .5, 1.0], note: 'Темно. Пока.' },
+    { id: 'CAM 07', name: 'ЭТАЖ 7', img: 'corridor_cam_dark', c: [.5, .5, 1.0], note: 'Темно. Пока.', jump: 'cam7_jump' },
     { id: 'CAM 13', name: '', img: null, forbidden: true }
   ],
   endings: { dawn: 'Рассвет', rules: 'Пятое правило', inside: 'Внутри', sister: 'Сестра' },

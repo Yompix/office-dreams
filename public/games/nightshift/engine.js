@@ -12,8 +12,8 @@ const BUF = {}; let TIM = {};
 const SNDS = ['drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'tick', 'click', 'door', 'steps',
   'ch_guard', 'ch_katya', 'ch_whisper', 'ch_monster', ...Array.from({ length: 17 }, (_, i) => 'l' + String(i + 1).padStart(2, '0'))];
 // звуковые эффекты (ElevenLabs): докачиваются в фоне после старта
-const SFX2 = ['room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus'];
-let AC = null, revIn = null, muffle = null, master, musicG, voiceG, sfxG, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
+const SFX2 = ['room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam'];
+let directG = null, AC = null, revIn = null, muffle = null, master, musicG, voiceG, sfxG, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
 // громкость голоса сейчас (для движения рта)
 function voiceLevel() { if (!analyser) return 0; analyser.getByteTimeDomainData(abuf); let q = 0; for (let i = 0; i < abuf.length; i += 2) { const v = (abuf[i] - 128) / 128; q += v * v; } return Math.min(1, Math.sqrt(q / (abuf.length / 2)) * 6); }
 // XHR вместо fetch: так файлы читаются и внутри Android-приложения (file://)
@@ -49,6 +49,7 @@ function initAudio() {   // контекст создаём заранее (он
   const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return (decoding = Promise.resolve());
   AC = new Ctx();
   master = AC.createGain(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .25; master.connect(comp); comp.connect(AC.destination); master.gain.value = LS.get('mute', false) ? 0 : 1;
+  directG = AC.createGain(); directG.gain.value = master.gain.value; directG.connect(AC.destination);   // крик скримера — мимо компрессора, чтобы был громче голоса
   musicG = AC.createGain(); musicG.gain.value = .55; musicG.connect(master);
   voiceG = AC.createGain(); voiceG.gain.value = 1; voiceG.connect(master);
   sfxG = AC.createGain(); sfxG.gain.value = .8; sfxG.connect(master);
@@ -76,6 +77,7 @@ function goFull() {   // полный экран по нажатию «Игра�
 }
 const playing = new Set();
 function play(name, { when = 0, bus = 'sfx', loop = false, gain = 1, off = 0, rate = 1, to = null, cut = 0 } = {}) {
+  if (name === 'jumpscare' && !to && directG) to = [[directG, 1]];
   if (!AC || !BUF[name]) return null;
   const s = AC.createBufferSource(), gn = AC.createGain(); s.buffer = BUF[name]; s.loop = loop; gn.gain.value = gain; s.playbackRate.value = rate;
   s.connect(gn); if (to) for (const [nd, g2] of to) { if (g2 === 1) gn.connect(nd); else { const sg = AC.createGain(); sg.gain.value = g2; gn.connect(sg); sg.connect(nd); } } else gn.connect(bus === 'voice' ? voiceG : bus === 'music' ? musicG : sfxG);
@@ -170,9 +172,10 @@ function beatAudio() {
   amb('rain', beat.fx === 'rain', .35); if (beat.fx !== 'static' && !(beat.sfx || []).some(s => s[0] === 'static')) amb('static', beat.fx === 'static', .3);
   if (scareAt != null) {
     // не «бум» из ужастика для детей: нарастание обрывается в тишину, а потом — близкий сухой звук рядом с ухом
-    if (scareAt > 1.6 && BUF.reverse_swell) play('reverse_swell', { when: scareAt - BUF.reverse_swell.duration, gain: .5 });
+    if (beat.fx === 'lunge') { play('breath_close', { when: scareAt - 1.0, gain: .9 }); play(BUF.jumpscare ? 'jumpscare' : 'scare', { when: scareAt, gain: .95 }); }
+    else if (scareAt > 1.6 && BUF.reverse_swell) play('reverse_swell', { when: scareAt - BUF.reverse_swell.duration, gain: .5 });
     const hits = beat.hit || (sceneId.startsWith('over_') ? ['neck_crack', 'breath_close'] : ['breath_close']);
-    hits.forEach((h, i) => play(BUF[h] ? h : 'scare', { when: scareAt + i * .12, gain: i ? .7 : 1 }));
+    if (beat.fx !== 'lunge') hits.forEach((h, i) => play(BUF[h] ? h : 'scare', { when: scareAt + i * .12, gain: i ? .7 : 1 }));
     if (BUF.sub_presence) play('sub_presence', { when: scareAt, gain: .8, cut: 2.5 });
   }
   amb('room_tone', !hushOn && beat.fx !== 'rain', .28);
@@ -250,7 +253,8 @@ function camGame(next) {
       play('click'); play('static', { gain: .5 });
       camView = { c, t0: now() }; mgEl.classList.add('hide');
       lastSubKey = ''; say('КАМЕРА', c.note, c.note.length);
-      setTimeout(() => { if (my !== gen) return; camView = null; dlgEl.classList.add('hide'); seenCams.add(i); if (c.creep) play('boom', { gain: .4 }); mgEl.classList.remove('hide'); draw(); }, 2600);
+      if (c.jump && !c.jumped) { c.jumped = true; camView.jump = true; setTimeout(() => { if (my !== gen) return; play(BUF.jumpscare ? 'jumpscare' : 'scare', { gain: .8 }); buzz([200, 40, 300]); shakeAmp = 40; }, 1250); }
+      setTimeout(() => { if (my !== gen) return; camView = null; dlgEl.classList.add('hide'); seenCams.add(i); if (c.creep) play('boom', { gain: .4 }); mgEl.classList.remove('hide'); draw(); }, camView.jump ? 3300 : 2600);
     });
     const go = $('cgo'); if (go) go.onclick = () => { play('click'); amb('static', false); startScene(next); };
   };
@@ -311,14 +315,15 @@ const MG = {
   },
   // бег: быстро выбрать сторону (подсказка — где гаснет свет, туда нельзя)
   run(th) {
-    mode = 'mg'; music('tension'); const my = gen; let k = 0, end = false; const N = th.n || 5;
-    const fin = ok => { if (end || my !== gen) return; end = true; mgEl.classList.add('hide'); startScene(ok ? th.win : th.lose); };
+    mode = 'mg'; music('tension'); const my = gen; let k = 0, end = false; const N = th.n || 5; mgView = null;
+    const fin = ok => { if (end || my !== gen) return; end = true; mgEl.classList.add('hide'); mgView = null; startScene(ok ? th.win : th.lose); };
     const step = () => {
       if (k >= N) return fin(true);
       const bad = Math.random() < .5 ? 'L' : 'R';
-      mgEl.innerHTML = `<div class="mghead">${th.title}<small>Свет гаснет ${bad === 'L' ? 'СЛЕВА' : 'СПРАВА'}. Беги в другую сторону! (${k + 1}/${N})</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="rt" style="width:100%"></i></div></div><div class="arrows"><button data-d="L">◀</button><button data-d="R">▶</button></div>`;
+      mgView = { img: 'run_lit', c: [.5, .5, 1, 1.04], t0: mgView ? mgView.t0 : now(), dur: 1e9, run: bad };
+      mgEl.innerHTML = `<div class="mghead">${th.title}<small>Свет гаснет ${bad === 'L' ? 'СЛЕВА' : 'СПРАВА'} — беги ${bad === 'L' ? 'ВПРАВО ▶' : '◀ ВЛЕВО'} (${k + 1}/${N})</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="rt" style="width:100%"></i></div></div><div class="arrows"><button data-d="L">◀</button><button data-d="R">▶</button></div>`;
       mgEl.classList.remove('hide'); play('steps', { gain: .8 }); shakeAmp = 14;
-      const t0 = now(), lim = Math.max(1.1, 2.2 - k * .2); let ok = false;
+      const t0 = now(), lim = Math.max(1.3, 2.6 - k * .2); let ok = false;
       mgEl.querySelectorAll('.arrows button').forEach(b => b.onclick = () => { if (ok) return; ok = true; if (b.dataset.d === bad) return fin(false); play('click'); k++; step(); });
       (function loop() { if (end || ok || my !== gen) return; const l = lim - (now() - t0); const el = $('rt'); if (el) el.style.width = Math.max(0, l / lim * 100) + '%'; if (l <= 0) return fin(false); requestAnimationFrame(loop); })();
     };
@@ -484,13 +489,15 @@ function frame(tp) {
     // скример: вспышка, рывок, сильная тряска
     const sc = scareAt != null && t >= scareAt, st = sc ? t - scareAt : 0;
     if (scareAt != null && scareAt > 1.2) { const h = t > scareAt - 1.5 && t < scareAt; if (h !== hushOn) hush(h); }
-    if (sc && st < .05) { if (blackT !== T && T - blackT > .5) buzz([90, 30, 160]); blackT = T; shakeAmp = 22; }
+    const lg = beat.fx === 'lunge';
+    if (sc && st < .05) { if (blackT !== T && T - blackT > .5) buzz(lg ? [250, 40, 350] : [90, 30, 160]); if (!lg) blackT = T; shakeAmp = lg ? 46 : 22; }
+    if (lg && sc && st < .7) shakeAmp = Math.max(shakeAmp, 34 * (1 - st / .7));
     const sx = (Math.sin(T * 1.6) * 8 + Math.sin(T * 4.9) * 3) + (Math.random() - .5) * shakeAmp, sy = (Math.cos(T * 1.2) * 8 + Math.sin(T * 4.1) * 3) + (Math.random() - .5) * shakeAmp;
     shakeAmp *= .9;
     if (beat.phone) phone(beat.phone, t);
     else if (beat.img) {
       const cams = beat.cams || [[.5, .5, 1, 1.1]], n = cams.length, ci = Math.min(n - 1, Math.floor(p * n)), lp = p * n - ci, c = cams[ci];
-      let z = c[2] + (c[3] - c[2]) * ease(lp); if (sc) z = Math.max(z, c[3]) * (1.1 + .04 * Math.exp(-st * 6));
+      let z = c[2] + (c[3] - c[2]) * ease(lp); if (sc && beat.fx !== 'lunge') z = Math.max(z, c[3]) * (1.1 + .04 * Math.exp(-st * 6));
       const cr = creep && t >= creep.at && t < creep.at + creep.len ? creep.seed : 0;
       if (cr && !creep.hit) { creep.hit = true; if (Math.random() < .35) play('whispers', { gain: .18 }); }   // молча: заметит не каждый — так страшнее
       const so = { cx: c[0], cy: c[1], z, t: t + shotOff, T, sx, sy, talk, creep: cr };
@@ -509,6 +516,9 @@ function frame(tp) {
       if (beat.floors) { const f = Math.min(7, 1 + Math.floor(t / .6)); g.fillStyle = 'rgba(0,0,0,.6)'; rr(W / 2 - 90, 220, 180, 150, 20); g.fillStyle = '#f33'; g.font = '800 110px Inter, Arial'; g.textAlign = 'center'; g.fillText(f, W / 2, 245); g.textAlign = 'left'; }
       if (!beat.fx) grain(.07);
       if (sc && st < .6) grain(.5 * (1 - st / .6));
+      // бросок: двоится от рывка, потом обрыв в черноту (крик ещё звучит)
+      if (beat.fx === 'lunge' && sc && st < .8) { g.save(); g.globalAlpha = .35 * (1 - st / .8); g.globalCompositeOperation = 'lighter'; g.drawImage(cv, 16 + Math.random() * 20, 0); g.drawImage(cv, -16 - Math.random() * 20, 6); g.restore(); }
+      if (beat.fx === 'lunge' && sc && st > .8) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); grain(.2); }
       vignette();
     }
     // реплики: табличка с именем того, кто говорит; слова загораются по мере звучания
@@ -531,10 +541,13 @@ function frame(tp) {
     if (beat.heart && t > hb) { play('heart', { gain: .8 }); hb = t + Math.max(.55, .9 - t * .02); }
   } else if (mode === 'cams' && camView) {
     const t = T - camView.t0, c = camView.c; g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    shot(c.img, { cx: c.c[0], cy: c.c[1], z: c.c[2] + t * .04, t, T }); cctv(c.id + '  ' + c.name, t); vignette();
+    const jt = camView.jump ? t - 1.25 : -1, sx = (Math.random() - .5) * shakeAmp, sy = (Math.random() - .5) * shakeAmp; shakeAmp *= .9;
+    if (jt >= 0 && jt < .75) shot(c.jump, { cx: .5, cy: .5, z: 1, t: jt, T, sx, sy }); else shot(c.img, { cx: c.c[0], cy: c.c[1], z: c.c[2] + t * .04, t, T, sx, sy });
+    cctv(c.id + '  ' + c.name, t); if (jt >= .75) { grain(.9); g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(0, 0, W, H); } vignette();
   } else if (mode === 'mg' && mgView) {
     const t = T - mgView.t0, k = Math.min(1, t / (mgView.dur || 3)); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
     shot(mgView.img, { cx: mgView.c[0], cy: mgView.c[1], z: mgView.c[2] + (mgView.c[3] - mgView.c[2]) * k * k, t: mgView.st ? mgView.st + t : t, T, sx: (Math.random() - .5) * shakeAmp, sy: (Math.random() - .5) * shakeAmp });
+    if (mgView.run) { const L = mgView.run === 'L', gr = g.createLinearGradient(L ? 0 : W, 0, W / 2, 0); gr.addColorStop(0, 'rgba(0,0,0,.97)'); gr.addColorStop(.7, 'rgba(0,0,0,.75)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); }
     shakeAmp *= .9; if (mgView.label) cctv(mgView.label, t); if (mgView.label && t > .3) grain(.25 + k * .5); vignette();
   } else if (mode !== 'play') {
     // фон меню/выбора: последний кадр затемнён, медленно дышит
@@ -547,7 +560,7 @@ function frame(tp) {
 }
 
 /* ---------- старт ---------- */
-$('bMute').onclick = () => { const m = !LS.get('mute', false); LS.set('mute', m); if (master) master.gain.value = m ? 0 : 1; $('bMute').textContent = m ? '🔇' : '🔊'; };
+$('bMute').onclick = () => { const m = !LS.get('mute', false); LS.set('mute', m); if (master) master.gain.value = m ? 0 : 1; if (directG) directG.gain.value = m ? 0 : 1; $('bMute').textContent = m ? '🔇' : '🔊'; };
 $('bMute').textContent = LS.get('mute', false) ? '🔇' : '🔊';
 $('bMenu').onclick = () => menu();
 $('bRules').onclick = e => { e.stopPropagation(); showRules(); };

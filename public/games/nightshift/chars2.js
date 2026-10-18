@@ -151,7 +151,7 @@ const FLAT = `
     float w = smoothstep(1.622, 1.606, q.y) * smoothstep(1.53, 1.575, q.y) * (1. - smoothstep(.035, .072, abs(q.x))) * smoothstep(-.01, .04, q.z);
     transformed.y -= uScream * .078 * w * uS; transformed.z += uScream * .014 * w * uS; }
   if (uThin < 1.) { vec3 q = position / uS; transformed.z *= mix(uThin, 1., smoothstep(1.47, 1.56, q.y));   // голову не сплющиваем: иначе глаза торчат из лица
-    if (q.y > .95 && abs(q.x) < .24) transformed.x *= mix(uThin, 1., smoothstep(.12, .24, abs(q.x))); }
+    if (q.y > .95 && abs(q.x) < .24) transformed.x *= mix(mix(uThin, 1., smoothstep(.12, .24, abs(q.x))), 1., smoothstep(1.47, 1.56, q.y)); }
   if (uFlat > .5) { vec3 q = position / uS;
     if (q.y > 1.12 && q.y < 1.48 && q.z > .03) transformed.z = (.03 + (q.z - .03) * .25) * uS;
     if (q.y > .78 && q.y < 1.08 && q.z < -.07) transformed.z = (-.07 + (q.z + .07) * .35) * uS; }`;
