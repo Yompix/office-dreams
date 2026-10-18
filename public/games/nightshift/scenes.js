@@ -2,7 +2,6 @@
 (() => {
 'use strict';
 const { T, RW, RH, rnd, lerp, clamp, ps1, mat, ctex, TX, box, plane, cyl, label, relabel, makeTextures } = window.__W3core;
-const { cast } = window.__W3chars;
 const PI = Math.PI;
 let A = null;          // актёры
 const L = {};          // места действия
@@ -300,7 +299,7 @@ function init() {
     window.__W3core.R = new T.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
   } catch (e) { return false; }
   const R = window.__W3core.R; R.setPixelRatio(1); R.setSize(RW, RH, false); R.useLegacyLights = true; R.outputColorSpace = T.SRGBColorSpace;
-  makeTextures(); A = cast();
+  makeTextures(); A = window.__W3chars.cast();
   L.lobby = buildLobby(); L.corridor = buildCorridor(); L.server = buildServer();
   // буфер кадра и постобработка: цветокор + дизеринг + ступени цвета
   window.__W3core.RT = new T.WebGLRenderTarget(RW, RH, { magFilter: T.NearestFilter, minFilter: T.NearestFilter });

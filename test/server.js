@@ -28,6 +28,7 @@ const AB = require('../server/antibot.js');
     assert.equal((await r('/games/nightshift')).headers.get('location'), '/games/nightshift/');
     const js = await r('/games/nightshift/story.js'); assert.equal(js.status, 200); assert.match(await js.text(), /STORY/);
     assert.match((await r('/games/nightshift/snd/l01.mp3', { method: 'HEAD' })).headers.get('content-type'), /audio\/mpeg/);
+    assert.match((await r('/games/nightshift/models/male.glb', { method: 'HEAD' })).headers.get('content-type'), /model\/gltf-binary/);
     for (const bad of ['/games/../server/app.js', '/games/%2e%2e/server/app.js', '/games/..%2fpackage.json', '/games/nightshift/nope.js', '/games/x.sh'])
       assert.equal((await r(bad)).status, 404, bad);
   });

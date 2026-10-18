@@ -19,7 +19,8 @@ function get(url, type) { return new Promise((ok, no) => { const x = new XMLHttp
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2, tick = () => onp(++done / total);
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
-  const world = new Promise(r => setTimeout(() => { try { if (window.World && World.init()) World.warm(); } catch (e) { console.error(e); } tick(); r(); }, 30));
+  const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load().catch(() => false) : Promise.resolve(false);
+  const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) World.warm(); } catch (e) { console.error(e); } tick(); r(); }, 30)));
   const sn = SNDS.map(k => get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   const tm = get('timing.json', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([world, ...sn, tm]);
