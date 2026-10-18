@@ -42,6 +42,14 @@ function unlockAudio() {   // только внутри нажатия: инач
   if (!AC) return;
   try { AC.resume(); const b = AC.createBuffer(1, 1, 22050), s = AC.createBufferSource(); s.buffer = b; s.connect(AC.destination); s.start(0); } catch {}
 }
+function goFull() {   // полный экран по нажатию «Играть»: только внутри нажатия, иначе браузер откажет
+  const d = document, el = d.documentElement;
+  if (d.fullscreenElement || d.webkitFullscreenElement) return;
+  try {
+    const r = (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el, { navigationUI: 'hide' });
+    if (r && r.then) r.then(() => { try { screen.orientation.lock('portrait').catch(() => {}); } catch {} }).catch(() => {});
+  } catch {}
+}
 const playing = new Set();
 function play(name, { when = 0, bus = 'sfx', loop = false, gain = 1, off = 0 } = {}) {
   if (!AC || !BUF[name]) return null;
@@ -284,7 +292,7 @@ function menu() {
   $('mGal').onclick = () => { uiEl.innerHTML = `<div class="screen"><h1 style="font-size:9cqw">КОНЦОВКИ</h1>${gallery()}<button class="btn ghost" id="mBack" style="margin-top:6cqw">Назад</button></div>`; $('mBack').onclick = menu; };
 }
 async function begin(id) {
-  unlockAudio();   // до любого await, пока идёт нажатие
+  unlockAudio(); goFull();   // до любого await, пока идёт нажатие
   uiEl.innerHTML = `<div class="screen"><small>Загрузка звука…</small></div>`;
   await Promise.race([initAudio(), new Promise(r => setTimeout(r, 8000))]);   // звук не успел — играем дальше, без зависания
   uiEl.innerHTML = ''; startScene(id);
@@ -295,7 +303,7 @@ function endScreen(th) {
   play('boom'); music('drone');
   uiEl.innerHTML = `<div class="screen"><h1 style="font-size:9cqw">${th.title}<em>${S.endings[th.ending].toUpperCase()}</em></h1><p>${th.sub}</p>${gallery()}
     <button class="btn" id="eAgain" style="margin-top:5cqw">Сыграть ещё раз</button><button class="btn ghost" id="eMenu">Меню</button>${supportBtn()}${sponsorsHtml()}</div>`;
-  $('eAgain').onclick = () => { uiEl.innerHTML = ''; startScene('intro'); }; $('eMenu').onclick = menu;
+  $('eAgain').onclick = () => { goFull(); uiEl.innerHTML = ''; startScene('intro'); }; $('eMenu').onclick = menu;
 }
 function overScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide');
@@ -304,7 +312,7 @@ function overScreen(th) {
   uiEl.innerHTML = `<div class="screen over"><h1>${th.over}</h1><p>${th.sub}<br>Ты не дожил до утра.</p>
     <button class="btn" id="oRetry">Попробовать снова</button><button class="btn ghost" id="oMenu">Меню</button>
     <small>Смертей найдено: ${ov.size} из ${S.overs.length}</small></div>`;
-  $('oRetry').onclick = () => { uiEl.innerHTML = ''; startScene(th.retry); }; $('oMenu').onclick = menu;
+  $('oRetry').onclick = () => { goFull(); uiEl.innerHTML = ''; startScene(th.retry); }; $('oMenu').onclick = menu;
 }
 
 /* ---------- рисование ---------- */
