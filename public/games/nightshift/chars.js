@@ -164,6 +164,8 @@ function cast() {
     face: { skin: '#b08670', hair: '#bdbdb8', iris: '#4a4a4a', old: true, beard: true, beardC: '#c9c9c4', brow: '#b5b5b0', glasses: true, bags: true } });
   A.monster = makeHuman({ name: 'monster', h: 2.35, thin: .62, arm: 1.45, skin: 0xb4b8b0, cloth: 0x2a2c2a, pants: 0x1e201e, shoes: 0xb4b8b0, hairC: 0x050505, longHair: .7, veil: .14, tilt: .22, jerk: true,
     face: { skin: '#b4b8b0', hair: '#050505', voidEyes: true, smile: true, hairStrands: true, eyeY: 15, mouthY: 29, brow: '#5f625f' } });
+  A.victim = makeHuman({ name: 'victim', h: 1.75, skin: 0x9a948c, cloth: 0x24406e, pants: 0x24406e, hairC: 0x2a2420,
+    face: { skin: '#9a948c', hair: '#2a2420', iris: '#333', old: true } });
   A.smenshik.addFace('smile', { smile: true, mustache: false });
   A.temych.addFace('scared', { sad: true });
   for (const k in A) A[k].update(0, 1);

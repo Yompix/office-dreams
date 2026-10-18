@@ -320,13 +320,15 @@ function init() {
   // буфер кадра и постобработка: цветокор + дизеринг + ступени цвета
   window.__W3core.RT = new T.WebGLRenderTarget(RW, RH, { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
   postMat = new T.ShaderMaterial({
-    uniforms: { tD: { value: window.__W3core.RT.texture }, uLv: { value: 22 }, uCctv: { value: 0 } },
+    uniforms: { tD: { value: window.__W3core.RT.texture }, uLv: { value: 22 }, uCctv: { value: 0 }, uGam: { value: 1.25 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }',
-    fragmentShader: `uniform sampler2D tD; uniform float uLv, uCctv; varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tD; uniform float uLv, uCctv, uGam; varying vec2 vUv;
       float b2(vec2 a){ a = floor(a); return fract(dot(a, vec2(.5, a.y * .75))); }
       float b4(vec2 a){ return b2(.5 * a) * .25 + b2(a); }
       void main(){
         vec3 c = texture2D(tD, vUv).rgb;
+        c = mix(c * 12.92, 1.055 * pow(max(c, vec3(.0031308)), vec3(1. / 2.4)) - .055, step(.0031308, c));   // буфер линейный → sRGB
+        c = pow(c, vec3(uGam));   // ночь: тени глубже, но без пятен
         float l = dot(c, vec3(.299, .587, .114));
         c = mix(c * vec3(.86, 1.02, 1.08) + vec3(0., .012, .024), c * vec3(1.06, .98, .88), smoothstep(.25, .8, l));   // холодные тени, тёплый свет
         c = mix(c, vec3(l) * vec3(.8, 1., .86), uCctv);

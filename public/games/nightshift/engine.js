@@ -17,10 +17,10 @@ function voiceLevel() { if (!analyser) return 0; analyser.getByteTimeDomainData(
 // XHR вместо fetch: так файлы читаются и внутри Android-приложения (file://)
 function get(url, type) { return new Promise((ok, no) => { const x = new XMLHttpRequest(); x.open('GET', url); x.responseType = type; x.onload = () => (x.status === 200 || x.status === 0) && x.response ? ok(x.response) : no(); x.onerror = no; x.send(); }); }
 async function load(onp) {
-  let done = 0; const total = SNDS.length + 2, tick = () => onp(++done / total);
+  let done = 0; const total = SNDS.length + 2 + 6 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
-  const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load().catch(() => false) : Promise.resolve(false);
-  const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) World.warm(); } catch (e) { console.error(e); } tick(); r(); }, 30)));
+  const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
+  const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) World.warm(); } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   const sn = SNDS.map(k => get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   const tm = get('timing.json?v=3', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([world, ...sn, tm]);
@@ -59,8 +59,10 @@ function play(name, { when = 0, bus = 'sfx', loop = false, gain = 1, off = 0 } =
   if (!AC || !BUF[name]) return null;
   const s = AC.createBufferSource(), gn = AC.createGain(); s.buffer = BUF[name]; s.loop = loop; gn.gain.value = gain;
   s.connect(gn); gn.connect(bus === 'voice' ? voiceG : bus === 'music' ? musicG : sfxG);
-  s.start(AC.currentTime + Math.max(0, when), off); const o = { s, gn, name }; playing.add(o); s.onended = () => playing.delete(o); return o;
+  s.start(AC.currentTime + Math.max(0, when), off); const o = { s, gn, name, at: AC.currentTime + Math.max(0, when) }; playing.add(o); s.onended = () => playing.delete(o); return o;
 }
+// звуки, запланированные на потом (стук через секунду и т. п.), не должны прозвучать на следующем кадре
+function dropPending() { if (!AC) return; for (const o of [...playing]) if (!o.music && !o.voice && o.at > AC.currentTime + .03) { try { o.s.stop(); } catch {} playing.delete(o); } }
 function stopAll(keepMusic = true) { for (const o of [...playing]) if (!(keepMusic && o.music)) { try { o.s.stop(); } catch {} playing.delete(o); } }
 let curMusic = null, curMusicName = '';
 function music(name) {
@@ -78,7 +80,7 @@ function amb(name, on, gain = .5) {
 // перед скримером звук уходит в тишину (остаётся только сердце), потом удар
 let hushOn = false;
 function hush(on) { hushOn = on; if (musicG) musicG.gain.setTargetAtTime(on ? .015 : .55, AC.currentTime, on ? .35 : .05); if (on) play('heart', { gain: .7 }); }
-function duck(on) { if (musicG) musicG.gain.setTargetAtTime(on ? .22 : .55, AC.currentTime, .15); }
+function duck(on) { if (musicG && !hushOn) musicG.gain.setTargetAtTime(on ? .22 : .55, AC.currentTime, .15); }
 
 /* ---------- время (останавливается, когда вкладка скрыта) ---------- */
 let clockT = 0, lastP = performance.now(), paused = false;
@@ -86,7 +88,7 @@ function now() { return clockT; }
 document.addEventListener('visibilitychange', () => { paused = document.hidden; if (AC) document.hidden ? AC.suspend() : AC.resume(); });
 
 /* ---------- состояние ---------- */
-let mode = 'menu', scene = null, sceneId = '', bi = 0, beat = null, bT0 = 0, bDur = 0, sched = [], fired = new Set(), onBeatEnd = null;
+let mode = 'load', scene = null, sceneId = '', bi = 0, beat = null, bT0 = 0, bDur = 0, sched = [], fired = new Set(), onBeatEnd = null;
 let gen = 0;   // номер текущей сцены: старые таймеры и мини-игры по нему понимают, что устарели
 let flashT = -9, scareAt = null, shakeAmp = 0, typed = null, hb = 0;
 let creep = null, creepCool = 25, mgView = null;   // случайное появление Жильца в кадре; кадр под мини-игрой
@@ -114,6 +116,10 @@ function nextBeat() {
   bi++; amb('heart', false); holding = false; waiting = false; tapEl.classList.add('hide'); dlgEl.classList.remove('wait');
   if (!scene.beats[bi]) { seen.add(sceneId); LS.set('seen', [...seen]); return runThen(scene.then); }
   if (hushOn) hush(false);
+  dropPending();
+  // тот же кадр подряд — действие продолжается, а не начинается заново (никто не телепортируется назад)
+  { const pv = bi > 0 && scene.beats[bi - 1], nb = scene.beats[bi], same = pv && pv.img && pv.img === nb.img && pv === beat;
+    shotOff = same ? shotOff + (now() - bT0) : 0; darkHold = !!(same && pv.fx === 'dark'); }
   beat = scene.beats[bi]; bT0 = now(); fired.clear(); sched = []; typed = null; scareAt = null; hb = 0;
   if (beat.hush && AC) hush(true);
   chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
@@ -158,6 +164,7 @@ function tap() {
   const t = now() - bT0;
   if (scareAt != null && t < scareAt + 1) return;            // скример не пропускается
   for (const o of [...playing]) if (o.voice) { try { o.s.stop(); } catch {} playing.delete(o); }
+  dropPending();
   bT0 = now() - bDur;                                        // сразу к концу кадра (реплика показана целиком)
 }
 const known = new Set(LS.get('rules', []));
@@ -215,7 +222,7 @@ function camGame(next) {
       }
       play('click'); play('static', { gain: .5 });
       camView = { c, t0: now() }; mgEl.classList.add('hide');
-      say('КАМЕРА', c.note, c.note.length);
+      lastSubKey = ''; say('КАМЕРА', c.note, c.note.length);
       setTimeout(() => { if (my !== gen) return; camView = null; dlgEl.classList.add('hide'); seenCams.add(i); if (c.creep) play('boom', { gain: .4 }); mgEl.classList.remove('hide'); draw(); }, 2600);
     });
     const go = $('cgo'); if (go) go.onclick = () => { play('click'); amb('static', false); startScene(next); };
@@ -230,14 +237,14 @@ const MG = {
     mode = 'mg'; music('tension'); amb('heart', true, .7); const my = gen;
     mgEl.innerHTML = `<div class="mghead">${th.title}<small>${th.hint}</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="air"></i></div><div style="text-align:center;font-size:3.4cqw;margin-top:1.5cqw;opacity:.7">воздух</div></div><button class="bigbtn" id="hb">ДЕРЖИ</button>`;
     mgEl.classList.remove('hide');
-    const btn = $('hb'), air = $('air'); let held = false, a = 1, t0 = now(), safe = false, end = false, steps = 0;
+    const btn = $('hb'), air = $('air'); let held = false, a = 1, t0 = now(), lt = t0, safe = false, end = false, steps = 0;
     const dur = th.dur || 9, set = h => { held = h; btn.classList.toggle('held', h); btn.textContent = h ? 'НЕ ДЫШИ' : 'ДЕРЖИ'; };
     btn.onpointerdown = e => { e.preventDefault(); set(true); }; btn.onpointerup = btn.onpointerleave = btn.onpointercancel = () => set(false);
     const fin = ok => { if (end || my !== gen) return; end = true; amb('heart', false); mgEl.classList.add('hide'); startScene(ok ? th.win : th.lose); };
     (function loop() {
-      if (end || my !== gen) return; const t = now() - t0;
+      if (end || my !== gen) return; const t = now() - t0, fdt = Math.min(.1, now() - lt); lt = now();
       if (t > .8 && Math.floor(t / 1.1) > steps && t < dur) { steps++; play('steps', { gain: .5 + .5 * Math.sin(t) }); if (steps % 3 === 0) play('ch_whisper', { bus: 'voice', gain: .6 }); }
-      a = Math.max(0, Math.min(1, a + (held ? -0.085 : 0.25) / 60)); air.style.width = a * 100 + '%';
+      a = Math.max(0, Math.min(1, a + (held ? -0.085 : 0.25) * fdt)); air.style.width = a * 100 + '%';
       if (t > 2.5 && t < dur && !held) return fin(false);      // выдохнул — услышала
       if (a <= 0) return fin(false);                            // задохнулся
       if (t >= dur && !safe) { safe = true; mgEl.querySelector('.mghead').innerHTML = 'ТИХО…<small>Шаги ушли. Можно дышать.</small>'; }
@@ -250,13 +257,13 @@ const MG = {
     mode = 'mg'; music('tension'); const my = gen;
     mgEl.innerHTML = `<div class="mghead">${th.title}<small>${th.hint}</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="dr"></i></div></div><button class="bigbtn" id="db">ДЕРЖИ<br>ДВЕРЬ</button>`;
     mgEl.classList.remove('hide');
-    let v = .6, t0 = now(), end = false, nextHit = .5; const bar = $('dr');
+    let v = .6, t0 = now(), lt = t0, end = false, nextHit = .5; const bar = $('dr');
     $('db').onpointerdown = e => { e.preventDefault(); v = Math.min(1, v + .075); shakeAmp = 10; };
     const fin = ok => { if (end || my !== gen) return; end = true; mgEl.classList.add('hide'); startScene(ok ? th.win : th.lose); };
     (function loop() {
       if (end || my !== gen) return; const t = now() - t0;
       if (t > nextHit) { play('knock', { gain: 1.2 }); shakeAmp = 26; buzz(50); nextHit = t + .9 + Math.random() * .6; if (Math.random() < .3) play('ch_katya', { bus: 'voice', gain: .5 }); }
-      v -= (.0042 + t * .00022); bar.style.width = Math.max(0, v * 100) + '%';
+      const fdt = Math.min(.1, now() - lt); lt = now(); v -= (.0042 + t * .00022) * 60 * fdt; bar.style.width = Math.max(0, v * 100) + '%';
       if (v <= 0) return fin(false); if (t > (th.dur || 12)) return fin(true);
       requestAnimationFrame(loop);
     })();
@@ -309,7 +316,7 @@ function sponsorsHtml() {
 }
 const supportBtn = () => `<a class="btn ghost sup" href="${escH(SP.donate)}" target="_blank" rel="noopener">⭐ Поддержать игру</a>`;
 function menu() {
-  gen++; mode = 'menu'; stopAll(false); music(null); for (const k in ambient) amb(k, false); $('hud').classList.add('hide');
+  gen++; mode = 'menu'; menuT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); $('hud').classList.add('hide');
   choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false;
   const sv = LS.get('save', null), save = sv && S.scenes[sv] ? sv : null;   // сохранение из старой версии сценария не ломает меню
   uiEl.innerHTML = `<div class="screen"><h1>NIGHT<br>SHIFT<em>ИНТЕРАКТИВНЫЙ ХОРРОР</em></h1>
@@ -351,9 +358,10 @@ const noise = document.createElement('canvas'); noise.width = noise.height = 256
 { const n = noise.getContext('2d'), d = n.createImageData(256, 256); for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } n.putImageData(d, 0, 0); }
 const drops = Array.from({ length: 140 }, () => ({ x: Math.random() * W, y: Math.random() * H, v: 1800 + Math.random() * 1400, l: 40 + Math.random() * 70 }));
 // кадр 3D-мира; без WebGL — чёрный экран с подсказкой
+let worldTried = false, menuT0 = 0, shotOff = 0, darkHold = false;
 function shot(id, o) {
   if (window.World && World.ok && World.draw(g, W, H, id, o)) return;
-  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#000'; g.fillRect(0, 0, W, H); if (!worldTried) return;   // пока мир грузится — просто чёрный
   g.fillStyle = '#777'; g.font = '700 40px Inter, Arial'; g.textAlign = 'center'; g.fillText('Нужен браузер с WebGL', W / 2, H * .3); g.textAlign = 'left';
 }
 function cover(im, cx, cy, z, ox = 0, oy = 0) {
@@ -406,16 +414,20 @@ function say(who, text, k) {   // печатающийся текст
 const chunkCache = {};
 function chunks(k, w) {   // куски из таймингов без знаков препинания: берём те же слова из полного текста реплики
   if (chunkCache[k]) return chunkCache[k];
-  const full = ((TIM[k] || {}).t || '').split(/\s+/).filter(Boolean); let i = 0;
-  const out = w.map(x => { const n = x[1].split(/\s+/).length, part = full.slice(i, i + n).join(' '); i += n; return part || x[1]; });
-  return (chunkCache[k] = i === full.length ? out : w.map(x => x[1]));
+  // слово полного текста = столько же слов, сколько в нём частей без знаков («05:40» — две); тире прилипает к соседнему куску
+  const toks = ((TIM[k] || {}).t || '').split(/\s+/).filter(Boolean).map(s => [s, s.replace(/[.,:—?!…«»]/g, ' ').split(/\s+/).filter(Boolean).length]);
+  let j = 0, debt = 0;
+  const out = w.map(x => { let n = x[1].split(/\s+/).length - debt; const part = []; debt = 0;
+    while (j < toks.length && (n > 0 || toks[j][1] === 0)) { part.push(toks[j][0]); n -= toks[j][1]; j++; }
+    if (n < 0) debt = -n; return part.join(' ') || ''; });
+  return (chunkCache[k] = j === toks.length ? out.filter(Boolean).length ? out : w.map(x => x[1]) : w.map(x => x[1]));
 }
 function sayWords(who, words, on) {   // озвученная реплика целиком, произнесённые слова ярче
   const key = who + '|' + on + '|' + words.join(' '); if (key === lastSubKey) return; lastSubKey = key;
   plate(who); dlgEl.querySelector('.ln').innerHTML = words.map((w, i) => `<span class="${i < on ? 'on' : ''}">${w}</span>`).join(' ');
 }
 function frame(tp) {
-  const dt = Math.min(.05, (tp - lastP) / 1000); lastP = tp; if (!paused) clockT += dt;
+  const dt = Math.min(.1, (tp - lastP) / 1000); lastP = tp; if (!paused) clockT += dt;
   const T = now();
   if (mode === 'play' && beat) {
     let t = waiting ? 0 : T - bT0;
@@ -447,7 +459,7 @@ function frame(tp) {
       let z = c[2] + (c[3] - c[2]) * ease(lp); if (sc) z = Math.max(z, c[3]) * 1.3;
       const cr = creep && t >= creep.at && t < creep.at + creep.len ? creep.seed : 0;
       if (cr && !creep.hit) { creep.hit = true; play('ch_whisper', { bus: 'voice', gain: .22 }); buzz(30); }   // тихо: заметит не каждый
-      shot(beat.img, { cx: c[0], cy: c[1], z, t, T, sx, sy, talk, creep: cr });
+      shot(beat.img, { cx: c[0], cy: c[1], z, t: t + shotOff, T, sx, sy, talk, creep: cr });
       if (ci !== beat._ci) { beat._ci = ci; if (ci > 0) flashT = T - .18; }
       if (beat.fx === 'cctv' || beat.fx === 'static') cctv(beat.label, t);
       if (beat.fx === 'static' && t > 1.2) { grain(.55); g.fillStyle = `rgba(255,255,255,${.04 + .04 * Math.sin(t * 40)})`; g.fillRect(0, 0, W, H); }
@@ -455,7 +467,7 @@ function frame(tp) {
       if (beat.fx === 'lamp' && (T * 3.1) % 9 < .25) { g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, 0, W, H); }
       if (beat.fx === 'flicker' && (T % 4) < .5) { g.fillStyle = `rgba(255,255,255,${.04 * Math.abs(Math.sin(T * 31))})`; g.fillRect(0, 0, W, H); }
       if (beat.fx === 'dawn') { g.save(); g.globalCompositeOperation = 'soft-light'; g.fillStyle = 'rgba(255,160,80,.75)'; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'screen'; g.fillStyle = `rgba(70,35,10,${.15 + .15 * p})`; g.fillRect(0, 0, W, H); g.restore(); grain(.06); }
-      if (beat.fx === 'dark') { g.fillStyle = `rgba(0,0,0,${p * .85})`; g.fillRect(0, 0, W, H); }
+      if (beat.fx === 'dark') { g.fillStyle = `rgba(0,0,0,${darkHold ? .85 : p * .85})`; g.fillRect(0, 0, W, H); }
       if (beat.light) { g.fillStyle = `rgba(0,0,0,${.35 * (1 - Math.min(1, t / 6))})`; g.fillRect(0, 0, W, H); }
       if (beat.floors) { const f = Math.min(7, 1 + Math.floor(t / .6)); g.fillStyle = 'rgba(0,0,0,.6)'; rr(W / 2 - 90, 220, 180, 150, 20); g.fillStyle = '#f33'; g.font = '800 110px Inter, Arial'; g.textAlign = 'center'; g.fillText(f, W / 2, 245); g.textAlign = 'left'; }
       if (!beat.fx) grain(.07);
@@ -489,7 +501,8 @@ function frame(tp) {
     shakeAmp *= .9; if (mgView.label) cctv(mgView.label, t); if (mgView.label && t > .3) grain(.25 + k * .5); vignette();
   } else if (mode !== 'play') {
     // фон меню/выбора: последний кадр затемнён, медленно дышит
-    shot((beat && beat.img) || 'door_katya', { cx: .5, cy: .5, z: 1.02 + .03 * Math.sin(T * .3), t: T, T }); g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, 0, W, H); grain(.1); vignette();
+    if (mode === 'studio' || mode === 'load') { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }   // заставка и загрузка — на чёрном
+    else { shot((beat && beat.img) || 'door_katya', { cx: .5, cy: .5, z: 1.02 + .03 * Math.sin(T * .3), t: T, T }); g.fillStyle = `rgba(0,0,0,${Math.max(.45, 1 - (T - menuT0) / 1.6)})`; g.fillRect(0, 0, W, H); grain(.1); vignette(); }
   }
   if (T - flashT < .2) { g.fillStyle = `rgba(255,255,255,${(1 - (T - flashT) / .2) * .7})`; g.fillRect(0, 0, W, H); }
   requestAnimationFrame(frame);
@@ -510,7 +523,7 @@ window.addEventListener('error', e => { if (mode === 'menu' && !uiEl.innerHTML) 
 // заставка студии перед меню (нажатие — пропустить)
 function studio() {
   mode = 'studio'; let done = false; const go = () => { if (done) return; done = true; uiEl.onclick = null; menu(); };
-  uiEl.innerHTML = `<div class="studio"><div class="logo"><i></i><b>YOMPIX</b><span>GAMES</span></div><small>представляет</small></div>`;
+  uiEl.innerHTML = `<div class="studio"><div class="stw"><div class="logo"><i></i><b>YOMPIX</b><span>GAMES</span></div><small>представляет</small></div></div>`;
   uiEl.onclick = go; setTimeout(go, 3600);
 }
 load(p => { const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).catch(() => {}).then(() => { initAudio(); studio(); });

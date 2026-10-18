@@ -7,16 +7,18 @@
 (() => {
 'use strict';
 const { T, rnd, lerp, clamp, mat, box, SNAP } = window.__W3core;
-const FILES = ['male', 'female', 'Hair_Beard', 'Hair_Long', 'Hair_SimpleParted', 'Hair_Buzzed', 'Eyebrows_Regular', 'Eyebrows_Female'];
+const FILES = ['male', 'female', 'Hair_Beard', 'Hair_Long', 'Hair_SimpleParted', 'Hair_Buzzed'];
 const G = {}, CLIP = {};
 
 // XHR, а не fetch: так модели читаются и в Android-приложении (file://)
 const get = url => new Promise((ok, no) => { const x = new XMLHttpRequest(); x.open('GET', url); x.responseType = 'arraybuffer'; x.onload = () => (x.status === 200 || x.status === 0) && x.response ? ok(x.response) : no(); x.onerror = no; x.send(); });
-async function load() {
+async function load(onFile) {
   if (!window.THREE_GLTFLoader || !window.THREE_SkeletonUtils) return false;
   const L = new window.THREE_GLTFLoader();
   try {
-    await Promise.all(FILES.map(n => get('models/' + n + '.glb?v=1').then(b => new Promise((ok, no) => L.parse(b, '', g => { G[n] = g; ok(); }, no)))));
+    // каждый файл — со второй попыткой: один сбой сети не должен откатывать всех людей к блочным
+    const url = n => 'models/' + n + '.glb?v=1';
+    await Promise.all(FILES.map(n => get(url(n)).catch(() => get(url(n))).then(b => new Promise((ok, no) => L.parse(b, '', g => { G[n] = g; if (onFile) onFile(); ok(); }, no)))));
   } catch (e) { console.warn('models', e); return false; }
   for (const c of G.male.animations) {
     // только повороты костей (+ высота таза): так одна анимация подходит и мужчине, и женщине, и вытянутому Жильцу
@@ -228,7 +230,7 @@ const POSE = {
   knock: 'Idle_Loop', give: 'Idle_Loop', paper: 'Idle_Loop', monster: 'Idle_Loop', reach: 'Idle_Loop',
   walk: 'Walk_Loop', back: 'Walk_Loop', hug: 'Idle_Loop', eat: 'Crouch_Idle_Loop', lay: 'LayToIdle',
 };
-const _a = new T.Vector3(), _b = new T.Vector3(), _c = new T.Vector3(), _q = new T.Quaternion(), _q2 = new T.Quaternion(), _pq = new T.Quaternion();
+const _ld = new T.Vector3(), _a = new T.Vector3(), _b = new T.Vector3(), _c = new T.Vector3(), _q = new T.Quaternion(), _q2 = new T.Quaternion(), _pq = new T.Quaternion();
 // повернуть кость так, чтобы она смотрела в направлении dir (в осях персонажа: +z вперёд, +y вверх, +x влево)
 function aimBone(C, name, child, dir, k) {
   const b = C.bone[name], c = C.bone[child]; if (!b || !c) return;
@@ -243,19 +245,21 @@ function aimBone(C, name, child, dir, k) {
 }
 function updateSkinned(C, t, dt) {
   const tt = t + C.t0, P = C.pose, U = C.U;
-  const talking = C.talk > .06;
+  if (C.talk > .06) C.talkT = tt + .7;   // паузы между словами не сбивают анимацию «говорит»
+  const talking = tt < (C.talkT || -1);
   let want = POSE[P] || 'Idle_Loop';
   if (talking && P === 'stand') want = POSE.talk;
   if (talking && P === 'sit') want = POSE.sittalk;
   if (C.o.monster && P === 'walk') want = 'Zombie_Walk_Fwd_Loop';
   if (want !== C.clip) {
     const a = C.mixer.clipAction(CLIP[want] || CLIP.Idle_Loop);
-    a.reset(); a.timeScale = P === 'back' ? -.8 : P === 'monster' ? .3 : P === 'reach' ? .55 : C.o.monster ? .8 : 1;
+    a.reset();
     if (C.act && dt < .2) { a.play(); C.act.crossFadeTo(a, .35, false); } else { C.mixer.stopAllAction(); a.play(); }
     if (!C.act) a.time = (C.t0 * 1.7) % (a.getClip().duration || 1);
     if (P === 'lay') { C.mixer.stopAllAction(); a.play(); a.time = 0; a.timeScale = 0; }   // тело: первый кадр «лёжа», без движения
     C.act = a; C.clip = want;
   }
+  if (P !== 'lay') C.act.timeScale = P === 'back' ? -.8 : P === 'monster' ? .3 : P === 'reach' ? .55 : C.o.monster ? .8 : 1;
   C.mixer.update(Math.min(dt, .1));
   // руки поверх анимации
   if (P === 'knock') {
@@ -274,9 +278,9 @@ function updateSkinned(C, t, dt) {
   } else if (P === 'eat') {
     // рвёт и тащит ко рту: руки к земле перед собой, рывками вверх
     const tr = Math.max(0, Math.sin(tt * 4.2)) ** 5, tl = Math.max(0, Math.sin(tt * 4.2 + 2.1)) ** 5;
+    aimBone(C, 'spine_02', 'spine_03', [0, .55, 1], .8);
     aimBone(C, 'upperarm_r', 'lowerarm_r', [-.2, -.75, .75], 1); aimBone(C, 'lowerarm_r', 'hand_r', [.1, -.75 + tr * 1.1, .7 - tr * .3], 1);
     aimBone(C, 'upperarm_l', 'lowerarm_l', [.2, -.75, .75], 1); aimBone(C, 'lowerarm_l', 'hand_l', [-.1, -.75 + tl * 1.1, .7 - tl * .3], 1);
-    aimBone(C, 'spine_02', 'spine_03', [0, .55, 1], .8);
   } else if (P === 'hug') {
     aimBone(C, 'upperarm_r', 'lowerarm_r', [.2, -.1, 1], 1); aimBone(C, 'lowerarm_r', 'hand_r', [.9, 0, .4], 1);
     aimBone(C, 'upperarm_l', 'lowerarm_l', [-.2, -.1, 1], 1); aimBone(C, 'lowerarm_l', 'hand_l', [-.9, 0, .4], 1);
@@ -292,12 +296,15 @@ function updateSkinned(C, t, dt) {
   _c.set(0, 0, 1).applyQuaternion(_q2);
   const ang = _b.angleTo(_c), hm = C.o.headMax || 1.15; if (ang > hm) { _q.setFromUnitVectors(_c, _b); _q.slerp(_pq.identity(), 1 - hm / ang); _b.copy(_c).applyQuaternion(_q); }
   C.lookDir = C.lookDir ? C.lookDir.lerp(_b, k).normalize() : _b.clone();
-  for (const [bn, f] of [['neck_01', .45], ['Head', 1]]) {
+  // при разговоре голова чуть кивает и покачивается, а не стоит как у манекена
+  const LD = _ld.copy(C.lookDir);
+  if (talking && !C.o.monster) { LD.y += Math.sin(tt * 3.1) * .035 + Math.sin(tt * 1.3) * .02; LD.x += Math.sin(tt * .9) * .025; LD.normalize(); }
+  for (const [bn, f] of [['neck_01', .45], ['Head', .9]]) {
     const b = C.bone[bn]; b.updateWorldMatrix(true, false);
     const bw = b.getWorldQuaternion(new T.Quaternion());
     const cur = C.headFwd.clone().applyQuaternion(hb.getWorldQuaternion(new T.Quaternion()));
-    _q.setFromUnitVectors(cur, C.lookDir); _q.slerp(_pq.identity(), 1 - f);
-    if (C.o.tilt && bn === 'Head') { const r = new T.Quaternion().setFromAxisAngle(C.lookDir, (Math.sin(tt * .3) * .05 + C.o.tilt) * (C.o.flip ? -1 : 1)); _q.premultiply(r); }
+    _q.setFromUnitVectors(cur, LD); _q.slerp(_pq.identity(), 1 - f);
+    if (C.o.tilt && bn === 'Head') { const r = new T.Quaternion().setFromAxisAngle(LD, (Math.sin(tt * .3) * .05 + C.o.tilt) * (C.o.flip ? -1 : 1)); _q.premultiply(r); }
     bw.premultiply(_q); b.parent.getWorldQuaternion(_pq); b.quaternion.copy(_pq.invert().multiply(bw)); _pq.identity();
     b.updateWorldMatrix(false, true);
   }
