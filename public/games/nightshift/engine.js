@@ -22,7 +22,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load().catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) World.warm(); } catch (e) { console.error(e); } tick(); r(); }, 30)));
   const sn = SNDS.map(k => get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
-  const tm = get('timing.json?v=2', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get('timing.json?v=3', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры
   for (const k of Object.keys(TIM)) if (!SNDS.includes(k)) get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
@@ -75,6 +75,9 @@ function amb(name, on, gain = .5) {
   if (on && !ambient[name]) { const o = play(name, { loop: true, gain: .0001 }); if (!o) return; o.music = true; o.gn.gain.setTargetAtTime(gain, AC.currentTime, .4); ambient[name] = o; }
   if (!on && ambient[name]) { const o = ambient[name]; o.gn.gain.setTargetAtTime(0, AC.currentTime, .3); setTimeout(() => { try { o.s.stop(); } catch {} }, 1500); delete ambient[name]; }
 }
+// перед скримером звук уходит в тишину (остаётся только сердце), потом удар
+let hushOn = false;
+function hush(on) { hushOn = on; if (musicG) musicG.gain.setTargetAtTime(on ? .015 : .55, AC.currentTime, on ? .35 : .05); if (on) play('heart', { gain: .7 }); }
 function duck(on) { if (musicG) musicG.gain.setTargetAtTime(on ? .22 : .55, AC.currentTime, .15); }
 
 /* ---------- время (останавливается, когда вкладка скрыта) ---------- */
@@ -110,7 +113,9 @@ function startScene(id) {
 function nextBeat() {
   bi++; amb('heart', false); holding = false; waiting = false; tapEl.classList.add('hide'); dlgEl.classList.remove('wait');
   if (!scene.beats[bi]) { seen.add(sceneId); LS.set('seen', [...seen]); return runThen(scene.then); }
+  if (hushOn) hush(false);
   beat = scene.beats[bi]; bT0 = now(); fired.clear(); sched = []; typed = null; scareAt = null; hb = 0;
+  if (beat.hush && AC) hush(true);
   chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
   let t = .15;
   for (const k of beat.say || []) {
@@ -432,6 +437,7 @@ function frame(tp) {
     }
     // скример: вспышка, рывок, сильная тряска
     const sc = scareAt != null && t >= scareAt, st = sc ? t - scareAt : 0;
+    if (scareAt != null && scareAt > 1.2) { const h = t > scareAt - 1.5 && t < scareAt; if (h !== hushOn) hush(h); }
     if (sc && st < .05) { if (flashT !== T && T - flashT > .5) buzz([120, 40, 220]); flashT = T; shakeAmp = 60; }
     const sx = (Math.sin(T * 1.6) * 8 + Math.sin(T * 4.9) * 3) + (Math.random() - .5) * shakeAmp, sy = (Math.cos(T * 1.2) * 8 + Math.sin(T * 4.1) * 3) + (Math.random() - .5) * shakeAmp;
     shakeAmp *= .9;
@@ -440,7 +446,7 @@ function frame(tp) {
       const cams = beat.cams || [[.5, .5, 1, 1.1]], n = cams.length, ci = Math.min(n - 1, Math.floor(p * n)), lp = p * n - ci, c = cams[ci];
       let z = c[2] + (c[3] - c[2]) * ease(lp); if (sc) z = Math.max(z, c[3]) * 1.3;
       const cr = creep && t >= creep.at && t < creep.at + creep.len ? creep.seed : 0;
-      if (cr && !creep.hit) { creep.hit = true; play('boom', { gain: .5 }); play('ch_whisper', { bus: 'voice', gain: .35 }); buzz(60); }
+      if (cr && !creep.hit) { creep.hit = true; play('ch_whisper', { bus: 'voice', gain: .22 }); buzz(30); }   // тихо: заметит не каждый
       shot(beat.img, { cx: c[0], cy: c[1], z, t, T, sx, sy, talk, creep: cr });
       if (ci !== beat._ci) { beat._ci = ci; if (ci > 0) flashT = T - .18; }
       if (beat.fx === 'cctv' || beat.fx === 'static') cctv(beat.label, t);
