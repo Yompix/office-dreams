@@ -184,6 +184,7 @@ async function tick(ctx, now = Date.now()) {
     ctx.gwEnding = true; // the live checks below can outlast the 60 s tick: a second tick must not run the end again
     try { await finish(ctx, g, now, Bot); } finally { ctx.gwEnding = false; }
   }
+  await postResult(ctx, current(ctx), now, Bot);
   await payTick(ctx, now);
   return current(ctx);
 }
@@ -218,11 +219,18 @@ async function finish(ctx, g, now, Bot) {
     const u = ctx.db.get('SELECT lang, sol FROM users WHERE id=?', w.uid) || {};
     try { await Bot.send(ctx, w.uid, (WIN_TXT[u.lang] || WIN_TXT.en)(w.prize, w.rank, !!u.sol)); } catch (_) { /* blocked the bot */ }
   }
-  if (ctx.cfg.channel && win.length) {
-    const medal = ['🥇', '🥈', '🥉'];
-    const list = win.map((w, i) => `${medal[i] || '🏅'} <b>${String(w.name).replace(/[<>&]/g, '')}</b> — $${w.prize}`).join('\n');
-    try { await Bot.send(ctx, ctx.cfg.channel, RESULT_TXT.en(list)); } catch (_) { /* ignore */ }
-  }
+}
+// the result post in the project channel: tried right after the end and again every 10 min for 3 days until Telegram
+// takes it (the bot may not be an admin of the channel yet); posted once
+async function postResult(ctx, g, now, Bot) {
+  if (!ctx.cfg.channel || !g || g.status !== 'done' || !g.winners || !g.winners.length || now - g.end_at > 3 * 86400e3) return;
+  if (ctx.db.kvGet('gw_posted_' + g.id, '') || now - Number(ctx.db.kvGet('gw_post_try_' + g.id, 0)) < 600e3) return;
+  ctx.db.kvSet('gw_post_try_' + g.id, now);
+  const medal = ['🥇', '🥈', '🥉'];
+  const list = g.winners.map((w, i) => `${medal[i] || '🏅'} <b>${String(w.name).replace(/[<>&]/g, '')}</b> — $${w.prize}`).join('\n');
+  const r = await Bot.send(ctx, ctx.cfg.channel, RESULT_TXT.en(list)).catch((e) => ({ ok: false, description: String(e && e.message) }));
+  if (r && r.ok) { ctx.db.kvSet('gw_posted_' + g.id, now); ctx.log && ctx.log('giveaway result posted to', ctx.cfg.channel); }
+  else ctx.log && ctx.log('giveaway result post failed:', ctx.cfg.channel, (r && r.description) || 'no response');
 }
 
 /* ---- prizes: sent in SOL from the server wallet to the winner's connected Solana wallet ---- */

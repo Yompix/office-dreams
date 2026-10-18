@@ -54,12 +54,25 @@ async function publish(ctx, p) {
   }
   return ctx.tg.call('sendMessage', { chat_id: ctx.cfg.channel, text: p.text, parse_mode: 'HTML', link_preview_options: { is_disabled: true }, reply_markup: markup });
 }
+// can the bot publish in the channel? It must be an admin there with "Post messages"
+async function canPost(ctx) {
+  if (!ctx.cfg.channel) return false;
+  const me = await ctx.tg.call('getMe', {}).catch(() => null);
+  const r = me && me.ok ? await ctx.tg.call('getChatMember', { chat_id: ctx.cfg.channel, user_id: me.result.id }).catch(() => null) : null;
+  const m = r && r.ok && r.result;
+  return !!m && (m.status === 'creator' || (m.status === 'administrator' && m.can_post_messages !== false));
+}
 let busy = false;
 async function tick(ctx, now = Date.now(), list = load(ctx)) {
   if (!ctx.cfg.channel || busy) return null;
   busy = true;
   try {
     init(ctx);
+    if (!ctx.cache.postsProbe) { // once per start: say in the log whether posts can go out at all
+      ctx.cache.postsProbe = 1;
+      const ok = await canPost(ctx);
+      ctx.log && ctx.log('posts: the bot', ok ? 'can post in' : 'CANNOT post in (make it an admin of the channel with "Post messages")', ctx.cfg.channel, '·', list.filter((p) => p.at > now).length, 'posts queued');
+    }
     for (const p of list) {
       if (p.at > now) break;
       const row = sentRow(ctx, p.id);
@@ -113,4 +126,4 @@ function skip(ctx, id, now = Date.now(), list = load(ctx)) {
   return 'ok';
 }
 
-module.exports = { tick, load, check, ownerReport, skip, LATE_MS, GAP_MS };
+module.exports = { tick, load, check, ownerReport, skip, canPost, LATE_MS, GAP_MS };

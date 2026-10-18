@@ -1276,6 +1276,33 @@ const AB = require('../server/antibot.js');
     await envE.close();
   }
   {
+    const envR = await makeEnv({ GIVEAWAY_ON: '1', GIVEAWAY_KEY: 'r-test', GIVEAWAY_PRIZES: '20,10' });
+    const Give = require('../server/giveaway.js');
+    const ctxR = envR.ctx; ctxR.fastAnnounce = true;
+    for (const id of [8501, 8502]) { const P = new Player(envR, id, { name: 'R' + id }); await P.auth(); }
+    await test('giveaway: the result post reaches the channel once, retried every 10 min if the bot could not post yet', async () => {
+      await Give.tick(ctxR, envR.clock.t);
+      for (const id of [8501, 8502]) { ctxR.db.run('UPDATE users SET pts=pts+? WHERE id=?', id - 8400, id); ctxR.db.run("INSERT INTO purchases(charge_id,uid,sku,stars,ts) VALUES(?,?,?,?,?)", 'r' + id, id, 'donate', 100, envR.clock.t); }
+      const prev = ctxR.tg.call;
+      const posts = () => envR.mock.calls.filter((c) => c.method === 'sendMessage' && c.body.chat_id === '@od_news' && /results/i.test(c.body.text));
+      let refused = 0;
+      ctxR.tg.call = async (m, b) => (m === 'sendMessage' && b.chat_id === '@od_news' ? (refused++, { ok: false, description: 'Bad Request: need administrator rights in the channel chat' }) : prev(m, b));
+      envR.advance(3 * 86400e3 + 1000);
+      await Give.tick(ctxR, envR.clock.t);
+      assert.equal(Give.current(ctxR).status, 'done');
+      assert.equal(refused, 1, 'tried right at the end');
+      ctxR.tg.call = prev; // the owner made the bot an admin
+      envR.advance(5 * 60e3); await Give.tick(ctxR, envR.clock.t);
+      assert.equal(posts().length, 0, 'not before 10 min');
+      envR.advance(6 * 60e3); await Give.tick(ctxR, envR.clock.t);
+      assert.equal(posts().length, 1);
+      assert.ok(/R8502[\s\S]*R8501/.test(posts()[0].body.text), 'winners in order');
+      envR.advance(30 * 60e3); await Give.tick(ctxR, envR.clock.t);
+      assert.equal(posts().length, 1, 'posted once');
+    });
+    await envR.close();
+  }
+  {
     const envP = await makeEnv({ DEV_IDS: '7001' });
     const Posts = require('../server/posts.js');
     const ctxP = envP.ctx, t0 = envP.clock.t, H = 3600e3;
