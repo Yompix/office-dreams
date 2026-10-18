@@ -1,11 +1,14 @@
 package com.officedreams.nightshift;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 /* Обёртка: игра лежит в assets и открывается во весь экран без интернета. */
 public class Main extends Activity {
@@ -22,6 +25,14 @@ public class Main extends Activity {
     s.setMediaPlaybackRequiresUserGesture(false);
     s.setAllowFileAccess(true);
     s.setAllowFileAccessFromFileURLs(true);
+    // ссылки наружу (поддержать игру в Telegram) открываются в браузере или Telegram, игра остаётся
+    web.setWebViewClient(new WebViewClient() {
+      @Override public boolean shouldOverrideUrlLoading(WebView v, String url) {
+        if (url.startsWith("file:")) return false;
+        try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); } catch (Exception e) {}
+        return true;
+      }
+    });
     setContentView(web);
     web.loadUrl("file:///android_asset/nightshift/index.html");
   }

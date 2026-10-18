@@ -256,6 +256,16 @@ function gallery() {
   return `<div class="gal">${Object.entries(S.endings).map(([k, n]) => `<div class="${got.includes(k) ? 'got' : ''}">${got.includes(k) ? n : '???'}</div>`).join('')}</div>
     <small>Концовки: ${got.length} из ${Object.keys(S.endings).length} · Смертей найдено: ${ov.length} из ${S.overs.length}</small>`;
 }
+/* ---------- спонсоры игры (донаты звёздами Telegram через бота) ---------- */
+const API = /railway\.app$|^localhost$/.test(location.hostname) ? '' : 'https://office-dreams-production.up.railway.app';
+let SP = { donate: 'https://t.me/officedream1_bot?start=games', list: [] };
+get(API + '/api/games/sponsors', 'json').then(j => { if (j && j.ok) SP = Object.assign(SP, j, { donate: j.donate || SP.donate }); }).catch(() => {});
+const escH = v => String(v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function sponsorsHtml() {
+  const names = SP.list.slice(0, 30).map(r => `<span>${escH(r.name)}</span>`).join('');
+  return `<div class="spons"><b>СПОНСОРЫ ИГРЫ</b>${names || '<i>Стань первым — твоё имя будет здесь</i>'}</div>`;
+}
+const supportBtn = () => `<a class="btn ghost sup" href="${escH(SP.donate)}" target="_blank" rel="noopener">⭐ Поддержать игру</a>`;
 function menu() {
   gen++; mode = 'menu'; stopAll(false); music(null); for (const k in ambient) amb(k, false); $('hud').classList.add('hide');
   choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false;
@@ -265,6 +275,7 @@ function menu() {
     <button class="btn" id="mNew">${save ? 'Начать заново' : 'Начать смену'}</button>
     ${save ? '<button class="btn ghost" id="mCont">Продолжить</button>' : ''}
     <button class="btn ghost" id="mGal">Концовки</button>
+    ${supportBtn()}
     <small>Лучше в наушниках и в темноте.</small></div>`;
   $('mNew').onclick = () => begin('intro'); if (save) $('mCont').onclick = () => begin(save);
   $('mGal').onclick = () => { uiEl.innerHTML = `<div class="screen"><h1 style="font-size:9cqw">КОНЦОВКИ</h1>${gallery()}<button class="btn ghost" id="mBack" style="margin-top:6cqw">Назад</button></div>`; $('mBack').onclick = menu; };
@@ -276,13 +287,15 @@ async function begin(id) {
   uiEl.innerHTML = ''; startScene(id);
 }
 function endScreen(th) {
+  clockEl.classList.add('hide'); $('hud').classList.add('hide');
   mode = 'end'; const got = new Set(LS.get('endings', [])); got.add(th.ending); LS.set('endings', [...got]); LS.set('save', null);
   play('boom'); music('drone');
   uiEl.innerHTML = `<div class="screen"><h1 style="font-size:9cqw">${th.title}<em>${S.endings[th.ending].toUpperCase()}</em></h1><p>${th.sub}</p>${gallery()}
-    <button class="btn" id="eAgain" style="margin-top:5cqw">Сыграть ещё раз</button><button class="btn ghost" id="eMenu">Меню</button></div>`;
+    <button class="btn" id="eAgain" style="margin-top:5cqw">Сыграть ещё раз</button><button class="btn ghost" id="eMenu">Меню</button>${supportBtn()}${sponsorsHtml()}</div>`;
   $('eAgain').onclick = () => { uiEl.innerHTML = ''; startScene('intro'); }; $('eMenu').onclick = menu;
 }
 function overScreen(th) {
+  clockEl.classList.add('hide'); $('hud').classList.add('hide');
   mode = 'end'; const ov = new Set(LS.get('overs', [])); ov.add(th.over); LS.set('overs', [...ov]);
   music(null);
   uiEl.innerHTML = `<div class="screen over"><h1>${th.over}</h1><p>${th.sub}<br>Ты не дожил до утра.</p>

@@ -460,6 +460,11 @@ function createApp(cfg, opts = {}) {
           return res.end(await r.text());
         } catch (e) { return sendJson(res, 502, { jsonrpc: '2.0', id: j.id, error: { code: 502, message: 'upstream' } }); }
       }
+      // public sponsors list of the browser games (names and stars only) and the bot link for donations
+      if (p === '/api/games/sponsors') {
+        res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'public, max-age=60', 'access-control-allow-origin': '*', ...SEC_HEADERS });
+        return res.end(JSON.stringify(require('./sponsors.js').publicView(ctx)));
+      }
       if (p.startsWith('/api/')) return await handleApi(ctx, req, res, url, ip);
       if (p.startsWith('/admin')) return await admin(req, res, url, ip);
       if (req.method === 'POST' && p === '/tg/' + cfg.webhookSecret) {

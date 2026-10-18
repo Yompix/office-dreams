@@ -2,6 +2,7 @@
 /* Telegram bot: /start (+ referral deep links), Stars payments, webhook or long polling. */
 const U = require('./users.js');
 const Eco = require('./economy.js');
+const Sp = require('./sponsors.js');
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
@@ -179,7 +180,20 @@ async function handleMessage(ctx, m) {
   const cmd = /^\/(\w+)(?:@\w+)?(?:\s+(.*))?$/.exec(text);
   if (!cmd) return;
   const name = cmd[1].toLowerCase(), arg = (cmd[2] || '').trim();
-  if (name === 'start') {
+  if (name === 'start' && arg === 'games') {
+    // from the games site: Stars donation buttons for YOMPIX GAMES
+    const mk = await Sp.invoiceMarkup(ctx, from.id);
+    return send(ctx, m.chat.id, '🎮 <b>YOMPIX GAMES</b>\n\nСпасибо, что хочешь поддержать игры! Выбери сумму в звёздах Telegram ⭐\n\nКаждый, кто поддержит, попадает в список спонсоров на сайте и в титрах «Ночной смены». Имя в списке можно поменять командой /sponsor Имя', mk);
+  } else if (name === 'sponsor') {
+    return send(ctx, m.chat.id, Sp.setOwn(ctx, from.id, arg));
+  } else if (name === 'sponsors' && isOwner(ctx, from.id)) {
+    return send(ctx, m.chat.id, Sp.ownerReport(ctx));
+  } else if ((name === 'sponsorhide' || name === 'sponsorshow') && isOwner(ctx, from.id)) {
+    const id = Number(arg);
+    if (!Number.isInteger(id) || id <= 0) return send(ctx, m.chat.id, 'Формат: /' + name + ' id (id из списка /sponsors)');
+    Sp.setHidden(ctx, id, name === 'sponsorhide');
+    return send(ctx, m.chat.id, Sp.ownerReport(ctx));
+  } else if (name === 'start') {
     const code = U.parseRef(arg);
     if (code) U.setPendingRef(ctx, from.id, code, ctx.now());
     ctx.log && ctx.log('bot /start', from.id, arg || '(no param)');
@@ -237,6 +251,13 @@ async function handlePayment(ctx, m) {
   const sp = m.successful_payment;
   const parts = String(sp.invoice_payload || '').split(':');
   const uid = Number(parts[0]), sku = parts[1];
+  if (sku === Sp.SKU) {
+    const n = Number(parts[2]);
+    if (!uid || uid !== m.from.id || sp.currency !== 'XTR' || sp.total_amount !== n) return;
+    const r = Sp.record(ctx, m.from, sp.telegram_payment_charge_id, n, ctx.now());
+    if (!r.dup) await send(ctx, m.chat.id, `❤️ Спасибо за ${n} ⭐! Ты в списке спонсоров YOMPIX GAMES как «${esc(r.name)}».\n\nПоменять имя: /sponsor Имя\nСкрыть себя: /sponsor -`);
+    return;
+  }
   if (sku === 'donate') {
     const n = Number(parts[2]);
     if (!uid || uid !== m.from.id || sp.currency !== 'XTR' || sp.total_amount !== n) return;
@@ -272,7 +293,7 @@ async function handleUpdate(ctx, up) {
       const goodDonate = dn > 0 && Number(parts[0]) === q.from.id && q.currency === 'XTR' && q.total_amount === dn && dn >= ctx.cfg.donate.minStars && dn <= ctx.cfg.donate.maxStars;
       const AD = parts[1] === 'adentry' ? require('./airdrop.js') : null;
       const goodEntry = !!AD && Number(parts[0]) === q.from.id && q.currency === 'XTR' && q.total_amount === Number(parts[2]) && q.total_amount === AD.entryStars(ctx.cfg) && !AD.entryBlock(ctx, q.from.id);
-      const good = goodDonate || goodEntry || it && Number(parts[0]) === q.from.id && q.currency === 'XTR' && q.total_amount === it.stars && Eco.canBuy(ctx, q.from.id, it.sku);
+      const good = goodDonate || goodEntry || Sp.validCheckout(q, parts) || it && Number(parts[0]) === q.from.id && q.currency === 'XTR' && q.total_amount === it.stars && Eco.canBuy(ctx, q.from.id, it.sku);
       await ctx.tg.call('answerPreCheckoutQuery', good ? { pre_checkout_query_id: q.id, ok: true } : { pre_checkout_query_id: q.id, ok: false, error_message: 'This item is not available.' });
     } else if (up.message) {
       await handleMessage(ctx, up.message);

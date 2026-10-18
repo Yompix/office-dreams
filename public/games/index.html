@@ -38,6 +38,15 @@ header p { margin: 14px 0 0; color: var(--mut); font-size: 17px; line-height: 1.
 .btn.alt { background: rgba(255,255,255,.06); border: 1px solid var(--line); box-shadow: none; }
 .soon { opacity: .55; }
 .soon .cover { filter: grayscale(.9) blur(1.5px); }
+
+.sup { margin-top: 26px; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px 20px; }
+.sup h2 { margin: 0 0 6px; font-size: 24px; font-weight: 900; }
+.sup p { margin: 0 0 14px; color: var(--mut); font-size: 15px; line-height: 1.5; }
+.sup .btn { flex: none; display: inline-flex; background: #e8a317; box-shadow: 0 0 24px rgba(232,163,23,.35); color: #120c00; }
+.names { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.names span { font-size: 14px; border: 1px solid rgba(232,163,23,.4); color: #ffd27a; border-radius: 999px; padding: 6px 12px; }
+.names span em { font-style: normal; color: var(--mut); margin-left: 6px; font-size: 12px; }
+.names i { color: var(--mut); font-size: 14px; }
 footer { margin-top: 48px; color: var(--mut); font-size: 13px; text-align: center; letter-spacing: 1px; }
 </style>
 </head>
@@ -69,10 +78,24 @@ footer { margin-top: 48px; color: var(--mut); font-size: 13px; text-align: cente
       </div>
     </article>
   </div>
+  <section class="sup">
+    <h2>⭐ Поддержи студию</h2>
+    <p>Мы маленькая инди-студия. Твоя поддержка звёздами Telegram идёт на озвучку и новые серии. Каждый, кто поддержит, попадает в список спонсоров здесь и в титрах игры.</p>
+    <a class="btn" id="donate" href="https://t.me/officedream1_bot?start=games" target="_blank" rel="noopener">⭐ Поддержать в Telegram</a>
+    <div class="names" id="names"><i>Спонсоров пока нет — стань первым.</i></div>
+  </section>
   <footer>© Yompix Games</footer>
 </div>
 <script>
 // кнопка APK появляется, только если файл выложен
+// спонсоры: с основного сервера (на любом другом адресе — по полному адресу)
+const API = /railway\.app$|^localhost$/.test(location.hostname) ? '' : 'https://office-dreams-production.up.railway.app';
+const esc = v => String(v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+fetch(API + '/api/games/sponsors').then(r => r.json()).then(j => {
+  if (!j || !j.ok) return;
+  if (j.donate) document.getElementById('donate').href = j.donate;
+  if (j.list && j.list.length) document.getElementById('names').innerHTML = j.list.map(r => `<span>${esc(r.name)}<em>${r.stars} ⭐</em></span>`).join('');
+}).catch(() => {});
 fetch('nightshift.apk', { method: 'HEAD' }).then(r => { if (r.ok) document.getElementById('apk').hidden = false; }).catch(() => {});
 </script>
 </body>
