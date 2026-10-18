@@ -19,17 +19,25 @@ async function load(onp) {
   let done = 0; const total = IMGS.length + SNDS.length + 1, tick = () => onp(++done / total);
   const ims = IMGS.map(k => new Promise(r => { const im = new Image(); im.onload = im.onerror = () => { tick(); r(); }; im.src = 'img/' + k + '.webp'; IMG[k] = im; }));
   const sn = SNDS.map(k => get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
-  const tm = get('timing.json', 'json').then(j => { TIM = j; tick(); });
+  const tm = get('timing.json', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([...ims, ...sn, tm]);
 }
-async function initAudio() {
-  if (AC) return;
-  AC = new (window.AudioContext || window.webkitAudioContext)();
+let decoding = null;
+function initAudio() {   // контекст создаём заранее (он «спит» до нажатия), звуки раскодируем в фоне
+  if (decoding) return decoding;
+  const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return (decoding = Promise.resolve());
+  AC = new Ctx();
   master = AC.createGain(); master.connect(AC.destination); master.gain.value = LS.get('mute', false) ? 0 : 1;
   musicG = AC.createGain(); musicG.gain.value = .55; musicG.connect(master);
   voiceG = AC.createGain(); voiceG.gain.value = 1; voiceG.connect(master);
   sfxG = AC.createGain(); sfxG.gain.value = .8; sfxG.connect(master);
-  await Promise.all(Object.entries(rawSnd).map(([k, b]) => new Promise(r => AC.decodeAudioData(b.slice(0), d => { BUF[k] = d; r(); }, r))));
+  return (decoding = Promise.all(Object.entries(rawSnd).map(([k, b]) => new Promise(r => {
+    try { const pr = AC.decodeAudioData(b.slice(0), d => { BUF[k] = d; r(); }, () => r()); if (pr && pr.catch) pr.catch(() => r()); } catch { r(); }
+  }))));
+}
+function unlockAudio() {   // только внутри нажатия: иначе телефон (особенно iPhone) не даст включить звук
+  if (!AC) return;
+  try { AC.resume(); const b = AC.createBuffer(1, 1, 22050), s = AC.createBufferSource(); s.buffer = b; s.connect(AC.destination); s.start(0); } catch {}
 }
 const playing = new Set();
 function play(name, { when = 0, bus = 'sfx', loop = false, gain = 1, off = 0 } = {}) {
@@ -261,7 +269,12 @@ function menu() {
   $('mNew').onclick = () => begin('intro'); if (save) $('mCont').onclick = () => begin(save);
   $('mGal').onclick = () => { uiEl.innerHTML = `<div class="screen"><h1 style="font-size:9cqw">КОНЦОВКИ</h1>${gallery()}<button class="btn ghost" id="mBack" style="margin-top:6cqw">Назад</button></div>`; $('mBack').onclick = menu; };
 }
-async function begin(id) { uiEl.innerHTML = ''; await initAudio(); if (AC.state !== 'running') await AC.resume(); startScene(id); }
+async function begin(id) {
+  unlockAudio();   // до любого await, пока идёт нажатие
+  uiEl.innerHTML = `<div class="screen"><small>Загрузка звука…</small></div>`;
+  await Promise.race([initAudio(), new Promise(r => setTimeout(r, 8000))]);   // звук не успел — играем дальше, без зависания
+  uiEl.innerHTML = ''; startScene(id);
+}
 function endScreen(th) {
   mode = 'end'; const got = new Set(LS.get('endings', [])); got.add(th.ending); LS.set('endings', [...got]); LS.set('save', null);
   play('boom'); music('drone');
@@ -418,6 +431,7 @@ $('stage').addEventListener('pointerdown', e => { if (e.target.closest('button, 
 document.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') tap(); if (mode === 'choice' && /^[1-4]$/.test(e.key)) { const b = choiceEl.querySelector(`button[data-i="${+e.key - 1}"]`); if (b) b.click(); } if (e.key === 'Escape') menu(); });
 uiEl.innerHTML = `<div class="screen"><h1>НОЧНАЯ<br>СМЕНА</h1><div id="loadbar"><i></i></div><small>Загрузка…</small></div>`;
 requestAnimationFrame(frame);
-load(p => { const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).then(menu);
+window.addEventListener('error', e => { if (mode === 'menu' && !uiEl.innerHTML) uiEl.innerHTML = `<div class="screen"><p>Ошибка: ${String(e.message || e).slice(0, 120)}</p></div>`; });
+load(p => { const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).catch(() => {}).then(() => { initAudio(); menu(); });
 window.__ns = { back: () => menu(), startScene, get mode() { return mode; }, get scene() { return sceneId; }, skipBeat };
 })();

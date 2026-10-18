@@ -19,7 +19,7 @@ function serve(req, res) {
   if (!path.extname(rel) && fs.existsSync(path.join(file, 'index.html'))) { res.writeHead(301, { location: p + '/', ...H }); return res.end(); }
   const type = MIME[path.extname(file).toLowerCase()]; let st; try { st = type && fs.statSync(file); } catch { st = null; }
   if (!st || !st.isFile()) return nf();
-  res.writeHead(200, { 'content-type': type, 'content-length': st.size, 'cache-control': type.startsWith('text/html') ? 'no-cache' : 'public, max-age=3600', ...H });
+  res.writeHead(200, { 'content-type': type, 'content-length': st.size, 'cache-control': /^(text\/html|text\/javascript|application\/json)/.test(type) ? 'no-cache' : 'public, max-age=3600', ...H });
   if (req.method === 'HEAD') return res.end();
   fs.createReadStream(file).pipe(res);
 }

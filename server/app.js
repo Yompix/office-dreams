@@ -115,8 +115,9 @@ function makeStatic(cfg) {
       const type = GAME_MIME[path.extname(file).toLowerCase()];
       let st; try { st = type && fs.statSync(file); } catch { st = null; }
       if (!st || !st.isFile()) return sendText(res, 404, 'Not found');
-      const html = type.startsWith('text/html');
-      res.writeHead(200, { 'content-type': type, 'content-length': st.size, 'cache-control': html ? 'no-cache' : 'public, max-age=3600', ...SEC_HEADERS });
+      // html, js and json are re-checked on every visit so an update never pairs a new page with an old cached script
+      const fresh = /^(text\/html|text\/javascript|application\/json)/.test(type);
+      res.writeHead(200, { 'content-type': type, 'content-length': st.size, 'cache-control': fresh ? 'no-cache' : 'public, max-age=3600', ...SEC_HEADERS });
       return req.method === 'HEAD' ? res.end() : fs.createReadStream(file).pipe(res);
     }
     const name = path.basename(p);
