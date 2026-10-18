@@ -199,7 +199,9 @@ function buildCorridor() {
   const ex = plane(.5, .25, mat(0xffffff, TX.exit, { basic: true }), S); ex.position.set(0, 2.55, -len + .08); ex.position.x = .9;
   // табличка «СЕРВЕРНАЯ» поверх 713 — этот же коридор играет минус второй этаж
   o.srv = label(.5, .12, 96, 22, (c, w, h) => { c.fillStyle = '#7a7d80'; c.fillRect(0, 0, w, h); c.fillStyle = '#111'; c.font = '700 13px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('СЕРВЕРНАЯ  −2', w / 2, h / 2 + 1); }, S); o.srv.position.set(0, 1.78, -len + .09);
-  o.reset = () => { setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .7; o.srv.visible = false; };
+  // лужа под телом (сцена «Жилец ест»)
+  o.blood = new T.Mesh(new T.CircleGeometry(.9, 18), new T.MeshLambertMaterial({ color: 0x2a0303 })); o.blood.rotation.x = -PI / 2; o.blood.scale.set(1, 1.6, 1); o.blood.position.set(0, .006, -12); S.add(o.blood);
+  o.reset = () => { o.blood.visible = false; o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .7; o.srv.visible = false; };
   o.tick = () => {};
   return o;
 }
@@ -237,6 +239,8 @@ function buildServer() {
 /* ---------- кадры ---------- */
 // act: [актёр, x, y, z, поворот, поза, куда смотрит ('cam' | [x,y,z] | null)]
 const lin = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
+// свет для сцены «Жилец ест»: горит одна лампа прямо над ними и подмигивает
+function eatLight(o, t) { setLamps(o, 0); const l = o.lamps[3], on = Math.sin(t * 9) > .85 && Math.sin(t * 1.7) > 0 ? .25 : 1; l.li.intensity = 4.2 * on; l.li.distance = 9; o.amb.intensity = 1.1; l.tube.material.color.setHex(on > .5 ? 0xe8f0e8 : 0x30322e); o.blood.visible = true; o.slitLight.intensity = 0; o.slit.visible = false; A.monster.gore = 1; A.victim.gore = 2; }
 const SH = {
   hall_cam: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: (o, t) => [['temych', 5.2, 0, -.85, 0, 'sit', [5, 1, 3]], ['monster', -3.3, 0, -5.1, .5, 'monster', 'cam']] },
   hall_cam_empty: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', 5.2, 0, -.85, 0, 'sit', [5, 1, 3]]] },
@@ -291,6 +295,8 @@ const SH = {
   booth_reflect: { loc: 'lobby', pos: [5.3, 1.6, -.55], look: [5.12, 1.6, .9], fov: 38, set: (o) => { setDawn(o, 1); o.lamp.intensity = 0; o.lampBulb.visible = false; A.temych.faceSet = 'smile'; return [['temych', 5.12, 0, .9, PI, 'stand', 'cam']]; } },
   exterior_alone: { loc: 'lobby', pos: [3.2, 1.4, 17.8], look: [2.0, 2.2, 13], fov: 54, set: () => [['temych', 2.3, 0, 15.6, .25, 'stand', 'cam']] },
   basement_door: { loc: 'corridor', pos: [.15, 1.55, -23.5], look: [0, 1.05, -26], fov: 54, set: (o, t) => { setLamps(o, (Math.sin(t * 11) > .55 && Math.sin(t * 2.3) > -.2) ? 1 : 0); o.srv.visible = true; o.slitLight.color.setHex(0xffb060); o.slitLight.intensity = 1.6 + Math.sin(t * 7) * .3; o.amb.intensity = .35; return []; } },
+  cam7_eat: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [0, .7, -12], fov: 30, set: (o, t) => { eatLight(o, t); return [['victim', 0, 0, -12.4, PI * .5, 'lay', null], ['monster', .05, 0, -11.3, PI, 'eat', t < 4 ? [0, .2, -12.3] : [1.0, 2.75, -.5]]]; } },
+  eat_close: { loc: 'corridor', pos: [-.7, 1.05, -14.3], look: [.05, .7, -11.8], fov: 54, set: (o, t) => { eatLight(o, t); return [['victim', 0, 0, -12.4, PI * .5, 'lay', null], ['monster', .05, 0, -11.3, PI, 'eat', t < 2.2 ? [0, .2, -12.3] : [-.7, 1.05, -14.3]]]; } },
   run_dark: { loc: 'corridor', pos: [0, 1.5, -3], look: [0, 1.2, -26], fov: 62, set: (o, t) => { setLamps(o, 7 - Math.floor(t * 1.5) % 8, true); return [['mihalych', .3, 0, -5.2 - t * .4, PI, 'walk', null]]; } },
 };
 // старые имена кадров из первой версии → новые
@@ -348,7 +354,7 @@ function stage(id, t) {
   const sh = SH[ALIAS[id] || id] || SH.hall_cam, o = L[sh.loc];
   if (curLoc && curLoc !== o) curLoc.reset();
   curLoc = o; o.reset();
-  for (const k in A) A[k].faceSet = 'base';
+  for (const k in A) { A[k].faceSet = 'base'; A[k].gore = 0; }
   const acts = sh.set(o, t) || [];
   const used = new Set();
   for (const [k, x, y, z, ry, pose, look] of acts) {

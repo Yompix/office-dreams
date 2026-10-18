@@ -30,7 +30,7 @@ async function load() {
 /* ---------- материал тела: одежда по зонам + лицо ---------- */
 // зоны считаются по точке тела в позе «Т» (метры, рост мужской модели 1.81): так одежда не съезжает при движении
 const BODY_FS = `
-uniform vec3 uShirt, uPants, uShoes, uSkin, uCoat, uTrim; uniform float uFlat, uS, uCoatY, uTalk, uBlink, uSmile, uNaked, uBadge, uFem, uWet, uGrey;
+uniform vec3 uShirt, uPants, uShoes, uSkin, uCoat, uTrim; uniform float uFlat, uS, uCoatY, uTalk, uBlink, uSmile, uNaked, uBadge, uFem, uWet, uGrey, uGore;
 uniform vec2 uMouth, uEyeL, uEyeR;
 varying vec3 vB;
 float h3(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
@@ -81,6 +81,14 @@ const BODY_PAINT = `
     if (min(length(e1), length(e2)) < 1.) col = texture2D(map, uv + vec2(0., -.028)).rgb * uSkin * (min(abs(e1.y), abs(e2.y)) < .18 ? .45 : 1.);
   }
   col *= mix(1., .82, uWet * step(1.5, p.y));
+  // кровь: кисти и подбородок (у Жильца после еды), пятна на груди и шее (у тела)
+  if (uGore > 0.) {
+    float n = h3(floor(vB * 90.)), bl = 0.;
+    if (abs(p.x) > .64) bl = smoothstep(.64, .74, abs(p.x)) * (.55 + .45 * n);
+    vec2 cd = (uv - uMouth - vec2(0., -.012)) / vec2(.05, .028); if (length(cd) < 1. && cd.y < .6) bl = max(bl, (1. - length(cd)) * 1.6 * (.6 + .4 * n));
+    if (uGore > 1.5 && p.y > 1.15 && p.y < 1.62 && abs(p.x) < .2 && p.z > -.02) bl = max(bl, smoothstep(.35, .7, h3(floor(vB * 14.)) + (1.62 - p.y) * -.2 + .25));
+    col = mix(col, vec3(.16, .015, .01) * (.7 + .5 * n), clamp(bl, 0., 1.) * min(uGore, 1.));
+  }
   diffuseColor.rgb = col;
 }`;
 // оболочка одежды: та же сетка, чуть раздутая по нормали там, где есть ткань, — у одежды появляется объём, у плаща полы
@@ -99,7 +107,7 @@ function uniforms(o) {
     uShirt: { value: new T.Color(o.shirt ?? 0x222222) }, uPants: { value: new T.Color(o.pants ?? 0x1a1a1a) }, uShoes: { value: new T.Color(o.shoes ?? 0x111111) },
     uSkin: { value: sk }, uCoat: { value: new T.Color(o.coat ?? 0x000000) }, uTrim: { value: new T.Color(o.trim ?? 0x111111) },
     uS: { value: o.fem ? 1.77 / 1.81 : 1 }, uCoatY: { value: o.coatY || 0 }, uTalk: { value: 0 }, uBlink: { value: 0 }, uSmile: { value: o.smile ? 1 : 0 },
-    uNaked: { value: o.naked ? 1 : 0 }, uBadge: { value: o.badge ? 1 : 0 }, uFem: { value: o.fem ? 1 : 0 }, uWet: { value: o.wet ? 1 : 0 }, uGrey: { value: o.grey || 0 }, uFlat: { value: o.coatY && o.fem ? 1 : 0 }, uThin: { value: o.thin || 1 },
+    uNaked: { value: o.naked ? 1 : 0 }, uBadge: { value: o.badge ? 1 : 0 }, uFem: { value: o.fem ? 1 : 0 }, uGore: { value: 0 }, uWet: { value: o.wet ? 1 : 0 }, uGrey: { value: o.grey || 0 }, uFlat: { value: o.coatY && o.fem ? 1 : 0 }, uThin: { value: o.thin || 1 },
     uMouth: { value: new T.Vector2(.1855, .2637) }, uEyeL: { value: o.fem ? new T.Vector2(.130, .179) : new T.Vector2(.1367, .1758) }, uEyeR: { value: o.fem ? new T.Vector2(.238, .179) : new T.Vector2(.2344, .1758) },
   };
 }
@@ -218,7 +226,7 @@ function fitProps(C) {
 const POSE = {
   stand: 'Idle_Loop', talk: 'Idle_Talking_Loop', sit: 'Sitting_Idle_Loop', sittalk: 'Sitting_Talking_Loop', sitfloor: 'Fixing_Kneeling',
   knock: 'Idle_Loop', give: 'Idle_Loop', paper: 'Idle_Loop', monster: 'Idle_Loop', reach: 'Idle_Loop',
-  walk: 'Walk_Loop', back: 'Walk_Loop', hug: 'Idle_Loop',
+  walk: 'Walk_Loop', back: 'Walk_Loop', hug: 'Idle_Loop', eat: 'Crouch_Idle_Loop', lay: 'LayToIdle',
 };
 const _a = new T.Vector3(), _b = new T.Vector3(), _c = new T.Vector3(), _q = new T.Quaternion(), _q2 = new T.Quaternion(), _pq = new T.Quaternion();
 // повернуть кость так, чтобы она смотрела в направлении dir (в осях персонажа: +z вперёд, +y вверх, +x влево)
@@ -245,6 +253,7 @@ function updateSkinned(C, t, dt) {
     a.reset(); a.timeScale = P === 'back' ? -.8 : P === 'monster' ? .3 : P === 'reach' ? .55 : C.o.monster ? .8 : 1;
     if (C.act && dt < .2) { a.play(); C.act.crossFadeTo(a, .35, false); } else { C.mixer.stopAllAction(); a.play(); }
     if (!C.act) a.time = (C.t0 * 1.7) % (a.getClip().duration || 1);
+    if (P === 'lay') { C.mixer.stopAllAction(); a.play(); a.time = 0; a.timeScale = 0; }   // тело: первый кадр «лёжа», без движения
     C.act = a; C.clip = want;
   }
   C.mixer.update(Math.min(dt, .1));
@@ -262,6 +271,12 @@ function updateSkinned(C, t, dt) {
     const sw = Math.sin(tt * 1.3) * .08;
     aimBone(C, 'upperarm_r', 'lowerarm_r', [-.15, .05 + sw, 1], 1); aimBone(C, 'lowerarm_r', 'hand_r', [-.05, .1, 1], 1);
     aimBone(C, 'upperarm_l', 'lowerarm_l', [.15, .05 - sw, 1], 1); aimBone(C, 'lowerarm_l', 'hand_l', [.05, .1, 1], 1);
+  } else if (P === 'eat') {
+    // рвёт и тащит ко рту: руки к земле перед собой, рывками вверх
+    const tr = Math.max(0, Math.sin(tt * 4.2)) ** 5, tl = Math.max(0, Math.sin(tt * 4.2 + 2.1)) ** 5;
+    aimBone(C, 'upperarm_r', 'lowerarm_r', [-.2, -.75, .75], 1); aimBone(C, 'lowerarm_r', 'hand_r', [.1, -.75 + tr * 1.1, .7 - tr * .3], 1);
+    aimBone(C, 'upperarm_l', 'lowerarm_l', [.2, -.75, .75], 1); aimBone(C, 'lowerarm_l', 'hand_l', [-.1, -.75 + tl * 1.1, .7 - tl * .3], 1);
+    aimBone(C, 'spine_02', 'spine_03', [0, .55, 1], .8);
   } else if (P === 'hug') {
     aimBone(C, 'upperarm_r', 'lowerarm_r', [.2, -.1, 1], 1); aimBone(C, 'lowerarm_r', 'hand_r', [.9, 0, .4], 1);
     aimBone(C, 'upperarm_l', 'lowerarm_l', [-.2, -.1, 1], 1); aimBone(C, 'lowerarm_l', 'hand_l', [-.9, 0, .4], 1);
@@ -290,10 +305,12 @@ function updateSkinned(C, t, dt) {
   // лицо
   C.blinkT -= dt; let blink = 0; if (C.blinkT < 0) { blink = 1; if (C.blinkT < -.12) C.blinkT = 2 + rnd() * 4; }
   const fs = C.faceSets[C.faceSet] || {};
-  if (C.o.monster || C.o.noBlink || fs.wide) blink = 0;   // Жилец и «Катя» не моргают — это улика
+  if (C.o.monster || C.o.noBlink || fs.wide) blink = 0;
+  if (C.o.dead) blink = 1;   // Жилец и «Катя» не моргают — это улика
   U.uBlink.value = blink; if (C.eyes) C.eyes.visible = !blink;
   U.uTalk.value = lerp(U.uTalk.value, clamp(Math.max(C.talk * 1.3, fs.mouth || 0), 0, 1), Math.min(1, dt * 18));
   U.uSmile.value = C.o.smile ? 1 : fs.smile ? +fs.smile : 0;
+  U.uGore.value = C.gore || 0;
   C.keys.visible = P === 'give'; C.paper.visible = P === 'paper';
 }
 
@@ -311,6 +328,8 @@ function cast() {
   A.katyaSmile = makeSkinned(Object.assign({ name: 'katyaSmile' }, kat, { skin: 0xe6dcd8, skinK: 1.25, grey: .5, smile: true, noBlink: true, eyeC: 0x555555 }));
   A.mihalych = makeSkinned(Object.assign({ name: 'mihalych', h: 1.76, skin: 0xead0c0, skinK: 1.2, hairPart: 'Hair_SimpleParted', hair: 0xc8c8c2, brow: 0xb8b8b2, beard: true, beardC: 0xd0d0ca, glasses: true }, guard, { shirt: 0x3a3e40, pants: 0x2a2d30, trim: 0x55595c }));
   A.monster = makeSkinned({ name: 'monster', monster: true, naked: true, h: 2.25, thin: .64, arm: 1.22, armL: 1.15, skin: 0x9aa39e, grey: 1, hairPart: 'Hair_Long', hair: 0x050505, voidEyes: true, smile: true, tilt: .25, jerk: true, veil: true, headMax: 2.3 });
+  // тело ночного уборщика (сцена, где Жилец ест)
+  A.victim = makeSkinned({ name: 'victim', dead: true, h: 1.75, skin: 0xc8c4bc, skinK: 1.0, grey: .7, hairPart: 'Hair_Buzzed', hair: 0x2a2420, brow: 0x2a2420, shirt: 0x2c4a6a, pants: 0x24384f, shoes: 0x111111, trim: 0x8a2020 });
   for (const k in A) A[k].update(0, 1 / 30);
   return A;
 }
