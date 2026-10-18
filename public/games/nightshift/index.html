@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#050607">
+<title>Ночная смена — интерактивный хоррор</title>
+<meta name="description" content="Интерактивное хоррор-кино: ночной охранник, четыре правила и сестра за стеклом. Твои выборы решают, доживёшь ли ты до утра.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.png">
+<style>
+:root { --red: #e0303a; --txt: #f2f2f2; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+html, body { margin: 0; height: 100%; background: #000; color: var(--txt); font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif; overflow: hidden; }
+#stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); aspect-ratio: 9 / 16; height: 100%; max-width: 100%; overflow: hidden; background: #000; container-type: size; }
+@media (max-aspect-ratio: 9/16) { #stage { width: 100%; height: auto; } }
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.layer { position: absolute; inset: 0; pointer-events: none; }
+.hide { display: none !important; }
+/* субтитры */
+#subs { position: absolute; left: 6%; right: 6%; bottom: 23%; text-align: center; font-weight: 900; font-size: 6.4cqw; line-height: 1.15; text-shadow: 0 0 .6cqw #000, 0 .4cqw 1.2cqw #000, 0 0 2cqw #000; text-transform: lowercase; }
+#subs span { display: inline-block; animation: pop .12s ease-out; }
+#subs.voice { color: #ffd9a8; }
+#subs.katya { color: #ffb4c8; font-style: italic; }
+#subs.monster { color: #ff3b3b; font-size: 8cqw; letter-spacing: .3cqw; }
+#subs.typed { text-transform: none; font-weight: 800; font-size: 5.2cqw; background: rgba(0,0,0,.45); padding: 2cqw 3cqw; border-radius: 2cqw; }
+#who { position: absolute; left: 0; right: 0; bottom: calc(23% + 11cqw); text-align: center; font-size: 3.2cqw; font-weight: 800; letter-spacing: .5cqw; color: #fff; opacity: .85; }
+@keyframes pop { from { transform: scale(.75); opacity: .3; } to { transform: none; opacity: 1; } }
+#rule { position: absolute; left: 7%; right: 7%; top: 14%; text-align: center; font-weight: 900; font-size: 5.6cqw; line-height: 1.25; background: rgba(240, 230, 210, .92); color: #151515; padding: 3cqw 3cqw; border-radius: 1cqw; white-space: pre-line; transform: rotate(-1.5deg); box-shadow: 0 1cqw 4cqw rgba(0,0,0,.6); font-family: "Courier New", monospace; animation: fadein .3s; }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+/* выбор */
+#choice { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 7% 14%; pointer-events: auto; background: linear-gradient(transparent, rgba(0,0,0,.85) 40%); animation: fadein .35s; }
+#choice h2 { margin: 0 0 4cqw; text-align: center; font-size: 6.6cqw; font-weight: 900; text-shadow: 0 0 2cqw #000; }
+#choice button, .btn { display: block; width: 100%; margin: 0 0 3cqw; padding: 4.2cqw 3cqw; border: .5cqw solid rgba(255, 70, 80, .75); border-radius: 3cqw; background: rgba(20, 4, 6, .82); color: #fff; font-family: inherit; font-weight: 800; font-size: 5.4cqw; line-height: 1.15; box-shadow: 0 0 3cqw rgba(255, 40, 50, .35), inset 0 0 2cqw rgba(255, 40, 50, .2); cursor: pointer; text-align: left; }
+#choice button b { color: var(--red); margin-right: 2cqw; }
+#choice button:active, .btn:active { transform: scale(.97); background: rgba(80, 10, 14, .9); }
+#timer { height: 1.2cqw; background: rgba(255,255,255,.15); border-radius: 1cqw; overflow: hidden; margin-top: 1cqw; }
+#timer i { display: block; height: 100%; background: var(--red); width: 100%; }
+/* меню, конец, проигрыш */
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8%; text-align: center; pointer-events: auto; background: radial-gradient(ellipse at 50% 40%, rgba(40, 0, 4, .55), rgba(0,0,0,.92) 70%); animation: fadein .5s; }
+.screen h1 { margin: 0; font-size: 12cqw; font-weight: 900; letter-spacing: .4cqw; line-height: .95; text-shadow: 0 0 4cqw rgba(255, 30, 40, .6); }
+.screen h1 em { display: block; font-style: normal; font-size: 4.4cqw; color: var(--red); letter-spacing: .8cqw; margin-top: 3cqw; }
+.screen p { font-size: 4.2cqw; line-height: 1.35; opacity: .85; margin: 4cqw 0 6cqw; }
+.screen .btn { text-align: center; max-width: 80cqw; }
+.screen .btn.ghost { border-color: rgba(255,255,255,.3); box-shadow: none; background: rgba(255,255,255,.06); font-size: 4.4cqw; }
+.screen small { opacity: .55; font-size: 3.2cqw; margin-top: 4cqw; line-height: 1.4; }
+.over h1 { color: var(--red); font-size: 9cqw; }
+.gal { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4cqw; width: 100%; margin: 4cqw 0; }
+.gal div { border: .4cqw solid rgba(255,255,255,.15); border-radius: 2cqw; padding: 3cqw 2cqw; font-size: 3.6cqw; font-weight: 700; min-height: 15cqw; display: flex; align-items: center; justify-content: center; }
+.gal div.got { border-color: var(--red); background: rgba(224, 48, 58, .12); }
+#loadbar { width: 60%; height: 1cqw; background: rgba(255,255,255,.1); border-radius: 1cqw; overflow: hidden; margin-top: 6cqw; }
+#loadbar i { display: block; height: 100%; width: 0; background: var(--red); transition: width .2s; }
+/* мини-игры */
+#mg { position: absolute; inset: 0; pointer-events: auto; }
+.camgrid { position: absolute; left: 5%; right: 5%; top: 18%; display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; }
+.cam { position: relative; aspect-ratio: 9/12; border: .5cqw solid #333; background: #050505 center/cover; filter: grayscale(.8) contrast(1.2) brightness(.8); cursor: pointer; overflow: hidden; }
+.cam::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 2px, transparent 2px 4px); }
+.cam b { position: absolute; left: 2cqw; top: 2cqw; font-size: 3.4cqw; text-shadow: 0 0 1cqw #000; z-index: 1; }
+.cam.seen { border-color: #3a6; }
+.cam.off { display: flex; align-items: center; justify-content: center; filter: none; border-color: #611; }
+.cam.off span { color: var(--red); font-weight: 900; font-size: 5cqw; }
+.mghead { position: absolute; top: 6%; left: 0; right: 0; text-align: center; font-weight: 900; font-size: 5.4cqw; text-shadow: 0 0 2cqw #000; padding: 0 6%; }
+.mghead small { display: block; font-size: 3.6cqw; font-weight: 600; opacity: .75; margin-top: 1.5cqw; }
+.mgfoot { position: absolute; left: 7%; right: 7%; bottom: 7%; }
+.meter { height: 4cqw; border: .5cqw solid rgba(255,255,255,.4); border-radius: 3cqw; overflow: hidden; background: rgba(0,0,0,.6); }
+.meter i { display: block; height: 100%; width: 50%; background: linear-gradient(90deg, #a11, var(--red)); }
+.bigbtn { position: absolute; left: 50%; bottom: 18%; transform: translateX(-50%); width: 44cqw; height: 44cqw; border-radius: 50%; border: 1cqw solid rgba(255, 60, 70, .8); background: radial-gradient(circle, rgba(120, 10, 16, .9), rgba(20, 0, 2, .95)); color: #fff; font-family: inherit; font-weight: 900; font-size: 5cqw; line-height: 1.1; box-shadow: 0 0 6cqw rgba(255, 30, 40, .5); touch-action: none; }
+.bigbtn.held { transform: translateX(-50%) scale(.93); background: radial-gradient(circle, rgba(200, 20, 30, .95), rgba(40, 0, 4, .95)); }
+.arrows { position: absolute; left: 6%; right: 6%; bottom: 16%; display: flex; gap: 4cqw; }
+.arrows button { flex: 1; height: 26cqw; font-size: 12cqw; border-radius: 4cqw; border: .6cqw solid rgba(255,255,255,.35); background: rgba(0,0,0,.6); color: #fff; }
+.flash { animation: flash .25s; }
+@keyframes flash { 0% { background: rgba(255,255,255,.9); } 100% { background: transparent; } }
+#hud { position: absolute; top: 2.5%; right: 4%; display: flex; gap: 2cqw; pointer-events: auto; z-index: 5; }
+#hud button { width: 10cqw; height: 10cqw; border-radius: 50%; border: .4cqw solid rgba(255,255,255,.3); background: rgba(0,0,0,.45); color: #fff; font-size: 4.6cqw; padding: 0; }
+#skip { position: absolute; right: 4%; bottom: 3%; font-size: 3.2cqw; opacity: .5; pointer-events: auto; padding: 2cqw 3cqw; border-radius: 2cqw; background: rgba(0,0,0,.4); border: 0; color: #fff; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" width="1080" height="1920"></canvas>
+  <div class="layer"><div id="rule" class="hide"></div><div id="who"></div><div id="subs"></div></div>
+  <div id="mg" class="hide"></div>
+  <div id="choice" class="hide"></div>
+  <div id="hud" class="hide"><button id="bMute" title="Звук">🔊</button><button id="bMenu" title="Меню">☰</button></div>
+  <button id="skip" class="hide">пропустить ›</button>
+  <div id="ui"></div>
+</div>
+<script src="story.js"></script>
+<script src="engine.js"></script>
+</body>
+</html>

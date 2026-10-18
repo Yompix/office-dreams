@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07060b">
+<title>Наши игры</title>
+<meta name="description" content="Игры студии Office Dreams: интерактивный хоррор «Ночная смена» и неоновый тайкун Office Dreams в Telegram.">
+<meta property="og:title" content="Наши игры — Office Dreams">
+<meta property="og:description" content="Интерактивный хоррор «Ночная смена» и тайкун Office Dreams. Играй прямо в браузере.">
+<meta property="og:image" content="/games/nightshift/img/f12.webp">
+<link rel="icon" href="/icon-180.png">
+<style>
+:root { --bg: #07060b; --card: #110f18; --line: rgba(255,255,255,.09); --txt: #f1eff7; --mut: #a39fb3; --red: #e0303a; --neon: #b14cff; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--txt); font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px 64px; }
+header { padding: 44px 0 22px; }
+header h1 { margin: 0; font-size: clamp(34px, 7vw, 56px); font-weight: 900; letter-spacing: -.5px; }
+header h1 span { background: linear-gradient(90deg, var(--red), var(--neon)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+header p { margin: 10px 0 0; color: var(--mut); font-size: 17px; line-height: 1.5; max-width: 560px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-top: 18px; }
+.card { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: transform .2s, border-color .2s; }
+.card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.2); }
+.cover { position: relative; aspect-ratio: 16 / 10; background: #000 center / cover no-repeat; }
+.cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, var(--card)); }
+.tag { position: absolute; top: 14px; left: 14px; z-index: 1; font-size: 12px; font-weight: 800; letter-spacing: 1px; padding: 6px 10px; border-radius: 999px; background: rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.18); }
+.tag.new { background: var(--red); border-color: var(--red); }
+.body { padding: 4px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.body h2 { margin: 0; font-size: 26px; font-weight: 900; }
+.body p { margin: 0; color: var(--mut); font-size: 15px; line-height: 1.5; flex: 1; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.meta span { font-size: 12px; color: var(--mut); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
+.btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 18px; border-radius: 14px; font-weight: 800; font-size: 15px; text-decoration: none; color: #fff; background: var(--red); border: 0; flex: 1; min-width: 140px; }
+.btn.alt { background: rgba(255,255,255,.07); border: 1px solid var(--line); }
+.btn.tg { background: linear-gradient(90deg, #7b2cff, #b14cff); }
+.soon { opacity: .6; }
+.soon .cover { filter: grayscale(.8) blur(1px); }
+footer { margin-top: 48px; color: var(--mut); font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Наши <span>игры</span></h1>
+    <p>Играй прямо в браузере, без установки. На Android можно поставить хоррор как приложение.</p>
+  </header>
+  <div class="grid">
+    <article class="card">
+      <div class="cover" style="background-image:url(/games/nightshift/img/f12.webp);background-position:50% 35%"><span class="tag new">НОВОЕ</span></div>
+      <div class="body">
+        <h2>Ночная смена</h2>
+        <p>Интерактивный хоррор. Ты ночной охранник, у тебя четыре правила, а в дверь стучит сестра, которая живёт в другом городе. Каждый выбор решает, доживёшь ли ты до утра.</p>
+        <div class="meta"><span>хоррор</span><span>4 концовки</span><span>8 смертей</span><span>~15 минут</span><span>лучше в наушниках</span></div>
+        <div class="btns">
+          <a class="btn" href="/games/nightshift/">▶ Играть</a>
+          <a class="btn alt" id="apk" href="/games/nightshift.apk" download hidden>⬇ APK для Android</a>
+        </div>
+      </div>
+    </article>
+    <article class="card">
+      <div class="cover" style="background-image:url(/art/office.webp)"><span class="tag">TELEGRAM</span></div>
+      <div class="body">
+        <h2>Office Dreams</h2>
+        <p>Неоновый пиксельный тайкун: от стола в подвале до небоскрёба. Нанимай команду, выпускай хиты, сражайся с другими студиями и копи очки аирдропа.</p>
+        <div class="meta"><span>тайкун</span><span>PvP</span><span>аирдроп OFFX</span></div>
+        <div class="btns"><a class="btn tg" href="https://t.me/officedream1_bot/play">Играть в Telegram</a><a class="btn alt" href="/site">О проекте</a></div>
+      </div>
+    </article>
+    <article class="card soon">
+      <div class="cover" style="background-image:url(/games/nightshift/img/f07.webp)"><span class="tag">СКОРО</span></div>
+      <div class="body">
+        <h2>Ночная смена: серия 2</h2>
+        <p>Седьмой этаж. Михалыч. И новое правило, написанное твоим почерком.</p>
+      </div>
+    </article>
+  </div>
+  <footer>© Office Dreams</footer>
+</div>
+<script>
+// кнопка APK появляется, только если файл уже выложен
+fetch('/games/nightshift.apk', { method: 'HEAD' }).then(r => { if (r.ok) document.getElementById('apk').hidden = false; }).catch(() => {});
+</script>
+</body>
+</html>

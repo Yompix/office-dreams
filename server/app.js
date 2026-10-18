@@ -80,6 +80,7 @@ function sendText(res, status, text, type = 'text/plain; charset=utf-8', extra =
 
 /* ---------- static ---------- */
 const MIME = { '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.js': 'text/javascript; charset=utf-8', '.webp': 'image/webp', '.jpg': 'image/jpeg' };
+const GAME_MIME = { ...MIME, '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4', '.webmanifest': 'application/manifest+json', '.apk': 'application/vnd.android.package-archive' };
 function makeStatic(cfg) {
   const distIndex = path.join(cfg.root, 'dist', 'index.html');
   let cached = null;
@@ -100,6 +101,23 @@ function makeStatic(cfg) {
       const gz = /\bgzip\b/.test(req.headers['accept-encoding'] || '');
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', 'content-encoding': gz ? 'gzip' : 'identity', vary: 'accept-encoding', ...SEC_HEADERS });
       return res.end(gz ? f.gz : f.raw);
+    }
+    // /games/: the games page and the browser games (public/games/**), plain files only
+    if (p === '/games') { res.writeHead(301, { location: '/games/', ...SEC_HEADERS }); return res.end(); }
+    if (p.startsWith('/games/')) {
+      const games = path.join(pub, 'games');
+      let rel; try { rel = decodeURIComponent(p.slice(7)); } catch { return sendText(res, 400, 'bad url'); }
+      if (rel === '' || rel.endsWith('/')) rel += 'index.html';
+      const file = path.join(games, path.normalize(rel));
+      if (!file.startsWith(games + path.sep) || !/^[\w.\-/]+$/.test(rel)) return sendText(res, 404, 'Not found');
+      // a folder without the trailing slash: /games/nightshift -> /games/nightshift/
+      if (!path.extname(rel) && fs.existsSync(path.join(file, 'index.html'))) { res.writeHead(301, { location: p + '/', ...SEC_HEADERS }); return res.end(); }
+      const type = GAME_MIME[path.extname(file).toLowerCase()];
+      let st; try { st = type && fs.statSync(file); } catch { st = null; }
+      if (!st || !st.isFile()) return sendText(res, 404, 'Not found');
+      const html = type.startsWith('text/html');
+      res.writeHead(200, { 'content-type': type, 'content-length': st.size, 'cache-control': html ? 'no-cache' : 'public, max-age=3600', ...SEC_HEADERS });
+      return req.method === 'HEAD' ? res.end() : fs.createReadStream(file).pipe(res);
     }
     const name = path.basename(p);
     // public/ files, plus the illustrated backgrounds in public/art/
