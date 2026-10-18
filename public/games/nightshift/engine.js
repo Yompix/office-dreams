@@ -501,6 +501,12 @@ document.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Ente
 uiEl.innerHTML = `<div class="screen"><h1>НОЧНАЯ<br>СМЕНА</h1><div id="loadbar"><i></i></div><small>Загрузка…</small></div>`;
 requestAnimationFrame(frame);
 window.addEventListener('error', e => { if (mode === 'menu' && !uiEl.innerHTML) uiEl.innerHTML = `<div class="screen"><p>Ошибка: ${String(e.message || e).slice(0, 120)}</p></div>`; });
-load(p => { const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).catch(() => {}).then(() => { initAudio(); menu(); });
+// заставка студии перед меню (нажатие — пропустить)
+function studio() {
+  mode = 'studio'; let done = false; const go = () => { if (done) return; done = true; uiEl.onclick = null; menu(); };
+  uiEl.innerHTML = `<div class="studio"><div class="logo"><i></i><b>YOMPIX</b><span>GAMES</span></div><small>представляет</small></div>`;
+  uiEl.onclick = go; setTimeout(go, 3600);
+}
+load(p => { const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).catch(() => {}).then(() => { initAudio(); studio(); });
 window.__ns = { back: () => menu(), startScene, get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused].join(' '); } };
 })();
