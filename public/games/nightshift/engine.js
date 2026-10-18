@@ -3,7 +3,7 @@
 'use strict';
 const S = window.STORY, $ = id => document.getElementById(id);
 const cv = $('cv'), g = cv.getContext('2d'), W = 1080, H = 1920;
-const subsEl = $('subs'), whoEl = $('who'), ruleEl = $('rule'), choiceEl = $('choice'), uiEl = $('ui'), mgEl = $('mg');
+const dlgEl = $('dlg'), tapEl = $('tap'), chapEl = $('chap'), clockEl = $('clock'), noteEl = $('note'), ruleEl = $('rule'), choiceEl = $('choice'), uiEl = $('ui'), mgEl = $('mg');
 const LS = { get(k, d) { try { const v = localStorage.getItem('ns1_' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
              set(k, v) { try { localStorage.setItem('ns1_' + k, JSON.stringify(v)); } catch {} } };
 
@@ -66,8 +66,12 @@ let flashT = -9, scareAt = null, shakeAmp = 0, typed = null, hb = 0;
 const seen = new Set(LS.get('seen', []));
 
 function durOf(k) { return (TIM[k] && TIM[k].dur) || (BUF[k] && BUF[k].duration) || 2; }
-function speaker(k) { return k === 'ch_katya' || k === 'ch_whisper' ? 'katya' : k === 'ch_monster' ? 'monster' : k === 'ch_guard' ? 'voice' : ''; }
-const WHO = { ch_guard: 'СМЕНЩИК', ch_katya: 'КАТЯ', ch_whisper: 'КАТЯ?', ch_monster: 'CAM 13' };
+// кто говорит: имя на табличке и цвет
+const SPK = { 'ТЁМЫЧ': { c: '#cfd3da', cls: 'narr', sub: 'ты' }, 'СМЕНЩИК': { c: '#ffd27a' }, 'КАТЯ': { c: '#ff9fbc' }, 'КАТЯ?': { c: '#ff4f7e' },
+  '???': { c: '#ff3030', cls: 'monster' }, 'МИХАЛЫЧ': { c: '#8fd0ff' }, 'КАМЕРА': { c: '#7fe0a0' }, 'ТЕЛЕФОН': { c: '#9aa3b5' } };
+const VOICE_WHO = { ch_guard: 'СМЕНЩИК', ch_katya: 'КАТЯ', ch_whisper: 'КАТЯ?', ch_monster: '???' };
+const whoOf = k => VOICE_WHO[k] || 'ТЁМЫЧ';
+let waiting = false, holding = false, auto = LS.get('auto', false);
 
 function startScene(id) {
   gen++; stopAll(); choiceEl.classList.add('hide'); mgEl.classList.add('hide'); mgEl.innerHTML = '';
@@ -75,13 +79,14 @@ function startScene(id) {
   sceneId = id; scene = S.scenes[id]; mode = 'play';
   if (!id.startsWith('over_')) LS.set('save', id);
   if (scene.music) music(scene.music);
-  $('skip').classList.toggle('hide', !seen.has(id));
+  if (scene.time) { clockEl.textContent = 'НОЧЬ 1 · ' + scene.time; clockEl.classList.remove('hide'); }
   bi = -1; nextBeat();
 }
 function nextBeat() {
-  bi++; amb('heart', false);
+  bi++; amb('heart', false); holding = false; dlgEl.classList.remove('wait');
   if (!scene.beats[bi]) { seen.add(sceneId); LS.set('seen', [...seen]); return runThen(scene.then); }
   beat = scene.beats[bi]; bT0 = now(); fired.clear(); sched = []; typed = null; scareAt = null; hb = 0;
+  chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
   let t = .15;
   for (const k of beat.say || []) {
     sched.push({ t, k, d: durOf(k) });
@@ -91,11 +96,16 @@ function nextBeat() {
   if (beat.text) { const d = Math.max(2.2, beat.text.length / 14 + 1.3); typed = { t0: beat.say ? t : .2, d, s: beat.text }; t = Math.max(t, typed.t0 + d); }
   if (beat.scare != null) scareAt = beat.scare;
   bDur = Math.max(t + (beat.pad || .3), 1.2);
+  ruleEl.classList.toggle('hide', !beat.rule); if (beat.rule) { ruleEl.textContent = beat.rule; learnRule(beat.rule); }
+  if (beat.wait) { waiting = true; tapEl.textContent = '▶ ' + beat.wait; tapEl.classList.remove('hide'); dlgEl.classList.add('hide'); ruleEl.classList.add('hide'); return; }
+  beatAudio();
+}
+function beginBeat() { waiting = false; tapEl.classList.add('hide'); chapEl.classList.add('hide'); if (beat.rule) ruleEl.classList.remove('hide'); bT0 = now(); play('click'); beatAudio(); }
+function beatAudio() {
   for (const [n, at] of beat.sfx || []) if (n === 'static') amb('static', true, .25); else play(n, { when: at });
   for (const it of sched) { const o = play(it.k, { when: it.t, bus: 'voice' }); if (o) o.voice = true; }
   amb('rain', beat.fx === 'rain', .35); if (beat.fx !== 'static' && !(beat.sfx || []).some(s => s[0] === 'static')) amb('static', beat.fx === 'static', .3);
   if (scareAt != null) play('scare', { when: scareAt });
-  ruleEl.classList.toggle('hide', !beat.rule); if (beat.rule) ruleEl.textContent = beat.rule;
   if (bi > 0 && beat.img !== scene.beats[bi - 1].img) play('boom', { gain: .35 });
 }
 function gapTime(k) {   // начало самой длинной паузы между словами (там скример)
@@ -103,12 +113,28 @@ function gapTime(k) {   // начало самой длинной паузы м�
   for (let i = 1; i < w.length; i++) { const gp = w[i][0] - w[i - 1][0]; if (gp > best) { best = gp; at = w[i][0] - .15; } }
   return at;
 }
-function skipBeat() { if (mode !== 'play') return; stopAll(); duck(false); nextBeat(); }
+function skipBeat() { if (mode !== 'play') return; stopAll(); duck(false); waiting = false; tapEl.classList.add('hide'); nextBeat(); }
+// тап по экрану: начать кадр / дочитать реплику / дальше
+function tap() {
+  if (mode !== 'play' || !beat) return;
+  if (waiting) return beginBeat();
+  if (holding) return nextBeat();
+  const t = now() - bT0;
+  if (scareAt != null && t < scareAt + 1) return;            // скример не пропускается
+  for (const o of [...playing]) if (o.voice) { try { o.s.stop(); } catch {} playing.delete(o); }
+  bT0 = now() - bDur;                                        // сразу к концу кадра (реплика показана целиком)
+}
+const known = new Set(LS.get('rules', []));
+function learnRule(r) { if (/^\d\./.test(r) || r.startsWith('«')) { known.add(r); LS.set('rules', [...known]); } }
+function showRules() {
+  const list = [...known].sort();
+  noteEl.innerHTML = `<div>${list.length ? list.filter(r => /^\d/.test(r)).join('\n\n') + list.filter(r => !/^\d/.test(r)).map(r => `<i>${r}</i>`).join('') : 'Правил пока нет.'}<small>нажми, чтобы закрыть</small></div>`;
+  noteEl.classList.remove('hide'); noteEl.onclick = () => noteEl.classList.add('hide');
+}
 
 /* ---------- что дальше ---------- */
 function runThen(th) {
-  $('skip').classList.add('hide');
-  subsEl.textContent = ''; whoEl.textContent = ''; ruleEl.classList.add('hide'); amb('rain', false); amb('static', false); amb('heart', false);
+  dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); ruleEl.classList.add('hide'); amb('rain', false); amb('static', false); amb('heart', false);
   if (th.goto) return startScene(th.goto);
   if (th.choice) return showChoice(th);
   if (th.camgame) return camGame(th.camgame);
@@ -153,8 +179,8 @@ function camGame(next) {
       }
       play('click'); play('static', { gain: .5 });
       camView = { c, t0: now() }; mgEl.classList.add('hide');
-      subsEl.className = 'typed'; subsEl.textContent = c.note;
-      setTimeout(() => { if (my !== gen) return; camView = null; subsEl.textContent = ''; subsEl.className = ''; seenCams.add(i); if (c.creep) play('boom', { gain: .4 }); mgEl.classList.remove('hide'); draw(); }, 2600);
+      say('КАМЕРА', c.note, c.note.length);
+      setTimeout(() => { if (my !== gen) return; camView = null; dlgEl.classList.add('hide'); seenCams.add(i); if (c.creep) play('boom', { gain: .4 }); mgEl.classList.remove('hide'); draw(); }, 2600);
     });
     const go = $('cgo'); if (go) go.onclick = () => { play('click'); amb('static', false); startScene(next); };
   };
@@ -223,8 +249,8 @@ function gallery() {
     <small>Концовки: ${got.length} из ${Object.keys(S.endings).length} · Смертей найдено: ${ov.length} из ${S.overs.length}</small>`;
 }
 function menu() {
-  gen++; mode = 'menu'; stopAll(false); music(null); for (const k in ambient) amb(k, false); $('hud').classList.add('hide'); $('skip').classList.add('hide');
-  choiceEl.classList.add('hide'); mgEl.classList.add('hide'); subsEl.textContent = ''; whoEl.textContent = ''; ruleEl.classList.add('hide');
+  gen++; mode = 'menu'; stopAll(false); music(null); for (const k in ambient) amb(k, false); $('hud').classList.add('hide');
+  choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false;
   const save = LS.get('save', null);
   uiEl.innerHTML = `<div class="screen"><h1>НОЧНАЯ<br>СМЕНА<em>ИНТЕРАКТИВНЫЙ ХОРРОР</em></h1>
     <p>Четыре правила. Одна ночь. Сестра за стеклом.<br>Твои выборы решают, доживёшь ли ты до утра.</p>
@@ -269,7 +295,7 @@ function cctv(label, t) {
   grain(.16); g.fillStyle = 'rgba(255,255,255,.06)'; g.fillRect(0, (t * 240) % H, W, 7);
   g.font = '700 46px Inter, Arial, sans-serif'; g.fillStyle = 'rgba(255,255,255,.85)'; g.textBaseline = 'top';
   if (label) g.fillText(label, 60, 150);
-  const sec = 7 + Math.floor(t), tx = `17.10  03:${String(21 + Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
+  const [hh, mm] = ((scene && scene.time) || '03:21').split(':').map(Number), sec = 7 + Math.floor(t), m2 = mm + Math.floor(sec / 60), tx = `17.10  ${String(hh + Math.floor(m2 / 60)).padStart(2, '0')}:${String(m2 % 60).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
   g.textAlign = 'right'; g.fillText(tx, W - 60, 150); g.textAlign = 'left';
   if (t % 1 < .6) { g.fillStyle = '#e22'; g.beginPath(); g.arc(78, 236, 13, 0, 7); g.fill(); g.fillText('REC', 104, 214); }
 }
@@ -295,12 +321,37 @@ function phone(kind, t) {
 }
 function rr(x, y, w, h, r) { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); g.fill(); }
 let lastSubKey = '';
+function plate(who) {
+  const sp = SPK[who] || SPK['ТЁМЫЧ']; dlgEl.style.setProperty('--spk', sp.c);
+  dlgEl.className = (sp.cls || '') + (holding ? ' wait' : ''); dlgEl.querySelector('.nm').innerHTML = who + (sp.sub ? `<small>${sp.sub}</small>` : '');
+}
+function say(who, text, k) {   // печатающийся текст
+  const key = who + '|' + k + '|' + text; if (key === lastSubKey) return; lastSubKey = key;
+  plate(who); dlgEl.querySelector('.ln').textContent = text.slice(0, k);
+}
+const chunkCache = {};
+function chunks(k, w) {   // куски из таймингов без знаков препинания: берём те же слова из полного текста реплики
+  if (chunkCache[k]) return chunkCache[k];
+  const full = ((TIM[k] || {}).t || '').split(/\s+/).filter(Boolean); let i = 0;
+  const out = w.map(x => { const n = x[1].split(/\s+/).length, part = full.slice(i, i + n).join(' '); i += n; return part || x[1]; });
+  return (chunkCache[k] = i === full.length ? out : w.map(x => x[1]));
+}
+function sayWords(who, words, on) {   // озвученная реплика целиком, произнесённые слова ярче
+  const key = who + '|' + on + '|' + words.join(' '); if (key === lastSubKey) return; lastSubKey = key;
+  plate(who); dlgEl.querySelector('.ln').innerHTML = words.map((w, i) => `<span class="${i < on ? 'on' : ''}">${w}</span>`).join(' ');
+}
 function frame(tp) {
   const dt = Math.min(.05, (tp - lastP) / 1000); lastP = tp; if (!paused) clockT += dt;
   const T = now();
   if (mode === 'play' && beat) {
-    const t = T - bT0, p = Math.min(1, t / bDur);
-    if (t >= bDur) { nextBeat(); return requestAnimationFrame(frame); }
+    let t = waiting ? 0 : T - bT0;
+    if (t >= bDur) {
+      const silent = !(beat.say || []).length && !beat.text;
+      if (auto || silent || beat.auto) { nextBeat(); return requestAnimationFrame(frame); }
+      if (!holding) { holding = true; dlgEl.classList.add('wait'); }
+      t = bDur;
+    }
+    const p = Math.min(1, t / bDur);
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
     // скример: вспышка, рывок, сильная тряска
     const sc = scareAt != null && t >= scareAt, st = sc ? t - scareAt : 0;
@@ -326,19 +377,23 @@ function frame(tp) {
       if (sc) { g.fillStyle = `rgba(160,0,0,${Math.max(0, .35 - st * .2)})`; g.fillRect(0, 0, W, H); }
       vignette();
     }
-    if (beat.title && t < 3.6) { const a = Math.min(1, t / .4, (3.6 - t) / .4); g.globalAlpha = a; g.textAlign = 'center'; g.fillStyle = '#fff'; g.font = '900 104px Inter, Arial'; g.fillText('НОЧНАЯ СМЕНА', W / 2, H * .44); g.fillStyle = '#e0303a'; g.font = '800 54px Inter, Arial'; g.fillText('серия 1', W / 2, H * .44 + 120); g.textAlign = 'left'; g.globalAlpha = 1; }
-    // голос и субтитры
-    let sub = '', who = '', cls = '', voiceOn = false;
-    for (const it of sched) if (t >= it.t && t < it.t + it.d + .25) {
-      voiceOn = true; const w = (TIM[it.k] || {}).w || []; let cur = '';
-      for (const [wt, wd] of w) if (t - it.t >= wt - .02) cur = wd;
-      sub = cur; cls = speaker(it.k); who = WHO[it.k] || '';
+    // реплики: табличка с именем того, кто говорит; слова загораются по мере звучания
+    let voiceOn = false, shown = false;
+    if (!waiting) {
+      if (typed && t >= typed.t0 && typed.s) {
+        const k = Math.floor(Math.min(1, (t - typed.t0) / (typed.d - .9)) * typed.s.length);
+        say(beat.who || 'ТЁМЫЧ', typed.s, k); shown = true;
+        if (k < typed.s.length && Math.random() < .25) play('tick', { gain: .25 });
+      } else {
+        let cur = null; for (const it of sched) if (t >= it.t) cur = it;
+        if (cur) {
+          const tm = TIM[cur.k] || {}, w = tm.w || [], on = w.filter(x => t - cur.t >= x[0] - .02).length;
+          voiceOn = t < cur.t + cur.d + .1; sayWords(whoOf(cur.k), chunks(cur.k, w), voiceOn ? on : w.length); shown = true;
+        }
+      }
     }
-    if (typed && t >= typed.t0) { const k = Math.floor(Math.min(1, (t - typed.t0) / (typed.d - .9)) * typed.s.length); sub = typed.s.slice(0, k); cls = 'typed'; if (k < typed.s.length && Math.random() < .25) play('tick', { gain: .25 }); }
+    if (!shown && !dlgEl.classList.contains('hide')) { dlgEl.classList.add('hide'); lastSubKey = ''; }
     duck(voiceOn);
-    const key = cls + '|' + sub;
-    if (key !== lastSubKey) { lastSubKey = key; subsEl.className = cls; whoEl.textContent = who;
-      if (cls === 'typed') subsEl.textContent = sub; else subsEl.innerHTML = sub ? `<span>${sub}</span>` : ''; }
     if (beat.heart && t > hb) { play('heart', { gain: .8 }); hb = t + Math.max(.55, .9 - t * .02); }
   } else if (mode === 'cams' && camView) {
     const t = T - camView.t0, c = camView.c; g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
@@ -356,8 +411,11 @@ function frame(tp) {
 $('bMute').onclick = () => { const m = !LS.get('mute', false); LS.set('mute', m); if (master) master.gain.value = m ? 0 : 1; $('bMute').textContent = m ? '🔇' : '🔊'; };
 $('bMute').textContent = LS.get('mute', false) ? '🔇' : '🔊';
 $('bMenu').onclick = () => menu();
-$('skip').onclick = skipBeat;
-document.addEventListener('keydown', e => { if (mode === 'choice' && /^[1-4]$/.test(e.key)) { const b = choiceEl.querySelector(`button[data-i="${+e.key - 1}"]`); if (b) b.click(); } if (e.key === 'Escape') menu(); });
+$('bRules').onclick = e => { e.stopPropagation(); showRules(); };
+$('bAuto').onclick = e => { e.stopPropagation(); auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); };
+$('bAuto').classList.toggle('on', auto);
+$('stage').addEventListener('pointerdown', e => { if (e.target.closest('button, #choice, #mg, #ui, #hud, #note')) return; tap(); });
+document.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') tap(); if (mode === 'choice' && /^[1-4]$/.test(e.key)) { const b = choiceEl.querySelector(`button[data-i="${+e.key - 1}"]`); if (b) b.click(); } if (e.key === 'Escape') menu(); });
 uiEl.innerHTML = `<div class="screen"><h1>НОЧНАЯ<br>СМЕНА</h1><div id="loadbar"><i></i></div><small>Загрузка…</small></div>`;
 requestAnimationFrame(frame);
 load(p => { const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).then(menu);

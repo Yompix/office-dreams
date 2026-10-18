@@ -8,23 +8,46 @@ window.STORY = {
   start: 'intro',
   scenes: {
     intro: {
-      music: 'drone',
+      music: 'drone', time: '02:55',
       beats: [
-        { img: 'f01', fx: 'cctv', label: 'CAM 04  ХОЛЛ', cams: [[.5, .5, 1.0, 1.1], [.09, .22, 2.2, 2.6]], say: ['l01'], pad: .6, title: true },
+        { img: 'f01', fx: 'cctv', label: 'CAM 04  ХОЛЛ', cams: [[.5, .5, 1.0, 1.1], [.09, .22, 2.2, 2.6]], say: ['l01'], pad: .6,
+          chapter: ['НОЧЬ 1', 'ПОСТ ОХРАНЫ · 02:55'], wait: 'Нажми, чтобы заступить на смену' },
         { img: 'f02', fx: 'rain', cams: [[.5, .5, 1.0, 1.08], [.6, .62, 1.6, 1.8]], say: ['l02'], sfx: [['boom', 0]], pad: .4 },
-        { img: 'f03', cams: [[.5, .5, 1.0, 1.08], [.4, .22, 1.9, 2.1], [.58, .62, 1.8, 2.0]], say: ['l03', 'ch_guard'], sfx: [['boom', 0]], pad: .3 },
-        { img: 'f03', cams: [[.5, .45, 1.2, 1.3]], say: ['l04'], sfx: [['steps', .3]], pad: .5 },
-        { img: 'f04', fx: 'lamp', cams: [[.5, .5, 1.0, 1.1], [.38, .6, 1.8, 2.0]], say: ['l05'], sfx: [['boom', 0]], rule: '1. В 03:00 НА 7 ЭТАЖЕ\nВКЛЮЧИТСЯ СВЕТ.\nНЕ ПОДНИМАЙСЯ', pad: .4 },
+        { img: 'f03', cams: [[.5, .5, 1.0, 1.08], [.4, .22, 1.9, 2.1], [.58, .62, 1.8, 2.0]], say: ['l03', 'ch_guard'], sfx: [['boom', 0]], pad: .3 }
+      ],
+      then: { choice: 'Сменщик протягивает ключи.', timeout: 10, def: 0,
+              opts: [{ t: 'Молча взять ключи', go: 'keys_a' }, { t: 'Спросить, почему платят втрое', go: 'keys_b' }] }
+    },
+    keys_a: {
+      music: 'drone', time: '02:58',
+      beats: [
+        { img: 'f03', cams: [[.4, .3, 1.5, 1.7]], text: 'Я взял ключи. Он даже не попрощался.', sfx: [['click', .2]], pad: .3 },
+        { img: 'f03', cams: [[.5, .45, 1.2, 1.3]], say: ['l04'], sfx: [['steps', .3]], pad: .5 }
+      ],
+      then: { goto: 'note' }
+    },
+    keys_b: {
+      music: 'drone', time: '02:58',
+      beats: [
+        { img: 'f03', cams: [[.4, .22, 1.9, 2.2]], who: 'СМЕНЩИК', text: '— Не спрашивай. Просто доживи до шести.', pad: .4 },
+        { img: 'f03', cams: [[.5, .45, 1.2, 1.3]], say: ['l04'], sfx: [['steps', .3]], pad: .5 }
+      ],
+      then: { goto: 'note' }
+    },
+    note: {
+      music: 'drone', time: '02:59',
+      beats: [
+        { img: 'f04', fx: 'lamp', cams: [[.5, .5, 1.0, 1.1], [.38, .6, 1.8, 2.0]], say: ['l05'], sfx: [['boom', 0]], rule: '1. В 03:00 НА 7 ЭТАЖЕ\nВКЛЮЧИТСЯ СВЕТ.\nНЕ ПОДНИМАЙСЯ', pad: .4, wait: 'Нажми на листок, чтобы прочитать' },
         { img: 'f05', cams: [[.5, .5, 1.05, 1.15], [.45, .55, 1.6, 1.8]], say: ['l06'], rule: '2. ЛИФТ ПРИЕХАЛ САМ —\nНЕ ЗАХОДИ', pad: .4 },
         { img: 'f05', cams: [[.62, .62, 1.9, 2.1]], say: ['l07'], rule: '3. ПОСЛЕ ПОЛУНОЧИ\nНИКОГО НЕ ВПУСКАЙ', pad: .4 },
         { img: 'f04', fx: 'lamp', cams: [[.78, .66, 1.9, 2.1]], say: ['l08'], rule: '4. КАМЕРУ 13\nНЕ ВКЛЮЧАЙ', pad: .5 },
-        { img: 'f05', cams: [[.5, .6, 1.4, 1.7]], say: ['l09'], rule: '«ТРЕТЬЕ ПРАВИЛО — ЛОЖЬ.\nВПУСТИ ЕЁ.»  — М.', sfx: [['boom', 0]], pad: .6 },
+        { img: 'f05', cams: [[.5, .6, 1.4, 1.7]], say: ['l09'], rule: '«ТРЕТЬЕ ПРАВИЛО — ЛОЖЬ.\nВПУСТИ ЕЁ.»  — М.', sfx: [['boom', 0]], pad: .6, wait: 'Внизу что-то приписано ручкой' },
         { img: 'f06', fx: 'flicker', cams: [[.5, .5, 1.0, 1.1], [.6, .35, 1.9, 2.1]], say: ['l10'], pad: .6 }
       ],
       then: { camgame: 'floor7' }
     },
     floor7: {
-      music: 'drone',
+      music: 'drone', time: '03:00',
       beats: [
         { img: 'f07', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', light: true, cams: [[.5, .5, 1.0, 1.15], [.47, .4, 1.8, 2.2]], say: ['l11'], sfx: [['click', 1.2], ['click', 2.3], ['click', 3.4], ['click', 4.5]], pad: .2 }
       ],
@@ -32,7 +55,7 @@ window.STORY = {
               opts: [{ t: 'Подняться и проверить', go: 'over_floor7' }, { t: 'Сидеть и смотреть', go: 'lift' }] }
     },
     lift: {
-      music: 'drone',
+      music: 'drone', time: '03:04',
       beats: [
         { img: 'f08', cams: [[.5, .5, 1.0, 1.1], [.5, .5, 1.7, 2.0], [.5, .78, 1.5, 1.6]], say: ['l12'], sfx: [['ding', .8]], pad: .2 }
       ],
@@ -40,7 +63,7 @@ window.STORY = {
               opts: [{ t: 'Зайти внутрь', go: 'over_lift' }, { t: 'Считать секунды', go: 'cam13' }] }
     },
     cam13: {
-      music: 'tension',
+      music: 'tension', time: '03:17',
       beats: [
         { img: 'f09', fx: 'cctv', label: 'CAM 13', cams: [[.5, .33, 1.02, 1.06]], say: ['l13'], scareGap: true, pad: .2 },
         { img: 'f09', fx: 'cctv', label: 'CAM 13', cams: [[.45, .25, 1.6, 1.8]], say: ['ch_monster'], pad: .8 },
@@ -55,7 +78,7 @@ window.STORY = {
               opts: [{ t: 'Открыть дверь', go: 'open' }, { t: 'Не открывать', go: 'stay' }] }
     },
     open: {
-      music: 'tension',
+      music: 'tension', time: '03:31',
       beats: [
         { img: 'f10', fx: 'rain', cams: [[.5, .5, 1.1, 1.3]], text: 'Я открыл.', sfx: [['door', 0]], pad: .4 },
         { img: 'f12', fx: 'rain', cams: [[.5, .45, 1.3, 1.6]], text: 'Катя вцепилась в меня. Ледяная. Мокрая. Я сказал: всё, ты в безопасности.', pad: .3 },
@@ -71,7 +94,7 @@ window.STORY = {
               opts: [{ t: 'Подняться на седьмой', go: 'up7' }, { t: 'Запереться в будке до шести', go: 'booth' }] }
     },
     stay: {
-      music: 'tension',
+      music: 'tension', time: '03:31',
       beats: [
         { img: 'f12', fx: 'rain', cams: [[.5, .45, 1.2, 1.5]], text: 'Я не открыл. Она перестала плакать. И улыбнулась. Слишком широко.', sfx: [['boom', 0]], pad: .4 },
         { img: 'f10', fx: 'rain', cams: [[.5, .5, 1.3, 1.5]], text: 'Она стучала всё сильнее. А на холодном стекле от её дыхания не оставалось пара.', sfx: [['knock', .3], ['knock', 2.4]], pad: .3 },
@@ -86,7 +109,7 @@ window.STORY = {
               opts: [{ t: 'Спуститься к Михалычу', go: 'down13' }, { t: 'Слушаться правил', go: 'rules' }] }
     },
     over_floor7: {
-      music: 'tension',
+      music: 'tension', time: '03:01',
       beats: [
         { img: 'f08', cams: [[.5, .5, 1.2, 1.8]], text: 'Я поднялся. Лифт открылся на седьмом.', sfx: [['ding', .2]], pad: .2 },
         { img: 'f07', light: true, cams: [[.47, .4, 1.2, 2.4]], text: 'Лампы гасли одна за другой. Ко мне.', sfx: [['click', .5], ['click', 1.0], ['click', 1.4], ['click', 1.7]], pad: .1 },
@@ -95,7 +118,7 @@ window.STORY = {
       then: { over: 'ПРАВИЛО 1 НАРУШЕНО', sub: 'Не поднимайся на седьмой.', retry: 'floor7' }
     },
     over_lift: {
-      music: 'tension',
+      music: 'tension', time: '03:05',
       beats: [
         { img: 'f08', cams: [[.5, .55, 1.5, 2.6]], text: 'Я зашёл. Двери закрылись. Кнопок не было. Только цифра 13.', sfx: [['ding', 2.2]], pad: .2 },
         { img: 'f09', cams: [[.45, .25, 2.4, 2.6]], scare: 0, text: '', pad: 1.6 }
@@ -112,7 +135,7 @@ window.STORY = {
     },
     // ---------- ветка «открыть» → седьмой этаж
     up7: {
-      music: 'tension',
+      music: 'tension', time: '03:40',
       beats: [
         { img: 'f08', cams: [[.5, .5, 1.1, 1.5]], floors: true, text: 'Лифт я не тронул. Пошёл по лестнице. Седьмой этаж.', sfx: [['steps', .2], ['steps', 1.6]], pad: .3 },
         { img: 'f07', light: true, cams: [[.5, .5, 1.0, 1.2], [.47, .4, 1.8, 2.2]], text: 'Свет горел только у одной двери. Кабинет 713.', sfx: [['click', 1.0]], pad: .3 },
@@ -122,16 +145,16 @@ window.STORY = {
               opts: [{ t: 'Открыть дверь', go: 'room713' }, { t: 'Позвать: «Михалыч?»', go: 'over_call' }] }
     },
     room713: {
-      music: 'tension',
+      music: 'tension', time: '03:52',
       beats: [
         { img: 'f09', cams: [[.5, .55, 1.0, 1.15]], text: 'Внутри серверная. На полу — круг из соли. В кругу сидел Михалыч. Живой.', sfx: [['door', 0]], pad: .3 },
-        { img: 'f09', cams: [[.7, .6, 1.6, 1.8]], text: '— Она идёт за тобой, — прошептал он. — Держи дверь до рассвета. Что бы она ни говорила.', pad: .3 },
+        { img: 'f09', cams: [[.7, .6, 1.6, 1.8]], who: 'МИХАЛЫЧ', text: '— Она идёт за тобой, — прошептал он. — Держи дверь до рассвета. Что бы она ни говорила.', pad: .3 },
         { img: 'f10', fx: 'rain', cams: [[.47, .45, 1.9, 2.2]], text: 'В коридоре зацокали мокрые шаги.', say: ['ch_katya'], sfx: [['knock', 1.0]], pad: .2 }
       ],
       then: { mg: 'door', title: 'ДЕРЖИ ДВЕРЬ', hint: 'Жми часто, не давай ей открыть', dur: 13, win: 'dawn_a', lose: 'over_door' }
     },
     dawn_a: {
-      music: 'drone',
+      music: 'drone', time: '06:00',
       beats: [
         { img: 'f02', fx: 'dawn', cams: [[.5, .45, 1.0, 1.12]], text: 'В шесть утра стук прекратился. Над городом поднималось солнце.', pad: .4 },
         { img: 'f09', fx: 'dawn', cams: [[.7, .6, 1.4, 1.6]], text: 'Михалыч вышел из круга. Пожал мне руку. И сказал: «Спасибо. Теперь твоя смена».', pad: .5 },
@@ -140,7 +163,7 @@ window.STORY = {
       then: { ending: 'dawn', title: 'ТЫ ДОЖИЛ ДО УТРА', sub: 'Михалыч свободен. А ночная смена теперь твоя. Навсегда.' }
     },
     booth: {
-      music: 'tension',
+      music: 'tension', time: '03:40',
       beats: [
         { img: 'f06', fx: 'flicker', cams: [[.5, .5, 1.0, 1.1], [.6, .35, 1.8, 2.0]], text: 'Я запер будку и выключил свет. До шести — два с половиной часа.', sfx: [['click', .4]], pad: .3 },
         { img: 'f06', fx: 'dark', cams: [[.5, .5, 1.1, 1.3]], text: 'Шаги. Она ходила по холлу. Совсем рядом. И звала меня.', sfx: [['steps', .5]], say: ['ch_whisper'], pad: .2 }
@@ -148,7 +171,7 @@ window.STORY = {
       then: { mg: 'hold', title: 'НЕ ДЫШИ', hint: 'Держи кнопку, пока шаги не уйдут. Отпустишь раньше — услышит.', dur: 9, win: 'booth_win', lose: 'over_hold' }
     },
     booth_win: {
-      music: 'drone',
+      music: 'drone', time: '06:00',
       beats: [
         { img: 'f06', cams: [[.5, .5, 1.2, 1.1]], text: 'Шаги стихли у самой двери. Я не дышал, пока не рассвело.', pad: .4 },
         { img: 'f03', fx: 'dawn', cams: [[.5, .5, 1.0, 1.08], [.4, .22, 1.9, 2.1]], text: 'В шесть пришёл сменщик. Посмотрел на меня и улыбнулся. Слишком широко.', sfx: [['steps', .2]], pad: .3 },
@@ -158,24 +181,26 @@ window.STORY = {
     },
     // ---------- ветка «не открывать» → Михалыч
     down13: {
-      music: 'tension',
+      music: 'tension', time: '03:40',
       beats: [
         { img: 'f07', fx: 'dark', cams: [[.47, .5, 1.2, 1.6]], text: 'Лифт я не тронул. По лестнице вниз. Минус первый. Минус второй.', sfx: [['steps', .2], ['steps', 1.8]], pad: .2 },
         { img: 'f09', cams: [[.5, .5, 1.0, 1.15]], text: 'Комната тринадцатой камеры. Михалыч схватил меня за руку.', sfx: [['door', 0]], pad: .2 },
-        { img: 'f09', fx: 'flicker', cams: [[.45, .25, 1.8, 2.0]], text: '— Бежим, пока свет горит! Где гаснет — туда нельзя!', say: ['ch_monster'], pad: .2 }
+        { img: 'f09', fx: 'flicker', cams: [[.45, .25, 1.8, 2.0]], who: 'МИХАЛЫЧ', text: '— Бежим, пока свет горит! Где гаснет — туда нельзя!', pad: .2 },
+        { img: 'f09', fx: 'dark', cams: [[.45, .25, 2.0, 2.2]], say: ['ch_monster'], pad: .2 }
       ],
       then: { mg: 'run', title: 'БЕГИ', n: 6, win: 'escape', lose: 'over_run' }
     },
     escape: {
-      music: 'drone',
+      music: 'drone', time: '06:00',
       beats: [
         { img: 'f02', fx: 'dawn', cams: [[.5, .5, 1.0, 1.1], [.6, .62, 1.5, 1.7]], text: 'Мы выбежали под дождь ровно в шесть. Солнце. Живые.', sfx: [['door', 0]], pad: .4 },
-        { img: 'f02', fx: 'dawn', cams: [[.6, .6, 1.7, 1.9]], text: 'Михалыч закурил: «Завтра ты выйдешь снова. Иначе оно придёт к Кате».', pad: 1.0 }
+        { img: 'f02', fx: 'dawn', cams: [[.6, .6, 1.7, 1.9]], text: 'Михалыч закурил.', pad: .3 },
+        { img: 'f02', fx: 'dawn', cams: [[.6, .6, 1.9, 2.0]], who: 'МИХАЛЫЧ', text: '— Завтра ты выйдешь снова. Иначе оно придёт к Кате.', pad: 1.0 }
       ],
       then: { ending: 'two', title: 'ВЫ ВЫБРАЛИСЬ', sub: 'Михалыч спасён. Но теперь вы оба привязаны к этому зданию.' }
     },
     rules: {
-      music: 'drone',
+      music: 'drone', time: '05:40',
       beats: [
         { img: 'f06', fx: 'flicker', cams: [[.5, .5, 1.0, 1.1]], text: 'Я решил: правила — единственное, что держит меня живым.', pad: .3 },
         { img: null, phone: 'call', text: 'В 5:40 снова позвонила Катя.', sfx: [['ring', 0], ['buzz', 0]], pad: .3 }
@@ -183,7 +208,7 @@ window.STORY = {
       then: { choice: 'Звонит Катя.', timeout: 8, def: 1, opts: [{ t: 'Ответить', go: 'over_answer' }, { t: 'Сбросить', go: 'hangup' }] }
     },
     hangup: {
-      music: 'drone',
+      music: 'drone', time: '06:00',
       beats: [
         { img: 'f01', fx: 'dawn', cams: [[.5, .5, 1.0, 1.08]], text: 'Я сбросил. В шесть пришёл сменщик. Ночь закончилась.', pad: .3 },
         { img: 'f05', cams: [[.5, .55, 1.2, 1.5]], text: 'На столе лежал листок. Пятое правило. Моим почерком. Я его не писал.', rule: '5. НЕ ВЕРЬ МИХАЛЫЧУ', pad: 1.0 }
@@ -192,10 +217,11 @@ window.STORY = {
     },
     // ---------- проигрыши второго акта
     over_call: {
-      music: 'tension',
+      music: 'tension', time: '03:44',
       beats: [
         { img: 'f07', cams: [[.47, .42, 2.3, 2.5]], text: '— Михалыч?', pad: .2 },
-        { img: 'f07', fx: 'dark', cams: [[.47, .42, 2.5, 2.7]], text: '— Я здесь, — ответили у меня за спиной.', say: ['ch_monster'], pad: .1 },
+        { img: 'f07', fx: 'dark', cams: [[.47, .42, 2.5, 2.7]], text: 'Шёпот за дверью стих. А потом голос раздался прямо у меня за спиной.', pad: .1 },
+        { img: 'f07', fx: 'dark', cams: [[.5, .5, 2.7, 2.9]], say: ['ch_monster'], pad: .1 },
         { img: 'f09', cams: [[.45, .25, 2.4, 2.6]], scare: 0, text: '', pad: 1.6 }
       ],
       then: { over: 'ОН СТОЯЛ ЗА СПИНОЙ', sub: 'Не зови его по имени.', retry: 'up7' }
@@ -207,14 +233,14 @@ window.STORY = {
     over_run: { music: 'tension', beats: [{ img: 'f09', cams: [[.45, .25, 2.4, 2.6]], scare: .1, text: '', pad: 1.8 }],
       then: { over: 'ТЕМНОТА ДОГНАЛА', sub: 'Где гаснет свет — туда нельзя.', retry: 'down13' } },
     over_answer: {
-      music: 'tension',
+      music: 'tension', time: '05:41',
       beats: [
         { img: null, phone: 'call2', text: '', say: ['ch_whisper'], pad: .2 },
         { img: 'f01', fx: 'cctv', label: 'CAM 04  ХОЛЛ', cams: [[.09, .22, 2.4, 2.8]], text: 'Голос был её. Но звучал он из холла.', scare: 2.6, pad: 1.4 }
       ],
       then: { over: 'ТЫ ОТВЕТИЛ ЕЙ', sub: 'Некоторые звонки лучше не брать.', retry: 'rules' }
     },
-    intro_cams: { beats: [], then: { camgame: 'floor7' } }
+    intro_cams: { time: '02:59', beats: [], then: { camgame: 'floor7' } }
   },
   // мини-игра «обход камер»: посмотреть 3 камеры, 13-ю не трогать
   cams: [
