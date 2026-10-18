@@ -2391,7 +2391,7 @@ LANGS.en = {
   'mk.r_7d': "7d",
   'mk.r_30d': "30d",
   'mk.collecting': "The chart appears once price data builds up",
-  'mk.no_price': "Trading has not opened yet — the price will appear here as soon as there is a market.",
+  'mk.no_price': "Live price is temporarily unavailable, but you can still buy the token.",
   'mk.h1': "Tap “Buy on Jupiter” — the SOL → token swap opens",
   'mk.h2': "Connect Phantom, Solflare or another Solana wallet and choose how much {sym} to buy",
   'mk.h3': "{sym} lands in your wallet right away — the balance shows here",
@@ -3300,7 +3300,7 @@ LANGS.ru = {
   'mk.r_7d': "7д",
   'mk.r_30d': "30д",
   'mk.collecting': "График появится, когда накопятся данные о цене",
-  'mk.no_price': "Торговля ещё не открылась — курс появится здесь, как только будет рынок.",
+  'mk.no_price': "Курс временно недоступен, но купить токен можно прямо сейчас.",
   'mk.h1': "Нажми «Купить на Jupiter» — откроется обмен SOL на токен",
   'mk.h2': "Подключи Phantom, Solflare или другой Solana-кошелёк и выбери, сколько {sym} купить",
   'mk.h3': "Токены {sym} сразу попадут в твой кошелёк — баланс появится здесь",
@@ -4209,7 +4209,7 @@ LANGS.uk = {
   'mk.r_7d': "7д",
   'mk.r_30d': "30д",
   'mk.collecting': "Графік з’явиться, коли накопичаться дані про ціну",
-  'mk.no_price': "Торгівля ще не відкрилася — курс з’явиться тут, щойно буде ринок.",
+  'mk.no_price': "Курс тимчасово недоступний, але купити токен можна прямо зараз.",
   'mk.h1': "Натисни «Купити на Jupiter» — відкриється обмін SOL на токен",
   'mk.h2': "Підключи Phantom, Solflare чи інший Solana-гаманець і вибери, скільки {sym} купити",
   'mk.h3': "Токени {sym} одразу потраплять у твій гаманець — баланс з’явиться тут",
@@ -10392,13 +10392,26 @@ function mktSoon(mini) {
     ${ch ? `<button class="btn big glow wide" data-act="link:channel">${L('mk.soon_ch')}</button>` : ''}
   </section>`;
 }
+// token logo for the market card (uploaded token.png online, a Solana glyph offline)
+function m2logo(NET) { return NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 26)}</span>`; }
 function mktPanel(mini) {
   if (!NET.cfg) return '';
   if (!NET.cfg.market) return mktSoon(mini);
   const r = UI.hub.mkt;
   if (!r || !r.on) return mini ? '' : `<section class="panel mkt"><div class="loading">${L('ui.loading')}</div></section>`;
   const m = r.m, sym = esc((m && m.sym) || NET.cfg.symbol || 'OFFX');
-  if (!m) return mini ? '' : `<section class="panel mkt"><h2 class="h2">${sym}</h2><p class="sub">${L('mk.no_price')}</p></section>`;
+  // price feed empty (new/low-liquidity pool): the token is still tradable, so keep Buy + chart, just without the live number
+  if (!m) {
+    const lg = m2logo(NET);
+    if (mini) return `<section class="panel mkt mini" data-act="mktab">${lg}<div class="mk-mini-t"><b>${sym}</b><small>${L('mk.soon_s')}</small></div><span class="mk-go">${L('mk.buy_s')} ›</span></section>`;
+    return `<section class="panel mkt">
+      <div class="mk-h">${lg}<div class="mk-name"><b>${sym}</b><small>Solana · Jupiter</small></div></div>
+      <p class="sub">${L('mk.no_price')}</p>
+      <div class="mk-acts"><button class="btn big glow mk-buy" data-act="mkbuy">${I('sol', 18)} ${L('mk.buy_s')}</button><button class="btn big gold" data-act="donopen">⭐ ${L('don.btn')}</button></div>
+      <button class="btn ghost sm wide" data-act="mkchart">${I('chart', 14)} ${L('mk.chart')}</button>
+      <p class="hint">${L('mk.risk')}</p>
+    </section>`;
+  }
   const ch = m.ch24, up = ch === null ? true : ch >= 0;
   const chip = ch === null ? '' : `<span class="mk-ch ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)}%</span>`;
   const logo = m.img ? `<img class="mk-logo" src="${esc(m.img)}" alt="">` : (NET.mode === 'online' ? '<img class="mk-logo" src="/token.png" alt="">' : `<span class="mk-logo">${I('sol', 26)}</span>`);
