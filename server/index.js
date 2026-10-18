@@ -40,6 +40,9 @@ function main() {
   // sponsor giveaway: starts with its config, finishes and pays out by itself
   const gw = () => require('./giveaway.js').tick(ctx).catch((e) => ctx.log('giveaway', e.message));
   setTimeout(gw, 8000); timers.push(setInterval(gw, 60000));
+  // channel posts written ahead in posts/queue.json go out when their time comes
+  const po = () => require('./posts.js').tick(ctx).catch((e) => ctx.log('posts', e.message));
+  setTimeout(po, 20000); timers.push(setInterval(po, 60000));
   const sp = () => SolPay.refreshPrice(ctx).catch(() => {});
   sp(); timers.push(setInterval(sp, 10 * 60000));
 

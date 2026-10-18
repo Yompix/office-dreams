@@ -1276,6 +1276,78 @@ const AB = require('../server/antibot.js');
     await envE.close();
   }
   {
+    const envP = await makeEnv({ DEV_IDS: '7001' });
+    const Posts = require('../server/posts.js');
+    const ctxP = envP.ctx, t0 = envP.clock.t, H = 3600e3;
+    const iso = (t) => new Date(t).toISOString();
+    const Q = Posts.check([
+      { id: 'old-news', at: iso(t0 - 20 * H), text: 'Too late' },
+      { id: 'first', at: iso(t0 - H), text: '<b>First</b> post' },
+      { id: 'BAD id', at: iso(t0), text: 'x' },
+      { id: 'second', at: iso(t0 + 0.5 * H), text: 'Second', photo: 'posts/second.jpg' },
+      { id: 'third', at: iso(t0 + 5 * H), text: 'Third', button: false },
+      { id: 'fourth', at: iso(t0 + 8 * H), text: 'Fourth' },
+    ]);
+    const sent = () => envP.mock.calls.filter((c) => (c.method === 'sendMessage' || c.method === 'sendPhoto') && c.body.chat_id === '@od_news');
+    await test('channel posts: each goes out once at its time, stale ones are dropped, 2 h apart at least; bad entries are left out', async () => {
+      assert.deepEqual(Q.map((p) => p.id), ['old-news', 'first', 'second', 'third', 'fourth'], 'the bad id is left out');
+      assert.equal(await Posts.tick(ctxP, t0, Q), 'first');
+      assert.equal(sent().length, 1);
+      assert.equal(sent()[0].body.text, '<b>First</b> post');
+      assert.equal(sent()[0].body.reply_markup.inline_keyboard[0][0].url, 'https://t.me/od_test_bot/play', 'a channel gets a t.me link, not a web_app button');
+      assert.equal(ctxP.db.get("SELECT status FROM posts_sent WHERE id='old-news'").status, 'late');
+      assert.equal(await Posts.tick(ctxP, t0 + 60e3, Q), null, 'never twice');
+      envP.advance(H);
+      assert.equal(await Posts.tick(ctxP, envP.clock.t, Q), null, 'second is due, but only 1 h after the first');
+      envP.advance(H + 60e3);
+      assert.equal(await Posts.tick(ctxP, envP.clock.t, Q), 'second');
+      const ph = sent()[1];
+      assert.equal(ph.method, 'sendPhoto');
+      assert.equal(ph.body.photo, 'https://game.example.test/posts/second.jpg');
+      assert.equal(ph.body.caption, 'Second');
+    });
+    await test('channel posts: the owner sees the queue (/posts) and cancels a post (/postskip); Telegram errors are retried 3 times', async () => {
+      const Bot = require('../server/bot.js');
+      const prevCfg = ctxP.cfg.postsFile;
+      const tmp = require('path').join(require('os').tmpdir(), 'od-posts-' + process.pid + '.json');
+      require('fs').writeFileSync(tmp, JSON.stringify(Q.map((p) => Object.assign({}, p, { at: iso(p.at) }))));
+      ctxP.cfg.postsFile = tmp;
+      const dm = (uid, text) => Bot.handleUpdate(ctxP, { message: { message_id: 1, from: { id: uid, first_name: 'O' }, chat: { id: uid, type: 'private' }, text } });
+      const replies = (uid) => envP.mock.calls.filter((c) => c.method === 'sendMessage' && c.body.chat_id === uid);
+      await dm(7001, '/posts');
+      const rep = replies(7001).pop().body.text;
+      assert.ok(/third/.test(rep) && /fourth/.test(rep) && !/>first</.test(rep.split('Последние')[0]), rep);
+      await dm(7002, '/posts');
+      assert.equal(replies(7002).length, 0, 'players do not see the queue');
+      await dm(7001, '/postskip third');
+      assert.ok(/отменён/.test(replies(7001).pop().body.text));
+      await dm(7001, '/postskip nope');
+      assert.ok(/Формат/.test(replies(7001).pop().body.text));
+      envP.advance(6 * H);
+      const prev = ctxP.tg.call;
+      ctxP.tg.call = async (m, b) => (m === 'sendMessage' && b.chat_id === '@od_news' ? { ok: false, description: 'Bad Request: chat not found' } : prev(m, b));
+      for (let i = 0; i < 4; i++) assert.equal(await Posts.tick(ctxP, envP.clock.t + i * 60e3, Q), null);
+      ctxP.tg.call = prev;
+      assert.deepEqual(ctxP.db.get("SELECT status, tries FROM posts_sent WHERE id='fourth'"), { status: 'failed', tries: 3 });
+      assert.equal(ctxP.db.get("SELECT status FROM posts_sent WHERE id='third'").status, 'skipped');
+      assert.equal(sent().length, 2, 'the cancelled and the failed posts never reached the channel');
+      ctxP.cfg.postsFile = prevCfg; require('fs').unlinkSync(tmp);
+    });
+    await envP.close();
+  }
+  await test('posts/queue.json: valid, English only, every picture exists', async () => {
+    const fs = require('fs'), path = require('path');
+    const f = path.join(__dirname, '../posts/queue.json');
+    const raw = JSON.parse(fs.readFileSync(f, 'utf8'));
+    assert.ok(Array.isArray(raw), 'a JSON array');
+    const ok = require('../server/posts.js').check(raw);
+    assert.equal(ok.length, raw.length, 'every entry is valid (id, at, text, length, photo)');
+    for (const p of raw) {
+      assert.ok(!/[А-Яа-яЁёІіЇїЄєҐґ]/.test(p.text), p.id + ': channel posts are English only');
+      if (p.photo) assert.ok(fs.existsSync(path.join(__dirname, '../public', p.photo)), p.id + ': picture public/' + p.photo + ' exists');
+    }
+  });
+  {
     const envB = await makeEnv({ BLOCKED_COUNTRIES: 'RU,BR' });
     await test('closed countries: existing players are reset and banned; new sign-ins are refused', async () => {
       const P = new Player(envB, 8401); await P.auth();

@@ -55,6 +55,7 @@ function build(env) {
     trustProxy: bool('TRUST_PROXY', false),
     channel: normChannel(str('CHANNEL') || str('CHANNEL_URL')), // e.g. @officedreams_news (bot must be admin of the channel)
     channelUrl: str('CHANNEL_URL'),
+    postsFile: str('POSTS_FILE'), // channel posts written ahead; default posts/queue.json (see server/posts.js)
     chatUrl: str('CHAT_URL'),
     xUrl: str('X_URL'),
     season: { id: num('SEASON_ID', 0), name: str('SEASON_NAME', 'Season 0') },
