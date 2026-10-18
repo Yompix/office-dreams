@@ -40,7 +40,8 @@ Style: short (3–8 lines), a bold first line, a few emojis, one call to action 
 
 ## Workflow for a session that writes posts
 1. `git fetch origin main && git merge origin/main`; read HANDOFF.md ("Сейчас в работе", "Просьбы").
-2. Look at `posts/queue.json`: which days already have a post. Fill the next days that have none (usually 3), one post a day at 16:00 UTC.
-3. Check every fact against the code and live data. Re-read each post against the rules above.
-4. `npm test`, commit, `git push origin HEAD:main` (Railway deploys; the server picks up the new queue).
-5. Add a line to HANDOFF.md "Что сделано" only for notable changes (not for every routine batch).
+2. Read what is already in the channel: `curl -s https://t.me/s/officedream` (the public preview: the last ~20 posts, including the owner's own posts and the pinned intro of Oct 14 that already explains the game, the OFFX token and how to join the airdrop). Do not repeat a topic that is there or in the queue; build on it instead (new numbers, a new feature, a different angle).
+3. Look at `posts/queue.json`: which days already have a post. Fill the next days that have none (usually 3), one post a day at 16:00 UTC.
+4. Check every fact against the code and live data. Re-read each post against the rules above.
+5. `npm test`, commit, `git push origin HEAD:main` (Railway deploys; the server picks up the new queue).
+6. Add a line to HANDOFF.md "Что сделано" only for notable changes (not for every routine batch).

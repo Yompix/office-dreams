@@ -1,9 +1,9 @@
 [
  {
-  "id": "2026-10-19-welcome",
+  "id": "2026-10-19-whats-new",
   "at": "2026-10-19T16:00:00Z",
-  "text": "<b>👋 Welcome to Office Dreams</b>\n\n🏢 You are an indie developer with a laptop and a big dream: grow from a basement desk to a game empire at the top of a neon tower.\n🎮 Pick a genre and scale, tap WORK and let your staff help. At 100% the game is released, gets a score from 1 to 10 and sells every day.\n👥 Hire 8 roles, open the floors of your tower, solve quests and walk the neon City.\n🪙 Airdrop points come from playing: releases, upgrades, quests, goals, daily missions and more. The more you play in a day, the less each extra action gives.\n✅ When the launch fund reaches $5,000, verified players share the OFFX airdrop by points. Verification is a one-time contribution: $1 in SOL, a Stars donation or any purchase.\n\nTap the button and start your first game 👇\n<i>Points are not money. Crypto is risky: the OFFX price is set by the market.</i>",
-  "photo": "shot-office.jpg"
+  "text": "<b>🛠 What's new in Office Dreams</b>\n\n🏙 <b>The City is open:</b> tap \"Go to the city\" and walk a neon street. Coffee shop, Academy, Contract board, Game store, Mall and Arena, each with people to talk to. Their timers keep running while you are away.\n⚔️ <b>Studio Battle</b> in the Arena: 30 seconds of tapping. Your rival is a live player, a recording of a real player or a training bot, and the game always shows which one.\n🐈 <b>19 city secrets</b> to find by tapping (the cat, the kiosk, the moon…), plus a shiny find on the sidewalk every 5 minutes.\n🎵 <b>10 music tracks</b>, shuffled, with \"Next track\" in Settings.\n📘 A new beginner tutorial in plain words. Skip it or replay it from Help.\n\nOpen the game and take a walk through the City 👇",
+  "photo": "shot-city.jpg"
  },
  {
   "id": "2026-10-20-office-calls",
@@ -23,21 +23,15 @@
   "photo": "shot-tower.jpg"
  },
  {
-  "id": "2026-10-23-whats-new",
+  "id": "2026-10-23-ideas-bugs",
   "at": "2026-10-23T16:00:00Z",
-  "text": "<b>🛠 What's new in Office Dreams</b>\n\n🏙 <b>The City is open:</b> tap \"Go to the city\" and walk a neon street. Coffee shop, Academy, Contract board, Game store, Mall and Arena, each with people to talk to. Their timers keep running while you are away.\n⚔️ <b>Studio Battle</b> in the Arena: 30 seconds of tapping. Your rival is a live player, a recording of a real player or a training bot, and the game always shows which one.\n🐈 <b>19 city secrets</b> to find by tapping (the cat, the kiosk, the moon…), plus a shiny find on the sidewalk every 5 minutes.\n🎵 <b>10 music tracks</b>, shuffled, with \"Next track\" in Settings.\n📘 A new beginner tutorial in plain words. Skip it or replay it from Help.\n\nOpen the game and take a walk through the City 👇",
-  "photo": "shot-city.jpg"
+  "text": "<b>💡 Catch ideas, squash bugs</b>\n\nYour office comes alive while a project is running.\n💡 A light bulb pops up over one of your employees and stays for 12 seconds. Tap it for a burst of progress (6% of the project) plus cash.\n🐞 After your first release, bugs start crawling across the floor. Squash one within 10 seconds for cash, or it eats 2% of your project.\n👀 Tip: both only show up while a project is running, so keep an eye on the office during a build.\n\n👉 Hire your first employee and catch your first idea.",
+  "photo": "shot-office.jpg"
  },
  {
   "id": "2026-10-24-official-bot",
   "at": "2026-10-24T16:00:00Z",
   "text": "<b>🛡 Official bot: @officedream1_bot only</b>\n\n🎮 Office Dreams lives in one bot: @officedream1_bot. The game: <a href=\"https://t.me/officedream1_bot/play\">t.me/officedream1_bot/play</a>. Any other bot is fake.\n🔑 Never share your seed phrase or private key (the secret words or code that open your wallet). The \"Suspicious email\" quest in the game teaches the same: real rewards never ask for your wallet data through a link.\n🪂 The airdrop is claimed only inside the game (Airdrop → Token). When it starts, the bot messages every player and posts in this channel.\n👤 In the in-game Top, Telegram names that pretend to be staff (Admin, Support…) are shown as \"Player #1234\".\n💬 News: @officedream. Questions: @vtmjs.\n\nCheck the bot name before you tap 👇\n<i>Points are not money. Crypto is risky: the OFFX price is set by the market.</i>",
   "photo": "cover-640x360.png"
- },
- {
-  "id": "2026-10-25-ideas-bugs",
-  "at": "2026-10-25T16:00:00Z",
-  "text": "<b>💡 Catch ideas, squash bugs</b>\n\nYour office comes alive while a project is running.\n💡 A light bulb pops up over one of your employees and stays for 12 seconds. Tap it for a burst of progress (6% of the project) plus cash.\n🐞 After your first release, bugs start crawling across the floor. Squash one within 10 seconds for cash, or it eats 2% of your project.\n👀 Tip: both only show up while a project is running, so keep an eye on the office during a build.\n\n👉 Hire your first employee and catch your first idea.",
-  "photo": "shot-office.jpg"
  }
 ]
