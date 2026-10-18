@@ -297,6 +297,7 @@ const SH = {
   basement_door: { loc: 'corridor', pos: [.15, 1.55, -23.5], look: [0, 1.05, -26], fov: 54, set: (o, t) => { setLamps(o, (Math.sin(t * 11) > .55 && Math.sin(t * 2.3) > -.2) ? 1 : 0); o.srv.visible = true; o.slitLight.color.setHex(0xffb060); o.slitLight.intensity = 1.6 + Math.sin(t * 7) * .3; o.amb.intensity = .35; return []; } },
   cam7_eat: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [0, .7, -12], fov: 30, set: (o, t) => { eatLight(o, t); return [['victim', 0, 0, -12.4, PI * .5, 'lay', null], ['monster', .05, 0, -11.3, PI, 'eat', t < 4 ? [0, .2, -12.3] : [1.0, 2.75, -.5]]]; } },
   eat_close: { loc: 'corridor', pos: [-.7, 1.05, -14.3], look: [.05, .7, -11.8], fov: 54, set: (o, t) => { eatLight(o, t); return [['victim', 0, 0, -12.4, PI * .5, 'lay', null], ['monster', .05, 0, -11.3, PI, 'eat', t < 2.2 ? [0, .2, -12.3] : [-.7, 1.05, -14.3]]]; } },
+  cover_door: { loc: 'lobby', pos: [.95, 1.55, 3.7], look: [.5, 1.6, 6.5], fov: 40, set: () => [['katya', .62, 0, 6.42, PI + .1, 'stand', 'cam'], ['monster', -.25, 0, 8.4, PI - .15, 'monster', 'cam']] },
   run_dark: { loc: 'corridor', pos: [0, 1.5, -3], look: [0, 1.2, -26], fov: 62, set: (o, t) => { setLamps(o, 7 - Math.floor(t * 1.5) % 8, true); return [['mihalych', .3, 0, -5.2 - t * .4, PI, 'walk', null]]; } },
 };
 // старые имена кадров из первой версии → новые

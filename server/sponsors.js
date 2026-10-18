@@ -18,7 +18,7 @@ async function invoiceMarkup(ctx, uid) {
   const rows = [];
   for (const n of AMOUNTS) {
     const r = await ctx.tg.call('createInvoiceLink', {
-      title: 'Поддержать YOMPIX GAMES', description: `${n} ⭐ на развитие «Ночной смены». Твоё имя появится в списке спонсоров игры.`,
+      title: 'Поддержать YOMPIX GAMES', description: `${n} ⭐ на развитие игры «Night Shift». Твоё имя появится в списке спонсоров игры.`,
       payload: `${uid}:${SKU}:${n}:${crypto.randomBytes(4).toString('hex')}`,
       provider_token: '', currency: 'XTR', prices: [{ label: 'Поддержка', amount: n }],
     });

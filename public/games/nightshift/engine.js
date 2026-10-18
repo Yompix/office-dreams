@@ -22,7 +22,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load().catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) World.warm(); } catch (e) { console.error(e); } tick(); r(); }, 30)));
   const sn = SNDS.map(k => get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
-  const tm = get('timing.json', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get('timing.json?v=2', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры
   for (const k of Object.keys(TIM)) if (!SNDS.includes(k)) get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
@@ -307,7 +307,7 @@ function menu() {
   gen++; mode = 'menu'; stopAll(false); music(null); for (const k in ambient) amb(k, false); $('hud').classList.add('hide');
   choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false;
   const sv = LS.get('save', null), save = sv && S.scenes[sv] ? sv : null;   // сохранение из старой версии сценария не ломает меню
-  uiEl.innerHTML = `<div class="screen"><h1>НОЧНАЯ<br>СМЕНА<em>ИНТЕРАКТИВНЫЙ ХОРРОР</em></h1>
+  uiEl.innerHTML = `<div class="screen"><h1>NIGHT<br>SHIFT<em>ИНТЕРАКТИВНЫЙ ХОРРОР</em></h1>
     <p>Четыре правила. Одна ночь. Сестра за стеклом.<br>Твои выборы решают, доживёшь ли ты до утра.</p>
     <button class="btn" id="mNew">${save ? 'Начать заново' : 'Начать смену'}</button>
     ${save ? '<button class="btn ghost" id="mCont">Продолжить</button>' : ''}
@@ -498,7 +498,7 @@ $('bAuto').onclick = e => { e.stopPropagation(); auto = !auto; LS.set('auto', au
 $('bAuto').classList.toggle('on', auto);
 $('stage').addEventListener('pointerdown', e => { if (e.target.closest('button, #choice, #mg, #ui, #hud, #note')) return; tap(); });
 document.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') tap(); if (mode === 'choice' && /^[1-4]$/.test(e.key)) { const b = choiceEl.querySelector(`button[data-i="${+e.key - 1}"]`); if (b) b.click(); } if (e.key === 'Escape') menu(); });
-uiEl.innerHTML = `<div class="screen"><h1>НОЧНАЯ<br>СМЕНА</h1><div id="loadbar"><i></i></div><small>Загрузка…</small></div>`;
+uiEl.innerHTML = `<div class="screen"><h1>NIGHT<br>SHIFT</h1><div id="loadbar"><i></i></div><small>Загрузка…</small></div>`;
 requestAnimationFrame(frame);
 window.addEventListener('error', e => { if (mode === 'menu' && !uiEl.innerHTML) uiEl.innerHTML = `<div class="screen"><p>Ошибка: ${String(e.message || e).slice(0, 120)}</p></div>`; });
 // заставка студии перед меню (нажатие — пропустить)
