@@ -231,7 +231,7 @@ function buildServer() {
   o.door = box(1, 2.1, .06, mat(0xffffff, TX.door), 2, 1.05, 3.47, S);
   o.rim = new T.PointLight(0xa0c0d0, 2.6, 5, 1.3); o.rim.position.set(1.4, 2.7, .9); S.add(o.rim);
   box(.18, .12, .3, mat(0xd0d0d0), 3.7, 2.8, 3.2, S);   // сама камера 13
-  o.reset = () => { o.salt.visible = true; o.candle.intensity = 1.2; o.red.intensity = 1.4; o.amb.intensity = .6; };
+  o.reset = () => { o.salt.visible = true; o.candle.intensity = 1.2; o.red.intensity = 1.4; o.amb.intensity = .6; o.cold.intensity = 1.2; o.cold2.intensity = 1.0; o.rim.intensity = 2.6; };
   o.tick = (t) => { o.candle.intensity = 1.1 + Math.sin(t * 17) * .12 + Math.sin(t * 7) * .08; o.red.intensity = 1.0 + .6 * (Math.sin(t * 2.4) > 0 ? 1 : 0); };
   return o;
 }
@@ -269,20 +269,21 @@ const SH = {
   katya_inside_still: { loc: 'lobby', pos: [.3, 1.5, 3.95], look: [.2, 1.47, 4.75], fov: 36, set: () => { A.katya.talk = 0; return [['katyaSmile', .2, 0, 4.7, PI, 'stand', 'cam']]; } },
   corridor_cam: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.1, .9, -25], fov: 58, set: (o, t) => { setLamps(o, [1.2, 2.3, 3.4, 4.5].filter(x => t >= x).length * 2 - 1); return []; } },
   corridor_lit: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.1, .9, -25], fov: 58, set: (o) => { setLamps(o, 7); return []; } },
-  corridor_off: { loc: 'corridor', pos: [0, 1.6, -1.2], look: [0, 1.4, -25], fov: 56, set: (o, t) => { setLamps(o, 7 - [.5, 1.0, 1.4, 1.7].filter(x => t >= x).length * 2); return t > 1.7 ? [['monster', 0, 0, Math.min(-4, -18 + t * 6), 0, 'walk', 'cam']] : []; } },
+  corridor_off: { loc: 'corridor', pos: [0, 1.6, -1.2], look: [0, 1.4, -25], fov: 56, set: (o, t) => { setLamps(o, 7 - [.5, 1.0, 1.4, 1.7].filter(x => t >= x).length * 2); const z = t < 1.7 ? null : t < 2.25 ? -18 : t < 2.75 ? -13 : t < 3.15 ? -8.5 : -5;   // не идёт — оказывается ближе после каждой вспышки
+    return z != null && (t % .5) > .06 ? [['monster', 0, 0, z, 0, 'monster', 'cam']] : []; } },
   corridor_713: { loc: 'corridor', pos: [0, 1.6, -4], look: [0, 1.0, -26], fov: 52, set: (o) => { setLamps(o, 1); return []; } },
   corridor_dark: { loc: 'corridor', pos: [0, 1.6, -2], look: [0, 1.0, -26], fov: 56, set: (o) => { setLamps(o, 0); o.slitLight.intensity = 0; o.slit.visible = false; return []; } },
   door713: { loc: 'corridor', pos: [.15, 1.55, -23.7], look: [0, 1.0, -26], fov: 52, set: (o) => { setLamps(o, 1); return []; } },
   corridor_katya: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.1, .9, -25], fov: 40, set: (o, t) => { setLamps(o, 7); return [['katya', 0, 0, -19, lerp(PI * .98, PI * .02, clamp((t - 1) / 2, 0, 1)) + PI, 'stand', null]]; } },
   corridor_face: { loc: 'corridor', pos: [.05, 1.52, -18.75], look: [0, 1.5, -20], fov: 34, set: (o) => { setLamps(o, 7); return [['katyaSmile', 0, 0, -19.4, 0, 'stand', 'cam']]; } },
   cam13_monster: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.1, -.4], fov: 66, set: (o) => { o.salt.visible = false; return [['monster', .1, 0, -.5, -.6, 'monster', 'cam']]; } },
-  monster_close: { loc: 'server', pos: [0, 2.0, 1.15], look: [0, 2.02, 0], fov: 40, set: (o) => [['monster', 0, 0, 0, 0, 'monster', 'cam']] },
+  monster_close: { loc: 'server', pos: [-.05, 2.2, .95], look: [-.13, 2.16, 0], fov: 40, set: (o, t) => { A.monster.faceSet = 'grin'; o.amb.intensity = .08; o.cold.intensity = .15; o.cold2.intensity = 0; o.rim.intensity = 1.8; o.red.intensity = .5; o.candle.intensity = 2.2 * (Math.sin(t * 23) > -.6 ? 1 : .3); return [['monster', 0, 0, 0, 0, 'monster', 'cam']]; } },   // свет снизу от свечи и контур — лицо выходит из темноты
   server_mih: { loc: 'server', pos: [.7, 1.45, 2.7], look: [0, .65, 0], fov: 52, set: () => [['mihalych', 0, 0, 0, 0, 'sitfloor', 'cam']] },
   server_mih_close: { loc: 'server', pos: [.25, .95, 1.15], look: [0, .9, 0], fov: 44, set: () => [['mihalych', 0, 0, 0, 0, 'sitfloor', 'cam']] },
   server_mih_stand: { loc: 'server', pos: [.7, 1.6, 2.7], look: [0, 1.4, 0], fov: 50, set: () => [['mihalych', 0, 0, 0, 0, 'stand', 'cam']] },
   server_door: { loc: 'server', pos: [2.4, 1.6, 2.6], look: [-1, 1.2, -1], fov: 55, set: () => [['mihalych', 0, 0, 0, .3, 'sitfloor', [2.4, 1.6, 2.6]]] },
   cam13_mih: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.1, -.4], fov: 60, set: (o) => [['mihalych', 0, 0, 0, -.6, 'paper', 'cam']] },
-  cam13_mih_monster: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.3, -.6], fov: 60, set: (o) => [['mihalych', 0, 0, 0, -.6, 'paper', 'cam'], ['monster', .25, 0, -1.25, -.6, 'monster', 'cam']] },
+  cam13_mih_monster: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.3, -.6], fov: 60, set: (o, t) => [['mihalych', 0, 0, 0, -.6, 'paper', 'cam']].concat(t > 3.35 ? [['monster', .25, 0, -1.25, -.6, 'monster', 'cam']] : []) },
   smenshik_leave: { loc: 'lobby', pos: [5.35, 1.3, -.7], look: [2.0, 1.3, 5], fov: 56, set: (o, t) => { const k = clamp(t / 2.4, 0, 1), p = lin([4.2, 0, 1.6], [.6, 0, 5.7], k); return [['smenshik', p[0], 0, p[2], Math.atan2(.6 - 4.2, 5.7 - 1.6), k < 1 ? 'walk' : 'stand', null]]; } },
   entrance_empty: { loc: 'lobby', pos: [-.9, 3.25, 8.1], look: [.5, .8, 6.2], fov: 64, set: () => [] },
   door_smile: { loc: 'lobby', pos: [2.2, 1.5, 2.8], look: [.6, 1.35, 6.5], fov: 50, set: () => [['katyaSmile', .62, 0, 6.42, PI, 'knock', 'cam']] },

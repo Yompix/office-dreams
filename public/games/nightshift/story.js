@@ -51,7 +51,7 @@ window.STORY = {
         { img: 'note', cams: [[.5, .55, 1.3, 1.45]], say: ['l07'], rule: '3. ПОСЛЕ ПОЛУНОЧИ\nНИКОГО НЕ ВПУСКАЙ.\nДАЖЕ СВОИХ', pad: .4 },
         { img: 'desk_note', fx: 'lamp', cams: [[.55, .6, 1.5, 1.7]], say: ['l08'], rule: '4. КАМЕРУ 13\nНЕ ВКЛЮЧАЙ', pad: .5 },
         { img: 'note', cams: [[.5, .75, 1.4, 1.7]], say: ['l09'], rule: '«ТРЕТЬЕ ПРАВИЛО — ЛОЖЬ.\nВПУСТИ ЕЁ.»  — М.', sfx: [['boom', 0]], pad: .6, wait: 'Внизу что-то приписано ручкой' },
-        { img: 'monitors', fx: 'flicker', cams: [[.5, .5, 1.0, 1.1], [.5, .45, 1.4, 1.6]], say: ['l10'], pad: .4, creep: true },
+        { img: 'monitors', fx: 'flicker', cams: [[.5, .5, 1.0, 1.1], [.5, .45, 1.4, 1.6]], say: ['l10'], sfx: [['metal_groan', 4.2]], pad: .6, creep: true },
         { img: 'note', cams: [[.52, .78, 1.7, 2.0]], say: ['note_7'], pad: .3 },
         { img: 'note', cams: [[.52, .78, 2.0, 2.2]], say: ['note_8'], sfx: [['boom', 0]], heart: true, pad: .6 }
       ],
@@ -80,7 +80,7 @@ window.STORY = {
       music: 'tension', time: '03:17',
       beats: [
         { img: 'elevator_open', fx: 'dark', cams: [[.5, .55, 1.3, 1.2]], say: ['cam13_0'], sfx: [['ding', 2.4]], pad: .4 },
-        { img: 'cam13_turn', fx: 'cctv', label: 'CAM 13', cams: [[.5, .45, 1.0, 1.05]], say: ['l13'], scareGap: true, sfx: [['static', 0]], pad: .2 },
+        { img: 'cam13_turn', fx: 'cctv', label: 'CAM 13', cams: [[.5, .45, 1.0, 1.05]], say: ['l13'], scareGap: true, sfx: [['static', 0], ['neck_crack', 2.7]], pad: .2 },
         { img: 'cam13_turn', fx: 'cctv', label: 'CAM 13', cams: [[.54, .34, 2.2, 2.6]], say: ['ch_monster'], pad: .3 }
       ],
       then: { mg: 'cord', title: 'ВЫДЕРНИ ШНУР', hint: 'Тяни шнур монитора вниз. Три секунды.', dur: 3, win: 'knock', lose: 'over_cord' }
@@ -89,9 +89,9 @@ window.STORY = {
       music: 'tension', time: '03:30',
       beats: [
         { img: 'booth_dark', cams: [[.5, .5, 1.0, 1.1]], say: ['knock_0'], sfx: [['click', 0]], pad: .4, creep: true },
-        { img: 'booth_dark', cams: [[.5, .5, 1.0, 1.12]], say: ['knock_n1'], hush: true, pad: .6 },
+        { img: 'booth_dark', cams: [[.5, .5, 1.0, 1.12]], say: ['knock_n1'], hush: true, sfx: [['steps_barefoot', 6.2]], pad: 1.4 },
         { img: 'door_katya', fx: 'rain', cams: [[.5, .5, 1.0, 1.08], [.51, .46, 1.8, 2.0]], say: ['l14'], sfx: [['knock', 1.0]], pad: .3 },
-        { img: 'katya_face', fx: 'rain', cams: [[.5, .45, 1.0, 1.1]], say: ['ch_katya'], sfx: [['knock', .2]], pad: .4 },
+        { img: 'katya_face', fx: 'rain', cams: [[.5, .45, 1.0, 1.1]], say: ['ch_katya'], sfx: [['glass_tap', .1]], pad: .4 },
         { img: 'door_katya', fx: 'rain', cams: [[.51, .46, 1.4, 1.6]], say: ['l15'], pad: .4 },
         { img: 'door_katya', fx: 'rain', cams: [[.5, .5, 1.2, 1.3]], say: ['knock_4'], pad: .3 },
         { img: 'entrance_empty', fx: 'static', label: 'CAM 01  ВХОД', cams: [[.5, .5, 1.0, 1.1]], say: ['l16'], pad: .2 },
@@ -197,8 +197,8 @@ window.STORY = {
       music: 'tension', time: '04:10',
       beats: [
         { img: 'monitors', fx: 'flicker', cams: [[.5, .45, 1.2, 1.4]], say: ['cam13b_0'], sfx: [['static', 0]], pad: .3 },
-        { img: 'cam7_eat', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .6, 1.0, 1.3]], say: ['eat_1'], pad: .3 },
-        { img: 'cam7_eat', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .62, 1.6, 2.3]], say: ['eat_2'], heart: true, pad: 1.4 },
+        { img: 'cam7_eat', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .6, 1.0, 1.3]], say: ['eat_1'], sfx: [['eat_wet', .6]], pad: .3 },
+        { img: 'cam7_eat', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .62, 1.6, 2.3]], say: ['eat_2'], sfx: [['eat_wet', .2], ['neck_crack', 3.6]], pad: 1.4 },
         { img: 'cam13_mih', fx: 'cctv', label: 'CAM 13', cams: [[.5, .5, 1.0, 1.1]], say: ['cam13b_1'], pad: .3 },
         { img: 'cam13_mih', fx: 'cctv', label: 'CAM 13', cams: [[.5, .45, 1.5, 1.7]], say: ['cam13b_2'],
           rule: '«ПОМОГИ. МИНУС 2.\nСТУЧИ ТРИЖДЫ»', pad: .6 },
@@ -238,14 +238,14 @@ window.STORY = {
         { img: 'server_mih_close', cams: [[.5, .42, 1.2, 1.3]], say: ['knock3_6'], pad: .3 },
         { img: 'server_mih_close', cams: [[.5, .4, 1.3, 1.4]], say: ['knock3_7'], pad: .3 },
         { img: 'server_mih', cams: [[.5, .5, 1.0, 1.1]], say: ['knock3_8'], pad: .3 },
-        { img: 'server_door', cams: [[.6, .5, 1.0, 1.2]], text: 'За дверью зашлёпали мокрые шаги. А потом заплакала Катя.', say: ['ch_katya'], pad: .2 }
+        { img: 'server_door', cams: [[.6, .5, 1.0, 1.2]], text: 'За дверью зашлёпали мокрые шаги. А потом заплакала Катя.', say: ['ch_katya'], sfx: [['steps_barefoot', 0]], pad: .2 }
       ],
       then: { goto: 'hold_door' }
     },
     hold_door: {
       music: 'tension', time: '04:20',
       beats: [
-        { img: 'server_door', fx: 'flicker', cams: [[.65, .5, 1.2, 1.4]], say: ['hold_door_0'], sfx: [['knock', .2], ['knock', .9]], pad: .1 }
+        { img: 'server_door', fx: 'flicker', cams: [[.65, .5, 1.2, 1.4]], say: ['hold_door_0'], sfx: [['door_slams', .1]], pad: .1 }
       ],
       then: { mg: 'door', title: 'ДЕРЖИ ДВЕРЬ', hint: 'Жми часто. До шести он будет ломиться.', dur: 13, win: 'dawn', lose: 'over_door' }
     },
@@ -297,9 +297,9 @@ window.STORY = {
       music: 'tension', time: '03:01',
       beats: [
         { img: 'corridor_lit', cams: [[.5, .5, 1.0, 1.15]], say: ['over_floor7_0'], sfx: [['steps', .2]], pad: .2 },
-        { img: 'eat_close', cams: [[.5, .55, 1.0, 1.15]], say: ['eat_3'], heart: true, pad: .8 },
+        { img: 'eat_close', cams: [[.5, .55, 1.0, 1.15]], say: ['eat_3'], sfx: [['eat_wet', 0], ['neck_crack', 2.1]], pad: .8 },
         { img: 'corridor_off', cams: [[.5, .5, 1.0, 1.3]], say: ['over_floor7_1'], sfx: [['click', .5], ['click', 1.0], ['click', 1.4], ['click', 1.7]], pad: .1 },
-        { img: 'monster_close', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
+        { img: 'monster_close', fx: 'strobe', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
       ],
       then: { over: 'ПРАВИЛО 1 НАРУШЕНО', sub: 'В 03:00 на седьмом включится свет. Не поднимайся.', retry: 'floor7' }
     },
@@ -308,7 +308,7 @@ window.STORY = {
       beats: [
         { img: 'elevator_inside', cams: [[.5, .45, 1.0, 1.2]], say: ['over_lift_0'], sfx: [['ding', 2.2]], pad: .2 },
         { img: 'elevator_inside', cams: [[.5, .3, 1.3, 1.6]], say: ['over_lift_1'], pad: .1 },
-        { img: 'monster_close', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
+        { img: 'monster_close', fx: 'strobe', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
       ],
       then: { over: 'ПРАВИЛО 2 НАРУШЕНО', sub: 'Если лифт приехал сам — не заходи.', retry: 'lift' }
     },
@@ -316,7 +316,7 @@ window.STORY = {
       music: 'tension',
       beats: [
         { img: 'cam13_monster', fx: 'cctv', label: 'CAM 13', cams: [[.54, .34, 1.0, 1.8]], text: 'Я включил тринадцатую. Он уже смотрел в камеру. Ждал.', say: ['ch_monster'], pad: .3 },
-        { img: 'monster_close', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
+        { img: 'monster_close', fx: 'strobe', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
       ],
       then: { over: 'ПРАВИЛО 4 НАРУШЕНО', sub: 'Камеру 13 не включай.', retry: 'intro_cams' }
     },
@@ -325,7 +325,7 @@ window.STORY = {
       beats: [
         { img: 'cam13_monster', fx: 'cctv', label: 'CAM 13', cams: [[.54, .34, 2.0, 2.4]], say: ['over_cord_0'], pad: .2 },
         { img: 'booth_dark', fx: 'dark', cams: [[.5, .5, 1.0, 1.2]], say: ['over_cord_1'], pad: .1 },
-        { img: 'monster_booth', cams: [[.5, .45, 1.0, 1.2]], scare: 0, text: '', pad: 1.6 }
+        { img: 'monster_booth', fx: 'strobe', cams: [[.5, .45, 1.0, 1.2]], scare: 0, text: '', pad: 1.6 }
       ],
       then: { over: 'ОНО ТЕБЯ УВИДЕЛО', sub: 'Если тринадцатая включилась сама — выдёргивай шнур.', retry: 'cam13' }
     },
@@ -336,7 +336,7 @@ window.STORY = {
     },
     over_run: {
       music: 'tension',
-      beats: [{ img: 'corridor_monster', cams: [[.5, .45, 1.0, 1.2]], scare: .1, text: '', pad: 1.8 }],
+      beats: [{ img: 'corridor_monster', fx: 'strobe', cams: [[.5, .45, 1.0, 1.2]], scare: .1, text: '', pad: 1.8 }],
       then: { over: 'ТЕМНОТА ДОГНАЛА', sub: 'Не оглядывайся. Беги туда, где ещё светло.', retry: 'exit' }
     },
     over_voice: {
@@ -345,15 +345,15 @@ window.STORY = {
         { img: 'basement_door', cams: [[.5, .5, 1.2, 1.4]], say: ['over_voice_0'], sfx: [['door', .2]], pad: .2 },
         { img: 'server_door', cams: [[.4, .5, 1.0, 1.2]], say: ['over_voice_1'], pad: .2 },
         { img: 'server_door', fx: 'dark', cams: [[.4, .5, 1.2, 1.3]], say: ['over_voice_2'], pad: .1 },
-        { img: 'monster_close', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
+        { img: 'monster_close', fx: 'strobe', cams: [[.5, .45, 1.0, 1.15]], scare: 0, text: '', pad: 1.6 }
       ],
       then: { over: 'ЗА ДВЕРЬЮ БЫЛО ОНО', sub: 'Он умеет звать. Стучать — нет.', retry: 'basement' }
     },
     over_door: {
       music: 'tension',
       beats: [
-        { img: 'server_door', fx: 'dark', cams: [[.65, .5, 1.2, 1.5]], say: ['over_door_0'], sfx: [['door', 0]], pad: .1 },
-        { img: 'monster_close', cams: [[.5, .45, 1.0, 1.2]], scare: 0, text: '', pad: 1.6 }
+        { img: 'server_door', fx: 'dark', cams: [[.65, .5, 1.2, 1.5]], say: ['over_door_0'], sfx: [['door_slams', 0], ['door', 1.2]], pad: .1 },
+        { img: 'monster_close', fx: 'strobe', cams: [[.5, .45, 1.0, 1.2]], scare: 0, text: '', pad: 1.6 }
       ],
       then: { over: 'ЗАСОВ НЕ ВЫДЕРЖАЛ', sub: 'Держи дверь до рассвета. Не сбавляй.', retry: 'hold_door' }
     },
