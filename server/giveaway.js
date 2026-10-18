@@ -173,7 +173,7 @@ async function tick(ctx, now = Date.now()) {
     ctx.db.run('UPDATE giveaway SET announced=1 WHERE id=?', g.id);
     const sum = g.prizes.reduce((a, b) => a + b, 0), days = Math.round((g.end_at - g.start) / 86400e3);
     const markup = (lang) => { const m = Bot.playMarkup(ctx, lang) || { inline_keyboard: [] }; if (g.url) m.inline_keyboard.push([{ text: '🤝 Sponsor', url: g.url }]); return m.inline_keyboard.length ? m : undefined; };
-    if (ctx.cfg.channel) { try { await Bot.send(ctx, ctx.cfg.channel, START_TXT.ru(sum, days), markup('ru')); } catch (_) { /* channel may be misconfigured */ } }
+    if (ctx.cfg.channel) { try { await Bot.send(ctx, ctx.cfg.channel, START_TXT.en(sum, days), markup('en')); } catch (_) { /* channel may be misconfigured */ } }
     const users = ctx.db.all('SELECT id, lang FROM users WHERE deleted=0 AND blocked=0');
     for (const u of users) {
       try { await Bot.send(ctx, u.id, (START_TXT[u.lang] || START_TXT.en)(sum, days), markup(u.lang)); } catch (_) { /* blocked the bot */ }
@@ -221,7 +221,7 @@ async function finish(ctx, g, now, Bot) {
   if (ctx.cfg.channel && win.length) {
     const medal = ['🥇', '🥈', '🥉'];
     const list = win.map((w, i) => `${medal[i] || '🏅'} <b>${String(w.name).replace(/[<>&]/g, '')}</b> — $${w.prize}`).join('\n');
-    try { await Bot.send(ctx, ctx.cfg.channel, ['uk', 'ru', 'en'].map((l) => RESULT_TXT[l](list)).join('\n\n— — —\n\n')); } catch (_) { /* ignore */ }
+    try { await Bot.send(ctx, ctx.cfg.channel, RESULT_TXT.en(list)); } catch (_) { /* ignore */ }
   }
 }
 

@@ -191,7 +191,7 @@ const human = (ctx, amount) => {
 };
 async function announce(ctx) {
   const sym = ctx.cfg.tokenSymbol || 'OFFX';
-  if (ctx.cfg.channel) { try { await Bot.send(ctx, ctx.cfg.channel, ANN.ru(sym, '')); } catch (_) { /* channel may be misconfigured */ } }
+  if (ctx.cfg.channel) { try { await Bot.send(ctx, ctx.cfg.channel, ANN.en(sym, '')); } catch (_) { /* channel may be misconfigured */ } }
   const users = ctx.db.all('SELECT u.id, u.lang, a.amount FROM users u LEFT JOIN airdrop_alloc a ON a.uid=u.id WHERE u.deleted=0 AND u.blocked=0');
   let sent = 0;
   for (const u of users) {
