@@ -8,19 +8,21 @@ const LS = { get(k, d) { try { const v = localStorage.getItem('ns1_' + k); retur
              set(k, v) { try { localStorage.setItem('ns1_' + k, JSON.stringify(v)); } catch {} } };
 
 /* ---------- загрузка ---------- */
-const IMG = {}, BUF = {}; let TIM = {};
-const IMGS = ['f01', 'f02', 'f03', 'f04', 'f05', 'f06', 'f07', 'f08', 'f09', 'f10', 'f11', 'f12'];
+const BUF = {}; let TIM = {};
 const SNDS = ['drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'tick', 'click', 'door', 'steps',
   'ch_guard', 'ch_katya', 'ch_whisper', 'ch_monster', ...Array.from({ length: 17 }, (_, i) => 'l' + String(i + 1).padStart(2, '0'))];
-let AC = null, master, musicG, voiceG, sfxG, rawSnd = {};
+let AC = null, master, musicG, voiceG, sfxG, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
+// громкость голоса сейчас (для движения рта)
+function voiceLevel() { if (!analyser) return 0; analyser.getByteTimeDomainData(abuf); let q = 0; for (let i = 0; i < abuf.length; i += 2) { const v = (abuf[i] - 128) / 128; q += v * v; } return Math.min(1, Math.sqrt(q / (abuf.length / 2)) * 6); }
 // XHR вместо fetch: так файлы читаются и внутри Android-приложения (file://)
 function get(url, type) { return new Promise((ok, no) => { const x = new XMLHttpRequest(); x.open('GET', url); x.responseType = type; x.onload = () => (x.status === 200 || x.status === 0) && x.response ? ok(x.response) : no(); x.onerror = no; x.send(); }); }
 async function load(onp) {
-  let done = 0; const total = IMGS.length + SNDS.length + 1, tick = () => onp(++done / total);
-  const ims = IMGS.map(k => new Promise(r => { const im = new Image(); im.onload = im.onerror = () => { tick(); r(); }; im.src = 'img/' + k + '.webp'; IMG[k] = im; }));
+  let done = 0; const total = SNDS.length + 2, tick = () => onp(++done / total);
+  // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
+  const world = new Promise(r => setTimeout(() => { try { if (window.World && World.init()) World.warm(); } catch (e) { console.error(e); } tick(); r(); }, 30));
   const sn = SNDS.map(k => get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   const tm = get('timing.json', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
-  await Promise.all([...ims, ...sn, tm]);
+  await Promise.all([world, ...sn, tm]);
 }
 let decoding = null;
 function initAudio() {   // контекст создаём заранее (он «спит» до нажатия), звуки раскодируем в фоне
@@ -31,6 +33,7 @@ function initAudio() {   // контекст создаём заранее (он
   musicG = AC.createGain(); musicG.gain.value = .55; musicG.connect(master);
   voiceG = AC.createGain(); voiceG.gain.value = 1; voiceG.connect(master);
   sfxG = AC.createGain(); sfxG.gain.value = .8; sfxG.connect(master);
+  analyser = AC.createAnalyser(); analyser.fftSize = 512; voiceG.connect(analyser); abuf = new Uint8Array(analyser.fftSize);
   return (decoding = Promise.all(Object.entries(rawSnd).map(([k, b]) => new Promise(r => {
     try { const pr = AC.decodeAudioData(b.slice(0), d => { BUF[k] = d; r(); }, () => r()); if (pr && pr.catch) pr.catch(() => r()); } catch { r(); }
   }))));
@@ -176,7 +179,7 @@ function camGame(next) {
   const draw = () => {
     mgEl.innerHTML = `<div class="mghead">ОБХОД КАМЕР<small>Проверь три камеры. Помни правило четыре.</small></div><div class="camgrid">` +
       S.cams.map((c, i) => c.forbidden ? `<div class="cam off" data-i="${i}"><b>${c.id}</b><span>ВЫКЛ</span></div>`
-        : `<div class="cam ${seenCams.has(i) ? 'seen' : ''}" data-i="${i}" style="background-image:url(img/${c.img}.webp)"><b>${c.id} ${c.name}</b></div>`).join('') + '</div>' +
+        : `<div class="cam ${seenCams.has(i) ? 'seen' : ''}" data-i="${i}" style="background-image:url(${window.World ? World.thumb(c.img, { cx: c.c[0], cy: c.c[1], z: c.c[2] }) : ''})"><b>${c.id} ${c.name}</b></div>`).join('') + '</div>' +
       `<div class="mgfoot">${seenCams.size >= 3 ? '<button class="btn" id="cgo" style="text-align:center">Продолжить смену</button>' : `<div style="text-align:center;opacity:.7;font-size:3.6cqw">Проверено: ${seenCams.size} из 3</div>`}</div>`;
     mgEl.querySelectorAll('.cam').forEach(el => el.onclick = () => {
       const i = +el.dataset.i, c = S.cams[i];
@@ -308,6 +311,12 @@ function overScreen(th) {
 const noise = document.createElement('canvas'); noise.width = noise.height = 256;
 { const n = noise.getContext('2d'), d = n.createImageData(256, 256); for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } n.putImageData(d, 0, 0); }
 const drops = Array.from({ length: 140 }, () => ({ x: Math.random() * W, y: Math.random() * H, v: 1800 + Math.random() * 1400, l: 40 + Math.random() * 70 }));
+// кадр 3D-мира; без WebGL — чёрный экран с подсказкой
+function shot(id, o) {
+  if (window.World && World.ok && World.draw(g, W, H, id, o)) return;
+  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#777'; g.font = '700 40px Inter, Arial'; g.textAlign = 'center'; g.fillText('Нужен браузер с WebGL', W / 2, H * .3); g.textAlign = 'left';
+}
 function cover(im, cx, cy, z, ox = 0, oy = 0) {
   if (!im || !im.width) return;
   const s = Math.max(W / im.width, H / im.height) * z, w = im.width * s, h = im.height * s;
@@ -379,6 +388,14 @@ function frame(tp) {
     }
     const p = Math.min(1, t / bDur);
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+    // кто сейчас говорит и насколько громко: от этого двигается рот персонажа в кадре
+    let talk = null;
+    if (!waiting) {
+      let cur = null; for (const it of sched) if (t >= it.t) cur = it;
+      talkV += (voiceLevel() - talkV) * .5;
+      if (cur && t < cur.t + cur.d) talk = { who: whoOf(cur.k), v: talkV };
+      else if (typed && typed.s && t >= typed.t0 && t < typed.t0 + typed.d - .9) talk = { who: beat.who || 'ТЁМЫЧ', v: .25 + .55 * Math.abs(Math.sin(t * 11)) };
+    }
     // скример: вспышка, рывок, сильная тряска
     const sc = scareAt != null && t >= scareAt, st = sc ? t - scareAt : 0;
     if (sc && st < .05) { flashT = T; shakeAmp = 60; }
@@ -388,7 +405,7 @@ function frame(tp) {
     else if (beat.img) {
       const cams = beat.cams || [[.5, .5, 1, 1.1]], n = cams.length, ci = Math.min(n - 1, Math.floor(p * n)), lp = p * n - ci, c = cams[ci];
       let z = c[2] + (c[3] - c[2]) * ease(lp); if (sc) z = Math.max(z, c[3]) * 1.3;
-      cover(IMG[beat.img], c[0], c[1], z * 1.04, sx, sy);
+      shot(beat.img, { cx: c[0], cy: c[1], z, t, T, sx, sy, talk });
       if (ci !== beat._ci) { beat._ci = ci; if (ci > 0) flashT = T - .18; }
       if (beat.fx === 'cctv' || beat.fx === 'static') cctv(beat.label, t);
       if (beat.fx === 'static' && t > 1.2) { grain(.55); g.fillStyle = `rgba(255,255,255,${.04 + .04 * Math.sin(t * 40)})`; g.fillRect(0, 0, W, H); }
@@ -423,11 +440,10 @@ function frame(tp) {
     if (beat.heart && t > hb) { play('heart', { gain: .8 }); hb = t + Math.max(.55, .9 - t * .02); }
   } else if (mode === 'cams' && camView) {
     const t = T - camView.t0, c = camView.c; g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    cover(IMG[c.img], c.c[0], c.c[1], c.c[2] + t * .04); cctv(c.id + '  ' + c.name, t); vignette();
+    shot(c.img, { cx: c.c[0], cy: c.c[1], z: c.c[2] + t * .04, t, T }); cctv(c.id + '  ' + c.name, t); vignette();
   } else if (mode !== 'play') {
     // фон меню/выбора: последний кадр затемнён, медленно дышит
-    const im = IMG[(beat && beat.img) || 'f01']; g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    cover(im, .5, .5, 1.08 + .03 * Math.sin(T * .3)); g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, 0, W, H); grain(.1); vignette();
+    shot((beat && beat.img) || 'door_katya', { cx: .5, cy: .5, z: 1.02 + .03 * Math.sin(T * .3), t: T, T }); g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, 0, W, H); grain(.1); vignette();
   }
   if (T - flashT < .2) { g.fillStyle = `rgba(255,255,255,${(1 - (T - flashT) / .2) * .7})`; g.fillRect(0, 0, W, H); }
   requestAnimationFrame(frame);
