@@ -24,7 +24,10 @@ async function load(onp) {
   const sn = SNDS.map(k => get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   const tm = get('timing.json', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([world, ...sn, tm]);
+  // остальные реплики (их много) докачиваются в фоне, уже во время игры
+  for (const k of Object.keys(TIM)) if (!SNDS.includes(k)) get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
 }
+function decodeOne(k, b) { return new Promise(r => { try { const pr = AC.decodeAudioData(b.slice(0), d => { BUF[k] = d; r(); }, () => r()); if (pr && pr.catch) pr.catch(() => r()); } catch { r(); } }); }
 let decoding = null;
 function initAudio() {   // контекст создаём заранее (он «спит» до нажатия), звуки раскодируем в фоне
   if (decoding) return decoding;
@@ -35,9 +38,9 @@ function initAudio() {   // контекст создаём заранее (он
   voiceG = AC.createGain(); voiceG.gain.value = 1; voiceG.connect(master);
   sfxG = AC.createGain(); sfxG.gain.value = .8; sfxG.connect(master);
   analyser = AC.createAnalyser(); analyser.fftSize = 512; voiceG.connect(analyser); abuf = new Uint8Array(analyser.fftSize);
-  return (decoding = Promise.all(Object.entries(rawSnd).map(([k, b]) => new Promise(r => {
-    try { const pr = AC.decodeAudioData(b.slice(0), d => { BUF[k] = d; r(); }, () => r()); if (pr && pr.catch) pr.catch(() => r()); } catch { r(); }
-  }))));
+  return (decoding = Promise.all(Object.entries(rawSnd).filter(([k]) => SNDS.includes(k)).map(([k, b]) => decodeOne(k, b))).then(() => {
+    for (const [k, b] of Object.entries(rawSnd)) if (!BUF[k]) decodeOne(k, b);   // фоновые — не задерживают старт
+  }));
 }
 function unlockAudio() {   // только внутри нажатия: иначе телефон (особенно iPhone) не даст включить звук
   if (!AC) return;
@@ -83,6 +86,8 @@ document.addEventListener('visibilitychange', () => { paused = document.hidden; 
 let mode = 'menu', scene = null, sceneId = '', bi = 0, beat = null, bT0 = 0, bDur = 0, sched = [], fired = new Set(), onBeatEnd = null;
 let gen = 0;   // номер текущей сцены: старые таймеры и мини-игры по нему понимают, что устарели
 let flashT = -9, scareAt = null, shakeAmp = 0, typed = null, hb = 0;
+let creep = null, creepCool = 25, mgView = null;   // случайное появление Жильца в кадре; кадр под мини-игрой
+const buzz = ms => { try { if (navigator.vibrate && !LS.get('mute', false)) navigator.vibrate(ms); } catch {} };
 const seen = new Set(LS.get('seen', []));
 
 function durOf(k) { return (TIM[k] && TIM[k].dur) || (BUF[k] && BUF[k].duration) || 2; }
@@ -90,11 +95,11 @@ function durOf(k) { return (TIM[k] && TIM[k].dur) || (BUF[k] && BUF[k].duration)
 const SPK = { 'ТЁМЫЧ': { c: '#cfd3da', cls: 'narr', sub: 'ты' }, 'СМЕНЩИК': { c: '#ffd27a' }, 'КАТЯ': { c: '#ff9fbc' }, 'КАТЯ?': { c: '#ff4f7e' },
   '???': { c: '#ff3030', cls: 'monster' }, 'МИХАЛЫЧ': { c: '#8fd0ff' }, 'КАМЕРА': { c: '#7fe0a0' }, 'ТЕЛЕФОН': { c: '#9aa3b5' } };
 const VOICE_WHO = { ch_guard: 'СМЕНЩИК', ch_katya: 'КАТЯ', ch_whisper: 'КАТЯ?', ch_monster: '???' };
-const whoOf = k => VOICE_WHO[k] || 'ТЁМЫЧ';
+const whoOf = k => VOICE_WHO[k] || (TIM[k] && TIM[k].who) || 'ТЁМЫЧ';
 let waiting = false, holding = false, auto = LS.get('auto', false);
 
 function startScene(id) {
-  gen++; stopAll(); choiceEl.classList.add('hide'); mgEl.classList.add('hide'); mgEl.innerHTML = '';
+  gen++; stopAll(); choiceEl.classList.add('hide'); mgEl.classList.add('hide'); mgEl.innerHTML = ''; mgView = null;
   uiEl.innerHTML = ''; $('hud').classList.remove('hide');
   sceneId = id; scene = S.scenes[id]; mode = 'play';
   if (!id.startsWith('over_')) LS.set('save', id);
@@ -103,7 +108,7 @@ function startScene(id) {
   bi = -1; nextBeat();
 }
 function nextBeat() {
-  bi++; amb('heart', false); holding = false; dlgEl.classList.remove('wait');
+  bi++; amb('heart', false); holding = false; waiting = false; tapEl.classList.add('hide'); dlgEl.classList.remove('wait');
   if (!scene.beats[bi]) { seen.add(sceneId); LS.set('seen', [...seen]); return runThen(scene.then); }
   beat = scene.beats[bi]; bT0 = now(); fired.clear(); sched = []; typed = null; scareAt = null; hb = 0;
   chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
@@ -115,14 +120,20 @@ function nextBeat() {
   }
   if (beat.text) { const d = Math.max(2.2, beat.text.length / 14 + 1.3); typed = { t0: beat.say ? t : .2, d, s: beat.text }; t = Math.max(t, typed.t0 + d); }
   if (beat.scare != null) scareAt = beat.scare;
+  creep = null;
   bDur = Math.max(t + (beat.pad || .3), 1.2);
   ruleEl.classList.toggle('hide', !beat.rule); if (beat.rule) { ruleEl.textContent = beat.rule; learnRule(beat.rule); }
+  // Жилец иногда мелькает в кадре: только на отмеченных кадрах, не чаще раза в ~40 секунд и не каждый раз
+  if (beat.creep && beat.img && scareAt == null && clockT > creepCool && Math.random() < .6) {
+    const at = 1 + Math.random() * Math.max(.5, bDur - 2);
+    creep = { at, len: .35 + Math.random() * .4, seed: 1 + Math.floor(Math.random() * 1000) }; creepCool = clockT + 40 + Math.random() * 30;
+  }
   if (beat.wait) { waiting = true; tapEl.textContent = '▶ ' + beat.wait; tapEl.classList.remove('hide'); dlgEl.classList.add('hide'); ruleEl.classList.add('hide'); return; }
   beatAudio();
 }
 function beginBeat() { waiting = false; tapEl.classList.add('hide'); chapEl.classList.add('hide'); if (beat.rule) ruleEl.classList.remove('hide'); bT0 = now(); play('click'); beatAudio(); }
 function beatAudio() {
-  for (const [n, at] of beat.sfx || []) if (n === 'static') amb('static', true, .25); else play(n, { when: at });
+  for (const [n, at] of beat.sfx || []) if (n === 'static') amb('static', true, .25); else { play(n, { when: at }); if (n === 'knock' || n === 'door') setTimeout(() => buzz(40), at * 1000); }
   for (const it of sched) { const o = play(it.k, { when: it.t, bus: 'voice' }); if (o) o.voice = true; }
   amb('rain', beat.fx === 'rain', .35); if (beat.fx !== 'static' && !(beat.sfx || []).some(s => s[0] === 'static')) amb('static', beat.fx === 'static', .3);
   if (scareAt != null) play('scare', { when: scareAt });
@@ -239,11 +250,25 @@ const MG = {
     const fin = ok => { if (end || my !== gen) return; end = true; mgEl.classList.add('hide'); startScene(ok ? th.win : th.lose); };
     (function loop() {
       if (end || my !== gen) return; const t = now() - t0;
-      if (t > nextHit) { play('knock', { gain: 1.2 }); shakeAmp = 26; nextHit = t + .9 + Math.random() * .6; if (Math.random() < .3) play('ch_katya', { bus: 'voice', gain: .5 }); }
+      if (t > nextHit) { play('knock', { gain: 1.2 }); shakeAmp = 26; buzz(50); nextHit = t + .9 + Math.random() * .6; if (Math.random() < .3) play('ch_katya', { bus: 'voice', gain: .5 }); }
       v -= (.0042 + t * .00022); bar.style.width = Math.max(0, v * 100) + '%';
       if (v <= 0) return fin(false); if (t > (th.dur || 12)) return fin(true);
       requestAnimationFrame(loop);
     })();
+  },
+  // выдернуть шнур монитора: потянуть вилку вниз, пока он не подошёл к камере
+  cord(th) {
+    mode = 'mg'; music('tension'); amb('static', true, .45); const my = gen, dur = th.dur || 3.2;
+    mgView = { img: th.img || 'cam13_monster', c: th.cam || [.54, .34, 1.2, 3.4], t0: now(), dur, label: th.label || 'CAM 13' };
+    mgEl.innerHTML = `<div class="mghead low">${th.title || 'ВЫДЕРНИ ШНУР'}<small>${th.hint || 'Тяни вилку вниз, быстро!'}</small></div><div class="cord"><div class="wire"></div><div class="plug" id="plug">⏚</div></div><div class="mgfoot" style="bottom:8%"><div class="meter"><i id="ct" style="width:100%"></i></div></div>`;
+    mgEl.classList.remove('hide'); play('ch_monster', { bus: 'voice', gain: .8 }); buzz(80);
+    const plug = $('plug'), box = mgEl.querySelector('.cord'), t0 = now(); let y0 = null, end = false;
+    const fin = ok => { if (end || my !== gen) return; end = true; amb('static', false); if (ok) { play('click'); play('boom'); } mgEl.classList.add('hide'); mgView = null; startScene(ok ? th.win : th.lose); };
+    plug.onpointerdown = e => { e.preventDefault(); y0 = e.clientY; try { plug.setPointerCapture(e.pointerId); } catch {} };
+    plug.onpointermove = e => { if (y0 == null) return; const d = Math.max(0, e.clientY - y0), lim = box.clientHeight * .45; plug.style.transform = `translateY(${d}px)`; if (d > lim) fin(true); };
+    plug.onpointerup = plug.onpointercancel = () => { if (end) return; y0 = null; plug.style.transform = ''; };
+    (function loop() { if (end || my !== gen) return; const l = dur - (now() - t0); const el = $('ct'); if (el) el.style.width = Math.max(0, l / dur * 100) + '%'; if (Math.random() < .08) shakeAmp = 12; if (l <= 0) return fin(false); requestAnimationFrame(loop); })();
+    window.__ns.cordWin = () => fin(true);
   },
   // бег: быстро выбрать сторону (подсказка — где гаснет свет, туда нельзя)
   run(th) {
@@ -264,7 +289,7 @@ const MG = {
 
 /* ---------- экраны ---------- */
 function gallery() {
-  const got = LS.get('endings', []), ov = LS.get('overs', []);
+  const got = LS.get('endings', []).filter(k => S.endings[k]), ov = LS.get('overs', []).filter(k => S.overs.includes(k));
   return `<div class="gal">${Object.entries(S.endings).map(([k, n]) => `<div class="${got.includes(k) ? 'got' : ''}">${got.includes(k) ? n : '???'}</div>`).join('')}</div>
     <small>Концовки: ${got.length} из ${Object.keys(S.endings).length} · Смертей найдено: ${ov.length} из ${S.overs.length}</small>`;
 }
@@ -281,7 +306,7 @@ const supportBtn = () => `<a class="btn ghost sup" href="${escH(SP.donate)}" tar
 function menu() {
   gen++; mode = 'menu'; stopAll(false); music(null); for (const k in ambient) amb(k, false); $('hud').classList.add('hide');
   choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false;
-  const save = LS.get('save', null);
+  const sv = LS.get('save', null), save = sv && S.scenes[sv] ? sv : null;   // сохранение из старой версии сценария не ломает меню
   uiEl.innerHTML = `<div class="screen"><h1>НОЧНАЯ<br>СМЕНА<em>ИНТЕРАКТИВНЫЙ ХОРРОР</em></h1>
     <p>Четыре правила. Одна ночь. Сестра за стеклом.<br>Твои выборы решают, доживёшь ли ты до утра.</p>
     <button class="btn" id="mNew">${save ? 'Начать заново' : 'Начать смену'}</button>
@@ -312,7 +337,7 @@ function overScreen(th) {
   music(null);
   uiEl.innerHTML = `<div class="screen over"><h1>${th.over}</h1><p>${th.sub}<br>Ты не дожил до утра.</p>
     <button class="btn" id="oRetry">Попробовать снова</button><button class="btn ghost" id="oMenu">Меню</button>
-    <small>Смертей найдено: ${ov.size} из ${S.overs.length}</small></div>`;
+    <small>Смертей найдено: ${[...ov].filter(k => S.overs.includes(k)).length} из ${S.overs.length}</small></div>`;
   $('oRetry').onclick = () => { goFull(); uiEl.innerHTML = ''; startScene(th.retry); }; $('oMenu').onclick = menu;
 }
 
@@ -407,14 +432,16 @@ function frame(tp) {
     }
     // скример: вспышка, рывок, сильная тряска
     const sc = scareAt != null && t >= scareAt, st = sc ? t - scareAt : 0;
-    if (sc && st < .05) { flashT = T; shakeAmp = 60; }
+    if (sc && st < .05) { if (flashT !== T && T - flashT > .5) buzz([120, 40, 220]); flashT = T; shakeAmp = 60; }
     const sx = (Math.sin(T * 1.6) * 8 + Math.sin(T * 4.9) * 3) + (Math.random() - .5) * shakeAmp, sy = (Math.cos(T * 1.2) * 8 + Math.sin(T * 4.1) * 3) + (Math.random() - .5) * shakeAmp;
     shakeAmp *= .9;
     if (beat.phone) phone(beat.phone, t);
     else if (beat.img) {
       const cams = beat.cams || [[.5, .5, 1, 1.1]], n = cams.length, ci = Math.min(n - 1, Math.floor(p * n)), lp = p * n - ci, c = cams[ci];
       let z = c[2] + (c[3] - c[2]) * ease(lp); if (sc) z = Math.max(z, c[3]) * 1.3;
-      shot(beat.img, { cx: c[0], cy: c[1], z, t, T, sx, sy, talk });
+      const cr = creep && t >= creep.at && t < creep.at + creep.len ? creep.seed : 0;
+      if (cr && !creep.hit) { creep.hit = true; play('boom', { gain: .5 }); play('ch_whisper', { bus: 'voice', gain: .35 }); buzz(60); }
+      shot(beat.img, { cx: c[0], cy: c[1], z, t, T, sx, sy, talk, creep: cr });
       if (ci !== beat._ci) { beat._ci = ci; if (ci > 0) flashT = T - .18; }
       if (beat.fx === 'cctv' || beat.fx === 'static') cctv(beat.label, t);
       if (beat.fx === 'static' && t > 1.2) { grain(.55); g.fillStyle = `rgba(255,255,255,${.04 + .04 * Math.sin(t * 40)})`; g.fillRect(0, 0, W, H); }
@@ -450,6 +477,10 @@ function frame(tp) {
   } else if (mode === 'cams' && camView) {
     const t = T - camView.t0, c = camView.c; g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
     shot(c.img, { cx: c.c[0], cy: c.c[1], z: c.c[2] + t * .04, t, T }); cctv(c.id + '  ' + c.name, t); vignette();
+  } else if (mode === 'mg' && mgView) {
+    const t = T - mgView.t0, k = Math.min(1, t / (mgView.dur || 3)); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+    shot(mgView.img, { cx: mgView.c[0], cy: mgView.c[1], z: mgView.c[2] + (mgView.c[3] - mgView.c[2]) * k * k, t: mgView.st ? mgView.st + t : t, T, sx: (Math.random() - .5) * shakeAmp, sy: (Math.random() - .5) * shakeAmp });
+    shakeAmp *= .9; if (mgView.label) cctv(mgView.label, t); if (mgView.label && t > .3) grain(.25 + k * .5); vignette();
   } else if (mode !== 'play') {
     // фон меню/выбора: последний кадр затемнён, медленно дышит
     shot((beat && beat.img) || 'door_katya', { cx: .5, cy: .5, z: 1.02 + .03 * Math.sin(T * .3), t: T, T }); g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, 0, W, H); grain(.1); vignette();
@@ -471,5 +502,5 @@ uiEl.innerHTML = `<div class="screen"><h1>НОЧНАЯ<br>СМЕНА</h1><div id
 requestAnimationFrame(frame);
 window.addEventListener('error', e => { if (mode === 'menu' && !uiEl.innerHTML) uiEl.innerHTML = `<div class="screen"><p>Ошибка: ${String(e.message || e).slice(0, 120)}</p></div>`; });
 load(p => { const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).catch(() => {}).then(() => { initAudio(); menu(); });
-window.__ns = { back: () => menu(), startScene, get mode() { return mode; }, get scene() { return sceneId; }, skipBeat };
+window.__ns = { back: () => menu(), startScene, get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused].join(' '); } };
 })();

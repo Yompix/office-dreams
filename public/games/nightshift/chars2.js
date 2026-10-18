@@ -275,7 +275,7 @@ function updateSkinned(C, t, dt) {
   if (C.o.jerk && Math.sin(tt * 1.3) > .985) _b.x += (rnd() - .5) * .8;
   // не дальше, чем позволяет шея: ограничиваем угол от направления тела
   _c.set(0, 0, 1).applyQuaternion(_q2);
-  const ang = _b.angleTo(_c); if (ang > 1.15) { _q.setFromUnitVectors(_c, _b); _q.slerp(_pq.identity(), 1 - 1.15 / ang); _b.copy(_c).applyQuaternion(_q); }
+  const ang = _b.angleTo(_c), hm = C.o.headMax || 1.15; if (ang > hm) { _q.setFromUnitVectors(_c, _b); _q.slerp(_pq.identity(), 1 - hm / ang); _b.copy(_c).applyQuaternion(_q); }
   C.lookDir = C.lookDir ? C.lookDir.lerp(_b, k).normalize() : _b.clone();
   for (const [bn, f] of [['neck_01', .45], ['Head', 1]]) {
     const b = C.bone[bn]; b.updateWorldMatrix(true, false);
@@ -289,10 +289,11 @@ function updateSkinned(C, t, dt) {
   if (C.strands) C.strands.forEach((st, i) => { st.rotation.x = .08 + Math.sin(tt * 1.1 + i) * .05; st.rotation.z = Math.sin(tt * .8 + i * 2) * .04; });
   // лицо
   C.blinkT -= dt; let blink = 0; if (C.blinkT < 0) { blink = 1; if (C.blinkT < -.12) C.blinkT = 2 + rnd() * 4; }
-  if (C.o.monster) blink = 0;
+  const fs = C.faceSets[C.faceSet] || {};
+  if (C.o.monster || C.o.noBlink || fs.wide) blink = 0;   // Жилец и «Катя» не моргают — это улика
   U.uBlink.value = blink; if (C.eyes) C.eyes.visible = !blink;
-  U.uTalk.value = lerp(U.uTalk.value, clamp(C.talk * 1.3, 0, 1), Math.min(1, dt * 18));
-  const fs = C.faceSets[C.faceSet]; U.uSmile.value = C.o.smile || (fs && fs.smile) ? 1 : 0;
+  U.uTalk.value = lerp(U.uTalk.value, clamp(Math.max(C.talk * 1.3, fs.mouth || 0), 0, 1), Math.min(1, dt * 18));
+  U.uSmile.value = C.o.smile ? 1 : fs.smile ? +fs.smile : 0;
   C.keys.visible = P === 'give'; C.paper.visible = P === 'paper';
 }
 
@@ -303,11 +304,13 @@ function cast() {
   A.temych = makeSkinned(Object.assign({ name: 'temych', h: 1.8, skin: 0xffe8dc, skinK: 1.25, hairPart: 'Hair_SimpleParted', hair: 0x3a2a1c, brow: 0x2a1c12 }, guard));
   A.smenshik = makeSkinned(Object.assign({ name: 'smenshik', h: 1.72, skin: 0xf0d6c8, skinK: 1.2, hairPart: 'Hair_Buzzed', hair: 0x9a9a96, brow: 0x8a8a86, cap: 0x15203a }, guard, { shirt: 0x1d2a44, pants: 0x1a2236 }));
   A.smenshik.addFace('smile', { smile: true });
+  A.smenshik.addFace('fear', { mouth: .45, wide: true });
+  A.temych.addFace('smile', { smile: 1.45, wide: true });
   const kat = { fem: true, h: 1.64, skin: 0xfff0ea, skinK: 1.3, hairPart: 'Hair_Long', hair: 0x4a3226, brow: 0x1a110c, coat: 0xd2a52a, coatY: .62, pants: 0x223050, shoes: 0x1a1414, trim: 0x8a6a10, wet: true };
-  A.katya = makeSkinned(Object.assign({ name: 'katya' }, kat));
-  A.katyaSmile = makeSkinned(Object.assign({ name: 'katyaSmile' }, kat, { skin: 0xe6dcd8, skinK: 1.25, grey: .5, smile: true, eyeC: 0x555555 }));
+  A.katya = makeSkinned(Object.assign({ name: 'katya', noBlink: true }, kat));
+  A.katyaSmile = makeSkinned(Object.assign({ name: 'katyaSmile' }, kat, { skin: 0xe6dcd8, skinK: 1.25, grey: .5, smile: true, noBlink: true, eyeC: 0x555555 }));
   A.mihalych = makeSkinned(Object.assign({ name: 'mihalych', h: 1.76, skin: 0xead0c0, skinK: 1.2, hairPart: 'Hair_SimpleParted', hair: 0xc8c8c2, brow: 0xb8b8b2, beard: true, beardC: 0xd0d0ca, glasses: true }, guard, { shirt: 0x3a3e40, pants: 0x2a2d30, trim: 0x55595c }));
-  A.monster = makeSkinned({ name: 'monster', monster: true, naked: true, h: 2.25, thin: .64, arm: 1.22, armL: 1.15, skin: 0x9aa39e, grey: 1, hairPart: 'Hair_Long', hair: 0x050505, voidEyes: true, smile: true, tilt: .25, jerk: true, veil: true });
+  A.monster = makeSkinned({ name: 'monster', monster: true, naked: true, h: 2.25, thin: .64, arm: 1.22, armL: 1.15, skin: 0x9aa39e, grey: 1, hairPart: 'Hair_Long', hair: 0x050505, voidEyes: true, smile: true, tilt: .25, jerk: true, veil: true, headMax: 2.3 });
   for (const k in A) A[k].update(0, 1 / 30);
   return A;
 }

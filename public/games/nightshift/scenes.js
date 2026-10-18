@@ -197,7 +197,9 @@ function buildCorridor() {
   }
   // двери лифта в начале коридора (за спиной камеры) и зелёная табличка
   const ex = plane(.5, .25, mat(0xffffff, TX.exit, { basic: true }), S); ex.position.set(0, 2.55, -len + .08); ex.position.x = .9;
-  o.reset = () => { setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.amb.intensity = .7; };
+  // табличка «СЕРВЕРНАЯ» поверх 713 — этот же коридор играет минус второй этаж
+  o.srv = label(.5, .12, 96, 22, (c, w, h) => { c.fillStyle = '#7a7d80'; c.fillRect(0, 0, w, h); c.fillStyle = '#111'; c.font = '700 13px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('СЕРВЕРНАЯ  −2', w / 2, h / 2 + 1); }, S); o.srv.position.set(0, 1.78, -len + .09);
+  o.reset = () => { setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .7; o.srv.visible = false; };
   o.tick = () => {};
   return o;
 }
@@ -283,6 +285,12 @@ const SH = {
   corridor_monster: { loc: 'corridor', pos: [0, 2.0, -20.3], look: [0, 2.02, -21.5], fov: 44, set: (o) => { setLamps(o, 1); return [['monster', 0, 0, -21.5, 0, 'reach', 'cam']]; } },
   monster_booth: { loc: 'lobby', pos: [5.3, 1.15, -.6], look: [5.1, 1.85, .8], fov: 52, set: (o) => { o.lamp.intensity = 0; o.lampBulb.visible = false; o.l1.intensity = .3; return [['monster', 5.1, 0, .95, PI, 'reach', 'cam']]; } },
   hall_cam_katya: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', 5.2, 0, -.85, 0, 'sit', [5, 1, 3]], ['katyaSmile', -.6, 0, -1.8, .7, 'stand', 'cam']] },
+  elevator_13: { loc: 'lobby', pos: [-1.3, 1.5, 2.4], look: [-2.2, 2.35, -6], fov: 46, set: (o, t) => { setLift(o, o.lifts[0], 1, '13'); o.cabLight.intensity = (Math.sin(t * 19) > -.7) ? 2.4 : .5; return []; } },
+  cam13_turn: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.1, -.4], fov: 66, set: (o, t) => { o.salt.visible = false; const k = clamp((t - 2.6) / 1.4, 0, 1), e = k * k * (3 - 2 * k); return [['monster', .1, 0, -.5, 3.0, 'monster', lin([.5, 1.9, -3.5], [3.6, 2.7, 3.1], e)]]; } },
+  guard_dawn_fear: { loc: 'lobby', pos: [5.35, 1.25, -.7], look: [5.12, 1.52, .9], fov: 44, set: (o, t) => { setDawn(o, 1); A.smenshik.faceSet = 'fear'; return [['smenshik', 5.12, 0, .85 + Math.max(0, t - .8) * .22, PI, t > .8 ? 'back' : 'stand', 'cam']]; } },
+  booth_reflect: { loc: 'lobby', pos: [5.3, 1.6, -.55], look: [5.12, 1.6, .9], fov: 38, set: (o) => { setDawn(o, 1); o.lamp.intensity = 0; o.lampBulb.visible = false; A.temych.faceSet = 'smile'; return [['temych', 5.12, 0, .9, PI, 'stand', 'cam']]; } },
+  exterior_alone: { loc: 'lobby', pos: [3.2, 1.4, 17.8], look: [2.0, 2.2, 13], fov: 54, set: () => [['temych', 2.3, 0, 15.6, .25, 'stand', 'cam']] },
+  basement_door: { loc: 'corridor', pos: [.15, 1.55, -23.5], look: [0, 1.05, -26], fov: 54, set: (o, t) => { setLamps(o, (Math.sin(t * 11) > .55 && Math.sin(t * 2.3) > -.2) ? 1 : 0); o.srv.visible = true; o.slitLight.color.setHex(0xffb060); o.slitLight.intensity = 1.6 + Math.sin(t * 7) * .3; o.amb.intensity = .35; return []; } },
   run_dark: { loc: 'corridor', pos: [0, 1.5, -3], look: [0, 1.2, -26], fov: 62, set: (o, t) => { setLamps(o, 7 - Math.floor(t * 1.5) % 8, true); return [['mihalych', .3, 0, -5.2 - t * .4, PI, 'walk', null]]; } },
 };
 // старые имена кадров из первой версии → новые
@@ -301,6 +309,7 @@ function init() {
   const R = window.__W3core.R; R.setPixelRatio(1); R.setSize(RW, RH, false); R.useLegacyLights = true; R.outputColorSpace = T.SRGBColorSpace;
   makeTextures(); A = window.__W3chars.cast();
   L.lobby = buildLobby(); L.corridor = buildCorridor(); L.server = buildServer();
+  for (const k in L) L[k].name = k;
   // буфер кадра и постобработка: цветокор + дизеринг + ступени цвета
   window.__W3core.RT = new T.WebGLRenderTarget(RW, RH, { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
   postMat = new T.ShaderMaterial({
@@ -365,6 +374,27 @@ function renderFeeds(R, T0) {
   R.setRenderTarget(null);
 }
 // главный вызов: нарисовать кадр shotId в 2D-контекст g размером W×H
+// где может мелькнуть Жилец (случайное появление): за стеклом на улице, между колоннами, у лифтов, в конце коридора, за стойками
+const CREEP = {
+  lobby: [[-3.2, 7.6], [-.9, 8.4], [1.8, 7.4], [4.2, 8.8], [-5.2, 1.6], [3.0, 3.3], [-1.2, -4.6], [1.6, -4.4], [-6.5, -2.5]],
+  corridor: [[0, -23.5], [.6, -16], [-.6, -11], [0, -7.5]],
+  server: [[-2.6, -2.9], [2.6, -2.9], [-2.9, 2.6], [.4, -3.0], [2.9, 1.5]],
+};
+const _p = new T.Vector3();
+function placeCreep(loc, seed, R) {
+  const C = A.monster, list = CREEP[loc.name] || [], ok = [];
+  cam.updateMatrixWorld();
+  for (const [x, z] of list) {
+    _p.set(x, 1.9, z); const d = _p.distanceTo(cam.position); if (d < 2.4 || d > 19) continue;
+    _p.project(cam); if (Math.abs(_p.x) < .78 && _p.y > -.6 && _p.y < .9 && _p.z < 1) ok.push([x, z]);
+  }
+  if (!ok.length) return false;
+  const [x, z] = ok[seed % ok.length];
+  if (C.root.parent !== loc.S) loc.S.add(C.root);
+  C.root.position.set(x, 0, z); C.root.rotation.y = Math.atan2(cam.position.x - x, cam.position.z - z);
+  C.pose = 'monster'; C.look = cam.position.clone(); C.talk = 0;
+  return true;
+}
 function draw(g, W, H, id, o) {
   if (!init()) return false;
   const R = window.__W3core.R;
@@ -375,8 +405,12 @@ function draw(g, W, H, id, o) {
   if (o.talk && o.talk.who) for (const k of NAME[o.talk.who] || []) if (used.has(k)) { A[k].talk = o.talk.v; break; }
   for (const k of used) A[k].update(T0, dt);
   loc.tick(T0, dt);
-  if (sh.feeds && (++feedT % 3 === 0)) renderFeeds(R, T0);
+  let crept = false;
+  // на мониторах в будке: лицо вплотную к камере холла
+  if (o.creep && sh.feeds && !used.has('monster') && L.lobby === loc) { const C = A.monster; if (C.root.parent !== loc.S) loc.S.add(C.root); C.root.position.set(5.6, 0, 3.0); C.root.rotation.y = .75; C.pose = 'monster'; C.look = new T.Vector3(7.45, 3.85, 5.45); C.update(T0, dt); crept = true; }
+  if (sh.feeds && (crept || ++feedT % 3 === 0)) renderFeeds(R, T0);
   aim(cam, sh.pos, sh.look, sh.fov, o.cx ?? .5, o.cy ?? .5, o.z ?? 1, o.sx || 0, o.sy || 0);
+  if (o.creep && !crept && !used.has('monster') && placeCreep(loc, o.creep, R)) A.monster.update(T0, dt);
   postMat.uniforms.uCctv.value = o.cctv ? 1 : 0;
   R.setRenderTarget(window.__W3core.RT); R.render(loc.S, cam);
   R.setRenderTarget(null); R.render(postScene, postCam);
