@@ -5,17 +5,17 @@ The server publishes them by itself (`server/posts.js`): no bot token or admin k
 
 ## How it works
 - `posts/queue.json` is a JSON array of posts. Every minute the server publishes the posts whose time has come to the channel (`CHANNEL`, the bot is its admin).
-- A post goes out **once** (remembered by `id` in the database). A post more than **12 h** overdue is dropped. Two posts are at least **2 h** apart.
+- A post goes out **once** (remembered by `id` in the database, reserved before the send, so it never doubles). A post more than **12 h** overdue is dropped. Two posts are at least **2 h** apart. If Telegram refuses, it is retried after 10, 20, 40… min (6 tries) and the owner gets a message in the bot; a send that timed out is not repeated (the owner checks the channel).
 - The owner sees what is coming with `/posts` in the bot and cancels one with `/postskip <id>`.
-- `npm test` checks the file: valid JSON, every entry valid, **no Cyrillic letters**, every picture exists. A broken file never reaches `main`.
+- `npm test` checks the file: valid JSON, every entry valid (including Telegram HTML: only its tags, all closed, no bare `<` `>` `&`), **no Cyrillic letters** in the text or the button, every picture exists. A broken file never reaches `main`.
 
 ```json
 { "id": "2026-10-19-city", "at": "2026-10-19T16:00:00Z", "text": "<b>Title</b>\n\nBody…", "photo": "shot-city.jpg" }
 ```
 - `id`: `YYYY-MM-DD-short-slug` (lowercase, digits, dashes), unique forever: never reuse an id.
 - `at`: UTC time. One post a day, around **16:00 UTC** (evening in Europe/Kyiv, morning in the US). Never two posts on the same day.
-- `text`: Telegram HTML: `<b>`, `<i>`, `<a href="…">`, `<code>`. Use `\n` for new lines. **With a photo the text is a caption: at most 1024 characters** (keep it under 900). Without a photo, under 1500.
-- `photo` (optional): a file in `public/`. Ready ones: `cover-640x360.png`, `shot-office.jpg`, `shot-team.jpg`, `shot-city.jpg`, `shot-tower.jpg` (classic look, tall phone screenshots). New pictures go to `public/posts/<id>.jpg` (JPEG, under 300 KB, 1280×720 or 1080×1080).
+- `text`: Telegram HTML only: `<b>`, `<i>`, `<u>`, `<s>`, `<a href="…">`, `<code>`, `<blockquote>`, `<tg-spoiler>`. No `<br>`/`<p>`: use `\n` for new lines. Write `&lt;` `&gt;` `&amp;` for < > &. **With a photo the text is a caption: at most 1024 characters** (keep it under 900). Without a photo, under 1500.
+- `photo` (optional): a file in `public/` or `public/posts/` (other folders are not served). Ready ones: `cover-640x360.png`, `shot-office.jpg`, `shot-team.jpg`, `shot-city.jpg`, `shot-tower.jpg` (classic look, tall phone screenshots). New pictures go to `public/posts/<id>.jpg` (JPEG, under 300 KB, 1280×720 or 1080×1080).
 - `button` (optional): the text of the link button under the post (default `▶️ Play Office Dreams`, opens the game); `false` = no button.
 - Posts that went out can be removed from the file after two weeks (keeps it short); the database still remembers their ids.
 
