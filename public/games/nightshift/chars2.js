@@ -32,7 +32,7 @@ async function load(onFile) {
 /* ---------- материал тела: одежда по зонам + лицо ---------- */
 // зоны считаются по точке тела в позе «Т» (метры, рост мужской модели 1.81): так одежда не съезжает при движении
 const BODY_FS = `
-uniform vec3 uShirt, uPants, uShoes, uSkin, uCoat, uTrim; uniform float uFlat, uS, uCoatY, uTalk, uBlink, uSmile, uNaked, uBadge, uFem, uWet, uGrey, uGore;
+uniform vec3 uShirt, uPants, uShoes, uSkin, uCoat, uTrim; uniform float uFlat, uS, uCoatY, uTalk, uBlink, uSmile, uNaked, uBadge, uFem, uWet, uGrey, uGore, uScream, uSocket;
 uniform vec2 uMouth, uEyeL, uEyeR;
 varying vec3 vB;
 float h3(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
@@ -89,7 +89,24 @@ const BODY_PAINT = `
     if (uSmile < .5 && md.y > .35 && uTalk > .35) inner = vec3(.62, .58, .52) * (.85 + .15 * (1. - mr));   // верхние зубы
     col = mix(col, inner, mo * smoothstep(1., .75, mr));
   }
-  if (uSmile > .5 && mr < 1. && md.y < -.2 && md.y > -.65) col = vec3(.62, .58, .5) * (.75 + .25 * step(.5, fract(md.x * 7.)));   // зубы
+  if (uSmile > 1.2 && mr < 1. && md.y < -.2 && md.y > -.65) col = vec3(.62, .58, .5) * (.75 + .25 * step(.5, fract(md.x * 7.)));   // зубы (только у оскала; улыбка «Кати» — тёмная щель без зубов)
+  // крик Жильца: челюсть отваливается вниз (сдвиг вершин), растянутая щель между губами — чёрная пасть с острыми зубами по краям
+  if (uScream > .05) {
+    vec2 e = (uv - uMouth - vec2(0., .003)) / vec2(.02 * (.65 + .35 * uScream), .0105);
+    float er = length(e);
+    if (er < 1.) {
+      vec3 hole = vec3(.025, .006, .006) * (1. - er * .5);
+      float tx = abs(fract(e.x * 4.5 + .25) - .5) * 2.;
+      if (e.y < -.45 && tx < (e.y + 1.05) * -1.9 + 1.15) hole = vec3(.5, .46, .36) * (.6 + .4 * (1. - tx));   // верхние зубы
+      if (e.y > .5 && tx < (1.05 - e.y) * 1.9) hole = vec3(.46, .42, .33) * (.6 + .4 * (1. - tx));            // нижние
+      col = mix(col, hole, smoothstep(1., .85, er) * min(1., uScream * 2.));
+    }
+  }
+  // запавшие глазницы: вокруг глаз кожа уходит в черноту
+  if (uSocket > 0.) {
+    float sl = length((uv - uEyeL) / vec2(.034, .024)), sr = length((uv - uEyeR) / vec2(.034, .024));
+    col *= mix(1., .12, uSocket * smoothstep(1., .4, min(sl, sr)));
+  }
   if (uBlink > 1.5) {   // (старое веко на текстуре — не используется: веком теперь служит сам глаз)
     vec2 e1 = (uv - uEyeL) / vec2(.027, .017), e2 = (uv - uEyeR) / vec2(.027, .017);
     // веко: ровный цвет кожи со щеки (не кусок текстуры со складками), снизу — тёмная линия ресниц
@@ -125,12 +142,16 @@ function uniforms(o) {
     uSkin: { value: sk }, uCoat: { value: new T.Color(o.coat ?? 0x000000) }, uTrim: { value: new T.Color(o.trim ?? 0x111111) },
     uS: { value: o.fem ? 1.77 / 1.81 : 1 }, uCoatY: { value: o.coatY || 0 }, uTalk: { value: 0 }, uBlink: { value: 0 }, uSmile: { value: o.smile ? 1 : 0 },
     uNaked: { value: o.naked ? 1 : 0 }, uBadge: { value: o.badge ? 1 : 0 }, uFem: { value: o.fem ? 1 : 0 }, uGore: { value: 0 }, uWet: { value: o.wet ? 1 : 0 }, uGrey: { value: o.grey || 0 }, uFlat: { value: o.coatY && o.fem ? 1 : 0 }, uThin: { value: o.thin || 1 },
-    uMouth: { value: new T.Vector2(.1855, .2637) }, uEyeL: { value: o.fem ? new T.Vector2(.130, .179) : new T.Vector2(.1367, .1758) }, uEyeR: { value: o.fem ? new T.Vector2(.238, .179) : new T.Vector2(.2344, .1758) },
+    uScream: { value: 0 }, uSocket: { value: o.socket || 0 }, uMouth: { value: new T.Vector2(.1855, .2637) }, uEyeL: { value: o.fem ? new T.Vector2(.130, .179) : new T.Vector2(.1367, .1758) }, uEyeR: { value: o.fem ? new T.Vector2(.238, .179) : new T.Vector2(.2344, .1758) },
   };
 }
 // под плащом фигура проще: грудь и бёдра прижимаем (в позе «Т», до скелета)
 const FLAT = `
-  if (uThin < 1.) { vec3 q = position / uS; transformed.z *= uThin; if (q.y > .95 && abs(q.x) < .24) transformed.x *= mix(uThin, 1., smoothstep(.12, .24, abs(q.x))); }
+  if (uScream > 0.) { vec3 q = position / uS;   // челюсть Жильца: всё ниже нижней губы съезжает вниз и чуть вперёд
+    float w = smoothstep(1.622, 1.606, q.y) * smoothstep(1.53, 1.575, q.y) * (1. - smoothstep(.035, .072, abs(q.x))) * smoothstep(-.01, .04, q.z);
+    transformed.y -= uScream * .078 * w * uS; transformed.z += uScream * .014 * w * uS; }
+  if (uThin < 1.) { vec3 q = position / uS; transformed.z *= mix(uThin, 1., smoothstep(1.47, 1.56, q.y));   // голову не сплющиваем: иначе глаза торчат из лица
+    if (q.y > .95 && abs(q.x) < .24) transformed.x *= mix(uThin, 1., smoothstep(.12, .24, abs(q.x))); }
   if (uFlat > .5) { vec3 q = position / uS;
     if (q.y > 1.12 && q.y < 1.48 && q.z > .03) transformed.z = (.03 + (q.z - .03) * .25) * uS;
     if (q.y > .78 && q.y < 1.08 && q.z < -.07) transformed.z = (-.07 + (q.z + .07) * .35) * uS; }`;
@@ -139,7 +160,7 @@ function bodyMat(src, U, shell) {
   const m = new T.MeshLambertMaterial({ map: src.map });
   m.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, U); sh.uniforms.uSnap = SNAP;
-    sh.vertexShader = 'uniform vec2 uSnap; uniform float uS, uCoatY, uNaked, uFlat, uThin;\nvarying vec3 vB;\n' + sh.vertexShader
+    sh.vertexShader = 'uniform vec2 uSnap; uniform float uS, uCoatY, uNaked, uFlat, uThin, uScream;\nvarying vec3 vB;\n' + sh.vertexShader
       .replace('#include <begin_vertex>', '#include <begin_vertex>\n vB = position;' + FLAT + (shell ? SHELL_VS : ''))
       .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n if (uFlat > .5) { vec3 q = position / uS; if (q.y > 1.12 && q.y < 1.48 && q.z > .02) objectNormal = normalize(mix(objectNormal, vec3(objectNormal.x * .5, objectNormal.y * .3, 1.), .75)); if (q.y > .76 && q.y < 1.1 && q.z < -.05) objectNormal = normalize(mix(objectNormal, vec3(objectNormal.x * .5, 0., -1.), .7)); }')
       .replace('#include <project_vertex>', SNAPV);
@@ -174,7 +195,7 @@ function makeSkinned(o) {
       n.frustumCulled = false;
       const nm = n.name.toLowerCase();
       if (nm.includes('eyebrow')) { n.material = ps1(new T.MeshLambertMaterial({ map: n.material.map, color: o.brow ?? o.hair ?? 0x1a120c, alphaTest: .45 })); C.brows = n; }
-      else if (nm.includes('eye')) { n.material = o.voidEyes || o.deadEyes ? ps1(new T.MeshBasicMaterial({ color: o.deadEyes ?? 0x000000 })) : ps1(new T.MeshLambertMaterial({ map: n.material.map && n.material.map.clone(), color: o.eyeC ?? 0xffffff })); if (n.material.map) n.material.map.needsUpdate = true; C.eyes = n; }
+      else if (nm.includes('eye')) { n.material = o.voidEyes || o.deadEyes != null ? ps1(new T.MeshBasicMaterial({ color: o.deadEyes ?? 0x000000 })) : ps1(new T.MeshLambertMaterial({ map: n.material.map && n.material.map.clone(), color: o.eyeC ?? 0xffffff })); if (n.material.map) n.material.map.needsUpdate = true; C.eyes = n; }
       else { C.U = uniforms(o); const src = n.material; n.material = bodyMat(src, C.U, false); C.mesh = n;
         if (!o.naked) { const sh = new T.SkinnedMesh(n.geometry, bodyMat(src, C.U, true)); sh.frustumCulled = false; C.shellOf = [n, sh]; } }
     }
@@ -372,6 +393,7 @@ function updateSkinned(C, t, dt) {
   }
   { const tg = clamp(Math.max(C.talk * 1.15, fs.mouth || 0), 0, .9), cur = U.uTalk.value; U.uTalk.value = lerp(cur, tg, Math.min(1, dt * (tg > cur ? 22 : 9))); }
   U.uSmile.value = C.o.smile ? 1 : fs.smile ? +fs.smile : 0;
+  U.uScream.value = C.scream || fs.scream || 0;
   U.uGore.value = C.gore || 0;
   C.keys.visible = P === 'give'; C.paper.visible = P === 'paper';
 }
@@ -387,11 +409,12 @@ function cast() {
   A.temych.addFace('smile', { smile: 1.45, wide: true });
   const kat = { fem: true, h: 1.64, skin: 0xfff0ea, skinK: 1.3, hairPart: 'Hair_Long', hair: 0x4a3226, brow: 0x1a110c, coat: 0xd2a52a, coatY: .62, pants: 0x223050, shoes: 0x1a1414, trim: 0x8a6a10, wet: true };
   A.katya = makeSkinned(Object.assign({ name: 'katya', noBlink: true }, kat));
-  A.katyaSmile = makeSkinned(Object.assign({ name: 'katyaSmile' }, kat, { skin: 0xe6dcd8, skinK: 1.25, grey: .5, smile: true, noBlink: true, eyeC: 0x555555 }));
+  A.katyaSmile = makeSkinned(Object.assign({ name: 'katyaSmile' }, kat, { skin: 0xe6dcd8, skinK: 1.25, grey: .5, smile: true, noBlink: true, eyeC: 0x3a3a3a, socket: .45 }));
   A.mihalych = makeSkinned(Object.assign({ name: 'mihalych', h: 1.76, skin: 0xead0c0, skinK: 1.2, hairPart: 'Hair_SimpleParted', hair: 0xc8c8c2, brow: 0xb8b8b2, beard: true, beardC: 0xd0d0ca, glasses: true }, guard, { shirt: 0x3a3e40, pants: 0x2a2d30, trim: 0x55595c }));
   // Жилец: выше двери, узкий, длинные шея и руки, маленькая голова; лицо почти нормальное — и от этого хуже
-  A.monster = makeSkinned({ name: 'monster', monster: true, naked: true, h: 2.45, thin: .52, arm: 1.2, armL: 1.12, handS: 1.3, neck: 1.22, headS: .9, skin: 0xb8bcb4, grey: 1, hairPart: 'Hair_Long', hair: 0x050505, deadEyes: 0x23231f, tilt: .25, jerk: true, veil: true, headMax: 2.3, stopmo: 1 / 7 });
+  A.monster = makeSkinned({ name: 'monster', monster: true, naked: true, h: 2.45, thin: .52, arm: 1.2, armL: 1.12, handS: 1.3, neck: 1.22, headS: .9, skin: 0xb8bcb4, grey: 1, hairPart: 'Hair_Long', hair: 0x050505, deadEyes: 0x000000, socket: .85, tilt: .25, jerk: true, veil: true, headMax: 2.3, stopmo: 1 / 7 });
   A.monster.addFace('grin', { smile: 1.1, mouth: .55 });
+  A.monster.addFace('scream', { scream: 1 });
   // тело ночного уборщика (сцена, где Жилец ест)
   A.victim = makeSkinned({ name: 'victim', dead: true, h: 1.75, skin: 0xc8c4bc, skinK: 1.0, grey: .7, hairPart: 'Hair_Buzzed', hair: 0x2a2420, brow: 0x2a2420, shirt: 0x2c4a6a, pants: 0x24384f, shoes: 0x111111, trim: 0x8a2020 });
   for (const k in A) A[k].update(0, 1 / 30);
