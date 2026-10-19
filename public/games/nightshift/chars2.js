@@ -52,7 +52,7 @@ vec4 cloth(vec3 p, float lum) {
   bool hand = ax > .665, foot = p.y < .12;
   bool neck = p.y > nkTop || (p.z > .02 && p.y > vS && ax < (p.y - vS) * (co > .5 ? .75 : .42)) || (p.y > 1.565 && ax < .07);
   if (hand) return vec4(0.);
-  if (neck) return vec4(vec3(.035, .035, .04) * (.9 + .2 * h3(floor(vB * 240.))), co < .5 && p.y < 1.49 && p.y < nkTop ? .25 : 0.);   // в вырезе формы — тёмная футболка
+  if (neck) return vec4(vec3(.035, .035, .04) * (.9 + .2 * h3(floor(vB * 240.))), co < .5 && p.y < nkTop - .004 ? .25 : 0.);   // в вырезе формы — тёмная футболка
   float n1 = h3(floor(vB * 240.)), mo = vn(p * 9.), weave = .94 + .08 * n1;
   if (foot) {   // ботинки: подошва, носок светлее, шнуровка
     vec3 c = uShoes * (.75 + .55 * smoothstep(.015, .1, p.y)) * (.9 + .2 * mo);
@@ -133,8 +133,8 @@ vec4 cloth(vec3 p, float lum) {
       // дождевик: застёжка сбоку от центра с кнопками, кокетка-накидка на груди и спине, клапаны карманов
       sh *= 1. - .45 * ln(p.x + .018, .006) * step(.03, p.z);
       if (p.z > .03 && abs(p.x + .033) < .009 && abs(fract((p.y - .6) / .095) - .5) < .07 && p.y < 1.42) sh *= .55;
-      sh *= 1. - .4 * ln(p.y - (1.375 - ax * .25), .007) * step(ax, .215);
-      if (p.y < 1.375 - ax * .25 && p.y > 1.355 - ax * .25) sh *= .82;   // тень под кокеткой
+      sh *= 1. - .4 * ln(p.y - (1.445 - ax * .2), .007) * step(ax, .215);
+      if (p.y < 1.445 - ax * .2 && p.y > 1.43 - ax * .2) sh *= .85;   // тень под кокеткой
       vec2 q = vec2(ax, p.y);
       if (p.z > .02 && p.y < .9) { sh *= 1. - .4 * edge(q, vec2(.07, .68), vec2(.19, .79), .006); if (rct(q, vec2(.068, .76), vec2(.192, .8)) > .5) { sh *= 1.08; sh *= 1. - .45 * ln(p.y - .762, .006); } }
       if (p.y < uCoatY + .03) sh *= .78;                                                                                          // подшитый низ
@@ -439,7 +439,14 @@ function makeSkinned(o) {
   if (o.neck) { C.bone.neck_01.scale.setScalar(o.neck); C.bone.Head.scale.setScalar((o.headS || 1) / o.neck); }
   // кепка и очки — простые детали на кости головы
   const head = C.bone.Head;
-  if (o.cap) { const cp = new T.Group(); head.add(cp); box(.21, .07, .23, mat(o.cap), 0, 0, 0, cp); box(.2, .012, .09, mat(o.cap), 0, -.03, .14, cp); box(.035, .03, .008, mat(0xc9a43a), 0, .0, .117, cp); C.capG = cp; }
+  if (o.cap) {   // фуражка охранника: тулья шире околыша, чёрный козырёк, кокарда
+    const cp = new T.Group(); head.add(cp); const cm = mat(o.cap), dk = mat(0x0b0b0c);
+    const band = cyl(.098, .1, .045, 12, dk, cp); band.scale.z = 1.12; band.position.y = -.02;
+    const crown = cyl(.128, .1, .05, 12, cm, cp); crown.scale.z = 1.15; crown.position.set(0, .025, -.008);
+    const top = cyl(.128, .128, .006, 12, cm, cp); top.scale.z = 1.15; top.position.set(0, .05, -.008);
+    const vis = new T.Mesh(new T.CylinderGeometry(.1, .1, .008, 12, 1, false, -Math.PI / 2, Math.PI), mat(0x050505)); vis.scale.set(1, 1, .62); vis.position.set(0, -.04, .06); vis.rotation.x = .22; cp.add(vis);
+    box(.03, .028, .006, mat(0xc9a43a, null, { emissive: 0x2a2008 }), 0, .005, .118, cp);
+    C.capG = cp; }
   if (o.glasses) { const gl = new T.Group(); head.add(gl); const gm = mat(0x151515); for (const sx of [-1, 1]) { const x = sx * .033; box(.046, .004, .004, gm, x, .013, 0, gl); box(.046, .004, .004, gm, x, -.013, 0, gl); box(.004, .03, .004, gm, x - .022, 0, 0, gl); box(.004, .03, .004, gm, x + .022, 0, 0, gl); box(.004, .004, .07, gm, sx * .058, .01, -.035, gl); } box(.022, .004, .004, gm, 0, .008, 0, gl); C.glassG = gl; }
   // полы плаща: своя сетка со скелетом (строится в fitProps, когда известна поза «Т»)
   if (o.coatY) C.skirt = true;
@@ -686,7 +693,10 @@ function updateSkinned(C, t, dt) {
     C.sacT = (C.sacT ?? 1) - dt; if (C.sacT < 0) { C.sacT = .4 + rnd() * 1.8; C.sac = [(rnd() - .5) * SAC, (rnd() - .5) * SAC * .5]; }
     const m = C.eyes.material.map.offset, tg = C.sac || [0, 0], kk = Math.min(1, dt * 30); m.x += (tg[0] - m.x) * kk; m.y += (tg[1] - m.y) * kk;
   }
-  { const tg = clamp(Math.max(C.talk * 1.15, fs.mouth || 0), 0, .9), cur = U.uTalk.value; U.uTalk.value = lerp(cur, tg, Math.min(1, dt * (tg > cur ? 22 : 9))); }
+  // у «Кати» рот чуть опаздывает за голосом — едва заметно, но тревожно (как плохой дубляж)
+  let tk = C.talk;
+  if (C.o.lipLag) { const h = C.talkHist || (C.talkHist = []); h.push([tt, C.talk]); while (h.length > 2 && h[1][0] < tt - C.o.lipLag) h.shift(); tk = h[0][1]; }
+  { const tg = clamp(Math.max(tk * 1.15, fs.mouth || 0), 0, .9), cur = U.uTalk.value; U.uTalk.value = lerp(cur, tg, Math.min(1, dt * (tg > cur ? 22 : 9))); }
   U.uSmile.value = C.o.smile ? 1 : fs.smile ? +fs.smile : 0;
   U.uScream.value = C.scream || fs.scream || 0;
   U.uGore.value = C.gore || 0;
@@ -703,11 +713,11 @@ function cast() {
   A.smenshik.addFace('fear', { mouth: .45, wide: true });
   A.temych.addFace('smile', { smile: 1.45, wide: true });
   const kat = { fem: true, h: 1.64, skin: 0xfff0ea, skinK: 1.3, hairPart: 'Hair_Long', hair: 0x4a3226, brow: 0x1a110c, coat: 0xd8a820, coatY: .5, pants: 0x223050, shoes: 0x1a1414, trim: 0x8a6a10, wet: true };
-  A.katya = makeSkinned(Object.assign({ name: 'katya', noBlink: true }, kat));
-  A.katyaSmile = makeSkinned(Object.assign({ name: 'katyaSmile' }, kat, { skin: 0xe6dcd8, skinK: 1.25, grey: .5, smile: true, noBlink: true, eyeC: 0x3a3a3a, socket: .45 }));
+  A.katya = makeSkinned(Object.assign({ name: 'katya', noBlink: true, lipLag: .12 }, kat));
+  A.katyaSmile = makeSkinned(Object.assign({ name: 'katyaSmile', lipLag: .22 }, kat, { skin: 0xe6dcd8, skinK: 1.25, grey: .5, smile: true, noBlink: true, eyeC: 0x3a3a3a, socket: .45 }));
   A.mihalych = makeSkinned(Object.assign({ name: 'mihalych', h: 1.76, skin: 0xead0c0, skinK: 1.2, hairPart: 'Hair_SimpleParted', hair: 0xc8c8c2, brow: 0xb8b8b2, beard: true, beardC: 0xd0d0ca, glasses: true }, guard, { shirt: 0x3a3e40, pants: 0x2a2d30, trim: 0x55595c }));
   // Жилец: выше двери, узкий, длинные шея и руки, маленькая голова; лицо почти нормальное — и от этого хуже
-  A.monster = makeSkinned({ name: 'monster', monster: true, naked: true, h: 2.45, thin: .52, arm: 1.2, armL: 1.12, handS: 1.3, neck: 1.22, headS: .9, skin: 0xb8bcb4, grey: 1, hairPart: 'Hair_Long', hair: 0x050505, deadEyes: 0x000000, socket: .85, tilt: .25, jerk: true, veil: true, headMax: 2.3, stopmo: 1 / 7 });
+  A.monster = makeSkinned({ name: 'monster', monster: true, naked: true, h: 2.45, thin: .52, arm: 1.2, armL: 1.12, handS: 1.3, neck: 1.22, headS: .9, skin: 0xb8bcb4, grey: 1, hairPart: 'Hair_Long', hair: 0x050505, deadEyes: 0x000000, socket: .85, tilt: .45, jerk: true, veil: true, headMax: 2.3, stopmo: 1 / 7 });
   A.monster.addFace('grin', { smile: 1.1, mouth: .55 });
   A.monster.addFace('scream', { scream: 1 });
   // тело ночного уборщика (сцена, где Жилец ест)
