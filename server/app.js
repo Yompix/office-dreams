@@ -121,8 +121,8 @@ function makeStatic(cfg) {
       return req.method === 'HEAD' ? res.end() : fs.createReadStream(file).pipe(res);
     }
     const name = path.basename(p);
-    // public/ files, plus the illustrated backgrounds in public/art/
-    const sub = p === '/art/' + name ? 'art' : '';
+    // public/ files, plus the illustrated backgrounds in public/art/ and the channel post pictures in public/posts/
+    const sub = p === '/art/' + name ? 'art' : p === '/posts/' + name ? 'posts' : '';
     if (/^[\w.\-]+$/.test(name) && (p === '/' + name || sub) && MIME[path.extname(name).toLowerCase()]) {
       const file = path.join(pub, sub, name);
       if (file.startsWith(pub) && fs.existsSync(file)) {

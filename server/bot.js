@@ -227,6 +227,12 @@ async function handleMessage(ctx, m) {
   } else if ((name === 'dev' || name === 'test') && isOwner(ctx, from.id)) {
     // owner: buttons to try what is new — the new look on the real account, or a sandbox (local demo with money, nothing reaches the server)
     return send(ctx, m.chat.id, devText(), devMarkup(ctx));
+  } else if (name === 'posts' && isOwner(ctx, from.id)) {
+    const Posts = require('./posts.js'), can = await Posts.canPost(ctx);
+    return send(ctx, m.chat.id, (can ? '' : '⚠️ <b>Бот не может публиковать в канале.</b> Сделай @' + esc(ctx.cfg.botUsername || 'бота') + ' админом канала с правом «Публикация сообщений».\n\n') + Posts.ownerReport(ctx, ctx.now()));
+  } else if (name === 'postskip' && isOwner(ctx, from.id)) {
+    const r = require('./posts.js').skip(ctx, arg, ctx.now());
+    return send(ctx, m.chat.id, r === 'ok' ? `🚫 Пост <code>${esc(arg)}</code> отменён, в канал не уйдёт.` : r === 'sent' ? 'Этот пост уже опубликован.' : 'Формат: /postskip id (id из списка /posts)');
   } else if (name === 'fund' && isOwner(ctx, from.id)) {
     return send(ctx, m.chat.id, fundReport(ctx));
   } else if ((name === 'stats' || name === 'giveaway') && isOwner(ctx, from.id)) {
