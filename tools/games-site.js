@@ -5,7 +5,7 @@ const http = require('http'), fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..', 'public', 'games');
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json',
   '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4',
-  '.apk': 'application/vnd.android.package-archive' };
+  '.apk': 'application/vnd.android.package-archive', '.glb': 'model/gltf-binary', '.txt': 'text/plain; charset=utf-8', '.woff': 'font/woff', '.woff2': 'font/woff2' };
 const H = { 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer' };
 function serve(req, res) {
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405, H); return res.end(); }

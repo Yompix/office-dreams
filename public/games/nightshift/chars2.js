@@ -393,7 +393,7 @@ function decal() {
   if (DECAL) return DECAL;
   const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g = c.getContext('2d');
   g.fillStyle = '#000'; g.fillRect(0, 0, 256, 128); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.font = 'bold 52px Arial, Helvetica, sans-serif'; g.fillText('ОХРАНА', 128, 34, 240); g.fillText('КЛИНИНГ', 128, 96, 240);
+  g.font = 'bold 52px Arial, Helvetica, sans-serif'; g.fillText('ОХРАНА', 128, 34, 240); g.font = 'bold 44px Arial, Helvetica, sans-serif'; g.fillText('КЛИНИНГ', 128, 96, 196);
   DECAL = new T.CanvasTexture(c); DECAL.magFilter = T.NearestFilter;
   return DECAL;
 }
@@ -404,7 +404,9 @@ function attach(C, part, color) {   // волосы/борода из отдел
   let sm = null; G[part].scene.traverse(n => { if (n.isSkinnedMesh) sm = n; });
   if (!sm) return null;
   const bones = sm.skeleton.bones.map(b => C.bone[b.name]);
-  const m = new T.SkinnedMesh(sm.geometry, ps1(new T.MeshLambertMaterial({ map: sm.material.map, color, alphaTest: .45, side: T.DoubleSide })));
+  // короткая стрижка — сплошная (сквозь редкую карту волос просвечивала кожа пятнами)
+  const buzz = part === 'Hair_Buzzed';
+  const m = new T.SkinnedMesh(sm.geometry, ps1(new T.MeshLambertMaterial(buzz ? { color, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -6 } : { map: sm.material.map, color, alphaTest: .45, side: T.DoubleSide })));
   m.frustumCulled = false;
   C.mesh.parent.add(m); m.bind(new T.Skeleton(bones, sm.skeleton.boneInverses), C.mesh.bindMatrix);
   return m;
@@ -414,9 +416,9 @@ function makeSkinned(o) {
   const sc = window.THREE_SkeletonUtils.clone(src.scene);
   const root = new T.Group(); root.name = o.name;
   const inner = new T.Group(); inner.add(sc); root.add(inner);
-  const C = { root, inner, o, bone: {}, pose: 'stand', look: null, talk: 0, blinkT: 1 + rnd() * 3, t0: rnd() * 10, faceSet: 'base', faceSets: { base: 1 } };
+  const C = { root, inner, o, bone: {}, pose: 'stand', look: null, talk: 0, blinkT: 1 + rnd() * 3, t0: rnd() * 10, faceSet: 'base', faceSets: { base: 1 }, rest: {} };
   sc.traverse(n => {
-    if (n.isBone) C.bone[n.name] = n;
+    if (n.isBone) { C.bone[n.name] = n; C.rest[n.name] = n.quaternion.clone(); }
     if (n.isSkinnedMesh) {
       n.frustumCulled = false;
       const nm = n.name.toLowerCase();
@@ -564,6 +566,11 @@ function ik2(C, up, lo, end, tx, ty, tz, pole, k = 1) {
 }
 // ступня сохраняет поворот в мире (после поправки ноги подошва остаётся на полу)
 function keepWorld(C, name, q) { const b = C.bone[name]; b.parent.getWorldQuaternion(_Q3); b.quaternion.copy(_Q3.invert().multiply(q)); b.updateWorldMatrix(false, true); }
+// открытая ладонь: пальцы возвращаются в исходную прямую позу (ладонь на стекле)
+function palm(C, s) {
+  for (const f of FING) for (let j = 1; j <= 3; j++) { const n = f + '_0' + j + '_' + s, b = C.bone[n]; if (b && C.rest[n]) b.quaternion.copy(C.rest[n]); }
+  for (let j = 1; j <= 3; j++) { const n = 'thumb_0' + j + '_' + s, b = C.bone[n]; if (b && C.rest[n]) b.quaternion.slerp(C.rest[n], .7); }
+}
 // пальцы в кулак (k = 0..1)
 const FING = ['index', 'middle', 'ring', 'pinky'];
 function fist(C, s, k) {
@@ -592,6 +599,9 @@ function updateSkinned(C, t, dt) {
   if (C.o.stopmo) { C.smAcc = (C.smAcc || 0) + dt; if (C.smAcc < C.o.stopmo && C.smDone) still = true; else { sdt = C.smAcc; C.smAcc = 0; C.smDone = true; } }
   if (!still) {
   if (P !== 'lay') C.act.timeScale = P === 'back' ? -.8 : P === 'monster' ? .3 : P === 'reach' ? .55 : C.o.monster ? .8 : 1;
+  // пальцы — в исходную позу до анимации: клип их почти не трогает, и кулак от швабры/стука иначе оставался навсегда
+  for (const sd of ['l', 'r']) { for (const f of FING) for (let j = 1; j <= 3; j++) { const n = f + '_0' + j + '_' + sd; if (C.bone[n]) C.bone[n].quaternion.copy(C.rest[n]); }
+    for (let j = 1; j <= 3; j++) { const n = 'thumb_0' + j + '_' + sd; if (C.bone[n]) C.bone[n].quaternion.copy(C.rest[n]); } }
   C.mixer.update(Math.min(sdt, .2));
   // ноги: у базовой анимации стойка «борца» (ступни широко) — сводим ступни под бёдра, подошва остаётся на полу
   const STAT = { stand: 1, talk: 1, knock: 1, give: 1, paper: 1, reach: 1, hug: 1, mop: 1, slam: 1 };
@@ -613,11 +623,11 @@ function updateSkinned(C, t, dt) {
     if (P === 'slam') hit = Math.min(1, .5 + .5 * Math.sin(tt * 2.3));
     aimBone(C, 'spine_02', 'spine_03', [0, 1, .14], .7);
     if (P === 'slam') {   // обе ладони на стекле
-      ik2(C, 'upperarm_l', 'lowerarm_l', 'hand_l', .22 * ss, 1.5 * ss, gz - .05, [.8, -1, -.3]); aimBone(C, 'hand_l', 'middle_01_l', [.2, 1, .3], 1);
-      ik2(C, 'upperarm_r', 'lowerarm_r', 'hand_r', -.22 * ss, 1.47 * ss, gz - .05 - hit * .03, [-.8, -1, -.3]); aimBone(C, 'hand_r', 'middle_01_r', [-.2, 1, .3], 1);
+      ik2(C, 'upperarm_l', 'lowerarm_l', 'hand_l', .22 * ss, 1.5 * ss, gz - .05, [.8, -1, -.3]); palm(C, 'l'); aimBone(C, 'hand_l', 'middle_01_l', [.2, 1, .3], 1);
+      ik2(C, 'upperarm_r', 'lowerarm_r', 'hand_r', -.22 * ss, 1.47 * ss, gz - .05 - hit * .03, [-.8, -1, -.3]); palm(C, 'r'); aimBone(C, 'hand_r', 'middle_01_r', [-.2, 1, .3], 1);
     } else {
       ik2(C, 'upperarm_l', 'lowerarm_l', 'hand_l', .21 * ss, 1.36 * ss, gz - .05, [.8, -1, -.3]);
-      aimBone(C, 'hand_l', 'middle_01_l', [.15, 1, .3], 1);   // ладонь прижата к стеклу, пальцы вверх
+      palm(C, 'l'); aimBone(C, 'hand_l', 'middle_01_l', [.15, 1, .3], 1);   // ладонь прижата к стеклу, пальцы вверх
       ik2(C, 'upperarm_r', 'lowerarm_r', 'hand_r', -.17 * ss, 1.44 * ss, gz - .16 + hit * .12, [-.9, -1, -.4]);
       aimBone(C, 'hand_r', 'middle_01_r', [-.1, .55, 1], .8);
       fist(C, 'r', 1);

@@ -83,6 +83,93 @@ function makeTextures() {
   TX.sky = ctex(4, 64, (x, w, h) => { const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#06080d'); gr.addColorStop(.7, '#121822'); gr.addColorStop(1, '#2a2620'); x.fillStyle = gr; x.fillRect(0, 0, w, h); });
   TX.skyDawn = ctex(4, 64, (x, w, h) => { const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#2b3a55'); gr.addColorStop(.6, '#c77b52'); gr.addColorStop(1, '#f2c27a'); x.fillStyle = gr; x.fillRect(0, 0, w, h); });
   TX.noise = ctex(64, 48, (x, w, h) => { speckle(x, w, h, 1, 0); }, 1, 1);
+  makeTextures2();
+}
+// второй набор: стекло фасада (грязь, плёнка, надписи), уборщик (линолеум, кровь, табличка), часы, пропуск
+function soft(x, cx, cy, rx, ry, a, col = '255,255,255') {   // мягкое пятно
+  x.save(); x.translate(cx, cy); x.scale(1, ry / rx); const g = x.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(1, `rgba(${col},0)`); x.fillStyle = g; x.beginPath(); x.arc(0, 0, rx, 0, 7); x.fill(); x.restore();
+}
+function hand(x, cx, cy, s, a, rot = 0, mirror = false) {   // отпечаток ладони: ладонь + пальцы
+  x.save(); x.translate(cx, cy); x.rotate(rot); x.scale(mirror ? -s : s, s); x.fillStyle = `rgba(255,255,255,${a})`;
+  x.beginPath(); x.ellipse(0, 0, 4.2, 5, 0, 0, 7); x.fill();
+  for (const [fx, fy, l, r] of [[-3, -5, 6.5, .1], [-1, -5.6, 7.5, .03], [1.2, -5.5, 7, -.05], [3.1, -4.6, 5.5, -.15]]) { x.save(); x.translate(fx, fy); x.rotate(r); x.beginPath(); x.ellipse(0, -l / 2, 1, l / 2, 0, 0, 7); x.fill(); x.restore(); }
+  x.save(); x.translate(-4.4, 0); x.rotate(-.9); x.beginPath(); x.ellipse(0, -2.8, 1.2, 3.2, 0, 0, 7); x.fill(); x.restore();
+  x.restore();
+}
+function makeTextures2() {
+  // грязь на стекле дверей (x −2..2 м, y 0.4..2.4 м): жирные пятна, отпечатки ладоней, мазок тряпкой. Альфа = сколько грязи
+  TX.grime = ctex(512, 256, (x, w, h) => {
+    x.clearRect(0, 0, w, h);
+    for (let i = 0; i < 26; i++) soft(x, rnd() * w, h * (.25 + rnd() * .7), 8 + rnd() * 26, 4 + rnd() * 14, .1 + rnd() * .16);
+    x.strokeStyle = 'rgba(255,255,255,.08)'; x.lineWidth = 9; for (let k = 0; k < 3; k++) { x.beginPath(); x.arc(w * (.3 + k * .2), h * .9, 60 + k * 10, -2.6, -.6); x.stroke(); }   // разводы от тряпки
+    // отпечатки (128 px на метр): у ручек и на уровне груди
+    for (const [px, py, s, a, r, m] of [[.43, .62, 1.9, .3, .1, 0], [.47, .55, 1.8, .22, -.2, 1], [.62, .6, 2, .28, .15, 0], [.3, .45, 1.7, .18, 0, 1], [.69, .52, 1.9, .2, -.1, 1]]) hand(x, px * w, py * h, s, a, r, m);
+    soft(x, w * .58, h * .3, 18, 9, .2);   // след лба
+  });
+  TX.grime.magFilter = T.LinearFilter; TX.grime.minFilter = T.LinearMipmapLinearFilter; TX.grime.wrapS = TX.grime.wrapT = T.ClampToEdgeWrapping;
+  // плёночные буквы снаружи: изнутри читаются зеркально — так сразу видно, что между нами стекло
+  TX.logo = ctex(512, 96, (x, w, h) => {
+    x.clearRect(0, 0, w, h); x.fillStyle = 'rgba(236,240,244,.95)'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = '700 54px Arial'; x.fillText('ГОРИЗОНТ', w / 2, 38); x.font = '700 20px Arial'; x.fillText('Б И З Н Е С - Ц Е Н Т Р', w / 2, 80);
+  });
+  TX.logo.wrapS = TX.logo.wrapT = T.ClampToEdgeWrapping;
+  TX.sticker = ctex(64, 32, (x, w, h) => { x.clearRect(0, 0, w, h); x.fillStyle = 'rgba(240,240,236,.92)'; x.fillRect(2, 4, w - 4, h - 8); x.fillStyle = '#9a1818'; x.font = '700 12px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('ОТ СЕБЯ', w / 2, h / 2 + 1); });
+  TX.sticker.wrapS = TX.sticker.wrapT = T.ClampToEdgeWrapping;
+  TX.fogBreath = ctex(64, 32, (x, w, h) => { x.clearRect(0, 0, w, h); soft(x, w / 2, h / 2, 30, 15, .95, '235,240,245'); for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(255,255,255,${.3 * rnd()})`; x.fillRect(w / 2 + (rnd() - .5) * 44, h / 2 + (rnd() - .5) * 20, 1, 1); } });
+  TX.fogBreath.magFilter = T.LinearFilter; TX.fogBreath.wrapS = TX.fogBreath.wrapT = T.ClampToEdgeWrapping;
+  // пол седьмого этажа: офисный линолеум «под плитку» (уборщику есть что мыть)
+  TX.lino = ctex(64, 64, (x, w, h) => {
+    for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) { x.fillStyle = (i + j) % 2 ? '#5b564e' : '#615b52'; x.fillRect(i * 32, j * 32, 32, 32); }
+    speckle(x, w, h, 500, .1); speckle(x, w, h, 400, .16, false);
+    x.fillStyle = 'rgba(0,0,0,.35)'; x.fillRect(0, 0, w, 1); x.fillRect(0, 0, 1, h); x.fillRect(32, 0, 1, h); x.fillRect(0, 32, w, 1);
+    x.fillStyle = 'rgba(40,30,20,.12)'; for (let i = 0; i < 6; i++) x.fillRect(rnd() * w, rnd() * h, 3 + rnd() * 6, 1);
+  }, 2.2, 22);
+  TX.puddle = ctex(64, 64, (x, w, h) => { x.clearRect(0, 0, w, h); for (let i = 0; i < 9; i++) soft(x, w / 2 + (rnd() - .5) * 26, h / 2 + (rnd() - .5) * 26, 14 + rnd() * 14, 10 + rnd() * 12, .6); });
+  TX.puddle.magFilter = T.LinearFilter; TX.puddle.wrapS = TX.puddle.wrapT = T.ClampToEdgeWrapping;
+  // блик на мокром полу: отражения ламп — вытянутые светлые полосы вдоль коридора, рваные по краям лужи (рисуется сложением)
+  TX.sheen = ctex(64, 128, (x, w, h) => {
+    x.fillStyle = '#000'; x.fillRect(0, 0, w, h);
+    for (let k = 0; k < 4; k++) { const cy = 14 + k * 33; soft(x, w / 2 + (rnd() - .5) * 6, cy, 9, 15, .75, '210,225,225'); soft(x, w / 2, cy, 20, 26, .18, '150,170,175'); }
+    const mc = document.createElement('canvas'); mc.width = w; mc.height = h; const m = mc.getContext('2d');
+    for (let i = 0; i < 14; i++) soft(m, w / 2 + (rnd() - .5) * 40, rnd() * h, 16 + rnd() * 16, 14 + rnd() * 20, 1);
+    x.globalCompositeOperation = 'destination-in'; x.drawImage(mc, 0, 0); x.globalCompositeOperation = 'source-over';
+  });
+  TX.sheen.magFilter = T.LinearFilter; TX.sheen.wrapS = TX.sheen.wrapT = T.ClampToEdgeWrapping;
+  // кровавый след волоком (вдоль v): густой у двери, рвётся к началу
+  TX.smear = ctex(32, 128, (x, w, h) => {
+    x.clearRect(0, 0, w, h);
+    for (let y = 0; y < h; y++) { const k = y / h, a = .25 + .7 * k, wd = 7 + 9 * k + Math.sin(y * .3) * 2; if (rnd() < .2 * (1 - k)) continue;
+      x.fillStyle = `rgba(${70 + rnd() * 30 | 0},${4 + rnd() * 6 | 0},${4 + rnd() * 6 | 0},${a})`; x.fillRect(w / 2 - wd / 2 + Math.sin(y * .07) * 3, y, wd, 1);
+      if (rnd() < .3) { x.fillStyle = `rgba(40,2,2,${a})`; x.fillRect(w / 2 - wd / 2 + rnd() * wd, y, 1, 3); } }
+  });
+  TX.smear.wrapS = TX.smear.wrapT = T.ClampToEdgeWrapping;
+  TX.wetSign = ctex(32, 48, (x, w, h) => {
+    x.fillStyle = '#e8c018'; x.fillRect(0, 0, w, h); x.fillStyle = '#141414'; x.fillRect(0, 0, w, 2); x.fillRect(0, h - 2, w, 2);
+    x.beginPath(); x.moveTo(16, 6); x.lineTo(28, 26); x.lineTo(4, 26); x.closePath(); x.lineWidth = 2; x.strokeStyle = '#141414'; x.stroke();
+    x.fillRect(15, 12, 2, 8); x.fillRect(15, 22, 2, 2);
+    x.font = '700 6px Arial'; x.textAlign = 'center'; x.fillText('ОСТОРОЖНО', 16, 35); x.fillText('МОКРЫЙ', 16, 41); x.fillText('ПОЛ', 16, 47);
+  });
+  TX.clock = ctex(64, 64, (x, w, h) => {
+    x.fillStyle = '#0d0d0d'; x.beginPath(); x.arc(32, 32, 32, 0, 7); x.fill(); x.fillStyle = '#e6e2d6'; x.beginPath(); x.arc(32, 32, 28, 0, 7); x.fill();
+    x.fillStyle = '#1a1a1a'; for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; x.save(); x.translate(32, 32); x.rotate(a); x.fillRect(-1, -26, 2, i % 3 ? 4 : 7); x.restore(); }
+    x.font = '700 6px Arial'; x.textAlign = 'center'; x.fillText('СЛАВА', 32, 44);
+  });
+  TX.clock.wrapS = TX.clock.wrapT = T.ClampToEdgeWrapping;
+  TX.badge = badgeTex(false); TX.badgeX = badgeTex(true);
+}
+// пропуск Михалыча: фото (седой, очки, борода) и фамилия; вторая версия — лицо на фото исцарапано
+function badgeTex(scratched) {
+  return ctex(64, 48, (x, w, h) => {
+    x.fillStyle = '#e8e6df'; x.fillRect(0, 0, w, h); x.fillStyle = '#1d3a7a'; x.fillRect(0, 0, w, 10);
+    x.fillStyle = '#fff'; x.font = '700 7px Arial'; x.fillText('ПРОПУСК', 4, 8);
+    x.fillStyle = '#7d8a96'; x.fillRect(4, 14, 20, 26);
+    x.fillStyle = '#d8c0b0'; x.beginPath(); x.ellipse(14, 26, 6, 8, 0, 0, 7); x.fill();
+    x.fillStyle = '#e8e8e2'; x.fillRect(8, 17, 12, 3); x.fillRect(9, 29, 10, 6);
+    x.fillStyle = '#222'; x.fillRect(9, 24, 4, 2); x.fillRect(15, 24, 4, 2); x.fillRect(13, 24, 2, 1);
+    x.fillStyle = '#1b1b1b'; x.font = '700 7px Arial'; x.fillText('МИХАЙЛОВ', 27, 21); x.font = '6px Arial'; x.fillText('В. М.', 27, 29); x.fillText('охрана', 27, 37);
+    if (scratched) { x.strokeStyle = 'rgba(20,20,20,.9)'; x.lineWidth = 1.5; for (let i = 0; i < 9; i++) { x.beginPath(); x.moveTo(4 + rnd() * 20, 14 + rnd() * 6); x.lineTo(4 + rnd() * 20, 34 + rnd() * 6); x.stroke(); } }
+  });
 }
 // листок с правилами: печатные строки и приписка ручкой
 function noteTex() {

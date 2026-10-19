@@ -80,7 +80,7 @@ function sendText(res, status, text, type = 'text/plain; charset=utf-8', extra =
 
 /* ---------- static ---------- */
 const MIME = { '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.js': 'text/javascript; charset=utf-8', '.webp': 'image/webp', '.jpg': 'image/jpeg' };
-const GAME_MIME = { ...MIME, '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4', '.webmanifest': 'application/manifest+json', '.apk': 'application/vnd.android.package-archive', '.glb': 'model/gltf-binary', '.txt': 'text/plain; charset=utf-8' };
+const GAME_MIME = { ...MIME, '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4', '.webmanifest': 'application/manifest+json', '.apk': 'application/vnd.android.package-archive', '.glb': 'model/gltf-binary', '.txt': 'text/plain; charset=utf-8', '.woff': 'font/woff', '.woff2': 'font/woff2' };
 function makeStatic(cfg) {
   const distIndex = path.join(cfg.root, 'dist', 'index.html');
   let cached = null;
