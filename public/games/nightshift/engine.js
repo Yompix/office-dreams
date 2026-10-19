@@ -1018,6 +1018,7 @@ function frame(tp) {
     bedSet(place && place.loc, place && place.rain, lv);
     if (lv > 0) { ambTick(T, mode === 'menu' ? 'title' : bedWant.loc, quiet || voiceNow || mode === 'mg'); tubeTick(T); }
   }
+  if (ambOn && (++ambN & 3) === 0) { const ah = ambC.height, sh = Math.min(H, W * ah / ambC.width); ambG.drawImage(cv, 0, (H - sh) / 2, W, sh, 0, 0, ambC.width, ah); }
   requestAnimationFrame(frame);
 }
 function trigTick(t) { for (const e of trig) if (!e.done && t >= e.at) { e.done = true; try { e.fn(); } catch (er) { console.error(er); } } }
@@ -1033,6 +1034,10 @@ $('stage').addEventListener('pointerdown', e => { if (e.target.closest('button, 
 document.addEventListener('keydown', e => {
   if (mode === 'menu' && !gateDone && (e.key === ' ' || e.key === 'Enter')) return openGate();
   if (e.key === ' ' || e.key === 'Enter') tap(); if (mode === 'choice' && /^[1-4]$/.test(e.key)) { const b = choiceEl.querySelector(`button[data-i="${+e.key - 1}"]`); if (b) b.click(); } if (e.key === 'Escape') menu(); });
+// ПК: размытый отсвет кадра по бокам экрана (виден только при широком окне и мыши)
+const ambC = $('amb'), ambG = ambC.getContext('2d'); let ambOn = false, ambN = 0;
+function ambFit() { ambOn = getComputedStyle(ambC).display !== 'none'; if (ambOn) ambC.height = Math.max(8, Math.round(64 * innerHeight / innerWidth)); }
+addEventListener('resize', ambFit); ambFit();
 requestAnimationFrame(frame);
 window.addEventListener('error', e => { if (mode === 'menu' && !uiEl.innerHTML) uiEl.innerHTML = `<div class="screen"><p>Ошибка: ${String(e.message || e).slice(0, 120)}</p></div>`; });
 // холодный старт: заставка студии 1.4 с (тап — пропустить) идёт, пока грузится мир; потом — карточка «наушники» с полосой загрузки, если ещё грузится

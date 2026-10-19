@@ -1,7 +1,7 @@
 /* Места действия (холл с будкой и лифтами, улица, 7 этаж, серверная), кадры для каждой сцены и сам показ кадра. */
 (() => {
 'use strict';
-const { T, RW, RH, rnd, lerp, clamp, ps1, mat, ctex, TX, box, plane, cyl, room, label, relabel, makeTextures } = window.__W3core;
+const { T, RW, RH, BW, BH, HD, rnd, lerp, clamp, ps1, mat, ctex, TX, box, plane, cyl, room, label, relabel, makeTextures } = window.__W3core;
 const PI = Math.PI;
 let A = null;          // актёры
 const L = {};          // места действия
@@ -687,21 +687,21 @@ function init() {
       void main(){
         vec2 uv = vUv, d = uv - .5;
         uv += d * dot(d, d) * (.03 + .1 * uCctv);                                   // бочка (у камер — «рыбий глаз»)
-        float row = floor(uv.y * ${RH}.), fr = floor(uT * 30.);
-        uv.x += (h(vec2(row, fr)) - .5) * uVhs * 1.1 / ${RW}.;                       // дрожь строк, до полпикселя
+        float row = floor(uv.y * ${BH}.), fr = floor(uT * 30.);
+        uv.x += (h(vec2(row, fr)) - .5) * uVhs * 1.1 / ${BW}.;                       // дрожь строк, до полпикселя
         float band = smoothstep(.986, 1., 1. - uv.y) * uVhs;                        // полоса переключения головок внизу
-        uv.x += band * (h(vec2(row, fr * .37)) - .3) * 7. / ${RW}.;
+        uv.x += band * (h(vec2(row, fr * .37)) - .3) * 7. / ${BW}.;
         float ph = mod(uT + 4., 13.), cy = (ph - 12.2) * 1.5;                       // залом ленты: раз в 13 с пробегает вверх
         float cr = (cy > 0. && cy < 1.) ? smoothstep(.02, 0., abs(uv.y - cy)) * uVhs : 0.;
-        uv.x -= cr * (2. + 2. * h(vec2(row, fr))) / ${RW}.;
-        float ca = (.85 + 2.6 * uScare) / ${RW}.;                                     // цветная кайма: 1 px, на скримере 3–4
+        uv.x -= cr * (2. + 2. * h(vec2(row, fr))) / ${BW}.;
+        float ca = (.85 + 2.6 * uScare) / ${BW}.;                                     // цветная кайма: 1 px, на скримере 3–4
         vec3 c = vec3(texture2D(tD, uv + vec2(ca, 0.)).r, texture2D(tD, uv).g, texture2D(tD, uv - vec2(ca, 0.)).b);
         c = mix(c * 12.92, 1.055 * pow(max(c, vec3(.0031308)), vec3(1. / 2.4)) - .055, step(.0031308, c));   // буфер линейный → sRGB
         c = pow(c, vec3(uGam));   // ночь: тени глубже, но без пятен
         float l = dot(c, vec3(.299, .587, .114));
         c = mix(c * vec3(.86, 1.02, 1.08) + vec3(0., .012, .024), c * vec3(1.06, .98, .88), smoothstep(.25, .8, l));   // холодные тени, тёплый свет
         c = mix(c, vec3(l) * vec3(.88, 1., .9), uCctv * .3) + max(c - .62, 0.) * uCctv * .9;                         // камера: блеклая, свет «горит»
-        c *= 1. - (.06 + .07 * uCctv) * step(1., mod(gl_FragCoord.y, 2.));           // строки
+        c *= 1. - (.06 + .07 * uCctv) * step(1., mod(floor(gl_FragCoord.y / ${HD}.), 2.));           // строки
         c += cr * .22 * h(vec2(gl_FragCoord.x, fr)) + band * .05 * h(gl_FragCoord.xy + fr);
         if (uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.) c = vec3(0.);
         c = floor(c * uLv + b4(gl_FragCoord.xy) * .95) / uLv;

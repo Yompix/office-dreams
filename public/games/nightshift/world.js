@@ -5,13 +5,17 @@
 (() => {
 'use strict';
 const T = window.THREE;
-const RW = 270, RH = 480;                      // внутреннее разрешение кадра (9:16)
+// внутреннее разрешение кадра (9:16): на телефоне 270×480; на ПК (мышь, широкое окно) вдвое чётче — 540×960,
+// а дрожь вершин, строки и рябь VHS считаются по базовой сетке, чтобы вид остался тем же. ?hd=0/1 — вручную
+const HD = (() => { const q = /[?&]hd=([01])/.exec(location.search); if (q) return q[1] === '1' ? 2 : 1;
+  return matchMedia('(pointer: fine)').matches && innerWidth > innerHeight ? 2 : 1; })();
+const BW = 270, BH = 480, RW = BW * HD, RH = BH * HD;
 let R = null, RT = null, post = null;          // рендерер, буфер кадра, проход постобработки
 const rnd = (() => { let s = 1337; return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; })();
 const lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 /* ---------- материалы: дрожание вершин (PS1) ---------- */
-const SNAP = { value: new T.Vector2(RW / 2.5, RH / 2.5) };
+const SNAP = { value: new T.Vector2(BW / 2.5, BH / 2.5) };
 function ps1(m) {
   m.onBeforeCompile = sh => {
     sh.uniforms.uSnap = SNAP;
@@ -211,5 +215,5 @@ function label(w, h, pw, ph, draw, parent, basic = true) {
 }
 function relabel(me, ...a) { const t = me.userData.tex; t.cx.clearRect(0, 0, t.cv.width, t.cv.height); me.userData.draw(t.cx, t.cv.width, t.cv.height, ...a); t.needsUpdate = true; }
 
-window.__W3core = { T, RW, RH, rnd, lerp, clamp, ps1, mat, ctex, speckle, TX, box, plane, cyl, room, label, relabel, makeTextures, SNAP };
+window.__W3core = { T, RW, RH, BW, BH, HD, rnd, lerp, clamp, ps1, mat, ctex, speckle, TX, box, plane, cyl, room, label, relabel, makeTextures, SNAP };
 })();

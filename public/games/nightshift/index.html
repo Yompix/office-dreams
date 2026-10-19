@@ -204,9 +204,20 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 #sms p { margin: .6cqw 0 0; font: 500 4.2cqw/1.3 Inter, Arial, sans-serif; color: rgba(255,255,255,.92); }
 @keyframes smsIn { from { transform: translateY(-140%); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes smsOut { from { transform: none; opacity: 1; } to { transform: translateY(-140%); opacity: 0; } }
+/* ПК: по бокам — размытый отсвет кадра, рамка с тенью и подсказка по клавишам */
+#amb, #keys { display: none; }
+@media (pointer: fine) and (min-aspect-ratio: 4/5) {
+  #amb { display: block; position: fixed; inset: 0; width: 100%; height: 100%; filter: blur(5vh) brightness(.34) saturate(1.3); transform: scale(1.2); }
+  #stage { box-shadow: 0 0 8vh 2vh #000; }
+  #keys { display: block; position: fixed; left: 2.4vw; bottom: 4vh; font: 600 1.5vh/2.2 Inter, Arial, sans-serif; color: rgba(255,255,255,.42); letter-spacing: .05em; }
+  #keys kbd { display: inline-block; min-width: 2.2em; padding: 0 .55em; margin-right: .7em; border: 1px solid rgba(255,255,255,.25); border-radius: .4em; font: 800 1.3vh/1.8 "Courier New", monospace; text-align: center; color: rgba(255,255,255,.7); }
+}
+@media (pointer: fine) and (max-aspect-ratio: 5/4) { #keys { display: none; } }
 </style>
 </head>
 <body>
+<canvas id="amb" width="64" height="36"></canvas>
+<div id="keys"><div><kbd>␣</kbd>дальше</div><div><kbd>1–4</kbd>выбор</div><div><kbd>мышь</kbd>свет и действия</div><div><kbd>ESC</kbd>меню</div></div>
 <div id="stage">
   <canvas id="cv" width="1080" height="1920"></canvas>
   <div class="layer"><div id="rule" class="hide"></div><div id="chap" class="hide"></div><div id="tap" class="hide"></div>
@@ -221,11 +232,11 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 </div>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
-<script src="world.js?v=3"></script>
+<script src="world.js?v=4"></script>
 <script src="chars.js?v=2"></script>
 <script src="chars2.js?v=9"></script>
-<script src="scenes.js?v=11"></script>
+<script src="scenes.js?v=12"></script>
 <script src="story.js?v=13"></script>
-<script src="engine.js?v=17"></script>
+<script src="engine.js?v=18"></script>
 </body>
 </html>
