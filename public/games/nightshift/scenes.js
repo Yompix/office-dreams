@@ -387,6 +387,33 @@ function buildCorridor() {
   o.blood = new T.Mesh(T.BufferGeometryUtils ? T.BufferGeometryUtils.mergeGeometries(bg) : bg[0], new T.MeshLambertMaterial({ color: 0x2a0303, polygonOffset: true, polygonOffsetFactor: -4 }));
   if (!T.BufferGeometryUtils) for (const g2 of bg.slice(1)) o.blood.add(new T.Mesh(g2, o.blood.material)); o.blood.rotation.x = -PI / 2; o.blood.scale.set(1, 1.6, 1); o.blood.position.set(0, .006, -12); S.add(o.blood);
   o.faceL = new T.PointLight(0xdde6ff, 0, 3.2, 2); S.add(o.faceL);
+  // кишки: цепочка влажных петель от живота тела к руке Жильца (концы ставит o.post — по костям после анимации)
+  const gutM = ps1(new T.MeshPhongMaterial({ color: 0x7a1418, specular: 0x5a2a2a, shininess: 70, emissive: 0x1a0204 })), gutG = new T.SphereGeometry(.034, 6, 4);
+  o.guts = new T.Group(); o.gutS = []; S.add(o.guts); o.guts.visible = false;
+  for (let i = 0; i < 20; i++) { const m = new T.Mesh(gutG, gutM); m.scale.set(1, .85, 1.9); o.guts.add(m); o.gutS.push(m); }
+  o.setGuts = (a, b, sag, t) => { const n = o.gutS.length;
+    for (let i = 0; i < n; i++) { const u = i / (n - 1), m = o.gutS[i];
+      m.position.set(lerp(a.x, b.x, u) + Math.sin(u * 9 + t * 3) * .03, Math.max(.035, lerp(a.y, b.y, u) - Math.sin(u * PI) * sag), lerp(a.z, b.z, u) + Math.cos(u * 7 + t * 2.4) * .03);
+      if (i) m.lookAt(o.gutS[i - 1].position); } };
+  // капли крови с подбородка Жильца
+  o.drips = []; const dM = mat(0x3a0406, null, { basic: true });
+  for (let i = 0; i < 7; i++) { const d = box(.012, .03, .012, dM, 0, 0, 0, S); d.visible = false; o.drips.push(d); }
+  // брызги на стене у 707
+  const spT = ctex(64, 64, (x, w, h) => { x.clearRect(0, 0, w, h);
+    for (let i = 0; i < 46; i++) { const r = 1 + rnd() * rnd() * 7; x.fillStyle = `rgba(${70 + rnd() * 40 | 0},4,6,${.6 + rnd() * .4})`; x.beginPath(); x.arc(32 + (rnd() - .5) * 56 * rnd(), 28 + (rnd() - .5) * 44 * rnd(), r, 0, 7); x.fill(); }
+    for (let i = 0; i < 10; i++) { x.fillStyle = 'rgba(64,4,6,.85)'; x.fillRect(12 + rnd() * 40, 22 + rnd() * 16, 1 + rnd() * 2, 10 + rnd() * 30); } });
+  o.splat = plane(1.1, 1.3, ps1(new T.MeshLambertMaterial({ map: spT, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 })), S);
+  o.splat.rotation.y = PI / 2; o.splat.position.set(-wd / 2 + .004, 1.15, zA + .45); o.splat.visible = false;
+  const _h = new T.Vector3(), _bb = new T.Vector3();
+  o.post = (A, used, t) => {
+    const M = A.monster, eat = used.has('monster') && M.pose === 'eat';
+    o.guts.visible = !!(eat && used.has('victim') && o.gutsOn);
+    if (o.guts.visible) { M.bone.hand_r.getWorldPosition(_h); A.victim.bone.spine_01.getWorldPosition(_bb); o.setGuts(_bb, _h, .1, t); }
+    const dr = eat || (used.has('monster') && M.gore > 0);
+    if (dr) { M.bone.Head.getWorldPosition(_h); const ry = M.root.rotation.y; _h.x += Math.sin(ry) * .07; _h.z += Math.cos(ry) * .07; _h.y -= .1; }
+    o.drips.forEach((d, i) => { d.visible = !!dr; if (!dr) return; const ph = (t * 1.1 + i * .143) % 1;
+      d.position.set(_h.x + Math.sin(i * 2.1) * .04, Math.max(.01, _h.y - ph * _h.y), _h.z + Math.cos(i * 1.7) * .03); d.scale.y = 1 + ph * 2; });
+  };
   // по умолчанию: уборщика ещё не было — ни ведра, ни следов; дверь 707 приоткрыта
   o.cleanSet = (c = {}) => {
     o.bucket.visible = !!c.bucket; if (c.bucket) { const [x, z, ry, tip] = c.bucket; o.bucket.position.set(x, 0, z); o.bucket.rotation.set(0, ry, 0); o.bucket.userData.tip(tip || 0); }
@@ -397,6 +424,8 @@ function buildCorridor() {
     o.smear.visible = !!c.smear; if (c.smear) { const [x0, z0, x1, z1] = c.smear, L = Math.hypot(x1 - x0, z1 - z0); o.smear.position.set((x0 + x1) / 2, .007, (z0 + z1) / 2); o.smear.scale.set(1, L / 2.4, 1); o.smear.rotation.y = Math.atan2(x0 - x1, z0 - z1); }
     o.door7.rotation.y = -(c.door7 ?? .72);
     o.setFingers(c.fingers || 0);
+    o.splat.visible = !!c.splat;
+    if (c.blood) { o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.1, 1, .9); }
   };
   o.reset = () => { o.faceL.intensity = 0; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
   o.tick = (t) => {   // одна ненадёжная лампа (пятая от лифта), если горит
@@ -472,11 +501,11 @@ function walkPath(key, pts, t, v) {
   return { x: p.x, z: p.y, ry: Math.atan2(d.x, d.y), done: s0 >= L };
 }
 // свет для сцены «Жилец ест»: горит одна лампа прямо над ними и подмигивает
-function eatLight(o, t) { setLamps(o, 0); o.flickOn = false; const l = o.lamps[3], on = Math.sin(t * 9) > .85 && Math.sin(t * 1.7) > 0 ? .25 : 1; l.li.intensity = 4.2 * on; l.li.distance = 9; o.amb.intensity = .42; l.tube.material.color.setHex(on > .5 ? 0xe8f0e8 : 0x30322e); o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.25, 1, 1); o.slitLight.intensity = 0; o.slit.visible = false; A.monster.gore = 1; A.victim.gore = 2;
+function eatLight(o, t) { setLamps(o, 0); o.flickOn = false; const l = o.lamps[3], on = Math.sin(t * 9) > .85 && Math.sin(t * 1.7) > 0 ? .25 : 1; l.li.intensity = 4.2 * on; l.li.distance = 9; o.amb.intensity = .42; l.tube.material.color.setHex(on > .5 ? 0xe8f0e8 : 0x30322e); o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.25, 1, 1); o.gutsOn = true; o.splat.visible = true; o.slitLight.intensity = 0; o.slit.visible = false; A.monster.gore = 1; A.victim.gore = 2;
   o.cleanSet(AFTER); }
 // седьмой этаж после уборщика: швабра на полу, ведро опрокинуто, вода, кровавый след волоком к приоткрытой 707
 const CLEAN = { bucket: [.6, -10.35, .3], sign: [-.85, -7.6, .5], wet: [-.1, -9.9], door7: .72 }, MOPLEAN = [.43, -10.08, .25, 0];
-const AFTER = { mop: [.43, -10.08, .25, 1], bucket: [.6, -10.35, .3, 1], spill: [.82, -10.3], sign: [-.85, -7.6, .5], smear: [.0, -9.6, -1.05, -11.7], door7: .85 };
+const AFTER = { mop: [.43, -10.08, .25, 1], bucket: [.6, -10.35, .3, 1], spill: [.82, -10.3], sign: [-.85, -7.6, .5], smear: [.0, -9.6, -1.05, -11.7], door7: .85, splat: 1, blood: 1 };
 function stopLamps(o, t) { o.flickOn = false; lampSet(o, i => i < 3 || (i === 3 ? (t < .9 || (t < 2.4 ? stut(t, 1) : Math.sin(t * 13) > .7)) : (t < .9 || (t < 2.1 && stut(t, i * 3))))); }
 // лампы коридора по одной: fn(i) → горит ли i-я (0 — у лифта, 6 — у 713)
 function lampSet(o, fn) { o.lamps.forEach((l, i) => { const on = fn(i) ? 1 : 0; l.on = on; l.base = on * 2.4; l.li.intensity = on * 2.4; l.tube.material.color.setHex(on ? 0xe8f0e8 : 0x1c1e1c); }); }
@@ -489,7 +518,7 @@ function lunge(o, t, sh, cf) {
   for (const [ts, dd] of cf.steps || []) if (t >= ts) d = dd;
   if (t >= at) { const e = clamp((t - at) / (cf.dur || .22), 0, 1); k = e * e; d = lerp(d, cf.near ?? .5, k); }
   const headY = lerp(cf.headY ?? 2.25, P[1] - .02, Math.min(1, k * 1.15));
-  const C = A.monster; C.faceSet = 'scream'; C.scream = clamp((t - at + .05) / .16, 0, 1);
+  const C = A.monster; C.faceSet = 'scream'; C.scream = clamp((t - at + .05) / .16, 0, 1); C.noTilt = t >= at - .15; C.aim = { k: Math.min(1, k * 1.15), on: t >= at - .15 };
   o.faceL.position.set(P[0] + ux * .12, P[1] - .22, P[2] + uz * .12); o.faceL.distance = Math.max(2.2, d + 1.2);
   o.faceL.intensity = t < at ? (cf.glow || 0) : (Math.sin(t * 57) > -.35 ? 3.4 : .9);
   if (t < (cf.show ?? 0) || (cf.blink && t < at && (t % .5) < .13)) return [];
@@ -586,13 +615,20 @@ const SH = {
     const fA = t > 1.0 && t < 1.3, fB = t > 1.72 && t < 1.97, back = t > 2.5, dark = t > .7 && !fA && !fB && !back;
     lampSet(o, i => dark ? 0 : fA || fB ? i === 2 : back ? i < 3 && !(i === 2 && Math.sin(t * 9) > .8) : i < 3 || (i === 3 && stut(t, 2)));
     o.amb.intensity = dark ? .16 : .3;
-    const got = t > 1.0, gone = t > 1.97;
+    const got = t > 1.0, gone = t > 4.9;
     o.cleanSet({ bucket: [.6, -10.35, .3, clamp((t - 1.05) / .25, 0, 1)], spill: got ? AFTER.spill : null, sign: CLEAN.sign, wet: CLEAN.wet,
       door7: gone ? .85 : t > .9 ? 1.2 : .72, mop: [MOPLEAN[0], MOPLEAN[1], MOPLEAN[2], clamp((t - 1.08) / .4, 0, 1)], smear: gone ? AFTER.smear : null, fingers: t < .7 ? 1 : 0 });
     if (!got) return [['cleaner', .3, 0, -9.25, 2.75, 'stand', [-1.3, 1.6, -11.4]]];
     // его тащат: за три кадра вспышки он отъезжает к двери, ноги почти не касаются пола
     if (fA) { const k = clamp((t - 1.0) / .3, 0, 1); return [['cleaner', lerp(-.45, -.78, k), .03 * k, lerp(-10.45, -10.88, k), .55, 'reach', [1.0, 2.75, -.5]], ['monster', lerp(-1.0, -1.22, k), 0, lerp(-11.25, -11.55, k), .5, 'reach', [-.45, 1.4, -10.45]]]; }
-    if (t < 1.97) { const k = clamp((t - 1.3) / .67, 0, 1); return [['cleaner', lerp(-1.1, -1.62, k), 0, lerp(-11.2, -11.78, k), .95, 'reach', [1.0, 2.75, -.5]]]; }
+    if (t < 1.97) { const k = clamp((t - 1.3) / .67, 0, 1); return [['cleaner', lerp(-1.1, -.55, k), 0, lerp(-11.2, -11.6, k), .95, 'reach', [1.0, 2.75, -.5]]]; }
+    // прямо на пороге: валит и рвёт его под мигающей лампой, тянет кишки; тело ещё дёргается; в конце Жилец поднимает голову к камере
+    if (t < 4.9) {
+      o.cleanSet({ bucket: [.6, -10.35, .3, 1], spill: AFTER.spill, sign: CLEAN.sign, wet: CLEAN.wet, door7: 1.2, mop: [MOPLEAN[0], MOPLEAN[1], MOPLEAN[2], 1], splat: t > 2.1 });
+      eatLight(o, t); const g = clamp((t - 1.97) / 2.2, .15, 1); o.blood.scale.set(1.25 * g, 1, g); o.gutsOn = t > 2.45; o.splat.visible = t > 2.1;
+      const tw = t < 3.4 ? Math.sin(t * 37) * Math.pow(Math.max(0, Math.sin(t * 5.3)), 3) : 0;   // предсмертные судороги
+      return [['victim', -.4, .01 * Math.abs(tw), -11.78, PI * .5 + tw * .08, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 4.2 ? [-.75, .2, -11.75] : [1.0, 2.75, -.5]]];
+    }
     return [];
   } },
   cleaner_gone: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .8, -10.2], fov: 44, cctv: 1, set: (o, t) => {
@@ -689,7 +725,7 @@ function stage(id, t, opt = {}) {
   curProps = Object.assign({}, PROPS, window.World && World.props, opt.props);
   if (curLoc && curLoc !== o) curLoc.reset();
   curLoc = o; o.reset(); if (o.props) o.props(curProps);
-  for (const k in A) { A[k].faceSet = 'base'; A[k].gore = 0; A[k].scream = 0; A[k].reflOnly = false; A[k].root.visible = true; }
+  for (const k in A) { A[k].faceSet = 'base'; A[k].gore = 0; A[k].scream = 0; A[k].reflOnly = false; A[k].root.visible = true; A[k].aim = null; A[k].noTilt = false; }
   if (sh.face) for (const k in sh.face) A[k].faceSet = sh.face[k];   // выражение лица на весь кадр (set() ниже может уточнить)
   const acts = sh.set(o, t, sh) || [];
   if (sh.fog != null) o.S.fog.density = sh.fog;
@@ -753,7 +789,7 @@ const CREEP = {
   corridor: [[0, -23.5], [.6, -16], [-.6, -11], [0, -7.5]],
   server: [[-2.6, -2.9], [2.6, -2.9], [-2.9, 2.6], [.4, -3.0], [2.9, 1.5]],
 };
-const _p = new T.Vector3();
+const _p = new T.Vector3(), _hp = new T.Vector3(), _hd = new T.Vector3();
 function placeCreep(loc, seed, R) {
   const C = A.monster, list = CREEP[loc.name] || [], ok = [];
   cam.updateMatrixWorld();
@@ -780,6 +816,12 @@ function draw(g, W, H, id, o) {
   if (sh.hum && used.has(sh.hum) && !(o.talk && o.talk.who)) A[sh.hum].talk = .1 + .12 * Math.abs(Math.sin(t * 4.3)) * (Math.sin(t * 1.1) > -.5 ? 1 : 0);   // мурлычет себе под нос
   for (const k of used) A[k].update(T0, dt);
   loc.tick(T0, dt);
+  if (loc.post) loc.post(A, used, T0);
+  // скример строго в лицо: голову Жильца ставим на ось камеры (поза рук и корпуса уводили её влево)
+  const M = A.monster;
+  if (M.aim && M.aim.on && used.has('monster')) { M.bone.Head.updateWorldMatrix(true, false); M.bone.Head.getWorldPosition(_hp); const P = sh.pos; _hd.set(sh.look[0] - P[0], 0, sh.look[2] - P[2]).normalize();
+    const rx = _hp.x - P[0], rz = _hp.z - P[2], al = rx * _hd.x + rz * _hd.z;
+    M.root.position.x -= rx - _hd.x * al; M.root.position.z -= rz - _hd.z * al; M.root.position.y += (P[1] - .04 - _hp.y) * M.aim.k; M.root.updateMatrixWorld(true); }
   let crept = false;
   // на мониторах в будке: лицо вплотную к камере холла
   if (o.creep && sh.feeds && !used.has('monster') && L.lobby === loc) { const C = A.monster; if (C.root.parent !== loc.S) loc.S.add(C.root); C.root.position.set(5.6, 0, 3.0); C.root.rotation.y = .75; C.pose = 'monster'; C.look = new T.Vector3(7.45, 3.85, 5.45); C.update(T0, dt); crept = true; }

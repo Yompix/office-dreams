@@ -676,7 +676,8 @@ function updateSkinned(C, t, dt) {
   } else if (P === 'eat') {
     // рвёт и тащит ко рту: руки к земле перед собой, рывками вверх
     const tr = Math.max(0, Math.sin(tt * 4.2)) ** 5, tl = Math.max(0, Math.sin(tt * 4.2 + 2.1)) ** 5;
-    aimBone(C, 'spine_02', 'spine_03', [0, .55, 1], .8);
+    const bite = Math.pow(Math.max(0, Math.sin(tt * 2.6)), 6), yank = Math.pow(Math.max(0, Math.sin(tt * 2.6 - .9)), 8);   // клюёт в тело и рывком отдирает кусок
+    aimBone(C, 'spine_02', 'spine_03', [Math.sin(tt * 7) * .08 * yank, .55 - bite * .35 + yank * .3, 1], .8);
     aimBone(C, 'upperarm_r', 'lowerarm_r', [-.2, -.75, .75], 1); aimBone(C, 'lowerarm_r', 'hand_r', [.1, -.75 + tr * 1.1, .7 - tr * .3], 1);
     aimBone(C, 'upperarm_l', 'lowerarm_l', [.2, -.75, .75], 1); aimBone(C, 'lowerarm_l', 'hand_l', [-.1, -.75 + tl * 1.1, .7 - tl * .3], 1);
   } else if (P === 'hug') {
@@ -689,7 +690,7 @@ function updateSkinned(C, t, dt) {
   C.root.getWorldQuaternion(_q2);
   if (C.look) _b.copy(C.look).sub(_a).normalize();
   else _b.set(Math.sin(tt * .4) * .06, -.05, 1).normalize().applyQuaternion(_q2);
-  if (C.o.jerk && Math.sin(tt * 1.3) > .985) _b.x += (rnd() - .5) * .8;
+  if (C.o.jerk && !C.noTilt && Math.sin(tt * 1.3) > .985) _b.x += (rnd() - .5) * .8;
   // не дальше, чем позволяет шея: ограничиваем угол от направления тела
   _c.set(0, 0, 1).applyQuaternion(_q2);
   const ang = _b.angleTo(_c), hm = C.o.headMax || 1.15; if (ang > hm) { _q.setFromUnitVectors(_c, _b); _q.slerp(_pq.identity(), 1 - hm / ang); _b.copy(_c).applyQuaternion(_q); }
@@ -702,7 +703,8 @@ function updateSkinned(C, t, dt) {
     const bw = b.getWorldQuaternion(new T.Quaternion());
     const cur = C.headFwd.clone().applyQuaternion(hb.getWorldQuaternion(new T.Quaternion()));
     _q.setFromUnitVectors(cur, LD); _q.slerp(_pq.identity(), 1 - f);
-    if (C.o.tilt && bn === 'Head') { const r = new T.Quaternion().setFromAxisAngle(LD, (Math.sin(tt * .3) * .05 + C.o.tilt) * (C.o.flip ? -1 : 1)); _q.premultiply(r); }
+    // Жилец: голова набок, и время от времени шея резко «ломается» почти горизонтально (на скримере — прямо, лицом в лицо)
+    if (C.o.tilt && bn === 'Head' && !C.noTilt) { const snap = C.o.jerk && P !== 'eat' ? Math.pow(Math.max(0, Math.sin(tt * .9 + 1)), 24) * 1.1 : 0; const r = new T.Quaternion().setFromAxisAngle(LD, (Math.sin(tt * .3) * .05 + C.o.tilt + snap) * (C.o.flip ? -1 : 1)); _q.premultiply(r); }
     bw.premultiply(_q); b.parent.getWorldQuaternion(_pq); b.quaternion.copy(_pq.invert().multiply(bw)); _pq.identity();
     b.updateWorldMatrix(false, true);
   }

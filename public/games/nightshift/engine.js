@@ -632,7 +632,7 @@ function menu() {
       <button id="mSet">Настройки</button>
       ${supportBtn('msup')}
     </nav>
-    <div class="hp">${ICON.phones}<span>Лучше в наушниках · в игре есть вспышки света</span></div></div>`;
+    <div class="hp">${ICON.phones}<span>Лучше в наушниках · в игре есть вспышки света</span></div><div class="hp"><b style="color:#e33;margin-right:6px">18+</b><span>Жестокость, кровь и сцены насилия</span></div></div>`;
   const lg = $('logo'), m = `url(${logoMask()})`; lg.style.webkitMaskImage = lg.style.maskImage = m; lg.style.webkitMaskSize = lg.style.maskSize = '100% 100%';
   const T0 = uiEl.querySelector('.title'), ok = () => gateDone && now() - gateT > .45;   // тот же тап, что открыл меню, не жмёт кнопку под пальцем
   const btn = (id, fn) => { const b = $(id); if (b) b.onclick = e => { e.stopPropagation(); if (!ok()) return; uiSnd(); fn(); }; };
@@ -955,7 +955,7 @@ function studio() {
 function afterSplash() {
   if (loaded) return menu();
   mode = 'load'; cardT = now();
-  uiEl.innerHTML = `<div class="screen boot"><div class="card">${ICON.phones}<span>Лучше в наушниках · в игре есть вспышки света и резкие звуки</span></div><div id="loadbar"><i style="width:${loadP * 100}%"></i></div></div>`;
+  uiEl.innerHTML = `<div class="screen boot"><div class="card">${ICON.phones}<span>18+ · жестокость и кровь · лучше в наушниках · в игре есть вспышки света и резкие звуки</span></div><div id="loadbar"><i style="width:${loadP * 100}%"></i></div></div>`;
 }
 studio();
 load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).catch(() => {}).then(() => {

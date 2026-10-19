@@ -68,8 +68,8 @@ window.STORY = {
         { img: 'cleaner_close', cams: [[.5, .52, 1.0, 1.08]], say: ['cleaner_hum'], sfx: [['steps', 1.1, { cut: .4, gain: .25, lp: 900 }]], pad: 1.1 },
         { img: 'cleaner_stop', time: '03:00', cams: [[.5, .48, 1.0, 1.12]], say: ['floor7_0'], sfx: [['hum_stop', .2, { gain: .5 }], ['fluor_flicker', .9, { off: 1.4, cut: .5, gain: .3 }], ['fluor_flicker', 1.9, { off: 1.6, cut: .4, gain: .25 }]], pad: 2.4 },
         { img: 'cleaner_fingers', cams: [[.5, .5, 1.0, 1.15]], hush: true, sfx: [['metal_groan', .2, { cut: 1.6, gain: .25, lp: 1200 }], ['cleaner_cry_a', 1.25, { gain: .75, rev: .3 }]], text: '', pad: 2.4 },
-        { img: 'cleaner_grab', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .5, 1.0, 1.04]], scare: 1.02, hit: [], text: '',
-          sfx: [['door_slams', .98, { off: .5, cut: .5, gain: .9 }], ['cleaner_cry_b', 1.0, { gain: .9, rev: .25 }], ['eat_wet', 1.75, { cut: .6, gain: .5 }], ['door', 2.0, { cut: .5, gain: .5, lp: 900 }]], pad: 3.0 },
+        { img: 'cleaner_grab', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .5, 1.0, 1.04], [.47, .57, 1.7, 1.9], [.47, .55, 1.9, 2.15]], scare: 1.02, hit: [], text: '',
+          sfx: [['door_slams', .98, { off: .5, cut: .5, gain: .9 }], ['cleaner_cry_b', 1.0, { gain: .9, rev: .25 }], ['eat_wet', 1.75, { cut: .6, gain: .5 }], ['cleaner_cry_a', 2.0, { gain: .55, rev: .4, lp: 1400 }], ['eat_wet', 2.2, { gain: .85 }], ['neck_crack', 2.75, { gain: .8 }], ['eat_wet', 3.3, { gain: .8 }], ['eat_wet', 4.1, { gain: .7 }], ['door', 5.0, { cut: .5, gain: .5, lp: 900 }]], pad: 5.6 },
         { img: 'cleaner_gone', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .5, 1.0, 1.08], [.45, .56, 1.7, 1.9]], say: ['fl7_2'], heart: true, pad: .6, rule: '1. В 03:00 НА 7 ЭТАЖЕ\nВКЛЮЧИТСЯ СВЕТ.\nНЕ ПОДНИМАЙСЯ' }
       ],
       then: { choice: 'Свет на седьмом горит. Уборщик пропал.', timeout: 9, def: 1,
