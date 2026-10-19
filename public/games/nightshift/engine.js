@@ -291,6 +291,7 @@ document.addEventListener('visibilitychange', () => { paused = document.hidden; 
 /* ---------- состояние ---------- */
 let mode = 'load', scene = null, sceneId = '', bi = 0, beat = null, bT0 = 0, bDur = 0, sched = [], fired = new Set(), onBeatEnd = null;
 let gen = 0;   // номер текущей сцены: старые таймеры и мини-игры по нему понимают, что устарели
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 let flashT = -9, blackT = -9, scareAt = null, shakeAmp = 0, typed = null, hb = 0, pre = 0, trig = [], subl = null, sublScene = '', voiceNow = false;
 let creep = null, creepCool = 25, mgView = null;   // случайное появление Жильца в кадре; кадр под мини-игрой
 let sceneT0 = 0, secBase = 7, lastTime = '02:55', lastDrawn = 'door_katya', falseAlarm = false;
@@ -586,6 +587,93 @@ const MG = {
       (function loop() { if (end || ok || my !== gen) return; const l = lim - (now() - t0); const el = $('rt'); if (el) el.style.width = Math.max(0, l / lim * 100) + '%'; if (l <= 0) return fin(false); requestAnimationFrame(loop); })();
     };
     step();
+  },
+  // запотевшее стекло: протереть пальцем; когда видно больше половины — в стекло бьёт ладонь
+  wipe(th) {
+    mode = 'mg'; music('tension'); amb('heart', true, .35); const my = gen, t0 = now(), FW = 108, FH = 192;
+    const F = document.createElement('canvas'); F.width = FW; F.height = FH; const f = F.getContext('2d');
+    // пелена гуще к краям, в ней капельки; несколько подтёков — по ним чуть видно, что за стеклом
+    const rg = f.createRadialGradient(FW / 2, FH * .45, 10, FW / 2, FH * .45, FH * .62); rg.addColorStop(0, 'rgba(150,162,172,.84)'); rg.addColorStop(1, 'rgba(120,130,140,.95)'); f.fillStyle = rg; f.fillRect(0, 0, FW, FH);
+    for (let i = 0; i < 260; i++) { f.fillStyle = `rgba(${200 + Math.random() * 50},${210 + Math.random() * 40},230,${.08 + Math.random() * .16})`; f.beginPath(); f.arc(Math.random() * FW, Math.random() * FH, .4 + Math.random() * 1.3, 0, 7); f.fill(); }
+    f.globalCompositeOperation = 'destination-out';
+    for (let i = 0; i < 7; i++) { let x = Math.random() * FW, y = Math.random() * 60; const n = 30 + Math.random() * 60; f.fillStyle = 'rgba(0,0,0,.45)';
+      for (let j = 0; j < n; j++) { x += Math.random() * .8 - .4; y += 1.3; f.fillRect(x, y, 1.1, 1.4); } f.beginPath(); f.arc(x, y + 1, 1.5, 0, 7); f.fill(); }
+    f.globalCompositeOperation = 'source-over';
+    mgView = { img: th.img || 'katya_slam', c: th.cam || [.5, .47, 1.22, 1.22], t0, dur: 1e9, tAt: .1, fog: F };
+    mgEl.innerHTML = `<div class="mghead">${th.title}<small>${th.hint}</small></div>`;
+    mgEl.classList.remove('hide');
+    let last = null, end = false, slam = 0, chk = 0, sq = 0, clear = 0;
+    const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * FW, (e.clientY - r.top) / r.height * FH]; };
+    const rub = (a, b) => { f.globalCompositeOperation = 'destination-out'; f.strokeStyle = 'rgba(0,0,0,.8)'; f.lineCap = 'round'; f.lineWidth = 19; f.beginPath(); f.moveTo(a[0], a[1]); f.lineTo(b[0], b[1]); f.stroke(); f.globalCompositeOperation = 'source-over'; };
+    mgEl.onpointerdown = e => { e.preventDefault(); if (slam) return; last = pt(e); rub(last, last); };
+    mgEl.onpointermove = e => { if (!last || slam) return; const p = pt(e); rub(last, p); if (Math.hypot(p[0] - last[0], p[1] - last[1]) > 5 && now() - sq > .16) { sq = now(); play('glass_tap', { gain: .12, rate: 1.7 + Math.random() * .4, cut: .12 }); } last = p; };
+    mgEl.onpointerup = mgEl.onpointercancel = () => { last = null; };
+    const fin = () => { if (end || my !== gen) return; end = true; amb('heart', false); mgEl.onpointerdown = mgEl.onpointermove = mgEl.onpointerup = mgEl.onpointercancel = null; mgEl.classList.add('hide'); mgView = null; startScene(th.win); };
+    (function loop() {
+      if (end || my !== gen) return; const t = now() - t0;
+      if (!slam) {
+        f.fillStyle = 'rgba(140,152,162,.006)'; f.fillRect(0, 0, FW, FH);   // стекло снова потеет от дыхания с той стороны
+        if (now() - chk > .25) { chk = now(); const d = f.getImageData(0, 0, FW, FH).data; let n = 0; for (let i = 3; i < d.length; i += 16) if (d[i] < 90) n++; clear = n / (d.length / 16); }
+        if (clear > (th.need || .45) || t > (th.dur || 15)) {   // увидел пустую улицу — и тут же удар в стекло
+          slam = now(); mgView.tAt = null; mgView.st = .1 - t; mgEl.querySelector('.mghead').classList.add('hide');
+          setTimeout(() => { if (my !== gen) return; play('glass_slam', { gain: 1.1 }); play('breath_close', { gain: .7, when: .12 }); shakeAmp = 34; buzz([60, 30, 120]); if (!calm()) blackT = now(); }, 150);
+        }
+      } else if (now() - slam > (th.after || 1.7)) return fin();
+      requestAnimationFrame(loop);
+    })();
+  },
+  // фонарик: луч ведёт палец; в темноте кто-то стоит — посветишь на него, и его уже нет; потом найти дверь
+  torch(th) {
+    mode = 'mg'; music('tension'); amb('heart', true, .3); const my = gen, t0 = now();
+    const L = { x: .3, y: .9 }, tgt = { x: .3, y: .9 };
+    mgView = { img: th.img, c: th.cam || [.5, .5, 1, 1], t0, dur: 1e9, torch: L };
+    mgEl.innerHTML = `<div class="mghead">${th.title}<small id="th">${th.hint}</small></div>`;
+    mgEl.classList.remove('hide'); play('click');
+    let end = false, seen = 0, onMon = 0, onGoal = 0, gone = false, found = 0, jump = 0, hitT = 0, lt = now();
+    const pt = e => { const r = cv.getBoundingClientRect(); tgt.x = clamp((e.clientX - r.left) / r.width, 0, 1); tgt.y = clamp((e.clientY - r.top) / r.height - .07, 0, 1); };   // луч чуть выше пальца — палец не закрывает
+    mgEl.onpointerdown = e => { e.preventDefault(); if (!found) pt(e); }; mgEl.onpointermove = e => { if (!found && (e.buttons || e.pointerType === 'touch')) pt(e); };
+    const near = (p, r) => Math.hypot((L.x - p[0]) * .5625, L.y - p[1]) < r;   // расстояние в долях высоты экрана
+    const fin = () => { if (end || my !== gen) return; end = true; amb('heart', false); mgEl.onpointerdown = mgEl.onpointermove = null; mgEl.classList.add('hide'); mgView = null; startScene(th.win); };
+    (function loop() {
+      if (end || my !== gen) return; const dt = Math.min(.1, now() - lt); lt = now();
+      const kf = Math.min(1, dt * (jump ? 22 : 9)); L.x += (tgt.x - L.x) * kf; L.y += (tgt.y - L.y) * kf;   // фонарь тяжёлый — луч догоняет палец
+      if (!seen) { onMon = near(th.mon, .06) ? onMon + dt : 0;
+        if (onMon > .25) { seen = now(); play('breath_close', { gain: .9 }); play('whispers', { gain: .35, cut: 1.4 }); shakeAmp = 10; buzz([40, 30, 80]); } }
+      else if (!gone && now() - seen > .75) { gone = true; mgView.img = th.img2; blackT = now(); play('fluor_flicker', { gain: .4, cut: .3 }); $('th').textContent = th.hint2; }
+      if (gone && !found) { onGoal = near(th.goal, .05) ? onGoal + dt : 0; if (onGoal > .7) { found = now(); play('click'); $('th').textContent = th.found; } }
+      if (found && th.img3) { const e = now() - found;   // за спиной вздох — луч сам дёргается влево, а он стоит вплотную
+        if (e > .9 && !jump) { jump = now(); mgView.img = th.img3; mgView.st = -(jump - mgView.t0); tgt.x = th.near[0]; tgt.y = th.near[1]; play('breath_close', { gain: 1 }); mgEl.querySelector('.mghead').classList.add('hide'); }
+        if (jump && now() - jump > .45 && !hitT) { hitT = now(); play(BUF.jumpscare ? 'jumpscare' : 'scare', { gain: calm() ? .7 : .95 }); shakeAmp = 40; buzz([200, 40, 300]); }
+        if (hitT && now() - hitT > .55) { blackT = now() + .4; return fin(); } }
+      else if (found && now() - found > .8) return fin();
+      requestAnimationFrame(loop);
+    })();
+  },
+  // перемотка записи камеры: ползунок влево — запись идёт назад; нашёл, где он ещё жив, — и запись сама играет дальше
+  tape(th) {
+    mode = 'mg'; music('tension'); amb('static', true, .22); const my = gen, len = th.len || 5.6, base = th.clock0 || [3, 0, 0];
+    const clockAt = tt => { const x = base[0] * 3600 + base[1] * 60 + base[2] + Math.floor(tt); return [Math.floor(x / 3600), Math.floor(x / 60) % 60, x % 60].map(v => String(v).padStart(2, '0')).join(':'); };
+    mgView = { img: th.img, c: th.cam || [.47, .56, 1.9, 1.9], t0: now(), dur: 1e9, tAt: len, label: th.label, rw: 0, rwHud: { tag: '◀◀ ЗАПИСЬ', clock: clockAt(len) } };
+    mgEl.innerHTML = `<div class="mghead cam">${th.title}<small id="th">${th.hint}</small></div><div class="tape" id="tape"><div class="tbar"><i id="tf"></i></div><div class="tknob" id="tk">${ICON.left}</div></div>`;
+    mgEl.classList.remove('hide'); play('click');
+    const box = $('tape'), knob = $('tk'), fill = $('tf'); let drag = false, end = false, lastTick = len, found = 0;
+    const setK = k => { k = clamp(k, 0, 1); const tt = k * len; mgView.rw = Math.min(1, mgView.rw + Math.abs(tt - mgView.tAt) * 1.5); mgView.tAt = tt; mgView.rwHud.clock = clockAt(tt);
+      knob.style.left = k * 100 + '%'; fill.style.width = k * 100 + '%';
+      if (Math.abs(tt - lastTick) > .18) { lastTick = tt; play('tick', { gain: .16, rate: 1.5 }); }
+      if (!found && tt < th.goal) { found = now(); drag = false; box.classList.add('done'); play('click'); $('th').textContent = th.found; mgView.rwHud.tag = '▶ ЗАПИСЬ'; } };
+    setK(1);
+    const move = e => { const r = box.getBoundingClientRect(); setK((e.clientX - r.left) / r.width); };
+    box.onpointerdown = e => { if (found) return; e.preventDefault(); drag = true; try { box.setPointerCapture(e.pointerId); } catch {} move(e); };
+    box.onpointermove = e => { if (drag && !found) move(e); }; box.onpointerup = box.onpointercancel = () => { drag = false; };
+    const fin = () => { if (end || my !== gen) return; end = true; amb('static', false); mgEl.classList.add('hide'); mgView = null; startScene(th.win); };
+    let pl = null;
+    (function loop() {
+      if (end || my !== gen) return;
+      if (found) {   // сама играет вперёд с того места, где он ещё жив, — до конца рывка
+        const e = now() - found; if (e > .9) { if (pl == null) { pl = mgView.tAt; (th.sfx || []).forEach(([n, at, o]) => play(n, Object.assign({ when: Math.max(0, at - pl) }, o))); } mgView.tAt = pl + (e - .9); mgView.rwHud.clock = clockAt(mgView.tAt); if (mgView.tAt > th.stop) return fin(); }
+      }
+      requestAnimationFrame(loop);
+    })();
   }
 };
 
@@ -724,7 +812,7 @@ function tear(n = 1) {
 }
 // экран камеры наблюдения: REC мигает раз в секунду, время идёт по часам ночи, уголки кадра; цвет даёт шейдер (cctv: 1)
 let tearNext = 0;
-function cctvHud(label, T) {
+function cctvHud(label, T, rw) {   // rw = { tag, clock } — запись на перемотке
   if (T > tearNext) { tearNext = T + 2.2 + Math.random() * 4.5; tear(1); }
   grain(.12);
   g.save(); g.textBaseline = 'top'; g.shadowColor = 'rgba(0,0,0,.9)'; g.shadowBlur = 6;
@@ -732,9 +820,9 @@ function cctvHud(label, T) {
   g.beginPath(); for (const [x, y, sx, sy] of [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]]) { g.moveTo(x + sx * L, y); g.lineTo(x, y); g.lineTo(x, y + sy * L); } g.stroke();
   g.font = '700 40px "Courier New", monospace'; g.fillStyle = 'rgba(235,240,235,.9)';
   if ((T % 1) < .5) { g.fillStyle = '#e8262e'; g.beginPath(); g.arc(98, 222, 13, 0, 7); g.fill(); g.fillStyle = 'rgba(235,240,235,.9)'; }
-  g.fillText('REC', 124, 204);
+  g.fillText(rw ? rw.tag : 'REC', 124, 204);
   if (label) g.fillText(label, 84, 258);
-  g.font = '700 34px "Courier New", monospace'; g.fillText('17.10.2026  ' + gameClock(), 84, 310);
+  g.font = '700 34px "Courier New", monospace'; g.fillText('17.10.2026  ' + (rw ? rw.clock : gameClock()), 84, 310);
   g.restore();
 }
 function grain(a) { g.save(); g.globalAlpha = a; g.globalCompositeOperation = 'overlay'; const ox = Math.random() * 256, oy = Math.random() * 256; g.translate(-ox, -oy); g.fillStyle = noisePat || (noisePat = g.createPattern(noise, 'repeat')); g.fillRect(0, 0, W + 256, H + 256); g.restore(); }
@@ -900,9 +988,12 @@ function frame(tp) {
     place = placeOf(c.img); cam = true;
   } else if (mode === 'mg' && mgView) {
     const t = T - mgView.t0, k = Math.min(1, t / (mgView.dur || 3)); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    shot(mgView.img, { cx: mgView.c[0], cy: mgView.c[1], z: mgView.c[2] + (mgView.c[3] - mgView.c[2]) * k * k, t: mgView.st ? mgView.st + t : t, T, sx: (Math.random() - .5) * shakeAmp, sy: (Math.random() - .5) * shakeAmp, cctv: mgView.label ? 1 : undefined });
+    shot(mgView.img, { cx: mgView.c[0], cy: mgView.c[1], z: mgView.c[2] + (mgView.c[3] - mgView.c[2]) * k * k, t: mgView.tAt != null ? mgView.tAt : mgView.st ? mgView.st + t : t, T, sx: (Math.random() - .5) * shakeAmp, sy: (Math.random() - .5) * shakeAmp, cctv: mgView.label ? 1 : undefined, torch: mgView.torch });
+    if (mgView.fog) { g.imageSmoothingEnabled = true; g.drawImage(mgView.fog, 0, 0, W, H); }
+    // перемотка: дрожит и рвётся строками, пока тянут ползунок
+    if (mgView.rw > .02) { const n = 2 + Math.floor(mgView.rw * 5); for (let i = 0; i < n; i++) { const y = Math.random() * H, h = 6 + Math.random() * 30 * mgView.rw; g.drawImage(cv, 0, y, W, h, (Math.random() - .5) * 90 * mgView.rw, y, W, h); g.fillStyle = `rgba(255,255,255,${.06 + .12 * Math.random() * mgView.rw})`; g.fillRect(0, y, W, 2 + Math.random() * 4); } mgView.rw *= .88; }
     if (mgView.run) { const L = mgView.run === 'L', gr = g.createLinearGradient(L ? 0 : W, 0, W / 2, 0); gr.addColorStop(0, 'rgba(0,0,0,.97)'); gr.addColorStop(.7, 'rgba(0,0,0,.75)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); }
-    shakeAmp *= .9; vignette(); if (mgView.label) { cctvHud(mgView.label, T); if (t > .3) grain(.25 + k * .5); }
+    shakeAmp *= .9; vignette(); if (mgView.label) { cctvHud(mgView.label, T, mgView.rwHud); if (t > .3) grain(mgView.tAt != null ? .2 : .25 + k * .5); }
     place = placeOf(mgView.img); quiet = true; cam = !!mgView.label;
   } else if (mode === 'menu') {
     // титул: живой кадр, медленный наезд (20 с), сверху темнее — там логотип, снизу — меню

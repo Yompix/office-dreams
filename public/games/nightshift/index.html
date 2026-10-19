@@ -121,6 +121,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 .mghead { position: absolute; top: 6%; left: 0; right: 0; text-align: center; font-weight: 900; font-size: 5.4cqw; text-shadow: 0 0 2cqw #000; padding: 0 6%; }
 .mghead small { display: block; font-size: 3.6cqw; font-weight: 600; opacity: .75; margin-top: 1.5cqw; }
 .mghead.low { top: 15%; }
+.mghead.cam { top: 21%; }
 .mgfoot { position: absolute; left: 7%; right: 7%; bottom: 7%; }
 .meter { height: 4cqw; border: .5cqw solid rgba(255,255,255,.4); border-radius: 3cqw; overflow: hidden; background: rgba(0,0,0,.6); }
 .meter i { display: block; height: 100%; width: 50%; background: linear-gradient(90deg, #a11, var(--red)); }
@@ -130,6 +131,12 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 .cord .wire { position: absolute; left: 50%; top: 0; height: 100%; width: 1.4cqw; transform: translateX(-50%); background: repeating-linear-gradient(#222 0 3cqw, #111 3cqw 6cqw); }
 .cord .plug { position: absolute; left: 50%; top: 0; margin-left: -11cqw; width: 22cqw; height: 22cqw; border-radius: 4cqw; background: #ddd; color: #222; font-size: 11cqw; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1cqw rgba(224,48,58,.7), 0 1cqw 4cqw #000; touch-action: none; animation: plugp .6s infinite alternate; }
 @keyframes plugp { to { box-shadow: 0 0 0 2.2cqw rgba(224,48,58,.25), 0 1cqw 4cqw #000; } }
+.tape { position: absolute; left: 9%; right: 9%; bottom: 12%; height: 18cqw; touch-action: none; }
+.tape .tbar { position: absolute; left: 0; right: 0; top: 50%; height: 2.4cqw; margin-top: -1.2cqw; border-radius: 2cqw; background: rgba(255,255,255,.2); overflow: hidden; }
+.tape .tbar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #a11, var(--red)); }
+.tape .tknob { position: absolute; top: 50%; left: 100%; width: 16cqw; height: 16cqw; margin: -8cqw 0 0 -8cqw; border-radius: 50%; background: #ddd; color: #111; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1cqw rgba(224,48,58,.7), 0 1cqw 4cqw #000; animation: pulse 1.2s infinite; }
+.tape .tknob .ic { width: 8cqw; height: 8cqw; }
+.tape.done .tknob { background: var(--red); color: #fff; animation: none; }
 .arrows { position: absolute; left: 6%; right: 6%; bottom: 16%; display: flex; gap: 4cqw; }
 .arrows button { flex: 1; height: 26cqw; font-size: 12cqw; border-radius: 4cqw; border: .6cqw solid rgba(255,255,255,.35); background: rgba(0,0,0,.6); color: #fff; }
 .flash { animation: flash .25s; }
@@ -217,8 +224,8 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 <script src="world.js?v=3"></script>
 <script src="chars.js?v=2"></script>
 <script src="chars2.js?v=9"></script>
-<script src="scenes.js?v=10"></script>
-<script src="story.js?v=12"></script>
-<script src="engine.js?v=16"></script>
+<script src="scenes.js?v=11"></script>
+<script src="story.js?v=13"></script>
+<script src="engine.js?v=17"></script>
 </body>
 </html>

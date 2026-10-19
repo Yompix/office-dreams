@@ -379,6 +379,8 @@ function buildCorridor() {
   const ex = plane(.5, .25, mat(0xffffff, TX.exit, { basic: true }), S); ex.position.set(0, 2.55, -len + .08); ex.position.x = .9;
   // табличка «СЕРВЕРНАЯ» поверх 713 — этот же коридор играет минус второй этаж
   o.srv = label(.5, .12, 96, 22, (c, w, h) => { c.fillStyle = '#7a7d80'; c.fillRect(0, 0, w, h); c.fillStyle = '#111'; c.font = '700 13px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('СЕРВЕРНАЯ  −2', w / 2, h / 2 + 1); }, S); o.srv.position.set(0, 1.78, -len + .09);
+  // под фонарём табличка видна, только когда на неё светят (обычная — светится сама)
+  o.srvBasic = o.srv.material; o.srvLit = ps1(new T.MeshLambertMaterial({ map: o.srv.material.map, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }));
   // лужа под телом (сцена «Жилец ест»)
   // лужа неровная: край — сумма синусов, плюс отдельные брызги (круг выглядел как красный коврик)
   const bl = new T.Shape(); for (let i = 0; i <= 48; i++) { const a = i / 48 * PI * 2, r = .82 * (1 + .22 * Math.sin(3 * a + 1) + .13 * Math.sin(7 * a + 2.3) + .07 * Math.sin(13 * a + .4));
@@ -427,7 +429,7 @@ function buildCorridor() {
     o.splat.visible = !!c.splat;
     if (c.blood) { o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.1, 1, .9); }
   };
-  o.reset = () => { o.faceL.intensity = 0; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
+  o.reset = () => { o.faceL.intensity = 0; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
   o.tick = (t) => {   // одна ненадёжная лампа (пятая от лифта), если горит
     const l = o.lamps[4]; if (!o.flickOn || !l.on) { o.tubeOK = 1; return; }
     const f = unreliable(t, 3); o.tubeOK = f; l.li.intensity = l.base * f; l.tube.material.color.setHex(f ? 0xe8f0e8 : 0x1c1e1c);
@@ -501,6 +503,7 @@ function walkPath(key, pts, t, v) {
   return { x: p.x, z: p.y, ry: Math.atan2(d.x, d.y), done: s0 >= L };
 }
 // свет для сцены «Жилец ест»: горит одна лампа прямо над ними и подмигивает
+function torchSet(o, mon) { setLamps(o, 0); o.slitLight.intensity = 0; o.slit.visible = false; o.amb.intensity = .08; o.srv.visible = true; o.srv.material = o.srvLit; return mon ? [['monster', .15, 0, -18.2, 0, 'monster', 'cam']] : []; }
 function eatLight(o, t) { setLamps(o, 0); o.flickOn = false; const l = o.lamps[3], on = Math.sin(t * 9) > .85 && Math.sin(t * 1.7) > 0 ? .25 : 1; l.li.intensity = 4.2 * on; l.li.distance = 9; o.amb.intensity = .42; l.tube.material.color.setHex(on > .5 ? 0xe8f0e8 : 0x30322e); o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.25, 1, 1); o.gutsOn = true; o.splat.visible = true; o.slitLight.intensity = 0; o.slit.visible = false; A.monster.gore = 1; A.victim.gore = 2;
   o.cleanSet(AFTER); }
 // седьмой этаж после уборщика: швабра на полу, ведро опрокинуто, вода, кровавый след волоком к приоткрытой 707
@@ -567,6 +570,11 @@ const SH = {
     return z != null && (t % .5) > .06 ? [['monster', 0, 0, z, 0, 'monster', 'cam']] : []; } },
   corridor_713: { loc: 'corridor', pos: [0, 1.6, -4], look: [0, 1.0, -26], fov: 52, set: (o) => { setLamps(o, 1); o.amb.intensity = .62; return []; } },
   corridor_dark: { loc: 'corridor', pos: [0, 1.6, -2], look: [0, 1.0, -26], fov: 56, fog: .07, set: (o) => { setLamps(o, 0); o.slitLight.intensity = 0; o.slit.visible = false; o.amb.intensity = .75; return []; } },
+  // фонарик: тот же тёмный коридор, в конце стоит Жилец (мини-игра «фонарик», engine.js)
+  // фонарик (мини-игра «фонарик», engine.js): тот же коридор, свет только от фонаря; во втором — в конце стоит Жилец
+  torch_corr: { loc: 'corridor', pos: [-.2, 1.6, -11], look: [0, 1.2, -26], fov: 56, fog: .05, set: (o) => torchSet(o, false) },
+  torch_corr_mon: { loc: 'corridor', pos: [-.2, 1.6, -11], look: [0, 1.2, -26], fov: 56, fog: .05, set: (o) => torchSet(o, true) },
+  torch_corr_near: { loc: 'corridor', pos: [-.2, 1.6, -11], look: [0, 1.2, -26], fov: 56, fog: .05, set: (o, t, sh) => { torchSet(o, false); return lunge(o, t, sh, { at: .45, far: 2.4, near: .55, glow: .7, show: .06 }); } },
   door713: { loc: 'corridor', pos: [.15, 1.55, -23.7], look: [0, 1.0, -26], fov: 52, set: (o) => { setLamps(o, 1); return []; } },
   corridor_katya: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.1, .9, -25], fov: 40, set: (o, t) => { setLamps(o, 7); return [['katya', 0, 0, -19, lerp(PI * .98, PI * .02, clamp((t - 1) / 2, 0, 1)) + PI, 'stand', null]]; } },
   corridor_face: { loc: 'corridor', pos: [.05, 1.52, -18.75], look: [0, 1.5, -20], fov: 34, set: (o) => { setLamps(o, 7); return [['katyaSmile', 0, 0, -19.4, 0, 'stand', 'cam']]; } },
@@ -827,6 +835,10 @@ function draw(g, W, H, id, o) {
   if (o.creep && sh.feeds && !used.has('monster') && L.lobby === loc) { const C = A.monster; if (C.root.parent !== loc.S) loc.S.add(C.root); C.root.position.set(5.6, 0, 3.0); C.root.rotation.y = .75; C.pose = 'monster'; C.look = new T.Vector3(7.45, 3.85, 5.45); C.update(T0, dt); crept = true; }
   if (sh.feeds && (crept || ++feedT % 3 === 0)) renderFeeds(R, T0);
   aim(cam, sh.pos, sh.look, sh.fov, o.cx ?? .5, o.cy ?? .5, o.z ?? 1, o.sx || 0, o.sy || 0);
+  // фонарь в руке: луч туда, куда показывает палец (o.torch = {x, y} — доли экрана)
+  if (!loc.torch && loc.name === 'corridor') { const l = loc.torch = new T.SpotLight(0xfff0d8, 0, 0, .28, .5, 1); loc.S.add(l, l.target); }
+  if (loc.torch) { const l = loc.torch; l.intensity = o.torch ? 9 : 0;
+    if (o.torch) { cam.updateMatrixWorld(); l.position.set(.18, -.25, 0).applyMatrix4(cam.matrixWorld); _p.set(o.torch.x * 2 - 1, 1 - o.torch.y * 2, .5).unproject(cam).sub(cam.position).normalize().multiplyScalar(10).add(cam.position); l.target.position.copy(_p); l.target.updateMatrixWorld(); } }
   if (o.creep && !crept && !used.has('monster') && placeCreep(loc, o.creep, R)) A.monster.update(T0, dt);
   const cctv = o.cctv ?? sh.cctv ?? 0;
   const PU = postMat.uniforms; PU.uCctv.value = cctv ? 1 : 0; PU.uT.value = T0; PU.uScare.value = clamp(o.scare || 0, 0, 1); PU.uVhs.value = o.vhs ?? VHS;

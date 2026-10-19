@@ -5,7 +5,7 @@
          say — реплики (файлы из snd/, субтитры из timing.json), text — текст без голоса (печатается), who — кто говорит,
          sfx — [[звук, секунда]], pad — пауза после, scare — секунда скримера,
          creep — здесь можно на миг показать Жильца (случайный тихий испуг, решает движок).
-   then: goto | choice | camgame | mg ('door' | 'hold' | 'run' | 'cord') | ending | over.
+   then: goto | choice | camgame | mg ('door' | 'hold' | 'run' | 'cord' | 'wipe' | 'torch' | 'tape') | ending | over.
    Кто есть кто: Тёмыч (ты), Сменщик, Катя (сестра), Михалыч (прошлый ночной охранник), Жилец (???) — живёт на 13-м этаже,
    которого в здании нет. Правила честные: их писали охранники, которые дожили. Записку «впусти её» подделал Жилец. */
 window.STORY = {
@@ -72,6 +72,12 @@ window.STORY = {
           sfx: [['door_slams', .98, { off: .5, cut: .5, gain: .9 }], ['cleaner_cry_b', 1.0, { gain: .9, rev: .25 }], ['eat_wet', 1.75, { cut: .6, gain: .5 }], ['cleaner_cry_a', 2.0, { gain: .55, rev: .4, lp: 1400 }], ['eat_wet', 2.2, { gain: .85 }], ['neck_crack', 2.75, { gain: .8 }], ['eat_wet', 3.3, { gain: .8 }], ['eat_wet', 4.1, { gain: .7 }], ['door', 5.0, { cut: .5, gain: .5, lp: 900 }]], pad: 5.6 },
         { img: 'cleaner_gone', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .5, 1.0, 1.08], [.45, .56, 1.7, 1.9]], say: ['fl7_2'], heart: true, pad: .6, rule: '1. В 03:00 НА 7 ЭТАЖЕ\nВКЛЮЧИТСЯ СВЕТ.\nНЕ ПОДНИМАЙСЯ' }
       ],
+      then: { mg: 'tape', title: 'ПЕРЕМОТАЙ ЗАПИСЬ', hint: 'Тяни ползунок влево. Найди, где он ещё живой.', found: '03:00:00. Он ещё живой…',
+              img: 'cleaner_grab', label: 'CAM 07  ЭТАЖ 7', cam: [.47, .54, 1.45, 1.45], len: 5.6, goal: .7, stop: 2.7, clock0: [3, 0, 0],
+              sfx: [['door_slams', .98, { off: .5, cut: .5, gain: .7, lp: 2200 }], ['cleaner_cry_b', 1.0, { gain: .7, rev: .25, lp: 2200 }], ['eat_wet', 2.2, { gain: .7, lp: 2200 }], ['static', 2.6, { gain: .6, cut: .5 }]], win: 'floor7_ch' }
+    },
+    floor7_ch: {
+      beats: [],
       then: { choice: 'Свет на седьмом горит. Уборщик пропал.', timeout: 9, def: 1,
               opts: [{ t: 'Подняться и найти его', go: 'over_floor7' }, { t: 'Остаться у мониторов', go: 'lift' }] }
     },
@@ -107,7 +113,11 @@ window.STORY = {
         { img: 'booth_dark', cams: [[.5, .5, 1.0, 1.1]], say: ['knock_0'], sfx: [['click', 0]], pad: .4, creep: true },
         { img: 'desk_note', fx: 'lamp', cams: [[.5, .55, 1.2, 1.4]], say: ['knock_r'], rule: '3. ПОСЛЕ ПОЛУНОЧИ\nНИКОГО НЕ ВПУСКАЙ.\nДАЖЕ СВОИХ', pad: .5 },
         { img: 'booth_dark', cams: [[.5, .5, 1.0, 1.12]], say: ['knock_n1'], hush: true, sfx: [['steps_barefoot', 6.2]], pad: 1.4 },
-        { img: 'katya_slam', fx: 'rain', cams: [[.5, .47, 1.25, 1.3]], scare: .25, hit: ['glass_slam'], text: '', pad: 1.3 },
+      ],
+      then: { mg: 'wipe', title: 'КТО ТАМ?', hint: 'Стекло запотело. Протри его пальцем.', img: 'katya_slam', cam: [.5, .47, 1.25, 1.25], win: 'knock2' }
+    },
+    knock2: {
+      beats: [
         { img: 'door_katya', fx: 'rain', cams: [[.5, .5, 1.0, 1.08], [.51, .46, 1.8, 2.0]], say: ['l14'], sfx: [['knock', 1.0]], pad: .3 },
         { img: 'katya_face', fx: 'rain', cams: [[.5, .45, 1.0, 1.1]], say: ['ch_katya'], sfx: [['glass_tap', .1]], pad: .4 },
         { img: 'door_katya', fx: 'rain', cams: [[.51, .46, 1.4, 1.6]], say: ['l15'], pad: .4 },
@@ -231,9 +241,10 @@ window.STORY = {
       music: 'tension', time: '04:14',
       beats: [
         { img: 'corridor_dark', fx: 'dark', cams: [[.5, .5, 1.0, 1.3]], say: ['down_0'], sfx: [['steps', .2], ['steps', 1.8]], pad: .2 },
-        { img: 'corridor_dark', cams: [[.5, .5, 1.3, 1.5]], say: ['down_1'], sfx: [['click', .8]], pad: .3, creep: true }
+        { img: 'corridor_dark', cams: [[.5, .5, 1.3, 1.5]], say: ['down_1'], sfx: [['click', .8]], pad: .3 }
       ],
-      then: { goto: 'basement' }
+      then: { mg: 'torch', title: 'ФОНАРИК', hint: 'Веди пальцем — свети. В конце коридора что-то шуршит.', hint2: 'Никого. Дверь серверной — там же, в конце.', found: 'СЕРВЕРНАЯ −2',
+              img: 'torch_corr_mon', img2: 'torch_corr', img3: 'torch_corr_near', mon: [.5, .47], goal: [.5, .455], near: [.5, .4], win: 'basement' }
     },
     basement: {
       music: 'tension', time: '04:16',
