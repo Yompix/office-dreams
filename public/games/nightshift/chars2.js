@@ -422,7 +422,7 @@ function makeSkinned(o) {
     if (n.isSkinnedMesh) {
       n.frustumCulled = false;
       const nm = n.name.toLowerCase();
-      if (nm.includes('eyebrow')) { n.material = ps1(new T.MeshLambertMaterial({ map: n.material.map, color: o.brow ?? o.hair ?? 0x1a120c, alphaTest: .45 })); C.brows = n; }
+      if (nm.includes('eyebrow')) { n.material = browMat(C, n.material.map, o.brow ?? o.hair ?? 0x1a120c); C.brows = n; }
       else if (nm.includes('eye')) { n.material = o.voidEyes || o.deadEyes != null ? ps1(new T.MeshBasicMaterial({ color: o.deadEyes ?? 0x000000 })) : ps1(new T.MeshLambertMaterial({ map: n.material.map && n.material.map.clone(), color: o.eyeC ?? 0xffffff })); if (n.material.map) n.material.map.needsUpdate = true; C.eyes = n; }
       else { C.U = uniforms(o); const src = n.material; n.material = bodyMat(src, C.U, false); C.mesh = n;
         if (!o.naked) { const cg = clothGeo(n, o), sh = new T.SkinnedMesh(cg, bodyMat(src, C.U, true)); sh.frustumCulled = false; C.shellOf = [n, sh]; C.clothMat = sh.material; C.skirtProf = cg.userData.skirt; } }
@@ -529,11 +529,22 @@ function skinSkirt(C, k) {
 }
 
 const SAC = window.__SAC || .02, _black = new T.Color(0);
+// брови двигаются (в осях модели, до скелета): x — поднять обе, y — «домиком» (+, тревога, мольба) или сведены (−, злость).
+// У переносицы ход больше, у виска почти ноль — так и выглядит живое лицо
+function browMat(C, map, color) {
+  const m = ps1(new T.MeshLambertMaterial({ map, color, alphaTest: .45 })), snap = m.onBeforeCompile; C.browU = { value: new T.Vector2() };
+  m.onBeforeCompile = sh => { snap(sh); sh.uniforms.uBrow = C.browU;
+    sh.vertexShader = 'uniform vec2 uBrow;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      { float inr = 1. - smoothstep(.012, .06, abs(position.x));
+        transformed.y += uBrow.x * .009 + uBrow.y * .0085 * inr - max(-uBrow.y, 0.) * .0035 * (1. - inr);
+        transformed.x -= sign(position.x) * max(-uBrow.y, 0.) * .0035 * inr; transformed.z -= uBrow.x * .0015; }`); };
+  return m;
+}
 /* ---------- позы ---------- */
 const POSE = {
   stand: 'Idle_Loop', talk: 'Idle_Talking_Loop', sit: 'Sitting_Idle_Loop', sittalk: 'Sitting_Talking_Loop', sitfloor: 'Fixing_Kneeling',
   knock: 'Idle_Loop', give: 'Idle_Loop', paper: 'Idle_Loop', monster: 'Idle_Loop', reach: 'Idle_Loop',
-  walk: 'Walk_Loop', back: 'Walk_Loop', hug: 'Idle_Loop', eat: 'Crouch_Idle_Loop', lay: 'LayToIdle', mop: 'Idle_Loop', slam: 'Idle_Loop',
+  walk: 'Walk_Loop', back: 'Walk_Loop', push: 'Push_Loop', hug: 'Idle_Loop', eat: 'Crouch_Idle_Loop', lay: 'LayToIdle', mop: 'Idle_Loop', slam: 'Idle_Loop',
 };
 const _ld = new T.Vector3(), _a = new T.Vector3(), _b = new T.Vector3(), _c = new T.Vector3(), _q = new T.Quaternion(), _q2 = new T.Quaternion(), _pq = new T.Quaternion();
 // повернуть кость так, чтобы она смотрела в направлении dir (в осях персонажа: +z вперёд, +y вверх, +x влево)
@@ -598,7 +609,15 @@ function updateSkinned(C, t, dt) {
   let sdt = dt, still = false;
   if (C.o.stopmo) { C.smAcc = (C.smAcc || 0) + dt; if (C.smAcc < C.o.stopmo && C.smDone) still = true; else { sdt = C.smAcc; C.smAcc = 0; C.smDone = true; } }
   if (!still) {
-  if (P !== 'lay') C.act.timeScale = P === 'back' ? -.8 : P === 'monster' ? .3 : P === 'reach' ? .55 : C.o.monster ? .8 : 1;
+  // шаг под скорость: ноги идут ровно с той скоростью, с какой человек движется по полу (иначе «плывёт» или шагает на месте)
+  let stride = 1;
+  if ((P === 'walk' || P === 'back') && !C.o.monster) {
+    const p = C.root.position, base = 1.03 * C.inner.scale.y;
+    if (C.prevP && dt > 0) { const v = Math.hypot(p.x - C.prevP.x, p.z - C.prevP.z) / dt; C.walkV = C.walkV == null ? v : C.walkV + (v - C.walkV) * Math.min(1, dt * 8); }
+    (C.prevP || (C.prevP = new T.Vector3())).copy(p);
+    stride = C.walkV == null ? 1 : clamp(C.walkV / base, 0, 1.9);
+  }
+  if (P !== 'lay') C.act.timeScale = P === 'back' ? -stride : P === 'monster' ? .3 : P === 'reach' ? .55 : C.o.monster ? .8 : stride;
   // пальцы — в исходную позу до анимации: клип их почти не трогает, и кулак от швабры/стука иначе оставался навсегда
   for (const sd of ['l', 'r']) { for (const f of FING) for (let j = 1; j <= 3; j++) { const n = f + '_0' + j + '_' + sd; if (C.bone[n]) C.bone[n].quaternion.copy(C.rest[n]); }
     for (let j = 1; j <= 3; j++) { const n = 'thumb_0' + j + '_' + sd; if (C.bone[n]) C.bone[n].quaternion.copy(C.rest[n]); } }
@@ -700,7 +719,8 @@ function updateSkinned(C, t, dt) {
     if (blink !== C.blinked) { C.blinked = blink; em.color.setScalar(blink ? 0 : 1); if (C.o.eyeC != null && !blink) em.color.set(C.o.eyeC); em.emissive.copy(blink ? C.lidC : _black); } }
   // глаза живые: мелкие быстрые скачки взгляда (саккады), у Жильца и «Кати» — нет, взгляд застывший
   if (C.eyes && C.eyes.material.map && !C.o.monster && !C.o.noBlink && !C.o.dead) {
-    C.sacT = (C.sacT ?? 1) - dt; if (C.sacT < 0) { C.sacT = .4 + rnd() * 1.8; C.sac = [(rnd() - .5) * SAC, (rnd() - .5) * SAC * .5]; }
+    const dart = fs.dart ? 2.2 : 1;   // тревога: взгляд бегает чаще и шире
+    C.sacT = (C.sacT ?? 1) - dt; if (C.sacT < 0) { C.sacT = (.4 + rnd() * 1.8) / (dart * dart); C.sac = [(rnd() - .5) * SAC * dart, (rnd() - .5) * SAC * .5 * dart]; }
     const m = C.eyes.material.map.offset, tg = C.sac || [0, 0], kk = Math.min(1, dt * 30); m.x += (tg[0] - m.x) * kk; m.y += (tg[1] - m.y) * kk;
   }
   // у «Кати» рот чуть опаздывает за голосом — едва заметно, но тревожно (как плохой дубляж)
@@ -708,6 +728,16 @@ function updateSkinned(C, t, dt) {
   if (C.o.lipLag) { const h = C.talkHist || (C.talkHist = []); h.push([tt, C.talk]); while (h.length > 2 && h[1][0] < tt - C.o.lipLag) h.shift(); tk = h[0][1]; }
   { const tg = clamp(Math.max(tk * 1.15, fs.mouth || 0), 0, .9), cur = U.uTalk.value; U.uTalk.value = lerp(cur, tg, Math.min(1, dt * (tg > cur ? 22 : 9))); }
   U.uSmile.value = C.o.smile ? 1 : fs.smile ? +fs.smile : 0;
+  // брови: эмоция кадра + подъём на ударных слогах + редкое «движение мысли» (у Жильца и подделки — ничего, лицо застывшее)
+  if (C.browU) {
+    let up = fs.browUp || 0, inn = fs.browIn || 0;
+    if (!C.o.noBlink && !C.o.dead) {
+      up += clamp((tk - .45) * 1.5, 0, .6);
+      C.brT = (C.brT ?? 2 + rnd() * 4) - dt; if (C.brT < 0) { C.brT = 3 + rnd() * 5; C.brF = 1; }
+      if (C.brF > 0) { up += Math.sin((1 - C.brF) * Math.PI) * .45; C.brF -= dt * 2.2; }
+    }
+    const B = C.browU.value, kb = Math.min(1, dt * 12); B.x += (up - B.x) * kb; B.y += (inn - B.y) * kb;
+  }
   U.uScream.value = C.scream || fs.scream || 0;
   U.uGore.value = C.gore || 0;
   C.keys.visible = P === 'give'; C.paper.visible = P === 'paper'; if (C.mop && P !== 'mop') C.mop.visible = false;
@@ -719,9 +749,9 @@ function cast() {
   const guard = { shirt: 0x1c1f26, pants: 0x15171c, shoes: 0x0c0c0c, trim: 0x3a3f4a, badge: true };
   A.temych = makeSkinned(Object.assign({ name: 'temych', h: 1.8, skin: 0xffe8dc, skinK: 1.25, hairPart: 'Hair_SimpleParted', hair: 0x3a2a1c, brow: 0x2a1c12 }, guard));
   A.smenshik = makeSkinned(Object.assign({ name: 'smenshik', h: 1.72, skin: 0xf0d6c8, skinK: 1.2, hairPart: 'Hair_Buzzed', hair: 0x9a9a96, brow: 0x8a8a86, cap: 0x15203a }, guard, { shirt: 0x1d2a44, pants: 0x1a2236 }));
-  A.smenshik.addFace('smile', { smile: true });
-  A.smenshik.addFace('fear', { mouth: .45, wide: true });
-  A.temych.addFace('smile', { smile: 1.45, wide: true });
+  A.smenshik.addFace('smile', { smile: true, browUp: .3 });
+  A.smenshik.addFace('fear', { mouth: .45, wide: true, browUp: 1, browIn: .8, dart: 1 });
+  A.temych.addFace('smile', { smile: 1.45, wide: true, browUp: .5 });
   const kat = { fem: true, h: 1.64, skin: 0xfff0ea, skinK: 1.3, hairPart: 'Hair_Long', hair: 0x4a3226, brow: 0x1a110c, coat: 0xd8a820, coatY: .5, pants: 0x223050, shoes: 0x1a1414, trim: 0x8a6a10, wet: true };
   A.katya = makeSkinned(Object.assign({ name: 'katya', noBlink: true, lipLag: .12 }, kat));
   A.katyaSmile = makeSkinned(Object.assign({ name: 'katyaSmile', lipLag: .22 }, kat, { skin: 0xe6dcd8, skinK: 1.25, grey: .5, smile: true, noBlink: true, eyeC: 0x3a3a3a, socket: .45 }));
@@ -734,6 +764,15 @@ function cast() {
   const clean = { kind: 2, h: 1.75, skin: 0xe8cbb8, skinK: 1.15, hairPart: 'Hair_Buzzed', hair: 0x2a2420, brow: 0x2a2420, shirt: 0x2f5378, pants: 0x27405c, shoes: 0x111111, trim: 0x8a2020, cap: 0x2f5378 };
   // ночной уборщик: сначала живой, моет пол в коридоре; потом — тело (сцена, где Жилец ест)
   A.cleaner = makeSkinned(Object.assign({ name: 'cleaner', mop: true }, clean, { cap: null }));
+  // общие выражения лица: тревога (брови домиком, взгляд бегает), мольба, настороженность, страх, спокойная полуулыбка
+  for (const k of ['temych', 'smenshik', 'katya', 'mihalych', 'cleaner']) {
+    const F = A[k].faceSets;
+    F.worry = F.worry || { browIn: .8, browUp: .1, dart: 1 };
+    F.plead = F.plead || { browIn: 1, browUp: .35, mouth: .12 };
+    F.alert = F.alert || { browUp: .9, wide: true, dart: 1 };
+    F.fear = F.fear || { mouth: .4, wide: true, browUp: 1, browIn: .8, dart: 1 };
+    F.calm = F.calm || { smile: .3, browUp: .1 };
+  }
   A.victim = makeSkinned(Object.assign({ name: 'victim', dead: true }, clean, { skin: 0xc8c4bc, skinK: 1.0, grey: .7, cap: null }));
   for (const k in A) A[k].update(0, 1 / 30);
   return A;

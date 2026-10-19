@@ -21,11 +21,14 @@ function ps1(m) {
   return m;
 }
 const MC = {};
+// наклейка поверх другой поверхности (плинтус-панель на стене, табличка, светильник на потолке): чуть «ближе» по глубине,
+// иначе на телефоне две плоскости дерутся за пиксель и рисунок мигает рваными пятнами (особенно с дрожью вершин PS1)
+const DECAL = { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 };
 function mat(color, map, o = {}) {
   const k = color + '|' + (map ? map.uuid : '') + '|' + JSON.stringify(o);
   if (MC[k]) return MC[k];
   const M = o.basic ? T.MeshBasicMaterial : T.MeshLambertMaterial;
-  const m = new M(Object.assign({ color, map: map || null }, o.basic ? {} : { emissive: o.emissive || 0x000000 }, o.transparent ? { transparent: true, opacity: o.opacity ?? 1, depthWrite: false } : {}, o.side ? { side: o.side } : {}));
+  const m = new M(Object.assign({ color, map: map || null }, o.basic ? {} : { emissive: o.emissive || 0x000000 }, o.transparent ? { transparent: true, opacity: o.opacity ?? 1, depthWrite: false } : {}, o.side ? { side: o.side } : {}, o.decal ? DECAL : {}));
   if (o.fog === false) m.fog = false;
   return (MC[k] = ps1(m));
 }
@@ -195,13 +198,15 @@ function box(w, h, d, m, x = 0, y = 0, z = 0, parent) {
 }
 function plane(w, h, m, parent) { const me = new T.Mesh(new T.PlaneGeometry(w, h), m); if (parent) parent.add(me); return me; }
 function cyl(r1, r2, h, n, m, parent) { const me = new T.Mesh(new T.CylinderGeometry(r1, r2, h, n), m); if (parent) parent.add(me); return me; }
-// коробка-комната: стены внутрь
+// коробка-комната: видны только внутренние стены. Зеркалить scale −1 нельзя: three.js тогда разворачивает грани обратно,
+// и наружная стенка коробки совпадает со стеной коридора — на телефоне это чёрные рваные пятна
 function room(w, h, d, mats, parent) {
-  const g = new T.BoxGeometry(w, h, d); const me = new T.Mesh(g, mats); me.scale.set(-1, 1, 1); me.position.y = h / 2; parent.add(me); return me;
+  const g = new T.BoxGeometry(w, h, d), back = m => { const c = m.clone(); c.side = T.BackSide; c.onBeforeCompile = m.onBeforeCompile; return c; };
+  const me = new T.Mesh(g, Array.isArray(mats) ? mats.map(back) : back(mats)); me.position.y = h / 2; parent.add(me); return me;
 }
 // текст на табличке (динамический, например табло лифта)
 function label(w, h, pw, ph, draw, parent, basic = true) {
-  const t = ctex(pw, ph, draw); const m = new T.MeshBasicMaterial({ map: t }); ps1(m);
+  const t = ctex(pw, ph, draw); const m = new T.MeshBasicMaterial(Object.assign({ map: t }, DECAL)); ps1(m);
   const me = plane(w, h, m, parent); me.userData.tex = t; me.userData.draw = draw; return me;
 }
 function relabel(me, ...a) { const t = me.userData.tex; t.cx.clearRect(0, 0, t.cv.width, t.cv.height); me.userData.draw(t.cx, t.cv.width, t.cv.height, ...a); t.needsUpdate = true; }
