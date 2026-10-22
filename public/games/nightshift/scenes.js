@@ -1,7 +1,7 @@
 /* Места действия (холл с будкой и лифтами, улица, 7 этаж, серверная), кадры для каждой сцены и сам показ кадра. */
 (() => {
 'use strict';
-const { T, RW, RH, BW, BH, HD, rnd, lerp, clamp, ps1, mat, ctex, TX, box, plane, cyl, room, label, relabel, makeTextures } = window.__W3core;
+const { T, V, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, mat, ctex, TX, box, plane, cyl, room, label, relabel, makeTextures } = window.__W3core;
 const PI = Math.PI;
 let A = null;          // актёры
 const L = {};          // места действия
@@ -213,7 +213,7 @@ function setDawn(o, k) {
    жирные пятна и отпечатки, капли и бегущие струйки снаружи, толстые рамы, ручки-штанги. */
 const GLASS_VS = `uniform mat4 uTM; varying vec3 vW; varying vec4 vR; varying float vD;
   void main(){ vec4 w = modelMatrix * vec4(position, 1.); vW = w.xyz; vR = uTM * w; vec4 mv = viewMatrix * w; vD = -mv.z; gl_Position = projectionMatrix * mv; }`;
-const GLASS_FS = `uniform sampler2D tRef, tGrime; uniform float uRef, uLit, uT, uFogD, uPrint, uRain; uniform vec2 uPrintP; uniform vec3 uDropC;
+const GLASS_FS = (CINE ? '#define CINE\n' : '') + `uniform sampler2D tRef, tGrime; uniform float uRef, uLit, uT, uFogD, uPrint, uRain; uniform vec2 uPrintP; uniform vec3 uDropC;
   varying vec3 vW; varying vec4 vR; varying float vD;
   float h1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
   float cap(vec2 q, vec2 a, vec2 b, float r){ vec2 pa = q - a, ba = b - a; float k = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * k) - r; }
@@ -243,7 +243,12 @@ const GLASS_FS = `uniform sampler2D tRef, tGrime; uniform float uRef, uLit, uT, 
       vec2 cg = p / .013, ci = floor(cg), cf = fract(cg); float fd = fwidth(cg.x) + fwidth(cg.y);
       float r = .07 + .17 * h1(ci + 1.3); vec2 c0 = vec2(h1(ci + 3.1), h1(ci + 7.7)) * .5 + .25; float dd = length(cf - c0);
       float drop = step(h1(ci), .38) * (1. - smoothstep(r - fd * .5, r + fd * .5, dd));
+#ifdef CINE
+      float hl = drop * smoothstep(r * .22, 0., length(cf - c0 - vec2(-r * .25, -r * .45)));   // капля как линза: тонкий светлый край и крошечный блик
+      float rim = drop * smoothstep(r * .5, r, dd);
+#else
       float hl = drop * smoothstep(r * .55, 0., length(cf - c0 - vec2(0., -r * .5)));
+#endif
       float cx = floor(p.x / .05), cr = h1(vec2(cx, 9.1)), on = step(cr, .62);
       float sp = .04 + .1 * cr, len = .08 + .3 * h1(vec2(cx, 4.4)), hy = 3.6 - mod(uT * sp + cr * 17.3, 4.4);
       float xc = (cx + .25 + .5 * h1(vec2(cx, 2.))) * .05 + sin(p.y * 11. + cr * 6.) * .003;
@@ -251,7 +256,11 @@ const GLASS_FS = `uniform sampler2D tRef, tGrime; uniform float uRef, uLit, uT, 
       float trail = on * step(0., up) * step(up, len) * (1. - up / len) * (1. - smoothstep(wd, wd * 1.8, dx));
       float head = on * (1. - smoothstep(.004, .004 + fwidth(p.x) * 1.5, length(vec2(dx, up * .8))));
       drop *= 1. - on * step(0., up) * step(up, len + .02) * step(dx, .012);
+#ifdef CINE
+      float rain = drop * .03 + rim * .16 + hl * .55 + trail * .2 + head * .4;
+#else
       float rain = drop * (.12 + hl * .9) + trail * .32 + head * .7;
+#endif
       rain = mix(rain, .06, clamp(fd * 1.3 - .4, 0., 1.));
       if (uPrint > 0.) { float inP = (1. - smoothstep(-.002, .003, palmD(p - uPrintP))) * uPrint; rain *= 1. - inP; col += vec3(.55, .57, .55) * inP * (.09 + .18 * uLit); a += inP * .12; }
       rain *= uRain; col += uDropC * rain * (.3 + .7 * uLit); a += rain * .1;
@@ -299,7 +308,7 @@ function buildCorridor() {
   o.amb = new T.AmbientLight(0x4a5868, .36); S.add(o.amb);
   const len = 26, wd = 2.6;
   // пол — офисный линолеум с лёгким бликом (по нему ходит швабра уборщика)
-  const flM = ps1(new T.MeshPhongMaterial({ color: 0xffffff, map: TX.lino, specular: 0x1e1e1e, shininess: 30 }));
+  const flM = ps1(CINE ? litMat({ color: 0xffffff, map: TX.lino, bumpMap: TX.lino.bumpTex || null, bumpScale: 1.6 }, .3) : new T.MeshPhongMaterial({ color: 0xffffff, map: TX.lino, specular: 0x1e1e1e, shininess: 30 }));
   const fl = plane(wd, len, flM, S); fl.rotation.x = -PI / 2; fl.position.z = -len / 2;
   const ce = plane(wd, len, mat(0xffffff, TX.ceil), S); ce.rotation.x = PI / 2; ce.position.set(0, 3, -len / 2);
   const wm = mat(0xffffff, TX.wall), pm = mat(0xffffff, TX.panel, { decal: 1 });
@@ -521,9 +530,10 @@ function lunge(o, t, sh, cf) {
   for (const [ts, dd] of cf.steps || []) if (t >= ts) d = dd;
   if (t >= at) { const e = clamp((t - at) / (cf.dur || .22), 0, 1); k = e * e; d = lerp(d, cf.near ?? .5, k); }
   const headY = lerp(cf.headY ?? 2.25, P[1] - .02, Math.min(1, k * 1.15));
-  const C = A.monster; C.faceSet = 'scream'; C.scream = clamp((t - at + .05) / .16, 0, 1); C.noTilt = t >= at - .15; C.aim = { k: Math.min(1, k * 1.15), on: t >= at - .15 };
+  const C = A.monster; C.faceSet = 'scream'; C.scream = clamp((t - at + .05) / .16, 0, 1); C.shake = t > at - .45 && t < at + .06 ? .7 : t >= at + .06 ? .12 : 0; C.noTilt = t >= at - .15; C.aim = { k: Math.min(1, k * 1.15), on: t >= at - .15 };
   o.faceL.position.set(P[0] + ux * .12, P[1] - .22, P[2] + uz * .12); o.faceL.distance = Math.max(2.2, d + 1.2);
   o.faceL.intensity = t < at ? (cf.glow || 0) : (Math.sin(t * 57) > -.35 ? 3.4 : .9);
+  if (CINE && t >= at + .04) { if (o.lamps) setLamps(o, 0); o.amb.intensity *= .35; }   // «Кино»: в момент броска свет гаснет — из темноты только лицо
   if (t < (cf.show ?? 0) || (cf.blink && t < at && (t % .5) < .13)) return [];
   const jit = t >= at ? (Math.sin(t * 83) + Math.sin(t * 47)) * .05 : 0;
   return [['monster', P[0] + ux * d, headY - 2.25, P[2] + uz * d, Math.atan2(-ux, -uz) + jit, 'reach', 'cam']];
@@ -659,55 +669,206 @@ const ALIAS = { f01: 'hall_cam', f02: 'exterior', f03: 'guard', f04: 'desk_note'
 
 /* ---------- показ ---------- */
 let canvas = null, scenesReady = false;
-const cam = new T.PerspectiveCamera(50, RW / RH, .05, 120), feedCam = new T.PerspectiveCamera(60, 4 / 3, .05, 80);
+const cam = new T.PerspectiveCamera(50, V.RW / V.RH, .05, 120), feedCam = new T.PerspectiveCamera(60, 4 / 3, .05, 80);
 let postScene, postCam, postMat, feedRT = [], feedT = 0, reflRT = null, reflN = 0, curProps = null;
-const rcam = new T.PerspectiveCamera(50, RW / RH, .05, 120);
+const rcam = new T.PerspectiveCamera(50, V.RW / V.RH, .05, 120);
+
+/* ---------- «Кино»: тени, отражения, объёмный свет, пыль, постобработка ---------- */
+// тени: в каждом месте тени отбрасывают две самые заметные для камеры лампы (число постоянное — шейдеры не пересобираются)
+const SHADOW_N = 2;
+// лучи света под лампами: мягкий конус, ярче у лампы, тает к полу и в тумане; дышит пылью
+const BEAM_VS = `varying vec3 vN, vV, vW; varying float vY; uniform float uH;
+  void main(){ vY = position.y / uH + .5; vec4 w = modelMatrix * vec4(position, 1.); vW = w.xyz; vec4 mv = viewMatrix * w; vV = -mv.xyz; vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * mv; }`;
+const BEAM_FS = `varying vec3 vN, vV, vW; varying float vY; uniform vec3 uC; uniform float uI, uT, uFog;
+  float h(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+  float n3(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+    return mix(mix(mix(h(i), h(i + vec3(1,0,0)), f.x), mix(h(i + vec3(0,1,0)), h(i + vec3(1,1,0)), f.x), f.y), mix(mix(h(i + vec3(0,0,1)), h(i + vec3(1,0,1)), f.x), mix(h(i + vec3(0,1,1)), h(i + vec3(1,1,1)), f.x), f.y), f.z); }
+  void main(){ float f = abs(dot(normalize(vN), normalize(vV))); float d = length(vV);
+    float a = pow(f, 2.5) * pow(vY, 1.4) * uI * exp(-d * uFog * 1.4) * smoothstep(.15, 1.2, d);
+    a *= .65 + .7 * n3(vW * 2.2 + vec3(0., -uT * .15, uT * .07));
+    gl_FragColor = vec4(uC * a * .22, 1.); }`;
+// пылинки: висят вокруг камеры (сетка повторяется), светятся только в лучах ламп
+const DUST_VS = `uniform vec3 uCam; uniform float uT, uPx; uniform vec4 uL[6]; varying float vA;
+  void main(){ vec3 p = position + vec3(sin(uT * .13 + position.y * 3.) * .3, -uT * .025, cos(uT * .11 + position.x * 2.) * .3);
+    p = uCam + mod(p - uCam + 4., 8.) - 4.;
+    float a = 0.; for (int i = 0; i < 6; i++) { vec3 d = p - uL[i].xyz; float r = .25 + max(0., -d.y) * .42; a += uL[i].w * smoothstep(r, r * .3, length(d.xz)) * step(d.y, .1) * smoothstep(-4., -.2, d.y); }
+    vec4 mv = viewMatrix * vec4(p, 1.); float z = -mv.z; vA = min(1., a) * smoothstep(.3, 1., z) * smoothstep(7., 3., z) * (.45 + .55 * fract(sin(dot(position, vec3(12.9, 78.2, 37.7))) * 4375.));
+    gl_PointSize = uPx * (.012 + .012 * fract(position.x * 91.)) / max(z, .1); gl_Position = projectionMatrix * mv; }`;
+const DUST_FS = `varying float vA; void main(){ vec2 d = gl_PointCoord - .5; float a = smoothstep(.5, .0, length(d)) * vA; gl_FragColor = vec4(vec3(1., .93, .82) * a * .7, 1.); }`;
+let pmrem = null;
+function cineLoc(R, o) {
+  const S = o.S, skip = new Set([o.rim, o.faceL, o.slitLight, o.lamp, o.boothLight, o.candle, o.torch]);
+  S.traverse(m => {
+    if (!m.isMesh) return;
+    const mt = Array.isArray(m.material) ? m.material[0] : m.material, g = m.geometry;
+    if (!g.boundingSphere) g.computeBoundingSphere();
+    const solid = !mt.isMeshBasicMaterial && !mt.transparent && !mt.isShaderMaterial;
+    m.receiveShadow = solid;
+    m.castShadow = solid && mt.side !== T.BackSide && g.boundingSphere.radius * Math.max(m.scale.x, m.scale.y, m.scale.z) < 2.4;
+  });
+  o.casters = []; o.beams = [];
+  S.traverse(l => { if (!l.isPointLight) return;
+    l.shadow.mapSize.set(FINE ? 512 : 256, FINE ? 512 : 256); l.shadow.bias = -.003; l.shadow.normalBias = .025; l.shadow.camera.near = .08; l.shadow.camera.far = l.distance || 20;
+    if (!skip.has(l)) o.casters.push(l);
+    if (!skip.has(l) && l.position.y > 2.3) {
+      const wp = new T.Vector3(); l.getWorldPosition(wp); const h = wp.y - .02;
+      const m = new T.Mesh(new T.CylinderGeometry(.2, .2 + h * (o.name === 'corridor' ? .26 : .42), h, 28, 1, true), new T.ShaderMaterial({ vertexShader: BEAM_VS, fragmentShader: BEAM_FS, transparent: true, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide,
+        uniforms: { uH: { value: h }, uC: { value: l.color }, uI: { value: 0 }, uT: { value: 0 }, uFog: { value: .05 } } }));
+      m.position.set(l.position.x, l.position.y - h / 2 - .02, l.position.z); m.renderOrder = 5; l.parent.add(m); o.beams.push({ l, m, base: Math.max(.5, l.intensity) });
+    } });
+  o.casters.slice(0, SHADOW_N).forEach(l => (l.castShadow = true));
+  // пыль
+  const n = FINE ? 2200 : 900, pos = new Float32Array(n * 3); for (let i = 0; i < n * 3; i++) pos[i] = Math.random() * 8;
+  const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3));
+  o.dustU = { uCam: { value: new T.Vector3() }, uT: { value: 0 }, uPx: { value: 900 }, uL: { value: Array.from({ length: 6 }, () => new T.Vector4()) } };
+  o.dust = new T.Points(g, new T.ShaderMaterial({ vertexShader: DUST_VS, fragmentShader: DUST_FS, uniforms: o.dustU, transparent: true, depthWrite: false, blending: T.AdditiveBlending }));
+  o.dust.frustumCulled = false; o.dust.renderOrder = 6; S.add(o.dust);
+  // отражения: окружение места снимается один раз со всеми лампами — блики ламп в мокром полу, металле, глазах
+  pmrem = pmrem || new T.PMREMGenerator(R);
+  const at = { lobby: [0, 1.6, 2], corridor: [0, 1.6, -12], server: [0, 1.5, 0] }[o.name] || [0, 1.6, 0];
+  if (o.lamps) setLamps(o, 7);
+  o.dust.visible = false; o.beams.forEach(b => (b.m.visible = false));
+  S.position.set(-at[0], -at[1], -at[2]); S.updateMatrixWorld(true);
+  const env = pmrem.fromScene(S, .02, .05, 60); S.environment = env.texture;
+  S.position.set(0, 0, 0); S.updateMatrixWorld(true);
+  o.dust.visible = true; o.beams.forEach(b => (b.m.visible = true));
+  if (o.reset) o.reset();
+}
+const _lv = new T.Vector3();
+function cineTick(o, T0) {
+  // кто отбрасывает тени: самые яркие лампы рядом с камерой
+  const sc = l => l.intensity * (l.visible ? 1 : 0) / (1 + l.getWorldPosition(_lv).distanceToSquared(cam.position) * .06);
+  const best = o.casters.slice().sort((a, b) => sc(b) - sc(a)).slice(0, SHADOW_N);
+  for (const l of o.casters) l.castShadow = best.includes(l);
+  const fogD = o.S.fog ? o.S.fog.density : .05, L6 = o.dustU.uL.value; let k = 0;
+  const lit = o.beams.slice().sort((a, b) => b.l.intensity / (1 + b.l.position.distanceToSquared(cam.position)) - a.l.intensity / (1 + a.l.position.distanceToSquared(cam.position)));
+  for (const b of o.beams) { const U = b.m.material.uniforms; U.uI.value = clamp(b.l.intensity / b.base, 0, 1.6) * (b.l.visible ? 1 : 0); U.uT.value = T0; U.uFog.value = fogD; }
+  for (let i = 0; i < 6; i++) { const b = lit[i]; if (b) { b.l.getWorldPosition(_lv); L6[i].set(_lv.x, _lv.y, _lv.z, clamp(b.l.intensity / b.base, 0, 1.4)); } else L6[i].set(0, -99, 0, 0); k++; }
+  o.dustU.uCam.value.copy(cam.position); o.dustU.uT.value = T0; o.dustU.uPx.value = V.RH * .9;
+}
+// кадр: сцена в HDR-буфер со сглаживанием → четверть кадра размывается (свечение ламп и мягкие края объектива) → итог:
+// плёночная кривая (ACES), холодные тени / тёплый свет, ореол вокруг ярких ламп, хроматизм к краям, виньетка, мелкое зерно
+let PB = null;
+const POST_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }';
+function cinePost() {
+  const q = () => new T.WebGLRenderTarget(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2), { type: T.HalfFloatType, magFilter: T.LinearFilter, minFilter: T.LinearFilter });
+  PB = { a: q(), b: q() };
+  PB.down = new T.ShaderMaterial({ uniforms: { tD: { value: null }, uPx: { value: new T.Vector2() } }, vertexShader: POST_VS,
+    fragmentShader: `uniform sampler2D tD; uniform vec2 uPx; varying vec2 vUv; void main(){ vec3 c = vec3(0.);
+      for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) c += texture2D(tD, vUv + vec2(float(i), float(j)) * uPx * 1.5).rgb; gl_FragColor = vec4(c / 9., 1.); }` });
+  PB.blur = new T.ShaderMaterial({ uniforms: { tD: { value: null }, uDir: { value: new T.Vector2() } }, vertexShader: POST_VS,
+    fragmentShader: `uniform sampler2D tD; uniform vec2 uDir; varying vec2 vUv; void main(){
+      vec3 c = texture2D(tD, vUv).rgb * .227; c += (texture2D(tD, vUv + uDir * 1.385).rgb + texture2D(tD, vUv - uDir * 1.385).rgb) * .316; c += (texture2D(tD, vUv + uDir * 3.23).rgb + texture2D(tD, vUv - uDir * 3.23).rgb) * .07;
+      gl_FragColor = vec4(c, 1.); }` });
+  PB.comp = new T.ShaderMaterial({ uniforms: { tD: { value: null }, tBl: { value: null }, uT: { value: 0 }, uCctv: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 }, uAsp: { value: 1 }, uExp: { value: .95 } }, vertexShader: POST_VS,
+    fragmentShader: `uniform sampler2D tD, tBl; uniform float uT, uCctv, uVhs, uScare, uAsp, uExp; varying vec2 vUv;
+      float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+      vec3 aces(vec3 x){ return clamp((x * (2.51 * x + .03)) / (x * (2.43 * x + .59) + .14), 0., 1.); }
+      void main(){
+        vec2 uv = vUv, d = uv - .5; float r = length(d * vec2(uAsp, 1.)) / max(uAsp, 1.) * 1.6;
+        uv += d * dot(d, d) * (.02 + .12 * uCctv);                                             // объектив (у камер наблюдения — «рыбий глаз»)
+        float row = floor(uv.y * 540.), fr = floor(uT * 24.);
+        uv.x += (h(vec2(row, fr)) - .5) * uVhs * uCctv * .002;                                  // запись с камеры чуть дрожит строками
+        uv += d * uScare * .05 * (h(vec2(fr, 3.)) - .5);                                        // скример: картинку рвёт к центру
+        float ca = (.0012 + .012 * uScare) * (.25 + r * r * 1.4);
+        vec3 c = vec3(texture2D(tD, uv + d * ca).r, texture2D(tD, uv).g, texture2D(tD, uv - d * ca).b);
+        if (uScare > .02) {   // скример: рывок к центру смазывает картинку, свет режет красным
+          vec3 z = c; for (int i = 1; i < 7; i++) z += texture2D(tD, uv - d * float(i) * .018 * uScare).rgb; c = mix(c, z / 7., min(1., uScare * 1.3));
+          c *= vec3(1. + .5 * uScare, 1. - .25 * uScare, 1. - .3 * uScare);
+        }
+        vec3 bl = texture2D(tBl, uv).rgb;
+        c = mix(c, bl, smoothstep(.62, 1.25, r) * .7 * (1. - uCctv));                          // глубина резкости: края кадра мягче
+        c += max(bl - .38, 0.) * 1.35 + bl * vec3(.07, .035, .02);                              // свечение ламп и ореол
+        c = aces(c * uExp);
+        c = mix(c * 12.92, 1.055 * pow(max(c, vec3(.0031308)), vec3(1. / 2.4)) - .055, step(.0031308, c));
+        c = pow(c, vec3(1.18));                                                                  // ночь: тени глубже
+        float l = dot(c, vec3(.299, .587, .114));
+        c = mix(c * vec3(.86, 1.0, 1.07) + vec3(0., .008, .018), c * vec3(1.06, .99, .9), smoothstep(.18, .7, l));   // холодные тени, тёплый свет
+        c = mix(vec3(l), c, .88);
+        c = mix(c, vec3(l) * vec3(.86, 1., .9), uCctv * .55) + max(c - .6, 0.) * uCctv * .8;
+        c *= 1. - uCctv * .09 * step(1., mod(floor(gl_FragCoord.y / 2.), 2.));
+        c *= 1. - smoothstep(.55, 1.5, r) * .6;                                                   // виньетка
+        c += (h(gl_FragCoord.xy + fract(uT * 7.13) * 731.) - .5) * (.035 + uCctv * .05 + uVhs * .015);   // зерно
+        if (uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.) c = vec3(0.);
+        gl_FragColor = vec4(c, 1.); }` });
+}
+function cineRender(R, T0, cctv, scare, vhs) {
+  const quad = postScene.children[0], RT = window.__W3core.RT;
+  const pass = (m, to) => { quad.material = m; R.setRenderTarget(to); R.render(postScene, postCam); };
+  PB.down.uniforms.tD.value = RT.texture; PB.down.uniforms.uPx.value.set(1 / V.RW, 1 / V.RH); pass(PB.down, PB.a);
+  const bx = 1 / PB.a.width, by = 1 / PB.a.height, B = PB.blur.uniforms;
+  for (const s of [1, 2.2]) { B.tD.value = PB.a.texture; B.uDir.value.set(bx * s, 0); pass(PB.blur, PB.b); B.tD.value = PB.b.texture; B.uDir.value.set(0, by * s); pass(PB.blur, PB.a); }
+  const U = PB.comp.uniforms; U.uExp.value = curLoc && curLoc.name === 'corridor' ? .68 : curLoc && curLoc.name === 'server' ? 1.05 : .92; U.tD.value = RT.texture; U.tBl.value = PB.a.texture; U.uT.value = T0; U.uCctv.value = cctv; U.uScare.value = scare; U.uVhs.value = vhs; U.uAsp.value = V.RW / V.RH;
+  pass(PB.comp, null); quad.material = postMat;
+}
+// «Кино» следит за скоростью: если кадр рисуется дольше ~38 мс, внутреннее разрешение падает ступенями (до 55%), если быстро — растёт обратно
+let perfT = 0, perfN = 0, perfS = 0, perfCool = 0;
+function perfTick(d) {   // d — мс между кадрами движка
+  if (!CINE || !scenesReady || d > 250) return;   // пауза/вкладка в фоне — не считаем
+  perfS += d; if (++perfN < 45) return; const avg = perfS / perfN; perfN = perfS = 0; if (perfCool-- > 0) return;
+  const rs = V.rs || 1, nr = avg > 38 ? Math.max(.55, rs - .15) : avg < 21 && rs < 1 ? Math.min(1, rs + .1) : rs;
+  if (nr !== rs) { V.rs = nr; perfCool = 2; setLand(V.land, true); }
+}
+// ориентация на лету: буферы под новый размер
+function setLand(land, force) {
+  if (land === V.land && scenesReady && !force) return;
+  window.__W3core.setLand(land);
+  if (!scenesReady) return;
+  const R = window.__W3core.R; R.setSize(V.RW, V.RH, false);
+  window.__W3core.RT.setSize(V.RW, V.RH); reflRT.setSize(V.RW >> 1, V.RH >> 1);
+  if (PB) { PB.a.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); PB.b.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); }
+  postMat.uniforms.uB.value.set(V.BW, V.BH);
+}
 const PROPS = { jacket: 1, badge: 1, clock: null };   // «нормы» холла; сюжет может передать o.props = { jacket: 0, badge: 'scratched', clock: '03:00' }
 let VHS = .7;
 function init() {
   if (scenesReady) return true;
   try {
-    canvas = document.createElement('canvas'); canvas.width = RW; canvas.height = RH;
-    window.__W3core.R = new T.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
+    canvas = document.createElement('canvas'); canvas.width = V.RW; canvas.height = V.RH;
+    window.__W3core.R = new T.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false });
   } catch (e) { return false; }
-  const R = window.__W3core.R; R.setPixelRatio(1); R.setSize(RW, RH, false); R.useLegacyLights = true; R.outputColorSpace = T.SRGBColorSpace;
+  const R = window.__W3core.R; R.setPixelRatio(1); R.setSize(V.RW, V.RH, false); R.useLegacyLights = true; R.outputColorSpace = T.SRGBColorSpace;
+  if (CINE) { R.shadowMap.enabled = true; R.shadowMap.type = T.PCFSoftShadowMap; }
   makeTextures(); A = window.__W3chars.cast();
+  if (CINE) { R.shadowMap.autoUpdate = false; for (const k in A) A[k].root.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); }
   L.lobby = buildLobby(); L.corridor = buildCorridor(); L.server = buildServer();
   for (const k in L) L[k].name = k;
+  if (CINE) for (const k in L) cineLoc(R, L[k]);
   // буфер кадра и постобработка: цветокор + дизеринг + ступени цвета + плёнка VHS (дрожь строк, полоса внизу, редкий залом,
   // цветная кайма в 1 пиксель, строки, лёгкая бочка); у камер наблюдения бочка сильнее и пересвет
-  window.__W3core.RT = new T.WebGLRenderTarget(RW, RH, { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
+  window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? { type: T.HalfFloatType, samples: 4 } : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
+  if (CINE) cinePost();
   postMat = new T.ShaderMaterial({
-    uniforms: { tD: { value: window.__W3core.RT.texture }, uLv: { value: 22 }, uCctv: { value: 0 }, uGam: { value: 1.25 }, uT: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 } },
+    uniforms: { tD: { value: window.__W3core.RT.texture }, uB: { value: new T.Vector2(V.BW, V.BH) }, uHD: { value: HD }, uLv: { value: 22 }, uCctv: { value: 0 }, uGam: { value: 1.25 }, uT: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }',
-    fragmentShader: `uniform sampler2D tD; uniform float uLv, uCctv, uGam, uT, uVhs, uScare; varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tD; uniform vec2 uB; uniform float uHD, uLv, uCctv, uGam, uT, uVhs, uScare; varying vec2 vUv;
       float b2(vec2 a){ a = floor(a); return fract(dot(a, vec2(.5, a.y * .75))); }
       float b4(vec2 a){ return b2(.5 * a) * .25 + b2(a); }
       float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
       void main(){
         vec2 uv = vUv, d = uv - .5;
         uv += d * dot(d, d) * (.03 + .1 * uCctv);                                   // бочка (у камер — «рыбий глаз»)
-        float row = floor(uv.y * ${BH}.), fr = floor(uT * 30.);
-        uv.x += (h(vec2(row, fr)) - .5) * uVhs * 1.1 / ${BW}.;                       // дрожь строк, до полпикселя
+        float row = floor(uv.y * uB.y), fr = floor(uT * 30.);
+        uv.x += (h(vec2(row, fr)) - .5) * uVhs * 1.1 / uB.x;                       // дрожь строк, до полпикселя
         float band = smoothstep(.986, 1., 1. - uv.y) * uVhs;                        // полоса переключения головок внизу
-        uv.x += band * (h(vec2(row, fr * .37)) - .3) * 7. / ${BW}.;
+        uv.x += band * (h(vec2(row, fr * .37)) - .3) * 7. / uB.x;
         float ph = mod(uT + 4., 13.), cy = (ph - 12.2) * 1.5;                       // залом ленты: раз в 13 с пробегает вверх
         float cr = (cy > 0. && cy < 1.) ? smoothstep(.02, 0., abs(uv.y - cy)) * uVhs : 0.;
-        uv.x -= cr * (2. + 2. * h(vec2(row, fr))) / ${BW}.;
-        float ca = (.85 + 2.6 * uScare) / ${BW}.;                                     // цветная кайма: 1 px, на скримере 3–4
+        uv.x -= cr * (2. + 2. * h(vec2(row, fr))) / uB.x;
+        float ca = (.85 + 2.6 * uScare) / uB.x;                                     // цветная кайма: 1 px, на скримере 3–4
         vec3 c = vec3(texture2D(tD, uv + vec2(ca, 0.)).r, texture2D(tD, uv).g, texture2D(tD, uv - vec2(ca, 0.)).b);
         c = mix(c * 12.92, 1.055 * pow(max(c, vec3(.0031308)), vec3(1. / 2.4)) - .055, step(.0031308, c));   // буфер линейный → sRGB
         c = pow(c, vec3(uGam));   // ночь: тени глубже, но без пятен
         float l = dot(c, vec3(.299, .587, .114));
         c = mix(c * vec3(.86, 1.02, 1.08) + vec3(0., .012, .024), c * vec3(1.06, .98, .88), smoothstep(.25, .8, l));   // холодные тени, тёплый свет
         c = mix(c, vec3(l) * vec3(.88, 1., .9), uCctv * .3) + max(c - .62, 0.) * uCctv * .9;                         // камера: блеклая, свет «горит»
-        c *= 1. - (.06 + .07 * uCctv) * step(1., mod(floor(gl_FragCoord.y / ${HD}.), 2.));           // строки
+        c *= 1. - (.06 + .07 * uCctv) * step(1., mod(floor(gl_FragCoord.y / uHD), 2.));           // строки
         c += cr * .22 * h(vec2(gl_FragCoord.x, fr)) + band * .05 * h(gl_FragCoord.xy + fr);
         if (uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.) c = vec3(0.);
         c = floor(c * uLv + b4(gl_FragCoord.xy) * .95) / uLv;
         gl_FragColor = vec4(c, 1.);
       }` });
-  reflRT = new T.WebGLRenderTarget(RW / 2, RH / 2, { magFilter: T.LinearFilter, minFilter: T.LinearFilter });
+  reflRT = new T.WebGLRenderTarget(V.RW / 2, V.RH / 2, { magFilter: T.LinearFilter, minFilter: T.LinearFilter });
   L.lobby.glassU.tRef.value = reflRT.texture; classifyLobby(L.lobby);
   window.__dbgA = A; window.__dbgL = L;
   postScene = new T.Scene(); postCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -720,7 +881,7 @@ function init() {
 const NAME = { 'ТЁМЫЧ': ['temych'], 'СМЕНЩИК': ['smenshik'], 'КАТЯ': ['katya', 'katyaSmile'], 'КАТЯ?': ['katyaSmile', 'katya'], '???': ['monster'], 'МИХАЛЫЧ': ['mihalych'], 'УБОРЩИК': ['cleaner'] };
 const _v = new T.Vector3(), _d = new T.Vector3();
 function aim(c, pos, look, fov, cx, cy, z, sx, sy) {
-  c.position.set(pos[0], pos[1], pos[2]); c.fov = fov; c.aspect = RW / RH; c.updateProjectionMatrix(); c.lookAt(look[0], look[1], look[2]); c.updateMatrixWorld();
+  c.position.set(pos[0], pos[1], pos[2]); c.fov = fov; c.aspect = V.RW / V.RH; c.updateProjectionMatrix(); c.lookAt(look[0], look[1], look[2]); c.updateMatrixWorld();
   // точка (cx, cy) кадра → направление; зум сужает угол обзора вокруг неё (как настоящий объектив)
   _v.set((cx - .5) * 2, -(cy - .5) * 2, .5).unproject(c); _d.copy(_v).sub(c.position).normalize();
   c.lookAt(c.position.x + _d.x, c.position.y + _d.y, c.position.z + _d.z);
@@ -733,7 +894,7 @@ function stage(id, t, opt = {}) {
   curProps = Object.assign({}, PROPS, window.World && World.props, opt.props);
   if (curLoc && curLoc !== o) curLoc.reset();
   curLoc = o; o.reset(); if (o.props) o.props(curProps);
-  for (const k in A) { A[k].faceSet = 'base'; A[k].gore = 0; A[k].scream = 0; A[k].reflOnly = false; A[k].root.visible = true; A[k].aim = null; A[k].noTilt = false; }
+  for (const k in A) { A[k].faceSet = 'base'; A[k].gore = 0; A[k].scream = 0; A[k].reflOnly = false; A[k].root.visible = true; A[k].aim = null; A[k].noTilt = false; A[k].shake = 0; }
   if (sh.face) for (const k in sh.face) A[k].faceSet = sh.face[k];   // выражение лица на весь кадр (set() ниже может уточнить)
   const acts = sh.set(o, t, sh) || [];
   if (sh.fog != null) o.S.fog.density = sh.fog;
@@ -849,9 +1010,11 @@ function draw(g, W, H, id, o) {
     cam.updateMatrixWorld(); renderRefl(R, loc, used, newShot);
   }
   for (const k of used) if (A[k].reflOnly) A[k].root.visible = false;
+  if (CINE) { cineTick(loc, T0); R.shadowMap.needsUpdate = true; }
   R.setRenderTarget(window.__W3core.RT); R.render(loc.S, cam);
-  R.setRenderTarget(null); R.render(postScene, postCam);
-  g.imageSmoothingEnabled = false; g.drawImage(canvas, 0, 0, W, H); g.imageSmoothingEnabled = true;
+  if (CINE) cineRender(R, T0, cctv ? 1 : 0, clamp(o.scare || 0, 0, 1), o.vhs ?? VHS);
+  else { R.setRenderTarget(null); R.render(postScene, postCam); }
+  g.imageSmoothingEnabled = CINE; g.drawImage(canvas, 0, 0, W, H); g.imageSmoothingEnabled = true;
   return true;
 }
 // прогрев: по кадру из каждого места, чтобы все шейдеры собрались во время загрузки
@@ -861,11 +1024,11 @@ function warm() {
 }
 const thumbs = {};
 function thumb(id, o = {}) {   // маленькая картинка кадра (плитки камер в обходе)
-  if (thumbs[id]) return thumbs[id];
-  const c = document.createElement('canvas'); c.width = 135; c.height = 240;
-  if (!draw(c.getContext('2d'), 135, 240, id, Object.assign({ t: 2, T: 2 }, o))) return '';
-  return (thumbs[id] = c.toDataURL('image/jpeg', .7));
+  const key = id + (V.land ? '|L' : ''); if (thumbs[key]) return thumbs[key];
+  const c = document.createElement('canvas'); c.width = V.land ? 240 : 135; c.height = V.land ? 135 : 240;
+  if (!draw(c.getContext('2d'), c.width, c.height, id, Object.assign({ t: 2, T: 2 }, o))) return '';
+  return (thumbs[key] = c.toDataURL('image/jpeg', .7));
 }
 // World.props — «нормы» холла (куртка, пропуск, часы); World.vhs — сила плёнки 0..1 (для пункта меню); World.tube — горит ли сейчас ненадёжная лампа (для звука)
-window.World = { draw, init, warm, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
+window.World = { draw, init, warm, setLand, perf: perfTick, get land() { return V.land; }, get cine() { return CINE; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();

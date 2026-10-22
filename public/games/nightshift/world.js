@@ -5,17 +5,30 @@
 (() => {
 'use strict';
 const T = window.THREE;
-// внутреннее разрешение кадра (9:16): на телефоне 270×480; на ПК (мышь, широкое окно) вдвое чётче — 540×960,
-// а дрожь вершин, строки и рябь VHS считаются по базовой сетке, чтобы вид остался тем же. ?hd=0/1 — вручную
+// внутреннее разрешение кадра. Два вида графики (меню «Графика», хранится в ns1_gfx, ?gfx=retro|cine — вручную):
+//  «Ретро» — низкое разрешение, дрожь вершин, ступени цвета (телефон по умолчанию); на ПК вдвое чётче (?hd=0/1);
+//  «Кино» — полное разрешение, мягкие тени, блики и отражения, объёмный свет, пыль в лучах, глубина резкости (ПК по умолчанию).
+// Ориентация меняется на лету (World.setLand): 9:16 или 16:9; дрожь вершин, строки и рябь VHS считаются по базовой сетке.
+const FINE = matchMedia('(pointer: fine)').matches;
 const HD = (() => { const q = /[?&]hd=([01])/.exec(location.search); if (q) return q[1] === '1' ? 2 : 1;
-  return matchMedia('(pointer: fine)').matches && innerWidth > innerHeight ? 2 : 1; })();
-const BW = 270, BH = 480, RW = BW * HD, RH = BH * HD;
+  return FINE && innerWidth > innerHeight ? 2 : 1; })();
+const GFX = (() => { const q = /[?&]gfx=(retro|cine)/.exec(location.search); if (q) return q[1];
+  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; } catch {} return FINE ? 'cine' : 'retro'; })();
+const CINE = GFX === 'cine';
+const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE };
 let R = null, RT = null, post = null;          // рендерер, буфер кадра, проход постобработки
 const rnd = (() => { let s = 1337; return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; })();
 const lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 /* ---------- материалы: дрожание вершин (PS1) ---------- */
-const SNAP = { value: new T.Vector2(BW / 2.5, BH / 2.5) };
+const SNAP = { value: new T.Vector2(108, 192) };
+function setLand(land) {
+  V.land = !!land; V.BW = land ? 480 : 270; V.BH = land ? 270 : 480;
+  if (CINE) { const L = (FINE ? 1920 : 1280) * (V.rs || 1) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }
+  else { V.RW = V.BW * HD; V.RH = V.BH * HD; }
+  if (CINE) SNAP.value.set(1e5, 1e5); else SNAP.value.set(V.BW / 2.5, V.BH / 2.5);   // в «Кино» вершины не дрожат
+}
+setLand(false);
 function ps1(m) {
   m.onBeforeCompile = sh => {
     sh.uniforms.uSnap = SNAP;
@@ -25,26 +38,56 @@ function ps1(m) {
   return m;
 }
 const MC = {};
+// «Кино»: у поверхностей есть шероховатость и блеск — мокрый мрамор и линолеум отражают лампы, металл блестит.
+// Рельеф (bump) берётся из той же текстуры: швы плитки, щели панелей, фактура бетона дают тени от света
+function pbr(map, o) {
+  const k = map ? map.kind : '', R = { marble: .3, lino: .38, asphalt: .45, metal: .32, door: .62, panel: .55, wood: .55, rack: .4, tileSide: .5, curb: .8, carpet: .95, ceil: .9, wall: .82, concrete: .78 };
+  const r = { roughness: o.rough ?? R[k] ?? .78, metalness: o.metal ?? (k === 'metal' ? .65 : k === 'rack' ? .3 : 0), envMapIntensity: o.env ?? .7 };
+  if (map && map.bumpTex) { r.bumpMap = map.bumpTex; r.bumpScale = o.bump ?? (k === 'marble' || k === 'lino' || k === 'tileSide' ? 1.6 : k === 'ceil' ? 2.5 : 3); }
+  return r;
+}
+// материал для людей и вещей с особыми шейдерами: в «Кино» — с бликами, в «Ретро» — матовый
+function litMat(p, rough = .7, metal = 0) { return CINE ? new T.MeshStandardMaterial(Object.assign({ roughness: rough, metalness: metal, envMapIntensity: .5 }, p)) : new T.MeshLambertMaterial(p); }
 // наклейка поверх другой поверхности (плинтус-панель на стене, табличка, светильник на потолке): чуть «ближе» по глубине,
 // иначе на телефоне две плоскости дерутся за пиксель и рисунок мигает рваными пятнами (особенно с дрожью вершин PS1)
 const DECAL = { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 };
 function mat(color, map, o = {}) {
   const k = color + '|' + (map ? map.uuid : '') + '|' + JSON.stringify(o);
   if (MC[k]) return MC[k];
-  const M = o.basic ? T.MeshBasicMaterial : T.MeshLambertMaterial;
-  const m = new M(Object.assign({ color, map: map || null }, o.basic ? {} : { emissive: o.emissive || 0x000000 }, o.transparent ? { transparent: true, opacity: o.opacity ?? 1, depthWrite: false } : {}, o.side ? { side: o.side } : {}, o.decal ? DECAL : {}));
+  const M = o.basic ? T.MeshBasicMaterial : CINE ? T.MeshStandardMaterial : T.MeshLambertMaterial;
+  const m = new M(Object.assign({ color, map: map || null }, o.basic ? {} : { emissive: o.emissive || 0x000000 }, !o.basic && CINE ? pbr(map, o) : {},
+    o.transparent ? { transparent: true, opacity: o.opacity ?? 1, depthWrite: false } : {}, o.side ? { side: o.side } : {}, o.decal ? DECAL : {}));
+  if (CINE && !o.basic && !o.transparent) { m.castShadow = true; }
   if (o.fog === false) m.fog = false;
   return (MC[k] = ps1(m));
 }
 
 /* ---------- процедурные текстуры (рисуются на canvas) ---------- */
-function ctex(w, h, fn, rx = 1, ry = 1) {
-  const c = document.createElement('canvas'); c.width = w; c.height = h;
-  const x = c.getContext('2d'); fn(x, w, h);
+// «Кино»: текстура рисуется вчетверо крупнее (до 1024 px) той же кистью, сверху — мелкая фактура (поры, царапины, пыль),
+// фильтр сглаженный и анизотропный: вблизи нет квадратиков, под углом пол не мылится
+const UP = CINE ? 4 : 1;
+let fineN = null;
+function fineNoise() {
+  if (fineN) return fineN; fineN = document.createElement('canvas'); fineN.width = fineN.height = 256; const x = fineN.getContext('2d'), d = x.createImageData(256, 256);
+  for (let i = 0; i < d.data.length; i += 4) { const v = 128 + (Math.random() - .5) * 120 * (Math.random() < .03 ? 2 : 1); d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
+  x.putImageData(d, 0, 0); return fineN;
+}
+function ctex(w, h, fn, rx = 1, ry = 1, kind = '') {
+  const up = kind === 'raw' ? 1 : Math.max(1, Math.min(UP, 1024 / Math.max(w, h)) | 0);
+  const c = document.createElement('canvas'); c.width = w * up; c.height = h * up;
+  const x = c.getContext('2d'); if (up > 1) x.scale(up, up); fn(x, w, h);
   const t = new T.CanvasTexture(c);
-  t.magFilter = T.NearestFilter; t.minFilter = T.NearestMipmapLinearFilter; t.generateMipmaps = true;   // вдали без ряби
-  t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(rx, ry); t.colorSpace = T.SRGBColorSpace; t.cv = c; t.cx = x;
+  if (up > 1) { t.magFilter = T.LinearFilter; t.minFilter = T.LinearMipmapLinearFilter; t.anisotropy = 8; }
+  else { t.magFilter = T.NearestFilter; t.minFilter = T.NearestMipmapLinearFilter; }
+  t.generateMipmaps = true;   // вдали без ряби
+  t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(rx, ry); t.colorSpace = T.SRGBColorSpace; t.cv = c; t.cx = x; t.lw = w; t.lh = h; t.kind = kind === 'raw' ? '' : kind;
   return t;
+}
+// сплошная поверхность (пол, стены, двери): в «Кино» поверх — мелкая фактура; kind задаёт блеск и рельеф (pbr)
+function surf(t, kind) {
+  t.kind = kind; if (UP < 2) return t; const x = t.cx;
+  x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.globalCompositeOperation = 'overlay'; x.globalAlpha = .22; x.fillStyle = x.createPattern(fineNoise(), 'repeat'); x.fillRect(0, 0, t.cv.width, t.cv.height); x.restore();
+  t.needsUpdate = true; return t;
 }
 function speckle(x, w, h, n, a, light = true) { for (let i = 0; i < n; i++) { x.fillStyle = `rgba(${light ? '255,255,255' : '0,0,0'},${a * rnd()})`; x.fillRect(rnd() * w | 0, rnd() * h | 0, 1 + (rnd() * 2 | 0), 1); } }
 const TX = {};
@@ -89,8 +132,10 @@ function makeTextures() {
   TX.wood = ctex(32, 32, (x, w, h) => { x.fillStyle = '#4b3524'; x.fillRect(0, 0, w, h); for (let i = 0; i < 24; i++) { x.fillStyle = `rgba(${rnd() < .5 ? '0,0,0' : '255,210,160'},${.08 * rnd()})`; x.fillRect(0, rnd() * h, w, 1); } }, 2, 1);
   TX.sky = ctex(4, 64, (x, w, h) => { const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#06080d'); gr.addColorStop(.7, '#121822'); gr.addColorStop(1, '#2a2620'); x.fillStyle = gr; x.fillRect(0, 0, w, h); });
   TX.skyDawn = ctex(4, 64, (x, w, h) => { const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#2b3a55'); gr.addColorStop(.6, '#c77b52'); gr.addColorStop(1, '#f2c27a'); x.fillStyle = gr; x.fillRect(0, 0, w, h); });
-  TX.noise = ctex(64, 48, (x, w, h) => { speckle(x, w, h, 1, 0); }, 1, 1);
+  TX.noise = ctex(64, 48, (x, w, h) => { speckle(x, w, h, 1, 0); }, 1, 1, 'raw');
   makeTextures2();
+  if (CINE) hiTextures();
+  surf(TX.rack, 'rack'); TX.rack.bump = false;
 }
 // второй набор: стекло фасада (грязь, плёнка, надписи), уборщик (линолеум, кровь, табличка), часы, пропуск
 function soft(x, cx, cy, rx, ry, a, col = '255,255,255') {   // мягкое пятно
@@ -194,6 +239,114 @@ function noteTex() {
   });
 }
 
+
+/* ---------- «Кино»: текстуры высокого разрешения (рисуются по пикселям из шума, бесшовные) ---------- */
+// у каждой своя карта высот (рельеф): швы плитки, поры штукатурки, волокна дерева ловят свет ламп
+const NZ = {};
+function lat(n, seed) { const a = new Float32Array(n); let s = (seed * 7919 + 13) % 233280; for (let i = 0; i < n; i++) { s = (s * 9301 + 49297) % 233280; a[i] = s / 233280; } return a; }
+function vn2(u, v, fx, fy, seed = 0) {   // бесшовный шум: решётка fx×fy повторяется на [0,1)
+  const k = fx + 'x' + fy + '|' + seed, a = NZ[k] || (NZ[k] = lat(fx * fy, seed + fx * 31 + fy * 17));
+  const x = u * fx, y = v * fy, xi = Math.floor(x), yi = Math.floor(y); let tx = x - xi, ty = y - yi; tx = tx * tx * (3 - 2 * tx); ty = ty * ty * (3 - 2 * ty);
+  const x0 = ((xi % fx) + fx) % fx, y0 = ((yi % fy) + fy) % fy, x1 = (x0 + 1) % fx, y1 = (y0 + 1) % fy;
+  const A = a[y0 * fx + x0], B = a[y0 * fx + x1], C = a[y1 * fx + x0], D = a[y1 * fx + x1];
+  return A + (B - A) * tx + (C - A) * ty + (A - B - C + D) * tx * ty;
+}
+function fbm(u, v, fx, fy, oct, seed = 0) { let s = 0, a = .5, n = 0; for (let i = 0; i < oct; i++) { s += a * vn2(u, v, fx << i, fy << i, seed + i * 3); n += a; a *= .5; } return s / n; }
+const sm = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const hx = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
+function hiTex(w, h, rx, ry, fn) {   // fn(u, v, px, py) → [r, g, b, высота 0..1]
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'), d = x.createImageData(w, h);
+  const hc = document.createElement('canvas'); hc.width = w; hc.height = h; const hx2 = hc.getContext('2d'), hd = hx2.createImageData(w, h);
+  for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) {
+    const r = fn(px / w, py / h, px, py), i = (py * w + px) * 4;
+    d.data[i] = r[0]; d.data[i + 1] = r[1]; d.data[i + 2] = r[2]; d.data[i + 3] = 255; const hv = clamp(r[3], 0, 1) * 255; hd.data[i] = hd.data[i + 1] = hd.data[i + 2] = hv; hd.data[i + 3] = 255;
+  }
+  x.putImageData(d, 0, 0); hx2.putImageData(hd, 0, 0);
+  const mk = (cv, srgb) => { const t = new T.CanvasTexture(cv); t.magFilter = T.LinearFilter; t.minFilter = T.LinearMipmapLinearFilter; t.anisotropy = 8; t.generateMipmaps = true;
+    t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(rx, ry); if (srgb) t.colorSpace = T.SRGBColorSpace; return t; };
+  const t = mk(c, true); t.cv = c; t.cx = x; t.lw = w; t.lh = h; t.bumpTex = mk(hc, false); return t;
+}
+const mul = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
+function hiTextures() {
+  // штукатурка, крашенная масляной краской: мягкие разводы, потёки, поры, редкие волосяные трещины
+  TX.wall = hiTex(512, 512, 6, 2, (u, v) => {
+    const n = fbm(u, v, 4, 4, 5, 1), st = fbm(u, v, 2, 2, 3, 9), dr = vn2(u, v, 48, 3, 5), po = vn2(u, v, 256, 256, 7);
+    const gb = fbm(u, v, 8, 2, 3, 13), k = .86 + .22 * n - .16 * sm(.55, .8, st) - .1 * sm(.5, 1, dr) * sm(.2, 1, v) - .05 * sm(.88, .97, po) - .07 * sm(.75, 1, v) * (.5 + gb);   // низ стены грязнее
+    return [...mul([74, 84, 81], k), .5 + .3 * n - .15 * sm(.88, .97, po)];
+  });
+  // акустическая плитка потолка: дырочки, фаска по краю, жёлтые пятна от протечек
+  TX.ceil = hiTex(256, 256, 16, 12, (u, v, px, py) => {
+    const e = Math.min(u, v, 1 - u, 1 - v), pit = vn2(u, v, 128, 128, 3) > .78 ? 1 : 0, wa = fbm(u, v, 2, 2, 3, 4);
+    let c = mul([108, 110, 104], .92 + .12 * fbm(u, v, 16, 16, 3, 2) - .35 * pit); if (wa > .62) c = [c[0] * 1.02, c[1] * .96, c[2] * .82];
+    if (e < .012) c = [40, 42, 40]; else if (e < .03) c = mul(c, .82 + 6 * e);
+    return [...c, e < .012 ? 0 : .7 - pit * .35];
+  });
+  // мрамор пола: плиты 2×2 двух тонов, прожилки, полировка, тёмные швы
+  TX.marble = hiTex(512, 512, 8, 6, (u, v) => {
+    const q = (u < .5) !== (v < .5), base = q ? [60, 63, 68] : [85, 88, 92];
+    const w = fbm(u + .35 * fbm(u, v, 2, 2, 3, 5), v + .2 * fbm(u, v, 3, 3, 2, 6), 2, 2, 5, q ? 11 : 12), r = Math.pow(1 - Math.abs(2 * w - 1), 24) * (.35 + .65 * sm(.4, .65, fbm(u, v, 2, 2, 2, 14)));
+    let c = mul(base, .9 + .16 * fbm(u, v, 6, 6, 4, 3)); c = c.map(x => x + r * 55);
+    const gu = Math.min(Math.abs(u - .5), u, 1 - u), gv = Math.min(Math.abs(v - .5), v, 1 - v), gr = Math.min(gu, gv);
+    if (gr < .004) c = [22, 22, 24];
+    return [...c, gr < .004 ? 0 : .8];
+  });
+  // линолеум «под плитку» на 7 этаже: крапинки, потёртости, швы
+  TX.lino = hiTex(512, 512, 2.2, 22, (u, v) => {
+    const q = (u < .5) !== (v < .5), fl = vn2(u, v, 200, 200, q ? 4 : 5);
+    let c = mul(q ? [91, 86, 78] : [97, 91, 82], .92 + .14 * fbm(u, v, 6, 6, 4, 6));
+    if (fl > .8) c = mul(c, 1.25); else if (fl < .15) c = mul(c, .72);
+    const sc = vn2(u, v, 40, 4, 8); if (sc > .78) c = mul(c, .9);
+    const gr = Math.min(Math.abs(u - .5), u, 1 - u, Math.abs(v - .5), v, 1 - v); if (gr < .003) c = [40, 36, 32];
+    return [...c, gr < .003 ? 0 : .6];
+  });
+  // деревянные панели: доски, волокна, лак
+  const grain = (u, v, boards, seed) => { const b = Math.floor(u * boards), bu = u * boards - b;
+    const ww = fbm(u, v, 4, 2, 3, seed + b), ring = .5 + .5 * Math.sin((bu * 22 + ww * 2.5 + b * 3.7) * 3.1416);
+    return { b, bu, ring: .6 * ring + .4 * vn2(u, v, 96, 3, seed + 5), fine: vn2(u, v, 256, 12, seed + 2) }; };
+  TX.panel = hiTex(512, 256, 8, 1, (u, v) => {
+    const g = grain(u, v, 4, 31); let c = mul([59, 42, 30], .78 + .3 * g.ring + .12 * g.fine);
+    const gap = Math.min(g.bu, 1 - g.bu); if (gap < .012) c = mul(c, .35);
+    return [...c, gap < .012 ? 0 : .5 + .25 * g.ring];
+  });
+  TX.door = hiTex(256, 512, 1, 1, (u, v) => {
+    const g = grain(u, v, 1, 41); let c = mul([92, 66, 48], .8 + .25 * g.ring + .1 * g.fine), hgt = .5 + .2 * g.ring;
+    const pan = (y0, y1) => { const dx = Math.min(u - .14, .86 - u), dy = Math.min(v - y0, y1 - v), e = Math.min(dx, dy); return e; };
+    for (const [a, b2] of [[.07, .45], [.53, .93]]) { const e = pan(a, b2); if (e > -.012 && e < .012) { c = mul(c, e < 0 ? .7 : 1.12); hgt = e < 0 ? .2 : .9; } }
+    if (Math.abs(u - .82) < .045 && Math.abs(v - .5) < .03) { c = [201, 178, 122]; hgt = 1; }
+    return [...c, hgt];
+  });
+  TX.wood = hiTex(256, 256, 2, 1, (u, v) => { const g = grain(v, u, 1, 51); return [...mul([75, 53, 36], .8 + .25 * g.ring + .1 * g.fine), .5 + .2 * g.ring]; });
+  // бетон: разводы, поры, ржавые потёки
+  TX.concrete = hiTex(512, 512, 4, 2, (u, v) => {
+    const n = fbm(u, v, 4, 4, 6, 61), po = vn2(u, v, 300, 300, 62), ru = vn2(u, v, 24, 2, 63);
+    let c = mul([58, 60, 58], .8 + .35 * n - (po > .82 ? .25 : 0)); if (ru > .8) c = [c[0] * 1.1, c[1] * .98, c[2] * .85];
+    return [...c, .3 + .5 * n - (po > .82 ? .3 : 0)];
+  });
+  TX.asphalt = hiTex(512, 512, 10, 10, (u, v) => {
+    const ag = vn2(u, v, 256, 256, 71), n = fbm(u, v, 3, 3, 4, 72), wet = sm(.55, .7, fbm(u, v, 2, 2, 3, 73));
+    let c = mul([27, 29, 32], .8 + .5 * ag * ag + .2 * n); c = c.map((x, i) => x * (1 - .35 * wet) + wet * [12, 14, 18][i]);
+    return [...c, .3 + .6 * ag * ag * (1 - wet)];
+  });
+  TX.carpet = hiTex(256, 256, 2, 14, (u, v) => {
+    const f = vn2(u, v, 256, 256, 81), n = fbm(u, v, 4, 4, 3, 82); let c = mul([58, 34, 36], .82 + .25 * f + .15 * n);
+    const e = Math.min(u, v, 1 - u, 1 - v); if (e > .13 && e < .145) c = [120, 92, 60];
+    return [...c, .4 + .5 * f];
+  });
+  // металл лифтовых дверей: шлифовка вдоль, отпечатки пальцев, шов посередине
+  TX.metal = hiTex(256, 512, 1, 1, (u, v) => {
+    const br = vn2(u, v, 3, 700, 91) * .5 + vn2(u, v, 7, 1400, 92) * .5, sm2 = fbm(u, v, 3, 6, 3, 93);
+    const gr = .8 + .3 * Math.sin(u * 3.1416); let c = mul([140, 145, 150], gr * (.95 + .06 * br) - .08 * sm(.6, .8, sm2));
+    if (Math.abs(u - .5) < .006) c = [42, 44, 46];
+    return [...c, .5 + .1 * br];
+  });
+  TX.tileSide = hiTex(256, 256, 20, 3, (u, v) => {
+    let c = mul([94, 96, 94], .88 + .2 * fbm(u, v, 8, 8, 4, 101)); const gr = Math.min(Math.abs(u - .5), u, 1 - u, Math.abs(v - .5), v, 1 - v);
+    if (gr < .01) c = [40, 40, 40]; return [...c, gr < .01 ? 0 : .7];
+  });
+  TX.curb = hiTex(256, 128, 20, 1, (u, v) => { let c = mul([91, 93, 96], .8 + .3 * fbm(u, v, 8, 4, 4, 111)); if (v > .88) c = [51, 51, 51]; return [...c, v > .88 ? .1 : .6]; });
+  for (const [k, t] of Object.entries({ wall: 'wall', ceil: 'ceil', marble: 'marble', lino: 'lino', panel: 'panel', door: 'door', wood: 'wood', concrete: 'concrete', asphalt: 'asphalt', carpet: 'carpet', metal: 'metal', tileSide: 'tileSide', curb: 'curb' })) TX[k].kind = t;
+}
+
 /* ---------- геометрия: простые кирпичики ---------- */
 const GB = {};
 function box(w, h, d, m, x = 0, y = 0, z = 0, parent) {
@@ -213,7 +366,7 @@ function label(w, h, pw, ph, draw, parent, basic = true) {
   const t = ctex(pw, ph, draw); const m = new T.MeshBasicMaterial(Object.assign({ map: t }, DECAL)); ps1(m);
   const me = plane(w, h, m, parent); me.userData.tex = t; me.userData.draw = draw; return me;
 }
-function relabel(me, ...a) { const t = me.userData.tex; t.cx.clearRect(0, 0, t.cv.width, t.cv.height); me.userData.draw(t.cx, t.cv.width, t.cv.height, ...a); t.needsUpdate = true; }
+function relabel(me, ...a) { const t = me.userData.tex; t.cx.clearRect(0, 0, t.lw, t.lh); me.userData.draw(t.cx, t.lw, t.lh, ...a); t.needsUpdate = true; }
 
-window.__W3core = { T, RW, RH, BW, BH, HD, rnd, lerp, clamp, ps1, mat, ctex, speckle, TX, box, plane, cyl, room, label, relabel, makeTextures, SNAP };
+window.__W3core = { T, V, setLand, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, mat, ctex, speckle, TX, box, plane, cyl, room, label, relabel, makeTextures, SNAP };
 })();

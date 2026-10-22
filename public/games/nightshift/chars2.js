@@ -6,7 +6,7 @@
    Если модели не загрузились, остаются старые персонажи из блоков. */
 (() => {
 'use strict';
-const { T, rnd, lerp, clamp, mat, box, cyl, SNAP } = window.__W3core;
+const { T, rnd, lerp, clamp, mat, box, cyl, SNAP, CINE, litMat } = window.__W3core;
 const FILES = ['male', 'female', 'Hair_Beard', 'Hair_Long', 'Hair_SimpleParted', 'Hair_Buzzed'];
 const G = {}, CLIP = {};
 
@@ -35,6 +35,10 @@ const BODY_FS = `
 uniform vec3 uShirt, uPants, uShoes, uSkin, uCoat, uTrim; uniform sampler2D uDecal; uniform float uSkirt, uKind, uFlat, uS, uCoatY, uTalk, uBlink, uSmile, uNaked, uBadge, uFem, uWet, uGrey, uGore, uScream, uSocket;
 uniform vec2 uMouth, uEyeL, uEyeR;
 varying vec3 vB;
+float gH = 0., gR = -1.;   // «Кино»: микрорельеф (поры, волокна ткани, вены) и шероховатость точки — их подхватывает свет
+vec3 bumpN(vec3 sp, vec3 sn, float hh) {
+  vec2 dh = vec2(dFdx(hh), dFdy(hh)); vec3 sx = dFdx(sp), sy = dFdy(sp), r1 = cross(sy, sn), r2 = cross(sn, sx);
+  float det = dot(sx, r1); return normalize(abs(det) * sn - sign(det) * (dh.x * r1 + dh.y * r2)); }
 float h3(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
 float vn(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
   return mix(mix(mix(h3(i), h3(i + vec3(1., 0., 0.)), f.x), mix(h3(i + vec3(0., 1., 0.)), h3(i + vec3(1., 1., 0.)), f.x), f.y),
@@ -154,14 +158,27 @@ const BODY_PAINT = `
   vec3 skin = mix(diffuseColor.rgb, vec3(lum * 1.15), max(uGrey, .3)) * uSkin;
   if (uNaked > .5) {
     // Жилец: истощённое тело тонет в темноте, из неё проступает только бледное лицо; рёбра, пятна
-    skin = vec3(lum * .55 + .2) * uSkin;
-    float ax0 = abs(p.x);
-    if (p.y > 1.1 && p.y < 1.45 && ax0 > .04 && ax0 < .16) skin *= 1. - .3 * smoothstep(.55, .85, sin(p.y * 120. + ax0 * 25. + sin(ax0 * 60.)) * .5 + .5) * smoothstep(.04, .07, ax0);
-    skin *= .75 + .35 * h3(floor(vB * 22.));
-    skin *= mix(.32, 1., smoothstep(1.5, 1.72, p.y));
+    // мёртвая бледная кожа: синеватые вены просвечивают, трупные пятна, гниль, мокрая грязь; рёбра; тело тонет в темноте
+    float ax0 = abs(p.x), mo1 = vn(p * 7.), mo2 = vn(p * 26. + 3.);
+    float vv = pow(1. - abs(vn(p * 34.) * 2. - 1.), 18.) * smoothstep(.25, .7, vn(p * 3.5 + 7.)) + pow(1. - abs(vn(p * 13. + 9.) * 2. - 1.), 30.) * .8;
+    float vf = pow(1. - abs(vn(p * 42. + 5.) * 2. - 1.), 14.) * .6;
+    vec3 sc = vec3(.66, .68, .63) * (.78 + .3 * mo2);
+    sc = mix(sc, vec3(.2, .26, .36), clamp(vv * 1.3 + vf * smoothstep(1.4, 1.8, p.y), 0., 1.) * .85);
+    sc = mix(sc, vec3(.4, .27, .36), smoothstep(.6, .85, mo1) * .55);
+    sc = mix(sc, vec3(.28, .3, .2), smoothstep(.62, .9, vn(p * 3. + 11.)) * .45);
+    skin = sc * (.5 + .7 * lum) * uSkin;
+    if (p.y > 1.1 && p.y < 1.45 && ax0 > .04 && ax0 < .16) skin *= 1. - .35 * smoothstep(.55, .85, sin(p.y * 120. + ax0 * 25. + sin(ax0 * 60.)) * .5 + .5) * smoothstep(.04, .07, ax0);
+    skin *= mix(.3, 1., smoothstep(1.5, 1.72, p.y));
+    gH = vv * 1.2 + vf * .6 + mo2 * .35 + vn(p * 140.) * .25; gR = mix(.62, .32, smoothstep(.55, .8, vn(p * 5. + 2.)));   // кожа сухая, местами мокрая
   }
   vec4 cl = cloth(p, lum);
   vec3 col = mix(skin, cl.rgb, step(.2, cl.w));
+  if (uNaked < .5) { if (cl.w > .2) { gH = (sin(vB.x * 2600.) * sin(vB.y * 2600.) * .5 + .5) * .5 + vn(vB * 300.) * .5; gR = .86; }
+    else { gH = vn(vB * 600.) * .7 + vn(vB * 90.) * .3; gR = .5 + .14 * vn(vB * 40.);
+      // живая кожа: ночная смена — тени под глазами, кожа чуть менее «игрушечно» насыщенная, неровный тон
+      vec2 uv0 = vMapUv; float eb = min(length((uv0 - uEyeL - vec2(0., .02)) / vec2(.03, .013)), length((uv0 - uEyeR - vec2(0., .02)) / vec2(.03, .013)));
+      col *= mix(vec3(.8, .74, .78), vec3(1.), smoothstep(.35, 1., eb)) * (.94 + .1 * vn(vB * 25.));
+      col = mix(vec3(dot(col, vec3(.3, .59, .11))), col, .82); } }
   // лицо: рот и глаза по развёртке текстуры
   vec2 uv = vMapUv;
   // рот: щель между губами раскрывается плавно (без «чёрной дыры»), ширина чуть сужается — как у живого рта
@@ -173,7 +190,14 @@ const BODY_PAINT = `
     if (uSmile < .5 && md.y > .35 && uTalk > .35) inner = vec3(.62, .58, .52) * (.85 + .15 * (1. - mr));   // верхние зубы
     col = mix(col, inner, mo * smoothstep(1., .75, mr));
   }
-  if (uSmile > 1.2 && mr < 1. && md.y < -.2 && md.y > -.65) col = vec3(.62, .58, .5) * (.75 + .25 * step(.5, fract(md.x * 7.)));   // зубы (только у оскала; улыбка «Кати» — тёмная щель без зубов)
+  if (uSmile > 1.2 && mr < 1. && md.y < -.2 && md.y > -.65) col = vec3(.62, .58, .5) * (.75 + .25 * step(.5, fract(md.x * 7.)));
+  if (uNaked > .5 && uSmile > .5 && mr < 1.) {   // Жилец: оскал — частокол тонких жёлтых зубов-игл в чёрной дёсне, кровь в углах
+    float tx = abs(fract(md.x * 13.) - .5) * 2.;
+    col = vec3(.03, .005, .005);
+    if (md.y < .1 && tx < (md.y + .95) * 1.5) col = vec3(.6, .55, .4) * (.55 + .45 * (1. - tx));
+    if (md.y > .1 && tx < (.95 - md.y) * 1.2) col = vec3(.52, .47, .34) * (.5 + .5 * (1. - tx));
+    col = mix(col, vec3(.25, .02, .02), smoothstep(.55, .95, abs(md.x)) * .8); gR = .1;
+  }   // зубы (только у оскала; улыбка «Кати» — тёмная щель без зубов)
   // крик Жильца: челюсть отваливается вниз (сдвиг вершин), растянутая щель между губами — чёрная пасть с острыми зубами по краям
   if (uScream > .05) {
     vec2 e = (uv - uMouth - vec2(0., .003)) / vec2(.02 * (.65 + .35 * uScream), .0105);
@@ -185,6 +209,12 @@ const BODY_PAINT = `
       if (e.y > .5 && tx < (1.05 - e.y) * 1.9) hole = vec3(.46, .42, .33) * (.6 + .4 * (1. - tx));            // нижние
       col = mix(col, hole, smoothstep(1., .85, er) * min(1., uScream * 2.));
     }
+  }
+  // Жилец: из глазниц текут чёрные слёзы — мокрые, блестят
+  if (uNaked > .5) for (int e = 0; e < 2; e++) {
+    vec2 ec = e == 0 ? uEyeL : uEyeR, d = uv - ec; float len = e == 0 ? .075 : .058;
+    float w = .0045 * (1. - d.y / len) + .0012, x0 = sin(d.y * 140. + float(e) * 2.) * .0025;
+    if (d.y > .004 && d.y < len && abs(d.x - x0) < w) { col = mix(col, vec3(.01, .008, .008), .92); gR = .05; gH += .5; }
   }
   // запавшие глазницы: вокруг глаз кожа уходит в черноту
   if (uSocket > 0.) {
@@ -230,8 +260,8 @@ const FLAT = `
     if (q.y > 1.12 && q.y < 1.48 && q.z > .03) transformed.z = (.03 + (q.z - .03) * .25) * uS;
     if (q.y > .78 && q.y < 1.08 && q.z < -.07) transformed.z = (-.07 + (q.z + .07) * .35) * uS; }`;
 const SNAPV = '#include <project_vertex>\n  gl_Position.xy = floor(gl_Position.xy / gl_Position.w * uSnap + .5) / uSnap * gl_Position.w;';
-function bodyMat(src, U, shell, side) {
-  const m = new T.MeshLambertMaterial({ map: src.map, side: side || T.FrontSide });
+function bodyMat(src, U, shell, side, rough = .62) {
+  const m = litMat({ map: src.map, side: side || T.FrontSide }, shell ? .78 : rough);
   m.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, U); sh.uniforms.uSnap = SNAP;
     sh.vertexShader = 'uniform vec2 uSnap; uniform float uS, uCoatY, uNaked, uFlat, uThin, uScream;\nvarying vec3 vB;\n' + (shell ? 'attribute vec3 aB;\n' : '') + sh.vertexShader
@@ -239,15 +269,17 @@ function bodyMat(src, U, shell, side) {
       .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n' + (shell ? '' : ' if (uFlat > .5) { vec3 q = position / uS; if (q.y > 1.12 && q.y < 1.48 && q.z > .02) objectNormal = normalize(mix(objectNormal, vec3(objectNormal.x * .5, objectNormal.y * .3, 1.), .75)); if (q.y > .76 && q.y < 1.1 && q.z < -.05) objectNormal = normalize(mix(objectNormal, vec3(objectNormal.x * .5, 0., -1.), .7)); }'))
       .replace('#include <project_vertex>', SNAPV);
     sh.fragmentShader = BODY_FS + sh.fragmentShader.replace('#include <map_fragment>', shell
-      ? '#include <map_fragment>\n{ vec3 q = vB / uS; vec4 cl = cloth(q, dot(diffuseColor.rgb, vec3(.3, .59, .11))); if (cl.w < .5) discard; if (uSkirt > .5 && q.y < .985 && q.y > uCoatY - .01 && !(abs(q.x) > .215 && q.y > 1.32)) discard; diffuseColor.rgb = cl.rgb; }'
+      ? '#include <map_fragment>\n{ vec3 q = vB / uS; vec4 cl = cloth(q, dot(diffuseColor.rgb, vec3(.3, .59, .11))); if (cl.w < .5) discard; gH = (sin(vB.x * 2600.) * sin(vB.y * 2600.) * .5 + .5) * .5 + vn(vB * 300.) * .5; gR = uKind > .5 && uKind < 1.5 ? .32 : .86; if (uSkirt > .5 && q.y < .985 && q.y > uCoatY - .01 && !(abs(q.x) > .215 && q.y > 1.32)) discard; diffuseColor.rgb = cl.rgb; }'
       : BODY_PAINT)
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  if (gR >= 0.) roughnessFactor = gR;')
+      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  normal = bumpN(-vViewPosition, normal, gH * (uNaked > .5 ? .0022 : .00016));')
       // блеск мокрого дождевика: светлый край по контуру и блик сверху (от ламп на потолке); у ткани — лёгкий бархатный край
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + (shell ? `{ vec3 vd = normalize(vViewPosition); float fr = pow(1. - abs(dot(normal, vd)), 3.);
         vec3 up = normalize((viewMatrix * vec4(0., 1., 0., 0.)).xyz); float top = pow(max(0., dot(normal, up)), 6.);
         float pvc = step(.5, uKind) * step(uKind, 1.5);
         totalEmissiveRadiance += diffuseColor.rgb * (fr * mix(.12, .55, pvc) + top * .45 * pvc) + vec3(.05, .05, .045) * fr * pvc; }` : ''));
   };
-  m.customProgramCacheKey = () => shell ? 'shell3' : 'body3';
+  m.customProgramCacheKey = () => (shell ? 'shell4' : 'body4') + (CINE ? 'c' : '');
   return m;
 }
 
@@ -406,7 +438,7 @@ function attach(C, part, color) {   // волосы/борода из отдел
   const bones = sm.skeleton.bones.map(b => C.bone[b.name]);
   // короткая стрижка — сплошная (сквозь редкую карту волос просвечивала кожа пятнами)
   const buzz = part === 'Hair_Buzzed';
-  const m = new T.SkinnedMesh(sm.geometry, ps1(new T.MeshLambertMaterial(buzz ? { color, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -6 } : { map: sm.material.map, color, alphaTest: .45, side: T.DoubleSide })));
+  const m = new T.SkinnedMesh(sm.geometry, ps1(litMat(buzz ? { color, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -6 } : { map: sm.material.map, color, alphaTest: .45, side: T.DoubleSide }, .55)));
   m.frustumCulled = false;
   C.mesh.parent.add(m); m.bind(new T.Skeleton(bones, sm.skeleton.boneInverses), C.mesh.bindMatrix);
   return m;
@@ -423,8 +455,8 @@ function makeSkinned(o) {
       n.frustumCulled = false;
       const nm = n.name.toLowerCase();
       if (nm.includes('eyebrow')) { n.material = browMat(C, n.material.map, o.brow ?? o.hair ?? 0x1a120c); C.brows = n; }
-      else if (nm.includes('eye')) { n.material = o.voidEyes || o.deadEyes != null ? ps1(new T.MeshBasicMaterial({ color: o.deadEyes ?? 0x000000 })) : ps1(new T.MeshLambertMaterial({ map: n.material.map && n.material.map.clone(), color: o.eyeC ?? 0xffffff })); if (n.material.map) n.material.map.needsUpdate = true; C.eyes = n; }
-      else { C.U = uniforms(o); const src = n.material; n.material = bodyMat(src, C.U, false); C.mesh = n;
+      else if (nm.includes('eye')) { n.material = o.voidEyes || o.deadEyes != null ? ps1(CINE ? Object.assign(litMat({ color: o.deadEyes ?? 0x000000 }, .03), { envMapIntensity: .9 }) : new T.MeshBasicMaterial({ color: o.deadEyes ?? 0x000000 })) : ps1(litMat({ map: n.material.map && n.material.map.clone(), color: o.eyeC ?? 0xffffff }, .08)); if (n.material.map) n.material.map.needsUpdate = true; C.eyes = n; }
+      else { C.U = uniforms(o); const src = n.material; n.material = bodyMat(src, C.U, false, undefined, o.monster ? .5 : .6); if (o.monster && n.material.envMapIntensity != null) n.material.envMapIntensity = .15; C.mesh = n;
         if (!o.naked) { const cg = clothGeo(n, o), sh = new T.SkinnedMesh(cg, bodyMat(src, C.U, true)); sh.frustumCulled = false; C.shellOf = [n, sh]; C.clothMat = sh.material; C.skirtProf = cg.userData.skirt; } }
     }
   });
@@ -532,7 +564,7 @@ const SAC = window.__SAC || .02, _black = new T.Color(0);
 // брови двигаются (в осях модели, до скелета): x — поднять обе, y — «домиком» (+, тревога, мольба) или сведены (−, злость).
 // У переносицы ход больше, у виска почти ноль — так и выглядит живое лицо
 function browMat(C, map, color) {
-  const m = ps1(new T.MeshLambertMaterial({ map, color, alphaTest: .45 })), snap = m.onBeforeCompile; C.browU = { value: new T.Vector2() };
+  const m = ps1(litMat({ map, color, alphaTest: .45 }, .7)), snap = m.onBeforeCompile; C.browU = { value: new T.Vector2() };
   m.onBeforeCompile = sh => { snap(sh); sh.uniforms.uBrow = C.browU;
     sh.vertexShader = 'uniform vec2 uBrow;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
       { float inr = 1. - smoothstep(.012, .06, abs(position.x));
@@ -589,6 +621,7 @@ function fist(C, s, k) {
   for (const f of FING) for (let j = 1; j <= 3; j++) { const b = C.bone[f + '_0' + j + '_' + s]; if (!b) continue; _Q3.setFromAxisAngle(_D.set(ax[0], ax[1], ax[2]), sg * k * (j === 1 ? 1.25 : 1.45)); b.quaternion.multiply(_Q3); }
   const th = C.bone['thumb_02_' + s]; if (th) { _Q3.setFromAxisAngle(_D.set(ax[0], ax[1], ax[2]), sg * k * .6); th.quaternion.multiply(_Q3); }
 }
+const _e3 = new T.Euler(), _q3 = new T.Quaternion();
 function updateSkinned(C, t, dt) {
   const tt = t + C.t0, P = C.pose, U = C.U;
   if (C.talk > .06) C.talkT = tt + .7;   // паузы между словами не сбивают анимацию «говорит»
@@ -708,6 +741,15 @@ function updateSkinned(C, t, dt) {
     bw.premultiply(_q); b.parent.getWorldQuaternion(_pq); b.quaternion.copy(_pq.invert().multiply(bw)); _pq.identity();
     b.updateWorldMatrix(false, true);
   }
+  if (C.o.monster) C.headBase = (C.headBase || new T.Quaternion()).copy(C.bone.Head.quaternion);
+  }
+  // Жилец: голова иногда бьётся в мелкой бешеной тряске (как на засвеченной плёнке) — каждый кадр, мимо покадровой рывковости;
+  // на броске сцена задаёт тряску сама (C.shake)
+  if (C.o.monster && C.headBase) {
+    const burst = P !== 'eat' && P !== 'lay' && (tt % 6.7) < .38 ? .35 : 0, a = Math.max(C.shake || 0, burst);
+    C.bone.Head.quaternion.copy(C.headBase);
+    if (a > 0) { _e3.set((rnd() - .5) * a, (rnd() - .5) * a * 1.8, (rnd() - .5) * a * .8); C.bone.Head.quaternion.multiply(_q3.setFromEuler(_e3)); }
+    C.bone.Head.updateWorldMatrix(false, true);
   }
   if (C.strands) C.strands.forEach((st, i) => { st.rotation.x = .08 + Math.sin(tt * 1.1 + i) * .05; st.rotation.z = Math.sin(tt * .8 + i * 2) * .04; });
   // лицо

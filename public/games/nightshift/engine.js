@@ -5,11 +5,18 @@
 (() => {
 'use strict';
 const S = window.STORY, $ = id => document.getElementById(id);
-const cv = $('cv'), g = cv.getContext('2d'), W = 1080, H = 1920;
+const cv = $('cv'), g = cv.getContext('2d');
+let W = 1080, H = 1920, US = 1;   // холст движка: 1080×1920 вертикально или 1920×1080 горизонтально; US — масштаб надписей на холсте
 const dlgEl = $('dlg'), tapEl = $('tap'), chapEl = $('chap'), clockEl = $('clock'), noteEl = $('note'), ruleEl = $('rule'), choiceEl = $('choice'), uiEl = $('ui'), mgEl = $('mg'), smsEl = $('sms');
 const LS = { get(k, d) { try { const v = localStorage.getItem('ns1_' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
              set(k, v) { try { localStorage.setItem('ns1_' + k, JSON.stringify(v)); } catch {} } };
 const calm = () => !!LS.get('calm', false);   // настройка «меньше вспышек»
+// экран: горизонтальный (16:9) или вертикальный (9:16). На ПК по умолчанию горизонтальный, на телефоне — вертикальный; меняется в настройках
+const FINE = matchMedia('(pointer: fine)').matches;
+let LAND = LS.get('land', FINE && innerWidth > innerHeight);
+// точка, заданная в долях вертикального кадра (сценарий писался под 9:16), → доли текущего кадра (угол обзора по вертикали тот же)
+const scrX = x => LAND ? .5 + (x - .5) * (9 / 16) / (16 / 9) : x;
+const voiceOn = () => LS.get('voice', true);   // озвучка реплик (субтитры остаются всегда)
 const escH = v => String(v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // значки интерфейса: простые векторные, без эмодзи
 const ICON = {
@@ -29,7 +36,7 @@ const SNDS = ['drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'ra
   'ch_guard', 'ch_katya', 'ch_whisper', 'ch_monster', ...Array.from({ length: 17 }, (_, i) => 'l' + String(i + 1).padStart(2, '0'))];
 // звуковые эффекты (ElevenLabs): докачиваются в фоне после старта
 const SFX2 = ['room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b'];
-let directG = null, AC = null, revIn = null, muffle = null, master, musicG, voiceG, sfxG, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
+let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, master, musicG, voiceG, sfxG, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
 // громкость голоса сейчас (для движения рта)
 function voiceLevel() { if (!analyser) return 0; analyser.getByteTimeDomainData(abuf); let q = 0; for (let i = 0; i < abuf.length; i += 2) { const v = (abuf[i] - 128) / 128; q += v * v; } return Math.min(1, Math.sqrt(q / (abuf.length / 2)) * 6); }
 // XHR вместо fetch: так файлы читаются и внутри Android-приложения (file://)
@@ -50,14 +57,14 @@ async function load(onp) {
 // Катя за стеклом — глухо; «Катя» — вдруг чисто и сухо, будто уже по эту сторону, на полтона ниже, с низким призраком под голосом
 const GLASS = /door|katya|smile|entrance/;
 function voiceFx(k) {
-  if (!AC || !revIn) return [{}];
+  if (!AC || !voiceRev) return [{}];
   const who = whoOf(k), img = (beat && beat.img) || '', aloud = ((TIM[k] || {}).t || '').trim().startsWith('—');
-  if (who === 'ТЁМЫЧ') return [aloud ? { to: [[voiceG, 1], [revIn, .12]] } : {}];
-  if (who === 'КАТЯ') return [GLASS.test(img) ? { to: [[muffle, 1.4], [revIn, .2]] } : { to: [[voiceG, 1], [revIn, .15]] }];
-  if (who === 'КАТЯ?') return [{ rate: .95, to: [[voiceG, 1], [revIn, .05]] }, { rate: .5, gain: .1, dt: .03, cut: durOf(k), to: [[voiceG, 1]] }];
-  if (who === '???') return [{ rate: .97, to: [[voiceG, 1], [revIn, .3]] }, { rate: .5, gain: .16, cut: durOf(k), to: [[voiceG, 1], [revIn, .3]] }];
-  if (who === 'МИХАЛЫЧ' && /server_door|basement/.test(img)) return [{ to: [[muffle, 1.5], [revIn, .35]] }];
-  return [{ to: [[voiceG, 1], [revIn, .2]] }];
+  if (who === 'ТЁМЫЧ') return [aloud ? { to: [[voiceG, 1], [voiceRev, .12]] } : {}];
+  if (who === 'КАТЯ') return [GLASS.test(img) ? { to: [[muffle, 1.4], [voiceRev, .2]] } : { to: [[voiceG, 1], [voiceRev, .15]] }];
+  if (who === 'КАТЯ?') return [{ rate: .95, to: [[voiceG, 1], [voiceRev, .05]] }, { rate: .5, gain: .1, dt: .03, cut: durOf(k), to: [[voiceG, 1]] }];
+  if (who === '???') return [{ rate: .97, to: [[voiceG, 1], [voiceRev, .3]] }, { rate: .5, gain: .16, cut: durOf(k), to: [[voiceG, 1], [voiceRev, .3]] }];
+  if (who === 'МИХАЛЫЧ' && /server_door|basement/.test(img)) return [{ to: [[muffle, 1.5], [voiceRev, .35]] }];
+  return [{ to: [[voiceG, 1], [voiceRev, .2]] }];
 }
 function decodeOne(k, b) { return new Promise(r => { try { const pr = AC.decodeAudioData(b.slice(0), d => { BUF[k] = d; r(); }, () => r()); if (pr && pr.catch) pr.catch(() => r()); } catch { r(); } }); }
 let decoding = null;
@@ -71,7 +78,7 @@ function initAudio() {   // контекст создаём заранее (он
   // крик скримера — мимо компрессора, чтобы был громче голоса; резкие 4–5 кГц чуть приглушены (динамик телефона их режет в уши)
   directG = AC.createGain(); directG.gain.value = master.gain.value; { const pk = filt('peaking', 4500, 1.2); pk.gain.value = -4; directG.connect(pk); pk.connect(AC.destination); }
   musicG = AC.createGain(); musicG.gain.value = .55; musicG.connect(master);
-  voiceG = AC.createGain(); voiceG.gain.value = 1; voiceG.connect(master);
+  voiceG = AC.createGain(); voiceG.gain.value = 1; voiceOut = AC.createGain(); voiceOut.gain.value = voiceOn() ? 1 : 0; voiceG.connect(voiceOut); voiceOut.connect(master);
   sfxG = AC.createGain(); sfxG.gain.value = .8; sfxG.connect(master);
   // слой для динамика телефона: он не играет ниже ~250 Гц, поэтому гул, дрон и сердце получают мягкие обертоны 200–1400 Гц
   { lowSend = AC.createGain(); const lp = filt('lowpass', 260, .7), dr = AC.createGain(), ws = AC.createWaveShaper(), hp = filt('highpass', 200, .7), lp2 = filt('lowpass', 1400, .7), wet = AC.createGain();
@@ -82,7 +89,8 @@ function initAudio() {   // контекст создаём заранее (он
   // пространство: реверберация (импульс — шум с затуханием) и «за стеклом/дверью» — глухой фильтр
   { const len = AC.sampleRate * 2.4 | 0, ir = AC.createBuffer(2, len, AC.sampleRate);
     for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2) * (i < 90 ? i / 90 : 1); }
-    revIn = AC.createConvolver(); revIn.buffer = ir; const rg = AC.createGain(); rg.gain.value = .55; revIn.connect(rg); rg.connect(master); }
+    revIn = AC.createConvolver(); revIn.buffer = ir; const rg = AC.createGain(); rg.gain.value = .55; revIn.connect(rg); rg.connect(master);
+    voiceRev = AC.createGain(); voiceRev.gain.value = voiceOn() ? 1 : 0; voiceRev.connect(revIn); }   // эхо голосов — через свой кран: выключили озвучку — нет и эха
   muffle = filt('lowpass', 1100, .7); muffle.connect(voiceG);
   analyser = AC.createAnalyser(); analyser.fftSize = 512; voiceG.connect(analyser); abuf = new Uint8Array(analyser.fftSize);
   bedInit();
@@ -99,7 +107,7 @@ function goFull() {   // полный экран по нажатию «Игра�
   if (d.fullscreenElement || d.webkitFullscreenElement) return;
   try {
     const r = (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el, { navigationUI: 'hide' });
-    if (r && r.then) r.then(() => { try { screen.orientation.lock('portrait').catch(() => {}); } catch {} }).catch(() => {});
+    if (r && r.then) r.then(() => { try { screen.orientation.lock(LAND ? 'landscape' : 'portrait').catch(() => {}); } catch {} }).catch(() => {});
   } catch {}
 }
 const playing = new Set();
@@ -298,7 +306,7 @@ let sceneT0 = 0, secBase = 7, lastTime = '02:55', lastDrawn = 'door_katya', fals
 const flags = {};   // что уже случилось за ночь: дверь открыта, Михалыч на CAM 13 (для тихих перемен в холле)
 const buzz = ms => { try { if (navigator.vibrate && !LS.get('mute', false)) navigator.vibrate(ms); } catch {} };
 const seen = new Set(LS.get('seen', []));
-const frozenC = document.createElement('canvas'); frozenC.width = W; frozenC.height = H; const frozenG = frozenC.getContext('2d');
+const frozenC = document.createElement('canvas'); frozenC.width = 1080; frozenC.height = 1920; const frozenG = frozenC.getContext('2d');
 
 function durOf(k) { return (TIM[k] && TIM[k].dur) || (BUF[k] && BUF[k].duration) || 2; }
 // кто говорит: имя на табличке и цвет
@@ -401,7 +409,13 @@ function beatAudio() {
   if (scareAt != null) {
     const sa = scareAt + P;
     // не «бум» из ужастика для детей: нарастание обрывается в тишину, а потом — близкий сухой звук рядом с ухом
-    if (beat.fx === 'lunge') { play('breath_close', { when: sa - 1.0, gain: .9 }); play(BUF.jumpscare ? 'jumpscare' : 'scare', { when: sa, gain: calm() ? .8 : .95 }); }
+    if (beat.fx === 'lunge') {
+      // крик в несколько слоёв: сам крик + он же на октаву ниже (утробный рык) + визг выше и чуть сбоку + хруст шеи перед броском + удар по низам
+      const J = BUF.jumpscare ? 'jumpscare' : 'scare', D = directG ? [[directG, 1]] : null;
+      play('breath_close', { when: sa - 1.0, gain: .9 }); play('neck_crack', { when: sa - .42, gain: .8 });
+      play(J, { when: sa, gain: calm() ? .8 : .95 });
+      if (!calm()) { play(J, { when: sa + .01, gain: .55, rate: .55, to: D }); play(J, { when: sa + .03, gain: .28, rate: 1.45, pan: -.5, to: D }); play('static', { when: sa, gain: .5, cut: .6 }); play('boom', { when: sa, gain: .9 }); }
+    }
     else if (sa > 1.6 && BUF.reverse_swell) play('reverse_swell', { when: sa - BUF.reverse_swell.duration, gain: .5 });
     const hits = beat.hit || (sceneId.startsWith('over_') ? ['neck_crack', 'breath_close'] : ['breath_close']);
     if (beat.fx !== 'lunge') hits.forEach((h, i) => play(BUF[h] ? h : 'scare', { when: sa + i * .12, gain: i ? .7 : 1 }));
@@ -499,12 +513,12 @@ function camGame(next) {
     mgEl.innerHTML = `<div class="mghead">ОБХОД КАМЕР<small>Проверь три камеры. Помни правило четыре.</small></div><div class="camgrid">` +
       S.cams.map((c, i) => c.forbidden ? `<div class="cam off" data-i="${i}"><b>${c.id}</b><span>ВЫКЛ</span></div>`
         : `<div class="cam ${seenCams.has(i) ? 'seen' : ''}" data-i="${i}" style="background-image:url(${window.World ? World.thumb(c.img, { cx: c.c[0], cy: c.c[1], z: c.c[2], cctv: 1 }) : ''})"><b>${c.id} ${c.name}</b></div>`).join('') + '</div>' +
-      `<div class="mgfoot">${seenCams.size >= 3 ? '<button class="btn" id="cgo" style="text-align:center">Продолжить смену</button>' : `<div style="text-align:center;opacity:.7;font-size:3.6cqw">Проверено: ${seenCams.size} из 3</div>`}</div>`;
+      `<div class="mgfoot">${seenCams.size >= 3 ? '<button class="btn" id="cgo" style="text-align:center">Продолжить смену</button>' : `<div style="text-align:center;opacity:.7;font-size:calc(3.6 * var(--u))">Проверено: ${seenCams.size} из 3</div>`}</div>`;
     mgEl.querySelectorAll('.cam').forEach(el => el.onclick = () => {
       const i = +el.dataset.i, c = S.cams[i];
       if (c.forbidden) {
         if (!warned) { warned = true; play('static'); if (!calm()) { mgEl.classList.add('flash'); setTimeout(() => mgEl.classList.remove('flash'), 300); }
-          el.innerHTML = '<b>CAM 13</b><span style="font-size:3.6cqw">ТОЧНО ВКЛЮЧИТЬ?<br>ПРАВИЛО 4</span>'; return; }
+          el.innerHTML = '<b>CAM 13</b><span style="font-size:calc(3.6 * var(--u))">ТОЧНО ВКЛЮЧИТЬ?<br>ПРАВИЛО 4</span>'; return; }
         amb('static', false); mgEl.classList.add('hide'); return startScene('over_cam13');
       }
       play('click'); play('static', { gain: .5 });
@@ -524,7 +538,7 @@ const MG = {
   // держать кнопку (не дышать), отпустить можно только когда шаги стихнут
   hold(th) {
     mode = 'mg'; music('tension'); amb('heart', true, .7); const my = gen;
-    mgEl.innerHTML = `<div class="mghead">${th.title}<small>${th.hint}</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="air"></i></div><div style="text-align:center;font-size:3.4cqw;margin-top:1.5cqw;opacity:.7">воздух</div></div><button class="bigbtn" id="hb">ДЕРЖИ</button>`;
+    mgEl.innerHTML = `<div class="mghead">${th.title}<small>${th.hint}</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="air"></i></div><div style="text-align:center;font-size:calc(3.4 * var(--u));margin-top:calc(1.5 * var(--u));opacity:.7">воздух</div></div><button class="bigbtn" id="hb">ДЕРЖИ</button>`;
     mgEl.classList.remove('hide');
     const btn = $('hb'), air = $('air'); let held = false, a = 1, t0 = now(), lt = t0, safe = false, end = false, steps = 0;
     const dur = th.dur || 9, set = h => { held = h; btn.classList.toggle('held', h); btn.textContent = h ? 'НЕ ДЫШИ' : 'ДЕРЖИ'; };
@@ -590,7 +604,7 @@ const MG = {
   },
   // запотевшее стекло: протереть пальцем; когда видно больше половины — в стекло бьёт ладонь
   wipe(th) {
-    mode = 'mg'; music('tension'); amb('heart', true, .35); const my = gen, t0 = now(), FW = 108, FH = 192;
+    mode = 'mg'; music('tension'); amb('heart', true, .35); const my = gen, t0 = now(), FW = LAND ? 192 : 108, FH = LAND ? 108 : 192;
     const F = document.createElement('canvas'); F.width = FW; F.height = FH; const f = F.getContext('2d');
     // пелена гуще к краям, в ней капельки; несколько подтёков — по ним чуть видно, что за стеклом
     const rg = f.createRadialGradient(FW / 2, FH * .45, 10, FW / 2, FH * .45, FH * .62); rg.addColorStop(0, 'rgba(150,162,172,.84)'); rg.addColorStop(1, 'rgba(120,130,140,.95)'); f.fillStyle = rg; f.fillRect(0, 0, FW, FH);
@@ -632,7 +646,7 @@ const MG = {
     let end = false, seen = 0, onMon = 0, onGoal = 0, gone = false, found = 0, jump = 0, hitT = 0, lt = now();
     const pt = e => { const r = cv.getBoundingClientRect(); tgt.x = clamp((e.clientX - r.left) / r.width, 0, 1); tgt.y = clamp((e.clientY - r.top) / r.height - .07, 0, 1); };   // луч чуть выше пальца — палец не закрывает
     mgEl.onpointerdown = e => { e.preventDefault(); if (!found) pt(e); }; mgEl.onpointermove = e => { if (!found && (e.buttons || e.pointerType === 'touch')) pt(e); };
-    const near = (p, r) => Math.hypot((L.x - p[0]) * .5625, L.y - p[1]) < r;   // расстояние в долях высоты экрана
+    const near = (p, r) => Math.hypot((L.x - scrX(p[0])) * W / H, L.y - p[1]) < r;   // расстояние в долях высоты экрана
     const fin = () => { if (end || my !== gen) return; end = true; amb('heart', false); mgEl.onpointerdown = mgEl.onpointermove = null; mgEl.classList.add('hide'); mgView = null; startScene(th.win); };
     (function loop() {
       if (end || my !== gen) return; const dt = Math.min(.1, now() - lt); lt = now();
@@ -642,7 +656,7 @@ const MG = {
       else if (!gone && now() - seen > .75) { gone = true; mgView.img = th.img2; blackT = now(); play('fluor_flicker', { gain: .4, cut: .3 }); $('th').textContent = th.hint2; }
       if (gone && !found) { onGoal = near(th.goal, .05) ? onGoal + dt : 0; if (onGoal > .7) { found = now(); play('click'); $('th').textContent = th.found; } }
       if (found && th.img3) { const e = now() - found;   // за спиной вздох — луч сам дёргается влево, а он стоит вплотную
-        if (e > .9 && !jump) { jump = now(); mgView.img = th.img3; mgView.st = -(jump - mgView.t0); tgt.x = th.near[0]; tgt.y = th.near[1]; play('breath_close', { gain: 1 }); mgEl.querySelector('.mghead').classList.add('hide'); }
+        if (e > .9 && !jump) { jump = now(); mgView.img = th.img3; mgView.st = -(jump - mgView.t0); tgt.x = scrX(th.near[0]); tgt.y = th.near[1]; play('breath_close', { gain: 1 }); mgEl.querySelector('.mghead').classList.add('hide'); }
         if (jump && now() - jump > .45 && !hitT) { hitT = now(); play(BUF.jumpscare ? 'jumpscare' : 'scare', { gain: calm() ? .7 : .95 }); shakeAmp = 40; buzz([200, 40, 300]); }
         if (hitT && now() - hitT > .55) { blackT = now() + .4; return fin(); } }
       else if (found && now() - found > .8) return fin();
@@ -748,17 +762,26 @@ function settings() {
   const row = (id, name, val) => `<button class="set" id="${id}"><span>${name}</span><b>${val}</b></button>`;
   const vh = LS.get('vhs', 2);
   subScreen(`<h1>НАСТРОЙКИ</h1><div class="sets">
+    ${row('sLand', 'Экран', LAND ? 'ГОРИЗОНТАЛЬНО' : 'ВЕРТИКАЛЬНО')}
+    ${row('sGfx', 'Графика', window.World && World.cine ? 'КИНО' : 'РЕТРО')}
     ${row('sMute', 'Звук', LS.get('mute', false) ? 'ВЫКЛ' : 'ВКЛ')}
+    ${row('sVoice', 'Озвучка', voiceOn() ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sVhs', 'Плёнка VHS', VHS_N[vh] || VHS_N[2])}
     ${row('sCalm', 'Меньше вспышек', calm() ? 'ВКЛ' : 'ВЫКЛ')}
-    ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}</div>
-    <small>«Меньше вспышек» убирает кадры-вспышки и смягчает резкие засветы.</small>`);
+    ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}
+    ${row('sLook', FINE ? 'Оглядываться мышью' : 'Оглядываться наклоном', lookOn() ? 'ВКЛ' : 'ВЫКЛ')}</div>
+    <small>«Кино» — тени, блики, объёмный свет, чёткая картинка (для ПК). «Ретро» — плёнка и пиксели старой приставки, легче для телефона. Без озвучки остаются субтитры.${FINE ? '<br>Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.' : ''}</small>`);
   const re = () => { uiSnd(); settings(); };
   $('sMute').onclick = () => { setMute(!LS.get('mute', false)); re(); };
+  $('sVoice').onclick = () => { setVoice(!voiceOn()); re(); };
+  $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
+  $('sLand').onclick = () => { LS.set('land', !LAND); applyLand(!LAND); re(); };
+  $('sGfx').onclick = () => { LS.set('gfx', window.World && World.cine ? 'retro' : 'cine'); uiSnd(); location.reload(); };   // графика собирается при загрузке
   $('sVhs').onclick = () => { const v = (LS.get('vhs', 2) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
 }
+function setVoice(on) { LS.set('voice', on); if (voiceOut) { voiceOut.gain.value = on ? 1 : 0; voiceRev.gain.value = on ? 1 : 0; } }
 function setMute(m) { LS.set('mute', m); if (master) master.gain.value = m ? 0 : 1; if (directG) directG.gain.value = m ? 0 : 1; $('bMute').classList.toggle('muted', m); }
 async function begin(id) {
   unlockAudio(); goFull();   // до любого await, пока идёт нажатие
@@ -772,7 +795,7 @@ function endScreen(th) {
   mode = 'end'; const got = new Set(LS.get('endings', [])); got.add(th.ending); LS.set('endings', [...got]); LS.set('save', null);
   play('boom'); music('drone');
   uiEl.innerHTML = `<div class="screen"><h1>${th.title}<em>${S.endings[th.ending].toUpperCase()}</em></h1><p>${th.sub}</p>${gallery()}
-    <button class="btn" id="eAgain" style="margin-top:5cqw">Сыграть ещё раз</button><button class="btn ghost" id="eMenu">Меню</button>${supportBtn()}${sponsorsHtml()}</div>`;
+    <button class="btn" id="eAgain" style="margin-top:calc(5 * var(--u))">Сыграть ещё раз</button><button class="btn ghost" id="eMenu">Меню</button>${supportBtn()}${sponsorsHtml()}</div>`;
   $('eAgain').onclick = () => { goFull(); uiEl.innerHTML = ''; for (const k in flags) delete flags[k]; falseAlarm = false; startScene('intro'); }; $('eMenu').onclick = menu;
 }
 function overScreen(th) {
@@ -789,9 +812,9 @@ function overScreen(th) {
 const noise = document.createElement('canvas'); noise.width = noise.height = 256;
 { const n = noise.getContext('2d'), d = n.createImageData(256, 256); for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } n.putImageData(d, 0, 0); }
 let noisePat = null;
-const drops = Array.from({ length: 140 }, () => ({ x: Math.random() * W, y: Math.random() * H, v: 1800 + Math.random() * 1400, l: 40 + Math.random() * 70 }));
+let drops = Array.from({ length: 140 }, () => ({ x: Math.random() * W, y: Math.random() * H, v: 1800 + Math.random() * 1400, l: 40 + Math.random() * 70 }));
 // кадр камеры наблюдения обновляется рывками — 12 кадров в секунду, как настоящий регистратор: между кадрами что-то успевает сдвинуться
-const heldC = document.createElement('canvas'); heldC.width = W; heldC.height = H; const heldG = heldC.getContext('2d'); let heldT = -9, heldK = '';
+const heldC = document.createElement('canvas'); heldC.width = 1080; heldC.height = 1920; const heldG = heldC.getContext('2d'); let heldT = -9, heldK = '';
 function heldShot(id, o, T, key) {
   if (T - heldT > 1 / 12 || key !== heldK || T < heldT) { heldT = T; heldK = key; shot(id, o, heldG); }
   g.drawImage(heldC, 0, 0);
@@ -799,6 +822,7 @@ function heldShot(id, o, T, key) {
 // кадр 3D-мира; без WebGL — чёрный экран с подсказкой
 let worldTried = false, menuT0 = 0, shotOff = 0, darkHold = false;
 function shot(id, o, cx = g) {
+  if (LAND && o.cx != null && !o._sx) { o.cx = scrX(o.cx); o._sx = 1; }   // точки наезда заданы для 9:16 — в 16:9 то же направление
   if (window.World && World.ok && World.draw(cx, W, H, id, Object.assign(o, { props: propsNow() }))) { lastDrawn = id; return true; }
   cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); if (!worldTried) return false;   // пока мир грузится — просто чёрный
   g.fillStyle = '#777'; g.font = '700 40px Inter, Arial'; g.textAlign = 'center'; g.fillText('Нужен браузер с WebGL', W / 2, H * .3); g.textAlign = 'left';
@@ -816,9 +840,9 @@ function cctvHud(label, T, rw) {   // rw = { tag, clock } — запись на 
   if (T > tearNext) { tearNext = T + 2.2 + Math.random() * 4.5; tear(1); }
   grain(.12);
   g.save(); g.textBaseline = 'top'; g.shadowColor = 'rgba(0,0,0,.9)'; g.shadowBlur = 6;
-  g.strokeStyle = 'rgba(235,240,235,.55)'; g.lineWidth = 4; const m = 46, L = 64;
+  g.strokeStyle = 'rgba(235,240,235,.55)'; g.lineWidth = 4 * US; const m = 46 * US, L = 64 * US;
   g.beginPath(); for (const [x, y, sx, sy] of [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]]) { g.moveTo(x + sx * L, y); g.lineTo(x, y); g.lineTo(x, y + sy * L); } g.stroke();
-  g.font = '700 40px "Courier New", monospace'; g.fillStyle = 'rgba(235,240,235,.9)';
+  g.scale(US, US); g.font = '700 40px "Courier New", monospace'; g.fillStyle = 'rgba(235,240,235,.9)';
   if ((T % 1) < .5) { g.fillStyle = '#e8262e'; g.beginPath(); g.arc(98, 222, 13, 0, 7); g.fill(); g.fillStyle = 'rgba(235,240,235,.9)'; }
   g.fillText(rw ? rw.tag : 'REC', 124, 204);
   if (label) g.fillText(label, 84, 258);
@@ -829,6 +853,10 @@ function grain(a) { g.save(); g.globalAlpha = a; g.globalCompositeOperation = 'o
 function vignette() { const r = g.createRadialGradient(W / 2, H / 2, H * .25, W / 2, H / 2, H * .75); r.addColorStop(0, 'rgba(0,0,0,0)'); r.addColorStop(1, 'rgba(0,0,0,.8)'); g.fillStyle = r; g.fillRect(0, 0, W, H); }
 function phone(kind, t) {
   g.fillStyle = '#030405'; g.fillRect(0, 0, W, H);
+  g.save(); g.translate(W / 2 - 540 * US, 0); g.scale(US, US); phoneIn(kind, t); g.restore(); grain(.08);
+}
+function phoneIn(kind, t) {   // экран телефона в координатах вертикального холста 1080×1920
+  const W = 1080;
   const x = 240, y = 230, w = 600, h = 1060; g.fillStyle = '#111'; rr(x - 20, y - 20, w + 40, h + 40, 70); g.fillStyle = '#0b0d12'; rr(x, y, w, h, 54);
   g.textAlign = 'center'; g.fillStyle = '#fff';
   if (kind === 'msg') {
@@ -843,7 +871,7 @@ function phone(kind, t) {
     g.fillStyle = '#2a3'; g.beginPath(); g.arc(x + w - 150, y + h - 200, 70 * (kind === 'call2' ? 1 : pulse), 0, 7); g.fill();
     g.fillStyle = '#d33'; g.beginPath(); g.arc(x + 150, y + h - 200, 70, 0, 7); g.fill();
   }
-  g.textAlign = 'left'; grain(.08);
+  g.textAlign = 'left';
 }
 function rr(x, y, w, h, r) { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); g.fill(); }
 // пред-кадр: застывший прошлый кадр; перед скримером он тонет в темноте, у fx 'glitch' — окно «соединение потеряно»
@@ -853,7 +881,10 @@ function preFrame(t, T) {
   if (beat.fx !== 'glitch') { g.fillStyle = `rgba(0,0,0,${Math.min(.93, k * 1.15)})`; g.fillRect(0, 0, W, H); return; }
   g.fillStyle = 'rgba(0,0,0,.42)'; g.fillRect(0, 0, W, H);
   if (k < .12) tear(3);
-  const bw = 820, bh = 290, bx = (W - bw) / 2, by = H * .38;
+  g.save(); g.translate(W / 2 - 540 * US, H * .38 - 1920 * .38 * US); g.scale(US, US); glitchBox(T); g.restore();
+}
+function glitchBox(T) {
+  const W = 1080, H = 1920, bw = 820, bh = 290, bx = (W - bw) / 2, by = H * .38;
   g.fillStyle = 'rgba(12,14,16,.92)'; g.fillRect(bx, by, bw, bh); g.fillStyle = '#c8202a'; g.fillRect(bx, by, bw, 10);
   g.strokeStyle = 'rgba(230,226,214,.35)'; g.lineWidth = 2; g.strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
   const cx = bx + 110, cy = by + bh / 2 + 5, st = Math.floor(T * 12) % 8;   // крутилка ожидания
@@ -889,7 +920,7 @@ function sayWords(who, words, on) {   // озвученная реплика ц�
 let camHud = false;
 function setCamHud(on) { if (on !== camHud) { camHud = on; clockEl.classList.toggle('dim', on); } }   // на экране камеры время показывает сама камера
 function frame(tp) {
-  const dt = Math.min(.1, (tp - lastP) / 1000); lastP = tp; if (!paused) clockT += dt;
+  const dt = Math.min(.1, (tp - lastP) / 1000); if (window.World && World.perf && (mode === 'play' || mode === 'menu')) World.perf(tp - lastP); lastP = tp; if (!paused) clockT += dt;
   const T = now();
   let place = null, quiet = false, cam = false; voiceNow = false;
   if (mode === 'play' && beat) {
@@ -925,7 +956,8 @@ function frame(tp) {
       const lg = beat.fx === 'lunge';
       if (sc && st < .05) { if (blackT !== T && T - blackT > .5) buzz(lg ? [250, 40, 350] : [90, 30, 160]); if (!lg) blackT = T; shakeAmp = lg ? (calm() ? 30 : 46) : 22; }
       if (lg && sc && st < .7) shakeAmp = Math.max(shakeAmp, (calm() ? 20 : 34) * (1 - st / .7));
-      const sx = (Math.sin(T * 1.6) * 8 + Math.sin(T * 4.9) * 3) + (Math.random() - .5) * shakeAmp, sy = (Math.cos(T * 1.2) * 8 + Math.sin(T * 4.1) * 3) + (Math.random() - .5) * shakeAmp;
+      const lk = lookStep(dt, beat.fx === 'cctv' || beat.fx === 'static' || beat.fx === 'lunge' || !!beat.phone);
+      const sx = lk.x + (Math.sin(T * 1.6) * 8 + Math.sin(T * 4.9) * 3) + (Math.random() - .5) * shakeAmp, sy = lk.y + (Math.cos(T * 1.2) * 8 + Math.sin(T * 4.1) * 3) + (Math.random() - .5) * shakeAmp;
       shakeAmp *= .9;
       if (beat.phone) phone(beat.phone, t);
       else if (beat.img) {
@@ -951,12 +983,15 @@ function frame(tp) {
         if (beat.fx === 'strobe' && t > .5 && ((t * 1000) % 470) > 95 + 40 * Math.sin(t * 7)) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
         if (beat.fx === 'dark') { g.fillStyle = `rgba(0,0,0,${darkHold ? .85 : p * .85})`; g.fillRect(0, 0, W, H); }
         if (beat.light) { g.fillStyle = `rgba(0,0,0,${.35 * (1 - Math.min(1, t / 6))})`; g.fillRect(0, 0, W, H); }
-        if (beat.floors) { const f = Math.min(7, 1 + Math.floor(t / .6)); g.fillStyle = 'rgba(0,0,0,.6)'; rr(W / 2 - 90, 220, 180, 150, 20); g.fillStyle = '#f33'; g.font = '800 110px Inter, Arial'; g.textAlign = 'center'; g.fillText(f, W / 2, 245); g.textAlign = 'left'; }
+        if (beat.floors) { const f = Math.min(7, 1 + Math.floor(t / .6)); g.save(); g.translate(W / 2, 0); g.scale(US, US); g.fillStyle = 'rgba(0,0,0,.6)'; rr(-90, 220, 180, 150, 20); g.fillStyle = '#f33'; g.font = '800 110px Inter, Arial'; g.textAlign = 'center'; g.fillText(f, 0, 245); g.restore(); }
         if (!beat.fx || beat.fx === 'rain') grain(.07);
         if (sc && st < .6) grain(.5 * (1 - st / .6));
         // бросок: двоится от рывка, потом обрыв в черноту (крик ещё звучит)
         if (lg && sc && st < .8 && !calm()) { g.save(); g.globalAlpha = .35 * (1 - st / .8); g.globalCompositeOperation = 'lighter'; g.drawImage(cv, 16 + Math.random() * 20, 0); g.drawImage(cv, -16 - Math.random() * 20, 6); g.restore(); }
         if (lg && sc && st > .8) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); grain(.2); }
+        // кадр-вспышка: на миг — оскал вплотную, в красном, и негатив; мозг не успевает разглядеть, но запоминает
+        if (lg && sc && !calm() && st > .5 && st < .58) { shot('monster_close', { cx: .5, cy: .45, z: 1.35, t: 2.2, T, sx: 0, sy: 0, scare: 1 }); g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = '#ff2a20'; g.fillRect(0, 0, W, H); g.restore(); }
+        if (lg && sc && !calm() && ((st > .09 && st < .13) || (st > .3 && st < .33))) { g.save(); g.globalCompositeOperation = 'difference'; g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.restore(); }
         vignette();
         if (cam) cctvHud(beat.label, T);
       }
@@ -1024,6 +1059,15 @@ function frame(tp) {
 function trigTick(t) { for (const e of trig) if (!e.done && t >= e.at) { e.done = true; try { e.fn(); } catch (er) { console.error(er); } } }
 
 /* ---------- старт ---------- */
+// ориентация кадра на лету: холст движка, буферы кадра, раскладка интерфейса
+function applyLand(l) {
+  LAND = !!l; W = LAND ? 1920 : 1080; H = LAND ? 1080 : 1920; US = H / 1920;
+  for (const c of [cv, heldC, frozenC]) { c.width = W; c.height = H; }
+  heldT = -9; drops = drops.map(() => ({ x: Math.random() * W, y: Math.random() * H, v: 1800 + Math.random() * 1400, l: 40 + Math.random() * 70 }));
+  document.body.classList.toggle('land', LAND);
+  if (window.World && World.setLand) World.setLand(LAND);
+  ambFit();
+}
 $('bMute').onclick = () => setMute(!LS.get('mute', false));
 $('bMute').classList.toggle('muted', LS.get('mute', false));
 $('bMenu').onclick = () => menu();
@@ -1031,13 +1075,32 @@ $('bRules').onclick = e => { e.stopPropagation(); showRules(); };
 $('bAuto').onclick = e => { e.stopPropagation(); auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); };
 $('bAuto').classList.toggle('on', auto);
 $('stage').addEventListener('pointerdown', e => { if (e.target.closest('button, #choice, #mg, #ui, #hud, #note')) return; tap(); });
+// оглядеться: на ПК взгляд чуть ведёт мышь, на телефоне — наклон (где браузер даёт гироскоп без запроса). Камеры наблюдения и бросок — неподвижны
+const lookT = { x: 0, y: 0 }, look = { x: 0, y: 0 }; let tilt0 = null;
+const lookOn = () => LS.get('look', true);
+function lookStep(dt, fixed) {
+  const tx = fixed || !lookOn() ? 0 : lookT.x, ty = fixed || !lookOn() ? 0 : lookT.y, k = Math.min(1, dt * 2.2);
+  look.x += (tx - look.x) * k; look.y += (ty - look.y) * k;
+  return { x: look.x * (LAND ? 520 : 300), y: look.y * (LAND ? 260 : 330) };
+}
+addEventListener('pointermove', e => { if (e.pointerType !== 'mouse') return; const r = $('stage').getBoundingClientRect();
+  lookT.x = clamp(((e.clientX - r.left) / r.width - .5) * 2, -1, 1); lookT.y = clamp(((e.clientY - r.top) / r.height - .5) * 2, -1, 1); });
+addEventListener('deviceorientation', e => { if (FINE || e.gamma == null) return; const a = LAND ? e.beta : e.gamma, b = LAND ? e.gamma : e.beta;
+  if (!tilt0) tilt0 = { a, b }; tilt0.a += (a - tilt0.a) * .004; tilt0.b += (b - tilt0.b) * .004;   // «ноль» медленно подстраивается под то, как держат телефон
+  lookT.x = clamp((a - tilt0.a) / 18, -1, 1); lookT.y = clamp((b - tilt0.b) / 22, -1, 1) * (LAND ? -1 : 1); });
 document.addEventListener('keydown', e => {
+  // горячие клавиши ПК: F — во весь экран, V — озвучка, M — звук, O — повернуть экран
+  if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') { const d = document; if (d.fullscreenElement) d.exitFullscreen().catch(() => {}); else goFull(); }
+  if (e.key === 'v' || e.key === 'V' || e.key === 'м' || e.key === 'М') setVoice(!voiceOn());
+  if (e.key === 'm' || e.key === 'M' || e.key === 'ь' || e.key === 'Ь') setMute(!LS.get('mute', false));
+  if (e.key === 'o' || e.key === 'O' || e.key === 'щ' || e.key === 'Щ') { LS.set('land', !LAND); applyLand(!LAND); if (uiEl.querySelector('.sets')) settings(); }
   if (mode === 'menu' && !gateDone && (e.key === ' ' || e.key === 'Enter')) return openGate();
   if (e.key === ' ' || e.key === 'Enter') tap(); if (mode === 'choice' && /^[1-4]$/.test(e.key)) { const b = choiceEl.querySelector(`button[data-i="${+e.key - 1}"]`); if (b) b.click(); } if (e.key === 'Escape') menu(); });
 // ПК: размытый отсвет кадра по бокам экрана (виден только при широком окне и мыши)
 const ambC = $('amb'), ambG = ambC.getContext('2d'); let ambOn = false, ambN = 0;
 function ambFit() { ambOn = getComputedStyle(ambC).display !== 'none'; if (ambOn) ambC.height = Math.max(8, Math.round(64 * innerHeight / innerWidth)); }
 addEventListener('resize', ambFit); ambFit();
+applyLand(LAND);
 requestAnimationFrame(frame);
 window.addEventListener('error', e => { if (mode === 'menu' && !uiEl.innerHTML) uiEl.innerHTML = `<div class="screen"><p>Ошибка: ${String(e.message || e).slice(0, 120)}</p></div>`; });
 // холодный старт: заставка студии 1.4 с (тап — пропустить) идёт, пока грузится мир; потом — карточка «наушники» с полосой загрузки, если ещё грузится
