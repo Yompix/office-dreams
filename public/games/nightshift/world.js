@@ -4,6 +4,7 @@
    Снаружи: World.draw(g, shotId, o) рисует кадр на 2D-холст движка; o = { cx, cy, z, t, T, sx, sy, beat, talk: { who, v } }. */
 (() => {
 'use strict';
+const tr = window.tr || (s => s);
 const T = window.THREE;
 // внутреннее разрешение кадра. Два вида графики (меню «Графика», хранится в ns1_gfx, ?gfx=retro|cine — вручную):
 //  «Ретро» — низкое разрешение, дрожь вершин, ступени цвета (телефон по умолчанию); на ПК вдвое чётче (?hd=0/1);
@@ -122,11 +123,11 @@ function makeTextures() {
   TX.concrete = ctex(64, 64, (x, w, h) => { x.fillStyle = '#3a3c3a'; x.fillRect(0, 0, w, h); speckle(x, w, h, 900, .1); speckle(x, w, h, 600, .16, false); x.fillStyle = 'rgba(30,20,10,.25)'; for (let i = 0; i < 4; i++) x.fillRect(rnd() * w, rnd() * h, 1, 10 + rnd() * 20); }, 4, 2);
   TX.salt = ctex(64, 64, (x, w, h) => { x.clearRect(0, 0, w, h); x.strokeStyle = 'rgba(235,235,225,.95)'; x.lineWidth = 3; x.beginPath(); x.arc(32, 32, 26, 0, 7); x.stroke(); for (let i = 0; i < 200; i++) { const a = rnd() * 7, r = 26 + (rnd() - .5) * 6; x.fillStyle = 'rgba(240,240,230,.8)'; x.fillRect(32 + Math.cos(a) * r, 32 + Math.sin(a) * r, 1, 1); } });
   TX.glassRain = ctex(64, 64, (x, w, h) => { x.clearRect(0, 0, w, h); for (let i = 0; i < 70; i++) { const px = rnd() * w, py = rnd() * h, l = 2 + rnd() * 8; x.fillStyle = 'rgba(210,225,240,.55)'; x.fillRect(px, py, 1, l); x.fillStyle = 'rgba(255,255,255,.8)'; x.fillRect(px, py + l, 1, 1); } }, 10, 3);
-  TX.sign = ctex(256, 48, (x, w, h) => { x.fillStyle = '#101214'; x.fillRect(0, 0, w, h); x.fillStyle = '#c9cdd2'; x.font = '700 28px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('БЦ  «ГОРИЗОНТ»', w / 2, h / 2 + 1); });
-  TX.signOut = ctex(256, 48, (x, w, h) => { x.fillStyle = '#0a0b0c'; x.fillRect(0, 0, w, h); x.fillStyle = '#e8eef5'; x.shadowColor = '#9fd0ff'; x.shadowBlur = 8; x.font = '700 30px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('ГОРИЗОНТ', w / 2, h / 2 + 1); });
-  TX.guardSign = ctex(64, 16, (x, w, h) => { x.fillStyle = '#7a1414'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = '700 11px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('ОХРАНА', w / 2, h / 2 + 1); });
-  TX.exit = ctex(32, 16, (x, w, h) => { x.fillStyle = '#0f6b2c'; x.fillRect(0, 0, w, h); x.fillStyle = '#d8ffe0'; x.font = '700 10px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('ВЫХОД', w / 2, h / 2 + 1); });
-  TX.poster = ctex(32, 48, (x, w, h) => { x.fillStyle = '#d8d2c0'; x.fillRect(0, 0, w, h); x.fillStyle = '#7a1414'; x.fillRect(0, 0, w, 10); x.fillStyle = '#222'; for (let i = 0; i < 8; i++) x.fillRect(4, 14 + i * 4, 10 + rnd() * 14, 1); x.fillStyle = '#333'; x.font = '700 6px Arial'; x.fillText('ПРАВИЛА', 4, 7); });
+  TX.sign = ctex(256, 48, (x, w, h) => { x.fillStyle = '#101214'; x.fillRect(0, 0, w, h); x.fillStyle = '#c9cdd2'; x.font = '700 28px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('БЦ  «ГОРИЗОНТ»'), w / 2, h / 2 + 1); });
+  TX.signOut = ctex(256, 48, (x, w, h) => { x.fillStyle = '#0a0b0c'; x.fillRect(0, 0, w, h); x.fillStyle = '#e8eef5'; x.shadowColor = '#9fd0ff'; x.shadowBlur = 8; x.font = '700 30px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ГОРИЗОНТ'), w / 2, h / 2 + 1); });
+  TX.guardSign = ctex(64, 16, (x, w, h) => { x.fillStyle = '#7a1414'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = '700 11px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ОХРАНА'), w / 2, h / 2 + 1); });
+  TX.exit = ctex(32, 16, (x, w, h) => { x.fillStyle = '#0f6b2c'; x.fillRect(0, 0, w, h); x.fillStyle = '#d8ffe0'; x.font = '700 10px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ВЫХОД'), w / 2, h / 2 + 1); });
+  TX.poster = ctex(32, 48, (x, w, h) => { x.fillStyle = '#d8d2c0'; x.fillRect(0, 0, w, h); x.fillStyle = '#7a1414'; x.fillRect(0, 0, w, 10); x.fillStyle = '#222'; for (let i = 0; i < 8; i++) x.fillRect(4, 14 + i * 4, 10 + rnd() * 14, 1); x.fillStyle = '#333'; x.font = '700 6px Arial'; x.fillText(tr('ПРАВИЛА'), 4, 7); });
   TX.note = noteTex();
   TX.keys = null;
   TX.wood = ctex(32, 32, (x, w, h) => { x.fillStyle = '#4b3524'; x.fillRect(0, 0, w, h); for (let i = 0; i < 24; i++) { x.fillStyle = `rgba(${rnd() < .5 ? '0,0,0' : '255,210,160'},${.08 * rnd()})`; x.fillRect(0, rnd() * h, w, 1); } }, 2, 1);
@@ -163,10 +164,10 @@ function makeTextures2() {
   // плёночные буквы снаружи: изнутри читаются зеркально — так сразу видно, что между нами стекло
   TX.logo = ctex(512, 96, (x, w, h) => {
     x.clearRect(0, 0, w, h); x.fillStyle = 'rgba(236,240,244,.95)'; x.textAlign = 'center'; x.textBaseline = 'middle';
-    x.font = '700 54px Arial'; x.fillText('ГОРИЗОНТ', w / 2, 38); x.font = '700 20px Arial'; x.fillText('Б И З Н Е С - Ц Е Н Т Р', w / 2, 80);
+    x.font = '700 54px Arial'; x.fillText(tr('ГОРИЗОНТ'), w / 2, 38); x.font = '700 20px Arial'; x.fillText(tr('Б И З Н Е С - Ц Е Н Т Р'), w / 2, 80);
   });
   TX.logo.wrapS = TX.logo.wrapT = T.ClampToEdgeWrapping;
-  TX.sticker = ctex(64, 32, (x, w, h) => { x.clearRect(0, 0, w, h); x.fillStyle = 'rgba(240,240,236,.92)'; x.fillRect(2, 4, w - 4, h - 8); x.fillStyle = '#9a1818'; x.font = '700 12px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('ОТ СЕБЯ', w / 2, h / 2 + 1); });
+  TX.sticker = ctex(64, 32, (x, w, h) => { x.clearRect(0, 0, w, h); x.fillStyle = 'rgba(240,240,236,.92)'; x.fillRect(2, 4, w - 4, h - 8); x.fillStyle = '#9a1818'; x.font = '700 12px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ОТ СЕБЯ'), w / 2, h / 2 + 1); });
   TX.sticker.wrapS = TX.sticker.wrapT = T.ClampToEdgeWrapping;
   TX.fogBreath = ctex(64, 32, (x, w, h) => { x.clearRect(0, 0, w, h); soft(x, w / 2, h / 2, 30, 15, .95, '235,240,245'); for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(255,255,255,${.3 * rnd()})`; x.fillRect(w / 2 + (rnd() - .5) * 44, h / 2 + (rnd() - .5) * 20, 1, 1); } });
   TX.fogBreath.magFilter = T.LinearFilter; TX.fogBreath.wrapS = TX.fogBreath.wrapT = T.ClampToEdgeWrapping;
@@ -200,12 +201,12 @@ function makeTextures2() {
     x.fillStyle = '#e8c018'; x.fillRect(0, 0, w, h); x.fillStyle = '#141414'; x.fillRect(0, 0, w, 2); x.fillRect(0, h - 2, w, 2);
     x.beginPath(); x.moveTo(16, 6); x.lineTo(28, 26); x.lineTo(4, 26); x.closePath(); x.lineWidth = 2; x.strokeStyle = '#141414'; x.stroke();
     x.fillRect(15, 12, 2, 8); x.fillRect(15, 22, 2, 2);
-    x.font = '700 6px Arial'; x.textAlign = 'center'; x.fillText('ОСТОРОЖНО', 16, 35); x.fillText('МОКРЫЙ', 16, 41); x.fillText('ПОЛ', 16, 47);
+    x.font = '700 6px Arial'; x.textAlign = 'center'; x.fillText(tr('ОСТОРОЖНО'), 16, 35); x.fillText(tr('МОКРЫЙ'), 16, 41); x.fillText(tr('ПОЛ'), 16, 47);
   });
   TX.clock = ctex(64, 64, (x, w, h) => {
     x.fillStyle = '#0d0d0d'; x.beginPath(); x.arc(32, 32, 32, 0, 7); x.fill(); x.fillStyle = '#e6e2d6'; x.beginPath(); x.arc(32, 32, 28, 0, 7); x.fill();
     x.fillStyle = '#1a1a1a'; for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; x.save(); x.translate(32, 32); x.rotate(a); x.fillRect(-1, -26, 2, i % 3 ? 4 : 7); x.restore(); }
-    x.font = '700 6px Arial'; x.textAlign = 'center'; x.fillText('СЛАВА', 32, 44);
+    x.font = '700 6px Arial'; x.textAlign = 'center'; x.fillText(tr('СЛАВА'), 32, 44);
   });
   TX.clock.wrapS = TX.clock.wrapT = T.ClampToEdgeWrapping;
   TX.badge = badgeTex(false); TX.badgeX = badgeTex(true);
@@ -214,12 +215,12 @@ function makeTextures2() {
 function badgeTex(scratched) {
   return ctex(64, 48, (x, w, h) => {
     x.fillStyle = '#e8e6df'; x.fillRect(0, 0, w, h); x.fillStyle = '#1d3a7a'; x.fillRect(0, 0, w, 10);
-    x.fillStyle = '#fff'; x.font = '700 7px Arial'; x.fillText('ПРОПУСК', 4, 8);
+    x.fillStyle = '#fff'; x.font = '700 7px Arial'; x.fillText(tr('ПРОПУСК'), 4, 8);
     x.fillStyle = '#7d8a96'; x.fillRect(4, 14, 20, 26);
     x.fillStyle = '#d8c0b0'; x.beginPath(); x.ellipse(14, 26, 6, 8, 0, 0, 7); x.fill();
     x.fillStyle = '#e8e8e2'; x.fillRect(8, 17, 12, 3); x.fillRect(9, 29, 10, 6);
     x.fillStyle = '#222'; x.fillRect(9, 24, 4, 2); x.fillRect(15, 24, 4, 2); x.fillRect(13, 24, 2, 1);
-    x.fillStyle = '#1b1b1b'; x.font = '700 7px Arial'; x.fillText('МИХАЙЛОВ', 27, 21); x.font = '6px Arial'; x.fillText('В. М.', 27, 29); x.fillText('охрана', 27, 37);
+    x.fillStyle = '#1b1b1b'; x.font = '700 7px Arial'; x.fillText(tr('МИХАЙЛОВ'), 27, 21); x.font = '6px Arial'; x.fillText(tr('В. М.'), 27, 29); x.fillText(tr('охрана'), 27, 37);
     if (scratched) { x.strokeStyle = 'rgba(20,20,20,.9)'; x.lineWidth = 1.5; for (let i = 0; i < 9; i++) { x.beginPath(); x.moveTo(4 + rnd() * 20, 14 + rnd() * 6); x.lineTo(4 + rnd() * 20, 34 + rnd() * 6); x.stroke(); } }
   });
 }
@@ -229,12 +230,12 @@ function noteTex() {
     x.fillStyle = '#e4dcc4'; x.fillRect(0, 0, w, h);
     for (let i = 0; i < 400; i++) { x.fillStyle = `rgba(120,100,60,${.08 * rnd()})`; x.fillRect(rnd() * w, rnd() * h, 2, 2); }
     x.strokeStyle = 'rgba(80,110,160,.25)'; for (let y = 34; y < h; y += 16) { x.beginPath(); x.moveTo(8, y + .5); x.lineTo(w - 8, y + .5); x.stroke(); }
-    x.fillStyle = '#1d1d22'; x.font = '700 15px "Courier New", monospace'; x.fillText('ПРАВИЛА СМЕНЫ', 22, 24);
+    x.fillStyle = '#1d1d22'; x.font = '700 15px "Courier New", monospace'; x.fillText(tr('ПРАВИЛА СМЕНЫ'), 22, 24);
     x.font = '700 11px "Courier New", monospace';
     const L = ['1. В 03:00 НА 7 ЭТАЖЕ', '   ВКЛЮЧИТСЯ СВЕТ.', '   НЕ ПОДНИМАЙСЯ.', '2. ЛИФТ ПРИЕХАЛ САМ —', '   НЕ ЗАХОДИ.', '3. ПОСЛЕ ПОЛУНОЧИ', '   НИКОГО НЕ ВПУСКАЙ.', '4. КАМЕРУ 13', '   НЕ ВКЛЮЧАЙ.'];
-    L.forEach((s, i) => x.fillText(s, 12, 46 + i * 16));
+    L.forEach((s, i) => x.fillText(tr(s), 12, 46 + i * 16));
     x.save(); x.translate(20, 212); x.rotate(-.06); x.fillStyle = '#1b2f8a'; x.font = 'italic 700 14px "Comic Sans MS", cursive';
-    x.fillText('Третье правило — ложь.', 0, 0); x.fillText('Впусти её.   — М.', 8, 18); x.restore();
+    x.fillText(tr('Третье правило — ложь.'), 0, 0); x.fillText(tr('Впусти её.   — М.'), 8, 18); x.restore();
     x.strokeStyle = 'rgba(160,20,20,.7)'; x.lineWidth = 2; x.beginPath(); x.moveTo(10, 140); x.lineTo(150, 142); x.stroke();
   });
 }

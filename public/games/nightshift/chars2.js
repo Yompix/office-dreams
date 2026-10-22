@@ -1,4 +1,7 @@
-/* Персонажи v2: настоящие 3D-люди со скелетом и анимациями (модели Quaternius, лицензия CC0, папка models/).
+/* Персонажи: настоящие 3D-люди со скелетом и анимациями.
+   v3 (основные): люди MakeHuman (CC0) — models/<имя>.glb, собираются tools/chars/build.sh: кожа, глаза, волосы, одежда
+   и 53 лицевые формы (моргание, взгляд, брови, улыбка, страх, виземы речи). Клипы движений — из models/male.glb (Quaternius, CC0).
+   v2 (запасные, если v3 не загрузились): модели Quaternius, одежда шейдером по телу.
    Одежду рисуем шейдером прямо по телу (рубашка, брюки, плащ, ботинки по зонам тела), лицо живое: рот открывается по голосу,
    глаза моргают, у Жильца пустые глаза и улыбка до ушей. Анимации: стоять, говорить, сидеть, идти, пятиться, зомби-стойка;
    руки для «стучит», «отдаёт ключи», «держит листок», «тянется» доворачиваются кодом поверх анимации.
@@ -6,26 +9,33 @@
    Если модели не загрузились, остаются старые персонажи из блоков. */
 (() => {
 'use strict';
+const tr = window.tr || (s => s);
 const { T, rnd, lerp, clamp, mat, box, cyl, SNAP, CINE, litMat } = window.__W3core;
 const FILES = ['male', 'female', 'Hair_Beard', 'Hair_Long', 'Hair_SimpleParted', 'Hair_Buzzed'];
 const G = {}, CLIP = {};
+const HUMANS = ['ethan', 'frank', 'gus', 'dayguard', 'lily', 'tenant'];
+let V3 = false, QW = null;   // v3 загрузились; мировые повороты костей Quaternius в покое
 
 // XHR, а не fetch: так модели читаются и в Android-приложении (file://)
 const get = url => new Promise((ok, no) => { const x = new XMLHttpRequest(); x.open('GET', url); x.responseType = 'arraybuffer'; x.onload = () => (x.status === 200 || x.status === 0) && x.response ? ok(x.response) : no(); x.onerror = no; x.send(); });
 async function load(onFile) {
   if (!window.THREE_GLTFLoader || !window.THREE_SkeletonUtils) return false;
   const L = new window.THREE_GLTFLoader();
-  try {
-    // каждый файл — со второй попыткой: один сбой сети не должен откатывать всех людей к блочным
-    const url = n => 'models/' + n + '.glb?v=1';
-    await Promise.all(FILES.map(n => get(url(n)).catch(() => get(url(n))).then(b => new Promise((ok, no) => L.parse(b, '', g => { G[n] = g; if (onFile) onFile(); ok(); }, no)))));
-  } catch (e) { console.warn('models', e); return false; }
+  if (window.MeshoptDecoder) { try { await window.MeshoptDecoder.ready; L.setMeshoptDecoder(window.MeshoptDecoder); } catch (e) { console.warn('meshopt', e); } }
+  // каждый файл — со второй попыткой: один сбой сети не должен откатывать всех людей к запасным
+  const url = n => 'models/' + n + '.glb?v=' + (HUMANS.includes(n) ? 3 : 1);
+  const one = n => get(url(n)).catch(() => get(url(n))).then(b => new Promise((ok, no) => L.parse(b, '', g => { G[n] = g; if (onFile) onFile(); ok(); }, no)));
+  try { await Promise.all(['male', ...HUMANS].map(one)); V3 = !!window.MeshoptDecoder; }
+  catch (e) { console.warn('models v3', e); V3 = false; }
+  if (!V3) { try { await Promise.all(FILES.filter(n => !G[n]).map(one)); } catch (e) { console.warn('models', e); return false; } }
   for (const c of G.male.animations) {
-    // только повороты костей (+ высота таза): так одна анимация подходит и мужчине, и женщине, и вытянутому Жильцу
+    // только повороты костей (+ высота таза): так одна анимация подходит всем — и мужчине, и женщине, и вытянутому Жильцу
     c.tracks = c.tracks.filter(t => t.name.endsWith('.quaternion') || t.name === 'pelvis.position');
     CLIP[c.name] = c;
   }
-  window.__W3chars.cast = cast; window.__W3chars.v2 = true;
+  if (V3) { G.male.scene.updateMatrixWorld(true); QW = {}; G.male.scene.traverse(n => { if (n.isBone) QW[n.name] = n.getWorldQuaternion(new T.Quaternion()); });
+    QW.pelvisZ = G.male.scene.getObjectByName('pelvis').position.z; }
+  window.__W3chars.cast = cast; window.__W3chars.v2 = true; window.__W3chars.v3 = V3;
   return true;
 }
 
@@ -425,7 +435,7 @@ function decal() {
   if (DECAL) return DECAL;
   const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g = c.getContext('2d');
   g.fillStyle = '#000'; g.fillRect(0, 0, 256, 128); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.font = 'bold 52px Arial, Helvetica, sans-serif'; g.fillText('ОХРАНА', 128, 34, 240); g.font = 'bold 44px Arial, Helvetica, sans-serif'; g.fillText('КЛИНИНГ', 128, 96, 196);
+  g.font = 'bold 52px Arial, Helvetica, sans-serif'; g.fillText(tr('ОХРАНА'), 128, 34, 240); g.font = 'bold 44px Arial, Helvetica, sans-serif'; g.fillText(tr('КЛИНИНГ'), 128, 96, 196);
   DECAL = new T.CanvasTexture(c); DECAL.magFilter = T.NearestFilter;
   return DECAL;
 }
@@ -466,11 +476,23 @@ function makeSkinned(o) {
   if (o.monster) { C.brows.visible = false; }
   // пропорции: рост, худоба, длинные руки
   const s = (o.h || 1.8) / (o.fem ? 1.77 : 1.81);
-  inner.scale.setScalar(s);   // только равномерно: иначе кости перекашиваются; худобу делает шейдер (uThin)
+  C.ss = s; inner.scale.setScalar(s);   // только равномерно: иначе кости перекашиваются; худобу делает шейдер (uThin)
   if (o.arm) for (const b of ['upperarm_l', 'upperarm_r']) C.bone[b].scale.setScalar(o.arm);
   if (o.armL) for (const b of ['lowerarm_l', 'lowerarm_r']) C.bone[b].scale.setScalar(o.armL);
   if (o.handS) for (const b of ['hand_l', 'hand_r']) C.bone[b].scale.setScalar(o.handS);
   if (o.neck) { C.bone.neck_01.scale.setScalar(o.neck); C.bone.Head.scale.setScalar((o.headS || 1) / o.neck); }
+  addProps(C);
+  // анимации
+  C.mixer = new T.AnimationMixer(sc); C.act = null; C.clip = '';
+  C.addFace = (nm, ov) => { C.faceSets[nm] = ov; };
+  C.update = (t, dt) => updateSkinned(C, t, dt);
+  fitProps(C);
+  return C;
+}
+
+// кепка, очки, пряди, предметы в руке, швабра — общие для v2 и v3
+function addProps(C) {
+  const o = C.o, root = C.root;
   // кепка и очки — простые детали на кости головы
   const head = C.bone.Head;
   if (o.cap) {   // фуражка охранника: тулья шире околыша, чёрный козырёк, кокарда
@@ -501,12 +523,6 @@ function makeSkinned(o) {
     for (let i = 0; i < 9; i++) { const f = box(.035, .025, .16, mat(0xb8b4a8), -.16 + i * .04, .012, .02, mp); f.rotation.y = (rnd() - .5) * .5; }
     mp.visible = false; C.mop = mp;
   }
-  // анимации
-  C.mixer = new T.AnimationMixer(sc); C.act = null; C.clip = '';
-  C.addFace = (nm, ov) => { C.faceSets[nm] = ov; };
-  C.update = (t, dt) => updateSkinned(C, t, dt);
-  fitProps(C);
-  return C;
 }
 
 // где держать предметы и как ставить голову/кепку/очки — подгоняется один раз по позе «Т» (первый кадр)
@@ -517,16 +533,18 @@ function fitProps(C) {
   head.getWorldQuaternion(q); const inv = q.clone().invert();
   const toLocal = (wx, wy, wz) => { const v = new T.Vector3(wx, wy, wz); head.worldToLocal(v); return v; };
   head.getWorldPosition(hw);
-  const s = C.inner.scale.y;
-  if (C.capG) { C.capG.position.copy(toLocal(hw.x, hw.y + .2 * s, hw.z + .005 * s)); C.capG.quaternion.copy(inv).multiply(C.root.getWorldQuaternion(new T.Quaternion())); }
+  const s = C.ss;
+  if (C.capG && C.v3) { C.capG.position.copy(toLocal(hw.x, C.H - .045, (C.eyeZ ?? hw.z + .09) - .088)); C.capG.quaternion.copy(inv).multiply(C.root.getWorldQuaternion(new T.Quaternion())); }
+  else if (C.capG) { C.capG.position.copy(toLocal(hw.x, hw.y + .2 * s, hw.z + .005 * s)); C.capG.quaternion.copy(inv).multiply(C.root.getWorldQuaternion(new T.Quaternion())); }
   const rootQ = C.root.getWorldQuaternion(new T.Quaternion());
   const put = (obj, bone, wx, wy, wz) => { const b = C.bone[bone]; b.add(obj); const v = new T.Vector3(wx, wy, wz); b.worldToLocal(v); obj.position.copy(v); obj.quaternion.copy(b.getWorldQuaternion(new T.Quaternion()).invert().multiply(rootQ)); };
-  const ss = C.inner.scale.y;
+  const ss = C.ss;
   if (C.skirt) skinSkirt(C, ss * (C.o.fem ? .978 : 1));
   if (C.hood) put(C.hood, 'Head', hw.x, hw.y + .085 * ss, hw.z - .01 * ss);
   if (C.veilG) put(C.veilG, 'Head', hw.x, hw.y + .175 * ss, hw.z + .1 * ss);
   if (C.glassG) { C.glassG.position.copy(toLocal(hw.x, hw.y + .095 * s, hw.z + .105 * s)); C.glassG.quaternion.copy(inv).multiply(C.root.getWorldQuaternion(new T.Quaternion())); }
   C.headFwd = new T.Vector3(0, 0, 1).applyQuaternion(inv);
+  C.headUp = new T.Vector3(0, 1, 0).applyQuaternion(inv); C.headLeft = new T.Vector3(1, 0, 0).applyQuaternion(inv);
   const hand = C.bone.hand_r, hq = new T.Quaternion(); hand.getWorldQuaternion(hq);
   C.prop.quaternion.copy(hq.invert()).multiply(C.root.getWorldQuaternion(new T.Quaternion()));
   C.prop.position.set(0, 0, 0);
@@ -594,12 +612,13 @@ function smokeProps(C) {
 }
 const _m1 = new T.Vector3(), _m2 = new T.Vector3(), _m3 = new T.Vector3();
 function mouthPt(C) {   // рот в осях персонажа
-  const h = C.bone.Head, q = h.getWorldQuaternion(new T.Quaternion()), p = h.getWorldPosition(new T.Vector3()), s = C.inner.scale.y;
+  if (C.mouthL) return C.root.worldToLocal(C.bone.Head.localToWorld(C.mouthL.clone()));
+  const h = C.bone.Head, q = h.getWorldQuaternion(new T.Quaternion()), p = h.getWorldPosition(new T.Vector3()), s = C.ss;
   const fw = C.headFwd.clone().applyQuaternion(q), up = new T.Vector3(0, 1, 0).applyQuaternion(q);
   p.addScaledVector(fw, .095 * s).addScaledVector(up, .035 * s); return C.root.worldToLocal(p);
 }
 function smokeArms(C, t, tt) {
-  smokeProps(C); const ss = C.inner.scale.y, m = mouthPt(C), lit = t > 4.45 || t >= 99;
+  smokeProps(C); const ss = C.ss, m = mouthPt(C), lit = t > 4.45 || t >= 99;
   const lerp3 = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)], sk = k => k * k * (3 - 2 * k);
   const pockR = [-.2 * ss, .95 * ss, .07 * ss], chest = [-.1 * ss, 1.33 * ss, .16 * ss], pockL = [.2 * ss, .95 * ss, .07 * ss], rest = [-.21 * ss, .88 * ss, .08 * ss], restL = [.21 * ss, .88 * ss, .06 * ss];
   const atMouth = [m.x - .02, m.y - .03, m.z + .02], hold = [-.1 * ss, 1.22 * ss, .27 * ss];
@@ -705,7 +724,7 @@ function updateSkinned(C, t, dt) {
   if (talking && P === 'sit') want = POSE.sittalk;
   if (C.o.monster && P === 'walk') want = 'Zombie_Walk_Fwd_Loop';
   if (want !== C.clip) {
-    const a = C.mixer.clipAction(CLIP[want] || CLIP.Idle_Loop);
+    const CL = C.clips || CLIP, a = C.mixer.clipAction(CL[want] || CL.Idle_Loop);
     a.reset();
     if (C.act && dt < .2) { a.play(); C.act.crossFadeTo(a, .35, false); } else { C.mixer.stopAllAction(); a.play(); }
     if (!C.act) a.time = (C.t0 * 1.7) % (a.getClip().duration || 1);
@@ -719,7 +738,7 @@ function updateSkinned(C, t, dt) {
   // шаг под скорость: ноги идут ровно с той скоростью, с какой человек движется по полу (иначе «плывёт» или шагает на месте)
   let stride = 1;
   if ((P === 'walk' || P === 'back' || P === 'weak') && !C.o.monster) {
-    const p = C.root.position, base = 1.03 * C.inner.scale.y;
+    const p = C.root.position, base = 1.03 * C.ss;
     if (C.prevP && dt > 0) { const v = Math.hypot(p.x - C.prevP.x, p.z - C.prevP.z) / dt; C.walkV = C.walkV == null ? v : C.walkV + (v - C.walkV) * Math.min(1, dt * 8); }
     (C.prevP || (C.prevP = new T.Vector3())).copy(p);
     stride = C.walkV == null ? 1 : clamp(C.walkV / base, 0, 1.9);
@@ -732,7 +751,7 @@ function updateSkinned(C, t, dt) {
   // ноги: у базовой анимации стойка «борца» (ступни широко) — сводим ступни под бёдра, подошва остаётся на полу
   const STAT = { stand: 1, talk: 1, knock: 1, give: 1, paper: 1, reach: 1, hug: 1, mop: 1, slam: 1 };
   if (STAT[P] && !C.o.monster) {
-    const ss = C.inner.scale.y;
+    const ss = C.ss;
     for (const [sd, sx] of [['l', 1], ['r', -1]]) {
       const ft = C.bone['foot_' + sd]; ft.updateWorldMatrix(true, false); const fq = ft.getWorldQuaternion(new T.Quaternion());
       const fp = C.root.worldToLocal(ft.getWorldPosition(new T.Vector3()));
@@ -744,7 +763,7 @@ function updateSkinned(C, t, dt) {
   // руки поверх анимации
   if (P === 'knock' || P === 'slam') {
     // стук в стекло: левая ладонь лежит на стекле, правая рука кулаком стучит сериями по три удара, корпус чуть к стеклу
-    const ss = C.inner.scale.y, gz = (C.glassD ?? .42), ph = tt % 1.9;
+    const ss = C.ss, gz = (C.glassD ?? .42), ph = tt % 1.9;
     let hit = 0; for (const p0 of [0, .24, .48]) hit = Math.max(hit, Math.exp(-Math.pow((ph - p0 - .05) / .055, 2)));
     if (P === 'slam') hit = Math.min(1, .5 + .5 * Math.sin(tt * 2.3));
     aimBone(C, 'spine_02', 'spine_03', [0, 1, .14], .7);
@@ -761,7 +780,7 @@ function updateSkinned(C, t, dt) {
     C.knockHit = hit;
   } else if (P === 'mop') {
     // моет пол шваброй: корпус наклонён, руки на черенке, швабра ходит дугой перед ногами
-    const ss = C.inner.scale.y, sw = Math.sin(tt * 2.1), sw2 = Math.cos(tt * 2.1);
+    const ss = C.ss, sw = Math.sin(tt * 2.1), sw2 = Math.cos(tt * 2.1);
     aimBone(C, 'spine_01', 'spine_02', [sw * .12, 1, .32], .8); aimBone(C, 'spine_02', 'spine_03', [sw * .1, 1, .25], .7);
     const hx = sw * .45, hz = .78 + sw2 * .07;   // где тряпка на полу
     const D = new T.Vector3(-.1 - hx, 1.1 * ss - .02, .22 - hz).normalize();   // черенок от тряпки к правой руке
@@ -885,10 +904,231 @@ function updateSkinned(C, t, dt) {
   U.uGore.value = C.gore || 0;
   if (C.cig && P !== 'smoke') { C.cig.visible = C.lighter.visible = false; C.puffs.forEach(s => (s.visible = false)); C.lighterOn = 0; }
   C.keys.visible = P === 'give'; C.paper.visible = P === 'paper' || P === 'sitpaper'; if (C.mop && P !== 'mop') C.mop.visible = false;
+  if (C.v3) faceV3(C, tt, dt);
+}
+
+/* ---------- люди v3 (MakeHuman, CC0): материалы, сборка, мимика ---------- */
+// материал части тела: текстура из модели (в «Кино» — PBR с картой нормалей у ткани и волос).
+// Кожа и ткань знают мокрость (темнее и блестит), серость (неживое), кровь и тёмные глазницы.
+// vB — точка тела в позе покоя в метрах (uQ переводит сжатые координаты meshopt в метры), поэтому пятна не «плывут» при движении
+const LUMA = 'dot(diffuseColor.rgb, vec3(.3, .59, .11))';
+function humanMat(C, n, kind, Q) {
+  const o = C.o, src = n.material, cut = kind === 'brows' || kind === 'lashes' || kind === 'hair' || (kind === 'eyes' && o.deadEyes == null), cloth = kind.startsWith('cloth');
+  const R = { skin: .5, eyes: .06, brows: .85, lashes: .85, teeth: .3, tongue: .4, hair: .5 }[kind] ?? .86;
+  let tint = null; for (const k in (o.tint || {})) if (kind === k || kind.includes(k)) tint = o.tint[k];
+  const p = { map: src.map || null };
+  if (typeof tint === 'number') p.color = tint;
+  if (kind === 'eyes' && o.eyeC != null) p.color = o.eyeC;
+  if (kind === 'eyes' && o.deadEyes != null) { p.map = null; p.color = o.deadEyes; }
+  if (kind === 'teeth') p.color = o.monster ? 0x8a8070 : 0xd8d0c2;
+  if (CINE && src.normalMap && (cloth || kind === 'hair')) p.normalMap = src.normalMap;
+  if (cut) Object.assign(p, kind === 'eyes' ? { alphaTest: .3 } : { alphaTest: kind === 'hair' ? .3 : .25, side: T.DoubleSide });   // глаз: внешняя роговица прозрачная — иначе радужку не видно
+  const m = ps1(litMat(p, R));
+  if (CINE && cut && kind !== 'eyes') m.alphaToCoverage = true;
+  if (CINE && kind === 'eyes') m.envMapIntensity = .9;
+  const re = Array.isArray(tint) ? tint : null, U = Object.assign({}, C.HU, { uQ: { value: Q }, uTint: { value: new T.Color(re ? re[0] : 0xffffff) }, uGain: { value: re ? re[1] : 1 } });
+  const snap = m.onBeforeCompile;
+  m.onBeforeCompile = sh => {
+    snap(sh); Object.assign(sh.uniforms, U);
+    sh.vertexShader = 'uniform mat4 uQ;\nvarying vec3 vB;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vB = (uQ * vec4(position, 1.)).xyz;');
+    sh.fragmentShader = `uniform vec3 uTint, uGoreP, uEyeL3, uEyeR3; uniform float uGain, uGrey, uWet, uGore, uSocket, uH;
+varying vec3 vB;
+float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+  ${re ? `diffuseColor.rgb = vec3(${LUMA}) * uTint * uGain;` : ''}
+  ${kind === 'skin' ? `{ float s = smoothstep(.04, .012, length(vB - uEyeL3)) + smoothstep(.04, .012, length(vB - uEyeR3)); diffuseColor.rgb *= 1. - .9 * uSocket * clamp(s, 0., 1.); }` : ''}
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(${LUMA}) * vec3(.8, .85, .9), uGrey);
+  diffuseColor.rgb *= 1. - .22 * uWet;
+  float gore = 0.;
+  if (uGore > 0.) {
+    vec3 d = (vB - uGoreP) / uH; float nz = hh3(floor(vB * 90.));
+    float blob = smoothstep(.16, .05, length(d * vec3(1., .6, 1.5)) + (nz - .5) * .05);
+    float drip = step(.7, hh3(vec3(floor(vB.x * 50.), 1., floor(vB.z * 50.)))) * step(d.y, 0.) * smoothstep(-.45, -.1, d.y) * smoothstep(.2, .1, length(d.xz));
+    gore = uGore * max(blob, drip);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.2, .012, .012), clamp(gore * 1.4, 0., .95)); }`)
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, .2, max(uWet * .75, gore));');
+  };
+  m.customProgramCacheKey = () => 'hum3' + (kind === 'skin' ? 's' : '') + (re ? 'r' : '') + (CINE ? 'c' : '');
+  return m;
+}
+
+// виземы речи: открытые (гласные) и закрытые/узкие (согласные)
+const VOPEN = ['viseme_aa', 'viseme_O', 'viseme_E', 'viseme_aa', 'viseme_I', 'viseme_U', 'viseme_E'];
+const VSHUT = ['viseme_PP', 'viseme_FF', 'viseme_SS', 'viseme_DD', 'viseme_nn', 'viseme_kk', 'viseme_TH', 'viseme_CH', 'viseme_RR'];
+const CLIPS3 = {};   // клипы с высотой таза под рост модели
+function clipsFor(k) {
+  const key = k.toFixed(3); if (CLIPS3[key]) return CLIPS3[key];
+  const out = {};
+  for (const nm in CLIP) {
+    const c = CLIP[nm]; if (!c.tracks.some(t => t.name === 'pelvis.position')) { out[nm] = c; continue; }
+    const cc = c.clone(); for (const t of cc.tracks) if (t.name === 'pelvis.position') for (let i = 0; i < t.values.length; i++) t.values[i] *= k;
+    out[nm] = cc;
+  }
+  return (CLIPS3[key] = out);
+}
+const _qa = new T.Quaternion(), _ma = new T.Matrix4(), _va = new T.Vector3();
+function makeHuman(o) {
+  const sc = window.THREE_SkeletonUtils.clone(G[o.model].scene);
+  const root = new T.Group(); root.name = o.name;
+  const inner = new T.Group(); inner.add(sc); root.add(inner);
+  const C = { root, inner, o, bone: {}, pose: 'stand', look: null, talk: 0, blinkT: 1 + rnd() * 3, t0: rnd() * 10, faceSet: 'base', faceSets: { base: 1 }, rest: {}, v3: true, M: [] };
+  root.updateMatrixWorld(true);
+  const meshes = [], bones = [];
+  sc.traverse(n => { if (n.isSkinnedMesh) meshes.push(n); if (n.isBone) { if (n.name === 'head') n.name = 'Head'; if (n.name === 'Root') n.name = 'root'; bones.push(n); } });
+  // матрицы кожи в покое (кость × обратная привязки) — после «переодевания» скелета сетка должна остаться ровно такой же
+  const rest = meshes.map(n => n.skeleton.bones.map((b, i) => b.matrixWorld.clone().multiply(n.skeleton.boneInverses[i])));
+  // кости MakeHuman получают повороты покоя костей Quaternius — и клипы Quaternius встают как есть (оси пальцев, кулак, стук — тоже)
+  for (const b of bones) { const w = QW[b.name]; if (!w) continue; b.parent.getWorldQuaternion(_qa).invert(); b.quaternion.copy(_qa.multiply(w)); b.updateMatrixWorld(true); }
+  meshes.forEach((n, j) => { n.skeleton.boneInverses = n.skeleton.bones.map((b, i) => b.matrixWorld.clone().invert().multiply(rest[j][i])); });
+  for (const b of bones) { C.bone[b.name] = b; C.rest[b.name] = b.quaternion.clone(); }
+  // мерки в позе покоя (метры): рост, глаза, рот
+  C.HU = { uGrey: { value: o.grey || 0 }, uWet: { value: o.wet || 0 }, uGore: { value: 0 }, uSocket: { value: o.socket || 0 },
+    uGoreP: { value: new T.Vector3() }, uEyeL3: { value: new T.Vector3() }, uEyeR3: { value: new T.Vector3() }, uH: { value: 1 } };
+  const toM = n => rest[meshes.indexOf(n)][0].clone().multiply(n.bindMatrix);   // сжатые координаты → метры
+  const part = {};
+  for (const n of meshes) {
+    n.frustumCulled = false;
+    const kind = n.name; part[kind.startsWith('cloth') ? kind : kind] = n;
+    const Q = toM(n);
+    n.material = humanMat(C, n, kind, Q);
+    if (n.morphTargetInfluences) { n.morphTargetInfluences.fill(0); C.M.push(n); }
+    n.userData.Q = Q;
+  }
+  C.mesh = part.skin; C.brows = part.brows; C.lashes = part.lashes; C.hairM = part.hair;
+  const bbox = n => n.geometry.boundingBox || (n.geometry.computeBoundingBox(), n.geometry.boundingBox);
+  const sb = bbox(C.mesh).clone().applyMatrix4(C.mesh.userData.Q); C.H = sb.max.y;
+  if (part.eyes) {   // центры глаз (для тёмных глазниц) — среднее вершин слева и справа
+    const pa = part.eyes.geometry.attributes.position, Qe = part.eyes.userData.Q, L = new T.Vector3(), Rr = new T.Vector3(); let nl = 0, nr = 0;
+    for (let i = 0; i < pa.count; i++) { _va.fromBufferAttribute(pa, i).applyMatrix4(Qe); if (_va.x > 0) { L.add(_va); nl++; } else { Rr.add(_va); nr++; } }
+    C.HU.uEyeL3.value.copy(L.divideScalar(nl || 1)); C.HU.uEyeR3.value.copy(Rr.divideScalar(nr || 1));
+    C.eyeZ = (C.HU.uEyeL3.value.z + C.HU.uEyeR3.value.z) / 2; C.eyeY = (C.HU.uEyeL3.value.y + C.HU.uEyeR3.value.y) / 2;
+  }
+  if (part.teeth) { const tb = bbox(part.teeth).clone().applyMatrix4(part.teeth.userData.Q);   // рот: перед верхних зубов
+    const mw = new T.Vector3((tb.min.x + tb.max.x) / 2, tb.min.y + (tb.max.y - tb.min.y) * .55, tb.max.z + .006);
+    C.mouthW = mw.clone(); C.mouthL = C.bone.Head.worldToLocal(mw.clone()); }
+  C.HU.uH.value = C.H / 1.8;
+  // кровь: у жертвы — горло и грудь; у Жильца — рот, подбородок, грудь
+  const neck = C.bone.neck_01.getWorldPosition(new T.Vector3());
+  C.HU.uGoreP.value.copy(o.monster && C.mouthW ? C.mouthW.clone().add(new T.Vector3(0, -.08, -.02)) : neck.add(new T.Vector3(0, -.09, .04)));
+  // рост: модель уже в настоящий размер; Жилец — вытягиваем до o.h
+  const sc0 = o.h ? o.h / C.H : 1; inner.scale.setScalar(sc0);
+  C.ss = (o.h || C.H) / (o.fem ? 1.77 : 1.81);
+  C.clips = clipsFor(C.bone.pelvis.position.z / QW.pelvisZ);
+  if (o.arm) for (const b of ['upperarm_l', 'upperarm_r']) C.bone[b].scale.setScalar(o.arm);
+  if (o.armL) for (const b of ['lowerarm_l', 'lowerarm_r']) C.bone[b].scale.setScalar(o.armL);
+  if (o.handS) for (const b of ['hand_l', 'hand_r']) C.bone[b].scale.setScalar(o.handS);
+  if (o.neck) { C.bone.neck_01.scale.setScalar(o.neck); C.bone.Head.scale.setScalar((o.headS || 1) / o.neck); }
+  if (o.monster) { if (C.brows) C.brows.visible = false; if (C.lashes) C.lashes.visible = false; }
+  C.U = Object.assign({ uTalk: { value: 0 }, uBlink: { value: 0 }, uSmile: { value: 0 }, uScream: { value: 0 } }, C.HU);
+  C.browU = { value: new T.Vector2() };
+  addProps(C);
+  C.mixer = new T.AnimationMixer(sc); C.act = null; C.clip = '';
+  C.addFace = (nm, ov) => { C.faceSets[nm] = ov; };
+  C.update = (t, dt) => updateSkinned(C, t, dt);
+  fitProps(C);
+  return C;
+}
+
+// лицо v3 каждый кадр: моргание, взгляд, брови, речь, улыбка, страх, крик → веса лицевых форм на всех частях (кожа, глаза, ресницы, брови, зубы)
+function faceV3(C, tt, dt) {
+  const o = C.o, U = C.U, fs = C.faceSets[C.faceSet] || {}, W = C.W || (C.W = {});
+  for (const k in W) W[k] = 0;
+  const add = (k, v) => { W[k] = (W[k] || 0) + v; };
+  const live = !o.monster && !o.noBlink && !o.dead;
+  // моргание: веко закрывается за 70 мс, открывается за 120 мс; раз в 2–6 с, иногда дважды подряд
+  if (live) {
+    C.bT = (C.bT ?? 1 + rnd() * 3) - dt;
+    if (C.bT < 0 && C.bK == null) C.bK = 0;
+    if (C.bK != null) { C.bK += dt; if (C.bK > .19) { C.bK = null; C.bT = rnd() < .15 ? .22 : 2 + rnd() * 4; } }
+    const b = C.bK == null ? 0 : C.bK < .07 ? C.bK / .07 : Math.max(0, 1 - (C.bK - .07) / .12);
+    add('eyeBlinkLeft', b); add('eyeBlinkRight', b);
+  }
+  if (o.dead) { add('eyeBlinkLeft', .7); add('eyeBlinkRight', .62); add('jawOpen', .18); }
+  // взгляд: голова почти довернулась к цели — глаза доводят остаток. Живой взгляд держится на цели,
+  // изредка — едва заметный скачок (1–2°); в тревоге — чаще и шире, но без беготни по сторонам
+  if (!o.dead && C.lookDir && C.headFwd) {
+    C.bone.Head.getWorldQuaternion(_qa).invert(); _va.copy(C.lookDir).applyQuaternion(_qa);
+    const f = _va.dot(C.headFwd), left = _va.dot(C.headLeft), up = _va.dot(C.headUp);
+    let yaw = Math.atan2(left, f), pitch = Math.atan2(up, f);
+    if (live) {
+      const dart = fs.dart ? 1 : 0;
+      C.sT = (C.sT ?? .5) - dt;
+      if (C.sT < 0) { C.sT = dart ? .45 + rnd() * .9 : 1.2 + rnd() * 2.6; C.sY = (rnd() - .5) * (dart ? .16 : .045); C.sP = (rnd() - .5) * (dart ? .07 : .025); }
+      const k = Math.min(1, dt * 28); C.cY = lerp(C.cY || 0, C.sY || 0, k); C.cP = lerp(C.cP || 0, C.sP || 0, k);
+      yaw += C.cY; pitch += C.cP;
+    }
+    const Y = clamp(yaw / .6, -.85, .85), P = clamp(pitch / .45, -.8, .8);
+    if (Y > 0) { add('eyeLookOutLeft', Y); add('eyeLookInRight', Y); } else { add('eyeLookInLeft', -Y); add('eyeLookOutRight', -Y); }
+    if (P > 0) { add('eyeLookUpLeft', P); add('eyeLookUpRight', P); } else { add('eyeLookDownLeft', -P); add('eyeLookDownRight', -P); }
+  }
+  // брови: x — подняты, y — домиком (+, тревога, мольба) или сведены (−)
+  const B = C.browU.value;
+  add('browInnerUp', clamp(B.x * .55 + Math.max(0, B.y) * .95, 0, 1));
+  add('browOuterUpLeft', clamp(B.x * .7, 0, 1)); add('browOuterUpRight', clamp(B.x * .7, 0, 1));
+  add('browDownLeft', clamp(-B.y * .9, 0, 1)); add('browDownRight', clamp(-B.y * .9, 0, 1));
+  // речь: громкость голоса открывает челюсть, виземы меняются слогами (гласная — открытая, согласная — узкая/сомкнутая)
+  const m = U.uTalk.value;
+  if (m > .02) {
+    C.vT = (C.vT ?? 0) - dt;
+    if (C.vT <= 0) { C.vT = .065 + rnd() * .085; C.vPrev = C.vCur; C.vCur = m > .3 ? VOPEN[rnd() * VOPEN.length | 0] : VSHUT[rnd() * VSHUT.length | 0]; C.vK = 0; }
+    C.vK = Math.min(1, (C.vK || 0) + dt / .055);
+    const g = Math.min(1, m * 1.5);
+    if (C.vPrev) add(C.vPrev, (1 - C.vK) * g);
+    if (C.vCur) add(C.vCur, C.vK * g);
+    add('jawOpen', m * .22);
+  } else { C.vPrev = C.vCur = null; }
+  // улыбка; у «Лили» за стеклом — шире, чем бывает у людей
+  const sm = Math.max(o.smile || 0, fs.smile ? +fs.smile : 0);
+  if (sm) { add('mouthSmileLeft', Math.min(1, sm)); add('mouthSmileRight', Math.min(1, sm)); add('cheekSquintLeft', .35 * sm); add('cheekSquintRight', .35 * sm);
+    if (sm > 1) { add('mouthStretchLeft', (sm - 1) * 1.6); add('mouthStretchRight', (sm - 1) * 1.6); add('mouthUpperUpLeft', (sm - 1)); add('mouthUpperUpRight', (sm - 1)); } }
+  if (fs.wide) { add('eyeWideLeft', .7); add('eyeWideRight', .7); }
+  if (fs.mouth) add('jawOpen', fs.mouth * .55);
+  if (fs.frown) { add('mouthFrownLeft', fs.frown); add('mouthFrownRight', fs.frown); }
+  if (fs.squint) { add('eyeSquintLeft', fs.squint); add('eyeSquintRight', fs.squint); }
+  // крик / бросок: челюсть до упора (у Жильца — дальше, чем может человек), губы растянуты, нос сморщен
+  const scr = U.uScream.value;
+  if (scr) {
+    add('jawOpen', scr * (o.monster ? 1.75 : 1)); add('mouthStretchLeft', scr * .8); add('mouthStretchRight', scr * .8);
+    add('eyeWideLeft', scr); add('eyeWideRight', scr); add('browInnerUp', scr * .8);
+    if (o.monster) { add('noseSneerLeft', scr * .7); add('noseSneerRight', scr * .7); add('mouthUpperUpLeft', scr * .8); add('mouthUpperUpRight', scr * .8); }
+  }
+  if (o.monster && !scr) { add('mouthStretchLeft', .25); add('mouthStretchRight', .25); add('eyeWideLeft', .5); add('eyeWideRight', .5); }
+  for (const n of C.M) { const d = n.morphTargetDictionary, inf = n.morphTargetInfluences; for (const k in d) inf[d[k]] = W[k] || 0; }
 }
 
 /* ---------- актёры «Ночной смены» ---------- */
+// v3: те же роли (ключи прежние — на них ссылаются кадры scenes.js), лица и тела — люди MakeHuman
+function castV3() {
+  const A = {}, H = makeHuman;
+  const POLO = c => ({ polo: [c, 2.1], pants: [0x1b1d22, 1.7] });
+  A.temych = H({ name: 'temych', model: 'ethan', tint: POLO(0x1e2636) });                                  // Итан
+  A.smenshik = H({ name: 'smenshik', model: 'dayguard', cap: 0x15203a, tint: POLO(0x1d2a44) });           // дневной охранник
+  A.mihalych = H({ name: 'mihalych', model: 'frank', tint: Object.assign(POLO(0x2b3036), { hair: [0xb4b2ac, 2.0], brows: [0xa8a6a0, 2.0] }) });   // Фрэнк
+  const lily = { model: 'lily', fem: true, wet: 1, tint: { sweater: [0xd9a51c, 2.3], hair: [0x3a2618, 1.7] } };
+  A.katya = H(Object.assign({ name: 'katya', noBlink: true, lipLag: .12 }, lily));                       // «Лили» за стеклом
+  A.katyaSmile = H(Object.assign({ name: 'katyaSmile', noBlink: true, lipLag: .22, grey: .45, smile: 1.35, eyeC: 0x707070, socket: .55 }, lily));
+  A.monster = H({ name: 'monster', model: 'tenant', monster: true, h: 2.4, arm: 1.1, armL: 1.08, handS: 1.25, neck: 1.18, headS: .92, grey: 1, wet: .8,
+    deadEyes: 0x000000, socket: .9, tilt: .45, jerk: true, headMax: 2.3, stopmo: 1 / 7, tint: { skin: 0xc4c8c0, hair: [0x0a0a0a, 1] } });
+  A.monster.addFace('grin', { smile: 1.15, mouth: .5 });
+  A.monster.addFace('scream', { scream: 1 });
+  A.cleaner = H({ name: 'cleaner', model: 'gus', mop: true });                                             // Гас
+  A.victim = H({ name: 'victim', model: 'gus', dead: true, grey: .55 });
+  A.smenshik.addFace('smile', { smile: .8, browUp: .3 });
+  A.smenshik.addFace('fear', { mouth: .45, wide: true, browUp: 1, browIn: .8, dart: 1 });
+  A.temych.addFace('smile', { smile: 1.4, wide: true, browUp: .5 });
+  for (const k of ['temych', 'smenshik', 'katya', 'mihalych', 'cleaner']) {
+    const F = A[k].faceSets;
+    F.worry = F.worry || { browIn: .8, browUp: .1, dart: 1 };
+    F.plead = F.plead || { browIn: 1, browUp: .35, mouth: .12 };
+    F.alert = F.alert || { browUp: .9, wide: true, dart: 1 };
+    F.fear = F.fear || { mouth: .4, wide: true, browUp: 1, browIn: .8, dart: 1 };
+    F.calm = F.calm || { smile: .3, browUp: .1 };
+  }
+  for (const k in A) A[k].update(0, 1 / 30);
+  return A;
+}
 function cast() {
+  if (V3) return castV3();
   const A = {};
   const guard = { shirt: 0x1c1f26, pants: 0x15171c, shoes: 0x0c0c0c, trim: 0x3a3f4a, badge: true };
   A.temych = makeSkinned(Object.assign({ name: 'temych', h: 1.8, skin: 0xffe8dc, skinK: 1.25, hairPart: 'Hair_SimpleParted', hair: 0x3a2a1c, brow: 0x2a1c12 }, guard));

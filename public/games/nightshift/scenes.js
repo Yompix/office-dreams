@@ -1,6 +1,7 @@
 /* Места действия (холл с будкой и лифтами, улица, 7 этаж, серверная), кадры для каждой сцены и сам показ кадра. */
 (() => {
 'use strict';
+const tr = window.tr || (s => s);
 const { T, V, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, mat, ctex, TX, box, plane, cyl, room, label, relabel, makeTextures } = window.__W3core;
 const PI = Math.PI;
 let A = null;          // актёры
@@ -387,7 +388,7 @@ function buildCorridor() {
   // двери лифта в начале коридора (за спиной камеры) и зелёная табличка
   const ex = plane(.5, .25, mat(0xffffff, TX.exit, { basic: true }), S); ex.position.set(0, 2.55, -len + .08); ex.position.x = .9;
   // табличка «СЕРВЕРНАЯ» поверх 713 — этот же коридор играет минус второй этаж
-  o.srv = label(.5, .12, 96, 22, (c, w, h) => { c.fillStyle = '#7a7d80'; c.fillRect(0, 0, w, h); c.fillStyle = '#111'; c.font = '700 13px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('СЕРВЕРНАЯ  −2', w / 2, h / 2 + 1); }, S); o.srv.position.set(0, 1.78, -len + .09);
+  o.srv = label(.5, .12, 96, 22, (c, w, h) => { c.fillStyle = '#7a7d80'; c.fillRect(0, 0, w, h); c.fillStyle = '#111'; c.font = '700 13px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tr('СЕРВЕРНАЯ  −2'), w / 2, h / 2 + 1); }, S); o.srv.position.set(0, 1.78, -len + .09);
   // под фонарём табличка видна, только когда на неё светят (обычная — светится сама)
   o.srvBasic = o.srv.material; o.srvLit = ps1(new T.MeshLambertMaterial({ map: o.srv.material.map, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }));
   // лужа под телом (сцена «Жилец ест»)

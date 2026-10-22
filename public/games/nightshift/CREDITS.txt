@@ -1,0 +1,43 @@
+NIGHT SHIFT — credits and licenses / авторы и лицензии
+=====================================================
+
+The game — story, script, dialogue, code, levels, scenes, characters' design and animation code,
+procedural textures and sound design — is an original work made for Office Dreams. All rights reserved.
+Игра — сюжет, сценарий, диалоги, код, уровни, сцены, персонажи и их анимация, процедурные текстуры
+и звуковой дизайн — оригинальная работа, сделанная для Office Dreams. Все права принадлежат владельцу.
+
+Everything below is third-party material. Every item allows commercial use; nothing here gives anyone
+a claim on the game. / Ниже — сторонние материалы. Все разрешают коммерческое использование
+и не дают никому прав на игру.
+
+1. three.js r159 (lib/three.min.js, lib/gltf.min.js — GLTFLoader, SkeletonUtils)
+   MIT License, Copyright © 2010-2023 three.js authors — full text: licenses/MIT-three.js.txt
+   https://threejs.org
+
+2. Human characters (models/*.glb of Ethan, Lily, Frank, Gus, the day guard and the Tenant)
+   Built with MakeHuman / MPFB2 from MakeHuman community assets released under CC0 1.0
+   (public domain dedication: no attribution required, commercial use and sale allowed):
+   base mesh and body targets, skins, eyes, eyebrows, eyelashes, teeth, tongue, hair,
+   clothes, the "game_engine" rig weights, ARKit face units (faceunits01) and visemes (visemes02).
+   Authors (credited as a courtesy): MakeHuman team (Data Collection AB, Joel Palmius, Jonas Hauquier),
+   Mika Suominen (face units, visemes), Namuhekam (polo shirt), Margaret Toigo (wool pants, sweater),
+   Cortu (cargo pants), culturalibre (hair).
+   https://static.makehumancommunity.org/assets/assetpacks.html
+   https://static.makehumancommunity.org/makehuman/faq/are_makehuman_files_free.html
+   CC0 text: licenses/CC0-1.0.txt
+
+3. Animation clips (walk, idle, sit, crouch…) and the old base characters
+   Quaternius — Universal Base Characters / Universal Animation Library, CC0 1.0
+   (models/LICENSE-Quaternius-CC0.txt) — https://quaternius.com
+
+4. Fonts (fonts/ns-logo.woff = Anton subset, fonts/ns-ui.woff = Oswald Bold subset)
+   SIL Open Font License 1.1 — licenses/OFL-Anton.txt, licenses/OFL-Oswald.txt
+
+5. Voices and sound effects
+   Generated with ElevenLabs on the owner's paid subscription. Under the ElevenLabs Terms of Service
+   the subscriber owns the output and may use it commercially.
+   Озвучка и звуковые эффекты созданы в ElevenLabs на платном тарифе владельца — по условиям
+   ElevenLabs результат принадлежит владельцу и разрешён для коммерческого использования.
+
+Not used anywhere in the game / В игре не используются: AI-generated images, stock photos,
+music or sounds downloaded from the internet, Mixamo/Sketchfab/marketplace models.
