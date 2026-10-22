@@ -20,7 +20,7 @@ const LS = { get(k, d) { try { const v = localStorage.getItem('ns1_' + k); retur
 const calm = () => !!LS.get('calm', false);   // настройка «меньше вспышек»
 // экран: горизонтальный (16:9) или вертикальный (9:16). На ПК по умолчанию горизонтальный, на телефоне — вертикальный; меняется в настройках
 const FINE = matchMedia('(pointer: fine)').matches;
-let LAND = LS.get('land', FINE && innerWidth > innerHeight);
+let LAND = LS.get('land3', true);   // v3: кадры поставлены под 16:9 — по умолчанию горизонтально (в настройках можно вертикально)
 // точка, заданная в долях вертикального кадра (сценарий писался под 9:16), → доли текущего кадра (угол обзора по вертикали тот же)
 const scrX = x => LAND ? .5 + (x - .5) * (9 / 16) / (16 / 9) : x;
 const voiceOn = () => LS.get('voice', true);   // озвучка реплик (субтитры остаются всегда)
@@ -40,7 +40,7 @@ const ICON = {
 /* ---------- загрузка ---------- */
 const BUF = {}; let TIM = {};
 const SNDS = ['drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'tick', 'click', 'door', 'steps',
-  'ch_guard', 'ch_katya', 'ch_whisper', 'ch_monster', ...Array.from({ length: 17 }, (_, i) => 'l' + String(i + 1).padStart(2, '0'))];
+  'ch_katya', 'ch_whisper', ...Array.from({ length: 15 }, (_, i) => 'p' + String(i + 1).padStart(2, '0'))];   // реплики пролога — сразу, остальные в фоне
 // звуковые эффекты (ElevenLabs): докачиваются в фоне после старта
 const SFX2 = ['room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b', 'mop_swish'];
 let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, radioBus = null, phoneBus = null, master, musicG, voiceG, sfxG, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
@@ -50,15 +50,15 @@ function voiceLevel() { if (!analyser) return 0; analyser.getByteTimeDomainData(
 function get(url, type) { return new Promise((ok, no) => { const x = new XMLHttpRequest(); x.open('GET', url); x.responseType = type; x.onload = () => (x.status === 200 || x.status === 0) && x.response ? ok(x.response) : no(); x.onerror = no; x.send(); }); }
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
-const VOICE_RE = /^(l\d\d|ch_(guard|katya|whisper|monster))$/;
-const sndUrl = k => (EN && (VOICE_RE.test(k) || TIM[k]) ? 'snd/en/' : 'snd/') + k + '.mp3';
+const VOICE_RE = /^ch_(katya|whisper)$/;
+const sndUrl = k => (EN && (VOICE_RE.test(k) || TIM[k]) ? 'snd/en/' : 'snd/') + k + '.mp3?v=3';
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', 2)] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   const sn = SNDS.map(k => get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
-  const tm = get(EN ? 'timing_en.json?v=1' : 'timing.json?v=6', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_en.json?v=2' : 'timing.json?v=7', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры
   for (const k of [...SFX2, ...Object.keys(TIM)]) if (!SNDS.includes(k)) get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
@@ -358,11 +358,11 @@ function startScene(id) {
   gen++; stopAll(); choiceEl.classList.add('hide'); mgEl.classList.add('hide'); mgEl.innerHTML = ''; mgView = null;
   uiEl.innerHTML = ''; $('hud').classList.remove('hide');
   sceneId = id; scene = S.scenes[id]; mode = 'play'; sceneT0 = now(); secBase = scene.sec ?? 7; sublScene = '';
-  if (/^(open|booth|exit|sister)/.test(id)) flags.opened = true;
-  if (/^(cam13b|down|basement|knock3|hold_door|dawn|rules|call540|hangup)/.test(id)) flags.mih = true;
+  if (/^(branch_a|hide|run)/.test(id)) flags.opened = true;
+  if (/^(server|down|basement|knock3|dawn|stay|call540|morning)/.test(id)) flags.mih = true;
   if (!id.startsWith('over_')) LS.set('save', id);
   if (scene.music) music(scene.music);
-  if (scene.time) { lastTime = scene.time; clockEl.textContent = tr('НОЧЬ 1 · ') + scene.time; clockEl.classList.remove('hide'); }
+  if (scene.time) { lastTime = scene.time; clockEl.textContent = scene.time; clockEl.classList.remove('hide'); }
   bi = -1; nextBeat();
 }
 function nextBeat() {
@@ -377,7 +377,7 @@ function nextBeat() {
   const prevBeat = beat;
   beat = scene.beats[bi]; bT0 = now(); fired.clear(); sched = []; typed = null; scareAt = null; hb = 0;
   if (beat.hush && AC) hush(true);
-  if (beat.time) { lastTime = beat.time; secBase = 0; sceneT0 = now(); clockEl.textContent = tr('НОЧЬ 1 · ') + beat.time; }   // часы перещёлкнулись посреди сцены
+  if (beat.time) { lastTime = beat.time; secBase = 0; sceneT0 = now(); clockEl.textContent = beat.time; }   // часы перещёлкнулись посреди сцены
   chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
   let t = .15;
   for (const k of beat.say || []) {
@@ -528,7 +528,7 @@ function camGame(next) {
   mode = 'cams'; music('drone'); amb('static', true, .08);
   let seenCams = new Set(), warned = false; const my = gen;
   const draw = () => {
-    mgEl.innerHTML = `<div class="mghead">${tr('ОБХОД КАМЕР')}<small>${tr('Проверь три камеры. Помни правило четыре.')}</small></div><div class="camgrid">` +
+    mgEl.innerHTML = `<div class="mghead">${tr('ОБХОД КАМЕР')}<small>${tr('Проверь три камеры. В тринадцатую не смотри.')}</small></div><div class="camgrid">` +
       S.cams.map((c, i) => c.forbidden ? `<div class="cam off" data-i="${i}"><b>${c.id}</b><span>${tr('ВЫКЛ')}</span></div>`
         : `<div class="cam ${seenCams.has(i) ? 'seen' : ''}" data-i="${i}" style="background-image:url(${window.World ? World.thumb(c.img, { cx: c.c[0], cy: c.c[1], z: c.c[2], cctv: 1 }) : ''})"><b>${c.id} ${c.name}</b></div>`).join('') + '</div>' +
       `<div class="mgfoot">${seenCams.size >= 3 ? `<button class="btn" id="cgo" style="text-align:center">${tr('Продолжить смену')}</button>` : `<div style="text-align:center;opacity:.7;font-size:calc(3.6 * var(--u))">${trf('Проверено: {n} из 3', { n: seenCams.size })}</div>`}</div>`;
@@ -536,15 +536,17 @@ function camGame(next) {
       const i = +el.dataset.i, c = S.cams[i];
       if (c.forbidden) {
         if (!warned) { warned = true; play('static'); if (!calm()) { mgEl.classList.add('flash'); setTimeout(() => mgEl.classList.remove('flash'), 300); }
-          el.innerHTML = `<b>CAM 13</b><span style="font-size:calc(3.6 * var(--u))">${tr('ТОЧНО ВКЛЮЧИТЬ?')}<br>${tr('ПРАВИЛО 4')}</span>`; return; }
-        amb('static', false); mgEl.classList.add('hide'); return startScene('over_cam13');
+          el.innerHTML = `<b>CAM 13</b><span style="font-size:calc(3.6 * var(--u))">${tr('ТОЧНО ВКЛЮЧИТЬ?')}<br>${tr('«НЕ СМОТРИ В НЕЁ»')}</span>`; return; }
+        amb('static', false); mgEl.classList.add('hide'); return startScene(c.over || 'over_cam13');
       }
       play('click'); play('static', { gain: .5 });
       camView = { c, t0: now() }; mgEl.classList.add('hide');
-      lastSubKey = ''; say('КАМЕРА', c.note, c.note.length);
+      lastSubKey = ''; let hold = 2600;
+      if (c.say) { const k = c.say, s = (TIM[k] && TIM[k].t) || ''; play(k, { bus: 'voice' }); say(whoOf(k), s, s.length); hold = Math.max(hold, durOf(k) * 1000 + 700); }   // голос Итана
+      else say('КАМЕРА', c.note, c.note.length);
       if (c.jump && !c.jumped) { c.jumped = true; camView.jump = true; hush(true, true);
         setTimeout(() => { if (my !== gen) return; hush(false); play(BUF.jumpscare ? 'jumpscare' : 'scare', { gain: .8 }); buzz([200, 40, 300]); shakeAmp = 40; }, 1250); }
-      setTimeout(() => { if (my !== gen) return; camView = null; dlgEl.classList.add('hide'); seenCams.add(i); if (c.creep) play('boom', { gain: .4 }); mgEl.classList.remove('hide'); draw(); }, camView.jump ? 3300 : 2600);
+      setTimeout(() => { if (my !== gen) return; camView = null; dlgEl.classList.add('hide'); seenCams.add(i); if (c.creep) play('boom', { gain: .4 }); mgEl.classList.remove('hide'); draw(); }, camView.jump ? 3300 : hold);
     });
     const go = $('cgo'); if (go) go.onclick = () => { play('click'); amb('static', false); startScene(next); };
   };
@@ -663,7 +665,7 @@ const MG = {
     mgView = { img: th.img, c: th.cam || [.5, .5, 1, 1], t0, dur: 1e9, torch: L };
     mgEl.innerHTML = `<div class="mghead">${th.title}<small id="th">${th.hint}</small></div>`;
     mgEl.classList.remove('hide'); play('click');
-    let end = false, seen = 0, onMon = 0, onGoal = 0, gone = false, found = 0, jump = 0, hitT = 0, lt = now();
+    let end = false, seen = th.mon ? 0 : 1, onMon = 0, onGoal = 0, gone = !th.mon, found = 0, jump = 0, hitT = 0, lt = now();   // без th.mon — сразу ищем цель
     const pt = e => { const r = cv.getBoundingClientRect(); tgt.x = clamp((e.clientX - r.left) / r.width, 0, 1); tgt.y = clamp((e.clientY - r.top) / r.height - .07, 0, 1); };   // луч чуть выше пальца — палец не закрывает
     mgEl.onpointerdown = e => { e.preventDefault(); if (!found) pt(e); }; mgEl.onpointermove = e => { if (!found && (e.buttons || e.pointerType === 'touch')) pt(e); };
     const near = (p, r) => Math.hypot((L.x - scrX(p[0])) * W / H, L.y - p[1]) < r;   // расстояние в долях высоты экрана
@@ -797,7 +799,7 @@ function settings() {
   $('sVoice').onclick = () => { setVoice(!voiceOn()); re(); };
   $('sLang').onclick = () => { LS.set('lang', EN ? 'ru' : 'en'); uiSnd(); location.reload(); };   // язык — с перезагрузкой (надписи в 3D-мире рисуются при загрузке)
   $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
-  $('sLand').onclick = () => { LS.set('land', !LAND); applyLand(!LAND); re(); };
+  $('sLand').onclick = () => { LS.set('land3', !LAND); applyLand(!LAND); re(); };
   $('sGfx').onclick = () => { LS.set('gfx', window.World && World.cine ? 'retro' : 'cine'); uiSnd(); location.reload(); };   // графика собирается при загрузке
   $('sVhs').onclick = () => { const v = (LS.get('vhs', 2) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
@@ -1171,7 +1173,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') { const d = document; if (d.fullscreenElement) d.exitFullscreen().catch(() => {}); else goFull(); }
   if (e.key === 'v' || e.key === 'V' || e.key === 'м' || e.key === 'М') setVoice(!voiceOn());
   if (e.key === 'm' || e.key === 'M' || e.key === 'ь' || e.key === 'Ь') setMute(!LS.get('mute', false));
-  if (e.key === 'o' || e.key === 'O' || e.key === 'щ' || e.key === 'Щ') { LS.set('land', !LAND); applyLand(!LAND); if (uiEl.querySelector('.sets')) settings(); }
+  if (e.key === 'o' || e.key === 'O' || e.key === 'щ' || e.key === 'Щ') { LS.set('land3', !LAND); applyLand(!LAND); if (uiEl.querySelector('.sets')) settings(); }
   if (mode === 'menu' && !gateDone && (e.key === ' ' || e.key === 'Enter')) return openGate();
   if (e.key === ' ' || e.key === 'Enter') tap(); if (mode === 'choice' && /^[1-4]$/.test(e.key)) { const b = choiceEl.querySelector(`button[data-i="${+e.key - 1}"]`); if (b) b.click(); } if (e.key === 'Escape') menu(); });
 // ПК: размытый отсвет кадра по бокам экрана (виден только при широком окне и мыши)

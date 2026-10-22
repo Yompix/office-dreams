@@ -52,7 +52,7 @@ def plan(lang):
     print('итого символов:', sum(b['chars'] for b in out))
 
 # --- нарезка ---
-NUM = {'ru': {'13': 'тринадцать', '12': 'двенадцать', '707': 'семьсотседьмого', '3': 'три', '6': 'шесть', '40': 'сорок', '300': 'триста'},
+NUM = {'ru': {'газ': 'гас', '13': 'тринадцать', '12': 'двенадцать', '707': 'семьсотседьмого', '3': 'три', '6': 'шесть', '40': 'сорок', '300': 'триста'},
        'en': {'13': 'thirteen', '12': 'twelve', '3': 'three', '6': 'six', '707': 'sevenohseven', '40': 'forty', '200': 'two', '540': 'fiveforty'}}
 def norm(w, lang):
     w = w.lower().replace('ё', 'е').replace('’', "'")
@@ -61,7 +61,22 @@ def norm(w, lang):
 def toks(text):
     return [p for p in re.sub(r'[.,:;—?!…«»"()\-]', ' ', text).split() if p]
 
-def split(lang, idx, src):
+def onset(pcm, g, lo, sr=16000):
+    """Начало речи: от догадки g назад до первой тишины ≥ 0,12 с (не раньше lo). Нужна, когда первое слово
+    whisper не расслышал и его время угадано — иначе начало реплики обрезается."""
+    import numpy as np
+    f = int(.01 * sr); i = int(g * sr) // f; i0 = max(0, int(lo * sr) // f); quiet = 0
+    rms = lambda k: float(np.sqrt(np.mean(pcm[k * f:(k + 1) * f] ** 2))) if (k + 1) * f <= len(pcm) else 0.
+    thr = max(.006, .08 * max(rms(k) for k in range(i, min(i + 60, len(pcm) // f))) if i < len(pcm) // f else .006)
+    while i > i0:
+        if rms(i - 1) < thr:
+            quiet += 1
+            if quiet >= 12: return (i - 1 + quiet) * f / sr
+        else: quiet = 0
+        i -= 1
+    return max(lo, (i + quiet) * f / sr)
+
+def split(lang, idx, src, hints=()):
     import numpy as np
     from faster_whisper import WhisperModel
     B = json.load(open(bfile(lang)))[idx]; keys = B['keys']
@@ -78,6 +93,10 @@ def split(lang, idx, src):
     at = [None] * len(ref)
     for a, b, n in sm.get_matching_blocks():
         for j in range(n): at[a + j] = hw[b + j][1:]
+    # подсказки вручную: ключ=начало-конец (секунды пакета) — для реплик, которых whisper не услышал
+    for h in hints:
+        k, r = h.split('='); a, b = (float(x) for x in r.split('-')); i = keys.index(k); js = [j for j in range(len(ref)) if owner[j] == i]
+        for n, j in enumerate(js): at[j] = (a + (b - a) * n / len(js), a + (b - a) * (n + 1) / len(js))
     known = [i for i, x in enumerate(at) if x]
     print(f'совпало слов {len(known)}/{len(ref)}')
     for i in range(len(at)):   # пропущенные слова — между соседними известными
@@ -93,8 +112,13 @@ def split(lang, idx, src):
     cuts = [0.0] + [(at[last[i]][1] + at[first[i + 1]][0]) / 2 if at[first[i + 1]][0] > at[last[i]][1] else at[last[i]][1] for i in range(len(keys) - 1)] + [dur]
     os.makedirs(sdir(lang), exist_ok=True)
     tf = tfile(lang); tim = json.load(open(tf)) if os.path.exists(tf) else {}
+    heardK = {first[i] for i in range(len(keys)) if at[first[i]] and any(abs(h[1] - at[first[i]][0]) < .02 for h in hw)}
     for i, k in enumerate(keys):
-        s0 = max(cuts[i], at[first[i]][0] - .12); s1 = min(cuts[i + 1], at[last[i]][1] + .3)
+        g = at[first[i]][0]
+        if first[i] not in heardK and not any(h.startswith(k + '=') for h in hints):   # первое слово не расслышано — ищем начало по тишине
+            g = onset(pcm, g + .05, at[last[i - 1]][1] + .05 if i else 0)
+            cuts[i] = min(cuts[i], g - .04)
+        s0 = max(cuts[i], g - .12); s1 = min(cuts[i + 1], at[last[i]][1] + .3)
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src, '-ss', f'{s0:.3f}', '-to', f'{s1:.3f}', '-ac', '1', '-ar', '44100', '-b:a', '64k',
                         '-af', 'afade=t=in:d=0.02,areverse,afade=t=in:d=0.06,areverse', os.path.join(sdir(lang), k + '.mp3')], check=True)
         L = LINES[k]
@@ -112,5 +136,5 @@ def check(lang):
 if __name__ == '__main__':
     cmd, lang = sys.argv[1], sys.argv[2]
     if cmd == 'plan': plan(lang)
-    elif cmd == 'split': split(lang, int(sys.argv[3]), sys.argv[4])
+    elif cmd == 'split': split(lang, int(sys.argv[3]), sys.argv[4], sys.argv[5:])   # … [ключ=начало-конец …]
     elif cmd == 'check': check(lang)

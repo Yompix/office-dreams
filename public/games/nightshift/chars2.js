@@ -884,6 +884,10 @@ function propMesh(name) {
     const cb = mat(0x9a7a50, null, { rough: .9 }), tp = mat(0x8c9094, null, { rough: .45 });
     for (const s of [-1, 1]) box(.012, .38, .11, cb, s * .062, 0, 0, g);
     for (const y of [-.15, -.05, .06, .15]) { const b = box(.14, .035, .13, tp, 0, y, 0, g); b.rotation.y = .05 * y; }
+  } else if (name === 'pen') {   // шариковая ручка: начало — кончик стержня, корпус вдоль +Y
+    const c = new T.Mesh(new T.CylinderGeometry(.0045, .0045, .13, 8), mat(0x1c2a6a, null, { rough: .4 })); c.position.y = .075; g.add(c);
+    const tip = new T.Mesh(new T.ConeGeometry(.0045, .012, 8), mat(0xc8c8c8, null, { metal: .8 })); tip.rotation.x = Math.PI; tip.position.y = .006; g.add(tip);
+    box(.003, .04, .006, mat(0xc8c8c8, null, { metal: .8 }), .005, .12, 0, g);
   } else if (name === 'sheet') {   // мятый лист с надписью маркером (рисуется в chars2: o.sheet) — здесь пустой
   } else if (name === 'radio') {
     box(.058, .12, .034, blk, 0, 0, 0, g); cyl(.005, .005, .07, 6, blk, g).position.set(.018, .095, 0); box(.03, .04, .002, mat(0x1d2a20), 0, .02, .018, g);
@@ -1199,9 +1203,9 @@ function updateSkinned(C, t, dt) {
   if (C.cig && P !== 'smoke') { C.cig.visible = C.lighter.visible = false; C.puffs.forEach(s => (s.visible = false)); C.lighterOn = 0; }
   C.keys.visible = P === 'give'; C.paper.visible = (P === 'paper' || P === 'sitpaper') && !C.sheet; if (C.mop && P !== 'mop') C.mop.visible = false;
   if (C.sheet) {   // лист между ладонями, развёрнут к тому, кому показывают (C.look — обычно камера)
-    C.sheet.visible = P === 'sitpaper';
+    C.sheet.visible = P === 'sitpaper' || (OBJ && !!P.sheet);   // поза-объект: P.sheet — куда развернуть лист (обычно камера)
     if (C.sheet.visible) { const a = gripPt(C, 'l'), b = gripPt(C, 'r'); C.sheet.position.copy(a).add(b).multiplyScalar(.5).add(_m1.set(0, .07 * C.ss, .03));
-      C.root.updateWorldMatrix(true, false); if (C.look) C.sheet.lookAt(C.look); C.sheet.rotateZ(Math.sin(tt * 1.7) * .03); }
+      C.root.updateWorldMatrix(true, false); const at = OBJ && Array.isArray(P.sheet) ? _m1.set(P.sheet[0], P.sheet[1], P.sheet[2]) : C.look; if (at) C.sheet.lookAt(at); C.sheet.rotateZ(Math.sin(tt * 1.7) * .03); }
   }
   if (C.v3) faceV3(C, tt, dt);
 }
@@ -1476,5 +1480,5 @@ function cast() {
   return A;
 }
 
-Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3 });
+Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3, handPt });
 })();

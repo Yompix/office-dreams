@@ -119,6 +119,16 @@ function makeTextures() {
   TX.f7lit = null;
   TX.carpet = ctex(32, 32, (x, w, h) => { x.fillStyle = '#3a2224'; x.fillRect(0, 0, w, h); speckle(x, w, h, 300, .08); x.strokeStyle = 'rgba(200,150,90,.18)'; x.strokeRect(4.5, 4.5, 23, 23); }, 2, 14);
   TX.door = ctex(32, 64, (x, w, h) => { x.fillStyle = '#5a4030'; x.fillRect(0, 0, w, h); x.strokeStyle = 'rgba(0,0,0,.4)'; x.strokeRect(4.5, 4.5, w - 9, 24); x.strokeRect(4.5, 34.5, w - 9, 25); speckle(x, w, h, 120, .06); x.fillStyle = '#c9b27a'; x.fillRect(w - 7, 30, 3, 4); });
+  TX.facadeDark = ctex(128, 256, (x, w, h) => {   // тот же фасад, все окна тёмные (здание ночью без света)
+    x.fillStyle = '#16191d'; x.fillRect(0, 0, w, h);
+    for (let r = 0; r < 16; r++) for (let c = 0; c < 8; c++) { x.fillStyle = `rgb(${18 + rnd() * 10 | 0},${22 + rnd() * 10 | 0},${28 + rnd() * 12 | 0})`; x.fillRect(c * 16 + 3, r * 16 + 3, 10, 10); }
+    for (let r = 0; r < 16; r++) { x.fillStyle = '#0e1013'; x.fillRect(0, r * 16, w, 2); }
+  }, 2, 2);
+  TX.hand = ctex(64, 64, (x, w, h) => {   // след ладони: мокрый, грязный (подвал — из круга в коридор)
+    x.clearRect(0, 0, w, h); x.fillStyle = 'rgba(255,255,255,.9)'; x.filter = 'blur(1px)';
+    x.beginPath(); x.ellipse(32, 40, 13, 15, 0, 0, 7); x.fill();
+    [[18, 20, 4, 11, -.35], [26, 14, 4, 13, -.12], [34, 13, 4, 13, .05], [42, 17, 3.6, 11, .25], [47, 34, 4, 9, .9]].forEach(([cx, cy, rx, ry, a]) => { x.beginPath(); x.ellipse(cx, cy, rx, ry, a, 0, 7); x.fill(); });
+  });
   TX.rack = ctex(32, 64, (x, w, h) => { x.fillStyle = '#15171a'; x.fillRect(0, 0, w, h); for (let r = 0; r < 16; r++) { x.fillStyle = '#23262b'; x.fillRect(2, r * 4 + 1, w - 4, 3); for (let k = 0; k < 4; k++) if (rnd() < .5) { x.fillStyle = rnd() < .8 ? '#3cff7a' : '#ffb03c'; x.fillRect(4 + k * 3, r * 4 + 2, 1, 1); } } });
   TX.concrete = ctex(64, 64, (x, w, h) => { x.fillStyle = '#3a3c3a'; x.fillRect(0, 0, w, h); speckle(x, w, h, 900, .1); speckle(x, w, h, 600, .16, false); x.fillStyle = 'rgba(30,20,10,.25)'; for (let i = 0; i < 4; i++) x.fillRect(rnd() * w, rnd() * h, 1, 10 + rnd() * 20); }, 4, 2);
   TX.salt = ctex(64, 64, (x, w, h) => { x.clearRect(0, 0, w, h); x.strokeStyle = 'rgba(235,235,225,.95)'; x.lineWidth = 3; x.beginPath(); x.arc(32, 32, 26, 0, 7); x.stroke(); for (let i = 0; i < 200; i++) { const a = rnd() * 7, r = 26 + (rnd() - .5) * 6; x.fillStyle = 'rgba(240,240,230,.8)'; x.fillRect(32 + Math.cos(a) * r, 32 + Math.sin(a) * r, 1, 1); } });
@@ -132,6 +142,7 @@ function makeTextures() {
   TX.keys = null;
   TX.wood = ctex(32, 32, (x, w, h) => { x.fillStyle = '#4b3524'; x.fillRect(0, 0, w, h); for (let i = 0; i < 24; i++) { x.fillStyle = `rgba(${rnd() < .5 ? '0,0,0' : '255,210,160'},${.08 * rnd()})`; x.fillRect(0, rnd() * h, w, 1); } }, 2, 1);
   TX.sky = ctex(4, 64, (x, w, h) => { const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#06080d'); gr.addColorStop(.7, '#121822'); gr.addColorStop(1, '#2a2620'); x.fillStyle = gr; x.fillRect(0, 0, w, h); });
+  TX.skyCity = ctex(4, 64, (x, w, h) => { const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#121824'); gr.addColorStop(.55, '#232a38'); gr.addColorStop(.85, '#3c3a3a'); gr.addColorStop(1, '#5a4a3c'); x.fillStyle = gr; x.fillRect(0, 0, w, h); });   // засветка города: здание — силуэтом на небе
   TX.skyDawn = ctex(4, 64, (x, w, h) => { const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#2b3a55'); gr.addColorStop(.6, '#c77b52'); gr.addColorStop(1, '#f2c27a'); x.fillStyle = gr; x.fillRect(0, 0, w, h); });
   TX.noise = ctex(64, 48, (x, w, h) => { speckle(x, w, h, 1, 0); }, 1, 1, 'raw');
   makeTextures2();
