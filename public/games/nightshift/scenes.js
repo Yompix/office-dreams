@@ -406,6 +406,15 @@ function buildCorridor() {
     for (let i = 0; i < n; i++) { const u = i / (n - 1), m = o.gutS[i];
       m.position.set(lerp(a.x, b.x, u) + Math.sin(u * 9 + t * 3) * .03, Math.max(.035, lerp(a.y, b.y, u) - Math.sin(u * PI) * sag), lerp(a.z, b.z, u) + Math.cos(u * 7 + t * 2.4) * .03);
       if (i) m.lookAt(o.gutS[i - 1].position); } };
+  // брызги крови при рывке: капли летят по дуге из груди тела и падают на пол (время — от начала кадра, без состояния)
+  o.spray = new T.InstancedMesh(new T.BoxGeometry(.018, .018, .018), mat(0x4a0505, null, { basic: true }), 36); o.spray.visible = false; o.spray.frustumCulled = false; S.add(o.spray); o.bursts = null;
+  const _sm = new T.Matrix4(), _sv = new T.Vector3();
+  o.sprayTick = (from, t) => { const B = o.bursts; o.spray.visible = !!B; if (!B) return; let n = 0;
+    for (const b of B) { const dt = t - b; if (dt < 0 || dt > .7) continue;
+      for (let i = 0; i < 12 && n < 36; i++, n++) { const h1 = hash(b * 13 + i), h2 = hash(b * 7 + i * 3.1), h3 = hash(b + i * 9.7);
+        const vx = (h1 - .5) * 1.6, vy = 1.2 + h2 * 1.6, vz = (h3 - .5) * 1.6, y = Math.max(.01, from.y + vy * dt - 4.9 * dt * dt);
+        _sv.set(from.x + vx * dt, y, from.z + vz * dt); _sm.makeScale(1, y > .02 ? 1.8 : .3, 1).setPosition(_sv); o.spray.setMatrixAt(n, _sm); } }
+    for (; n < 36; n++) { _sm.makeScale(0, 0, 0); o.spray.setMatrixAt(n, _sm); } o.spray.instanceMatrix.needsUpdate = true; };
   // капли крови с подбородка Жильца
   o.drips = []; const dM = mat(0x3a0406, null, { basic: true });
   for (let i = 0; i < 7; i++) { const d = box(.012, .03, .012, dM, 0, 0, 0, S); d.visible = false; o.drips.push(d); }
@@ -419,6 +428,7 @@ function buildCorridor() {
   o.post = (A, used, t) => {
     const M = A.monster, eat = used.has('monster') && M.pose === 'eat';
     o.guts.visible = !!(eat && used.has('victim') && o.gutsOn);
+    if (o.bursts && used.has('victim')) { A.victim.bone.spine_03.getWorldPosition(_bb); o.sprayTick(_bb, o.sprayT || 0); } else o.spray.visible = false;
     if (o.guts.visible) { M.bone.hand_r.getWorldPosition(_h); A.victim.bone.spine_01.getWorldPosition(_bb); o.setGuts(_bb, _h, .1, t); }
     const dr = eat || (used.has('monster') && M.gore > 0);
     if (dr) { M.bone.Head.getWorldPosition(_h); const ry = M.root.rotation.y; _h.x += Math.sin(ry) * .07; _h.z += Math.cos(ry) * .07; _h.y -= .1; }
@@ -438,7 +448,7 @@ function buildCorridor() {
     o.splat.visible = !!c.splat;
     if (c.blood) { o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.1, 1, .9); }
   };
-  o.reset = () => { o.faceL.intensity = 0; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
+  o.reset = () => { o.bursts = null; o.faceL.intensity = 0; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
   o.tick = (t) => {   // одна ненадёжная лампа (пятая от лифта), если горит
     const l = o.lamps[4]; if (!o.flickOn || !l.on) { o.tubeOK = 1; return; }
     const f = unreliable(t, 3); o.tubeOK = f; l.li.intensity = l.base * f; l.tube.material.color.setHex(f ? 0xe8f0e8 : 0x1c1e1c);
@@ -513,6 +523,9 @@ function walkPath(key, pts, t, v) {
 }
 // свет для сцены «Жилец ест»: горит одна лампа прямо над ними и подмигивает
 function torchSet(o, mon) { setLamps(o, 0); o.slitLight.intensity = 0; o.slit.visible = false; o.amb.intensity = .08; o.srv.visible = true; o.srv.material = o.srvLit; return mon ? [['monster', .15, 0, -18.2, 0, 'monster', 'cam']] : []; }
+// когда Жилец ест: тело ещё вздрагивает, на рывках — брызги и тряска головы (как собака треплет добычу)
+function eatGore(o, t) { o.bursts = [.9, 3.3, 5.7, 8.1].filter(b => t > b - .1 && t < b + .8); if (!o.bursts.length) o.bursts = null; o.sprayT = t; A.victim.twitch = .5;
+  A.monster.shake = [.9, 3.3, 5.7, 8.1].some(b => t > b - .05 && t < b + .35) ? .3 : 0; }
 function eatLight(o, t) { setLamps(o, 0); o.flickOn = false; const l = o.lamps[3], on = Math.sin(t * 9) > .85 && Math.sin(t * 1.7) > 0 ? .25 : 1; l.li.intensity = 4.2 * on; l.li.distance = 9; o.amb.intensity = .42; l.tube.material.color.setHex(on > .5 ? 0xe8f0e8 : 0x30322e); o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.25, 1, 1); o.gutsOn = true; o.splat.visible = true; o.slitLight.intensity = 0; o.slit.visible = false; A.monster.gore = 1; A.victim.gore = 2;
   o.cleanSet(AFTER); }
 // седьмой этаж после уборщика: швабра на полу, ведро опрокинуто, вода, кровавый след волоком к приоткрытой 707
@@ -552,6 +565,11 @@ const SH = {
     return [['smenshik', w.x, 0, w.z, w.ry, w.done ? 'stand' : 'walk', w.done ? [5.2, 1.5, -.3] : null]]; } },
   exterior: { loc: 'lobby', pos: [2.6, 1.45, 17.5], look: [-.2, 4.6, 6], fov: 66, set: (o, t) => [['temych', 5.2, 0, -.85, 0, 'sit', [5, 1, 3]]] },
   exterior_dawn: { loc: 'lobby', pos: [2.6, 1.45, 17.5], look: [-.2, 4.6, 6], fov: 66, set: (o) => { setDawn(o, 1); return []; } },
+  // курит: крупно, на рассвете под козырьком; огонёк зажигалки на миг освещает лицо
+  exterior_smoke: { loc: 'lobby', pos: [-.35, 1.52, 9.45], look: [.5, 1.4, 8.2], fov: 38, set: (o, t) => { setDawn(o, 1); A.mihalych.actT = t - .15;
+    const tt = t - .15; if (tt > 3.95 && tt < 4.6) { o.faceL.position.set(.36, 1.55, 8.42); o.faceL.color.setHex(0xffa040); o.faceL.distance = 1.6; o.faceL.intensity = 1.4 + .4 * Math.sin(t * 40); }
+    return [['mihalych', .55, 0, 8.2, -.6, 'smoke', null]]; } },
+  exterior_two_smoke: { loc: 'lobby', pos: [2.2, 1.5, 15], look: [0, 2.2, 6], fov: 55, set: (o) => { setDawn(o, 1); A.mihalych.actT = 99; return [['temych', -.55, 0, 8.3, 1.05, 'stand', [.5, 1.62, 8.2]], ['mihalych', .55, 0, 8.2, -.75, 'smoke', [-.55, 1.7, 8.3]]]; } },
   exterior_two: { loc: 'lobby', pos: [2.2, 1.5, 15], look: [0, 2.2, 6], fov: 55, set: (o) => { setDawn(o, 1); return [['temych', -.55, 0, 8.3, 1.05, 'stand', [.5, 1.62, 8.2]], ['mihalych', .55, 0, 8.2, -.75, 'stand', [-.55, 1.7, 8.3]]]; } },   // вышли под навес: стоят друг к другу вполоборота
   guard: { loc: 'lobby', pos: [5.35, 1.25, -.7], look: [5.12, 1.52, .9], fov: 44, face: { smenshik: 'worry' }, set: () => [['smenshik', 5.12, 0, .85, PI, 'stand', 'cam']] },
   guard_keys: { loc: 'lobby', pos: [5.35, 1.25, -.7], look: [5.12, 1.4, .9], fov: 48, face: { smenshik: 'worry' }, set: (o) => { o.keys.visible = false; return [['smenshik', 5.12, 0, .8, PI, 'give', 'cam']]; } },
@@ -569,7 +587,9 @@ const SH = {
   entrance_cam: { loc: 'lobby', pos: [-.9, 3.25, 8.1], look: [.5, .8, 6.2], fov: 64, cctv: 1, set: (o) => { o.rain.material.opacity = .18; o.reflBoost = .6; return atGlass('katya', 'knock', [.6, 1.5, 4]); } },
   katya_face: { loc: 'lobby', pos: [.6, 1.49, 5.4], look: [.62, 1.47, 6.5], fov: 34, face: { katya: 'plead' }, set: (o, t) => { breath(o, t); return atGlass('katya', 'knock', 'cam'); } },
   katya_smile: { loc: 'lobby', pos: [.6, 1.49, 5.4], look: [.62, 1.47, 6.5], fov: 34, set: (o, t) => { breath(o, t); return [['katyaSmile', .62, 0, 6.3, PI, 'stand', 'cam']]; } },
-  katya_inside: { loc: 'lobby', pos: [.5, 1.6, 3.7], look: [.2, 1.42, 4.75], fov: 44, face: { katya: 'plead' }, set: () => [['katya', .2, 0, 4.75, PI + .15, 'reach', 'cam']] },
+  // кинулась на шею: подбегает вплотную, руки обхватывают того, кто смотрит (уходят за края кадра)
+  katya_inside: { loc: 'lobby', pos: [.5, 1.6, 3.7], look: [.3, 1.45, 4.6], fov: 50, face: { katya: 'plead' }, set: (o, t) => { const k = clamp(t / .45, 0, 1); A.katya.actT = t;
+    return [['katya', lerp(.2, .42, k), 0, lerp(4.9, 4.28, k * k), PI + .1, 'embrace', 'cam']]; } },
   katya_inside_still: { loc: 'lobby', pos: [.3, 1.5, 3.95], look: [.2, 1.47, 4.75], fov: 36, set: () => { A.katya.talk = 0; return [['katyaSmile', .2, 0, 4.7, PI, 'stand', 'cam']]; } },
   corridor_cam: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.1, .9, -25], fov: 58, set: (o, t) => { setLamps(o, [1.2, 2.3, 3.4, 4.5].filter(x => t >= x).length * 2 - 1); o.amb.intensity = .62; return []; } },
   corridor_lit: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.1, .9, -25], fov: 58, cctv: 1, set: (o) => { setLamps(o, 7); return []; } },
@@ -594,10 +614,15 @@ const SH = {
   server_mih_close: { loc: 'server', pos: [.25, .95, 1.15], look: [0, .9, 0], fov: 44, face: { mihalych: 'worry' }, set: () => [['mihalych', 0, 0, 0, 0, 'sitfloor', 'cam']] },
   server_mih_stand: { loc: 'server', pos: [.7, 1.6, 2.7], look: [0, 1.4, 0], fov: 50, face: { mihalych: 'worry' }, set: () => [['mihalych', 0, 0, 0, 0, 'stand', 'cam']] },
   server_door: { loc: 'server', pos: [2.4, 1.6, 2.6], look: [-1, 1.2, -1], fov: 55, face: { mihalych: 'fear' }, set: () => [['mihalych', 0, 0, 0, .3, 'sitfloor', [2.4, 1.6, 2.6]]] },
-  cam13_mih: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.1, -.4], fov: 60, face: { mihalych: 'worry' }, set: (o) => [['mihalych', 0, 0, 0, -.6, 'paper', 'cam']] },
-  cam13_mih_monster: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.3, -.6], fov: 60, face: { mihalych: 'worry' }, set: (o, t) => [['mihalych', 0, 0, 0, -.6, 'paper', 'cam']].concat(t > 3.35 ? [['monster', .25, 0, -1.25, -.6, 'monster', 'cam']] : []) },
+  // Михалыч на полу в круге мотает головой: «не отвечай», «не входи»
+  server_door_no: { loc: 'server', pos: [2.4, 1.6, 2.6], look: [-1, 1.2, -1], fov: 55, face: { mihalych: 'fear' }, set: () => { A.mihalych.no = 1; return [['mihalych', 0, 0, 0, .3, 'sitfloor', [2.4, 1.6, 2.6]]]; } },
+  // выходит из круга: ноги не держат, оседает, шатается к камере
+  server_mih_weak: { loc: 'server', pos: [.9, 1.55, 2.9], look: [0, 1.1, .2], fov: 52, face: { mihalych: 'worry' }, set: (o, t) => { const k = clamp(t / 4.5, 0, 1);
+    return [['mihalych', lerp(0, .35, k), 0, lerp(.1, 1.25, k), .25 + Math.sin(t * 2.2) * .12, k < 1 ? 'weak' : 'stand', 'cam']]; } },
+  cam13_mih: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.0, -.4], fov: 60, face: { mihalych: 'worry' }, set: (o) => [['mihalych', 0, 0, 0, -.6, 'sitpaper', 'cam']] },
+  cam13_mih_monster: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.3, -.6], fov: 60, face: { mihalych: 'worry' }, set: (o, t) => [['mihalych', 0, 0, 0, -.6, 'sitpaper', 'cam']].concat(t > 3.35 ? [['monster', .25, 0, -1.25, -.6, 'monster', 'cam']] : []) },
   // «почти выбежал»: быстрым шагом по дуге за колонной (не сквозь неё) к дверям и толкает створку
-  smenshik_leave: { loc: 'lobby', pos: [6.3, 1.72, -.75], look: [1.5, 1.15, 5.4], fov: 52, set: (o, t) => { const w = walkPath('leave', [[4.0, 2.0], [3.7, 3.5], [2.3, 4.9], [.45, 5.5]], t, 1.75);
+  smenshik_leave: { loc: 'lobby', pos: [6.3, 1.72, -.75], look: [1.5, 1.15, 5.4], fov: 52, set: (o, t) => { const w = walkPath('leave', [[4.0, 2.0], [3.7, 3.5], [2.3, 4.9], [.45, 5.4]], t, 1.75);
     return [['smenshik', w.x, 0, w.z, w.done ? PI * .02 : w.ry, w.done ? 'push' : 'walk', null]]; } },
   entrance_empty: { loc: 'lobby', pos: [-.9, 3.25, 8.1], look: [.5, .8, 6.2], fov: 64, set: (o) => { o.rain.material.opacity = .18; return []; } },
   // один раз за ночь: пока она улыбается за стеклом, в отражении за спиной Тёмыча стоит Жилец — полсекунды, без звука
@@ -614,12 +639,12 @@ const SH = {
   exterior_alone: { loc: 'lobby', pos: [3.2, 1.4, 17.8], look: [2.0, 2.2, 13], fov: 54, set: () => [['temych', 2.3, 0, 15.6, .25, 'stand', 'cam']] },
   basement_door: { loc: 'corridor', pos: [.15, 1.55, -23.5], look: [0, 1.05, -26], fov: 54, set: (o, t) => { setLamps(o, (Math.sin(t * 11) > .55 && Math.sin(t * 2.3) > -.2) ? 1 : 0); o.srv.visible = true; o.slitLight.color.setHex(0xffb060); o.slitLight.intensity = 1.6 + Math.sin(t * 7) * .3; o.amb.intensity = .35; return []; } },
   // тело там, куда его утащили: голова на пороге 707, ноги в коридоре; Жилец сидит над грудью с дальней стороны — лицом к камере
-  cam7_eat: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.35, .6, -11.8], fov: 30, cctv: 1, set: (o, t) => { eatLight(o, t); return [['victim', -.4, 0, -11.78, PI * .5, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 4 ? [-.75, .2, -11.75] : [1.0, 2.75, -.5]]]; } },
-  eat_close: { loc: 'corridor', pos: [.62, 1.12, -9.4], look: [-.62, .62, -12.1], fov: 54, set: (o, t) => { eatLight(o, t); return [['victim', -.4, 0, -11.78, PI * .5, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 2.2 ? [-.75, .2, -11.75] : [.62, 1.12, -9.4]]]; } },
+  cam7_eat: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.35, .6, -11.8], fov: 30, cctv: 1, set: (o, t) => { eatLight(o, t); eatGore(o, t); return [['victim', -.4, 0, -11.78, PI * .5, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 4 ? [-.75, .2, -11.75] : [1.0, 2.75, -.5]]]; } },
+  eat_close: { loc: 'corridor', pos: [.62, 1.12, -9.4], look: [-.62, .62, -12.1], fov: 54, set: (o, t) => { eatLight(o, t); eatGore(o, t); return [['victim', -.4, 0, -11.78, PI * .5, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 2.2 ? [-.75, .2, -11.75] : [.62, 1.12, -9.4]]]; } },
   // уборщик (03:00, седьмой этаж): сначала обычная работа — потом его забирают в темноту за приоткрытой 707
   cleaner_cam: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .8, -10.2], fov: 44, cctv: 1, set: (o, t) => { setLamps(o, 7);
     o.cleanSet(CLEAN); return [['cleaner', -.1, 0, -9.45, .2, 'mop', null]]; } },
-  cleaner_close: { loc: 'corridor', pos: [.82, 1.45, -6.75], look: [-.5, 1.05, -10.9], fov: 50, hum: 'cleaner', face: { cleaner: 'calm' }, set: (o, t) => { setLamps(o, 7);
+  cleaner_close: { loc: 'corridor', pos: [.82, 1.45, -6.75], look: [-.5, 1.05, -10.9], fov: 50, face: { cleaner: 'calm' }, set: (o, t) => { setLamps(o, 7);
     o.cleanSet(CLEAN); return [['cleaner', -.1, 0, -9.45, .33, 'mop', [.8, 1.2, -6.8]]]; } },
   // остановился, швабру прислонил к ведру; лампы дальше по коридору захлёбываются и гаснут; из темноты 707 показываются пальцы
   cleaner_stop: { loc: 'corridor', pos: [1.15, 1.5, -6.1], look: [-.25, 1.42, -10.9], fov: 44, face: { cleaner: 'alert' }, set: (o, t) => {
@@ -639,12 +664,17 @@ const SH = {
     if (!got) return [['cleaner', .3, 0, -9.25, 2.75, 'stand', [-1.3, 1.6, -11.4]]];
     // его тащат: за три кадра вспышки он отъезжает к двери, ноги почти не касаются пола
     if (fA) { const k = clamp((t - 1.0) / .3, 0, 1); return [['cleaner', lerp(-.45, -.78, k), .03 * k, lerp(-10.45, -10.88, k), .55, 'reach', [1.0, 2.75, -.5]], ['monster', lerp(-1.0, -1.22, k), 0, lerp(-11.25, -11.55, k), .5, 'reach', [-.45, 1.4, -10.45]]]; }
-    if (t < 1.97) { const k = clamp((t - 1.3) / .67, 0, 1); return [['cleaner', lerp(-1.1, -.55, k), 0, lerp(-11.2, -11.6, k), .95, 'reach', [1.0, 2.75, -.5]]]; }
+    // повалил и тащит к порогу за ворот: тело на полу бьётся, мокрые следы рук на линолеуме
+    if (t < 1.97) { const k = clamp((t - 1.3) / .67, 0, 1); A.cleaner.struggle = 1;
+      return [['cleaner', lerp(.05, -.3, k), 0, lerp(-11.45, -11.72, k), PI * .5 + .15 * (1 - k), 'lay', null], ['monster', lerp(-1.0, -1.25, k), 0, -12.0, PI * .45, 'eat', [-.6, .2, -11.7]]]; }
     // прямо на пороге: валит и рвёт его под мигающей лампой, тянет кишки; тело ещё дёргается; в конце Жилец поднимает голову к камере
     if (t < 4.9) {
       o.cleanSet({ bucket: [.6, -10.35, .3, 1], spill: AFTER.spill, sign: CLEAN.sign, wet: CLEAN.wet, door7: 1.2, mop: [MOPLEAN[0], MOPLEAN[1], MOPLEAN[2], 1], splat: t > 2.1 });
       eatLight(o, t); const g = clamp((t - 1.97) / 2.2, .15, 1); o.blood.scale.set(1.25 * g, 1, g); o.gutsOn = t > 2.45; o.splat.visible = t > 2.1;
       const tw = t < 3.4 ? Math.sin(t * 37) * Math.pow(Math.max(0, Math.sin(t * 5.3)), 3) : 0;   // предсмертные судороги
+      // сначала бьётся всем телом, потом слабее — и уже только пальцы; на каждом рывке Жильца — брызги и тряска головы
+      A.victim.struggle = clamp(1 - (t - 1.97) / 1.1, 0, 1); A.victim.twitch = t > 2.6 && t < 4.3 ? .8 : 0;
+      o.bursts = [2.15, 2.75, 3.3, 3.9]; o.sprayT = t; A.monster.shake = o.bursts.some(b => t > b - .05 && t < b + .3) ? .3 : 0;
       return [['victim', -.4, .01 * Math.abs(tw), -11.78, PI * .5 + tw * .08, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 4.2 ? [-.75, .2, -11.75] : [1.0, 2.75, -.5]]];
     }
     return [];
@@ -894,7 +924,8 @@ function stage(id, t, opt = {}) {
   curProps = Object.assign({}, PROPS, window.World && World.props, opt.props);
   if (curLoc && curLoc !== o) curLoc.reset();
   curLoc = o; o.reset(); if (o.props) o.props(curProps);
-  for (const k in A) { A[k].faceSet = 'base'; A[k].gore = 0; A[k].scream = 0; A[k].reflOnly = false; A[k].root.visible = true; A[k].aim = null; A[k].noTilt = false; A[k].shake = 0; }
+  for (const k in A) { A[k].faceSet = 'base'; A[k].gore = 0; A[k].scream = 0; A[k].reflOnly = false; A[k].root.visible = true; A[k].aim = null; A[k].noTilt = false; A[k].shake = 0; A[k].struggle = 0; A[k].twitch = 0; A[k].no = 0; A[k].actT = undefined; }
+  if (o.faceL) o.faceL.color.setHex(0xdde6ff);
   if (sh.face) for (const k in sh.face) A[k].faceSet = sh.face[k];   // выражение лица на весь кадр (set() ниже может уточнить)
   const acts = sh.set(o, t, sh) || [];
   if (sh.fog != null) o.S.fog.density = sh.fog;

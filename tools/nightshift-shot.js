@@ -19,7 +19,7 @@ const HTML = `<!doctype html><html><head><meta charset="utf-8"></head><body styl
   const O = JSON.parse(opt || '{}');
   for (const part of spec.split(';')) {
     const [id, ts] = part.split('@'); const want = ts.split(',').map(Number); const last = Math.max(...want);
-    for (let f = process.env.FAST ? Math.round(Math.min(...want) * 30) - 3 : 0; f <= Math.round(last * 30); f++) {
+    for (let f = process.env.FAST ? Math.max(0, Math.round(Math.min(...want) * 30) - 30) : 0; f <= Math.round(last * 30); f++) {
       const t = f / 30, need = want.some(w => Math.abs(w - t) < .017);
       const url = await p.evaluate(([id, t, need, O]) => { const c = document.getElementById('c'), g = c.getContext('2d');
         World.draw(g, c.width, c.height, id, Object.assign({ t, T: t + 100, cx: .5, cy: .5, z: 1 }, O)); return need ? c.toDataURL('image/png') : ''; }, [id, t, need, O]);

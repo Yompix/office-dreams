@@ -35,7 +35,7 @@ const BUF = {}; let TIM = {};
 const SNDS = ['drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'tick', 'click', 'door', 'steps',
   'ch_guard', 'ch_katya', 'ch_whisper', 'ch_monster', ...Array.from({ length: 17 }, (_, i) => 'l' + String(i + 1).padStart(2, '0'))];
 // звуковые эффекты (ElevenLabs): докачиваются в фоне после старта
-const SFX2 = ['room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b'];
+const SFX2 = ['room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b', 'mop_swish'];
 let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, master, musicG, voiceG, sfxG, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
 // громкость голоса сейчас (для движения рта)
 function voiceLevel() { if (!analyser) return 0; analyser.getByteTimeDomainData(abuf); let q = 0; for (let i = 0; i < abuf.length; i += 2) { const v = (abuf[i] - 128) / 128; q += v * v; } return Math.min(1, Math.sqrt(q / (abuf.length / 2)) * 6); }
@@ -48,7 +48,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', 2)] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   const sn = SNDS.map(k => get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
-  const tm = get('timing.json?v=5', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get('timing.json?v=6', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры
   for (const k of [...SFX2, ...Object.keys(TIM)]) if (!SNDS.includes(k)) get('snd/' + k + '.mp3', 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});

@@ -572,11 +572,79 @@ function browMat(C, map, color) {
         transformed.x -= sign(position.x) * max(-uBrow.y, 0.) * .0035 * inr; transformed.z -= uBrow.x * .0015; }`); };
   return m;
 }
+
+/* ---------- сигарета: хлопает по карманам → достаёт сигарету → в зубы → зажигалка → затяжка → выдох ---------- */
+// t — время действия (с начала реплики «хлопал по карманам»); 99 — уже курит: держит у груди, изредка затягивается
+let SMK = null;
+function smokeTex() {
+  if (SMK) return SMK; const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
+  for (let i = 0; i < 14; i++) { const g = x.createRadialGradient(32 + (rnd() - .5) * 20, 32 + (rnd() - .5) * 20, 0, 32, 32, 30); g.addColorStop(0, 'rgba(225,228,232,.16)'); g.addColorStop(1, 'rgba(225,228,232,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); }
+  SMK = new T.CanvasTexture(c); return SMK;
+}
+function smokeProps(C) {
+  if (C.cig) return;
+  const cig = new T.Group(); cyl(.0042, .0042, .075, 8, mat(0xe8e4da), cig).rotation.x = Math.PI / 2;
+  const f = cyl(.0043, .0043, .022, 8, mat(0xc8935a), cig); f.rotation.x = Math.PI / 2; f.position.z = -.045;   // фильтр
+  C.tip = cyl(.0045, .0045, .006, 8, new T.MeshBasicMaterial({ color: 0x401008 }), cig); C.tip.rotation.x = Math.PI / 2; C.tip.position.z = .039;
+  const lt = new T.Group(); box(.022, .055, .012, mat(0x8a1a1a), 0, 0, 0, lt); box(.02, .008, .012, mat(0xa0a0a0), 0, .031, 0, lt);
+  C.flame = new T.Mesh(new T.ConeGeometry(.007, .03, 8), new T.MeshBasicMaterial({ color: 0xffb040, transparent: true, opacity: .9, blending: T.AdditiveBlending, depthWrite: false })); C.flame.position.y = .052; lt.add(C.flame);
+  C.puffs = []; const sm = smokeTex();
+  for (let i = 0; i < 16; i++) { const sp = new T.Sprite(new T.SpriteMaterial({ map: sm, transparent: true, depthWrite: false, opacity: 0, color: 0xd8dce0 })); sp.visible = false; C.root.add(sp); C.puffs.push(sp); }
+  C.root.add(cig, lt); C.cig = cig; C.lighter = lt;
+}
+const _m1 = new T.Vector3(), _m2 = new T.Vector3(), _m3 = new T.Vector3();
+function mouthPt(C) {   // рот в осях персонажа
+  const h = C.bone.Head, q = h.getWorldQuaternion(new T.Quaternion()), p = h.getWorldPosition(new T.Vector3()), s = C.inner.scale.y;
+  const fw = C.headFwd.clone().applyQuaternion(q), up = new T.Vector3(0, 1, 0).applyQuaternion(q);
+  p.addScaledVector(fw, .095 * s).addScaledVector(up, .035 * s); return C.root.worldToLocal(p);
+}
+function smokeArms(C, t, tt) {
+  smokeProps(C); const ss = C.inner.scale.y, m = mouthPt(C), lit = t > 4.45 || t >= 99;
+  const lerp3 = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)], sk = k => k * k * (3 - 2 * k);
+  const pockR = [-.2 * ss, .95 * ss, .07 * ss], chest = [-.1 * ss, 1.33 * ss, .16 * ss], pockL = [.2 * ss, .95 * ss, .07 * ss], rest = [-.21 * ss, .88 * ss, .08 * ss], restL = [.21 * ss, .88 * ss, .06 * ss];
+  const atMouth = [m.x - .02, m.y - .03, m.z + .02], hold = [-.1 * ss, 1.22 * ss, .27 * ss];
+  let R = rest, L = restL, cigAt = 'none', light = 0;
+  if (t < 99) {
+    if (t < 2.5) {   // хлопает по карманам: брюки, грудь, другой бок
+      const ph = t / .62 | 0, pat = Math.abs(Math.sin(t * 11)) * .025 * ss, sp = [pockR, chest, pockL, pockR][ph % 4];
+      if (sp === pockL) L = [sp[0], sp[1] + pat, sp[2]]; else R = [sp[0], sp[1] + pat, sp[2]];
+    } else if (t < 3.5) { const k = sk(clamp((t - 2.6) / .8, 0, 1)); R = lerp3(pockR, atMouth, k); cigAt = t > 2.75 ? 'hand' : 'none'; }   // нашёл — несёт ко рту
+    else if (t < 4.9) {   // сигарета в зубах, правая опускается; левая с зажигалкой у лица, огонёк
+      cigAt = 'mouth'; R = lerp3(atMouth, rest, sk(clamp((t - 3.5) / .5, 0, 1)));
+      const kl = sk(clamp((t - 3.55) / .45, 0, 1)) * (1 - sk(clamp((t - 4.6) / .3, 0, 1))); L = lerp3(restL, [m.x + .03, m.y - .13, m.z + .1], kl); light = t > 3.95 && t < 4.6 ? 1 : 0;
+    } else { const k = sk(clamp((t - 4.9) / .5, 0, 1)); cigAt = t < 5.15 ? 'mouth' : 'hand'; R = t < 5.15 ? lerp3(rest, atMouth, sk(clamp((t - 4.9) / .25, 0, 1))) : lerp3(atMouth, hold, k); }
+  } else {   // уже курит: у груди; раз в 6 с затяжка
+    const ph = tt % 6, up = ph < .6 ? sk(ph / .6) : ph < 1.6 ? 1 : ph < 2.2 ? 1 - sk((ph - 1.6) / .6) : 0;
+    R = lerp3(hold, atMouth, up); cigAt = 'hand';
+  }
+  ik2(C, 'upperarm_r', 'lowerarm_r', 'hand_r', R[0], R[1], R[2], [-.9, -.5, -.3]); ik2(C, 'upperarm_l', 'lowerarm_l', 'hand_l', L[0], L[1], L[2], [.9, -.5, -.3]);
+  fist(C, 'r', cigAt === 'hand' ? .55 : t < 2.5 && t < 99 ? .2 : .4); fist(C, 'l', light || (t > 3.5 && t < 4.9) ? .75 : .25);
+  // сигарета: в пальцах (между указательным и средним) или в зубах — смотрит вперёд-вниз
+  const cg = C.cig; cg.visible = cigAt !== 'none';
+  if (cigAt === 'hand') { const a = C.root.worldToLocal(C.bone.index_02_r.getWorldPosition(_m1)), b = C.root.worldToLocal(C.bone.middle_02_r.getWorldPosition(_m2)), h = gripPt(C, 'r');
+    cg.position.copy(a).lerp(b, .5); cg.lookAt(_m3.copy(cg.position).sub(h).add(cg.position).applyMatrix4(C.root.matrixWorld)); cg.position.lerp(h, -.25); }
+  else if (cigAt === 'mouth') { cg.position.copy(m).add(_m1.set(0, -.012, .035)); cg.rotation.set(.3, 0, 0); }
+  cg.updateMatrixWorld(true);
+  C.lighter.visible = t > 3.5 && t < 4.9 && t < 99; if (C.lighter.visible) { C.lighter.position.copy(gripPt(C, 'l')).add(_m1.set(0, .02, 0)); C.lighter.rotation.set(0, 0, 0); }
+  C.flame.visible = !!light; if (light) { C.flame.scale.set(1, .8 + .4 * Math.abs(Math.sin(tt * 37)), 1); }
+  C.lighterOn = light; C.root.updateWorldMatrix(false, true);
+  C.tip.material.color.setHex(lit ? (Math.sin(tt * 5) > .6 || (t > 4.3 && t < 4.9) ? 0xff6a20 : 0xc03410) : 0x2a1a14);
+  // дым: тонкая струйка с кончика; выдох облаком изо рта
+  const tipW = C.tip.getWorldPosition(_m2), tipL = C.root.worldToLocal(tipW.clone()), exh = t < 99 ? t - 5.3 : ((tt % 6) - 2.3);
+  C.puffs.forEach((sp, i) => {
+    if (i < 8) { if (!lit || !cg.visible) { sp.visible = false; return; } const a = ((tt * .35 + i / 8) % 1); sp.visible = true;
+      sp.position.set(tipL.x + Math.sin(tt * 2 + i) * .02 * a, tipL.y + a * .35, tipL.z + Math.cos(tt * 1.5 + i) * .02 * a); sp.scale.setScalar(.03 + a * .12); sp.material.opacity = .5 * (1 - a) * Math.min(1, a * 6); }
+    else { const a = (exh - (i - 8) * .06) / 1.6; if (a <= 0 || a >= 1 || !lit) { sp.visible = false; return; } sp.visible = true;
+      sp.position.set(m.x + (i - 12) * .015 + a * .05, m.y - .02 + a * .25, m.z + .05 + a * .3); sp.scale.setScalar(.05 + a * .28); sp.material.opacity = .28 * (1 - a) * Math.min(1, a * 5); }
+  });
+}
+
 /* ---------- позы ---------- */
 const POSE = {
   stand: 'Idle_Loop', talk: 'Idle_Talking_Loop', sit: 'Sitting_Idle_Loop', sittalk: 'Sitting_Talking_Loop', sitfloor: 'Fixing_Kneeling',
   knock: 'Idle_Loop', give: 'Idle_Loop', paper: 'Idle_Loop', monster: 'Idle_Loop', reach: 'Idle_Loop',
   walk: 'Walk_Loop', back: 'Walk_Loop', push: 'Push_Loop', hug: 'Idle_Loop', eat: 'Crouch_Idle_Loop', lay: 'LayToIdle', mop: 'Idle_Loop', slam: 'Idle_Loop',
+  sitpaper: 'Fixing_Kneeling', smoke: 'Idle_Loop', embrace: 'Idle_Loop', weak: 'Walk_Loop',
 };
 const _ld = new T.Vector3(), _a = new T.Vector3(), _b = new T.Vector3(), _c = new T.Vector3(), _q = new T.Quaternion(), _q2 = new T.Quaternion(), _pq = new T.Quaternion();
 // повернуть кость так, чтобы она смотрела в направлении dir (в осях персонажа: +z вперёд, +y вверх, +x влево)
@@ -609,6 +677,12 @@ function ik2(C, up, lo, end, tx, ty, tz, pole, k = 1) {
 }
 // ступня сохраняет поворот в мире (после поправки ноги подошва остаётся на полу)
 function keepWorld(C, name, q) { const b = C.bone[name]; b.parent.getWorldQuaternion(_Q3); b.quaternion.copy(_Q3.invert().multiply(q)); b.updateWorldMatrix(false, true); }
+// точка хвата в ладони (в осях персонажа): между запястьем и основанием среднего пальца, чуть к ладони
+const _UP = new T.Vector3(0, 1, 0);
+function gripPt(C, s) { C.root.updateWorldMatrix(true, true); const h = C.bone['hand_' + s].getWorldPosition(new T.Vector3()), m = C.bone['middle_01_' + s].getWorldPosition(new T.Vector3());
+  return C.root.worldToLocal(h.lerp(m, .62)); }
+// небольшой поворот кости вокруг её оси (для судорог, кивков): ax — ось в осях кости
+function wiggle(C, n, ax, a) { const b = C.bone[n]; if (!b) return; _Q3.setFromAxisAngle(_D.set(ax[0], ax[1], ax[2]), a); b.quaternion.multiply(_Q3); }
 // открытая ладонь: пальцы возвращаются в исходную прямую позу (ладонь на стекле)
 function palm(C, s) {
   for (const f of FING) for (let j = 1; j <= 3; j++) { const n = f + '_0' + j + '_' + s, b = C.bone[n]; if (b && C.rest[n]) b.quaternion.copy(C.rest[n]); }
@@ -644,7 +718,7 @@ function updateSkinned(C, t, dt) {
   if (!still) {
   // шаг под скорость: ноги идут ровно с той скоростью, с какой человек движется по полу (иначе «плывёт» или шагает на месте)
   let stride = 1;
-  if ((P === 'walk' || P === 'back') && !C.o.monster) {
+  if ((P === 'walk' || P === 'back' || P === 'weak') && !C.o.monster) {
     const p = C.root.position, base = 1.03 * C.inner.scale.y;
     if (C.prevP && dt > 0) { const v = Math.hypot(p.x - C.prevP.x, p.z - C.prevP.z) / dt; C.walkV = C.walkV == null ? v : C.walkV + (v - C.walkV) * Math.min(1, dt * 8); }
     (C.prevP || (C.prevP = new T.Vector3())).copy(p);
@@ -695,11 +769,13 @@ function updateSkinned(C, t, dt) {
     ik2(C, 'upperarm_r', 'lowerarm_r', 'hand_r', top[0], top[1], top[2], [-.8, -.6, -.4]);
     ik2(C, 'upperarm_l', 'lowerarm_l', 'hand_l', mid[0], mid[1], mid[2], [.8, -.8, -.2]);
     fist(C, 'r', .9); fist(C, 'l', .9);
-    if (C.mop) { C.mop.visible = true; const g = C.mop; g.position.set(hx, .02, hz);
-      const d = new T.Vector3(top[0] - hx, top[1] - .02, top[2] - hz).normalize(); g.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), d); }
+    // черенок проходит ровно через обе ладони (а не через запястья): точку хвата берём между запястьем и основанием среднего пальца
+    if (C.mop) { C.mop.visible = true; const g = C.mop, pr = gripPt(C, 'r'), pl = gripPt(C, 'l'), d = pr.clone().sub(pl).normalize();
+      const k = d.y > .05 ? (pl.y - .02) / d.y : 0, base = pl.clone().addScaledVector(d, -k);
+      g.position.copy(base); g.quaternion.setFromUnitVectors(_UP, d); }
   } else if (P === 'give') {
     aimBone(C, 'upperarm_r', 'lowerarm_r', [-.1, -.6, 1], 1); aimBone(C, 'lowerarm_r', 'hand_r', [0, -.1, 1], 1); fist(C, 'r', .55);
-  } else if (P === 'paper') {
+  } else if (P === 'paper' || P === 'sitpaper') {
     aimBone(C, 'upperarm_r', 'lowerarm_r', [-.1, -.85, .45], 1); aimBone(C, 'lowerarm_r', 'hand_r', [.45, .35, 1], 1);
     aimBone(C, 'upperarm_l', 'lowerarm_l', [.1, -.85, .45], 1); aimBone(C, 'lowerarm_l', 'hand_l', [-.45, .35, 1], 1);
   } else if (P === 'reach') {
@@ -713,10 +789,32 @@ function updateSkinned(C, t, dt) {
     aimBone(C, 'spine_02', 'spine_03', [Math.sin(tt * 7) * .08 * yank, .55 - bite * .35 + yank * .3, 1], .8);
     aimBone(C, 'upperarm_r', 'lowerarm_r', [-.2, -.75, .75], 1); aimBone(C, 'lowerarm_r', 'hand_r', [.1, -.75 + tr * 1.1, .7 - tr * .3], 1);
     aimBone(C, 'upperarm_l', 'lowerarm_l', [.2, -.75, .75], 1); aimBone(C, 'lowerarm_l', 'hand_l', [-.1, -.75 + tl * 1.1, .7 - tl * .3], 1);
+  } else if (P === 'embrace') {
+    // кинулась на шею: руки вверх и в стороны, мимо камеры, локти согнуты — обнимает того, кто смотрит
+    const k = clamp((C.actT ?? 9) / .45, 0, 1), sq = Math.sin(tt * 1.7) * .05;
+    aimBone(C, 'spine_02', 'spine_03', [0, 1, .25 * k], .7);
+    aimBone(C, 'upperarm_r', 'lowerarm_r', [lerp(-.2, -.95, k), lerp(-.8, .5 + sq, k), lerp(.3, .55, k)], 1); aimBone(C, 'lowerarm_r', 'hand_r', [lerp(0, -.45, k), lerp(-.8, .35, k), lerp(.5, 1, k)], 1);
+    aimBone(C, 'upperarm_l', 'lowerarm_l', [lerp(.2, .95, k), lerp(-.8, .5 - sq, k), lerp(.3, .55, k)], 1); aimBone(C, 'lowerarm_l', 'hand_l', [lerp(0, .45, k), lerp(-.8, .35, k), lerp(.5, 1, k)], 1);
+    fist(C, 'r', .35 * k); fist(C, 'l', .35 * k);
+  } else if (P === 'smoke') {
+    smokeArms(C, C.actT ?? 99, tt);
   } else if (P === 'hug') {
     aimBone(C, 'upperarm_r', 'lowerarm_r', [.2, -.1, 1], 1); aimBone(C, 'lowerarm_r', 'hand_r', [.9, 0, .4], 1);
     aimBone(C, 'upperarm_l', 'lowerarm_l', [-.2, -.1, 1], 1); aimBone(C, 'lowerarm_l', 'hand_l', [-.9, 0, .4], 1);
   }
+  // тело на полу бьётся: руки молотят, ноги дёргаются, спина выгибается; потом всё реже — и только пальцы
+  if (P === 'lay' && C.struggle > 0) {
+    const s = C.struggle, f = tt * 9;
+    wiggle(C, 'upperarm_l', [0, 0, 1], s * (Math.sin(f) * .9 - .5)); wiggle(C, 'upperarm_r', [0, 0, 1], s * (Math.sin(f * 1.13 + 2) * .9 + .5));
+    wiggle(C, 'lowerarm_l', [0, 0, 1], s * Math.sin(f * 1.7) * .7); wiggle(C, 'lowerarm_r', [0, 0, 1], s * Math.sin(f * 1.5 + 1) * .7);
+    wiggle(C, 'thigh_l', [1, 0, 0], s * Math.sin(f * .8) * .45); wiggle(C, 'thigh_r', [1, 0, 0], s * Math.sin(f * .8 + 2.6) * .45);
+    wiggle(C, 'calf_l', [1, 0, 0], s * Math.abs(Math.sin(f * .8)) * .6); wiggle(C, 'calf_r', [1, 0, 0], s * Math.abs(Math.sin(f * .8 + 2.6)) * .6);
+    wiggle(C, 'spine_02', [1, 0, 0], s * Math.sin(f * .55) * .25); wiggle(C, 'neck_01', [0, 1, 0], s * Math.sin(f * .9) * .5);
+    fist(C, 'r', .6 + .4 * Math.sin(f * 2)); fist(C, 'l', .6 + .4 * Math.sin(f * 2.3));
+  }
+  if (P === 'lay' && C.twitch > 0) { const w = C.twitch * Math.pow(Math.max(0, Math.sin(tt * 3.1)), 12); wiggle(C, 'hand_r', [0, 0, 1], w * .6); fist(C, 'r', w); }
+  // ноги не держат: идёт, оседая на каждом шаге, корпус ведёт в сторону
+  if (P === 'weak') { aimBone(C, 'spine_01', 'spine_02', [Math.sin(tt * 2.2) * .25, 1, .35], .8); wiggle(C, 'calf_l', [1, 0, 0], .35 + .25 * Math.sin(tt * 4.4)); wiggle(C, 'calf_r', [1, 0, 0], .35 - .25 * Math.sin(tt * 4.4)); }
   // голова смотрит на цель (обычно в камеру): доворачиваем «нос» головы к цели поверх анимации, поровну шее и голове
   const k = Math.min(1, sdt * (C.o.stopmo ? 3 : 7)), hb = C.bone.Head;
   hb.updateWorldMatrix(true, false); hb.getWorldPosition(_a);
@@ -731,6 +829,7 @@ function updateSkinned(C, t, dt) {
   // при разговоре голова чуть кивает и покачивается, а не стоит как у манекена
   const LD = _ld.copy(C.lookDir);
   if (talking && !C.o.monster) { LD.y += Math.sin(tt * 3.1) * .035 + Math.sin(tt * 1.3) * .02; LD.x += Math.sin(tt * .9) * .025; LD.normalize(); }
+  if (C.no > 0) { _q.setFromAxisAngle(_UP, Math.sin(tt * 6.5) * .42 * C.no); LD.applyQuaternion(_q); }   // мотает головой: «нет, нет, нет»
   for (const [bn, f] of [['neck_01', .45], ['Head', .9]]) {
     const b = C.bone[bn]; b.updateWorldMatrix(true, false);
     const bw = b.getWorldQuaternion(new T.Quaternion());
@@ -784,7 +883,8 @@ function updateSkinned(C, t, dt) {
   }
   U.uScream.value = C.scream || fs.scream || 0;
   U.uGore.value = C.gore || 0;
-  C.keys.visible = P === 'give'; C.paper.visible = P === 'paper'; if (C.mop && P !== 'mop') C.mop.visible = false;
+  if (C.cig && P !== 'smoke') { C.cig.visible = C.lighter.visible = false; C.puffs.forEach(s => (s.visible = false)); C.lighterOn = 0; }
+  C.keys.visible = P === 'give'; C.paper.visible = P === 'paper' || P === 'sitpaper'; if (C.mop && P !== 'mop') C.mop.visible = false;
 }
 
 /* ---------- актёры «Ночной смены» ---------- */

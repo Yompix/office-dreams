@@ -65,14 +65,14 @@ window.STORY = {
       music: 'drone', time: '02:59', sec: 50,
       beats: [
         { img: 'cleaner_cam', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .5, 1.0, 1.06], [.47, .55, 1.7, 1.85]], say: ['fl7_0'], pad: .3 },
-        { img: 'cleaner_close', cams: [[.5, .52, 1.0, 1.08]], say: ['cleaner_hum'], sfx: [['steps', 1.1, { cut: .4, gain: .25, lp: 900 }]], pad: 1.1 },
+        { img: 'cleaner_close', cams: [[.5, .52, 1.0, 1.08]], sfx: [['mop_swish', .35, { gain: .55 }], ['mop_swish', 1.85, { gain: .5, rate: .92 }], ['mop_swish', 3.35, { gain: .55, rate: 1.05 }], ['steps', 1.1, { cut: .4, gain: .25, lp: 900 }]], pad: 4.4 },
         { img: 'cleaner_stop', time: '03:00', cams: [[.5, .48, 1.0, 1.12]], say: ['floor7_0'], sfx: [['hum_stop', .2, { gain: .5 }], ['fluor_flicker', .9, { off: 1.4, cut: .5, gain: .3 }], ['fluor_flicker', 1.9, { off: 1.6, cut: .4, gain: .25 }]], pad: 2.4 },
         { img: 'cleaner_fingers', cams: [[.5, .5, 1.0, 1.15]], hush: true, sfx: [['metal_groan', .2, { cut: 1.6, gain: .25, lp: 1200 }], ['cleaner_cry_a', 1.25, { gain: .75, rev: .3 }]], text: '', pad: 2.4 },
         { img: 'cleaner_grab', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .5, 1.0, 1.04], [.47, .57, 1.7, 1.9], [.47, .55, 1.9, 2.15]], scare: 1.02, hit: [], text: '',
           sfx: [['door_slams', .98, { off: .5, cut: .5, gain: .9 }], ['cleaner_cry_b', 1.0, { gain: .9, rev: .25 }], ['eat_wet', 1.75, { cut: .6, gain: .5 }], ['cleaner_cry_a', 2.0, { gain: .55, rev: .4, lp: 1400 }], ['eat_wet', 2.2, { gain: .85 }], ['neck_crack', 2.75, { gain: .8 }], ['eat_wet', 3.3, { gain: .8 }], ['eat_wet', 4.1, { gain: .7 }], ['door', 5.0, { cut: .5, gain: .5, lp: 900 }]], pad: 5.6 },
         { img: 'cleaner_gone', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .5, 1.0, 1.08], [.45, .56, 1.7, 1.9]], say: ['fl7_2'], heart: true, pad: .6, rule: '1. В 03:00 НА 7 ЭТАЖЕ\nВКЛЮЧИТСЯ СВЕТ.\nНЕ ПОДНИМАЙСЯ' }
       ],
-      then: { mg: 'tape', title: 'ПЕРЕМОТАЙ ЗАПИСЬ', hint: 'Тяни ползунок влево. Найди, где он ещё живой.', found: '03:00:00. Он ещё живой…',
+      then: { mg: 'tape', title: 'ПЕРЕМОТАЙ ЗАПИСЬ', hint: 'Тяни ползунок влево. Найди момент, когда он ещё жив.', found: '03:00:00. Он ещё жив…',
               img: 'cleaner_grab', label: 'CAM 07  ЭТАЖ 7', cam: [.47, .54, 1.45, 1.45], len: 5.6, goal: .7, stop: 2.7, clock0: [3, 0, 0],
               sfx: [['door_slams', .98, { off: .5, cut: .5, gain: .7, lp: 2200 }], ['cleaner_cry_b', 1.0, { gain: .7, rev: .25, lp: 2200 }], ['eat_wet', 2.2, { gain: .7, lp: 2200 }], ['static', 2.6, { gain: .6, cut: .5 }]], win: 'floor7_ch' }
     },
@@ -105,7 +105,7 @@ window.STORY = {
         { img: 'cam13_turn', fx: 'cctv', label: 'CAM 13', cams: [[.5, .45, 1.0, 1.05]], say: ['l13'], scareGap: true, sfx: [['static', 0], ['neck_crack', 2.7]], pad: .2 },
         { img: 'cam13_turn', fx: 'cctv', label: 'CAM 13', cams: [[.54, .34, 2.2, 2.6]], say: ['ch_monster'], pad: .3 }
       ],
-      then: { mg: 'cord', title: 'ВЫДЕРНИ ШНУР', hint: 'Тяни шнур монитора вниз. Три секунды.', dur: 3, win: 'knock', lose: 'over_cord' }
+      then: { mg: 'cord', title: 'ВЫДЕРНИ ШНУР', hint: 'Тяни шнур монитора вниз и держи три секунды.', dur: 3, win: 'knock', lose: 'over_cord' }
     },
     knock: {
       music: 'tension', time: '03:30',
@@ -243,7 +243,7 @@ window.STORY = {
         { img: 'corridor_dark', fx: 'dark', cams: [[.5, .5, 1.0, 1.3]], say: ['down_0'], sfx: [['steps', .2], ['steps', 1.8]], pad: .2 },
         { img: 'corridor_dark', cams: [[.5, .5, 1.3, 1.5]], say: ['down_1'], sfx: [['click', .8]], pad: .3 }
       ],
-      then: { mg: 'torch', title: 'ФОНАРИК', hint: 'Веди пальцем — свети. В конце коридора что-то шуршит.', hint2: 'Никого. Дверь серверной — там же, в конце.', found: 'СЕРВЕРНАЯ −2',
+      then: { mg: 'torch', title: 'ФОНАРИК', hint: 'Веди пальцем, чтобы светить. В конце коридора что-то шуршит.', hint2: 'Никого. Дверь серверной — там же, в конце.', found: 'СЕРВЕРНАЯ −2',
               img: 'torch_corr_mon', img2: 'torch_corr', img3: 'torch_corr_near', mon: [.5, .47], goal: [.5, .455], near: [.5, .4], win: 'basement' }
     },
     basement: {
@@ -269,7 +269,7 @@ window.STORY = {
         { img: 'server_mih_close', cams: [[.5, .42, 1.2, 1.3]], say: ['knock3_6'], pad: .3 },
         { img: 'server_mih_close', cams: [[.5, .4, 1.3, 1.4]], say: ['knock3_7'], pad: .3 },
         { img: 'server_mih', cams: [[.5, .5, 1.0, 1.1]], say: ['knock3_8'], pad: .3 },
-        { img: 'server_door', cams: [[.6, .5, 1.0, 1.2]], text: 'За дверью зашлёпали мокрые шаги. А потом заплакала Катя.', say: ['ch_katya'], sfx: [['steps_barefoot', 0]], pad: .2 }
+        { img: 'server_door_no', cams: [[.6, .5, 1.0, 1.2]], text: 'За дверью зашлёпали мокрые шаги. А потом заплакала Катя.', say: ['ch_katya'], sfx: [['steps_barefoot', 0]], pad: .2 }
       ],
       then: { goto: 'hold_door' }
     },
@@ -278,21 +278,21 @@ window.STORY = {
       beats: [
         { img: 'server_door', fx: 'flicker', cams: [[.65, .5, 1.2, 1.4]], say: ['hold_door_0'], sfx: [['door_slams', .1]], pad: .1 }
       ],
-      then: { mg: 'door', title: 'ДЕРЖИ ДВЕРЬ', hint: 'Жми часто. До шести он будет ломиться.', dur: 13, win: 'dawn', lose: 'over_door' }
+      then: { mg: 'door', title: 'ДЕРЖИ ДВЕРЬ', hint: 'Жми чаще. До шести он будет ломиться в дверь.', dur: 13, win: 'dawn', lose: 'over_door' }
     },
     dawn: {
       music: 'drone', time: '06:00',
       beats: [
         { img: 'server_door', cams: [[.5, .5, 1.1, 1.0]], say: ['dawn_0'], pad: .5 },
-        { img: 'server_mih_stand', cams: [[.5, .45, 1.0, 1.15]], say: ['dawn_1'], pad: .3 },
+        { img: 'server_mih_weak', cams: [[.5, .45, 1.0, 1.1]], say: ['dawn_1'], pad: .3 },
         { img: 'exterior_two', fx: 'rain', cams: [[.5, .5, 1.0, 1.1]], say: ['dawn_2'], sfx: [['door', 0]], pad: .4 },
-        { img: 'exterior_two', fx: 'rain', cams: [[.55, .5, 1.4, 1.6]], say: ['dawn_3'], pad: .3 },
-        { img: 'exterior_two', fx: 'rain', cams: [[.6, .5, 1.7, 1.9]], say: ['dawn_4'], pad: .3 },
-        { img: 'exterior_two', fx: 'rain', cams: [[.62, .48, 2.0, 2.2]], say: ['dawn_5'], pad: .8 },
-        { img: 'exterior_two', fx: 'rain', cams: [[.5, .5, 1.0, 1.12]], say: ['dawn_n1'], pad: .6 },
+        { img: 'exterior_smoke', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['dawn_3'], pad: 1.4 },
+        { img: 'exterior_two_smoke', fx: 'rain', cams: [[.6, .5, 1.7, 1.9]], say: ['dawn_4'], pad: .3 },
+        { img: 'exterior_two_smoke', fx: 'rain', cams: [[.62, .48, 2.0, 2.2]], say: ['dawn_5'], pad: .8 },
+        { img: 'exterior_two_smoke', fx: 'rain', cams: [[.5, .5, 1.0, 1.12]], say: ['dawn_n1'], pad: .6 },
         { img: 'hall_cam', fx: 'cctv', label: 'CAM 04  ХОЛЛ', cams: [[.5, .5, 1.0, 1.06], [.44, .46, 2.6, 3.4]], say: ['l01'], pad: 1.0 }
       ],
-      then: { ending: 'dawn', title: 'ТЫ ДОЖИЛ ДО УТРА', sub: 'Михалыч ушёл и не вернулся. Ты — вернулся. А у лифта каждую ночь стоят чуть ближе.' }
+      then: { ending: 'dawn', title: 'ТЫ ДОЖИЛ ДО УТРА', sub: 'Михалыч ушёл и не вернулся. Ты вернулся. А тот, у лифта, каждую ночь стоит чуть ближе.' }
     },
     rules: {
       music: 'drone', time: '04:12',
@@ -374,7 +374,7 @@ window.STORY = {
       music: 'tension', time: '04:17',
       beats: [
         { img: 'basement_door', cams: [[.5, .5, 1.2, 1.4]], say: ['over_voice_0'], sfx: [['door', .2]], pad: .2 },
-        { img: 'server_door', cams: [[.4, .5, 1.0, 1.2]], say: ['over_voice_1'], pad: .2 },
+        { img: 'server_door_no', cams: [[.4, .5, 1.0, 1.2]], say: ['over_voice_1'], pad: .2 },
         { img: 'server_door', fx: 'dark', cams: [[.4, .5, 1.2, 1.3]], say: ['over_voice_2'], pad: .1 },
         { img: 'lunge_server', fx: 'lunge', scare: 1.4, text: '', pad: 3.0 }
       ],
@@ -401,9 +401,9 @@ window.STORY = {
   },
   // мини-игра «обход камер»: посмотреть 3 камеры, 13-ю не трогать
   cams: [
-    { id: 'CAM 01', name: 'ВХОД', img: 'entrance_empty', c: [.5, .5, 1.0], note: 'Пусто. Дождь стеной. На стекле — чей-то отпечаток ладони?.. Нет, капли.' },
+    { id: 'CAM 01', name: 'ВХОД', img: 'entrance_empty', c: [.5, .5, 1.0], note: 'Пусто. Дождь стеной. На стекле чей-то отпечаток ладони?.. Нет, просто капли.' },
     { id: 'CAM 04', name: 'ХОЛЛ', img: 'hall_cam', c: [.44, .46, 2.4], note: 'У лифта кто-то стоит?.. Нет. Показалось.', creep: true },
-    { id: 'CAM 07', name: 'ЭТАЖ 7', img: 'cleaner_cam', c: [.5, .5, 1.0], note: 'Уборщик домывает седьмой. Хоть кто-то живой в здании.' },
+    { id: 'CAM 07', name: 'ЭТАЖ 7', img: 'cleaner_cam', c: [.5, .5, 1.0], note: 'Уборщик домывает седьмой. Хоть кто-то живой в этом здании.' },
     { id: 'CAM 13', name: '', img: null, forbidden: true }
   ],
   endings: { dawn: 'Рассвет', rules: 'Пятое правило', inside: 'Внутри', sister: 'Сестра' },
