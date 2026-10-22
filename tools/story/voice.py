@@ -119,7 +119,7 @@ def split(lang, idx, src, hints=()):
             g = onset(pcm, g + .05, at[last[i - 1]][1] + .05 if i else 0)
             cuts[i] = min(cuts[i], g - .04)
         s0 = max(cuts[i], g - .12); s1 = min(cuts[i + 1], at[last[i]][1] + .3)
-        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src, '-ss', f'{s0:.3f}', '-to', f'{s1:.3f}', '-ac', '1', '-ar', '44100', '-b:a', '64k',
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', f'{s0:.3f}', '-to', f'{s1:.3f}', '-i', src, '-ac', '1', '-ar', '44100', '-b:a', '64k',   # отрезок до фильтров — иначе затухания ложатся на края всего пакета
                         '-af', 'afade=t=in:d=0.02,areverse,afade=t=in:d=0.06,areverse', os.path.join(sdir(lang), k + '.mp3')], check=True)
         L = LINES[k]
         tim[k] = {'t': L[lang], 'dur': round(s1 - s0, 2), 'w': [[round(max(0, at[j][0] - s0), 2), words[j]] for j in range(first[i], last[i] + 1)], 'who': L['who']}

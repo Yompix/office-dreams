@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Night Shift",
-  "short_name": "Night Shift",
+  "name": "Молчи до шести",
+  "short_name": "Молчи до 6",
   "description": "Интерактивное хоррор-кино: ночной охранник, четыре правила и сестра за стеклом.",
   "lang": "ru",
   "start_url": "./",

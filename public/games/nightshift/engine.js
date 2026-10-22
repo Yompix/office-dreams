@@ -1,4 +1,4 @@
-/* «Ночная смена» — движок интерактивного кино: кадры с движением камеры и эффектами, голос, субтитры, выборы, мини-игры.
+/* «Молчи до шести» (Hush Till Six) — движок интерактивного кино: кадры с движением камеры и эффектами, голос, субтитры, выборы, мини-игры.
    Звук: живой фон места (никогда не цифровая тишина), случайные далёкие звуки, тишина перед каждым скримером,
    «подпись» Жильца перед появлением, стук Кати по стеклу в такт её руке, слой обертонов для динамика телефона.
    Поля кадра (story.js) сверх старых: sms {from, text, at}, fx 'glitch', subl (кадр-вспышка лица), props, cctv. */
@@ -24,6 +24,8 @@ let LAND = LS.get('land3', true);   // v3: кадры поставлены по�
 // точка, заданная в долях вертикального кадра (сценарий писался под 9:16), → доли текущего кадра (угол обзора по вертикали тот же)
 const scrX = x => LAND ? .5 + (x - .5) * (9 / 16) / (16 / 9) : x;
 const voiceOn = () => LS.get('voice', true);   // озвучка реплик (субтитры остаются всегда)
+const VOL = Object.assign({ all: 1, mus: 1, voice: 1, sfx: 1 }, LS.get('vol', {}));   // ползунки громкости в настройках
+let uMus = null, uSfx = null;
 const escH = v => String(v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // значки интерфейса: простые векторные, без эмодзи
 const ICON = {
@@ -87,23 +89,23 @@ function initAudio() {   // контекст создаём заранее (он
   const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return (decoding = Promise.resolve());
   AC = new Ctx();
   const muted = LS.get('mute', false);
-  master = AC.createGain(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .25; master.connect(comp); comp.connect(AC.destination); master.gain.value = muted ? 0 : 1;
+  master = AC.createGain(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .25; master.connect(comp); comp.connect(AC.destination); master.gain.value = muted ? 0 : VOL.all;
   // крик скримера — мимо компрессора, чтобы был громче голоса; резкие 4–5 кГц чуть приглушены (динамик телефона их режет в уши)
   directG = AC.createGain(); directG.gain.value = master.gain.value; { const pk = filt('peaking', 4500, 1.2); pk.gain.value = -4; directG.connect(pk); pk.connect(AC.destination); }
-  musicG = AC.createGain(); musicG.gain.value = .55; musicG.connect(master);
-  voiceG = AC.createGain(); voiceG.gain.value = 1; voiceOut = AC.createGain(); voiceOut.gain.value = voiceOn() ? 1 : 0; voiceG.connect(voiceOut); voiceOut.connect(master);
-  sfxG = AC.createGain(); sfxG.gain.value = .8; sfxG.connect(master);
+  musicG = AC.createGain(); musicG.gain.value = .55; uMus = AC.createGain(); uMus.gain.value = VOL.mus; musicG.connect(uMus); uMus.connect(master);
+  voiceG = AC.createGain(); voiceG.gain.value = 1; voiceOut = AC.createGain(); voiceOut.gain.value = voiceOn() ? VOL.voice : 0; voiceG.connect(voiceOut); voiceOut.connect(master);
+  sfxG = AC.createGain(); sfxG.gain.value = .8; uSfx = AC.createGain(); uSfx.gain.value = VOL.sfx; uSfx.connect(master); sfxG.connect(uSfx);
   // слой для динамика телефона: он не играет ниже ~250 Гц, поэтому гул, дрон и сердце получают мягкие обертоны 200–1400 Гц
   { lowSend = AC.createGain(); const lp = filt('lowpass', 260, .7), dr = AC.createGain(), ws = AC.createWaveShaper(), hp = filt('highpass', 200, .7), lp2 = filt('lowpass', 1400, .7), wet = AC.createGain();
     const n = 1024, cu = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; cu[i] = Math.tanh(x * 3) / Math.tanh(3); }
     ws.curve = cu; ws.oversample = 'none'; dr.gain.value = 2; wet.gain.value = .6;
     lowSend.connect(lp); lp.connect(dr); dr.connect(ws); ws.connect(hp); hp.connect(lp2); lp2.connect(wet); wet.connect(master);
-    musicSend = AC.createGain(); musicSend.gain.value = 1; musicG.connect(musicSend); musicSend.connect(lowSend); }
+    musicSend = AC.createGain(); musicSend.gain.value = 1; uMus.connect(musicSend); musicSend.connect(lowSend); }
   // пространство: реверберация (импульс — шум с затуханием) и «за стеклом/дверью» — глухой фильтр
   { const len = AC.sampleRate * 2.4 | 0, ir = AC.createBuffer(2, len, AC.sampleRate);
     for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2) * (i < 90 ? i / 90 : 1); }
     revIn = AC.createConvolver(); revIn.buffer = ir; const rg = AC.createGain(); rg.gain.value = .55; revIn.connect(rg); rg.connect(master);
-    voiceRev = AC.createGain(); voiceRev.gain.value = voiceOn() ? 1 : 0; voiceRev.connect(revIn); }   // эхо голосов — через свой кран: выключили озвучку — нет и эха
+    voiceRev = AC.createGain(); voiceRev.gain.value = voiceOn() ? VOL.voice : 0; voiceRev.connect(revIn); }   // эхо голосов — через свой кран: выключили озвучку — нет и эха
   muffle = filt('lowpass', 1100, .7); muffle.connect(voiceG);
   // рация: узкая полоса + лёгкий перегруз; телефон: узкая полоса, чище
   { const h = filt('highpass', 480, .8), l = filt('lowpass', 2600, .9), ws = AC.createWaveShaper(), cu = new Float32Array(256);
@@ -183,7 +185,7 @@ const BEDS = { lobby: { tone: .24, f: 9000, hum: .0025 }, corridor: { tone: .2, 
 // дождь: снаружи — открыто; у стекла — глуше; в холле — далеко; на этажах и в подвале почти не слышно
 const RAINS = { out: [.34, 9000], glass: [.2, 2400], in: [.075, 750], far: [.014, 420], none: [0, 420] };
 function bedInit() {
-  bedG = AC.createGain(); bedG.gain.value = 0; bedG.connect(master);
+  bedG = AC.createGain(); bedG.gain.value = 0; bedG.connect(uSfx);   // фон места (дождь, гул) — вместе со звуками
   const bs = AC.createGain(); bs.gain.value = .6; bedG.connect(bs); bs.connect(lowSend);
   bed = { toneF: filt('lowpass', 9000, .7), toneG: AC.createGain(), rainF: filt('lowpass', 750, .7), rainG: AC.createGain(), humG: AC.createGain(), src: {}, key: '', lv: -1 };
   bed.toneF.connect(bed.toneG); bed.toneG.connect(bedG); bed.rainF.connect(bed.rainG); bed.rainG.connect(bedG); bed.humG.connect(bedG);
@@ -345,6 +347,7 @@ function placeOf(img, fx) {
 }
 // тихие перемены в холле: часы встали на 03:00, куртка Михалыча пропала после открытой двери, фото на пропуске исцарапано
 function propsNow() {
+  if (mode === 'shift' && shf) return { sh: shiftProps() };
   const tm = lastTime < '03:00' ? lastTime : '03:00';
   return Object.assign({ clock: tm, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1 }, scene && scene.props, beat && beat.props);
 }
@@ -500,6 +503,7 @@ function runThen(th) {
   if (th.goto) return startScene(th.goto);
   if (th.choice) return showChoice(th);
   if (th.camgame) return camGame(th.camgame);
+  if (th.shift) return shiftGame(th);
   if (th.mg) return MG[th.mg](th);
   if (th.ending) return endScreen(th);
   if (th.over) return overScreen(th);
@@ -714,6 +718,157 @@ const MG = {
 };
 
 /* ---------- экраны ---------- */
+/* ---------- смена: часы ночи между сюжетными сценами — камеры, пульт, журнал; странное — по правилам ----------
+   S.shift.segs[id] = { from, to, cams, cam, events: [{ at, an | say | radio | sms | state | call | task | hint }], rnd: { pool, n }, next }
+   S.shift.an[id]   = { cam, kind | kinds, props, fix: 'log' | 'light:N' | 'lift' | 'door' | 'none', win, say, stare, box, sfx }
+   Записать — что видно на текущей камере; пульт — свет этажей, вход, лифт. Пропустил три странности — оно приходит к будке. */
+const SEC_MIN = 7;   // секунд на игровую минуту (час ≈ 7 минут)
+const CAMS = { '01': 'ВХОД', '02': 'ХОЛЛ', '03': 'ЛИФТЫ', '04': 'ЛЕСТНИЦА', '07': 'ЭТАЖ 7', '10': 'ЭТАЖ 10', 'm2': 'ПОДВАЛ', '13': '' };
+const camNo = c => c === 'm2' ? '−2' : c, camLabel = c => 'CAM ' + camNo(c) + (CAMS[c] ? '  ' + tr(CAMS[c]) : '');
+const KINDS = ['Свет', 'Дверь', 'Лифт', 'Помехи', 'Кто-то', 'Звук', 'Другое'];
+const toMin = s => { const [h, m] = s.split(':').map(Number); return (h < 12 ? h + 24 : h) * 60 + m; };
+const minStr = v => { const h = Math.floor(v / 60) % 24, m = Math.floor(v) % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); };
+let shf = null, shk = null, shSpd = 1;   // смена сейчас; что переходит из часа в час (пульт, записи, кто где); shSpd — ускорение для проверок
+function shkNew() { return { door: 0, lift: 0, lights: {}, log: [], st: {}, c13: false, read: false }; }
+function shiftGame(th) {
+  const seg = S.shift.segs[th.shift]; if (!seg) return startScene(S.start);
+  gen++; const my = gen; mode = 'shift'; stopAll(); music(seg.music || 'drone'); amb('static', false);
+  choiceEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); ruleEl.classList.add('hide');
+  if (!shk || th.fresh) shk = shkNew();
+  shf = { id: th.shift, seg, my, t0: now(), lt: now(), m0: toMin(seg.from), m1: toMin(seg.to), M: toMin(seg.from), cam: seg.cam || '02', camT: now(), act: [], miss: 0, vq: [], pop: null, warn13: false, ended: false };
+  shf.ev = seg.events.map(e => Object.assign({ m: toMin(e.at) }, e));
+  if (seg.rnd) { const pool = seg.rnd.pool.slice(); for (let i = 0; i < seg.rnd.n && pool.length; i++) { const id = pool.splice(Math.random() * pool.length | 0, 1)[0]; shf.ev.push({ m: shf.m0 + 6 + Math.random() * Math.max(1, shf.m1 - shf.m0 - 14), an: id }); } }
+  shf.ev.sort((a, b) => a.m - b.m);
+  LS.set('save', 'sh_' + th.shift); sceneId = 'sh_' + th.shift;
+  clockEl.textContent = seg.from; clockEl.classList.remove('hide'); $('hud').classList.remove('hide');
+  shiftUI(); shiftToast(seg.hint); requestAnimationFrame(shiftTick);
+}
+function shiftProps() {   // что сейчас видно на камерах: пульт + кто где + активные странности
+  const p = Object.assign({}, shk.st, { doorOpen: !shk.door ? 1 : 0, l7: shk.lights[7] ? 1 : 0, l10: shk.lights[10] ? 1 : 0 });
+  for (const a of shf.act) Object.assign(p, a.def.props || {});
+  return p;
+}
+function sayV(k, o = {}) {   // реплика во время смены: голос + слова по таймингу (нет озвучки — печатается текст)
+  const d = durOf(k), at = Math.max(now(), ...shf.vq.map(v => v.t0 + v.d + .25)), it = { k, t0: at + (o.delay || 0), d: TIM[k] ? d : Math.max(2.4, ((S.shift.lines || {})[k] || '').length / 14 + 1) };
+  shf.vq.push(it);
+  if (TIM[k]) for (const vo of voiceFx(k)) { const x = play(k, Object.assign({ bus: 'voice' }, vo, { when: it.t0 - now() + (vo.dt || 0) })); if (x) x.voice = true; }
+  return it;
+}
+function shiftEvent(e) {
+  const S2 = S.shift;
+  if (e.an) { const def = S2.an[e.an]; if (!def || shf.act.some(a => a.id === e.an)) return; shf.act.push({ id: e.an, def, m: shf.M });
+    if (def.light) shk.lights[def.light] = 1;   // свет включился сам — на пульте этаж загорелся
+    if (def.sfx) play(def.sfx[0], def.sfx[1] || {}); if (def.notice) shiftToast(def.notice); }
+  if (e.say) sayV(e.say);
+  if (e.radio) { play('click', { gain: .4 }); e.radio.forEach(k => sayV(k)); }
+  if (e.sms) { showSms(e.sms); buzz(60); play('buzz', { gain: .7 }); if (e.sms.reply) setTimeout(() => shiftReply(e.sms), 2600); }
+  if (e.state) Object.assign(shk.st, e.state);
+  if (e.c13) { shk.c13 = true; shiftUI(); }
+  if (e.hint) shiftToast(e.hint);
+  if (e.task) shf.task = e.task, shiftTask();
+  if (e.call) shiftCall(e.call);
+}
+function shiftResolve(a, how) {
+  shf.act = shf.act.filter(x => x !== a); play('click', { gain: .5 });
+  if (a.def.ok) sayV(a.def.ok); else if (how) shiftToast(how);
+  shiftTask();
+}
+function shiftCheck() {   // после записи или пульта: что из странностей уже улажено
+  for (const a of [...shf.act]) { const f = a.def.fix || 'log';
+    if (f.startsWith('light:') && !shk.lights[+f.slice(6)]) shiftResolve(a, tr('Свет выключен.'));
+    else if (f === 'lift' && shk.lift) shiftResolve(a, tr('Лифт остановлен.'));
+    else if (f === 'door' && shk.door) shiftResolve(a, tr('Вход заперт.')); }
+  if (shf.task) shiftTask();
+}
+function shiftMiss(a) {
+  shf.act = shf.act.filter(x => x !== a); if ((a.def.fix || 'log') === 'none') return;
+  shf.miss++; play('heart', { gain: .9 }); setTimeout(() => play('heart', { gain: .7 }), 700); play('steps_barefoot', { gain: .35, cut: 1.6, pan: Math.random() - .5, lp: 900 });
+  buzz([60, 80, 60]); shiftToast(shf.miss >= 3 ? '' : [tr('Что-то упустил…'), tr('Где-то в здании хлопнула дверь.'), tr('Шаги. Далеко. Или нет.')][Math.min(2, shf.miss - 1)]);
+  if (shf.miss >= 3) shiftDie('over_come');
+}
+function shiftDie(id) { if (!shf || shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null); startScene(id); }
+function shiftEnd() { if (shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null); const n = shf.seg.next; shf = null; startScene(n); }
+function shiftTick() {
+  if (!shf || shf.my !== gen || mode !== 'shift' || shf.ended) return;
+  const t = now(), dt = Math.min(.1, t - shf.lt); shf.lt = t;
+  shf.gm = (shf.gm || 0) + dt * shSpd / SEC_MIN; const M = shf.M = shf.m0 + shf.gm; lastTime = minStr(M); secBase = Math.floor((M % 1) * 60); sceneT0 = t;
+  clockEl.textContent = minStr(M);
+  for (const e of shf.ev) if (!e.done && M >= e.m) { e.done = true; shiftEvent(e); if (shf.ended) return; }
+  for (const a of [...shf.act]) { const d = a.def;
+    if (shf.cam === d.cam && !shf.pop && t - shf.camT > .4) {
+      if (!a.seen) { a.seen = t; if (d.say) sayV(d.say); }
+      if (d.stare) { a.look = (a.look || 0) + dt; if (a.look > 5) return shiftDie(d.death || 'over_stare'); if (a.look > 2.6 && !a.warned) { a.warned = true; play('breath_close', { gain: .6 }); shakeAmp = 8; } }
+    } else a.look = 0;
+    if (M > a.m + (d.win || 15)) shiftMiss(a); if (shf.ended) return; }
+  if (shf.task && M > toMin(shf.task.by) && !shf.task.done) { const tk = shf.task; tk.done = true; if (!(tk.need || []).every(n => shk[n])) { shf.miss++; shiftToast(tr('Не успел к сроку.')); if (shf.miss >= 3) return shiftDie('over_come'); } shiftTask(); }
+  if (M >= shf.m1) return shiftEnd();
+  requestAnimationFrame(shiftTick);
+}
+// --- интерфейс смены ---
+function shiftToast(s) { if (!s) return; const el = $('shToast'); if (!el) return; el.textContent = tr(s); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 4200); }
+function shiftTask() { const el = $('shTask'); if (!el) return; const tk = shf && shf.task;
+  if (!tk || (tk.need || []).every(n => shk[n])) { if (tk && !tk.ok) { tk.ok = true; if (tk.say) sayV(tk.say); } el.classList.add('hide'); return; }
+  el.classList.remove('hide'); el.innerHTML = `<b>${tr('ЗАДАЧА')}</b> ${tr(tk.text)}`; }
+function shiftUI() {
+  const cams = shf.seg.cams.concat(shk.c13 ? ['13'] : []);
+  mgEl.innerHTML = `<div class="sh">
+    <div class="sh-task hide" id="shTask"></div><div class="sh-toast" id="shToast"></div>
+    <div class="sh-cams">${cams.map(c => `<button data-c="${c}" class="${c === shf.cam ? 'on' : ''}${c === '13' ? ' c13' : ''}"><b>${camNo(c)}</b><small>${tr(CAMS[c] || '???')}</small></button>`).join('')}</div>
+    <div class="sh-act"><button id="shLog">${ICON.pen || ''}<span>${tr('Записать')}</span></button><button id="shPanel"><span>${tr('Пульт')}</span></button><button id="shBook"><span>${tr('Журнал')}</span></button></div>
+    <div class="sh-pop hide" id="shPop"></div></div>`;
+  mgEl.classList.remove('hide');
+  mgEl.querySelectorAll('.sh-cams button').forEach(b => b.onclick = e => { e.stopPropagation(); shiftCam(b.dataset.c); });
+  $('shLog').onclick = e => { e.stopPropagation(); shiftLog(); }; $('shPanel').onclick = e => { e.stopPropagation(); shiftPanel(); }; $('shBook').onclick = e => { e.stopPropagation(); shiftBook(); };
+  shiftTask();
+}
+function shiftCam(c) {
+  if (c === '13') { if (!shf.warn13) { shf.warn13 = true; play('static', { gain: .5, cut: .4 }); shiftToast('«НЕ СМОТРИ В НЕЁ» — журнал, 18.10'); return; } return shiftDie('over_k1'); }
+  if (c === shf.cam) return; shf.cam = c; shf.camT = now(); play('click', { gain: .45 }); play('static', { gain: .25, cut: .25 }); heldT = -9;
+  mgEl.querySelectorAll('.sh-cams button').forEach(b => b.classList.toggle('on', b.dataset.c === c));
+}
+function shiftPop(html) { const el = $('shPop'); if (!el) return; shf && (shf.pop = html ? 1 : null); if (!html) { el.classList.add('hide'); el.innerHTML = ''; return; } el.innerHTML = html + `<button class="sh-x" id="shX">${tr('Закрыть')}</button>`; el.classList.remove('hide'); $('shX').onclick = e => { e.stopPropagation(); shiftPop(null); }; }
+function shiftLog() {
+  const c = shf.cam;
+  shiftPop(`<h3>${tr('Записать в журнал')}</h3><p>${camLabel(c)} · ${minStr(shf.M)}</p><div class="sh-grid">${KINDS.concat(['Всё спокойно']).map((k, i) => `<button data-i="${i}">${tr(k)}</button>`).join('')}</div>`);
+  $('shPop').querySelectorAll('.sh-grid button').forEach(b => b.onclick = e => { e.stopPropagation(); const k = (KINDS.concat(['Всё спокойно']))[+b.dataset.i];
+    const hit = shf.act.find(a => a.def.cam === c && (a.def.fix || 'log') === 'log' && (a.def.kinds || [a.def.kind]).includes(k));
+    shk.log.push({ m: minStr(shf.M), cam: c, k, ok: !!hit }); shiftPop(null); play('pen', { gain: .5, cut: .9 });
+    if (hit) shiftResolve(hit, tr('Записано.')); else shiftToast(k === 'Всё спокойно' ? tr('Записано: всё спокойно.') : tr('Записано. Хотя, может, показалось.'));
+    shiftCheck(); });
+}
+function shiftPanel() {
+  const fl = [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, -2];
+  const draw = () => shiftPop(`<h3>${tr('Пульт')}</h3><div class="sh-row"><button id="pDoor" class="${shk.door ? 'on' : ''}">${tr('Вход')}: <b>${tr(shk.door ? 'ЗАПЕРТ' : 'ОТКРЫТ')}</b></button>
+      <button id="pLift" class="${shk.lift ? 'on' : ''}">${tr('Лифт')}: <b>${tr(shk.lift ? 'СТОП' : 'РАБОТАЕТ')}</b></button></div>
+    <p>${tr('Свет на этажах')}</p><div class="sh-lights">${fl.map(f => `<button data-f="${f}" class="${shk.lights[f] ? 'lit' : ''}">${f === -2 ? '−2' : f}</button>`).join('')}</div>`);
+  const wire = () => { $('pDoor').onclick = e => { e.stopPropagation(); shk.door ^= 1; play('click'); if (shk.door) play('bolt', { gain: .4, cut: .8 }); draw(); wire(); shiftCheck(); };
+    $('pLift').onclick = e => { e.stopPropagation(); shk.lift ^= 1; play('click'); draw(); wire(); shiftCheck(); };
+    $('shPop').querySelectorAll('.sh-lights button').forEach(b => b.onclick = e => { e.stopPropagation(); const f = +b.dataset.f; shk.lights[f] = shk.lights[f] ? 0 : 1; play('click', { gain: .6 }); draw(); wire(); shiftCheck(); }); };
+  draw(); wire();
+}
+function shiftBook() {
+  const tabs = [['Памятка', (S.shift.memo || []).map(s => `<li>${tr(s)}</li>`).join('')], ['Фрэнк', (S.shift.frank || []).map(s => `<li>${tr(s)}</li>`).join('')],
+    ['Моя смена', shk.log.length ? shk.log.map(r => `<li>${r.m} · ${camLabel(r.cam)} — ${tr(r.k)}</li>`).join('') : `<li>${tr('Пока ни одной записи.')}</li>`]];
+  const show = i => { shiftPop(`<h3>${tr('Журнал')}</h3><div class="sh-tabs">${tabs.map((x, j) => `<button data-j="${j}" class="${j === i ? 'on' : ''}">${tr(x[0])}</button>`).join('')}</div><ul class="sh-page">${tabs[i][1]}</ul>`);
+    $('shPop').querySelectorAll('.sh-tabs button').forEach(b => b.onclick = e => { e.stopPropagation(); show(+b.dataset.j); }); if (i === 1) shk.read = true; };
+  show(0);
+}
+function shiftReply(m) {   // ответ на СМС: два варианта
+  shiftPop(`<h3>${tr(m.from || 'Лили')}</h3><p>${tr(m.text)}</p><div class="sh-grid">${m.reply.map((r, i) => `<button data-i="${i}">${tr(r)}</button>`).join('')}</div>`);
+  $('shPop').querySelectorAll('.sh-grid button').forEach(b => b.onclick = e => { e.stopPropagation(); shiftPop(null); play('click'); if (m.back) setTimeout(() => { if (shf) { showSms({ from: m.from, text: m.back }); play('buzz', { gain: .6 }); } }, 4000); });
+}
+function shiftCall(c) {   // внутренний телефон будки: снять или нет; сняли — голос по имени; ответить — смерть
+  let rings = 0; const my = shf.my;
+  const ring = () => { if (!shf || shf.my !== my || shf.ended || c.taken || rings >= (c.rings || 6)) { if (!c.taken && shf && shf.my === my) shiftPop(null); return; } rings++; play('ring', { gain: .8 }); buzz(80); setTimeout(ring, 2200); };
+  shiftPop(`<h3>${tr('Звонит внутренний телефон')}</h3><p>${tr('В будке. Номер не определён.')}</p><div class="sh-grid"><button id="cTake">${tr('Снять трубку')}</button><button id="cNo">${tr('Не брать')}</button></div>`);
+  ring();
+  $('cNo').onclick = e => { e.stopPropagation(); c.taken = 'no'; shiftPop(null); };
+  $('cTake').onclick = e => { e.stopPropagation(); c.taken = 'yes'; shiftPop(null); play('click'); const it = sayV(c.say);
+    setTimeout(() => { if (!shf || shf.my !== my || shf.ended) return;
+      shiftPop(`<h3>${tr('В трубке')}</h3><p>${tr(c.ask)}</p><div class="sh-grid"><button id="cYes">${tr(c.yes)}</button><button id="cHang">${tr(c.hang)}</button></div>`);
+      $('cYes').onclick = e2 => { e2.stopPropagation(); shiftDie(c.die); };
+      $('cHang').onclick = e2 => { e2.stopPropagation(); shiftPop(null); play('click'); if (c.after) sayV(c.after); }; }, Math.max(600, (it.t0 + it.d - now()) * 1000)); };
+}
 function gallery() {
   const got = LS.get('endings', []).filter(k => S.endings[k]), ov = LS.get('overs', []).filter(k => S.overs.includes(k));
   return `<div class="gal">${Object.entries(S.endings).map(([k, n]) => `<div class="${got.includes(k) ? 'got' : ''}">${got.includes(k) ? n : '???'}</div>`).join('')}</div>
@@ -746,8 +901,8 @@ function menu() {
   choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false; beat = null;
   const sv = LS.get('save', null), save = sv && S.scenes[sv] ? sv : null;   // сохранение из старой версии сценария не ломает меню
   uiEl.innerHTML = `<div class="title ${gateDone ? 'open' : 'gate'}${titleFirst ? ' first' : ''}">
-    <div class="logo" id="logo"><b>NIGHT</b><b>SHIFT</b></div>
-    <div class="tagl">${tr('Четыре правила · Одна ночь · Сестра за стеклом')}</div>
+    <div class="logo" id="logo"><b>${EN ? 'HUSH' : 'МОЛЧИ'}</b><b>${EN ? 'TILL SIX' : 'ДО ШЕСТИ'}</b></div>
+    <div class="tagl">${tr('Не отзывайся · Не открывай · Дождись шести')}</div>
     <div class="tts">TAP TO START</div>
     <nav class="mlist">
       ${save ? `<button id="mCont">${tr('Продолжить')}</button>` : ''}
@@ -789,6 +944,7 @@ function settings() {
     ${row('sGfx', 'Графика', window.World && World.cine ? 'КИНО' : 'РЕТРО')}
     ${row('sMute', 'Звук', LS.get('mute', false) ? 'ВЫКЛ' : 'ВКЛ')}
     ${row('sVoice', 'Озвучка', voiceOn() ? 'ВКЛ' : 'ВЫКЛ')}
+    <div class="vols">${[['all', 'Громкость'], ['mus', 'Музыка'], ['voice', 'Голоса'], ['sfx', 'Звуки']].map(([k, n]) => `<label class="vol"><span>${tr(n)}</span><input type="range" min="0" max="100" step="5" value="${Math.round(VOL[k] * 100)}" data-k="${k}"><b>${Math.round(VOL[k] * 100)}</b></label>`).join('')}</div>
     ${row('sVhs', 'Плёнка VHS', VHS_N[vh] || VHS_N[2])}
     ${row('sCalm', 'Меньше вспышек', calm() ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}
@@ -796,6 +952,8 @@ function settings() {
     <small>${tr('«Кино» — тени, блики, объёмный свет, чёткая картинка (для ПК). «Ретро» — плёнка и пиксели старой приставки, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}</small>`);
   const re = () => { uiSnd(); settings(); };
   $('sMute').onclick = () => { setMute(!LS.get('mute', false)); re(); };
+  uiEl.querySelectorAll('.vol input').forEach(r => { r.oninput = () => { VOL[r.dataset.k] = r.value / 100; r.nextElementSibling.textContent = r.value; LS.set('vol', VOL); applyVol(); };
+    r.onchange = () => { if (r.dataset.k !== 'mus') play(r.dataset.k === 'voice' ? 'p01' : 'click', { bus: r.dataset.k === 'voice' ? 'voice' : 'sfx', cut: 1.2 }); }; });   // проба громкости
   $('sVoice').onclick = () => { setVoice(!voiceOn()); re(); };
   $('sLang').onclick = () => { LS.set('lang', EN ? 'ru' : 'en'); uiSnd(); location.reload(); };   // язык — с перезагрузкой (надписи в 3D-мире рисуются при загрузке)
   $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
@@ -805,8 +963,12 @@ function settings() {
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
 }
-function setVoice(on) { LS.set('voice', on); if (voiceOut) { voiceOut.gain.value = on ? 1 : 0; voiceRev.gain.value = on ? 1 : 0; } }
-function setMute(m) { LS.set('mute', m); if (master) master.gain.value = m ? 0 : 1; if (directG) directG.gain.value = m ? 0 : 1; $('bMute').classList.toggle('muted', m); }
+function setVoice(on) { LS.set('voice', on); applyVol(); }
+function setMute(m) { LS.set('mute', m); applyVol(); $('bMute').classList.toggle('muted', m); }
+function applyVol() {   // громкости игрока → узлы звука (мягко, без щелчков)
+  if (!AC) return; const m = LS.get('mute', false) ? 0 : VOL.all, v = voiceOn() ? VOL.voice : 0, at = AC.currentTime;
+  for (const [n, x] of [[master, m], [directG, m], [uMus, VOL.mus], [uSfx, VOL.sfx], [voiceOut, v], [voiceRev, v]]) if (n) n.gain.setTargetAtTime(x, at, .03);
+}
 async function begin(id) {
   unlockAudio(); goFull();   // до любого await, пока идёт нажатие
   if (id === 'intro') { for (const k in flags) delete flags[k]; falseAlarm = false; lastTime = '02:55'; }
@@ -829,7 +991,7 @@ function overScreen(th) {
   uiEl.innerHTML = `<div class="screen over"><h1>${th.over}</h1><p>${th.sub}<br>${tr('Ты не дожил до утра.')}</p>
     <button class="btn" id="oRetry">${tr('Попробовать снова')}</button><button class="btn ghost" id="oMenu">${tr('Меню')}</button>
     <small>${trf('Смертей найдено: {c} из {d}', { c: [...ov].filter(k => S.overs.includes(k)).length, d: S.overs.length })}</small></div>`;
-  $('oRetry').onclick = () => { goFull(); uiEl.innerHTML = ''; startScene(th.retry); }; $('oMenu').onclick = menu;
+  $('oRetry').onclick = () => { goFull(); uiEl.innerHTML = ''; const r = th.retry === '@save' ? (LS.get('save', null) || S.start) : th.retry; startScene(S.scenes[r] ? r : S.start); }; $('oMenu').onclick = menu;
 }
 
 /* ---------- рисование ---------- */
@@ -860,6 +1022,17 @@ function tear(n = 1) {
 }
 // экран камеры наблюдения: REC мигает раз в секунду, время идёт по часам ночи, уголки кадра; цвет даёт шейдер (cctv: 1)
 let tearNext = 0;
+function staticBox(b, T, k) {
+  const x = b[0] * W, y = b[1] * H, w = b[2] * W, h = b[3] * H;
+  g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+  if (!noisePat) noisePat = g.createPattern(noise, 'repeat');
+  g.globalAlpha = .55 + .35 * Math.min(1, k / 3); g.translate(Math.random() * 256, Math.random() * 256); g.fillStyle = noisePat; g.fillRect(x - 256, y - 256, w + 512, h + 512); g.setTransform(1, 0, 0, 1, 0, 0);
+  if (k > 1.6) { const a = Math.min(.75, (k - 1.6) / 2.4), cx = x + w / 2, cy = y + h * .42;   // силуэт: голова и плечи из более тёмной ряби
+    g.globalAlpha = a; g.fillStyle = '#050505'; g.beginPath(); g.ellipse(cx, cy, w * .13, h * .1, 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(cx, cy + h * .3, w * .3, h * .22, 0, 0, 7); g.fill();
+    if (k > 3.4) { g.fillStyle = '#ddd'; g.globalAlpha = Math.min(.8, (k - 3.4)); for (const s of [-1, 1]) { g.beginPath(); g.arc(cx + s * w * .045, cy - h * .01, w * .012, 0, 7); g.fill(); } } }
+  for (let i = 0; i < 6; i++) { g.globalAlpha = .25; g.fillStyle = '#fff'; g.fillRect(x, y + Math.random() * h, w, 1 + Math.random() * 3); }
+  g.restore();
+}
 function cctvHud(label, T, rw) {   // rw = { tag, clock } — запись на перемотке
   if (T > tearNext) { tearNext = T + 2.2 + Math.random() * 4.5; tear(1); }
   grain(.12);
@@ -1101,6 +1274,19 @@ function frame(tp) {
     else heldShot(c.img, { cx: c.c[0], cy: c.c[1], z: c.c[2] + t * .04, t, T, sx, sy, cctv: 1 }, T, 'cam' + c.id);
     vignette(); cctvHud(c.id + '  ' + c.name, T); if (jt >= .75) { grain(.9); if (!calm()) { g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(0, 0, W, H); } }
     place = placeOf(c.img); cam = true;
+  } else if (mode === 'shift' && shf) {
+    const c = shf.cam, st = T - shf.camT, img = c === '13' ? null : 'cam' + (c === 'm2' ? '_m2' : c);
+    g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+    if (img) heldShot(img, { cx: .5, cy: .5, z: 1, t: T, T, sx: 0, sy: 0, cctv: 1 }, T, 'sh' + c);
+    for (const a of shf.act) if (a.def.cam === c && a.def.box) staticBox(a.def.box, T, a.look || 0);   // настоящие камеры показывают его только помехами
+    if (st < .22) grain(.95);   // переключение камеры
+    vignette(); cctvHud(camLabel(c), T);
+    const v = shf.vq.find(v => T >= v.t0 && T < v.t0 + v.d + .35);
+    if (v) { const tm = TIM[v.k];
+      if (tm) { const w = tm.w || [], on = w.filter(x => T - v.t0 >= x[0] - .02).length; sayWords(whoOf(v.k), chunks(v.k, w), on); voiceNow = T < v.t0 + v.d; }
+      else { const s = tr((S.shift.lines || {})[v.k] || ''); say((S.shift.who || {})[v.k] || 'ИТАН', s, Math.floor(Math.min(1, (T - v.t0) / Math.max(.5, v.d - .8)) * s.length)); } }
+    else if (!dlgEl.classList.contains('hide')) { dlgEl.classList.add('hide'); lastSubKey = ''; }
+    place = img ? placeOf(img) : null; cam = true;
   } else if (mode === 'mg' && mgView) {
     const t = T - mgView.t0, k = Math.min(1, t / (mgView.dur || 3)); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
     shot(mgView.img, { cx: mgView.c[0], cy: mgView.c[1], z: mgView.c[2] + (mgView.c[3] - mgView.c[2]) * k * k, t: mgView.tAt != null ? mgView.tAt : mgView.st ? mgView.st + t : t, T, sx: (Math.random() - .5) * shakeAmp, sy: (Math.random() - .5) * shakeAmp, cctv: mgView.label ? 1 : undefined, torch: mgView.torch });
@@ -1129,7 +1315,7 @@ function frame(tp) {
   if (T - blackT < .09) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }   // склейка/скример: пара чёрных кадров, без белой вспышки
   // звук места: фон, далёкие звуки, лампа
   if (AC && bed) {
-    const lv = mode === 'play' || mode === 'cams' || mode === 'mg' || mode === 'choice' ? (voiceNow ? .75 : 1) : mode === 'menu' ? (gateDone ? .9 : 0) : mode === 'end' ? .5 : 0;
+    const lv = mode === 'play' || mode === 'cams' || mode === 'mg' || mode === 'choice' || mode === 'shift' ? (voiceNow ? .75 : 1) : mode === 'menu' ? (gateDone ? .9 : 0) : mode === 'end' ? .5 : 0;
     bedSet(place && place.loc, place && place.rain, lv);
     if (lv > 0) { ambTick(T, mode === 'menu' ? 'title' : bedWant.loc, quiet || voiceNow || mode === 'mg'); tubeTick(T); }
   }
@@ -1201,5 +1387,5 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   initAudio(); loaded = true;
   if (splashDone) setTimeout(menu, Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
-window.__ns = { back: () => menu(), startScene, get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); } };
+window.__ns = { back: () => menu(), startScene, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); } };
 })();

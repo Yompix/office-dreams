@@ -884,6 +884,10 @@ function propMesh(name) {
     const cb = mat(0x9a7a50, null, { rough: .9 }), tp = mat(0x8c9094, null, { rough: .45 });
     for (const s of [-1, 1]) box(.012, .38, .11, cb, s * .062, 0, 0, g);
     for (const y of [-.15, -.05, .06, .15]) { const b = box(.14, .035, .13, tp, 0, y, 0, g); b.rotation.y = .05 * y; }
+  } else if (name === 'apple') {   // яблоко с дачи: центр — в начале, хвостик вверх
+    const a = new T.Mesh(new T.SphereGeometry(.038, 14, 10), mat(0xa83a22, null, { rough: .45 })); a.scale.set(1, .92, 1); g.add(a);
+    const y = new T.Mesh(new T.SphereGeometry(.03, 10, 8), mat(0xb8a030, null, { rough: .5 })); y.position.set(.012, .01, .016); y.scale.set(.9, .8, .9); g.add(y);   // жёлтый бок
+    const st = new T.Mesh(new T.CylinderGeometry(.002, .0025, .02, 5), mat(0x3a2a14)); st.position.y = .04; st.rotation.z = .3; g.add(st);
   } else if (name === 'pen') {   // шариковая ручка: начало — кончик стержня, корпус вдоль +Y
     const c = new T.Mesh(new T.CylinderGeometry(.0045, .0045, .13, 8), mat(0x1c2a6a, null, { rough: .4 })); c.position.y = .075; g.add(c);
     const tip = new T.Mesh(new T.ConeGeometry(.0045, .012, 8), mat(0xc8c8c8, null, { metal: .8 })); tip.rotation.x = Math.PI; tip.position.y = .006; g.add(tip);
@@ -908,6 +912,7 @@ const GRIP3 = {
   lighter: ['palm', [.01, .016, 0], [0, 0, 0], false],
   radio: ['palm', [.01, .02, 0], [0, 0, 0], false],
   torch: ['palm', [-.01, .016, 0], [0, 0, Math.PI / 2], false],
+  apple: ['palm', [.02, .036, 0], [0, 0, 0], false],
 };
 function handFrame(C, sd, by) {   // оси кисти: X — вдоль пальцев, Y — из ладони, Z — поперёк; начало — точка by
   const p = handPt(C, sd, by), h = C.bone['hand_' + sd].getWorldPosition(new T.Vector3()), m = C.bone['middle_01_' + sd].getWorldPosition(new T.Vector3());
@@ -1241,6 +1246,7 @@ float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43
 ` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
   ${re ? `diffuseColor.rgb = mix(vec3(${LUMA}) * uTint * uGain, uTint, ${(re[2] || 0).toFixed(2)});` : ''}
   ${kind === 'skin' ? `{ float s = smoothstep(.04, .012, length(vB - uEyeL3)) + smoothstep(.04, .012, length(vB - uEyeR3)); diffuseColor.rgb *= 1. - .9 * uSocket * clamp(s, 0., 1.); }` : ''}
+  ${(() => { for (const k in (o.dim || {})) if (kind.includes(k)) return `diffuseColor.rgb *= ${o.dim[k].toFixed(2)};`; return ''; })()}
   float shK = 1.;   // своя тень на лице: карта теней грубая — нос и скулы дают на щеке рваный клин; на голове тень ослабляем
   ${kind === 'skin' ? `shK = 1. - .8 * smoothstep(.17, .1, length(vB - ((uEyeL3 + uEyeR3) * .5 + vec3(0., .02, -.08))));` : ''}
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(${LUMA}) * vec3(.8, .85, .9), uGrey);
@@ -1429,8 +1435,8 @@ function castV3() {
     deadEyes: 0x000000, socket: 1, tilt: .45, jerk: true, headMax: 2.3, stopmo: 1 / 7, tint: { skin: 0xa9b0a6, hair: [0x0a0a0a, 1, .6] } });
   A.monster.addFace('grin', { smile: 1.15, mouth: .5 });
   A.monster.addFace('scream', { scream: 1 });
-  A.cleaner = H({ name: 'cleaner', model: 'gus', mop: true });                                             // Гас
-  A.victim = H({ name: 'victim', model: 'gus', dead: true, grey: .55 });
+  A.cleaner = H({ name: 'cleaner', model: 'gus', mop: true, dim: { worksuit: .74 } });   // белая футболка под комбинезоном не светится под лампами                                             // Гас
+  A.victim = H({ name: 'victim', model: 'gus', dead: true, grey: .55, dim: { worksuit: .74 } });
   A.smenshik.addFace('smile', { smile: .8, browUp: .3 });
   A.smenshik.addFace('fear', { mouth: .45, wide: true, browUp: 1, browIn: .8, dart: 1 });
   A.temych.addFace('smile', { smile: 1.4, wide: true, browUp: .5 });

@@ -203,6 +203,18 @@ function buildLobby() {
   o.street = new T.PointLight(0xff9a3a, 1.2, 16, 1.4); o.street.position.set(2.8, 5.6, 10.4); S.add(o.street);
   const pool = plane(4, 4, new T.MeshBasicMaterial({ color: 0xff9a3a, transparent: true, opacity: .12, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }), S); pool.rotation.x = -PI / 2; pool.position.set(2.8, .01, 10.6); ps1(pool.material);
   // машина у тротуара
+  // мусорные баки справа от входа и кошка у них (смена: Фрэнк двадцать лет записывал её в журнал)
+  { const bm = mat(0x24382c, null, { rough: .6 }), lid = mat(0x18241c, null, { rough: .5 });
+    for (const [x, z, r] of [[5.3, 8.9, .05], [6.5, 8.95, -.08]]) { const g2 = new T.Group(); g2.position.set(x, 0, z); g2.rotation.y = r; S.add(g2);
+      box(1.1, .95, .8, bm, 0, .55, 0, g2); box(1.14, .06, .84, lid, 0, 1.05, 0, g2); for (const dx of [-.4, .4]) cyl(.07, .07, .05, 10, mat(0x111111), g2).position.set(dx, .07, .32); } }
+  o.cat = new T.Group(); o.cat.position.set(3.1, 0, 8.6); o.cat.rotation.y = -1.3; o.cat.scale.setScalar(1.15); S.add(o.cat); o.cat.visible = false;
+  { const cm = mat(0x0c0c0e, null, { rough: .9 }), body = new T.Mesh(new T.SphereGeometry(.1, 10, 8), cm); body.scale.set(1, .85, 2.0); body.position.set(0, .2, 0); o.cat.add(body);
+    const hd = new T.Mesh(new T.SphereGeometry(.07, 10, 8), cm); hd.position.set(0, .32, .2); o.cat.add(hd); o.catHead = hd;
+    for (const s of [-1, 1]) { const e = new T.Mesh(new T.ConeGeometry(.028, .06, 6), cm); e.position.set(s * .038, .055, -.005); e.rotation.z = -s * .25; hd.add(e);
+      const ey = new T.Mesh(new T.SphereGeometry(.011, 6, 6), mat(0x9fe060, null, { basic: true })); ey.position.set(s * .027, .012, .06); hd.add(ey); }
+    for (const [x, z] of [[-.05, .12], [.05, .12], [-.05, -.12], [.05, -.12]]) { const l = cyl(.016, .014, .16, 6, cm, o.cat); l.position.set(x, .08, z); }
+    o.catTail = new T.Group(); o.catTail.position.set(0, .22, -.19); o.cat.add(o.catTail);
+    for (let i = 0; i < 5; i++) { const sgm = cyl(.014, .012, .06, 6, cm, o.catTail); sgm.position.set(0, .03 + i * .045, -i * .02); sgm.rotation.x = -.35 + i * .12; } }
   const car = new T.Group(); car.position.set(-4.6, 0, 13); car.rotation.y = PI / 2; S.add(car);
   box(1.7, .7, 4.2, mat(0x2a3440), 0, .55, 0, car); box(1.5, .55, 2.1, mat(0x1b222a), 0, 1.15, -.2, car); box(1.52, .45, 2.0, mat(0x0a0d10, null, { emissive: 0x05080c }), 0, 1.15, -.2, car);
   for (const [x, z] of [[-.8, 1.3], [.8, 1.3], [-.8, -1.3], [.8, -1.3]]) { const wh = cyl(.32, .32, .2, 8, mat(0x0d0d0d), car); wh.rotation.z = PI / 2; wh.position.set(x, .32, z); }
@@ -238,7 +250,7 @@ function buildLobby() {
     o.lamp.intensity = 1.6; o.lampBulb.visible = true; o.boothLight.intensity = .6; o.l1.intensity = 1.9; o.amb.color.set(0x6a7a90); o.amb.intensity = .34; o.hemi.intensity = .1; o.l3.intensity = 1.3; o.l4.intensity = 1.25;
     o.canopy.intensity = 1.5; o.canopyLamp.visible = true;
     o.sky.material.map = TX.sky; S.fog.color.set(FOGC); S.fog.density = o.fogD; S.background.set(FOGC); o.street.intensity = 1.2; o.rain.visible = true;
-    o.dawn = 0; o.tubeOK = 1; o.flickOn = true; o.fac.material = o.facLit; o.ghostWin.visible = false; o.ghostWin.scale.setScalar(1); if (o.nmask) o.nmask.forEach(m => (m.visible = false));
+    o.dawn = 0; o.tubeOK = 1; o.flickOn = true; o.fac.material = o.facLit; o.ghostWin.visible = false; o.ghostWin.scale.setScalar(1); o.cat.visible = false; if (o.nmask) o.nmask.forEach(m => (m.visible = false));
     resetFacade(o); o.props();
   };
   o.tick = (t, dt) => {
@@ -402,12 +414,24 @@ function buildCorridor() {
   o.door7 = new T.Group(); o.door7.position.set(-wd / 2 - .02, 0, zB); S.add(o.door7);
   box(.05, dh - .02, dw - .03, mat(0x5c5c5c, TX.door), -.025, (dh - .02) / 2, (dw - .03) / 2, o.door7);   // створка внутри тёмной комнаты — в тени
   // двери по бокам с табличками
-  let n = 701;
+  // таблички с номерами: один коридор служит двумя этажами (7 и 10) — номера меняются (o.setFloor)
+  o.plates = { 7: new T.Group(), 10: new T.Group() }; S.add(o.plates[7], o.plates[10]); o.plates[10].visible = false;
+  let n = 1;
   for (let z = -2.5; z > -len + 2; z -= 3.1) for (const s of [-1, 1]) {
-    if (!(s === -1 && Math.abs(z - D7) < .01)) box(.06, 2.1, .95, mat(0xffffff, TX.door), s * (wd / 2 - .03), 1.05, z, S);
-    const num = n++; const pl = label(.2, .08, 32, 12, (c, w, h) => { c.fillStyle = '#c9b27a'; c.fillRect(0, 0, w, h); c.fillStyle = '#1b1b1b'; c.font = '700 10px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(num), w / 2, h / 2 + 1); }, S);
-    pl.position.set(s * (wd / 2 - .065), 1.75, z - .62); pl.rotation.y = -s * PI / 2;
+    if (!(s === -1 && Math.abs(z - D7) < .01)) { const d = box(.06, 2.1, .95, mat(0xffffff, TX.door), s * (wd / 2 - .03), 1.05, z, S); if (s === 1 && Math.abs(z + 5.6) < .01) o.doorR10 = d; }
+    const i = n++;
+    for (const fl of [7, 10]) { const num = fl * 100 + i; const pl = label(.2, .08, 32, 12, (c, w, h) => { c.fillStyle = '#c9b27a'; c.fillRect(0, 0, w, h); c.fillStyle = '#1b1b1b'; c.font = '700 10px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(num), w / 2, h / 2 + 1); }, o.plates[fl]);
+      pl.position.set(s * (wd / 2 - .065), 1.75, z - .62); pl.rotation.y = -s * PI / 2; }
   }
+  // номер этажа краской на торце у лифта (виден камере)
+  o.floorSign = {}; for (const fl of [7, 10]) { const sg = label(.6, .5, 48, 40, (c, w, h) => { c.clearRect(0, 0, w, h); c.fillStyle = '#d8d4c6'; c.font = '800 30px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(fl), w / 2, h / 2 + 2); }, S);
+    sg.rotation.y = PI; sg.position.set(.75, 1.75, -.012); sg.visible = fl === 7; o.floorSign[fl] = sg; }
+  o.setFloor = fl => { for (const k of [7, 10]) { o.plates[k].visible = k === fl; o.floorSign[k].visible = k === fl; } };
+  // офис на 10-м: одна дверь бывает приоткрыта (смена) — створка поворачивается внутрь, за ней свет или темнота
+  o.door10 = new T.Group(); o.door10.position.set(wd / 2 - .03, 0, -5.6 - .475); S.add(o.door10); o.door10.visible = false;
+  box(.05, 2.1, .95, mat(0xffffff, TX.door), 0, 1.05, .475, o.door10);
+  o.hole10 = plane(.95, 2.1, mat(0x050506, null, { basic: true }), S); o.hole10.rotation.y = -PI / 2; o.hole10.position.set(wd / 2 - .004, 1.05, -5.6); o.hole10.visible = false;   // тёмный проём за створкой
+  o.ajar10 = k => { o.doorR10.visible = !k; o.door10.visible = o.hole10.visible = !!k; o.door10.rotation.y = -.55 * (k || 0); };
   // длинные серые пальцы обхватывают косяк 707 изнутри (видны только в сцене с уборщиком)
   o.fingers = new T.Group(); o.fingers.position.set(-wd / 2, 0, zA); S.add(o.fingers); o.fingerF = [];
   // пальцы Жильца: длинные, тонкие, костлявые, разной длины и наклона; три фаланги, костяшки, тёмные ногти — обхватывают косяк по одному
@@ -518,7 +542,7 @@ function buildCorridor() {
     o.splat.visible = !!c.splat;
     if (c.blood) { o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.1, 1, .9); }
   };
-  o.reset = () => { o.bursts = null; o.faceL.intensity = 0; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
+  o.reset = () => { o.bursts = null; o.faceL.intensity = 0; o.setFloor(7); o.ajar10(0); o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
   o.tick = (t) => {   // одна ненадёжная лампа (пятая от лифта), если горит
     const l = o.lamps[4]; if (!o.flickOn || !l.on) { o.tubeOK = 1; return; }
     const f = unreliable(t, 3); o.tubeOK = f; l.li.intensity = l.base * f; l.tube.material.color.setHex(f ? 0xe8f0e8 : 0x1c1e1c);
@@ -1340,6 +1364,53 @@ SH.dbg_frank2 = { loc: 'server', pos: [.2, 1.1, 1.0], look: [1.8, .55, 2.9], fov
 SH.dbg_bf = { loc: 'basement', pos: [-.35, 2.1, -12.6], look: [0, .3, -15.2], fov: 60, set: (o, t) => { o.sdoor.rotation.y = 1.35; bsLight(o, true, [.3, -13.2]); o.amb.intensity = 1.2;
   return [['mihalych', BF[0], 0, BF[1], 0, frankSit(t, {}), null]]; } };
 SH.dbg_gus = { loc: 'corridor', pos: [.9, 1.3, -9.6], look: [-.6, .5, -12.1], fov: 50, set: (o, t) => gusEat(o, t, false) };
+// ---- 01:00, второй обход: Итан поднимается на седьмой; Гас даёт ему яблоко (из руки в руку, по-настоящему) ----
+const R2G = [-.15, -9.62], R2E = [-.12, -8.84], R2H = [-.12, 1.07, -9.23];
+function gApple(t, offer, rel) {   // Гас: яблоко на ладони → протягивает → отдаёт, рука вниз
+  const up = seg(t, offer, offer + .8), dn = rel == null ? 0 : seg(t, rel, rel + .6), w = up * (1 - dn), has = rel == null || t < rel;
+  const R = locR(R2G[0], R2G[1], 0), lo = R.p(-.2, .95, .12);
+  return { clips: [['Idle_Loop', t + 2, 1]], talk: 1, legs: 'feet', spine: { to: R2H, k: .12 * w },
+    arm: { r: { at: lin(lo, [R2H[0], R2H[1] - .035, R2H[2]], up), by: 'palm', fdir: [0, .1, 1], pdir: [0, 1, 0], w: has ? 1 : w } },
+    fing: { r: [has ? 'cup' : 'relax', 1] }, hold: has ? { r: 'apple' } : null, look: w > .4 && has ? R2H : [R2E[0], 1.62, R2E[1]] };
+}
+function eApple(t, t0) {   // Итан: ладонью сверху на яблоко, пальцы обхватывают; к груди
+  const r = seg(t, t0, t0 + .6), got = t > t0 + .6, back = seg(t, t0 + 1.0, t0 + 1.7), R = locR(R2E[0], R2E[1], PI), chest = R.p(-.1, 1.12, .3);
+  const at = lin([R2H[0], R2H[1] + .036, R2H[2]], chest, back);
+  return { clips: [['Idle_Loop', t + 1.3, 1]], talk: 1, legs: 'feet', spine: { to: R2H, k: .1 * r * (1 - back) },
+    arm: { r: { at: r < 1 && !got ? lin(R.p(-.2, .95, .1), [R2H[0], R2H[1] + .036, R2H[2]], r) : at, by: 'palm', fdir: [0, -.2, -1], pdir: [0, -1, 0], w: 1 } },
+    fing: { r: [got ? 'cup' : 'open', 1] }, hold: got ? { r: 'apple' } : null, look: back < .5 ? R2H : [R2G[0], 1.6, R2G[1]] };
+}
+SH.r2_meet = { loc: 'corridor', pos: [.85, 1.6, -5.3], look: [-.12, 1.25, -9.5], fov: 48, face: { cleaner: 'smile' }, set: (o, t) => { setLamps(o, 7); o.cleanSet(CLEAN);
+  const k = 1 - seg(t, .6, 1.8), E = walker('temych', [[.35, -6.0], [.1, -7.6], R2E], t, .95, { look: [R2G[0], 1.6, R2G[1]] }, PI);
+  return [E, ['cleaner', R2G[0], 0, R2G[1], lerp(.2, 0, 1 - k), Object.assign(mopGus(o, R2G[0], R2G[1], lerp(.2, 0, 1 - k), t, k), { look: [E[1], 1.62, E[3]] }), null]]; } };
+SH.r2_apple = { loc: 'corridor', pos: [1.12, 1.42, -9.05], look: [-.15, 1.15, -9.15], fov: 44, face: { cleaner: 'smile' }, set: (o, t) => { setLamps(o, 7); o.cleanSet(CLEAN);
+  window.__W3chars.propAim('mop', o.S, [-1.05, 0, -10.05], nrm([-.25, 1, .05]));   // швабра прислонена к стене
+  return [['cleaner', R2G[0], 0, R2G[1], 0, gApple(t, .1, 1.45), null], ['temych', R2E[0], 0, R2E[1], PI, eApple(t, .85), null]]; } };
+SH.r2_talk = { loc: 'corridor', pos: [.42, 1.66, -7.85], look: [-.15, 1.5, -9.62], fov: 40, face: { cleaner: 'smile' }, set: (o, t) => { setLamps(o, 7); o.cleanSet(CLEAN);
+  window.__W3chars.propAim('mop', o.S, [-1.05, 0, -10.05], nrm([-.25, 1, .05]));
+  const R = locR(R2E[0], R2E[1], PI);
+  return [['cleaner', R2G[0], 0, R2G[1], 0, { clips: [['Idle_Talking_Loop', t + 2, 1]], talk: 1, legs: 'feet', look: [R2E[0], 1.62, R2E[1]] }, null],
+    ['temych', R2E[0], 0, R2E[1], PI, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: { at: R.p(-.1, 1.1, .3), by: 'palm', fdir: R.v(.2, -.2, 1), pdir: [0, -1, 0], w: 1 } }, fing: { r: ['cup', 1] }, hold: { r: 'apple' }, look: [R2G[0], 1.6, R2G[1]] }, null]]; } };
+// ---- камеры смены (пульт в будке). Что на них сейчас — curProps.sh (движок: что открыто, где свет, где кто) ----
+const SHS = () => (curProps && curProps.sh) || {};
+SH.cam01 = { loc: 'lobby', pos: [-1.2, 3.3, 8.3], look: [2.6, .6, 8.4], fov: 74, cctv: 1, set: (o, t) => { const s = SHS(); o.rain.material.opacity = .18;
+  o.cat.visible = !!s.cat; if (s.cat) { o.catHead.rotation.y = Math.sin(t * .4) * .5; o.catTail.rotation.z = Math.sin(t * 1.7) * .3; }
+  leafAng(o, 0, s.doorOpen ? .9 : 0); return []; } };
+SH.cam02 = { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, cctv: 1, set: (o, t) => { const s = SHS();
+  if (s.palm) { o.palmShadow.position.x = -3.95 + .9 * s.palm; o.palmShadow.scale.setScalar(1 + .15 * s.palm); }
+  o.wetSteps.visible = !!s.wet;
+  return [['temych', SEAT[0], 0, SEAT[1], 0, { clips: [['Sitting_Idle_Loop', t + 2, 1]], look: [4.5, 1.18, .12] }, null]]; } };
+SH.cam03 = { loc: 'lobby', pos: [.2, 3.2, -1.6], look: [-1.5, 1.25, -6], fov: 58, cctv: 1, set: (o, t) => { const s = SHS();
+  setLift(o, o.lifts[0], s.liftOpen ? 1 : 0, String(s.lift || '1')); o.cabLight.intensity = s.liftOpen ? 2.4 : 0; return []; } };
+SH.cam04 = { loc: 'stairs', pos: [1.25, 7.3, -.3], look: [-.1, 4.5, -5.0], fov: 62, cctv: 1, set: (o, t) => { const s = SHS(); o.setFloor(1, 4); o.setFloor(0, 3); o.setFloor(2, 5);
+  if (!s.st) o.bulbs.forEach(b => { b.li.intensity = b.base * .4; }); return []; } };
+// 7-й: Гас моет (s.gus — где по коридору), свет горит, пока он там; без него — темно
+SH.cam07 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .8, -10.2], fov: 44, cctv: 1, set: (o, t) => { const s = SHS();
+  if (s.gus) { setLamps(o, 7); o.cleanSet(CLEAN); const z = -9.45 + Math.sin(t * .05) * 1.5; return [['cleaner', -.1, 0, z, .2, mopGus(o, -.1, z, .2, t), null]]; }
+  setLamps(o, s.l7 ? 7 : 0); o.amb.intensity = s.l7 ? .36 : .1; return []; } };
+SH.cam10 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .9, -12], fov: 46, cctv: 1, set: (o, t) => { const s = SHS(); o.setFloor(10);
+  setLamps(o, s.l10 ? 7 : 1, true); o.amb.intensity = s.l10 ? .36 : .12; o.ajar10(s.door10 ? 1 : 0); return []; } };
+SH.cam_m2 = { loc: 'basement', pos: [.85, 2.32, -.4], look: [0, .8, -14], fov: 56, cctv: 1, set: (o, t) => { const s = SHS(); if (s.mOff) bsDark(o, .15); return []; } };
 SH.dbg_eface0 = { loc: 'lobby', pos: [.6, 1.64, 5.55], look: [.55, 1.62, 4.95], fov: 34, set: (o, t) => [['temych', .55, 0, 4.95, 0, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet' }, 'cam']] };
 SH.dbg_eface1 = { loc: 'lobby', pos: [.6, 1.64, 5.55], look: [.55, 1.62, 4.95], fov: 34, set: (o, t) => { A.temych.root.traverse(m => { if (m.isMesh) m.receiveShadow = false; }); return [['temych', .55, 0, 4.95, 0, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet' }, 'cam']]; } };
 SH.dbg_stairs = { loc: 'stairs', pos: [1.15, 5.2, -5.6], look: [.2, 3.4, -.6], fov: 62, set: () => [] };

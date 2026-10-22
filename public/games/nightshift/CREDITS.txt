@@ -1,4 +1,4 @@
-NIGHT SHIFT — credits and licenses / авторы и лицензии
+МОЛЧИ ДО ШЕСТИ / HUSH TILL SIX — credits and licenses / авторы и лицензии
 =====================================================
 
 The game — story, script, dialogue, code, levels, scenes, characters' design and animation code,
@@ -30,8 +30,8 @@ a claim on the game. / Ниже — сторонние материалы. Вс�
    Quaternius — Universal Base Characters / Universal Animation Library, CC0 1.0
    (models/LICENSE-Quaternius-CC0.txt) — https://quaternius.com
 
-4. Fonts (fonts/ns-logo.woff = Anton subset, fonts/ns-ui.woff = Oswald Bold subset)
-   SIL Open Font License 1.1 — licenses/OFL-Anton.txt, licenses/OFL-Oswald.txt
+4. Fonts (fonts/ns-logo.woff = Oswald Bold subset for the title, fonts/ns-ui.woff = Oswald Bold subset)
+   SIL Open Font License 1.1 — licenses/OFL-Oswald.txt
 
 5. Voices and sound effects
    Generated with ElevenLabs on the owner's paid subscription. Under the ElevenLabs Terms of Service

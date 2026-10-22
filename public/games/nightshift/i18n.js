@@ -1,4 +1,4 @@
-/* «Night Shift» — языки. Русский — основной (строки в коде); английский — словарь «русская строка → английская».
+/* «Молчи до шести» (Hush Till Six) — языки. Русский — основной (строки в коде); английский — словарь «русская строка → английская».
    Язык: ?lang=ru|en, затем выбор в настройках (ns1_lang), иначе по языку браузера (русский/украинский/белорусский/казахский → ru, остальные → en).
    Озвученные реплики английской версии — timing_en.json и snd/en/*.mp3. */
 (() => {
@@ -69,7 +69,7 @@ const EN = {
   'Стань первым — твоё имя будет здесь': 'Be the first — your name will be here', 'Сыграть ещё раз': 'Play again', 'Попробовать снова': 'Try again', 'Ты не дожил до утра.': 'You didn\'t make it to morning.',
   'нажми, чтобы закрыть': 'tap to close', 'Правил пока нет.': 'No rules yet.', 'сейчас': 'now', 'СООБЩЕНИЯ': 'MESSAGES', 'Это не я.': 'It\'s not me.', 'Не открывай им.': 'Don\'t open the door to them.', 'Я тебя вижу': 'I see you',
   'мобильный · входящий': 'mobile · incoming', 'СОЕДИНЕНИЕ ПОТЕРЯНО': 'CONNECTION LOST', 'переподключение': 'reconnecting', 'Нужен браузер с WebGL': 'A browser with WebGL is required',
-  'ОБХОД КАМЕР': 'CAMERA ROUND', 'Проверь три камеры. В тринадцатую не смотри.': 'Check three cameras. Don\'t look at thirteen.', '«НЕ СМОТРИ В НЕЁ»': '“DON\'T LOOK AT IT”', 'Продолжить смену': 'Continue the shift',
+  'ОБХОД КАМЕР': 'CAMERA ROUND', 'Не отзывайся · Не открывай · Дождись шести': 'Don\'t answer · Don\'t open · Wait for six', 'МОЛЧИ ДО ШЕСТИ': 'HUSH TILL SIX', 'БЦ «ГОРИЗОНТ» · 21:00': 'HORIZON BUSINESS CENTER · 21:00', 'Громкость': 'Volume', 'Музыка': 'Music', 'Голоса': 'Voices', 'Звуки': 'Sounds', 'Проверь три камеры. В тринадцатую не смотри.': 'Check three cameras. Don\'t look at thirteen.', '«НЕ СМОТРИ В НЕЁ»': '“DON\'T LOOK AT IT”', 'Продолжить смену': 'Continue the shift',
   'ТОЧНО ВКЛЮЧИТЬ?': 'TURN IT ON?', 'ПРАВИЛО 4': 'RULE 4', 'Тяни вилку вниз, быстро!': 'Drag the plug down, fast!', 'воздух': 'air', 'ДЕРЖИ': 'HOLD',
   'ТИХО…': 'QUIET…', 'Шаги ушли. Можно дышать.': 'The footsteps are gone. You can breathe.', 'ДВЕРЬ': 'DOOR', 'Влево': 'Left', 'Вправо': 'Right', '← ВЛЕВО': '← LEFT', 'ВПРАВО →': 'RIGHT →', 'СЛЕВА': 'LEFT', 'СПРАВА': 'RIGHT',
   '▶ ЗАПИСЬ': '▶ PLAY', '◀◀ ЗАПИСЬ': '◀◀ REWIND', 'НОЧЬ 1 · ': 'NIGHT 1 · ', 'ТЕЛЕФОН': 'PHONE', 'КАМЕРА': 'CAMERA',
