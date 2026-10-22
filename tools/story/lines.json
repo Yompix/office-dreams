@@ -1,0 +1,1206 @@
+{
+ "p01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Бабушка говорила: если ночью тебя позовут по имени — не отзывайся. Свои до утра подождут.",
+  "en": "My grandmother used to say: if someone calls your name at night, don't answer. Your own can wait till morning.",
+  "tag": "quiet, slow"
+ },
+ "p02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я думал, так просто пугают детей, чтобы не гуляли затемно.",
+  "en": "I thought it was just something you tell kids so they don't stay out after dark.",
+  "tag": "quiet, tired"
+ },
+ "p03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Бизнес-центр «Горизонт» закрыли месяц назад. Здание выставили на продажу, но кто-то должен был сторожить его по ночам.",
+  "en": "The Horizon business center closed a month ago. The building was up for sale, but someone still had to guard it at night.",
+  "tag": "quiet, tired"
+ },
+ "p04": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Ночные смены оплачивали вдвое. А сестре нужно было на что-то жить в чужом городе.",
+  "en": "Night shifts paid double. And my sister needed something to live on in a strange city.",
+  "tag": "quiet, tired"
+ },
+ "p05": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "На заставке телефона — рисунок Лили: мы втроём — я, она и наш пёс Бублик. Ей тогда было шесть.",
+  "en": "My lock screen was a drawing Lily made: the three of us, me, her and our dog Biscuit. She was six.",
+  "tag": "quiet, warm"
+ },
+ "p06": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Дневной охранник ждал меня у турникета. Куртку он надел ещё до того, как я вошёл.",
+  "en": "The day guard was waiting for me by the turnstile. He'd put his jacket on before I even walked in.",
+  "tag": "quiet, tired"
+ },
+ "p07": {
+  "who": "СМЕНЩИК",
+  "fx": "",
+  "ru": "— Новенький? Вместо Фрэнка?",
+  "en": "— You the new guy? Frank's replacement?",
+  "tag": "gruff, in a hurry"
+ },
+ "p08": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Да. А что с Фрэнком?",
+  "en": "— Yeah. What happened to Frank?",
+  "tag": "casual"
+ },
+ "p09": {
+  "who": "СМЕНЩИК",
+  "fx": "",
+  "ru": "— Фрэнк двадцать лет сидел в этой будке. Неделю назад он не сдал смену.",
+  "en": "— Frank sat in that booth for twenty years. A week ago he never handed over his shift.",
+  "tag": "gruff, uneasy"
+ },
+ "p10": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Как это — не сдал?",
+  "en": "— What do you mean, never handed it over?",
+  "tag": "curious"
+ },
+ "p11": {
+  "who": "СМЕНЩИК",
+  "fx": "",
+  "ru": "— Утром будка открыта, лампа горит, чай остыл. Куртка на стуле. А Фрэнка нет.",
+  "en": "— In the morning the booth's open, the lamp's on, the tea's gone cold. His jacket's on the chair. And no Frank.",
+  "tag": "low, uneasy"
+ },
+ "p12": {
+  "who": "СМЕНЩИК",
+  "fx": "",
+  "ru": "— Полиция обошла все двенадцать этажей. Камеры ничего не записали.",
+  "en": "— The police went through all twelve floors. The cameras didn't catch a thing.",
+  "tag": "low, uneasy"
+ },
+ "p13": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Связка была тёплая: он весь вечер не выпускал её из кулака.",
+  "en": "The keys were warm. He hadn't let go of them all evening.",
+  "tag": "quiet, tired"
+ },
+ "p14": {
+  "who": "СМЕНЩИК",
+  "fx": "",
+  "ru": "— Журнал на столе. Прочитай до трёх часов. Весь, до последней страницы.",
+  "en": "— The logbook's on the desk. Read it before three. All of it, to the last page.",
+  "tag": "low, serious"
+ },
+ "p15": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Уже на улице он стукнул костяшками в стекло. Три раза. Посмотрел на меня, будто хотел что-то добавить. И не добавил.",
+  "en": "Out on the street he rapped his knuckles on the glass. Three times. He looked at me as if he wanted to say something else. He didn't.",
+  "tag": "quiet, tired"
+ },
+ "j01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Первые часы прошли спокойно: обход, чай, мониторы. За журнал я сел только без десяти три.",
+  "en": "The first hours were quiet: rounds, tea, monitors. I didn't sit down with the logbook until ten to three.",
+  "tag": "quiet, tired"
+ },
+ "j02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Почерк у Фрэнка мелкий, ровный, как по линейке. Двадцать лет одинаковых записей: обход, лампы, кошка у мусорных баков.",
+  "en": "Frank's handwriting was small and even, as if he'd used a ruler. Twenty years of the same entries: rounds, lamps, the cat by the dumpsters.",
+  "tag": "quiet, tired"
+ },
+ "j03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Двенадцатое октября. «Лифт ночью ездит сам. Техник говорит — датчик».",
+  "en": "October twelfth. \"The elevator runs by itself at night. The technician says it's a sensor.\"",
+  "tag": "quiet, reading"
+ },
+ "j04": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Пятнадцатое. «Гаса зовут с седьмого этажа. По имени. Голосом Марты. Марта три года как умерла».",
+  "en": "The fifteenth. \"Someone calls Gus from the seventh floor. By name. In Martha's voice. Martha's been dead three years.\"",
+  "tag": "quiet, reading"
+ },
+ "j05": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Восемнадцатое. «На пульте появилась тринадцатая камера. Такой камеры в здании нет. Не смотри в неё».",
+  "en": "The eighteenth. \"A thirteenth camera showed up on the console. There's no such camera in the building. Don't look at it.\"",
+  "tag": "quiet, reading"
+ },
+ "j06": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Двадцатое. Здесь он давил на ручку так, что прорвал бумагу. «Не отзывайся на имя. Не открывай ему дверь. И сам к нему не ходи — ни на свет, ни в лифт. Тогда оно не подойдёт».",
+  "en": "The twentieth. Here he'd pressed so hard the pen tore the paper. \"Don't answer to your name. Don't open the door to it. And don't go to it yourself, not to the light, not into the elevator. Then it can't come near you.\"",
+  "tag": "quiet, uneasy"
+ },
+ "j07": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Двадцать первое. Последняя запись, почерк уже не ровный. «Мама позвала. Я ответил. Соль держит. Иду вниз».",
+  "en": "The twenty-first. The last entry, the handwriting no longer even. \"Mom called. I answered. Salt holds it. Going down.\"",
+  "tag": "quiet, uneasy"
+ },
+ "j08": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я решил, что старик сошёл с ума. Двадцать лет ночных смен — кто угодно свихнётся.",
+  "en": "I decided the old man had lost his mind. Twenty years of night shifts — anyone would crack.",
+  "tag": "quiet, tired"
+ },
+ "j09": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Без одной минуты три на седьмом этаже загорелся свет.",
+  "en": "At one minute to three, the lights came on on the seventh floor.",
+  "tag": "quiet, tense"
+ },
+ "c01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Вход. Пусто. Только дождь.",
+  "en": "The entrance. Empty. Just rain.",
+  "tag": "quiet, tired"
+ },
+ "c02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "У лифта кто-то стоит?.. Нет. Тень от кадки с пальмой.",
+  "en": "Someone by the elevator?.. No. Just the shadow of the potted palm.",
+  "tag": "quiet, tense"
+ },
+ "c03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Седьмой. Уборщик моет пол. Значит, я тут не один.",
+  "en": "Seven. A cleaner mopping the floor. So I'm not alone here.",
+  "tag": "quiet, relieved"
+ },
+ "f01": {
+  "who": "ГАС",
+  "fx": "radio",
+  "ru": "— Охрана, приём. Это Гас, уборщик. Я на седьмом, к четырём закончу. Если что — я на связи.",
+  "en": "— Security, come in. This is Gus, the cleaner. I'm on seven, I'll be done by four. I'm on the radio if you need me.",
+  "tag": "friendly, old man"
+ },
+ "f02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Принял. Я новенький, первая смена.",
+  "en": "— Copy. I'm the new guy, first shift.",
+  "tag": "casual"
+ },
+ "f03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Ровно в три Гас перестал напевать. Выпрямился и повернулся к двери семьсот седьмого. Будто его окликнули.",
+  "en": "At exactly three, Gus stopped humming. He straightened up and turned to the door of seven-oh-seven. As if someone had called him.",
+  "tag": "quiet, tense"
+ },
+ "f04": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Рация зашипела: он случайно зажал кнопку.",
+  "en": "The radio hissed: he'd pressed the button by accident.",
+  "tag": "quiet, tense"
+ },
+ "f05": {
+  "who": "ГАС",
+  "fx": "radio",
+  "ru": "— Марта?.. Это ты?",
+  "en": "— Martha?.. Is that you?",
+  "tag": "tender, confused"
+ },
+ "f06": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Изображение пошло помехами. Когда оно вернулось, в коридоре остались только ведро и швабра.",
+  "en": "The picture broke into static. When it came back, there was only a bucket and a mop in the corridor.",
+  "tag": "quiet, shaken"
+ },
+ "f07": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я пересмотрел запись трижды. В ту секунду дверь семьсот седьмого была закрыта. А Гас с ней разговаривал.",
+  "en": "I watched the recording three times. At that second, the door of seven-oh-seven was closed. And Gus was talking to it.",
+  "tag": "quiet, shaken"
+ },
+ "f08": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я позвонил в полицию. Дежурный спросил, есть ли тело. Тела не было. «Утром пусть родные пишут заявление».",
+  "en": "I called the police. The officer asked if there was a body. There wasn't. \"His family can file a report in the morning.\"",
+  "tag": "quiet, bitter"
+ },
+ "r01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Уйти? До дверей — через весь холл, мимо лифта. По правилам Фрэнка будка была безопаснее.",
+  "en": "Leave? The doors were across the whole lobby, past the elevator. By Frank's rules, the booth was safer.",
+  "tag": "quiet, tense"
+ },
+ "r02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Седьмой этаж горел пустой. Я сидел и смотрел на ведро.",
+  "en": "The seventh floor stayed lit and empty. I sat there staring at the bucket.",
+  "tag": "quiet, tired"
+ },
+ "r03": {
+  "who": "ГАС",
+  "fx": "radio",
+  "ru": "— Охрана… Итан, ты меня слышишь? Я застрял в лифте, между этажами… Итан, ответь…",
+  "en": "— Security… Ethan, can you hear me? I'm stuck in the elevator, between floors… Ethan, answer me…",
+  "tag": "weak, pleading"
+ },
+ "r04": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Гас не знал моего имени. Я его не называл.",
+  "en": "Gus didn't know my name. I never told him.",
+  "tag": "whispering, cold"
+ },
+ "e01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Через минуту лифт спустился в холл. Его никто не вызывал.",
+  "en": "A minute later the elevator came down to the lobby. Nobody had called it.",
+  "tag": "quiet, tense"
+ },
+ "e02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Над дверями горело: тринадцать. В «Горизонте» двенадцать этажей.",
+  "en": "The display above the doors said thirteen. The Horizon has twelve floors.",
+  "tag": "quiet, tense"
+ },
+ "e03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Двери постояли открытыми. И закрылись сами.",
+  "en": "The doors stood open for a while. Then closed on their own.",
+  "tag": "quiet, tense"
+ },
+ "m01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Табло погасло. А на пульте включилась тринадцатая камера.",
+  "en": "The display went dark. And camera thirteen came on on the console.",
+  "tag": "quiet, tense"
+ },
+ "m02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Длинный коридор, которого нет в этом здании. В конце — кто-то спиной ко мне.",
+  "en": "A long corridor that doesn't exist in this building. At the end of it, someone with their back to me.",
+  "tag": "whispering, terrified"
+ },
+ "g01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я выдернул шнур. Десять минут сидел в темноте и слушал, как гудит пустое здание.",
+  "en": "I yanked the cord. For ten minutes I sat in the dark, listening to the empty building hum.",
+  "tag": "quiet, tired"
+ },
+ "g02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Не отзывайся. Не открывай. Я повторял это про себя, пока слова не потеряли смысл.",
+  "en": "Don't answer. Don't open. I kept repeating it to myself until the words stopped meaning anything.",
+  "tag": "quiet, slow"
+ },
+ "g03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "В половине четвёртого с улицы меня позвали по имени.",
+  "en": "At half past three, someone outside called my name.",
+  "tag": "quiet, tense"
+ },
+ "g04": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "За стеклом стояла Лили. В жёлтом свитере, под дождём.",
+  "en": "Lily was standing outside the glass. In her yellow sweater, in the rain.",
+  "tag": "quiet, stunned"
+ },
+ "g05": {
+  "who": "ЛИЛИ",
+  "fx": "glass",
+  "ru": "— Итан! Итан, открой, пожалуйста!",
+  "en": "— Ethan! Ethan, open the door, please!",
+  "tag": "crying, desperate"
+ },
+ "g06": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Она должна была спать в общежитии. В трёхстах километрах отсюда.",
+  "en": "She was supposed to be asleep in her dorm. Two hundred miles from here.",
+  "tag": "quiet, confused"
+ },
+ "g07": {
+  "who": "ЛИЛИ",
+  "fx": "glass",
+  "ru": "— Я хотела сделать тебе сюрприз… Телефон сел, я шла пешком от вокзала. Итан, мне холодно!",
+  "en": "— I wanted to surprise you… My phone died, I walked from the station. Ethan, I'm freezing!",
+  "tag": "crying, shivering"
+ },
+ "g08": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я глянул на монитор входа. Там, где она стояла, были только помехи.",
+  "en": "I glanced at the entrance monitor. Where she was standing, there was nothing but static.",
+  "tag": "whispering, terrified"
+ },
+ "g09": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Телефон дрогнул. Сообщение от Лили. Отправлено минуту назад. С телефона, который «сел».",
+  "en": "My phone buzzed. A message from Lily. Sent a minute ago. From the phone that had \"died.\"",
+  "tag": "whispering, terrified"
+ },
+ "g10": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Дождь заливал стекло, а она прижималась к нему лицом. Стекло запотевало только с моей стороны.",
+  "en": "Rain was streaming down the glass, and she was pressing her face against it. The glass only fogged up on my side.",
+  "tag": "whispering, terrified"
+ },
+ "g11": {
+  "who": "ЛИЛИ",
+  "fx": "glass",
+  "ru": "— Итан, там кто-то идёт! Открой!",
+  "en": "— Ethan, someone's coming! Open the door!",
+  "tag": "panicked, scared"
+ },
+ "g12": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я вывел пальцем на запотевшем стекле: «Как звали собаку?» Она даже не взглянула на буквы.",
+  "en": "With my finger I wrote on the fogged glass: \"What was our dog's name?\" She didn't even glance at the letters.",
+  "tag": "whispering, terrified"
+ },
+ "g13": {
+  "who": "ЛИЛИ",
+  "fx": "fake",
+  "ru": "— Итан… Открой. Мне холодно. Итан.",
+  "en": "— Ethan… Open up. I'm cold. Ethan.",
+  "tag": "flat, sweet, creepy"
+ },
+ "g14": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Бублик. Лили сама его так назвала. А это просто повторяло моё имя. Тем же голосом. С той же интонацией.",
+  "en": "Biscuit. Lily named him herself. And this thing just kept repeating my name. The same voice. The same intonation.",
+  "tag": "whispering, terrified"
+ },
+ "g15": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я отошёл от двери.",
+  "en": "I stepped back from the door.",
+  "tag": "whispering, terrified"
+ },
+ "a01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я повернул ключ.",
+  "en": "I turned the key.",
+  "tag": "quiet, hesitant"
+ },
+ "a02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Она бросилась мне на шею. Ледяная, мокрая насквозь.",
+  "en": "She threw her arms around my neck. Ice-cold, soaked through.",
+  "tag": "quiet, emotional"
+ },
+ "a03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Всё, всё. Ты уже здесь. Ты со мной.",
+  "en": "— It's okay, it's okay. You're here now. You're with me.",
+  "tag": "gentle, comforting"
+ },
+ "a04": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Она перестала плакать. Сразу. Как будто кто-то выключил звук.",
+  "en": "She stopped crying. Instantly. As if someone had hit mute.",
+  "tag": "quiet, uneasy"
+ },
+ "a05": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "От неё пахло не дождём. Машинным маслом и пылью. Как из шахты лифта.",
+  "en": "She didn't smell like rain. She smelled of machine oil and dust. Like an elevator shaft.",
+  "tag": "whispering, terrified"
+ },
+ "a06": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Зазвонил телефон. На экране: «Лили».",
+  "en": "My phone rang. The screen said: \"Lily.\"",
+  "tag": "whispering, terrified"
+ },
+ "a07": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Лили стояла рядом со мной. Руки у неё были пустые. А телефон всё звонил.",
+  "en": "Lily was standing right next to me. Her hands were empty. And the phone kept ringing.",
+  "tag": "whispering, terrified"
+ },
+ "a08": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я поднял глаза. Холл был пуст. Только мокрые следы — к лифту.",
+  "en": "I looked up. The lobby was empty. Just wet footprints, leading to the elevator.",
+  "tag": "whispering, terrified"
+ },
+ "a09": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Лифт поехал вверх. Пять. Девять. Двенадцать. Тринадцать.",
+  "en": "The elevator went up. Five. Nine. Twelve. Thirteen.",
+  "tag": "whispering, terrified"
+ },
+ "a10": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Тринадцатый монитор включился сам — с выдернутым шнуром. В конце коридора — жёлтый свитер. Она медленно обернулась.",
+  "en": "Monitor thirteen turned on by itself, with its cord pulled out. At the end of the corridor, a yellow sweater. It slowly turned around.",
+  "tag": "whispering, terrified"
+ },
+ "a11": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Это было не её лицо. И оно улыбалось в камеру.",
+  "en": "It wasn't her face. And it was smiling into the camera.",
+  "tag": "whispering, terrified"
+ },
+ "a12": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Фрэнк ведь предупреждал. А я сам открыл. Сам впустил.",
+  "en": "Frank had warned me. And I opened the door myself. Let it in myself.",
+  "tag": "quiet, despair"
+ },
+ "a13": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Лифт поехал вниз.",
+  "en": "The elevator started down.",
+  "tag": "whispering, terrified"
+ },
+ "h01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я запер будку. Выключил лампу. Сполз на пол под стойку.",
+  "en": "I locked the booth. Switched off the lamp. Slid down to the floor under the counter.",
+  "tag": "whispering, terrified"
+ },
+ "h02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Двери лифта. Шаги. Босые, мокрые. Ближе.",
+  "en": "The elevator doors. Footsteps. Bare, wet. Closer.",
+  "tag": "whispering, terrified"
+ },
+ "h03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Телефон в кармане завибрировал. Я накрыл его ладонью. Поздно.",
+  "en": "The phone in my pocket vibrated. I covered it with my hand. Too late.",
+  "tag": "whispering, terrified"
+ },
+ "h04": {
+  "who": "ЛИЛИ",
+  "fx": "near",
+  "ru": "— Итан… Ты здесь? Ну, вдохни.",
+  "en": "— Ethan… Are you here? Come on, take a breath.",
+  "tag": "whispering, sweet, creepy"
+ },
+ "h05": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Шаги кружили вокруг будки. Час. Другой.",
+  "en": "The footsteps circled the booth. An hour. Then another.",
+  "tag": "whispering, exhausted"
+ },
+ "h06": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Без минуты шесть она позвала ещё раз, шёпотом. И я ответил раньше, чем понял, что отвечаю.",
+  "en": "At one minute to six she called again, in a whisper. And I answered before I realized I was answering.",
+  "tag": "whispering, hollow"
+ },
+ "h07": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "В шесть хлопнула входная дверь. Пришёл дневной охранник.",
+  "en": "At six the front door banged. The day guard had arrived.",
+  "tag": "quiet, hollow"
+ },
+ "h08": {
+  "who": "СМЕНЩИК",
+  "fx": "",
+  "ru": "— Не отвечал?",
+  "en": "— You didn't answer?",
+  "tag": "low, wary"
+ },
+ "h09": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Он посмотрел на меня. И попятился. Медленно, не поворачиваясь спиной.",
+  "en": "He looked at me. And backed away. Slowly, without turning his back.",
+  "tag": "quiet, hollow"
+ },
+ "h10": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я увидел своё отражение в стекле будки. Я улыбался. Шире, чем умею. И не моргал.",
+  "en": "I saw my reflection in the booth glass. I was smiling. Wider than I know how. And I wasn't blinking.",
+  "tag": "quiet, hollow, eerie"
+ },
+ "x01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Аварийный выход — в конце служебного коридора. Сорок шагов.",
+  "en": "The emergency exit was at the end of the service corridor. Forty steps.",
+  "tag": "tense, breathless"
+ },
+ "x02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Лампы гасли за спиной: оно шло на звук моих шагов.",
+  "en": "The lights went out behind me: it was following the sound of my steps.",
+  "tag": "tense, breathless"
+ },
+ "x03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я вывалился под дождь и бежал, пока не перехватило дыхание.",
+  "en": "I tumbled out into the rain and ran until I couldn't breathe.",
+  "tag": "breathless"
+ },
+ "x04": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "«Горизонт» стоял тёмный. Только над крышей, где этажей уже нет, светилось окно.",
+  "en": "The Horizon stood dark. Only above the roof, where there are no more floors, a window was lit.",
+  "tag": "quiet, breathless"
+ },
+ "x05": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Зазвонил телефон. Лили.",
+  "en": "My phone rang. Lily.",
+  "tag": "quiet"
+ },
+ "x06": {
+  "who": "ЛИЛИ",
+  "fx": "phone",
+  "ru": "— Итан? Ты зачем звонил? Сказал, что стоишь у меня под окнами…",
+  "en": "— Ethan? Why did you call? You said you were standing under my window…",
+  "tag": "sleepy, puzzled"
+ },
+ "x07": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я стоял под дождём у «Горизонта». В трёхстах километрах от её окон.",
+  "en": "I was standing in the rain outside the Horizon. Two hundred miles from her window.",
+  "tag": "whispering, terrified"
+ },
+ "x08": {
+  "who": "ЛИЛИ",
+  "fx": "phone",
+  "ru": "— Итан… а кто тогда зовёт меня с улицы? Твоим голосом.",
+  "en": "— Ethan… then who's calling me from the street? In your voice.",
+  "tag": "whispering, scared"
+ },
+ "b01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я не открыл. Она перестала плакать. Сразу.",
+  "en": "I didn't open it. She stopped crying. Instantly.",
+  "tag": "whispering, terrified"
+ },
+ "b02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "И улыбнулась. Слишком широко. Лили так не улыбалась никогда.",
+  "en": "And smiled. Too wide. Lily never smiled like that.",
+  "tag": "whispering, terrified"
+ },
+ "b03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Она скребла стекло ногтями. Медленно, сверху вниз.",
+  "en": "She scraped the glass with her nails. Slowly, top to bottom.",
+  "tag": "whispering, terrified"
+ },
+ "b04": {
+  "who": "ЛИЛИ",
+  "fx": "fake",
+  "ru": "— Итан. Итан. Итан.",
+  "en": "— Ethan. Ethan. Ethan.",
+  "tag": "flat, monotone, creepy"
+ },
+ "b05": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Потом она ушла. Спиной вперёд. Не сводя с меня глаз.",
+  "en": "Then she left. Walking backwards. Never taking her eyes off me.",
+  "tag": "whispering, terrified"
+ },
+ "b06": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Дождь заливал стекло, а отпечаток её ладони не смывало.",
+  "en": "Rain streamed down the glass, but the print of her palm didn't wash away.",
+  "tag": "whispering, terrified"
+ },
+ "b07": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я позвонил Лили. Один гудок. Второй. Третий.",
+  "en": "I called Lily. One ring. Two. Three.",
+  "tag": "quiet, tense"
+ },
+ "b08": {
+  "who": "ЛИЛИ",
+  "fx": "phone",
+  "ru": "— М-м… Итан? Полчетвёртого… Что случилось?",
+  "en": "— Mm… Ethan? It's half past three… What happened?",
+  "tag": "sleepy"
+ },
+ "b09": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Ты где сейчас?",
+  "en": "— Where are you right now?",
+  "tag": "tense"
+ },
+ "b10": {
+  "who": "ЛИЛИ",
+  "fx": "phone",
+  "ru": "— В общаге, где ещё. Сплю. Итан, ты меня пугаешь.",
+  "en": "— In the dorm, where else. Sleeping. Ethan, you're scaring me.",
+  "tag": "sleepy, worried"
+ },
+ "b11": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Всё нормально. Спи. Только если ночью тебя позовут по имени — не отвечай. Даже если это буду я.",
+  "en": "— Everything's fine. Go back to sleep. Just, if someone calls your name tonight, don't answer. Even if it's me.",
+  "tag": "gentle, serious"
+ },
+ "b12": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я положил трубку. Руки тряслись.",
+  "en": "I hung up. My hands were shaking.",
+  "tag": "quiet, tired"
+ },
+ "s01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Шнур от тринадцатой я выдернул час назад. Монитор включился всё равно.",
+  "en": "I'd pulled the cord on thirteen an hour ago. The monitor turned on anyway.",
+  "tag": "whispering, terrified"
+ },
+ "s02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Седьмой этаж. Гас нашёлся. Он лежал в дверях семьсот седьмого.",
+  "en": "The seventh floor. Gus had turned up. He was lying in the doorway of seven-oh-seven.",
+  "tag": "whispering, terrified"
+ },
+ "s03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Над ним сидело оно. Низко, у самой груди. Не торопилось.",
+  "en": "It was crouched over him. Low, right at his chest. Taking its time.",
+  "tag": "whispering, terrified"
+ },
+ "s04": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Оно начало поднимать голову к объективу. Я зажмурился.",
+  "en": "It started to raise its head toward the lens. I squeezed my eyes shut.",
+  "tag": "whispering, terrified"
+ },
+ "s05": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Когда я открыл глаза, тринадцатый погас. А на соседнем мониторе ожила камера серверной. Всю ночь там было черно — теперь горела свеча.",
+  "en": "When I opened my eyes, thirteen was dark. And on the next monitor the server-room camera had come to life. It had been black all night. Now a candle was burning.",
+  "tag": "quiet, tense"
+ },
+ "s06": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Минус второй этаж. На полу — круг из соли. В нём сидел человек. Лицо с пропуска над моим столом. Фрэнк. Живой — худой, заросший.",
+  "en": "Basement two. A circle of salt on the floor. A man sitting inside it. The face from the ID badge above my desk. Frank. Alive. Gaunt, unshaven.",
+  "tag": "quiet, stunned"
+ },
+ "s07": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Двенадцать этажей обошли. Про подвал никто не вспомнил.",
+  "en": "They'd searched twelve floors. Nobody thought of the basement.",
+  "tag": "quiet, bitter"
+ },
+ "s08": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Он поднял к камере мятый лист. Буквы обведены много раз — наверное, показывал его каждую ночь.",
+  "en": "He held a crumpled sheet up to the camera. The letters traced over and over. He must have been showing it every night.",
+  "tag": "quiet, tense"
+ },
+ "s09": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Фрэнк вдруг оглянулся в темноту. Будто его окликнули.",
+  "en": "Frank suddenly looked back into the dark. As if someone had called him.",
+  "tag": "whispering, terrified"
+ },
+ "d01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Лифт я не тронул. Лестница. Минус первый. Минус второй.",
+  "en": "I didn't touch the elevator. The stairs. Basement one. Basement two.",
+  "tag": "quiet, tense"
+ },
+ "d02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Пахло сыростью и воском. Под ногами хрустела соль.",
+  "en": "It smelled of damp and wax. Salt crunched underfoot.",
+  "tag": "whispering, terrified"
+ },
+ "d03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Железная дверь. «Серверная». Из-под неё — полоска тёплого света.",
+  "en": "An iron door. \"Server Room.\" A strip of warm light underneath it.",
+  "tag": "whispering, terrified"
+ },
+ "d04": {
+  "who": "ФРЭНК",
+  "fx": "muffle",
+  "ru": "— Итан? Это ты, сынок? Заходи, открыто.",
+  "en": "— Ethan? That you, son? Come on in, it's open.",
+  "tag": "hoarse, kind, old man"
+ },
+ "d05": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Голос старика. Наверное, так и звучал Фрэнк. Только Фрэнк ни разу не слышал моего имени.",
+  "en": "An old man's voice. Maybe that's what Frank sounded like. Except Frank had never heard my name.",
+  "tag": "whispering, terrified"
+ },
+ "d06": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "А на листке было: «Не зови меня. Стучи три раза».",
+  "en": "And the sheet had said: \"Don't call me. Knock three times.\"",
+  "tag": "whispering, terrified"
+ },
+ "d07": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я постучал. Раз. Два. Три.",
+  "en": "I knocked. Once. Twice. Three times.",
+  "tag": "whispering, terrified"
+ },
+ "d08": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Тишина. Потом лязгнул засов. Изнутри.",
+  "en": "Silence. Then the bolt clanked. From the inside.",
+  "tag": "whispering, terrified"
+ },
+ "d09": {
+  "who": "ФРЭНК",
+  "fx": "near",
+  "ru": "— Внутрь. Быстро. И ни звука.",
+  "en": "— Inside. Quick. And not a sound.",
+  "tag": "whispering, urgent, old man"
+ },
+ "d10": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Фрэнк насыпал круг у самого порога: до засова дотягивался, не выходя из соли. Одна нога у него была примотана скотчем к куску картона.",
+  "en": "Frank had poured his circle right at the threshold: he could reach the bolt without leaving the salt. One of his legs was taped to a piece of cardboard.",
+  "tag": "quiet"
+ },
+ "d11": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Неделю назад упал на лестнице. Сюда дополз. Кулер с водой, сухари из аварийного шкафа. Днём кричал — через эту дверь не слышно.",
+  "en": "— Fell on the stairs a week ago. Crawled down here. Water cooler, crackers from the emergency cabinet. In the daytime I shouted. Nobody hears through that door.",
+  "tag": "hoarse, tired, old man"
+ },
+ "d12": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Шесть ночей держался. Седьмую одному не выдержать.",
+  "en": "— Held out six nights. Can't make it through the seventh alone.",
+  "tag": "hoarse, tired, old man"
+ },
+ "d13": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Меня теперь держит только соль. А тебя — только то, что молчишь.",
+  "en": "— Only the salt holds me now. And the only thing holding you is keeping your mouth shut.",
+  "tag": "hoarse, grim, old man"
+ },
+ "d14": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Из темноты за кругом позвали Фрэнка. Старческим женским голосом. Ласково.",
+  "en": "From the dark beyond the circle, someone called to Frank. An old woman's voice. Tender.",
+  "tag": "whispering, terrified"
+ },
+ "d15": {
+  "who": "ГОЛОС",
+  "fx": "fake",
+  "ru": "— Фрэнки… Сыночек…",
+  "en": "— Frankie… My boy…",
+  "tag": "tender, old woman, distant"
+ },
+ "d16": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Мама?..",
+  "en": "— Mom?..",
+  "tag": "quiet, almost joyful"
+ },
+ "d17": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Фрэнк потянулся на голос. К краю круга.",
+  "en": "Frank reached toward the voice. Toward the edge of the circle.",
+  "tag": "whispering, terrified"
+ },
+ "d18": {
+  "who": "ГОЛОС",
+  "fx": "fake",
+  "ru": "— Фрэнки, иди ко мне… Холодно тут…",
+  "en": "— Frankie, come to me… It's so cold here…",
+  "tag": "tender, old woman, pleading"
+ },
+ "d19": {
+  "who": "ГОЛОС",
+  "fx": "fake",
+  "ru": "— Сынок… Ну что же ты… Мама ждёт…",
+  "en": "— Son… What are you doing… Mama's waiting…",
+  "tag": "tender, old woman, sad"
+ },
+ "d20": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "В шесть голос оборвался на полуслове.",
+  "en": "At six, the voice broke off mid-word.",
+  "tag": "quiet, exhausted"
+ },
+ "d21": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Всё. До ночи оно спит.",
+  "en": "— That's it. It sleeps till nightfall.",
+  "tag": "hoarse, exhausted, old man"
+ },
+ "d22": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я закинул его руку себе на плечо. Сорок ступенек наверх. Он не проронил ни слова.",
+  "en": "I put his arm over my shoulder. Forty steps up. He didn't say a word.",
+  "tag": "quiet, tired"
+ },
+ "d23": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Мы вышли под дождь. Ещё не светало. Но где-то за домами уже прошёл первый трамвай.",
+  "en": "We stepped out into the rain. It wasn't light yet. But somewhere behind the houses the first tram had already gone by.",
+  "tag": "quiet, calm"
+ },
+ "d24": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Гас?",
+  "en": "— Gus?",
+  "tag": "quiet, old man"
+ },
+ "d25": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я покачал головой.",
+  "en": "I shook my head.",
+  "tag": "quiet"
+ },
+ "d26": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Он ведь сюда ради неё и ходил. Послушать.",
+  "en": "— That's why he kept coming here, you know. To listen to her.",
+  "tag": "quiet, sad, old man"
+ },
+ "d27": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Фрэнк закурил.",
+  "en": "Frank lit a cigarette.",
+  "tag": "quiet"
+ },
+ "d28": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Сам ведь записал: не отзывайся. А назавтра мама позвала — и отозвался. Тридцать лет как её схоронил.",
+  "en": "— Wrote it down myself: don't answer. And the very next night Mom called, and I answered. Buried her thirty years ago.",
+  "tag": "quiet, bitter, old man"
+ },
+ "d29": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Мне теперь до конца жизни спать в круге. А ты уходи, сынок. Пока не отозвался.",
+  "en": "— Now I sleep in a circle for the rest of my life. But you get out of here, son. Before you answer.",
+  "tag": "quiet, grave, old man"
+ },
+ "d30": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я не ушёл. Лили нужны были деньги.",
+  "en": "I didn't leave. Lily needed the money.",
+  "tag": "quiet, tired"
+ },
+ "d31": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Теперь каждую ночь, ровно в три, у лифта кто-то стоит и зовёт меня по имени. Голосом Лили. Я пока ни разу не ответил.",
+  "en": "Now every night, at exactly three, someone stands by the elevator and calls my name. In Lily's voice. So far, I haven't answered once.",
+  "tag": "quiet, slow"
+ },
+ "w01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я никуда не пошёл. Это мог быть кто угодно. И что угодно.",
+  "en": "I didn't go anywhere. It could have been anyone. Anything.",
+  "tag": "quiet, tired"
+ },
+ "w02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Полтора часа я смотрел на мониторы. Тринадцатая больше не включалась.",
+  "en": "For an hour and a half I watched the monitors. Thirteen didn't come on again.",
+  "tag": "quiet, tired"
+ },
+ "w03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Где-то подо мной, в круге соли, сидел старик. А я сидел наверху и ждал шести.",
+  "en": "Somewhere beneath me, an old man sat in a circle of salt. And I sat upstairs, waiting for six.",
+  "tag": "quiet, guilty"
+ },
+ "w04": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "В пять сорок зазвонил телефон. «Лили».",
+  "en": "At five-forty my phone rang. \"Lily.\"",
+  "tag": "quiet, tense"
+ },
+ "w05": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Двадцать минут до шести. Свои до утра подождут.",
+  "en": "Twenty minutes to six. Your own can wait till morning.",
+  "tag": "whispering"
+ },
+ "w06": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я сбросил. Оно позвонило снова. И ещё раз. Потом затихло.",
+  "en": "I declined. It called again. And again. Then it went quiet.",
+  "tag": "quiet, tense"
+ },
+ "w07": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "В шесть пришёл дневной охранник.",
+  "en": "At six the day guard came in.",
+  "tag": "quiet, tired"
+ },
+ "w08": {
+  "who": "СМЕНЩИК",
+  "fx": "",
+  "ru": "— Не отвечал?",
+  "en": "— You didn't answer?",
+  "tag": "low, wary"
+ },
+ "w09": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Мы спустились вниз вдвоём. Дверь серверной была распахнута. Из круга в коридор тянулись следы ладоней.",
+  "en": "We went down together. The server-room door was wide open. Handprints trailed from the circle out into the corridor.",
+  "tag": "quiet, hollow"
+ },
+ "w10": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я открыл журнал на последней странице и дописал строчку. Своим почерком. Для того, кто придёт после меня.",
+  "en": "I opened the logbook to the last page and added a line. In my own handwriting. For whoever comes after me.",
+  "tag": "quiet, slow"
+ },
+ "k1a": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я посмотрел в тринадцатую. Оно уже стояло лицом к камере. Будто ждало, когда я посмотрю.",
+  "en": "I looked at thirteen. It was already facing the camera. As if it had been waiting for me to look.",
+  "tag": "whispering, terrified"
+ },
+ "k1b": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Оно сказало моё имя. И я ответил раньше, чем понял, что отвечаю.",
+  "en": "It said my name. And I answered before I realized I was answering.",
+  "tag": "whispering, terrified"
+ },
+ "k2a": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я поднялся на седьмой. Свет горел, пахло мокрой тряпкой.",
+  "en": "I went up to seven. The lights were on. It smelled of a wet rag.",
+  "tag": "quiet, tense"
+ },
+ "k2b": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "В дверях семьсот седьмого лежал Гас. Над ним кто-то сидел.",
+  "en": "Gus was lying in the doorway of seven-oh-seven. Someone was crouched over him.",
+  "tag": "whispering, terrified"
+ },
+ "k2c": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Лампы начали гаснуть. С дальнего конца. Ко мне.",
+  "en": "The lights started going out. From the far end. Toward me.",
+  "tag": "whispering, terrified"
+ },
+ "k3a": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Гас! Держись, я сейчас поднимусь!",
+  "en": "— Gus! Hang on, I'm coming up!",
+  "tag": "urgent, loud"
+ },
+ "k3b": {
+  "who": "ГАС",
+  "fx": "radio",
+  "ru": "— Спасибо, Итан.",
+  "en": "— Thank you, Ethan.",
+  "tag": "calm, warm, creepy"
+ },
+ "k4a": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я не успел. Тот, в коридоре, обернулся. Лица у него не было. Только рот. И этот рот сказал моё имя.",
+  "en": "I wasn't fast enough. The one in the corridor turned around. It had no face. Only a mouth. And the mouth said my name.",
+  "tag": "whispering, terrified"
+ },
+ "k4b": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "И я ответил раньше, чем понял, что отвечаю.",
+  "en": "And I answered before I realized I was answering.",
+  "tag": "whispering, terrified"
+ },
+ "k5a": {
+  "who": "ЛИЛИ",
+  "fx": "near",
+  "ru": "— Вот ты где, Итан.",
+  "en": "— There you are, Ethan.",
+  "tag": "whispering, sweet, creepy"
+ },
+ "k7a": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я открыл дверь.",
+  "en": "I opened the door.",
+  "tag": "quiet, tense"
+ },
+ "k7b": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Фрэнк сидел в круге. Смотрел на меня и мотал головой: нет, нет, нет.",
+  "en": "Frank was sitting in the circle. Looking at me and shaking his head: no, no, no.",
+  "tag": "whispering, terrified"
+ },
+ "k7c": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "А голос, который меня позвал, был у меня за спиной.",
+  "en": "And the voice that had called me was right behind me.",
+  "tag": "whispering, terrified"
+ },
+ "k8a": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Фрэнк выполз из круга. Темнота сомкнулась над ним без единого звука.",
+  "en": "Frank crawled out of the circle. The dark closed over him without a sound.",
+  "tag": "whispering, terrified"
+ },
+ "k8b": {
+  "who": "ФРЭНК",
+  "fx": "fake",
+  "ru": "— Итан?..",
+  "en": "— Ethan?..",
+  "tag": "quiet, old man, distant"
+ },
+ "k8c": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Фрэнк?!",
+  "en": "— Frank?!",
+  "tag": "urgent, scared"
+ },
+ "k9a": {
+  "who": "ЛИЛИ",
+  "fx": "fake",
+  "ru": "— Итан. Наконец-то.",
+  "en": "— Ethan. Finally.",
+  "tag": "calm, sweet, creepy"
+ },
+ "k9b": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Это был её голос. Только звучал он не из трубки. Из холла.",
+  "en": "It was her voice. But it wasn't coming from the phone. It was coming from the lobby.",
+  "tag": "whispering, terrified"
+ },
+ "ch_katya": {
+  "who": "ЛИЛИ",
+  "fx": "muffle",
+  "ru": "(плачет)",
+  "en": "(crying)",
+  "tag": "sobbing quietly"
+ },
+ "ch_whisper": {
+  "who": "ЛИЛИ",
+  "fx": "fake",
+  "ru": "— Итан…",
+  "en": "— Ethan…",
+  "tag": "whispering, distant, creepy"
+ }
+}

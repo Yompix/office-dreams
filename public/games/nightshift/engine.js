@@ -43,7 +43,7 @@ const SNDS = ['drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'ra
   'ch_guard', 'ch_katya', 'ch_whisper', 'ch_monster', ...Array.from({ length: 17 }, (_, i) => 'l' + String(i + 1).padStart(2, '0'))];
 // звуковые эффекты (ElevenLabs): докачиваются в фоне после старта
 const SFX2 = ['room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b', 'mop_swish'];
-let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, master, musicG, voiceG, sfxG, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
+let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, radioBus = null, phoneBus = null, master, musicG, voiceG, sfxG, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
 // громкость голоса сейчас (для движения рта)
 function voiceLevel() { if (!analyser) return 0; analyser.getByteTimeDomainData(abuf); let q = 0; for (let i = 0; i < abuf.length; i += 2) { const v = (abuf[i] - 128) / 128; q += v * v; } return Math.min(1, Math.sqrt(q / (abuf.length / 2)) * 6); }
 // XHR вместо fetch: так файлы читаются и внутри Android-приложения (file://)
@@ -63,17 +63,20 @@ async function load(onp) {
   // остальные реплики (их много) докачиваются в фоне, уже во время игры
   for (const k of [...SFX2, ...Object.keys(TIM)]) if (!SNDS.includes(k)) get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
 }
-// голос в пространстве: внутренний голос героя — сухой и близкий; остальные звучат в помещении;
-// Катя за стеклом — глухо; «Катя» — вдруг чисто и сухо, будто уже по эту сторону, на полтона ниже, с низким призраком под голосом
-const GLASS = /door|katya|smile|entrance/;
+// голос в пространстве: рассказ героя — сухой и близкий; остальные звучат в помещении.
+// Метка реплики (fx в timing.json): рация и телефон — узкая полоса с хрипом; за стеклом и за дверью — глухо;
+// «чужой» голос (оно говорит голосом близкого) — чище и на полтона ниже, с низким призраком под ним; шёпот рядом — сухо, без эха
 function voiceFx(k) {
   if (!AC || !voiceRev) return [{}];
-  const who = whoOf(k), img = (beat && beat.img) || '', aloud = ((TIM[k] || {}).t || '').trim().startsWith('—');
-  if (who === 'ТЁМЫЧ') return [aloud ? { to: [[voiceG, 1], [voiceRev, .12]] } : {}];
-  if (who === 'КАТЯ') return [GLASS.test(img) ? { to: [[muffle, 1.4], [voiceRev, .2]] } : { to: [[voiceG, 1], [voiceRev, .15]] }];
-  if (who === 'КАТЯ?') return [{ rate: .95, to: [[voiceG, 1], [voiceRev, .05]] }, { rate: .5, gain: .1, dt: .03, cut: durOf(k), to: [[voiceG, 1]] }];
+  const who = whoOf(k), m = TIM[k] || {}, fx = m.fx || '', aloud = (m.t || '').trim().startsWith('—');
+  if (fx === 'radio') return [{ to: [[radioBus, 1.35], [voiceRev, .06]] }];
+  if (fx === 'phone') return [{ to: [[phoneBus, 1.25]] }];
+  if (fx === 'glass') return [{ to: [[muffle, 1.4], [voiceRev, .2]] }];
+  if (fx === 'muffle') return [{ to: [[muffle, 1.5], [voiceRev, .35]] }];
+  if (fx === 'near') return [{ to: [[voiceG, 1.05]] }];
+  if (fx === 'fake') return [{ rate: .95, to: [[voiceG, 1], [voiceRev, .05]] }, { rate: .5, gain: .1, dt: .03, cut: durOf(k), to: [[voiceG, 1]] }];
+  if (who === 'ИТАН') return [aloud ? { to: [[voiceG, 1], [voiceRev, .12]] } : {}];
   if (who === '???') return [{ rate: .97, to: [[voiceG, 1], [voiceRev, .3]] }, { rate: .5, gain: .16, cut: durOf(k), to: [[voiceG, 1], [voiceRev, .3]] }];
-  if (who === 'МИХАЛЫЧ' && /server_door|basement/.test(img)) return [{ to: [[muffle, 1.5], [voiceRev, .35]] }];
   return [{ to: [[voiceG, 1], [voiceRev, .2]] }];
 }
 function decodeOne(k, b) { return new Promise(r => { try { const pr = AC.decodeAudioData(b.slice(0), d => { BUF[k] = d; r(); }, () => r()); if (pr && pr.catch) pr.catch(() => r()); } catch { r(); } }); }
@@ -102,6 +105,11 @@ function initAudio() {   // контекст создаём заранее (он
     revIn = AC.createConvolver(); revIn.buffer = ir; const rg = AC.createGain(); rg.gain.value = .55; revIn.connect(rg); rg.connect(master);
     voiceRev = AC.createGain(); voiceRev.gain.value = voiceOn() ? 1 : 0; voiceRev.connect(revIn); }   // эхо голосов — через свой кран: выключили озвучку — нет и эха
   muffle = filt('lowpass', 1100, .7); muffle.connect(voiceG);
+  // рация: узкая полоса + лёгкий перегруз; телефон: узкая полоса, чище
+  { const h = filt('highpass', 480, .8), l = filt('lowpass', 2600, .9), ws = AC.createWaveShaper(), cu = new Float32Array(256);
+    for (let i = 0; i < 256; i++) { const x = i / 128 - 1; cu[i] = Math.tanh(x * 2.6) / Math.tanh(2.6); }
+    ws.curve = cu; h.connect(ws); ws.connect(l); l.connect(voiceG); radioBus = h;
+    const h2 = filt('highpass', 330, .7), l2 = filt('lowpass', 3300, .7); h2.connect(l2); l2.connect(voiceG); phoneBus = h2; }
   analyser = AC.createAnalyser(); analyser.fftSize = 512; voiceG.connect(analyser); abuf = new Uint8Array(analyser.fftSize);
   bedInit();
   return (decoding = Promise.all(Object.entries(rawSnd).filter(([k]) => SNDS.includes(k)).map(([k, b]) => decodeOne(k, b))).then(() => {
@@ -320,10 +328,10 @@ const frozenC = document.createElement('canvas'); frozenC.width = 1080; frozenC.
 
 function durOf(k) { return (TIM[k] && TIM[k].dur) || (BUF[k] && BUF[k].duration) || 2; }
 // кто говорит: имя на табличке и цвет
-const SPK = { 'ТЁМЫЧ': { c: '#cfd3da', cls: 'narr', sub: 'ты' }, 'СМЕНЩИК': { c: '#ffd27a' }, 'КАТЯ': { c: '#ff9fbc' }, 'КАТЯ?': { c: '#ff4f7e' },
-  '???': { c: '#ff3030', cls: 'monster' }, 'МИХАЛЫЧ': { c: '#8fd0ff' }, 'УБОРЩИК': { c: '#9fd8a8' }, 'КАМЕРА': { c: '#7fe0a0' }, 'ТЕЛЕФОН': { c: '#9aa3b5' } };
-const VOICE_WHO = { ch_guard: 'СМЕНЩИК', ch_katya: 'КАТЯ', ch_whisper: 'КАТЯ?', ch_monster: '???' };
-const whoOf = k => VOICE_WHO[k] || (TIM[k] && TIM[k].who) || 'ТЁМЫЧ';
+const SPK = { 'ИТАН': { c: '#cfd3da', cls: 'narr', sub: 'ты' }, 'СМЕНЩИК': { c: '#ffd27a' }, 'ЛИЛИ': { c: '#ffb36b' }, 'ФРЭНК': { c: '#8fd0ff' },
+  'ГАС': { c: '#9fd8a8' }, '???': { c: '#ff3030', cls: 'monster' }, 'КАМЕРА': { c: '#7fe0a0' }, 'ТЕЛЕФОН': { c: '#9aa3b5' } };
+const VOICE_WHO = { ch_katya: 'ЛИЛИ', ch_whisper: 'ЛИЛИ', ch_monster: '???' };
+const whoOf = k => VOICE_WHO[k] || (TIM[k] && TIM[k].who) || 'ИТАН';
 let waiting = false, holding = false, auto = LS.get('auto', false);
 
 // где мы: место кадра (холл / этажи / подвал) и слышен ли дождь
@@ -465,7 +473,7 @@ function showRules() {
 let smsTimer = 0;
 function showSms(m) {
   if (!smsEl || !m) return;
-  smsEl.innerHTML = `<div class="si">${ICON.msg}</div><div class="sb"><div class="sh"><span>${tr('СООБЩЕНИЯ')}</span><span>${tr('сейчас')}</span></div><b>${escH(m.from || tr('Катя'))}</b><p>${escH(m.text || '')}</p></div>`;
+  smsEl.innerHTML = `<div class="si">${ICON.msg}</div><div class="sb"><div class="sh"><span>${tr('СООБЩЕНИЯ')}</span><span>${tr('сейчас')}</span></div><b>${escH(m.from || tr('Лили'))}</b><p>${escH(m.text || '')}</p></div>`;
   smsEl.classList.remove('hide', 'out', 'in'); void smsEl.offsetWidth; smsEl.classList.add('in');
   play('buzz', { gain: .6 }); buzz([90, 70, 90]);
   clearTimeout(smsTimer); smsTimer = setTimeout(() => { smsEl.classList.add('out'); smsTimer = setTimeout(() => smsEl.classList.add('hide'), 450); }, (m.dur || 3.5) * 1000);
@@ -548,20 +556,22 @@ const MG = {
   // держать кнопку (не дышать), отпустить можно только когда шаги стихнут
   hold(th) {
     mode = 'mg'; music('tension'); amb('heart', true, .7); const my = gen;
-    mgEl.innerHTML = `<div class="mghead">${th.title}<small>${th.hint}</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="air"></i></div><div style="text-align:center;font-size:calc(3.4 * var(--u));margin-top:calc(1.5 * var(--u));opacity:.7">${tr('воздух')}</div></div><button class="bigbtn" id="hb">ДЕРЖИ</button>`;
+    mgEl.innerHTML = `<div class="mghead">${th.title}<small>${th.hint}</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="air"></i></div><div style="text-align:center;font-size:calc(3.4 * var(--u));margin-top:calc(1.5 * var(--u));opacity:.7">${th.meter || tr('воздух')}</div></div><button class="bigbtn" id="hb">ДЕРЖИ</button>`;
     mgEl.classList.remove('hide');
     const btn = $('hb'), air = $('air'); let held = false, a = 1, t0 = now(), lt = t0, safe = false, end = false, steps = 0;
-    const dur = th.dur || 9, set = h => { held = h; btn.classList.toggle('held', h); btn.textContent = h ? tr('НЕ ДЫШИ') : tr('ДЕРЖИ'); };
+    const dur = th.dur || 9, set = h => { held = h; btn.classList.toggle('held', h); btn.textContent = h ? (th.btnOn || tr('НЕ ДЫШИ')) : (th.btn || tr('ДЕРЖИ')); };
     btn.onpointerdown = e => { e.preventDefault(); set(true); }; btn.onpointerup = btn.onpointerleave = btn.onpointercancel = () => set(false);
     const fin = ok => { if (end || my !== gen) return; end = true; amb('heart', false); mgEl.classList.add('hide'); startScene(ok ? th.win : th.lose); };
     (function loop() {
       if (end || my !== gen) return; const t = now() - t0, fdt = Math.min(.1, now() - lt); lt = now();
       // босые шаги кружат вокруг будки: то слева, то справа
-      if (t > .8 && Math.floor(t / 1.1) > steps && t < dur) { steps++; const pan = Math.sin(t * 1.3) * .8; if (!play('steps_barefoot', { off: Math.random() * 4, cut: 1, gain: .6 + .4 * Math.sin(t), pan })) play('steps', { gain: .5 + .5 * Math.sin(t), pan }); if (steps % 3 === 0) play(BUF.breath_close ? 'breath_close' : 'ch_whisper', { gain: .45, pan: -pan * .6 }); }
+      // вместо шагов — голос из темноты (держать Фрэнка: оно зовёт его голосом матери)
+      if (th.calls && t > 1 && Math.floor(t / 2.6) > steps && t < dur) { steps++; play(th.calls[steps % th.calls.length], { bus: 'voice', gain: .9, pan: Math.sin(t) * .6 }); }
+      else if (!th.calls && t > .8 && Math.floor(t / 1.1) > steps && t < dur) { steps++; const pan = Math.sin(t * 1.3) * .8; if (!play('steps_barefoot', { off: Math.random() * 4, cut: 1, gain: .6 + .4 * Math.sin(t), pan })) play('steps', { gain: .5 + .5 * Math.sin(t), pan }); if (steps % 3 === 0) play(BUF.breath_close ? 'breath_close' : 'ch_whisper', { gain: .45, pan: -pan * .6 }); }
       a = Math.max(0, Math.min(1, a + (held ? -0.085 : 0.25) * fdt)); air.style.width = a * 100 + '%';
       if (t > 2.5 && t < dur && !held) return fin(false);      // выдохнул — услышала
       if (a <= 0) return fin(false);                            // задохнулся
-      if (t >= dur && !safe) { safe = true; mgEl.querySelector('.mghead').innerHTML = tr('ТИХО…') + '<small>' + tr('Шаги ушли. Можно дышать.') + '</small>'; }
+      if (t >= dur && !safe) { safe = true; mgEl.querySelector('.mghead').innerHTML = (th.safe || tr('ТИХО…')) + '<small>' + (th.safeHint || tr('Шаги ушли. Можно дышать.')) + '</small>'; }
       if (safe && !held) return fin(true);
       requestAnimationFrame(loop);
     })();
@@ -863,28 +873,84 @@ function cctvHud(label, T, rw) {   // rw = { tag, clock } — запись на 
 }
 function grain(a) { g.save(); g.globalAlpha = a; g.globalCompositeOperation = 'overlay'; const ox = Math.random() * 256, oy = Math.random() * 256; g.translate(-ox, -oy); g.fillStyle = noisePat || (noisePat = g.createPattern(noise, 'repeat')); g.fillRect(0, 0, W + 256, H + 256); g.restore(); }
 function vignette() { const r = g.createRadialGradient(W / 2, H / 2, H * .25, W / 2, H / 2, H * .75); r.addColorStop(0, 'rgba(0,0,0,0)'); r.addColorStop(1, 'rgba(0,0,0,.8)'); g.fillStyle = r; g.fillRect(0, 0, W, H); }
-function phone(kind, t) {
+function phone(spec, t) {
   g.fillStyle = '#030405'; g.fillRect(0, 0, W, H);
-  g.save(); g.translate(W / 2 - 540 * US, 0); g.scale(US, US); phoneIn(kind, t); g.restore(); grain(.08);
+  g.save(); g.translate(W / 2 - 540 * US, 0); g.scale(US, US); phoneIn(typeof spec === 'string' ? { kind: spec } : spec, t); g.restore(); grain(.08);
 }
-function phoneIn(kind, t) {   // экран телефона в координатах вертикального холста 1080×1920
-  const W = 1080;
+// заставка — рисунок Лили (ей шесть): Итан, она и пёс Бублик, солнце, трава; мелками, подписи детским почерком. Рисуется кодом.
+let drawingC = null;
+function drawing() {
+  if (drawingC) return drawingC;
+  const c = drawingC = document.createElement('canvas'); c.width = 600; c.height = 1060; const x = c.getContext('2d');
+  let sd = 7; const R = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
+  x.fillStyle = '#efe8d8'; x.fillRect(0, 0, 600, 1060);
+  for (let i = 0; i < 2600; i++) { x.fillStyle = `rgba(${R() < .5 ? '120,110,90' : '255,255,250'},${.05 + R() * .06})`; x.fillRect(R() * 600, R() * 1060, 2, 2); }   // зерно бумаги
+  const crayon = (col, w, pts, n = 3) => { for (let k = 0; k < n; k++) { x.strokeStyle = col; x.globalAlpha = .55; x.lineWidth = w * (.7 + R() * .5); x.lineCap = 'round'; x.lineJoin = 'round'; x.beginPath();
+    pts.forEach(([px, py], i) => { const jx = px + (R() - .5) * w * .6, jy = py + (R() - .5) * w * .6; i ? x.lineTo(jx, jy) : x.moveTo(jx, jy); }); x.stroke(); } x.globalAlpha = 1; };
+  const ring = (col, w, cx, cy, rx, ry, n = 3) => { const p = []; for (let i = 0; i <= 26; i++) { const a = i / 26 * Math.PI * 2 + .3; p.push([cx + Math.cos(a) * rx * (1 + (R() - .5) * .08), cy + Math.sin(a) * ry * (1 + (R() - .5) * .08)]); } crayon(col, w, p, n); };
+  const fill = (col, cx, cy, rx, ry) => { for (let i = 0; i < 60; i++) { const a = R() * 7, r = Math.sqrt(R()); crayon(col, 5, [[cx + Math.cos(a) * rx * r, cy + Math.sin(a) * ry * r], [cx + Math.cos(a + 2) * rx * r * .8, cy + Math.sin(a + 2) * ry * r * .8]], 1); } };
+  // солнце и трава
+  fill('#f2b81c', 495, 135, 58, 58); ring('#e8a010', 7, 495, 135, 60, 60);
+  for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; crayon('#e8a010', 6, [[495 + Math.cos(a) * 75, 135 + Math.sin(a) * 75], [495 + Math.cos(a) * 112, 135 + Math.sin(a) * 112]], 2); }
+  for (let i = 0; i < 46; i++) { const gx = i * 13 + R() * 6; crayon('#3f9a3a', 5, [[gx, 1010], [gx + (R() - .5) * 18, 940 + R() * 30]], 1); }
+  crayon('#3f9a3a', 9, [[0, 1000], [600, 990]], 3);
+  x.save(); x.translate(42, 158); x.scale(.86, .86);   // фигуры ниже — над ними часы и уведомления
+  // Итан — высокий: голова, тёмные волосы, синяя кофта, ноги
+  fill('#f0c8a0', 150, 470, 46, 52); ring('#8a5a3a', 6, 150, 470, 46, 52); crayon('#3a2a1a', 14, [[108, 440], [125, 420], [150, 414], [178, 420], [194, 444]], 3);
+  x.fillStyle = '#222'; x.fillRect(132, 462, 8, 9); x.fillRect(160, 462, 8, 9); crayon('#c03030', 5, [[132, 492], [150, 502], [168, 492]], 2);
+  fill('#2f5fb0', 150, 620, 52, 95); crayon('#1f3f80', 7, [[100, 540], [100, 710], [200, 710], [200, 540], [100, 540]], 2);
+  crayon('#1f3f80', 8, [[100, 560], [50, 660]], 2); crayon('#1f3f80', 8, [[200, 560], [262, 650]], 2);   // рука держит руку Лили
+  crayon('#333', 9, [[125, 710], [118, 900]], 3); crayon('#333', 9, [[175, 710], [182, 900]], 3); crayon('#333', 10, [[100, 905], [130, 905]], 2); crayon('#333', 10, [[172, 905], [205, 905]], 2);
+  // Лили — маленькая, косички, жёлтое платье
+  fill('#f0c8a0', 300, 610, 38, 42); ring('#8a5a3a', 6, 300, 610, 38, 42); crayon('#7a4a20', 10, [[264, 590], [300, 570], [336, 590]], 3);
+  crayon('#7a4a20', 7, [[262, 600], [244, 650]], 2); crayon('#7a4a20', 7, [[338, 600], [356, 650]], 2);
+  x.fillStyle = '#222'; x.fillRect(287, 604, 7, 8); x.fillRect(308, 604, 7, 8); crayon('#c03030', 5, [[287, 628], [300, 636], [313, 628]], 2);
+  fill('#f2c81c', 300, 740, 60, 82); crayon('#d8a010', 7, [[262, 660], [240, 820], [360, 820], [338, 660], [262, 660]], 2);
+  crayon('#333', 8, [[285, 822], [282, 905]], 2); crayon('#333', 8, [[315, 822], [318, 905]], 2); crayon('#f0c8a0', 8, [[262, 680], [266, 660]], 1);
+  // Бублик — рыжий, круглый, висячие уши, хвост закорючкой
+  fill('#b8742a', 465, 820, 80, 48); ring('#7a4a1a', 7, 465, 820, 80, 48);
+  fill('#b8742a', 545, 760, 38, 36); ring('#7a4a1a', 7, 545, 760, 38, 36); crayon('#5a3210', 12, [[520, 740], [505, 790]], 2); crayon('#5a3210', 12, [[568, 740], [580, 788]], 2);
+  x.fillStyle = '#222'; x.fillRect(535, 752, 7, 8); x.fillRect(556, 752, 7, 8); x.beginPath(); x.arc(548, 775, 6, 0, 7); x.fill();
+  for (const lx of [420, 450, 490, 515]) crayon('#7a4a1a', 9, [[lx, 860], [lx, 905]], 2);
+  crayon('#7a4a1a', 7, [[388, 805], [362, 780], [372, 760], [390, 772]], 2);
+  // сердечко и подписи
+  crayon('#e03a5a', 8, [[300, 440], [278, 412], [290, 392], [300, 408], [310, 392], [322, 412], [300, 440]], 3);
+  x.fillStyle = '#2b2b8a'; x.font = '700 42px "Comic Sans MS", "Segoe Print", cursive'; x.textAlign = 'center';
+  const word = (s, px, py, rot) => { x.save(); x.translate(px, py); x.rotate(rot); x.globalAlpha = .85; x.fillText(tr(s), 0, 0); x.restore(); };
+  word('ИТАН', 150, 380, -.05); word('Я', 300, 540, .08); word('БУБЛИК', 470, 690, -.07);
+  crayon('#2b2b8a', 5, [[470, 700], [480, 722]], 2);
+  x.restore();
+  return c;
+}
+function phoneIn(P, t) {   // экран телефона в координатах вертикального холста 1080×1920
+  const W = 1080, kind = P.kind;
   const x = 240, y = 230, w = 600, h = 1060; g.fillStyle = '#111'; rr(x - 20, y - 20, w + 40, h + 40, 70); g.fillStyle = '#0b0d12'; rr(x, y, w, h, 54);
   g.textAlign = 'center'; g.fillStyle = '#fff';
-  if (kind === 'msg') {
-    g.font = '600 34px Inter, Arial'; g.fillStyle = '#9aa'; g.fillText(tr('Катя'), W / 2, y + 120);
+  if (kind === 'lock') {   // заставка: рисунок, часы, уведомления
+    g.save(); g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, 54) : g.rect(x, y, w, h); g.clip(); g.drawImage(drawing(), x, y, w, h);
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(x, y, w, 330); g.restore();
+    g.fillStyle = '#fff'; g.font = '300 150px Inter, Arial'; g.fillText(P.time || '21:00', W / 2, y + 230); g.font = '500 34px Inter, Arial'; g.fillText(tr(P.date || 'среда, 28 октября'), W / 2, y + 285);
+    (P.notes || []).forEach((n, i) => { if (t < (n.at ?? .6)) return; const k = clamp((t - (n.at ?? .6)) / .25, 0, 1), ny = y + 312 + i * 160 - (1 - k) * 40;
+      g.globalAlpha = k; g.fillStyle = 'rgba(28,30,36,.93)'; rr(x + 24, ny, w - 48, 146, 30);
+      g.textAlign = 'left'; g.fillStyle = '#9ab'; g.font = '600 26px Inter, Arial'; g.fillText(tr('СООБЩЕНИЯ') + ' · ' + tr(n.from || 'Лили'), x + 52, ny + 42);
+      g.fillStyle = '#fff'; g.font = '500 32px Inter, Arial'; wrapText(tr(n.text), x + 52, ny + 86, w - 104, 38, 2); g.globalAlpha = 1; g.textAlign = 'center'; });
+  } else if (kind === 'msg') {
+    g.font = '600 34px Inter, Arial'; g.fillStyle = '#9aa'; g.fillText(tr('Лили'), W / 2, y + 120);
     g.fillStyle = '#2b2f3a'; rr(x + 50, y + 420, w - 120, 190, 36); g.fillStyle = '#fff'; g.font = '600 40px Inter, Arial'; g.textAlign = 'left';
     g.fillText(tr('Не открывай им.'), x + 90, y + 500); if (t > 1.6) g.fillText(tr('Это не я.'), x + 90, y + 560);
     if (t > 2.4) { g.fillStyle = '#2b2f3a'; rr(x + 50, y + 650, w - 220, 120, 36); g.fillStyle = '#f66'; g.fillText(tr('Я тебя вижу'), x + 90, y + 725); }
-  } else {
-    const pulse = 1 + .06 * Math.sin(t * 8);
-    g.font = '700 70px Inter, Arial'; g.fillText(tr('Катя'), W / 2, y + 330); g.font = '500 36px Inter, Arial'; g.fillStyle = '#9aa';
-    g.fillText(kind === 'call2' ? '00:' + String(Math.floor(t) + 8).padStart(2, '0') : tr('мобильный · входящий'), W / 2, y + 400);
-    g.fillStyle = '#2a3'; g.beginPath(); g.arc(x + w - 150, y + h - 200, 70 * (kind === 'call2' ? 1 : pulse), 0, 7); g.fill();
-    g.fillStyle = '#d33'; g.beginPath(); g.arc(x + 150, y + h - 200, 70, 0, 7); g.fill();
+  } else {   // call — входящий, out — исходящий (идут гудки), call2/talk — разговор идёт (таймер)
+    const pulse = 1 + .06 * Math.sin(t * 8), nm = tr(P.name || 'Лили'), talk = kind === 'call2' || kind === 'talk';
+    g.font = '700 70px Inter, Arial'; g.fillText(nm, W / 2, y + 330); g.font = '500 36px Inter, Arial'; g.fillStyle = '#9aa';
+    g.fillText(talk ? '00:' + String(Math.floor(t) + (P.t0 ?? 8)).padStart(2, '0') : kind === 'out' ? tr('вызов') + '…'.slice(0, 1) : tr('мобильный · входящий'), W / 2, y + 400);
+    if (kind === 'call') { g.fillStyle = '#2a3'; g.beginPath(); g.arc(x + w - 150, y + h - 200, 70 * pulse, 0, 7); g.fill(); }
+    g.fillStyle = '#d33'; g.beginPath(); g.arc(kind === 'call' ? x + 150 : W / 2, y + h - 200, 70, 0, 7); g.fill();
   }
   g.textAlign = 'left';
 }
+function wrapText(s, x0, y0, maxW, lh, maxL) { const ws = s.split(' '); let line = '', n = 0;
+  for (const wd of ws) { const tst = line ? line + ' ' + wd : wd; if (g.measureText(tst).width > maxW && line) { g.fillText(line, x0, y0 + n * lh); line = wd; if (++n >= maxL) return; } else line = tst; }
+  if (line) g.fillText(line, x0, y0 + n * lh); }
 function rr(x, y, w, h, r) { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); g.fill(); }
 // пред-кадр: застывший прошлый кадр; перед скримером он тонет в темноте, у fx 'glitch' — окно «соединение потеряно»
 function preFrame(t, T) {
@@ -907,7 +973,7 @@ function glitchBox(T) {
 }
 let lastSubKey = '';
 function plate(who) {
-  const sp = SPK[who] || SPK['ТЁМЫЧ']; dlgEl.style.setProperty('--spk', sp.c);
+  const sp = SPK[who] || SPK['ИТАН']; dlgEl.style.setProperty('--spk', sp.c);
   dlgEl.className = (sp.cls || '') + (holding ? ' wait' : ''); dlgEl.querySelector('.nm').innerHTML = tr(who) + (sp.sub ? `<small>${tr(sp.sub)}</small>` : '');
 }
 function say(who, text, k) {   // печатающийся текст
@@ -961,7 +1027,7 @@ function frame(tp) {
         let cur = null; for (const it of sched) if (t >= it.t) cur = it;
         talkV += (voiceLevel() - talkV) * .5;
         if (cur && t < cur.t + cur.d) talk = { who: whoOf(cur.k), v: talkV };
-        else if (typed && typed.s && t >= typed.t0 && t < typed.t0 + typed.d - .9) talk = { who: beat.who || 'ТЁМЫЧ', v: .25 + .55 * Math.abs(Math.sin(t * 11)) };
+        else if (typed && typed.s && t >= typed.t0 && t < typed.t0 + typed.d - .9) talk = { who: beat.who || 'ИТАН', v: .25 + .55 * Math.abs(Math.sin(t * 11)) };
       }
       // скример: вспышка, рывок, сильная тряска
       const sc = scareAt != null && t >= scareAt, st = sc ? t - scareAt : 0;
@@ -1012,7 +1078,7 @@ function frame(tp) {
       if (!waiting) {
         if (typed && t >= typed.t0 && typed.s) {
           const k = Math.floor(Math.min(1, (t - typed.t0) / (typed.d - .9)) * typed.s.length);
-          say(beat.who || 'ТЁМЫЧ', typed.s, k); shown = true;
+          say(beat.who || 'ИТАН', typed.s, k); shown = true;
           if (k < typed.s.length && Math.random() < .25) play('tick', { gain: .25 });
         } else {
           let cur = null; for (const it of sched) if (t >= it.t) cur = it;

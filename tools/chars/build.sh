@@ -7,7 +7,7 @@ cd "$(dirname "$0")/../.."
 BLENDER=${BLENDER:-blender}; GT=${GT:-gltf-transform}; TMP=$(mktemp -d)
 NAMES=${*:-ethan frank gus dayguard lily tenant}
 for n in $NAMES; do
-  "$BLENDER" -b --python tools/chars/gen.py -- "$n" "$TMP/$n.glb" 2>&1 | grep -E "DONE|Error|Traceback" || true
+  "$BLENDER" -b --python tools/chars/gen.py -- "$n" "$TMP/$n.glb" 2>&1 | grep -E "DONE|RETINT|Error|Traceback" || true
   "$GT" meshopt "$TMP/$n.glb" "public/games/nightshift/models/$n.glb" --level high >/dev/null
   ls -la "public/games/nightshift/models/$n.glb"
 done

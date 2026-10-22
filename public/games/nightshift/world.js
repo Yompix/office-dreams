@@ -128,7 +128,7 @@ function makeTextures() {
   TX.guardSign = ctex(64, 16, (x, w, h) => { x.fillStyle = '#7a1414'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = '700 11px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ОХРАНА'), w / 2, h / 2 + 1); });
   TX.exit = ctex(32, 16, (x, w, h) => { x.fillStyle = '#0f6b2c'; x.fillRect(0, 0, w, h); x.fillStyle = '#d8ffe0'; x.font = '700 10px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ВЫХОД'), w / 2, h / 2 + 1); });
   TX.poster = ctex(32, 48, (x, w, h) => { x.fillStyle = '#d8d2c0'; x.fillRect(0, 0, w, h); x.fillStyle = '#7a1414'; x.fillRect(0, 0, w, 10); x.fillStyle = '#222'; for (let i = 0; i < 8; i++) x.fillRect(4, 14 + i * 4, 10 + rnd() * 14, 1); x.fillStyle = '#333'; x.font = '700 6px Arial'; x.fillText(tr('ПРАВИЛА'), 4, 7); });
-  TX.note = noteTex();
+  TX.note = noteTex(false); TX.note2 = noteTex(true);
   TX.keys = null;
   TX.wood = ctex(32, 32, (x, w, h) => { x.fillStyle = '#4b3524'; x.fillRect(0, 0, w, h); for (let i = 0; i < 24; i++) { x.fillStyle = `rgba(${rnd() < .5 ? '0,0,0' : '255,210,160'},${.08 * rnd()})`; x.fillRect(0, rnd() * h, w, 1); } }, 2, 1);
   TX.sky = ctex(4, 64, (x, w, h) => { const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#06080d'); gr.addColorStop(.7, '#121822'); gr.addColorStop(1, '#2a2620'); x.fillStyle = gr; x.fillRect(0, 0, w, h); });
@@ -143,22 +143,14 @@ function soft(x, cx, cy, rx, ry, a, col = '255,255,255') {   // мягкое п�
   x.save(); x.translate(cx, cy); x.scale(1, ry / rx); const g = x.createRadialGradient(0, 0, 0, 0, 0, rx);
   g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(1, `rgba(${col},0)`); x.fillStyle = g; x.beginPath(); x.arc(0, 0, rx, 0, 7); x.fill(); x.restore();
 }
-function hand(x, cx, cy, s, a, rot = 0, mirror = false) {   // отпечаток ладони: ладонь + пальцы
-  x.save(); x.translate(cx, cy); x.rotate(rot); x.scale(mirror ? -s : s, s); x.fillStyle = `rgba(255,255,255,${a})`;
-  x.beginPath(); x.ellipse(0, 0, 4.2, 5, 0, 0, 7); x.fill();
-  for (const [fx, fy, l, r] of [[-3, -5, 6.5, .1], [-1, -5.6, 7.5, .03], [1.2, -5.5, 7, -.05], [3.1, -4.6, 5.5, -.15]]) { x.save(); x.translate(fx, fy); x.rotate(r); x.beginPath(); x.ellipse(0, -l / 2, 1, l / 2, 0, 0, 7); x.fill(); x.restore(); }
-  x.save(); x.translate(-4.4, 0); x.rotate(-.9); x.beginPath(); x.ellipse(0, -2.8, 1.2, 3.2, 0, 0, 7); x.fill(); x.restore();
-  x.restore();
-}
 function makeTextures2() {
   // грязь на стекле дверей (x −2..2 м, y 0.4..2.4 м): жирные пятна, отпечатки ладоней, мазок тряпкой. Альфа = сколько грязи
   TX.grime = ctex(512, 256, (x, w, h) => {
     x.clearRect(0, 0, w, h);
     for (let i = 0; i < 26; i++) soft(x, rnd() * w, h * (.25 + rnd() * .7), 8 + rnd() * 26, 4 + rnd() * 14, .1 + rnd() * .16);
     x.strokeStyle = 'rgba(255,255,255,.08)'; x.lineWidth = 9; for (let k = 0; k < 3; k++) { x.beginPath(); x.arc(w * (.3 + k * .2), h * .9, 60 + k * 10, -2.6, -.6); x.stroke(); }   // разводы от тряпки
-    // отпечатки (128 px на метр): у ручек и на уровне груди
-    for (const [px, py, s, a, r, m] of [[.43, .62, 1.9, .3, .1, 0], [.47, .55, 1.8, .22, -.2, 1], [.62, .6, 2, .28, .15, 0], [.3, .45, 1.7, .18, 0, 1], [.69, .52, 1.9, .2, -.1, 1]]) hand(x, px * w, py * h, s, a, r, m);
-    soft(x, w * .58, h * .3, 18, 9, .2);   // след лба
+    // у ручек — размытые жирные пятна от ладоней (чёткие отпечатки читались как «лапы»; настоящий отпечаток появляется по сюжету — uPrint)
+    for (const [px, py] of [[.43, .62], [.47, .56], [.62, .6]]) soft(x, px * w, py * h, 16 + rnd() * 8, 10 + rnd() * 6, .07 + rnd() * .05);
   });
   TX.grime.magFilter = T.LinearFilter; TX.grime.minFilter = T.LinearMipmapLinearFilter; TX.grime.wrapS = TX.grime.wrapT = T.ClampToEdgeWrapping;
   // плёночные буквы снаружи: изнутри читаются зеркально — так сразу видно, что между нами стекло
@@ -169,7 +161,7 @@ function makeTextures2() {
   TX.logo.wrapS = TX.logo.wrapT = T.ClampToEdgeWrapping;
   TX.sticker = ctex(64, 32, (x, w, h) => { x.clearRect(0, 0, w, h); x.fillStyle = 'rgba(240,240,236,.92)'; x.fillRect(2, 4, w - 4, h - 8); x.fillStyle = '#9a1818'; x.font = '700 12px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ОТ СЕБЯ'), w / 2, h / 2 + 1); });
   TX.sticker.wrapS = TX.sticker.wrapT = T.ClampToEdgeWrapping;
-  TX.fogBreath = ctex(64, 32, (x, w, h) => { x.clearRect(0, 0, w, h); soft(x, w / 2, h / 2, 30, 15, .95, '235,240,245'); for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(255,255,255,${.3 * rnd()})`; x.fillRect(w / 2 + (rnd() - .5) * 44, h / 2 + (rnd() - .5) * 20, 1, 1); } });
+  TX.fogBreath = ctex(64, 32, (x, w, h) => { x.clearRect(0, 0, w, h); soft(x, w / 2, h / 2, 23, 11, .95, '235,240,245'); for (let i = 0; i < 90; i++) { const a = rnd() * 6.28, r = Math.sqrt(rnd()); x.fillStyle = `rgba(255,255,255,${.3 * rnd() * (1 - r)})`; x.fillRect(w / 2 + Math.cos(a) * r * 20, h / 2 + Math.sin(a) * r * 9, 1, 1); } });
   TX.fogBreath.magFilter = T.LinearFilter; TX.fogBreath.wrapS = TX.fogBreath.wrapT = T.ClampToEdgeWrapping;
   // пол седьмого этажа: офисный линолеум «под плитку» (уборщику есть что мыть)
   TX.lino = ctex(64, 64, (x, w, h) => {
@@ -206,37 +198,56 @@ function makeTextures2() {
   TX.clock = ctex(64, 64, (x, w, h) => {
     x.fillStyle = '#0d0d0d'; x.beginPath(); x.arc(32, 32, 32, 0, 7); x.fill(); x.fillStyle = '#e6e2d6'; x.beginPath(); x.arc(32, 32, 28, 0, 7); x.fill();
     x.fillStyle = '#1a1a1a'; for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; x.save(); x.translate(32, 32); x.rotate(a); x.fillRect(-1, -26, 2, i % 3 ? 4 : 7); x.restore(); }
-    x.font = '700 6px Arial'; x.textAlign = 'center'; x.fillText(tr('СЛАВА'), 32, 44);
+    
   });
   TX.clock.wrapS = TX.clock.wrapT = T.ClampToEdgeWrapping;
   TX.badge = badgeTex(false); TX.badgeX = badgeTex(true);
 }
-// пропуск Михалыча: фото (седой, очки, борода) и фамилия; вторая версия — лицо на фото исцарапано
+// пропуск Фрэнка: фото (седой) и фамилия; вторая версия — лицо на фото исцарапано
 function badgeTex(scratched) {
   return ctex(64, 48, (x, w, h) => {
     x.fillStyle = '#e8e6df'; x.fillRect(0, 0, w, h); x.fillStyle = '#1d3a7a'; x.fillRect(0, 0, w, 10);
     x.fillStyle = '#fff'; x.font = '700 7px Arial'; x.fillText(tr('ПРОПУСК'), 4, 8);
     x.fillStyle = '#7d8a96'; x.fillRect(4, 14, 20, 26);
     x.fillStyle = '#d8c0b0'; x.beginPath(); x.ellipse(14, 26, 6, 8, 0, 0, 7); x.fill();
-    x.fillStyle = '#e8e8e2'; x.fillRect(8, 17, 12, 3); x.fillRect(9, 29, 10, 6);
-    x.fillStyle = '#222'; x.fillRect(9, 24, 4, 2); x.fillRect(15, 24, 4, 2); x.fillRect(13, 24, 2, 1);
-    x.fillStyle = '#1b1b1b'; x.font = '700 7px Arial'; x.fillText(tr('МИХАЙЛОВ'), 27, 21); x.font = '6px Arial'; x.fillText(tr('В. М.'), 27, 29); x.fillText(tr('охрана'), 27, 37);
+    x.fillStyle = '#c9c9c4'; x.fillRect(8, 16, 12, 4); x.fillRect(7, 18, 2, 6); x.fillRect(19, 18, 2, 6);   // седые волосы
+    x.fillStyle = '#3a2a24'; x.fillRect(10, 25, 3, 1); x.fillRect(15, 25, 3, 1); x.fillStyle = '#8a6a5a'; x.fillRect(11, 31, 6, 1);
+    x.fillStyle = '#1b1b1b'; x.font = '700 7px Arial'; x.fillText(tr('ДОЙЛ'), 27, 21); x.font = '6px Arial'; x.fillText(tr('Фрэнк'), 27, 29); x.fillText(tr('охрана'), 27, 37);
     if (scratched) { x.strokeStyle = 'rgba(20,20,20,.9)'; x.lineWidth = 1.5; for (let i = 0; i < 9; i++) { x.beginPath(); x.moveTo(4 + rnd() * 20, 14 + rnd() * 6); x.lineTo(4 + rnd() * 20, 34 + rnd() * 6); x.stroke(); } }
   });
 }
-// листок с правилами: печатные строки и приписка ручкой
-function noteTex() {
-  return ctex(192, 256, (x, w, h) => {
-    x.fillStyle = '#e4dcc4'; x.fillRect(0, 0, w, h);
-    for (let i = 0; i < 400; i++) { x.fillStyle = `rgba(120,100,60,${.08 * rnd()})`; x.fillRect(rnd() * w, rnd() * h, 2, 2); }
-    x.strokeStyle = 'rgba(80,110,160,.25)'; for (let y = 34; y < h; y += 16) { x.beginPath(); x.moveTo(8, y + .5); x.lineTo(w - 8, y + .5); x.stroke(); }
-    x.fillStyle = '#1d1d22'; x.font = '700 15px "Courier New", monospace'; x.fillText(tr('ПРАВИЛА СМЕНЫ'), 22, 24);
-    x.font = '700 11px "Courier New", monospace';
-    const L = ['1. В 03:00 НА 7 ЭТАЖЕ', '   ВКЛЮЧИТСЯ СВЕТ.', '   НЕ ПОДНИМАЙСЯ.', '2. ЛИФТ ПРИЕХАЛ САМ —', '   НЕ ЗАХОДИ.', '3. ПОСЛЕ ПОЛУНОЧИ', '   НИКОГО НЕ ВПУСКАЙ.', '4. КАМЕРУ 13', '   НЕ ВКЛЮЧАЙ.'];
-    L.forEach((s, i) => x.fillText(tr(s), 12, 46 + i * 16));
-    x.save(); x.translate(20, 212); x.rotate(-.06); x.fillStyle = '#1b2f8a'; x.font = 'italic 700 14px "Comic Sans MS", cursive';
-    x.fillText(tr('Третье правило — ложь.'), 0, 0); x.fillText(tr('Впусти её.   — М.'), 8, 18); x.restore();
-    x.strokeStyle = 'rgba(160,20,20,.7)'; x.lineWidth = 2; x.beginPath(); x.moveTo(10, 140); x.lineTo(150, 142); x.stroke();
+// журнал ночных смен (разворот): слева — двадцать лет одинаковых записей, справа — последние недели Фрэнка.
+// Вариант 2 — с припиской Итана другими чернилами (концовка «Новая запись»)
+const LOG_L = ['03.10  Обход. Лампа на 4-м мигает.', '05.10  Обход. Кошка у баков.', '08.10  Обход. Без происшествий.', '10.10  Обход. Без происшествий.',
+  '12.10  Лифт ночью ездит сам.', '       Техник: «датчик».'];
+// k: 0 — ровный почерк, 1 — дрожащий, 2 — с нажимом (бумага прорвана)
+const LOG_R = [['15.10  Гаса зовут с 7-го. По имени.', 0], ['       Голосом Марты.', 0], ['       Марта три года как умерла.', 0],
+  ['18.10  На пульте CAM 13.', 0], ['       Такой камеры нет. Не смотри.', 0],
+  ['20.10  НЕ ОТЗЫВАЙСЯ НА ИМЯ.', 2], ['       НЕ ОТКРЫВАЙ ЕМУ ДВЕРЬ.', 2], ['       САМ К НЕМУ НЕ ХОДИ —', 2], ['       НИ НА СВЕТ, НИ В ЛИФТ.', 2],
+  ['21.10  Мама позвала. Я ответил.', 1], ['       Соль держит. Иду вниз.', 1]];
+const LOG_E = ['28.10  ФРЭНК БЫЛ ЖИВ.', '       Я НЕ СПУСТИЛСЯ.  — И.'];
+function noteTex(v2) {
+  return ctex(384, 256, (x, w, h) => {
+    x.fillStyle = '#e6dfca'; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 700; i++) { x.fillStyle = `rgba(120,100,60,${.07 * rnd()})`; x.fillRect(rnd() * w, rnd() * h, 2, 2); }
+    const sh = x.createLinearGradient(w / 2 - 14, 0, w / 2 + 14, 0); sh.addColorStop(0, 'rgba(0,0,0,0)'); sh.addColorStop(.5, 'rgba(60,45,25,.35)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = sh; x.fillRect(w / 2 - 14, 0, 28, h);   // корешок
+    x.strokeStyle = 'rgba(80,110,160,.28)'; for (let y = 30; y < h; y += 17) { x.beginPath(); x.moveTo(8, y + .5); x.lineTo(w / 2 - 10, y + .5); x.moveTo(w / 2 + 10, y + .5); x.lineTo(w - 8, y + .5); x.stroke(); }
+    x.strokeStyle = 'rgba(190,60,60,.35)'; x.beginPath(); x.moveTo(52, 0); x.lineTo(52, h); x.moveTo(w / 2 + 44, 0); x.lineTo(w / 2 + 44, h); x.stroke();
+    x.fillStyle = '#23262e'; x.font = '700 11px Georgia, "Times New Roman", serif'; x.fillText(tr('ЖУРНАЛ НОЧНЫХ СМЕН'), 12, 18);
+    const pen = (sz, b) => `italic ${b ? 700 : 500} ${sz}px Georgia, "Times New Roman", serif`;
+    x.fillStyle = '#1c2a6a'; x.font = pen(11);
+    LOG_L.forEach((t, i) => x.fillText(tr(t), 10, 27 + 17 * (i + 1) - 3));
+    LOG_R.forEach(([t, k], i) => {   // k: 1 — дрожащий почерк, 2 — с нажимом (бумага прорвана)
+      x.save(); x.translate(w / 2 + 8, 27 + 17 * (i + 1) - 3);
+      if (k === 1) x.rotate((rnd() - .5) * .05);
+      x.font = pen(k === 2 ? 12 : 11, k === 2); x.fillStyle = k === 2 ? '#101a50' : '#1c2a6a'; x.fillText(tr(t), 0, 0);
+      if (k === 2) { x.fillText(tr(t), .6, .3);   // с нажимом: ручка прорвала бумагу — рваная щель под строкой
+        if (/ИМЯ|NAME/.test(tr(t))) { x.fillStyle = 'rgba(25,18,10,.75)'; x.beginPath(); x.moveTo(36, 3); for (let s = 0; s <= 24; s++) x.lineTo(36 + s * 5, 3.2 + Math.sin(s * 2.7) * 1.1 + (s % 3 ? .4 : -.5));
+          for (let s = 24; s >= 0; s--) x.lineTo(36 + s * 5, 4.4 + Math.sin(s * 1.9) * .8); x.closePath(); x.fill(); } }
+      x.restore();
+    });
+    if (v2) { x.fillStyle = '#123d1a'; x.font = pen(11, true); LOG_E.forEach((t, i) => x.fillText(tr(t), w / 2 + 8, 27 + 17 * (LOG_R.length + i + 1) - 3)); }
   });
 }
 

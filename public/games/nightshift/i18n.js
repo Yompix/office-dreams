@@ -59,7 +59,7 @@ const EN = {
   'Уборщик домывает седьмой. Хоть кто-то живой в этом здании.': 'The janitor is finishing the seventh floor. At least someone in this building is alive.',
   'Рассвет': 'Dawn', 'Пятое правило': 'Rule Five', 'Внутри': 'Inside', 'Сестра': 'Sister',
   // кто говорит (табличка над репликой)
-  'ТЁМЫЧ': 'TYOMA', 'СМЕНЩИК': 'OTHER GUARD', 'КАТЯ': 'KATYA', 'КАТЯ?': 'KATYA?', 'МИХАЛЫЧ': 'MIKHALYCH', 'УБОРЩИК': 'JANITOR', 'ты': 'you',
+  'ИТАН': 'ETHAN', 'СМЕНЩИК': 'DAY GUARD', 'ЛИЛИ': 'LILY', 'ФРЭНК': 'FRANK', 'ГАС': 'GUS', 'ты': 'you', 'Лили': 'Lily',
   // интерфейс
   '18+ · жестокость и кровь · лучше в наушниках · в игре есть вспышки света и резкие звуки': '18+ · violence and blood · best with headphones · contains flashing lights and loud sounds',
   'Жестокость, кровь и сцены насилия': 'Violence, blood and gore', 'Лучше в наушниках · в игре есть вспышки света': 'Best with headphones · contains flashing lights',
@@ -83,7 +83,7 @@ const EN = {
   'Ошибка: ': 'Error: ', 'дальше': 'next', 'выбор': 'choice', 'мышь': 'mouse', 'свет и действия': 'light & actions', 'меню': 'menu', 'повернуть экран': 'rotate screen', 'озвучка': 'voice-over', 'Правила': 'Rules',
   // надписи в 3D-мире (текстуры)
   'БЦ  «ГОРИЗОНТ»': 'HORIZON  B.C.', 'ГОРИЗОНТ': 'HORIZON', 'Б И З Н Е С - Ц Е Н Т Р': 'B U S I N E S S   C E N T E R', 'ОХРАНА': 'SECURITY', 'ВЫХОД': 'EXIT', 'ПРАВИЛА': 'RULES',
-  'ОТ СЕБЯ': 'PUSH', 'ОСТОРОЖНО': 'CAUTION', 'МОКРЫЙ': 'WET', 'ПОЛ': 'FLOOR', 'СЛАВА': 'SLAVA', 'ПРОПУСК': 'PASS', 'МИХАЙЛОВ': 'MIKHAILOV', 'В. М.': 'V. M.', 'охрана': 'security', 'КЛИНИНГ': 'CLEANING',
+  'ОТ СЕБЯ': 'PUSH', 'ОСТОРОЖНО': 'CAUTION', 'МОКРЫЙ': 'WET', 'ПОЛ': 'FLOOR', 'СЛАВА': 'SLAVA', 'ПРОПУСК': 'PASS', 'ДОЙЛ': 'DOYLE', 'Фрэнк': 'Frank', 'охрана': 'security', 'КЛИНИНГ': 'CLEANING',
   'СЕРВЕРНАЯ  −2': 'SERVER ROOM  −2', 'ПРАВИЛА СМЕНЫ': 'SHIFT RULES',
   '1. В 03:00 НА 7 ЭТАЖЕ': '1. AT 3:00 ON FLOOR 7', '   ВКЛЮЧИТСЯ СВЕТ.': '   THE LIGHTS COME ON.', '   НЕ ПОДНИМАЙСЯ.': '   DO NOT GO UP.',
   '2. ЛИФТ ПРИЕХАЛ САМ —': '2. ELEVATOR CAME BY', '   НЕ ЗАХОДИ.': '   ITSELF — STAY OUT.', '3. ПОСЛЕ ПОЛУНОЧИ': '3. AFTER MIDNIGHT', '   НИКОГО НЕ ВПУСКАЙ.': '   LET NO ONE IN.',

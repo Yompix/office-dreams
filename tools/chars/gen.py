@@ -6,10 +6,10 @@ from bl_ext.user_default.mpfb.services import HumanService, FaceService, ObjectS
 name, out = sys.argv[sys.argv.index('--') + 1:][:2]
 R = lambda a, c, af: {'asian': a, 'caucasian': c, 'african': af}
 CHARS = {
-  # Итан, 23 — главный герой, ночной охранник: тёмное поло, брюки, ботинки
+  # Итан, 23 — главный герой, ночной охранник: пришёл с улицы в дождь — стёганая куртка (тёмная серо-зелёная), рубашка, джинсы, ботинки
   'ethan': dict(phenotype=dict(gender=1, age=.42, muscle=.55, weight=.45, proportions=.6, height=.61, cupsize=.5, firmness=.5, race=R(.05, .9, .05)),
                 skin='young_caucasian_male/young_caucasian_male.mhmat', hair='short02/short02.mhclo', brows='eyebrow001/eyebrow001.mhclo',
-                clothes=['namuhekam_male_polo_shirt/namuhekam_male_polo_shirt.mhclo', 'toigo_wool_pants/toigo_wool_pants.mhclo', 'shoes03/shoes03.mhclo']),
+                clothes=['male_casualsuit05/male_casualsuit05.mhclo', 'shoes03/shoes03.mhclo'], retint={'casualsuit05': (.16, .18, .15)}),
   # Фрэнк, 64 — прошлый ночной охранник, двадцать лет в здании
   'frank': dict(phenotype=dict(gender=1, age=.93, muscle=.4, weight=.62, proportions=.5, height=.5, cupsize=.5, firmness=.4, race=R(0, 1, 0)),
                 skin='old_caucasian_male/old_caucasian_male.mhmat', hair='short04/short04.mhclo', brows='eyebrow007/eyebrow007.mhclo',
@@ -18,17 +18,17 @@ CHARS = {
   'gus': dict(phenotype=dict(gender=1, age=.95, muscle=.45, weight=.55, proportions=.45, height=.42, cupsize=.5, firmness=.4, race=R(0, .1, .9)),
               skin='old_african_male/old_african_male.mhmat', hair='short01/short01.mhclo', brows='eyebrow010/eyebrow010.mhclo',
               clothes=['male_worksuit01/male_worksuit01.mhclo', 'shoes02/shoes02.mhclo']),
-  # дневной охранник (сменщик), 45
+  # дневной охранник (сменщик), 45: куртку надел заранее — тёмно-синяя стёганая куртка (кепка — в игре)
   'dayguard': dict(phenotype=dict(gender=1, age=.7, muscle=.5, weight=.7, proportions=.5, height=.48, cupsize=.5, firmness=.5, race=R(.1, .85, .05)),
                    skin='middleage_caucasian_male/middleage_caucasian_male.mhmat', hair='culturalibre_hair_02/culturalibre_hair_02.mhclo', brows='eyebrow003/eyebrow003.mhclo',
-                   clothes=['namuhekam_male_polo_shirt/namuhekam_male_polo_shirt.mhclo', 'toigo_wool_pants/toigo_wool_pants.mhclo', 'shoes04/shoes04.mhclo']),
+                   clothes=['male_casualsuit05/male_casualsuit05.mhclo', 'shoes04/shoes04.mhclo'], retint={'casualsuit05': (.07, .085, .13)}),
   # Лили, 20 — сестра Итана: жёлтая куртка (свитер, перекрашивается в игре), джинсы, кеды
   'lily': dict(phenotype=dict(gender=0, age=.38, muscle=.4, weight=.4, proportions=.65, height=.6, cupsize=.45, firmness=.6, race=R(.05, .9, .05)),
                skin='young_caucasian_female/young_caucasian_female.mhmat', hair='long01/long01.mhclo', brows='eyebrow011/eyebrow011.mhclo',
                clothes=['toigo_fisherman_sweater/toigo_fisherman_sweater.mhclo', 'cortu_cargo_pants/cortu_cargo_pants.mhclo', 'shoes06/shoes06.mhclo']),
   # Жилец: очень высокий и худой, без одежды, мокрые чёрные волосы (цвет кожи и глаза — в игре)
-  'tenant': dict(phenotype=dict(gender=.85, age=.55, muscle=0, weight=0, proportions=0, height=1, cupsize=0, firmness=0, race=R(0, 1, 0)),
-                 skin='old_caucasian_female/old_caucasian_female.mhmat', hair='long01/long01.mhclo', brows='eyebrow012/eyebrow012.mhclo', clothes=[]),
+  'tenant': dict(phenotype=dict(gender=1, age=.75, muscle=0, weight=0, proportions=0, height=1, cupsize=0, firmness=0, race=R(0, 1, 0)),
+                 skin='old_caucasian_male/old_caucasian_male.mhmat', hair='long01/long01.mhclo', brows='eyebrow012/eyebrow012.mhclo', clothes=[]),
 }
 C = CHARS[name]
 for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
@@ -129,6 +129,17 @@ for o in [o for o in bpy.data.objects if o.type == 'MESH']:
     t = ObjectService.get_object_type(o); k = KIND.get(t) or 'cloth_' + o.name.split('.', 1)[-1]
     o.name = k; o.data.name = k
     print('PART', t, '->', k)
+# 4б) перекраска одежды: красятся только малонасыщенные пиксели (ткань куртки), джинсы и полоски рубашки остаются своими
+for key, rgb in C.get('retint', {}).items():
+    for img in bpy.data.images:
+        if key not in img.name or 'diffuse' not in img.name.lower() or not img.size[0]: continue
+        a = np.empty(len(img.pixels), np.float32); img.pixels.foreach_get(a); a = a.reshape(-1, 4); c = a[:, :3]
+        mx, mn = c.max(1), c.min(1); sat = (mx - mn) / np.maximum(mx, 1e-4); lum = c @ np.array([.3, .59, .11], np.float32)
+        m = np.clip((.22 - sat) / .1, 0, 1) * np.clip((mx - .05) / .05, 0, 1)
+        tgt = np.array(rgb, np.float32); tl = tgt @ np.array([.3, .59, .11], np.float32); base = float(np.median(lum[m > .9])) if (m > .9).any() else .3
+        new = lum[:, None] / base * tgt[None, :]
+        c[:] = c * (1 - m[:, None]) + np.clip(new, 0, 1) * m[:, None]; img.pixels.foreach_set(a.ravel()); img.update()
+        print('RETINT', img.name, rgb, 'base lum', round(base, 3), 'share', round(float(m.mean()), 3))
 # 5) текстуры поменьше: кожа 2048, остальное 1024
 for img in bpy.data.images:
     if not img.size[0]: continue
