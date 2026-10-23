@@ -7,16 +7,17 @@
 const tr = window.tr || (s => s);
 const T = window.THREE;
 // внутреннее разрешение кадра. Два вида графики (меню «Графика», хранится в ns1_gfx, ?gfx=retro|cine — вручную):
-//  «Ретро» — низкое разрешение, дрожь вершин, ступени цвета (телефон по умолчанию); на ПК вдвое чётче (?hd=0/1);
-//  «Кино» — полное разрешение, мягкие тени, блики и отражения, объёмный свет, пыль в лучах, глубина резкости (ПК по умолчанию).
+//  «Ретро» — низкое разрешение, дрожь вершин, ступени цвета (запасной вид: слабый телефон или выбор игрока); на ПК вдвое чётче (?hd=0/1);
+//  «Кино» — полное разрешение, мягкие тени, блики и отражения, объёмный свет, пыль в лучах, глубина резкости (по умолчанию везде;
+//   на телефоне разрешение 75 % и тени попроще, а если и так медленно — движок сам переключает на «Ретро», см. perfTick).
 // Ориентация меняется на лету (World.setLand): 9:16 или 16:9; дрожь вершин, строки и рябь VHS считаются по базовой сетке.
 const FINE = matchMedia('(pointer: fine)').matches;
 const HD = (() => { const q = /[?&]hd=([01])/.exec(location.search); if (q) return q[1] === '1' ? 2 : 1;
   return FINE && innerWidth > innerHeight ? 2 : 1; })();
 const GFX = (() => { const q = /[?&]gfx=(retro|cine)/.exec(location.search); if (q) return q[1];
-  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; } catch {} return FINE ? 'cine' : 'retro'; })();
+  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; } catch {} return 'cine'; })();
 const CINE = GFX === 'cine';
-const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE };
+const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: FINE ? 1 : .75 };   // rs — доля разрешения «Кино» (телефон начинает с 75 %, perfTick подстраивает)
 let R = null, RT = null, post = null;          // рендерер, буфер кадра, проход постобработки
 const rnd = (() => { let s = 1337; return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; })();
 const lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.max(a, Math.min(b, v));

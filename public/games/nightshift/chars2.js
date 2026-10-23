@@ -1242,7 +1242,7 @@ function updateSkinned(C, t, dt) {
 const LUMA = 'dot(diffuseColor.rgb, vec3(.3, .59, .11))';
 function humanMat(C, n, kind, Q) {
   const o = C.o, src = n.material, cut = kind === 'brows' || kind === 'lashes' || kind === 'hair' || (kind === 'eyes' && o.deadEyes == null), cloth = kind.startsWith('cloth');
-  const R = { skin: .64, eyes: .06, brows: .85, lashes: .85, teeth: .3, tongue: .4, hair: CINE ? .68 : .55 }[kind] ?? .86;   // в «Кино» волосы матовее: широкий блик делал из них лакированную шапку; блеск — прядями (hh3 ниже) и контровым светом
+  const R = { skin: CINE ? .72 : .64, eyes: .06, brows: .85, lashes: .85, teeth: .3, tongue: .4, hair: CINE ? .68 : .55 }[kind] ?? .86;   // в «Кино» волосы матовее: широкий блик делал из них лакированную шапку; блеск — прядями (hh3 ниже) и контровым светом
   let tint = null; for (const k in (o.tint || {})) if (kind === k || kind.includes(k)) tint = o.tint[k];
   const p = { map: src.map || null };
   if (typeof tint === 'number') p.color = tint;
@@ -1287,7 +1287,8 @@ float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, ' + (kind === 'hair' ? '.25' : '.42') + ', max(uWet * .75, gore));')
       .replace('#include <lights_fragment_begin>', T.ShaderChunk.lights_fragment_begin.split('? getPointShadow(').join('? (1. - shK) + shK * getPointShadow(').split('? getShadow(').join('? (1. - shK) + shK * getShadow('))
       // глубже во рту свет не бликует: нёбо в «Кино» блестело серебром (или рыжим от тёплого света) — там выход не ярче самого цвета
-      .replace('#include <opaque_fragment>', '#include <opaque_fragment>' + (kind === 'teeth' || kind === 'tongue' ? '\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, min(gl_FragColor.rgb, diffuseColor.rgb * .8), smoothstep(.08, .6, mouthD));' : ''));
+      .replace('#include <opaque_fragment>', '#include <opaque_fragment>' + (kind === 'teeth' || kind === 'tongue' ? '\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, min(gl_FragColor.rgb, diffuseColor.rgb * .8), smoothstep(.08, .6, mouthD));' : '')
+        + (kind === 'skin' && CINE ? '\n  { float lm = dot(gl_FragColor.rgb, vec3(.3, .59, .11)); gl_FragColor.rgb += vec3(.07, .018, .004) * (1. - smoothstep(.03, .32, lm)) * diffuseColor.r * (1. - uGrey); }' : ''));   // кожа: в тенях тёплый подсвет (кровь под кожей), не серый пластик
   };
   // ключ программы: код шейдера у зубов, языка и «приглушённой» одежды свой — иначе three.js отдаёт им чужую готовую программу с тем же набором текстур
   const dimK = (() => { for (const k in (o.dim || {})) if (kind.includes(k)) return 'd' + o.dim[k]; return ''; })();

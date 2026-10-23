@@ -64,7 +64,7 @@ async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
-  const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', 2)] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
+  const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
   const tm = get(EN ? 'timing_en.json?v=9' : 'timing.json?v=14', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
@@ -1153,8 +1153,8 @@ function logoMask() {   // эрозия букв: редкие выщербин�
   return (logoURL = c.toDataURL());
 }
 // «Кино» на этой видеокарте рисовало чёрным — игра сама включила «Ретро» (scenes.js, gfxCheck): сказать об этом один раз
-function gfxNote() { if (LS.get('gfxAuto', 0) !== 1) return; LS.set('gfxAuto', 3);
-  const n = document.createElement('div'); n.className = 'gfx-note'; n.textContent = tr('Графика «Кино» на этом устройстве рисовала слишком темно — включена «Ретро». Вернуть: Настройки → Графика.');
+function gfxNote() { const a = LS.get('gfxAuto', 0); if (a !== 1 && a !== 4) return; LS.set('gfxAuto', 3);
+  const n = document.createElement('div'); n.className = 'gfx-note'; n.textContent = tr(a === 4 ? 'На этом телефоне «Кино» шло слишком медленно — включена «Ретро». Вернуть: Настройки → Графика.' : 'Графика «Кино» на этом устройстве рисовала слишком темно — включена «Ретро». Вернуть: Настройки → Графика.');
   ($('stage') || document.body).appendChild(n); setTimeout(() => n.remove(), 9000); }
 function menu() {
   gen++; mode = 'menu'; document.body.classList.remove('shifting'); gfxNote(); menuT0 = now(); titleT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); if (hushOn) hush(false); $('hud').classList.add('hide'); hideSms();
@@ -1210,6 +1210,8 @@ function pauseMenu() {
 }
 function unpause(quiet) { pzEl.classList.add('hide'); pzEl.innerHTML = ''; setPause(false); if (!quiet) uiSnd('back'); }
 // язык и графика собираются при загрузке страницы: перезагружаем, но игра продолжается с того же места (сцена и кадр или час смены и минута)
+// слабый телефон: «Кино» не тянет даже на 55 % — движок (scenes.js, perfTick) просит перейти на «Ретро», игра продолжится с того же места
+window.nsGfxFallback = reason => { LS.set('gfx', 'retro'); LS.set('gfxAuto', reason); reloadKeep(inGame() ? 'pause' : 'menu'); };
 function reloadKeep(from) {
   const st = { at: Date.now(), from, flags: Object.assign({}, flags), falseAlarm, lastTime, shk };
   if (from === 'pause') {
@@ -1234,9 +1236,10 @@ function resumeAfterReload() {   // после перезагрузки (сме�
     }); };
 }
 const VHS_LV = [0, .32, .7], VHS_N = ['ВЫКЛ', 'СЛАБО', 'ОБЫЧНО'];   // переводятся в row()
+const vhsDef = () => (window.World && World.cine ? 1 : 2);   // плёнка по умолчанию: в «Кино» слабая (чистая картинка), в «Ретро» обычная
 function settings(from = 'menu') {   // from: 'menu' — из главного меню, 'pause' — из паузы в игре (настройки поверх игры, без выхода)
   const row = (id, name, val) => `<button class="set" id="${id}"><span>${tr(name)}</span><b>${tr(val)}</b></button>`;
-  const vh = LS.get('vhs', 2);
+  const vh = LS.get('vhs', vhsDef());
   const host = from === 'pause' ? pzEl : uiEl;
   host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('НАСТРОЙКИ')}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets">
     ${row('sLang', 'Язык', EN ? 'ENGLISH' : 'РУССКИЙ')}
@@ -1260,7 +1263,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
   $('sLand').onclick = () => { LS.set('land3', !LAND); applyLand(!LAND); re(); };
   $('sGfx').onclick = () => { LS.set('gfx', window.World && World.cine ? 'retro' : 'cine'); LS.set('gfxAuto', 2); reloadKeep(from); };   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
-  $('sVhs').onclick = () => { const v = (LS.get('vhs', 2) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
+  $('sVhs').onclick = () => { const v = (LS.get('vhs', vhsDef()) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
 }

@@ -18,6 +18,17 @@ function unreliable(t, seed) {
   return 1;
 }
 
+// контактная тень вдоль стены: полоса с тёмной серединой лежит на линии стены (половина спрятана под стеной) — пол темнее у стены, стена — у пола и у потолка.
+// Дёшево даёт глубину углам, которых нет без запечённого освещения. w — длина, (x, z) — линия стены, ry — поворот стены, ceilY — высота потолка
+let AO_M = null;
+function aoEdge(S, w, x, z, ry, ceilY) {
+  if (!AO_M) { const t = ctex(8, 64, (c, cw, ch) => { const g = c.createLinearGradient(0, 0, 0, ch); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(.5, 'rgba(0,0,0,.62)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.clearRect(0, 0, cw, ch); c.fillStyle = g; c.fillRect(0, 0, cw, ch); });
+    AO_M = new T.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -3 }); }
+  const dx = ry ? (ry > 0 ? .006 : -.006) : 0, dz = ry ? 0 : (Math.abs(ry) === PI ? -.006 : .006);
+  const f = plane(w, .9, AO_M, S); f.rotation.set(-PI / 2, 0, ry); f.position.set(x, .005, z);
+  const v = plane(w, .7, AO_M, S); v.rotation.y = ry; v.position.set(x + dx, 0, z + dz);
+  if (ceilY) { const c = plane(w, .7, AO_M, S); c.rotation.y = ry; c.position.set(x + dx, ceilY, z + dz); }
+}
 /* ---------- холл бизнес-центра + улица перед ним ---------- */
 function buildLobby() {
   const S = new T.Scene(), o = { S }; S.background = new T.Color(FOGC); o.fogD = .055; S.fog = new T.FogExp2(FOGC, o.fogD);
@@ -117,6 +128,37 @@ function buildLobby() {
   box(.5, .08, 2, mat(0xffffff, TX.wood), -7.4, .45, 1, S); for (const z of [.2, 1.8]) box(.45, .45, .06, mat(0x222222), -7.4, .22, z, S);
   cyl(.25, .2, .5, 8, mat(0x3a2a20), S).position.set(-7.3, .25, 4.6);
   for (let i = 0; i < 7; i++) { const lf = box(.08, .9, .3, mat(0x1f3a22), -7.3, .9, 4.6, S); lf.rotation.set((rnd() - .5) * .8, rnd() * PI, (rnd() - .5) * .8); }
+  // мелочи холла: плинтусы, контактные тени вдоль стен (пол темнее у стены, стена — у пола и у потолка), датчики дыма и вентрешётка,
+  // доска объявлений, план эвакуации, огнетушитель в красном ящике, «ВЫХОД» над входом изнутри, торговый автомат у скамейки, урна у лифтов
+  { const trim = mat(0x2a1e14, null, { rough: .6 });
+    for (const [w, x, z, ry] of [[16, 0, -5.975, 0], [12, -7.975, 0, PI / 2], [12, 7.975, 0, -PI / 2]]) for (const [y, h, d] of [[1.125, .05, .03], [.035, .07, .02]]) { const b = box(w, h, d, trim, x, y, z, S); b.rotation.y = ry; }
+    for (const [w, x, z, ry] of [[16, 0, -6, 0], [12, -8, 0, PI / 2], [12, 8, 0, -PI / 2]]) aoEdge(S, w, x, z, ry, 4.2);
+    for (const [x, z] of [[-5.5, 2.2], [1.5, -2.4], [5.5, 3.2]]) { const d = cyl(.06, .06, .03, 12, mat(0xe8e8e4), S); d.position.set(x, 4.185, z); box(.012, .006, .012, mat(0xff2020, null, { basic: true }), x + .03, 4.168, z, S); }
+    box(.6, .02, .3, mat(0x9a9ea2, null, { metal: .5, rough: .45 }), 3.6, 4.19, 1.2, S); for (let i = 0; i < 6; i++) box(.56, .006, .02, mat(0x2a2c2e), 3.6, 4.178, 1.08 + i * .048, S);
+    // доска объявлений (пробка, приколотые листки) — у будки; план эвакуации — на левой стене; огнетушитель — на правой
+    const nb = ctex(192, 128, (x, w, h) => { x.fillStyle = '#b08a56'; x.fillRect(0, 0, w, h); for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(${60 + rnd() * 60 | 0},${40 + rnd() * 40 | 0},20,${.08 + rnd() * .1})`; x.fillRect(rnd() * w, rnd() * h, 2, 2); }
+      x.fillStyle = '#4a3418'; x.fillRect(0, 0, w, 6); x.fillRect(0, h - 6, w, 6); x.fillRect(0, 0, 6, h); x.fillRect(w - 6, 0, 6, h);
+      for (const [px, py, pw, ph, rot] of [[14, 14, 54, 70, -.04], [76, 12, 56, 40, .03], [140, 16, 40, 56, -.02], [80, 60, 50, 54, .05], [16, 92, 60, 28, .02]]) { x.save(); x.translate(px + pw / 2, py + ph / 2); x.rotate(rot); x.fillStyle = rnd() < .3 ? '#efe4b8' : '#ece9e1'; x.fillRect(-pw / 2, -ph / 2, pw, ph);
+        x.fillStyle = '#555'; for (let l = 0; l < ph / 7 - 1; l++) x.fillRect(-pw / 2 + 5, -ph / 2 + 7 + l * 7, pw * (.5 + rnd() * .4), 2); x.fillStyle = '#c42a2a'; x.beginPath(); x.arc(0, -ph / 2 + 3, 2.2, 0, 7); x.fill(); x.restore(); } });
+    plane(1.15, .78, mat(0xffffff, nb, { decal: 1 }), S).position.set(5.3, 1.95, -5.965);
+    const ev = ctex(64, 96, (x, w, h) => { x.fillStyle = '#e9efe6'; x.fillRect(0, 0, w, h); x.fillStyle = '#2d8a4a'; x.fillRect(0, 0, w, 14); x.fillStyle = '#fff'; x.font = '700 8px Arial'; x.textAlign = 'center'; x.fillText(tr('ПЛАН ЭВАКУАЦИИ'), w / 2, 10);
+      x.strokeStyle = '#333'; x.lineWidth = 1.5; x.strokeRect(8, 22, 48, 60); for (let i = 0; i < 5; i++) x.strokeRect(10 + (i % 3) * 15, 24 + (i > 2 ? 30 : 0), 13, 28); x.fillStyle = '#2d8a4a'; x.fillRect(30, 76, 4, 10); x.fillStyle = '#d33'; x.beginPath(); x.arc(32, 60, 2.5, 0, 7); x.fill(); });
+    const evp = plane(.4, .6, mat(0xffffff, ev, { decal: 1 }), S); evp.rotation.y = PI / 2; evp.position.set(-7.965, 1.75, 2.2);
+    box(.18, .62, .3, mat(0xc41e1e, null, { rough: .5 }), 7.9, 1.3, -2.6, S); box(.01, .5, .22, mat(0x101010), 7.805, 1.3, -2.6, S); cyl(.055, .055, .4, 10, mat(0xd42020, null, { rough: .35 }), S).position.set(7.86, 1.3, -2.6);
+    const fs = ctex(40, 40, (x, w, h) => { x.fillStyle = '#c41e1e'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.fillRect(17, 8, 6, 24); x.fillRect(14, 6, 12, 5); }); const fsp = plane(.2, .2, mat(0xffffff, fs, { decal: 1 }), S); fsp.rotation.y = -PI / 2; fsp.position.set(7.965, 1.85, -2.6);
+    const exi = plane(.5, .25, mat(0xffffff, TX.exit, { basic: true }), S); exi.rotation.y = PI; exi.position.set(.3, 3.35, 5.9);
+    // торговый автомат: тёмный корпус, подсвеченная витрина с рядами банок, лампа внутри моргает (o.vendL, в o.tick)
+    { const vm = new T.Group(); vm.position.set(-7.55, 0, -2.1); vm.rotation.y = PI / 2; S.add(vm); o.vend = vm;
+      box(.95, 1.95, .8, mat(0x24262a, null, { metal: .3, rough: .5 }), 0, .975, 0, vm); box(.95, .12, .82, mat(0x18191c), 0, 1.98, 0, vm);
+      const vt = ctex(96, 160, (x, w, h) => { x.fillStyle = '#0b0d12'; x.fillRect(0, 0, w, h); for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) { const cols = ['#d12a2a', '#2a63d1', '#e2b422', '#2aa352', '#d8d8d8']; x.fillStyle = cols[(r * 2 + c) % 5]; x.fillRect(8 + c * 17, 10 + r * 30, 11, 22); x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(9 + c * 17, 12 + r * 30, 3, 18); }
+        for (let r = 0; r <= 5; r++) { x.fillStyle = '#3a3d44'; x.fillRect(4, 6 + r * 30, w - 8, 3); } x.fillStyle = 'rgba(120,160,220,.08)'; x.fillRect(0, 0, w, h); });
+      const win = plane(.62, 1.3, new T.MeshBasicMaterial({ map: vt, color: 0xbfd0e8 }), vm); win.position.set(-.1, 1.15, .401); ps1(win.material); o.vendWin = win;
+      const lg = ctex(96, 20, (x, w, h) => { x.fillStyle = '#e8402a'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = '800 12px Arial'; x.textAlign = 'center'; x.fillText(tr('НАПИТКИ'), w / 2, 15); });
+      const lp = plane(.8, .14, new T.MeshBasicMaterial({ map: lg }), vm); lp.position.set(0, 1.82, .401); ps1(lp.material);
+      box(.22, .5, .02, mat(0x101114), .33, 1.2, .4, vm); box(.14, .1, .03, mat(0x101114, null, { emissive: 0x203040 }), .33, 1.35, .41, vm); box(.5, .22, .03, mat(0x111214), -.1, .3, .405, vm);   // панель выбора, купюроприёмник, лоток выдачи
+      o.vendL = new T.PointLight(0xc8d8ff, .7, 2.6, 1.6); o.vendL.position.set(-.1, 1.2, .9); vm.add(o.vendL); }
+    const bin = cyl(.17, .15, .62, 12, mat(0x3a3c40, null, { metal: .4, rough: .5 }), S); bin.position.set(1.95, .31, -5.5); cyl(.18, .18, .05, 12, mat(0x2a2c30), S).position.set(1.95, .64, -5.5);
+  }
   // будка охраны: стойка, стол, мониторы, лампа, листок, ключи, стул
   const counterM = mat(0xffffff, TX.panel), topM = mat(0x2a2420);
   box(2.9, 1.15, .1, counterM, 5.1, .575, .45, S); box(3.0, .05, .4, topM, 5.1, 1.17, .45, S);
@@ -463,6 +505,7 @@ function buildCorridor() {
   wall(-1, 0, zA, 0, .9, pm); wall(-1, zB, -len, 0, .9, pm);
   const end = plane(wd, 3, wm, S); end.position.set(0, 1.5, -len);
   const st = plane(wd, 3, wm, S); st.rotation.y = PI; st.position.set(0, 1.5, 0);
+  aoEdge(S, len, wd / 2, -len / 2, -PI / 2, 3); aoEdge(S, len, -wd / 2, -len / 2, PI / 2, 3); aoEdge(S, wd, 0, -len, 0, 3);
   // комната за дверью 707: почти чёрная
   const rmM = mat(0x0c0c0d); const rm = room(3, 3, 3, rmM, S); rm.position.set(-wd / 2 - 1.5, 1.5, D7);
   const trM = mat(0x3a2a20);
@@ -614,7 +657,8 @@ function buildCorridor() {
     if (c.blood) { o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.1, 1, .9); }
   };
   o.reset = () => { o.bursts = null; o.faceL.intensity = 0; o.garland.visible = false; o.setFloor(7); o.ajar10(0); o.chair10.visible = false; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
-  o.tick = (t) => {   // одна ненадёжная лампа (пятая от лифта), если горит
+  o.tick = (t) => {   // одна ненадёжная лампа
+    if (o.vendL) o.vendL.intensity = .62 + (Math.sin(t * 2.3) > .7 ? .18 * Math.sin(t * 37) : 0);   // лампа торгового автомата изредка дрожит (пятая от лифта), если горит
     const l = o.lamps[4]; if (!o.flickOn || !l.on) { o.tubeOK = 1; return; }
     const f = unreliable(t, 3); o.tubeOK = f; l.li.intensity = l.base * f; l.tube.material.color.setHex(f ? 0xe8f0e8 : 0x1c1e1c);
   };
@@ -654,6 +698,7 @@ function buildServer() {
   const ce = plane(8, 7, mat(0x2a2a2a), S); ce.rotation.x = PI / 2; ce.position.y = 3;
   const wm = mat(0xffffff, TX.concrete);
   for (const [w, x, z, ry] of [[8, 0, -3.5, 0], [7, -4, 0, PI / 2], [7, 4, 0, -PI / 2], [8, 0, 3.5, PI]]) { const p = plane(w, 3, wm, S); p.position.set(x, 1.5, z); p.rotation.y = ry; }
+  for (const [w, x, z, ry] of [[8, 0, -3.5, 0], [7, -4, 0, PI / 2], [7, 4, 0, -PI / 2], [8, 0, 3.5, PI]]) aoEdge(S, w, x, z, ry, 3);
   const rm = mat(0xffffff, TX.rack, { emissive: 0x0a140c });
   for (let i = 0; i < 6; i++) { box(.8, 2.1, .9, rm, -3.4, 1.05, -2.6 + i * 1.0, S); box(.8, 2.1, .9, rm, 3.4, 1.05, -2.6 + i * 1.0, S); }
   for (let i = 0; i < 4; i++) box(.9, 2.1, .8, rm, -1.5 + i * 1.0, 1.05, -3.1, S);
@@ -1758,15 +1803,18 @@ function perfTick(d) {   // d — мс между кадрами движка
   if (!CINE || !scenesReady || d > 250) return;   // пауза/вкладка в фоне — не считаем
   perfS += d; if (++perfN < 45) return; const avg = perfS / perfN; perfN = perfS = 0; if (perfCool-- > 0) return;
   const rs = V.rs || 1, nr = avg > 38 ? Math.max(.55, rs - .15) : avg < 21 && rs < 1 ? Math.min(1, rs + .1) : rs;
-  if (nr !== rs) { V.rs = nr; perfCool = 2; setLand(V.land, true); }
+  if (nr !== rs) { V.rs = nr; perfCool = 2; setLand(V.land, true); perfSlow = 0; return; }
+  // совсем слабое устройство: уже на 55 % кадр дольше 48 мс три окна подряд → «Ретро» (с продолжением с того же места); если игрок сам выбрал «Кино» — не спорим
+  if (rs <= .551 && avg > 48) { if (++perfSlow >= 3 && localStorage.getItem('ns1_gfxAuto') !== '2' && window.nsGfxFallback) { perfSlow = -1e9; window.nsGfxFallback(4); } } else perfSlow = 0;
 }
+let perfSlow = 0;
 // ориентация на лету: буферы под новый размер
 function setLand(land, force) {
   if (land === V.land && scenesReady && !force) return;
   window.__W3core.setLand(land);
   if (!scenesReady) return;
   const R = window.__W3core.R; R.setSize(V.RW, V.RH, false);
-  window.__W3core.RT.setSize(V.RW, V.RH); reflRT.setSize(V.RW >> 1, V.RH >> 1);
+  window.__W3core.RT.setSize(V.RW, V.RH); reflRT.setSize(V.RW >> (FINE ? 1 : 2), V.RH >> (FINE ? 1 : 2));   // отражения: на телефоне в четверть
   if (PB) { PB.a.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); PB.b.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); }
   postMat.uniforms.uB.value.set(V.BW, V.BH);
 }
@@ -1779,7 +1827,7 @@ function init() {
     window.__W3core.R = new T.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false });
   } catch (e) { return false; }
   const R = window.__W3core.R; R.setPixelRatio(1); R.setSize(V.RW, V.RH, false); R.useLegacyLights = true; R.outputColorSpace = T.SRGBColorSpace;
-  if (CINE) { R.shadowMap.enabled = true; R.shadowMap.type = T.PCFSoftShadowMap; }
+  if (CINE) { R.shadowMap.enabled = true; R.shadowMap.type = FINE ? T.PCFSoftShadowMap : T.PCFShadowMap; }   // на телефоне тени попроще
   makeTextures(); A = window.__W3chars.cast();
   if (CINE) { R.shadowMap.autoUpdate = false; for (const k in A) A[k].root.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); }
   L.lobby = buildLobby(); L.corridor = buildCorridor(); L.server = buildServer(); L.stairs = buildStairs(); L.basement = buildBasement();
@@ -1976,7 +2024,7 @@ function draw(g, W, H, id, o) {
   // крупный план: контровой свет из-за головы (холодный, сверху-сзади) — волосы и плечи отделяются от тёмного фона, лицо объёмнее
   { if (!loc.rimC) { const l = loc.rimC = new T.PointLight(0xbfd4ff, 0, 3.2, 1.6); l.castShadow = false; loc.S.add(l); }
     let best = null, bd = 1.3; for (const k of used) { const C = A[k]; if (!C.bone || !C.bone.Head || C.o.monster) continue; C.bone.Head.getWorldPosition(_hp); const d = _hp.distanceTo(cam.position); if (d < bd) { bd = d; best = _hp.clone(); } }
-    const l = loc.rimC; if (best && !sh.noRim) { _hd.copy(best).sub(cam.position); _hd.y = 0; _hd.normalize(); l.position.copy(best).addScaledVector(_hd, .55).add(_p.set(0, .45, 0)); l.intensity += (((CINE ? 1.0 : .9) * (sh.rim ?? 1)) - l.intensity) * .3; } else l.intensity *= .7; }
+    const l = loc.rimC; if (best && !sh.noRim) { _hd.copy(best).sub(cam.position); _hd.y = 0; _hd.normalize(); l.position.copy(best).addScaledVector(_hd, .9).add(_p.set(0, .7, 0)); l.intensity += (((CINE ? .7 : .9) * (sh.rim ?? 1)) - l.intensity) * .3; } else l.intensity *= .7; }   // подальше и повыше: ободок, а не блик-пятно на макушке
   const tor = o.torch || sh.torch;   // кадр сам может держать фонарь (sh.torch = {x, y}) — например, спуск по лестнице
   if (loc.torch) { const l = loc.torch; l.intensity = tor ? 9 : 0;
     if (tor) { cam.updateMatrixWorld(); l.position.set(.18, -.25, 0).applyMatrix4(cam.matrixWorld); _p.set(tor.x * 2 - 1, 1 - tor.y * 2, .5).unproject(cam).sub(cam.position).normalize().multiplyScalar(10).add(cam.position); l.target.position.copy(_p); l.target.updateMatrixWorld(); } }
