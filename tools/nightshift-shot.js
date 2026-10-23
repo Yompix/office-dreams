@@ -7,7 +7,7 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
 const fs = require('fs');
 const LAND = process.env.LAND === '1', GFX = process.env.GFX || 'retro', [CW, CH] = process.env.SIZE ? process.env.SIZE.split('x').map(Number) : LAND ? [960, 540] : [540, 960];   // SIZE=1200x675 — свой размер кадра
 const HTML = `<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#000">
-<script src="lib/three.min.js"></script><script src="lib/gltf.min.js"></script><script src="lib/meshopt_decoder.js"></script><script src="world.js"></script><script src="chars.js"></script><script src="chars2.js"></script><script src="scenes.js"></script>
+<script src="lib/three.min.js"></script><script src="lib/gltf.min.js"></script><script src="lib/meshopt_decoder.js"></script>${process.env.NSLANG ? '<script src="i18n.js"></script>' : ''}<script src="world.js"></script><script src="chars.js"></script><script src="chars2.js"></script><script src="scenes.js"></script>
 <canvas id="c" width="${CW}" height="${CH}"></canvas></body></html>`;
 (async () => {
   const [out, spec, opt] = process.argv.slice(2);
@@ -16,7 +16,7 @@ const HTML = `<!doctype html><html><head><meta charset="utf-8"></head><body styl
   const p = await b.newPage({ viewport: { width: CW, height: CH } });
   const errs = []; p.on('pageerror', e => errs.push(String(e))); p.on('console', m => m.type() === 'error' && errs.push(m.text().slice(0, 300)));
   await p.route(/\/nightshift\/_shot\.html/, r => r.fulfill({ contentType: 'text/html', body: HTML }));
-  await p.goto('http://127.0.0.1:8771/nightshift/_shot.html?gfx=' + GFX);
+  await p.goto('http://127.0.0.1:8771/nightshift/_shot.html?gfx=' + GFX + (process.env.NSLANG ? '&lang=' + process.env.NSLANG : ''));   // NSLANG=en — надписи в кадре по-английски
   await p.waitForFunction(() => window.World && window.__W3chars && window.__W3chars.load, null, { timeout: 90000 }); await p.evaluate(async (rs) => { if (rs) window.__W3core.V.rs = rs; await window.__W3chars.load(); World.init(); }, +process.env.RS || 0); if (LAND) await p.evaluate(() => World.setLand(true));
   const O0 = JSON.parse(opt || '{}');
   for (const part0 of spec.split(';')) {
