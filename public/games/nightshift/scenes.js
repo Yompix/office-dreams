@@ -2052,7 +2052,7 @@ function draw(g, W, H, id, o) {
 // прогрев: по кадру из каждого места, чтобы все шейдеры собрались во время загрузки
 function warm() {
   const c = document.createElement('canvas'); c.width = 54; c.height = 96; const g = c.getContext('2d');
-  for (const id of ['hall_cam', 'monitors', 'katya_face', 'corridor_cam', 'server_mih', 'cam13_mih_monster', 'exterior']) draw(g, 54, 96, id, { t: 1, T: 1 });
+  for (const id of ['hall_cam', 'monitors', 'katya_face', 'corridor_cam', 'server_mih', 'cam13_mih_monster', 'exterior', 'ny_photo', 'srv_room', 'bm_view']) draw(g, 54, 96, id, { t: 1, T: 1 });
 }
 // точка мира → место на кадре (доли ширины и высоты) по камере последнего кадра: точки обхода стоят на предметах
 const _pj = new T.Vector3(); let lastMirror = false;

@@ -187,7 +187,7 @@ const EN = {
   '«Что бы она ни говорила — не отвечайте»': '"Whatever she says — don\'t answer"', 'Пора в будку': 'Time to get back to the booth',
   'Как там Бублик?': "How's Biscuit?", 'Ты сейчас в общаге?': "You're at the dorm right now?", 'Тут… странно': "It's… weird here", '«Спи давай. Всё сдашь»': '"Go to sleep. You\'ll ace it"',
   'Всё ещё не сплю :( Ты как там? Утром позвони!': "Still can't sleep :( How are you holding up? Call me in the morning!",
-  '+7 (914) 207-33-18': '(914) 207-3318', 'Номер не определён': 'Unknown number', 'ТЫ ВЗЯЛ ТРУБКУ': 'YOU PICKED UP', 'Звонили не тебе. Но ответил — ты.': "The call wasn't for you. But you're the one who answered.",
+  '+1 (914) 207-3318': '(914) 207-3318', 'Номер не определён': 'Unknown number', 'ТЫ ВЗЯЛ ТРУБКУ': 'YOU PICKED UP', 'Звонили не тебе. Но ответил — ты.': "The call wasn't for you. But you're the one who answered.",
   'Телефон Фрэнка': "Frank's phone", 'Телефон Фрэнка · 11 пропущенных': "Frank's phone · 11 missed calls", 'Телефон Фрэнка · Номер не определён': "Frank's phone · Unknown number",
   'Фрэнки, сынок, спустись ко мне. Я внизу': "Frankie, son, come down to me. I'm downstairs", 'На зарядке. Номер не определён.': 'On the charger. Unknown number.', 'Ответить: «Алло?»': 'Answer: "Hello?"',
   '(Дальше Фрэнк писал от руки — в журнале на столе. Журнал перевязан бечёвкой, на обложке: «До трёх. Весь.»)': "(The rest Frank wrote by hand — in the logbook on the desk. It's tied with string; on the cover: 'Before three. All of it.')",

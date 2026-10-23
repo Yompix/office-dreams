@@ -388,6 +388,8 @@ function setFlags(f) { if (!f) return; for (const k of [].concat(f)) flags[k] = 
 const buzz = ms => { try { if (navigator.vibrate && !LS.get('mute', false)) navigator.vibrate(ms); } catch {} };
 const seen = new Set(LS.get('seen', []));
 const frozenC = document.createElement('canvas'); frozenC.width = 1080; frozenC.height = 1920; const frozenG = frozenC.getContext('2d');
+const stillC = document.createElement('canvas'); let stillCache = null;   // готовый кадр старого фото (fx 'photo'): считается один раз на план
+let audioQ = 0, voiceLate = 0;   // audioQ — звук кадра ждёт первого нарисованного кадра (иначе голос уходил вперёд чёрной склейки); voiceLate — реплик, догнанных после старта кадра (медленная сеть)
 
 function durOf(k) { return (TIM[k] && TIM[k].dur) || (BUF[k] && BUF[k].duration) || 2; }
 // кто говорит: имя на табличке и цвет
@@ -459,7 +461,7 @@ function startScene(id, at) {   // at: true — сразу к концу сце�
   bi = at === true ? scene.beats.length - 2 : typeof at === 'number' ? Math.min(at, scene.beats.length) - 1 : -1;
   const my = gen, ready = voicePrep(id);
   if (sceneKeys(scene).every(k => !isVoice(k) || BUF[k])) return nextBeat();
-  beat = null; Promise.race([ready, new Promise(r => setTimeout(r, 700))]).then(() => { if (gen === my && mode === 'play' && !beat) nextBeat(); });   // реплики ещё декодируются — короткая чёрная склейка
+  beat = null; audioQ = 0; Promise.race([ready, new Promise(r => setTimeout(r, 700))]).then(() => { if (gen === my && mode === 'play' && !beat) nextBeat(); });   // реплики ещё декодируются — короткая чёрная склейка
 }
 function nextBeat() {
   bi++; while (scene.beats[bi] && !flagOk(scene.beats[bi].if)) bi++;   // кадр только при условии (что нашёл, что спросил)
@@ -473,7 +475,7 @@ function nextBeat() {
   { const k = scene.beats.indexOf(beat), pv = k >= 0 && k < bi ? beat : null, nb = scene.beats[bi], same = pv && pv.img && pv.img === nb.img;   // прошлый показанный кадр этой сцены (кадр по условию мог быть пропущен)
     shotOff = same ? shotOff + (now() - bT0) : 0; darkHold = !!(same && pv.fx === 'dark'); }
   const prevBeat = beat;
-  beat = scene.beats[bi]; bT0 = now(); fired.clear(); sched = []; typed = null; scareAt = null; hb = 0;
+  beat = scene.beats[bi]; bT0 = now(); fired.clear(); sched = []; typed = null; scareAt = null; hb = 0; audioQ = 0;
   if (beat.hush && AC) hush(true);
   if (beat.time) { lastTime = beat.time; secBase = 0; sceneT0 = now(); clockEl.textContent = beat.time; }   // часы перещёлкнулись посреди сцены
   chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
@@ -516,9 +518,20 @@ function nextBeat() {
   if (beat.subl != null && !calm() && sublScene !== sceneId) { const o = typeof beat.subl === 'object' ? beat.subl : { at: +beat.subl || 1 }; subl = { at: o.at ?? 1, img: o.img || 'monster_close', n: 0 }; }
   carry.forEach(e => e.fn());
   if (beat.wait) { waiting = true; tapEl.innerHTML = ICON.play + escH(beat.wait); tapEl.classList.remove('hide'); dlgEl.classList.add('hide'); ruleEl.classList.add('hide'); return; }
-  beatAudio();
+  audioQ = 1;   // звук — после первого нарисованного кадра (frame)
 }
-function beginBeat() { waiting = false; tapEl.classList.add('hide'); chapEl.classList.add('hide'); if (beat.rule) ruleEl.classList.remove('hide'); bT0 = now() + pre; play('click'); beatAudio(); }
+function beginBeat() { waiting = false; tapEl.classList.add('hide'); chapEl.classList.add('hide'); if (beat.rule) ruleEl.classList.remove('hide'); bT0 = now() + pre; play('click'); audioQ = 1; }
+// реплика ещё не докачалась/не декодировалась (медленная сеть): когда готова — если её время ещё не пришло, ставим на своё время;
+// если чуть опоздали — отсчёт кадра сдвигается на столько же (субтитры и голос идут вместе); сильно — голос с середины, чтобы догнать слова
+const lateQ = [];   // докачанные реплики включаются в начале следующего кадра (frame → lateFlush): там часы свежие, а не между кадрами
+function lateVoice(it, P) { const my = gen, b = beat; voiceReady([it.k]).then(() => { if (gen === my && beat === b && BUF[it.k]) lateQ.push({ it, P, my, b }); }); }
+function lateFlush(T) {
+  while (lateQ.length) { const { it, P, my, b } = lateQ.shift(); if (gen !== my || beat !== b || mode !== 'play' || !BUF[it.k] || waiting) continue;
+    const late = T - (bT0 + it.t + P); let off = 0;
+    if (late > 0) { voiceLate++; if (late <= 2.5) bT0 += late; else off = late; }
+    if (off >= it.d - .4) { voiceMiss++; continue; }
+    for (const vo of voiceFx(it.k)) { const o = play(it.k, Object.assign({ bus: 'voice' }, vo, { when: Math.max(0, -late) + (vo.dt || 0), off })); if (o) o.voice = true; } }
+}
 function beatAudio() {
   const P = pre;   // все звуки кадра сдвигаются на длину пред-кадра
   for (const [n, at, op] of beat.sfx || []) {   // [звук, секунда, {gain, cut, off, lp, pan, rate}]
@@ -527,7 +540,8 @@ function beatAudio() {
     else if (n === 'knock' || n === 'glass_tap') trig.push({ at, fn: () => { if (!(beat.img && lastDrawn === beat.img && katyaKnocking())) { play(n); if (n === 'knock') buzz(40); } } });
     else { play(n, Object.assign({ when: at + P }, op)); if (n === 'door') setTimeout(() => buzz(40), (at + P) * 1000); }
   }
-  for (const it of sched) for (const vo of voiceFx(it.k)) { const o = play(it.k, Object.assign({ bus: 'voice' }, vo, { when: it.t + P + (vo.dt || 0) })); if (o) o.voice = true; }
+  for (const it of sched) { if (isVoice(it.k) && !BUF[it.k] && AC) { lateVoice(it, P); continue; }
+    for (const vo of voiceFx(it.k)) { const o = play(it.k, Object.assign({ bus: 'voice' }, vo, { when: it.t + P + (vo.dt || 0) })); if (o) o.voice = true; } }
   if (beat.fx !== 'static' && !(beat.sfx || []).some(s => s[0] === 'static')) amb('static', beat.fx === 'static', .3);
   if (scareAt != null) {
     const sa = scareAt + P;
@@ -1582,7 +1596,7 @@ function sayWords(who, words, on) {   // озвученная реплика ц�
 let camHud = false;
 function setCamHud(on) { if (on !== camHud) { camHud = on; clockEl.classList.toggle('dim', on); } }   // на экране камеры время показывает сама камера
 function frame(tp) {
-  const dt0 = Math.max(0, (tp - lastP) / 1000), dt = Math.min(.1, dt0); if (window.World && World.perf && (mode === 'play' || mode === 'menu')) World.perf(tp - lastP); lastP = tp; if (!paused) clockT += dt;
+  const fs = performance.now(), dt0 = Math.max(0, (tp - lastP) / 1000), dt = Math.min(.1, dt0); if (window.World && World.perf && (mode === 'play' || mode === 'menu')) World.perf(tp - lastP); lastP = tp; if (!paused) clockT += Math.min(dt0, 4);   // долгий кадр (шейдеры, сборка мусора) — звук уже ушёл вперёд; часы догоняют, чтобы субтитры не отставали
   // слабый телефон в «Ретро»: кадры идут медленно (в среднем > 36 мс за 90 кадров) → 2D-холст 720×1280 вместо 1080×1920, один раз за сессию
   if (CS === 1 && !(window.World && World.cine) && inGame() && !paused && dt0 < .25) { perf2S += dt0; if (++perf2N >= 90) { if (perf2S / perf2N > .036) { CS = 2 / 3; applyLand(LAND); } perf2N = perf2S = 0; } }
   if (!paused && PLAYING.has(mode)) { run.sec += Math.min(1, dt0); if ((runSaveT += dt0) > 5) { runSaveT = 0; runSave(); } }   // сколько реально играли (для журнала в конце)
@@ -1590,6 +1604,8 @@ function frame(tp) {
   let place = null, quiet = false, cam = false; voiceNow = false;
   if (mode === 'play' && !beat) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
   if (mode === 'play' && beat) {
+    if (audioQ && !waiting) bT0 = T + pre;   // первый кадр постановки: отсчёт — с него (пока его ждали — чёрная склейка, шейдеры, — время не идёт)
+    if (lateQ.length && !paused) lateFlush(T);
     let t = waiting ? 0 : T - bT0;
     if (t >= bDur) {
       const silent = !(beat.say || []).length && !beat.text;
@@ -1642,7 +1658,12 @@ function frame(tp) {
         const so = still ? { cx: c[0], cy: c[1], z, t: (beat.photo || {}).t ?? 2, T: 100, sx: 0, sy: 0 } : { cx: c[0], cy: c[1], z, t: t + shotOff, T, sx, sy, talk, react, creep: cr, scare: sc ? Math.exp(-st * 2.2) : 0 };
         if (cam) so.cctv = 1;
         const im = c[4] || beat.img;   // план может быть другим кадром (склейка на другой ракурс посреди реплики)
-        if (cam && beat.fx !== 'static') heldShot(im, so, T, im + ci); else shot(im, so);   // камера наблюдения — 12 кадров в секунду
+        if (still) {   // фото — неподвижный снимок: 3D и эффект старого фото считаются один раз на план и кладутся в кэш, дальше только копия с наездом
+          const key = sceneId + '|' + bi + '|' + ci + '|' + W + '|' + (EN ? 1 : 0) + '|' + (window.World ? World.vhs : 0), ccx = LAND ? scrX(c[0]) : c[0];   // язык (надпись на обороте) и плёнка меняются из паузы — тогда пересчёт   // (в 2D эффект с режимами наложения стоил на телефоне сотни мс на кадр — сцена «висела», озвучка уезжала)
+          if (!stillCache || stillCache.key !== key) { shot(im, Object.assign({}, so, { z: c[2] })); photoFx(beat.photo || {}, ci, c[2]);
+            stillC.width = W; stillC.height = H; stillC.getContext('2d').drawImage(cv, 0, 0); stillCache = { key, z0: c[2], cx: ccx, cy: c[1] }; }
+          const k = z / stillCache.z0, sw = W / k, sh = H / k; g.drawImage(stillC, stillCache.cx * W - sw * stillCache.cx, stillCache.cy * H - sh * stillCache.cy, sw, sh, 0, 0, W, H);
+        } else if (cam && beat.fx !== 'static') heldShot(im, so, T, im + ci); else shot(im, so);   // камера наблюдения — 12 кадров в секунду
         knockSync(T);
         // кадр-вспышка: лицо на 1–2 кадра поверх, в темноте
         if (subl && t >= subl.at && subl.n < 2) { if (shot(subl.img, { cx: .5, cy: .45, z: 1.12, t: 2.2, T, sx: 0, sy: 0 })) { subl.n++; sublScene = sceneId; } else subl.n = 2; }
@@ -1656,7 +1677,7 @@ function frame(tp) {
         // стробоскоп: видно лишь урывками — 60–120 мс света и почти полсекунды темноты; мозг дорисовывает сам
         if (beat.fx === 'strobe' && t > .5 && ((t * 1000) % 470) > 95 + 40 * Math.sin(t * 7)) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
         if (beat.fx === 'dark') { g.fillStyle = `rgba(0,0,0,${darkHold ? .85 : p * .85})`; g.fillRect(0, 0, W, H); }
-        if (still) photoFx(beat.photo || {}, ci, z);
+
         if (beat.light) { g.fillStyle = `rgba(0,0,0,${.35 * (1 - Math.min(1, t / 6))})`; g.fillRect(0, 0, W, H); }
         if (beat.fin) { g.fillStyle = `rgba(0,0,0,${Math.min(1, .1 + .22 * Math.min(1, t / 2.5) + .7 * Math.max(0, (t - bDur + 1.4) / 1.4))})`; g.fillRect(0, 0, W, H); }   // финал: чуть темнеет (низ под название затемняет .fin), в конце — в черноту
         if (beat.floors) { const f = Math.min(7, 1 + Math.floor(t / .6)); g.save(); g.translate(W / 2, 0); g.scale(US, US); g.fillStyle = 'rgba(0,0,0,.6)'; rr(-90, 220, 180, 150, 20); g.fillStyle = '#f33'; g.font = '800 110px Inter, Arial'; g.textAlign = 'center'; g.fillText(f, 0, 245); g.restore(); }
@@ -1690,6 +1711,7 @@ function frame(tp) {
       if (!shown && !dlgEl.classList.contains('hide')) { dlgEl.classList.add('hide'); lastSubKey = ''; }
       if (beat.heart && t > hb) { play('heart', { gain: .8 }); hb = t + Math.max(.55, .9 - t * .02); }
     }
+    if (audioQ && !waiting) { audioQ = 0; const d = (performance.now() - fs) / 1000; if (d > .05) bT0 += Math.min(d, 4); beatAudio(); }   // первый кадр нарисован — звук с этого момента; долгую отрисовку (холодные шейдеры) отсчёт не считает
     duck(voiceNow);
   } else if (mode === 'cams' && camView) {
     const t = T - camView.t0, c = camView.c; g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
@@ -1825,6 +1847,6 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
 window.__ns = { back: () => menu(), startScene, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); },
-  get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get canvas() { return [W, H, CS]; }, get bufN() { return Object.keys(BUF).length; }, get voiceN() { return Object.keys(BUF).filter(isVoice).length; },
+  get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get voiceLate() { return voiceLate; }, get canvas() { return [W, H, CS]; }, get bufN() { return Object.keys(BUF).length; }, get voiceN() { return Object.keys(BUF).filter(isVoice).length; },
   get vols() { const g = n => n ? +n.gain.value.toFixed(3) : null; return { out: g(outG), mus: g(uMus), sfx: g(uSfx), sfxRev: g(sfxRev), sfxLow: g(sfxLow), amb: g(uAmb), bedLow: g(bedLow), voice: g(voiceOut), voiceRev: g(voiceRev), direct: g(directG), bed: g(bedG) }; } };
 })();

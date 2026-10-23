@@ -67,7 +67,7 @@ window.STORY = {
     dg_call: {
       music: 'drone', time: '22:00',
       beats: [
-        { img: null, phone: { kind: 'call', name: '+7 (914) 207-33-18' }, say: ['dg01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4, chapter: ['22:00', 'ЗВОНОК'] },
+        { img: null, phone: { kind: 'call', name: '+1 (914) 207-3318' }, say: ['dg01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4, chapter: ['22:00', 'ЗВОНОК'] },
         { img: 'booth_call', cams: [[.5, .5, 1.0, 1.05]], say: ['dg02'], pad: .3 }
       ],
       then: { talk: { img: 'booth_call', cams: [[.5, .5, 1.05, 1.08]], title: 'Дневной охранник', topics: [
@@ -272,7 +272,7 @@ window.STORY = {
         { img: 'gl_scratch', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['b03', 'b04'], sfx: [['glass_scratch', .3, { gain: .8 }]], pad: .5 },
         { img: 'b_back', fx: 'rain', cams: [[.5, .5, 1.0, 1.05]], say: ['b05'], pad: .6 },
         { img: 'b_print', fx: 'rain', cams: [[.5, .5, 1.0, 1.1]], say: ['b06'], pad: .6 },
-        { img: null, phone: { kind: 'out', name: 'Лили' }, say: ['b07'], sfx: [['ringback', .2], ['ringback', 5.2]], pad: .3 },
+        { img: null, phone: { kind: 'out', name: 'Лили' }, say: ['b07'], sfx: [['ringback', .2], ['ringback', 6.2]], pad: .3 },
         { img: null, phone: { kind: 'talk', name: 'Лили', t0: 0 }, say: ['b08', 'b09', 'b10', 'b11'], pad: .4 },
         { img: 'e_face', cams: [[.5, .5, 1.0, 1.06]], say: ['b12'], pad: .5 }
       ],
