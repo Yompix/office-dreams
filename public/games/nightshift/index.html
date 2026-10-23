@@ -229,6 +229,11 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 .sh-tabs { display: flex; gap: calc(1.4 * var(--u)); margin-bottom: calc(2 * var(--u)); } .sh-tabs button { flex: 1; padding: calc(2.2 * var(--u)) 0; font-size: calc(3 * var(--u)); text-transform: uppercase; } .sh-tabs button.on { border-color: #f2c21b; color: #f2c21b; }
 .sh-page { margin: 0; padding-left: calc(4 * var(--u)); font: italic 500 calc(3.3 * var(--u))/1.55 Georgia, "Times New Roman", serif; color: #e6dfca; }
 .sh-x { display: block; margin: calc(3 * var(--u)) auto 0; padding: calc(2 * var(--u)) calc(8 * var(--u)); font-size: calc(3 * var(--u)); text-transform: uppercase; }
+.sh-hold { height: calc(2.4 * var(--u)); margin: calc(2.4 * var(--u)) 0; background: rgba(235,240,235,.12); border-radius: calc(1.2 * var(--u)); overflow: hidden; }   /* держать Фрэнка: сколько продержался */
+.sh-hold i { display: block; height: 100%; width: 0; background: #f2c21b; }
+.sh-holdb { display: block; width: 100%; padding: calc(5 * var(--u)) 0; font-size: calc(5 * var(--u)); font-weight: 700; letter-spacing: calc(.6 * var(--u)); border-color: rgba(242,194,27,.8) !important; touch-action: none; user-select: none; -webkit-user-select: none; }
+.gfx-note { position: absolute; left: 50%; top: 4%; transform: translateX(-50%); width: min(92%, calc(120 * var(--u))); padding: calc(2.4 * var(--u)) calc(3.6 * var(--u)); background: rgba(8,9,11,.92); border: calc(.3 * var(--u)) solid rgba(242,194,27,.6); border-radius: calc(2 * var(--u)); color: #ece8dc; font: 600 calc(3.2 * var(--u))/1.35 Inter, Arial, sans-serif; text-align: center; z-index: 20; pointer-events: none; }
+.sh-holdb.on { background: rgba(242,194,27,.35) !important; color: #fff; }
 body:not(.land) .sh-cams { flex-wrap: wrap; justify-content: center; width: 96%; bottom: calc(6 * var(--u)); }
 body:not(.land) .sh-act { top: auto; bottom: calc(40 * var(--u)); flex-direction: row; right: 50%; transform: translateX(50%); }
 .vols { display: flex; flex-direction: column; gap: calc(1.6 * var(--u)); padding: calc(3 * var(--u)) calc(4.4 * var(--u)); background: rgba(255,255,255,.05); border: calc(.3 * var(--u)) solid rgba(255,255,255,.14); border-radius: calc(2.4 * var(--u)); }

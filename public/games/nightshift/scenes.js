@@ -1417,6 +1417,7 @@ SH.cam01 = { loc: 'lobby', pos: [-1.2, 3.3, 8.3], look: [2.6, .6, 8.4], fov: 74,
   o.cat.visible = !!s.cat; if (s.cat) { o.catHead.rotation.y = Math.sin(t * .4) * .5; o.catTail.rotation.z = Math.sin(t * 1.7) * .3; }
   if (s.door01) { leafAng(o, 0, 1.15); leafAng(o, 1, .35); }   // вход распахнут в дождь
   if (s.streetOff) { o.street.intensity = 0; o.streetBulb.visible = false; o.canopy.intensity = 0; o.canopyLamp.visible = false; }   // погас свет над входом
+  if (s.lilyDoor) return [['katya', .35, 0, 6.45, PI + .25, STILL('Idle_Loop', 1.6), [-1.2, 3.3, 8.3]]];   // у самой двери, смотрит в камеру
   return s.lily01 ? [['katya', 8.6, 0, 11.2, -1.9, STILL(), [-1.2, 3.3, 8.3]]] : []; } };
 SH.cam02 = { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, cctv: 1, set: (o, t) => { const s = SHS();
   if (s.palm) { o.palmShadow.position.x = -3.95 + .9 * s.palm; o.palmShadow.scale.setScalar(1 + .15 * s.palm); }
@@ -1793,6 +1794,21 @@ function placeCreep(loc, seed, R) {
   C.pose = 'monster'; C.look = cam.position.clone(); C.talk = 0;
   return true;
 }
+// «Кино» на некоторых видеокартах рисует освещённое чёрным (пол, колонны): титульный кадр сверяем с эталоном по яркости низа кадра
+// (у нас ~0,24, у сломанного — почти 0). Дважды подряд втрое темнее — включаем «Ретро» с перезагрузкой; меню скажет об этом.
+const gfxChk = { n: 0, bad: 0, done: false, c: null };
+function gfxCheck(src) {
+  if (++gfxChk.n < 60 || gfxChk.n % 30) return;   // после прогрева: шейдеры собраны, свет выставлен
+  try {
+    if (localStorage.getItem('ns1_gfxAuto') === '2') { gfxChk.done = true; return; }   // игрок сам вернул «Кино» — не спорим
+    const c = gfxChk.c || (gfxChk.c = Object.assign(document.createElement('canvas'), { width: 24, height: 8 })), x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(src, 0, src.height * .72, src.width, src.height * .26, 0, 0, 24, 8);
+    const d = x.getImageData(0, 0, 24, 8).data; let sum = 0; for (let i = 0; i < d.length; i += 4) sum += .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2];
+    const L = sum / (d.length / 4) / 255; window.__gfxL = L;
+    if (L >= .085) { gfxChk.done = true; return; }
+    if (++gfxChk.bad >= 2) { gfxChk.done = true; localStorage.setItem('ns1_gfx', '"retro"'); localStorage.setItem('ns1_gfxAuto', '1'); location.reload(); }
+  } catch (e) { gfxChk.done = true; }
+}
 function draw(g, W, H, id, o) {
   if (!init()) return false;
   const R = window.__W3core.R;
@@ -1838,6 +1854,7 @@ function draw(g, W, H, id, o) {
   else { R.setRenderTarget(null); R.render(postScene, postCam); }
   g.imageSmoothingEnabled = CINE;
   if (sh.mirror) { g.save(); g.translate(W, 0); g.scale(-1, 1); g.drawImage(canvas, 0, 0, W, H); g.restore(); } else g.drawImage(canvas, 0, 0, W, H);
+  if (CINE && id === 'door_katya' && !gfxChk.done) gfxCheck(canvas);   // титул: не рисует ли «Кино» чёрным на этой видеокарте
   g.imageSmoothingEnabled = true;
   return true;
 }

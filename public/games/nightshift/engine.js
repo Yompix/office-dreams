@@ -754,6 +754,7 @@ function shiftGame(th) {
 }
 function shiftProps() {   // что сейчас видно на камерах: пульт + кто где + активные странности
   const p = Object.assign({}, shk.st, { clk: shf.M, l7: shk.lights[7] ? 1 : 0, l10: shk.lights[10] ? 1 : 0 });
+  if (shk.st.blackout) Object.assign(p, { hallDark: 1, stDark: 1, mOff: 1, l7: 0, l10: 0 });   // свет гаснет этаж за этажом — камеры в ИК
   for (const a of shf.act) Object.assign(p, a.def.props || {});
   return p;
 }
@@ -771,6 +772,7 @@ function shiftEvent(e) {
     shf.act.push({ id: e.an, def, m: shf.M });
     if (def.light) shk.lights[def.light] = 1;   // свет включился сам — на пульте этаж загорелся
     if (def.unlock) shk.door = 0;   // замок входа отщёлкнулся сам — на пульте снова «ОТКРЫТ»
+    if (def.trap === 'door' && !shk.door) shiftToast(tr('Вход не заперт!'));
     if (def.sfx) play(def.sfx[0], def.sfx[1] || {}); if (def.notice) shiftToast(def.notice); }
   if (e.say) sayV(e.say);
   if (e.radio) { play('click', { gain: .4 }); e.radio.forEach(k => sayV(k)); }
@@ -780,6 +782,7 @@ function shiftEvent(e) {
   if (e.hint) shiftToast(e.hint);
   if (e.task) shf.task = e.task, shiftTask();
   if (e.call) shiftCall(e.call);
+  if (e.hold) shiftHold(e.hold);
 }
 function shiftResolve(a, how) {
   shf.act = shf.act.filter(x => x !== a); play('click', { gain: .5 });
@@ -808,11 +811,12 @@ function shiftTick() {
   clockEl.textContent = minStr(M);
   for (const e of shf.ev) if (!e.done && M >= e.m) { e.done = true; shiftEvent(e); if (shf.ended) return; }
   for (const a of [...shf.act]) { const d = a.def;
-    if (shf.cam === d.cam && d.snd && t - shf.camT > .3 && t >= (a.sndT || 0)) { a.sndT = t + (d.snd[2] || 6) * (.8 + Math.random() * .4); play(d.snd[0], Object.assign({ gain: .7 }, d.snd[1] || {})); shf.mic = 1; }   // камера слышит
+    if (shf.cam === d.cam && d.snd && t - shf.camT > .3 && t >= (a.sndT || 0)) { a.sndT = t + (d.snd[2] || 6) * (.8 + Math.random() * .4); for (let i = 0; i < (d.snd[3] || 1); i++) play(d.snd[0], Object.assign({ gain: .7 }, d.snd[1] || {}, { when: i * .3 })); shf.mic = 1; }   // камера слышит
     if (shf.cam === d.cam && !shf.pop && t - shf.camT > .4) {
       if (!a.seen) { a.seen = t; if (d.say) sayV(d.say); }
       if (d.stare) { a.look = (a.look || 0) + dt; if (a.look > 5) return shiftDie(d.death || 'over_stare'); if (a.look > 2.6 && !a.warned) { a.warned = true; play('breath_close', { gain: .6 }); shakeAmp = 8; } }
     } else a.look = 0;
+    if (d.trap === 'door' && !shk.door && M > a.m + 4) return shiftDie(d.die || 'over_door');   // не запер — она вошла
     if (M > a.m + (d.win || 15)) shiftMiss(a); if (shf.ended) return; }
   if (shf.task && M > toMin(shf.task.by) && !shf.task.done) { const tk = shf.task; tk.done = true; if (!(tk.need || []).every(n => shk[n])) { shf.miss++; shiftToast(tr('Не успел к сроку.')); if (shf.miss >= 3) return shiftDie('over_come'); } shiftTask(); }
   if (M >= shf.m1) return shiftEnd();
@@ -858,7 +862,9 @@ function shiftPanel() {
   const draw = () => shiftPop(`<h3>${tr('Пульт')}</h3><div class="sh-row"><button id="pDoor" class="${shk.door ? 'on' : ''}">${tr('Вход')}: <b>${tr(shk.door ? 'ЗАПЕРТ' : 'ОТКРЫТ')}</b></button>
       <button id="pLift" class="${shk.lift ? 'on' : ''}">${tr('Лифт')}: <b>${tr(shk.lift ? 'СТОП' : 'РАБОТАЕТ')}</b></button></div>
     <p>${tr('Свет на этажах')}</p><div class="sh-lights">${fl.map(f => `<button data-f="${f}" class="${shk.lights[f] ? 'lit' : ''}">${f === -2 ? '−2' : f}</button>`).join('')}</div>`);
-  const wire = () => { $('pDoor').onclick = e => { e.stopPropagation(); shk.door ^= 1; play('click'); if (shk.door) play('bolt', { gain: .4, cut: .8 }); draw(); wire(); shiftCheck(); };
+  const wire = () => { $('pDoor').onclick = e => { e.stopPropagation(); shk.door ^= 1; play('click'); if (shk.door) play('bolt', { gain: .4, cut: .8 });
+      const trap = !shk.door && shf.act.find(a => a.def.trap === 'door'); if (trap) return shiftDie(trap.def.die || 'over_door');   // открыл ей
+      draw(); wire(); shiftCheck(); };
     $('pLift').onclick = e => { e.stopPropagation(); shk.lift ^= 1; play('click'); draw(); wire(); shiftCheck(); };
     $('shPop').querySelectorAll('.sh-lights button').forEach(b => b.onclick = e => { e.stopPropagation(); const f = +b.dataset.f; shk.lights[f] = shk.lights[f] ? 0 : 1; play('click', { gain: .6 }); draw(); wire(); shiftCheck(); }); };
   draw(); wire();
@@ -874,15 +880,30 @@ function shiftReply(m) {   // ответ на СМС: два варианта
   shiftPop(`<h3>${tr(m.from || 'Лили')}</h3><p>${tr(m.text)}</p><div class="sh-grid">${m.reply.map((r, i) => `<button data-i="${i}">${tr(r)}</button>`).join('')}</div>`);
   $('shPop').querySelectorAll('.sh-grid button').forEach(b => b.onclick = e => { e.stopPropagation(); shiftPop(null); play('click'); if (m.back) setTimeout(() => { if (shf) { showSms({ from: m.from, text: m.back }); play('buzz', { gain: .6 }); } }, 4000); });
 }
+function shiftHold(h) {   // голос матери зовёт Фрэнка: держать кнопку, пока голос не стихнет; отпустил — Фрэнк уходит на голос
+  const my = shf.my, it = sayV(h.say, { delay: .4 }), need = h.dur || 7; let held = 0, down = false, last = now(), lost = 0;
+  shiftPop(`<h3>${tr('ДЕРЖИ ФРЭНКА')}</h3><p>${tr('Фрэнк поднимается на голос. Не отпускай, пока голос не стихнет.')}</p><div class="sh-hold"><i id="hBar"></i></div><button id="hBtn" class="sh-holdb">${tr('ДЕРЖАТЬ')}</button>`, true);
+  play('heart', { gain: .9 }); const btn = $('hBtn');
+  const on = e => { e.preventDefault(); e.stopPropagation(); down = true; btn.classList.add('on'); btn.textContent = tr('ДЕРЖУ'); }, off = e => { e && e.preventDefault(); down = false; btn.classList.remove('on'); btn.textContent = tr('ДЕРЖАТЬ'); };
+  btn.addEventListener('pointerdown', on); btn.addEventListener('pointerup', off); btn.addEventListener('pointerleave', off); btn.addEventListener('pointercancel', off);
+  const step = () => { if (!shf || shf.my !== my || shf.ended) return; const t = now(), dt = Math.min(.1, t - last); last = t;
+    if (t > it.t0) { if (down) held += dt; else if (t > it.t0 + 1.2) lost += dt; }   // секунда с небольшим на то, чтобы схватить
+    const bar = $('hBar'); if (bar) bar.style.width = Math.min(100, held / need * 100) + '%';
+    if (lost > .9) { shiftPop(null); return shiftDie(h.die || 'over_k8'); }
+    if (held >= need) { shiftPop(null); play('click'); shiftToast(tr('Голос стих. Фрэнк сел на пол и закрыл лицо руками.')); return; }
+    requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
 function shiftCall(c) {   // внутренний телефон будки: снять или нет; сняли — голос по имени; ответить — смерть
   let rings = 0; const my = shf.my;
-  const ring = () => { if (!shf || shf.my !== my || shf.ended || c.taken || rings >= (c.rings || 6)) { if (!c.taken && shf && shf.my === my) shiftPop(null); return; } rings++; play('ring', { gain: .8 }); buzz(80); setTimeout(ring, 2200); };
-  shiftPop(`<h3>${tr('Звонит внутренний телефон')}</h3><p>${tr('В будке. Номер не определён.')}</p><div class="sh-grid"><button id="cTake">${tr('Снять трубку')}</button><button id="cNo">${tr('Не брать')}</button></div>`);
+  const ring = () => { if (!shf || shf.my !== my || shf.ended || c.taken || rings >= (c.rings || 6)) { if (!c.taken && shf && shf.my === my) shiftPop(null); return; } rings++;
+    if (c.radio) play('static', { gain: .5, cut: .9 }); else play('ring', { gain: .8 }); buzz(80); setTimeout(ring, 2200); };
+  shiftPop(`<h3>${tr(c.title || 'Звонит внутренний телефон')}</h3><p>${tr(c.sub || 'В будке. Номер не определён.')}</p><div class="sh-grid"><button id="cTake">${tr(c.take || 'Снять трубку')}</button><button id="cNo">${tr(c.no || 'Не брать')}</button></div>`);
   ring();
   $('cNo').onclick = e => { e.stopPropagation(); c.taken = 'no'; shiftPop(null); };
   $('cTake').onclick = e => { e.stopPropagation(); c.taken = 'yes'; shiftPop(null); play('click'); const it = sayV(c.say);
     setTimeout(() => { if (!shf || shf.my !== my || shf.ended) return;
-      shiftPop(`<h3>${tr('В трубке')}</h3><p>${tr(c.ask)}</p><div class="sh-grid"><button id="cYes">${tr(c.yes)}</button><button id="cHang">${tr(c.hang)}</button></div>`);
+      shiftPop(`<h3>${tr(c.radio ? 'В эфире' : 'В трубке')}</h3><p>${tr(c.ask)}</p><div class="sh-grid"><button id="cYes">${tr(c.yes)}</button><button id="cHang">${tr(c.hang)}</button></div>`);
       $('cYes').onclick = e2 => { e2.stopPropagation(); shiftDie(c.die); };
       $('cHang').onclick = e2 => { e2.stopPropagation(); shiftPop(null); play('click'); if (c.after) sayV(c.after); }; }, Math.max(600, (it.t0 + it.d - now()) * 1000)); };
 }
@@ -913,8 +934,12 @@ function logoMask() {   // эрозия букв: редкие выщербин�
   for (let n = 0; n < 5; n++) { x.fillStyle = 'rgba(0,0,0,.4)'; x.fillRect(0, r() * h, w, .7); }   // царапины, как на старой плёнке
   return (logoURL = c.toDataURL());
 }
+// «Кино» на этой видеокарте рисовало чёрным — игра сама включила «Ретро» (scenes.js, gfxCheck): сказать об этом один раз
+function gfxNote() { if (LS.get('gfxAuto', 0) !== 1) return; LS.set('gfxAuto', 3);
+  const n = document.createElement('div'); n.className = 'gfx-note'; n.textContent = tr('Графика «Кино» на этом устройстве рисовала слишком темно — включена «Ретро». Вернуть: Настройки → Графика.');
+  ($('stage') || document.body).appendChild(n); setTimeout(() => n.remove(), 9000); }
 function menu() {
-  gen++; mode = 'menu'; document.body.classList.remove('shifting'); menuT0 = now(); titleT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); if (hushOn) hush(false); $('hud').classList.add('hide'); hideSms();
+  gen++; mode = 'menu'; document.body.classList.remove('shifting'); gfxNote(); menuT0 = now(); titleT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); if (hushOn) hush(false); $('hud').classList.add('hide'); hideSms();
   choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false; beat = null;
   const sv = LS.get('save', null), save = sv && S.scenes[sv] ? sv : null;   // сохранение из старой версии сценария не ломает меню
   uiEl.innerHTML = `<div class="title ${gateDone ? 'open' : 'gate'}${titleFirst ? ' first' : ''}">
@@ -975,7 +1000,7 @@ function settings() {
   $('sLang').onclick = () => { LS.set('lang', EN ? 'ru' : 'en'); uiSnd(); location.reload(); };   // язык — с перезагрузкой (надписи в 3D-мире рисуются при загрузке)
   $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
   $('sLand').onclick = () => { LS.set('land3', !LAND); applyLand(!LAND); re(); };
-  $('sGfx').onclick = () => { LS.set('gfx', window.World && World.cine ? 'retro' : 'cine'); uiSnd(); location.reload(); };   // графика собирается при загрузке
+  $('sGfx').onclick = () => { LS.set('gfx', window.World && World.cine ? 'retro' : 'cine'); LS.set('gfxAuto', 2); uiSnd(); location.reload(); };   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
   $('sVhs').onclick = () => { const v = (LS.get('vhs', 2) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };

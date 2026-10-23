@@ -1357,6 +1357,97 @@
   "en": "I put the phone down without a word.",
   "tag": "quiet, tired"
  },
+ "n25": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Четыре двадцать. Фрэнк внизу, в круге. А я здесь. До шести почти два часа.",
+  "en": "Four twenty. Frank's downstairs, in the circle. And I'm up here. Almost two hours till six.",
+  "tag": "quiet, tired"
+ },
+ "n26": {
+  "who": "ГАС",
+  "fx": "radio",
+  "ru": "— Итан… Спустись ко мне. Тут так хорошо слышно…",
+  "en": "— Ethan… Come down to me. You can hear so well up here…",
+  "tag": "calm, sweet, creepy"
+ },
+ "n27": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Гаса больше нет. Я видел это на тринадцатой.",
+  "en": "Gus is gone. I saw it on thirteen.",
+  "tag": "quiet, shaken"
+ },
+ "n28": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Снизу постучали. Три раза. Как просил Фрэнк. Только просил он об этом меня.",
+  "en": "Someone knocked downstairs. Three times. The way Frank asked. Except he asked me to do it.",
+  "tag": "quiet, tense"
+ },
+ "n29": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "У входа стояла Лили. Под дождём, без зонта. Лили спала в трёхстах километрах отсюда.",
+  "en": "Lily was standing at the entrance. In the rain, no umbrella. Lily was asleep three hundred kilometers away.",
+  "tag": "quiet, tense"
+ },
+ "n30": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Я открыл. Она вошла и улыбнулась. Слишком широко.",
+  "en": "I opened it. She came in and smiled. Too wide.",
+  "tag": "whispering, terrified"
+ },
+ "n31": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Свет начал гаснуть. Этаж за этажом. Сверху вниз. Ко мне.",
+  "en": "The lights started going out. Floor by floor. Top to bottom. Toward me.",
+  "tag": "quiet, tense"
+ },
+ "n32": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Голос стих. Фрэнк тяжело дышал. В серверной стоял регистратор: все камеры на одном мониторе.",
+  "en": "The voice faded. Frank was breathing hard. The server room had the recorder: every camera on one monitor.",
+  "tag": "quiet, tired"
+ },
+ "n33": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Смотри камеры. Всё, что не так, — записывай. Я двадцать лет так утра дожидался.",
+  "en": "— Watch the cameras. Anything wrong, you log it. That's how I waited for morning for twenty years.",
+  "tag": "old man, tired, firm"
+ },
+ "n34": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— В помехи долго не смотри. Оно оттуда смотрит.",
+  "en": "— Don't stare at the static. It looks back out of it.",
+  "tag": "old man, low, serious"
+ },
+ "n35": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Если я пойду на голос — держи. Что бы я ни говорил.",
+  "en": "— If I go after the voice, hold me back. Whatever I say.",
+  "tag": "old man, quiet, scared"
+ },
+ "n36": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Без двадцати шесть. Держимся, парень.",
+  "en": "— Twenty to six. Hang in there, kid.",
+  "tag": "old man, tired, warm"
+ },
+ "n37": {
+  "who": "ГОЛОС",
+  "fx": "fake",
+  "ru": "— Фрэнки… Открой маме… Замёрзла я тут…",
+  "en": "— Frankie… Open up for Mom… I'm so cold out here…",
+  "tag": "old woman, weak, pleading"
+ },
  "ch_katya": {
   "who": "ЛИЛИ",
   "fx": "muffle",

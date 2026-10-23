@@ -65,7 +65,7 @@ const EN = {
   'Жестокость, кровь и сцены насилия': 'Violence, blood and gore', 'Лучше в наушниках · в игре есть вспышки света': 'Best with headphones · contains flashing lights',
   'Четыре правила · Одна ночь · Сестра за стеклом': 'Four rules · One night · A sister behind the glass',
   'Загрузка звука…': 'Loading sound…', 'Начать смену': 'Start shift', 'Начать заново': 'Start over', 'Продолжить': 'Continue', 'Концовки': 'Endings', 'КОНЦОВКИ': 'ENDINGS',
-  'Настройки': 'Settings', 'НАСТРОЙКИ': 'SETTINGS', 'Назад': 'Back', 'Меню': 'Menu', 'Во весь экран': 'Fullscreen', 'Поддержать игру': 'Support the game', 'СПОНСОРЫ ИГРЫ': 'GAME SPONSORS',
+  'Настройки': 'Settings', 'НАСТРОЙКИ': 'SETTINGS', 'Назад': 'Back', 'Меню': 'Menu', 'Во весь экран': 'Fullscreen', 'В эфире': 'On the radio', 'Графика «Кино» на этом устройстве рисовала слишком темно — включена «Ретро». Вернуть: Настройки → Графика.': 'Cinema graphics rendered too dark on this device, so Retro is on. To switch back: Settings → Graphics.', 'Поддержать игру': 'Support the game', 'СПОНСОРЫ ИГРЫ': 'GAME SPONSORS',
   'Стань первым — твоё имя будет здесь': 'Be the first — your name will be here', 'Сыграть ещё раз': 'Play again', 'Попробовать снова': 'Try again', 'Ты не дожил до утра.': 'You didn\'t make it to morning.',
   'нажми, чтобы закрыть': 'tap to close', 'Правил пока нет.': 'No rules yet.', 'сейчас': 'now', 'СООБЩЕНИЯ': 'MESSAGES', 'Это не я.': 'It\'s not me.', 'Не открывай им.': 'Don\'t open the door to them.', 'Я тебя вижу': 'I see you',
   'мобильный · входящий': 'mobile · incoming', 'СОЕДИНЕНИЕ ПОТЕРЯНО': 'CONNECTION LOST', 'переподключение': 'reconnecting', 'Нужен браузер с WebGL': 'A browser with WebGL is required',

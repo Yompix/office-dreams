@@ -44,6 +44,11 @@ for (const [id, a] of Object.entries(SH.an)) { if (a.say && !tim.ru[a.say]) warn
 for (const c of ['01', '02', '03', '04', '07', '10', '_m2']) if (!shots.has('cam' + c)) bad.push(`нет кадра камеры cam${c}`);
 for (const c of S.cams || []) { if (c.img && !shots.has(c.img)) bad.push(`cams ${c.id}: нет кадра «${c.img}»`); if (c.over) go('cams', c.over); if (c.say && !tim.ru[c.say]) warn.push(`cams ${c.id}: нет реплики ${c.say}`); }
 used.add(S.start);
+// куда ведёт сам движок смены: входы в часы (сохранения), смерти странностей, звонков и «держи Фрэнка», CAM 13 и «три пропуска»
+for (const id of Object.keys(SH.segs)) go('движок', 'sh_' + id);
+for (const a of Object.values(SH.an)) if (a.die || a.stare) go('движок', a.die || 'over_stare');
+for (const sg of Object.values(SH.segs)) for (const e of sg.events) for (const x of [e.call, e.hold]) if (x && x.die) go('движок', x.die);
+['over_come', 'over_k1'].forEach(k => go('движок', k));
 const orphan = Object.keys(scenes).filter(k => !used.has(k));
 const noSfx = [...sfx].filter(k => !fs.existsSync(path.join(G, 'snd', k + '.mp3')));
 console.log(`сцен ${Object.keys(scenes).length}, кадров в scenes.js ${shots.size}`);
