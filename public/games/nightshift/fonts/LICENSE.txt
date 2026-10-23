@@ -1,3 +1,3 @@
-ns-logo.woff: Anton (subset N I G H T S F), SIL Open Font License 1.1, (c) The Anton Project Authors.
+ns-logo.woff: Oswald Bold (subset МОЛЧИДОШЕСТИ HUSHTILLSIX — логотип «Молчи до шести»), SIL Open Font License 1.1, (c) The Oswald Project Authors.
 ns-ui.woff: Oswald Bold (subset Latin + Cyrillic), SIL Open Font License 1.1, (c) The Oswald Project Authors.
 https://openfontlicense.org
