@@ -27,7 +27,8 @@ def zipdir(path, zpath, prefix=''):
                 # mp3/glb/webp уже сжаты — кладём как есть, так архив собирается быстрее
                 z.write(full, prefix + rel, zipfile.ZIP_STORED if re.search(r'\.(mp3|webp|jpg|png|glb)$', f) else zipfile.ZIP_DEFLATED)
 
-shutil.rmtree(OUT, ignore_errors=True); os.makedirs(OUT)
+os.makedirs(OUT, exist_ok=True)   # обложку, скриншоты и PAGE.md не трогаем — пересобираются только сами сборки
+for d in ('web', 'offline'): shutil.rmtree(os.path.join(OUT, d), ignore_errors=True)
 all_files = list(files())
 
 # ---------- веб-версия ----------

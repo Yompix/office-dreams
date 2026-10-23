@@ -10,10 +10,10 @@ GAME = os.path.join(ROOT, 'public/games/nightshift')
 frame, font = sys.argv[1], sys.argv[2]
 CREAM, GOLD, RED = (236, 232, 220), (242, 194, 27), (230, 50, 50)
 
-def compose(W, H, big, lines):
+def compose(W, H, big, lines, ax=.5):   # ax — какую часть кадра брать по ширине (0 — левую: героиня уходит вправо, от названия)
     im = Image.open(frame).convert('RGB')
     s = max(W / im.width, H / im.height); im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
-    x0 = (im.width - W) // 2; im = im.crop((x0, 0, x0 + W, H))
+    x0 = round((im.width - W) * ax); im = im.crop((x0, 0, x0 + W, H))
     # слева темнее — там название
     shade = Image.new('L', (W, H)); d = ImageDraw.Draw(shade)
     for x in range(W): d.line([(x, 0), (x, H)], fill=int(205 * max(0, 1 - x / (W * .62)) ** 1.3))
@@ -35,6 +35,6 @@ og = compose(1200, 630, (70, [('HUSH', 196, CREAM), ('TILL SIX', 150, GOLD)], 74
              [("DON'T ANSWER · DON'T OPEN · WAIT TILL SIX", 30, CREAM, 18), ('FREE HORROR GAME IN YOUR BROWSER', 24, (200, 196, 186), 62), ('18+  VIOLENCE AND BLOOD', 24, RED, 0)])
 og.save(os.path.join(GAME, 'og.jpg'), quality=88); og.save(os.path.join(GAME, 'og.webp'), quality=82)
 os.makedirs(os.path.join(ROOT, 'dist/itch'), exist_ok=True)
-cover = compose(630, 500, (60, [('HUSH', 150, CREAM), ('TILL SIX', 112, GOLD)], 44), [("DON'T ANSWER · DON'T OPEN", 24, CREAM, 18), ('18+  HORROR', 22, RED, 30)])
+cover = compose(630, 500, (60, [('HUSH', 150, CREAM), ('TILL SIX', 112, GOLD)], 44), [("DON'T ANSWER · DON'T OPEN", 24, CREAM, 18), ('18+  HORROR', 22, RED, 30)], ax=0)
 cover.save(os.path.join(ROOT, 'dist/itch/cover.png'))
 print('готово: og.jpg, og.webp, dist/itch/cover.png')
