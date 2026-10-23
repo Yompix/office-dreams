@@ -43,7 +43,11 @@ const ICON = {
 const BUF = {}; let TIM = {};
 const SNDS = ['drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'tick', 'click', 'door', 'steps',
   'ch_katya', 'ch_whisper', ...Array.from({ length: 15 }, (_, i) => 'p' + String(i + 1).padStart(2, '0'))];   // реплики пролога — сразу, остальные в фоне
-// звуковые эффекты (ElevenLabs): докачиваются в фоне после старта
+// звуковые эффекты (ElevenLabs): докачиваются в фоне после старта — список плюс всё, что звучит в сценах и в смене
+const storySfx = () => { const z = new Set(SFX2);
+  for (const sc of Object.values(S.scenes)) { for (const b of sc.beats || []) for (const x of b.sfx || []) z.add(x[0]); for (const x of (sc.then || {}).sfx || []) z.add(x[0]); }
+  for (const a of Object.values((S.shift || {}).an || {})) for (const x of [a.snd, a.sfx]) if (x) z.add(x[0]);
+  ['bolt', 'pen', 'rain_burst'].forEach(k => z.add(k)); z.delete('voice'); return [...z]; };
 const SFX2 = ['room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b', 'mop_swish'];
 let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, radioBus = null, phoneBus = null, master, musicG, voiceG, sfxG, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
 // громкость голоса сейчас (для движения рта)
@@ -63,7 +67,7 @@ async function load(onp) {
   const tm = get(EN ? 'timing_en.json?v=2' : 'timing.json?v=7', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры
-  for (const k of [...SFX2, ...Object.keys(TIM)]) if (!SNDS.includes(k)) get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
+  for (const k of [...storySfx(), ...Object.keys(TIM)]) if (!SNDS.includes(k)) get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
 }
 // голос в пространстве: рассказ героя — сухой и близкий; остальные звучат в помещении.
 // Метка реплики (fx в timing.json): рация и телефон — узкая полоса с хрипом; за стеклом и за дверью — глухо;
@@ -360,7 +364,7 @@ function startScene(id) {
   if (!S.scenes[id]) { console.warn('нет сцены', id); return menu(); }   // сохранение из старой версии сценария не ломает игру
   gen++; stopAll(); choiceEl.classList.add('hide'); mgEl.classList.add('hide'); mgEl.innerHTML = ''; mgView = null;
   uiEl.innerHTML = ''; $('hud').classList.remove('hide');
-  sceneId = id; scene = S.scenes[id]; mode = 'play'; sceneT0 = now(); secBase = scene.sec ?? 7; sublScene = '';
+  sceneId = id; scene = S.scenes[id]; mode = 'play'; sceneT0 = now(); document.body.classList.remove('shifting'); secBase = scene.sec ?? 7; sublScene = '';
   if (/^(branch_a|hide|run)/.test(id)) flags.opened = true;
   if (/^(server|down|basement|knock3|dawn|stay|call540|morning)/.test(id)) flags.mih = true;
   if (!id.startsWith('over_')) LS.set('save', id);
@@ -384,6 +388,8 @@ function nextBeat() {
   chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
   let t = .15;
   for (const k of beat.say || []) {
+    const ln = !TIM[k] && (S.shift.lines || {})[k];   // реплика ещё без озвучки — печатается текстом
+    if (ln) { const d = Math.max(2.2, ln.length / 14 + 1.3); typed = { t0: t, d, s: tr(ln), who: (S.shift.who || {})[k] }; t += d + .3; continue; }
     sched.push({ t, k, d: durOf(k) });
     if (beat.scareGap && k === beat.say[0]) scareAt = t + gapTime(k);
     t += durOf(k) + .3;
@@ -732,7 +738,7 @@ let shf = null, shk = null, shSpd = 1;   // смена сейчас; что пе
 function shkNew() { return { door: 0, lift: 0, lights: {}, log: [], st: {}, c13: false, read: false }; }
 function shiftGame(th) {
   const seg = S.shift.segs[th.shift]; if (!seg) return startScene(S.start);
-  gen++; const my = gen; mode = 'shift'; stopAll(); music(seg.music || 'drone'); amb('static', false);
+  gen++; const my = gen; mode = 'shift'; document.body.classList.add('shifting'); stopAll(); music(seg.music || 'drone'); amb('static', false);
   choiceEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); ruleEl.classList.add('hide');
   if (!shk || th.fresh) shk = shkNew();
   shf = { id: th.shift, seg, my, t0: now(), lt: now(), m0: toMin(seg.from), m1: toMin(seg.to), M: toMin(seg.from), cam: seg.cam || '02', camT: now(), act: [], miss: 0, vq: [], pop: null, warn13: false, ended: false };
@@ -744,7 +750,7 @@ function shiftGame(th) {
   shiftUI(); shiftToast(seg.hint); requestAnimationFrame(shiftTick);
 }
 function shiftProps() {   // что сейчас видно на камерах: пульт + кто где + активные странности
-  const p = Object.assign({}, shk.st, { doorOpen: !shk.door ? 1 : 0, l7: shk.lights[7] ? 1 : 0, l10: shk.lights[10] ? 1 : 0 });
+  const p = Object.assign({}, shk.st, { clk: shf.M, l7: shk.lights[7] ? 1 : 0, l10: shk.lights[10] ? 1 : 0 });
   for (const a of shf.act) Object.assign(p, a.def.props || {});
   return p;
 }
@@ -756,8 +762,12 @@ function sayV(k, o = {}) {   // реплика во время смены: го�
 }
 function shiftEvent(e) {
   const S2 = S.shift;
-  if (e.an) { const def = S2.an[e.an]; if (!def || shf.act.some(a => a.id === e.an)) return; shf.act.push({ id: e.an, def, m: shf.M });
+  if (e.an) { const def = S2.an[e.an]; if (!def || shf.act.some(a => a.id === e.an)) return;
+    const busy = shf.act.some(a => a.def.cam === def.cam) || (def.need === 'locked' && !shk.door) || (def.need === 'nogus' && shk.st.gus) || (def.need === 'gus' && !shk.st.gus);
+    if (busy) { if (shf.M + 4 < shf.m1 - 6) { e.done = false; e.m = shf.M + 3 + Math.random() * 3; } return; }   // камера занята или не к месту — позже
+    shf.act.push({ id: e.an, def, m: shf.M });
     if (def.light) shk.lights[def.light] = 1;   // свет включился сам — на пульте этаж загорелся
+    if (def.unlock) shk.door = 0;   // замок входа отщёлкнулся сам — на пульте снова «ОТКРЫТ»
     if (def.sfx) play(def.sfx[0], def.sfx[1] || {}); if (def.notice) shiftToast(def.notice); }
   if (e.say) sayV(e.say);
   if (e.radio) { play('click', { gain: .4 }); e.radio.forEach(k => sayV(k)); }
@@ -795,6 +805,7 @@ function shiftTick() {
   clockEl.textContent = minStr(M);
   for (const e of shf.ev) if (!e.done && M >= e.m) { e.done = true; shiftEvent(e); if (shf.ended) return; }
   for (const a of [...shf.act]) { const d = a.def;
+    if (shf.cam === d.cam && d.snd && t - shf.camT > .3 && t >= (a.sndT || 0)) { a.sndT = t + (d.snd[2] || 6) * (.8 + Math.random() * .4); play(d.snd[0], Object.assign({ gain: .7 }, d.snd[1] || {})); shf.mic = 1; }   // камера слышит
     if (shf.cam === d.cam && !shf.pop && t - shf.camT > .4) {
       if (!a.seen) { a.seen = t; if (d.say) sayV(d.say); }
       if (d.stare) { a.look = (a.look || 0) + dt; if (a.look > 5) return shiftDie(d.death || 'over_stare'); if (a.look > 2.6 && !a.warned) { a.warned = true; play('breath_close', { gain: .6 }); shakeAmp = 8; } }
@@ -826,15 +837,18 @@ function shiftCam(c) {
   if (c === shf.cam) return; shf.cam = c; shf.camT = now(); play('click', { gain: .45 }); play('static', { gain: .25, cut: .25 }); heldT = -9;
   mgEl.querySelectorAll('.sh-cams button').forEach(b => b.classList.toggle('on', b.dataset.c === c));
 }
-function shiftPop(html) { const el = $('shPop'); if (!el) return; shf && (shf.pop = html ? 1 : null); if (!html) { el.classList.add('hide'); el.innerHTML = ''; return; } el.innerHTML = html + `<button class="sh-x" id="shX">${tr('Закрыть')}</button>`; el.classList.remove('hide'); $('shX').onclick = e => { e.stopPropagation(); shiftPop(null); }; }
+function shiftPop(html, noX) { const el = $('shPop'); if (!el) return; shf && (shf.pop = html ? 1 : null); if (!html) { el.classList.add('hide'); el.innerHTML = ''; return; }
+  el.innerHTML = html + (noX ? '' : `<button class="sh-x" id="shX">${tr('Закрыть')}</button>`); el.classList.remove('hide'); if (!noX) $('shX').onclick = e => { e.stopPropagation(); shiftPop(null); }; }
 function shiftLog() {
   const c = shf.cam;
   shiftPop(`<h3>${tr('Записать в журнал')}</h3><p>${camLabel(c)} · ${minStr(shf.M)}</p><div class="sh-grid">${KINDS.concat(['Всё спокойно']).map((k, i) => `<button data-i="${i}">${tr(k)}</button>`).join('')}</div>`);
   $('shPop').querySelectorAll('.sh-grid button').forEach(b => b.onclick = e => { e.stopPropagation(); const k = (KINDS.concat(['Всё спокойно']))[+b.dataset.i];
-    const hit = shf.act.find(a => a.def.cam === c && (a.def.fix || 'log') === 'log' && (a.def.kinds || [a.def.kind]).includes(k));
-    shk.log.push({ m: minStr(shf.M), cam: c, k, ok: !!hit }); shiftPop(null); play('pen', { gain: .5, cut: .9 });
-    if (hit) shiftResolve(hit, tr('Записано.')); else shiftToast(k === 'Всё спокойно' ? tr('Записано: всё спокойно.') : tr('Записано. Хотя, может, показалось.'));
-    shiftCheck(); });
+    const hit = shf.act.find(a => a.def.cam === c && (a.def.fix || 'log') === 'log' && (a.def.kinds || [a.def.kind]).includes(k)), my = shf.my;
+    shk.log.push({ m: minStr(shf.M), cam: c, k, ok: !!hit }); play('pen', { gain: .5, cut: 1.3 });
+    shiftPop(`<h3>${tr('Записываю…')}</h3><p>${camLabel(c)} · ${minStr(shf.M)} — ${tr(k)}</p>`, true);
+    setTimeout(() => { if (!shf || shf.my !== my || shf.ended) return; shiftPop(null);
+      if (hit && shf.act.includes(hit)) shiftResolve(hit, tr('Записано.')); else shiftToast(k === 'Всё спокойно' ? tr('Записано: всё спокойно.') : tr('Записано. Хотя, может, показалось.'));
+      shiftCheck(); }, 1400); });
 }
 function shiftPanel() {
   const fl = [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, -2];
@@ -897,7 +911,7 @@ function logoMask() {   // эрозия букв: редкие выщербин�
   return (logoURL = c.toDataURL());
 }
 function menu() {
-  gen++; mode = 'menu'; menuT0 = now(); titleT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); if (hushOn) hush(false); $('hud').classList.add('hide'); hideSms();
+  gen++; mode = 'menu'; document.body.classList.remove('shifting'); menuT0 = now(); titleT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); if (hushOn) hush(false); $('hud').classList.add('hide'); hideSms();
   choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false; beat = null;
   const sv = LS.get('save', null), save = sv && S.scenes[sv] ? sv : null;   // сохранение из старой версии сценария не ломает меню
   uiEl.innerHTML = `<div class="title ${gateDone ? 'open' : 'gate'}${titleFirst ? ' first' : ''}">
@@ -1042,10 +1056,17 @@ function cctvHud(label, T, rw) {   // rw = { tag, clock } — запись на 
   g.scale(US, US); g.font = '700 40px "Courier New", monospace'; g.fillStyle = 'rgba(235,240,235,.9)';
   if ((T % 1) < .5) { g.fillStyle = '#e8262e'; g.beginPath(); g.arc(98, 222, 13, 0, 7); g.fill(); g.fillStyle = 'rgba(235,240,235,.9)'; }
   g.fillText(rw ? rw.tag : 'REC', 124, 204);
+  if (!rw && window.World && World.ir) { g.fillStyle = 'rgba(235,240,235,.75)'; g.fillText('IR', 250, 204); g.fillStyle = 'rgba(235,240,235,.9)'; }   // темно — камера в ИК
   if (label) g.fillText(label, 84, 258);
-  g.font = '700 34px "Courier New", monospace'; g.fillText('17.10.2026  ' + (rw ? rw.clock : gameClock()), 84, 310);
+  g.font = '700 34px "Courier New", monospace'; g.fillText(hudDate() + '  ' + (rw ? rw.clock : gameClock()), 84, 310);
+  if (mode === 'shift' && shf && !rw) {   // микрофон камеры: что-то слышно — столбики прыгают
+    shf.mic = (shf.mic || 0) * .94; const lv = Math.min(1, .1 + Math.random() * .1 + shf.mic * (.75 + Math.random() * .25));
+    g.font = '700 26px "Courier New", monospace'; g.fillText('MIC', 84, 356);
+    for (let i = 0; i < 12; i++) { g.fillStyle = i / 12 < lv ? (i > 8 ? '#e8262e' : i > 5 ? '#e8c22e' : 'rgba(150,235,160,.9)') : 'rgba(235,240,235,.18)'; g.fillRect(150 + i * 15, 360, 10, 18); }
+  }
   g.restore();
 }
+function hudDate() { return +lastTime.slice(0, 2) < 12 ? '29.10.2026' : '28.10.2026'; }   // ночь с 28 на 29 октября (запись Итана в журнале — 28.10)
 function grain(a) { g.save(); g.globalAlpha = a; g.globalCompositeOperation = 'overlay'; const ox = Math.random() * 256, oy = Math.random() * 256; g.translate(-ox, -oy); g.fillStyle = noisePat || (noisePat = g.createPattern(noise, 'repeat')); g.fillRect(0, 0, W + 256, H + 256); g.restore(); }
 function vignette() { const r = g.createRadialGradient(W / 2, H / 2, H * .25, W / 2, H / 2, H * .75); r.addColorStop(0, 'rgba(0,0,0,0)'); r.addColorStop(1, 'rgba(0,0,0,.8)'); g.fillStyle = r; g.fillRect(0, 0, W, H); }
 function phone(spec, t) {
@@ -1202,7 +1223,7 @@ function frame(tp) {
         let cur = null; for (const it of sched) if (t >= it.t) cur = it;
         talkV += (voiceLevel() - talkV) * .5;
         if (cur && t < cur.t + cur.d) talk = { who: whoOf(cur.k), v: talkV };
-        else if (typed && typed.s && t >= typed.t0 && t < typed.t0 + typed.d - .9) talk = { who: beat.who || 'ИТАН', v: .25 + .55 * Math.abs(Math.sin(t * 11)) };
+        else if (typed && typed.s && t >= typed.t0 && t < typed.t0 + typed.d - .9) talk = { who: typed.who || beat.who || 'ИТАН', v: .25 + .55 * Math.abs(Math.sin(t * 11)) };
       }
       // скример: вспышка, рывок, сильная тряска
       const sc = scareAt != null && t >= scareAt, st = sc ? t - scareAt : 0;
@@ -1253,7 +1274,7 @@ function frame(tp) {
       if (!waiting) {
         if (typed && t >= typed.t0 && typed.s) {
           const k = Math.floor(Math.min(1, (t - typed.t0) / (typed.d - .9)) * typed.s.length);
-          say(beat.who || 'ИТАН', typed.s, k); shown = true;
+          say(typed.who || beat.who || 'ИТАН', typed.s, k); shown = true;
           if (k < typed.s.length && Math.random() < .25) play('tick', { gain: .25 });
         } else {
           let cur = null; for (const it of sched) if (t >= it.t) cur = it;

@@ -259,6 +259,8 @@ body:not(.land) .sh-act { top: auto; bottom: calc(40 * var(--u)); flex-direction
 
 /* горизонтальный экран (ПК или телефон боком): интерфейс по центру, не растянут во всю ширину */
 body.land #dlg { left: 50%; right: auto; width: calc(124 * var(--u)); transform: translateX(-50%); bottom: 4%; }
+body.shifting #dlg { bottom: calc(20 * var(--u)); }   /* смена: субтитры над кнопками камер */
+body.shifting:not(.land) #dlg { bottom: calc(56 * var(--u)); }
 body.land #subs { left: 18%; right: 18%; bottom: 26%; }
 body.land #rule, body.land #note div { left: 50%; right: auto; width: calc(92 * var(--u)); transform: translateX(-50%) rotate(-1.5deg); }
 body.land #note div { position: relative; left: auto; transform: rotate(-1.5deg); }

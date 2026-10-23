@@ -463,32 +463,65 @@ window.STORY = {
       n19: 'На пульте появилась ещё одна кнопка. Тринадцать. Минуту назад её не было.', n20: '— Итан?.. Это ты?', n21: 'Шаги. Уже не на камерах — в холле.',
       n22: 'Помехи сложились в лицо. Оно смотрело прямо в объектив.', n23: '— Да. Это я.', n24: 'Трубку я положил молча.' },
     who: { n08: 'ГАС', n10: 'ГАС', n14: 'ГАС', n15: 'ГАС', n17: 'ГАС', n20: 'ЛИЛИ' },
+    // странности: камера, что видно (props → scenes.js) или слышно (snd), что сделать (fix: запись по виду — по умолчанию, свет/вход с пульта), окно в игровых минутах.
+    // need: locked — только если вход заперт; nogus — только когда Гаса нет на 7-м. Помехи (box, stare) — это «он»: записать и сразу переключить.
     an: {
       light10: { cam: '10', kind: 'Свет', light: 10, fix: 'light:10', win: 25, say: 'n07' },
+      light7: { cam: '07', kind: 'Свет', light: 7, fix: 'light:7', win: 25, need: 'nogus' },
       door10: { cam: '10', kind: 'Дверь', props: { door10: 1 }, win: 22 },
+      door7: { cam: '07', kind: 'Дверь', props: { door7: 1 }, win: 22, need: 'nogus' },
+      door01: { cam: '01', kind: 'Дверь', props: { door01: 1 }, fix: 'door', unlock: 1, need: 'locked', win: 20, notice: 'Пульт пискнул: «ВХОД — ОТКРЫТ».' },
       cat: { cam: '01', kinds: ['Другое', 'Кто-то'], props: { cat: 1 }, win: 25, say: 'n06' },
+      streetOff: { cam: '01', kind: 'Свет', props: { streetOff: 1 }, win: 22 },
+      wet: { cam: '02', kinds: ['Кто-то', 'Другое'], props: { wet: 1 }, win: 22 },
+      hallDark: { cam: '02', kind: 'Свет', props: { hallDark: 1 }, win: 20 },
       lift: { cam: '03', kind: 'Лифт', props: { lift: '9', liftOpen: 1 }, win: 16, say: 'n13', sfx: ['ding', { gain: .5, lp: 1400 }] },
+      lift13: { cam: '03', kind: 'Лифт', props: { lift13: 1 }, win: 20 },
+      clockSpin: { cam: '03', kind: 'Другое', props: { clockSpin: 1 }, win: 20 },
+      palmMove: { cam: '03', kind: 'Другое', props: { palmMove: 1 }, win: 25 },
+      stDark: { cam: '04', kind: 'Свет', props: { stDark: 1 }, win: 20 },
+      chair10: { cam: '10', kind: 'Другое', props: { chair10: 1 }, win: 22 },
+      bucket7: { cam: '07', kind: 'Другое', props: { bucket7: 1 }, win: 30, need: 'nogus' },
+      mOff: { cam: 'm2', kind: 'Свет', props: { mOff: 1 }, win: 20 },
+      sdoor: { cam: 'm2', kind: 'Дверь', props: { sdoor: 1 }, win: 18 },
+      // звуки: камера слышит — столбики MIC прыгают
+      snd01: { cam: '01', kind: 'Звук', snd: ['glass_scratch', { gain: .5, lp: 2400 }, 7], win: 18 },
+      whisp02: { cam: '02', kind: 'Звук', snd: ['whispers', { gain: .45, cut: 3, lp: 2200 }, 7], win: 18 },
+      snd03: { cam: '03', kind: 'Звук', snd: ['metal_groan', { gain: .5, lp: 1500 }, 8], win: 18 },
+      snd04: { cam: '04', kind: 'Звук', snd: ['steps_barefoot', { gain: .55, cut: 2.4, lp: 1600 }, 6], win: 18 },
+      snd07: { cam: '07', kind: 'Звук', snd: ['cleaner_hum', { gain: .4, lp: 1800 }, 6], win: 20, need: 'nogus' },
+      snd10: { cam: '10', kind: 'Звук', snd: ['ring', { gain: .35, lp: 1700 }, 3.6], win: 18 },
+      snd_m2: { cam: 'm2', kind: 'Звук', snd: ['knock_metal', { gain: .6, lp: 1600 }, 5], win: 18 },
+      // кто-то стоит и смотрит (это не они)
+      lily01: { cam: '01', kind: 'Кто-то', props: { lily01: 1 }, win: 16 },
+      frank02: { cam: '02', kind: 'Кто-то', props: { frank02: 1 }, win: 16 },
+      guard04: { cam: '04', kind: 'Кто-то', props: { guard04: 1 }, win: 16 },
+      // сюжет
       gus7: { cam: '07', fix: 'none', win: 70, say: 'c03' },
       palm: { cam: '02', fix: 'none', props: { palm: 1 }, win: 25, say: 'c02' },
+      // его помехи
       st04: { cam: '04', kind: 'Помехи', box: [.42, .3, .13, .42], stare: true, win: 12, say: 'n12' },
       st10: { cam: '10', kind: 'Помехи', box: [.47, .36, .08, .27], stare: true, win: 12 },
       st_m2: { cam: 'm2', kind: 'Помехи', box: [.46, .3, .09, .38], stare: true, win: 12 },
-      st02: { cam: '02', kind: 'Помехи', box: [.17, .35, .07, .2], stare: true, win: 12 }
+      st02: { cam: '02', kind: 'Помехи', box: [.17, .35, .07, .2], stare: true, win: 12 },
+      st03: { cam: '03', kind: 'Помехи', box: [.6, .3, .1, .45], stare: true, win: 12 },
+      st07: { cam: '07', kind: 'Помехи', box: [.45, .32, .08, .32], stare: true, win: 12 },
+      st01: { cam: '01', kind: 'Помехи', box: [.52, .12, .07, .3], stare: true, win: 12 }
     },
     segs: {
       S1: { from: '21:05', to: '22:00', cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'], hint: 'Камеры — внизу. Странное — «Записать». Свет, вход и лифт — на пульте.',
         events: [{ at: '21:14', an: 'light10' }, { at: '21:28', an: 'cat' }, { at: '21:46', task: { text: 'К 22:00 запереть вход и остановить лифт', need: ['door', 'lift'], by: '22:00', say: 'n01' } }],
-        rnd: { pool: ['door10'], n: 1 }, next: 'round1' },
+        rnd: { pool: ['door10', 'palmMove', 'chair10', 'clockSpin', 'light7', 'snd07'], n: 3 }, next: 'round1' },
       S2: { from: '22:20', to: '23:59', cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '22:25', state: { gus: 1 } }, { at: '22:26', an: 'gus7' }, { at: '22:40', radio: ['f01', 'f02'] }, { at: '23:05', an: 'lift' }, { at: '23:30', radio: ['n08', 'n09', 'n10', 'n11'] }],
-        rnd: { pool: ['door10', 'light10', 'cat'], n: 2 }, next: 'sh_S3' },
+        rnd: { pool: ['door10', 'light10', 'cat', 'door01', 'streetOff', 'lift13', 'clockSpin', 'palmMove', 'chair10', 'snd10', 'snd04', 'snd03', 'hallDark'], n: 6 }, next: 'sh_S3' },
       S3: { from: '00:00', to: '00:59', cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '00:12', an: 'st04' }, { at: '00:30', sms: { from: 'Лили', text: 'Ты как там? Не страшно одному? 😄', reply: ['Нормально. Спи давай.', 'Если честно — жутковато.'], back: 'Держись! Утром позвоню' } }, { at: '00:45', an: 'palm' }],
-        rnd: { pool: ['door10', 'light10', 'lift', 'st_m2'], n: 2 }, next: 'round2' },
+        rnd: { pool: ['door10', 'light10', 'lift', 'st_m2', 'lily01', 'snd_m2', 'sdoor', 'mOff', 'stDark', 'snd01', 'whisp02', 'door01', 'st03'], n: 5 }, next: 'round2' },
       S4: { from: '01:20', to: '02:50', cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '01:40', call: { say: 'n20', ask: '«Итан?.. Это ты?»', yes: '— Да. Это я.', hang: 'Молча положить трубку', die: 'over_phone', after: 'n24' } },
           { at: '02:00', c13: true, say: 'n19' }, { at: '02:12', an: 'st10' }, { at: '02:30', say: 'n18' }],
-        rnd: { pool: ['door10', 'light10', 'lift', 'st_m2', 'st02', 'palm'], n: 3 }, next: 'journal' }
+        rnd: { pool: ['door10', 'lift', 'st_m2', 'st02', 'st07', 'st01', 'frank02', 'guard04', 'snd_m2', 'sdoor', 'mOff', 'hallDark', 'door01', 'snd01', 'stDark', 'lily01', 'st03', 'whisp02'], n: 7 }, next: 'journal' }
     }
   },
   endings: { inside: 'Внутри', sister: 'Сестра', dawn: 'Рассвет', newentry: 'Новая запись' },

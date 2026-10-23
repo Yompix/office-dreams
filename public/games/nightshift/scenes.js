@@ -38,6 +38,7 @@ function buildLobby() {
     const on = !(i === -2 && j === 1) && !(i === 1 && j === -1);
     const p = plane(1.1, .5, mat(on ? 0xe8f0e0 : 0x30322e, null, { basic: true, decal: 1 }), S); p.rotation.x = PI / 2; p.position.set(i * 3.2, 4.19, j * 3.4); o.ceilLights.push(p);
   }
+  o.ceilOn = mat(0xe8f0e0, null, { basic: true, decal: 1 });   // общий материал горящих панелей (смена гасит холл)
   o.flick = plane(1.1, .5, ps1(new T.MeshBasicMaterial({ color: 0xe8f0e0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 })), S);   // свой материал: иначе мигали бы все панели o.flick.rotation.x = PI / 2; o.flick.position.set(-4.8, 4.18, 3.4);
   o.l1 = new T.PointLight(0xc8d8d0, 1.9, 13, 1.5); o.l1.position.set(-1, 3.8, 0); S.add(o.l1);
   o.l3 = new T.PointLight(0xb8c8d8, 1.3, 9, 1.5); o.l3.position.set(-.8, 3.6, -4.2); S.add(o.l3);
@@ -251,6 +252,7 @@ function buildLobby() {
     o.canopy.intensity = 1.5; o.canopyLamp.visible = true;
     o.sky.material.map = TX.sky; S.fog.color.set(FOGC); S.fog.density = o.fogD; S.background.set(FOGC); o.street.intensity = 1.2; o.rain.visible = true;
     o.dawn = 0; o.tubeOK = 1; o.flickOn = true; o.fac.material = o.facLit; o.ghostWin.visible = false; o.ghostWin.scale.setScalar(1); o.cat.visible = false; if (o.nmask) o.nmask.forEach(m => (m.visible = false));
+    o.streetBulb.visible = true; o.wetM.opacity = .42; o.wetM.color.setHex(0x101418); o.palm.position.set(-3.5, 0, -5.42); o.palmShadow.visible = true; o.ceilOn.color.setHex(0xe8f0e0);
     resetFacade(o); o.props();
   };
   o.tick = (t, dt) => {
@@ -351,7 +353,7 @@ function buildFacade(o, S) {
       x.beginPath(); x.ellipse(16, 46, 7, 11, 0, 0, 7); x.fill(); x.beginPath(); x.ellipse(15, 24, 9, 12, -.1, 0, 7); x.fill();
       [[7, 9, 3.2], [12, 6, 3], [17, 6, 2.8], [22, 8, 2.5], [26, 12, 2.2]].forEach(([cx, cy, r]) => { x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill(); }); });
     const fm = ps1(new T.MeshBasicMaterial({ map: ft, transparent: true, opacity: .42, depthWrite: false, color: 0x101418, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
-    o.wetSteps = new T.Group(); S.add(o.wetSteps); o.wetSteps.visible = false;
+    o.wetSteps = new T.Group(); S.add(o.wetSteps); o.wetSteps.visible = false; o.wetM = fm;
     const path = new T.CubicBezierCurve(new T.Vector2(.4, 5.6), new T.Vector2(-.2, 2.5), new T.Vector2(-1.9, -.5), new T.Vector2(-2.2, -5.2));
     for (let i = 0; i < 26; i++) { const u = i / 25, p = path.getPointAt(u), d = path.getTangentAt(Math.min(.999, u)), n = new T.Vector2(d.y, -d.x).multiplyScalar(i % 2 ? .09 : -.09);
       const f = plane(.11, .24, fm, o.wetSteps); f.rotation.x = -PI / 2; f.rotation.z = Math.atan2(d.x, d.y) + PI; f.position.set(p.x + n.x, .006, p.y + n.y); f.scale.x = i % 2 ? -1 : 1; } }
@@ -431,7 +433,8 @@ function buildCorridor() {
   o.door10 = new T.Group(); o.door10.position.set(wd / 2 - .03, 0, -5.6 - .475); S.add(o.door10); o.door10.visible = false;
   box(.05, 2.1, .95, mat(0xffffff, TX.door), 0, 1.05, .475, o.door10);
   o.hole10 = plane(.95, 2.1, mat(0x050506, null, { basic: true }), S); o.hole10.rotation.y = -PI / 2; o.hole10.position.set(wd / 2 - .004, 1.05, -5.6); o.hole10.visible = false;   // тёмный проём за створкой
-  o.ajar10 = k => { o.doorR10.visible = !k; o.door10.visible = o.hole10.visible = !!k; o.door10.rotation.y = -.55 * (k || 0); };
+  o.ajar10 = k => { o.doorR10.visible = !k; o.door10.visible = o.hole10.visible = !!k; o.door10.rotation.y = -.55 * (k || 0); o.hole10.material = o.holeDark; };
+  o.holeDark = o.hole10.material; o.holeLit = new T.MeshBasicMaterial({ color: 0x9a8a68 }); ps1(o.holeLit);   // в офисе за дверью горит свет
   // длинные серые пальцы обхватывают косяк 707 изнутри (видны только в сцене с уборщиком)
   o.fingers = new T.Group(); o.fingers.position.set(-wd / 2, 0, zA); S.add(o.fingers); o.fingerF = [];
   // пальцы Жильца: длинные, тонкие, костлявые, разной длины и наклона; три фаланги, костяшки, тёмные ногти — обхватывают косяк по одному
@@ -455,6 +458,13 @@ function buildCorridor() {
   // уборщик: ведро с отжимом, табличка «мокрый пол», мокрое пятно, швабра на полу, кровавый след в проём
   o.bucket = makeBucket(); S.add(o.bucket);
   o.mopProp = makeMop(); S.add(o.mopProp);
+  // офисное кресло: на 10-м ночью оказывается посреди коридора (странность смены)
+  o.chair10 = new T.Group(); S.add(o.chair10); o.chair10.visible = false;
+  { const cm = mat(0x5a5d64, null, { rough: .7 }), mm = mat(0x3a3c40, null, { metal: .6, rough: .4 }), wm = mat(0x0c0c0c);
+    box(.5, .08, .48, cm, 0, .5, 0, o.chair10); const bk = box(.46, .58, .07, cm, 0, .86, -.24, o.chair10); bk.rotation.x = -.12;
+    cyl(.025, .025, .4, 6, mm, o.chair10).position.y = .28;
+    for (let i = 0; i < 5; i++) { const a = i / 5 * PI * 2, leg = box(.035, .03, .3, mm, Math.sin(a) * .15, .06, Math.cos(a) * .15, o.chair10); leg.rotation.y = a; box(.045, .045, .045, wm, Math.sin(a) * .29, .03, Math.cos(a) * .29, o.chair10); }
+    for (const sd of [-1, 1]) box(.05, .04, .3, cm, sd * .26, .7, -.02, o.chair10); }
   o.sign = new T.Group(); S.add(o.sign);
   for (const s of [-1, 1]) { const pnl = plane(.3, .62, mat(0xffffff, TX.wetSign, { side: T.DoubleSide }), o.sign); pnl.position.set(0, .3, s * .085); pnl.rotation.x = s * -.28; pnl.rotation.y = s < 0 ? PI : 0; }
   o.wet = new T.Mesh(new T.PlaneGeometry(2.2, 3.2), ps1(new T.MeshLambertMaterial({ color: 0x0e0e10, map: TX.puddle, transparent: true, opacity: .4, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 })));
@@ -492,6 +502,7 @@ function buildCorridor() {
   o.blood = new T.Mesh(T.BufferGeometryUtils ? T.BufferGeometryUtils.mergeGeometries(bg) : bg[0], new T.MeshLambertMaterial({ color: 0x2a0303, polygonOffset: true, polygonOffsetFactor: -4 }));
   if (!T.BufferGeometryUtils) for (const g2 of bg.slice(1)) o.blood.add(new T.Mesh(g2, o.blood.material)); o.blood.rotation.x = -PI / 2; o.blood.scale.set(1, 1.6, 1); o.blood.position.set(0, .006, -12); S.add(o.blood);
   o.faceL = new T.PointLight(0xdde6ff, 0, 3.2, 2); S.add(o.faceL);
+  o.irL = new T.PointLight(0xffffff, 0, 16, 1.2); S.add(o.irL);   // ИК-подсветка камеры смены (темно — камера видит в ч/б)
   // кишки: цепочка влажных петель от живота тела к руке Жильца (концы ставит o.post — по костям после анимации)
   const gutM = ps1(new T.MeshPhongMaterial({ color: 0x7a1418, specular: 0x5a2a2a, shininess: 70, emissive: 0x1a0204 })), gutG = new T.SphereGeometry(.034, 6, 4);
   o.guts = new T.Group(); o.gutS = []; S.add(o.guts); o.guts.visible = false;
@@ -542,7 +553,7 @@ function buildCorridor() {
     o.splat.visible = !!c.splat;
     if (c.blood) { o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.1, 1, .9); }
   };
-  o.reset = () => { o.bursts = null; o.faceL.intensity = 0; o.setFloor(7); o.ajar10(0); o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
+  o.reset = () => { o.bursts = null; o.faceL.intensity = 0; o.setFloor(7); o.ajar10(0); o.chair10.visible = false; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
   o.tick = (t) => {   // одна ненадёжная лампа (пятая от лифта), если горит
     const l = o.lamps[4]; if (!o.flickOn || !l.on) { o.tubeOK = 1; return; }
     const f = unreliable(t, 3); o.tubeOK = f; l.li.intensity = l.base * f; l.tube.material.color.setHex(f ? 0xe8f0e8 : 0x1c1e1c);
@@ -649,6 +660,7 @@ function buildStairs() {
     }
   }
   o.faceL = new T.PointLight(0xdde6ff, 0, 3.2, 2); S.add(o.faceL);
+  o.irL = new T.PointLight(0xffffff, 0, 16, 1.2); S.add(o.irL);
   o.setFloor = (k, n) => relabel(o.signs[k], String(n));   // какой этаж написан на уровне k (для разных камер)
   o.reset = () => { o.faceL.intensity = 0; o.amb.intensity = .3; S.fog.density = o.fogD; o.bulbs.forEach(l => { l.li.intensity = l.base; l.sh.material.color.setHex(0xfff2d0); }); o.flick = null; o.signs.forEach((s, k) => o.setFloor(k, k - 2)); };
   o.tick = t => { if (o.flick) o.bulbs.forEach((l, i) => { const on = o.flick(t, i); l.li.intensity = l.base * on; }); };
@@ -708,7 +720,8 @@ function buildBasement() {
   o.etorch = new T.SpotLight(0xfff0d8, 0, 9, .34, .55, 1.2); S.add(o.etorch, o.etorch.target);   // фонарь в руке Итана (кадры со стороны)
   o.roomL = new T.PointLight(0xffd8b0, 0, 4.5, 1.6); o.roomL.position.set(-.45, 1.1, D - 1.1); S.add(o.roomL);   // свечи в серверной: свет на Фрэнка у порога
   o.faceL = new T.PointLight(0xdde6ff, 0, 3.2, 2); S.add(o.faceL);
-  o.reset = () => { o.faceL.intensity = 0; o.amb.intensity = .22; S.fog.density = o.fogD; o.sdoor.rotation.y = 0; o.prints.visible = false; o.etorch.intensity = 0; o.roomL.intensity = 0; o.slit.visible = o.glow.visible = true; o.salt.visible = true; o.candle.intensity = 1;
+  o.irL = new T.PointLight(0xffffff, 0, 16, 1.2); S.add(o.irL);
+  o.reset = () => { o.faceL.intensity = 0; o.amb.intensity = .22; S.fog.density = o.fogD; o.sdoor.rotation.y = 0; o.prints.visible = false; o.etorch.intensity = 0; o.roomL.intensity = 0; o.roomL.distance = 4.5; o.roomL.position.set(-.45, 1.1, D - 1.1); o.glow.scale.set(1, 1, 1); o.slit.visible = o.glow.visible = true; o.salt.visible = true; o.candle.intensity = 1;
     o.bulbs.forEach(l => { l.li.intensity = l.base; l.bulb.material.color.setHex(0xffe8b8); }); o.flickOn = true; };
   o.tick = t => { o.candle.intensity = .9 + Math.sin(t * 17) * .1 + Math.sin(t * 6.3) * .07; o.glow.material.opacity = .45 + .08 * Math.sin(t * 9);
     if (o.flickOn) { const f = unreliable(t, 9); const l = o.bulbs[1]; l.li.intensity = l.base * (f ? 1 : .05); l.bulb.material.color.setHex(f ? 0xffe8b8 : 0x2a261c); } };
@@ -1391,26 +1404,51 @@ SH.r2_talk = { loc: 'corridor', pos: [.42, 1.66, -7.85], look: [-.15, 1.5, -9.62
   const R = locR(R2E[0], R2E[1], PI);
   return [['cleaner', R2G[0], 0, R2G[1], 0, { clips: [['Idle_Talking_Loop', t + 2, 1]], talk: 1, legs: 'feet', look: [R2E[0], 1.62, R2E[1]] }, null],
     ['temych', R2E[0], 0, R2E[1], PI, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: { at: R.p(-.1, 1.1, .3), by: 'palm', fdir: R.v(.2, -.2, 1), pdir: [0, -1, 0], w: 1 } }, fing: { r: ['cup', 1] }, hold: { r: 'apple' }, look: [R2G[0], 1.6, R2G[1]] }, null]]; } };
-// ---- камеры смены (пульт в будке). Что на них сейчас — curProps.sh (движок: что открыто, где свет, где кто) ----
+// ---- камеры смены (пульт в будке). Что на них сейчас — curProps.sh (движок: пульт, кто где, странности) ----
+// странности (s.*): cat, door01, streetOff, lily01 · wet, frank02, hallDark, palm · lift/liftOpen, lift13, clockSpin, palmMove ·
+// stDark, guard04 · gus, l7, door7, bucket7 · l10, door10, chair10 · mOff, sdoor. Помехи («он») рисует движок поверх кадра.
 const SHS = () => (curProps && curProps.sh) || {};
+function irOn(o, p, k = 1.5) { o.ir = 1; o.irL.position.set(p[0], p[1], p[2]); o.irL.intensity = k; }   // темно — камера переходит в ИК: подсветка у объектива, ч/б
+function shClock(o, s, t) { if (s.clk == null) return; const v = s.clockSpin ? s.clk - t * 40 : s.clk; o.setClock(Math.floor(v / 60), ((v % 60) + 60) % 60); }   // часы холла идут по времени смены (или крутятся назад)
+const STILL = (clip = 'Idle_Loop', at = 1.2) => ({ clips: [[clip, at, 1]], legs: 'feet' });   // стоит и не шевелится
 SH.cam01 = { loc: 'lobby', pos: [-1.2, 3.3, 8.3], look: [2.6, .6, 8.4], fov: 74, cctv: 1, set: (o, t) => { const s = SHS(); o.rain.material.opacity = .18;
   o.cat.visible = !!s.cat; if (s.cat) { o.catHead.rotation.y = Math.sin(t * .4) * .5; o.catTail.rotation.z = Math.sin(t * 1.7) * .3; }
-  leafAng(o, 0, s.doorOpen ? .9 : 0); return []; } };
+  if (s.door01) { leafAng(o, 0, 1.15); leafAng(o, 1, .35); }   // вход распахнут в дождь
+  if (s.streetOff) { o.street.intensity = 0; o.streetBulb.visible = false; o.canopy.intensity = 0; o.canopyLamp.visible = false; }   // погас свет над входом
+  return s.lily01 ? [['katya', 8.6, 0, 11.2, -1.9, STILL(), [-1.2, 3.3, 8.3]]] : []; } };
 SH.cam02 = { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, cctv: 1, set: (o, t) => { const s = SHS();
   if (s.palm) { o.palmShadow.position.x = -3.95 + .9 * s.palm; o.palmShadow.scale.setScalar(1 + .15 * s.palm); }
-  o.wetSteps.visible = !!s.wet;
-  return [['temych', SEAT[0], 0, SEAT[1], 0, { clips: [['Sitting_Idle_Loop', t + 2, 1]], look: [4.5, 1.18, .12] }, null]]; } };
+  o.wetSteps.visible = !!s.wet; if (s.wet) { o.wetM.opacity = .6; o.wetM.color.setHex(0xa8b8c4); }   // на камере мокрые следы блестят
+  if (s.hallDark) { o.ceilOn.color.setHex(0x30322e); o.l1.intensity = .25; o.l3.intensity = .2; o.l4.intensity = .2; o.flickOn = false; }
+  const A2 = [['temych', SEAT[0], 0, SEAT[1], 0, { clips: [['Sitting_Idle_Loop', t + 2, 1]], look: [4.5, 1.18, .12] }, null]];
+  if (s.frank02) A2.push(['mihalych', -3.6, 0, -4.4, .84, STILL('Idle_Loop', 2.1), [7.45, 3.85, 5.45]]);   // в глубине холла, лицом к камере
+  return A2; } };
 SH.cam03 = { loc: 'lobby', pos: [.2, 3.2, -1.6], look: [-1.5, 1.25, -6], fov: 58, cctv: 1, set: (o, t) => { const s = SHS();
-  setLift(o, o.lifts[0], s.liftOpen ? 1 : 0, String(s.lift || '1')); o.cabLight.intensity = s.liftOpen ? 2.4 : 0; return []; } };
+  setLift(o, o.lifts[0], s.liftOpen ? 1 : 0, String(s.lift || '1')); o.cabLight.intensity = s.liftOpen ? 2.4 : 0;
+  if (s.lift13) setLift(o, o.lifts[1], 0, '13');
+  shClock(o, s, t);
+  if (s.palmMove) { o.palm.position.set(-.82, 0, -5.3); o.palmShadow.visible = false; }
+  return []; } };
 SH.cam04 = { loc: 'stairs', pos: [1.25, 7.3, -.3], look: [-.1, 4.5, -5.0], fov: 62, cctv: 1, set: (o, t) => { const s = SHS(); o.setFloor(1, 4); o.setFloor(0, 3); o.setFloor(2, 5);
-  if (!s.st) o.bulbs.forEach(b => { b.li.intensity = b.base * .4; }); return []; } };
-// 7-й: Гас моет (s.gus — где по коридору), свет горит, пока он там; без него — темно
+  if (s.stDark) { stDim(o, 0); irOn(o, [1.2, 7.1, -.5], 1.7); } else if (!s.st) o.bulbs.forEach(b => { b.li.intensity = b.base * .4; });
+  return s.guard04 ? [['smenshik', -.3, 4.5, -5.5, PI, STILL('Idle_Loop', .7), null]] : []; } };
+// 7-й: Гас моет (s.gus), свет горит, пока он там; без него — темно, камера в ИК
 SH.cam07 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .8, -10.2], fov: 44, cctv: 1, set: (o, t) => { const s = SHS();
-  if (s.gus) { setLamps(o, 7); o.cleanSet(CLEAN); const z = -9.45 + Math.sin(t * .05) * 1.5; return [['cleaner', -.1, 0, z, .2, mopGus(o, -.1, z, .2, t), null]]; }
-  setLamps(o, s.l7 ? 7 : 0); o.amb.intensity = s.l7 ? .36 : .1; return []; } };
+  const C = s.gus ? Object.assign({}, CLEAN) : {}; C.door7 = 0;
+  if (s.bucket7) { C.bucket = [-.3, -8.1, .7]; C.mop = [.35, -8.9, 1.25, 1]; }
+  o.cleanSet(C); o.ajar10(s.door7 ? 1.4 : 0);
+  if (s.gus) { setLamps(o, 7); const z = -9.45 + Math.sin(t * .05) * 1.5; return [['cleaner', -.1, 0, z, .2, mopGus(o, -.1, z, .2, t), null]]; }
+  setLamps(o, s.l7 ? 7 : 0); o.amb.intensity = s.l7 ? .36 : .1; if (!s.l7) irOn(o, [1.0, 2.6, -.7], 1.4);
+  return []; } };
 SH.cam10 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .9, -12], fov: 46, cctv: 1, set: (o, t) => { const s = SHS(); o.setFloor(10);
-  setLamps(o, s.l10 ? 7 : 1, true); o.amb.intensity = s.l10 ? .36 : .12; o.ajar10(s.door10 ? 1 : 0); return []; } };
-SH.cam_m2 = { loc: 'basement', pos: [.85, 2.32, -.4], look: [0, .8, -14], fov: 56, cctv: 1, set: (o, t) => { const s = SHS(); if (s.mOff) bsDark(o, .15); return []; } };
+  setLamps(o, s.l10 ? 7 : 1, true); o.amb.intensity = s.l10 ? .36 : .12; o.ajar10(s.door10 ? 1 : 0);
+  if (s.door10) { o.hole10.material = o.holeLit; o.faceL.position.set(.95, 1.3, -5.6); o.faceL.color.setHex(0xffd9a0); o.faceL.intensity = 1.6; o.faceL.distance = 3.2; }
+  if (s.chair10) { o.chair10.visible = true; o.chair10.position.set(-.15, 0, -5.3); o.chair10.rotation.y = 2.5; }
+  return []; } };
+SH.cam_m2 = { loc: 'basement', pos: [.85, 2.32, -.4], look: [0, .8, -14], fov: 56, cctv: 1, set: (o, t) => { const s = SHS();
+  if (s.mOff) { bsDark(o, 0); irOn(o, [.85, 2.2, -.6], 1.5); }
+  if (s.sdoor) { o.sdoor.rotation.y = 1.25; o.roomL.intensity = 4; o.roomL.distance = 8; o.roomL.position.set(0, 1.2, -13.6); o.glow.material.opacity = 1; o.glow.scale.set(2.2, 3, 1); }   // дверь серверной открыта, внутри — свечи
+  return []; } };
 SH.dbg_eface0 = { loc: 'lobby', pos: [.6, 1.64, 5.55], look: [.55, 1.62, 4.95], fov: 34, set: (o, t) => [['temych', .55, 0, 4.95, 0, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet' }, 'cam']] };
 SH.dbg_eface1 = { loc: 'lobby', pos: [.6, 1.64, 5.55], look: [.55, 1.62, 4.95], fov: 34, set: (o, t) => { A.temych.root.traverse(m => { if (m.isMesh) m.receiveShadow = false; }); return [['temych', .55, 0, 4.95, 0, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet' }, 'cam']]; } };
 SH.dbg_stairs = { loc: 'stairs', pos: [1.15, 5.2, -5.6], look: [.2, 3.4, -.6], fov: 62, set: () => [] };
@@ -1536,8 +1574,8 @@ function cinePost() {
     fragmentShader: `uniform sampler2D tD; uniform vec2 uDir; varying vec2 vUv; void main(){
       vec3 c = texture2D(tD, vUv).rgb * .227; c += (texture2D(tD, vUv + uDir * 1.385).rgb + texture2D(tD, vUv - uDir * 1.385).rgb) * .316; c += (texture2D(tD, vUv + uDir * 3.23).rgb + texture2D(tD, vUv - uDir * 3.23).rgb) * .07;
       gl_FragColor = vec4(c, 1.); }` });
-  PB.comp = new T.ShaderMaterial({ uniforms: { tD: { value: null }, tBl: { value: null }, uT: { value: 0 }, uCctv: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 }, uAsp: { value: 1 }, uExp: { value: .95 } }, vertexShader: POST_VS,
-    fragmentShader: `uniform sampler2D tD, tBl; uniform float uT, uCctv, uVhs, uScare, uAsp, uExp; varying vec2 vUv;
+  PB.comp = new T.ShaderMaterial({ uniforms: { tD: { value: null }, tBl: { value: null }, uT: { value: 0 }, uCctv: { value: 0 }, uIr: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 }, uAsp: { value: 1 }, uExp: { value: .95 } }, vertexShader: POST_VS,
+    fragmentShader: `uniform sampler2D tD, tBl; uniform float uT, uCctv, uIr, uVhs, uScare, uAsp, uExp; varying vec2 vUv;
       float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
       vec3 aces(vec3 x){ return clamp((x * (2.51 * x + .03)) / (x * (2.43 * x + .59) + .14), 0., 1.); }
       void main(){
@@ -1562,6 +1600,7 @@ function cinePost() {
         c = mix(c * vec3(.86, 1.0, 1.07) + vec3(0., .008, .018), c * vec3(1.06, .99, .9), smoothstep(.18, .7, l));   // холодные тени, тёплый свет
         c = mix(vec3(l), c, .88);
         c = mix(c, vec3(l) * vec3(.86, 1., .9), uCctv * .55) + max(c - .6, 0.) * uCctv * .8;
+        c = mix(c, vec3(pow(l, .78) * 1.2) * vec3(.9, 1., .94), uIr);                          // ИК-режим камеры: ч/б, светлее у объектива
         c *= 1. - uCctv * .09 * step(1., mod(floor(gl_FragCoord.y / 2.), 2.));
         c *= 1. - smoothstep(.55, 1.5, r) * .6;                                                   // виньетка
         c += (h(gl_FragCoord.xy + fract(uT * 7.13) * 731.) - .5) * (.035 + uCctv * .05 + uVhs * .015);   // зерно
@@ -1615,9 +1654,9 @@ function init() {
   window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? { type: T.HalfFloatType, samples: 4 } : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
   if (CINE) cinePost();
   postMat = new T.ShaderMaterial({
-    uniforms: { tD: { value: window.__W3core.RT.texture }, uB: { value: new T.Vector2(V.BW, V.BH) }, uHD: { value: HD }, uLv: { value: 22 }, uCctv: { value: 0 }, uGam: { value: 1.25 }, uT: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 } },
+    uniforms: { tD: { value: window.__W3core.RT.texture }, uB: { value: new T.Vector2(V.BW, V.BH) }, uHD: { value: HD }, uLv: { value: 22 }, uCctv: { value: 0 }, uIr: { value: 0 }, uGam: { value: 1.25 }, uT: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }',
-    fragmentShader: `uniform sampler2D tD; uniform vec2 uB; uniform float uHD, uLv, uCctv, uGam, uT, uVhs, uScare; varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tD; uniform vec2 uB; uniform float uHD, uLv, uCctv, uIr, uGam, uT, uVhs, uScare; varying vec2 vUv;
       float b2(vec2 a){ a = floor(a); return fract(dot(a, vec2(.5, a.y * .75))); }
       float b4(vec2 a){ return b2(.5 * a) * .25 + b2(a); }
       float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
@@ -1638,6 +1677,7 @@ function init() {
         float l = dot(c, vec3(.299, .587, .114));
         c = mix(c * vec3(.86, 1.02, 1.08) + vec3(0., .012, .024), c * vec3(1.06, .98, .88), smoothstep(.25, .8, l));   // холодные тени, тёплый свет
         c = mix(c, vec3(l) * vec3(.88, 1., .9), uCctv * .3) + max(c - .62, 0.) * uCctv * .9;                         // камера: блеклая, свет «горит»
+        c = mix(c, vec3(pow(l, .78) * 1.2) * vec3(.9, 1., .94), uIr);                                                 // ИК-режим камеры
         c *= 1. - (.06 + .07 * uCctv) * step(1., mod(floor(gl_FragCoord.y / uHD), 2.));           // строки
         c += cr * .22 * h(vec2(gl_FragCoord.x, fr)) + band * .05 * h(gl_FragCoord.xy + fr);
         if (uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.) c = vec3(0.);
@@ -1670,7 +1710,7 @@ function stage(id, t, opt = {}) {
   if (window.__W3chars && window.__W3chars.propsFrame) window.__W3chars.propsFrame();   // предметы в руках: видны только те, что держат в этом кадре
   curProps = Object.assign({}, PROPS, window.World && World.props, opt.props);
   if (curLoc && curLoc !== o) curLoc.reset();
-  curLoc = o; o.reset(); if (o.props) o.props(curProps);
+  curLoc = o; o.reset(); o.ir = 0; if (o.irL) o.irL.intensity = 0; if (o.props) o.props(curProps);
   for (const k in A) { A[k].faceSet = 'base'; A[k].gore = 0; A[k].scream = 0; A[k].reflOnly = false; A[k].root.visible = true; A[k].aim = null; A[k].noTilt = false; A[k].shake = 0; A[k].struggle = 0; A[k].twitch = 0; A[k].no = 0; A[k].actT = undefined; }
   if (o.faceL) o.faceL.color.setHex(0xdde6ff);
   if (sh.face) for (const k in sh.face) A[k].faceSet = sh.face[k];   // выражение лица на весь кадр (set() ниже может уточнить)
@@ -1782,7 +1822,7 @@ function draw(g, W, H, id, o) {
     if (tor) { cam.updateMatrixWorld(); l.position.set(.18, -.25, 0).applyMatrix4(cam.matrixWorld); _p.set(tor.x * 2 - 1, 1 - tor.y * 2, .5).unproject(cam).sub(cam.position).normalize().multiplyScalar(10).add(cam.position); l.target.position.copy(_p); l.target.updateMatrixWorld(); } }
   if (o.creep && !crept && !used.has('monster') && placeCreep(loc, o.creep, R)) A.monster.update(T0, dt);
   const cctv = o.cctv ?? sh.cctv ?? 0;
-  const PU = postMat.uniforms; PU.uCctv.value = cctv ? 1 : 0; PU.uT.value = T0; PU.uScare.value = clamp(o.scare || 0, 0, 1); PU.uVhs.value = o.vhs ?? VHS;
+  const PU = postMat.uniforms; PU.uCctv.value = cctv ? 1 : 0; PU.uIr.value = loc.ir ? 1 : 0; if (PB && PB.comp) PB.comp.uniforms.uIr.value = loc.ir ? 1 : 0; PU.uT.value = T0; PU.uScare.value = clamp(o.scare || 0, 0, 1); PU.uVhs.value = o.vhs ?? VHS;
   if (loc === L.lobby) {
     const U = loc.glassU, lit = clamp((loc.l1.intensity / 1.9) * .55 + (loc.l4.intensity / 1.25) * .25 + loc.amb.intensity * .5, 0, 1.4);
     U.uLit.value = lit; U.uT.value = T0; U.uFogD.value = loc.S.fog.density; U.uRef.value *= loc.reflBoost ?? 1;
@@ -1812,5 +1852,5 @@ function thumb(id, o = {}) {   // маленькая картинка кадра
   return (thumbs[key] = c.toDataURL('image/jpeg', .7));
 }
 // World.props — «нормы» холла (куртка, пропуск, часы); World.vhs — сила плёнки 0..1 (для пункта меню); World.tube — горит ли сейчас ненадёжная лампа (для звука)
-window.World = { draw, init, warm, setLand, perf: perfTick, get land() { return V.land; }, get cine() { return CINE; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
+window.World = { draw, init, warm, setLand, perf: perfTick, get land() { return V.land; }, get cine() { return CINE; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();
