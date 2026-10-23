@@ -1252,7 +1252,9 @@ SH.x_building = { loc: 'lobby', pos: [2.6, 1.5, 21.5], look: [-1.0, 22.5, 6], fo
   return [['temych', 1.6, 0, 23.2, PI - .08, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', look: [-3.1, 41.6, 6] }, null]]; } };
 // x05–x07: стоит под дождём, телефон у уха; за спиной — тёмное здание
 SH.x_rain = { loc: 'lobby', pos: [2.35, 1.6, 17.6], look: [.9, 1.6, 15.0], fov: 44, set: (o, t) => { o.fac.material = o.facDark; o.ghostWin.visible = true; lobbyOff(o); o.sky.material.map = TX.skyCity;
-  return [['temych', 1.15, 0, 15.6, PI - .55, { clips: [['Idle_TalkingPhone_Loop', t + 1, 1]], fing: { r: ['phone', 1] }, hold: { r: 'phone' }, legs: 'feet', look: [2.6, 1.6, 18.5] }, null]]; } };
+  const ry = 1.0, R = locR(1.15, 15.6, ry);   // лицом почти к камере, телефон у правого уха: ладонь к щеке, пальцы вперёд, локоть вниз (клип клал руку поперёк лица)
+  return [['temych', 1.15, 0, 15.6, ry, { clips: [['Idle_TalkingPhone_Loop', t + 1, 1]], legs: 'feet', look: R.p(-.3, 1.62, 3),
+    arm: { r: { at: R.p(-.105, 1.53, -.06), by: 'palm', fdir: R.v(0, .25, 1), pdir: R.v(1, 0, 0), w: 1, pole: R.p(-.35, 1.0, .05) } }, fing: { r: ['phone', 1] }, hold: { r: 'phone' } }, null]]; } };
 // Б1, рассвет: вдвоём под козырьком; Фрэнк держится за плечо Итана, нога в картоне
 const XE = [-.1, 7.45], XF = [-.62, 7.55];
 function frankOut(t, extra = {}) {
