@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Сборка Night Shift для itch.io.
+"""Сборка Hush Till Six (папка nightshift) для itch.io.
    python3 tools/itch/build.py  →  dist/itch/
-     nightshift-web.zip      — «играть в браузере» (HTML5): index.html в корне архива, всё относительными путями
-     nightshift-offline.zip  — «скачать»: распаковал, открыл index.html двойным щелчком, интернет не нужен.
+     hush-till-six-web.zip      — «играть в браузере» (HTML5): index.html в корне архива, всё относительными путями
+     hush-till-six-offline.zip  — «скачать»: распаковал, открыл index.html двойным щелчком, интернет не нужен.
                                Браузер не читает файлы с диска через XHR, поэтому звуки/модели/тайминги
                                упакованы в pack-*.js (base64), а offline.js подставляет их вместо сетевых ответов."""
 import base64, os, re, shutil, zipfile
@@ -34,10 +34,10 @@ all_files = list(files())
 web = os.path.join(OUT, 'web')
 for rel in all_files:
     os.makedirs(os.path.dirname(os.path.join(web, rel)), exist_ok=True); shutil.copy2(os.path.join(SRC, rel), os.path.join(web, rel))
-zipdir(web, os.path.join(OUT, 'nightshift-web.zip'))
+zipdir(web, os.path.join(OUT, 'hush-till-six-web.zip'))
 
 # ---------- офлайн-версия ----------
-off = os.path.join(OUT, 'offline', 'NightShift')
+off = os.path.join(OUT, 'offline', 'HushTillSix')
 os.makedirs(off)
 packs, cur, size = [], [], 0
 for rel in all_files:
@@ -63,11 +63,11 @@ tags = ''.join(f'<script src="{n}"></script>\n' for n in ['offline.js'] + names)
 html = html.replace('<script src="i18n.js', tags + '<script src="i18n.js', 1)
 open(os.path.join(off, 'index.html'), 'w').write(html)
 open(os.path.join(off, 'README.txt'), 'w').write(
-    'NIGHT SHIFT\n\nOpen index.html in Chrome, Edge or Firefox. No internet needed.\n'
+    'HUSH TILL SIX\n\nOpen index.html in Chrome, Edge or Firefox. No internet needed.\n'
     'Headphones recommended. Language: English / Russian (Settings).\n\n'
     'Откройте index.html в Chrome, Edge или Firefox. Интернет не нужен. Лучше в наушниках.\n')
-zipdir(os.path.join(OUT, 'offline'), os.path.join(OUT, 'nightshift-offline.zip'))
+zipdir(os.path.join(OUT, 'offline'), os.path.join(OUT, 'hush-till-six-offline.zip'))
 
-for f in ('nightshift-web.zip', 'nightshift-offline.zip'):
+for f in ('hush-till-six-web.zip', 'hush-till-six-offline.zip'):
     p = os.path.join(OUT, f); print(f'{f}: {os.path.getsize(p) / 1e6:.1f} МБ')
 print(f'файлов в веб-версии: {len(all_files)} (лимит itch.io — 1000)')

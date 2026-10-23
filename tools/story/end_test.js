@@ -18,7 +18,7 @@ const SC = { dawn: 'dawn', newentry: 'morning', inside: 'hide2', sister: 'run2' 
       for (let i = 0; i < 80; i++) { const st = await p.evaluate(() => [window.__ns.mode, window.__ns.fin]); if (st[0] !== 'play' || st[1]) break; await p.evaluate(() => window.__ns.skipBeat()); await p.waitForTimeout(250); }
       const fin = await p.evaluate(() => window.__ns.fin);
       await p.waitForTimeout(3500); await p.screenshot({ path: `${out}/${e}_${land ? 'L' : 'P'}_fin.png` });
-      await p.waitForFunction(() => window.__ns.mode === 'end', null, { timeout: 60000 });
+      await p.waitForFunction(() => window.__ns.mode === 'end', null, { timeout: 180000 });   // в headless ~1 кадр/с: финал (8,5 с игрового времени) идёт минуту и больше
       await p.waitForTimeout(6000); await p.screenshot({ path: `${out}/${e}_${land ? 'L' : 'P'}_log.png` });
       const back = await p.evaluate(() => { const b = document.getElementById('eBack'); return b ? b.textContent : null; });
       console.log(e, land ? 'гориз.' : 'верт.', '| финал:', fin, '| журнал: да | к выбору:', back);

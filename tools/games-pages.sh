@@ -13,10 +13,10 @@ find "$DST" -name '_*' ! -path '*/.git/*' -exec rm -rf {} +                    #
 touch "$DST/.nojekyll"                                   # отдавать файлы как есть, без Jekyll
 sed -i "s#https://office-dreams-production.up.railway.app/games/nightshift/#$SITE/#g" "$DST/index.html"   # картинка для превью ссылки
 cat > "$DST/404.html" <<'HTML'
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Молчи до шести</title><meta http-equiv="refresh" content="0; url=/"><script>location.replace('/')</script></head><body style="background:#050607"></body></html>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Hush Till Six</title><meta http-equiv="refresh" content="0; url=/"><script>location.replace('/')</script></head><body style="background:#050607"></body></html>
 HTML
 [ -f "$DST/README.md" ] || cat > "$DST/README.md" <<'MD'
-# Молчи до шести (Hush Till Six)
+# Hush Till Six (Молчи до шести)
 
 Бесплатная интерактивная хоррор-игра в браузере: https://yompix.github.io
 

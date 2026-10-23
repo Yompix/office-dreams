@@ -197,7 +197,7 @@ window.STORY = {
       music: 'drone', time: '05:59',
       beats: [
         { img: 'h_crouch', cams: [[.5, .5, 1.0, 1.05]], say: ['h05'], pad: .4 },
-        { img: 'h_face', cams: [[.5, .5, 1.05, 1.12]], say: ['h06'], sfx: [['ch_whisper', .2, { bus: 'voice', gain: .6 }]], pad: .6 },
+        { img: 'h_face_open', cams: [[.5, .5, 1.05, 1.12]], say: ['h06'], sfx: [['ch_whisper', .2, { bus: 'voice', gain: .6 }]], pad: .6 },
         { img: 'h_guard', fx: 'dawn', time: '06:00', cams: [[.5, .5, 1.0, 1.05]], say: ['h07', 'h08'], sfx: [['door', .2]], pad: .3 },
         { img: 'h_guard_back', fx: 'dawn', cams: [[.5, .5, 1.0, 1.05]], say: ['h09'], pad: .4 },
         { img: 'h_reflect', fx: 'dawn', cams: [[.5, .5, 1.0, 1.1]], say: ['h10'], pad: 1.4 }
@@ -300,8 +300,8 @@ window.STORY = {
         { img: 'x_two', fx: 'rain', cams: [[.5, .45, 1.25, 1.3]], say: ['d26'], pad: .4 },
         { img: 'x_smoke', fx: 'rain', cams: [[.5, .45, 1.0, 1.06]], say: ['d27'], sfx: [['lighter', .3]], pad: 1.2 },
         { img: 'x_smoke', fx: 'rain', cams: [[.5, .42, 1.1, 1.16]], say: ['d28', 'd29'], pad: .4 },
-        { img: 'x_two', fx: 'rain', cams: [[.5, .5, 1.0, 1.04]], say: ['d30'], pad: .6 },
-        { img: 'hall_cam', fx: 'cctv', label: 'CAM 02  ХОЛЛ  03:00', cams: [[.5, .5, 1.0, 1.04], [.36, .46, 2.2, 2.6]], say: ['d31'], pad: 1.6 }
+        { img: 'x_two', fx: 'rain', cams: [[.5, .5, 1.0, 1.04]], say: ['d30'], props: { cig: 1 }, pad: .6 },
+        { img: 'hall_cam', fx: 'cctv', label: 'CAM 02  ХОЛЛ', hud: { date: '05.11.2026', at: '03:00' }, cams: [[.5, .5, 1.0, 1.04], [.36, .46, 2.2, 2.6]], say: ['d31'], pad: 1.6 }   // «теперь каждую ночь в три»: запись другой ночи
       ],
       then: { ending: 'dawn', title: 'РАССВЕТ', sub: 'Ты ни разу не ответил. Пока.' }
     },
@@ -378,7 +378,7 @@ window.STORY = {
     over_k5: {
       music: 'tension',
       beats: [
-        { img: 'h_face', fx: 'dark', cams: [[.5, .5, 1.1, 1.2]], say: ['k5a'], pad: .1 },
+        { img: 'h_face_open', fx: 'dark', cams: [[.5, .5, 1.1, 1.2]], say: ['k5a'], pad: .1 },
         { img: 'lunge_booth', fx: 'lunge', scare: 1.2, text: '', pad: 3.0 }
       ],
       then: { over: 'ОНО УСЛЫШАЛО', sub: 'Оно ищет на звук. Пока шаги рядом — не дыши.', retry: 'hide' }
@@ -386,7 +386,7 @@ window.STORY = {
     over_k5b: {   // то же в часе A1 (шаги у будки, отпустил «НЕ ДЫШИ»): заново — с начала часа
       music: 'tension',
       beats: [
-        { img: 'h_face', fx: 'dark', cams: [[.5, .5, 1.1, 1.2]], say: ['k5a'], pad: .1 },
+        { img: 'h_face_open', fx: 'dark', cams: [[.5, .5, 1.1, 1.2]], say: ['k5a'], pad: .1 },
         { img: 'lunge_booth', fx: 'lunge', scare: 1.2, text: '', pad: 3.0 }
       ],
       then: { over: 'ОНО УСЛЫШАЛО', sub: 'Оно ищет на звук. Пока шаги рядом — не дыши.', retry: '@save' }

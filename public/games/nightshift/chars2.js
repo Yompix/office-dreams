@@ -814,7 +814,7 @@ function twistShare(C, sd, want) {
   const lw = lo.getWorldQuaternion(new T.Quaternion()).premultiply(new T.Quaternion().setFromAxisAngle(a, ang * .6)); setWorldQ(lo, lw);
 }
 // развернуть кисть: пальцы по fdir, ладонь по pdir (мир). Итог считается целиком, потом закрутка делится с предплечьем
-function orientHand(C, sd, fdir, pdir) {
+function orientHand(C, sd, fdir, pdir, k = 1) {   // k < 1 — кисть поворачивается к цели вместе с рукой (без рывка запястья в начале движения)
   const hb = C.bone['hand_' + sd]; C.root.updateWorldMatrix(true, true);
   const orig = hb.getWorldQuaternion(new T.Quaternion()), inv = orig.clone().invert();
   const h = hb.getWorldPosition(new T.Vector3()), m = C.bone['middle_01_' + sd].getWorldPosition(new T.Vector3());
@@ -826,6 +826,7 @@ function orientHand(C, sd, fdir, pdir) {
     if (want.lengthSq() > 1e-6 && n.lengthSq() > 1e-6) { want.normalize(); n.normalize();
       let a = Math.acos(clamp(n.dot(want), -1, 1)); if (n.clone().cross(want).dot(F) < 0) a = -a; wq.premultiply(new T.Quaternion().setFromAxisAngle(F, a)); }
   }
+  if (k < 1) wq.copy(orig.clone().slerp(wq, Math.max(0, k)));
   twistShare(C, sd, wq); setWorldQ(hb, wq);
 }
 // рука к точке мира так, чтобы туда пришлась именно точка кисти «by» (кисть повёрнута — точка касания сместилась: 3 прохода)
@@ -837,7 +838,7 @@ function reachArm(C, sd, a) {
   for (let it = 0; it < 3; it++) {
     const lp = C.root.worldToLocal(wrist.clone());
     ik2(C, 'upperarm_' + sd, 'lowerarm_' + sd, 'hand_' + sd, lp.x, lp.y, lp.z, pole, k);
-    if (a.fdir) orientHand(C, sd, a.fdir, a.pdir);
+    if (a.fdir) orientHand(C, sd, a.fdir, a.pdir, k);
     if (!a.by || a.by === 'wrist' || k < 1) break;
     wrist.add(want.clone().sub(handPt(C, sd, a.by)));
   }
@@ -1255,7 +1256,9 @@ float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43
 ` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
   ${re ? `diffuseColor.rgb = mix(vec3(${LUMA}) * uTint * uGain, uTint, ${(re[2] || 0).toFixed(2)});` : ''}
   ${kind === 'skin' ? `{ float s = smoothstep(.04, .012, length(vB - uEyeL3)) + smoothstep(.04, .012, length(vB - uEyeR3)); diffuseColor.rgb *= 1. - .9 * uSocket * clamp(s, 0., 1.); }` : ''}
-  ${kind === 'teeth' || kind === 'tongue' ? `{ float dz = clamp((uMouthZ - vB.z) / .026, 0., 1.), pink = clamp((diffuseColor.r - diffuseColor.g) * 2.5, 0., 1.);   // рот внутри в тени: чем глубже, тем темнее; дёсны и язык — приглушённые
+  ${kind === 'teeth' || kind === 'tongue' ? `float mouthD; { float dz = clamp((uMouthZ - vB.z) / .026, 0., 1.), pink = clamp((diffuseColor.r - diffuseColor.g) * 2.5, 0., 1.);   // рот внутри в тени: чем глубже, тем темнее; дёсны и язык — приглушённые
+    ${kind === 'teeth' ? `diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.84, .81, .76), .5 * (1. - pink));   // зубы ровнее по цвету: тёмные бороздки текстуры издали делали ряд похожим на решётку` : ''}
+    mouthD = ${kind === 'tongue' ? 'max(dz, .5)' : 'dz'};
     diffuseColor.rgb *= mix(1., .16, dz) * (1. - .55 * pink) * ${kind === 'tongue' ? '.5' : '1.'}; }` : ''}
   ${(() => { for (const k in (o.dim || {})) if (kind.includes(k)) return `diffuseColor.rgb *= ${o.dim[k].toFixed(2)};`; return ''; })()}
   float shK = 1.;   // своя тень на лице: карта теней грубая — нос и скулы дают на щеке рваный клин; на голове тень ослабляем
@@ -1270,9 +1273,13 @@ float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43
     gore = uGore * max(blob, drip);
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.2, .012, .012), clamp(gore * 1.4, 0., .95)); }`)
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, ' + (kind === 'hair' ? '.25' : '.42') + ', max(uWet * .75, gore));')
-      .replace('#include <lights_fragment_begin>', T.ShaderChunk.lights_fragment_begin.split('? getPointShadow(').join('? (1. - shK) + shK * getPointShadow(').split('? getShadow(').join('? (1. - shK) + shK * getShadow('));
+      .replace('#include <lights_fragment_begin>', T.ShaderChunk.lights_fragment_begin.split('? getPointShadow(').join('? (1. - shK) + shK * getPointShadow(').split('? getShadow(').join('? (1. - shK) + shK * getShadow('))
+      // глубже во рту свет не бликует: нёбо в «Кино» блестело серебром (или рыжим от тёплого света) — там выход не ярче самого цвета
+      .replace('#include <opaque_fragment>', '#include <opaque_fragment>' + (kind === 'teeth' || kind === 'tongue' ? '\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, min(gl_FragColor.rgb, diffuseColor.rgb * .8), smoothstep(.08, .6, mouthD));' : ''));
   };
-  m.customProgramCacheKey = () => 'hum3' + (kind === 'skin' ? 's' : '') + (kind === 'hair' ? 'h' : '') + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
+  // ключ программы: код шейдера у зубов, языка и «приглушённой» одежды свой — иначе three.js отдаёт им чужую готовую программу с тем же набором текстур
+  const dimK = (() => { for (const k in (o.dim || {})) if (kind.includes(k)) return 'd' + o.dim[k]; return ''; })();
+  m.customProgramCacheKey = () => 'hum3' + (kind === 'skin' ? 's' : '') + (kind === 'hair' ? 'h' : '') + (kind === 'teeth' ? 't' : kind === 'tongue' ? 'g' : '') + dimK + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
   return m;
 }
 
@@ -1427,6 +1434,7 @@ function faceV3(C, tt, dt) {
   if (fs.mouth) add('jawOpen', fs.mouth * .55);
   if (fs.frown) { add('mouthFrownLeft', fs.frown); add('mouthFrownRight', fs.frown); }
   if (fs.squint) { add('eyeSquintLeft', fs.squint); add('eyeSquintRight', fs.squint); }
+  if (fs.press && !(m > .02)) { add('mouthPressLeft', fs.press); add('mouthPressRight', fs.press); add('viseme_PP', .35 * fs.press); }   // затаил дыхание: губы сжаты
   // крик / бросок: челюсть до упора (у Жильца — дальше, чем может человек), губы растянуты, нос сморщен
   const scr = U.uScream.value;
   if (scr) {
@@ -1471,6 +1479,8 @@ function castV3() {
     F.plead = F.plead || { browIn: 1, browUp: .35, mouth: .12 };
     F.alert = F.alert || { browUp: .9, wide: true, dart: 1 };
     F.fear = F.fear || { mouth: .4, wide: true, browUp: 1, browIn: .8, dart: 1 };
+    F.hush = F.hush || { press: 1, wide: true, browUp: .9, browIn: 1, dart: 1 };   // не дышит: глаза распахнуты, губы сжаты
+    F.gasp = F.gasp || { mouth: .2, wide: true, browUp: 1, browIn: .9, dart: 1 };   // ахнул: рот чуть приоткрыт (зубы почти не видны)
     F.calm = F.calm || { smile: .3, browUp: .1 };
   }
   for (const k in A) A[k].update(0, 1 / 30);

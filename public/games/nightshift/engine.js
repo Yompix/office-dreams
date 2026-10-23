@@ -1156,7 +1156,7 @@ function finale(th) {
   const last = [...scene.beats].reverse().find(b => b.img), img = th.bg || (last && last.img);
   if (!img) return endScreen(Object.assign({}, th, { fin: 1 }));
   const c = th.bg ? (th.bgCam || [.5, .5, 1, 1.08]) : (last.cams || [[.5, .5, 1, 1.1]]).slice(-1)[0], z = th.bg ? c[2] : c[3];
-  const fin = { img, fx: th.bg ? th.bgFx : last.fx, label: th.bg ? undefined : last.label, cams: [[c[0], c[1], z, th.bg ? c[3] : z * 1.08]], auto: true, fin: 1, pad: 8.5 };
+  const fin = { img, fx: th.bg ? th.bgFx : last.fx, label: th.bg ? undefined : last.label, hud: th.bg ? undefined : last.hud, cams: [[c[0], c[1], z, th.bg ? c[3] : z * 1.08]], auto: true, fin: 1, pad: 8.5 };
   scene = Object.assign({}, scene, { beats: [...scene.beats, fin], then: Object.assign({}, th, { fin: 1 }) });   // копия: сценарий не трогаем
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
   music(BUF['end_' + th.ending] ? 'end_' + th.ending : 'drone'); play('boom', { gain: .45 });
@@ -1249,7 +1249,7 @@ function cctvHud(label, T, rw) {   // rw = { tag, clock } — запись на 
   g.fillText(rw ? rw.tag : 'REC', 124, 204);
   if (!rw && window.World && World.ir) { g.fillStyle = 'rgba(235,240,235,.75)'; g.fillText('IR', 250, 204); g.fillStyle = 'rgba(235,240,235,.9)'; }   // темно — камера в ИК
   if (label) g.fillText(label, 84, 258);
-  g.font = '700 34px "Courier New", monospace'; g.fillText(hudDate() + '  ' + (rw ? rw.clock : gameClock()), 84, 310);
+  g.font = '700 34px "Courier New", monospace'; g.fillText((rw && rw.date || hudDate()) + '  ' + (rw ? rw.clock : gameClock()), 84, 310);
   if (mode === 'shift' && shf && !rw) {   // микрофон камеры: что-то слышно — столбики прыгают
     shf.mic = (shf.mic || 0) * .94; const lv = Math.min(1, .1 + Math.random() * .1 + shf.mic * (.75 + Math.random() * .25));
     g.font = '700 26px "Courier New", monospace'; g.fillText('MIC', 84, 356);
@@ -1257,6 +1257,7 @@ function cctvHud(label, T, rw) {   // rw = { tag, clock } — запись на 
   }
   g.restore();
 }
+let hudRef = null, hudT0 = 0;
 function hudDate() { return +lastTime.slice(0, 2) < 12 ? '29.10.2026' : '28.10.2026'; }   // ночь с 28 на 29 октября (запись Итана в журнале — 28.10)
 function grain(a) { g.save(); g.globalAlpha = a; g.globalCompositeOperation = 'overlay'; const ox = Math.random() * 256, oy = Math.random() * 256; g.translate(-ox, -oy); g.fillStyle = noisePat || (noisePat = g.createPattern(noise, 'repeat')); g.fillRect(0, 0, W + 256, H + 256); g.restore(); }
 function vignette() { const r = g.createRadialGradient(W / 2, H / 2, H * .25, W / 2, H / 2, H * .75); r.addColorStop(0, 'rgba(0,0,0,0)'); r.addColorStop(1, 'rgba(0,0,0,.8)'); g.fillStyle = r; g.fillRect(0, 0, W, H); }
@@ -1460,7 +1461,8 @@ function frame(tp) {
         if (lg && sc && !calm() && st > .5 && st < .58) { shot('monster_close', { cx: .5, cy: .45, z: 1.35, t: 2.2, T, sx: 0, sy: 0, scare: 1 }); g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = '#ff2a20'; g.fillRect(0, 0, W, H); g.restore(); }
         if (lg && sc && !calm() && ((st > .09 && st < .13) || (st > .3 && st < .33))) { g.save(); g.globalCompositeOperation = 'difference'; g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.restore(); }
         vignette();
-        if (cam) cctvHud(beat.label, T);
+        if (beat.hud && (beat.hud !== hudRef || (!beat.fin && t < .1))) { hudRef = beat.hud; hudT0 = now() - t; }   // финал берёт тот же hud — часы записи идут дальше, а не с нуля
+        if (cam) cctvHud(beat.label, T, beat.hud && { tag: 'REC', date: beat.hud.date, clock: beat.hud.at + ':' + String(Math.floor(now() - hudT0) % 60).padStart(2, '0') });   // hud — своя дата и время записи (другая ночь)
       }
       // реплики: табличка с именем того, кто говорит; слова загораются по мере звучания
       let shown = false;
