@@ -1,0 +1,58 @@
+[
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "n01",
+   "n02",
+   "n03",
+   "n04",
+   "n05",
+   "n06",
+   "n07",
+   "n09",
+   "n11",
+   "n12",
+   "n13",
+   "n16",
+   "n18"
+  ],
+  "prompt": "[quiet, tired] Ten p.m. The entrance is locked, the elevator is on night mode. Twelve floors and me.\n\nRounds. Stairs, floors, basement. Flashlight, keys, and nobody.\n\n[quiet, uneasy] It smelled of wax by the server room. A warm strip of light ran out from under the door.\n\n[quiet, tired] Locked. There was no server-room key on the ring.\n\nProbably the emergency light. I went back up.\n\n[quiet, warm] A cat by the dumpsters. Frank wrote about her for twenty years. I'll log her too.\n\n[quiet, tired] Someone left the lights on on ten. I'll switch them off from the console.\n\n[casual] Sure. Come on down.\n\n[quiet, uneasy] I didn't ask what he could hear up there.\n\n[quiet, tense] Static. Just in the corner, by the door. As if someone were standing there.\n\nThe elevator moved on its own. Nobody at the console. Must be a sensor.\n\n[polite, curious] Thanks. Have you been here long?\n\n[quiet, tired] Half past two. The logbook was still lying there, closed.",
+  "chars": 951
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "n19",
+   "n21",
+   "n22",
+   "n23",
+   "n24"
+  ],
+  "prompt": "[quiet, tense] Another button had appeared on the console. Thirteen. A minute ago it wasn't there.\n\n[whispering, terrified] Footsteps. Not on the cameras anymore. In the lobby.\n\nThe static took the shape of a face. It was looking straight into the lens.\n\n[quiet, relieved] Yes. It's me.\n\n[quiet, tired] I put the phone down without a word.",
+  "chars": 339
+ },
+ {
+  "who": "ГАС",
+  "voice": "KgUSWQPFmuiZ5ycRbnty",
+  "keys": [
+   "n08",
+   "n10",
+   "n14",
+   "n15",
+   "n17"
+  ],
+  "prompt": "[friendly, old man] Security, it's Gus again. Got a kettle in that booth? Frank always left me one.\n\n[calm, dreamy, a bit odd] Nah, I'll stay up here. It's quiet. You can hear real well up here…\n\n[friendly, warm, old man] Ah, the new guy. Here, have an apple. From my garden.\n\n[kind, reassuring, old man] Old building. You see all sorts of things. Just don't let it get to you.\n\n[quiet, sad, old man] Thirty years. My wife worked here, on seven. Now I'm the one mopping.",
+  "chars": 470
+ },
+ {
+  "who": "ЛИЛИ",
+  "voice": "CamFZN2KIaqnyvcaFe3E",
+  "keys": [
+   "n20"
+  ],
+  "prompt": "[quiet, sweet, uncertain] Ethan?.. Is that you?",
+  "chars": 47
+ }
+]

@@ -24,14 +24,16 @@ SKIP_WHO = {'ГОЛОС'}                 # голос матери Фрэнка
 MAXC = 1250                          # символов в пакете (≈ кредитов за генерацию)
 def say_text(s):   # что читает голос: без тире реплики и без «(…)»
     return re.sub(r'^\s*—\s*', '', s).strip()
-def bfile(lang): return os.path.join(ROOT, f'tools/story/batches_{lang}.json')
+ONLY = os.environ.get('ONLY')        # ONLY='^n\d\d$' — озвучить только эти ключи (добавка к готовому)
+BATCH = os.environ.get('BATCH', '')  # BATCH=n — свой файл пакетов batches_<lang>_n.json (не затирать основной)
+def bfile(lang): return os.path.join(ROOT, f'tools/story/batches_{lang}{"_" + BATCH if BATCH else ""}.json')
 def tfile(lang): return os.path.join(GAME, 'timing.json' if lang == 'ru' else 'timing_en.json')
 def sdir(lang): return os.path.join(GAME, 'snd' if lang == 'ru' else 'snd/en')
 
 def plan(lang):
     by = {}
     for k, L in LINES.items():
-        if k in SKIP or L['who'] in SKIP_WHO: continue
+        if k in SKIP or L['who'] in SKIP_WHO or (ONLY and not re.match(ONLY, k)): continue
         by.setdefault(L['who'], []).append(k)
     out = []
     for who, keys in by.items():

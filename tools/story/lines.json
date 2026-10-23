@@ -1189,6 +1189,174 @@
   "en": "It was her voice. But it wasn't coming from the phone. It was coming from the lobby.",
   "tag": "whispering, terrified"
  },
+ "n01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Двадцать два ноль-ноль. Вход заперт, лифт — в ночном режиме. Двенадцать этажей и я.",
+  "en": "Ten p.m. The entrance is locked, the elevator is on night mode. Twelve floors and me.",
+  "tag": "quiet, tired"
+ },
+ "n02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Обход. Лестница, этажи, подвал. Фонарь, ключи — и никого.",
+  "en": "Rounds. Stairs, floors, basement. Flashlight, keys, and nobody.",
+  "tag": "quiet, tired"
+ },
+ "n03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "У серверной пахло воском. Из-под двери тянулась тёплая полоска света.",
+  "en": "It smelled of wax by the server room. A warm strip of light ran out from under the door.",
+  "tag": "quiet, uneasy"
+ },
+ "n04": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Заперто. Ключа от серверной в связке не было.",
+  "en": "Locked. There was no server-room key on the ring.",
+  "tag": "quiet, tired"
+ },
+ "n05": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Наверное, аварийная лампа. Я пошёл наверх.",
+  "en": "Probably the emergency light. I went back up.",
+  "tag": "quiet, tired"
+ },
+ "n06": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Кошка у баков. Фрэнк писал про неё двадцать лет. Запишу и я.",
+  "en": "A cat by the dumpsters. Frank wrote about her for twenty years. I'll log her too.",
+  "tag": "quiet, warm"
+ },
+ "n07": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "На десятом кто-то оставил свет. Выключу с пульта.",
+  "en": "Someone left the lights on on ten. I'll switch them off from the console.",
+  "tag": "quiet, tired"
+ },
+ "n08": {
+  "who": "ГАС",
+  "fx": "radio",
+  "ru": "— Охрана, это опять Гас. Чайник у тебя в будке есть? Фрэнк мне всегда оставлял.",
+  "en": "— Security, it's Gus again. Got a kettle in that booth? Frank always left me one.",
+  "tag": "friendly, old man"
+ },
+ "n09": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Есть. Спускайся.",
+  "en": "— Sure. Come on down.",
+  "tag": "casual"
+ },
+ "n10": {
+  "who": "ГАС",
+  "fx": "radio",
+  "ru": "— Не, я уж тут, наверху. Тут тихо. Хорошо слышно…",
+  "en": "— Nah, I'll stay up here. It's quiet. You can hear real well up here…",
+  "tag": "calm, dreamy, a bit odd"
+ },
+ "n11": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Что ему там слышно, я не спросил.",
+  "en": "I didn't ask what he could hear up there.",
+  "tag": "quiet, uneasy"
+ },
+ "n12": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Помехи. Только в углу, у двери. Как будто там кто-то стоит.",
+  "en": "Static. Just in the corner, by the door. As if someone were standing there.",
+  "tag": "quiet, tense"
+ },
+ "n13": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Лифт поехал сам. На пульте — никого. Наверное, датчик.",
+  "en": "The elevator moved on its own. Nobody at the console. Must be a sensor.",
+  "tag": "quiet, tense"
+ },
+ "n14": {
+  "who": "ГАС",
+  "fx": "",
+  "ru": "— А, новенький. Держи яблоко, с дачи.",
+  "en": "— Ah, the new guy. Here, have an apple. From my garden.",
+  "tag": "friendly, warm, old man"
+ },
+ "n15": {
+  "who": "ГАС",
+  "fx": "",
+  "ru": "— Здание старое, всякое мерещится. Ты главное — в голову не бери.",
+  "en": "— Old building. You see all sorts of things. Just don't let it get to you.",
+  "tag": "kind, reassuring, old man"
+ },
+ "n16": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Спасибо. А вы давно тут?",
+  "en": "— Thanks. Have you been here long?",
+  "tag": "polite, curious"
+ },
+ "n17": {
+  "who": "ГАС",
+  "fx": "",
+  "ru": "— Тридцать лет. Жена тут работала, на седьмом. Теперь вот я мою.",
+  "en": "— Thirty years. My wife worked here, on seven. Now I'm the one mopping.",
+  "tag": "quiet, sad, old man"
+ },
+ "n18": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Половина третьего. Журнал всё ещё лежал закрытым.",
+  "en": "Half past two. The logbook was still lying there, closed.",
+  "tag": "quiet, tired"
+ },
+ "n19": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "На пульте появилась ещё одна кнопка. Тринадцать. Минуту назад её не было.",
+  "en": "Another button had appeared on the console. Thirteen. A minute ago it wasn't there.",
+  "tag": "quiet, tense"
+ },
+ "n20": {
+  "who": "ЛИЛИ",
+  "fx": "phone",
+  "ru": "— Итан?.. Это ты?",
+  "en": "— Ethan?.. Is that you?",
+  "tag": "quiet, sweet, uncertain"
+ },
+ "n21": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Шаги. Уже не на камерах — в холле.",
+  "en": "Footsteps. Not on the cameras anymore. In the lobby.",
+  "tag": "whispering, terrified"
+ },
+ "n22": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Помехи сложились в лицо. Оно смотрело прямо в объектив.",
+  "en": "The static took the shape of a face. It was looking straight into the lens.",
+  "tag": "whispering, terrified"
+ },
+ "n23": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Да. Это я.",
+  "en": "— Yes. It's me.",
+  "tag": "quiet, relieved"
+ },
+ "n24": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Трубку я положил молча.",
+  "en": "I put the phone down without a word.",
+  "tag": "quiet, tired"
+ },
  "ch_katya": {
   "who": "ЛИЛИ",
   "fx": "muffle",

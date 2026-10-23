@@ -64,7 +64,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', 2)] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   const sn = SNDS.map(k => get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
-  const tm = get(EN ? 'timing_en.json?v=2' : 'timing.json?v=7', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_en.json?v=3' : 'timing.json?v=8', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры
   for (const k of [...storySfx(), ...Object.keys(TIM)]) if (!SNDS.includes(k)) get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
