@@ -13,7 +13,7 @@ if (EN) {   // статичные надписи страницы
   const kk = document.getElementById('keys'); if (kk) for (const d of kk.children) if (d.lastChild && d.lastChild.nodeType === 3) d.lastChild.textContent = tr(d.lastChild.textContent);
 }
 const cv = $('cv'), g = cv.getContext('2d');
-let W = 1080, H = 1920, US = 1;   // холст движка: 1080×1920 вертикально или 1920×1080 горизонтально; US — масштаб надписей на холсте
+let W = 1080, H = 1920, US = 1, CS = 1;   // холст движка: 1080×1920 вертикально или 1920×1080 горизонтально; US — масштаб надписей на холсте; CS — масштаб холста (слабый телефон — 2/3)
 const dlgEl = $('dlg'), tapEl = $('tap'), chapEl = $('chap'), clockEl = $('clock'), noteEl = $('note'), ruleEl = $('rule'), choiceEl = $('choice'), uiEl = $('ui'), mgEl = $('mg'), smsEl = $('sms'), actEl = $('act');
 const LS = { get(k, d) { try { const v = localStorage.getItem('ns1_' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
              set(k, v) { try { localStorage.setItem('ns1_' + k, JSON.stringify(v)); } catch {} } };
@@ -69,8 +69,43 @@ async function load(onp) {
   const tm = get(EN ? 'timing_en.json?v=8' : 'timing.json?v=13', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   await Promise.all([world, ...sn, tm]);
-  // остальные реплики (их много) докачиваются в фоне, уже во время игры
-  for (const k of [...storySfx(), ...Object.keys(TIM)]) if (!SNDS.includes(k)) get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
+  // остальные реплики (их много) докачиваются в фоне, уже во время игры — очередью по 4, в порядке сцен; нужные сейчас встают вперёд (voiceReady)
+  const order = [...storySfx()]; for (const sc of Object.values(S.scenes)) order.push(...sceneKeys(sc)); order.push(...Object.keys(TIM));
+  for (const k of order) if (!SNDS.includes(k)) fetchSnd(k);
+}
+// Реплики декодируются по мере надобности: все 273 сразу — это ~210 МБ памяти, телефон от этого тормозит и вылетает.
+// Нужны реплики текущей сцены и следующих за ней (чтобы склейка не ждала); старые отпускаются, держим не больше VOICE_KEEP
+const voiceWant = new Set(), voiceOrder = [], sndJob = {}, sndQ = []; let sndBusy = 0, voiceMiss = 0;   // voiceMiss — реплика должна была прозвучать, а буфера не было (проверяют тесты)
+const VOICE_KEEP = 32, isVoice = k => !!TIM[k], LAZY_RE = /^(shift|end_)/;   // большая музыка (смена 96 с, финалы) тоже декодируется по надобности
+const sceneKeys = sc => { const ks = []; for (const b of (sc && sc.beats) || []) for (const k of b.say || []) ks.push(k); return ks; };
+const objKeys = o => { const ks = new Set(); JSON.stringify(o, (k, v) => { if (typeof v === 'string' && isVoice(v)) ks.add(v); return v; }); return [...ks]; };   // все ключи реплик внутри объекта (события смены, странности, звонки)
+const decQ = {};   // идущие декодирования реплик — чтобы не декодировать одну дважды
+const decodeV = k => decQ[k] || (decQ[k] = decodeOne(k, rawSnd[k]).then(() => { voiceOrder.push(k); delete decQ[k]; }));
+function fetchSnd(k, urgent) {
+  let j = sndJob[k];
+  if (!j) { j = sndJob[k] = { k, queued: true }; j.done = new Promise(r => (j.res = r)); }
+  if (j.queued) { const i = sndQ.indexOf(j); if (i < 0) urgent ? sndQ.unshift(j) : sndQ.push(j); else if (urgent && i > 0) { sndQ.splice(i, 1); sndQ.unshift(j); } }
+  sndPump(); return j.done;
+}
+function sndPump() {
+  while (sndBusy < 4 && sndQ.length) { const j = sndQ.shift(); j.queued = false; sndBusy++;
+    get(sndUrl(j.k), 'arraybuffer').then(b => { rawSnd[j.k] = b; if (AC && !isVoice(j.k) && !LAZY_RE.test(j.k)) return decodeOne(j.k, b); if (AC && voiceWant.has(j.k)) return decodeV(j.k); })
+      .catch(() => {}).then(() => { sndBusy--; j.res(); sndPump(); }); }
+}
+function voiceReady(keys) {   // декодировать реплики (докачать, если ещё нет); обещание — когда все готовы
+  const ps = [];
+  for (const k of keys) { if (!isVoice(k)) continue; voiceWant.add(k); if (BUF[k] || !AC) continue;
+    ps.push(rawSnd[k] ? decodeV(k) : fetchSnd(k, true)); }
+  return Promise.all(ps).then(voiceTrim);
+}
+function voiceTrim() {   // старые реплики, которые сейчас не нужны, отпускаем
+  const old = voiceOrder.filter(k => !voiceWant.has(k));
+  while (voiceOrder.length > VOICE_KEEP && old.length) { const k = old.shift(); voiceOrder.splice(voiceOrder.indexOf(k), 1); delete BUF[k]; }
+}
+function voicePrep(id) {   // реплики этой сцены — сейчас; тех, куда она ведёт, — следом
+  const sc = S.scenes[id]; voiceWant.clear(); const ids = new Set();
+  JSON.stringify((sc && sc.then) || {}, (k, v) => { if (typeof v === 'string' && S.scenes[v]) ids.add(v); return v; });
+  const p = voiceReady(sceneKeys(sc)); p.then(() => voiceReady([...ids].flatMap(n => sceneKeys(S.scenes[n])))); return p;
 }
 // голос в пространстве: рассказ героя — сухой и близкий; остальные звучат в помещении.
 // Метка реплики (fx в timing.json): рация и телефон — узкая полоса с хрипом; за стеклом и за дверью — глухо;
@@ -128,7 +163,7 @@ function initAudio() {   // контекст создаём заранее (он
   analyser = AC.createAnalyser(); analyser.fftSize = 512; voiceG.connect(analyser); abuf = new Uint8Array(analyser.fftSize);
   bedInit();
   return (decoding = Promise.all(Object.entries(rawSnd).filter(([k]) => SNDS.includes(k)).map(([k, b]) => decodeOne(k, b))).then(() => {
-    for (const [k, b] of Object.entries(rawSnd)) if (!BUF[k]) decodeOne(k, b);   // фоновые — не задерживают старт
+    for (const [k, b] of Object.entries(rawSnd)) if (!BUF[k] && !isVoice(k) && !LAZY_RE.test(k)) decodeOne(k, b);   // фоновые звуки — не задерживают старт; реплики — по сценам (voiceReady), большая музыка — в music()
   }));
 }
 function unlockAudio() {   // только внутри нажатия: иначе телефон (особенно iPhone) не даст включить звук
@@ -151,6 +186,7 @@ const playing = new Set();
 const SEND = { heart: 2.2, heart_held: 1, sub_presence: 3, drone_dread: 1.6, boom: 1.6, metal_groan: .7 };
 function play(name, { when = 0, bus = 'sfx', loop = false, gain = 1, off = 0, rate = 1, to = null, cut = 0, pan = 0, lp = 0, rev = 0 } = {}) {
   if (name === 'jumpscare' && !to && directG) to = [[directG, 1]];
+  if (bus === 'voice' && isVoice(name) && !BUF[name] && AC) voiceMiss++;
   if (!AC || !BUF[name]) return null;
   if (bus === 'voice' && TIM[name] && TIM[name].g) gain *= TIM[name].g;   // реплики выровнены по громкости (tools/story/voice.py loud)
   const s = AC.createBufferSource(), gn = AC.createGain(); s.buffer = BUF[name]; s.loop = loop; gn.gain.value = gain; s.playbackRate.value = rate;
@@ -174,7 +210,9 @@ let curMusic = null, curMusicName = '';
 function music(name) {
   if (!AC || name === curMusicName) return; curMusicName = name;
   const old = curMusic; if (old) { old.gn.gain.setTargetAtTime(0, AC.currentTime, .6); setTimeout(() => { try { old.s.stop(); } catch {} }, 2500); }
-  curMusic = name ? play(name, { bus: 'music', loop: true, gain: .0001 }) : null; if (name && !curMusic) curMusicName = null;   // ещё не раскодирована — попробуем позже
+  if (name && !BUF[name] && rawSnd[name] && !decQ[name]) {   // музыка смены и финалов декодируется, когда понадобилась (иначе ~100 МБ лежали бы в памяти всю игру)
+    decQ[name] = decodeOne(name, rawSnd[name]).then(() => { delete decQ[name]; if (curMusicName === name && !curMusic) { curMusicName = ''; music(name); } }); curMusic = null; return; }
+  curMusic = name ? play(name, { bus: 'music', loop: true, gain: .0001 }) : null; if (name && !curMusic) curMusicName = null;   // ещё не скачана — попробуем позже
   if (curMusic) { curMusic.music = true; curMusic.gn.gain.setTargetAtTime(1, AC.currentTime, .8); }
   // в «напряжении» середина и так есть — обертонов ему почти не надо; гулу — полностью
   if (musicSend) musicSend.gain.setTargetAtTime(name === 'tension' ? .35 : 1, AC.currentTime, .5);
@@ -339,6 +377,7 @@ document.addEventListener('visibilitychange', () => { paused = document.hidden |
 let mode = 'load', scene = null, sceneId = '', bi = 0, beat = null, bT0 = 0, bDur = 0, bCuts = null, sched = [], fired = new Set(), onBeatEnd = null;
 let gen = 0;   // номер текущей сцены: старые таймеры и мини-игры по нему понимают, что устарели
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+let perf2S = 0, perf2N = 0;
 let flashT = -9, blackT = -9, scareAt = null, shakeAmp = 0, typed = null, hb = 0, pre = 0, trig = [], subl = null, sublScene = '', voiceNow = false;
 let creep = null, creepCool = 25, mgView = null;   // случайное появление Жильца в кадре; кадр под мини-игрой
 let sceneT0 = 0, secBase = 7, lastTime = '02:55', lastDrawn = 'door_katya', falseAlarm = false;
@@ -417,7 +456,10 @@ function startScene(id, at) {   // at: true — сразу к концу сце�
   if (!id.startsWith('over_')) LS.set('save', id);
   if (scene.music) music(scene.music);
   if (scene.time) { lastTime = scene.time; clockEl.textContent = scene.time; clockEl.classList.remove('hide'); }
-  bi = at === true ? scene.beats.length - 2 : typeof at === 'number' ? Math.min(at, scene.beats.length) - 1 : -1; nextBeat();
+  bi = at === true ? scene.beats.length - 2 : typeof at === 'number' ? Math.min(at, scene.beats.length) - 1 : -1;
+  const my = gen, ready = voicePrep(id);
+  if (sceneKeys(scene).every(k => !isVoice(k) || BUF[k])) return nextBeat();
+  beat = null; Promise.race([ready, new Promise(r => setTimeout(r, 700))]).then(() => { if (gen === my && mode === 'play' && !beat) nextBeat(); });   // реплики ещё декодируются — короткая чёрная склейка
 }
 function nextBeat() {
   bi++; while (scene.beats[bi] && !flagOk(scene.beats[bi].if)) bi++;   // кадр только при условии (что нашёл, что спросил)
@@ -509,7 +551,7 @@ function gapTime(k) {   // начало самой длинной паузы м�
   for (let i = 1; i < w.length; i++) { const gp = w[i][0] - w[i - 1][0]; if (gp > best) { best = gp; at = w[i][0] - .15; } }
   return at;
 }
-function skipBeat() { if (mode !== 'play') return; stopAll(); duck(false); waiting = false; tapEl.classList.add('hide'); nextBeat(); }
+function skipBeat() { if (mode !== 'play' || !beat) return; stopAll(); duck(false); waiting = false; tapEl.classList.add('hide'); nextBeat(); }
 // тап по экрану: начать кадр / дочитать реплику / дальше
 function tap() { if (userPause) return;   // на паузе тап по игре не проходит
   if (mode !== 'play' || !beat) return;
@@ -560,6 +602,7 @@ function glitchEnd() {
 
 /* ---------- что дальше ---------- */
 function runThen(th) {
+  voiceReady(objKeys(th));
   dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); ruleEl.classList.add('hide'); amb('static', false); amb('heart', false);
   if (th.goto) return startScene(th.goto);
   if (th.choice) return showChoice(th);
@@ -581,6 +624,7 @@ function backTo(id) { const sc = S.scenes[id]; if (!sc) return menu(); sceneId =
 function showAct(th, kind) {
   mode = kind; const my = gen, items = actItems(th), lv = th.leave || th.bye;
   act = { kind, th, t0: now(), cams: th.cams || [[.5, .5, 1, 1.03]], items };
+  voiceReady(items.flatMap(it => sceneKeys(S.scenes[it.s.go])).concat(lv && lv.go ? sceneKeys(S.scenes[lv.go]) : []));   // реплики точек и тем — заранее, чтобы переход не ждал
   const leaveOk = !lv || (lv.need || []).every(k => flags['v:' + k]);
   const go = (to, set) => { if (my !== gen || !act) return; play('click'); act = null; actEl.innerHTML = ''; actEl.classList.add('hide'); setFlags(set); startScene(to); };
   if (kind === 'talk') {
@@ -842,11 +886,12 @@ let shf = null, shk = null, shSpd = 1;   // смена сейчас; что пе
 function shkNew() { return { door: 0, lift: 0, lights: {}, log: [], st: {}, c13: false, read: false }; }
 function shiftGame(th) {
   const seg = S.shift.segs[th.shift]; if (!seg) return startScene(S.start);
-  gen++; const my = gen; mode = 'shift'; document.body.classList.add('shifting'); stopAll(); music(seg.music || (BUF.shift ? 'shift' : 'drone')); amb('static', false);
+  gen++; const my = gen; mode = 'shift'; document.body.classList.add('shifting'); stopAll(); music(seg.music || (BUF.shift || rawSnd.shift ? 'shift' : 'drone')); amb('static', false);
   choiceEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); ruleEl.classList.add('hide');
   if (!shk || th.fresh) shk = shkNew();
   shf = { id: th.shift, seg, my, t0: now(), lt: now(), m0: toMin(seg.from), m1: toMin(seg.to), M: toMin(seg.from), cam: seg.cam || '02', camT: now(), act: [], miss: 0, vq: [], pop: null, warn13: false, ended: false };
   shf.ev = seg.events.map(e => Object.assign({ m: toMin(e.at) }, e));
+  voiceWant.clear(); voiceReady(objKeys([seg, ...Object.entries(S.shift).filter(([k]) => !/^(segs|lines)$/.test(k)).map(([, v]) => v)]));   // реплики этого часа, странностей и звонков
   if (seg.rnd) { const pool = seg.rnd.pool.slice(); for (let i = 0; i < seg.rnd.n && pool.length; i++) { const id = pool.splice(Math.random() * pool.length | 0, 1)[0]; shf.ev.push({ m: shf.m0 + 6 + Math.random() * Math.max(1, shf.m1 - shf.m0 - 14), an: id }); } }
   shf.ev.sort((a, b) => a.m - b.m);
   LS.set('save', 'sh_' + th.shift); sceneId = 'sh_' + th.shift;
@@ -864,7 +909,8 @@ function shiftProps() {   // что сейчас видно на камерах:
 function sayV(k, o = {}) {   // реплика во время смены: голос + слова по таймингу (нет озвучки — печатается текст)
   const d = durOf(k), at = Math.max(now(), ...shf.vq.map(v => v.t0 + v.d + .25)), it = { k, t0: at + (o.delay || 0), d: TIM[k] ? d : Math.max(2.4, ((S.shift.lines || {})[k] || '').length / 14 + 1) };
   shf.vq.push(it);
-  if (TIM[k]) for (const vo of voiceFx(k)) { const x = play(k, Object.assign({ bus: 'voice' }, vo, { when: it.t0 - now() + (vo.dt || 0) })); if (x) x.voice = true; }
+  const go = () => { if (TIM[k]) for (const vo of voiceFx(k)) { const x = play(k, Object.assign({ bus: 'voice' }, vo, { when: it.t0 - now() + (vo.dt || 0) })); if (x) x.voice = true; } };
+  if (TIM[k] && !BUF[k] && AC) voiceReady([k]).then(() => { if (shf && shf.vq.includes(it)) go(); }); else go();   // ещё не декодирована — догоним, когда готова
   return it;
 }
 function shiftEvent(e) {
@@ -1253,7 +1299,7 @@ function finale(th) {
   const fin = { img, fx: th.bg ? th.bgFx : last.fx, label: th.bg ? undefined : last.label, hud: th.bg ? undefined : last.hud, cams: [[c[0], c[1], z, th.bg ? c[3] : z * 1.08]], auto: true, fin: 1, pad: 8.5 };
   scene = Object.assign({}, scene, { beats: [...scene.beats, fin], then: Object.assign({}, th, { fin: 1 }) });   // копия: сценарий не трогаем
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
-  music(BUF['end_' + th.ending] ? 'end_' + th.ending : 'drone'); play('boom', { gain: .45 });
+  music(BUF['end_' + th.ending] || rawSnd['end_' + th.ending] ? 'end_' + th.ending : 'drone'); play('boom', { gain: .45 });
   bi = scene.beats.length - 2; nextBeat();
   uiEl.innerHTML = `<div class="screen fin" id="fin"><h1>${[...tr(th.title)].map((ch, i) => ch === ' ' ? ' ' : `<span style="animation-delay:${(.5 + i * .08).toFixed(2)}s">${escH(ch)}</span>`).join('')}</h1>
     <p>${escH(tr(th.sub))}</p><small>${tr('Нажми, чтобы продолжить')}</small></div>`;
@@ -1263,7 +1309,7 @@ function finale(th) {
 function endScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
   mode = 'end'; const got = new Set(LS.get('endings', [])), fresh = !got.has(th.ending); got.add(th.ending); LS.set('endings', [...got]); LS.set('save', null); runSave();
-  if (!th.fin) play('boom'); music(BUF['end_' + th.ending] ? 'end_' + th.ending : 'drone');
+  if (!th.fin) play('boom'); music(BUF['end_' + th.ending] || rawSnd['end_' + th.ending] ? 'end_' + th.ending : 'drone');
   const fork = [...run.picks].reverse().find(p => forkAt(p.sc)), my = gen;
   const mins = Math.max(1, Math.round(run.sec / 60)), dur = mins >= 60 ? trf('{h} ч {m} мин', { h: Math.floor(mins / 60), m: mins % 60 }) : trf('{m} мин', { m: mins });
   const rows = [['Время в игре', dur], ['Часов смены отстоял', run.hrs.length], ['Странностей замечено', run.ok], ['Записей в журнале', run.rec], ['Пропущено', run.miss]];
@@ -1534,9 +1580,12 @@ let camHud = false;
 function setCamHud(on) { if (on !== camHud) { camHud = on; clockEl.classList.toggle('dim', on); } }   // на экране камеры время показывает сама камера
 function frame(tp) {
   const dt0 = Math.max(0, (tp - lastP) / 1000), dt = Math.min(.1, dt0); if (window.World && World.perf && (mode === 'play' || mode === 'menu')) World.perf(tp - lastP); lastP = tp; if (!paused) clockT += dt;
+  // слабый телефон в «Ретро»: кадры идут медленно (в среднем > 36 мс за 90 кадров) → 2D-холст 720×1280 вместо 1080×1920, один раз за сессию
+  if (CS === 1 && !(window.World && World.cine) && inGame() && !paused && dt0 < .25) { perf2S += dt0; if (++perf2N >= 90) { if (perf2S / perf2N > .036) { CS = 2 / 3; applyLand(LAND); } perf2N = perf2S = 0; } }
   if (!paused && PLAYING.has(mode)) { run.sec += Math.min(1, dt0); if ((runSaveT += dt0) > 5) { runSaveT = 0; runSave(); } }   // сколько реально играли (для журнала в конце)
   const T = now();
   let place = null, quiet = false, cam = false; voiceNow = false;
+  if (mode === 'play' && !beat) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
   if (mode === 'play' && beat) {
     let t = waiting ? 0 : T - bT0;
     if (t >= bDur) {
@@ -1646,7 +1695,7 @@ function frame(tp) {
     place = placeOf(c.img); cam = true;
   } else if (mode === 'shift' && shf) {
     const c = shf.cam, st = T - shf.camT, img = c === '13' ? null : 'cam' + (c === 'm2' ? '_m2' : c);
-    if (!shf.seg.music && curMusicName === 'drone' && BUF.shift) music('shift');   // подложка смены докачалась позже старта
+    if (!shf.seg.music && curMusicName === 'drone' && (BUF.shift || rawSnd.shift)) music('shift');   // подложка смены докачалась позже старта (декодируется в music())
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
     if (img) heldShot(img, { cx: .5, cy: .5, z: 1, t: T, T, sx: 0, sy: 0, cctv: 1 }, T, 'sh' + c);
     for (const a of shf.act) if (a.def.cam === c && a.def.box) staticBox(a.def.box, T, a.look || 0);   // настоящие камеры показывают его только помехами
@@ -1707,7 +1756,7 @@ function trigTick(t) { for (const e of trig) if (!e.done && t >= e.at) { e.done 
 /* ---------- старт ---------- */
 // ориентация кадра на лету: холст движка, буферы кадра, раскладка интерфейса
 function applyLand(l) {
-  LAND = !!l; W = LAND ? 1920 : 1080; H = LAND ? 1080 : 1920; US = H / 1920; if (act) act.laid = false;   // точки обхода — разложить подписи заново
+  LAND = !!l; W = Math.round((LAND ? 1920 : 1080) * CS); H = Math.round((LAND ? 1080 : 1920) * CS); US = H / 1920; if (act) act.laid = false;   // точки обхода — разложить подписи заново
   for (const c of [cv, heldC, frozenC]) { c.width = W; c.height = H; }
   heldT = -9; drops = drops.map(() => ({ x: Math.random() * W, y: Math.random() * H, v: 1800 + Math.random() * 1400, l: 40 + Math.random() * 70 }));
   document.body.classList.toggle('land', LAND);
@@ -1771,5 +1820,6 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
 window.__ns = { back: () => menu(), startScene, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); },
+  get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get canvas() { return [W, H, CS]; }, get bufN() { return Object.keys(BUF).length; }, get voiceN() { return Object.keys(BUF).filter(isVoice).length; },
   get vols() { const g = n => n ? +n.gain.value.toFixed(3) : null; return { out: g(outG), mus: g(uMus), sfx: g(uSfx), sfxRev: g(sfxRev), sfxLow: g(sfxLow), amb: g(uAmb), bedLow: g(bedLow), voice: g(voiceOut), voiceRev: g(voiceRev), direct: g(directG), bed: g(bedG) }; } };
 })();

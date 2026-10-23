@@ -1682,7 +1682,7 @@ function cineTick(o, T0) {
 }
 // кадр: сцена в HDR-буфер со сглаживанием → четверть кадра размывается (свечение ламп и мягкие края объектива) → итог:
 // плёночная кривая (ACES), холодные тени / тёплый свет, ореол вокруг ярких ламп, хроматизм к краям, виньетка, мелкое зерно
-let PB = null;
+let PB = null, shadowN = 0;
 const POST_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }';
 function cinePost() {
   const q = () => new T.WebGLRenderTarget(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2), { type: T.HalfFloatType, magFilter: T.LinearFilter, minFilter: T.LinearFilter });
@@ -1969,7 +1969,7 @@ function draw(g, W, H, id, o) {
     cam.updateMatrixWorld(); renderRefl(R, loc, used, newShot);
   }
   for (const k of used) if (A[k].reflOnly) A[k].root.visible = false;
-  if (CINE) { cineTick(loc, T0); R.shadowMap.needsUpdate = true; }
+  if (CINE) { cineTick(loc, T0); R.shadowMap.needsUpdate = FINE || (++shadowN & 1) === 0; }   // на телефоне тени обновляются через кадр: это самая дорогая часть «Кино»
   R.setRenderTarget(window.__W3core.RT); R.render(loc.S, cam);
   if (CINE) cineRender(R, T0, cctv ? 1 : 0, clamp(o.scare || 0, 0, 1), o.vhs ?? VHS);
   else { R.setRenderTarget(null); R.render(postScene, postCam); }
