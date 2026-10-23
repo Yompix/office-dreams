@@ -172,6 +172,24 @@ const EN = {
   "Шаги у самой будки. Держи кнопку, пока она не уйдёт.": "Footsteps right by the booth. Hold the button until she leaves.",
   "Она дышит за стеклом будки. Не отпускай.": "She's breathing on the other side of the booth glass. Don't let go.", "ЗАТАИТЬСЯ": "STAY STILL", "НЕ ДЫШУ": "NOT BREATHING",
   "Шаги удаляются. Пока.": "The footsteps fade. For now.", "Я на седьмом. Тут светло и тепло. Поднимись ко мне?": "I'm on seven. It's bright and warm up here. Come up to me?",
+  // осмотр будки, звонки, обход, разговоры с выбором тем (story.js: explore / talk)
+  'БУДКА ФРЭНКА': "FRANK'S BOOTH", 'ЗВОНОК': 'THE CALL', 'Осмотрись. Нажми на то, что хочешь проверить.': 'Look around. Tap whatever you want to check.',
+  'Осмотри будку. Нажми на то, что хочешь проверить.': 'Look around the booth. Tap whatever you want to check.', 'Куртка Фрэнка': "Frank's jacket", 'Фото под стеклом': 'Photo under the glass',
+  'Ящик стола': 'Desk drawer', 'Сесть за мониторы': 'Sit down at the monitors', 'Марта.\nСедьмой этаж.\nНовый год': "Martha.\nSeventh floor.\nNew Year's",
+  'Дневной охранник': 'Day guard', 'Что на самом деле случилось с Фрэнком?': 'What really happened to Frank?', 'Зачем ты стучал в стекло?': 'Why did you knock on the glass?',
+  '«Оно» — это кто?': '"It"? What\'s "it"?', 'В здании ещё кто-нибудь есть?': 'Is anyone else in the building?', '«Ладно. До утра»': '"Okay. See you in the morning"',
+  'Дверь серверной. Что проверить?': 'The server room door. What do you check?', 'Ручка': 'Handle', 'Постучать': 'Knock', 'Щель под дверью': 'Gap under the door', 'Позвать': 'Call out',
+  'Подняться наверх': 'Go back upstairs', 'Гас': 'Gus', 'Спасибо. А вы давно тут?': 'Thanks. Have you been here long?', 'Женщина на фото у Фрэнка — это Марта?': "The woman in Frank's photo — is that Martha?",
+  'Ваша жена тоже здесь работала?': 'Did your wife work here too?', 'Фрэнк что-нибудь говорил перед тем, как пропасть?': 'Did Frank say anything before he disappeared?', 'Кто вас зовёт?': 'Who calls you?',
+  '«Что бы она ни говорила — не отвечайте»': '"Whatever she says — don\'t answer"', 'Пора в будку': 'Time to get back to the booth',
+  'Как там Бублик?': "How's Biscuit?", 'Ты сейчас в общаге?': "You're at the dorm right now?", 'Тут… странно': "It's… weird here", '«Спи давай. Всё сдашь»': '"Go to sleep. You\'ll ace it"',
+  'Всё ещё не сплю :( Ты как там? Утром позвони!': "Still can't sleep :( How are you holding up? Call me in the morning!",
+  '+7 914 207-33-18': '(914) 207-3318', 'Номер не определён': 'Unknown number', 'ТЫ ВЗЯЛ ТРУБКУ': 'YOU PICKED UP', 'Звонили не тебе. Но ответил — ты.': "The call wasn't for you. But you're the one who answered.",
+  'Телефон Фрэнка': "Frank's phone", 'Телефон Фрэнка · 11 пропущенных': "Frank's phone · 11 missed calls", 'Телефон Фрэнка · Номер не определён': "Frank's phone · Unknown number",
+  'Фрэнки, сынок, спустись ко мне. Я внизу': "Frankie, son, come down to me. I'm downstairs", 'На зарядке. Номер не определён.': 'On the charger. Unknown number.', 'Ответить: «Алло?»': 'Answer: "Hello?"',
+  '(Дальше Фрэнк писал от руки — в журнале на столе. Журнал перевязан бечёвкой, на обложке: «До трёх. Весь.»)': "(The rest Frank wrote by hand — in the logbook on the desk. It's tied with string; on the cover: 'Before three. All of it.')",
+  // надписи в кадре (scenes.js): пачка соли, обложка журнала Фрэнка
+  'СОЛЬ': 'SALT', 'крупная': 'coarse', 'До трёх.|Весь.': 'Before three.|All of it.',
   // пауза
   'ПАУЗА': 'PAUSED', 'Главное меню': 'Main menu',
 };

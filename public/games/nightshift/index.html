@@ -85,6 +85,26 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 #choice button, .btn { display: block; width: 100%; margin: 0 0 calc(3 * var(--u)); padding: calc(4.2 * var(--u)) calc(3 * var(--u)); border: calc(.5 * var(--u)) solid rgba(255, 70, 80, .75); border-radius: calc(3 * var(--u)); background: rgba(20, 4, 6, .82); color: #fff; font-family: inherit; font-weight: 800; font-size: calc(5.4 * var(--u)); line-height: 1.15; box-shadow: 0 0 calc(3 * var(--u)) rgba(255, 40, 50, .35), inset 0 0 calc(2 * var(--u)) rgba(255, 40, 50, .2); cursor: pointer; text-align: left; }
 #choice button b { color: var(--red); margin-right: calc(2 * var(--u)); }
 #choice button:active, .btn:active { transform: scale(.97); background: rgba(80, 10, 14, .9); }
+/* обход: точки на предметах кадра; разговор: темы внизу, как выбор, но без таймера */
+#act { position: absolute; inset: 0; pointer-events: none; animation: fadein .35s; }
+#act .ex-hint { position: absolute; left: 6%; right: 6%; top: calc(16 * var(--u)); text-align: center; color: rgba(236,232,220,.85); font: 600 calc(3.8 * var(--u))/1.3 NSUI, Inter, Arial, sans-serif; letter-spacing: calc(.5 * var(--u)); text-transform: uppercase; text-shadow: 0 0 calc(2 * var(--u)) #000; }
+#act .spot { position: absolute; width: max-content; transform: translate(-50%, calc(-4.5 * var(--u))); visibility: hidden; display: flex; flex-direction: column; align-items: center; gap: calc(1.6 * var(--u)); padding: 0; border: 0; background: none; color: #ece8dc; cursor: pointer; pointer-events: auto; font: 700 calc(4 * var(--u))/1.1 NSUI, Inter, Arial, sans-serif; letter-spacing: calc(.4 * var(--u)); text-transform: uppercase; text-shadow: 0 0 calc(1.5 * var(--u)) #000, 0 0 calc(3 * var(--u)) #000; }
+#act .spot i { width: calc(9 * var(--u)); height: calc(9 * var(--u)); border-radius: 50%; border: calc(.6 * var(--u)) solid #f2c21b; box-shadow: 0 0 calc(3 * var(--u)) rgba(242,194,27,.7), inset 0 0 calc(2 * var(--u)) rgba(242,194,27,.5); animation: spot 1.6s ease-in-out infinite; }
+#act .spot span { max-width: calc(46 * var(--u)); text-align: center; background: rgba(0,0,0,.55); padding: calc(1 * var(--u)) calc(2 * var(--u)); border-radius: calc(1.5 * var(--u)); }
+#act .spot:active i { transform: scale(.85); }
+#act .spot.up { flex-direction: column-reverse; transform: translate(-50%, calc(-100% + 4.5 * var(--u))); }   /* подпись над точкой: снизу соседняя */
+@keyframes spot { 0%, 100% { transform: scale(.82); opacity: .75; } 50% { transform: scale(1.08); opacity: 1; } }
+#act .ex-leave { position: absolute; left: 12%; right: 12%; bottom: 9%; width: auto; pointer-events: auto; }
+#act .talk { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 7% 12%; pointer-events: auto; }
+#act .talk h2 { margin: 0 0 calc(3 * var(--u)); text-align: center; font: 700 calc(5.2 * var(--u))/1.1 NSUI, Inter, Arial, sans-serif; letter-spacing: calc(.6 * var(--u)); text-transform: uppercase; color: #8fd0ff; text-shadow: 0 0 calc(2 * var(--u)) #000; }
+#act .talk button { display: block; width: 100%; margin: 0 0 calc(2.4 * var(--u)); padding: calc(3.4 * var(--u)) calc(3 * var(--u)); border: calc(.4 * var(--u)) solid rgba(143,208,255,.55); border-radius: calc(3 * var(--u)); background: rgba(6,12,20,.82); color: #fff; font-family: inherit; font-weight: 700; font-size: calc(4.8 * var(--u)); line-height: 1.2; text-align: left; cursor: pointer; }
+#act .talk button b { color: #8fd0ff; margin-right: calc(2 * var(--u)); }
+#act .talk button.bye { border-color: rgba(236,232,220,.25); color: rgba(236,232,220,.8); }
+#act .talk button:active { transform: scale(.97); }
+body.land #act .talk { left: 3%; right: auto; width: 44%; top: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 0 5%; }
+body.land #act .talk h2 { text-align: left; }
+body.land #act .ex-hint { top: calc(10 * var(--u)); }
+body.land #act .ex-leave { left: auto; right: 3%; bottom: 5%; width: calc(64 * var(--u)); }   /* в углу: не закрывает предметы внизу кадра */
 #timer { height: calc(1.2 * var(--u)); background: rgba(255,255,255,.15); border-radius: calc(1 * var(--u)); overflow: hidden; margin-top: calc(1 * var(--u)); }
 #timer i { display: block; height: 100%; background: var(--red); width: 100%; }
 /* меню, конец, проигрыш */
@@ -378,6 +398,7 @@ body.land #keys { display: none; }
     <div id="dlg" class="hide"><div class="nm"></div><div class="ln"></div><i class="nx">▼</i></div></div>
   <div id="mg" class="hide"></div>
   <div id="choice" class="hide"></div>
+  <div id="act" class="hide"></div>
   <div id="clock" class="hide"></div>
   <div id="hud" class="hide"><button id="bRules" title="Правила" aria-label="Правила"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg></button><button id="bAuto" title="Реплики сами" aria-label="Реплики сами"><svg class="ic" viewBox="0 0 24 24"><path class="f" d="M4 5l8 7-8 7zM12 5l8 7-8 7z"/></svg></button><button id="bMute" title="Звук" aria-label="Звук"><svg class="ic" viewBox="0 0 24 24"><path class="f" d="M3 9h4l5-4v14l-5-4H3z"/><path class="on1" d="M16 8.5a5 5 0 0 1 0 7M18.8 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M16 9l5 6M21 9l-5 6"/></svg></button><button id="bFull" class="hide" title="Во весь экран" aria-label="Во весь экран"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button><button id="bMenu" title="Меню" aria-label="Меню"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
   <div id="note" class="hide"></div>
@@ -385,15 +406,15 @@ body.land #keys { display: none; }
   <div id="ui"></div>
   <div id="pz" class="hide"></div>
 </div>
-<script src="i18n.js?v=7"></script>
+<script src="i18n.js?v=8"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
 <script src="world.js?v=6"></script>
 <script src="chars.js?v=2"></script>
-<script src="chars2.js?v=13"></script>
-<script src="scenes.js?v=17"></script>
-<script src="story.js?v=18"></script>
-<script src="engine.js?v=26"></script>
+<script src="chars2.js?v=14"></script>
+<script src="scenes.js?v=18"></script>
+<script src="story.js?v=19"></script>
+<script src="engine.js?v=27"></script>
 </body>
 </html>

@@ -131,7 +131,7 @@ function buildLobby() {
   o.lamp = new T.PointLight(0xffc46a, 1.6, 3.2, 1.5); o.lamp.position.set(5.95, 1.05, -.12); S.add(o.lamp);
   o.boothLight = new T.PointLight(0x9fe0c0, .6, 5, 1.6); o.boothLight.position.set(4.6, 1.4, -.2); S.add(o.boothLight);
   o.note = plane(.42, .28, mat(0xffffff, TX.note, { decal: 1 }), S); o.note.rotation.x = -PI / 2; o.note.rotation.z = PI + .12; o.note.position.set(5.35, .807, -.27);   // раскрытый журнал смен
-  { const cv = plane(.44, .30, mat(0x2a1e16), S); cv.rotation.x = -PI / 2; cv.rotation.z = PI + .12; cv.position.set(5.35, .804, -.27); }   // обложка под разворотом
+  { const cv = plane(.44, .30, mat(0x2a1e16), S); cv.rotation.x = -PI / 2; cv.rotation.z = PI + .12; cv.position.set(5.35, .804, -.27); o.noteCv = cv; }   // обложка под разворотом
   o.keys = new T.Group(); box(.06, .008, .035, mat(0xb8a060, null, { emissive: 0x201800 }), 0, 0, 0, o.keys); box(.01, .006, .06, mat(0xbbbbbb), .015, 0, .04, o.keys); box(.01, .006, .05, mat(0xbbbbbb), -.012, 0, .035, o.keys);
   o.keys.position.set(5.68, .81, -.28); o.keys.rotation.y = .6; S.add(o.keys);
   box(.12, .1, .08, mat(0x2a2a2a), 5.9, .85, .15, S);   // рация
@@ -148,6 +148,49 @@ function buildLobby() {
   for (const s of [-1, 1]) { const sl = box(.11, .5, .1, jm, s * .27, .78, .02, jk); sl.rotation.z = s * .08; box(.118, .04, .108, jt, s * .285, .52, .02, jk); }   // рукава висят
   box(.16, .04, .005, mat(0xc8c8c8), .1, .97, .09, jk);   // нашивка
   o.jacket = jk;
+  // 21:06, осмотр будки (сцена booth): из кармана куртки торчит пачка соли, крупинки — на сиденье и на полу
+  { const pk = new T.Group(); pk.position.set(.12, .73, .088); jk.add(pk); box(.15, .12, .012, jt, 0, 0, 0, pk);   // накладной карман
+    o.saltPack = new T.Group(); o.saltPack.position.set(.01, .06, -.004); o.saltPack.rotation.set(-.08, .18, .12); pk.add(o.saltPack);
+    box(.072, .1, .03, mat(0xdfe5ec), 0, 0, 0, o.saltPack);
+    const sp = ctex(36, 50, (x, w, h) => { x.fillStyle = '#e4e9ef'; x.fillRect(0, 0, w, h); x.fillStyle = '#1f4f96'; x.fillRect(0, h * .56, w, h * .44);
+      x.font = '800 10px Arial'; x.textAlign = 'center'; x.fillText(tr('СОЛЬ'), w / 2, h * .42); x.fillStyle = '#e8eef6'; x.font = '700 6px Arial'; x.fillText(tr('крупная'), w / 2, h * .8); });
+    const sf = plane(.068, .096, mat(0xffffff, sp, { decal: 1 }), o.saltPack); sf.position.z = .016;
+    o.saltGr = new T.Group(); ch2.add(o.saltGr);   // горсть на сиденье: горка и россыпь вокруг, немного просыпалось на пол
+    const sm = mat(0xdedbd2, null, { rough: .9 }), heap = cyl(.004, .045, .018, 9, sm, o.saltGr); heap.position.set(.06, .514, .1); heap.scale.z = .8;
+    const gr = new T.InstancedMesh(new T.BoxGeometry(.006, .004, .006), sm, 160); gr.frustumCulled = false; o.saltGr.add(gr);
+    const m4 = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler();
+    for (let i = 0; i < 160; i++) { const fl = i >= 120, a = rnd() * PI * 2, r = (fl ? .16 : .035 + .09 * Math.pow(rnd(), 1.6)) * (fl ? Math.sqrt(rnd()) : 1);
+      e.set(0, rnd() * PI, 0); q.setFromEuler(e); m4.compose(new T.Vector3(.06 + Math.cos(a) * r, fl ? .003 : .507, (fl ? .34 : .1) + Math.sin(a) * r * .75), q, new T.Vector3(1, 1, 1)); gr.setMatrixAt(i, m4); }
+    o.saltPack.visible = o.saltGr.visible = false; }
+  // стекло на столе, под ним фото (Новый год: Фрэнк, Гас и Марта); узкий ящик под столешницей; телефон Фрэнка на зарядке
+  { const ph = ctex(60, 42, (x, w, h) => { x.fillStyle = '#efe9dc'; x.fillRect(0, 0, w, h); x.fillStyle = '#5a4a3a'; x.fillRect(3, 3, w - 6, h - 6);
+      const g = x.createLinearGradient(0, 3, 0, h - 3); g.addColorStop(0, '#8a7a62'); g.addColorStop(1, '#3a3028'); x.fillStyle = g; x.fillRect(3, 3, w - 6, h - 6);
+      for (const [cx, c, hc] of [[16, '#2b3036', '#c8c4bc'], [30, '#3e5a72', '#3a3430'], [44, '#9a1c1c', '#8c8680']]) { x.fillStyle = c; x.fillRect(cx - 5, 17, 10, 22); x.fillStyle = '#d8b8a0'; x.fillRect(cx - 3, 9, 6, 7); x.fillStyle = hc; x.fillRect(cx - 3, 8, 6, 3); }
+      x.fillStyle = 'rgba(236,230,214,.9)'; x.fillRect(41, 10, 6, 6); });   // у неё вместо лица — стёртое пятно
+    o.deskPhoto = plane(.14, .098, mat(0xffffff, ph, { decal: 1 }), S); o.deskPhoto.rotation.set(-PI / 2, 0, PI - .08); o.deskPhoto.position.set(4.78, .8062, -.33);
+    o.deskGlass = plane(.62, .36, new T.MeshBasicMaterial({ color: 0x9fb0bc, transparent: true, opacity: .07, depthWrite: false, blending: T.AdditiveBlending }), S); o.deskGlass.rotation.x = -PI / 2; o.deskGlass.position.set(4.82, .8085, -.26);
+    o.drawer = new T.Group(); o.drawer.position.set(4.78, .717, -.44); S.add(o.drawer);   // открывается к стулу (−z)
+    const dmw = mat(0xffffff, TX.wood), dmi = mat(0x2a2218);
+    box(.46, .072, .018, dmw, 0, 0, -.009, o.drawer); box(.1, .012, .012, mat(0xb8bcc0, null, { metal: .8, rough: .3 }), 0, 0, -.024, o.drawer);   // лицевая панель, ручка
+    box(.43, .008, .38, dmi, 0, -.03, .19, o.drawer); for (const sx of [-1, 1]) box(.008, .05, .38, dmi, sx * .21, -.008, .19, o.drawer); box(.43, .05, .008, dmi, 0, -.008, .38, o.drawer);
+    box(.12, .002, .17, mat(0xe8e2d2), -.08, -.025, .12, o.drawer); const pen = cyl(.004, .004, .13, 6, mat(0x1a3a8a), o.drawer); pen.rotation.set(PI / 2, 0, .4); pen.position.set(.1, -.022, .1);   // бумаги и ручка
+    o.fphone = new T.Group(); o.fphone.position.set(4.6, .8125, -.36); o.fphone.rotation.y = .25; S.add(o.fphone);
+    box(.072, .009, .148, mat(0x111214, null, { metal: .3, rough: .4 }), 0, 0, 0, o.fphone);
+    o.fphoneScr = label(.064, .136, 32, 68, (c, w, h) => { c.fillStyle = '#050607'; c.fillRect(0, 0, w, h); c.strokeStyle = '#d23030'; c.lineWidth = 2; c.strokeRect(9, 26, 14, 22); c.fillStyle = '#d23030'; c.fillRect(13, 23, 6, 3); c.fillRect(11, 44, 10, 3);
+      c.fillStyle = '#f2f2f2'; c.beginPath(); c.moveTo(18, 29); c.lineTo(12, 38); c.lineTo(16, 38); c.lineTo(14, 46); c.lineTo(20, 36); c.lineTo(16, 36); c.closePath(); c.fill(); }, o.fphone);   // батарея на нуле, молния — заряжается
+    o.fphoneScr.rotation.x = -PI / 2; o.fphoneScr.position.y = .0048;
+    const cb = mat(0xe8e8e8); box(.006, .005, .2, cb, 0, -.002, .17, o.fphone); box(.18, .005, .006, cb, -.09, -.002, .27, o.fphone);   // провод зарядки к розетке за мониторами
+    o.fphone.visible = false;
+    // журнал Фрэнка до трёх часов: закрыт и перевязан бечёвкой, на обложке его рукой «До трёх. Весь.»
+    o.book = new T.Group(); o.book.position.set(5.35, .821, -.27); o.book.rotation.y = .12; S.add(o.book);
+    const bc = ctex(128, 176, (x, w, h) => { x.fillStyle = '#3a2a1e'; x.fillRect(0, 0, w, h); for (let i = 0; i < 260; i++) { x.fillStyle = `rgba(0,0,0,${.12 * rnd()})`; x.fillRect(rnd() * w, rnd() * h, 2, 2); }
+      x.fillStyle = '#ddd4bc'; x.fillRect(18, 34, 92, 50); x.fillStyle = '#1c2a6a'; x.font = 'italic 700 17px Georgia, "Times New Roman", serif'; x.textAlign = 'center'; const L = tr('До трёх.|Весь.').split('|'); L.forEach((t, i) => x.fillText(t, 64, 56 + i * 21)); });
+    const cvm = mat(0x2e2218); box(.2, .022, .288, mat(0xe2dccb), .004, 0, 0, o.book);   // срез страниц
+    for (const y of [-.0125, .0125]) box(.215, .003, .3, cvm, 0, y, 0, o.book); box(.006, .028, .3, cvm, -.105, 0, 0, o.book);   // обложка и корешок
+    const bk = plane(.21, .29, mat(0xffffff, bc, { decal: 1 }), o.book); bk.rotation.set(-PI / 2, 0, PI); bk.position.y = .0142;
+    const tw = mat(0xb8a27a), TZ = -.035; box(.225, .004, .006, tw, 0, .0158, TZ, o.book); box(.006, .004, .31, tw, -.03, .016, 0, o.book); box(.03, .006, .012, tw, -.03, .0175, TZ, o.book);   // бечёвка крест-накрест под надписью, узел
+    for (const sx of [-1, 1]) { box(.006, .032, .006, tw, sx * .1105, 0, TZ, o.book); box(.006, .032, .006, tw, -.03, 0, sx * .153, o.book); }
+    o.book.visible = false; }
   // стёкла будки на стойке: слева и справа, посередине окно — через него передают ключи; уходя, сменщик стучит в левое
   { const gmL = new T.MeshBasicMaterial({ color: 0x9fb0bc, transparent: true, opacity: .1, depthWrite: false, blending: T.AdditiveBlending });
     const gmD = new T.MeshBasicMaterial({ map: TX.grime, transparent: true, opacity: .16, depthWrite: false, color: 0x8c98a0 }); ps1(gmD);
@@ -242,10 +285,12 @@ function buildLobby() {
     o.jacket.visible = !!P.jacket; o.badge.visible = !!P.badge;
     o.badgeCard.material = mat(0xffffff, P.badge === 'scratched' ? TX.badgeX : TX.badge, { decal: 1 });
     o.note.material = mat(0xffffff, P.log === 2 ? TX.note2 : TX.note, { decal: 1 });
+    o.book.visible = !!P.book; o.note.visible = o.noteCv.visible = !P.book;   // до 02:50 журнал закрыт и перевязан (engine.js: propsNow)
     const [h, m] = String(P.clock || (o.dawn ? '06:00' : '02:57')).split(':').map(Number); o.setClock(h, m || 0);
   };
   o.reset = () => {
     o.faceL.intensity = 0; o.rain.material.opacity = .38; o.boothPane.visible = false;
+    o.book.visible = o.saltPack.visible = o.saltGr.visible = o.fphone.visible = false; o.note.visible = o.noteCv.visible = true; o.drawer.position.z = -.44;
     for (const l of o.lifts) setLift(o, l, 0, '1');
     o.cabLight.intensity = 0; relabel(o.cabInd, '1');
     o.lamp.intensity = 1.6; o.lampBulb.visible = true; o.boothLight.intensity = .6; o.l1.intensity = 1.9; o.amb.color.set(0x6a7a90); o.amb.intensity = .34; o.hemi.intensity = .1; o.l3.intensity = 1.3; o.l4.intensity = 1.25;
@@ -503,6 +548,11 @@ function buildCorridor() {
   if (!T.BufferGeometryUtils) for (const g2 of bg.slice(1)) o.blood.add(new T.Mesh(g2, o.blood.material)); o.blood.rotation.x = -PI / 2; o.blood.scale.set(1, 1.6, 1); o.blood.position.set(0, .006, -12); S.add(o.blood);
   o.faceL = new T.PointLight(0xdde6ff, 0, 3.2, 2); S.add(o.faceL);
   o.irL = new T.PointLight(0xffffff, 0, 16, 1.2); S.add(o.irL);   // ИК-подсветка камеры смены (темно — камера видит в ч/б)
+  // старое новогоднее фото (Фрэнк, Гас и Марта на седьмом): гирлянда по стенам, мишура
+  o.garland = new T.Group(); S.add(o.garland); o.garland.visible = false;
+  { const cols = [0xff3030, 0xffd040, 0x40c060, 0x4080ff, 0xff60c0].map(c => mat(c, null, { basic: true })), tin = mat(0xc8a030, null, { emissive: 0x3a2a08, metal: .7, rough: .3 });
+    for (const sx of [-1, 1]) for (let i = 0; i <= 28; i++) { const u = i / 28, z = lerp(-3.6, -11.2, u), y = 2.42 - .2 * Math.abs(Math.sin(u * PI * 4));
+      box(.03, .04, .03, cols[(i + (sx > 0 ? 2 : 0)) % 5], sx * 1.27, y, z, o.garland); box(.012, .012, .3, tin, sx * 1.285, y + .03, z, o.garland); } }
   // кишки: цепочка влажных петель от живота тела к руке Жильца (концы ставит o.post — по костям после анимации)
   const gutM = ps1(new T.MeshPhongMaterial({ color: 0x7a1418, specular: 0x5a2a2a, shininess: 70, emissive: 0x1a0204 })), gutG = new T.SphereGeometry(.034, 6, 4);
   o.guts = new T.Group(); o.gutS = []; S.add(o.guts); o.guts.visible = false;
@@ -553,7 +603,7 @@ function buildCorridor() {
     o.splat.visible = !!c.splat;
     if (c.blood) { o.blood.visible = true; o.blood.position.set(-.75, .006, -11.8); o.blood.scale.set(1.1, 1, .9); }
   };
-  o.reset = () => { o.bursts = null; o.faceL.intensity = 0; o.setFloor(7); o.ajar10(0); o.chair10.visible = false; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
+  o.reset = () => { o.bursts = null; o.faceL.intensity = 0; o.garland.visible = false; o.setFloor(7); o.ajar10(0); o.chair10.visible = false; o.blood.visible = false; o.blood.position.set(0, .006, -12); o.blood.scale.set(1, 1.6, 1); o.lamps[3].li.distance = 7; setLamps(o, 0); o.slit.visible = true; o.slitLight.intensity = 1.2; o.slitLight.color.setHex(0xffe0a0); o.amb.intensity = .36; o.srv.visible = false; o.srv.material = o.srvBasic; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cleanSet(); };
   o.tick = (t) => {   // одна ненадёжная лампа (пятая от лифта), если горит
     const l = o.lamps[4]; if (!o.flickOn || !l.on) { o.tubeOK = 1; return; }
     const f = unreliable(t, 3); o.tubeOK = f; l.li.intensity = l.base * f; l.tube.material.color.setHex(f ? 0xe8f0e8 : 0x1c1e1c);
@@ -706,6 +756,15 @@ function buildBasement() {
   o.slit = plane(.86, .014, mat(0xffb060, null, { basic: true }), S); o.slit.position.set(0, .008, D + .045);
   o.glow = plane(1.2, .6, new T.MeshBasicMaterial({ map: TX.fogBreath, transparent: true, opacity: .55, depthWrite: false, blending: T.AdditiveBlending, color: 0xff9a40 }), S);
   o.glow.rotation.x = -PI / 2; o.glow.position.set(0, .006, D + .3);
+  // обход в 22:05: соль насыпана изнутри по всему порогу (видна в щель, когда смотришь у самого пола); тень проходит за дверью мимо щели
+  { const sl = ctex(128, 16, (x, w, h) => { x.clearRect(0, 0, w, h); for (let i = 0; i < 900; i++) { const y = h / 2 + (rnd() - .5) * h * (rnd() < .8 ? .45 : .95); x.fillStyle = `rgba(${236 + rnd() * 19 | 0},${232 + rnd() * 20 | 0},${222 + rnd() * 20 | 0},${.5 + rnd() * .5})`; x.fillRect(rnd() * w, y, 1 + rnd() * 1.5, 1 + rnd()); } });
+    o.saltLine = new T.Group(); o.saltLine.position.set(0, 0, D - .012); S.add(o.saltLine);   // насыпанный валик соли поперёк порога и россыпь по краям
+    const sm = mat(0xe4e0d4, null, { rough: .95 }); const rid = box(.86, .016, .045, sm, 0, .008, 0, o.saltLine); rid.scale.y = 1;
+    const top = plane(.86, .085, new T.MeshLambertMaterial({ map: sl, transparent: true, depthWrite: false, emissive: 0x1a140c }), o.saltLine); top.rotation.x = -PI / 2; top.position.y = .0165; ps1(top.material);
+    const gr = new T.InstancedMesh(new T.BoxGeometry(.006, .005, .006), sm, 120); gr.frustumCulled = false; o.saltLine.add(gr);
+    { const m4 = new T.Matrix4(), q = new T.Quaternion(); for (let i = 0; i < 120; i++) { q.setFromAxisAngle(new T.Vector3(0, 1, 0), rnd() * PI);
+      m4.compose(new T.Vector3((rnd() - .5) * .9, .0025, (rnd() < .5 ? -1 : 1) * (.025 + Math.pow(rnd(), 2) * .07)), q, new T.Vector3(1, 1, 1)); gr.setMatrixAt(i, m4); } }
+    o.slitShadow = plane(.3, .016, mat(0x000000, null, { basic: true }), S); o.slitShadow.position.set(0, .0085, D + .047); o.slitShadow.visible = false; }
   // за дверью: пол, стены, стойки, круг соли у порога, свеча
   const rm = room(3.4, hgt, 3.6, mat(0x1c1e1e, TX.concrete), S); rm.position.set(0, 0, D - 1.8);
   for (const x of [-1.2, 1.2]) box(.6, 2.0, .8, mat(0xffffff, TX.rack, { emissive: 0x081008 }), x, 1.0, D - 2.6, S);
@@ -721,7 +780,7 @@ function buildBasement() {
   o.roomL = new T.PointLight(0xffd8b0, 0, 4.5, 1.6); o.roomL.position.set(-.45, 1.1, D - 1.1); S.add(o.roomL);   // свечи в серверной: свет на Фрэнка у порога
   o.faceL = new T.PointLight(0xdde6ff, 0, 3.2, 2); S.add(o.faceL);
   o.irL = new T.PointLight(0xffffff, 0, 16, 1.2); S.add(o.irL);
-  o.reset = () => { o.faceL.intensity = 0; o.amb.intensity = .22; S.fog.density = o.fogD; o.sdoor.rotation.y = 0; o.prints.visible = false; o.etorch.intensity = 0; o.roomL.intensity = 0; o.roomL.distance = 4.5; o.roomL.position.set(-.45, 1.1, D - 1.1); o.glow.scale.set(1, 1, 1); o.slit.visible = o.glow.visible = true; o.salt.visible = true; o.candle.intensity = 1;
+  o.reset = () => { o.faceL.intensity = 0; o.amb.intensity = .22; S.fog.density = o.fogD; o.sdoor.rotation.y = 0; o.sdoor.position.y = 0; o.saltLine.visible = true; o.slitShadow.visible = false; o.prints.visible = false; o.etorch.intensity = 0; o.roomL.intensity = 0; o.roomL.distance = 4.5; o.roomL.position.set(-.45, 1.1, D - 1.1); o.glow.scale.set(1, 1, 1); o.slit.visible = o.glow.visible = true; o.salt.visible = true; o.candle.intensity = 1;
     o.bulbs.forEach(l => { l.li.intensity = l.base; l.bulb.material.color.setHex(0xffe8b8); }); o.flickOn = true; };
   o.tick = t => { o.candle.intensity = .9 + Math.sin(t * 17) * .1 + Math.sin(t * 6.3) * .07; o.glow.material.opacity = .45 + .08 * Math.sin(t * 9);
     if (o.flickOn) { const f = unreliable(t, 9); const l = o.bulbs[1]; l.li.intensity = l.base * (f ? 1 : .05); l.bulb.material.color.setHex(f ? 0xffe8b8 : 0x2a261c); } };
@@ -1037,6 +1096,21 @@ SH.jr_p15 = jrPage([['r', 0], ['r', 1], ['r', 2]], 6, [5.27, .8, -.13]);
 SH.jr_p18 = jrPage([['r', 3], ['r', 4]], 5.5, [5.27, .8, -.17]);
 SH.jr_p20 = jrPage([['r', 5], ['r', 6], ['r', 7], ['r', 8]], 9, [5.27, .8, -.2]);
 SH.jr_p21 = jrPage([['r', 9], ['r', 10]], 5.5, [5.27, .8, -.26]);
+// ---- 21:06, будка Фрэнка: осмотр (сцена booth). Взгляд от левого края стола: куртка на стуле, журнал, фото под стеклом, ящик — порознь; журнал ещё перевязан ----
+function boothFb(o) { o.note.visible = o.noteCv.visible = false; o.book.visible = true; }
+SH.fb_view = { loc: 'lobby', pos: [4.0, 1.5, -1.02], look: [5.3, .82, -.44], fov: 48, set: (o) => { boothFb(o); o.boothLight.intensity = 1.1; o.saltPack.visible = o.saltGr.visible = true; return []; } };
+// fb02: куртка на спинке второго стула — из кармана торчит пачка соли (со стороны стола); потом сиденье: горсть соли россыпью
+SH.fb_jacket = { loc: 'lobby', pos: [5.88, 1.12, -.32], look: [6.42, .78, -.68], fov: 34, set: (o) => { boothFb(o); o.boothLight.intensity = 1.1; o.saltPack.visible = o.saltGr.visible = true; return []; } };
+SH.fb_salt = { loc: 'lobby', pos: [5.72, 1.0, -.9], look: [6.27, .52, -.52], fov: 36, set: (o) => { boothFb(o); o.boothLight.intensity = 1.1; o.saltPack.visible = o.saltGr.visible = true; return []; } };
+// fb04: ящик выдвинут, телефон Фрэнка лежит на столе на зарядке (экран: пустая батарея, молния)
+SH.fb_phone = { loc: 'lobby', pos: [5.05, 1.24, -1.0], look: [4.68, .76, -.46], fov: 44, set: (o) => { boothFb(o); o.drawer.position.z = -.66; o.fphone.visible = true; return []; } };
+// fb05: журнал перевязан бечёвкой, на обложке «До трёх. Весь.»
+SH.fb_log = { loc: 'lobby', pos: [5.33, 1.22, -.7], look: [5.35, .81, -.29], fov: 36, set: (o) => { boothFb(o); return []; } };
+// 22:00: звонок дневного — Итан за столом, телефон у левого уха (камера справа, у стойки)
+function ePhoneSit(t) { const R = locR(SEAT[0], SEAT[1], 0);   // ладонь у уха (голова сидя — на 24–31 см позади корня), пальцы вперёд по щеке, локоть вниз
+  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], arm: { l: { at: R.p(.13, 1.2, -.31), by: 'palm', fdir: R.v(0, .4, .9), pdir: R.v(-1, 0, 0), w: 1, pole: R.p(.35, .85, -.1) } },
+    fing: { l: ['phone', 1] }, hold: { l: 'phone' }, look: R.p(.6, 1.05, 2) }; }
+SH.booth_call = { loc: 'lobby', pos: [6.35, 1.48, .05], look: [5.15, 1.15, -.75], fov: 42, set: (o, t) => { boothFb(o); return [['temych', SEAT[0], 0, SEAT[1], 0, ePhoneSit(t), null]]; } };
 // stub: следующие кадры пролога — ниже
 // ---- Гас моет пол: тряпка ходит восьмёркой перед ним, корпус поворачивается за шваброй, руки на черенке (правая сверху), вес с ноги на ногу ----
 function locR(x, z, ry) { const c = Math.cos(ry), s = Math.sin(ry);   // оси персонажа (x — влево, z — вперёд) → мир
@@ -1359,10 +1433,12 @@ function bsLight(o, open, E) { bsDark(o); const b = o.bulbs[2]; b.li.intensity =
   if (E) { o.etorch.intensity = 7; o.etorch.position.set(E[0] + .12, 1.12, E[1] - .2); o.etorch.target.position.set(0, .9, -14.6); o.etorch.target.updateMatrixWorld(); } }
 const ETORCH = { l: 'torch' }, ETF = { l: ['grip', 1] };
 // d07: три раза костяшками в железную дверь
-function eKnockDoor(t) { const hits = [.55, .82, 1.09]; let away = 1; for (const h of hits) away = Math.min(away, Math.abs(t - h) / .13);
-  const lift = seg(t, .1, .45) * (1 - seg(t, 1.35, 1.8)), z = -13.952 + .085 * Math.min(1, away);
+function eKnockDoor(t, hits = [.55, .82, 1.09]) { let away = 1; for (const h of hits) away = Math.min(away, Math.abs(t - h) / .13);
+  const e = hits[hits.length - 1], lift = seg(t, .1, .45) * (1 - seg(t, e + .26, e + .71)), z = -13.952 + .085 * Math.min(1, away);
   return { clips: [['Idle_Torch_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: { at: [-.08, 1.32, z], by: 'knuck', fdir: [-.1, .15, -1], pdir: [-.8, -.6, 0], w: lift } }, fing: { r: ['fist', lift], l: ['grip', 1] }, hold: ETORCH, look: [-.1, 1.3, -14] }; }
 SH.bs_knock = { loc: 'basement', pos: [-.85, 1.55, -12.55], look: [.05, 1.2, -13.95], fov: 46, set: (o, t) => { bsLight(o, false, [.14, -13.5]); return [['temych', .14, 0, -13.5, PI, eKnockDoor(t), null]]; } };
+// 22:05: просто «тук-тук» — два раза (на три стука Фрэнк открыл бы); изнутри отвечают тремя
+SH.bm_knock = { loc: 'basement', pos: [-.85, 1.55, -12.55], look: [.05, 1.2, -13.95], fov: 46, set: (o, t) => { bsLight(o, false, [.14, -13.5]); return [['temych', .14, 0, -13.5, PI, eKnockDoor(t, [.55, .82]), null]]; } };
 // d08–d09: засов изнутри, дверь открывается в коридор; Фрэнк на колене в круге у порога, рукой толкает дверь
 const BF = [0, -14.85];
 SH.bs_open = { loc: 'basement', pos: [-.9, 1.5, -12.35], look: [.15, .95, -14.6], fov: 52, face: { mihalych: 'worry' }, set: (o, t) => {
@@ -1420,6 +1496,32 @@ SH.r2_talk = { loc: 'corridor', pos: [.42, 1.66, -7.85], look: [-.15, 1.5, -9.62
   const R = locR(R2E[0], R2E[1], PI);
   return [['cleaner', R2G[0], 0, R2G[1], 0, { clips: [['Idle_Talking_Loop', t + 2, 1]], talk: 1, legs: 'feet', look: [R2E[0], 1.62, R2E[1]] }, null],
     ['temych', R2E[0], 0, R2E[1], PI, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: { at: R2C(), by: 'palm', fdir: [0, -.2, -1], pdir: [0, -1, 0], w: 1 } }, fing: { r: ['cup', 1] }, hold: { r: 'apple' }, look: [R2G[0], 1.6, R2G[1]] }, null]]; } };
+// ---- 01:00, разговор с Гасом (сцена round2): Итан спрашивает (Гас слушает), Гас отвечает; на «семьсот седьмой» он оглядывается на дверь ----
+const R2POSE = (t, talk, look) => ({ clips: [[talk ? 'Idle_Talking_Loop' : 'Idle_Loop', t + 2, 1]], talk: talk ? 1 : 0, legs: 'feet', look: look || [R2E[0], 1.62, R2E[1]] });
+function r2Set(o) { setLamps(o, 7); o.cleanSet(CLEAN); window.__W3chars.propAim('mop', o.S, [-1.05, 0, -10.05], nrm([-.25, 1, .05])); }
+const r2Ethan = t => ['temych', R2E[0], 0, R2E[1], PI, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: { at: R2C(), by: 'palm', fdir: [0, -.2, -1], pdir: [0, -1, 0], w: 1 } }, fing: { r: ['cup', 1] }, hold: { r: 'apple' }, look: [R2G[0], 1.6, R2G[1]] }, null];
+SH.gs_ask = { loc: 'corridor', pos: [.42, 1.66, -7.85], look: [-.15, 1.5, -9.62], fov: 40, face: { cleaner: 'calm' }, set: (o, t) => { r2Set(o); return [['cleaner', R2G[0], 0, R2G[1], 0, R2POSE(t, false), null], r2Ethan(t)]; } };
+SH.gs_ans = { loc: 'corridor', pos: [.42, 1.66, -7.85], look: [-.15, 1.5, -9.62], fov: 40, face: { cleaner: 'calm' }, set: (o, t) => { r2Set(o); return [['cleaner', R2G[0], 0, R2G[1], 0, R2POSE(t, true), null], r2Ethan(t)]; } };
+SH.gs_sad = { loc: 'corridor', pos: [.3, 1.62, -8.25], look: [-.15, 1.52, -9.62], fov: 34, face: { cleaner: 'worry' }, set: (o, t) => { r2Set(o); return [['cleaner', R2G[0], 0, R2G[1], 0, R2POSE(t, true), null], r2Ethan(t)]; } };
+SH.gs_707 = { loc: 'corridor', pos: [.3, 1.62, -8.25], look: [-.15, 1.52, -9.62], fov: 34, face: { cleaner: 'calm' }, set: (o, t) => { r2Set(o); const k = seg(t, 1.2, 2.2) * (1 - seg(t, 5.2, 6.2));
+  return [['cleaner', R2G[0], 0, R2G[1], 0, R2POSE(t, true, lin([R2E[0], 1.62, R2E[1]], [-1.3, 1.45, -11.8], k)), null], r2Ethan(t)]; } };
+// ---- 21:06, фото под стеклом (fb03): Новый год на седьмом — Фрэнк, Гас и Марта; вспышка в лицо, гирлянда. Движок делает из кадра старый снимок (fx 'photo') ----
+SH.ny_photo = { loc: 'corridor', pos: [.05, 1.52, -5.35], look: [0, 1.32, -7.7], fov: 50, face: { mihalych: 'photo', cleaner: 'photo', martha: 'photo' }, set: (o, t) => { setLamps(o, 7); o.cleanSet(); o.garland.visible = true;
+  o.faceL.position.set(.05, 1.6, -5.2); o.faceL.color.setHex(0xfff2dc); o.faceL.distance = 7; o.faceL.intensity = 2.4;
+  const st = (dx) => ({ clips: [['Idle_Loop', 2.4 + dx, 1]], legs: 'feet' });
+  return [['mihalych', -.6, 0, -7.68, .12, st(.3), [.05, 1.52, -5.35]], ['cleaner', 0, 0, -7.78, 0, st(.9), [.05, 1.52, -5.35]], ['martha', .55, 0, -7.66, -.1, st(1.6), [.05, 1.52, -5.35]]]; } };
+// ---- 22:05, обход: дверь серверной (сцена round1) ----
+// обход: дверь серверной целиком — ручка, полотно, щель под дверью (точки обхода стоят на них)
+SH.bm_view = { loc: 'basement', pos: [.15, 1.7, -10.71], look: [0, 1.1, -14], fov: 48, torch: { x: .5, y: .56 }, set: (o, t) => { bsDark(o); return []; } };
+// bm02: у самого пола — щель под дверью, за ней по всему порогу белая полоса соли
+SH.bm_under = { loc: 'basement', pos: [.06, .07, -13.52], look: [0, .025, -14.1], fov: 24, torch: { x: .5, y: .6 }, set: (o, t) => { bsDark(o); o.sdoor.position.y = .055; o.slit.visible = o.glow.visible = false;
+  o.roomL.intensity = 1.4; o.roomL.distance = 3; o.roomL.position.set(-.25, .2, -14.55); return []; } };   // дверь чуть приподнята — щель видна; за ней свеча освещает валик соли
+// bm04: «свет под дверью дрогнул»: за дверью мимо щели проходит тень
+SH.bm_slit = { loc: 'basement', pos: [.12, .78, -12.85], look: [0, .06, -14], fov: 34, torch: { x: .5, y: .45 }, set: (o, t) => { bsDark(o); const k = clamp((t - 2.3) / .8, 0, 1);
+  o.slitShadow.visible = k > 0 && k < 1; o.slitShadow.position.x = lerp(-.5, .5, k); o.glow.scale.set(1 - .45 * Math.sin(PI * k), 1, 1); return []; } };
+// bm05 / n05: обратно к лестнице (фонарь, шаги)
+SH.bm_back = { loc: 'basement', pos: [0, 1.6, -12.4], look: [0, 1.1, -2], fov: 56, torch: { x: .5, y: .66 }, set: (o, t, sh) => { bsDark(o);
+  const z = -12.4 + t * .85; sh.pos = [Math.sin(t * 2.1) * .03, 1.6 + Math.abs(Math.sin(t * 4.2)) * .03, z]; sh.look = [0, 1.0, z + 6]; return []; } };
 // ---- камеры смены (пульт в будке). Что на них сейчас — curProps.sh (движок: пульт, кто где, странности) ----
 // странности (s.*): cat, door01, streetOff, lily01 · wet, frank02, hallDark, palm · lift/liftOpen, lift13, clockSpin, palmMove ·
 // stDark, guard04 · gus, l7, door7, bucket7 · l10, door10, chair10 · mOff, sdoor. Помехи («он») рисует движок поверх кадра.
@@ -1863,6 +1965,7 @@ function draw(g, W, H, id, o) {
   else { R.setRenderTarget(null); R.render(postScene, postCam); }
   g.imageSmoothingEnabled = CINE;
   if (sh.mirror) { g.save(); g.translate(W, 0); g.scale(-1, 1); g.drawImage(canvas, 0, 0, W, H); g.restore(); } else g.drawImage(canvas, 0, 0, W, H);
+  lastMirror = !!sh.mirror;
   if (CINE && id === 'door_katya' && !gfxChk.done) gfxCheck(canvas);   // титул: не рисует ли «Кино» чёрным на этой видеокарте
   g.imageSmoothingEnabled = true;
   return true;
@@ -1872,6 +1975,14 @@ function warm() {
   const c = document.createElement('canvas'); c.width = 54; c.height = 96; const g = c.getContext('2d');
   for (const id of ['hall_cam', 'monitors', 'katya_face', 'corridor_cam', 'server_mih', 'cam13_mih_monster', 'exterior']) draw(g, 54, 96, id, { t: 1, T: 1 });
 }
+// точка мира → место на кадре (доли ширины и высоты) по камере последнего кадра: точки обхода стоят на предметах
+const _pj = new T.Vector3(); let lastMirror = false;
+function project(p) { cam.updateMatrixWorld(); _pj.set(p[0], p[1], p[2]).project(cam); const x = (_pj.x + 1) / 2;
+  return [lastMirror ? 1 - x : x, (1 - _pj.y) / 2, _pj.z < 1 && Math.abs(_pj.x) < 1.1 && Math.abs(_pj.y) < 1.1]; }
+// точка мира → место на общем плане кадра id (без зума): так план «наезд на лицо» целится в само лицо в любой ориентации экрана
+const _pc = new T.PerspectiveCamera();
+function projectAt(id, p) { const sh = SH[ALIAS[id] || id]; if (!sh) return [.5, .5, false]; _pc.aspect = V.RW / V.RH; aim(_pc, sh.pos, sh.look, sh.fov, .5, .5, 1, 0, 0);
+  _pc.updateMatrixWorld(); _pj.set(p[0], p[1], p[2]).project(_pc); return [(_pj.x + 1) / 2, (1 - _pj.y) / 2, _pj.z < 1]; }
 const thumbs = {};
 function thumb(id, o = {}) {   // маленькая картинка кадра (плитки камер в обходе)
   const key = id + (V.land ? '|L' : ''); if (thumbs[key]) return thumbs[key];
@@ -1880,5 +1991,5 @@ function thumb(id, o = {}) {   // маленькая картинка кадра
   return (thumbs[key] = c.toDataURL('image/jpeg', .7));
 }
 // World.props — «нормы» холла (куртка, пропуск, часы); World.vhs — сила плёнки 0..1 (для пункта меню); World.tube — горит ли сейчас ненадёжная лампа (для звука)
-window.World = { draw, init, warm, setLand, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
+window.World = { draw, init, warm, setLand, project, projectAt, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();

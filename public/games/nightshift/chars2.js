@@ -507,6 +507,9 @@ function addProps(C) {
   if (o.glasses) { const gl = new T.Group(); head.add(gl); const gm = mat(0x151515); for (const sx of [-1, 1]) { const x = sx * .033; box(.046, .004, .004, gm, x, .013, 0, gl); box(.046, .004, .004, gm, x, -.013, 0, gl); box(.004, .03, .004, gm, x - .022, 0, 0, gl); box(.004, .03, .004, gm, x + .022, 0, 0, gl); box(.004, .004, .07, gm, sx * .058, .01, -.035, gl); } box(.022, .004, .004, gm, 0, .008, 0, gl); C.glassG = gl; }
   // полы плаща: своя сетка со скелетом (строится в fitProps, когда известна поза «Т»)
   if (o.coatY) C.skirt = true;
+  // юбка платья (Марта на фото): расширяется от бёдер к коленям, висит на кости таза
+  if (o.dress) { const pr = [[.15, .12], [.174, .06], [.195, 0], [.225, -.16], [.26, -.34], [.275, -.41]].map(([r, y]) => new T.Vector2(r, y));
+    const dg = new T.Mesh(new T.LatheGeometry(pr, 24), ps1(litMat({ color: o.dress, side: T.DoubleSide }, .85))); dg.scale.z = .92; C.dressG = dg; }
   // пряди волос Жильца свисают перед лицом
   if (o.veil) { const vg = new T.Group(); const hm = mat(0x050505); C.strands = [];
     for (const [x, len, z, w] of [[-.062, .17, .0, .012], [-.035, .13, .01, .008], [.05, .15, .006, .01], [.072, .19, -.004, .012]]) {
@@ -549,6 +552,7 @@ function fitProps(C) {
   const put = (obj, bone, wx, wy, wz) => { const b = C.bone[bone]; b.add(obj); const v = new T.Vector3(wx, wy, wz); b.worldToLocal(v); obj.position.copy(v); obj.quaternion.copy(b.getWorldQuaternion(new T.Quaternion()).invert().multiply(rootQ)); };
   const ss = C.ss;
   if (C.skirt) skinSkirt(C, ss * (C.o.fem ? .978 : 1));
+  if (C.dressG) { const pw = C.bone.pelvis.getWorldPosition(new T.Vector3()); put(C.dressG, 'pelvis', pw.x, pw.y - .02, pw.z + .03); }
   if (C.hood) put(C.hood, 'Head', hw.x, hw.y + .085 * ss, hw.z - .01 * ss);
   if (C.veilG) put(C.veilG, 'Head', hw.x, hw.y + .175 * ss, hw.z + .1 * ss);
   if (C.glassG) { C.glassG.position.copy(toLocal(hw.x, hw.y + .095 * s, hw.z + .105 * s)); C.glassG.quaternion.copy(inv).multiply(C.root.getWorldQuaternion(new T.Quaternion())); }
@@ -1468,11 +1472,15 @@ function castV3() {
     deadEyes: 0x000000, socket: 1, tilt: .45, jerk: true, headMax: 2.3, stopmo: 1 / 7, tint: { skin: 0xa9b0a6, hair: [0x0a0a0a, 1, .6] } });
   A.monster.addFace('grin', { smile: 1.15, mouth: .5 });
   A.monster.addFace('scream', { scream: 1 });
-  A.cleaner = H({ name: 'cleaner', model: 'gus', mop: true, dim: { worksuit: .74 } });   // белая футболка под комбинезоном не светится под лампами                                             // Гас
-  A.victim = H({ name: 'victim', model: 'gus', dead: true, grey: .55, dim: { worksuit: .74 } });
+  const gusHair = { hair: [0x9c9893, 1.5, .5], brows: [0x8a8680, 1.5, .45] };   // Гас — старик (тридцать лет здесь): седой
+  A.cleaner = H({ name: 'cleaner', model: 'gus', mop: true, dim: { worksuit: .74 }, tint: gusHair });   // белая футболка под комбинезоном не светится под лампами                                             // Гас
+  // Марта, жена Гаса: только на старом фото (Новый год на седьмом). Красное платье: свитер и юбка в тон, тёмные колготки, седые волосы
+  A.martha = H({ name: 'martha', model: 'lily', fem: true, dress: 0x9a1c1c, tint: { sweater: [0x9a1c1c, 2.4, .35], pants: [0x2a2224, 1.2, .2], hair: [0x8c8680, 1.5, .45] } });
+  A.victim = H({ name: 'victim', model: 'gus', dead: true, grey: .55, dim: { worksuit: .74 }, tint: gusHair });
   A.smenshik.addFace('smile', { smile: .8, browUp: .3 });
   A.smenshik.addFace('fear', { mouth: .45, wide: true, browUp: 1, browIn: .8, dart: 1 });
   A.temych.addFace('smile', { smile: 1.4, wide: true, browUp: .5 });
+  for (const k of ['mihalych', 'cleaner', 'martha']) A[k].addFace('photo', { smile: .85, browUp: .25 });   // улыбаются в объектив (новогоднее фото)
   for (const k of ['temych', 'smenshik', 'katya', 'mihalych', 'cleaner']) {
     const F = A[k].faceSets;
     F.worry = F.worry || { browIn: .8, browUp: .1, dart: 1 };
@@ -1517,6 +1525,8 @@ function cast() {
     F.calm = F.calm || { smile: .3, browUp: .1 };
   }
   A.victim = makeSkinned(Object.assign({ name: 'victim', dead: true }, clean, { skin: 0xc8c4bc, skinK: 1.0, grey: .7, cap: null }));
+  A.martha = makeSkinned(Object.assign({ name: 'martha' }, kat, { coat: 0x9a1c1c, trim: 0x6a1010, hair: 0x8c8680, wet: false }));
+  for (const k of ['mihalych', 'cleaner', 'martha']) A[k].addFace('photo', { smile: true, browUp: .25 });
   for (const k in A) A[k].update(0, 1 / 30);
   return A;
 }

@@ -1,0 +1,99 @@
+[
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "fb01",
+   "fb02",
+   "fb03",
+   "fb04",
+   "fb05",
+   "dg01",
+   "dg03",
+   "dg05",
+   "dg07",
+   "dg09"
+  ],
+  "prompt": "[quiet, tired] Frank's booth. Just like the day guard said: the lamp, the cold tea, the jacket on the back of the chair. As if he'd stepped out for a minute.\n\n[quiet, puzzled] In the jacket pocket, a pack of coarse salt, half empty. And a handful of loose salt. Why would a security guard carry salt?\n\n[quiet, slow] Under the glass on the desk, a photo. Frank, an old man in work overalls, and a woman in a red dress. Her face was worn away, as if someone had stroked it with a finger a thousand times. On the back: 'Martha. Seventh floor. New Year's.'\n\n[quiet, tired] In the drawer, Frank's phone, completely dead. I put it on the charger, in case the police want to know who he called.\n\nThe logbook was tied with string. On the cover, in Frank's hand: 'Before three. All of it.' I put it aside. Three was a long way off.\n\nAt ten my phone rang. An unknown number.\n\n[quiet, serious] What really happened to Frank?\n\n[curious] Why did you knock on the glass when you left?\n\n[uneasy] 'It'? What's 'it'?\n\n[casual] Is anyone else in the building?",
+  "chars": 1041
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "dg11",
+   "bm01",
+   "bm02",
+   "bm03",
+   "bm04",
+   "bm05",
+   "gs01",
+   "gs03",
+   "gs05",
+   "gs07",
+   "gs09",
+   "ly01",
+   "ly03",
+   "ly05",
+   "ly07"
+  ],
+  "prompt": "[casual] Okay. See you in the morning.\n\n[whispering, terrified] I knocked. Silence. Then, from inside — three knocks. Slow, heavy. As if someone were saving their strength.\n\n[quiet, uneasy] Along the whole threshold, on the other side — a white line. Salt. Someone had poured it from the inside.\n\n[calling out, nervous] Hey! Anyone in there?\n\n[whispering, terrified] Not a sound. Only the light under the door flickered, as if someone had walked past the gap.\n\n[quiet, tired] Probably the pipes. I kept telling myself that all the way upstairs.\n\n[gentle] The woman in Frank's photo, in the red dress — is that Martha?\n\nDid your wife work here too?\n\n[quiet, serious] Did Frank say anything before he disappeared?\n\n[careful] Who calls you?\n\n[quiet, urgent] Gus. Whatever she says, don't answer. Promise me.\n\n[quiet, warm] At a quarter past one, Lily called.\n\n[warm] How's Biscuit?\n\n[casual] You're at the dorm right now?\n\n[hesitant] It's… weird here. The lights on the floors come on by themselves.",
+  "chars": 996
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "ly09",
+   "fp01",
+   "fp02",
+   "fp03",
+   "al01",
+   "al02",
+   "al03",
+   "al04"
+  ],
+  "prompt": "[warm] Go to sleep. You'll ace it.\n\n[whispering, terrified] Frank's phone rang eleven times. Then a text came in: 'Frankie, son, come down to me. I'm downstairs.'\n\nI hung up. My hands were shaking. Who calls an old man at two in the morning and asks him to come downstairs?\n\nHello?.. Someone on the line drew a breath. With relief. As if they had been waiting a long time.\n\n[quiet, broken] He'd promised me. But it was Martha's voice.\n\n[quiet, uneasy] So that was who called him downstairs. In the same voice that rang his phone tonight.\n\n[quiet, slow] Salt. Like in his jacket pocket.\n\n[quiet, realization] So that was who knocked back at me from behind the server room door at ten. It doesn't knock.",
+  "chars": 701
+ },
+ {
+  "who": "СМЕНЩИК",
+  "voice": "DeWSKTpgZpo6WQf8rQFY",
+  "keys": [
+   "dg02",
+   "dg04",
+   "dg06",
+   "dg08",
+   "dg10",
+   "dg12"
+  ],
+  "prompt": "[gruff, trying to sound casual] It's the day guard. The agency gave me your number. So how's it going, new guy? Still alive?\n\n[gruff, uneasy] I don't know. His last week he wasn't himself. Poured salt in the corners, by the doors, on the booth threshold. I figured it was for rats.\n\n[low, serious] So you'd remember. Three knocks, that's me. I'll knock the same way in the morning. Frank used to say: it doesn't knock. It calls.\n\n[gruff, a little too fast] I don't believe in those fairy tales. Neither should you. Sit tight till six, don't open the door for anyone, don't answer to your name. That's the whole job.\n\n[gruff, softer] Gus, the cleaner. Mops the seventh floor, he's up there all night. Thirty years here. Go easy on him, he's a widower.\n\n[low, serious] See you. Three knocks. Got it?",
+  "chars": 797
+ },
+ {
+  "who": "ГАС",
+  "voice": "KgUSWQPFmuiZ5ycRbnty",
+  "keys": [
+   "gs02",
+   "gs04",
+   "gs06",
+   "gs08",
+   "gs10"
+  ],
+  "prompt": "[warm, sad, old man] Martha. Our last New Year's. A month later she was gone. I've rubbed her face on that photo half away.\n\nMartha. Bookkeeper, seventh floor, office seven-oh-seven. Thirty years we were here together. Now it's just me.\n\n[old man, amused but uneasy] Kept asking if anyone calls me at night. I told him they do. He went white as a sheet. Poured salt in my pocket. Odd fellow.\n\n[quiet, tender, old man] Martha. From seven, from seven-oh-seven. Don't think I'm crazy. I don't answer. I just come to listen.\n\n[old man, moved, quiet] Thirty years she called me: to lunch, to come home… All right, son. I promise.",
+  "chars": 624
+ },
+ {
+  "who": "ЛИЛИ",
+  "voice": "CamFZN2KIaqnyvcaFe3E",
+  "keys": [
+   "ly02",
+   "ly04",
+   "ly06",
+   "ly08",
+   "ly10"
+  ],
+  "prompt": "[warm, tired, teasing] You're up? Me too. Exam at eight tomorrow, and I'm sitting on the windowsill in the dorm and can't remember a thing.\n\n[warm, laughing softly] Mom says he chases the delivery guys. He dragged your sweater into his doghouse and sleeps on it.\n\n[teasing, warm] Where else? Two hundred miles from you, dummy. My roommate snores, so I'm out in the hallway.\n\n[worried, serious] Don't scare me. Promise you'll call in the morning. First thing. And don't play the hero.\n\n[warm, sleepy] Yeah. Love you, dummy. Good night.",
+  "chars": 534
+ }
+]

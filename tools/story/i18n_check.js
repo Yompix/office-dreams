@@ -8,7 +8,7 @@ const tr = window.tr, CYR = /[А-Яа-яЁё]/, miss = new Map();
 const need = (s, where) => { if (typeof s === 'string' && CYR.test(s) && tr(s) === s && !miss.has(s)) miss.set(s, where); };
 // сценарий: всё, что видно на экране (реплики с озвучкой берут текст из timing_en.json, их тут нет)
 const SKIP = new Set(['img', 'go', 'win', 'lose', 'retry', 'next', 'music', 'ending', 'shift', 'fx', 'kind', 'cam', 'id', 'at', 'by', 'from', 'to']),   // ключи и ссылки, не текст
-  SKIP_OBJ = new Set(['say', 'lines', 'who', 'snd', 'sfx', 'kinds', 'need', 'cams', 'props']);
+  SKIP_OBJ = new Set(['say', 'lines', 'who', 'snd', 'sfx', 'kinds', 'need', 'cams', 'props', 'cutAt']);   // cutAt — слова для склеек (русское|английское)
 (function walk(o, p) { for (const k in o) { const v = o[k]; if (typeof v === 'string' ? SKIP.has(k) : SKIP_OBJ.has(k)) continue;
   if (typeof v === 'string') need(v, p + '.' + k); else if (v && typeof v === 'object') walk(v, p + '.' + k); } })(window.STORY, 'S');
 // виды странностей и смерти — тоже на экране
