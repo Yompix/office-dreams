@@ -67,7 +67,7 @@ window.STORY = {
     dg_call: {
       music: 'drone', time: '22:00',
       beats: [
-        { img: null, phone: { kind: 'call', name: '+7 914 207-33-18' }, say: ['dg01'], sfx: [['ring', 0], ['buzz', 0]], pad: .4, chapter: ['22:00', 'ЗВОНОК'] },
+        { img: null, phone: { kind: 'call', name: '+7 (914) 207-33-18' }, say: ['dg01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4, chapter: ['22:00', 'ЗВОНОК'] },
         { img: 'booth_call', cams: [[.5, .5, 1.0, 1.05]], say: ['dg02'], pad: .3 }
       ],
       then: { talk: { img: 'booth_call', cams: [[.5, .5, 1.05, 1.08]], title: 'Дневной охранник', topics: [
@@ -206,8 +206,8 @@ window.STORY = {
         { img: 'a_hug_side', cams: [[.5, .5, 1.0, 1.04]], say: ['a03'], pad: .3 },
         { img: 'a_hug_face', cams: [[.5, .5, 1.0, 1.06]], say: ['a04'], hush: true, pad: .4 },
         { img: 'a_hug_face', cams: [[.5, .5, 1.06, 1.12]], say: ['a05'], pad: .4 },
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['a06'], sfx: [['ring', 0], ['buzz', 0]], pad: .3 },
-        { img: 'a_beside', cams: [[.5, .5, 1.0, 1.06]], say: ['a07'], sfx: [['ring', 0, { gain: .8 }]], pad: .5 },
+        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['a06'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .3 },
+        { img: 'a_beside', cams: [[.5, .5, 1.0, 1.06]], say: ['a07'], sfx: [['ring_mob', 0, { gain: .8 }]], pad: .5 },
         { img: 'a_steps', cams: [[.5, .5, 1.0, 1.08]], say: ['a08'], pad: .4 },
         { img: 'a_floors', cams: [[.5, .5, 1.0, 1.1]], say: ['a09'], sfx: [['tick', .9], ['tick', 1.8], ['tick', 2.7]], pad: .5 },
         { img: 'c13_lily', fx: 'cctv', label: 'CAM 13', cams: [[.5, .5, 1.0, 1.15]], say: ['a10'], pad: .3 },
@@ -254,7 +254,7 @@ window.STORY = {
       beats: [
         { img: 'x_out', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['x03'], sfx: [['door', 0], ['rain_burst', .1]], pad: .4 },
         { img: 'x_building', fx: 'rain', cams: [[.5, .45, 1.0, 1.12]], say: ['x04'], pad: .6 },
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['x05'], sfx: [['ring', 0], ['buzz', 0]], pad: .3 },
+        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['x05'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .3 },
         { img: 'x_rain', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['x06'], pad: .3 },
         { img: 'x_rain', fx: 'rain', cams: [[.5, .45, 1.1, 1.16]], say: ['x07'], pad: .4 },
         { img: null, phone: { kind: 'talk', name: 'Лили', t0: 24 }, say: ['x08'], heart: true, pad: 1.4 }
@@ -272,7 +272,7 @@ window.STORY = {
         { img: 'gl_scratch', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['b03', 'b04'], sfx: [['glass_scratch', .3, { gain: .8 }]], pad: .5 },
         { img: 'b_back', fx: 'rain', cams: [[.5, .5, 1.0, 1.05]], say: ['b05'], pad: .6 },
         { img: 'b_print', fx: 'rain', cams: [[.5, .5, 1.0, 1.1]], say: ['b06'], pad: .6 },
-        { img: null, phone: { kind: 'out', name: 'Лили' }, say: ['b07'], sfx: [['ringback', .2], ['ringback', 2.2], ['ringback', 4.2]], pad: .3 },
+        { img: null, phone: { kind: 'out', name: 'Лили' }, say: ['b07'], sfx: [['ringback', .2], ['ringback', 5.2]], pad: .3 },
         { img: null, phone: { kind: 'talk', name: 'Лили', t0: 0 }, say: ['b08', 'b09', 'b10', 'b11'], pad: .4 },
         { img: 'e_face', cams: [[.5, .5, 1.0, 1.06]], say: ['b12'], pad: .5 }
       ],
@@ -364,8 +364,8 @@ window.STORY = {
     call540: {
       music: 'tension', time: '05:40',
       beats: [
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w04'], sfx: [['ring', 0], ['buzz', 0]], pad: .2 },
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w05'], sfx: [['ring', 0]], heart: true, pad: .3 }
+        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w04'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .2 },
+        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['w05'], sfx: [['ring_mob', 0]], heart: true, pad: .3 }
       ],
       then: { choice: 'Звонит «Лили».', timeout: 8, def: 1, opts: [{ t: 'Ответить', go: 'over_k9' }, { t: 'Сбросить', go: 'morning' }] }
     },
@@ -512,7 +512,7 @@ window.STORY = {
     ly_call: {
       music: 'drone', time: '01:15',
       beats: [
-        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['ly01'], sfx: [['ring', 0], ['buzz', 0]], pad: .4 },
+        { img: null, phone: { kind: 'call', name: 'Лили' }, say: ['ly01'], sfx: [['ring_mob', 0], ['buzz', 0]], pad: .4 },
         { img: 'booth_call', cams: [[.5, .5, 1.0, 1.05]], say: ['ly02'], pad: .3 }
       ],
       then: { talk: { img: 'booth_call', cams: [[.5, .5, 1.05, 1.08]], title: 'Лили', topics: [
@@ -551,7 +551,7 @@ window.STORY = {
     over_stare: {
       music: 'tension',
       beats: [
-        { img: 'c13_face', fx: 'static', label: 'CAM', cams: [[.5, .45, 1.3, 1.9]], say: ['n22'], pad: .1 },
+        { img: 'c13_face', fx: 'static', label: 'CAM', cams: [[[.45, 1.5, -3.3], -.06, 1.3, 1.9]], say: ['n22'], pad: .1 },   // план целится в лицо (оно сидит низко), лицо — выше субтитров
         { img: 'lunge_booth', fx: 'lunge', scare: 1.3, text: '', pad: 3.0 }
       ],
       then: { over: 'ТЫ ЗАСМОТРЕЛСЯ', sub: 'Там, где помехи, кто-то стоит. Не смотри — запиши и переключи.', retry: '@save' }
@@ -613,7 +613,7 @@ window.STORY = {
       streetOff: { cam: '01', kind: 'Свет', props: { streetOff: 1 }, win: 22 },
       wet: { cam: '02', kinds: ['Кто-то', 'Другое'], props: { wet: 1 }, win: 22 },
       hallDark: { cam: '02', kind: 'Свет', props: { hallDark: 1 }, win: 20 },
-      lift: { cam: '03', kind: 'Лифт', props: { lift: '9', liftOpen: 1 }, win: 16, say: 'n13', sfx: ['ding', { gain: .5, lp: 1400 }] },
+      lift: { cam: '03', kind: 'Лифт', props: { lift: '1', liftOpen: 1 }, win: 16, say: 'n13', sfx: ['ding', { gain: .5, lp: 1400 }] },   // лифт сам приехал вниз: табло «1», двери открыты, кабина светится, внутри никого
       lift13: { cam: '03', kind: 'Лифт', props: { lift13: 1 }, win: 20 },
       clockSpin: { cam: '03', kind: 'Другое', props: { clockSpin: 1 }, win: 20 },
       palmMove: { cam: '03', kind: 'Другое', props: { palmMove: 1 }, win: 25 },

@@ -328,6 +328,9 @@ body:not(.land) .sh-cams { flex-wrap: wrap; justify-content: center; width: 96%;
 body:not(.land) .sh-act { top: auto; bottom: calc(40 * var(--u)); flex-direction: row; right: 50%; transform: translateX(50%); }
 .vols { display: flex; flex-direction: column; gap: calc(1.6 * var(--u)); padding: calc(3 * var(--u)) calc(4.4 * var(--u)); background: rgba(255,255,255,.05); border: calc(.3 * var(--u)) solid rgba(255,255,255,.14); border-radius: calc(2.4 * var(--u)); }
 .vol { display: grid; grid-template-columns: 30% 1fr calc(9 * var(--u)); align-items: center; gap: calc(3 * var(--u)); color: #ece8dc; font: 600 calc(3.6 * var(--u))/1.2 NSUI, Inter, Arial, sans-serif; }
+.vol.all { grid-template-columns: 30% 1fr calc(9 * var(--u)) calc(9 * var(--u)); }   /* общая громкость: рядом кнопка «звук выкл/вкл» */
+.vol .mute { width: calc(9 * var(--u)); height: calc(9 * var(--u)); padding: 0; border-radius: 50%; border: calc(.3 * var(--u)) solid rgba(255,255,255,.3); background: rgba(0,0,0,.35); color: #ece8dc; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.vol .mute .ic { width: 60%; height: 60%; } .vol .mute .off { display: none; } .vol .mute.muted .on1 { display: none; } .vol .mute.muted .off { display: inline; } .vol .mute.muted { color: #e0303a; border-color: rgba(224,48,58,.6); }
 .vol b { font: 700 calc(3.6 * var(--u))/1 NSUI, Inter, Arial, sans-serif; color: #f2c21b; text-align: right; }
 .vol input { -webkit-appearance: none; appearance: none; width: 100%; height: calc(1.4 * var(--u)); border-radius: 99px; background: rgba(255,255,255,.18); outline: none; }
 .vol input::-webkit-slider-thumb { -webkit-appearance: none; width: calc(5.4 * var(--u)); height: calc(5.4 * var(--u)); border-radius: 50%; background: #f2c21b; border: none; }
@@ -368,7 +371,10 @@ body.land .screen { padding: 4% 8%; }
 body.land .screen p, body.land .gal, body.land .sets, body.land .spons { max-width: calc(120 * var(--u)); }
 body.land .screen.sub { padding-top: 5%; }
 body.land .sets-scr .sets { display: grid; grid-template-columns: 1fr 1fr; gap: calc(2 * var(--u)) calc(3 * var(--u)); max-width: calc(190 * var(--u)); }
-body.land .sets-scr .vols { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(6 * var(--u)); }
+body.land .sets-scr .vols { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(6 * var(--u)); padding-top: calc(2 * var(--u)); padding-bottom: calc(2 * var(--u)); }
+body.land .sets-scr .vol.all { grid-column: 1 / -1; }
+body.land .sets-scr .set { padding-top: calc(3 * var(--u)); padding-bottom: calc(3 * var(--u)); }
+body.land .sets-scr > small { margin-top: calc(2 * var(--u)); max-width: calc(190 * var(--u)); }
 body.land .sets-scr .sets-hd { max-width: calc(190 * var(--u)); min-height: calc(14 * var(--u)); }
 body.land .screen.jr { flex-direction: row; align-items: flex-start; justify-content: center; padding: 3% 5% 4%; gap: calc(9 * var(--u)); }
 body.land .jr-page { width: calc(112 * var(--u)); max-width: none; }
@@ -406,15 +412,15 @@ body.land #keys { display: none; }
   <div id="ui"></div>
   <div id="pz" class="hide"></div>
 </div>
-<script src="i18n.js?v=8"></script>
+<script src="i18n.js?v=9"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
 <script src="world.js?v=6"></script>
 <script src="chars.js?v=2"></script>
-<script src="chars2.js?v=14"></script>
-<script src="scenes.js?v=18"></script>
-<script src="story.js?v=19"></script>
-<script src="engine.js?v=27"></script>
+<script src="chars2.js?v=15"></script>
+<script src="scenes.js?v=19"></script>
+<script src="story.js?v=20"></script>
+<script src="engine.js?v=28"></script>
 </body>
 </html>

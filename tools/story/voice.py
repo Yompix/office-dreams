@@ -5,6 +5,7 @@
   python3 tools/story/voice.py split ru|en N file.mp3 → режет пакет N на реплики: snd/<key>.mp3 (ru) или snd/en/<key>.mp3,
                                                         тайминг слов — в timing.json / timing_en.json (who и fx — из lines.json)
   python3 tools/story/voice.py check ru|en           → каких реплик ещё нет
+  python3 tools/story/voice.py loud ru|en            → выровнять громкость реплик (g в тайминге; split делает это сам)
 
 Реплики — tools/story/lines.json (собирается tools/story/lines.py). Нужен faster-whisper (pip install faster-whisper).
 Голоса — ниже, VOICES. Пакет = подряд идущие реплики одного голоса через пустую строку; нарезка не зависит от пауз:
@@ -129,6 +130,34 @@ def split(lang, idx, src, hints=()):
         heard = ' '.join(h[0] for h in hw if s0 <= h[1] < s1)
         print(f'{k:6s} {s1 - s0:5.2f} с | {heard[:80]}')
     json.dump(dict(sorted(tim.items())), open(tf, 'w'), ensure_ascii=False)
+    loud(lang)
+
+# громкость реплик → g в тайминге (движок умножает на него голос). Генерации выходят то шёпотом, то в полный голос,
+# русский герой — на ~12 дБ тише английского. Тянем каждую группу «голос + эффект» к −22 LUFS, внутри группы
+# оставляем четверть живой разницы (крик громче шёпота), пик после усиления — не выше 0 дБ.
+LOUD_T, LOUD_KEEP = -22, .25
+def loud(lang):
+    from concurrent.futures import ThreadPoolExecutor
+    tf = tfile(lang); tim = json.load(open(tf))
+    def meas(k):
+        f = os.path.join(sdir(lang), k + '.mp3')
+        if not os.path.exists(f): return k, None
+        r = subprocess.run(['ffmpeg', '-hide_banner', '-nostats', '-i', f, '-af', 'ebur128=peak=true', '-f', 'null', '-'], capture_output=True, text=True).stderr
+        I, P = re.findall(r'I:\s+(-?[\d.]+) LUFS', r), re.findall(r'Peak:\s+(-?[\d.]+) dBFS', r)
+        return k, (float(I[-1]), float(P[-1])) if I and P and float(I[-1]) > -60 else None
+    with ThreadPoolExecutor(8) as ex: M = {k: v for k, v in ex.map(meas, tim) if v}
+    grp = {}
+    for k, (I, P) in M.items(): grp.setdefault((tim[k].get('who'), tim[k].get('fx', '')), []).append(I)
+    med = {g: sorted(v)[len(v) // 2] for g, v in grp.items()}
+    for k in tim:
+        tim[k].pop('g', None)
+        if k not in M: continue
+        I, P = M[k]; want = LOUD_T + LOUD_KEEP * (I - med[(tim[k].get('who'), tim[k].get('fx', ''))])
+        db = max(-12, min(20, want - I, -P))
+        if abs(db) >= .3: tim[k]['g'] = round(10 ** (db / 20), 2)
+    json.dump(dict(sorted(tim.items())), open(tf, 'w'), ensure_ascii=False)
+    gs = [tim[k].get('g', 1) for k in tim]
+    print(f'громкость {lang}: {len(M)} реплик, усиление ×{min(gs):.2f}…×{max(gs):.2f}')
 
 def check(lang):
     tf = tfile(lang); tim = json.load(open(tf)) if os.path.exists(tf) else {}
@@ -140,3 +169,4 @@ if __name__ == '__main__':
     if cmd == 'plan': plan(lang)
     elif cmd == 'split': split(lang, int(sys.argv[3]), sys.argv[4], sys.argv[5:])   # … [ключ=начало-конец …]
     elif cmd == 'check': check(lang)
+    elif cmd == 'loud': loud(lang)

@@ -28,10 +28,16 @@ function buildLobby() {
   const floor = plane(16, 12, mat(0xffffff, TX.marble), S); floor.rotation.x = -PI / 2;
   const ceil = plane(16, 12, mat(0xffffff, TX.ceil), S); ceil.rotation.x = PI / 2; ceil.position.y = 4.2;
   const wallM = mat(0xffffff, TX.wall), panelM = mat(0xffffff, TX.panel, { decal: 1 });
-  const back = plane(16, 4.2, wallM, S); back.position.set(0, 2.1, -6);
+  // задняя стена — с проёмом под первый лифт: за открытыми дверями видна кабина, а не стена холла (UV как у целой плоскости)
+  const holed = (w, h, m, x0, x1, y1) => { const sh = new T.Shape(); sh.moveTo(-w / 2, -h / 2); sh.lineTo(w / 2, -h / 2); sh.lineTo(w / 2, h / 2); sh.lineTo(-w / 2, h / 2); sh.closePath();
+    const hl = new T.Path(); hl.moveTo(x0, -h / 2); hl.lineTo(x1, -h / 2); hl.lineTo(x1, Math.min(h / 2, y1 - h / 2)); hl.lineTo(x0, Math.min(h / 2, y1 - h / 2)); hl.closePath(); sh.holes.push(hl);
+    const gm = new T.ShapeGeometry(sh), uv = gm.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) + w / 2) / w, (uv.getY(i) + h / 2) / h);
+    const me = new T.Mesh(gm, m); S.add(me); return me; };
+  const back = holed(16, 4.2, wallM, -2.84, -1.56, 2.3); back.position.set(0, 2.1, -6);
   const left = plane(12, 4.2, wallM, S); left.rotation.y = PI / 2; left.position.set(-8, 2.1, 0);
   const right = plane(12, 4.2, wallM, S); right.rotation.y = -PI / 2; right.position.set(8, 2.1, 0);
-  for (const [w, x, z, ry] of [[16, 0, -5.99, 0], [12, -7.99, 0, PI / 2], [12, 7.99, 0, -PI / 2]]) { const p = plane(w, 1.1, panelM, S); p.position.set(x, .55, z); p.rotation.y = ry; }
+  for (const [w, x, z, ry] of [[12, -7.99, 0, PI / 2], [12, 7.99, 0, -PI / 2]]) { const p = plane(w, 1.1, panelM, S); p.position.set(x, .55, z); p.rotation.y = ry; }
+  holed(16, 1.1, panelM, -2.84, -1.56, 1.1).position.set(0, .55, -5.99);   // панели задней стены — тоже с проёмом
   // потолочные светильники (часть не горит)
   o.ceilLights = [];
   for (let i = -2; i <= 2; i++) for (let j = -1; j <= 1; j++) {
@@ -69,15 +75,19 @@ function buildLobby() {
   }
   // кабина первого лифта (видна, когда двери открыты)
   const cab = new T.Group(); cab.position.set(-2.2, 0, -6.85); S.add(cab);
-  const cm = mat(0xffffff, TX.metal);
-  box(1.4, .02, 1.6, mat(0x2a2624), 0, .01, 0, cab); box(1.4, .02, 1.6, mat(0xd8dccf, null, { basic: true }), 0, 2.4, 0, cab);
+  // внутри — светлые панели под дерево, тёмный резиновый пол, поручень и зеркало: видно, что это кабина, а не стена холла
+  const cm = mat(0xc9b48f, TX.wood), cabFloor = mat(0x2a2a2c);
+  box(1.4, .02, 1.6, cabFloor, 0, .01, 0, cab); box(1.4, .02, 1.6, mat(0xe8ecdf, null, { basic: true }), 0, 2.4, 0, cab);
+  box(1.3, .02, 1.5, mat(0x3a3a3e), 0, .025, 0, cab);                                                         // коврик
   box(.04, 2.4, 1.6, cm, -.7, 1.2, 0, cab); box(.04, 2.4, 1.6, cm, .7, 1.2, 0, cab); box(1.4, 2.4, .04, cm, 0, 1.2, -.8, cab);
+  box(1.4, .12, .04, mat(0x8a8d90, TX.metal), 0, 2.34, -.79, cab); box(.04, .12, 1.6, mat(0x8a8d90, TX.metal), -.69, 2.34, 0, cab); box(.04, .12, 1.6, mat(0x8a8d90, TX.metal), .69, 2.34, 0, cab);   // кант под потолком
   box(1.0, 1.2, .01, mat(0x9aa6ad, null, { emissive: 0x111518 }), 0, 1.4, -.77, cab);       // зеркало
-  box(.03, .9, .03, mat(0x888888), 0, .95, -.76, cab);
+  for (const [x, z, w, d] of [[0, -.75, 1.2, .03], [-.67, 0, .03, 1.4], [.67, 0, .03, 1.4]]) { const r = box(w, .035, d, mat(0xb8bcc0, TX.metal), x, .95, z, cab); r.castShadow = false; }   // поручень
+  box(.9, .06, .3, mat(0xfff6dc, null, { basic: true }), 0, 2.38, 0, cab);                                   // плафон
   const panel = box(.02, .5, .2, mat(0x222428, null, { decal: 1 }), .68, 1.2, .5, cab);
   o.cabInd = label(.22, .1, 40, 18, (c, w, h, s = '1') => { c.fillStyle = '#060303'; c.fillRect(0, 0, w, h); c.fillStyle = '#ff3a2a'; c.font = '700 15px monospace'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s, w / 2, h / 2 + 1); }, cab);
   o.cabInd.position.set(0, 2.25, .78); o.cabInd.rotation.y = PI;
-  o.cabLight = new T.PointLight(0xe8eedd, 0, 5, 1.5); o.cabLight.position.set(0, 2.2, 0); cab.add(o.cabLight);
+  o.cabLight = new T.PointLight(0xfff0d0, 0, 4.5, 1.2); o.cabLight.position.set(0, 2.1, .1); cab.add(o.cabLight);
   o.cab = cab;
   // табличка и плакат
   const sg = plane(2.6, .5, mat(0xffffff, TX.sign, { decal: 1 }), S); sg.position.set(-.8, 3.35, -5.97);

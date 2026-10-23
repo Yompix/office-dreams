@@ -24,7 +24,7 @@ let LAND = LS.get('land3', true);   // v3: кадры поставлены по�
 // точка, заданная в долях вертикального кадра (сценарий писался под 9:16), → доли текущего кадра (угол обзора по вертикали тот же)
 const scrX = x => LAND ? .5 + (x - .5) * (9 / 16) / (16 / 9) : x;
 const voiceOn = () => LS.get('voice', true);   // озвучка реплик (субтитры остаются всегда)
-const VOL = Object.assign({ all: 1, mus: 1, voice: 1, sfx: 1 }, LS.get('vol', {}));   // ползунки громкости в настройках
+const VOL = Object.assign({ all: 1, mus: 1, voice: 1, sfx: 1, amb: 1 }, LS.get('vol', {}));   // ползунки громкости в настройках (amb — дождь и фон места)
 let uMus = null, uSfx = null;
 const escH = v => String(v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // значки интерфейса: простые векторные, без эмодзи
@@ -37,12 +37,13 @@ const ICON = {
   right: '<svg class="ic" viewBox="0 0 24 24"><path d="M9 4l8 8-8 8"/></svg>',
   plug: '<svg class="ic" viewBox="0 0 24 24"><path d="M9 2v5M15 2v5"/><path class="f" d="M5 7h14v4a7 7 0 0 1-14 0z"/><path d="M12 18v5"/></svg>',
   msg: '<svg viewBox="0 0 24 24"><path class="f" d="M3 5h18v12H9l-6 4z"/></svg>',
-  x: '<svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+  x: '<svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  snd: '<svg class="ic" viewBox="0 0 24 24"><path class="f" d="M3 9h4l5-4v14l-5-4H3z"/><path class="on1" d="M16 8.5a5 5 0 0 1 0 7M18.8 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M16 9l5 6M21 9l-5 6"/></svg>'
 };
 
 /* ---------- загрузка ---------- */
 const BUF = {}; let TIM = {};
-const SNDS = ['theme', 'drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'tick', 'click', 'door', 'steps',
+const SNDS = ['theme', 'drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'ring_mob', 'tick', 'click', 'door', 'steps',
   'ch_katya', 'ch_whisper', ...Array.from({ length: 15 }, (_, i) => 'p' + String(i + 1).padStart(2, '0'))];   // реплики пролога — сразу, остальные в фоне
 // звуковые эффекты (ElevenLabs): докачиваются в фоне после старта — список плюс всё, что звучит в сценах и в смене
 const storySfx = () => { const z = new Set(SFX2);
@@ -50,7 +51,7 @@ const storySfx = () => { const z = new Set(SFX2);
   for (const a of Object.values((S.shift || {}).an || {})) for (const x of [a.snd, a.sfx]) if (x) z.add(x[0]);
   ['bolt', 'pen', 'rain_burst', 'shift', 'end_dawn', 'end_newentry', 'end_inside', 'end_sister'].forEach(k => z.add(k)); z.delete('voice'); return [...z]; };   // + своя музыка (tools/music/compose.py)
 const SFX2 = ['room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b', 'mop_swish'];
-let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, radioBus = null, phoneBus = null, master, musicG, voiceG, sfxG, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
+let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, radioBus = null, phoneBus = null, master, outG = null, musicG, voiceG, sfxG, uAmb = null, sfxRev = null, sfxLow = null, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
 // громкость голоса сейчас (для движения рта)
 function voiceLevel() { if (!analyser) return 0; analyser.getByteTimeDomainData(abuf); let q = 0; for (let i = 0; i < abuf.length; i += 2) { const v = (abuf[i] - 128) / 128; q += v * v; } return Math.min(1, Math.sqrt(q / (abuf.length / 2)) * 6); }
 // XHR вместо fetch: так файлы читаются и внутри Android-приложения (file://)
@@ -65,7 +66,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', 2)] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
-  const tm = get(EN ? 'timing_en.json?v=7' : 'timing.json?v=12', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_en.json?v=8' : 'timing.json?v=13', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры
@@ -95,23 +96,29 @@ function initAudio() {   // контекст создаём заранее (он
   const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return (decoding = Promise.resolve());
   AC = new Ctx();
   const muted = LS.get('mute', false);
-  master = AC.createGain(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .25; master.connect(comp); comp.connect(AC.destination); master.gain.value = muted ? 0 : VOL.all;
-  // крик скримера — мимо компрессора, чтобы был громче голоса; резкие 4–5 кГц чуть приглушены (динамик телефона их режет в уши)
-  directG = AC.createGain(); directG.gain.value = master.gain.value; { const pk = filt('peaking', 4500, 1.2); pk.gain.value = -4; directG.connect(pk); pk.connect(AC.destination); }
+  // сумма всех шин → компрессор → общая громкость игрока → выход. Ползунок «Громкость» стоит после компрессора:
+  // до него компрессор возвращал часть убавленного, и ползунок почти не менял громкость
+  master = AC.createGain(); const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .25;
+  outG = AC.createGain(); outG.gain.value = muted ? 0 : VOL.all; master.connect(comp); comp.connect(outG); outG.connect(AC.destination);
+  // крик скримера — мимо компрессора, чтобы был громче голоса; резкие 4–5 кГц чуть приглушены (динамик телефона их режет в уши). Это звук — слушается ползунка «Звуки»
+  directG = AC.createGain(); directG.gain.value = VOL.sfx; { const pk = filt('peaking', 4500, 1.2); pk.gain.value = -4; directG.connect(pk); pk.connect(outG); }
   musicG = AC.createGain(); musicG.gain.value = .55; uMus = AC.createGain(); uMus.gain.value = VOL.mus; musicG.connect(uMus); uMus.connect(master);
   voiceG = AC.createGain(); voiceG.gain.value = 1; voiceOut = AC.createGain(); voiceOut.gain.value = voiceOn() ? VOL.voice : 0; voiceG.connect(voiceOut); voiceOut.connect(master);
   sfxG = AC.createGain(); sfxG.gain.value = .8; uSfx = AC.createGain(); uSfx.gain.value = VOL.sfx; uSfx.connect(master); sfxG.connect(uSfx);
+  uAmb = AC.createGain(); uAmb.gain.value = VOL.amb; uAmb.connect(master);   // дождь и фон места — свой ползунок
   // слой для динамика телефона: он не играет ниже ~250 Гц, поэтому гул, дрон и сердце получают мягкие обертоны 200–1400 Гц
   { lowSend = AC.createGain(); const lp = filt('lowpass', 260, .7), dr = AC.createGain(), ws = AC.createWaveShaper(), hp = filt('highpass', 200, .7), lp2 = filt('lowpass', 1400, .7), wet = AC.createGain();
     const n = 1024, cu = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; cu[i] = Math.tanh(x * 3) / Math.tanh(3); }
     ws.curve = cu; ws.oversample = 'none'; dr.gain.value = 2; wet.gain.value = .6;
     lowSend.connect(lp); lp.connect(dr); dr.connect(ws); ws.connect(hp); hp.connect(lp2); lp2.connect(wet); wet.connect(master);
-    musicSend = AC.createGain(); musicSend.gain.value = 1; uMus.connect(musicSend); musicSend.connect(lowSend); }
+    musicSend = AC.createGain(); musicSend.gain.value = 1; uMus.connect(musicSend); musicSend.connect(lowSend);
+    sfxLow = AC.createGain(); sfxLow.gain.value = VOL.sfx; sfxLow.connect(lowSend); }   // низ звуков — через ползунок «Звуки», как и сами звуки
   // пространство: реверберация (импульс — шум с затуханием) и «за стеклом/дверью» — глухой фильтр
   { const len = AC.sampleRate * 2.4 | 0, ir = AC.createBuffer(2, len, AC.sampleRate);
     for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2) * (i < 90 ? i / 90 : 1); }
     revIn = AC.createConvolver(); revIn.buffer = ir; const rg = AC.createGain(); rg.gain.value = .55; revIn.connect(rg); rg.connect(master);
-    voiceRev = AC.createGain(); voiceRev.gain.value = voiceOn() ? VOL.voice : 0; voiceRev.connect(revIn); }   // эхо голосов — через свой кран: выключили озвучку — нет и эха
+    voiceRev = AC.createGain(); voiceRev.gain.value = voiceOn() ? VOL.voice : 0; voiceRev.connect(revIn);   // эхо голосов — через свой кран: выключили озвучку — нет и эха
+    sfxRev = AC.createGain(); sfxRev.gain.value = VOL.sfx; sfxRev.connect(revIn); }   // эхо звуков — через ползунок «Звуки»
   muffle = filt('lowpass', 1100, .7); muffle.connect(voiceG);
   // рация: узкая полоса + лёгкий перегруз; телефон: узкая полоса, чище
   { const h = filt('highpass', 480, .8), l = filt('lowpass', 2600, .9), ws = AC.createWaveShaper(), cu = new Float32Array(256);
@@ -145,6 +152,7 @@ const SEND = { heart: 2.2, heart_held: 1, sub_presence: 3, drone_dread: 1.6, boo
 function play(name, { when = 0, bus = 'sfx', loop = false, gain = 1, off = 0, rate = 1, to = null, cut = 0, pan = 0, lp = 0, rev = 0 } = {}) {
   if (name === 'jumpscare' && !to && directG) to = [[directG, 1]];
   if (!AC || !BUF[name]) return null;
+  if (bus === 'voice' && TIM[name] && TIM[name].g) gain *= TIM[name].g;   // реплики выровнены по громкости (tools/story/voice.py loud)
   const s = AC.createBufferSource(), gn = AC.createGain(); s.buffer = BUF[name]; s.loop = loop; gn.gain.value = gain; s.playbackRate.value = rate;
   let head = s;
   if (lp) { const f = filt('lowpass', lp, .7); head.connect(f); head = f; }
@@ -152,8 +160,8 @@ function play(name, { when = 0, bus = 'sfx', loop = false, gain = 1, off = 0, ra
   head.connect(gn);
   if (to) { for (const [nd, g2] of to) { if (g2 === 1) gn.connect(nd); else { const sg = AC.createGain(); sg.gain.value = g2; gn.connect(sg); sg.connect(nd); } } }
   else gn.connect(bus === 'voice' ? voiceG : bus === 'music' ? musicG : sfxG);
-  if (rev && revIn) { const rg = AC.createGain(); rg.gain.value = rev; gn.connect(rg); rg.connect(revIn); }
-  if (!to && bus === 'sfx' && SEND[name] && lowSend) { const sg = AC.createGain(); sg.gain.value = SEND[name]; gn.connect(sg); sg.connect(lowSend); }
+  if (rev && revIn) { const rg = AC.createGain(); rg.gain.value = rev; gn.connect(rg); rg.connect(bus === 'voice' ? voiceRev : sfxRev || revIn); }
+  if (!to && bus === 'sfx' && SEND[name] && sfxLow) { const sg = AC.createGain(); sg.gain.value = SEND[name]; gn.connect(sg); sg.connect(sfxLow); }
   const at = AC.currentTime + Math.max(0, when);
   s.start(at, off);
   if (cut) { gn.gain.setValueAtTime(gain, at + Math.max(0, cut - .025)); gn.gain.linearRampToValueAtTime(0, at + cut); s.stop(at + cut + .01); }   // без щелчка на обрезе
@@ -189,13 +197,14 @@ function hush(on, soft) {
 function duck(on) { if (musicG && !hushOn) musicG.gain.setTargetAtTime(on ? .22 : .55, AC.currentTime, .15); }
 
 /* ---------- живой фон места: гул помещения, дождь, лампы — никогда не цифровая тишина ---------- */
-let bedG = null, bed = null;
+let bedG = null, bed = null, bedLow = null;
 const BEDS = { lobby: { tone: .24, f: 9000, hum: .0025 }, corridor: { tone: .2, f: 6500, hum: .009 }, server: { tone: .32, f: 650, hum: .0015 } };
 // дождь: снаружи — открыто; у стекла — глуше; в холле — далеко; на этажах и в подвале почти не слышно
-const RAINS = { out: [.34, 9000], glass: [.2, 2400], in: [.075, 750], far: [.014, 420], none: [0, 420] };
+const RAINS = { out: [.2, 9000], glass: [.11, 2400], in: [.045, 750], far: [.01, 420], none: [0, 420] };
 function bedInit() {
-  bedG = AC.createGain(); bedG.gain.value = 0; bedG.connect(uSfx);   // фон места (дождь, гул) — вместе со звуками
-  const bs = AC.createGain(); bs.gain.value = .6; bedG.connect(bs); bs.connect(lowSend);
+  bedG = AC.createGain(); bedG.gain.value = 0; bedG.connect(uAmb);   // фон места (дождь, гул) — ползунок «Дождь и фон»
+  bedLow = AC.createGain(); bedLow.gain.value = VOL.amb; bedLow.connect(lowSend);   // и его низ для динамика телефона — через тот же ползунок
+  const bs = AC.createGain(); bs.gain.value = .6; bedG.connect(bs); bs.connect(bedLow);
   bed = { toneF: filt('lowpass', 9000, .7), toneG: AC.createGain(), rainF: filt('lowpass', 750, .7), rainG: AC.createGain(), humG: AC.createGain(), src: {}, key: '', lv: -1 };
   bed.toneF.connect(bed.toneG); bed.toneG.connect(bedG); bed.rainF.connect(bed.rainG); bed.rainG.connect(bedG); bed.humG.connect(bedG);
   bed.toneG.gain.value = bed.rainG.gain.value = bed.humG.gain.value = 0;
@@ -223,7 +232,7 @@ function panTo(node, pan) { if (pan && AC.createStereoPanner) { const p = AC.cre
 function drip(gain, pan) {
   if (!AC) return; const t = AC.currentTime + .01, o = AC.createOscillator(), gn = AC.createGain(), f0 = 900 + Math.random() * 800;
   o.type = 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * .42, t + .06); env(gn, t, .003, gain, .1);
-  o.connect(gn); const out = panTo(gn, pan); out.connect(sfxG); const rg = AC.createGain(); rg.gain.value = .6; out.connect(rg); rg.connect(revIn); o.start(t); o.stop(t + .15);
+  o.connect(gn); const out = panTo(gn, pan); out.connect(sfxG); const rg = AC.createGain(); rg.gain.value = .6; out.connect(rg); rg.connect(sfxRev); o.start(t); o.stop(t + .15);
 }
 function tink(gain, f) { if (!AC) return; const t = AC.currentTime, o = AC.createOscillator(), gn = AC.createGain(); o.type = 'sine'; o.frequency.value = f; env(gn, t, .002, gain, .08); o.connect(gn); gn.connect(sfxG); o.start(t); o.stop(t + .12); }
 function tubeBuzz(gain) {
@@ -279,7 +288,7 @@ function knockSnd(gain) {
   if (!AC || !BUF.knock) return; const t = AC.currentTime, rate = 1 + (Math.random() * 2 - 1) * .08;
   const s = AC.createBufferSource(), hp = filt('highpass', 240, .7), pk = filt('peaking', 2300, 1.4), gn = AC.createGain();
   pk.gain.value = 7; s.buffer = BUF.knock; s.playbackRate.value = rate; gn.gain.setValueAtTime(gain, t); gn.gain.setTargetAtTime(0, t + .1, .02);
-  s.connect(hp); hp.connect(pk); pk.connect(gn); gn.connect(sfxG); const rg = AC.createGain(); rg.gain.value = .25; gn.connect(rg); rg.connect(revIn);
+  s.connect(hp); hp.connect(pk); pk.connect(gn); gn.connect(sfxG); const rg = AC.createGain(); rg.gain.value = .25; gn.connect(rg); rg.connect(sfxRev);
   s.start(t, 0); s.stop(t + .2);
   tink(.035 * gain, 2900 * rate);   // стекло чуть звенит
 }
@@ -1187,20 +1196,19 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
     ${row('sLang', 'Язык', EN ? 'ENGLISH' : 'РУССКИЙ')}
     ${row('sLand', 'Экран', LAND ? 'ГОРИЗОНТАЛЬНО' : 'ВЕРТИКАЛЬНО')}
     ${row('sGfx', 'Графика', window.World && World.cine ? 'КИНО' : 'РЕТРО')}
-    ${row('sMute', 'Звук', LS.get('mute', false) ? 'ВЫКЛ' : 'ВКЛ')}
     ${row('sVoice', 'Озвучка', voiceOn() ? 'ВКЛ' : 'ВЫКЛ')}
-    <div class="vols">${[['all', 'Громкость'], ['mus', 'Музыка'], ['voice', 'Голоса'], ['sfx', 'Звуки']].map(([k, n]) => `<label class="vol"><span>${tr(n)}</span><input type="range" min="0" max="100" step="5" value="${Math.round(VOL[k] * 100)}" data-k="${k}"><b>${Math.round(VOL[k] * 100)}</b></label>`).join('')}</div>
+    <div class="vols">${[['all', 'Громкость'], ['mus', 'Музыка'], ['voice', 'Голоса'], ['sfx', 'Звуки'], ['amb', 'Дождь и фон']].map(([k, n]) => `<div class="vol ${k}"><span>${tr(n)}</span><input type="range" min="0" max="100" step="5" value="${Math.round(VOL[k] * 100)}" data-k="${k}" aria-label="${tr(n)}"><b>${Math.round(VOL[k] * 100)}</b>${k === 'all' ? `<button class="mute${LS.get('mute', false) ? ' muted' : ''}" id="sMute" aria-label="${tr('Звук')}">${ICON.snd}</button>` : ''}</div>`).join('')}</div>
     ${row('sVhs', 'Плёнка VHS', VHS_N[vh] || VHS_N[2])}
     ${row('sCalm', 'Меньше вспышек', calm() ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sLook', FINE ? 'Оглядываться мышью' : 'Оглядываться наклоном', lookOn() ? 'ВКЛ' : 'ВЫКЛ')}</div>
-    <small>${tr('«Кино» — тени, блики, объёмный свет, чёткая картинка (для ПК). «Ретро» — плёнка и пиксели старой приставки, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}</small><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
+    <small>${tr('«Кино» — тени, блики, объёмный свет (для ПК). «Ретро» — плёнка и пиксели, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}</small><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
   const back = () => { uiSnd('back'); from === 'pause' ? pauseMenu() : menu(); };
   $('mBack').onclick = $('sX').onclick = back;
   const re = () => { uiSnd(); settings(from); };
-  $('sMute').onclick = () => { setMute(!LS.get('mute', false)); re(); };
-  uiEl.querySelectorAll('.vol input').forEach(r => { r.oninput = () => { VOL[r.dataset.k] = r.value / 100; r.nextElementSibling.textContent = r.value; LS.set('vol', VOL); applyVol(); };
-    r.onchange = () => { if (r.dataset.k !== 'mus') play(r.dataset.k === 'voice' ? 'p01' : 'click', { bus: r.dataset.k === 'voice' ? 'voice' : 'sfx', cut: 1.2 }); }; });   // проба громкости
+  $('sMute').onclick = () => { setMute(!LS.get('mute', false)); uiSnd(); $('sMute').classList.toggle('muted', LS.get('mute', false)); };
+  host.querySelectorAll('.vol input').forEach(r => { r.oninput = () => { VOL[r.dataset.k] = r.value / 100; r.nextElementSibling.textContent = r.value; LS.set('vol', VOL); applyVol(); };
+    r.onchange = () => probe(r.dataset.k); });   // проба громкости
   $('sVoice').onclick = () => { setVoice(!voiceOn()); re(); };
   $('sLang').onclick = () => { LS.set('lang', EN ? 'ru' : 'en'); reloadKeep(from); };   // язык — с перезагрузкой (надписи в 3D-мире рисуются при загрузке), игра продолжится с того же места
   $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
@@ -1210,11 +1218,25 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
 }
+// проба громкости после ползунка. В паузе основной звук стоит (AC.suspend), поэтому проба идёт через свой маленький контекст с теми же множителями
+let probeAC = null; const probeBuf = {};
+function probe(k) {
+  const name = k === 'voice' ? 'p01' : k === 'amb' ? 'rain' : 'click', cut = k === 'amb' ? 1.6 : 1.2;
+  if (AC && AC.state === 'running') { play(name, k === 'amb' ? { to: [[uAmb, .2]], cut } : { bus: k === 'voice' ? 'voice' : 'sfx', cut }); return; }
+  const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx || !rawSnd[name]) return;
+  if (!probeAC) probeAC = new Ctx();
+  const go = () => {
+    const s = probeAC.createBufferSource(), g = probeAC.createGain(), t = probeAC.currentTime;
+    const lv = (LS.get('mute', false) ? 0 : VOL.all) * (k === 'all' ? .8 : k === 'voice' ? (voiceOn() ? VOL.voice : 0) * ((TIM[name] || {}).g || 1) : k === 'amb' ? VOL.amb * .2 : VOL.sfx * .8);
+    s.buffer = probeBuf[name]; g.gain.setValueAtTime(lv, t); g.gain.setValueAtTime(lv, t + cut - .1); g.gain.linearRampToValueAtTime(0, t + cut); s.connect(g); g.connect(probeAC.destination); s.start(t); s.stop(t + cut + .01);
+  };
+  if (probeBuf[name]) go(); else probeAC.decodeAudioData(rawSnd[name].slice(0), d => { probeBuf[name] = d; go(); }, () => {});
+}
 function setVoice(on) { LS.set('voice', on); applyVol(); }
 function setMute(m) { LS.set('mute', m); applyVol(); $('bMute').classList.toggle('muted', m); }
 function applyVol() {   // громкости игрока → узлы звука (мягко, без щелчков)
   if (!AC) return; const m = LS.get('mute', false) ? 0 : VOL.all, v = voiceOn() ? VOL.voice : 0, at = AC.currentTime;
-  for (const [n, x] of [[master, m], [directG, m], [uMus, VOL.mus], [uSfx, VOL.sfx], [voiceOut, v], [voiceRev, v]]) if (n) n.gain.setTargetAtTime(x, at, .03);
+  for (const [n, x] of [[outG, m], [directG, VOL.sfx], [uMus, VOL.mus], [uSfx, VOL.sfx], [sfxRev, VOL.sfx], [sfxLow, VOL.sfx], [uAmb, VOL.amb], [bedLow, VOL.amb], [voiceOut, v], [voiceRev, v]]) if (n) n.gain.setTargetAtTime(x, at, .03);
 }
 async function begin(id) {
   unlockAudio(); goFull();   // до любого await, пока идёт нажатие
@@ -1379,46 +1401,59 @@ function phone(spec, t) {
 }
 // заставка — рисунок Лили (ей шесть): Итан, она и пёс Бублик, солнце, трава; мелками, подписи детским почерком. Рисуется кодом.
 let drawingC = null;
-function drawing() {
+function drawing() {   // заставка телефона: детский рисунок Лили (ей шесть) — Итан, она и пёс Бублик. Фигуры простые и ясные: голова, улыбка, закрашенная одежда
   if (drawingC) return drawingC;
   const c = drawingC = document.createElement('canvas'); c.width = 600; c.height = 1060; const x = c.getContext('2d');
   let sd = 7; const R = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
-  x.fillStyle = '#efe8d8'; x.fillRect(0, 0, 600, 1060);
+  x.fillStyle = '#f1ead9'; x.fillRect(0, 0, 600, 1060);
   for (let i = 0; i < 2600; i++) { x.fillStyle = `rgba(${R() < .5 ? '120,110,90' : '255,255,250'},${.05 + R() * .06})`; x.fillRect(R() * 600, R() * 1060, 2, 2); }   // зерно бумаги
-  const crayon = (col, w, pts, n = 3) => { for (let k = 0; k < n; k++) { x.strokeStyle = col; x.globalAlpha = .55; x.lineWidth = w * (.7 + R() * .5); x.lineCap = 'round'; x.lineJoin = 'round'; x.beginPath();
-    pts.forEach(([px, py], i) => { const jx = px + (R() - .5) * w * .6, jy = py + (R() - .5) * w * .6; i ? x.lineTo(jx, jy) : x.moveTo(jx, jy); }); x.stroke(); } x.globalAlpha = 1; };
-  const ring = (col, w, cx, cy, rx, ry, n = 3) => { const p = []; for (let i = 0; i <= 26; i++) { const a = i / 26 * Math.PI * 2 + .3; p.push([cx + Math.cos(a) * rx * (1 + (R() - .5) * .08), cy + Math.sin(a) * ry * (1 + (R() - .5) * .08)]); } crayon(col, w, p, n); };
-  const fill = (col, cx, cy, rx, ry) => { for (let i = 0; i < 60; i++) { const a = R() * 7, r = Math.sqrt(R()); crayon(col, 5, [[cx + Math.cos(a) * rx * r, cy + Math.sin(a) * ry * r], [cx + Math.cos(a + 2) * rx * r * .8, cy + Math.sin(a + 2) * ry * r * .8]], 1); } };
-  // солнце и трава
-  fill('#f2b81c', 495, 135, 58, 58); ring('#e8a010', 7, 495, 135, 60, 60);
-  for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; crayon('#e8a010', 6, [[495 + Math.cos(a) * 75, 135 + Math.sin(a) * 75], [495 + Math.cos(a) * 112, 135 + Math.sin(a) * 112]], 2); }
-  for (let i = 0; i < 46; i++) { const gx = i * 13 + R() * 6; crayon('#3f9a3a', 5, [[gx, 1010], [gx + (R() - .5) * 18, 940 + R() * 30]], 1); }
+  const crayon = (col, w, pts, n = 2) => { for (let k = 0; k < n; k++) { x.strokeStyle = col; x.globalAlpha = .7; x.lineWidth = w * (.8 + R() * .4); x.lineCap = 'round'; x.lineJoin = 'round'; x.beginPath();
+    pts.forEach(([px, py], i) => { const jx = px + (R() - .5) * w * .4, jy = py + (R() - .5) * w * .4; i ? x.lineTo(jx, jy) : x.moveTo(jx, jy); }); x.stroke(); } x.globalAlpha = 1; };
+  const oval = (cx, cy, rx, ry) => { const p = []; for (let i = 0; i <= 28; i++) { const a = i / 28 * Math.PI * 2 + .3; p.push([cx + Math.cos(a) * rx * (1 + (R() - .5) * .06), cy + Math.sin(a) * ry * (1 + (R() - .5) * .06)]); } return p; };
+  // закрашено «как мелком»: штрихи наискосок внутри контура, два прохода
+  const paint = (col, pts) => { x.save(); x.beginPath(); pts.forEach(([px, py], i) => i ? x.lineTo(px, py) : x.moveTo(px, py)); x.closePath(); x.clip();
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), x0 = Math.min(...xs) - 20, x1 = Math.max(...xs) + 20, y0 = Math.min(...ys) - 20, y1 = Math.max(...ys) + 20;
+    x.strokeStyle = col; x.lineCap = 'round';
+    for (const [dx, dy] of [[1, 1], [1, -.6]]) for (let s = -(x1 - x0) - (y1 - y0); s < (x1 - x0) + (y1 - y0); s += 7) {
+      x.globalAlpha = .45 + R() * .3; x.lineWidth = 6 + R() * 3; x.beginPath(); x.moveTo(x0 + s + (R() - .5) * 4, y0); x.lineTo(x0 + s + dx * (y1 - y0) / dy + (R() - .5) * 4, y1); x.stroke(); }
+    x.globalAlpha = 1; x.restore(); };
+  const shape = (col, line, w, pts) => { paint(col, pts); crayon(line, w, [...pts, pts[0]]); };
+  const face = (cx, cy, r, skin, line) => { shape(skin, line, 5, oval(cx, cy, r, r * 1.08));
+    x.fillStyle = '#222'; x.beginPath(); x.arc(cx - r * .36, cy - r * .12, r * .09, 0, 7); x.arc(cx + r * .36, cy - r * .12, r * .09, 0, 7); x.fill();
+    crayon('#c03030', 4, [[cx - r * .4, cy + r * .35], [cx - r * .15, cy + r * .55], [cx + r * .15, cy + r * .55], [cx + r * .4, cy + r * .35]], 2); };   // улыбка
+  // солнце в углу, облако, трава
+  shape('#f5c21c', '#e0a010', 6, oval(500, 135, 56, 56));
+  for (let i = 0; i < 11; i++) { const a = i / 11 * Math.PI * 2 + .2; crayon('#e0a010', 6, [[500 + Math.cos(a) * 72, 135 + Math.sin(a) * 72], [500 + Math.cos(a) * 108, 135 + Math.sin(a) * 108]], 2); }
+  crayon('#8fb4d8', 6, [[70, 190], [95, 165], [130, 160], [160, 172], [190, 160], [222, 175], [228, 200], [200, 212], [120, 214], [70, 206], [70, 190]], 2);   // облако
+  for (let i = 0; i < 52; i++) { const gx = i * 11.5 + R() * 6; crayon('#3f9a3a', 5, [[gx, 1012], [gx + (R() - .5) * 16, 955 + R() * 25]], 1); }
   crayon('#3f9a3a', 9, [[0, 1000], [600, 990]], 3);
-  x.save(); x.translate(42, 158); x.scale(.86, .86);   // фигуры ниже — над ними часы и уведомления
-  // Итан — высокий: голова, тёмные волосы, синяя кофта, ноги
-  fill('#f0c8a0', 150, 470, 46, 52); ring('#8a5a3a', 6, 150, 470, 46, 52); crayon('#3a2a1a', 14, [[108, 440], [125, 420], [150, 414], [178, 420], [194, 444]], 3);
-  x.fillStyle = '#222'; x.fillRect(132, 462, 8, 9); x.fillRect(160, 462, 8, 9); crayon('#c03030', 5, [[132, 492], [150, 502], [168, 492]], 2);
-  fill('#2f5fb0', 150, 620, 52, 95); crayon('#1f3f80', 7, [[100, 540], [100, 710], [200, 710], [200, 540], [100, 540]], 2);
-  crayon('#1f3f80', 8, [[100, 560], [50, 660]], 2); crayon('#1f3f80', 8, [[200, 560], [262, 650]], 2);   // рука держит руку Лили
-  crayon('#333', 9, [[125, 710], [118, 900]], 3); crayon('#333', 9, [[175, 710], [182, 900]], 3); crayon('#333', 10, [[100, 905], [130, 905]], 2); crayon('#333', 10, [[172, 905], [205, 905]], 2);
-  // Лили — маленькая, косички, жёлтое платье
-  fill('#f0c8a0', 300, 610, 38, 42); ring('#8a5a3a', 6, 300, 610, 38, 42); crayon('#7a4a20', 10, [[264, 590], [300, 570], [336, 590]], 3);
-  crayon('#7a4a20', 7, [[262, 600], [244, 650]], 2); crayon('#7a4a20', 7, [[338, 600], [356, 650]], 2);
-  x.fillStyle = '#222'; x.fillRect(287, 604, 7, 8); x.fillRect(308, 604, 7, 8); crayon('#c03030', 5, [[287, 628], [300, 636], [313, 628]], 2);
-  fill('#f2c81c', 300, 740, 60, 82); crayon('#d8a010', 7, [[262, 660], [240, 820], [360, 820], [338, 660], [262, 660]], 2);
-  crayon('#333', 8, [[285, 822], [282, 905]], 2); crayon('#333', 8, [[315, 822], [318, 905]], 2); crayon('#f0c8a0', 8, [[262, 680], [266, 660]], 1);
-  // Бублик — рыжий, круглый, висячие уши, хвост закорючкой
-  fill('#b8742a', 465, 820, 80, 48); ring('#7a4a1a', 7, 465, 820, 80, 48);
-  fill('#b8742a', 545, 760, 38, 36); ring('#7a4a1a', 7, 545, 760, 38, 36); crayon('#5a3210', 12, [[520, 740], [505, 790]], 2); crayon('#5a3210', 12, [[568, 740], [580, 788]], 2);
-  x.fillStyle = '#222'; x.fillRect(535, 752, 7, 8); x.fillRect(556, 752, 7, 8); x.beginPath(); x.arc(548, 775, 6, 0, 7); x.fill();
-  for (const lx of [420, 450, 490, 515]) crayon('#7a4a1a', 9, [[lx, 860], [lx, 905]], 2);
-  crayon('#7a4a1a', 7, [[388, 805], [362, 780], [372, 760], [390, 772]], 2);
-  // сердечко и подписи
-  crayon('#e03a5a', 8, [[300, 440], [278, 412], [290, 392], [300, 408], [310, 392], [322, 412], [300, 440]], 3);
-  x.fillStyle = '#2b2b8a'; x.font = '700 42px "Comic Sans MS", "Segoe Print", cursive'; x.textAlign = 'center';
+  x.save(); x.translate(42, 158); x.scale(.86, .86);   // фигуры — под часами и уведомлениями
+  // Итан — высокий: тёмные волосы, синяя футболка, джинсы
+  shape('#2f5fb0', '#1f3f80', 6, [[112, 525], [188, 525], [206, 560], [204, 705], [96, 705], [94, 560]]);   // футболка
+  shape('#3b4a78', '#26305a', 6, [[100, 705], [200, 705], [196, 900], [160, 900], [152, 760], [148, 760], [140, 900], [104, 900]]);   // джинсы
+  crayon('#333', 9, [[98, 906], [142, 906]], 2); crayon('#333', 9, [[156, 906], [202, 906]], 2);   // ботинки
+  crayon('#f0c8a0', 11, [[100, 560], [60, 660]], 2); crayon('#f0c8a0', 11, [[200, 560], [255, 640]], 2);   // руки; правая тянется к руке Лили
+  face(150, 470, 46, '#f0c8a0', '#8a5a3a'); shape('#3a2a1a', '#2a1a0a', 5, [[104, 452], [112, 420], [150, 406], [188, 420], [196, 452], [176, 436], [150, 430], [124, 436]]);   // волосы
+  // Лили — маленькая, косички с бантиками, жёлтое платье, руки в стороны (одна — в руке Итана)
+  shape('#f2c81c', '#d8a010', 6, [[270, 660], [330, 660], [368, 820], [232, 820]]);   // платье
+  crayon('#f0c8a0', 9, [[272, 670], [255, 640]], 2); crayon('#f0c8a0', 9, [[328, 670], [372, 700]], 2);   // руки
+  crayon('#333', 8, [[285, 822], [282, 900]], 2); crayon('#333', 8, [[315, 822], [318, 900]], 2); crayon('#333', 8, [[270, 906], [296, 906]], 2); crayon('#333', 8, [[306, 906], [334, 906]], 2);
+  face(300, 610, 38, '#f0c8a0', '#8a5a3a'); shape('#7a4a20', '#5a3210', 5, [[262, 596], [270, 572], [300, 562], [330, 572], [338, 596], [320, 586], [300, 582], [280, 586]]);   // чёлка
+  crayon('#7a4a20', 9, [[262, 602], [246, 650]], 2); crayon('#7a4a20', 9, [[338, 602], [354, 650]], 2); crayon('#e03a5a', 5, [[238, 650], [254, 642], [250, 658]], 2); crayon('#e03a5a', 5, [[346, 650], [362, 642], [358, 658]], 2);   // косички и бантики
+  // Бублик — рыжий, круглый, уши висят, хвост бубликом, язык
+  shape('#c8812e', '#7a4a1a', 6, oval(462, 822, 82, 50));                                         // туловище
+  for (const lx of [412, 444, 486, 514]) crayon('#7a4a1a', 9, [[lx, 858], [lx, 905]], 2);     // лапы
+  crayon('#7a4a1a', 8, [[386, 806], [364, 782], [372, 758], [394, 766], [388, 788]], 2);      // хвост закорючкой
+  shape('#c8812e', '#7a4a1a', 6, oval(548, 762, 40, 37));                                      // голова
+  shape('#8a5218', '#5a3210', 5, [[514, 742], [528, 740], [524, 790], [506, 786]]); shape('#8a5218', '#5a3210', 5, [[568, 740], [584, 742], [590, 788], [572, 790]]);   // уши
+  x.fillStyle = '#222'; x.beginPath(); x.arc(538, 752, 4.5, 0, 7); x.arc(560, 752, 4.5, 0, 7); x.fill(); x.beginPath(); x.arc(550, 772, 7, 0, 7); x.fill();   // глаза, нос
+  crayon('#e04a6a', 6, [[550, 784], [552, 798]], 2); crayon('#c03030', 5, [[512, 796], [548, 806], [584, 796]], 2);   // язык, ошейник
+  // сердечко и подписи печатными буквами
+  crayon('#e03a5a', 7, [[300, 440], [278, 412], [290, 392], [300, 408], [310, 392], [322, 412], [300, 440]], 3);
+  x.fillStyle = '#2b2b8a'; x.font = '700 44px "Comic Sans MS", "Segoe Print", "Chalkboard SE", cursive'; x.textAlign = 'center';
   const word = (s, px, py, rot) => { x.save(); x.translate(px, py); x.rotate(rot); x.globalAlpha = .85; x.fillText(tr(s), 0, 0); x.restore(); };
-  word('ИТАН', 150, 380, -.05); word('Я', 300, 540, .08); word('БУБЛИК', 470, 690, -.07);
-  crayon('#2b2b8a', 5, [[470, 700], [480, 722]], 2);
+  word('ИТАН', 150, 382, -.05); word('Я', 300, 542, .08); word('БУБЛИК', 470, 692, -.07);
+  crayon('#2b2b8a', 5, [[470, 702], [478, 724]], 2);
   x.restore();
   return c;
 }
@@ -1545,7 +1580,7 @@ function frame(tp) {
         else { ci = Math.min(n - 1, Math.floor(p * n)); lp = p * n - ci; }
         let c = cams[ci]; const still = beat.fx === 'photo';   // фото не дышит и не двигается: снимок
         if (Array.isArray(c[0]) && window.World && World.projectAt) { const q = World.projectAt(c[4] || beat.img, c[0]);   // план целится в точку мира (лицо), а не в долю экрана
-          c = [LAND ? .5 + (q[0] - .5) * (16 / 9) / (9 / 16) : q[0], q[1], c[2], c[3], c[4]]; }   // в 16:9 shot() пересчитает доли из 9:16 (scrX) — отдаём в долях 9:16
+          c = [LAND ? .5 + (q[0] - .5) * (16 / 9) / (9 / 16) : q[0], q[1] + (c[1] || 0), c[2], c[3], c[4]]; }   // в 16:9 shot() пересчитает доли из 9:16 (scrX) — отдаём в долях 9:16; c[1] — сдвиг по вертикали (минус — точка выше центра)
         let z = c[2] + (c[3] - c[2]) * ease(lp); if (sc && beat.fx !== 'lunge') z = Math.max(z, c[3]) * (1.1 + .04 * Math.exp(-st * 6));
         const cr = creep && t >= creep.at && t < creep.at + creep.len ? creep.seed : 0;
         if (cr && !creep.hit) { creep.hit = true; if (Math.random() < .35) play('whispers', { gain: .18 }); }   // молча: заметит не каждый — так страшнее
@@ -1660,7 +1695,7 @@ function frame(tp) {
   if (T - blackT < .09) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }   // склейка/скример: пара чёрных кадров, без белой вспышки
   // звук места: фон, далёкие звуки, лампа
   if (AC && bed) {
-    const lv = mode === 'play' || mode === 'cams' || mode === 'mg' || mode === 'choice' || mode === 'shift' ? (voiceNow ? .75 : 1) : mode === 'menu' ? (gateDone ? .9 : 0) : mode === 'end' ? .5 : 0;
+    const lv = inGame() ? (voiceNow ? .45 : 1) : mode === 'menu' ? (gateDone ? .9 : 0) : mode === 'end' ? .5 : 0;   // под голос фон уходит вниз, чтобы дождь не глушил речь
     bedSet(place && place.loc, place && place.rain, lv);
     if (lv > 0) { ambTick(T, mode === 'menu' ? 'title' : bedWant.loc, quiet || voiceNow || mode === 'mg'); tubeTick(T); }
   }
@@ -1735,5 +1770,6 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   initAudio(); loaded = true;
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
-window.__ns = { back: () => menu(), startScene, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); } };
+window.__ns = { back: () => menu(), startScene, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); },
+  get vols() { const g = n => n ? +n.gain.value.toFixed(3) : null; return { out: g(outG), mus: g(uMus), sfx: g(uSfx), sfxRev: g(sfxRev), sfxLow: g(sfxLow), amb: g(uAmb), bedLow: g(bedLow), voice: g(voiceOut), voiceRev: g(voiceRev), direct: g(directG), bed: g(bedG) }; } };
 })();

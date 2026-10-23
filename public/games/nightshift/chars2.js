@@ -868,9 +868,10 @@ function propMesh(name) {
       for (let j = 0; j < 4; j++) box(.004, .005, .002, m, .005, -.03 - j * L * .2, 0, k);   // бородка
     });
     const tag = new T.Group(); tag.position.set(.012, -.018, -.004); tag.rotation.z = .4; g.add(tag); box(.022, .045, .003, red, 0, -.03, 0, tag);
-  } else if (name === 'phone') {   // начало — середина телефона; экран смотрит в +Z
-    box(.072, .152, .008, blk, 0, 0, 0, g);
-    const scr = new T.Mesh(new T.PlaneGeometry(.066, .144), mat(0x050608, null, { basic: true })); scr.position.z = .0042; g.add(scr); g.userData.screen = scr;
+  } else if (name === 'phone') {   // начало — середина телефона; экран смотрит в +Z. Корпус светлый, экран чуть светится — иначе у уха на тёмной куртке его не видно
+    box(.072, .152, .008, mat(0xd6d9dc, null, { roughness: .35, metalness: .6 }), 0, 0, 0, g);
+    const scr = new T.Mesh(new T.PlaneGeometry(.066, .144), mat(0x101820, null, { emissive: 0x2a4a66, basic: false })); scr.position.z = .0042; g.add(scr); g.userData.screen = scr;
+    const cam = box(.016, .016, .003, blk, -.022, .058, -.005, g); cam.castShadow = false;   // глазок камеры на спинке
   } else if (name === 'cig') {    // сигарета: начало — фильтр (в губах/пальцах), горит конец (+X)
     const p = cyl(.0042, .0042, .062, 8, mat(0xeeeae0), g); p.rotation.z = Math.PI / 2; p.position.x = .031 + .022;
     const f = cyl(.0043, .0043, .022, 8, mat(0xc98a42), g); f.rotation.z = Math.PI / 2; f.position.x = .011;
@@ -912,7 +913,7 @@ function prop3(name) { return PROPS3[name] || (PROPS3[name] = { name, obj: propM
 const GRIP3 = {
   keys: ['pinch', [0, .002, 0], [0, 0, 0], true],
   keys_palm: ['palm', [.01, .012, 0], [Math.PI / 2, 0, .3], false],
-  phone: ['palm', [.012, .012, 0], [0, -Math.PI / 2, Math.PI / 2], false],
+  phone: ['palm', [.012, .014, 0], [-Math.PI / 2, 0, 0], false],   // у уха: длинная сторона поперёк ладони (от уха ко рту), экран к голове — края видны над пальцами и у щеки
   cig: ['pinch', [0, 0, 0], [0, Math.PI / 2, 0], false],
   lighter: ['palm', [.01, .016, 0], [0, 0, 0], false],
   radio: ['palm', [.01, .02, 0], [0, 0, 0], false],
