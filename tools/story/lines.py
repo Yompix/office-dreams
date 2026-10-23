@@ -303,6 +303,13 @@ L = [
  ('n35', 'ФРЭНК', '', '— Если я пойду на голос — держи. Что бы я ни говорил.', "— If I go after the voice, hold me back. Whatever I say.", 'old man, quiet, scared'),
  ('n36', 'ФРЭНК', '', '— Без двадцати шесть. Держимся, парень.', "— Twenty to six. Hang in there, kid.", 'old man, tired, warm'),
  ('n37', 'ГОЛОС', 'fake', '— Фрэнки… Открой маме… Замёрзла я тут…', "— Frankie… Open up for Mom… I'm so cold out here…", 'old woman, weak, pleading'),
+ # --- смена A1 (ветка «открыл → спрятался в будке», 04:00–05:45): «Лили» ходит по этажам и ищет его ---
+ ('n38', 'ИТАН', '', 'Шаги ушли наверх. До шести — два часа. Я убавил яркость мониторов до самого низа и смотрел.', "The footsteps went upstairs. Two hours till six. I turned the monitors down as dark as they'd go, and watched.", W),
+ ('n39', 'ЛИЛИ', 'fake', '— Итан?.. Я знаю, что ты здесь. Мне холодно. Выйди ко мне.', "— Ethan?.. I know you're here. I'm cold. Come out to me.", 'soft, sweet, whispering, uncanny'),
+ ('n40', 'ИТАН', '', 'На седьмом загорелся свет. Потом на десятом. Она ходит по этажам и щёлкает выключателями. Ищет.', "The lights came on on seven. Then on ten. She's walking the floors, flipping switches. Searching.", 'quiet, tense'),
+ ('n41', 'ИТАН', '', 'Зазвонил внутренний. Если сниму трубку — она услышит, где я.', "The internal phone rang. If I pick up, she'll hear where I am.", W),
+ ('n42', 'ЛИЛИ', 'fake', '— Я слышу, как ты дышишь.', "— I can hear you breathing.", 'whispering, very close, playful, uncanny'),
+ ('n43', 'ИТАН', '', 'Без двадцати шесть. Шаги стихли. Я не знаю, где она. И это хуже всего.', "Twenty to six. The footsteps stopped. I don't know where she is. And that's the worst part.", 'quiet, shaken'),
  # --- обучение: диспетчер охранного пульта «Щит» Вера объясняет по рации, что где (первый час смены) ---
  ('t01', 'ВЕРА', 'radio', '— Охрана «Горизонта», это пульт «Щит», диспетчер Вера. Первая смена? Давай быстро покажу, что у тебя на мониторах.', "— Horizon security, this is Shield dispatch, Vera speaking. First shift? Let me quickly show you what's on your monitors.", 'calm, professional, over the radio'),
  ('t02', 'ВЕРА', 'radio', '— Внизу — камеры здания. Нажми любую. Например, третью — лифты.', "— Along the bottom are the building's cameras. Tap one. Try three, the elevators.", 'calm, professional, over the radio'),

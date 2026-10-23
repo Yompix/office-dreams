@@ -167,6 +167,11 @@ const EN = {
   "Сквозь шипение — голос Гаса.": "Through the hiss — Gus's voice.", "Не отвечать": "Don't answer", "«Итан… Спустись ко мне»": "\"Ethan… Come down to me\"",
   "— Гас! Держись, я сейчас поднимусь!": "— Gus! Hang on, I'm coming!",
   "Итан, я внизу у входа. Открой, пожалуйста, я промокла насквозь": "Ethan, I'm downstairs at the entrance. Please open up, I'm soaked through",
+  // час A1 (спрятался в будке)
+  "Ты прячешься. Смотри камеры и записывай. Шаги у будки — «НЕ ДЫШИ».": "You're hiding. Watch the cameras and log. Footsteps by the booth — \"DON'T BREATHE\".",
+  "Шаги у самой будки. Держи кнопку, пока она не уйдёт.": "Footsteps right by the booth. Hold the button until she leaves.",
+  "Она дышит за стеклом будки. Не отпускай.": "She's breathing on the other side of the booth glass. Don't let go.", "ЗАТАИТЬСЯ": "STAY STILL", "НЕ ДЫШУ": "NOT BREATHING",
+  "Шаги удаляются. Пока.": "The footsteps fade. For now.", "Я на седьмом. Тут светло и тепло. Поднимись ко мне?": "I'm on seven. It's bright and warm up here. Come up to me?",
 };
 const tr = s => LANG === 'en' && EN[s] != null ? EN[s] : s;
 // подстановки: tr('Проверено: {n} из 3', { n: 2 })

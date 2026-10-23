@@ -186,7 +186,12 @@ window.STORY = {
         { img: 'h_pocket', cams: [[.5, .5, 1.0, 1.08]], say: ['h03'], sfx: [['buzz', .1]], pad: .3 },
         { img: 'h_face', cams: [[.5, .5, 1.0, 1.06]], say: ['h04'], heart: true, pad: .3 }
       ],
-      then: { mg: 'hold', title: 'НЕ ДЫШИ', hint: 'Оно ищет на звук. Держи палец, пока шаги рядом.', dur: 11, win: 'hide2', lose: 'over_k5' }
+      then: { mg: 'hold', title: 'НЕ ДЫШИ', hint: 'Оно ищет на звук. Держи палец, пока шаги рядом.', dur: 11, win: 'hide_wait', lose: 'over_k5' }
+    },
+    hide_wait: {   // шаги ушли наверх — до шести почти два часа под стойкой, у мониторов (час смены A1)
+      music: 'drone', time: '03:58',
+      beats: [{ img: 'h_crouch', cams: [[.5, .5, 1.0, 1.05]], say: ['n38'], pad: .4 }],
+      then: { shift: 'A1' }
     },
     hide2: {
       music: 'drone', time: '05:59',
@@ -378,6 +383,14 @@ window.STORY = {
       ],
       then: { over: 'ОНО УСЛЫШАЛО', sub: 'Оно ищет на звук. Пока шаги рядом — не дыши.', retry: 'hide' }
     },
+    over_k5b: {   // то же в часе A1 (шаги у будки, отпустил «НЕ ДЫШИ»): заново — с начала часа
+      music: 'tension',
+      beats: [
+        { img: 'h_face', fx: 'dark', cams: [[.5, .5, 1.1, 1.2]], say: ['k5a'], pad: .1 },
+        { img: 'lunge_booth', fx: 'lunge', scare: 1.2, text: '', pad: 3.0 }
+      ],
+      then: { over: 'ОНО УСЛЫШАЛО', sub: 'Оно ищет на звук. Пока шаги рядом — не дыши.', retry: '@save' }
+    },
     over_k6: {
       music: 'tension',
       beats: [{ img: 'lunge_back', fx: 'lunge', scare: 1.2, text: '', pad: 3.0 }],
@@ -430,7 +443,7 @@ window.STORY = {
       ],
       then: { shift: 'S4' }
     },
-    sh_S1: { beats: [], then: { shift: 'S1' } }, sh_S2: { beats: [], then: { shift: 'S2' } }, sh_S3: { beats: [], then: { shift: 'S3' } }, sh_S4: { beats: [], then: { shift: 'S4' } }, sh_S5: { beats: [], then: { shift: 'S5' } }, sh_S6: { beats: [], then: { shift: 'S6' } },
+    sh_S1: { beats: [], then: { shift: 'S1' } }, sh_S2: { beats: [], then: { shift: 'S2' } }, sh_S3: { beats: [], then: { shift: 'S3' } }, sh_S4: { beats: [], then: { shift: 'S4' } }, sh_S5: { beats: [], then: { shift: 'S5' } }, sh_S6: { beats: [], then: { shift: 'S6' } }, sh_A1: { beats: [], then: { shift: 'A1' } },
     over_door: {
       music: 'tension',
       beats: [
@@ -569,7 +582,17 @@ window.STORY = {
       S6: { from: '04:30', to: '05:58', cam: 'm2', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '04:31', say: 'n33' }, { at: '04:40', say: 'n34' }, { at: '04:52', say: 'n35' },
           { at: '05:06', hold: { say: 'n37', dur: 7, die: 'over_k8' } }, { at: '05:34', hold: { say: 'n37', dur: 9, die: 'over_k8' } }, { at: '05:40', say: 'n36' }],
-        rnd: { pool: ['st_m2', 'st02', 'st07', 'st01', 'st03', 'st10', 'frank02', 'guard04', 'lily01', 'snd_m2', 'snd01', 'whisp02', 'lift', 'lift13', 'hallDark', 'stDark', 'door10', 'palmMove'], n: 8 }, next: 'dawn' }
+        rnd: { pool: ['st_m2', 'st02', 'st07', 'st01', 'st03', 'st10', 'frank02', 'guard04', 'lily01', 'snd_m2', 'snd01', 'whisp02', 'lift', 'lift13', 'hallDark', 'stDark', 'door10', 'palmMove'], n: 8 }, next: 'dawn' },
+      // ветка «открыл → спрятался в будке»: «Лили» внутри, ходит по этажам, включает свет и ищет. Шаги у будки — не дыши; внутренний — не снимай
+      A1: { from: '04:00', to: '05:45', cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'], hint: 'Ты прячешься. Смотри камеры и записывай. Шаги у будки — «НЕ ДЫШИ».',
+        events: [{ at: '04:08', an: 'light7' }, { at: '04:10', say: 'n40' }, { at: '04:16', an: 'light10' },
+          { at: '04:26', hold: { say: 'n39', dur: 7, die: 'over_k5b', title: 'НЕ ДЫШИ', text: 'Шаги у самой будки. Держи кнопку, пока она не уйдёт.', btn: 'ЗАТАИТЬСЯ', btnOn: 'НЕ ДЫШУ', done: 'Шаги удаляются. Пока.', sfx: ['steps_barefoot', { gain: .6 }] } },
+          { at: '04:40', sms: { from: 'Лили', text: 'Я на седьмом. Тут светло и тепло. Поднимись ко мне?' } },
+          { at: '04:52', say: 'n41' }, { at: '04:53', call: { say: 'n20', ask: '«Итан?.. Это ты?»', yes: '— Да. Это я.', hang: 'Молча положить трубку', die: 'over_phone', after: 'n24' } },
+          { at: '05:12', say: 'n31', state: { blackout: 1 } },
+          { at: '05:24', hold: { say: 'n42', dur: 9, die: 'over_k5b', title: 'НЕ ДЫШИ', text: 'Она дышит за стеклом будки. Не отпускай.', btn: 'ЗАТАИТЬСЯ', btnOn: 'НЕ ДЫШУ', done: 'Шаги удаляются. Пока.', sfx: ['steps_barefoot', { gain: .8 }] } },
+          { at: '05:40', say: 'n43' }],
+        rnd: { pool: ['st02', 'st01', 'st03', 'st07', 'st10', 'st_m2', 'hallDark', 'stDark', 'lift', 'lift13', 'door7', 'door10', 'palmMove', 'chair10', 'clockSpin', 'snd03', 'snd04', 'whisp02', 'sdoor', 'mOff'], n: 9 }, next: 'hide2' }
     }
   },
   endings: { inside: 'Внутри', sister: 'Сестра', dawn: 'Рассвет', newentry: 'Новая запись' },

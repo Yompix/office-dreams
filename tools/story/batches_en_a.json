@@ -1,0 +1,24 @@
+[
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "n38",
+   "n40",
+   "n41",
+   "n43"
+  ],
+  "prompt": "[whispering, terrified] The footsteps went upstairs. Two hours till six. I turned the monitors down as dark as they'd go, and watched.\n\n[quiet, tense] The lights came on on seven. Then on ten. She's walking the floors, flipping switches. Searching.\n\n[whispering, terrified] The internal phone rang. If I pick up, she'll hear where I am.\n\n[quiet, shaken] Twenty to six. The footsteps stopped. I don't know where she is. And that's the worst part.",
+  "chars": 445
+ },
+ {
+  "who": "ЛИЛИ",
+  "voice": "CamFZN2KIaqnyvcaFe3E",
+  "keys": [
+   "n39",
+   "n42"
+  ],
+  "prompt": "[soft, sweet, whispering, uncanny] Ethan?.. I know you're here. I'm cold. Come out to me.\n\n[whispering, very close, playful, uncanny] I can hear you breathing.",
+  "chars": 159
+ }
+]

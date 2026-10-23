@@ -64,7 +64,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', 2)] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   const sn = SNDS.map(k => get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
-  const tm = get(EN ? 'timing_en.json?v=5' : 'timing.json?v=10', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_en.json?v=6' : 'timing.json?v=11', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры
   for (const k of [...storySfx(), ...Object.keys(TIM)]) if (!SNDS.includes(k)) get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
@@ -951,17 +951,17 @@ function shiftHelp() {   // шпаргалка: как играть; можно 
     <button class="sh-x" id="tutAgain">${tr('Пройти обучение снова')}</button>`);
   $('tutAgain').onclick = e => { e.stopPropagation(); shiftPop(null); if (!tut) tutorial(); };
 }
-function shiftHold(h) {   // голос матери зовёт Фрэнка: держать кнопку, пока голос не стихнет; отпустил — Фрэнк уходит на голос
-  const my = shf.my, it = sayV(h.say, { delay: .4 }), need = h.dur || 7; let held = 0, down = false, last = now(), lost = 0;
-  shiftPop(`<h3>${tr('ДЕРЖИ ФРЭНКА')}</h3><p>${tr('Фрэнк поднимается на голос. Не отпускай, пока голос не стихнет.')}</p><div class="sh-hold"><i id="hBar"></i></div><button id="hBtn" class="sh-holdb">${tr('ДЕРЖАТЬ')}</button>`, true);
-  play('heart', { gain: .9 }); const btn = $('hBtn');
-  const on = e => { e.preventDefault(); e.stopPropagation(); down = true; btn.classList.add('on'); btn.textContent = tr('ДЕРЖУ'); }, off = e => { e && e.preventDefault(); down = false; btn.classList.remove('on'); btn.textContent = tr('ДЕРЖАТЬ'); };
+function shiftHold(h) {   // держать кнопку, пока голос не стихнет: голос матери зовёт Фрэнка (S6) или «Лили» у будки (A1, «НЕ ДЫШИ»); отпустил — смерть h.die
+  const my = shf.my, it = sayV(h.say, { delay: .4 }), need = h.dur || 7, B = tr(h.btn || 'ДЕРЖАТЬ'), BON = tr(h.btnOn || 'ДЕРЖУ'); let held = 0, down = false, last = now(), lost = 0;
+  shiftPop(`<h3>${tr(h.title || 'ДЕРЖИ ФРЭНКА')}</h3><p>${tr(h.text || 'Фрэнк поднимается на голос. Не отпускай, пока голос не стихнет.')}</p><div class="sh-hold"><i id="hBar"></i></div><button id="hBtn" class="sh-holdb">${B}</button>`, true);
+  play('heart', { gain: .9 }); if (h.sfx) play(h.sfx[0], h.sfx[1] || {}); const btn = $('hBtn');
+  const on = e => { e.preventDefault(); e.stopPropagation(); down = true; btn.classList.add('on'); btn.textContent = BON; }, off = e => { e && e.preventDefault(); down = false; btn.classList.remove('on'); btn.textContent = B; };
   btn.addEventListener('pointerdown', on); btn.addEventListener('pointerup', off); btn.addEventListener('pointerleave', off); btn.addEventListener('pointercancel', off);
   const step = () => { if (!shf || shf.my !== my || shf.ended) return; const t = now(), dt = Math.min(.1, t - last); last = t;
     if (t > it.t0) { if (down) held += dt; else if (t > it.t0 + 1.2) lost += dt; }   // секунда с небольшим на то, чтобы схватить
     const bar = $('hBar'); if (bar) bar.style.width = Math.min(100, held / need * 100) + '%';
     if (lost > .9) { shiftPop(null); return shiftDie(h.die || 'over_k8'); }
-    if (held >= need) { shiftPop(null); play('click'); shiftToast(tr('Голос стих. Фрэнк сел на пол и закрыл лицо руками.')); return; }
+    if (held >= need) { shiftPop(null); play('click'); shiftToast(tr(h.done || 'Голос стих. Фрэнк сел на пол и закрыл лицо руками.')); return; }
     requestAnimationFrame(step); };
   requestAnimationFrame(step);
 }

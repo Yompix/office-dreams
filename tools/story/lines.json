@@ -1448,6 +1448,48 @@
   "en": "— Frankie… Open up for Mom… I'm so cold out here…",
   "tag": "old woman, weak, pleading"
  },
+ "n38": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Шаги ушли наверх. До шести — два часа. Я убавил яркость мониторов до самого низа и смотрел.",
+  "en": "The footsteps went upstairs. Two hours till six. I turned the monitors down as dark as they'd go, and watched.",
+  "tag": "whispering, terrified"
+ },
+ "n39": {
+  "who": "ЛИЛИ",
+  "fx": "fake",
+  "ru": "— Итан?.. Я знаю, что ты здесь. Мне холодно. Выйди ко мне.",
+  "en": "— Ethan?.. I know you're here. I'm cold. Come out to me.",
+  "tag": "soft, sweet, whispering, uncanny"
+ },
+ "n40": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "На седьмом загорелся свет. Потом на десятом. Она ходит по этажам и щёлкает выключателями. Ищет.",
+  "en": "The lights came on on seven. Then on ten. She's walking the floors, flipping switches. Searching.",
+  "tag": "quiet, tense"
+ },
+ "n41": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Зазвонил внутренний. Если сниму трубку — она услышит, где я.",
+  "en": "The internal phone rang. If I pick up, she'll hear where I am.",
+  "tag": "whispering, terrified"
+ },
+ "n42": {
+  "who": "ЛИЛИ",
+  "fx": "fake",
+  "ru": "— Я слышу, как ты дышишь.",
+  "en": "— I can hear you breathing.",
+  "tag": "whispering, very close, playful, uncanny"
+ },
+ "n43": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Без двадцати шесть. Шаги стихли. Я не знаю, где она. И это хуже всего.",
+  "en": "Twenty to six. The footsteps stopped. I don't know where she is. And that's the worst part.",
+  "tag": "quiet, shaken"
+ },
  "t01": {
   "who": "ВЕРА",
   "fx": "radio",
