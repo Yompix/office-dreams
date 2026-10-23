@@ -36,7 +36,8 @@ const ICON = {
   left: '<svg class="ic" viewBox="0 0 24 24"><path d="M15 4l-8 8 8 8"/></svg>',
   right: '<svg class="ic" viewBox="0 0 24 24"><path d="M9 4l8 8-8 8"/></svg>',
   plug: '<svg class="ic" viewBox="0 0 24 24"><path d="M9 2v5M15 2v5"/><path class="f" d="M5 7h14v4a7 7 0 0 1-14 0z"/><path d="M12 18v5"/></svg>',
-  msg: '<svg viewBox="0 0 24 24"><path class="f" d="M3 5h18v12H9l-6 4z"/></svg>'
+  msg: '<svg viewBox="0 0 24 24"><path class="f" d="M3 5h18v12H9l-6 4z"/></svg>',
+  x: '<svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>'
 };
 
 /* ---------- загрузка ---------- */
@@ -63,8 +64,9 @@ async function load(onp) {
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', 2)] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
-  const sn = SNDS.map(k => get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
+  // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
   const tm = get(EN ? 'timing_en.json?v=6' : 'timing.json?v=11', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры
   for (const k of [...storySfx(), ...Object.keys(TIM)]) if (!SNDS.includes(k)) get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
@@ -321,7 +323,8 @@ function signature(k = 1) {
 /* ---------- время (останавливается, когда вкладка скрыта) ---------- */
 let clockT = 0, lastP = performance.now(), paused = false;
 function now() { return clockT; }
-document.addEventListener('visibilitychange', () => { paused = document.hidden; if (AC) document.hidden ? AC.suspend() : AC.resume(); });
+let userPause = false;   // ☰ в игре: пауза, пока открыто меню паузы / настройки
+document.addEventListener('visibilitychange', () => { paused = document.hidden || userPause; if (AC) paused ? AC.suspend() : AC.resume(); });
 
 /* ---------- состояние ---------- */
 let mode = 'load', scene = null, sceneId = '', bi = 0, beat = null, bT0 = 0, bDur = 0, sched = [], fired = new Set(), onBeatEnd = null;
@@ -342,6 +345,22 @@ const SPK = { 'ИТАН': { c: '#cfd3da', cls: 'narr', sub: 'ты' }, 'СМЕН�
   'ВЕРА': { c: '#7fd4ff', sub: 'пульт «Щит»' }, 'ГОЛОС': { c: '#c8b4ff' } };
 const VOICE_WHO = { ch_katya: 'ЛИЛИ', ch_whisper: 'ЛИЛИ', ch_monster: '???' };
 const whoOf = k => VOICE_WHO[k] || (TIM[k] && TIM[k].who) || 'ИТАН';
+// вслух или про себя: рассказ Итана (без тире) — мысли, губы не двигаются; реплики с тире и все остальные — вслух
+const aloudOf = k => whoOf(k) !== 'ИТАН' || ((TIM[k] || {}).t || '').trim().startsWith('—');
+// губы по тексту: в слове, которое звучит сейчас (время слов — в timing.json), берём букву под этот момент → форма рта (визема)
+const VIS_CH = (() => { const m = {}, set = (s, v) => { for (const c of s) m[c] = v; };
+  set('аяa', 'viseme_aa'); set('оёo', 'viseme_O'); set('уюuw', 'viseme_U'); set('ыийiy', 'viseme_I'); set('еэe', 'viseme_E');
+  set('пбмpbm', 'viseme_PP'); set('фвfv', 'viseme_FF'); set('сзцsz', 'viseme_SS'); set('шжщчjc', 'viseme_CH'); set('тдtd', 'viseme_DD');
+  set('нлnl', 'viseme_nn'); set('кгхkgqxh', 'viseme_kk'); set('рr', 'viseme_RR'); return m; })();
+function visemeAt(k, tl) {
+  const w = (TIM[k] || {}).w; if (!w || !w.length) return null;
+  let i = -1; for (let j = 0; j < w.length && w[j][0] <= tl; j++) i = j;
+  if (i < 0) return 'sil';
+  const L = [...String(w[i][1]).toLowerCase()].filter(c => VIS_CH[c]); if (!L.length) return 'sil';
+  const st = w[i][0], nx = i + 1 < w.length ? w[i + 1][0] : st + 9, en = Math.min(nx - .02, st + .075 * L.length + .1);   // слово кончилось — пауза, рот закрыт
+  if (tl > en) return 'sil';
+  return VIS_CH[L[Math.min(L.length - 1, Math.floor((tl - st) / Math.max(.05, en - st) * L.length))]];
+}
 let waiting = false, holding = false, auto = LS.get('auto', false);
 
 // где мы: место кадра (холл / этажи / подвал) и слышен ли дождь
@@ -375,7 +394,7 @@ function runPick(sc, q, a) {   // выбор в сцене sc; вернулся 
 // выбор, от которого зависит концовка (а не «смерть или дальше»): к нему можно вернуться с экрана концовки
 const forkAt = sc => { const t = (S.scenes[sc] || {}).then; return !!(t && t.opts && t.opts.filter(o => !/^over_/.test(o.go)).length > 1); };
 
-function startScene(id, atChoice) {   // atChoice — сразу к выбору в конце сцены (последний кадр перед ним проигрывается)
+function startScene(id, at) {   // at: true — сразу к концу сцены (последний кадр, потом выбор/мини-игра); число — с этого кадра (продолжение после перезагрузки)
   if (!S.scenes[id]) { console.warn('нет сцены', id); return menu(); }   // сохранение из старой версии сценария не ломает игру
   gen++; stopAll(); choiceEl.classList.add('hide'); mgEl.classList.add('hide'); mgEl.innerHTML = ''; mgView = null;
   uiEl.innerHTML = ''; $('hud').classList.remove('hide');
@@ -385,7 +404,7 @@ function startScene(id, atChoice) {   // atChoice — сразу к выбору
   if (!id.startsWith('over_')) LS.set('save', id);
   if (scene.music) music(scene.music);
   if (scene.time) { lastTime = scene.time; clockEl.textContent = scene.time; clockEl.classList.remove('hide'); }
-  bi = atChoice ? scene.beats.length - 2 : -1; nextBeat();
+  bi = at === true ? scene.beats.length - 2 : typeof at === 'number' ? Math.min(at, scene.beats.length) - 1 : -1; nextBeat();
 }
 function nextBeat() {
   bi++; amb('heart', false); holding = false; waiting = false; tapEl.classList.add('hide'); dlgEl.classList.remove('wait');
@@ -419,7 +438,7 @@ function nextBeat() {
   // fx 'glitch' — прошлый кадр замирает на 0.8 с с надписью «соединение потеряно», потом жёсткая склейка
   pre = beat.fx === 'glitch' ? .8 : scareAt != null && scareAt < 1.2 && beat.fx !== 'lunge' ? 1.3 - scareAt : 0;
   if (pre) { frozenG.drawImage(cv, 0, 0); bT0 = now() + pre; if (beat.fx === 'glitch') glitchStart(); }
-  ruleEl.classList.toggle('hide', !beat.rule); if (beat.rule) { ruleEl.textContent = beat.rule; learnRule(beat.rule); }
+  ruleEl.classList.toggle('hide', !beat.rule); if (beat.rule) { ruleEl.textContent = beat.rule; learnRule(); }
   // Жилец иногда мелькает в кадре: только на отмеченных кадрах, не чаще раза в ~40 секунд и не каждый раз
   if (beat.creep && beat.img && scareAt == null && clockT > creepCool && Math.random() < .6) {
     const at = 1 + Math.random() * Math.max(.5, bDur - 2);
@@ -472,7 +491,7 @@ function gapTime(k) {   // начало самой длинной паузы м�
 }
 function skipBeat() { if (mode !== 'play') return; stopAll(); duck(false); waiting = false; tapEl.classList.add('hide'); nextBeat(); }
 // тап по экрану: начать кадр / дочитать реплику / дальше
-function tap() {
+function tap() { if (userPause) return;   // на паузе тап по игре не проходит
   if (mode !== 'play' || !beat) return;
   if (waiting) return beginBeat();
   if (holding) return nextBeat();
@@ -485,11 +504,12 @@ function tap() {
   for (const m of [].concat(beat.sms || [])) if ((m.at ?? .5) > t) showSms(m);
   bT0 = now() - bDur;                                        // сразу к концу кадра (реплика показана целиком)
 }
-const known = new Set(LS.get('rules', []));
-function learnRule(r) { if (/^\d\./.test(r) || r.startsWith('«')) { known.add(r); LS.set('rules', [...known]); } }
+// записка «Правила» (📄 в игре): памятка охранника + записи Фрэнка, которые уже видел (храним место в сценарии — текст берём на текущем языке)
+const known = new Set(LS.get('rules2', []));
+function learnRule() { const k = sceneId + ':' + bi; if (!known.has(k)) { known.add(k); LS.set('rules2', [...known]); } }
 function showRules() {
-  const list = [...known].sort();
-  noteEl.innerHTML = `<div>${list.length ? list.filter(r => /^\d/.test(r)).join('\n\n') + list.filter(r => !/^\d/.test(r)).map(r => `<i>${r}</i>`).join('') : tr('Правил пока нет.')}<small>${tr('нажми, чтобы закрыть')}</small></div>`;
+  const memo = (S.shift.memo || []).map(tr), seen = [...known].map(k => { const [sc, i] = k.split(':'); const b = ((S.scenes[sc] || {}).beats || [])[+i]; return b && b.rule ? tr(b.rule) : null; }).filter(Boolean);
+  noteEl.innerHTML = `<div class="memo"><b>${memo[0] || ''}</b>${memo.slice(1).map(m => `<span>${escH(m)}</span>`).join('')}${[...new Set(seen)].map(r => `<i>${escH(r)}</i>`).join('')}<small>${tr('нажми, чтобы закрыть')}</small></div>`;
   noteEl.classList.remove('hide'); noteEl.onclick = () => noteEl.classList.add('hide');
 }
 
@@ -1014,7 +1034,7 @@ function menu() {
   choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false; beat = null;
   const sv = LS.get('save', null), save = sv && S.scenes[sv] ? sv : null;   // сохранение из старой версии сценария не ломает меню
   uiEl.innerHTML = `<div class="title ${gateDone ? 'open' : 'gate'}${titleFirst ? ' first' : ''}">
-    <div class="logo" id="logo"><b>${EN ? 'HUSH' : 'МОЛЧИ'}</b><b>${EN ? 'TILL SIX' : 'ДО ШЕСТИ'}</b></div>
+    <div class="logo" id="logo"><b>HUSH</b><b>TILL SIX</b></div>
     <div class="tagl">${tr('Не отзывайся · Не открывай · Дождись шести')}</div>
     <div class="tts">TAP TO START</div>
     <nav class="mlist">
@@ -1043,15 +1063,55 @@ function openGate() {
   uiSnd('open'); titleAudio();
 }
 function titleAudio() { bedSet('lobby', 'glass', .9); ambNext = now() + 4; }
-function subScreen(html) {   // концовки / настройки поверх титульного кадра
-  uiEl.innerHTML = `<div class="screen sub">${html}<button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
-  $('mBack').onclick = () => { uiSnd('back'); menu(); };
+function subScreen(html) {   // концовки поверх титульного кадра
+  uiEl.innerHTML = `<div class="screen sub"><button class="sx" id="mX" aria-label="${tr('Назад')}">${ICON.x}</button>${html}<button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
+  $('mBack').onclick = $('mX').onclick = () => { uiSnd('back'); menu(); };
+}
+/* ---------- пауза (☰ в игре): игра и звук замирают; продолжить / настройки / главное меню ---------- */
+const pzEl = $('pz');
+function setPause(on) { userPause = on; paused = document.hidden || on; if (AC) (paused ? AC.suspend() : AC.resume()).catch(() => {}); }
+const inGame = () => ['play', 'choice', 'mg', 'cams', 'shift'].includes(mode);
+function pauseMenu() {
+  if (!inGame()) return;
+  setPause(true);
+  pzEl.innerHTML = `<div class="screen pz"><button class="sx" id="pzX" aria-label="${tr('Продолжить')}">${ICON.x}</button><h1>${tr('ПАУЗА')}</h1>
+    <button class="btn" id="pzGo">${tr('Продолжить')}</button><button class="btn ghost" id="pzSet">${tr('Настройки')}</button><button class="btn ghost" id="pzMenu">${tr('Главное меню')}</button></div>`;
+  pzEl.classList.remove('hide');
+  $('pzGo').onclick = $('pzX').onclick = e => { e.stopPropagation(); unpause(); };
+  $('pzSet').onclick = e => { e.stopPropagation(); uiSnd(); settings('pause'); };
+  $('pzMenu').onclick = e => { e.stopPropagation(); unpause(true); menu(); };
+}
+function unpause(quiet) { pzEl.classList.add('hide'); pzEl.innerHTML = ''; setPause(false); if (!quiet) uiSnd('back'); }
+// язык и графика собираются при загрузке страницы: перезагружаем, но игра продолжается с того же места (сцена и кадр или час смены и минута)
+function reloadKeep(from) {
+  const st = { at: Date.now(), from, flags: Object.assign({}, flags), falseAlarm, lastTime, shk };
+  if (from === 'pause') {
+    if (mode === 'shift' && shf) Object.assign(st, { scene: 'sh_' + shf.id, gm: shf.gm || 0, cam: shf.cam, miss: shf.miss });
+    else if (sceneId && S.scenes[sceneId] && !sceneId.startsWith('over_')) Object.assign(st, { scene: sceneId, bi: mode === 'play' ? Math.max(0, bi) : true });
+  }
+  try { sessionStorage.setItem('ns1_resume', JSON.stringify(st)); } catch {}
+  uiSnd(); setTimeout(() => location.reload(), 120);
+}
+let RESUME = null;
+try { RESUME = JSON.parse(sessionStorage.getItem('ns1_resume') || 'null'); sessionStorage.removeItem('ns1_resume'); if (RESUME && Date.now() - RESUME.at > 300000) RESUME = null; } catch { RESUME = null; }
+function resumeAfterReload() {   // после перезагрузки (сменили язык/графику): тап — и игра там же, где была (тап нужен, чтобы браузер разрешил звук)
+  const st = RESUME; RESUME = null;
+  if (!st.scene) { menu(); if (st.from === 'menu') settings('menu'); return; }
+  mode = 'load';
+  uiEl.innerHTML = `<div class="screen boot"><div class="card">${ICON.play}<span>${tr('Нажми, чтобы продолжить')}</span></div></div>`;
+  uiEl.onclick = () => { uiEl.onclick = null; unlockAudio(); goFull(); uiEl.innerHTML = '';
+    for (const k in flags) delete flags[k]; Object.assign(flags, st.flags || {}); falseAlarm = !!st.falseAlarm; if (st.lastTime) lastTime = st.lastTime; shk = st.shk || null;
+    Promise.race([initAudio(), new Promise(r => setTimeout(r, 6000))]).then(() => {
+      startScene(st.scene, st.bi);
+      if (st.gm != null && shf) { shf.gm = st.gm; const M = shf.m0 + st.gm; for (const e of shf.ev) if (e.m < M) e.done = true; shf.miss = st.miss || 0; if (st.cam) shiftCam(st.cam); }
+    }); };
 }
 const VHS_LV = [0, .32, .7], VHS_N = ['ВЫКЛ', 'СЛАБО', 'ОБЫЧНО'];   // переводятся в row()
-function settings() {
+function settings(from = 'menu') {   // from: 'menu' — из главного меню, 'pause' — из паузы в игре (настройки поверх игры, без выхода)
   const row = (id, name, val) => `<button class="set" id="${id}"><span>${tr(name)}</span><b>${tr(val)}</b></button>`;
   const vh = LS.get('vhs', 2);
-  subScreen(`<h1>${tr('НАСТРОЙКИ')}</h1><div class="sets">
+  const host = from === 'pause' ? pzEl : uiEl;
+  host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('НАСТРОЙКИ')}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets">
     ${row('sLang', 'Язык', EN ? 'ENGLISH' : 'РУССКИЙ')}
     ${row('sLand', 'Экран', LAND ? 'ГОРИЗОНТАЛЬНО' : 'ВЕРТИКАЛЬНО')}
     ${row('sGfx', 'Графика', window.World && World.cine ? 'КИНО' : 'РЕТРО')}
@@ -1062,16 +1122,18 @@ function settings() {
     ${row('sCalm', 'Меньше вспышек', calm() ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sLook', FINE ? 'Оглядываться мышью' : 'Оглядываться наклоном', lookOn() ? 'ВКЛ' : 'ВЫКЛ')}</div>
-    <small>${tr('«Кино» — тени, блики, объёмный свет, чёткая картинка (для ПК). «Ретро» — плёнка и пиксели старой приставки, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}</small>`);
-  const re = () => { uiSnd(); settings(); };
+    <small>${tr('«Кино» — тени, блики, объёмный свет, чёткая картинка (для ПК). «Ретро» — плёнка и пиксели старой приставки, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}</small><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
+  const back = () => { uiSnd('back'); from === 'pause' ? pauseMenu() : menu(); };
+  $('mBack').onclick = $('sX').onclick = back;
+  const re = () => { uiSnd(); settings(from); };
   $('sMute').onclick = () => { setMute(!LS.get('mute', false)); re(); };
   uiEl.querySelectorAll('.vol input').forEach(r => { r.oninput = () => { VOL[r.dataset.k] = r.value / 100; r.nextElementSibling.textContent = r.value; LS.set('vol', VOL); applyVol(); };
     r.onchange = () => { if (r.dataset.k !== 'mus') play(r.dataset.k === 'voice' ? 'p01' : 'click', { bus: r.dataset.k === 'voice' ? 'voice' : 'sfx', cut: 1.2 }); }; });   // проба громкости
   $('sVoice').onclick = () => { setVoice(!voiceOn()); re(); };
-  $('sLang').onclick = () => { LS.set('lang', EN ? 'ru' : 'en'); uiSnd(); location.reload(); };   // язык — с перезагрузкой (надписи в 3D-мире рисуются при загрузке)
+  $('sLang').onclick = () => { LS.set('lang', EN ? 'ru' : 'en'); reloadKeep(from); };   // язык — с перезагрузкой (надписи в 3D-мире рисуются при загрузке), игра продолжится с того же места
   $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
   $('sLand').onclick = () => { LS.set('land3', !LAND); applyLand(!LAND); re(); };
-  $('sGfx').onclick = () => { LS.set('gfx', window.World && World.cine ? 'retro' : 'cine'); LS.set('gfxAuto', 2); uiSnd(); location.reload(); };   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
+  $('sGfx').onclick = () => { LS.set('gfx', window.World && World.cine ? 'retro' : 'cine'); LS.set('gfxAuto', 2); reloadKeep(from); };   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
   $('sVhs').onclick = () => { const v = (LS.get('vhs', 2) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
@@ -1352,8 +1414,8 @@ function frame(tp) {
       if (!waiting) {
         let cur = null; for (const it of sched) if (t >= it.t) cur = it;
         talkV += (voiceLevel() - talkV) * .5;
-        if (cur && t < cur.t + cur.d) talk = { who: whoOf(cur.k), v: talkV };
-        else if (typed && typed.s && t >= typed.t0 && t < typed.t0 + typed.d - .9) talk = { who: typed.who || beat.who || 'ИТАН', v: .25 + .55 * Math.abs(Math.sin(t * 11)) };
+        if (cur && t < cur.t + cur.d) { if (aloudOf(cur.k)) talk = { who: whoOf(cur.k), v: talkV, vis: visemeAt(cur.k, t - cur.t) }; }
+        else if (typed && typed.s && t >= typed.t0 && t < typed.t0 + typed.d - .9 && (typed.who && typed.who !== 'ИТАН' || typed.s.trim().startsWith('—'))) talk = { who: typed.who || beat.who || 'ИТАН', v: .25 + .55 * Math.abs(Math.sin(t * 11)) };
       }
       // скример: вспышка, рывок, сильная тряска
       const sc = scareAt != null && t >= scareAt, st = sc ? t - scareAt : 0;
@@ -1490,12 +1552,12 @@ function applyLand(l) {
 }
 $('bMute').onclick = () => setMute(!LS.get('mute', false));
 $('bMute').classList.toggle('muted', LS.get('mute', false));
-$('bMenu').onclick = () => menu();
+$('bMenu').onclick = e => { e.stopPropagation(); pauseMenu(); };
 $('bFull').onclick = e => { e.stopPropagation(); goFull(); }; fullBtn();
 $('bRules').onclick = e => { e.stopPropagation(); showRules(); };
 $('bAuto').onclick = e => { e.stopPropagation(); auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); };
 $('bAuto').classList.toggle('on', auto);
-$('stage').addEventListener('pointerdown', e => { if (e.target.closest('button, #choice, #mg, #ui, #hud, #note')) return; tap(); });
+$('stage').addEventListener('pointerdown', e => { if (e.target.closest('button, #choice, #mg, #ui, #hud, #note, #pz')) return; tap(); });
 // оглядеться: на ПК взгляд чуть ведёт мышь, на телефоне — наклон (где браузер даёт гироскоп без запроса). Камеры наблюдения и бросок — неподвижны
 const lookT = { x: 0, y: 0 }, look = { x: 0, y: 0 }; let tilt0 = null;
 const lookOn = () => LS.get('look', true);
@@ -1516,7 +1578,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'm' || e.key === 'M' || e.key === 'ь' || e.key === 'Ь') setMute(!LS.get('mute', false));
   if (e.key === 'o' || e.key === 'O' || e.key === 'щ' || e.key === 'Щ') { LS.set('land3', !LAND); applyLand(!LAND); if (uiEl.querySelector('.sets')) settings(); }
   if (mode === 'menu' && !gateDone && (e.key === ' ' || e.key === 'Enter')) return openGate();
-  if (e.key === ' ' || e.key === 'Enter') tap(); if (mode === 'choice' && /^[1-4]$/.test(e.key)) { const b = choiceEl.querySelector(`button[data-i="${+e.key - 1}"]`); if (b) b.click(); } if (e.key === 'Escape') menu(); });
+  if (e.key === ' ' || e.key === 'Enter') tap(); if (mode === 'choice' && /^[1-4]$/.test(e.key)) { const b = choiceEl.querySelector(`button[data-i="${+e.key - 1}"]`); if (b) b.click(); } if (e.key === 'Escape') { const sx = (pzEl.classList.contains('hide') ? uiEl : pzEl).querySelector('.sx'); if (sx) sx.click(); else if (inGame()) pauseMenu(); else if (mode === 'end') menu(); } });
 // ПК: размытый отсвет кадра по бокам экрана (виден только при широком окне и мыши)
 const ambC = $('amb'), ambG = ambC.getContext('2d'); let ambOn = false, ambN = 0;
 function ambFit() { ambOn = getComputedStyle(ambC).display !== 'none'; if (ambOn) ambC.height = Math.max(8, Math.round(64 * innerHeight / innerWidth)); }
@@ -1527,20 +1589,21 @@ window.addEventListener('error', e => { if (mode === 'menu' && !uiEl.innerHTML) 
 // холодный старт: заставка студии 1.4 с (тап — пропустить) идёт, пока грузится мир; потом — карточка «наушники» с полосой загрузки, если ещё грузится
 let loaded = false, splashDone = false, cardT = 0;
 function studio() {
+  if (RESUME) { splashDone = true; return afterSplash(); }   // сменили язык/графику — заставку не показываем
   mode = 'studio';
   uiEl.innerHTML = `<div class="studio"><div class="stw"><div class="logo"><i></i><b>YOMPIX</b><span>GAMES</span></div></div></div>`;
   const go = () => { if (splashDone) return; splashDone = true; uiEl.onclick = null; afterSplash(); };
   uiEl.onclick = go; setTimeout(go, 1400);
 }
 function afterSplash() {
-  if (loaded) return menu();
+  if (loaded) return RESUME ? resumeAfterReload() : menu();
   mode = 'load'; cardT = now();
   uiEl.innerHTML = `<div class="screen boot"><div class="card">${ICON.phones}<span>${tr('18+ · жестокость и кровь · лучше в наушниках · в игре есть вспышки света и резкие звуки')}</span></div><div id="loadbar"><i style="width:${loadP * 100}%"></i></div></div>`;
 }
 studio();
 load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).catch(() => {}).then(() => {
   initAudio(); loaded = true;
-  if (splashDone) setTimeout(menu, Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
+  if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
 window.__ns = { back: () => menu(), startScene, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); } };
 })();

@@ -1699,7 +1699,11 @@ function init() {
 }
 const NAME = { 'ИТАН': ['temych'], 'СМЕНЩИК': ['smenshik'], 'ЛИЛИ': ['katya', 'katyaSmile', 'katyaThing'], '???': ['monster'], 'ФРЭНК': ['mihalych'], 'ГАС': ['cleaner'] };   // кто говорит → чей рот двигается
 const _v = new T.Vector3(), _d = new T.Vector3();
+// вертикальный экран: кадры поставлены под 16:9, при том же вертикальном угле в 9:16 по бокам остаётся треть кадра — двое в кадре не помещаются.
+// Поэтому в вертикали угол шире (по горизонтали ~47° вместо ~26° при fov 44): больше пола и потолка, но герои и предметы в кадре
+const PORT_K = 1.9;
 function aim(c, pos, look, fov, cx, cy, z, sx, sy) {
+  if (!V.land) fov = 2 * Math.atan(Math.tan(fov * PI / 360) * PORT_K) * 180 / PI;
   c.position.set(pos[0], pos[1], pos[2]); c.fov = fov; c.aspect = V.RW / V.RH; c.updateProjectionMatrix(); c.lookAt(look[0], look[1], look[2]); c.updateMatrixWorld();
   // точка (cx, cy) кадра → направление; зум сужает угол обзора вокруг неё (как настоящий объектив)
   _v.set((cx - .5) * 2, -(cy - .5) * 2, .5).unproject(c); _d.copy(_v).sub(c.position).normalize();
@@ -1816,8 +1820,8 @@ function draw(g, W, H, id, o) {
   const newShot = id !== lastId; lastId = id;
   const { sh, o: loc, used } = stage(id, t, o);
   // кто говорит: рот двигается по громкости голоса
-  for (const k in A) A[k].talk = 0;
-  if (o.talk && o.talk.who) for (const k of NAME[o.talk.who] || []) if (used.has(k)) { A[k].talk = o.talk.v; break; }
+  for (const k in A) { A[k].talk = 0; A[k].vis = null; }
+  if (o.talk && o.talk.who) for (const k of NAME[o.talk.who] || []) if (used.has(k)) { A[k].talk = o.talk.v; A[k].vis = o.talk.vis || null; break; }   // vis — форма губ под букву (движок)
   if (sh.hum && used.has(sh.hum) && !(o.talk && o.talk.who)) A[sh.hum].talk = .1 + .12 * Math.abs(Math.sin(t * 4.3)) * (Math.sin(t * 1.1) > -.5 ? 1 : 0);   // мурлычет себе под нос
   if (newShot) for (const k of used) A[k].smDone = false;   // после склейки покадровый Жилец сразу встаёт в новую позу (иначе миг виден старый кадр)
   for (const k of used) A[k].update(T0, dt);
@@ -1871,5 +1875,5 @@ function thumb(id, o = {}) {   // маленькая картинка кадра
   return (thumbs[key] = c.toDataURL('image/jpeg', .7));
 }
 // World.props — «нормы» холла (куртка, пропуск, часы); World.vhs — сила плёнки 0..1 (для пункта меню); World.tube — горит ли сейчас ненадёжная лампа (для звука)
-window.World = { draw, init, warm, setLand, perf: perfTick, get land() { return V.land; }, get cine() { return CINE; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
+window.World = { draw, init, warm, setLand, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();

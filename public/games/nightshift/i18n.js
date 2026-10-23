@@ -172,6 +172,8 @@ const EN = {
   "Шаги у самой будки. Держи кнопку, пока она не уйдёт.": "Footsteps right by the booth. Hold the button until she leaves.",
   "Она дышит за стеклом будки. Не отпускай.": "She's breathing on the other side of the booth glass. Don't let go.", "ЗАТАИТЬСЯ": "STAY STILL", "НЕ ДЫШУ": "NOT BREATHING",
   "Шаги удаляются. Пока.": "The footsteps fade. For now.", "Я на седьмом. Тут светло и тепло. Поднимись ко мне?": "I'm on seven. It's bright and warm up here. Come up to me?",
+  // пауза
+  'ПАУЗА': 'PAUSED', 'Главное меню': 'Main menu',
 };
 const tr = s => LANG === 'en' && EN[s] != null ? EN[s] : s;
 // подстановки: tr('Проверено: {n} из 3', { n: 2 })

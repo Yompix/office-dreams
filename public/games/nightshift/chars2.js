@@ -955,6 +955,14 @@ function feetIn(C, P) {
     keepWorld(C, 'foot_' + sd, fq);
   }
 }
+// three.js пишет в кость, только если значение клипа изменилось с прошлого кадра. Когда время кадра стоит (ждём тапа в конце реплики),
+// правки поверх клипа (наклон корпуса, IK рук и ног, таз, поворот, взгляд) накапливались кадр за кадром — человек сгибался и «ложился».
+// Поэтому перед клипом кости возвращаются к чистой позе прошлого кадра, а сразу после клипа чистая поза запоминается заново.
+function bonesRestore(C) { if (C.clean) for (const e of C.clean) { e[0].quaternion.copy(e[1]); e[0].position.copy(e[2]); } }
+function bonesSnap(C) {
+  if (!C.clean) C.clean = [...new Set(Object.values(C.bone))].map(b => [b, new T.Quaternion(), new T.Vector3()]);
+  for (const e of C.clean) { e[1].copy(e[0].quaternion); e[2].copy(e[0].position); }
+}
 function act3Body(C, P, tt, dt) {
   if (C.clip !== '§') { C.mixer.stopAllAction(); C.acts3 = C.acts3 || {}; for (const k in C.acts3) C.acts3[k].on3 = false; C.act = null; C.clip = '§'; }
   buildHands();
@@ -975,7 +983,7 @@ function act3Body(C, P, tt, dt) {
     used.add(nm);
   }
   for (const nm in C.acts3) if (!used.has(nm) && C.acts3[nm].on3) { C.acts3[nm].stop(); C.acts3[nm].on3 = false; }
-  C.mixer.update(0);
+  bonesRestore(C); C.mixer.update(0); bonesSnap(C);
   if (P.legs === 'feet') feetIn(C, P);
   if (P.pelvis || P.legs === 'plant') {   // таз сдвигается (присесть, перенести вес), ступни остаются где стояли — ноги сгибаются сами (IK)
     C.root.updateWorldMatrix(true, true);
@@ -1040,7 +1048,7 @@ function updateSkinned(C, t, dt) {
   // пальцы — в исходную позу до анимации: клип их почти не трогает, и кулак от швабры/стука иначе оставался навсегда
   for (const sd of ['l', 'r']) { for (const f of FING) for (let j = 1; j <= 3; j++) { const n = f + '_0' + j + '_' + sd; if (C.bone[n]) C.bone[n].quaternion.copy(C.rest[n]); }
     for (let j = 1; j <= 3; j++) { const n = 'thumb_0' + j + '_' + sd; if (C.bone[n]) C.bone[n].quaternion.copy(C.rest[n]); } }
-  C.mixer.update(Math.min(sdt, .2));
+  bonesRestore(C); C.mixer.update(Math.min(sdt, .2)); bonesSnap(C);
   }
   // ноги: у базовой анимации стойка «борца» (ступни широко) — сводим ступни под бёдра, подошва остаётся на полу
   const STAT = { stand: 1, talk: 1, knock: 1, press: 1, give: 1, paper: 1, reach: 1, hug: 1, mop: 1, slam: 1 };
@@ -1235,17 +1243,20 @@ function humanMat(C, n, kind, Q) {
   if (CINE && cut && kind !== 'eyes') m.alphaToCoverage = true;
   if (CINE && kind === 'eyes') m.envMapIntensity = .9;
   if (CINE && (kind === 'skin' || cloth)) m.envMapIntensity = .22;   // иначе на контровом свете кожа светится ореолом
+  if (CINE && (kind === 'teeth' || kind === 'tongue')) { m.envMapIntensity = .06; m.roughness = .55; }   // во рту нет бликов от комнаты
   const re = Array.isArray(tint) ? tint : null, U = Object.assign({}, C.HU, { uQ: { value: Q }, uTint: { value: new T.Color(re ? re[0] : 0xffffff) }, uGain: { value: re ? re[1] : 1 } });
   const snap = m.onBeforeCompile;
   m.onBeforeCompile = sh => {
     snap(sh); Object.assign(sh.uniforms, U);
     sh.vertexShader = 'uniform mat4 uQ;\nvarying vec3 vB;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vB = (uQ * vec4(position, 1.)).xyz;');
-    sh.fragmentShader = `uniform vec3 uTint, uGoreP, uEyeL3, uEyeR3; uniform float uGain, uGrey, uWet, uGore, uSocket, uH;
+    sh.fragmentShader = `uniform vec3 uTint, uGoreP, uEyeL3, uEyeR3; uniform float uGain, uGrey, uWet, uGore, uSocket, uH, uMouthZ;
 varying vec3 vB;
 float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
 ` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
   ${re ? `diffuseColor.rgb = mix(vec3(${LUMA}) * uTint * uGain, uTint, ${(re[2] || 0).toFixed(2)});` : ''}
   ${kind === 'skin' ? `{ float s = smoothstep(.04, .012, length(vB - uEyeL3)) + smoothstep(.04, .012, length(vB - uEyeR3)); diffuseColor.rgb *= 1. - .9 * uSocket * clamp(s, 0., 1.); }` : ''}
+  ${kind === 'teeth' || kind === 'tongue' ? `{ float dz = clamp((uMouthZ - vB.z) / .026, 0., 1.), pink = clamp((diffuseColor.r - diffuseColor.g) * 2.5, 0., 1.);   // рот внутри в тени: чем глубже, тем темнее; дёсны и язык — приглушённые
+    diffuseColor.rgb *= mix(1., .16, dz) * (1. - .55 * pink) * ${kind === 'tongue' ? '.5' : '1.'}; }` : ''}
   ${(() => { for (const k in (o.dim || {})) if (kind.includes(k)) return `diffuseColor.rgb *= ${o.dim[k].toFixed(2)};`; return ''; })()}
   float shK = 1.;   // своя тень на лице: карта теней грубая — нос и скулы дают на щеке рваный клин; на голове тень ослабляем
   ${kind === 'skin' ? `shK = 1. - .8 * smoothstep(.17, .1, length(vB - ((uEyeL3 + uEyeR3) * .5 + vec3(0., .02, -.08))));` : ''}
@@ -1268,6 +1279,8 @@ float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43
 // виземы речи: открытые (гласные) и закрытые/узкие (согласные)
 const VOPEN = ['viseme_aa', 'viseme_O', 'viseme_E', 'viseme_aa', 'viseme_I', 'viseme_U', 'viseme_E'];
 const VSHUT = ['viseme_PP', 'viseme_FF', 'viseme_SS', 'viseme_DD', 'viseme_nn', 'viseme_kk', 'viseme_TH', 'viseme_CH', 'viseme_RR'];
+// насколько открыт рот на каждой виземе (челюсть): гласные — шире, «п/б/м» — губы сомкнуты
+const JAW = { viseme_aa: .26, viseme_O: .2, viseme_E: .16, viseme_I: .1, viseme_U: .1, viseme_PP: 0, viseme_FF: .03, viseme_TH: .06, viseme_DD: .08, viseme_kk: .11, viseme_CH: .07, viseme_SS: .04, viseme_nn: .06, viseme_RR: .09 };
 const CLIPS3 = {};   // клипы с высотой таза под рост модели
 function clipsFor(k) {
   const key = k.toFixed(3); if (CLIPS3[key]) return CLIPS3[key];
@@ -1302,7 +1315,7 @@ function makeHuman(o) {
   for (const b of bones) { C.bone[b.name] = b; C.rest[b.name] = b.quaternion.clone(); }
   // мерки в позе покоя (метры): рост, глаза, рот
   C.HU = { uGrey: { value: o.grey || 0 }, uWet: { value: o.wet || 0 }, uGore: { value: 0 }, uSocket: { value: o.socket || 0 },
-    uGoreP: { value: new T.Vector3() }, uEyeL3: { value: new T.Vector3() }, uEyeR3: { value: new T.Vector3() }, uH: { value: 1 } };
+    uGoreP: { value: new T.Vector3() }, uEyeL3: { value: new T.Vector3() }, uEyeR3: { value: new T.Vector3() }, uH: { value: 1 }, uMouthZ: { value: 9 } };
   const toM = n => rest[meshes.indexOf(n)][0].clone().multiply(n.bindMatrix);   // сжатые координаты → метры
   const part = {};
   for (const n of meshes) {
@@ -1324,7 +1337,7 @@ function makeHuman(o) {
   }
   if (part.teeth) { const tb = bbox(part.teeth).clone().applyMatrix4(part.teeth.userData.Q);   // рот: перед верхних зубов
     const mw = new T.Vector3((tb.min.x + tb.max.x) / 2, tb.min.y + (tb.max.y - tb.min.y) * .55, tb.max.z + .006);
-    C.mouthW = mw.clone(); C.mouthL = C.bone.Head.worldToLocal(mw.clone()); }
+    C.mouthW = mw.clone(); C.mouthL = C.bone.Head.worldToLocal(mw.clone()); C.HU.uMouthZ.value = tb.max.z; }
   C.HU.uH.value = C.H / 1.8;
   // кровь: у жертвы — горло и грудь; у Жильца — рот, подбородок, грудь
   const neck = C.bone.neck_01.getWorldPosition(new T.Vector3());
@@ -1387,14 +1400,22 @@ function faceV3(C, tt, dt) {
   add('browDownLeft', clamp(-B.y * .9, 0, 1)); add('browDownRight', clamp(-B.y * .9, 0, 1));
   // речь: громкость голоса открывает челюсть, виземы меняются слогами (гласная — открытая, согласная — узкая/сомкнутая)
   const m = U.uTalk.value;
-  if (m > .02) {
+  if (C.vis) {   // губы по буквам реплики: движок знает, какое слово звучит и какая в нём буква сейчас
+    const v = C.vis === 'sil' ? null : C.vis;
+    if (v !== C.vCur) { C.vPrev = C.vCur; C.vCur = v; C.vK = 0; }
+    C.vK = Math.min(1, (C.vK || 0) + dt / .045);
+    const g = clamp(.4 + m * .9, 0, .85);   // даже шёпот — губы работают; громче — шире
+    if (C.vPrev) add(C.vPrev, (1 - C.vK) * g);
+    if (C.vCur) add(C.vCur, C.vK * g);
+    add('jawOpen', lerp(JAW[C.vPrev] || 0, JAW[C.vCur] || 0, C.vK) * (.6 + .5 * Math.min(1, m * 1.5)));
+  } else if (m > .02) {   // нет текста (крик, плач, текст без озвучки) — по громкости
     C.vT = (C.vT ?? 0) - dt;
     if (C.vT <= 0) { C.vT = .065 + rnd() * .085; C.vPrev = C.vCur; C.vCur = m > .3 ? VOPEN[rnd() * VOPEN.length | 0] : VSHUT[rnd() * VSHUT.length | 0]; C.vK = 0; }
     C.vK = Math.min(1, (C.vK || 0) + dt / .055);
     const g = Math.min(1, m * 1.5);
     if (C.vPrev) add(C.vPrev, (1 - C.vK) * g);
     if (C.vCur) add(C.vCur, C.vK * g);
-    add('jawOpen', m * .22);
+    add('jawOpen', m * .4);
   } else { C.vPrev = C.vCur = null; }
   // улыбка; у «Лили» за стеклом — шире, чем бывает у людей
   const sm = Math.max(o.smile || 0, fs.smile ? +fs.smile : 0);
@@ -1414,7 +1435,11 @@ function faceV3(C, tt, dt) {
     if (o.monster) { add('noseSneerLeft', scr * .7); add('noseSneerRight', scr * .7); add('mouthUpperUpLeft', scr * .8); add('mouthUpperUpRight', scr * .8); }
   }
   if (o.monster && !scr) { add('mouthStretchLeft', .25); add('mouthStretchRight', .25); add('eyeWideLeft', .5); add('eyeWideRight', .5); }
-  for (const n of C.M) { const d = n.morphTargetDictionary, inf = n.morphTargetInfluences; for (const k in d) inf[d[k]] = W[k] || 0; }
+  // язык лежит на дне рта: опускается вместе с челюстью и губами (своих форм звуков почти не берёт — иначе торчал вперёд и заполнял рот)
+  const tOpen = Math.min(1, (W.jawOpen || 0) + .6 * Math.max(W.viseme_aa || 0, .85 * (W.viseme_O || 0), .7 * (W.viseme_E || 0), .5 * (W.viseme_U || 0), .45 * (W.viseme_I || 0)));
+  for (const n of C.M) { const d = n.morphTargetDictionary, inf = n.morphTargetInfluences;
+    if (/tongue/i.test(n.name)) { for (const k in d) inf[d[k]] = k === 'jawOpen' ? tOpen : k === 'viseme_TH' || k === 'viseme_DD' ? .3 * (W[k] || 0) : 0; continue; }
+    for (const k in d) inf[d[k]] = W[k] || 0; }
 }
 
 /* ---------- актёры «Ночной смены» ---------- */

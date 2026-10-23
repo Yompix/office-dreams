@@ -4,25 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#050607">
-<title>Молчи до шести</title>
+<title>Hush Till Six</title>
 <meta name="description" content="Интерактивное хоррор-кино: ночной охранник, четыре правила и сестра за стеклом. Твои выборы решают, доживёшь ли ты до утра.">
-<meta name="application-name" content="Молчи до шести">
-<meta name="apple-mobile-web-app-title" content="Молчи до шести">
+<meta name="application-name" content="Hush Till Six">
+<meta name="apple-mobile-web-app-title" content="Hush Till Six">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Yompix Games">
-<meta property="og:title" content="Молчи до шести — интерактивный хоррор">
+<meta property="og:title" content="Hush Till Six — interactive horror">
 <meta property="og:description" content="Ночной охранник, четыре правила и сестра за стеклом. Не впускай её. Играй прямо в браузере.">
-<meta property="og:image" content="https://office-dreams-production.up.railway.app/games/nightshift/og.jpg?v=2">
+<meta property="og:image" content="https://office-dreams-production.up.railway.app/games/nightshift/og.jpg?v=3">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="МОЛЧИ ДО ШЕСТИ: девушка в жёлтом свитере за стеклянной дверью ночью">
+<meta property="og:image:alt" content="HUSH TILL SIX: a girl in a yellow sweater behind a glass door at night">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Молчи до шести — интерактивный хоррор">
 <meta name="twitter:description" content="Ночной охранник, четыре правила и сестра за стеклом. Не впускай её.">
-<meta name="twitter:image" content="https://office-dreams-production.up.railway.app/games/nightshift/og.jpg?v=2">
+<meta name="twitter:image" content="https://office-dreams-production.up.railway.app/games/nightshift/og.jpg?v=3">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -74,6 +74,11 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 #note div { width: 82%; background: #efe6d2; color: #161616; font: 800 calc(4.6 * var(--u))/1.45 "Courier New", monospace; padding: calc(6 * var(--u)) calc(5 * var(--u)); transform: rotate(-1.5deg); box-shadow: 0 calc(2 * var(--u)) calc(8 * var(--u)) #000; white-space: pre-line; }
 #note div i { display: block; color: #a01818; margin-top: calc(3 * var(--u)); font-style: normal; }
 #note small { display: block; margin-top: calc(4 * var(--u)); font: 600 calc(3.2 * var(--u))/1.3 Inter, Arial, sans-serif; opacity: .6; text-align: center; }
+#note div.memo { white-space: normal; font: 600 calc(3.5 * var(--u))/1.45 "Courier New", monospace; max-height: 86%; overflow-y: auto; }
+#note div.memo b { display: block; font-weight: 800; font-size: calc(3.9 * var(--u)); margin-bottom: calc(2.4 * var(--u)); letter-spacing: calc(.2 * var(--u)); }
+#note div.memo span { display: block; margin-bottom: calc(1.6 * var(--u)); padding-left: calc(3 * var(--u)); text-indent: calc(-3 * var(--u)); }
+#note div.memo span::before { content: '— '; }
+#note div.memo i { white-space: pre-line; font-weight: 800; font-size: calc(4 * var(--u)); }
 /* выбор */
 #choice { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 7% 14%; pointer-events: auto; background: linear-gradient(transparent, rgba(0,0,0,.85) 40%); animation: fadein .35s; }
 #choice h2 { margin: 0 0 calc(4 * var(--u)); text-align: center; font-size: calc(6.6 * var(--u)); font-weight: 900; text-shadow: 0 0 calc(2 * var(--u)) #000; }
@@ -229,6 +234,22 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 .screen.sub { background: rgba(0,0,0,.72); justify-content: flex-start; padding-top: 18%; }
 .screen.sub h1 { font-size: calc(9 * var(--u)); letter-spacing: calc(1 * var(--u)); text-shadow: none; margin-bottom: calc(5 * var(--u)); }
 .sets { width: 100%; display: flex; flex-direction: column; gap: calc(2 * var(--u)); margin-bottom: calc(3 * var(--u)); }
+/* крестик «назад/закрыть» в углу экранов меню; пауза в игре; настройки прокручиваются, шапка с крестиком всегда видна */
+#pz { position: absolute; inset: 0; z-index: 20; }
+.sx { position: absolute; top: calc(3 * var(--u)); right: calc(3 * var(--u)); z-index: 3; width: calc(11 * var(--u)); height: calc(11 * var(--u)); display: flex; align-items: center; justify-content: center; padding: 0;
+  border-radius: 50%; border: calc(.4 * var(--u)) solid rgba(255,255,255,.3); background: rgba(10,10,12,.7); color: #ece8dc; cursor: pointer; pointer-events: auto; }
+.sx .ic { width: 55%; height: 55%; stroke-width: 2.2; }
+.screen.pz { background: rgba(0,0,0,.8); backdrop-filter: blur(3px); }
+#pz .screen.sub { background: rgba(4,4,6,.95); }   /* настройки поверх игры: субтитры и кнопки игры не просвечивают */
+.screen.pz h1 { margin-bottom: calc(8 * var(--u)); }
+.screen.pz .btn { max-width: calc(80 * var(--u)); }
+.screen.sub { overflow-y: auto; overscroll-behavior: contain; }
+.sets-scr { padding-top: 0 !important; }
+.sets-hd { position: sticky; top: 0; z-index: 2; width: 100%; display: flex; align-items: center; justify-content: center; min-height: calc(18 * var(--u)); margin-bottom: calc(2 * var(--u));
+  background: linear-gradient(rgba(0,0,0,.92) 75%, rgba(0,0,0,0)); flex: none; }
+.sets-hd h1 { margin: 0 !important; }
+.sets-hd .sx { top: 50%; right: 0; transform: translateY(-50%); }
+.sets-scr > small, .sets-scr > .btn { flex: none; }
 .set { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: calc(4 * var(--u)) calc(4.4 * var(--u)); background: rgba(255,255,255,.05); border: calc(.3 * var(--u)) solid rgba(255,255,255,.14); border-radius: calc(2.4 * var(--u)); color: #ece8dc; font: 600 calc(4.6 * var(--u))/1 Inter, Arial, sans-serif; cursor: pointer; }
 .set b { font: 700 calc(4 * var(--u))/1 NSUI, Inter, Arial, sans-serif; letter-spacing: calc(.5 * var(--u)); color: #f2c21b; }
 .set:active { background: rgba(224,48,58,.2); }
@@ -326,6 +347,9 @@ body.land #choice h2 { margin-bottom: calc(3 * var(--u)); }
 body.land .screen { padding: 4% 8%; }
 body.land .screen p, body.land .gal, body.land .sets, body.land .spons { max-width: calc(120 * var(--u)); }
 body.land .screen.sub { padding-top: 5%; }
+body.land .sets-scr .sets { display: grid; grid-template-columns: 1fr 1fr; gap: calc(2 * var(--u)) calc(3 * var(--u)); max-width: calc(190 * var(--u)); }
+body.land .sets-scr .vols { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(6 * var(--u)); }
+body.land .sets-scr .sets-hd { max-width: calc(190 * var(--u)); min-height: calc(14 * var(--u)); }
 body.land .screen.jr { flex-direction: row; align-items: flex-start; justify-content: center; padding: 3% 5% 4%; gap: calc(9 * var(--u)); }
 body.land .jr-page { width: calc(112 * var(--u)); max-width: none; }
 body.land .jr-side { width: calc(76 * var(--u)); padding-top: calc(1 * var(--u)); }
@@ -359,16 +383,17 @@ body.land #keys { display: none; }
   <div id="note" class="hide"></div>
   <div id="sms" class="hide"></div>
   <div id="ui"></div>
+  <div id="pz" class="hide"></div>
 </div>
-<script src="i18n.js?v=5"></script>
+<script src="i18n.js?v=6"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
 <script src="world.js?v=6"></script>
 <script src="chars.js?v=2"></script>
-<script src="chars2.js?v=11"></script>
-<script src="scenes.js?v=15"></script>
+<script src="chars2.js?v=12"></script>
+<script src="scenes.js?v=16"></script>
 <script src="story.js?v=17"></script>
-<script src="engine.js?v=23"></script>
+<script src="engine.js?v=24"></script>
 </body>
 </html>
