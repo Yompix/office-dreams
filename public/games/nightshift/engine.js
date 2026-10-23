@@ -548,6 +548,7 @@ function runThen(th) {
   if (th.mg) return MG[th.mg](th);
   if (th.ending) return th.fin ? endScreen(th) : finale(th);
   if (th.over) return overScreen(th);
+  if (th.demo) return demoEnd();
 }
 function showChoice(th) {
   mode = 'choice'; music('tension');
@@ -1012,6 +1013,14 @@ function sponsorsHtml() {
   return `<div class="spons"><b>${tr('СПОНСОРЫ ИГРЫ')}</b>${names || `<i>${tr('Стань первым — твоё имя будет здесь')}</i>`}</div>`;
 }
 const supportBtn = (cls = 'btn ghost sup') => `<a class="${cls}" href="${escH(SP.donate)}" target="_blank" rel="noopener">${ICON.star}<span>${tr('Поддержать игру')}</span></a>`;
+// бесплатная часть (демо для itch.io): сборка кладёт window.NS_DEMO = { price, url }, сцены после выбора у стекла в ней вырезаны (tools/itch/demo.js)
+const DEMO = window.NS_DEMO || null;
+function buyUrl() {
+  if (DEMO && DEMO.url) return DEMO.url;
+  const m = /^https:\/\/[a-z0-9-]+\.itch\.io/.exec(document.referrer || '');   // на itch игра в iframe: referrer — страница автора
+  return m ? m[0] + '/hush-till-six' : 'https://itch.io/search?q=hush+till+six';   // страница игры: там «Buy Now»
+}
+const buyBtn = (id, cls) => `<a class="${cls}" id="${id}" href="${escH(buyUrl())}" target="_blank" rel="noopener">${ICON.star}<span>${trf('Полная версия — {p}', { p: (DEMO && DEMO.price) || '$3' })}</span></a>`;
 // титульный экран: живой кадр (Катя стучит в стекло под дождём), медленный наезд, логотип мигает, как больная лампа
 const TITLE_SHOT = 'door_katya';
 let gateDone = false, gateT = -9, titleT0 = 0, titleFirst = true, logoURL = '';
@@ -1042,7 +1051,7 @@ function menu() {
       <button id="mNew">${tr(save ? 'Начать заново' : 'Начать смену')}</button>
       <button id="mGal">${tr('Концовки')}</button>
       <button id="mSet">${tr('Настройки')}</button>
-      ${supportBtn('msup')}
+      ${DEMO ? buyBtn('mBuy', 'msup') : supportBtn('msup')}
     </nav>
     <div class="hp">${ICON.phones}<span>${tr('Лучше в наушниках · в игре есть вспышки света')}</span></div><div class="hp"><b style="color:#e33;margin-right:6px">18+</b><span>${tr('Жестокость, кровь и сцены насилия')}</span></div></div>`;
   const lg = $('logo'), m = `url(${logoMask()})`; lg.style.webkitMaskImage = lg.style.maskImage = m; lg.style.webkitMaskSize = lg.style.maskSize = '100% 100%';
@@ -1188,6 +1197,15 @@ function endScreen(th) {
   setTimeout(() => { if (mode === 'end' && gen === my) { play('bolt', { gain: .45, cut: .45 }); buzz(30); } }, (d + .1) * 1000);
   if (fork) $('eBack').onclick = () => { goFull(); uiEl.innerHTML = ''; startScene(fork.sc, true); };
   $('eAgain').onclick = () => begin('intro'); $('eMenu').onclick = menu;
+}
+function demoEnd() {
+  clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
+  mode = 'end'; LS.set('save', null); music('tension');
+  uiEl.innerHTML = `<div class="screen over demo"><h1>${tr('ОТКРОЕШЬ ЕЙ?')}</h1>
+    <p>${tr('Здесь кончается бесплатная часть — у стеклянной двери, в 03:30.')}<br>${tr('В полной версии ночь идёт до шести: что будет, если открыть — и если нет, подвал, ещё два часа смены, четыре концовки.')}</p>
+    ${buyBtn('dBuy', 'btn')}<button class="btn ghost" id="dMenu">${tr('Меню')}</button>
+    <small>${tr('Полная версия скачивается на странице игры и работает без интернета.')}</small></div>`;
+  $('dMenu').onclick = menu;
 }
 function overScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();

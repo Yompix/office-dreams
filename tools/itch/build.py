@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Сборка Hush Till Six (папка nightshift) для itch.io.
-   python3 tools/itch/build.py  →  dist/itch/
-     hush-till-six-web.zip      — «играть в браузере» (HTML5): index.html в корне архива, всё относительными путями
-     hush-till-six-offline.zip  — «скачать»: распаковал, открыл index.html двойным щелчком, интернет не нужен.
-                               Браузер не читает файлы с диска через XHR, поэтому звуки/модели/тайминги
-                               упакованы в pack-*.js (base64), а offline.js подставляет их вместо сетевых ответов."""
-import base64, os, re, shutil, zipfile
+   python3 tools/itch/build.py [цена] [ссылка на покупку]  →  dist/itch/
+     hush-till-six-demo-web.zip — бесплатная часть «играть в браузере» (до 03:30, потом «полная версия — $3»; tools/itch/demo.js):
+                                  на itch — галочки «This file will be played in the browser» и «This file is a demo»
+     hush-till-six-full.zip     — полная игра (платная загрузка): распаковал, открыл index.html, интернет не нужен.
+                                  Браузер не читает файлы с диска через XHR, поэтому звуки/модели/тайминги
+                                  упакованы в pack-*.js (base64), а offline.js подставляет их вместо сетевых ответов."""
+import base64, os, re, shutil, subprocess, sys, zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SRC = os.path.join(ROOT, 'public/games/nightshift')
 OUT = os.path.join(ROOT, 'dist/itch')
@@ -28,14 +29,19 @@ def zipdir(path, zpath, prefix=''):
                 z.write(full, prefix + rel, zipfile.ZIP_STORED if re.search(r'\.(mp3|webp|jpg|png|glb)$', f) else zipfile.ZIP_DEFLATED)
 
 os.makedirs(OUT, exist_ok=True)   # обложку, скриншоты и PAGE.md не трогаем — пересобираются только сами сборки
-for d in ('web', 'offline'): shutil.rmtree(os.path.join(OUT, d), ignore_errors=True)
+for d in ('web', 'demo', 'offline'): shutil.rmtree(os.path.join(OUT, d), ignore_errors=True)
+for f in os.listdir(OUT):
+    if f.endswith('.zip'): os.remove(os.path.join(OUT, f))   # старые архивы (в т. ч. прошлых названий)
 all_files = list(files())
 
 # ---------- веб-версия ----------
 web = os.path.join(OUT, 'web')
 for rel in all_files:
     os.makedirs(os.path.dirname(os.path.join(web, rel)), exist_ok=True); shutil.copy2(os.path.join(SRC, rel), os.path.join(web, rel))
-zipdir(web, os.path.join(OUT, 'hush-till-six-web.zip'))
+# бесплатная часть: копия веб-версии без сцен после 03:30 и их озвучки
+demo = os.path.join(OUT, 'demo'); shutil.copytree(web, demo)
+subprocess.run(['node', os.path.join(ROOT, 'tools/itch/demo.js'), demo, *sys.argv[1:3]], check=True)
+zipdir(demo, os.path.join(OUT, 'hush-till-six-demo-web.zip'))
 
 # ---------- офлайн-версия ----------
 off = os.path.join(OUT, 'offline', 'HushTillSix')
@@ -67,8 +73,8 @@ open(os.path.join(off, 'README.txt'), 'w').write(
     'HUSH TILL SIX\n\nOpen index.html in Chrome, Edge or Firefox. No internet needed.\n'
     'Headphones recommended. Language: English / Russian (Settings).\n\n'
     'Откройте index.html в Chrome, Edge или Firefox. Интернет не нужен. Лучше в наушниках.\n')
-zipdir(os.path.join(OUT, 'offline'), os.path.join(OUT, 'hush-till-six-offline.zip'))
+zipdir(os.path.join(OUT, 'offline'), os.path.join(OUT, 'hush-till-six-full.zip'))
 
-for f in ('hush-till-six-web.zip', 'hush-till-six-offline.zip'):
+for f in ('hush-till-six-demo-web.zip', 'hush-till-six-full.zip'):
     p = os.path.join(OUT, f); print(f'{f}: {os.path.getsize(p) / 1e6:.1f} МБ')
 print(f'файлов в веб-версии: {len(all_files)} (лимит itch.io — 1000)')
