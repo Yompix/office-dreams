@@ -303,6 +303,16 @@ L = [
  ('n35', 'ФРЭНК', '', '— Если я пойду на голос — держи. Что бы я ни говорил.', "— If I go after the voice, hold me back. Whatever I say.", 'old man, quiet, scared'),
  ('n36', 'ФРЭНК', '', '— Без двадцати шесть. Держимся, парень.', "— Twenty to six. Hang in there, kid.", 'old man, tired, warm'),
  ('n37', 'ГОЛОС', 'fake', '— Фрэнки… Открой маме… Замёрзла я тут…', "— Frankie… Open up for Mom… I'm so cold out here…", 'old woman, weak, pleading'),
+ # --- обучение: диспетчер охранного пульта «Щит» Вера объясняет по рации, что где (первый час смены) ---
+ ('t01', 'ВЕРА', 'radio', '— Охрана «Горизонта», это пульт «Щит», диспетчер Вера. Первая смена? Давай быстро покажу, что у тебя на мониторах.', "— Horizon security, this is Shield dispatch, Vera speaking. First shift? Let me quickly show you what's on your monitors.", 'calm, professional, over the radio'),
+ ('t02', 'ВЕРА', 'radio', '— Внизу — камеры здания. Нажми любую. Например, третью — лифты.', "— Along the bottom are the building's cameras. Tap one. Try three, the elevators.", 'calm, professional, over the radio'),
+ ('t03', 'ВЕРА', 'radio', '— Твоя работа — замечать, что не так. Видишь табло лифта? Тринадцатый этаж. А в здании их двенадцать.', "— Your job is to notice what's wrong. See the elevator display? Floor thirteen. The building only has twelve.", 'calm, professional, over the radio'),
+ ('t04', 'ВЕРА', 'radio', '— Нажми «Записать» и выбери, что это. Сейчас — «Лифт».', "— Tap Log and pick what it is. This time, Elevator.", 'calm, professional, over the radio'),
+ ('t05', 'ВЕРА', 'radio', '— Вот так. Записал — и оно пропало. Пропустишь три за час — будут проблемы.', "— That's it. Once it's logged, it goes away. Miss three in an hour, and you'll be in trouble.", 'calm, professional, over the radio'),
+ ('t06', 'ВЕРА', 'radio', '— Слева вверху — микрофон камеры. Прыгают столбики — значит, там звук. Его тоже записывай.', "— Top left is the camera mic. When the bars jump, there's a sound. Log that too.", 'calm, professional, over the radio'),
+ ('t07', 'ВЕРА', 'radio', '— «Пульт» — это свет на этажах, вход и лифт. К десяти вход запри, лифт останови.', "— The console runs the floor lights, the entrance and the elevator. By ten, lock the entrance and stop the elevator.", 'calm, professional, over the radio'),
+ ('t08', 'ВЕРА', 'radio', '— В «Журнале» — памятка и записи прежнего охранника. Почитай, пока тихо.', "— The logbook has your instructions and the previous guard's notes. Read them while it's quiet.", 'calm, professional, over the radio'),
+ ('t09', 'ВЕРА', 'radio', '— И ещё. Если на камере помехи — не засматривайся. Записал — и сразу переключай. Всё, удачной смены.', "— One more thing. If a camera shows static, don't stare at it. Log it and switch right away. That's all. Have a good shift.", 'calm, professional, over the radio'),
  # --- голосовые звуки (без слов; плач — звуковой эффект) ---
  ('ch_katya', 'ЛИЛИ', 'muffle', '(плачет)', '(crying)', 'sobbing quietly'),
  ('ch_whisper', 'ЛИЛИ', 'fake', '— Итан…', '— Ethan…', 'whispering, distant, creepy'),

@@ -15,9 +15,9 @@ GAME = os.path.join(ROOT, 'public/games/nightshift')
 LINES = json.load(open(os.path.join(ROOT, 'tools/story/lines.json')))
 VOICES = {
   'ru': {'ИТАН': '9fof2VPjlqYRNgXCv1cT', 'СМЕНЩИК': '26NxJyRo8NCmbvY1KNWp', 'ГАС': 'FXmXRAbqIOvSE0Op0Jo0', 'ЛИЛИ': 'CamFZN2KIaqnyvcaFe3E',
-         'ФРЭНК': '9AjtU6o19uipv7QL8dLL', '???': 'SkGOoi8yfK3ONMNKMKj0'},
+         'ФРЭНК': '9AjtU6o19uipv7QL8dLL', '???': 'SkGOoi8yfK3ONMNKMKj0', 'ВЕРА': 'IExsTwnJMk9vWMW4SzsN'},
   'en': {'ИТАН': 'hryj0YLzRd2iGghnwoOI', 'СМЕНЩИК': 'DeWSKTpgZpo6WQf8rQFY', 'ГАС': 'KgUSWQPFmuiZ5ycRbnty', 'ЛИЛИ': 'CamFZN2KIaqnyvcaFe3E',
-         'ФРЭНК': 'wcATjh8zBDfepqUbl99V', '???': '2tTjAGX0n5ajDmazDcWk'},
+         'ФРЭНК': 'wcATjh8zBDfepqUbl99V', '???': '2tTjAGX0n5ajDmazDcWk', 'ВЕРА': '6fLd3vCll0LutxnciLI8'},
 }
 SKIP = {'ch_katya', 'ch_monster'}   # плач и хрип — звуковые эффекты, не речь
 SKIP_WHO = {'ГОЛОС'}                 # голос матери Фрэнка — отдельно (свой голос, сделанный в Voice Design)

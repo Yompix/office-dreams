@@ -10,7 +10,7 @@ const fs = require('fs');
   const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 300))); p.on('console', m => m.type() === 'error' && errs.push(m.text().slice(0, 300)));
   await p.goto('http://127.0.0.1:8771/nightshift/index.html?gfx=cine');
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 240000 });
-  await p.evaluate(s => { window.__ns.startScene('sh_' + s); }, seg);
+  await p.evaluate(s => { localStorage.setItem('ns1_tutDone', '1'); window.__ns.startScene('sh_' + s); }, seg);
   await p.waitForFunction(() => window.__ns.mode === 'shift', null, { timeout: 30000 });
   await p.evaluate(v => window.__ns.shSpeed(v), spd);
   const snap = async n => { if (out) await p.screenshot({ path: `${out}/${seg}_${n}.png`, timeout: 120000 }).catch(() => {}); };

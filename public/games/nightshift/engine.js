@@ -41,13 +41,13 @@ const ICON = {
 
 /* ---------- загрузка ---------- */
 const BUF = {}; let TIM = {};
-const SNDS = ['drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'tick', 'click', 'door', 'steps',
+const SNDS = ['theme', 'drone', 'tension', 'boom', 'scare', 'knock', 'ding', 'heart', 'rain', 'static', 'buzz', 'ring', 'tick', 'click', 'door', 'steps',
   'ch_katya', 'ch_whisper', ...Array.from({ length: 15 }, (_, i) => 'p' + String(i + 1).padStart(2, '0'))];   // реплики пролога — сразу, остальные в фоне
 // звуковые эффекты (ElevenLabs): докачиваются в фоне после старта — список плюс всё, что звучит в сценах и в смене
 const storySfx = () => { const z = new Set(SFX2);
   for (const sc of Object.values(S.scenes)) { for (const b of sc.beats || []) for (const x of b.sfx || []) z.add(x[0]); for (const x of (sc.then || {}).sfx || []) z.add(x[0]); }
   for (const a of Object.values((S.shift || {}).an || {})) for (const x of [a.snd, a.sfx]) if (x) z.add(x[0]);
-  ['bolt', 'pen', 'rain_burst'].forEach(k => z.add(k)); z.delete('voice'); return [...z]; };
+  ['bolt', 'pen', 'rain_burst', 'shift', 'end_dawn', 'end_newentry', 'end_inside', 'end_sister'].forEach(k => z.add(k)); z.delete('voice'); return [...z]; };   // + своя музыка (tools/music/compose.py)
 const SFX2 = ['room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b', 'mop_swish'];
 let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, radioBus = null, phoneBus = null, master, musicG, voiceG, sfxG, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
 // громкость голоса сейчас (для движения рта)
@@ -64,7 +64,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', 2)] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   const sn = SNDS.map(k => get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; tick(); }).catch(tick));
-  const tm = get(EN ? 'timing_en.json?v=4' : 'timing.json?v=9', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_en.json?v=5' : 'timing.json?v=10', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры
   for (const k of [...storySfx(), ...Object.keys(TIM)]) if (!SNDS.includes(k)) get(sndUrl(k), 'arraybuffer').then(b => { rawSnd[k] = b; if (AC) decodeOne(k, b); }).catch(() => {});
@@ -164,7 +164,7 @@ let curMusic = null, curMusicName = '';
 function music(name) {
   if (!AC || name === curMusicName) return; curMusicName = name;
   const old = curMusic; if (old) { old.gn.gain.setTargetAtTime(0, AC.currentTime, .6); setTimeout(() => { try { old.s.stop(); } catch {} }, 2500); }
-  curMusic = name ? play(name, { bus: 'music', loop: true, gain: .0001 }) : null;
+  curMusic = name ? play(name, { bus: 'music', loop: true, gain: .0001 }) : null; if (name && !curMusic) curMusicName = null;   // ещё не раскодирована — попробуем позже
   if (curMusic) { curMusic.music = true; curMusic.gn.gain.setTargetAtTime(1, AC.currentTime, .8); }
   // в «напряжении» середина и так есть — обертонов ему почти не надо; гулу — полностью
   if (musicSend) musicSend.gain.setTargetAtTime(name === 'tension' ? .35 : 1, AC.currentTime, .5);
@@ -338,7 +338,8 @@ const frozenC = document.createElement('canvas'); frozenC.width = 1080; frozenC.
 function durOf(k) { return (TIM[k] && TIM[k].dur) || (BUF[k] && BUF[k].duration) || 2; }
 // кто говорит: имя на табличке и цвет
 const SPK = { 'ИТАН': { c: '#cfd3da', cls: 'narr', sub: 'ты' }, 'СМЕНЩИК': { c: '#ffd27a' }, 'ЛИЛИ': { c: '#ffb36b' }, 'ФРЭНК': { c: '#8fd0ff' },
-  'ГАС': { c: '#9fd8a8' }, '???': { c: '#ff3030', cls: 'monster' }, 'КАМЕРА': { c: '#7fe0a0' }, 'ТЕЛЕФОН': { c: '#9aa3b5' } };
+  'ГАС': { c: '#9fd8a8' }, '???': { c: '#ff3030', cls: 'monster' }, 'КАМЕРА': { c: '#7fe0a0' }, 'ТЕЛЕФОН': { c: '#9aa3b5' },
+  'ВЕРА': { c: '#7fd4ff', sub: 'пульт «Щит»' }, 'ГОЛОС': { c: '#c8b4ff' } };
 const VOICE_WHO = { ch_katya: 'ЛИЛИ', ch_whisper: 'ЛИЛИ', ch_monster: '???' };
 const whoOf = k => VOICE_WHO[k] || (TIM[k] && TIM[k].who) || 'ИТАН';
 let waiting = false, holding = false, auto = LS.get('auto', false);
@@ -741,7 +742,7 @@ let shf = null, shk = null, shSpd = 1;   // смена сейчас; что пе
 function shkNew() { return { door: 0, lift: 0, lights: {}, log: [], st: {}, c13: false, read: false }; }
 function shiftGame(th) {
   const seg = S.shift.segs[th.shift]; if (!seg) return startScene(S.start);
-  gen++; const my = gen; mode = 'shift'; document.body.classList.add('shifting'); stopAll(); music(seg.music || 'drone'); amb('static', false);
+  gen++; const my = gen; mode = 'shift'; document.body.classList.add('shifting'); stopAll(); music(seg.music || (BUF.shift ? 'shift' : 'drone')); amb('static', false);
   choiceEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); ruleEl.classList.add('hide');
   if (!shk || th.fresh) shk = shkNew();
   shf = { id: th.shift, seg, my, t0: now(), lt: now(), m0: toMin(seg.from), m1: toMin(seg.to), M: toMin(seg.from), cam: seg.cam || '02', camT: now(), act: [], miss: 0, vq: [], pop: null, warn13: false, ended: false };
@@ -750,7 +751,9 @@ function shiftGame(th) {
   shf.ev.sort((a, b) => a.m - b.m);
   LS.set('save', 'sh_' + th.shift); sceneId = 'sh_' + th.shift;
   clockEl.textContent = seg.from; clockEl.classList.remove('hide'); $('hud').classList.remove('hide');
-  shiftUI(); shiftToast(seg.hint); requestAnimationFrame(shiftTick);
+  const willTut = th.shift === 'S1' && !LS.get('tutDone', 0);   // новичку — диспетчер объясняет (подсказка-тост тогда не нужна)
+  shiftUI(); if (!willTut) shiftToast(seg.hint); requestAnimationFrame(shiftTick);
+  if (willTut) setTimeout(() => { if (shf && shf.my === my && gen === my && mode === 'shift' && !tut) tutorial(); }, 900);
 }
 function shiftProps() {   // что сейчас видно на камерах: пульт + кто где + активные странности
   const p = Object.assign({}, shk.st, { clk: shf.M, l7: shk.lights[7] ? 1 : 0, l10: shk.lights[10] ? 1 : 0 });
@@ -832,11 +835,15 @@ function shiftUI() {
   mgEl.innerHTML = `<div class="sh">
     <div class="sh-task hide" id="shTask"></div><div class="sh-toast" id="shToast"></div>
     <div class="sh-cams">${cams.map(c => `<button data-c="${c}" class="${c === shf.cam ? 'on' : ''}${c === '13' ? ' c13' : ''}"><b>${camNo(c)}</b><small>${tr(CAMS[c] || '???')}</small></button>`).join('')}</div>
-    <div class="sh-act"><button id="shLog">${ICON.pen || ''}<span>${tr('Записать')}</span></button><button id="shPanel"><span>${tr('Пульт')}</span></button><button id="shBook"><span>${tr('Журнал')}</span></button></div>
+    <div class="sh-act"><button id="shLog">${ICON.pen || ''}<span>${tr('Записать')}</span></button><button id="shPanel"><span>${tr('Пульт')}</span></button><button id="shBook"><span>${tr('Журнал')}</span></button><button id="shHelp" class="sh-q" title="${tr('Как играть')}">?</button></div>
+    <div class="tut-card hide" id="tutCard"><div class="tut-hd"><i class="tut-wave"><b></b><b></b><b></b><b></b><b></b></i>${tr('ПУЛЬТ «ЩИТ» · ДИСПЕТЧЕР ВЕРА')}</div><div class="tut-do" id="tutDo"></div><button id="tutSkip">${tr('Пропустить обучение')}</button></div>
+    <div class="tut-ring hide" id="tutRing"><i>▼</i></div>
     <div class="sh-pop hide" id="shPop"></div></div>`;
   mgEl.classList.remove('hide');
   mgEl.querySelectorAll('.sh-cams button').forEach(b => b.onclick = e => { e.stopPropagation(); shiftCam(b.dataset.c); });
   $('shLog').onclick = e => { e.stopPropagation(); shiftLog(); }; $('shPanel').onclick = e => { e.stopPropagation(); shiftPanel(); }; $('shBook').onclick = e => { e.stopPropagation(); shiftBook(); };
+  $('shHelp').onclick = e => { e.stopPropagation(); shiftHelp(); }; $('tutSkip').onclick = e => { e.stopPropagation(); tutEnd(true); };
+  if (tut) $('tutCard').classList.remove('hide');
   shiftTask();
 }
 function shiftCam(c) {
@@ -858,6 +865,7 @@ function shiftLog() {
       shiftCheck(); }, 1400); });
 }
 function shiftPanel() {
+  if (tut) tut.seen.panel = 1;
   const fl = [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, -2];
   const draw = () => shiftPop(`<h3>${tr('Пульт')}</h3><div class="sh-row"><button id="pDoor" class="${shk.door ? 'on' : ''}">${tr('Вход')}: <b>${tr(shk.door ? 'ЗАПЕРТ' : 'ОТКРЫТ')}</b></button>
       <button id="pLift" class="${shk.lift ? 'on' : ''}">${tr('Лифт')}: <b>${tr(shk.lift ? 'СТОП' : 'РАБОТАЕТ')}</b></button></div>
@@ -870,6 +878,7 @@ function shiftPanel() {
   draw(); wire();
 }
 function shiftBook() {
+  if (tut) tut.seen.book = 1;
   const tabs = [['Памятка', (S.shift.memo || []).map(s => `<li>${tr(s)}</li>`).join('')], ['Фрэнк', (S.shift.frank || []).map(s => `<li>${tr(s)}</li>`).join('')],
     ['Моя смена', shk.log.length ? shk.log.map(r => `<li>${r.m} · ${camLabel(r.cam)} — ${tr(r.k)}</li>`).join('') : `<li>${tr('Пока ни одной записи.')}</li>`]];
   const show = i => { shiftPop(`<h3>${tr('Журнал')}</h3><div class="sh-tabs">${tabs.map((x, j) => `<button data-j="${j}" class="${j === i ? 'on' : ''}">${tr(x[0])}</button>`).join('')}</div><ul class="sh-page">${tabs[i][1]}</ul>`);
@@ -879,6 +888,55 @@ function shiftBook() {
 function shiftReply(m) {   // ответ на СМС: два варианта
   shiftPop(`<h3>${tr(m.from || 'Лили')}</h3><p>${tr(m.text)}</p><div class="sh-grid">${m.reply.map((r, i) => `<button data-i="${i}">${tr(r)}</button>`).join('')}</div>`);
   $('shPop').querySelectorAll('.sh-grid button').forEach(b => b.onclick = e => { e.stopPropagation(); shiftPop(null); play('click'); if (m.back) setTimeout(() => { if (shf) { showSms({ from: m.from, text: m.back }); play('buzz', { gain: .6 }); } }, 4000); });
+}
+// --- обучение: диспетчер охранного пульта «Щит» Вера по рации показывает, что где. Время смены стоит; можно пропустить; «?» — повторить ---
+let tut = null;
+const TUT_DO = { t02: 'Нажми камеру 03 — лифты', t03: 'Смотри на табло лифта: «13»', t04: 'Нажми «Записать» → «Лифт»', t06: 'MIC слева вверху: столбики прыгают — звук', t07: 'Открой «Пульт»', t08: 'Открой «Журнал»' };
+function tutWait(cond) { const me = tut; return new Promise(res => { let n = 0; const f = () => { if (tut !== me || !me || shf !== me.shf || shf.ended || mode !== 'shift') return res(false); if (cond()) return res(true); if (++n % 15 === 0) tutMark(me.target); requestAnimationFrame(f); }; f(); }); }
+function tutMark(target) {   // кольцо со стрелкой вокруг кнопки (селектор) или прямоугольника холста [x, y, w, h] в единицах надписей HUD
+  const ring = $('tutRing'), box = mgEl.querySelector('.sh'); if (!ring || !box) return; if (tut) tut.target = target;
+  if (!target) { ring.classList.add('hide'); return; }
+  const b = box.getBoundingClientRect(); let r;
+  if (Array.isArray(target)) { const c = cv.getBoundingClientRect(), k = c.width / W; r = { left: c.left + target[0] * US * k, top: c.top + target[1] * US * k, width: target[2] * US * k, height: target[3] * US * k }; }
+  else { const el = mgEl.querySelector(target); if (!el) { ring.classList.add('hide'); return; } r = el.getBoundingClientRect(); }
+  const p = 6; Object.assign(ring.style, { left: (r.left - b.left - p) + 'px', top: (r.top - b.top - p) + 'px', width: (r.width + 2 * p) + 'px', height: (r.height + 2 * p) + 'px' }); ring.classList.remove('hide');
+}
+async function tutorial() {
+  if (!shf || mode !== 'shift' || !$('tutCard')) return; const me = tut = { target: null, seen: {}, shf }; shSpd = 0; $('tutCard').classList.remove('hide'); shiftPop(null);
+  const card = (cls, on) => { const c = $('tutCard'); if (c) c.classList.toggle(cls, on); };
+  const step = async (k, target, cond) => { if (tut !== me || !$('tutDo')) return false; tutMark(target); $('tutDo').textContent = tr(TUT_DO[k] || ''); card('talk', true);
+    const it = sayV(k), rEnd = performance.now() / 1000 + (it.t0 - now()) + it.d + .3;   // голос идёт в реальном времени, даже если кадры медленные
+    if (!(await tutWait(() => performance.now() / 1000 > rEnd && !paused))) return false; card('talk', false);
+    return cond ? tutWait(cond) : true; };
+  const ok = await (async () => {
+    if (!await step('t01')) return false;
+    if (!await step('t02', 'button[data-c="03"]', () => shf.cam === '03')) return false;
+    shf.act.push({ id: 'tut13', def: { cam: '03', kind: 'Лифт', props: { lift13: 1 }, win: 9999 }, m: shf.M });   // учебная странность: табло показывает 13-й этаж
+    if (!await step('t03')) return false;
+    if (!await step('t04', '#shLog', () => !shf.act.some(a => a.id === 'tut13'))) return false;
+    if (!await step('t05')) return false;
+    if (!await step('t06', [76, 340, 290, 44])) return false;
+    if (!await step('t07', '#shPanel', () => me.seen.panel)) return false;   // открыл пульт (хоть раньше, чем она договорила)
+    tutMark(null); if (!await tutWait(() => !shf.pop)) return false;   // посмотрел пульт и закрыл
+    if (!await step('t08', '#shBook', () => me.seen.book)) return false;
+    tutMark(null); if (!await tutWait(() => !shf.pop)) return false;
+    return step('t09');
+  })();
+  if (tut === me) tutEnd(ok);
+}
+function tutEnd(done) {
+  if (!tut) return; tut = null; shSpd = 1; if (done) LS.set('tutDone', 1); tutMark(null);   // ушёл со смены посреди обучения — в следующий раз начнётся снова
+  const c = $('tutCard'); if (c) { c.classList.add('hide'); c.classList.remove('talk'); }
+  if (shf) { shf.act = shf.act.filter(a => a.id !== 'tut13'); shf.vq = shf.vq.filter(v => !/^t0\d$/.test(v.k)); }
+  if (shf && mode === 'shift') for (const o of [...playing]) if (o.voice) { try { o.s.stop(); } catch {} playing.delete(o); }   // пропустил — Вера замолкает
+  if (done && shf && mode === 'shift') shiftToast(tr('Смена началась. Удачи.'));
+}
+function shiftHelp() {   // шпаргалка: как играть; можно пройти обучение снова
+  shiftPop(`<h3>${tr('Как играть')}</h3><ul class="sh-page">${['Камеры — кнопки внизу. Переключай и запоминай, как там обычно.', 'Заметил, что не так, — «Записать» и выбери, что это: свет, дверь, лифт, помехи, кто-то, звук, другое.',
+    'MIC слева вверху: прыгают столбики — на этой камере звук.', '«Пульт»: свет на этажах, вход, лифт. Лишний свет — выключи. К 22:00 вход запри, лифт останови.',
+    'Три пропущенные странности за час — оно придёт к будке.', 'Помехи на камере — не засматривайся: записал и переключил.', 'Не отзывайся, если зовут по имени. Не открывай дверь.'].map(x => `<li>${tr(x)}</li>`).join('')}</ul>
+    <button class="sh-x" id="tutAgain">${tr('Пройти обучение снова')}</button>`);
+  $('tutAgain').onclick = e => { e.stopPropagation(); shiftPop(null); if (!tut) tutorial(); };
 }
 function shiftHold(h) {   // голос матери зовёт Фрэнка: держать кнопку, пока голос не стихнет; отпустил — Фрэнк уходит на голос
   const my = shf.my, it = sayV(h.say, { delay: .4 }), need = h.dur || 7; let held = 0, down = false, last = now(), lost = 0;
@@ -895,11 +953,11 @@ function shiftHold(h) {   // голос матери зовёт Фрэнка: д
   requestAnimationFrame(step);
 }
 function shiftCall(c) {   // внутренний телефон будки: снять или нет; сняли — голос по имени; ответить — смерть
-  let rings = 0; const my = shf.my;
-  const ring = () => { if (!shf || shf.my !== my || shf.ended || c.taken || rings >= (c.rings || 6)) { if (!c.taken && shf && shf.my === my) shiftPop(null); return; } rings++;
+  let rings = 0, btn = null; const my = shf.my;
+  const ring = () => { if (!shf || shf.my !== my || shf.ended || c.taken || rings >= (c.rings || 6)) { if (!c.taken && shf && shf.my === my && btn && btn.isConnected) shiftPop(null); return; } rings++;   // не дождались — закрываем только сам звонок, не пульт поверх него
     if (c.radio) play('static', { gain: .5, cut: .9 }); else play('ring', { gain: .8 }); buzz(80); setTimeout(ring, 2200); };
   shiftPop(`<h3>${tr(c.title || 'Звонит внутренний телефон')}</h3><p>${tr(c.sub || 'В будке. Номер не определён.')}</p><div class="sh-grid"><button id="cTake">${tr(c.take || 'Снять трубку')}</button><button id="cNo">${tr(c.no || 'Не брать')}</button></div>`);
-  ring();
+  btn = $('cTake'); ring();
   $('cNo').onclick = e => { e.stopPropagation(); c.taken = 'no'; shiftPop(null); };
   $('cTake').onclick = e => { e.stopPropagation(); c.taken = 'yes'; shiftPop(null); play('click'); const it = sayV(c.say);
     setTimeout(() => { if (!shf || shf.my !== my || shf.ended) return;
@@ -1021,7 +1079,7 @@ async function begin(id) {
 function endScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
   mode = 'end'; const got = new Set(LS.get('endings', [])); got.add(th.ending); LS.set('endings', [...got]); LS.set('save', null);
-  play('boom'); music('drone');
+  play('boom'); music(BUF['end_' + th.ending] ? 'end_' + th.ending : 'drone');
   uiEl.innerHTML = `<div class="screen"><h1>${th.title}<em>${S.endings[th.ending].toUpperCase()}</em></h1><p>${th.sub}</p>${gallery()}
     <button class="btn" id="eAgain" style="margin-top:calc(5 * var(--u))">${tr('Сыграть ещё раз')}</button><button class="btn ghost" id="eMenu">${tr('Меню')}</button>${supportBtn()}${sponsorsHtml()}</div>`;
   $('eAgain').onclick = () => { goFull(); uiEl.innerHTML = ''; for (const k in flags) delete flags[k]; falseAlarm = false; startScene('intro'); }; $('eMenu').onclick = menu;
@@ -1325,6 +1383,7 @@ function frame(tp) {
     place = placeOf(c.img); cam = true;
   } else if (mode === 'shift' && shf) {
     const c = shf.cam, st = T - shf.camT, img = c === '13' ? null : 'cam' + (c === 'm2' ? '_m2' : c);
+    if (!shf.seg.music && curMusicName === 'drone' && BUF.shift) music('shift');   // подложка смены докачалась позже старта
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
     if (img) heldShot(img, { cx: .5, cy: .5, z: 1, t: T, T, sx: 0, sy: 0, cctv: 1 }, T, 'sh' + c);
     for (const a of shf.act) if (a.def.cam === c && a.def.box) staticBox(a.def.box, T, a.look || 0);   // настоящие камеры показывают его только помехами
@@ -1347,6 +1406,7 @@ function frame(tp) {
     place = placeOf(mgView.img); quiet = true; cam = !!mgView.label;
   } else if (mode === 'menu') {
     // титул: живой кадр, медленный наезд (20 с), сверху темнее — там логотип, снизу — меню
+    if (curMusicName !== 'theme' && BUF.theme) music('theme');   // тема титула — как только раскодирована
     const tt = T - titleT0, z = 1 + .06 * ease(Math.min(1, tt / 20));
     shot(TITLE_SHOT, { cx: .5, cy: .47, z, t: tt + 3, T, sx: 0, sy: 0 }); knockSync(T);
     let gr = g.createLinearGradient(0, 0, 0, H * .5); gr.addColorStop(0, 'rgba(0,0,0,.88)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H * .5);
@@ -1437,5 +1497,5 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   initAudio(); loaded = true;
   if (splashDone) setTimeout(menu, Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
-window.__ns = { back: () => menu(), startScene, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); } };
+window.__ns = { back: () => menu(), startScene, get music() { return curMusicName; }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); } };
 })();

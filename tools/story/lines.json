@@ -1448,6 +1448,69 @@
   "en": "— Frankie… Open up for Mom… I'm so cold out here…",
   "tag": "old woman, weak, pleading"
  },
+ "t01": {
+  "who": "ВЕРА",
+  "fx": "radio",
+  "ru": "— Охрана «Горизонта», это пульт «Щит», диспетчер Вера. Первая смена? Давай быстро покажу, что у тебя на мониторах.",
+  "en": "— Horizon security, this is Shield dispatch, Vera speaking. First shift? Let me quickly show you what's on your monitors.",
+  "tag": "calm, professional, over the radio"
+ },
+ "t02": {
+  "who": "ВЕРА",
+  "fx": "radio",
+  "ru": "— Внизу — камеры здания. Нажми любую. Например, третью — лифты.",
+  "en": "— Along the bottom are the building's cameras. Tap one. Try three, the elevators.",
+  "tag": "calm, professional, over the radio"
+ },
+ "t03": {
+  "who": "ВЕРА",
+  "fx": "radio",
+  "ru": "— Твоя работа — замечать, что не так. Видишь табло лифта? Тринадцатый этаж. А в здании их двенадцать.",
+  "en": "— Your job is to notice what's wrong. See the elevator display? Floor thirteen. The building only has twelve.",
+  "tag": "calm, professional, over the radio"
+ },
+ "t04": {
+  "who": "ВЕРА",
+  "fx": "radio",
+  "ru": "— Нажми «Записать» и выбери, что это. Сейчас — «Лифт».",
+  "en": "— Tap Log and pick what it is. This time, Elevator.",
+  "tag": "calm, professional, over the radio"
+ },
+ "t05": {
+  "who": "ВЕРА",
+  "fx": "radio",
+  "ru": "— Вот так. Записал — и оно пропало. Пропустишь три за час — будут проблемы.",
+  "en": "— That's it. Once it's logged, it goes away. Miss three in an hour, and you'll be in trouble.",
+  "tag": "calm, professional, over the radio"
+ },
+ "t06": {
+  "who": "ВЕРА",
+  "fx": "radio",
+  "ru": "— Слева вверху — микрофон камеры. Прыгают столбики — значит, там звук. Его тоже записывай.",
+  "en": "— Top left is the camera mic. When the bars jump, there's a sound. Log that too.",
+  "tag": "calm, professional, over the radio"
+ },
+ "t07": {
+  "who": "ВЕРА",
+  "fx": "radio",
+  "ru": "— «Пульт» — это свет на этажах, вход и лифт. К десяти вход запри, лифт останови.",
+  "en": "— The console runs the floor lights, the entrance and the elevator. By ten, lock the entrance and stop the elevator.",
+  "tag": "calm, professional, over the radio"
+ },
+ "t08": {
+  "who": "ВЕРА",
+  "fx": "radio",
+  "ru": "— В «Журнале» — памятка и записи прежнего охранника. Почитай, пока тихо.",
+  "en": "— The logbook has your instructions and the previous guard's notes. Read them while it's quiet.",
+  "tag": "calm, professional, over the radio"
+ },
+ "t09": {
+  "who": "ВЕРА",
+  "fx": "radio",
+  "ru": "— И ещё. Если на камере помехи — не засматривайся. Записал — и сразу переключай. Всё, удачной смены.",
+  "en": "— One more thing. If a camera shows static, don't stare at it. Log it and switch right away. That's all. Have a good shift.",
+  "tag": "calm, professional, over the radio"
+ },
  "ch_katya": {
   "who": "ЛИЛИ",
   "fx": "muffle",

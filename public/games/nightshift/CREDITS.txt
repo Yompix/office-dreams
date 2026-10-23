@@ -2,9 +2,11 @@
 =====================================================
 
 The game — story, script, dialogue, code, levels, scenes, characters' design and animation code,
-procedural textures and sound design — is an original work made for Office Dreams. All rights reserved.
-Игра — сюжет, сценарий, диалоги, код, уровни, сцены, персонажи и их анимация, процедурные текстуры
-и звуковой дизайн — оригинальная работа, сделанная для Office Dreams. Все права принадлежат владельцу.
+procedural textures, sound design and music — is an original work made for Office Dreams. All rights reserved.
+The music (snd/theme, shift, end_*.mp3) is composed and synthesized in code (tools/music/compose.py): no samples, no recordings.
+Игра — сюжет, сценарий, диалоги, код, уровни, сцены, персонажи и их анимация, процедурные текстуры,
+звуковой дизайн и музыка — оригинальная работа, сделанная для Office Dreams. Все права принадлежат владельцу.
+Музыка (snd/theme, shift, end_*.mp3) написана и синтезирована кодом (tools/music/compose.py): без сэмплов и чужих записей.
 
 Everything below is third-party material. Every item allows commercial use; nothing here gives anyone
 a claim on the game. / Ниже — сторонние материалы. Все разрешают коммерческое использование

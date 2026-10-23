@@ -1,0 +1,27 @@
+[
+ {
+  "who": "ВЕРА",
+  "voice": "6fLd3vCll0LutxnciLI8",
+  "keys": [
+   "t01",
+   "t02",
+   "t03",
+   "t04",
+   "t05",
+   "t06",
+   "t07",
+   "t08"
+  ],
+  "prompt": "[calm, professional, over the radio] Horizon security, this is Shield dispatch, Vera speaking. First shift? Let me quickly show you what's on your monitors.\n\nAlong the bottom are the building's cameras. Tap one. Try three, the elevators.\n\nYour job is to notice what's wrong. See the elevator display? Floor thirteen. The building only has twelve.\n\nTap Log and pick what it is. This time, Elevator.\n\nThat's it. Once it's logged, it goes away. Miss three in an hour, and you'll be in trouble.\n\nTop left is the camera mic. When the bars jump, there's a sound. Log that too.\n\nThe console runs the floor lights, the entrance and the elevator. By ten, lock the entrance and stop the elevator.\n\nThe logbook has your instructions and the previous guard's notes. Read them while it's quiet.",
+  "chars": 781
+ },
+ {
+  "who": "ВЕРА",
+  "voice": "6fLd3vCll0LutxnciLI8",
+  "keys": [
+   "t09"
+  ],
+  "prompt": "[calm, professional, over the radio] One more thing. If a camera shows static, don't stare at it. Log it and switch right away. That's all. Have a good shift.",
+  "chars": 158
+ }
+]
