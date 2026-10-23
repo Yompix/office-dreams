@@ -1351,9 +1351,9 @@ SH.bs_open = { loc: 'basement', pos: [-.9, 1.5, -12.35], look: [.15, .95, -14.6]
   const dp = o.sdoor.localToWorld(new T.Vector3(-.8, 1.0, -.03)), reach = 1 - seg(t, .7, 1.0);
   return [['mihalych', BF[0], 0, BF[1], 0, { clips: [['Fixing_Kneeling', .8, 1]], wear: { splint: SPLINT }, talk: 1, arm: { r: { at: [dp.x, dp.y, dp.z], by: 'palm', fdir: [0, 1, 0], pdir: [0, 0, 1], w: reach } }, fing: { r: ['flat', reach] }, look: [.3, 1.6, -13.2] }, null],
     shuffle('temych', [.14, -13.5], [.3, -13.15], t, .3, .5, PI, { look: [0, .9, -14.8], hold: ETORCH, fing: ETF })]; } };
-SH.bs_frank = { loc: 'basement', pos: [-.24, 1.0, -13.45], look: [.06, .5, -14.9], fov: 48, face: { mihalych: 'worry' }, set: (o, t) => { o.sdoor.rotation.y = 1.35; bsLight(o, true, [.3, -13.2]); o.faceL.position.set(.3, 1.0, -14.1); o.faceL.intensity = 1.1; o.faceL.color.setHex(0xd8d0c8);
+SH.bs_frank = { loc: 'basement', pos: [-.24, 1.0, -13.45], look: [.06, .5, -14.9], fov: 48, face: { mihalych: 'worry' }, set: (o, t) => { o.sdoor.rotation.y = 1.35; bsLight(o, true, [.3, -13.2]); o.etorch.intensity = CINE ? 3 : 5; o.faceL.position.set(.3, 1.0, -14.1); o.faceL.intensity = CINE ? .45 : .8; o.faceL.color.setHex(0xc9cfd8);   // лицо Фрэнка не пересвечено (в «Кино» было рыжим)
   return [['mihalych', BF[0], 0, BF[1], 0, frankSit(t, { look: [-.24, 1.0, -13.45] }), null]]; } };
-SH.bs_no = { loc: 'basement', pos: [-.22, 1.58, -13.1], look: [.05, .72, -14.9], fov: 46, face: { mihalych: 'fear' }, set: (o, t) => { o.sdoor.rotation.y = 1.35; bsLight(o, true, [.3, -13.2]); o.faceL.position.set(.3, 1.1, -14.1); o.faceL.intensity = 1.1; o.faceL.color.setHex(0xd8d0c8);
+SH.bs_no = { loc: 'basement', pos: [-.22, 1.58, -13.1], look: [.05, .72, -14.9], fov: 46, face: { mihalych: 'fear' }, set: (o, t) => { o.sdoor.rotation.y = 1.35; bsLight(o, true, [.3, -13.2]); o.etorch.intensity = CINE ? 3 : 5; o.faceL.position.set(.3, 1.1, -14.1); o.faceL.intensity = CINE ? .45 : .8; o.faceL.color.setHex(0xc9cfd8);   // лицо Фрэнка не пересвечено (в «Кино» было рыжим)
   return [['mihalych', BF[0], 0, BF[1], 0, frankSit(t, { no: 1, look: [-.22, 1.58, -13.1] }), null]]; } };
 // w09: утро — дверь распахнута, круг пуст, из него в коридор тянутся следы ладоней
 SH.bs_after = { loc: 'basement', pos: [.45, 1.6, -9.6], look: [0, .2, -13.8], fov: 50, set: (o, t) => { o.sdoor.rotation.y = 1.4; o.prints.visible = true; o.candle.intensity = 0; o.slit.visible = o.glow.visible = false; return []; } };
@@ -1380,7 +1380,7 @@ SH.dbg_bf = { loc: 'basement', pos: [-.35, 2.1, -12.6], look: [0, .3, -15.2], fo
   return [['mihalych', BF[0], 0, BF[1], 0, frankSit(t, {}), null]]; } };
 SH.dbg_gus = { loc: 'corridor', pos: [.9, 1.3, -9.6], look: [-.6, .5, -12.1], fov: 50, set: (o, t) => gusEat(o, t, false) };
 // ---- 01:00, второй обход: Итан поднимается на седьмой; Гас даёт ему яблоко (из руки в руку, по-настоящему) ----
-const R2G = [-.15, -9.62], R2E = [-.12, -8.84], R2H = [-.12, 1.07, -9.23];
+const R2G = [-.15, -9.62], R2E = [-.12, -8.84], R2H = [-.12, 1.07, -9.23], R2C = () => locR(R2E[0], R2E[1], PI).p(-.15, 1.12, .17);   // R2C — яблоко у груди Итана
 function gApple(t, offer, rel) {   // Гас: яблоко на ладони → протягивает → отдаёт, рука вниз
   const up = seg(t, offer, offer + .8), dn = rel == null ? 0 : seg(t, rel, rel + .6), w = up * (1 - dn), has = rel == null || t < rel;
   const R = locR(R2G[0], R2G[1], 0), lo = R.p(-.2, .95, .12);
@@ -1389,7 +1389,7 @@ function gApple(t, offer, rel) {   // Гас: яблоко на ладони →
     fing: { r: [has ? 'cup' : 'relax', 1] }, hold: has ? { r: 'apple' } : null, look: w > .4 && has ? R2H : [R2E[0], 1.62, R2E[1]] };
 }
 function eApple(t, t0) {   // Итан: ладонью сверху на яблоко, пальцы обхватывают; к груди
-  const r = seg(t, t0, t0 + .6), got = t > t0 + .6, back = seg(t, t0 + 1.0, t0 + 1.7), R = locR(R2E[0], R2E[1], PI), chest = R.p(-.1, 1.12, .3);
+  const r = seg(t, t0, t0 + .6), got = t > t0 + .6, back = seg(t, t0 + 1.0, t0 + 1.7), R = locR(R2E[0], R2E[1], PI), chest = R2C();   // к груди — в локоть, а не на вытянутой руке
   const at = lin([R2H[0], R2H[1] + .036, R2H[2]], chest, back);
   return { clips: [['Idle_Loop', t + 1.3, 1]], talk: 1, legs: 'feet', spine: { to: R2H, k: .1 * r * (1 - back) },
     arm: { r: { at: r < 1 && !got ? lin(R.p(-.2, .95, .1), [R2H[0], R2H[1] + .036, R2H[2]], r) : at, by: 'palm', fdir: [0, -.2, -1], pdir: [0, -1, 0], w: 1 } },
@@ -1405,7 +1405,7 @@ SH.r2_talk = { loc: 'corridor', pos: [.42, 1.66, -7.85], look: [-.15, 1.5, -9.62
   window.__W3chars.propAim('mop', o.S, [-1.05, 0, -10.05], nrm([-.25, 1, .05]));
   const R = locR(R2E[0], R2E[1], PI);
   return [['cleaner', R2G[0], 0, R2G[1], 0, { clips: [['Idle_Talking_Loop', t + 2, 1]], talk: 1, legs: 'feet', look: [R2E[0], 1.62, R2E[1]] }, null],
-    ['temych', R2E[0], 0, R2E[1], PI, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: { at: R.p(-.1, 1.1, .3), by: 'palm', fdir: R.v(.2, -.2, 1), pdir: [0, -1, 0], w: 1 } }, fing: { r: ['cup', 1] }, hold: { r: 'apple' }, look: [R2G[0], 1.6, R2G[1]] }, null]]; } };
+    ['temych', R2E[0], 0, R2E[1], PI, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: { at: R2C(), by: 'palm', fdir: [0, -.2, -1], pdir: [0, -1, 0], w: 1 } }, fing: { r: ['cup', 1] }, hold: { r: 'apple' }, look: [R2G[0], 1.6, R2G[1]] }, null]]; } };
 // ---- камеры смены (пульт в будке). Что на них сейчас — curProps.sh (движок: пульт, кто где, странности) ----
 // странности (s.*): cat, door01, streetOff, lily01 · wet, frank02, hallDark, palm · lift/liftOpen, lift13, clockSpin, palmMove ·
 // stDark, guard04 · gus, l7, door7, bucket7 · l10, door10, chair10 · mOff, sdoor. Помехи («он») рисует движок поверх кадра.
