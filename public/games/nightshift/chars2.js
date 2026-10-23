@@ -672,6 +672,7 @@ function smokeArms(C, t, tt) {
 }
 
 /* ---------- позы ---------- */
+const REACT = { yes: 'Yes', no: 'Idle_No_Loop', arms: 'Idle_FoldArms_Loop' };   // реакции тела по реплике (beat.react в story.js)
 const POSE = {
   stand: 'Idle_Loop', talk: 'Idle_Talking_Loop', sit: 'Sitting_Idle_Loop', sittalk: 'Sitting_Talking_Loop', sitfloor: 'Fixing_Kneeling',
   knock: 'Idle_Loop', press: 'Idle_Loop', give: 'Idle_Loop', paper: 'Idle_Loop', monster: 'Idle_Loop', reach: 'Idle_Loop',
@@ -979,6 +980,10 @@ function act3Body(C, P, tt, dt) {
     const TK = { Idle_Loop: 'Idle_Talking_Loop', Sitting_Idle_Loop: 'Sitting_Talking_Loop' };
     list = list.flatMap(c => TK[c[0]] ? [[c[0], c[1], (c[2] ?? 1) * (1 - C.talkW)], [TK[c[0]], c[1], (c[2] ?? 1) * C.talkW]] : [c]);
   }
+  { const rc = C.react && REACT[C.react];   // реакция по реплике вплетается в позу: кивок («Yes» — один раз, потом держим), «нет» и руки скрещены — петлёй
+    C.reactW = lerp(C.reactW ?? 0, rc ? 1 : 0, Math.min(1, (dt || 0) * 4)); if (rc) { if (C.reactClip !== rc) C.reactT0 = tt; C.reactClip = rc; }
+    if (C.reactW > .01 && C.reactClip) list = [...list.map(c => [c[0], c[1], (c[2] ?? 1) * (1 - C.reactW)]), [C.reactClip, /_Loop$/.test(C.reactClip) ? tt : tt - (C.reactT0 ?? tt), C.reactW]];
+    else C.reactClip = null; }
   let ws = 0; for (const c of list) ws += c[2] ?? 1;
   for (const [nm, time, w = 1, loop] of list) {
     const clip = CL[nm]; if (!clip) continue;
@@ -1027,6 +1032,7 @@ function updateSkinned(C, t, dt) {
   if (C.v3 && (P === 'sitfloor' || P === 'sitpaper' || P === 'kneel')) want = 'Idle_Loop';   // на коленях: ноги и таз ставит kneel()
   if (talking && P === 'stand') want = POSE.talk;
   if (talking && P === 'sit') want = POSE.sittalk;
+  if (!OBJ && C.react && REACT[C.react] && (P === 'stand' || P === 'talk')) want = REACT[C.react];   // реакция по реплике: кивок, «нет», руки скрещены
   if (C.o.monster && P === 'walk') want = 'Zombie_Walk_Fwd_Loop';
   if (want !== C.clip) {
     const CL = C.clips || CLIP, a = C.mixer.clipAction(CL[want] || CL.Idle_Loop);
@@ -1236,7 +1242,7 @@ function updateSkinned(C, t, dt) {
 const LUMA = 'dot(diffuseColor.rgb, vec3(.3, .59, .11))';
 function humanMat(C, n, kind, Q) {
   const o = C.o, src = n.material, cut = kind === 'brows' || kind === 'lashes' || kind === 'hair' || (kind === 'eyes' && o.deadEyes == null), cloth = kind.startsWith('cloth');
-  const R = { skin: .64, eyes: .06, brows: .85, lashes: .85, teeth: .3, tongue: .4, hair: .55 }[kind] ?? .86;
+  const R = { skin: .64, eyes: .06, brows: .85, lashes: .85, teeth: .3, tongue: .4, hair: CINE ? .68 : .55 }[kind] ?? .86;   // в «Кино» волосы матовее: широкий блик делал из них лакированную шапку; блеск — прядями (hh3 ниже) и контровым светом
   let tint = null; for (const k in (o.tint || {})) if (kind === k || kind.includes(k)) tint = o.tint[k];
   const p = { map: src.map || null };
   if (typeof tint === 'number') p.color = tint;
@@ -1244,7 +1250,7 @@ function humanMat(C, n, kind, Q) {
   if (kind === 'eyes' && o.deadEyes != null) { p.map = null; p.color = o.deadEyes; }
   if (kind === 'teeth') p.color = o.monster ? 0x8a8070 : 0xd8d0c2;
   if (CINE && src.normalMap && (cloth || kind === 'hair')) p.normalMap = src.normalMap;
-  if (cut) Object.assign(p, kind === 'eyes' ? { alphaTest: .3 } : { alphaTest: kind === 'hair' ? .3 : .25, side: T.DoubleSide });   // глаз: внешняя роговица прозрачная — иначе радужку не видно
+  if (cut) Object.assign(p, kind === 'eyes' ? { alphaTest: .3 } : { alphaTest: kind === 'hair' ? (CINE ? .18 : .3) : .25, side: T.DoubleSide });   // в «Кино» у волос остаются тонкие пряди по краю — линия лба мягче   // глаз: внешняя роговица прозрачная — иначе радужку не видно
   const m = ps1(litMat(p, R));
   if (CINE && cut && kind !== 'eyes') m.alphaToCoverage = true;
   if (CINE && kind === 'eyes') m.envMapIntensity = .9;
@@ -1261,6 +1267,7 @@ float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43
 ` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
   ${re ? `diffuseColor.rgb = mix(vec3(${LUMA}) * uTint * uGain, uTint, ${(re[2] || 0).toFixed(2)});` : ''}
   ${kind === 'skin' ? `{ float s = smoothstep(.04, .012, length(vB - uEyeL3)) + smoothstep(.04, .012, length(vB - uEyeR3)); diffuseColor.rgb *= 1. - .9 * uSocket * clamp(s, 0., 1.); }` : ''}
+  ${kind === 'hair' && CINE ? `diffuseColor.rgb *= .86 + .28 * hh3(vec3(floor(vB.x * 160.), floor(vB.z * 160.), 1.));   // пряди: соседние полоски (по телу, сверху вниз) чуть разной яркости — волосы не сплошная шапка` : ''}
   ${kind === 'teeth' || kind === 'tongue' ? `float mouthD; { float dz = clamp((uMouthZ - vB.z) / .026, 0., 1.), pink = clamp((diffuseColor.r - diffuseColor.g) * 2.5, 0., 1.);   // рот внутри в тени: чем глубже, тем темнее; дёсны и язык — приглушённые
     ${kind === 'teeth' ? `diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.84, .81, .76), .5 * (1. - pink));   // зубы ровнее по цвету: тёмные бороздки текстуры издали делали ряд похожим на решётку` : ''}
     mouthD = ${kind === 'tongue' ? 'max(dz, .5)' : 'dz'};

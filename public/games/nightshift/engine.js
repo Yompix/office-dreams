@@ -66,7 +66,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', 2)] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
-  const tm = get(EN ? 'timing_en.json?v=8' : 'timing.json?v=13', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_en.json?v=9' : 'timing.json?v=14', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры — очередью по 4, в порядке сцен; нужные сейчас встают вперёд (voiceReady)
@@ -1634,7 +1634,9 @@ function frame(tp) {
         const cr = creep && t >= creep.at && t < creep.at + creep.len ? creep.seed : 0;
         if (cr && !creep.hit) { creep.hit = true; if (Math.random() < .35) play('whispers', { gain: .18 }); }   // молча: заметит не каждый — так страшнее
         cam = beat.fx === 'cctv' || beat.fx === 'static' || (beat.fx === 'glitch' && !!beat.label);
-        const so = still ? { cx: c[0], cy: c[1], z, t: (beat.photo || {}).t ?? 2, T: 100, sx: 0, sy: 0 } : { cx: c[0], cy: c[1], z, t: t + shotOff, T, sx, sy, talk, creep: cr, scare: sc ? Math.exp(-st * 2.2) : 0 };
+        // реакции тела по ходу реплики: beat.react = { ГАС: ['no', 1.2, 3.5] } — кто, что (yes/no/arms) и с какой по какую секунду кадра
+        let react = null; if (beat.react) for (const who in beat.react) { const r = beat.react[who]; if (t >= (r[1] ?? 0) && t < (r[2] ?? 1e9)) (react = react || {})[who] = r[0]; }
+        const so = still ? { cx: c[0], cy: c[1], z, t: (beat.photo || {}).t ?? 2, T: 100, sx: 0, sy: 0 } : { cx: c[0], cy: c[1], z, t: t + shotOff, T, sx, sy, talk, react, creep: cr, scare: sc ? Math.exp(-st * 2.2) : 0 };
         if (cam) so.cctv = 1;
         const im = c[4] || beat.img;   // план может быть другим кадром (склейка на другой ракурс посреди реплики)
         if (cam && beat.fx !== 'static') heldShot(im, so, T, im + ci); else shot(im, so);   // камера наблюдения — 12 кадров в секунду

@@ -56,6 +56,16 @@ const fs = require('fs');
     ok((await p.evaluate(() => window.__ns.flags)).warned, 'Гас пообещал (флаг warned)');
     s = await click('Пора в будку'); ok(s.m === 'talk' && s.s === 'ly_call', 'в будку → звонит Лили (' + s.s + ')'); await snap('ly_call');
     s = await click('«Спи давай. Всё сдашь»'); ok(s.m === 'shift', 'Лили → смена S4');
+    // --- 04:30, серверная: обход (3 точки) → разговор с Фрэнком (тема про Гаса — только после gs_calls) → «до шести» → смена S6
+    await p.evaluate(() => window.__ns.setFlags({})); await p.evaluate(() => window.__ns.startScene('srv_wait')); s = await play();
+    ok(s.m === 'explore' && s.s === 'srv_wait', 'серверная: обход (' + s.m + ')'); it = await items(); spotsOk(it.filter(x => x.spot), 3); await snap('srv_room');
+    for (const t of ['Круг соли', 'Кулер и сухари']) { s = await click(t); ok(s.m === 'explore' && s.s === 'srv_wait', `«${t}» → вернулся к обходу`); }
+    s = await click('Листы на стойке'); ok(s.m === 'talk' && s.s === 'srv_talk', 'всё осмотрено → сам сел рядом с Фрэнком, разговор (' + s.m + ' ' + s.s + ')'); it = await items(); await snap('srv_talk');
+    ok(it.length === 3 && !it.some(x => x.t.includes('Гас')), 'тем 2 + «до шести»; про Гаса пока нет (' + it.length + ')');
+    s = await click('Это правда была она?'); ok(s.m === 'talk' && s.s === 'srv_talk', 'тема → вернулся к разговору');
+    await p.evaluate(() => window.__ns.setFlags({ 'v:gs_calls': 1 })); await p.evaluate(() => window.__ns.startScene('srv_talk')); s = await play(); it = await items();
+    ok(it.some(x => x.t.includes('Гас')), 'после разговора с Гасом есть тема про Гаса');
+    s = await click('Посидеть с ним до шести'); ok(s.m === 'shift', 'до шести → смена S6 (' + s.m + ')');
     // --- 02:20, телефон Фрэнка (если поставил на зарядку): звонок, сбросить — жив, ответить — смерть
     for (const take of [0, 1]) {
       await p.evaluate(() => { window.__ns.setFlags({ fphone: 1 }); window.__ns.startScene('sh_S4'); });

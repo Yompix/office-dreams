@@ -1,0 +1,29 @@
+[
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "sv01",
+   "sv02",
+   "sv03",
+   "sv05",
+   "sv07",
+   "sv09",
+   "sv11"
+  ],
+  "prompt": "[quiet, tired] A ring of coarse salt, a finger thick. Broken and poured again in two places — where he crawled out for water.\n\nThe cooler is a third empty. One pack of crackers left, the last. Six nights on this.\n\n[quiet, reading] Sheets taped to the rack. One handwriting, different nights: 'Don't call me.' 'Knock three times.' 'It speaks in my mother's voice.'\n\n[quiet, careful] Was it really… her?\n\n[quiet, tired] Gus said he gets called too. Martha.\n\nWhy salt?\n\nI'll sit with you till six.",
+  "chars": 494
+ },
+ {
+  "who": "ФРЭНК",
+  "voice": "wcATjh8zBDfepqUbl99V",
+  "keys": [
+   "sv06",
+   "sv08",
+   "sv10",
+   "sv12"
+  ],
+  "prompt": "[hoarse, tired, firm] The voice is hers. Down to the last note, the way she called me to dinner. But my mother died in ninety-six, son. It's not her.\n\n[hoarse, tired] I know. Thirty years he's been going up to seven to listen to her. It doesn't touch him — he never answers. He just listens. That's a way to live, too.\n\nI don't know why. I know it works. My father did it, his father did it. As long as the ring holds, it can only talk.\n\n[hoarse, quiet] Sit. But if they call — not a word. Even in my voice.",
+  "chars": 507
+ }
+]

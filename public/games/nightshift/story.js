@@ -30,7 +30,7 @@ window.STORY = {
     },
     keys_ask: {
       music: 'drone', time: '21:04',
-      beats: [{ img: 'pro_offer', cams: [[.5, .5, 1.1, 1.15], [.48, .44, 1.3, 1.36]], say: ['p10', 'p11', 'p12'], set: 'asked', pad: .4 }],
+      beats: [{ img: 'pro_offer', cams: [[.5, .5, 1.1, 1.15], [.48, .44, 1.3, 1.36]], say: ['p10', 'p11', 'p12'], set: 'asked', pad: .4, react: { 'СМЕНЩИК': ['no', 10, 12.6] } }],   // «камеры ничего не записали» — качает головой
       then: { goto: 'keys_take' }
     },
     keys_take: {
@@ -316,7 +316,7 @@ window.STORY = {
         { img: 'bs_door', cams: [[.5, .5, 1.1, 1.14]], say: ['d08'], sfx: [['bolt', 1.5, { gain: .9 }]], pad: .2 },
         { img: 'bs_open', cams: [[.5, .5, 1.0, 1.06]], say: ['d09'], sfx: [['door_metal', .1, { gain: .7 }]], pad: .3 },
         { img: 'bs_frank', cams: [[.5, .5, 1.0, 1.06]], say: ['d10'], pad: .3 },
-        { img: 'srv_in', cams: [[.5, .5, 1.0, 1.05]], say: ['d11', 'd12'], pad: .3 },
+        { img: 'srv_in', cams: [[.5, .5, 1.0, 1.05]], say: ['d11', 'd12'], pad: .3, react: { 'ФРЭНК': ['no', 9.5, 13] } },   // «седьмую одному не выдержать» — качает головой
         { img: 'srv_in', cams: [[.52, .45, 1.2, 1.26]], say: ['d13'], pad: .4 },
         { img: 'srv_dark', cams: [[.5, .5, 1.0, 1.1]], say: ['d14', 'd15'], hush: true, pad: .3 },
         { img: 'srv_reach', cams: [[.5, .5, 1.0, 1.06]], say: ['d16', 'd17'], heart: true, pad: .2 },
@@ -328,12 +328,24 @@ window.STORY = {
     srv_wait: {
       music: 'drone', time: '04:30',
       beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.05]], say: ['n32'], pad: .4 }],
-      then: { shift: 'S6' }
+      then: { explore: { img: 'srv_room', cams: [[.5, .5, 1.0, 1.03]], hint: 'До шести ещё полтора часа. Осмотрись.',
+        spots: [{ t: 'Круг соли', go: 'sv_salt', at: [1.0, .02, 2.15] }, { t: 'Кулер и сухари', go: 'sv_cooler', at: [.35, .9, 3.05] }, { t: 'Листы на стойке', go: 'sv_sheets', at: [3.0, 1.2, 2.2] }],
+        leave: { t: 'Сесть рядом с Фрэнком', go: 'srv_talk' } } }
     },
+    sv_salt: { music: 'drone', beats: [{ img: 'srv_room', cams: [[[1.0, .02, 2.15], -.04, 1.0, 1.5]], say: ['sv01'], pad: .4 }], then: { back: 'srv_wait' } },
+    sv_cooler: { music: 'drone', beats: [{ img: 'srv_room', cams: [[[.35, .9, 3.05], 0, 1.2, 1.5]], say: ['sv02'], pad: .4 }], then: { back: 'srv_wait' } },
+    sv_sheets: { music: 'drone', beats: [{ img: 'srv_sheets', cams: [[.5, .5, 1.0, 1.06]], say: ['sv03'], pad: .5 }], then: { back: 'srv_wait' } },
+    srv_talk: { music: 'drone', beats: [], then: { talk: { img: 'srv_in', cams: [[.5, .5, 1.0, 1.02]], title: 'Фрэнк',
+      topics: [{ t: 'Это правда была она?', go: 'sv_mom' }, { t: 'Гас сказал, его тоже зовут', go: 'sv_gus', if: 'v:gs_calls' }, { t: 'Почему соль?', go: 'sv_why' }],
+      bye: { t: 'Посидеть с ним до шести', go: 'srv_bye' } } } },
+    sv_mom: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv05', 'sv06'], pad: .4, react: { 'ФРЭНК': ['no', 7.5, 10] } }], then: { back: 'srv_talk' } },   // «это не она» — качает головой
+    sv_gus: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv07', 'sv08'], pad: .4, react: { 'ФРЭНК': ['yes', 3.2, 5.2] } }], then: { back: 'srv_talk' } },   // «знаю» — кивает
+    sv_why: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv09', 'sv10'], pad: .4 }], then: { back: 'srv_talk' } },
+    srv_bye: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv11', 'sv12'], pad: .6, react: { 'ФРЭНК': ['yes', 2.0, 3.6] } }], then: { shift: 'S6' } },
     dawn: {
       music: 'drone', time: '06:00',
       beats: [
-        { img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['d20', 'd21'], pad: .4 },
+        { img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['d20', 'd21'], pad: .4, react: { 'ФРЭНК': ['yes', 4.4, 6.8] } },   // «всё, до ночи оно спит» — кивает
         { img: 'st_up', fx: 'cctv', label: 'CAM 04  ЛЕСТНИЦА', cams: [[.5, .5, 1.0, 1.06]], say: ['d22'], pad: .4 },
         { img: 'x_two', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['d23'], sfx: [['tram', .8, { gain: .4 }]], pad: .4 },
         { img: 'x_two', fx: 'rain', cams: [[.52, .45, 1.2, 1.25]], say: ['d24'], pad: .3 },
@@ -503,10 +515,10 @@ window.STORY = {
     gs_long: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['n16'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.05]], say: ['n17'], pad: .4 }], then: { back: 'round2' } },
     gs_photo: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs01'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.06]], say: ['gs02'], pad: .5 }], then: { back: 'round2' } },
     gs_wife: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs03'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.05]], say: ['gs04'], pad: .4 }], then: { back: 'round2' } },
-    gs_frank: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs05'], pad: .2 }, { img: 'gs_ans', cams: [[.5, .5, 1.0, 1.05]], say: ['gs06'], pad: .4 }], then: { back: 'round2' } },
-    gs_calls: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs07'], pad: .2 }, { img: 'gs_707', cams: [[.5, .5, 1.0, 1.05]], say: ['gs08'], heart: true, pad: .5 }], then: { back: 'round2' } },
+    gs_frank: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs05'], pad: .2 }, { img: 'gs_ans', cams: [[.5, .5, 1.0, 1.05]], say: ['gs06'], pad: .4, react: { 'ГАС': ['yes', 1.6, 3.6] } }], then: { back: 'round2' } },
+    gs_calls: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs07'], pad: .2 }, { img: 'gs_707', cams: [[.5, .5, 1.0, 1.05]], say: ['gs08'], heart: true, pad: .5, react: { 'ГАС': ['no', 5.0, 8.2] } }], then: { back: 'round2' } },
     gs_warn: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.05]], say: ['gs09'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.06]], say: ['gs10'], pad: .5 }], then: { back: 'round2' } },
-    gs_bye: { music: 'drone', beats: [{ img: 'r2_talk', cams: [[.5, .5, 1.0, 1.05]], say: ['n15'], pad: .8 }], then: { goto: 'ly_call' } },
+    gs_bye: { music: 'drone', beats: [{ img: 'r2_talk', cams: [[.5, .5, 1.0, 1.05]], say: ['n15'], pad: .8, react: { 'ГАС': ['no', 3.4, 5.1] } }], then: { goto: 'ly_call' } },
 
     /* ================= ЗВОНОК ЛИЛИ, 01:15 — разговор ================= */
     ly_call: {

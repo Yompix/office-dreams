@@ -1903,6 +1903,83 @@
   "en": "So that was who knocked back at me from behind the server room door at ten. It doesn't knock.",
   "tag": "quiet, realization"
  },
+ "sv01": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Круг из крупной соли, в палец толщиной. В двух местах просыпан и насыпан заново — там, где он выползал за водой.",
+  "en": "A ring of coarse salt, a finger thick. Broken and poured again in two places — where he crawled out for water.",
+  "tag": "quiet, tired"
+ },
+ "sv02": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "Кулер пустой на треть. Сухарей — одна пачка, последняя. Шесть ночей на этом.",
+  "en": "The cooler is a third empty. One pack of crackers left, the last. Six nights on this.",
+  "tag": "quiet, tired"
+ },
+ "sv03": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "На стойке — листы скотчем. Один почерк, разные ночи: «Не зови меня». «Стучи три раза». «Оно говорит маминым голосом».",
+  "en": "Sheets taped to the rack. One handwriting, different nights: 'Don't call me.' 'Knock three times.' 'It speaks in my mother's voice.'",
+  "tag": "quiet, reading"
+ },
+ "sv05": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Это правда была… она?",
+  "en": "— Was it really… her?",
+  "tag": "quiet, careful"
+ },
+ "sv06": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Голос — её. До последней интонации, как звала обедать. Только мама умерла в девяносто шестом, сынок. Это не она.",
+  "en": "— The voice is hers. Down to the last note, the way she called me to dinner. But my mother died in ninety-six, son. It's not her.",
+  "tag": "hoarse, tired, firm"
+ },
+ "sv07": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Гас сказал, его тоже зовут. Марта.",
+  "en": "— Gus said he gets called too. Martha.",
+  "tag": "quiet, tired"
+ },
+ "sv08": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Знаю. Он тридцать лет ходит на седьмой её слушать. Его оно не трогает — он не отвечает. Просто слушает. Так тоже можно.",
+  "en": "— I know. Thirty years he's been going up to seven to listen to her. It doesn't touch him — he never answers. He just listens. That's a way to live, too.",
+  "tag": "hoarse, tired"
+ },
+ "sv09": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Почему соль?",
+  "en": "— Why salt?",
+  "tag": "quiet, tired"
+ },
+ "sv10": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Не знаю, почему. Знаю, что работает. Отец так делал, дед так делал. Пока круг цел — оно только говорит.",
+  "en": "— I don't know why. I know it works. My father did it, his father did it. As long as the ring holds, it can only talk.",
+  "tag": "hoarse, tired"
+ },
+ "sv11": {
+  "who": "ИТАН",
+  "fx": "",
+  "ru": "— Я посижу с вами до шести.",
+  "en": "— I'll sit with you till six.",
+  "tag": "quiet, tired"
+ },
+ "sv12": {
+  "who": "ФРЭНК",
+  "fx": "",
+  "ru": "— Посиди. Только если позовут — молчи. Даже если моим голосом.",
+  "en": "— Sit. But if they call — not a word. Even in my voice.",
+  "tag": "hoarse, quiet"
+ },
  "ch_katya": {
   "who": "ЛИЛИ",
   "fx": "muffle",

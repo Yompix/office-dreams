@@ -667,6 +667,17 @@ function buildServer() {
   o.rim = new T.PointLight(0xa0c0d0, 2.6, 5, 1.3); o.rim.position.set(1.4, 2.7, .9); S.add(o.rim);
   box(.18, .12, .3, mat(0xd0d0d0), 3.7, 2.8, 3.2, S);   // сама камера 13
   o.faceL = new T.PointLight(0xdde6ff, 0, 3.2, 2); S.add(o.faceL);
+  // у круга Фрэнка (обход 04:30): кулер с водой у двери, пачка сухарей и пустая обёртка, листы скотчем на ближней стойке
+  { box(.3, .8, .3, mat(0xc8ccd0, null, { rough: .55 }), .35, .4, 3.05, S); box(.26, .05, .26, mat(0x3a4a5a), .35, .825, 3.05, S); box(.3, .02, .3, mat(0x8a8e92), .35, .01, 3.05, S);
+    const bt = cyl(.11, .1, .36, 12, new T.MeshStandardMaterial({ color: 0x7fb8ff, transparent: true, opacity: .5, roughness: .12 }), S); bt.position.set(.35, 1.03, 3.05);
+    box(.05, .04, .04, mat(0x2a3a4a), .35, .7, 3.22, S); box(.05, .04, .04, mat(0xb03030), .28, .7, 3.22, S);   // краники: холодная и горячая
+    box(.13, .045, .09, mat(0xe0c89a, null, { decal: 1 }), 1.42, .035, 2.38, S); box(.12, .01, .08, mat(0xc8b088), 1.26, .014, 2.52, S);   // сухари: пачка и пустая обёртка
+    const txt = ['НЕ ЗОВИ МЕНЯ.', 'СТУЧИ ТРИ РАЗА', 'ОНО ГОВОРИТ МАМИНЫМ ГОЛОСОМ']; o.sheets = [];
+    txt.forEach((tx, i) => { const sh = label(.21, .3, 96, 136, (c, w, h) => { c.fillStyle = '#ece6d6'; c.fillRect(0, 0, w, h); c.fillStyle = '#1c1c2c'; c.font = '700 15px "Comic Sans MS", "Segoe Print", cursive'; c.textAlign = 'center';
+        const ws = tr(tx).split(' '); let ln = '', y = 46; for (const wd of ws) { const t2 = ln ? ln + ' ' + wd : wd; if (c.measureText(t2).width > w - 10 && ln) { c.fillText(ln, w / 2, y); ln = wd; y += 20; } else ln = t2; } if (ln) c.fillText(ln, w / 2, y);
+        c.fillStyle = 'rgba(190,190,180,.85)'; c.fillRect(w / 2 - 10, 2, 20, 9); }, S, false);   // полоска скотча сверху
+      sh.position.set(2.995, 1.55 - i * .36, 2.05 + (i % 2) * .22); sh.rotation.y = -PI / 2; sh.rotation.z = (i - 1) * .06; o.sheets.push(sh); });
+  }
   o.reset = () => { o.faceL.intensity = 0; o.salt.visible = true; o.candle.intensity = 1.2; o.red.intensity = 1.4; o.amb.intensity = .24; o.cold.intensity = 1.35; o.cold2.intensity = 1.1; o.rim.intensity = 2.6; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cold2Base = null; };
   o.tick = (t) => {
     o.candle.intensity = 1.1 + Math.sin(t * 17) * .12 + Math.sin(t * 7) * .08; o.red.intensity = 1.0 + .6 * (Math.sin(t * 2.4) > 0 ? 1 : 0);
@@ -1398,6 +1409,11 @@ const EIN = [2.28, 2.42];   // где Итан сидит на корточка�
 SH.srv_in = { loc: 'server', pos: [.25, 1.2, 1.3], look: [1.7, .6, 2.75], fov: 48, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o);
   return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankSit(t, { look: [EIN[0], 1.0, EIN[1]] }), null],
     ['temych', EIN[0], 0, EIN[1], -.75, { clips: [['Crouch_Idle_Loop', t + .5, 1]], look: [FRANK[0], .95, FRANK[1]] }, null]]; } };
+// 04:30, обход серверной (explore): круг соли, кулер у двери, листы на стойке — от входа; и листы крупно
+SH.srv_room = { loc: 'server', pos: [-.9, 1.4, .4], look: [1.6, .7, 2.8], fov: 62, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o);
+  return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankSit(t, { look: [-.2, 1.3, 1.0] }), null]]; } };
+SH.srv_sheets = { loc: 'server', pos: [2.05, 1.35, 2.25], look: [3.0, 1.2, 2.2], fov: 40, noRim: 1, set: (o, t) => { srvSet(o);
+  return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankSit(t, { look: [2.05, 1.35, 2.25] }), null]]; } };
 function srvDim(o) { srvSet(o); o.cold.intensity = .12; o.cold2.intensity = .08; o.red.intensity = .25; o.rim.intensity = .6; o.flickOn = false; }
 SH.srv_dark = { loc: 'server', pos: [2.45, 1.05, 3.3], look: [-1.8, .9, -2.3], fov: 50, set: (o, t) => { srvDim(o);
   return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankSit(t, { look: [-1.6, 1.1, -2] }), null], ['temych', EIN[0], 0, EIN[1], PI + .3, { clips: [['Crouch_Idle_Loop', t + .5, 1]], look: [-1.6, 1.1, -2] }, null]]; } };
@@ -1937,7 +1953,8 @@ function draw(g, W, H, id, o) {
   const newShot = id !== lastId; lastId = id;
   const { sh, o: loc, used } = stage(id, t, o);
   // кто говорит: рот двигается по громкости голоса
-  for (const k in A) { A[k].talk = 0; A[k].vis = null; }
+  for (const k in A) { A[k].talk = 0; A[k].vis = null; A[k].react = null; }
+  if (o.react) for (const who in o.react) for (const k of NAME[who] || []) if (used.has(k)) A[k].react = o.react[who];   // кивок/«нет»/руки скрещены — по реплике (движок, beat.react)
   if (o.talk && o.talk.who) for (const k of NAME[o.talk.who] || []) if (used.has(k)) { A[k].talk = o.talk.v; A[k].vis = o.talk.vis || null; break; }   // vis — форма губ под букву (движок)
   if (sh.hum && used.has(sh.hum) && !(o.talk && o.talk.who)) A[sh.hum].talk = .1 + .12 * Math.abs(Math.sin(t * 4.3)) * (Math.sin(t * 1.1) > -.5 ? 1 : 0);   // мурлычет себе под нос
   if (newShot) for (const k of used) A[k].smDone = false;   // после склейки покадровый Жилец сразу встаёт в новую позу (иначе миг виден старый кадр)
@@ -1956,6 +1973,10 @@ function draw(g, W, H, id, o) {
   aim(cam, sh.pos, sh.look, sh.fov, o.cx ?? .5, o.cy ?? .5, o.z ?? 1, o.sx || 0, o.sy || 0);
   // фонарь в руке: луч туда, куда показывает палец (o.torch = {x, y} — доли экрана)
   if (!loc.torch && /^(corridor|stairs|basement)$/.test(loc.name)) { const l = loc.torch = new T.SpotLight(0xfff0d8, 0, 0, .28, .5, 1); loc.S.add(l, l.target); }
+  // крупный план: контровой свет из-за головы (холодный, сверху-сзади) — волосы и плечи отделяются от тёмного фона, лицо объёмнее
+  { if (!loc.rimC) { const l = loc.rimC = new T.PointLight(0xbfd4ff, 0, 3.2, 1.6); l.castShadow = false; loc.S.add(l); }
+    let best = null, bd = 1.3; for (const k of used) { const C = A[k]; if (!C.bone || !C.bone.Head || C.o.monster) continue; C.bone.Head.getWorldPosition(_hp); const d = _hp.distanceTo(cam.position); if (d < bd) { bd = d; best = _hp.clone(); } }
+    const l = loc.rimC; if (best && !sh.noRim) { _hd.copy(best).sub(cam.position); _hd.y = 0; _hd.normalize(); l.position.copy(best).addScaledVector(_hd, .55).add(_p.set(0, .45, 0)); l.intensity += (((CINE ? 1.0 : .9) * (sh.rim ?? 1)) - l.intensity) * .3; } else l.intensity *= .7; }
   const tor = o.torch || sh.torch;   // кадр сам может держать фонарь (sh.torch = {x, y}) — например, спуск по лестнице
   if (loc.torch) { const l = loc.torch; l.intensity = tor ? 9 : 0;
     if (tor) { cam.updateMatrixWorld(); l.position.set(.18, -.25, 0).applyMatrix4(cam.matrixWorld); _p.set(tor.x * 2 - 1, 1 - tor.y * 2, .5).unproject(cam).sub(cam.position).normalize().multiplyScalar(10).add(cam.position); l.target.position.copy(_p); l.target.updateMatrixWorld(); } }
