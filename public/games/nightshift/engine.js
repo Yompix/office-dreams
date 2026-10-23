@@ -126,6 +126,9 @@ function unlockAudio() {   // только внутри нажатия: инач
   if (!AC) return;
   try { AC.resume(); const b = AC.createBuffer(1, 1, 22050), s = AC.createBufferSource(); s.buffer = b; s.connect(AC.destination); s.start(0); } catch {}
 }
+// кнопка «во весь экран» в углу: видна, когда браузер умеет полный экран, а игра сейчас не в нём (вышли жестом «назад» или Esc)
+function fullBtn() { const b = $('bFull'), d = document; if (!b) return; const can = d.fullscreenEnabled || d.webkitFullscreenEnabled, on = d.fullscreenElement || d.webkitFullscreenElement; b.classList.toggle('hide', !can || !!on); }
+document.addEventListener('fullscreenchange', fullBtn); document.addEventListener('webkitfullscreenchange', fullBtn);
 function goFull() {   // полный экран по нажатию «Играть»: только внутри нажатия, иначе браузер откажет
   const d = document, el = d.documentElement;
   if (d.fullscreenElement || d.webkitFullscreenElement) return;
@@ -1358,6 +1361,7 @@ function applyLand(l) {
 $('bMute').onclick = () => setMute(!LS.get('mute', false));
 $('bMute').classList.toggle('muted', LS.get('mute', false));
 $('bMenu').onclick = () => menu();
+$('bFull').onclick = e => { e.stopPropagation(); goFull(); }; fullBtn();
 $('bRules').onclick = e => { e.stopPropagation(); showRules(); };
 $('bAuto').onclick = e => { e.stopPropagation(); auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); };
 $('bAuto').classList.toggle('on', auto);
