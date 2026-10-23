@@ -364,7 +364,18 @@ function gameClock(withSec = true) {
   return p2(Math.floor(s / 3600) % 24) + ':' + p2(Math.floor(s / 60) % 60) + (withSec ? ':' + p2(s % 60) : '');
 }
 
-function startScene(id) {
+/* ---------- журнал прохождения (для экрана концовки): выборы, записи смены, время в игре ---------- */
+const runNew = () => ({ picks: [], sec: 0, rec: 0, ok: 0, miss: 0, hrs: [] }), PLAYING = new Set(['play', 'choice', 'mg', 'cams', 'shift']);
+let run = Object.assign(runNew(), LS.get('run', {})), runSaveT = 0;
+const runSave = () => LS.set('run', run);
+function runPick(sc, q, a) {   // выбор в сцене sc; вернулся к этому выбору — всё, что было после него, переписывается
+  const j = run.picks.findIndex(p => p.sc === sc); if (j >= 0) run.picks.length = j;
+  run.picks.push({ sc, q, a }); runSave();
+}
+// выбор, от которого зависит концовка (а не «смерть или дальше»): к нему можно вернуться с экрана концовки
+const forkAt = sc => { const t = (S.scenes[sc] || {}).then; return !!(t && t.opts && t.opts.filter(o => !/^over_/.test(o.go)).length > 1); };
+
+function startScene(id, atChoice) {   // atChoice — сразу к выбору в конце сцены (последний кадр перед ним проигрывается)
   if (!S.scenes[id]) { console.warn('нет сцены', id); return menu(); }   // сохранение из старой версии сценария не ломает игру
   gen++; stopAll(); choiceEl.classList.add('hide'); mgEl.classList.add('hide'); mgEl.innerHTML = ''; mgView = null;
   uiEl.innerHTML = ''; $('hud').classList.remove('hide');
@@ -374,7 +385,7 @@ function startScene(id) {
   if (!id.startsWith('over_')) LS.set('save', id);
   if (scene.music) music(scene.music);
   if (scene.time) { lastTime = scene.time; clockEl.textContent = scene.time; clockEl.classList.remove('hide'); }
-  bi = -1; nextBeat();
+  bi = atChoice ? scene.beats.length - 2 : -1; nextBeat();
 }
 function nextBeat() {
   bi++; amb('heart', false); holding = false; waiting = false; tapEl.classList.add('hide'); dlgEl.classList.remove('wait');
@@ -515,7 +526,7 @@ function runThen(th) {
   if (th.camgame) return camGame(th.camgame);
   if (th.shift) return shiftGame(th);
   if (th.mg) return MG[th.mg](th);
-  if (th.ending) return endScreen(th);
+  if (th.ending) return th.fin ? endScreen(th) : finale(th);
   if (th.over) return overScreen(th);
 }
 function showChoice(th) {
@@ -523,7 +534,8 @@ function showChoice(th) {
   choiceEl.innerHTML = `<h2>${th.choice}</h2>` + th.opts.map((o, i) => `<button data-i="${i}"><b>${i + 1}</b>${o.t}</button>`).join('') + (th.timeout ? '<div id="timer"><i></i></div>' : '');
   choiceEl.classList.remove('hide');
   let done = false, t0 = now(), lastTick = -1; const my = gen;
-  const pick = i => { if (done || my !== gen) return; done = true; play('click'); choiceEl.classList.add('hide'); startScene(th.opts[i].go); };
+  const pick = i => { if (done || my !== gen) return; done = true; play('click'); choiceEl.classList.add('hide'); const o = th.opts[i];
+    if (!/^over_/.test(o.go)) runPick(sceneId, th.choice, o.t); startScene(o.go); };
   choiceEl.querySelectorAll('button').forEach(b => b.onclick = () => pick(+b.dataset.i));
   if (th.timeout) {
     const bar = choiceEl.querySelector('#timer i');
@@ -788,7 +800,7 @@ function shiftEvent(e) {
   if (e.hold) shiftHold(e.hold);
 }
 function shiftResolve(a, how) {
-  shf.act = shf.act.filter(x => x !== a); play('click', { gain: .5 });
+  shf.act = shf.act.filter(x => x !== a); play('click', { gain: .5 }); if (a.id !== 'tut13') run.ok++;
   if (a.def.ok) sayV(a.def.ok); else if (how) shiftToast(how);
   shiftTask();
 }
@@ -801,12 +813,13 @@ function shiftCheck() {   // после записи или пульта: что
 }
 function shiftMiss(a) {
   shf.act = shf.act.filter(x => x !== a); if ((a.def.fix || 'log') === 'none') return;
-  shf.miss++; play('heart', { gain: .9 }); setTimeout(() => play('heart', { gain: .7 }), 700); play('steps_barefoot', { gain: .35, cut: 1.6, pan: Math.random() - .5, lp: 900 });
+  shf.miss++; run.miss++; play('heart', { gain: .9 }); setTimeout(() => play('heart', { gain: .7 }), 700); play('steps_barefoot', { gain: .35, cut: 1.6, pan: Math.random() - .5, lp: 900 });
   buzz([60, 80, 60]); shiftToast(shf.miss >= 3 ? '' : [tr('Что-то упустил…'), tr('Где-то в здании хлопнула дверь.'), tr('Шаги. Далеко. Или нет.')][Math.min(2, shf.miss - 1)]);
   if (shf.miss >= 3) shiftDie('over_come');
 }
 function shiftDie(id) { if (!shf || shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null); startScene(id); }
-function shiftEnd() { if (shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null); const n = shf.seg.next; shf = null; startScene(n); }
+function shiftEnd() { if (shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null); const n = shf.seg.next;
+  if (!run.hrs.includes(shf.id)) run.hrs.push(shf.id); runSave(); shf = null; startScene(n); }
 function shiftTick() {
   if (!shf || shf.my !== gen || mode !== 'shift' || shf.ended) return;
   const t = now(), dt = Math.min(.1, t - shf.lt); shf.lt = t;
@@ -821,7 +834,7 @@ function shiftTick() {
     } else a.look = 0;
     if (d.trap === 'door' && !shk.door && M > a.m + 4) return shiftDie(d.die || 'over_door');   // не запер — она вошла
     if (M > a.m + (d.win || 15)) shiftMiss(a); if (shf.ended) return; }
-  if (shf.task && M > toMin(shf.task.by) && !shf.task.done) { const tk = shf.task; tk.done = true; if (!(tk.need || []).every(n => shk[n])) { shf.miss++; shiftToast(tr('Не успел к сроку.')); if (shf.miss >= 3) return shiftDie('over_come'); } shiftTask(); }
+  if (shf.task && M > toMin(shf.task.by) && !shf.task.done) { const tk = shf.task; tk.done = true; if (!(tk.need || []).every(n => shk[n])) { shf.miss++; run.miss++; shiftToast(tr('Не успел к сроку.')); if (shf.miss >= 3) return shiftDie('over_come'); } shiftTask(); }
   if (M >= shf.m1) return shiftEnd();
   requestAnimationFrame(shiftTick);
 }
@@ -858,7 +871,7 @@ function shiftLog() {
   shiftPop(`<h3>${tr('Записать в журнал')}</h3><p>${camLabel(c)} · ${minStr(shf.M)}</p><div class="sh-grid">${KINDS.concat(['Всё спокойно']).map((k, i) => `<button data-i="${i}">${tr(k)}</button>`).join('')}</div>`);
   $('shPop').querySelectorAll('.sh-grid button').forEach(b => b.onclick = e => { e.stopPropagation(); const k = (KINDS.concat(['Всё спокойно']))[+b.dataset.i];
     const hit = shf.act.find(a => a.def.cam === c && (a.def.fix || 'log') === 'log' && (a.def.kinds || [a.def.kind]).includes(k)), my = shf.my;
-    shk.log.push({ m: minStr(shf.M), cam: c, k, ok: !!hit }); play('pen', { gain: .5, cut: 1.3 });
+    shk.log.push({ m: minStr(shf.M), cam: c, k, ok: !!hit }); run.rec++; play('pen', { gain: .5, cut: 1.3 });
     shiftPop(`<h3>${tr('Записываю…')}</h3><p>${camLabel(c)} · ${minStr(shf.M)} — ${tr(k)}</p>`, true);
     setTimeout(() => { if (!shf || shf.my !== my || shf.ended) return; shiftPop(null);
       if (hit && shf.act.includes(hit)) shiftResolve(hit, tr('Записано.')); else shiftToast(k === 'Всё спокойно' ? tr('Записано: всё спокойно.') : tr('Записано. Хотя, может, показалось.'));
@@ -1071,18 +1084,48 @@ function applyVol() {   // громкости игрока → узлы звук
 }
 async function begin(id) {
   unlockAudio(); goFull();   // до любого await, пока идёт нажатие
-  if (id === 'intro') { for (const k in flags) delete flags[k]; falseAlarm = false; lastTime = '02:55'; }
+  if (id === 'intro') { for (const k in flags) delete flags[k]; falseAlarm = false; lastTime = '02:55'; shk = null; run = runNew(); runSave(); }
   uiEl.innerHTML = `<div class="screen"><small>${tr('Загрузка звука…')}</small></div>`;
   await Promise.race([initAudio(), new Promise(r => setTimeout(r, 8000))]);   // звук не успел — играем дальше, без зависания
   uiEl.innerHTML = ''; startScene(id);
 }
+/* ---------- финал концовки: последний кадр живёт дальше (медленный наезд, темнеет), поверх — название по буквам и строка; потом журнал ночи ---------- */
+function finale(th) {
+  const last = [...scene.beats].reverse().find(b => b.img), img = th.bg || (last && last.img);
+  if (!img) return endScreen(Object.assign({}, th, { fin: 1 }));
+  const c = th.bg ? (th.bgCam || [.5, .5, 1, 1.08]) : (last.cams || [[.5, .5, 1, 1.1]]).slice(-1)[0], z = th.bg ? c[2] : c[3];
+  const fin = { img, fx: th.bg ? th.bgFx : last.fx, label: th.bg ? undefined : last.label, cams: [[c[0], c[1], z, th.bg ? c[3] : z * 1.08]], auto: true, fin: 1, pad: 8.5 };
+  scene = Object.assign({}, scene, { beats: [...scene.beats, fin], then: Object.assign({}, th, { fin: 1 }) });   // копия: сценарий не трогаем
+  clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
+  music(BUF['end_' + th.ending] ? 'end_' + th.ending : 'drone'); play('boom', { gain: .45 });
+  bi = scene.beats.length - 2; nextBeat();
+  uiEl.innerHTML = `<div class="screen fin" id="fin"><h1>${[...tr(th.title)].map((ch, i) => ch === ' ' ? ' ' : `<span style="animation-delay:${(.5 + i * .08).toFixed(2)}s">${escH(ch)}</span>`).join('')}</h1>
+    <p>${escH(tr(th.sub))}</p><small>${tr('Нажми, чтобы продолжить')}</small></div>`;
+  $('fin').onclick = () => { if (mode === 'play' && beat && beat.fin) { play('click'); nextBeat(); } };
+}
+// журнал ночи: страница журнала охраны — время в игре, часы смены, записи, решения, чем кончилось; штамп концовки; к выбору / заново / меню
 function endScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
-  mode = 'end'; const got = new Set(LS.get('endings', [])); got.add(th.ending); LS.set('endings', [...got]); LS.set('save', null);
-  play('boom'); music(BUF['end_' + th.ending] ? 'end_' + th.ending : 'drone');
-  uiEl.innerHTML = `<div class="screen"><h1>${th.title}<em>${S.endings[th.ending].toUpperCase()}</em></h1><p>${th.sub}</p>${gallery()}
-    <button class="btn" id="eAgain" style="margin-top:calc(5 * var(--u))">${tr('Сыграть ещё раз')}</button><button class="btn ghost" id="eMenu">${tr('Меню')}</button>${supportBtn()}${sponsorsHtml()}</div>`;
-  $('eAgain').onclick = () => { goFull(); uiEl.innerHTML = ''; for (const k in flags) delete flags[k]; falseAlarm = false; startScene('intro'); }; $('eMenu').onclick = menu;
+  mode = 'end'; const got = new Set(LS.get('endings', [])), fresh = !got.has(th.ending); got.add(th.ending); LS.set('endings', [...got]); LS.set('save', null); runSave();
+  if (!th.fin) play('boom'); music(BUF['end_' + th.ending] ? 'end_' + th.ending : 'drone');
+  const fork = [...run.picks].reverse().find(p => forkAt(p.sc)), my = gen;
+  const mins = Math.max(1, Math.round(run.sec / 60)), dur = mins >= 60 ? trf('{h} ч {m} мин', { h: Math.floor(mins / 60), m: mins % 60 }) : trf('{m} мин', { m: mins });
+  const rows = [['Время в игре', dur], ['Часов смены отстоял', run.hrs.length], ['Странностей замечено', run.ok], ['Записей в журнале', run.rec], ['Пропущено', run.miss]];
+  let d = .4; const L = () => `style="--d:${(d += .3).toFixed(2)}s"`;
+  const page = `<div class="jr-page">
+      <div class="jr-hd ln" ${L()}><b>${tr('ЖУРНАЛ ДЕЖУРСТВ')}</b><span>${tr('БЦ «Горизонт» · пост охраны · ночь 28→29 октября')}</span></div>
+      ${rows.map(([k, v]) => `<div class="jr-row ln" ${L()}><span>${tr(k)}</span><b>${v}</b></div>`).join('')}
+      ${run.picks.length ? `<div class="jr-sub ln" ${L()}>${tr('Решения за ночь')}</div><ol>${run.picks.map(p => `<li class="ln" ${L()}>${escH(tr(p.a))}</li>`).join('')}</ol>` : ''}
+      <div class="jr-end ln" ${L()}><b>${gameClock(false)} — ${escH(tr(th.title))}</b><span>${escH(tr(th.sub))}</span></div>
+      <div class="jr-stamp" style="--d:${(d += .7).toFixed(2)}s">${escH(tr(S.endings[th.ending]))}${fresh ? `<i>${tr('новая концовка')}</i>` : ''}</div></div>`;
+  uiEl.innerHTML = `<div class="screen jr">${page}<div class="jr-side">${gallery()}
+      ${fork ? `<button class="btn" id="eBack">${tr('Вернуться к выбору')}<small>${escH(tr(fork.q))}</small></button>` : ''}
+      <button class="btn${fork ? ' ghost' : ''}" id="eAgain">${tr('Начать заново')}</button><button class="btn ghost" id="eMenu">${tr('Меню')}</button>${supportBtn()}${sponsorsHtml()}</div></div>`;
+  // строки ложатся по очереди под скрип ручки, в конце — штамп
+  uiEl.querySelectorAll('.jr .ln').forEach((el, i) => { if (i % 2 === 0) setTimeout(() => { if (mode === 'end' && gen === my) play('pen', { gain: .22, cut: .6 }); }, parseFloat(el.style.getPropertyValue('--d')) * 1000); });
+  setTimeout(() => { if (mode === 'end' && gen === my) { play('bolt', { gain: .45, cut: .45 }); buzz(30); } }, (d + .1) * 1000);
+  if (fork) $('eBack').onclick = () => { goFull(); uiEl.innerHTML = ''; startScene(fork.sc, true); };
+  $('eAgain').onclick = () => begin('intro'); $('eMenu').onclick = menu;
 }
 function overScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
@@ -1280,7 +1323,8 @@ function sayWords(who, words, on) {   // озвученная реплика ц�
 let camHud = false;
 function setCamHud(on) { if (on !== camHud) { camHud = on; clockEl.classList.toggle('dim', on); } }   // на экране камеры время показывает сама камера
 function frame(tp) {
-  const dt = Math.min(.1, (tp - lastP) / 1000); if (window.World && World.perf && (mode === 'play' || mode === 'menu')) World.perf(tp - lastP); lastP = tp; if (!paused) clockT += dt;
+  const dt0 = Math.max(0, (tp - lastP) / 1000), dt = Math.min(.1, dt0); if (window.World && World.perf && (mode === 'play' || mode === 'menu')) World.perf(tp - lastP); lastP = tp; if (!paused) clockT += dt;
+  if (!paused && PLAYING.has(mode)) { run.sec += Math.min(1, dt0); if ((runSaveT += dt0) > 5) { runSaveT = 0; runSave(); } }   // сколько реально играли (для журнала в конце)
   const T = now();
   let place = null, quiet = false, cam = false; voiceNow = false;
   if (mode === 'play' && beat) {
@@ -1343,6 +1387,7 @@ function frame(tp) {
         if (beat.fx === 'strobe' && t > .5 && ((t * 1000) % 470) > 95 + 40 * Math.sin(t * 7)) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
         if (beat.fx === 'dark') { g.fillStyle = `rgba(0,0,0,${darkHold ? .85 : p * .85})`; g.fillRect(0, 0, W, H); }
         if (beat.light) { g.fillStyle = `rgba(0,0,0,${.35 * (1 - Math.min(1, t / 6))})`; g.fillRect(0, 0, W, H); }
+        if (beat.fin) { g.fillStyle = `rgba(0,0,0,${Math.min(1, .1 + .22 * Math.min(1, t / 2.5) + .7 * Math.max(0, (t - bDur + 1.4) / 1.4))})`; g.fillRect(0, 0, W, H); }   // финал: чуть темнеет (низ под название затемняет .fin), в конце — в черноту
         if (beat.floors) { const f = Math.min(7, 1 + Math.floor(t / .6)); g.save(); g.translate(W / 2, 0); g.scale(US, US); g.fillStyle = 'rgba(0,0,0,.6)'; rr(-90, 220, 180, 150, 20); g.fillStyle = '#f33'; g.font = '800 110px Inter, Arial'; g.textAlign = 'center'; g.fillText(f, 0, 245); g.restore(); }
         if (!beat.fx || beat.fx === 'rain') grain(.07);
         if (sc && st < .6) grain(.5 * (1 - st / .6));
@@ -1497,5 +1542,5 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   initAudio(); loaded = true;
   if (splashDone) setTimeout(menu, Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
-window.__ns = { back: () => menu(), startScene, get music() { return curMusicName; }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); } };
+window.__ns = { back: () => menu(), startScene, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); } };
 })();

@@ -88,6 +88,11 @@ const EN = {
   '1. В 03:00 НА 7 ЭТАЖЕ': '1. AT 3:00 ON FLOOR 7', '   ВКЛЮЧИТСЯ СВЕТ.': '   THE LIGHTS COME ON.', '   НЕ ПОДНИМАЙСЯ.': '   DO NOT GO UP.',
   '2. ЛИФТ ПРИЕХАЛ САМ —': '2. ELEVATOR CAME BY', '   НЕ ЗАХОДИ.': '   ITSELF — STAY OUT.', '3. ПОСЛЕ ПОЛУНОЧИ': '3. AFTER MIDNIGHT', '   НИКОГО НЕ ВПУСКАЙ.': '   LET NO ONE IN.',
   '4. КАМЕРУ 13': '4. CAMERA 13 —', '   НЕ ВКЛЮЧАЙ.': '   NEVER TURN ON.', 'Третье правило — ложь.': 'Rule three is a lie.', 'Впусти её.   — М.': 'Let her in.   — M.',
+  // финал концовки и журнал ночи
+  'Нажми, чтобы продолжить': 'Tap to continue', '{h} ч {m} мин': '{h} h {m} min', '{m} мин': '{m} min', 'Время в игре': 'Time played', 'Часов смены отстоял': 'Shift hours survived',
+  'Странностей замечено': 'Anomalies caught', 'Записей в журнале': 'Log entries', 'Пропущено': 'Missed', 'ЖУРНАЛ ДЕЖУРСТВ': 'SECURITY LOG',
+  'БЦ «Горизонт» · пост охраны · ночь 28→29 октября': 'Horizon Business Center · security desk · night of Oct 28→29', 'Решения за ночь': 'Decisions tonight',
+  'новая концовка': 'new ending', 'Вернуться к выбору': 'Back to the choice',
 };
 const tr = s => LANG === 'en' && EN[s] != null ? EN[s] : s;
 // подстановки: tr('Проверено: {n} из 3', { n: 2 })
