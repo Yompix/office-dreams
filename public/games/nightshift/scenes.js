@@ -1260,7 +1260,7 @@ SH.f7_stop = { loc: 'corridor', pos: [1.0, 1.5, -7.2], look: [-.45, 1.25, -10.9]
   if (k > 0 && k < 1) P.clips = [['Idle_Loop', t + 4, .45], ['Walk_Loop', t * .9, .55]];   // переступает на месте, пока поворачивается
   return [['cleaner', G7[0], 0, G7[1], ry, P, null]]; } };
 const radioPt = (ry, at = G7, dy = 0) => bodyAt(locR(at[0], at[1], ry), 'spine_03', G_S3, [.05, 1.25 + dy, .24]);   // левая рука с рацией у груди (dy — ещё ниже: только сняла с нагрудника)
-SH.f7_radio = { loc: 'corridor', pos: [-.95, 1.4, -10.75], look: [-.12, 1.3, -10.35], fov: 38, face: { cleaner: 'alert' }, set: (o, t) => { setLamps(o, 7); o.cleanSet({ bucket: [.6, -10.9, .3], sign: CLEAN.sign, door7: 0 });
+SH.f7_radio = { loc: 'corridor', pos: [-.95, 1.46, -10.75], look: [-.12, 1.38, -10.35], fov: 38, face: { cleaner: 'alert' }, set: (o, t) => { setLamps(o, 7); o.cleanSet({ bucket: [.6, -10.9, .3], sign: CLEAN.sign, door7: 0 });
   const ry = G7DOOR, k = seg(t, .2, .8), hp = radioPt(ry, G7, -(1 - k) * .2);   // снял рацию с нагрудника и прижал к груди
   return [['cleaner', G7[0], 0, G7[1], ry, gusStand(o, t, ry, [-1.3, 1.55, -11.8], hp), null]]; } };
 SH.f7_cam_door = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.35, .9, -10.8], fov: 40, cctv: 1, set: (o, t) => { setLamps(o, 7); o.cleanSet({ bucket: [.6, -10.9, .3], sign: CLEAN.sign, door7: 0 });
