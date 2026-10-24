@@ -867,7 +867,9 @@ function orientHand(C, sd, fdir, pdir, k = 1) {   // k < 1 — кисть пов
 function reachArm(C, sd, a) {
   const k = a.w ?? 1; if (!(k > 0)) return;
   const pole = a.pole || (sd === 'r' ? [-.7, -1, -.35] : [.7, -1, -.35]);
-  const want = new T.Vector3(a.at[0], a.at[1], a.at[2]), wrist = want.clone();
+  if (typeof a.at === 'function') C.root.updateWorldMatrix(true, true);
+  const at = typeof a.at === 'function' ? a.at(C) : a.at;   // функция — точка от тела этого кадра (ухо, рот, грудь): мокап сидит и стоит по-своему, рука идёт за ним
+  const want = new T.Vector3(at[0], at[1], at[2]), wrist = want.clone();
   if (a.by && a.by !== 'wrist') { const p = handPt(C, sd, a.by), hw = C.bone['hand_' + sd].getWorldPosition(new T.Vector3()); wrist.add(hw.sub(p)); }
   for (let it = 0; it < 3; it++) {
     const lp = C.root.worldToLocal(wrist.clone());
@@ -1014,8 +1016,12 @@ function natClip(C, nm) {   // → [клип, сдвиг фазы, масшта�
   if (nm === 'Sitting_Talking_Loop' && n[4] && CLIP[n[4]]) return [n[4], n[2]];
   return [nm, 0];
 }
-// сидя на мокапе: актёр сидел на стуле выше нашего — ступни ушли бы под пол; ставим их на пол (бедро и голень сгибаются сами), подошва — как в клипе
-function seatFeet(C) {
+// сидя на мокапе: актёр сидел на стуле выше нашего — ступни ушли бы под пол; ставим их на пол (бедро и голень сгибаются сами), подошва — как в клипе.
+// Таз — на 4,5 см выше, чем в клипе: у мокапа ягодица и опущенная кисть уходили в сиденье на 3–4 см (World.clips); k — доля сидячего клипа в смеси
+const SIT_UP = .045;
+function seatFeet(C, k = 1) {
+  { const pel = C.bone.pelvis; C.root.updateWorldMatrix(true, true); const wp = pel.getWorldPosition(new T.Vector3()); wp.y += SIT_UP * k * (C.ss || 1);
+    pel.parent.updateWorldMatrix(true, false); pel.position.copy(pel.parent.worldToLocal(wp)); pel.updateWorldMatrix(false, true); }
   C.root.updateWorldMatrix(true, true); const fl = C.root.getWorldPosition(new T.Vector3()).y, want = fl + .1 * (C.ss || 1);
   for (const sd of ['l', 'r']) { const ft = C.bone['foot_' + sd]; if (!ft) continue; const wp = ft.getWorldPosition(new T.Vector3()); if (wp.y >= want) continue;
     const wq = ft.getWorldQuaternion(new T.Quaternion()); wp.y = want; const lp = C.root.worldToLocal(wp);
@@ -1049,7 +1055,8 @@ function act3Body(C, P, tt, dt) {
   }
   for (const nm in C.acts3) if (!used.has(nm) && C.acts3[nm].on3) { C.acts3[nm].stop(); C.acts3[nm].on3 = false; }
   bonesRestore(C); C.mixer.update(0); bonesSnap(C);
-  if (list.some(c => /^Rk_Sit/.test(c[0]))) seatFeet(C);
+  const sitW = list.reduce((s, c) => s + (/^Rk_Sit/.test(c[0]) ? c[2] ?? 1 : 0), 0);
+  if (sitW > 0) seatFeet(C, sitW / (ws || 1));
   else if (list.some(c => /^(Rk_|Cmu_)/.test(c[0]) && (c[2] ?? 1) > .05)) footFloor(C);   // мокап: носок опорной ноги не под полом
   if (P.legs === 'feet') feetIn(C, P);
   if (P.pelvis || P.legs === 'plant') {   // таз сдвигается (присесть, перенести вес), ступни остаются где стояли — ноги сгибаются сами (IK)

@@ -1075,8 +1075,9 @@ function walker(name, pts, t, v, extra = {}, ryEnd) {
 }
 // короткий переход (полшага–два шага): позиция по ease, шаги — по пройденному пути
 function shuffle(name, a, b, t, t0, dur, ry, extra = {}) {
-  const C = A[name], u = clamp((t - t0) / dur, 0, 1), k = ease(u), s = k * Math.hypot(b[0] - a[0], b[1] - a[1]), w = Math.sin(PI * u);
-  return [name, lerp(a[0], b[0], k), 0, lerp(a[1], b[1], k), ry, Object.assign({ clips: [['Walk_Loop', s / (1.3 * C.ss) * 1.333, w], ['Idle_Loop', t, 1 - w]], legs: w < .1 ? 'feet' : undefined }, extra), null];
+  const C = A[name], u = clamp((t - t0) / dur, 0, 1), k = ease(u), d = Math.hypot(b[0] - a[0], b[1] - a[1]), s = k * d, w = Math.sin(PI * u);
+  const back = (b[0] - a[0]) * Math.sin(ry) + (b[1] - a[1]) * Math.cos(ry) < -.7 * d ? -1 : 1;   // отходит спиной — шаги назад (клип ходьбы задом наперёд), а не шаг вперёд с ногами, едущими по полу
+  return [name, lerp(a[0], b[0], k), 0, lerp(a[1], b[1], k), ry, Object.assign({ clips: [['Walk_Loop', back * s / (1.3 * C.ss) * 1.333, w], ['Idle_Loop', t, 1 - w]], legs: w < .1 ? 'feet' : undefined }, extra), null];
 }
 // ---- двери фасада: створки на петлях (o.leaves), ходит левая — у притвора на ней замок. Снаружи тянут скобу на себя: створка уходит на улицу ----
 function leafAng(o, i, a) { const l = o.leaves[i]; l.rotation.y = (i ? 1 : -1) * a; l.updateMatrixWorld(true); }
@@ -1163,8 +1164,9 @@ function eRead(t, rows, dur) {
   if (rows) { const n = rows.length, i = Math.min(n - 1, Math.floor(k * n)), f = k * n - i, [pg, ln] = rows[i]; const x0 = pg === 'l' ? 14 : 202, x1 = pg === 'l' ? 175 : 352;
     a = logPt(lerp(x0, x1, ease(clamp(f * 1.15, 0, 1))), LOGL(ln)); }
   return { clips: [['Sitting_Idle_Loop', t + 2, 1]], spine: { to: [5.33, .8, -.27], k: .42 },
-    arm: Object.assign({ l: { at: [5.62, .812, -.33], by: 'palm', fdir: [-.2, 0, 1], pdir: [0, -1, 0], w: 1 } }, a ? { r: { at: a, by: 'tip', fdir: [.15, -.55, 1], pdir: [0, -1, .3], w: 1 } } : {}),
-    fing: { r: [a ? 'point' : 'relax', 1], l: ['flat', .7] }, look: a || [5.33, .81, -.27] };
+    arm: { l: { at: [5.62, .812, -.33], by: 'palm', fdir: [-.2, 0, 1], pdir: [0, -1, 0], w: 1 },   // не ведёт по строкам — правая ладонь тоже на столе, справа от журнала (у мокапа опущенная кисть уходила в сиденье)
+      r: a ? { at: a, by: 'tip', fdir: [.15, -.55, 1], pdir: [0, -1, .3], w: 1 } : { at: [4.98, .835, -.42], by: 'palm', fdir: [.2, 0, 1], pdir: [0, -1, 0], w: 1 } },
+    fing: { r: [a ? 'point' : 'flat', a ? 1 : .95], l: ['flat', .7] }, look: a || [5.33, .81, -.27] };
 }
 SH.jr_desk = { loc: 'lobby', pos: [6.55, 1.55, -.05], look: [5.25, .95, -.55], fov: 46, set: (o, t) => [['temych', SEAT[0], 0, SEAT[1], 0, eRead(t, null, 1), null]] };
 const jrPage = (rows, dur, look = [5.35, .8, -.17]) => ({ loc: 'lobby', pos: [5.36, 1.16, -.5], look, fov: 40, set: (o, t) => [['temych', SEAT[0], 0, SEAT[1], 0, eRead(t, rows, dur), null]] });
@@ -1185,7 +1187,7 @@ SH.fb_phone = { loc: 'lobby', pos: [5.05, 1.24, -1.0], look: [4.68, .76, -.46], 
 SH.fb_log = { loc: 'lobby', pos: [5.33, 1.22, -.7], look: [5.35, .81, -.29], fov: 36, set: (o) => { boothFb(o); return []; } };
 // 22:00: звонок дневного — Итан за столом, телефон у левого уха (камера справа, у стойки)
 function ePhoneSit(t) { const R = locR(SEAT[0], SEAT[1], 0);   // ладонь у уха (голова сидя — на 24–31 см позади корня), пальцы вперёд по щеке, локоть вниз
-  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], arm: { l: { at: R.p(.13, 1.2, -.31), by: 'palm', fdir: R.v(0, .4, .9), pdir: R.v(-1, 0, 0), w: 1, pole: R.p(.35, .85, -.1) } },
+  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], arm: { l: { at: bodyAt(R, 'Head', E_SIT_HEAD, [.13, 1.2, -.31]), by: 'palm', fdir: R.v(0, .4, .9), pdir: R.v(-1, 0, 0), w: 1, pole: R.p(.35, .85, -.1) } },
     fing: { l: ['phone', 1] }, hold: { l: 'phone' }, look: R.p(.6, 1.05, 2) }; }
 SH.booth_call = { loc: 'lobby', pos: [6.35, 1.48, .05], look: [5.15, 1.15, -.75], fov: 42, set: (o, t) => { boothFb(o); return [['temych', SEAT[0], 0, SEAT[1], 0, ePhoneSit(t), null]]; } };
 // stub: следующие кадры пролога — ниже
@@ -1193,6 +1195,11 @@ SH.booth_call = { loc: 'lobby', pos: [6.35, 1.48, .05], look: [5.15, 1.15, -.75]
 function locR(x, z, ry) { const c = Math.cos(ry), s = Math.sin(ry);   // оси персонажа (x — влево, z — вперёд) → мир
   return { p: (lx, ly, lz) => [x + lx * c + lz * s, ly, z - lx * s + lz * c], v: (lx, ly, lz) => [lx * c + lz * s, ly, -lx * s + lz * c] }; }
 const nrm = v => { const L = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / L, v[1] / L, v[2] / L]; }, crs = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+// цель руки у тела (ухо, рот, грудь). Цели писались от корня под позу Quaternius; мокап сидит и стоит иначе (голова ниже или выше, корпус ровнее, покачивается),
+// поэтому цель едет с костью этого кадра: кость + (цель − где эта кость у Quaternius). ref — та кость в осях персонажа (x — влево, z — вперёд) в позе Quaternius
+const _bw = new T.Vector3();
+const bodyAt = (R, bone, ref, at) => C => { const b = C.bone[bone]; if (!b) return R.p(at[0], at[1], at[2]); b.getWorldPosition(_bw); const d = R.v(at[0] - ref[0], at[1] - ref[1], at[2] - ref[2]); return [_bw.x + d[0], _bw.y + d[1], _bw.z + d[2]]; };
+const E_SIT_HEAD = [.003, 1.218, -.249], G_HEAD = [-.006, 1.538, -.06], G_S3 = [.007, 1.114, -.116];   // замерено: голова Итана сидя (Sitting_Idle_Loop), голова и грудь Гаса стоя (Idle_Loop)
 function mopGus(o, x, z, ry, t, k = 1) {   // k — насколько моет (0 — швабра стоит, руки на черенке)
   if (window.__W3chars.hasClip('Cmu_Mop_Loop')) return mopGusMocap(o, x, z, ry, t, k);
   const ph = t * 2 * PI / 1.75, sx = Math.sin(ph) * k, cz = Math.cos(2 * ph) * k, R = locR(x, z, ry);
@@ -1252,9 +1259,9 @@ SH.f7_stop = { loc: 'corridor', pos: [1.0, 1.5, -7.2], look: [-.45, 1.25, -10.9]
   const k = seg(t, 1.3, 2.6), ry = lerp(G7RY, G7DOOR + 2 * PI * (G7DOOR < G7RY - PI ? 1 : 0), k), P = gusStand(o, t, ry, doorP, null, seg(t, 1.0, 1.45));
   if (k > 0 && k < 1) P.clips = [['Idle_Loop', t + 4, .45], ['Walk_Loop', t * .9, .55]];   // переступает на месте, пока поворачивается
   return [['cleaner', G7[0], 0, G7[1], ry, P, null]]; } };
-const radioPt = (ry, at = G7) => { const R = locR(at[0], at[1], ry); return R.p(.05, 1.3, .26); };   // левая рука с рацией у груди
+const radioPt = (ry, at = G7, dy = 0) => bodyAt(locR(at[0], at[1], ry), 'spine_03', G_S3, [.05, 1.25 + dy, .24]);   // левая рука с рацией у груди (dy — ещё ниже: только сняла с нагрудника)
 SH.f7_radio = { loc: 'corridor', pos: [-.95, 1.4, -10.75], look: [-.12, 1.3, -10.35], fov: 38, face: { cleaner: 'alert' }, set: (o, t) => { setLamps(o, 7); o.cleanSet({ bucket: [.6, -10.9, .3], sign: CLEAN.sign, door7: 0 });
-  const ry = G7DOOR, hp = radioPt(ry), k = seg(t, .2, .8); hp[1] -= (1 - k) * .2;   // снял рацию с нагрудника и прижал к груди
+  const ry = G7DOOR, k = seg(t, .2, .8), hp = radioPt(ry, G7, -(1 - k) * .2);   // снял рацию с нагрудника и прижал к груди
   return [['cleaner', G7[0], 0, G7[1], ry, gusStand(o, t, ry, [-1.3, 1.55, -11.8], hp), null]]; } };
 SH.f7_cam_door = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.35, .9, -10.8], fov: 40, cctv: 1, set: (o, t) => { setLamps(o, 7); o.cleanSet({ bucket: [.6, -10.9, .3], sign: CLEAN.sign, door7: 0 });
   return [['cleaner', G7[0], 0, G7[1], G7DOOR, gusStand(o, t, G7DOOR, [-1.3, 1.55, -11.8], radioPt(G7DOOR)), null]]; } };
@@ -1263,7 +1270,7 @@ SH.f7_cam_after = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.25, .8, -10
 // Итан в будке отвечает по рации: сидит, рация в правой руке у рта
 function eRadio(t) { return eRadioK(t, seg(t, .1, .6)); }
 function eRadioK(t, up) { const R = locR(SEAT[0], SEAT[1], 0);
-  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], talk: 1, arm: { r: { at: R.p(-.08, 1.13, -.1), by: 'palm', fdir: R.v(.3, 1, .25), pdir: R.v(1, 0, .2), w: up } },   // сидя голова на 27 см позади корня: рация у рта, а не на вытянутой руке
+  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], talk: 1, arm: { r: { at: bodyAt(R, 'Head', E_SIT_HEAD, [-.08, 1.13, -.1]), by: 'palm', fdir: R.v(.3, 1, .25), pdir: R.v(1, 0, .2), w: up } },   // сидя голова на 27 см позади корня: рация у рта, а не на вытянутой руке
     fing: { r: ['grip', up] }, hold: up > .2 ? { r: 'radio' } : null, look: R.p(-.6, 1.2, 2) }; }
 SH.booth_radio = { loc: 'lobby', pos: [6.35, 1.48, .05], look: [5.15, 1.15, -.75], fov: 42, set: (o, t) => [['temych', SEAT[0], 0, SEAT[1], 0, eRadio(t), null]] };
 // ---- стеклянная дверь (03:30): «Лили» снаружи, Итан внутри ----
@@ -1580,10 +1587,10 @@ SH.bm_knock = { loc: 'basement', pos: [-.85, 1.55, -12.55], look: [.05, 1.2, -13
 // d08–d09: засов изнутри, дверь открывается в коридор; Фрэнк на колене в круге у порога, рукой толкает дверь
 const BF = [0, -14.85];
 SH.bs_open = { loc: 'basement', pos: [-.9, 1.5, -12.35], look: [.15, .95, -14.6], fov: 52, face: { mihalych: 'worry' }, set: (o, t) => {
-  const k = ease(clamp((t - .25) / .9, 0, 1)); o.sdoor.rotation.y = 1.35 * k; o.sdoor.updateMatrixWorld(true); bsLight(o, k > .1, [-.05, -13.2]);
+  const k = ease(clamp((t - .25) / .9, 0, 1)); o.sdoor.rotation.y = 1.35 * k; o.sdoor.updateMatrixWorld(true); bsLight(o, k > .1, [-.25, -13.05]);
   const dp = o.sdoor.localToWorld(new T.Vector3(-.8, 1.0, -.03)), reach = 1 - seg(t, .7, 1.0);
   return [['mihalych', BF[0], .045, BF[1], 0, { clips: [['Fixing_Kneeling', .8, 1]], wear: { splint: SPLINT }, talk: 1, arm: { r: { at: [dp.x, dp.y, dp.z], by: 'palm', fdir: [0, 1, 0], pdir: [0, 0, 1], w: reach } }, fing: { r: ['flat', reach] }, look: [.3, 1.6, -13.2] }, null],
-    shuffle('temych', [-.12, -13.55], [-.05, -13.2], t, .3, .5, PI, { look: [0, .9, -14.8], hold: ETORCH, fing: ETF })]; } };
+    shuffle('temych', [-.12, -13.55], [-.25, -13.05], t, .12, .5, PI, { look: [0, .9, -14.8], hold: ETORCH, fing: ETF })]; } };   // створка (петли справа, x .47, полотно .94) метёт четверть круга к Итану: он отступает за её край, пока она не дошла (у мокапа корпус ровно над точкой ног, у Quaternius был на 10 см позади — створка проходила сквозь голову и кисть)
 SH.bs_frank = { loc: 'basement', pos: [-.24, 1.0, -13.45], look: [.06, .5, -14.9], fov: 48, face: { mihalych: 'worry' }, set: (o, t) => { o.sdoor.rotation.y = 1.35; bsLight(o, true, [-.05, -13.2]); o.etorch.intensity = CINE ? 3 : 5; o.faceL.position.set(.3, 1.0, -14.1); o.faceL.intensity = CINE ? .45 : .8; o.faceL.color.setHex(0xc9cfd8);   // лицо Фрэнка не пересвечено (в «Кино» было рыжим)
   return [['mihalych', BF[0], FRANKY, BF[1], 0, frankSit(t, { look: [-.24, 1.0, -13.45] }), null]]; } };
 SH.bs_no = { loc: 'basement', pos: [-.22, 1.58, -13.1], look: [.05, .72, -14.9], fov: 46, face: { mihalych: 'fear' }, set: (o, t) => { o.sdoor.rotation.y = 1.35; bsLight(o, true, [-.05, -13.2]); o.etorch.intensity = CINE ? 3 : 5; o.faceL.position.set(.3, 1.1, -14.1); o.faceL.intensity = CINE ? .45 : .8; o.faceL.color.setHex(0xc9cfd8);   // лицо Фрэнка не пересвечено (в «Кино» было рыжим)
@@ -1696,9 +1703,9 @@ const _wv = new T.Vector3();
 function wornPt(C, [bone, off]) { const b = C && C.bone && C.bone[bone]; if (!b) return null; b.updateWorldMatrix(true, false); _wv.set(off[0], off[1], off[2]).applyMatrix4(b.matrixWorld); return [_wv.x, _wv.y, _wv.z]; }
 function gusRadioCam(o, t, x, z, ry, g) {
   if (g.b <= 0) { const P = mopGus(o, x, z, ry, t, g.m); P.wear = { radio: RADIO_G }; return P; }
-  const R = locR(x, z, ry), chest = R.p(.07, 1.3, .17), mouth = R.p(.05, 1.46, .15), clip = wornPt(A.cleaner, RADIO_G) || R.p(.07, 1.24, .17);
+  const R = locR(x, z, ry), chest = bodyAt(R, 'spine_03', G_S3, [.07, 1.25, .15]), mouth = bodyAt(R, 'Head', G_HEAD, [.05, 1.46, .15]), clip = wornPt(A.cleaner, RADIO_G) || R.p(.07, 1.24, .17);
   const P = gusStand(o, t, ry, R.p(0, 1.4, 3), null, g.b, [x, z], ry);
-  if (g.h > 0) { const w = seg(g.h, 0, .45), inH = g.h >= .45, at = inH ? lin(lin(clip, chest, seg(g.h, .45, 1)), mouth, g.u) : clip;
+  if (g.h > 0) { const w = seg(g.h, 0, .45), inH = g.h >= .45, k1 = seg(g.h, .45, 1), at = inH ? (C => lin(lin(clip, chest(C), k1), mouth(C), g.u)) : clip;
     P.arm.l = { at, by: 'palm', fdir: R.v(-.15, 1, .05), pdir: R.v(.05, -.1, -1), w }; P.fing.l = ['grip', w];
     if (inH) { delete P.wear; P.hold = { l: 'radio' }; } }
   P.talk = g.u > .6 ? 1 : 0;
