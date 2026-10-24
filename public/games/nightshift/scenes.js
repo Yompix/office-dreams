@@ -908,7 +908,7 @@ function atGlass(k, pose, look, z = 6.27) { A[k].glassD = z - 6 - .03; return [[
 // пар от дыхания Тёмыча на стекле изнутри: вдох-выдох раз в 3.6 с; с её стороны стекло чистое
 function breath(o, t) { const ph = (t + .9) % 3.6, a = ph < .4 ? ph / .4 : Math.max(0, 1 - (ph - .4) / 2.5); o.breath.visible = a > 0; o.breath.material.opacity = .55 * a; o.breath.scale.setScalar(.85 + .25 * Math.min(1, ph / .7)); }
 const SH = {
-  hall_cam: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: (o, t) => [['temych', SEAT[0], 0, SEAT[1], 0, 'sit', [5, 1, 3]], ['monster', -3.3, 0, -5.1, .5, 'monster', 'cam']] },
+  hall_cam: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: (o, t) => [['temych', SEAT[0], 0, SEAT[1], 0, 'sit', [5, 1, 3]], ['monster', -3.0, 0, -4.8, .5, 'monster', 'cam']] },   // у пальмы, но не ногой в кадке
   hall_cam_empty: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', SEAT[0], 0, SEAT[1], 0, 'sit', [5, 1, 3]]] },
   hall_cam_near: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', SEAT[0], 0, SEAT[1], 0, 'sit', [5, 1, 3]], ['monster', -1.2, 0, -2.4, .8, 'monster', 'cam']] },
   hall_cam_nearer: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', SEAT[0], 0, SEAT[1], 0, 'sit', [5, 1, 3]], ['monster', 2.2, 0, -.6, 1.2, 'monster', 'cam']] },
