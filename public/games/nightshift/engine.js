@@ -66,7 +66,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
-  const tm = get(EN ? 'timing_en.json?v=10' : 'timing.json?v=15', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_en.json?v=11' : 'timing.json?v=16', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры — очередью по 4, в порядке сцен; нужные сейчас встают вперёд (voiceReady)
@@ -115,6 +115,7 @@ function voiceFx(k) {
   const who = whoOf(k), m = TIM[k] || {}, fx = m.fx || '', aloud = (m.t || '').trim().startsWith('—');
   if (fx === 'radio') return [{ to: [[radioBus, 1.35], [voiceRev, .06]] }];
   if (fx === 'phone') return [{ to: [[phoneBus, 1.25]] }];
+  if (fx === 'phonefake') return [{ rate: .96, to: [[phoneBus, 1.25]] }, { rate: .5, gain: .14, dt: .02, cut: durOf(k), to: [[phoneBus, 1]] }];   // в трубке твой же голос, только не твой
   if (fx === 'glass') return [{ to: [[muffle, 1.4], [voiceRev, .2]] }];
   if (fx === 'muffle') return [{ to: [[muffle, 1.5], [voiceRev, .35]] }];
   if (fx === 'near') return [{ to: [[voiceG, 1.05]] }];
@@ -481,7 +482,7 @@ function nextBeat() {
   if (beat.hush && AC) hush(true);
   if (beat.time) { lastTime = beat.time; secBase = 0; sceneT0 = now(); clockEl.textContent = beat.time; }   // часы перещёлкнулись посреди сцены
   chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
-  let t = .15;
+  let t = beat.sayAt ?? .15;   // sayAt — реплика не сразу, а с этой секунды кадра (голос Фрэнка из темноты после паузы)
   for (const k of beat.say || []) {
     const ln = !TIM[k] && (S.shift.lines || {})[k];   // реплика ещё без озвучки — печатается текстом
     if (ln) { const d = Math.max(2.2, ln.length / 14 + 1.3); typed = { t0: t, d, s: tr(ln), who: (S.shift.who || {})[k] }; t += d + .3; continue; }
@@ -991,7 +992,10 @@ function shiftMiss(a) {
   buzz([60, 80, 60]); shiftToast(shf.miss >= 3 ? '' : [tr('Что-то упустил…'), tr('Где-то в здании хлопнула дверь.'), tr('Шаги. Далеко. Или нет.')][Math.min(2, shf.miss - 1)]);
   if (shf.miss >= 3) shiftDie('over_come');
 }
-function shiftDie(id) { if (!shf || shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null); startScene(id); }
+const DEATH_ALT = { over_stare: ['over_stare', 'over_stare_b'] };   // одна причина смерти — разные финалы по очереди (засмотрелся: «тсс» / ладонь на объективе)
+function shiftDie(id) { if (!shf || shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null);
+  const alt = DEATH_ALT[id]; if (alt) { const n = +LS.get('alt_' + id, 0) || 0; LS.set('alt_' + id, n + 1); id = alt[n % alt.length]; }
+  startScene(id); }
 function shiftEnd() { if (shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null); const n = shf.seg.next;
   if (!run.hrs.includes(shf.id)) run.hrs.push(shf.id); runSave(); shf = null; startScene(n); }
 function shiftTick() {

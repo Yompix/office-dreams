@@ -1003,7 +1003,7 @@ function bonesSnap(C) {
 }
 // живые движения (мокап Rokoko с пальцами, anims2.glb): нейтральная стойка и «говорит руками» Quaternius (стойка бойца: ноги широко,
 // колени согнуты, руки вперёд) у людей заменяются мокапом — у каждого свой клип и своя фаза, чтобы двое не двигались одинаково
-const NAT = { temych: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 0, 'Rk_SitIdle_Loop', 'Rk_SitTalk2_Loop'], smenshik: ['Rk_LookAround_Loop', 'Rk_Chatting2_Loop', 7.3],
+const NAT = { temych: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 0, 'Rk_SitIdle_Loop', 'Rk_SitTalk2_Loop'], ethanThing: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 0, 'Rk_SitIdle_Loop', 'Rk_SitTalk2_Loop'], smenshik: ['Rk_LookAround_Loop', 'Rk_Chatting2_Loop', 7.3],
   mihalych: ['Rk_Watching_Loop', 'Rk_Conversation_Loop', 11.7], cleaner: ['Rk_LookAround_Loop', 'Rk_Conversation_Loop', 4.1],
   katya: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 9.2], katyaSmile: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 9.2], martha: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 2.6] };
 const WALK_K = .74;   // Rk_Walk_Loop: опорная стопа едет назад 1,25 м/с времени клипа (у Walk_Loop — 1,04): на тот же путь время клипа ×0,74 (подобрано по скольжению стопы)
@@ -1305,6 +1305,7 @@ function updateSkinned(C, t, dt) {
     if (C.sheet.visible) { const a = gripPt(C, 'l'), b = gripPt(C, 'r'); C.sheet.position.copy(a).add(b).multiplyScalar(.5).add(_m1.set(0, .07 * C.ss, .03));
       C.root.updateWorldMatrix(true, false); const at = OBJ && Array.isArray(P.sheet) ? _m1.set(P.sheet[0], P.sheet[1], P.sheet[2]) : C.look; if (at) C.sheet.lookAt(at); C.sheet.rotateZ(Math.sin(tt * 1.7) * .03); }
   }
+  if (OBJ && P.post) P.post(C, tt);   // поверх всего (и взгляда): голова за пределом человеческого поворота, тело вверх ногами на потолке и т. п.
   if (C.v3) faceV3(C, tt, dt);
 }
 
@@ -1565,6 +1566,9 @@ function castV3() {
     deadEyes: 0x000000, socket: 1, tilt: .45, jerk: true, headMax: 2.3, stopmo: 1 / 7, tint: { skin: 0xa9b0a6, hair: [0x0a0a0a, 1, .6] } });
   A.monster.addFace('grin', { smile: 1.15, mouth: .5 });
   A.monster.addFace('scream', { scream: 1 });
+  // двойник Итана (смерть «Ты назвался»): та же куртка, но кожа серая, глаза чёрные, не моргает; голова поворачивается дальше человеческого
+  A.ethanThing = H({ name: 'ethanThing', model: 'ethan', noBlink: true, grey: .55, deadEyes: 0x000000, socket: .8, tilt: .12, jerk: true, headMax: 2.8, tint: { hair: [0x6b4a30, 2.4], brows: [0x4a3220, 2] } });
+  A.ethanThing.addFace('grin', { smile: 2.0, mouth: .3 });
   const gusHair = { hair: [0x9c9893, 1.5, .5], brows: [0x8a8680, 1.5, .45] };   // Гас — старик (тридцать лет здесь): седой
   A.cleaner = H({ name: 'cleaner', model: 'gus', mop: true, dim: { worksuit: .74 }, tint: gusHair });   // белая футболка под комбинезоном не светится под лампами                                             // Гас
   // Марта, жена Гаса: только на старом фото (Новый год на седьмом). Красное платье: свитер и юбка в тон, тёмные колготки, седые волосы
@@ -1605,6 +1609,9 @@ function cast() {
   A.monster = makeSkinned({ name: 'monster', monster: true, naked: true, h: 2.45, thin: .52, arm: 1.2, armL: 1.12, handS: 1.3, neck: 1.22, headS: .9, skin: 0xb8bcb4, grey: 1, hairPart: 'Hair_Long', hair: 0x050505, deadEyes: 0x000000, socket: .85, tilt: .45, jerk: true, veil: true, headMax: 2.3, stopmo: 1 / 7 });
   A.monster.addFace('grin', { smile: 1.1, mouth: .55 });
   A.monster.addFace('scream', { scream: 1 });
+  A.katyaThing = makeSkinned(Object.assign({ name: 'katyaThing', noBlink: true }, kat, { skin: 0xd8d4d0, skinK: 1.0, grey: .85, smile: true, deadEyes: 0x000000, socket: 1, tilt: .22, jerk: true }));
+  A.ethanThing = makeSkinned(Object.assign({ name: 'ethanThing', h: 1.8, skin: 0xd6ccc8, skinK: 1.0, hairPart: 'Hair_SimpleParted', hair: 0x3a2a1c, brow: 0x2a1c12, noBlink: true, grey: .55, deadEyes: 0x000000, socket: .8, headMax: 2.8 }, guard));
+  A.ethanThing.addFace('grin', { smile: true, mouth: .3 });
   // тело ночного уборщика (сцена, где Жилец ест)
   const clean = { kind: 2, h: 1.75, skin: 0xe8cbb8, skinK: 1.15, hairPart: 'Hair_Buzzed', hair: 0x2a2420, brow: 0x2a2420, shirt: 0x2f5378, pants: 0x27405c, shoes: 0x111111, trim: 0x8a2020, cap: 0x2f5378 };
   // ночной уборщик: сначала живой, моет пол в коридоре; потом — тело (сцена, где Жилец ест)
