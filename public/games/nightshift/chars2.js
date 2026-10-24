@@ -1537,7 +1537,7 @@ function castV3() {
     F.plead = F.plead || { browIn: 1, browUp: .35, mouth: .12 };
     F.alert = F.alert || { browUp: .9, wide: true, dart: 1 };
     F.fear = F.fear || { mouth: .4, wide: true, browUp: 1, browIn: .8, dart: 1 };
-    F.hush = F.hush || { press: 1, wide: true, browUp: .9, browIn: 1, dart: 1 };   // не дышит: глаза распахнуты, губы сжаты
+    F.hush = F.hush || { press: 1, wide: 1, browUp: 1, browIn: 1, frown: .5, tense: .5, dart: 1 };   // не дышит от ужаса: глаза распахнуты, губы сжаты и оттянуты, уголки вниз (одно «сжаты» читалось как полуулыбка)
     F.gasp = F.gasp || { mouth: .2, wide: true, browUp: 1, browIn: .9, dart: 1 };   // ахнул: рот чуть приоткрыт (зубы почти не видны)
     F.terror = F.terror || { press: 1, wide: 1, browUp: 1, browIn: 1, frown: .45, tense: .35, dart: 1 };   // оцепенел от ужаса: глаза распахнуты, губы сжаты, уголки вниз
     F.calm = F.calm || { smile: .3, browUp: .1 };
