@@ -142,6 +142,8 @@ body.land #qaP img { max-height: 70vh; grid-row: span 6; }
     stage.appendChild(P);
     for (const ev of ['pointerdown', 'click', 'keydown', 'keyup']) P.addEventListener(ev, stop);
     P.querySelector('.tags').onclick = e => { const t = e.target.closest('button'); if (t) t.classList.toggle('on'); };
+    P.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); $('qaX').click(); } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); $('qaS').click(); } });   // ПК: Esc — отмена, Ctrl+Enter — сохранить
+    setTimeout(() => { const n = $('qaN'); if (n && matchMedia('(pointer: fine)').matches) n.focus(); }, 50);   // на ПК сразу можно печатать
     const take = () => { b.tags = [...P.querySelectorAll('.tags .on')].map(x => x.dataset.t); b.note = $('qaN').value.trim(); return small(b.img).then(im => { b.img = im; bugs.push(b); keep(); }); };
     $('qaS').onclick = () => take().then(() => { close(inG); toast(`Сохранено. Отмечено: ${bugs.length}`); });
     $('qaA').onclick = () => take().then(() => prepare(P, inG));
@@ -155,15 +157,15 @@ body.land #qaP img { max-height: 70vh; grid-row: span 6; }
     P.innerHTML = `<div class="box"><div class="cd">Отправка: ${bugs.length}</div><div class="msg" id="qaM">Готовлю картинку…</div></div>`;
     const files = [], name = 'hush-check-' + stamp();
     for (let i = 0; i < bugs.length; i += 6) { const bl = await sheet(bugs.slice(i, i + 6), i); files.push(new File([bl], `${name}${bugs.length > 6 ? '-' + (i / 6 + 1) : ''}.jpg`, { type: 'image/jpeg' })); }
-    const txt = report(), canShare = !!(navigator.canShare && navigator.canShare({ files }));
+    const txt = report(), canShare = !!(navigator.canShare && navigator.canShare({ files })), phone = matchMedia('(pointer: coarse)').matches, share1 = canShare && phone;
+    const shareGo = () => navigator.share({ files, text: txt, title: 'Hush Till Six — проверка' }).then(() => toast('Отправлено. Список можно очистить'), e => { if (!e || e.name !== 'AbortError') download(files, txt); });
     P.innerHTML = `<div class="box"><div class="cd">Отправка: ${bugs.length}</div>
-      <div class="msg">${canShare ? 'Нажми «Поделиться» и выбери, куда отправить (чат с Claude, Telegram…).' : 'Картинка скачается, текст отчёта — в буфер обмена. Пришли картинку в чат.'}</div>
-      <div class="row"><button class="go" id="qaG">${canShare ? 'Поделиться' : 'Скачать картинку'}</button></div>
+      <div class="msg">${share1 ? 'Нажми «Поделиться» и выбери, куда отправить: чат с Claude, Telegram…' : 'Картинка скачается в «Загрузки», текст отчёта — в буфер обмена. Перетащи картинку в чат с Claude (или нажми скрепку и выбери её).'}</div>
+      <div class="row"><button class="go" id="qaG">${share1 ? 'Поделиться' : 'Скачать картинку'}</button></div>
+      ${canShare ? `<div class="row"><button id="qaG2">${share1 ? 'Скачать картинку' : 'Поделиться'}</button></div>` : ''}
       <div class="row"><button id="qaC">Очистить список</button><button id="qaX">Закрыть</button></div></div>`;
-    $('qaG').onclick = () => {
-      if (canShare) navigator.share({ files, text: txt, title: 'Hush Till Six — проверка' }).then(() => toast('Отправлено. Список можно очистить'), e => { if (!e || e.name !== 'AbortError') download(files, txt); });
-      else download(files, txt);
-    };
+    $('qaG').onclick = () => share1 ? shareGo() : download(files, txt);
+    if ($('qaG2')) $('qaG2').onclick = () => share1 ? download(files, txt) : shareGo();
     $('qaC').onclick = () => { bugs = []; keep(); toast('Список очищен'); close(inG); };
     $('qaX').onclick = () => close(inG);
   }
@@ -237,6 +239,7 @@ body.land #qaP img { max-height: 70vh; grid-row: span 6; }
     const a = document.createElement('button'); a.className = 'qa-m'; a.textContent = '🐞 Сцены (проверка)'; a.onclick = e => { e.stopPropagation(); list(); }; nav.appendChild(a);
     if (bugs.length) { const s = document.createElement('button'); s.className = 'qa-m'; s.textContent = `Отправить ошибки (${bugs.length})`; s.onclick = e => { e.stopPropagation(); prepare(null, false); }; nav.appendChild(s); }
   }
+  { const k = $('keys'); if (k) { const d = document.createElement('div'); d.innerHTML = '<kbd>B</kbd>баг (проверка)'; k.appendChild(d); } }   // на ПК: B (или И) — отметить ошибку
   window.NS_QA = { menu: menuHook, bug, list, get bugs() { return bugs; }, code, info };
   if (N.mode === 'menu') menuHook();
 })();
