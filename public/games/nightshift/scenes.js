@@ -5,6 +5,7 @@ const tr = window.tr || (s => s);
 const { T, V, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, mat, ctex, TX, box, plane, cyl, room, label, relabel, makeTextures } = window.__W3core;
 const PI = Math.PI;
 let A = null;          // актёры
+const LAYY = .085;      // лежащее тело (поза 'lay'): корень на 8,5 см выше пола, иначе спина и бока уходили под пол на 10 см (World.clips)
 const L = {};          // места действия
 const FOGC = 0x0b0f14;   // туман чуть светлее чёрного: тёмные силуэты отделяются от него
 const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -188,8 +189,9 @@ function buildLobby() {
   o.keys.position.set(5.68, .81, -.28); o.keys.rotation.y = .6; S.add(o.keys);
   box(.12, .1, .08, mat(0x2a2a2a), 5.9, .85, .15, S);   // рация
   const cup = cyl(.035, .03, .09, 8, mat(0xd8d0c0), S); cup.position.set(4.95, .85, -.3);
-  const chair = new T.Group(); chair.position.set(5.2, 0, -.74); S.add(chair);
-  box(.5, .07, .5, mat(0x161616), 0, .47, 0, chair); box(.5, .6, .06, mat(0x161616), 0, .8, -.24, chair); box(.05, .45, .05, mat(0x333333), 0, .22, 0, chair);
+  // стул стоит под тазом сидящего: в позе «сидя» (Sitting_Idle_Loop) таз и спина Итана на 35–49 см позади его корня (SEAT) — стул на 25 см дальше SEAT, иначе спинка проходила сквозь спину (проверка — World.clips, tools/story/sheet.js)
+  const chair = new T.Group(); chair.name = 'стул в будке'; chair.position.set(5.2, 0, -.99); S.add(chair);
+  box(.5, .07, .5, mat(0x161616), 0, .445, 0, chair); box(.5, .6, .06, mat(0x161616), 0, .8, -.3, chair); box(.05, .42, .05, mat(0x333333), 0, .21, 0, chair);
   o.chair = chair;
   // второй стул у пульта: на спинке так и висит куртка Фрэнка («куртка на стуле»)
   const ch2 = new T.Group(); ch2.position.set(6.25, 0, -.62); ch2.rotation.y = -.5; S.add(ch2);
@@ -897,14 +899,14 @@ function atGlass(k, pose, look, z = 6.27) { A[k].glassD = z - 6 - .03; return [[
 // пар от дыхания Тёмыча на стекле изнутри: вдох-выдох раз в 3.6 с; с её стороны стекло чистое
 function breath(o, t) { const ph = (t + .9) % 3.6, a = ph < .4 ? ph / .4 : Math.max(0, 1 - (ph - .4) / 2.5); o.breath.visible = a > 0; o.breath.material.opacity = .55 * a; o.breath.scale.setScalar(.85 + .25 * Math.min(1, ph / .7)); }
 const SH = {
-  hall_cam: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: (o, t) => [['temych', 5.2, 0, -.85, 0, 'sit', [5, 1, 3]], ['monster', -3.3, 0, -5.1, .5, 'monster', 'cam']] },
-  hall_cam_empty: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', 5.2, 0, -.85, 0, 'sit', [5, 1, 3]]] },
-  hall_cam_near: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', 5.2, 0, -.85, 0, 'sit', [5, 1, 3]], ['monster', -1.2, 0, -2.4, .8, 'monster', 'cam']] },
-  hall_cam_nearer: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', 5.2, 0, -.85, 0, 'sit', [5, 1, 3]], ['monster', 2.2, 0, -.6, 1.2, 'monster', 'cam']] },
+  hall_cam: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: (o, t) => [['temych', SEAT[0], 0, SEAT[1], 0, 'sit', [5, 1, 3]], ['monster', -3.3, 0, -5.1, .5, 'monster', 'cam']] },
+  hall_cam_empty: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', SEAT[0], 0, SEAT[1], 0, 'sit', [5, 1, 3]]] },
+  hall_cam_near: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', SEAT[0], 0, SEAT[1], 0, 'sit', [5, 1, 3]], ['monster', -1.2, 0, -2.4, .8, 'monster', 'cam']] },
+  hall_cam_nearer: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', SEAT[0], 0, SEAT[1], 0, 'sit', [5, 1, 3]], ['monster', 2.2, 0, -.6, 1.2, 'monster', 'cam']] },
   // сменщик приходит в шесть: от входа к будке, огибая колонну
   hall_dawn: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: (o, t) => { setDawn(o, 1); const w = walkPath('dawn', [[.3, 5.3], [2.0, 4.9], [3.6, 3.9], [4.4, 1.6]], t + 2.6, 1.1);
     return [['smenshik', w.x, 0, w.z, w.ry, w.done ? 'stand' : 'walk', w.done ? [5.2, 1.5, -.3] : null]]; } },
-  exterior: { loc: 'lobby', pos: [2.6, 1.45, 17.5], look: [-.2, 4.6, 6], fov: 66, set: (o, t) => [['temych', 5.2, 0, -.85, 0, 'sit', [5, 1, 3]]] },
+  exterior: { loc: 'lobby', pos: [2.6, 1.45, 17.5], look: [-.2, 4.6, 6], fov: 66, set: (o, t) => [['temych', SEAT[0], 0, SEAT[1], 0, 'sit', [5, 1, 3]]] },
   exterior_dawn: { loc: 'lobby', pos: [2.6, 1.45, 17.5], look: [-.2, 4.6, 6], fov: 66, set: (o) => { setDawn(o, 1); return []; } },
   // курит: крупно, на рассвете под козырьком; огонёк зажигалки на миг освещает лицо
   exterior_smoke: { loc: 'lobby', pos: [-.35, 1.52, 9.45], look: [.5, 1.4, 8.2], fov: 38, set: (o, t) => { setDawn(o, 1); A.mihalych.actT = t - .15;
@@ -971,7 +973,7 @@ const SH = {
     return atGlass('katyaSmile', 'press', 'cam').concat(m ? [['monster', -.35, 0, 1.55, .05, 'monster', [2.2, 1.6, 9.2], 'refl']] : []); } },
   corridor_monster: { loc: 'corridor', pos: [0, 2.0, -19.1], look: [0, 1.9, -21.5], fov: 48, set: (o) => { lampSet(o, i => i === 5); o.flickOn = false; return [['monster', 0, 0, -21.5, 0, 'reach', 'cam']]; } },
   monster_booth: { loc: 'lobby', pos: [5.3, 1.15, -.6], look: [5.1, 1.85, .8], fov: 52, set: (o) => { o.lamp.intensity = 0; o.lampBulb.visible = false; o.l1.intensity = .3; return [['monster', 5.1, 0, .95, PI, 'reach', 'cam']]; } },
-  hall_cam_katya: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', 5.2, 0, -.85, 0, 'sit', [5, 1, 3]], ['katyaThing', -.6, 0, -1.8, .7, 'stand', 'cam']] },
+  hall_cam_katya: { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 72, set: () => [['temych', SEAT[0], 0, SEAT[1], 0, 'sit', [5, 1, 3]], ['katyaThing', -.6, 0, -1.8, .7, 'stand', 'cam']] },
   elevator_13: { loc: 'lobby', pos: [-1.3, 1.5, 2.4], look: [-2.2, 2.35, -6], fov: 46, set: (o, t) => { setLift(o, o.lifts[0], 1, '13'); o.cabLight.intensity = (Math.sin(t * 19) > -.7) ? 2.4 : .5; return []; } },
   cam13_turn: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.1, -.4], fov: 66, set: (o, t) => { o.salt.visible = false; const k = clamp((t - 2.6) / 1.4, 0, 1), e = k * k * (3 - 2 * k); return [['monster', .1, 0, -.5, 3.0, 'monster', lin([.5, 1.9, -3.5], [3.6, 2.7, 3.1], e)]]; } },
   guard_dawn_fear: { loc: 'lobby', pos: [5.35, 1.25, -.7], look: [5.12, 1.52, .9], fov: 44, set: (o, t) => { setDawn(o, 1); A.smenshik.faceSet = 'fear'; return [['smenshik', 5.12, 0, .85 + Math.max(0, t - .8) * .22, PI, t > .8 ? 'back' : 'stand', 'cam']]; } },
@@ -980,8 +982,8 @@ const SH = {
   exterior_alone: { loc: 'lobby', pos: [3.2, 1.4, 17.8], look: [2.0, 2.2, 13], fov: 54, set: () => [['temych', 2.3, 0, 15.6, .25, 'stand', 'cam']] },
   basement_door: { loc: 'corridor', pos: [.15, 1.55, -23.5], look: [0, 1.05, -26], fov: 54, set: (o, t) => { setLamps(o, (Math.sin(t * 11) > .55 && Math.sin(t * 2.3) > -.2) ? 1 : 0); o.srv.visible = true; o.slitLight.color.setHex(0xffb060); o.slitLight.intensity = 1.6 + Math.sin(t * 7) * .3; o.amb.intensity = .35; return []; } },
   // тело там, куда его утащили: голова на пороге 707, ноги в коридоре; Жилец сидит над грудью с дальней стороны — лицом к камере
-  cam7_eat: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.35, .6, -11.8], fov: 30, cctv: 1, set: (o, t) => { eatLight(o, t); eatGore(o, t); return [['victim', -.4, 0, -11.78, PI * .5, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 4 ? [-.75, .2, -11.75] : [1.0, 2.75, -.5]]]; } },
-  eat_close: { loc: 'corridor', pos: [.62, 1.12, -9.4], look: [-.62, .62, -12.1], fov: 54, set: (o, t) => { eatLight(o, t); eatGore(o, t); return [['victim', -.4, 0, -11.78, PI * .5, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 2.2 ? [-.75, .2, -11.75] : [.62, 1.12, -9.4]]]; } },
+  cam7_eat: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.35, .6, -11.8], fov: 30, cctv: 1, set: (o, t) => { eatLight(o, t); eatGore(o, t); return [['victim', -.4, LAYY, -11.78, PI * .5, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 4 ? [-.75, .2, -11.75] : [1.0, 2.75, -.5]]]; } },
+  eat_close: { loc: 'corridor', pos: [.62, 1.12, -9.4], look: [-.62, .62, -12.1], fov: 54, set: (o, t) => { eatLight(o, t); eatGore(o, t); return [['victim', -.4, LAYY, -11.78, PI * .5, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 2.2 ? [-.75, .2, -11.75] : [.62, 1.12, -9.4]]]; } },
   // уборщик (03:00, седьмой этаж): сначала обычная работа — потом его забирают в темноту за приоткрытой 707
   cleaner_cam: { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .8, -10.2], fov: 44, cctv: 1, set: (o, t) => { setLamps(o, 7);
     o.cleanSet(CLEAN); return [['cleaner', -.1, 0, -9.45, .2, 'mop', null]]; } },
@@ -1016,7 +1018,7 @@ const SH = {
       // сначала бьётся всем телом, потом слабее — и уже только пальцы; на каждом рывке Жильца — брызги и тряска головы
       A.victim.struggle = clamp(1 - (t - 1.97) / 1.1, 0, 1); A.victim.twitch = t > 2.6 && t < 4.3 ? .8 : 0;
       o.bursts = [2.15, 2.75, 3.3, 3.9]; o.sprayT = t; A.monster.shake = o.bursts.some(b => t > b - .05 && t < b + .3) ? .3 : 0;
-      return [['victim', -.4, .01 * Math.abs(tw), -11.78, PI * .5 + tw * .08, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 4.2 ? [-.75, .2, -11.75] : [1.0, 2.75, -.5]]];
+      return [['victim', -.4, LAYY + .01 * Math.abs(tw), -11.78, PI * .5 + tw * .08, 'lay', null], ['monster', -.72, 0, -12.5, .08, 'eat', t < 4.2 ? [-.75, .2, -11.75] : [1.0, 2.75, -.5]]];
     }
     return [];
   } },
@@ -1317,28 +1319,28 @@ SH.h_lamp = { loc: 'lobby', pos: [6.75, 1.25, -.85], look: [6.12, .85, -.12], fo
   const R = locR(6.35, -.75, -.6), k = seg(t, 0, .55) * (1 - seg(t, 1.0, 1.5));
   return [['temych', 6.35, 0, -.75, -.6, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', spine: { to: [6.15, .85, -.1], k: .25 * k }, arm: { r: { at: [6.16, .835, -.07], by: 'tip', fdir: [0, -1, .3], w: k } }, fing: { r: ['point', k] }, look: [6.1, .85, -.1] }, null]]; } };
 // сполз под стойку: сидит на корточках, спиной к передней стойке
-const CROUCH = [5.75, .05];
+const CROUCH = [5.75, -.1];   // сидит на корточках за стойкой: таз и спина на 32–48 см позади корня — точка на 15 см дальше от панели стойки (раньше спина проходила сквозь неё; проверка — World.clips)
 // под столом: стол 0,78 м — на корточках голова была выше столешницы и торчала сквозь неё; поэтому таз ниже, корпус сжат вперёд (голова ~0,52)
 function eCrouch(t, cover) { const R = locR(CROUCH[0], CROUCH[1], PI);
   return { clips: [['Crouch_Idle_Loop', t + .7, 1]], legs: 'plant', pelvis: [0, -.2, .03], spine: { to: [CROUCH[0], .35, CROUCH[1] - .75], k: .35 },
     arm: cover ? { r: { at: R.p(-.15, .4, -.27), by: 'palm', fdir: R.v(.1, -.2, 1), pdir: R.v(-.3, -1, 0), w: seg(t, 0, .4) } } : null, fing: { r: ['flat', 1] } }; }   // cover — ладонью на карман с телефоном (правое бедро)
-SH.h_crouch = { loc: 'lobby', pos: [5.12, .86, -.98], look: [5.75, .42, .02], fov: 50,   // из будки сбоку-спереди: сжался под столом (раньше камера стояла в панели — был чёрный кадр)
+SH.h_crouch = { loc: 'lobby', pos: [5.12, .86, -1.13], look: [5.75, .42, -.13], fov: 50,   // из будки сбоку-спереди: сжался под столом (раньше камера стояла в панели — был чёрный кадр)
   set: (o, t) => { o.lamp.intensity = 0; o.lampBulb.visible = false; o.l1.intensity = .25; o.amb.intensity = .22; return [['temych', CROUCH[0], 0, CROUCH[1], PI, eCrouch(t), null]]; } };
-SH.h_pocket = { loc: 'lobby', pos: [5.35, .62, -.62], look: [5.78, .34, .05], fov: 44, set: (o, t) => { o.lamp.intensity = 0; o.lampBulb.visible = false; o.l1.intensity = .25; o.amb.intensity = .22; return [['temych', CROUCH[0], 0, CROUCH[1], PI, eCrouch(t, true), null]]; } };
-SH.h_face = { loc: 'lobby', pos: [5.7, .64, -.6], look: [5.72, .6, -.16], fov: 34, face: { temych: 'hush' }, set: (o, t) => { o.lamp.intensity = 0; o.lampBulb.visible = false; o.l1.intensity = .25; o.amb.intensity = .22; return [['temych', CROUCH[0], 0, CROUCH[1], PI, eCrouch(t), 'cam']]; } };
+SH.h_pocket = { loc: 'lobby', pos: [5.35, .62, -.77], look: [5.78, .34, -.1], fov: 44, set: (o, t) => { o.lamp.intensity = 0; o.lampBulb.visible = false; o.l1.intensity = .25; o.amb.intensity = .22; return [['temych', CROUCH[0], 0, CROUCH[1], PI, eCrouch(t, true), null]]; } };
+SH.h_face = { loc: 'lobby', pos: [5.7, .64, -.75], look: [5.72, .6, -.31], fov: 34, face: { temych: 'hush' }, set: (o, t) => { o.lamp.intensity = 0; o.lampBulb.visible = false; o.l1.intensity = .25; o.amb.intensity = .22; return [['temych', CROUCH[0], 0, CROUCH[1], PI, eCrouch(t), 'cam']]; } };
 SH.h_face_open = Object.assign({}, SH.h_face, { face: { temych: 'gasp' } });   // рот приоткрыт: отозвался шёпоту (h06) или нашла (k5a)
 // утро: сменщик входит, подходит к будке, смотрит вниз на Итана — и пятится, не поворачиваясь спиной
 // утро: Итан всё ещё под столом (из этой точки его не видно — и не должно: раньше голова торчала сквозь столешницу); сменщик смотрит вниз, на него
 const CROUCH_AM = CROUCH;
 SH.h_guard = { loc: 'lobby', pos: [5.6, 1.0, -.95], look: [6.1, 1.5, .9], fov: 50, set: (o, t) => { setDawn(o, 1); o.lamp.intensity = 0; o.lampBulb.visible = false;
-  return [['temych', CROUCH_AM[0], 0, CROUCH_AM[1], PI, eCrouch(t), null], ['smenshik', 6.15, 0, .95, PI, { clips: [['Idle_Loop', t + 3.1, 1]], talk: 1, legs: 'feet', look: [5.72, .45, -.15] }, null]]; } };
+  return [['temych', CROUCH_AM[0], 0, CROUCH_AM[1], PI, eCrouch(t), null], ['smenshik', 6.15, 0, .95, PI, { clips: [['Idle_Loop', t + 3.1, 1]], talk: 1, legs: 'feet', look: [5.72, .45, -.3] }, null]]; } };
 function backAway(name, from, to, t, v, look) {   // пятится: идёт спиной вперёд, лицом к look
   const L = Math.hypot(to[0] - from[0], to[1] - from[1]), st = stride(L, v, t, .3, .4), k = st.s / L, C = A[name], cyc = 1.3 * C.ss, w = clamp(st.sp * 1.6, 0, 1);
   const x = lerp(from[0], to[0], k), z = lerp(from[1], to[1], k), ry = Math.atan2(from[0] - to[0], from[1] - to[1]);
   return [name, x, 0, z, ry, { clips: [['Walk_Loop', -st.s / cyc * 1.333, w], ['Idle_Loop', t, 1 - w]], legs: w < .1 ? 'feet' : undefined, look }, null];
 }
 SH.h_guard_back = { loc: 'lobby', pos: [5.6, 1.0, -.95], look: [5.6, 1.4, 2.5], fov: 54, face: { smenshik: 'fear' }, set: (o, t) => { setDawn(o, 1); o.lamp.intensity = 0; o.lampBulb.visible = false;
-  return [['temych', CROUCH_AM[0], 0, CROUCH_AM[1], PI, eCrouch(t), null], backAway('smenshik', [6.15, .95], [5.4, 3.6], t, .55, [5.72, .45, -.15])]; } };
+  return [['temych', CROUCH_AM[0], 0, CROUCH_AM[1], PI, eCrouch(t), null], backAway('smenshik', [6.15, .95], [5.4, 3.6], t, .55, [5.72, .45, -.3])]; } };
 // отражение: Итан встал и смотрит в стекло будки — кадр снят через стекло и отзеркален, поверх грязь стекла
 SH.h_reflect = { loc: 'lobby', pos: [5.12, 1.62, 1.02], look: [5.12, 1.6, -.2], fov: 30, mirror: true, set: (o, t) => { setDawn(o, 1); o.lamp.intensity = 0; o.lampBulb.visible = false; A.temych.faceSet = 'smile';
   return [['temych', 5.12, 0, .05, 0, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet' }, 'cam']]; } };
@@ -1347,7 +1349,7 @@ SH.x_run = { loc: 'corridor', pos: [0, 1.5, -2.5], look: [0, 1.35, -14], fov: 56
   lampSet(o, i => -1.8 - i * 3.6 > z - 3.0 - t * .2); o.amb.intensity = .3;   // гаснут те, что уже позади него
   return [['temych', Math.sin(t * 1.3) * .1, 0, z, 0, { clips: [['Sprint_Loop', t * 1.25, 1]], look: [0, 1.5, z + 6] }, null]]; } };
 // ---- серверная (Б): круг соли у самого порога, свеча; Фрэнк сидит в круге, нога в картоне ----
-const SRV_C = [1.75, 2.75], FRANK = [1.85, 2.9];   // центр круга, где сидит Фрэнк (спиной к двери)
+const SRV_C = [1.75, 2.75], FRANK = [1.85, 2.67], FRANKY = .07;   // FRANKY — на 7 см выше пола: в этой позе таз и левая ступня уходили под пол на 10 см; FRANK — на 23 см от двери: в позе (LayToIdle) он откинут назад на 50–75 см, спиной к двери, а не сквозь неё   // центр круга, где сидит Фрэнк (спиной к двери)
 function srvSet(o) { o.salt.position.set(SRV_C[0], .012, SRV_C[1]); o.candle.position.set(1.35, .3, 2.55); }
 const SPLINT = ['calf_l', [0, .2, 0], [0, 0, 0]];
 // сидит на полу (кадр из клипа «встаёт с пола»: опирается на руку, ноги вытянуты); sheet — держит лист к камере; reach — тянется на голос
@@ -1357,9 +1359,9 @@ function frankSit(t, o2 = {}) {
   if (o2.no) P.wig = [['neck_01', [0, 1, 0], Math.sin(t * 7) * .35 * o2.no]];
   return P;
 }
-SH.srv_cam = { loc: 'server', pos: [-3.3, 2.65, -2.6], look: [1.6, .7, 2.6], fov: 50, cctv: 1, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o); return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankSit(t, { sheet: true }), [-3.3, 2.65, -2.6]]]; } };
-SH.srv_look = { loc: 'server', pos: [-3.3, 2.65, -2.6], look: [1.6, .7, 2.6], fov: 50, cctv: 1, face: { mihalych: 'fear' }, set: (o, t) => { srvSet(o); return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankSit(t), t > .4 ? [-2.5, 1.0, -1.5] : [-3.3, 2.65, -2.6]]]; } };
-SH.srv_leg = { loc: 'server', pos: [1.3, .65, 2.05], look: [1.6, .2, 2.55], fov: 42, set: (o, t) => { srvSet(o); return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankSit(t), [.2, 1.25, 1.2]]]; } };
+SH.srv_cam = { loc: 'server', pos: [-3.3, 2.65, -2.6], look: [1.6, .7, 2.37], fov: 50, cctv: 1, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o); return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t, { sheet: true }), [-3.3, 2.65, -2.6]]]; } };
+SH.srv_look = { loc: 'server', pos: [-3.3, 2.65, -2.6], look: [1.6, .7, 2.37], fov: 50, cctv: 1, face: { mihalych: 'fear' }, set: (o, t) => { srvSet(o); return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t), t > .4 ? [-2.5, 1.0, -1.5] : [-3.3, 2.65, -2.6]]]; } };
+SH.srv_leg = { loc: 'server', pos: [1.3, .65, 1.82], look: [1.6, .2, 2.32], fov: 42, set: (o, t) => { srvSet(o); return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t), [.2, 1.25, 1.2]]]; } };
 // ---- CAM 13: коридор, которого нет (тот же 7-й, тусклый и длинный); оно в дальнем конце ----
 function c13Set(o, n = 4) { setLamps(o, n); o.S.fog.density = .045; o.amb.intensity = .3; }
 function faceLit(o, p, k = 1.6, c = 0xc8d4e8) { o.faceL.position.set(...p); o.faceL.intensity = k; o.faceL.distance = 3.5; o.faceL.color.setHex(c); }
@@ -1384,7 +1386,7 @@ function gusEat(o, t, up) {
   const M = { clips: [['Crouch_Idle_Loop', t + 1, 1]], spine: { to: chest, k: .55 * (1 - k * .7) }, legs: 'feet',
     arm: { l: { at: [-.6, .26, -11.66], by: 'palm', fdir: [-1, 0, .2], pdir: [0, -1, 0], w: 1 - k * .5 }, r: { at: [-.88, .24, -11.92], by: 'palm', fdir: [-1, 0, -.2], pdir: [0, -1, 0], w: 1 - k * .5 } },
     fing: { l: ['claw', 1], r: ['claw', 1] }, look: k > .05 ? lin(chest, C13P, k) : chest };
-  return [['victim', -.4, 0, -11.78, PI * .5, 'lay', null], ['monster', -.62, 0, -12.45, .06, M, null]];
+  return [['victim', -.4, LAYY, -11.78, PI * .5, 'lay', null], ['monster', -.62, 0, -12.45, .06, M, null]];
 }
 SH.c13_gus = { loc: 'corridor', pos: C13P, look: [-.45, .6, -11.8], fov: 30, cctv: 1, set: (o, t) => gusEat(o, t, false) };
 SH.c13_gus_up = { loc: 'corridor', pos: C13P, look: [-.5, .9, -11.9], fov: 30, cctv: 1, face: { monster: 'grin' }, set: (o, t) => gusEat(o, t, true) };
@@ -1446,32 +1448,32 @@ SH.b_back = { loc: 'lobby', pos: [.72, 1.62, 5.35], look: [.75, 1.35, 8.6], fov:
 SH.b_print = { loc: 'lobby', pos: [.6, 1.5, 4.95], look: [.41, 1.33, 6.05], fov: 42, set: (o, t) => { o.glassU.uPrint.value = 1; return []; } };
 // ---- серверная: лист к камере, темнота за кругом, тянется на голос, держим, выполз ----
 const FR = () => locR(FRANK[0], FRANK[1], PI + .55);
-SH.srv_sheet = { loc: 'server', pos: [-3.3, 2.65, -2.6], look: [1.6, .8, 2.6], fov: 50, cctv: 1, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o); const R = FR();
+SH.srv_sheet = { loc: 'server', pos: [-3.3, 2.65, -2.6], look: [1.6, .8, 2.37], fov: 50, cctv: 1, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o); const R = FR();
   const P = frankSit(t, { sheet: true, look: [-3.3, 2.65, -2.6] }); P.sheet = [-3.3, 2.65, -2.6];
   P.arm = { l: { at: R.p(.1, .98, .36), by: 'pinch', fdir: R.v(-.2, .3, 1), pdir: R.v(-1, 0, 0), w: 1 }, r: { at: R.p(-.1, .98, .36), by: 'pinch', fdir: R.v(.2, .3, 1), pdir: R.v(1, 0, 0), w: 1 } };
-  return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, P, [-3.3, 2.65, -2.6]]]; } };
-const EIN = [2.28, 2.42];   // где Итан сидит на корточках в круге рядом с Фрэнком (справа — камеры его не загораживают)
-SH.srv_in = { loc: 'server', pos: [.25, 1.2, 1.3], look: [1.7, .6, 2.75], fov: 48, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o);
-  return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankSit(t, { look: [EIN[0], 1.0, EIN[1]] }), null],
+  return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, P, [-3.3, 2.65, -2.6]]]; } };
+const EIN = [2.28, 2.19];   // где Итан сидит на корточках в круге рядом с Фрэнком (справа — камеры его не загораживают)
+SH.srv_in = { loc: 'server', pos: [.25, 1.2, 1.3], look: [1.7, .6, 2.52], fov: 48, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o);
+  return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t, { look: [EIN[0], 1.0, EIN[1]] }), null],
     ['temych', EIN[0], 0, EIN[1], -.75, { clips: [['Crouch_Idle_Loop', t + .5, 1]], look: [FRANK[0], .95, FRANK[1]] }, null]]; } };
 // 04:30, обход серверной (explore): круг соли, кулер у двери, листы на стойке — от входа; и листы крупно
 SH.srv_room = { loc: 'server', pos: [-.9, 1.4, .4], look: [1.6, .7, 2.8], fov: 62, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o);
-  return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankSit(t, { look: [-.2, 1.3, 1.0] }), null]]; } };
+  return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t, { look: [-.2, 1.3, 1.0] }), null]]; } };
 SH.srv_sheets = { loc: 'server', pos: [2.05, 1.35, 2.25], look: [3.0, 1.2, 2.2], fov: 40, noRim: 1, set: (o, t) => { srvSet(o);
-  return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankSit(t, { look: [2.05, 1.35, 2.25] }), null]]; } };
+  return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t, { look: [2.05, 1.35, 2.25] }), null]]; } };
 function srvDim(o) { srvSet(o); o.cold.intensity = .12; o.cold2.intensity = .08; o.red.intensity = .25; o.rim.intensity = .6; o.flickOn = false; }
 SH.srv_dark = { loc: 'server', pos: [2.45, 1.05, 3.3], look: [-1.8, .9, -2.3], fov: 50, set: (o, t) => { srvDim(o);
-  return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankSit(t, { look: [-1.6, 1.1, -2] }), null], ['temych', EIN[0], 0, EIN[1], PI + .3, { clips: [['Crouch_Idle_Loop', t + .5, 1]], look: [-1.6, 1.1, -2] }, null]]; } };
+  return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t, { look: [-1.6, 1.1, -2] }), null], ['temych', EIN[0], 0, EIN[1], PI + .3, { clips: [['Crouch_Idle_Loop', t + .5, 1]], look: [-1.6, 1.1, -2] }, null]]; } };
 function frankReach(t, k, strain = 0) { const R = FR(), P = frankSit(t, { look: [-1.4, 1.0, -2.2], u: lerp(.45, .86, k) });
   P.spine = { to: R.p(0, .9, 1.3), k: .16 * k }; P.arm = { r: { at: R.p(-.14, 1.0 + .05 * Math.sin(t * 3), .62), by: 'palm', fdir: R.v(0, .35, 1), pdir: R.v(0, -.5, .8), w: k } }; P.fing = { r: ['open', k] };
   if (strain) P.wig = [['spine_02', [1, 0, 0], Math.sin(t * 9) * .05 * strain], ['neck_01', [0, 1, 0], Math.sin(t * 5.3) * .1 * strain]];
   return P; }
-SH.srv_reach = { loc: 'server', pos: [.6, 1.15, 3.1], look: [1.35, .7, 2.2], fov: 46, face: { mihalych: 'plead' }, set: (o, t) => { srvDim(o);
-  return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankReach(t, seg(t, .5, 2.2)), null], ['temych', EIN[0], 0, EIN[1], -.75, { clips: [['Crouch_Idle_Loop', t + .5, 1]], look: [FRANK[0], .95, FRANK[1]] }, null]]; } };
+SH.srv_reach = { loc: 'server', pos: [.6, 1.15, 2.87], look: [1.35, .7, 1.97], fov: 46, face: { mihalych: 'plead' }, set: (o, t) => { srvDim(o);
+  return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankReach(t, seg(t, .5, 2.2)), null], ['temych', EIN[0], 0, EIN[1], -.75, { clips: [['Crouch_Idle_Loop', t + .5, 1]], look: [FRANK[0], .95, FRANK[1]] }, null]]; } };
 // держит Фрэнка за плечи сзади (мини-игра): тот рвётся к голосу
-SH.srv_hold = { loc: 'server', pos: [.35, 1.25, 2.3], look: [1.65, .75, 2.75], fov: 48, face: { mihalych: 'plead', temych: 'fear' }, set: (o, t) => { srvDim(o);
+SH.srv_hold = { loc: 'server', pos: [.35, 1.25, 2.07], look: [1.65, .75, 2.52], fov: 48, face: { mihalych: 'plead', temych: 'fear' }, set: (o, t) => { srvDim(o);
   const R = FR(), F = A.mihalych, sl = F.bone.upperarm_l.getWorldPosition(new T.Vector3()), sr = F.bone.upperarm_r.getWorldPosition(new T.Vector3()), eb = R.p(-.06, 0, -.46);
-  return [['mihalych', FRANK[0], 0, FRANK[1], PI + .55, frankReach(t, 1, 1), null],   // Итан привстал за спиной (голова выше Фрэнка — видно, кто кого держит)
+  return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankReach(t, 1, 1), null],   // Итан привстал за спиной (голова выше Фрэнка — видно, кто кого держит)
     ['temych', eb[0], 0, eb[2], PI + .55, { clips: [['Crouch_Idle_Loop', t + .5, 1]], pelvis: [0, .2, 0], spine: { to: R.p(0, 1.15, .1), k: .15 }, legs: 'plant',
       arm: { l: { at: [sl.x, sl.y + .05, sl.z], by: 'palm', fdir: R.v(0, -.2, 1), pdir: [0, -1, 0], w: 1 }, r: { at: [sr.x, sr.y + .05, sr.z], by: 'palm', fdir: R.v(0, -.2, 1), pdir: [0, -1, 0], w: 1 } },
       fing: { l: ['grip', .8], r: ['grip', .8] }, look: [FRANK[0], 1.0, FRANK[1]] }, null]]; } };
@@ -1513,14 +1515,14 @@ SH.bm_knock = { loc: 'basement', pos: [-.85, 1.55, -12.55], look: [.05, 1.2, -13
 // d08–d09: засов изнутри, дверь открывается в коридор; Фрэнк на колене в круге у порога, рукой толкает дверь
 const BF = [0, -14.85];
 SH.bs_open = { loc: 'basement', pos: [-.9, 1.5, -12.35], look: [.15, .95, -14.6], fov: 52, face: { mihalych: 'worry' }, set: (o, t) => {
-  const k = ease(clamp((t - .25) / .9, 0, 1)); o.sdoor.rotation.y = 1.35 * k; o.sdoor.updateMatrixWorld(true); bsLight(o, k > .1, [.3, -13.2]);
+  const k = ease(clamp((t - .25) / .9, 0, 1)); o.sdoor.rotation.y = 1.35 * k; o.sdoor.updateMatrixWorld(true); bsLight(o, k > .1, [-.05, -13.2]);
   const dp = o.sdoor.localToWorld(new T.Vector3(-.8, 1.0, -.03)), reach = 1 - seg(t, .7, 1.0);
-  return [['mihalych', BF[0], 0, BF[1], 0, { clips: [['Fixing_Kneeling', .8, 1]], wear: { splint: SPLINT }, talk: 1, arm: { r: { at: [dp.x, dp.y, dp.z], by: 'palm', fdir: [0, 1, 0], pdir: [0, 0, 1], w: reach } }, fing: { r: ['flat', reach] }, look: [.3, 1.6, -13.2] }, null],
-    shuffle('temych', [.14, -13.5], [.3, -13.15], t, .3, .5, PI, { look: [0, .9, -14.8], hold: ETORCH, fing: ETF })]; } };
-SH.bs_frank = { loc: 'basement', pos: [-.24, 1.0, -13.45], look: [.06, .5, -14.9], fov: 48, face: { mihalych: 'worry' }, set: (o, t) => { o.sdoor.rotation.y = 1.35; bsLight(o, true, [.3, -13.2]); o.etorch.intensity = CINE ? 3 : 5; o.faceL.position.set(.3, 1.0, -14.1); o.faceL.intensity = CINE ? .45 : .8; o.faceL.color.setHex(0xc9cfd8);   // лицо Фрэнка не пересвечено (в «Кино» было рыжим)
-  return [['mihalych', BF[0], 0, BF[1], 0, frankSit(t, { look: [-.24, 1.0, -13.45] }), null]]; } };
-SH.bs_no = { loc: 'basement', pos: [-.22, 1.58, -13.1], look: [.05, .72, -14.9], fov: 46, face: { mihalych: 'fear' }, set: (o, t) => { o.sdoor.rotation.y = 1.35; bsLight(o, true, [.3, -13.2]); o.etorch.intensity = CINE ? 3 : 5; o.faceL.position.set(.3, 1.1, -14.1); o.faceL.intensity = CINE ? .45 : .8; o.faceL.color.setHex(0xc9cfd8);   // лицо Фрэнка не пересвечено (в «Кино» было рыжим)
-  return [['mihalych', BF[0], 0, BF[1], 0, frankSit(t, { no: 1, look: [-.22, 1.58, -13.1] }), null]]; } };
+  return [['mihalych', BF[0], .045, BF[1], 0, { clips: [['Fixing_Kneeling', .8, 1]], wear: { splint: SPLINT }, talk: 1, arm: { r: { at: [dp.x, dp.y, dp.z], by: 'palm', fdir: [0, 1, 0], pdir: [0, 0, 1], w: reach } }, fing: { r: ['flat', reach] }, look: [.3, 1.6, -13.2] }, null],
+    shuffle('temych', [-.12, -13.55], [-.05, -13.2], t, .3, .5, PI, { look: [0, .9, -14.8], hold: ETORCH, fing: ETF })]; } };
+SH.bs_frank = { loc: 'basement', pos: [-.24, 1.0, -13.45], look: [.06, .5, -14.9], fov: 48, face: { mihalych: 'worry' }, set: (o, t) => { o.sdoor.rotation.y = 1.35; bsLight(o, true, [-.05, -13.2]); o.etorch.intensity = CINE ? 3 : 5; o.faceL.position.set(.3, 1.0, -14.1); o.faceL.intensity = CINE ? .45 : .8; o.faceL.color.setHex(0xc9cfd8);   // лицо Фрэнка не пересвечено (в «Кино» было рыжим)
+  return [['mihalych', BF[0], FRANKY, BF[1], 0, frankSit(t, { look: [-.24, 1.0, -13.45] }), null]]; } };
+SH.bs_no = { loc: 'basement', pos: [-.22, 1.58, -13.1], look: [.05, .72, -14.9], fov: 46, face: { mihalych: 'fear' }, set: (o, t) => { o.sdoor.rotation.y = 1.35; bsLight(o, true, [-.05, -13.2]); o.etorch.intensity = CINE ? 3 : 5; o.faceL.position.set(.3, 1.1, -14.1); o.faceL.intensity = CINE ? .45 : .8; o.faceL.color.setHex(0xc9cfd8);   // лицо Фрэнка не пересвечено (в «Кино» было рыжим)
+  return [['mihalych', BF[0], FRANKY, BF[1], 0, frankSit(t, { no: 1, look: [-.22, 1.58, -13.1] }), null]]; } };
 // w09: утро — дверь распахнута, круг пуст, из него в коридор тянутся следы ладоней
 SH.bs_after = { loc: 'basement', pos: [.45, 1.6, -9.6], look: [0, .2, -13.8], fov: 50, set: (o, t) => { o.sdoor.rotation.y = 1.4; o.prints.visible = true; o.candle.intensity = 0; o.slit.visible = o.glow.visible = false; return []; } };
 // w10: Итан пишет в журнале — ручка в пальцах, строка появляется под ручкой (маска из чистой страницы уходит вправо)
@@ -1800,7 +1802,7 @@ function cineRender(R, T0, cctv, scare, vhs) {
 // «Кино» следит за скоростью: если кадр рисуется дольше ~38 мс, внутреннее разрешение падает ступенями (до 55%), если быстро — растёт обратно
 let perfT = 0, perfN = 0, perfS = 0, perfCool = 0;
 function perfTick(d) {   // d — мс между кадрами движка
-  if (!CINE || !scenesReady || d > 250) return;   // пауза/вкладка в фоне — не считаем
+  if (!CINE || !scenesReady || d > 250 || V.rsPin) return;   // пауза/вкладка в фоне — не считаем; ?rs= — разрешение задано вручную
   perfS += d; if (++perfN < 45) return; const avg = perfS / perfN; perfN = perfS = 0; if (perfCool-- > 0) return;
   const rs = V.rs || 1, nr = avg > 38 ? Math.max(.55, rs - .15) : avg < 21 && rs < 1 ? Math.min(1, rs + .1) : rs;
   if (nr !== rs) { V.rs = nr; perfCool = 2; setLand(V.land, true); perfSlow = 0; return; }
@@ -2070,5 +2072,51 @@ function thumb(id, o = {}) {   // маленькая картинка кадра
   return (thumbs[key] = c.toDataURL('image/jpeg', .7));
 }
 // World.props — «нормы» холла (куртка, пропуск, часы); World.vhs — сила плёнки 0..1 (для пункта меню); World.tube — горит ли сейчас ненадёжная лампа (для звука)
-window.World = { draw, init, warm, setLand, project, projectAt, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
+// для автопроверки кадров (tools/story/sheet.js): где на последнем кадре головы актёров — [x, y доли кадра, в кадре ли]; NAME — кто говорит → чьё лицо
+const _hq = new T.Vector3();
+function heads() { const r = {}; if (!A) return r; for (const k in A) { const C = A[k]; if (!C.root.parent || !C.root.visible || C.reflOnly) continue; const hb = C.bone && C.bone.Head;
+  if (hb) hb.getWorldPosition(_hq); else { C.root.getWorldPosition(_hq); _hq.y += 1.6; } r[k] = project([_hq.x, _hq.y + .06, _hq.z]); } return r; }
+// проникновения тел в предметы (стул, стол, стены будки…): вершины тела (каждая N-я, с учётом скелета и мимики) внутри коробок и цилиндров рядом —
+// в осях предмета, с допуском tol (касание — не проникновение). → [{ k, prop, n вершин, d глубина м, at точка мира, size }] — для tools/story/sheet.js
+const _cw = new T.Vector3(), _cl = new T.Vector3(), _ci = new T.Matrix4(), _cb = new T.Box3(), _cs = new T.Vector3();
+function clips(tol = .02) {
+  const out = []; if (!A || !curLoc || !curLoc.S) return out;
+  const own = new Set(); for (const k in A) if (A[k].root.parent) A[k].root.traverse(n => own.add(n));
+  const props = [];
+  curLoc.S.traverse(m => {
+    if (!m.isMesh || m.isSkinnedMesh || m.isInstancedMesh || own.has(m) || !m.geometry) return;
+    const ty = m.geometry.type; if (ty !== 'BoxGeometry' && ty !== 'CylinderGeometry') return;
+    if ([].concat(m.material).some(mt => mt && mt.side === T.BackSide)) return;   // комната, видимая изнутри (за дверью 707 и т. п.), — не предмет
+    for (let q = m; q; q = q.parent) if (!q.visible) return;
+    const g = m.geometry; if (!g.boundingBox) g.computeBoundingBox(); g.boundingBox.getSize(_cs); m.getWorldScale(_cw); _cs.multiply(_cw);
+    if (Math.max(_cs.x, _cs.y, _cs.z) > 3.5 || Math.min(_cs.x, _cs.y, _cs.z) < .004) return;   // стены и пол целиком, плоские наклейки — мимо
+    props.push({ m, box: _cb.clone().copy(g.boundingBox).applyMatrix4(m.matrixWorld), inv: _ci.clone().copy(m.matrixWorld).invert(), sc: m.matrixWorld.getMaxScaleOnAxis(), size: [+_cs.x.toFixed(2), +_cs.y.toFixed(2), +_cs.z.toFixed(2)] });
+  });
+  for (const k in A) {
+    const C = A[k]; if (!C.root.parent || !C.root.visible || C.reflOnly) continue;
+    C.root.getWorldPosition(_cw); const near = props.filter(P => P.box.distanceToPoint(_cw) < 1.4); if (!near.length) continue;
+    const hit = new Map();
+    C.root.traverse(sm => {
+      if (!sm.isSkinnedMesh || !sm.visible) return; const n = sm.geometry.attributes.position.count, step = Math.max(1, Math.floor(n / 400));
+      for (let i = 0; i < n; i += step) {
+        sm.getVertexPosition(i, _cw); _cw.applyMatrix4(sm.matrixWorld);
+        for (const P of near) {
+          if (!P.box.containsPoint(_cw)) continue;
+          _cl.copy(_cw).applyMatrix4(P.inv); const bb = P.m.geometry.boundingBox, t = tol / P.sc; let d;
+          if (P.m.geometry.type === 'CylinderGeometry') { const pr = P.m.geometry.parameters, R = Math.max(pr.radiusTop, pr.radiusBottom), r = Math.hypot(_cl.x, _cl.z); d = Math.min(R - r, _cl.y - bb.min.y, bb.max.y - _cl.y); }
+          else d = Math.min(_cl.x - bb.min.x, bb.max.x - _cl.x, _cl.y - bb.min.y, bb.max.y - _cl.y, _cl.z - bb.min.z, bb.max.z - _cl.z);
+          if (d <= t) continue;
+          let h = hit.get(P); if (!h) hit.set(P, h = { n: 0, d: 0, at: null }); h.n++; if (d * P.sc > h.d) { h.d = d * P.sc; h.at = [+_cw.x.toFixed(3), +_cw.y.toFixed(3), +_cw.z.toFixed(3)]; }
+        }
+      }
+    });
+    for (const [P, h] of hit) out.push({ k, prop: P.m.name || (P.m.parent && P.m.parent.name) || '', size: P.size, n: h.n, d: +h.d.toFixed(3), at: h.at, scr: project(h.at) });
+    { const y0 = Math.min(0, C.root.position.y); let n = 0, d = 0, at = null;   // ниже пола (пол — y 0; корень может стоять выше — сидит/лежит на подъёме): ступня или таз ушли под пол
+      C.root.traverse(sm => { if (!sm.isSkinnedMesh || !sm.visible) return; const cnt = sm.geometry.attributes.position.count, step = Math.max(1, Math.floor(cnt / 400));
+        for (let i = 0; i < cnt; i += step) { sm.getVertexPosition(i, _cw); _cw.applyMatrix4(sm.matrixWorld); const dd = y0 - _cw.y; if (dd > tol) { n++; if (dd > d) { d = dd; at = [+_cw.x.toFixed(3), +_cw.y.toFixed(3), +_cw.z.toFixed(3)]; } } } });
+      if (n) out.push({ k, prop: 'пол', size: [0, 0, 0], n, d: +d.toFixed(3), at, scr: project(at) }); }
+  }
+  return out.sort((x, y) => y.d - x.d);
+}
+window.World = { draw, init, warm, setLand, project, projectAt, heads, clips, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();

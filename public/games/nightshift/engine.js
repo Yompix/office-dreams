@@ -13,7 +13,7 @@ if (EN) {   // статичные надписи страницы
   const kk = document.getElementById('keys'); if (kk) for (const d of kk.children) if (d.lastChild && d.lastChild.nodeType === 3) d.lastChild.textContent = tr(d.lastChild.textContent);
 }
 const cv = $('cv'), g = cv.getContext('2d');
-let W = 1080, H = 1920, US = 1, CS = 1;   // холст движка: 1080×1920 вертикально или 1920×1080 горизонтально; US — масштаб надписей на холсте; CS — масштаб холста (слабый телефон — 2/3)
+let W = 1080, H = 1920, US = 1, CS = (() => { const q = /[?&]cs=([\d.]+)/.exec(location.search); return q ? Math.max(.25, Math.min(1, +q[1])) : 1; })();   // ?cs=0.5 — меньший холст (автопроверка кадров); холст движка: 1080×1920 вертикально или 1920×1080 горизонтально; US — масштаб надписей на холсте; CS — масштаб холста (слабый телефон — 2/3)
 const dlgEl = $('dlg'), tapEl = $('tap'), chapEl = $('chap'), clockEl = $('clock'), noteEl = $('note'), ruleEl = $('rule'), choiceEl = $('choice'), uiEl = $('ui'), mgEl = $('mg'), smsEl = $('sms'), actEl = $('act');
 const LS = { get(k, d) { try { const v = localStorage.getItem('ns1_' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
              set(k, v) { try { localStorage.setItem('ns1_' + k, JSON.stringify(v)); } catch {} } };
@@ -371,7 +371,7 @@ function signature(k = 1) {
 let clockT = 0, lastP = performance.now(), paused = false;
 function now() { return clockT; }
 let userPause = false;   // ☰ в игре: пауза, пока открыто меню паузы / настройки
-document.addEventListener('visibilitychange', () => { paused = document.hidden || userPause; if (AC) paused ? AC.suspend() : AC.resume(); });
+document.addEventListener('visibilitychange', () => { paused = document.hidden || userPause; if (AC) paused ? AC.suspend() : AC.resume(); if (!document.hidden) lastP = performance.now(); });   // вернулись во вкладку: пока её не было, звук стоял — часы не прыгают вперёд
 
 /* ---------- состояние ---------- */
 let mode = 'load', scene = null, sceneId = '', bi = 0, beat = null, bT0 = 0, bDur = 0, bCuts = null, sched = [], fired = new Set(), onBeatEnd = null;
@@ -389,7 +389,8 @@ const buzz = ms => { try { if (navigator.vibrate && !LS.get('mute', false)) navi
 const seen = new Set(LS.get('seen', []));
 const frozenC = document.createElement('canvas'); frozenC.width = 1080; frozenC.height = 1920; const frozenG = frozenC.getContext('2d');
 const stillC = document.createElement('canvas'); let stillCache = null;   // готовый кадр старого фото (fx 'photo'): считается один раз на план
-let audioQ = 0, voiceLate = 0;   // audioQ — звук кадра ждёт первого нарисованного кадра (иначе голос уходил вперёд чёрной склейки); voiceLate — реплик, догнанных после старта кадра (медленная сеть)
+let audioQ = 0, voiceLate = 0, beatRun = 0, talkWho = null, talkFx = '';   // audioQ — звук кадра ждёт первого нарисованного кадра (иначе голос уходил вперёд чёрной склейки); voiceLate — реплик, догнанных после старта кадра (медленная сеть)
+const cur0 = () => { let c = null; for (const it of sched) if (now() - bT0 >= it.t) c = it; return c; };   // текущая реплика кадра (для talkFx)
 
 function durOf(k) { return (TIM[k] && TIM[k].dur) || (BUF[k] && BUF[k].duration) || 2; }
 // кто говорит: имя на табличке и цвет
@@ -459,7 +460,7 @@ function startScene(id, at) {   // at: true — сразу к концу сце�
   if (scene.music) music(scene.music);
   if (scene.time) { lastTime = scene.time; clockEl.textContent = scene.time; clockEl.classList.remove('hide'); }
   bi = at === true ? scene.beats.length - 2 : typeof at === 'number' ? Math.min(at, scene.beats.length) - 1 : -1;
-  const my = gen, ready = voicePrep(id);
+  const my = gen, ready = voicePrep(id); holdN = -1;
   if (sceneKeys(scene).every(k => !isVoice(k) || BUF[k])) return nextBeat();
   beat = null; audioQ = 0; Promise.race([ready, new Promise(r => setTimeout(r, 700))]).then(() => { if (gen === my && mode === 'play' && !beat) nextBeat(); });   // реплики ещё декодируются — короткая чёрная склейка
 }
@@ -475,7 +476,7 @@ function nextBeat() {
   { const k = scene.beats.indexOf(beat), pv = k >= 0 && k < bi ? beat : null, nb = scene.beats[bi], same = pv && pv.img && pv.img === nb.img;   // прошлый показанный кадр этой сцены (кадр по условию мог быть пропущен)
     shotOff = same ? shotOff + (now() - bT0) : 0; darkHold = !!(same && pv.fx === 'dark'); }
   const prevBeat = beat;
-  beat = scene.beats[bi]; bT0 = now(); fired.clear(); sched = []; typed = null; scareAt = null; hb = 0; audioQ = 0;
+  beat = scene.beats[bi]; bT0 = now(); fired.clear(); sched = []; typed = null; scareAt = null; hb = 0; audioQ = 0; beatRun++;
   if (beat.hush && AC) hush(true);
   if (beat.time) { lastTime = beat.time; secBase = 0; sceneT0 = now(); clockEl.textContent = beat.time; }   // часы перещёлкнулись посреди сцены
   chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
@@ -1197,6 +1198,7 @@ function menu() {
   // мигание логотипа (больная лампа) — со звуком, если звук уже разрешён
   setTimeout(() => { if (mode === 'menu' && AC && AC.state === 'running') { play('fluor_flicker', { off: 1.45, cut: .3, gain: .16 }); tubeBuzz(.06); } }, titleFirst ? 2380 : 2380);
   titleFirst = false;
+  if (window.NS_QA) NS_QA.menu();   // режим проверки (qa.js): «Сцены» и «Отправить ошибки» в меню
 }
 function openGate() {
   if (gateDone) return; gateDone = true; gateT = now(); unlockAudio(); initAudio();
@@ -1595,7 +1597,10 @@ function sayWords(who, words, on) {   // озвученная реплика ц�
 }
 let camHud = false;
 function setCamHud(on) { if (on !== camHud) { camHud = on; clockEl.classList.toggle('dim', on); } }   // на экране камеры время показывает сама камера
+let holdN = -1;   // инструменты (__ns.seek): дорисовать кадр и держать его, не пересчитывая каждый кадр (листы кадров — без лишней нагрузки)
 function frame(tp) {
+  if (holdN === 0 && paused) { lastP = tp; return requestAnimationFrame(frame); }
+  if (holdN > 0) holdN--;
   const fs = performance.now(), dt0 = Math.max(0, (tp - lastP) / 1000), dt = Math.min(.1, dt0); if (window.World && World.perf && (mode === 'play' || mode === 'menu')) World.perf(tp - lastP); lastP = tp; if (!paused) clockT += Math.min(dt0, 4);   // долгий кадр (шейдеры, сборка мусора) — звук уже ушёл вперёд; часы догоняют, чтобы субтитры не отставали
   // слабый телефон в «Ретро»: кадры идут медленно (в среднем > 36 мс за 90 кадров) → 2D-холст 720×1280 вместо 1080×1920, один раз за сессию
   if (CS === 1 && !(window.World && World.cine) && inGame() && !paused && dt0 < .25) { perf2S += dt0; if (++perf2N >= 90) { if (perf2S / perf2N > .036) { CS = 2 / 3; applyLand(LAND); } perf2N = perf2S = 0; } }
@@ -1616,7 +1621,7 @@ function frame(tp) {
     const p = Math.max(0, Math.min(1, t / bDur));
     // тишина перед скримером: за 1.5 с до удара фон и музыка уходят почти в ноль (у кадра с явной тишиной — своя)
     if (scareAt != null && !beat.hush) { const h = t > scareAt - 1.5 && t < scareAt; if (h !== hushOn) hush(h, true); }
-    if (pre && t >= 0 && beat._preDone !== bT0) { beat._preDone = bT0; if (beat.fx === 'glitch') glitchEnd(); blackT = T - .02; }
+    if (pre && t >= 0 && beat._preDone !== beatRun) { beat._preDone = beatRun; if (beat.fx === 'glitch') glitchEnd(); blackT = T - .02; }
     trigTick(t);
     place = placeOf(beat.img, beat.fx);
     quiet = hushOn || (scareAt != null && t > scareAt - 4 && t < scareAt + 2);
@@ -1633,6 +1638,7 @@ function frame(tp) {
         if (cur && t < cur.t + cur.d) { if (aloudOf(cur.k)) talk = { who: whoOf(cur.k), v: talkV, vis: visemeAt(cur.k, t - cur.t) }; }
         else if (typed && typed.s && t >= typed.t0 && t < typed.t0 + typed.d - .9 && (typed.who && typed.who !== 'ИТАН' || typed.s.trim().startsWith('—'))) talk = { who: typed.who || beat.who || 'ИТАН', v: .25 + .55 * Math.abs(Math.sin(t * 11)) };
       }
+      talkWho = talk ? talk.who : null; talkFx = talk && cur0() ? (TIM[cur0().k] || {}).fx || '' : '';   // для автопроверки кадров: кто сейчас говорит вслух (и не по рации ли)
       // скример: вспышка, рывок, сильная тряска
       const sc = scareAt != null && t >= scareAt, st = sc ? t - scareAt : 0;
       const lg = beat.fx === 'lunge';
@@ -1797,7 +1803,7 @@ $('bFull').onclick = e => { e.stopPropagation(); goFull(); }; fullBtn();
 $('bRules').onclick = e => { e.stopPropagation(); showRules(); };
 $('bAuto').onclick = e => { e.stopPropagation(); auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); };
 $('bAuto').classList.toggle('on', auto);
-$('stage').addEventListener('pointerdown', e => { if (e.target.closest('button, #choice, #mg, #ui, #hud, #note, #pz')) return; tap(); });
+$('stage').addEventListener('pointerdown', e => { if (e.target.closest('button, #choice, #mg, #ui, #hud, #note, #pz, #qa, #qaP')) return; tap(); });
 // оглядеться: на ПК взгляд чуть ведёт мышь, на телефоне — наклон (где браузер даёт гироскоп без запроса). Камеры наблюдения и бросок — неподвижны
 const lookT = { x: 0, y: 0 }, look = { x: 0, y: 0 }; let tilt0 = null;
 const lookOn = () => LS.get('look', true);
@@ -1847,6 +1853,16 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
 window.__ns = { back: () => menu(), startScene, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); },
-  get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get voiceLate() { return voiceLate; }, get canvas() { return [W, H, CS]; }, get bufN() { return Object.keys(BUF).length; }, get voiceN() { return Object.keys(BUF).filter(isVoice).length; },
+  get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get voiceLate() { return voiceLate; },
+  // для режима проверки и инструментов: начать сцену как из меню, номер и секунда кадра, пауза, реплики, перемотка кадра на секунду (картинка, без звука)
+  begin, get bi() { return bi; }, get bt() { return mode === 'play' && beat && !waiting ? Math.max(0, now() - bT0) : 0; }, get tim() { return TIM; }, pause: on => { if (!on) holdN = -1; setPause(!!on); }, get userPause() { return userPause; },
+  get bdur() { return mode === 'play' && beat ? bDur : 0; }, get beatImg() { return mode === 'play' && beat && !beat.phone ? beat.img || null : null; }, get talkWho() { return mode === 'play' ? talkWho : null; }, get talkFx() { return talkFx; },
+  seek: t => { if (mode !== 'play' || !beat) return false; setPause(true); audioQ = 0; if (waiting) { waiting = false; tapEl.classList.add('hide'); } holding = false; bT0 = now() - t;
+    // перемотка — не склейка: без чёрных кадров склейки (на паузе часы стоят — чёрный кадр остался бы навсегда)
+    const n = (beat.cams || [0]).length; let ci = Math.min(n - 1, Math.floor(Math.max(0, Math.min(1, t / bDur)) * n)); if (bCuts && bCuts.length === n) { ci = 0; while (ci < n - 1 && t >= bCuts[ci + 1]) ci++; }
+    beat._ci = ci; if (pre && t >= 0 && beat._preDone !== beatRun) { beat._preDone = beatRun; if (beat.fx === 'glitch') glitchEnd(); } blackT = -9; holdN = 3; return true; },
+  get held() { return holdN === 0; }, get canvas() { return [W, H, CS]; }, get bufN() { return Object.keys(BUF).length; }, get voiceN() { return Object.keys(BUF).filter(isVoice).length; },
   get vols() { const g = n => n ? +n.gain.value.toFixed(3) : null; return { out: g(outG), mus: g(uMus), sfx: g(uSfx), sfxRev: g(sfxRev), sfxLow: g(sfxLow), amb: g(uAmb), bedLow: g(bedLow), voice: g(voiceOut), voiceRev: g(voiceRev), direct: g(directG), bed: g(bedG) }; } };
+// режим проверки для владельца (qa.js): ?qa=1 — включить (запоминается), ?qa=0 — выключить; в демо itch.io не включается
+{ const q = /[?&]qa=([01])/.exec(location.search); if (q) LS.set('qa', q[1] === '1'); if (LS.get('qa', false) && !DEMO) { const sc = document.createElement('script'); sc.src = 'qa.js?v=1'; document.head.appendChild(sc); } }
 })();
