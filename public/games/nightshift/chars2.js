@@ -1001,14 +1001,26 @@ function bonesSnap(C) {
 }
 // живые движения (мокап Rokoko с пальцами, anims2.glb): нейтральная стойка и «говорит руками» Quaternius (стойка бойца: ноги широко,
 // колени согнуты, руки вперёд) у людей заменяются мокапом — у каждого свой клип и своя фаза, чтобы двое не двигались одинаково
-const NAT = { temych: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 0], smenshik: ['Rk_LookAround_Loop', 'Rk_Chatting2_Loop', 7.3],
+const NAT = { temych: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 0, 'Rk_SitIdle_Loop', 'Rk_SitTalk2_Loop'], smenshik: ['Rk_LookAround_Loop', 'Rk_Chatting2_Loop', 7.3],
   mihalych: ['Rk_Watching_Loop', 'Rk_Conversation_Loop', 11.7], cleaner: ['Rk_LookAround_Loop', 'Rk_Conversation_Loop', 4.1],
   katya: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 9.2], katyaSmile: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 9.2], martha: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 2.6] };
-function natClip(C, nm) {   // → [клип, сдвиг фазы]
-  const n = !C.o.monster && G.anims2 && NAT[C.o.name]; if (!n) return [nm, 0];
+const WALK_K = .74;   // Rk_Walk_Loop: опорная стопа едет назад 1,25 м/с времени клипа (у Walk_Loop — 1,04): на тот же путь время клипа ×0,74 (подобрано по скольжению стопы)
+function natClip(C, nm) {   // → [клип, сдвиг фазы, масштаб времени]
+  const n = !C.o.monster && G.anims2 && !window.__NOMOCAP && NAT[C.o.name]; if (!n) return [nm, 0];
+  if (nm === 'Walk_Loop' && CLIP.Rk_Walk_Loop) return ['Rk_Walk_Loop', 0, window.__WALK_K ?? WALK_K];   // шаг идёт от пройденного пути — фазу не сдвигаем
   if (nm === 'Idle_Loop' && CLIP[n[0]]) return [n[0], n[2]];
   if (nm === 'Idle_Talking_Loop' && CLIP[n[1]]) return [n[1], n[2]];
+  if (nm === 'Sitting_Idle_Loop' && n[3] && CLIP[n[3]]) return [n[3], n[2]];
+  if (nm === 'Sitting_Talking_Loop' && n[4] && CLIP[n[4]]) return [n[4], n[2]];
   return [nm, 0];
+}
+// сидя на мокапе: актёр сидел на стуле выше нашего — ступни ушли бы под пол; ставим их на пол (бедро и голень сгибаются сами), подошва — как в клипе
+function seatFeet(C) {
+  C.root.updateWorldMatrix(true, true); const fl = C.root.getWorldPosition(new T.Vector3()).y, want = fl + .1 * (C.ss || 1);
+  for (const sd of ['l', 'r']) { const ft = C.bone['foot_' + sd]; if (!ft) continue; const wp = ft.getWorldPosition(new T.Vector3()); if (wp.y >= want) continue;
+    const wq = ft.getWorldQuaternion(new T.Quaternion()); wp.y = want; const lp = C.root.worldToLocal(wp);
+    ik2(C, 'thigh_' + sd, 'calf_' + sd, 'foot_' + sd, lp.x, lp.y, lp.z, [sd === 'l' ? .15 : -.15, .4, 1]); keepWorld(C, 'foot_' + sd, wq); }
+  footFloor(C);
 }
 const SOFTC = new Set(['Idle_Loop', 'Idle_Talking_Loop', 'Walk_Loop', 'Sitting_Idle_Loop', 'Sitting_Talking_Loop', 'Crouch_Idle_Loop', 'Crouch_Fwd_Loop', 'Jog_Fwd_Loop', 'Sprint_Loop']);
 function act3Body(C, P, tt, dt) {
@@ -1025,7 +1037,7 @@ function act3Body(C, P, tt, dt) {
     C.reactW = lerp(C.reactW ?? 0, rc ? 1 : 0, Math.min(1, (dt || 0) * 4)); if (rc) { if (C.reactClip !== rc) C.reactT0 = tt; C.reactClip = rc; }
     if (C.reactW > .01 && C.reactClip) list = [...list.map(c => [c[0], c[1], (c[2] ?? 1) * (1 - C.reactW)]), [C.reactClip, /_Loop$/.test(C.reactClip) ? tt : tt - (C.reactT0 ?? tt), C.reactW]];
     else C.reactClip = null; }
-  list = list.map(c => { const [n2, off] = natClip(C, c[0]); return n2 === c[0] ? c : [n2, c[1] + off, c[2], c[3]]; });
+  list = list.map(c => { const [n2, off, k = 1] = natClip(C, c[0]); return n2 === c[0] ? c : [n2, c[1] * k + off, c[2], c[3]]; });
   let ws = 0; for (const c of list) ws += c[2] ?? 1;
   for (const [nm, time, w = 1, loop] of list) {
     const clip = CL[nm]; if (!clip) continue;
@@ -1037,6 +1049,8 @@ function act3Body(C, P, tt, dt) {
   }
   for (const nm in C.acts3) if (!used.has(nm) && C.acts3[nm].on3) { C.acts3[nm].stop(); C.acts3[nm].on3 = false; }
   bonesRestore(C); C.mixer.update(0); bonesSnap(C);
+  if (list.some(c => /^Rk_Sit/.test(c[0]))) seatFeet(C);
+  else if (list.some(c => /^(Rk_|Cmu_)/.test(c[0]) && (c[2] ?? 1) > .05)) footFloor(C);   // мокап: носок опорной ноги не под полом
   if (P.legs === 'feet') feetIn(C, P);
   if (P.pelvis || P.legs === 'plant') {   // таз сдвигается (присесть, перенести вес), ступни остаются где стояли — ноги сгибаются сами (IK)
     C.root.updateWorldMatrix(true, true);
@@ -1103,12 +1117,13 @@ function updateSkinned(C, t, dt) {
   }
   if (OBJ) act3Body(C, P, tt, sdt);
   else {
-  if (P !== 'lay') C.act.timeScale = P === 'back' ? -stride : P === 'monster' ? .3 : P === 'reach' ? .55 : C.o.monster ? .8 : stride;
+  if (P !== 'lay') C.act.timeScale = (P === 'back' ? -stride : P === 'monster' ? .3 : P === 'reach' ? .55 : C.o.monster ? .8 : stride) * (natClip(C, want)[2] || 1);
   // пальцы — в исходную позу до анимации: клип их почти не трогает, и кулак от швабры/стука иначе оставался навсегда
   for (const sd of ['l', 'r']) { for (const f of FING) for (let j = 1; j <= 3; j++) { const n = f + '_0' + j + '_' + sd; if (C.bone[n]) C.bone[n].quaternion.copy(C.rest[n]); }
     for (let j = 1; j <= 3; j++) { const n = 'thumb_0' + j + '_' + sd; if (C.bone[n]) C.bone[n].quaternion.copy(C.rest[n]); } }
   bonesRestore(C); C.mixer.update(Math.min(sdt, .2)); bonesSnap(C);
   if (!C.o.monster && SOFTC.has(natClip(C, want)[0])) { buildHands(); for (const sd of ['l', 'r']) setFingers(C, sd, 'soft', 1); }   // кисти мягкие: клип Quaternius сжимал их в кулак
+  if (/^Rk_Sit/.test(natClip(C, want)[0])) seatFeet(C);
   }
   // ноги: у базовой анимации стойка «борца» (ступни широко) — сводим ступни под бёдра, подошва остаётся на полу
   const STAT = { stand: 1, talk: 1, knock: 1, press: 1, give: 1, paper: 1, reach: 1, hug: 1, mop: 1, slam: 1 };
@@ -1603,5 +1618,5 @@ function cast() {
   return A;
 }
 
-Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3, handPt });
+Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3, handPt, hasClip: n => !!CLIP[n] && !window.__NOMOCAP });
 })();

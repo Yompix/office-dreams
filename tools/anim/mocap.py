@@ -16,6 +16,7 @@ import sys, os, json, numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 from gltfio import Skel
 from fbxanim import FbxSkel, qmul, qinv, qrot, qnorm, mat_to_q
+from bvhanim import BvhSkel
 MALE = os.path.join(os.path.dirname(os.path.dirname(HERE)), 'public/games/nightshift/models/male.glb')
 
 MAP_MIXAMO = {'Hips': 'pelvis', 'Spine': 'spine_01', 'Spine1': 'spine_02', 'Spine2': 'spine_03', 'Neck': 'neck_01', 'Head': 'Head'}
@@ -39,7 +40,22 @@ for S, s_ in (('Left', 'l'), ('Right', 'r')):
                   f'thigh_{s_}': f'{S}UpLeg', f'calf_{s_}': f'{S}Leg', f'foot_{s_}': f'{S}Foot', f'ball_{s_}': f'{S}ToeBase'})
     for F, f in (('Thumb', 'thumb'), ('Index', 'index'), ('Middle', 'middle'), ('Ring', 'ring'), ('Pinky', 'pinky')):
         for j in (1, 2, 3): UE2MX[f'{f}_0{j}_{s_}'] = f'{S}Hand{F}{j}'
+# родной скелет Rokoko (Sam: Spine1..4, FingerN…): Finger1 — большой, 2 — указательный … 5 — мизинец
+RK2MX = {'Spine1': 'Spine', 'Spine2': 'Spine1', 'Spine4': 'Spine2'}
+for S in ('Left', 'Right'):
+    RK2MX.update({f'{S}Thigh': f'{S}UpLeg', f'{S}Shin': f'{S}Leg', f'{S}Toe': f'{S}ToeBase'})
+    RK2MX.update({f'{S}Finger1Metacarpal': f'{S}HandThumb1', f'{S}Finger1Proximal': f'{S}HandThumb2', f'{S}Finger1Distal': f'{S}HandThumb3'})
+    for k, F in ((2, 'Index'), (3, 'Middle'), (4, 'Ring'), (5, 'Pinky')):
+        RK2MX.update({f'{S}Finger{k}Proximal': f'{S}Hand{F}1', f'{S}Finger{k}Medial': f'{S}Hand{F}2', f'{S}Finger{k}Distal': f'{S}Hand{F}3'})
+CMU2MX = {'LowerBack': 'Spine', 'Spine': 'Spine1', 'Spine1': 'Spine2', 'Neck': 'Neck0', 'Neck1': 'Neck'}   # CMU (BVH): нулевые кости (LHipJoint, Neck, FingerBase) не участвуют
 def canon(src):
+    if 'LHipJoint' in src.name.values():
+        for i, n in list(src.name.items()): src.name[i] = CMU2MX.get(n, n)
+        return src
+    if 'Spine4' in src.name.values() or any(n.endswith('Finger1Proximal') for n in src.name.values()):
+        for i, n in list(src.name.items()):
+            src.name[i] = RK2MX.get(n, n if n not in ('Spine', 'Spine1', 'Spine2') else n + '_')   # не путать со своими Spine*
+
     for i, n in list(src.name.items()):
         n2 = n[len('Character1_'):] if n.startswith('Character1_') else n
         src.name[i] = UE2MX.get(n2, n2)
@@ -54,7 +70,7 @@ def rot_between(a, b):
     q = np.array([c[0], c[1], c[2], 1 + d]); return q / np.linalg.norm(q)
 
 HIPL, HIPR = 'LeftUpLeg', 'RightUpLeg'
-def retarget(src, t0=None, t1=None, fps=30, loop=False, inplace=True, stab=0, pelvis=None):
+def retarget(src, t0=None, t1=None, fps=30, loop=False, inplace=True, stab=0, pelvis=None, xf=.6, walk=False, lift=0):
     tgt = Skel(MALE); WTt, WRt, _ = tgt.world()
     T, R = src.local(); WTs, WRs = src.world(T, R)
     names = [src.name[i] for i in src.order]; sidx = {n: k for k, n in enumerate(names)}
@@ -71,18 +87,33 @@ def retarget(src, t0=None, t1=None, fps=30, loop=False, inplace=True, stab=0, pe
         WRs = qmul(np.repeat(qy[:, None], WRs.shape[1], 1), WRs)
         c = WTs[:, sidx['Hips']].mean(0); c[1] = 0
         WTs = qrot(np.repeat(qy[:, None], WTs.shape[1], 1), WTs - c) + c
+    if walk:   # ходьба на дорожке: опорная стопа должна ехать строго назад (−z) — иначе в игре нога скользит вбок
+        fl, fr, hp = sidx['LeftFoot'], sidx['RightFoot'], sidx['Hips']; L, Rr = WTs[:, fl] - WTs[:, hp], WTs[:, fr] - WTs[:, hp]
+        low = np.where((WTs[:, fl, 1] < WTs[:, fr, 1])[:, None], L, Rr); vel = np.gradient(low, axis=0)
+        st = np.abs(WTs[:, fl, 1] - WTs[:, fr, 1]) > .025; v = vel[st][:, [0, 2]]; ang = np.arctan2(-v[:, 0], -v[:, 1]); a0 = np.arctan2(np.median(np.sin(ang)), np.median(np.cos(ang)))
+        q1 = np.array([0, np.sin(-a0 / 2), 0, np.cos(-a0 / 2)]); c = WTs[:, hp].mean(0); c[1] = 0
+        WRs = qmul(np.broadcast_to(q1, WRs.shape).copy(), WRs); WTs = qrot(np.broadcast_to(q1, WTs.shape[:-1] + (4,)).copy(), WTs - c) + c
+        print(f'   направление шага поправлено на {np.degrees(a0):.1f}°, скорость опорной стопы {np.median(np.linalg.norm(v, axis=1)) * src.fps:.3f} м/с (до масштаба)')
     # обратная проверка: дети источника для направлений
     schild = {}
     for k, i in enumerate(src.order):
         p = src.parent[i]
         if p is not None: schild.setdefault(src.name[p], []).append(src.name[i])
-    def sdir(n):
-        kids = schild.get(n, [])
-        pref = [c for c in kids if c in MAP_MIXAMO and MAP_MIXAMO.get(c, '').startswith(('spine', 'neck', 'Head', 'upperarm', 'lowerarm', 'hand', 'calf', 'foot', 'ball', 'middle_01'))]
-        c = (pref or [k for k in kids if k in MAP_MIXAMO] or [None])[0]
-        if c is None:   # кончик пальца/носок: продолжаем направление от родителя
-            p = src.parent[src.order[sidx[n]]]; return bindT[sidx[n]] - bindT[sidx[src.name[p]]]
-        return bindT[sidx[c]] - bindT[sidx[n]]
+    PREF = ('spine', 'neck', 'Head', 'upperarm', 'lowerarm', 'hand', 'calf', 'foot', 'ball', 'middle_01')
+    def sdir(n):   # направление кости в покое: к ближайшему потомку цепочки (кости нулевой длины пропускаем — у CMU ключицы и шея растут из одной точки)
+        p0 = bindT[sidx[n]]; seen = []; queue = list(schild.get(n, []))
+        while queue:
+            c = queue.pop(0); d = bindT[sidx[c]] - p0; seen.append((c, d)); queue += schild.get(c, [])
+            if np.linalg.norm(d) > 1e-6 and c in MAP_MIXAMO and MAP_MIXAMO[c].startswith(PREF): return d
+        for want in (lambda c: c in MAP_MIXAMO, lambda c: True):
+            for c, d in seen:
+                if np.linalg.norm(d) > 1e-6 and want(c): return d
+        k = sidx[n]
+        while src.parent[src.order[k]] is not None:   # кончик: продолжаем направление от родителя
+            pk = sidx[src.name[src.parent[src.order[k]]]]; d = bindT[sidx[n]] - bindT[pk]
+            if np.linalg.norm(d) > 1e-6: return d
+            k = pk
+        return np.array([0, 1.0, 0])
     out = {}
     WRo = np.repeat(WRt[None], F, 0)
     for sn, tn in MAP_MIXAMO.items():
@@ -101,16 +132,23 @@ def retarget(src, t0=None, t1=None, fps=30, loop=False, inplace=True, stab=0, pe
             if (loc[f] * loc[f - 1]).sum() < 0: loc[f] *= -1
         tracks[j] = {'rotation': loc}
     # таз: позиция источника → масштаб по высоте таза, в осях родителя таза (root повёрнут на −90° по X)
-    kh = sidx['Hips']; P = WTs[:, kh].copy(); sc = WTt[tgt.idx['pelvis'], 1] / bindT[kh, 1]
+    # масштаб — по длине ноги (бедро + голень), а не по высоте таза: у CMU и родного скелета Rokoko поза покоя не прямая — таз выходил ниже, ступни в полу
+    legS = sum(np.linalg.norm(bindT[sidx[b_]] - bindT[sidx[a_]]) for a_, b_ in (('LeftUpLeg', 'LeftLeg'), ('LeftLeg', 'LeftFoot')))
+    legT = sum(np.linalg.norm(WTt[tgt.idx[b_]] - WTt[tgt.idx[a_]]) for a_, b_ in (('thigh_l', 'calf_l'), ('calf_l', 'foot_l')))
+    kh = sidx['Hips']; P = WTs[:, kh].copy(); sc = legT / legS
     if inplace:
         lin = np.linspace(0, 1, F)[:, None]
         for ax in (0, 2): P[:, ax] -= P[0, ax] + (P[-1, ax] - P[0, ax]) * lin[:, 0] if loop else P[0, ax]
         P[:, [0, 2]] -= P[:, [0, 2]].mean(0)
     P = P * sc; P[:, 0] += WTt[tgt.idx['pelvis'], 0]; P[:, 2] += WTt[tgt.idx['pelvis'], 2]
     if pelvis is not None: P += np.asarray(pelvis, float) - P.mean(0)   # сидя: таз туда же, где у Sitting_Idle_Loop (стул в сценах стоит под ним)
+    else:   # стоя: самый низкий голеностоп за клип — на высоте голеностопа цели в покое (у разных скелетов сустав стопы на разной высоте — ступни уходили в пол)
+        ank = WTt[tgt.idx['foot_l'], 1]
+        low = (P[:, 1] + (np.minimum(WTs[:, sidx['LeftFoot'], 1], WTs[:, sidx['RightFoot'], 1]) - WTs[:, kh, 1]) * sc).min()
+        P[:, 1] += ank - low + lift
     jr = tgt.idx['root']; Pl = qrot(qinv(WRt[jr])[None], P - WTt[jr][None])
     tracks[tgt.idx['pelvis']]['translation'] = Pl
-    if loop: loopify(tracks, F, src.fps)
+    if loop: loopify(tracks, F, src.fps, xf)
     return tgt, set(bones), ts2, tracks
 
 def loopify(tracks, F, fps, sec=.6):
@@ -183,7 +221,8 @@ def save(path, tgt, keep, clips, tolR=.0025, tolT=.002):
 if __name__ == '__main__':
     srcdir, spec, outp = sys.argv[1], json.load(open(sys.argv[2])), sys.argv[3]; clips = {}; tgt = keep = None
     for it in spec:
-        src = canon(FbxSkel(os.path.join(srcdir, it['src']), it.get('fps', 30)))
-        tgt, keep, ts, tracks = retarget(src, it.get('t0'), it.get('t1'), loop=it.get('loop', False), inplace=it.get('inplace', True), stab=it.get('stab', 0), pelvis=it.get('pelvis'))
+        path = os.path.join(srcdir, it['src'])
+        src = canon(FbxSkel(path, it.get('fps', 30)) if path.lower().endswith('.fbx') else BvhSkel(path, it.get('fps', 30)))
+        tgt, keep, ts, tracks = retarget(src, it.get('t0'), it.get('t1'), loop=it.get('loop', False), inplace=it.get('inplace', True), stab=it.get('stab', 0), pelvis=it.get('pelvis'), xf=it.get('xf', .6), walk=it.get('walk', False), lift=it.get('lift', 0))
         clips[it['name']] = (ts, tracks); print(f"{it['name']:24s} {len(ts):4d} кадров {ts[-1]:6.2f} с")
     n, k = save(outp, tgt, keep, clips); print('→', outp, n // 1024, 'КБ, ключей', k)

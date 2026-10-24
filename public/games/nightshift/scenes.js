@@ -1194,6 +1194,7 @@ function locR(x, z, ry) { const c = Math.cos(ry), s = Math.sin(ry);   // оси 
   return { p: (lx, ly, lz) => [x + lx * c + lz * s, ly, z - lx * s + lz * c], v: (lx, ly, lz) => [lx * c + lz * s, ly, -lx * s + lz * c] }; }
 const nrm = v => { const L = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / L, v[1] / L, v[2] / L]; }, crs = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 function mopGus(o, x, z, ry, t, k = 1) {   // k — насколько моет (0 — швабра стоит, руки на черенке)
+  if (window.__W3chars.hasClip('Cmu_Mop_Loop')) return mopGusMocap(o, x, z, ry, t, k);
   const ph = t * 2 * PI / 1.75, sx = Math.sin(ph) * k, cz = Math.cos(2 * ph) * k, R = locR(x, z, ry);
   const head = R.p(sx * .38, 0, .8 + .05 * cz), piv = R.p(sx * .1 - .05, .97, .18);
   const u = nrm([piv[0] - head[0], piv[1] - head[1], piv[2] - head[2]]), at = d => [head[0] + u[0] * d, head[1] + u[1] * d, head[2] + u[2] * d];
@@ -1202,6 +1203,29 @@ function mopGus(o, x, z, ry, t, k = 1) {   // k — насколько моет 
   return { clips: [['Idle_Loop', t + 2, 1]], legs: 'plant', pelvis: R.v(sx * .03, -.07, .02), spine: { to: R.p(sx * .25, .1, 1.0), k: .32 },
     arm: { r: { at: at(1.1), by: 'palm', fdir: crs(pr, u), pdir: pr, pole: R.v(-1, -.4, -.4) }, l: { at: at(.7), by: 'palm', fdir: crs(u, pl), pdir: pl, pole: R.v(1, -.8, .1) } },
     fing: { r: ['grip', 1], l: ['grip', 1] }, look: head };
+}
+// моет по-настоящему: мокап уборщика со шваброй (CMU 14_13 — ходит со шваброй взад-вперёд, корпус и руки работают). Швабру ведёт верхняя (левая) рука:
+// черенок под углом ~55° к полу, в ту сторону, куда ушла нижняя рука; правая ложится на черенок ниже (IK по прошлому кадру — незаметно);
+// голова швабры на полу. k < 1 — руки уходят к стоящей швабре (поза «перестал мыть»)
+const MOP_SLOPE = 55 * PI / 180, MOP_GAP = .46;
+function mopGusMocap(o, x, z, ry, t, k) {
+  const R = locR(x, z, ry), W3 = window.__W3chars, w = 1 - k, C = A.cleaner;
+  const head0 = R.p(0, 0, .8), piv0 = R.p(-.05, .97, .18), u0 = nrm([piv0[0] - head0[0], piv0[1] - head0[1], piv0[2] - head0[2]]), at = d => [head0[0] + u0[0] * d, head0[1] + u0[1] * d, head0[2] + u0[2] * d];
+  const side = R.v(1, 0, 0), pr = nrm(crs(u0, crs(side, u0))), pl = pr.map(v => -v);
+  const P = { clips: [['Cmu_Mop_Loop', t, Math.max(k, .001)], ['Idle_Loop', t + 2, w]], fing: { r: ['grip', 1], l: ['grip', 1] }, look: R.p(0, 0, 1.2),
+    after: (C) => { const L = W3.handPt(C, 'l', 'palm'), Rh = W3.handPt(C, 'r', 'palm');
+      let hx = Rh.x - L.x, hz = Rh.z - L.z, n = Math.hypot(hx, hz); if (n < .05) { const f = R.v(0, 0, 1); hx = f[0]; hz = f[2]; n = 1; }
+      const dn = [hx / n * Math.cos(MOP_SLOPE), -Math.sin(MOP_SLOPE), hz / n * Math.cos(MOP_SLOPE)], d = (L.y - .015) / Math.sin(MOP_SLOPE), u = dn.map(v => -v);
+      const lp = [L.x, L.y, L.z]; C.mopLine = { lp, dn };
+      W3.propAim('mop', o.S, [L.x + dn[0] * d, .015, L.z + dn[2] * d], u, ry); } };
+  const ml = C && C.mopLine, rk = k * (ml ? 1 : 0);
+  const arm = {};
+  if (rk > .001) { const g = [ml.lp[0] + ml.dn[0] * MOP_GAP, ml.lp[1] + ml.dn[1] * MOP_GAP, ml.lp[2] + ml.dn[2] * MOP_GAP], up = ml.dn.map(v => -v), pdir = nrm(crs(up, crs(side, up)));
+    arm.r = { at: g, by: 'palm', fdir: crs(pdir, up), pdir, pole: R.v(-1, -.6, -.3), w: rk }; }
+  if (w > .001) { arm.l = { at: at(1.1), by: 'palm', fdir: crs(u0, pl), pdir: pl, pole: R.v(1, -.4, -.4), w };   // как в мокапе: левая выше
+    arm.r = { at: at(.7), by: 'palm', fdir: crs(pr, u0), pdir: pr, pole: R.v(-1, -.8, .1), w: Math.max(w, rk) }; }
+  if (arm.l || arm.r) P.arm = arm;
+  return P;
 }
 // ---- седьмой этаж (02:59–03:00): Гас моет и напевает; в три перестаёт, выпрямляется, поворачивается к закрытой 707 ----
 const G7 = [-.15, -10.3], G7RY = .45, G7DOOR = Math.atan2(-1.3 - G7[0], -11.8 - G7[1]);   // где моет; курс к двери 707
