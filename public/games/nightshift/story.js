@@ -170,7 +170,7 @@ window.STORY = {
         { img: 'booth_dark', cams: [[.5, .5, 1.08, 1.14]], say: ['g02'], pad: .5 },
         { img: 'booth_dark', time: '03:30', cams: [[.5, .5, 1.14, 1.2]], say: ['g03'], sfx: [['ch_whisper', 1.6, { bus: 'voice', gain: .5, lp: 900 }]], heart: true, pad: .3 }
       ],
-      then: { mg: 'wipe', title: 'КТО ТАМ?', hint: 'Стекло запотело. Протри его пальцем.', img: 'gl_face', cam: [.5, .5, 1.0, 1.0], win: 'glass2' }
+      then: { mg: 'wipe', title: 'КТО ТАМ?', hint: 'Стекло запотело. Протри его пальцем.', img: 'gl_none', slam: 'gl_slam', cam: [.5, .5, 1.0, 1.0], win: 'glass2' }
     },
     glass2: {
       music: 'tension', time: '03:30',
@@ -179,7 +179,7 @@ window.STORY = {
         { img: 'gl_face', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['g05'], pad: .3 },
         { img: 'gl_wide', fx: 'rain', cams: [[.5, .5, 1.06, 1.1]], say: ['g06'], pad: .3 },
         { img: 'gl_face', fx: 'rain', cams: [[.5, .5, 1.06, 1.12]], say: ['g07'], pad: .3 },
-        { img: 'entrance_empty', fx: 'static', label: 'CAM 01  ВХОД', cams: [[.5, .5, 1.0, 1.08]], say: ['g08'], pad: .4 },
+        { img: 'entrance_empty', fx: 'static', label: 'CAM 01  ВХОД', cams: [[.5, .5, 1.0, 1.08]], say: ['g08'], pad: .4, noise: { at: [.62, 1.05, 6.32], w: .95, h: 2.15 } },   // там, где она стояла, — помехи
         { img: null, phone: { kind: 'lock', time: '03:31', notes: [{ from: 'Лили', text: 'Всё ещё не сплю :( Ты как там? Утром позвони!', at: .5, ago: 'минуту назад' }] }, say: ['g09'], sfx: [['buzz', .5]], pad: .5 },
         { img: 'gl_face', fx: 'rain', cams: [[.5, .5, 1.1, 1.18]], say: ['g10'], pad: .3 },
         { img: 'gl_look', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['g11'], sfx: [['glass_hit', 1.8, { gain: .9 }], ['glass_hit', 2.1, { gain: .8 }], ['glass_hit', 3.1, { gain: .9 }], ['glass_hit', 3.4, { gain: .8 }]], heart: true, pad: 1.6 }
@@ -268,7 +268,7 @@ window.STORY = {
       beats: [
         { img: 'gl_wide', fx: 'rain', cams: [[.5, .5, 1.0, 1.04]], say: ['g15'], pad: .4 },
         { img: 'gl_face', fx: 'rain', cams: [[.5, .5, 1.1, 1.14]], say: ['b01'], hush: true, pad: .4 },
-        { img: 'b_smile', fx: 'rain', cams: [[.5, .48, 1.0, 1.12]], say: ['b02'], pad: .5 },
+        { img: 'b_smile', fx: 'rain', cams: [[.5, .47, 1.0, 1.2]], say: ['b02'], sfx: [['skin_stretch', 1.0, { gain: .75 }], ['skin_stretch', 2.2, { gain: .9, rate: .85 }], ['drone_dread', .3, { gain: .5 }]], pad: .8 },   // улыбка ползёт со скрипом кожи
         { img: 'gl_scratch', fx: 'rain', cams: [[.5, .5, 1.0, 1.06]], say: ['b03', 'b04'], sfx: [['glass_scratch', .3, { gain: .8 }]], pad: .5 },
         { img: 'b_back', fx: 'rain', cams: [[.5, .5, 1.0, 1.05]], say: ['b05'], pad: .6 },
         { img: 'b_print', fx: 'rain', cams: [[.5, .5, 1.0, 1.1]], say: ['b06'], pad: .6 },
@@ -282,8 +282,11 @@ window.STORY = {
       music: 'tension', time: '04:10',
       beats: [
         { img: 'monitors', fx: 'flicker', cams: [[.5, .5, 1.0, 1.1]], say: ['s01'], sfx: [['static', .2, { gain: .4 }]], pad: .3 },
-        { img: 'c13_gus', fx: 'cctv', label: 'CAM 13', cams: [[.5, .5, 1.0, 1.08]], say: ['s02', 's03'], sfx: [['eat_wet', .8, { gain: .4 }]], pad: .2 },
-        { img: 'c13_gus_up', fx: 'cctv', label: 'CAM 13', cams: [[.5, .45, 1.3, 1.8]], say: ['s04'], sfx: [['neck_crack', 1.4]], pad: .1 },
+        // «тринадцатая» под потолком у 707: сначала общий план (Гас в дверях, над ним — оно), потом камера сама наезжает: оно рвёт и ест, хрустят кости
+        { img: 'c13_gus', fx: 'cctv', label: 'CAM 13', cams: [[[-.62, .45, -12.05], 0, 1.0, 1.15], [[-.7, .5, -12.2], 0, 1.65, 1.85]], say: ['s02', 's03'],
+          sfx: [['eat_wet', .5, { gain: .55 }], ['neck_crack', 3.35, { gain: .55 }], ['eat_wet', 6.0, { gain: .65 }], ['neck_crack', 8.15, { gain: .7 }]], pad: .3 },
+        // перестаёт есть и поднимает голову к объективу: лицо в крови, глаза загораются в ИК-подсветке камеры
+        { img: 'c13_gus_up', fx: 'cctv', label: 'CAM 13', cams: [[[-.7, .95, -12.45], 0, 1.6, 2.4]], say: ['s04'], sfx: [['neck_crack', 1.3], ['sub_presence', 1.8, { gain: .8 }], ['static', 2.2, { gain: .5, cut: .45 }]], pad: .5 },
         { img: 'booth_dark', fx: 'dark', cams: [[.5, .5, 1.0, 1.0]], text: '', pad: 1.4 },
         { img: 'srv_cam', fx: 'cctv', label: 'CAM −2  СЕРВЕРНАЯ', cams: [[.5, .5, 1.0, 1.06]], say: ['s05'], pad: .3 },
         { img: 'srv_cam', fx: 'cctv', label: 'CAM −2  СЕРВЕРНАЯ', cams: [[.58, .58, 1.5, 1.7]], say: ['s06'], pad: .3 },
@@ -317,7 +320,7 @@ window.STORY = {
         { img: 'bs_open', cams: [[.5, .5, 1.0, 1.06]], say: ['d09'], sfx: [['door_metal', .1, { gain: .7 }]], pad: .3 },
         { img: 'bs_frank', cams: [[.5, .5, 1.0, 1.06]], say: ['d10'], pad: .3 },
         { img: 'srv_in', cams: [[.5, .5, 1.0, 1.05]], say: ['d11', 'd12'], pad: .3, react: { 'ФРЭНК': ['no', 9.5, 13] } },   // «седьмую одному не выдержать» — качает головой
-        { img: 'srv_in', cams: [[.52, .45, 1.2, 1.26]], say: ['d13'], pad: .4 },
+        { img: 'srv_in', cams: [[.52, .45, 1.2, 1.26]], say: ['d13', 'd13b'], pad: .4 },   // d13b — почему соль: для него это стена, вот оно и зовёт, ждёт, пока выйдешь или ответишь
         { img: 'srv_dark', cams: [[.5, .5, 1.0, 1.1]], say: ['d14', 'd15'], hush: true, pad: .3 },
         { img: 'srv_reach', cams: [[.5, .5, 1.0, 1.06]], say: ['d16', 'd17'], heart: true, pad: .2 },
         { img: 'srv_hold', cams: [[.5, .5, 1.0, 1.04]], text: '', pad: 1.0 }
@@ -561,10 +564,13 @@ window.STORY = {
       then: { over: 'ОНО ПРИШЛО', sub: 'Три странности за час остались без внимания. Смотри камеры, записывай, выключай лишний свет.', retry: '@save' }
     },
     over_stare: {
-      music: 'tension',
+      music: 'room_tone',   // почти тишина: так «тссс» слышно у самого уха
       beats: [
         { img: 'c13_face', fx: 'static', label: 'CAM', cams: [[[.45, 1.5, -3.3], -.06, 1.3, 1.9]], say: ['n22'], pad: .1 },   // план целится в лицо (оно сидит низко), лицо — выше субтитров
-        { img: 'lunge_booth', fx: 'lunge', scare: 1.3, text: '', pad: 3.0 }
+        // не бросок в камеру, а «тсс»: монитор сам переключается на камеру, о которой Итан не знал, — в будке за его спиной стоит Жилец и смотрит в объектив
+        { img: 'hush_cam', fx: 'cctv', label: 'CAM 00  БУДКА', cams: [[[5.22, 1.5, -1.0], 0, 1.0, 1.22]], sfx: [['static', 0, { gain: .55, cut: .3 }], ['heart_held', .35, { gain: .8 }]], text: '', pad: 2.7 },
+        // спереди, с места мониторов: наклоняется к уху, палец к губам — «тссс» — и гаснет свет
+        { img: 'hush_face', cams: [[.5, .5, 1.0, 1.07]], sfx: [['hush', 1.3, { gain: 1 }], ['hum_stop', 2.2, { gain: .85 }], ['breath_close', 2.55, { gain: .7 }]], text: '', pad: 3.1 }
       ],
       then: { over: 'ТЫ ЗАСМОТРЕЛСЯ', sub: 'Там, где помехи, кто-то стоит. Не смотри — запиши и переключи.', retry: '@save' }
     },
@@ -652,13 +658,14 @@ window.STORY = {
       gus7: { cam: '07', fix: 'none', win: 70, say: 'c03' },
       palm: { cam: '02', fix: 'none', props: { palm: 1 }, win: 25, say: 'c02' },
       // его помехи
-      st04: { cam: '04', kind: 'Помехи', box: [.42, .3, .13, .42], stare: true, win: 12, say: 'n12' },
-      st10: { cam: '10', kind: 'Помехи', box: [.47, .36, .08, .27], stare: true, win: 12 },
-      st_m2: { cam: 'm2', kind: 'Помехи', box: [.46, .3, .09, .38], stare: true, win: 12 },
-      st02: { cam: '02', kind: 'Помехи', box: [.17, .35, .07, .2], stare: true, win: 12 },
-      st03: { cam: '03', kind: 'Помехи', box: [.6, .3, .1, .45], stare: true, win: 12 },
-      st07: { cam: '07', kind: 'Помехи', box: [.45, .32, .08, .32], stare: true, win: 12 },
-      st01: { cam: '01', kind: 'Помехи', box: [.52, .12, .07, .3], stare: true, win: 12 }
+      // Помехи: в ряби стоит Жилец (at — x, пол, z), пока смотришь — рывками подходит к камере до near (steps — свои 4 точки, как на лестнице; pose3 — поза у объектива вместо «тянется»); box — запасной прямоугольник
+      st04: { cam: '04', kind: 'Помехи', kinds: ['Помехи', 'Кто-то'], box: [.42, .3, .13, .42], at: [-.6, 4.5, -5.5], steps: [[-.6, 4.5, -5.5], [-.1, 4.5, -5.25], [.42, 4.5, -5.05], [.8, 4.5, -4.86]], pose3: 'monster', stare: true, win: 12, say: 'n12' },
+      st10: { cam: '10', kind: 'Помехи', kinds: ['Помехи', 'Кто-то'], box: [.47, .36, .08, .27], at: [-.2, 0, -9.2], near: [.15, 0, -3.3], stare: true, win: 12 },
+      st_m2: { cam: 'm2', kind: 'Помехи', kinds: ['Помехи', 'Кто-то'], box: [.46, .3, .09, .38], at: [0, 0, -9.4], near: [.12, 0, -3.1], stare: true, win: 12 },
+      st02: { cam: '02', kind: 'Помехи', kinds: ['Помехи', 'Кто-то'], box: [.17, .35, .07, .2], at: [-3.3, 0, -5.1], steps: [[-3.3, 0, -5.1], [-1.2, 0, -2.4], [2.2, 0, -.6], [4.4, 0, 3.4]], stare: true, win: 12 },
+      st03: { cam: '03', kind: 'Помехи', kinds: ['Помехи', 'Кто-то'], box: [.6, .3, .1, .45], at: [-.55, 0, -4.4], near: [-.15, 0, -2.75], stare: true, win: 12 },
+      st07: { cam: '07', kind: 'Помехи', kinds: ['Помехи', 'Кто-то'], box: [.45, .32, .08, .32], at: [-.2, 0, -9.6], near: [.15, 0, -3.1], stare: true, win: 12 },
+      st01: { cam: '01', kind: 'Помехи', kinds: ['Помехи', 'Кто-то'], box: [.52, .12, .07, .3], at: [4.0, 0, 9.6], near: [1.0, 0, 8.75], stare: true, win: 12 }
     },
     segs: {
       S1: { from: '21:10', to: '22:00', spm: 3.6, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'], hint: 'Камеры — внизу. Странное — «Записать». Свет, вход и лифт — на пульте.',

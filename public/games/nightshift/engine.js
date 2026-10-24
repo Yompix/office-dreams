@@ -50,7 +50,7 @@ const storySfx = () => { const z = new Set(SFX2);
   for (const sc of Object.values(S.scenes)) { for (const b of sc.beats || []) for (const x of b.sfx || []) z.add(x[0]); for (const x of (sc.then || {}).sfx || []) z.add(x[0]); }
   for (const a of Object.values((S.shift || {}).an || {})) for (const x of [a.snd, a.sfx]) if (x) z.add(x[0]);
   ['bolt', 'pen', 'rain_burst', 'shift', 'end_dawn', 'end_newentry', 'end_inside', 'end_sister'].forEach(k => z.add(k)); z.delete('voice'); return [...z]; };   // + своя музыка (tools/music/compose.py)
-const SFX2 = ['room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b', 'mop_swish'];
+const SFX2 = ['hush', 'skin_stretch', 'room_tone', 'drone_dread', 'sub_presence', 'breath_close', 'neck_crack', 'steps_barefoot', 'eat_wet', 'whispers', 'metal_groan', 'glass_tap', 'door_slams', 'reverse_swell', 'fluor_flicker', 'heart_held', 'hum_stop', 'phone_crackle', 'lift_ding_far', 'tinnitus', 'jumpscare', 'glass_slam', 'cleaner_cry_a', 'cleaner_cry_b', 'mop_swish'];
 let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, muffle = null, radioBus = null, phoneBus = null, master, outG = null, musicG, voiceG, sfxG, uAmb = null, sfxRev = null, sfxLow = null, lowSend = null, musicSend = null, rawSnd = {}, analyser = null, abuf = null, talkV = 0;
 // громкость голоса сейчас (для движения рта)
 function voiceLevel() { if (!analyser) return 0; analyser.getByteTimeDomainData(abuf); let q = 0; for (let i = 0; i < abuf.length; i += 2) { const v = (abuf[i] - 128) / 128; q += v * v; } return Math.min(1, Math.sqrt(q / (abuf.length / 2)) * 6); }
@@ -66,7 +66,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
-  const tm = get(EN ? 'timing_en.json?v=9' : 'timing.json?v=14', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_en.json?v=10' : 'timing.json?v=15', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры — очередью по 4, в порядке сцен; нужные сейчас встают вперёд (voiceReady)
@@ -389,7 +389,7 @@ const buzz = ms => { try { if (navigator.vibrate && !LS.get('mute', false)) navi
 const seen = new Set(LS.get('seen', []));
 const frozenC = document.createElement('canvas'); frozenC.width = 1080; frozenC.height = 1920; const frozenG = frozenC.getContext('2d');
 const stillC = document.createElement('canvas'); let stillCache = null;   // готовый кадр старого фото (fx 'photo'): считается один раз на план
-let audioQ = 0, voiceLate = 0, beatRun = 0, talkWho = null, talkFx = '';   // audioQ — звук кадра ждёт первого нарисованного кадра (иначе голос уходил вперёд чёрной склейки); voiceLate — реплик, догнанных после старта кадра (медленная сеть)
+let audioQ = 0, voiceLate = 0, beatRun = 0, talkWho = null, talkFx = '', holdT = 0;   // audioQ — звук кадра ждёт первого нарисованного кадра (иначе голос уходил вперёд чёрной склейки); voiceLate — реплик, догнанных после старта кадра (медленная сеть)
 const cur0 = () => { let c = null; for (const it of sched) if (now() - bT0 >= it.t) c = it; return c; };   // текущая реплика кадра (для talkFx)
 
 function durOf(k) { return (TIM[k] && TIM[k].dur) || (BUF[k] && BUF[k].duration) || 2; }
@@ -460,6 +460,7 @@ function startScene(id, at) {   // at: true — сразу к концу сце�
   if (scene.music) music(scene.music);
   if (scene.time) { lastTime = scene.time; clockEl.textContent = scene.time; clockEl.classList.remove('hide'); }
   bi = at === true ? scene.beats.length - 2 : typeof at === 'number' ? Math.min(at, scene.beats.length) - 1 : -1;
+  for (let i = 0; i <= bi; i++) if (scene.beats[i] && flagOk(scene.beats[i].if)) setFlags(scene.beats[i].set);   // начали с середины (продолжение, «⏮», повтор с решения) — отметки пропущенных кадров тоже ставим (журнал «прочитан» и т. п.)
   const my = gen, ready = voicePrep(id); holdN = -1;
   if (sceneKeys(scene).every(k => !isVoice(k) || BUF[k])) return nextBeat();
   beat = null; audioQ = 0; Promise.race([ready, new Promise(r => setTimeout(r, 700))]).then(() => { if (gen === my && mode === 'play' && !beat) nextBeat(); });   // реплики ещё декодируются — короткая чёрная склейка
@@ -467,7 +468,7 @@ function startScene(id, at) {   // at: true — сразу к концу сце�
 function nextBeat() {
   bi++; while (scene.beats[bi] && !flagOk(scene.beats[bi].if)) bi++;   // кадр только при условии (что нашёл, что спросил)
   if (scene.beats[bi]) setFlags(scene.beats[bi].set);
-  amb('heart', false); holding = false; waiting = false; tapEl.classList.add('hide'); dlgEl.classList.remove('wait');
+  amb('heart', false); holding = false; waiting = false; tapEl.classList.add('hide'); dlgEl.classList.remove('wait', 'wait2');
   const carry = trig.filter(e => !e.done && e.carry); trig = [];
   if (!scene.beats[bi]) { seen.add(sceneId); LS.set('seen', [...seen]); carry.forEach(e => e.fn()); return runThen(scene.then); }
   if (hushOn) hush(false);
@@ -802,10 +803,10 @@ const MG = {
     mode = 'mg'; music('tension'); amb('heart', true, .35); const my = gen, t0 = now(), FW = LAND ? 192 : 108, FH = LAND ? 108 : 192;
     const F = document.createElement('canvas'); F.width = FW; F.height = FH; const f = F.getContext('2d');
     // пелена гуще к краям, в ней капельки; несколько подтёков — по ним чуть видно, что за стеклом
-    const rg = f.createRadialGradient(FW / 2, FH * .45, 10, FW / 2, FH * .45, FH * .62); rg.addColorStop(0, 'rgba(150,162,172,.84)'); rg.addColorStop(1, 'rgba(120,130,140,.95)'); f.fillStyle = rg; f.fillRect(0, 0, FW, FH);
+    const rg = f.createRadialGradient(FW / 2, FH * .45, 10, FW / 2, FH * .45, FH * .62); rg.addColorStop(0, 'rgba(150,162,172,.93)'); rg.addColorStop(1, 'rgba(120,130,140,.985)');   // плотная пелена: за стеклом не видно, кто там, пока не протрёшь f.fillStyle = rg; f.fillRect(0, 0, FW, FH);
     for (let i = 0; i < 260; i++) { f.fillStyle = `rgba(${200 + Math.random() * 50},${210 + Math.random() * 40},230,${.08 + Math.random() * .16})`; f.beginPath(); f.arc(Math.random() * FW, Math.random() * FH, .4 + Math.random() * 1.3, 0, 7); f.fill(); }
     f.globalCompositeOperation = 'destination-out';
-    for (let i = 0; i < 7; i++) { let x = Math.random() * FW, y = Math.random() * 60; const n = 30 + Math.random() * 60; f.fillStyle = 'rgba(0,0,0,.45)';
+    for (let i = 0; i < 7; i++) { let x = Math.random() * FW, y = Math.random() * 60; const n = 30 + Math.random() * 60; f.fillStyle = 'rgba(0,0,0,.22)';
       for (let j = 0; j < n; j++) { x += Math.random() * .8 - .4; y += 1.3; f.fillRect(x, y, 1.1, 1.4); } f.beginPath(); f.arc(x, y + 1, 1.5, 0, 7); f.fill(); }
     f.globalCompositeOperation = 'source-over';
     mgView = { img: th.img || 'katya_slam', c: th.cam || [.5, .47, 1.22, 1.22], t0, dur: 1e9, tAt: .1, fog: F };
@@ -825,6 +826,7 @@ const MG = {
         if (now() - chk > .25) { chk = now(); const d = f.getImageData(0, 0, FW, FH).data; let n = 0; for (let i = 3; i < d.length; i += 16) if (d[i] < 90) n++; clear = n / (d.length / 16); }
         if (clear > (th.need || .45) || t > (th.dur || 15)) {   // увидел пустую улицу — и тут же удар в стекло
           slam = now(); mgView.tAt = null; mgView.st = .1 - t; mgEl.querySelector('.mghead').classList.add('hide');
+          if (th.slam) setTimeout(() => { if (my === gen && mgView) { mgView.img = th.slam; mgView.st = -(now() - t0) + .02; } }, 140);   // за протёртым стеклом было пусто — и вдруг она, ладони в стекло
           setTimeout(() => { if (my !== gen) return; play('glass_slam', { gain: 1.1 }); play('breath_close', { gain: .7, when: .12 }); shakeAmp = 34; buzz([60, 30, 120]); if (!calm()) blackT = now(); }, 150);
         }
       } else if (now() - slam > (th.after || 1.7)) return fin();
@@ -918,7 +920,8 @@ function shiftGame(th) {
 function shiftProps() {   // что сейчас видно на камерах: пульт + кто где + активные странности
   const p = Object.assign({}, shk.st, { clk: shf.M, l7: shk.lights[7] ? 1 : 0, l10: shk.lights[10] ? 1 : 0 });
   if (shk.st.blackout) Object.assign(p, { hallDark: 1, stDark: 1, mOff: 1, l7: 0, l10: 0 });   // свет гаснет этаж за этажом — камеры в ИК
-  for (const a of shf.act) Object.assign(p, a.def.props || {});
+  for (const a of shf.act) { Object.assign(p, a.def.props || {}); if (a.def.stare) { const k = a.look || 0; p['stare' + a.def.cam] = k; if (a.def.at) { p['stareAt' + a.def.cam] = stareSpot(a.def, k); p['stareN' + a.def.cam] = stareN(k); p['stareP' + a.def.cam] = a.def.pose3; } } }   // stare07 — сколько секунд игрок уже смотрит на «помехи» (фигура проступает)
+  if (shf.id === 'S6' || shf.id === 'A1') p.noEthan = 1;   // Итан не за столом: в серверной с Фрэнком (S6) или прячется за стойкой (A1) — в будке на камерах его нет
   return p;
 }
 function sayV(k, o = {}) {   // реплика во время смены: голос + слова по таймингу (нет озвучки — печатается текст)
@@ -1364,7 +1367,10 @@ function overScreen(th) {
   uiEl.innerHTML = `<div class="screen over"><h1>${th.over}</h1><p>${th.sub}<br>${tr('Ты не дожил до утра.')}</p>
     <button class="btn" id="oRetry">${tr('Попробовать снова')}</button><button class="btn ghost" id="oMenu">${tr('Меню')}</button>
     <small>${trf('Смертей найдено: {c} из {d}', { c: [...ov].filter(k => S.overs.includes(k)).length, d: S.overs.length })}</small></div>`;
-  $('oRetry').onclick = () => { goFull(); uiEl.innerHTML = ''; const r = th.retry === '@save' ? (LS.get('save', null) || S.start) : th.retry; startScene(S.scenes[r] ? r : S.start); }; $('oMenu').onclick = menu;
+  // «Попробовать снова» — с места решения (мини-игра, выбор, обход), а не с начала сцены: кат-сцены второй раз не смотрим (владелец 24 окт)
+  $('oRetry').onclick = () => { goFull(); uiEl.innerHTML = ''; let r = th.retry === '@save' ? (LS.get('save', null) || S.start) : th.retry; if (!S.scenes[r]) r = S.start;
+    const sc = S.scenes[r], t2 = sc.then || {}, dec = (t2.choice || t2.mg || t2.explore || t2.talk) && sc.beats.length > 1; startScene(r, dec ? true : undefined); }; $('oMenu').onclick = menu;
+  if (matchMedia('(pointer: fine)').matches) $('oRetry').focus({ preventScroll: true });   // ПК: Enter — снова, Esc — меню
 }
 
 /* ---------- рисование ---------- */
@@ -1379,10 +1385,10 @@ function heldShot(id, o, T, key) {
   g.drawImage(heldC, 0, 0);
 }
 // кадр 3D-мира; без WebGL — чёрный экран с подсказкой
-let worldTried = false, menuT0 = 0, shotOff = 0, darkHold = false;
+let worldTried = false, menuT0 = 0, shotOff = 0, darkHold = false, settleQ = false;   // settleQ — после перемотки (__ns.seek) мир сперва «доигрывает» позы
 function shot(id, o, cx = g) {
   if (LAND && o.cx != null && !o._sx) { o.cx = scrX(o.cx); o._sx = 1; }   // точки наезда заданы для 9:16 — в 16:9 то же направление
-  if (window.World && World.ok && World.draw(cx, W, H, id, Object.assign(o, { props: propsNow() }))) { lastDrawn = id; return true; }
+  if (window.World && World.ok && World.draw(cx, W, H, id, Object.assign(o, { props: propsNow(), settle: settleQ }))) { lastDrawn = id; settleQ = false; return true; }
   cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); if (!worldTried) return false;   // пока мир грузится — просто чёрный
   g.fillStyle = '#777'; g.font = '700 40px Inter, Arial'; g.textAlign = 'center'; g.fillText(tr('Нужен браузер с WebGL'), W / 2, H * .3); g.textAlign = 'left';
   return false;
@@ -1395,16 +1401,56 @@ function tear(n = 1) {
 }
 // экран камеры наблюдения: REC мигает раз в секунду, время идёт по часам ночи, уголки кадра; цвет даёт шейдер (cctv: 1)
 let tearNext = 0;
-function staticBox(b, T, k) {
+function staticBox(b, T, k, a0 = .55, fig3d = false) {
   const x = b[0] * W, y = b[1] * H, w = b[2] * W, h = b[3] * H;
   g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
   if (!noisePat) noisePat = g.createPattern(noise, 'repeat');
-  g.globalAlpha = .55 + .35 * Math.min(1, k / 3); g.translate(Math.random() * 256, Math.random() * 256); g.fillStyle = noisePat; g.fillRect(x - 256, y - 256, w + 512, h + 512); g.setTransform(1, 0, 0, 1, 0, 0);
-  if (k > 1.6) { const a = Math.min(.75, (k - 1.6) / 2.4), cx = x + w / 2, cy = y + h * .42;   // силуэт: голова и плечи из более тёмной ряби
+  g.globalAlpha = a0 + .35 * Math.min(1, k / 3); g.translate(Math.random() * 256, Math.random() * 256); g.fillStyle = noisePat; g.fillRect(x - 256, y - 256, w + 512, h + 512); g.setTransform(1, 0, 0, 1, 0, 0);
+  if (k > 1.6 && !fig3d) { const a = Math.min(.75, (k - 1.6) / 2.4), cx = x + w / 2, cy = y + h * .42;   // силуэт: голова и плечи из более тёмной ряби (если в кадре нет настоящей фигуры)
     g.globalAlpha = a; g.fillStyle = '#050505'; g.beginPath(); g.ellipse(cx, cy, w * .13, h * .1, 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(cx, cy + h * .3, w * .3, h * .22, 0, 0, 7); g.fill();
     if (k > 3.4) { g.fillStyle = '#ddd'; g.globalAlpha = Math.min(.8, (k - 3.4)); for (const s of [-1, 1]) { g.beginPath(); g.arc(cx + s * w * .045, cy - h * .01, w * .012, 0, 7); g.fill(); } } }
   for (let i = 0; i < 6; i++) { g.globalAlpha = .25; g.fillStyle = '#fff'; g.fillRect(x, y + Math.random() * h, w, 1 + Math.random() * 3); }
   g.restore();
+}
+// Жилец в помехах (странность stare): стоит в at; пока игрок смотрит на камеру, он рывками, под вспышку ряби, подходит к объективу (near). В 5 с — смерть (shiftTick)
+const STARE_T = [0, 1.3, 2.6, 3.8], STARE_K = [0, .42, .76, 1];
+const stareN = k => k < STARE_T[1] ? 0 : k < STARE_T[2] ? 1 : k < STARE_T[3] ? 2 : 3;
+function stareSpot(d, k) { if (d.steps) return d.steps[stareN(k)]; const a = d.at, b = d.near || a, s = STARE_K[stareN(k)]; return [a[0] + (b[0] - a[0]) * s, (a[1] || 0) + ((b[1] || 0) - (a[1] || 0)) * s, a[2] + (b[2] - a[2]) * s]; }
+// помехи по самой фигуре, а не прямоугольник: кадр под ним — крупными блоками (камера «не может его разобрать»), полосы строк срываются вбок,
+// сверху рябь; края мягкие. Чем ближе он подошёл (n), тем мельче блоки и реже рябь — у объектива на миг виден совсем чётко
+let glA = null, glB = null, glPat = null;
+const hs1 = i => { const s = Math.sin(i * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+function figGlitch(b, T, n, jump) {
+  const x = Math.max(0, Math.floor(b[0] * W - b[2] * W * .15)), y = Math.max(0, Math.floor(b[1] * H)), w = Math.min(W - x, Math.ceil(b[2] * W * 1.3)), h = Math.min(H - y, Math.ceil(b[3] * H)); if (w < 6 || h < 6) return;
+  const f = Math.floor(T * 12), clear = n === 3 && !jump && f % 10 < 2; if (clear) return;
+  if (!glA) { glA = document.createElement('canvas'); glB = document.createElement('canvas'); }
+  const px = Math.max(2, [11, 7, 4.5, 2.6][n] * US * (w / (W * .2) > 1 ? 1 : .7)), sw = Math.max(2, Math.round(w / px)), sh = Math.max(2, Math.round(h / px));
+  glA.width = sw; glA.height = sh; glA.getContext('2d').drawImage(cv, x, y, w, h, 0, 0, sw, sh);
+  glB.width = w; glB.height = h; const q = glB.getContext('2d'); q.imageSmoothingEnabled = false;
+  const N = 9, amp = [.32, .22, .13, .07][n] * w;
+  for (let i = 0; i < N; i++) { const off = (hs1(f * 17 + i) - .5) * 2 * amp * (hs1(f * 5 + i * 3) > .55 ? 1 : .25); q.drawImage(glA, 0, i * sh / N, sw, sh / N, off, i * h / N, w, h / N + 1); }
+  if (!glPat) glPat = q.createPattern(noise, 'repeat');
+  q.globalCompositeOperation = 'screen';   // снег светом: тёмное остаётся тёмным, а не сереет ровной кашей
+  q.globalAlpha = jump ? 1 : [.75, .6, .45, .3][n]; q.save(); q.translate(-Math.random() * 256, -Math.random() * 256); q.fillStyle = glPat; q.fillRect(0, 0, w + 256, h + 256); q.restore();
+  q.globalCompositeOperation = 'source-over'; q.globalAlpha = .3; q.fillStyle = '#fff'; for (let i = 0; i < 5; i++) q.fillRect(0, Math.random() * h, w, 1 + Math.random() * 2 * US);
+  // край — рваный, по строкам и по форме тела (голова, плечи, корпус, ноги), а не гладкий овал; сверху и снизу тает
+  q.globalAlpha = 1; q.globalCompositeOperation = 'destination-in'; q.beginPath();
+  const B = 30; for (let i = 0; i < B; i++) { const yy = (i + .5) / B, pr = yy < .13 ? .34 : yy < .19 ? .58 : yy < .56 ? .9 : yy < .64 ? .74 : .62;
+    const hw = w / 2 * pr * (.72 + .5 * hs1(f * 31 + i * 7)), off = (hs1(f * 7 + i * 5) - .5) * w * .1; q.rect(w / 2 - hw + off, i * h / B, hw * 2, h / B + 1); }
+  const gr = q.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(.07, '#fff'); gr.addColorStop(.9, '#fff'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  q.fillStyle = gr; q.fill(); q.globalCompositeOperation = 'source-over';
+  g.drawImage(glB, x, y);
+}
+function figBox(at) {   // прямоугольник помех вокруг фигуры у точки at (рост ~2,5 м): по её проекции на текущем кадре — совпадает в любой ориентации
+  if (!window.World || !World.project) return null; const y = at[1] || 0, f = World.project([at[0], y + .02, at[2]]), h = World.project([at[0], y + 2.55, at[2]]); if (!f[2] && !h[2]) return null;
+  const y0 = Math.min(f[1], h[1]), y1 = Math.max(f[1], h[1]), w = (y1 - y0) * .42 * H / W, cx = (f[0] + h[0]) / 2; return [cx - w / 2, y0 - .012, w, y1 - y0 + .024];
+}
+function noisePatch(N, T) {   // помехи, привязанные к месту в мире («там, где она стояла, были только помехи»): прямоугольник w×h м вокруг точки at
+  if (!window.World || !World.project) return; const P = N.at, c = World.project(P); if (!c[2]) return;
+  const l = World.project([P[0] - N.w / 2, P[1], P[2]]), r = World.project([P[0] + N.w / 2, P[1], P[2]]), tp = World.project([P[0], P[1] + N.h / 2, P[2]]), bt = World.project([P[0], P[1] - N.h / 2, P[2]]);
+  const x0 = Math.min(l[0], r[0]), x1 = Math.max(l[0], r[0]), y0 = Math.min(tp[1], bt[1]), y1 = Math.max(tp[1], bt[1]), j = (Math.random() - .5) * .012;
+  staticBox([x0 + j, y0, x1 - x0, y1 - y0], T, 0, .86);
+  if (Math.random() < .35) { const yy = (y0 + Math.random() * (y1 - y0)) * H; g.drawImage(cv, 0, yy, W, 18 * US, (Math.random() - .5) * 60 * US, yy, W, 18 * US); }   // строка рвётся вбок
 }
 function cctvHud(label, T, rw) {   // rw = { tag, clock } — запись на перемотке
   if (T > tearNext) { tearNext = T + 2.2 + Math.random() * 4.5; tear(1); }
@@ -1615,7 +1661,8 @@ function frame(tp) {
     if (t >= bDur) {
       const silent = !(beat.say || []).length && !beat.text;
       if (auto || silent || beat.auto) { nextBeat(); return requestAnimationFrame(frame); }
-      if (!holding) { holding = true; dlgEl.classList.add('wait'); }
+      if (!holding) { holding = true; holdT = now(); dlgEl.classList.add('wait'); }
+      else if (now() - holdT > 2.2 && !dlgEl.classList.contains('wait2')) { dlgEl.querySelector('.nh').textContent = tr(matchMedia('(pointer: fine)').matches ? 'Пробел или клик — дальше' : 'Нажми, чтобы продолжить'); dlgEl.classList.add('wait2'); }   // голос кончился, а игрок ждёт — не «пропала озвучка», а пауза до нажатия
       t = bDur;
     }
     const p = Math.max(0, Math.min(1, t / bDur));
@@ -1671,6 +1718,7 @@ function frame(tp) {
           const k = z / stillCache.z0, sw = W / k, sh = H / k; g.drawImage(stillC, stillCache.cx * W - sw * stillCache.cx, stillCache.cy * H - sh * stillCache.cy, sw, sh, 0, 0, W, H);
         } else if (cam && beat.fx !== 'static') heldShot(im, so, T, im + ci); else shot(im, so);   // камера наблюдения — 12 кадров в секунду
         knockSync(T);
+        if (beat.noise) noisePatch(beat.noise, T);
         // кадр-вспышка: лицо на 1–2 кадра поверх, в темноте
         if (subl && t >= subl.at && subl.n < 2) { if (shot(subl.img, { cx: .5, cy: .45, z: 1.12, t: 2.2, T, sx: 0, sy: 0 })) { subl.n++; sublScene = sceneId; } else subl.n = 2; }
         if (ci !== beat._ci) { beat._ci = ci; if (ci > 0) blackT = T - .02; }
@@ -1731,7 +1779,11 @@ function frame(tp) {
     if (!shf.seg.music && curMusicName === 'drone' && (BUF.shift || rawSnd.shift)) music('shift');   // подложка смены докачалась позже старта (декодируется в music())
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
     if (img) heldShot(img, { cx: .5, cy: .5, z: 1, t: T, T, sx: 0, sy: 0, cctv: 1 }, T, 'sh' + c);
-    for (const a of shf.act) if (a.def.cam === c && a.def.box) staticBox(a.def.box, T, a.look || 0);   // настоящие камеры показывают его только помехами
+    for (const a of shf.act) if (a.def.cam === c && (a.def.box || a.def.at)) { const k = a.look || 0;   // настоящие камеры показывают его помехами
+      if (!a.def.at) { staticBox(a.def.box, T, k); continue; }
+      const n = stareN(k), fb = figBox(stareSpot(a.def, k)), jump = n > 0 && k - STARE_T[n] < .18;   // фигура в 3D: чем ближе подошёл, тем реже рябь и виднее он сам
+      if (fb) figGlitch(fb, T, n, jump);
+      if (jump) { grain(.95); if (a.jumpN !== n) { a.jumpN = n; tear(1); play('static', { gain: .55 + .12 * n }); } } }   // рывок — вспышка ряби на весь кадр и треск
     if (st < .22) grain(.95);   // переключение камеры
     vignette(); cctvHud(camLabel(c), T);
     const v = shf.vq.find(v => T >= v.t0 && T < v.t0 + v.d + .35);
@@ -1824,6 +1876,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'm' || e.key === 'M' || e.key === 'ь' || e.key === 'Ь') setMute(!LS.get('mute', false));
   if (e.key === 'o' || e.key === 'O' || e.key === 'щ' || e.key === 'Щ') { LS.set('land3', !LAND); applyLand(!LAND); if (uiEl.querySelector('.sets')) settings(); }
   if (mode === 'menu' && !gateDone && (e.key === ' ' || e.key === 'Enter')) return openGate();
+  if (mode === 'end' && $('oRetry')) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); return $('oRetry').click(); } if (e.key === 'Escape') { e.preventDefault(); return $('oMenu').click(); } }   // экран смерти на ПК
   if (e.key === ' ' || e.key === 'Enter') tap(); if (mode === 'choice' && /^[1-4]$/.test(e.key)) { const b = choiceEl.querySelectorAll('button')[+e.key - 1]; if (b) b.click(); }
   if (mode === 'talk' && /^[1-9]$/.test(e.key)) { const b = actEl.querySelectorAll('button')[+e.key - 1]; if (b) b.click(); } if (e.key === 'Escape') { const sx = (pzEl.classList.contains('hide') ? uiEl : pzEl).querySelector('.sx'); if (sx) sx.click(); else if (inGame()) pauseMenu(); else if (mode === 'end') menu(); } });
 // ПК: размытый отсвет кадра по бокам экрана (виден только при широком окне и мыши)
@@ -1860,7 +1913,7 @@ window.__ns = { back: () => menu(), startScene, get flags() { return flags; }, s
   seek: t => { if (mode !== 'play' || !beat) return false; setPause(true); audioQ = 0; if (waiting) { waiting = false; tapEl.classList.add('hide'); } holding = false; bT0 = now() - t;
     // перемотка — не склейка: без чёрных кадров склейки (на паузе часы стоят — чёрный кадр остался бы навсегда)
     const n = (beat.cams || [0]).length; let ci = Math.min(n - 1, Math.floor(Math.max(0, Math.min(1, t / bDur)) * n)); if (bCuts && bCuts.length === n) { ci = 0; while (ci < n - 1 && t >= bCuts[ci + 1]) ci++; }
-    beat._ci = ci; if (pre && t >= 0 && beat._preDone !== beatRun) { beat._preDone = beatRun; if (beat.fx === 'glitch') glitchEnd(); } blackT = -9; holdN = 3; return true; },
+    beat._ci = ci; if (pre && t >= 0 && beat._preDone !== beatRun) { beat._preDone = beatRun; if (beat.fx === 'glitch') glitchEnd(); } blackT = -9; holdN = 3; settleQ = true; heldT = -9; return true; },   // heldT: кадр камеры наблюдения на паузе иначе не перерисовывался (часы стоят)
   get held() { return holdN === 0; }, get canvas() { return [W, H, CS]; }, get bufN() { return Object.keys(BUF).length; }, get voiceN() { return Object.keys(BUF).filter(isVoice).length; },
   get vols() { const g = n => n ? +n.gain.value.toFixed(3) : null; return { out: g(outG), mus: g(uMus), sfx: g(uSfx), sfxRev: g(sfxRev), sfxLow: g(sfxLow), amb: g(uAmb), bedLow: g(bedLow), voice: g(voiceOut), voiceRev: g(voiceRev), direct: g(directG), bed: g(bedG) }; } };
 // режим проверки для владельца (qa.js): ?qa=1 — включить (запоминается), ?qa=0 — выключить; в демо itch.io не включается

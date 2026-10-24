@@ -191,5 +191,13 @@
  "pen": [
   "Ballpoint pen writing quickly on paper in a notebook, close, quiet room",
   3.0
+ ],
+ "hush": [
+  "Creepy whispered \"shhh\" right into the listener's ear, one long slow hushing breath, dry close-mic, no reverb",
+  2
+ ],
+ "skin_stretch": [
+  "Wet skin slowly stretching and creaking, like a mouth tearing too wide, close-mic, gruesome",
+  1
  ]
 }

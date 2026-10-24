@@ -681,6 +681,20 @@ const POSE = {
 };
 const _ld = new T.Vector3(), _a = new T.Vector3(), _b = new T.Vector3(), _c = new T.Vector3(), _q = new T.Quaternion(), _q2 = new T.Quaternion(), _pq = new T.Quaternion();
 // повернуть кость так, чтобы она смотрела в направлении dir (в осях персонажа: +z вперёд, +y вверх, +x влево)
+function footFloor(C) {   // носок не под полом: если подушечка стопы ниже пола, стопа в голеностопе поворачивается вверх ровно до пола
+  C.root.updateWorldMatrix(true, true); const fl = C.root.getWorldPosition(new T.Vector3()).y, iq = C.root.getWorldQuaternion(new T.Quaternion()).invert();
+  for (const sd of ['l', 'r']) { const ft = C.bone['foot_' + sd], bl = C.bone['ball_' + sd]; if (!ft || !bl) continue;
+    const fp = ft.getWorldPosition(new T.Vector3()), bp = bl.getWorldPosition(new T.Vector3()); if (bp.y > fl + .01) continue;
+    const L = fp.distanceTo(bp) || .1, s = clamp((fl + .015 - fp.y) / L, -1, 1), d = bp.sub(fp).applyQuaternion(iq), hz = Math.hypot(d.x, d.z) || 1, c = Math.sqrt(1 - s * s);
+    aimBone(C, 'foot_' + sd, 'ball_' + sd, [d.x / hz * c, s, d.z / hz * c], 1); }
+}
+function heelFloor(C, fl) {   // вытянутая нога сидящего: пятка (≈8 см под голеностопом) не ниже пола fl — нога приподнимается от бедра ровно настолько
+  C.root.updateWorldMatrix(true, true); const iq = C.root.getWorldQuaternion(new T.Quaternion()).invert();
+  for (const sd of ['l', 'r']) { const th = C.bone['thigh_' + sd], ft = C.bone['foot_' + sd]; if (!th || !ft) continue;
+    const fp = ft.getWorldPosition(new T.Vector3()), up = fl + .084 * (C.ss || 1) - fp.y; if (up <= 0) continue;
+    const hp = th.getWorldPosition(new T.Vector3()), d = fp.add(new T.Vector3(0, up, 0)).sub(hp).applyQuaternion(iq);
+    aimBone(C, 'thigh_' + sd, 'foot_' + sd, [d.x, d.y, d.z], 1); }
+}
 function aimBone(C, name, child, dir, k) {
   const b = C.bone[name], c = C.bone[child]; if (!b || !c) return;
   b.updateWorldMatrix(true, true);
@@ -787,6 +801,13 @@ function buildHands() {
     HANDP[name] = { l: {}, r: {} };
     for (const sd of ['l', 'r']) for (const bn in HANDP.relax[sd]) HANDP[name][sd][bn] = f(bn, HANDP.relax[sd][bn]);
   }
+  // мягкая кисть: пальцы чуть согнуты, большой расслаблен — так руки висят у живого человека (кадр Idle_Loop сжимал их в кулак: все стояли «со злостью»)
+  HANDP.soft = { l: {}, r: {} };
+  for (const sd of ['l', 'r']) for (const bn in HANDP.relax[sd]) HANDP.soft[sd][bn] = qpow(HANDP.relax[sd][bn], R0(bn), bn.startsWith('thumb') ? .55 : /_01_/.test(bn) ? .38 : .5);
+  // указательный: вытянут и чуть согнут, остальные поджаты, большой лежит на среднем (кадр из Interact давал неестественный палец — владелец 24 окт)
+  HANDP.point = { l: {}, r: {} };
+  for (const sd of ['l', 'r']) for (const bn in HANDP.relax[sd]) { const q = HANDP.relax[sd][bn], r0 = R0(bn);
+    HANDP.point[sd][bn] = bn.startsWith('index') ? qpow(q, r0, /_01_/.test(bn) ? .1 : .3) : bn.startsWith('thumb') ? qpow(q, r0, 1.15) : qpow(q, r0, 1.4); }
 }
 function setFingers(C, sd, pose, w) {
   const H = HANDP[pose]; if (!H || !(w > 0)) return;
@@ -970,6 +991,7 @@ function bonesSnap(C) {
   if (!C.clean) C.clean = [...new Set(Object.values(C.bone))].map(b => [b, new T.Quaternion(), new T.Vector3()]);
   for (const e of C.clean) { e[1].copy(e[0].quaternion); e[2].copy(e[0].position); }
 }
+const SOFTC = new Set(['Idle_Loop', 'Idle_Talking_Loop', 'Walk_Loop', 'Sitting_Idle_Loop', 'Sitting_Talking_Loop', 'Crouch_Idle_Loop', 'Crouch_Fwd_Loop', 'Jog_Fwd_Loop', 'Sprint_Loop']);
 function act3Body(C, P, tt, dt) {
   if (C.clip !== '§') { C.mixer.stopAllAction(); C.acts3 = C.acts3 || {}; for (const k in C.acts3) C.acts3[k].on3 = false; C.act = null; C.clip = '§'; }
   buildHands();
@@ -1003,12 +1025,15 @@ function act3Body(C, P, tt, dt) {
       pel.parent.updateWorldMatrix(true, false); pel.position.copy(pel.parent.worldToLocal(wp)); pel.updateWorldMatrix(false, true); }
     for (const [sd, wpos, wq] of feet) { const lp = C.root.worldToLocal(wpos.clone()); ik2(C, 'thigh_' + sd, 'calf_' + sd, 'foot_' + sd, lp.x, lp.y, lp.z, [sd === 'l' ? .15 : -.15, 0, 1]); keepWorld(C, 'foot_' + sd, wq); }
   }
+  if (!C.o.monster && list.every(c => SOFTC.has(c[0])))   // обычная стойка, речь, ходьба, сидя: кисти мягкие (если кадр не задал пальцы и в руке ничего нет)
+    for (const sd of ['l', 'r']) if (!(P.fing && P.fing[sd]) && !(P.hold && P.hold[sd])) setFingers(C, sd, 'soft', 1);
   if (P.fing) for (const sd of ['l', 'r']) if (P.fing[sd]) setFingers(C, sd, P.fing[sd][0], P.fing[sd][1] ?? 1);
   if (P.wig) for (const [bn, ax, a] of P.wig) wiggle(C, bn, ax, a);
   if (P.twist) { C.root.updateWorldMatrix(true, true); const up = new T.Vector3(0, 1, 0).applyQuaternion(C.root.getWorldQuaternion(new T.Quaternion()));
     for (const [bn, f] of [['spine_01', .25], ['spine_02', .35], ['spine_03', .4]]) { const b = C.bone[bn]; const wq = b.getWorldQuaternion(new T.Quaternion()).premultiply(new T.Quaternion().setFromAxisAngle(up, P.twist * f)); setWorldQ(b, wq); } }
   if (P.spine) leanTo(C, P.spine.to, P.spine.k ?? .4);
   if (P.arm) for (const sd of ['l', 'r']) if (P.arm[sd]) reachArm(C, sd, P.arm[sd]);
+  if (P.heels != null) heelFloor(C, P.heels);   // heels — высота пола (корень сидящего бывает приподнят над полом)
   if (P.after) P.after(C, tt);
   if (P.hold) for (const sd of ['l', 'r']) if (P.hold[sd]) holdProp(C, sd, P.hold[sd], dt);
   if (P.wear) for (const name in P.wear) wearProp(C, name, P.wear[name]);
@@ -1023,7 +1048,9 @@ function wearProp(C, name, [bone, off, rot]) {
 }
 
 function updateSkinned(C, t, dt) {
-  const tt = t + C.t0, P = C.pose, U = C.U;
+  // склейка (C.cut из draw) или персонаж снова появился после перерыва (Жилец мелькнул в глубине кадра): поза, взгляд и шаг — сразу, не перетекают из прошлого появления
+  const tt = t + C.t0, P = C.pose, U = C.U, cut = C.cut || C.lastT == null || t - C.lastT > .5 || t < C.lastT; C.cut = false; C.lastT = t;
+  if (cut) { C.lookDir = null; C.prevP = null; C.walkV = null; }
   if (C.talk > .06) C.talkT = tt + .7;   // паузы между словами не сбивают анимацию «говорит»
   const talking = tt < (C.talkT || -1);
   const OBJ = !!(C.v3 && P && typeof P === 'object');   // поза-объект: постановка act3Body (клипы по времени кадра, пальцы, касания, предметы)
@@ -1037,7 +1064,7 @@ function updateSkinned(C, t, dt) {
   if (want !== C.clip) {
     const CL = C.clips || CLIP, a = C.mixer.clipAction(CL[want] || CL.Idle_Loop);
     a.reset().setEffectiveWeight(1).setEffectiveTimeScale(1); a.on3 = false;
-    if (C.act && dt < .2) { a.play(); C.act.crossFadeTo(a, .35, false); } else { C.mixer.stopAllAction(); a.play(); }
+    if (C.act && dt < .2 && !cut) { a.play(); C.act.crossFadeTo(a, .35, false); } else { C.mixer.stopAllAction(); a.play(); }   // на склейке — сразу новая поза (плавный переход в начале кадра выглядел как «встаёт в полный рост»)
     if (!C.act) a.time = (C.t0 * 1.7) % (a.getClip().duration || 1);
     if (P === 'lay') { C.mixer.stopAllAction(); a.play(); a.time = 0; a.timeScale = 0; }   // тело: первый кадр «лёжа», без движения
     C.act = a; C.clip = want;
@@ -1125,11 +1152,13 @@ function updateSkinned(C, t, dt) {
     aimBone(C, 'upperarm_l', 'lowerarm_l', [.15, .05 - sw, 1], 1); aimBone(C, 'lowerarm_l', 'hand_l', [.05, .1, 1], 1);
   } else if (P === 'eat') {
     // рвёт и тащит ко рту: руки к земле перед собой, рывками вверх
-    const tr = Math.max(0, Math.sin(tt * 4.2)) ** 5, tl = Math.max(0, Math.sin(tt * 4.2 + 2.1)) ** 5;
-    const bite = Math.pow(Math.max(0, Math.sin(tt * 2.6)), 6), yank = Math.pow(Math.max(0, Math.sin(tt * 2.6 - .9)), 8);   // клюёт в тело и рывком отдирает кусок
+    const go = 1 - (C.eatHold || 0);   // eatHold — перестал есть (замер над телом, голова поднимается к объективу)
+    const tr = go * Math.max(0, Math.sin(tt * 4.2)) ** 5, tl = go * Math.max(0, Math.sin(tt * 4.2 + 2.1)) ** 5;
+    const bite = go * Math.pow(Math.max(0, Math.sin(tt * 2.6)), 6), yank = go * Math.pow(Math.max(0, Math.sin(tt * 2.6 - .9)), 8);   // клюёт в тело и рывком отдирает кусок
     aimBone(C, 'spine_02', 'spine_03', [Math.sin(tt * 7) * .08 * yank, .55 - bite * .35 + yank * .3, 1], .8);
     aimBone(C, 'upperarm_r', 'lowerarm_r', [-.2, -.75, .75], 1); aimBone(C, 'lowerarm_r', 'hand_r', [.1, -.75 + tr * 1.1, .7 - tr * .3], 1);
     aimBone(C, 'upperarm_l', 'lowerarm_l', [.2, -.75, .75], 1); aimBone(C, 'lowerarm_l', 'hand_l', [-.1, -.75 + tl * 1.1, .7 - tl * .3], 1);
+    footFloor(C);   // на корточках носок задней ноги уходил под пол на 10 см
   } else if (P === 'embrace') {
     // кинулась на шею: руки вверх и в стороны, мимо камеры, локти согнуты — обнимает того, кто смотрит
     const k = clamp((C.actT ?? 9) / .45, 0, 1), sq = Math.sin(tt * 1.7) * .05;
@@ -1178,7 +1207,8 @@ function updateSkinned(C, t, dt) {
     const cur = C.headFwd.clone().applyQuaternion(hb.getWorldQuaternion(new T.Quaternion()));
     _q.setFromUnitVectors(cur, LD); _q.slerp(_pq.identity(), 1 - f);
     // Жилец: голова набок, и время от времени шея резко «ломается» почти горизонтально (на скримере — прямо, лицом в лицо)
-    if (C.o.tilt && bn === 'Head' && !C.noTilt) { const snap = C.o.jerk && P !== 'eat' ? Math.pow(Math.max(0, Math.sin(tt * .9 + 1)), 24) * 1.1 : 0; const r = new T.Quaternion().setFromAxisAngle(LD, (Math.sin(tt * .3) * .05 + C.o.tilt + snap) * (C.o.flip ? -1 : 1)); _q.premultiply(r); }
+    const tl = C.tiltNow ?? C.o.tilt;   // tiltNow — наклон головы, заданный кадром (голова медленно ложится набок, не сводя глаз)
+    if (tl && bn === 'Head' && !C.noTilt) { const snap = C.o.jerk && P !== 'eat' ? Math.pow(Math.max(0, Math.sin(tt * .9 + 1)), 24) * 1.1 : 0; const r = new T.Quaternion().setFromAxisAngle(LD, (Math.sin(tt * .3) * .05 + tl + snap) * (C.o.flip ? -1 : 1)); _q.premultiply(r); }
     bw.premultiply(_q); b.parent.getWorldQuaternion(_pq); b.quaternion.copy(_pq.invert().multiply(bw)); _pq.identity();
     b.updateWorldMatrix(false, true);
   }
@@ -1221,7 +1251,7 @@ function updateSkinned(C, t, dt) {
       C.brT = (C.brT ?? 2 + rnd() * 4) - dt; if (C.brT < 0) { C.brT = 3 + rnd() * 5; C.brF = 1; }
       if (C.brF > 0) { up += Math.sin((1 - C.brF) * Math.PI) * .45; C.brF -= dt * 2.2; }
     }
-    const B = C.browU.value, kb = Math.min(1, dt * 12); B.x += (up - B.x) * kb; B.y += (inn - B.y) * kb;
+    const B = C.browU.value, kb = cut ? 1 : Math.min(1, dt * 12); B.x += (up - B.x) * kb; B.y += (inn - B.y) * kb;
   }
   U.uScream.value = C.scream || fs.scream || 0;
   U.uGore.value = C.gore || 0;
@@ -1250,21 +1280,26 @@ function humanMat(C, n, kind, Q) {
   if (kind === 'eyes' && o.deadEyes != null) { p.map = null; p.color = o.deadEyes; }
   if (kind === 'teeth') p.color = o.monster ? 0x8a8070 : 0xd8d0c2;
   if (CINE && src.normalMap && (cloth || kind === 'hair')) p.normalMap = src.normalMap;
-  if (cut) Object.assign(p, kind === 'eyes' ? { alphaTest: .3 } : { alphaTest: kind === 'hair' ? (CINE ? .18 : .3) : .25, side: T.DoubleSide });   // в «Кино» у волос остаются тонкие пряди по краю — линия лба мягче   // глаз: внешняя роговица прозрачная — иначе радужку не видно
+  if (cut) Object.assign(p, kind === 'eyes' ? { alphaTest: .3 } : { alphaTest: kind === 'hair' ? .18 : .25, side: T.DoubleSide });   // волосы одинаково в обоих видах: в «Ретро» порог .3 срезал тонкие пряди — Лили была лысой   // в «Кино» у волос остаются тонкие пряди по краю — линия лба мягче   // глаз: внешняя роговица прозрачная — иначе радужку не видно
   const m = ps1(litMat(p, R));
   if (CINE && cut && kind !== 'eyes') m.alphaToCoverage = true;
   if (CINE && kind === 'eyes') m.envMapIntensity = .9;
   if (CINE && (kind === 'skin' || cloth)) m.envMapIntensity = .22;   // иначе на контровом свете кожа светится ореолом
+  if (CINE && kind === 'hair') { m.envMapIntensity = .1; if (m.normalMap) m.normalScale.set(.45, .45); }   // лампы потолка отражались в макушке золотым «обручем» (пробор у Лили); блеск волос — прядями, не зеркалом, рельеф карты мягче
   if (CINE && (kind === 'teeth' || kind === 'tongue')) { m.envMapIntensity = .06; m.roughness = .55; }   // во рту нет бликов от комнаты
   const re = Array.isArray(tint) ? tint : null, U = Object.assign({}, C.HU, { uQ: { value: Q }, uTint: { value: new T.Color(re ? re[0] : 0xffffff) }, uGain: { value: re ? re[1] : 1 } });
+  const hem = /pants|jeans|trousers/.test(kind) && C.hemY != null ? C.hemY : null;
+  const infl = /sweater|shirt|hoodie/.test(kind) && C.hemY != null ? .007 / Q.getMaxScaleOnAxis() : 0;   // низ кофты чуть наружу — лежит поверх брюк и на шаге
   const snap = m.onBeforeCompile;
   m.onBeforeCompile = sh => {
     snap(sh); Object.assign(sh.uniforms, U);
-    sh.vertexShader = 'uniform mat4 uQ;\nvarying vec3 vB;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vB = (uQ * vec4(position, 1.)).xyz;');
+    sh.vertexShader = 'uniform mat4 uQ;\nvarying vec3 vB;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vB = (uQ * vec4(position, 1.)).xyz;'
+      + (infl ? `\n  transformed += normalize(normal) * ${infl.toExponential(3)} * smoothstep(${(C.hemY + .16).toFixed(3)}, ${(C.hemY - .02).toFixed(3)}, vB.y);` : ''));
     sh.fragmentShader = `uniform vec3 uTint, uGoreP, uEyeL3, uEyeR3; uniform float uGain, uGrey, uWet, uGore, uSocket, uH, uMouthZ;
 varying vec3 vB;
 float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
 ` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+  ${hem != null ? `if (vB.y > ${hem.toFixed(3)}) discard;   // под подолом кофты` : ''}
   ${re ? `diffuseColor.rgb = mix(vec3(${LUMA}) * uTint * uGain, uTint, ${(re[2] || 0).toFixed(2)});` : ''}
   ${kind === 'skin' ? `{ float s = smoothstep(.04, .012, length(vB - uEyeL3)) + smoothstep(.04, .012, length(vB - uEyeR3)); diffuseColor.rgb *= 1. - .9 * uSocket * clamp(s, 0., 1.); }` : ''}
   ${kind === 'hair' && CINE ? `diffuseColor.rgb *= .86 + .28 * hh3(vec3(floor(vB.x * 160.), floor(vB.z * 160.), 1.));   // пряди: соседние полоски (по телу, сверху вниз) чуть разной яркости — волосы не сплошная шапка` : ''}
@@ -1292,7 +1327,7 @@ float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43
   };
   // ключ программы: код шейдера у зубов, языка и «приглушённой» одежды свой — иначе three.js отдаёт им чужую готовую программу с тем же набором текстур
   const dimK = (() => { for (const k in (o.dim || {})) if (kind.includes(k)) return 'd' + o.dim[k]; return ''; })();
-  m.customProgramCacheKey = () => 'hum3' + (kind === 'skin' ? 's' : '') + (kind === 'hair' ? 'h' : '') + (kind === 'teeth' ? 't' : kind === 'tongue' ? 'g' : '') + dimK + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
+  m.customProgramCacheKey = () => 'hum3' + (hem != null ? 'p' + hem.toFixed(3) : '') + (infl ? 'i' + C.hemY.toFixed(3) : '') + (kind === 'skin' ? 's' : '') + (kind === 'hair' ? 'h' : '') + (kind === 'teeth' ? 't' : kind === 'tongue' ? 'g' : '') + dimK + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
   return m;
 }
 
@@ -1338,6 +1373,9 @@ function makeHuman(o) {
     uGoreP: { value: new T.Vector3() }, uEyeL3: { value: new T.Vector3() }, uEyeR3: { value: new T.Vector3() }, uH: { value: 1 }, uMouthZ: { value: 9 } };
   const toM = n => rest[meshes.indexOf(n)][0].clone().multiply(n.bindMatrix);   // сжатые координаты → метры
   const part = {};
+  // подол кофты/рубашки (низ в позе покоя, метры): брюки выше него всё равно под ней — их там не рисуем, иначе на шаге бедро протыкает подол тёмным клином
+  { const top = meshes.find(n => /sweater|shirt|hoodie/.test(n.name)), bot = meshes.find(n => /pants|jeans|trousers/.test(n.name));
+    if (top && bot) { const g = top.geometry; if (!g.boundingBox) g.computeBoundingBox(); C.hemY = g.boundingBox.clone().applyMatrix4(toM(top)).min.y + .035; } }
   for (const n of meshes) {
     n.frustumCulled = false;
     const kind = n.name; part[kind.startsWith('cloth') ? kind : kind] = n;
@@ -1346,7 +1384,7 @@ function makeHuman(o) {
     if (n.morphTargetInfluences) { n.morphTargetInfluences.fill(0); C.M.push(n); }
     n.userData.Q = Q;
   }
-  C.mesh = part.skin; C.brows = part.brows; C.lashes = part.lashes; C.hairM = part.hair;
+  C.mesh = part.skin; C.brows = part.brows; C.lashes = part.lashes; C.hairM = part.hair; C.eyeM = part.eyes && part.eyes.material;   // eyeM: глаза ловят ИК-подсветку камеры (кадр задаёт свечение)
   const bbox = n => n.geometry.boundingBox || (n.geometry.computeBoundingBox(), n.geometry.boundingBox);
   const sb = bbox(C.mesh).clone().applyMatrix4(C.mesh.userData.Q); C.H = sb.max.y;
   if (part.eyes) {   // центры глаз (для тёмных глазниц) — среднее вершин слева и справа
@@ -1438,12 +1476,15 @@ function faceV3(C, tt, dt) {
     add('jawOpen', m * .4);
   } else { C.vPrev = C.vCur = null; }
   // улыбка; у «Лили» за стеклом — шире, чем бывает у людей
-  const sm = Math.max(o.smile || 0, fs.smile ? +fs.smile : 0);
-  if (sm) { add('mouthSmileLeft', Math.min(1, sm)); add('mouthSmileRight', Math.min(1, sm)); add('cheekSquintLeft', .35 * sm); add('cheekSquintRight', .35 * sm);
+  // fs.dead — «мёртвая» улыбка: растёт ровно настолько, насколько задано (может начаться с нуля), а глаза в ней не участвуют — не щурятся, а распахнуты
+  const dead = fs.dead || 0, sm = dead ? +fs.smile || 0 : Math.max(o.smile || 0, fs.smile ? +fs.smile : 0), sq = dead ? 0 : 1;
+  if (sm) { add('mouthSmileLeft', Math.min(1, sm)); add('mouthSmileRight', Math.min(1, sm)); add('cheekSquintLeft', .35 * sm * sq); add('cheekSquintRight', .35 * sm * sq);
     if (sm > 1) {   // слишком широкая: губы растянуты до предела и разжаты — видны оба ряда зубов, щёки подпирают глаза
-      const e = sm - 1; add('mouthStretchLeft', e * 2.4); add('mouthStretchRight', e * 2.4); add('mouthUpperUpLeft', e * 1.8); add('mouthUpperUpRight', e * 1.8);
-      add('mouthLowerDownLeft', e * 1.5); add('mouthLowerDownRight', e * 1.5); add('jawOpen', e * .35); add('cheekSquintLeft', e); add('cheekSquintRight', e); } }
-  if (fs.wide) { add('eyeWideLeft', .7); add('eyeWideRight', .7); }
+      const e = sm - 1, st = dead ? 2.9 : 2.4; add('mouthStretchLeft', e * st); add('mouthStretchRight', e * st); add('mouthUpperUpLeft', e * 1.8); add('mouthUpperUpRight', e * 1.8);
+      add('mouthLowerDownLeft', e * 1.5); add('mouthLowerDownRight', e * 1.5); add('jawOpen', e * .35); add('cheekSquintLeft', e * sq); add('cheekSquintRight', e * sq); } }
+  if (dead) { add('eyeWideLeft', .95 * dead); add('eyeWideRight', .95 * dead); add('browInnerUp', .22 * dead); }
+  if (fs.wide) { const w = fs.wide === true ? .7 : +fs.wide; add('eyeWideLeft', w); add('eyeWideRight', w); }
+  if (fs.tense) { add('mouthStretchLeft', fs.tense); add('mouthStretchRight', fs.tense); add('mouthShrugLower', fs.tense * .6); }   // губы оттянуты от страха, подбородок поджат
   if (fs.mouth) add('jawOpen', fs.mouth * .55);
   if (fs.frown) { add('mouthFrownLeft', fs.frown); add('mouthFrownRight', fs.frown); }
   if (fs.squint) { add('eyeSquintLeft', fs.squint); add('eyeSquintRight', fs.squint); }
@@ -1498,6 +1539,7 @@ function castV3() {
     F.fear = F.fear || { mouth: .4, wide: true, browUp: 1, browIn: .8, dart: 1 };
     F.hush = F.hush || { press: 1, wide: true, browUp: .9, browIn: 1, dart: 1 };   // не дышит: глаза распахнуты, губы сжаты
     F.gasp = F.gasp || { mouth: .2, wide: true, browUp: 1, browIn: .9, dart: 1 };   // ахнул: рот чуть приоткрыт (зубы почти не видны)
+    F.terror = F.terror || { press: 1, wide: 1, browUp: 1, browIn: 1, frown: .45, tense: .35, dart: 1 };   // оцепенел от ужаса: глаза распахнуты, губы сжаты, уголки вниз
     F.calm = F.calm || { smile: .3, browUp: .1 };
   }
   for (const k in A) A[k].update(0, 1 / 30);

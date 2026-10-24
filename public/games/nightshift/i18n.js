@@ -92,12 +92,12 @@ const EN = {
   '2. ЛИФТ ПРИЕХАЛ САМ —': '2. ELEVATOR CAME BY', '   НЕ ЗАХОДИ.': '   ITSELF — STAY OUT.', '3. ПОСЛЕ ПОЛУНОЧИ': '3. AFTER MIDNIGHT', '   НИКОГО НЕ ВПУСКАЙ.': '   LET NO ONE IN.',
   '4. КАМЕРУ 13': '4. CAMERA 13 —', '   НЕ ВКЛЮЧАЙ.': '   NEVER TURN ON.', 'Третье правило — ложь.': 'Rule three is a lie.', 'Впусти её.   — М.': 'Let her in.   — M.',
   // финал концовки и журнал ночи
-  'Нажми, чтобы продолжить': 'Tap to continue', '{h} ч {m} мин': '{h} h {m} min', '{m} мин': '{m} min', 'Время в игре': 'Time played', 'Часов смены отстоял': 'Shift hours survived',
+  'Нажми, чтобы продолжить': 'Tap to continue', 'Пробел или клик — дальше': 'Space or click to continue', '{h} ч {m} мин': '{h} h {m} min', '{m} мин': '{m} min', 'Время в игре': 'Time played', 'Часов смены отстоял': 'Shift hours survived',
   'Странностей замечено': 'Anomalies caught', 'Записей в журнале': 'Log entries', 'Пропущено': 'Missed', 'ЖУРНАЛ ДЕЖУРСТВ': 'SECURITY LOG',
   'БЦ «Горизонт» · пост охраны · ночь 28→29 октября': 'Horizon Business Center · security desk · night of Oct 28→29', 'Решения за ночь': 'Decisions tonight',
   'новая концовка': 'new ending', 'Вернуться к выбору': 'Back to the choice',
   // сюжет (новая история), смена: кнопки, пульт, журнал, звонки, виды странностей
-  "CAM 02  ХОЛЛ": "CAM 02  LOBBY", "Удачи на первой смене! Не засни там :)": "Good luck on your first shift! Don't fall asleep there :)",
+  "CAM 02  ХОЛЛ": "CAM 02  LOBBY", "CAM 00  БУДКА": "CAM 00  BOOTH", "Удачи на первой смене! Не засни там :)": "Good luck on your first shift! Don't fall asleep there :)",
   "Сменщик протягивает связку. Рука дрожит.": "The other guard holds out the key ring. His hand is shaking.", "«Как это — не сдал?»": "\"What do you mean, never handed it over?\"",
   "ЖУРНАЛ ФРЭНКА": "FRANK'S LOGBOOK",
   "НЕ ОТЗЫВАЙСЯ НА ИМЯ.\nНЕ ОТКРЫВАЙ ЕМУ ДВЕРЬ.\nСАМ К НЕМУ НЕ ХОДИ —\nНИ НА СВЕТ, НИ В ЛИФТ.": "DON'T ANSWER TO YOUR NAME.\nDON'T OPEN THE DOOR TO IT.\nDON'T GO TO IT YOURSELF —\nNOT TO THE LIGHT, NOT IN THE ELEVATOR.",

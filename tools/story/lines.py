@@ -206,6 +206,9 @@ L = [
  ('d12', 'ФРЭНК', '', '— Шесть ночей держался. Седьмую одному не выдержать.', '— Held out six nights. Can\'t make it through the seventh alone.', 'hoarse, tired, old man'),
  ('d13', 'ФРЭНК', '', '— Меня теперь держит только соль. А тебя — только то, что молчишь.',
   '— Only the salt holds me now. And the only thing holding you is keeping your mouth shut.', 'hoarse, grim, old man'),
+ # соль: сразу, а не только в осмотре — почему круг держит и почему оно зовёт голосом (реплика добавлена 24 окт по отчёту владельца)
+ ('d13b', 'ФРЭНК', '', '— Соль для него — как стена. Через круг оно не пройдёт. Вот и зовёт, уговаривает — ждёт, пока сам выйдешь. Или ответишь.',
+  '— To it, salt is a wall. It can\'t get through the circle. So it calls, it coaxes, it waits for you to step out on your own. Or answer.', 'hoarse, grim, old man'),
  ('d14', 'ИТАН', '', 'Из темноты за кругом позвали Фрэнка. Старческим женским голосом. Ласково.', 'From the dark beyond the circle, someone called to Frank. An old woman\'s voice. Tender.', W),
  ('d15', 'ГОЛОС', 'fake', '— Фрэнки… Сыночек…', '— Frankie… My boy…', 'tender, old woman, distant'),
  ('d16', 'ФРЭНК', '', '— Мама?..', '— Mom?..', 'quiet, almost joyful'),

@@ -29,7 +29,7 @@ function setLand(land) {
   V.land = !!land; V.BW = land ? 480 : 270; V.BH = land ? 270 : 480;
   if (CINE) { const L = (FINE ? 1920 : 1280) * (V.rs || 1) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }
   else { V.RW = V.BW * HD; V.RH = V.BH * HD; }
-  if (CINE) SNAP.value.set(1e5, 1e5); else SNAP.value.set(V.BW / 2.5, V.BH / 2.5);   // в «Кино» вершины не дрожат
+  SNAP.value.set(1e5, 1e5);   // вершины не дрожат ни в «Кино», ни в «Ретро» (24 окт: дрожь вершин PS1 владелец видел как «текстуры мигают/колбасит»)
 }
 setLand(false);
 function ps1(m) {
