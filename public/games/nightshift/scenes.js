@@ -1837,7 +1837,7 @@ SH.k9_glass = { loc: 'lobby', pos: [5.3, 1.24, -.6], look: [6.0, 1.52, .45], fov
   o.lamp.intensity = .5; o.l1.intensity = .5; o.amb.intensity = .14; o.flickOn = false;
   o.faceL.position.set(5.8, 1.5, .1); o.faceL.color.setHex(0xa8b8d0); o.faceL.distance = 2.2; o.faceL.intensity = .9;
   if (t > 3.35) lobbyBlack(o);
-  const PX = 6.24, hit = seg(t, .35, .52), y = lerp(1.58, 1.27, seg(t, 1.8, 3.2));
+  const PX = 6.24, hit = seg(t, .35, .52), y = lerp(1.58, 1.37, seg(t, 1.8, 3.2));   // сползает по стеклу, не ниже его края (под ним — столешница)
   if (t > .5) { o.bPalm.visible = true; o.bPalm.position.set(PX, 1.585, .456); o.bPalm.material.opacity = .2;   // отпечаток там, где ударила
     const L = 1.58 - y; o.bSmear.visible = L > .02; o.bSmear.scale.y = Math.max(.01, L); o.bSmear.position.set(PX, 1.58 - .1 - L / 2, .457); o.bSmear.material.opacity = .13; }
   o.bFog.visible = true; o.bFog.position.set(6.03, 1.46, .456); o.bFog.material.opacity = .22 * (.55 + .45 * Math.sin(t * 2.7)) * seg(t, .2, .9);   // дышит на стекло
@@ -1862,7 +1862,7 @@ SH.k2_last = { loc: 'corridor', pos: [0, 1.6, -1.2], look: [0, 1.45, -25], fov: 
 SH.k3_radio = { loc: 'lobby', pos: [5.2, 1.22, -.95], look: [5.0, 1.55, 2.8], fov: 46, set: (o, t) => {
   o.lamp.intensity = .35; o.lampBulb.visible = true; o.l1.intensity = .22; o.l3.intensity = .1; o.l4.intensity = .12; o.amb.intensity = .1; o.flickOn = false;
   o.faceL.position.set(5.0, 2.1, 1.0); o.faceL.color.setHex(0x8fa4c0); o.faceL.distance = 2.6; o.faceL.intensity = 1.3;
-  if (t > 3.2) lobbyBlack(o);
+  if (t > 3.45) lobbyBlack(o);
   const down = seg(t, 1.9, 2.6);
   return [['monster', 4.95, 0, 1.55, PI, { clips: [['Zombie_Idle_Loop', 1.2, 1]], legs: 'feet', hold: { l: 'radio' }, fing: { l: ['grip', 1] },
     arm: { l: { at: C => { const h = C.bone.Head.getWorldPosition(_tv); return [h.x + .04, h.y - .1 - .5 * down, h.z - .15 + .05 * down]; }, by: 'palm', fdir: [-.1, 1, -.2], pdir: [.1, -.1, -1], w: 1 } },
