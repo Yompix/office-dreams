@@ -1,0 +1,118 @@
+[
+ {
+  "src": "Idle_Conversation_Loop_MIXAMO_769_segment-2.fbx",
+  "name": "Rk_Conversation_Loop",
+  "t0": 0.5,
+  "t1": 24.0,
+  "loop": true,
+  "stab": 4
+ },
+ {
+  "src": "Idle_Chatting_MIXAMO_WHS.fbx",
+  "name": "Rk_Chatting_Loop",
+  "t0": 1.6,
+  "t1": 24.5,
+  "loop": true,
+  "stab": 4
+ },
+ {
+  "src": "Idle_Chatting02_MIXAMO_WHS.fbx",
+  "name": "Rk_Chatting2_Loop",
+  "t0": 1.6,
+  "t1": 38.5,
+  "loop": true,
+  "stab": 4
+ },
+ {
+  "src": "Idle_Arguing_MIXAMO_WHS.fbx",
+  "name": "Rk_Arguing_Loop",
+  "t0": 1.6,
+  "t1": 43.0,
+  "loop": true,
+  "stab": 4
+ },
+ {
+  "src": "Idle_LookingAround_MIXAMO_769.fbx",
+  "name": "Rk_LookAround_Loop",
+  "t0": 1.6,
+  "t1": 31.5,
+  "loop": true,
+  "stab": 4
+ },
+ {
+  "src": "Idle_WatchingSomething_Loop_MIXAMO_769_segment.fbx",
+  "name": "Rk_Watching_Loop",
+  "t0": 0.5,
+  "t1": 25.0,
+  "loop": true,
+  "stab": 4
+ },
+ {
+  "src": "Idle_Pointing_MIXAMO_769.fbx",
+  "name": "Rk_Pointing",
+  "t0": 1.6,
+  "t1": 17.0,
+  "loop": true,
+  "stab": 4
+ },
+ {
+  "src": "Sitting_Idle01_HUMANIK_769.fbx",
+  "name": "Rk_SitIdle_Loop",
+  "t0": 3.0,
+  "t1": 27.0,
+  "loop": true,
+  "stab": 4,
+  "pelvis": [
+   0.003,
+   0.561,
+   -0.343
+  ]
+ },
+ {
+  "src": "Sitting_Idle02_HUMANIK_769.fbx",
+  "name": "Rk_SitIdle2_Loop",
+  "t0": 3.0,
+  "t1": 24.0,
+  "loop": true,
+  "stab": 4,
+  "pelvis": [
+   0.003,
+   0.561,
+   -0.343
+  ]
+ },
+ {
+  "src": "SittingTalking_Gossip_ue.fbx",
+  "name": "Rk_SitTalk_Loop",
+  "t0": 4.0,
+  "t1": 26.0,
+  "loop": true,
+  "stab": 4,
+  "pelvis": [
+   0.003,
+   0.561,
+   -0.343
+  ]
+ },
+ {
+  "src": "TalkingHead_Intv_ue.fbx",
+  "name": "Rk_SitTalk2_Loop",
+  "t0": 3.0,
+  "t1": 19.0,
+  "loop": true,
+  "stab": 4,
+  "pelvis": [
+   0.003,
+   0.561,
+   -0.343
+  ]
+ },
+ {
+  "src": "OnCellPhone_ue.fbx",
+  "name": "Rk_Phone_Loop",
+  "t0": 1.5,
+  "t1": 32.0,
+  "loop": true,
+  "stab": 4
+ }
+]

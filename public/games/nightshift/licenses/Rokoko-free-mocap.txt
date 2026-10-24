@@ -1,0 +1,22 @@
+Rokoko — free motion capture packs (rokoko.com), used in models/anims2.glb
+==========================================================================
+
+Terms as published on the download pages (read on 24 Oct 2026):
+
+  Everyday idles, Walk/Run cycles:
+  "The character animations are full body (i.e finger motions are captures too) and you can use them
+   in any animation, VFX, game, 3D art etc project you want, from passion project to commercial use."
+    https://www.rokoko.com/resources/rokoko-mocap-10-free-everyday-idle-animations
+    https://www.rokoko.com/resources/rokoko-mocap-16-free-walk-and-run-cycle-animations
+
+  TV-themed pack:
+  "Use them in any animation, VFX, game, 3D art or other 3D project you want, including for commercial use."
+    https://www.rokoko.com/resources/rokoko-mocap-free-tv-themed-animations
+
+  263-asset compilation:
+  "...you can use in any animation, VFX, game, 3D project you want, including for commercial use."
+    https://www.rokoko.com/resources/download-263-rokoko-motion-capture-assets
+
+How they are used here: the motion of selected clips was retargeted in code (tools/anim/mocap.py) onto the
+game's own skeleton and stored as animation tracks inside models/anims2.glb. The original FBX files are not
+redistributed. No attribution is required by these terms; Rokoko is credited as a courtesy.

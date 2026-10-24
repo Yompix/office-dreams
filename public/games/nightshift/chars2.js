@@ -23,13 +23,15 @@ async function load(onFile) {
   const L = new window.THREE_GLTFLoader();
   if (window.MeshoptDecoder) { try { await window.MeshoptDecoder.ready; L.setMeshoptDecoder(window.MeshoptDecoder); } catch (e) { console.warn('meshopt', e); } }
   // каждый файл — со второй попыткой: один сбой сети не должен откатывать всех людей к запасным
-  const url = n => 'models/' + n + '.glb?v=' + (HUMANS.includes(n) ? 4 : 1);
+  const url = n => 'models/' + n + '.glb?v=' + (HUMANS.includes(n) ? 4 : n === 'anims2' ? 1 : 1);   // anims2 — поднимать при пересборке мокапа
   const one = n => get(url(n)).catch(() => get(url(n))).then(b => new Promise((ok, no) => L.parse(b, '', g => { G[n] = g; if (onFile) onFile(); ok(); }, no)));
   // anims.glb — только скелет male.glb и 41 клип Quaternius UAL 1–2 (CC0), перенесённые tools/anim/retarget.py
   try { await Promise.all(['anims', ...HUMANS].map(one)); V3 = !!window.MeshoptDecoder; }
   catch (e) { console.warn('models v3', e); V3 = false; }
+  // anims2.glb — живые движения с пальцами (мокап Rokoko и CMU, перенесён на этот же скелет: tools/anim/mocap.py); без него игра идёт на клипах Quaternius
+  if (V3) { try { await one('anims2'); } catch (e) { console.warn('anims2', e); } }
   if (!V3) { try { await Promise.all(FILES.filter(n => !G[n]).map(one)); } catch (e) { console.warn('models', e); return false; } }
-  for (const c of (G.anims || G.male).animations) {
+  for (const c of [...(G.anims || G.male).animations, ...(G.anims2 ? G.anims2.animations : [])]) {
     // только повороты костей (+ высота таза): так одна анимация подходит всем — и мужчине, и женщине, и вытянутому Жильцу
     c.tracks = c.tracks.filter(t => t.name.endsWith('.quaternion') || t.name === 'pelvis.position');
     CLIP[c.name] = c;
@@ -804,6 +806,12 @@ function buildHands() {
   // мягкая кисть: пальцы чуть согнуты, большой расслаблен — так руки висят у живого человека (кадр Idle_Loop сжимал их в кулак: все стояли «со злостью»)
   HANDP.soft = { l: {}, r: {} };
   for (const sd of ['l', 'r']) for (const bn in HANDP.relax[sd]) HANDP.soft[sd][bn] = qpow(HANDP.relax[sd][bn], R0(bn), bn.startsWith('thumb') ? .55 : /_01_/.test(bn) ? .38 : .5);
+  // есть мокап — мягкая кисть берётся у живого человека: средняя поза пальцев, пока руки свободно висят (пальцы согнуты лесенкой — мизинец сильнее указательного, большой расслаблен)
+  if (CLIP.Rk_Watching_Loop) { const c = CLIP.Rk_Watching_Loop;
+    for (const sd of ['l', 'r']) { const acc = {};
+      for (let i = 0; i < 32; i++) { const h = fingerSample('Rk_Watching_Loop', c.duration * (i + .5) / 32, sd);
+        for (const k in h) { const q = h[k]; if (!acc[k]) acc[k] = new T.Quaternion(0, 0, 0, 0); const a = acc[k], sg = a.x * q.x + a.y * q.y + a.z * q.z + a.w * q.w < 0 ? -1 : 1; a.x += sg * q.x; a.y += sg * q.y; a.z += sg * q.z; a.w += sg * q.w; } }
+      for (const k in acc) HANDP.soft[sd][k] = acc[k].normalize(); } }
   // указательный: вытянут и чуть согнут, остальные поджаты, большой лежит на среднем (кадр из Interact давал неестественный палец — владелец 24 окт)
   HANDP.point = { l: {}, r: {} };
   for (const sd of ['l', 'r']) for (const bn in HANDP.relax[sd]) { const q = HANDP.relax[sd][bn], r0 = R0(bn);
@@ -991,6 +999,17 @@ function bonesSnap(C) {
   if (!C.clean) C.clean = [...new Set(Object.values(C.bone))].map(b => [b, new T.Quaternion(), new T.Vector3()]);
   for (const e of C.clean) { e[1].copy(e[0].quaternion); e[2].copy(e[0].position); }
 }
+// живые движения (мокап Rokoko с пальцами, anims2.glb): нейтральная стойка и «говорит руками» Quaternius (стойка бойца: ноги широко,
+// колени согнуты, руки вперёд) у людей заменяются мокапом — у каждого свой клип и своя фаза, чтобы двое не двигались одинаково
+const NAT = { temych: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 0], smenshik: ['Rk_LookAround_Loop', 'Rk_Chatting2_Loop', 7.3],
+  mihalych: ['Rk_Watching_Loop', 'Rk_Conversation_Loop', 11.7], cleaner: ['Rk_LookAround_Loop', 'Rk_Conversation_Loop', 4.1],
+  katya: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 9.2], katyaSmile: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 9.2], martha: ['Rk_Watching_Loop', 'Rk_Chatting_Loop', 2.6] };
+function natClip(C, nm) {   // → [клип, сдвиг фазы]
+  const n = !C.o.monster && G.anims2 && NAT[C.o.name]; if (!n) return [nm, 0];
+  if (nm === 'Idle_Loop' && CLIP[n[0]]) return [n[0], n[2]];
+  if (nm === 'Idle_Talking_Loop' && CLIP[n[1]]) return [n[1], n[2]];
+  return [nm, 0];
+}
 const SOFTC = new Set(['Idle_Loop', 'Idle_Talking_Loop', 'Walk_Loop', 'Sitting_Idle_Loop', 'Sitting_Talking_Loop', 'Crouch_Idle_Loop', 'Crouch_Fwd_Loop', 'Jog_Fwd_Loop', 'Sprint_Loop']);
 function act3Body(C, P, tt, dt) {
   if (C.clip !== '§') { C.mixer.stopAllAction(); C.acts3 = C.acts3 || {}; for (const k in C.acts3) C.acts3[k].on3 = false; C.act = null; C.clip = '§'; }
@@ -1006,6 +1025,7 @@ function act3Body(C, P, tt, dt) {
     C.reactW = lerp(C.reactW ?? 0, rc ? 1 : 0, Math.min(1, (dt || 0) * 4)); if (rc) { if (C.reactClip !== rc) C.reactT0 = tt; C.reactClip = rc; }
     if (C.reactW > .01 && C.reactClip) list = [...list.map(c => [c[0], c[1], (c[2] ?? 1) * (1 - C.reactW)]), [C.reactClip, /_Loop$/.test(C.reactClip) ? tt : tt - (C.reactT0 ?? tt), C.reactW]];
     else C.reactClip = null; }
+  list = list.map(c => { const [n2, off] = natClip(C, c[0]); return n2 === c[0] ? c : [n2, c[1] + off, c[2], c[3]]; });
   let ws = 0; for (const c of list) ws += c[2] ?? 1;
   for (const [nm, time, w = 1, loop] of list) {
     const clip = CL[nm]; if (!clip) continue;
@@ -1062,7 +1082,7 @@ function updateSkinned(C, t, dt) {
   if (!OBJ && C.react && REACT[C.react] && (P === 'stand' || P === 'talk')) want = REACT[C.react];   // реакция по реплике: кивок, «нет», руки скрещены
   if (C.o.monster && P === 'walk') want = 'Zombie_Walk_Fwd_Loop';
   if (want !== C.clip) {
-    const CL = C.clips || CLIP, a = C.mixer.clipAction(CL[want] || CL.Idle_Loop);
+    const CL = C.clips || CLIP, a = C.mixer.clipAction(CL[natClip(C, want)[0]] || CL[want] || CL.Idle_Loop);
     a.reset().setEffectiveWeight(1).setEffectiveTimeScale(1); a.on3 = false;
     if (C.act && dt < .2 && !cut) { a.play(); C.act.crossFadeTo(a, .35, false); } else { C.mixer.stopAllAction(); a.play(); }   // на склейке — сразу новая поза (плавный переход в начале кадра выглядел как «встаёт в полный рост»)
     if (!C.act) a.time = (C.t0 * 1.7) % (a.getClip().duration || 1);
@@ -1088,6 +1108,7 @@ function updateSkinned(C, t, dt) {
   for (const sd of ['l', 'r']) { for (const f of FING) for (let j = 1; j <= 3; j++) { const n = f + '_0' + j + '_' + sd; if (C.bone[n]) C.bone[n].quaternion.copy(C.rest[n]); }
     for (let j = 1; j <= 3; j++) { const n = 'thumb_0' + j + '_' + sd; if (C.bone[n]) C.bone[n].quaternion.copy(C.rest[n]); } }
   bonesRestore(C); C.mixer.update(Math.min(sdt, .2)); bonesSnap(C);
+  if (!C.o.monster && SOFTC.has(natClip(C, want)[0])) { buildHands(); for (const sd of ['l', 'r']) setFingers(C, sd, 'soft', 1); }   // кисти мягкие: клип Quaternius сжимал их в кулак
   }
   // ноги: у базовой анимации стойка «борца» (ступни широко) — сводим ступни под бёдра, подошва остаётся на полу
   const STAT = { stand: 1, talk: 1, knock: 1, press: 1, give: 1, paper: 1, reach: 1, hug: 1, mop: 1, slam: 1 };

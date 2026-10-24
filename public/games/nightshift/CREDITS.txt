@@ -32,6 +32,12 @@ a claim on the game. / Ниже — сторонние материалы. Вс�
    Quaternius — Universal Base Characters / Universal Animation Library, CC0 1.0
    (models/LICENSE-Quaternius-CC0.txt) — https://quaternius.com
 
+3a. Motion capture with finger motion (models/anims2.glb: standing idles, conversation gestures)
+   Rokoko free mocap packs (Everyday Idles, Walk & Run cycles, TV-themed, 263-asset compilation), rokoko.com —
+   "use them in any animation, VFX, game, 3D art etc project you want, from passion project to commercial use".
+   Retargeted in code onto the game's skeleton; the original files are not redistributed.
+   Terms and links: licenses/Rokoko-free-mocap.txt
+
 4. Fonts (fonts/ns-logo.woff = Oswald Bold subset for the title, fonts/ns-ui.woff = Oswald Bold subset)
    SIL Open Font License 1.1 — licenses/OFL-Oswald.txt
 
