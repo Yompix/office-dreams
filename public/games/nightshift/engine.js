@@ -921,6 +921,7 @@ function shiftProps() {   // что сейчас видно на камерах:
   const p = Object.assign({}, shk.st, { clk: shf.M, l7: shk.lights[7] ? 1 : 0, l10: shk.lights[10] ? 1 : 0 });
   if (shk.st.blackout) Object.assign(p, { hallDark: 1, stDark: 1, mOff: 1, l7: 0, l10: 0 });   // свет гаснет этаж за этажом — камеры в ИК
   for (const a of shf.act) { Object.assign(p, a.def.props || {}); if (a.def.stare) { const k = a.look || 0; p['stare' + a.def.cam] = k; if (a.def.at) { p['stareAt' + a.def.cam] = stareSpot(a.def, k); p['stareN' + a.def.cam] = stareN(k); p['stareP' + a.def.cam] = a.def.pose3; } } }   // stare07 — сколько секунд игрок уже смотрит на «помехи» (фигура проступает)
+  const rt = radioTalk(); Object.assign(p, rt); shf.gusM = rt.gusR ? rt.gusR.m : 1; p.gz = shf.gz || 0;
   if (shf.id === 'S6' || shf.id === 'A1') p.noEthan = 1;   // Итан не за столом: в серверной с Фрэнком (S6) или прячется за стойкой (A1) — в будке на камерах его нет
   return p;
 }
@@ -930,6 +931,21 @@ function sayV(k, o = {}) {   // реплика во время смены: го�
   const go = () => { if (TIM[k]) for (const vo of voiceFx(k)) { const x = play(k, Object.assign({ bus: 'voice' }, vo, { when: it.t0 - now() + (vo.dt || 0) })); if (x) x.voice = true; } };
   if (TIM[k] && !BUF[k] && AC) voiceReady([k]).then(() => { if (shf && shf.vq.includes(it)) go(); }); else go();   // ещё не декодирована — догоним, когда готова
   return it;
+}
+// Гас и Итан на камерах во время разговора по рации (смена S2): позы считает кадр (scenes.js cam07/cam02) по этим долям 0..1
+const GUS_TAKE = 2, sgE = (t, a, b) => ease(clamp((t - a) / (b - a), 0, 1));
+function radioTalk() {
+  const out = {}, T = now(), g = shf.gusR, r = shf.radioR;
+  for (const R of [g, r]) if (R) { let u = 0; for (const v of R.its) if (whoOf(v.k) === 'ИТАН' && aloudOf(v.k)) u = Math.max(u, sgE(T, v.t0 - .55, v.t0 - .1) * (1 - sgE(T, v.t0 + v.d + .15, v.t0 + v.d + .6))); out.ethR = Math.max(out.ethR || 0, u); }   // Итан отвечает — рация у рта
+  if (r && T > Math.max(...r.its.map(v => v.t0 + v.d)) + 1) shf.radioR = null;
+  if (!g) return out;
+  // Гас: перестал мыть (0,9 с) → швабра к боку (0,45) → рация в руке (0,55); говорит — рация у рта, Итан отвечает — у груди; разговор кончился — рация на место, швабра перед собой, снова моет
+  const t = T - g.t0, its = g.its; let last = 0; its.forEach((v, i) => { if (whoOf(v.k) === 'ГАС') last = i; });
+  const nx = its[last + 1], end = (nx && whoOf(nx.k) === 'ИТАН' && aloudOf(nx.k) ? nx.t0 + nx.d : its[last].t0 + its[last].d) - g.t0;   // Гас слушает ответ Итана; мысли Итана — уже нет
+  if (t > end + 3) { shf.gusR = null; return out; }
+  let u = 0; for (const v of its) if (whoOf(v.k) === 'ГАС') { const a = v.t0 - g.t0; u = Math.max(u, sgE(t, a - .45, a - .05) * (1 - sgE(t, a + v.d + .1, a + v.d + .55))); }
+  out.gusR = { m: Math.max(1 - sgE(t, 0, .9), sgE(t, end + 2, end + 2.9)), b: Math.min(sgE(t, .9, 1.35), 1 - sgE(t, end + 1.5, end + 1.95)), h: Math.min(sgE(t, 1.35, 1.9), 1 - sgE(t, end + .85, end + 1.45)), u };
+  return out;
 }
 function shiftEvent(e) {
   const S2 = S.shift; if (!flagOk(e.if)) return;   // событие часа может зависеть от того, что нашёл раньше
@@ -944,7 +960,11 @@ function shiftEvent(e) {
     if (def.sfx) play(def.sfx[0], def.sfx[1] || {}); if (def.notice) shiftToast(def.notice); }
   if (e.say) sayV(e.say);
   if (e.sfx) play(e.sfx[0], e.sfx[1] || {});   // звук события (звонит телефон Фрэнка на столе)
-  if (e.radio) { play('click', { gain: .4 }); e.radio.forEach(k => sayV(k)); }
+  if (e.radio) {   // по рации. Начинает Гас, а он на камере 07 моет пол — сперва отставляет швабру и снимает рацию с нагрудника; щелчок и голос — когда рация у рта
+    const gus = !!shk.st.gus && whoOf(e.radio[0]) === 'ГАС', dl = gus ? GUS_TAKE : 0;
+    play('click', { gain: .4, when: dl }); const its = e.radio.map((k, i) => sayV(k, { delay: i ? 0 : dl }));
+    if (gus) shf.gusR = { t0: now(), its }; else shf.radioR = { t0: now(), its };
+  }
   if (e.sms) { showSms(e.sms); buzz(60); play('buzz', { gain: .7 }); if (e.sms.reply) setTimeout(() => shiftReply(e.sms), 2600); }
   if (e.state) Object.assign(shk.st, e.state);
   if (e.c13) { shk.c13 = true; shiftUI(); }
@@ -977,6 +997,7 @@ function shiftEnd() { if (shf.ended) return; shf.ended = true; mgEl.classList.ad
 function shiftTick() {
   if (!shf || shf.my !== gen || mode !== 'shift' || shf.ended) return;
   const t = now(), dt = Math.min(.1, t - shf.lt); shf.lt = t;
+  shf.gz = (shf.gz || 0) + dt * (shf.gusM ?? 1);   // часы швабры Гаса: пока он говорит по рации, стоят — потом моет дальше с того же места
   shf.gm = (shf.gm || 0) + dt * shSpd / (shf.seg.spm || SEC_MIN); const M = shf.M = shf.m0 + shf.gm; lastTime = minStr(M); secBase = Math.floor((M % 1) * 60); sceneT0 = t;   // spm — свой темп часа (секунд на минуту)
   clockEl.textContent = minStr(M);
   for (const e of shf.ev) if (!e.done && M >= e.m) { e.done = true; shiftEvent(e); if (shf.ended) return; }
@@ -1905,7 +1926,7 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   initAudio(); loaded = true;
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
-window.__ns = { back: () => menu(), startScene, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); },
+window.__ns = { back: () => menu(), startScene, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); },
   get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get voiceLate() { return voiceLate; },
   // для режима проверки и инструментов: начать сцену как из меню, номер и секунда кадра, пауза, реплики, перемотка кадра на секунду (картинка, без звука)
   begin, get bi() { return bi; }, get bt() { return mode === 'play' && beat && !waiting ? Math.max(0, now() - bT0) : 0; }, get tim() { return TIM; }, pause: on => { if (!on) holdN = -1; setPause(!!on); }, get userPause() { return userPause; },

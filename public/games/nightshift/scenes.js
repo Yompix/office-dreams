@@ -1206,10 +1206,10 @@ function mopGus(o, x, z, ry, t, k = 1) {   // k — насколько моет 
 // ---- седьмой этаж (02:59–03:00): Гас моет и напевает; в три перестаёт, выпрямляется, поворачивается к закрытой 707 ----
 const G7 = [-.15, -10.3], G7RY = .45, G7DOOR = Math.atan2(-1.3 - G7[0], -11.8 - G7[1]);   // где моет; курс к двери 707
 const RADIO_G = ['spine_03', [-.075, .06, .16], [0, 0, 0]];   // рация на нагруднике комбинезона
-function gusStand(o, t, ry, look, hand, b = 1) {   // стоит, швабра в правой руке торчком, левая — на рации (если hand); b < 1 — ещё подтягивает швабру к боку
-  const R = locR(G7[0], G7[1], ry); let head = R.p(-.3, 0, .22), u = nrm(R.v(.05, 1, -.08)), top = [head[0] + u[0] * 1.02, head[1] + u[1] * 1.02, head[2] + u[2] * 1.02];
+function gusStand(o, t, ry, look, hand, b = 1, at = G7, ry0 = G7RY) {   // стоит, швабра в правой руке торчком, левая — на рации (если hand); b < 1 — ещё подтягивает швабру к боку; at, ry0 — где и куда лицом мыл
+  const R = locR(at[0], at[1], ry); let head = R.p(-.3, 0, .22), u = nrm(R.v(.05, 1, -.08)), top = [head[0] + u[0] * 1.02, head[1] + u[1] * 1.02, head[2] + u[2] * 1.02];
   if (b < 1) {   // из позы «швабра стоит перед ним» (mopGus при k = 0): голова швабры едет по полу к правому боку, рука ведёт черенок — без скачка
-    const R0 = locR(G7[0], G7[1], G7RY), hA = R0.p(0, 0, .85), pA = R0.p(-.05, .97, .18), uA = nrm([pA[0] - hA[0], pA[1] - hA[1], pA[2] - hA[2]]), tA = [hA[0] + uA[0] * 1.1, hA[1] + uA[1] * 1.1, hA[2] + uA[2] * 1.1];
+    const R0 = locR(at[0], at[1], ry0), hA = R0.p(0, 0, .8), pA = R0.p(-.05, .97, .18), uA = nrm([pA[0] - hA[0], pA[1] - hA[1], pA[2] - hA[2]]), tA = [hA[0] + uA[0] * 1.1, hA[1] + uA[1] * 1.1, hA[2] + uA[2] * 1.1];
     head = lin(hA, head, b); top = lin(tA, top, b); u = nrm([top[0] - head[0], top[1] - head[1], top[2] - head[2]]); }
   window.__W3chars.propAim('mop', o.S, head, u, ry);
   // hand — рация в левой руке, прижата к груди (зажал кнопку — «рация зашипела»): в ладони, а не на нагруднике и не рукой в воздухе
@@ -1228,7 +1228,7 @@ SH.f7_stop = { loc: 'corridor', pos: [1.0, 1.5, -7.2], look: [-.45, 1.25, -10.9]
   const k = seg(t, 1.3, 2.6), ry = lerp(G7RY, G7DOOR + 2 * PI * (G7DOOR < G7RY - PI ? 1 : 0), k), P = gusStand(o, t, ry, doorP, null, seg(t, 1.0, 1.45));
   if (k > 0 && k < 1) P.clips = [['Idle_Loop', t + 4, .45], ['Walk_Loop', t * .9, .55]];   // переступает на месте, пока поворачивается
   return [['cleaner', G7[0], 0, G7[1], ry, P, null]]; } };
-const radioPt = (ry) => { const R = locR(G7[0], G7[1], ry); return R.p(.05, 1.3, .26); };   // левая рука с рацией у груди
+const radioPt = (ry, at = G7) => { const R = locR(at[0], at[1], ry); return R.p(.05, 1.3, .26); };   // левая рука с рацией у груди
 SH.f7_radio = { loc: 'corridor', pos: [-.95, 1.4, -10.75], look: [-.12, 1.3, -10.35], fov: 38, face: { cleaner: 'alert' }, set: (o, t) => { setLamps(o, 7); o.cleanSet({ bucket: [.6, -10.9, .3], sign: CLEAN.sign, door7: 0 });
   const ry = G7DOOR, hp = radioPt(ry), k = seg(t, .2, .8); hp[1] -= (1 - k) * .2;   // снял рацию с нагрудника и прижал к груди
   return [['cleaner', G7[0], 0, G7[1], ry, gusStand(o, t, ry, [-1.3, 1.55, -11.8], hp), null]]; } };
@@ -1237,7 +1237,8 @@ SH.f7_cam_door = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.35, .9, -10.
 SH.f7_cam_after = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.25, .8, -10.2], fov: 44, cctv: 1, set: (o, t) => { setLamps(o, 7); o.cleanSet({ bucket: [.6, -10.9, .3], sign: CLEAN.sign, wet: [-.1, -10.6], door7: 0 });
   window.__W3chars.propAim('mop', o.S, [.3, .015, -10.45], [-.93, .025, .36], 1.2); return []; } };   // швабра лежит, Гаса нет
 // Итан в будке отвечает по рации: сидит, рация в правой руке у рта
-function eRadio(t) { const R = locR(SEAT[0], SEAT[1], 0), up = seg(t, .1, .6);
+function eRadio(t) { return eRadioK(t, seg(t, .1, .6)); }
+function eRadioK(t, up) { const R = locR(SEAT[0], SEAT[1], 0);
   return { clips: [['Sitting_Idle_Loop', t + 2, 1]], talk: 1, arm: { r: { at: R.p(-.08, 1.13, -.1), by: 'palm', fdir: R.v(.3, 1, .25), pdir: R.v(1, 0, .2), w: up } },   // сидя голова на 27 см позади корня: рация у рта, а не на вытянутой руке
     fing: { r: ['grip', up] }, hold: up > .2 ? { r: 'radio' } : null, look: R.p(-.6, 1.2, 2) }; }
 SH.booth_radio = { loc: 'lobby', pos: [6.35, 1.48, .05], look: [5.15, 1.15, -.75], fov: 42, set: (o, t) => [['temych', SEAT[0], 0, SEAT[1], 0, eRadio(t), null]] };
@@ -1653,7 +1654,7 @@ SH.cam02 = { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov: 7
   o.wetSteps.visible = !!s.wet; if (s.wet) { o.wetM.opacity = .6; o.wetM.color.setHex(0xa8b8c4); }   // на камере мокрые следы блестят
   if (s.hallDark) { o.ceilOn.color.setHex(0x30322e); o.l1.intensity = .25; o.l3.intensity = .2; o.l4.intensity = .2; o.flickOn = false; }
   setLift(o, o.lifts[0], s.liftOpen ? 1 : 0, String(s.lift || '1')); o.cabLight.intensity = s.liftOpen ? 2.4 : 0; if (s.lift13) setLift(o, o.lifts[1], 0, '13');   // лифты видно и отсюда — то же состояние, что на CAM 03
-  const A2 = s.noEthan ? [] : [['temych', SEAT[0], 0, SEAT[1], 0, { clips: [['Sitting_Idle_Loop', t + 2, 1]], look: [4.5, 1.18, .12] }, null]];
+  const A2 = s.noEthan ? [] : [['temych', SEAT[0], 0, SEAT[1], 0, s.ethR > 0 ? eRadioK(t, s.ethR) : { clips: [['Sitting_Idle_Loop', t + 2, 1]], look: [4.5, 1.18, .12] }, null]];   // отвечает Гасу по рации — рация у рта
   if (s.frank02) A2.push(['mihalych', -3.6, 0, -4.4, .84, STILL('Idle_Loop', 2.1), [7.45, 3.85, 5.45]]);   // в глубине холла, лицом к камере
   return A2; } };
 SH.cam03 = { loc: 'lobby', pos: [.2, 3.2, -1.6], look: [-1.5, 1.25, -6], fov: 58, cctv: 1, set: (o, t) => { const s = SHS();
@@ -1665,12 +1666,27 @@ SH.cam03 = { loc: 'lobby', pos: [.2, 3.2, -1.6], look: [-1.5, 1.25, -6], fov: 58
 SH.cam04 = { loc: 'stairs', pos: [1.25, 7.3, -.3], look: [-.1, 4.5, -5.0], fov: 62, cctv: 1, set: (o, t) => { const s = SHS(); o.setFloor(1, 4); o.setFloor(0, 3); o.setFloor(2, 5);
   if (s.stDark) { stDim(o, 0); irOn(o, [1.2, 7.1, -.5], 1.7); } else if (!s.st) o.bulbs.forEach(b => { b.li.intensity = b.base * .4; });
   return s.guard04 ? [['smenshik', -.3, 4.5, -5.5, PI, STILL('Idle_Loop', .7), null]] : []; } };
+// Гас на камере 07 говорит с Итаном по рации (доли от движка, radioTalk): m — ещё моет, b — швабра у бока, h — рация в руке, u — рация у рта.
+// Перестал мыть → отставил швабру к боку → левой снял рацию с нагрудника → поднёс ко рту, пока говорит; Итан отвечает — рация у груди; потом всё обратно
+const _wv = new T.Vector3();
+function wornPt(C, [bone, off]) { const b = C && C.bone && C.bone[bone]; if (!b) return null; b.updateWorldMatrix(true, false); _wv.set(off[0], off[1], off[2]).applyMatrix4(b.matrixWorld); return [_wv.x, _wv.y, _wv.z]; }
+function gusRadioCam(o, t, x, z, ry, g) {
+  if (g.b <= 0) { const P = mopGus(o, x, z, ry, t, g.m); P.wear = { radio: RADIO_G }; return P; }
+  const R = locR(x, z, ry), chest = R.p(.07, 1.3, .17), mouth = R.p(.05, 1.46, .15), clip = wornPt(A.cleaner, RADIO_G) || R.p(.07, 1.24, .17);
+  const P = gusStand(o, t, ry, R.p(0, 1.4, 3), null, g.b, [x, z], ry);
+  if (g.h > 0) { const w = seg(g.h, 0, .45), inH = g.h >= .45, at = inH ? lin(lin(clip, chest, seg(g.h, .45, 1)), mouth, g.u) : clip;
+    P.arm.l = { at, by: 'palm', fdir: R.v(-.15, 1, .05), pdir: R.v(.05, -.1, -1), w }; P.fing.l = ['grip', w];
+    if (inH) { delete P.wear; P.hold = { l: 'radio' }; } }
+  P.talk = g.u > .6 ? 1 : 0;
+  return P;
+}
 // 7-й: Гас моет (s.gus), свет горит, пока он там; без него — темно, камера в ИК
 SH.cam07 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .8, -10.2], fov: 44, cctv: 1, set: (o, t) => { const s = SHS();
   const C = s.gus ? Object.assign({}, CLEAN) : {}; C.door7 = 0;
   if (s.bucket7) { C.bucket = [-.3, -8.1, .7]; C.mop = [.35, -8.9, 1.25, 1]; }
   o.cleanSet(C); o.ajar10(s.door7 ? 1.4 : 0);
-  if (s.gus) { setLamps(o, 7); const z = -9.45 + Math.sin(t * .05) * 1.5; return [['cleaner', -.1, 0, z, .2, mopGus(o, -.1, z, .2, t), null]]; }
+  if (s.gus) { setLamps(o, 7); const z = -9.45 + Math.sin((s.gz ?? t) * .05) * 1.5;   // s.gz — часы швабры: пока говорит по рации, стоят
+    return [['cleaner', -.1, 0, z, .2, s.gusR ? gusRadioCam(o, t, -.1, z, .2, s.gusR) : mopGus(o, -.1, z, .2, t), null]]; }
   setLamps(o, s.l7 ? 7 : 0); o.amb.intensity = s.l7 ? .36 : .1; if (!s.l7) irOn(o, [1.0, 2.6, -.7], 1.4);
   return []; } };
 SH.cam10 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .9, -12], fov: 46, cctv: 1, set: (o, t) => { const s = SHS(); o.setFloor(10);
