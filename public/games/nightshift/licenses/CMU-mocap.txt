@@ -1,0 +1,16 @@
+Carnegie Mellon University Graphics Lab Motion Capture Database — used in models/anims2.glb (clip Cmu_Mop_Loop: 14_13 "mop floor")
+==========================================================================================================
+
+Terms (http://mocap.cs.cmu.edu/, read on 24 Oct 2026):
+  "This dataset of motions is free for all uses."
+  "This data is free for use in research projects. You may include this data in commercially-sold products,
+   but you may not resell this data directly, even in converted form."
+FAQ (http://mocap.cs.cmu.edu/faqs.php):
+  "The motion capture data may be copied, modified, or redistributed without permission."
+Requested courtesy credit: "The data used in this project was obtained from mocap.cs.cmu.edu.
+The database was created with funding from NSF EIA-0196217."
+
+BVH conversion read from the mirror https://github.com/una-dinosauria/cmu-mocap (Bruce Hahne's conversion:
+"CMU places no restrictions on the use of the original dataset, and I (Bruce) place no additional restrictions").
+How it is used here: the motion was retargeted in code (tools/anim/mocap.py, tools/anim/bvhanim.py) onto the game's
+skeleton and stored inside models/anims2.glb as part of the game; the data is not sold or offered separately.
