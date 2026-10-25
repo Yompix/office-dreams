@@ -1351,7 +1351,8 @@ void RE_Direct_Hum( ${RE_ARGS} ) {
 	vec3 h = normalize( directLight.direction + geometryViewDir );
 	float t1 = dot( tv, h ) + gHairS, t2 = t1 - .12;
 	float s1 = pow( sqrt( max( 0., 1. - t1 * t1 ) ), 110. ), s2 = pow( sqrt( max( 0., 1. - t2 * t2 ) ), 26. );
-	reflectedLight.directSpecular += directLight.color * smoothstep( -.15, .35, nl ) * smoothstep( .35, .8, tl ) * ( s1 * .07 + s2 * .09 * material.diffuseColor );
+	float up = dot( geometryNormal, normalize( ( viewMatrix * vec4( 0., 1., 0., 0. ) ).xyz ) );   // макушка и верх головы — без полосы (карточки там лежат как попало, был пёстрый блик)
+	reflectedLight.directSpecular += directLight.color * smoothstep( -.15, .35, nl ) * smoothstep( .35, .8, tl ) * ( 1. - smoothstep( .3, .65, up ) ) * ( s1 * .045 + s2 * .06 * material.diffuseColor );
 }`,
   cloth: `void RE_Direct_Hum( ${RE_ARGS} ) {
 	float nl = dot( geometryNormal, directLight.direction ), nv = saturate( dot( geometryNormal, geometryViewDir ) );
