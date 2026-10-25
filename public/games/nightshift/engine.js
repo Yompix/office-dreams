@@ -1679,8 +1679,8 @@ function phoneIn(P, t) {   // экран телефона в координат�
   }
   g.textAlign = 'left';
 }
-function wrapText(s, x0, y0, maxW, lh, maxL) { const ws = s.split(' '); let line = '', n = 0;
-  for (const wd of ws) { const tst = line ? line + ' ' + wd : wd; if (g.measureText(tst).width > maxW && line) { g.fillText(line, x0, y0 + n * lh); line = wd; if (++n >= maxL) return; } else line = tst; }
+function wrapText(s, x0, y0, maxW, lh, maxL) { const cj = /^(zh|ja)$/.test(LNG), ws = cj ? [...s] : s.split(' '); let line = '', n = 0;   // китайский и японский без пробелов — перенос по знакам
+  for (const wd of ws) { if (cj && !line && wd === ' ') continue; const tst = line ? line + (cj ? '' : ' ') + wd : wd; if (g.measureText(tst).width > maxW && line) { g.fillText(line, x0, y0 + n * lh); line = wd; if (++n >= maxL) return; } else line = tst; }
   if (line) g.fillText(line, x0, y0 + n * lh); }
 function rr(x, y, w, h, r) { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); g.fill(); }
 // пред-кадр: застывший прошлый кадр; перед скримером он тонет в темноте, у fx 'glitch' — окно «соединение потеряно»

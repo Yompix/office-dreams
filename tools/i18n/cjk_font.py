@@ -44,7 +44,8 @@ for l in FAM:
     fs, n = faces(l, NAMES[l], f'names-{l}'); cur['names'] += fs
 for l in langs:
     T = json.load(open(os.path.join(ROOT, f'tools/i18n/{l}.json')))
-    text = ' '.join(T['lines'].values()) + ' '.join(T['ui'].values()) + NAMES[l]
+    EX = json.load(open(os.path.join(ROOT, 'tools/i18n/extra.json'))) if os.path.exists(os.path.join(ROOT, 'tools/i18n/extra.json')) else {}
+    text = ' '.join(T['lines'].values()) + ' '.join(T['ui'].values()) + ' '.join((EX.get(l) or {}).values()) + NAMES[l]   # + вывески из extra.json
     cur[l], n = faces(l, text, l)
     kb = sum(os.path.getsize(os.path.join(OUT, f)) for f, _ in cur[l]) / 1024
     print(f'{l}: знаков {n}, файлов {len(cur[l])}, {kb:.0f} КБ')

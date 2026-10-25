@@ -142,7 +142,7 @@ function buildLobby() {
       for (const [px, py, pw, ph, rot] of [[14, 14, 54, 70, -.04], [76, 12, 56, 40, .03], [140, 16, 40, 56, -.02], [80, 60, 50, 54, .05], [16, 92, 60, 28, .02]]) { x.save(); x.translate(px + pw / 2, py + ph / 2); x.rotate(rot); x.fillStyle = rnd() < .3 ? '#efe4b8' : '#ece9e1'; x.fillRect(-pw / 2, -ph / 2, pw, ph);
         x.fillStyle = '#555'; for (let l = 0; l < ph / 7 - 1; l++) x.fillRect(-pw / 2 + 5, -ph / 2 + 7 + l * 7, pw * (.5 + rnd() * .4), 2); x.fillStyle = '#c42a2a'; x.beginPath(); x.arc(0, -ph / 2 + 3, 2.2, 0, 7); x.fill(); x.restore(); } });
     plane(1.15, .78, mat(0xffffff, nb, { decal: 1 }), S).position.set(5.3, 1.95, -5.965);
-    const ev = ctex(64, 96, (x, w, h) => { x.fillStyle = '#e9efe6'; x.fillRect(0, 0, w, h); x.fillStyle = '#2d8a4a'; x.fillRect(0, 0, w, 14); x.fillStyle = '#fff'; x.font = '700 8px Arial'; x.textAlign = 'center'; x.fillText(tr('ПЛАН ЭВАКУАЦИИ'), w / 2, 10);
+    const ev = ctex(64, 96, (x, w, h) => { x.fillStyle = '#e9efe6'; x.fillRect(0, 0, w, h); x.fillStyle = '#2d8a4a'; x.fillRect(0, 0, w, 14); x.fillStyle = '#fff'; x.font = '700 8px Arial'; x.textAlign = 'center'; x.fillText(tr('ПЛАН ЭВАКУАЦИИ'), w / 2, 10, w - 4);
       x.strokeStyle = '#333'; x.lineWidth = 1.5; x.strokeRect(8, 22, 48, 60); for (let i = 0; i < 5; i++) x.strokeRect(10 + (i % 3) * 15, 24 + (i > 2 ? 30 : 0), 13, 28); x.fillStyle = '#2d8a4a'; x.fillRect(30, 76, 4, 10); x.fillStyle = '#d33'; x.beginPath(); x.arc(32, 60, 2.5, 0, 7); x.fill(); });
     const evp = plane(.4, .6, mat(0xffffff, ev, { decal: 1 }), S); evp.rotation.y = PI / 2; evp.position.set(-7.965, 1.75, 2.2);
     box(.18, .62, .3, mat(0xc41e1e, null, { rough: .5 }), 7.9, 1.3, -2.6, S); box(.01, .5, .22, mat(0x101010), 7.805, 1.3, -2.6, S); cyl(.055, .055, .4, 10, mat(0xd42020, null, { rough: .35 }), S).position.set(7.86, 1.3, -2.6);
@@ -154,7 +154,7 @@ function buildLobby() {
       const vt = ctex(96, 160, (x, w, h) => { x.fillStyle = '#0b0d12'; x.fillRect(0, 0, w, h); for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) { const cols = ['#d12a2a', '#2a63d1', '#e2b422', '#2aa352', '#d8d8d8']; x.fillStyle = cols[(r * 2 + c) % 5]; x.fillRect(8 + c * 17, 10 + r * 30, 11, 22); x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(9 + c * 17, 12 + r * 30, 3, 18); }
         for (let r = 0; r <= 5; r++) { x.fillStyle = '#3a3d44'; x.fillRect(4, 6 + r * 30, w - 8, 3); } x.fillStyle = 'rgba(120,160,220,.08)'; x.fillRect(0, 0, w, h); });
       const win = plane(.62, 1.3, new T.MeshBasicMaterial({ map: vt, color: 0xbfd0e8 }), vm); win.position.set(-.1, 1.15, .401); ps1(win.material); o.vendWin = win;
-      const lg = ctex(96, 20, (x, w, h) => { x.fillStyle = '#e8402a'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = '800 12px Arial'; x.textAlign = 'center'; x.fillText(tr('НАПИТКИ'), w / 2, 15); });
+      const lg = ctex(96, 20, (x, w, h) => { x.fillStyle = '#e8402a'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = '800 12px Arial'; x.textAlign = 'center'; x.fillText(tr('НАПИТКИ'), w / 2, 15, w - 6); });
       const lp = plane(.8, .14, new T.MeshBasicMaterial({ map: lg }), vm); lp.position.set(0, 1.82, .401); ps1(lp.material);
       box(.22, .5, .02, mat(0x101114), .33, 1.2, .4, vm); box(.14, .1, .03, mat(0x101114, null, { emissive: 0x203040 }), .33, 1.35, .41, vm); box(.5, .22, .03, mat(0x111214), -.1, .3, .405, vm);   // панель выбора, купюроприёмник, лоток выдачи
       o.vendL = new T.PointLight(0xc8d8ff, .7, 2.6, 1.6); o.vendL.position.set(-.1, 1.2, .9); vm.add(o.vendL); }
@@ -764,7 +764,7 @@ function buildServer() {
     box(.13, .045, .09, mat(0xe0c89a, null, { decal: 1 }), 1.42, .035, 2.38, S); box(.12, .01, .08, mat(0xc8b088), 1.26, .014, 2.52, S);   // сухари: пачка и пустая обёртка
     const txt = ['НЕ ЗОВИ МЕНЯ.', 'СТУЧИ ТРИ РАЗА', 'ОНО ГОВОРИТ МАМИНЫМ ГОЛОСОМ']; o.sheets = [];
     txt.forEach((tx, i) => { const sh = label(.21, .3, 96, 136, (c, w, h) => { c.fillStyle = '#ece6d6'; c.fillRect(0, 0, w, h); c.fillStyle = '#1c1c2c'; c.font = '700 15px "Comic Sans MS", "Segoe Print", cursive'; c.textAlign = 'center';
-        const ws = tr(tx).split(' '); let ln = '', y = 46; for (const wd of ws) { const t2 = ln ? ln + ' ' + wd : wd; if (c.measureText(t2).width > w - 10 && ln) { c.fillText(ln, w / 2, y); ln = wd; y += 20; } else ln = t2; } if (ln) c.fillText(ln, w / 2, y);
+        const cj = /^(zh|ja)$/.test(window.NS_LANG), ws = cj ? [...tr(tx)] : tr(tx).split(' '); let ln = '', y = 46; for (const wd of ws) { if (cj && !ln && wd === ' ') continue; const t2 = ln ? ln + (cj ? '' : ' ') + wd : wd; if (c.measureText(t2).width > w - 10 && ln) { c.fillText(ln, w / 2, y); ln = wd; y += 20; } else ln = t2; } if (ln) c.fillText(ln, w / 2, y);
         c.fillStyle = 'rgba(190,190,180,.85)'; c.fillRect(w / 2 - 10, 2, 20, 9); }, S, true);   // полоска скотча сверху (листы читаются и в полутьме — светятся, как было)
       sh.position.set(2.995, 1.55 - i * .36, 2.05 + (i % 2) * .22); sh.rotation.y = -PI / 2; sh.rotation.z = (i - 1) * .06; o.sheets.push(sh); });
   }
