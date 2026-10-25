@@ -114,7 +114,7 @@ const EN = {
   "Спрятаться в будке": "Hide in the booth", "Бежать к аварийному выходу": "Run for the emergency exit",
   "Оно ищет на звук. Держи палец, пока шаги рядом.": "It hunts by sound. Keep your finger down while the footsteps are near.", "ВНУТРИ": "INSIDE",
   "«Ты со мной», — сказал ты ей. И не соврал.": "\"You're with me,\" you told her. And you weren't lying.", "СЕСТРА": "SISTER",
-  "Оно пошло туда, где его ещё не ждут. Твоим голосом.": "It went where no one expects it yet. In your voice.", "CAM −2  СЕРВЕРНАЯ": "CAM −2  SERVER ROOM",
+  "Оно пошло туда, где его ещё не ждут. Твоим голосом.": "It went where no one expects it yet. In your voice.", "CAM −2  СЕРВЕРНАЯ": "CAM −2  SERVER ROOM", "CAM −2  ПОДВАЛ": "CAM −2  BASEMENT",
   "НЕ ЗОВИ МЕНЯ.\nСТУЧИ ТРИ РАЗА.": "DON'T CALL ME.\nKNOCK THREE TIMES.", "Фрэнк жив. Он внизу.": "Frank is alive. He's downstairs.", "Спуститься к нему": "Go down to him", "ПОДВАЛ": "BASEMENT",
   "Темно. Веди фонарём, найди дверь серверной.": "It's dark. Sweep the flashlight and find the server room door.", "Железная дверь. Под ней — свет.": "An iron door. Light underneath it.",
   "«Заходи, сынок. Открыто».": "\"Come in, son. It's open.\"", "Открыть дверь": "Open the door", "Постучать три раза": "Knock three times", "ДЕРЖИ ФРЭНКА": "HOLD FRANK",
@@ -734,6 +734,7 @@ uk: {
   "Свет гаснет СПРАВА — беги ← ВЛЕВО": "Світло гасне СПРАВА — біжи ← ВЛІВО",
   "Выйти из игры": "Вийти з гри",
   "Звук в фоне": "Звук у фоні",
+  "CAM −2  ПОДВАЛ": "CAM −2  ПІДВАЛ",
 },
 };
 // ==== /DICT ====
