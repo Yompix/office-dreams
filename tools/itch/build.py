@@ -11,7 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 SRC = os.path.join(ROOT, 'public/games/nightshift')
 OUT = os.path.join(ROOT, 'dist/itch')
 SKIP = re.compile(r'(^|/)(_[^/]*|\.DS_Store)$')
-PACKED = re.compile(r'^(snd/.*\.mp3|models/.*\.glb|timing(_en)?\.json)$')
+PACKED = re.compile(r'^(snd/.*\.mp3|models/.*\.glb|timing(_[a-z]{2})?\.json)$')
 CHUNK = 6 << 20  # ~6 МБ base64 на файл pack-N.js
 
 def files():

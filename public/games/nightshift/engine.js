@@ -5,7 +5,8 @@
 (() => {
 'use strict';
 const S = window.STORY, $ = id => document.getElementById(id);
-const tr = window.tr || (s => s), trf = window.trf || ((s, v) => s.replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m)), EN = window.NS_LANG === 'en';
+const tr = window.tr || (s => s), trf = window.trf || ((s, v) => s.replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m)), LNG = window.NS_LANG || 'ru', EN = LNG !== 'ru';
+const VL = window.NS_VOICE || (EN ? 'en' : 'ru');   // чьими записями озвучен язык игры (папка snd/<VL>/; русский — snd/)
 if (window.trStory) window.trStory(S);
 if (EN) {   // статичные надписи страницы
   document.documentElement.lang = 'en';
@@ -59,14 +60,14 @@ function get(url, type) { return new Promise((ok, no) => { const x = new XMLHttp
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
-const sndUrl = k => (EN && (VOICE_RE.test(k) || TIM[k]) ? 'snd/en/' : 'snd/') + k + '.mp3?v=4';
+const sndUrl = k => (VL !== 'ru' && (VOICE_RE.test(k) || TIM[k]) ? 'snd/' + VL + '/' : 'snd/') + k + '.mp3?v=4';
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
-  const tm = get(EN ? 'timing_en.json?v=11' : 'timing.json?v=16', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (LNG === 'en' ? 11 : 1) : 'timing.json?v=16', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры — очередью по 4, в порядке сцен; нужные сейчас встают вперёд (voiceReady)
@@ -406,7 +407,9 @@ const aloudOf = k => whoOf(k) !== 'ИТАН' || ((TIM[k] || {}).t || '').trim().
 const VIS_CH = (() => { const m = {}, set = (s, v) => { for (const c of s) m[c] = v; };
   set('аяa', 'viseme_aa'); set('оёo', 'viseme_O'); set('уюuw', 'viseme_U'); set('ыийiy', 'viseme_I'); set('еэe', 'viseme_E');
   set('пбмpbm', 'viseme_PP'); set('фвfv', 'viseme_FF'); set('сзцsz', 'viseme_SS'); set('шжщчjc', 'viseme_CH'); set('тдtd', 'viseme_DD');
-  set('нлnl', 'viseme_nn'); set('кгхkgqxh', 'viseme_kk'); set('рr', 'viseme_RR'); return m; })();
+  set('нлnl', 'viseme_nn'); set('кгхkgqxh', 'viseme_kk'); set('рr', 'viseme_RR');
+  set('áàâãäå', 'viseme_aa'); set('óòôõö', 'viseme_O'); set('úùûü', 'viseme_U'); set('íìîïіїý', 'viseme_I'); set('éèêëє', 'viseme_E'); set('ñ', 'viseme_nn'); set('çß', 'viseme_SS'); set('ґ', 'viseme_kk');   // испанский, португальский, немецкий, украинский
+  return m; })();
 function visemeAt(k, tl) {
   const w = (TIM[k] || {}).w; if (!w || !w.length) return null;
   let i = -1; for (let j = 0; j < w.length && w[j][0] <= tl; j++) i = j;
@@ -791,7 +794,7 @@ const MG = {
       if (k >= N) return fin(true);
       const bad = Math.random() < .5 ? 'L' : 'R';
       mgView = { img: 'run_lit', c: [.5, .5, 1, 1.04], t0: mgView ? mgView.t0 : now(), dur: 1e9, run: bad };
-      mgEl.innerHTML = `<div class="mghead">${th.title}<small>${EN ? `Lights going out on the ${bad === 'L' ? 'LEFT' : 'RIGHT'} — run ${bad === 'L' ? 'RIGHT →' : '← LEFT'}` : `Свет гаснет ${bad === 'L' ? 'СЛЕВА' : 'СПРАВА'} — беги ${bad === 'L' ? 'ВПРАВО →' : '← ВЛЕВО'}`} (${k + 1}/${N})</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="rt" style="width:100%"></i></div></div><div class="arrows"><button data-d="L" aria-label="Влево">${ICON.left}</button><button data-d="R" aria-label="Вправо">${ICON.right}</button></div>`;
+      mgEl.innerHTML = `<div class="mghead">${th.title}<small>${tr(bad === 'L' ? 'Свет гаснет СЛЕВА — беги ВПРАВО →' : 'Свет гаснет СПРАВА — беги ← ВЛЕВО')} (${k + 1}/${N})</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="rt" style="width:100%"></i></div></div><div class="arrows"><button data-d="L" aria-label="Влево">${ICON.left}</button><button data-d="R" aria-label="Вправо">${ICON.right}</button></div>`;
       mgEl.classList.remove('hide'); play('steps', { gain: .8 }); shakeAmp = 14;
       const t0 = now(), lim = Math.max(1.3, 2.6 - k * .2); let ok = false;
       mgEl.querySelectorAll('.arrows button').forEach(b => b.onclick = () => { if (ok) return; ok = true; if (b.dataset.d === bad) return fin(false); play('click'); k++; step(); });
@@ -1286,7 +1289,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   const vh = LS.get('vhs', vhsDef());
   const host = from === 'pause' ? pzEl : uiEl;
   host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('НАСТРОЙКИ')}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets">
-    ${row('sLang', 'Язык', EN ? 'ENGLISH' : 'РУССКИЙ')}
+    ${row('sLang', 'Язык', (window.NS_LANG_NAMES || {})[LNG] || (EN ? 'ENGLISH' : 'РУССКИЙ'))}
     ${row('sLand', 'Экран', LAND ? 'ГОРИЗОНТАЛЬНО' : 'ВЕРТИКАЛЬНО')}
     ${row('sGfx', 'Графика', window.World && World.cine ? 'КИНО' : 'РЕТРО')}
     ${row('sVoice', 'Озвучка', voiceOn() ? 'ВКЛ' : 'ВЫКЛ')}
@@ -1303,7 +1306,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   host.querySelectorAll('.vol input').forEach(r => { r.oninput = () => { VOL[r.dataset.k] = r.value / 100; r.nextElementSibling.textContent = r.value; LS.set('vol', VOL); applyVol(); };
     r.onchange = () => probe(r.dataset.k); });   // проба громкости
   $('sVoice').onclick = () => { setVoice(!voiceOn()); re(); };
-  $('sLang').onclick = () => { LS.set('lang', EN ? 'ru' : 'en'); reloadKeep(from); };   // язык — с перезагрузкой (надписи в 3D-мире рисуются при загрузке), игра продолжится с того же места
+  $('sLang').onclick = () => { const L = window.NS_LANGS || ['ru', 'en']; LS.set('lang', L[(L.indexOf(LNG) + 1) % L.length]); reloadKeep(from); };   // язык — с перезагрузкой (надписи в 3D-мире рисуются при загрузке), игра продолжится с того же места
   $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
   $('sLand').onclick = () => { LS.set('land3', !LAND); applyLand(!LAND); re(); };
   $('sGfx').onclick = () => { LS.set('gfx', window.World && World.cine ? 'retro' : 'cine'); LS.set('gfxAuto', 2); reloadKeep(from); };   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
@@ -1737,7 +1740,7 @@ function frame(tp) {
         if (cam) so.cctv = 1;
         const im = c[4] || beat.img;   // план может быть другим кадром (склейка на другой ракурс посреди реплики)
         if (still) {   // фото — неподвижный снимок: 3D и эффект старого фото считаются один раз на план и кладутся в кэш, дальше только копия с наездом
-          const key = sceneId + '|' + bi + '|' + ci + '|' + W + '|' + (EN ? 1 : 0) + '|' + (window.World ? World.vhs : 0), ccx = LAND ? scrX(c[0]) : c[0];   // язык (надпись на обороте) и плёнка меняются из паузы — тогда пересчёт   // (в 2D эффект с режимами наложения стоил на телефоне сотни мс на кадр — сцена «висела», озвучка уезжала)
+          const key = sceneId + '|' + bi + '|' + ci + '|' + W + '|' + LNG + '|' + (window.World ? World.vhs : 0), ccx = LAND ? scrX(c[0]) : c[0];   // язык (надпись на обороте) и плёнка меняются из паузы — тогда пересчёт   // (в 2D эффект с режимами наложения стоил на телефоне сотни мс на кадр — сцена «висела», озвучка уезжала)
           if (!stillCache || stillCache.key !== key) { shot(im, Object.assign({}, so, { z: c[2] })); photoFx(beat.photo || {}, ci, c[2]);
             stillC.width = W; stillC.height = H; stillC.getContext('2d').drawImage(cv, 0, 0); stillCache = { key, z0: c[2], cx: ccx, cy: c[1] }; }
           const k = z / stillCache.z0, sw = W / k, sh = H / k; g.drawImage(stillC, stillCache.cx * W - sw * stillCache.cx, stillCache.cy * H - sh * stillCache.cy, sw, sh, 0, 0, W, H);

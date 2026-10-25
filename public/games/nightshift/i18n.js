@@ -1,11 +1,15 @@
-/* «Молчи до шести» (Hush Till Six) — языки. Русский — основной (строки в коде); английский — словарь «русская строка → английская».
-   Язык: ?lang=ru|en, затем выбор в настройках (ns1_lang), иначе по языку браузера (русский/украинский/белорусский/казахский → ru, остальные → en).
-   Озвученные реплики английской версии — timing_en.json и snd/en/*.mp3. */
+/* «Молчи до шести» (Hush Till Six) — языки. Русский — основной (строки в коде); английский — словарь EN «русская строка → английская»;
+   испанский, португальский (Бразилия), немецкий, украинский — словари DICT ниже (собирает tools/i18n/build.js из tools/i18n/<язык>.json).
+   Язык: ?lang=…, затем выбор в настройках (ns1_lang), иначе по языку браузера (русский/белорусский/казахский → ru, украинский → uk, …, прочие → en).
+   Реплики: русские — timing.json и snd/*.mp3, остальные — timing_<язык>.json и snd/<VOICE>/*.mp3 (VOICE — чьими записями озвучен язык). */
 (() => {
 'use strict';
-const q = /[?&]lang=(ru|en)/.exec(location.search);
-const LANG = q ? q[1] : (() => { try { const v = JSON.parse(localStorage.getItem('ns1_lang')); if (v === 'ru' || v === 'en') return v; } catch {}
-  return /^(ru|uk|be|kk)/i.test(navigator.language || '') ? 'ru' : 'en'; })();
+const LANGS = ['ru', 'en', 'es', 'pt', 'de', 'uk'];
+const VOICE = { ru: 'ru', en: 'en', es: 'en', pt: 'en', de: 'en', uk: 'en' };   // пока нет своей озвучки — английские записи, субтитры на языке игры
+const q = /[?&]lang=(ru|en|es|pt|de|uk)\b/.exec(location.search);
+const LANG = q ? q[1] : (() => { try { const v = JSON.parse(localStorage.getItem('ns1_lang')); if (LANGS.includes(v)) return v; } catch {}
+  const n = (navigator.language || '').toLowerCase();
+  return /^(ru|be|kk)/.test(n) ? 'ru' : /^uk/.test(n) ? 'uk' : /^es/.test(n) ? 'es' : /^pt/.test(n) ? 'pt' : /^de/.test(n) ? 'de' : 'en'; })();
 const EN = {
   // сценарий: экранные тексты, выборы, правила, подсказки мини-игр, концовки
   'CAM 04  ХОЛЛ': 'CAM 04  LOBBY', 'CAM 07  ЭТАЖ 7': 'CAM 07  FLOOR 7', 'CAM 01  ВХОД': 'CAM 01  ENTRANCE', 'ВХОД': 'ENTRANCE', 'ХОЛЛ': 'LOBBY', 'ЭТАЖ 7': 'FLOOR 7',
@@ -195,11 +199,19 @@ const EN = {
   'СОЛЬ': 'SALT', 'крупная': 'coarse', 'До трёх.|Весь.': 'Before three.|All of it.',
   // пауза
   'ПАУЗА': 'PAUSED', 'Главное меню': 'Main menu',
+  // мини-игра «бег» и выбор языка
+  'Свет гаснет СЛЕВА — беги ВПРАВО →': 'Lights going out on the LEFT — run RIGHT →', 'Свет гаснет СПРАВА — беги ← ВЛЕВО': 'Lights going out on the RIGHT — run ← LEFT',
 };
-const tr = s => LANG === 'en' && EN[s] != null ? EN[s] : s;
+// ==== DICT: tools/i18n/build.js ====
+const DICT = {};
+// ==== /DICT ====
+const D = LANG === 'en' ? EN : DICT[LANG] || {};
+const tr = s => LANG === 'ru' ? s : D[s] != null ? D[s] : EN[s] != null ? EN[s] : s;   // нет перевода — английский
 // подстановки: tr('Проверено: {n} из 3', { n: 2 })
 const trf = (s, v) => tr(s).replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m);
-function trStory(S) { if (LANG !== 'en') return;
-  (function w(o) { for (const k in o) { const v = o[k]; if (typeof v === 'string') { if (EN[v] != null) o[k] = EN[v]; } else if (v && typeof v === 'object') w(v); } })(S); }
-window.NS_LANG = LANG; window.tr = tr; window.trf = trf; window.trStory = trStory;
+function trStory(S) { if (LANG === 'ru') return;
+  (function w(o) { for (const k in o) { const v = o[k]; if (typeof v === 'string') { const t = tr(v); if (t !== v) o[k] = t; } else if (v && typeof v === 'object') w(v); } })(S); }
+const NAMES = { ru: 'РУССКИЙ', en: 'ENGLISH', es: 'ESPAÑOL', pt: 'PORTUGUÊS', de: 'DEUTSCH', uk: 'УКРАЇНСЬКА' };
+window.NS_LANG = LANG; window.NS_LANGS = LANGS; window.NS_LANG_NAMES = NAMES; window.NS_VOICE = VOICE[LANG]; window.tr = tr; window.trf = trf; window.trStory = trStory;
+document.documentElement.lang = LANG;
 })();
