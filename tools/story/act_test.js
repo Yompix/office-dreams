@@ -71,7 +71,7 @@ const fs = require('fs');
       await p.evaluate(() => { window.__ns.setFlags({ fphone: 1 }); window.__ns.startScene('sh_S4'); });
       await p.waitForFunction(() => window.__ns.mode === 'shift' && window.__ns.shf, null, { timeout: 30000 });
       await p.evaluate(() => { const f = window.__ns.shf, e0 = f.ev.find(e => e.sfx), M = e0.m - 2; f.gm = M - f.m0; for (const e of f.ev) if (e.m < M) e.done = true; });   // сразу к 02:14
-      await p.evaluate(() => window.__ns.shSpeed(4));
+      await p.evaluate(() => window.__ns.shSpeed(12));
       const got = await p.waitForFunction(() => { const h = document.querySelector('#shPop h3'); return h && /Фрэнка/.test(h.textContent) && document.getElementById('cTake'); }, null, { timeout: 90000 }).then(() => true, () => false);
       ok(got, 'телефон Фрэнка звонит');
       if (got && !take) { await p.click('#cNo'); await p.waitForTimeout(1500); ok((await st()).m === 'shift', 'сбросил — смена идёт дальше'); ok((await p.evaluate(() => window.__ns.flags)).fpcall, 'видел сообщение «Фрэнки, сынок…» (fpcall)'); }
