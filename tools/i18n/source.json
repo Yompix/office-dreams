@@ -6,7 +6,10 @@
    "ru": "Бабушка говорила: если ночью тебя позовут по имени — не отзывайся. Свои до утра подождут.",
    "en": "My grandmother used to say: if someone calls your name at night, don't answer. Your own can wait till morning.",
    "tag": "quiet, slow",
-   "uk": "Бабуся казала: якщо вночі тебе покличуть на ім’я — не озивайся. Свої до ранку почекають."
+   "uk": "Бабуся казала: якщо вночі тебе покличуть на ім’я — не озивайся. Свої до ранку почекають.",
+   "es": "Mi abuela decía: si de noche te llaman por tu nombre, no respondas. Los tuyos esperarán hasta la mañana.",
+   "pt": "Minha avó dizia: se alguém te chamar pelo nome à noite, não responda. Quem é de casa espera até de manhã.",
+   "de": "Meine Oma sagte immer: Ruft dich nachts jemand beim Namen, antworte nicht. Die Deinen warten bis zum Morgen."
   },
   "p02": {
    "who": "ИТАН",
@@ -14,7 +17,10 @@
    "ru": "Я думал, так просто пугают детей, чтобы не гуляли затемно.",
    "en": "I thought it was just something you tell kids so they don't stay out after dark.",
    "tag": "quiet, tired",
-   "uk": "Я думав, так просто лякають дітей, щоб не гуляли поночі."
+   "uk": "Я думав, так просто лякають дітей, щоб не гуляли поночі.",
+   "es": "Pensaba que era solo un cuento para que los niños no salieran de noche.",
+   "pt": "Eu achava que era só pra assustar criança, pra ninguém ficar na rua de noite.",
+   "de": "Ich dachte, so macht man Kindern Angst, damit sie nachts nicht draußen bleiben."
   },
   "p03": {
    "who": "ИТАН",
@@ -22,7 +28,10 @@
    "ru": "Бизнес-центр «Горизонт» закрыли месяц назад. Здание выставили на продажу, но кто-то должен был сторожить его по ночам.",
    "en": "The Horizon business center closed a month ago. The building was up for sale, but someone still had to guard it at night.",
    "tag": "quiet, tired",
-   "uk": "Бізнес-центр «Горизонт» закрили місяць тому. Будівлю виставили на продаж, але хтось мав стерегти її ночами."
+   "uk": "Бізнес-центр «Горизонт» закрили місяць тому. Будівлю виставили на продаж, але хтось мав стерегти її ночами.",
+   "es": "El centro de negocios Horizon cerró hace un mes. El edificio estaba en venta, pero alguien tenía que vigilarlo de noche.",
+   "pt": "O centro empresarial Horizon fechou um mês antes. O prédio foi posto à venda, mas alguém tinha que vigiar o lugar à noite.",
+   "de": "Das Bürozentrum Horizon hatte vor einem Monat geschlossen. Es stand zum Verkauf, doch nachts musste es jemand bewachen."
   },
   "p04": {
    "who": "ИТАН",
@@ -30,7 +39,10 @@
    "ru": "Ночные смены оплачивали вдвое. А сестре нужно было на что-то жить в чужом городе.",
    "en": "Night shifts paid double. And my sister needed something to live on in a strange city.",
    "tag": "quiet, tired",
-   "uk": "Нічні зміни оплачували подвійно. А сестрі треба було на щось жити в чужому місті."
+   "uk": "Нічні зміни оплачували подвійно. А сестрі треба було на щось жити в чужому місті.",
+   "es": "El turno de noche pagaba el doble. Y mi hermana necesitaba con qué vivir en una ciudad ajena.",
+   "pt": "O turno da noite pagava o dobro. E minha irmã precisava de dinheiro pra viver numa cidade estranha.",
+   "de": "Nachtschichten zahlten doppelt. Und meine Schwester brauchte in einer fremden Stadt Geld."
   },
   "p05": {
    "who": "ИТАН",
@@ -38,7 +50,10 @@
    "ru": "На заставке телефона — рисунок Лили: мы втроём — я, она и наш пёс Бублик. Ей тогда было шесть.",
    "en": "My lock screen was a drawing Lily made: the three of us, me, her and our dog Biscuit. She was six.",
    "tag": "quiet, warm",
-   "uk": "На заставці телефону — малюнок Лілі: ми втрьох — я, вона й наш пес Бублик. Їй тоді було шість."
+   "uk": "На заставці телефону — малюнок Лілі: ми втрьох — я, вона й наш пес Бублик. Їй тоді було шість.",
+   "es": "En la pantalla de bloqueo, un dibujo de Lily. Los tres: yo, ella y nuestro perro Galleta. Lo hizo a los seis años.",
+   "pt": "Na tela do celular, um desenho da Lily: nós três, eu, ela e o nosso cachorro, o Biscoito. Ela tinha seis anos.",
+   "de": "Auf meinem Sperrbildschirm: Lilys Zeichnung. Wir drei — ich, sie und unser Hund Keks. Da war sie sechs."
   },
   "p06": {
    "who": "ИТАН",
@@ -46,7 +61,10 @@
    "ru": "Дневной охранник ждал меня у турникета. Куртку он надел ещё до того, как я вошёл.",
    "en": "The day guard was waiting for me by the turnstile. He'd put his jacket on before I even walked in.",
    "tag": "quiet, tired",
-   "uk": "Денний охоронець чекав на мене біля турнікета. Куртку він надів ще до того, як я зайшов."
+   "uk": "Денний охоронець чекав на мене біля турнікета. Куртку він надів ще до того, як я зайшов.",
+   "es": "El vigilante de día me esperaba junto al torniquete. Se había puesto la chaqueta antes de que yo entrara.",
+   "pt": "O vigia do dia me esperava na catraca. Já tinha vestido a jaqueta antes mesmo de eu entrar.",
+   "de": "Der Wachmann von der Tagschicht wartete am Drehkreuz. Die Jacke hatte er schon an, bevor ich reinkam."
   },
   "p07": {
    "who": "СМЕНЩИК",
@@ -54,7 +72,10 @@
    "ru": "— Новенький? Вместо Фрэнка?",
    "en": "— You the new guy? Frank's replacement?",
    "tag": "gruff, in a hurry",
-   "uk": "— Новенький? Замість Френка?"
+   "uk": "— Новенький? Замість Френка?",
+   "es": "— ¿Eres el nuevo? ¿El reemplazo de Frank?",
+   "pt": "— Você é o novato? No lugar do Frank?",
+   "de": "— Bist du der Neue? Für Frank?"
   },
   "p08": {
    "who": "ИТАН",
@@ -62,7 +83,10 @@
    "ru": "— Да. А что с Фрэнком?",
    "en": "— Yeah. What happened to Frank?",
    "tag": "casual",
-   "uk": "— Так. А що з Френком?"
+   "uk": "— Так. А що з Френком?",
+   "es": "— Sí. ¿Qué le pasó a Frank?",
+   "pt": "— Sou. O que aconteceu com o Frank?",
+   "de": "— Ja. Was ist denn mit Frank?"
   },
   "p09": {
    "who": "СМЕНЩИК",
@@ -70,7 +94,10 @@
    "ru": "— Фрэнк двадцать лет сидел в этой будке. Неделю назад он не сдал смену.",
    "en": "— Frank sat in that booth for twenty years. A week ago he never handed over his shift.",
    "tag": "gruff, uneasy",
-   "uk": "— Френк двадцять років сидів у цій будці. Тиждень тому він не здав зміну."
+   "uk": "— Френк двадцять років сидів у цій будці. Тиждень тому він не здав зміну.",
+   "es": "— Frank pasó veinte años en esa caseta. Hace una semana no entregó el turno.",
+   "pt": "— O Frank ficou vinte anos naquela guarita. Semana passada, ele não entregou o turno.",
+   "de": "— Frank saß zwanzig Jahre in dieser Kabine. Und vor einer Woche: keine Übergabe."
   },
   "p10": {
    "who": "ИТАН",
@@ -78,7 +105,10 @@
    "ru": "— Как это — не сдал?",
    "en": "— What do you mean, never handed it over?",
    "tag": "curious",
-   "uk": "— Як це — не здав?"
+   "uk": "— Як це — не здав?",
+   "es": "— ¿Cómo que no lo entregó?",
+   "pt": "— Como assim, não entregou?",
+   "de": "— Was heißt das, keine Übergabe?"
   },
   "p11": {
    "who": "СМЕНЩИК",
@@ -86,7 +116,10 @@
    "ru": "— Утром будка открыта, лампа горит, чай остыл. Куртка на стуле. А Фрэнка нет.",
    "en": "— In the morning the booth's open, the lamp's on, the tea's gone cold. His jacket's on the chair. And no Frank.",
    "tag": "low, uneasy",
-   "uk": "— Уранці будка відчинена, лампа горить, чай вистиг. Куртка на стільці. А Френка нема."
+   "uk": "— Уранці будка відчинена, лампа горить, чай вистиг. Куртка на стільці. А Френка нема.",
+   "es": "— Por la mañana: la caseta abierta, la lámpara encendida, el té frío. Su chaqueta en la silla. Y de Frank, ni rastro.",
+   "pt": "— De manhã, a guarita aberta, a luminária acesa, o chá frio. A jaqueta na cadeira. E nada do Frank.",
+   "de": "— Am Morgen ist die Kabine offen, Lampe an, Tee kalt. Die Jacke hängt am Stuhl. Und kein Frank."
   },
   "p12": {
    "who": "СМЕНЩИК",
@@ -94,7 +127,10 @@
    "ru": "— Полиция обошла все двенадцать этажей. Камеры ничего не записали.",
    "en": "— The police went through all twelve floors. The cameras didn't catch a thing.",
    "tag": "low, uneasy",
-   "uk": "— Поліція обійшла всі дванадцять поверхів. Камери нічого не записали."
+   "uk": "— Поліція обійшла всі дванадцять поверхів. Камери нічого не записали.",
+   "es": "— La policía recorrió los doce pisos. Las cámaras no grabaron nada.",
+   "pt": "— A polícia vasculhou os doze andares. As câmeras não gravaram nada.",
+   "de": "— Die Polizei hat alle zwölf Etagen abgesucht. Die Kameras: nichts."
   },
   "p13": {
    "who": "ИТАН",
@@ -102,7 +138,10 @@
    "ru": "Связка была тёплая: он весь вечер не выпускал её из кулака.",
    "en": "The keys were warm. He hadn't let go of them all evening.",
    "tag": "quiet, tired",
-   "uk": "В’язка була тепла: він увесь вечір не випускав її з кулака."
+   "uk": "В’язка була тепла: він увесь вечір не випускав її з кулака.",
+   "es": "Las llaves estaban tibias. No las soltó en toda la tarde.",
+   "pt": "As chaves estavam quentes. Ele ficou horas com elas na mão.",
+   "de": "Die Schlüssel waren warm. Den ganzen Abend hielt er sie fest."
   },
   "p14": {
    "who": "СМЕНЩИК",
@@ -110,7 +149,10 @@
    "ru": "— Журнал на столе. Прочитай до трёх часов. Весь, до последней страницы.",
    "en": "— The logbook's on the desk. Read it before three. All of it, to the last page.",
    "tag": "low, serious",
-   "uk": "— Журнал на столі. Прочитай до третьої години. Увесь, до останньої сторінки."
+   "uk": "— Журнал на столі. Прочитай до третьої години. Увесь, до останньої сторінки.",
+   "es": "— La bitácora está en la mesa. Léela antes de las tres. Entera, hasta la última página.",
+   "pt": "— O diário tá na mesa. Lê antes das três. Inteiro, até a última página.",
+   "de": "— Das Wachbuch liegt auf dem Tisch. Lies es vor drei. Ganz, bis zur letzten Seite."
   },
   "p15": {
    "who": "ИТАН",
@@ -118,7 +160,10 @@
    "ru": "Уже на улице он стукнул костяшками в стекло. Три раза. Посмотрел на меня, будто хотел что-то добавить. И не добавил.",
    "en": "Out on the street he rapped his knuckles on the glass. Three times. He looked at me as if he wanted to say something else. He didn't.",
    "tag": "quiet, tired",
-   "uk": "Уже на вулиці він постукав кісточками пальців у скло. Три рази. Подивився на мене, ніби хотів щось додати. І не додав."
+   "uk": "Уже на вулиці він постукав кісточками пальців у скло. Три рази. Подивився на мене, ніби хотів щось додати. І не додав.",
+   "es": "Ya en la calle, golpeó el vidrio con los nudillos. Tres veces. Me miró como si quisiera decir algo más. Pero no lo dijo.",
+   "pt": "Já na rua, ele bateu com os nós dos dedos no vidro. Três vezes. Olhou pra mim como se quisesse dizer mais alguma coisa. E não disse.",
+   "de": "Draußen klopfte er mit den Knöcheln an die Scheibe. Dreimal. Er sah mich an, als wollte er noch etwas sagen. Dann ließ er es."
   },
   "j01": {
    "who": "ИТАН",
@@ -126,7 +171,10 @@
    "ru": "Журнал я всё откладывал. Сел за него только без десяти три.",
    "en": "I kept putting the logbook off. I didn't sit down with it until ten to three.",
    "tag": "quiet, tired",
-   "uk": "Журнал я все відкладав. Сів за нього тільки за десять третя."
+   "uk": "Журнал я все відкладав. Сів за нього тільки за десять третя.",
+   "es": "Fui posponiendo la bitácora. No me senté a leerla hasta las tres menos diez.",
+   "pt": "Fui adiando o diário. Só sentei pra ler faltando dez pras três.",
+   "de": "Das Wachbuch schob ich vor mir her. Erst um zehn vor drei setzte ich mich dran."
   },
   "j02": {
    "who": "ИТАН",
@@ -134,7 +182,10 @@
    "ru": "Почерк у Фрэнка мелкий, ровный, как по линейке. Двадцать лет одинаковых записей: обход, лампы, кошка у мусорных баков.",
    "en": "Frank's handwriting was small and even, as if he'd used a ruler. Twenty years of the same entries: rounds, lamps, the cat by the dumpsters.",
    "tag": "quiet, tired",
-   "uk": "Почерк у Френка дрібний, рівний, як під лінійку. Двадцять років однакових записів: обхід, лампи, кішка біля сміттєвих баків."
+   "uk": "Почерк у Френка дрібний, рівний, як під лінійку. Двадцять років однакових записів: обхід, лампи, кішка біля сміттєвих баків.",
+   "es": "Frank tenía la letra pequeña y pareja, como trazada con regla. Veinte años de las mismas anotaciones: rondas, lámparas, la gata de los contenedores.",
+   "pt": "A letra do Frank era miúda e certinha, como se ele usasse régua. Vinte anos das mesmas anotações: ronda, lâmpadas, a gata perto das lixeiras.",
+   "de": "Franks Schrift war klein und gleichmäßig, wie mit dem Lineal. Zwanzig Jahre dieselben Einträge: Rundgang, Lampen, die Katze an den Mülltonnen."
   },
   "j03": {
    "who": "ИТАН",
@@ -142,7 +193,10 @@
    "ru": "Двенадцатое октября. «Лифт ночью ездит сам. Техник говорит — датчик».",
    "en": "October twelfth. \"The elevator runs by itself at night. The technician says it's a sensor.\"",
    "tag": "quiet, reading",
-   "uk": "Дванадцяте жовтня. «Ліфт уночі їздить сам. Технік каже — датчик»."
+   "uk": "Дванадцяте жовтня. «Ліфт уночі їздить сам. Технік каже — датчик».",
+   "es": "Doce de octubre. «De noche, el ascensor se mueve solo. El técnico dice que es un sensor».",
+   "pt": "Doze de outubro. “O elevador anda sozinho à noite. O técnico diz que é o sensor.”",
+   "de": "Zwölfter Oktober. „Der Aufzug fährt nachts von allein. Der Techniker sagt: Sensor.“"
   },
   "j04": {
    "who": "ИТАН",
@@ -150,7 +204,10 @@
    "ru": "Пятнадцатое. «Гаса зовут с седьмого этажа. По имени. Голосом Марты. Марта три года как умерла».",
    "en": "The fifteenth. \"Someone calls Gus from the seventh floor. By name. In Martha's voice. Martha's been dead three years.\"",
    "tag": "quiet, reading",
-   "uk": "П’ятнадцяте. «Гаса кличуть із сьомого поверху. На ім’я. Голосом Марти. Марта три роки як померла»."
+   "uk": "П’ятнадцяте. «Гаса кличуть із сьомого поверху. На ім’я. Голосом Марти. Марта три роки як померла».",
+   "es": "El quince. «A Gus lo llaman desde el séptimo piso. Por su nombre. Con la voz de Martha. Martha murió hace tres años».",
+   "pt": "Dia quinze. “Chamam o Gus do sétimo andar. Pelo nome. Com a voz da Martha. A Martha morreu faz três anos.”",
+   "de": "Fünfzehnter. „Jemand ruft Gus aus dem siebten Stock. Beim Namen. Mit Marthas Stimme. Martha ist seit drei Jahren tot.“"
   },
   "j05": {
    "who": "ИТАН",
@@ -158,7 +215,10 @@
    "ru": "Восемнадцатое. «На пульте появилась тринадцатая камера. Такой камеры в здании нет. Не смотри в неё».",
    "en": "The eighteenth. \"A thirteenth camera showed up on the console. There's no such camera in the building. Don't look at it.\"",
    "tag": "quiet, reading",
-   "uk": "Вісімнадцяте. «На пульті з’явилася тринадцята камера. Такої камери в будівлі немає. Не дивись у неї»."
+   "uk": "Вісімнадцяте. «На пульті з’явилася тринадцята камера. Такої камери в будівлі немає. Не дивись у неї».",
+   "es": "El dieciocho. «En el panel apareció una cámara trece. En el edificio no existe esa cámara. No la mires».",
+   "pt": "Dia dezoito. “Apareceu uma décima terceira câmera no painel. Essa câmera não existe no prédio. Não olhe pra ela.”",
+   "de": "Achtzehnter. „Am Pult ist eine dreizehnte Kamera aufgetaucht. Die gibt es im Gebäude gar nicht. Schau nicht hin.“"
   },
   "j06": {
    "who": "ИТАН",
@@ -166,7 +226,10 @@
    "ru": "Двадцатое. Здесь он давил на ручку так, что прорвал бумагу. «Не отзывайся на имя. Не открывай ему дверь. И сам к нему не ходи — ни на свет, ни в лифт. Тогда оно не подойдёт».",
    "en": "The twentieth. Here he'd pressed so hard the pen tore the paper. \"Don't answer to your name. Don't open the door to it. And don't go to it yourself, not to the light, not into the elevator. Then it can't come near you.\"",
    "tag": "quiet, uneasy",
-   "uk": "Двадцяте. Тут він так тиснув на ручку, що прорвав папір. «Не озивайся на ім’я. Не відчиняй йому двері. І сам до нього не ходи — ні на світло, ні в ліфт. Тоді воно не підійде»."
+   "uk": "Двадцяте. Тут він так тиснув на ручку, що прорвав папір. «Не озивайся на ім’я. Не відчиняй йому двері. І сам до нього не ходи — ні на світло, ні в ліфт. Тоді воно не підійде».",
+   "es": "El veinte. Aquí apretó tanto que rasgó el papel. «No respondas a tu nombre. No le abras la puerta. Y no te acerques tú: ni a la luz, ni al ascensor. Así no se te acercará».",
+   "pt": "Dia vinte. Aqui ele apertou tanto a caneta que rasgou o papel. “Não responda se chamarem seu nome. Não abra a porta pra aquilo. E não vá até aquilo, nem pra luz, nem pro elevador. Aí aquilo não chega perto.”",
+   "de": "Zwanzigster. Hier hatte er so fest aufgedrückt, dass das Papier riss. „Antworte nicht auf deinen Namen. Mach ihm nicht auf. Und geh nicht selbst zu ihm, nicht ins Licht, nicht in den Aufzug. Dann kommt es nicht an dich ran.“"
   },
   "j07": {
    "who": "ИТАН",
@@ -174,7 +237,10 @@
    "ru": "Двадцать первое. Последняя запись, почерк уже не ровный. «Мама позвала. Я ответил. Соль держит. Иду вниз».",
    "en": "The twenty-first. The last entry, the handwriting no longer even. \"Mom called. I answered. Salt holds it. Going down.\"",
    "tag": "quiet, uneasy",
-   "uk": "Двадцять перше. Останній запис, почерк уже нерівний. «Мама покликала. Я відповів. Сіль тримає. Іду вниз»."
+   "uk": "Двадцять перше. Останній запис, почерк уже нерівний. «Мама покликала. Я відповів. Сіль тримає. Іду вниз».",
+   "es": "El veintiuno. La última anotación, con la letra ya torcida. «Mamá me llamó. Respondí. La sal lo frena. Voy abajo».",
+   "pt": "Dia vinte e um. A última anotação, com a letra já tremida. “Mamãe chamou. Eu respondi. O sal protege. Vou descer.”",
+   "de": "Einundzwanzigster. Der letzte Eintrag, die Schrift zittrig. „Mama rief. Ich antwortete. Das Salz hält. Gehe runter.“"
   },
   "j08": {
    "who": "ИТАН",
@@ -182,7 +248,10 @@
    "ru": "Я решил, что старик сошёл с ума. Двадцать лет ночных смен — кто угодно свихнётся.",
    "en": "I decided the old man had lost his mind. Twenty years of night shifts — anyone would crack.",
    "tag": "quiet, tired",
-   "uk": "Я вирішив, що старий з’їхав з глузду. Двадцять років нічних змін — будь-хто збожеволіє."
+   "uk": "Я вирішив, що старий з’їхав з глузду. Двадцять років нічних змін — будь-хто збожеволіє.",
+   "es": "Decidí que el viejo había perdido la cabeza. Veinte años de turnos de noche: cualquiera se quiebra.",
+   "pt": "Achei que o velho tinha enlouquecido. Vinte anos de turno da noite — qualquer um pira.",
+   "de": "Ich hielt den Alten für verrückt. Zwanzig Jahre Nachtschicht — da dreht jeder durch."
   },
   "j09": {
    "who": "ИТАН",
@@ -190,7 +259,10 @@
    "ru": "Без одной минуты три на седьмом этаже загорелся свет.",
    "en": "At one minute to three, the lights came on on the seventh floor.",
    "tag": "quiet, tense",
-   "uk": "За хвилину до третьої на сьомому поверсі загорілося світло."
+   "uk": "За хвилину до третьої на сьомому поверсі загорілося світло.",
+   "es": "Un minuto antes de las tres, se encendió la luz en el séptimo piso.",
+   "pt": "Faltando um minuto pras três, a luz do sétimo andar acendeu.",
+   "de": "Eine Minute vor drei ging im siebten Stock das Licht an."
   },
   "c01": {
    "who": "ИТАН",
@@ -198,7 +270,10 @@
    "ru": "Вход. Пусто. Только дождь.",
    "en": "The entrance. Empty. Just rain.",
    "tag": "quiet, tired",
-   "uk": "Вхід. Порожньо. Тільки дощ."
+   "uk": "Вхід. Порожньо. Тільки дощ.",
+   "es": "La entrada. Vacía. Solo lluvia.",
+   "pt": "A entrada. Vazia. Só chuva.",
+   "de": "Der Eingang. Leer. Nur Regen."
   },
   "c02": {
    "who": "ИТАН",
@@ -206,7 +281,10 @@
    "ru": "У лифта кто-то стоит?.. Нет. Тень от кадки с пальмой.",
    "en": "Someone by the elevator?.. No. Just the shadow of the potted palm.",
    "tag": "quiet, tense",
-   "uk": "Біля ліфта хтось стоїть?.. Ні. Тінь від діжки з пальмою."
+   "uk": "Біля ліфта хтось стоїть?.. Ні. Тінь від діжки з пальмою.",
+   "es": "¿Alguien junto al ascensor…? No. Solo la sombra de la palmera.",
+   "pt": "Alguém perto do elevador?… Não. Só a sombra da palmeira no vaso.",
+   "de": "Jemand am Aufzug?.. Nein. Nur der Schatten der Topfpalme."
   },
   "c03": {
    "who": "ИТАН",
@@ -214,7 +292,10 @@
    "ru": "Седьмой. Уборщик моет пол. Значит, я тут не один.",
    "en": "Seven. A cleaner mopping the floor. So I'm not alone here.",
    "tag": "quiet, relieved",
-   "uk": "Сьомий. Прибиральник миє підлогу. Отже, я тут не сам."
+   "uk": "Сьомий. Прибиральник миє підлогу. Отже, я тут не сам.",
+   "es": "El séptimo. Un hombre limpia el suelo. Así que no estoy solo.",
+   "pt": "Sétimo. Um faxineiro passando pano. Então não estou sozinho.",
+   "de": "Im Siebten wischt ein Putzmann. Ich bin also nicht allein."
   },
   "f01": {
    "who": "ГАС",
@@ -222,7 +303,10 @@
    "ru": "— Охрана, приём. Это Гас, уборщик. Я на седьмом, к четырём закончу. Если что — я на связи.",
    "en": "— Security, come in. This is Gus, the cleaner. I'm on seven, I'll be done by four. I'm on the radio if you need me.",
    "tag": "friendly, old man",
-   "uk": "— Охорона, прийом. Це Гас, прибиральник. Я на сьомому, до четвертої закінчу. Як щось — я на зв’язку."
+   "uk": "— Охорона, прийом. Це Гас, прибиральник. Я на сьомому, до четвертої закінчу. Як щось — я на зв’язку.",
+   "es": "— Seguridad, ¿me recibes? Soy Gus, el de la limpieza. Estoy en el séptimo, termino para las cuatro. Cualquier cosa, por radio.",
+   "pt": "— Segurança, na escuta? Aqui é o Gus, da limpeza. Tô no sétimo, termino lá pelas quatro. Qualquer coisa, tô no rádio.",
+   "de": "— Wache, bitte kommen. Hier ist Gus, der Putzmann. Ich bin bis vier im Siebten. Wenn was ist, ich bin am Funk."
   },
   "f02": {
    "who": "ИТАН",
@@ -230,7 +314,10 @@
    "ru": "— Принял. Я новенький, первая смена.",
    "en": "— Copy. I'm the new guy, first shift.",
    "tag": "casual",
-   "uk": "— Прийняв. Я новенький, перша зміна."
+   "uk": "— Прийняв. Я новенький, перша зміна.",
+   "es": "— Recibido. Soy el nuevo, primer turno.",
+   "pt": "— Copiado. Sou o novato, primeiro turno.",
+   "de": "— Verstanden. Bin neu, erste Schicht."
   },
   "f03": {
    "who": "ИТАН",
@@ -238,7 +325,10 @@
    "ru": "Ровно в три Гас перестал напевать. Выпрямился и повернулся к двери семьсот седьмого. Будто его окликнули.",
    "en": "At exactly three, Gus stopped humming. He straightened up and turned to the door of seven-oh-seven. As if someone had called him.",
    "tag": "quiet, tense",
-   "uk": "Рівно о третій Гас перестав наспівувати. Випростався й обернувся до дверей сімсот сьомого. Ніби його гукнули."
+   "uk": "Рівно о третій Гас перестав наспівувати. Випростався й обернувся до дверей сімсот сьомого. Ніби його гукнули.",
+   "es": "A las tres en punto, Gus dejó de tararear. Se enderezó y se volvió hacia la puerta del setecientos siete. Como si alguien lo hubiera llamado.",
+   "pt": "Às três em ponto, o Gus parou de cantarolar. Se endireitou e virou pra porta da setecentos e sete. Como se alguém tivesse chamado ele.",
+   "de": "Punkt drei hörte Gus auf zu summen. Er richtete sich auf und drehte sich zur Tür von Siebenhundertsieben. Als hätte ihn jemand gerufen."
   },
   "f04": {
    "who": "ИТАН",
@@ -246,7 +336,10 @@
    "ru": "Рация зашипела: он случайно зажал кнопку.",
    "en": "The radio hissed: he'd pressed the button by accident.",
    "tag": "quiet, tense",
-   "uk": "Рація зашипіла: він випадково затиснув кнопку."
+   "uk": "Рація зашипіла: він випадково затиснув кнопку.",
+   "es": "La radio crepitó: había apretado el botón sin querer.",
+   "pt": "O rádio chiou: ele tinha apertado o botão sem querer.",
+   "de": "Der Funk rauschte: Er hielt aus Versehen die Taste gedrückt."
   },
   "f05": {
    "who": "ГАС",
@@ -254,7 +347,10 @@
    "ru": "— Марта?.. Это ты?",
    "en": "— Martha?.. Is that you?",
    "tag": "tender, confused",
-   "uk": "— Марто?.. Це ти?"
+   "uk": "— Марто?.. Це ти?",
+   "es": "— ¿Martha…? ¿Eres tú?",
+   "pt": "— Martha?… É você?",
+   "de": "— Martha?.. Bist du das?"
   },
   "f06": {
    "who": "ИТАН",
@@ -262,7 +358,10 @@
    "ru": "Изображение пошло помехами. Когда оно вернулось, в коридоре остались только ведро и швабра.",
    "en": "The picture broke into static. When it came back, there was only a bucket and a mop in the corridor.",
    "tag": "quiet, shaken",
-   "uk": "По зображенню пішли перешкоди. Коли воно повернулося, у коридорі лишилися тільки відро й швабра."
+   "uk": "По зображенню пішли перешкоди. Коли воно повернулося, у коридорі лишилися тільки відро й швабра.",
+   "es": "La imagen se llenó de estática. Cuando volvió, en el pasillo solo quedaban un balde y un trapeador.",
+   "pt": "A imagem virou estática. Quando voltou, no corredor só havia um balde e um esfregão.",
+   "de": "Das Bild versank im Rauschen. Als es wiederkam, standen im Flur nur noch Eimer und Mopp."
   },
   "f07": {
    "who": "ИТАН",
@@ -270,7 +369,10 @@
    "ru": "Я пересмотрел запись трижды. В ту секунду дверь семьсот седьмого была закрыта. А Гас с ней разговаривал.",
    "en": "I watched the recording three times. At that second, the door of seven-oh-seven was closed. And Gus was talking to it.",
    "tag": "quiet, shaken",
-   "uk": "Я переглянув запис тричі. Тієї секунди двері сімсот сьомого були зачинені. А Гас із ними розмовляв."
+   "uk": "Я переглянув запис тричі. Тієї секунди двері сімсот сьомого були зачинені. А Гас із ними розмовляв.",
+   "es": "Vi la grabación tres veces. En ese segundo, la puerta del setecientos siete estaba cerrada. Y Gus le estaba hablando.",
+   "pt": "Vi a gravação três vezes. Naquele segundo, a porta da setecentos e sete estava fechada. E o Gus falava com ela.",
+   "de": "Ich sah mir die Aufnahme dreimal an. In dieser Sekunde war die Tür von Siebenhundertsieben zu. Und Gus sprach mit ihr."
   },
   "f08": {
    "who": "ИТАН",
@@ -278,7 +380,10 @@
    "ru": "Я позвонил в полицию. Дежурный спросил, есть ли тело. Тела не было. «Утром пусть родные пишут заявление».",
    "en": "I called the police. The officer asked if there was a body. There wasn't. \"His family can file a report in the morning.\"",
    "tag": "quiet, bitter",
-   "uk": "Я подзвонив у поліцію. Черговий запитав, чи є тіло. Тіла не було. «Уранці хай рідні пишуть заяву»."
+   "uk": "Я подзвонив у поліцію. Черговий запитав, чи є тіло. Тіла не було. «Уранці хай рідні пишуть заяву».",
+   "es": "Llamé a la policía. El agente preguntó si había un cuerpo. No lo había. «Que la familia haga la denuncia por la mañana».",
+   "pt": "Liguei pra polícia. O atendente perguntou se tinha corpo. Não tinha. “De manhã a família faz o boletim de ocorrência.”",
+   "de": "Ich rief die Polizei. Der Beamte fragte nach einer Leiche. Es gab keine. „Morgen früh kann die Familie Anzeige erstatten.“"
   },
   "r01": {
    "who": "ИТАН",
@@ -286,7 +391,10 @@
    "ru": "Уйти? До дверей — через весь холл, мимо лифта. По правилам Фрэнка будка была безопаснее.",
    "en": "Leave? The doors were across the whole lobby, past the elevator. By Frank's rules, the booth was safer.",
    "tag": "quiet, tense",
-   "uk": "Піти? До дверей — через увесь хол, повз ліфт. За правилами Френка, у будці було безпечніше."
+   "uk": "Піти? До дверей — через увесь хол, повз ліфт. За правилами Френка, у будці було безпечніше.",
+   "es": "¿Salir? La puerta quedaba al otro lado del vestíbulo, pasado el ascensor. Según las reglas de Frank, la caseta era más segura.",
+   "pt": "Sair? A porta ficava do outro lado do saguão, depois do elevador. Pelas regras do Frank, a guarita era mais segura.",
+   "de": "Gehen? Zum Ausgang ging es quer durchs Foyer, am Aufzug vorbei. Nach Franks Regeln war die Kabine sicherer."
   },
   "r02": {
    "who": "ИТАН",
@@ -294,7 +402,10 @@
    "ru": "Седьмой этаж горел пустой. Я сидел и смотрел на ведро.",
    "en": "The seventh floor stayed lit and empty. I sat there staring at the bucket.",
    "tag": "quiet, tired",
-   "uk": "Сьомий поверх світився порожній. Я сидів і дивився на відро."
+   "uk": "Сьомий поверх світився порожній. Я сидів і дивився на відро.",
+   "es": "El séptimo piso seguía iluminado y vacío. Me quedé mirando el balde.",
+   "pt": "O sétimo andar continuava aceso e vazio. Fiquei ali, olhando pro balde.",
+   "de": "Der Siebte blieb hell und leer. Ich saß da und starrte auf den Eimer."
   },
   "r03": {
    "who": "ГАС",
@@ -302,7 +413,10 @@
    "ru": "— Охрана… Итан, ты меня слышишь? Я застрял в лифте, между этажами… Итан, ответь…",
    "en": "— Security… Ethan, can you hear me? I'm stuck in the elevator, between floors… Ethan, answer me…",
    "tag": "weak, pleading",
-   "uk": "— Охорона… Ітане, ти мене чуєш? Я застряг у ліфті, між поверхами… Ітане, відповідай…"
+   "uk": "— Охорона… Ітане, ти мене чуєш? Я застряг у ліфті, між поверхами… Ітане, відповідай…",
+   "es": "— Seguridad… Ethan, ¿me oyes? Estoy atrapado en el ascensor, entre dos pisos… Ethan, responde…",
+   "pt": "— Segurança… Ethan, tá me ouvindo? Tô preso no elevador, entre os andares… Ethan, responde…",
+   "de": "— Wache… Ethan, hörst du mich? Ich stecke im Aufzug fest, zwischen den Etagen… Ethan, melde dich…"
   },
   "r04": {
    "who": "ИТАН",
@@ -310,7 +424,10 @@
    "ru": "Гас не знал моего имени. Я его не называл.",
    "en": "Gus didn't know my name. I never told him.",
    "tag": "whispering, cold",
-   "uk": "Гас не знав мого імені. Я його не називав."
+   "uk": "Гас не знав мого імені. Я його не називав.",
+   "es": "Gus no sabía mi nombre. Nunca se lo dije.",
+   "pt": "O Gus não sabia o meu nome. Eu nunca tinha dito.",
+   "de": "Gus kannte meinen Namen nicht. Ich nannte ihn nie."
   },
   "e01": {
    "who": "ИТАН",
@@ -318,7 +435,10 @@
    "ru": "Через минуту лифт спустился в холл. Его никто не вызывал.",
    "en": "A minute later the elevator came down to the lobby. Nobody had called it.",
    "tag": "quiet, tense",
-   "uk": "За хвилину ліфт спустився в хол. Його ніхто не викликав."
+   "uk": "За хвилину ліфт спустився в хол. Його ніхто не викликав.",
+   "es": "Un minuto después, el ascensor bajó al vestíbulo. Nadie lo había llamado.",
+   "pt": "Um minuto depois, o elevador desceu até o saguão. Ninguém tinha chamado.",
+   "de": "Eine Minute später kam der Aufzug ins Foyer. Niemand hatte ihn gerufen."
   },
   "e02": {
    "who": "ИТАН",
@@ -326,7 +446,10 @@
    "ru": "Над дверями горело: тринадцать. В «Горизонте» двенадцать этажей.",
    "en": "The display above the doors said thirteen. The Horizon has twelve floors.",
    "tag": "quiet, tense",
-   "uk": "Над дверима світилося: тринадцять. У «Горизонті» дванадцять поверхів."
+   "uk": "Над дверима світилося: тринадцять. У «Горизонті» дванадцять поверхів.",
+   "es": "Sobre las puertas, el indicador marcaba trece. El Horizon tiene doce pisos.",
+   "pt": "O visor acima das portas mostrava: treze. O Horizon tem doze andares.",
+   "de": "Über den Türen leuchtete: dreizehn. Das Horizon hat zwölf Etagen."
   },
   "e03": {
    "who": "ИТАН",
@@ -334,7 +457,10 @@
    "ru": "Двери постояли открытыми. И закрылись сами.",
    "en": "The doors stood open for a while. Then closed on their own.",
    "tag": "quiet, tense",
-   "uk": "Двері постояли відчинені. І зачинилися самі."
+   "uk": "Двері постояли відчинені. І зачинилися самі.",
+   "es": "Las puertas se quedaron abiertas un rato. Luego se cerraron solas.",
+   "pt": "As portas ficaram um tempo abertas. E fecharam sozinhas.",
+   "de": "Die Türen standen eine Weile offen. Und gingen von selbst zu."
   },
   "m01": {
    "who": "ИТАН",
@@ -342,7 +468,10 @@
    "ru": "Табло погасло. А на пульте включилась тринадцатая камера.",
    "en": "The display went dark. And camera thirteen came on on the console.",
    "tag": "quiet, tense",
-   "uk": "Табло згасло. А на пульті ввімкнулася тринадцята камера."
+   "uk": "Табло згасло. А на пульті ввімкнулася тринадцята камера.",
+   "es": "El indicador se apagó. Y en el panel se encendió la cámara trece.",
+   "pt": "O visor apagou. E, no painel, a câmera treze ligou.",
+   "de": "Die Anzeige erlosch. Und am Pult ging Kamera dreizehn an."
   },
   "m02": {
    "who": "ИТАН",
@@ -350,7 +479,10 @@
    "ru": "Длинный коридор, которого нет в этом здании. В конце — кто-то спиной ко мне.",
    "en": "A long corridor that doesn't exist in this building. At the end of it, someone with their back to me.",
    "tag": "whispering, terrified",
-   "uk": "Довгий коридор, якого немає в цій будівлі. У кінці — хтось спиною до мене."
+   "uk": "Довгий коридор, якого немає в цій будівлі. У кінці — хтось спиною до мене.",
+   "es": "Un pasillo largo que no existe en este edificio. Al fondo, alguien de espaldas a mí.",
+   "pt": "Um corredor comprido que não existe neste prédio. No fim dele, alguém de costas pra mim.",
+   "de": "Ein langer Flur, den es in diesem Gebäude nicht gibt. Am Ende jemand, mit dem Rücken zu mir."
   },
   "g01": {
    "who": "ИТАН",
@@ -358,7 +490,10 @@
    "ru": "Я выдернул шнур. Десять минут сидел в темноте и слушал, как гудит пустое здание.",
    "en": "I yanked the cord. For ten minutes I sat in the dark, listening to the empty building hum.",
    "tag": "quiet, tired",
-   "uk": "Я висмикнув шнур. Десять хвилин сидів у темряві й слухав, як гуде порожня будівля."
+   "uk": "Я висмикнув шнур. Десять хвилин сидів у темряві й слухав, як гуде порожня будівля.",
+   "es": "Arranqué el cable. Pasé diez minutos a oscuras, oyendo zumbar el edificio vacío.",
+   "pt": "Arranquei o fio. Fiquei dez minutos no escuro, ouvindo o zumbido do prédio vazio.",
+   "de": "Ich riss den Stecker raus. Zehn Minuten saß ich im Dunkeln und hörte das leere Gebäude summen."
   },
   "g02": {
    "who": "ИТАН",
@@ -366,7 +501,10 @@
    "ru": "Не отзывайся. Не открывай. Я повторял это про себя, пока слова не потеряли смысл.",
    "en": "Don't answer. Don't open. I kept repeating it to myself until the words stopped meaning anything.",
    "tag": "quiet, slow",
-   "uk": "Не озивайся. Не відчиняй. Я повторював це подумки, доки слова не втратили сенсу."
+   "uk": "Не озивайся. Не відчиняй. Я повторював це подумки, доки слова не втратили сенсу.",
+   "es": "No respondas. No abras. Me lo repetí hasta que las palabras perdieron el sentido.",
+   "pt": "Não responda. Não abra. Fiquei repetindo isso pra mim mesmo até as palavras perderem o sentido.",
+   "de": "Antworte nicht. Mach nicht auf. Ich wiederholte es, bis die Worte keinen Sinn mehr hatten."
   },
   "g03": {
    "who": "ИТАН",
@@ -374,7 +512,10 @@
    "ru": "В половине четвёртого с улицы меня позвали по имени.",
    "en": "At half past three, someone outside called my name.",
    "tag": "quiet, tense",
-   "uk": "О пів на четверту з вулиці мене покликали на ім’я."
+   "uk": "О пів на четверту з вулиці мене покликали на ім’я.",
+   "es": "A las tres y media, desde la calle, me llamaron por mi nombre.",
+   "pt": "Às três e meia, alguém lá fora me chamou pelo nome.",
+   "de": "Um halb vier rief mich draußen jemand beim Namen."
   },
   "g04": {
    "who": "ИТАН",
@@ -382,7 +523,10 @@
    "ru": "За стеклом стояла Лили. В жёлтом свитере, под дождём.",
    "en": "Lily was standing outside the glass. In her yellow sweater, in the rain.",
    "tag": "quiet, stunned",
-   "uk": "За склом стояла Лілі. У жовтому светрі, під дощем."
+   "uk": "За склом стояла Лілі. У жовтому светрі, під дощем.",
+   "es": "Detrás del vidrio estaba Lily. Con su suéter amarillo, bajo la lluvia.",
+   "pt": "Do outro lado do vidro estava a Lily. Com o suéter amarelo, na chuva.",
+   "de": "Hinter der Scheibe stand Lily. In ihrem gelben Pullover, im Regen."
   },
   "g05": {
    "who": "ЛИЛИ",
@@ -390,7 +534,10 @@
    "ru": "— Итан! Итан, открой, пожалуйста!",
    "en": "— Ethan! Ethan, open the door, please!",
    "tag": "crying, desperate",
-   "uk": "— Ітане! Ітане, відчини, будь ласка!"
+   "uk": "— Ітане! Ітане, відчини, будь ласка!",
+   "es": "— ¡Ethan! ¡Ethan, ábreme, por favor!",
+   "pt": "— Ethan! Ethan, abre a porta, por favor!",
+   "de": "— Ethan! Ethan, mach auf, bitte!"
   },
   "g06": {
    "who": "ИТАН",
@@ -398,7 +545,10 @@
    "ru": "Она должна была спать в общежитии. В трёхстах километрах отсюда.",
    "en": "She was supposed to be asleep in her dorm. Two hundred miles from here.",
    "tag": "quiet, confused",
-   "uk": "Вона мала спати в гуртожитку. За триста кілометрів звідси."
+   "uk": "Вона мала спати в гуртожитку. За триста кілометрів звідси.",
+   "es": "Tenía que estar dormida en la residencia. A trescientos kilómetros de aquí.",
+   "pt": "Ela devia estar dormindo no alojamento. A trezentos quilômetros daqui.",
+   "de": "Sie sollte im Wohnheim schlafen. Dreihundert Kilometer von hier."
   },
   "g07": {
    "who": "ЛИЛИ",
@@ -406,7 +556,10 @@
    "ru": "— Я хотела сделать тебе сюрприз… Телефон сел, я шла пешком от вокзала. Итан, мне холодно!",
    "en": "— I wanted to surprise you… My phone died, I walked from the station. Ethan, I'm freezing!",
    "tag": "crying, shivering",
-   "uk": "— Я хотіла зробити тобі сюрприз… Телефон сів, я йшла пішки від вокзалу. Ітане, мені холодно!"
+   "uk": "— Я хотіла зробити тобі сюрприз… Телефон сів, я йшла пішки від вокзалу. Ітане, мені холодно!",
+   "es": "— Quería sorprenderte… Me quedé sin batería y vine a pie desde la estación. ¡Ethan, me congelo!",
+   "pt": "— Queria te fazer uma surpresa… Meu celular morreu, vim a pé da rodoviária. Ethan, tô congelando!",
+   "de": "— Ich wollte dich überraschen… Mein Handy ist tot, bin vom Bahnhof gelaufen. Ethan, mir ist kalt!"
   },
   "g08": {
    "who": "ИТАН",
@@ -414,7 +567,10 @@
    "ru": "Я глянул на монитор входа. Там, где она стояла, были только помехи.",
    "en": "I glanced at the entrance monitor. Where she was standing, there was nothing but static.",
    "tag": "whispering, terrified",
-   "uk": "Я глянув на монітор входу. Там, де вона стояла, були самі перешкоди."
+   "uk": "Я глянув на монітор входу. Там, де вона стояла, були самі перешкоди.",
+   "es": "Miré el monitor de la entrada. Donde ella estaba, solo había estática.",
+   "pt": "Olhei o monitor da entrada. Onde ela estava, só havia estática.",
+   "de": "Ich sah auf den Eingangsmonitor. Wo sie stand, war nur Rauschen."
   },
   "g09": {
    "who": "ИТАН",
@@ -422,7 +578,10 @@
    "ru": "Телефон дрогнул. Сообщение от Лили. Отправлено минуту назад. С телефона, который «сел».",
    "en": "My phone buzzed. A message from Lily. Sent a minute ago. From the phone that had \"died.\"",
    "tag": "whispering, terrified",
-   "uk": "Телефон здригнувся. Повідомлення від Лілі. Надіслано хвилину тому. З телефону, який «сів»."
+   "uk": "Телефон здригнувся. Повідомлення від Лілі. Надіслано хвилину тому. З телефону, який «сів».",
+   "es": "El teléfono vibró. Un mensaje de Lily. Enviado hace un minuto. Desde el teléfono «sin batería».",
+   "pt": "O celular vibrou. Uma mensagem da Lily. Enviada há um minuto. Do celular que tinha “morrido”.",
+   "de": "Mein Handy vibrierte. Eine Nachricht von Lily. Vor einer Minute. Von dem Handy, das „tot“ war."
   },
   "g10": {
    "who": "ИТАН",
@@ -430,7 +589,10 @@
    "ru": "Дождь заливал стекло, а она прижималась к нему лицом. Стекло запотевало только с моей стороны.",
    "en": "Rain was streaming down the glass, and she was pressing her face against it. The glass only fogged up on my side.",
    "tag": "whispering, terrified",
-   "uk": "Дощ заливав скло, а вона притискалася до нього обличчям. Скло запотівало тільки з мого боку."
+   "uk": "Дощ заливав скло, а вона притискалася до нього обличчям. Скло запотівало тільки з мого боку.",
+   "es": "La lluvia corría por el vidrio, y ella pegaba la cara contra él. El vidrio solo se empañaba de mi lado.",
+   "pt": "A chuva escorria pelo vidro, e ela colava o rosto nele. O vidro só embaçava do meu lado.",
+   "de": "Regen lief über die Scheibe, und sie drückte ihr Gesicht dagegen. Beschlagen war das Glas nur auf meiner Seite."
   },
   "g11": {
    "who": "ЛИЛИ",
@@ -438,7 +600,10 @@
    "ru": "— Итан, там кто-то идёт! Открой!",
    "en": "— Ethan, someone's coming! Open the door!",
    "tag": "panicked, scared",
-   "uk": "— Ітане, там хтось іде! Відчини!"
+   "uk": "— Ітане, там хтось іде! Відчини!",
+   "es": "— ¡Ethan, viene alguien! ¡Abre!",
+   "pt": "— Ethan, tem alguém vindo! Abre a porta!",
+   "de": "— Ethan, da kommt jemand! Mach auf!"
   },
   "g12": {
    "who": "ИТАН",
@@ -446,7 +611,10 @@
    "ru": "Я вывел пальцем на запотевшем стекле: «Как звали собаку?» Она даже не взглянула на буквы.",
    "en": "With my finger I wrote on the fogged glass: \"What was our dog's name?\" She didn't even glance at the letters.",
    "tag": "whispering, terrified",
-   "uk": "Я вивів пальцем на запітнілому склі: «Як звали собаку?» Вона навіть не глянула на літери."
+   "uk": "Я вивів пальцем на запітнілому склі: «Як звали собаку?» Вона навіть не глянула на літери.",
+   "es": "Con el dedo escribí en el vidrio empañado: «¿Cómo se llamaba el perro?». Ni siquiera miró las letras.",
+   "pt": "Escrevi com o dedo no vidro embaçado: “Qual era o nome do nosso cachorro?” Ela nem olhou pras letras.",
+   "de": "Mit dem Finger schrieb ich aufs beschlagene Glas: „Wie heißt der Hund?“ Sie sah nicht mal auf die Buchstaben."
   },
   "g13": {
    "who": "ЛИЛИ",
@@ -454,7 +622,10 @@
    "ru": "— Итан… Открой. Мне холодно. Итан.",
    "en": "— Ethan… Open up. I'm cold. Ethan.",
    "tag": "flat, sweet, creepy",
-   "uk": "— Ітане… Відчини. Мені холодно. Ітане."
+   "uk": "— Ітане… Відчини. Мені холодно. Ітане.",
+   "es": "— Ethan… Ábreme. Tengo frío. Ethan.",
+   "pt": "— Ethan… Abre. Tô com frio. Ethan.",
+   "de": "— Ethan… Mach auf. Mir ist kalt. Ethan."
   },
   "g14": {
    "who": "ИТАН",
@@ -462,7 +633,10 @@
    "ru": "Бублик. Лили сама его так назвала. А это просто повторяло моё имя. Тем же голосом. С той же интонацией.",
    "en": "Biscuit. Lily named him herself. And this thing just kept repeating my name. The same voice. The same intonation.",
    "tag": "whispering, terrified",
-   "uk": "Бублик. Лілі сама його так назвала. А це просто повторювало моє ім’я. Тим самим голосом. З тією самою інтонацією."
+   "uk": "Бублик. Лілі сама його так назвала. А це просто повторювало моє ім’я. Тим самим голосом. З тією самою інтонацією.",
+   "es": "Galleta. El nombre se lo puso Lily. Y esa cosa solo repetía el mío. La misma voz. La misma entonación.",
+   "pt": "Biscoito. Foi a própria Lily que deu o nome. E aquilo só repetia o meu nome. Com a mesma voz. A mesma entonação.",
+   "de": "Keks. Lily hatte ihn selbst so genannt. Und das Ding wiederholte bloß meinen Namen. Dieselbe Stimme. Derselbe Tonfall."
   },
   "g15": {
    "who": "ИТАН",
@@ -470,7 +644,10 @@
    "ru": "Я отошёл от двери.",
    "en": "I stepped back from the door.",
    "tag": "whispering, terrified",
-   "uk": "Я відійшов від дверей."
+   "uk": "Я відійшов від дверей.",
+   "es": "Me aparté de la puerta.",
+   "pt": "Me afastei da porta.",
+   "de": "Ich trat von der Tür zurück."
   },
   "a01": {
    "who": "ИТАН",
@@ -478,7 +655,10 @@
    "ru": "Я повернул ключ.",
    "en": "I turned the key.",
    "tag": "quiet, hesitant",
-   "uk": "Я повернув ключ."
+   "uk": "Я повернув ключ.",
+   "es": "Giré la llave.",
+   "pt": "Girei a chave.",
+   "de": "Ich schloss auf."
   },
   "a02": {
    "who": "ИТАН",
@@ -486,7 +666,10 @@
    "ru": "Она бросилась мне на шею. Ледяная, мокрая насквозь.",
    "en": "She threw her arms around my neck. Ice-cold, soaked through.",
    "tag": "quiet, emotional",
-   "uk": "Вона кинулася мені на шию. Крижана, мокра наскрізь."
+   "uk": "Вона кинулася мені на шию. Крижана, мокра наскрізь.",
+   "es": "Se me echó al cuello. Helada, empapada.",
+   "pt": "Ela pulou no meu pescoço. Gelada, encharcada até os ossos.",
+   "de": "Sie fiel mir um den Hals. Eiskalt, völlig durchnässt."
   },
   "a03": {
    "who": "ИТАН",
@@ -494,7 +677,10 @@
    "ru": "— Всё, всё. Ты уже здесь. Ты со мной.",
    "en": "— It's okay, it's okay. You're here now. You're with me.",
    "tag": "gentle, comforting",
-   "uk": "— Усе, усе. Ти вже тут. Ти зі мною."
+   "uk": "— Усе, усе. Ти вже тут. Ти зі мною.",
+   "es": "— Ya está, ya está. Ya estás aquí. Estás conmigo.",
+   "pt": "— Pronto, pronto. Você tá aqui. Você tá comigo.",
+   "de": "— Schon gut, schon gut. Du bist jetzt hier. Du bist bei mir."
   },
   "a04": {
    "who": "ИТАН",
@@ -502,7 +688,10 @@
    "ru": "Она перестала плакать. Сразу. Как будто кто-то выключил звук.",
    "en": "She stopped crying. Instantly. As if someone had hit mute.",
    "tag": "quiet, uneasy",
-   "uk": "Вона перестала плакати. Одразу. Ніби хтось вимкнув звук."
+   "uk": "Вона перестала плакати. Одразу. Ніби хтось вимкнув звук.",
+   "es": "Dejó de llorar. De golpe. Como si alguien hubiera quitado el sonido.",
+   "pt": "Ela parou de chorar. Na hora. Como se alguém tivesse tirado o som.",
+   "de": "Sie hörte auf zu weinen. Sofort. Wie stummgeschaltet."
   },
   "a05": {
    "who": "ИТАН",
@@ -510,7 +699,10 @@
    "ru": "От неё пахло не дождём. Машинным маслом и пылью. Как из шахты лифта.",
    "en": "She didn't smell like rain. She smelled of machine oil and dust. Like an elevator shaft.",
    "tag": "whispering, terrified",
-   "uk": "Від неї пахло не дощем. Машинним мастилом і пилом. Як із шахти ліфта."
+   "uk": "Від неї пахло не дощем. Машинним мастилом і пилом. Як із шахти ліфта.",
+   "es": "No olía a lluvia. Olía a aceite de máquina y a polvo. Como el hueco de un ascensor.",
+   "pt": "Ela não tinha cheiro de chuva. Tinha cheiro de graxa e poeira. Como um poço de elevador.",
+   "de": "Sie roch nicht nach Regen. Sondern nach Maschinenöl und Staub. Wie ein Aufzugsschacht."
   },
   "a06": {
    "who": "ИТАН",
@@ -518,7 +710,10 @@
    "ru": "Зазвонил телефон. На экране: «Лили».",
    "en": "My phone rang. The screen said: \"Lily.\"",
    "tag": "whispering, terrified",
-   "uk": "Задзвонив телефон. На екрані: «Лілі»."
+   "uk": "Задзвонив телефон. На екрані: «Лілі».",
+   "es": "Sonó mi teléfono. En la pantalla: «Lily».",
+   "pt": "Meu celular tocou. Na tela: “Lily”.",
+   "de": "Mein Handy klingelte. Auf dem Display: „Lily“."
   },
   "a07": {
    "who": "ИТАН",
@@ -526,7 +721,10 @@
    "ru": "Лили стояла рядом со мной. Руки у неё были пустые. А телефон всё звонил.",
    "en": "Lily was standing right next to me. Her hands were empty. And the phone kept ringing.",
    "tag": "whispering, terrified",
-   "uk": "Лілі стояла поруч зі мною. Руки в неї були порожні. А телефон усе дзвонив."
+   "uk": "Лілі стояла поруч зі мною. Руки в неї були порожні. А телефон усе дзвонив.",
+   "es": "Lily estaba justo a mi lado. Tenía las manos vacías. Y el teléfono seguía sonando.",
+   "pt": "A Lily estava bem do meu lado. De mãos vazias. E o celular continuava tocando.",
+   "de": "Lily stand direkt neben mir. Ihre Hände waren leer. Und das Handy klingelte weiter."
   },
   "a08": {
    "who": "ИТАН",
@@ -534,7 +732,10 @@
    "ru": "Я поднял глаза. Холл был пуст. Только мокрые следы — к лифту.",
    "en": "I looked up. The lobby was empty. Just wet footprints, leading to the elevator.",
    "tag": "whispering, terrified",
-   "uk": "Я підвів очі. Хол був порожній. Тільки мокрі сліди — до ліфта."
+   "uk": "Я підвів очі. Хол був порожній. Тільки мокрі сліди — до ліфта.",
+   "es": "Levanté la vista. El vestíbulo estaba vacío. Solo huellas mojadas, hacia el ascensor.",
+   "pt": "Levantei os olhos. O saguão estava vazio. Só pegadas molhadas, indo até o elevador.",
+   "de": "Ich sah auf. Das Foyer war leer. Nur nasse Fußspuren, zum Aufzug hin."
   },
   "a09": {
    "who": "ИТАН",
@@ -542,7 +743,10 @@
    "ru": "Лифт поехал вверх. Пять. Девять. Двенадцать. Тринадцать.",
    "en": "The elevator went up. Five. Nine. Twelve. Thirteen.",
    "tag": "whispering, terrified",
-   "uk": "Ліфт поїхав угору. П’ять. Дев’ять. Дванадцять. Тринадцять."
+   "uk": "Ліфт поїхав угору. П’ять. Дев’ять. Дванадцять. Тринадцять.",
+   "es": "El ascensor subió. Cinco. Nueve. Doce. Trece.",
+   "pt": "O elevador subiu. Cinco. Nove. Doze. Treze.",
+   "de": "Der Aufzug fuhr nach oben. Fünf. Neun. Zwölf. Dreizehn."
   },
   "a10": {
    "who": "ИТАН",
@@ -550,7 +754,10 @@
    "ru": "Тринадцатый монитор включился сам — с выдернутым шнуром. В конце коридора — жёлтый свитер. Она медленно обернулась.",
    "en": "Monitor thirteen turned on by itself, with its cord pulled out. At the end of the corridor, a yellow sweater. It slowly turned around.",
    "tag": "whispering, terrified",
-   "uk": "Тринадцятий монітор увімкнувся сам — із висмикнутим шнуром. У кінці коридору — жовтий светр. Вона повільно обернулася."
+   "uk": "Тринадцятий монітор увімкнувся сам — із висмикнутим шнуром. У кінці коридору — жовтий светр. Вона повільно обернулася.",
+   "es": "El monitor trece se encendió solo, con el cable arrancado. Al fondo del pasillo, un suéter amarillo. Se dio la vuelta despacio.",
+   "pt": "O monitor treze ligou sozinho, com o fio arrancado. No fim do corredor, um suéter amarelo. Ela se virou devagar.",
+   "de": "Monitor dreizehn ging von selbst an, mit gezogenem Stecker. Am Ende des Flurs ein gelber Pullover. Es drehte sich langsam um."
   },
   "a11": {
    "who": "ИТАН",
@@ -558,7 +765,10 @@
    "ru": "Это было не её лицо. И оно улыбалось в камеру.",
    "en": "It wasn't her face. And it was smiling into the camera.",
    "tag": "whispering, terrified",
-   "uk": "Це було не її обличчя. І воно всміхалося в камеру."
+   "uk": "Це було не її обличчя. І воно всміхалося в камеру.",
+   "es": "No era su cara. Y sonreía a la cámara.",
+   "pt": "Não era o rosto dela. E aquele rosto sorria pra câmera.",
+   "de": "Das war nicht ihr Gesicht. Und es lächelte in die Kamera."
   },
   "a12": {
    "who": "ИТАН",
@@ -566,7 +776,10 @@
    "ru": "Фрэнк ведь предупреждал. А я сам открыл. Сам впустил.",
    "en": "Frank had warned me. And I opened the door myself. Let it in myself.",
    "tag": "quiet, despair",
-   "uk": "Френк же попереджав. А я сам відчинив. Сам впустив."
+   "uk": "Френк же попереджав. А я сам відчинив. Сам впустив.",
+   "es": "Frank me lo había advertido. Y yo mismo abrí. Yo mismo lo dejé entrar.",
+   "pt": "O Frank tinha avisado. E eu mesmo abri. Eu mesmo deixei entrar.",
+   "de": "Frank hatte gewarnt. Und ich hab selbst aufgemacht. Selbst reingelassen."
   },
   "a13": {
    "who": "ИТАН",
@@ -574,7 +787,10 @@
    "ru": "Лифт поехал вниз.",
    "en": "The elevator started down.",
    "tag": "whispering, terrified",
-   "uk": "Ліфт поїхав униз."
+   "uk": "Ліфт поїхав униз.",
+   "es": "El ascensor empezó a bajar.",
+   "pt": "O elevador começou a descer.",
+   "de": "Der Aufzug fuhr nach unten."
   },
   "h01": {
    "who": "ИТАН",
@@ -582,7 +798,10 @@
    "ru": "Я запер будку. Выключил лампу. Сполз на пол под стойку.",
    "en": "I locked the booth. Switched off the lamp. Slid down to the floor under the counter.",
    "tag": "whispering, terrified",
-   "uk": "Я замкнув будку. Вимкнув лампу. Сповз на підлогу під стійку."
+   "uk": "Я замкнув будку. Вимкнув лампу. Сповз на підлогу під стійку.",
+   "es": "Cerré la caseta con llave. Apagué la lámpara. Me deslicé al suelo, bajo el mostrador.",
+   "pt": "Tranquei a guarita. Apaguei a luminária. Escorreguei pro chão, debaixo do balcão.",
+   "de": "Ich schloss die Kabine ab. Machte die Lampe aus. Rutschte unter den Tresen."
   },
   "h02": {
    "who": "ИТАН",
@@ -590,7 +809,10 @@
    "ru": "Двери лифта. Шаги. Босые, мокрые. Ближе.",
    "en": "The elevator doors. Footsteps. Bare, wet. Closer.",
    "tag": "whispering, terrified",
-   "uk": "Двері ліфта. Кроки. Босі, мокрі. Ближче."
+   "uk": "Двері ліфта. Кроки. Босі, мокрі. Ближче.",
+   "es": "El ascensor se abrió. Pasos. Descalzos, mojados. Más cerca.",
+   "pt": "Portas do elevador. Passos. Descalços, molhados. Mais perto.",
+   "de": "Die Aufzugstüren. Schritte. Barfuß, nass. Näher."
   },
   "h03": {
    "who": "ИТАН",
@@ -598,7 +820,10 @@
    "ru": "Телефон в кармане завибрировал. Я накрыл его ладонью. Поздно.",
    "en": "The phone in my pocket vibrated. I covered it with my hand. Too late.",
    "tag": "whispering, terrified",
-   "uk": "Телефон у кишені завібрував. Я накрив його долонею. Запізно."
+   "uk": "Телефон у кишені завібрував. Я накрив його долонею. Запізно.",
+   "es": "El teléfono me vibró en el bolsillo. Lo tapé con la mano. Demasiado tarde.",
+   "pt": "O celular vibrou no bolso. Cobri com a mão. Tarde demais.",
+   "de": "Das Handy in meiner Tasche vibrierte. Ich legte die Hand darauf. Zu spät."
   },
   "h04": {
    "who": "ЛИЛИ",
@@ -606,7 +831,10 @@
    "ru": "— Итан… Ты здесь? Ну, вдохни.",
    "en": "— Ethan… Are you here? Come on, take a breath.",
    "tag": "whispering, sweet, creepy",
-   "uk": "— Ітане… Ти тут? Ну, вдихни."
+   "uk": "— Ітане… Ти тут? Ну, вдихни.",
+   "es": "— Ethan… ¿Estás aquí? Vamos, respira.",
+   "pt": "— Ethan… Você tá aqui? Anda, respira.",
+   "de": "— Ethan… Bist du da? Na komm, hol Luft."
   },
   "h05": {
    "who": "ИТАН",
@@ -614,7 +842,10 @@
    "ru": "Шаги кружили вокруг будки. Час. Другой.",
    "en": "The footsteps circled the booth. An hour. Then another.",
    "tag": "whispering, exhausted",
-   "uk": "Кроки кружляли довкола будки. Годину. Другу."
+   "uk": "Кроки кружляли довкола будки. Годину. Другу.",
+   "es": "Los pasos rodeaban la caseta. Una hora. Y otra.",
+   "pt": "Os passos rodeavam a guarita. Uma hora. Depois outra.",
+   "de": "Die Schritte kreisten um die Kabine. Eine Stunde. Noch eine."
   },
   "h06": {
    "who": "ИТАН",
@@ -622,7 +853,10 @@
    "ru": "Без минуты шесть она позвала ещё раз, шёпотом. И я ответил раньше, чем понял, что отвечаю.",
    "en": "At one minute to six she called again, in a whisper. And I answered before I realized I was answering.",
    "tag": "whispering, hollow",
-   "uk": "За хвилину до шостої вона покликала ще раз, пошепки. І я відповів раніше, ніж зрозумів, що відповідаю."
+   "uk": "За хвилину до шостої вона покликала ще раз, пошепки. І я відповів раніше, ніж зрозумів, що відповідаю.",
+   "es": "Un minuto antes de las seis volvió a llamarme, en un susurro. Y respondí antes de darme cuenta de que respondía.",
+   "pt": "Faltando um minuto pras seis, ela chamou de novo, baixinho. E eu respondi antes de perceber que estava respondendo.",
+   "de": "Eine Minute vor sechs rief sie noch einmal, flüsternd. Und ich antwortete, ehe ich es merkte."
   },
   "h07": {
    "who": "ИТАН",
@@ -630,7 +864,10 @@
    "ru": "В шесть хлопнула входная дверь. Пришёл дневной охранник.",
    "en": "At six the front door banged. The day guard had arrived.",
    "tag": "quiet, hollow",
-   "uk": "О шостій грюкнули вхідні двері. Прийшов денний охоронець."
+   "uk": "О шостій грюкнули вхідні двері. Прийшов денний охоронець.",
+   "es": "A las seis, un portazo en la entrada. Llegó el vigilante de día.",
+   "pt": "Às seis, a porta da frente bateu. Era o vigia do dia.",
+   "de": "Um sechs knallte die Eingangstür. Die Ablösung war da."
   },
   "h08": {
    "who": "СМЕНЩИК",
@@ -638,7 +875,10 @@
    "ru": "— Не отвечал?",
    "en": "— You didn't answer?",
    "tag": "low, wary",
-   "uk": "— Не відповідав?"
+   "uk": "— Не відповідав?",
+   "es": "— ¿No respondiste?",
+   "pt": "— Não respondeu?",
+   "de": "— Nicht geantwortet?"
   },
   "h09": {
    "who": "ИТАН",
@@ -646,7 +886,10 @@
    "ru": "Он посмотрел на меня. И попятился. Медленно, не поворачиваясь спиной.",
    "en": "He looked at me. And backed away. Slowly, without turning his back.",
    "tag": "quiet, hollow",
-   "uk": "Він подивився на мене. І позадкував. Повільно, не повертаючись спиною."
+   "uk": "Він подивився на мене. І позадкував. Повільно, не повертаючись спиною.",
+   "es": "Me miró. Y retrocedió. Despacio, sin darme la espalda.",
+   "pt": "Ele olhou pra mim. E recuou. Devagar, sem me dar as costas.",
+   "de": "Er sah mich an. Und wich zurück. Langsam, ohne mir den Rücken zuzukehren."
   },
   "h10": {
    "who": "ИТАН",
@@ -654,7 +897,10 @@
    "ru": "Я увидел своё отражение в стекле будки. Я улыбался. Шире, чем умею. И не моргал.",
    "en": "I saw my reflection in the booth glass. I was smiling. Wider than I know how. And I wasn't blinking.",
    "tag": "quiet, hollow, eerie",
-   "uk": "Я побачив своє відображення у склі будки. Я всміхався. Ширше, ніж умію. І не кліпав."
+   "uk": "Я побачив своє відображення у склі будки. Я всміхався. Ширше, ніж умію. І не кліпав.",
+   "es": "Vi mi reflejo en el vidrio de la caseta. Sonreía. Más de lo que mi cara puede. Y no parpadeaba.",
+   "pt": "Vi meu reflexo no vidro da guarita. Eu estava sorrindo. Mais largo do que eu consigo. E não piscava.",
+   "de": "Ich sah mein Spiegelbild in der Scheibe. Ich lächelte. Breiter, als ich kann. Und blinzelte nicht."
   },
   "x01": {
    "who": "ИТАН",
@@ -662,7 +908,10 @@
    "ru": "Аварийный выход — в конце служебного коридора. Сорок шагов.",
    "en": "The emergency exit was at the end of the service corridor. Forty steps.",
    "tag": "tense, breathless",
-   "uk": "Аварійний вихід — у кінці службового коридору. Сорок кроків."
+   "uk": "Аварійний вихід — у кінці службового коридору. Сорок кроків.",
+   "es": "La salida de emergencia estaba al final del pasillo de servicio. Cuarenta pasos.",
+   "pt": "A saída de emergência ficava no fim do corredor de serviço. Quarenta passos.",
+   "de": "Der Notausgang war am Ende des Dienstflurs. Vierzig Schritte."
   },
   "x02": {
    "who": "ИТАН",
@@ -670,7 +919,10 @@
    "ru": "Лампы гасли за спиной: оно шло на звук моих шагов.",
    "en": "The lights went out behind me: it was following the sound of my steps.",
    "tag": "tense, breathless",
-   "uk": "Лампи гасли за спиною: воно йшло на звук моїх кроків."
+   "uk": "Лампи гасли за спиною: воно йшло на звук моїх кроків.",
+   "es": "Las luces se apagaban a mi espalda: eso seguía el sonido de mis pasos.",
+   "pt": "As luzes se apagavam atrás de mim: aquilo seguia o som dos meus passos.",
+   "de": "Hinter mir gingen die Lampen aus: Es folgte dem Geräusch meiner Schritte."
   },
   "x03": {
    "who": "ИТАН",
@@ -678,7 +930,10 @@
    "ru": "Я вывалился под дождь и бежал, пока не перехватило дыхание.",
    "en": "I tumbled out into the rain and ran until I couldn't breathe.",
    "tag": "breathless",
-   "uk": "Я вивалився під дощ і біг, доки не перехопило подих."
+   "uk": "Я вивалився під дощ і біг, доки не перехопило подих.",
+   "es": "Salí a trompicones a la lluvia y corrí hasta quedarme sin aire.",
+   "pt": "Saí aos tropeços na chuva e corri até perder o fôlego.",
+   "de": "Ich stolperte in den Regen und rannte, bis mir die Luft wegblieb."
   },
   "x04": {
    "who": "ИТАН",
@@ -686,7 +941,10 @@
    "ru": "«Горизонт» стоял тёмный. Только над крышей, где этажей уже нет, светилось окно.",
    "en": "The Horizon stood dark. Only above the roof, where there are no more floors, a window was lit.",
    "tag": "quiet, breathless",
-   "uk": "«Горизонт» стояв темний. Тільки над дахом, де поверхів уже немає, світилося вікно."
+   "uk": "«Горизонт» стояв темний. Тільки над дахом, де поверхів уже немає, світилося вікно.",
+   "es": "El Horizon estaba a oscuras. Solo sobre la azotea, donde ya no hay pisos, brillaba una ventana.",
+   "pt": "O Horizon estava às escuras. Só acima do telhado, onde já não existe andar, uma janela estava acesa.",
+   "de": "Das Horizon lag im Dunkeln. Nur über dem Dach, wo es keine Etagen mehr gibt, leuchtete ein Fenster."
   },
   "x05": {
    "who": "ИТАН",
@@ -694,7 +952,10 @@
    "ru": "Зазвонил телефон. Лили.",
    "en": "My phone rang. Lily.",
    "tag": "quiet",
-   "uk": "Задзвонив телефон. Лілі."
+   "uk": "Задзвонив телефон. Лілі.",
+   "es": "Sonó el teléfono. Lily.",
+   "pt": "Meu celular tocou. Lily.",
+   "de": "Es klingelte. Lily."
   },
   "x06": {
    "who": "ЛИЛИ",
@@ -702,7 +963,10 @@
    "ru": "— Итан? Ты зачем звонил? Сказал, что стоишь у меня под окнами…",
    "en": "— Ethan? Why did you call? You said you were standing under my window…",
    "tag": "sleepy, puzzled",
-   "uk": "— Ітане? Ти навіщо дзвонив? Сказав, що стоїш у мене під вікнами…"
+   "uk": "— Ітане? Ти навіщо дзвонив? Сказав, що стоїш у мене під вікнами…",
+   "es": "— ¿Ethan? ¿Por qué me llamaste? Dijiste que estabas debajo de mi ventana…",
+   "pt": "— Ethan? Por que você ligou? Disse que tava parado embaixo da minha janela…",
+   "de": "— Ethan? Warum hast du angerufen? Hast gesagt, du stehst unter meinem Fenster…"
   },
   "x07": {
    "who": "ИТАН",
@@ -710,7 +974,10 @@
    "ru": "Я стоял под дождём у «Горизонта». В трёхстах километрах от её окон.",
    "en": "I was standing in the rain outside the Horizon. Two hundred miles from her window.",
    "tag": "whispering, terrified",
-   "uk": "Я стояв під дощем біля «Горизонту». За триста кілометрів від її вікон."
+   "uk": "Я стояв під дощем біля «Горизонту». За триста кілометрів від її вікон.",
+   "es": "Yo estaba bajo la lluvia, frente al Horizon. A trescientos kilómetros de su ventana.",
+   "pt": "Eu estava na chuva, em frente ao Horizon. A trezentos quilômetros da janela dela.",
+   "de": "Ich stand im Regen vor dem Horizon. Dreihundert Kilometer von ihrem Fenster."
   },
   "x08": {
    "who": "ЛИЛИ",
@@ -718,7 +985,10 @@
    "ru": "— Итан… а кто тогда зовёт меня с улицы? Твоим голосом.",
    "en": "— Ethan… then who's calling me from the street? In your voice.",
    "tag": "whispering, scared",
-   "uk": "— Ітане… а хто тоді кличе мене з вулиці? Твоїм голосом."
+   "uk": "— Ітане… а хто тоді кличе мене з вулиці? Твоїм голосом.",
+   "es": "— Ethan… ¿entonces quién me llama desde la calle? Con tu voz.",
+   "pt": "— Ethan… então quem tá me chamando lá da rua? Com a sua voz.",
+   "de": "— Ethan… wer ruft mich dann von der Straße? Mit deiner Stimme."
   },
   "b01": {
    "who": "ИТАН",
@@ -726,7 +996,10 @@
    "ru": "Я не открыл. Она перестала плакать. Сразу.",
    "en": "I didn't open it. She stopped crying. Instantly.",
    "tag": "whispering, terrified",
-   "uk": "Я не відчинив. Вона перестала плакати. Одразу."
+   "uk": "Я не відчинив. Вона перестала плакати. Одразу.",
+   "es": "No abrí. Dejó de llorar. De golpe.",
+   "pt": "Eu não abri. Ela parou de chorar. Na hora.",
+   "de": "Ich machte nicht auf. Sie hörte auf zu weinen. Sofort."
   },
   "b02": {
    "who": "ИТАН",
@@ -734,7 +1007,10 @@
    "ru": "И улыбнулась. Слишком широко. Лили так не улыбалась никогда.",
    "en": "And smiled. Too wide. Lily never smiled like that.",
    "tag": "whispering, terrified",
-   "uk": "І всміхнулася. Надто широко. Лілі ніколи так не всміхалася."
+   "uk": "І всміхнулася. Надто широко. Лілі ніколи так не всміхалася.",
+   "es": "Y sonrió. Demasiado. Lily nunca sonreía así.",
+   "pt": "E sorriu. Largo demais. A Lily nunca sorriu assim.",
+   "de": "Und lächelte. Zu breit. So hat Lily nie gelächelt."
   },
   "b03": {
    "who": "ИТАН",
@@ -742,7 +1018,10 @@
    "ru": "Она скребла стекло ногтями. Медленно, сверху вниз.",
    "en": "She scraped the glass with her nails. Slowly, top to bottom.",
    "tag": "whispering, terrified",
-   "uk": "Вона шкрябала скло нігтями. Повільно, згори донизу."
+   "uk": "Вона шкрябала скло нігтями. Повільно, згори донизу.",
+   "es": "Arañó el vidrio con las uñas. Despacio, de arriba abajo.",
+   "pt": "Ela arranhou o vidro com as unhas. Devagar, de cima pra baixo.",
+   "de": "Sie kratzte mit den Nägeln am Glas. Langsam, von oben nach unten."
   },
   "b04": {
    "who": "ЛИЛИ",
@@ -750,7 +1029,10 @@
    "ru": "— Итан. Итан. Итан.",
    "en": "— Ethan. Ethan. Ethan.",
    "tag": "flat, monotone, creepy",
-   "uk": "— Ітане. Ітане. Ітане."
+   "uk": "— Ітане. Ітане. Ітане.",
+   "es": "— Ethan. Ethan. Ethan.",
+   "pt": "— Ethan. Ethan. Ethan.",
+   "de": "— Ethan. Ethan. Ethan."
   },
   "b05": {
    "who": "ИТАН",
@@ -758,7 +1040,10 @@
    "ru": "Потом она ушла. Спиной вперёд. Не сводя с меня глаз.",
    "en": "Then she left. Walking backwards. Never taking her eyes off me.",
    "tag": "whispering, terrified",
-   "uk": "Потім вона пішла. Спиною вперед. Не зводячи з мене очей."
+   "uk": "Потім вона пішла. Спиною вперед. Не зводячи з мене очей.",
+   "es": "Luego se fue. Caminando hacia atrás. Sin quitarme los ojos de encima.",
+   "pt": "Depois ela foi embora. Andando de costas. Sem tirar os olhos de mim.",
+   "de": "Dann ging sie. Rückwärts. Ohne den Blick von mir zu lassen."
   },
   "b06": {
    "who": "ИТАН",
@@ -766,7 +1051,10 @@
    "ru": "Дождь заливал стекло, а отпечаток её ладони не смывало.",
    "en": "Rain streamed down the glass, but the print of her palm didn't wash away.",
    "tag": "whispering, terrified",
-   "uk": "Дощ заливав скло, а відбиток її долоні не змивало."
+   "uk": "Дощ заливав скло, а відбиток її долоні не змивало.",
+   "es": "La lluvia corría por el vidrio, pero la huella de su mano no se borraba.",
+   "pt": "A chuva escorria pelo vidro, mas a marca da mão dela não saía.",
+   "de": "Der Regen lief über die Scheibe, doch der Abdruck ihrer Hand blieb."
   },
   "b07": {
    "who": "ИТАН",
@@ -774,7 +1062,10 @@
    "ru": "Я позвонил Лили. Один гудок. Второй. Третий.",
    "en": "I called Lily. One ring. Two. Three.",
    "tag": "quiet, tense",
-   "uk": "Я подзвонив Лілі. Один гудок. Другий. Третій."
+   "uk": "Я подзвонив Лілі. Один гудок. Другий. Третій.",
+   "es": "Llamé a Lily. Un tono. Dos. Tres.",
+   "pt": "Liguei pra Lily. Um toque. Dois. Três.",
+   "de": "Ich rief Lily an. Ein Tuten. Zwei. Drei."
   },
   "b08": {
    "who": "ЛИЛИ",
@@ -782,7 +1073,10 @@
    "ru": "— М-м… Итан? Полчетвёртого… Что случилось?",
    "en": "— Mm… Ethan? It's half past three… What happened?",
    "tag": "sleepy",
-   "uk": "— М-м… Ітане? Пів на четверту… Що сталося?"
+   "uk": "— М-м… Ітане? Пів на четверту… Що сталося?",
+   "es": "— Mmm… ¿Ethan? Son las tres y media… ¿Qué pasa?",
+   "pt": "— Hum… Ethan? São três e meia… Aconteceu alguma coisa?",
+   "de": "— Mm… Ethan? Es ist halb vier… Was ist passiert?"
   },
   "b09": {
    "who": "ИТАН",
@@ -790,7 +1084,10 @@
    "ru": "— Ты где сейчас?",
    "en": "— Where are you right now?",
    "tag": "tense",
-   "uk": "— Ти де зараз?"
+   "uk": "— Ти де зараз?",
+   "es": "— ¿Dónde estás ahora?",
+   "pt": "— Onde você tá agora?",
+   "de": "— Wo bist du gerade?"
   },
   "b10": {
    "who": "ЛИЛИ",
@@ -798,7 +1095,10 @@
    "ru": "— В общаге, где ещё. Сплю. Итан, ты меня пугаешь.",
    "en": "— In the dorm, where else. Sleeping. Ethan, you're scaring me.",
    "tag": "sleepy, worried",
-   "uk": "— У гуртожитку, де ж іще. Сплю. Ітане, ти мене лякаєш."
+   "uk": "— У гуртожитку, де ж іще. Сплю. Ітане, ти мене лякаєш.",
+   "es": "— En la residencia, ¿dónde iba a estar? Durmiendo. Ethan, me asustas.",
+   "pt": "— No alojamento, onde mais? Dormindo. Ethan, você tá me assustando.",
+   "de": "— Im Wohnheim, wo sonst. Ich schlafe. Ethan, du machst mir Angst."
   },
   "b11": {
    "who": "ИТАН",
@@ -806,7 +1106,10 @@
    "ru": "— Всё нормально. Спи. Только если ночью тебя позовут по имени — не отвечай. Даже если это буду я.",
    "en": "— Everything's fine. Go back to sleep. Just, if someone calls your name tonight, don't answer. Even if it's me.",
    "tag": "gentle, serious",
-   "uk": "— Усе нормально. Спи. Тільки якщо вночі тебе покличуть на ім’я — не відповідай. Навіть якщо це буду я."
+   "uk": "— Усе нормально. Спи. Тільки якщо вночі тебе покличуть на ім’я — не відповідай. Навіть якщо це буду я.",
+   "es": "— Todo está bien. Vuelve a dormir. Solo una cosa: si esta noche alguien te llama por tu nombre, no respondas. Aunque sea yo.",
+   "pt": "— Tá tudo bem. Volta a dormir. Só que, se alguém te chamar pelo nome esta noite, não responde. Nem se for eu.",
+   "de": "— Alles gut. Schlaf weiter. Nur: Ruft dich heute Nacht jemand beim Namen, antworte nicht. Auch wenn ich es bin."
   },
   "b12": {
    "who": "ИТАН",
@@ -814,7 +1117,10 @@
    "ru": "Я положил трубку. Руки тряслись.",
    "en": "I hung up. My hands were shaking.",
    "tag": "quiet, tired",
-   "uk": "Я поклав слухавку. Руки тремтіли."
+   "uk": "Я поклав слухавку. Руки тремтіли.",
+   "es": "Colgué. Me temblaban las manos.",
+   "pt": "Desliguei. Minhas mãos tremiam.",
+   "de": "Ich legte auf. Meine Hände zitterten."
   },
   "s01": {
    "who": "ИТАН",
@@ -822,7 +1128,10 @@
    "ru": "Шнур от тринадцатой я выдернул час назад. Монитор включился всё равно.",
    "en": "I'd pulled the cord on thirteen an hour ago. The monitor turned on anyway.",
    "tag": "whispering, terrified",
-   "uk": "Шнур тринадцятої я висмикнув годину тому. Монітор усе одно ввімкнувся."
+   "uk": "Шнур тринадцятої я висмикнув годину тому. Монітор усе одно ввімкнувся.",
+   "es": "Había arrancado el cable de la trece hacía una hora. El monitor se encendió igual.",
+   "pt": "Eu tinha arrancado o fio da treze uma hora antes. O monitor ligou mesmo assim.",
+   "de": "Vor einer Stunde hatte ich der Dreizehn den Stecker gezogen. Sie ging trotzdem an."
   },
   "s02": {
    "who": "ИТАН",
@@ -830,7 +1139,10 @@
    "ru": "Седьмой этаж. Гас нашёлся. Он лежал в дверях семьсот седьмого.",
    "en": "The seventh floor. Gus had turned up. He was lying in the doorway of seven-oh-seven.",
    "tag": "whispering, terrified",
-   "uk": "Сьомий поверх. Гас знайшовся. Він лежав у дверях сімсот сьомого."
+   "uk": "Сьомий поверх. Гас знайшовся. Він лежав у дверях сімсот сьомого.",
+   "es": "El séptimo piso. Ahí estaba Gus. Tendido en la puerta del setecientos siete.",
+   "pt": "Sétimo andar. O Gus apareceu. Estava caído na porta da setecentos e sete.",
+   "de": "Der siebte Stock. Da war Gus. Er lag in der Tür von Siebenhundertsieben."
   },
   "s03": {
    "who": "ИТАН",
@@ -838,7 +1150,10 @@
    "ru": "Над ним сидело оно. Низко, у самой груди. Не торопилось.",
    "en": "It was crouched over him. Low, right at his chest. Taking its time.",
    "tag": "whispering, terrified",
-   "uk": "Над ним сиділо воно. Низько, біля самих грудей. Не поспішало."
+   "uk": "Над ним сиділо воно. Низько, біля самих грудей. Не поспішало.",
+   "es": "Sobre él estaba eso. Agachado, pegado a su pecho. Sin prisa.",
+   "pt": "Aquilo estava agachado em cima dele. Bem baixo, junto do peito. Sem pressa.",
+   "de": "Über ihm hockte es. Tief, direkt an seiner Brust. Es ließ sich Zeit."
   },
   "s04": {
    "who": "ИТАН",
@@ -846,7 +1161,10 @@
    "ru": "Оно начало поднимать голову к объективу. Я зажмурился.",
    "en": "It started to raise its head toward the lens. I squeezed my eyes shut.",
    "tag": "whispering, terrified",
-   "uk": "Воно почало підводити голову до об’єктива. Я заплющив очі."
+   "uk": "Воно почало підводити голову до об’єктива. Я заплющив очі.",
+   "es": "Empezó a alzar la cabeza hacia el objetivo. Cerré los ojos con fuerza.",
+   "pt": "Começou a erguer a cabeça pra lente. Fechei os olhos com força.",
+   "de": "Es begann, den Kopf zum Objektiv zu heben. Ich kniff die Augen zu."
   },
   "s05": {
    "who": "ИТАН",
@@ -854,7 +1172,10 @@
    "ru": "Когда я открыл глаза, тринадцатый погас. А на соседнем мониторе ожила камера серверной. Всю ночь там было черно — теперь горела свеча.",
    "en": "When I opened my eyes, thirteen was dark. And on the next monitor the server-room camera had come to life. It had been black all night. Now a candle was burning.",
    "tag": "quiet, tense",
-   "uk": "Коли я розплющив очі, тринадцятий згас. А на сусідньому моніторі ожила камера серверної. Усю ніч там було чорно — тепер горіла свічка."
+   "uk": "Коли я розплющив очі, тринадцятий згас. А на сусідньому моніторі ожила камера серверної. Усю ніч там було чорно — тепер горіла свічка.",
+   "es": "Cuando abrí los ojos, la trece estaba apagada. Y en el monitor de al lado se había encendido la cámara de la sala de servidores. Llevaba toda la noche a oscuras. Ahora ardía una vela.",
+   "pt": "Quando abri os olhos, a treze estava apagada. E no monitor ao lado, a câmera da sala de servidores tinha ganhado vida. A noite toda, só tela preta. Agora havia uma vela acesa.",
+   "de": "Als ich die Augen öffnete, war die Dreizehn dunkel. Daneben war die Kamera im Serverraum erwacht. Die ganze Nacht war das Bild schwarz. Jetzt brannte dort eine Kerze."
   },
   "s06": {
    "who": "ИТАН",
@@ -862,7 +1183,10 @@
    "ru": "Минус второй этаж. На полу — круг из соли. В нём сидел человек. Лицо с пропуска над моим столом. Фрэнк. Живой — худой, заросший.",
    "en": "Basement two. A circle of salt on the floor. A man sitting inside it. The face from the ID badge above my desk. Frank. Alive. Gaunt, unshaven.",
    "tag": "quiet, stunned",
-   "uk": "Мінус другий поверх. На підлозі — коло із солі. У ньому сидів чоловік. Обличчя з перепустки над моїм столом. Френк. Живий — худий, зарослий."
+   "uk": "Мінус другий поверх. На підлозі — коло із солі. У ньому сидів чоловік. Обличчя з перепустки над моїм столом. Френк. Живий — худий, зарослий.",
+   "es": "Sótano dos. Un círculo de sal en el suelo. Dentro, un hombre sentado. La cara de la credencial que colgaba sobre mi mesa. Frank. Vivo. Flaco, sin afeitar.",
+   "pt": "Segundo subsolo. Um círculo de sal no chão. Dentro, um homem sentado. O rosto do crachá acima da minha mesa. O Frank. Vivo. Magro, com a barba por fazer.",
+   "de": "Minus zwei. Ein Salzkreis auf dem Boden. Darin saß ein Mann. Das Gesicht vom Ausweis über meinem Tisch. Frank. Lebendig. Abgemagert, unrasiert."
   },
   "s07": {
    "who": "ИТАН",
@@ -870,7 +1194,10 @@
    "ru": "Двенадцать этажей обошли. Про подвал никто не вспомнил.",
    "en": "They'd searched twelve floors. Nobody thought of the basement.",
    "tag": "quiet, bitter",
-   "uk": "Дванадцять поверхів обійшли. Про підвал ніхто не згадав."
+   "uk": "Дванадцять поверхів обійшли. Про підвал ніхто не згадав.",
+   "es": "Revisaron doce pisos. Nadie se acordó del sótano.",
+   "pt": "Vasculharam doze andares. Ninguém lembrou do subsolo.",
+   "de": "Zwölf Etagen hatten sie durchsucht. An den Keller dachte keiner."
   },
   "s08": {
    "who": "ИТАН",
@@ -878,7 +1205,10 @@
    "ru": "Он поднял к камере мятый лист. Буквы обведены много раз — наверное, показывал его каждую ночь.",
    "en": "He held a crumpled sheet up to the camera. The letters traced over and over. He must have been showing it every night.",
    "tag": "quiet, tense",
-   "uk": "Він підніс до камери зім’ятий аркуш. Літери обведені багато разів — мабуть, показував його щоночі."
+   "uk": "Він підніс до камери зім’ятий аркуш. Літери обведені багато разів — мабуть, показував його щоночі.",
+   "es": "Levantó hacia la cámara una hoja arrugada. Las letras, repasadas una y otra vez. Seguro que la mostraba cada noche.",
+   "pt": "Ele ergueu uma folha amassada pra câmera. As letras reforçadas muitas vezes. Devia mostrar a folha toda noite.",
+   "de": "Er hielt ein zerknittertes Blatt in die Kamera. Die Buchstaben immer wieder nachgezogen. Er zeigte es wohl jede Nacht."
   },
   "s09": {
    "who": "ИТАН",
@@ -886,7 +1216,10 @@
    "ru": "Фрэнк вдруг оглянулся в темноту. Будто его окликнули.",
    "en": "Frank suddenly looked back into the dark. As if someone had called him.",
    "tag": "whispering, terrified",
-   "uk": "Френк раптом озирнувся в темряву. Ніби його гукнули."
+   "uk": "Френк раптом озирнувся в темряву. Ніби його гукнули.",
+   "es": "De pronto, Frank miró hacia la oscuridad. Como si alguien lo hubiera llamado.",
+   "pt": "De repente, o Frank olhou pra trás, pro escuro. Como se alguém tivesse chamado ele.",
+   "de": "Plötzlich sah Frank sich um, ins Dunkel. Als hätte ihn jemand gerufen."
   },
   "d01": {
    "who": "ИТАН",
@@ -894,7 +1227,10 @@
    "ru": "Лифт я не тронул. Лестница. Минус первый. Минус второй.",
    "en": "I didn't touch the elevator. The stairs. Basement one. Basement two.",
    "tag": "quiet, tense",
-   "uk": "Ліфта я не чіпав. Сходи. Мінус перший. Мінус другий."
+   "uk": "Ліфта я не чіпав. Сходи. Мінус перший. Мінус другий.",
+   "es": "No toqué el ascensor. La escalera. Sótano uno. Sótano dos.",
+   "pt": "Não toquei no elevador. Escada. Primeiro subsolo. Segundo subsolo.",
+   "de": "Den Aufzug rührte ich nicht an. Die Treppe. Minus eins. Minus zwei."
   },
   "d02": {
    "who": "ИТАН",
@@ -902,7 +1238,10 @@
    "ru": "Пахло сыростью и воском. Под ногами хрустела соль.",
    "en": "It smelled of damp and wax. Salt crunched underfoot.",
    "tag": "whispering, terrified",
-   "uk": "Пахло вогкістю й воском. Під ногами хрустіла сіль."
+   "uk": "Пахло вогкістю й воском. Під ногами хрустіла сіль.",
+   "es": "Olía a humedad y a cera. La sal crujía bajo mis pies.",
+   "pt": "Cheirava a umidade e cera. O sal estalava sob os pés.",
+   "de": "Es roch nach Moder und Wachs. Unter den Sohlen knirschte Salz."
   },
   "d03": {
    "who": "ИТАН",
@@ -910,7 +1249,10 @@
    "ru": "Железная дверь. «Серверная». Из-под неё — полоска тёплого света.",
    "en": "An iron door. \"Server Room.\" A strip of warm light underneath it.",
    "tag": "whispering, terrified",
-   "uk": "Залізні двері. «Серверна». З-під них — смужка теплого світла."
+   "uk": "Залізні двері. «Серверна». З-під них — смужка теплого світла.",
+   "es": "Una puerta de hierro. «Servidores». Por debajo, una franja de luz cálida.",
+   "pt": "Uma porta de ferro. “Servidores”. Por baixo, uma faixa de luz quente.",
+   "de": "Eine Eisentür. „Serverraum“. Darunter ein Streifen warmes Licht."
   },
   "d04": {
    "who": "ФРЭНК",
@@ -918,7 +1260,10 @@
    "ru": "— Итан? Это ты, сынок? Заходи, открыто.",
    "en": "— Ethan? That you, son? Come on in, it's open.",
    "tag": "hoarse, kind, old man",
-   "uk": "— Ітане? Це ти, синку? Заходь, відчинено."
+   "uk": "— Ітане? Це ти, синку? Заходь, відчинено.",
+   "es": "— ¿Ethan? ¿Eres tú, hijo? Pasa, está abierto.",
+   "pt": "— Ethan? É você, filho? Pode entrar, tá aberto.",
+   "de": "— Ethan? Bist du das, Junge? Komm rein, ist auf."
   },
   "d05": {
    "who": "ИТАН",
@@ -926,7 +1271,10 @@
    "ru": "Голос старика. Наверное, так и звучал Фрэнк. Только Фрэнк ни разу не слышал моего имени.",
    "en": "An old man's voice. Maybe that's what Frank sounded like. Except Frank had never heard my name.",
    "tag": "whispering, terrified",
-   "uk": "Старечий голос. Мабуть, так і звучав Френк. Тільки Френк жодного разу не чув мого імені."
+   "uk": "Старечий голос. Мабуть, так і звучав Френк. Тільки Френк жодного разу не чув мого імені.",
+   "es": "La voz de un viejo. Quizá así sonaba Frank. Solo que Frank nunca había oído mi nombre.",
+   "pt": "Uma voz de velho. Talvez a voz do Frank fosse assim. Só que o Frank nunca tinha ouvido o meu nome.",
+   "de": "Die Stimme eines alten Mannes. Vielleicht klang Frank so. Nur hatte Frank meinen Namen nie gehört."
   },
   "d06": {
    "who": "ИТАН",
@@ -934,7 +1282,10 @@
    "ru": "А на листке было: «Не зови меня. Стучи три раза».",
    "en": "And the sheet had said: \"Don't call me. Knock three times.\"",
    "tag": "whispering, terrified",
-   "uk": "А на аркуші було: «Не клич мене. Стукай три рази»."
+   "uk": "А на аркуші було: «Не клич мене. Стукай три рази».",
+   "es": "Y la hoja decía: «No me llames. Golpea tres veces».",
+   "pt": "E na folha estava escrito: “Não me chame. Bata três vezes.”",
+   "de": "Und auf dem Blatt stand: „Ruf mich nicht. Klopf dreimal.“"
   },
   "d07": {
    "who": "ИТАН",
@@ -942,7 +1293,10 @@
    "ru": "Я постучал. Раз. Два. Три.",
    "en": "I knocked. Once. Twice. Three times.",
    "tag": "whispering, terrified",
-   "uk": "Я постукав. Раз. Два. Три."
+   "uk": "Я постукав. Раз. Два. Три.",
+   "es": "Golpeé. Una vez. Dos. Tres.",
+   "pt": "Bati. Uma vez. Duas. Três.",
+   "de": "Ich klopfte. Einmal. Zweimal. Dreimal."
   },
   "d08": {
    "who": "ИТАН",
@@ -950,7 +1304,10 @@
    "ru": "Тишина. Потом лязгнул засов. Изнутри.",
    "en": "Silence. Then the bolt clanked. From the inside.",
    "tag": "whispering, terrified",
-   "uk": "Тиша. Потім брязнув засув. Зсередини."
+   "uk": "Тиша. Потім брязнув засув. Зсередини.",
+   "es": "Silencio. Luego sonó el cerrojo. Desde dentro.",
+   "pt": "Silêncio. Depois o ferrolho estalou. Por dentro.",
+   "de": "Stille. Dann klirrte der Riegel. Von innen."
   },
   "d09": {
    "who": "ФРЭНК",
@@ -958,7 +1315,10 @@
    "ru": "— Внутрь. Быстро. И ни звука.",
    "en": "— Inside. Quick. And not a sound.",
    "tag": "whispering, urgent, old man",
-   "uk": "— Усередину. Швидко. І ні звуку."
+   "uk": "— Усередину. Швидко. І ні звуку.",
+   "es": "— Entra. Rápido. Y ni un ruido.",
+   "pt": "— Pra dentro. Rápido. E nem um pio.",
+   "de": "— Rein. Schnell. Und keinen Laut."
   },
   "d10": {
    "who": "ИТАН",
@@ -966,7 +1326,10 @@
    "ru": "Фрэнк насыпал круг у самого порога: до засова дотягивался, не выходя из соли. Одна нога у него была примотана скотчем к куску картона.",
    "en": "Frank had poured his circle right at the threshold: he could reach the bolt without leaving the salt. One of his legs was taped to a piece of cardboard.",
    "tag": "quiet",
-   "uk": "Френк насипав коло біля самого порога: до засува діставав, не виходячи із солі. Одна нога в нього була примотана скотчем до шматка картону."
+   "uk": "Френк насипав коло біля самого порога: до засува діставав, не виходячи із солі. Одна нога в нього була примотана скотчем до шматка картону.",
+   "es": "Frank había hecho el círculo justo en el umbral: alcanzaba el cerrojo sin salir de la sal. Tenía una pierna sujeta con cinta a un cartón.",
+   "pt": "O Frank tinha feito o círculo bem na soleira: alcançava o ferrolho sem sair do sal. Uma das pernas estava presa com fita num pedaço de papelão.",
+   "de": "Frank hatte den Kreis direkt an der Schwelle gestreut: An den Riegel kam er, ohne das Salz zu verlassen. Ein Bein war mit Klebeband an Pappe geschient."
   },
   "d11": {
    "who": "ФРЭНК",
@@ -974,7 +1337,10 @@
    "ru": "— Неделю назад упал на лестнице. Сюда дополз. Кулер с водой, сухари из аварийного шкафа. Днём кричал — через эту дверь не слышно.",
    "en": "— Fell on the stairs a week ago. Crawled down here. Water cooler, crackers from the emergency cabinet. In the daytime I shouted. Nobody hears through that door.",
    "tag": "hoarse, tired, old man",
-   "uk": "— Тиждень тому впав на сходах. Сюди доповз. Кулер з водою, сухарі з аварійної шафи. Удень кричав — крізь ці двері не чути."
+   "uk": "— Тиждень тому впав на сходах. Сюди доповз. Кулер з водою, сухарі з аварійної шафи. Удень кричав — крізь ці двері не чути.",
+   "es": "— Hace una semana me caí en la escalera. Me arrastré hasta aquí. Agua del dispensador, pan tostado del armario de emergencia. De día gritaba. Esa puerta no deja pasar nada.",
+   "pt": "— Caí na escada faz uma semana. Vim me arrastando pra cá. Bebedouro, bolacha do armário de emergência. De dia eu gritava. Atrás dessa porta, ninguém ouve.",
+   "de": "— Vor einer Woche auf der Treppe gestürzt. Hier runtergekrochen. Wasserspender, Zwieback aus dem Notvorrat. Tagsüber geschrien. Durch die Tür hört's keiner."
   },
   "d12": {
    "who": "ФРЭНК",
@@ -982,7 +1348,10 @@
    "ru": "— Шесть ночей держался. Седьмую одному не выдержать.",
    "en": "— Held out six nights. Can't make it through the seventh alone.",
    "tag": "hoarse, tired, old man",
-   "uk": "— Шість ночей тримався. Сьому самому не витримати."
+   "uk": "— Шість ночей тримався. Сьому самому не витримати.",
+   "es": "— Aguanté seis noches. La séptima no la aguanto solo.",
+   "pt": "— Aguentei seis noites. A sétima, sozinho, eu não aguento.",
+   "de": "— Sechs Nächte durchgehalten. Die siebte schaff ich nicht allein."
   },
   "d13": {
    "who": "ФРЭНК",
@@ -990,7 +1359,10 @@
    "ru": "— Меня теперь держит только соль. А тебя — только то, что молчишь.",
    "en": "— Only the salt holds me now. And the only thing holding you is keeping your mouth shut.",
    "tag": "hoarse, grim, old man",
-   "uk": "— Мене тепер тримає тільки сіль. А тебе — тільки те, що мовчиш."
+   "uk": "— Мене тепер тримає тільки сіль. А тебе — тільки те, що мовчиш.",
+   "es": "— A mí ya solo me protege la sal. Y a ti, mantener la boca cerrada.",
+   "pt": "— Agora só o sal me protege. E você, só enquanto ficar de boca fechada.",
+   "de": "— Mich hält jetzt nur noch das Salz. Und dich nur, dass du den Mund hältst."
   },
   "d13b": {
    "who": "ФРЭНК",
@@ -998,7 +1370,10 @@
    "ru": "— Соль для него — как стена. Через круг оно не пройдёт. Вот и зовёт, уговаривает — ждёт, пока сам выйдешь. Или ответишь.",
    "en": "— To it, salt is a wall. It can't get through the circle. So it calls, it coaxes, it waits for you to step out on your own. Or answer.",
    "tag": "hoarse, grim, old man",
-   "uk": "— Сіль для нього — як стіна. Крізь коло воно не пройде. От і кличе, умовляє — чекає, поки сам вийдеш. Або відповіси."
+   "uk": "— Сіль для нього — як стіна. Крізь коло воно не пройде. От і кличе, умовляє — чекає, поки сам вийдеш. Або відповіси.",
+   "es": "— Para esa cosa, la sal es un muro. No puede cruzar el círculo. Por eso llama, te ruega, espera a que salgas tú solo. O a que respondas.",
+   "pt": "— Pra essa coisa, o sal é uma parede. Não atravessa o círculo. Então chama, insiste, espera você sair por conta própria. Ou responder.",
+   "de": "— Salz ist für das Ding eine Mauer. Durch den Kreis kommt es nicht. Also ruft es, lockt und wartet, bis du rausgehst. Oder antwortest."
   },
   "d14": {
    "who": "ИТАН",
@@ -1006,7 +1381,10 @@
    "ru": "Из темноты за кругом позвали Фрэнка. Старческим женским голосом. Ласково.",
    "en": "From the dark beyond the circle, someone called to Frank. An old woman's voice. Tender.",
    "tag": "whispering, terrified",
-   "uk": "З темряви за колом покликали Френка. Старечим жіночим голосом. Лагідно."
+   "uk": "З темряви за колом покликали Френка. Старечим жіночим голосом. Лагідно.",
+   "es": "Desde la oscuridad, fuera del círculo, alguien llamó a Frank. Una voz de anciana. Cariñosa.",
+   "pt": "Do escuro além do círculo, alguém chamou o Frank. Uma voz de velhinha. Carinhosa.",
+   "de": "Aus dem Dunkel hinterm Kreis rief jemand Frank. Die Stimme einer alten Frau. Zärtlich."
   },
   "d15": {
    "who": "ГОЛОС",
@@ -1014,7 +1392,10 @@
    "ru": "— Фрэнки… Сыночек…",
    "en": "— Frankie… My boy…",
    "tag": "tender, old woman, distant",
-   "uk": "— Френкі… Синочку…"
+   "uk": "— Френкі… Синочку…",
+   "es": "— Frankie… Hijito…",
+   "pt": "— Frankie… Meu filhinho…",
+   "de": "— Frankie… Mein Junge…"
   },
   "d16": {
    "who": "ФРЭНК",
@@ -1022,7 +1403,10 @@
    "ru": "— Мама?..",
    "en": "— Mom?..",
    "tag": "quiet, almost joyful",
-   "uk": "— Мамо?.."
+   "uk": "— Мамо?..",
+   "es": "— ¿Mamá…?",
+   "pt": "— Mamãe?…",
+   "de": "— Mama?.."
   },
   "d17": {
    "who": "ИТАН",
@@ -1030,7 +1414,10 @@
    "ru": "Фрэнк потянулся на голос. К краю круга.",
    "en": "Frank reached toward the voice. Toward the edge of the circle.",
    "tag": "whispering, terrified",
-   "uk": "Френк потягнувся на голос. До краю кола."
+   "uk": "Френк потягнувся на голос. До краю кола.",
+   "es": "Frank se estiró hacia la voz. Hacia el borde del círculo.",
+   "pt": "O Frank se esticou na direção da voz. Até a beira do círculo.",
+   "de": "Frank streckte sich der Stimme entgegen. Zum Rand des Kreises."
   },
   "d18": {
    "who": "ГОЛОС",
@@ -1038,7 +1425,10 @@
    "ru": "— Фрэнки, иди ко мне… Холодно тут…",
    "en": "— Frankie, come to me… It's so cold here…",
    "tag": "tender, old woman, pleading",
-   "uk": "— Френкі, ходи до мене… Холодно тут…"
+   "uk": "— Френкі, ходи до мене… Холодно тут…",
+   "es": "— Frankie, ven con mamá… Aquí hace tanto frío…",
+   "pt": "— Frankie, vem cá comigo… Tá tão frio aqui…",
+   "de": "— Frankie, komm zu mir… Hier ist es so kalt…"
   },
   "d19": {
    "who": "ГОЛОС",
@@ -1046,7 +1436,10 @@
    "ru": "— Сынок… Ну что же ты… Мама ждёт…",
    "en": "— Son… What are you doing… Mama's waiting…",
    "tag": "tender, old woman, sad",
-   "uk": "— Синку… Ну що ж ти… Мама чекає…"
+   "uk": "— Синку… Ну що ж ти… Мама чекає…",
+   "es": "— Hijo… ¿Qué haces…? Mamá te espera…",
+   "pt": "— Filho… O que é isso… A mamãe tá esperando…",
+   "de": "— Junge… Was machst du denn… Mama wartet…"
   },
   "d20": {
    "who": "ИТАН",
@@ -1054,7 +1447,10 @@
    "ru": "В шесть голос оборвался на полуслове.",
    "en": "At six, the voice broke off mid-word.",
    "tag": "quiet, exhausted",
-   "uk": "О шостій голос урвався на півслові."
+   "uk": "О шостій голос урвався на півслові.",
+   "es": "A las seis, la voz se cortó a media palabra.",
+   "pt": "Às seis, a voz se calou no meio da palavra.",
+   "de": "Um sechs brach die Stimme mitten im Wort ab."
   },
   "d21": {
    "who": "ФРЭНК",
@@ -1062,7 +1458,10 @@
    "ru": "— Всё. До ночи оно спит.",
    "en": "— That's it. It sleeps till nightfall.",
    "tag": "hoarse, exhausted, old man",
-   "uk": "— Усе. До ночі воно спить."
+   "uk": "— Усе. До ночі воно спить.",
+   "es": "— Ya está. Eso duerme hasta la noche.",
+   "pt": "— Pronto. Até a noite, aquilo dorme.",
+   "de": "— Das war's. Bis zur Nacht schläft es."
   },
   "d22": {
    "who": "ИТАН",
@@ -1070,7 +1469,10 @@
    "ru": "Я закинул его руку себе на плечо. Сорок ступенек наверх. Он не проронил ни слова.",
    "en": "I put his arm over my shoulder. Forty steps up. He didn't say a word.",
    "tag": "quiet, tired",
-   "uk": "Я закинув його руку собі на плече. Сорок сходинок нагору. Він не зронив ні слова."
+   "uk": "Я закинув його руку собі на плече. Сорок сходинок нагору. Він не зронив ні слова.",
+   "es": "Me eché su brazo al hombro. Subimos cuarenta escalones. No dijo nada.",
+   "pt": "Pus o braço dele no meu ombro. Quarenta degraus acima. Ele não disse nada.",
+   "de": "Ich nahm seinen Arm über die Schulter. Vierzig Stufen hoch. Er schwieg."
   },
   "d23": {
    "who": "ИТАН",
@@ -1078,7 +1480,10 @@
    "ru": "Мы вышли под дождь. Ещё не светало. Но где-то за домами уже прошёл первый трамвай.",
    "en": "We stepped out into the rain. It wasn't light yet. But somewhere behind the houses the first tram had already gone by.",
    "tag": "quiet, calm",
-   "uk": "Ми вийшли під дощ. Ще не світало. Але десь за будинками вже пройшов перший трамвай."
+   "uk": "Ми вийшли під дощ. Ще не світало. Але десь за будинками вже пройшов перший трамвай.",
+   "es": "Salimos a la lluvia. Aún no amanecía. Pero detrás de las casas ya había pasado el primer tranvía.",
+   "pt": "Saímos na chuva. Ainda não tinha clareado. Mas em algum lugar, atrás das casas, o primeiro bonde já tinha passado.",
+   "de": "Wir traten in den Regen hinaus. Es war noch dunkel. Doch hinter den Häusern fuhr schon die erste Straßenbahn."
   },
   "d24": {
    "who": "ФРЭНК",
@@ -1086,7 +1491,10 @@
    "ru": "— Гас?",
    "en": "— Gus?",
    "tag": "quiet, old man",
-   "uk": "— Гас?"
+   "uk": "— Гас?",
+   "es": "— ¿Gus?",
+   "pt": "— O Gus?",
+   "de": "— Gus?"
   },
   "d25": {
    "who": "ИТАН",
@@ -1094,7 +1502,10 @@
    "ru": "Я покачал головой.",
    "en": "I shook my head.",
    "tag": "quiet",
-   "uk": "Я похитав головою."
+   "uk": "Я похитав головою.",
+   "es": "Negué con la cabeza.",
+   "pt": "Neguei com a cabeça.",
+   "de": "Ich schüttelte den Kopf."
   },
   "d26": {
    "who": "ФРЭНК",
@@ -1102,7 +1513,10 @@
    "ru": "— Он ведь сюда ради неё и ходил. Послушать.",
    "en": "— That's why he kept coming here, you know. To listen to her.",
    "tag": "quiet, sad, old man",
-   "uk": "— Він же сюди заради неї й ходив. Послухати."
+   "uk": "— Він же сюди заради неї й ходив. Послухати.",
+   "es": "— Por ella venía aquí, ¿sabes? Para escucharla.",
+   "pt": "— Era por ela que ele vinha pra cá, sabe. Pra ouvir a voz dela.",
+   "de": "— Ihretwegen kam er ja her. Um ihr zuzuhören."
   },
   "d27": {
    "who": "ИТАН",
@@ -1110,7 +1524,10 @@
    "ru": "Фрэнк закурил.",
    "en": "Frank lit a cigarette.",
    "tag": "quiet",
-   "uk": "Френк закурив."
+   "uk": "Френк закурив.",
+   "es": "Frank encendió un cigarro.",
+   "pt": "O Frank acendeu um cigarro.",
+   "de": "Frank zündete sich eine an."
   },
   "d28": {
    "who": "ФРЭНК",
@@ -1118,7 +1535,10 @@
    "ru": "— Сам ведь записал: не отзывайся. А назавтра мама позвала — и отозвался. Тридцать лет как её схоронил.",
    "en": "— Wrote it down myself: don't answer. And the very next night Mom called, and I answered. Buried her thirty years ago.",
    "tag": "quiet, bitter, old man",
-   "uk": "— Сам же записав: не озивайся. А назавтра мама покликала — і озвався. Тридцять років, як її поховав."
+   "uk": "— Сам же записав: не озивайся. А назавтра мама покликала — і озвався. Тридцять років, як її поховав.",
+   "es": "— Lo escribí yo mismo: no respondas. Y a la noche siguiente mamá me llamó, y respondí. La enterré hace treinta años.",
+   "pt": "— Eu mesmo escrevi: não responda. E na noite seguinte a mamãe chamou, e eu respondi. Enterrei ela faz trinta anos.",
+   "de": "— Selbst aufgeschrieben: nicht antworten. Und die Nacht drauf ruft Mama, und ich antworte. Vor dreißig Jahren begraben."
   },
   "d29": {
    "who": "ФРЭНК",
@@ -1126,7 +1546,10 @@
    "ru": "— Мне теперь до конца жизни спать в круге. А ты уходи, сынок. Пока не отозвался.",
    "en": "— Now I sleep in a circle for the rest of my life. But you get out of here, son. Before you answer.",
    "tag": "quiet, grave, old man",
-   "uk": "— Мені тепер до кінця життя спати в колі. А ти йди звідси, синку. Поки не озвався."
+   "uk": "— Мені тепер до кінця життя спати в колі. А ти йди звідси, синку. Поки не озвався.",
+   "es": "— Ahora me toca dormir en un círculo el resto de mi vida. Pero tú vete, hijo. Antes de que respondas.",
+   "pt": "— Agora vou dormir num círculo pelo resto da vida. Mas você, vai embora daqui, filho. Antes de responder.",
+   "de": "— Ich schlaf jetzt bis an mein Lebensende im Kreis. Du aber gehst, Junge. Bevor du antwortest."
   },
   "d30": {
    "who": "ИТАН",
@@ -1134,7 +1557,10 @@
    "ru": "Я не ушёл. Лили нужны были деньги.",
    "en": "I didn't leave. Lily needed the money.",
    "tag": "quiet, tired",
-   "uk": "Я не пішов. Лілі потрібні були гроші."
+   "uk": "Я не пішов. Лілі потрібні були гроші.",
+   "es": "No me fui. Lily necesitaba el dinero.",
+   "pt": "Não fui embora. A Lily precisava do dinheiro.",
+   "de": "Ich ging nicht weg. Lily brauchte das Geld."
   },
   "d31": {
    "who": "ИТАН",
@@ -1142,7 +1568,10 @@
    "ru": "Теперь каждую ночь, ровно в три, у лифта кто-то стоит и зовёт меня по имени. Голосом Лили. Я пока ни разу не ответил.",
    "en": "Now every night, at exactly three, someone stands by the elevator and calls my name. In Lily's voice. So far, I haven't answered once.",
    "tag": "quiet, slow",
-   "uk": "Тепер щоночі, рівно о третій, біля ліфта хтось стоїть і кличе мене на ім’я. Голосом Лілі. Я поки жодного разу не відповів."
+   "uk": "Тепер щоночі, рівно о третій, біля ліфта хтось стоїть і кличе мене на ім’я. Голосом Лілі. Я поки жодного разу не відповів.",
+   "es": "Ahora, cada noche, a las tres en punto, alguien junto al ascensor me llama por mi nombre. Con la voz de Lily. Hasta ahora, no he respondido ni una vez.",
+   "pt": "Agora, toda noite, às três em ponto, alguém fica perto do elevador e me chama pelo nome. Com a voz da Lily. Até agora, nunca respondi.",
+   "de": "Jetzt steht jede Nacht, Punkt drei, jemand am Aufzug und ruft meinen Namen. Mit Lilys Stimme. Noch habe ich kein einziges Mal geantwortet."
   },
   "w01": {
    "who": "ИТАН",
@@ -1150,7 +1579,10 @@
    "ru": "Я никуда не пошёл. Это мог быть кто угодно. И что угодно.",
    "en": "I didn't go anywhere. It could have been anyone. Anything.",
    "tag": "quiet, tired",
-   "uk": "Я нікуди не пішов. Це міг бути будь-хто. І будь-що."
+   "uk": "Я нікуди не пішов. Це міг бути будь-хто. І будь-що.",
+   "es": "No fui a ninguna parte. Podía ser cualquiera. Cualquier cosa.",
+   "pt": "Não fui a lugar nenhum. Podia ser qualquer um. Qualquer coisa.",
+   "de": "Ich ging nirgendwohin. Das konnte irgendwer sein. Irgendwas."
   },
   "w02": {
    "who": "ИТАН",
@@ -1158,7 +1590,10 @@
    "ru": "Полтора часа я смотрел на мониторы. Тринадцатая больше не включалась.",
    "en": "For an hour and a half I watched the monitors. Thirteen didn't come on again.",
    "tag": "quiet, tired",
-   "uk": "Півтори години я дивився на монітори. Тринадцята більше не вмикалася."
+   "uk": "Півтори години я дивився на монітори. Тринадцята більше не вмикалася.",
+   "es": "Pasé hora y media mirando los monitores. La trece no volvió a encenderse.",
+   "pt": "Passei uma hora e meia olhando os monitores. A treze não ligou mais.",
+   "de": "Anderthalb Stunden starrte ich auf die Monitore. Die Dreizehn ging nicht mehr an."
   },
   "w03": {
    "who": "ИТАН",
@@ -1166,7 +1601,10 @@
    "ru": "Где-то подо мной, в круге соли, сидел старик. А я сидел наверху и ждал шести.",
    "en": "Somewhere beneath me, an old man sat in a circle of salt. And I sat upstairs, waiting for six.",
    "tag": "quiet, guilty",
-   "uk": "Десь піді мною, у колі із солі, сидів старий. А я сидів нагорі й чекав шостої."
+   "uk": "Десь піді мною, у колі із солі, сидів старий. А я сидів нагорі й чекав шостої.",
+   "es": "Debajo de mí, un viejo seguía en un círculo de sal. Y yo, arriba, esperaba a las seis.",
+   "pt": "Em algum lugar lá embaixo, um velho estava sentado num círculo de sal. E eu, lá em cima, esperando dar seis.",
+   "de": "Irgendwo unter mir saß ein alter Mann im Salzkreis. Und ich saß oben und wartete auf sechs."
   },
   "w04": {
    "who": "ИТАН",
@@ -1174,7 +1612,10 @@
    "ru": "В пять сорок зазвонил телефон. «Лили».",
    "en": "At five-forty my phone rang. \"Lily.\"",
    "tag": "quiet, tense",
-   "uk": "О п’ятій сорок задзвонив телефон. «Лілі»."
+   "uk": "О п’ятій сорок задзвонив телефон. «Лілі».",
+   "es": "A las cinco y cuarenta llamó «Lily».",
+   "pt": "Cinco e quarenta. O celular tocou. “Lily”.",
+   "de": "Um fünf vierzig klingelte es. „Lily“."
   },
   "w05": {
    "who": "ИТАН",
@@ -1182,7 +1623,10 @@
    "ru": "Двадцать минут до шести. Свои до утра подождут.",
    "en": "Twenty minutes to six. Your own can wait till morning.",
    "tag": "whispering",
-   "uk": "Двадцять хвилин до шостої. Свої до ранку почекають."
+   "uk": "Двадцять хвилин до шостої. Свої до ранку почекають.",
+   "es": "Las seis menos veinte. Los tuyos esperarán hasta la mañana.",
+   "pt": "Vinte pras seis. Quem é de casa espera até de manhã.",
+   "de": "Zwanzig vor sechs. Die Deinen warten bis zum Morgen."
   },
   "w06": {
    "who": "ИТАН",
@@ -1190,7 +1634,10 @@
    "ru": "Я сбросил. Оно позвонило снова. И ещё раз. Потом затихло.",
    "en": "I declined. It called again. And again. Then it went quiet.",
    "tag": "quiet, tense",
-   "uk": "Я скинув. Воно подзвонило знову. І ще раз. Потім затихло."
+   "uk": "Я скинув. Воно подзвонило знову. І ще раз. Потім затихло.",
+   "es": "Rechacé la llamada. Volvió a llamar. Y otra vez. Luego, silencio.",
+   "pt": "Recusei. Ligou de novo. E de novo. Depois ficou quieto.",
+   "de": "Ich drückte weg. Es rief wieder an. Und wieder. Dann war Ruhe."
   },
   "w07": {
    "who": "ИТАН",
@@ -1198,7 +1645,10 @@
    "ru": "В шесть пришёл дневной охранник.",
    "en": "At six the day guard came in.",
    "tag": "quiet, tired",
-   "uk": "О шостій прийшов денний охоронець."
+   "uk": "О шостій прийшов денний охоронець.",
+   "es": "A las seis llegó el relevo.",
+   "pt": "Às seis, o vigia do dia chegou.",
+   "de": "Um sechs kam die Ablösung."
   },
   "w08": {
    "who": "СМЕНЩИК",
@@ -1206,7 +1656,10 @@
    "ru": "— Не отвечал?",
    "en": "— You didn't answer?",
    "tag": "low, wary",
-   "uk": "— Не відповідав?"
+   "uk": "— Не відповідав?",
+   "es": "— ¿No respondiste?",
+   "pt": "— Não respondeu?",
+   "de": "— Nicht geantwortet?"
   },
   "w09": {
    "who": "ИТАН",
@@ -1214,7 +1667,10 @@
    "ru": "Мы спустились вниз вдвоём. Дверь серверной была распахнута. Из круга в коридор тянулись следы ладоней.",
    "en": "We went down together. The server-room door was wide open. Handprints trailed from the circle out into the corridor.",
    "tag": "quiet, hollow",
-   "uk": "Ми спустилися вниз удвох. Двері серверної були розчахнуті. Із кола в коридор тяглися сліди долонь."
+   "uk": "Ми спустилися вниз удвох. Двері серверної були розчахнуті. Із кола в коридор тяглися сліди долонь.",
+   "es": "Bajamos juntos. La sala de servidores estaba abierta de par en par. Del círculo al pasillo iban huellas de manos.",
+   "pt": "Descemos juntos. A porta da sala de servidores estava escancarada. Marcas de mãos saíam do círculo e iam pelo corredor.",
+   "de": "Wir gingen zusammen runter. Die Tür zum Serverraum stand weit offen. Vom Kreis zogen sich Handabdrücke in den Flur."
   },
   "w10": {
    "who": "ИТАН",
@@ -1222,7 +1678,10 @@
    "ru": "Я открыл журнал на последней странице и дописал строчку. Своим почерком. Для того, кто придёт после меня.",
    "en": "I opened the logbook to the last page and added a line. In my own handwriting. For whoever comes after me.",
    "tag": "quiet, slow",
-   "uk": "Я розгорнув журнал на останній сторінці й дописав рядок. Своїм почерком. Для того, хто прийде після мене."
+   "uk": "Я розгорнув журнал на останній сторінці й дописав рядок. Своїм почерком. Для того, хто прийде після мене.",
+   "es": "Abrí la bitácora por la última página y añadí una línea. Con mi letra. Para quien venga después de mí.",
+   "pt": "Abri o diário na última página e escrevi uma linha. Com a minha letra. Pra quem vier depois de mim.",
+   "de": "Auf die letzte Seite im Wachbuch schrieb ich eine Zeile. In meiner Schrift. Für den, der nach mir kommt."
   },
   "k1a": {
    "who": "ИТАН",
@@ -1230,7 +1689,10 @@
    "ru": "Я посмотрел в тринадцатую. Оно уже стояло лицом к камере. Будто ждало, когда я посмотрю.",
    "en": "I looked at thirteen. It was already facing the camera. As if it had been waiting for me to look.",
    "tag": "whispering, terrified",
-   "uk": "Я подивився в тринадцяту. Воно вже стояло обличчям до камери. Ніби чекало, коли я подивлюся."
+   "uk": "Я подивився в тринадцяту. Воно вже стояло обличчям до камери. Ніби чекало, коли я подивлюся.",
+   "es": "Miré la trece. Eso ya estaba de cara a la cámara. Como si esperara a que yo mirara.",
+   "pt": "Olhei pra treze. Aquilo já estava de frente pra câmera. Como se esperasse eu olhar.",
+   "de": "Ich schaute auf die Dreizehn. Es blickte schon in die Kamera. Als hätte es auf meinen Blick gewartet."
   },
   "k1b": {
    "who": "ИТАН",
@@ -1238,7 +1700,10 @@
    "ru": "Оно сказало моё имя. И я ответил раньше, чем понял, что отвечаю.",
    "en": "It said my name. And I answered before I realized I was answering.",
    "tag": "whispering, terrified",
-   "uk": "Воно сказало моє ім’я. І я відповів раніше, ніж зрозумів, що відповідаю."
+   "uk": "Воно сказало моє ім’я. І я відповів раніше, ніж зрозумів, що відповідаю.",
+   "es": "Dijo mi nombre. Y respondí antes de darme cuenta de que respondía.",
+   "pt": "Aquilo disse o meu nome. E eu respondi antes de perceber que estava respondendo.",
+   "de": "Es sagte meinen Namen. Und ich antwortete, ehe ich es merkte."
   },
   "k2a": {
    "who": "ИТАН",
@@ -1246,7 +1711,10 @@
    "ru": "Я поднялся на седьмой. Свет горел, пахло мокрой тряпкой.",
    "en": "I went up to seven. The lights were on. It smelled of a wet rag.",
    "tag": "quiet, tense",
-   "uk": "Я піднявся на сьомий. Світло горіло, пахло мокрою ганчіркою."
+   "uk": "Я піднявся на сьомий. Світло горіло, пахло мокрою ганчіркою.",
+   "es": "Subí al séptimo. Las luces estaban encendidas. Olía a trapo mojado.",
+   "pt": "Subi pro sétimo. As luzes estavam acesas. Cheirava a pano molhado.",
+   "de": "Ich ging in den Siebten. Licht brannte, es roch nach nassem Lappen."
   },
   "k2b": {
    "who": "ИТАН",
@@ -1254,7 +1722,10 @@
    "ru": "В дверях семьсот седьмого лежал Гас. Над ним кто-то сидел.",
    "en": "Gus was lying in the doorway of seven-oh-seven. Someone was crouched over him.",
    "tag": "whispering, terrified",
-   "uk": "У дверях сімсот сьомого лежав Гас. Над ним хтось сидів."
+   "uk": "У дверях сімсот сьомого лежав Гас. Над ним хтось сидів.",
+   "es": "Gus estaba tendido en la puerta del setecientos siete. Alguien estaba agachado sobre él.",
+   "pt": "O Gus estava caído na porta da setecentos e sete. Alguém estava agachado em cima dele.",
+   "de": "In der Tür von Siebenhundertsieben lag Gus. Über ihm hockte jemand."
   },
   "k2c": {
    "who": "ИТАН",
@@ -1262,7 +1733,10 @@
    "ru": "Лампы начали гаснуть. С дальнего конца. Ко мне.",
    "en": "The lights started going out. From the far end. Toward me.",
    "tag": "whispering, terrified",
-   "uk": "Лампи почали гаснути. З дальнього кінця. До мене."
+   "uk": "Лампи почали гаснути. З дальнього кінця. До мене.",
+   "es": "Las luces empezaron a apagarse. Desde el fondo. Hacia mí.",
+   "pt": "As luzes começaram a apagar. Lá do fundo. Em direção a mim.",
+   "de": "Die Lampen gingen aus. Vom anderen Ende her. Auf mich zu."
   },
   "k3a": {
    "who": "ИТАН",
@@ -1270,7 +1744,10 @@
    "ru": "— Гас! Держись, я сейчас поднимусь!",
    "en": "— Gus! Hang on, I'm coming up!",
    "tag": "urgent, loud",
-   "uk": "— Гасе! Тримайся, я зараз піднімуся!"
+   "uk": "— Гасе! Тримайся, я зараз піднімуся!",
+   "es": "— ¡Gus! ¡Aguanta, ya subo!",
+   "pt": "— Gus! Aguenta aí, tô subindo!",
+   "de": "— Gus! Halt durch, ich komme hoch!"
   },
   "k3b": {
    "who": "ГАС",
@@ -1278,7 +1755,10 @@
    "ru": "— Спасибо, Итан.",
    "en": "— Thank you, Ethan.",
    "tag": "calm, warm, creepy",
-   "uk": "— Дякую, Ітане."
+   "uk": "— Дякую, Ітане.",
+   "es": "— Gracias, Ethan.",
+   "pt": "— Obrigado, Ethan.",
+   "de": "— Danke, Ethan."
   },
   "k4a": {
    "who": "ИТАН",
@@ -1286,7 +1766,10 @@
    "ru": "Я не успел. Тот, в коридоре, обернулся. Лица у него не было. Только рот. И этот рот сказал моё имя.",
    "en": "I wasn't fast enough. The one in the corridor turned around. It had no face. Only a mouth. And the mouth said my name.",
    "tag": "whispering, terrified",
-   "uk": "Я не встиг. Той, у коридорі, обернувся. Обличчя в нього не було. Тільки рот. І цей рот сказав моє ім’я."
+   "uk": "Я не встиг. Той, у коридорі, обернувся. Обличчя в нього не було. Тільки рот. І цей рот сказав моє ім’я.",
+   "es": "No llegué a tiempo. Aquello del pasillo se dio la vuelta. No tenía cara. Solo una boca. Y esa boca dijo mi nombre.",
+   "pt": "Não deu tempo. Aquilo no corredor se virou. Não tinha rosto. Só uma boca. E a boca disse o meu nome.",
+   "de": "Ich war zu spät. Das Ding im Flur drehte sich um. Es hatte kein Gesicht. Nur einen Mund. Und der Mund sagte meinen Namen."
   },
   "k4b": {
    "who": "ИТАН",
@@ -1294,7 +1777,10 @@
    "ru": "И я ответил раньше, чем понял, что отвечаю.",
    "en": "And I answered before I realized I was answering.",
    "tag": "whispering, terrified",
-   "uk": "І я відповів раніше, ніж зрозумів, що відповідаю."
+   "uk": "І я відповів раніше, ніж зрозумів, що відповідаю.",
+   "es": "Y respondí antes de darme cuenta de que respondía.",
+   "pt": "E eu respondi antes de perceber que estava respondendo.",
+   "de": "Und ich antwortete, ehe ich es merkte."
   },
   "k5a": {
    "who": "ЛИЛИ",
@@ -1302,7 +1788,10 @@
    "ru": "— Вот ты где, Итан.",
    "en": "— There you are, Ethan.",
    "tag": "whispering, sweet, creepy",
-   "uk": "— Ось ти де, Ітане."
+   "uk": "— Ось ти де, Ітане.",
+   "es": "— Aquí estás, Ethan.",
+   "pt": "— Achei você, Ethan.",
+   "de": "— Da bist du ja, Ethan."
   },
   "k7a": {
    "who": "ИТАН",
@@ -1310,7 +1799,10 @@
    "ru": "Я открыл дверь.",
    "en": "I opened the door.",
    "tag": "quiet, tense",
-   "uk": "Я відчинив двері."
+   "uk": "Я відчинив двері.",
+   "es": "Abrí la puerta.",
+   "pt": "Abri a porta.",
+   "de": "Ich öffnete die Tür."
   },
   "k7b": {
    "who": "ИТАН",
@@ -1318,7 +1810,10 @@
    "ru": "Фрэнк сидел в круге. Смотрел на меня и мотал головой: нет, нет, нет.",
    "en": "Frank was sitting in the circle. Looking at me and shaking his head: no, no, no.",
    "tag": "whispering, terrified",
-   "uk": "Френк сидів у колі. Дивився на мене й хитав головою: ні, ні, ні."
+   "uk": "Френк сидів у колі. Дивився на мене й хитав головою: ні, ні, ні.",
+   "es": "Frank estaba sentado en el círculo. Me miraba y negaba con la cabeza: no, no, no.",
+   "pt": "O Frank estava sentado no círculo. Olhava pra mim e balançava a cabeça: não, não, não.",
+   "de": "Frank saß im Kreis. Er sah mich an und schüttelte den Kopf: nein, nein, nein."
   },
   "k7c": {
    "who": "ИТАН",
@@ -1326,7 +1821,10 @@
    "ru": "А голос, который меня позвал, был у меня за спиной.",
    "en": "And the voice that had called me was right behind me.",
    "tag": "whispering, terrified",
-   "uk": "А голос, який мене покликав, був у мене за спиною."
+   "uk": "А голос, який мене покликав, був у мене за спиною.",
+   "es": "Y la voz que me había llamado estaba justo detrás de mí.",
+   "pt": "E a voz que tinha me chamado estava bem atrás de mim.",
+   "de": "Und die Stimme, die mich rief, war direkt hinter mir."
   },
   "k8a": {
    "who": "ИТАН",
@@ -1334,7 +1832,10 @@
    "ru": "Фрэнк выполз из круга. Темнота сомкнулась над ним без единого звука.",
    "en": "Frank crawled out of the circle. The dark closed over him without a sound.",
    "tag": "whispering, terrified",
-   "uk": "Френк виповз із кола. Темрява зімкнулася над ним без жодного звуку."
+   "uk": "Френк виповз із кола. Темрява зімкнулася над ним без жодного звуку.",
+   "es": "Frank salió a rastras del círculo. La oscuridad se cerró sobre él sin un ruido.",
+   "pt": "O Frank rastejou pra fora do círculo. O escuro se fechou sobre ele sem um som.",
+   "de": "Frank kroch aus dem Kreis. Die Dunkelheit schloss sich über ihm, lautlos."
   },
   "k8b": {
    "who": "ФРЭНК",
@@ -1342,7 +1843,10 @@
    "ru": "— Итан?..",
    "en": "— Ethan?..",
    "tag": "quiet, old man, distant",
-   "uk": "— Ітане?.."
+   "uk": "— Ітане?..",
+   "es": "— ¿Ethan…?",
+   "pt": "— Ethan?…",
+   "de": "— Ethan?.."
   },
   "k8c": {
    "who": "ИТАН",
@@ -1350,7 +1854,10 @@
    "ru": "— Фрэнк?!",
    "en": "— Frank?!",
    "tag": "urgent, scared",
-   "uk": "— Френку?!"
+   "uk": "— Френку?!",
+   "es": "— ¡¿Frank?!",
+   "pt": "— Frank?!",
+   "de": "— Frank?!"
   },
   "k9a": {
    "who": "ЛИЛИ",
@@ -1358,7 +1865,10 @@
    "ru": "— Итан. Наконец-то.",
    "en": "— Ethan. Finally.",
    "tag": "calm, sweet, creepy",
-   "uk": "— Ітане. Нарешті."
+   "uk": "— Ітане. Нарешті.",
+   "es": "— Ethan. Por fin.",
+   "pt": "— Ethan. Até que enfim.",
+   "de": "— Ethan. Endlich."
   },
   "k9b": {
    "who": "ИТАН",
@@ -1366,7 +1876,10 @@
    "ru": "Это был её голос. Только звучал он не из трубки. Из холла.",
    "en": "It was her voice. But it wasn't coming from the phone. It was coming from the lobby.",
    "tag": "whispering, terrified",
-   "uk": "Це був її голос. Тільки звучав він не зі слухавки. З холу."
+   "uk": "Це був її голос. Тільки звучав він не зі слухавки. З холу.",
+   "es": "Era su voz. Pero no salía del teléfono. Salía del vestíbulo.",
+   "pt": "Era a voz dela. Mas não vinha do celular. Vinha do saguão.",
+   "de": "Das war ihre Stimme. Nur kam sie nicht aus dem Handy. Sie kam aus dem Foyer."
   },
   "n01": {
    "who": "ИТАН",
@@ -1374,7 +1887,10 @@
    "ru": "Двадцать два ноль-ноль. Вход заперт, лифт — в ночном режиме. Двенадцать этажей и я.",
    "en": "Ten p.m. The entrance is locked, the elevator is on night mode. Twelve floors and me.",
    "tag": "quiet, tired",
-   "uk": "Двадцять друга нуль-нуль. Вхід замкнений, ліфт — у нічному режимі. Дванадцять поверхів і я."
+   "uk": "Двадцять друга нуль-нуль. Вхід замкнений, ліфт — у нічному режимі. Дванадцять поверхів і я.",
+   "es": "Las diez de la noche. La entrada, cerrada; el ascensor, en modo nocturno. Doce pisos y yo.",
+   "pt": "Dez da noite. A entrada está trancada, o elevador em modo noturno. Doze andares e eu.",
+   "de": "Zweiundzwanzig Uhr. Eingang verschlossen, Aufzug im Nachtmodus. Zwölf Etagen und ich."
   },
   "n02": {
    "who": "ИТАН",
@@ -1382,7 +1898,10 @@
    "ru": "Обход. Лестница, этажи, подвал. Фонарь, ключи — и никого.",
    "en": "Rounds. Stairs, floors, basement. Flashlight, keys, and nobody.",
    "tag": "quiet, tired",
-   "uk": "Обхід. Сходи, поверхи, підвал. Ліхтар, ключі — і нікого."
+   "uk": "Обхід. Сходи, поверхи, підвал. Ліхтар, ключі — і нікого.",
+   "es": "Ronda. Escaleras, pisos, sótano. Linterna, llaves, y nadie.",
+   "pt": "Ronda. Escada, andares, subsolo. Lanterna, chaves e ninguém.",
+   "de": "Rundgang. Treppe, Etagen, Keller. Lampe, Schlüssel — und niemand."
   },
   "n03": {
    "who": "ИТАН",
@@ -1390,7 +1909,10 @@
    "ru": "У серверной пахло воском. Из-под двери тянулась тёплая полоска света.",
    "en": "It smelled of wax by the server room. A warm strip of light ran out from under the door.",
    "tag": "quiet, uneasy",
-   "uk": "Біля серверної пахло воском. З-під дверей тяглася тепла смужка світла."
+   "uk": "Біля серверної пахло воском. З-під дверей тяглася тепла смужка світла.",
+   "es": "Junto a la sala de servidores olía a cera. Por debajo de la puerta salía una franja de luz cálida.",
+   "pt": "Perto da sala de servidores, cheiro de cera. Por baixo da porta, uma faixa de luz quente.",
+   "de": "Am Serverraum roch es nach Wachs. Unter der Tür: ein warmer Streifen Licht."
   },
   "n04": {
    "who": "ИТАН",
@@ -1398,7 +1920,10 @@
    "ru": "Заперто. Ключа от серверной в связке не было.",
    "en": "Locked. There was no server-room key on the ring.",
    "tag": "quiet, tired",
-   "uk": "Замкнено. Ключа від серверної у в’язці не було."
+   "uk": "Замкнено. Ключа від серверної у в’язці не було.",
+   "es": "Cerrada. Esa llave no estaba en el llavero.",
+   "pt": "Trancada. Não tinha chave dessa sala no molho.",
+   "de": "Verschlossen. Der Schlüssel fehlte am Bund."
   },
   "n05": {
    "who": "ИТАН",
@@ -1406,7 +1931,10 @@
    "ru": "Наверное, аварийная лампа. Я пошёл наверх.",
    "en": "Probably the emergency light. I went back up.",
    "tag": "quiet, tired",
-   "uk": "Мабуть, аварійна лампа. Я пішов нагору."
+   "uk": "Мабуть, аварійна лампа. Я пішов нагору.",
+   "es": "Sería la luz de emergencia. Volví arriba.",
+   "pt": "Devia ser a luz de emergência. Voltei pra cima.",
+   "de": "Wohl die Notbeleuchtung. Ich ging wieder hoch."
   },
   "n06": {
    "who": "ИТАН",
@@ -1414,7 +1942,10 @@
    "ru": "Кошка у баков. Фрэнк писал про неё двадцать лет. Запишу и я.",
    "en": "A cat by the dumpsters. Frank wrote about her for twenty years. I'll log her too.",
    "tag": "quiet, warm",
-   "uk": "Кішка біля баків. Френк писав про неї двадцять років. Запишу й я."
+   "uk": "Кішка біля баків. Френк писав про неї двадцять років. Запишу й я.",
+   "es": "La gata de los contenedores. Frank la anotó durante veinte años. Yo también la anoto.",
+   "pt": "Uma gata nas lixeiras. O Frank escreveu sobre ela por vinte anos. Vou anotar também.",
+   "de": "Katze an den Mülltonnen. Frank schrieb zwanzig Jahre über sie. Ich trag sie auch ein."
   },
   "n07": {
    "who": "ИТАН",
@@ -1422,7 +1953,10 @@
    "ru": "На десятом кто-то оставил свет. Выключу с пульта.",
    "en": "Someone left the lights on on ten. I'll switch them off from the console.",
    "tag": "quiet, tired",
-   "uk": "На десятому хтось залишив світло. Вимкну з пульта."
+   "uk": "На десятому хтось залишив світло. Вимкну з пульта.",
+   "es": "Alguien dejó la luz encendida en el décimo. La apago desde el panel.",
+   "pt": "Alguém deixou a luz acesa no décimo. Vou apagar pelo painel.",
+   "de": "Im Zehnten hat jemand das Licht angelassen. Ich schalte es am Pult aus."
   },
   "n08": {
    "who": "ГАС",
@@ -1430,7 +1964,10 @@
    "ru": "— Охрана, это опять Гас. Чайник у тебя в будке есть? Фрэнк мне всегда оставлял.",
    "en": "— Security, it's Gus again. Got a kettle in that booth? Frank always left me one.",
    "tag": "friendly, old man",
-   "uk": "— Охорона, це знову Гас. Чайник у тебе в будці є? Френк мені завжди лишав."
+   "uk": "— Охорона, це знову Гас. Чайник у тебе в будці є? Френк мені завжди лишав.",
+   "es": "— Seguridad, soy Gus otra vez. ¿Hay tetera en esa caseta? Frank siempre me dejaba un té.",
+   "pt": "— Segurança, é o Gus de novo. Tem chaleira na guarita? O Frank sempre deixava pra mim.",
+   "de": "— Wache, hier wieder Gus. Hast du einen Wasserkocher? Frank hat mir immer Tee gekocht."
   },
   "n09": {
    "who": "ИТАН",
@@ -1438,7 +1975,10 @@
    "ru": "— Есть. Спускайся.",
    "en": "— Sure. Come on down.",
    "tag": "casual",
-   "uk": "— Є. Спускайся."
+   "uk": "— Є. Спускайся.",
+   "es": "— Claro. Baja.",
+   "pt": "— Tem. Pode descer.",
+   "de": "— Klar. Komm runter."
   },
   "n10": {
    "who": "ГАС",
@@ -1446,7 +1986,10 @@
    "ru": "— Не, я уж тут, наверху. Тут тихо. Хорошо слышно…",
    "en": "— Nah, I'll stay up here. It's quiet. You can hear real well up here…",
    "tag": "calm, dreamy, a bit odd",
-   "uk": "— Та ні, я вже тут побуду, нагорі. Тут тихо. Добре чути…"
+   "uk": "— Та ні, я вже тут побуду, нагорі. Тут тихо. Добре чути…",
+   "es": "— No, me quedo aquí arriba. Hay silencio. Aquí se oye muy bien…",
+   "pt": "— Que nada, fico aqui em cima. Tá quietinho. Dá pra ouvir bem daqui…",
+   "de": "— Nee, ich bleib hier oben. Hier ist es ruhig. Man hört hier so gut…"
   },
   "n11": {
    "who": "ИТАН",
@@ -1454,7 +1997,10 @@
    "ru": "Что ему там слышно, я не спросил.",
    "en": "I didn't ask what he could hear up there.",
    "tag": "quiet, uneasy",
-   "uk": "Що йому там чути, я не спитав."
+   "uk": "Що йому там чути, я не спитав.",
+   "es": "No le pregunté qué oía allá arriba.",
+   "pt": "Não perguntei o que ele ouvia lá em cima.",
+   "de": "Was er da oben hörte, fragte ich nicht."
   },
   "n12": {
    "who": "ИТАН",
@@ -1462,7 +2008,10 @@
    "ru": "Помехи. Только в углу, у двери. Как будто там кто-то стоит.",
    "en": "Static. Just in the corner, by the door. As if someone were standing there.",
    "tag": "quiet, tense",
-   "uk": "Перешкоди. Тільки в кутку, біля дверей. Ніби там хтось стоїть."
+   "uk": "Перешкоди. Тільки в кутку, біля дверей. Ніби там хтось стоїть.",
+   "es": "Estática. Solo en el rincón, junto a la puerta. Como si alguien estuviera ahí.",
+   "pt": "Estática. Só no canto, perto da porta. Como se tivesse alguém parado ali.",
+   "de": "Rauschen. Nur in der Ecke, an der Tür. Als stünde dort jemand."
   },
   "n13": {
    "who": "ИТАН",
@@ -1470,7 +2019,10 @@
    "ru": "Лифт поехал сам. На пульте — никого. Наверное, датчик.",
    "en": "The elevator moved on its own. Nobody at the console. Must be a sensor.",
    "tag": "quiet, tense",
-   "uk": "Ліфт поїхав сам. На пульті — нікого. Мабуть, датчик."
+   "uk": "Ліфт поїхав сам. На пульті — нікого. Мабуть, датчик.",
+   "es": "El ascensor se movió solo. En el panel, ninguna llamada. Será un sensor.",
+   "pt": "O elevador andou sozinho. Ninguém no painel. Deve ser o sensor.",
+   "de": "Der Aufzug fuhr von allein. Am Pult niemand. Muss ein Sensor sein."
   },
   "n14": {
    "who": "ГАС",
@@ -1478,7 +2030,10 @@
    "ru": "— А, новенький. Держи яблоко, с дачи.",
    "en": "— Ah, the new guy. Here, have an apple. From my garden.",
    "tag": "friendly, warm, old man",
-   "uk": "— А, новенький. Тримай яблуко, з дачі."
+   "uk": "— А, новенький. Тримай яблуко, з дачі.",
+   "es": "— Ah, el nuevo. Toma una manzana. De mi jardín.",
+   "pt": "— Ah, o novato. Toma uma maçã, do meu quintal.",
+   "de": "— Ah, der Neue. Hier, nimm einen Apfel. Aus meinem Garten."
   },
   "n15": {
    "who": "ГАС",
@@ -1486,7 +2041,10 @@
    "ru": "— Здание старое, всякое мерещится. Ты главное — в голову не бери.",
    "en": "— Old building. You see all sorts of things. Just don't let it get to you.",
    "tag": "kind, reassuring, old man",
-   "uk": "— Будівля стара, усяке ввижається. Ти головне — не бери до голови."
+   "uk": "— Будівля стара, усяке ввижається. Ти головне — не бери до голови.",
+   "es": "— El edificio es viejo, uno ve de todo. Tú no le hagas caso.",
+   "pt": "— Prédio velho, a gente imagina de tudo. Só não esquenta a cabeça.",
+   "de": "— Altes Gebäude, da sieht man so einiges. Mach dir bloß keinen Kopf."
   },
   "n16": {
    "who": "ИТАН",
@@ -1494,7 +2052,10 @@
    "ru": "— Спасибо. А вы давно тут?",
    "en": "— Thanks. Have you been here long?",
    "tag": "polite, curious",
-   "uk": "— Дякую. А ви давно тут?"
+   "uk": "— Дякую. А ви давно тут?",
+   "es": "— Gracias. ¿Llevas mucho aquí?",
+   "pt": "— Obrigado. O senhor tá aqui faz tempo?",
+   "de": "— Danke. Bist du schon lange hier?"
   },
   "n17": {
    "who": "ГАС",
@@ -1502,7 +2063,10 @@
    "ru": "— Тридцать лет. Жена тут работала, на седьмом. Теперь вот я мою.",
    "en": "— Thirty years. My wife worked here, on seven. Now I'm the one mopping.",
    "tag": "quiet, sad, old man",
-   "uk": "— Тридцять років. Дружина тут працювала, на сьомому. Тепер от я мию."
+   "uk": "— Тридцять років. Дружина тут працювала, на сьомому. Тепер от я мию.",
+   "es": "— Treinta años. Mi esposa trabajaba aquí, en el séptimo. Ahora limpio yo.",
+   "pt": "— Trinta anos. Minha mulher trabalhava aqui, no sétimo. Agora eu que limpo.",
+   "de": "— Dreißig Jahre. Meine Frau hat im Siebten gearbeitet. Jetzt wisch ich da."
   },
   "n18": {
    "who": "ИТАН",
@@ -1510,7 +2074,10 @@
    "ru": "Половина третьего. Журнал всё ещё лежал закрытым.",
    "en": "Half past two. The logbook was still lying there, closed.",
    "tag": "quiet, tired",
-   "uk": "Пів на третю. Журнал досі лежав закритий."
+   "uk": "Пів на третю. Журнал досі лежав закритий.",
+   "es": "Las dos y media. La bitácora seguía ahí, cerrada.",
+   "pt": "Duas e meia. O diário continuava ali, fechado.",
+   "de": "Halb drei. Das Wachbuch lag immer noch zugeklappt da."
   },
   "n19": {
    "who": "ИТАН",
@@ -1518,7 +2085,10 @@
    "ru": "На пульте появилась ещё одна кнопка. Тринадцать. Минуту назад её не было.",
    "en": "Another button had appeared on the console. Thirteen. A minute ago it wasn't there.",
    "tag": "quiet, tense",
-   "uk": "На пульті з’явилася ще одна кнопка. Тринадцять. Хвилину тому її не було."
+   "uk": "На пульті з’явилася ще одна кнопка. Тринадцять. Хвилину тому її не було.",
+   "es": "En el panel había aparecido otro botón. Trece. Hacía un minuto no estaba.",
+   "pt": "Apareceu mais um botão no painel. Treze. Um minuto atrás, não estava ali.",
+   "de": "Am Pult war noch eine Taste aufgetaucht. Dreizehn. Vor einer Minute war sie nicht da."
   },
   "n20": {
    "who": "ЛИЛИ",
@@ -1526,7 +2096,10 @@
    "ru": "— Итан?.. Это ты?",
    "en": "— Ethan?.. Is that you?",
    "tag": "quiet, sweet, uncertain",
-   "uk": "— Ітане?.. Це ти?"
+   "uk": "— Ітане?.. Це ти?",
+   "es": "— ¿Ethan…? ¿Eres tú?",
+   "pt": "— Ethan?… É você?",
+   "de": "— Ethan?.. Bist du das?"
   },
   "n21": {
    "who": "ИТАН",
@@ -1534,7 +2107,10 @@
    "ru": "Шаги. Уже не на камерах — в холле.",
    "en": "Footsteps. Not on the cameras anymore. In the lobby.",
    "tag": "whispering, terrified",
-   "uk": "Кроки. Уже не на камерах — у холі."
+   "uk": "Кроки. Уже не на камерах — у холі.",
+   "es": "Pasos. Ya no en las cámaras. En el vestíbulo.",
+   "pt": "Passos. Não mais nas câmeras. Aqui, no saguão.",
+   "de": "Schritte. Nicht mehr auf den Kameras. Im Foyer."
   },
   "n22": {
    "who": "ИТАН",
@@ -1542,7 +2118,10 @@
    "ru": "Помехи сложились в лицо. Оно смотрело прямо в объектив.",
    "en": "The static took the shape of a face. It was looking straight into the lens.",
    "tag": "whispering, terrified",
-   "uk": "Перешкоди склалися в обличчя. Воно дивилося просто в об’єктив."
+   "uk": "Перешкоди склалися в обличчя. Воно дивилося просто в об’єктив.",
+   "es": "La estática formó una cara. Miraba fijamente al objetivo.",
+   "pt": "A estática formou um rosto, olhando direto pra lente.",
+   "de": "Das Rauschen formte ein Gesicht. Es sah direkt ins Objektiv."
   },
   "n23": {
    "who": "ИТАН",
@@ -1550,7 +2129,10 @@
    "ru": "— Да. Это я.",
    "en": "— Yes. It's me.",
    "tag": "quiet, relieved",
-   "uk": "— Так. Це я."
+   "uk": "— Так. Це я.",
+   "es": "— Sí. Soy yo.",
+   "pt": "— Sim. Sou eu.",
+   "de": "— Ja. Ich bin's."
   },
   "n24": {
    "who": "ИТАН",
@@ -1558,7 +2140,10 @@
    "ru": "Трубку я положил молча.",
    "en": "I put the phone down without a word.",
    "tag": "quiet, tired",
-   "uk": "Слухавку я поклав мовчки."
+   "uk": "Слухавку я поклав мовчки.",
+   "es": "Colgué sin decir nada.",
+   "pt": "Desliguei sem dizer nada.",
+   "de": "Ich legte wortlos den Hörer auf."
   },
   "n25": {
    "who": "ИТАН",
@@ -1566,7 +2151,10 @@
    "ru": "Четыре двадцать. Фрэнк внизу, в круге. А я здесь. До шести почти два часа.",
    "en": "Four twenty. Frank's downstairs, in the circle. And I'm up here. Almost two hours till six.",
    "tag": "quiet, tired",
-   "uk": "Четверта двадцять. Френк унизу, у колі. А я тут. До шостої майже дві години."
+   "uk": "Четверта двадцять. Френк унизу, у колі. А я тут. До шостої майже дві години.",
+   "es": "Las cuatro y veinte. Frank, abajo, en el círculo. Y yo aquí arriba. Casi dos horas para las seis.",
+   "pt": "Quatro e vinte. O Frank lá embaixo, no círculo. E eu aqui em cima. Quase duas horas até as seis.",
+   "de": "Vier Uhr zwanzig. Frank ist unten, im Kreis. Und ich hier oben. Fast zwei Stunden bis sechs."
   },
   "n26": {
    "who": "ГАС",
@@ -1574,7 +2162,10 @@
    "ru": "— Итан… Спустись ко мне. Тут так хорошо слышно…",
    "en": "— Ethan… Come down to me. You can hear so well up here…",
    "tag": "calm, sweet, creepy",
-   "uk": "— Ітане… Спустися до мене. Тут так добре чути…"
+   "uk": "— Ітане… Спустися до мене. Тут так добре чути…",
+   "es": "— Ethan… Baja a verme. Aquí se oye tan bien…",
+   "pt": "— Ethan… Desce aqui comigo. Aqui dá pra ouvir tão bem…",
+   "de": "— Ethan… Komm runter zu mir. Hier hört man so gut…"
   },
   "n27": {
    "who": "ИТАН",
@@ -1582,7 +2173,10 @@
    "ru": "Гаса больше нет. Я видел это на тринадцатой.",
    "en": "Gus is gone. I saw it on thirteen.",
    "tag": "quiet, shaken",
-   "uk": "Гаса більше нема. Я бачив це на тринадцятій."
+   "uk": "Гаса більше нема. Я бачив це на тринадцятій.",
+   "es": "Gus ya no está. Lo vi en la trece.",
+   "pt": "O Gus se foi. Eu vi na treze.",
+   "de": "Gus ist tot. Ich sah es auf der Dreizehn."
   },
   "n28": {
    "who": "ИТАН",
@@ -1590,7 +2184,10 @@
    "ru": "Снизу постучали. Три раза. Как просил Фрэнк. Только просил он об этом меня.",
    "en": "Someone knocked downstairs. Three times. The way Frank asked. Except he asked me to do it.",
    "tag": "quiet, tense",
-   "uk": "Знизу постукали. Три рази. Як просив Френк. Тільки просив він про це мене."
+   "uk": "Знизу постукали. Три рази. Як просив Френк. Тільки просив він про це мене.",
+   "es": "Abajo alguien golpeó. Tres veces. Como pidió Frank. Solo que me lo pidió a mí.",
+   "pt": "Bateram lá embaixo. Três vezes. Como o Frank pediu. Só que ele pediu isso pra mim.",
+   "de": "Von unten klopfte es. Dreimal. Wie Frank gebeten hatte. Nur hatte er mich darum gebeten."
   },
   "n29": {
    "who": "ИТАН",
@@ -1598,7 +2195,10 @@
    "ru": "У входа стояла Лили. Под дождём, без зонта. Лили спала в трёхстах километрах отсюда.",
    "en": "Lily was standing at the entrance. In the rain, no umbrella. Lily was asleep two hundred miles away.",
    "tag": "quiet, tense",
-   "uk": "Біля входу стояла Лілі. Під дощем, без парасольки. Лілі спала за триста кілометрів звідси."
+   "uk": "Біля входу стояла Лілі. Під дощем, без парасольки. Лілі спала за триста кілометрів звідси.",
+   "es": "Lily estaba en la entrada. Bajo la lluvia, sin paraguas. Lily dormía a trescientos kilómetros de aquí.",
+   "pt": "A Lily estava na entrada. Na chuva, sem sombrinha. A Lily dormia a trezentos quilômetros daqui.",
+   "de": "Am Eingang stand Lily. Im Regen, ohne Schirm. Lily schlief dreihundert Kilometer von hier."
   },
   "n30": {
    "who": "ИТАН",
@@ -1606,7 +2206,10 @@
    "ru": "Я открыл. Она вошла и улыбнулась. Слишком широко.",
    "en": "I opened it. She came in and smiled. Too wide.",
    "tag": "whispering, terrified",
-   "uk": "Я відчинив. Вона увійшла й усміхнулася. Надто широко."
+   "uk": "Я відчинив. Вона увійшла й усміхнулася. Надто широко.",
+   "es": "Abrí. Entró y sonrió. Demasiado.",
+   "pt": "Abri. Ela entrou e sorriu. Largo demais.",
+   "de": "Ich machte auf. Sie kam rein und lächelte. Zu breit."
   },
   "n31": {
    "who": "ИТАН",
@@ -1614,7 +2217,10 @@
    "ru": "Свет начал гаснуть. Этаж за этажом. Сверху вниз. Ко мне.",
    "en": "The lights started going out. Floor by floor. Top to bottom. Toward me.",
    "tag": "quiet, tense",
-   "uk": "Світло почало гаснути. Поверх за поверхом. Згори донизу. До мене."
+   "uk": "Світло почало гаснути. Поверх за поверхом. Згори донизу. До мене.",
+   "es": "Las luces empezaron a apagarse. Piso por piso. De arriba abajo. Hacia mí.",
+   "pt": "As luzes começaram a apagar. Andar por andar. De cima pra baixo. Em direção a mim.",
+   "de": "Das Licht ging aus. Etage für Etage. Von oben nach unten. Auf mich zu."
   },
   "n32": {
    "who": "ИТАН",
@@ -1622,7 +2228,10 @@
    "ru": "Голос стих. Фрэнк тяжело дышал. В серверной стоял регистратор: все камеры на одном мониторе.",
    "en": "The voice faded. Frank was breathing hard. The server room had the recorder: every camera on one monitor.",
    "tag": "quiet, tired",
-   "uk": "Голос затих. Френк важко дихав. У серверній стояв реєстратор: усі камери на одному моніторі."
+   "uk": "Голос затих. Френк важко дихав. У серверній стояв реєстратор: усі камери на одному моніторі.",
+   "es": "La voz se apagó. Frank jadeaba. En la sala estaba el grabador: todas las cámaras en un solo monitor.",
+   "pt": "A voz sumiu. O Frank ofegava. Na sala de servidores ficava o gravador: todas as câmeras num monitor só.",
+   "de": "Die Stimme verklang. Frank atmete schwer. Im Serverraum stand der Rekorder: alle Kameras auf einem Monitor."
   },
   "n33": {
    "who": "ФРЭНК",
@@ -1630,7 +2239,10 @@
    "ru": "— Смотри камеры. Всё, что не так, — записывай. Я двадцать лет так утра дожидался.",
    "en": "— Watch the cameras. Anything wrong, you log it. That's how I waited for morning for twenty years.",
    "tag": "old man, tired, firm",
-   "uk": "— Стеж за камерами. Усе, що не так, — записуй. Я двадцять років так ранку дочікувався."
+   "uk": "— Стеж за камерами. Усе, що не так, — записуй. Я двадцять років так ранку дочікувався.",
+   "es": "— Mira las cámaras. Lo que no esté bien, lo anotas. Así esperé la mañana durante veinte años.",
+   "pt": "— Olha as câmeras. Qualquer coisa errada, anota. Foi assim que esperei amanhecer por vinte anos.",
+   "de": "— Sieh auf die Kameras. Was nicht stimmt, trägst du ein. So hab ich zwanzig Jahre auf den Morgen gewartet."
   },
   "n34": {
    "who": "ФРЭНК",
@@ -1638,7 +2250,10 @@
    "ru": "— В помехи долго не смотри. Оно оттуда смотрит.",
    "en": "— Don't stare at the static. It looks back out of it.",
    "tag": "old man, low, serious",
-   "uk": "— У перешкоди довго не дивись. Воно звідти дивиться."
+   "uk": "— У перешкоди довго не дивись. Воно звідти дивиться.",
+   "es": "— No mires mucho la estática. Eso te mira desde ahí.",
+   "pt": "— Não encara a estática. Aquilo olha de volta lá de dentro.",
+   "de": "— Starr nicht ins Rauschen. Es schaut daraus zurück."
   },
   "n35": {
    "who": "ФРЭНК",
@@ -1646,7 +2261,10 @@
    "ru": "— Если я пойду на голос — держи. Что бы я ни говорил.",
    "en": "— If I go after the voice, hold me back. Whatever I say.",
    "tag": "old man, quiet, scared",
-   "uk": "— Якщо я піду на голос — тримай. Що б я не казав."
+   "uk": "— Якщо я піду на голос — тримай. Що б я не казав.",
+   "es": "— Si voy hacia la voz, sujétame. Diga lo que diga.",
+   "pt": "— Se eu for atrás da voz, me segura. Não importa o que eu diga.",
+   "de": "— Geh ich der Stimme nach, halt mich fest. Egal, was ich sage."
   },
   "n36": {
    "who": "ФРЭНК",
@@ -1654,7 +2272,10 @@
    "ru": "— Без двадцати шесть. Держимся, парень.",
    "en": "— Twenty to six. Hang in there, kid.",
    "tag": "old man, tired, warm",
-   "uk": "— За двадцять шоста. Тримаймося, хлопче."
+   "uk": "— За двадцять шоста. Тримаймося, хлопче.",
+   "es": "— Las seis menos veinte. Aguanta, muchacho.",
+   "pt": "— Vinte pras seis. Aguenta firme, garoto.",
+   "de": "— Zwanzig vor sechs. Halt durch, Junge."
   },
   "n37": {
    "who": "ГОЛОС",
@@ -1662,7 +2283,10 @@
    "ru": "— Фрэнки… Открой маме… Замёрзла я тут…",
    "en": "— Frankie… Open up for Mom… I'm so cold out here…",
    "tag": "old woman, weak, pleading",
-   "uk": "— Френкі… Відчини мамі… Змерзла я тут…"
+   "uk": "— Френкі… Відчини мамі… Змерзла я тут…",
+   "es": "— Frankie… Ábrele a mamá… Me estoy helando…",
+   "pt": "— Frankie… Abre pra mamãe… Tô congelando aqui fora…",
+   "de": "— Frankie… Mach Mama auf… Mir ist so kalt hier draußen…"
   },
   "n38": {
    "who": "ИТАН",
@@ -1670,7 +2294,10 @@
    "ru": "Шаги ушли наверх. До шести — два часа. Я убавил яркость мониторов до самого низа и смотрел.",
    "en": "The footsteps went upstairs. Two hours till six. I turned the monitors down as dark as they'd go, and watched.",
    "tag": "whispering, terrified",
-   "uk": "Кроки пішли нагору. До шостої — дві години. Я прикрутив яскравість моніторів до мінімуму й дивився."
+   "uk": "Кроки пішли нагору. До шостої — дві години. Я прикрутив яскравість моніторів до мінімуму й дивився.",
+   "es": "Los pasos se fueron arriba. Dos horas para las seis. Bajé el brillo de los monitores al mínimo y miré.",
+   "pt": "Os passos subiram. Duas horas até as seis. Baixei o brilho dos monitores ao mínimo e fiquei olhando.",
+   "de": "Die Schritte gingen nach oben. Zwei Stunden bis sechs. Ich drehte die Monitore ganz dunkel und sah zu."
   },
   "n39": {
    "who": "ЛИЛИ",
@@ -1678,7 +2305,10 @@
    "ru": "— Итан?.. Я знаю, что ты здесь. Мне холодно. Выйди ко мне.",
    "en": "— Ethan?.. I know you're here. I'm cold. Come out to me.",
    "tag": "soft, sweet, whispering, uncanny",
-   "uk": "— Ітане?.. Я знаю, що ти тут. Мені холодно. Вийди до мене."
+   "uk": "— Ітане?.. Я знаю, що ти тут. Мені холодно. Вийди до мене.",
+   "es": "— ¿Ethan…? Sé que estás aquí. Tengo frío. Sal a verme.",
+   "pt": "— Ethan?… Sei que você tá aqui. Tô com frio. Sai daí, vem comigo.",
+   "de": "— Ethan?.. Ich weiß, du bist da. Mir ist kalt. Komm raus zu mir."
   },
   "n40": {
    "who": "ИТАН",
@@ -1686,7 +2316,10 @@
    "ru": "На седьмом загорелся свет. Потом на десятом. Она ходит по этажам и щёлкает выключателями. Ищет.",
    "en": "The lights came on on seven. Then on ten. She's walking the floors, flipping switches. Searching.",
    "tag": "quiet, tense",
-   "uk": "На сьомому загорілося світло. Потім на десятому. Вона ходить поверхами й клацає вимикачами. Шукає."
+   "uk": "На сьомому загорілося світло. Потім на десятому. Вона ходить поверхами й клацає вимикачами. Шукає.",
+   "es": "Se encendió la luz del séptimo. Luego la del décimo. Va piso por piso, encendiendo luces. Buscando.",
+   "pt": "A luz acendeu no sétimo. Depois no décimo. Ela anda pelos andares, ligando os interruptores. Procurando.",
+   "de": "Im Siebten ging Licht an. Dann im Zehnten. Sie geht durch die Etagen und knipst Schalter. Sie sucht."
   },
   "n41": {
    "who": "ИТАН",
@@ -1694,7 +2327,10 @@
    "ru": "Зазвонил внутренний. Если сниму трубку — она услышит, где я.",
    "en": "The internal phone rang. If I pick up, she'll hear where I am.",
    "tag": "whispering, terrified",
-   "uk": "Задзвонив внутрішній. Якщо зніму слухавку — вона почує, де я."
+   "uk": "Задзвонив внутрішній. Якщо зніму слухавку — вона почує, де я.",
+   "es": "Sonó el teléfono interno. Si contesto, me oirá. Sabrá dónde estoy.",
+   "pt": "O interfone tocou. Se eu atender, ela vai ouvir onde eu estou.",
+   "de": "Das Haustelefon klingelte. Nehm ich ab, hört sie, wo ich bin."
   },
   "n42": {
    "who": "ЛИЛИ",
@@ -1702,7 +2338,10 @@
    "ru": "— Я слышу, как ты дышишь.",
    "en": "— I can hear you breathing.",
    "tag": "whispering, very close, playful, uncanny",
-   "uk": "— Я чую, як ти дихаєш."
+   "uk": "— Я чую, як ти дихаєш.",
+   "es": "— Te oigo respirar.",
+   "pt": "— Tô ouvindo você respirar.",
+   "de": "— Ich höre dich atmen."
   },
   "n43": {
    "who": "ИТАН",
@@ -1710,7 +2349,10 @@
    "ru": "Без двадцати шесть. Шаги стихли. Я не знаю, где она. И это хуже всего.",
    "en": "Twenty to six. The footsteps stopped. I don't know where she is. And that's the worst part.",
    "tag": "quiet, shaken",
-   "uk": "За двадцять шоста. Кроки затихли. Я не знаю, де вона. І це найгірше."
+   "uk": "За двадцять шоста. Кроки затихли. Я не знаю, де вона. І це найгірше.",
+   "es": "Las seis menos veinte. Los pasos callaron. No sé dónde está. Y eso es lo peor.",
+   "pt": "Vinte pras seis. Os passos pararam. Não sei onde ela está. E isso é o pior.",
+   "de": "Zwanzig vor sechs. Keine Schritte mehr. Ich weiß nicht, wo sie ist. Das ist das Schlimmste."
   },
   "t01": {
    "who": "ВЕРА",
@@ -1718,7 +2360,10 @@
    "ru": "— Охрана «Горизонта», это пульт «Щит», диспетчер Вера. Первая смена? Давай быстро покажу, что у тебя на мониторах.",
    "en": "— Horizon security, this is Shield dispatch, Vera speaking. First shift? Let me quickly show you what's on your monitors.",
    "tag": "calm, professional, over the radio",
-   "uk": "— Охорона «Горизонту», це пульт «Щит», диспетчерка Віра. Перша зміна? Давай швиденько покажу, що в тебе на моніторах."
+   "uk": "— Охорона «Горизонту», це пульт «Щит», диспетчерка Віра. Перша зміна? Давай швиденько покажу, що в тебе на моніторах.",
+   "es": "— Seguridad del Horizon, aquí central Escudo, habla Vera. ¿Primer turno? Te enseño rápido lo que tienes en los monitores.",
+   "pt": "— Segurança do Horizon, aqui é a central Escudo, Vera falando. Primeiro turno? Deixa eu te mostrar rapidinho o que tem nos monitores.",
+   "de": "— Wache Horizon, hier Leitstelle Schild, Vera. Erste Schicht? Ich zeig dir schnell, was du auf den Monitoren hast."
   },
   "t02": {
    "who": "ВЕРА",
@@ -1726,7 +2371,10 @@
    "ru": "— Внизу — камеры здания. Нажми любую. Например, третью — лифты.",
    "en": "— Along the bottom are the building's cameras. Tap one. Try three, the elevators.",
    "tag": "calm, professional, over the radio",
-   "uk": "— Унизу — камери будівлі. Натисни будь-яку. Наприклад, третю — ліфти."
+   "uk": "— Унизу — камери будівлі. Натисни будь-яку. Наприклад, третю — ліфти.",
+   "es": "— Abajo están las cámaras del edificio. Toca una. Prueba la tres, los ascensores.",
+   "pt": "— Embaixo ficam as câmeras do prédio. Toca numa. Tenta a três, a dos elevadores.",
+   "de": "— Unten sind die Kameras. Tipp eine an. Probier die Drei, die Aufzüge."
   },
   "t03": {
    "who": "ВЕРА",
@@ -1734,7 +2382,10 @@
    "ru": "— Твоя работа — замечать, что не так. Видишь табло лифта? Тринадцатый этаж. А в здании их двенадцать.",
    "en": "— Your job is to notice what's wrong. See the elevator display? Floor thirteen. The building only has twelve.",
    "tag": "calm, professional, over the radio",
-   "uk": "— Твоя робота — помічати, що не так. Бачиш табло ліфта? Тринадцятий поверх. А в будівлі їх дванадцять."
+   "uk": "— Твоя робота — помічати, що не так. Бачиш табло ліфта? Тринадцятий поверх. А в будівлі їх дванадцять.",
+   "es": "— Tu trabajo es notar lo que está mal. ¿Ves el indicador del ascensor? Piso trece. El edificio solo tiene doce.",
+   "pt": "— Seu trabalho é notar o que tá errado. Vê o visor do elevador? Andar treze. E o prédio só tem doze.",
+   "de": "— Dein Job: merken, was nicht stimmt. Siehst du die Aufzugsanzeige? Dreizehnter Stock. Das Gebäude hat nur zwölf."
   },
   "t04": {
    "who": "ВЕРА",
@@ -1742,7 +2393,10 @@
    "ru": "— Нажми «Записать» и выбери, что это. Сейчас — «Лифт».",
    "en": "— Tap Log and pick what it is. This time, Elevator.",
    "tag": "calm, professional, over the radio",
-   "uk": "— Натисни «Записати» і вибери, що це. Зараз — «Ліфт»."
+   "uk": "— Натисни «Записати» і вибери, що це. Зараз — «Ліфт».",
+   "es": "— Toca «Anotar» y elige qué es. Esta vez, «Ascensor».",
+   "pt": "— Toca em Anotar e escolhe o que é. Agora, Elevador.",
+   "de": "— Tipp auf Eintragen und wähl, was es ist. Jetzt: Aufzug."
   },
   "t05": {
    "who": "ВЕРА",
@@ -1750,7 +2404,10 @@
    "ru": "— Вот так. Записал — и оно пропало. Пропустишь три за час — будут проблемы.",
    "en": "— That's it. Once it's logged, it goes away. Miss three in an hour, and you'll be in trouble.",
    "tag": "calm, professional, over the radio",
-   "uk": "— Ось так. Записав — і воно зникло. Пропустиш три за годину — будуть проблеми."
+   "uk": "— Ось так. Записав — і воно зникло. Пропустиш три за годину — будуть проблеми.",
+   "es": "— Eso es. Una vez anotado, desaparece. Si se te pasan tres en una hora, tendrás problemas.",
+   "pt": "— Isso. Anotou, sumiu. Se deixar passar três numa hora, vai ter problema.",
+   "de": "— Genau so. Eingetragen, und es ist weg. Übersiehst du drei in einer Stunde, gibt's Ärger."
   },
   "t06": {
    "who": "ВЕРА",
@@ -1758,7 +2415,10 @@
    "ru": "— Слева вверху — микрофон камеры. Прыгают столбики — значит, там звук. Его тоже записывай.",
    "en": "— Top left is the camera mic. When the bars jump, there's a sound. Log that too.",
    "tag": "calm, professional, over the radio",
-   "uk": "— Зліва вгорі — мікрофон камери. Стрибають стовпчики — отже, там звук. Його теж записуй."
+   "uk": "— Зліва вгорі — мікрофон камери. Стрибають стовпчики — отже, там звук. Його теж записуй.",
+   "es": "— Arriba a la izquierda, el micrófono. Si saltan las barras, hay un sonido. También se anota.",
+   "pt": "— Em cima, à esquerda, fica o microfone da câmera. Se as barrinhas pulam, tem som. Anota também.",
+   "de": "— Oben links ist das Mikro. Springen die Balken, gibt's ein Geräusch. Auch eintragen."
   },
   "t07": {
    "who": "ВЕРА",
@@ -1766,7 +2426,10 @@
    "ru": "— «Пульт» — это свет на этажах, вход и лифт. К десяти вход запри, лифт останови.",
    "en": "— The console runs the floor lights, the entrance and the elevator. By ten, lock the entrance and stop the elevator.",
    "tag": "calm, professional, over the radio",
-   "uk": "— «Пульт» — це світло на поверхах, вхід і ліфт. До десятої вхід замкни, ліфт зупини."
+   "uk": "— «Пульт» — це світло на поверхах, вхід і ліфт. До десятої вхід замкни, ліфт зупини.",
+   "es": "— El panel controla las luces de los pisos, la entrada y el ascensor. Antes de las diez, cierra la entrada y detén el ascensor.",
+   "pt": "— O painel controla a luz dos andares, a entrada e o elevador. Até as dez, tranca a entrada e para o elevador.",
+   "de": "— Am Pult steuerst du das Licht, den Eingang und den Aufzug. Bis zehn: Eingang abschließen, Aufzug stoppen."
   },
   "t08": {
    "who": "ВЕРА",
@@ -1774,7 +2437,10 @@
    "ru": "— В «Журнале» — памятка и записи прежнего охранника. Почитай, пока тихо.",
    "en": "— The logbook has your instructions and the previous guard's notes. Read them while it's quiet.",
    "tag": "calm, professional, over the radio",
-   "uk": "— У «Журналі» — пам’ятка й записи попереднього охоронця. Почитай, поки тихо."
+   "uk": "— У «Журналі» — пам’ятка й записи попереднього охоронця. Почитай, поки тихо.",
+   "es": "— En la bitácora: instrucciones y notas del vigilante anterior. Léelas mientras haya calma.",
+   "pt": "— No diário estão as instruções e as anotações do vigia anterior. Dá uma lida enquanto tá calmo.",
+   "de": "— Im Wachbuch sind das Merkblatt und die Notizen deines Vorgängers. Lies sie, solange es ruhig ist."
   },
   "t09": {
    "who": "ВЕРА",
@@ -1782,7 +2448,10 @@
    "ru": "— И ещё. Если на камере помехи — не засматривайся. Записал — и сразу переключай. Всё, удачной смены.",
    "en": "— One more thing. If a camera shows static, don't stare at it. Log it and switch right away. That's all. Have a good shift.",
    "tag": "calm, professional, over the radio",
-   "uk": "— І ще. Якщо на камері перешкоди — не задивляйся. Записав — і одразу перемикай. Усе, вдалої зміни."
+   "uk": "— І ще. Якщо на камері перешкоди — не задивляйся. Записав — і одразу перемикай. Усе, вдалої зміни.",
+   "es": "— Una cosa más. Si una cámara muestra estática, no te quedes mirando. Anótalo y cambia enseguida. Eso es todo. Buen turno.",
+   "pt": "— Mais uma coisa. Se a câmera mostrar estática, não fica olhando. Anota e troca na hora. É isso. Bom plantão.",
+   "de": "— Und noch was. Zeigt eine Kamera Rauschen, starr nicht hin. Eintragen und sofort umschalten. Das war's. Gute Schicht."
   },
   "fb00": {
    "who": "ИТАН",
@@ -1790,7 +2459,10 @@
    "ru": "Будка Фрэнка. Кружка с недопитым чаем, куртка на спинке стула. Будто он вышел на минуту. Неделю назад.",
    "en": "Frank's booth. A mug of unfinished tea, the jacket on the back of the chair. As if he'd stepped out for a minute. A week ago.",
    "tag": "quiet, tired",
-   "uk": "Будка Френка. Кухоль із недопитим чаєм, куртка на спинці стільця. Ніби він вийшов на хвилину. Тиждень тому."
+   "uk": "Будка Френка. Кухоль із недопитим чаєм, куртка на спинці стільця. Ніби він вийшов на хвилину. Тиждень тому.",
+   "es": "La caseta de Frank. Una taza de té a medias, la chaqueta en el respaldo de la silla. Como si hubiera salido un minuto. Hace una semana.",
+   "pt": "A guarita do Frank. Uma caneca de chá pela metade, a jaqueta no encosto da cadeira. Como se ele tivesse saído por um minuto. Uma semana atrás.",
+   "de": "Franks Kabine. Eine halb volle Tasse Tee, die Jacke über der Stuhllehne. Als wäre er kurz rausgegangen. Vor einer Woche."
   },
   "fb01": {
    "who": "ИТАН",
@@ -1798,7 +2470,10 @@
    "ru": "Будка Фрэнка. Всё, как сказал сменщик: лампа, остывший чай, куртка на спинке стула. Будто он вышел на минуту.",
    "en": "Frank's booth. Just like the day guard said: the lamp, the cold tea, the jacket on the back of the chair. As if he'd stepped out for a minute.",
    "tag": "quiet, tired",
-   "uk": "Будка Френка. Усе, як казав змінник: лампа, вистиглий чай, куртка на спинці стільця. Ніби він вийшов на хвилину."
+   "uk": "Будка Френка. Усе, як казав змінник: лампа, вистиглий чай, куртка на спинці стільця. Ніби він вийшов на хвилину.",
+   "es": "La caseta de Frank. Tal como dijo el vigilante de día: la lámpara, el té frío, la chaqueta en el respaldo de la silla. Como si hubiera salido un minuto.",
+   "pt": "A guarita do Frank. Do jeito que o vigia do dia disse: a luminária, o chá frio, a jaqueta no encosto da cadeira. Como se ele tivesse saído por um minuto.",
+   "de": "Franks Kabine. Alles, wie der Kollege sagte: die Lampe, der kalte Tee, die Jacke über der Stuhllehne. Als wäre er kurz rausgegangen."
   },
   "fb02": {
    "who": "ИТАН",
@@ -1806,7 +2481,10 @@
    "ru": "В кармане куртки — пачка крупной соли, наполовину пустая. И горсть соли россыпью. Зачем охраннику соль?",
    "en": "In the jacket pocket, a pack of coarse salt, half empty. And a handful of loose salt. Why would a security guard carry salt?",
    "tag": "quiet, puzzled",
-   "uk": "У кишені куртки — пачка крупної солі, наполовину порожня. І жменя солі врозсип. Навіщо охоронцеві сіль?"
+   "uk": "У кишені куртки — пачка крупної солі, наполовину порожня. І жменя солі врозсип. Навіщо охоронцеві сіль?",
+   "es": "En el bolsillo de la chaqueta, un paquete de sal gruesa, medio vacío. Y un puñado de sal suelta. ¿Para qué quiere sal un vigilante?",
+   "pt": "No bolso da jaqueta, um pacote de sal grosso pela metade. E um punhado de sal solto. Pra que um vigia anda com sal?",
+   "de": "In der Jackentasche eine Packung grobes Salz, halb leer. Und eine Handvoll loses Salz. Wozu braucht ein Wachmann Salz?"
   },
   "fb03": {
    "who": "ИТАН",
@@ -1814,7 +2492,10 @@
    "ru": "Под стеклом на столе — фото. Фрэнк, старик в рабочем комбинезоне и женщина в красном платье. Её лицо стёрто, будто его тысячу раз гладили пальцем. На обороте: «Марта. Седьмой этаж. Новый год».",
    "en": "Under the glass on the desk, a photo. Frank, an old man in work overalls, and a woman in a red dress. Her face was worn away, as if someone had stroked it with a finger a thousand times. On the back: 'Martha. Seventh floor. New Year's.'",
    "tag": "quiet, slow",
-   "uk": "Під склом на столі — фото. Френк, старий у робочому комбінезоні й жінка в червоній сукні. Її обличчя стерте, ніби його тисячу разів гладили пальцем. На звороті: «Марта. Сьомий поверх. Новий рік»."
+   "uk": "Під склом на столі — фото. Френк, старий у робочому комбінезоні й жінка в червоній сукні. Її обличчя стерте, ніби його тисячу разів гладили пальцем. На звороті: «Марта. Сьомий поверх. Новий рік».",
+   "es": "Bajo el vidrio del escritorio, una foto. Frank, un viejo con ropa de trabajo y una mujer de vestido rojo. Su cara estaba borrada, como si alguien la hubiera acariciado con el dedo mil veces. Por detrás: «Martha. Séptimo piso. Año Nuevo».",
+   "pt": "Debaixo do vidro da mesa, uma foto. O Frank, um velho de macacão e uma mulher de vestido vermelho. O rosto dela estava gasto, como se alguém tivesse passado o dedo nele mil vezes. No verso: “Martha. Sétimo andar. Ano Novo.”",
+   "de": "Unter der Glasplatte ein Foto. Frank, ein alter Mann im Blaumann und eine Frau im roten Kleid. Ihr Gesicht war abgerieben, als hätte jemand tausendmal mit dem Finger darübergestrichen. Auf der Rückseite: „Martha. Siebter Stock. Silvester.“"
   },
   "fb04": {
    "who": "ИТАН",
@@ -1822,7 +2503,10 @@
    "ru": "В ящике — телефон Фрэнка, разряжен в ноль. Я поставил его на зарядку: вдруг полиции понадобится, кому он звонил.",
    "en": "In the drawer, Frank's phone, completely dead. I put it on the charger, in case the police want to know who he called.",
    "tag": "quiet, tired",
-   "uk": "У шухляді — телефон Френка, розряджений до нуля. Я поставив його на зарядку: раптом поліції знадобиться, кому він дзвонив."
+   "uk": "У шухляді — телефон Френка, розряджений до нуля. Я поставив його на зарядку: раптом поліції знадобиться, кому він дзвонив.",
+   "es": "En el cajón, el teléfono de Frank, sin nada de batería. Lo puse a cargar, por si la policía quiere saber a quién llamó.",
+   "pt": "Na gaveta, o celular do Frank, sem nenhuma bateria. Coloquei pra carregar, caso a polícia queira saber pra quem ele ligou.",
+   "de": "In der Schublade: Franks Handy, Akku leer. Ich steckte es ans Ladegerät, falls die Polizei wissen will, wen er anrief."
   },
   "fb05": {
    "who": "ИТАН",
@@ -1830,7 +2514,10 @@
    "ru": "Журнал перевязан бечёвкой. На обложке рукой Фрэнка: «До трёх. Весь». Я отложил его. До трёх ещё далеко.",
    "en": "The logbook was tied with string. On the cover, in Frank's hand: 'Before three. All of it.' I put it aside. Three was a long way off.",
    "tag": "quiet, tired",
-   "uk": "Журнал перев’язаний мотузкою. На обкладинці рукою Френка: «До третьої. Увесь». Я відклав його. До третьої ще далеко."
+   "uk": "Журнал перев’язаний мотузкою. На обкладинці рукою Френка: «До третьої. Увесь». Я відклав його. До третьої ще далеко.",
+   "es": "La bitácora estaba atada con una cuerda. En la tapa, con la letra de Frank: «Antes de las tres. Entera». La dejé a un lado. Faltaba mucho para las tres.",
+   "pt": "O diário estava amarrado com barbante. Na capa, com a letra do Frank: “Até as três. Inteiro.” Deixei de lado. Ainda faltava muito pras três.",
+   "de": "Das Wachbuch war mit Schnur zugebunden. Auf dem Umschlag, in Franks Schrift: „Vor drei. Ganz.“ Ich legte es weg. Bis drei war noch lange hin."
   },
   "dg01": {
    "who": "ИТАН",
@@ -1838,7 +2525,10 @@
    "ru": "В десять зазвонил мой телефон. Номер незнакомый.",
    "en": "At ten my phone rang. An unknown number.",
    "tag": "quiet, tired",
-   "uk": "О десятій задзвонив мій телефон. Номер незнайомий."
+   "uk": "О десятій задзвонив мій телефон. Номер незнайомий.",
+   "es": "A las diez sonó mi teléfono. Número desconocido.",
+   "pt": "Às dez, meu celular tocou. Número desconhecido.",
+   "de": "Um zehn klingelte mein Handy. Unbekannte Nummer."
   },
   "dg02": {
    "who": "СМЕНЩИК",
@@ -1846,7 +2536,10 @@
    "ru": "— Это дневной. В агентстве твой номер дали. Ну как ты там, новенький? Живой?",
    "en": "— It's the day guard. The agency gave me your number. So how's it going, new guy? Still alive?",
    "tag": "gruff, trying to sound casual",
-   "uk": "— Це денний. В агентстві дали твій номер. Ну як ти там, новенький? Живий?"
+   "uk": "— Це денний. В агентстві дали твій номер. Ну як ти там, новенький? Живий?",
+   "es": "— Soy el vigilante de día. La agencia me dio tu número. ¿Qué tal, nuevo? ¿Sigues vivo?",
+   "pt": "— Aqui é o vigia do dia. A agência me passou seu número. E aí, novato, como tá? Ainda vivo?",
+   "de": "— Hier die Tagschicht. Deine Nummer hab ich von der Agentur. Na, wie läuft's, Neuer? Lebst du noch?"
   },
   "dg03": {
    "who": "ИТАН",
@@ -1854,7 +2547,10 @@
    "ru": "— Что на самом деле случилось с Фрэнком?",
    "en": "— What really happened to Frank?",
    "tag": "quiet, serious",
-   "uk": "— Що насправді сталося з Френком?"
+   "uk": "— Що насправді сталося з Френком?",
+   "es": "— ¿Qué le pasó de verdad a Frank?",
+   "pt": "— O que houve de verdade com o Frank?",
+   "de": "— Was ist wirklich mit Frank passiert?"
   },
   "dg04": {
    "who": "СМЕНЩИК",
@@ -1862,7 +2558,10 @@
    "ru": "— Не знаю. Последнюю неделю он был сам не свой. Сыпал соль по углам, у дверей, на порог будки. Я думал — от крыс.",
    "en": "— I don't know. His last week he wasn't himself. Poured salt in the corners, by the doors, on the booth threshold. I figured it was for rats.",
    "tag": "gruff, uneasy",
-   "uk": "— Не знаю. Останній тиждень він був сам не свій. Сипав сіль по кутках, біля дверей, на поріг будки. Я думав — від щурів."
+   "uk": "— Не знаю. Останній тиждень він був сам не свій. Сипав сіль по кутках, біля дверей, на поріг будки. Я думав — від щурів.",
+   "es": "— No lo sé. Su última semana no era el mismo. Echaba sal en los rincones, junto a las puertas, en el umbral de la caseta. Pensé que era por las ratas.",
+   "pt": "— Não sei. Na última semana, ele não era o mesmo. Jogava sal nos cantos, perto das portas, na soleira da guarita. Achei que era pra rato.",
+   "de": "— Weiß nicht. Die letzte Woche war er nicht er selbst. Streute Salz in Ecken, an Türen, auf die Schwelle der Kabine. Ich dachte, gegen Ratten."
   },
   "dg05": {
    "who": "ИТАН",
@@ -1870,7 +2569,10 @@
    "ru": "— Зачем ты стучал в стекло, когда уходил?",
    "en": "— Why did you knock on the glass when you left?",
    "tag": "curious",
-   "uk": "— Навіщо ти стукав у скло, коли йшов?"
+   "uk": "— Навіщо ти стукав у скло, коли йшов?",
+   "es": "— ¿Por qué golpeaste el vidrio al irte?",
+   "pt": "— Por que você bateu no vidro quando saiu?",
+   "de": "— Warum hast du beim Gehen an die Scheibe geklopft?"
   },
   "dg06": {
    "who": "СМЕНЩИК",
@@ -1878,7 +2580,10 @@
    "ru": "— Чтоб ты запомнил. Три стука — это я. Утром приду — постучу так же. Фрэнк говорил: оно не стучит. Оно зовёт.",
    "en": "— So you'd remember. Three knocks, that's me. I'll knock the same way in the morning. Frank used to say: it doesn't knock. It calls.",
    "tag": "low, serious",
-   "uk": "— Щоб ти запам’ятав. Три стуки — це я. Уранці прийду — постукаю так само. Френк казав: воно не стукає. Воно кличе."
+   "uk": "— Щоб ти запам’ятав. Три стуки — це я. Уранці прийду — постукаю так само. Френк казав: воно не стукає. Воно кличе.",
+   "es": "— Para que te acuerdes. Tres golpes: ese soy yo. Por la mañana golpearé igual. Frank decía: eso no golpea. Eso llama.",
+   "pt": "— Pra você lembrar. Três batidas, sou eu. De manhã, vou bater do mesmo jeito. O Frank dizia: aquilo não bate. Aquilo chama.",
+   "de": "— Damit du's dir merkst. Dreimal klopfen, das bin ich. Morgen früh klopf ich genauso. Frank sagte immer: Es klopft nicht. Es ruft."
   },
   "dg07": {
    "who": "ИТАН",
@@ -1886,7 +2591,10 @@
    "ru": "— Оно — это кто?",
    "en": "— 'It'? What's 'it'?",
    "tag": "uneasy",
-   "uk": "— Воно — це хто?"
+   "uk": "— Воно — це хто?",
+   "es": "— ¿«Eso»? ¿Qué es «eso»?",
+   "pt": "— O que é “aquilo”?",
+   "de": "— „Es“? Wer ist „es“?"
   },
   "dg08": {
    "who": "СМЕНЩИК",
@@ -1894,7 +2602,10 @@
    "ru": "— Я в эти сказки не верю. И ты не верь. Сиди до шести, дверь никому не открывай, на имя не отзывайся. Вот и вся работа.",
    "en": "— I don't believe in those fairy tales. Neither should you. Sit tight till six, don't open the door for anyone, don't answer to your name. That's the whole job.",
    "tag": "gruff, a little too fast",
-   "uk": "— Я в ці казки не вірю. І ти не вір. Сиди до шостої, дверей нікому не відчиняй, на ім’я не озивайся. От і вся робота."
+   "uk": "— Я в ці казки не вірю. І ти не вір. Сиди до шостої, дверей нікому не відчиняй, на ім’я не озивайся. От і вся робота.",
+   "es": "— Yo no creo en esos cuentos. Y tú tampoco deberías. Quédate ahí hasta las seis, no le abras a nadie, no respondas a tu nombre. Ese es todo el trabajo.",
+   "pt": "— Eu não acredito nessas histórias. E nem você devia. Fica quieto até as seis, não abre a porta pra ninguém, não responde se chamarem seu nome. O trabalho é só isso.",
+   "de": "— Ich glaub nicht an solche Märchen. Du auch nicht. Bleib bis sechs sitzen, mach keinem auf, antworte nicht auf deinen Namen. Das ist der ganze Job."
   },
   "dg09": {
    "who": "ИТАН",
@@ -1902,7 +2613,10 @@
    "ru": "— В здании ещё кто-нибудь есть?",
    "en": "— Is anyone else in the building?",
    "tag": "casual",
-   "uk": "— У будівлі ще хтось є?"
+   "uk": "— У будівлі ще хтось є?",
+   "es": "— ¿Hay alguien más en el edificio?",
+   "pt": "— Tem mais alguém no prédio?",
+   "de": "— Ist sonst noch jemand im Gebäude?"
   },
   "dg10": {
    "who": "СМЕНЩИК",
@@ -1910,7 +2624,10 @@
    "ru": "— Гас, уборщик. Седьмой этаж моет, всю ночь там. Тридцать лет здесь. Ты с ним помягче — он вдовец.",
    "en": "— Gus, the cleaner. Mops the seventh floor, he's up there all night. Thirty years here. Go easy on him, he's a widower.",
    "tag": "gruff, softer",
-   "uk": "— Гас, прибиральник. Сьомий поверх миє, усю ніч там. Тридцять років тут. Ти з ним м’якше — він удівець."
+   "uk": "— Гас, прибиральник. Сьомий поверх миє, усю ніч там. Тридцять років тут. Ти з ним м’якше — він удівець.",
+   "es": "— Gus, el de la limpieza. Limpia el séptimo, se pasa ahí toda la noche. Treinta años aquí. Trátalo bien, es viudo.",
+   "pt": "— O Gus, da limpeza. Limpa o sétimo, passa a noite toda lá. Trinta anos aqui. Pega leve com ele, ele é viúvo.",
+   "de": "— Gus, der Putzmann. Wischt den Siebten, ist die ganze Nacht da oben. Dreißig Jahre schon. Sei nett zu ihm, er ist Witwer."
   },
   "dg11": {
    "who": "ИТАН",
@@ -1918,7 +2635,10 @@
    "ru": "— Ладно. До утра.",
    "en": "— Okay. See you in the morning.",
    "tag": "casual",
-   "uk": "— Гаразд. До ранку."
+   "uk": "— Гаразд. До ранку.",
+   "es": "— Bueno. Hasta mañana.",
+   "pt": "— Beleza. Até de manhã.",
+   "de": "— Okay. Bis morgen früh."
   },
   "dg12": {
    "who": "СМЕНЩИК",
@@ -1926,7 +2646,10 @@
    "ru": "— До утра. Три стука. Запомнил?",
    "en": "— See you. Three knocks. Got it?",
    "tag": "low, serious",
-   "uk": "— До ранку. Три стуки. Запам’ятав?"
+   "uk": "— До ранку. Три стуки. Запам’ятав?",
+   "es": "— Nos vemos. Tres golpes. ¿Entendido?",
+   "pt": "— Até. Três batidas. Gravou?",
+   "de": "— Bis dann. Dreimal klopfen. Kapiert?"
   },
   "bm01": {
    "who": "ИТАН",
@@ -1934,7 +2657,10 @@
    "ru": "Я постучал. Тишина. Потом изнутри — три удара. Медленных, тяжёлых. Будто кто-то берёг силы.",
    "en": "I knocked. Silence. Then, from inside — three knocks. Slow, heavy. As if someone were saving their strength.",
    "tag": "whispering, terrified",
-   "uk": "Я постукав. Тиша. Потім зсередини — три удари. Повільні, важкі. Ніби хтось беріг сили."
+   "uk": "Я постукав. Тиша. Потім зсередини — три удари. Повільні, важкі. Ніби хтось беріг сили.",
+   "es": "Golpeé. Silencio. Luego, desde dentro, tres golpes. Lentos, pesados. Como si alguien ahorrara fuerzas.",
+   "pt": "Bati. Silêncio. Depois, lá de dentro, três batidas. Lentas, pesadas. Como se alguém estivesse poupando forças.",
+   "de": "Ich klopfte. Stille. Dann, von innen — drei Schläge. Langsam, schwer. Als würde jemand seine Kräfte sparen."
   },
   "bm02": {
    "who": "ИТАН",
@@ -1942,7 +2668,10 @@
    "ru": "По всему порогу, с той стороны, — белая полоса. Соль. Её насыпали изнутри.",
    "en": "Along the whole threshold, on the other side — a white line. Salt. Someone had poured it from the inside.",
    "tag": "quiet, uneasy",
-   "uk": "Уздовж усього порога, з того боку, — біла смуга. Сіль. Її насипали зсередини."
+   "uk": "Уздовж усього порога, з того боку, — біла смуга. Сіль. Її насипали зсередини.",
+   "es": "Por todo el umbral, del otro lado, una línea blanca. Sal. Alguien la había echado desde dentro.",
+   "pt": "Por toda a soleira, do outro lado, uma faixa branca. Sal. Alguém tinha espalhado por dentro.",
+   "de": "Die ganze Schwelle entlang, auf der anderen Seite — ein weißer Strich. Salz. Von innen gestreut."
   },
   "bm03": {
    "who": "ИТАН",
@@ -1950,7 +2679,10 @@
    "ru": "— Эй! Есть там кто?",
    "en": "— Hey! Anyone in there?",
    "tag": "calling out, nervous",
-   "uk": "— Гей! Є там хто?"
+   "uk": "— Гей! Є там хто?",
+   "es": "— ¡Eh! ¿Hay alguien ahí?",
+   "pt": "— Ei! Tem alguém aí?",
+   "de": "— Hey! Ist da jemand?"
   },
   "bm04": {
    "who": "ИТАН",
@@ -1958,7 +2690,10 @@
    "ru": "Ни звука. Только свет под дверью дрогнул, будто кто-то прошёл мимо щели.",
    "en": "Not a sound. Only the light under the door flickered, as if someone had walked past the gap.",
    "tag": "whispering, terrified",
-   "uk": "Ні звуку. Тільки світло під дверима здригнулося, ніби хтось пройшов повз щілину."
+   "uk": "Ні звуку. Тільки світло під дверима здригнулося, ніби хтось пройшов повз щілину.",
+   "es": "Ni un ruido. Solo la luz bajo la puerta tembló, como si alguien hubiera pasado junto a la rendija.",
+   "pt": "Nenhum som. Só a luz debaixo da porta tremeu, como se alguém tivesse passado pela fresta.",
+   "de": "Kein Laut. Nur das Licht unter der Tür flackerte, als ginge jemand am Spalt vorbei."
   },
   "bm05": {
    "who": "ИТАН",
@@ -1966,7 +2701,10 @@
    "ru": "Наверное, трубы. Я повторял себе это всю дорогу наверх.",
    "en": "Probably the pipes. I kept telling myself that all the way upstairs.",
    "tag": "quiet, tired",
-   "uk": "Мабуть, труби. Я повторював собі це всю дорогу нагору."
+   "uk": "Мабуть, труби. Я повторював собі це всю дорогу нагору.",
+   "es": "Serían las tuberías. Me lo repetí todo el camino hasta arriba.",
+   "pt": "Devia ser o encanamento. Fui repetindo isso pra mim mesmo até lá em cima.",
+   "de": "Wohl die Rohre. Das sagte ich mir den ganzen Weg nach oben."
   },
   "gs01": {
    "who": "ИТАН",
@@ -1974,7 +2712,10 @@
    "ru": "— Женщина на фото у Фрэнка, в красном платье, — это Марта?",
    "en": "— The woman in Frank's photo, in the red dress — is that Martha?",
    "tag": "gentle",
-   "uk": "— Жінка на фото у Френка, у червоній сукні, — це Марта?"
+   "uk": "— Жінка на фото у Френка, у червоній сукні, — це Марта?",
+   "es": "— La mujer de la foto de Frank, la del vestido rojo, ¿es Martha?",
+   "pt": "— A mulher de vestido vermelho, na foto do Frank, é a Martha?",
+   "de": "— Die Frau auf Franks Foto, im roten Kleid — ist das Martha?"
   },
   "gs02": {
    "who": "ГАС",
@@ -1982,7 +2723,10 @@
    "ru": "— Марта. Наш последний Новый год. Через месяц её не стало. Я её лицо на той фотке до дыр затёр.",
    "en": "— Martha. Our last New Year's. A month later she was gone. I've rubbed her face on that photo half away.",
    "tag": "warm, sad, old man",
-   "uk": "— Марта. Наш останній Новий рік. Через місяць її не стало. Я її обличчя на тій фотці до дірок затер."
+   "uk": "— Марта. Наш останній Новий рік. Через місяць її не стало. Я її обличчя на тій фотці до дірок затер.",
+   "es": "— Martha. Nuestro último Año Nuevo. Al mes, ya no estaba. De tanto tocarla, le gasté la cara en la foto.",
+   "pt": "— A Martha. Nosso último Ano Novo. Um mês depois, ela se foi. Gastei o rosto dela naquela foto de tanto passar o dedo.",
+   "de": "— Martha. Unser letztes Silvester. Einen Monat später war sie fort. Ihr Gesicht hab ich fast weggestreichelt."
   },
   "gs03": {
    "who": "ИТАН",
@@ -1990,7 +2734,10 @@
    "ru": "— Ваша жена тоже здесь работала?",
    "en": "— Did your wife work here too?",
    "tag": "gentle",
-   "uk": "— Ваша дружина теж тут працювала?"
+   "uk": "— Ваша дружина теж тут працювала?",
+   "es": "— ¿Tu esposa también trabajaba aquí?",
+   "pt": "— Sua esposa também trabalhava aqui?",
+   "de": "— Arbeitete deine Frau auch hier?"
   },
   "gs04": {
    "who": "ГАС",
@@ -1998,7 +2745,10 @@
    "ru": "— Марта. Бухгалтер, седьмой этаж, семьсот седьмой кабинет. Тридцать лет мы тут вместе. Теперь я один.",
    "en": "— Martha. Bookkeeper, seventh floor, office seven-oh-seven. Thirty years we were here together. Now it's just me.",
    "tag": "warm, sad, old man",
-   "uk": "— Марта. Бухгалтерка, сьомий поверх, сімсот сьомий кабінет. Тридцять років ми тут разом. Тепер я сам."
+   "uk": "— Марта. Бухгалтерка, сьомий поверх, сімсот сьомий кабінет. Тридцять років ми тут разом. Тепер я сам.",
+   "es": "— Martha. Contabilidad, séptimo piso, oficina setecientos siete. Treinta años juntos aquí. Ahora estoy solo.",
+   "pt": "— A Martha. Contadora, sétimo andar, sala setecentos e sete. Trinta anos aqui juntos. Agora sou só eu.",
+   "de": "— Martha. Buchhalterin, siebter Stock, Büro Siebenhundertsieben. Dreißig Jahre zusammen hier. Jetzt nur noch ich."
   },
   "gs05": {
    "who": "ИТАН",
@@ -2006,7 +2756,10 @@
    "ru": "— Фрэнк перед тем, как пропасть, что-нибудь говорил?",
    "en": "— Did Frank say anything before he disappeared?",
    "tag": "quiet, serious",
-   "uk": "— Френк перед тим, як зникнути, щось казав?"
+   "uk": "— Френк перед тим, як зникнути, щось казав?",
+   "es": "— ¿Frank dijo algo antes de desaparecer?",
+   "pt": "— O Frank disse alguma coisa antes de sumir?",
+   "de": "— Hat Frank was gesagt, bevor er verschwand?"
   },
   "gs06": {
    "who": "ГАС",
@@ -2014,7 +2767,10 @@
    "ru": "— Всё спрашивал, не зовут ли меня ночами. Я сказал — зовут. Он побелел весь. Соли мне в карман насыпал. Чудак.",
    "en": "— Kept asking if anyone calls me at night. I told him they do. He went white as a sheet. Poured salt in my pocket. Odd fellow.",
    "tag": "old man, amused but uneasy",
-   "uk": "— Усе питав, чи не кличуть мене ночами. Я сказав — кличуть. Він аж побілів увесь. Солі мені в кишеню насипав. Дивак."
+   "uk": "— Усе питав, чи не кличуть мене ночами. Я сказав — кличуть. Він аж побілів увесь. Солі мені в кишеню насипав. Дивак.",
+   "es": "— No paraba de preguntar si me llamaban de noche. Le dije que sí. Se puso blanco como el papel. Me echó sal en el bolsillo. Un tipo raro.",
+   "pt": "— Vivia perguntando se alguém me chamava de noite. Eu disse que sim. Ficou branco feito papel. Encheu meu bolso de sal. Esquisitão.",
+   "de": "— Fragte dauernd, ob mich nachts wer ruft. Ich hab gesagt: ja. Er wurde kreidebleich. Streute mir Salz in die Tasche. Komischer Kauz."
   },
   "gs07": {
    "who": "ИТАН",
@@ -2022,7 +2778,10 @@
    "ru": "— Кто вас зовёт?",
    "en": "— Who calls you?",
    "tag": "careful",
-   "uk": "— Хто вас кличе?"
+   "uk": "— Хто вас кличе?",
+   "es": "— ¿Quién te llama?",
+   "pt": "— Quem chama o senhor?",
+   "de": "— Wer ruft dich?"
   },
   "gs08": {
    "who": "ГАС",
@@ -2030,7 +2789,10 @@
    "ru": "— Марта. С седьмого, из семьсот седьмого. Ты не думай, я не сумасшедший. Я не отвечаю. Я просто прихожу послушать.",
    "en": "— Martha. From seven, from seven-oh-seven. Don't think I'm crazy. I don't answer. I just come to listen.",
    "tag": "quiet, tender, old man",
-   "uk": "— Марта. Із сьомого, із сімсот сьомого. Ти не думай, я не божевільний. Я не відповідаю. Я просто приходжу послухати."
+   "uk": "— Марта. Із сьомого, із сімсот сьомого. Ти не думай, я не божевільний. Я не відповідаю. Я просто приходжу послухати.",
+   "es": "— Martha. Desde el séptimo, desde el setecientos siete. No creas que estoy loco. No respondo. Solo vengo a escuchar.",
+   "pt": "— A Martha. Do sétimo, da setecentos e sete. Não vá pensar que eu sou louco. Eu não respondo. Só venho ouvir.",
+   "de": "— Martha. Aus Siebenhundertsieben. Denk nicht, ich spinne. Ich antworte nicht. Ich komm nur zum Zuhören."
   },
   "gs09": {
    "who": "ИТАН",
@@ -2038,7 +2800,10 @@
    "ru": "— Гас. Что бы она ни говорила — не отвечайте. Обещайте.",
    "en": "— Gus. Whatever she says, don't answer. Promise me.",
    "tag": "quiet, urgent",
-   "uk": "— Гасе. Що б вона не казала — не відповідайте. Пообіцяйте."
+   "uk": "— Гасе. Що б вона не казала — не відповідайте. Пообіцяйте.",
+   "es": "— Gus. Diga lo que diga, no respondas. Prométemelo.",
+   "pt": "— Gus. O que quer que ela diga, não responda. Me prometa.",
+   "de": "— Gus. Was sie auch sagt, antworte nicht. Versprich es."
   },
   "gs10": {
    "who": "ГАС",
@@ -2046,7 +2811,10 @@
    "ru": "— Тридцать лет она меня звала: то обедать, то домой… Ладно, сынок. Обещаю.",
    "en": "— Thirty years she called me: to lunch, to come home… All right, son. I promise.",
    "tag": "old man, moved, quiet",
-   "uk": "— Тридцять років вона мене кликала: то обідати, то додому… Гаразд, синку. Обіцяю."
+   "uk": "— Тридцять років вона мене кликала: то обідати, то додому… Гаразд, синку. Обіцяю.",
+   "es": "— Treinta años llamándome: a comer, a casa… Está bien, hijo. Te lo prometo.",
+   "pt": "— Trinta anos ela me chamou: pro almoço, pra casa… Tá bom, filho. Prometo.",
+   "de": "— Dreißig Jahre hat sie mich gerufen: zum Essen, nach Hause… Na gut, Junge. Versprochen."
   },
   "ly01": {
    "who": "ИТАН",
@@ -2054,7 +2822,10 @@
    "ru": "В четверть второго позвонила Лили.",
    "en": "At a quarter past one, Lily called.",
    "tag": "quiet, warm",
-   "uk": "О чверть на другу подзвонила Лілі."
+   "uk": "О чверть на другу подзвонила Лілі.",
+   "es": "A la una y cuarto me llamó Lily.",
+   "pt": "À uma e quinze, a Lily ligou.",
+   "de": "Um Viertel nach eins rief Lily an."
   },
   "ly02": {
    "who": "ЛИЛИ",
@@ -2062,7 +2833,10 @@
    "ru": "— Не спишь? Я тоже. Завтра экзамен в восемь, а я сижу в общаге на подоконнике и ничего не помню.",
    "en": "— You're up? Me too. Exam at eight tomorrow, and I'm sitting on the windowsill in the dorm and can't remember a thing.",
    "tag": "warm, tired, teasing",
-   "uk": "— Не спиш? Я теж. Завтра іспит о восьмій, а я сиджу в гуртожитку на підвіконні й нічого не пам’ятаю."
+   "uk": "— Не спиш? Я теж. Завтра іспит о восьмій, а я сиджу в гуртожитку на підвіконні й нічого не пам’ятаю.",
+   "es": "— ¿No duermes? Yo tampoco. Mañana tengo examen a las ocho y estoy en la ventana de la residencia sin acordarme de nada.",
+   "pt": "— Acordado? Eu também. Prova amanhã às oito, e eu aqui no parapeito da janela do alojamento sem lembrar de nada.",
+   "de": "— Noch wach? Ich auch. Morgen um acht Prüfung, und ich sitz im Wohnheim auf der Fensterbank und weiß gar nichts mehr."
   },
   "ly03": {
    "who": "ИТАН",
@@ -2070,7 +2844,10 @@
    "ru": "— Как там Бублик?",
    "en": "— How's Biscuit?",
    "tag": "warm",
-   "uk": "— Як там Бублик?"
+   "uk": "— Як там Бублик?",
+   "es": "— ¿Qué tal Galleta?",
+   "pt": "— Como tá o Biscoito?",
+   "de": "— Wie geht's Keks?"
   },
   "ly04": {
    "who": "ЛИЛИ",
@@ -2078,7 +2855,10 @@
    "ru": "— Мама пишет — гоняет курьеров. Твой свитер утащил в будку и спит на нём.",
    "en": "— Mom says he chases the delivery guys. He dragged your sweater into his doghouse and sleeps on it.",
    "tag": "warm, laughing softly",
-   "uk": "— Мама пише — ганяє кур’єрів. Твій светр затягнув у будку й спить на ньому."
+   "uk": "— Мама пише — ганяє кур’єрів. Твій светр затягнув у будку й спить на ньому.",
+   "es": "— Mamá dice que persigue a los repartidores. Se llevó tu suéter a su casita y duerme encima.",
+   "pt": "— A mãe falou que ele corre atrás dos entregadores. Arrastou seu suéter pra casinha e dorme em cima.",
+   "de": "— Mama schreibt, er jagt die Paketboten. Deinen Pulli hat er in seine Hütte geschleppt und schläft drauf."
   },
   "ly05": {
    "who": "ИТАН",
@@ -2086,7 +2866,10 @@
    "ru": "— Ты сейчас в общаге?",
    "en": "— You're at the dorm right now?",
    "tag": "casual",
-   "uk": "— Ти зараз у гуртожитку?"
+   "uk": "— Ти зараз у гуртожитку?",
+   "es": "— ¿Estás en la residencia ahora?",
+   "pt": "— Você tá no alojamento agora?",
+   "de": "— Bist du gerade im Wohnheim?"
   },
   "ly06": {
    "who": "ЛИЛИ",
@@ -2094,7 +2877,10 @@
    "ru": "— А где ж ещё? В трёхстах километрах от тебя, балбес. Соседка храпит — я в коридоре.",
    "en": "— Where else? Two hundred miles from you, dummy. My roommate snores, so I'm out in the hallway.",
    "tag": "teasing, warm",
-   "uk": "— А де ж іще? За триста кілометрів від тебе, бовдуре. Сусідка хропе — я в коридорі."
+   "uk": "— А де ж іще? За триста кілометрів від тебе, бовдуре. Сусідка хропе — я в коридорі.",
+   "es": "— ¿Dónde iba a estar? A trescientos kilómetros de ti, tonto. Mi compañera ronca, así que estoy en el pasillo.",
+   "pt": "— Onde mais? A trezentos quilômetros de você, bobão. Minha colega de quarto ronca, então tô no corredor.",
+   "de": "— Wo sonst? Dreihundert Kilometer von dir, Blödmann. Meine Mitbewohnerin schnarcht, ich bin im Flur."
   },
   "ly07": {
    "who": "ИТАН",
@@ -2102,7 +2888,10 @@
    "ru": "— Тут… странно. Свет на этажах сам загорается.",
    "en": "— It's… weird here. The lights on the floors come on by themselves.",
    "tag": "hesitant",
-   "uk": "— Тут… дивно. Світло на поверхах саме вмикається."
+   "uk": "— Тут… дивно. Світло на поверхах саме вмикається.",
+   "es": "— Esto es… raro. Las luces de los pisos se encienden solas.",
+   "pt": "— Aqui tá… estranho. As luzes dos andares acendem sozinhas.",
+   "de": "— Hier ist es… seltsam. Das Licht auf den Etagen geht von selbst an."
   },
   "ly08": {
    "who": "ЛИЛИ",
@@ -2110,7 +2899,10 @@
    "ru": "— Не пугай меня. Обещай, что утром позвонишь. Первым делом. И не геройствуй там.",
    "en": "— Don't scare me. Promise you'll call in the morning. First thing. And don't play the hero.",
    "tag": "worried, serious",
-   "uk": "— Не лякай мене. Пообіцяй, що вранці подзвониш. Першим ділом. І не геройствуй там."
+   "uk": "— Не лякай мене. Пообіцяй, що вранці подзвониш. Першим ділом. І не геройствуй там.",
+   "es": "— No me asustes. Prométeme que me llamas por la mañana. Lo primero. Y no te hagas el héroe.",
+   "pt": "— Não me assusta. Promete que liga de manhã. Logo cedo. E não banca o herói.",
+   "de": "— Mach mir keine Angst. Versprich, dass du morgen früh anrufst. Als Erstes. Und keine Heldentaten."
   },
   "ly09": {
    "who": "ИТАН",
@@ -2118,7 +2910,10 @@
    "ru": "— Спи давай. Всё сдашь.",
    "en": "— Go to sleep. You'll ace it.",
    "tag": "warm",
-   "uk": "— Спи давай. Усе складеш."
+   "uk": "— Спи давай. Усе складеш.",
+   "es": "— A dormir. Vas a aprobar todo.",
+   "pt": "— Vai dormir. Você vai arrasar.",
+   "de": "— Schlaf jetzt. Du schaffst das."
   },
   "ly10": {
    "who": "ЛИЛИ",
@@ -2126,7 +2921,10 @@
    "ru": "— Ага. Люблю тебя, балбес. Спокойной ночи.",
    "en": "— Yeah. Love you, dummy. Good night.",
    "tag": "warm, sleepy",
-   "uk": "— Ага. Люблю тебе, бовдуре. Добраніч."
+   "uk": "— Ага. Люблю тебе, бовдуре. Добраніч.",
+   "es": "— Sí. Te quiero, tonto. Buenas noches.",
+   "pt": "— Tá. Te amo, bobão. Boa noite.",
+   "de": "— Ja. Hab dich lieb, Blödmann. Gute Nacht."
   },
   "fp01": {
    "who": "ИТАН",
@@ -2134,7 +2932,10 @@
    "ru": "Телефон Фрэнка звонил одиннадцать раз. Потом пришло сообщение: «Фрэнки, сынок, спустись ко мне. Я внизу».",
    "en": "Frank's phone rang eleven times. Then a text came in: 'Frankie, son, come down to me. I'm downstairs.'",
    "tag": "whispering, terrified",
-   "uk": "Телефон Френка дзвонив одинадцять разів. Потім прийшло повідомлення: «Френкі, синку, спустися до мене. Я внизу»."
+   "uk": "Телефон Френка дзвонив одинадцять разів. Потім прийшло повідомлення: «Френкі, синку, спустися до мене. Я внизу».",
+   "es": "El teléfono de Frank sonó once veces. Luego llegó un mensaje: «Frankie, hijo, baja a verme. Estoy abajo».",
+   "pt": "O celular do Frank tocou onze vezes. Depois chegou uma mensagem: “Frankie, filho, desce aqui. Tô aqui embaixo.”",
+   "de": "Franks Handy klingelte elfmal. Dann eine Nachricht: „Frankie, mein Junge, komm runter zu mir. Ich bin unten.“"
   },
   "fp02": {
    "who": "ИТАН",
@@ -2142,7 +2943,10 @@
    "ru": "Я сбросил. Руки тряслись. Кто звонит старику в два часа ночи — и зовёт его вниз?",
    "en": "I hung up. My hands were shaking. Who calls an old man at two in the morning and asks him to come downstairs?",
    "tag": "whispering, terrified",
-   "uk": "Я скинув. Руки тремтіли. Хто дзвонить старому о другій ночі — і кличе його вниз?"
+   "uk": "Я скинув. Руки тремтіли. Хто дзвонить старому о другій ночі — і кличе його вниз?",
+   "es": "Rechacé la llamada. Me temblaban las manos. ¿Quién llama a un viejo a las dos de la madrugada para pedirle que baje?",
+   "pt": "Recusei. Minhas mãos tremiam. Quem liga pra um velho às duas da manhã pra chamar ele lá pra baixo?",
+   "de": "Ich lehnte ab. Meine Hände zitterten. Wer ruft einen alten Mann um zwei Uhr nachts an — und bittet ihn nach unten?"
   },
   "fp03": {
    "who": "ИТАН",
@@ -2150,7 +2954,10 @@
    "ru": "— Алло?.. В трубке кто-то вдохнул. С облегчением. Будто долго ждал.",
    "en": "— Hello?.. Someone on the line drew a breath. With relief. As if they had been waiting a long time.",
    "tag": "whispering, terrified",
-   "uk": "— Алло?.. У слухавці хтось вдихнув. З полегшенням. Ніби довго чекав."
+   "uk": "— Алло?.. У слухавці хтось вдихнув. З полегшенням. Ніби довго чекав.",
+   "es": "— ¿Hola…? Al otro lado, alguien tomó aire. Con alivio. Como si llevara mucho tiempo esperando.",
+   "pt": "— Alô?… Na linha, alguém puxou o ar. Com alívio. Como se tivesse esperado muito.",
+   "de": "— Hallo?.. In der Leitung holte jemand Luft. Erleichtert. Wie nach langem Warten."
   },
   "al01": {
    "who": "ИТАН",
@@ -2158,7 +2965,10 @@
    "ru": "Он обещал мне. Но это был голос Марты.",
    "en": "He'd promised me. But it was Martha's voice.",
    "tag": "quiet, broken",
-   "uk": "Він обіцяв мені. Але це був голос Марти."
+   "uk": "Він обіцяв мені. Але це був голос Марти.",
+   "es": "Me lo había prometido. Pero era la voz de Martha.",
+   "pt": "Ele tinha me prometido. Mas era a voz da Martha.",
+   "de": "Er hatte es versprochen. Aber es war Marthas Stimme."
   },
   "al02": {
    "who": "ИТАН",
@@ -2166,7 +2976,10 @@
    "ru": "Значит, это мама звала его вниз. «Фрэнки, сынок…» — как в том сообщении на его телефоне.",
    "en": "So it was his mom calling him downstairs. 'Frankie, son…' — just like the text on his phone.",
    "tag": "quiet, uneasy",
-   "uk": "Отже, це мама кликала його вниз. «Френкі, синку…» — як у тому повідомленні на його телефоні."
+   "uk": "Отже, це мама кликала його вниз. «Френкі, синку…» — як у тому повідомленні на його телефоні.",
+   "es": "Así que era su madre quien lo llamaba abajo. «Frankie, hijo…», como el mensaje de su teléfono.",
+   "pt": "Então era a mãe dele que o chamava pra baixo. “Frankie, filho…”, como na mensagem do celular.",
+   "de": "Also rief ihn seine Mutter nach unten. „Frankie, mein Junge…“ — wie in der Nachricht."
   },
   "al03": {
    "who": "ИТАН",
@@ -2174,7 +2987,10 @@
    "ru": "Соль. Как в кармане его куртки.",
    "en": "Salt. Like in his jacket pocket.",
    "tag": "quiet, slow",
-   "uk": "Сіль. Як у кишені його куртки."
+   "uk": "Сіль. Як у кишені його куртки.",
+   "es": "Sal. Como la de su chaqueta.",
+   "pt": "Sal. Como no bolso da jaqueta dele.",
+   "de": "Salz. Wie in seiner Jackentasche."
   },
   "al04": {
    "who": "ИТАН",
@@ -2182,7 +2998,10 @@
    "ru": "Вот кто стучал мне из-за двери серверной в десять вечера. Оно не стучит.",
    "en": "So that was who knocked back at me from behind the server room door at ten. It doesn't knock.",
    "tag": "quiet, realization",
-   "uk": "Ось хто стукав мені з-за дверей серверної о десятій вечора. Воно не стукає."
+   "uk": "Ось хто стукав мені з-за дверей серверної о десятій вечора. Воно не стукає.",
+   "es": "Así que era él quien me devolvió los golpes desde la sala de servidores, a las diez. Eso no golpea.",
+   "pt": "Então era ele que tinha batido de volta, às dez, atrás da porta da sala de servidores. Aquilo não bate.",
+   "de": "Er war es also, der um zehn hinter der Serverraumtür zurückklopfte. Es klopft nicht."
   },
   "sv01": {
    "who": "ИТАН",
@@ -2190,7 +3009,10 @@
    "ru": "Круг из крупной соли, в палец толщиной. В двух местах просыпан и насыпан заново — там, где он выползал за водой.",
    "en": "A ring of coarse salt, a finger thick. Broken and poured again in two places — where he crawled out for water.",
    "tag": "quiet, tired",
-   "uk": "Коло з крупної солі, завтовшки з палець. У двох місцях розсипане й насипане заново — там, де він виповзав по воду."
+   "uk": "Коло з крупної солі, завтовшки з палець. У двох місцях розсипане й насипане заново — там, де він виповзав по воду.",
+   "es": "Un círculo de sal gruesa, de un dedo de grosor. Roto y rehecho en dos sitios: donde salía a rastras por agua.",
+   "pt": "Um círculo de sal grosso, com um dedo de altura. Rompido e refeito em dois pontos: onde ele saiu rastejando pra pegar água.",
+   "de": "Ein Kreis aus grobem Salz, fingerdick. An zwei Stellen unterbrochen und neu gestreut — wo er zum Wasser kroch."
   },
   "sv02": {
    "who": "ИТАН",
@@ -2198,7 +3020,10 @@
    "ru": "Кулер пустой на треть. Сухарей — одна пачка, последняя. Шесть ночей на этом.",
    "en": "The cooler is a third empty. One pack of crackers left, the last. Six nights on this.",
    "tag": "quiet, tired",
-   "uk": "Кулер порожній на третину. Сухарів — одна пачка, остання. Шість ночей на цьому."
+   "uk": "Кулер порожній на третину. Сухарів — одна пачка, остання. Шість ночей на цьому.",
+   "es": "Al dispensador le falta un tercio. Queda un paquete de pan tostado, el último. Seis noches así.",
+   "pt": "O bebedouro está um terço vazio. Sobrou um pacote de bolacha, o último. Seis noites só com isso.",
+   "de": "Der Wasserspender: ein Drittel leer. Eine Packung Zwieback, die letzte. Sechs Nächte davon."
   },
   "sv03": {
    "who": "ИТАН",
@@ -2206,7 +3031,10 @@
    "ru": "На стойке — листы скотчем. Один почерк, разные ночи: «Не зови меня». «Стучи три раза». «Оно говорит маминым голосом».",
    "en": "Sheets taped to the rack. One handwriting, different nights: 'Don't call me.' 'Knock three times.' 'It speaks in my mother's voice.'",
    "tag": "quiet, reading",
-   "uk": "На стійці — аркуші, приклеєні скотчем. Один почерк, різні ночі: «Не клич мене». «Стукай три рази». «Воно говорить маминим голосом»."
+   "uk": "На стійці — аркуші, приклеєні скотчем. Один почерк, різні ночі: «Не клич мене». «Стукай три рази». «Воно говорить маминим голосом».",
+   "es": "Hojas pegadas con cinta al rack. La misma letra, distintas noches: «No me llames». «Golpea tres veces». «Eso habla con la voz de mi madre».",
+   "pt": "No rack, folhas presas com fita. A mesma letra, noites diferentes: “Não me chame.” “Bata três vezes.” “Aquilo fala com a voz da mamãe.”",
+   "de": "Am Serverschrank kleben Zettel. Eine Handschrift, verschiedene Nächte: „Ruf mich nicht.“ „Klopf dreimal.“ „Es hat Mamas Stimme.“"
   },
   "sv05": {
    "who": "ИТАН",
@@ -2214,7 +3042,10 @@
    "ru": "— Это правда была… она?",
    "en": "— Was it really… her?",
    "tag": "quiet, careful",
-   "uk": "— Це справді була… вона?"
+   "uk": "— Це справді була… вона?",
+   "es": "— ¿De verdad era… ella?",
+   "pt": "— Era mesmo… ela?",
+   "de": "— War das wirklich… sie?"
   },
   "sv06": {
    "who": "ФРЭНК",
@@ -2222,7 +3053,10 @@
    "ru": "— Голос — её. До последней интонации, как звала обедать. Только мама умерла в девяносто шестом, сынок. Это не она.",
    "en": "— The voice is hers. Down to the last note, the way she called me to dinner. But my mother died in ninety-six, son. It's not her.",
    "tag": "hoarse, tired, firm",
-   "uk": "— Голос — її. До останньої інтонації, як кликала обідати. Тільки мама померла в дев’яносто шостому, синку. Це не вона."
+   "uk": "— Голос — її. До останньої інтонації, як кликала обідати. Тільки мама померла в дев’яносто шостому, синку. Це не вона.",
+   "es": "— La voz es suya. Hasta el último matiz, como cuando me llamaba a comer. Pero mi madre murió en el noventa y seis, hijo. Eso no es ella.",
+   "pt": "— A voz é dela. Até a última entonação, do jeito que ela me chamava pra jantar. Mas a mamãe morreu em noventa e seis, filho. Não é ela.",
+   "de": "— Die Stimme ist ihre. Jeder Ton, so wie sie mich zum Essen rief. Aber Mutter ist sechsundneunzig gestorben, Junge. Das ist nicht sie."
   },
   "sv07": {
    "who": "ИТАН",
@@ -2230,7 +3064,10 @@
    "ru": "— Гас сказал, его тоже зовут. Марта.",
    "en": "— Gus said he gets called too. Martha.",
    "tag": "quiet, tired",
-   "uk": "— Гас казав, його теж кличуть. Марта."
+   "uk": "— Гас казав, його теж кличуть. Марта.",
+   "es": "— Gus dijo que a él también lo llaman. Martha.",
+   "pt": "— O Gus disse que chamam ele também. A Martha.",
+   "de": "— Gus sagte, ihn ruft auch jemand. Martha."
   },
   "sv08": {
    "who": "ФРЭНК",
@@ -2238,7 +3075,10 @@
    "ru": "— Знаю. Он три года ходит на седьмой её слушать. Его оно не трогает — он не отвечает. Просто слушает. Так тоже можно.",
    "en": "— I know. Three years he's been going up to seven to listen to her. It doesn't touch him — he never answers. He just listens. That's a way to live, too.",
    "tag": "hoarse, tired",
-   "uk": "— Знаю. Він три роки ходить на сьомий її слухати. Його воно не чіпає — він не відповідає. Просто слухає. Так теж можна."
+   "uk": "— Знаю. Він три роки ходить на сьомий її слухати. Його воно не чіпає — він не відповідає. Просто слухає. Так теж можна.",
+   "es": "— Lo sé. Hace tres años que sube al séptimo a escucharla. A él, eso no lo toca: nunca responde. Solo escucha. También se puede vivir así.",
+   "pt": "— Eu sei. Faz três anos que ele sobe pro sétimo pra ouvir a voz dela. Aquilo não encosta nele — ele nunca responde. Só escuta. Também é um jeito de viver.",
+   "de": "— Ich weiß. Seit drei Jahren geht er in den Siebten, um sie zu hören. Ihn rührt es nicht an — er antwortet nie. Er hört nur zu. So kann man auch leben."
   },
   "sv09": {
    "who": "ИТАН",
@@ -2246,7 +3086,10 @@
    "ru": "— Почему соль?",
    "en": "— Why salt?",
    "tag": "quiet, tired",
-   "uk": "— Чому сіль?"
+   "uk": "— Чому сіль?",
+   "es": "— ¿Por qué sal?",
+   "pt": "— Por que sal?",
+   "de": "— Warum Salz?"
   },
   "sv10": {
    "who": "ФРЭНК",
@@ -2254,7 +3097,10 @@
    "ru": "— Не знаю, почему. Знаю, что работает. Отец так делал, дед так делал. Пока круг цел — оно только говорит.",
    "en": "— I don't know why. I know it works. My father did it, his father did it. As long as the ring holds, it can only talk.",
    "tag": "hoarse, tired",
-   "uk": "— Не знаю чому. Знаю, що працює. Батько так робив, дід так робив. Поки коло ціле — воно тільки говорить."
+   "uk": "— Не знаю чому. Знаю, що працює. Батько так робив, дід так робив. Поки коло ціле — воно тільки говорить.",
+   "es": "— No sé por qué. Sé que funciona. Mi padre lo hacía, y su padre también. Mientras el círculo aguante, eso solo puede hablar.",
+   "pt": "— Não sei por quê. Sei que funciona. Meu pai fazia assim, o pai dele também. Enquanto o círculo estiver inteiro, aquilo só fala.",
+   "de": "— Weiß nicht, warum. Nur, dass es wirkt. Mein Vater hat's gemacht, sein Vater auch. Solange der Kreis hält, kann es nur reden."
   },
   "sv11": {
    "who": "ИТАН",
@@ -2262,7 +3108,10 @@
    "ru": "— Я посижу с вами до шести.",
    "en": "— I'll sit with you till six.",
    "tag": "quiet, tired",
-   "uk": "— Я посиджу з вами до шостої."
+   "uk": "— Я посиджу з вами до шостої.",
+   "es": "— Me quedo contigo hasta las seis.",
+   "pt": "— Eu fico com o senhor até as seis.",
+   "de": "— Ich bleib bei dir bis sechs."
   },
   "sv12": {
    "who": "ФРЭНК",
@@ -2270,7 +3119,10 @@
    "ru": "— Посиди. Только если позовут — молчи. Даже если моим голосом.",
    "en": "— Sit. But if they call — not a word. Even in my voice.",
    "tag": "hoarse, quiet",
-   "uk": "— Посидь. Тільки якщо покличуть — мовчи. Навіть якщо моїм голосом."
+   "uk": "— Посидь. Тільки якщо покличуть — мовчи. Навіть якщо моїм голосом.",
+   "es": "— Quédate. Pero si te llaman, calla. Aunque sea con mi voz.",
+   "pt": "— Fica. Mas se chamarem, nem um pio. Nem com a minha voz.",
+   "de": "— Bleib. Aber wenn es ruft — kein Wort. Selbst mit meiner Stimme."
   },
   "ch_katya": {
    "who": "ЛИЛИ",
@@ -2278,7 +3130,10 @@
    "ru": "(плачет)",
    "en": "(crying)",
    "tag": "sobbing quietly",
-   "uk": "(плаче)"
+   "uk": "(плаче)",
+   "es": "(llorando)",
+   "pt": "(chorando)",
+   "de": "(weint)"
   },
   "ch_whisper": {
    "who": "ЛИЛИ",
@@ -2286,7 +3141,10 @@
    "ru": "— Итан…",
    "en": "— Ethan…",
    "tag": "whispering, distant, creepy",
-   "uk": "— Ітане…"
+   "uk": "— Ітане…",
+   "es": "— Ethan…",
+   "pt": "— Ethan…",
+   "de": "— Ethan…"
   }
  },
  "ui": {
@@ -2404,6 +3262,7 @@
   "Концовки": "Endings",
   "КОНЦОВКИ": "ENDINGS",
   "Настройки": "Settings",
+  "УЛЬТРА": "ULTRA",
   "НАСТРОЙКИ": "SETTINGS",
   "Выйти из игры": "Quit game",
   "Назад": "Back",
@@ -2934,6 +3793,7 @@
   "Концовки": "интерфейс",
   "КОНЦОВКИ": "интерфейс",
   "Настройки": "интерфейс",
+  "УЛЬТРА": "интерфейс",
   "НАСТРОЙКИ": "интерфейс",
   "Выйти из игры": "интерфейс",
   "Назад": "интерфейс",

@@ -57,7 +57,9 @@ const HD = (() => { const q = /[?&]hd=([01])/.exec(location.search); if (q) retu
 //  0 — программная (SwiftShader, llvmpipe: ПК без драйвера, виртуалка) → «Ретро»: «Кино» шло бы 1–2 кадра в секунду, а сборка его шейдеров роняла процесс GPU;
 //  1 — слабая встроенная (Intel HD/UHD, Radeon R2–R5, старые Mali/Adreno/PowerVR; или нет WebGL 2) → на ПК «Ретро»;
 //  2 — средняя (Steam Deck, Intel Iris Xe, Radeon Vega/680M/780M, GTX 750–960, MX) → «Кино» с 85 % разрешения;
-//  3 — остальные (GTX 1050 и новее, RTX, Radeon RX, Arc, Apple) → «Кино» 100 %. Дальше perfTick подстраивает разрешение по кадрам и на совсем
+//  3 — остальные (GTX 1050 и новее, Radeon RX 5500 и старше, Arc A3/A5) → «Кино» 100 %;
+//  4 — мощные (RTX, Radeon RX 5700/6000/7000+, Arc A7, Apple M Pro/Max) → на ПК «Ультра»: родное разрешение экрана до 4K, тени 1024, отражения
+//  в половину кадра, анизотропия 16 (вместо DLSS — его в WebGL нет). Дальше perfTick подстраивает разрешение по кадрам и на совсем
 //  медленной отрисовке сам переходит на «Ретро». Имя видеокарты — внизу экрана настроек (для отчётов об ошибках).
 const GPU = (() => {
   try { const c = document.createElement('canvas'), g2 = c.getContext('webgl2'), gl = g2 || c.getContext('webgl'); if (!gl) return { name: '', tier: 0 };
@@ -67,12 +69,14 @@ const GPU = (() => {
     if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(r)) tier = 0;
     else if (/intel\(r\) (hd|uhd)|intel.*\b(hd|uhd) graphics|\bgma\b|mali-(4|t[6-8])|adreno.*\b[2-5]\d\d\b|radeon r[2-5]\b|powervr/i.test(r)) tier = 1;
     else if (/vangogh|custom gpu 0405|iris|radeon.*(vega|\(tm\) graphics|radeon graphics|6[1-8]0m|7[4-8]0m)|gtx (7[5-9]0|9[0-8]0)|\bmx ?[1-5]\d0|adreno|mali|apple gpu/i.test(r)) tier = 2;
+    else if (/\brtx\b|rx ?(5[67]00|[6-9]\d{3})\b|arc\(tm\) a7|apple m\d (pro|max|ultra)/i.test(r)) tier = 4;
     return { name: r.replace(/^ANGLE \((.*)\)$/, '$1').slice(0, 90), tier: g2 ? tier : Math.min(tier, 1) };
   } catch (e) { return { name: '', tier: 2 }; }
 })();
-const GFX = (() => { const q = /[?&]gfx=(retro|cine)/.exec(location.search); if (q) return q[1];
-  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; } catch {} return GPU.tier === 0 || (FINE && GPU.tier === 1) ? 'retro' : 'cine'; })();
-const CINE = GFX === 'cine';
+const GFX = (() => { const q = /[?&]gfx=(retro|cine|ultra)/.exec(location.search); if (q) return q[1];
+  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine' || (v === 'ultra' && FINE)) return v; } catch {}
+  return GPU.tier === 0 || (FINE && GPU.tier === 1) ? 'retro' : FINE && GPU.tier === 4 ? 'ultra' : 'cine'; })();
+const CINE = GFX === 'cine' || GFX === 'ultra', ULTRA = GFX === 'ultra';
 const RS = (() => { const q = /[?&]rs=([\d.]+)/.exec(location.search); return q ? Math.max(.2, Math.min(1, +q[1])) : 0; })();   // ?rs=0.4 — доля разрешения «Кино» вручную и без подстройки (быстрые проверки кадров)
 const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: RS || (FINE ? (GPU.tier === 2 ? .85 : 1) : .75), rsPin: !!RS };   // rs — доля разрешения «Кино» (телефон начинает с 75 %, средняя видеокарта ПК — с 85 %, perfTick подстраивает)
 let R = null, RT = null, post = null;          // рендерер, буфер кадра, проход постобработки
@@ -85,7 +89,7 @@ const SNAP = { value: new T.Vector2(108, 192) };
 const scrL = () => { try { return Math.max(960, Math.round(Math.max(screen.width, screen.height) * (devicePixelRatio || 1))); } catch { return 1920; } };
 function setLand(land) {
   V.land = !!land; V.BW = land ? 480 : 270; V.BH = land ? 270 : 480;
-  if (CINE) { const L = Math.min(FINE ? 1920 : 1280, scrL()) * (V.rs || 1) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }
+  if (CINE) { const L = Math.min(ULTRA ? 3840 : FINE ? 1920 : 1280, scrL()) * (V.rs || 1) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }   // «Ультра» — родное разрешение экрана (до 4K)
   else { V.RW = V.BW * HD; V.RH = V.BH * HD; }
   SNAP.value.set(1e5, 1e5);   // вершины не дрожат ни в «Кино», ни в «Ретро» (24 окт: дрожь вершин PS1 владелец видел как «текстуры мигают/колбасит»)
 }
@@ -147,7 +151,7 @@ function ctex(w, h, fn, rx = 1, ry = 1, kind = '') {
   const c = document.createElement('canvas'); c.width = w * up; c.height = h * up;
   const x = c.getContext('2d'); if (up > 1) x.scale(up, up); fn(x, w, h);
   const t = new T.CanvasTexture(c);
-  if (up > 1) { t.magFilter = T.LinearFilter; t.minFilter = T.LinearMipmapLinearFilter; t.anisotropy = 8; }
+  if (up > 1) { t.magFilter = T.LinearFilter; t.minFilter = T.LinearMipmapLinearFilter; t.anisotropy = ULTRA ? 16 : 8; }
   else { t.magFilter = T.NearestFilter; t.minFilter = T.NearestMipmapLinearFilter; }
   t.generateMipmaps = true;   // вдали без ряби
   t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(rx, ry); t.colorSpace = T.SRGBColorSpace; t.cv = c; t.cx = x; t.lw = w; t.lh = h; t.kind = kind === 'raw' ? '' : kind;
@@ -386,7 +390,7 @@ function hiTex(w, h, rx, ry, fn) {   // fn(u, v, px, py) → [r, g, b, высо�
       rd.data[i] = rd.data[i + 1] = rd.data[i + 2] = clamp(r[4], 0, 1) * 255; rd.data[i + 3] = 255; }
   }
   x.putImageData(d, 0, 0); hx2.putImageData(hd, 0, 0); if (rc) rc.getContext('2d').putImageData(rd, 0, 0);
-  const mk = (cv, srgb) => { const t = new T.CanvasTexture(cv); t.magFilter = T.LinearFilter; t.minFilter = T.LinearMipmapLinearFilter; t.anisotropy = 8; t.generateMipmaps = true;
+  const mk = (cv, srgb) => { const t = new T.CanvasTexture(cv); t.magFilter = T.LinearFilter; t.minFilter = T.LinearMipmapLinearFilter; t.anisotropy = ULTRA ? 16 : 8; t.generateMipmaps = true;
     t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(rx, ry); if (srgb) t.colorSpace = T.SRGBColorSpace; return t; };
   const t = mk(c, true); t.cv = c; t.cx = x; t.lw = w; t.lh = h; t.bumpTex = mk(hc, false); if (rc) t.roughTex = mk(rc, false); return t;
 }
@@ -494,5 +498,5 @@ function label(w, h, pw, ph, draw, parent, basic = true) {   // basic — све
 }
 function relabel(me, ...a) { const t = me.userData.tex; t.cx.clearRect(0, 0, t.lw, t.lh); me.userData.draw(t.cx, t.lw, t.lh, ...a); t.needsUpdate = true; }
 
-window.__W3core = { T, V, GPU, setLand, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, glow, mat, ctex, speckle, TX, box, plane, cyl, room, label, relabel, makeTextures, SNAP };
+window.__W3core = { T, V, GPU, setLand, CINE, ULTRA, FINE, litMat, HD, rnd, lerp, clamp, ps1, glow, mat, ctex, speckle, TX, box, plane, cyl, room, label, relabel, makeTextures, SNAP };
 })();

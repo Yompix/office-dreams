@@ -20,7 +20,7 @@ for (const L of langs) {
   const T = JSON.parse(fs.readFileSync(path.join(__dirname, L + '.json'), 'utf8'));
   out[L] = Object.assign({}, T.ui, extra[L] || {});
   for (const k in T.lines) if (lines[k]) lines[k][L] = T.lines[k];
-  if (VOICE[L] === 'en') {
+  if (VOICE[L] === 'en' && !process.env.NOTIM) {   // NOTIM=1 — только словари (тайминги не трогать: например, пока идёт озвучка языка)
     const tim = {};
     for (const k in EN_T) {
       const en = EN_T[k], t = T.lines[k] || T.lines[ALIAS[k]]; if (!t || !en.dur) { tim[k] = en; continue; }

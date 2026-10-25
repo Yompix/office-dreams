@@ -2,7 +2,7 @@
 (() => {
 'use strict';
 const tr = window.tr || (s => s);
-const { T, V, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, glow, mat, ctex, TX, box, plane, cyl, room, label, relabel, makeTextures } = window.__W3core;
+const { T, V, CINE, ULTRA, FINE, litMat, HD, rnd, lerp, clamp, ps1, glow, mat, ctex, TX, box, plane, cyl, room, label, relabel, makeTextures } = window.__W3core;
 const PI = Math.PI;
 let A = null;          // актёры
 const LAYY = .085;      // лежащее тело (поза 'lay'): корень на 8,5 см выше пола, иначе спина и бока уходили под пол на 10 см (World.clips)
@@ -2178,7 +2178,7 @@ function cineLoc(R, o) {
   });
   o.casters = []; o.beams = [];
   S.traverse(l => { if (!l.isPointLight) return;
-    l.shadow.mapSize.set(FINE ? 512 : 256, FINE ? 512 : 256); l.shadow.bias = -.003; l.shadow.normalBias = .025; l.shadow.camera.near = .08; l.shadow.camera.far = l.distance || 20;
+    l.shadow.mapSize.set(ULTRA ? 1024 : FINE ? 512 : 256, ULTRA ? 1024 : FINE ? 512 : 256);   // «Ультра» — тени вдвое чётче l.shadow.bias = -.003; l.shadow.normalBias = .025; l.shadow.camera.near = .08; l.shadow.camera.far = l.distance || 20;
     if (!skip.has(l)) o.casters.push(l);
     if (!skip.has(l) && l.position.y > 2.3) {
       const wp = new T.Vector3(); l.getWorldPosition(wp); const h = wp.y - .02;
@@ -2238,8 +2238,8 @@ function cinePost() {
     fragmentShader: `uniform sampler2D tD; uniform vec2 uDir; varying vec2 vUv; void main(){
       vec3 c = texture2D(tD, vUv).rgb * .227; c += (texture2D(tD, vUv + uDir * 1.385).rgb + texture2D(tD, vUv - uDir * 1.385).rgb) * .316; c += (texture2D(tD, vUv + uDir * 3.23).rgb + texture2D(tD, vUv - uDir * 3.23).rgb) * .07;
       gl_FragColor = vec4(c, 1.); }` });
-  PB.comp = new T.ShaderMaterial({ uniforms: { tD: { value: null }, tBl: { value: null }, uT: { value: 0 }, uCctv: { value: 0 }, uIr: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 }, uAsp: { value: 1 }, uExp: { value: .95 } }, vertexShader: POST_VS,
-    fragmentShader: `uniform sampler2D tD, tBl; uniform float uT, uCctv, uIr, uVhs, uScare, uAsp, uExp; varying vec2 vUv; ${FIN}
+  PB.comp = new T.ShaderMaterial({ uniforms: { tD: { value: null }, tBl: { value: null }, uT: { value: 0 }, uCctv: { value: 0 }, uIr: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 }, uAsp: { value: 1 }, uExp: { value: .95 }, uSharp: { value: 0 }, uTx: { value: new T.Vector2() } }, vertexShader: POST_VS,
+    fragmentShader: `uniform sampler2D tD, tBl; uniform float uT, uCctv, uIr, uVhs, uScare, uAsp, uExp, uSharp; uniform vec2 uTx; varying vec2 vUv; ${FIN}
       float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
       vec3 aces(vec3 x){ return clamp((x * (2.51 * x + .03)) / (x * (2.43 * x + .59) + .14), 0., 1.); }
       void main(){
@@ -2250,6 +2250,9 @@ function cinePost() {
         uv += d * uScare * .05 * (h(vec2(fr, 3.)) - .5);                                        // скример: картинку рвёт к центру
         float ca = (.0012 + .012 * uScare) * (.25 + r * r * 1.4);
         vec3 c = fin(vec3(texture2D(tD, uv + d * ca).r, texture2D(tD, uv).g, texture2D(tD, uv - d * ca).b));
+        if (uSharp > .01) {   // кадр рисуется меньше экрана (perfTick, Steam Deck): резкость с ограничением по соседям, как FidelityFX CAS, — без ореолов
+          vec3 n1 = fin(texture2D(tD, uv + vec2(uTx.x, 0.)).rgb), n2 = fin(texture2D(tD, uv - vec2(uTx.x, 0.)).rgb), n3 = fin(texture2D(tD, uv + vec2(0., uTx.y)).rgb), n4 = fin(texture2D(tD, uv - vec2(0., uTx.y)).rgb);
+          c = clamp(c + (c - (n1 + n2 + n3 + n4) * .25) * uSharp, min(c, min(min(n1, n2), min(n3, n4))), max(c, max(max(n1, n2), max(n3, n4)))); }
         if (uCctv > .5) { vec2 px = uAsp > 1. ? vec2(1.6 / 960., 1.6 / 540.) : vec2(1.6 / 540., 1.6 / 960.);   // камера наблюдения — дешёвая оптика и сжатие: картинка мягче «кино»
           c = mix(c, fin(texture2D(tD, uv + px).rgb + texture2D(tD, uv - px).rgb + texture2D(tD, uv + vec2(px.x, -px.y)).rgb + texture2D(tD, uv - vec2(px.x, -px.y)).rgb) * .25, .6); }
         if (uScare > .02) {   // скример: рывок к центру смазывает картинку, свет режет красным
@@ -2281,7 +2284,7 @@ function cineRender(R, T0, cctv, scare, vhs) {
   PB.down.uniforms.tD.value = RT.texture; PB.down.uniforms.uPx.value.set(1 / V.RW, 1 / V.RH); pass(PB.down, PB.a);
   const bx = 1 / PB.a.width, by = 1 / PB.a.height, B = PB.blur.uniforms;
   for (const s of [1, 2.2]) { B.tD.value = PB.a.texture; B.uDir.value.set(bx * s, 0); pass(PB.blur, PB.b); B.tD.value = PB.b.texture; B.uDir.value.set(0, by * s); pass(PB.blur, PB.a); }
-  const U = PB.comp.uniforms; U.uExp.value = curLoc && curLoc.name === 'corridor' ? .68 : curLoc && curLoc.name === 'server' ? 1.05 : .92; U.tD.value = RT.texture; U.tBl.value = PB.a.texture; U.uT.value = T0; U.uCctv.value = cctv; U.uScare.value = scare; U.uVhs.value = vhs; U.uAsp.value = V.RW / V.RH;
+  const U = PB.comp.uniforms; U.uExp.value = curLoc && curLoc.name === 'corridor' ? .68 : curLoc && curLoc.name === 'server' ? 1.05 : .92; U.tD.value = RT.texture; U.tBl.value = PB.a.texture; U.uT.value = T0; U.uCctv.value = cctv; U.uScare.value = scare; U.uVhs.value = vhs; U.uAsp.value = V.RW / V.RH; U.uTx.value.set(1 / V.RW, 1 / V.RH); U.uSharp.value = (V.rs || 1) < .99 ? (1 - V.rs) * 1.6 : 0;
   pass(PB.comp, null); quad.material = postMat;
 }
 // «Кино» следит за скоростью: если кадр рисуется дольше ~38 мс, внутреннее разрешение падает ступенями (до 55%), если быстро — растёт обратно
@@ -2301,7 +2304,7 @@ function setLand(land, force) {
   window.__W3core.setLand(land);
   if (!scenesReady) return;
   const R = window.__W3core.R; R.setSize(V.RW, V.RH, false);
-  window.__W3core.RT.setSize(V.RW, V.RH); reflRT.setSize(Math.round(V.RW / (FINE ? 3 : 4)), Math.round(V.RH / (FINE ? 3 : 4)));   // отражения: на ПК в треть (каждый кадр), на телефоне в четверть
+  window.__W3core.RT.setSize(V.RW, V.RH); const rd = ULTRA ? 2 : FINE ? 3 : 4; reflRT.setSize(Math.round(V.RW / rd), Math.round(V.RH / rd));   // отражения: «Ультра» — в половину, ПК — в треть (каждый кадр), телефон — в четверть
   if (PB) { PB.a.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); PB.b.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); }
   postMat.uniforms.uB.value.set(V.BW, V.BH);
 }
@@ -2365,7 +2368,7 @@ function init() {
         c = floor(c * uLv + b4(gl_FragCoord.xy) * .95) / uLv;
         gl_FragColor = vec4(c, 1.);
       }` });
-  reflRT = new T.WebGLRenderTarget(Math.round(V.RW / (FINE ? 3 : 4)), Math.round(V.RH / (FINE ? 3 : 4)), { magFilter: T.LinearFilter, minFilter: T.LinearFilter });
+  { const rd = ULTRA ? 2 : FINE ? 3 : 4; reflRT = new T.WebGLRenderTarget(Math.round(V.RW / rd), Math.round(V.RH / rd), { magFilter: T.LinearFilter, minFilter: T.LinearFilter }); }
   L.lobby.glassU.tRef.value = reflRT.texture; classifyLobby(L.lobby);
   window.__dbgA = A; window.__dbgL = L;
   postScene = new T.Scene(); postCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -2642,5 +2645,5 @@ function clips(tol = .02) {
   }
   return out.sort((x, y) => y.d - x.d);
 }
-window.World = { draw, init, warm, setLand, project, projectAt, heads, clips, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
+window.World = { draw, init, warm, setLand, project, projectAt, heads, clips, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, get ultra() { return ULTRA; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();

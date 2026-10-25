@@ -1331,7 +1331,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('НАСТРОЙКИ')}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets">
     ${row('sLang', 'Язык', (window.NS_LANG_NAMES || {})[LNG] || (EN ? 'ENGLISH' : 'РУССКИЙ'))}
     ${row('sLand', 'Экран', LAND ? 'ГОРИЗОНТАЛЬНО' : 'ВЕРТИКАЛЬНО')}
-    ${row('sGfx', 'Графика', window.World && World.cine ? 'КИНО' : 'РЕТРО')}
+    ${row('sGfx', 'Графика', window.World && World.ultra ? 'УЛЬТРА' : window.World && World.cine ? 'КИНО' : 'РЕТРО')}
     ${row('sVoice', 'Озвучка', voiceOn() ? 'ВКЛ' : 'ВЫКЛ')}
     <div class="vols">${[['all', 'Громкость'], ['mus', 'Музыка'], ['voice', 'Голоса'], ['sfx', 'Звуки'], ['amb', 'Дождь и фон']].map(([k, n]) => `<div class="vol ${k}"><span>${tr(n)}</span><input type="range" min="0" max="100" step="5" value="${Math.round(VOL[k] * 100)}" data-k="${k}" aria-label="${tr(n)}"><b>${Math.round(VOL[k] * 100)}</b>${k === 'all' ? `<button class="mute${LS.get('mute', false) ? ' muted' : ''}" id="sMute" aria-label="${tr('Звук')}">${ICON.snd}</button>` : ''}</div>`).join('')}</div>
     ${row('sVhs', 'Плёнка VHS', VHS_N[vh] || VHS_N[2])}
@@ -1350,7 +1350,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   $('sLang').onclick = () => { uiSnd(); langPick(from); };
   $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
   $('sLand').onclick = () => { LS.set('land3', !LAND); applyLand(!LAND); re(); };
-  $('sGfx').onclick = () => { LS.set('gfx', window.World && World.cine ? 'retro' : 'cine'); LS.set('gfxAuto', 2); reloadKeep(from); };   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
+  $('sGfx').onclick = () => { const W = window.World || {}; LS.set('gfx', W.ultra ? 'retro' : W.cine ? (FINE ? 'ultra' : 'retro') : 'cine'); LS.set('gfxAuto', 2); reloadKeep(from); };   // ПК: Кино → Ультра → Ретро; телефон: Кино ⇄ Ретро   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
   $('sVhs').onclick = () => { const v = (LS.get('vhs', vhsDef()) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
