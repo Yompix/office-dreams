@@ -760,7 +760,7 @@ const MG = {
       // вместо шагов — голос из темноты (держать Фрэнка: оно зовёт его голосом матери)
       if (th.calls && t > 1 && Math.floor(t / 2.6) > steps && t < dur) { steps++; play(th.calls[steps % th.calls.length], { bus: 'voice', gain: .9, pan: Math.sin(t) * .6 }); }
       else if (!th.calls && t > .8 && Math.floor(t / 1.1) > steps && t < dur) { steps++; const pan = Math.sin(t * 1.3) * .8; if (!play('steps_barefoot', { off: Math.random() * 4, cut: 1, gain: .6 + .4 * Math.sin(t), pan })) play('steps', { gain: .5 + .5 * Math.sin(t), pan }); if (steps % 3 === 0) play(BUF.breath_close ? 'breath_close' : 'ch_whisper', { gain: .45, pan: -pan * .6 }); }
-      a = Math.max(0, Math.min(1, a + (held ? -Math.min(.085, .93 / dur) : 0.25) * fdt)); air.style.width = a * 100 + '%';   // воздуха (сил) хватает на весь срок: «ДЕРЖИ ФРЭНКА» (12 с) при .085/с кончалось на 11,8 с — схватил сразу и держал — всё равно смерть
+      a = Math.max(0, Math.min(1, a + (held ? -Math.min(.085, .8 / dur) : 0.25) * fdt)); air.style.width = a * 100 + '%';   // воздуха (сил) хватает на весь срок и ещё секунды на три после «ТИХО…»: «ДЕРЖИ ФРЭНКА» (12 с) при .085/с кончалось на 11,8 с — схватил сразу и держал — всё равно смерть; при .93/срок после «ТИХО…» оставалась секунда — не успевал отпустить
       if (t > 2.5 && t < dur && !held) return fin(false);      // выдохнул — услышала
       if (a <= 0) return fin(false);                            // задохнулся
       if (t >= dur && !safe) { safe = true; mgEl.querySelector('.mghead').innerHTML = (th.safe || tr('ТИХО…')) + '<small>' + (th.safeHint || tr('Шаги ушли. Можно дышать.')) + '</small>'; }
