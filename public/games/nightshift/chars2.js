@@ -1047,13 +1047,13 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
   buildHands();
   const CL = C.clips || CLIP, used = new Set();
   let list = P.clips || [['Idle_Loop', tt, 1]];
-  if (!P.still && !C.o.monster) list = ambClock(C, list, dT, cut);
+  if (!P.still && !C.o.monster && !window.__NOLIFE) list = ambClock(C, list, dT, cut);
   if (P.talk) {   // говорит — стойка плавно переходит в «говорит руками» и обратно (паузы между словами не сбивают)
     const on = tt < (C.talkT || -1) ? 1 : 0; C.talkW = lerp(C.talkW ?? on, on, Math.min(1, (dt || 0) * 3));
     const TK = { Idle_Loop: 'Idle_Talking_Loop', Sitting_Idle_Loop: 'Sitting_Talking_Loop' };
     list = list.flatMap(c => TK[c[0]] ? [[c[0], c[1], (c[2] ?? 1) * (1 - C.talkW)], [TK[c[0]], c[1], (c[2] ?? 1) * C.talkW]] : [c]);
   }
-  { const rc = C.reactBody && REACT[C.reactBody];   // реакция по реплике вплетается в позу: кивок («Yes» — один раз, потом держим), «нет» и руки скрещены — петлёй
+  { const rc = C.reactBody && !(alive(C) && HEADREACT.has(C.reactBody)) && REACT[C.reactBody];   // реакция по реплике вплетается в позу: кивок («Yes» — один раз, потом держим), «нет» и руки скрещены — петлёй (у живых «да»/«нет» — головой, headLife)
     C.reactW = lerp(C.reactW ?? 0, rc ? 1 : 0, Math.min(1, (dt || 0) * 4)); if (rc) { if (C.reactClip !== rc) C.reactT0 = tt; C.reactClip = rc; }
     if (C.reactW > .01 && C.reactClip) list = [...list.map(c => [c[0], c[1], (c[2] ?? 1) * (1 - C.reactW)]), [C.reactClip, /_Loop$/.test(C.reactClip) ? tt : tt - (C.reactT0 ?? tt), C.reactW]];
     else C.reactClip = null; }
@@ -1088,6 +1088,7 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
   if (P.twist) { C.root.updateWorldMatrix(true, true); const up = new T.Vector3(0, 1, 0).applyQuaternion(C.root.getWorldQuaternion(new T.Quaternion()));
     for (const [bn, f] of [['spine_01', .25], ['spine_02', .35], ['spine_03', .4]]) { const b = C.bone[bn]; const wq = b.getWorldQuaternion(new T.Quaternion()).premultiply(new T.Quaternion().setFromAxisAngle(up, P.twist * f)); setWorldQ(b, wq); } }
   if (P.spine) leanTo(C, P.spine.to, P.spine.k ?? .4);
+  if (P.gest) gestBeat(C, P, tt, dT);
   if (P.arm) for (const sd of ['l', 'r']) if (P.arm[sd]) reachArm(C, sd, P.arm[sd]);
   if (P.heels != null) heelFloor(C, P.heels);   // heels — высота пола (корень сидящего бывает приподнят над полом)
   if (P.after) P.after(C, tt);
@@ -1105,7 +1106,7 @@ function wearProp(C, name, [bone, off, rot]) {
 
 /* ---------- живое поверх клипа: дыхание, пальцы, голова, взгляд (tools/anim/ANIMATION.md) ---------- */
 // кто живой: Жилец, тело и «подделки» с серой кожей не дышат и не ёрзают — их неподвижность и есть улика
-const alive = C => !C.o.monster && !C.o.dead && !(C.o.grey > .3) && !C.o.jerk;
+const alive = C => !window.__NOLIFE && !C.o.monster && !C.o.dead && !(C.o.grey > .3) && !C.o.jerk;   // window.__NOLIFE = 1 — сравнить без живого слоя
 const _bx = new T.Vector3(), _bq = new T.Quaternion(), _bq2 = new T.Quaternion(), _be = new T.Vector3();
 function rotChar(C, bn, ax, ay, az, ang) {   // повернуть кость на угол вокруг оси в осях персонажа (x — влево, y — вверх, z — вперёд)
   const b = C.bone[bn]; if (!b || !ang) return;
@@ -1131,6 +1132,20 @@ function fingerLife(C, sd, tt) {
   for (let i = 0; i < 4; i++) { const a = .035 * Math.sin(tt * (.31 + i * .07) + ph + i * 1.3) + .018 * Math.sin(tt * .83 + i * 2.1 + ph);
     for (let j = 2; j <= 3; j++) { const b = C.bone[FING[i] + '_0' + j + '_' + sd]; if (b) b.quaternion.multiply(_Q3.setFromAxisAngle(_D.set(1, 0, 0), a)); } }
 }
+// жест на ударном слоге для свободной руки в позе без разговорного клипа (сидит на полу, на корточках): P.gest = 'r' | 'l' | 'lr'.
+// Кисть приподнимается и подаётся к собеседнику на 5–9 см за 0,15 с и возвращается за ~0,5 с; поворот кисти в мире сохраняется
+const _gh = new T.Vector3(), _gq = new T.Quaternion();
+function gestBeat(C, P, tt, dT) {
+  const g = C.gst || (C.gst = { t: 9, d: .6, a: 0, sd: 'r', next: 0 });
+  if (C.onset && tt > g.next && rnd() < .55) { const s = P.gest.length > 1 ? (rnd() < .5 ? 'l' : 'r') : P.gest; g.t = 0; g.d = .55 + rnd() * .25; g.a = .6 + rnd() * .4; g.sd = s; g.next = tt + g.d + .2 + rnd() * .5; }
+  g.t += dT; if (g.t >= g.d || !alive(C)) return;
+  const u = g.t, e = (u < .15 ? ease3(u / .15) : 1 - ease3((u - .15) / (g.d - .15))) * g.a, sd = g.sd, sx = sd === 'l' ? 1 : -1;
+  const hb = C.bone['hand_' + sd]; if (!hb) return; C.root.updateWorldMatrix(true, true);
+  hb.getWorldQuaternion(_gq); const h = C.root.worldToLocal(hb.getWorldPosition(_gh));
+  ik2(C, 'upperarm_' + sd, 'lowerarm_' + sd, 'hand_' + sd, h.x + sx * .025 * e, h.y + .055 * e, h.z + .07 * e, [sx * .8, -1, -.3]);
+  keepWorld(C, 'hand_' + sd, _gq);
+}
+const ease3 = k => k * k * (3 - 2 * k);
 // направление, повёрнутое по горизонтали (yaw) и вертикали (pitch) — в осях мира
 function offDir(v, yaw, pitch) {
   if (!yaw && !pitch) return v;
@@ -1160,26 +1175,28 @@ function gazeLife(C, tt, dT, talking, hearing, cut, tgt) {
 // голова поверх клипа: медленный дрейф (не манекен); говорит — на ударе слова кивок, громче — голова чуть выше;
 // слушает — в паузах говорящего иногда кивает («угу»), моргает, голова чуть склонена
 function headLife(C, tt, dT, talking, hearing) {
-  const g = C.hl || (C.hl = { ph: [0, 1, 2, 3, 4].map(() => rnd() * 9), env: 0, a: 1, hr: 0, nT: 9, nA: 0, nD: .4, nNext: 0, sil: 1, hLen: 0, hGap: 0 });
+  const g = C.hl || (C.hl = { ph: [0, 1, 2, 3, 4].map(() => rnd() * 9), env: 0, a: 1, hr: 0, nT: 9, nA: 0, nD: .4, nNext: 0, hLen: 0, hGap: 0 });
   const nod = (a, d) => { g.nT = 0; g.nA = a; g.nD = d; g.nNext = tt + d + .25 + rnd() * .5; };
-  if (talking) {   // ударный слог: слово началось после паузы (буквы реплики) или голос стал громким после тишины
-    const sil = C.vis ? C.vis === 'sil' : C.talk < .1;
-    if (!sil && g.sil > .09 && tt > g.nNext && rnd() < .6) { nod((.02 + .04 * Math.min(1, g.env * 1.4)) * (rnd() < .2 ? -.7 : 1), .3 + rnd() * .14); if (rnd() < .25) C.brF = 1; }
-    g.sil = sil ? g.sil + dT : 0;
-  } else g.sil = 1;
+  if (C.onset && tt > g.nNext && rnd() < .6) { nod((.02 + .04 * Math.min(1, g.env * 1.4)) * (rnd() < .2 ? -.7 : 1), .3 + rnd() * .14); if (rnd() < .25) C.brF = 1; }   // ударный слог — кивок, иногда бровь
   g.env += ((talking ? C.talk : 0) - g.env) * Math.min(1, dT * (C.talk > g.env ? 10 : 2.5));
   if (C.hear > .06) { g.hLen += dT; g.hGap = 0; }   // слушает: фраза говорящего кончилась (пауза после ≥ 0,9 с речи) — «угу»
   else if (g.hLen > 0) { g.hGap += dT; if (g.hGap > .25) { if (g.hLen > .9 && !talking) { if (rnd() < .5) nod(.028 + rnd() * .025, .45 + rnd() * .15); if (rnd() < .55) C.blinkReq = 1; if (rnd() < .2) C.brF = 1; } g.hLen = 0; } }
   g.a = lerp(g.a, talking ? 1.6 + g.env : hearing ? 1.15 : 1, Math.min(1, dT * 2)); g.hr = lerp(g.hr, hearing ? .03 : 0, Math.min(1, dT * 1.5));
-  const p = g.ph, yaw = g.a * (.016 * Math.sin(tt * .53 + p[0]) + .008 * Math.sin(tt * 1.31 + p[1]));
+  const p = g.ph; let yaw = g.a * (.016 * Math.sin(tt * .53 + p[0]) + .008 * Math.sin(tt * 1.31 + p[1]));
   let pit = g.a * (.011 * Math.sin(tt * .71 + p[2]) + .006 * Math.sin(tt * 1.87 + p[3])) + .035 * g.env;
   g.nT += dT; if (g.nT < g.nD) pit -= g.nA * Math.sin(Math.PI * g.nT / g.nD) ** 2;
+  // реакция «нет» / «да» по реплике (react) — головой, на своей позе: два-три покачивания или два кивка и успокоился
+  // (раньше всё тело на это время переходило в клип Quaternius — стойка бойца, сутулая спина — и обратно)
+  const rb = HEADREACT.has(C.reactBody) ? C.reactBody : null; if (rb !== g.rb) { g.rb = rb; g.rT = 0; } else g.rT = (g.rT || 0) + dT;
+  if (rb) { const u = g.rT, env = clamp(u / .15, 0, 1) * (1 - clamp((u - 1.15) / .5, 0, 1));
+    if (rb === 'no') yaw += .2 * Math.sin(2 * Math.PI * 2.1 * u) * env; else pit -= .085 * (1 - Math.cos(2 * Math.PI * 1.8 * u)) * .5 * env; }
   return [yaw, pit, (.02 + .012 * g.a) * Math.sin(tt * .37 + p[4]) + g.hr];
 }
+const HEADREACT = new Set(['no', 'yes']);   // у живых людей «нет» и «да» — головой (headLife), а не клипом всего тела
 
 function updateSkinned(C, t, dt) {
   // склейка (C.cut из draw) или персонаж снова появился после перерыва (Жилец мелькнул в глубине кадра): поза, взгляд и шаг — сразу, не перетекают из прошлого появления
-  const tt = t + C.t0, P = C.pose, U = C.U, cut = C.cut || C.lastT == null || t - C.lastT > .5 || t < C.lastT;
+  const tt = t + C.t0, P = C.pose, U = C.U, cut = C.cut || C.lastT == null || t - C.lastT > (window.__CUTGAP || .5) || t < C.lastT;   // __CUTGAP — для проб на медленной машине (tools/anim/*_probe.js)
   const dT = cut ? 0 : Math.max(0, t - C.lastT);   // сколько прошло на самом деле (на паузе — 0; больше 0,5 с — это уже склейка)
   C.cut = false; C.lastT = t; C.cutNow = cut;
   if (cut) { C.lookDir = null; C.prevP = null; C.walkV = null; }
@@ -1191,13 +1208,16 @@ function updateSkinned(C, t, dt) {
   if ((C.hear || 0) > .06) C.hearT = tt + .6;   // слушает: говорит кто-то другой (в кадре, по телефону, по рации)
   const hearing = !talking && tt < (C.hearT || -1);
   C.talkingNow = talking; C.hearingNow = hearing;
+  // ударный слог: слово началось после паузы (буквы реплики — движок знает, какое слово звучит) или голос стал громким после тишины
+  C.onset = false;
+  if (talking) { const sil = C.vis ? C.vis === 'sil' : C.talk < .1; if (!sil && (C.silT ?? 1) > .09) C.onset = true; C.silT = sil ? (C.silT ?? 1) + dT : 0; } else C.silT = 1;
   const OBJ = !!(C.v3 && P && typeof P === 'object');   // поза-объект: постановка act3Body (клипы по времени кадра, пальцы, касания, предметы)
   if (OBJ && P.look) C.look = new T.Vector3(...P.look);
   let want = OBJ ? C.clip : POSE[P] || 'Idle_Loop';
   if (C.v3 && (P === 'sitfloor' || P === 'sitpaper' || P === 'kneel')) want = 'Idle_Loop';   // на коленях: ноги и таз ставит kneel()
   if (talking && P === 'stand') want = POSE.talk;
   if (talking && P === 'sit') want = POSE.sittalk;
-  if (!OBJ && C.reactBody && (P === 'stand' || P === 'talk')) want = REACT[C.reactBody];   // реакция по реплике: кивок, «нет», руки скрещены
+  if (!OBJ && C.reactBody && !(alive(C) && HEADREACT.has(C.reactBody)) && (P === 'stand' || P === 'talk')) want = REACT[C.reactBody];   // реакция по реплике: кивок, «нет», руки скрещены
   if (C.o.monster && P === 'walk') want = 'Zombie_Walk_Fwd_Loop';
   if (want !== C.clip) {
     const CL = C.clips || CLIP, a = C.mixer.clipAction(CL[natClip(C, want)[0]] || CL[want] || CL.Idle_Loop);
@@ -1343,7 +1363,7 @@ function updateSkinned(C, t, dt) {
   // голова доворачивается пружиной (мягко трогается и приходит без рывка); глаза — впереди головы: на новую цель переходят сразу (саккада),
   // голова догоняет, и глаза возвращаются к центру — как у людей. У Жильца — прежний рывковый доворот
   if (!C.lookDir) { C.lookDir = _b.clone(); (C.lookV || (C.lookV = new T.Vector3())).set(0, 0, 0); }
-  else if (life || (!C.o.stopmo && !C.o.jerk)) { spring3(C.lookDir, C.lookV || (C.lookV = new T.Vector3()), _b, C.o.headW || 8, sdt); C.lookDir.normalize(); }
+  else if (!window.__NOLIFE && !C.o.stopmo && !C.o.jerk) { spring3(C.lookDir, C.lookV || (C.lookV = new T.Vector3()), _b, C.o.headW || 8, sdt); C.lookDir.normalize(); }
   else C.lookDir.lerp(_b, k).normalize();
   if (!C.eyeDir || cut) C.eyeDir = _be.clone(); else C.eyeDir.lerp(_be, 1 - Math.exp(-sdt * 40)).normalize();
   // голова не стоит как у манекена: дрейф, кивки на ударных словах, «угу» в паузах говорящего, лёгкий наклон
@@ -1711,6 +1731,7 @@ function castV3() {
     F.sad = F.sad || { browIn: .75, browUp: .1, frown: .35, squint: .12 };   // горе: брови домиком, уголки губ вниз, веки чуть прикрыты
     F.grim = F.grim || { browIn: -.45, frown: .25, squint: .22 };             // мрачно, сосредоточенно: брови сведены, взгляд тяжёлый
     F.warm = F.warm || { smile: .45, browUp: .2, squint: .1 };                // тепло, по-доброму (не оскал): улыбка с прищуром
+    F.dread = F.dread || { mouth: .1, wide: .55, browUp: .8, browIn: 1, tense: .3, dart: 1 };   // понял, что натворил: глаза распахнуты, рот чуть приоткрыт, губы оттянуты (не крик)
   }
   for (const k in A) A[k].update(0, 1 / 30);
   return A;

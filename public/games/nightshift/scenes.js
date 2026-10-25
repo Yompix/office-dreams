@@ -1113,10 +1113,12 @@ const PEYE_E = [PE[0], 1.68, PE[1]], PEYE_G = [PG[0], 1.66, PG[1]];
 function gKeys(t, offer, rel) {   // сменщик: связка в опущенной руке → протягивает (offer — с какой секунды) → отпускает (rel)
   const up = offer == null ? 0 : seg(t, offer, offer + .8), dn = rel == null ? 0 : seg(t, rel, rel + .6), w = up * (1 - dn);
   const tr = (Math.sin(t * 41) * .0022 + Math.sin(t * 23.7) * .0016) * up;   // рука дрожит
-  const has = rel == null || t < rel;
+  const has = rel == null || t < rel, u = offer == null ? 0 : t - offer;
+  // протянул связку — глянул на неё и говорит, глядя Итану в лицо; изредка снова косится на ключи (а не весь разговор в пол)
+  const atKeys = w > .5 && has && (u < 1.5 || (u % 6.5) > 5.7 || (rel != null && t > rel - .5));
   return { clips: [['Idle_Loop', t + 3.1, 1]], talk: 1, legs: 'feet', spine: { to: PH, k: .15 * w },
     arm: { r: { at: [PH[0] + tr, PH[1] + .095 + tr, PH[2] - .015], by: 'pinch', fdir: [.2, -.3, 1], pdir: [.55, -1, 0], w } },
-    fing: { r: [has ? 'pinch' : 'relax', has ? 1 : 1 - seg(t, rel, rel + .3)] }, hold: has ? { r: 'keys' } : null, look: w > .5 && has ? [PH[0], PH[1] + .05, PH[2]] : PEYE_E };
+    fing: { r: [has ? 'pinch' : 'relax', has ? 1 : 1 - seg(t, rel, rel + .3)] }, hold: has ? { r: 'keys' } : null, look: atKeys ? [PH[0], PH[1] + .05, PH[2]] : PEYE_E };
 }
 function eKeys(t, t0) {   // Итан берёт связку: ладонь под связку (t0 — начало), пальцы сжимаются, связка у него; рука к груди и вниз
   const r = t0 == null ? 0 : seg(t, t0, t0 + .7), back = t0 == null ? 0 : seg(t, t0 + 1.15, t0 + 1.95), got = t0 != null && t > t0 + .9;
@@ -1130,8 +1132,8 @@ SH.pro_hall = { loc: 'lobby', pos: [7.45, 3.85, 5.45], look: [-2.2, .9, -5], fov
 SH.pro_ext = { loc: 'lobby', pos: [2.6, 1.45, 17.5], look: [-.2, 4.6, 6], fov: 66, set: (o, t) => [doorIn(o, 'temych', t, [[3.6, 14.2], [1.6, 10.5], [.5, 7.4], [.16, 6.62]], 1.05, [[.16, 6.62], [-.22, 6.3], [-.42, 5.85], [-.3, 4.9]], 1.0)] };
 SH.pro_enter = { loc: 'lobby', pos: [1.75, 1.6, -.35], look: [.45, 1.35, 5], fov: 50, set: (o, t) => { leafAng(o, 0, .95 * (1 - ease(clamp(t / 2.6, 0, 1))));   // створка за ним дозакрывается
   return [['smenshik', PG[0], 0, PG[1], 0, gKeys(t), PEYE_E], walker('temych', [[-.36, 5.5], [.2, 4.2], [.55, 3.3], [PE[0], PE[1]]], t, 1.05, { look: PEYE_G }, PI)]; } };
-SH.pro_two = { loc: 'lobby', pos: [2.85, 1.55, 1.72], look: [.92, 1.32, 2.0], fov: 44, set: (o, t) => [['smenshik', PG[0], 0, PG[1], 0, gKeys(t), PEYE_E], ['temych', PE[0], 0, PE[1], PI, eKeys(t), PEYE_G]] };
-SH.pro_offer = { loc: 'lobby', pos: [2.85, 1.55, 1.72], look: [.92, 1.3, 2.0], fov: 44, set: (o, t) => [['smenshik', PG[0], 0, PG[1], 0, gKeys(t, 0), PEYE_E], ['temych', PE[0], 0, PE[1], PI, eKeys(t), PEYE_G]] };
+SH.pro_two = { loc: 'lobby', pos: [2.85, 1.55, 1.72], look: [.92, 1.32, 2.0], fov: 44, face: { smenshik: 'worry' }, set: (o, t) => [['smenshik', PG[0], 0, PG[1], 0, gKeys(t), PEYE_E], ['temych', PE[0], 0, PE[1], PI, eKeys(t), PEYE_G]] };
+SH.pro_offer = { loc: 'lobby', pos: [2.85, 1.55, 1.72], look: [.92, 1.3, 2.0], fov: 44, face: { smenshik: 'worry' }, set: (o, t) => [['smenshik', PG[0], 0, PG[1], 0, gKeys(t, 0), PEYE_E], ['temych', PE[0], 0, PE[1], PI, eKeys(t), PEYE_G]] };
 SH.pro_take = { loc: 'lobby', pos: [2.85, 1.55, 1.72], look: [.92, 1.3, 2.0], fov: 44, set: (o, t) => [['smenshik', PG[0], 0, PG[1], 0, gKeys(t + 9, 0, 9 + 1.05), PEYE_E], ['temych', PE[0], 0, PE[1], PI, eKeys(t, .1), PEYE_G]] };
 SH.pro_keys = { loc: 'lobby', pos: [1.62, 1.36, 1.86], look: [.92, 1.13, 2.0], fov: 38, set: (o, t) => [['smenshik', PG[0], 0, PG[1], 0, gKeys(t + 9, 0, 9 + 1.05), PEYE_E], ['temych', PE[0], 0, PE[1], PI, eKeys(t, .1), PEYE_G]] };
 SH.pro_palm = { loc: 'lobby', pos: [1.25, 1.42, 1.72], look: [.86, 1.05, 2.15], fov: 36, set: (o, t) => [['temych', PE[0], 0, PE[1], PI, eKeys(t + 9, 0), null]] };
@@ -1145,7 +1147,9 @@ function gPoint(t) { const R = locR(PG[0], PG[1], 0), up = seg(t, .3, .9) * (1 -
   const sh = R.p(.2, 1.42, 0), d = nrm([booth[0] - sh[0], booth[1] - sh[1], booth[2] - sh[2]]);
   return { clips: [['Idle_Loop', t + 3.1, 1]], talk: 1, legs: 'feet', arm: { l: { at: [sh[0] + d[0] * .5, sh[1] + d[1] * .5 - .05, sh[2] + d[2] * .5], by: 'wrist', fdir: d, pdir: [0, -1, 0], w: up } },
     fing: { l: ['point', up] }, look: t > .5 && t < 1.6 ? booth : PEYE_E }; }
-SH.pro_point = { loc: 'lobby', pos: [2.85, 1.55, 1.72], look: [.92, 1.32, 2.0], fov: 44, set: (o, t) => [['smenshik', PG[0], 0, PG[1], 0, gPoint(t), PEYE_E], ['temych', PE[0], 0, PE[1], PI, eLook(t + 5), PEYE_G]] };
+// Итан слушает: поднял глаза от связки на сменщика, проследил, куда тот кивнул (будка), и снова на него
+SH.pro_point = { loc: 'lobby', pos: [2.85, 1.55, 1.72], look: [.92, 1.32, 2.0], fov: 44, set: (o, t) => [['smenshik', PG[0], 0, PG[1], 0, gPoint(t), PEYE_E],
+  ['temych', PE[0], 0, PE[1], PI, Object.assign(eLook(t + 5), { look: t < .25 ? locR(PE[0], PE[1], PI).p(.02, 1.06, .32) : t > .75 && t < 1.9 ? [5.0, 1.25, -.1] : PEYE_G }), PEYE_G]] };
 // p15: уже снаружи, под козырьком: три раза костяшками в стекло фасада (z = 6), смотрит на Итана, уходит под дождь
 const KN = [1.32, 6.43], KP = [1.27, 1.42, 6.025];   // где стоит, куда приходятся костяшки (наружная сторона стекла)
 function gKnock(t) {
@@ -1196,7 +1200,7 @@ SH.fb_phone = { loc: 'lobby', pos: [5.05, 1.24, -1.0], look: [4.68, .76, -.46], 
 SH.fb_log = { loc: 'lobby', pos: [5.33, 1.22, -.7], look: [5.35, .81, -.29], fov: 36, set: (o) => { boothFb(o); return []; } };
 // 22:00: звонок дневного — Итан за столом, телефон у левого уха (камера справа, у стойки)
 function ePhoneSit(t) { const R = locR(SEAT[0], SEAT[1], 0);   // ладонь у уха (голова сидя — на 24–31 см позади корня), пальцы вперёд по щеке, локоть вниз
-  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], arm: { l: { at: bodyAt(R, 'Head', E_SIT_HEAD, [.13, 1.2, -.31]), by: 'palm', fdir: R.v(0, .4, .9), pdir: R.v(-1, 0, 0), w: 1, pole: R.p(.35, .85, -.1) } },
+  return { clips: [['Sitting_Idle_Loop', t + 2, 1]], talk: 1, arm: { l: { at: bodyAt(R, 'Head', E_SIT_HEAD, [.13, 1.2, -.31]), by: 'palm', fdir: R.v(0, .4, .9), pdir: R.v(-1, 0, 0), w: 1, pole: R.p(.35, .85, -.1) } },   // talk — сам говорит в трубку: корпус и свободная правая «говорят»
     fing: { l: ['phone', 1] }, hold: { l: 'phone' }, look: R.p(.6, 1.05, 2) }; }
 SH.booth_call = { loc: 'lobby', pos: [6.35, 1.48, .05], look: [5.15, 1.15, -.75], fov: 42, set: (o, t) => { boothFb(o); return [['temych', SEAT[0], 0, SEAT[1], 0, ePhoneSit(t), null]]; } };
 // stub: следующие кадры пролога — ниже
@@ -1367,7 +1371,7 @@ SH.a_beside = { loc: 'lobby', pos: [1.6, 1.42, 4.0], look: [.6, 1.1, 5.0], fov: 
 SH.a_steps = { loc: 'lobby', pos: [.55, 1.66, 5.2], look: [-1.4, .4, -3], fov: 58, set: (o, t) => { o.wetSteps.visible = true; return []; } };
 SH.a_floors = { loc: 'lobby', pos: [-1.6, 2.1, -2.9], look: [-2.2, 2.62, -5.94], fov: 26, set: (o, t) => { const f = ['5', '9', '12', '13'][Math.min(3, Math.floor(t / .9))]; setLift(o, o.lifts[0], 0, f, true); return []; } };
 SH.a_floors_down = { loc: 'lobby', pos: [-1.6, 2.1, -2.9], look: [-2.2, 2.62, -5.94], fov: 26, set: (o, t) => { const f = ['13', '12', '11', '10', '9'][Math.min(4, Math.floor(t / .7))]; setLift(o, o.lifts[0], 0, f, false); return []; } };
-SH.e_face = { loc: 'lobby', pos: [.6, 1.64, 5.55], look: [.55, 1.62, 4.95], fov: 34, face: { temych: 'fear' }, set: (o, t) => [['temych', .55, 0, 4.95, 0, { clips: [['Idle_Loop', t + 1.3, 1]], talk: 1, legs: 'feet' }, 'cam']] };
+SH.e_face = { loc: 'lobby', pos: [.6, 1.64, 5.55], look: [.55, 1.62, 4.95], fov: 34, face: { temych: 'dread' }, set: (o, t) => [['temych', .55, 0, 4.95, 0, { clips: [['Idle_Loop', t + 1.3, 1]], talk: 1, legs: 'feet' }, 'cam']] };
 // ---- А1: будка. Запер дверь будки, выключил лампу, сполз под стойку; утром сменщик пятится; отражение в стекле ----
 SH.h_lock = { loc: 'lobby', pos: [6.2, 1.6, -.75], look: [7.35, 1.05, .4], fov: 40, set: (o, t) => [['temych', 7.12, 0, -.05, .35, ethanKey(o, t, o.boothLock, .9), null]] };
 SH.h_lamp = { loc: 'lobby', pos: [6.75, 1.25, -.85], look: [6.12, .85, -.12], fov: 40, set: (o, t) => { const off = t > .75; o.lamp.intensity = off ? 0 : 1.6; o.lampBulb.visible = !off;
@@ -1482,7 +1486,8 @@ SH.x_two = { loc: 'lobby', pos: [1.75, 1.5, 10.3], look: [-.4, 1.35, 7.5], fov: 
   const F = frankOut(t, { look: [XE[0], 1.62, XE[1]] });
   if (curProps && curProps.cig) { frankCig(F, A.mihalych, Math.max(0, Math.sin((t - 2.5) * .7))); F.hold = { r: 'cig' }; }
   return [['temych', XE[0], 0, XE[1], XER, ethanProp(t, { talk: 1, look: [1.5, 1.6, 12] }), null], ['mihalych', XF[0], 0, XF[2], XFR, F, null]]; } };
-SH.x_no = { loc: 'lobby', pos: [.75, 1.62, 8.9], look: [-.2, 1.58, 7.45], fov: 38, set: (o, t) => [['temych', XE[0], 0, XE[1], XER, ethanProp(t, { clips: [['Idle_No_Loop', t + .2, 1]], look: [XF[0], 1.55, XF[2]] }), null],
+// «Я покачал головой»: качает головой на своей стойке (react 'no' в story.js) — не переходит всем телом в клип Quaternius
+SH.x_no = { loc: 'lobby', pos: [.75, 1.62, 8.9], look: [-.2, 1.58, 7.45], fov: 38, set: (o, t) => [['temych', XE[0], 0, XE[1], XER, ethanProp(t, { look: [XF[0], 1.55, XF[2]] }), null],
   ['mihalych', XF[0], 0, XF[2], XFR, frankOut(t, { look: [XE[0], 1.62, XE[1]] }), null]] };
 // d27: закурил одной правой — зажигалка у сигареты, огонёк, затяжка; сигарета остаётся в пальцах. Левая так и лежит на плечах Итана
 function mouthOf(C) { const h = C.bone.Head.getWorldPosition(new T.Vector3()), m = C.mouthL ? C.bone.Head.localToWorld(C.mouthL.clone()) : h.clone().add(new T.Vector3(0, -.08, .1));
@@ -1520,7 +1525,7 @@ SH.srv_sheet = { loc: 'server', pos: [-3.3, 2.65, -2.6], look: [1.6, .8, 2.37], 
 const EIN = [2.28, 2.19];   // где Итан сидит на корточках в круге рядом с Фрэнком (справа — камеры его не загораживают)
 SH.srv_in = { loc: 'server', pos: [.25, 1.2, 1.3], look: [1.7, .6, 2.52], fov: 48, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o);
   return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t, { look: [EIN[0], 1.0, EIN[1]] }), null],
-    ['temych', EIN[0], 0, EIN[1], -.75, { clips: [['Crouch_Idle_Loop', t + .5, 1]], look: FRANK_HEAD }, null]]; } };
+    ['temych', EIN[0], 0, EIN[1], -.75, { clips: [['Crouch_Idle_Loop', t + .5, 1]], gest: 'r', look: FRANK_HEAD }, null]]; } };   // спрашивает — правая с колена чуть поднимается на ударных словах
 // 04:30, обход серверной (explore): круг соли, кулер у двери, листы на стойке — от входа; и листы крупно
 SH.srv_room = { loc: 'server', pos: [-.9, 1.4, .4], look: [1.6, .7, 2.8], fov: 62, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o);
   return [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t, { look: [-.2, 1.3, 1.0] }), null]]; } };
@@ -1639,24 +1644,24 @@ function eApple(t, t0) {   // Итан: ладонью сверху на ябл�
     arm: { r: { at, by: 'palm', fdir: [0, -.2, -1], pdir: [0, -1, 0], w: got ? 1 : r } },   // до протягивания рука висит как в клипе, потом плавно к яблоку
     fing: { r: [got ? 'cup' : 'open', got ? 1 : r] }, hold: got ? { r: 'apple' } : null, look: back < .5 ? R2H : [R2G[0], 1.6, R2G[1]] };
 }
-SH.r2_meet = { loc: 'corridor', pos: [.85, 1.6, -5.3], look: [-.12, 1.25, -9.5], fov: 48, face: { cleaner: 'smile' }, set: (o, t) => { setLamps(o, 7); o.cleanSet(CLEAN);
+SH.r2_meet = { loc: 'corridor', pos: [.85, 1.6, -5.3], look: [-.12, 1.25, -9.5], fov: 48, face: { cleaner: 'warm' }, set: (o, t) => { setLamps(o, 7); o.cleanSet(CLEAN);
   const k = 1 - seg(t, .6, 1.8), E = walker('temych', [[.35, -6.0], [.1, -7.6], R2E], t, .95, { look: [R2G[0], 1.6, R2G[1]] }, PI);
   return [E, ['cleaner', R2G[0], 0, R2G[1], lerp(.2, 0, 1 - k), Object.assign(mopGus(o, R2G[0], R2G[1], lerp(.2, 0, 1 - k), t, k), { look: [E[1], 1.62, E[3]] }), null]]; } };
-SH.r2_apple = { loc: 'corridor', pos: [1.12, 1.42, -9.05], look: [-.15, 1.15, -9.15], fov: 44, face: { cleaner: 'smile' }, set: (o, t) => { setLamps(o, 7); o.cleanSet(CLEAN);
+SH.r2_apple = { loc: 'corridor', pos: [1.12, 1.42, -9.05], look: [-.15, 1.15, -9.15], fov: 44, face: { cleaner: 'warm' }, set: (o, t) => { setLamps(o, 7); o.cleanSet(CLEAN);
   window.__W3chars.propAim('mop', o.S, [-1.05, 0, -10.05], nrm([-.25, 1, .05]));   // швабра прислонена к стене
   return [['cleaner', R2G[0], 0, R2G[1], 0, gApple(t, .1, 1.45), null], ['temych', R2E[0], 0, R2E[1], PI, eApple(t, .85), null]]; } };
-SH.r2_talk = { loc: 'corridor', pos: [.42, 1.66, -7.85], look: [-.15, 1.5, -9.62], fov: 40, face: { cleaner: 'smile' }, set: (o, t) => { setLamps(o, 7); o.cleanSet(CLEAN);
+SH.r2_talk = { loc: 'corridor', pos: [.42, 1.66, -7.85], look: [-.15, 1.5, -9.62], fov: 40, face: { cleaner: 'warm' }, set: (o, t) => { setLamps(o, 7); o.cleanSet(CLEAN);
   window.__W3chars.propAim('mop', o.S, [-1.05, 0, -10.05], nrm([-.25, 1, .05]));
   const R = locR(R2E[0], R2E[1], PI);
-  return [['cleaner', R2G[0], 0, R2G[1], 0, { clips: [['Idle_Talking_Loop', t + 2, 1]], talk: 1, legs: 'feet', look: [R2E[0], 1.62, R2E[1]] }, null],
-    ['temych', R2E[0], 0, R2E[1], PI, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: { at: R2C(), by: 'palm', fdir: [0, -.2, -1], pdir: [0, -1, 0], w: 1 } }, fing: { r: ['cup', 1] }, hold: { r: 'apple' }, look: [R2G[0], 1.6, R2G[1]] }, null]]; } };
+  return [['cleaner', R2G[0], 0, R2G[1], 0, { clips: [['Idle_Loop', t + 2, 1]], talk: 1, legs: 'feet', look: [R2E[0], 1.62, R2E[1]] }, null], r2Ethan(t)]; } };
 // ---- 01:00, разговор с Гасом (сцена round2): Итан спрашивает (Гас слушает), Гас отвечает; на «семьсот седьмой» он оглядывается на дверь ----
-const R2POSE = (t, talk, look) => ({ clips: [[talk ? 'Idle_Talking_Loop' : 'Idle_Loop', t + 2, 1]], talk: talk ? 1 : 0, legs: 'feet', look: look || [R2E[0], 1.62, R2E[1]] });
+// база — стойка: «говорит руками» включается только под его голос (talk), молча Гас не жестикулирует; вопрос → ответ — одна и та же стойка без рывка
+const R2POSE = (t, talk, look) => ({ clips: [['Idle_Loop', t + 2, 1]], talk: 1, legs: 'feet', look: look || [R2E[0], 1.62, R2E[1]] });
 function r2Set(o) { setLamps(o, 7); o.cleanSet(CLEAN); window.__W3chars.propAim('mop', o.S, [-1.05, 0, -10.05], nrm([-.25, 1, .05])); }
-const r2Ethan = t => ['temych', R2E[0], 0, R2E[1], PI, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', arm: { r: { at: R2C(), by: 'palm', fdir: [0, -.2, -1], pdir: [0, -1, 0], w: 1 } }, fing: { r: ['cup', 1] }, hold: { r: 'apple' }, look: [R2G[0], 1.6, R2G[1]] }, null];
+const r2Ethan = t => ['temych', R2E[0], 0, R2E[1], PI, { clips: [['Idle_Loop', t + 1.3, 1]], talk: 1, legs: 'feet', arm: { r: { at: R2C(), by: 'palm', fdir: [0, -.2, -1], pdir: [0, -1, 0], w: 1 } }, fing: { r: ['cup', 1] }, hold: { r: 'apple' }, look: [R2G[0], 1.6, R2G[1]] }, null];   // спрашивает — свободная левая говорит, в правой яблоко
 SH.gs_ask = { loc: 'corridor', pos: [.42, 1.66, -7.85], look: [-.15, 1.5, -9.62], fov: 40, face: { cleaner: 'calm' }, set: (o, t) => { r2Set(o); return [['cleaner', R2G[0], 0, R2G[1], 0, R2POSE(t, false), null], r2Ethan(t)]; } };
 SH.gs_ans = { loc: 'corridor', pos: [.42, 1.66, -7.85], look: [-.15, 1.5, -9.62], fov: 40, face: { cleaner: 'calm' }, set: (o, t) => { r2Set(o); return [['cleaner', R2G[0], 0, R2G[1], 0, R2POSE(t, true), null], r2Ethan(t)]; } };
-SH.gs_sad = { loc: 'corridor', pos: [.3, 1.62, -8.25], look: [-.15, 1.52, -9.62], fov: 34, face: { cleaner: 'worry' }, set: (o, t) => { r2Set(o); return [['cleaner', R2G[0], 0, R2G[1], 0, R2POSE(t, true), null], r2Ethan(t)]; } };
+SH.gs_sad = { loc: 'corridor', pos: [.3, 1.62, -8.25], look: [-.15, 1.52, -9.62], fov: 34, face: { cleaner: 'sad' }, set: (o, t) => { r2Set(o); return [['cleaner', R2G[0], 0, R2G[1], 0, R2POSE(t, true), null], r2Ethan(t)]; } };
 SH.gs_707 = { loc: 'corridor', pos: [.3, 1.62, -8.25], look: [-.15, 1.52, -9.62], fov: 34, face: { cleaner: 'calm' }, set: (o, t) => { r2Set(o); const k = seg(t, 1.2, 2.2) * (1 - seg(t, 5.2, 6.2));
   return [['cleaner', R2G[0], 0, R2G[1], 0, R2POSE(t, true, lin([R2E[0], 1.62, R2E[1]], [-1.3, 1.45, -11.8], k)), null], r2Ethan(t)]; } };
 // ---- 21:06, фото под стеклом (fb03): Новый год на седьмом — Фрэнк, Гас и Марта; вспышка в лицо, гирлянда. Движок делает из кадра старый снимок (fx 'photo') ----
