@@ -51,5 +51,16 @@ a claim on the game. / Ниже — сторонние материалы. Вс�
    Озвучка и звуковые эффекты созданы в ElevenLabs на платном тарифе владельца — по условиям
    ElevenLabs результат принадлежит владельцу и разрешён для коммерческого использования.
 
+6. PC version (Windows, Linux, Steam) / ПК-версия
+   Electron 44 — MIT License, © Electron contributors, © 2013-2020 GitHub Inc.; it includes Chromium (BSD-style and other
+   permissive licenses). Full texts ship in the game folder next to the program: LICENSE and LICENSES.chromium.html.
+   Steam builds only: steamworks.js 0.4.0 — MIT License, © 2022 Gabriel Francisco Dos Santos (licenses/MIT-steamworks.js.txt
+   in the Steam build), and the Steamworks API library by Valve (steam_api64.dll / libsteam_api.so), redistributed with the
+   Steam version under the Steamworks SDK Access Agreement.
+   Windows installer: NSIS 3 (zlib/libpng license, © Nullsoft and contributors). Installer pictures — the game's own font and code.
+   Gamepad and Steam Deck controls (pad.js) and the PC wrapper (tools/desktop) are original code made for the game.
+   Обёртка ПК-версии — Electron (MIT) с Chromium; в Steam-версии — steamworks.js (MIT) и библиотека Steam от Valve;
+   установщик — NSIS (zlib). Тексты лицензий лежат рядом с игрой. Управление геймпадом и обёртка — свой код.
+
 Not used anywhere in the game / В игре не используются: AI-generated images, stock photos,
 music or sounds downloaded from the internet, Mixamo/Sketchfab/marketplace models.
