@@ -73,7 +73,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   // версии timing_<язык>.json — поднимать при каждой новой нарезке/сборке (кэш браузера)
-  const TIMV = { en: 12, uk: 3, es: 1, pt: 1, de: 1 };
+  const TIMV = { en: 12, uk: 3, es: 2, pt: 1, de: 1 };
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
   const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (TIMV[LNG] || 1) : 'timing.json?v=17', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));

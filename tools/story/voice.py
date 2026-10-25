@@ -62,9 +62,14 @@ def plan(lang):
 # --- нарезка ---
 NUM = {'ru': {'газ': 'гас', '13': 'тринадцать', '12': 'двенадцать', '707': 'семьсотседьмого', '3': 'три', '6': 'шесть', '40': 'сорок', '300': 'триста'},
        'en': {'13': 'thirteen', '12': 'twelve', '3': 'three', '6': 'six', '707': 'sevenohseven', '40': 'forty', '200': 'two', '540': 'fiveforty'},
-       'es': {'13': 'trece', '12': 'doce', '3': 'tres', '6': 'seis', '707': 'setecientossiete', '40': 'cuarenta', '200': 'doscientos', '300': 'trescientos'},
-       'pt': {'13': 'treze', '12': 'doze', '3': 'tres', '6': 'seis', '707': 'setecentosesete', '40': 'quarenta', '200': 'duzentos', '300': 'trezentos'},
-       'de': {'13': 'dreizehn', '12': 'zwolf', '3': 'drei', '6': 'sechs', '707': 'siebenhundertsieben', '40': 'vierzig', '200': 'zweihundert', '300': 'dreihundert'}}
+       'es': {'13': 'trece', '12': 'doce', '3': 'tres', '6': 'seis', '707': 'setecientossiete', '40': 'cuarenta', '200': 'doscientos', '300': 'trescientos',
+              '2': 'dos', '7': 'siete', '10': 'diez', '15': 'quince', '18': 'dieciocho', '20': 'veinte', '21': 'veintiuno', '30': 'treinta'},
+       'pt': {'13': 'treze', '12': 'doze', '3': 'tres', '6': 'seis', '707': 'setecentosesete', '40': 'quarenta', '200': 'duzentos', '300': 'trezentos',
+              '2': 'dois', '7': 'sete', '10': 'dez', '15': 'quinze', '18': 'dezoito', '20': 'vinte', '21': 'vinteeum', '30': 'trinta'},
+       'de': {'13': 'dreizehn', '12': 'zwolf', '3': 'drei', '6': 'sechs', '707': 'siebenhundertsieben', '40': 'vierzig', '200': 'zweihundert', '300': 'dreihundert',
+              '2': 'zwei', '7': 'sieben', '10': 'zehn', '15': 'funfzehn', '18': 'achtzehn', '20': 'zwanzig', '21': 'einundzwanzig', '30': 'dreissig'}}
+# имя героя whisper слышит по-своему: в испанском «Izan», в португальском «Eitan» и т. п.
+for _l in ('es', 'pt', 'de'): NUM[_l].update({k: 'ethan' for k in ('izan', 'itan', 'eitan', 'ithan', 'etan', 'ethen', 'ean', 'isan')})
 def norm(w, lang):
     import unicodedata
     w = w.lower().replace('ё', 'е').replace('’', "'").replace('ß', 'ss')

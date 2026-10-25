@@ -5,7 +5,7 @@
 (() => {
 'use strict';
 const LANGS = ['ru', 'en', 'es', 'pt', 'de', 'uk'];
-const VOICE = { ru: 'ru', en: 'en', es: 'en', pt: 'en', de: 'en', uk: 'en' };   // пока нет своей озвучки — английские записи, субтитры на языке игры
+const VOICE = { ru: 'ru', en: 'en', es: 'es', pt: 'en', de: 'en', uk: 'en' };   // чьими записями озвучен язык: свой голос (es) или английские записи с субтитрами на языке игры
 const q = /[?&]lang=(ru|en|es|pt|de|uk)\b/.exec(location.search);
 const LANG0 = q ? q[1] : (() => { try { const v = JSON.parse(localStorage.getItem('ns1_lang')); if (LANGS.includes(v)) return v; } catch {}
   const n = (navigator.language || '').toLowerCase();

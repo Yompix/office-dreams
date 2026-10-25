@@ -50,7 +50,7 @@ const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/pla
     ok(/\b1\b/.test(cnt), `${L}: на экране смерти «${cnt.trim()}»`);
     // в списке языков — только готовые
     const langs = await p.evaluate(() => window.NS_LANGS.join(','));
-    ok(langs === 'ru,en,uk', `${L}: языки в настройках ${langs}`);
+    ok(langs === 'ru,en,es,pt,de,uk', `${L}: языки в настройках ${langs}`);
   }
   // старое сохранение (до правки смерть записывалась на языке игры): та же смерть по-английски и по-русски — одна
   await p.evaluate(() => localStorage.setItem('ns1_overs', JSON.stringify(['THE DARK CAUGHT UP'])));
