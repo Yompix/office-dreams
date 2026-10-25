@@ -1,0 +1,14 @@
+// Депо Linux / SteamOS: всё из ContentBuilder\content\linux\ — это папка steam-linux (node tools/desktop/build.js linux --steam).
+// Замените 1234562 на номер депо Linux.
+"DepotBuildConfig"
+{
+	"DepotID"	"1234562"
+	"ContentRoot"	"..\content\linux\"
+	"FileMapping"
+	{
+		"LocalPath"	"*"
+		"DepotPath"	"."
+		"recursive"	"1"
+	}
+	"FileExclusion"	"steam_appid.txt"
+}

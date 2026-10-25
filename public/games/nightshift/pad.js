@@ -47,7 +47,7 @@ function setCur(el) {
 }
 function sync() {   // слой сменился или кнопка исчезла — рамку на кнопку по умолчанию (A не жмёт её сразу: только что появилась)
   const root = layer(), list = items(root);
-  if (root !== curRoot) { curRoot = root; armT = tnow() + (root && /^(choice|act)$/.test(root.id) ? 450 : 320); setCur(defItem(list)); return list; }
+  if (root !== curRoot) { curRoot = root; armT = tnow() + (root && /^(choice|act|shPop)$/.test(root.id) ? 450 : 320); setCur(defItem(list)); return list; }   // выбор и окна смены — чуть дольше: решение, а не повтор
   if (cur && !list.includes(cur)) { armT = Math.max(armT, tnow() + 200); setCur(defItem(list)); }
   else if (!cur && list.length) setCur(defItem(list));
   return list;
