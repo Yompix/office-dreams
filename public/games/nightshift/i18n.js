@@ -7,7 +7,7 @@
 const LANGS = ['ru', 'en', 'es', 'pt', 'de', 'uk'];
 const VOICE = { ru: 'ru', en: 'en', es: 'en', pt: 'en', de: 'en', uk: 'en' };   // пока нет своей озвучки — английские записи, субтитры на языке игры
 const q = /[?&]lang=(ru|en|es|pt|de|uk)\b/.exec(location.search);
-const LANG = q ? q[1] : (() => { try { const v = JSON.parse(localStorage.getItem('ns1_lang')); if (LANGS.includes(v)) return v; } catch {}
+const LANG0 = q ? q[1] : (() => { try { const v = JSON.parse(localStorage.getItem('ns1_lang')); if (LANGS.includes(v)) return v; } catch {}
   const n = (navigator.language || '').toLowerCase();
   return /^(ru|be|kk)/.test(n) ? 'ru' : /^uk/.test(n) ? 'uk' : /^es/.test(n) ? 'es' : /^pt/.test(n) ? 'pt' : /^de/.test(n) ? 'de' : 'en'; })();
 const EN = {
@@ -123,7 +123,7 @@ const EN = {
   "Ты ни разу не ответил. Пока.": "You never answered. Not yet.", "Звонит «Лили».": "\"Lily\" is calling.", "ТЫ НЕ СПУСТИЛСЯ": "YOU DIDN'T GO DOWN",
   "Ты дожил до утра. Фрэнк — нет.": "You made it to morning. Frank didn't.", "ТЫ ПОСМОТРЕЛ ЕМУ В ЛИЦО": "YOU LOOKED IT IN THE FACE",
   "Не смотри в тринадцатую камеру.": "Don't look at camera thirteen.", "ТЫ ПОШЁЛ НА СВЕТ": "YOU WENT TO THE LIGHT",
-  "Сам к нему не ходи — ни на свет, ни в лифт.": "Don't go to it yourself — not to the light, not in the elevator.", "ТЫ ОТОЗВАЛСЯ": "YOU ANSWERED",
+  "Сам к нему не ходи — ни на свет, ни в лифт.": "Don't go to it yourself — not to the light, not in the elevator.", "ТЫ ОТОЗВАЛСЯ": "YOU RESPONDED",
   "Гас не знал твоего имени. А оно знает.": "Gus didn't know your name. It does.", "ОНО ОБЕРНУЛОСЬ": "IT TURNED AROUND",
   "Тринадцатая включилась сама — выдёргивай шнур, не смотри.": "Thirteen turned on by itself — pull the cord, don't look.", "ОНО УСЛЫШАЛО": "IT HEARD YOU",
   "Оно ищет на звук. Пока шаги рядом — не дыши.": "It hunts by sound. While the footsteps are near — don't breathe.", "Остановишься — догонит.": "Stop, and it catches you.",
@@ -734,12 +734,18 @@ uk: {
 },
 };
 // ==== /DICT ====
+// язык есть в игре, когда для него собран перевод (DICT и timing_<язык>.json — tools/i18n/build.js). Без него испанский/португальский/немецкий
+// (в том числе сами, по языку браузера) грузили timing_<язык>.json мимо — реплики шли русскими записями и без субтитров; пока — английский
+const READY = l => l === 'ru' || l === 'en' || !!DICT[l], ON = LANGS.filter(READY), LANG = READY(LANG0) ? LANG0 : 'en';
 const D = LANG === 'en' ? EN : DICT[LANG] || {};
 const tr = s => LANG === 'ru' ? s : D[s] != null ? D[s] : EN[s] != null ? EN[s] : s;   // нет перевода — английский
 // подстановки: tr('Проверено: {n} из 3', { n: 2 })
 const trf = (s, v) => tr(s).replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m);
+// kind/kinds странностей и who (имена говорящих) — не текст, а ключи: движок сравнивает их с русскими (KINDS — запись в журнал, SPK — табличка);
+// переведённые, они не совпадали — на других языках ни одна записанная странность не засчитывалась (три пропуска — «ОНО ПРИШЛО»)
+const KEYS = new Set(['kind', 'kinds', 'who']);
 function trStory(S) { if (LANG === 'ru') return;
-  (function w(o) { for (const k in o) { const v = o[k]; if (typeof v === 'string') { const t = tr(v); if (t !== v) o[k] = t; } else if (v && typeof v === 'object') w(v); } })(S); }
+  (function w(o) { for (const k in o) { if (KEYS.has(k)) continue; const v = o[k]; if (typeof v === 'string') { const t = tr(v); if (t !== v) o[k] = t; } else if (v && typeof v === 'object') w(v); } })(S); }
 const NAMES = { ru: 'РУССКИЙ', en: 'ENGLISH', es: 'ESPAÑOL', pt: 'PORTUGUÊS', de: 'DEUTSCH', uk: 'УКРАЇНСЬКА' };
-window.NS_LANG = LANG; window.NS_LANGS = LANGS; window.NS_LANG_NAMES = NAMES; window.NS_VOICE = VOICE[LANG]; window.tr = tr; window.trf = trf; window.trStory = trStory;
+window.NS_LANG = LANG; window.NS_LANGS = ON; window.NS_LANG_NAMES = NAMES; window.NS_VOICE = VOICE[LANG]; window.tr = tr; window.trf = trf; window.trStory = trStory;
 })();
