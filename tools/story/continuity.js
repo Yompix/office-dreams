@@ -28,7 +28,8 @@ const segDeaths = id => { const sg = SG[id], d = new Set(['over_come']); const a
   for (const e of sg.events) { if (e.an) anD(e.an); for (const x of [e.call, e.hold]) if (x && x.die) d.add(x.die); }
   for (const a of (sg.rnd || {}).pool || []) anD(a);
   if (sg.events.some(e => e.c13) || ['S5', 'S6', 'A1'].includes(id)) d.add('over_k1');   // CAM 13 на пульте — с 02:00 (S4) и до утра
-  return [...d]; };
+  const hd = (S.shift.hourDeath || {})[id] || {};   // в этом часе движок ставит ту же смерть в другой постановке (engine.js shiftDie)
+  return [...new Set([...d].map(x => hd[x] || x))]; };
 { const q = [S.start]; add(S.start, toMin(SC[S.start].time));
   while (q.length) { const id = q.shift(), sc = SC[id], ms = [...(times[id] || [])];
     // час смены: начало и конец часа; из него — следующая сцена и смерти этого часа
