@@ -6,6 +6,36 @@
 'use strict';
 const tr = window.tr || (s => s);
 const T = window.THREE;
+// свет в шейдерах. three.js разворачивает цикл по точечным лампам: в каждом шейдере «Кино» было 12 копий расчёта света (77 КБ кода).
+// Слабая видеокарта или программный SwiftShader собирали такую программу до 20 с, сторож процесса GPU его убивал — контекст терялся,
+// и у всех программ в очереди «Shader Error … VALIDATE_STATUS false» с пустым логом (ПК-версия, 25 окт). Теперь развёрнуты только лампы
+// с тенью (массив карт теней индексируется константой — как в three.js), остальные — обычный цикл, и лампа, до которой свет не достаёт
+// (или выключенная), пропускается. Картинка та же; сборка программы на четверть дешевле, а на пикселях вне ламп меньше работы.
+// Выборки теней не внутри if: на D3D (ANGLE) выборка текстуры в ветвлении — риск, как и в three.js — через «?:»
+{ const a = T.ShaderChunk.lights_fragment_begin, i0 = a.indexOf('#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )'), i1 = a.indexOf('#if ( NUM_SPOT_LIGHTS > 0 ) && defined( RE_Direct )');
+  if (i0 >= 0 && i1 > i0 && a.includes('pointLightShadow.shadowCameraFar ) : 1.0;')) T.ShaderChunk.lights_fragment_begin = a.slice(0, i0) + `#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )
+	PointLight pointLight;
+	#if defined( USE_SHADOWMAP ) && NUM_POINT_LIGHT_SHADOWS > 0
+	PointLightShadow pointLightShadow;
+	#pragma unroll_loop_start
+	for ( int i = 0; i < NUM_POINT_LIGHT_SHADOWS; i ++ ) {
+		pointLight = pointLights[ i ];
+		getPointLightInfo( pointLight, geometryPosition, directLight );
+		pointLightShadow = pointLightShadows[ i ];
+		directLight.color *= ( directLight.visible && receiveShadow ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;
+		RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
+	}
+	#pragma unroll_loop_end
+	for ( int i = NUM_POINT_LIGHT_SHADOWS; i < NUM_POINT_LIGHTS; i ++ ) {
+	#else
+	for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
+	#endif
+		pointLight = pointLights[ i ];
+		getPointLightInfo( pointLight, geometryPosition, directLight );
+		if ( directLight.visible ) RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
+	}
+#endif
+` + a.slice(i1); }
 // внутреннее разрешение кадра. Два вида графики (меню «Графика», хранится в ns1_gfx, ?gfx=retro|cine — вручную):
 //  «Ретро» — низкое разрешение, дрожь вершин, ступени цвета (запасной вид: слабый телефон или выбор игрока); на ПК вдвое чётче (?hd=0/1);
 //  «Кино» — полное разрешение, мягкие тени, блики и отражения, объёмный свет, пыль в лучах, глубина резкости (по умолчанию везде;
@@ -14,8 +44,16 @@ const T = window.THREE;
 const FINE = matchMedia('(pointer: fine)').matches;
 const HD = (() => { const q = /[?&]hd=([01])/.exec(location.search); if (q) return q[1] === '1' ? 2 : 1;
   return FINE && innerWidth > innerHeight ? 2 : 1; })();
+// 3D без видеокарты (SwiftShader, llvmpipe — ПК-версия на машине без драйвера, виртуалка): «Кино» там шло бы 1–2 кадра в секунду,
+// а сборка его шейдеров роняла процесс GPU (контекст терялся). Если игрок сам не выбирал графику — сразу «Ретро»
+function softGL() {
+  try { const c = document.createElement('canvas'), gl = c.getContext('webgl2') || c.getContext('webgl'); if (!gl) return false;
+    const e = gl.getExtension('WEBGL_debug_renderer_info'), r = String(gl.getParameter(e ? e.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
+    const lc = gl.getExtension('WEBGL_lose_context'); if (lc) lc.loseContext();
+    return /swiftshader|llvmpipe|softpipe|software|basic render/i.test(r); } catch (e) { return false; }
+}
 const GFX = (() => { const q = /[?&]gfx=(retro|cine)/.exec(location.search); if (q) return q[1];
-  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; } catch {} return 'cine'; })();
+  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; } catch {} return softGL() ? 'retro' : 'cine'; })();
 const CINE = GFX === 'cine';
 const RS = (() => { const q = /[?&]rs=([\d.]+)/.exec(location.search); return q ? Math.max(.2, Math.min(1, +q[1])) : 0; })();   // ?rs=0.4 — доля разрешения «Кино» вручную и без подстройки (быстрые проверки кадров)
 const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: RS || (FINE ? 1 : .75), rsPin: !!RS };   // rs — доля разрешения «Кино» (телефон начинает с 75 %, perfTick подстраивает)

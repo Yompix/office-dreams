@@ -1965,9 +1965,26 @@ const DUST_VS = `uniform vec3 uCam; uniform float uT, uPx; uniform vec4 uL[6]; v
     vec4 mv = viewMatrix * vec4(p, 1.); float z = -mv.z; vA = min(1., a) * smoothstep(.3, 1., z) * smoothstep(7., 3., z) * (.45 + .55 * fract(sin(dot(position, vec3(12.9, 78.2, 37.7))) * 4375.));
     gl_PointSize = uPx * (.012 + .012 * fract(position.x * 91.)) / max(z, .1); gl_Position = projectionMatrix * mv; }`;
 const DUST_FS = `varying float vA; void main(){ vec2 d = gl_PointCoord - .5; float a = smoothstep(.5, .0, length(d)) * vA; gl_FragColor = vec4(vec3(1., .93, .82) * a * .7, 1.); }`;
-let pmrem = null;
+// одинаковый набор ламп во всех местах. Число ламп входит в ключ программы three.js: при разном числе каждый материал (люди, предметы)
+// собирался заново для каждого места и ещё раз, когда посреди сцены появлялись контровой свет или фонарь (297 программ на игру).
+// Теперь контровой свет и фонарь создаются сразу, недостающие лампы — пустые (сила 0, радиус 1 мм: шейдер их пропускает),
+// лампы внутри групп (кабина лифта, автомат) — прямо в сцене: отражение в стекле прячет группы, и число ламп не прыгает
+function lightRig(L) {
+  const cnt = o => { const n = { p: 0, s: 0, h: 0 }; o.S.traverse(l => { if (l.isPointLight) n.p++; else if (l.isSpotLight) n.s++; else if (l.isHemisphereLight) n.h++; }); return n; };
+  for (const k in L) { const o = L[k], S = o.S, nest = [];
+    S.traverse(l => { if (l.isLight && l.parent !== S) nest.push(l); }); nest.forEach(l => S.attach(l));
+    if (!o.rimC) { const l = o.rimC = new T.PointLight(0xbfd4ff, 0, 3.2, 1.6); l.castShadow = false; S.add(l); }
+    if (!o.torch && /^(corridor|stairs|basement)$/.test(k)) { const l = o.torch = new T.SpotLight(0xfff0d8, 0, 0, .28, .5, 1); S.add(l, l.target); } }
+  const N = { p: 0, s: 0, h: 0 }; for (const k in L) { const n = cnt(L[k]); for (const q in N) N[q] = Math.max(N[q], n[q]); }
+  for (const k in L) { const o = L[k], S = o.S, n = cnt(o); o.pad = new Set();
+    for (; n.p < N.p; n.p++) { const l = new T.PointLight(0, 0, .001, 1); l.position.set(0, -60, 0); S.add(l); o.pad.add(l); }
+    for (; n.s < N.s; n.s++) { const l = new T.SpotLight(0, 0, .001, .1, 0, 1); l.position.set(0, -60, 0); S.add(l, l.target); o.pad.add(l); }
+    for (; n.h < N.h; n.h++) { const l = new T.HemisphereLight(0, 0, 0); S.add(l); o.pad.add(l); } }
+  return N;
+}
+let pmrem = null, envStub = null;
 function cineLoc(R, o) {
-  const S = o.S, skip = new Set([o.rim, o.faceL, o.slitLight, o.lamp, o.boothLight, o.candle, o.torch]);
+  const S = o.S, skip = new Set([o.rim, o.faceL, o.slitLight, o.lamp, o.boothLight, o.candle, o.torch, o.rimC, ...(o.pad || [])]);
   S.traverse(m => {
     if (!m.isMesh) return;
     const mt = Array.isArray(m.material) ? m.material[0] : m.material, g = m.geometry;
@@ -1999,6 +2016,8 @@ function cineLoc(R, o) {
   if (o.lamps) setLamps(o, 7);
   o.dust.visible = false; o.beams.forEach(b => (b.m.visible = false));
   S.position.set(-at[0], -at[1], -at[2]); S.updateMatrixWorld(true);
+  // съёмка окружения — теми же программами, что и игра: с пустой картой окружения того же вида (иначе каждый материал собирался ещё раз — без неё)
+  envStub = envStub || pmrem.fromScene(new T.Scene()).texture; S.environment = envStub;
   const env = pmrem.fromScene(S, .02, .05, 60); S.environment = env.texture;
   S.position.set(0, 0, 0); S.updateMatrixWorld(true);
   o.dust.visible = true; o.beams.forEach(b => (b.m.visible = true));
@@ -2112,7 +2131,12 @@ function init() {
   if (CINE) { R.shadowMap.autoUpdate = false; for (const k in A) A[k].root.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); }
   L.lobby = buildLobby(); L.corridor = buildCorridor(); L.server = buildServer(); L.stairs = buildStairs(); L.basement = buildBasement();
   for (const k in L) L[k].name = k;
+  window.__lightN = lightRig(L);
   if (CINE) for (const k in L) cineLoc(R, L[k]);
+  // «Кино» потеряло контекст на виду (процесс GPU упал или его убил сторож на сборке шейдеров) — карты окружения и буферы уже пустые,
+  // и на этой машине упадёт снова: «Ретро» с продолжением с того же места. Свёрнутая вкладка на телефоне (hidden) — не повод
+  if (CINE) canvas.addEventListener('webglcontextlost', () => { window.__ctxLost = (window.__ctxLost || 0) + 1;   // ?gfx= в адресе (проверки) — без перезагрузки
+    if (document.visibilityState === 'visible' && localStorage.getItem('ns1_gfxAuto') !== '2' && !/[?&]gfx=/.test(location.search) && window.nsGfxFallback) window.nsGfxFallback(5); });
   // буфер кадра и постобработка: цветокор + дизеринг + ступени цвета + плёнка VHS (дрожь строк, полоса внизу, редкий залом,
   // цветная кайма в 1 пиксель, строки, лёгкая бочка); у камер наблюдения бочка сильнее и пересвет
   window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? { type: T.HalfFloatType, samples: 4 } : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
