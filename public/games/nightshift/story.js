@@ -664,7 +664,27 @@ window.STORY = {
       ],
       then: { over: 'ТЫ ЗАСМОТРЕЛСЯ', sub: 'Там, где помехи, кто-то стоит. Не смотри — запиши и переключи.', retry: '@save' }
     },
-    // A1: Итан прячется под стойкой — на камере холла его не видно, у окна будки стоит только второй
+    // A1: Итан прячется под стойкой (не за столом): крупно его лицо под столешницей; на CAM 00 оно над столом тянется к нему; на камере холла — только второй
+    over_k1_hide: {
+      music: 'tension',
+      beats: [
+        { img: 'c13_face', fx: 'cctv', label: 'CAM 13', cams: [[[.3, 2.12, -4.6], .09, 1.0, 1.35]], say: ['k1a'], pad: .2 },
+        { img: 'c13_name', fx: 'cctv', label: 'CAM 13', cams: [[[.3, 2.12, -4.6], .07, 1.7, 2.15]], say: ['k1b'], pad: .1 },
+        { img: 'k1_hide', cams: [[.5, .46, 1.0, 1.05]], sfx: [['static', 0, { gain: .22, cut: 1.45, once: 1 }], ['tinnitus', .4, { gain: .35 }], ['static', 1.42, { gain: .85, cut: .4, once: 1 }]], snow: [[1.45, 1.8]], text: '', pad: 1.65 },
+        { img: 'k1_taken', fx: 'cctv', label: 'CAM 13', hush: 'soft', cams: [[[.3, 1.62, -4.6], .03, 1.75, 2.15]], snow: [[0, .3], [2.75, 3.05]], black: 3.05,
+          sfx: [['static', 0, { gain: .7, cut: .3, once: 1 }], ['sub_presence', .5, { gain: .55, cut: 2.3 }], ['static', 2.75, { gain: .95, cut: .3, once: 1 }]], text: '', pad: 3.6 }
+      ],
+      then: { over: 'ТЫ ПОСМОТРЕЛ ЕМУ В ЛИЦО', sub: 'Не смотри в тринадцатую камеру.', retry: '@save' }
+    },
+    over_stare_hide: {
+      music: 'room_tone',
+      beats: [
+        { img: 'c13_face', fx: 'static', label: 'CAM', cams: [[[.3, 2.12, -4.6], .07, 1.6, 2.4]], say: ['n22'], pad: .1 },
+        { img: 'hush_hide', fx: 'cctv', label: 'CAM 00  БУДКА', cams: [[[5.75, 1.4, -.75], .04, 1.3, 1.5]], snow: [[0, .25]], black: 2.65,
+          sfx: [['static', 0, { gain: .55, cut: .25, once: 1 }], ['heart_held', .35, { gain: .7 }], ['hush', 1.45, { gain: 1 }], ['static', 2.6, { gain: .7, cut: .2, once: 1 }]], text: '', pad: 3.3 }
+      ],
+      then: { over: 'ТЫ ЗАСМОТРЕЛСЯ', sub: 'Там, где помехи, кто-то стоит. Не смотри — запиши и переключи.', retry: '@save' }
+    },
     over_phone_hide: {
       music: 'tension',
       beats: [
@@ -679,7 +699,7 @@ window.STORY = {
   /* смена: часы ночи — камеры, пульт, журнал (engine.js, shiftGame) */
   shift: {
     // смерть в часы, когда Итана нет в будке: S6 — он в серверной с Фрэнком, A1 — под стойкой (engine.js shiftDie, tools/story/continuity.js)
-    hourDeath: { S6: { over_k1: 'over_k1_srv', over_come: 'over_come_srv', over_stare: 'over_stare_srv' }, A1: { over_phone: 'over_phone_hide' } },
+    hourDeath: { S6: { over_k1: 'over_k1_srv', over_come: 'over_come_srv', over_stare: 'over_stare_srv' }, A1: { over_phone: 'over_phone_hide', over_k1: 'over_k1_hide', over_stare: 'over_stare_hide' } },
     memo: ['ПАМЯТКА ОХРАННИКУ БЦ «ГОРИЗОНТ»', '22:00 — запереть вход, лифт — в ночной режим (СТОП).', 'Каждый час — осмотр по камерам. Замечания — в журнал (кнопка «Записать»).',
       'Свет на пустых этажах — выключать с пульта.', 'Посторонних не впускать.', 'Внутренний телефон — для связи с охраной соседних зданий.'],
     frank: ['(на обороте обложки, карандашом) Помехи на камере — не засматривайся. Запиши и переключи.', '03.10  Обход. Лампа на 4-м мигает.', '05.10  Обход. Кошка у баков.', '08.10  Обход. Без происшествий.',

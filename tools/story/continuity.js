@@ -5,7 +5,7 @@
 //   • Фрэнк (mihalych) — только после 04:10 (нашёлся на CAM −2), в концовке «Новая запись» (morning) его уже нет; на фото — можно;
 //   • дневной охранник (smenshik) — 21:00–21:05 и с 06:00 (между — только по телефону);
 //   • «Лили» (katya…) — только оно, с 03:30 (настоящая Лили в общежитии); двойник Итана — только в смертях; Марта — только на фото;
-//   • Итана нет в будке на камерах, пока он в серверной (S6) или под стойкой (A1).
+//   • Итана нет в будке на камерах, пока он в серверной (S6) или под стойкой (A1); в смертях часа S6 его нет в холле, в смертях часа A1 он не сидит за столом.
 //   node tools/story/continuity.js [ПАПКА]   → таблица ПАПКА/continuity.txt (сцена, время, кадр, кто в кадре) и нарушения; код выхода 1 — есть нарушения.
 //   PORT=8771 — сервер статики (cd public/games && python3 -m http.server 8771 --bind 127.0.0.1); ORI=P|L|PL (по умолчанию PL); ONLY=regexp — только эти сцены
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
@@ -77,6 +77,7 @@ const RULES = [
     for (const t of ts) { World.draw(c.getContext('2d'), c.width, c.height, img, { t, T: t + 100, cx: .5, cy: .5, z: 1, props: props || undefined });
       const h = World.heads(); for (const k in h) { const q = h[k]; if (q[2] && q[0] > -.02 && q[0] < 1.02 && q[1] > -.02 && q[1] < 1.02) r.add(k); } }
     const sh = World.shots[(World.alias && World.alias[img]) || img]; if (sh && sh.loc === 'lobby' && r.has('temych')) r.add('@lobby');   // Итан в холле/будке
+    if (sh && sh.loc === 'lobby' && r.has('temych')) { const e = World.actors.temych.root.position; if (Math.hypot(e.x - 5.2, e.z + .74) < .35) r.add('@seat'); }   // сидит за столом в будке (SEAT в scenes.js)
     return [...r]; }, [img, ts, props]);
   const oris = ORI.includes('P') && ORI.includes('L') ? [false, true] : [ORI === 'L'];
   const rows = [], bad = [], seenL = list.map(() => new Set()), seenC = camList.map(() => new Set());
@@ -93,6 +94,8 @@ const RULES = [
     check(x, ks, x.mins, `${x.scene}[${x.i}] ${x.img}`);
     // смерть из часа S6: Итан всю ночь в серверной с Фрэнком — в будке его быть не может
     if (ks.includes('@lobby') && fromSeg[x.scene] && fromSeg[x.scene].has('S6')) bad.push(`${x.scene}[${x.i}] ${x.img}: Итан в будке, а смерть бывает и в часе S6 (он в серверной)`);
+    // смерть из часа A1: Итан прячется под стойкой — за столом он сидеть не может
+    if (ks.includes('@seat') && fromSeg[x.scene] && fromSeg[x.scene].has('A1')) bad.push(`${x.scene}[${x.i}] ${x.img}: Итан сидит за столом, а смерть бывает и в часе A1 (он под стойкой)`);
   });
   rows.push('', '---- камеры смены (что на них с начала часа и после событий state)');
   for (const [i, x] of camList.entries()) {
