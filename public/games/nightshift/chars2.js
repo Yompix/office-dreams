@@ -1489,12 +1489,11 @@ const SHROUD_N = `
 const SHROUD_FS = `float gCloth, gWet; vec3 gClothC;
   { float body = mix(smoothstep(.27, .23, abs(vB.x)), smoothstep(.4, .34, abs(vB.x)), smoothstep(1.32, 1.22, vB.y));
     float hemY = .56 + .07 * (vn3(vec3(vB.x * 26., 0., vB.z * 26.)) - .5) + .03 * (hh3(vec3(floor(vB.x * 60.), 3., floor(vB.z * 60.))) - .5);
-    gCloth = body * smoothstep(2.05, 2.02, vB.y + .03 * cos(vB.x * 16.)) * smoothstep(hemY - .012, hemY + .012, vB.y);
+    gCloth = body * smoothstep(1.98, 1.95, vB.y + .03 * cos(vB.x * 16.)) * smoothstep(hemY - .012, hemY + .012, vB.y);
     float fold = sin(atan(vB.x, vB.z + .3) * 30. + vn3(vB * 7.) * 4.) * (.08 + .14 * smoothstep(1.5, .6, vB.y));
     float dirt = smoothstep(.55, .78, vn3(vB * 8.5)) * .55 + smoothstep(1.1, .55, vB.y) * .35;
     gWet = smoothstep(hemY + .2, hemY + .02, vB.y) * gCloth;
-    float seam = smoothstep(.012, .0, abs(vB.y + .03 * cos(vB.x * 16.) - 2.015)) + smoothstep(.014, .0, abs(vB.y - hemY - .01));   // кромка ворота и подола
-    vec3 cloth = vec3(.36, .34, .3) * (1. + fold) * (1. - .4 * dirt) * mix(vec3(1.), vec3(.74, .6, .42), dirt * .85) * (1. - .45 * seam);
+    vec3 cloth = vec3(.36, .34, .3) * (1. + fold) * (1. - .4 * dirt) * mix(vec3(1.), vec3(.74, .6, .42), dirt * .85);
     cloth *= 1. - .55 * gWet; gClothC = mix(cloth, vec3(.06, .055, .05), .4 * gWet * smoothstep(.4, .7, vn3(vB * 30.)));
     float vein = smoothstep(.035, .0, abs(vn3(vec3(vB.x * 38., vB.y * 9., vB.z * 38.)) - .5)) * (1. - gCloth);
     diffuseColor.rgb *= 1. - .3 * vein * vec3(1., .8, .7); }
@@ -1690,7 +1689,81 @@ function makeHuman(o) {
   C.addFace = (nm, ov) => { C.faceSets[nm] = ov; };
   C.update = (t, dt) => updateSkinned(C, t, dt);
   fitProps(C);
+  if (o.gown) skinGown(C);
   return C;
+}
+
+// рубаха-саван Жильца — своя свободная сетка со скелетом (как полы плаща у v2), от плеч ниже колен.
+// Строится один раз в позе покоя по самому телу: на каждой высоте — эллипс вокруг туловища (руки в позе «Т» отрезаны), ниже бёдер —
+// вокруг обеих ног сразу и не уже бёдер (подол, а не штанины), книзу свободнее, по низу складки. Кости: грудь → поясница → таз → бёдра
+// (подол идёт за бедром своей стороны: шаг, присед, бросок). Ткань — gownMat: грязно-серо-белая, складки рельефом, пятна, рваный мокрый подол
+function skinGown(C) {
+  const sk = C.mesh, par = sk.parent; C.root.updateWorldMatrix(true, true);
+  const P = n => C.bone[n].getWorldPosition(new T.Vector3()), base = C.root.getWorldPosition(new T.Vector3());
+  const neck = P('neck_01'), pel = P('pelvis'), thL = P('thigh_l'), cfL = P('calf_l'), arm = P('upperarm_l'), sp3 = P('spine_03'), sp1 = P('spine_01');
+  const side = Math.sign(thL.x - pel.x) || 1, yTop = neck.y - .05 * C.ss, yHip = pel.y, yBot = cfL.y - .2 * C.ss, armCut = Math.abs(arm.x - base.x) * .92;
+  const pts = [], pa = sk.geometry.attributes.position, v = new T.Vector3(), step = Math.max(1, Math.floor(pa.count / 6000));   // точки тела в позе покоя (мир)
+  for (let i = 0; i < pa.count; i += step) { sk.getVertexPosition(i, v); v.applyMatrix4(sk.matrixWorld); pts.push([v.x, v.y, v.z]); }
+  const NR = 16, NA = 32, rows = [], ySh = arm.y;   // верхнее кольцо — вокруг шеи, второе — на высоте плечевых суставов: между ними плечи (руки выходят по бокам)
+  const band = (y, dy, cut) => { let x0 = 9, x1 = -9, z0 = 9, z1 = -9;
+    for (const [px, py, pz] of pts) { if (Math.abs(py - y) > dy || Math.abs(px - base.x) > cut) continue; x0 = Math.min(x0, px); x1 = Math.max(x1, px); z0 = Math.min(z0, pz); z1 = Math.max(z1, pz); }
+    if (x1 < x0) { x0 = base.x - .15; x1 = base.x + .15; z0 = base.z - .1; z1 = base.z + .1; }
+    return { cx: (x0 + x1) / 2, cz: (z0 + z1) / 2, rx: (x1 - x0) / 2, rz: (z1 - z0) / 2 }; };
+  rows.push(Object.assign({ y: neck.y + .015 * C.ss, f: 0, neckRow: 1 }, band(neck.y + .015 * C.ss, .03 * C.ss, .1 * C.ss)));
+  for (let j = 1; j <= NR; j++) { const f = (j - 1) / (NR - 1), y = ySh + (yBot - ySh) * f;
+    rows.push(Object.assign({ y, f }, band(y, Math.abs(yBot - ySh) / NR * .8, y > yHip + .1 * C.ss ? armCut : 9))); }
+  let hip = null;   // ниже бёдер не уже бёдер; книзу свободнее
+  for (const r of rows) { if (r.y <= yHip && !hip) hip = { rx: r.rx, rz: r.rz, cx: r.cx, cz: r.cz }; if (hip && r.y < yHip) { r.rx = Math.max(r.rx, hip.rx * .98); r.rz = Math.max(r.rz, hip.rz * 1.05); r.cx = hip.cx; r.cz = r.cz * .5 + hip.cz * .5; }
+    if (r.neckRow) { r.rx += .022 * C.ss; r.rz += .022 * C.ss; continue; }   // ворот — у самой шеи
+    const loose = .05 + .3 * Math.pow(r.f, 1.4); r.rx = r.rx * (1 + loose) + .02 * C.ss; r.rz = r.rz * (1 + loose * 1.2) + .03 * C.ss; }
+  const pos = [], aB = [], aF = [], aS = [], si = [], sw = [], idx = [];
+  const bones = ['spine_03', 'spine_02', 'spine_01', 'pelvis', 'thigh_l', 'thigh_r'].filter(n => C.bone[n]), bi = n => bones.indexOf(n), yS3 = sp3.y, yS1 = sp1.y;
+  for (const r of rows) for (let i = 0; i <= NA; i++) {
+    const a = i / NA * Math.PI * 2, sa = Math.sin(a), ca = Math.cos(a), wave = 1 + .05 * r.f * Math.sin(a * 9 + .6) + .022 * r.f * Math.sin(a * 23);
+    const ell = 1 / Math.sqrt(Math.pow(sa / r.rx, 2) + Math.pow(ca / r.rz, 2)), w = new T.Vector3(r.cx + sa * ell * wave, r.y, r.cz + ca * ell * wave);
+    aB.push(w.x - base.x, w.y - base.y, w.z - base.z); aF.push(r.f); aS.push(sa, ca);
+    par.worldToLocal(w); pos.push(w.x, w.y, w.z);
+    let W;   // веса: грудь → поясница → таз; под тазом подол переходит на бедро своей стороны
+    if (r.y >= yS3) W = { spine_03: 1 };
+    else if (r.y >= yS1) { const k = (yS3 - r.y) / Math.max(.01, yS3 - yS1); W = { spine_03: 1 - k, spine_01: k }; }
+    else if (r.y >= yHip) { const k = (yS1 - r.y) / Math.max(.01, yS1 - yHip); W = { spine_01: 1 - k, pelvis: k }; }
+    else { const g = Math.min(1, Math.pow((yHip - r.y) / Math.max(.01, yHip - yBot), 1.15)) * .82, l = T.MathUtils.smoothstep(sa * side, -.55, .55); W = { pelvis: 1 - g, thigh_l: g * l, thigh_r: g * (1 - l) }; }
+    const ks = Object.keys(W).filter(n => bi(n) >= 0); while (ks.length < 4) ks.push(null);
+    for (const n of ks) { si.push(n ? bi(n) : 0); sw.push(n ? W[n] : 0); }
+  }
+  for (let j = 0; j < NR; j++) for (let i = 0; i < NA; i++) { const a = j * (NA + 1) + i, b = a + NA + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
+  const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('aB', new T.Float32BufferAttribute(aB, 3));
+  geo.setAttribute('aF', new T.Float32BufferAttribute(aF, 1)); geo.setAttribute('aS', new T.Float32BufferAttribute(aS, 2)); geo.setIndex(idx);
+  geo.setAttribute('skinIndex', new T.Uint16BufferAttribute(si, 4)); geo.setAttribute('skinWeight', new T.Float32BufferAttribute(sw, 4)); geo.computeVertexNormals();
+  const m = new T.SkinnedMesh(geo, gownMat(C)); m.name = 'gown'; m.frustumCulled = false; par.add(m); m.updateWorldMatrix(true, false);
+  m.bind(new T.Skeleton(bones.map(n => C.bone[n]))); C.gown = m;
+}
+function gownMat(C) {
+  const m = litMat({ color: 0xffffff, side: T.DoubleSide }, .92);
+  if (!CINE) m.extensions = Object.assign({}, m.extensions, { derivatives: true });
+  m.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, { uWet: C.HU.uWet, uGore: C.HU.uGore });
+    sh.vertexShader = 'attribute vec3 aB; attribute float aF; attribute vec2 aS; varying vec3 vG; varying float vF; varying vec2 vS;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vG = aB; vF = aF; vS = aS;');
+    sh.fragmentShader = `uniform float uWet, uGore; varying vec3 vG; varying float vF; varying vec2 vS;
+float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+${HUM_NOISE}float gWet = 0., gA = 0., gN = 0.;
+` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+  gA = atan(vS.x, vS.y); gN = vn3(vG * 7.);
+  if (vF > .93 - .08 * vn3(vec3(vG.x * 22., 0., vG.z * 22.)) - .04 * hh3(vec3(floor(gA * 9.), 1., 2.))) discard;   // рваный подол
+  if (vF > .62 && vn3(vG * 13.) > .8) discard;   // дыры у подола
+  float fold = sin(gA * 11. + gN * 4.) * (.1 + .16 * vF), dirt = smoothstep(.55, .78, vn3(vG * 8.5)) * .55 + vF * vF * .5; gWet = smoothstep(.62, .92, vF);
+  vec3 cloth = vec3(.44, .42, .37) * (1. + fold) * (1. - .4 * dirt) * mix(vec3(1.), vec3(.76, .63, .46), dirt * .8);
+  cloth *= 1. - .55 * gWet; cloth = mix(cloth, vec3(.05, .045, .04), .45 * gWet * smoothstep(.4, .7, vn3(vG * 30.)));
+  if (uGore > 0.) cloth = mix(cloth, vec3(.2, .012, .012), uGore * smoothstep(.62, .78, vn3(vG * 4. + 3.)) * (1. - vF));   // кровь на груди, когда ест
+  diffuseColor.rgb = cloth * (1. - .15 * uWet);`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+  { float hf = sin(gA * 11. + gN * 4.) * (.004 + .009 * vF) + vn3(vec3(vG.x * 50., vG.y * 5., vG.z * 50.)) * .003;   // складки рельефом
+    vec2 dh = vec2(dFdx(hf), dFdy(hf)); vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
+    vec3 nn = abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2); normal = dot(nn, nn) > 1e-24 ? normalize(nn) : normal; }`)
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(.93, .5, gWet);');
+  };
+  m.customProgramCacheKey = () => 'gown1' + (CINE ? 'c' : '');
+  return m;
 }
 
 // лицо v3 каждый кадр: моргание, взгляд, брови, речь, улыбка, страх, крик → веса лицевых форм на всех частях (кожа, глаза, ресницы, брови, зубы)
@@ -1804,7 +1877,7 @@ function castV3() {
   // «не её лицо»: то же тело в жёлтой куртке, но глаза чёрные, кожа серая, улыбка шире человеческой, голова дёргается
   A.katyaThing = H(Object.assign({ name: 'katyaThing', noBlink: true, grey: .85, smile: 2.1, deadEyes: 0x000000, socket: 1, tilt: .22, jerk: true }, lily));
   // Оно: выше двери, истощённое, серая сухая кожа (не блестит), чёрные глаза, длинные пальцы и шея; мокрые чёрные волосы
-  A.monster = H({ name: 'monster', model: 'tenant', monster: true, shroud: true, h: 2.4, arm: 1.1, armL: 1.08, handS: 1.25, neck: 1.18, headS: .92, grey: 1, wet: .25,
+  A.monster = H({ name: 'monster', model: 'tenant', monster: true, shroud: true, gown: true, h: 2.4, arm: 1.1, armL: 1.08, handS: 1.25, neck: 1.18, headS: .92, grey: 1, wet: .25,
     deadEyes: 0x000000, socket: 1, tilt: .45, jerk: true, headMax: 2.3, stopmo: 1 / 7, tint: { skin: 0xa9b0a6, hair: [0x0a0a0a, 1, .6] } });
   A.monster.addFace('grin', { smile: 1.15, mouth: .5 });
   A.monster.addFace('scream', { scream: 1 });
