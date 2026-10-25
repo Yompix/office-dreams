@@ -425,7 +425,7 @@ window.STORY = {
     over_k3: {
       music: 'tension',   // без своего времени: сюда же ведёт рация голосом Гаса в 04:42 (час S5) — часы не прыгают назад на 03:06
       beats: [
-        { img: 'booth_radio', cams: [[.5, .5, 1.1, 1.2]], say: ['k3a', 'k3b'], pad: .1 },
+        { img: 'k3_answer', cams: [[.5, .5, 1.1, 1.2]], say: ['k3a', 'k3b'], pad: .1 },
         // свой финал: склейка на правое стекло будки — вплотную за ним, согнувшись, стоит оно с рацией Гаса у рта; опускает её — губы ещё шевелятся; лампа гаснет
         { img: 'k3_radio', hush: 'soft', cams: [[.5, .46, 1.0, 1.06]], black: 3.0,
           sfx: [['phone_crackle', 0, { gain: .55 }], ['breath_close', .55, { gain: .45 }], ['whispers', 1.95, { gain: .35 }], ['hum_stop', 2.97, { gain: .8 }], ['static', 3.0, { gain: .3, cut: .9, once: 1 }]], text: '', pad: 3.65 }
@@ -465,9 +465,9 @@ window.STORY = {
     },
     over_k6: {
       music: 'tension',
-      beats: [   // свой финал: упал — камера на полу; лампы гаснут к нему по одной; в последнем свете входят босые ступни, оно присаживается — сверху в кадр опускается лицо
+      beats: [   // свой финал: упал — камера на полу; лампы гаснут к нему по одной; в темноте босые шаги, последняя лампа моргнула — ступни уже перед лицом; оно присаживается — сверху в кадр опускается лицо
         { img: 'k6_fall', cams: [[.5, .5, 1.0, 1.0]], black: 3.8,
-          sfx: [['boom', 0, { gain: .55 }], ['tinnitus', .1, { gain: .45 }], ['hum_stop', .35, { gain: .35 }], ['hum_stop', 1.05, { gain: .45 }], ['hum_stop', 1.75, { gain: .55 }], ['hum_stop', 2.05, { gain: .6 }], ['steps_barefoot', 1.95, { gain: .85, cut: .8 }], ['skin_stretch', 2.85, { gain: .4 }], ['breath_close', 3.35, { gain: .9 }], ['hum_stop', 3.78, { gain: .8 }]], text: '', pad: 4.4 }],
+          sfx: [['boom', 0, { gain: .55 }], ['tinnitus', .1, { gain: .45 }], ['hum_stop', .35, { gain: .35 }], ['hum_stop', 1.05, { gain: .45 }], ['hum_stop', 1.75, { gain: .55 }], ['hum_stop', 2.05, { gain: .6 }], ['steps_barefoot', 1.95, { gain: .85, cut: .5 }], ['skin_stretch', 2.85, { gain: .4 }], ['breath_close', 3.35, { gain: .9 }], ['hum_stop', 3.78, { gain: .8 }]], text: '', pad: 4.4 }],
       then: { over: 'ТЕМНОТА ДОГНАЛА', sub: 'Остановишься — догонит.', retry: 'run' }
     },
     over_k7: {
