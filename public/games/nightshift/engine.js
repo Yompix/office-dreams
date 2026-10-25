@@ -1310,6 +1310,10 @@ function resumeAfterReload() {   // после перезагрузки (сме�
 }
 const VHS_LV = [0, .32, .7], VHS_N = ['ВЫКЛ', 'СЛАБО', 'ОБЫЧНО'];   // переводятся в row()
 const vhsDef = () => (window.World && World.cine ? 1 : 2);   // плёнка по умолчанию: в «Кино» слабая (чистая картинка), в «Ретро» обычная
+function fitHd(host) {   // заголовок экрана настроек — одно длинное слово («НАЛАШТУВАННЯ»): на вертикальном экране уходил под крестик — уменьшаем, пока не влезет
+  const h = host.querySelector('.sets-hd h1'), x = host.querySelector('.sets-hd .sx'); if (!h || !x) return;
+  for (let i = 0; i < 10 && h.getBoundingClientRect().right > x.getBoundingClientRect().left - 4; i++) h.style.fontSize = (parseFloat(getComputedStyle(h).fontSize) * .92).toFixed(1) + 'px';
+}
 function settings(from = 'menu') {   // from: 'menu' — из главного меню, 'pause' — из паузы в игре (настройки поверх игры, без выхода)
   const row = (id, name, val) => `<button class="set" id="${id}"><span>${tr(name)}</span><b>${tr(val)}</b></button>`;
   const vh = LS.get('vhs', vhsDef());
@@ -1326,7 +1330,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
     ${row('sLook', FINE ? 'Оглядываться мышью' : 'Оглядываться наклоном', lookOn() ? 'ВКЛ' : 'ВЫКЛ')}</div>
     <small>${tr('«Кино» — тени, блики, объёмный свет (для ПК). «Ретро» — плёнка и пиксели, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}</small><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
   const back = () => { uiSnd('back'); from === 'pause' ? pauseMenu() : menu(); };
-  $('mBack').onclick = $('sX').onclick = back;
+  $('mBack').onclick = $('sX').onclick = back; fitHd(host);
   const re = () => { uiSnd(); settings(from); };
   $('sMute').onclick = () => { setMute(!LS.get('mute', false)); uiSnd(); $('sMute').classList.toggle('muted', LS.get('mute', false)); };
   host.querySelectorAll('.vol input').forEach(r => { r.oninput = () => { VOL[r.dataset.k] = r.value / 100; r.nextElementSibling.textContent = r.value; LS.set('vol', VOL); applyVol(); };
@@ -1344,7 +1348,7 @@ function langPick(from) {   // выбор языка списком; выбра�
   const host = from === 'pause' ? pzEl : uiEl, N = window.NS_LANG_NAMES || {};
   host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('Язык').toUpperCase()}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets langs">
     ${(window.NS_LANGS || ['ru', 'en']).map(l => `<button class="set" data-l="${l}"><span>${N[l] || l.toUpperCase()}</span><b>${l === LNG ? ICON.ok : ''}</b></button>`).join('')}</div><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
-  $('mBack').onclick = $('sX').onclick = () => { uiSnd('back'); settings(from); };
+  $('mBack').onclick = $('sX').onclick = () => { uiSnd('back'); settings(from); }; fitHd(host);
   host.querySelectorAll('[data-l]').forEach(b => { b.onclick = () => { if (b.dataset.l === LNG) { uiSnd('back'); settings(from); } else { LS.set('lang', b.dataset.l);
     try { const u = new URL(location.href); if (u.searchParams.has('lang')) { u.searchParams.set('lang', b.dataset.l); history.replaceState(history.state, '', u); } } catch {}   // пришёл по ссылке с ?lang= — она главнее выбора: без замены страница перезагружалась на прежнем языке
     reloadKeep(from); } }; });
