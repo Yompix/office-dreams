@@ -2026,6 +2026,31 @@ SH.k8_ceiling = { loc: 'server', pos: [2.45, 1.15, 3.2], look: [1.4, 1.2, 1.5], 
   const tl = seg(t, 2.95, 3.3), f = clamp((t - 3.38) / .22, 0, 1), dp = lin([1.45, 3.0, 1.6], [2.05, 1.9, 2.6], f * f);   // сорвалось — летит на камеру
   return [['monster', dp[0], dp[1], dp[2], .56, { clips: [['Crouch_Idle_Loop', 1.0, 1]], post: C => { C.root.rotation.z = PI; C.root.updateMatrixWorld(true); headTwist(C, 0, .7 * tl); if (t > 1.7 && t < 2.9) C.talk = .2 + .25 * Math.abs(Math.sin(t * 8)); } }, null]];
 } };
+// ---- те же смерти в часы, когда Итана нет в будке (S.shift.hourDeath в story.js): S6 — он в серверной, на корточках в круге соли рядом с Фрэнком;
+// вместо будки — камера серверной (CAM −2, как srv_cam). A1 — прячется под стойкой: на камере холла его не видно
+const SRV_CAM = [-3.3, 2.65, -2.6];
+const srvPair = (t, look) => [['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, frankSit(t), null], ['temych', EIN[0], 0, EIN[1], -.75, { clips: [['Crouch_Idle_Loop', t + .5, 1]], look: look || FRANK_HEAD }, null]];
+// «Посмотрел в лицо»: на камере серверной Итан поднимает лицо к объективу, на лице мерцает свет помех, губы сами шевелятся — отвечает
+SH.k1_srv = { loc: 'server', pos: SRV_CAM, look: [1.9, .85, 2.4], fov: 46, cctv: 1, face: { temych: 'gasp', mihalych: 'fear' }, set: (o, t) => { srvSet(o);
+  o.faceL.position.set(1.7, 1.15, 1.5); o.faceL.color.setHex(0xb8c8dc); o.faceL.distance = 2.2; o.faceL.intensity = 1.1 * (.65 + .35 * Math.sin(t * 47) * Math.sin(t * 13));
+  const P = srvPair(t, t > .45 ? SRV_CAM : FRANK_HEAD); P[1][5].post = C => { if (t > .7 && t < 1.3) C.talk = .3 + .2 * Math.abs(Math.sin(t * 19)); }; return P; } };
+// «Оно пришло»: камера серверной рвётся помехами (story.js snow); когда картинка вернулась — свечи погасли, за спиной Итана у самой соли стоит оно,
+// смотрит в объектив, потом наклоняется через черту к нему
+const COME_M = [2.6, 1.32];
+SH.come_srv_a = { loc: 'server', pos: SRV_CAM, look: [1.9, .9, 2.2], fov: 46, cctv: 1, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o); return srvPair(t); } };
+SH.come_srv_b = { loc: 'server', pos: SRV_CAM, look: [1.9, .9, 2.2], fov: 46, cctv: 1, face: { mihalych: 'fear' }, set: (o, t) => { srvDim(o); o.candle.intensity = .1;
+  faceLit(o, [2.0, 2.4, .4], 1.3, 0xc0ccd8); const lean = seg(t, 1.5, 2.25);
+  return srvPair(t).concat([['monster', COME_M[0], 0, COME_M[1], Math.atan2(EIN[0] - COME_M[0], EIN[1] - COME_M[1]), Object.assign(STILL('Idle_Loop', 1.7), { pelvis: [0, -.15 * lean, 0], spine: { to: [EIN[0], 1.0, EIN[1]], k: .6 * lean } }), 'cam']]); } };
+// «Засмотрелся»: регистратор сам переключается на камеру серверной — оно стоит за спиной у Итана, ладонь у него на плече, наклоняется к уху
+// и подносит палец к губам, глядя в объектив («тссс»), — камера гаснет
+SH.hush_srv = { loc: 'server', pos: SRV_CAM, look: [2.2, 1.15, 1.9], fov: 40, cctv: 1, face: { temych: 'terror' }, set: (o, t) => { srvDim(o);
+  faceLit(o, [2.0, 2.4, .5], 1.3, 0xc0ccd8); const lean = seg(t, .35, 1.2), sh = seg(t, 1.2, 1.75), ry = Math.atan2(EIN[0] - COME_M[0], EIN[1] - COME_M[1]);
+  const lips = C => { const h = C.bone.Head.getWorldPosition(_tv); return [h.x - .08, h.y - .07, h.z - .06]; };   // перед губами, к объективу
+  return srvPair(t).concat([['monster', COME_M[0], 0, COME_M[1], ry, Object.assign(STILL('Idle_Loop', 1.7), { pelvis: [0, -.2 * lean, 0], spine: { to: [EIN[0], 1.05, EIN[1]], k: .55 * lean },
+    arm: { r: { at: [EIN[0] + .08, .98, EIN[1] - .1], by: 'palm', fdir: nrm([-.3, -.2, 1]), pdir: [0, -1, 0], w: lean }, l: { at: lips, by: 'tip', fdir: [0, 1, 0], pdir: nrm([.6, 0, -.8]), w: sh } },
+    fing: { r: ['flat', .55], l: sh > .3 ? ['point', 1] : ['flat', .55] } }), 'cam']]); } };
+// «Назвался» под стойкой: та же камера холла, только Итана за столом нет (он под стойкой, её не видно) — у окна будки стоит второй
+SH.dbl_cam_hide = Object.assign({}, SH.dbl_cam, { set: (o, t, sh) => SH.dbl_cam.set(o, t, sh).filter(a => a[0] !== 'temych') });
 // ---- постановка v3: передача ключей (сменщик протягивает связку через окно будки, Итан берёт её в ладонь) ----
 const ease = k => k * k * (3 - 2 * k), seg = (t, a, b) => ease(clamp((t - a) / (b - a), 0, 1));
 const KEYH = [5.1, 1.29, .3];   // где встречаются руки: над внутренним краем стойки, в окне между стёклами

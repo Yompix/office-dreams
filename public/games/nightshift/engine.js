@@ -1021,6 +1021,7 @@ const DEATH_ALT = { over_stare: ['over_stare', 'over_stare_b'] };   // одна 
 const ALT_OK = { over_stare_b: cam => cam === '07' && !shk.st.gus };
 function shiftDie(id, cam) { if (!shf || shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null);
   const alt = DEATH_ALT[id] && DEATH_ALT[id].filter(x => !ALT_OK[x] || ALT_OK[x](cam)); if (alt && alt.length) { const n = +LS.get('alt_' + id, 0) || 0; LS.set('alt_' + id, n + 1); id = alt[n % alt.length]; }
+  id = ((S.shift.hourDeath || {})[shf.id] || {})[id] || id;   // в серверной (S6) и под стойкой (A1) Итана нет в будке — та же смерть в другой постановке
   startScene(id); }
 function shiftEnd() { if (shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null); const n = shf.seg.next;
   if (!run.hrs.includes(shf.id)) run.hrs.push(shf.id); runSave(); LS.set('shk', shk); shf = null; startScene(n); }
