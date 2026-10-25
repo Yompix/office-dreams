@@ -1235,6 +1235,8 @@ function updateSkinned(C, t, dt) {
   // Жилец двигается рывками, как покадровая анимация: поза меняется ~7 раз в секунду
   let sdt = dt, still = false;
   if (C.o.stopmo) { C.smAcc = (C.smAcc || 0) + dt; if (C.smAcc < C.o.stopmo && C.smDone) still = true; else { sdt = C.smAcc; C.smAcc = 0; C.smDone = true; } }
+  // покадровый Жилец между сменами позы стоит, но предметы каждый кадр прячутся (propsFrame) — то, что у него в руке (рация Гаса), ставим на место заново
+  if (still && OBJ && P.hold) for (const sd of ['l', 'r']) if (P.hold[sd]) holdProp(C, sd, P.hold[sd], 0);
   if (!still) {
   // шаг под скорость: ноги идут ровно с той скоростью, с какой человек движется по полу (иначе «плывёт» или шагает на месте)
   let stride = 1;

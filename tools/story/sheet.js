@@ -31,7 +31,7 @@ function probe() {
 const NAMES = { temych: 'Итан', mihalych: 'Фрэнк', cleaner: 'Гас', katya: 'Лили', katyaSmile: 'Лили', katyaThing: '«Лили»', smenshik: 'сменщик', monster: 'монстр', victim: 'жертва', martha: 'Марта' };
 function verdict(r) {
   const err = [], warn = [];
-  if (r.lum < 2.5 && r.img && !/^(dark|strobe|lunge)$/.test(r.bfx)) err.push('чёрный кадр');
+  if (r.lum < 2.5 && r.img && !/^(dark|strobe|lunge)$/.test(r.bfx) && !r.bblack) err.push('чёрный кадр');   // bblack — после beat.black (обрыв в черноту в финале смерти) так и задумано
   for (const x of r.clips || []) {   // глубина в тонкой доске не больше половины её толщины: дошло до середины — значит, насквозь
     const off = !x.scr || !x.scr[2] || x.scr[0] < -.02 || x.scr[0] > 1.02 || x.scr[1] < -.02 || x.scr[1] > 1.02, tag = off ? '(за кадром) ' : '';   // самая глубокая точка вне кадра — игрок не видит: «проверить», не ошибка
     if (x.prop === 'пол') { if (x.d < .04) continue; (x.d >= .06 && x.n >= 15 && !off ? err : warn).push(tag + `${NAMES[x.k] || x.k} ушёл под пол на ${Math.round(x.d * 100)} см (${x.n} верш.)`); continue; }   // подошва на 2–4 см в полу не видна
@@ -52,7 +52,7 @@ async function job(list, land, ji) {
   await p.goto(URL); await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 300000 });
   const res = []; let done = 0;
   for (const id of list) {
-    const beats = await p.evaluate(id => window.STORY.scenes[id].beats.map(b => ({ if: b.if || null, img: b.img || null, phone: !!b.phone, fx: b.fx || '' })), id);
+    const beats = await p.evaluate(id => window.STORY.scenes[id].beats.map(b => ({ if: b.if || null, img: b.img || null, phone: !!b.phone, fx: b.fx || '', black: b.black ?? null })), id);
     for (let bi = 0; bi < beats.length; bi++) {
       const fl = {}; for (const k of [].concat(beats[bi].if || [])) { if (k[0] === '!') fl[k.slice(1)] = 0; else fl[k] = 1; }
       await p.evaluate(([id, bi, fl]) => { window.__ns.setFlags(fl); window.__ns.startScene(id, bi); }, [id, bi, fl]);
@@ -67,7 +67,7 @@ async function job(list, land, ji) {
         const d = await p.evaluate(probe).catch(e => ({ lum: 99, clips: [], perr: String(e).slice(0, 120) }));
         const file = `${id}_${bi}_${k}${land ? 'L' : 'P'}.jpg`;
         await p.screenshot({ path: path.join(out, 'th', file), type: 'jpeg', quality: 72, timeout: 120000 });
-        const r = Object.assign({ id, bi, k, t: +ts[k].toFixed(1), land, file, img: beats[bi].img, bfx: beats[bi].fx, errs: errs.slice(e0).concat(d.perr ? ['проба: ' + d.perr] : []) }, d);
+        const r = Object.assign({ id, bi, k, t: +ts[k].toFixed(1), land, file, img: beats[bi].img, bfx: beats[bi].fx, bblack: beats[bi].black != null && ts[k] >= beats[bi].black, errs: errs.slice(e0).concat(d.perr ? ['проба: ' + d.perr] : []) }, d);
         Object.assign(r, verdict(r)); res.push(r);
       }
     }
