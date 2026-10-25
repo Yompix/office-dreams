@@ -1682,7 +1682,7 @@ SH.bm_back = { loc: 'basement', pos: [0, 1.6, -12.4], look: [0, 1.1, -2], fov: 5
 const SHS = () => (curProps && curProps.sh) || {};
 function irOn(o, p, k = 1.5) { o.ir = 1; o.irL.position.set(p[0], p[1], p[2]); o.irL.intensity = k; }   // темно — камера переходит в ИК: подсветка у объектива, ч/б
 function shClock(o, s, t) { if (s.clk == null) return; const v = s.clockSpin ? s.clk - t * 40 : s.clk; o.setClock(Math.floor(v / 60), ((v % 60) + 60) % 60); }   // часы холла идут по времени смены (или крутятся назад)
-const STILL = (clip = 'Idle_Loop', at = 1.2) => ({ clips: [[clip, at, 1]], legs: 'feet' });   // стоит и не шевелится
+const STILL = (clip = 'Idle_Loop', at = 1.2) => ({ clips: [[clip, at, 1]], legs: 'feet', still: 1 });   // стоит и не шевелится (странность на камере: не дышит, не моргает телом)
 SH.cam01 = { loc: 'lobby', pos: [-1.2, 3.3, 8.3], look: [2.6, .6, 8.4], fov: 74, cctv: 1, set: (o, t) => { const s = SHS(); o.rain.material.opacity = .18;
   o.cat.visible = !!s.cat; if (s.cat) { o.catHead.rotation.y = Math.sin(t * .4) * .5; o.catTail.rotation.z = Math.sin(t * 1.7) * .3; }
   if (s.door01) { leafAng(o, 0, 1.15); leafAng(o, 1, .35); }   // вход распахнут в дождь
@@ -2163,7 +2163,14 @@ function aim(c, pos, look, fov, cx, cy, z, sx, sy) {
   c.rotateY(-sx * .00012); c.rotateX(-sy * .00012);
 }
 let lastT = 0, curLoc = null, lastId = null;
-function stage(id, t, opt = {}) {
+// склейка без смены ракурса: тот же план ближе или вопрос → ответ с той же точки. Здесь поза и взгляд продолжаются, а не начинаются заново
+// (иначе видно, как человек «перескакивает» в другую фазу стойки — классическая ошибка монтажа)
+function sameView(a, b) { if (!a || !b || a.loc !== b.loc) return false;
+  const da = [a.look[0] - a.pos[0], a.look[1] - a.pos[1], a.look[2] - a.pos[2]], db = [b.look[0] - b.pos[0], b.look[1] - b.pos[1], b.look[2] - b.pos[2]];
+  const c = (da[0] * db[0] + da[1] * db[1] + da[2] * db[2]) / (Math.hypot(...da) * Math.hypot(...db) || 1);
+  return Math.hypot(a.pos[0] - b.pos[0], a.pos[1] - b.pos[1], a.pos[2] - b.pos[2]) < .6 && c > Math.cos(.25); }
+const hardCut = C => C.o.monster || C.o.jerk || C.o.dead || C.o.grey > .3;   // Жилец и «подделки» на склейке всегда ставятся заново (покадровая рывковость)
+function stage(id, t, opt = {}, cont = false) {
   const sh = SH[ALIAS[id] || id] || SH.hall_cam, o = L[sh.loc];
   if (window.__W3chars && window.__W3chars.propsFrame) window.__W3chars.propsFrame();   // предметы в руках: видны только те, что держат в этом кадре
   curProps = Object.assign({}, PROPS, window.World && World.props, opt.props);
@@ -2178,7 +2185,7 @@ function stage(id, t, opt = {}) {
   for (const [k, x, y, z, ry, pose, look, only] of acts) {
     const C = A[k]; used.add(k);
     if (C.root.parent !== o.S) o.S.add(C.root);
-    if (C.lastShot !== id) { C.lastShot = id; C.lookDir = null; C.prevP = null; C.walkV = null; }
+    if (C.lastShot !== id) { C.lastShot = id; if (!cont || hardCut(C)) C.lookDir = null; C.prevP = null; C.walkV = null; }
     C.root.position.set(x, y, z); C.root.rotation.set(0, ry, 0); C.pose = pose;   // наклон корпуса (вверх ногами и т. п.) кадр задаёт сам — в P.post, каждый кадр заново
     C.look = look === 'cam' ? new T.Vector3(...sh.pos) : look ? new T.Vector3(...look) : null;
     C.reflOnly = only === 'refl';   // виден только в отражении на стекле
@@ -2270,14 +2277,16 @@ function draw(g, W, H, id, o) {
   if (!init()) return false;
   const R = window.__W3core.R;
   const t = o.t || 0, T0 = o.T || 0, dt = Math.min(.05, Math.max(0, T0 - lastT)) || .016; lastT = T0;
-  const newShot = id !== lastId; lastId = id;
-  const { sh, o: loc, used } = stage(id, t, o);
+  const newShot = id !== lastId, cont = newShot && !!lastId && sameView(SH[ALIAS[lastId] || lastId], SH[ALIAS[id] || id]); lastId = id;
+  const { sh, o: loc, used } = stage(id, t, o, cont);
   // кто говорит: рот двигается по громкости голоса
-  for (const k in A) { A[k].talk = 0; A[k].vis = null; A[k].react = null; }
-  if (o.react) for (const who in o.react) for (const k of NAME[who] || []) if (used.has(k)) A[k].react = o.react[who];   // кивок/«нет»/руки скрещены — по реплике (движок, beat.react)
-  if (o.talk && o.talk.who) for (const k of NAME[o.talk.who] || []) if (used.has(k)) { A[k].talk = o.talk.v; A[k].vis = o.talk.vis || null; break; }   // vis — форма губ под букву (движок)
+  for (const k in A) { A[k].talk = 0; A[k].vis = null; A[k].react = null; A[k].hear = 0; }
+  if (o.react) for (const who in o.react) for (const k of NAME[who] || []) if (used.has(k)) A[k].react = o.react[who];   // кивок/«нет»/руки скрещены, лицо — по реплике (движок, beat.react)
+  if (o.talk && o.talk.who) { let sp = null;
+    for (const k of NAME[o.talk.who] || []) if (used.has(k)) { A[k].talk = o.talk.v; A[k].vis = o.talk.vis || null; sp = k; break; }   // vis — форма губ под букву (движок)
+    for (const k of used) if (k !== sp) A[k].hear = o.talk.v; }   // остальные в кадре слушают (и того, кто говорит по телефону или рации): кивают в паузах, смотрят на говорящего
   if (sh.hum && used.has(sh.hum) && !(o.talk && o.talk.who)) A[sh.hum].talk = .1 + .12 * Math.abs(Math.sin(t * 4.3)) * (Math.sin(t * 1.1) > -.5 ? 1 : 0);   // мурлычет себе под нос
-  if (newShot || o.settle) for (const k of used) { A[k].smDone = false; A[k].cut = true; }   // после склейки — сразу новая поза (и покадровый Жилец тоже), без перехода из прошлого кадра
+  if (newShot || o.settle) for (const k of used) { A[k].smDone = false; if (o.settle || !cont || hardCut(A[k])) A[k].cut = true; }   // после склейки — сразу новая поза (и покадровый Жилец тоже), без перехода из прошлого кадра; тот же ракурс — продолжаем
   // перемотка инструментов (__ns.seek): 0,9 с движения без рисования — снимок показывает позу и взгляд такими, какими их видит игрок, а не на полпути
   if (o.settle) for (let i = 9; i > 0; i--) for (const k of used) A[k].update(T0 - i * .1, .1);
   for (const k of used) A[k].update(T0, dt);
