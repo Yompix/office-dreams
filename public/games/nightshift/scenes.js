@@ -1864,7 +1864,7 @@ SH.door_tilt = { loc: 'lobby', pos: [5.3, 1.62, -.6], look: [3.87, 1.58, 3.13], 
 // в свете экрана телефона, вплотную, лицо. Держит взгляд; голова чуть ложится набок. Экран гаснет — темнота.
 // (было: в конце лицо срезано краем кадра снизу слева и сразу гасло — не успевало прочитаться)
 const FM_EYE = [5.2, 1.21, -.8];   // глаза Итана: стул придвинут к пульту, как в «тсс» (HUSH_E) — за спинкой как раз встаёт Жилец
-const FM_FACE = [5.2, 1.3, -1.36];   // где окажется его лицо
+const FM_FACE = [5.2, 1.2, -1.36];   // куда упирается взгляд в конце: чуть ниже его лица — лицо в верхней половине кадра
 SH.fmom_turn = { loc: 'lobby', pos: FM_EYE.slice(), look: [5.15, 1.15, .5], fov: 50, set: (o, t, sh) => {
   o.chair.position.z = HUSH_E[1] - .25; o.lamp.intensity = o.boothLight.intensity = 0; o.lampBulb.visible = false; o.l1.intensity = .35; o.l3.intensity = .2; o.l4.intensity = .2; o.amb.intensity = .07; o.flickOn = false; o.fphone.visible = true;
   const k = ease(clamp((t - .5) / 1.5, 0, 1)), a = PI * k, d = [-Math.sin(a) * .9, -.03 + .1 * k, Math.cos(a)];   // поворот головы назад через правое плечо
@@ -1951,10 +1951,10 @@ const K5 = [5.84, -.95];
 SH.k5_drag = { loc: 'lobby', pos: [5.75, .48, -.24], look: [5.8, .6, -1.2], fov: 50, set: (o, t) => {
   lobbyBlack(o); o.l1.intensity = .2; o.amb.intensity = .06; o.flickOn = false;
   o.faceL.position.set(6.35, .6, -.5); o.faceL.color.setHex(0xa8b8cc); o.faceL.distance = 1.7; o.faceL.intensity = .85;   // холодный свет холла сбоку — на её лицо в просвете
-  const dn = seg(t, .5, 1.3), back = seg(t, 1.42, 1.6), hit = clamp((t - 1.6) / .22, 0, 1);   // опустилась к просвету; рука отошла — и выстрелила (без смягчения в конце)
-  return [['katyaThing', K5[0], 0, K5[1], 0, { clips: [['Crouch_Idle_Loop', 1.0, 1]], legs: 'plant', pelvis: [0, -.06 - .12 * dn, 0], spine: { to: [5.78, .35, -.3], k: .25 + .5 * dn },
+  const dn = seg(t, .45, 1.3), back = seg(t, 1.42, 1.6), hit = clamp((t - 1.6) / .22, 0, 1);   // сначала видно только ноги (стоит у стола); присела к просвету; рука отошла — и выстрелила (без смягчения в конце)
+  return [['katyaThing', K5[0], 0, K5[1], 0, { clips: [['Idle_Loop', 1.2, 1 - dn], ['Crouch_Idle_Loop', 1.0, dn]], legs: 'plant', pelvis: [0, -.06 * dn, 0], spine: { to: [5.78, .45, -.3], k: .1 + .38 * dn },
     arm: { r: { at: lin(lin([5.96, .5, -.72], [6.0, .66, -.86], back), [5.76, .5, -.33], hit * hit), by: 'palm', fdir: nrm([0, .35, 1]), pdir: nrm([0, -.1, 1]), w: Math.max(back, hit) } }, fing: { r: ['open', 1] },
-    post: C => headTwist(C, 0, 1.3 * dn) }, [5.75, .48, -.24]]];
+    post: C => headTwist(C, 0, 1.1 * dn) }, [5.75, .48, -.24]]];
 } };
 // 6. «Темнота догнала»: упал. Камера на полу, голова чуть набок (коридор читается); лампы гаснут с дальнего конца к нему. В последнем свете из темноты
 // входят босые серые ступни — два шага — и встают перед лицом. Оно медленно присаживается: в кадр сверху опускается лицо, голова набок. Последняя лампа гаснет.
