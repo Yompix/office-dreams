@@ -1,0 +1,14 @@
+// Депо Windows: всё из ContentBuilder\content\windows\ — это папка steam-windows (node tools/desktop/build.js win --steam).
+// Замените 1234561 на номер депо Windows.
+"DepotBuildConfig"
+{
+	"DepotID"	"1234561"
+	"ContentRoot"	"..\content\windows\"
+	"FileMapping"
+	{
+		"LocalPath"	"*"
+		"DepotPath"	"."
+		"recursive"	"1"
+	}
+	"FileExclusion"	"steam_appid.txt"	// файл только для проверки у себя; игрокам его не нужно
+}

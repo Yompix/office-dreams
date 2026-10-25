@@ -1,0 +1,16 @@
+// SteamPipe: загрузка сборки Hush Till Six в Steam (как пользоваться — STEAM.md, шаг «Загрузить сборку»).
+// Положите этот файл и два depot_build_*.vdf в папку ContentBuilder\scripts\ из Steamworks SDK.
+// Замените 1234560 на App ID игры, 1234561 и 1234562 — на номера депо Windows и Linux (Steamworks → SteamPipe → Depots).
+"AppBuild"
+{
+	"AppID"	"1234560"
+	"Desc"	"Hush Till Six 1.0.0"
+	"ContentRoot"	"..\content\"
+	"BuildOutput"	"..\output\"
+	"SetLive"	""		// пусто: сборка сначала проверяется, в продажу — кнопкой «Set build live» в Steamworks
+	"Depots"
+	{
+		"1234561"	"depot_build_windows.vdf"
+		"1234562"	"depot_build_linux.vdf"
+	}
+}

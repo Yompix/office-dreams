@@ -398,6 +398,27 @@ body.land .title .mlist { width: calc(76 * var(--u)); }
 body.land .studio small { margin-top: calc(5 * var(--u)); }
 body.land #amb { display: none; }
 body.land #keys { display: none; }
+/* геймпад (pad.js): рамка на кнопке, которую нажмёт A; мышь сдвинулась — рамки нет; в кат-сценах курсор прячется сам */
+body.pad .pfocus { outline: calc(.5 * var(--u)) solid #f2c21b !important; outline-offset: calc(.45 * var(--u)); box-shadow: 0 0 calc(3 * var(--u)) rgba(242,194,27,.45) !important; }
+body.pad .title .mlist button.pfocus { outline: none !important; box-shadow: none !important; color: #f2c21b; }
+body.pad .title .mlist button::before { opacity: 0; }   /* мышь стоит над кнопкой, а играют геймпадом: подсвечена только кнопка под рамкой */
+body.pad .title .mlist button.pfocus::before { opacity: 1; }
+@media (pointer: fine) { body.pad .btn:hover:not(.pfocus), body.pad #choice button:hover:not(.pfocus) { background: rgba(20, 4, 6, .82); box-shadow: 0 0 calc(3 * var(--u)) rgba(255, 40, 50, .35), inset 0 0 calc(2 * var(--u)) rgba(255, 40, 50, .2); }
+  body.pad .screen .btn.ghost:hover:not(.pfocus) { background: rgba(255,255,255,.06); box-shadow: none; } }
+body.pad .vol input.pfocus { outline-offset: calc(1 * var(--u)); }
+body.pad, body.pad *, body.nocur, body.nocur * { cursor: none !important; }
+#padCur { position: absolute; z-index: 30; display: none; width: calc(7 * var(--u)); height: calc(7 * var(--u)); margin: calc(-3.5 * var(--u)) 0 0 calc(-3.5 * var(--u)); border-radius: 50%; border: calc(.5 * var(--u)) solid rgba(242,194,27,.9); box-shadow: 0 0 calc(2 * var(--u)) rgba(0,0,0,.8); pointer-events: none; }
+body.pad #padCur.on { display: block; }
+body.pad .title .tts { font-size: 0; }
+body.pad .title .tts::after { content: 'PRESS A TO START'; font-size: calc(4 * var(--u)); }
+body.pad .sh-act button { position: relative; }
+body.pad #shLog::after, body.pad #shPanel::after { position: absolute; left: calc(-1.4 * var(--u)); top: calc(-1.4 * var(--u)); width: calc(4.4 * var(--u)); height: calc(4.4 * var(--u)); border-radius: 50%; background: #ece8dc; color: #111; font: 700 calc(2.6 * var(--u))/calc(4.4 * var(--u)) NSUI, Inter, Arial, sans-serif; text-align: center; letter-spacing: 0; }
+body.pad #shLog::after { content: 'X'; }
+body.pad #shPanel::after { content: 'Y'; }
+body.pad.land .sh-cams::before, body.pad.land .sh-cams::after { align-self: center; font: 700 calc(2.6 * var(--u))/1 NSUI, Inter, Arial, sans-serif; color: rgba(236,232,220,.8); padding: calc(1 * var(--u)) calc(1.4 * var(--u)); border: calc(.3 * var(--u)) solid rgba(236,232,220,.4); border-radius: calc(1.2 * var(--u)); }
+body.pad.land .sh-cams::before { content: 'LB'; }
+body.pad.land .sh-cams::after { content: 'RB'; }
+img, a, svg { -webkit-user-drag: none; }
 </style>
 </head>
 <body>
@@ -427,5 +448,6 @@ body.land #keys { display: none; }
 <script src="scenes.js?v=30"></script>
 <script src="story.js?v=25"></script>
 <script src="engine.js?v=38"></script>
+<script src="pad.js?v=1"></script>
 </body>
 </html>
