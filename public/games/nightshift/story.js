@@ -400,10 +400,13 @@ window.STORY = {
     over_k1: {
       music: 'tension',
       beats: [
-        { img: 'c13_face', fx: 'cctv', label: 'CAM 13', cams: [[.5, .45, 1.0, 1.6]], say: ['k1a'], pad: .2 },
-        { img: 'c13_face', fx: 'cctv', label: 'CAM 13', cams: [[.5, .42, 1.8, 2.2]], say: ['k1b'], pad: .1 },
-        // свой финал: свет помех на лице Итана, рот открывается — вспышка помех — и это уже не его лицо
-        { img: 'k1_face', cams: [[.5, .5, 1.0, 1.08]], sfx: [['static', 0, { gain: .35, cut: 1.9 }], ['tinnitus', .6, { gain: .45 }], ['static', 1.9, { gain: .9, cut: .25 }], ['skin_stretch', 2.15, { gain: .7 }], ['neck_crack', 2.6, { gain: .7 }]], text: '', pad: 3.3 }
+        // оно стоит посреди коридора лицом к объективу и не шевелится; наезд — на его лицо (точка мира), лицо выше субтитров
+        { img: 'c13_face', fx: 'cctv', label: 'CAM 13', cams: [[[.3, 2.12, -4.6], .09, 1.0, 1.35]], say: ['k1a'], pad: .2 },
+        { img: 'c13_name', fx: 'cctv', label: 'CAM 13', cams: [[[.3, 2.12, -4.6], .07, 1.7, 2.15]], say: ['k1b'], pad: .1 },   // губы складывают «И-тан»
+        // свой финал: крупно — лицо Итана в свете помех, губы сами отвечают; сигнал рвётся — и на тринадцатой, где стояло оно, стоит Итан (серый, глаза чёрные) и смотрит в объектив
+        { img: 'k1_face', cams: [[.5, .44, 1.0, 1.05]], sfx: [['static', 0, { gain: .22, cut: 1.45, once: 1 }], ['tinnitus', .4, { gain: .35 }], ['static', 1.42, { gain: .85, cut: .4, once: 1 }]], snow: [[1.45, 1.8]], text: '', pad: 1.65 },
+        { img: 'k1_taken', fx: 'cctv', label: 'CAM 13', hush: 'soft', cams: [[[.3, 1.62, -4.6], .03, 1.75, 2.15]], snow: [[0, .3], [2.75, 3.05]], black: 3.05,
+          sfx: [['static', 0, { gain: .7, cut: .3, once: 1 }], ['sub_presence', .5, { gain: .55, cut: 2.3 }], ['static', 2.75, { gain: .95, cut: .3, once: 1 }]], text: '', pad: 3.6 }
       ],
       then: { over: 'ТЫ ПОСМОТРЕЛ ЕМУ В ЛИЦО', sub: 'Не смотри в тринадцатую камеру.', retry: '@save' }
     },
@@ -413,8 +416,9 @@ window.STORY = {
         { img: 'corridor_lit_after', cams: [[.5, .5, 1.0, 1.12]], say: ['k2a'], sfx: [['steps', .2]], pad: .2 },
         { img: 'eat_close', cams: [[.5, .55, 1.0, 1.12]], say: ['k2b'], sfx: [['eat_wet', 0]], pad: .4 },
         { img: 'corridor_off', cams: [[.5, .5, 1.0, 1.25]], say: ['k2c'], sfx: [['click', .5], ['click', 1.0], ['click', 1.4], ['click', 1.7]], pad: .1 },
-        // свой финал: последняя лампа над Итаном; оно у края света — головой в потолок — медленно опускает лицо к его лицу, и лампа гаснет
-        { img: 'k2_last', cams: [[.5, .45, 1.0, 1.15]], sfx: [['fluor_flicker', .1, { gain: .5 }], ['skin_stretch', 1.2, { gain: .5 }], ['whispers', 1.9, { gain: .6 }], ['breath_close', 2.7, { gain: .9 }], ['hum_stop', 3.05, { gain: .8 }]], text: '', pad: 3.5 }
+        // свой финал: горит одна лампа — над Итаном; впереди темнота. Лампа моргает — на краю света уже стоит оно, лицо под потолком; рывками складывается к нему, лицо к лицу. Лампа гаснет
+        { img: 'k2_last', hush: 'soft', cams: [[.5, .5, 1.0, 1.0]], black: 4.0,
+          sfx: [['fluor_flicker', 1.1, { gain: .55, cut: .4 }], ['skin_stretch', 2.95, { gain: .45 }], ['breath_close', 3.65, { gain: .85 }], ['hum_stop', 3.98, { gain: .85 }]], text: '', pad: 4.6 }
       ],
       then: { over: 'ТЫ ПОШЁЛ НА СВЕТ', sub: 'Сам к нему не ходи — ни на свет, ни в лифт.', retry: 'floor7b' }
     },
@@ -422,17 +426,20 @@ window.STORY = {
       music: 'tension', time: '03:06',
       beats: [
         { img: 'booth_radio', cams: [[.5, .5, 1.1, 1.2]], say: ['k3a', 'k3b'], pad: .1 },
-        // свой финал: за стеклом будки в тёмном холле стоит оно с рацией Гаса у рта; опускает её — губы ещё шевелятся
-        { img: 'k3_radio', cams: [[.5, .45, 1.0, 1.12]], sfx: [['static', .1, { gain: .45, cut: 1.6 }], ['phone_crackle', .3, { gain: .5 }], ['whispers', 2.3, { gain: .55 }], ['hum_stop', 3.15, { gain: .8 }]], text: '', pad: 3.6 }
+        // свой финал: склейка на правое стекло будки — вплотную за ним, согнувшись, стоит оно с рацией Гаса у рта; опускает её — губы ещё шевелятся; лампа гаснет
+        { img: 'k3_radio', hush: 'soft', cams: [[.5, .46, 1.0, 1.06]], black: 3.0,
+          sfx: [['phone_crackle', 0, { gain: .55 }], ['breath_close', .55, { gain: .45 }], ['whispers', 1.95, { gain: .35 }], ['hum_stop', 2.97, { gain: .8 }], ['static', 3.0, { gain: .3, cut: .9, once: 1 }]], text: '', pad: 3.65 }
       ],
       then: { over: 'ТЫ ОТОЗВАЛСЯ', sub: 'Гас не знал твоего имени. А оно знает.', retry: 'radio' }
     },
     over_k4: {
       music: 'tension', time: '03:18',
       beats: [
-        { img: 'c13_face', fx: 'cctv', label: 'CAM 13', cams: [[.5, .45, 1.4, 2.0]], say: ['k4a', 'k4b'], pad: .1 },
-        // свой финал: на тринадцатой оно спиной к объективу; голова поворачивается назад, лицом в камеру, — и оно идёт к камере задом наперёд
-        { img: 'k4_owl', fx: 'cctv', label: 'CAM 13', cams: [[.5, .45, 1.0, 1.0]], sfx: [['skin_stretch', .35, { gain: .7 }], ['neck_crack', .9, { gain: .8 }], ['neck_crack', 1.35, { gain: .7 }], ['steps_barefoot', 1.9, { gain: .7 }], ['static', 3.5, { gain: .9, cut: .6 }]], text: '', pad: 3.9 }
+        // мини-игра кончилась тем, что он повернулся к объективу: стоит в дальнем конце лицом к нам — медленный цифровой наезд, пока Итан рассказывает
+        { img: 'k4_far', fx: 'cctv', label: 'CAM 13', cams: [[[0, 2.12, -13], .06, 1.2, 2.0]], say: ['k4a', 'k4b'], pad: .1 },
+        // свой финал: рывок помех — он ближе; тело рывками отворачивается, а голова остаётся лицом к объективу (хруст); идёт к камере спиной вперёд — помехи, обрыв
+        { img: 'k4_owl', fx: 'cctv', label: 'CAM 13', hush: 'soft', cams: [[[0, 2.0, -7.2], .06, 1.8, 1.85], [.5, .46, 1.0, 1.0]], snow: [[0, .28], [3.55, 3.85]], black: 3.85,
+          sfx: [['static', 0, { gain: .7, cut: .28, once: 1 }], ['skin_stretch', .6, { gain: .55 }], ['neck_crack', 1.1, { gain: .8 }], ['neck_crack', 1.36, { gain: .65 }], ['steps_barefoot', 2.05, { gain: .75, rate: 1.25 }], ['static', 3.55, { gain: .95, cut: .3, once: 1 }]], text: '', pad: 4.4 }
       ],
       then: { over: 'ОНО ОБЕРНУЛОСЬ', sub: 'Тринадцатая включилась сама — выдёргивай шнур, не смотри.', retry: 'cam13' }
     },
@@ -440,8 +447,9 @@ window.STORY = {
       music: 'tension',
       beats: [
         { img: 'h_face_open', fx: 'dark', cams: [[.5, .5, 1.1, 1.2]], say: ['k5a'], pad: .1 },
-        // свой финал: из-под стола — она на корточках напротив, голова набок; рука выстреливает к лицу — и Итана выдёргивают из-под стола
-        { img: 'k5_drag', fx: 'dark', cams: [[.5, .5, 1.0, 1.0]], sfx: [['skin_stretch', .4, { gain: .5 }], ['breath_close', 1.2, { gain: .8 }], ['glass_scratch', 1.75, { gain: .6, rate: .6 }], ['boom', 1.8, { gain: .6 }]], text: '', pad: 2.7 }
+        // свой финал: из-под стола — в просвет опускается её лицо, голова набок дальше человеческого; рука выстреливает к нему — обрыв, в темноте слышно, как его волокут
+        { img: 'k5_drag', hush: 'soft', cams: [[.5, .47, 1.0, 1.04]], black: 1.83,
+          sfx: [['skin_stretch', .55, { gain: .35 }], ['breath_close', 1.05, { gain: .6 }], ['boom', 1.83, { gain: .7 }], ['glass_scratch', 1.95, { gain: .5, rate: .5 }]], text: '', pad: 3.0 }
       ],
       then: { over: 'ОНО УСЛЫШАЛО', sub: 'Оно ищет на звук. Пока шаги рядом — не дыши.', retry: 'hide' }
     },
@@ -449,15 +457,17 @@ window.STORY = {
       music: 'tension',
       beats: [
         { img: 'h_face_open', fx: 'dark', cams: [[.5, .5, 1.1, 1.2]], say: ['k5a'], pad: .1 },
-        // свой финал: из-под стола — она на корточках напротив, голова набок; рука выстреливает к лицу — и Итана выдёргивают из-под стола
-        { img: 'k5_drag', fx: 'dark', cams: [[.5, .5, 1.0, 1.0]], sfx: [['skin_stretch', .4, { gain: .5 }], ['breath_close', 1.2, { gain: .8 }], ['glass_scratch', 1.75, { gain: .6, rate: .6 }], ['boom', 1.8, { gain: .6 }]], text: '', pad: 2.7 }
+        // свой финал: из-под стола — в просвет опускается её лицо, голова набок дальше человеческого; рука выстреливает к нему — обрыв, в темноте слышно, как его волокут
+        { img: 'k5_drag', hush: 'soft', cams: [[.5, .47, 1.0, 1.04]], black: 1.83,
+          sfx: [['skin_stretch', .55, { gain: .35 }], ['breath_close', 1.05, { gain: .6 }], ['boom', 1.83, { gain: .7 }], ['glass_scratch', 1.95, { gain: .5, rate: .5 }]], text: '', pad: 3.0 }
       ],
       then: { over: 'ОНО УСЛЫШАЛО', sub: 'Оно ищет на звук. Пока шаги рядом — не дыши.', retry: '@save' }
     },
     over_k6: {
       music: 'tension',
-      beats: [   // свой финал: упал — камера на полу, набок; лампы гаснут к нему по одной; в последнем свете — босые ступни, и сбоку в кадр опускается лицо
-        { img: 'k6_fall', cams: [[.5, .5, 1.0, 1.0]], sfx: [['boom', 0, { gain: .5 }], ['tinnitus', .1, { gain: .5 }], ['hum_stop', .4, { gain: .4 }], ['hum_stop', 1.1, { gain: .5 }], ['hum_stop', 1.8, { gain: .6 }], ['steps_barefoot', 2.2, { gain: .9 }], ['breath_close', 3.2, { gain: 1 }]], text: '', pad: 3.9 }],
+      beats: [   // свой финал: упал — камера на полу; лампы гаснут к нему по одной; в последнем свете входят босые ступни, оно присаживается — сверху в кадр опускается лицо
+        { img: 'k6_fall', cams: [[.5, .5, 1.0, 1.0]], black: 3.8,
+          sfx: [['boom', 0, { gain: .55 }], ['tinnitus', .1, { gain: .45 }], ['hum_stop', .35, { gain: .35 }], ['hum_stop', 1.05, { gain: .45 }], ['hum_stop', 1.75, { gain: .55 }], ['hum_stop', 2.05, { gain: .6 }], ['steps_barefoot', 1.95, { gain: .85, cut: .8 }], ['skin_stretch', 2.85, { gain: .4 }], ['breath_close', 3.35, { gain: .9 }], ['hum_stop', 3.78, { gain: .8 }]], text: '', pad: 4.4 }],
       then: { over: 'ТЕМНОТА ДОГНАЛА', sub: 'Остановишься — догонит.', retry: 'run' }
     },
     over_k7: {
@@ -466,8 +476,9 @@ window.STORY = {
         { img: 'bs_open', cams: [[.5, .5, 1.0, 1.06]], say: ['k7a'], sfx: [['door_metal', .1]], pad: .2 },
         { img: 'bs_no', cams: [[.5, .45, 1.0, 1.12]], say: ['k7b'], pad: .2 },
         { img: 'bs_no', fx: 'dark', cams: [[.5, .45, 1.12, 1.2]], say: ['k7c'], sfx: [['breath_close', .4]], pad: .1 },
-        // свой финал: Итан оборачивается — в луче фонаря оно вплотную, согнувшись под потолком; рот медленно открывается; сзади захлопывается дверь серверной
-        { img: 'k7_behind', cams: [[.5, .5, 1.0, 1.0]], sfx: [['heart_held', .2, { gain: .7 }], ['skin_stretch', 1.85, { gain: .6 }], ['door_slams', 2.2, { gain: .9 }], ['breath_close', 2.5, { gain: .9 }]], text: '', pad: 3.3 }
+        // свой финал: Итан оборачивается — в луче фонаря оно вплотную, наклонилось к лицу; пауза; рот раскрывается шире человеческого, подаётся вперёд — позади хлопает дверь серверной, обрыв
+        { img: 'k7_behind', hush: 'soft', cams: [[.5, .4, 1.0, 1.3]], black: 2.84,   // наезд на лицо: грудь уходит из кадра
+          sfx: [['heart_held', .1, { gain: .6, cut: 1.4 }], ['skin_stretch', 1.8, { gain: .55 }], ['breath_close', 2.35, { gain: .8 }], ['door_slams', 2.84, { gain: 1 }]], text: '', pad: 3.55 }
       ],
       then: { over: 'ТЫ ПОШЁЛ НА ЗОВ', sub: 'Оно умеет звать. Стучать — нет.', retry: 'basement' }
     },
@@ -476,8 +487,9 @@ window.STORY = {
       beats: [
         { img: 'srv_crawl', cams: [[.5, .5, 1.0, 1.08]], say: ['k8a'], pad: .4 },
         { img: 'srv_dark', cams: [[.5, .5, 1.1, 1.2]], say: ['k8b', 'k8c'], pad: .1 },
-        // свой финал: луч фонаря поднимается — на потолке над кругом, вниз головой, сидит оно; голос Фрэнка — из его рта
-        { img: 'k8_ceiling', cams: [[.5, .5, 1.0, 1.08]], say: ['k8b'], sayAt: 1.7, sfx: [['salt_crunch', .2, { gain: .5 }], ['skin_stretch', 2.6, { gain: .6 }], ['breath_close', 3.0, { gain: .9 }]], pad: .5 }
+        // свой финал: луч фонаря поднимается — на потолке над кругом, вниз головой, висит оно; голос Фрэнка — из его рта; голова ложится набок — и оно срывается вниз, на Итана: обрыв
+        { img: 'k8_ceiling', hush: 'soft', cams: [[.5, .5, 1.0, 1.06]], say: ['k8b'], sayAt: 1.7, black: 3.5,
+          sfx: [['salt_crunch', .2, { gain: .45 }], ['skin_stretch', 2.95, { gain: .5 }], ['boom', 3.48, { gain: .75 }], ['breath_close', 3.5, { gain: .7 }]], pad: 1.25 }
       ],
       then: { over: 'ФРЭНК УШЁЛ НА ГОЛОС', sub: 'Держи его, пока голос не стихнет.', retry: 'knock3' }
     },
@@ -486,8 +498,9 @@ window.STORY = {
       beats: [
         { img: null, phone: { kind: 'talk', name: 'Лили', t0: 0 }, say: ['k9a'], pad: .2 },
         { img: 'hall_cam_katya', fx: 'cctv', label: 'CAM 02  ХОЛЛ', cams: [[.5, .5, 1.0, 1.1], [.47, .47, 1.6, 1.9]], say: ['k9b'], pad: .3 },
-        // свой финал: ладонь бьёт в стекло будки прямо перед Итаном, лицо у стекла, ладонь медленно сползает
-        { img: 'k9_glass', cams: [[.5, .45, 1.0, 1.05]], sfx: [['glass_slam', .5, { gain: .9 }], ['glass_scratch', 1.85, { gain: .7 }], ['breath_close', 2.9, { gain: .8 }], ['hum_stop', 3.3, { gain: .8 }]], text: '', pad: 3.8 }
+        // свой финал: тёмное стекло будки, никого — тишина — удар: ладонь и лицо у стекла; дышит на стекло; ладонь сползает, оставляя мазок; лампа гаснет
+        { img: 'k9_glass', hush: 'soft', scare: 1.25, hit: ['glass_slam'], cams: [[.5, .46, 1.0, 1.04]], black: 3.45,
+          sfx: [['breath_close', 1.95, { gain: .6 }], ['glass_scratch', 2.3, { gain: .6 }], ['hum_stop', 3.43, { gain: .75 }]], text: '', pad: 4.0 }
       ],
       then: { over: 'ТЫ ОТВЕТИЛ', sub: 'Свои до утра подождут.', retry: 'call540' }
     },
@@ -554,46 +567,52 @@ window.STORY = {
       music: 'tension',
       beats: [
         { img: null, phone: { kind: 'talk', name: 'Номер не определён', t0: 1 }, say: ['fp03'], pad: .2 },
-        // свой финал: дыхание из трубки — уже за спиной; Итан медленно оборачивается, в свете экрана — лицо вплотную
-        { img: 'fmom_turn', cams: [[.5, .5, 1.0, 1.0]], sfx: [['breath_close', .15, { gain: .45, pan: -.3 }], ['heart_held', .45, { gain: .7 }], ['breath_close', 1.45, { gain: .75, pan: .25 }], ['breath_close', 2.45, { gain: 1 }]], text: '', pad: 3.2 }
+        // свой финал: дыхание из трубки — уже за спиной; Итан медленно оборачивается — в свете экрана телефона лицо вплотную; держит взгляд; экран гаснет
+        { img: 'fmom_turn', hush: 'soft', cams: [[.5, .5, 1.0, 1.0]], black: 2.92,
+          sfx: [['breath_close', .15, { gain: .45, pan: -.3 }], ['heart_held', .45, { gain: .7, cut: 1.5 }], ['breath_close', 2.35, { gain: 1 }]], text: '', pad: 3.55 }
       ],
       then: { over: 'ТЫ ВЗЯЛ ТРУБКУ', sub: 'Звонили не тебе. Но ответил — ты.', retry: '@save' }
     },
     over_door: {
       music: 'tension',
       beats: [
-        { img: 'entrance_cam', fx: 'cctv', label: 'CAM 01  ВХОД', cams: [[.5, .5, 1.0, 1.1]], say: ['n30'], sfx: [['bolt', .1, { gain: .8 }], ['door', .8, { gain: .6 }], ['rain_burst', .9, { gain: .5 }]], pad: .3 },
-        // свой финал: стоит в холле и улыбается; голова ложится набок до хруста; рывками ближе, свет у неё за спиной гаснет
-        { img: 'door_tilt', cams: [[.5, .45, 1.0, 1.1]], sfx: [['rain', 0, { gain: .25, cut: 4 }], ['neck_crack', .95, { gain: .8 }], ['neck_crack', 1.5, { gain: .7 }], ['skin_stretch', 1.65, { gain: .5 }], ['hum_stop', 2.6, { gain: .7 }], ['steps_barefoot', 2.45, { gain: .8 }], ['breath_close', 3.55, { gain: .9 }]], text: '', pad: 4.1 }
+        // замок щёлкнул, створка ушла наружу, она шагнула в дверь, обернулась к объективу и медленно улыбнулась — шире, чем можно
+        { img: 'door_in', fx: 'cctv', label: 'CAM 01  ВХОД', cams: [[.5, .5, 1.0, 1.1]], say: ['n30'], sfx: [['bolt', .1, { gain: .8 }], ['door', .3, { gain: .6 }], ['rain_burst', .4, { gain: .5 }], ['steps', 1.1, { gain: .35, cut: 1.2 }]], pad: .3 },
+        // свой финал (из будки): стоит посреди холла и улыбается; голова ложится набок до хруста; свет гаснет от входа к будке — с каждым разом она ближе; лицо за стеклом будки — темнота
+        { img: 'door_tilt', hush: 'soft', cams: [[.5, .47, 1.0, 1.0]], black: 3.6,
+          sfx: [['rain', 0, { gain: .2, cut: 2.2 }], ['neck_crack', 1.22, { gain: .8 }], ['neck_crack', 1.52, { gain: .55 }], ['hum_stop', 2.05, { gain: .55 }], ['hum_stop', 2.58, { gain: .65 }], ['hum_stop', 3.08, { gain: .75 }], ['breath_close', 3.3, { gain: .8 }]], text: '', pad: 4.2 }
       ],
       then: { over: 'ТЫ ОТКРЫЛ ЕЙ', sub: 'Лили спала в трёхстах километрах отсюда. Посторонних не впускать.', retry: '@save' }
     },
     over_come: {
       music: 'tension',
       beats: [
-        { img: 'hall_cam_nearer', fx: 'cctv', label: 'CAM 02  ХОЛЛ', cams: [[.5, .5, 1.0, 1.1]], say: ['n21'], sfx: [['steps_barefoot', .3, { gain: .8 }]], pad: .2 },
-        // свой финал: камеры на пульте гаснут одна за другой, лампа будки захлёбывается; потом три стука в дверь будки, ручка идёт вниз, в щель заходят пальцы
-        { img: 'come_mon', cams: [[.5, .5, 1.0, 1.06]], sfx: [['static', .55, { gain: .5, cut: .35 }], ['static', 1.2, { gain: .5, cut: .35 }], ['static', 1.85, { gain: .55, cut: .35 }], ['fluor_flicker', 2.15, { gain: .7 }], ['hum_stop', 2.7, { gain: .85 }], ['steps_barefoot', 2.9, { gain: .7, pan: .6 }]], text: '', pad: 3.4 },
-        { img: 'come_door', cams: [[.5, .5, 1.0, 1.08]], sfx: [['knock', .35], ['knock', 1.05], ['knock', 1.75], ['metal_groan', 2.85, { gain: .6 }], ['skin_stretch', 3.3, { gain: .7 }], ['breath_close', 3.95, { gain: .8 }]], text: '', pad: 4.7 }
+        // «Шаги. Уже не на камерах — в холле»: камеры на пульте гаснут одна за другой (было: в этот момент его как раз показывала камера холла), лампа будки захлёбывается
+        { img: 'come_mon', cams: [[.5, .5, 1.0, 1.06]], say: ['n21'], sfx: [['steps_barefoot', .3, { gain: .55, pan: -.4 }], ['static', .55, { gain: .45, cut: .3, once: 1 }], ['static', 1.2, { gain: .45, cut: .3, once: 1 }], ['static', 1.85, { gain: .5, cut: .3, once: 1 }],
+          ['fluor_flicker', 2.15, { gain: .6 }], ['hum_stop', 2.7, { gain: .8 }], ['steps_barefoot', 2.9, { gain: .75, pan: .55 }]], pad: .55 },
+        // свой финал: дверь будки изнутри — три стука, ручка медленно идёт вниз, дверь приоткрывается, в щель по кромке заходят длинные пальцы — темнота
+        { img: 'come_door', hush: 'soft', cams: [[.5, .5, 1.0, 1.06]], black: 4.45, sfx: [['knock', .35], ['knock', 1.05], ['knock', 1.75], ['metal_groan', 2.85, { gain: .6 }], ['skin_stretch', 3.35, { gain: .55 }], ['breath_close', 3.95, { gain: .8 }]], text: '', pad: 5.0 }
       ],
       then: { over: 'ОНО ПРИШЛО', sub: 'Три странности за час остались без внимания. Смотри камеры, записывай, выключай лишний свет.', retry: '@save' }
     },
     over_stare: {
       music: 'room_tone',   // почти тишина: так «тссс» слышно у самого уха
       beats: [
-        { img: 'c13_face', fx: 'static', label: 'CAM', cams: [[[.45, 1.5, -3.3], -.06, 1.3, 1.9]], say: ['n22'], pad: .1 },   // план целится в лицо (оно сидит низко), лицо — выше субтитров
+        { img: 'c13_face', fx: 'static', label: 'CAM', cams: [[[.3, 2.12, -4.6], .07, 1.6, 2.4]], say: ['n22'], pad: .1 },   // помехи складываются в лицо: наезд на его лицо (точка мира), лицо — выше субтитров
         // не бросок в камеру, а «тсс»: монитор сам переключается на камеру, о которой Итан не знал, — в будке за его спиной стоит Жилец и смотрит в объектив
-        { img: 'hush_cam', fx: 'cctv', label: 'CAM 00  БУДКА', cams: [[[5.22, 1.5, -1.0], 0, 1.0, 1.22]], sfx: [['static', 0, { gain: .55, cut: .3 }], ['heart_held', .35, { gain: .8 }]], text: '', pad: 2.7 },
+        { img: 'hush_cam', fx: 'cctv', label: 'CAM 00  БУДКА', cams: [[[5.22, 1.5, -1.0], 0, 1.0, 1.22]], snow: [[0, .25]], sfx: [['static', 0, { gain: .55, cut: .25, once: 1 }], ['heart_held', .35, { gain: .8 }]], text: '', pad: 2.7 },
         // спереди, с места мониторов: наклоняется к уху, палец к губам — «тссс» — и гаснет свет
-        { img: 'hush_face', cams: [[.5, .5, 1.0, 1.07]], sfx: [['hush', 1.3, { gain: 1 }], ['hum_stop', 2.2, { gain: .85 }], ['breath_close', 2.55, { gain: .7 }]], text: '', pad: 3.1 }
+        { img: 'hush_face', cams: [[.5, .5, 1.0, 1.07]], black: 2.62, sfx: [['hush', 1.3, { gain: 1 }], ['hum_stop', 2.2, { gain: .85 }], ['breath_close', 2.6, { gain: .7 }]], text: '', pad: 3.25 }
       ],
       then: { over: 'ТЫ ЗАСМОТРЕЛСЯ', sub: 'Там, где помехи, кто-то стоит. Не смотри — запиши и переключи.', retry: '@save' }
     },
     over_stare_b: {   // второй финал «засмотрелся» (по очереди с «тсс», engine.js DEATH_ALT): он идёт к объективу рывками между помехами и закрывает камеру ладонью
       music: 'room_tone',
       beats: [
-        { img: 'c13_face', fx: 'static', label: 'CAM', cams: [[[.45, 1.5, -3.3], -.06, 1.3, 1.9]], say: ['n22'], pad: .1 },
-        { img: 'stare_lens', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .5, 1.0, 1.0]], sfx: [['static', .7, { gain: .6, cut: .25 }], ['static', 1.3, { gain: .6, cut: .25 }], ['static', 1.85, { gain: .65, cut: .25 }], ['static', 2.35, { gain: .7, cut: .3 }], ['skin_stretch', 2.55, { gain: .6 }], ['breath_close', 3.0, { gain: .9 }], ['static', 3.4, { gain: .9, cut: .6 }]], text: '', pad: 3.9 }
+        { img: 'c13_face', fx: 'static', label: 'CAM', cams: [[[.3, 2.12, -4.6], .07, 1.6, 2.4]], say: ['n22'], pad: .1 },
+        { img: 'stare_lens', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', hush: 'soft', cams: [[.5, .5, 1.0, 1.0]], snow: [[.62, .78], [1.22, 1.38], [1.77, 1.93], [2.27, 2.45]], black: 3.3,
+          sfx: [['static', .62, { gain: .55, cut: .18, once: 1 }], ['static', 1.22, { gain: .6, cut: .18, once: 1 }], ['static', 1.77, { gain: .65, cut: .18, once: 1 }], ['static', 2.27, { gain: .75, cut: .2, once: 1 }],
+            ['skin_stretch', 2.6, { gain: .45 }], ['breath_close', 2.95, { gain: .85 }]], text: '', pad: 3.9 }
       ],
       then: { over: 'ТЫ ЗАСМОТРЕЛСЯ', sub: 'Там, где помехи, кто-то стоит. Не смотри — запиши и переключи.', retry: '@save' }
     },
@@ -603,7 +622,9 @@ window.STORY = {
         { img: null, phone: { kind: 'talk', name: 'Внутренний', t0: 4 }, say: ['n23'], pad: .3 },
         // свой финал: в трубке твой же голос повторяет «Да. Это я.» — а на камере холла у стекла будки стоит второй Итан с телефоном у уха и поворачивает голову к объективу
         { img: null, phone: { kind: 'talk', name: 'Внутренний', t0: 6 }, say: ['n23m'], pad: .5 },
-        { img: 'dbl_cam', fx: 'cctv', label: 'CAM 02  ХОЛЛ', cams: [[.6, .58, 1.0, 1.05], [.72, .55, 2.3, 2.7]], sfx: [['phone_crackle', .1, { gain: .5 }], ['skin_stretch', 1.75, { gain: .6 }], ['tinnitus', 2.5, { gain: .5 }], ['static', 3.25, { gain: .9, cut: .6 }]], text: '', pad: 3.7 }
+        // камера холла с цифровым наездом: у окна будки стоит второй Итан с телефоном у уха — напротив настоящего; голова поворачивается к объективу дальше, чем может человек
+        { img: 'dbl_cam', fx: 'cctv', label: 'CAM 02  ХОЛЛ', hush: 'soft', cams: [[[5.0, 1.45, .4], .02, 1.9, 2.05], [[5.12, 1.68, 1.0], .07, 3.3, 3.6]], snow: [[3.3, 3.6]], black: 3.6,
+          sfx: [['phone_crackle', .1, { gain: .5 }], ['skin_stretch', 1.75, { gain: .55 }], ['tinnitus', 2.5, { gain: .4 }], ['static', 3.3, { gain: .9, cut: .3, once: 1 }]], text: '', pad: 4.15 }
       ],
       then: { over: 'ТЫ НАЗВАЛСЯ', sub: 'Оно знает твоё имя. Ему нужно только, чтобы ты ответил.', retry: '@save' }
     }

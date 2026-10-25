@@ -458,7 +458,7 @@ const forkAt = sc => { const t = (S.scenes[sc] || {}).then; return !!(t && t.opt
 function startScene(id, at) {   // at: true — сразу к концу сцены (последний кадр, потом выбор/мини-игра); число — с этого кадра (продолжение после перезагрузки)
   if (!S.scenes[id]) { console.warn('нет сцены', id); return menu(); }   // сохранение из старой версии сценария не ломает игру
   gen++; stopAll(); choiceEl.classList.add('hide'); mgEl.classList.add('hide'); mgEl.innerHTML = ''; mgView = null; act = null; actEl.innerHTML = ''; actEl.classList.add('hide');
-  uiEl.innerHTML = ''; $('hud').classList.remove('hide');
+  uiEl.innerHTML = ''; $('hud').classList.remove('hide'); overBg = null;
   sceneId = id; scene = S.scenes[id]; mode = 'play'; sceneT0 = now(); document.body.classList.remove('shifting'); secBase = scene.sec ?? 7; sublScene = '';
   if (/^(branch_a|hide|run)/.test(id)) flags.opened = true;
   if (/^(server|down|basement|knock3|dawn|stay|call540|morning)/.test(id)) flags.mih = true;
@@ -484,7 +484,7 @@ function nextBeat() {
     shotOff = same ? shotOff + (now() - bT0) : 0; darkHold = !!(same && pv.fx === 'dark'); }
   const prevBeat = beat;
   beat = scene.beats[bi]; bT0 = now(); fired.clear(); sched = []; typed = null; scareAt = null; hb = 0; audioQ = 0; beatRun++;
-  if (beat.hush && AC) hush(true);
+  if (beat.hush && AC) hush(true, beat.hush === 'soft');   // 'soft' — тишина перед ударом без щелчка холодильника и с тихим звоном
   if (beat.time) { lastTime = beat.time; secBase = 0; sceneT0 = now(); clockEl.textContent = beat.time; }   // часы перещёлкнулись посреди сцены
   chapEl.classList.toggle('hide', !beat.chapter); if (beat.chapter) chapEl.innerHTML = `<b>${beat.chapter[0]}</b><span>${beat.chapter[1]}</span>`;
   let t = beat.sayAt ?? .15;   // sayAt — реплика не сразу, а с этой секунды кадра (голос Фрэнка из темноты после паузы)
@@ -543,14 +543,14 @@ function lateFlush(T) {
 function beatAudio() {
   const P = pre;   // все звуки кадра сдвигаются на длину пред-кадра
   for (const [n, at, op] of beat.sfx || []) {   // [звук, секунда, {gain, cut, off, lp, pan, rate}]
-    if (n === 'static') amb('static', true, .25);
+    if (n === 'static' && !(op && op.once)) amb('static', true, .25);   // помехи фоном на весь кадр; с once — один удар помех в свою секунду (смерти: обрыв сигнала ровно с картинкой)
     // стук по стеклу: если Катя стучит в кадре, звук даёт её рука (синхронно), а не таблица
     else if (n === 'knock' || n === 'glass_tap') trig.push({ at, fn: () => { if (!(beat.img && lastDrawn === beat.img && katyaKnocking())) { play(n); if (n === 'knock') buzz(40); } } });
     else { play(n, Object.assign({ when: at + P }, op)); if (n === 'door') setTimeout(() => buzz(40), (at + P) * 1000); }
   }
   for (const it of sched) { if (isVoice(it.k) && !BUF[it.k] && AC) { lateVoice(it, P); continue; }
     for (const vo of voiceFx(it.k)) { const o = play(it.k, Object.assign({ bus: 'voice' }, vo, { when: it.t + P + (vo.dt || 0) })); if (o) o.voice = true; } }
-  if (beat.fx !== 'static' && !(beat.sfx || []).some(s => s[0] === 'static')) amb('static', beat.fx === 'static', .3);
+  if (beat.fx !== 'static' && !(beat.sfx || []).some(s => s[0] === 'static' && !(s[2] && s[2].once))) amb('static', beat.fx === 'static', .3);
   if (scareAt != null) {
     const sa = scareAt + P;
     // не «бум» из ужастика для детей: нарастание обрывается в тишину, а потом — близкий сухой звук рядом с ухом
@@ -1206,7 +1206,7 @@ function gfxNote() { const a = LS.get('gfxAuto', 0); if (a !== 1 && a !== 4) ret
   const n = document.createElement('div'); n.className = 'gfx-note'; n.textContent = tr(a === 4 ? 'На этом телефоне «Кино» шло слишком медленно — включена «Ретро». Вернуть: Настройки → Графика.' : 'Графика «Кино» на этом устройстве рисовала слишком темно — включена «Ретро». Вернуть: Настройки → Графика.');
   ($('stage') || document.body).appendChild(n); setTimeout(() => n.remove(), 9000); }
 function menu() {
-  gen++; mode = 'menu'; document.body.classList.remove('shifting'); gfxNote(); menuT0 = now(); titleT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); if (hushOn) hush(false); $('hud').classList.add('hide'); hideSms();
+  gen++; mode = 'menu'; overBg = null; document.body.classList.remove('shifting'); gfxNote(); menuT0 = now(); titleT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); if (hushOn) hush(false); $('hud').classList.add('hide'); hideSms();
   choiceEl.classList.add('hide'); mgEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); clockEl.classList.add('hide'); noteEl.classList.add('hide'); ruleEl.classList.add('hide'); waiting = false; beat = null; act = null; actEl.innerHTML = ''; actEl.classList.add('hide');
   const sv = LS.get('save', null), save = sv && S.scenes[sv] ? sv : null;   // сохранение из старой версии сценария не ломает меню
   uiEl.innerHTML = `<div class="title ${gateDone ? 'open' : 'gate'}${titleFirst ? ' first' : ''}">
@@ -1405,8 +1405,10 @@ function overScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
   mode = 'end'; const ov = new Set(LS.get('overs', [])); ov.add(th.over); LS.set('overs', [...ov]);
   const di = S.overs.indexOf(th.over); if (DESK && DESK.ach && di >= 0) DESK.ach('DEATH_' + String(di + 1).padStart(2, '0'));   // смерть №… по списку S.overs (на любом языке тот же номер)
-  music(null);
-  uiEl.innerHTML = `<div class="screen over"><h1>${th.over}</h1><p>${th.sub}<br>${tr('Ты не дожил до утра.')}</p>
+  music(null); if (hushOn) hush(false);   // тишина финала (hush) не переходит на экран смерти и в повтор
+  // обрыв в черноту, секунда темноты (звук смерти ещё звучит), потом название; за ним из темноты проступает последний кадр — застывший
+  overBg = { t0: now(), st: lastShotT }; setTimeout(() => { const s = uiEl.querySelector('.screen.over'); if (s) s.style.pointerEvents = ''; }, 800);
+  uiEl.innerHTML = `<div class="screen over" style="pointer-events:none;animation:fadein 1s .8s both"><h1>${th.over}</h1><p>${th.sub}<br>${tr('Ты не дожил до утра.')}</p>
     <button class="btn" id="oRetry">${tr('Попробовать снова')}</button><button class="btn ghost" id="oMenu">${tr('Меню')}</button>
     <small>${trf('Смертей найдено: {c} из {d}', { c: [...ov].filter(k => S.overs.includes(k)).length, d: S.overs.length })}</small></div>`;
   // «Попробовать снова» — с места решения (мини-игра, выбор, обход), а не с начала сцены: кат-сцены второй раз не смотрим (владелец 24 окт)
@@ -1427,10 +1429,10 @@ function heldShot(id, o, T, key) {
   g.drawImage(heldC, 0, 0);
 }
 // кадр 3D-мира; без WebGL — чёрный экран с подсказкой
-let worldTried = false, menuT0 = 0, shotOff = 0, darkHold = false, settleQ = false;   // settleQ — после перемотки (__ns.seek) мир сперва «доигрывает» позы
+let worldTried = false, menuT0 = 0, shotOff = 0, darkHold = false, settleQ = false, lastShotT = 0, overBg = null;   // settleQ — после перемотки (__ns.seek) мир сперва «доигрывает» позы; lastShotT — время последнего кадра (экран смерти держит его застывшим)
 function shot(id, o, cx = g) {
   if (LAND && o.cx != null && !o._sx) { o.cx = scrX(o.cx); o._sx = 1; }   // точки наезда заданы для 9:16 — в 16:9 то же направление
-  if (window.World && World.ok && World.draw(cx, W, H, id, Object.assign(o, { props: propsNow(), settle: settleQ }))) { lastDrawn = id; settleQ = false; return true; }
+  if (window.World && World.ok && World.draw(cx, W, H, id, Object.assign(o, { props: propsNow(), settle: settleQ }))) { lastDrawn = id; lastShotT = o.t || 0; settleQ = false; return true; }
   cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); if (!worldTried) return false;   // пока мир грузится — просто чёрный
   g.fillStyle = '#777'; g.font = '700 40px Inter, Arial'; g.textAlign = 'center'; g.fillText(tr('Нужен браузер с WebGL'), W / 2, H * .3); g.textAlign = 'left';
   return false;
@@ -1786,12 +1788,15 @@ function frame(tp) {
         if (lg && sc && !calm() && st > .5 && st < .58) { shot('monster_close', { cx: .5, cy: .45, z: 1.35, t: 2.2, T, sx: 0, sy: 0, scare: 1 }); g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = '#ff2a20'; g.fillRect(0, 0, W, H); g.restore(); }
         if (lg && sc && !calm() && ((st > .09 && st < .13) || (st > .3 && st < .33))) { g.save(); g.globalCompositeOperation = 'difference'; g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.restore(); }
         vignette();
+        // смерти: snow — сигнал камеры рвётся помехами ([[с, по], …]); black — с этой секунды обрыв в черноту (звук ещё идёт в темноте)
+        if (beat.snow) for (const [a, b] of beat.snow) if (t >= a && t < b) { grain(.95); tear(2); g.fillStyle = `rgba(225,232,226,${.08 + .1 * Math.random()})`; g.fillRect(0, 0, W, H); }
         if (beat.hud && (beat.hud !== hudRef || (!beat.fin && t < .1))) { hudRef = beat.hud; hudT0 = now() - t; }   // финал берёт тот же hud — часы записи идут дальше, а не с нуля
         if (cam) cctvHud(beat.label, T, beat.hud && { tag: 'REC', date: beat.hud.date, clock: beat.hud.at + ':' + String(Math.floor(now() - hudT0) % 60).padStart(2, '0') });   // hud — своя дата и время записи (другая ночь)
+        if (beat.black != null && t >= beat.black) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
       }
       // реплики: табличка с именем того, кто говорит; слова загораются по мере звучания
       let shown = false;
-      if (!waiting) {
+      if (!waiting && !(beat.black != null && t >= beat.black)) {   // после обрыва в черноту субтитров нет
         if (typed && t >= typed.t0 && typed.s) {
           const k = Math.floor(Math.min(1, (t - typed.t0) / (typed.d - .9)) * typed.s.length);
           say(typed.who || beat.who || 'ИТАН', typed.s, k); shown = true;
@@ -1864,6 +1869,11 @@ function frame(tp) {
   } else if (mode !== 'play') {
     // фон выбора/концовки: последний кадр затемнён, медленно дышит
     if (mode === 'studio' || mode === 'load') { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }   // заставка и загрузка — на чёрном
+    else if (mode === 'end' && overBg) {   // экран смерти: сначала чернота, потом медленно проступает застывший последний кадр (то, что убило)
+      const k = clamp((T - overBg.t0 - .9) / 2.2, 0, 1);
+      if (k > 0) { shot(lastDrawn || TITLE_SHOT, { cx: .5, cy: .5, z: 1.02 + .02 * k, t: overBg.st, T: overBg.st + 100, sx: 0, sy: 0 }); g.fillStyle = `rgba(0,0,0,${1 - .4 * ease(k)})`; g.fillRect(0, 0, W, H); grain(.1); vignette(); place = placeOf(lastDrawn); }
+      else { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
+    }
     else { shot(lastDrawn || TITLE_SHOT, { cx: .5, cy: .5, z: 1.02 + .03 * Math.sin(T * .3), t: T, T }); if (mode === 'choice') knockSync(T); g.fillStyle = `rgba(0,0,0,${mode === 'choice' ? .45 : .62})`; g.fillRect(0, 0, W, H); grain(.1); vignette(); place = placeOf(lastDrawn); }
   }
   setCamHud(cam && mode === 'play');
