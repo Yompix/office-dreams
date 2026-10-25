@@ -30,7 +30,7 @@ window.STORY = {
     },
     keys_ask: {
       music: 'drone', time: '21:04',
-      beats: [{ img: 'pro_offer', cams: [[.5, .5, 1.1, 1.15], [.48, .44, 1.3, 1.36]], say: ['p10', 'p11', 'p12'], set: 'asked', pad: .4, react: { 'СМЕНЩИК': ['no', 10, 12.6] } }],   // «камеры ничего не записали» — качает головой
+      beats: [{ img: 'pro_offer', cams: [[.5, .5, 1.1, 1.15], [.48, .44, 1.3, 1.36]], say: ['p10', 'p11', 'p12'], set: 'asked', pad: .4, react: { 'СМЕНЩИК': ['no', ['p12', '^(камеры|cameras|камери)$', .6], 2.4] } }],   // «камеры ничего не записали» — качает головой (от слова: в английской озвучке оно на 2,5 с позже)
       then: { goto: 'keys_take' }
     },
     keys_take: {
@@ -55,9 +55,9 @@ window.STORY = {
           { t: 'Ящик стола', go: 'fb_drawer', at: [4.78, .7, -.47], set: 'fphone' }, { t: 'Журнал', go: 'fb_log', at: [5.35, .84, -.27] }],
         leave: { t: 'Сесть за мониторы', go: 'fb_go' } } }
     },
-    fb_jacket: { music: 'drone', beats: [{ img: 'fb_jacket', cams: [[.5, .5, 1.0, 1.06], [.5, .5, 1.0, 1.05, 'fb_salt']], cutAt: ['^(горсть|handful)'], say: ['fb02'], pad: .5 }], then: { back: 'booth' } },
+    fb_jacket: { music: 'drone', beats: [{ img: 'fb_jacket', cams: [[.5, .5, 1.0, 1.06], [.5, .5, 1.0, 1.05, 'fb_salt']], cutAt: ['^(горсть|handful|жменя)'], say: ['fb02'], pad: .5 }], then: { back: 'booth' } },
     fb_photo: { music: 'drone', beats: [{ img: 'ny_photo', fx: 'photo', photo: { smudge: [.55, 1.5, -7.6], back: 'Марта.\nСедьмой этаж.\nНовый год', backCam: 2 },
-      cams: [[.5, .5, 1.0, 1.03], [[.55, 1.5, -7.6], 0, 2.6, 2.8], [.5, .5, 1.0, 1.02]], cutAt: ['^(лицо|face)', '^(оборот|back)'], say: ['fb03'], pad: .8 }], then: { back: 'booth' } },
+      cams: [[.5, .5, 1.0, 1.03], [[.55, 1.5, -7.6], 0, 2.6, 2.8], [.5, .5, 1.0, 1.02]], cutAt: ['^(лицо|face|обличчя)', '^(оборот|back|зворот)'], say: ['fb03'], pad: .8 }], then: { back: 'booth' } },
     fb_drawer: { music: 'drone', beats: [{ img: 'fb_phone', cams: [[.5, .5, 1.0, 1.06]], say: ['fb04'], sfx: [['click', .2, { gain: .5 }], ['buzz', 4.4, { gain: .5 }]], pad: .5 }], then: { back: 'booth' } },
     fb_log: { music: 'drone', beats: [{ img: 'fb_log', cams: [[.5, .5, 1.0, 1.05]], say: ['fb05'], pad: .5 }], then: { back: 'booth' } },
     fb_go: { music: 'drone', beats: [], then: { shift: 'S1', fresh: true } },
@@ -117,7 +117,7 @@ window.STORY = {
     floor7b: {
       music: 'tension', time: '03:02',
       beats: [
-        { img: 'f7_stop', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .5, 1.2, 1.3]], say: ['f07'], pad: .4 },
+        { img: 'f7_stop', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', hud: { date: '29.10.2026', at: '03:00', tag: '▶ ЗАПИСЬ' }, cams: [[.5, .5, 1.2, 1.3]], say: ['f07'], pad: .4 },   // «пересмотрел запись»: на экране — запись 03:00, а не живое 03:02
         { img: null, phone: { kind: 'talk', name: 'Полиция', t0: 3 }, say: ['f08'], pad: .4 }
       ],
       then: { choice: 'На седьмом горит свет. Гаса нет.', timeout: 10, def: 1,
@@ -319,7 +319,7 @@ window.STORY = {
         { img: 'bs_door', cams: [[.5, .5, 1.1, 1.14]], say: ['d08'], sfx: [['bolt', 1.5, { gain: .9 }]], pad: .2 },
         { img: 'bs_open', cams: [[.5, .5, 1.0, 1.06]], say: ['d09'], sfx: [['door_metal', .1, { gain: .7 }]], pad: .3 },
         { img: 'bs_frank', cams: [[.5, .5, 1.0, 1.06]], say: ['d10'], pad: .3 },
-        { img: 'srv_in', cams: [[.5, .5, 1.0, 1.05]], say: ['d11', 'd12'], pad: .3, react: { 'ФРЭНК': ['no+sad', 11.3, 99] } },   // «седьмую одному не выдержать» — качает головой
+        { img: 'srv_in', cams: [[.5, .5, 1.0, 1.05]], say: ['d11', 'd12'], pad: .3, react: { 'ФРЭНК': ['no+sad', ['d12', '^(седьмую|can.t|сьому)$', .52], 99] } },   // «седьмую одному не выдержать» — качает головой (к слову, на любом языке), лицо грустное до конца кадра
         { img: 'srv_in', cams: [[.52, .45, 1.2, 1.26]], say: ['d13', 'd13b'], pad: .4, react: { 'ФРЭНК': ['grim', 0, 99] } },   // d13b — почему соль: для него это стена, вот оно и зовёт, ждёт, пока выйдешь или ответишь
         { img: 'srv_dark', cams: [[.5, .5, 1.0, 1.1]], say: ['d14', 'd15'], hush: true, pad: .3 },
         { img: 'srv_reach', cams: [[.5, .5, 1.0, 1.06]], say: ['d16', 'd17'], heart: true, pad: .2 },
@@ -341,8 +341,8 @@ window.STORY = {
     srv_talk: { music: 'drone', beats: [], then: { talk: { img: 'srv_in', cams: [[.5, .5, 1.0, 1.02]], title: 'Фрэнк',
       topics: [{ t: 'Это правда была она?', go: 'sv_mom' }, { t: 'Гас сказал, его тоже зовут', go: 'sv_gus', if: 'v:gs_calls' }, { t: 'Почему соль?', go: 'sv_why' }],
       bye: { t: 'Посидеть с ним до шести', go: 'srv_bye' } } } },
-    sv_mom: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv05', 'sv06'], pad: .4, react: { 'ФРЭНК': ['no+sad', 7.6, 99] } }], then: { back: 'srv_talk' } },   // «это не она» — качает головой
-    sv_gus: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv07', 'sv08'], pad: .4, react: { 'ФРЭНК': ['yes+sad', 3.6, 99] } }], then: { back: 'srv_talk' } },   // «знаю» — кивает
+    sv_mom: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv05', 'sv06'], pad: .4, react: { 'ФРЭНК': ['no+sad', ['sv06', '^(это|it.s|це)$', .88], 99] } }], then: { back: 'srv_talk' } },   // «это не она» — качает головой на этих словах
+    sv_gus: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv07', 'sv08'], pad: .4, react: { 'ФРЭНК': ['yes+sad', ['sv08', '^(знаю|know)$', .02], 99] } }], then: { back: 'srv_talk' } },   // «знаю» — кивает на слове
     sv_why: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv09', 'sv10'], pad: .4 }], then: { back: 'srv_talk' } },
     srv_bye: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv11', 'sv12'], pad: .6, react: { 'ФРЭНК': ['yes+grim', 2.3, 99] } }], then: { shift: 'S6' } },
     dawn: {
@@ -423,14 +423,14 @@ window.STORY = {
       then: { over: 'ТЫ ПОШЁЛ НА СВЕТ', sub: 'Сам к нему не ходи — ни на свет, ни в лифт.', retry: 'floor7b' }
     },
     over_k3: {
-      music: 'tension', time: '03:06',
+      music: 'tension',   // без своего времени: сюда же ведёт рация голосом Гаса в 04:42 (час S5) — часы не прыгают назад на 03:06
       beats: [
         { img: 'booth_radio', cams: [[.5, .5, 1.1, 1.2]], say: ['k3a', 'k3b'], pad: .1 },
         // свой финал: склейка на правое стекло будки — вплотную за ним, согнувшись, стоит оно с рацией Гаса у рта; опускает её — губы ещё шевелятся; лампа гаснет
         { img: 'k3_radio', hush: 'soft', cams: [[.5, .46, 1.0, 1.06]], black: 3.0,
           sfx: [['phone_crackle', 0, { gain: .55 }], ['breath_close', .55, { gain: .45 }], ['whispers', 1.95, { gain: .35 }], ['hum_stop', 2.97, { gain: .8 }], ['static', 3.0, { gain: .3, cut: .9, once: 1 }]], text: '', pad: 3.65 }
       ],
-      then: { over: 'ТЫ ОТОЗВАЛСЯ', sub: 'Гас не знал твоего имени. А оно знает.', retry: 'radio' }
+      then: { over: 'ТЫ ОТОЗВАЛСЯ', sub: 'Гас не знал твоего имени. А оно знает.', retry: '@save' }   // снова — с того же места: выбор у рации (03:05) или час S5
     },
     over_k4: {
       music: 'tension', time: '03:18',
@@ -483,7 +483,7 @@ window.STORY = {
       then: { over: 'ТЫ ПОШЁЛ НА ЗОВ', sub: 'Оно умеет звать. Стучать — нет.', retry: 'basement' }
     },
     over_k8: {
-      music: 'tension', time: '05:20',
+      music: 'tension',   // без своего времени: держал Фрэнка в 04:18 (knock3) или в часе S6 (05:06, 05:34) — часы не прыгают на 05:20
       beats: [
         { img: 'srv_crawl', cams: [[.5, .5, 1.0, 1.08]], say: ['k8a'], pad: .4 },
         { img: 'srv_dark', cams: [[.5, .5, 1.1, 1.2]], say: ['k8b', 'k8c'], pad: .1 },
@@ -491,7 +491,7 @@ window.STORY = {
         { img: 'k8_ceiling', hush: 'soft', cams: [[.5, .5, 1.0, 1.06]], say: ['k8b'], sayAt: 1.7, black: 3.5,
           sfx: [['salt_crunch', .2, { gain: .45 }], ['skin_stretch', 2.95, { gain: .5 }], ['boom', 3.48, { gain: .75 }], ['breath_close', 3.5, { gain: .7 }]], pad: 1.25 }
       ],
-      then: { over: 'ФРЭНК УШЁЛ НА ГОЛОС', sub: 'Держи его, пока голос не стихнет.', retry: 'knock3' }
+      then: { over: 'ФРЭНК УШЁЛ НА ГОЛОС', sub: 'Держи его, пока голос не стихнет.', retry: '@save' }   // снова — с того же места: «держи Фрэнка» в серверной или час S6 (а не с 04:18)
     },
     over_k9: {
       music: 'tension', time: '05:41',
@@ -542,7 +542,7 @@ window.STORY = {
     gs_long: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['n16'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.05]], say: ['n17'], pad: .4 }], then: { back: 'round2' } },
     gs_photo: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs01'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.06]], say: ['gs02'], pad: .5 }], then: { back: 'round2' } },
     gs_wife: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs03'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.05]], say: ['gs04'], pad: .4 }], then: { back: 'round2' } },
-    gs_frank: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs05'], pad: .2 }, { img: 'gs_ans', cams: [[.5, .5, 1.0, 1.05]], say: ['gs06'], pad: .4, react: { 'ГАС': ['yes', 1.6, 3.6] } }], then: { back: 'round2' } },
+    gs_frank: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs05'], pad: .2 }, { img: 'gs_ans', cams: [[.5, .5, 1.0, 1.05]], say: ['gs06'], pad: .4, react: { 'ГАС': ['yes', ['gs06', '^(сказал|told|сказав)$', .36], 2.0] } }], then: { back: 'round2' } },   // «Я сказал — зовут» — кивает
     gs_calls: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs07'], pad: .2 }, { img: 'gs_707', cams: [[.5, .5, 1.0, 1.05]], say: ['gs08'], heart: true, pad: .5, react: { 'ГАС': ['no', 5.0, 8.2] } }], then: { back: 'round2' } },
     gs_warn: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.05]], say: ['gs09'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.06]], say: ['gs10'], pad: .5, react: { 'ГАС': ['warm', 4.45, 99] } }], then: { back: 'round2' } },
     gs_bye: { music: 'drone', beats: [{ img: 'r2_talk', cams: [[.5, .5, 1.0, 1.05]], say: ['n15'], pad: .8, react: { 'ГАС': ['no+warm', 3.4, 99] } }], then: { goto: 'ly_call' } },
@@ -717,13 +717,13 @@ window.STORY = {
       S1: { from: '21:10', to: '22:00', spm: 3.6, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'], hint: 'Камеры — внизу. Странное — «Записать». Свет, вход и лифт — на пульте.',
         events: [{ at: '21:14', an: 'light10' }, { at: '21:28', an: 'cat' }, { at: '21:46', task: { text: 'К 22:00 запереть вход и остановить лифт', need: ['door', 'lift'], by: '22:00', say: 'n01' } }],
         rnd: { pool: ['door10', 'palmMove', 'chair10', 'clockSpin', 'light7', 'snd07'], n: 2 }, next: 'dg_call' },
-      S2: { from: '22:20', to: '23:59', spm: 2.2, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
+      S2: { st: { gus: 0, gusGone: 0, blackout: 0 }, from: '22:20', to: '23:59', spm: 2.2, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '22:25', state: { gus: 1 } }, { at: '22:26', an: 'gus7' }, { at: '22:40', radio: ['f01', 'f02'] }, { at: '23:05', an: 'lift' }, { at: '23:30', radio: ['n08', 'n09', 'n10', 'n11'] }],
         rnd: { pool: ['door10', 'light10', 'cat', 'door01', 'streetOff', 'lift13', 'clockSpin', 'palmMove', 'chair10', 'snd10', 'snd04', 'snd03', 'hallDark'], n: 4 }, next: 'sh_S3' },
-      S3: { from: '00:00', to: '00:59', spm: 3.3, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
+      S3: { st: { gus: 1, gusGone: 0, blackout: 0 }, from: '00:00', to: '00:59', spm: 3.3, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '00:12', an: 'st04' }, { at: '00:45', an: 'palm' }],
         rnd: { pool: ['door10', 'light10', 'lift', 'st_m2', 'lily01', 'snd_m2', 'sdoor', 'mOff', 'stDark', 'snd01', 'whisp02', 'door01', 'st03'], n: 3 }, next: 'round2' },
-      S4: { from: '01:20', to: '02:50', spm: 2.4, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
+      S4: { st: { gus: 1, gusGone: 0, blackout: 0 }, from: '01:20', to: '02:50', spm: 2.4, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '01:40', call: { say: 'n20', ask: '«Итан?.. Это ты?»', yes: '— Да. Это я.', hang: 'Молча положить трубку', die: 'over_phone', after: 'n24' } },
           { at: '02:00', c13: true, say: 'n19' }, { at: '02:12', an: 'st10' },
           // телефон Фрэнка (если поставил на зарядку): звонит с неизвестного номера, пропущенные, сообщение «Фрэнки, сынок…»; ответить — смерть
@@ -733,25 +733,26 @@ window.STORY = {
           { at: '02:25', if: 'fphone', call: { title: 'Телефон Фрэнка', sub: 'На зарядке. Номер не определён.', take: 'Ответить: «Алло?»', no: 'Сбросить', takeDie: 1, die: 'over_fmom', noSay: 'fp02' } },
           { at: '02:31', say: 'n18' }],
         rnd: { pool: ['door10', 'lift', 'st_m2', 'st02', 'st07', 'st01', 'frank02', 'guard04', 'snd_m2', 'sdoor', 'mOff', 'hallDark', 'door01', 'snd01', 'stDark', 'lily01', 'st03', 'whisp02'], n: 5 }, next: 'journal' },
-      // st — что видно на камерах с начала часа (после 03:00 Гаса нет: на седьмом брошены ведро и швабра)
+      // st — что видно на камерах с начала часа: с 22:25 до трёх Гас моет седьмой (S3, S4 — и после «Продолжить»), после 03:00 его нет — брошены ведро и швабра;
+      // blackout: 0 — свет гаснет только в своём часе: повтор часа после смерти и «Вернуться к выбору» начинаются со светом
       // ветка «остаться в будке»: самый трудный час. Рация голосом Гаса, стук снизу, «Лили» у входа, свет гаснет сверху вниз
-      S5: { st: { gus: 0, gusGone: 1 }, from: '04:20', to: '05:35', spm: 4, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
+      S5: { st: { gus: 0, gusGone: 1, blackout: 0 }, from: '04:20', to: '05:35', spm: 4, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '04:21', say: 'n25' }, { at: '04:30', an: 'knock3x' },
           { at: '04:42', call: { title: 'Рация. Канал уборщика', sub: 'Сквозь шипение — голос Гаса.', take: 'Ответить', no: 'Не отвечать', radio: 1, say: 'n26', ask: '«Итан… Спустись ко мне»', yes: '— Гас! Держись, я сейчас поднимусь!', hang: 'Выключить рацию', die: 'over_k3', after: 'n27' } },
           { at: '04:58', sms: { from: 'Лили', text: 'Итан, я внизу у входа. Открой, пожалуйста, я промокла насквозь' } }, { at: '04:59', an: 'lilyDoor' },
           { at: '05:20', say: 'n31', state: { blackout: 1 } }],
         rnd: { pool: ['st_m2', 'st02', 'st07', 'st01', 'st03', 'st10', 'frank02', 'guard04', 'snd_m2', 'sdoor', 'snd03', 'snd04', 'whisp02', 'lift13', 'clockSpin', 'chair10', 'light10'], n: 6 }, next: 'stay2' },
       // ветка «к Фрэнку»: ночь в серверной у регистратора. Фрэнк подсказывает; голос матери возвращается — держи его
-      S6: { st: { gus: 0, gusGone: 1 }, from: '04:30', to: '05:58', spm: 4, cam: 'm2', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
+      S6: { st: { gus: 0, gusGone: 1, blackout: 0 }, from: '04:30', to: '05:58', spm: 4, cam: 'm2', cams: ['01', '02', '03', '04', '07', '10', 'm2'],
         events: [{ at: '04:31', say: 'n33' }, { at: '04:40', say: 'n34' }, { at: '04:52', say: 'n35' },
           { at: '05:06', hold: { say: 'n37', dur: 7, die: 'over_k8' } }, { at: '05:34', hold: { say: 'n37', dur: 9, die: 'over_k8' } }, { at: '05:40', say: 'n36' }],
         rnd: { pool: ['st_m2', 'st02', 'st07', 'st01', 'st03', 'st10', 'frank02', 'guard04', 'lily01', 'snd_m2', 'snd01', 'whisp02', 'lift', 'lift13', 'hallDark', 'stDark', 'door10', 'palmMove'], n: 6 }, next: 'dawn' },
       // ветка «открыл → спрятался в будке»: «Лили» внутри, ходит по этажам, включает свет и ищет. Шаги у будки — не дыши; внутренний — не снимай
-      A1: { st: { gus: 0, gusGone: 1 }, from: '04:00', to: '05:45', spm: 3.6, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'], hint: 'Ты прячешься. Смотри камеры и записывай. Шаги у будки — «НЕ ДЫШИ».',
-        events: [{ at: '04:08', an: 'light7' }, { at: '04:10', say: 'n40' }, { at: '04:16', an: 'light10' },
+      A1: { st: { gus: 0, gusGone: 1, blackout: 0 }, from: '04:00', to: '05:45', spm: 3.6, cam: '02', cams: ['01', '02', '03', '04', '07', '10', 'm2'], hint: 'Ты прячешься. Смотри камеры и записывай. Шаги у будки — «НЕ ДЫШИ».',
+        events: [{ at: '04:08', an: 'light7' }, { at: '04:16', an: 'light10', say: 'n40' },   // «на седьмом загорелся свет, потом на десятом» — когда загорелся и десятый (было в 04:10, а десятый — в 04:16; занята камера — реплика ждёт вместе со светом)
           { at: '04:26', hold: { say: 'n39', dur: 7, die: 'over_k5b', title: 'НЕ ДЫШИ', text: 'Шаги у самой будки. Держи кнопку, пока она не уйдёт.', btn: 'ЗАТАИТЬСЯ', btnOn: 'НЕ ДЫШУ', done: 'Шаги удаляются. Пока.', sfx: ['steps_barefoot', { gain: .6 }] } },
           { at: '04:40', sms: { from: 'Лили', text: 'Я на седьмом. Тут светло и тепло. Поднимись ко мне?' } },
-          { at: '04:52', say: 'n41' }, { at: '04:53', call: { say: 'n20', ask: '«Итан?.. Это ты?»', yes: '— Да. Это я.', hang: 'Молча положить трубку', die: 'over_phone', after: 'n24' } },
+          { at: '04:52', say: 'n41' }, { at: '04:52', call: { say: 'n20', ask: '«Итан?.. Это ты?»', yes: '— Да. Это я.', hang: 'Молча положить трубку', die: 'over_phone', after: 'n24' } },
           { at: '05:12', say: 'n31', state: { blackout: 1 } },
           { at: '05:24', hold: { say: 'n42', dur: 9, die: 'over_k5b', title: 'НЕ ДЫШИ', text: 'Она дышит за стеклом будки. Не отпускай.', btn: 'ЗАТАИТЬСЯ', btnOn: 'НЕ ДЫШУ', done: 'Шаги удаляются. Пока.', sfx: ['steps_barefoot', { gain: .8 }] } },
           { at: '05:40', say: 'n43' }],
