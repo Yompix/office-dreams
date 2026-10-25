@@ -63,9 +63,11 @@ const lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.max(a, Math
 
 /* ---------- материалы: дрожание вершин (PS1) ---------- */
 const SNAP = { value: new T.Vector2(108, 192) };
+// длинная сторона настоящего экрана в пикселях: «Кино» не рисует больше, чем экран покажет (Steam Deck 1280×800 — 1280, а не 1920: вдвое меньше точек)
+const scrL = () => { try { return Math.max(960, Math.round(Math.max(screen.width, screen.height) * (devicePixelRatio || 1))); } catch { return 1920; } };
 function setLand(land) {
   V.land = !!land; V.BW = land ? 480 : 270; V.BH = land ? 270 : 480;
-  if (CINE) { const L = (FINE ? 1920 : 1280) * (V.rs || 1) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }
+  if (CINE) { const L = Math.min(FINE ? 1920 : 1280, scrL()) * (V.rs || 1) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }
   else { V.RW = V.BW * HD; V.RH = V.BH * HD; }
   SNAP.value.set(1e5, 1e5);   // вершины не дрожат ни в «Кино», ни в «Ретро» (24 окт: дрожь вершин PS1 владелец видел как «текстуры мигают/колбасит»)
 }
