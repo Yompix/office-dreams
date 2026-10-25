@@ -2051,6 +2051,20 @@ SH.hush_srv = { loc: 'server', pos: SRV_CAM, look: [2.2, 1.15, 1.9], fov: 40, cc
     fing: { r: ['flat', .55], l: sh > .3 ? ['point', 1] : ['flat', .55] } }), 'cam']]); } };
 // «Назвался» под стойкой: та же камера холла, только Итана за столом нет (он под стойкой, её не видно) — у окна будки стоит второй
 SH.dbl_cam_hide = Object.assign({}, SH.dbl_cam, { set: (o, t, sh) => SH.dbl_cam.set(o, t, sh).filter(a => a[0] !== 'temych') });
+// A1 — Итан прячется под стойкой (CROUCH, как в сцене hide): «посмотрел в лицо» — крупно его лицо под столешницей в мертвенном свете помех, губы сами отвечают;
+// «засмотрелся» — на CAM 00 оно стоит в будке над столом, рукой лезет под столешницу к нему и, глядя в объектив, подносит палец к губам
+SH.k1_hide = { loc: 'lobby', pos: [5.7, .64, -.75], look: [5.72, .6, -.31], fov: 34, face: { temych: 'gasp' }, set: (o, t) => {
+  lobbyBlack(o); o.amb.intensity = .07; o.flickOn = false; const surge = seg(t, 1.25, 1.42);
+  o.faceL.position.set(5.66, .42, -.52); o.faceL.color.setHex(0xb8c8dc); o.faceL.distance = 1.3; o.faceL.intensity = (.7 + .35 * Math.sin(t * 47) * Math.sin(t * 13)) * (1 + 1.2 * surge);   // свет помех снизу (экран у него в руках)
+  const P = eCrouch(t); P.look = [5.6, .72, -.72];   // смотрит чуть вверх, на свет экрана — лицо к нам, а не подбородком P.post = C => { if (t > .7 && t < 1.3) C.talk = .28 + .2 * Math.abs(Math.sin(t * 19)); };
+  return [['temych', CROUCH[0], 0, CROUCH[1], PI, P, null]]; } };
+SH.hush_hide = { loc: 'lobby', pos: [6.42, 2.32, .32], look: [5.65, .95, -.7], fov: 60, cctv: 1, set: (o, t) => {
+  o.lamp.intensity = 0; o.lampBulb.visible = false; o.boothLight.intensity = .2; o.l1.intensity = .3; o.amb.intensity = .14; o.flickOn = false;
+  o.faceL.position.set(6.0, 1.9, -.2); o.faceL.color.setHex(0xc0ccd8); o.faceL.distance = 2.2; o.faceL.intensity = 1.0;   // лицо к объективу
+  const lean = seg(t, .35, 1.2), sh = seg(t, 1.2, 1.75), lips = C => { const h = C.bone.Head.getWorldPosition(_tv); return [h.x + .07, h.y - .07, h.z + .08]; };   // перед губами, к объективу
+  return [['temych', CROUCH[0], 0, CROUCH[1], PI, eCrouch(t), null], ['monster', 5.75, 0, -1.05, 0, Object.assign(STILL('Idle_Loop', 1.7), { pelvis: [0, -.18 * lean, 0], spine: { to: [5.75, .7, -.2], k: .5 * lean },
+    arm: { r: { at: [5.62, .55, -.4], by: 'palm', fdir: [0, -.25, 1], pdir: [0, -1, 0], w: lean, pole: [5.3, .9, -1.1] }, l: { at: lips, by: 'tip', fdir: [0, 1, 0], pdir: nrm([-.5, 0, .85]), w: sh } },
+    fing: { r: ['claw', .4], l: sh > .3 ? ['point', 1] : ['flat', .55] } }), 'cam']]; } };
 // ---- постановка v3: передача ключей (сменщик протягивает связку через окно будки, Итан берёт её в ладонь) ----
 const ease = k => k * k * (3 - 2 * k), seg = (t, a, b) => ease(clamp((t - a) / (b - a), 0, 1));
 const KEYH = [5.1, 1.29, .3];   // где встречаются руки: над внутренним краем стойки, в окне между стёклами
