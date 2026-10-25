@@ -97,8 +97,8 @@ const shot = (p, f) => p.screenshot({ path: path.join(out, f), timeout: 240000 }
   check(await skipTo(p, 'mg') && await until(p, () => document.querySelector('#mg .bigbtn')), 'мини-игра «НЕ ДЫШИ» открылась', 'мини-игра «НЕ ДЫШИ» не открылась');
   await btn(p, A, true);   // A зажата сразу, как появилась кнопка: удержание начинается, как только рамка на ней
   check(await until(p, () => !!document.querySelector('#mg .bigbtn.held'), null, 30000), 'геймпад: держать A — «НЕ ДЫШИ» зажата', 'геймпад: удержание не сработало');
+  await btn(p, A, false);   // отпустил сразу (до конца шагов) — смерть; снимок потом: в контейнере он идёт секунды, а за 11 с «НЕ ДЫШИ» кончилось бы победой
   await shot(p, '3hold.png');
-  await btn(p, A, false);
   check(await until(p, () => window.__ns.scene && window.__ns.scene.startsWith('over_'), null, 15000), 'отпустил раньше времени — смерть (' + await p.evaluate(() => window.__ns.scene) + ')', 'отпустил — смерти нет');
   check(await skipTo(p, 'end'), 'экран смерти', 'экран смерти не показался');
   check(await padReady(p, '#oRetry'), 'геймпад: на экране смерти рамка на «Попробовать снова»', 'рамка: ' + await curId(p));
