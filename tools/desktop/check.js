@@ -95,13 +95,13 @@ const shot = (p, f) => p.screenshot({ path: path.join(out, f), timeout: 240000 }
   // удержание «НЕ ДЫШИ»: держать A — кнопка зажата; отпустить раньше времени — смерть №5 → экран смерти, достижение
   await p.evaluate(() => window.__ns.startScene('hide', true));
   check(await skipTo(p, 'mg') && await until(p, () => document.querySelector('#mg .bigbtn')), 'мини-игра «НЕ ДЫШИ» открылась', 'мини-игра «НЕ ДЫШИ» не открылась');
-  await padReady(p, '.bigbtn'); await btn(p, A, true); await frames(p, 3); await p.waitForTimeout(1200);
-  check(await p.evaluate(() => !!document.querySelector('#mg .bigbtn.held')), 'геймпад: держать A — «НЕ ДЫШИ» зажата', 'геймпад: удержание не сработало');
+  await btn(p, A, true);   // A зажата сразу, как появилась кнопка: удержание начинается, как только рамка на ней
+  check(await until(p, () => !!document.querySelector('#mg .bigbtn.held'), null, 30000), 'геймпад: держать A — «НЕ ДЫШИ» зажата', 'геймпад: удержание не сработало');
   await shot(p, '3hold.png');
   await btn(p, A, false);
   check(await until(p, () => window.__ns.scene && window.__ns.scene.startsWith('over_'), null, 15000), 'отпустил раньше времени — смерть (' + await p.evaluate(() => window.__ns.scene) + ')', 'отпустил — смерти нет');
   check(await skipTo(p, 'end'), 'экран смерти', 'экран смерти не показался');
-  await p.waitForTimeout(800); check(/oRetry/.test(await curId(p) || ''), 'геймпад: на экране смерти рамка на «Попробовать снова»', 'рамка: ' + await curId(p));
+  check(await padReady(p, '#oRetry'), 'геймпад: на экране смерти рамка на «Попробовать снова»', 'рамка: ' + await curId(p));
   await p.waitForTimeout(500); const ach = J('achievements.json') || [];
   check(ach.includes('DEATH_05'), 'достижение записано: ' + ach.join(', '), 'достижения не записаны: ' + JSON.stringify(ach));
   // смена: LB/RB — камеры, X — записать (окно), B — закрыть

@@ -129,7 +129,7 @@ function pressA() {
   list = sync(); const root = curRoot;
   if (tnow() < armT && root) return;   // только что появились кнопки — A от прошлого нажатия их не выбирает
   if (cur && list.includes(cur)) {
-    if (cur.matches(HOLD)) { const [x, y] = mid(cur); holdEl = cur; ptr(cur, 'pointerdown', x, y, 1); return; }
+    if (cur.matches(HOLD)) return;   // удержание начинает главный цикл: A зажата, кнопка под рамкой
     if (cur.matches('.plug')) return pullCord(cur);
     if (cur.matches('input')) return;
     return cur.click();
@@ -190,6 +190,9 @@ function frame() {
       }
     }
     if (hit(BTN.A) && !pm) pressA(); if (up(BTN.A)) releaseA();
+    // «НЕ ДЫШИ», «ДЕРЖИ»: A зажата (хоть и раньше, чем кнопка появилась) — держим, как пальцем; отпустил — отпустили
+    if (holdEl && !holdEl.isConnected) holdEl = null;
+    if (b[BTN.A] && !pm && !holdEl && cur && cur.matches(HOLD) && vis(cur) && t >= armT) { const [x, y] = mid(cur); holdEl = cur; ptr(cur, 'pointerdown', x, y, 1); }
     if (hit(BTN.B)) pressB();
     if (hit(BTN.START)) pressStart();
     if (hit(BTN.LB)) camCycle(-1); if (hit(BTN.RB)) camCycle(1);
