@@ -748,8 +748,8 @@ const MG = {
   // держать кнопку (не дышать), отпустить можно только когда шаги стихнут
   hold(th) {
     mode = 'mg'; music('tension'); amb('heart', true, .7); const my = gen;
-    mgEl.innerHTML = `<div class="mghead">${th.title}<small>${th.hint}</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="air"></i></div><div style="text-align:center;font-size:calc(3.4 * var(--u));margin-top:calc(1.5 * var(--u));opacity:.7">${th.meter || tr('воздух')}</div></div><button class="bigbtn" id="hb">${th.btn || tr('ДЕРЖИ')}</button>`;   // надпись — как у отпущенной кнопки (было «ДЕРЖИ» по-русски на любом языке)
-    mgEl.classList.remove('hide');
+    mgEl.innerHTML = `<div class="mghead" style="top:10%">${th.title}<small>${th.hint}</small></div>${th.calls ? '<div id="mgSub" style="position:absolute;left:7%;right:7%;top:31%;text-align:center;font-size:calc(3.8 * var(--u));font-weight:600;font-style:italic;line-height:1.35;color:#ff6a6a;text-shadow:0 0 calc(2 * var(--u)) #000"></div>' : ''}<div class="mgfoot" style="bottom:72%"><div class="meter"><i id="air"></i></div><div style="text-align:center;font-size:calc(3.4 * var(--u));margin-top:calc(1.5 * var(--u));opacity:.7">${th.meter || tr('воздух')}</div></div><button class="bigbtn" id="hb">${th.btn || tr('ДЕРЖИ')}</button>`;   // надпись — как у отпущенной кнопки (было «ДЕРЖИ» по-русски на любом языке)
+    mgEl.classList.remove('hide');   // заголовок ниже обычного (10%): на вертикальном экране сверху кнопки меню и звука — «ДЕРЖИ ФРЭНКА» уходило под них; строка голоса — между шкалой и кнопкой
     const btn = $('hb'), air = $('air'); let held = false, a = 1, t0 = now(), lt = t0, safe = false, end = false, steps = 0;
     const dur = th.dur || 9, set = h => { held = h; btn.classList.toggle('held', h); btn.textContent = h ? (th.btnOn || tr('НЕ ДЫШИ')) : (th.btn || tr('ДЕРЖИ')); };
     btn.onpointerdown = e => { e.preventDefault(); try { btn.setPointerCapture(e.pointerId); } catch {} set(true); }; btn.onpointerup = btn.onpointerleave = btn.onpointercancel = () => set(false);   // захват: нажатая кнопка сжимается (scale .93) — мышь у края «уходила» с неё, и это считалось «отпустил»
@@ -758,7 +758,7 @@ const MG = {
       if (end || my !== gen) return; const t = now() - t0, fdt = Math.min(.1, now() - lt); lt = now();
       // босые шаги кружат вокруг будки: то слева, то справа
       // вместо шагов — голос из темноты (держать Фрэнка: оно зовёт его голосом матери)
-      if (th.calls && t > 1 && Math.floor(t / 2.6) > steps && t < dur) { steps++; play(th.calls[steps % th.calls.length], { bus: 'voice', gain: .9, pan: Math.sin(t) * .6 }); }
+      if (th.calls && t > 1 && Math.floor(t / 2.6) > steps && t < dur) { steps++; const k = th.calls[steps % th.calls.length]; play(k, { bus: 'voice', gain: .9, pan: Math.sin(t) * .6 }); const sb = $('mgSub'); if (sb && TIM[k]) sb.textContent = TIM[k].t; }   // что зовёт голос — и словами (субтитры остаются всегда, и без озвучки)
       else if (!th.calls && t > .8 && Math.floor(t / 1.1) > steps && t < dur) { steps++; const pan = Math.sin(t * 1.3) * .8; if (!play('steps_barefoot', { off: Math.random() * 4, cut: 1, gain: .6 + .4 * Math.sin(t), pan })) play('steps', { gain: .5 + .5 * Math.sin(t), pan }); if (steps % 3 === 0) play(BUF.breath_close ? 'breath_close' : 'ch_whisper', { gain: .45, pan: -pan * .6 }); }
       a = Math.max(0, Math.min(1, a + (held ? -Math.min(.085, .8 / dur) : 0.25) * fdt)); air.style.width = a * 100 + '%';   // воздуха (сил) хватает на весь срок и ещё секунды на три после «ТИХО…»: «ДЕРЖИ ФРЭНКА» (12 с) при .085/с кончалось на 11,8 с — схватил сразу и держал — всё равно смерть; при .93/срок после «ТИХО…» оставалась секунда — не успевал отпустить
       if (t > 2.5 && t < dur && !held) return fin(false);      // выдохнул — услышала
