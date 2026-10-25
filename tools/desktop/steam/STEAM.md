@@ -45,12 +45,12 @@
 >
 > The day guard hands you the keys with a shaking hand and tells you to read the logbook before three. On the last page, in Frank's handwriting: *DON'T ANSWER TO YOUR NAME. DON'T OPEN THE DOOR TO IT. DON'T GO TO IT YOURSELF — NOT TO THE LIGHT, NOT IN THE ELEVATOR.*
 >
-> At three in the morning your little sister Lily is standing outside the glass doors. In the rain. Calling your name.
+> At half past three your little sister Lily is standing outside the glass doors. In the rain. Calling your name.
 >
 > - A 2–3 hour interactive horror story with timed choices, four endings and fourteen ways to die
 > - Between story scenes you work the shift: watch the CCTV cameras, log anything wrong, run the elevator and the lights — and don't stare at CAM 13
-> - Fully voiced in English and Russian, subtitles in Ukrainian
-> - Two looks: Cinema and Retro (PS1-style)
+> - Fully voiced in English, Russian, Spanish, Brazilian Portuguese and German; Ukrainian subtitles
+> - Three looks: Ultra (native resolution up to 4K), Cinema and Retro (PS1-style); the game picks one for your graphics card
 > - Full controller support, Steam Deck friendly. Headphones recommended
 > - Original music composed in code
 >
@@ -64,24 +64,91 @@
 >
 > Сменщик отдаёт тебе ключи дрожащей рукой и велит прочитать журнал до трёх. На последней странице — почерком Фрэнка: *НЕ ОТЗЫВАЙСЯ НА ИМЯ. НЕ ОТКРЫВАЙ ЕМУ ДВЕРЬ. САМ К НЕМУ НЕ ХОДИ — НИ НА СВЕТ, НИ В ЛИФТ.*
 >
-> В три часа ночи за стеклянной дверью стоит твоя младшая сестра Лили. Под дождём. И зовёт тебя по имени.
+> В половине четвёртого за стеклянной дверью стоит твоя младшая сестра Лили. Под дождём. И зовёт тебя по имени.
 >
 > - Интерактивный хоррор на 2–3 часа: выборы на время, четыре концовки и четырнадцать смертей
 > - Между сюжетными сценами — смена: камеры наблюдения, журнал, лифт и свет на этажах; на CAM 13 не засматривайся
-> - Полная озвучка на русском и английском, субтитры на украинском
-> - Две графики: «Кино» и «Ретро» (в духе PS1)
+> - Полная озвучка на русском, английском, испанском, португальском (Бразилия) и немецком; субтитры на украинском
+> - Три вида графики: «Ультра» (родное разрешение до 4K), «Кино» и «Ретро» (в духе PS1); игра сама выбирает под видеокарту
 > - Полная поддержка геймпада и Steam Deck. Лучше в наушниках
 > - Своя музыка, написанная кодом
 >
 > **Внимание:** 18+. Насилие, кровь, скримеры, мигающий свет.
 
-**Языки:** English — интерфейс, озвучка, субтитры; Русский — интерфейс, озвучка, субтитры; Українська — интерфейс и субтитры.
+**Страница магазина на других языках** (Store Page Admin → выбрать язык; тексты делали переводчики, `tools/i18n/<язык>.store.json`):
+
+**Español — короткое описание:** Una historia de terror en el turno de noche. Vigila las cámaras, cumple las reglas y, si algo te llama por tu nombre, no respondas. Cuatro finales, catorce formas de morir. Espera a las seis.
+
+**Español — об игре:**
+
+> **No respondas. No abras. Espera a las seis.**
+>
+> Aceptas el turno de noche en el centro de negocios Horizon, una torre de oficinas vacía que cerró hace un mes. El vigilante anterior, Frank, pasó veinte años en esa caseta. Hace una semana no entregó el turno: la lámpara seguía encendida, el té se había enfriado y Frank no estaba. Las cámaras no grabaron nada.
+>
+> El vigilante de día te entrega las llaves con mano temblorosa y te pide que leas la bitácora antes de las tres. En la última página, con la letra de Frank: *NO RESPONDAS A TU NOMBRE. NO LE ABRAS LA PUERTA. NO TE ACERQUES TÚ — NI A LA LUZ, NI AL ASCENSOR.*
+>
+> A las tres de la madrugada, tu hermana menor, Lily, está al otro lado de las puertas de vidrio. Bajo la lluvia. Llamándote por tu nombre.
+>
+> - Una historia interactiva de terror de 2–3 horas, con decisiones contrarreloj, cuatro finales y catorce formas de morir
+> - Entre escena y escena cubres el turno: vigila las cámaras de seguridad, anota todo lo que no cuadre, controla el ascensor y las luces… y no te quedes mirando la CAM 13
+> - Voces completas en inglés, ruso y español, además de portugués de Brasil y alemán. Subtítulos en ucraniano
+> - Tres estilos visuales: Ultra (resolución nativa hasta 4K), Cine y Retro (al estilo de PS1); el juego elige según tu tarjeta gráfica
+> - Compatibilidad total con gamepad y Steam Deck. Se recomiendan auriculares
+> - Música original escrita en código
+>
+> **Aviso de contenido:** 18+. Violencia, sangre y escenas explícitas, sustos repentinos y luces intermitentes.
+
+**Português (Brasil) — короткое описание:** Uma história de terror no turno da noite. Vigie as câmeras, siga as regras e, seja lá o que chamar o seu nome, não responda. Quatro finais, quatorze jeitos de morrer. Espere até as seis.
+
+**Português (Brasil) — об игре:**
+
+> **Não responda. Não abra. Espere até as seis.**
+>
+> Você assume o turno da noite no centro empresarial Horizon — uma torre de escritórios vazia, fechada há um mês. O vigia antes de você, Frank, passou vinte anos naquela guarita. Uma semana atrás, ele não entregou o turno: a luminária acesa, o chá frio, e nada do Frank. As câmeras não gravaram nada.
+>
+> O vigia do dia te entrega as chaves com a mão tremendo e manda você ler o diário antes das três. Na última página, com a letra do Frank: *NÃO RESPONDA SE CHAMAREM SEU NOME. NÃO ABRA A PORTA PRA AQUILO. NÃO VÁ ATÉ AQUILO — NEM PRA LUZ, NEM PRO ELEVADOR.*
+>
+> Às três e meia da madrugada, sua irmã caçula, Lily, está do outro lado da porta de vidro. Na chuva. Chamando o seu nome.
+>
+> - Uma história interativa de terror de 2 a 3 horas, com escolhas contra o relógio, quatro finais e quatorze jeitos de morrer
+> - Entre as cenas da história, você cumpre o turno: vigia as câmeras de segurança, anota tudo o que estiver errado, controla o elevador e as luzes — e não fica olhando para a CAM 13
+> - Totalmente dublado em português do Brasil, inglês e russo — e também em espanhol e alemão. Legendas em ucraniano
+> - Três visuais: Ultra (resolução nativa até 4K), Cinema e Retrô (no estilo do PS1); o jogo escolhe conforme a sua placa de vídeo
+> - Suporte completo a controle, ótimo no Steam Deck. Recomendamos jogar com fones de ouvido
+> - Trilha sonora original composta em código
+>
+> **Aviso de conteúdo:** 18+. Violência explícita, sangue, sustos repentinos e luzes piscando.
+
+**Deutsch — короткое описание:** Eine Horrorgeschichte über eine Nachtschicht. Behalte die Kameras im Blick, halte dich an die Regeln — und was auch immer deinen Namen ruft: Antworte nicht. Vier Enden, vierzehn Arten zu sterben. Warte bis sechs.
+
+**Deutsch — об игре:**
+
+> **Antworte nicht. Mach nicht auf. Warte bis sechs.**
+>
+> Du trittst die Nachtschicht im Bürozentrum Horizon an — einem leeren Büroturm, der vor einem Monat geschlossen hat. Dein Vorgänger Frank saß zwanzig Jahre in dieser Kabine. Vor einer Woche gab es keine Übergabe: Die Lampe brannte, der Tee war kalt, und Frank war verschwunden. Die Kameras haben nichts aufgezeichnet.
+>
+> Der Wachmann der Tagschicht gibt dir mit zitternder Hand die Schlüssel und sagt, du sollst das Wachbuch vor drei lesen. Auf der letzten Seite, in Franks Handschrift: *ANTWORTE NICHT AUF DEINEN NAMEN. MACH IHM NICHT AUF. GEH NICHT SELBST ZU IHM — NICHT INS LICHT, NICHT IN DEN AUFZUG.*
+>
+> Um drei Uhr nachts steht deine kleine Schwester Lily vor der Glastür. Im Regen. Und ruft deinen Namen.
+>
+> - Interaktive Horrorgeschichte für 2–3 Stunden: Entscheidungen unter Zeitdruck, vier Enden und vierzehn Arten zu sterben
+> - Zwischen den Story-Szenen arbeitest du die Schicht: Überwachungskameras im Blick behalten, Auffälliges ins Wachbuch eintragen, Aufzug und Licht steuern — und starr nicht zu lange auf CAM 13
+> - Komplett vertont auf Englisch, Russisch und Deutsch, außerdem auf Spanisch und brasilianischem Portugiesisch; Untertitel auf Ukrainisch
+> - Drei Grafikstile: Ultra (native Auflösung bis 4K), Kino und Retro (im Stil der PS1); das Spiel wählt passend zur Grafikkarte
+> - Volle Controller-Unterstützung, Steam-Deck-freundlich. Kopfhörer empfohlen
+> - Eigene Musik, im Code komponiert
+>
+> **Inhaltswarnung:** 18+. Gewalt, Blut und drastische Szenen, Jumpscares, Lichtblitze.
+
+**Языки:** English, Русский, Español (España/Latinoamérica), Português (Brasil), Deutsch — интерфейс, озвучка, субтитры; Українська — интерфейс и субтитры.
 
 **Жанры:** Adventure, Indie. **Метки (tags):** Horror, Psychological Horror, Interactive Fiction, Multiple Endings, Choices Matter, Story Rich, Atmospheric, Singleplayer, Mystery, Dark, Gore, Short, 3D.
 
 **Системные требования (Windows):**
-- Минимум: Windows 10 64-bit, процессор 2 ядра 2 ГГц, 4 ГБ памяти, видеокарта с WebGL 2 (Intel HD 520 / GeForce GTX 750 и новее), 500 МБ на диске. Графика «Ретро».
-- Рекомендуется: Windows 10/11 64-bit, 4 ядра, 8 ГБ памяти, GeForce GTX 1050 / Radeon RX 560 и новее. Графика «Кино».
+- Минимум: Windows 10 64-bit, процессор 2 ядра 2 ГГц, 4 ГБ памяти, видеокарта с WebGL 2: Intel HD 520 / UHD 620, GeForce GTX 750, Radeon R7 — графика «Ретро» (игра включит её сама), 1 ГБ на диске.
+- Рекомендуется: Windows 10/11 64-bit, 4 ядра, 8 ГБ памяти, GeForce GTX 1050 / Radeon RX 560 / Intel Iris Xe и новее — графика «Кино».
+- Для «Ультра»: GeForce RTX 2060 / Radeon RX 5700 и новее — родное разрешение экрана до 4K, тени и отражения чётче.
+- Steam Deck: «Кино», 1280×720 (если кадры тяжёлые — разрешение снижается само, картинка подрезкивается). Видеокарту игра определяет при первом запуске; выбрать вручную — Настройки → Графика.
 - Linux / SteamOS: 64-bit, остальное так же.
 
 **Анкета о содержании (Mature Content Survey) — 18+:**
