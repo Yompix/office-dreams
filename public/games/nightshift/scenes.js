@@ -2179,7 +2179,7 @@ function cineLoc(R, o) {
   });
   o.casters = []; o.beams = [];
   S.traverse(l => { if (!l.isPointLight) return;
-    l.shadow.mapSize.set(ULTRA ? 2048 : FINE ? 512 : 256, ULTRA ? 2048 : FINE ? 512 : 256); l.shadow.bias = -.003; l.shadow.normalBias = .025; l.shadow.camera.near = .08; l.shadow.camera.far = l.distance || 20;   // «Ультра» — тени вдвое чётче
+    l.shadow.mapSize.set(ULTRA ? 1024 : FINE ? 512 : 256, ULTRA ? 1024 : FINE ? 512 : 256); l.shadow.bias = -.003; l.shadow.normalBias = .025; l.shadow.camera.near = .08; l.shadow.camera.far = l.distance || 20;   // «Ультра» — тени вдвое чётче
     if (!skip.has(l)) o.casters.push(l);
     if (!skip.has(l) && l.position.y > 2.3) {
       const wp = new T.Vector3(); l.getWorldPosition(wp); const h = wp.y - .02;
@@ -2232,7 +2232,7 @@ const FIN = `vec3 fin(vec3 c){
 function cinePost() {
   const q = () => new T.WebGLRenderTarget(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2), { type: T.HalfFloatType, magFilter: T.LinearFilter, minFilter: T.LinearFilter });
   PB = { a: q(), b: q() };
-  if (ULTRA) {   // «Ультра»: мягкие контактные тени (SSAO) по буферу глубины — в углах, под предметами, у ног и лиц; в половину разрешения, потом размытие
+  if (ULTRA && window.__SSAO) {   // ВЫКЛЮЧЕНО (владелец: «эта версия не работает»): глубина из MSAA-кадра ломала кадр на настоящих видеокартах; вернуть через отдельный проход глубины. «Ультра»: мягкие контактные тени (SSAO) по буферу глубины — в углах, под предметами, у ног и лиц; в половину разрешения, потом размытие
     const hq = () => new T.WebGLRenderTarget(Math.max(8, V.RW >> 1), Math.max(8, V.RH >> 1), { type: T.HalfFloatType, magFilter: T.LinearFilter, minFilter: T.LinearFilter });
     PB.o1 = hq(); PB.o2 = hq();
     PB.ao = new T.ShaderMaterial({ uniforms: { tZ: { value: null }, uPI: { value: new T.Matrix4() }, uP: { value: new T.Matrix4() }, uPx: { value: new T.Vector2() } }, vertexShader: POST_VS,
@@ -2332,7 +2332,7 @@ function setLand(land, force) {
   window.__W3core.setLand(land);
   if (!scenesReady) return;
   const R = window.__W3core.R; R.setSize(V.RW, V.RH, false);
-  window.__W3core.RT.setSize(V.RW, V.RH); const rd = ULTRA ? 1 : FINE ? 3 : 4; reflRT.setSize(Math.round(V.RW / rd), Math.round(V.RH / rd));   // отражения: «Ультра» — в половину, ПК — в треть (каждый кадр), телефон — в четверть
+  window.__W3core.RT.setSize(V.RW, V.RH); const rd = ULTRA ? 2 : FINE ? 3 : 4; reflRT.setSize(Math.round(V.RW / rd), Math.round(V.RH / rd));   // отражения: «Ультра» — в половину, ПК — в треть (каждый кадр), телефон — в четверть
   if (PB) { PB.a.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); PB.b.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); }
   if (PB && PB.o1) { PB.o1.setSize(Math.max(8, V.RW >> 1), Math.max(8, V.RH >> 1)); PB.o2.setSize(Math.max(8, V.RW >> 1), Math.max(8, V.RH >> 1)); }
   postMat.uniforms.uB.value.set(V.BW, V.BH);
@@ -2364,7 +2364,7 @@ function init() {
     if (document.visibilityState === 'visible' && localStorage.getItem('ns1_gfxAuto') !== '2' && !/[?&]gfx=/.test(location.search) && window.nsGfxFallback) window.nsGfxFallback(5); });
   // буфер кадра и постобработка: цветокор + дизеринг + ступени цвета + плёнка VHS (дрожь строк, полоса внизу, редкий залом,
   // цветная кайма в 1 пиксель, строки, лёгкая бочка); у камер наблюдения бочка сильнее и пересвет
-  window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? Object.assign({ type: T.HalfFloatType, samples: ULTRA && (V.rs || 1) <= 1 ? 8 : 4 }, ULTRA ? { depthTexture: new T.DepthTexture(V.RW, V.RH) } : {}) : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
+  window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? { type: T.HalfFloatType, samples: 4 } : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
   if (CINE) cinePost();
   postMat = new T.ShaderMaterial({
     uniforms: { tD: { value: window.__W3core.RT.texture }, uB: { value: new T.Vector2(V.BW, V.BH) }, uHD: { value: HD }, uLv: { value: 22 }, uCctv: { value: 0 }, uIr: { value: 0 }, uGam: { value: 1.25 }, uT: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 } },
@@ -2397,7 +2397,7 @@ function init() {
         c = floor(c * uLv + b4(gl_FragCoord.xy) * .95) / uLv;
         gl_FragColor = vec4(c, 1.);
       }` });
-  { const rd = ULTRA ? 1 : FINE ? 3 : 4; reflRT = new T.WebGLRenderTarget(Math.round(V.RW / rd), Math.round(V.RH / rd), { magFilter: T.LinearFilter, minFilter: T.LinearFilter }); }
+  { const rd = ULTRA ? 2 : FINE ? 3 : 4; reflRT = new T.WebGLRenderTarget(Math.round(V.RW / rd), Math.round(V.RH / rd), { magFilter: T.LinearFilter, minFilter: T.LinearFilter }); }
   L.lobby.glassU.tRef.value = reflRT.texture; classifyLobby(L.lobby);
   window.__dbgA = A; window.__dbgL = L;
   postScene = new T.Scene(); postCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -2525,13 +2525,13 @@ const gfxChk = { n: 0, bad: 0, done: false, c: null };
 function gfxCheck(src) {
   if (++gfxChk.n < 60 || gfxChk.n % 30) return;   // после прогрева: шейдеры собраны, свет выставлен
   try {
-    if (localStorage.getItem('ns1_gfxAuto') === '2') { gfxChk.done = true; return; }   // игрок сам вернул «Кино» — не спорим
+    if (localStorage.getItem('ns1_gfxAuto') === '2' && !ULTRA) { gfxChk.done = true; return; }   // игрок сам вернул «Кино» — не спорим; «Ультра» проверяем всегда: битый кадр на этой видеокарте → «Кино»
     const c = gfxChk.c || (gfxChk.c = Object.assign(document.createElement('canvas'), { width: 24, height: 8 })), x = c.getContext('2d', { willReadFrequently: true });
     x.drawImage(src, 0, src.height * .72, src.width, src.height * .26, 0, 0, 24, 8);
     const d = x.getImageData(0, 0, 24, 8).data; let sum = 0; for (let i = 0; i < d.length; i += 4) sum += .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2];
     const L = sum / (d.length / 4) / 255; window.__gfxL = L;
     if (L >= .085) { gfxChk.done = true; return; }
-    if (++gfxChk.bad >= 2) { gfxChk.done = true; localStorage.setItem('ns1_gfx', '"retro"'); localStorage.setItem('ns1_gfxAuto', '1'); location.reload(); }
+    if (++gfxChk.bad >= 2) { gfxChk.done = true; localStorage.setItem('ns1_gfx', ULTRA ? '"cine"' : '"retro"'); localStorage.setItem('ns1_gfxAuto', '1'); location.reload(); }
   } catch (e) { gfxChk.done = true; }
 }
 function draw(g, W, H, id, o) {
