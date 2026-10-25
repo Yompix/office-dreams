@@ -11,8 +11,10 @@ const langs = process.argv.slice(2).length ? process.argv.slice(2) : ['es', 'pt'
 const extra = fs.existsSync(path.join(__dirname, 'extra.json')) ? JSON.parse(fs.readFileSync(path.join(__dirname, 'extra.json'))) : {};
 const lines = JSON.parse(fs.readFileSync(path.join(R, 'tools/story/lines.json')));
 const EN_T = JSON.parse(fs.readFileSync(path.join(G, 'timing_en.json')));
-// слова так же, как их считает chunks() в engine.js: знаки препинания режут токен на части
-const words = t => t.split(/\s+/).filter(Boolean).flatMap(s => s.replace(/[.,:—?!…«»]/g, ' ').split(/\s+/).filter(Boolean));
+// слова так же, как их считает chunks() в engine.js и режет voice.py: знаки препинания и дефис режут токен на части
+// n23m — реплика n23 («Да. Это я.») чужим голосом в трубке: текст тот же
+const ALIAS = { n23m: 'n23' };
+const words = t => t.split(/\s+/).filter(Boolean).flatMap(s => s.replace(/[.,:;—?!…«»"()\-¿¡„“”]/g, ' ').split(/\s+/).filter(Boolean));
 const out = {};
 for (const L of langs) {
   const T = JSON.parse(fs.readFileSync(path.join(__dirname, L + '.json'), 'utf8'));
@@ -21,7 +23,7 @@ for (const L of langs) {
   if (VOICE[L] === 'en') {
     const tim = {};
     for (const k in EN_T) {
-      const en = EN_T[k], t = T.lines[k]; if (!t || !en.dur) { tim[k] = en; continue; }
+      const en = EN_T[k], t = T.lines[k] || T.lines[ALIAS[k]]; if (!t || !en.dur) { tim[k] = en; continue; }
       const ws = words(t.replace(/^\s*—\s*/, '')), w0 = en.w && en.w.length ? en.w[0][0] : .1, w1 = Math.max(w0 + .3, en.dur * .9 - .15);
       const wt = ws.map(s => s.length + 2), sum = wt.reduce((a, b) => a + b, 0) || 1; let acc = 0;
       tim[k] = Object.assign({}, en, { t, w: ws.map((s, i) => { const at = w0 + (w1 - w0) * acc / sum; acc += wt[i]; return [+at.toFixed(2), s]; }) });

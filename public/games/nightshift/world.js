@@ -36,27 +36,45 @@ const T = window.THREE;
 	}
 #endif
 ` + a.slice(i1).replace('#endif\n\t\tRE_Direct( directLight,', '#endif\n\t\tif ( directLight.visible ) RE_Direct( directLight,'); }   // прожектор (фонарь) вне конуса — тоже без расчёта
+// Чёрный круг на настоящих видеокартах (Steam Deck, ноутбуки; 25 окт): кадр «Кино» и карта отражений — в half float (максимум 65504).
+// Точечный блик (глаз, мокрый пол, металл под лампой вплотную) давал там бесконечность или NaN; свечение размывало такую точку
+// в чёрный диск, а в отражениях — чёрные пятна (программная графика переполнение не показывает). Каждый материал на выходе:
+// NaN → 0, яркость 0…256 (ACES насыщается к ~16, на вид без разницы). __VERSION__ — isnan есть только в WebGL 2.
+T.ShaderChunk.dithering_fragment += `
+#if __VERSION__ >= 300
+	if ( isnan( gl_FragColor.r + gl_FragColor.g + gl_FragColor.b ) ) gl_FragColor.rgb = vec3( 0. );
+#endif
+	gl_FragColor.rgb = clamp( gl_FragColor.rgb, 0., 256. );`;
 // внутреннее разрешение кадра. Два вида графики (меню «Графика», хранится в ns1_gfx, ?gfx=retro|cine — вручную):
 //  «Ретро» — низкое разрешение, дрожь вершин, ступени цвета (запасной вид: слабый телефон или выбор игрока); на ПК вдвое чётче (?hd=0/1);
 //  «Кино» — полное разрешение, мягкие тени, блики и отражения, объёмный свет, пыль в лучах, глубина резкости (по умолчанию везде;
 //   на телефоне разрешение 75 % и тени попроще, а если и так медленно — движок сам переключает на «Ретро», см. perfTick).
 // Ориентация меняется на лету (World.setLand): 9:16 или 16:9; дрожь вершин, строки и рябь VHS считаются по базовой сетке.
-const FINE = matchMedia('(pointer: fine)').matches;
+const FINE = matchMedia('(pointer: fine)').matches || !!window.nsDesktop;   // ПК-версия — всегда графика ПК (на Steam Deck главный «указатель» — сенсорный экран)
 const HD = (() => { const q = /[?&]hd=([01])/.exec(location.search); if (q) return q[1] === '1' ? 2 : 1;
   return FINE && innerWidth > innerHeight ? 2 : 1; })();
-// 3D без видеокарты (SwiftShader, llvmpipe — ПК-версия на машине без драйвера, виртуалка): «Кино» там шло бы 1–2 кадра в секунду,
-// а сборка его шейдеров роняла процесс GPU (контекст терялся). Если игрок сам не выбирал графику — сразу «Ретро»
-function softGL() {
-  try { const c = document.createElement('canvas'), gl = c.getContext('webgl2') || c.getContext('webgl'); if (!gl) return false;
+// Видеокарта по имени (WEBGL_debug_renderer_info) — графика по железу, пока игрок сам её не выбрал (первый запуск, ПК-версия и браузер):
+//  0 — программная (SwiftShader, llvmpipe: ПК без драйвера, виртуалка) → «Ретро»: «Кино» шло бы 1–2 кадра в секунду, а сборка его шейдеров роняла процесс GPU;
+//  1 — слабая встроенная (Intel HD/UHD, Radeon R2–R5, старые Mali/Adreno/PowerVR; или нет WebGL 2) → на ПК «Ретро»;
+//  2 — средняя (Steam Deck, Intel Iris Xe, Radeon Vega/680M/780M, GTX 750–960, MX) → «Кино» с 85 % разрешения;
+//  3 — остальные (GTX 1050 и новее, RTX, Radeon RX, Arc, Apple) → «Кино» 100 %. Дальше perfTick подстраивает разрешение по кадрам и на совсем
+//  медленной отрисовке сам переходит на «Ретро». Имя видеокарты — внизу экрана настроек (для отчётов об ошибках).
+const GPU = (() => {
+  try { const c = document.createElement('canvas'), g2 = c.getContext('webgl2'), gl = g2 || c.getContext('webgl'); if (!gl) return { name: '', tier: 0 };
     const e = gl.getExtension('WEBGL_debug_renderer_info'), r = String(gl.getParameter(e ? e.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
     const lc = gl.getExtension('WEBGL_lose_context'); if (lc) lc.loseContext();
-    return /swiftshader|llvmpipe|softpipe|software|basic render/i.test(r); } catch (e) { return false; }
-}
+    let tier = 3;
+    if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(r)) tier = 0;
+    else if (/intel\(r\) (hd|uhd)|intel.*\b(hd|uhd) graphics|\bgma\b|mali-(4|t[6-8])|adreno.*\b[2-5]\d\d\b|radeon r[2-5]\b|powervr/i.test(r)) tier = 1;
+    else if (/vangogh|custom gpu 0405|iris|radeon.*(vega|\(tm\) graphics|radeon graphics|6[1-8]0m|7[4-8]0m)|gtx (7[5-9]0|9[0-8]0)|\bmx ?[1-5]\d0|adreno|mali|apple gpu/i.test(r)) tier = 2;
+    return { name: r.replace(/^ANGLE \((.*)\)$/, '$1').slice(0, 90), tier: g2 ? tier : Math.min(tier, 1) };
+  } catch (e) { return { name: '', tier: 2 }; }
+})();
 const GFX = (() => { const q = /[?&]gfx=(retro|cine)/.exec(location.search); if (q) return q[1];
-  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; } catch {} return softGL() ? 'retro' : 'cine'; })();
+  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; } catch {} return GPU.tier === 0 || (FINE && GPU.tier === 1) ? 'retro' : 'cine'; })();
 const CINE = GFX === 'cine';
 const RS = (() => { const q = /[?&]rs=([\d.]+)/.exec(location.search); return q ? Math.max(.2, Math.min(1, +q[1])) : 0; })();   // ?rs=0.4 — доля разрешения «Кино» вручную и без подстройки (быстрые проверки кадров)
-const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: RS || (FINE ? 1 : .75), rsPin: !!RS };   // rs — доля разрешения «Кино» (телефон начинает с 75 %, perfTick подстраивает)
+const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: RS || (FINE ? (GPU.tier === 2 ? .85 : 1) : .75), rsPin: !!RS };   // rs — доля разрешения «Кино» (телефон начинает с 75 %, средняя видеокарта ПК — с 85 %, perfTick подстраивает)
 let R = null, RT = null, post = null;          // рендерер, буфер кадра, проход постобработки
 const rnd = (() => { let s = 1337; return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; })();
 const lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -334,7 +352,7 @@ function noteTex(v2) {
       if (k === 1) x.rotate((rnd() - .5) * .05);
       x.font = pen(k === 2 ? 12 : 11, k === 2); x.fillStyle = k === 2 ? '#101a50' : '#1c2a6a'; x.fillText(tr(t), 0, 0);
       if (k === 2) { x.fillText(tr(t), .6, .3);   // с нажимом: ручка прорвала бумагу — рваная щель под строкой
-        if (/ИМЯ|NAME/.test(tr(t))) { x.fillStyle = 'rgba(25,18,10,.75)'; x.beginPath(); x.moveTo(36, 3); for (let s = 0; s <= 24; s++) x.lineTo(36 + s * 5, 3.2 + Math.sin(s * 2.7) * 1.1 + (s % 3 ? .4 : -.5));
+        if (/ИМЯ/.test(t)) {   // по русскому ключу: в переводе слова «имя» может не быть (ES «NO RESPONDAS») x.fillStyle = 'rgba(25,18,10,.75)'; x.beginPath(); x.moveTo(36, 3); for (let s = 0; s <= 24; s++) x.lineTo(36 + s * 5, 3.2 + Math.sin(s * 2.7) * 1.1 + (s % 3 ? .4 : -.5));
           for (let s = 24; s >= 0; s--) x.lineTo(36 + s * 5, 4.4 + Math.sin(s * 1.9) * .8); x.closePath(); x.fill(); } }
       x.restore();
     });
@@ -476,5 +494,5 @@ function label(w, h, pw, ph, draw, parent, basic = true) {   // basic — све
 }
 function relabel(me, ...a) { const t = me.userData.tex; t.cx.clearRect(0, 0, t.lw, t.lh); me.userData.draw(t.cx, t.lw, t.lh, ...a); t.needsUpdate = true; }
 
-window.__W3core = { T, V, setLand, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, glow, mat, ctex, speckle, TX, box, plane, cyl, room, label, relabel, makeTextures, SNAP };
+window.__W3core = { T, V, GPU, setLand, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, glow, mat, ctex, speckle, TX, box, plane, cyl, room, label, relabel, makeTextures, SNAP };
 })();

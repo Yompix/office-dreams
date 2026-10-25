@@ -1,6 +1,3 @@
 {
- "es": {"Свет гаснет СЛЕВА — беги ВПРАВО →": "Se apaga la luz a la IZQUIERDA — corre a la DERECHA →", "Свет гаснет СПРАВА — беги ← ВЛЕВО": "Se apaga la luz a la DERECHA — corre ← a la IZQUIERDA", "Выйти из игры": "Salir del juego", "Звук в фоне": "Sonido en segundo plano", "Во весь экран": "Pantalla completa"},
- "pt": {"Свет гаснет СЛЕВА — беги ВПРАВО →": "A luz apaga à ESQUERDA — corra para a DIREITA →", "Свет гаснет СПРАВА — беги ← ВЛЕВО": "A luz apaga à DIREITA — corra ← para a ESQUERDA", "Выйти из игры": "Sair do jogo", "Звук в фоне": "Som em segundo plano", "Во весь экран": "Tela cheia"},
- "de": {"Свет гаснет СЛЕВА — беги ВПРАВО →": "LINKS geht das Licht aus — lauf nach RECHTS →", "Свет гаснет СПРАВА — беги ← ВЛЕВО": "RECHTS geht das Licht aus — lauf ← nach LINKS", "Выйти из игры": "Spiel beenden", "Звук в фоне": "Ton im Hintergrund", "Во весь экран": "Vollbild"},
  "uk": {"Свет гаснет СЛЕВА — беги ВПРАВО →": "Світло гасне ЗЛІВА — біжи ВПРАВО →", "Свет гаснет СПРАВА — беги ← ВЛЕВО": "Світло гасне СПРАВА — біжи ← ВЛІВО", "Выйти из игры": "Вийти з гри", "Звук в фоне": "Звук у фоні", "CAM −2  ПОДВАЛ": "CAM −2  ПІДВАЛ"}
 }

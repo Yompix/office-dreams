@@ -24,6 +24,8 @@ VOICES = {
 # голос матери Фрэнка — «Linda – Soft Mom» из голосов владельца
 for _l in ('es', 'pt', 'de'): VOICES[_l] = dict(VOICES['en'], **{'ГОЛОС': 'prqcFePeALHihEWRj5ll'})
 SKIP = {'ch_katya', 'ch_monster'}   # плач и хрип — звуковые эффекты, не речь
+COPY = {'ch_katya'}                  # плач Лили без слов — новым языкам берём английскую запись (snd/en)
+ALIAS = {'n23m': ('n23', '???', 'phonefake')}   # «Да. Это я.» в трубке — та же запись Итана, что n23, от лица «оно» с эффектом телефона
 SKIP_WHO = {'ГОЛОС'}                 # голос матери Фрэнка — отдельно (свой голос, сделанный в Voice Design); для es/pt/de — в пакетах (VOICES)
 MAXC = 1250                          # символов в пакете (≈ кредитов за генерацию)
 def say_text(s):   # что читает голос: без тире реплики и без «(…)»
@@ -69,7 +71,7 @@ def norm(w, lang):
     if lang in ('es', 'pt', 'de'): w = ''.join(c for c in unicodedata.normalize('NFD', w) if unicodedata.category(c) != 'Mn')   # á → a: whisper и текст расходятся в ударениях
     w = re.sub(r"[^a-zа-я0-9']", '', w)
     return NUM[lang].get(w, w)
-def toks(text):
+def toks(text):   # так же режет слова engine.js chunks() и tools/i18n/build.js — менять вместе
     return [p for p in re.sub(r'[.,:;—?!…«»"()\-¿¡„“”]', ' ', text).split() if p]
 
 def onset(pcm, g, lo, sr=16000):
@@ -137,6 +139,14 @@ def split(lang, idx, src, hints=()):
         if L['fx']: tim[k]['fx'] = L['fx']
         heard = ' '.join(h[0] for h in hw if s0 <= h[1] < s1)
         print(f'{k:6s} {s1 - s0:5.2f} с | {heard[:80]}')
+    for a, (k0, who, fx) in ALIAS.items():   # n23m — копия n23 с другим «кто» и эффектом
+        if k0 in keys:
+            subprocess.run(['cp', os.path.join(sdir(lang), k0 + '.mp3'), os.path.join(sdir(lang), a + '.mp3')], check=True)
+            tim[a] = dict(tim[k0], who=who, fx=fx)
+    if lang not in ('ru', 'en'):
+        for k in COPY:
+            f = os.path.join(sdir(lang), k + '.mp3')
+            if not os.path.exists(f): subprocess.run(['cp', os.path.join(sdir('en'), k + '.mp3'), f], check=True)
     json.dump(dict(sorted(tim.items())), open(tf, 'w'), ensure_ascii=False)
     loud(lang)
 
@@ -169,7 +179,8 @@ def loud(lang):
 
 def check(lang):
     tf = tfile(lang); tim = json.load(open(tf)) if os.path.exists(tf) else {}
-    miss = [k for k in LINES if k not in SKIP and (k not in tim or not os.path.exists(os.path.join(sdir(lang), k + '.mp3')))]
+    miss = [k for k in list(LINES) + list(ALIAS) if k not in SKIP and (k not in tim or not os.path.exists(os.path.join(sdir(lang), k + '.mp3')))]
+    miss += [k for k in COPY if lang not in ('ru', 'en') and not os.path.exists(os.path.join(sdir(lang), k + '.mp3'))]
     print('нет:', miss if miss else 'всё на месте')
 
 if __name__ == '__main__':

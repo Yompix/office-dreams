@@ -51,7 +51,7 @@ varying vec3 vB;
 float gH = 0., gR = -1.;   // «Кино»: микрорельеф (поры, волокна ткани, вены) и шероховатость точки — их подхватывает свет
 vec3 bumpN(vec3 sp, vec3 sn, float hh) {
   vec2 dh = vec2(dFdx(hh), dFdy(hh)); vec3 sx = dFdx(sp), sy = dFdy(sp), r1 = cross(sy, sn), r2 = cross(sn, sx);
-  float det = dot(sx, r1); return normalize(abs(det) * sn - sign(det) * (dh.x * r1 + dh.y * r2)); }
+  float det = dot(sx, r1); vec3 nn = abs(det) * sn - sign(det) * (dh.x * r1 + dh.y * r2); return dot(nn, nn) > 1e-24 ? normalize(nn) : sn; }   // нулевой вектор → NaN (чёрные точки)
 float h3(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
 float vn(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
   return mix(mix(mix(h3(i), h3(i + vec3(1., 0., 0.)), f.x), mix(h3(i + vec3(0., 1., 0.)), h3(i + vec3(1., 1., 0.)), f.x), f.y),
@@ -83,7 +83,7 @@ vec4 cloth(vec3 p, float lum) {
   vec3 c = coat ? uCoat : legs ? uPants : uShirt;
   float sh = 1.;   // складки и тени в сгибах
   if (arm) {
-    float u = ax, th = atan(p.z + .068, p.y - 1.455);   // u — вдоль руки (плечо .215 → запястье .665), th: 0 — сверху, ±π — снизу
+    float u = ax, th = atan(p.z + .068, p.y - 1.455 + 1e-5);   // u — вдоль руки (плечо .215 → запястье .665), th: 0 — сверху, ±π — снизу
     float el = exp(-pow((u - .45) / .05, 2.));
     sh *= 1. - .25 * el * smoothstep(.2, .9, sin(u * 150. + sin(th * 2. + u * 30.) * 2.2)) * smoothstep(-.3, .8, sin(th));   // складки в локтевом сгибе
     sh *= 1. - .12 * smoothstep(.45, .9, sin(th * 3. + u * 40.)) * smoothstep(.3, .62, u);                                    // продольные заломы рукава
@@ -156,7 +156,7 @@ vec4 cloth(vec3 p, float lum) {
       if (p.z > .02 && p.y < .9) { sh *= 1. - .4 * edge(q, vec2(.07, .68), vec2(.19, .79), .006); if (rct(q, vec2(.068, .76), vec2(.192, .8)) > .5) { sh *= 1.08; sh *= 1. - .45 * ln(p.y - .762, .006); } }
       if (p.y < uCoatY + .03) sh *= .78;                                                                                          // подшитый низ
       sh *= 1. - .14 * smoothstep(.72, 1., vn(vec3(p.x * 34., p.y * 2.5, p.z * 34.)));                                         // мокрые потёки
-      if (p.y < .98) sh *= 1. - .12 * smoothstep(.5, 1., sin(atan(p.x, p.z + .04) * 9. + mo * 2.)) * smoothstep(.95, .6, p.y);   // складки полы
+      if (p.y < .98) sh *= 1. - .12 * smoothstep(.5, 1., sin(atan(p.x, p.z + .04 + 1e-5) * 9. + mo * 2.)) * smoothstep(.95, .6, p.y);   // складки полы
     }
   }
   if (coat && arm) sh *= 1. - .12 * smoothstep(.72, 1., vn(vec3(p.x * 6., p.y * 30., p.z * 30.)));
@@ -1483,7 +1483,7 @@ const SHROUD_VN = `
 `;
 // складки рубахи — рельефом в нормали: свет ложится полосами, ткань читается тканью, а не кожей
 const SHROUD_N = `
-  { float hf = sin(atan(vB.x, vB.z + .3) * 30. + vn3(vB * 7.) * 4.) * (.0035 + .007 * smoothstep(1.5, .6, vB.y)) + vn3(vec3(vB.x * 60., vB.y * 6., vB.z * 60.)) * .003;
+  { float hf = sin(atan(vB.x, vB.z + .3 + 1e-5) * 30. + vn3(vB * 7.) * 4.) * (.0035 + .007 * smoothstep(1.5, .6, vB.y)) + vn3(vec3(vB.x * 60., vB.y * 6., vB.z * 60.)) * .003;
     vec2 dh = vec2(dFdx(hf), dFdy(hf)) * gCloth; vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
     vec3 nn = abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2); normal = dot(nn, nn) > 1e-24 ? normalize(nn) : normal; }
 `;
@@ -1492,7 +1492,7 @@ const SHROUD_FS = `float gCloth, gWet; vec3 gClothC;
   { float body = mix(smoothstep(.27, .23, abs(vB.x)), smoothstep(.4, .34, abs(vB.x)), smoothstep(1.32, 1.22, vB.y));
     float hemY = .56 + .07 * (vn3(vec3(vB.x * 26., 0., vB.z * 26.)) - .5) + .03 * (hh3(vec3(floor(vB.x * 60.), 3., floor(vB.z * 60.))) - .5);
     gCloth = body * smoothstep(1.98, 1.95, vB.y + .03 * cos(vB.x * 16.)) * smoothstep(hemY - .012, hemY + .012, vB.y);
-    float fold = sin(atan(vB.x, vB.z + .3) * 30. + vn3(vB * 7.) * 4.) * (.08 + .14 * smoothstep(1.5, .6, vB.y));
+    float fold = sin(atan(vB.x, vB.z + .3 + 1e-5) * 30. + vn3(vB * 7.) * 4.) * (.08 + .14 * smoothstep(1.5, .6, vB.y));
     float dirt = smoothstep(.55, .78, vn3(vB * 8.5)) * .55 + smoothstep(1.1, .55, vB.y) * .35;
     gWet = smoothstep(hemY + .2, hemY + .02, vB.y) * gCloth;
     vec3 cloth = vec3(.36, .34, .3) * (1. + fold) * (1. - .4 * dirt) * mix(vec3(1.), vec3(.74, .6, .42), dirt * .85);
@@ -1750,7 +1750,7 @@ function gownMat(C) {
 float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
 ${HUM_NOISE}float gWet = 0., gA = 0., gN = 0.;
 ` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-  gA = atan(vS.x, vS.y); gN = vn3(vG * 7.);
+  gA = atan(vS.x, vS.y + 1e-5);   // atan(0, 0) на части видеокарт — NaN gN = vn3(vG * 7.);
   if (vF > .93 - .08 * vn3(vec3(vG.x * 22., 0., vG.z * 22.)) - .04 * hh3(vec3(floor(gA * 9.), 1., 2.))) discard;   // рваный подол
   if (vF > .62 && vn3(vG * 13.) > .8) discard;   // дыры у подола
   float fold = sin(gA * 11. + gN * 4.) * (.1 + .16 * vF), dirt = smoothstep(.55, .78, vn3(vG * 8.5)) * .55 + vF * vF * .5; gWet = smoothstep(.62, .92, vF);

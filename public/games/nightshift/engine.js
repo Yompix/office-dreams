@@ -72,8 +72,10 @@ async function load(onp) {
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
+  // версии timing_<язык>.json — поднимать при каждой новой нарезке/сборке (кэш браузера)
+  const TIMV = { en: 12, uk: 3, es: 1, pt: 1, de: 1 };
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
-  const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (LNG === 'en' ? 12 : 2) : 'timing.json?v=17', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (TIMV[LNG] || 1) : 'timing.json?v=17', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры — очередью по 4, в порядке сцен; нужные сейчас встают вперёд (voiceReady)
@@ -1320,6 +1322,8 @@ function fitHd(host) {   // заголовок экрана настроек —
   const h = host.querySelector('.sets-hd h1'), x = host.querySelector('.sets-hd .sx'); if (!h || !x) return;
   for (let i = 0; i < 10 && h.getBoundingClientRect().right > x.getBoundingClientRect().left - 4; i++) h.style.fontSize = (parseFloat(getComputedStyle(h).fontSize) * .92).toFixed(1) + 'px';
 }
+// видеокарта (world.js, GPU) — мелко внизу настроек: по ней графика выбрана при первом запуске; пригодится, если игрок пришлёт снимок экрана с ошибкой
+const gpuName = () => { const g = window.__W3core && window.__W3core.GPU; return FINE && g && g.name ? '<br>GPU: ' + g.name.replace(/[<>&"]/g, '') : ''; };
 function settings(from = 'menu') {   // from: 'menu' — из главного меню, 'pause' — из паузы в игре (настройки поверх игры, без выхода)
   const row = (id, name, val) => `<button class="set" id="${id}"><span>${tr(name)}</span><b>${tr(val)}</b></button>`;
   const vh = LS.get('vhs', vhsDef());
@@ -1335,7 +1339,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
     ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sLook', FINE ? 'Оглядываться мышью' : 'Оглядываться наклоном', lookOn() ? 'ВКЛ' : 'ВЫКЛ')}
     ${DESK && DESK.isFull ? row('sFull', 'Во весь экран', DESK.isFull() ? 'ВКЛ' : 'ВЫКЛ') + row('sBg', 'Звук в фоне', DESK.bgSound() ? 'ВКЛ' : 'ВЫКЛ') : ''}</div>
-    <small>${tr('«Кино» — тени, блики, объёмный свет (для ПК). «Ретро» — плёнка и пиксели, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}</small><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
+    <small>${tr('«Кино» — тени, блики, объёмный свет (для ПК). «Ретро» — плёнка и пиксели, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}${gpuName()}</small><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
   const back = () => { uiSnd('back'); from === 'pause' ? pauseMenu() : menu(); };
   $('mBack').onclick = $('sX').onclick = back; fitHd(host);
   const re = () => { uiSnd(); settings(from); };
@@ -1710,8 +1714,8 @@ function say(who, text, k) {   // печатающийся текст
 const chunkCache = {};
 function chunks(k, w) {   // куски из таймингов без знаков препинания: берём те же слова из полного текста реплики
   if (chunkCache[k]) return chunkCache[k];
-  // слово полного текста = столько же слов, сколько в нём частей без знаков («05:40» — две); тире прилипает к соседнему куску
-  const toks = ((TIM[k] || {}).t || '').split(/\s+/).filter(Boolean).map(s => [s, s.replace(/[.,:—?!…«»]/g, ' ').split(/\s+/).filter(Boolean).length]);
+  // слово полного текста = столько же слов, сколько в нём частей без знаков («05:40», «кто-то» — две, как режет voice.py); тире прилипает к соседнему куску
+  const toks = ((TIM[k] || {}).t || '').split(/\s+/).filter(Boolean).map(s => [s, s.replace(/[.,:;—?!…«»"()\-¿¡„“”]/g, ' ').split(/\s+/).filter(Boolean).length]);
   let j = 0, debt = 0;
   const out = w.map(x => { let n = x[1].split(/\s+/).length - debt; const part = []; debt = 0;
     while (j < toks.length && (n > 0 || toks[j][1] === 0)) { part.push(toks[j][0]); n -= toks[j][1]; j++; }

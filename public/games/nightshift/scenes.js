@@ -429,7 +429,7 @@ const GLASS_FS = (CINE ? '#define CINE\n' : '') + `uniform sampler2D tRef, tGrim
       // сверху — крошечный блик, снизу — светлый серп преломлённого света. Полного светлого кольца нет: оно и давало «пузыри-кружки»
       vec2 cg = p / .013, ci = floor(cg), cf = fract(cg); float fd = fwidth(cg.x) + fwidth(cg.y);
       float r = .05 + .13 * h1(ci + 1.3) * h1(ci + 5.9); vec2 c0 = vec2(h1(ci + 3.1), h1(ci + 7.7)) * .5 + .25;
-      vec2 dq = (cf - c0) * vec2(1., 1.18 + .25 * h1(ci + 2.2)); float wob = 1. + .12 * sin(atan(dq.y, dq.x) * 3. + h1(ci) * 6.28);
+      vec2 dq = (cf - c0) * vec2(1., 1.18 + .25 * h1(ci + 2.2)); float wob = 1. + .12 * sin(atan(dq.y, dq.x + 1e-5) * 3. + h1(ci) * 6.28);   // atan(0, 0) не определён (на части видеокарт — NaN, чёрная точка в центре капли)
       float dd = length(dq) * wob;
       float drop = step(h1(ci), .26) * (1. - smoothstep(r - fd * .6, r + fd * .6, dd));
       float hl = drop * smoothstep(r * .3, 0., length(dq - vec2(-r * .3, r * .38)));
@@ -449,6 +449,9 @@ const GLASS_FS = (CINE ? '#define CINE\n' : '') + `uniform sampler2D tRef, tGrim
     }
     float k = exp(-uFogD * uFogD * vD * vD);
     gl_FragColor = vec4(col * k, clamp(a, 0., 1.) * k);
+#if __VERSION__ >= 300
+    if (isnan(gl_FragColor.r + gl_FragColor.g + gl_FragColor.b + gl_FragColor.a)) gl_FragColor = vec4(0.);   // битая точка стекла — прозрачная, а не чёрная
+#endif
   }`;
 function buildFacade(o, S) {
   const U = o.glassU = { tRef: { value: null }, uTM: { value: new T.Matrix4() }, uRef: { value: 1 }, uLit: { value: 1 }, uT: { value: 0 }, tGrime: { value: TX.grime },
@@ -2219,18 +2222,24 @@ function cineTick(o, T0) {
 // плёночная кривая (ACES), холодные тени / тёплый свет, ореол вокруг ярких ламп, хроматизм к краям, виньетка, мелкое зерно
 let PB = null, shadowN = 0;
 const POST_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }';
+// чистая выборка из HDR-буфера: NaN → 0, бесконечность и отрицательное — в 0…256 (иначе свечение раздувает битую точку в чёрный круг)
+const FIN = `vec3 fin(vec3 c){
+#if __VERSION__ >= 300
+  if (isnan(c.r + c.g + c.b)) return vec3(0.);
+#endif
+  return clamp(c, 0., 256.); }`;
 function cinePost() {
   const q = () => new T.WebGLRenderTarget(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2), { type: T.HalfFloatType, magFilter: T.LinearFilter, minFilter: T.LinearFilter });
   PB = { a: q(), b: q() };
   PB.down = new T.ShaderMaterial({ uniforms: { tD: { value: null }, uPx: { value: new T.Vector2() } }, vertexShader: POST_VS,
-    fragmentShader: `uniform sampler2D tD; uniform vec2 uPx; varying vec2 vUv; void main(){ vec3 c = vec3(0.);
-      for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) c += texture2D(tD, vUv + vec2(float(i), float(j)) * uPx * 1.5).rgb; gl_FragColor = vec4(c / 9., 1.); }` });
+    fragmentShader: `uniform sampler2D tD; uniform vec2 uPx; varying vec2 vUv; ${FIN} void main(){ vec3 c = vec3(0.);
+      for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) c += fin(texture2D(tD, vUv + vec2(float(i), float(j)) * uPx * 1.5).rgb); gl_FragColor = vec4(c / 9., 1.); }` });
   PB.blur = new T.ShaderMaterial({ uniforms: { tD: { value: null }, uDir: { value: new T.Vector2() } }, vertexShader: POST_VS,
     fragmentShader: `uniform sampler2D tD; uniform vec2 uDir; varying vec2 vUv; void main(){
       vec3 c = texture2D(tD, vUv).rgb * .227; c += (texture2D(tD, vUv + uDir * 1.385).rgb + texture2D(tD, vUv - uDir * 1.385).rgb) * .316; c += (texture2D(tD, vUv + uDir * 3.23).rgb + texture2D(tD, vUv - uDir * 3.23).rgb) * .07;
       gl_FragColor = vec4(c, 1.); }` });
   PB.comp = new T.ShaderMaterial({ uniforms: { tD: { value: null }, tBl: { value: null }, uT: { value: 0 }, uCctv: { value: 0 }, uIr: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 }, uAsp: { value: 1 }, uExp: { value: .95 } }, vertexShader: POST_VS,
-    fragmentShader: `uniform sampler2D tD, tBl; uniform float uT, uCctv, uIr, uVhs, uScare, uAsp, uExp; varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tD, tBl; uniform float uT, uCctv, uIr, uVhs, uScare, uAsp, uExp; varying vec2 vUv; ${FIN}
       float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
       vec3 aces(vec3 x){ return clamp((x * (2.51 * x + .03)) / (x * (2.43 * x + .59) + .14), 0., 1.); }
       void main(){
@@ -2240,14 +2249,14 @@ function cinePost() {
         uv.x += (h(vec2(row, fr)) - .5) * uVhs * uCctv * .002;                                  // запись с камеры чуть дрожит строками
         uv += d * uScare * .05 * (h(vec2(fr, 3.)) - .5);                                        // скример: картинку рвёт к центру
         float ca = (.0012 + .012 * uScare) * (.25 + r * r * 1.4);
-        vec3 c = vec3(texture2D(tD, uv + d * ca).r, texture2D(tD, uv).g, texture2D(tD, uv - d * ca).b);
+        vec3 c = fin(vec3(texture2D(tD, uv + d * ca).r, texture2D(tD, uv).g, texture2D(tD, uv - d * ca).b));
         if (uCctv > .5) { vec2 px = uAsp > 1. ? vec2(1.6 / 960., 1.6 / 540.) : vec2(1.6 / 540., 1.6 / 960.);   // камера наблюдения — дешёвая оптика и сжатие: картинка мягче «кино»
-          c = mix(c, (texture2D(tD, uv + px).rgb + texture2D(tD, uv - px).rgb + texture2D(tD, uv + vec2(px.x, -px.y)).rgb + texture2D(tD, uv - vec2(px.x, -px.y)).rgb) * .25, .6); }
+          c = mix(c, fin(texture2D(tD, uv + px).rgb + texture2D(tD, uv - px).rgb + texture2D(tD, uv + vec2(px.x, -px.y)).rgb + texture2D(tD, uv - vec2(px.x, -px.y)).rgb) * .25, .6); }
         if (uScare > .02) {   // скример: рывок к центру смазывает картинку, свет режет красным
-          vec3 z = c; for (int i = 1; i < 7; i++) z += texture2D(tD, uv - d * float(i) * .018 * uScare).rgb; c = mix(c, z / 7., min(1., uScare * 1.3));
+          vec3 z = c; for (int i = 1; i < 7; i++) z += fin(texture2D(tD, uv - d * float(i) * .018 * uScare).rgb); c = mix(c, z / 7., min(1., uScare * 1.3));
           c *= vec3(1. + .5 * uScare, 1. - .25 * uScare, 1. - .3 * uScare);
         }
-        vec3 bl = texture2D(tBl, uv).rgb;
+        vec3 bl = fin(texture2D(tBl, uv).rgb);
         c = mix(c, bl, smoothstep(.62, 1.25, r) * .7 * (1. - uCctv));                          // глубина резкости: края кадра мягче
         vec3 glw = max(bl - .6, 0.);   // светятся только лампы (они в HDR ярче белого — glow() в world.js), а не белая рубашка рядом
         c += glw * 1.15 + glw * vec3(.4, .14, .05) * (1. - uCctv) + bl * vec3(.04, .022, .014);  // свечение ламп; тёплая кайма вокруг ярких мест (халация плёнки)
@@ -2292,7 +2301,7 @@ function setLand(land, force) {
   window.__W3core.setLand(land);
   if (!scenesReady) return;
   const R = window.__W3core.R; R.setSize(V.RW, V.RH, false);
-  window.__W3core.RT.setSize(V.RW, V.RH); reflRT.setSize(V.RW >> (FINE ? 1 : 2), V.RH >> (FINE ? 1 : 2));   // отражения: на телефоне в четверть
+  window.__W3core.RT.setSize(V.RW, V.RH); reflRT.setSize(Math.round(V.RW / (FINE ? 3 : 4)), Math.round(V.RH / (FINE ? 3 : 4)));   // отражения: на ПК в треть (каждый кадр), на телефоне в четверть
   if (PB) { PB.a.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); PB.b.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); }
   postMat.uniforms.uB.value.set(V.BW, V.BH);
 }
@@ -2356,7 +2365,7 @@ function init() {
         c = floor(c * uLv + b4(gl_FragCoord.xy) * .95) / uLv;
         gl_FragColor = vec4(c, 1.);
       }` });
-  reflRT = new T.WebGLRenderTarget(V.RW / 2, V.RH / 2, { magFilter: T.LinearFilter, minFilter: T.LinearFilter });
+  reflRT = new T.WebGLRenderTarget(Math.round(V.RW / (FINE ? 3 : 4)), Math.round(V.RH / (FINE ? 3 : 4)), { magFilter: T.LinearFilter, minFilter: T.LinearFilter });
   L.lobby.glassU.tRef.value = reflRT.texture; classifyLobby(L.lobby);
   window.__dbgA = A; window.__dbgL = L;
   postScene = new T.Scene(); postCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -2420,10 +2429,12 @@ function classifyLobby(o) {
     if (bb.min.z > 5.85) o.outObjs.push(ch); else if (bb.max.z < 6.15) o.inObjs.push(ch);
   }
 }
-// отражение в стекле фасада: та же камера, отражённая в плоскости z = 6; рисуем в маленький буфер раз в два кадра
+// отражение в стекле фасада: та же камера, отражённая в плоскости z = 6. На ПК — каждый кадр в буфер в треть кадра (раньше — в половину,
+// но раз в два кадра: при 30 кадрах в секунду отражение в стекле холла дёргалось за камерой — «окружение лагает» в прологе со сменщиком);
+// на телефоне — четверть кадра раз в два кадра
 const _f = new T.Vector3(), _u = new T.Vector3(), BIAS = new T.Matrix4().set(.5, 0, 0, .5, 0, .5, 0, .5, 0, 0, .5, .5, 0, 0, 0, 1);
 function renderRefl(R, o, used, force) {
-  if (!force && (reflN++ % 2)) return;
+  if (!force && !FINE && (reflN++ % 2)) return;
   const inside = cam.position.z < 6, e = cam.matrixWorld.elements;
   _f.set(-e[8], -e[9], -e[10]); _u.set(e[4], e[5], e[6]);
   rcam.position.set(cam.position.x, cam.position.y, 12 - cam.position.z); rcam.up.set(_u.x, _u.y, -_u.z);
@@ -2565,7 +2576,8 @@ function warm() {
   const c = document.createElement('canvas'); c.width = 54; c.height = 96; const g = c.getContext('2d');
   // шейдеры под каждую расстановку света собираются при загрузке, а не посреди сцены (стук в серверную «долго грузился» — сборка шейдеров подвала и серверной)
   for (const id of ['hall_cam', 'monitors', 'katya_face', 'corridor_cam', 'server_mih', 'cam13_mih_monster', 'exterior', 'ny_photo', 'srv_room', 'bm_view',
-    'bs_knock', 'bs_open', 'bs_frank', 'srv_in', 'srv_dark', 'srv_hold', 'srv_crawl', 'c13_gus', 'gl_face', 'h_crouch', 'jr_desk', 'booth_call', 'f7_close', 'lunge_server', 'cam02', 'cam_m2']) if (SH[ALIAS[id] || id]) draw(g, 54, 96, id, { t: 1, T: 1 });
+    'bs_knock', 'bs_open', 'bs_frank', 'srv_in', 'srv_dark', 'srv_hold', 'srv_crawl', 'c13_gus', 'gl_face', 'h_crouch', 'jr_desk', 'booth_call', 'f7_close', 'lunge_server', 'cam02', 'cam_m2',
+    'pro_ext', 'pro_two', 'pro_offer']) if (SH[ALIAS[id] || id]) draw(g, 54, 96, id, { t: 1, T: 1 });   // пролог: улица под дождём и сменщик в холле — его текстуры готовы до первой сцены
 }
 // точка мира → место на кадре (доли ширины и высоты) по камере последнего кадра: точки обхода стоят на предметах
 const _pj = new T.Vector3(); let lastMirror = false;

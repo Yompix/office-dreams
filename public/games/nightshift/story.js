@@ -30,7 +30,7 @@ window.STORY = {
     },
     keys_ask: {
       music: 'drone', time: '21:04',
-      beats: [{ img: 'pro_offer', cams: [[.5, .5, 1.1, 1.15], [.48, .44, 1.3, 1.36]], say: ['p10', 'p11', 'p12'], set: 'asked', pad: .4, react: { 'СМЕНЩИК': ['no', ['p12', '^(камеры|cameras|камери)$', .6], 2.4] } }],   // «камеры ничего не записали» — качает головой (от слова: в английской озвучке оно на 2,5 с позже)
+      beats: [{ img: 'pro_offer', cams: [[.5, .5, 1.1, 1.15], [.48, .44, 1.3, 1.36]], say: ['p10', 'p11', 'p12'], set: 'asked', pad: .4, react: { 'СМЕНЩИК': ['no', ['p12', '^(камеры|cameras|камери|cámaras|câmeras|kameras)$', .6], 2.4] } }],   // «камеры ничего не записали» — качает головой (от слова: в английской озвучке оно на 2,5 с позже)
       then: { goto: 'keys_take' }
     },
     keys_take: {
@@ -55,9 +55,9 @@ window.STORY = {
           { t: 'Ящик стола', go: 'fb_drawer', at: [4.78, .7, -.47], set: 'fphone' }, { t: 'Журнал', go: 'fb_log', at: [5.35, .84, -.27] }],
         leave: { t: 'Сесть за мониторы', go: 'fb_go' } } }
     },
-    fb_jacket: { music: 'drone', beats: [{ img: 'fb_jacket', cams: [[.5, .5, 1.0, 1.06], [.5, .5, 1.0, 1.05, 'fb_salt']], cutAt: ['^(горсть|handful|жменя)'], say: ['fb02'], pad: .5 }], then: { back: 'booth' } },
+    fb_jacket: { music: 'drone', beats: [{ img: 'fb_jacket', cams: [[.5, .5, 1.0, 1.06], [.5, .5, 1.0, 1.05, 'fb_salt']], cutAt: ['^(горсть|handful|жменя|puñado|punhado|handvoll)'], say: ['fb02'], pad: .5 }], then: { back: 'booth' } },
     fb_photo: { music: 'drone', beats: [{ img: 'ny_photo', fx: 'photo', photo: { smudge: [.55, 1.5, -7.6], back: 'Марта.\nСедьмой этаж.\nНовый год', backCam: 2 },
-      cams: [[.5, .5, 1.0, 1.03], [[.55, 1.5, -7.6], 0, 2.6, 2.8], [.5, .5, 1.0, 1.02]], cutAt: ['^(лицо|face|обличчя)', '^(оборот|back|зворот)'], say: ['fb03'], pad: .8 }], then: { back: 'booth' } },
+      cams: [[.5, .5, 1.0, 1.03], [[.55, 1.5, -7.6], 0, 2.6, 2.8], [.5, .5, 1.0, 1.02]], cutAt: ['^(лицо|face|обличчя|cara|rosto|gesicht)', '^(оборот|back|зворот|detrás|verso|rückseite)'], say: ['fb03'], pad: .8 }], then: { back: 'booth' } },
     fb_drawer: { music: 'drone', beats: [{ img: 'fb_phone', cams: [[.5, .5, 1.0, 1.06]], say: ['fb04'], sfx: [['click', .2, { gain: .5 }], ['buzz', 4.4, { gain: .5 }]], pad: .5 }], then: { back: 'booth' } },
     fb_log: { music: 'drone', beats: [{ img: 'fb_log', cams: [[.5, .5, 1.0, 1.05]], say: ['fb05'], pad: .5 }], then: { back: 'booth' } },
     fb_go: { music: 'drone', beats: [], then: { shift: 'S1', fresh: true } },
@@ -319,7 +319,7 @@ window.STORY = {
         { img: 'bs_door', cams: [[.5, .5, 1.1, 1.14]], say: ['d08'], sfx: [['bolt', 1.5, { gain: .9 }]], pad: .2 },
         { img: 'bs_open', cams: [[.5, .5, 1.0, 1.06]], say: ['d09'], sfx: [['door_metal', .1, { gain: .7 }]], pad: .3 },
         { img: 'bs_frank', cams: [[.5, .5, 1.0, 1.06]], say: ['d10'], pad: .3 },
-        { img: 'srv_in', cams: [[.5, .5, 1.0, 1.05]], say: ['d11', 'd12'], pad: .3, react: { 'ФРЭНК': ['no+sad', ['d12', '^(седьмую|can.t|сьому)$', .52], 99] } },   // «седьмую одному не выдержать» — качает головой (к слову, на любом языке), лицо грустное до конца кадра
+        { img: 'srv_in', cams: [[.5, .5, 1.0, 1.05]], say: ['d11', 'd12'], pad: .3, react: { 'ФРЭНК': ['no+sad', ['d12', '^(седьмую|can.t|сьому|séptima|sétima|siebte)$', .52], 99] } },   // «седьмую одному не выдержать» — качает головой (к слову, на любом языке), лицо грустное до конца кадра
         { img: 'srv_in', cams: [[.52, .45, 1.2, 1.26]], say: ['d13', 'd13b'], pad: .4, react: { 'ФРЭНК': ['grim', 0, 99] } },   // d13b — почему соль: для него это стена, вот оно и зовёт, ждёт, пока выйдешь или ответишь
         { img: 'srv_dark', cams: [[.5, .5, 1.0, 1.1]], say: ['d14', 'd15'], hush: true, pad: .3 },
         { img: 'srv_reach', cams: [[.5, .5, 1.0, 1.06]], say: ['d16', 'd17'], heart: true, pad: .2 },
@@ -341,8 +341,8 @@ window.STORY = {
     srv_talk: { music: 'drone', beats: [], then: { talk: { img: 'srv_in', cams: [[.5, .5, 1.0, 1.02]], title: 'Фрэнк',
       topics: [{ t: 'Это правда была она?', go: 'sv_mom' }, { t: 'Гас сказал, его тоже зовут', go: 'sv_gus', if: 'v:gs_calls' }, { t: 'Почему соль?', go: 'sv_why' }],
       bye: { t: 'Посидеть с ним до шести', go: 'srv_bye' } } } },
-    sv_mom: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv05', 'sv06'], pad: .4, react: { 'ФРЭНК': ['no+sad', ['sv06', '^(это|it.s|це)$', .88], 99] } }], then: { back: 'srv_talk' } },   // «это не она» — качает головой на этих словах
-    sv_gus: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv07', 'sv08'], pad: .4, react: { 'ФРЭНК': ['yes+sad', ['sv08', '^(знаю|know)$', .02], 99] } }], then: { back: 'srv_talk' } },   // «знаю» — кивает на слове
+    sv_mom: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv05', 'sv06'], pad: .4, react: { 'ФРЭНК': ['no+sad', ['sv06', '^(это|it.s|це|eso|não|das)$', .88], 99] } }], then: { back: 'srv_talk' } },   // «это не она» — качает головой на этих словах
+    sv_gus: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv07', 'sv08'], pad: .4, react: { 'ФРЭНК': ['yes+sad', ['sv08', '^(знаю|know|sé|sei|weiß)$', .02], 99] } }], then: { back: 'srv_talk' } },   // «знаю» — кивает на слове
     sv_why: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv09', 'sv10'], pad: .4 }], then: { back: 'srv_talk' } },
     srv_bye: { music: 'drone', beats: [{ img: 'srv_in', cams: [[.5, .5, 1.0, 1.04]], say: ['sv11', 'sv12'], pad: .6, react: { 'ФРЭНК': ['yes+grim', 2.3, 99] } }], then: { shift: 'S6' } },
     dawn: {
@@ -542,7 +542,7 @@ window.STORY = {
     gs_long: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['n16'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.05]], say: ['n17'], pad: .4 }], then: { back: 'round2' } },
     gs_photo: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs01'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.06]], say: ['gs02'], pad: .5 }], then: { back: 'round2' } },
     gs_wife: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs03'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.05]], say: ['gs04'], pad: .4 }], then: { back: 'round2' } },
-    gs_frank: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs05'], pad: .2 }, { img: 'gs_ans', cams: [[.5, .5, 1.0, 1.05]], say: ['gs06'], pad: .4, react: { 'ГАС': ['yes', ['gs06', '^(сказал|told|сказав)$', .36], 2.0] } }], then: { back: 'round2' } },   // «Я сказал — зовут» — кивает
+    gs_frank: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs05'], pad: .2 }, { img: 'gs_ans', cams: [[.5, .5, 1.0, 1.05]], say: ['gs06'], pad: .4, react: { 'ГАС': ['yes', ['gs06', '^(сказал|told|сказав|dije|disse|gesagt)$', .36], 2.0] } }], then: { back: 'round2' } },   // «Я сказал — зовут» — кивает
     gs_calls: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.04]], say: ['gs07'], pad: .2 }, { img: 'gs_707', cams: [[.5, .5, 1.0, 1.05]], say: ['gs08'], heart: true, pad: .5, react: { 'ГАС': ['no', 5.0, 8.2] } }], then: { back: 'round2' } },
     gs_warn: { music: 'drone', beats: [{ img: 'gs_ask', cams: [[.5, .5, 1.0, 1.05]], say: ['gs09'], pad: .2 }, { img: 'gs_sad', cams: [[.5, .5, 1.0, 1.06]], say: ['gs10'], pad: .5, react: { 'ГАС': ['warm', 4.45, 99] } }], then: { back: 'round2' } },
     gs_bye: { music: 'drone', beats: [{ img: 'r2_talk', cams: [[.5, .5, 1.0, 1.05]], say: ['n15'], pad: .8, react: { 'ГАС': ['no+warm', 3.4, 99] } }], then: { goto: 'ly_call' } },
