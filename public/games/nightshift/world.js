@@ -229,7 +229,7 @@ function makeTextures() {
   TX.sign = ctex(256, 48, (x, w, h) => { x.fillStyle = '#101214'; x.fillRect(0, 0, w, h); x.fillStyle = '#c9cdd2'; x.font = '700 28px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('БЦ  «ГОРИЗОНТ»'), w / 2, h / 2 + 1); });
   TX.signOut = ctex(256, 48, (x, w, h) => { x.fillStyle = '#0a0b0c'; x.fillRect(0, 0, w, h); x.fillStyle = '#e8eef5'; x.shadowColor = '#9fd0ff'; x.shadowBlur = 8; x.font = '700 30px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ГОРИЗОНТ'), w / 2, h / 2 + 1); });
   TX.guardSign = ctex(64, 16, (x, w, h) => { x.fillStyle = '#7a1414'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = '700 11px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ОХРАНА'), w / 2, h / 2 + 1); });
-  TX.exit = ctex(32, 16, (x, w, h) => { x.fillStyle = '#0f6b2c'; x.fillRect(0, 0, w, h); x.fillStyle = '#d8ffe0'; x.font = '700 10px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ВЫХОД'), w / 2, h / 2 + 1); });
+  TX.exit = ctex(32, 16, (x, w, h) => { x.fillStyle = '#0f6b2c'; x.fillRect(0, 0, w, h); x.fillStyle = '#d8ffe0'; x.font = '700 10px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ВЫХОД'), w / 2, h / 2 + 1, w - 3); });
   TX.poster = ctex(32, 48, (x, w, h) => { x.fillStyle = '#d8d2c0'; x.fillRect(0, 0, w, h); x.fillStyle = '#7a1414'; x.fillRect(0, 0, w, 10); x.fillStyle = '#222'; for (let i = 0; i < 8; i++) x.fillRect(4, 14 + i * 4, 10 + rnd() * 14, 1); x.fillStyle = '#333'; x.font = '700 6px Arial'; x.fillText(tr('ПРАВИЛА'), 4, 7); });
   TX.note = noteTex(false); TX.note2 = noteTex(true);
   TX.keys = null;
