@@ -1846,8 +1846,8 @@ SH.come_door = { loc: 'lobby', pos: [6.82, 1.3, -.42], look: [7.46, 1.14, .38], 
   const ex = 6.63 + .86 * Math.cos(th), ez = .45 - .86 * Math.sin(th), r = seg(t, 3.25, 4.0), peek = seg(t, 3.95, 4.35);   // кромка двери
   o.faceL.position.set(7.25, 1.3, .05); o.faceL.color.setHex(0xd2c9be); o.faceL.distance = 1.6; o.faceL.intensity = .5 + 1.0 * clamp(th / .24, 0, 1);   // блик на ручке; потом — свет холла из щели на кромку и пальцы
   if (th < .02) return [];
-  return [['monster', 7.62, 0, .8, PI + .35, { clips: [['Idle_Loop', 1.7, 1]], legs: 'plant', pelvis: [0, -.22, 0], look: [6.82, 1.3, -.42], spine: { to: [7.42, 1.62, .12], k: .3 * r + .3 * peek },   // заглядывает в щель
-    arm: { l: { at: [ex - .02 - .07 * r, lerp(1.24, 1.16, r), ez - .02 - .02 * r], by: 'tip', fdir: nrm([-Math.cos(th), -.12, Math.sin(th)]), pdir: nrm([Math.sin(th), 0, Math.cos(th)]), w: r, pole: [8.2, .8, 1.4] } }, fing: { l: ['claw', .45] } }, [6.82, 1.3, -.42]]];
+  return [['monster', 7.68, 0, .86, PI + .35, { clips: [['Idle_Loop', 1.7, 1]], legs: 'plant', pelvis: [0, -.22, 0], look: [6.82, 1.3, -.42], spine: { to: [7.42, 1.62, .12], k: .3 * r + .12 * peek },   // заглядывает в щель (сильнее — корпус проходил сквозь косяк)
+    arm: { l: { at: [ex - .02 - .07 * r + .035 * Math.sin(th), lerp(1.24, 1.16, r), ez - .02 - .02 * r + .035 * Math.cos(th)], by: 'tip', fdir: nrm([-Math.cos(th), -.12, Math.sin(th)]), pdir: nrm([Math.sin(th), 0, Math.cos(th)]), w: r, pole: [8.2, .8, 1.4] } }, fing: { l: ['claw', .45] } }, [6.82, 1.3, -.42]]];
 } };
 // 11б. «Засмотрелся», второй вариант (по очереди с «тсс»): на седьмом он идёт к объективу рывками — каждый рывок прячет вспышка помех (snow в story.js), между ними стоит как статуя;
 // у объектива поднимает лицо в камеру и медленно закрывает её ладонью — темно. (было: между рывками покачивался, помехи звучали сплошным шипением)
@@ -2040,7 +2040,8 @@ const COME_M = [2.6, 1.32];
 SH.come_srv_a = { loc: 'server', pos: SRV_CAM, look: [1.9, .9, 2.2], fov: 46, cctv: 1, face: { mihalych: 'worry' }, set: (o, t) => { srvSet(o); return srvPair(t); } };
 SH.come_srv_b = { loc: 'server', pos: SRV_CAM, look: [1.9, .9, 2.2], fov: 46, cctv: 1, face: { mihalych: 'fear' }, set: (o, t) => { srvDim(o); o.candle.intensity = .1;
   faceLit(o, [2.0, 2.4, .4], 1.3, 0xc0ccd8); const lean = seg(t, 1.5, 2.25);
-  return srvPair(t).concat([['monster', COME_M[0], 0, COME_M[1], Math.atan2(EIN[0] - COME_M[0], EIN[1] - COME_M[1]), Object.assign(STILL('Idle_Loop', 1.7), { pelvis: [0, -.15 * lean, 0], spine: { to: [EIN[0], 1.0, EIN[1]], k: .6 * lean } }), 'cam']]); } };
+  const M = [COME_M[0] - .2, COME_M[1]];   // на 20 см от стойки: наклоняясь к Итану, плечом входил в неё
+  return srvPair(t).concat([['monster', M[0], 0, M[1], Math.atan2(EIN[0] - M[0], EIN[1] - M[1]), Object.assign(STILL('Idle_Loop', 1.7), { pelvis: [0, -.15 * lean, 0], spine: { to: [EIN[0], 1.0, EIN[1]], k: .6 * lean } }), 'cam']]); } };
 // «Засмотрелся»: регистратор сам переключается на камеру серверной — оно стоит за спиной у Итана, ладонь у него на плече, наклоняется к уху
 // и подносит палец к губам, глядя в объектив («тссс»), — камера гаснет
 SH.hush_srv = { loc: 'server', pos: SRV_CAM, look: [2.2, 1.15, 1.9], fov: 40, cctv: 1, face: { temych: 'terror' }, set: (o, t) => { srvDim(o);
