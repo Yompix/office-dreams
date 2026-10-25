@@ -117,7 +117,7 @@ window.STORY = {
     floor7b: {
       music: 'tension', time: '03:02',
       beats: [
-        { img: 'f7_stop', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', cams: [[.5, .5, 1.2, 1.3]], say: ['f07'], pad: .4 },
+        { img: 'f7_stop', fx: 'cctv', label: 'CAM 07  ЭТАЖ 7', hud: { date: '29.10.2026', at: '03:00', tag: '▶ ЗАПИСЬ' }, cams: [[.5, .5, 1.2, 1.3]], say: ['f07'], pad: .4 },   // «пересмотрел запись»: на экране — запись 03:00, а не живое 03:02
         { img: null, phone: { kind: 'talk', name: 'Полиция', t0: 3 }, say: ['f08'], pad: .4 }
       ],
       then: { choice: 'На седьмом горит свет. Гаса нет.', timeout: 10, def: 1,

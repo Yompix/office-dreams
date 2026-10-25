@@ -752,7 +752,7 @@ const MG = {
     mgEl.classList.remove('hide');
     const btn = $('hb'), air = $('air'); let held = false, a = 1, t0 = now(), lt = t0, safe = false, end = false, steps = 0;
     const dur = th.dur || 9, set = h => { held = h; btn.classList.toggle('held', h); btn.textContent = h ? (th.btnOn || tr('НЕ ДЫШИ')) : (th.btn || tr('ДЕРЖИ')); };
-    btn.onpointerdown = e => { e.preventDefault(); set(true); }; btn.onpointerup = btn.onpointerleave = btn.onpointercancel = () => set(false);
+    btn.onpointerdown = e => { e.preventDefault(); try { btn.setPointerCapture(e.pointerId); } catch {} set(true); }; btn.onpointerup = btn.onpointerleave = btn.onpointercancel = () => set(false);   // захват: нажатая кнопка сжимается (scale .93) — мышь у края «уходила» с неё, и это считалось «отпустил»
     const fin = ok => { if (end || my !== gen) return; end = true; amb('heart', false); mgEl.classList.add('hide'); startScene(ok ? th.win : th.lose); };
     (function loop() {
       if (end || my !== gen) return; const t = now() - t0, fdt = Math.min(.1, now() - lt); lt = now();
@@ -1160,7 +1160,7 @@ function shiftHold(h) {   // держать кнопку, пока голос н
   const my = shf.my, it = sayV(h.say, { delay: .4 }), need = h.dur || 7, B = tr(h.btn || 'ДЕРЖАТЬ'), BON = tr(h.btnOn || 'ДЕРЖУ'); let held = 0, down = false, last = now(), lost = 0;
   shiftPop(`<h3>${tr(h.title || 'ДЕРЖИ ФРЭНКА')}</h3><p>${tr(h.text || 'Фрэнк поднимается на голос. Не отпускай, пока голос не стихнет.')}</p><div class="sh-hold"><i id="hBar"></i></div><button id="hBtn" class="sh-holdb">${B}</button>`, true);
   play('heart', { gain: .9 }); if (h.sfx) play(h.sfx[0], h.sfx[1] || {}); const btn = $('hBtn');
-  const on = e => { e.preventDefault(); e.stopPropagation(); down = true; btn.classList.add('on'); btn.textContent = BON; }, off = e => { e && e.preventDefault(); down = false; btn.classList.remove('on'); btn.textContent = B; };
+  const on = e => { e.preventDefault(); e.stopPropagation(); try { btn.setPointerCapture(e.pointerId); } catch {} down = true; btn.classList.add('on'); btn.textContent = BON; }, off = e => { e && e.preventDefault(); down = false; btn.classList.remove('on'); btn.textContent = B; };
   btn.addEventListener('pointerdown', on); btn.addEventListener('pointerup', off); btn.addEventListener('pointerleave', off); btn.addEventListener('pointercancel', off);
   const step = () => { if (!shf || shf.my !== my || shf.ended) return; const t = now(), dt = Math.min(.1, t - last); last = t;
     if (t > it.t0) { if (down) held += dt; else if (t > it.t0 + 1.2) lost += dt; }   // секунда с небольшим на то, чтобы схватить
@@ -1808,7 +1808,7 @@ function frame(tp) {
         if (lg && sc && !calm() && ((st > .09 && st < .13) || (st > .3 && st < .33))) { g.save(); g.globalCompositeOperation = 'difference'; g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.restore(); }
         vignette();
         if (beat.hud && (beat.hud !== hudRef || (!beat.fin && t < .1))) { hudRef = beat.hud; hudT0 = now() - t; }   // финал берёт тот же hud — часы записи идут дальше, а не с нуля
-        if (cam) cctvHud(beat.label, T, beat.hud && { tag: 'REC', date: beat.hud.date, clock: beat.hud.at + ':' + String(Math.floor(now() - hudT0) % 60).padStart(2, '0') });   // hud — своя дата и время записи (другая ночь)
+        if (cam) cctvHud(beat.label, T, beat.hud && { tag: beat.hud.tag ? tr(beat.hud.tag) : 'REC', date: beat.hud.date, clock: beat.hud.at + ':' + String(Math.floor(now() - hudT0) % 60).padStart(2, '0') });   // hud — своя дата и время записи (другая ночь; tag — «▶ ЗАПИСЬ», когда смотрят запись)
       }
       // реплики: табличка с именем того, кто говорит; слова загораются по мере звучания
       let shown = false;
