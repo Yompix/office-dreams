@@ -356,7 +356,7 @@ function noteTex(v2) {
       if (k === 1) x.rotate((rnd() - .5) * .05);
       x.font = pen(k === 2 ? 12 : 11, k === 2); x.fillStyle = k === 2 ? '#101a50' : '#1c2a6a'; x.fillText(tr(t), 0, 0);
       if (k === 2) { x.fillText(tr(t), .6, .3);   // с нажимом: ручка прорвала бумагу — рваная щель под строкой
-        if (/ИМЯ/.test(t)) {   // по русскому ключу: в переводе слова «имя» может не быть (ES «NO RESPONDAS») x.fillStyle = 'rgba(25,18,10,.75)'; x.beginPath(); x.moveTo(36, 3); for (let s = 0; s <= 24; s++) x.lineTo(36 + s * 5, 3.2 + Math.sin(s * 2.7) * 1.1 + (s % 3 ? .4 : -.5));
+        if (/ИМЯ/.test(t)) { x.fillStyle = 'rgba(25,18,10,.75)'; x.beginPath(); x.moveTo(36, 3); for (let s = 0; s <= 24; s++) x.lineTo(36 + s * 5, 3.2 + Math.sin(s * 2.7) * 1.1 + (s % 3 ? .4 : -.5));   // по русскому ключу: в переводе слова «имя» может не быть (ES «NO RESPONDAS»)
           for (let s = 24; s >= 0; s--) x.lineTo(36 + s * 5, 4.4 + Math.sin(s * 1.9) * .8); x.closePath(); x.fill(); } }
       x.restore();
     });

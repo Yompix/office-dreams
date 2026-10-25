@@ -56,6 +56,9 @@ float h3(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.545
 float vn(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
   return mix(mix(mix(h3(i), h3(i + vec3(1., 0., 0.)), f.x), mix(h3(i + vec3(0., 1., 0.)), h3(i + vec3(1., 1., 0.)), f.x), f.y),
              mix(mix(h3(i + vec3(0., 0., 1.)), h3(i + vec3(1., 0., 1.)), f.x), mix(h3(i + vec3(0., 1., 1.)), h3(i + vec3(1., 1., 1.)), f.x), f.y), f.z); }
+// переплетение ткани (период ~2 мм) и ворс: когда узор мельче пикселя, он гаснет — иначе вдали рябь, муар и «лесенка» на свитерах и куртках
+float weaveH() { float pw = length(fwidth(vB));
+  return ((sin(vB.x * 2600.) * sin(vB.y * 2600.) * .5 + .5) * .5 - .25) * (1. - smoothstep(.5, 1.5, pw * 2600.)) + .25 + (vn(vB * 300.) - .5) * .5 * (1. - smoothstep(.5, 1.5, pw * 300.)) + .25; }
 float ln(float d, float w) { return 1. - smoothstep(w * .5, w, abs(d)); }   // тонкая линия (шов, кант)
 float rct(vec2 p, vec2 a, vec2 b) { return step(a.x, p.x) * step(p.x, b.x) * step(a.y, p.y) * step(p.y, b.y); }
 float edge(vec2 p, vec2 a, vec2 b, float w) { return rct(p, a, b) * (1. - rct(p, a + w, b - w)); }
@@ -186,8 +189,8 @@ const BODY_PAINT = `
   }
   vec4 cl = cloth(p, lum);
   vec3 col = mix(skin, cl.rgb, step(.2, cl.w));
-  if (uNaked < .5) { if (cl.w > .2) { gH = (sin(vB.x * 2600.) * sin(vB.y * 2600.) * .5 + .5) * .5 + vn(vB * 300.) * .5; gR = .86; }
-    else { gH = vn(vB * 600.) * .7 + vn(vB * 90.) * .3; gR = .5 + .14 * vn(vB * 40.);
+  if (uNaked < .5) { if (cl.w > .2) { gH = weaveH(); gR = .86; }
+    else { float pw = length(fwidth(vB)); gH = (vn(vB * 600.) - .5) * .7 * (1. - smoothstep(.5, 1.5, pw * 600.)) + vn(vB * 90.) * .3; gR = .5 + .14 * vn(vB * 40.);
       // живая кожа: ночная смена — тени под глазами, кожа чуть менее «игрушечно» насыщенная, неровный тон
       vec2 uv0 = vMapUv; float eb = min(length((uv0 - uEyeL - vec2(0., .02)) / vec2(.03, .013)), length((uv0 - uEyeR - vec2(0., .02)) / vec2(.03, .013)));
       col *= mix(vec3(.8, .74, .78), vec3(1.), smoothstep(.35, 1., eb)) * (.94 + .1 * vn(vB * 25.));
@@ -282,7 +285,7 @@ function bodyMat(src, U, shell, side, rough = .62) {
       .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n' + (shell ? '' : ' if (uFlat > .5) { vec3 q = position / uS; if (q.y > 1.12 && q.y < 1.48 && q.z > .02) objectNormal = normalize(mix(objectNormal, vec3(objectNormal.x * .5, objectNormal.y * .3, 1.), .75)); if (q.y > .76 && q.y < 1.1 && q.z < -.05) objectNormal = normalize(mix(objectNormal, vec3(objectNormal.x * .5, 0., -1.), .7)); }'))
       .replace('#include <project_vertex>', SNAPV);
     sh.fragmentShader = BODY_FS + sh.fragmentShader.replace('#include <map_fragment>', shell
-      ? '#include <map_fragment>\n{ vec3 q = vB / uS; vec4 cl = cloth(q, dot(diffuseColor.rgb, vec3(.3, .59, .11))); if (cl.w < .5) discard; gH = (sin(vB.x * 2600.) * sin(vB.y * 2600.) * .5 + .5) * .5 + vn(vB * 300.) * .5; gR = uKind > .5 && uKind < 1.5 ? .32 : .86; if (uSkirt > .5 && q.y < .985 && q.y > uCoatY - .01 && !(abs(q.x) > .215 && q.y > 1.32)) discard; diffuseColor.rgb = cl.rgb; }'
+      ? '#include <map_fragment>\n{ vec3 q = vB / uS; vec4 cl = cloth(q, dot(diffuseColor.rgb, vec3(.3, .59, .11))); if (cl.w < .5) discard; gH = weaveH(); gR = uKind > .5 && uKind < 1.5 ? .32 : .86; if (uSkirt > .5 && q.y < .985 && q.y > uCoatY - .01 && !(abs(q.x) > .215 && q.y > 1.32)) discard; diffuseColor.rgb = cl.rgb; }'
       : BODY_PAINT)
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  if (gR >= 0.) roughnessFactor = gR;')
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  normal = bumpN(-vViewPosition, normal, gH * (uNaked > .5 ? .0022 : .00016));')
@@ -452,7 +455,7 @@ function attach(C, part, color) {   // волосы/борода из отдел
   // короткая стрижка — сплошная (сквозь редкую карту волос просвечивала кожа пятнами)
   const buzz = part === 'Hair_Buzzed';
   const m = new T.SkinnedMesh(sm.geometry, ps1(litMat(buzz ? { color, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -6 } : { map: sm.material.map, color, alphaTest: .45, side: T.DoubleSide }, .55)));
-  m.frustumCulled = false;
+  m.frustumCulled = false; if (CINE && !buzz) m.material.alphaToCoverage = true;   // «Кино»: края прядей сглаживает MSAA, а не рваный порог
   C.mesh.parent.add(m); m.bind(new T.Skeleton(bones, sm.skeleton.boneInverses), C.mesh.bindMatrix);
   return m;
 }
@@ -1483,16 +1486,20 @@ const SHROUD_VN = `
 `;
 // складки рубахи — рельефом в нормали: свет ложится полосами, ткань читается тканью, а не кожей
 const SHROUD_N = `
-  { float hf = sin(atan(vB.x, vB.z + .3 + 1e-5) * 30. + vn3(vB * 7.) * 4.) * (.0035 + .007 * smoothstep(1.5, .6, vB.y)) + vn3(vec3(vB.x * 60., vB.y * 6., vB.z * 60.)) * .003;
-    vec2 dh = vec2(dFdx(hf), dFdy(hf)) * gCloth; vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
+  { vec3 px = dFdx(vB), py = dFdy(vB); float aa = 1. - smoothstep(.06, .2, length(px) + length(py)), h0 = shH(vB, aa);   // рельеф по разности высот в соседних пикселях,
+    vec2 dh = vec2(shH(vB + px, aa) - h0, shH(vB + py, aa) - h0) * gCloth;                                                 // а не dFdx(высоты): та одна на квадрат 2×2 — «лесенка» вблизи
+    vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
     vec3 nn = abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2); normal = dot(nn, nn) > 1e-24 ? normalize(nn) : normal; }
+`;
+// высота складок рубахи: крупные, неровные, книзу глубже (14 по кругу — висит тканью; 30 читались вельветом и рябили муаром); мелкий шум ткани гаснет вдали (aa)
+const SHROUD_H = `float shH(vec3 p, float aa) { return sin(atan(p.x, p.z + .3 + 1e-5) * 14. + vn3(p * 6.) * 5.) * (.005 + .009 * smoothstep(1.5, .6, p.y)) + vn3(vec3(p.x * 60., p.y * 6., p.z * 60.)) * .0025 * aa; }
 `;
 // ткань: грязно-белая, складки вниз, пятна, рваный подол с тёмной мокрой каймой; на голых руках и ногах — жилы и вены
 const SHROUD_FS = `float gCloth, gWet; vec3 gClothC;
   { float body = mix(smoothstep(.27, .23, abs(vB.x)), smoothstep(.4, .34, abs(vB.x)), smoothstep(1.32, 1.22, vB.y));
     float hemY = .56 + .07 * (vn3(vec3(vB.x * 26., 0., vB.z * 26.)) - .5) + .03 * (hh3(vec3(floor(vB.x * 60.), 3., floor(vB.z * 60.))) - .5);
     gCloth = body * smoothstep(1.98, 1.95, vB.y + .03 * cos(vB.x * 16.)) * smoothstep(hemY - .012, hemY + .012, vB.y);
-    float fold = sin(atan(vB.x, vB.z + .3 + 1e-5) * 30. + vn3(vB * 7.) * 4.) * (.08 + .14 * smoothstep(1.5, .6, vB.y));
+    float fph = atan(vB.x, vB.z + .3 + 1e-5) * 14. + vn3(vB * 6.) * 5., fold = sin(fph) * (.08 + .14 * smoothstep(1.5, .6, vB.y)) * (1. - smoothstep(.6, 1.6, fwidth(fph)));   // вдали складки сливаются в тон, без муара
     float dirt = smoothstep(.55, .78, vn3(vB * 8.5)) * .55 + smoothstep(1.1, .55, vB.y) * .35;
     gWet = smoothstep(hemY + .2, hemY + .02, vB.y) * gCloth;
     vec3 cloth = vec3(.36, .34, .3) * (1. + fold) * (1. - .4 * dirt) * mix(vec3(1.), vec3(.74, .6, .42), dirt * .85);
@@ -1561,7 +1568,7 @@ function humanMat(C, n, kind, Q) {
     sh.fragmentShader = `uniform vec3 uTint, uGoreP, uEyeL3, uEyeR3; uniform float uGain, uGrey, uWet, uGore, uSocket, uH, uMouthZ;
 varying vec3 vB;
 float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
-${CINE || shroud ? HUM_NOISE : ''}` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H : ''}` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
   ${hem != null ? `if (vB.y > ${hem.toFixed(3)}) discard;   // под подолом кофты` : ''}
   ${re ? `diffuseColor.rgb = mix(vec3(${LUMA}) * uTint * uGain, uTint, ${(re[2] || 0).toFixed(2)});` : ''}
   ${kind === 'skin' ? `{ float s = smoothstep(.04, .012, length(vB - uEyeL3)) + smoothstep(.04, .012, length(vB - uEyeR3)); diffuseColor.rgb *= 1. - .9 * uSocket * clamp(s, 0., 1.); }` : ''}
@@ -1749,8 +1756,9 @@ function gownMat(C) {
     sh.fragmentShader = `uniform float uWet, uGore; varying vec3 vG; varying float vF; varying vec2 vS;
 float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
 ${HUM_NOISE}float gWet = 0., gA = 0., gN = 0.;
+float gH(vec2 sv, vec3 g, float f, float aF, float aN) { return sin(atan(sv.x, sv.y + 1e-5) * 11. + vn3(g * 7.) * 4.) * (.004 + .009 * f) * aF + vn3(vec3(g.x * 50., g.y * 5., g.z * 50.)) * .003 * aN; }
 ` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-  gA = atan(vS.x, vS.y + 1e-5);   // atan(0, 0) на части видеокарт — NaN gN = vn3(vG * 7.);
+  gA = atan(vS.x, vS.y + 1e-5); gN = vn3(vG * 7.);   // +1e-5: atan(0, 0) на части видеокарт — NaN
   if (vF > .93 - .08 * vn3(vec3(vG.x * 22., 0., vG.z * 22.)) - .04 * hh3(vec3(floor(gA * 9.), 1., 2.))) discard;   // рваный подол
   if (vF > .62 && vn3(vG * 13.) > .8) discard;   // дыры у подола
   float fold = sin(gA * 11. + gN * 4.) * (.1 + .16 * vF), dirt = smoothstep(.55, .78, vn3(vG * 8.5)) * .55 + vF * vF * .5; gWet = smoothstep(.62, .92, vF);
@@ -1759,12 +1767,14 @@ ${HUM_NOISE}float gWet = 0., gA = 0., gN = 0.;
   if (uGore > 0.) cloth = mix(cloth, vec3(.2, .012, .012), uGore * smoothstep(.62, .78, vn3(vG * 4. + 3.)) * (1. - vF));   // кровь на груди, когда ест
   diffuseColor.rgb = cloth * (1. - .15 * uWet);`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-  { float hf = sin(gA * 11. + gN * 4.) * (.004 + .009 * vF) + vn3(vec3(vG.x * 50., vG.y * 5., vG.z * 50.)) * .003;   // складки рельефом
-    vec2 dh = vec2(dFdx(hf), dFdy(hf)); vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
+  { float aaF = 1. - smoothstep(.15, .6, fwidth(gA * 11.)), aaN = 1. - smoothstep(.02, .06, length(fwidth(vG)) * 50.);   // вдали мелкий рельеф гаснет — без муара
+    float h0 = gH(vS, vG, vF, aaF, aaN);   // складки рельефом: разность высот в соседних пикселях (dFdx высоты один на квадрат 2×2 — «лесенка» вблизи)
+    vec2 dh = vec2(gH(vS + dFdx(vS), vG + dFdx(vG), vF + dFdx(vF), aaF, aaN) - h0, gH(vS + dFdy(vS), vG + dFdy(vG), vF + dFdy(vF), aaF, aaN) - h0);
+    vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
     vec3 nn = abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2); normal = dot(nn, nn) > 1e-24 ? normalize(nn) : normal; }`)
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(.93, .5, gWet);');
   };
-  m.customProgramCacheKey = () => 'gown1' + (CINE ? 'c' : '');
+  m.customProgramCacheKey = () => 'gown2' + (CINE ? 'c' : '');
   return m;
 }
 

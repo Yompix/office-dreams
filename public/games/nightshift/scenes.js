@@ -2178,7 +2178,7 @@ function cineLoc(R, o) {
   });
   o.casters = []; o.beams = [];
   S.traverse(l => { if (!l.isPointLight) return;
-    l.shadow.mapSize.set(ULTRA ? 1024 : FINE ? 512 : 256, ULTRA ? 1024 : FINE ? 512 : 256);   // «Ультра» — тени вдвое чётче l.shadow.bias = -.003; l.shadow.normalBias = .025; l.shadow.camera.near = .08; l.shadow.camera.far = l.distance || 20;
+    l.shadow.mapSize.set(ULTRA ? 1024 : FINE ? 512 : 256, ULTRA ? 1024 : FINE ? 512 : 256); l.shadow.bias = -.003; l.shadow.normalBias = .025; l.shadow.camera.near = .08; l.shadow.camera.far = l.distance || 20;   // «Ультра» — тени вдвое чётче
     if (!skip.has(l)) o.casters.push(l);
     if (!skip.has(l) && l.position.y > 2.3) {
       const wp = new T.Vector3(); l.getWorldPosition(wp); const h = wp.y - .02;
