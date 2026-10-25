@@ -5,10 +5,12 @@
 (() => {
 'use strict';
 const S = window.STORY, $ = id => document.getElementById(id);
-const tr = window.tr || (s => s), trf = window.trf || ((s, v) => s.replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m)), EN = window.NS_LANG === 'en';
+const tr = window.tr || (s => s), trf = window.trf || ((s, v) => s.replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m)), LNG = window.NS_LANG || 'ru', EN = LNG !== 'ru';
+const DESK = window.nsDesktop || null;   // ПК-версия (tools/desktop: окно Electron): выход из игры, полный экран окна, без доната и спонсоров из интернета
+const VL = window.NS_VOICE || (EN ? 'en' : 'ru');   // чьими записями озвучен язык игры (папка snd/<VL>/; русский — snd/)
 if (window.trStory) window.trStory(S);
 if (EN) {   // статичные надписи страницы
-  document.documentElement.lang = 'en';
+  document.documentElement.lang = LNG;
   for (const b of document.querySelectorAll('[title]')) { b.title = tr(b.title); b.setAttribute('aria-label', b.title); }
   const kk = document.getElementById('keys'); if (kk) for (const d of kk.children) if (d.lastChild && d.lastChild.nodeType === 3) d.lastChild.textContent = tr(d.lastChild.textContent);
 }
@@ -38,6 +40,7 @@ const ICON = {
   plug: '<svg class="ic" viewBox="0 0 24 24"><path d="M9 2v5M15 2v5"/><path class="f" d="M5 7h14v4a7 7 0 0 1-14 0z"/><path d="M12 18v5"/></svg>',
   msg: '<svg viewBox="0 0 24 24"><path class="f" d="M3 5h18v12H9l-6 4z"/></svg>',
   x: '<svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  ok: '<svg class="ic" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
   snd: '<svg class="ic" viewBox="0 0 24 24"><path class="f" d="M3 9h4l5-4v14l-5-4H3z"/><path class="on1" d="M16 8.5a5 5 0 0 1 0 7M18.8 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M16 9l5 6M21 9l-5 6"/></svg>'
 };
 
@@ -59,14 +62,14 @@ function get(url, type) { return new Promise((ok, no) => { const x = new XMLHttp
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
-const sndUrl = k => (EN && (VOICE_RE.test(k) || TIM[k]) ? 'snd/en/' : 'snd/') + k + '.mp3?v=4';
+const sndUrl = k => (VL !== 'ru' && (VOICE_RE.test(k) || TIM[k]) ? 'snd/' + VL + '/' : 'snd/') + k + '.mp3?v=4';
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
-  const tm = get(EN ? 'timing_en.json?v=11' : 'timing.json?v=16', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
+  const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (LNG === 'en' ? 11 : 1) : 'timing.json?v=16', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
   await Promise.all([world, ...sn, tm]);
   // остальные реплики (их много) докачиваются в фоне, уже во время игры — очередью по 4, в порядке сцен; нужные сейчас встают вперёд (voiceReady)
@@ -172,11 +175,11 @@ function unlockAudio() {   // только внутри нажатия: инач
   try { AC.resume(); const b = AC.createBuffer(1, 1, 22050), s = AC.createBufferSource(); s.buffer = b; s.connect(AC.destination); s.start(0); } catch {}
 }
 // кнопка «во весь экран» в углу: видна, когда браузер умеет полный экран, а игра сейчас не в нём (вышли жестом «назад» или Esc)
-function fullBtn() { const b = $('bFull'), d = document; if (!b) return; const can = d.fullscreenEnabled || d.webkitFullscreenEnabled, on = d.fullscreenElement || d.webkitFullscreenElement; b.classList.toggle('hide', !can || !!on); }
+function fullBtn() { const b = $('bFull'), d = document; if (!b) return; const can = d.fullscreenEnabled || d.webkitFullscreenEnabled, on = d.fullscreenElement || d.webkitFullscreenElement; b.classList.toggle('hide', !!DESK || !can || !!on); }
 document.addEventListener('fullscreenchange', fullBtn); document.addEventListener('webkitfullscreenchange', fullBtn);
 function goFull() {   // полный экран по нажатию «Играть»: только внутри нажатия, иначе браузер откажет
   const d = document, el = d.documentElement;
-  if (d.fullscreenElement || d.webkitFullscreenElement) return;
+  if (DESK || d.fullscreenElement || d.webkitFullscreenElement) return;   // ПК-версия: окно уже во весь экран (игрок мог сам выйти — не возвращаем)
   try {
     const r = (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el, { navigationUI: 'hide' });
     if (r && r.then) r.then(() => { try { screen.orientation.lock(LAND ? 'landscape' : 'portrait').catch(() => {}); } catch {} }).catch(() => {});
@@ -406,7 +409,9 @@ const aloudOf = k => whoOf(k) !== 'ИТАН' || ((TIM[k] || {}).t || '').trim().
 const VIS_CH = (() => { const m = {}, set = (s, v) => { for (const c of s) m[c] = v; };
   set('аяa', 'viseme_aa'); set('оёo', 'viseme_O'); set('уюuw', 'viseme_U'); set('ыийiy', 'viseme_I'); set('еэe', 'viseme_E');
   set('пбмpbm', 'viseme_PP'); set('фвfv', 'viseme_FF'); set('сзцsz', 'viseme_SS'); set('шжщчjc', 'viseme_CH'); set('тдtd', 'viseme_DD');
-  set('нлnl', 'viseme_nn'); set('кгхkgqxh', 'viseme_kk'); set('рr', 'viseme_RR'); return m; })();
+  set('нлnl', 'viseme_nn'); set('кгхkgqxh', 'viseme_kk'); set('рr', 'viseme_RR');
+  set('áàâãäå', 'viseme_aa'); set('óòôõö', 'viseme_O'); set('úùûü', 'viseme_U'); set('íìîïіїý', 'viseme_I'); set('éèêëє', 'viseme_E'); set('ñ', 'viseme_nn'); set('çß', 'viseme_SS'); set('ґ', 'viseme_kk');   // испанский, португальский, немецкий, украинский
+  return m; })();
 function visemeAt(k, tl) {
   const w = (TIM[k] || {}).w; if (!w || !w.length) return null;
   let i = -1; for (let j = 0; j < w.length && w[j][0] <= tl; j++) i = j;
@@ -791,7 +796,7 @@ const MG = {
       if (k >= N) return fin(true);
       const bad = Math.random() < .5 ? 'L' : 'R';
       mgView = { img: 'run_lit', c: [.5, .5, 1, 1.04], t0: mgView ? mgView.t0 : now(), dur: 1e9, run: bad };
-      mgEl.innerHTML = `<div class="mghead">${th.title}<small>${EN ? `Lights going out on the ${bad === 'L' ? 'LEFT' : 'RIGHT'} — run ${bad === 'L' ? 'RIGHT →' : '← LEFT'}` : `Свет гаснет ${bad === 'L' ? 'СЛЕВА' : 'СПРАВА'} — беги ${bad === 'L' ? 'ВПРАВО →' : '← ВЛЕВО'}`} (${k + 1}/${N})</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="rt" style="width:100%"></i></div></div><div class="arrows"><button data-d="L" aria-label="Влево">${ICON.left}</button><button data-d="R" aria-label="Вправо">${ICON.right}</button></div>`;
+      mgEl.innerHTML = `<div class="mghead">${th.title}<small>${tr(bad === 'L' ? 'Свет гаснет СЛЕВА — беги ВПРАВО →' : 'Свет гаснет СПРАВА — беги ← ВЛЕВО')} (${k + 1}/${N})</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="rt" style="width:100%"></i></div></div><div class="arrows"><button data-d="L" aria-label="Влево">${ICON.left}</button><button data-d="R" aria-label="Вправо">${ICON.right}</button></div>`;
       mgEl.classList.remove('hide'); play('steps', { gain: .8 }); shakeAmp = 14;
       const t0 = now(), lim = Math.max(1.3, 2.6 - k * .2); let ok = false;
       mgEl.querySelectorAll('.arrows button').forEach(b => b.onclick = () => { if (ok) return; ok = true; if (b.dataset.d === bad) return fin(false); play('click'); k++; step(); });
@@ -907,6 +912,7 @@ function shiftGame(th) {
   gen++; const my = gen; mode = 'shift'; document.body.classList.add('shifting'); stopAll(); music(seg.music || (BUF.shift || rawSnd.shift ? 'shift' : 'drone')); amb('static', false);
   choiceEl.classList.add('hide'); dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); ruleEl.classList.add('hide');
   if (!shk || th.fresh) shk = shkNew();
+  if (seg.st) Object.assign(shk.st, seg.st);   // что на камерах с начала часа (story.js: после 03:00 Гаса на седьмом нет)
   shf = { id: th.shift, seg, my, t0: now(), lt: now(), m0: toMin(seg.from), m1: toMin(seg.to), M: toMin(seg.from), cam: seg.cam || '02', camT: now(), act: [], miss: 0, vq: [], pop: null, warn13: false, ended: false };
   shf.ev = seg.events.map(e => Object.assign({ m: toMin(e.at) }, e));
   voiceWant.clear(); voiceReady(objKeys([seg, ...Object.entries(S.shift).filter(([k]) => !/^(segs|lines)$/.test(k)).map(([, v]) => v)]));   // реплики этого часа, странностей и звонков
@@ -1168,7 +1174,7 @@ function gallery() {
 /* ---------- спонсоры игры (донаты звёздами Telegram через бота) ---------- */
 const API = /railway\.app$|^localhost$/.test(location.hostname) ? '' : 'https://office-dreams-production.up.railway.app';
 let SP = { donate: 'https://t.me/officedream1_bot?start=games', list: [] };
-get(API + '/api/games/sponsors', 'json').then(j => { if (j && j.ok) SP = Object.assign(SP, j, { donate: j.donate || SP.donate }); }).catch(() => {});
+if (!DESK) get(API + '/api/games/sponsors', 'json').then(j => { if (j && j.ok) SP = Object.assign(SP, j, { donate: j.donate || SP.donate }); }).catch(() => {});
 function sponsorsHtml() {
   const names = SP.list.slice(0, 30).map(r => `<span>${escH(r.name)}</span>`).join('');
   return `<div class="spons"><b>${tr('СПОНСОРЫ ИГРЫ')}</b>${names || `<i>${tr('Стань первым — твоё имя будет здесь')}</i>`}</div>`;
@@ -1206,19 +1212,19 @@ function menu() {
   uiEl.innerHTML = `<div class="title ${gateDone ? 'open' : 'gate'}${titleFirst ? ' first' : ''}">
     <div class="logo" id="logo"><b>HUSH</b><b>TILL SIX</b></div>
     <div class="tagl">${tr('Не отзывайся · Не открывай · Дождись шести')}</div>
-    <div class="tts">TAP TO START</div>
+    <div class="tts">${FINE ? 'CLICK TO START' : 'TAP TO START'}</div>
     <nav class="mlist">
       ${save ? `<button id="mCont">${tr('Продолжить')}</button>` : ''}
       <button id="mNew">${tr(save ? 'Начать заново' : 'Начать смену')}</button>
       <button id="mGal">${tr('Концовки')}</button>
       <button id="mSet">${tr('Настройки')}</button>
-      ${DEMO ? buyBtn('mBuy', 'msup') : supportBtn('msup')}
+      ${DESK ? `<button id="mQuit">${tr('Выйти из игры')}</button>` : DEMO ? buyBtn('mBuy', 'msup') : supportBtn('msup')}
     </nav>
     <div class="hp">${ICON.phones}<span>${tr('Лучше в наушниках · в игре есть вспышки света')}</span></div><div class="hp"><b style="color:#e33;margin-right:6px">18+</b><span>${tr('Жестокость, кровь и сцены насилия')}</span></div></div>`;
   const lg = $('logo'), m = `url(${logoMask()})`; lg.style.webkitMaskImage = lg.style.maskImage = m; lg.style.webkitMaskSize = lg.style.maskSize = '100% 100%';
   const T0 = uiEl.querySelector('.title'), ok = () => gateDone && now() - gateT > .45;   // тот же тап, что открыл меню, не жмёт кнопку под пальцем
   const btn = (id, fn) => { const b = $(id); if (b) b.onclick = e => { e.stopPropagation(); if (!ok()) return; uiSnd(); fn(); }; };
-  btn('mNew', () => begin('intro')); btn('mCont', () => begin(save)); btn('mSet', settings);
+  btn('mNew', () => begin('intro')); btn('mCont', () => begin(save)); btn('mSet', settings); btn('mQuit', () => DESK.quit());
   btn('mGal', () => { subScreen(`<h1>${tr('КОНЦОВКИ')}</h1>${gallery()}`); });
   const sup = T0.querySelector('.msup'); if (sup) sup.onclick = e => { if (!ok()) e.preventDefault(); };
   if (!gateDone) { T0.onpointerdown = e => { if (e.target.closest('button, a')) return; openGate(); }; if (navigator.webdriver) setTimeout(openGate, 1200); }   // автотесты не умеют «тапнуть, чтобы начать»
@@ -1286,7 +1292,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   const vh = LS.get('vhs', vhsDef());
   const host = from === 'pause' ? pzEl : uiEl;
   host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('НАСТРОЙКИ')}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets">
-    ${row('sLang', 'Язык', EN ? 'ENGLISH' : 'РУССКИЙ')}
+    ${row('sLang', 'Язык', (window.NS_LANG_NAMES || {})[LNG] || (EN ? 'ENGLISH' : 'РУССКИЙ'))}
     ${row('sLand', 'Экран', LAND ? 'ГОРИЗОНТАЛЬНО' : 'ВЕРТИКАЛЬНО')}
     ${row('sGfx', 'Графика', window.World && World.cine ? 'КИНО' : 'РЕТРО')}
     ${row('sVoice', 'Озвучка', voiceOn() ? 'ВКЛ' : 'ВЫКЛ')}
@@ -1303,13 +1309,20 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   host.querySelectorAll('.vol input').forEach(r => { r.oninput = () => { VOL[r.dataset.k] = r.value / 100; r.nextElementSibling.textContent = r.value; LS.set('vol', VOL); applyVol(); };
     r.onchange = () => probe(r.dataset.k); });   // проба громкости
   $('sVoice').onclick = () => { setVoice(!voiceOn()); re(); };
-  $('sLang').onclick = () => { LS.set('lang', EN ? 'ru' : 'en'); reloadKeep(from); };   // язык — с перезагрузкой (надписи в 3D-мире рисуются при загрузке), игра продолжится с того же места
+  $('sLang').onclick = () => { uiSnd(); langPick(from); };
   $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
   $('sLand').onclick = () => { LS.set('land3', !LAND); applyLand(!LAND); re(); };
   $('sGfx').onclick = () => { LS.set('gfx', window.World && World.cine ? 'retro' : 'cine'); LS.set('gfxAuto', 2); reloadKeep(from); };   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
   $('sVhs').onclick = () => { const v = (LS.get('vhs', vhsDef()) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
+}
+function langPick(from) {   // выбор языка списком; выбранный — с перезагрузкой (надписи в 3D-мире рисуются при загрузке), игра продолжится с того же места
+  const host = from === 'pause' ? pzEl : uiEl, N = window.NS_LANG_NAMES || {};
+  host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('Язык').toUpperCase()}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets langs">
+    ${(window.NS_LANGS || ['ru', 'en']).map(l => `<button class="set" data-l="${l}"><span>${N[l] || l.toUpperCase()}</span><b>${l === LNG ? ICON.ok : ''}</b></button>`).join('')}</div><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
+  $('mBack').onclick = $('sX').onclick = () => { uiSnd('back'); settings(from); };
+  host.querySelectorAll('[data-l]').forEach(b => { b.onclick = () => { if (b.dataset.l === LNG) { uiSnd('back'); settings(from); } else { LS.set('lang', b.dataset.l); reloadKeep(from); } }; });
 }
 // проба громкости после ползунка. В паузе основной звук стоит (AC.suspend), поэтому проба идёт через свой маленький контекст с теми же множителями
 let probeAC = null; const probeBuf = {};
@@ -1369,7 +1382,7 @@ function endScreen(th) {
       <div class="jr-stamp" style="--d:${(d += .7).toFixed(2)}s">${escH(tr(S.endings[th.ending]))}${fresh ? `<i>${tr('новая концовка')}</i>` : ''}</div></div>`;
   uiEl.innerHTML = `<div class="screen jr">${page}<div class="jr-side">${gallery()}
       ${fork ? `<button class="btn" id="eBack">${tr('Вернуться к выбору')}<small>${escH(tr(fork.q))}</small></button>` : ''}
-      <button class="btn${fork ? ' ghost' : ''}" id="eAgain">${tr('Начать заново')}</button><button class="btn ghost" id="eMenu">${tr('Меню')}</button>${supportBtn()}${sponsorsHtml()}</div></div>`;
+      <button class="btn${fork ? ' ghost' : ''}" id="eAgain">${tr('Начать заново')}</button><button class="btn ghost" id="eMenu">${tr('Меню')}</button>${DESK ? '' : supportBtn() + sponsorsHtml()}</div></div>`;
   // строки ложатся по очереди под скрип ручки, в конце — штамп
   uiEl.querySelectorAll('.jr .ln').forEach((el, i) => { if (i % 2 === 0) setTimeout(() => { if (mode === 'end' && gen === my) play('pen', { gain: .22, cut: .6 }); }, parseFloat(el.style.getPropertyValue('--d')) * 1000); });
   setTimeout(() => { if (mode === 'end' && gen === my) { play('bolt', { gain: .45, cut: .45 }); buzz(30); } }, (d + .1) * 1000);
@@ -1737,7 +1750,7 @@ function frame(tp) {
         if (cam) so.cctv = 1;
         const im = c[4] || beat.img;   // план может быть другим кадром (склейка на другой ракурс посреди реплики)
         if (still) {   // фото — неподвижный снимок: 3D и эффект старого фото считаются один раз на план и кладутся в кэш, дальше только копия с наездом
-          const key = sceneId + '|' + bi + '|' + ci + '|' + W + '|' + (EN ? 1 : 0) + '|' + (window.World ? World.vhs : 0), ccx = LAND ? scrX(c[0]) : c[0];   // язык (надпись на обороте) и плёнка меняются из паузы — тогда пересчёт   // (в 2D эффект с режимами наложения стоил на телефоне сотни мс на кадр — сцена «висела», озвучка уезжала)
+          const key = sceneId + '|' + bi + '|' + ci + '|' + W + '|' + LNG + '|' + (window.World ? World.vhs : 0), ccx = LAND ? scrX(c[0]) : c[0];   // язык (надпись на обороте) и плёнка меняются из паузы — тогда пересчёт   // (в 2D эффект с режимами наложения стоил на телефоне сотни мс на кадр — сцена «висела», озвучка уезжала)
           if (!stillCache || stillCache.key !== key) { shot(im, Object.assign({}, so, { z: c[2] })); photoFx(beat.photo || {}, ci, c[2]);
             stillC.width = W; stillC.height = H; stillC.getContext('2d').drawImage(cv, 0, 0); stillCache = { key, z0: c[2], cx: ccx, cy: c[1] }; }
           const k = z / stillCache.z0, sw = W / k, sh = H / k; g.drawImage(stillC, stillCache.cx * W - sw * stillCache.cx, stillCache.cy * H - sh * stillCache.cy, sw, sh, 0, 0, W, H);
@@ -1896,7 +1909,7 @@ addEventListener('deviceorientation', e => { if (FINE || e.gamma == null) return
   lookT.x = clamp((a - tilt0.a) / 18, -1, 1); lookT.y = clamp((b - tilt0.b) / 22, -1, 1) * (LAND ? -1 : 1); });
 document.addEventListener('keydown', e => {
   // горячие клавиши ПК: F — во весь экран, V — озвучка, M — звук, O — повернуть экран
-  if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') { const d = document; if (d.fullscreenElement) d.exitFullscreen().catch(() => {}); else goFull(); }
+  if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') { const d = document; if (DESK) DESK.full(); else if (d.fullscreenElement) d.exitFullscreen().catch(() => {}); else goFull(); }
   if (e.key === 'v' || e.key === 'V' || e.key === 'м' || e.key === 'М') setVoice(!voiceOn());
   if (e.key === 'm' || e.key === 'M' || e.key === 'ь' || e.key === 'Ь') setMute(!LS.get('mute', false));
   if (e.key === 'o' || e.key === 'O' || e.key === 'щ' || e.key === 'Щ') { LS.set('land3', !LAND); applyLand(!LAND); if (uiEl.querySelector('.sets')) settings(); }
@@ -1930,7 +1943,7 @@ load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.
   initAudio(); loaded = true;
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
-window.__ns = { back: () => menu(), startScene, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); },
+window.__ns = { back: () => menu(), startScene, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
   get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get voiceLate() { return voiceLate; },
   // для режима проверки и инструментов: начать сцену как из меню, номер и секунда кадра, пауза, реплики, перемотка кадра на секунду (картинка, без звука)
   begin, get bi() { return bi; }, get bt() { return mode === 'play' && beat && !waiting ? Math.max(0, now() - bT0) : 0; }, get tim() { return TIM; }, pause: on => { if (!on) holdN = -1; setPause(!!on); }, get userPause() { return userPause; },

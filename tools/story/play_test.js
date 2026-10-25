@@ -9,7 +9,7 @@ const fs = require('fs');
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
   const p = await b.newPage({ viewport: { width: 540, height: 960 } });
   let errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 300))); p.on('console', m => m.type() === 'error' && errs.push(m.text().slice(0, 300)));
-  await p.goto('http://127.0.0.1:8771/nightshift/index.html?gfx=' + (process.env.GFX || 'cine'));   // GFX=retro — быстрее в headless
+  await p.goto('http://127.0.0.1:' + (process.env.PORT || 8771) + '/nightshift/index.html?gfx=' + (process.env.GFX || 'cine'));   // GFX=retro — быстрее в headless
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 240000 });
   const ids = await p.evaluate(() => Object.keys(window.STORY.scenes));
   const res = [];

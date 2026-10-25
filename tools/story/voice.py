@@ -20,21 +20,24 @@ VOICES = {
   'en': {'ИТАН': 'hryj0YLzRd2iGghnwoOI', 'СМЕНЩИК': 'DeWSKTpgZpo6WQf8rQFY', 'ГАС': 'KgUSWQPFmuiZ5ycRbnty', 'ЛИЛИ': 'CamFZN2KIaqnyvcaFe3E',
          'ФРЭНК': 'wcATjh8zBDfepqUbl99V', '???': '2tTjAGX0n5ajDmazDcWk', 'ВЕРА': '6fLd3vCll0LutxnciLI8'},
 }
+# испанский, португальский, немецкий — дубляж теми же голосами, что английский (eleven_v4 говорит ими на любом языке),
+# голос матери Фрэнка — «Linda – Soft Mom» из голосов владельца
+for _l in ('es', 'pt', 'de'): VOICES[_l] = dict(VOICES['en'], **{'ГОЛОС': 'prqcFePeALHihEWRj5ll'})
 SKIP = {'ch_katya', 'ch_monster'}   # плач и хрип — звуковые эффекты, не речь
-SKIP_WHO = {'ГОЛОС'}                 # голос матери Фрэнка — отдельно (свой голос, сделанный в Voice Design)
+SKIP_WHO = {'ГОЛОС'}                 # голос матери Фрэнка — отдельно (свой голос, сделанный в Voice Design); для es/pt/de — в пакетах (VOICES)
 MAXC = 1250                          # символов в пакете (≈ кредитов за генерацию)
 def say_text(s):   # что читает голос: без тире реплики и без «(…)»
     return re.sub(r'^\s*—\s*', '', s).strip()
 ONLY = os.environ.get('ONLY')        # ONLY='^n\d\d$' — озвучить только эти ключи (добавка к готовому)
 BATCH = os.environ.get('BATCH', '')  # BATCH=n — свой файл пакетов batches_<lang>_n.json (не затирать основной)
 def bfile(lang): return os.path.join(ROOT, f'tools/story/batches_{lang}{"_" + BATCH if BATCH else ""}.json')
-def tfile(lang): return os.path.join(GAME, 'timing.json' if lang == 'ru' else 'timing_en.json')
-def sdir(lang): return os.path.join(GAME, 'snd' if lang == 'ru' else 'snd/en')
+def tfile(lang): return os.path.join(GAME, 'timing.json' if lang == 'ru' else f'timing_{lang}.json')
+def sdir(lang): return os.path.join(GAME, 'snd' if lang == 'ru' else f'snd/{lang}')
 
 def plan(lang):
     by = {}
     for k, L in LINES.items():
-        if k in SKIP or L['who'] in SKIP_WHO or (ONLY and not re.match(ONLY, k)): continue
+        if k in SKIP or (L['who'] in SKIP_WHO and lang in ('ru', 'en')) or (ONLY and not re.match(ONLY, k)): continue
         by.setdefault(L['who'], []).append(k)
     out = []
     for who, keys in by.items():
@@ -56,13 +59,18 @@ def plan(lang):
 
 # --- нарезка ---
 NUM = {'ru': {'газ': 'гас', '13': 'тринадцать', '12': 'двенадцать', '707': 'семьсотседьмого', '3': 'три', '6': 'шесть', '40': 'сорок', '300': 'триста'},
-       'en': {'13': 'thirteen', '12': 'twelve', '3': 'three', '6': 'six', '707': 'sevenohseven', '40': 'forty', '200': 'two', '540': 'fiveforty'}}
+       'en': {'13': 'thirteen', '12': 'twelve', '3': 'three', '6': 'six', '707': 'sevenohseven', '40': 'forty', '200': 'two', '540': 'fiveforty'},
+       'es': {'13': 'trece', '12': 'doce', '3': 'tres', '6': 'seis', '707': 'setecientossiete', '40': 'cuarenta', '200': 'doscientos', '300': 'trescientos'},
+       'pt': {'13': 'treze', '12': 'doze', '3': 'tres', '6': 'seis', '707': 'setecentosesete', '40': 'quarenta', '200': 'duzentos', '300': 'trezentos'},
+       'de': {'13': 'dreizehn', '12': 'zwolf', '3': 'drei', '6': 'sechs', '707': 'siebenhundertsieben', '40': 'vierzig', '200': 'zweihundert', '300': 'dreihundert'}}
 def norm(w, lang):
-    w = w.lower().replace('ё', 'е').replace('’', "'")
+    import unicodedata
+    w = w.lower().replace('ё', 'е').replace('’', "'").replace('ß', 'ss')
+    if lang in ('es', 'pt', 'de'): w = ''.join(c for c in unicodedata.normalize('NFD', w) if unicodedata.category(c) != 'Mn')   # á → a: whisper и текст расходятся в ударениях
     w = re.sub(r"[^a-zа-я0-9']", '', w)
     return NUM[lang].get(w, w)
 def toks(text):
-    return [p for p in re.sub(r'[.,:;—?!…«»"()\-]', ' ', text).split() if p]
+    return [p for p in re.sub(r'[.,:;—?!…«»"()\-¿¡„“”]', ' ', text).split() if p]
 
 def onset(pcm, g, lo, sr=16000):
     """Начало речи: от догадки g назад до первой тишины ≥ 0,12 с (не раньше lo). Нужна, когда первое слово
