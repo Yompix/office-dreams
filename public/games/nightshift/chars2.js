@@ -1314,9 +1314,55 @@ function updateSkinned(C, t, dt) {
 // Кожа и ткань знают мокрость (темнее и блестит), серость (неживое), кровь и тёмные глазницы.
 // vB — точка тела в позе покоя в метрах (uQ переводит сжатые координаты meshopt в метры), поэтому пятна не «плывут» при движении
 const LUMA = 'dot(diffuseColor.rgb, vec3(.3, .59, .11))';
+// «Кино»: кожа, глаза, волосы и ткань без пластика (правила — tools/art/LOOK.md). Свет каждой лампы для этих частей считается по-своему:
+// кожа — свет заходит за терминатор (рассеяние под кожей, красный — дальше всех), блик слабее пластика (F0 кожи ≈ .028) плюс узкий «жирный»;
+// волосы — блик вдоль прядей полосой (Kajiya–Kay: первый белый, второй в цвет волос), мягкий спад света; ткань — ворс светится по краю.
+const HUM_NOISE = `float vn3(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+  return mix(mix(mix(hh3(i), hh3(i + vec3(1., 0., 0.)), f.x), mix(hh3(i + vec3(0., 1., 0.)), hh3(i + vec3(1., 1., 0.)), f.x), f.y),
+    mix(mix(hh3(i + vec3(0., 0., 1.)), hh3(i + vec3(1., 0., 1.)), f.x), mix(hh3(i + vec3(0., 1., 1.)), hh3(i + vec3(1., 1., 1.)), f.x), f.y), f.z); }
+`;
+// кожа: лоб и нос жирнее (ниже шероховатость), по лицу пятнами ±; поры — рельеф в 1 мм, гаснет, когда пиксель крупнее поры (без ряби)
+const SKIN_ROUGH = `  { vec3 q = vB - (uEyeL3 + uEyeR3) * .5;
+    float tz = smoothstep(.045, .02, abs(q.x)) * smoothstep(.012, .025, q.y) * smoothstep(.085, .06, q.y) + smoothstep(.018, .008, abs(q.x)) * smoothstep(-.06, -.045, q.y) * smoothstep(.01, -.005, q.y);
+    roughnessFactor = clamp(roughnessFactor - .15 * tz * smoothstep(-.045, -.015, q.z) + .14 * (vn3(vB * 55.) - .5), .3, .85); }
+`;
+const SKIN_PORES = `
+  { float mpp = length(fwidth(vB)) * 1000., hp = vn3(vB * 950.) * .65 + vn3(vB * 2600.) * .35;   // mpp — мм на пиксель; высота пор ~0,15 мм
+    vec2 dh = vec2(dFdx(hp), dFdy(hp)) * 1.5e-4 * smoothstep(1.5, .45, mpp);
+    vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
+    vec3 nn = abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2); normal = dot(nn, nn) > 1e-24 ? normalize(nn) : normal; }
+`;
+const RE_ARGS = 'const in IncidentLight directLight, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in PhysicalMaterial material, inout ReflectedLight reflectedLight';
+const HUM_RE = {
+  skin: `void RE_Direct_Hum( ${RE_ARGS} ) {
+	float nl = dot( geometryNormal, directLight.direction );
+	vec3 w = vec3( .5, .24, .16 ), wrapD = pow( clamp( ( nl + w ) / ( 1. + w ), 0., 1. ), vec3( 1. ) + w );
+	vec3 irr = saturate( nl ) * directLight.color;
+	PhysicalMaterial m2 = material; m2.roughness = max( material.roughness * .5, .14 );
+	reflectedLight.directSpecular += irr * ( BRDF_GGX( directLight.direction, geometryViewDir, geometryNormal, material ) + .22 * BRDF_GGX( directLight.direction, geometryViewDir, geometryNormal, m2 ) );
+	reflectedLight.directDiffuse += wrapD * directLight.color * BRDF_Lambert( material.diffuseColor );
+}`,
+  hair: `float gHairS = 0.;
+void RE_Direct_Hum( ${RE_ARGS} ) {
+	float nl = dot( geometryNormal, directLight.direction );
+	reflectedLight.directDiffuse += saturate( nl * .7 + .3 ) * saturate( nl + .4 ) * directLight.color * BRDF_Lambert( material.diffuseColor );
+	vec3 tv = ( viewMatrix * vec4( 0., -1., 0., 0. ) ).xyz; tv -= geometryNormal * dot( geometryNormal, tv );   // пряди — вниз; на макушке (нормаль вверх) направление не определено —
+	float tl = length( tv ); tv /= max( tl, 1e-3 );                                                                   // там блик полосой гаснет (иначе пятна квадратами)
+	vec3 h = normalize( directLight.direction + geometryViewDir );
+	float t1 = dot( tv, h ) + gHairS, t2 = t1 - .12;
+	float s1 = pow( sqrt( max( 0., 1. - t1 * t1 ) ), 110. ), s2 = pow( sqrt( max( 0., 1. - t2 * t2 ) ), 26. );
+	reflectedLight.directSpecular += directLight.color * smoothstep( -.15, .35, nl ) * smoothstep( .35, .8, tl ) * ( s1 * .07 + s2 * .09 * material.diffuseColor );
+}`,
+  cloth: `void RE_Direct_Hum( ${RE_ARGS} ) {
+	float nl = dot( geometryNormal, directLight.direction ), nv = saturate( dot( geometryNormal, geometryViewDir ) );
+	vec3 irr = saturate( nl ) * directLight.color;
+	reflectedLight.directSpecular += irr * BRDF_GGX( directLight.direction, geometryViewDir, geometryNormal, material );
+	reflectedLight.directDiffuse += ( irr + directLight.color * saturate( nl + .35 ) * pow( 1. - nv, 4. ) * .45 ) * BRDF_Lambert( material.diffuseColor );   // ворс по краю
+}`,
+};
 function humanMat(C, n, kind, Q) {
   const o = C.o, src = n.material, cut = kind === 'brows' || kind === 'lashes' || kind === 'hair' || (kind === 'eyes' && o.deadEyes == null), cloth = kind.startsWith('cloth');
-  const R = { skin: CINE ? .72 : .64, eyes: .06, brows: .85, lashes: .85, teeth: .3, tongue: .4, hair: CINE ? .68 : .55 }[kind] ?? .86;   // в «Кино» волосы матовее: широкий блик делал из них лакированную шапку; блеск — прядями (hh3 ниже) и контровым светом
+  const R = { skin: CINE ? .6 : .64, eyes: .06, brows: .85, lashes: .85, teeth: .3, tongue: .4, hair: CINE ? .68 : .55 }[kind] ?? .86;   // в «Кино» волосы матовее: широкий блик делал из них лакированную шапку; блеск — прядями (hh3 ниже) и контровым светом
   let tint = null; for (const k in (o.tint || {})) if (kind === k || kind.includes(k)) tint = o.tint[k];
   const p = { map: src.map || null };
   if (typeof tint === 'number') p.color = tint;
@@ -1334,6 +1380,7 @@ function humanMat(C, n, kind, Q) {
   const re = Array.isArray(tint) ? tint : null, U = Object.assign({}, C.HU, { uQ: { value: Q }, uTint: { value: new T.Color(re ? re[0] : 0xffffff) }, uGain: { value: re ? re[1] : 1 } });
   const hem = /pants|jeans|trousers/.test(kind) && C.hemY != null ? C.hemY : null;
   const infl = /sweater|shirt|hoodie/.test(kind) && C.hemY != null ? .007 / Q.getMaxScaleOnAxis() : 0;   // низ кофты чуть наружу — лежит поверх брюк и на шаге
+  const hre = CINE && !o.monster ? HUM_RE[kind === 'skin' ? 'skin' : kind === 'hair' ? 'hair' : cloth ? 'cloth' : ''] : null;   // у Жильца своя кожа (мёртвая, мокрая) — как было
   const snap = m.onBeforeCompile;
   m.onBeforeCompile = sh => {
     snap(sh); Object.assign(sh.uniforms, U);
@@ -1342,11 +1389,16 @@ function humanMat(C, n, kind, Q) {
     sh.fragmentShader = `uniform vec3 uTint, uGoreP, uEyeL3, uEyeR3; uniform float uGain, uGrey, uWet, uGore, uSocket, uH, uMouthZ;
 varying vec3 vB;
 float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
-` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+${CINE ? HUM_NOISE : ''}` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
   ${hem != null ? `if (vB.y > ${hem.toFixed(3)}) discard;   // под подолом кофты` : ''}
   ${re ? `diffuseColor.rgb = mix(vec3(${LUMA}) * uTint * uGain, uTint, ${(re[2] || 0).toFixed(2)});` : ''}
   ${kind === 'skin' ? `{ float s = smoothstep(.04, .012, length(vB - uEyeL3)) + smoothstep(.04, .012, length(vB - uEyeR3)); diffuseColor.rgb *= 1. - .9 * uSocket * clamp(s, 0., 1.); }` : ''}
-  ${kind === 'hair' && CINE ? `diffuseColor.rgb *= .86 + .28 * hh3(vec3(floor(vB.x * 160.), floor(vB.z * 160.), 1.));   // пряди: соседние полоски (по телу, сверху вниз) чуть разной яркости — волосы не сплошная шапка` : ''}
+  ${kind === 'hair' && CINE ? `diffuseColor.rgb *= .86 + .28 * vn3(vec3(vB.x * 260., vB.y * 9., vB.z * 260.));   // пряди: соседние полоски (вдоль — сверху вниз) чуть разной яркости — волосы не сплошная шапка; без клеток (на макушке были квадраты)
+  ${hre ? 'gHairS = (vn3(vec3(vB.x * 300., vB.y * 7., vB.z * 300.) + 17.) - .5) * .14 + (vn3(vB * 40.) - .5) * .06;   // блик вдоль прядей у каждой пряди чуть выше или ниже' : ''}` : ''}
+  ${kind === 'eyes' && CINE && o.deadEyes == null ? `{ vec3 q = vB - (vB.x > 0. ? uEyeL3 : uEyeR3);   // белок не белее бумаги (чуть тёплый); верхнее веко и уголки затеняют глаз — глаз сидит в глазнице, а не наклейка
+    float scl = smoothstep(.45, .7, min(diffuseColor.r, min(diffuseColor.g, diffuseColor.b)));
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(.82, .77, .74), scl);
+    diffuseColor.rgb *= 1. - clamp(smoothstep(-.002, .009, q.y) * .55 + smoothstep(.005, .011, abs(q.x)) * .3, 0., .7); }` : ''}
   ${kind === 'teeth' || kind === 'tongue' ? `float mouthD; { float dz = clamp((uMouthZ - vB.z) / .026, 0., 1.), pink = clamp((diffuseColor.r - diffuseColor.g) * 2.5, 0., 1.);   // рот внутри в тени: чем глубже, тем темнее; дёсны и язык — приглушённые
     ${kind === 'teeth' ? `diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.84, .81, .76), .5 * (1. - pink));   // зубы ровнее по цвету: тёмные бороздки текстуры издали делали ряд похожим на решётку` : ''}
     mouthD = ${kind === 'tongue' ? 'max(dz, .5)' : 'dz'};
@@ -1363,15 +1415,18 @@ float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43
     float drip = step(.7, hh3(vec3(floor(vB.x * 50.), 1., floor(vB.z * 50.)))) * step(d.y, 0.) * smoothstep(-.45, -.1, d.y) * smoothstep(.2, .1, length(d.xz));
     gore = uGore * max(blob, drip);
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.2, .012, .012), clamp(gore * 1.4, 0., .95)); }`)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, ' + (kind === 'hair' ? '.25' : '.42') + ', max(uWet * .75, gore));')
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + (hre && kind === 'skin' ? SKIN_ROUGH : '') + '  roughnessFactor = mix(roughnessFactor, ' + (kind === 'hair' ? '.25' : '.42') + ', max(uWet * .75, gore));')
+      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>' + (hre && kind === 'skin' ? SKIN_PORES : ''))
+      .replace('#include <lights_physical_pars_fragment>', '#include <lights_physical_pars_fragment>' + (hre ? '\n' + hre + '\n#undef RE_Direct\n#define RE_Direct RE_Direct_Hum\n' : ''))
+      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>' + (hre && kind === 'skin' ? '\n  material.specularColor *= .7;   // F0 кожи ≈ .028, не .04 пластика' : ''))
       .replace('#include <lights_fragment_begin>', T.ShaderChunk.lights_fragment_begin.split('? getPointShadow(').join('? (1. - shK) + shK * getPointShadow(').split('? getShadow(').join('? (1. - shK) + shK * getShadow('))
       // глубже во рту свет не бликует: нёбо в «Кино» блестело серебром (или рыжим от тёплого света) — там выход не ярче самого цвета
       .replace('#include <opaque_fragment>', '#include <opaque_fragment>' + (kind === 'teeth' || kind === 'tongue' ? '\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, min(gl_FragColor.rgb, diffuseColor.rgb * .8), smoothstep(.08, .6, mouthD));' : '')
-        + (kind === 'skin' && CINE ? '\n  { float lm = dot(gl_FragColor.rgb, vec3(.3, .59, .11)); gl_FragColor.rgb += vec3(.07, .018, .004) * (1. - smoothstep(.03, .32, lm)) * diffuseColor.r * (1. - uGrey); }' : ''));   // кожа: в тенях тёплый подсвет (кровь под кожей), не серый пластик
+        + (kind === 'skin' && CINE ? '\n  { float lm = dot(gl_FragColor.rgb, vec3(.3, .59, .11)); gl_FragColor.rgb += vec3(.04, .01, .0025) * (1. - smoothstep(.03, .32, lm)) * diffuseColor.r * (1. - uGrey); }' : ''));   // кожа: в тенях чуть тёплого (кровь под кожей), не серый пластик; на свету тёплый край даёт RE_Direct_Hum
   };
   // ключ программы: код шейдера у зубов, языка и «приглушённой» одежды свой — иначе three.js отдаёт им чужую готовую программу с тем же набором текстур
   const dimK = (() => { for (const k in (o.dim || {})) if (kind.includes(k)) return 'd' + o.dim[k]; return ''; })();
-  m.customProgramCacheKey = () => 'hum3' + (hem != null ? 'p' + hem.toFixed(3) : '') + (infl ? 'i' + C.hemY.toFixed(3) : '') + (kind === 'skin' ? 's' : '') + (kind === 'hair' ? 'h' : '') + (kind === 'teeth' ? 't' : kind === 'tongue' ? 'g' : '') + dimK + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
+  m.customProgramCacheKey = () => 'hum3' + (hre ? 'R' : '') + (kind === 'eyes' ? 'e' + (o.deadEyes == null ? 1 : 0) : '') + (cloth ? 'C' : '') + (hem != null ? 'p' + hem.toFixed(3) : '') + (infl ? 'i' + C.hemY.toFixed(3) : '') + (kind === 'skin' ? 's' : '') + (kind === 'hair' ? 'h' : '') + (kind === 'teeth' ? 't' : kind === 'tongue' ? 'g' : '') + dimK + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
   return m;
 }
 
