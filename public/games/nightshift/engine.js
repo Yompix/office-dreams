@@ -1300,7 +1300,8 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
     ${row('sVhs', 'Плёнка VHS', VHS_N[vh] || VHS_N[2])}
     ${row('sCalm', 'Меньше вспышек', calm() ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}
-    ${row('sLook', FINE ? 'Оглядываться мышью' : 'Оглядываться наклоном', lookOn() ? 'ВКЛ' : 'ВЫКЛ')}</div>
+    ${row('sLook', FINE ? 'Оглядываться мышью' : 'Оглядываться наклоном', lookOn() ? 'ВКЛ' : 'ВЫКЛ')}
+    ${DESK && DESK.isFull ? row('sFull', 'Во весь экран', DESK.isFull() ? 'ВКЛ' : 'ВЫКЛ') + row('sBg', 'Звук в фоне', DESK.bgSound() ? 'ВКЛ' : 'ВЫКЛ') : ''}</div>
     <small>${tr('«Кино» — тени, блики, объёмный свет (для ПК). «Ретро» — плёнка и пиксели, легче для телефона. Без озвучки остаются субтитры.')}${FINE ? '<br>' + tr('Клавиши: F — весь экран, O — повернуть экран, V — озвучка, M — звук.') : ''}</small><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
   const back = () => { uiSnd('back'); from === 'pause' ? pauseMenu() : menu(); };
   $('mBack').onclick = $('sX').onclick = back;
@@ -1316,6 +1317,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   $('sVhs').onclick = () => { const v = (LS.get('vhs', vhsDef()) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
+  if ($('sFull')) { $('sFull').onclick = () => { DESK.full(!DESK.isFull()); re(); }; $('sBg').onclick = () => { DESK.setBgSound(!DESK.bgSound()); re(); }; }   // ПК-версия: окно/весь экран; звук, когда окно в фоне (выкл — тишина и пауза)
 }
 function langPick(from) {   // выбор языка списком; выбранный — с перезагрузкой (надписи в 3D-мире рисуются при загрузке), игра продолжится с того же места
   const host = from === 'pause' ? pzEl : uiEl, N = window.NS_LANG_NAMES || {};
@@ -1369,6 +1371,7 @@ function finale(th) {
 function endScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
   mode = 'end'; const got = new Set(LS.get('endings', [])), fresh = !got.has(th.ending); got.add(th.ending); LS.set('endings', [...got]); LS.set('save', null); runSave();
+  if (DESK && DESK.ach) { DESK.ach('END_' + String(th.ending).toUpperCase()); DESK.ach('NIGHT_DONE'); }   // достижения Steam (tools/desktop: «все концовки» main.js считает сам)
   if (!th.fin) play('boom'); music(BUF['end_' + th.ending] || rawSnd['end_' + th.ending] ? 'end_' + th.ending : 'drone');
   const fork = [...run.picks].reverse().find(p => forkAt(p.sc)), my = gen;
   const mins = Math.max(1, Math.round(run.sec / 60)), dur = mins >= 60 ? trf('{h} ч {m} мин', { h: Math.floor(mins / 60), m: mins % 60 }) : trf('{m} мин', { m: mins });
@@ -1401,6 +1404,7 @@ function demoEnd() {
 function overScreen(th) {
   clockEl.classList.add('hide'); $('hud').classList.add('hide'); hideSms();
   mode = 'end'; const ov = new Set(LS.get('overs', [])); ov.add(th.over); LS.set('overs', [...ov]);
+  const di = S.overs.indexOf(th.over); if (DESK && DESK.ach && di >= 0) DESK.ach('DEATH_' + String(di + 1).padStart(2, '0'));   // смерть №… по списку S.overs (на любом языке тот же номер)
   music(null);
   uiEl.innerHTML = `<div class="screen over"><h1>${th.over}</h1><p>${th.sub}<br>${tr('Ты не дожил до утра.')}</p>
     <button class="btn" id="oRetry">${tr('Попробовать снова')}</button><button class="btn ghost" id="oMenu">${tr('Меню')}</button>
