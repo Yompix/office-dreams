@@ -1720,8 +1720,13 @@ function gusRadioCam(o, t, x, z, ry, g) {
   P.talk = g.u > .6 ? 1 : 0;
   return P;
 }
-// 7-й: Гас моет (s.gus), свет горит, пока он там; без него — темно, камера в ИК
+// 7-й: Гас моет (s.gus), свет горит, пока он там; без него — темно, камера в ИК.
+// После 03:00 (s.gusGone, часы S5/S6/A1) Гаса нет: ведро, табличка, лужа и брошенная швабра — как на записи в 03:00 (f7_cam_after); свет — с пульта
 SH.cam07 = { loc: 'corridor', pos: [1.0, 2.75, -.5], look: [-.2, .8, -10.2], fov: 44, cctv: 1, set: (o, t) => { const s = SHS();
+  if (s.gusGone) { o.cleanSet({ bucket: [.6, -10.9, .3], sign: CLEAN.sign, wet: [-.1, -10.6], door7: 0 }); o.ajar10(s.door7 ? 1.4 : 0);
+    window.__W3chars.propAim('mop', o.S, [.3, .015, -10.45], [-.93, .025, .36], 1.2);
+    setLamps(o, s.l7 ? 7 : 0); o.amb.intensity = s.l7 ? .36 : .1; if (!s.l7) irOn(o, [1.0, 2.6, -.7], 1.4);
+    return []; }
   const C = s.gus ? Object.assign({}, CLEAN) : {}; C.door7 = 0;
   if (s.bucket7) { C.bucket = [-.3, -8.1, .7]; C.mop = [.35, -8.9, 1.25, 1]; }
   o.cleanSet(C); o.ajar10(s.door7 ? 1.4 : 0);
@@ -2097,6 +2102,11 @@ function init() {
     window.__W3core.R = new T.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false });
   } catch (e) { return false; }
   const R = window.__W3core.R; R.setPixelRatio(1); R.setSize(V.RW, V.RH, false); R.useLegacyLights = true; R.outputColorSpace = T.SRGBColorSpace;
+  R.debug.onShaderError = (gl, prog, vs, fs) => {   // материал не собрался (видеокарте не хватило ресурсов?) — какой и почему: в консоль и в отчёт проверки
+    const nm = (gl.getShaderSource(fs).match(/#define SHADER_NAME (.*)/) || [])[1] || '?', lg = sh => (gl.getShaderInfoLog(sh) || '').trim().slice(0, 240);
+    (window.__shaderErr = window.__shaderErr || []).push(nm);
+    console.error(`shader ${nm}: ${(gl.getProgramInfoLog(prog) || '').trim().slice(0, 240)} | vs: ${lg(vs)} | fs: ${lg(fs)} | units ${gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)}`);
+  };
   if (CINE) { R.shadowMap.enabled = true; R.shadowMap.type = FINE ? T.PCFSoftShadowMap : T.PCFShadowMap; }   // на телефоне тени попроще
   makeTextures(); A = window.__W3chars.cast();
   if (CINE) { R.shadowMap.autoUpdate = false; for (const k in A) A[k].root.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); }

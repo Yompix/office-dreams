@@ -7,7 +7,7 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
   const p = await b.newPage({ viewport: { width: 960, height: 540 }, locale: 'ru-RU' });
   const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 300)));
   await p.addInitScript(() => localStorage.setItem('ns1_tutDone', '1'));
-  await p.goto('http://127.0.0.1:8771/nightshift/index.html?gfx=retro');
+  await p.goto('http://127.0.0.1:' + (process.env.PORT || 8771) + '/nightshift/index.html?gfx=retro');
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 240000 });
   const st = () => p.evaluate(() => ({ mode: window.__ns.mode, scene: window.__ns.scene, seg: window.__ns.shf && window.__ns.shf.id }));
   const HOLD = await p.evaluate(() => window.STORY.shift.segs.A1.events.find(e => e.hold).hold);

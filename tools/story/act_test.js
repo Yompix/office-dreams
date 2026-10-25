@@ -12,7 +12,7 @@ const fs = require('fs');
     const p = await b.newPage({ viewport: vp, locale: 'ru-RU' });
     const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 300))); p.on('console', m => m.type() === 'error' && errs.push(m.text().slice(0, 300)));
     await p.addInitScript(l => { localStorage.setItem('ns1_land3', l ? 'true' : 'false'); localStorage.setItem('ns1_tutDone', '1'); }, land);
-    await p.goto('http://127.0.0.1:8771/nightshift/index.html?gfx=retro');
+    await p.goto('http://127.0.0.1:' + (process.env.PORT || 8771) + '/nightshift/index.html?gfx=retro');
     await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 240000 });
     const st = () => p.evaluate(() => ({ m: window.__ns.mode, s: window.__ns.scene }));
     const play = async () => { for (let i = 0; i < 120; i++) { await p.waitForTimeout(150); const s = await st(); if (s.m !== 'play') return s; await p.evaluate(() => window.__ns.skipBeat()); } return st(); };

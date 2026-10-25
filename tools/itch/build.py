@@ -65,7 +65,7 @@ html = re.sub(r'<link rel="manifest"[^>]*>\n?', '', html)
 # шрифты прямо в CSS: Firefox не грузит @font-face с file://
 for f in ('ns-logo', 'ns-ui'):
     b64 = base64.b64encode(open(os.path.join(SRC, f'fonts/{f}.woff'), 'rb').read()).decode()
-    html = html.replace(f'url(fonts/{f}.woff)', f'url(data:font/woff;base64,{b64})')
+    html = re.sub(rf'url\(fonts/{f}\.woff(\?v=\d+)?\)', lambda m: f'url(data:font/woff;base64,{b64})', html)
 tags = ''.join(f'<script src="{n}"></script>\n' for n in ['offline.js'] + names)
 html = html.replace('<script src="i18n.js', tags + '<script src="i18n.js', 1)
 open(os.path.join(off, 'index.html'), 'w').write(html)
