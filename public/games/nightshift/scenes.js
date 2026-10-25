@@ -2299,7 +2299,10 @@ function draw(g, W, H, id, o) {
   if (o.react) for (const who in o.react) for (const k of NAME[who] || []) if (used.has(k)) A[k].react = o.react[who];   // кивок/«нет»/руки скрещены, лицо — по реплике (движок, beat.react)
   if (o.talk && o.talk.who) { let sp = null;
     for (const k of NAME[o.talk.who] || []) if (used.has(k)) { A[k].talk = o.talk.v; A[k].vis = o.talk.vis || null; sp = k; break; }   // vis — форма губ под букву (движок)
-    for (const k of used) if (k !== sp) A[k].hear = o.talk.v; }   // остальные в кадре слушают (и того, кто говорит по телефону или рации): кивают в паузах, смотрят на говорящего
+    // остальные в кадре слушают (и того, кто говорит по телефону или рации): кивают в паузах, смотрят на говорящего. Голос из темноты, за дверью,
+    // за стеклом, «не свой» (оно подражает) — слушают замерев, без «угу»
+    const fx = (window.__ns && window.__ns.talkFx) || '', eerie = /^(fake|muffle|glass|phonefake|near)$/.test(fx) || o.talk.who === '???' || o.talk.who === 'ГОЛОС';
+    for (const k of used) if (k !== sp) { A[k].hear = o.talk.v; A[k].hearOk = !eerie; } }
   if (sh.hum && used.has(sh.hum) && !(o.talk && o.talk.who)) A[sh.hum].talk = .1 + .12 * Math.abs(Math.sin(t * 4.3)) * (Math.sin(t * 1.1) > -.5 ? 1 : 0);   // мурлычет себе под нос
   if (newShot || o.settle) for (const k of used) { A[k].smDone = false; if (o.settle || !cont || hardCut(A[k])) A[k].cut = true; }   // после склейки — сразу новая поза (и покадровый Жилец тоже), без перехода из прошлого кадра; тот же ракурс — продолжаем
   // перемотка инструментов (__ns.seek): 0,9 с движения без рисования — снимок показывает позу и взгляд такими, какими их видит игрок, а не на полпути

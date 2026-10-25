@@ -1108,21 +1108,24 @@ function wearProp(C, name, [bone, off, rot]) {
 // кто живой: Жилец, тело и «подделки» с серой кожей не дышат и не ёрзают — их неподвижность и есть улика
 const alive = C => !window.__NOLIFE && !C.o.monster && !C.o.dead && !(C.o.grey > .3) && !C.o.jerk;   // window.__NOLIFE = 1 — сравнить без живого слоя
 const _bx = new T.Vector3(), _bq = new T.Quaternion(), _bq2 = new T.Quaternion(), _be = new T.Vector3();
-function rotChar(C, bn, ax, ay, az, ang) {   // повернуть кость на угол вокруг оси в осях персонажа (x — влево, y — вверх, z — вперёд)
+// повернуть кость на угол вокруг оси в осях персонажа (x — влево, y — вверх, z — вперёд). Ось переводится в оси кости — матрицы потомков
+// не пересчитываются здесь (их пересчитают касания рук, IK и рендер), так дешевле на слабом телефоне
+function rotChar(C, bn, ax, ay, az, ang) {
   const b = C.bone[bn]; if (!b || !ang) return;
   C.root.getWorldQuaternion(_bq2); _bx.set(ax, ay, az).applyQuaternion(_bq2);
-  b.getWorldQuaternion(_bq).premultiply(_bq2.setFromAxisAngle(_bx, ang)); setWorldQ(b, _bq);
+  b.getWorldQuaternion(_bq); _bx.applyQuaternion(_bq.invert());
+  b.quaternion.multiply(_bq2.setFromAxisAngle(_bx, ang));
 }
 // дыхание: на вдохе грудь чуть раскрывается, плечи поднимаются. Спокойно ~14 вдохов в минуту, в страхе — чаще и глубже,
 // затаил дыхание («тсс», оцепенел) — едва-едва; пока говорит — мельче (воздух уходит на слова)
 function breathe(C, tt, dT) {
   if (!alive(C)) return;
   const fs = C.fsNow || {}, scared = !!(fs.wide || fs.dart || fs.scream), held = !!fs.press;
-  const amp = (held ? .2 : scared ? 1.6 : 1) * (C.talk > .06 ? .5 : 1);
+  const amp = (held ? .2 * (1 - clamp(fs.press, 0, 1)) : scared ? 1.6 : 1) * (C.talk > .06 ? .5 : 1);   // «тсс», оцепенел (press 1) — не дышит совсем
   C.brPh = (C.brPh ?? rnd() * 6.3) + dT * (held ? .1 : scared ? .42 : .23) * 2 * Math.PI;
   C.brA = C.brA == null ? amp : lerp(C.brA, amp, Math.min(1, dT * 1.5));
   const s = Math.sin(C.brPh), inh = (s > 0 ? s : s * .7) * C.brA;   // вдох короче и заметнее выдоха
-  C.root.updateWorldMatrix(true, true);
+  if (Math.abs(inh) < 1e-3) return;
   rotChar(C, 'spine_02', 1, 0, 0, -.006 * inh); rotChar(C, 'spine_03', 1, 0, 0, -.014 * inh);
   rotChar(C, 'clavicle_l', 0, 0, 1, .03 * inh); rotChar(C, 'clavicle_r', 0, 0, 1, -.03 * inh);
 }
@@ -1180,8 +1183,10 @@ function headLife(C, tt, dT, talking, hearing) {
   if (C.onset && tt > g.nNext && rnd() < .6) { nod((.02 + .04 * Math.min(1, g.env * 1.4)) * (rnd() < .2 ? -.7 : 1), .3 + rnd() * .14); if (rnd() < .25) C.brF = 1; }   // ударный слог — кивок, иногда бровь
   g.env += ((talking ? C.talk : 0) - g.env) * Math.min(1, dT * (C.talk > g.env ? 10 : 2.5));
   if (C.hear > .06) { g.hLen += dT; g.hGap = 0; }   // слушает: фраза говорящего кончилась (пауза после ≥ 0,9 с речи) — «угу»
-  else if (g.hLen > 0) { g.hGap += dT; if (g.hGap > .25) { if (g.hLen > .9 && !talking) { if (rnd() < .5) nod(.028 + rnd() * .025, .45 + rnd() * .15); if (rnd() < .55) C.blinkReq = 1; if (rnd() < .2) C.brF = 1; } g.hLen = 0; } }
-  g.a = lerp(g.a, talking ? 1.6 + g.env : hearing ? 1.15 : 1, Math.min(1, dT * 2)); g.hr = lerp(g.hr, hearing ? .03 : 0, Math.min(1, dT * 1.5));
+  else if (g.hLen > 0) { g.hGap += dT; if (g.hGap > .25) { if (g.hLen > .9 && !talking) { const ok = C.hearOk !== false && !(C.fsNow || {}).wide && !(C.fsNow || {}).press;   // голосу из темноты и в страхе не поддакивают
+      if (ok && rnd() < .5) nod(.028 + rnd() * .025, .45 + rnd() * .15); if (rnd() < .55) C.blinkReq = 1; if (ok && rnd() < .2) C.brF = 1; } g.hLen = 0; } }
+  const frozen = 1 - .85 * clamp((C.fsNow || {}).press || 0, 0, 1);   // затаился, оцепенел — голова почти не шевелится
+  g.a = lerp(g.a, (talking ? 1.6 + g.env : hearing ? 1.15 : 1) * frozen, Math.min(1, dT * 2)); g.hr = lerp(g.hr, hearing ? .03 : 0, Math.min(1, dT * 1.5));
   const p = g.ph; let yaw = g.a * (.016 * Math.sin(tt * .53 + p[0]) + .008 * Math.sin(tt * 1.31 + p[1]));
   let pit = g.a * (.011 * Math.sin(tt * .71 + p[2]) + .006 * Math.sin(tt * 1.87 + p[3])) + .035 * g.env;
   g.nT += dT; if (g.nT < g.nD) pit -= g.nA * Math.sin(Math.PI * g.nT / g.nD) ** 2;
@@ -1190,7 +1195,7 @@ function headLife(C, tt, dT, talking, hearing) {
   const rb = HEADREACT.has(C.reactBody) ? C.reactBody : null; if (rb !== g.rb) { g.rb = rb; g.rT = 0; } else g.rT = (g.rT || 0) + dT;
   if (rb) { const u = g.rT, env = clamp(u / .15, 0, 1) * (1 - clamp((u - 1.15) / .5, 0, 1));
     if (rb === 'no') yaw += .2 * Math.sin(2 * Math.PI * 2.1 * u) * env; else pit -= .085 * (1 - Math.cos(2 * Math.PI * 1.8 * u)) * .5 * env; }
-  return [yaw, pit, (.02 + .012 * g.a) * Math.sin(tt * .37 + p[4]) + g.hr];
+  return [yaw, pit, (.008 + .012 * g.a) * Math.sin(tt * .37 + p[4]) + g.hr];
 }
 const HEADREACT = new Set(['no', 'yes']);   // у живых людей «нет» и «да» — головой (headLife), а не клипом всего тела
 
@@ -1508,6 +1513,8 @@ const VOPEN = ['viseme_aa', 'viseme_O', 'viseme_E', 'viseme_aa', 'viseme_I', 'vi
 const VSHUT = ['viseme_PP', 'viseme_FF', 'viseme_SS', 'viseme_DD', 'viseme_nn', 'viseme_kk', 'viseme_TH', 'viseme_CH', 'viseme_RR'];
 // насколько открыт рот на каждой виземе (челюсть): гласные — шире, «п/б/м» — губы сомкнуты
 const JAW = { viseme_aa: .26, viseme_O: .2, viseme_E: .16, viseme_I: .1, viseme_U: .1, viseme_PP: 0, viseme_FF: .03, viseme_TH: .06, viseme_DD: .08, viseme_kk: .11, viseme_CH: .07, viseme_SS: .04, viseme_nn: .06, viseme_RR: .09 };
+// насколько звук виден на губах: п/б/м, ф/в, гласные — целиком; т/д/н/к/г делает язык — губы почти не меняются (иначе рот «стрекочет» на каждой букве)
+const VW = { viseme_SS: .65, viseme_TH: .55, viseme_DD: .5, viseme_kk: .45, viseme_nn: .45, viseme_RR: .6, viseme_I: .85, viseme_E: .9 };
 const CLIPS3 = {};   // клипы с высотой таза под рост модели
 function clipsFor(k) {
   const key = k.toFixed(3); if (CLIPS3[key]) return CLIPS3[key];
@@ -1642,10 +1649,10 @@ function faceV3(C, tt, dt) {
   if (C.vis) {   // губы по буквам реплики: движок знает, какое слово звучит и какая в нём буква сейчас
     const v = C.vis === 'sil' ? null : C.vis;
     if (v !== C.vCur) { C.vPrev = C.vCur; C.vCur = v; C.vK = 0; }
-    C.vK = Math.min(1, (C.vK || 0) + dt / .045);
+    C.vK = Math.min(1, (C.vK || 0) + dt / .06);   // соседние звуки перетекают (коартикуляция), а не щёлкают каждую букву
     const g = clamp(.4 + m * .9, 0, .85);   // даже шёпот — губы работают; громче — шире
-    if (C.vPrev) add(C.vPrev, (1 - C.vK) * g);
-    if (C.vCur) add(C.vCur, C.vK * g);
+    if (C.vPrev) add(C.vPrev, (1 - C.vK) * g * (VW[C.vPrev] ?? 1));
+    if (C.vCur) add(C.vCur, C.vK * g * (VW[C.vCur] ?? 1));
     add('jawOpen', lerp(JAW[C.vPrev] || 0, JAW[C.vCur] || 0, C.vK) * (.6 + .5 * Math.min(1, m * 1.5)));
   } else if (m > .02) {   // нет текста (крик, плач, текст без озвучки) — по громкости
     C.vT = (C.vT ?? 0) - dt;
