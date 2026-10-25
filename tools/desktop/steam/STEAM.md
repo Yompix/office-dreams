@@ -140,7 +140,154 @@
 >
 > **Inhaltswarnung:** 18+. Gewalt, Blut und drastische Szenen, Jumpscares, Lichtblitze.
 
-**Языки:** English, Русский, Español (España/Latinoamérica), Português (Brasil), Deutsch — интерфейс, озвучка, субтитры; Українська — интерфейс и субтитры.
+**Italiano — короткое описание:** Una storia horror nel turno di notte. Controlla le telecamere, segui le regole e, qualunque cosa ti chiami per nome, non rispondere. Quattro finali, quattordici modi di morire. Aspetta le sei.
+
+**Italiano — об игре:**
+
+> **Non rispondere. Non aprire. Aspetta le sei.**
+>
+> Prendi servizio di notte al centro d'affari Horizon, una torre di uffici vuota, chiusa da un mese. La guardia prima di te, Frank, ha trascorso vent'anni in quella guardiola. Una settimana fa non ha passato le consegne: la lampada era accesa, il tè si era raffreddato e Frank era sparito. Le telecamere non hanno registrato niente.
+>
+> La guardia diurna ti porge le chiavi con la mano che trema e ti dice di leggere il registro prima delle tre. Sull'ultima pagina, con la scrittura di Frank: *NON RISPONDERE AL TUO NOME. NON APRIRE LA PORTA A QUELLA COSA. NON ANDARCI TU STESSO — NÉ VERSO LA LUCE, NÉ IN ASCENSORE.*
+>
+> Alle tre e mezza di notte tua sorella minore, Lily, è fuori dalle porte a vetri. Sotto la pioggia. Ti chiama per nome.
+>
+> - Una storia horror interattiva di 2–3 ore, con scelte a tempo, quattro finali e quattordici modi di morire
+> - Tra una scena e l'altra fai il tuo turno: sorveglia le telecamere a circuito chiuso, annota tutto ciò che non va, gestisci ascensore e luci… e non fissare la CAM 13
+> - Doppiaggio completo in inglese, russo, spagnolo, portoghese brasiliano e tedesco; interfaccia e sottotitoli in italiano e ucraino
+> - Tre stili grafici: Ultra (risoluzione nativa fino a 4K), Cinema e Retro (in stile PS1); il gioco sceglie in base alla tua scheda grafica
+> - Supporto completo per controller, adatto a Steam Deck. Si consigliano le cuffie
+> - Musica originale, composta direttamente nel codice
+>
+> **Avviso sui contenuti:** 18+. Violenza, sangue e scene cruente, jump scare e luci lampeggianti.
+
+**Türkçe — короткое описание:** Bir gece vardiyası korku hikâyesi. Kameraları izle, kurallara uy ve adınla seslenen her ne olursa olsun cevap verme. Dört son, ölmenin on dört yolu. Altıyı bekle.
+
+**Türkçe — об игре:**
+
+> **Cevap verme. Kapıyı açma. Altıyı bekle.**
+>
+> Horizon İş Merkezi'nde gece vardiyasını devralıyorsun — bir ay önce kapanmış, bomboş bir ofis kulesi. Senden önceki görevli Frank, yirmi yıl boyunca o güvenlik kulübesinde oturdu. Bir hafta önce vardiyasını devretmedi: lamba yanıyordu, çay soğumuştu, Frank ise ortada yoktu. Kameralar hiçbir şey kaydetmemişti.
+>
+> Gündüz nöbetçisi anahtarları sana titreyen eliyle uzatıyor ve defteri saat üçten önce okumanı söylüyor. Son sayfada, Frank'in el yazısıyla: *ADINA CEVAP VERME. ONA KAPIYI AÇMA. ONA KENDİ AYAĞINLA GİTME — NE IŞIĞA, NE ASANSÖRE.*
+>
+> Üç buçukta küçük kız kardeşin Lily cam kapının dışında duruyor. Yağmurun altında. Ve adınla sesleniyor.
+>
+> - 2–3 saatlik interaktif korku hikâyesi: süreli seçimler, dört son, ölmenin on dört yolu
+> - Hikâye sahneleri arasında vardiyayı sen yürütüyorsun: güvenlik kameralarını izle, ters giden her şeyi deftere kaydet, asansörü ve ışıkları yönet — ve CAM 13'e dik dik bakma
+> - İngilizce, Rusça, İspanyolca, Brezilya Portekizcesi ve Almanca tam seslendirme; Türkçe ve Ukraynaca altyazı ve arayüz
+> - Üç görsel stil: Ultra (4K'ya kadar yerel çözünürlük), Sinema ve Retro (PS1 tarzı); oyun, ekran kartına göre birini kendisi seçer
+> - Tam denetleyici (gamepad) desteği, Steam Deck ile uyumlu. Kulaklık önerilir
+> - Kodla bestelenmiş özgün müzik
+>
+> **İçerik uyarısı:** 18+. Şiddet, kan ve vahşet, ani korkutmalar, yanıp sönen ışıklar.
+
+**Polski — короткое описание:** Horror o nocnej zmianie. Obserwuj kamery, przestrzegaj zasad, a gdy coś zawoła cię po imieniu — nie odpowiadaj. Cztery zakończenia, czternaście sposobów, by umrzeć. Doczekaj do szóstej.
+
+**Polski — об игре:**
+
+> **Nie odpowiadaj. Nie otwieraj. Doczekaj do szóstej.**
+>
+> Bierzesz nocną zmianę w Centrum Biznesowym Horizon — pustym biurowcu, który zamknięto miesiąc temu. Ochroniarz przed tobą, Frank, przesiedział w tej budce dwadzieścia lat. Tydzień temu nie zdał zmiany: lampa się paliła, herbata wystygła, a Franka nie było. Kamery nic nie nagrały.
+>
+> Dzienny ochroniarz podaje ci klucze drżącą ręką i każe przeczytać dziennik do trzeciej. Na ostatniej stronie, pismem Franka: *NIE ODPOWIADAJ, GDY WOŁAJĄ CIĘ PO IMIENIU. NIE OTWIERAJ MU DRZWI. SAM DO NIEGO NIE CHODŹ — ANI DO ŚWIATŁA, ANI DO WINDY.*
+>
+> O wpół do czwartej za szklanymi drzwiami stoi twoja młodsza siostra Lily. W deszczu. I woła cię po imieniu.
+>
+> - Interaktywna opowieść grozy na 2–3 godziny: wybory na czas, cztery zakończenia i czternaście sposobów, by umrzeć
+> - Między scenami fabularnymi pracujesz na zmianie: obserwujesz kamery monitoringu, zapisujesz w dzienniku wszystko, co nie tak, obsługujesz windę i światło na piętrach — i nie wpatrujesz się w CAM 13
+> - Pełna oprawa głosowa po angielsku, rosyjsku, hiszpańsku, portugalsku (Brazylia) i niemiecku; polskie napisy i interfejs
+> - Trzy style grafiki: Ultra (natywna rozdzielczość do 4K), Kino i Retro (w stylu PS1); gra sama dobiera styl do twojej karty graficznej
+> - Pełna obsługa kontrolera, dobrze działa na Steam Deck. Zalecane słuchawki
+> - Oryginalna muzyka skomponowana w kodzie
+>
+> **Ostrzeżenie o treści:** 18+. Przemoc, krew i drastyczne sceny, jump scare'y, migające światło.
+
+**简体中文 — короткое описание:** 一个关于夜班的恐怖故事。盯紧摄像头，遵守规则，无论什么东西在叫你的名字，都别答应。四个结局，十四种死法。等到六点。
+
+**简体中文 — об игре:**
+
+> **别答应。别开门。等到六点。**
+>
+> 你接下了地平线商务中心的夜班——一座空荡荡的办公大楼，一个月前就已关闭。你的前任弗兰克，在那个岗亭里坐了二十年。一周前，他没有来交班：灯亮着，茶凉透了，弗兰克不见了。摄像头什么也没拍到。
+>
+> 白班保安用发抖的手把钥匙交给你，叮嘱你三点之前读完值班日志。最后一页上，是弗兰克的笔迹：*有人叫你名字，别答应。别给它开门。别自己去找它——别走向亮光，别进电梯。*
+>
+> 凌晨三点半，你的妹妹莉莉站在玻璃门外。淋着雨。叫着你的名字。
+>
+> - 2–3 小时的互动恐怖故事：限时抉择、四个结局、十四种死法
+> - 剧情场景之间，你要亲自值班：盯着监控摄像头，记录异常，操作电梯和各层灯光——还有，别盯着 CAM 13 看
+> - 完整配音：英语、俄语、西班牙语、巴西葡萄牙语和德语；界面与字幕提供简体中文（另有乌克兰语字幕）
+> - 三种画面风格：超高画质（原生分辨率，最高 4K）、电影画质和复古画质（PS1 风格）；游戏会根据你的显卡自动选择
+> - 完整支持手柄，适配 Steam Deck。建议佩戴耳机
+> - 原创音乐，全部由代码谱写
+>
+> **内容警告：** 18+。暴力、血腥与残酷画面，突然惊吓，闪烁灯光。
+
+**Français — короткое описание:** Une histoire d’horreur en service de nuit. Surveille les caméras, respecte les règles et, si quelque chose t’appelle par ton nom, ne réponds pas. Quatre fins, quatorze façons de mourir. Tiens jusqu’à six heures.
+
+**Français — об игре:**
+
+> **Ne réponds pas. N’ouvre pas. Tiens jusqu’à six heures.**
+>
+> Tu prends le service de nuit au centre d’affaires Horizon, une tour de bureaux vide, fermée il y a un mois. Le gardien avant toi, Frank, a passé vingt ans dans cette loge. Il y a une semaine, il n’a pas passé le relais : la lampe était allumée, le thé froid, et Frank avait disparu. Les caméras n’ont rien enregistré.
+>
+> Le gardien de jour te tend les clés d’une main tremblante et te dit de lire le journal avant trois heures. Sur la dernière page, de l’écriture de Frank : *NE RÉPONDS PAS À TON NOM. NE LUI OUVRE PAS LA PORTE. NE VA PAS À SA RENCONTRE — NI VERS LA LUMIÈRE, NI DANS L’ASCENSEUR.*
+>
+> À trois heures et demie, ta petite sœur Lily se tient derrière la porte vitrée. Sous la pluie. Elle t’appelle par ton nom.
+>
+> - Une histoire d’horreur interactive de 2 à 3 heures : choix chronométrés, quatre fins et quatorze façons de mourir
+> - Entre les scènes de l’histoire, tu assures ton service : surveille les caméras, note tout ce qui cloche, gère l’ascenseur et les lumières… et ne fixe pas la CAM 13
+> - Doublage complet en anglais, russe, espagnol, portugais brésilien et allemand ; interface et sous-titres en français et en ukrainien
+> - Trois rendus visuels : Ultra (résolution native jusqu’en 4K), Cinéma et Rétro (style PS1) ; le jeu choisit selon ta carte graphique
+> - Manette entièrement prise en charge, compatible Steam Deck. Casque recommandé
+> - Musique originale écrite en code
+>
+> **Avertissement de contenu :** 18+. Violence, sang et scènes gore, jump scares, lumières clignotantes.
+
+**日本語 — короткое описание:** 夜勤の警備員を描くホラー。カメラを見張り、ルールを守り、名前を呼ぶ何かには返事をするな。エンディング4つ、死に方14通り。6時まで耐えろ。
+
+**日本語 — об игре:**
+
+> **返事をするな。開けるな。6時まで待て。**
+>
+> あなたは、ホライゾン・ビジネスセンターの夜勤につく。一か月前に閉鎖された、無人のオフィスビルだ。前任の警備員フランクは、二十年間あの守衛室に座り続けた。一週間前、彼は引き継ぎに現れなかった。ランプはついたまま、お茶は冷め、フランクの姿だけが消えていた。カメラには何も映っていなかった。
+>
+> 日勤の警備員は震える手で鍵を渡し、3時までに日誌を読んでおけと告げる。最後のページには、フランクの筆跡でこう書かれている。*名前を呼ばれても返事をするな。それにはドアを開けるな。自分から近づくな――明かりにも、エレベーターにも。*
+>
+> 午前3時半。ガラスのドアの向こうに、妹のリリーが立っている。雨の中で、あなたの名前を呼びながら。
+>
+> - 2〜3時間のインタラクティブ・ホラー。制限時間つきの選択、4つのエンディング、14通りの死に方
+> - ストーリーの合間には、実際に勤務をこなす。監視カメラを見張り、異常を日誌に記録し、エレベーターと照明を操作する――そして、CAM 13を見つめすぎるな
+> - 英語、ロシア語、スペイン語、ブラジル・ポルトガル語、ドイツ語のフルボイス。インターフェースと字幕は日本語に対応
+> - 3種類のグラフィック：ウルトラ（最大4Kのネイティブ解像度）、シネマ、レトロ（PS1風）。ゲームがグラフィックボードに合わせて自動で選択
+> - コントローラー完全対応、Steam Deckにも最適。ヘッドホン推奨
+> - 音楽はすべてオリジナル（コードで作曲）
+>
+> **内容に関する警告：** 18歳以上向け。暴力、流血・残酷な描写、ジャンプスケア、点滅する光。
+
+**한국어 — короткое описание:** 야간 근무 호러 스토리. 카메라를 지켜보고 규칙을 따르라. 이름을 부르는 것이 있어도 대답하지 마라. 엔딩 4개, 죽음 14가지. 6시까지 기다려라.
+
+**한국어 — об игре:**
+
+> **대답하지 마라. 열지 마라. 6시까지 기다려라.**
+>
+> 당신은 한 달 전 문을 닫은 텅 빈 오피스 타워, 호라이즌 비즈니스 센터의 야간 근무를 맡는다. 앞서 근무한 경비원 프랭크는 20년 동안 그 경비실을 지켰다. 일주일 전, 그는 근무를 인계하지 않았다. 스탠드는 켜져 있었고, 차는 식어 있었고, 프랭크는 사라지고 없었다. 카메라에는 아무것도 찍히지 않았다.
+>
+> 주간 경비원은 떨리는 손으로 열쇠를 건네며 3시 전에 일지를 읽으라고 말한다. 마지막 장에는 프랭크의 필체로 이렇게 적혀 있다. *이름을 불러도 대답하지 마라. 그것에게 문을 열어 주지 마라. 제 발로 그것에게 가지 마라 — 빛 쪽으로도, 엘리베이터 안으로도.*
+>
+> 새벽 3시 반, 유리문 밖에 어린 여동생 릴리가 서 있다. 빗속에서. 당신의 이름을 부르며.
+>
+> - 2~3시간 분량의 인터랙티브 호러 스토리: 제한 시간이 있는 선택, 엔딩 4개, 죽음 14가지
+> - 스토리 장면 사이사이에는 근무를 선다. CCTV 카메라를 감시하고, 이상한 점은 모두 일지에 기록하고, 엘리베이터와 조명을 다룬다 — 그리고 CAM 13은 오래 쳐다보지 마라
+> - 영어, 러시아어, 스페인어, 브라질 포르투갈어, 독일어 풀 보이스. 한국어 인터페이스와 자막
+> - 세 가지 화면 스타일: 울트라(최대 4K 네이티브 해상도), 시네마, 레트로(PS1 스타일). 그래픽 카드에 맞춰 게임이 알아서 고른다
+> - 게임패드 완벽 지원, 스팀 덱 대응. 헤드폰 착용 권장
+> - 코드로 작곡한 오리지널 음악
+>
+> **콘텐츠 경고:** 18+. 폭력, 유혈과 잔혹한 장면, 갑작스러운 점프 스케어, 깜박이는 빛.
+
+**Языки:** English, Русский, Español (España/Latinoamérica), Português (Brasil), Deutsch — интерфейс, озвучка, субтитры; Français, Italiano, Polski, Türkçe, Українська, 简体中文, 日本語, 한국어 — интерфейс и субтитры (в Steamworks → Supported Languages отметить для них Interface и Subtitles).
 
 **Жанры:** Adventure, Indie. **Метки (tags):** Horror, Psychological Horror, Interactive Fiction, Multiple Endings, Choices Matter, Story Rich, Atmospheric, Singleplayer, Mystery, Dark, Gore, Short, 3D.
 

@@ -19,11 +19,11 @@ for (const [id, sc] of Object.entries(scenes)) {
     if (b.img && !shots.has(b.img)) bad.push(`${id}[${i}]: нет кадра «${b.img}»`);
     for (const c of b.cams || []) if (c[4] && !shots.has(c[4])) bad.push(`${id}[${i}]: нет кадра плана «${c[4]}»`);
     if (b.cutAt) { if ((b.cams || []).length !== b.cutAt.length + 1) bad.push(`${id}[${i}]: cutAt ${b.cutAt.length} склеек, а планов ${(b.cams || []).length}`);
-      const k = (b.say || [])[0]; for (const [l, T] of [...Object.entries(tim), ...Object.entries(timX)]) for (const re of b.cutAt) if (k && T[k] && !(T[k].w || []).some(w => new RegExp(re, 'i').test(w[1]))) warn.push(`${id}[${i}]: склейка «${re}» — нет такого слова в ${k} (${l})`); }
+      const k = (b.say || [])[0]; for (const [l, T] of [...Object.entries(tim), ...Object.entries(timX)]) for (const re of b.cutAt) if (k && T[k] && !(T[k].ew || T[k].w || []).some(w => new RegExp(re, 'i').test(w[1]))) warn.push(`${id}[${i}]: склейка «${re}» — нет такого слова в ${k} (${l})`); }
     // кивок/«нет» к слову: [что, [реплика, слово-regexp, доля], секунд] — реплика в кадре, слово есть на каждом языке
     for (const [who, r] of Object.entries(b.react || {})) if (Array.isArray(r[1])) { const [k, re] = r[1];
       if (!(b.say || []).includes(k)) bad.push(`${id}[${i}]: react ${who} — реплики «${k}» нет в кадре`);
-      else for (const [l, T] of [...Object.entries(tim), ...Object.entries(timX)]) if (T[k] && !(T[k].w || []).some(w => new RegExp(re, 'i').test(w[1]))) warn.push(`${id}[${i}]: react ${who} «${re}» — нет такого слова в ${k} (${l}), будет по доле реплики`); }
+      else for (const [l, T] of [...Object.entries(tim), ...Object.entries(timX)]) if (T[k] && !(T[k].ew || T[k].w || []).some(w => new RegExp(re, 'i').test(w[1]))) warn.push(`${id}[${i}]: react ${who} «${re}» — нет такого слова в ${k} (${l}), будет по доле реплики`); }
     for (const k of b.say || []) {
       for (const l of ['ru', 'en']) if (!tim[l][k]) warn.push(`${id}[${i}]: реплики «${k}» нет в timing ${l}`);
       if (!fs.existsSync(path.join(G, 'snd', k + '.mp3'))) warn.push(`${id}[${i}]: нет файла snd/${k}.mp3`);

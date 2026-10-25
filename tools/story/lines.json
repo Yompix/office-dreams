@@ -11,7 +11,11 @@
   "de": "Meine Oma sagte immer: Ruft dich nachts jemand beim Namen, antworte nicht. Die Deinen warten bis zum Morgen.",
   "it": "Mia nonna diceva: se di notte qualcuno ti chiama per nome, non rispondere. I tuoi aspetteranno il mattino.",
   "tr": "Büyükannem derdi ki: gece biri adınla seslenirse cevap verme. Yakınların sabaha kadar bekler.",
-  "pl": "Babcia mawiała: jeśli w nocy ktoś zawoła cię po imieniu, nie odpowiadaj. Swoi poczekają do rana."
+  "pl": "Babcia mawiała: jeśli w nocy ktoś zawoła cię po imieniu, nie odpowiadaj. Swoi poczekają do rana.",
+  "fr": "Ma grand-mère disait : si quelqu’un t’appelle par ton nom la nuit, ne réponds pas. Les tiens attendront le matin.",
+  "zh": "奶奶以前常说：夜里要是有人叫你名字，别答应。自己人，等到天亮也不迟。",
+  "ja": "祖母はよくこう言っていた。夜中に名前を呼ばれても、返事をするな。身内なら朝まで待ってくれる。",
+  "ko": "할머니는 늘 말씀하셨다. 밤에 누가 이름을 부르거든 대답하지 마라. 식구는 아침까지 기다려 준다."
  },
  "p02": {
   "who": "ИТАН",
@@ -25,7 +29,11 @@
   "de": "Ich dachte, so macht man Kindern Angst, damit sie nachts nicht draußen bleiben.",
   "it": "Pensavo servisse a tenere i bambini in casa dopo il tramonto.",
   "tr": "Çocuklar karanlıkta dışarıda kalmasın diye söylenen bir laf sanıyordum.",
-  "pl": "Myślałem, że tak się tylko straszy dzieci, żeby nie łaziły po ciemku."
+  "pl": "Myślałem, że tak się tylko straszy dzieci, żeby nie łaziły po ciemku.",
+  "fr": "Je croyais qu’on disait ça aux enfants pour qu’ils ne traînent pas la nuit.",
+  "zh": "我以为那只是吓唬小孩的话，免得他们天黑了还在外面玩。",
+  "ja": "日が暮れても外にいる子どもを脅かすための、ただの作り話だと思っていた。",
+  "ko": "그저 아이들이 해 진 뒤에 밖에서 놀지 못하게 겁주려고 하는 말인 줄만 알았다."
  },
  "p03": {
   "who": "ИТАН",
@@ -39,7 +47,11 @@
   "de": "Das Bürozentrum Horizon hatte vor einem Monat geschlossen. Es stand zum Verkauf, doch nachts musste es jemand bewachen.",
   "it": "Il centro d'affari Horizon era chiuso da un mese. L'edificio era in vendita, ma di notte andava comunque sorvegliato.",
   "tr": "Horizon İş Merkezi bir ay önce kapanmıştı. Bina satılıktı ama geceleri yine de birinin nöbet tutması gerekiyordu.",
-  "pl": "Centrum Biznesowe Horizon zamknięto miesiąc temu. Budynek wystawiono na sprzedaż, ale ktoś nadal musiał go pilnować nocami."
+  "pl": "Centrum Biznesowe Horizon zamknięto miesiąc temu. Budynek wystawiono na sprzedaż, ale ktoś nadal musiał go pilnować nocami.",
+  "fr": "Le centre d’affaires Horizon avait fermé un mois plus tôt. L’immeuble était à vendre, mais il fallait un gardien la nuit.",
+  "zh": "地平线商务中心一个月前关闭了。整栋楼正在挂牌出售，可夜里总得有人看守。",
+  "ja": "ホライゾン・ビジネスセンターが閉鎖されたのは、一か月前。建物は売りに出されていたが、夜間の警備だけは誰かが続けなければならなかった。",
+  "ko": "호라이즌 비즈니스 센터는 한 달 전에 문을 닫았다. 건물은 매물로 나와 있었지만, 밤에는 누군가 지켜야 했다."
  },
  "p04": {
   "who": "ИТАН",
@@ -53,7 +65,11 @@
   "de": "Nachtschichten zahlten doppelt. Und meine Schwester brauchte in einer fremden Stadt Geld.",
   "it": "Il turno di notte pagava doppio. E mia sorella doveva campare in una città non sua.",
   "tr": "Gece vardiyası iki kat ödüyordu. Kız kardeşimin de yabancı bir şehirde geçinecek parası olmalıydı.",
-  "pl": "Za nocne zmiany płacili podwójnie. A siostra musiała z czegoś żyć w obcym mieście."
+  "pl": "Za nocne zmiany płacili podwójnie. A siostra musiała z czegoś żyć w obcym mieście.",
+  "fr": "Les nuits étaient payées double. Et ma sœur avait besoin de quoi vivre, dans une ville inconnue.",
+  "zh": "夜班给双倍工资。而妹妹在一座陌生的城市里，总得有钱过日子。",
+  "ja": "夜勤は倍の手当が出た。それに、慣れない街で暮らす妹には、何かと金が要った。",
+  "ko": "야간 근무는 수당이 두 배였다. 그리고 여동생은 낯선 도시에서 먹고살 돈이 필요했다."
  },
  "p05": {
   "who": "ИТАН",
@@ -67,7 +83,11 @@
   "de": "Auf meinem Sperrbildschirm: Lilys Zeichnung. Wir drei — ich, sie und unser Hund Keks. Da war sie sechs.",
   "it": "Lo sfondo del telefono era un disegno di Lily: noi tre, io, lei e il cane Biscotto. Aveva sei anni.",
   "tr": "Kilit ekranımda Lily'nin çizdiği bir resim vardı: üçümüz, ben, o ve köpeğimiz Bisküvi. Lily o zaman altı yaşındaydı.",
-  "pl": "Na ekranie blokady miałem rysunek Lily: my troje — ja, ona i nasz pies Herbatnik. Miała wtedy sześć lat."
+  "pl": "Na ekranie blokady miałem rysunek Lily: my troje — ja, ona i nasz pies Herbatnik. Miała wtedy sześć lat.",
+  "fr": "Mon fond d’écran : un dessin de Lily, nous trois, moi, elle et notre chien Biscuit. Elle avait six ans.",
+  "zh": "手机锁屏是莉莉画的一幅画：我们仨——我、她，还有我们的狗饼干。那年她六岁。",
+  "ja": "リリーが六歳のときに描いた絵を、ロック画面にしていた。うちの三人――俺と、リリーと、犬のビスケット。",
+  "ko": "휴대폰 잠금 화면은 릴리가 그린 그림이었다. 나와 릴리, 그리고 우리 개 비스킷, 셋이 나란히 서 있는 그림. 그때 릴리는 여섯 살이었다."
  },
  "p06": {
   "who": "ИТАН",
@@ -81,7 +101,11 @@
   "de": "Der Wachmann von der Tagschicht wartete am Drehkreuz. Die Jacke hatte er schon an, bevor ich reinkam.",
   "it": "La guardia diurna mi aspettava al tornello. Si era già messo la giacca prima che entrassi.",
   "tr": "Gündüz nöbetçisi turnikenin yanında beni bekliyordu. Ben içeri girmeden ceketini giymişti bile.",
-  "pl": "Dzienny ochroniarz czekał na mnie przy bramce. Kurtkę miał już na sobie, zanim wszedłem."
+  "pl": "Dzienny ochroniarz czekał na mnie przy bramce. Kurtkę miał już na sobie, zanim wszedłem.",
+  "fr": "Le gardien de jour m’attendait près du tourniquet. Il avait déjà enfilé sa veste avant que j’entre.",
+  "zh": "白班保安在闸机旁等着我。我还没进门，他就已经穿好了外套。",
+  "ja": "日勤の警備員は、ゲートのところで俺を待っていた。こっちが入る前から、もう上着を着込んでいた。",
+  "ko": "주간 경비원은 출입 게이트 옆에서 나를 기다리고 있었다. 내가 들어서기도 전에 벌써 점퍼를 입고 있었다."
  },
  "p07": {
   "who": "СМЕНЩИК",
@@ -95,7 +119,11 @@
   "de": "— Bist du der Neue? Für Frank?",
   "it": "— Sei il nuovo? Il sostituto di Frank?",
   "tr": "— Yeni eleman sen misin? Frank'in yerine?",
-  "pl": "— Nowy? Zastępujesz Franka?"
+  "pl": "— Nowy? Zastępujesz Franka?",
+  "fr": "— T’es le nouveau ? Le remplaçant de Frank ?",
+  "zh": "— 你是新来的？接替弗兰克的？",
+  "ja": "— 新入りか？ フランクの代わりの？",
+  "ko": "— 새로 왔나? 프랭크 후임?"
  },
  "p08": {
   "who": "ИТАН",
@@ -109,7 +137,11 @@
   "de": "— Ja. Was ist denn mit Frank?",
   "it": "— Sì. Cos'è successo a Frank?",
   "tr": "— Evet. Frank'in başına ne geldi?",
-  "pl": "— Tak. A co z Frankiem?"
+  "pl": "— Tak. A co z Frankiem?",
+  "fr": "— Oui. Qu’est-il arrivé à Frank ?",
+  "zh": "— 是。弗兰克出什么事了？",
+  "ja": "— ええ。フランクさんに、何かあったんですか？",
+  "ko": "— 네. 프랭크 씨한테 무슨 일이 있었어요?"
  },
  "p09": {
   "who": "СМЕНЩИК",
@@ -123,7 +155,11 @@
   "de": "— Frank saß zwanzig Jahre in dieser Kabine. Und vor einer Woche: keine Übergabe.",
   "it": "— Frank è rimasto vent'anni in quella guardiola. Una settimana fa non ha passato le consegne.",
   "tr": "— Frank yirmi yıl o kulübede oturdu. Bir hafta önce vardiyayı devretmedi.",
-  "pl": "— Frank przesiedział w tej budce dwadzieścia lat. Tydzień temu nie zdał zmiany."
+  "pl": "— Frank przesiedział w tej budce dwadzieścia lat. Tydzień temu nie zdał zmiany.",
+  "fr": "— Frank a tenu vingt ans dans cette loge. Il y a une semaine, il n’a pas passé le relais.",
+  "zh": "— 弗兰克在那个岗亭里坐了二十年。一个星期前，他没来交班。",
+  "ja": "— フランクは二十年、あの守衛室に座ってた。一週間前、引き継ぎをしなかった。",
+  "ko": "— 프랭크는 20년을 저 경비실에 앉아 있었어. 일주일 전에 근무 인계도 안 하고 사라졌지."
  },
  "p10": {
   "who": "ИТАН",
@@ -137,7 +173,11 @@
   "de": "— Was heißt das, keine Übergabe?",
   "it": "— Come, non ha passato le consegne?",
   "tr": "— Nasıl yani, devretmedi?",
-  "pl": "— Jak to, nie zdał zmiany?"
+  "pl": "— Jak to, nie zdał zmiany?",
+  "fr": "— Comment ça, pas passé le relais ?",
+  "zh": "— 没来交班，是什么意思？",
+  "ja": "— 引き継ぎをしなかった、ってどういうことですか？",
+  "ko": "— 인계를 안 했다니, 무슨 말이에요?"
  },
  "p11": {
   "who": "СМЕНЩИК",
@@ -151,7 +191,11 @@
   "de": "— Am Morgen ist die Kabine offen, Lampe an, Tee kalt. Die Jacke hängt am Stuhl. Und kein Frank.",
   "it": "— Al mattino la guardiola era aperta, la lampada accesa, il tè freddo. La giacca sulla sedia. E di Frank, niente.",
   "tr": "— Sabah kulübe açık, lamba yanıyor, çay soğumuş. Ceketi sandalyede. Frank ise yok.",
-  "pl": "— Rano budka otwarta, lampa się pali, herbata wystygła. Kurtka na krześle. A Franka nie ma."
+  "pl": "— Rano budka otwarta, lampa się pali, herbata wystygła. Kurtka na krześle. A Franka nie ma.",
+  "fr": "— Le matin, la loge est ouverte, la lampe allumée, le thé froid. Sa veste sur la chaise. Et pas de Frank.",
+  "zh": "— 早上岗亭门开着，灯亮着，茶凉透了。外套搭在椅子上。可弗兰克不见了。",
+  "ja": "— 朝になったら、守衛室は開いてて、ランプはついたまま、お茶は冷めてた。上着は椅子にかかってる。で、フランクだけがいない。",
+  "ko": "— 아침에 와 보니 경비실은 열려 있고, 스탠드는 켜져 있고, 차는 식어 있더라. 점퍼는 의자에 걸려 있고. 프랭크만 없었어."
  },
  "p12": {
   "who": "СМЕНЩИК",
@@ -165,7 +209,11 @@
   "de": "— Die Polizei hat alle zwölf Etagen abgesucht. Die Kameras: nichts.",
   "it": "— La polizia ha battuto tutti i dodici piani. Le telecamere non hanno ripreso niente.",
   "tr": "— Polis on iki katın hepsini aradı. Kameralar hiçbir şey kaydetmemiş.",
-  "pl": "— Policja przeszukała wszystkie dwanaście pięter. Kamery nic nie nagrały."
+  "pl": "— Policja przeszukała wszystkie dwanaście pięter. Kamery nic nie nagrały.",
+  "fr": "— La police a fouillé les douze étages. Les caméras n’ont rien enregistré.",
+  "zh": "— 警察把十二层楼搜了个遍。摄像头什么也没拍到。",
+  "ja": "— 警察が12階ぜんぶ調べた。カメラには何も映ってなかった。",
+  "ko": "— 경찰이 12개 층을 전부 뒤졌어. 카메라엔 아무것도 안 찍혔고."
  },
  "p13": {
   "who": "ИТАН",
@@ -179,7 +227,11 @@
   "de": "Die Schlüssel waren warm. Den ganzen Abend hielt er sie fest.",
   "it": "Le chiavi erano calde: le aveva strette per tutta la sera.",
   "tr": "Anahtar demeti sıcaktı. Bütün akşam elinden bırakmamıştı.",
-  "pl": "Klucze były ciepłe. Cały wieczór ściskał je w garści."
+  "pl": "Klucze były ciepłe. Cały wieczór ściskał je w garści.",
+  "fr": "Le trousseau était tiède. Il l’avait serré toute la soirée.",
+  "zh": "钥匙串还是温的。他一整晚都攥着它，没有松过手。",
+  "ja": "鍵束は温かかった。夕方からずっと握りしめていたらしい。",
+  "ko": "열쇠 꾸러미는 따뜻했다. 그가 저녁 내내 손에서 놓지 못한 것이다."
  },
  "p14": {
   "who": "СМЕНЩИК",
@@ -193,7 +245,11 @@
   "de": "— Das Wachbuch liegt auf dem Tisch. Lies es vor drei. Ganz, bis zur letzten Seite.",
   "it": "— Il registro è sulla scrivania. Leggilo prima delle tre. Tutto, fino all'ultima pagina.",
   "tr": "— Defter masada. Üçten önce oku. Hepsini, son sayfaya kadar.",
-  "pl": "— Dziennik leży na biurku. Przeczytaj go do trzeciej. Cały, do ostatniej strony."
+  "pl": "— Dziennik leży na biurku. Przeczytaj go do trzeciej. Cały, do ostatniej strony.",
+  "fr": "— Le journal est sur le bureau. Lis-le avant trois heures. Jusqu’à la dernière page.",
+  "zh": "— 值班日志在桌上。三点前读完。全部，一直读到最后一页。",
+  "ja": "— 日誌は机の上だ。3時までに読んでおけ。全部だ、最後のページまで。",
+  "ko": "— 일지는 책상 위에 있어. 3시 전에 읽어. 전부, 마지막 장까지."
  },
  "p15": {
   "who": "ИТАН",
@@ -207,7 +263,11 @@
   "de": "Draußen klopfte er mit den Knöcheln an die Scheibe. Dreimal. Er sah mich an, als wollte er noch etwas sagen. Dann ließ er es.",
   "it": "Fuori, in strada, batté le nocche sul vetro. Tre volte. Mi guardò come se volesse aggiungere altro. Non lo fece.",
   "tr": "Sokağa çıkınca parmak boğumlarıyla cama vurdu. Üç kez. Sanki başka bir şey söylemek ister gibi baktı bana. Söylemedi.",
-  "pl": "Już na ulicy zastukał kostkami w szybę. Trzy razy. Spojrzał na mnie, jakby chciał coś dodać. Nie dodał."
+  "pl": "Już na ulicy zastukał kostkami w szybę. Trzy razy. Spojrzał na mnie, jakby chciał coś dodać. Nie dodał.",
+  "fr": "Dehors, il a cogné du poing contre la vitre. Trois fois. Il m’a regardé comme s’il voulait ajouter quelque chose. Il ne l’a pas fait.",
+  "zh": "走到街上，他用指节敲了敲玻璃。三下。他看着我，像是还想说点什么。但他没有说。",
+  "ja": "外に出ると、彼は指の関節でガラスを叩いた。三回。何か言い足したそうにこちらを見たが、結局、何も言わなかった。",
+  "ko": "거리로 나간 그는 손마디로 유리를 두드렸다. 세 번. 무언가 더 말하고 싶은 듯 나를 쳐다보았지만, 끝내 말하지 않았다."
  },
  "j01": {
   "who": "ИТАН",
@@ -221,7 +281,11 @@
   "de": "Das Wachbuch schob ich vor mir her. Erst um zehn vor drei setzte ich mich dran.",
   "it": "Continuai a rimandare il registro. Mi ci sedetti solo alle tre meno dieci.",
   "tr": "Defteri hep erteledim. Başına ancak üçe on kala oturdum.",
-  "pl": "Dziennik wciąż odkładałem. Usiadłem do niego dopiero za dziesięć trzecia."
+  "pl": "Dziennik wciąż odkładałem. Usiadłem do niego dopiero za dziesięć trzecia.",
+  "fr": "J’ai repoussé le journal. Je ne m’y suis assis qu’à trois heures moins dix.",
+  "zh": "日志我一直拖着没看。直到两点五十，我才坐下来读。",
+  "ja": "日誌はずっと後回しにしていた。ようやく机に向かったのは、3時10分前。",
+  "ko": "일지는 계속 미뤄 두었다. 일지 앞에 앉은 건 3시 10분 전이 되어서였다."
  },
  "j02": {
   "who": "ИТАН",
@@ -235,7 +299,11 @@
   "de": "Franks Schrift war klein und gleichmäßig, wie mit dem Lineal. Zwanzig Jahre dieselben Einträge: Rundgang, Lampen, die Katze an den Mülltonnen.",
   "it": "La scrittura di Frank era minuta e dritta, come tirata col righello. Vent'anni di annotazioni uguali: ronde, lampade, la gatta dei cassonetti.",
   "tr": "Frank'in el yazısı küçük ve düzgündü, sanki cetvelle yazmış gibi. Yirmi yıllık aynı kayıtlar: devriye, lambalar, çöp konteynerinin yanındaki kedi.",
-  "pl": "Pismo Franka było drobne i równe, jakby pisał od linijki. Dwadzieścia lat takich samych wpisów: obchód, lampy, kotka przy śmietnikach."
+  "pl": "Pismo Franka było drobne i równe, jakby pisał od linijki. Dwadzieścia lat takich samych wpisów: obchód, lampy, kotka przy śmietnikach.",
+  "fr": "L’écriture de Frank, petite et droite, comme tracée à la règle. Vingt ans d’entrées identiques : rondes, lampes, le chat aux poubelles.",
+  "zh": "弗兰克的字迹细小而工整，像是比着尺子写的。二十年里，记的全是同样的内容：巡查，灯，垃圾桶边的那只猫。",
+  "ja": "フランクの字は小さく、定規で引いたように整っていた。二十年分、同じような記録が並んでいる。巡回、照明、ゴミ置き場の猫。",
+  "ko": "프랭크의 글씨는 작고 반듯해서 자를 대고 쓴 것 같았다. 20년 동안 똑같은 기록이 이어졌다. 순찰, 전등, 쓰레기통 옆 고양이."
  },
  "j03": {
   "who": "ИТАН",
@@ -249,7 +317,11 @@
   "de": "Zwölfter Oktober. „Der Aufzug fährt nachts von allein. Der Techniker sagt: Sensor.“",
   "it": "Dodici ottobre. «Di notte l'ascensore parte da solo. Il tecnico dice che è un sensore.»",
   "tr": "On iki Ekim. “Asansör geceleri kendi kendine çalışıyor. Teknisyen sensör diyor.”",
-  "pl": "Dwunastego października. „Winda w nocy jeździ sama. Technik mówi, że to czujnik.”"
+  "pl": "Dwunastego października. „Winda w nocy jeździ sama. Technik mówi, że to czujnik.”",
+  "fr": "Douze octobre. « L’ascenseur bouge seul la nuit. Le technicien dit : un capteur. »",
+  "zh": "十月十二日。“夜里电梯自己会动。技术员说是传感器。”",
+  "ja": "10月12日。「夜中、エレベーターが勝手に動く。技術者は、センサーのせいだと言っている。」",
+  "ko": "10월 12일. “엘리베이터가 밤에 저절로 움직인다. 기사는 센서 탓이라고 한다.”"
  },
  "j04": {
   "who": "ИТАН",
@@ -263,7 +335,11 @@
   "de": "Fünfzehnter. „Jemand ruft Gus aus dem siebten Stock. Beim Namen. Mit Marthas Stimme. Martha ist seit drei Jahren tot.“",
   "it": "Il quindici. «Dal settimo piano chiamano Gus. Per nome. Con la voce di Martha. Martha è morta da tre anni.»",
   "tr": "Ayın on beşi. “Yedinci kattan biri Gus'a sesleniyor. Adıyla. Martha'nın sesiyle. Martha üç yıl önce öldü.”",
-  "pl": "Piętnastego. „Gusa wołają z siódmego piętra. Po imieniu. Głosem Marthy. Martha nie żyje od trzech lat.”"
+  "pl": "Piętnastego. „Gusa wołają z siódmego piętra. Po imieniu. Głosem Marthy. Martha nie żyje od trzech lat.”",
+  "fr": "Le quinze. « On appelle Gus depuis le septième. Par son nom. Avec la voix de Martha. Martha est morte il y a trois ans. »",
+  "zh": "十五日。“七楼有人在叫格斯。叫的是他的名字。用的是玛莎的声音。玛莎已经去世三年了。”",
+  "ja": "15日。「7階からガスを呼ぶ声がする。名前を呼ぶ。マーサの声で。マーサは三年前に死んだ。」",
+  "ko": "15일. “7층에서 누가 거스를 부른다. 이름으로. 마사의 목소리로. 마사는 죽은 지 3년이다.”"
  },
  "j05": {
   "who": "ИТАН",
@@ -277,7 +353,11 @@
   "de": "Achtzehnter. „Am Pult ist eine dreizehnte Kamera aufgetaucht. Die gibt es im Gebäude gar nicht. Schau nicht hin.“",
   "it": "Il diciotto. «Sulla console è comparsa una tredicesima telecamera. Nell'edificio non esiste. Non guardarla.»",
   "tr": "Ayın on sekizi. “Panelde on üçüncü bir kamera belirdi. Binada böyle bir kamera yok. Ona bakma.”",
-  "pl": "Osiemnastego. „Na pulpicie pojawiła się trzynasta kamera. W budynku nie ma takiej kamery. Nie patrz w nią.”"
+  "pl": "Osiemnastego. „Na pulpicie pojawiła się trzynasta kamera. W budynku nie ma takiej kamery. Nie patrz w nią.”",
+  "fr": "Le dix-huit. « Une treizième caméra est apparue sur le pupitre. Elle n’existe pas. Ne la regarde pas. »",
+  "zh": "十八日。“控制台上出现了十三号摄像头。楼里根本没有这个摄像头。别看它。”",
+  "ja": "18日。「操作盤に13番カメラが現れた。この建物にそんなカメラはない。見るな。」",
+  "ko": "18일. “제어반에 13번 카메라가 생겼다. 이 건물에 그런 카메라는 없다. 보지 마라.”"
  },
  "j06": {
   "who": "ИТАН",
@@ -291,7 +371,11 @@
   "de": "Zwanzigster. Hier hatte er so fest aufgedrückt, dass das Papier riss. „Antworte nicht auf deinen Namen. Mach ihm nicht auf. Und geh nicht selbst zu ihm, nicht ins Licht, nicht in den Aufzug. Dann kommt es nicht an dich ran.“",
   "it": "Il venti. Qui aveva premuto così forte che la penna aveva strappato la carta. «Non rispondere al tuo nome. Non aprire la porta a quella cosa. E non andarci tu, né verso la luce né in ascensore. Così non potrà avvicinarsi.»",
   "tr": "Ayın yirmisi. Burada kalemi öyle sert bastırmıştı ki kâğıt yırtılmıştı. “Adına cevap verme. Ona kapıyı açma. Ona kendi ayağınla gitme: ne ışığa, ne asansöre. O zaman sana yaklaşamaz.”",
-  "pl": "Dwudziestego. Tu tak mocno naciskał długopisem, że przedarł papier. „Nie odpowiadaj, gdy wołają cię po imieniu. Nie otwieraj mu drzwi. I sam do niego nie chodź — ani do światła, ani do windy. Wtedy nie podejdzie.”"
+  "pl": "Dwudziestego. Tu tak mocno naciskał długopisem, że przedarł papier. „Nie odpowiadaj, gdy wołają cię po imieniu. Nie otwieraj mu drzwi. I sam do niego nie chodź — ani do światła, ani do windy. Wtedy nie podejdzie.”",
+  "fr": "Le vingt. Il avait appuyé si fort que le stylo avait percé le papier. « Ne réponds pas à ton nom. Ne lui ouvre pas la porte. Ne va pas à sa rencontre : ni vers la lumière, ni dans l’ascenseur. Alors ça ne t’approchera pas. »",
+  "zh": "二十日。这一页他下笔太重，笔尖划破了纸。“有人叫你名字，别答应。别给它开门。也别自己去找它——别走向亮光，别进电梯。这样它就近不了你的身。”",
+  "ja": "20日。ここで彼は、ペンが紙を破るほど強く押しつけていた。「名前を呼ばれても返事をするな。それにはドアを開けるな。自分から近づくな――明かりにも、エレベーターにも。そうすれば、それは近づいてこない。」",
+  "ko": "20일. 여기서는 펜을 얼마나 세게 눌렀는지 종이가 찢어져 있었다. “이름을 불러도 대답하지 마라. 그것에게 문을 열어 주지 마라. 제 발로 그것에게 가지 마라. 빛 쪽으로도, 엘리베이터 안으로도. 그러면 그것은 다가오지 못한다.”"
  },
  "j07": {
   "who": "ИТАН",
@@ -305,7 +389,11 @@
   "de": "Einundzwanzigster. Der letzte Eintrag, die Schrift zittrig. „Mama rief. Ich antwortete. Das Salz hält. Gehe runter.“",
   "it": "Il ventuno. L'ultima annotazione, con la scrittura ormai storta. «Mamma ha chiamato. Ho risposto. Il sale lo ferma. Scendo.»",
   "tr": "Ayın yirmi biri. Son kayıt; el yazısı artık düzgün değildi. “Annem seslendi. Cevap verdim. Tuz tutuyor. Aşağı iniyorum.”",
-  "pl": "Dwudziestego pierwszego. Ostatni wpis, pismo już nierówne. „Mama wołała. Odezwałem się. Sól trzyma. Schodzę na dół.”"
+  "pl": "Dwudziestego pierwszego. Ostatni wpis, pismo już nierówne. „Mama wołała. Odezwałem się. Sól trzyma. Schodzę na dół.”",
+  "fr": "Le vingt et un. Dernière entrée, l’écriture tremblait. « Maman a appelé. J’ai répondu. Le sel tient. Je descends. »",
+  "zh": "二十一日。最后一条记录，字迹已经不再工整。“妈妈叫我了。我答应了。盐挡得住它。我下去了。”",
+  "ja": "21日。最後の記録。字はもう整っていない。「母さんが呼んだ。返事をした。塩が食い止める。下へ行く。」",
+  "ko": "21일. 마지막 기록이었고, 글씨는 더 이상 반듯하지 않았다. “엄마가 불렀다. 내가 대답했다. 소금이 막아 준다. 아래로 내려간다.”"
  },
  "j08": {
   "who": "ИТАН",
@@ -319,7 +407,11 @@
   "de": "Ich hielt den Alten für verrückt. Zwanzig Jahre Nachtschicht — da dreht jeder durch.",
   "it": "Decisi che il vecchio aveva perso la testa. Vent'anni di turni di notte: chiunque cederebbe.",
   "tr": "Yaşlı adamın aklını kaçırdığına karar verdim. Yirmi yıl gece vardiyası — kim olsa çıldırırdı.",
-  "pl": "Uznałem, że staruszek postradał zmysły. Dwadzieścia lat nocnych zmian — każdy by zwariował."
+  "pl": "Uznałem, że staruszek postradał zmysły. Dwadzieścia lat nocnych zmian — każdy by zwariował.",
+  "fr": "J’ai décidé que le vieux avait perdu la tête. Vingt ans de nuits : n’importe qui craquerait.",
+  "zh": "我断定那老头是疯了。二十年的夜班，换谁都会崩溃。",
+  "ja": "老人は正気を失ったのだと思った。二十年も夜勤を続ければ、誰だって参ってしまう。",
+  "ko": "노인이 정신이 나갔다고 생각했다. 20년을 야간 근무로 보내면 누구라도 무너진다."
  },
  "j09": {
   "who": "ИТАН",
@@ -333,7 +425,11 @@
   "de": "Eine Minute vor drei ging im siebten Stock das Licht an.",
   "it": "Alle tre meno un minuto, al settimo piano si accesero le luci.",
   "tr": "Üçe bir kala yedinci katta ışıklar yandı.",
-  "pl": "Za minutę trzecia na siódmym piętrze zapaliło się światło."
+  "pl": "Za minutę trzecia na siódmym piętrze zapaliło się światło.",
+  "fr": "À trois heures moins une, la lumière s’est allumée au septième.",
+  "zh": "三点差一分，七楼的灯亮了。",
+  "ja": "3時1分前、7階に明かりがついた。",
+  "ko": "3시 1분 전, 7층에 불이 들어왔다."
  },
  "c01": {
   "who": "ИТАН",
@@ -347,7 +443,11 @@
   "de": "Der Eingang. Leer. Nur Regen.",
   "it": "L'ingresso. Vuoto. Solo pioggia.",
   "tr": "Giriş. Boş. Sadece yağmur.",
-  "pl": "Wejście. Pusto. Tylko deszcz."
+  "pl": "Wejście. Pusto. Tylko deszcz.",
+  "fr": "L’entrée. Vide. Juste la pluie.",
+  "zh": "入口。空无一人。只有雨。",
+  "ja": "入口。誰もいない。ただ、雨。",
+  "ko": "입구. 아무도 없다. 비만 내린다."
  },
  "c02": {
   "who": "ИТАН",
@@ -361,7 +461,11 @@
   "de": "Jemand am Aufzug?.. Nein. Nur der Schatten der Topfpalme.",
   "it": "Qualcuno vicino all'ascensore?… No. Solo l'ombra della palma in vaso.",
   "tr": "Asansörün yanında biri mi?.. Hayır. Sadece saksıdaki palmiyenin gölgesi.",
-  "pl": "Ktoś przy windzie?… Nie. To tylko cień palmy w donicy."
+  "pl": "Ktoś przy windzie?… Nie. To tylko cień palmy w donicy.",
+  "fr": "Quelqu’un près de l’ascenseur ?.. Non. L’ombre du palmier en pot.",
+  "zh": "电梯旁站着人？……不。只是盆栽棕榈的影子。",
+  "ja": "エレベーターのそばに誰か……？ いや、鉢植えのヤシの影。",
+  "ko": "엘리베이터 옆에 누가 서 있나?.. 아니다. 화분 속 야자나무의 그림자다."
  },
  "c03": {
   "who": "ИТАН",
@@ -375,7 +479,11 @@
   "de": "Im Siebten wischt ein Putzmann. Ich bin also nicht allein.",
   "it": "Il settimo. Uno delle pulizie lava il pavimento. Non sono solo.",
   "tr": "Yedinci kat. Bir temizlikçi yeri siliyor. Demek burada yalnız değilim.",
-  "pl": "Siódme. Sprzątacz myje podłogę. Czyli nie jestem tu sam."
+  "pl": "Siódme. Sprzątacz myje podłogę. Czyli nie jestem tu sam.",
+  "fr": "Septième. Un agent d’entretien lave le sol. Je ne suis pas seul.",
+  "zh": "七楼。有个清洁工在拖地。这么说，这栋楼里不只我一个人。",
+  "ja": "7階。清掃員が床にモップをかけている。つまり、ここにいるのは俺だけじゃない。",
+  "ko": "7층. 청소부가 바닥을 닦고 있다. 그렇다면 이 건물에 나만 있는 건 아니다."
  },
  "f01": {
   "who": "ГАС",
@@ -389,7 +497,11 @@
   "de": "— Wache, bitte kommen. Hier ist Gus, der Putzmann. Ich bin bis vier im Siebten. Wenn was ist, ich bin am Funk.",
   "it": "— Sicurezza, mi ricevi? Sono Gus, delle pulizie. Sono al settimo, finisco per le quattro. Se serve, sono in radio.",
   "tr": "— Güvenlik, duyuyor musun? Ben Gus, temizlikçi. Yedinci kattayım, dörde kadar bitiririm. Bir şey olursa telsizdeyim.",
-  "pl": "— Ochrona, zgłoś się. Tu Gus, sprzątacz. Jestem na siódmym, skończę do czwartej. W razie czego mam radio."
+  "pl": "— Ochrona, zgłoś się. Tu Gus, sprzątacz. Jestem na siódmym, skończę do czwartej. W razie czego mam radio.",
+  "fr": "— Sécurité, à vous. Ici Gus, de l’entretien. Je suis au septième, j’aurai fini à quatre heures. Je reste joignable.",
+  "zh": "— 保安室，请回话。我是清洁工格斯。我在七楼，四点前干完。有事就用对讲机叫我。",
+  "ja": "— 警備、応答願います。清掃員のガスです。7階にいて、4時には終わります。何かあったら、無線で呼んでください。",
+  "ko": "— 경비실, 들리나? 청소하는 거스야. 7층에 있고 4시면 끝나. 필요하면 무전으로 불러."
  },
  "f02": {
   "who": "ИТАН",
@@ -403,7 +515,11 @@
   "de": "— Verstanden. Bin neu, erste Schicht.",
   "it": "— Ricevuto. Sono il nuovo, primo turno.",
   "tr": "— Anlaşıldı. Yeniyim, ilk vardiyam.",
-  "pl": "— Przyjąłem. Jestem nowy, pierwsza zmiana."
+  "pl": "— Przyjąłem. Jestem nowy, pierwsza zmiana.",
+  "fr": "— Reçu. Je suis nouveau, première nuit.",
+  "zh": "— 收到。我是新来的，今天第一班。",
+  "ja": "— 了解。新人で、今日が初日です。",
+  "ko": "— 확인했습니다. 신입이고, 오늘이 첫 근무입니다."
  },
  "f03": {
   "who": "ИТАН",
@@ -417,7 +533,11 @@
   "de": "Punkt drei hörte Gus auf zu summen. Er richtete sich auf und drehte sich zur Tür von Siebenhundertsieben. Als hätte ihn jemand gerufen.",
   "it": "Alle tre in punto Gus smise di canticchiare. Si raddrizzò e si voltò verso la porta del settecentosette. Come se l'avessero chiamato.",
   "tr": "Tam üçte Gus mırıldanmayı bıraktı. Doğruldu ve yedi yüz yedi numaralı odanın kapısına döndü. Sanki biri ona seslenmişti.",
-  "pl": "Równo o trzeciej Gus przestał nucić. Wyprostował się i odwrócił do drzwi siedemset siedem. Jakby ktoś go zawołał."
+  "pl": "Równo o trzeciej Gus przestał nucić. Wyprostował się i odwrócił do drzwi siedemset siedem. Jakby ktoś go zawołał.",
+  "fr": "À trois heures pile, Gus a cessé de fredonner. Il s’est redressé, tourné vers la porte du sept cent sept. Comme si on l’avait appelé.",
+  "zh": "三点整，格斯不再哼歌了。他直起身，转向707室的门，像是有人在叫他。",
+  "ja": "ちょうど3時、ガスは鼻歌をやめた。背筋を伸ばして、707号室のドアのほうを向いた。誰かに呼ばれたように。",
+  "ko": "정각 3시, 거스가 흥얼거리던 것을 멈췄다. 허리를 펴고 707호 문 쪽으로 돌아섰다. 누가 부르기라도 한 것처럼."
  },
  "f04": {
   "who": "ИТАН",
@@ -431,7 +551,11 @@
   "de": "Der Funk rauschte: Er hielt aus Versehen die Taste gedrückt.",
   "it": "La radio gracchiò: aveva premuto il tasto per sbaglio.",
   "tr": "Telsiz cızırdadı: düğmeye yanlışlıkla basmıştı.",
-  "pl": "Radio zasyczało: przypadkiem wcisnął przycisk."
+  "pl": "Radio zasyczało: przypadkiem wcisnął przycisk.",
+  "fr": "La radio a grésillé : bouton pressé par erreur.",
+  "zh": "对讲机里传来一阵嘶嘶声：他不小心按住了通话键。",
+  "ja": "無線にノイズが入った。うっかりボタンを押したらしい。",
+  "ko": "무전기가 지직거렸다. 그가 실수로 버튼을 누른 것이었다."
  },
  "f05": {
   "who": "ГАС",
@@ -445,7 +569,11 @@
   "de": "— Martha?.. Bist du das?",
   "it": "— Martha?… Sei tu?",
   "tr": "— Martha?.. Sen misin?",
-  "pl": "— Martha?… To ty?"
+  "pl": "— Martha?… To ty?",
+  "fr": "— Martha ?.. C’est toi ?",
+  "zh": "— 玛莎？……是你吗？",
+  "ja": "— マーサ……？ お前なのかい？",
+  "ko": "— 마사?.. 당신이야?"
  },
  "f06": {
   "who": "ИТАН",
@@ -459,7 +587,11 @@
   "de": "Das Bild versank im Rauschen. Als es wiederkam, standen im Flur nur noch Eimer und Mopp.",
   "it": "L'immagine si riempì di disturbi. Quando tornò, nel corridoio restavano solo un secchio e un mocio.",
   "tr": "Görüntü parazite döndü. Geri geldiğinde koridorda yalnızca bir kova ile bir paspas kalmıştı.",
-  "pl": "Obraz zniknął w zakłóceniach. Gdy wrócił, w korytarzu zostały tylko wiadro i mop."
+  "pl": "Obraz zniknął w zakłóceniach. Gdy wrócił, w korytarzu zostały tylko wiadro i mop.",
+  "fr": "L’image s’est brouillée. Quand elle est revenue, il ne restait dans le couloir qu’un seau et un balai.",
+  "zh": "画面被雪花吞没了。等它恢复时，走廊里只剩下一只水桶和一把拖把。",
+  "ja": "映像にノイズが走った。戻ったとき、廊下にはバケツとモップだけが残っていた。",
+  "ko": "화면이 노이즈로 깨졌다. 다시 돌아왔을 때 복도에는 양동이와 대걸레만 남아 있었다."
  },
  "f07": {
   "who": "ИТАН",
@@ -473,7 +605,11 @@
   "de": "Ich sah mir die Aufnahme dreimal an. In dieser Sekunde war die Tür von Siebenhundertsieben zu. Und Gus sprach mit ihr.",
   "it": "Riguardai la registrazione tre volte. In quel secondo la porta del settecentosette era chiusa. E Gus le parlava.",
   "tr": "Kaydı üç kez izledim. O saniyede yedi yüz yedi numaralı odanın kapısı kapalıydı. Gus ise kapıyla konuşuyordu.",
-  "pl": "Obejrzałem nagranie trzy razy. W tej sekundzie drzwi siedemset siedem były zamknięte. A Gus z nimi rozmawiał."
+  "pl": "Obejrzałem nagranie trzy razy. W tej sekundzie drzwi siedemset siedem były zamknięte. A Gus z nimi rozmawiał.",
+  "fr": "J’ai revu l’enregistrement trois fois. À cet instant, la porte du sept cent sept était fermée. Et Gus lui parlait.",
+  "zh": "我把录像回放了三遍。那一秒，707室的门是关着的。而格斯正在对着它说话。",
+  "ja": "録画を三度見直した。その瞬間、707号室のドアは閉まっていた。ガスは、閉まったドアに話しかけていた。",
+  "ko": "녹화 영상을 세 번 돌려 보았다. 그 순간 707호 문은 닫혀 있었다. 그런데 거스는 그 문에 대고 말을 하고 있었다."
  },
  "f08": {
   "who": "ИТАН",
@@ -487,7 +623,11 @@
   "de": "Ich rief die Polizei. Der Beamte fragte nach einer Leiche. Es gab keine. „Morgen früh kann die Familie Anzeige erstatten.“",
   "it": "Chiamai la polizia. L'agente chiese se c'era un corpo. Non c'era. «Domattina i familiari presentino denuncia.»",
   "tr": "Polisi aradım. Nöbetçi memur ortada ceset olup olmadığını sordu. Yoktu. “Ailesi sabah gelip kayıp başvurusu yapsın.”",
-  "pl": "Zadzwoniłem na policję. Dyżurny zapytał, czy jest ciało. Nie było. „Rano niech rodzina złoży zawiadomienie.”"
+  "pl": "Zadzwoniłem na policję. Dyżurny zapytał, czy jest ciało. Nie było. „Rano niech rodzina złoży zawiadomienie.”",
+  "fr": "J’ai appelé la police. Le policier a demandé s’il y avait un corps. Non. « Sa famille fera une déclaration demain matin. »",
+  "zh": "我报了警。值班警官问有没有尸体。没有。“明天早上让他的家人来报案。”",
+  "ja": "警察に通報した。応対した警官は、遺体はあるのかと訊いた。なかった。「ご家族に、朝になったら捜索願を出してもらってください。」",
+  "ko": "경찰에 전화했다. 당직 경찰은 시신이 있느냐고 물었다. 없었다. “가족분이 아침에 와서 신고하시면 됩니다.”"
  },
  "r01": {
   "who": "ИТАН",
@@ -501,7 +641,11 @@
   "de": "Gehen? Zum Ausgang ging es quer durchs Foyer, am Aufzug vorbei. Nach Franks Regeln war die Kabine sicherer.",
   "it": "Uscire? Le porte erano in fondo all'atrio, oltre l'ascensore. Per le regole di Frank, la guardiola era più sicura.",
   "tr": "Gitmek mi? Kapılar lobinin ta öbür ucunda, asansörün ötesindeydi. Frank'in kurallarına göre kulübe daha güvenliydi.",
-  "pl": "Wyjść? Do drzwi trzeba było iść przez cały hol, obok windy. Według zasad Franka budka była bezpieczniejsza."
+  "pl": "Wyjść? Do drzwi trzeba było iść przez cały hol, obok windy. Według zasad Franka budka była bezpieczniejsza.",
+  "fr": "Partir ? Tout le hall à traverser, devant l’ascenseur. Selon les règles de Frank, la loge était plus sûre.",
+  "zh": "要离开吗？大门在大厅的另一头，还得经过电梯。按弗兰克定下的规则，还是岗亭里更安全。",
+  "ja": "出ていくか？ 出口はロビーの反対側、エレベーターの前を通らなければならない。フランクのルールに従うなら、守衛室にいるほうが安全に思えた。",
+  "ko": "나갈까? 정문까지는 로비를 가로질러 엘리베이터 앞을 지나야 했다. 프랭크의 규칙대로라면 경비실이 더 안전했다."
  },
  "r02": {
   "who": "ИТАН",
@@ -515,7 +659,11 @@
   "de": "Der Siebte blieb hell und leer. Ich saß da und starrte auf den Eimer.",
   "it": "Il settimo piano restò acceso e vuoto. Restai seduto a fissare il secchio.",
   "tr": "Yedinci kat aydınlık ve boş kaldı. Öylece oturup kovaya baktım.",
-  "pl": "Siódme piętro świeciło puste. Siedziałem i patrzyłem na wiadro."
+  "pl": "Siódme piętro świeciło puste. Siedziałem i patrzyłem na wiadro.",
+  "fr": "Le septième restait allumé, vide. Je restais assis à fixer le seau.",
+  "zh": "七楼的灯一直亮着，空无一人。我坐在那儿，盯着那只水桶。",
+  "ja": "7階は明かりがついたまま、人影がなかった。俺は座ったまま、バケツを見つめていた。",
+  "ko": "7층은 불이 켜진 채 텅 비어 있었다. 나는 앉아서 양동이만 쳐다보았다."
  },
  "r03": {
   "who": "ГАС",
@@ -529,7 +677,11 @@
   "de": "— Wache… Ethan, hörst du mich? Ich stecke im Aufzug fest, zwischen den Etagen… Ethan, melde dich…",
   "it": "— Sicurezza… Ethan, mi senti? Sono bloccato nell'ascensore, tra due piani… Ethan, rispondimi…",
   "tr": "— Güvenlik… Ethan, beni duyuyor musun? Asansörde mahsur kaldım, katların arasında… Ethan, cevap ver…",
-  "pl": "— Ochrona… Ethan, słyszysz mnie? Utknąłem w windzie, między piętrami… Ethan, odezwij się…"
+  "pl": "— Ochrona… Ethan, słyszysz mnie? Utknąłem w windzie, między piętrami… Ethan, odezwij się…",
+  "fr": "— Sécurité… Ethan, tu m’entends ? Je suis coincé dans l’ascenseur, entre deux étages… Ethan, réponds…",
+  "zh": "— 保安室……伊森，你听得见吗？我被困在电梯里了，卡在两层楼中间……伊森，回我一声……",
+  "ja": "— 警備……イーサン、聞こえるかい？ エレベーターで止まっちまった、階と階のあいだで……イーサン、返事をしてくれ……",
+  "ko": "— 경비실… 이선, 내 말 들리나? 엘리베이터에 갇혔네, 층과 층 사이에… 이선, 대답 좀 해 보게…"
  },
  "r04": {
   "who": "ИТАН",
@@ -543,7 +695,11 @@
   "de": "Gus kannte meinen Namen nicht. Ich nannte ihn nie.",
   "it": "Gus non sapeva il mio nome. Non gliel'avevo detto.",
   "tr": "Gus adımı bilmiyordu. Ona söylememiştim.",
-  "pl": "Gus nie znał mojego imienia. Nie mówiłem mu."
+  "pl": "Gus nie znał mojego imienia. Nie mówiłem mu.",
+  "fr": "Gus ignorait mon nom. Je ne l’avais jamais dit.",
+  "zh": "格斯不知道我的名字。我从来没有告诉过他。",
+  "ja": "ガスは俺の名前を知らなかった。教えた覚えはない。",
+  "ko": "거스는 내 이름을 몰랐다. 내가 말해 준 적이 없다."
  },
  "e01": {
   "who": "ИТАН",
@@ -557,7 +713,11 @@
   "de": "Eine Minute später kam der Aufzug ins Foyer. Niemand hatte ihn gerufen.",
   "it": "Un minuto dopo l'ascensore scese nell'atrio. Nessuno l'aveva chiamato.",
   "tr": "Bir dakika sonra asansör lobiye indi. Onu kimse çağırmamıştı.",
-  "pl": "Minutę później winda zjechała do holu. Nikt jej nie wzywał."
+  "pl": "Minutę później winda zjechała do holu. Nikt jej nie wzywał.",
+  "fr": "Une minute après, l’ascenseur est arrivé au hall. Personne ne l’avait appelé.",
+  "zh": "一分钟后，电梯降到了大厅。没人叫过它。",
+  "ja": "一分後、エレベーターがロビーに降りてきた。誰も呼んでいないのに。",
+  "ko": "1분 뒤 엘리베이터가 로비로 내려왔다. 아무도 부르지 않았는데."
  },
  "e02": {
   "who": "ИТАН",
@@ -571,7 +731,11 @@
   "de": "Über den Türen leuchtete: dreizehn. Das Horizon hat zwölf Etagen.",
   "it": "Sopra le porte, il display diceva tredici. L'Horizon ha dodici piani.",
   "tr": "Kapıların üstündeki gösterge on üçü gösteriyordu. Horizon'un on iki katı var.",
-  "pl": "Nad drzwiami świeciło: trzynaście. W Horizonie jest dwanaście pięter."
+  "pl": "Nad drzwiami świeciło: trzynaście. W Horizonie jest dwanaście pięter.",
+  "fr": "L’afficheur au-dessus des portes indiquait treize. L’Horizon a douze étages.",
+  "zh": "门上方的楼层显示屏亮着：十三。地平线只有十二层。",
+  "ja": "ドアの上の表示は13。ホライゾンは12階までしかない。",
+  "ko": "문 위의 층 표시창에는 13이 떠 있었다. 호라이즌은 12층까지밖에 없다."
  },
  "e03": {
   "who": "ИТАН",
@@ -585,7 +749,11 @@
   "de": "Die Türen standen eine Weile offen. Und gingen von selbst zu.",
   "it": "Le porte restarono aperte un po'. Poi si chiusero da sole.",
   "tr": "Kapılar bir süre açık kaldı. Sonra kendiliğinden kapandı.",
-  "pl": "Drzwi chwilę stały otwarte. Potem zamknęły się same."
+  "pl": "Drzwi chwilę stały otwarte. Potem zamknęły się same.",
+  "fr": "Portes ouvertes un moment. Puis refermées, toutes seules.",
+  "zh": "电梯门敞开着，停了一会儿。然后自己合上了。",
+  "ja": "ドアはしばらく開いたまま動かず、やがてひとりでに閉まった。",
+  "ko": "문은 한동안 열려 있다가 저절로 닫혔다."
  },
  "m01": {
   "who": "ИТАН",
@@ -599,7 +767,11 @@
   "de": "Die Anzeige erlosch. Und am Pult ging Kamera dreizehn an.",
   "it": "Il display si spense. Sulla console si accese la telecamera tredici.",
   "tr": "Gösterge söndü. Panelde ise on üç numaralı kamera açıldı.",
-  "pl": "Wyświetlacz zgasł. A na pulpicie włączyła się kamera trzynasta."
+  "pl": "Wyświetlacz zgasł. A na pulpicie włączyła się kamera trzynasta.",
+  "fr": "L’afficheur s’est éteint. Et la treize s’est allumée sur le pupitre.",
+  "zh": "显示屏熄灭了。控制台上，十三号摄像头亮了起来。",
+  "ja": "表示が消えた。そして操作盤で、13番カメラが映り始めた。",
+  "ko": "표시창이 꺼졌다. 그러자 제어반에서 13번 카메라가 켜졌다."
  },
  "m02": {
   "who": "ИТАН",
@@ -613,7 +785,11 @@
   "de": "Ein langer Flur, den es in diesem Gebäude nicht gibt. Am Ende jemand, mit dem Rücken zu mir.",
   "it": "Un lungo corridoio che in questo edificio non esiste. In fondo, qualcuno di spalle.",
   "tr": "Bu binada var olmayan uzun bir koridor. Sonunda, bana sırtı dönük biri.",
-  "pl": "Długi korytarz, którego nie ma w tym budynku. Na końcu ktoś odwrócony do mnie plecami."
+  "pl": "Długi korytarz, którego nie ma w tym budynku. Na końcu ktoś odwrócony do mnie plecami.",
+  "fr": "Un long couloir qui n’existe pas dans cet immeuble. Au bout, quelqu’un me tournait le dos.",
+  "zh": "一条长长的走廊，这栋楼里根本不存在的走廊。尽头有个人，背对着我。",
+  "ja": "この建物にはないはずの、長い廊下。その突き当たりに、こちらに背を向けた誰かがいる。",
+  "ko": "이 건물에는 없는 긴 복도. 그 끝에 누군가 등을 돌린 채 서 있었다."
  },
  "g01": {
   "who": "ИТАН",
@@ -627,7 +803,11 @@
   "de": "Ich riss den Stecker raus. Zehn Minuten saß ich im Dunkeln und hörte das leere Gebäude summen.",
   "it": "Strappai il cavo. Per dieci minuti rimasi al buio, ad ascoltare il ronzio dell'edificio vuoto.",
   "tr": "Kabloyu çekip çıkardım. On dakika boyunca karanlıkta oturup boş binanın uğultusunu dinledim.",
-  "pl": "Wyrwałem kabel. Przez dziesięć minut siedziałem w ciemności i słuchałem, jak buczy pusty budynek."
+  "pl": "Wyrwałem kabel. Przez dziesięć minut siedziałem w ciemności i słuchałem, jak buczy pusty budynek.",
+  "fr": "J’ai arraché le câble. Dix minutes dans le noir, à écouter bourdonner l’immeuble vide.",
+  "zh": "我拔掉了电源线。接下来十分钟，我坐在黑暗里，听着空荡荡的大楼嗡嗡作响。",
+  "ja": "コードを引き抜いた。十分間、暗がりに座ったまま、無人の建物が低くうなるのを聞いていた。",
+  "ko": "전원 코드를 홱 뽑았다. 10분 동안 어둠 속에 앉아, 텅 빈 건물이 웅웅거리는 소리를 들었다."
  },
  "g02": {
   "who": "ИТАН",
@@ -641,7 +821,11 @@
   "de": "Antworte nicht. Mach nicht auf. Ich wiederholte es, bis die Worte keinen Sinn mehr hatten.",
   "it": "Non rispondere. Non aprire. Me lo ripetevo finché le parole non persero ogni senso.",
   "tr": "Cevap verme. Açma. Sözcükler anlamını yitirene kadar kendi kendime tekrarlayıp durdum.",
-  "pl": "Nie odpowiadaj. Nie otwieraj. Powtarzałem to w myślach, aż słowa przestały cokolwiek znaczyć."
+  "pl": "Nie odpowiadaj. Nie otwieraj. Powtarzałem to w myślach, aż słowa przestały cokolwiek znaczyć.",
+  "fr": "Ne réponds pas. N’ouvre pas. Je me le répétais jusqu’à ce que les mots perdent tout sens.",
+  "zh": "别答应。别开门。我在心里一遍遍默念，直到这几个字不再有任何意义。",
+  "ja": "返事をするな。開けるな。そう繰り返しているうちに、言葉は意味を失っていった。",
+  "ko": "대답하지 마라. 열지 마라. 속으로 되뇌고 또 되뇌다 보니 말들이 아무 뜻도 없어졌다."
  },
  "g03": {
   "who": "ИТАН",
@@ -655,7 +839,11 @@
   "de": "Um halb vier rief mich draußen jemand beim Namen.",
   "it": "Alle tre e mezza qualcuno, fuori, mi chiamò per nome.",
   "tr": "Üç buçukta dışarıdan biri bana adımla seslendi.",
-  "pl": "O wpół do czwartej z ulicy zawołano mnie po imieniu."
+  "pl": "O wpół do czwartej z ulicy zawołano mnie po imieniu.",
+  "fr": "À trois heures et demie, on a appelé mon nom, dehors.",
+  "zh": "三点半，门外有人叫我的名字。",
+  "ja": "3時半、外から誰かに名前を呼ばれた。",
+  "ko": "3시 반, 밖에서 누군가 내 이름을 불렀다."
  },
  "g04": {
   "who": "ИТАН",
@@ -669,7 +857,11 @@
   "de": "Hinter der Scheibe stand Lily. In ihrem gelben Pullover, im Regen.",
   "it": "Lily era dietro il vetro. Col maglione giallo, sotto la pioggia.",
   "tr": "Lily camın ardında duruyordu. Sarı kazağıyla, yağmurun altında.",
-  "pl": "Za szybą stała Lily. W żółtym swetrze, w deszczu."
+  "pl": "Za szybą stała Lily. W żółtym swetrze, w deszczu.",
+  "fr": "Lily était là, derrière la vitre. Dans son pull jaune, sous la pluie.",
+  "zh": "莉莉站在玻璃门外。黄色毛衣，淋着雨。",
+  "ja": "ガラスの向こうに、リリーが立っていた。黄色いセーター姿で、雨の中。",
+  "ko": "유리문 밖에 릴리가 서 있었다. 노란 스웨터를 입고, 빗속에."
  },
  "g05": {
   "who": "ЛИЛИ",
@@ -683,7 +875,11 @@
   "de": "— Ethan! Ethan, mach auf, bitte!",
   "it": "— Ethan! Ethan, apri la porta, ti prego!",
   "tr": "— Ethan! Ethan, lütfen kapıyı aç!",
-  "pl": "— Ethan! Ethan, otwórz, proszę!"
+  "pl": "— Ethan! Ethan, otwórz, proszę!",
+  "fr": "— Ethan ! Ethan, ouvre, s’il te plaît !",
+  "zh": "— 伊森！伊森，求你开门！",
+  "ja": "— イーサン！ イーサン、お願い、開けて！",
+  "ko": "— 이선! 이선, 문 열어 줘, 제발!"
  },
  "g06": {
   "who": "ИТАН",
@@ -697,7 +893,11 @@
   "de": "Sie sollte im Wohnheim schlafen. Dreihundert Kilometer von hier.",
   "it": "Doveva dormire nella residenza universitaria. A trecento chilometri da qui.",
   "tr": "Yurdunda uyuyor olması gerekirdi. Buradan iki yüz mil ötede.",
-  "pl": "Powinna spać w akademiku. Trzysta kilometrów stąd."
+  "pl": "Powinna spać w akademiku. Trzysta kilometrów stąd.",
+  "fr": "Elle devait dormir en résidence étudiante, à trois cents kilomètres d’ici.",
+  "zh": "她应该在宿舍里睡觉才对。离这儿三百公里。",
+  "ja": "彼女は、ここから300キロ離れた寮で眠っているはずだった。",
+  "ko": "릴리는 기숙사에서 자고 있어야 했다. 여기서 300킬로미터나 떨어진 곳에서."
  },
  "g07": {
   "who": "ЛИЛИ",
@@ -711,7 +911,11 @@
   "de": "— Ich wollte dich überraschen… Mein Handy ist tot, bin vom Bahnhof gelaufen. Ethan, mir ist kalt!",
   "it": "— Volevo farti una sorpresa… Telefono scarico, sono venuta a piedi dalla stazione. Ethan, ho freddo!",
   "tr": "— Sana sürpriz yapmak istedim… Telefonumun şarjı bitti, istasyondan yürüyerek geldim. Ethan, donuyorum!",
-  "pl": "— Chciałam zrobić ci niespodziankę… Telefon mi padł, szłam z dworca piechotą. Ethan, zimno mi!"
+  "pl": "— Chciałam zrobić ci niespodziankę… Telefon mi padł, szłam z dworca piechotą. Ethan, zimno mi!",
+  "fr": "— Je voulais te surprendre… Téléphone mort, j’ai marché depuis la gare. Ethan, je gèle !",
+  "zh": "— 我想给你个惊喜……手机没电了，我从车站一路走过来的。伊森，我快冻死了！",
+  "ja": "— びっくりさせたくて……スマホの充電が切れちゃって、駅から歩いてきたの。イーサン、寒いよ！",
+  "ko": "— 깜짝 놀라게 해 주려고 했어… 휴대폰이 꺼져서 역에서부터 걸어왔어. 이선, 나 너무 추워!"
  },
  "g08": {
   "who": "ИТАН",
@@ -725,7 +929,11 @@
   "de": "Ich sah auf den Eingangsmonitor. Wo sie stand, war nur Rauschen.",
   "it": "Guardai il monitor dell'ingresso. Dove stava lei c'erano solo disturbi.",
   "tr": "Giriş monitörüne göz attım. Onun durduğu yerde parazitten başka bir şey yoktu.",
-  "pl": "Zerknąłem na monitor wejścia. Tam, gdzie stała, były tylko zakłócenia."
+  "pl": "Zerknąłem na monitor wejścia. Tam, gdzie stała, były tylko zakłócenia.",
+  "fr": "J’ai jeté un œil à l’écran de l’entrée. Là où elle se tenait, rien que des parasites.",
+  "zh": "我瞥了一眼入口的监视器。她站着的地方，只有一片雪花。",
+  "ja": "入口のモニターに目をやった。彼女が立っている場所には、ノイズしか映っていなかった。",
+  "ko": "입구 모니터를 힐끗 보았다. 릴리가 서 있는 자리에는 노이즈뿐이었다."
  },
  "g09": {
   "who": "ИТАН",
@@ -739,7 +947,11 @@
   "de": "Mein Handy vibrierte. Eine Nachricht von Lily. Vor einer Minute. Von dem Handy, das „tot“ war.",
   "it": "Il telefono vibrò. Un messaggio di Lily. Inviato un minuto prima. Dal telefono «scarico».",
   "tr": "Telefonum titredi. Lily'den bir mesaj. Bir dakika önce gönderilmiş. Şarjı “bitmiş” telefondan.",
-  "pl": "Telefon zawibrował. Wiadomość od Lily. Wysłana minutę temu. Z telefonu, który „padł”."
+  "pl": "Telefon zawibrował. Wiadomość od Lily. Wysłana minutę temu. Z telefonu, który „padł”.",
+  "fr": "Mon téléphone a vibré. Message de Lily, envoyé il y a une minute. Du téléphone « mort ».",
+  "zh": "手机震了一下。莉莉发来的消息。一分钟前发的。从那部“没电了”的手机上。",
+  "ja": "スマホが震えた。リリーからのメッセージ。一分前に送られている。「電池が切れた」はずのスマホから。",
+  "ko": "휴대폰이 진동했다. 릴리가 보낸 메시지였다. 1분 전에 보낸 것. “꺼졌다”던 그 휴대폰에서."
  },
  "g10": {
   "who": "ИТАН",
@@ -753,7 +965,11 @@
   "de": "Regen lief über die Scheibe, und sie drückte ihr Gesicht dagegen. Beschlagen war das Glas nur auf meiner Seite.",
   "it": "La pioggia rigava il vetro e lei vi premeva contro il viso. Il vetro si appannava solo dalla mia parte.",
   "tr": "Yağmur cam boyunca akıyordu, Lily ise yüzünü cama bastırmıştı. Cam yalnızca benim tarafımda buğulanıyordu.",
-  "pl": "Deszcz zalewał szybę, a ona przyciskała do niej twarz. Szyba parowała tylko z mojej strony."
+  "pl": "Deszcz zalewał szybę, a ona przyciskała do niej twarz. Szyba parowała tylko z mojej strony.",
+  "fr": "La pluie ruisselait sur la vitre, et elle y collait son visage. La buée ne se formait que de mon côté.",
+  "zh": "雨水顺着玻璃淌下来，她把脸贴在玻璃上。可玻璃只在我这一侧起了雾。",
+  "ja": "雨がガラスを伝い落ちるなか、彼女は顔をガラスに押しつけていた。ガラスが曇っていくのは、こちら側だけ。",
+  "ko": "빗물이 유리를 타고 흘러내렸고, 릴리는 유리에 얼굴을 바싹 붙이고 있었다. 그런데 김이 서리는 건 내 쪽 유리뿐이었다."
  },
  "g11": {
   "who": "ЛИЛИ",
@@ -767,7 +983,11 @@
   "de": "— Ethan, da kommt jemand! Mach auf!",
   "it": "— Ethan, sta arrivando qualcuno! Apri!",
   "tr": "— Ethan, biri geliyor! Kapıyı aç!",
-  "pl": "— Ethan, ktoś idzie! Otwórz!"
+  "pl": "— Ethan, ktoś idzie! Otwórz!",
+  "fr": "— Ethan, quelqu’un arrive ! Ouvre !",
+  "zh": "— 伊森，有人来了！快开门！",
+  "ja": "— イーサン、誰か来る！ 開けて！",
+  "ko": "— 이선, 누가 오고 있어! 문 열어!"
  },
  "g12": {
   "who": "ИТАН",
@@ -781,7 +1001,11 @@
   "de": "Mit dem Finger schrieb ich aufs beschlagene Glas: „Wie heißt der Hund?“ Sie sah nicht mal auf die Buchstaben.",
   "it": "Con il dito scrissi sul vetro appannato: «Come si chiamava il nostro cane?» Non guardò nemmeno le lettere.",
   "tr": "Buğulu cama parmağımla yazdım: “Köpeğimizin adı neydi?” Harflere bakmadı bile.",
-  "pl": "Wypisałem palcem na zaparowanej szybie: „Jak wabił się nasz pies?” Nawet nie spojrzała na litery."
+  "pl": "Wypisałem palcem na zaparowanej szybie: „Jak wabił się nasz pies?” Nawet nie spojrzała na litery.",
+  "fr": "Du doigt, j’ai écrit sur la buée : « Comment s’appelait notre chien ? » Elle n’a même pas regardé les lettres.",
+  "zh": "我用手指在起雾的玻璃上写下：“咱家的狗叫什么？”她连看都没看那几个字。",
+  "ja": "曇ったガラスに、指で書いた。「うちの犬の名前は？」 彼女は、その文字を見ようともしなかった。",
+  "ko": "김 서린 유리에 손가락으로 적었다. “우리 개 이름은?” 릴리는 글자를 쳐다보지도 않았다."
  },
  "g13": {
   "who": "ЛИЛИ",
@@ -795,7 +1019,11 @@
   "de": "— Ethan… Mach auf. Mir ist kalt. Ethan.",
   "it": "— Ethan… Apri. Ho freddo. Ethan.",
   "tr": "— Ethan… Aç şunu. Üşüyorum. Ethan.",
-  "pl": "— Ethan… Otwórz. Zimno mi. Ethan."
+  "pl": "— Ethan… Otwórz. Zimno mi. Ethan.",
+  "fr": "— Ethan… Ouvre. J’ai froid. Ethan.",
+  "zh": "— 伊森……开门。我好冷。伊森。",
+  "ja": "— イーサン……開けて。寒いの。イーサン。",
+  "ko": "— 이선… 문 열어. 추워. 이선."
  },
  "g14": {
   "who": "ИТАН",
@@ -809,7 +1037,11 @@
   "de": "Keks. Lily hatte ihn selbst so genannt. Und das Ding wiederholte bloß meinen Namen. Dieselbe Stimme. Derselbe Tonfall.",
   "it": "Biscotto. L'aveva chiamato così Lily. E quella cosa ripeteva solo il mio nome. Stessa voce. Stessa intonazione.",
   "tr": "Bisküvi. Adını Lily'nin kendisi koymuştu. Bu şey ise yalnızca adımı tekrar edip duruyordu. Aynı ses. Aynı tonlama.",
-  "pl": "Herbatnik. Lily sama go tak nazwała. A to coś tylko powtarzało moje imię. Tym samym głosem. Z tą samą intonacją."
+  "pl": "Herbatnik. Lily sama go tak nazwała. A to coś tylko powtarzało moje imię. Tym samym głosem. Z tą samą intonacją.",
+  "fr": "Biscuit. Lily l’avait nommé elle-même. Et cette chose ne faisait que répéter mon nom. Même voix. Même intonation.",
+  "zh": "饼干。这名字是莉莉自己起的。而门外这东西，只会一遍遍重复我的名字。同样的声音。同样的语调。",
+  "ja": "ビスケット。そう名づけたのは、リリー本人。なのにそれは、ただ俺の名前を繰り返し続けていた。同じ声。同じ抑揚。",
+  "ko": "비스킷. 릴리가 직접 지어 준 이름이다. 그런데 그것은 내 이름만 되풀이했다. 같은 목소리로. 같은 억양으로."
  },
  "g15": {
   "who": "ИТАН",
@@ -823,7 +1055,11 @@
   "de": "Ich trat von der Tür zurück.",
   "it": "Mi allontanai dalla porta.",
   "tr": "Kapıdan geri çekildim.",
-  "pl": "Odsunąłem się od drzwi."
+  "pl": "Odsunąłem się od drzwi.",
+  "fr": "Je me suis écarté de la porte.",
+  "zh": "我从门边退开了。",
+  "ja": "ドアから後ずさった。",
+  "ko": "문에서 뒤로 물러섰다."
  },
  "a01": {
   "who": "ИТАН",
@@ -837,7 +1073,11 @@
   "de": "Ich schloss auf.",
   "it": "Girai la chiave.",
   "tr": "Anahtarı çevirdim.",
-  "pl": "Przekręciłem klucz."
+  "pl": "Przekręciłem klucz.",
+  "fr": "J’ai tourné la clé.",
+  "zh": "我转动了钥匙。",
+  "ja": "鍵を回した。",
+  "ko": "열쇠를 돌렸다."
  },
  "a02": {
   "who": "ИТАН",
@@ -851,7 +1091,11 @@
   "de": "Sie fiel mir um den Hals. Eiskalt, völlig durchnässt.",
   "it": "Mi gettò le braccia al collo. Gelida, fradicia.",
   "tr": "Kollarını boynuma doladı. Buz gibiydi, sırılsıklam.",
-  "pl": "Rzuciła mi się na szyję. Lodowata, przemoczona do suchej nitki."
+  "pl": "Rzuciła mi się na szyję. Lodowata, przemoczona do suchej nitki.",
+  "fr": "Elle s’est jetée à mon cou. Glacée, trempée jusqu’aux os.",
+  "zh": "她扑过来抱住我的脖子。冰凉，浑身湿透。",
+  "ja": "彼女は俺の首に抱きついてきた。氷のように冷たく、芯まで濡れていた。",
+  "ko": "릴리가 내 목에 매달렸다. 얼음장처럼 차갑고, 흠뻑 젖어 있었다."
  },
  "a03": {
   "who": "ИТАН",
@@ -865,7 +1109,11 @@
   "de": "— Schon gut, schon gut. Du bist jetzt hier. Du bist bei mir.",
   "it": "— Tranquilla, tranquilla. Ora sei qui. Sei con me.",
   "tr": "— Tamam, tamam. Artık buradasın. Benimlesin.",
-  "pl": "— Już dobrze, dobrze. Jesteś tu. Jesteś ze mną."
+  "pl": "— Już dobrze, dobrze. Jesteś tu. Jesteś ze mną.",
+  "fr": "— Ça va, ça va. Tu es là maintenant. Tu es avec moi.",
+  "zh": "— 没事了，没事了。你到了。你和我在一起。",
+  "ja": "— もう大丈夫、大丈夫。ここにいるんだ。俺と一緒にいる。",
+  "ko": "— 괜찮아, 괜찮아. 이제 여기 왔잖아. 나랑 같이 있어."
  },
  "a04": {
   "who": "ИТАН",
@@ -879,7 +1127,11 @@
   "de": "Sie hörte auf zu weinen. Sofort. Wie stummgeschaltet.",
   "it": "Smise di piangere. Di colpo. Come se avessero tolto l'audio.",
   "tr": "Ağlamayı kesti. Bir anda. Sanki biri sesini kapatmıştı.",
-  "pl": "Przestała płakać. Natychmiast. Jakby ktoś wyciszył dźwięk."
+  "pl": "Przestała płakać. Natychmiast. Jakby ktoś wyciszył dźwięk.",
+  "fr": "Elle a arrêté de pleurer. Net. Comme si on avait coupé le son.",
+  "zh": "她立刻不哭了。就像有人按下了静音。",
+  "ja": "彼女は泣きやんだ。一瞬で。まるで誰かが音を消したように。",
+  "ko": "울음이 뚝 그쳤다. 단숨에. 누가 소리를 꺼 버린 것처럼."
  },
  "a05": {
   "who": "ИТАН",
@@ -893,7 +1145,11 @@
   "de": "Sie roch nicht nach Regen. Sondern nach Maschinenöl und Staub. Wie ein Aufzugsschacht.",
   "it": "Non sapeva di pioggia. Sapeva di olio di macchina e di polvere. Come un vano ascensore.",
   "tr": "Yağmur kokmuyordu. Makine yağı ve toz kokuyordu. Asansör kuyusu gibi.",
-  "pl": "Nie pachniała deszczem. Pachniała olejem maszynowym i kurzem. Jak szyb windy."
+  "pl": "Nie pachniała deszczem. Pachniała olejem maszynowym i kurzem. Jak szyb windy.",
+  "fr": "Elle ne sentait pas la pluie. L’huile et la poussière. Comme une cage d’ascenseur.",
+  "zh": "她身上没有雨水的味道。是机油和灰尘的味道。像电梯井。",
+  "ja": "雨の匂いはしなかった。機械油と埃の匂い。エレベーターの昇降路のような。",
+  "ko": "비 냄새가 아니었다. 기계 기름과 먼지 냄새. 엘리베이터 승강로에서 나는 냄새였다."
  },
  "a06": {
   "who": "ИТАН",
@@ -907,7 +1163,11 @@
   "de": "Mein Handy klingelte. Auf dem Display: „Lily“.",
   "it": "Squillò il telefono. Sullo schermo: «Lily».",
   "tr": "Telefonum çaldı. Ekranda “Lily” yazıyordu.",
-  "pl": "Zadzwonił telefon. Na ekranie: „Lily”."
+  "pl": "Zadzwonił telefon. Na ekranie: „Lily”.",
+  "fr": "Mon téléphone a sonné. « Lily » à l’écran.",
+  "zh": "手机响了。屏幕上显示：“莉莉”。",
+  "ja": "スマホが鳴った。画面には「リリー」と出ていた。",
+  "ko": "휴대폰이 울렸다. 화면에는 “릴리”라고 떠 있었다."
  },
  "a07": {
   "who": "ИТАН",
@@ -921,7 +1181,11 @@
   "de": "Lily stand direkt neben mir. Ihre Hände waren leer. Und das Handy klingelte weiter.",
   "it": "Lily era accanto a me. Aveva le mani vuote. E il telefono continuava a squillare.",
   "tr": "Lily tam yanımda duruyordu. Elleri boştu. Telefon ise çalmaya devam ediyordu.",
-  "pl": "Lily stała tuż obok mnie. Ręce miała puste. A telefon wciąż dzwonił."
+  "pl": "Lily stała tuż obok mnie. Ręce miała puste. A telefon wciąż dzwonił.",
+  "fr": "Lily était juste à côté de moi. Les mains vides. Et le téléphone sonnait toujours.",
+  "zh": "莉莉就站在我身边。她两手空空。可手机还在响。",
+  "ja": "リリーは俺のすぐ隣に立っていた。その手には何も持っていなかった。それなのに、スマホは鳴り続けていた。",
+  "ko": "릴리는 바로 내 옆에 서 있었다. 손은 비어 있었다. 그런데도 휴대폰은 계속 울리고 있었다."
  },
  "a08": {
   "who": "ИТАН",
@@ -935,7 +1199,11 @@
   "de": "Ich sah auf. Das Foyer war leer. Nur nasse Fußspuren, zum Aufzug hin.",
   "it": "Alzai gli occhi. L'atrio era vuoto. Solo orme bagnate, verso l'ascensore.",
   "tr": "Başımı kaldırdım. Lobi boştu. Yalnızca asansöre giden ıslak ayak izleri.",
-  "pl": "Podniosłem wzrok. Hol był pusty. Tylko mokre ślady prowadzące do windy."
+  "pl": "Podniosłem wzrok. Hol był pusty. Tylko mokre ślady prowadzące do windy.",
+  "fr": "J’ai levé les yeux. Hall vide. Seules des traces mouillées menaient à l’ascenseur.",
+  "zh": "我抬起头。大厅里空了。只剩一串湿脚印，通向电梯。",
+  "ja": "顔を上げた。ロビーには誰もいない。濡れた足跡だけが、エレベーターへ続いていた。",
+  "ko": "고개를 들었다. 로비는 텅 비어 있었다. 엘리베이터까지 이어진 젖은 발자국만 남아 있었다."
  },
  "a09": {
   "who": "ИТАН",
@@ -949,7 +1217,11 @@
   "de": "Der Aufzug fuhr nach oben. Fünf. Neun. Zwölf. Dreizehn.",
   "it": "L'ascensore salì. Cinque. Nove. Dodici. Tredici.",
   "tr": "Asansör yukarı çıktı. Beş. Dokuz. On iki. On üç.",
-  "pl": "Winda ruszyła w górę. Pięć. Dziewięć. Dwanaście. Trzynaście."
+  "pl": "Winda ruszyła w górę. Pięć. Dziewięć. Dwanaście. Trzynaście.",
+  "fr": "L’ascenseur est monté. Cinq. Neuf. Douze. Treize.",
+  "zh": "电梯一路往上。五。九。十二。十三。",
+  "ja": "エレベーターが上がっていく。5。9。12。13。",
+  "ko": "엘리베이터가 올라갔다. 5. 9. 12. 13."
  },
  "a10": {
   "who": "ИТАН",
@@ -963,7 +1235,11 @@
   "de": "Monitor dreizehn ging von selbst an, mit gezogenem Stecker. Am Ende des Flurs ein gelber Pullover. Es drehte sich langsam um.",
   "it": "Il monitor tredici si accese da solo, col cavo staccato. In fondo al corridoio, un maglione giallo. Si voltò lentamente.",
   "tr": "On üç numaralı monitör, kablosu çekilmiş olduğu halde kendiliğinden açıldı. Koridorun sonunda sarı bir kazak. Yavaşça kameraya döndü.",
-  "pl": "Trzynasty monitor włączył się sam, mimo wyrwanego kabla. Na końcu korytarza — żółty sweter. Powoli się odwróciło."
+  "pl": "Trzynasty monitor włączył się sam, mimo wyrwanego kabla. Na końcu korytarza — żółty sweter. Powoli się odwróciło.",
+  "fr": "Le moniteur treize s’est allumé tout seul, câble arraché. Au bout du couloir, un pull jaune. Ça s’est retourné, lentement.",
+  "zh": "十三号监视器自己亮了，电源线明明已经拔掉了。走廊尽头，一件黄色毛衣。它缓缓转过身来。",
+  "ja": "13番モニターがひとりでに点いた。コードは抜いてあるのに。廊下の突き当たりに、黄色いセーター。それがゆっくりと振り向いた。",
+  "ko": "13번 모니터가 저절로 켜졌다. 코드가 뽑혀 있는데도. 복도 끝에 노란 스웨터가 보였다. 그것이 천천히 돌아섰다."
  },
  "a11": {
   "who": "ИТАН",
@@ -977,7 +1253,11 @@
   "de": "Das war nicht ihr Gesicht. Und es lächelte in die Kamera.",
   "it": "Non era il suo viso. E sorrideva alla telecamera.",
   "tr": "Bu onun yüzü değildi. Üstelik kameraya gülümsüyordu.",
-  "pl": "To nie była jej twarz. I uśmiechało się do kamery."
+  "pl": "To nie była jej twarz. I uśmiechało się do kamery.",
+  "fr": "Ce n’était pas son visage. Et ça souriait à la caméra.",
+  "zh": "那不是她的脸。它正对着镜头笑。",
+  "ja": "彼女の顔ではなかった。その顔が、カメラに向かって笑っていた。",
+  "ko": "릴리의 얼굴이 아니었다. 그것은 카메라를 보며 웃고 있었다."
  },
  "a12": {
   "who": "ИТАН",
@@ -991,7 +1271,11 @@
   "de": "Frank hatte gewarnt. Und ich hab selbst aufgemacht. Selbst reingelassen.",
   "it": "Frank mi aveva avvertito. Eppure avevo aperto io. L'avevo fatto entrare io.",
   "tr": "Frank beni uyarmıştı. Ben ise kapıyı kendim açtım. Kendi ellerimle içeri aldım.",
-  "pl": "Frank przecież ostrzegał. A ja sam otworzyłem. Sam wpuściłem."
+  "pl": "Frank przecież ostrzegał. A ja sam otworzyłem. Sam wpuściłem.",
+  "fr": "Frank m’avait prévenu. J’ai ouvert moi-même. Je l’ai laissé entrer.",
+  "zh": "弗兰克警告过我的。是我自己开的门。是我自己放它进来的。",
+  "ja": "フランクは警告してくれていた。なのに、自分でドアを開けた。自分で、それを招き入れた。",
+  "ko": "프랭크가 경고했는데. 내 손으로 문을 열었다. 내 손으로 들여놓았다."
  },
  "a13": {
   "who": "ИТАН",
@@ -1005,7 +1289,11 @@
   "de": "Der Aufzug fuhr nach unten.",
   "it": "L'ascensore prese a scendere.",
   "tr": "Asansör aşağı inmeye başladı.",
-  "pl": "Winda ruszyła w dół."
+  "pl": "Winda ruszyła w dół.",
+  "fr": "L’ascenseur est redescendu.",
+  "zh": "电梯开始下行。",
+  "ja": "エレベーターが降り始めた。",
+  "ko": "엘리베이터가 내려오기 시작했다."
  },
  "h01": {
   "who": "ИТАН",
@@ -1019,7 +1307,11 @@
   "de": "Ich schloss die Kabine ab. Machte die Lampe aus. Rutschte unter den Tresen.",
   "it": "Chiusi a chiave la guardiola. Spensi la lampada. Scivolai a terra, sotto il bancone.",
   "tr": "Kulübeyi kilitledim. Lambayı söndürdüm. Masanın altına, yere süzüldüm.",
-  "pl": "Zamknąłem budkę. Zgasiłem lampę. Osunąłem się na podłogę pod ladą."
+  "pl": "Zamknąłem budkę. Zgasiłem lampę. Osunąłem się na podłogę pod ladą.",
+  "fr": "J’ai verrouillé la loge. Éteint la lampe. Glissé par terre, sous le comptoir.",
+  "zh": "我锁上岗亭的门，关掉灯，顺着柜台滑坐到地上。",
+  "ja": "守衛室に鍵をかけた。ランプを消した。カウンターの下の床に、ずるずると座り込んだ。",
+  "ko": "경비실 문을 잠갔다. 스탠드를 껐다. 카운터 밑 바닥으로 미끄러져 내려갔다."
  },
  "h02": {
   "who": "ИТАН",
@@ -1033,7 +1325,11 @@
   "de": "Die Aufzugstüren. Schritte. Barfuß, nass. Näher.",
   "it": "Porte dell'ascensore. Passi scalzi, bagnati. Più vicini.",
   "tr": "Asansör kapıları. Ayak sesleri. Çıplak, ıslak. Yaklaşıyor.",
-  "pl": "Drzwi windy. Kroki. Bose, mokre. Coraz bliżej."
+  "pl": "Drzwi windy. Kroki. Bose, mokre. Coraz bliżej.",
+  "fr": "L’ascenseur. Des pas, pieds nus, mouillés. Plus près.",
+  "zh": "电梯门。脚步声。赤着脚，湿漉漉的。越来越近。",
+  "ja": "エレベーターのドア。足音。裸足の、濡れた足音。近づいてくる。",
+  "ko": "엘리베이터 문이 열리는 소리. 발소리. 맨발에, 젖은 발소리. 점점 가까워졌다."
  },
  "h03": {
   "who": "ИТАН",
@@ -1047,7 +1343,11 @@
   "de": "Das Handy in meiner Tasche vibrierte. Ich legte die Hand darauf. Zu spät.",
   "it": "Il telefono in tasca vibrò. Lo coprii con la mano. Troppo tardi.",
   "tr": "Cebimdeki telefon titredi. Elimle üstünü kapattım. Artık çok geçti.",
-  "pl": "Telefon w kieszeni zawibrował. Zakryłem go dłonią. Za późno."
+  "pl": "Telefon w kieszeni zawibrował. Zakryłem go dłonią. Za późno.",
+  "fr": "Le téléphone a vibré dans ma poche. J’ai posé la main dessus. Trop tard.",
+  "zh": "口袋里的手机震了起来。我用手捂住它。太迟了。",
+  "ja": "ポケットのスマホが震えた。手で押さえたが、遅かった。",
+  "ko": "주머니 속 휴대폰이 진동했다. 손으로 덮었지만 이미 늦었다."
  },
  "h04": {
   "who": "ЛИЛИ",
@@ -1061,7 +1361,11 @@
   "de": "— Ethan… Bist du da? Na komm, hol Luft.",
   "it": "— Ethan… Ci sei? Dai, fai un respiro.",
   "tr": "— Ethan… Burada mısın? Hadi, bir nefes al.",
-  "pl": "— Ethan… Jesteś tu? No, weź oddech."
+  "pl": "— Ethan… Jesteś tu? No, weź oddech.",
+  "fr": "— Ethan… Tu es là ? Allez, respire.",
+  "zh": "— 伊森……你在这儿吗？来嘛，吸口气。",
+  "ja": "— イーサン……そこにいるの？ ほら、息をして。",
+  "ko": "— 이선… 거기 있어? 자, 숨 한번 쉬어 봐."
  },
  "h05": {
   "who": "ИТАН",
@@ -1075,7 +1379,11 @@
   "de": "Die Schritte kreisten um die Kabine. Eine Stunde. Noch eine.",
   "it": "I passi giravano attorno alla guardiola. Un'ora. E un'altra.",
   "tr": "Ayak sesleri kulübeyi dolandı. Bir saat. Sonra bir saat daha.",
-  "pl": "Kroki krążyły wokół budki. Godzinę. Potem drugą."
+  "pl": "Kroki krążyły wokół budki. Godzinę. Potem drugą.",
+  "fr": "Les pas ont rôdé autour de la loge. Une heure. Une autre.",
+  "zh": "脚步声绕着岗亭转圈。一个小时。又一个小时。",
+  "ja": "足音は守衛室の周りを回り続けた。一時間。さらに、もう一時間。",
+  "ko": "발소리는 경비실 주위를 맴돌았다. 한 시간. 그리고 또 한 시간."
  },
  "h06": {
   "who": "ИТАН",
@@ -1089,7 +1397,11 @@
   "de": "Eine Minute vor sechs rief sie noch einmal, flüsternd. Und ich antwortete, ehe ich es merkte.",
   "it": "Alle sei meno un minuto chiamò ancora, in un sussurro. E risposi prima di accorgermi che stavo rispondendo.",
   "tr": "Altıya bir kala yine seslendi, fısıltıyla. Ve cevap verdiğimi fark etmeden cevap verdim.",
-  "pl": "Za minutę szósta zawołała jeszcze raz, szeptem. I odpowiedziałem, zanim zrozumiałem, że odpowiadam."
+  "pl": "Za minutę szósta zawołała jeszcze raz, szeptem. I odpowiedziałem, zanim zrozumiałem, że odpowiadam.",
+  "fr": "À six heures moins une, elle a rappelé, tout bas. J’ai répondu avant de comprendre que je répondais.",
+  "zh": "六点差一分，她又叫了我一声，压低了嗓子，像耳语。我还没意识到自己在答应，就已经答应了。",
+  "ja": "6時1分前、彼女はもう一度、ささやき声で呼んだ。返事をしていると気づく前に、もう返事をしていた。",
+  "ko": "6시 1분 전, 그 애가 속삭이며 다시 불렀다. 그리고 나는 대답하고 있다는 걸 깨닫기도 전에 대답해 버렸다."
  },
  "h07": {
   "who": "ИТАН",
@@ -1103,7 +1415,11 @@
   "de": "Um sechs knallte die Eingangstür. Die Ablösung war da.",
   "it": "Alle sei sbatté il portone. Arrivò la guardia diurna.",
   "tr": "Altıda ön kapı çarptı. Gündüz nöbetçisi gelmişti.",
-  "pl": "O szóstej trzasnęły drzwi wejściowe. Przyszedł dzienny ochroniarz."
+  "pl": "O szóstej trzasnęły drzwi wejściowe. Przyszedł dzienny ochroniarz.",
+  "fr": "À six heures, la porte a claqué : le gardien de jour.",
+  "zh": "六点，前门砰地响了一声。白班保安到了。",
+  "ja": "6時、入口のドアがバタンと鳴った。日勤の警備員が出勤してきた。",
+  "ko": "6시에 정문이 쾅 하고 열렸다. 주간 경비원이 출근한 것이다."
  },
  "h08": {
   "who": "СМЕНЩИК",
@@ -1117,7 +1433,11 @@
   "de": "— Nicht geantwortet?",
   "it": "— Non hai risposto?",
   "tr": "— Cevap vermedin, değil mi?",
-  "pl": "— Nie odpowiadałeś?"
+  "pl": "— Nie odpowiadałeś?",
+  "fr": "— Tu n’as pas répondu ?",
+  "zh": "— 你没答应吧？",
+  "ja": "— 返事は、してないな？",
+  "ko": "— 대답 안 했지?"
  },
  "h09": {
   "who": "ИТАН",
@@ -1131,7 +1451,11 @@
   "de": "Er sah mich an. Und wich zurück. Langsam, ohne mir den Rücken zuzukehren.",
   "it": "Mi guardò. E indietreggiò. Piano, senza voltarmi le spalle.",
   "tr": "Bana baktı. Sonra geri geri çekildi. Yavaşça, bana sırtını dönmeden.",
-  "pl": "Spojrzał na mnie. I cofnął się. Powoli, nie odwracając się do mnie plecami."
+  "pl": "Spojrzał na mnie. I cofnął się. Powoli, nie odwracając się do mnie plecami.",
+  "fr": "Il m’a regardé. Puis il a reculé. Lentement, sans me tourner le dos.",
+  "zh": "他看着我，慢慢往后退，始终没有把背转向我。",
+  "ja": "彼は俺を見た。そして後ずさった。背を向けないよう、ゆっくりと。",
+  "ko": "그는 나를 쳐다보았다. 그러고는 뒷걸음질 쳤다. 천천히, 등을 보이지 않은 채."
  },
  "h10": {
   "who": "ИТАН",
@@ -1145,7 +1469,11 @@
   "de": "Ich sah mein Spiegelbild in der Scheibe. Ich lächelte. Breiter, als ich kann. Und blinzelte nicht.",
   "it": "Vidi il mio riflesso nel vetro della guardiola. Sorridevo. Più di quanto so fare. E non sbattevo le palpebre.",
   "tr": "Kulübenin camında yansımamı gördüm. Gülümsüyordum. Yapabileceğimden daha geniş. Göz bile kırpmıyordum.",
-  "pl": "Zobaczyłem swoje odbicie w szybie budki. Uśmiechałem się. Szerzej, niż potrafię. I nie mrugałem."
+  "pl": "Zobaczyłem swoje odbicie w szybie budki. Uśmiechałem się. Szerzej, niż potrafię. I nie mrugałem.",
+  "fr": "J’ai vu mon reflet dans la vitre de la loge. Je souriais. Plus largement que je ne sais. Sans ciller.",
+  "zh": "我在岗亭的玻璃里看见了自己的倒影。我在笑。嘴咧得比我自己能咧的还要大。而且没有眨眼。",
+  "ja": "守衛室のガラスに、自分の姿が映っていた。俺は笑っていた。自分ではできないほど大きく。まばたきもしていなかった。",
+  "ko": "경비실 유리에 비친 내 모습이 보였다. 나는 웃고 있었다. 내가 지을 수 있는 것보다 더 크게. 그리고 눈을 깜박이지 않았다."
  },
  "x01": {
   "who": "ИТАН",
@@ -1159,7 +1487,11 @@
   "de": "Der Notausgang war am Ende des Dienstflurs. Vierzig Schritte.",
   "it": "L'uscita di emergenza era in fondo al corridoio di servizio. Quaranta passi.",
   "tr": "Acil çıkış servis koridorunun sonundaydı. Kırk adım.",
-  "pl": "Wyjście awaryjne było na końcu korytarza służbowego. Czterdzieści kroków."
+  "pl": "Wyjście awaryjne było na końcu korytarza służbowego. Czterdzieści kroków.",
+  "fr": "La sortie de secours était au bout du couloir de service. Quarante pas.",
+  "zh": "紧急出口在后勤通道的尽头。四十步。",
+  "ja": "非常口は、業務用通路の突き当たりにあった。四十歩。",
+  "ko": "비상구는 직원용 복도 끝에 있었다. 마흔 걸음."
  },
  "x02": {
   "who": "ИТАН",
@@ -1173,7 +1505,11 @@
   "de": "Hinter mir gingen die Lampen aus: Es folgte dem Geräusch meiner Schritte.",
   "it": "Le luci si spegnevano dietro di me: seguiva il suono dei miei passi.",
   "tr": "Işıklar arkamda sönüyordu: o, adımlarımın sesini izliyordu.",
-  "pl": "Za mną gasły lampy: to szło za dźwiękiem moich kroków."
+  "pl": "Za mną gasły lampy: to szło za dźwiękiem moich kroków.",
+  "fr": "Les lampes s’éteignaient derrière moi : ça suivait le bruit de mes pas.",
+  "zh": "身后的灯一盏盏熄灭：它循着我的脚步声追来了。",
+  "ja": "背後で明かりが消えていった。それは、足音を頼りに追ってきていた。",
+  "ko": "등 뒤로 불이 차례로 꺼졌다. 그것이 내 발소리를 따라오고 있었다."
  },
  "x03": {
   "who": "ИТАН",
@@ -1187,7 +1523,11 @@
   "de": "Ich stolperte in den Regen und rannte, bis mir die Luft wegblieb.",
   "it": "Piombai fuori nella pioggia e corsi finché mi mancò il fiato.",
   "tr": "Kendimi yağmura attım ve nefesim kesilene kadar koştum.",
-  "pl": "Wypadłem na deszcz i biegłem, aż zabrakło mi tchu."
+  "pl": "Wypadłem na deszcz i biegłem, aż zabrakło mi tchu.",
+  "fr": "J’ai déboulé sous la pluie et couru à perdre haleine.",
+  "zh": "我跌进雨里，拼命地跑，直到喘不上气。",
+  "ja": "雨の中へ転がり出て、息が続かなくなるまで走った。",
+  "ko": "빗속으로 굴러떨어지듯 뛰쳐나와, 숨이 막힐 때까지 달렸다."
  },
  "x04": {
   "who": "ИТАН",
@@ -1201,7 +1541,11 @@
   "de": "Das Horizon lag im Dunkeln. Nur über dem Dach, wo es keine Etagen mehr gibt, leuchtete ein Fenster.",
   "it": "L'Horizon era buio. Solo sopra il tetto, dove non ci sono più piani, era accesa una finestra.",
   "tr": "Horizon karanlıkta duruyordu. Yalnızca çatının üstünde, artık kat olmayan yerde, bir pencere yanıyordu.",
-  "pl": "Horizon stał ciemny. Tylko nad dachem, gdzie nie ma już pięter, świeciło okno."
+  "pl": "Horizon stał ciemny. Tylko nad dachem, gdzie nie ma już pięter, świeciło okno.",
+  "fr": "L’Horizon était noir. Au-dessus du toit, où il n’y a plus d’étages, une fenêtre brillait.",
+  "zh": "地平线大楼一片漆黑。只有屋顶之上——那里本不该再有楼层——亮着一扇窗。",
+  "ja": "ホライゾンは暗いまま、そびえていた。屋上のさらに上、もう階などないはずの場所で、窓がひとつだけ灯っていた。",
+  "ko": "호라이즌은 어둠에 잠겨 있었다. 층이 더는 없는 지붕 위쪽에서만 창문 하나가 환했다."
  },
  "x05": {
   "who": "ИТАН",
@@ -1215,7 +1559,11 @@
   "de": "Es klingelte. Lily.",
   "it": "Il telefono squillò. Lily.",
   "tr": "Telefonum çaldı. Lily.",
-  "pl": "Zadzwonił telefon. Lily."
+  "pl": "Zadzwonił telefon. Lily.",
+  "fr": "Mon téléphone a sonné. Lily.",
+  "zh": "手机响了。莉莉。",
+  "ja": "スマホが鳴った。リリー。",
+  "ko": "휴대폰이 울렸다. 릴리였다."
  },
  "x06": {
   "who": "ЛИЛИ",
@@ -1229,7 +1577,11 @@
   "de": "— Ethan? Warum hast du angerufen? Hast gesagt, du stehst unter meinem Fenster…",
   "it": "— Ethan? Perché hai chiamato? Hai detto che eri sotto la mia finestra…",
   "tr": "— Ethan? Neden aradın? Penceremin altında durduğunu söylemiştin…",
-  "pl": "— Ethan? Po co dzwoniłeś? Mówiłeś, że stoisz pod moim oknem…"
+  "pl": "— Ethan? Po co dzwoniłeś? Mówiłeś, że stoisz pod moim oknem…",
+  "fr": "— Ethan ? Pourquoi tu as appelé ? Tu disais être sous ma fenêtre…",
+  "zh": "— 伊森？你为什么打电话来？你说你就站在我窗户底下……",
+  "ja": "— イーサン？ どうして電話してきたの？ 私の窓の下に立ってるって、言ってたのに……",
+  "ko": "— 이선? 왜 전화했어? 내 방 창문 밑에 서 있다고 했잖아…"
  },
  "x07": {
   "who": "ИТАН",
@@ -1243,7 +1595,11 @@
   "de": "Ich stand im Regen vor dem Horizon. Dreihundert Kilometer von ihrem Fenster.",
   "it": "Ero sotto la pioggia davanti all'Horizon. A trecento chilometri dalla sua finestra.",
   "tr": "Horizon'un önünde, yağmurda duruyordum. Penceresinden iki yüz mil uzakta.",
-  "pl": "Stałem w deszczu przed Horizonem. Trzysta kilometrów od jej okna."
+  "pl": "Stałem w deszczu przed Horizonem. Trzysta kilometrów od jej okna.",
+  "fr": "J’étais sous la pluie devant l’Horizon. À trois cents kilomètres de sa fenêtre.",
+  "zh": "我正站在地平线大楼外的雨里。离她的窗户三百公里。",
+  "ja": "俺は雨の中、ホライゾンの前に立っていた。彼女の窓から300キロも離れた場所で。",
+  "ko": "나는 호라이즌 앞 빗속에 서 있었다. 릴리의 창문에서 300킬로미터 떨어진 곳에."
  },
  "x08": {
   "who": "ЛИЛИ",
@@ -1257,7 +1613,11 @@
   "de": "— Ethan… wer ruft mich dann von der Straße? Mit deiner Stimme.",
   "it": "— Ethan… e allora chi mi chiama dalla strada? Con la tua voce.",
   "tr": "— Ethan… o zaman sokaktan bana kim sesleniyor? Senin sesinle.",
-  "pl": "— Ethan… to kto mnie woła z ulicy? Twoim głosem."
+  "pl": "— Ethan… to kto mnie woła z ulicy? Twoim głosem.",
+  "fr": "— Ethan… alors qui m’appelle depuis la rue ? Avec ta voix.",
+  "zh": "— 伊森……那，是谁在街上叫我？用的是你的声音。",
+  "ja": "— イーサン……じゃあ、通りから私を呼んでるのは誰？ イーサンの声で。",
+  "ko": "— 이선… 그럼 지금 길에서 날 부르는 건 누구야? 네 목소리로."
  },
  "b01": {
   "who": "ИТАН",
@@ -1271,7 +1631,11 @@
   "de": "Ich machte nicht auf. Sie hörte auf zu weinen. Sofort.",
   "it": "Non aprii. Smise di piangere. All'istante.",
   "tr": "Açmadım. Ağlamayı kesti. Bir anda.",
-  "pl": "Nie otworzyłem. Przestała płakać. Natychmiast."
+  "pl": "Nie otworzyłem. Przestała płakać. Natychmiast.",
+  "fr": "Je n’ai pas ouvert. Elle a arrêté de pleurer. Net.",
+  "zh": "我没有开门。她立刻不哭了。",
+  "ja": "ドアは開けなかった。彼女は泣きやんだ。一瞬で。",
+  "ko": "열지 않았다. 그 애는 울음을 그쳤다. 단숨에."
  },
  "b02": {
   "who": "ИТАН",
@@ -1285,7 +1649,11 @@
   "de": "Und lächelte. Zu breit. So hat Lily nie gelächelt.",
   "it": "E sorrise. Troppo largo. Lily non sorrideva mai così.",
   "tr": "Sonra gülümsedi. Fazla geniş. Lily asla öyle gülümsemezdi.",
-  "pl": "Uśmiechnęła się. Za szeroko. Lily nigdy tak się nie uśmiechała."
+  "pl": "Uśmiechnęła się. Za szeroko. Lily nigdy tak się nie uśmiechała.",
+  "fr": "Elle a souri. Trop large. Jamais Lily ne souriait ainsi.",
+  "zh": "然后笑了。笑得太开。莉莉从来不那样笑。",
+  "ja": "そして笑った。大きすぎる笑みで。リリーは、あんなふうに笑ったことがない。",
+  "ko": "그리고 웃었다. 너무 크게. 릴리는 한 번도 그렇게 웃은 적이 없다."
  },
  "b03": {
   "who": "ИТАН",
@@ -1299,7 +1667,11 @@
   "de": "Sie kratzte mit den Nägeln am Glas. Langsam, von oben nach unten.",
   "it": "Graffiò il vetro con le unghie. Lentamente, dall'alto in basso.",
   "tr": "Tırnaklarıyla camı kazıdı. Yavaşça, yukarıdan aşağıya.",
-  "pl": "Drapała szybę paznokciami. Powoli, z góry na dół."
+  "pl": "Drapała szybę paznokciami. Powoli, z góry na dół.",
+  "fr": "Ses ongles raclaient la vitre. Lentement, de haut en bas.",
+  "zh": "她用指甲刮着玻璃。很慢，从上往下。",
+  "ja": "彼女は爪でガラスを引っかいた。ゆっくりと、上から下へ。",
+  "ko": "그 애는 손톱으로 유리를 긁었다. 천천히, 위에서 아래로."
  },
  "b04": {
   "who": "ЛИЛИ",
@@ -1313,7 +1685,11 @@
   "de": "— Ethan. Ethan. Ethan.",
   "it": "— Ethan. Ethan. Ethan.",
   "tr": "— Ethan. Ethan. Ethan.",
-  "pl": "— Ethan. Ethan. Ethan."
+  "pl": "— Ethan. Ethan. Ethan.",
+  "fr": "— Ethan. Ethan. Ethan.",
+  "zh": "— 伊森。伊森。伊森。",
+  "ja": "— イーサン。イーサン。イーサン。",
+  "ko": "— 이선. 이선. 이선."
  },
  "b05": {
   "who": "ИТАН",
@@ -1327,7 +1703,11 @@
   "de": "Dann ging sie. Rückwärts. Ohne den Blick von mir zu lassen.",
   "it": "Poi se ne andò. All'indietro. Senza staccarmi gli occhi di dosso.",
   "tr": "Sonra gitti. Geri geri yürüyerek. Gözlerini benden hiç ayırmadan.",
-  "pl": "Potem odeszła. Tyłem. Nie spuszczając ze mnie oczu."
+  "pl": "Potem odeszła. Tyłem. Nie spuszczając ze mnie oczu.",
+  "fr": "Puis elle est partie. À reculons. Sans me quitter des yeux.",
+  "zh": "然后她走了。倒退着走。眼睛一刻也没离开我。",
+  "ja": "やがて彼女は去っていった。後ろ向きに歩きながら。俺から目を離さずに。",
+  "ko": "그러더니 떠났다. 뒷걸음질로. 나에게서 눈을 떼지 않은 채."
  },
  "b06": {
   "who": "ИТАН",
@@ -1341,7 +1721,11 @@
   "de": "Der Regen lief über die Scheibe, doch der Abdruck ihrer Hand blieb.",
   "it": "La pioggia rigava il vetro, ma l'impronta del suo palmo non andava via.",
   "tr": "Yağmur camdan süzülüyordu ama avucunun izi silinmiyordu.",
-  "pl": "Deszcz zalewał szybę, a odcisk jej dłoni się nie zmywał."
+  "pl": "Deszcz zalewał szybę, a odcisk jej dłoni się nie zmywał.",
+  "fr": "La pluie coulait sur la vitre, mais l’empreinte de sa paume restait.",
+  "zh": "雨水顺着玻璃流下，她的掌印却冲不掉。",
+  "ja": "雨がガラスを流れ落ちていくのに、彼女の手形は洗い流されなかった。",
+  "ko": "빗물이 유리를 타고 흘렀지만, 그 애의 손바닥 자국은 씻겨 내려가지 않았다."
  },
  "b07": {
   "who": "ИТАН",
@@ -1355,7 +1739,11 @@
   "de": "Ich rief Lily an. Ein Tuten. Zwei. Drei.",
   "it": "Chiamai Lily. Uno squillo. Due. Tre.",
   "tr": "Lily'yi aradım. Bir kez çaldı. İki. Üç.",
-  "pl": "Zadzwoniłem do Lily. Sygnał. Drugi. Trzeci."
+  "pl": "Zadzwoniłem do Lily. Sygnał. Drugi. Trzeci.",
+  "fr": "Appel à Lily. Une sonnerie. Deux. Trois.",
+  "zh": "我给莉莉打了电话。一声。两声。三声。",
+  "ja": "リリーに電話した。呼び出し音が一回。二回。三回。",
+  "ko": "릴리에게 전화를 걸었다. 신호음이 한 번. 두 번. 세 번."
  },
  "b08": {
   "who": "ЛИЛИ",
@@ -1369,7 +1757,11 @@
   "de": "— Mm… Ethan? Es ist halb vier… Was ist passiert?",
   "it": "— Mm… Ethan? Sono le tre e mezza… Che succede?",
   "tr": "— Mm… Ethan? Saat üç buçuk… Ne oldu?",
-  "pl": "— Mm… Ethan? Wpół do czwartej… Co się stało?"
+  "pl": "— Mm… Ethan? Wpół do czwartej… Co się stało?",
+  "fr": "— Mm… Ethan ? Trois heures et demie… Qu’est-ce qu’il y a ?",
+  "zh": "— 嗯……伊森？现在才三点半……出什么事了？",
+  "ja": "— ん……イーサン？ 3時半だよ……どうしたの？",
+  "ko": "— 음… 이선? 지금 3시 반이야… 무슨 일이야?"
  },
  "b09": {
   "who": "ИТАН",
@@ -1383,7 +1775,11 @@
   "de": "— Wo bist du gerade?",
   "it": "— Dove sei, adesso?",
   "tr": "— Şu an neredesin?",
-  "pl": "— Gdzie teraz jesteś?"
+  "pl": "— Gdzie teraz jesteś?",
+  "fr": "— Tu es où, en ce moment ?",
+  "zh": "— 你现在在哪儿？",
+  "ja": "— 今、どこにいる？",
+  "ko": "— 너 지금 어디야?"
  },
  "b10": {
   "who": "ЛИЛИ",
@@ -1397,7 +1793,11 @@
   "de": "— Im Wohnheim, wo sonst. Ich schlafe. Ethan, du machst mir Angst.",
   "it": "— In residenza, dove sennò. Dormo. Ethan, mi fai paura.",
   "tr": "— Yurtta, başka nerede olacağım? Uyuyorum. Ethan, beni korkutuyorsun.",
-  "pl": "— W akademiku, gdzie niby? Śpię. Ethan, straszysz mnie."
+  "pl": "— W akademiku, gdzie niby? Śpię. Ethan, straszysz mnie.",
+  "fr": "— À la résidence, où d’autre. Je dors. Ethan, tu me fais peur.",
+  "zh": "— 还能在哪儿，宿舍啊。在睡觉。伊森，你吓到我了。",
+  "ja": "— 寮だよ、他にどこがあるの。寝てた。イーサン、怖いんだけど。",
+  "ko": "— 기숙사지 어디겠어. 자고 있었어. 이선, 나 무섭게 왜 그래."
  },
  "b11": {
   "who": "ИТАН",
@@ -1411,7 +1811,11 @@
   "de": "— Alles gut. Schlaf weiter. Nur: Ruft dich heute Nacht jemand beim Namen, antworte nicht. Auch wenn ich es bin.",
   "it": "— Tutto bene. Torna a dormire. Solo, se stanotte qualcuno ti chiama per nome, non rispondere. Anche se sono io.",
   "tr": "— Her şey yolunda. Uyumaya devam et. Yalnız bu gece biri adınla seslenirse cevap verme. Ben olsam bile.",
-  "pl": "— Wszystko dobrze. Śpij dalej. Tylko jeśli ktoś zawoła cię dziś po imieniu, nie odpowiadaj. Nawet jeśli to ja."
+  "pl": "— Wszystko dobrze. Śpij dalej. Tylko jeśli ktoś zawoła cię dziś po imieniu, nie odpowiadaj. Nawet jeśli to ja.",
+  "fr": "— Tout va bien. Rendors-toi. Mais si on t’appelle par ton nom cette nuit, ne réponds pas. Même si c’est moi.",
+  "zh": "— 没事。接着睡吧。只是，今晚要是有人叫你名字，别答应。就算是我也一样。",
+  "ja": "— 大丈夫、何でもないよ。もう寝な。ただ、今夜誰かに名前を呼ばれても、返事はするな。たとえそれが俺でも。",
+  "ko": "— 다 괜찮아. 다시 자. 그냥 오늘 밤에 누가 네 이름을 불러도 대답하지 마. 그게 나라도."
  },
  "b12": {
   "who": "ИТАН",
@@ -1425,7 +1829,11 @@
   "de": "Ich legte auf. Meine Hände zitterten.",
   "it": "Riattaccai. Mi tremavano le mani.",
   "tr": "Telefonu kapattım. Ellerim titriyordu.",
-  "pl": "Rozłączyłem się. Ręce mi się trzęsły."
+  "pl": "Rozłączyłem się. Ręce mi się trzęsły.",
+  "fr": "J’ai raccroché. Mes mains tremblaient.",
+  "zh": "我挂了电话。手一直在抖。",
+  "ja": "電話を切った。手が震えていた。",
+  "ko": "전화를 끊었다. 손이 떨렸다."
  },
  "s01": {
   "who": "ИТАН",
@@ -1439,7 +1847,11 @@
   "de": "Vor einer Stunde hatte ich der Dreizehn den Stecker gezogen. Sie ging trotzdem an.",
   "it": "Avevo staccato il cavo della tredici un'ora prima. Il monitor si accese lo stesso.",
   "tr": "On üçün kablosunu bir saat önce çekmiştim. Monitör yine de açıldı.",
-  "pl": "Kabel od trzynastki wyrwałem godzinę temu. Monitor i tak się włączył."
+  "pl": "Kabel od trzynastki wyrwałem godzinę temu. Monitor i tak się włączył.",
+  "fr": "Câble de la treize arraché depuis une heure. L’écran s’est rallumé quand même.",
+  "zh": "一小时前我就拔掉了十三号的电源线。监视器还是亮了。",
+  "ja": "13番のコードは、一時間前に引き抜いたのに。モニターは、それでも点いた。",
+  "ko": "한 시간 전에 13번 모니터의 코드를 뽑았다. 그런데도 모니터가 켜졌다."
  },
  "s02": {
   "who": "ИТАН",
@@ -1453,7 +1865,11 @@
   "de": "Der siebte Stock. Da war Gus. Er lag in der Tür von Siebenhundertsieben.",
   "it": "Il settimo piano. Gus era ricomparso. Giaceva sulla soglia del settecentosette.",
   "tr": "Yedinci kat. Gus bulunmuştu. Yedi yüz yedi numaralı odanın kapısında yatıyordu.",
-  "pl": "Siódme piętro. Gus się znalazł. Leżał w drzwiach siedemset siedem."
+  "pl": "Siódme piętro. Gus się znalazł. Leżał w drzwiach siedemset siedem.",
+  "fr": "Le septième étage. Gus était là. Il gisait dans l’encadrement du sept cent sept.",
+  "zh": "七楼。找到格斯了。他躺在707室的门口。",
+  "ja": "7階。ガスが見つかった。707号室の戸口に、横たわっていた。",
+  "ko": "7층. 거스를 찾았다. 그는 707호 문 앞에 쓰러져 있었다."
  },
  "s03": {
   "who": "ИТАН",
@@ -1467,7 +1883,11 @@
   "de": "Über ihm hockte es. Tief, direkt an seiner Brust. Es ließ sich Zeit.",
   "it": "Sopra di lui c'era quella cosa. Accovacciata sul petto. Senza fretta.",
   "tr": "O, üstüne çömelmişti. Alçakta, tam göğsünün başında. Acele etmiyordu.",
-  "pl": "To kucało nad nim. Nisko, tuż przy piersi. Nie spieszyło się."
+  "pl": "To kucało nad nim. Nisko, tuż przy piersi. Nie spieszyło się.",
+  "fr": "Ça se tenait accroupi sur lui, au ras de sa poitrine. Sans se presser.",
+  "zh": "它俯在他身上。很低，几乎贴着他的胸口。不慌不忙。",
+  "ja": "それが、彼の上にうずくまっていた。胸のすぐそばに、低く身をかがめて。急ぐ様子もなく。",
+  "ko": "그 위에 그것이 웅크리고 있었다. 가슴께에 바싹 엎드려, 서두르지 않고."
  },
  "s04": {
   "who": "ИТАН",
@@ -1481,7 +1901,11 @@
   "de": "Es begann, den Kopf zum Objektiv zu heben. Ich kniff die Augen zu.",
   "it": "Cominciò ad alzare la testa verso l'obiettivo. Chiusi forte gli occhi.",
   "tr": "Başını merceğe doğru kaldırmaya başladı. Gözlerimi sımsıkı kapattım.",
-  "pl": "To zaczęło unosić głowę w stronę obiektywu. Zacisnąłem powieki."
+  "pl": "To zaczęło unosić głowę w stronę obiektywu. Zacisnąłem powieki.",
+  "fr": "Ça a commencé à relever la tête vers l’objectif. J’ai fermé les yeux.",
+  "zh": "它开始朝镜头抬起头。我闭紧了眼睛。",
+  "ja": "それがレンズのほうへ、頭を持ち上げ始めた。思わず、目を固く閉じた。",
+  "ko": "그것이 렌즈 쪽으로 고개를 들기 시작했다. 나는 눈을 질끈 감았다."
  },
  "s05": {
   "who": "ИТАН",
@@ -1495,7 +1919,11 @@
   "de": "Als ich die Augen öffnete, war die Dreizehn dunkel. Daneben war die Kamera im Serverraum erwacht. Die ganze Nacht war das Bild schwarz. Jetzt brannte dort eine Kerze.",
   "it": "Quando riaprii gli occhi, la tredici era spenta. Sul monitor accanto aveva preso vita la telecamera della sala server. Era stata nera tutta la notte. Ora ardeva una candela.",
   "tr": "Gözlerimi açtığımda on üç kararmıştı. Yandaki monitörde ise sunucu odasının kamerası canlanmıştı. Bütün gece simsiyahtı. Şimdi bir mum yanıyordu.",
-  "pl": "Gdy otworzyłem oczy, trzynastka zgasła. A na sąsiednim monitorze ożyła kamera serwerowni. Całą noc było tam czarno — teraz paliła się świeca."
+  "pl": "Gdy otworzyłem oczy, trzynastka zgasła. A na sąsiednim monitorze ożyła kamera serwerowni. Całą noc było tam czarno — teraz paliła się świeca.",
+  "fr": "J’ai rouvert les yeux : la treize était éteinte. À côté, la caméra de la salle des serveurs s’était réveillée. Noire toute la nuit. Maintenant, une bougie brûlait.",
+  "zh": "我睁开眼时，十三号已经黑了。旁边那块监视器上，服务器机房的摄像头亮了起来。它整晚都是黑的。现在，画面里燃着一支蜡烛。",
+  "ja": "目を開けると、13番は消えていた。隣のモニターでは、サーバー室のカメラが息を吹き返していた。一晩中、真っ黒だったのに。いまは、ろうそくが燃えている。",
+  "ko": "눈을 떴을 때 13번은 꺼져 있었다. 옆 모니터에서는 서버실 카메라가 살아났다. 밤새 새까맣던 화면에 이제 촛불 하나가 타고 있었다."
  },
  "s06": {
   "who": "ИТАН",
@@ -1509,7 +1937,11 @@
   "de": "Minus zwei. Ein Salzkreis auf dem Boden. Darin saß ein Mann. Das Gesicht vom Ausweis über meinem Tisch. Frank. Lebendig. Abgemagert, unrasiert.",
   "it": "Secondo interrato. Un cerchio di sale sul pavimento. Dentro, un uomo seduto. Il volto del tesserino sopra la mia scrivania. Frank. Vivo. Magro, barbuto.",
   "tr": "İkinci bodrum. Zeminde bir tuz çemberi. İçinde oturan bir adam. Masamın üstündeki kimlik kartındaki yüz. Frank. Hayattaydı. Çökmüş yüzlü, tıraşsız.",
-  "pl": "Minus dwa. Na podłodze krąg z soli. W środku siedział człowiek. Twarz z identyfikatora nad moim biurkiem. Frank. Żywy — wychudzony, zarośnięty."
+  "pl": "Minus dwa. Na podłodze krąg z soli. W środku siedział człowiek. Twarz z identyfikatora nad moim biurkiem. Frank. Żywy — wychudzony, zarośnięty.",
+  "fr": "Sous-sol deux. Un cercle de sel sur le sol. Un homme assis dedans. Le visage du badge, au-dessus de mon bureau. Frank. Vivant. Amaigri, barbu.",
+  "zh": "地下二层。地上有一圈盐。圈里坐着一个人。是我桌子上方工牌上的那张脸。弗兰克。还活着。瘦脱了形，胡子拉碴。",
+  "ja": "地下2階。床に塩の円。その中に、男がひとり座っていた。机の上の入館証と同じ顔。フランク。生きている。やつれて、無精ひげが伸びていた。",
+  "ko": "지하 2층. 바닥에는 소금으로 그린 원이 있고, 그 안에 한 남자가 앉아 있었다. 내 책상 위 출입증에 있던 그 얼굴. 프랭크였다. 살아 있었다. 수척하고 수염이 덥수룩했다."
  },
  "s07": {
   "who": "ИТАН",
@@ -1523,7 +1955,11 @@
   "de": "Zwölf Etagen hatten sie durchsucht. An den Keller dachte keiner.",
   "it": "Avevano battuto dodici piani. Nessuno pensò all'interrato.",
   "tr": "On iki katı aramışlardı. Bodrumu kimse düşünmemişti.",
-  "pl": "Przeszukali dwanaście pięter. O piwnicy nikt nie pomyślał."
+  "pl": "Przeszukali dwanaście pięter. O piwnicy nikt nie pomyślał.",
+  "fr": "Douze étages fouillés. Personne n’avait pensé au sous-sol.",
+  "zh": "他们搜遍了十二层楼，却没人想到地下室。",
+  "ja": "警察は12階ぜんぶを調べた。地下のことは、誰も思いつかなかった。",
+  "ko": "12개 층을 샅샅이 뒤졌으면서, 지하는 아무도 떠올리지 못했다."
  },
  "s08": {
   "who": "ИТАН",
@@ -1537,7 +1973,11 @@
   "de": "Er hielt ein zerknittertes Blatt in die Kamera. Die Buchstaben immer wieder nachgezogen. Er zeigte es wohl jede Nacht.",
   "it": "Alzò verso la telecamera un foglio spiegazzato. Lettere ripassate mille volte. Doveva mostrarlo ogni notte.",
   "tr": "Kameraya doğru buruşuk bir kâğıt kaldırdı. Harflerin üstünden defalarca geçilmişti. Bunu her gece göstermiş olmalıydı.",
-  "pl": "Podniósł do kamery pomiętą kartkę. Litery obwiedzione wiele razy — pewnie pokazywał ją co noc."
+  "pl": "Podniósł do kamery pomiętą kartkę. Litery obwiedzione wiele razy — pewnie pokazywał ją co noc.",
+  "fr": "Il a levé une feuille froissée vers la caméra. Les lettres repassées maintes fois. Il devait la montrer chaque nuit.",
+  "zh": "他朝摄像头举起一张皱巴巴的纸。上面的字被描了一遍又一遍。他一定每晚都这样举着。",
+  "ja": "彼はしわくちゃの紙を、カメラの前にかざした。文字は何度も何度もなぞられている。毎晩、これを見せていたに違いない。",
+  "ko": "그는 구겨진 종이를 카메라 앞에 들어 올렸다. 글자는 몇 번이고 덧그려져 있었다. 밤마다 이렇게 내보였을 것이다."
  },
  "s09": {
   "who": "ИТАН",
@@ -1551,7 +1991,11 @@
   "de": "Plötzlich sah Frank sich um, ins Dunkel. Als hätte ihn jemand gerufen.",
   "it": "Frank si voltò di scatto verso il buio. Come se l'avessero chiamato.",
   "tr": "Frank birden dönüp karanlığa baktı. Sanki biri ona seslenmişti.",
-  "pl": "Frank nagle obejrzał się w ciemność. Jakby ktoś go zawołał."
+  "pl": "Frank nagle obejrzał się w ciemność. Jakby ktoś go zawołał.",
+  "fr": "Frank s’est soudain retourné vers le noir. Comme si on l’avait appelé.",
+  "zh": "弗兰克猛地回头，望向黑暗。像是有人在叫他。",
+  "ja": "フランクが不意に、暗がりを振り返った。誰かに呼ばれたように。",
+  "ko": "프랭크가 불쑥 어둠 속을 돌아보았다. 누가 부르기라도 한 것처럼."
  },
  "d01": {
   "who": "ИТАН",
@@ -1565,7 +2009,11 @@
   "de": "Den Aufzug rührte ich nicht an. Die Treppe. Minus eins. Minus zwei.",
   "it": "Non toccai l'ascensore. Le scale. Primo interrato. Secondo interrato.",
   "tr": "Asansöre dokunmadım. Merdiven. Birinci bodrum. İkinci bodrum.",
-  "pl": "Windy nie ruszałem. Schody. Minus jeden. Minus dwa."
+  "pl": "Windy nie ruszałem. Schody. Minus jeden. Minus dwa.",
+  "fr": "Pas l’ascenseur. L’escalier. Sous-sol un. Sous-sol deux.",
+  "zh": "我没碰电梯。走楼梯。地下一层。地下二层。",
+  "ja": "エレベーターには触れなかった。階段で。地下1階。地下2階。",
+  "ko": "엘리베이터는 건드리지 않았다. 계단. 지하 1층. 지하 2층."
  },
  "d02": {
   "who": "ИТАН",
@@ -1579,7 +2027,11 @@
   "de": "Es roch nach Moder und Wachs. Unter den Sohlen knirschte Salz.",
   "it": "Odore di umido e cera. Sotto i piedi scricchiolava il sale.",
   "tr": "Nem ve mum kokuyordu. Ayaklarımın altında tuz çıtırdıyordu.",
-  "pl": "Pachniało wilgocią i woskiem. Pod nogami chrzęściła sól."
+  "pl": "Pachniało wilgocią i woskiem. Pod nogami chrzęściła sól.",
+  "fr": "Odeur de cave et de cire. Le sel crissait sous mes pas.",
+  "zh": "空气里是潮气和蜡的味道。脚下的盐咯吱作响。",
+  "ja": "湿気とろうの匂いがした。足の下で、塩がじゃりと鳴った。",
+  "ko": "습기와 양초 냄새가 났다. 발밑에서 소금이 사각거렸다."
  },
  "d03": {
   "who": "ИТАН",
@@ -1593,7 +2045,11 @@
   "de": "Eine Eisentür. „Serverraum“. Darunter ein Streifen warmes Licht.",
   "it": "Una porta di ferro. «Sala server». Sotto, una striscia di luce calda.",
   "tr": "Demir bir kapı. “Sunucu Odası.” Altından sıcak bir ışık şeridi sızıyordu.",
-  "pl": "Żelazne drzwi. „Serwerownia”. Spod nich — pasek ciepłego światła."
+  "pl": "Żelazne drzwi. „Serwerownia”. Spod nich — pasek ciepłego światła.",
+  "fr": "Porte de fer, « Salle des serveurs ». Une lumière chaude dessous.",
+  "zh": "一扇铁门。“机房”。门缝下透出一线暖光。",
+  "ja": "鉄の扉。「サーバー室」。その下から、温かい光が細く漏れていた。",
+  "ko": "철문. “서버실.” 문 아래로 따뜻한 빛줄기가 새어 나왔다."
  },
  "d04": {
   "who": "ФРЭНК",
@@ -1607,7 +2063,11 @@
   "de": "— Ethan? Bist du das, Junge? Komm rein, ist auf.",
   "it": "— Ethan? Sei tu, figliolo? Entra, è aperto.",
   "tr": "— Ethan? Sen misin, evlat? Gir içeri, kapı açık.",
-  "pl": "— Ethan? To ty, synu? Wchodź, otwarte."
+  "pl": "— Ethan? To ty, synu? Wchodź, otwarte.",
+  "fr": "— Ethan ? C’est toi, fiston ? Entre, c’est ouvert.",
+  "zh": "— 伊森？是你吗，孩子？进来吧，门没锁。",
+  "ja": "— イーサンか？ お前さんかい、坊主。入っておいで、開いてるよ。",
+  "ko": "— 이선? 자네인가, 젊은이? 들어오게, 열려 있네."
  },
  "d05": {
   "who": "ИТАН",
@@ -1621,7 +2081,11 @@
   "de": "Die Stimme eines alten Mannes. Vielleicht klang Frank so. Nur hatte Frank meinen Namen nie gehört.",
   "it": "Voce da vecchio. Forse Frank parlava così. Solo che Frank non aveva mai sentito il mio nome.",
   "tr": "Yaşlı bir adamın sesi. Belki Frank'in sesi de böyleydi. Ama Frank adımı hiç duymamıştı.",
-  "pl": "Głos starego człowieka. Może tak właśnie brzmiał Frank. Tyle że Frank nigdy nie słyszał mojego imienia."
+  "pl": "Głos starego człowieka. Może tak właśnie brzmiał Frank. Tyle że Frank nigdy nie słyszał mojego imienia.",
+  "fr": "Une voix de vieillard. Peut-être celle de Frank. Sauf que Frank n’avait jamais entendu mon nom.",
+  "zh": "是个老人的声音。弗兰克的声音大概就是这样。可弗兰克从没听过我的名字。",
+  "ja": "老人の声。フランクの声は、こんなふうだったのかもしれない。だが、フランクは俺の名前を一度も聞いたことがない。",
+  "ko": "늙은 남자의 목소리. 프랭크의 목소리는 아마 저랬을 것이다. 다만 프랭크는 내 이름을 들은 적이 없다."
  },
  "d06": {
   "who": "ИТАН",
@@ -1635,7 +2099,11 @@
   "de": "Und auf dem Blatt stand: „Ruf mich nicht. Klopf dreimal.“",
   "it": "E il foglio diceva: «Non chiamarmi. Bussa tre volte.»",
   "tr": "Kâğıtta ise şöyle yazıyordu: “Bana seslenme. Kapıyı üç kez çal.”",
-  "pl": "A na kartce było: „Nie wołaj mnie. Pukaj trzy razy.”"
+  "pl": "A na kartce było: „Nie wołaj mnie. Pukaj trzy razy.”",
+  "fr": "Or la feuille disait : « Ne m’appelle pas. Frappe trois fois. »",
+  "zh": "而那张纸上写的是：“别喊我。敲三下。”",
+  "ja": "紙には、こう書かれていた。「俺を呼ぶな。ノックは三回。」",
+  "ko": "그리고 종이에는 이렇게 적혀 있었다. “나를 부르지 마라. 세 번 두드려라.”"
  },
  "d07": {
   "who": "ИТАН",
@@ -1649,7 +2117,11 @@
   "de": "Ich klopfte. Einmal. Zweimal. Dreimal.",
   "it": "Bussai. Una. Due. Tre volte.",
   "tr": "Kapıyı çaldım. Bir. İki. Üç.",
-  "pl": "Zapukałem. Raz. Dwa. Trzy."
+  "pl": "Zapukałem. Raz. Dwa. Trzy.",
+  "fr": "J’ai frappé. Une fois. Deux. Trois.",
+  "zh": "我敲了门。一下。两下。三下。",
+  "ja": "ノックした。一回。二回。三回。",
+  "ko": "문을 두드렸다. 한 번. 두 번. 세 번."
  },
  "d08": {
   "who": "ИТАН",
@@ -1663,7 +2135,11 @@
   "de": "Stille. Dann klirrte der Riegel. Von innen.",
   "it": "Silenzio. Poi il chiavistello scattò. Dall'interno.",
   "tr": "Sessizlik. Sonra sürgü tangırdadı. İçeriden.",
-  "pl": "Cisza. Potem szczęknęła zasuwa. Od środka."
+  "pl": "Cisza. Potem szczęknęła zasuwa. Od środka.",
+  "fr": "Silence. Puis le verrou a claqué. De l’intérieur.",
+  "zh": "一片寂静。然后门闩哐当一响。是从里面拉开的。",
+  "ja": "静寂。それから、かんぬきががちゃりと鳴った。内側から。",
+  "ko": "정적. 그러더니 안쪽에서 빗장이 철컹 벗겨졌다."
  },
  "d09": {
   "who": "ФРЭНК",
@@ -1677,7 +2153,11 @@
   "de": "— Rein. Schnell. Und keinen Laut.",
   "it": "— Dentro. Presto. E non un suono.",
   "tr": "— İçeri. Çabuk. Ve çıt çıkarma.",
-  "pl": "— Do środka. Szybko. I ani dźwięku."
+  "pl": "— Do środka. Szybko. I ani dźwięku.",
+  "fr": "— Entre. Vite. Pas un bruit.",
+  "zh": "— 进来。快。一点声音都别出。",
+  "ja": "— 中へ。急げ。音を立てるな。",
+  "ko": "— 안으로. 어서. 소리 내지 말고."
  },
  "d10": {
   "who": "ИТАН",
@@ -1691,7 +2171,11 @@
   "de": "Frank hatte den Kreis direkt an der Schwelle gestreut: An den Riegel kam er, ohne das Salz zu verlassen. Ein Bein war mit Klebeband an Pappe geschient.",
   "it": "Frank aveva tracciato il cerchio sulla soglia: dal sale arrivava al chiavistello. Una gamba era legata con lo scotch a un pezzo di cartone.",
   "tr": "Frank çemberini tam eşiğe dökmüştü: tuzdan çıkmadan sürgüye uzanabiliyordu. Bir bacağı bir karton parçasına bantlanmıştı.",
-  "pl": "Frank usypał krąg tuż przy progu: do zasuwy sięgał, nie wychodząc z soli. Jedną nogę miał przytwierdzoną taśmą do kawałka kartonu."
+  "pl": "Frank usypał krąg tuż przy progu: do zasuwy sięgał, nie wychodząc z soli. Jedną nogę miał przytwierdzoną taśmą do kawałka kartonu.",
+  "fr": "Frank avait versé son cercle juste au seuil : il atteignait le verrou sans sortir du sel. Une de ses jambes était scotchée à un morceau de carton.",
+  "zh": "弗兰克把盐圈直接撒到了门槛边：他不用走出盐圈就够得着门闩。他的一条腿用胶带绑在一块硬纸板上。",
+  "ja": "フランクは敷居のすぐ内側に、塩で円を描いていた。円の中から出ずに、かんぬきに手が届く。片脚は、段ボールの切れ端にテープで固定されていた。",
+  "ko": "프랭크는 문턱 바로 앞에 소금으로 원을 둘러 놓았다. 소금 밖으로 나가지 않고도 빗장에 손이 닿았다. 한쪽 다리에는 판지 조각이 테이프로 칭칭 감겨 있었다."
  },
  "d11": {
   "who": "ФРЭНК",
@@ -1705,7 +2189,11 @@
   "de": "— Vor einer Woche auf der Treppe gestürzt. Hier runtergekrochen. Wasserspender, Zwieback aus dem Notvorrat. Tagsüber geschrien. Durch die Tür hört's keiner.",
   "it": "— Sono caduto sulle scale una settimana fa. Mi sono trascinato quaggiù. Acqua dal dispenser, cracker dall'armadietto d'emergenza. Di giorno gridavo. Da quella porta non si sente.",
   "tr": "— Bir hafta önce merdivenlerde düştüm. Buraya sürünerek indim. Su sebili, acil durum dolabından kraker. Gündüzleri bağırdım. O kapıdan kimse duymaz.",
-  "pl": "— Tydzień temu spadłem ze schodów. Dopełzłem tu. Dystrybutor z wodą, sucharki z szafki awaryjnej. W dzień krzyczałem. Przez te drzwi nic nie słychać."
+  "pl": "— Tydzień temu spadłem ze schodów. Dopełzłem tu. Dystrybutor z wodą, sucharki z szafki awaryjnej. W dzień krzyczałem. Przez te drzwi nic nie słychać.",
+  "fr": "— Tombé dans l’escalier il y a une semaine. Descendu en rampant. Fontaine à eau, biscottes de l’armoire de secours. Le jour, j’ai crié. Cette porte étouffe tout.",
+  "zh": "— 一周前在楼梯上摔了一跤。爬到了这底下。有饮水机，还有应急柜里的干粮。白天我喊过。这扇门隔音，没人听得见。",
+  "ja": "— 一週間前に階段で転んでな。ここまで這って降りてきた。給水機と、非常用の棚にあった乾パンがある。昼間は叫んだ。だが、この扉の向こうには、誰にも聞こえん。",
+  "ko": "— 일주일 전에 계단에서 굴러떨어졌네. 여기까지 기어 내려왔지. 정수기 물이랑 비상 캐비닛에서 꺼낸 크래커가 전부야. 낮에는 소리를 질렀지만, 이 문 너머로는 아무 소리도 안 들려."
  },
  "d12": {
   "who": "ФРЭНК",
@@ -1719,7 +2207,11 @@
   "de": "— Sechs Nächte durchgehalten. Die siebte schaff ich nicht allein.",
   "it": "— Ho tenuto sei notti. La settima, da solo, non ce la faccio.",
   "tr": "— Altı gece dayandım. Yedinci geceyi tek başıma atlatamam.",
-  "pl": "— Sześć nocy wytrzymałem. Siódmej samemu nie przetrwam."
+  "pl": "— Sześć nocy wytrzymałem. Siódmej samemu nie przetrwam.",
+  "fr": "— J’ai tenu six nuits. La septième, seul, je n’y arriverai pas.",
+  "zh": "— 撑了六个晚上。第七个晚上，我一个人熬不过去。",
+  "ja": "— 六晩は耐えた。七晩目は、一人じゃ無理だ。",
+  "ko": "— 여섯 밤을 버텼네. 일곱 번째 밤은 혼자서는 못 넘겨."
  },
  "d13": {
   "who": "ФРЭНК",
@@ -1733,7 +2225,11 @@
   "de": "— Mich hält jetzt nur noch das Salz. Und dich nur, dass du den Mund hältst.",
   "it": "— Adesso mi protegge solo il sale. E te, solo il fatto che tieni la bocca chiusa.",
   "tr": "— Beni artık yalnızca tuz ayakta tutuyor. Seni de yalnızca ağzını kapalı tutman.",
-  "pl": "— Mnie trzyma już tylko sól. A ciebie — tylko to, że milczysz."
+  "pl": "— Mnie trzyma już tylko sól. A ciebie — tylko to, że milczysz.",
+  "fr": "— Maintenant, seul le sel me protège. Et toi, seulement ton silence.",
+  "zh": "— 现在，护着我的只有这些盐。护着你的，只有你那张闭紧的嘴。",
+  "ja": "— 俺を守ってるのは、もう塩だけだ。お前を守ってるのは、黙ってることだけだ。",
+  "ko": "— 이제 나를 지켜 주는 건 소금뿐이야. 그리고 자네를 지켜 주는 건 입을 다물고 있는 것뿐이고."
  },
  "d13b": {
   "who": "ФРЭНК",
@@ -1747,7 +2243,11 @@
   "de": "— Salz ist für das Ding eine Mauer. Durch den Kreis kommt es nicht. Also ruft es, lockt und wartet, bis du rausgehst. Oder antwortest.",
   "it": "— Per quella cosa il sale è un muro. Non supera il cerchio. Allora chiama, convince, aspetta che tu esca da solo. O che risponda.",
   "tr": "— O şey için tuz bir duvar. Çemberden geçemez. O yüzden sesleniyor, tatlı dille kandırıyor, kendi isteğinle dışarı çıkmanı bekliyor. Ya da cevap vermeni.",
-  "pl": "— Dla tego czegoś sól to mur. Przez krąg nie przejdzie. Więc woła, namawia, czeka, aż sam wyjdziesz. Albo odpowiesz."
+  "pl": "— Dla tego czegoś sól to mur. Przez krąg nie przejdzie. Więc woła, namawia, czeka, aż sam wyjdziesz. Albo odpowiesz.",
+  "fr": "— Le sel, pour ça, c’est un mur. Ça ne passe pas le cercle. Alors ça appelle, ça amadoue, ça attend que tu sortes. Ou que tu répondes.",
+  "zh": "— 对它来说，盐就是一堵墙。它进不了这个圈。所以它才叫，才哄，一直等着你自己走出来。或者答应它。",
+  "ja": "— あれにとって、塩は壁だ。円の中には入ってこられない。だから呼ぶんだ。優しい声で誘って、お前が自分から出てくるか、返事をするのを待っている。",
+  "ko": "— 그것에게 소금은 벽이야. 원 안으로는 못 들어오지. 그래서 부르고, 구슬리고, 자네가 제 발로 나오거나 대답하기를 기다리는 거야."
  },
  "d14": {
   "who": "ИТАН",
@@ -1761,7 +2261,11 @@
   "de": "Aus dem Dunkel hinterm Kreis rief jemand Frank. Die Stimme einer alten Frau. Zärtlich.",
   "it": "Dal buio oltre il cerchio qualcuno chiamò Frank. Voce di donna anziana. Dolce.",
   "tr": "Çemberin ötesindeki karanlıktan biri Frank'e seslendi. Yaşlı bir kadın sesi. Şefkatli.",
-  "pl": "Z ciemności za kręgiem ktoś zawołał Franka. Starczym, kobiecym głosem. Czule."
+  "pl": "Z ciemności za kręgiem ktoś zawołał Franka. Starczym, kobiecym głosem. Czule.",
+  "fr": "Du noir, au-delà du cercle, on a appelé Frank. Une voix de vieille femme. Tendre.",
+  "zh": "盐圈外的黑暗中，有人在叫弗兰克。是个老妇人的声音。很温柔。",
+  "ja": "円の向こうの暗がりから、誰かがフランクを呼んだ。老いた女の声。優しい響き。",
+  "ko": "원 바깥 어둠 속에서 누군가 프랭크를 불렀다. 늙은 여자의 목소리. 다정한 목소리였다."
  },
  "d15": {
   "who": "ГОЛОС",
@@ -1775,7 +2279,11 @@
   "de": "— Frankie… Mein Junge…",
   "it": "— Frankie… Figlio mio…",
   "tr": "— Frankie… Oğlum…",
-  "pl": "— Frankie… Synku…"
+  "pl": "— Frankie… Synku…",
+  "fr": "— Frankie… Mon petit…",
+  "zh": "— 弗兰基……我的儿啊……",
+  "ja": "— フランキー……坊や……",
+  "ko": "— 프랭키야… 내 아들…"
  },
  "d16": {
   "who": "ФРЭНК",
@@ -1789,7 +2297,11 @@
   "de": "— Mama?..",
   "it": "— Mamma?…",
   "tr": "— Anne?..",
-  "pl": "— Mamo?…"
+  "pl": "— Mamo?…",
+  "fr": "— Maman ?..",
+  "zh": "— 妈？……",
+  "ja": "— 母さん……？",
+  "ko": "— 엄마?.."
  },
  "d17": {
   "who": "ИТАН",
@@ -1803,7 +2315,11 @@
   "de": "Frank streckte sich der Stimme entgegen. Zum Rand des Kreises.",
   "it": "Frank si protese verso la voce. Verso il bordo del cerchio.",
   "tr": "Frank sese doğru uzandı. Çemberin kenarına doğru.",
-  "pl": "Frank sięgnął w stronę głosu. Ku krawędzi kręgu."
+  "pl": "Frank sięgnął w stronę głosu. Ku krawędzi kręgu.",
+  "fr": "Frank s’est tendu vers la voix. Vers le bord du cercle.",
+  "zh": "弗兰克朝那声音伸出手。伸向盐圈的边缘。",
+  "ja": "フランクは声のほうへ手を伸ばした。円の縁のほうへ。",
+  "ko": "프랭크가 목소리 쪽으로 손을 뻗었다. 원의 가장자리 쪽으로."
  },
  "d18": {
   "who": "ГОЛОС",
@@ -1817,7 +2333,11 @@
   "de": "— Frankie, komm zu mir… Hier ist es so kalt…",
   "it": "— Frankie, vieni da me… Qui fa tanto freddo…",
   "tr": "— Frankie, gel bana… Burası çok soğuk…",
-  "pl": "— Frankie, chodź do mnie… Tu tak zimno…"
+  "pl": "— Frankie, chodź do mnie… Tu tak zimno…",
+  "fr": "— Frankie, viens à moi… Il fait si froid ici…",
+  "zh": "— 弗兰基，到我这儿来……这里好冷……",
+  "ja": "— フランキー、こっちへおいで……ここは寒いの……",
+  "ko": "— 프랭키야, 이리 오렴… 여긴 너무 추워…"
  },
  "d19": {
   "who": "ГОЛОС",
@@ -1831,7 +2351,11 @@
   "de": "— Junge… Was machst du denn… Mama wartet…",
   "it": "— Figliolo… Che fai… La mamma aspetta…",
   "tr": "— Oğlum… Neden gelmiyorsun… Annen bekliyor…",
-  "pl": "— Synku… No co ty… Mama czeka…"
+  "pl": "— Synku… No co ty… Mama czeka…",
+  "fr": "— Mon fils… Mais enfin… Maman attend…",
+  "zh": "— 儿啊……你这是怎么了……妈妈在等你……",
+  "ja": "— 坊や……どうしたの……ママが待ってるのよ……",
+  "ko": "— 아들아… 뭐 하고 있니… 엄마가 기다린다…"
  },
  "d20": {
   "who": "ИТАН",
@@ -1845,7 +2369,11 @@
   "de": "Um sechs brach die Stimme mitten im Wort ab.",
   "it": "Alle sei la voce si spense a metà parola.",
   "tr": "Altıda ses yarım kelimede kesildi.",
-  "pl": "O szóstej głos urwał się w pół słowa."
+  "pl": "O szóstej głos urwał się w pół słowa.",
+  "fr": "À six heures, la voix s’est tue à mi-mot.",
+  "zh": "六点，那个声音在半句话中间戛然而止。",
+  "ja": "6時、声は言葉の途中でぷつりと途切れた。",
+  "ko": "6시가 되자 목소리가 말 도중에 뚝 끊겼다."
  },
  "d21": {
   "who": "ФРЭНК",
@@ -1859,7 +2387,11 @@
   "de": "— Das war's. Bis zur Nacht schläft es.",
   "it": "— Ecco. Dorme fino al calar della notte.",
   "tr": "— Bitti. Gece olana kadar uyuyor.",
-  "pl": "— Koniec. Do nocy to śpi."
+  "pl": "— Koniec. Do nocy to śpi.",
+  "fr": "— Voilà. Ça dort jusqu’à la nuit.",
+  "zh": "— 好了。它要睡到天黑。",
+  "ja": "— ひとまず終わりだ。日が暮れるまで、あれは眠る。",
+  "ko": "— 이제 됐네. 해가 질 때까지 그것은 잔다네."
  },
  "d22": {
   "who": "ИТАН",
@@ -1873,7 +2405,11 @@
   "de": "Ich nahm seinen Arm über die Schulter. Vierzig Stufen hoch. Er schwieg.",
   "it": "Mi misi il suo braccio sulle spalle. Quaranta gradini. Non disse niente.",
   "tr": "Kolunu omzuma attım. Yukarı kırk basamak. Tek kelime etmedi.",
-  "pl": "Zarzuciłem sobie jego rękę na ramię. Czterdzieści stopni w górę. Ani słowa."
+  "pl": "Zarzuciłem sobie jego rękę na ramię. Czterdzieści stopni w górę. Ani słowa.",
+  "fr": "J’ai passé son bras sur mon épaule. Quarante marches. Pas un mot.",
+  "zh": "我把他的胳膊架到自己肩上。往上走四十级台阶。他一句话也没说。",
+  "ja": "彼の腕を自分の肩にかけた。階段を四十段、上った。彼はひとことも口をきかなかった。",
+  "ko": "그의 팔을 내 어깨에 둘렀다. 계단 마흔 칸을 올라가는 동안 그는 한마디도 하지 않았다."
  },
  "d23": {
   "who": "ИТАН",
@@ -1887,7 +2423,11 @@
   "de": "Wir traten in den Regen hinaus. Es war noch dunkel. Doch hinter den Häusern fuhr schon die erste Straßenbahn.",
   "it": "Uscimmo sotto la pioggia. Non era ancora l'alba. Ma dietro le case era già passato il primo tram.",
   "tr": "Yağmurun altına çıktık. Henüz ağarmamıştı. Ama evlerin ardında bir yerlerde ilk tramvay çoktan geçmişti.",
-  "pl": "Wyszliśmy na deszcz. Jeszcze się nie rozwidniło. Ale gdzieś za domami przejechał już pierwszy tramwaj."
+  "pl": "Wyszliśmy na deszcz. Jeszcze się nie rozwidniło. Ale gdzieś za domami przejechał już pierwszy tramwaj.",
+  "fr": "Nous sommes sortis sous la pluie. Il faisait encore nuit. Mais derrière les maisons, le premier tram était déjà passé.",
+  "zh": "我们走进雨里。天还没亮。可在楼房后面的某处，头班电车已经开过去了。",
+  "ja": "二人で雨の中へ出た。空はまだ暗い。それでも、家並みの向こうのどこかを、始発の路面電車がもう通り過ぎていた。",
+  "ko": "우리는 빗속으로 걸어 나왔다. 아직 날이 밝지 않았다. 그래도 집들 너머 어딘가에서는 첫 트램이 벌써 지나갔다."
  },
  "d24": {
   "who": "ФРЭНК",
@@ -1901,7 +2441,11 @@
   "de": "— Gus?",
   "it": "— Gus?",
   "tr": "— Gus?",
-  "pl": "— Gus?"
+  "pl": "— Gus?",
+  "fr": "— Gus ?",
+  "zh": "— 格斯呢？",
+  "ja": "— ガスは？",
+  "ko": "— 거스는?"
  },
  "d25": {
   "who": "ИТАН",
@@ -1915,7 +2459,11 @@
   "de": "Ich schüttelte den Kopf.",
   "it": "Scossi la testa.",
   "tr": "Başımı iki yana salladım.",
-  "pl": "Pokręciłem głową."
+  "pl": "Pokręciłem głową.",
+  "fr": "J’ai secoué la tête.",
+  "zh": "我摇了摇头。",
+  "ja": "首を横に振った。",
+  "ko": "나는 고개를 저었다."
  },
  "d26": {
   "who": "ФРЭНК",
@@ -1929,7 +2477,11 @@
   "de": "— Ihretwegen kam er ja her. Um ihr zuzuhören.",
   "it": "— Veniva qui per questo, sai. Per ascoltarla.",
   "tr": "— Zaten buraya hep bunun için gelirdi. Onu dinlemek için.",
-  "pl": "— On tu przecież dla niej przychodził. Posłuchać."
+  "pl": "— On tu przecież dla niej przychodził. Posłuchać.",
+  "fr": "— C’est pour elle qu’il venait ici, tu sais. Pour l’écouter.",
+  "zh": "— 他一直往这儿跑，就是为了她。为了听听她的声音。",
+  "ja": "— あいつがここに通い続けたのは、そのためなんだ。彼女の声を聞きにな。",
+  "ko": "— 그 친구가 줄곧 이 건물에 온 것도 그 때문이었지. 아내 목소리를 들으려고."
  },
  "d27": {
   "who": "ИТАН",
@@ -1943,7 +2495,11 @@
   "de": "Frank zündete sich eine an.",
   "it": "Frank accese una sigaretta.",
   "tr": "Frank bir sigara yaktı.",
-  "pl": "Frank zapalił papierosa."
+  "pl": "Frank zapalił papierosa.",
+  "fr": "Frank a allumé une cigarette.",
+  "zh": "弗兰克点了一支烟。",
+  "ja": "フランクはタバコに火をつけた。",
+  "ko": "프랭크가 담배에 불을 붙였다."
  },
  "d28": {
   "who": "ФРЭНК",
@@ -1957,7 +2513,11 @@
   "de": "— Selbst aufgeschrieben: nicht antworten. Und die Nacht drauf ruft Mama, und ich antworte. Vor dreißig Jahren begraben.",
   "it": "— L'avevo scritto io: non rispondere. E la notte dopo ha chiamato mamma, e io ho risposto. L'ho sepolta trent'anni fa.",
   "tr": "— Kendim yazdım: cevap verme. Ertesi gece annem seslendi, ben de cevap verdim. Onu otuz yıl önce gömmüştüm.",
-  "pl": "— Sam zapisałem: nie odpowiadaj. A następnej nocy zawołała mama — i odpowiedziałem. Pochowałem ją trzydzieści lat temu."
+  "pl": "— Sam zapisałem: nie odpowiadaj. A następnej nocy zawołała mama — i odpowiedziałem. Pochowałem ją trzydzieści lat temu.",
+  "fr": "— Je l’avais écrit : ne réponds pas. Et le soir suivant, Maman a appelé, et j’ai répondu. Enterrée il y a trente ans.",
+  "zh": "— 是我自己写下来的：别答应。结果第二天夜里妈妈一叫，我就答应了。三十年前，我亲手把她安葬了。",
+  "ja": "— 自分で書いたってのによ。返事をするな、と。なのに次の晩、母さんが呼んだら、俺は返事をしちまった。三十年前に葬った母さんだってのに。",
+  "ko": "— 내가 직접 적었지, 대답하지 마라고. 그런데 바로 다음 날 밤 엄마가 불렀고, 나는 대답해 버렸어. 엄마를 묻은 지 30년인데."
  },
  "d29": {
   "who": "ФРЭНК",
@@ -1971,7 +2531,11 @@
   "de": "— Ich schlaf jetzt bis an mein Lebensende im Kreis. Du aber gehst, Junge. Bevor du antwortest.",
   "it": "— Io ormai dormo nel cerchio fino alla fine. Tu invece vattene, figliolo. Prima di rispondere.",
   "tr": "— Artık ömrüm boyunca çemberin içinde uyuyacağım. Ama sen git buradan, evlat. Cevap vermeden önce.",
-  "pl": "— Teraz do końca życia będę spał w kręgu. A ty uciekaj stąd, synu. Zanim odpowiesz."
+  "pl": "— Teraz do końca życia będę spał w kręgu. A ty uciekaj stąd, synu. Zanim odpowiesz.",
+  "fr": "— Je dormirai dans un cercle jusqu’à ma mort. Toi, pars d’ici, fiston. Avant de répondre.",
+  "zh": "— 我这辈子都得睡在圈里了。可你走吧，孩子。趁你还没答应。",
+  "ja": "— 俺はこれから一生、円の中で眠るさ。だが、お前は出ていけ、坊主。返事をしちまう前にな。",
+  "ko": "— 이제 나는 평생 원 안에서 자야 해. 하지만 자네는 여기서 나가게, 젊은이. 대답하기 전에."
  },
  "d30": {
   "who": "ИТАН",
@@ -1985,7 +2549,11 @@
   "de": "Ich ging nicht weg. Lily brauchte das Geld.",
   "it": "Non me ne andai. A Lily servivano i soldi.",
   "tr": "Gitmedim. Lily'nin paraya ihtiyacı vardı.",
-  "pl": "Zostałem. Lily potrzebowała pieniędzy."
+  "pl": "Zostałem. Lily potrzebowała pieniędzy.",
+  "fr": "Je suis resté. Lily avait besoin d’argent.",
+  "zh": "我没有走。莉莉需要这笔钱。",
+  "ja": "俺は出ていかなかった。リリーには金が要った。",
+  "ko": "나는 떠나지 않았다. 릴리에게는 돈이 필요했다."
  },
  "d31": {
   "who": "ИТАН",
@@ -1999,7 +2567,11 @@
   "de": "Jetzt steht jede Nacht, Punkt drei, jemand am Aufzug und ruft meinen Namen. Mit Lilys Stimme. Noch habe ich kein einziges Mal geantwortet.",
   "it": "Ora ogni notte, alle tre in punto, qualcuno sta vicino all'ascensore e mi chiama per nome. Con la voce di Lily. Finora non ho mai risposto.",
   "tr": "Artık her gece tam üçte asansörün yanında biri durup bana adımla sesleniyor. Lily'nin sesiyle. Şimdiye kadar bir kez bile cevap vermedim.",
-  "pl": "Teraz co noc, równo o trzeciej, ktoś staje przy windzie i woła mnie po imieniu. Głosem Lily. Jak dotąd ani razu nie odpowiedziałem."
+  "pl": "Teraz co noc, równo o trzeciej, ktoś staje przy windzie i woła mnie po imieniu. Głosem Lily. Jak dotąd ani razu nie odpowiedziałem.",
+  "fr": "Désormais, chaque nuit à trois heures pile, quelqu’un dit mon nom près de l’ascenseur. Avec la voix de Lily. Jusqu’ici, jamais répondu.",
+  "zh": "如今每天夜里，三点整，电梯旁都有人站着，叫我的名字。用的是莉莉的声音。到现在，我一次都没有答应过。",
+  "ja": "今では毎晩、ちょうど3時になると、誰かがエレベーターのそばに立って、俺の名前を呼ぶ。リリーの声で。今のところ、一度も返事をしていない。",
+  "ko": "이제 매일 밤 정각 3시가 되면 엘리베이터 앞에 누군가 서서 내 이름을 부른다. 릴리의 목소리로. 아직까지는 한 번도 대답하지 않았다."
  },
  "w01": {
   "who": "ИТАН",
@@ -2013,7 +2585,11 @@
   "de": "Ich ging nirgendwohin. Das konnte irgendwer sein. Irgendwas.",
   "it": "Non mi mossi. Poteva essere chiunque. Qualunque cosa.",
   "tr": "Hiçbir yere gitmedim. Herhangi biri olabilirdi. Herhangi bir şey de.",
-  "pl": "Nigdzie nie poszedłem. To mógł być każdy. Albo cokolwiek."
+  "pl": "Nigdzie nie poszedłem. To mógł być każdy. Albo cokolwiek.",
+  "fr": "Je n’ai pas bougé. Ça pouvait être n’importe qui. N’importe quoi.",
+  "zh": "我哪儿也没去。那可能是任何人。任何东西。",
+  "ja": "どこへも行かなかった。相手は誰でもありえた。何でもありえた。",
+  "ko": "아무 데도 가지 않았다. 누구일 수도, 무엇일 수도 있었다."
  },
  "w02": {
   "who": "ИТАН",
@@ -2027,7 +2603,11 @@
   "de": "Anderthalb Stunden starrte ich auf die Monitore. Die Dreizehn ging nicht mehr an.",
   "it": "Per un'ora e mezza guardai i monitor. La tredici non si riaccese.",
   "tr": "Bir buçuk saat monitörlere baktım. On üç bir daha açılmadı.",
-  "pl": "Przez półtorej godziny patrzyłem w monitory. Trzynastka już się nie włączyła."
+  "pl": "Przez półtorej godziny patrzyłem w monitory. Trzynastka już się nie włączyła.",
+  "fr": "Une heure et demie, j’ai fixé les moniteurs. La treize ne s’est plus allumée.",
+  "zh": "我盯着监视器看了一个半小时。十三号再没有亮过。",
+  "ja": "一時間半、モニターを見つめていた。13番は、二度と点かなかった。",
+  "ko": "한 시간 반 동안 모니터를 지켜보았다. 13번은 다시 켜지지 않았다."
  },
  "w03": {
   "who": "ИТАН",
@@ -2041,7 +2621,11 @@
   "de": "Irgendwo unter mir saß ein alter Mann im Salzkreis. Und ich saß oben und wartete auf sechs.",
   "it": "Sotto di me, un vecchio in un cerchio di sale. E io di sopra, ad aspettare le sei.",
   "tr": "Altımda bir yerde, tuz çemberinin içinde yaşlı bir adam oturuyordu. Ben ise yukarıda oturup altıyı bekliyordum.",
-  "pl": "Gdzieś pode mną, w kręgu soli, siedział starzec. A ja siedziałem na górze i czekałem na szóstą."
+  "pl": "Gdzieś pode mną, w kręgu soli, siedział starzec. A ja siedziałem na górze i czekałem na szóstą.",
+  "fr": "Sous mes pieds, un vieil homme dans un cercle de sel. Et moi en haut, à attendre six heures.",
+  "zh": "在我脚下的某个地方，一个老人坐在盐圈里。而我坐在楼上，等着六点。",
+  "ja": "足の下のどこかで、老人が塩の円の中に座っていた。俺は上の階で、6時を待っていた。",
+  "ko": "내 발밑 어딘가에서는 한 노인이 소금 원 안에 앉아 있었다. 그리고 나는 위층에 앉아 6시를 기다리고 있었다."
  },
  "w04": {
   "who": "ИТАН",
@@ -2055,7 +2639,11 @@
   "de": "Um fünf vierzig klingelte es. „Lily“.",
   "it": "Cinque e quaranta. Chiamò «Lily».",
   "tr": "Beş kırkta telefonum çaldı. “Lily.”",
-  "pl": "Piąta czterdzieści. Dzwoni telefon: „Lily”."
+  "pl": "Piąta czterdzieści. Dzwoni telefon: „Lily”.",
+  "fr": "Cinq heures quarante. « Lily » appelait.",
+  "zh": "五点四十，我的手机响了。“莉莉”。",
+  "ja": "5時40分、スマホが鳴った。「リリー」。",
+  "ko": "5시 40분에 휴대폰이 울렸다. “릴리”였다."
  },
  "w05": {
   "who": "ИТАН",
@@ -2069,7 +2657,11 @@
   "de": "Zwanzig vor sechs. Die Deinen warten bis zum Morgen.",
   "it": "Venti minuti alle sei. I tuoi aspetteranno il mattino.",
   "tr": "Altıya yirmi var. Yakınların sabaha kadar bekler.",
-  "pl": "Dwadzieścia minut do szóstej. Swoi poczekają do rana."
+  "pl": "Dwadzieścia minut do szóstej. Swoi poczekają do rana.",
+  "fr": "Six heures moins vingt. Les tiens attendront le matin.",
+  "zh": "离六点还有二十分钟。自己人，等到天亮也不迟。",
+  "ja": "6時まで20分。身内なら朝まで待ってくれる。",
+  "ko": "6시 20분 전. 식구는 아침까지 기다려 준다."
  },
  "w06": {
   "who": "ИТАН",
@@ -2083,7 +2675,11 @@
   "de": "Ich drückte weg. Es rief wieder an. Und wieder. Dann war Ruhe.",
   "it": "Rifiutai la chiamata. Richiamò. E ancora. Poi tacque.",
   "tr": "Reddettim. Yine aradı. Ve yine. Sonra sustu.",
-  "pl": "Odrzuciłem. Zadzwoniło znowu. I jeszcze raz. Potem ucichło."
+  "pl": "Odrzuciłem. Zadzwoniło znowu. I jeszcze raz. Potem ucichło.",
+  "fr": "J’ai rejeté l’appel. Ça a rappelé. Encore. Puis plus rien.",
+  "zh": "我挂断了。它又打来。一次，又一次。然后安静了。",
+  "ja": "着信を切った。それはまたかけてきた。もう一度。さらにもう一度。やがて、静かになった。",
+  "ko": "거절했다. 그것은 다시 걸어왔다. 또다시. 그러다 조용해졌다."
  },
  "w07": {
   "who": "ИТАН",
@@ -2097,7 +2693,11 @@
   "de": "Um sechs kam die Ablösung.",
   "it": "Alle sei entrò la guardia diurna.",
   "tr": "Altıda gündüz nöbetçisi geldi.",
-  "pl": "O szóstej wszedł dzienny ochroniarz."
+  "pl": "O szóstej wszedł dzienny ochroniarz.",
+  "fr": "À six heures, la relève est là.",
+  "zh": "六点，白班保安进来了。",
+  "ja": "6時、日勤の警備員が入ってきた。",
+  "ko": "6시에 주간 경비원이 들어왔다."
  },
  "w08": {
   "who": "СМЕНЩИК",
@@ -2111,7 +2711,11 @@
   "de": "— Nicht geantwortet?",
   "it": "— Non hai risposto?",
   "tr": "— Cevap vermedin, değil mi?",
-  "pl": "— Nie odpowiadałeś?"
+  "pl": "— Nie odpowiadałeś?",
+  "fr": "— Tu n’as pas répondu ?",
+  "zh": "— 你没答应吧？",
+  "ja": "— 返事は、してないな？",
+  "ko": "— 대답 안 했지?"
  },
  "w09": {
   "who": "ИТАН",
@@ -2125,7 +2729,11 @@
   "de": "Wir gingen zusammen runter. Die Tür zum Serverraum stand weit offen. Vom Kreis zogen sich Handabdrücke in den Flur.",
   "it": "Scendemmo insieme. La porta della sala server era spalancata. Dal cerchio fino al corridoio, impronte di mani.",
   "tr": "Birlikte aşağı indik. Sunucu odasının kapısı ardına kadar açıktı. Çemberden koridora doğru el izleri uzanıyordu.",
-  "pl": "Zeszliśmy razem na dół. Drzwi serwerowni były otwarte na oścież. Z kręgu na korytarz ciągnęły się ślady dłoni."
+  "pl": "Zeszliśmy razem na dół. Drzwi serwerowni były otwarte na oścież. Z kręgu na korytarz ciągnęły się ślady dłoni.",
+  "fr": "Nous sommes descendus ensemble. La porte des serveurs était grande ouverte. Du cercle au couloir, des traces de mains.",
+  "zh": "我们一起下去。机房的门大敞着。一串手印从盐圈里一直延伸到走廊。",
+  "ja": "二人で下へ降りた。サーバー室の扉は大きく開いていた。円の中から廊下へ、手の跡が点々と続いていた。",
+  "ko": "우리는 함께 내려갔다. 서버실 문이 활짝 열려 있었다. 원에서 복도로 손바닥 자국이 이어져 있었다."
  },
  "w10": {
   "who": "ИТАН",
@@ -2139,7 +2747,11 @@
   "de": "Auf die letzte Seite im Wachbuch schrieb ich eine Zeile. In meiner Schrift. Für den, der nach mir kommt.",
   "it": "Aprii il registro all'ultima pagina e aggiunsi una riga. Con la mia scrittura. Per chi verrà dopo di me.",
   "tr": "Defteri son sayfadan açıp bir satır ekledim. Kendi el yazımla. Benden sonra gelecek kişi için.",
-  "pl": "Otworzyłem dziennik na ostatniej stronie i dopisałem linijkę. Własnym pismem. Dla tego, kto przyjdzie po mnie."
+  "pl": "Otworzyłem dziennik na ostatniej stronie i dopisałem linijkę. Własnym pismem. Dla tego, kto przyjdzie po mnie.",
+  "fr": "J’ai ouvert le journal à la dernière page et ajouté une ligne. De ma main. Pour celui qui viendra après moi.",
+  "zh": "我翻开日志的最后一页，添了一行字。用我自己的笔迹。写给我之后来的人。",
+  "ja": "日誌の最後のページを開いて、一行書き足した。自分の字で。俺の次に来る誰かのために。",
+  "ko": "일지를 마지막 장까지 펼쳐 한 줄을 덧붙였다. 내 글씨로. 내 뒤에 올 사람을 위해."
  },
  "k1a": {
   "who": "ИТАН",
@@ -2153,7 +2765,11 @@
   "de": "Ich schaute auf die Dreizehn. Es blickte schon in die Kamera. Als hätte es auf meinen Blick gewartet.",
   "it": "Guardai la tredici. Era già rivolto verso la telecamera. Come se aspettasse solo che guardassi.",
   "tr": "On üçe baktım. O, çoktan kameraya dönmüştü. Sanki bakmamı bekliyordu.",
-  "pl": "Spojrzałem w trzynastkę. To już stało twarzą do kamery. Jakby czekało, aż spojrzę."
+  "pl": "Spojrzałem w trzynastkę. To już stało twarzą do kamery. Jakby czekało, aż spojrzę.",
+  "fr": "J’ai regardé la treize. Ça faisait déjà face à la caméra. Comme si ça attendait que je regarde.",
+  "zh": "我看向十三号。它已经正对着镜头。像是一直在等我看过来。",
+  "ja": "13番を見た。それはもうカメラのほうを向いていた。俺が見るのを、待っていたかのように。",
+  "ko": "13번을 보았다. 그것은 이미 카메라를 마주 보고 있었다. 내가 쳐다보기를 기다렸다는 듯이."
  },
  "k1b": {
   "who": "ИТАН",
@@ -2167,7 +2783,11 @@
   "de": "Es sagte meinen Namen. Und ich antwortete, ehe ich es merkte.",
   "it": "Disse il mio nome. E risposi prima di capire che stavo rispondendo.",
   "tr": "Adımı söyledi. Ve cevap verdiğimi fark etmeden cevap verdim.",
-  "pl": "Powiedziało moje imię. I odpowiedziałem, zanim zrozumiałem, że odpowiadam."
+  "pl": "Powiedziało moje imię. I odpowiedziałem, zanim zrozumiałem, że odpowiadam.",
+  "fr": "Ça a dit mon nom. Et j’ai répondu avant de comprendre que je répondais.",
+  "zh": "它叫了我的名字。我还没意识到自己在答应，就已经答应了。",
+  "ja": "それが俺の名前を言った。返事をしていると気づく前に、もう返事をしていた。",
+  "ko": "그것이 내 이름을 불렀다. 그리고 나는 대답하고 있다는 걸 깨닫기도 전에 대답해 버렸다."
  },
  "k2a": {
   "who": "ИТАН",
@@ -2181,7 +2801,11 @@
   "de": "Ich ging in den Siebten. Licht brannte, es roch nach nassem Lappen.",
   "it": "Salii al settimo. Le luci erano accese. Sapeva di straccio bagnato.",
   "tr": "Yedinci kata çıktım. Işıklar yanıyordu. Islak bez kokuyordu.",
-  "pl": "Wszedłem na siódme. Światła się paliły, pachniało mokrą szmatą."
+  "pl": "Wszedłem na siódme. Światła się paliły, pachniało mokrą szmatą.",
+  "fr": "Je suis monté au septième. Lumières allumées, odeur de serpillière.",
+  "zh": "我上了七楼。灯亮着，空气里有湿抹布的味道。",
+  "ja": "7階へ上がった。明かりはついていた。濡れた雑巾の匂いがした。",
+  "ko": "7층으로 올라갔다. 불이 켜져 있었고, 젖은 걸레 냄새가 났다."
  },
  "k2b": {
   "who": "ИТАН",
@@ -2195,7 +2819,11 @@
   "de": "In der Tür von Siebenhundertsieben lag Gus. Über ihm hockte jemand.",
   "it": "Gus giaceva sulla soglia del settecentosette. Qualcuno, accovacciato su di lui.",
   "tr": "Gus, yedi yüz yedi numaralı odanın kapısında yatıyordu. Üstüne biri çömelmişti.",
-  "pl": "W drzwiach siedemset siedem leżał Gus. Ktoś kucał nad nim."
+  "pl": "W drzwiach siedemset siedem leżał Gus. Ktoś kucał nad nim.",
+  "fr": "Gus gisait dans l’encadrement du sept cent sept. Quelqu’un était accroupi sur lui.",
+  "zh": "格斯躺在707室的门口。有个人影，俯身蹲在他上方。",
+  "ja": "707号室の戸口に、ガスが倒れていた。その上に、誰かがうずくまっていた。",
+  "ko": "거스가 707호 문 앞에 쓰러져 있었다. 그 위에 누군가 웅크리고 있었다."
  },
  "k2c": {
   "who": "ИТАН",
@@ -2209,7 +2837,11 @@
   "de": "Die Lampen gingen aus. Vom anderen Ende her. Auf mich zu.",
   "it": "Le luci cominciarono a spegnersi. Dal fondo. Verso di me.",
   "tr": "Işıklar sönmeye başladı. Uzak uçtan. Bana doğru.",
-  "pl": "Lampy zaczęły gasnąć. Od drugiego końca. W moją stronę."
+  "pl": "Lampy zaczęły gasnąć. Od drugiego końca. W moją stronę.",
+  "fr": "Les lampes ont commencé à s’éteindre, du fond vers moi.",
+  "zh": "灯开始熄灭。从走廊的另一端。一路朝我而来。",
+  "ja": "明かりが消え始めた。遠い端から。こちらへ向かって。",
+  "ko": "불이 꺼지기 시작했다. 저 끝에서부터. 내 쪽으로."
  },
  "k3a": {
   "who": "ИТАН",
@@ -2223,7 +2855,11 @@
   "de": "— Gus! Halt durch, ich komme hoch!",
   "it": "— Gus! Resisti, sto salendo!",
   "tr": "— Gus! Dayan, hemen çıkıyorum!",
-  "pl": "— Gus! Trzymaj się, już idę na górę!"
+  "pl": "— Gus! Trzymaj się, już idę na górę!",
+  "fr": "— Gus ! Tiens bon, je monte !",
+  "zh": "— 格斯！撑住，我这就上去！",
+  "ja": "— ガスさん！ しっかり！ すぐ上がります！",
+  "ko": "— 거스 씨! 조금만 버티세요, 지금 올라갈게요!"
  },
  "k3b": {
   "who": "ГАС",
@@ -2237,7 +2873,11 @@
   "de": "— Danke, Ethan.",
   "it": "— Grazie, Ethan.",
   "tr": "— Teşekkürler, Ethan.",
-  "pl": "— Dziękuję, Ethan."
+  "pl": "— Dziękuję, Ethan.",
+  "fr": "— Merci, Ethan.",
+  "zh": "— 谢谢你，伊森。",
+  "ja": "— ありがとう、イーサン。",
+  "ko": "— 고맙네, 이선."
  },
  "k4a": {
   "who": "ИТАН",
@@ -2251,7 +2891,11 @@
   "de": "Ich war zu spät. Das Ding im Flur drehte sich um. Es hatte kein Gesicht. Nur einen Mund. Und der Mund sagte meinen Namen.",
   "it": "Non fui abbastanza svelto. Quello nel corridoio si voltò. Niente volto. Solo una bocca. E la bocca disse il mio nome.",
   "tr": "Yetişemedim. Koridordaki dönüp baktı. Yüzü yoktu. Yalnızca bir ağzı vardı. Ve o ağız adımı söyledi.",
-  "pl": "Nie zdążyłem. Ten w korytarzu odwrócił się. Nie miał twarzy. Tylko usta. I te usta powiedziały moje imię."
+  "pl": "Nie zdążyłem. Ten w korytarzu odwrócił się. Nie miał twarzy. Tylko usta. I te usta powiedziały moje imię.",
+  "fr": "Trop tard. Celui du couloir s’est retourné. Ça n’avait pas de visage. Juste une bouche. Et elle a dit mon nom.",
+  "zh": "我没来得及。走廊里的那个东西转过身来。它没有脸。只有一张嘴。那张嘴叫出了我的名字。",
+  "ja": "間に合わなかった。廊下の奥にいたそれが振り向いた。顔はなかった。あったのは口だけ。その口が、俺の名前を言った。",
+  "ko": "늦었다. 복도에 있던 그것이 돌아섰다. 얼굴이 없었다. 입뿐이었다. 그 입이 내 이름을 불렀다."
  },
  "k4b": {
   "who": "ИТАН",
@@ -2265,7 +2909,11 @@
   "de": "Und ich antwortete, ehe ich es merkte.",
   "it": "E risposi prima di capire che stavo rispondendo.",
   "tr": "Ve cevap verdiğimi fark etmeden cevap verdim.",
-  "pl": "I odpowiedziałem, zanim zrozumiałem, że odpowiadam."
+  "pl": "I odpowiedziałem, zanim zrozumiałem, że odpowiadam.",
+  "fr": "Et j’ai répondu avant de comprendre que je répondais.",
+  "zh": "我还没意识到自己在答应，就已经答应了。",
+  "ja": "返事をしていると気づく前に、もう返事をしていた。",
+  "ko": "그리고 나는 대답하고 있다는 걸 깨닫기도 전에 대답해 버렸다."
  },
  "k5a": {
   "who": "ЛИЛИ",
@@ -2279,7 +2927,11 @@
   "de": "— Da bist du ja, Ethan.",
   "it": "— Eccoti, Ethan.",
   "tr": "— İşte buradasın, Ethan.",
-  "pl": "— Tu jesteś, Ethan."
+  "pl": "— Tu jesteś, Ethan.",
+  "fr": "— Te voilà, Ethan.",
+  "zh": "— 原来你在这儿，伊森。",
+  "ja": "— みーつけた、イーサン。",
+  "ko": "— 여기 있었구나, 이선."
  },
  "k7a": {
   "who": "ИТАН",
@@ -2293,7 +2945,11 @@
   "de": "Ich öffnete die Tür.",
   "it": "Aprii la porta.",
   "tr": "Kapıyı açtım.",
-  "pl": "Otworzyłem drzwi."
+  "pl": "Otworzyłem drzwi.",
+  "fr": "J’ai ouvert la porte.",
+  "zh": "我打开了门。",
+  "ja": "ドアを開けた。",
+  "ko": "문을 열었다."
  },
  "k7b": {
   "who": "ИТАН",
@@ -2307,7 +2963,11 @@
   "de": "Frank saß im Kreis. Er sah mich an und schüttelte den Kopf: nein, nein, nein.",
   "it": "Frank era seduto nel cerchio. Mi guardava e scuoteva la testa: no, no, no.",
   "tr": "Frank çemberin içinde oturuyordu. Bana bakıp başını iki yana sallıyordu: hayır, hayır, hayır.",
-  "pl": "Frank siedział w kręgu. Patrzył na mnie i kręcił głową: nie, nie, nie."
+  "pl": "Frank siedział w kręgu. Patrzył na mnie i kręcił głową: nie, nie, nie.",
+  "fr": "Frank, assis dans le cercle, me regardait en secouant la tête : non, non, non.",
+  "zh": "弗兰克坐在盐圈里。看着我，直摇头：不，不，不。",
+  "ja": "フランクは円の中に座っていた。俺を見て、首を振っている。だめだ、だめだ、だめだ、と。",
+  "ko": "프랭크는 원 안에 앉아 있었다. 나를 바라보며 고개를 저었다. 안 돼, 안 돼, 안 돼."
  },
  "k7c": {
   "who": "ИТАН",
@@ -2321,7 +2981,11 @@
   "de": "Und die Stimme, die mich rief, war direkt hinter mir.",
   "it": "E la voce che mi aveva chiamato era proprio dietro di me.",
   "tr": "Beni çağıran ses ise tam arkamdaydı.",
-  "pl": "A głos, który mnie zawołał, był tuż za moimi plecami."
+  "pl": "A głos, który mnie zawołał, był tuż za moimi plecami.",
+  "fr": "Et la voix qui m’avait appelé était juste derrière moi.",
+  "zh": "而刚才叫我的那个声音，就在我身后。",
+  "ja": "そして、俺を呼んだ声は、すぐ後ろにあった。",
+  "ko": "그리고 나를 불렀던 그 목소리는 바로 내 등 뒤에 있었다."
  },
  "k8a": {
   "who": "ИТАН",
@@ -2335,7 +2999,11 @@
   "de": "Frank kroch aus dem Kreis. Die Dunkelheit schloss sich über ihm, lautlos.",
   "it": "Frank strisciò fuori dal cerchio. Il buio si chiuse su di lui senza un suono.",
   "tr": "Frank çemberden sürünerek çıktı. Karanlık, tek ses çıkarmadan üstüne kapandı.",
-  "pl": "Frank wypełzł z kręgu. Ciemność zamknęła się nad nim bez jednego dźwięku."
+  "pl": "Frank wypełzł z kręgu. Ciemność zamknęła się nad nim bez jednego dźwięku.",
+  "fr": "Frank a rampé hors du cercle. Le noir s’est refermé sur lui sans un bruit.",
+  "zh": "弗兰克爬出了盐圈。黑暗无声地在他身上合拢。",
+  "ja": "フランクは円から這い出た。暗闇は、音もなく彼の上に閉じた。",
+  "ko": "프랭크가 원 밖으로 기어 나갔다. 어둠이 소리 없이 그를 삼켰다."
  },
  "k8b": {
   "who": "ФРЭНК",
@@ -2349,7 +3017,11 @@
   "de": "— Ethan?..",
   "it": "— Ethan?…",
   "tr": "— Ethan?..",
-  "pl": "— Ethan?…"
+  "pl": "— Ethan?…",
+  "fr": "— Ethan ?..",
+  "zh": "— 伊森？……",
+  "ja": "— イーサン……？",
+  "ko": "— 이선?.."
  },
  "k8c": {
   "who": "ИТАН",
@@ -2363,7 +3035,11 @@
   "de": "— Frank?!",
   "it": "— Frank?!",
   "tr": "— Frank?!",
-  "pl": "— Frank?!"
+  "pl": "— Frank?!",
+  "fr": "— Frank ?!",
+  "zh": "— 弗兰克？！",
+  "ja": "— フランク！？",
+  "ko": "— 프랭크 씨?!"
  },
  "k9a": {
   "who": "ЛИЛИ",
@@ -2377,7 +3053,11 @@
   "de": "— Ethan. Endlich.",
   "it": "— Ethan. Finalmente.",
   "tr": "— Ethan. Sonunda.",
-  "pl": "— Ethan. Nareszcie."
+  "pl": "— Ethan. Nareszcie.",
+  "fr": "— Ethan. Enfin.",
+  "zh": "— 伊森。总算等到你了。",
+  "ja": "— イーサン。やっとね。",
+  "ko": "— 이선. 드디어."
  },
  "k9b": {
   "who": "ИТАН",
@@ -2391,7 +3071,11 @@
   "de": "Das war ihre Stimme. Nur kam sie nicht aus dem Handy. Sie kam aus dem Foyer.",
   "it": "Era la sua voce. Ma non veniva dal telefono. Veniva dall'atrio.",
   "tr": "Onun sesiydi. Ama telefondan gelmiyordu. Lobiden geliyordu.",
-  "pl": "To był jej głos. Tylko nie dobiegał ze słuchawki. Dobiegał z holu."
+  "pl": "To był jej głos. Tylko nie dobiegał ze słuchawki. Dobiegał z holu.",
+  "fr": "C’était sa voix. Mais elle ne venait pas du téléphone. Elle venait du hall.",
+  "zh": "那是她的声音。可它不是从手机里传出来的。是从大厅里传来的。",
+  "ja": "リリーの声。ただし、受話器からではない。ロビーから聞こえていた。",
+  "ko": "릴리의 목소리였다. 하지만 휴대폰에서 나는 소리가 아니었다. 로비에서 들려오고 있었다."
  },
  "n01": {
   "who": "ИТАН",
@@ -2405,7 +3089,11 @@
   "de": "Zweiundzwanzig Uhr. Eingang verschlossen, Aufzug im Nachtmodus. Zwölf Etagen und ich.",
   "it": "Le dieci di sera. Ingresso chiuso, ascensore in modalità notte. Dodici piani e io.",
   "tr": "Akşam saat on. Giriş kilitli, asansör gece modunda. On iki kat ve ben.",
-  "pl": "Dwudziesta druga. Wejście zamknięte, winda w trybie nocnym. Dwanaście pięter i ja."
+  "pl": "Dwudziesta druga. Wejście zamknięte, winda w trybie nocnym. Dwanaście pięter i ja.",
+  "fr": "Vingt-deux heures. L’entrée est verrouillée, l’ascenseur en mode nuit. Douze étages et moi.",
+  "zh": "晚上十点。入口已锁，电梯进入夜间模式。十二层楼，只剩我一个人。",
+  "ja": "22時。入口は施錠され、エレベーターは夜間モード。12階建てのビルに、俺ひとり。",
+  "ko": "밤 10시. 입구는 잠겼고 엘리베이터는 야간 모드다. 12개 층에 나 혼자다."
  },
  "n02": {
   "who": "ИТАН",
@@ -2419,7 +3107,11 @@
   "de": "Rundgang. Treppe, Etagen, Keller. Lampe, Schlüssel — und niemand.",
   "it": "Ronda. Scale, piani, interrato. Torcia, chiavi e nessuno.",
   "tr": "Devriye. Merdivenler, katlar, bodrum. El feneri, anahtarlar ve kimse yok.",
-  "pl": "Obchód. Schody, piętra, piwnica. Latarka, klucze — i nikogo."
+  "pl": "Obchód. Schody, piętra, piwnica. Latarka, klucze — i nikogo.",
+  "fr": "Ronde. Escalier, étages, sous-sol. Lampe, clés, et personne.",
+  "zh": "巡查。楼梯，各层，地下室。手电，钥匙，空无一人。",
+  "ja": "巡回。階段、各階、地下。懐中電灯と鍵束、そして誰もいない。",
+  "ko": "순찰. 계단, 각 층, 지하. 손전등, 열쇠, 그리고 아무도 없다."
  },
  "n03": {
   "who": "ИТАН",
@@ -2433,7 +3125,11 @@
   "de": "Am Serverraum roch es nach Wachs. Unter der Tür: ein warmer Streifen Licht.",
   "it": "C'era odore di cera, vicino alla sala server. Da sotto la porta, una striscia di luce calda.",
   "tr": "Sunucu odasının yanında mum kokuyordu. Kapının altından sıcak bir ışık şeridi uzanıyordu.",
-  "pl": "Przy serwerowni pachniało woskiem. Spod drzwi sączył się ciepły pasek światła."
+  "pl": "Przy serwerowni pachniało woskiem. Spod drzwi sączył się ciepły pasek światła.",
+  "fr": "Ça sentait la cire près des serveurs. Un filet de lumière chaude sous la porte.",
+  "zh": "机房那边有蜡的气味。门缝下透出一线暖光。",
+  "ja": "サーバー室の前は、ろうの匂いがした。扉の下から、温かい光が細く伸びていた。",
+  "ko": "서버실 앞에서는 양초 냄새가 났다. 문 밑으로 따뜻한 불빛이 한 줄 새어 나왔다."
  },
  "n04": {
   "who": "ИТАН",
@@ -2447,7 +3143,11 @@
   "de": "Verschlossen. Der Schlüssel fehlte am Bund.",
   "it": "Chiusa. La chiave della sala server non era nel mazzo.",
   "tr": "Kilitli. Anahtar demetinde sunucu odasının anahtarı yoktu.",
-  "pl": "Zamknięte. W pęku nie było klucza do serwerowni."
+  "pl": "Zamknięte. W pęku nie było klucza do serwerowni.",
+  "fr": "Fermé à clé. Pas de clé des serveurs au trousseau.",
+  "zh": "锁着。钥匙串上没有机房的钥匙。",
+  "ja": "鍵がかかっていた。鍵束に、サーバー室の鍵はなかった。",
+  "ko": "잠겨 있었다. 열쇠 꾸러미에 서버실 열쇠는 없었다."
  },
  "n05": {
   "who": "ИТАН",
@@ -2461,7 +3161,11 @@
   "de": "Wohl die Notbeleuchtung. Ich ging wieder hoch.",
   "it": "Sarà la luce d'emergenza. Tornai su.",
   "tr": "Herhalde acil durum lambasıdır. Yukarı çıktım.",
-  "pl": "Pewnie lampa awaryjna. Poszedłem na górę."
+  "pl": "Pewnie lampa awaryjna. Poszedłem na górę.",
+  "fr": "Sûrement l’éclairage de secours. Je suis remonté.",
+  "zh": "多半是应急灯。我回到了楼上。",
+  "ja": "たぶん非常灯。上に戻った。",
+  "ko": "아마 비상등일 것이다. 나는 다시 올라갔다."
  },
  "n06": {
   "who": "ИТАН",
@@ -2475,7 +3179,11 @@
   "de": "Katze an den Mülltonnen. Frank schrieb zwanzig Jahre über sie. Ich trag sie auch ein.",
   "it": "Una gatta ai cassonetti. Frank ne scrisse per vent'anni. Annoterò anche lei.",
   "tr": "Çöp konteynerinin yanında bir kedi. Frank yirmi yıl boyunca onu kaydetti. Ben de kaydederim.",
-  "pl": "Kotka przy śmietnikach. Frank pisał o niej dwadzieścia lat. Zapiszę i ja."
+  "pl": "Kotka przy śmietnikach. Frank pisał o niej dwadzieścia lat. Zapiszę i ja.",
+  "fr": "Le chat près des poubelles. Frank en parlait depuis vingt ans. Je le noterai aussi.",
+  "zh": "垃圾桶边蹲着一只猫。弗兰克在日志里写这只猫，写了二十年。我也记上一笔。",
+  "ja": "ゴミ置き場の猫。フランクは二十年、この猫のことを書き続けていた。俺も記録しておこう。",
+  "ko": "쓰레기통 옆의 고양이. 프랭크는 20년 동안 이 고양이에 대해 적었다. 나도 기록해 둬야지."
  },
  "n07": {
   "who": "ИТАН",
@@ -2489,7 +3197,11 @@
   "de": "Im Zehnten hat jemand das Licht angelassen. Ich schalte es am Pult aus.",
   "it": "Qualcuno ha lasciato le luci accese al decimo. Le spengo dalla console.",
   "tr": "Onuncu katta biri ışıkları açık bırakmış. Panelden kapatırım.",
-  "pl": "Na dziesiątym ktoś zostawił światło. Wyłączę z pulpitu."
+  "pl": "Na dziesiątym ktoś zostawił światło. Wyłączę z pulpitu.",
+  "fr": "Quelqu’un a laissé la lumière au dixième. Je l’éteins depuis le pupitre.",
+  "zh": "十楼有人没关灯。我在控制台上把它关掉。",
+  "ja": "10階に、誰かが明かりをつけっぱなしにしている。操作盤から消しておこう。",
+  "ko": "10층에 누가 불을 켜 놓고 갔다. 제어반에서 끄자."
  },
  "n08": {
   "who": "ГАС",
@@ -2503,7 +3215,11 @@
   "de": "— Wache, hier wieder Gus. Hast du einen Wasserkocher? Frank hat mir immer Tee gekocht.",
   "it": "— Sicurezza, di nuovo Gus. In guardiola hai un bollitore? Frank me ne lasciava sempre uno.",
   "tr": "— Güvenlik, yine ben, Gus. Kulübede çaydanlık var mı? Frank bana hep bırakırdı.",
-  "pl": "— Ochrona, to znowu Gus. Masz w budce czajnik? Frank zawsze mi zostawiał."
+  "pl": "— Ochrona, to znowu Gus. Masz w budce czajnik? Frank zawsze mi zostawiał.",
+  "fr": "— Sécurité, Gus encore. Une bouilloire dans ta loge ? Frank m’en laissait toujours.",
+  "zh": "— 保安室，又是我，格斯。你岗亭里有烧水壶吗？弗兰克以前总给我留一壶热水。",
+  "ja": "— 警備、またガスです。そっちの守衛室に、やかんはあるかい？ フランクはいつも、俺の分を残しておいてくれてね。",
+  "ko": "— 경비실, 또 거스야. 거기 경비실에 전기포트 있나? 프랭크는 늘 나 쓰라고 하나 남겨 뒀거든."
  },
  "n09": {
   "who": "ИТАН",
@@ -2517,7 +3233,11 @@
   "de": "— Klar. Komm runter.",
   "it": "— Sì. Scendi pure.",
   "tr": "— Var. Aşağı in.",
-  "pl": "— Jest. Schodź na dół."
+  "pl": "— Jest. Schodź na dół.",
+  "fr": "— Oui. Descends.",
+  "zh": "— 有。下来吧。",
+  "ja": "— ありますよ。降りてきてください。",
+  "ko": "— 있어요. 내려오세요."
  },
  "n10": {
   "who": "ГАС",
@@ -2531,7 +3251,11 @@
   "de": "— Nee, ich bleib hier oben. Hier ist es ruhig. Man hört hier so gut…",
   "it": "— No, resto quassù. È tranquillo. Quassù si sente benissimo…",
   "tr": "— Yok, ben burada kalayım. Sessiz. Burada her şey çok iyi duyuluyor…",
-  "pl": "— Nie, zostanę tu, na górze. Cicho tu. Dobrze słychać…"
+  "pl": "— Nie, zostanę tu, na górze. Cicho tu. Dobrze słychać…",
+  "fr": "— Non, je reste en haut. C’est calme. On entend très bien, ici…",
+  "zh": "— 不了，我就待在上面。这儿安静。听得可清楚了……",
+  "ja": "— いや、俺はここ、上にいるよ。静かでね。ここだと、よく聞こえるんだ……",
+  "ko": "— 아니, 난 여기 있을라네. 조용하거든. 여기선 소리가 참 잘 들려…"
  },
  "n11": {
   "who": "ИТАН",
@@ -2545,7 +3269,11 @@
   "de": "Was er da oben hörte, fragte ich nicht.",
   "it": "Non chiesi cosa potesse sentire lassù.",
   "tr": "Orada ne duyduğunu sormadım.",
-  "pl": "Nie zapytałem, co on tam słyszy."
+  "pl": "Nie zapytałem, co on tam słyszy.",
+  "fr": "Je n’ai pas demandé ce qu’il entendait.",
+  "zh": "我没问他在上面能听见什么。",
+  "ja": "上で何が聞こえるのかは、訊かなかった。",
+  "ko": "거기서 무엇이 들리는지는 묻지 않았다."
  },
  "n12": {
   "who": "ИТАН",
@@ -2559,7 +3287,11 @@
   "de": "Rauschen. Nur in der Ecke, an der Tür. Als stünde dort jemand.",
   "it": "Disturbi. Solo nell'angolo, vicino alla porta. Come se ci fosse qualcuno.",
   "tr": "Parazit. Yalnızca köşede, kapının yanında. Sanki orada biri duruyormuş gibi.",
-  "pl": "Zakłócenia. Tylko w rogu, przy drzwiach. Jakby ktoś tam stał."
+  "pl": "Zakłócenia. Tylko w rogu, przy drzwiach. Jakby ktoś tam stał.",
+  "fr": "Parasites, juste dans le coin, près de la porte. Comme si quelqu’un s’y tenait.",
+  "zh": "雪花。只出现在角落里，靠门的地方。像是那儿站着一个人。",
+  "ja": "ノイズ。ドアのそばの隅だけ。まるでそこに誰かが立っているように。",
+  "ko": "노이즈. 구석, 문 옆에만. 마치 거기 누가 서 있는 것처럼."
  },
  "n13": {
   "who": "ИТАН",
@@ -2573,7 +3305,11 @@
   "de": "Der Aufzug fuhr von allein. Am Pult niemand. Muss ein Sensor sein.",
   "it": "L'ascensore si mosse da solo. Alla console nessuno. Sarà un sensore.",
   "tr": "Asansör kendi kendine hareket etti. Panelde kimse yok. Herhalde sensördür.",
-  "pl": "Winda ruszyła sama. Przy pulpicie nikogo. Pewnie czujnik."
+  "pl": "Winda ruszyła sama. Przy pulpicie nikogo. Pewnie czujnik.",
+  "fr": "L’ascenseur est parti tout seul. Personne au pupitre. Sûrement un capteur.",
+  "zh": "电梯自己动了。控制台前没有人。大概是传感器的问题。",
+  "ja": "エレベーターが勝手に動いた。操作盤の前には誰もいない。センサーのせいか。",
+  "ko": "엘리베이터가 저절로 움직였다. 제어반 앞에는 아무도 없다. 센서 탓이겠지."
  },
  "n14": {
   "who": "ГАС",
@@ -2587,7 +3323,11 @@
   "de": "— Ah, der Neue. Hier, nimm einen Apfel. Aus meinem Garten.",
   "it": "— Ah, il nuovo. Tieni, una mela. Dal mio giardino.",
   "tr": "— A, yeni eleman. Al bir elma. Bahçemden.",
-  "pl": "— A, nowy. Masz jabłko, z działki."
+  "pl": "— A, nowy. Masz jabłko, z działki.",
+  "fr": "— Ah, le nouveau. Tiens, une pomme. De mon jardin.",
+  "zh": "— 哟，新来的。拿着，吃个苹果，我自家园子里摘的。",
+  "ja": "— おお、新入りか。ほら、リンゴを持っていきな。うちの庭でとれたんだ。",
+  "ko": "— 아, 신입이로구먼. 자, 사과 하나 먹게. 우리 집 텃밭에서 딴 거야."
  },
  "n15": {
   "who": "ГАС",
@@ -2601,7 +3341,11 @@
   "de": "— Altes Gebäude, da sieht man so einiges. Mach dir bloß keinen Kopf.",
   "it": "— Edificio vecchio, ci si immagina di tutto. Tu non farci caso.",
   "tr": "— Eski bina. İnsan neler görüyor. Sen sadece kafana takma.",
-  "pl": "— Stary budynek, wszystko się przywidzi. Tylko nie bierz tego do głowy."
+  "pl": "— Stary budynek, wszystko się przywidzi. Tylko nie bierz tego do głowy.",
+  "fr": "— Vieil immeuble, on voit des choses. Surtout, ne t’en occupe pas.",
+  "zh": "— 楼老了，难免有些怪事。你别往心里去就行。",
+  "ja": "— 古い建物だからな、いろんなものが見えるもんさ。気にしないことだよ。",
+  "ko": "— 오래된 건물이라 별별 게 다 보이는 법이야. 너무 마음에 두지는 말게."
  },
  "n16": {
   "who": "ИТАН",
@@ -2615,7 +3359,11 @@
   "de": "— Danke. Bist du schon lange hier?",
   "it": "— Grazie. Sei qui da molto?",
   "tr": "— Sağ ol. Uzun zamandır burada mısın?",
-  "pl": "— Dzięki. Długo tu pracujesz?"
+  "pl": "— Dzięki. Długo tu pracujesz?",
+  "fr": "— Merci. Tu es ici depuis longtemps ?",
+  "zh": "— 谢谢。您在这儿很久了吗？",
+  "ja": "— ありがとうございます。ここは、長いんですか？",
+  "ko": "— 감사합니다. 여기 오래 계셨어요?"
  },
  "n17": {
   "who": "ГАС",
@@ -2629,7 +3377,11 @@
   "de": "— Dreißig Jahre. Meine Frau hat im Siebten gearbeitet. Jetzt wisch ich da.",
   "it": "— Trent'anni. Mia moglie lavorava qui, al settimo. Adesso lavo io.",
   "tr": "— Otuz yıl. Karım burada çalışırdı, yedinci katta. Şimdi yeri ben siliyorum.",
-  "pl": "— Trzydzieści lat. Żona tu pracowała, na siódmym. A teraz ja myję."
+  "pl": "— Trzydzieści lat. Żona tu pracowała, na siódmym. A teraz ja myję.",
+  "fr": "— Trente ans. Ma femme était au septième. Maintenant, c’est moi qui lave.",
+  "zh": "— 三十年了。我老伴以前在这儿上班，就在七楼。现在换我来拖地。",
+  "ja": "— 三十年になるよ。妻がここで働いててな、7階で。今は俺が、床を拭いてる。",
+  "ko": "— 30년. 집사람이 여기 7층에서 일했지. 이젠 내가 바닥을 닦고 있네."
  },
  "n18": {
   "who": "ИТАН",
@@ -2643,7 +3395,11 @@
   "de": "Halb drei. Das Wachbuch lag immer noch zugeklappt da.",
   "it": "Le due e mezza. Il registro era ancora lì, chiuso.",
   "tr": "İki buçuk. Defter hâlâ orada, kapalı duruyordu.",
-  "pl": "Wpół do trzeciej. Dziennik wciąż leżał zamknięty."
+  "pl": "Wpół do trzeciej. Dziennik wciąż leżał zamknięty.",
+  "fr": "Deux heures et demie. Le journal était toujours là, fermé.",
+  "zh": "两点半。日志还躺在那儿，合着。",
+  "ja": "2時半。日誌は、まだ閉じたまま机の上にあった。",
+  "ko": "2시 반. 일지는 여전히 덮인 채 그대로 놓여 있었다."
  },
  "n19": {
   "who": "ИТАН",
@@ -2657,7 +3413,11 @@
   "de": "Am Pult war noch eine Taste aufgetaucht. Dreizehn. Vor einer Minute war sie nicht da.",
   "it": "Sulla console era comparso un altro pulsante. Tredici. Un minuto prima non c'era.",
   "tr": "Panelde bir düğme daha belirmişti. On üç. Bir dakika önce yoktu.",
-  "pl": "Na pulpicie pojawił się nowy przycisk. Trzynaście. Minutę temu go nie było."
+  "pl": "Na pulpicie pojawił się nowy przycisk. Trzynaście. Minutę temu go nie było.",
+  "fr": "Un nouveau bouton sur le pupitre. Treize. Il n’y était pas il y a une minute.",
+  "zh": "控制台上多了一个按钮。十三。一分钟前它还不在。",
+  "ja": "操作盤に、もうひとつボタンが現れていた。13。ほんの一分前にはなかったのに。",
+  "ko": "제어반에 버튼이 하나 더 생겨 있었다. 13. 1분 전에는 없었다."
  },
  "n20": {
   "who": "ЛИЛИ",
@@ -2671,7 +3431,11 @@
   "de": "— Ethan?.. Bist du das?",
   "it": "— Ethan?… Sei tu?",
   "tr": "— Ethan?.. Sen misin?",
-  "pl": "— Ethan?… To ty?"
+  "pl": "— Ethan?… To ty?",
+  "fr": "— Ethan ?.. C’est toi ?",
+  "zh": "— 伊森？……是你吗？",
+  "ja": "— イーサン……？ イーサンなの？",
+  "ko": "— 이선?.. 너야?"
  },
  "n21": {
   "who": "ИТАН",
@@ -2685,7 +3449,11 @@
   "de": "Schritte. Nicht mehr auf den Kameras. Im Foyer.",
   "it": "Passi. Non più sulle telecamere. Nell'atrio.",
   "tr": "Ayak sesleri. Artık kameralarda değil. Lobide.",
-  "pl": "Kroki. Już nie na kamerach — w holu."
+  "pl": "Kroki. Już nie na kamerach — w holu.",
+  "fr": "Des pas. Plus sur les caméras. Dans le hall.",
+  "zh": "脚步声。已经不在摄像头里了。就在大厅里。",
+  "ja": "足音。もうカメラの中ではない。ロビーに響いている。",
+  "ko": "발소리. 이제는 카메라가 아니라 로비에서 들린다."
  },
  "n22": {
   "who": "ИТАН",
@@ -2699,7 +3467,11 @@
   "de": "Das Rauschen formte ein Gesicht. Es sah direkt ins Objektiv.",
   "it": "I disturbi presero la forma di un volto. Guardava dritto nell'obiettivo.",
   "tr": "Parazit bir yüze dönüştü. Doğrudan merceğe bakıyordu.",
-  "pl": "Zakłócenia ułożyły się w twarz. Patrzyło prosto w obiektyw."
+  "pl": "Zakłócenia ułożyły się w twarz. Patrzyło prosto w obiektyw.",
+  "fr": "Les parasites ont pris la forme d’un visage. Ça regardait droit dans l’objectif.",
+  "zh": "雪花拼成了一张脸。它正直直地望着镜头。",
+  "ja": "ノイズが顔の形になった。それは、レンズをまっすぐに見つめていた。",
+  "ko": "노이즈가 얼굴 모양으로 뭉쳤다. 그것이 렌즈를 똑바로 쳐다보고 있었다."
  },
  "n23": {
   "who": "ИТАН",
@@ -2713,7 +3485,11 @@
   "de": "— Ja. Ich bin's.",
   "it": "— Sì. Sono io.",
   "tr": "— Evet. Benim.",
-  "pl": "— Tak. To ja."
+  "pl": "— Tak. To ja.",
+  "fr": "— Oui. C’est moi.",
+  "zh": "— 对。是我。",
+  "ja": "— うん。俺だよ。",
+  "ko": "— 응. 나야."
  },
  "n24": {
   "who": "ИТАН",
@@ -2727,7 +3503,11 @@
   "de": "Ich legte wortlos den Hörer auf.",
   "it": "Riattaccai senza dire una parola.",
   "tr": "Telefonu tek kelime etmeden kapattım.",
-  "pl": "Słuchawkę odłożyłem bez słowa."
+  "pl": "Słuchawkę odłożyłem bez słowa.",
+  "fr": "J’ai raccroché sans un mot.",
+  "zh": "我一言不发地放下了听筒。",
+  "ja": "無言で受話器を置いた。",
+  "ko": "아무 말 없이 수화기를 내려놓았다."
  },
  "n25": {
   "who": "ИТАН",
@@ -2741,7 +3521,11 @@
   "de": "Vier Uhr zwanzig. Frank ist unten, im Kreis. Und ich hier oben. Fast zwei Stunden bis sechs.",
   "it": "Le quattro e venti. Frank è di sotto, nel cerchio. E io qui. Mancano quasi due ore alle sei.",
   "tr": "Dört yirmi. Frank aşağıda, çemberin içinde. Ben ise buradayım. Altıya neredeyse iki saat var.",
-  "pl": "Czwarta dwadzieścia. Frank na dole, w kręgu. A ja tutaj. Do szóstej prawie dwie godziny."
+  "pl": "Czwarta dwadzieścia. Frank na dole, w kręgu. A ja tutaj. Do szóstej prawie dwie godziny.",
+  "fr": "Quatre heures vingt. Frank en bas, dans le cercle. Moi ici. Presque deux heures jusqu’à six.",
+  "zh": "四点二十。弗兰克在楼下，在盐圈里。而我在这儿。离六点差不多还有两个小时。",
+  "ja": "4時20分。フランクは下の円の中。俺は上。6時まで、あと二時間近く。",
+  "ko": "4시 20분. 프랭크는 아래층 원 안에 있고, 나는 여기 있다. 6시까지 거의 두 시간."
  },
  "n26": {
   "who": "ГАС",
@@ -2755,7 +3539,11 @@
   "de": "— Ethan… Komm runter zu mir. Hier hört man so gut…",
   "it": "— Ethan… Scendi da me. Quassù si sente così bene…",
   "tr": "— Ethan… Yanıma in. Burada her şey çok iyi duyuluyor…",
-  "pl": "— Ethan… Zejdź do mnie. Tu tak dobrze słychać…"
+  "pl": "— Ethan… Zejdź do mnie. Tu tak dobrze słychać…",
+  "fr": "— Ethan… Descends me rejoindre. On entend si bien, ici…",
+  "zh": "— 伊森……下来找我。在这儿听得特别清楚……",
+  "ja": "— イーサン……降りておいで。ここは、ほんとうによく聞こえるよ……",
+  "ko": "— 이선… 나한테 내려오게. 여기선 소리가 아주 잘 들리네…"
  },
  "n27": {
   "who": "ИТАН",
@@ -2769,7 +3557,11 @@
   "de": "Gus ist tot. Ich sah es auf der Dreizehn.",
   "it": "Gus non c'è più. Lo vidi sulla tredici.",
   "tr": "Gus artık yok. Bunu on üçte gördüm.",
-  "pl": "Gusa już nie ma. Widziałem na trzynastce."
+  "pl": "Gusa już nie ma. Widziałem na trzynastce.",
+  "fr": "Gus n’est plus. Vu sur la treize.",
+  "zh": "格斯已经不在了。我在十三号上看到了。",
+  "ja": "ガスはもういない。13番で、この目で見た。",
+  "ko": "거스는 이제 없다. 13번 화면에서 보았다."
  },
  "n28": {
   "who": "ИТАН",
@@ -2783,7 +3575,11 @@
   "de": "Von unten klopfte es. Dreimal. Wie Frank gebeten hatte. Nur hatte er mich darum gebeten.",
   "it": "Di sotto bussarono. Tre volte. Come aveva chiesto Frank. Solo che lo aveva chiesto a me.",
   "tr": "Aşağıda kapı çalındı. Üç kez. Frank'in istediği gibi. Yalnız o bunu benden istemişti.",
-  "pl": "Z dołu zapukano. Trzy razy. Tak, jak prosił Frank. Tylko że prosił o to mnie."
+  "pl": "Z dołu zapukano. Trzy razy. Tak, jak prosił Frank. Tylko że prosił o to mnie.",
+  "fr": "On a frappé en bas. Trois coups. Comme Frank le voulait. Mais c’est à moi qu’il l’avait demandé.",
+  "zh": "楼下有人敲门。三下。就像弗兰克要求的那样。只不过，他要求的是我去敲。",
+  "ja": "下でノックの音がした。三回。フランクが頼んだとおりに。ただし、あの頼みごとをされたのは、俺のほうなのに。",
+  "ko": "아래층에서 누가 문을 두드렸다. 세 번. 프랭크가 말한 그대로였다. 다만 프랭크는 그걸 나더러 하라고 했었다."
  },
  "n29": {
   "who": "ИТАН",
@@ -2797,7 +3593,11 @@
   "de": "Am Eingang stand Lily. Im Regen, ohne Schirm. Lily schlief dreihundert Kilometer von hier.",
   "it": "Lily era all'ingresso. Sotto la pioggia, senza ombrello. Lily dormiva a trecento chilometri da qui.",
   "tr": "Lily girişte duruyordu. Yağmurun altında, şemsiyesiz. Lily iki yüz mil ötede uyuyordu.",
-  "pl": "U wejścia stała Lily. W deszczu, bez parasola. Lily spała trzysta kilometrów stąd."
+  "pl": "U wejścia stała Lily. W deszczu, bez parasola. Lily spała trzysta kilometrów stąd.",
+  "fr": "Lily se tenait à l’entrée. Sous la pluie, sans parapluie. Lily dormait à trois cents kilomètres d’ici.",
+  "zh": "莉莉站在入口处。淋着雨，没有伞。莉莉明明睡在三百公里之外。",
+  "ja": "入口にリリーが立っていた。雨の中、傘もささずに。リリーは、300キロ離れた場所で眠っているのに。",
+  "ko": "입구에 릴리가 서 있었다. 우산도 없이 빗속에. 릴리는 300킬로미터 밖에서 자고 있었는데."
  },
  "n30": {
   "who": "ИТАН",
@@ -2811,7 +3611,11 @@
   "de": "Ich machte auf. Sie kam rein und lächelte. Zu breit.",
   "it": "Aprii. Entrò e sorrise. Troppo largo.",
   "tr": "Kapıyı açtım. İçeri girdi ve gülümsedi. Fazla geniş.",
-  "pl": "Otworzyłem. Weszła i uśmiechnęła się. Za szeroko."
+  "pl": "Otworzyłem. Weszła i uśmiechnęła się. Za szeroko.",
+  "fr": "J’ai ouvert. Elle est entrée et a souri. Trop large.",
+  "zh": "我开了门。她走进来，笑了。笑得太开。",
+  "ja": "ドアを開けた。彼女は入ってきて、笑った。大きすぎる笑みで。",
+  "ko": "문을 열었다. 그 애가 들어와서 웃었다. 너무 크게."
  },
  "n31": {
   "who": "ИТАН",
@@ -2825,7 +3629,11 @@
   "de": "Das Licht ging aus. Etage für Etage. Von oben nach unten. Auf mich zu.",
   "it": "Le luci cominciarono a spegnersi. Piano dopo piano. Dall'alto. Verso di me.",
   "tr": "Işıklar sönmeye başladı. Kat kat. Yukarıdan aşağıya. Bana doğru.",
-  "pl": "Światło zaczęło gasnąć. Piętro po piętrze. Z góry na dół. W moją stronę."
+  "pl": "Światło zaczęło gasnąć. Piętro po piętrze. Z góry na dół. W moją stronę.",
+  "fr": "Les lumières s’éteignaient. Étage par étage. De haut en bas. Vers moi.",
+  "zh": "灯开始熄灭。一层接一层。自上而下。朝我逼近。",
+  "ja": "明かりが消え始めた。一階ずつ。上から下へ。こちらへ向かって。",
+  "ko": "불이 꺼지기 시작했다. 한 층씩. 위에서 아래로. 내 쪽으로."
  },
  "n32": {
   "who": "ИТАН",
@@ -2839,7 +3647,11 @@
   "de": "Die Stimme verklang. Frank atmete schwer. Im Serverraum stand der Rekorder: alle Kameras auf einem Monitor.",
   "it": "La voce svanì. Frank ansimava. In sala server c'era il videoregistratore: tutte le telecamere su un solo monitor.",
   "tr": "Ses kesildi. Frank derin derin soluyordu. Sunucu odasında kayıt cihazı vardı: bütün kameralar tek monitörde.",
-  "pl": "Głos ucichł. Frank ciężko oddychał. W serwerowni stał rejestrator: wszystkie kamery na jednym monitorze."
+  "pl": "Głos ucichł. Frank ciężko oddychał. W serwerowni stał rejestrator: wszystkie kamery na jednym monitorze.",
+  "fr": "La voix s’est tue. Frank haletait. Là, l’enregistreur : toutes les caméras sur un seul moniteur.",
+  "zh": "声音渐渐远去。弗兰克喘得很厉害。机房里有台录像机：所有摄像头的画面都在同一块屏幕上。",
+  "ja": "声が遠のいた。フランクは荒い息をついていた。サーバー室にはレコーダーがあり、すべてのカメラが一台のモニターに映っていた。",
+  "ko": "목소리가 잦아들었다. 프랭크는 거칠게 숨을 쉬고 있었다. 서버실에는 녹화기가 있었다. 모든 카메라가 모니터 하나에 떠 있었다."
  },
  "n33": {
   "who": "ФРЭНК",
@@ -2853,7 +3665,11 @@
   "de": "— Sieh auf die Kameras. Was nicht stimmt, trägst du ein. So hab ich zwanzig Jahre auf den Morgen gewartet.",
   "it": "— Guarda le telecamere. Quello che non va, lo annoti. Così ho aspettato il mattino per vent'anni.",
   "tr": "— Kameralara bak. Ters bir şey görürsen kaydet. Yirmi yıl sabahı böyle bekledim.",
-  "pl": "— Patrz na kamery. Wszystko, co nie tak, zapisuj. Tak czekałem na poranek dwadzieścia lat."
+  "pl": "— Patrz na kamery. Wszystko, co nie tak, zapisuj. Tak czekałem na poranek dwadzieścia lat.",
+  "fr": "— Surveille les caméras. Tout ce qui cloche, tu le notes. Vingt ans que j’attends le matin comme ça.",
+  "zh": "— 盯着摄像头。有什么不对劲，就记下来。我就是这样熬了二十年，等到天亮的。",
+  "ja": "— カメラを見ろ。おかしなものがあれば、記録しろ。俺は二十年、そうやって朝を待ってきた。",
+  "ko": "— 카메라를 보게. 이상한 게 있으면 기록하고. 나는 그렇게 20년 동안 아침을 기다렸네."
  },
  "n34": {
   "who": "ФРЭНК",
@@ -2867,7 +3683,11 @@
   "de": "— Starr nicht ins Rauschen. Es schaut daraus zurück.",
   "it": "— Non fissare i disturbi. Ti guarda da lì dentro.",
   "tr": "— Paraziti uzun uzun izleme. O da oradan sana bakıyor.",
-  "pl": "— Nie wpatruj się długo w zakłócenia. To patrzy stamtąd."
+  "pl": "— Nie wpatruj się długo w zakłócenia. To patrzy stamtąd.",
+  "fr": "— Ne fixe pas les parasites. C’est de là que ça regarde.",
+  "zh": "— 别盯着雪花看。它会从里面看着你。",
+  "ja": "— ノイズを長く見つめるな。あれが、向こうから見返してくる。",
+  "ko": "— 노이즈를 오래 보지 말게. 그 안에서 그것이 이쪽을 보고 있으니까."
  },
  "n35": {
   "who": "ФРЭНК",
@@ -2881,7 +3701,11 @@
   "de": "— Geh ich der Stimme nach, halt mich fest. Egal, was ich sage.",
   "it": "— Se vado dietro alla voce, trattienimi. Qualunque cosa dica.",
   "tr": "— Sesin peşinden gidersem beni tut. Ne dersem diyeyim.",
-  "pl": "— Jak pójdę za głosem, trzymaj mnie. Cokolwiek powiem."
+  "pl": "— Jak pójdę za głosem, trzymaj mnie. Cokolwiek powiem.",
+  "fr": "— Si je vais vers la voix, retiens-moi. Quoi que je dise.",
+  "zh": "— 要是我循着那声音走，就拉住我。不管我说什么。",
+  "ja": "— もし俺が声のほうへ行きかけたら、押さえてくれ。俺が何を言ってもだ。",
+  "ko": "— 내가 목소리를 따라가려 하면 붙잡게. 내가 뭐라고 하든."
  },
  "n36": {
   "who": "ФРЭНК",
@@ -2895,7 +3719,11 @@
   "de": "— Zwanzig vor sechs. Halt durch, Junge.",
   "it": "— Le sei meno venti. Tieni duro, ragazzo.",
   "tr": "— Altıya yirmi var. Dayan, evlat.",
-  "pl": "— Za dwadzieścia szósta. Trzymaj się, młody."
+  "pl": "— Za dwadzieścia szósta. Trzymaj się, młody.",
+  "fr": "— Six heures moins vingt. Tiens bon, petit.",
+  "zh": "— 五点四十了。撑住，小伙子。",
+  "ja": "— 5時40分だ。踏ん張れよ、若いの。",
+  "ko": "— 6시 20분 전이군. 같이 버티세, 젊은이."
  },
  "n37": {
   "who": "ГОЛОС",
@@ -2909,7 +3737,11 @@
   "de": "— Frankie… Mach Mama auf… Mir ist so kalt hier draußen…",
   "it": "— Frankie… Apri alla mamma… Ho tanto freddo qui fuori…",
   "tr": "— Frankie… Annene kapıyı aç… Burada çok üşüyorum…",
-  "pl": "— Frankie… Otwórz mamie… Zmarzłam tu…"
+  "pl": "— Frankie… Otwórz mamie… Zmarzłam tu…",
+  "fr": "— Frankie… Ouvre à Maman… J’ai si froid, dehors…",
+  "zh": "— 弗兰基……给妈妈开开门……我在外面好冷啊……",
+  "ja": "— フランキー……ママに開けておくれ……外は寒くてたまらないの……",
+  "ko": "— 프랭키야… 엄마한테 문 열어 주렴… 밖이 너무 추워…"
  },
  "n38": {
   "who": "ИТАН",
@@ -2923,7 +3755,11 @@
   "de": "Die Schritte gingen nach oben. Zwei Stunden bis sechs. Ich drehte die Monitore ganz dunkel und sah zu.",
   "it": "I passi salirono. Due ore alle sei. Abbassai i monitor al minimo e continuai a guardare.",
   "tr": "Ayak sesleri yukarı çıktı. Altıya iki saat vardı. Monitörlerin ışığını elimden geldiğince kıstım ve izledim.",
-  "pl": "Kroki poszły na górę. Do szóstej dwie godziny. Przyciemniłem monitory do samego dołu i patrzyłem."
+  "pl": "Kroki poszły na górę. Do szóstej dwie godziny. Przyciemniłem monitory do samego dołu i patrzyłem.",
+  "fr": "Les pas sont remontés. Deux heures jusqu’à six. J’ai réglé les moniteurs au plus sombre, et j’ai regardé.",
+  "zh": "脚步声上楼去了。离六点还有两个小时。我把监视器的亮度调到最暗，继续盯着看。",
+  "ja": "足音は上の階へ消えた。6時まであと二時間。モニターの明るさを限界まで落として、見つめた。",
+  "ko": "발소리가 위층으로 올라갔다. 6시까지 두 시간. 모니터 밝기를 끝까지 낮추고 지켜보았다."
  },
  "n39": {
   "who": "ЛИЛИ",
@@ -2937,7 +3773,11 @@
   "de": "— Ethan?.. Ich weiß, du bist da. Mir ist kalt. Komm raus zu mir.",
   "it": "— Ethan?… So che ci sei. Ho freddo. Vieni fuori.",
   "tr": "— Ethan?.. Burada olduğunu biliyorum. Üşüyorum. Yanıma çık.",
-  "pl": "— Ethan?… Wiem, że tu jesteś. Zimno mi. Wyjdź do mnie."
+  "pl": "— Ethan?… Wiem, że tu jesteś. Zimno mi. Wyjdź do mnie.",
+  "fr": "— Ethan ?.. Je sais que tu es là. J’ai froid. Sors, viens.",
+  "zh": "— 伊森？……我知道你在这儿。我好冷。出来找我吧。",
+  "ja": "— イーサン……？ そこにいるの、わかってるよ。寒いの。出てきて。",
+  "ko": "— 이선?.. 네가 여기 있는 거 알아. 추워. 나한테 나와."
  },
  "n40": {
   "who": "ИТАН",
@@ -2951,7 +3791,11 @@
   "de": "Im Siebten ging Licht an. Dann im Zehnten. Sie geht durch die Etagen und knipst Schalter. Sie sucht.",
   "it": "Si accese la luce al settimo. Poi al decimo. Gira per i piani, accende gli interruttori. Cerca.",
   "tr": "Yedinci katta ışık yandı. Sonra onuncuda. Katları dolaşıp düğmelere basıyor. Arıyor.",
-  "pl": "Na siódmym zapaliło się światło. Potem na dziesiątym. Chodzi po piętrach i pstryka włącznikami. Szuka."
+  "pl": "Na siódmym zapaliło się światło. Potem na dziesiątym. Chodzi po piętrach i pstryka włącznikami. Szuka.",
+  "fr": "Lumière au septième, puis au dixième. Elle arpente les étages, tourne les interrupteurs. Elle cherche.",
+  "zh": "七楼的灯亮了。接着是十楼。她在一层层地走，一个个地拨开关。在找。",
+  "ja": "7階に明かりがついた。次は10階。彼女は各階を歩き回り、スイッチを入れて回っている。探している。",
+  "ko": "7층에 불이 들어왔다. 그다음엔 10층. 그 애가 층마다 돌아다니며 스위치를 켜고 있다. 찾고 있는 것이다."
  },
  "n41": {
   "who": "ИТАН",
@@ -2965,7 +3809,11 @@
   "de": "Das Haustelefon klingelte. Nehm ich ab, hört sie, wo ich bin.",
   "it": "Squillò il telefono interno. Se rispondo, capirà dove sono.",
   "tr": "Dahili telefon çaldı. Açarsam nerede olduğumu duyar.",
-  "pl": "Zadzwonił wewnętrzny. Jeśli odbiorę, usłyszy, gdzie jestem."
+  "pl": "Zadzwonił wewnętrzny. Jeśli odbiorę, usłyszy, gdzie jestem.",
+  "fr": "Le téléphone interne sonne. Si je décroche, elle saura où je suis.",
+  "zh": "内线电话响了。我要是拿起来，她就能听出我在哪儿。",
+  "ja": "内線電話が鳴った。受話器を取れば、彼女に居場所を知られる。",
+  "ko": "내선 전화가 울렸다. 받으면 내가 어디 있는지 들키고 만다."
  },
  "n42": {
   "who": "ЛИЛИ",
@@ -2979,7 +3827,11 @@
   "de": "— Ich höre dich atmen.",
   "it": "— Ti sento respirare.",
   "tr": "— Nefes alışını duyabiliyorum.",
-  "pl": "— Słyszę, jak oddychasz."
+  "pl": "— Słyszę, jak oddychasz.",
+  "fr": "— Je t’entends respirer.",
+  "zh": "— 我听得见你在呼吸。",
+  "ja": "— 息してる音、聞こえてるよ。",
+  "ko": "— 네 숨소리가 들려."
  },
  "n43": {
   "who": "ИТАН",
@@ -2993,7 +3845,11 @@
   "de": "Zwanzig vor sechs. Keine Schritte mehr. Ich weiß nicht, wo sie ist. Das ist das Schlimmste.",
   "it": "Le sei meno venti. I passi si fermarono. Non so dov'è. Ed è la cosa peggiore.",
   "tr": "Altıya yirmi var. Ayak sesleri kesildi. Nerede olduğunu bilmiyorum. En kötüsü de bu.",
-  "pl": "Za dwadzieścia szósta. Kroki ucichły. Nie wiem, gdzie ona jest. I to jest najgorsze."
+  "pl": "Za dwadzieścia szósta. Kroki ucichły. Nie wiem, gdzie ona jest. I to jest najgorsze.",
+  "fr": "Six heures moins vingt. Les pas se sont arrêtés. Je ne sais pas où elle est. C’est le pire.",
+  "zh": "五点四十。脚步声停了。我不知道她在哪儿。这才是最糟的。",
+  "ja": "5時40分。足音が止んだ。彼女がどこにいるのか、わからない。それがいちばん怖い。",
+  "ko": "6시 20분 전. 발소리가 멎었다. 그 애가 어디 있는지 모른다. 그게 가장 끔찍하다."
  },
  "t01": {
   "who": "ВЕРА",
@@ -3007,7 +3863,11 @@
   "de": "— Wache Horizon, hier Leitstelle Schild, Vera. Erste Schicht? Ich zeig dir schnell, was du auf den Monitoren hast.",
   "it": "— Sicurezza Horizon, qui la centrale Scudo, parla Vera. Primo turno? Ti mostro in fretta cosa hai sui monitor.",
   "tr": "— Horizon güvenlik, burası Kalkan merkezi, ben dispeçer Vera. İlk vardiya mı? Monitörlerinde neler olduğunu hızlıca göstereyim.",
-  "pl": "— Ochrona Horizonu, tu centrala Tarcza, dyspozytorka Vera. Pierwsza zmiana? Szybko pokażę ci, co masz na monitorach."
+  "pl": "— Ochrona Horizonu, tu centrala Tarcza, dyspozytorka Vera. Pierwsza zmiana? Szybko pokażę ci, co masz na monitorach.",
+  "fr": "— Sécurité Horizon, ici le central Bouclier, Vera à l’appareil. Première nuit ? Je te montre vite tes moniteurs.",
+  "zh": "— 地平线保安，这里是盾牌调度中心，我是调度员薇拉。第一次值班？我先带你快速过一遍监视器上的内容。",
+  "ja": "— ホライゾン警備、こちらシールド指令センター、オペレーターのヴェラです。初めての勤務ですね？ モニターに何が映っているか、手短にご説明します。",
+  "ko": "— 호라이즌 경비실, 실드 관제센터 담당 베라입니다. 첫 근무시죠? 모니터에 뭐가 나오는지 빠르게 알려 드릴게요."
  },
  "t02": {
   "who": "ВЕРА",
@@ -3021,7 +3881,11 @@
   "de": "— Unten sind die Kameras. Tipp eine an. Probier die Drei, die Aufzüge.",
   "it": "— In basso le telecamere dell'edificio. Toccane una. Prova la tre: gli ascensori.",
   "tr": "— Altta binanın kameraları var. Birine dokun. Üç numaralıyı dene: asansörler.",
-  "pl": "— Na dole masz kamery budynku. Wybierz którąś. Na przykład trzecią — windy."
+  "pl": "— Na dole masz kamery budynku. Wybierz którąś. Na przykład trzecią — windy.",
+  "fr": "— En bas, les caméras de l’immeuble. Touche-en une. Essaie la trois, les ascenseurs.",
+  "zh": "— 下面一排是大楼的摄像头。点一下就能切换。先试试三号，电梯。",
+  "ja": "— 画面の下に並んでいるのが、建物内のカメラです。どれかをタップしてみてください。たとえば3番、エレベーターです。",
+  "ko": "— 아래쪽에 건물 카메라가 있어요. 하나 눌러 보세요. 3번, 엘리베이터를 눌러 볼까요."
  },
  "t03": {
   "who": "ВЕРА",
@@ -3035,7 +3899,11 @@
   "de": "— Dein Job: merken, was nicht stimmt. Siehst du die Aufzugsanzeige? Dreizehnter Stock. Das Gebäude hat nur zwölf.",
   "it": "— Il tuo lavoro è notare ciò che non va. Vedi il display dell'ascensore? Piano tredici. L'edificio ne ha dodici.",
   "tr": "— Senin işin, neyin ters gittiğini fark etmek. Asansör göstergesini görüyor musun? On üçüncü kat. Binada yalnızca on iki kat var.",
-  "pl": "— Masz zauważać, co jest nie tak. Widzisz wyświetlacz windy? Trzynaste piętro. A budynek ma tylko dwanaście."
+  "pl": "— Masz zauważać, co jest nie tak. Widzisz wyświetlacz windy? Trzynaste piętro. A budynek ma tylko dwanaście.",
+  "fr": "— Ton travail : repérer ce qui cloche. L’afficheur de l’ascenseur : treize. L’immeuble n’a que douze étages.",
+  "zh": "— 你的工作就是发现不对劲的地方。看见电梯楼层显示屏了吗？十三层。可这栋楼只有十二层。",
+  "ja": "— あなたの仕事は、おかしなものに気づくことです。エレベーターの表示が見えますか？ 13階。この建物は12階までしかありません。",
+  "ko": "— 하시는 일은 이상한 점을 알아채는 거예요. 엘리베이터 층 표시창 보이세요? 13층이라고 떠 있죠. 이 건물은 12층까지밖에 없는데요."
  },
  "t04": {
   "who": "ВЕРА",
@@ -3049,7 +3917,11 @@
   "de": "— Tipp auf Eintragen und wähl, was es ist. Jetzt: Aufzug.",
   "it": "— Tocca «Annota» e scegli cos'è. Stavolta, «Ascensore».",
   "tr": "— Kaydet'e dokun ve ne olduğunu seç. Bu sefer: Asansör.",
-  "pl": "— Naciśnij „Zapisz” i wybierz, co to jest. Teraz: „Winda”."
+  "pl": "— Naciśnij „Zapisz” i wybierz, co to jest. Teraz: „Winda”.",
+  "fr": "— Touche Noter, puis choisis ce que c’est. Ici, Ascenseur.",
+  "zh": "— 点“记录”，选出是什么异常。这次选“电梯”。",
+  "ja": "— 「記録」をタップして、何なのかを選んでください。今回は「エレベーター」です。",
+  "ko": "— “기록”을 누르고 무엇인지 고르세요. 이번에는 “엘리베이터”예요."
  },
  "t05": {
   "who": "ВЕРА",
@@ -3063,7 +3935,11 @@
   "de": "— Genau so. Eingetragen, und es ist weg. Übersiehst du drei in einer Stunde, gibt's Ärger.",
   "it": "— Ecco fatto. Una volta annotato, sparisce. Se ne perdi tre in un'ora, sono guai.",
   "tr": "— İşte bu. Kaydettin mi kaybolur. Bir saatte üçünü kaçırırsan başın belaya girer.",
-  "pl": "— Właśnie tak. Zapisane — i znika. Przegapisz trzy w ciągu godziny, to będą kłopoty."
+  "pl": "— Właśnie tak. Zapisane — i znika. Przegapisz trzy w ciągu godziny, to będą kłopoty.",
+  "fr": "— Voilà. Une fois noté, ça disparaît. Trois ratés en une heure, et tu auras des ennuis.",
+  "zh": "— 这就对了。记录之后，它就消失了。一小时内漏掉三个，你就有麻烦了。",
+  "ja": "— そうです。記録すれば、それは消えます。1時間に3つ見逃すと、まずいことになりますよ。",
+  "ko": "— 좋아요. 기록하면 사라져요. 한 시간에 세 번 놓치면 곤란해지니까 조심하세요."
  },
  "t06": {
   "who": "ВЕРА",
@@ -3077,7 +3953,11 @@
   "de": "— Oben links ist das Mikro. Springen die Balken, gibt's ein Geräusch. Auch eintragen.",
   "it": "— In alto a sinistra, il microfono. Quando le barre saltano, c'è un suono. Annotalo.",
   "tr": "— Sol üstte kameranın mikrofonu var. Çubuklar zıplıyorsa bir ses var demektir. Onu da kaydet.",
-  "pl": "— U góry po lewej mikrofon kamery. Skaczą słupki — znaczy, że jest dźwięk. Zapisuj i to."
+  "pl": "— U góry po lewej mikrofon kamery. Skaczą słupki — znaczy, że jest dźwięk. Zapisuj i to.",
+  "fr": "— En haut à gauche, le micro. Si les barres sautent, c’est un son. Note-le aussi.",
+  "zh": "— 左上角是摄像头的麦克风。条形跳动，就说明有声音。这个也要记录。",
+  "ja": "— 左上はカメラのマイクです。バーが跳ねたら、音がしているということ。それも記録してください。",
+  "ko": "— 왼쪽 위의 MIC는 카메라 마이크예요. 막대가 튀면 소리가 난다는 뜻이니, 그것도 기록하세요."
  },
  "t07": {
   "who": "ВЕРА",
@@ -3091,7 +3971,11 @@
   "de": "— Am Pult steuerst du das Licht, den Eingang und den Aufzug. Bis zehn: Eingang abschließen, Aufzug stoppen.",
   "it": "— La console comanda luci dei piani, ingresso e ascensore. Per le dieci, chiudi l'ingresso e ferma l'ascensore.",
   "tr": "— Panel kat ışıklarını, girişi ve asansörü yönetir. Saat ona kadar girişi kilitle, asansörü durdur.",
-  "pl": "— „Pulpit” to światło na piętrach, wejście i winda. Do dziesiątej zamknij wejście i zatrzymaj windę."
+  "pl": "— „Pulpit” to światło na piętrach, wejście i winda. Do dziesiątej zamknij wejście i zatrzymaj windę.",
+  "fr": "— Le pupitre commande lumières, entrée et ascenseur. Avant vingt-deux heures : entrée verrouillée, ascenseur arrêté.",
+  "zh": "— “控制台”管各层的灯、入口和电梯。十点前锁好入口，让电梯停运。",
+  "ja": "— 「操作盤」では、各階の照明と入口、エレベーターを操作します。22時までに入口を施錠して、エレベーターを止めてください。",
+  "ko": "— 제어반에서는 층별 조명, 입구, 엘리베이터를 다룰 수 있어요. 10시까지 입구를 잠그고 엘리베이터를 세워 두세요."
  },
  "t08": {
   "who": "ВЕРА",
@@ -3105,7 +3989,11 @@
   "de": "— Im Wachbuch sind das Merkblatt und die Notizen deines Vorgängers. Lies sie, solange es ruhig ist.",
   "it": "— Nel registro ci sono le istruzioni e gli appunti di chi c'era prima. Leggili finché c'è calma.",
   "tr": "— Defterde talimatların ve önceki görevlinin notları var. Ortalık sessizken oku.",
-  "pl": "— W „Dzienniku” jest instrukcja i notatki poprzedniego ochroniarza. Poczytaj, póki jest cicho."
+  "pl": "— W „Dzienniku” jest instrukcja i notatki poprzedniego ochroniarza. Poczytaj, póki jest cicho.",
+  "fr": "— Le journal contient la consigne et les notes de l’ancien gardien. Lis-les tant que c’est calme.",
+  "zh": "— “日志”里有你的须知，还有上一任保安的记录。趁现在安静，去读一读。",
+  "ja": "— 「日誌」には、勤務の注意事項と、前任の警備員のメモがあります。静かなうちに読んでおいてください。",
+  "ko": "— 일지에는 수칙과 이전 경비원의 기록이 있어요. 조용할 때 읽어 두세요."
  },
  "t09": {
   "who": "ВЕРА",
@@ -3119,7 +4007,11 @@
   "de": "— Und noch was. Zeigt eine Kamera Rauschen, starr nicht hin. Eintragen und sofort umschalten. Das war's. Gute Schicht.",
   "it": "— Un'ultima cosa. Se una telecamera mostra disturbi, non fissarla. Annota e cambia subito. Tutto qui. Buon turno.",
   "tr": "— Bir şey daha. Kamerada parazit varsa dik dik bakma. Kaydet ve hemen başka kameraya geç. Hepsi bu. İyi vardiyalar.",
-  "pl": "— I jeszcze jedno. Jeśli na kamerze są zakłócenia, nie wpatruj się. Zapisz i od razu przełącz. To wszystko. Udanej zmiany."
+  "pl": "— I jeszcze jedno. Jeśli na kamerze są zakłócenia, nie wpatruj się. Zapisz i od razu przełącz. To wszystko. Udanej zmiany.",
+  "fr": "— Autre chose. Si une caméra affiche des parasites, ne les fixe pas. Note et change tout de suite. C’est tout. Bonne garde.",
+  "zh": "— 还有一点。摄像头出现雪花的话，别盯着看。记录下来，马上切换。就这些。祝你值班顺利。",
+  "ja": "— あと一つだけ。カメラにノイズが出たら、見つめないこと。記録して、すぐに切り替えてください。以上です。お気をつけて。",
+  "ko": "— 한 가지 더요. 카메라에 노이즈가 뜨면 쳐다보지 마세요. 기록하고 바로 전환하세요. 이상입니다. 좋은 근무 되세요."
  },
  "fb00": {
   "who": "ИТАН",
@@ -3133,7 +4025,11 @@
   "de": "Franks Kabine. Eine halb volle Tasse Tee, die Jacke über der Stuhllehne. Als wäre er kurz rausgegangen. Vor einer Woche.",
   "it": "La guardiola di Frank. Una tazza di tè lasciato a metà, la giacca sullo schienale. Come se fosse uscito un attimo. Una settimana fa.",
   "tr": "Frank'in kulübesi. Yarım kalmış bir bardak çay, sandalyenin arkalığında ceket. Sanki bir dakikalığına dışarı çıkmıştı. Bir hafta önce.",
-  "pl": "Budka Franka. Kubek niedopitej herbaty, kurtka na oparciu krzesła. Jakby wyszedł na minutę. Tydzień temu."
+  "pl": "Budka Franka. Kubek niedopitej herbaty, kurtka na oparciu krzesła. Jakby wyszedł na minutę. Tydzień temu.",
+  "fr": "La loge de Frank. Une tasse de thé entamée, la veste sur le dossier. Comme s’il était sorti une minute. Il y a une semaine.",
+  "zh": "弗兰克的岗亭。一只没喝完的茶杯，外套搭在椅背上。像是他只离开了一会儿。在一周前。",
+  "ja": "フランクの守衛室。飲みかけのお茶が入ったマグカップ、椅子の背に掛かった上着。ちょっと席を外しただけのよう。一週間前に。",
+  "ko": "프랭크의 경비실. 마시다 만 차가 담긴 머그컵, 의자 등받이에 걸린 점퍼. 잠깐 자리를 비운 것 같았다. 일주일 전에."
  },
  "fb01": {
   "who": "ИТАН",
@@ -3147,7 +4043,11 @@
   "de": "Franks Kabine. Alles, wie der Kollege sagte: die Lampe, der kalte Tee, die Jacke über der Stuhllehne. Als wäre er kurz rausgegangen.",
   "it": "La guardiola di Frank. Come aveva detto la guardia diurna: la lampada, il tè freddo, la giacca sullo schienale. Come se fosse uscito un attimo.",
   "tr": "Frank'in kulübesi. Gündüz nöbetçisinin dediği gibi: lamba, soğumuş çay, sandalyenin arkalığındaki ceket. Sanki bir dakikalığına dışarı çıkmıştı.",
-  "pl": "Budka Franka. Dokładnie jak mówił dzienny ochroniarz: lampa, zimna herbata, kurtka na oparciu krzesła. Jakby wyszedł na minutę."
+  "pl": "Budka Franka. Dokładnie jak mówił dzienny ochroniarz: lampa, zimna herbata, kurtka na oparciu krzesła. Jakby wyszedł na minutę.",
+  "fr": "La loge de Frank. Comme l’avait dit le gardien de jour : la lampe, le thé froid, la veste sur le dossier. Comme s’il était sorti une minute.",
+  "zh": "弗兰克的岗亭。和白班保安说的一模一样：亮着的灯，凉透的茶，椅背上的外套。像是他只离开了一会儿。",
+  "ja": "フランクの守衛室。日勤の警備員が言ったとおり。ランプ、冷めたお茶、椅子の背の上着。ちょっと席を外しただけのよう。",
+  "ko": "프랭크의 경비실. 주간 경비원이 말한 그대로였다. 스탠드, 식은 차, 의자 등받이에 걸린 점퍼. 잠깐 자리를 비운 것만 같았다."
  },
  "fb02": {
   "who": "ИТАН",
@@ -3161,7 +4061,11 @@
   "de": "In der Jackentasche eine Packung grobes Salz, halb leer. Und eine Handvoll loses Salz. Wozu braucht ein Wachmann Salz?",
   "it": "Nella tasca della giacca, un pacco di sale grosso, mezzo vuoto. E una manciata di sale sfuso. Perché una guardia porta il sale?",
   "tr": "Ceketin cebinde yarısı boş bir paket iri tuz. Bir de avuç dolusu dökme tuz. Bir güvenlik görevlisi neden tuz taşır ki?",
-  "pl": "W kieszeni kurtki paczka grubej soli, do połowy pusta. I garść soli luzem. Po co ochroniarzowi sól?"
+  "pl": "W kieszeni kurtki paczka grubej soli, do połowy pusta. I garść soli luzem. Po co ochroniarzowi sól?",
+  "fr": "Dans la poche de la veste, un paquet de gros sel à moitié vide et du sel en vrac. Pourquoi un gardien porterait-il du sel ?",
+  "zh": "外套口袋里有一包粗盐，用了一半。还有一小撮散落的盐粒。保安为什么要随身带盐？",
+  "ja": "上着のポケットに、粗塩の袋。半分ほど減っている。ほかに、ひとつかみ分のばらの塩。警備員が、どうして塩を持ち歩く？",
+  "ko": "점퍼 주머니에는 굵은소금 한 봉지가 반쯤 비어 있었다. 낱알로 흩어진 소금도 한 줌. 경비원이 소금을 왜 들고 다닐까?"
  },
  "fb03": {
   "who": "ИТАН",
@@ -3175,7 +4079,11 @@
   "de": "Unter der Glasplatte ein Foto. Frank, ein alter Mann im Blaumann und eine Frau im roten Kleid. Ihr Gesicht war abgerieben, als hätte jemand tausendmal mit dem Finger darübergestrichen. Auf der Rückseite: „Martha. Siebter Stock. Silvester.“",
   "it": "Sotto il vetro della scrivania, una foto. Frank, un vecchio in tuta da lavoro e una donna in abito rosso. Il suo viso era consumato, come accarezzato mille volte con un dito. Sul retro: «Martha. Settimo piano. Capodanno.»",
   "tr": "Masanın camının altında bir fotoğraf. Frank, iş tulumlu yaşlı bir adam ve kırmızı elbiseli bir kadın. Kadının yüzü silinmişti, sanki biri parmağıyla bin kez okşamış gibi. Arkasında: “Martha. Yedinci kat. Yılbaşı.”",
-  "pl": "Pod szkłem na biurku zdjęcie. Frank, starszy mężczyzna w roboczym kombinezonie i kobieta w czerwonej sukience. Jej twarz była starta, jakby ktoś tysiąc razy gładził ją palcem. Z tyłu: „Martha. Siódme piętro. Sylwester.”"
+  "pl": "Pod szkłem na biurku zdjęcie. Frank, starszy mężczyzna w roboczym kombinezonie i kobieta w czerwonej sukience. Jej twarz była starta, jakby ktoś tysiąc razy gładził ją palcem. Z tyłu: „Martha. Siódme piętro. Sylwester.”",
+  "fr": "Sous la vitre du bureau, une photo. Frank, un vieil homme en bleu de travail et une femme en robe rouge. Son visage était effacé, comme caressé mille fois du doigt. Au dos : « Martha. Septième étage. Nouvel An. »",
+  "zh": "桌面玻璃板下压着一张照片。弗兰克，一个穿工装的老人，还有一个穿红裙子的女人。她的脸被磨掉了，像是被手指抚摸过上千次。背面写着：“玛莎。七楼。新年。”",
+  "ja": "机のガラス板の下に、写真が一枚。フランクと、作業つなぎ姿の老人と、赤いドレスの女性。彼女の顔は擦り切れていた。何千回も指でなぞられたかのように。裏には「マーサ。7階。新年」。",
+  "ko": "책상 위 유리판 아래에 사진이 한 장 끼워져 있었다. 프랭크, 작업복 차림의 노인, 그리고 빨간 원피스를 입은 여자. 여자의 얼굴은 누군가 손가락으로 천 번쯤 쓰다듬은 것처럼 닳아 있었다. 뒷면에는 이렇게 적혀 있었다. “마사. 7층. 새해.”"
  },
  "fb04": {
   "who": "ИТАН",
@@ -3189,7 +4097,11 @@
   "de": "In der Schublade: Franks Handy, Akku leer. Ich steckte es ans Ladegerät, falls die Polizei wissen will, wen er anrief.",
   "it": "Nel cassetto, il telefono di Frank, scarico del tutto. Lo misi in carica, nel caso alla polizia servisse sapere chi aveva chiamato.",
   "tr": "Çekmecede Frank'in telefonu vardı, şarjı tamamen bitmişti. Polis kimleri aradığını bilmek ister diye şarja taktım.",
-  "pl": "W szufladzie telefon Franka, zupełnie martwy. Podłączyłem go do ładowarki — może policja zechce wiedzieć, do kogo dzwonił."
+  "pl": "W szufladzie telefon Franka, zupełnie martwy. Podłączyłem go do ładowarki — może policja zechce wiedzieć, do kogo dzwonił.",
+  "fr": "Dans le tiroir, le téléphone de Frank, à plat. Je l’ai mis à charger, au cas où la police voudrait savoir qui il appelait.",
+  "zh": "抽屉里有弗兰克的手机，已经彻底没电了。我把它插上了充电器，万一警方想知道他给谁打过电话。",
+  "ja": "引き出しの中に、フランクの携帯。電池は完全に切れている。警察が通話の相手を知りたがるかもしれないので、充電器につないだ。",
+  "ko": "서랍에는 프랭크의 휴대폰이 있었다. 배터리가 완전히 나가 있었다. 경찰이 그가 누구에게 전화했는지 알고 싶어 할지도 몰라서 충전기에 꽂아 두었다."
  },
  "fb05": {
   "who": "ИТАН",
@@ -3203,7 +4115,11 @@
   "de": "Das Wachbuch war mit Schnur zugebunden. Auf dem Umschlag, in Franks Schrift: „Vor drei. Ganz.“ Ich legte es weg. Bis drei war noch lange hin.",
   "it": "Il registro era legato con lo spago. Sulla copertina, con la mano di Frank: «Prima delle tre. Tutto.» Lo misi da parte. Le tre erano lontane.",
   "tr": "Defter iple bağlanmıştı. Kapağında Frank'in el yazısıyla: “Üçten önce. Hepsini.” Kenara koydum. Üçe daha çok vardı.",
-  "pl": "Dziennik był związany sznurkiem. Na okładce ręką Franka: „Do trzeciej. Cały.” Odłożyłem go. Do trzeciej było jeszcze daleko."
+  "pl": "Dziennik był związany sznurkiem. Na okładce ręką Franka: „Do trzeciej. Cały.” Odłożyłem go. Do trzeciej było jeszcze daleko.",
+  "fr": "Journal ficelé. En couverture, de la main de Frank : « Avant trois heures. En entier. » Je l’ai laissé. Trois heures, c’était loin.",
+  "zh": "日志本被一根细绳捆着。封面上是弗兰克的笔迹：“三点前。全部读完。”我把它放到了一边。离三点还早得很。",
+  "ja": "日誌は紐で縛られていた。表紙にはフランクの字で「3時まで。全部。」。脇に置いた。3時までは、まだ遠い。",
+  "ko": "일지는 노끈으로 묶여 있었다. 표지에는 프랭크의 글씨로 “3시 전에. 전부.”라고 적혀 있었다. 나는 일지를 옆으로 밀어 놓았다. 3시까지는 아직 멀었다."
  },
  "dg01": {
   "who": "ИТАН",
@@ -3217,7 +4133,11 @@
   "de": "Um zehn klingelte mein Handy. Unbekannte Nummer.",
   "it": "Alle dieci mi chiamò un numero sconosciuto.",
   "tr": "Saat onda telefonum çaldı. Bilinmeyen numara.",
-  "pl": "O dziesiątej zadzwonił telefon. Nieznany numer."
+  "pl": "O dziesiątej zadzwonił telefon. Nieznany numer.",
+  "fr": "À dix heures, un numéro inconnu m’a appelé.",
+  "zh": "十点，我的手机响了。陌生号码。",
+  "ja": "22時、スマホが鳴った。見覚えのない番号。",
+  "ko": "10시에 휴대폰이 울렸다. 모르는 번호였다."
  },
  "dg02": {
   "who": "СМЕНЩИК",
@@ -3231,7 +4151,11 @@
   "de": "— Hier die Tagschicht. Deine Nummer hab ich von der Agentur. Na, wie läuft's, Neuer? Lebst du noch?",
   "it": "— Sono quello del giorno. Il tuo numero me l'ha dato l'agenzia. Allora, nuovo, come va? Sei vivo?",
   "tr": "— Ben gündüz nöbetçisiyim. Numaranı şirket verdi. Eee, nasıl gidiyor, yeni eleman? Hâlâ yaşıyor musun?",
-  "pl": "— Tu dzienny. Agencja dała mi twój numer. No i jak tam, nowy? Jeszcze żywy?"
+  "pl": "— Tu dzienny. Agencja dała mi twój numer. No i jak tam, nowy? Jeszcze żywy?",
+  "fr": "— Le gardien de jour. L’agence m’a filé ton numéro. Alors, le nouveau, ça va ? Toujours en vie ?",
+  "zh": "— 我是白班保安。保安公司把你的号码给了我。怎么样，新来的？还活着吗？",
+  "ja": "— 日勤のもんだ。会社に番号を教えてもらった。どうだ、新入り。生きてるか？",
+  "ko": "— 나 주간이야. 경비 업체에서 번호를 알려 줬어. 그래, 좀 어때, 신입? 아직 살아 있나?"
  },
  "dg03": {
   "who": "ИТАН",
@@ -3245,7 +4169,11 @@
   "de": "— Was ist wirklich mit Frank passiert?",
   "it": "— Cos'è successo davvero a Frank?",
   "tr": "— Frank'in başına gerçekte ne geldi?",
-  "pl": "— Co naprawdę stało się z Frankiem?"
+  "pl": "— Co naprawdę stało się z Frankiem?",
+  "fr": "— Qu’est-il vraiment arrivé à Frank ?",
+  "zh": "— 弗兰克到底出了什么事？",
+  "ja": "— フランクさんに、本当は何があったんですか？",
+  "ko": "— 프랭크 씨한테 정말 무슨 일이 있었던 거예요?"
  },
  "dg04": {
   "who": "СМЕНЩИК",
@@ -3259,7 +4187,11 @@
   "de": "— Weiß nicht. Die letzte Woche war er nicht er selbst. Streute Salz in Ecken, an Türen, auf die Schwelle der Kabine. Ich dachte, gegen Ratten.",
   "it": "— Non so. Quell'ultima settimana non era più lui. Spargeva sale negli angoli, alle porte, sulla soglia della guardiola. Credevo fosse per i topi.",
   "tr": "— Bilmiyorum. Son haftasında hiç kendisi gibi değildi. Köşelere, kapıların önüne, kulübenin eşiğine tuz serpiyordu. Ben de fareler için sandım.",
-  "pl": "— Nie wiem. W ostatnim tygodniu był jakiś nieswój. Sypał sól po kątach, przy drzwiach, na próg budki. Myślałem, że na szczury."
+  "pl": "— Nie wiem. W ostatnim tygodniu był jakiś nieswój. Sypał sól po kątach, przy drzwiach, na próg budki. Myślałem, że na szczury.",
+  "fr": "— Aucune idée. Sa dernière semaine, il n’était plus lui. Du sel aux coins, aux portes, au seuil de la loge. Je croyais que c’était pour les rats.",
+  "zh": "— 我不知道。他最后那个星期整个人都不对劲。墙角、门边、岗亭门槛上，到处撒盐。我还以为是防老鼠的。",
+  "ja": "— 知らん。最後の一週間は、様子がおかしかった。隅や、ドアの前や、守衛室の敷居に、塩をまいてた。ネズミ除けだと思ってたんだが。",
+  "ko": "— 모르겠어. 마지막 한 주는 사람이 딴판이었어. 구석마다, 문 옆마다, 경비실 문턱에까지 소금을 뿌려 놓더라고. 쥐 때문인 줄 알았지."
  },
  "dg05": {
   "who": "ИТАН",
@@ -3273,7 +4205,11 @@
   "de": "— Warum hast du beim Gehen an die Scheibe geklopft?",
   "it": "— Perché hai bussato al vetro, andando via?",
   "tr": "— Giderken neden cama vurdun?",
-  "pl": "— Czemu zapukałeś w szybę, kiedy wychodziłeś?"
+  "pl": "— Czemu zapukałeś w szybę, kiedy wychodziłeś?",
+  "fr": "— Pourquoi tu as frappé à la vitre en partant ?",
+  "zh": "— 你走的时候，为什么要敲玻璃？",
+  "ja": "— 帰るとき、どうしてガラスを叩いたんですか？",
+  "ko": "— 가시면서 왜 유리를 두드리셨어요?"
  },
  "dg06": {
   "who": "СМЕНЩИК",
@@ -3287,7 +4223,11 @@
   "de": "— Damit du's dir merkst. Dreimal klopfen, das bin ich. Morgen früh klopf ich genauso. Frank sagte immer: Es klopft nicht. Es ruft.",
   "it": "— Perché te lo ricordi. Tre colpi: sono io. Domattina busserò così. Frank diceva: quella cosa non bussa. Chiama.",
   "tr": "— Hatırlayasın diye. Üç vuruş, o benim. Sabah da aynı şekilde vururum. Frank derdi ki: o kapıyı çalmaz. Seslenir.",
-  "pl": "— Żebyś zapamiętał. Trzy stuknięcia — to ja. Rano zapukam tak samo. Frank mówił: to nie puka. To woła."
+  "pl": "— Żebyś zapamiętał. Trzy stuknięcia — to ja. Rano zapukam tak samo. Frank mówił: to nie puka. To woła.",
+  "fr": "— Pour que tu retiennes. Trois coups, c’est moi. Demain matin, je frapperai pareil. Frank disait : ça ne frappe pas. Ça appelle.",
+  "zh": "— 好让你记住。三下敲门声，就是我。早上我也这样敲。弗兰克说过：它不会敲门。它只会叫。",
+  "ja": "— 覚えさせるためだ。ノックが三回なら、俺だ。朝も同じように叩く。フランクはよく言ってた。あれはノックしない。呼ぶんだ、とな。",
+  "ko": "— 기억해 두라고. 세 번 두드리면 나야. 아침에 와서도 똑같이 두드릴 거야. 프랭크가 그랬어. 그것은 두드리지 않는다고. 부른다고."
  },
  "dg07": {
   "who": "ИТАН",
@@ -3301,7 +4241,11 @@
   "de": "— „Es“? Wer ist „es“?",
   "it": "— «Quella cosa»? Quale cosa?",
   "tr": "— “O” mu? O da ne?",
-  "pl": "— „To”? Czyli kto?"
+  "pl": "— „To”? Czyli kto?",
+  "fr": "— « Ça » ? Quoi, « ça » ?",
+  "zh": "— “它”？“它”是什么？",
+  "ja": "— 「あれ」？ あれって何のことですか？",
+  "ko": "— “그것”이요? “그것”이 뭔데요?"
  },
  "dg08": {
   "who": "СМЕНЩИК",
@@ -3315,7 +4259,11 @@
   "de": "— Ich glaub nicht an solche Märchen. Du auch nicht. Bleib bis sechs sitzen, mach keinem auf, antworte nicht auf deinen Namen. Das ist der ganze Job.",
   "it": "— Io a queste favole non credo. E nemmeno tu. Resta qui fino alle sei, non aprire a nessuno, non rispondere al tuo nome. Questo è tutto il lavoro.",
   "tr": "— Ben bu masallara inanmam. Sen de inanma. Altıya kadar sessizce otur, kimseye kapıyı açma, adına cevap verme. Bütün iş bu.",
-  "pl": "— Nie wierzę w te bajki. I ty nie wierz. Siedź do szóstej, nikomu nie otwieraj, nie odpowiadaj, gdy zawołają cię po imieniu. I tyle roboty."
+  "pl": "— Nie wierzę w te bajki. I ty nie wierz. Siedź do szóstej, nikomu nie otwieraj, nie odpowiadaj, gdy zawołają cię po imieniu. I tyle roboty.",
+  "fr": "— Je ne crois pas à ces contes. Toi non plus. Reste tranquille jusqu’à six heures, n’ouvre à personne, ne réponds pas à ton nom. Voilà tout le boulot.",
+  "zh": "— 我不信那些鬼话，你也别信。老老实实待到六点，谁来都别开门，有人叫你名字也别答应。工作就这些。",
+  "ja": "— おとぎ話なんか信じてない。あんたも信じるな。6時まで大人しく座ってろ、誰にもドアを開けるな、名前を呼ばれても返事をするな。これが仕事のすべてだ。",
+  "ko": "— 난 그런 옛날이야기 안 믿어. 너도 믿지 마. 6시까지 가만히 앉아서, 누가 와도 문 열어 주지 말고, 이름 불러도 대답하지 마. 그게 일의 전부야."
  },
  "dg09": {
   "who": "ИТАН",
@@ -3329,7 +4277,11 @@
   "de": "— Ist sonst noch jemand im Gebäude?",
   "it": "— C'è qualcun altro nell'edificio?",
   "tr": "— Binada başka biri var mı?",
-  "pl": "— Jest ktoś jeszcze w budynku?"
+  "pl": "— Jest ktoś jeszcze w budynku?",
+  "fr": "— Quelqu’un d’autre dans l’immeuble ?",
+  "zh": "— 楼里还有别人吗？",
+  "ja": "— 建物に、ほかに誰かいるんですか？",
+  "ko": "— 건물에 다른 사람도 있나요?"
  },
  "dg10": {
   "who": "СМЕНЩИК",
@@ -3343,7 +4295,11 @@
   "de": "— Gus, der Putzmann. Wischt den Siebten, ist die ganze Nacht da oben. Dreißig Jahre schon. Sei nett zu ihm, er ist Witwer.",
   "it": "— Gus, delle pulizie. Lava il settimo, sta lassù tutta la notte. Trent'anni qui. Sii gentile con lui, è vedovo.",
   "tr": "— Gus, temizlikçi. Yedinci katı siler, bütün gece orada olur. Otuz yıldır burada. Ona iyi davran, dul bir adam.",
-  "pl": "— Gus, sprzątacz. Myje siódme piętro, siedzi tam całą noc. Trzydzieści lat tu pracuje. Bądź dla niego delikatny, to wdowiec."
+  "pl": "— Gus, sprzątacz. Myje siódme piętro, siedzi tam całą noc. Trzydzieści lat tu pracuje. Bądź dla niego delikatny, to wdowiec.",
+  "fr": "— Gus, l’agent d’entretien. Il lave le septième étage, il y est toute la nuit. Trente ans ici. Ménage-le, il est veuf.",
+  "zh": "— 清洁工格斯。在七楼拖地，整晚都在上面。在这儿干了三十年。对他客气点，他老伴去世了。",
+  "ja": "— 清掃員のガスだ。7階を掃除してて、夜通しそこにいる。ここに三十年だ。優しくしてやれ、奥さんを亡くしてるんだ。",
+  "ko": "— 청소하는 거스. 7층 닦는다고 밤새 거기 있어. 여기서만 30년이야. 잘 대해 줘, 아내 먼저 보낸 양반이니까."
  },
  "dg11": {
   "who": "ИТАН",
@@ -3357,7 +4313,11 @@
   "de": "— Okay. Bis morgen früh.",
   "it": "— Va bene. A domattina.",
   "tr": "— Tamam. Sabah görüşürüz.",
-  "pl": "— Dobrze. Do rana."
+  "pl": "— Dobrze. Do rana.",
+  "fr": "— D’accord. À demain matin.",
+  "zh": "— 好。早上见。",
+  "ja": "— わかりました。では、朝に。",
+  "ko": "— 알았어요. 아침에 봬요."
  },
  "dg12": {
   "who": "СМЕНЩИК",
@@ -3371,7 +4331,11 @@
   "de": "— Bis dann. Dreimal klopfen. Kapiert?",
   "it": "— A domattina. Tre colpi. Capito?",
   "tr": "— Görüşürüz. Üç vuruş. Anladın mı?",
-  "pl": "— Do rana. Trzy razy. Pamiętasz?"
+  "pl": "— Do rana. Trzy razy. Pamiętasz?",
+  "fr": "— À demain. Trois coups. Compris ?",
+  "zh": "— 早上见。三下敲门。记住了吗？",
+  "ja": "— ああ、朝にな。三回ノックだ。覚えたな？",
+  "ko": "— 그래, 아침에 보자. 세 번이야. 알겠지?"
  },
  "bm01": {
   "who": "ИТАН",
@@ -3385,7 +4349,11 @@
   "de": "Ich klopfte. Stille. Dann, von innen — drei Schläge. Langsam, schwer. Als würde jemand seine Kräfte sparen.",
   "it": "Bussai. Silenzio. Poi, da dentro, tre colpi. Lenti, pesanti. Come se qualcuno risparmiasse le forze.",
   "tr": "Kapıyı çaldım. Sessizlik. Sonra içeriden üç vuruş geldi. Yavaş, ağır. Sanki biri gücünü saklıyordu.",
-  "pl": "Zapukałem. Cisza. Potem od środka — trzy uderzenia. Powolne, ciężkie. Jakby ktoś oszczędzał siły."
+  "pl": "Zapukałem. Cisza. Potem od środka — trzy uderzenia. Powolne, ciężkie. Jakby ktoś oszczędzał siły.",
+  "fr": "J’ai frappé. Silence. Puis, de l’intérieur, trois coups. Lents, lourds. Comme si quelqu’un ménageait ses forces.",
+  "zh": "我敲了门。一片寂静。然后，从里面传来三下敲击。缓慢，沉重。像是有人在省着力气。",
+  "ja": "ノックした。静寂。やがて、内側から――三回のノック。遅く、重い音。まるで力を温存しているかのように。",
+  "ko": "문을 두드렸다. 정적. 그러더니 안쪽에서 세 번의 노크가 돌아왔다. 느리고 묵직하게. 힘을 아끼는 사람처럼."
  },
  "bm02": {
   "who": "ИТАН",
@@ -3399,7 +4367,11 @@
   "de": "Die ganze Schwelle entlang, auf der anderen Seite — ein weißer Strich. Salz. Von innen gestreut.",
   "it": "Lungo tutta la soglia, dall'altra parte, una linea bianca. Sale. L'avevano versato dall'interno.",
   "tr": "Eşiğin boyunca, öbür tarafta beyaz bir çizgi vardı. Tuz. Biri içeriden dökmüştü.",
-  "pl": "Po całym progu, z drugiej strony — biała smuga. Sól. Nasypano ją od środka."
+  "pl": "Po całym progu, z drugiej strony — biała smuga. Sól. Nasypano ją od środka.",
+  "fr": "Sur tout le seuil, de l’autre côté, une ligne blanche. Du sel. Quelqu’un l’avait versé de l’intérieur.",
+  "zh": "整个门槛上，在门的那一侧，有一道白线。是盐。有人从里面撒的。",
+  "ja": "敷居に沿って、向こう側に白い線。塩。誰かが内側からまいていた。",
+  "ko": "문턱을 따라, 저쪽 편에 흰 줄이 보였다. 소금. 누군가 안쪽에서 뿌려 놓은 것이다."
  },
  "bm03": {
   "who": "ИТАН",
@@ -3413,7 +4385,11 @@
   "de": "— Hey! Ist da jemand?",
   "it": "— Ehi! C'è qualcuno?",
   "tr": "— Hey! İçeride kimse var mı?",
-  "pl": "— Hej! Jest tam ktoś?"
+  "pl": "— Hej! Jest tam ktoś?",
+  "fr": "— Hé ! Il y a quelqu’un ?",
+  "zh": "— 喂！里面有人吗？",
+  "ja": "— おーい！ 誰かいますか？",
+  "ko": "— 저기요! 안에 누구 있어요?"
  },
  "bm04": {
   "who": "ИТАН",
@@ -3427,7 +4403,11 @@
   "de": "Kein Laut. Nur das Licht unter der Tür flackerte, als ginge jemand am Spalt vorbei.",
   "it": "Nessun suono. Solo la luce sotto la porta tremò, come se qualcuno passasse davanti alla fessura.",
   "tr": "Çıt çıkmadı. Yalnızca kapının altındaki ışık titredi, sanki biri aralığın önünden geçmişti.",
-  "pl": "Ani dźwięku. Tylko światło pod drzwiami drgnęło, jakby ktoś przeszedł obok szczeliny."
+  "pl": "Ani dźwięku. Tylko światło pod drzwiami drgnęło, jakby ktoś przeszedł obok szczeliny.",
+  "fr": "Pas un bruit. Seule la lumière sous la porte a vacillé, comme au passage de quelqu’un.",
+  "zh": "没有一点声音。只有门缝下的光闪了一下，像是有人从缝前走过。",
+  "ja": "物音ひとつしない。ただ、扉の下の光がちらついた。誰かが隙間の前を通り過ぎたように。",
+  "ko": "아무 소리도 없었다. 다만 문 밑으로 새는 불빛이 깜박였다. 누군가 틈 앞을 지나간 것처럼."
  },
  "bm05": {
   "who": "ИТАН",
@@ -3441,7 +4421,11 @@
   "de": "Wohl die Rohre. Das sagte ich mir den ganzen Weg nach oben.",
   "it": "Saranno i tubi. Me lo ripetei per tutta la salita.",
   "tr": "Herhalde borulardır. Yukarı çıkarken yol boyunca kendime bunu söyledim.",
-  "pl": "Pewnie rury. Powtarzałem to sobie całą drogę na górę."
+  "pl": "Pewnie rury. Powtarzałem to sobie całą drogę na górę.",
+  "fr": "Sûrement les tuyaux. Je me le suis répété jusqu’en haut.",
+  "zh": "多半是水管。上楼的一路上，我一直这样对自己说。",
+  "ja": "たぶん配管の音。階段を上がる間じゅう、俺はそう自分に言い聞かせていた。",
+  "ko": "아마 배관 소리겠지. 위층으로 올라가는 내내 그렇게 되뇌었다."
  },
  "gs01": {
   "who": "ИТАН",
@@ -3455,7 +4439,11 @@
   "de": "— Die Frau auf Franks Foto, im roten Kleid — ist das Martha?",
   "it": "— La donna nella foto di Frank, quella col vestito rosso: è Martha?",
   "tr": "— Frank'in fotoğrafındaki kırmızı elbiseli kadın, Martha mı?",
-  "pl": "— Kobieta ze zdjęcia Franka, w czerwonej sukience — to Martha?"
+  "pl": "— Kobieta ze zdjęcia Franka, w czerwonej sukience — to Martha?",
+  "fr": "— La femme de la photo de Frank, en robe rouge, c’est Martha ?",
+  "zh": "— 弗兰克那张照片上穿红裙子的女人，是玛莎吗？",
+  "ja": "— フランクさんの写真の、赤いドレスの女性は、マーサさんですか？",
+  "ko": "— 프랭크 씨 사진에 있는, 빨간 원피스 입은 여자분이 마사 씨인가요?"
  },
  "gs02": {
   "who": "ГАС",
@@ -3469,7 +4457,11 @@
   "de": "— Martha. Unser letztes Silvester. Einen Monat später war sie fort. Ihr Gesicht hab ich fast weggestreichelt.",
   "it": "— Martha. Il nostro ultimo Capodanno. Un mese dopo non c'era più. Il suo viso, su quella foto, l'ho consumato io.",
   "tr": "— Martha. Son yılbaşımız. Bir ay sonra gitti. O fotoğrafta yüzünü ovala ovala neredeyse sildim.",
-  "pl": "— Martha. Nasz ostatni Sylwester. Miesiąc później jej nie było. Wytarłem jej twarz na tym zdjęciu niemal do dziur."
+  "pl": "— Martha. Nasz ostatni Sylwester. Miesiąc później jej nie było. Wytarłem jej twarz na tym zdjęciu niemal do dziur.",
+  "fr": "— Martha. Notre dernier Nouvel An. Un mois après, elle n’était plus. J’ai usé son visage à force de le caresser.",
+  "zh": "— 是玛莎。我们最后一个新年。一个月后，她就走了。照片上她的脸，都被我摸得快磨没了。",
+  "ja": "— マーサだよ。二人で迎えた最後の新年さ。その一か月後に、あいつは亡くなった。あの写真のあいつの顔は、俺が指でこすって、半分消えちまった。",
+  "ko": "— 마사야. 우리가 같이 보낸 마지막 새해지. 한 달 뒤에 세상을 떠났네. 그 사진 속 얼굴을 내가 하도 문질러서 반쯤 닳아 버렸어."
  },
  "gs03": {
   "who": "ИТАН",
@@ -3483,7 +4475,11 @@
   "de": "— Arbeitete deine Frau auch hier?",
   "it": "— Anche tua moglie lavorava qui?",
   "tr": "— Karın da mı burada çalışıyordu?",
-  "pl": "— Twoja żona też tu pracowała?"
+  "pl": "— Twoja żona też tu pracowała?",
+  "fr": "— Ta femme travaillait aussi ici ?",
+  "zh": "— 您老伴也在这儿工作过吗？",
+  "ja": "— 奥さんも、ここで働いていたんですか？",
+  "ko": "— 부인께서도 여기서 일하셨어요?"
  },
  "gs04": {
   "who": "ГАС",
@@ -3497,7 +4493,11 @@
   "de": "— Martha. Buchhalterin, siebter Stock, Büro Siebenhundertsieben. Dreißig Jahre zusammen hier. Jetzt nur noch ich.",
   "it": "— Martha. Contabile, settimo piano, ufficio settecentosette. Trent'anni qui insieme. Ora sono solo io.",
   "tr": "— Martha. Muhasebeci, yedinci kat, yedi yüz yedi numaralı oda. Otuz yıl birlikte buradaydık. Şimdi yalnızım.",
-  "pl": "— Martha. Księgowa, siódme piętro, gabinet siedemset siedem. Trzydzieści lat byliśmy tu razem. Teraz jestem sam."
+  "pl": "— Martha. Księgowa, siódme piętro, gabinet siedemset siedem. Trzydzieści lat byliśmy tu razem. Teraz jestem sam.",
+  "fr": "— Martha. Comptable, septième étage, bureau sept cent sept. Trente ans ici, ensemble. Maintenant, je suis seul.",
+  "zh": "— 玛莎。会计，七楼，707室。我们在这儿一起待了三十年。现在就剩我一个了。",
+  "ja": "— マーサだ。経理でな、7階の707号室にいた。三十年、ここで一緒に働いた。今は、俺ひとりだ。",
+  "ko": "— 마사. 7층 707호 사무실 경리였지. 우린 여기서 30년을 같이 있었네. 이젠 나 혼자야."
  },
  "gs05": {
   "who": "ИТАН",
@@ -3511,7 +4511,11 @@
   "de": "— Hat Frank was gesagt, bevor er verschwand?",
   "it": "— Frank ha detto qualcosa prima di sparire?",
   "tr": "— Frank ortadan kaybolmadan önce bir şey söyledi mi?",
-  "pl": "— Czy Frank coś mówił, zanim zniknął?"
+  "pl": "— Czy Frank coś mówił, zanim zniknął?",
+  "fr": "— Frank a dit quelque chose avant de disparaître ?",
+  "zh": "— 弗兰克失踪前说过什么吗？",
+  "ja": "— フランクさんは、いなくなる前に何か言っていませんでしたか？",
+  "ko": "— 프랭크 씨가 사라지기 전에 무슨 말을 했어요?"
  },
  "gs06": {
   "who": "ГАС",
@@ -3525,7 +4529,11 @@
   "de": "— Fragte dauernd, ob mich nachts wer ruft. Ich hab gesagt: ja. Er wurde kreidebleich. Streute mir Salz in die Tasche. Komischer Kauz.",
   "it": "— Mi chiedeva se di notte mi chiama qualcuno. Gli dissi di sì. Sbiancò. Mi mise del sale in tasca. Un tipo strano.",
   "tr": "— Geceleri bana seslenen var mı diye durmadan sordu. Var dedim. Bembeyaz kesildi. Cebime tuz doldurdu. Tuhaf adam.",
-  "pl": "— Wciąż pytał, czy mnie nocami nie wołają. Powiedziałem, że wołają. Zbladł jak ściana. Nasypał mi soli do kieszeni. Dziwak."
+  "pl": "— Wciąż pytał, czy mnie nocami nie wołają. Powiedziałem, że wołają. Zbladł jak ściana. Nasypał mi soli do kieszeni. Dziwak.",
+  "fr": "— Il me demandait si on m’appelait la nuit. J’ai dit que oui. Blanc comme un linge, il m’a mis du sel dans la poche. Drôle de type.",
+  "zh": "— 一个劲儿地问我，夜里有没有人叫我。我说有。他脸一下子白了。还往我口袋里塞了一把盐。怪人。",
+  "ja": "— 夜に誰かに呼ばれないかと、しきりに訊くんだ。呼ばれると答えたら、真っ青になってな。俺のポケットに塩を詰め込んでいった。変わった男だよ。",
+  "ko": "— 밤에 누가 나를 부르지 않느냐고 자꾸 묻더군. 부른다고 했더니 낯이 하얗게 질리더라고. 내 주머니에 소금을 쏟아 넣어 주지 뭔가. 별난 친구야."
  },
  "gs07": {
   "who": "ИТАН",
@@ -3539,7 +4547,11 @@
   "de": "— Wer ruft dich?",
   "it": "— Chi ti chiama?",
   "tr": "— Sana kim sesleniyor?",
-  "pl": "— Kto cię woła?"
+  "pl": "— Kto cię woła?",
+  "fr": "— Qui t’appelle ?",
+  "zh": "— 是谁在叫您？",
+  "ja": "— 誰が呼ぶんですか？",
+  "ko": "— 누가 거스 씨를 부르는데요?"
  },
  "gs08": {
   "who": "ГАС",
@@ -3553,7 +4565,11 @@
   "de": "— Martha. Aus Siebenhundertsieben. Denk nicht, ich spinne. Ich antworte nicht. Ich komm nur zum Zuhören.",
   "it": "— Martha. Dal settimo, dal settecentosette. Non pensare che sia pazzo. Non rispondo. Vengo solo ad ascoltare.",
   "tr": "— Martha. Yedinci kattan, yedi yüz yedi numaralı odadan. Deli olduğumu sanma. Cevap vermiyorum. Sadece dinlemeye geliyorum.",
-  "pl": "— Martha. Z siódmego, z siedemset siedem. Nie myśl, że zwariowałem. Nie odpowiadam. Po prostu przychodzę posłuchać."
+  "pl": "— Martha. Z siódmego, z siedemset siedem. Nie myśl, że zwariowałem. Nie odpowiadam. Po prostu przychodzę posłuchać.",
+  "fr": "— Martha. Du septième, du sept cent sept. Je ne suis pas fou, hein. Je ne réponds pas. Je viens juste écouter.",
+  "zh": "— 玛莎。从七楼，从707室。你别以为我疯了。我不答应。我只是来听听。",
+  "ja": "— マーサさ。7階の、707号室から。頭がおかしいなんて思わんでくれよ。返事はしてない。ただ、聞きに行くだけだ。",
+  "ko": "— 마사야. 7층, 707호에서. 내가 미쳤다고 생각하진 말게. 난 대답은 안 해. 그냥 들으러 올라가는 걸세."
  },
  "gs09": {
   "who": "ИТАН",
@@ -3567,7 +4583,11 @@
   "de": "— Gus. Was sie auch sagt, antworte nicht. Versprich es.",
   "it": "— Gus. Qualunque cosa dica, non rispondere. Promettimelo.",
   "tr": "— Gus. Ne derse desin cevap verme. Söz ver bana.",
-  "pl": "— Gus. Cokolwiek powie, nie odpowiadaj. Obiecaj mi."
+  "pl": "— Gus. Cokolwiek powie, nie odpowiadaj. Obiecaj mi.",
+  "fr": "— Gus. Quoi qu’elle dise, ne réponds pas. Promets-moi.",
+  "zh": "— 格斯。不管她说什么，您都别答应。请向我保证。",
+  "ja": "— ガスさん。彼女が何を言っても、返事はしないでください。約束してください。",
+  "ko": "— 거스 씨. 그 목소리가 뭐라고 하든 대답하지 마세요. 약속해 주세요."
  },
  "gs10": {
   "who": "ГАС",
@@ -3581,7 +4601,11 @@
   "de": "— Dreißig Jahre hat sie mich gerufen: zum Essen, nach Hause… Na gut, Junge. Versprochen.",
   "it": "— Per trent'anni mi ha chiamato: a pranzo, a casa… Va bene, figliolo. Lo prometto.",
   "tr": "— Otuz yıl boyunca beni çağırdı: yemeğe, eve… Peki evlat. Söz veriyorum.",
-  "pl": "— Trzydzieści lat mnie wołała: a to na obiad, a to do domu… Dobrze, synku. Obiecuję."
+  "pl": "— Trzydzieści lat mnie wołała: a to na obiad, a to do domu… Dobrze, synku. Obiecuję.",
+  "fr": "— Trente ans qu’elle m’appelait : pour déjeuner, pour rentrer… Bon, fiston. Promis.",
+  "zh": "— 三十年了，她一直在叫我：叫我去吃午饭，叫我回家……好吧，孩子。我保证。",
+  "ja": "— 三十年、あいつは俺を呼んでくれた。昼飯だ、帰るぞ、ってな……わかったよ、兄ちゃん。約束する。",
+  "ko": "— 30년을 날 불러 줬지. 점심 먹으러 오라고, 집에 가자고… 알았네, 젊은이. 약속하지."
  },
  "ly01": {
   "who": "ИТАН",
@@ -3595,7 +4619,11 @@
   "de": "Um Viertel nach eins rief Lily an.",
   "it": "All'una e un quarto chiamò Lily.",
   "tr": "Saat biri çeyrek geçe Lily aradı.",
-  "pl": "Kwadrans po pierwszej zadzwoniła Lily."
+  "pl": "Kwadrans po pierwszej zadzwoniła Lily.",
+  "fr": "À une heure et quart, Lily a appelé.",
+  "zh": "一点一刻，莉莉打来了电话。",
+  "ja": "1時15分、リリーから電話があった。",
+  "ko": "1시 15분에 릴리가 전화했다."
  },
  "ly02": {
   "who": "ЛИЛИ",
@@ -3609,7 +4637,11 @@
   "de": "— Noch wach? Ich auch. Morgen um acht Prüfung, und ich sitz im Wohnheim auf der Fensterbank und weiß gar nichts mehr.",
   "it": "— Sei sveglio? Anch'io. Domani esame alle otto, e io sul davanzale in residenza non ricordo niente.",
   "tr": "— Uyanık mısın? Ben de. Yarın sekizde sınavım var, yurtta pencere pervazında oturuyorum ve hiçbir şey hatırlamıyorum.",
-  "pl": "— Nie śpisz? Ja też. Jutro egzamin o ósmej, a ja siedzę w akademiku na parapecie i nic nie pamiętam."
+  "pl": "— Nie śpisz? Ja też. Jutro egzamin o ósmej, a ja siedzę w akademiku na parapecie i nic nie pamiętam.",
+  "fr": "— Tu ne dors pas ? Moi non plus. Examen demain à huit heures, je suis sur le rebord de la fenêtre et je ne retiens rien.",
+  "zh": "— 你还没睡？我也是。明天早上八点考试，我坐在宿舍窗台上，什么都记不住。",
+  "ja": "— 起きてる？ 私も。明日8時から試験なのに、寮の窓辺に座ってても、なんにも思い出せないの。",
+  "ko": "— 안 자? 나도. 내일 8시에 시험인데, 기숙사 창턱에 앉아 있는데 아무것도 기억이 안 나."
  },
  "ly03": {
   "who": "ИТАН",
@@ -3623,7 +4655,11 @@
   "de": "— Wie geht's Keks?",
   "it": "— Come sta Biscotto?",
   "tr": "— Bisküvi nasıl?",
-  "pl": "— Jak tam Herbatnik?"
+  "pl": "— Jak tam Herbatnik?",
+  "fr": "— Comment va Biscuit ?",
+  "zh": "— 饼干怎么样？",
+  "ja": "— ビスケットは元気？",
+  "ko": "— 비스킷은 잘 있어?"
  },
  "ly04": {
   "who": "ЛИЛИ",
@@ -3637,7 +4673,11 @@
   "de": "— Mama schreibt, er jagt die Paketboten. Deinen Pulli hat er in seine Hütte geschleppt und schläft drauf.",
   "it": "— La mamma dice che rincorre i fattorini. Ha trascinato il tuo maglione nella cuccia e ci dorme sopra.",
   "tr": "— Annem kuryeleri kovaladığını yazıyor. Senin kazağını köpek kulübesine sürüklemiş, üstünde uyuyor.",
-  "pl": "— Mama pisze, że goni kurierów. Zaciągnął twój sweter do budy i śpi na nim."
+  "pl": "— Mama pisze, że goni kurierów. Zaciągnął twój sweter do budy i śpi na nim.",
+  "fr": "— Maman dit qu’il court après les livreurs. Il a traîné ton pull dans sa niche et dort dessus.",
+  "zh": "— 妈妈说饼干还在追着快递员跑。它把你的毛衣拖进了狗窝，天天睡在上面。",
+  "ja": "— お母さんの話だと、宅配の人を追いかけ回してるって。イーサンのセーターを犬小屋に引きずり込んで、その上で寝てるよ。",
+  "ko": "— 엄마 말로는 택배 기사 아저씨들을 쫓아다닌대. 네 스웨터를 개집에 끌고 가서 그 위에서 잔대."
  },
  "ly05": {
   "who": "ИТАН",
@@ -3651,7 +4691,11 @@
   "de": "— Bist du gerade im Wohnheim?",
   "it": "— Sei in residenza adesso?",
   "tr": "— Şu an yurtta mısın?",
-  "pl": "— Jesteś teraz w akademiku?"
+  "pl": "— Jesteś teraz w akademiku?",
+  "fr": "— Tu es à la résidence, là ?",
+  "zh": "— 你现在在宿舍吗？",
+  "ja": "— 今、寮にいるんだよな？",
+  "ko": "— 지금 기숙사야?"
  },
  "ly06": {
   "who": "ЛИЛИ",
@@ -3665,7 +4709,11 @@
   "de": "— Wo sonst? Dreihundert Kilometer von dir, Blödmann. Meine Mitbewohnerin schnarcht, ich bin im Flur.",
   "it": "— E dove sennò? A trecento chilometri da te, scemo. La compagna di stanza russa, così sto in corridoio.",
   "tr": "— Başka nerede olacağım? Senden iki yüz mil uzaktayım, salak. Oda arkadaşım horluyor, ben de koridordayım.",
-  "pl": "— A gdzie? Trzysta kilometrów od ciebie, głuptasie. Współlokatorka chrapie, to siedzę na korytarzu."
+  "pl": "— A gdzie? Trzysta kilometrów od ciebie, głuptasie. Współlokatorka chrapie, to siedzę na korytarzu.",
+  "fr": "— Où veux-tu ? À trois cents kilomètres de toi, andouille. Ma coloc ronfle, je suis dans le couloir.",
+  "zh": "— 不然呢？离你三百公里，笨蛋。室友打呼噜，我就跑到走廊里来了。",
+  "ja": "— 他にどこがあるの？ イーサンから300キロ先の寮だよ、バカ。ルームメイトのいびきがうるさいから、廊下に出てるの。",
+  "ko": "— 그럼 어디겠어? 너한테서 300킬로미터 떨어진 데지, 바보야. 룸메이트가 코를 골아서 복도에 나와 있어."
  },
  "ly07": {
   "who": "ИТАН",
@@ -3679,7 +4727,11 @@
   "de": "— Hier ist es… seltsam. Das Licht auf den Etagen geht von selbst an.",
   "it": "— Qui è… strano. Le luci dei piani si accendono da sole.",
   "tr": "— Burası… tuhaf. Katlardaki ışıklar kendi kendine yanıyor.",
-  "pl": "— Tu jest… dziwnie. Światła na piętrach same się zapalają."
+  "pl": "— Tu jest… dziwnie. Światła na piętrach same się zapalają.",
+  "fr": "— C’est… bizarre, ici. Les lumières des étages s’allument seules.",
+  "zh": "— 这儿……有点怪。各层的灯会自己亮起来。",
+  "ja": "— こっちは……なんか変なんだ。各階の明かりが、勝手につく。",
+  "ko": "— 여기가… 좀 이상해. 층마다 불이 저절로 켜져."
  },
  "ly08": {
   "who": "ЛИЛИ",
@@ -3693,7 +4745,11 @@
   "de": "— Mach mir keine Angst. Versprich, dass du morgen früh anrufst. Als Erstes. Und keine Heldentaten.",
   "it": "— Non spaventarmi. Promettimi che chiami domattina. Per prima cosa. E non fare l'eroe.",
   "tr": "— Korkutma beni. Sabah arayacağına söz ver. İlk iş olarak. Sakın kahramanlık yapma.",
-  "pl": "— Nie strasz mnie. Obiecaj, że zadzwonisz rano. Od razu. I nie udawaj bohatera."
+  "pl": "— Nie strasz mnie. Obiecaj, że zadzwonisz rano. Od razu. I nie udawaj bohatera.",
+  "fr": "— Ne me fais pas peur. Promets de m’appeler demain matin. Dès le réveil. Et pas de héros.",
+  "zh": "— 别吓我。你保证，早上一定给我打电话。第一件事就打给我。还有，别在那儿逞英雄。",
+  "ja": "— 怖がらせないでよ。朝になったら電話するって約束して。いちばんに。それと、ヒーローぶらないでね。",
+  "ko": "— 겁주지 마. 아침에 전화한다고 약속해. 제일 먼저. 그리고 거기서 영웅 노릇 하지 마."
  },
  "ly09": {
   "who": "ИТАН",
@@ -3707,7 +4763,11 @@
   "de": "— Schlaf jetzt. Du schaffst das.",
   "it": "— Dormi, dai. Andrà benissimo.",
   "tr": "— Hadi uyu. Hakkından gelirsin.",
-  "pl": "— Śpij już. Zdasz śpiewająco."
+  "pl": "— Śpij już. Zdasz śpiewająco.",
+  "fr": "— Dors. Tu vas tout réussir.",
+  "zh": "— 快睡吧。你肯定能考好。",
+  "ja": "— もう寝な。ちゃんと受かるよ。",
+  "ko": "— 이제 자. 시험 다 잘 볼 거야."
  },
  "ly10": {
   "who": "ЛИЛИ",
@@ -3721,7 +4781,11 @@
   "de": "— Ja. Hab dich lieb, Blödmann. Gute Nacht.",
   "it": "— Sì. Ti voglio bene, scemo. Buonanotte.",
   "tr": "— Tamam. Seni seviyorum, salak. İyi geceler.",
-  "pl": "— Aha. Kocham cię, głuptasie. Dobranoc."
+  "pl": "— Aha. Kocham cię, głuptasie. Dobranoc.",
+  "fr": "— Ouais. Je t’aime, andouille. Bonne nuit.",
+  "zh": "— 嗯。爱你，笨蛋。晚安。",
+  "ja": "— うん。大好きだよ、バカ。おやすみ。",
+  "ko": "— 응. 사랑해, 바보야. 잘 자."
  },
  "fp01": {
   "who": "ИТАН",
@@ -3735,7 +4799,11 @@
   "de": "Franks Handy klingelte elfmal. Dann eine Nachricht: „Frankie, mein Junge, komm runter zu mir. Ich bin unten.“",
   "it": "Il telefono di Frank squillò undici volte. Poi un messaggio: «Frankie, figliolo, scendi da me. Sono di sotto.»",
   "tr": "Frank'in telefonu on bir kez çaldı. Sonra bir mesaj düştü: “Frankie, oğlum, yanıma in. Ben aşağıdayım.”",
-  "pl": "Telefon Franka dzwonił jedenaście razy. Potem przyszła wiadomość: „Frankie, synku, zejdź do mnie. Jestem na dole.”"
+  "pl": "Telefon Franka dzwonił jedenaście razy. Potem przyszła wiadomość: „Frankie, synku, zejdź do mnie. Jestem na dole.”",
+  "fr": "Le téléphone de Frank a sonné onze fois. Puis un SMS : « Frankie, mon fils, descends me voir. Je suis en bas. »",
+  "zh": "弗兰克的手机响了十一次。接着来了一条短信：“弗兰基，儿子，下来找我。我在楼下。”",
+  "ja": "フランクの携帯が十一回鳴った。それから、メッセージが届いた。「フランキー、坊や、降りておいで。下にいるよ。」",
+  "ko": "프랭크의 휴대폰이 열한 번 울렸다. 그러더니 문자가 왔다. “프랭키야, 아들아, 내려오렴. 엄마는 아래에 있단다.”"
  },
  "fp02": {
   "who": "ИТАН",
@@ -3749,7 +4817,11 @@
   "de": "Ich lehnte ab. Meine Hände zitterten. Wer ruft einen alten Mann um zwei Uhr nachts an — und bittet ihn nach unten?",
   "it": "Riattaccai. Mi tremavano le mani. Chi chiama un vecchio alle due di notte e gli chiede di scendere?",
   "tr": "Reddettim. Ellerim titriyordu. Gece ikide yaşlı bir adamı arayıp aşağı inmesini isteyen kim olur?",
-  "pl": "Odrzuciłem. Ręce mi się trzęsły. Kto dzwoni do starego człowieka o drugiej w nocy i woła go na dół?"
+  "pl": "Odrzuciłem. Ręce mi się trzęsły. Kto dzwoni do starego człowieka o drugiej w nocy i woła go na dół?",
+  "fr": "J’ai raccroché. Mes mains tremblaient. Qui appelle un vieil homme à deux heures du matin pour le faire descendre ?",
+  "zh": "我挂断了。手在发抖。谁会在凌晨两点给一个老人打电话，叫他下楼？",
+  "ja": "着信を切った。手が震えていた。夜中の2時に老人へ電話をかけて、下へ降りてこいと呼ぶのは、いったい誰だ？",
+  "ko": "전화를 끊었다. 손이 떨렸다. 새벽 2시에 노인에게 전화를 걸어 아래로 내려오라고 하는 게 대체 누구란 말인가?"
  },
  "fp03": {
   "who": "ИТАН",
@@ -3763,7 +4835,11 @@
   "de": "— Hallo?.. In der Leitung holte jemand Luft. Erleichtert. Wie nach langem Warten.",
   "it": "— Pronto?… Dall'altra parte qualcuno prese fiato. Di sollievo. Come se aspettasse da tempo.",
   "tr": "— Alo?.. Hattaki biri nefes aldı. Rahatlamış gibi. Sanki uzun süredir bekliyordu.",
-  "pl": "— Halo?… W słuchawce ktoś zaczerpnął tchu. Z ulgą. Jakby długo czekał."
+  "pl": "— Halo?… W słuchawce ktoś zaczerpnął tchu. Z ulgą. Jakby długo czekał.",
+  "fr": "— Allô ?.. Au bout du fil, quelqu’un a inspiré. Soulagé. Comme si ça attendait depuis longtemps.",
+  "zh": "— 喂？……电话那头有人吸了一口气。如释重负。像是已经等了很久。",
+  "ja": "— もしもし……？ 受話器の向こうで、誰かが息を吸った。安堵したように。ずっと待っていたかのように。",
+  "ko": "— 여보세요?.. 수화기 너머에서 누군가 숨을 들이쉬었다. 안도한 듯이. 오래 기다린 것처럼."
  },
  "al01": {
   "who": "ИТАН",
@@ -3777,7 +4853,11 @@
   "de": "Er hatte es versprochen. Aber es war Marthas Stimme.",
   "it": "Me l'aveva promesso. Ma era la voce di Martha.",
   "tr": "Bana söz vermişti. Ama bu Martha'nın sesiydi.",
-  "pl": "Obiecał mi. Ale to był głos Marthy."
+  "pl": "Obiecał mi. Ale to był głos Marthy.",
+  "fr": "Il l’avait promis. Mais c’était la voix de Martha.",
+  "zh": "他向我保证过。可那是玛莎的声音。",
+  "ja": "彼は約束してくれた。だが、呼んでいたのはマーサの声。",
+  "ko": "거스는 내게 약속했었다. 하지만 그건 마사의 목소리였다."
  },
  "al02": {
   "who": "ИТАН",
@@ -3791,7 +4871,11 @@
   "de": "Also rief ihn seine Mutter nach unten. „Frankie, mein Junge…“ — wie in der Nachricht.",
   "it": "Dunque era sua madre a chiamarlo giù. «Frankie, figliolo…», come nel messaggio sul telefono.",
   "tr": "Demek onu aşağı çağıran annesiydi. “Frankie, oğlum…” — telefonundaki mesajın aynısı.",
-  "pl": "Czyli to jego matka wołała go na dół. „Frankie, synku…” — jak w tej wiadomości na jego telefonie."
+  "pl": "Czyli to jego matka wołała go na dół. „Frankie, synku…” — jak w tej wiadomości na jego telefonie.",
+  "fr": "C’était sa mère qui l’appelait en bas. « Frankie, mon fils… », comme dans le SMS.",
+  "zh": "原来是他母亲在叫他下楼。“弗兰基，儿子……”——和他手机上的短信一模一样。",
+  "ja": "つまり、フランクを下へ呼んでいたのは彼の母親。「フランキー、坊や……」――携帯のメッセージと同じ呼びかけ。",
+  "ko": "그러니까 프랭크를 아래로 부른 건 그의 어머니였다. “프랭키야, 아들아…” 그의 휴대폰에 온 문자와 똑같았다."
  },
  "al03": {
   "who": "ИТАН",
@@ -3805,7 +4889,11 @@
   "de": "Salz. Wie in seiner Jackentasche.",
   "it": "Sale. Come nella tasca della giacca.",
   "tr": "Tuz. Ceketinin cebindeki gibi.",
-  "pl": "Sól. Jak w kieszeni jego kurtki."
+  "pl": "Sól. Jak w kieszeni jego kurtki.",
+  "fr": "Du sel, comme dans sa veste.",
+  "zh": "盐。就像他外套口袋里的那种。",
+  "ja": "塩。上着のポケットにあったのと同じ。",
+  "ko": "소금. 그의 점퍼 주머니에 있던 것과 같은 소금."
  },
  "al04": {
   "who": "ИТАН",
@@ -3819,7 +4907,11 @@
   "de": "Er war es also, der um zehn hinter der Serverraumtür zurückklopfte. Es klopft nicht.",
   "it": "Ecco chi bussò di rimando dietro la porta della sala server, alle dieci. Quella cosa non bussa.",
   "tr": "Demek saat onda sunucu odasının kapısının ardından bana vuruşla karşılık veren Frank'ti. O şey kapıyı çalmaz.",
-  "pl": "Czyli to Frank pukał do mnie zza drzwi serwerowni o dziesiątej wieczorem. A to nie puka."
+  "pl": "Czyli to Frank pukał do mnie zza drzwi serwerowni o dziesiątej wieczorem. A to nie puka.",
+  "fr": "C’était donc lui qui avait frappé, derrière la porte des serveurs, à dix heures. Ça ne frappe pas.",
+  "zh": "十点那会儿，在机房门后面回敲我的，原来是他。它不会敲门。",
+  "ja": "22時にサーバー室の扉の向こうから叩き返してきたのは、そういうことか。それはノックしない。",
+  "ko": "그러니까 밤 10시에 서버실 문 너머에서 내 노크에 답한 건 그 사람이었다. 그것은 두드리지 않는다."
  },
  "sv01": {
   "who": "ИТАН",
@@ -3833,7 +4925,11 @@
   "de": "Ein Kreis aus grobem Salz, fingerdick. An zwei Stellen unterbrochen und neu gestreut — wo er zum Wasser kroch.",
   "it": "Un cerchio di sale grosso, spesso un dito. Spezzato e rifatto in due punti: dove usciva strisciando per l'acqua.",
   "tr": "Parmak kalınlığında iri tuzdan bir çember. İki yerde bozulup yeniden dökülmüş: su almaya sürünerek çıktığı yerlerde.",
-  "pl": "Krąg z grubej soli, szeroki na palec. W dwóch miejscach przerwany i nasypany na nowo — tam, gdzie wypełzał po wodę."
+  "pl": "Krąg z grubej soli, szeroki na palec. W dwóch miejscach przerwany i nasypany na nowo — tam, gdzie wypełzał po wodę.",
+  "fr": "Un cercle de gros sel, épais comme un doigt. Rompu et refait en deux endroits, là où il rampait jusqu’à l’eau.",
+  "zh": "一圈粗盐，有手指那么厚。有两处断开过，又重新撒好——是他爬出去取水的地方。",
+  "ja": "指ほどの太さの、粗塩の円。二か所が一度崩れて、まき直されている。水を取りに這い出た場所。",
+  "ko": "손가락 굵기의 굵은소금 원. 두 군데는 흐트러졌다가 다시 채워져 있었다. 물을 뜨러 기어 나갔던 자리다."
  },
  "sv02": {
   "who": "ИТАН",
@@ -3847,7 +4943,11 @@
   "de": "Der Wasserspender: ein Drittel leer. Eine Packung Zwieback, die letzte. Sechs Nächte davon.",
   "it": "L'acqua è calata di un terzo. Resta un pacchetto di cracker, l'ultimo. Sei notti con questo.",
   "tr": "Sebil üçte bir boşalmış. Bir paket kraker kalmış, sonuncusu. Altı gece bununla idare etmiş.",
-  "pl": "Dystrybutor w jednej trzeciej pusty. Sucharków jedna paczka, ostatnia. Sześć nocy na tym."
+  "pl": "Dystrybutor w jednej trzeciej pusty. Sucharków jedna paczka, ostatnia. Sześć nocy na tym.",
+  "fr": "La fontaine est vide au tiers. Un dernier paquet de biscottes. Six nuits avec ça.",
+  "zh": "饮水机空了三分之一。干粮只剩一包，最后一包。靠这些撑了六个晚上。",
+  "ja": "給水機は三分の一ほど減っている。乾パンは一袋、それが最後。六晩を、これだけで。",
+  "ko": "정수기 물통은 3분의 1이 비었다. 크래커는 한 봉지, 마지막 한 봉지만 남았다. 이것으로 여섯 밤을 버틴 것이다."
  },
  "sv03": {
   "who": "ИТАН",
@@ -3861,7 +4961,11 @@
   "de": "Am Serverschrank kleben Zettel. Eine Handschrift, verschiedene Nächte: „Ruf mich nicht.“ „Klopf dreimal.“ „Es hat Mamas Stimme.“",
   "it": "Fogli attaccati al rack con lo scotch. Una sola grafia, notti diverse: «Non chiamarmi.» «Bussa tre volte.» «Parla con la voce di mia madre.»",
   "tr": "Rafa bantlanmış kâğıtlar. Aynı el yazısı, farklı geceler: “Bana seslenme.” “Kapıyı üç kez çal.” “Annemin sesiyle konuşuyor.”",
-  "pl": "Na szafie serwerowej kartki przyklejone taśmą. Jedno pismo, różne noce: „Nie wołaj mnie.” „Pukaj trzy razy.” „To mówi głosem mamy.”"
+  "pl": "Na szafie serwerowej kartki przyklejone taśmą. Jedno pismo, różne noce: „Nie wołaj mnie.” „Pukaj trzy razy.” „To mówi głosem mamy.”",
+  "fr": "Feuilles scotchées sur la baie. Même main, nuits différentes : « Ne m’appelle pas. » « Frappe trois fois. » « Ça parle avec la voix de Maman. »",
+  "zh": "机架上用胶带贴着几张纸。同一种笔迹，写于不同的夜晚：“别喊我。”“敲三下。”“它用我母亲的声音说话。”",
+  "ja": "ラックにテープで貼られた紙。筆跡は同じ、書かれた夜は違う。「俺を呼ぶな」「ノックは三回」「それは母の声で話す」",
+  "ko": "랙에 종이가 테이프로 붙어 있었다. 필체는 하나, 쓴 밤은 제각각이었다. “나를 부르지 마라.” “세 번 두드려라.” “그것은 엄마 목소리로 말한다.”"
  },
  "sv05": {
   "who": "ИТАН",
@@ -3875,7 +4979,11 @@
   "de": "— War das wirklich… sie?",
   "it": "— Era davvero… lei?",
   "tr": "— Gerçekten… o muydu?",
-  "pl": "— To naprawdę była… ona?"
+  "pl": "— To naprawdę była… ona?",
+  "fr": "— C’était vraiment… elle ?",
+  "zh": "— 那真的是……她吗？",
+  "ja": "— あれは、本当に……お母さんだったんですか？",
+  "ko": "— 그게 정말… 어머님이었어요?"
  },
  "sv06": {
   "who": "ФРЭНК",
@@ -3889,7 +4997,11 @@
   "de": "— Die Stimme ist ihre. Jeder Ton, so wie sie mich zum Essen rief. Aber Mutter ist sechsundneunzig gestorben, Junge. Das ist nicht sie.",
   "it": "— La voce è la sua. Fino all'ultima nota, come quando mi chiamava a cena. Ma mia madre è morta nel novantasei, figliolo. Non è lei.",
   "tr": "— Ses onun sesi. Son tınısına kadar, beni yemeğe çağırdığı gibi. Ama annem doksan altıda öldü, evlat. O değil.",
-  "pl": "— Głos jest jej. Co do ostatniej nuty, tak jak wołała na obiad. Ale matka zmarła w dziewięćdziesiątym szóstym, synu. To nie ona."
+  "pl": "— Głos jest jej. Co do ostatniej nuty, tak jak wołała na obiad. Ale matka zmarła w dziewięćdziesiątym szóstym, synu. To nie ona.",
+  "fr": "— C’est sa voix, à la note près, quand elle m’appelait à table. Mais Maman est morte en quatre-vingt-seize, fiston. Ce n’est pas elle.",
+  "zh": "— 声音是她的。连每一个调子都一样，就像她当年叫我吃饭那样。可我母亲九六年就去世了，孩子。那不是她。",
+  "ja": "— 声は母さんのものだ。夕飯に呼ぶときの、あの調子まで一音も違わん。だが母さんは、96年に死んだんだ、坊主。あれは母さんじゃない。",
+  "ko": "— 목소리는 어머니 것이 맞네. 마지막 음 하나까지, 나를 저녁 먹으라고 부르던 그대로야. 하지만 어머니는 96년에 돌아가셨어, 젊은이. 그건 어머니가 아닐세."
  },
  "sv07": {
   "who": "ИТАН",
@@ -3903,7 +5015,11 @@
   "de": "— Gus sagte, ihn ruft auch jemand. Martha.",
   "it": "— Gus dice che chiamano anche lui. Martha.",
   "tr": "— Gus'a da seslendiklerini söyledi. Martha.",
-  "pl": "— Gus mówił, że jego też wołają. Martha."
+  "pl": "— Gus mówił, że jego też wołają. Martha.",
+  "fr": "— Gus a dit qu’on l’appelle aussi. Martha.",
+  "zh": "— 格斯说，也有人叫他。是玛莎。",
+  "ja": "— ガスさんも、呼ばれると言っていました。マーサさんに。",
+  "ko": "— 거스 씨도 누가 부른다고 했어요. 마사 씨가요."
  },
  "sv08": {
   "who": "ФРЭНК",
@@ -3917,7 +5033,11 @@
   "de": "— Ich weiß. Seit drei Jahren geht er in den Siebten, um sie zu hören. Ihn rührt es nicht an — er antwortet nie. Er hört nur zu. So kann man auch leben.",
   "it": "— Lo so. Da tre anni sale al settimo ad ascoltarla. Quella cosa non lo tocca: lui non risponde mai. Ascolta e basta. Anche così si può vivere.",
   "tr": "— Biliyorum. Üç yıldır onu dinlemek için yedinci kata çıkıyor. O şey ona dokunmuyor, çünkü hiç cevap vermiyor. Yalnızca dinliyor. Öyle de yaşanır.",
-  "pl": "— Wiem. Od trzech lat chodzi na siódme, żeby jej posłuchać. Jego to nie rusza — on nie odpowiada. Po prostu słucha. Tak też można żyć."
+  "pl": "— Wiem. Od trzech lat chodzi na siódme, żeby jej posłuchać. Jego to nie rusza — on nie odpowiada. Po prostu słucha. Tak też można żyć.",
+  "fr": "— Je sais. Trois ans qu’il monte au septième l’écouter. Ça ne le touche pas : il ne répond jamais. Il écoute, c’est tout. On peut aussi vivre comme ça.",
+  "zh": "— 我知道。他三年来一直上七楼去听她说话。它碰不了他——他从不答应。只是听着。这样活着，也算一种活法。",
+  "ja": "— 知ってる。三年も、あいつは7階へ彼女の声を聞きに通ってる。あれはあいつには手を出さん――返事をしないからな。ただ聞いてるだけだ。そういう生き方もある。",
+  "ko": "— 알고 있네. 그 친구는 3년째 7층에 올라가서 아내 목소리를 듣고 있지. 그것은 그 친구를 건드리지 않아. 절대 대답하지 않으니까. 그냥 듣기만 하지. 그렇게 사는 방법도 있는 거야."
  },
  "sv09": {
   "who": "ИТАН",
@@ -3931,7 +5051,11 @@
   "de": "— Warum Salz?",
   "it": "— Perché il sale?",
   "tr": "— Neden tuz?",
-  "pl": "— Dlaczego sól?"
+  "pl": "— Dlaczego sól?",
+  "fr": "— Pourquoi le sel ?",
+  "zh": "— 为什么是盐？",
+  "ja": "— どうして塩なんですか？",
+  "ko": "— 왜 소금이에요?"
  },
  "sv10": {
   "who": "ФРЭНК",
@@ -3945,7 +5069,11 @@
   "de": "— Weiß nicht, warum. Nur, dass es wirkt. Mein Vater hat's gemacht, sein Vater auch. Solange der Kreis hält, kann es nur reden.",
   "it": "— Non so perché. So che funziona. Lo faceva mio padre, e suo padre prima. Finché il cerchio regge, può solo parlare.",
   "tr": "— Nedenini bilmiyorum. İşe yaradığını biliyorum. Babam yapardı, onun babası da. Çember bozulmadığı sürece o şey yalnızca konuşabilir.",
-  "pl": "— Nie wiem dlaczego. Wiem, że działa. Ojciec tak robił, dziadek tak robił. Dopóki krąg jest cały, to tylko mówi."
+  "pl": "— Nie wiem dlaczego. Wiem, że działa. Ojciec tak robił, dziadek tak robił. Dopóki krąg jest cały, to tylko mówi.",
+  "fr": "— Pourquoi, je l’ignore. Ça marche. Mon père le faisait, son père aussi. Tant que le cercle tient, ça ne fait que parler.",
+  "zh": "— 我不知道为什么。我只知道管用。我父亲这么做，他父亲也这么做。只要圈不破，它就只能说话。",
+  "ja": "— なぜかは知らん。効くってことは知ってる。親父もやってた、その親父もやってた。円が無事なうちは、あれは喋ることしかできん。",
+  "ko": "— 이유는 나도 모르네. 효과가 있다는 것만 알지. 아버지도 그러셨고, 할아버지도 그러셨어. 원이 멀쩡한 동안은 그것은 말밖에 못 하네."
  },
  "sv11": {
   "who": "ИТАН",
@@ -3959,7 +5087,11 @@
   "de": "— Ich bleib bei dir bis sechs.",
   "it": "— Resto con te fino alle sei.",
   "tr": "— Altıya kadar yanında oturayım.",
-  "pl": "— Posiedzę z tobą do szóstej."
+  "pl": "— Posiedzę z tobą do szóstej.",
+  "fr": "— Je reste avec toi jusqu’à six.",
+  "zh": "— 我陪您坐到六点。",
+  "ja": "— 6時まで、ご一緒させてください。",
+  "ko": "— 6시까지 곁에 있을게요."
  },
  "sv12": {
   "who": "ФРЭНК",
@@ -3973,7 +5105,11 @@
   "de": "— Bleib. Aber wenn es ruft — kein Wort. Selbst mit meiner Stimme.",
   "it": "— Resta. Ma se chiamano, zitto. Anche con la mia voce.",
   "tr": "— Otur. Ama seslenirlerse tek kelime etme. Benim sesimle bile.",
-  "pl": "— Posiedź. Tylko jeśli ktoś zawoła — ani słowa. Nawet moim głosem."
+  "pl": "— Posiedź. Tylko jeśli ktoś zawoła — ani słowa. Nawet moim głosem.",
+  "fr": "— Reste. Mais si on t’appelle, pas un mot. Même avec ma voix.",
+  "zh": "— 坐吧。不过要是有人叫你，一个字都别回。就算是我的声音。",
+  "ja": "— ああ、座ってろ。だが、呼ばれても一言も返すな。俺の声で呼ばれてもだ。",
+  "ko": "— 앉게. 하지만 누가 부르면 한마디도 하지 말게. 내 목소리로 불러도."
  },
  "ch_katya": {
   "who": "ЛИЛИ",
@@ -3987,7 +5123,11 @@
   "de": "(weint)",
   "it": "(piange)",
   "tr": "(ağlıyor)",
-  "pl": "(płacze)"
+  "pl": "(płacze)",
+  "fr": "(pleurs)",
+  "zh": "（哭泣）",
+  "ja": "（すすり泣き）",
+  "ko": "(흐느끼는 소리)"
  },
  "ch_whisper": {
   "who": "ЛИЛИ",
@@ -4001,6 +5141,10 @@
   "de": "— Ethan…",
   "it": "— Ethan…",
   "tr": "— Ethan…",
-  "pl": "— Ethan…"
+  "pl": "— Ethan…",
+  "fr": "— Ethan…",
+  "zh": "— 伊森……",
+  "ja": "— イーサン……",
+  "ko": "— 이선…"
  }
 }
