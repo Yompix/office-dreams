@@ -928,6 +928,7 @@ function shiftGame(th) {
   // следующий час — как в конце прошлого; после перезагрузки — из сохранения (иначе вход «ОТКРЫТ», Гаса нет на седьмом, нет кнопки 13)
   const s0 = LS.get('shk0', null);
   if (th.fresh) shk = shkNew(); else if (s0 && s0.id === th.shift && s0.k) shk = Object.assign(shkNew(), s0.k); else if (!shk) shk = Object.assign(shkNew(), LS.get('shk', null));
+  if (LS.get('doorLock', null) === th.shift) { shk.door = 1; LS.set('doorLock', null); }   // вход остался открытым ещё с прошлого часа — иначе повтор снова кончался «ТЫ ОТКРЫЛ ЕЙ»
   LS.set('shk0', { id: th.shift, k: shk });
   if (seg.st) Object.assign(shk.st, seg.st);   // что на камерах с начала часа (story.js: после 03:00 Гаса на седьмом нет)
   LS.set('shk', shk);
@@ -1022,6 +1023,7 @@ const ALT_OK = { over_stare_b: cam => cam === '07' && !shk.st.gus };
 function shiftDie(id, cam) { if (!shf || shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null);
   const alt = DEATH_ALT[id] && DEATH_ALT[id].filter(x => !ALT_OK[x] || ALT_OK[x](cam)); if (alt && alt.length) { const n = +LS.get('alt_' + id, 0) || 0; LS.set('alt_' + id, n + 1); id = alt[n % alt.length]; }
   id = ((S.shift.hourDeath || {})[shf.id] || {})[id] || id;   // в серверной (S6) и под стойкой (A1) Итана нет в будке — та же смерть в другой постановке
+  if (id === 'over_door') LS.set('doorLock', shf.id);   // умер у открытого входа — «снова» начнёт этот час с запертым входом
   startScene(id); }
 function shiftEnd() { if (shf.ended) return; shf.ended = true; mgEl.classList.add('hide'); shiftPop(null); const n = shf.seg.next;
   if (!run.hrs.includes(shf.id)) run.hrs.push(shf.id); runSave(); LS.set('shk', shk); shf = null; startScene(n); }
