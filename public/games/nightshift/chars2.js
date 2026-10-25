@@ -1332,6 +1332,40 @@ const SKIN_PORES = `
     vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
     vec3 nn = abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2); normal = dot(nn, nn) > 1e-24 ? normalize(nn) : normal; }
 `;
+// саван Жильца (поза покоя модели tenant, рост 2,43 м: шея ~2.04, плечи 1.92, грудь ~1.75–1.88, бёдра 1.24, колени .66): силуэт — грудь плоская, ткань свободнее книзу,
+// внутренние стороны бёдер сведены — подол, а не штанины; руки и голени голые
+const SHROUD_VS = `
+  { float qs = length(uQ[0].xyz), body = mix(smoothstep(.27, .23, abs(vB.x)), smoothstep(.4, .34, abs(vB.x)), smoothstep(1.32, 1.22, vB.y));
+    float inG = body * smoothstep(2.04, 1.95, vB.y) * smoothstep(.46, .6, vB.y);
+    float bust = smoothstep(1.62, 1.7, vB.y) * smoothstep(1.92, 1.82, vB.y) * smoothstep(.2, .1, abs(vB.x));
+    transformed.z -= bust * max(0., vB.z - .14) * .9 / qs;
+    transformed += normalize(normal) * inG * mix(.014, .05, smoothstep(1.28, .62, vB.y)) / qs;
+    transformed.x -= sign(vB.x) * smoothstep(1.2, 1.02, vB.y) * smoothstep(.46, .7, vB.y) * smoothstep(0., .5, -sign(vB.x) * normal.x) * .05 / qs; }
+`;
+const SHROUD_VN = `
+  { vec3 b0 = (uQ * vec4(position, 1.)).xyz; float bust = smoothstep(1.6, 1.7, b0.y) * smoothstep(1.94, 1.82, b0.y) * smoothstep(.21, .1, abs(b0.x)) * step(0., objectNormal.z);
+    objectNormal = normalize(mix(objectNormal, vec3(objectNormal.x * .3, objectNormal.y * .3, 1.), bust * .85)); }   // и в свете грудь плоская
+`;
+// складки рубахи — рельефом в нормали: свет ложится полосами, ткань читается тканью, а не кожей
+const SHROUD_N = `
+  { float hf = sin(atan(vB.x, vB.z + .3) * 30. + vn3(vB * 7.) * 4.) * (.0035 + .007 * smoothstep(1.5, .6, vB.y)) + vn3(vec3(vB.x * 60., vB.y * 6., vB.z * 60.)) * .003;
+    vec2 dh = vec2(dFdx(hf), dFdy(hf)) * gCloth; vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
+    vec3 nn = abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2); normal = dot(nn, nn) > 1e-24 ? normalize(nn) : normal; }
+`;
+// ткань: грязно-белая, складки вниз, пятна, рваный подол с тёмной мокрой каймой; на голых руках и ногах — жилы и вены
+const SHROUD_FS = `float gCloth, gWet; vec3 gClothC;
+  { float body = mix(smoothstep(.27, .23, abs(vB.x)), smoothstep(.4, .34, abs(vB.x)), smoothstep(1.32, 1.22, vB.y));
+    float hemY = .56 + .07 * (vn3(vec3(vB.x * 26., 0., vB.z * 26.)) - .5) + .03 * (hh3(vec3(floor(vB.x * 60.), 3., floor(vB.z * 60.))) - .5);
+    gCloth = body * smoothstep(2.05, 2.02, vB.y + .03 * cos(vB.x * 16.)) * smoothstep(hemY - .012, hemY + .012, vB.y);
+    float fold = sin(atan(vB.x, vB.z + .3) * 30. + vn3(vB * 7.) * 4.) * (.08 + .14 * smoothstep(1.5, .6, vB.y));
+    float dirt = smoothstep(.55, .78, vn3(vB * 8.5)) * .55 + smoothstep(1.1, .55, vB.y) * .35;
+    gWet = smoothstep(hemY + .2, hemY + .02, vB.y) * gCloth;
+    float seam = smoothstep(.012, .0, abs(vB.y + .03 * cos(vB.x * 16.) - 2.015)) + smoothstep(.014, .0, abs(vB.y - hemY - .01));   // кромка ворота и подола
+    vec3 cloth = vec3(.36, .34, .3) * (1. + fold) * (1. - .4 * dirt) * mix(vec3(1.), vec3(.74, .6, .42), dirt * .85) * (1. - .45 * seam);
+    cloth *= 1. - .55 * gWet; gClothC = mix(cloth, vec3(.06, .055, .05), .4 * gWet * smoothstep(.4, .7, vn3(vB * 30.)));
+    float vein = smoothstep(.035, .0, abs(vn3(vec3(vB.x * 38., vB.y * 9., vB.z * 38.)) - .5)) * (1. - gCloth);
+    diffuseColor.rgb *= 1. - .3 * vein * vec3(1., .8, .7); }
+`;
 const RE_ARGS = 'const in IncidentLight directLight, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in PhysicalMaterial material, inout ReflectedLight reflectedLight';
 const HUM_RE = {
   skin: `void RE_Direct_Hum( ${RE_ARGS} ) {
@@ -1381,19 +1415,23 @@ function humanMat(C, n, kind, Q) {
   const re = Array.isArray(tint) ? tint : null, U = Object.assign({}, C.HU, { uQ: { value: Q }, uTint: { value: new T.Color(re ? re[0] : 0xffffff) }, uGain: { value: re ? re[1] : 1 } });
   const hem = /pants|jeans|trousers/.test(kind) && C.hemY != null ? C.hemY : null;
   const infl = /sweater|shirt|hoodie/.test(kind) && C.hemY != null ? .007 / Q.getMaxScaleOnAxis() : 0;   // низ кофты чуть наружу — лежит поверх брюк и на шаге
+  const shroud = kind === 'skin' && o.shroud;   // Жилец: длинная грязная рваная рубаха-саван от шеи ниже колен (была голая серая фигура)
   const hre = CINE && !o.monster ? HUM_RE[kind === 'skin' ? 'skin' : kind === 'hair' ? 'hair' : cloth ? 'cloth' : ''] : null;   // у Жильца своя кожа (мёртвая, мокрая) — как было
+  if (shroud) m.extensions = Object.assign({}, m.extensions, { derivatives: true });   // складки рубахи — dFdx (WebGL1 в «Ретро»)
   const snap = m.onBeforeCompile;
   m.onBeforeCompile = sh => {
     snap(sh); Object.assign(sh.uniforms, U);
-    sh.vertexShader = 'uniform mat4 uQ;\nvarying vec3 vB;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vB = (uQ * vec4(position, 1.)).xyz;'
-      + (infl ? `\n  transformed += normalize(normal) * ${infl.toExponential(3)} * smoothstep(${(C.hemY + .16).toFixed(3)}, ${(C.hemY - .02).toFixed(3)}, vB.y);` : ''));
+    sh.vertexShader = 'uniform mat4 uQ;\nvarying vec3 vB;\n' + sh.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>' + (shroud ? SHROUD_VN : '')).replace('#include <begin_vertex>', '#include <begin_vertex>\n  vB = (uQ * vec4(position, 1.)).xyz;'
+      + (infl ? `\n  transformed += normalize(normal) * ${infl.toExponential(3)} * smoothstep(${(C.hemY + .16).toFixed(3)}, ${(C.hemY - .02).toFixed(3)}, vB.y);` : '')
+      + (shroud ? SHROUD_VS : ''));
     sh.fragmentShader = `uniform vec3 uTint, uGoreP, uEyeL3, uEyeR3; uniform float uGain, uGrey, uWet, uGore, uSocket, uH, uMouthZ;
 varying vec3 vB;
 float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
-${CINE ? HUM_NOISE : ''}` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+${CINE || shroud ? HUM_NOISE : ''}` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
   ${hem != null ? `if (vB.y > ${hem.toFixed(3)}) discard;   // под подолом кофты` : ''}
   ${re ? `diffuseColor.rgb = mix(vec3(${LUMA}) * uTint * uGain, uTint, ${(re[2] || 0).toFixed(2)});` : ''}
   ${kind === 'skin' ? `{ float s = smoothstep(.04, .012, length(vB - uEyeL3)) + smoothstep(.04, .012, length(vB - uEyeR3)); diffuseColor.rgb *= 1. - .9 * uSocket * clamp(s, 0., 1.); }` : ''}
+  ${shroud ? SHROUD_FS : ''}
   ${kind === 'hair' && CINE ? `diffuseColor.rgb *= .86 + .28 * vn3(vec3(vB.x * 260., vB.y * 9., vB.z * 260.));   // пряди: соседние полоски (вдоль — сверху вниз) чуть разной яркости — волосы не сплошная шапка; без клеток (на макушке были квадраты)
   ${hre ? 'gHairS = (vn3(vec3(vB.x * 300., vB.y * 7., vB.z * 300.) + 17.) - .5) * .14 + (vn3(vB * 40.) - .5) * .06;   // блик вдоль прядей у каждой пряди чуть выше или ниже' : ''}` : ''}
   ${kind === 'eyes' && CINE && o.deadEyes == null ? `{ vec3 q = vB - (vB.x > 0. ? uEyeL3 : uEyeR3);   // белок не белее бумаги (чуть тёплый); верхнее веко и уголки затеняют глаз — глаз сидит в глазнице, а не наклейка
@@ -1409,6 +1447,7 @@ ${CINE ? HUM_NOISE : ''}` + sh.fragmentShader.replace('#include <map_fragment>',
   ${kind === 'skin' ? `shK = 1. - .8 * smoothstep(.17, .1, length(vB - ((uEyeL3 + uEyeR3) * .5 + vec3(0., .02, -.08))));` : ''}
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(${LUMA}) * vec3(.8, .85, .9), uGrey);
   diffuseColor.rgb *= 1. - .22 * uWet;
+  ${shroud ? 'diffuseColor.rgb = mix(diffuseColor.rgb, gClothC, gCloth);   // ткань — после серости кожи: грязно-белая, не в тон мёртвой коже' : ''}
   float gore = 0.;
   if (uGore > 0.) {
     vec3 d = (vB - uGoreP) / uH; float nz = hh3(floor(vB * 90.));
@@ -1416,8 +1455,8 @@ ${CINE ? HUM_NOISE : ''}` + sh.fragmentShader.replace('#include <map_fragment>',
     float drip = step(.7, hh3(vec3(floor(vB.x * 50.), 1., floor(vB.z * 50.)))) * step(d.y, 0.) * smoothstep(-.45, -.1, d.y) * smoothstep(.2, .1, length(d.xz));
     gore = uGore * max(blob, drip);
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.2, .012, .012), clamp(gore * 1.4, 0., .95)); }`)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + (hre && kind === 'skin' ? SKIN_ROUGH : '') + '  roughnessFactor = mix(roughnessFactor, ' + (kind === 'hair' ? '.25' : '.42') + ', max(uWet * .75, gore));')
-      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>' + (hre && kind === 'skin' ? SKIN_PORES : ''))
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + (hre && kind === 'skin' ? SKIN_ROUGH : '') + (shroud ? '  roughnessFactor = mix(roughnessFactor, mix(.92, .45, gWet), gCloth);   // саван: ткань матовая, мокрый подол блестит\n' : '') + '  roughnessFactor = mix(roughnessFactor, ' + (kind === 'hair' ? '.25' : '.42') + ', max(uWet * .75, gore));')
+      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>' + (hre && kind === 'skin' ? SKIN_PORES : '') + (shroud ? SHROUD_N : ''))
       .replace('#include <lights_physical_pars_fragment>', '#include <lights_physical_pars_fragment>' + (hre ? '\n' + hre + '\n#undef RE_Direct\n#define RE_Direct RE_Direct_Hum\n' : ''))
       .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>' + (hre && kind === 'skin' ? '\n  material.specularColor *= .7;   // F0 кожи ≈ .028, не .04 пластика' : ''))
       .replace('#include <lights_fragment_begin>', T.ShaderChunk.lights_fragment_begin.split('? getPointShadow(').join('? (1. - shK) + shK * getPointShadow(').split('? getShadow(').join('? (1. - shK) + shK * getShadow('))
@@ -1427,7 +1466,7 @@ ${CINE ? HUM_NOISE : ''}` + sh.fragmentShader.replace('#include <map_fragment>',
   };
   // ключ программы: код шейдера у зубов, языка и «приглушённой» одежды свой — иначе three.js отдаёт им чужую готовую программу с тем же набором текстур
   const dimK = (() => { for (const k in (o.dim || {})) if (kind.includes(k)) return 'd' + o.dim[k]; return ''; })();
-  m.customProgramCacheKey = () => 'hum3' + (hre ? 'R' : '') + (kind === 'eyes' ? 'e' + (o.deadEyes == null ? 1 : 0) : '') + (cloth ? 'C' : '') + (hem != null ? 'p' + hem.toFixed(3) : '') + (infl ? 'i' + C.hemY.toFixed(3) : '') + (kind === 'skin' ? 's' : '') + (kind === 'hair' ? 'h' : '') + (kind === 'teeth' ? 't' : kind === 'tongue' ? 'g' : '') + dimK + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
+  m.customProgramCacheKey = () => 'hum3' + (shroud ? 'S' : '') + (hre ? 'R' : '') + (kind === 'eyes' ? 'e' + (o.deadEyes == null ? 1 : 0) : '') + (cloth ? 'C' : '') + (hem != null ? 'p' + hem.toFixed(3) : '') + (infl ? 'i' + C.hemY.toFixed(3) : '') + (kind === 'skin' ? 's' : '') + (kind === 'hair' ? 'h' : '') + (kind === 'teeth' ? 't' : kind === 'tongue' ? 'g' : '') + dimK + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
   return m;
 }
 
@@ -1618,7 +1657,7 @@ function castV3() {
   // «не её лицо»: то же тело в жёлтой куртке, но глаза чёрные, кожа серая, улыбка шире человеческой, голова дёргается
   A.katyaThing = H(Object.assign({ name: 'katyaThing', noBlink: true, grey: .85, smile: 2.1, deadEyes: 0x000000, socket: 1, tilt: .22, jerk: true }, lily));
   // Оно: выше двери, истощённое, серая сухая кожа (не блестит), чёрные глаза, длинные пальцы и шея; мокрые чёрные волосы
-  A.monster = H({ name: 'monster', model: 'tenant', monster: true, h: 2.4, arm: 1.1, armL: 1.08, handS: 1.25, neck: 1.18, headS: .92, grey: 1, wet: .25,
+  A.monster = H({ name: 'monster', model: 'tenant', monster: true, shroud: true, h: 2.4, arm: 1.1, armL: 1.08, handS: 1.25, neck: 1.18, headS: .92, grey: 1, wet: .25,
     deadEyes: 0x000000, socket: 1, tilt: .45, jerk: true, headMax: 2.3, stopmo: 1 / 7, tint: { skin: 0xa9b0a6, hair: [0x0a0a0a, 1, .6] } });
   A.monster.addFace('grin', { smile: 1.15, mouth: .5 });
   A.monster.addFace('scream', { scream: 1 });
