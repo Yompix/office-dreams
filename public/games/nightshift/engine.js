@@ -1792,7 +1792,7 @@ function frame(tp) {
       }
       // реплики: табличка с именем того, кто говорит; слова загораются по мере звучания
       let shown = false;
-      if (!waiting) {
+      if (!waiting && !(beat.black != null && t >= beat.black)) {   // после обрыва в черноту субтитров нет
         if (typed && t >= typed.t0 && typed.s) {
           const k = Math.floor(Math.min(1, (t - typed.t0) / (typed.d - .9)) * typed.s.length);
           say(typed.who || beat.who || 'ИТАН', typed.s, k); shown = true;
