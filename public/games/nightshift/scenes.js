@@ -675,9 +675,11 @@ function buildCorridor() {
   const _h = new T.Vector3(), _bb = new T.Vector3();
   o.post = (A, used, t) => {
     const M = A.monster, eat = used.has('monster') && M.pose === 'eat';
-    o.guts.visible = !!(eat && used.has('victim') && o.gutsOn);
+    const gut = !!(eat && used.has('victim') && o.gutsOn); o.guts.visible = false;   // бусины кишок заменены трубками (gutsDraw)
     if (o.bursts && used.has('victim')) { A.victim.bone.spine_03.getWorldPosition(_bb); o.sprayTick(_bb, o.sprayT || 0); } else o.spray.visible = false;
-    if (o.guts.visible) { M.bone.hand_r.getWorldPosition(_h); A.victim.bone.spine_01.getWorldPosition(_bb); o.setGuts(_bb, _h, .1, t); }
+    if (gut) { const B = bodyPts(A.victim), h = M.bone.hand_r.getWorldPosition(new T.Vector3()), mo = mouthPt(M);   // из вспоротого живота — в когти, из когтей — в пасть; петля вывалилась на пол
+      gutsDraw(o, [[B.belly, h, .12, .02], [h, mo, .05, .017], [B.belly, B.belly.clone().addScaledVector(B.lr, .32).setY(.05), .02, .022]], t); wound(A.victim, 'belly', 1); }
+    else if (o.gutT) gutsDraw(o, [], t);
     const dr = eat || (used.has('monster') && M.gore > 0);
     if (dr) { M.bone.Head.getWorldPosition(_h); const ry = M.root.rotation.y; _h.x += Math.sin(ry) * .07; _h.z += Math.cos(ry) * .07; _h.y -= .1; }
     o.drips.forEach((d, i) => { d.visible = !!dr; if (!dr) return; const ph = (t * 1.1 + i * .143) % 1;
@@ -1486,8 +1488,147 @@ SH.c13_lily_face = { loc: 'corridor', pos: C13P, look: [.2, 1.5, -8.5], fov: 40,
 // s02–s04: CAM 13 показывает седьмой: Гас лежит в дверях 707, над грудью у него сидит оно; потом поднимает голову к объективу
 // Над Гасом сидит оно и ест: рвёт, тащит ко рту, рывками (поза 'eat' в chars2: брызги, потёки изо рта, кишки к руке); тело вздрагивает.
 // up: перестаёт есть, замирает и медленно поднимает голову к объективу — лицо в крови, глаза ловят ИК-подсветку камеры и загораются белым
+// ---- жесть 18+ (владелец: «вспарывает живот, вытягивает органы и ест»; смерти — у каждой своя): кишки трубками, рана, точки тела ----
+const GUT_M = () => ps1(new T.MeshPhongMaterial({ color: 0xffffff, vertexColors: true, specular: 0x6a3a3a, shininess: 70, emissive: 0x0e0102 }));   // кишки: розово-серые, мокрые, в крови пятнами (цвет — по вершинам)
+const _gc = new T.CatmullRomCurve3(Array.from({ length: 6 }, () => new T.Vector3())), _gv = new T.Vector3(), _gw = new T.Vector3();
+function gutsDraw(loc, list, t) {   // list: [[a, b, провис, радиус], …] — точки в мире после поз; лишние трубки прячутся
+  const G = loc.gutT || (loc.gutT = []);
+  while (G.length < list.length) { const m = new T.Mesh(new T.BufferGeometry(), loc.gutM || (loc.gutM = GUT_M())); m.frustumCulled = false; loc.S.add(m); G.push(m); }
+  G.forEach((m, i) => { const L = list[i]; m.visible = !!L; if (!L) return;
+    const [a, b, sag, r] = L, P = _gc.points;
+    for (let j = 0; j < 6; j++) { const u = j / 5, w = Math.sin(u * PI);
+      P[j].set(lerp(a.x, b.x, u) + Math.sin(u * 8 + t * 3.1 + i) * .09 * w, Math.max(.03, lerp(a.y, b.y, u) - w * sag), lerp(a.z, b.z, u) + Math.cos(u * 7 + t * 2.6 + i * 2) * .09 * w); }   // петлями, не прямой трубой
+    const geo = new T.TubeGeometry(_gc, 36, r, 8, false), pa = geo.attributes.position;
+    for (let q = 0; q <= 36; q++) { const f = 1 + .17 * Math.sin(q * 2.6) * Math.sin(q * .37 + 1);   // перехваты: кольца то шире, то уже — кишка, а не шланг
+      _gv.set(0, 0, 0); for (let k = 0; k <= 8; k++) _gv.add(_gw.fromBufferAttribute(pa, q * 9 + k)); _gv.multiplyScalar(1 / 9);
+      for (let k = 0; k <= 8; k++) { const ix = q * 9 + k; _gw.fromBufferAttribute(pa, ix).sub(_gv).multiplyScalar(f).add(_gv); pa.setXYZ(ix, _gw.x, _gw.y, _gw.z); } }
+    const col = new Float32Array(pa.count * 3);
+    for (let q = 0; q <= 36; q++) { const bl = smoothstep(.35, .75, _fr(Math.sin(q * 3.7 + i * 17.3) * 9137.1) * .6 + _fr(Math.sin(q * .9 + i * 5.1) * 4211.7) * .4);
+      for (let k = 0; k <= 8; k++) { const ix = (q * 9 + k) * 3, sh = .85 + .25 * _fr(Math.sin((q * 9 + k) * 1.3) * 777.7);
+        col[ix] = lerp(.6, .3, bl) * sh; col[ix + 1] = lerp(.3, .02, bl) * sh; col[ix + 2] = lerp(.28, .03, bl) * sh; } }
+    geo.setAttribute('color', new T.BufferAttribute(col, 3));
+    geo.computeVertexNormals(); m.geometry.dispose(); m.geometry = geo; });
+}
+const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+// точки тела в мире по костям (после позы): живот, грудь, горло, лицо; fw — куда смотрит грудь, lr — влево
+function bodyPts(C) {
+  const W = n => C.bone[n].getWorldPosition(new T.Vector3()), s1 = W('spine_01'), s2 = W('spine_02'), s3 = W('spine_03'), nk = W('neck_01'), hd = W('Head');
+  const up = s3.clone().sub(s1).normalize(), lr = W('thigh_l').sub(W('thigh_r')).normalize(), fw = new T.Vector3().crossVectors(lr, up).normalize(), k = C.ss || 1;
+  return { fw, up, lr, belly: s1.clone().lerp(s2, .5).addScaledVector(fw, .15 * k), chest: s3.clone().addScaledVector(fw, .13 * k), throat: nk.clone().addScaledVector(fw, .05 * k), face: hd.clone().addScaledVector(fw, .1 * k).addScaledVector(up, .03 * k) };
+}
+const mouthPt = C => mouthOf(C)[0];   // рот в мире (mouthOf ниже отдаёт [рот, куда смотрит])
+// рана на теле (шейдер humanMat: uRip): живот, грудь, горло, лицо, глаза; k — насколько раскрыта
+function wound(C, kind, k) {
+  if (!C || !C.HU || !C.HU.uRip) return; const H = C.HU, ey = C.eyeY || 1.64, ez = C.eyeZ || .03;
+  const W = { belly: [0, 1.06, .17, .11, .08, .12], chest: [0, 1.33, .16, .12, .1, .12], throat: [0, ey - .14, -.01, .06, .045, .1], face: [0, ey - .03, ez + .02, .065, .08, .1], eyes: [0, ey, ez + .005, .07, .025, .1], thigh: [.1, .62, .08, .08, .13, .14] }[kind] || [0, 1.06, .17, .11, .08, .12];   // лицо плоское: нос всего на z ≈ .067
+  H.uRip.value = clamp(k, 0, 1); H.uRipP.value.set(W[0], W[1], W[2]); H.uRipR.value.set(W[3], W[4], W[5]); if (H.uRipK) H.uRipK.value = { belly: 0, chest: 1, throat: 2, face: 3, eyes: 4, thigh: 5 }[kind] || 0;
+}
+// ---- финалы смертей 18+: после скримера 2,6 с видно, как оно убивает — у каждой смерти свой вид (engine.js GORE_KIND) ----
+// Кадр строится из последнего кадра смерти: камера на той же линии взгляда (она свободна — оттуда смотрели), ближе к месту, где стояло оно.
+// Виды: eat — вспарывает живот и ест кишки; drag — тащит за ноги, кишки волочатся; chest — когти сквозь грудь, внутренности вываливаются;
+// neck — сворачивает голову; throat — вырывает горло; face — отгрызает лицо; eyes — когти в глаза. Хвост L — «Лили», D — двойник, F — жертва Фрэнк.
+const GORE = {}, _fr = x => x - Math.floor(x), _gm4 = new T.Matrix4();
+function goreFx(loc) {
+  if (loc.gfx) return loc.gfx; const f = loc.gfx = {}, S = loc.S;
+  const pm = ps1(new T.MeshPhongMaterial({ color: 0x3a0306, specular: 0x5a2020, shininess: 110, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
+  f.pool = new T.Mesh(new T.CircleGeometry(1, 32), pm); f.pool.rotation.x = -PI / 2; f.pool.visible = false; S.add(f.pool);
+  f.trail = new T.Mesh(new T.PlaneGeometry(1, 1), pm); f.trail.rotation.x = -PI / 2; f.trail.visible = false; S.add(f.trail);
+  f.spray = new T.InstancedMesh(new T.BoxGeometry(.016, .016, .016), mat(0x5a0606, null, { basic: true }), 48); f.spray.frustumCulled = false; f.spray.visible = false; S.add(f.spray);
+  f.heart = new T.Mesh(new T.SphereGeometry(.055, 10, 8), loc.gutM || (loc.gutM = GUT_M())); f.heart.scale.set(1, 1.25, .9); f.heart.visible = false; S.add(f.heart);
+  return f;
+}
+function sprayAt(f, from, dir, t, bursts) {   // брызги дугой из раны и на пол; время — от начала кадра, без состояния
+  let n = 0;
+  for (const b of bursts) { const dt = t - b; if (dt < 0 || dt > .9) continue;
+    for (let i = 0; i < 16 && n < 48; i++, n++) { const h1 = _fr(Math.sin(i * 12.9898 + b * 78.233) * 43758.5453), h2 = _fr(Math.sin(i * 39.346 + b * 11.135) * 24634.634), h3 = _fr(Math.sin(i * 73.156 + b * 52.235) * 12874.313);
+      const vx = dir.x * 1.5 + (h1 - .5) * 1.5, vy = .9 + h2 * 1.6, vz = dir.z * 1.5 + (h3 - .5) * 1.5;
+      _gm4.makeTranslation(from.x + vx * dt, Math.max(.01, from.y + vy * dt - 4.9 * dt * dt), from.z + vz * dt); f.spray.setMatrixAt(n, _gm4); } }
+  for (; n < 48; n++) { _gm4.makeScale(0, 0, 0); f.spray.setMatrixAt(n, _gm4); }
+  f.spray.instanceMatrix.needsUpdate = true; f.spray.visible = true;
+}
+function twistHead(C, up, ang) {   // голова за предел: шея и голова поворачиваются вокруг оси тела (в мире)
+  for (const [bn, k] of [['neck_01', .45], ['Head', .55]]) { const b = C.bone[bn]; if (!b) continue; b.updateWorldMatrix(true, false);
+    const wq = b.getWorldQuaternion(new T.Quaternion()).premultiply(new T.Quaternion().setFromAxisAngle(up, ang * k));
+    b.parent.updateWorldMatrix(true, false); b.quaternion.copy(b.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(wq)); b.updateWorldMatrix(false, true); }
+}
+const goreWho = kind => ({ V: /F$/.test(kind) ? 'mihalych' : 'temych', K: /L$/.test(kind) ? 'katyaThing' : /D$/.test(kind) ? 'ethanThing' : 'monster', base: kind.replace(/[LDF]$/, '') });
+function goreShot(id) {
+  if (GORE[id]) return GORE[id]; const m = /^gore@([a-z0-9_]+):([a-zA-Z]+)(\|c)?$/.exec(id); if (!m) return null;
+  const base = SH[ALIAS[m[1]] || m[1]]; if (!base || !base.pos || !base.look) return null;
+  const kind = m[2], close = !!m[3], { base: bk } = goreWho(kind), lay = /^(eat|drag|limb|heart)$/.test(bk), from = new T.Vector3(base.pos[0], 0, base.pos[2]), P = new T.Vector3(base.look[0], 0, base.look[2]);
+  const d0 = from.distanceTo(P); if (d0 > 4.5) P.lerp(from, 1 - 3.5 / d0);   // смотрели далеко (камера наблюдения) — место ближе к камере
+  const dir = from.clone().sub(P).normalize(), dist = clamp(from.distanceTo(P), 1.5, 2.4), P0 = P.clone();
+  P.addScaledVector(dir, Math.min(.5, from.distanceTo(P) * .25));   // люди — на полметра ближе к камере (там, куда смотрели, бывает стена или проём); камера — где была
+  const wh = { chest: 1.3, hang: 1.75, neck: 1.6, throat: 1.5, face: 1.62, eyes: 1.65 }[bk] || 1.3;   // высота раны (крупный план)
+  const cam = close ? (lay ? [P.x + dir.x * 1.05, .95, P.z + dir.z * 1.05] : [P.x + dir.x * 1.15, wh + .05, P.z + dir.z * 1.15])
+    : [P0.x + dir.x * dist, lay ? clamp(base.pos[1], .9, 1.6) : clamp(base.pos[1], 1.25, 1.8), P0.z + dir.z * dist];
+  return (GORE[id] = { loc: base.loc, pos: cam, look: close ? [P.x, lay ? .22 : wh - .05, P.z] : [P.x, lay ? .3 : 1.2, P.z], fov: close ? 38 : lay ? 52 : 46, gore: kind,
+    set: (o, t) => goreSet(o, t, kind, P, dir), post: (o, t, used) => gorePost(o, t, kind, P, dir, used) });
+}
+const stg = (t, a, b) => clamp((t - a) / (b - a), 0, 1), V3 = a => new T.Vector3(a[0], a[1], a[2]);
+// раскадровка (как у студий — «парные» убийства): 1) захват, жертва вырывается, хватает его за руку; 2) когти входят, рана раскрывается, брызги;
+// 3) рывок — внутренности наружу; 4) ест / добивает, жертва в агонии. Финал 3,4 с (GORE_D), середина — крупным планом (engine.js)
+function goreSet(o, t, kind, P, dir) {
+  const { V, K, base } = goreWho(kind), a = Math.atan2(dir.x, dir.z), rt = new T.Vector3(dir.z, 0, -dir.x);
+  const at = (f, r) => [P.x + dir.x * f + rt.x * r, P.z + dir.z * f + rt.z * r];
+  A[K].gore = 1; if (A[K].o.monster) A[K].faceSet = t < 1.2 ? 'scream' : 'grin';
+  if (o.faceL) { const fl = Math.sin(t * 23) > -.7 ? 1 : .35;   // свет над местом убийства (свой «лицевой» свет локации — новые лампы пересобрали бы все шейдеры)
+    o.faceL.color.setHex(0xe6ecff); o.faceL.position.set(P.x + dir.x * .7, 2.35, P.z + dir.z * .7); o.faceL.distance = 6; o.faceL.intensity = (CINE ? 3.2 : 2.4) * fl; }
+  const C = A[V]; C.struggle = 1 - stg(t, .9, 2.0); C.twitch = t > 1.6 && t < 3.0 ? .8 : 0;   // бьётся, потом судороги
+  if (base === 'eat' || base === 'heart' || base === 'limb') { const [vx, vz] = at(.12, 0), [mx, mz] = base === 'limb' ? at(-.45, -.5) : at(-.5, .15);
+    return [[V, vx, LAYY, vz, a + PI * .5, 'lay', null], [K, mx, 0, mz, base === 'limb' ? a + .4 : a, 'eat', base === 'limb' ? [vx - rt.x * .45, .15, vz - rt.z * .45] : [vx, .22, vz]]]; }
+  if (base === 'drag') { const s = Math.min(1, t / 2.6), [vx, vz] = at(.7 - s * 1.3, 0), [mx, mz] = at(-.45 - s * 1.3, 0);
+    return [[V, vx, LAYY, vz, a, 'lay', null], [K, mx, 0, mz, a + PI, 'back', null]]; }
+  // стоя: жертва лицом к камере, оно сзади (выше на голову) или сбоку (лицо; «Лили» и двойник ниже — их сзади не видно)
+  const [vx, vz] = at(.15, 0), side = base === 'face' || K !== 'monster';
+  const lift = base === 'hang' ? .55 * stg(t, .25, 1.2) : base === 'chest' || base === 'neck' ? .16 * stg(t, .5, 1.6) : 0, [mx, mz] = side ? at(.05, .5) : at(-.24, .04), hy = 1.62 + lift;
+  const pt = (f, r, y) => [vx + dir.x * f + rt.x * r, y, vz + dir.z * f + rt.z * r];
+  const head = pt(.06, 0, hy), neck = pt(.07, 0, hy - .13), chest = pt(.16, 0, hy - .32), shL = pt(0, .2, hy - .2), shR = pt(0, -.2, hy - .2);
+  const s2 = stg(t, .45, 1.1), s3 = stg(t, 1.2, 1.9);   // когти входят → рывок наружу
+  const thru = base === 'chest' ? pt(.16 + .16 * s2 - .06 * s3, -.02, hy - .32 - .1 * s3) : chest;   // кисть проходит грудь насквозь и выдирает
+  const arm = base === 'hang' ? { r: { at: neck, by: 'palm' }, l: { at: pt(.06, 0, hy + .06), by: 'palm' } }
+    : base === 'chest' ? { r: { at: thru, by: 'palm' }, l: { at: shL, by: 'palm' } }
+    : base === 'neck' ? { r: { at: pt(.06, -.1, hy), by: 'palm' }, l: { at: pt(.06, .1, hy), by: 'palm' } }
+    : base === 'eyes' ? { r: { at: pt(.1 - .04 * s2, -.035, hy + .03), by: 'tip' }, l: { at: pt(.1 - .04 * s2, .035, hy + .03), by: 'tip' } }
+    : { r: { at: shR, by: 'palm' }, l: { at: shL, by: 'palm' } };
+  const bite = base === 'throat' ? pt(.07 - .03 * s2, 0, hy - .13) : base === 'face' ? head : pt(.06, 0, hy + .05);
+  // жертва: сначала хватает его за руку (пытается оторвать), потом руки падают, колени подгибаются
+  const grab = t < 1.4 && base !== 'drag', vk = stg(t, .4, 2.2), wr = pt(.12, -.05, hy - .3);
+  return [[V, vx, lift, vz, a, { clips: [['Idle_Loop', 0, 1]], legs: base === 'hang' ? null : 'plant', pelvis: [0, -.12 * vk, 0], spine: { to: [vx + dir.x, .9, vz + dir.z], k: .3 * vk },
+      arm: grab ? { r: { at: base === 'eyes' ? pt(.12, -.05, hy) : wr, by: 'palm' }, l: { at: base === 'eyes' ? pt(.12, .05, hy) : pt(.12, .06, hy - .28), by: 'palm' } } : null, look: base === 'face' ? [mx, 1.7, mz] : null }, null],
+    [K, mx, 0, mz, side ? a - PI * .5 : a, { clips: [['Idle_Loop', 0, 1]], legs: 'plant', spine: { to: bite, k: .75 }, arm, look: bite }, null]];
+}
+function gorePost(o, t, kind, P, dir, used) {
+  const { V, K, base } = goreWho(kind), C = A[V], M = A[K]; if (!used.has(V) || !C.bone || !M.bone) return;
+  const f = goreFx(o), B = bodyPts(C), lay = base === 'eat' || base === 'drag' || base === 'limb' || base === 'heart';
+  const pc = lay ? B.belly : C.root.getWorldPosition(new T.Vector3()); f.pool.visible = true; f.pool.position.set(pc.x, .006, pc.z); f.pool.scale.setScalar(.12 + 1.0 * stg(t, .4, 3.2));
+  const rip = stg(t, .45, 1.15), RA = window.__W3chars && window.__W3chars.reachArm;   // рана раскрывается на 2-м этапе
+  if (base === 'eat' || base === 'heart') {
+    wound(C, base === 'heart' ? 'chest' : 'belly', rip); const W0 = base === 'heart' ? B.chest : B.belly, mo = mouthPt(M);
+    // кисть: в живот → рывок вверх с кишками → ко рту (поверх позы 'eat')
+    const up = W0.clone().addScaledVector(B.up, .05).add(new T.Vector3(0, .38, 0)), tgt = t < 1.15 ? W0.clone().add(new T.Vector3(0, .03 + .04 * Math.sin(t * 19), 0)) : t < 2.1 ? W0.clone().lerp(up, stg(t, 1.15, 1.8)) : up.clone().lerp(mo, stg(t, 2.1, 2.6));
+    if (RA) { RA(M, 'r', { at: [tgt.x, tgt.y, tgt.z], by: 'palm' }); M.root.updateWorldMatrix(true, true); }
+    const h = M.bone.hand_r.getWorldPosition(new T.Vector3()), out = t > 1.1;
+    if (base === 'heart') { f.heart.visible = out; f.heart.position.copy(h).y += .03; f.heart.scale.setScalar(1 + .14 * Math.max(0, Math.sin(t * 7.5)) ** 4); }
+    gutsDraw(o, out ? (base === 'heart' ? [[W0, h, .1, .011], [W0, h, .14, .009], [B.belly, B.belly.clone().addScaledVector(B.lr, .3).setY(.05), .02, .02]]
+      : [[W0, h, .3, .02], [W0, h.clone().lerp(W0, .35).addScaledVector(B.lr, .12), .22, .018], ...(t > 2.3 ? [[h, mo, .08, .017]] : []), [W0, W0.clone().addScaledVector(B.lr, .3).setY(.05), .02, .022]]) : [], t);   // две петли провисают из живота к когтям
+    sprayAt(f, W0, B.up, t, [.5, .9, 1.25, 2.0]); }
+  else if (base === 'limb') { const W = n => C.bone[n].getWorldPosition(new T.Vector3()), th = W('thigh_l').lerp(W('calf_l'), .5), mo = mouthPt(M);   // бедро разорвано, голень вывернута назад
+    wound(C, 'thigh', rip); const cb = C.bone.calf_l; if (cb) { cb.rotateX(1.5 * stg(t, .8, 1.2)); cb.updateWorldMatrix(false, true); }
+    gutsDraw(o, t > 1.0 ? [[th, mo, .04, .012], [th, th.clone().addScaledVector(B.lr, .25).setY(.04), .0, .014]] : [], t); sprayAt(f, th, B.up, t, [.55, 1.0, 1.8]); }
+  else if (base === 'drag') { wound(C, 'belly', .9); const st = new T.Vector3(P.x + dir.x * .7, 0, P.z + dir.z * .7), ln = Math.max(.05, st.distanceTo(new T.Vector3(B.belly.x, 0, B.belly.z)));
+    f.trail.visible = true; f.trail.position.set((st.x + B.belly.x) / 2, .005, (st.z + B.belly.z) / 2); f.trail.rotation.set(-PI / 2, 0, Math.atan2(dir.x, dir.z)); f.trail.scale.set(.32, ln, 1);
+    gutsDraw(o, [[B.belly, B.belly.clone().addScaledVector(dir, .6).setY(.04), .0, .02], [B.belly, B.belly.clone().addScaledVector(dir, .35).addScaledVector(B.lr, .15).setY(.04), .0, .018]], t); }
+  else if (base === 'chest') { wound(C, 'chest', rip); const h = M.bone.hand_r.getWorldPosition(new T.Vector3());
+    gutsDraw(o, t > 1.2 ? [[B.chest, h, .05, .018], [B.belly, B.belly.clone().addScaledVector(B.fw, .22).setY(.04), .03, .022]] : [], t); sprayAt(f, B.chest, B.fw, t, [.6, 1.0, 1.5, 2.2]); }
+  else if (base === 'neck') { const tw = stg(t, 1.2, 1.45); if (tw > 0) twistHead(C, B.up, 2.9 * tw); wound(C, 'throat', tw * .8); sprayAt(f, B.throat, B.fw, t, tw > 0 ? [1.3, 1.9] : []); }
+  else if (base === 'hang') { wound(C, 'throat', rip); sprayAt(f, B.throat, B.fw, t, [.6, 1.1, 1.7, 2.4]); }
+  else if (base === 'throat') { wound(C, 'throat', rip); sprayAt(f, B.throat, B.fw, t, [.55, .95, 1.4, 2.0, 2.6]); }   // артерия бьёт толчками
+  else if (base === 'face') { wound(C, 'face', rip); sprayAt(f, B.face, B.fw, t, [.55, 1.1, 1.8]); }
+  else if (base === 'eyes') { wound(C, 'eyes', rip); if (C.HU.uSocket) C.HU.uSocket.value = rip; sprayAt(f, B.face, B.fw, t, [.7, 1.4]); }
+}
 function gusEat(o, t, up) {
-  eatLight(o, t); o.cleanSet(AFTER); const M = A.monster, chest = [-.72, .22, -11.78];
+  eatLight(o, t); o.cleanSet(AFTER); o.gutsOn = true; const M = A.monster, chest = [-.72, .22, -11.78];
   if (!up) eatGore(o, t); else { o.bursts = null; A.victim.twitch = t < 1.2 ? .25 : 0; M.eatHold = seg(t, .15, .8); }
   const k = up ? seg(t, .5, 2.6) : 0, g = up ? seg(t, 1.9, 2.5) : 0;
   if (g && M.eyeM && M.eyeM.emissive) M.eyeM.emissive.setRGB(1.6 * g, 1.6 * g, 1.5 * g);
@@ -2430,11 +2571,12 @@ function sameView(a, b) { if (!a || !b || a.loc !== b.loc) return false;
   return Math.hypot(a.pos[0] - b.pos[0], a.pos[1] - b.pos[1], a.pos[2] - b.pos[2]) < .6 && c > Math.cos(.25); }
 const hardCut = C => C.o.monster || C.o.jerk || C.o.dead || C.o.grey > .3;   // Жилец и «подделки» на склейке всегда ставятся заново (покадровая рывковость)
 function stage(id, t, opt = {}, cont = false) {
-  const sh = SH[ALIAS[id] || id] || SH.hall_cam, o = L[sh.loc];
+  const sh = SH[ALIAS[id] || id] || goreShot(id) || SH.hall_cam, o = L[sh.loc];
   if (window.__W3chars && window.__W3chars.propsFrame) window.__W3chars.propsFrame();   // предметы в руках: видны только те, что держат в этом кадре
   curProps = Object.assign({}, PROPS, window.World && World.props, opt.props);
   if (curLoc && curLoc !== o) curLoc.reset();
-  curLoc = o; o.reset(); o.ir = 0; if (o.irL) o.irL.intensity = 0; if (o.props) o.props(curProps);
+  curLoc = o; o.reset(); if (o.gfx) o.gfx.pool.visible = o.gfx.trail.visible = o.gfx.spray.visible = o.gfx.heart.visible = false; if (o.gutT && !sh.gore) o.gutT.forEach(m => { m.visible = false; }); o.ir = 0; if (o.irL) o.irL.intensity = 0; if (o.props) o.props(curProps);
+  for (const k in A) if (A[k].HU && A[k].HU.uRip) { A[k].HU.uRip.value = 0; if (A[k].HU.uSocket) A[k].HU.uSocket.value = A[k].o.socket || 0; }   // раны ставит кадр (wound); глазницы — как у персонажа
   for (const k in A) { A[k].faceSet = 'base'; A[k].gore = 0; A[k].scream = 0; A[k].reflOnly = false; A[k].root.visible = true; A[k].aim = null; A[k].noTilt = false; A[k].shake = 0; A[k].struggle = 0; A[k].twitch = 0; A[k].no = 0; A[k].actT = undefined; A[k].tiltNow = undefined; if (A[k].HU) A[k].HU.uSocket.value = A[k].o.socket || 0; A[k].eatHold = 0; if (A[k].eyeM && A[k].eyeM.emissive) A[k].eyeM.emissive.setRGB(0, 0, 0); }
   if (o.faceL) o.faceL.color.setHex(0xdde6ff);
   if (sh.face) for (const k in sh.face) A[k].faceSet = sh.face[k];   // выражение лица на весь кадр (set() ниже может уточнить)
@@ -2556,6 +2698,7 @@ function draw(g, W, H, id, o) {
   for (const k of used) A[k].update(T0, dt);
   loc.tick(T0, dt);
   if (loc.post) loc.post(A, used, T0);
+  if (sh.post) sh.post(loc, t, used);   // кадр смерти: кишки, раны, лужи — по костям после поз
   // скример строго в лицо: голову Жильца ставим на ось камеры (поза рук и корпуса уводили её влево)
   const M = A.monster;
   if (M.aim && M.aim.on && used.has('monster')) { M.bone.Head.updateWorldMatrix(true, false); M.bone.Head.getWorldPosition(_hp); const P = sh.pos; _hd.set(sh.look[0] - P[0], 0, sh.look[2] - P[2]).normalize();

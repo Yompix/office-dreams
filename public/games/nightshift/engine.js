@@ -389,6 +389,13 @@ let gen = 0;   // номер текущей сцены: старые тайме�
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 let perf2S = 0, perf2N = 0;
 const JUMP_D = .75;   // сколько длится скример смерти (с)
+const GORE_D = 3.4;   // после скримера: как оно убивает (кадр gore@… в scenes.js, этапы: захват → когти → рывок → ест), потом чернота
+// у каждой смерти своё (владелец: «больше жести, во всех 14 уникальное»): L — «Лили», D — двойник, F — жертва Фрэнк
+const GORE_KIND = { over_k1: 'face', over_k2: 'hang', over_k3: 'eat', over_k4: 'neck', over_k5: 'drag', over_k5b: 'drag', over_k6: 'limb', over_k7: 'chest', over_k8: 'neckF',
+  over_k9: 'throatL', over_fmom: 'throat', over_door: 'chestL', over_come: 'heart', over_stare: 'eyes', over_stare_b: 'eyes', over_phone: 'faceD' };
+const goreKind = id => GORE_KIND[id] || GORE_KIND[id.replace(/_(srv|hide)$/, '')] || null;
+// откуда снимать финал: последний кадр смерти, а где он тесный (будка, стол) — соседний кадр той же локации с открытым местом
+const GORE_BASE = { over_k3: 'dbl_cam', over_k5: 'dbl_cam', over_k5b: 'dbl_cam', over_k7: 'bm_view', over_stare: 'door_tilt', over_stare_b: 'door_tilt', over_stare_hide: 'door_tilt' };
 let jumpBuzz = 0;
 let flashT = -9, blackT = -9, scareAt = null, shakeAmp = 0, typed = null, hb = 0, pre = 0, trig = [], subl = null, sublScene = '', voiceNow = false;
 let creep = null, creepCool = 25, mgView = null;   // случайное появление Жильца в кадре; кадр под мини-игрой
@@ -508,7 +515,7 @@ function nextBeat() {
   if (beat.scare != null) scareAt = beat.scare;
   creep = null;
   bDur = Math.max(t + (beat.pad || .3), 1.2);
-  if (sceneId.startsWith('over_') && beat.black != null) bDur = Math.max(bDur, beat.black + .95);   // скример смерти (JUMP_D) успевает до экрана смерти
+  if (sceneId.startsWith('over_') && beat.black != null) bDur = Math.max(bDur, beat.black + JUMP_D + (goreKind(sceneId) ? GORE_D : 0) + .3);   // скример и финал смерти успевают до экрана смерти
   // склейки по словам: cutAt — слова первой реплики (regexp, русское|английское), на которых меняется план cams; без них планы делят кадр поровну
   bCuts = null;
   if (beat.cutAt && sched.length) { const it = sched[0], w = (TIM[it.k] || {}).ew || (TIM[it.k] || {}).w || [];   // ew — слова английской записи (языки без своей озвучки): склейка ровно на звучащем слове
@@ -590,6 +597,12 @@ function beatAudio() {
     const da = beat.black + P, J = BUF.jumpscare ? 'jumpscare' : 'scare', D = directG ? [[directG, 1]] : null;
     play(J, { when: da, gain: calm() ? .8 : 1 }); play(J, { when: da + .01, gain: .55, rate: .55, to: D }); play(J, { when: da + .03, gain: .3, rate: 1.45, pan: -.5, to: D });
     if (BUF.boom) play('boom', { when: da, gain: .9 }); play('static', { when: da, gain: .45, cut: .5 });
+    const gk = (goreKind(sceneId) || '').replace(/[LDF]$/, ''), g0 = da + JUMP_D, S = (n, dt, gain, o) => { if (BUF[n]) play(n, Object.assign({ when: g0 + dt, gain }, o)); };   // финал: мокрые, рвущиеся, хрустящие звуки
+    if (gk === 'eat' || gk === 'limb' || gk === 'heart') { S('breath_close', .15, .7); S('skin_stretch', .5, 1); S('eat_wet', .6, 1); S('skin_stretch', 1.15, .9, { rate: .85 }); S('eat_wet', 1.22, 1, { rate: .9 }); S('eat_wet', 2.3, .9); S('eat_wet', 2.85, .8, { rate: 1.1 }); }
+    else if (gk === 'drag') { S('skin_stretch', .1, .8); S('breath_close', .3, .7); S('eat_wet', .9, .5, { rate: .7 }); S('skin_stretch', 1.8, .7, { rate: .8 }); }
+    else if (gk === 'chest') { S('breath_close', .1, .7); S('boom', .5, .7); S('skin_stretch', .5, 1); S('eat_wet', .6, 1); S('eat_wet', 1.25, 1, { rate: .85 }); S('skin_stretch', 1.3, .8); S('eat_wet', 2.2, .7); }
+    else if (gk === 'neck' || gk === 'hang') { S('breath_close', .2, .8); S('skin_stretch', .55, .7); S('neck_crack', 1.25, 1); S('neck_crack', 1.32, .75, { rate: .8 }); S('skin_stretch', 1.3, .8); }
+    else if (gk) { S('breath_close', .15, .7); S('skin_stretch', .5, 1); S('eat_wet', .55, 1); S('eat_wet', 1.1, .9, { rate: .9 }); S('breath_close', 1.6, .6, { rate: .7 }); S('eat_wet', 2.0, .8); }
   }
 }
 function gapTime(k) {   // начало самой длинной паузы между словами (там скример)
@@ -1694,6 +1707,16 @@ function phoneIn(P, t) {   // экран телефона в координат�
   }
   g.textAlign = 'left';
 }
+// брызги крови на объектив: пятна с подтёками, всегда одни и те же для смерти (seed)
+function splatBlood(g, W, H, k, seed) {
+  const r = i => { const x = Math.sin(seed * 91.7 + i * 12.9898) * 43758.5453; return x - Math.floor(x); }, U = Math.min(W, H);
+  g.save(); g.globalAlpha = .85 * k;
+  for (let i = 0; i < 9; i++) { const x = r(i) * W, y = r(i + 20) * H * .8, rr = U * (.03 + r(i + 40) * .09);
+    const gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, 'rgba(70,0,0,.95)'); gr.addColorStop(.7, 'rgba(110,4,4,.8)'); gr.addColorStop(1, 'rgba(110,4,4,0)');
+    g.fillStyle = gr; g.beginPath(); g.arc(x, y, rr, 0, 7); g.fill();
+    g.fillStyle = 'rgba(90,2,2,.85)'; const dl = rr * (1.5 + r(i + 60) * 3) * k; g.fillRect(x - rr * .08, y, rr * .16, dl); }
+  g.restore();
+}
 function wrapText(s, x0, y0, maxW, lh, maxL) { const cj = /^(zh|ja)$/.test(LNG), ws = cj ? [...s] : s.split(' '); let line = '', n = 0;   // китайский и японский без пробелов — перенос по знакам
   for (const wd of ws) { if (cj && !line && wd === ' ') continue; const tst = line ? line + (cj ? '' : ' ') + wd : wd; if (g.measureText(tst).width > maxW && line) { g.fillText(line, x0, y0 + n * lh); line = wd; if (++n >= maxL) return; } else line = tst; }
   if (line) g.fillText(line, x0, y0 + n * lh); }
@@ -1856,6 +1879,14 @@ function frame(tp) {
             if (!calm()) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = `rgb(255,${60 + 150 * js / JUMP_D | 0},40)`; g.fillRect(0, 0, W, H); g.restore();
               if (js < .05) { g.save(); g.globalCompositeOperation = 'difference'; g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.restore(); } }
             grain(.3);
+          } else if (sceneId.startsWith('over_') && goreKind(sceneId) && js < JUMP_D + GORE_D) {   // финал: как оно убивает — крупно, 2,6 с
+            const gt = js - JUMP_D, gk = goreKind(sceneId);
+            const cl = gk !== 'drag' && gt > .55 && gt < 2.15;   // раскадровка: общий план → крупно рана (когти, рывок) → общий (ест)
+            shot('gore@' + (GORE_BASE[sceneId] || beat.img) + ':' + gk + (cl ? '|c' : ''), { cx: .5, cy: .5, z: 1 + .04 * gt, t: gt, T, sx: 0, sy: 0 });
+            if (gt < .12 && !calm()) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = '#ff3030'; g.fillRect(0, 0, W, H); g.restore(); }
+            if (/^(face|throat|eyes|chest|hang)/.test(gk) && gt > .55) splatBlood(g, W, H, Math.min(1, (gt - .55) * 3), sceneId.length * 7 + gk.length);
+            if (gt > GORE_D - .35) { g.fillStyle = `rgba(0,0,0,${(gt - GORE_D + .35) / .35})`; g.fillRect(0, 0, W, H); }
+            grain(.25);
           } else { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); } }
         else jumpBuzz = 0;
       }

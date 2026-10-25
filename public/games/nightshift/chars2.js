@@ -1587,7 +1587,7 @@ function humanMat(C, n, kind, Q) {
     sh.vertexShader = 'uniform mat4 uQ;\nvarying vec3 vB;\n' + (claws ? 'attribute vec2 aNail;\nvarying vec2 vNail;\n' : '') + sh.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>' + (shroud ? SHROUD_VN : '')).replace('#include <begin_vertex>', '#include <begin_vertex>\n  vB = (uQ * vec4(position, 1.)).xyz;' + (claws ? '\n  vNail = aNail;' : '')
       + (infl ? `\n  transformed += normalize(normal) * ${infl.toExponential(3)} * smoothstep(${(C.hemY + .16).toFixed(3)}, ${(C.hemY - .02).toFixed(3)}, vB.y);` : '')
       + (shroud ? SHROUD_VS : ''));
-    sh.fragmentShader = `uniform vec3 uTint, uGoreP, uEyeL3, uEyeR3; uniform float uGain, uGrey, uWet, uGore, uSocket, uH, uMouthZ;
+    sh.fragmentShader = `uniform vec3 uTint, uGoreP, uEyeL3, uEyeR3, uRipP, uRipR; uniform float uGain, uGrey, uWet, uGore, uSocket, uH, uMouthZ, uRip, uRipK;
 varying vec3 vB;
 float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
 ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H + (CINE ? SKIN_MH : '') : ''}${claws ? 'varying vec2 vNail;\n' : ''}` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
@@ -1620,8 +1620,31 @@ ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H + (CINE ? SKIN_MH : '') : 
     float blob = smoothstep(.16, .05, length(d * vec3(1., .6, 1.5)) + (nz - .5) * .05);
     float drip = step(.7, hh3(vec3(floor(vB.x * 50.), 1., floor(vB.z * 50.)))) * step(d.y, 0.) * smoothstep(-.45, -.1, d.y) * smoothstep(.2, .1, length(d.xz));
     gore = uGore * max(blob, drip);
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.2, .012, .012), clamp(gore * 1.4, 0., .95)); }`)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + (hre && kind === 'skin' ? SKIN_ROUGH : '') + (shroud ? '  roughnessFactor = mix(roughnessFactor, mix(.92, .45, gWet), gCloth);   // саван: ткань матовая, мокрый подол блестит\n' : '') + (claws ? '  roughnessFactor = mix(roughnessFactor, .55, smoothstep(.15, .65, vNail.x));   // когти — роговые, чуть блестят (глаже .55 в тумане коридора светились белым)\n' : '') + '  roughnessFactor = mix(roughnessFactor, ' + (kind === 'hair' ? '.25' : '.42') + ', max(uWet * .75, gore));')
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.2, .012, .012), clamp(gore * 1.4, 0., .95)); }
+  float rip = 0.;
+  if (uRip > 0.) {   // рана как у студий (RE, TLOU): рваная кожа → жёлтый жир → мышца по краю; внутри — своё по виду раны; кровь впитывается в ткань и стекает
+    vec3 q = (vB - uRipP) / uRipR; float front = smoothstep(-1.1, -.15, q.z); q.y /= .3 + .7 * uRip;   // разрыв — щель, раскрывается с силой раны (не круг)
+    float nz = ${CINE ? 'vn3(vB * 70.)' : 'hh3(floor(vB * 70.))'}, nz2 = ${CINE ? 'vn3(vB * 23. + 7.)' : 'hh3(floor(vB * 23.))'};
+    float e = length(q.xy) + (nz2 - .5) * .5 + (nz - .5) * .16, R0 = .5 + .12 * uRip;   // рваный, неровный край (лоскуты)
+    float hole = (1. - smoothstep(R0 - .04, R0 + .02, e)) * front * step(.02, uRip);
+    float rw = .1 + .14 * nz2, rim = clamp((1. - smoothstep(R0 + .02, R0 + rw, e)) * front * step(.02, uRip) - hole, 0., 1.);   // край разной ширины
+    float soak = (1. - smoothstep(R0 + .1, R0 + .9 + max(0., -q.y) * 1.9 + nz * .3, e)) * front * min(1., uRip * 1.6);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.19, .01, .012) * (.7 + .6 * nz), clamp(soak, 0., .93));
+    float dl = clamp((e - R0) / rw, 0., 1.);
+    vec3 lay = dl < .5 ? vec3(.3, .02, .03) : dl < .7 ? vec3(.46, .36, .17) : vec3(.42, .25, .22);   // мышца шире, жир — тонкая полоска, рваная кожа
+    diffuseColor.rgb = mix(diffuseColor.rgb, lay * (.72 + .5 * nz), rim);
+    vec2 u = q.xy / max(R0, .06); float lu = length(u), dp = clamp(1. - lu, 0., 1.);
+    vec3 inn;
+    if (uRipK < .5) { float c = sin((u.x * 3.1 + sin(u.y * 4.3 + nz2 * 3.) * .9) * 6.3) * .5 + .5; inn = mix(vec3(.16, .015, .02), vec3(.5, .2, .18), pow(c, 1.7)); }   // кишки: петли с бликом
+    else if (uRipK < 1.5) { float rb = smoothstep(.55, .82, sin(u.y * 9.5) * .5 + .5); inn = mix(vec3(.22, .02, .03), vec3(.66, .58, .48), rb); }   // рёбра и лёгкое
+    else if (uRipK < 2.5) { float tr = smoothstep(.5, .86, sin(u.y * 15.) * .5 + .5) * smoothstep(.62, .22, abs(u.x)); inn = mix(vec3(.18, .01, .02), vec3(.58, .44, .4), tr); }   // трахея
+    else if (uRipK < 3.5) { float th = step(-.4, u.y) * step(u.y, -.08) * smoothstep(.42, .5, fract(u.x * 5.5)); inn = mix(vec3(.3, .02, .03), vec3(.74, .7, .6), th); }   // зубы и кость
+    else if (uRipK < 4.5) { inn = vec3(.07, .0, .0); }   // глазницы
+    else { float fb = sin(u.x * 30. + nz * 4.) * .5 + .5, bn = smoothstep(.3, .14, abs(u.x)) * smoothstep(.0, .3, dp); inn = mix(mix(vec3(.3, .02, .03), vec3(.42, .06, .06), fb), vec3(.7, .64, .54), bn); }   // мышца и кость
+    inn *= mix(.32, 1., smoothstep(0., .4, dp)) * (1. - .55 * smoothstep(.72, 1., lu));   // провал: к середине темнее, под кромкой тень
+    diffuseColor.rgb = mix(diffuseColor.rgb, inn, hole);
+    rip = max(hole, max(rim, soak * .8)); }`)
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + (hre && kind === 'skin' ? SKIN_ROUGH : '') + (shroud ? '  roughnessFactor = mix(roughnessFactor, mix(.92, .45, gWet), gCloth);   // саван: ткань матовая, мокрый подол блестит\n' : '') + (claws ? '  roughnessFactor = mix(roughnessFactor, .55, smoothstep(.15, .65, vNail.x));   // когти — роговые, чуть блестят (глаже .55 в тумане коридора светились белым)\n' : '') + '  roughnessFactor = mix(roughnessFactor, ' + (kind === 'hair' ? '.25' : '.42') + ', max(uWet * .75, gore));\n  roughnessFactor = mix(roughnessFactor, .32, rip);   // рана и кровь мокрые (глаже — блики горели неоном под светом места)')
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>' + (hre && kind === 'skin' ? SKIN_PORES : '') + (shroud ? SHROUD_N : ''))
       .replace('#include <lights_physical_pars_fragment>', '#include <lights_physical_pars_fragment>' + (hre ? '\n' + hre + '\n#undef RE_Direct\n#define RE_Direct RE_Direct_Hum\n' : ''))
       .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>' + (hre && kind === 'skin' ? '\n  material.specularColor *= .7;   // F0 кожи ≈ .028, не .04 пластика' : ''))
@@ -1677,7 +1700,8 @@ function makeHuman(o) {
   for (const b of bones) { C.bone[b.name] = b; C.rest[b.name] = b.quaternion.clone(); }
   // мерки в позе покоя (метры): рост, глаза, рот
   C.HU = { uGrey: { value: o.grey || 0 }, uWet: { value: o.wet || 0 }, uGore: { value: 0 }, uSocket: { value: o.socket || 0 },
-    uGoreP: { value: new T.Vector3() }, uEyeL3: { value: new T.Vector3() }, uEyeR3: { value: new T.Vector3() }, uH: { value: 1 }, uMouthZ: { value: 9 } };
+    uGoreP: { value: new T.Vector3() }, uEyeL3: { value: new T.Vector3() }, uEyeR3: { value: new T.Vector3() }, uH: { value: 1 }, uMouthZ: { value: 9 },
+    uRip: { value: 0 }, uRipK: { value: 0 }, uRipP: { value: new T.Vector3(0, 1.08, .17) }, uRipR: { value: new T.Vector3(.11, .075, .12) } };   // рваная рана (смерти 18+): сила, центр и полуоси в позе покоя (м)
   const toM = n => rest[meshes.indexOf(n)][0].clone().multiply(n.bindMatrix);   // сжатые координаты → метры
   const part = {};
   // подол кофты/рубашки (низ в позе покоя, метры): брюки выше него всё равно под ней — их там не рисуем, иначе на шаге бедро протыкает подол тёмным клином
@@ -2029,5 +2053,5 @@ function cast() {
   return A;
 }
 
-Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3, handPt, hasClip: n => !!CLIP[n] && !window.__NOMOCAP });
+Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3, handPt, reachArm, hasClip: n => !!CLIP[n] && !window.__NOMOCAP });
 })();
