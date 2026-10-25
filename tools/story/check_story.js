@@ -11,6 +11,7 @@ const shots = new Set([...src.matchAll(/^SH\.([a-z_0-9]+) = /gm)].map(m => m[1])
 const alias = (src.match(/const ALIAS = \{([^}]*)\}/) || [, ''])[1];
 for (const m of alias.matchAll(/([a-z_0-9]+):/g)) shots.add(m[1]);
 const tim = { ru: JSON.parse(fs.readFileSync(path.join(G, 'timing.json'), 'utf8')), en: JSON.parse(fs.readFileSync(path.join(G, 'timing_en.json'), 'utf8')) };
+const timX = {}; for (const f of fs.readdirSync(G)) { const m = /^timing_([a-z]{2})\.json$/.exec(f); if (m && m[1] !== 'en') timX[m[1]] = JSON.parse(fs.readFileSync(path.join(G, f), 'utf8')); }   // другие языки (uk…): склейки по словам — и на них
 const bad = [], warn = [], sfx = new Set(), used = new Set();
 const go = (from, to) => { if (!to || to === '@save') return; used.add(to); if (!scenes[to]) bad.push(`${from} → нет сцены «${to}»`); };
 for (const [id, sc] of Object.entries(scenes)) {
@@ -18,7 +19,11 @@ for (const [id, sc] of Object.entries(scenes)) {
     if (b.img && !shots.has(b.img)) bad.push(`${id}[${i}]: нет кадра «${b.img}»`);
     for (const c of b.cams || []) if (c[4] && !shots.has(c[4])) bad.push(`${id}[${i}]: нет кадра плана «${c[4]}»`);
     if (b.cutAt) { if ((b.cams || []).length !== b.cutAt.length + 1) bad.push(`${id}[${i}]: cutAt ${b.cutAt.length} склеек, а планов ${(b.cams || []).length}`);
-      const k = (b.say || [])[0]; for (const l of ['ru', 'en']) for (const re of b.cutAt) if (k && tim[l][k] && !(tim[l][k].w || []).some(w => new RegExp(re, 'i').test(w[1]))) warn.push(`${id}[${i}]: склейка «${re}» — нет такого слова в ${k} (${l})`); }
+      const k = (b.say || [])[0]; for (const [l, T] of [...Object.entries(tim), ...Object.entries(timX)]) for (const re of b.cutAt) if (k && T[k] && !(T[k].w || []).some(w => new RegExp(re, 'i').test(w[1]))) warn.push(`${id}[${i}]: склейка «${re}» — нет такого слова в ${k} (${l})`); }
+    // кивок/«нет» к слову: [что, [реплика, слово-regexp, доля], секунд] — реплика в кадре, слово есть на каждом языке
+    for (const [who, r] of Object.entries(b.react || {})) if (Array.isArray(r[1])) { const [k, re] = r[1];
+      if (!(b.say || []).includes(k)) bad.push(`${id}[${i}]: react ${who} — реплики «${k}» нет в кадре`);
+      else for (const [l, T] of [...Object.entries(tim), ...Object.entries(timX)]) if (T[k] && !(T[k].w || []).some(w => new RegExp(re, 'i').test(w[1]))) warn.push(`${id}[${i}]: react ${who} «${re}» — нет такого слова в ${k} (${l}), будет по доле реплики`); }
     for (const k of b.say || []) {
       for (const l of ['ru', 'en']) if (!tim[l][k]) warn.push(`${id}[${i}]: реплики «${k}» нет в timing ${l}`);
       if (!fs.existsSync(path.join(G, 'snd', k + '.mp3'))) warn.push(`${id}[${i}]: нет файла snd/${k}.mp3`);
