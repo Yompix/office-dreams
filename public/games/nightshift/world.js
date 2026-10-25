@@ -6,6 +6,36 @@
 'use strict';
 const tr = window.tr || (s => s);
 const T = window.THREE;
+// свет в шейдерах. three.js разворачивает цикл по точечным лампам: в каждом шейдере «Кино» было 12 копий расчёта света (77 КБ кода).
+// Слабая видеокарта или программный SwiftShader собирали такую программу до 20 с, сторож процесса GPU его убивал — контекст терялся,
+// и у всех программ в очереди «Shader Error … VALIDATE_STATUS false» с пустым логом (ПК-версия, 25 окт). Теперь развёрнуты только лампы
+// с тенью (массив карт теней индексируется константой — как в three.js), остальные — обычный цикл, и лампа, до которой свет не достаёт
+// (или выключенная), пропускается. Картинка та же; сборка программы на четверть дешевле, а на пикселях вне ламп меньше работы.
+// Выборки теней не внутри if: на D3D (ANGLE) выборка текстуры в ветвлении — риск, как и в three.js — через «?:»
+{ const a = T.ShaderChunk.lights_fragment_begin, i0 = a.indexOf('#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )'), i1 = a.indexOf('#if ( NUM_SPOT_LIGHTS > 0 ) && defined( RE_Direct )');
+  if (i0 >= 0 && i1 > i0 && a.includes('pointLightShadow.shadowCameraFar ) : 1.0;')) T.ShaderChunk.lights_fragment_begin = a.slice(0, i0) + `#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )
+	PointLight pointLight;
+	#if defined( USE_SHADOWMAP ) && NUM_POINT_LIGHT_SHADOWS > 0
+	PointLightShadow pointLightShadow;
+	#pragma unroll_loop_start
+	for ( int i = 0; i < NUM_POINT_LIGHT_SHADOWS; i ++ ) {
+		pointLight = pointLights[ i ];
+		getPointLightInfo( pointLight, geometryPosition, directLight );
+		pointLightShadow = pointLightShadows[ i ];
+		directLight.color *= ( directLight.visible && receiveShadow ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;
+		RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
+	}
+	#pragma unroll_loop_end
+	for ( int i = NUM_POINT_LIGHT_SHADOWS; i < NUM_POINT_LIGHTS; i ++ ) {
+	#else
+	for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
+	#endif
+		pointLight = pointLights[ i ];
+		getPointLightInfo( pointLight, geometryPosition, directLight );
+		if ( directLight.visible ) RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
+	}
+#endif
+` + a.slice(i1).replace('#endif\n\t\tRE_Direct( directLight,', '#endif\n\t\tif ( directLight.visible ) RE_Direct( directLight,'); }   // прожектор (фонарь) вне конуса — тоже без расчёта
 // внутреннее разрешение кадра. Два вида графики (меню «Графика», хранится в ns1_gfx, ?gfx=retro|cine — вручную):
 //  «Ретро» — низкое разрешение, дрожь вершин, ступени цвета (запасной вид: слабый телефон или выбор игрока); на ПК вдвое чётче (?hd=0/1);
 //  «Кино» — полное разрешение, мягкие тени, блики и отражения, объёмный свет, пыль в лучах, глубина резкости (по умолчанию везде;
@@ -14,8 +44,16 @@ const T = window.THREE;
 const FINE = matchMedia('(pointer: fine)').matches;
 const HD = (() => { const q = /[?&]hd=([01])/.exec(location.search); if (q) return q[1] === '1' ? 2 : 1;
   return FINE && innerWidth > innerHeight ? 2 : 1; })();
+// 3D без видеокарты (SwiftShader, llvmpipe — ПК-версия на машине без драйвера, виртуалка): «Кино» там шло бы 1–2 кадра в секунду,
+// а сборка его шейдеров роняла процесс GPU (контекст терялся). Если игрок сам не выбирал графику — сразу «Ретро»
+function softGL() {
+  try { const c = document.createElement('canvas'), gl = c.getContext('webgl2') || c.getContext('webgl'); if (!gl) return false;
+    const e = gl.getExtension('WEBGL_debug_renderer_info'), r = String(gl.getParameter(e ? e.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
+    const lc = gl.getExtension('WEBGL_lose_context'); if (lc) lc.loseContext();
+    return /swiftshader|llvmpipe|softpipe|software|basic render/i.test(r); } catch (e) { return false; }
+}
 const GFX = (() => { const q = /[?&]gfx=(retro|cine)/.exec(location.search); if (q) return q[1];
-  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; } catch {} return 'cine'; })();
+  try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine') return v; } catch {} return softGL() ? 'retro' : 'cine'; })();
 const CINE = GFX === 'cine';
 const RS = (() => { const q = /[?&]rs=([\d.]+)/.exec(location.search); return q ? Math.max(.2, Math.min(1, +q[1])) : 0; })();   // ?rs=0.4 — доля разрешения «Кино» вручную и без подстройки (быстрые проверки кадров)
 const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: RS || (FINE ? 1 : .75), rsPin: !!RS };   // rs — доля разрешения «Кино» (телефон начинает с 75 %, perfTick подстраивает)
@@ -46,7 +84,8 @@ const MC = {};
 function pbr(map, o) {
   const k = map ? map.kind : '', R = { marble: .3, lino: .38, asphalt: .45, metal: .32, door: .62, panel: .55, wood: .55, rack: .4, tileSide: .5, curb: .8, carpet: .95, ceil: .9, wall: .82, concrete: .78 };
   const r = { roughness: o.rough ?? R[k] ?? .78, metalness: o.metal ?? (k === 'metal' ? .65 : k === 'rack' ? .3 : 0), envMapIntensity: o.env ?? .7 };
-  if (map && map.bumpTex) { r.bumpMap = map.bumpTex; r.bumpScale = o.bump ?? (k === 'marble' || k === 'lino' || k === 'tileSide' ? 1.6 : k === 'ceil' ? 2.5 : 3); }
+  if (map && map.bumpTex) { r.bumpMap = map.bumpTex; r.bumpScale = o.bump ?? (k === 'marble' || k === 'lino' || k === 'tileSide' ? 1.6 : k === 'ceil' ? 1 : 3); }   // потолок: при 2.5 дырочки плитки издали сливались в «мятую фольгу»
+  if (map && map.roughTex && o.rough == null) { r.roughnessMap = map.roughTex; r.roughness = 1; }   // шероховатость гуляет: потёртости на мраморе, лужи на асфальте
   return r;
 }
 // материал для людей и вещей с особыми шейдерами: в «Кино» — с бликами, в «Ретро» — матовый
@@ -54,6 +93,13 @@ function litMat(p, rough = .7, metal = 0) { return CINE ? new T.MeshStandardMate
 // наклейка поверх другой поверхности (плинтус-панель на стене, табличка, светильник на потолке): чуть «ближе» по глубине,
 // иначе на телефоне две плоскости дерутся за пиксель и рисунок мигает рваными пятнами (особенно с дрожью вершин PS1)
 const DECAL = { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 };
+// источник света в кадре (трубка, лампа, плафон): в HDR-буфере «Кино» он в k раз ярче белого — свечение (bloom) берётся только от ламп,
+// а не от белой рубашки или стены рядом (раньше вокруг светлой одежды был молочный «нимб»). Цвет по-прежнему меняют setHex (вкл/выкл)
+function glow(m, k = 3) {
+  if (!CINE) return m; const prev = m.onBeforeCompile, ck = m.customProgramCacheKey;
+  m.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r); sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\n  gl_FragColor.rgb *= ' + k.toFixed(2) + ';'); };
+  m.customProgramCacheKey = () => ck.call(m) + '|glow' + k; return m;
+}
 function mat(color, map, o = {}) {
   const k = color + '|' + (map ? map.uuid : '') + '|' + JSON.stringify(o);
   if (MC[k]) return MC[k];
@@ -62,7 +108,8 @@ function mat(color, map, o = {}) {
     o.transparent ? { transparent: true, opacity: o.opacity ?? 1, depthWrite: false } : {}, o.side ? { side: o.side } : {}, o.decal ? DECAL : {}));
   if (CINE && !o.basic && !o.transparent) { m.castShadow = true; }
   if (o.fog === false) m.fog = false;
-  return (MC[k] = ps1(m));
+  ps1(m); if (o.glow) glow(m, o.glow);
+  return (MC[k] = m);
 }
 
 /* ---------- процедурные текстуры (рисуются на canvas) ---------- */
@@ -108,32 +155,52 @@ function makeTextures() {
   TX.asphalt = ctex(64, 64, (x, w, h) => { x.fillStyle = '#1b1d20'; x.fillRect(0, 0, w, h); speckle(x, w, h, 900, .12); for (let i = 0; i < 5; i++) { x.fillStyle = 'rgba(120,130,150,.18)'; x.beginPath(); x.ellipse(rnd() * w, rnd() * h, 6 + rnd() * 10, 3 + rnd() * 5, 0, 0, 7); x.fill(); } }, 10, 10);
   TX.curb = ctex(32, 16, (x, w, h) => { x.fillStyle = '#5b5d60'; x.fillRect(0, 0, w, h); speckle(x, w, h, 120, .2, false); x.fillStyle = '#333'; x.fillRect(0, h - 2, w, 2); }, 20, 1);
   TX.tileSide = ctex(32, 32, (x, w, h) => { x.fillStyle = '#5e605e'; x.fillRect(0, 0, w, h); speckle(x, w, h, 150, .15, false); x.fillStyle = 'rgba(0,0,0,.4)'; x.fillRect(0, 0, w, 1); x.fillRect(0, 0, 1, h); x.fillRect(16, 0, 1, h); x.fillRect(0, 16, w, 1); }, 20, 3);
-  TX.facade = ctex(128, 256, (x, w, h) => {     // фасад бизнес-центра: сетка окон, кое-где горит свет
-    x.fillStyle = '#16191d'; x.fillRect(0, 0, w, h);
-    for (let r = 0; r < 16; r++) for (let c = 0; c < 8; c++) {
-      const lit = rnd() < .12, warm = rnd() < .6;
-      x.fillStyle = lit ? (warm ? '#d9b46a' : '#9fc4d0') : `rgb(${22 + rnd() * 14 | 0},${28 + rnd() * 14 | 0},${36 + rnd() * 16 | 0})`;
-      x.fillRect(c * 16 + 3, r * 16 + 3, 10, 10);
-      if (lit) { x.fillStyle = 'rgba(0,0,0,.35)'; x.fillRect(c * 16 + 3, r * 16 + 9, 10, 4); }
-    }
-    for (let r = 0; r < 16; r++) { x.fillStyle = '#0e1013'; x.fillRect(0, r * 16, w, 2); }
-  }, 2, 2);
+  // фасад бизнес-центра: этажи по 3 м (на плоскости 36 м — двенадцать, тринадцатого нет), окна в рамах с импостом, тёмное стекло отражает небо;
+  // кое-где горит свет — тёплый или холодный, где-то жалюзи, внизу силуэты перегородок. Горящие окна светятся сами (facadeEm — карта свечения)
+  const facLay = litP => { const L = []; for (let r = 0; r < 6; r++) for (let c = 0; c < 8; c++) L.push({ r, c, lit: rnd() < litP, warm: rnd() < .62, blind: rnd() < .4, k: .75 + rnd() * .5, v: 22 + rnd() * 10 }); return L; };
+  const facDraw = (x, L, em) => { const cw = 16, ch = 256 / 6;
+    for (const { r, c, lit, warm, blind, k, v } of L) {
+      const X = c * cw, Y = r * ch, wx = X + 2.2, wy = Y + ch * .2, ww = cw - 4.4, wh = ch * .64;
+      if (!em) { x.fillStyle = '#121519'; x.fillRect(X, Y, cw, ch); x.fillStyle = 'rgba(255,255,255,.05)'; x.fillRect(X, Y + ch * .16, cw, .7); }   // междуэтажный пояс и его кромка
+      if (lit) { const g = x.createLinearGradient(0, wy, 0, wy + wh), a = (warm ? [217, 180, 106] : [159, 196, 208]).map(q => q * (em ? .8 : 1));
+        g.addColorStop(0, `rgb(${a.map(q => q * k | 0)})`); g.addColorStop(.75, `rgb(${a.map(q => q * k * .62 | 0)})`); g.addColorStop(1, `rgb(${a.map(q => q * k * .25 | 0)})`);
+        x.fillStyle = g; x.fillRect(wx, wy, ww, wh); x.fillStyle = 'rgba(0,0,0,.6)'; x.fillRect(wx, wy + wh * .78, ww, wh * .22);   // перегородки и столы
+        if (blind) { x.fillStyle = 'rgba(0,0,0,.35)'; for (let i = 0; i < 9; i++) x.fillRect(wx, wy + i * wh / 9, ww, .55); } }
+      else if (!em) { const g = x.createLinearGradient(0, wy, 0, wy + wh);
+        g.addColorStop(0, `rgb(${v + 6 | 0},${v + 12 | 0},${v + 22 | 0})`); g.addColorStop(1, `rgb(${v * .55 | 0},${v * .62 | 0},${v * .75 | 0})`); x.fillStyle = g; x.fillRect(wx, wy, ww, wh); }
+      else continue;
+      x.fillStyle = em ? '#000' : '#0b0d10'; x.fillRect(wx + ww / 2 - .4, wy, .8, wh);   // импост
+      if (!em) { x.strokeStyle = 'rgba(70,76,84,.55)'; x.lineWidth = .6; x.strokeRect(wx, wy, ww, wh); }
+    } };
+  const LAY = facLay(.12);
+  TX.facade = ctex(128, 256, x => facDraw(x, LAY, false), 2, 2);
+  TX.facadeEm = ctex(128, 256, x => { x.fillStyle = '#000'; x.fillRect(0, 0, 128, 256); facDraw(x, LAY, true); }, 2, 2);
   TX.f7lit = null;
   TX.carpet = ctex(32, 32, (x, w, h) => { x.fillStyle = '#3a2224'; x.fillRect(0, 0, w, h); speckle(x, w, h, 300, .08); x.strokeStyle = 'rgba(200,150,90,.18)'; x.strokeRect(4.5, 4.5, 23, 23); }, 2, 14);
   TX.door = ctex(32, 64, (x, w, h) => { x.fillStyle = '#5a4030'; x.fillRect(0, 0, w, h); x.strokeStyle = 'rgba(0,0,0,.4)'; x.strokeRect(4.5, 4.5, w - 9, 24); x.strokeRect(4.5, 34.5, w - 9, 25); speckle(x, w, h, 120, .06); x.fillStyle = '#c9b27a'; x.fillRect(w - 7, 30, 3, 4); });
-  TX.facadeDark = ctex(128, 256, (x, w, h) => {   // тот же фасад, все окна тёмные (здание ночью без света)
-    x.fillStyle = '#16191d'; x.fillRect(0, 0, w, h);
-    for (let r = 0; r < 16; r++) for (let c = 0; c < 8; c++) { x.fillStyle = `rgb(${18 + rnd() * 10 | 0},${22 + rnd() * 10 | 0},${28 + rnd() * 12 | 0})`; x.fillRect(c * 16 + 3, r * 16 + 3, 10, 10); }
-    for (let r = 0; r < 16; r++) { x.fillStyle = '#0e1013'; x.fillRect(0, r * 16, w, 2); }
-  }, 2, 2);
+  TX.facadeDark = ctex(128, 256, x => facDraw(x, facLay(0), false), 2, 2);   // тот же фасад, все окна тёмные (здание ночью без света)
   TX.hand = ctex(64, 64, (x, w, h) => {   // след ладони: мокрый, грязный (подвал — из круга в коридор)
     x.clearRect(0, 0, w, h); x.fillStyle = 'rgba(255,255,255,.9)'; x.filter = 'blur(1px)';
     x.beginPath(); x.ellipse(32, 40, 13, 15, 0, 0, 7); x.fill();
     [[18, 20, 4, 11, -.35], [26, 14, 4, 13, -.12], [34, 13, 4, 13, .05], [42, 17, 3.6, 11, .25], [47, 34, 4, 9, .9]].forEach(([cx, cy, rx, ry, a]) => { x.beginPath(); x.ellipse(cx, cy, rx, ry, a, 0, 7); x.fill(); });
   });
-  TX.rack = ctex(32, 64, (x, w, h) => { x.fillStyle = '#15171a'; x.fillRect(0, 0, w, h); for (let r = 0; r < 16; r++) { x.fillStyle = '#23262b'; x.fillRect(2, r * 4 + 1, w - 4, 3); for (let k = 0; k < 4; k++) if (rnd() < .5) { x.fillStyle = rnd() < .8 ? '#3cff7a' : '#ffb03c'; x.fillRect(4 + k * 3, r * 4 + 2, 1, 1); } } });
+  // серверная стойка: блоки с решёткой вентиляции и корзинами дисков, мелкие светодиоды (зелёные, реже жёлтые и синие) — светятся сами (rackEm)
+  const RL = []; for (let r = 0; r < 16; r++) { const leds = []; for (let k = 0; k < 6; k++) if (rnd() < .55) leds.push([3.2 + k * 1.15 + (k > 2 ? 1.2 : 0), rnd() < .78 ? [60, 255, 122] : rnd() < .7 ? [255, 176, 60] : [80, 150, 255]]); RL.push({ leds, bays: rnd() < .6, k: .85 + rnd() * .3 }); }
+  const rackDraw = (x, em) => { x.fillStyle = em ? '#000' : '#121416'; x.fillRect(0, 0, 32, 64);
+    RL.forEach(({ leds, bays, k }, r) => { const y = r * 4;
+      if (!em) { x.fillStyle = `rgb(${30 * k | 0},${33 * k | 0},${38 * k | 0})`; x.fillRect(1.5, y + .5, 29, 3.2); x.fillStyle = 'rgba(0,0,0,.55)';
+        for (let i = 0; i < 6; i++) x.fillRect(12 + i * 2.6, y + 1, 1.6, 2.2);   // решётка
+        if (bays) { x.fillStyle = 'rgba(255,255,255,.07)'; for (let i = 0; i < 3; i++) x.fillRect(2.2 + i * 3.1, y + 2.3, 2.7, 1); }
+        x.fillStyle = 'rgba(255,255,255,.08)'; x.fillRect(1.5, y + .5, 29, .3); }
+      for (const [lx, c] of leds) { x.fillStyle = `rgba(${c},${em ? .25 : .15})`; x.beginPath(); x.arc(lx, y + 1.3, .7, 0, 7); x.fill();
+        x.fillStyle = `rgb(${c})`; x.beginPath(); x.arc(lx, y + 1.3, UP > 1 ? .28 : .55, 0, 7); x.fill(); } }); };   // в «Ретро» (без увеличения) диод крупнее — иначе пропадает
+  TX.rack = ctex(32, 64, x => rackDraw(x, false)); TX.rackEm = ctex(32, 64, x => rackDraw(x, true));
   TX.concrete = ctex(64, 64, (x, w, h) => { x.fillStyle = '#3a3c3a'; x.fillRect(0, 0, w, h); speckle(x, w, h, 900, .1); speckle(x, w, h, 600, .16, false); x.fillStyle = 'rgba(30,20,10,.25)'; for (let i = 0; i < 4; i++) x.fillRect(rnd() * w, rnd() * h, 1, 10 + rnd() * 20); }, 4, 2);
-  TX.salt = ctex(64, 64, (x, w, h) => { x.clearRect(0, 0, w, h); x.strokeStyle = 'rgba(235,235,225,.95)'; x.lineWidth = 3; x.beginPath(); x.arc(32, 32, 26, 0, 7); x.stroke(); for (let i = 0; i < 200; i++) { const a = rnd() * 7, r = 26 + (rnd() - .5) * 6; x.fillStyle = 'rgba(240,240,230,.8)'; x.fillRect(32 + Math.cos(a) * r, 32 + Math.sin(a) * r, 1, 1); } });
+  TX.salt = ctex(64, 64, (x, w, h) => { x.clearRect(0, 0, w, h);   // насыпанный круг соли: неровный валик (толще и тоньше), по краям россыпь мелких кристаллов
+    for (let i = 0; i < 260; i++) { const a = i / 260 * 6.2832, r = 26 + Math.sin(a * 7 + 1) * .6 + Math.sin(a * 19) * .35, wd = 1.6 + .9 * Math.sin(a * 5 + 2) + rnd() * .6;
+      x.fillStyle = `rgba(232,230,220,${.55 + rnd() * .3})`; x.beginPath(); x.arc(32 + Math.cos(a) * r, 32 + Math.sin(a) * r, wd, 0, 7); x.fill(); }
+    for (let i = 0; i < 520; i++) { const a = rnd() * 6.2832, r = 26 + (rnd() - .5) * (rnd() < .8 ? 5 : 11); x.fillStyle = `rgba(245,244,236,${.5 + rnd() * .5})`;
+      x.beginPath(); x.arc(32 + Math.cos(a) * r, 32 + Math.sin(a) * r, .25 + rnd() * .4, 0, 7); x.fill(); } });
   TX.glassRain = ctex(64, 64, (x, w, h) => { x.clearRect(0, 0, w, h); for (let i = 0; i < 70; i++) { const px = rnd() * w, py = rnd() * h, l = 2 + rnd() * 8; x.fillStyle = 'rgba(210,225,240,.55)'; x.fillRect(px, py, 1, l); x.fillStyle = 'rgba(255,255,255,.8)'; x.fillRect(px, py + l, 1, 1); } }, 10, 3);
   TX.sign = ctex(256, 48, (x, w, h) => { x.fillStyle = '#101214'; x.fillRect(0, 0, w, h); x.fillStyle = '#c9cdd2'; x.font = '700 28px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('БЦ  «ГОРИЗОНТ»'), w / 2, h / 2 + 1); });
   TX.signOut = ctex(256, 48, (x, w, h) => { x.fillStyle = '#0a0b0c'; x.fillRect(0, 0, w, h); x.fillStyle = '#e8eef5'; x.shadowColor = '#9fd0ff'; x.shadowBlur = 8; x.font = '700 30px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tr('ГОРИЗОНТ'), w / 2, h / 2 + 1); });
@@ -215,6 +282,15 @@ function makeTextures2() {
   });
   TX.clock.wrapS = TX.clock.wrapT = T.ClampToEdgeWrapping;
   TX.badge = badgeTex(false); TX.badgeX = badgeTex(true);
+  // «маска» фонарика (карта прожектора): горячее пятно в центре, мягкий спад, кольцо от отражателя, пыль и царапины на стекле, мягкий край —
+  // луч настоящего фонаря, а не ровный круг сцены
+  TX.torch = ctex(64, 64, (x, w, h) => { const d = x.createImageData(w, h);
+    for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) { const u = (px + .5) / w - .5, v = (py + .5) / h - .5, r = Math.hypot(u, v) * 2, a = Math.atan2(v, u);
+      const hot = Math.exp(-r * r * 9) * .5, body = clamp(1 - r * r * .9, 0, 1) * .66, ring = Math.exp(-Math.pow((r - .62) / .07, 2)) * .24, dirt = 1 - .1 * (Math.sin(a * 7 + r * 13) * .5 + .5) * r;
+      const k = (hot + body + ring) * dirt * (1 - sm(.78, .98, r)), i = (py * w + px) * 4;
+      d.data[i] = 255 * clamp(k * 1.02, 0, 1); d.data[i + 1] = 255 * clamp(k, 0, 1); d.data[i + 2] = 255 * clamp(k * .9, 0, 1); d.data[i + 3] = 255; }
+    x.putImageData(d, 0, 0); }, 1, 1, 'raw');
+  TX.torch.wrapS = TX.torch.wrapT = T.ClampToEdgeWrapping; TX.torch.magFilter = T.LinearFilter; TX.torch.minFilter = T.LinearFilter; TX.torch.generateMipmaps = false; TX.torch.colorSpace = T.NoColorSpace;   // множитель света — линейный
 }
 // пропуск Фрэнка: фото (седой) и фамилия; вторая версия — лицо на фото исцарапано
 function badgeTex(scratched) {
@@ -279,17 +355,20 @@ function vn2(u, v, fx, fy, seed = 0) {   // бесшовный шум: решё�
 function fbm(u, v, fx, fy, oct, seed = 0) { let s = 0, a = .5, n = 0; for (let i = 0; i < oct; i++) { s += a * vn2(u, v, fx << i, fy << i, seed + i * 3); n += a; a *= .5; } return s / n; }
 const sm = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const hx = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
-function hiTex(w, h, rx, ry, fn) {   // fn(u, v, px, py) → [r, g, b, высота 0..1]
+function hiTex(w, h, rx, ry, fn) {   // fn(u, v, px, py) → [r, g, b, высота 0..1, шероховатость 0..1 — необязательно]
   const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'), d = x.createImageData(w, h);
   const hc = document.createElement('canvas'); hc.width = w; hc.height = h; const hx2 = hc.getContext('2d'), hd = hx2.createImageData(w, h);
+  let rc = null, rd = null;
   for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) {
     const r = fn(px / w, py / h, px, py), i = (py * w + px) * 4;
     d.data[i] = r[0]; d.data[i + 1] = r[1]; d.data[i + 2] = r[2]; d.data[i + 3] = 255; const hv = clamp(r[3], 0, 1) * 255; hd.data[i] = hd.data[i + 1] = hd.data[i + 2] = hv; hd.data[i + 3] = 255;
+    if (r.length > 4) { if (!rc) { rc = document.createElement('canvas'); rc.width = w; rc.height = h; rd = rc.getContext('2d').createImageData(w, h); }
+      rd.data[i] = rd.data[i + 1] = rd.data[i + 2] = clamp(r[4], 0, 1) * 255; rd.data[i + 3] = 255; }
   }
-  x.putImageData(d, 0, 0); hx2.putImageData(hd, 0, 0);
+  x.putImageData(d, 0, 0); hx2.putImageData(hd, 0, 0); if (rc) rc.getContext('2d').putImageData(rd, 0, 0);
   const mk = (cv, srgb) => { const t = new T.CanvasTexture(cv); t.magFilter = T.LinearFilter; t.minFilter = T.LinearMipmapLinearFilter; t.anisotropy = 8; t.generateMipmaps = true;
     t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(rx, ry); if (srgb) t.colorSpace = T.SRGBColorSpace; return t; };
-  const t = mk(c, true); t.cv = c; t.cx = x; t.lw = w; t.lh = h; t.bumpTex = mk(hc, false); return t;
+  const t = mk(c, true); t.cv = c; t.cx = x; t.lw = w; t.lh = h; t.bumpTex = mk(hc, false); if (rc) t.roughTex = mk(rc, false); return t;
 }
 const mul = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
 function hiTextures() {
@@ -307,13 +386,14 @@ function hiTextures() {
     return [...c, e < .012 ? 0 : .7 - pit * .35];
   });
   // мрамор пола: плиты 2×2 двух тонов, прожилки, полировка, тёмные швы
-  TX.marble = hiTex(512, 512, 8, 6, (u, v) => {
-    const q = (u < .5) !== (v < .5), base = q ? [60, 63, 68] : [85, 88, 92];
+  TX.marble = hiTex(512, 512, 8, 6, (u, v) => {   // плиты двух тонов (не «шахматы»: разница мягче), прожилки; полировка с потёртостями — шероховатость пятнами
+    const q = (u < .5) !== (v < .5), base = q ? [63, 66, 71] : [81, 84, 88];
     const w = fbm(u + .35 * fbm(u, v, 2, 2, 3, 5), v + .2 * fbm(u, v, 3, 3, 2, 6), 2, 2, 5, q ? 11 : 12), r = Math.pow(1 - Math.abs(2 * w - 1), 24) * (.35 + .65 * sm(.4, .65, fbm(u, v, 2, 2, 2, 14)));
     let c = mul(base, .9 + .16 * fbm(u, v, 6, 6, 4, 3)); c = c.map(x => x + r * 55);
     const gu = Math.min(Math.abs(u - .5), u, 1 - u), gv = Math.min(Math.abs(v - .5), v, 1 - v), gr = Math.min(gu, gv);
+    const scuff = sm(.55, .8, fbm(u, v, 3, 3, 4, 15)) * .5 + sm(.7, .9, vn2(u, v, 40, 6, 16)) * .25;
     if (gr < .004) c = [22, 22, 24];
-    return [...c, gr < .004 ? 0 : .8];
+    return [...c, gr < .004 ? 0 : .8, gr < .004 ? .7 : .2 + scuff * .45 + .06 * vn2(u, v, 64, 64, 17)];
   });
   // линолеум «под плитку» на 7 этаже: крапинки, потёртости, швы
   TX.lino = hiTex(512, 512, 2.2, 22, (u, v) => {
@@ -347,10 +427,10 @@ function hiTextures() {
     let c = mul([58, 60, 58], .8 + .35 * n - (po > .82 ? .25 : 0)); if (ru > .8) c = [c[0] * 1.1, c[1] * .98, c[2] * .85];
     return [...c, .3 + .5 * n - (po > .82 ? .3 : 0)];
   });
-  TX.asphalt = hiTex(512, 512, 10, 10, (u, v) => {
+  TX.asphalt = hiTex(512, 512, 10, 10, (u, v) => {   // мокрый асфальт: в лужах почти зеркало — в них горят фонарь и вход
     const ag = vn2(u, v, 256, 256, 71), n = fbm(u, v, 3, 3, 4, 72), wet = sm(.55, .7, fbm(u, v, 2, 2, 3, 73));
     let c = mul([27, 29, 32], .8 + .5 * ag * ag + .2 * n); c = c.map((x, i) => x * (1 - .35 * wet) + wet * [12, 14, 18][i]);
-    return [...c, .3 + .6 * ag * ag * (1 - wet)];
+    return [...c, .3 + .6 * ag * ag * (1 - wet), Math.max(.1, .8 - .2 * ag - .62 * wet)];
   });
   TX.carpet = hiTex(256, 256, 2, 14, (u, v) => {
     const f = vn2(u, v, 256, 256, 81), n = fbm(u, v, 4, 4, 3, 82); let c = mul([58, 34, 36], .82 + .25 * f + .15 * n);
@@ -364,9 +444,10 @@ function hiTextures() {
     if (Math.abs(u - .5) < .006) c = [42, 44, 46];
     return [...c, .5 + .1 * br];
   });
-  TX.tileSide = hiTex(256, 256, 20, 3, (u, v) => {
+  TX.tileSide = hiTex(256, 256, 20, 3, (u, v) => {   // плитка тротуара под дождём: мокрые пятна темнее и блестят, в швах вода
     let c = mul([94, 96, 94], .88 + .2 * fbm(u, v, 8, 8, 4, 101)); const gr = Math.min(Math.abs(u - .5), u, 1 - u, Math.abs(v - .5), v, 1 - v);
-    if (gr < .01) c = [40, 40, 40]; return [...c, gr < .01 ? 0 : .7];
+    const wet = sm(.42, .62, fbm(u, v, 2, 2, 3, 103)); c = mul(c, 1 - .3 * wet);
+    if (gr < .01) c = [40, 40, 40]; return [...c, gr < .01 ? 0 : .7, gr < .01 ? .3 : Math.max(.14, .6 - .42 * wet)];
   });
   TX.curb = hiTex(256, 128, 20, 1, (u, v) => { let c = mul([91, 93, 96], .8 + .3 * fbm(u, v, 8, 4, 4, 111)); if (v > .88) c = [51, 51, 51]; return [...c, v > .88 ? .1 : .6]; });
   for (const [k, t] of Object.entries({ wall: 'wall', ceil: 'ceil', marble: 'marble', lino: 'lino', panel: 'panel', door: 'door', wood: 'wood', concrete: 'concrete', asphalt: 'asphalt', carpet: 'carpet', metal: 'metal', tileSide: 'tileSide', curb: 'curb' })) TX[k].kind = t;
@@ -387,11 +468,11 @@ function room(w, h, d, mats, parent) {
   const me = new T.Mesh(g, Array.isArray(mats) ? mats.map(back) : back(mats)); me.position.y = h / 2; parent.add(me); return me;
 }
 // текст на табличке (динамический, например табло лифта)
-function label(w, h, pw, ph, draw, parent, basic = true) {
-  const t = ctex(pw, ph, draw); const m = new T.MeshBasicMaterial(Object.assign({ map: t }, DECAL)); ps1(m);
+function label(w, h, pw, ph, draw, parent, basic = true) {   // basic — светится сам (табло, экран); false — освещается лампами (таблички, надписи краской)
+  const t = ctex(pw, ph, draw); const m = basic ? new T.MeshBasicMaterial(Object.assign({ map: t }, DECAL)) : litMat(Object.assign({ map: t }, DECAL), .7); ps1(m);
   const me = plane(w, h, m, parent); me.userData.tex = t; me.userData.draw = draw; return me;
 }
 function relabel(me, ...a) { const t = me.userData.tex; t.cx.clearRect(0, 0, t.lw, t.lh); me.userData.draw(t.cx, t.lw, t.lh, ...a); t.needsUpdate = true; }
 
-window.__W3core = { T, V, setLand, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, mat, ctex, speckle, TX, box, plane, cyl, room, label, relabel, makeTextures, SNAP };
+window.__W3core = { T, V, setLand, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, glow, mat, ctex, speckle, TX, box, plane, cyl, room, label, relabel, makeTextures, SNAP };
 })();
