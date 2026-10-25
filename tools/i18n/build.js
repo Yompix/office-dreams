@@ -7,7 +7,7 @@ const fs = require('fs'), path = require('path'), R = path.join(__dirname, '../.
 const I18N = path.join(G, 'i18n.js');
 let src = fs.readFileSync(I18N, 'utf8');
 const VOICE = eval('(' + src.match(/const VOICE = (\{[^}]*\})/)[1] + ')');
-const langs = process.argv.slice(2).length ? process.argv.slice(2) : ['es', 'pt', 'de', 'uk'].filter(l => fs.existsSync(path.join(__dirname, l + '.json')));
+const langs = process.argv.slice(2).length ? process.argv.slice(2) : ['es', 'pt', 'de', 'fr', 'it', 'pl', 'tr', 'uk', 'zh', 'ja', 'ko'].filter(l => fs.existsSync(path.join(__dirname, l + '.json')));
 const extra = fs.existsSync(path.join(__dirname, 'extra.json')) ? JSON.parse(fs.readFileSync(path.join(__dirname, 'extra.json'))) : {};
 const lines = JSON.parse(fs.readFileSync(path.join(R, 'tools/story/lines.json')));
 const EN_T = JSON.parse(fs.readFileSync(path.join(G, 'timing_en.json')));
@@ -15,6 +15,13 @@ const EN_T = JSON.parse(fs.readFileSync(path.join(G, 'timing_en.json')));
 // n23m — реплика n23 («Да. Это я.») чужим голосом в трубке: текст тот же
 const ALIAS = { n23m: 'n23' };
 const words = t => t.split(/\s+/).filter(Boolean).flatMap(s => s.replace(/[.,:;—?!…«»"()\-¿¡„“”]/g, ' ').split(/\s+/).filter(Boolean));
+// китайский и японский пишутся без пробелов: «слово» субтитра — кусок фразы до знака препинания (знак остаётся в куске), длинный кусок делится по ≤9 знаков
+const CJK_P = '，。！？：；、…—」』）”’,.!?:;', CJK_O = '「『（“‘';
+const cjkWords = t => { const s = t.replace(/\s+/g, ''), out = []; let cur = '';
+  for (const ch of s) { if (CJK_O.includes(ch) && cur && !CJK_O.includes(cur.slice(-1))) { out.push(cur); cur = ''; } cur += ch; if (CJK_P.includes(ch)) { out.push(cur); cur = ''; } }
+  if (cur) out.push(cur);
+  const merged = []; for (const w of out) { if (merged.length && [...w].every(c => CJK_P.includes(c))) merged[merged.length - 1] += w; else merged.push(w); }
+  return merged.flatMap(w => { const a = [...w], n = Math.ceil(a.length / 9), k = Math.ceil(a.length / n), o = []; for (let i = 0; i < a.length; i += k) o.push(a.slice(i, i + k).join('')); return o; }); };
 const out = {};
 for (const L of langs) {
   const T = JSON.parse(fs.readFileSync(path.join(__dirname, L + '.json'), 'utf8'));
@@ -24,9 +31,9 @@ for (const L of langs) {
     const tim = {};
     for (const k in EN_T) {
       const en = EN_T[k], t = T.lines[k] || T.lines[ALIAS[k]]; if (!t || !en.dur) { tim[k] = en; continue; }
-      const ws = words(t.replace(/^\s*—\s*/, '')), w0 = en.w && en.w.length ? en.w[0][0] : .1, w1 = Math.max(w0 + .3, en.dur * .9 - .15);
+      const ws = (/^(zh|ja)$/.test(L) ? cjkWords : words)(t.replace(/^\s*—\s*/, '')), w0 = en.w && en.w.length ? en.w[0][0] : .1, w1 = Math.max(w0 + .3, en.dur * .9 - .15);
       const wt = ws.map(s => s.length + 2), sum = wt.reduce((a, b) => a + b, 0) || 1; let acc = 0;
-      tim[k] = Object.assign({}, en, { t, w: ws.map((s, i) => { const at = w0 + (w1 - w0) * acc / sum; acc += wt[i]; return [+at.toFixed(2), s]; }) });
+      tim[k] = Object.assign({}, en, { t, ew: en.w, w: ws.map((s, i) => { const at = w0 + (w1 - w0) * acc / sum; acc += wt[i]; return [+at.toFixed(2), s]; }) });   // ew — английские слова записи: по ним склейки и реакции (cutAt, react) встают ровно на звук
     }
     fs.writeFileSync(path.join(G, `timing_${L}.json`), JSON.stringify(tim));
   }

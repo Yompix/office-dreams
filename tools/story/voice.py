@@ -67,7 +67,7 @@ NUM = {'ru': {'газ': 'гас', '13': 'тринадцать', '12': 'двен�
        'pt': {'13': 'treze', '12': 'doze', '3': 'tres', '6': 'seis', '707': 'setecentosesete', '40': 'quarenta', '200': 'duzentos', '300': 'trezentos',
               '2': 'dois', '7': 'sete', '10': 'dez', '15': 'quinze', '18': 'dezoito', '20': 'vinte', '21': 'vinteeum', '30': 'trinta'},
        'de': {'13': 'dreizehn', '12': 'zwolf', '3': 'drei', '6': 'sechs', '707': 'siebenhundertsieben', '40': 'vierzig', '200': 'zweihundert', '300': 'dreihundert',
-              '2': 'zwei', '7': 'sieben', '10': 'zehn', '15': 'funfzehn', '18': 'achtzehn', '20': 'zwanzig', '21': 'einundzwanzig', '30': 'dreissig'}}
+              '2': 'zwei', '7': 'sieben', '10': 'zehn', '15': 'funfzehn', '18': 'achtzehn', '20': 'zwanzig', '21': 'einundzwanzig', '30': 'dreissig', 'gas': 'gus'}}
 # имя героя whisper слышит по-своему: в испанском «Izan», в португальском «Eitan» и т. п.
 for _l in ('es', 'pt', 'de'): NUM[_l].update({k: 'ethan' for k in ('izan', 'itan', 'eitan', 'ithan', 'etan', 'ethen', 'ean', 'isan')})
 def norm(w, lang):

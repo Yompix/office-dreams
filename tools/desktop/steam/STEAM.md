@@ -87,7 +87,7 @@
 >
 > El vigilante de día te entrega las llaves con mano temblorosa y te pide que leas la bitácora antes de las tres. En la última página, con la letra de Frank: *NO RESPONDAS A TU NOMBRE. NO LE ABRAS LA PUERTA. NO TE ACERQUES TÚ — NI A LA LUZ, NI AL ASCENSOR.*
 >
-> A las tres de la madrugada, tu hermana menor, Lily, está al otro lado de las puertas de vidrio. Bajo la lluvia. Llamándote por tu nombre.
+> A las tres y media de la madrugada, tu hermana menor, Lily, está al otro lado de las puertas de vidrio. Bajo la lluvia. Llamándote por tu nombre.
 >
 > - Una historia interactiva de terror de 2–3 horas, con decisiones contrarreloj, cuatro finales y catorce formas de morir
 > - Entre escena y escena cubres el turno: vigila las cámaras de seguridad, anota todo lo que no cuadre, controla el ascensor y las luces… y no te quedes mirando la CAM 13
@@ -129,7 +129,7 @@
 >
 > Der Wachmann der Tagschicht gibt dir mit zitternder Hand die Schlüssel und sagt, du sollst das Wachbuch vor drei lesen. Auf der letzten Seite, in Franks Handschrift: *ANTWORTE NICHT AUF DEINEN NAMEN. MACH IHM NICHT AUF. GEH NICHT SELBST ZU IHM — NICHT INS LICHT, NICHT IN DEN AUFZUG.*
 >
-> Um drei Uhr nachts steht deine kleine Schwester Lily vor der Glastür. Im Regen. Und ruft deinen Namen.
+> Um halb vier Uhr nachts steht deine kleine Schwester Lily vor der Glastür. Im Regen. Und ruft deinen Namen.
 >
 > - Interaktive Horrorgeschichte für 2–3 Stunden: Entscheidungen unter Zeitdruck, vier Enden und vierzehn Arten zu sterben
 > - Zwischen den Story-Szenen arbeitest du die Schicht: Überwachungskameras im Blick behalten, Auffälliges ins Wachbuch eintragen, Aufzug und Licht steuern — und starr nicht zu lange auf CAM 13

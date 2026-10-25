@@ -44,6 +44,8 @@ a claim on the game. / Ниже — сторонние материалы. Вс�
 
 4. Fonts (fonts/ns-logo.woff = Oswald Bold subset for the title, fonts/ns-ui.woff = Oswald Bold subset)
    SIL Open Font License 1.1 — licenses/OFL-Oswald.txt
+   Chinese, Japanese and Korean text (fonts/cjk/*.woff2 = subsets of Noto Sans SC / Noto Sans JP / Noto Sans KR Bold,
+   © 2014-2021 Adobe, Reserved Font Name 'Source'): SIL Open Font License 1.1 — licenses/OFL-NotoSansCJK.txt
 
 5. Voices and sound effects
    Generated with ElevenLabs on the owner's paid subscription. Under the ElevenLabs Terms of Service

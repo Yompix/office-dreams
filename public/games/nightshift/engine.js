@@ -71,9 +71,9 @@ async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
-  const world = models.then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));
+  const world = Promise.all([models, Promise.resolve(window.NS_FONTS).catch(() => null)]).then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));   // иероглифы (NSCJK) — до текстур с надписями
   // версии timing_<язык>.json — поднимать при каждой новой нарезке/сборке (кэш браузера)
-  const TIMV = { en: 12, uk: 3, es: 2, pt: 1, de: 1 };
+  const TIMV = { en: 12, uk: 4, es: 2, pt: 2, de: 2, fr: 1, it: 1, pl: 1, tr: 1, zh: 1, ja: 1, ko: 1 };
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
   const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (TIMV[LNG] || 1) : 'timing.json?v=17', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
@@ -508,14 +508,14 @@ function nextBeat() {
   bDur = Math.max(t + (beat.pad || .3), 1.2);
   // склейки по словам: cutAt — слова первой реплики (regexp, русское|английское), на которых меняется план cams; без них планы делят кадр поровну
   bCuts = null;
-  if (beat.cutAt && sched.length) { const it = sched[0], w = (TIM[it.k] || {}).w || [];
+  if (beat.cutAt && sched.length) { const it = sched[0], w = (TIM[it.k] || {}).ew || (TIM[it.k] || {}).w || [];   // ew — слова английской записи (языки без своей озвучки): склейка ровно на звучащем слове
     bCuts = [0, ...beat.cutAt.map((re, i) => { const r = new RegExp(re, 'i'), hit = w.find(x => r.test(x[1])); return hit ? it.t + hit[0] : bDur * (i + 1) / (beat.cutAt.length + 1); })];
     for (let i = 1; i < bCuts.length; i++) bCuts[i] = Math.max(bCuts[i], bCuts[i - 1] + .5); }
   // реакции тела (кивнул / покачал головой): react = { КТО: [что, с секунды, по секунду] } или [что, [реплика, слово-regexp, доля реплики], сколько секунд] — к слову,
   // а не к секунде кадра: в английской и украинской версии слова звучат в другое время («это не она» — качает головой на «это не она», а не за секунду до)
   reactW = null;
   if (beat.react) { reactW = {}; for (const who in beat.react) { const r = beat.react[who]; let a = r[1] ?? 0, b = r[2] ?? 1e9;
-    if (Array.isArray(a)) { const it = sched.find(x => x.k === a[0]), re = new RegExp(a[1], 'i'), w = it && ((TIM[it.k] || {}).w || []).find(x => re.test(x[1])); a = w ? it.t + w[0] : it ? it.t + (a[2] || 0) * it.d : 0; b = a + (r[2] ?? 2); }   // слова нет (новый язык) — доля реплики a[2]
+    if (Array.isArray(a)) { const it = sched.find(x => x.k === a[0]), re = new RegExp(a[1], 'i'), w = it && ((TIM[it.k] || {}).ew || (TIM[it.k] || {}).w || []).find(x => re.test(x[1])); a = w ? it.t + w[0] : it ? it.t + (a[2] || 0) * it.d : 0; b = a + (r[2] ?? 2); }   // слова нет (новый язык) — доля реплики a[2]
     reactW[who] = [r[0], a, b]; } }
   // смс на телефон: баннер сверху; кадр не кончится, пока её не дочитать
   for (const m of [].concat(beat.sms || [])) { const at = m.at ?? .5; trig.push({ at, fn: () => showSms(m) }); bDur = Math.max(bDur, at + 3.2); }
@@ -1358,7 +1358,7 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
 }
 function langPick(from) {   // выбор языка списком; выбранный — с перезагрузкой (надписи в 3D-мире рисуются при загрузке), игра продолжится с того же места
   const host = from === 'pause' ? pzEl : uiEl, N = window.NS_LANG_NAMES || {};
-  host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('Язык').toUpperCase()}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets langs">
+  host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('Язык').toLocaleUpperCase(LNG)}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets langs">
     ${(window.NS_LANGS || ['ru', 'en']).map(l => `<button class="set" data-l="${l}"><span>${N[l] || l.toUpperCase()}</span><b>${l === LNG ? ICON.ok : ''}</b></button>`).join('')}</div><button class="btn ghost" id="mBack">${tr('Назад')}</button></div>`;
   $('mBack').onclick = $('sX').onclick = () => { uiSnd('back'); settings(from); }; fitHd(host);
   host.querySelectorAll('[data-l]').forEach(b => { b.onclick = () => { if (b.dataset.l === LNG) { uiSnd('back'); settings(from); } else { LS.set('lang', b.dataset.l);
@@ -1714,6 +1714,7 @@ function say(who, text, k) {   // печатающийся текст
 const chunkCache = {};
 function chunks(k, w) {   // куски из таймингов без знаков препинания: берём те же слова из полного текста реплики
   if (chunkCache[k]) return chunkCache[k];
+  if (/^(zh|ja)$/.test(LNG)) return (chunkCache[k] = w.map(x => x[1]));   // без пробелов: куски тайминга (build.js cjkWords) уже со знаками препинания
   // слово полного текста = столько же слов, сколько в нём частей без знаков («05:40», «кто-то» — две, как режет voice.py); тире прилипает к соседнему куску
   const toks = ((TIM[k] || {}).t || '').split(/\s+/).filter(Boolean).map(s => [s, s.replace(/[.,:;—?!…«»"()\-¿¡„“”]/g, ' ').split(/\s+/).filter(Boolean).length]);
   let j = 0, debt = 0;
@@ -1724,7 +1725,7 @@ function chunks(k, w) {   // куски из таймингов без знак�
 }
 function sayWords(who, words, on) {   // озвученная реплика целиком, произнесённые слова ярче
   const key = who + '|' + on + '|' + words.join(' '); if (key === lastSubKey) return; lastSubKey = key;
-  plate(who); dlgEl.querySelector('.ln').innerHTML = words.map((w, i) => `<span class="${i < on ? 'on' : ''}">${w}</span>`).join(' ');
+  plate(who); dlgEl.querySelector('.ln').innerHTML = words.map((w, i) => `<span class="${i < on ? 'on' : ''}">${w}</span>`).join(/^(zh|ja)$/.test(LNG) ? '' : ' ');   // китайский и японский — без пробелов между кусками
 }
 let camHud = false;
 function setCamHud(on) { if (on !== camHud) { camHud = on; clockEl.classList.toggle('dim', on); } }   // на экране камеры время показывает сама камера

@@ -802,6 +802,7 @@ function buildHands() {
   const R0 = n => RESTL[n] || new T.Quaternion();
   for (const [name, f] of [['fist', (bn, q) => qpow(q, R0(bn), bn.startsWith('thumb') ? 1.2 : 1.3)],          // кулак — туже обычного
                            ['claw', (bn, q) => /_01_/.test(bn) ? qpow(q, R0(bn), .2) : qpow(q, R0(bn), 1.1)],   // «когти»: ровные костяшки, согнутые кончики
+                           ['hook', (bn, q) => qpow(q, R0(bn), bn.startsWith('thumb') ? .3 : /_01_/.test(bn) ? .28 : /_02_/.test(bn) ? .42 : .5)],   // «крюк» Жильца: пальцы чуть согнуты — когти смотрят вперёд, а не в ладонь
                            ['pinch', (bn, q) => bn.startsWith('index') ? qpow(q, R0(bn), .62) : bn.startsWith('thumb') ? qpow(q, R0(bn), 1.25) : q.clone()]]) {   // щепоть
     HANDP[name] = { l: {}, r: {} };
     for (const sd of ['l', 'r']) for (const bn in HANDP.relax[sd]) HANDP[name][sd][bn] = f(bn, HANDP.relax[sd][bn]);
@@ -819,6 +820,16 @@ function buildHands() {
   HANDP.point = { l: {}, r: {} };
   for (const sd of ['l', 'r']) for (const bn in HANDP.relax[sd]) { const q = HANDP.relax[sd][bn], r0 = R0(bn);
     HANDP.point[sd][bn] = bn.startsWith('index') ? qpow(q, r0, /_01_/.test(bn) ? .1 : .3) : bn.startsWith('thumb') ? qpow(q, r0, 1.15) : qpow(q, r0, 1.4); }
+}
+// кисть Жильца «крюком»: пальцы чуть согнуты и растопырены веером от среднего (указательный, безымянный, мизинец — в стороны)
+function hookHand(C, sd) {
+  setFingers(C, sd, 'hook', 1); C.root.updateWorldMatrix(true, true);
+  const W = n => C.bone[n + '_' + sd].getWorldPosition(new T.Vector3()), pm = W('middle_01');
+  for (const [f, a] of [['index', .14], ['ring', .1], ['pinky', .24]]) {
+    const b = C.bone[f + '_01_' + sd], p = W(f + '_01'), d = W(f + '_02').sub(p).normalize(), sv = p.clone().sub(pm); sv.addScaledVector(d, -sv.dot(d));
+    if (sv.lengthSq() < 1e-10) continue;
+    setWorldQ(b, new T.Quaternion().setFromAxisAngle(d.clone().cross(sv.normalize()).normalize(), a).multiply(b.getWorldQuaternion(new T.Quaternion())));
+  }
 }
 function setFingers(C, sd, pose, w) {
   const H = HANDP[pose]; if (!H || !(w > 0)) return;
@@ -1086,6 +1097,7 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
   if (!P.still) breathe(C, tt, dT);   // до касаний рук: ладони останутся там, где их поставил кадр
   if (!C.o.monster && list.every(c => SOFTC.has(c[0])))   // обычная стойка, речь, ходьба, сидя: кисти мягкие (если кадр не задал пальцы и в руке ничего нет)
     for (const sd of ['l', 'r']) if (!(P.fing && P.fing[sd]) && !(P.hold && P.hold[sd])) { setFingers(C, sd, 'soft', 1); if (!P.still) fingerLife(C, sd, tt); }
+  if (C.o.monster) { buildHands(); for (const sd of ['l', 'r']) if (!(P.fing && P.fing[sd]) && !(P.hold && P.hold[sd])) hookHand(C, sd); }   // Жилец: пальцы всегда крючьями, когтями вперёд (клипы Quaternius сжимали их в кулаки — «боксёр»)
   if (P.fing) for (const sd of ['l', 'r']) if (P.fing[sd]) setFingers(C, sd, P.fing[sd][0], P.fing[sd][1] ?? 1);
   if (P.wig) for (const [bn, ax, a] of P.wig) wiggle(C, bn, ax, a);
   if (P.twist) { C.root.updateWorldMatrix(true, true); const up = new T.Vector3(0, 1, 0).applyQuaternion(C.root.getWorldQuaternion(new T.Quaternion()));
@@ -1258,6 +1270,7 @@ function updateSkinned(C, t, dt) {
   bonesRestore(C); C.mixer.update(Math.min(sdt, .2)); bonesSnap(C);
   if (/^Rk_Sit/.test(natClip(C, want)[0])) seatFeet(C);
   if (P !== 'lay') breathe(C, tt, dT);
+  if (C.o.monster) { buildHands(); for (const sd of ['l', 'r']) hookHand(C, sd); }   // Жилец: пальцы крючьями, когтями вперёд (клип сжимал их в кулак)
   if (!C.o.monster && SOFTC.has(natClip(C, want)[0])) { buildHands(); for (const sd of ['l', 'r']) { setFingers(C, sd, 'soft', 1); fingerLife(C, sd, tt); } }   // кисти мягкие: клип Quaternius сжимал их в кулак
   }
   // ноги: у базовой анимации стойка «борца» (ступни широко) — сводим ступни под бёдра, подошва остаётся на полу
@@ -1488,7 +1501,9 @@ const SHROUD_VN = `
 const SHROUD_N = `
   { vec3 px = dFdx(vB), py = dFdy(vB); float aa = 1. - smoothstep(.06, .2, length(px) + length(py)), h0 = shH(vB, aa);   // рельеф по разности высот в соседних пикселях,
     vec2 dh = vec2(shH(vB + px, aa) - h0, shH(vB + py, aa) - h0) * gCloth;                                                 // а не dFdx(высоты): та одна на квадрат 2×2 — «лесенка» вблизи
-    vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
+${CINE ? `    float ak = 1. - smoothstep(.0012, .004, length(px) + length(py)), k0 = skH(vB, ak);
+    dh += vec2(skH(vB + px, ak) - k0, skH(vB + py, ak) - k0) * (1. - gCloth);
+` : ''}    vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1);
     vec3 nn = abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2); normal = dot(nn, nn) > 1e-24 ? normalize(nn) : normal; }
 `;
 // высота складок рубахи: крупные, неровные, книзу глубже (14 по кругу — висит тканью; 30 читались вельветом и рябили муаром); мелкий шум ткани гаснет вдали (aa)
@@ -1504,8 +1519,13 @@ const SHROUD_FS = `float gCloth, gWet; vec3 gClothC;
     gWet = smoothstep(hemY + .2, hemY + .02, vB.y) * gCloth;
     vec3 cloth = vec3(.36, .34, .3) * (1. + fold) * (1. - .4 * dirt) * mix(vec3(1.), vec3(.74, .6, .42), dirt * .85);
     cloth *= 1. - .55 * gWet; gClothC = mix(cloth, vec3(.06, .055, .05), .4 * gWet * smoothstep(.4, .7, vn3(vB * 30.)));
-    float vein = smoothstep(.035, .0, abs(vn3(vec3(vB.x * 38., vB.y * 9., vB.z * 38.)) - .5)) * (1. - gCloth);
-    diffuseColor.rgb *= 1. - .3 * vein * vec3(1., .8, .7); }
+    float arm = smoothstep(.34, .44, abs(vB.x)) * smoothstep(1.78, 1.86, vB.y);   // руки в позе «Т» лежат вдоль x: жилы на руках идут вдоль руки, на ногах и шее — вдоль y
+    float vnv = vn3(mix(vec3(vB.x * 38., vB.y * 9., vB.z * 38.), vec3(vB.x * 9., vB.y * 38., vB.z * 38.), arm)), vw = fwidth(vnv);
+    float vein = (1. - smoothstep(0., .03 + vw, abs(vnv - .5))) * smoothstep(.09, .03, vw) * smoothstep(.42, .62, vn3(vB * 4. + 9.)) * (1. - gCloth);   // обрывками (не замкнутые кольца, как изолинии на карте); вдали гаснут — без ряби
+    diffuseColor.rgb *= 1. - .34 * vein * vec3(1., .8, .7); }
+`;
+// кожа Жильца в «Кино»: сухая, бугристая, мелкие трещинки пятнами (крупная сетка на кистях читалась узором «мозг»; рельеф — в SHROUD_N); ak гасит трещины, когда пиксель крупнее их
+const SKIN_MH = `float skH(vec3 p, float ak) { float cr = 1. - abs(vn3(p * 170.) * 2. - 1.); return -pow(cr, 10.) * .00024 * ak * smoothstep(.3, .7, vn3(p * 7. + 5.)) + (vn3(p * 22.) - .5) * .0012; }
 `;
 const RE_ARGS = 'const in IncidentLight directLight, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in PhysicalMaterial material, inout ReflectedLight reflectedLight';
 const HUM_RE = {
@@ -1557,18 +1577,20 @@ function humanMat(C, n, kind, Q) {
   const hem = /pants|jeans|trousers/.test(kind) && C.hemY != null ? C.hemY : null;
   const infl = /sweater|shirt|hoodie/.test(kind) && C.hemY != null ? .007 / Q.getMaxScaleOnAxis() : 0;   // низ кофты чуть наружу — лежит поверх брюк и на шаге
   const shroud = kind === 'skin' && o.shroud;   // Жилец: длинная грязная рваная рубаха-саван от шеи ниже колен (была голая серая фигура)
-  const hre = CINE && !o.monster ? HUM_RE[kind === 'skin' ? 'skin' : kind === 'hair' ? 'hair' : cloth ? 'cloth' : ''] : null;   // у Жильца своя кожа (мёртвая, мокрая) — как было
+  const hre0 = CINE && (!o.monster || kind === 'hair') ? HUM_RE[kind === 'skin' ? 'skin' : kind === 'hair' ? 'hair' : cloth ? 'cloth' : ''] : null;
+  const hre = hre0 && o.monster ? hre0.replace('( s1 * .045 + s2 * .06 * material.diffuseColor )', '( s1 * .045 + s2 * .06 * material.diffuseColor ) * .3') : hre0;   // у Жильца блик прядей слабее: кольцом по макушке читался как обруч   // у Жильца своя кожа (мёртвая, мокрая) — как было; волосы — прядями, как у всех (обычный блик делал из мокрых чёрных прядей белые пластиковые ленты)
+  const claws = o.monster && kind === 'skin';   // Жилец: ногти-когти и почерневшие кончики пальцев (aNail — clawHands)
   if (shroud) m.extensions = Object.assign({}, m.extensions, { derivatives: true });   // складки рубахи — dFdx (WebGL1 в «Ретро»)
   const snap = m.onBeforeCompile;
   m.onBeforeCompile = sh => {
     snap(sh); Object.assign(sh.uniforms, U);
-    sh.vertexShader = 'uniform mat4 uQ;\nvarying vec3 vB;\n' + sh.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>' + (shroud ? SHROUD_VN : '')).replace('#include <begin_vertex>', '#include <begin_vertex>\n  vB = (uQ * vec4(position, 1.)).xyz;'
+    sh.vertexShader = 'uniform mat4 uQ;\nvarying vec3 vB;\n' + (claws ? 'attribute vec2 aNail;\nvarying vec2 vNail;\n' : '') + sh.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>' + (shroud ? SHROUD_VN : '')).replace('#include <begin_vertex>', '#include <begin_vertex>\n  vB = (uQ * vec4(position, 1.)).xyz;' + (claws ? '\n  vNail = aNail;' : '')
       + (infl ? `\n  transformed += normalize(normal) * ${infl.toExponential(3)} * smoothstep(${(C.hemY + .16).toFixed(3)}, ${(C.hemY - .02).toFixed(3)}, vB.y);` : '')
       + (shroud ? SHROUD_VS : ''));
     sh.fragmentShader = `uniform vec3 uTint, uGoreP, uEyeL3, uEyeR3; uniform float uGain, uGrey, uWet, uGore, uSocket, uH, uMouthZ;
 varying vec3 vB;
 float hh3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
-${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H : ''}` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H + (CINE ? SKIN_MH : '') : ''}${claws ? 'varying vec2 vNail;\n' : ''}` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
   ${hem != null ? `if (vB.y > ${hem.toFixed(3)}) discard;   // под подолом кофты` : ''}
   ${re ? `diffuseColor.rgb = mix(vec3(${LUMA}) * uTint * uGain, uTint, ${(re[2] || 0).toFixed(2)});` : ''}
   ${kind === 'skin' ? `{ float s = smoothstep(.04, .012, length(vB - uEyeL3)) + smoothstep(.04, .012, length(vB - uEyeR3)); diffuseColor.rgb *= 1. - .9 * uSocket * clamp(s, 0., 1.); }` : ''}
@@ -1588,6 +1610,9 @@ ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H : ''}` + sh.fragmentShader
   ${kind === 'skin' ? `shK = 1. - .8 * smoothstep(.17, .1, length(vB - ((uEyeL3 + uEyeR3) * .5 + vec3(0., .02, -.08))));` : ''}
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(${LUMA}) * vec3(.8, .85, .9), uGrey);
   diffuseColor.rgb *= 1. - .22 * uWet;
+  ${claws ? `diffuseColor.rgb *= 1. - .6 * smoothstep(.3, 1., vNail.y);   // кончики пальцев почернели
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.06, .05, .035), smoothstep(.15, .65, vNail.x));   // когти: толстые, жёлто-чёрные` : ''}
+  ${claws && CINE ? `{ float mo = vn3(vB * 5. + 3.); diffuseColor.rgb *= mix(vec3(1.), vec3(.84, .74, .88), smoothstep(.52, .8, mo) * .75) * (.88 + .24 * vn3(vB * 17.)); }   // трупные пятна — сиреневые, тон неровный` : ''}
   ${shroud ? 'diffuseColor.rgb = mix(diffuseColor.rgb, gClothC, gCloth);   // ткань — после серости кожи: грязно-белая, не в тон мёртвой коже' : ''}
   float gore = 0.;
   if (uGore > 0.) {
@@ -1596,7 +1621,7 @@ ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H : ''}` + sh.fragmentShader
     float drip = step(.7, hh3(vec3(floor(vB.x * 50.), 1., floor(vB.z * 50.)))) * step(d.y, 0.) * smoothstep(-.45, -.1, d.y) * smoothstep(.2, .1, length(d.xz));
     gore = uGore * max(blob, drip);
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.2, .012, .012), clamp(gore * 1.4, 0., .95)); }`)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + (hre && kind === 'skin' ? SKIN_ROUGH : '') + (shroud ? '  roughnessFactor = mix(roughnessFactor, mix(.92, .45, gWet), gCloth);   // саван: ткань матовая, мокрый подол блестит\n' : '') + '  roughnessFactor = mix(roughnessFactor, ' + (kind === 'hair' ? '.25' : '.42') + ', max(uWet * .75, gore));')
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + (hre && kind === 'skin' ? SKIN_ROUGH : '') + (shroud ? '  roughnessFactor = mix(roughnessFactor, mix(.92, .45, gWet), gCloth);   // саван: ткань матовая, мокрый подол блестит\n' : '') + (claws ? '  roughnessFactor = mix(roughnessFactor, .55, smoothstep(.15, .65, vNail.x));   // когти — роговые, чуть блестят (глаже .55 в тумане коридора светились белым)\n' : '') + '  roughnessFactor = mix(roughnessFactor, ' + (kind === 'hair' ? '.25' : '.42') + ', max(uWet * .75, gore));')
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>' + (hre && kind === 'skin' ? SKIN_PORES : '') + (shroud ? SHROUD_N : ''))
       .replace('#include <lights_physical_pars_fragment>', '#include <lights_physical_pars_fragment>' + (hre ? '\n' + hre + '\n#undef RE_Direct\n#define RE_Direct RE_Direct_Hum\n' : ''))
       .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>' + (hre && kind === 'skin' ? '\n  material.specularColor *= .7;   // F0 кожи ≈ .028, не .04 пластика' : ''))
@@ -1607,7 +1632,7 @@ ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H : ''}` + sh.fragmentShader
   };
   // ключ программы: код шейдера у зубов, языка и «приглушённой» одежды свой — иначе three.js отдаёт им чужую готовую программу с тем же набором текстур
   const dimK = (() => { for (const k in (o.dim || {})) if (kind.includes(k)) return 'd' + o.dim[k]; return ''; })();
-  m.customProgramCacheKey = () => 'hum3' + (shroud ? 'S' : '') + (hre ? 'R' : '') + (kind === 'eyes' ? 'e' + (o.deadEyes == null ? 1 : 0) : '') + (cloth ? 'C' : '') + (hem != null ? 'p' + hem.toFixed(3) : '') + (infl ? 'i' + C.hemY.toFixed(3) : '') + (kind === 'skin' ? 's' : '') + (kind === 'hair' ? 'h' : '') + (kind === 'teeth' ? 't' : kind === 'tongue' ? 'g' : '') + dimK + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
+  m.customProgramCacheKey = () => 'hum3' + (shroud ? 'S' : '') + (claws ? 'k' : '') + (o.monster ? 'M' : '') + (hre ? 'R' : '') + (kind === 'eyes' ? 'e' + (o.deadEyes == null ? 1 : 0) : '') + (cloth ? 'C' : '') + (hem != null ? 'p' + hem.toFixed(3) : '') + (infl ? 'i' + C.hemY.toFixed(3) : '') + (kind === 'skin' ? 's' : '') + (kind === 'hair' ? 'h' : '') + (kind === 'teeth' ? 't' : kind === 'tongue' ? 'g' : '') + dimK + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
   return m;
 }
 
@@ -1698,8 +1723,49 @@ function makeHuman(o) {
   C.addFace = (nm, ov) => { C.faceSets[nm] = ov; };
   C.update = (t, dt) => updateSkinned(C, t, dt);
   fitProps(C);
+  if (o.monster) clawHands(C.mesh);
   if (o.gown) skinGown(C);
   return C;
+}
+
+// Жилец: пальцы тоньше, на концах — когти. Вершины кожи сдвигаются в позе покоя (до скелета), кости не трогаем: клипы и касания работают как прежде.
+// Руки модели tenant в позе «Т» лежат вдоль оси x ладонью вниз — ноготь сверху (+y) последней фаланги, коготь растёт вдоль пальца и загибается вниз.
+// aNail: x — коготь (шейдер красит в жёлто-чёрный, блестит), y — почерневший кончик пальца. Сетка общая у всех копий модели — правим один раз.
+function clawHands(n) {
+  const g = n && n.geometry; if (!g || g.userData.claws) return; g.userData.claws = 1;
+  const pa = g.attributes.position, si = g.attributes.skinIndex, sw = g.attributes.skinWeight, Q = n.userData.Q, Qi = Q.clone().invert();
+  const names = n.skeleton.bones.map(b => b.name), FG = /^(index|middle|ring|pinky|thumb)_0([123])_([lr])$/;
+  const N = pa.count, P = new Float32Array(N * 3), who = new Array(N), F = {}, nail = new Float32Array(N * 2);
+  for (let i = 0; i < N; i++) {
+    let bi = 0, bw = -1; for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w > bw) { bw = w; bi = si.getComponent(i, k); } }
+    _va.fromBufferAttribute(pa, i).applyMatrix4(Q); P[i * 3] = _va.x; P[i * 3 + 1] = _va.y; P[i * 3 + 2] = _va.z;
+    const m = FG.exec(names[bi]); if (!m) continue;
+    const f = F[m[1] + m[3]] || (F[m[1] + m[3]] = { thumb: m[1] === 'thumb', c: [0, 1, 2].map(() => [new T.Vector3(), 0]) });
+    who[i] = [f, +m[2]]; f.c[m[2] - 1][0].add(_va); f.c[m[2] - 1][1]++;
+  }
+  const up = new T.Vector3(0, 1, 0), v = new T.Vector3(), foot = new T.Vector3(), r = new T.Vector3();
+  for (const k in F) { const f = F[k]; if (f.c.some(c => !c[1])) { f.bad = 1; continue; }
+    f.c = f.c.map(c => c[0].divideScalar(c[1])); f.d = f.c[2].clone().sub(f.c[0]).normalize();
+    f.u = up.clone().addScaledVector(f.d, -up.dot(f.d)).normalize(); f.s0 = 1e9; f.s1 = -1e9; }
+  for (let i = 0; i < N; i++) { const w = who[i]; if (!w || w[0].bad) continue; const f = w[0], s = v.fromArray(P, i * 3).sub(f.c[0]).dot(f.d);
+    if (w[1] === 1) f.s0 = Math.min(f.s0, s); if (w[1] === 3) f.s1 = Math.max(f.s1, s); }
+  for (let i = 0; i < N; i++) {
+    const w = who[i]; if (!w || w[0].bad) continue; const f = w[0];
+    v.fromArray(P, i * 3); const s = v.clone().sub(f.c[0]).dot(f.d); foot.copy(f.c[0]).addScaledVector(f.d, s); r.copy(v).sub(foot);
+    const along = clamp((s - f.s0) / (f.s1 - f.s0), 0, 1), th = (f.thumb ? .14 : .24) * T.MathUtils.smoothstep(along, 0, .3);   // тоньше; у ладони — плавно, без ступеньки
+    v.copy(foot).addScaledVector(r, 1 - th);
+    const ph = r.dot(f.u) * (1 - th), tipK = w[1] === 3 ? T.MathUtils.smoothstep(s, f.s1 - .02, f.s1 - .004) : 0;
+    let nx = 0;
+    if (!f.thumb && tipK > 0) {   // коготь: верх кончика тянется вдоль пальца на 1,8 см и загибается вниз
+      const top = T.MathUtils.smoothstep(ph, -.002, .006), k2 = T.MathUtils.smoothstep(s, f.s1 - .012, f.s1) * top;
+      v.addScaledVector(f.d, .018 * k2).addScaledVector(f.u, -ph * .6 * k2 * k2);
+      nx = tipK * T.MathUtils.smoothstep(ph, -.001, .004);
+    } else if (f.thumb) nx = tipK * .55;
+    nail[i * 2] = nx; nail[i * 2 + 1] = T.MathUtils.smoothstep(along, .45, 1);
+    v.applyMatrix4(Qi); pa.setXYZ(i, v.x, v.y, v.z);
+  }
+  pa.needsUpdate = true;
+  g.setAttribute('aNail', new T.BufferAttribute(nail, 2));
 }
 
 // рубаха-саван Жильца — своя свободная сетка со скелетом (как полы плаща у v2), от плеч ниже колен.

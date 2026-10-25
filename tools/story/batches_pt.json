@@ -1,0 +1,519 @@
+[
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "p01",
+   "p02",
+   "p03",
+   "p04",
+   "p05",
+   "p06",
+   "p08",
+   "p10",
+   "p13",
+   "p15",
+   "j01"
+  ],
+  "prompt": "[quiet, slow] Minha avó dizia: se alguém te chamar pelo nome à noite, não responda. Quem é de casa espera até de manhã.\n\n[quiet, tired] Eu achava que era só pra assustar criança, pra ninguém ficar na rua de noite.\n\nO centro empresarial Horizon fechou um mês antes. O prédio foi posto à venda, mas alguém tinha que vigiar o lugar à noite.\n\nO turno da noite pagava o dobro. E minha irmã precisava de dinheiro pra viver numa cidade estranha.\n\n[quiet, warm] Na tela do celular, um desenho da Lily: nós três, eu, ela e o nosso cachorro, o Biscoito. Ela tinha seis anos.\n\n[quiet, tired] O vigia do dia me esperava na catraca. Já tinha vestido a jaqueta antes mesmo de eu entrar.\n\n[casual] Sou. O que aconteceu com o Frank?\n\n[curious] Como assim, não entregou?\n\n[quiet, tired] As chaves estavam quentes. Ele ficou horas com elas na mão.\n\nJá na rua, ele bateu com os nós dos dedos no vidro. Três vezes. Olhou pra mim como se quisesse dizer mais alguma coisa. E não disse.\n\nFui adiando o diário. Só sentei pra ler faltando dez pras três.",
+  "chars": 1028
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "j02",
+   "j03",
+   "j04",
+   "j05",
+   "j06",
+   "j07",
+   "j08",
+   "j09",
+   "c01"
+  ],
+  "prompt": "[quiet, tired] A letra do Frank era miúda e certinha, como se ele usasse régua. Vinte anos das mesmas anotações: ronda, lâmpadas, a gata perto das lixeiras.\n\n[quiet, reading] Doze de outubro. “O elevador anda sozinho à noite. O técnico diz que é o sensor.”\n\nDia quinze. “Chamam o Gus do sétimo andar. Pelo nome. Com a voz da Martha. A Martha morreu faz três anos.”\n\nDia dezoito. “Apareceu uma décima terceira câmera no painel. Essa câmera não existe no prédio. Não olhe pra ela.”\n\n[quiet, uneasy] Dia vinte. Aqui ele apertou tanto a caneta que rasgou o papel. “Não responda se chamarem seu nome. Não abra a porta pra aquilo. E não vá até aquilo, nem pra luz, nem pro elevador. Aí aquilo não chega perto.”\n\nDia vinte e um. A última anotação, com a letra já tremida. “Mamãe chamou. Eu respondi. O sal protege. Vou descer.”\n\n[quiet, tired] Achei que o velho tinha enlouquecido. Vinte anos de turno da noite — qualquer um pira.\n\n[quiet, tense] Faltando um minuto pras três, a luz do sétimo andar acendeu.\n\n[quiet, tired] A entrada. Vazia. Só chuva.",
+  "chars": 1044
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "c02",
+   "c03",
+   "f02",
+   "f03",
+   "f04",
+   "f06",
+   "f07",
+   "f08",
+   "r01",
+   "r02",
+   "r04"
+  ],
+  "prompt": "[quiet, tense] Alguém perto do elevador?… Não. Só a sombra da palmeira no vaso.\n\n[quiet, relieved] Sétimo. Um faxineiro passando pano. Então não estou sozinho.\n\n[casual] Copiado. Sou o novato, primeiro turno.\n\n[quiet, tense] Às três em ponto, o Gus parou de cantarolar. Se endireitou e virou pra porta da setecentos e sete. Como se alguém tivesse chamado ele.\n\nO rádio chiou: ele tinha apertado o botão sem querer.\n\n[quiet, shaken] A imagem virou estática. Quando voltou, no corredor só havia um balde e um esfregão.\n\nVi a gravação três vezes. Naquele segundo, a porta da setecentos e sete estava fechada. E o Gus falava com ela.\n\n[quiet, bitter] Liguei pra polícia. O atendente perguntou se tinha corpo. Não tinha. “De manhã a família faz o boletim de ocorrência.”\n\n[quiet, tense] Sair? A porta ficava do outro lado do saguão, depois do elevador. Pelas regras do Frank, a guarita era mais segura.\n\n[quiet, tired] O sétimo andar continuava aceso e vazio. Fiquei ali, olhando pro balde.\n\n[whispering, cold] O Gus não sabia o meu nome. Eu nunca tinha dito.",
+  "chars": 1054
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "e01",
+   "e02",
+   "e03",
+   "m01",
+   "m02",
+   "g01",
+   "g02",
+   "g03",
+   "g04",
+   "g06",
+   "g08"
+  ],
+  "prompt": "[quiet, tense] Um minuto depois, o elevador desceu até o saguão. Ninguém tinha chamado.\n\nO visor acima das portas mostrava: treze. O Horizon tem doze andares.\n\nAs portas ficaram um tempo abertas. E fecharam sozinhas.\n\nO visor apagou. E, no painel, a câmera treze ligou.\n\n[whispering, terrified] Um corredor comprido que não existe neste prédio. No fim dele, alguém de costas pra mim.\n\n[quiet, tired] Arranquei o fio. Fiquei dez minutos no escuro, ouvindo o zumbido do prédio vazio.\n\n[quiet, slow] Não responda. Não abra. Fiquei repetindo isso pra mim mesmo até as palavras perderem o sentido.\n\n[quiet, tense] Às três e meia, alguém lá fora me chamou pelo nome.\n\n[quiet, stunned] Do outro lado do vidro estava a Lily. Com o suéter amarelo, na chuva.\n\n[quiet, confused] Ela devia estar dormindo no alojamento. A trezentos quilômetros daqui.\n\n[whispering, terrified] Olhei o monitor da entrada. Onde ela estava, só havia estática.",
+  "chars": 927
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "g09",
+   "g10",
+   "g12",
+   "g14",
+   "g15",
+   "a01",
+   "a02",
+   "a03",
+   "a04",
+   "a05",
+   "a06"
+  ],
+  "prompt": "[whispering, terrified] O celular vibrou. Uma mensagem da Lily. Enviada há um minuto. Do celular que tinha “morrido”.\n\nA chuva escorria pelo vidro, e ela colava o rosto nele. O vidro só embaçava do meu lado.\n\nEscrevi com o dedo no vidro embaçado: “Qual era o nome do nosso cachorro?” Ela nem olhou pras letras.\n\nBiscoito. Foi a própria Lily que deu o nome. E aquilo só repetia o meu nome. Com a mesma voz. A mesma entonação.\n\nMe afastei da porta.\n\n[quiet, hesitant] Girei a chave.\n\n[quiet, emotional] Ela pulou no meu pescoço. Gelada, encharcada até os ossos.\n\n[gentle, comforting] Pronto, pronto. Você tá aqui. Você tá comigo.\n\n[quiet, uneasy] Ela parou de chorar. Na hora. Como se alguém tivesse tirado o som.\n\n[whispering, terrified] Ela não tinha cheiro de chuva. Tinha cheiro de graxa e poeira. Como um poço de elevador.\n\nMeu celular tocou. Na tela: “Lily”.",
+  "chars": 862
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "a07",
+   "a08",
+   "a09",
+   "a10",
+   "a11",
+   "a12",
+   "a13",
+   "h01",
+   "h02",
+   "h03",
+   "h05"
+  ],
+  "prompt": "[whispering, terrified] A Lily estava bem do meu lado. De mãos vazias. E o celular continuava tocando.\n\nLevantei os olhos. O saguão estava vazio. Só pegadas molhadas, indo até o elevador.\n\nO elevador subiu. Cinco. Nove. Doze. Treze.\n\nO monitor treze ligou sozinho, com o fio arrancado. No fim do corredor, um suéter amarelo. Ela se virou devagar.\n\nNão era o rosto dela. E aquele rosto sorria pra câmera.\n\n[quiet, despair] O Frank tinha avisado. E eu mesmo abri. Eu mesmo deixei entrar.\n\n[whispering, terrified] O elevador começou a descer.\n\nTranquei a guarita. Apaguei a luminária. Escorreguei pro chão, debaixo do balcão.\n\nPortas do elevador. Passos. Descalços, molhados. Mais perto.\n\nO celular vibrou no bolso. Cobri com a mão. Tarde demais.\n\n[whispering, exhausted] Os passos rodeavam a guarita. Uma hora. Depois outra.",
+  "chars": 822
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "h06",
+   "h07",
+   "h09",
+   "h10",
+   "x01",
+   "x02",
+   "x03",
+   "x04",
+   "x05",
+   "x07",
+   "b01"
+  ],
+  "prompt": "[whispering, hollow] Faltando um minuto pras seis, ela chamou de novo, baixinho. E eu respondi antes de perceber que estava respondendo.\n\n[quiet, hollow] Às seis, a porta da frente bateu. Era o vigia do dia.\n\nEle olhou pra mim. E recuou. Devagar, sem me dar as costas.\n\n[quiet, hollow, eerie] Vi meu reflexo no vidro da guarita. Eu estava sorrindo. Mais largo do que eu consigo. E não piscava.\n\n[tense, breathless] A saída de emergência ficava no fim do corredor de serviço. Quarenta passos.\n\nAs luzes se apagavam atrás de mim: aquilo seguia o som dos meus passos.\n\n[breathless] Saí aos tropeços na chuva e corri até perder o fôlego.\n\n[quiet, breathless] O Horizon estava às escuras. Só acima do telhado, onde já não existe andar, uma janela estava acesa.\n\n[quiet] Meu celular tocou. Lily.\n\n[whispering, terrified] Eu estava na chuva, em frente ao Horizon. A trezentos quilômetros da janela dela.\n\nEu não abri. Ela parou de chorar. Na hora.",
+  "chars": 940
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "b02",
+   "b03",
+   "b05",
+   "b06",
+   "b07",
+   "b09",
+   "b11",
+   "b12",
+   "s01",
+   "s02",
+   "s03",
+   "s04"
+  ],
+  "prompt": "[whispering, terrified] E sorriu. Largo demais. A Lily nunca sorriu assim.\n\nEla arranhou o vidro com as unhas. Devagar, de cima pra baixo.\n\nDepois ela foi embora. Andando de costas. Sem tirar os olhos de mim.\n\nA chuva escorria pelo vidro, mas a marca da mão dela não saía.\n\n[quiet, tense] Liguei pra Lily. Um toque. Dois. Três.\n\n[tense] Onde você tá agora?\n\n[gentle, serious] Tá tudo bem. Volta a dormir. Só que, se alguém te chamar pelo nome esta noite, não responde. Nem se for eu.\n\n[quiet, tired] Desliguei. Minhas mãos tremiam.\n\n[whispering, terrified] Eu tinha arrancado o fio da treze uma hora antes. O monitor ligou mesmo assim.\n\nSétimo andar. O Gus apareceu. Estava caído na porta da setecentos e sete.\n\nAquilo estava agachado em cima dele. Bem baixo, junto do peito. Sem pressa.\n\nComeçou a erguer a cabeça pra lente. Fechei os olhos com força.",
+  "chars": 852
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "s05",
+   "s06",
+   "s07",
+   "s08",
+   "s09",
+   "d01",
+   "d02",
+   "d03",
+   "d05"
+  ],
+  "prompt": "[quiet, tense] Quando abri os olhos, a treze estava apagada. E no monitor ao lado, a câmera da sala de servidores tinha ganhado vida. A noite toda, só tela preta. Agora havia uma vela acesa.\n\n[quiet, stunned] Segundo subsolo. Um círculo de sal no chão. Dentro, um homem sentado. O rosto do crachá acima da minha mesa. O Frank. Vivo. Magro, com a barba por fazer.\n\n[quiet, bitter] Vasculharam doze andares. Ninguém lembrou do subsolo.\n\n[quiet, tense] Ele ergueu uma folha amassada pra câmera. As letras reforçadas muitas vezes. Devia mostrar a folha toda noite.\n\n[whispering, terrified] De repente, o Frank olhou pra trás, pro escuro. Como se alguém tivesse chamado ele.\n\n[quiet, tense] Não toquei no elevador. Escada. Primeiro subsolo. Segundo subsolo.\n\n[whispering, terrified] Cheirava a umidade e cera. O sal estalava sob os pés.\n\nUma porta de ferro. “Servidores”. Por baixo, uma faixa de luz quente.\n\nUma voz de velho. Talvez a voz do Frank fosse assim. Só que o Frank nunca tinha ouvido o meu nome.",
+  "chars": 1002
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "d06",
+   "d07",
+   "d08",
+   "d10",
+   "d14",
+   "d17",
+   "d20",
+   "d22",
+   "d23",
+   "d25",
+   "d27",
+   "d30"
+  ],
+  "prompt": "[whispering, terrified] E na folha estava escrito: “Não me chame. Bata três vezes.”\n\nBati. Uma vez. Duas. Três.\n\nSilêncio. Depois o ferrolho estalou. Por dentro.\n\n[quiet] O Frank tinha feito o círculo bem na soleira: alcançava o ferrolho sem sair do sal. Uma das pernas estava presa com fita num pedaço de papelão.\n\n[whispering, terrified] Do escuro além do círculo, alguém chamou o Frank. Uma voz de velhinha. Carinhosa.\n\nO Frank se esticou na direção da voz. Até a beira do círculo.\n\n[quiet, exhausted] Às seis, a voz se calou no meio da palavra.\n\n[quiet, tired] Pus o braço dele no meu ombro. Quarenta degraus acima. Ele não disse nada.\n\n[quiet, calm] Saímos na chuva. Ainda não tinha clareado. Mas em algum lugar, atrás das casas, o primeiro bonde já tinha passado.\n\n[quiet] Neguei com a cabeça.\n\nO Frank acendeu um cigarro.\n\n[quiet, tired] Não fui embora. A Lily precisava do dinheiro.",
+  "chars": 890
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "d31",
+   "w01",
+   "w02",
+   "w03",
+   "w04",
+   "w05",
+   "w06",
+   "w07",
+   "w09",
+   "w10",
+   "k1a"
+  ],
+  "prompt": "[quiet, slow] Agora, toda noite, às três em ponto, alguém fica perto do elevador e me chama pelo nome. Com a voz da Lily. Até agora, nunca respondi.\n\n[quiet, tired] Não fui a lugar nenhum. Podia ser qualquer um. Qualquer coisa.\n\nPassei uma hora e meia olhando os monitores. A treze não ligou mais.\n\n[quiet, guilty] Em algum lugar lá embaixo, um velho estava sentado num círculo de sal. E eu, lá em cima, esperando dar seis.\n\n[quiet, tense] Cinco e quarenta. O celular tocou. “Lily”.\n\n[whispering] Vinte pras seis. Quem é de casa espera até de manhã.\n\n[quiet, tense] Recusei. Ligou de novo. E de novo. Depois ficou quieto.\n\n[quiet, tired] Às seis, o vigia do dia chegou.\n\n[quiet, hollow] Descemos juntos. A porta da sala de servidores estava escancarada. Marcas de mãos saíam do círculo e iam pelo corredor.\n\n[quiet, slow] Abri o diário na última página e escrevi uma linha. Com a minha letra. Pra quem vier depois de mim.\n\n[whispering, terrified] Olhei pra treze. Aquilo já estava de frente pra câmera. Como se esperasse eu olhar.",
+  "chars": 1030
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "k1b",
+   "k2a",
+   "k2b",
+   "k2c",
+   "k3a",
+   "k4a",
+   "k4b",
+   "k7a",
+   "k7b",
+   "k7c",
+   "k8a",
+   "k8c"
+  ],
+  "prompt": "[whispering, terrified] Aquilo disse o meu nome. E eu respondi antes de perceber que estava respondendo.\n\n[quiet, tense] Subi pro sétimo. As luzes estavam acesas. Cheirava a pano molhado.\n\n[whispering, terrified] O Gus estava caído na porta da setecentos e sete. Alguém estava agachado em cima dele.\n\nAs luzes começaram a apagar. Lá do fundo. Em direção a mim.\n\n[urgent, loud] Gus! Aguenta aí, tô subindo!\n\n[whispering, terrified] Não deu tempo. Aquilo no corredor se virou. Não tinha rosto. Só uma boca. E a boca disse o meu nome.\n\nE eu respondi antes de perceber que estava respondendo.\n\n[quiet, tense] Abri a porta.\n\n[whispering, terrified] O Frank estava sentado no círculo. Olhava pra mim e balançava a cabeça: não, não, não.\n\nE a voz que tinha me chamado estava bem atrás de mim.\n\nO Frank rastejou pra fora do círculo. O escuro se fechou sobre ele sem um som.\n\n[urgent, scared] Frank?!",
+  "chars": 891
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "k9b",
+   "n01",
+   "n02",
+   "n03",
+   "n04",
+   "n05",
+   "n06",
+   "n07",
+   "n09",
+   "n11",
+   "n12",
+   "n13",
+   "n16"
+  ],
+  "prompt": "[whispering, terrified] Era a voz dela. Mas não vinha do celular. Vinha do saguão.\n\n[quiet, tired] Dez da noite. A entrada está trancada, o elevador em modo noturno. Doze andares e eu.\n\nRonda. Escada, andares, subsolo. Lanterna, chaves e ninguém.\n\n[quiet, uneasy] Perto da sala de servidores, cheiro de cera. Por baixo da porta, uma faixa de luz quente.\n\n[quiet, tired] Trancada. Não tinha chave dessa sala no molho.\n\nDevia ser a luz de emergência. Voltei pra cima.\n\n[quiet, warm] Uma gata nas lixeiras. O Frank escreveu sobre ela por vinte anos. Vou anotar também.\n\n[quiet, tired] Alguém deixou a luz acesa no décimo. Vou apagar pelo painel.\n\n[casual] Tem. Pode descer.\n\n[quiet, uneasy] Não perguntei o que ele ouvia lá em cima.\n\n[quiet, tense] Estática. Só no canto, perto da porta. Como se tivesse alguém parado ali.\n\nO elevador andou sozinho. Ninguém no painel. Deve ser o sensor.\n\n[polite, curious] Obrigado. O senhor tá aqui faz tempo?",
+  "chars": 941
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "n18",
+   "n19",
+   "n21",
+   "n22",
+   "n23",
+   "n24",
+   "n25",
+   "n27",
+   "n28",
+   "n29",
+   "n30",
+   "n31",
+   "n32"
+  ],
+  "prompt": "[quiet, tired] Duas e meia. O diário continuava ali, fechado.\n\n[quiet, tense] Apareceu mais um botão no painel. Treze. Um minuto atrás, não estava ali.\n\n[whispering, terrified] Passos. Não mais nas câmeras. Aqui, no saguão.\n\nA estática formou um rosto, olhando direto pra lente.\n\n[quiet, relieved] Sim. Sou eu.\n\n[quiet, tired] Desliguei sem dizer nada.\n\nQuatro e vinte. O Frank lá embaixo, no círculo. E eu aqui em cima. Quase duas horas até as seis.\n\n[quiet, shaken] O Gus se foi. Eu vi na treze.\n\n[quiet, tense] Bateram lá embaixo. Três vezes. Como o Frank pediu. Só que ele pediu isso pra mim.\n\nA Lily estava na entrada. Na chuva, sem sombrinha. A Lily dormia a trezentos quilômetros daqui.\n\n[whispering, terrified] Abri. Ela entrou e sorriu. Largo demais.\n\n[quiet, tense] As luzes começaram a apagar. Andar por andar. De cima pra baixo. Em direção a mim.\n\n[quiet, tired] A voz sumiu. O Frank ofegava. Na sala de servidores ficava o gravador: todas as câmeras num monitor só.",
+  "chars": 978
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "n38",
+   "n40",
+   "n41",
+   "n43",
+   "fb00",
+   "fb01",
+   "fb02",
+   "fb03"
+  ],
+  "prompt": "[whispering, terrified] Os passos subiram. Duas horas até as seis. Baixei o brilho dos monitores ao mínimo e fiquei olhando.\n\n[quiet, tense] A luz acendeu no sétimo. Depois no décimo. Ela anda pelos andares, ligando os interruptores. Procurando.\n\n[whispering, terrified] O interfone tocou. Se eu atender, ela vai ouvir onde eu estou.\n\n[quiet, shaken] Vinte pras seis. Os passos pararam. Não sei onde ela está. E isso é o pior.\n\n[quiet, tired] A guarita do Frank. Uma caneca de chá pela metade, a jaqueta no encosto da cadeira. Como se ele tivesse saído por um minuto. Uma semana atrás.\n\nA guarita do Frank. Do jeito que o vigia do dia disse: a luminária, o chá frio, a jaqueta no encosto da cadeira. Como se ele tivesse saído por um minuto.\n\n[quiet, puzzled] No bolso da jaqueta, um pacote de sal grosso pela metade. E um punhado de sal solto. Pra que um vigia anda com sal?\n\n[quiet, slow] Debaixo do vidro da mesa, uma foto. O Frank, um velho de macacão e uma mulher de vestido vermelho. O rosto dela estava gasto, como se alguém tivesse passado o dedo nele mil vezes. No verso: “Martha. Sétimo andar. Ano Novo.”",
+  "chars": 1113
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "fb04",
+   "fb05",
+   "dg01",
+   "dg03",
+   "dg05",
+   "dg07",
+   "dg09",
+   "dg11",
+   "bm01",
+   "bm02",
+   "bm03",
+   "bm04",
+   "bm05"
+  ],
+  "prompt": "[quiet, tired] Na gaveta, o celular do Frank, sem nenhuma bateria. Coloquei pra carregar, caso a polícia queira saber pra quem ele ligou.\n\nO diário estava amarrado com barbante. Na capa, com a letra do Frank: “Até as três. Inteiro.” Deixei de lado. Ainda faltava muito pras três.\n\nÀs dez, meu celular tocou. Número desconhecido.\n\n[quiet, serious] O que houve de verdade com o Frank?\n\n[curious] Por que você bateu no vidro quando saiu?\n\n[uneasy] O que é “aquilo”?\n\n[casual] Tem mais alguém no prédio?\n\nBeleza. Até de manhã.\n\n[whispering, terrified] Bati. Silêncio. Depois, lá de dentro, três batidas. Lentas, pesadas. Como se alguém estivesse poupando forças.\n\n[quiet, uneasy] Por toda a soleira, do outro lado, uma faixa branca. Sal. Alguém tinha espalhado por dentro.\n\n[calling out, nervous] Ei! Tem alguém aí?\n\n[whispering, terrified] Nenhum som. Só a luz debaixo da porta tremeu, como se alguém tivesse passado pela fresta.\n\n[quiet, tired] Devia ser o encanamento. Fui repetindo isso pra mim mesmo até lá em cima.",
+  "chars": 1016
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "gs01",
+   "gs03",
+   "gs05",
+   "gs07",
+   "gs09",
+   "ly01",
+   "ly03",
+   "ly05",
+   "ly07",
+   "ly09",
+   "fp01",
+   "fp02",
+   "fp03",
+   "al01"
+  ],
+  "prompt": "[gentle] A mulher de vestido vermelho, na foto do Frank, é a Martha?\n\nSua esposa também trabalhava aqui?\n\n[quiet, serious] O Frank disse alguma coisa antes de sumir?\n\n[careful] Quem chama o senhor?\n\n[quiet, urgent] Gus. O que quer que ela diga, não responda. Me prometa.\n\n[quiet, warm] À uma e quinze, a Lily ligou.\n\n[warm] Como tá o Biscoito?\n\n[casual] Você tá no alojamento agora?\n\n[hesitant] Aqui tá… estranho. As luzes dos andares acendem sozinhas.\n\n[warm] Vai dormir. Você vai arrasar.\n\n[whispering, terrified] O celular do Frank tocou onze vezes. Depois chegou uma mensagem: “Frankie, filho, desce aqui. Tô aqui embaixo.”\n\nRecusei. Minhas mãos tremiam. Quem liga pra um velho às duas da manhã pra chamar ele lá pra baixo?\n\nAlô?… Na linha, alguém puxou o ar. Com alívio. Como se tivesse esperado muito.\n\n[quiet, broken] Ele tinha me prometido. Mas era a voz da Martha.",
+  "chars": 873
+ },
+ {
+  "who": "ИТАН",
+  "voice": "hryj0YLzRd2iGghnwoOI",
+  "keys": [
+   "al02",
+   "al03",
+   "al04",
+   "sv01",
+   "sv02",
+   "sv03",
+   "sv05",
+   "sv07",
+   "sv09",
+   "sv11"
+  ],
+  "prompt": "[quiet, uneasy] Então era a mãe dele que o chamava pra baixo. “Frankie, filho…”, como na mensagem do celular.\n\n[quiet, slow] Sal. Como no bolso da jaqueta dele.\n\n[quiet, realization] Então era ele que tinha batido de volta, às dez, atrás da porta da sala de servidores. Aquilo não bate.\n\n[quiet, tired] Um círculo de sal grosso, com um dedo de altura. Rompido e refeito em dois pontos: onde ele saiu rastejando pra pegar água.\n\nO bebedouro está um terço vazio. Sobrou um pacote de bolacha, o último. Seis noites só com isso.\n\n[quiet, reading] No rack, folhas presas com fita. A mesma letra, noites diferentes: “Não me chame.” “Bata três vezes.” “Aquilo fala com a voz da mamãe.”\n\n[quiet, careful] Era mesmo… ela?\n\n[quiet, tired] O Gus disse que chamam ele também. A Martha.\n\nPor que sal?\n\nEu fico com o senhor até as seis.",
+  "chars": 822
+ },
+ {
+  "who": "СМЕНЩИК",
+  "voice": "DeWSKTpgZpo6WQf8rQFY",
+  "keys": [
+   "p07",
+   "p09",
+   "p11",
+   "p12",
+   "p14",
+   "h08",
+   "w08",
+   "dg02",
+   "dg04",
+   "dg06"
+  ],
+  "prompt": "[gruff, in a hurry] Você é o novato? No lugar do Frank?\n\n[gruff, uneasy] O Frank ficou vinte anos naquela guarita. Semana passada, ele não entregou o turno.\n\n[low, uneasy] De manhã, a guarita aberta, a luminária acesa, o chá frio. A jaqueta na cadeira. E nada do Frank.\n\nA polícia vasculhou os doze andares. As câmeras não gravaram nada.\n\n[low, serious] O diário tá na mesa. Lê antes das três. Inteiro, até a última página.\n\n[low, wary] Não respondeu?\n\nNão respondeu?\n\n[gruff, trying to sound casual] Aqui é o vigia do dia. A agência me passou seu número. E aí, novato, como tá? Ainda vivo?\n\n[gruff, uneasy] Não sei. Na última semana, ele não era o mesmo. Jogava sal nos cantos, perto das portas, na soleira da guarita. Achei que era pra rato.\n\n[low, serious] Pra você lembrar. Três batidas, sou eu. De manhã, vou bater do mesmo jeito. O Frank dizia: aquilo não bate. Aquilo chama.",
+  "chars": 881
+ },
+ {
+  "who": "СМЕНЩИК",
+  "voice": "DeWSKTpgZpo6WQf8rQFY",
+  "keys": [
+   "dg08",
+   "dg10",
+   "dg12"
+  ],
+  "prompt": "[gruff, a little too fast] Eu não acredito nessas histórias. E nem você devia. Fica quieto até as seis, não abre a porta pra ninguém, não responde se chamarem seu nome. O trabalho é só isso.\n\n[gruff, softer] O Gus, da limpeza. Limpa o sétimo, passa a noite toda lá. Trinta anos aqui. Pega leve com ele, ele é viúvo.\n\n[low, serious] Até. Três batidas. Gravou?",
+  "chars": 358
+ },
+ {
+  "who": "ГАС",
+  "voice": "KgUSWQPFmuiZ5ycRbnty",
+  "keys": [
+   "f01",
+   "f05",
+   "r03",
+   "k3b",
+   "n08",
+   "n10",
+   "n14",
+   "n15",
+   "n17",
+   "n26",
+   "gs02"
+  ],
+  "prompt": "[friendly, old man] Segurança, na escuta? Aqui é o Gus, da limpeza. Tô no sétimo, termino lá pelas quatro. Qualquer coisa, tô no rádio.\n\n[tender, confused] Martha?… É você?\n\n[weak, pleading] Segurança… Ethan, tá me ouvindo? Tô preso no elevador, entre os andares… Ethan, responde…\n\n[calm, warm, creepy] Obrigado, Ethan.\n\n[friendly, old man] Segurança, é o Gus de novo. Tem chaleira na guarita? O Frank sempre deixava pra mim.\n\n[calm, dreamy, a bit odd] Que nada, fico aqui em cima. Tá quietinho. Dá pra ouvir bem daqui…\n\n[friendly, warm, old man] Ah, o novato. Toma uma maçã, do meu quintal.\n\n[kind, reassuring, old man] Prédio velho, a gente imagina de tudo. Só não esquenta a cabeça.\n\n[quiet, sad, old man] Trinta anos. Minha mulher trabalhava aqui, no sétimo. Agora eu que limpo.\n\n[calm, sweet, creepy] Ethan… Desce aqui comigo. Aqui dá pra ouvir tão bem…\n\n[warm, sad, old man] A Martha. Nosso último Ano Novo. Um mês depois, ela se foi. Gastei o rosto dela naquela foto de tanto passar o dedo.",
+  "chars": 997
+ },
+ {
+  "who": "ГАС",
+  "voice": "KgUSWQPFmuiZ5ycRbnty",
+  "keys": [
+   "gs04",
+   "gs06",
+   "gs08",
+   "gs10"
+  ],
+  "prompt": "[warm, sad, old man] A Martha. Contadora, sétimo andar, sala setecentos e sete. Trinta anos aqui juntos. Agora sou só eu.\n\n[old man, amused but uneasy] Vivia perguntando se alguém me chamava de noite. Eu disse que sim. Ficou branco feito papel. Encheu meu bolso de sal. Esquisitão.\n\n[quiet, tender, old man] A Martha. Do sétimo, da setecentos e sete. Não vá pensar que eu sou louco. Eu não respondo. Só venho ouvir.\n\n[old man, moved, quiet] Trinta anos ela me chamou: pro almoço, pra casa… Tá bom, filho. Prometo.",
+  "chars": 513
+ },
+ {
+  "who": "ЛИЛИ",
+  "voice": "CamFZN2KIaqnyvcaFe3E",
+  "keys": [
+   "g05",
+   "g07",
+   "g11",
+   "g13",
+   "h04",
+   "x06",
+   "x08",
+   "b04",
+   "b08",
+   "b10",
+   "k5a",
+   "k9a",
+   "n20",
+   "n39"
+  ],
+  "prompt": "[crying, desperate] Ethan! Ethan, abre a porta, por favor!\n\n[crying, shivering] Queria te fazer uma surpresa… Meu celular morreu, vim a pé da rodoviária. Ethan, tô congelando!\n\n[panicked, scared] Ethan, tem alguém vindo! Abre a porta!\n\n[flat, sweet, creepy] Ethan… Abre. Tô com frio. Ethan.\n\n[whispering, sweet, creepy] Ethan… Você tá aqui? Anda, respira.\n\n[sleepy, puzzled] Ethan? Por que você ligou? Disse que tava parado embaixo da minha janela…\n\n[whispering, scared] Ethan… então quem tá me chamando lá da rua? Com a sua voz.\n\n[flat, monotone, creepy] Ethan. Ethan. Ethan.\n\n[sleepy] Hum… Ethan? São três e meia… Aconteceu alguma coisa?\n\n[sleepy, worried] No alojamento, onde mais? Dormindo. Ethan, você tá me assustando.\n\n[whispering, sweet, creepy] Achei você, Ethan.\n\n[calm, sweet, creepy] Ethan. Até que enfim.\n\n[quiet, sweet, uncertain] Ethan?… É você?\n\n[soft, sweet, whispering, uncanny] Ethan?… Sei que você tá aqui. Tô com frio. Sai daí, vem comigo.",
+  "chars": 960
+ },
+ {
+  "who": "ЛИЛИ",
+  "voice": "CamFZN2KIaqnyvcaFe3E",
+  "keys": [
+   "n42",
+   "ly02",
+   "ly04",
+   "ly06",
+   "ly08",
+   "ly10",
+   "ch_whisper"
+  ],
+  "prompt": "[whispering, very close, playful, uncanny] Tô ouvindo você respirar.\n\n[warm, tired, teasing] Acordado? Eu também. Prova amanhã às oito, e eu aqui no parapeito da janela do alojamento sem lembrar de nada.\n\n[warm, laughing softly] A mãe falou que ele corre atrás dos entregadores. Arrastou seu suéter pra casinha e dorme em cima.\n\n[teasing, warm] Onde mais? A trezentos quilômetros de você, bobão. Minha colega de quarto ronca, então tô no corredor.\n\n[worried, serious] Não me assusta. Promete que liga de manhã. Logo cedo. E não banca o herói.\n\n[warm, sleepy] Tá. Te amo, bobão. Boa noite.\n\n[whispering, distant, creepy] Ethan…",
+  "chars": 626
+ },
+ {
+  "who": "ФРЭНК",
+  "voice": "wcATjh8zBDfepqUbl99V",
+  "keys": [
+   "d04",
+   "d09",
+   "d11",
+   "d12",
+   "d13",
+   "d13b",
+   "d16",
+   "d21",
+   "d24",
+   "d26",
+   "d28"
+  ],
+  "prompt": "[hoarse, kind, old man] Ethan? É você, filho? Pode entrar, tá aberto.\n\n[whispering, urgent, old man] Pra dentro. Rápido. E nem um pio.\n\n[hoarse, tired, old man] Caí na escada faz uma semana. Vim me arrastando pra cá. Bebedouro, bolacha do armário de emergência. De dia eu gritava. Atrás dessa porta, ninguém ouve.\n\nAguentei seis noites. A sétima, sozinho, eu não aguento.\n\n[hoarse, grim, old man] Agora só o sal me protege. E você, só enquanto ficar de boca fechada.\n\nPra essa coisa, o sal é uma parede. Não atravessa o círculo. Então chama, insiste, espera você sair por conta própria. Ou responder.\n\n[quiet, almost joyful] Mamãe?…\n\n[hoarse, exhausted, old man] Pronto. Até a noite, aquilo dorme.\n\n[quiet, old man] O Gus?\n\n[quiet, sad, old man] Era por ela que ele vinha pra cá, sabe. Pra ouvir a voz dela.\n\n[quiet, bitter, old man] Eu mesmo escrevi: não responda. E na noite seguinte a mamãe chamou, e eu respondi. Enterrei ela faz trinta anos.",
+  "chars": 946
+ },
+ {
+  "who": "ФРЭНК",
+  "voice": "wcATjh8zBDfepqUbl99V",
+  "keys": [
+   "d29",
+   "k8b",
+   "n33",
+   "n34",
+   "n35",
+   "n36",
+   "sv06",
+   "sv08",
+   "sv10",
+   "sv12"
+  ],
+  "prompt": "[quiet, grave, old man] Agora vou dormir num círculo pelo resto da vida. Mas você, vai embora daqui, filho. Antes de responder.\n\n[quiet, old man, distant] Ethan?…\n\n[old man, tired, firm] Olha as câmeras. Qualquer coisa errada, anota. Foi assim que esperei amanhecer por vinte anos.\n\n[old man, low, serious] Não encara a estática. Aquilo olha de volta lá de dentro.\n\n[old man, quiet, scared] Se eu for atrás da voz, me segura. Não importa o que eu diga.\n\n[old man, tired, warm] Vinte pras seis. Aguenta firme, garoto.\n\n[hoarse, tired, firm] A voz é dela. Até a última entonação, do jeito que ela me chamava pra jantar. Mas a mamãe morreu em noventa e seis, filho. Não é ela.\n\n[hoarse, tired] Eu sei. Faz três anos que ele sobe pro sétimo pra ouvir a voz dela. Aquilo não encosta nele — ele nunca responde. Só escuta. Também é um jeito de viver.\n\nNão sei por quê. Sei que funciona. Meu pai fazia assim, o pai dele também. Enquanto o círculo estiver inteiro, aquilo só fala.\n\n[hoarse, quiet] Fica. Mas se chamarem, nem um pio. Nem com a minha voz.",
+  "chars": 1044
+ },
+ {
+  "who": "ГОЛОС",
+  "voice": "prqcFePeALHihEWRj5ll",
+  "keys": [
+   "d15",
+   "d18",
+   "d19",
+   "n37"
+  ],
+  "prompt": "[tender, old woman, distant] Frankie… Meu filhinho…\n\n[tender, old woman, pleading] Frankie, vem cá comigo… Tá tão frio aqui…\n\n[tender, old woman, sad] Filho… O que é isso… A mamãe tá esperando…\n\n[old woman, weak, pleading] Frankie… Abre pra mamãe… Tô congelando aqui fora…",
+  "chars": 272
+ },
+ {
+  "who": "ВЕРА",
+  "voice": "6fLd3vCll0LutxnciLI8",
+  "keys": [
+   "t01",
+   "t02",
+   "t03",
+   "t04",
+   "t05",
+   "t06",
+   "t07",
+   "t08"
+  ],
+  "prompt": "[calm, professional, over the radio] Segurança do Horizon, aqui é a central Escudo, Vera falando. Primeiro turno? Deixa eu te mostrar rapidinho o que tem nos monitores.\n\nEmbaixo ficam as câmeras do prédio. Toca numa. Tenta a três, a dos elevadores.\n\nSeu trabalho é notar o que tá errado. Vê o visor do elevador? Andar treze. E o prédio só tem doze.\n\nToca em Anotar e escolhe o que é. Agora, Elevador.\n\nIsso. Anotou, sumiu. Se deixar passar três numa hora, vai ter problema.\n\nEm cima, à esquerda, fica o microfone da câmera. Se as barrinhas pulam, tem som. Anota também.\n\nO painel controla a luz dos andares, a entrada e o elevador. Até as dez, tranca a entrada e para o elevador.\n\nNo diário estão as instruções e as anotações do vigia anterior. Dá uma lida enquanto tá calmo.",
+  "chars": 775
+ },
+ {
+  "who": "ВЕРА",
+  "voice": "6fLd3vCll0LutxnciLI8",
+  "keys": [
+   "t09"
+  ],
+  "prompt": "[calm, professional, over the radio] Mais uma coisa. Se a câmera mostrar estática, não fica olhando. Anota e troca na hora. É isso. Bom plantão.",
+  "chars": 144
+ }
+]
