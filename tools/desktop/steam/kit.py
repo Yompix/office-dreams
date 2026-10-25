@@ -40,13 +40,13 @@ def logo(im, cx, top, s1, glow=True, anchor='m'):   # HUSH / TILL SIX, как н
 def grade(im): return ImageEnhance.Contrast(im).enhance(1.08)
 
 key, port = frame('key_land'), frame('key_port')
-def wide(W, H, s1, lx, at_x=.7, zoom=1.0, dark=.62):   # горизонтальная капсула: Лили справа, название слева на тёмном
+def wide(W, H, s1, lx, at_x=.7, zoom=1.0, dark=.62):   # горизонтальная капсула: кадр крупнее (zoom), Лили справа (at_x), название слева на тёмном
     im = grade(cover(key, W, H, LILY[0], .48, (at_x, .5), zoom))
     im = shade(im, lambda x, y: (max(0, 1 - x / dark)) ** 1.4 * .9 + max(0, y - .82) * .8)
     return logo(im, int(W * lx), int(H * .5 - s1 * .86), s1)
-wide(920, 430, 150, .27).save(os.path.join(out, 'store/header_capsule.jpg'), quality=94)
-wide(1232, 706, 220, .28).save(os.path.join(out, 'store/main_capsule.jpg'), quality=94)
-sm = grade(cover(key, 462, 174, LILY[0], .45, (.8, .5), 1.0)); sm = shade(sm, lambda x, y: (max(0, 1 - x / .78)) ** 1.1 * .93)
+wide(920, 430, 150, .26, .73, 1.45).save(os.path.join(out, 'store/header_capsule.jpg'), quality=94)
+wide(1232, 706, 210, .26, .73, 1.45).save(os.path.join(out, 'store/main_capsule.jpg'), quality=94)
+sm = grade(cover(key, 462, 174, LILY[0], .47, (.84, .5), 1.8));   # кадр крупнее: Лили справа, название слева не наезжает sm = shade(sm, lambda x, y: (max(0, 1 - x / .78)) ** 1.1 * .93)
 logo(sm, 150, 174 // 2 - int(78 * .86), 78).save(os.path.join(out, 'store/small_capsule.jpg'), quality=94)
 def tall(W, H, s1):   # вертикальная: название сверху, Лили ниже за стеклом
     im = grade(cover(port, W, H, .5, .55, (.5, .62), 1.0))
