@@ -51,7 +51,8 @@ let win = null, saveT = 0;
 const hush = () => { if (win && !win.isDestroyed()) win.webContents.setAudioMuted(!cfg.bg && !win.isFocused()); };   // окно в фоне и «Звук в фоне» выключен — без звука
 function place() {   // прошлое место и размер окна — если тот монитор ещё на месте; иначе по центру
   const b = cfg.win, d = b ? screen.getDisplayMatching(b).workArea : null;
-  if (!b || !(b.width >= 640 && b.height >= 360)) return { width: 1600, height: 900, useContentSize: true };
+  if (!b || !(b.width >= 640 && b.height >= 360)) { const a = screen.getPrimaryDisplay().workAreaSize, k = Math.min(1, a.width * .9 / 1600, a.height * .9 / 900);   // первый раз: 1600×900, на маленьком экране — меньше
+    return { width: Math.max(960, Math.round(1600 * k)), height: Math.max(540, Math.round(900 * k)), useContentSize: true }; }
   const w = Math.min(b.width, d.width), h = Math.min(b.height, d.height);
   const seen = Math.min(b.x + w, d.x + d.width) - Math.max(b.x, d.x) > 160 && Math.min(b.y + h, d.y + d.height) - Math.max(b.y, d.y) > 120;
   return seen ? { x: b.x, y: b.y, width: w, height: h } : { width: w, height: h };
@@ -77,6 +78,7 @@ function create() {
     else if ((i.control || i.meta) && /^(\+|-|=|0|_)$/.test(i.key)) e.preventDefault();   // без увеличения страницы: интерфейс игры сам подстраивается под окно
   });
   wc.on('did-finish-load', () => { wc.setZoomFactor(1); wc.setVisualZoomLevelLimits(1, 1).catch(() => {}); });   // и без «щипка» на тачпаде
+  wc.on('zoom-changed', () => wc.setZoomFactor(1));   // Ctrl + колесо — тоже без увеличения
   win.on('page-title-updated', e => e.preventDefault());
   const fullState = on => { cfg.full = on; saveCfg(); if (!wc.isDestroyed()) wc.send('ns-full-state', on); };
   win.on('enter-full-screen', () => fullState(true)); win.on('leave-full-screen', () => fullState(false));

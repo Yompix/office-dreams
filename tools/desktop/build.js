@@ -100,10 +100,10 @@ function setup(src) {   // установщик Windows (installer.nsi): в пр
   return exe;
 }
 const README = win => [`${NAME} ${VER}`, '',
-  win ? `Запуск: ${NAME}.exe. Сохранения: %APPDATA%\\${NAME}.` : `Запуск: ./hush-till-six. Сохранения: ~/.config/${NAME}.`,
+  win ? `Запуск: ${NAME}.exe. Сохранения: %APPDATA%\\${NAME}.` : `Запуск: ./start.sh (или ./hush-till-six --no-sandbox). Сохранения: ~/.config/${NAME}.`,
   'F11 или Alt+Enter — окно / весь экран. Пробел — дальше, 1–4 — выбор, Esc — пауза.',
   'Геймпад: A — дальше и нажать, B — назад, Start — пауза, крестовина — выбор кнопки, LB/RB — камеры, X — записать, Y — пульт.', '',
-  win ? `Run ${NAME}.exe. Saves: %APPDATA%\\${NAME}.` : `Run ./hush-till-six. Saves: ~/.config/${NAME}.`,
+  win ? `Run ${NAME}.exe. Saves: %APPDATA%\\${NAME}.` : `Run ./start.sh (or ./hush-till-six --no-sandbox). Saves: ~/.config/${NAME}.`,
   'F11 or Alt+Enter toggles fullscreen. Space — next, 1–4 — choose, Esc — pause.',
   'Gamepad: A — next / press, B — back, Start — pause, D-pad — move between buttons, LB/RB — cameras, X — log, Y — panel.', '',
   'Credits and licenses: CREDITS.txt, licenses/, LICENSE (Electron), LICENSES.chromium.html.', ''].join(win ? '\r\n' : '\n');
@@ -123,6 +123,7 @@ async function build(plat) {
   fs.cpSync(path.join(GAME, 'licenses'), path.join(dir, 'licenses'), { recursive: true });
   if (STEAM) fs.copyFileSync(path.join(SW, 'LICENSE'), path.join(dir, 'licenses/MIT-steamworks.js.txt'));
   fs.writeFileSync(path.join(dir, 'README.txt'), README(win));
+  if (!win) fs.writeFileSync(path.join(dir, 'start.sh'), '#!/bin/sh\n# Hush Till Six. Без песочницы Chromium: Ubuntu 24.04+ и контейнер Steam её не дают, а окно игры показывает только свои файлы\ncd "$(dirname "$0")" && exec ./hush-till-six --no-sandbox "$@"\n', { mode: 0o755 });
   const mb = f => (fs.statSync(f).size / 1048576).toFixed(0) + ' МБ';
   let msg = `${plat}${STEAM ? ' (Steam)' : ''}: ${exe} (${mb(exe)})`;
   if (!TEST && !STEAM) {

@@ -25,7 +25,7 @@
 1. **SteamPipe → Depots:** создайте два депо — «Hush Till Six Windows» (OS: Windows) и «Hush Till Six Linux» (OS: Linux + SteamOS). Запишите их номера (обычно App ID + 1 и + 2).
 2. **Installation → General → Launch Options** — два варианта запуска:
    - Executable: `Hush Till Six.exe`, Operating System: **Windows**.
-   - Executable: `hush-till-six`, Arguments: `--no-sandbox`, Operating System: **Linux + SteamOS**.
+   - Executable: `hush-till-six`, Arguments: `--no-sandbox`, Operating System: **Linux + SteamOS** (без песочницы Chromium: в контейнере Steam её нет, а игра показывает только свои файлы; то же делает `start.sh` в сборке).
 3. **Installation → Linux Runtime:** «Steam Linux Runtime 3.0 (sniper)».
 4. После любых изменений: **Publish → Prepare for Publishing → Publish to Steam**.
 

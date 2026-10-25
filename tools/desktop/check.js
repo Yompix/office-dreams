@@ -79,7 +79,7 @@ const shot = (p, f) => p.screenshot({ path: path.join(out, f), timeout: 240000 }
   const ac = await p.evaluate(() => window.__ns.audio); check(ac === 'running', 'звук идёт', 'звук: ' + ac);
   const bi0 = await p.evaluate(() => window.__ns.bi); for (let i = 0; i < 4; i++) { await press(p, A); await p.waitForTimeout(500); }
   const bi1 = await p.evaluate(() => window.__ns.bi); check(bi1 > bi0, `геймпад: A листает кадры (${bi0} → ${bi1})`, `геймпад: A не листает кадры (${bi0} → ${bi1})`);
-  await shot(p, '2intro.png');
+  await frames(p, 2); await shot(p, '2intro.png');   // после склейки кадр сначала чёрный — пара кадров, чтобы снимок был с картинкой
   await press(p, START); await p.waitForTimeout(400);
   const pz = await p.evaluate(() => !document.getElementById('pz').classList.contains('hide') && window.__ns.userPause);
   check(pz && /pzGo/.test(await curId(p) || ''), 'геймпад: Start — пауза, рамка на «Продолжить»', 'геймпад: пауза не открылась');

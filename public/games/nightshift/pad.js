@@ -1,7 +1,7 @@
 /* «Молчи до шести» (Hush Till Six) — геймпад (Steam Deck, Xbox, PlayStation) и мелочи ПК. Подключается после engine.js.
    В движок не лезет: жмёт те же кнопки и клавиши, что игрок (из __ns берёт только режим и паузу).
    A — нажать кнопку под рамкой, а если кнопок нет — дальше (как пробел); B — назад (Esc); Start — пауза; крестовина и левый стик — рамка по кнопкам
-   верхнего слоя (пауза, меню, выбор, обход, мини-игра, смена); LB/RB — камеры в смене (13-ю — только нарочно, рамкой); X — «Записать», Y — «Пульт»,
+   верхнего слоя (пауза, меню, выбор, обход, мини-игра, смена); LB/RB — камеры в смене (13-ю — только нарочно, рамкой); X — «Записать», Y — «Пульт» (вне смены — «реплики сами»),
    View — «Журнал» в смене, иначе записка «Правила»; правый стик — оглядеться (как мышью). Удержание («НЕ ДЫШИ», «ДЕРЖИ ФРЭНКА», «ДЕРЖИ») — держать A.
    Мини-игры: бег — влево/вправо, шнур — A или вниз, перемотка записи — влево/вправо, стекло и фонарь — стиком водишь «палец».
    Мышь сдвинулась — рамка прячется. Курсор сам прячется в кат-сценах. ПК-версия: окно ушло в фон — пауза (если «Звук в фоне» выключен). */
@@ -44,6 +44,7 @@ function setCur(el) {
   if (cur && cur !== el) cur.classList.remove('pfocus');
   cur = el; if (!el) return;
   el.classList.add('pfocus'); reveal(el);
+  const a = document.activeElement; if (a && a !== el && a !== B && !a.matches('input, textarea')) a.blur();   // фокус клавиатуры (движок ставит его на «Попробовать снова») не светится второй рамкой
 }
 function sync() {   // слой сменился или кнопка исчезла — рамку на кнопку по умолчанию (A не жмёт её сразу: только что появилась)
   const root = layer(), list = items(root);
@@ -192,7 +193,7 @@ function frame() {
     if (hit(BTN.B)) pressB();
     if (hit(BTN.START)) pressStart();
     if (hit(BTN.LB)) camCycle(-1); if (hit(BTN.RB)) camCycle(1);
-    if (hit(BTN.X)) shiftBtn('shLog'); if (hit(BTN.Y)) shiftBtn('shPanel');
+    if (hit(BTN.X)) shiftBtn('shLog'); if (hit(BTN.Y)) { if (inShift()) shiftBtn('shPanel'); else if (IN_GAME.includes(NS().mode) && vis($('bAuto'))) $('bAuto').click(); }
     if (hit(BTN.VIEW)) { if (inShift()) shiftBtn('shBook'); else if (IN_GAME.includes(NS().mode) && vis($('bRules'))) $('bRules').click(); }
     prev = b.slice();
   } else if (prev.length) { releaseA(); prev = []; }
@@ -211,6 +212,7 @@ addEventListener('dragstart', e => e.preventDefault());
 addEventListener('selectstart', e => { if (!(e.target.closest && e.target.closest('input, textarea, [contenteditable]'))) e.preventDefault(); });
 
 /* ---------- ПК-версия: окно ушло в фон — пауза (а звук там глушит main.js), если в настройках «Звук в фоне» выключен ---------- */
+if (DESK) addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });   // Ctrl + колесо не увеличивает страницу
 if (DESK) addEventListener('blur', () => { const n = NS(); if (DESK.bgSound && DESK.bgSound()) return; if (IN_GAME.includes(n.mode) && !n.userPause && $('bMenu')) $('bMenu').click(); });
 window.__pad = { get on() { return on; }, get cur() { return cur; }, get root() { return curRoot; }, get frames() { return frames; }, layer, sync };   // для автопроверки (tools/desktop/check.js)
 requestAnimationFrame(frame);
