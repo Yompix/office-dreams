@@ -388,6 +388,8 @@ let mode = 'load', scene = null, sceneId = '', bi = 0, beat = null, bT0 = 0, bDu
 let gen = 0;   // номер текущей сцены: старые таймеры и мини-игры по нему понимают, что устарели
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 let perf2S = 0, perf2N = 0;
+const JUMP_D = .75;   // сколько длится скример смерти (с)
+let jumpBuzz = 0;
 let flashT = -9, blackT = -9, scareAt = null, shakeAmp = 0, typed = null, hb = 0, pre = 0, trig = [], subl = null, sublScene = '', voiceNow = false;
 let creep = null, creepCool = 25, mgView = null;   // случайное появление Жильца в кадре; кадр под мини-игрой
 let sceneT0 = 0, secBase = 7, lastTime = '02:55', lastDrawn = 'door_katya', falseAlarm = false;
@@ -506,6 +508,7 @@ function nextBeat() {
   if (beat.scare != null) scareAt = beat.scare;
   creep = null;
   bDur = Math.max(t + (beat.pad || .3), 1.2);
+  if (sceneId.startsWith('over_') && beat.black != null) bDur = Math.max(bDur, beat.black + .95);   // скример смерти (JUMP_D) успевает до экрана смерти
   // склейки по словам: cutAt — слова первой реплики (regexp, русское|английское), на которых меняется план cams; без них планы делят кадр поровну
   bCuts = null;
   if (beat.cutAt && sched.length) { const it = sched[0], w = (TIM[it.k] || {}).ew || (TIM[it.k] || {}).w || [];   // ew — слова английской записи (языки без своей озвучки): склейка ровно на звучащем слове
@@ -580,6 +583,13 @@ function beatAudio() {
     if (beat.fx !== 'lunge') hits.forEach((h, i) => play(BUF[h] ? h : 'scare', { when: sa + i * .12, gain: i ? .7 : 1 }));
     if (hits.includes('glass_slam')) slamHitT = now() + sa;
     if (BUF.sub_presence) play('sub_presence', { when: sa, gain: .8, cut: 2.5 });
+  }
+  // смерть: в миг обрыва — скример, крик в несколько слоёв (сам крик, утробно на октаву ниже, визг сбоку) и удар по низам
+  // (владелец: «скримеры со страшными звуками, а то во всех смертях не ясно, что это смерть»)
+  if (sceneId.startsWith('over_') && beat.black != null) {
+    const da = beat.black + P, J = BUF.jumpscare ? 'jumpscare' : 'scare', D = directG ? [[directG, 1]] : null;
+    play(J, { when: da, gain: calm() ? .8 : 1 }); play(J, { when: da + .01, gain: .55, rate: .55, to: D }); play(J, { when: da + .03, gain: .3, rate: 1.45, pan: -.5, to: D });
+    if (BUF.boom) play('boom', { when: da, gain: .9 }); play('static', { when: da, gain: .45, cut: .5 });
   }
 }
 function gapTime(k) {   // начало самой длинной паузы между словами (там скример)
@@ -1325,15 +1335,18 @@ function fitHd(host) {   // заголовок экрана настроек —
 // видеокарта (world.js, GPU) — мелко внизу настроек: по ней графика выбрана при первом запуске; пригодится, если игрок пришлёт снимок экрана с ошибкой
 const gpuName = () => { const g = window.__W3core && window.__W3core.GPU; return FINE && g && g.name ? '<br>GPU: ' + g.name.replace(/[<>&"]/g, '') : ''; };
 function settings(from = 'menu') {   // from: 'menu' — из главного меню, 'pause' — из паузы в игре (настройки поверх игры, без выхода)
+  const resNow = () => +LS.get('res', 0) || 0, resList = () => [0, .5, .75, 1].concat(window.World && World.ultra ? [1.5, 2] : []);   // «Разрешение»: авто или доля; 150–200 % — суперсэмплинг «Ультра»
+  const gfxNow = () => { const W = window.World || {}; return W.ultra ? 'ultra' : W.cine ? 'cine' : 'retro'; };
   const row = (id, name, val) => `<button class="set" id="${id}"><span>${tr(name)}</span><b>${tr(val)}</b></button>`;
   const vh = LS.get('vhs', vhsDef());
   const host = from === 'pause' ? pzEl : uiEl;
   host.innerHTML = `<div class="screen sub sets-scr"><div class="sets-hd"><h1>${tr('НАСТРОЙКИ')}</h1><button class="sx" id="sX" aria-label="${tr('Назад')}">${ICON.x}</button></div><div class="sets">
     ${row('sLang', 'Язык', (window.NS_LANG_NAMES || {})[LNG] || (EN ? 'ENGLISH' : 'РУССКИЙ'))}
     ${row('sLand', 'Экран', LAND ? 'ГОРИЗОНТАЛЬНО' : 'ВЕРТИКАЛЬНО')}
-    ${row('sGfx', 'Графика', window.World && World.ultra ? 'УЛЬТРА' : window.World && World.cine ? 'КИНО' : 'РЕТРО')}
+    <button class="set" id="sGfx"><span>${tr('Графика')}</span><b class="gfx">${['retro', 'cine'].concat(FINE ? ['ultra'] : []).map(g => `<i data-g="${g}" class="${g === gfxNow() ? 'on' : ''}">${tr({ retro: 'РЕТРО', cine: 'КИНО', ultra: 'УЛЬТРА' }[g])}</i>`).join('')}</b></button>
     ${row('sVoice', 'Озвучка', voiceOn() ? 'ВКЛ' : 'ВЫКЛ')}
     <div class="vols">${[['all', 'Громкость'], ['mus', 'Музыка'], ['voice', 'Голоса'], ['sfx', 'Звуки'], ['amb', 'Дождь и фон']].map(([k, n]) => `<div class="vol ${k}"><span>${tr(n)}</span><input type="range" min="0" max="100" step="5" value="${Math.round(VOL[k] * 100)}" data-k="${k}" aria-label="${tr(n)}"><b>${Math.round(VOL[k] * 100)}</b>${k === 'all' ? `<button class="mute${LS.get('mute', false) ? ' muted' : ''}" id="sMute" aria-label="${tr('Звук')}">${ICON.snd}</button>` : ''}</div>`).join('')}</div>
+    ${window.World && World.cine ? `<button class="set wide" id="sRes"><span>${tr('Разрешение')}</span><b class="gfx">${resList().map(v => `<i data-r="${v}" class="${v === resNow() ? 'on' : ''}">${v ? Math.round(v * 100) + '%' : tr('АВТО')}</i>`).join('')}</b></button>` : ''}
     ${row('sVhs', 'Плёнка VHS', VHS_N[vh] || VHS_N[2])}
     ${row('sCalm', 'Меньше вспышек', calm() ? 'ВКЛ' : 'ВЫКЛ')}
     ${row('sAuto', 'Реплики сами', auto ? 'ВКЛ' : 'ВЫКЛ')}
@@ -1350,7 +1363,9 @@ function settings(from = 'menu') {   // from: 'menu' — из главного �
   $('sLang').onclick = () => { uiSnd(); langPick(from); };
   $('sLook').onclick = () => { LS.set('look', !lookOn()); re(); };
   $('sLand').onclick = () => { LS.set('land3', !LAND); applyLand(!LAND); re(); };
-  $('sGfx').onclick = () => { const W = window.World || {}; LS.set('gfx', W.ultra ? 'retro' : W.cine ? (FINE ? 'ultra' : 'retro') : 'cine'); LS.set('gfxAuto', 2); reloadKeep(from); };   // ПК: Кино → Ультра → Ретро; телефон: Кино ⇄ Ретро   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
+  if ($('sRes')) $('sRes').onclick = e => { const r = e && e.target && e.target.dataset ? e.target.dataset.r : null, L = resList(), cur = resNow(), nx = r != null ? +r : L[(L.indexOf(cur) + 1) % L.length]; if (nx === cur) return; LS.set('res', nx); reloadKeep(from); };
+  $('sGfx').onclick = e => { const W = window.World || {}, pick = e && e.target && e.target.dataset ? e.target.dataset.g : null; if (pick && pick === gfxNow()) return;   // выбор виден сразу: тап по слову — этот вид; Enter/кнопка пульта — следующий по кругу
+    LS.set('gfx', pick || (W.ultra ? 'retro' : W.cine ? (FINE ? 'ultra' : 'retro') : 'cine')); LS.set('gfxAuto', 2); reloadKeep(from); };   // ПК: Кино → Ультра → Ретро; телефон: Кино ⇄ Ретро   // графика собирается при загрузке; выбрал сам — автопроверка больше не вмешивается
   $('sVhs').onclick = () => { const v = (LS.get('vhs', vhsDef()) + 2) % 3; LS.set('vhs', v); if (window.World) World.vhs = VHS_LV[v]; re(); };
   $('sCalm').onclick = () => { LS.set('calm', !calm()); re(); };
   $('sAuto').onclick = () => { auto = !auto; LS.set('auto', auto); $('bAuto').classList.toggle('on', auto); re(); };
@@ -1834,7 +1849,15 @@ function frame(tp) {
         if (beat.snow) for (const [a, b] of beat.snow) if (t >= a && t < b) { grain(.95); tear(2); g.fillStyle = `rgba(225,232,226,${.08 + .1 * Math.random()})`; g.fillRect(0, 0, W, H); }
         if (beat.hud && (beat.hud !== hudRef || (!beat.fin && t < .1))) { hudRef = beat.hud; hudT0 = now() - t; }   // финал берёт тот же hud — часы записи идут дальше, а не с нуля
         if (cam) cctvHud(beat.label, T, beat.hud && { tag: beat.hud.tag ? tr(beat.hud.tag) : 'REC', date: beat.hud.date, clock: beat.hud.at + ':' + String(Math.floor(now() - hudT0) % 60).padStart(2, '0') });   // hud — своя дата и время записи (другая ночь; tag — «▶ ЗАПИСЬ», когда смотрят запись)
-        if (beat.black != null && t >= beat.black) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
+        if (beat.black != null && t >= beat.black) { const js = t - beat.black;
+          if (sceneId.startsWith('over_') && js < JUMP_D) {   // скример смерти: лицо Жильца с открытой пастью бросается в объектив (зум), тряска, красный; потом чернота
+            if (js < .05) { shakeAmp = Math.max(shakeAmp, 40); if (!jumpBuzz) { jumpBuzz = 1; buzz([200, 40, 300]); } }
+            shot('death_scream', { cx: .5, cy: .5, z: 1.05 + .65 * Math.min(1, js / .4), t: 2.2 + js, T, sx: 0, sy: 0, scare: 1 - js / JUMP_D });
+            if (!calm()) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = `rgb(255,${60 + 150 * js / JUMP_D | 0},40)`; g.fillRect(0, 0, W, H); g.restore();
+              if (js < .05) { g.save(); g.globalCompositeOperation = 'difference'; g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.restore(); } }
+            grain(.3);
+          } else { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); } }
+        else jumpBuzz = 0;
       }
       // реплики: табличка с именем того, кто говорит; слова загораются по мере звучания
       let shown = false;

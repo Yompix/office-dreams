@@ -998,6 +998,7 @@ const SH = {
   corridor_face: { loc: 'corridor', pos: [.05, 1.52, -18.75], look: [0, 1.5, -20], fov: 34, set: (o) => { setLamps(o, 7); return [['katyaThing', 0, 0, -19.4, 0, 'stand', 'cam']]; } },
   cam13_monster: { loc: 'server', pos: [3.6, 2.7, 3.1], look: [0, 1.1, -.4], fov: 66, set: (o) => { o.salt.visible = false; return [['monster', .1, 0, -.5, -.6, 'monster', 'cam']]; } },
   monster_close: { loc: 'server', pos: [-.05, 2.2, .95], look: [-.13, 2.16, 0], fov: 40, set: (o, t) => { A.monster.faceSet = 'grin'; o.amb.intensity = .08; o.cold.intensity = .15; o.cold2.intensity = 0; o.rim.intensity = 1.8; o.red.intensity = .5; o.candle.intensity = 2.2 * (Math.sin(t * 23) > -.6 ? 1 : .3); return [['monster', 0, 0, 0, 0, 'monster', 'cam']]; } },   // свет снизу от свечи и контур — лицо выходит из темноты
+  death_scream: { loc: 'server', pos: [.02, 2.14, .95], look: [.02, 2.12, 0], fov: 40, set: (o, t) => { A.monster.faceSet = 'scream'; o.amb.intensity = .08; o.cold.intensity = .3; o.cold2.intensity = 0; o.rim.intensity = 2.2; o.red.intensity = .9; o.candle.intensity = 2.6; return [['monster', 0, 0, 0, 0, 'monster', 'cam']]; } },   // скример смерти: пасть раскрыта, свет снизу, красный контур
   server_mih: { loc: 'server', pos: [.7, 1.45, 2.7], look: [0, .65, 0], fov: 52, face: { mihalych: 'worry' }, set: () => [['mihalych', 0, 0, 0, 0, 'sitfloor', 'cam']] },
   server_mih_close: { loc: 'server', pos: [.25, .95, 1.15], look: [0, .9, 0], fov: 44, face: { mihalych: 'worry' }, set: () => [['mihalych', 0, 0, 0, 0, 'sitfloor', 'cam']] },
   server_mih_stand: { loc: 'server', pos: [.7, 1.6, 2.7], look: [0, 1.4, 0], fov: 50, face: { mihalych: 'worry' }, set: () => [['mihalych', 0, 0, 0, 0, 'stand', 'cam']] },
@@ -2178,7 +2179,7 @@ function cineLoc(R, o) {
   });
   o.casters = []; o.beams = [];
   S.traverse(l => { if (!l.isPointLight) return;
-    l.shadow.mapSize.set(ULTRA ? 1024 : FINE ? 512 : 256, ULTRA ? 1024 : FINE ? 512 : 256); l.shadow.bias = -.003; l.shadow.normalBias = .025; l.shadow.camera.near = .08; l.shadow.camera.far = l.distance || 20;   // «Ультра» — тени вдвое чётче
+    l.shadow.mapSize.set(ULTRA ? 2048 : FINE ? 512 : 256, ULTRA ? 2048 : FINE ? 512 : 256); l.shadow.bias = -.003; l.shadow.normalBias = .025; l.shadow.camera.near = .08; l.shadow.camera.far = l.distance || 20;   // «Ультра» — тени вдвое чётче
     if (!skip.has(l)) o.casters.push(l);
     if (!skip.has(l) && l.position.y > 2.3) {
       const wp = new T.Vector3(); l.getWorldPosition(wp); const h = wp.y - .02;
@@ -2284,7 +2285,7 @@ function cineRender(R, T0, cctv, scare, vhs) {
   PB.down.uniforms.tD.value = RT.texture; PB.down.uniforms.uPx.value.set(1 / V.RW, 1 / V.RH); pass(PB.down, PB.a);
   const bx = 1 / PB.a.width, by = 1 / PB.a.height, B = PB.blur.uniforms;
   for (const s of [1, 2.2]) { B.tD.value = PB.a.texture; B.uDir.value.set(bx * s, 0); pass(PB.blur, PB.b); B.tD.value = PB.b.texture; B.uDir.value.set(0, by * s); pass(PB.blur, PB.a); }
-  const U = PB.comp.uniforms; U.uExp.value = curLoc && curLoc.name === 'corridor' ? .68 : curLoc && curLoc.name === 'server' ? 1.05 : .92; U.tD.value = RT.texture; U.tBl.value = PB.a.texture; U.uT.value = T0; U.uCctv.value = cctv; U.uScare.value = scare; U.uVhs.value = vhs; U.uAsp.value = V.RW / V.RH; U.uTx.value.set(1 / V.RW, 1 / V.RH); U.uSharp.value = (V.rs || 1) < .99 ? (1 - V.rs) * 1.6 : 0;
+  const U = PB.comp.uniforms; U.uExp.value = curLoc && curLoc.name === 'corridor' ? .68 : curLoc && curLoc.name === 'server' ? 1.05 : .92; U.tD.value = RT.texture; U.tBl.value = PB.a.texture; U.uT.value = T0; U.uCctv.value = cctv; U.uScare.value = scare; U.uVhs.value = vhs; U.uAsp.value = V.RW / V.RH; U.uTx.value.set(1 / V.RW, 1 / V.RH); U.uSharp.value = ULTRA && (V.rs || 1) < .99 ? Math.min(.3, (1 - V.rs) * 1.2) : 0;   // резкость — только «Ультра», если авто-качество сбавило разрешение («Кино» как было)
   pass(PB.comp, null); quad.material = postMat;
 }
 // «Кино» следит за скоростью: если кадр рисуется дольше ~38 мс, внутреннее разрешение падает ступенями (до 55%), если быстро — растёт обратно
@@ -2304,7 +2305,7 @@ function setLand(land, force) {
   window.__W3core.setLand(land);
   if (!scenesReady) return;
   const R = window.__W3core.R; R.setSize(V.RW, V.RH, false);
-  window.__W3core.RT.setSize(V.RW, V.RH); const rd = ULTRA ? 2 : FINE ? 3 : 4; reflRT.setSize(Math.round(V.RW / rd), Math.round(V.RH / rd));   // отражения: «Ультра» — в половину, ПК — в треть (каждый кадр), телефон — в четверть
+  window.__W3core.RT.setSize(V.RW, V.RH); const rd = ULTRA ? 1 : FINE ? 3 : 4; reflRT.setSize(Math.round(V.RW / rd), Math.round(V.RH / rd));   // отражения: «Ультра» — в половину, ПК — в треть (каждый кадр), телефон — в четверть
   if (PB) { PB.a.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); PB.b.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); }
   postMat.uniforms.uB.value.set(V.BW, V.BH);
 }
@@ -2335,7 +2336,7 @@ function init() {
     if (document.visibilityState === 'visible' && localStorage.getItem('ns1_gfxAuto') !== '2' && !/[?&]gfx=/.test(location.search) && window.nsGfxFallback) window.nsGfxFallback(5); });
   // буфер кадра и постобработка: цветокор + дизеринг + ступени цвета + плёнка VHS (дрожь строк, полоса внизу, редкий залом,
   // цветная кайма в 1 пиксель, строки, лёгкая бочка); у камер наблюдения бочка сильнее и пересвет
-  window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? { type: T.HalfFloatType, samples: 4 } : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
+  window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? { type: T.HalfFloatType, samples: ULTRA && (V.rs || 1) <= 1 ? 8 : 4 } : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
   if (CINE) cinePost();
   postMat = new T.ShaderMaterial({
     uniforms: { tD: { value: window.__W3core.RT.texture }, uB: { value: new T.Vector2(V.BW, V.BH) }, uHD: { value: HD }, uLv: { value: 22 }, uCctv: { value: 0 }, uIr: { value: 0 }, uGam: { value: 1.25 }, uT: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 } },
@@ -2368,7 +2369,7 @@ function init() {
         c = floor(c * uLv + b4(gl_FragCoord.xy) * .95) / uLv;
         gl_FragColor = vec4(c, 1.);
       }` });
-  { const rd = ULTRA ? 2 : FINE ? 3 : 4; reflRT = new T.WebGLRenderTarget(Math.round(V.RW / rd), Math.round(V.RH / rd), { magFilter: T.LinearFilter, minFilter: T.LinearFilter }); }
+  { const rd = ULTRA ? 1 : FINE ? 3 : 4; reflRT = new T.WebGLRenderTarget(Math.round(V.RW / rd), Math.round(V.RH / rd), { magFilter: T.LinearFilter, minFilter: T.LinearFilter }); }
   L.lobby.glassU.tRef.value = reflRT.texture; classifyLobby(L.lobby);
   window.__dbgA = A; window.__dbgL = L;
   postScene = new T.Scene(); postCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);

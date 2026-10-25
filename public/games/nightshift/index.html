@@ -277,6 +277,8 @@ body.land #act .ex-leave { left: auto; right: 3%; bottom: 5%; width: calc(64 * v
 .sets-scr > small, .sets-scr > .btn { flex: none; }
 .set { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: calc(4 * var(--u)) calc(4.4 * var(--u)); background: rgba(255,255,255,.05); border: calc(.3 * var(--u)) solid rgba(255,255,255,.14); border-radius: calc(2.4 * var(--u)); color: #ece8dc; font: 600 calc(4.6 * var(--u))/1 Inter, Arial, sans-serif; cursor: pointer; }
 .set b { font: 700 calc(4 * var(--u))/1 NSUI, NSCJK, Inter, Arial, sans-serif; letter-spacing: calc(.5 * var(--u)); color: #f2c21b; }
+.set b.gfx i { font-style: normal; font-size: .85em; opacity: .38; margin-left: calc(2.4 * var(--u)); padding-bottom: calc(.6 * var(--u)); }
+.set b.gfx i.on { opacity: 1; border-bottom: calc(.4 * var(--u)) solid #f2c21b; }
 .set:active { background: rgba(224,48,58,.2); }
 /* смена: камеры внизу, действия справа, задача сверху, окна посередине */
 .sh { position: absolute; inset: 0; pointer-events: none; font-family: NSUI, NSCJK, Inter, Arial, sans-serif; }
@@ -376,6 +378,7 @@ body.land .screen { padding: 4% 8%; }
 body.land .screen p, body.land .gal, body.land .sets, body.land .spons { max-width: calc(120 * var(--u)); }
 body.land .screen.sub { padding-top: 5%; }
 body.land .sets-scr .sets { display: grid; grid-template-columns: 1fr 1fr; gap: calc(2 * var(--u)) calc(3 * var(--u)); max-width: calc(190 * var(--u)); }
+body.land .sets-scr .set.wide { grid-column: 1 / -1; }
 body.land .sets-scr .vols { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(6 * var(--u)); padding-top: calc(2 * var(--u)); padding-bottom: calc(2 * var(--u)); }
 body.land .sets-scr .vol.all { grid-column: 1 / -1; }
 body.land .sets-scr .set { padding-top: calc(3 * var(--u)); padding-bottom: calc(3 * var(--u)); }
@@ -438,16 +441,16 @@ img, a, svg { -webkit-user-drag: none; }
   <div id="ui"></div>
   <div id="pz" class="hide"></div>
 </div>
-<script src="fonts/cjk/faces.js?v=1"></script><script src="i18n.js?v=19"></script>
+<script src="fonts/cjk/faces.js?v=1"></script><script src="i18n.js?v=20"></script>
 <script src="lib/three.min.js"></script>
 <script src="lib/gltf.min.js"></script>
 <script src="lib/meshopt_decoder.js"></script>
-<script src="world.js?v=15"></script>
+<script src="world.js?v=17"></script>
 <script src="chars.js?v=2"></script>
 <script src="chars2.js?v=27"></script>
-<script src="scenes.js?v=35"></script>
+<script src="scenes.js?v=37"></script>
 <script src="story.js?v=27"></script>
-<script src="engine.js?v=43"></script>
+<script src="engine.js?v=45"></script>
 <script src="pad.js?v=2"></script>
 </body>
 </html>

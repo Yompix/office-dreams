@@ -75,10 +75,11 @@ const GPU = (() => {
 })();
 const GFX = (() => { const q = /[?&]gfx=(retro|cine|ultra)/.exec(location.search); if (q) return q[1];
   try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine' || (v === 'ultra' && FINE)) return v; } catch {}
-  return GPU.tier === 0 || (FINE && GPU.tier === 1) ? 'retro' : FINE && GPU.tier === 4 ? 'ultra' : 'cine'; })();
+  return GPU.tier === 0 ? 'retro' : FINE && GPU.tier === 4 ? 'ultra' : 'cine'; })();   // «Ретро» сам — только без видеокарты (программная графика); слабым «Кино» сбавит авто-качество (владелец: «Кино и Ультра стали хуже»)
 const CINE = GFX === 'cine' || GFX === 'ultra', ULTRA = GFX === 'ultra';
-const RS = (() => { const q = /[?&]rs=([\d.]+)/.exec(location.search); return q ? Math.max(.2, Math.min(1, +q[1])) : 0; })();   // ?rs=0.4 — доля разрешения «Кино» вручную и без подстройки (быстрые проверки кадров)
-const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: RS || (FINE ? (GPU.tier === 2 ? .85 : 1) : .75), rsPin: !!RS };   // rs — доля разрешения «Кино» (телефон начинает с 75 %, средняя видеокарта ПК — с 85 %, perfTick подстраивает)
+const RS = (() => { const q = /[?&]rs=([\d.]+)/.exec(location.search); if (q) return Math.max(.2, Math.min(2, +q[1]));
+  try { const v = +JSON.parse(localStorage.getItem('ns1_res')); if (v > 0) return Math.max(.5, Math.min(ULTRA ? 2 : 1, v)); } catch {} return 0; })();   // настройка «Разрешение»: 0 — авто (подстройка по кадрам); 150–200 % — суперсэмплинг в «Ультра»   // ?rs=0.4 — доля разрешения «Кино» вручную и без подстройки (быстрые проверки кадров)
+const V = { land: false, BW: 270, BH: 480, RW: 270 * HD, RH: 480 * HD, HD, cine: CINE, rs: RS || (FINE ? 1 : .75), rsPin: !!RS };   // rs — доля разрешения «Кино» (телефон начинает с 75 %, средняя видеокарта ПК — с 85 %, perfTick подстраивает)
 let R = null, RT = null, post = null;          // рендерер, буфер кадра, проход постобработки
 const rnd = (() => { let s = 1337; return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; })();
 const lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -89,7 +90,7 @@ const SNAP = { value: new T.Vector2(108, 192) };
 const scrL = () => { try { return Math.max(960, Math.round(Math.max(screen.width, screen.height) * (devicePixelRatio || 1))); } catch { return 1920; } };
 function setLand(land) {
   V.land = !!land; V.BW = land ? 480 : 270; V.BH = land ? 270 : 480;
-  if (CINE) { const L = Math.min(ULTRA ? 3840 : FINE ? 1920 : 1280, scrL()) * (V.rs || 1) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }   // «Ультра» — родное разрешение экрана (до 4K)
+  if (CINE) { const L = Math.min(5120, Math.min(ULTRA ? 3840 : FINE ? 1920 : 1280, scrL()) * (V.rs || 1)) | 0, S = L * 9 / 16 | 0; V.RW = land ? L : S; V.RH = land ? S : L; }   // «Ультра» — родное разрешение экрана (до 4K)
   else { V.RW = V.BW * HD; V.RH = V.BH * HD; }
   SNAP.value.set(1e5, 1e5);   // вершины не дрожат ни в «Кино», ни в «Ретро» (24 окт: дрожь вершин PS1 владелец видел как «текстуры мигают/колбасит»)
 }

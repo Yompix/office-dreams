@@ -69,7 +69,7 @@ const EN = {
   'Жестокость, кровь и сцены насилия': 'Violence, blood and gore', 'Лучше в наушниках · в игре есть вспышки света': 'Best with headphones · contains flashing lights',
   'Четыре правила · Одна ночь · Сестра за стеклом': 'Four rules · One night · A sister behind the glass',
   'Загрузка звука…': 'Loading sound…', 'Начать смену': 'Start shift', 'Начать заново': 'Start over', 'Продолжить': 'Continue', 'Концовки': 'Endings', 'КОНЦОВКИ': 'ENDINGS',
-  'Настройки': 'Settings', 'УЛЬТРА': 'ULTRA', 'ПЛАН ЭВАКУАЦИИ': 'EVACUATION PLAN', 'НАПИТКИ': 'DRINKS', 'НАСТРОЙКИ': 'SETTINGS', 'Выйти из игры': 'Quit game', 'Назад': 'Back', 'Меню': 'Menu', 'Во весь экран': 'Fullscreen', "ПУЛЬТ «ЩИТ» · ДИСПЕТЧЕР ВЕРА": "SHIELD DISPATCH · VERA", "Пропустить обучение": "Skip tutorial", "Как играть": "How to play", "Пройти обучение снова": "Replay the tutorial", "Смена началась. Удачи.": "Your shift has started. Good luck.", "пульт «Щит»": "Shield dispatch", "ВЕРА": "VERA", "ГОЛОС": "VOICE", "Нажми камеру 03 — лифты": "Tap camera 03, the elevators", "Смотри на табло лифта: «13»": "Look at the elevator display: 13", "Нажми «Записать» → «Лифт»": "Tap Log → Elevator", "MIC слева вверху: столбики прыгают — звук": "MIC, top left: jumping bars mean a sound", "Открой «Пульт»": "Open the Console", "Открой «Журнал»": "Open the Logbook", "Камеры — кнопки внизу. Переключай и запоминай, как там обычно.": "Cameras are the buttons at the bottom. Switch between them and remember what's normal.", "Заметил, что не так, — «Записать» и выбери, что это: свет, дверь, лифт, помехи, кто-то, звук, другое.": "Spot something wrong? Tap Log and pick what it is: light, door, elevator, static, someone, sound, other.", "MIC слева вверху: прыгают столбики — на этой камере звук.": "MIC, top left: if the bars jump, there's a sound on that camera.", "«Пульт»: свет на этажах, вход, лифт. Лишний свет — выключи. К 22:00 вход запри, лифт останови.": "Console: floor lights, entrance, elevator. Switch off stray lights. By 10 p.m., lock the entrance and stop the elevator.", "Три пропущенные странности за час — оно придёт к будке.": "Miss three anomalies in an hour and it comes to the booth.", "Помехи на камере — не засматривайся: записал и переключил.": "Static on a camera: don't stare. Log it and switch.", "Не отзывайся, если зовут по имени. Не открывай дверь.": "Don't answer if someone calls your name. Don't open the door.", 'В эфире': 'On the radio', 'Графика «Кино» на этом устройстве рисовала слишком темно — включена «Ретро». Вернуть: Настройки → Графика.': 'Cinema graphics rendered too dark on this device, so Retro is on. To switch back: Settings → Graphics.', 'Поддержать игру': 'Support the game', 'Полная версия — {p}': 'Full game — {p}', 'ОТКРОЕШЬ ЕЙ?': 'WILL YOU OPEN THE DOOR?', 'Здесь кончается бесплатная часть — у стеклянной двери, в 03:30.': 'This is where the free part ends: at the glass door, at 3:30 a.m.', 'В полной версии ночь идёт до шести: что будет, если открыть — и если нет, подвал, ещё два часа смены, четыре концовки.': "In the full game the night goes on till six: what happens if you open, and if you don't. The basement, two more hours of the shift, four endings.", 'Полная версия скачивается на странице игры и работает без интернета.': 'The full game is a download on the game page and plays offline.', 'СПОНСОРЫ ИГРЫ': 'GAME SPONSORS',
+  'Настройки': 'Settings', 'УЛЬТРА': 'ULTRA', 'Разрешение': 'Resolution', 'АВТО': 'AUTO', 'ПЛАН ЭВАКУАЦИИ': 'EVACUATION PLAN', 'НАПИТКИ': 'DRINKS', 'НАСТРОЙКИ': 'SETTINGS', 'Выйти из игры': 'Quit game', 'Назад': 'Back', 'Меню': 'Menu', 'Во весь экран': 'Fullscreen', "ПУЛЬТ «ЩИТ» · ДИСПЕТЧЕР ВЕРА": "SHIELD DISPATCH · VERA", "Пропустить обучение": "Skip tutorial", "Как играть": "How to play", "Пройти обучение снова": "Replay the tutorial", "Смена началась. Удачи.": "Your shift has started. Good luck.", "пульт «Щит»": "Shield dispatch", "ВЕРА": "VERA", "ГОЛОС": "VOICE", "Нажми камеру 03 — лифты": "Tap camera 03, the elevators", "Смотри на табло лифта: «13»": "Look at the elevator display: 13", "Нажми «Записать» → «Лифт»": "Tap Log → Elevator", "MIC слева вверху: столбики прыгают — звук": "MIC, top left: jumping bars mean a sound", "Открой «Пульт»": "Open the Console", "Открой «Журнал»": "Open the Logbook", "Камеры — кнопки внизу. Переключай и запоминай, как там обычно.": "Cameras are the buttons at the bottom. Switch between them and remember what's normal.", "Заметил, что не так, — «Записать» и выбери, что это: свет, дверь, лифт, помехи, кто-то, звук, другое.": "Spot something wrong? Tap Log and pick what it is: light, door, elevator, static, someone, sound, other.", "MIC слева вверху: прыгают столбики — на этой камере звук.": "MIC, top left: if the bars jump, there's a sound on that camera.", "«Пульт»: свет на этажах, вход, лифт. Лишний свет — выключи. К 22:00 вход запри, лифт останови.": "Console: floor lights, entrance, elevator. Switch off stray lights. By 10 p.m., lock the entrance and stop the elevator.", "Три пропущенные странности за час — оно придёт к будке.": "Miss three anomalies in an hour and it comes to the booth.", "Помехи на камере — не засматривайся: записал и переключил.": "Static on a camera: don't stare. Log it and switch.", "Не отзывайся, если зовут по имени. Не открывай дверь.": "Don't answer if someone calls your name. Don't open the door.", 'В эфире': 'On the radio', 'Графика «Кино» на этом устройстве рисовала слишком темно — включена «Ретро». Вернуть: Настройки → Графика.': 'Cinema graphics rendered too dark on this device, so Retro is on. To switch back: Settings → Graphics.', 'Поддержать игру': 'Support the game', 'Полная версия — {p}': 'Full game — {p}', 'ОТКРОЕШЬ ЕЙ?': 'WILL YOU OPEN THE DOOR?', 'Здесь кончается бесплатная часть — у стеклянной двери, в 03:30.': 'This is where the free part ends: at the glass door, at 3:30 a.m.', 'В полной версии ночь идёт до шести: что будет, если открыть — и если нет, подвал, ещё два часа смены, четыре концовки.': "In the full game the night goes on till six: what happens if you open, and if you don't. The basement, two more hours of the shift, four endings.", 'Полная версия скачивается на странице игры и работает без интернета.': 'The full game is a download on the game page and plays offline.', 'СПОНСОРЫ ИГРЫ': 'GAME SPONSORS',
   'Стань первым — твоё имя будет здесь': 'Be the first — your name will be here', 'Сыграть ещё раз': 'Play again', 'Попробовать снова': 'Try again', 'Ты не дожил до утра.': 'You didn\'t make it to morning.',
   'нажми, чтобы закрыть': 'tap to close', 'Правил пока нет.': 'No rules yet.', 'сейчас': 'now', 'СООБЩЕНИЯ': 'MESSAGES', 'Это не я.': 'It\'s not me.', 'Не открывай им.': 'Don\'t open the door to them.', 'Я тебя вижу': 'I see you',
   'мобильный · входящий': 'mobile · incoming', 'СОЕДИНЕНИЕ ПОТЕРЯНО': 'CONNECTION LOST', 'переподключение': 'reconnecting', 'Нужен браузер с WebGL': 'A browser with WebGL is required',
@@ -738,6 +738,8 @@ es: {
   "УЛЬТРА": "ULTRA",
   "ПЛАН ЭВАКУАЦИИ": "PLAN DE EVACUACIÓN",
   "НАПИТКИ": "BEBIDAS",
+  "Разрешение": "Resolución",
+  "АВТО": "AUTO",
 },
 pt: {
   "CAM 04  ХОЛЛ": "CAM 04  SAGUÃO",
@@ -1271,6 +1273,8 @@ pt: {
   "УЛЬТРА": "ULTRA",
   "ПЛАН ЭВАКУАЦИИ": "PLANO DE EVACUAÇÃO",
   "НАПИТКИ": "BEBIDAS",
+  "Разрешение": "Resolução",
+  "АВТО": "AUTO",
 },
 de: {
   "CAM 04  ХОЛЛ": "CAM 04  FOYER",
@@ -1804,6 +1808,8 @@ de: {
   "УЛЬТРА": "ULTRA",
   "ПЛАН ЭВАКУАЦИИ": "FLUCHTPLAN",
   "НАПИТКИ": "GETRÄNKE",
+  "Разрешение": "Auflösung",
+  "АВТО": "AUTO",
 },
 fr: {
   "CAM 04  ХОЛЛ": "CAM 04  HALL",
@@ -2337,6 +2343,8 @@ fr: {
   "Звук в фоне": "Son en arrière-plan",
   "ПЛАН ЭВАКУАЦИИ": "PLAN D'ÉVACUATION",
   "НАПИТКИ": "BOISSONS",
+  "Разрешение": "Résolution",
+  "АВТО": "AUTO",
 },
 it: {
   "CAM 04  ХОЛЛ": "CAM 04  ATRIO",
@@ -2870,6 +2878,8 @@ it: {
   "Звук в фоне": "Suono in background",
   "ПЛАН ЭВАКУАЦИИ": "PIANO DI EVACUAZIONE",
   "НАПИТКИ": "BEVANDE",
+  "Разрешение": "Risoluzione",
+  "АВТО": "AUTO",
 },
 pl: {
   "CAM 04  ХОЛЛ": "CAM 04  HOL",
@@ -3403,6 +3413,8 @@ pl: {
   "Звук в фоне": "Dźwięk w tle",
   "ПЛАН ЭВАКУАЦИИ": "PLAN EWAKUACJI",
   "НАПИТКИ": "NAPOJE",
+  "Разрешение": "Rozdzielczość",
+  "АВТО": "AUTO",
 },
 tr: {
   "CAM 04  ХОЛЛ": "CAM 04  LOBİ",
@@ -3936,6 +3948,8 @@ tr: {
   "Звук в фоне": "Arka planda ses",
   "ПЛАН ЭВАКУАЦИИ": "TAHLİYE PLANI",
   "НАПИТКИ": "İÇECEKLER",
+  "Разрешение": "Çözünürlük",
+  "АВТО": "OTO",
 },
 uk: {
   "CAM 04  ХОЛЛ": "CAM 04  ХОЛ",
@@ -4469,6 +4483,8 @@ uk: {
   "CAM −2  ПОДВАЛ": "CAM −2  ПІДВАЛ",
   "ПЛАН ЭВАКУАЦИИ": "ПЛАН ЕВАКУАЦІЇ",
   "НАПИТКИ": "НАПОЇ",
+  "Разрешение": "Роздільність",
+  "АВТО": "АВТО",
 },
 zh: {
   "CAM 04  ХОЛЛ": "CAM 04  大厅",
@@ -5002,6 +5018,8 @@ zh: {
   "Звук в фоне": "后台声音",
   "ПЛАН ЭВАКУАЦИИ": "疏散示意图",
   "НАПИТКИ": "饮料",
+  "Разрешение": "分辨率",
+  "АВТО": "自动",
 },
 ja: {
   "CAM 04  ХОЛЛ": "CAM 04  ロビー",
@@ -5535,6 +5553,8 @@ ja: {
   "Звук в фоне": "バックグラウンドでの音",
   "ПЛАН ЭВАКУАЦИИ": "避難経路図",
   "НАПИТКИ": "ドリンク",
+  "Разрешение": "解像度",
+  "АВТО": "自動",
 },
 ko: {
   "CAM 04  ХОЛЛ": "CAM 04  로비",
@@ -6068,6 +6088,8 @@ ko: {
   "Звук в фоне": "백그라운드 소리",
   "ПЛАН ЭВАКУАЦИИ": "대피 안내도",
   "НАПИТКИ": "음료",
+  "Разрешение": "해상도",
+  "АВТО": "자동",
 },
 };
 // ==== /DICT ====
