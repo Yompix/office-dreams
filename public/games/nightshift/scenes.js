@@ -2232,6 +2232,29 @@ const FIN = `vec3 fin(vec3 c){
 function cinePost() {
   const q = () => new T.WebGLRenderTarget(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2), { type: T.HalfFloatType, magFilter: T.LinearFilter, minFilter: T.LinearFilter });
   PB = { a: q(), b: q() };
+  if (ULTRA) {   // «Ультра»: мягкие контактные тени (SSAO) по буферу глубины — в углах, под предметами, у ног и лиц; в половину разрешения, потом размытие
+    const hq = () => new T.WebGLRenderTarget(Math.max(8, V.RW >> 1), Math.max(8, V.RH >> 1), { type: T.HalfFloatType, magFilter: T.LinearFilter, minFilter: T.LinearFilter });
+    PB.o1 = hq(); PB.o2 = hq();
+    PB.ao = new T.ShaderMaterial({ uniforms: { tZ: { value: null }, uPI: { value: new T.Matrix4() }, uP: { value: new T.Matrix4() }, uPx: { value: new T.Vector2() } }, vertexShader: POST_VS,
+      fragmentShader: `uniform sampler2D tZ; uniform mat4 uPI, uP; uniform vec2 uPx; varying vec2 vUv;
+        vec3 vp(vec2 uv) { vec4 p = uPI * vec4(uv * 2. - 1., texture2D(tZ, uv).r * 2. - 1., 1.); return p.xyz / p.w; }
+        float h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+        void main() {
+          if (texture2D(tZ, vUv).r >= .99999) { gl_FragColor = vec4(1.); return; }
+          vec3 p = vp(vUv), pr = vp(vUv + vec2(uPx.x, 0.)), pl = vp(vUv - vec2(uPx.x, 0.)), pu = vp(vUv + vec2(0., uPx.y)), pd = vp(vUv - vec2(0., uPx.y));
+          vec3 n = cross(abs(pr.z - p.z) < abs(p.z - pl.z) ? pr - p : p - pl, abs(pu.z - p.z) < abs(p.z - pd.z) ? pu - p : p - pd);   // нормаль — с той стороны, где перепад глубины меньше: на краю фигуры не «загибается» в фон (не было бы обводки)
+          n = dot(n, n) > 1e-12 ? normalize(n) : vec3(0., 0., 1.);
+          vec3 tg = normalize(abs(n.z) < .9 ? cross(n, vec3(0., 0., 1.)) : cross(n, vec3(0., 1., 0.))), bt = cross(n, tg);
+          float R = .5, occ = 0., a0 = h(gl_FragCoord.xy) * 6.2832;
+          for (int i = 0; i < 12; i++) {
+            float fi = float(i), t = (fi + .5) / 12., ang = a0 + fi * 2.39996, sc = mix(.12, 1., t * t);
+            vec3 q = p + (tg * cos(ang) * sqrt(1. - t) + bt * sin(ang) * sqrt(1. - t) + n * sqrt(t)) * R * sc;
+            vec4 c = uP * vec4(q, 1.); vec2 su = c.xy / c.w * .5 + .5;
+            float sz = vp(su).z;
+            occ += step(q.z + .015, sz) * (1. - smoothstep(R * .6, R * 1.6, abs(p.z - sz)));   // заслоняет только близкое: без ореола вокруг фигур на фоне дальней стены
+          }
+          gl_FragColor = vec4(vec3(clamp(1. - occ / 12. * 1.4, 0., 1.)), 1.); }` });
+  }
   PB.down = new T.ShaderMaterial({ uniforms: { tD: { value: null }, uPx: { value: new T.Vector2() } }, vertexShader: POST_VS,
     fragmentShader: `uniform sampler2D tD; uniform vec2 uPx; varying vec2 vUv; ${FIN} void main(){ vec3 c = vec3(0.);
       for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) c += fin(texture2D(tD, vUv + vec2(float(i), float(j)) * uPx * 1.5).rgb); gl_FragColor = vec4(c / 9., 1.); }` });
@@ -2239,8 +2262,8 @@ function cinePost() {
     fragmentShader: `uniform sampler2D tD; uniform vec2 uDir; varying vec2 vUv; void main(){
       vec3 c = texture2D(tD, vUv).rgb * .227; c += (texture2D(tD, vUv + uDir * 1.385).rgb + texture2D(tD, vUv - uDir * 1.385).rgb) * .316; c += (texture2D(tD, vUv + uDir * 3.23).rgb + texture2D(tD, vUv - uDir * 3.23).rgb) * .07;
       gl_FragColor = vec4(c, 1.); }` });
-  PB.comp = new T.ShaderMaterial({ uniforms: { tD: { value: null }, tBl: { value: null }, uT: { value: 0 }, uCctv: { value: 0 }, uIr: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 }, uAsp: { value: 1 }, uExp: { value: .95 }, uSharp: { value: 0 }, uTx: { value: new T.Vector2() } }, vertexShader: POST_VS,
-    fragmentShader: `uniform sampler2D tD, tBl; uniform float uT, uCctv, uIr, uVhs, uScare, uAsp, uExp, uSharp; uniform vec2 uTx; varying vec2 vUv; ${FIN}
+  PB.comp = new T.ShaderMaterial({ uniforms: { tD: { value: null }, tBl: { value: null }, tAO: { value: null }, uAO: { value: 0 }, uHQ: { value: ULTRA ? 1 : 0 }, uT: { value: 0 }, uCctv: { value: 0 }, uIr: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 }, uAsp: { value: 1 }, uExp: { value: .95 }, uSharp: { value: 0 }, uTx: { value: new T.Vector2() } }, vertexShader: POST_VS,
+    fragmentShader: `uniform sampler2D tD, tBl, tAO; uniform float uAO, uHQ, uT, uCctv, uIr, uVhs, uScare, uAsp, uExp, uSharp; uniform vec2 uTx; varying vec2 vUv; ${FIN}
       float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
       vec3 aces(vec3 x){ return clamp((x * (2.51 * x + .03)) / (x * (2.43 * x + .59) + .14), 0., 1.); }
       void main(){
@@ -2249,19 +2272,21 @@ function cinePost() {
         float row = floor(uv.y * 540.), fr = floor(uT * 24.);
         uv.x += (h(vec2(row, fr)) - .5) * uVhs * uCctv * .002;                                  // запись с камеры чуть дрожит строками
         uv += d * uScare * .05 * (h(vec2(fr, 3.)) - .5);                                        // скример: картинку рвёт к центру
-        float ca = (.0012 + .012 * uScare) * (.25 + r * r * 1.4);
+        float ca = (mix(.0012, .0006, uHQ) + .012 * uScare) * (.25 + r * r * 1.4);   // «Ультра»: цветная кайма объектива слабее — картинка чище
         vec3 c = fin(vec3(texture2D(tD, uv + d * ca).r, texture2D(tD, uv).g, texture2D(tD, uv - d * ca).b));
         if (uSharp > .01) {   // кадр рисуется меньше экрана (perfTick, Steam Deck): резкость с ограничением по соседям, как FidelityFX CAS, — без ореолов
           vec3 n1 = fin(texture2D(tD, uv + vec2(uTx.x, 0.)).rgb), n2 = fin(texture2D(tD, uv - vec2(uTx.x, 0.)).rgb), n3 = fin(texture2D(tD, uv + vec2(0., uTx.y)).rgb), n4 = fin(texture2D(tD, uv - vec2(0., uTx.y)).rgb);
           c = clamp(c + (c - (n1 + n2 + n3 + n4) * .25) * uSharp, min(c, min(min(n1, n2), min(n3, n4))), max(c, max(max(n1, n2), max(n3, n4)))); }
+        if (uAO < -.5) { gl_FragColor = vec4(vec3(texture2D(tAO, uv).r), 1.); return; }   // window.__AOVIS = 1 — показать карту контактных теней
+        if (uAO > 0.) c *= mix(1., texture2D(tAO, uv).r, uAO * (1. - smoothstep(1., 3., max(c.r, max(c.g, c.b)))));   // «Ультра»: контактные тени (лампы не темнеют)
         if (uCctv > .5) { vec2 px = uAsp > 1. ? vec2(1.6 / 960., 1.6 / 540.) : vec2(1.6 / 540., 1.6 / 960.);   // камера наблюдения — дешёвая оптика и сжатие: картинка мягче «кино»
-          c = mix(c, fin(texture2D(tD, uv + px).rgb + texture2D(tD, uv - px).rgb + texture2D(tD, uv + vec2(px.x, -px.y)).rgb + texture2D(tD, uv - vec2(px.x, -px.y)).rgb) * .25, .6); }
+          c = mix(c, fin(texture2D(tD, uv + px).rgb + texture2D(tD, uv - px).rgb + texture2D(tD, uv + vec2(px.x, -px.y)).rgb + texture2D(tD, uv - vec2(px.x, -px.y)).rgb) * .25, mix(.6, .15, uHQ)); }   // «Ультра» — камера как современная HD: мягче лишь чуть
         if (uScare > .02) {   // скример: рывок к центру смазывает картинку, свет режет красным
           vec3 z = c; for (int i = 1; i < 7; i++) z += fin(texture2D(tD, uv - d * float(i) * .018 * uScare).rgb); c = mix(c, z / 7., min(1., uScare * 1.3));
           c *= vec3(1. + .5 * uScare, 1. - .25 * uScare, 1. - .3 * uScare);
         }
         vec3 bl = fin(texture2D(tBl, uv).rgb);
-        c = mix(c, bl, smoothstep(.62, 1.25, r) * .7 * (1. - uCctv));                          // глубина резкости: края кадра мягче
+        c = mix(c, bl, smoothstep(.62, 1.25, r) * mix(.7, .35, uHQ) * (1. - uCctv));                          // глубина резкости: края кадра мягче
         vec3 glw = max(bl - .6, 0.);   // светятся только лампы (они в HDR ярче белого — glow() в world.js), а не белая рубашка рядом
         c += glw * 1.15 + glw * vec3(.4, .14, .05) * (1. - uCctv) + bl * vec3(.04, .022, .014);  // свечение ламп; тёплая кайма вокруг ярких мест (халация плёнки)
         c = aces(c * uExp);
@@ -2271,11 +2296,11 @@ function cinePost() {
         float sk = smoothstep(.012, .07, c.r - c.g) * smoothstep(-.01, .04, c.g - c.b) * smoothstep(.03, .14, l);   // тёплые тона (кожа, дерево, лампы): холодный сдвиг теней их не трогает — лицо не зеленеет
         c = mix(c * mix(vec3(.86, 1.0, 1.07), vec3(.97, .99, 1.), sk) + vec3(0., .008, .018) * (1. - .7 * sk), c * vec3(1.06, .99, .9), smoothstep(.18, .7, l));   // холодные тени, тёплый свет
         c = mix(vec3(l), c, .88 + .07 * sk);
-        c = mix(c, vec3(l) * vec3(.86, 1., .9), uCctv * .55) + max(c - .6, 0.) * uCctv * .8;
+        c = mix(c, vec3(l) * vec3(.86, 1., .9), uCctv * mix(.55, .38, uHQ)) + max(c - .6, 0.) * uCctv * .8;
         c = mix(c, vec3(pow(l, .78) * 1.2) * vec3(.9, 1., .94), uIr);                          // ИК-режим камеры: ч/б, светлее у объектива
-        c *= 1. - uCctv * .09 * step(1., mod(floor(gl_FragCoord.y / 2.), 2.));
+        c *= 1. - uCctv * mix(.09, .035, uHQ) * step(1., mod(floor(gl_FragCoord.y / 2.), 2.));
         c *= 1. - smoothstep(.55, 1.5, r) * .6;                                                   // виньетка
-        c += (h(gl_FragCoord.xy + fract(uT * 7.13) * 731.) - .5) * (.03 * (.45 + 2.2 * l * (1. - l)) + uCctv * .05 + uVhs * .015);   // зерно: сильнее в полутонах, слабее в чёрном и белом
+        c += (h(gl_FragCoord.xy + fract(uT * 7.13) * 731.) - .5) * (.03 * (.45 + 2.2 * l * (1. - l)) + uCctv * mix(.05, .022, uHQ) + uVhs * .015);   // зерно: сильнее в полутонах, слабее в чёрном и белом
         if (uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.) c = vec3(0.);
         gl_FragColor = vec4(c, 1.); }` });
 }
@@ -2284,8 +2309,10 @@ function cineRender(R, T0, cctv, scare, vhs) {
   const pass = (m, to) => { quad.material = m; R.setRenderTarget(to); R.render(postScene, postCam); };
   PB.down.uniforms.tD.value = RT.texture; PB.down.uniforms.uPx.value.set(1 / V.RW, 1 / V.RH); pass(PB.down, PB.a);
   const bx = 1 / PB.a.width, by = 1 / PB.a.height, B = PB.blur.uniforms;
+  if (PB.ao && RT.depthTexture) { const A = PB.ao.uniforms; A.tZ.value = RT.depthTexture; A.uPI.value.copy(cam.projectionMatrixInverse); A.uP.value.copy(cam.projectionMatrix); A.uPx.value.set(2 / V.RW, 2 / V.RH); pass(PB.ao, PB.o1);
+    B.tD.value = PB.o1.texture; B.uDir.value.set(1 / PB.o1.width, 0); pass(PB.blur, PB.o2); B.tD.value = PB.o2.texture; B.uDir.value.set(0, 1 / PB.o1.height); pass(PB.blur, PB.o1); }
   for (const s of [1, 2.2]) { B.tD.value = PB.a.texture; B.uDir.value.set(bx * s, 0); pass(PB.blur, PB.b); B.tD.value = PB.b.texture; B.uDir.value.set(0, by * s); pass(PB.blur, PB.a); }
-  const U = PB.comp.uniforms; U.uExp.value = curLoc && curLoc.name === 'corridor' ? .68 : curLoc && curLoc.name === 'server' ? 1.05 : .92; U.tD.value = RT.texture; U.tBl.value = PB.a.texture; U.uT.value = T0; U.uCctv.value = cctv; U.uScare.value = scare; U.uVhs.value = vhs; U.uAsp.value = V.RW / V.RH; U.uTx.value.set(1 / V.RW, 1 / V.RH); U.uSharp.value = ULTRA && (V.rs || 1) < .99 ? Math.min(.3, (1 - V.rs) * 1.2) : 0;   // резкость — только «Ультра», если авто-качество сбавило разрешение («Кино» как было)
+  const U = PB.comp.uniforms; U.uExp.value = curLoc && curLoc.name === 'corridor' ? .68 : curLoc && curLoc.name === 'server' ? 1.05 : .92; U.tD.value = RT.texture; U.tBl.value = PB.a.texture; U.tAO.value = PB.o1 ? PB.o1.texture : null; U.uAO.value = PB.ao && RT.depthTexture && !window.__NOAO ? (window.__AOVIS ? -1 : .85) : 0;   // window.__NOAO = 1 — сравнить без контактных теней U.uT.value = T0; U.uCctv.value = cctv; U.uScare.value = scare; U.uVhs.value = vhs; U.uAsp.value = V.RW / V.RH; U.uTx.value.set(1 / V.RW, 1 / V.RH); U.uSharp.value = ULTRA && (V.rs || 1) < .99 ? Math.min(.3, (1 - V.rs) * 1.2) : 0;   // резкость — только «Ультра», если авто-качество сбавило разрешение («Кино» как было)
   pass(PB.comp, null); quad.material = postMat;
 }
 // «Кино» следит за скоростью: если кадр рисуется дольше ~38 мс, внутреннее разрешение падает ступенями (до 55%), если быстро — растёт обратно
@@ -2307,6 +2334,7 @@ function setLand(land, force) {
   const R = window.__W3core.R; R.setSize(V.RW, V.RH, false);
   window.__W3core.RT.setSize(V.RW, V.RH); const rd = ULTRA ? 1 : FINE ? 3 : 4; reflRT.setSize(Math.round(V.RW / rd), Math.round(V.RH / rd));   // отражения: «Ультра» — в половину, ПК — в треть (каждый кадр), телефон — в четверть
   if (PB) { PB.a.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); PB.b.setSize(Math.max(8, V.RW >> 2), Math.max(8, V.RH >> 2)); }
+  if (PB && PB.o1) { PB.o1.setSize(Math.max(8, V.RW >> 1), Math.max(8, V.RH >> 1)); PB.o2.setSize(Math.max(8, V.RW >> 1), Math.max(8, V.RH >> 1)); }
   postMat.uniforms.uB.value.set(V.BW, V.BH);
 }
 const PROPS = { jacket: 1, badge: 1, clock: null };   // «нормы» холла; сюжет может передать o.props = { jacket: 0, badge: 'scratched', clock: '03:00' }
@@ -2336,7 +2364,7 @@ function init() {
     if (document.visibilityState === 'visible' && localStorage.getItem('ns1_gfxAuto') !== '2' && !/[?&]gfx=/.test(location.search) && window.nsGfxFallback) window.nsGfxFallback(5); });
   // буфер кадра и постобработка: цветокор + дизеринг + ступени цвета + плёнка VHS (дрожь строк, полоса внизу, редкий залом,
   // цветная кайма в 1 пиксель, строки, лёгкая бочка); у камер наблюдения бочка сильнее и пересвет
-  window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? { type: T.HalfFloatType, samples: ULTRA && (V.rs || 1) <= 1 ? 8 : 4 } : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
+  window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? Object.assign({ type: T.HalfFloatType, samples: ULTRA && (V.rs || 1) <= 1 ? 8 : 4 }, ULTRA ? { depthTexture: new T.DepthTexture(V.RW, V.RH) } : {}) : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
   if (CINE) cinePost();
   postMat = new T.ShaderMaterial({
     uniforms: { tD: { value: window.__W3core.RT.texture }, uB: { value: new T.Vector2(V.BW, V.BH) }, uHD: { value: HD }, uLv: { value: 22 }, uCctv: { value: 0 }, uIr: { value: 0 }, uGam: { value: 1.25 }, uT: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 } },
