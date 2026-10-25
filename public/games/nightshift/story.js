@@ -274,7 +274,7 @@ window.STORY = {
         { img: 'b_print', fx: 'rain', cams: [[.5, .5, 1.0, 1.1]], say: ['b06'], pad: .6 },
         { img: null, phone: { kind: 'out', name: 'Лили' }, say: ['b07'], sfx: [['ringback', .2], ['ringback', 6.2]], pad: .3 },
         { img: null, phone: { kind: 'talk', name: 'Лили', t0: 0 }, say: ['b08', 'b09', 'b10', 'b11'], pad: .4 },
-        { img: 'e_face', cams: [[.5, .5, 1.0, 1.06]], say: ['b12'], pad: .5 }
+        { img: 'e_hands', cams: [[.5, .5, 1.0, 1.06]], say: ['b12'], pad: .5 }   // «Руки тряслись» — видно, как дрожат ладони
       ],
       then: { goto: 'server' }
     },
