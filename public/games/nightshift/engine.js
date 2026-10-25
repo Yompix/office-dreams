@@ -540,17 +540,18 @@ function lateFlush(T) {
     if (off >= it.d - .4) { voiceMiss++; continue; }
     for (const vo of voiceFx(it.k)) { const o = play(it.k, Object.assign({ bus: 'voice' }, vo, { when: Math.max(0, -late) + (vo.dt || 0), off })); if (o) o.voice = true; } }
 }
+const burstOf = op => !!(op && (op.once || op.cut));   // ['static', t, { cut }] — короткий удар помех в секунду t, а не шипение на весь кадр
 function beatAudio() {
   const P = pre;   // все звуки кадра сдвигаются на длину пред-кадра
   for (const [n, at, op] of beat.sfx || []) {   // [звук, секунда, {gain, cut, off, lp, pan, rate}]
-    if (n === 'static' && !(op && op.once)) amb('static', true, .25);   // помехи фоном на весь кадр; с once — один удар помех в свою секунду (смерти: обрыв сигнала ровно с картинкой)
+    if (n === 'static' && !burstOf(op)) amb('static', true, .25);   // помехи фоном на весь кадр; с once или cut — один удар помех в свою секунду (обрыв сигнала ровно с картинкой)
     // стук по стеклу: если Катя стучит в кадре, звук даёт её рука (синхронно), а не таблица
     else if (n === 'knock' || n === 'glass_tap') trig.push({ at, fn: () => { if (!(beat.img && lastDrawn === beat.img && katyaKnocking())) { play(n); if (n === 'knock') buzz(40); } } });
     else { play(n, Object.assign({ when: at + P }, op)); if (n === 'door') setTimeout(() => buzz(40), (at + P) * 1000); }
   }
   for (const it of sched) { if (isVoice(it.k) && !BUF[it.k] && AC) { lateVoice(it, P); continue; }
     for (const vo of voiceFx(it.k)) { const o = play(it.k, Object.assign({ bus: 'voice' }, vo, { when: it.t + P + (vo.dt || 0) })); if (o) o.voice = true; } }
-  if (beat.fx !== 'static' && !(beat.sfx || []).some(s => s[0] === 'static' && !(s[2] && s[2].once))) amb('static', beat.fx === 'static', .3);
+  if (beat.fx !== 'static' && !(beat.sfx || []).some(s => s[0] === 'static' && !burstOf(s[2]))) amb('static', beat.fx === 'static', .3);
   if (scareAt != null) {
     const sa = scareAt + P;
     // не «бум» из ужастика для детей: нарастание обрывается в тишину, а потом — близкий сухой звук рядом с ухом
@@ -626,6 +627,7 @@ function glitchEnd() {
 function runThen(th) {
   voiceReady(objKeys(th));
   dlgEl.classList.add('hide'); tapEl.classList.add('hide'); chapEl.classList.add('hide'); ruleEl.classList.add('hide'); amb('static', false); amb('heart', false);
+  if (hushOn && !th.choice) hush(false);   // тишина перед скримером не тянется в смену, мини-игру, концовку (у выбора — пусть держится)
   if (th.goto) return startScene(th.goto);
   if (th.choice) return showChoice(th);
   if (th.camgame) return camGame(th.camgame);
