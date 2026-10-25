@@ -1,5 +1,5 @@
 // Бесплатная часть для itch.io: из копии игры вырезается всё после выбора у стекла (сцена glass2, 03:30) —
-// сцены, часы смены и их реплики (snd/*.mp3, snd/en/*.mp3, строки timing*.json). Вместо выбора у стекла — экран «полная версия» (then.demo в engine.js).
+// сцены, часы смены и их реплики (snd/*.mp3, snd/<язык>/*.mp3, строки timing*.json). Вместо выбора у стекла — экран «полная версия» (then.demo в engine.js).
 //   node tools/itch/demo.js ПАПКА [цена] [ссылка]   ПАПКА — копия public/games/nightshift (правится на месте)
 // Ссылка на покупку: если не задана, игра берёт страницу автора из referrer (https://АВТОР.itch.io) + /hush-till-six — там кнопка «Buy Now».
 const fs = require('fs'), path = require('path');
@@ -26,16 +26,19 @@ S.scenes[GATE].then = { demo: 1 };
 for (const id of Object.keys(S.scenes)) if (!keep.has(id)) delete S.scenes[id];
 for (const h of Object.keys(segs)) if (!hours.has(h)) delete segs[h];
 // реплики: все ключи таймингов, что встречаются в оставшемся сценарии и в коде движка (пролог, обучение, рация)
-const T = JSON.parse(read('timing.json')), TE = JSON.parse(read('timing_en.json'));
-const used = new Set(scan(S, []).filter(k => T[k] || TE[k]));
-for (const m of read('engine.js').matchAll(/'([a-z]{1,3}\d{2}[a-z]?)'/g)) if (T[m[1]] || TE[m[1]]) used.add(m[1]);
+const TF = fs.readdirSync(D).filter(f => /^timing(_[a-z]{2})?\.json$/.test(f)), TJ = Object.fromEntries(TF.map(f => [f, JSON.parse(read(f))]));   // тайминги всех языков
+const has = k => TF.some(f => TJ[f][k]);
+const used = new Set(scan(S, []).filter(has));
+for (const m of read('engine.js').matchAll(/'([a-z]{1,3}\d{2}[a-z]?)'/g)) if (has(m[1])) used.add(m[1]);
 for (let i = 1; i <= 15; i++) used.add('p' + String(i).padStart(2, '0'));   // пролог: SNDS в engine.js (собирается в цикле)
 for (const k of Object.keys(S.shift.lines || {})) if (!used.has(k)) delete S.shift.lines[k];   // тексты реплик смены — только оставшихся часов
 let cut = 0;
-for (const [f, J] of [['timing.json', T], ['timing_en.json', TE]]) {
+const SD = ['snd', ...fs.readdirSync(path.join(D, 'snd'), { withFileTypes: true }).filter(e => e.isDirectory()).map(e => 'snd/' + e.name)];   // озвучка: snd (русская), snd/en, snd/es…
+for (const f of TF) {
+  const J = TJ[f];
   for (const k of Object.keys(J)) if (!used.has(k)) {
     delete J[k];
-    for (const mp of [path.join(D, 'snd', k + '.mp3'), path.join(D, 'snd/en', k + '.mp3')]) if (fs.existsSync(mp)) { fs.unlinkSync(mp); cut++; }
+    for (const d of SD) { const mp = path.join(D, d, k + '.mp3'); if (fs.existsSync(mp)) { fs.unlinkSync(mp); cut++; } }
   }
   fs.writeFileSync(path.join(D, f), JSON.stringify(J));
 }

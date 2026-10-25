@@ -11,7 +11,7 @@ const SC = { dawn: 'dawn', newentry: 'morning', inside: 'hide2', sister: 'run2' 
     const p = await b.newPage({ viewport: vp, locale: 'ru-RU' }); p.on('pageerror', e => errs.push(String(e).slice(0, 300)));
     await p.addInitScript(l => { if (!sessionStorage.getItem('init')) { sessionStorage.setItem('init', 1); localStorage.setItem('ns1_land3', l ? 'true' : 'false');
       localStorage.setItem('ns1_run', JSON.stringify({ picks: [{ sc: 'keys_ask', q: 'Сменщик протягивает связку. Рука дрожит.', a: 'Взять ключи' }, { sc: 'radio_off', q: '«Итан, открой!»', a: 'Отойти от двери' }, { sc: 'server', q: 'Фрэнк жив. Он внизу.', a: 'Спуститься к нему' }], sec: 6420, rec: 31, ok: 26, miss: 3, hrs: ['S1', 'S2', 'S3', 'S4', 'S6'] })); } }, land);
-    await p.goto('http://127.0.0.1:8771/nightshift/index.html?gfx=retro');
+    await p.goto('http://127.0.0.1:' + (process.env.PORT || 8771) + '/nightshift/index.html?gfx=retro');
     await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 240000 });
     for (const e of (land ? only : only.slice(0, 1))) {
       await p.evaluate(s => window.__ns.startScene(s), SC[e]);

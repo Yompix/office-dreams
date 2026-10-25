@@ -5,3 +5,7 @@ test/out/
 *.zip
 promo/
 dist/
+__pycache__/
+tools/i18n/*.part*.json
+tools/desktop/out/
+.claude/worktrees/
