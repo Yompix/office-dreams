@@ -6,3 +6,4 @@ test/out/
 promo/
 dist/
 __pycache__/
+tools/i18n/*.part*.json
