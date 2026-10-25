@@ -2,7 +2,7 @@
 (() => {
 'use strict';
 const tr = window.tr || (s => s);
-const { T, V, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, mat, ctex, TX, box, plane, cyl, room, label, relabel, makeTextures } = window.__W3core;
+const { T, V, CINE, FINE, litMat, HD, rnd, lerp, clamp, ps1, glow, mat, ctex, TX, box, plane, cyl, room, label, relabel, makeTextures } = window.__W3core;
 const PI = Math.PI;
 let A = null;          // актёры
 const LAYY = .085;      // лежащее тело (поза 'lay'): корень на 8,5 см выше пола, иначе спина и бока уходили под пол на 10 см (World.clips)
@@ -34,8 +34,8 @@ function aoEdge(S, w, x, z, ry, ceilY) {
 function buildLobby() {
   const S = new T.Scene(), o = { S }; S.background = new T.Color(FOGC); o.fogD = .055; S.fog = new T.FogExp2(FOGC, o.fogD);
   // заполняющий свет слабый: свет — это лужи под лампами, между ними настоящая темнота
-  o.amb = new T.AmbientLight(0x6a7a90, .34); S.add(o.amb);
-  o.hemi = new T.HemisphereLight(0x6f86a0, 0x1a1410, .1); S.add(o.hemi);
+  o.amb = new T.AmbientLight(0x6a7a90, CINE ? .25 : .34); S.add(o.amb);   // «Кино»: заполнение слабее — свет лужами под лампами, стены уходят в темноту (было ровно, как вечером в офисе)
+  o.hemi = new T.HemisphereLight(0x6f86a0, 0x1a1410, CINE ? .07 : .1); S.add(o.hemi);
   // пол, потолок, стены
   const floor = plane(16, 12, mat(0xffffff, TX.marble), S); floor.rotation.x = -PI / 2;
   const ceil = plane(16, 12, mat(0xffffff, TX.ceil), S); ceil.rotation.x = PI / 2; ceil.position.y = 4.2;
@@ -54,10 +54,10 @@ function buildLobby() {
   o.ceilLights = [];
   for (let i = -2; i <= 2; i++) for (let j = -1; j <= 1; j++) {
     const on = !(i === -2 && j === 1) && !(i === 1 && j === -1);
-    const p = plane(1.1, .5, mat(on ? 0xe8f0e0 : 0x30322e, null, { basic: true, decal: 1 }), S); p.rotation.x = PI / 2; p.position.set(i * 3.2, 4.19, j * 3.4); o.ceilLights.push(p);
+    const p = plane(1.1, .5, mat(on ? 0xe8f0e0 : 0x30322e, null, on ? { basic: true, decal: 1, glow: 3 } : { basic: true, decal: 1 }), S); p.rotation.x = PI / 2; p.position.set(i * 3.2, 4.19, j * 3.4); o.ceilLights.push(p);
   }
-  o.ceilOn = mat(0xe8f0e0, null, { basic: true, decal: 1 });   // общий материал горящих панелей (смена гасит холл)
-  o.flick = plane(1.1, .5, ps1(new T.MeshBasicMaterial({ color: 0xe8f0e0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 })), S);   // свой материал: иначе мигали бы все панели o.flick.rotation.x = PI / 2; o.flick.position.set(-4.8, 4.18, 3.4);
+  o.ceilOn = mat(0xe8f0e0, null, { basic: true, decal: 1, glow: 3 });   // общий материал горящих панелей (смена гасит холл)
+  o.flick = plane(1.1, .5, glow(ps1(new T.MeshBasicMaterial({ color: 0xe8f0e0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 })), 3), S);   // свой материал: иначе мигали бы все панели o.flick.rotation.x = PI / 2; o.flick.position.set(-4.8, 4.18, 3.4);
   o.l1 = new T.PointLight(0xc8d8d0, 1.9, 13, 1.5); o.l1.position.set(-1, 3.8, 0); S.add(o.l1);
   o.l3 = new T.PointLight(0xb8c8d8, 1.3, 9, 1.5); o.l3.position.set(-.8, 3.6, -4.2); S.add(o.l3);
   o.l2 = new T.PointLight(0xffd9a0, .9, 9, 1.6); o.l2.position.set(-4.8, 3.7, 3.4); S.add(o.l2);   // ненадёжная лампа холла
@@ -95,7 +95,7 @@ function buildLobby() {
   box(1.4, .12, .04, mat(0x8a8d90, TX.metal), 0, 2.34, -.79, cab); box(.04, .12, 1.6, mat(0x8a8d90, TX.metal), -.69, 2.34, 0, cab); box(.04, .12, 1.6, mat(0x8a8d90, TX.metal), .69, 2.34, 0, cab);   // кант под потолком
   box(1.0, 1.2, .01, mat(0x9aa6ad, null, { emissive: 0x111518 }), 0, 1.4, -.77, cab);       // зеркало
   for (const [x, z, w, d] of [[0, -.75, 1.2, .03], [-.67, 0, .03, 1.4], [.67, 0, .03, 1.4]]) { const r = box(w, .035, d, mat(0xb8bcc0, TX.metal), x, .95, z, cab); r.castShadow = false; }   // поручень
-  box(.9, .06, .3, mat(0xfff6dc, null, { basic: true }), 0, 2.38, 0, cab);                                   // плафон
+  box(.9, .06, .3, mat(0xfff6dc, null, { basic: true, glow: 2.5 }), 0, 2.38, 0, cab);                                   // плафон
   const panel = box(.02, .5, .2, mat(0x222428, null, { decal: 1 }), .68, 1.2, .5, cab);
   o.cabInd = label(.22, .1, 40, 18, (c, w, h, s = '1') => { c.fillStyle = '#060303'; c.fillRect(0, 0, w, h); c.fillStyle = '#ff3a2a'; c.font = '700 15px monospace'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s, w / 2, h / 2 + 1); }, cab);
   o.cabInd.position.set(0, 2.25, .78); o.cabInd.rotation.y = PI;
@@ -180,7 +180,7 @@ function buildLobby() {
   const lampBase = cyl(.08, .1, .03, 8, mat(0x1f3a2a), S); lampBase.position.set(6.15, .81, -.15);
   box(.02, .38, .02, mat(0x1f3a2a), 6.15, 1.0, -.15, S);
   const shade = cyl(.06, .14, .14, 8, mat(0x1f5a3a, null, { emissive: 0x081a10 }), S); shade.position.set(6.05, 1.18, -.12); shade.rotation.z = .5;
-  o.lampBulb = box(.05, .03, .05, mat(0xffe8a0, null, { basic: true }), 6.0, 1.12, -.12, S);
+  o.lampBulb = box(.05, .03, .05, mat(0xffe8a0, null, { basic: true, glow: 3 }), 6.0, 1.12, -.12, S);
   o.lamp = new T.PointLight(0xffc46a, 1.6, 3.2, 1.5); o.lamp.position.set(5.95, 1.05, -.12); S.add(o.lamp);
   o.boothLight = new T.PointLight(0x9fe0c0, .6, 5, 1.6); o.boothLight.position.set(4.6, 1.4, -.2); S.add(o.boothLight);
   o.note = plane(.42, .28, mat(0xffffff, TX.note, { decal: 1 }), S); o.note.rotation.x = -PI / 2; o.note.rotation.z = PI + .12; o.note.position.set(5.35, .8085, -.27);   // раскрытый журнал смен
@@ -309,12 +309,12 @@ function buildLobby() {
   const road = plane(60, 20, mat(0xffffff, TX.asphalt), S); road.rotation.x = -PI / 2; road.position.set(0, -.05, 21);
   for (let x = -24; x < 24; x += 6) { const ln = plane(2.4, .15, mat(0xb8b8a8, null, { decal: 1 }), S); ln.rotation.x = -PI / 2; ln.position.set(x, -.04, 17); }
   // навес над входом
-  box(5, .2, 2.4, mat(0x1a1c1f), 0, 3.4, 7.2, S); o.canopyLamp = box(.6, .04, .3, mat(0xfff0d0, null, { basic: true }), 0, 3.29, 7.2, S);
+  box(5, .2, 2.4, mat(0x1a1c1f), 0, 3.4, 7.2, S); o.canopyLamp = box(.6, .04, .3, mat(0xfff0d0, null, { basic: true, glow: 3 }), 0, 3.29, 7.2, S);
   o.canopy = new T.PointLight(0xffe2b0, 1.5, 6, 1.6); o.canopy.position.set(0, 3.1, 7.2); S.add(o.canopy);   // свет сверху: глазницы в тени
   const sgn = plane(3, .55, mat(0xffffff, TX.signOut, { basic: true }), S); sgn.position.set(0, 3.95, 6.17);
   // фонарь
   const pole = cyl(.06, .08, 6, 6, mat(0x222428), S); pole.position.set(3.8, 3, 10.4);
-  box(1.2, .06, .06, mat(0x222428), 3.3, 5.95, 10.4, S); o.streetBulb = box(.4, .1, .2, mat(0xffb35a, null, { basic: true }), 2.8, 5.88, 10.4, S);
+  box(1.2, .06, .06, mat(0x222428), 3.3, 5.95, 10.4, S); o.streetBulb = box(.4, .1, .2, mat(0xffb35a, null, { basic: true, glow: 3 }), 2.8, 5.88, 10.4, S);
   o.street = new T.PointLight(0xff9a3a, 1.2, 16, 1.4); o.street.position.set(2.8, 5.6, 10.4); S.add(o.street);
   const pool = plane(4, 4, new T.MeshBasicMaterial({ color: 0xff9a3a, transparent: true, opacity: .12, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }), S); pool.rotation.x = -PI / 2; pool.position.set(2.8, .01, 10.6); ps1(pool.material);
   // машина у тротуара
@@ -337,11 +337,12 @@ function buildLobby() {
   // наше здание (над холлом) и дома напротив
   const fac = o.fac = plane(30, 36, mat(0xffffff, TX.facade, { emissive: 0x050608 }), S); fac.position.set(0, 4.2 + 18, 6.01);
   o.facLit = fac.material; o.facDark = mat(0xffffff, TX.facadeDark, { emissive: 0x030405 });
+  o.facLit.emissiveMap = TX.facadeEm; o.facLit.emissive.setHex(0xffffff);   // горящие окна светятся сами, а не только там, куда достаёт фонарь
   // окно над крышей: тёплый свет в воздухе, в раме — как будто там ещё один этаж
   o.ghostWin = new T.Group(); o.ghostWin.position.set(-3.1, 41.6, 6.0); S.add(o.ghostWin); o.ghostWin.visible = false;
   plane(1.5, 1.05, mat(0xffd9a0, null, { basic: true, fog: false }), o.ghostWin).position.z = .01;
   for (const [w, h, x, y] of [[1.7, .1, 0, .57], [1.7, .1, 0, -.57], [.1, 1.2, -.8, 0], [.1, 1.2, .8, 0], [.06, 1.1, 0, 0]]) box(w, h, .06, mat(0x0d0f12, null, { fog: false }), x, y, .03, o.ghostWin);
-  for (const [x, w, h] of [[-14, 9, 22], [-3, 10, 30], [9, 11, 18], [20, 9, 26]]) { const b = box(w, h, 6, mat(0xffffff, TX.facade, { emissive: 0x040506 }), x, h / 2, 34, S); }
+  for (const [x, w, h] of [[-14, 9, 22], [-3, 10, 30], [9, 11, 18], [20, 9, 26]]) { const b = box(w, h, 6, mat(0xffffff, TX.facade, { emissive: 0x040506 }), x, h / 2, 34, S); b.material.emissiveMap = TX.facadeEm; b.material.emissive.setHex(0xb0b0b0); }
   o.sky = new T.Mesh(new T.SphereGeometry(80, 12, 8), new T.MeshBasicMaterial({ map: TX.sky, side: T.BackSide, fog: false })); S.add(o.sky);
   // дождь
   const N = 700, pos = new Float32Array(N * 6); o.drops = [];
@@ -364,7 +365,7 @@ function buildLobby() {
     o.book.visible = o.saltPack.visible = o.saltGr.visible = o.fphone.visible = false; o.note.visible = o.noteCv.visible = true; o.drawer.position.z = -.44;
     for (const l of o.lifts) setLift(o, l, 0, '1');
     o.cabLight.intensity = 0; relabel(o.cabInd, '1');
-    o.lamp.intensity = 1.6; o.lampBulb.visible = true; o.boothLight.intensity = .6; o.l1.intensity = 1.9; o.amb.color.set(0x6a7a90); o.amb.intensity = .34; o.hemi.intensity = .1; o.l3.intensity = 1.3; o.l4.intensity = 1.25;
+    o.lamp.intensity = 1.6; o.lampBulb.visible = true; o.boothLight.intensity = .6; o.l1.intensity = 1.9; o.amb.color.set(0x6a7a90); o.amb.intensity = CINE ? .25 : .34; o.hemi.intensity = CINE ? .07 : .1; o.l3.intensity = 1.3; o.l4.intensity = 1.25;
     o.canopy.intensity = 1.5; o.canopyLamp.visible = true;
     o.sky.material.map = TX.sky; S.fog.color.set(FOGC); S.fog.density = o.fogD; S.background.set(FOGC); o.street.intensity = 1.2; o.rain.visible = true;
     o.dawn = 0; o.tubeOK = 1; o.flickOn = true; o.fac.material = o.facLit; o.ghostWin.visible = false; o.ghostWin.scale.setScalar(1); o.cat.visible = false; if (o.nmask) o.nmask.forEach(m => (m.visible = false));
@@ -539,13 +540,23 @@ function buildCorridor() {
   for (let z = -2.5; z > -len + 2; z -= 3.1) for (const s of [-1, 1]) {
     if (!(s === -1 && Math.abs(z - D7) < .01)) { const d = box(.06, 2.1, .95, mat(0xffffff, TX.door), s * (wd / 2 - .03), 1.05, z, S); if (s === 1 && Math.abs(z + 5.6) < .01) o.doorR10 = d; }
     const i = n++;
-    for (const fl of [7, 10]) { const num = fl * 100 + i; const pl = label(.2, .08, 32, 12, (c, w, h) => { c.fillStyle = '#c9b27a'; c.fillRect(0, 0, w, h); c.fillStyle = '#1b1b1b'; c.font = '700 10px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(num), w / 2, h / 2 + 1); }, o.plates[fl]);
+    for (const fl of [7, 10]) { const num = fl * 100 + i; const pl = label(.2, .08, 32, 12, (c, w, h) => { c.fillStyle = '#c9b27a'; c.fillRect(0, 0, w, h); c.fillStyle = '#1b1b1b'; c.font = '700 10px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(num), w / 2, h / 2 + 1); }, o.plates[fl], false);
       pl.position.set(s * (wd / 2 - .065), 1.75, z - .62); pl.rotation.y = -s * PI / 2; }
   }
   // номер этажа краской на торце у лифта (виден камере)
-  o.floorSign = {}; for (const fl of [7, 10]) { const sg = label(.6, .5, 48, 40, (c, w, h) => { c.clearRect(0, 0, w, h); c.fillStyle = '#d8d4c6'; c.font = '800 30px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(fl), w / 2, h / 2 + 2); }, S);
-    sg.rotation.y = PI; sg.position.set(.75, 1.75, -.012); sg.visible = fl === 7; o.floorSign[fl] = sg; }
+  o.floorSign = {}; for (const fl of [7, 10]) { const sg = label(.6, .5, 48, 40, (c, w, h) => { c.clearRect(0, 0, w, h); c.fillStyle = '#d8d4c6'; c.font = '800 30px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(fl), w / 2, h / 2 + 2); }, S, false);
+    sg.material.alphaTest = .5; sg.rotation.y = PI; sg.position.set(.75, 1.75, -.012); sg.visible = fl === 7; o.floorSign[fl] = sg; }   // краска на стене: только цифры (без чёрной подложки), освещается лампами
   o.setFloor = fl => { for (const k of [7, 10]) { o.plates[k].visible = k === fl; o.floorSign[k].visible = k === fl; } };
+  // мелочи на стенах (коридор не голый): огнетушитель на кронштейне, шкаф пожарного крана, кнопка пожарной тревоги, выключатели у дверей
+  { const red = mat(0x8a1414, null, { rough: .45 }), blk = mat(0x141414, null, { rough: .6 }), wht = mat(0xd8d6cc, null, { rough: .55 }), gl = mat(0x8fa0a8, null, { rough: .1, metal: .2 });
+    const ext = new T.Group(); ext.position.set(wd / 2 - .11, 0, -16.45); S.add(ext);
+    cyl(.075, .075, .44, 14, red, ext).position.y = .62; cyl(.06, .075, .06, 14, red, ext).position.y = .87; cyl(.018, .018, .07, 8, blk, ext).position.y = .92;
+    box(.03, .03, .16, blk, -.02, .95, .04, ext); box(.04, .14, .1, mat(0xd8d0b8, null, { decal: 1 }), -.072, .64, 0, ext);   // ручка, этикетка
+    box(.02, .05, .18, blk, .085, .78, 0, ext);   // кронштейн
+    const cab = new T.Group(); cab.position.set(-wd / 2 + .06, 1.25, -19.55); S.add(cab);
+    box(.12, .62, .5, red, 0, 0, 0, cab); box(.01, .5, .38, gl, .061, 0, 0, cab); box(.01, .05, .3, wht, .062, .29, 0, cab);
+    box(.04, .1, .1, red, -wd / 2 + .02, 1.45, -7.15, S); box(.01, .06, .06, wht, -wd / 2 + .041, 1.45, -7.15, S);   // кнопка тревоги
+    for (let z = -2.5; z > -len + 2; z -= 3.1) for (const sd of [-1, 1]) { if (sd === -1 && Math.abs(z - D7) < .01) continue; box(.012, .08, .05, wht, sd * (wd / 2 - .006), 1.08, z + .6 * sd, S); } }
   // офис на 10-м: одна дверь бывает приоткрыта (смена) — створка поворачивается внутрь, за ней свет или темнота
   o.door10 = new T.Group(); o.door10.position.set(wd / 2 - .03, 0, -5.6 - .475); S.add(o.door10); o.door10.visible = false;
   box(.05, 2.1, .95, mat(0xffffff, TX.door), 0, 1.05, .475, o.door10);
@@ -593,14 +604,14 @@ function buildCorridor() {
   o.smear.rotation.order = 'YXZ'; o.smear.rotation.x = -PI / 2; S.add(o.smear);
   // дверь 713 в торце, полоска света под ней
   box(1, 2.1, .06, mat(0xffffff, TX.door), 0, 1.05, -len + .03, S);
-  const p7 = label(.24, .1, 32, 12, (c, w, h) => { c.fillStyle = '#c9b27a'; c.fillRect(0, 0, w, h); c.fillStyle = '#5a0a0a'; c.font = '700 10px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('713', w / 2, h / 2 + 1); }, S); p7.position.set(0, 1.78, -len + .07);
-  o.slit = box(.95, .025, .02, mat(0xfff0c0, null, { basic: true }), 0, .012, -len + .07, S);
+  const p7 = label(.24, .1, 32, 12, (c, w, h) => { c.fillStyle = '#c9b27a'; c.fillRect(0, 0, w, h); c.fillStyle = '#5a0a0a'; c.font = '700 10px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('713', w / 2, h / 2 + 1); }, S, false); p7.position.set(0, 1.78, -len + .07);
+  o.slit = box(.95, .025, .02, mat(0xfff0c0, null, { basic: true, glow: 2 }), 0, .012, -len + .07, S);
   o.slitLight = new T.PointLight(0xffe0a0, .7, 2.5, 2); o.slitLight.position.set(0, .15, -len + .4); S.add(o.slitLight);
   // лампы под потолком
   o.lamps = [];
   for (let i = 0; i < 7; i++) {
     const z = -1.8 - i * 3.6;
-    const m = new T.MeshBasicMaterial({ color: 0xe8f0e8 }); ps1(m);
+    const m = new T.MeshBasicMaterial({ color: 0xe8f0e8 }); ps1(m); glow(m, 3);
     const tube = box(.9, .05, .25, m, 0, 2.97, z, S);
     const li = new T.PointLight(0xd8e8e0, 0, 7, 1.3); li.position.set(0, 2.7, z); S.add(li);
     o.lamps.push({ tube, li, on: 0 });
@@ -615,8 +626,8 @@ function buildCorridor() {
   // лужа неровная: край — сумма синусов, плюс отдельные брызги (круг выглядел как красный коврик)
   const bl = new T.Shape(); for (let i = 0; i <= 48; i++) { const a = i / 48 * PI * 2, r = .82 * (1 + .22 * Math.sin(3 * a + 1) + .13 * Math.sin(7 * a + 2.3) + .07 * Math.sin(13 * a + .4));
     i ? bl.lineTo(Math.cos(a) * r, Math.sin(a) * r) : bl.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
-  const bg = [new T.ShapeGeometry(bl)]; for (const [x, y, r] of [[1.05, .35, .09], [-.95, -.5, .06], [.4, -1.02, .07], [1.25, -.2, .045], [-.3, .98, .05]]) bg.push(new T.CircleGeometry(r, 7).translate(x, y, 0));
-  o.blood = new T.Mesh(T.BufferGeometryUtils ? T.BufferGeometryUtils.mergeGeometries(bg) : bg[0], new T.MeshLambertMaterial({ color: 0x2a0303, polygonOffset: true, polygonOffsetFactor: -4 }));
+  const bg = [new T.ShapeGeometry(bl)]; for (const [x, y, r] of [[1.05, .35, .09], [-.95, -.5, .06], [.4, -1.02, .07], [1.25, -.2, .045], [-.3, .98, .05]]) bg.push(new T.CircleGeometry(r, 16).translate(x, y, 0));
+  o.blood = new T.Mesh(T.BufferGeometryUtils ? T.BufferGeometryUtils.mergeGeometries(bg) : bg[0], CINE ? new T.MeshStandardMaterial({ color: 0x240202, roughness: .14, envMapIntensity: .8, polygonOffset: true, polygonOffsetFactor: -4 }) : new T.MeshLambertMaterial({ color: 0x2a0303, polygonOffset: true, polygonOffsetFactor: -4 }));   // «Кино»: кровь мокрая — в луже блестят лампы
   if (!T.BufferGeometryUtils) for (const g2 of bg.slice(1)) o.blood.add(new T.Mesh(g2, o.blood.material)); o.blood.rotation.x = -PI / 2; o.blood.scale.set(1, 1.6, 1); o.blood.position.set(0, .006, -12); S.add(o.blood);
   o.faceL = new T.PointLight(0xdde6ff, 0, 3.2, 2); S.add(o.faceL);
   o.irL = new T.PointLight(0xffffff, 0, 16, 1.2); S.add(o.irL);   // ИК-подсветка камеры смены (темно — камера видит в ч/б)
@@ -646,9 +657,15 @@ function buildCorridor() {
   o.drips = []; const dM = mat(0x3a0406, null, { basic: true });
   for (let i = 0; i < 7; i++) { const d = box(.012, .03, .012, dM, 0, 0, 0, S); d.visible = false; o.drips.push(d); }
   // брызги на стене у 707
-  const spT = ctex(64, 64, (x, w, h) => { x.clearRect(0, 0, w, h);
-    for (let i = 0; i < 46; i++) { const r = 1 + rnd() * rnd() * 7; x.fillStyle = `rgba(${70 + rnd() * 40 | 0},4,6,${.6 + rnd() * .4})`; x.beginPath(); x.arc(32 + (rnd() - .5) * 56 * rnd(), 28 + (rnd() - .5) * 44 * rnd(), r, 0, 7); x.fill(); }
-    for (let i = 0; i < 10; i++) { x.fillStyle = 'rgba(64,4,6,.85)'; x.fillRect(12 + rnd() * 40, 22 + rnd() * 16, 1 + rnd() * 2, 10 + rnd() * 30); } });
+  // брызги — как от удара: рваное пятно, вытянутые капли от центра с «хвостиками», потёки вниз с каплей на конце; цвет тёмный, к краям — запёкшийся
+  const spT = ctex(64, 64, (x, w, h) => { x.clearRect(0, 0, w, h); const cx = 30, cy = 26, col = a => `rgba(${48 + rnd() * 30 | 0},${2 + rnd() * 4 | 0},${3 + rnd() * 4 | 0},${a})`;
+    for (let i = 0; i < 70; i++) { const a = rnd() * 6.283, d = Math.pow(rnd(), 1.8) * 9; x.fillStyle = col(.75 + rnd() * .25); x.beginPath(); x.arc(cx + Math.cos(a) * d * 1.3, cy + Math.sin(a) * d, 1.2 + rnd() * 2.6, 0, 7); x.fill(); }   // ядро
+    for (let i = 0; i < 38; i++) { const a = rnd() * 6.283, d = 9 + Math.pow(rnd(), .7) * 22, L = 1 + rnd() * 3.5, r = .4 + rnd() * 1.3;   // разлёт: капля вытянута от центра, хвостик назад
+      x.save(); x.translate(cx + Math.cos(a) * d * 1.25, cy + Math.sin(a) * d * .9); x.rotate(a); x.fillStyle = col(.7 + rnd() * .3);
+      x.beginPath(); x.ellipse(0, 0, r * (1 + L * .4), r, 0, 0, 7); x.fill(); x.fillRect(-r * L * 1.6, -r * .3, r * L * 1.6, r * .6); x.restore(); }
+    for (let i = 0; i < 9; i++) { let px = cx - 8 + rnd() * 16, py = cy + 2 + rnd() * 5, wd = .8 + rnd() * 1.4; const len = 10 + rnd() * 26; x.fillStyle = col(.85);   // потёки
+      for (let k = 0; k < len; k++) { x.fillRect(px - wd / 2, py + k, wd, 1.2); px += (rnd() - .5) * .35; wd = Math.max(.5, wd * (.985 + rnd() * .02)); }
+      x.beginPath(); x.arc(px, py + len, wd * .9, 0, 7); x.fill(); } });
   o.splat = plane(1.1, 1.3, ps1(new T.MeshLambertMaterial({ map: spT, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 })), S);
   o.splat.rotation.y = PI / 2; o.splat.position.set(-wd / 2 + .004, 1.15, zA + .45); o.splat.visible = false;
   const _h = new T.Vector3(), _bb = new T.Vector3();
@@ -708,25 +725,30 @@ function setLamps(o, n, fromNear = false) {   // n ламп горит: от д�
 }
 
 /* ---------- серверная / комната тринадцатой камеры ---------- */
+const _tubeC = new T.Color(0xcfeee2);
 function buildServer() {
   const S = new T.Scene(), o = { S }; S.background = new T.Color(FOGC); o.fogD = .085; S.fog = new T.FogExp2(FOGC, o.fogD);
   o.amb = new T.AmbientLight(0x4a5050, .24); S.add(o.amb);
   o.cold = new T.PointLight(0x7fd0b0, 1.2, 7, 1.4); o.cold.position.set(-2.4, 2.4, 0); S.add(o.cold);
   o.cold2 = new T.PointLight(0x7fd0b0, 1.0, 7, 1.4); o.cold2.position.set(2.4, 2.4, -1); S.add(o.cold2);
+  // у холодного света есть источник: подвесные люминесцентные трубки на тросиках (вторая — ненадёжная, гаснет вместе со своей лампой)
+  o.coldTubes = [o.cold, o.cold2].map(l => { const g = new T.Group(); g.position.set(l.position.x, 2.5, l.position.z); S.add(g); const tm = glow(ps1(new T.MeshBasicMaterial({ color: 0xcfeee2 })), 3);
+    box(.2, .05, 1.25, mat(0x2a2e2e, null, { metal: .4, rough: .5 }), 0, .045, 0, g); box(.07, .035, 1.15, tm, 0, 0, 0, g);
+    for (const dz of [-.5, .5]) box(.006, .44, .006, mat(0x111111), 0, .29, dz, g); return tm; });
   const fl = plane(8, 7, mat(0xffffff, TX.concrete), S); fl.rotation.x = -PI / 2;
   const ce = plane(8, 7, mat(0x2a2a2a), S); ce.rotation.x = PI / 2; ce.position.y = 3;
   const wm = mat(0xffffff, TX.concrete);
   for (const [w, x, z, ry] of [[8, 0, -3.5, 0], [7, -4, 0, PI / 2], [7, 4, 0, -PI / 2], [8, 0, 3.5, PI]]) { const p = plane(w, 3, wm, S); p.position.set(x, 1.5, z); p.rotation.y = ry; }
   for (const [w, x, z, ry] of [[8, 0, -3.5, 0], [7, -4, 0, PI / 2], [7, 4, 0, -PI / 2], [8, 0, 3.5, PI]]) aoEdge(S, w, x, z, ry, 3);
-  const rm = mat(0xffffff, TX.rack, { emissive: 0x0a140c });
+  const rm = mat(0xffffff, TX.rack, { emissive: 0x0a140c }); rm.emissiveMap = TX.rackEm; rm.emissive.setHex(0xffffff);   // светодиоды светятся сами
   for (let i = 0; i < 6; i++) { box(.8, 2.1, .9, rm, -3.4, 1.05, -2.6 + i * 1.0, S); box(.8, 2.1, .9, rm, 3.4, 1.05, -2.6 + i * 1.0, S); }
   for (let i = 0; i < 4; i++) box(.9, 2.1, .8, rm, -1.5 + i * 1.0, 1.05, -3.1, S);
   for (let i = 0; i < 12; i++) { const c = box(.03, .03, 3 + rnd() * 2, mat(0x101010), lerp(-3, 3, rnd()), 2.95 - rnd() * .2, 0, S); c.rotation.y = rnd() * PI; }
-  o.salt = plane(2.2, 2.2, new T.MeshBasicMaterial({ map: TX.salt, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }), S); o.salt.rotation.x = -PI / 2; o.salt.position.y = .012; ps1(o.salt.material);
+  o.salt = plane(2.2, 2.2, CINE ? new T.MeshStandardMaterial({ map: TX.salt, emissiveMap: TX.salt, emissive: 0x8e8c84, roughness: .85, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }) : new T.MeshBasicMaterial({ map: TX.salt, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }), S);   // «Кино»: соль освещается свечами (светилась сама, как неон), но и в полутьме круг виден — он важен по сюжету o.salt.rotation.x = -PI / 2; o.salt.position.y = .012; ps1(o.salt.material);
   for (let i = 0; i < 5; i++) { const c = cyl(.02, .025, .12, 6, mat(0xe8e0c8, null, { emissive: 0x302010 }), S); const a = i / 5 * PI * 2; c.position.set(Math.cos(a) * 1.25, .06, Math.sin(a) * 1.25); }   // свечи
   o.candle = new T.PointLight(0xffb060, 1.2, 5, 1.6); o.candle.position.set(0, .5, .4); S.add(o.candle);
   o.red = new T.PointLight(0xff2020, .9, 9, 1.5); o.red.position.set(0, 2.8, 2.6); S.add(o.red);
-  box(.25, .12, .08, mat(0xff2020, null, { basic: true }), 0, 2.92, 3.4, S);
+  box(.25, .12, .08, mat(0xff2020, null, { basic: true, glow: 2 }), 0, 2.92, 3.4, S);
   o.door = box(.94, 2.0, .06, mat(0x6a6e70, TX.metal, { metal: .55, rough: .5 }), 2, 1.0, 3.47, S);   // железная — как со стороны подвала
   o.rim = new T.PointLight(0xa0c0d0, 2.6, 5, 1.3); o.rim.position.set(1.4, 2.7, .9); S.add(o.rim);
   box(.18, .12, .3, mat(0xd0d0d0), 3.7, 2.8, 3.2, S);   // сама камера 13
@@ -739,7 +761,7 @@ function buildServer() {
     const txt = ['НЕ ЗОВИ МЕНЯ.', 'СТУЧИ ТРИ РАЗА', 'ОНО ГОВОРИТ МАМИНЫМ ГОЛОСОМ']; o.sheets = [];
     txt.forEach((tx, i) => { const sh = label(.21, .3, 96, 136, (c, w, h) => { c.fillStyle = '#ece6d6'; c.fillRect(0, 0, w, h); c.fillStyle = '#1c1c2c'; c.font = '700 15px "Comic Sans MS", "Segoe Print", cursive'; c.textAlign = 'center';
         const ws = tr(tx).split(' '); let ln = '', y = 46; for (const wd of ws) { const t2 = ln ? ln + ' ' + wd : wd; if (c.measureText(t2).width > w - 10 && ln) { c.fillText(ln, w / 2, y); ln = wd; y += 20; } else ln = t2; } if (ln) c.fillText(ln, w / 2, y);
-        c.fillStyle = 'rgba(190,190,180,.85)'; c.fillRect(w / 2 - 10, 2, 20, 9); }, S, false);   // полоска скотча сверху
+        c.fillStyle = 'rgba(190,190,180,.85)'; c.fillRect(w / 2 - 10, 2, 20, 9); }, S, true);   // полоска скотча сверху (листы читаются и в полутьме — светятся, как было)
       sh.position.set(2.995, 1.55 - i * .36, 2.05 + (i % 2) * .22); sh.rotation.y = -PI / 2; sh.rotation.z = (i - 1) * .06; o.sheets.push(sh); });
   }
   o.reset = () => { o.faceL.intensity = 0; o.salt.visible = true; o.candle.intensity = 1.2; o.red.intensity = 1.4; o.amb.intensity = .24; o.cold.intensity = 1.35; o.cold2.intensity = 1.1; o.rim.intensity = 2.6; S.fog.density = o.fogD; o.flickOn = true; o.tubeOK = 1; o.cold2Base = null; };
@@ -747,6 +769,7 @@ function buildServer() {
     o.candle.intensity = 1.1 + Math.sin(t * 17) * .12 + Math.sin(t * 7) * .08; o.red.intensity = 1.0 + .6 * (Math.sin(t * 2.4) > 0 ? 1 : 0);
     if (o.cold2Base == null) o.cold2Base = o.cold2.intensity;   // ненадёжная холодная лампа над стойками справа
     const f = o.flickOn ? unreliable(t, 5) : 1; o.tubeOK = f; o.cold2.intensity = o.cold2Base * (f ? 1 : .08);
+    o.coldTubes.forEach((m, i) => m.color.setScalar(clamp((i ? o.cold2 : o.cold).intensity / 1.1, .03, 1.2)).multiply(_tubeC));
   };
   return o;
 }
@@ -786,11 +809,11 @@ function buildStairs() {
     // дверь этажа на передней стене (справа), коробка, номер этажа краской слева от двери
     const dr = box(.9, 2.05, .05, mat(0x5a6a66, TX.door), .75, y0 + 1.025, -.03, S); o.doors.push(dr);
     box(1.0, .07, .08, rail, .75, y0 + 2.08, -.04, S); for (const dx of [-.48, .48]) box(.06, 2.1, .08, rail, .75 + dx, y0 + 1.05, -.04, S);
-    const sg = label(.5, .4, 50, 40, (c, w, h, s = String(k - 2)) => { c.clearRect(0, 0, w, h); c.fillStyle = '#d8d4c6'; c.font = '800 30px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s, w / 2, h / 2 + 2); }, S);
-    sg.rotation.y = PI; sg.position.set(-.35, y0 + 1.65, -.012); o.signs.push(sg);
+    const sg = label(.5, .4, 50, 40, (c, w, h, s = String(k - 2)) => { c.clearRect(0, 0, w, h); c.fillStyle = '#d8d4c6'; c.font = '800 30px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s, w / 2, h / 2 + 2); }, S, false);
+    sg.material.alphaTest = .5; sg.rotation.y = PI; sg.position.set(-.35, y0 + 1.65, -.012); o.signs.push(sg);
     // лампа-«бочка» над средней площадкой и над дверью
     for (const [lx, ly, lz] of [[0, y0 + 3.9, -5.85], [.75, y0 + 2.45, -.06]]) {
-      const sh = box(.2, .12, .08, mat(0xfff2d0, null, { basic: true }), lx, ly, lz, S);
+      const sh = box(.2, .12, .08, mat(0xfff2d0, null, { basic: true, glow: 3 }), lx, ly, lz, S);
       const li = new T.PointLight(0xffe2b0, 1.5, 7, 1.5); li.position.set(lx, ly - .12, lz + (lz < -3 ? .3 : -.3)); S.add(li); o.bulbs.push({ li, sh, base: 1.5 });
     }
   }
@@ -822,7 +845,7 @@ function buildBasement() {
   // лампы в сетке: средняя ненадёжная
   o.bulbs = [];
   for (const z of [-2.4, -7.2, -12.0]) {
-    const bulb = box(.08, .1, .08, mat(0xffe8b8, null, { basic: true }), 0, hgt - .14, z, S);
+    const bulb = box(.08, .1, .08, mat(0xffe8b8, null, { basic: true, glow: 3 }), 0, hgt - .14, z, S);
     for (let i = 0; i < 4; i++) { const w = box(.012, .14, .012, mat(0x202020), Math.cos(i * PI / 2) * .06, hgt - .12, z + Math.sin(i * PI / 2) * .06, S); }
     const li = new T.PointLight(0xffd8a0, 1.6, 6.5, 1.6); li.position.set(0, hgt - .25, z); S.add(li); o.bulbs.push({ li, bulb, base: 1.6 });
   }
@@ -835,7 +858,7 @@ function buildBasement() {
   const dm = mat(0x6a6e70, TX.metal, { metal: .55, rough: .5 });
   box(.94, 2.0, .05, dm, -.47, 1.0, 0, o.sdoor); box(.12, .025, .05, fr, -.85, 1.02, .05, o.sdoor);   // полотно, ручка
   for (const y of [.25, 1.75]) box(.7, .06, .012, mat(0x50565a, null, { metal: .5 }), -.47, y, .03, o.sdoor);   // рёбра жёсткости
-  const sg = label(.7, .16, 70, 16, (c, w, h) => { c.fillStyle = '#1e3a6e'; c.fillRect(0, 0, w, h); c.fillStyle = '#e8eef8'; c.font = '700 10px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tr('СЕРВЕРНАЯ'), w / 2, h / 2 + 1); }, S);
+  const sg = label(.7, .16, 70, 16, (c, w, h) => { c.fillStyle = '#1e3a6e'; c.fillRect(0, 0, w, h); c.fillStyle = '#e8eef8'; c.font = '700 10px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tr('СЕРВЕРНАЯ'), w / 2, h / 2 + 1); }, S, false);
   sg.rotation.y = 0; sg.position.set(0, 2.25, D + .08);
   // полоска света под дверью: свеча за дверью (её свет на полу коридора — мягкое пятно)
   o.slit = plane(.86, .014, mat(0xffb060, null, { basic: true }), S); o.slit.position.set(0, .008, D + .045);
@@ -852,8 +875,8 @@ function buildBasement() {
     o.slitShadow = plane(.3, .016, mat(0x000000, null, { basic: true }), S); o.slitShadow.position.set(0, .0085, D + .047); o.slitShadow.visible = false; }
   // за дверью: пол, стены, стойки, круг соли у порога, свеча
   const rm = room(3.4, hgt, 3.6, mat(0x1c1e1e, TX.concrete), S); rm.position.set(0, 0, D - 1.8);
-  for (const x of [-1.2, 1.2]) box(.6, 2.0, .8, mat(0xffffff, TX.rack, { emissive: 0x081008 }), x, 1.0, D - 2.6, S);
-  o.salt = plane(1.9, 1.9, new T.MeshBasicMaterial({ map: TX.salt, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }), S);
+  for (const x of [-1.2, 1.2]) { const m = mat(0xffffff, TX.rack, { emissive: 0x081008 }); m.emissiveMap = TX.rackEm; m.emissive.setHex(0xd0d0d0); box(.6, 2.0, .8, m, x, 1.0, D - 2.6, S); }
+  o.salt = plane(1.9, 1.9, CINE ? new T.MeshStandardMaterial({ map: TX.salt, emissiveMap: TX.salt, emissive: 0x8e8c84, roughness: .85, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }) : new T.MeshBasicMaterial({ map: TX.salt, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }), S);   // как в серверной: освещается
   o.salt.rotation.x = -PI / 2; o.salt.position.set(0, .012, D - .95); ps1(o.salt.material);
   const cnd = cyl(.022, .026, .14, 8, mat(0xe8e0c8, null, { emissive: 0x302010 }), S); cnd.position.set(-.55, .07, D - .55);
   o.candle = new T.PointLight(0xffb060, 1.0, 4, 1.6); o.candle.position.set(-.55, .32, D - .55); S.add(o.candle);
@@ -1970,15 +1993,18 @@ const DUST_FS = `varying float vA; void main(){ vec2 d = gl_PointCoord - .5; flo
 // Теперь контровой свет и фонарь создаются сразу, недостающие лампы — пустые (сила 0, радиус 1 мм: шейдер их пропускает),
 // лампы внутри групп (кабина лифта, автомат) — прямо в сцене: отражение в стекле прячет группы, и число ламп не прыгает
 function lightRig(L) {
-  const cnt = o => { const n = { p: 0, s: 0, h: 0 }; o.S.traverse(l => { if (l.isPointLight) n.p++; else if (l.isSpotLight) n.s++; else if (l.isHemisphereLight) n.h++; }); return n; };
+  const cnt = o => { const n = { p: 0, m: 0, s: 0, h: 0 }; o.S.traverse(l => { if (l.isPointLight) n.p++; else if (l.isSpotLight) n[l.map ? 'm' : 's']++; else if (l.isHemisphereLight) n.h++; }); return n; };
   for (const k in L) { const o = L[k], S = o.S, nest = [];
     S.traverse(l => { if (l.isLight && l.parent !== S) nest.push(l); }); nest.forEach(l => S.attach(l));
-    if (!o.rimC) { const l = o.rimC = new T.PointLight(0xbfd4ff, 0, 3.2, 1.6); l.castShadow = false; S.add(l); }
-    if (!o.torch && /^(corridor|stairs|basement)$/.test(k)) { const l = o.torch = new T.SpotLight(0xfff0d8, 0, 0, .28, .5, 1); S.add(l, l.target); } }
-  const N = { p: 0, s: 0, h: 0 }; for (const k in L) { const n = cnt(L[k]); for (const q in N) N[q] = Math.max(N[q], n[q]); }
+    if (!o.rimC) { const l = o.rimC = new T.SpotLight(0xbfd4ff, 0, 3.2, .5, .7, 1.6); l.castShadow = false; S.add(l, l.target); }   // контровой — прожектор из-за головы на голову: стена за актёром не светится «нимбом»
+    if (!o.torch && /^(corridor|stairs|basement)$/.test(k)) { const l = o.torch = new T.SpotLight(0xfff0d8, 0, 0, .3, .35, 1); S.add(l, l.target); }
+    for (const l of [o.torch, o.etorch]) if (l) l.map = TX.torch; }   // фонарь — с «маской»: горячее пятно, кольцо отражателя, мягкий край
+  const N = { p: 0, m: 0, s: 0, h: 0 }; for (const k in L) { const n = cnt(L[k]); for (const q in N) N[q] = Math.max(N[q], n[q]); }
   for (const k in L) { const o = L[k], S = o.S, n = cnt(o); o.pad = new Set();
+    const spot = map => { const l = new T.SpotLight(0, 0, .001, .1, 0, 1); l.map = map; l.position.set(0, -60, 0); S.add(l, l.target); o.pad.add(l); };
     for (; n.p < N.p; n.p++) { const l = new T.PointLight(0, 0, .001, 1); l.position.set(0, -60, 0); S.add(l); o.pad.add(l); }
-    for (; n.s < N.s; n.s++) { const l = new T.SpotLight(0, 0, .001, .1, 0, 1); l.position.set(0, -60, 0); S.add(l, l.target); o.pad.add(l); }
+    for (; n.m < N.m; n.m++) spot(TX.torch);
+    for (; n.s < N.s; n.s++) spot(null);
     for (; n.h < N.h; n.h++) { const l = new T.HemisphereLight(0, 0, 0); S.add(l); o.pad.add(l); } }
   return N;
 }
@@ -2061,24 +2087,28 @@ function cinePost() {
         uv += d * uScare * .05 * (h(vec2(fr, 3.)) - .5);                                        // скример: картинку рвёт к центру
         float ca = (.0012 + .012 * uScare) * (.25 + r * r * 1.4);
         vec3 c = vec3(texture2D(tD, uv + d * ca).r, texture2D(tD, uv).g, texture2D(tD, uv - d * ca).b);
+        if (uCctv > .5) { vec2 px = uAsp > 1. ? vec2(1.6 / 960., 1.6 / 540.) : vec2(1.6 / 540., 1.6 / 960.);   // камера наблюдения — дешёвая оптика и сжатие: картинка мягче «кино»
+          c = mix(c, (texture2D(tD, uv + px).rgb + texture2D(tD, uv - px).rgb + texture2D(tD, uv + vec2(px.x, -px.y)).rgb + texture2D(tD, uv - vec2(px.x, -px.y)).rgb) * .25, .6); }
         if (uScare > .02) {   // скример: рывок к центру смазывает картинку, свет режет красным
           vec3 z = c; for (int i = 1; i < 7; i++) z += texture2D(tD, uv - d * float(i) * .018 * uScare).rgb; c = mix(c, z / 7., min(1., uScare * 1.3));
           c *= vec3(1. + .5 * uScare, 1. - .25 * uScare, 1. - .3 * uScare);
         }
         vec3 bl = texture2D(tBl, uv).rgb;
         c = mix(c, bl, smoothstep(.62, 1.25, r) * .7 * (1. - uCctv));                          // глубина резкости: края кадра мягче
-        c += max(bl - .38, 0.) * 1.35 + bl * vec3(.07, .035, .02);                              // свечение ламп и ореол
+        vec3 glw = max(bl - .6, 0.);   // светятся только лампы (они в HDR ярче белого — glow() в world.js), а не белая рубашка рядом
+        c += glw * 1.15 + glw * vec3(.4, .14, .05) * (1. - uCctv) + bl * vec3(.04, .022, .014);  // свечение ламп; тёплая кайма вокруг ярких мест (халация плёнки)
         c = aces(c * uExp);
         c = mix(c * 12.92, 1.055 * pow(max(c, vec3(.0031308)), vec3(1. / 2.4)) - .055, step(.0031308, c));
-        c = pow(c, vec3(1.18));                                                                  // ночь: тени глубже
+        c = pow(c, vec3(1.15)) * .988 + .012;                                                   // ночь: тени глубже, но чёрное — не «дыра» (чёрная точка ~.012)
         float l = dot(c, vec3(.299, .587, .114));
-        c = mix(c * vec3(.86, 1.0, 1.07) + vec3(0., .008, .018), c * vec3(1.06, .99, .9), smoothstep(.18, .7, l));   // холодные тени, тёплый свет
-        c = mix(vec3(l), c, .88);
+        float sk = smoothstep(.012, .07, c.r - c.g) * smoothstep(-.01, .04, c.g - c.b) * smoothstep(.03, .14, l);   // тёплые тона (кожа, дерево, лампы): холодный сдвиг теней их не трогает — лицо не зеленеет
+        c = mix(c * mix(vec3(.86, 1.0, 1.07), vec3(.97, .99, 1.), sk) + vec3(0., .008, .018) * (1. - .7 * sk), c * vec3(1.06, .99, .9), smoothstep(.18, .7, l));   // холодные тени, тёплый свет
+        c = mix(vec3(l), c, .88 + .07 * sk);
         c = mix(c, vec3(l) * vec3(.86, 1., .9), uCctv * .55) + max(c - .6, 0.) * uCctv * .8;
         c = mix(c, vec3(pow(l, .78) * 1.2) * vec3(.9, 1., .94), uIr);                          // ИК-режим камеры: ч/б, светлее у объектива
         c *= 1. - uCctv * .09 * step(1., mod(floor(gl_FragCoord.y / 2.), 2.));
         c *= 1. - smoothstep(.55, 1.5, r) * .6;                                                   // виньетка
-        c += (h(gl_FragCoord.xy + fract(uT * 7.13) * 731.) - .5) * (.035 + uCctv * .05 + uVhs * .015);   // зерно
+        c += (h(gl_FragCoord.xy + fract(uT * 7.13) * 731.) - .5) * (.03 * (.45 + 2.2 * l * (1. - l)) + uCctv * .05 + uVhs * .015);   // зерно: сильнее в полутонах, слабее в чёрном и белом
         if (uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.) c = vec3(0.);
         gl_FragColor = vec4(c, 1.); }` });
 }
@@ -2329,11 +2359,14 @@ function draw(g, W, H, id, o) {
   aim(cam, sh.pos, sh.look, sh.fov, o.cx ?? .5, o.cy ?? .5, o.z ?? 1, o.sx || 0, o.sy || 0);
   if (sh.roll) cam.rotateZ(typeof sh.roll === 'function' ? sh.roll(t) : sh.roll);   // завал горизонта: упал на пол, голова набок
   // фонарь в руке: луч туда, куда показывает палец (o.torch = {x, y} — доли экрана)
-  if (!loc.torch && /^(corridor|stairs|basement)$/.test(loc.name)) { const l = loc.torch = new T.SpotLight(0xfff0d8, 0, 0, .28, .5, 1); loc.S.add(l, l.target); }
+  if (!loc.torch && /^(corridor|stairs|basement)$/.test(loc.name)) { const l = loc.torch = new T.SpotLight(0xfff0d8, 0, 0, .3, .35, 1); l.map = TX.torch; loc.S.add(l, l.target); }
   // крупный план: контровой свет из-за головы (холодный, сверху-сзади) — волосы и плечи отделяются от тёмного фона, лицо объёмнее
-  { if (!loc.rimC) { const l = loc.rimC = new T.PointLight(0xbfd4ff, 0, 3.2, 1.6); l.castShadow = false; loc.S.add(l); }
+  { if (!loc.rimC) { const l = loc.rimC = new T.SpotLight(0xbfd4ff, 0, 3.2, .5, .7, 1.6); l.castShadow = false; loc.S.add(l, l.target); }
     let best = null, bd = 1.3; for (const k of used) { const C = A[k]; if (!C.bone || !C.bone.Head || C.o.monster) continue; C.bone.Head.getWorldPosition(_hp); const d = _hp.distanceTo(cam.position); if (d < bd) { bd = d; best = _hp.clone(); } }
-    const l = loc.rimC; if (best && !sh.noRim) { _hd.copy(best).sub(cam.position); _hd.y = 0; _hd.normalize(); l.position.copy(best).addScaledVector(_hd, .9).add(_p.set(0, .7, 0)); l.intensity += (((CINE ? .7 : .9) * (sh.rim ?? 1)) - l.intensity) * .3; } else l.intensity *= .7; }   // подальше и повыше: ободок, а не блик-пятно на макушке
+    const l = loc.rimC; if (best && !sh.noRim) { _hd.copy(best).sub(cam.position); _hd.y = 0; _hd.normalize(); l.position.copy(best).addScaledVector(_hd, .9).add(_p.set(0, .7, 0)); l.target.position.copy(best); l.target.updateMatrixWorld(); l.intensity += (((CINE ? .7 : .9) * (sh.rim ?? 1)) - l.intensity) * .3; } else l.intensity *= .7;   // подальше и повыше: ободок, а не блик-пятно на макушке
+    if (CINE && best && sh.fog == null && loc.S.fog) loc.S.fog.density *= 1.45;
+    // «Кино», крупный план: слабый свет у объектива (как маленький прибор у камеры на площадке) — блик в глазах и чуть заполнения; кадр, где лицо задумано тёмным, — sh.noRim
+    if (CINE && best && !sh.noRim && loc.faceL && !loc.faceL.intensity) { const l = loc.faceL; cam.updateMatrixWorld(); l.position.set(.22, .12, 0).applyMatrix4(cam.matrixWorld); l.intensity = .22; l.distance = 2.6; l.color.setHex(0xfff2e6); } }   // «Кино», крупный план: фон глубже уходит в темноту — лицо отделяется от фона (как отрицательная заливка на площадке)
   const tor = o.torch || sh.torch;   // кадр сам может держать фонарь (sh.torch = {x, y}) — например, спуск по лестнице
   if (loc.torch) { const l = loc.torch; l.intensity = tor ? 9 : 0;
     if (tor) { cam.updateMatrixWorld(); l.position.set(.18, -.25, 0).applyMatrix4(cam.matrixWorld); _p.set(tor.x * 2 - 1, 1 - tor.y * 2, .5).unproject(cam).sub(cam.position).normalize().multiplyScalar(10).add(cam.position);
