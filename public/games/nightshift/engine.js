@@ -14,7 +14,8 @@ if (window.trStory) window.trStory(S);
 if (EN) {   // статичные надписи страницы
   document.documentElement.lang = LNG;
   for (const b of document.querySelectorAll('[title]')) { b.title = tr(b.title); b.setAttribute('aria-label', b.title); }
-  const kk = document.getElementById('keys'); if (kk) for (const d of kk.children) if (d.lastChild && d.lastChild.nodeType === 3) d.lastChild.textContent = tr(d.lastChild.textContent);
+  const kk = document.getElementById('keys'); if (kk) for (const d of kk.children) { const kb = d.querySelector('kbd'); if (kb) kb.textContent = tr(kb.textContent);   // и сама клавиша («мышь» оставалась по-русски)
+    if (d.lastChild && d.lastChild.nodeType === 3) d.lastChild.textContent = tr(d.lastChild.textContent); }
 }
 const cv = $('cv'), g = cv.getContext('2d');
 let W = 1080, H = 1920, US = 1, CS = (() => { const q = /[?&]cs=([\d.]+)/.exec(location.search); return q ? Math.max(.25, Math.min(1, +q[1])) : 1; })();   // ?cs=0.5 — меньший холст (автопроверка кадров); холст движка: 1080×1920 вертикально или 1920×1080 горизонтально; US — масштаб надписей на холсте; CS — масштаб холста (слабый телефон — 2/3)
@@ -437,9 +438,9 @@ function placeOf(img, fx) {
 // тихие перемены в холле: часы встали на 03:00, куртка Михалыча пропала после открытой двери, фото на пропуске исцарапано
 function propsNow() {
   const book = flags.jread ? 0 : 1;   // журнал Фрэнка на столе перевязан, пока Итан его не прочитал (02:50)
-  if (mode === 'shift' && shf) return { sh: shiftProps(), book, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1 };   // куртка и пропуск на камерах смены — как в сценах (в A1 куртка висела снова, а под стойкой её не было)
+  if (mode === 'shift' && shf) return { sh: shiftProps(), book, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1, fphone: flags.fphone ? 1 : 0 };   // куртка и пропуск на камерах смены — как в сценах (в A1 куртка висела снова, а под стойкой её не было)
   const tm = toMin(lastTime) < toMin('03:00') ? lastTime : '03:00';   // до трёх часы идут (ночь с 21:00 — строки «21:00» < «03:00» не сравнить: в прологе стояли на трёх), в три встают
-  return Object.assign({ clock: tm, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1, book }, scene && scene.props, beat && beat.props);
+  return Object.assign({ clock: tm, jacket: flags.opened ? 0 : 1, badge: flags.mih ? 'scratched' : 1, book, fphone: flags.fphone ? 1 : 0 }, scene && scene.props, beat && beat.props);   // fphone — телефон Фрэнка на зарядке на столе
 }
 function gameClock(withSec = true) {
   const [h, m] = lastTime.split(':').map(Number), s = h * 3600 + m * 60 + secBase + Math.floor(Math.max(0, now() - sceneT0)), p2 = v => String(v).padStart(2, '0');
@@ -805,7 +806,7 @@ const MG = {
       if (k >= N) return fin(true);
       const bad = Math.random() < .5 ? 'L' : 'R';
       mgView = { img: 'run_lit', c: [.5, .5, 1, 1.04], t0: mgView ? mgView.t0 : now(), dur: 1e9, run: bad };
-      mgEl.innerHTML = `<div class="mghead">${th.title}<small>${tr(bad === 'L' ? 'Свет гаснет СЛЕВА — беги ВПРАВО →' : 'Свет гаснет СПРАВА — беги ← ВЛЕВО')} (${k + 1}/${N})</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="rt" style="width:100%"></i></div></div><div class="arrows"><button data-d="L" aria-label="Влево">${ICON.left}</button><button data-d="R" aria-label="Вправо">${ICON.right}</button></div>`;
+      mgEl.innerHTML = `<div class="mghead">${th.title}<small>${tr(bad === 'L' ? 'Свет гаснет СЛЕВА — беги ВПРАВО →' : 'Свет гаснет СПРАВА — беги ← ВЛЕВО')} (${k + 1}/${N})</small></div><div class="mgfoot" style="bottom:72%"><div class="meter"><i id="rt" style="width:100%"></i></div></div><div class="arrows"><button data-d="L" aria-label="${tr('Влево')}">${ICON.left}</button><button data-d="R" aria-label="${tr('Вправо')}">${ICON.right}</button></div>`;
       mgEl.classList.remove('hide'); play('steps', { gain: .8 }); shakeAmp = 14;
       const t0 = now(), lim = Math.max(1.3, 2.6 - k * .2); let ok = false;
       mgEl.querySelectorAll('.arrows button').forEach(b => b.onclick = () => { if (ok) return; ok = true; if (b.dataset.d === bad) return fin(false); play('click'); k++; step(); });
@@ -1303,7 +1304,8 @@ function resumeAfterReload() {   // после перезагрузки (сме�
     for (const k in flags) delete flags[k]; Object.assign(flags, st.flags || {}); falseAlarm = !!st.falseAlarm; if (st.lastTime) lastTime = st.lastTime; shk = st.shk || null;
     Promise.race([initAudio(), new Promise(r => setTimeout(r, 6000))]).then(() => {
       startScene(st.scene, st.bi);
-      if (st.gm != null && shf) { shf.gm = st.gm; const M = shf.m0 + st.gm; for (const e of shf.ev) if (e.m < M) e.done = true; shf.miss = st.miss || 0; if (st.cam) shiftCam(st.cam); }
+      if (st.gm != null && shf) { if (st.shk) { shk = Object.assign(shkNew(), st.shk); shiftUI(); }   // середина часа: пульт и кто где — как были в эту минуту (час начался с начального снимка, а события до неё уже не повторятся)
+        shf.gm = st.gm; const M = shf.m0 + st.gm; for (const e of shf.ev) if (e.m < M) e.done = true; shf.miss = st.miss || 0; if (st.cam) shiftCam(st.cam); }
     }); };
 }
 const VHS_LV = [0, .32, .7], VHS_N = ['ВЫКЛ', 'СЛАБО', 'ОБЫЧНО'];   // переводятся в row()

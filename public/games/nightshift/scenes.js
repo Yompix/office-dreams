@@ -357,6 +357,7 @@ function buildLobby() {
     o.badgeCard.material = mat(0xffffff, P.badge === 'scratched' ? TX.badgeX : TX.badge, { decal: 1 });
     o.note.material = mat(0xffffff, P.log === 2 ? TX.note2 : TX.note, { decal: 1 });
     o.book.visible = !!P.book; o.note.visible = o.noteCv.visible = !P.book;   // до 02:50 журнал закрыт и перевязан (engine.js: propsNow)
+    if (P.fphone) o.fphone.visible = true;   // телефон Фрэнка Итан поставил на зарядку (21:06) — так и лежит на столе с проводом
     const [h, m] = String(P.clock || (o.dawn ? '06:00' : '02:57')).split(':').map(Number); o.setClock(h, m || 0);
   };
   o.reset = () => {
