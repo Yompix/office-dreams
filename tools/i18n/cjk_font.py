@@ -3,7 +3,7 @@
    python3 tools/i18n/cjk_font.py [zh ja ko] → public/games/nightshift/fonts/cjk/<язык>-N.woff2 и fonts/cjk/faces.js
    faces.js: window.NS_CJK = { names: [[файл, unicode-range]…], zh: […], ja: […], ko: […] } — i18n.js подключает их как шрифт NSCJK
    (names — названия языков в списке «Язык», нужны на любом языке игры). Перезапускать после каждой правки перевода zh/ja/ko."""
-import json, os, re, sys, urllib.parse, urllib.request
+import json, os, re, sys, time, urllib.parse, urllib.request
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(ROOT, 'public/games/nightshift/fonts/cjk')
 FAM = {'zh': 'Noto+Sans+SC', 'ja': 'Noto+Sans+JP', 'ko': 'Noto+Sans+KR'}
@@ -49,5 +49,6 @@ for l in langs:
     cur[l], n = faces(l, text, l)
     kb = sum(os.path.getsize(os.path.join(OUT, f)) for f, _ in cur[l]) / 1024
     print(f'{l}: знаков {n}, файлов {len(cur[l])}, {kb:.0f} КБ')
+cur['v'] = int(time.time())   # версия для адреса файлов (fonts/cjk/x.woff2?v=…): имена кусков те же, без неё браузер берёт старые из кэша — новых знаков в них нет
 open(fp, 'w').write('/* шрифт NSCJK (Noto Sans SC/JP/KR Bold, OFL): только знаки перевода — tools/i18n/cjk_font.py */\nwindow.NS_CJK = ' + json.dumps(cur, ensure_ascii=False) + ';\n')
-print('faces.js:', ', '.join(f'{k} {len(v)}' for k, v in cur.items()))
+print('faces.js:', ', '.join(f'{k} {len(v)}' for k, v in cur.items() if isinstance(v, list)))

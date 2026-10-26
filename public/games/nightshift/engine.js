@@ -73,7 +73,7 @@ async function load(onp) {
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
   const world = Promise.all([models, Promise.resolve(window.NS_FONTS).catch(() => null)]).then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));   // иероглифы (NSCJK) — до текстур с надписями
   // версии timing_<язык>.json — поднимать при каждой новой нарезке/сборке (кэш браузера)
-  const TIMV = { en: 13, uk: 5, es: 2, pt: 2, de: 2, fr: 2, it: 2, pl: 2, tr: 2, zh: 2, ja: 2, ko: 2 };
+  const TIMV = { en: 13, uk: 6, es: 2, pt: 2, de: 2, fr: 3, it: 3, pl: 3, tr: 3, zh: 3, ja: 3, ko: 3 };
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
   const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (TIMV[LNG] || 1) : 'timing.json?v=17', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
   const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
@@ -506,12 +506,12 @@ function nextBeat() {
   let t = beat.sayAt ?? .15;   // sayAt — реплика не сразу, а с этой секунды кадра (голос Фрэнка из темноты после паузы)
   for (const k of beat.say || []) {
     const ln = !TIM[k] && (S.shift.lines || {})[k];   // реплика ещё без озвучки — печатается текстом
-    if (ln) { const d = Math.max(2.2, ln.length / 14 + 1.3); typed = { t0: t, d, s: tr(ln), who: (S.shift.who || {})[k] }; t += d + .3; continue; }
+    if (ln) { const tx = tr(ln), d = Math.max(2.2, tx.length / (CPS[LNG] || 14) + 1.3); typed = { t0: t, d, s: tx, who: (S.shift.who || {})[k] }; t += d + .3; continue; }
     sched.push({ t, k, d: durOf(k) });
     if (beat.scareGap && k === beat.say[0]) scareAt = t + gapTime(k);
-    t += durOf(k) + .3;
+    t += (SUB_ONLY ? Math.max(durOf(k), readT(k)) : durOf(k)) + .3;   // субтитры под английскую запись: следующая реплика ждёт, пока эту дочитают (японский читают вдвое дольше, чем она звучит)
   }
-  if (beat.text) { const d = Math.max(2.2, beat.text.length / 14 + 1.3); typed = { t0: beat.say ? t : .2, d, s: beat.text }; t = Math.max(t, typed.t0 + d); }
+  if (beat.text) { const d = Math.max(2.2, beat.text.length / (CPS[LNG] || 14) + 1.3); typed = { t0: beat.say ? t : .2, d, s: beat.text }; t = Math.max(t, typed.t0 + d); }
   if (beat.scare != null) scareAt = beat.scare;
   creep = null;
   bDur = Math.max(t + (beat.pad || .3), 1.2);

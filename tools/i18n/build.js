@@ -7,7 +7,8 @@ const fs = require('fs'), path = require('path'), R = path.join(__dirname, '../.
 const I18N = path.join(G, 'i18n.js');
 let src = fs.readFileSync(I18N, 'utf8');
 const VOICE = eval('(' + src.match(/const VOICE = (\{[^}]*\})/)[1] + ')');
-const langs = process.argv.slice(2).length ? process.argv.slice(2) : ['es', 'pt', 'de', 'fr', 'it', 'pl', 'tr', 'uk', 'zh', 'ja', 'ko'].filter(l => fs.existsSync(path.join(__dirname, l + '.json')));
+const ALL = ['es', 'pt', 'de', 'fr', 'it', 'pl', 'tr', 'uk', 'zh', 'ja', 'ko'].filter(l => fs.existsSync(path.join(__dirname, l + '.json')));
+const only = process.argv.slice(2).length ? process.argv.slice(2) : ALL, langs = ALL;   // словарь DICT собирается всегда из всех языков (иначе с аргументами пропадали остальные); тайминги — только для перечисленных
 const extra = fs.existsSync(path.join(__dirname, 'extra.json')) ? JSON.parse(fs.readFileSync(path.join(__dirname, 'extra.json'))) : {};
 const lines = JSON.parse(fs.readFileSync(path.join(R, 'tools/story/lines.json')));
 const EN_T = JSON.parse(fs.readFileSync(path.join(G, 'timing_en.json')));
@@ -27,7 +28,7 @@ for (const L of langs) {
   const T = JSON.parse(fs.readFileSync(path.join(__dirname, L + '.json'), 'utf8'));
   out[L] = Object.assign({}, T.ui, extra[L] || {});
   for (const k in T.lines) if (lines[k]) lines[k][L] = T.lines[k];
-  if (VOICE[L] === 'en' && !process.env.NOTIM) {   // NOTIM=1 — только словари (тайминги не трогать: например, пока идёт озвучка языка)
+  if (VOICE[L] === 'en' && !process.env.NOTIM && only.includes(L)) {   // NOTIM=1 — только словари (тайминги не трогать: например, пока идёт озвучка языка)
     const tim = {};
     for (const k in EN_T) {
       const en = EN_T[k], t = T.lines[k] || T.lines[ALIAS[k]]; if (!t || !en.dur) { tim[k] = en; continue; }
