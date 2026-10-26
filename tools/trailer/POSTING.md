@@ -1,6 +1,6 @@
 # Тексты к трейлерам (скопировать при публикации)
 
-Страница itch.io: https://yompix-games.itch.io/hush-till-six (вставлена вместо `https://yompix-games.itch.io/hush-till-six` 26 окт).
+Страница itch.io: https://yompix-games.itch.io/hush-till-six (уже вставлена в тексты ниже, 26 окт).
 
 ## YouTube — English
 **Title:** Hush Till Six — Official Trailer | Night Shift Horror Game (18+)
