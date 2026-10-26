@@ -472,7 +472,7 @@ function buildFacade(o, S) {
   // запотевшее стекло изнутри (у двери, на уровне лица): по нему Итан выводит пальцем «Как звали собаку?» — сквозь буквы видно улицу
   { const c = document.createElement('canvas'); c.width = 512; c.height = 256; const tx = new T.CanvasTexture(c); tx.colorSpace = T.SRGBColorSpace;
     o.fogW = plane(.8, .4, ps1(new T.MeshBasicMaterial({ map: tx, transparent: true, depthWrite: false, color: 0x6a7278 })), S); o.fogW.rotation.y = PI; o.fogW.position.set(.62, 1.42, 5.988); o.fogW.visible = false; o.fogW.userData.solid = false;
-    o.fogW.userData = { c, x: c.getContext('2d'), tx, k: -9 }; }
+    o.fogW.userData = { c, x: c.getContext('2d'), tx, k: -9, solid: false }; }
   o.doorLock = [-.1, 1.05, 5.925];   // замок — на левой створке у притвора (сама личинка — в buildFacade ниже, вместе со створкой)
   // мокрые следы босых ног: от двери к первому лифту (видны только по сюжету)
   { const ft = ctex(32, 64, (x, w, h) => { x.clearRect(0, 0, w, h); x.fillStyle = 'rgba(0,0,0,1)'; x.filter = 'blur(1.5px)';
@@ -1326,7 +1326,7 @@ SH.k3_answer = Object.assign({}, SH.booth_radio, { set: (o, t) => [['temych', SE
 // ---- стеклянная дверь (03:30): «Лили» снаружи, Итан внутри ----
 let fogBase = null;
 function fogWrite(o, k) {   // туман на стекле; k — сколько надписи выведено (0..1); возвращает, где сейчас кончик пальца (мир)
-  const F = o.fogW, d = F.userData, x = d.x, L = [tr('Как звали'), tr('собаку?')], x0 = 44, ys = [118, 200];
+  const F = o.fogW, d = F.userData, x = d.x, L = [tr('Как звали'), tr('собаку?')], x0 = 66, ys = [118, 200];
   F.visible = true; x.font = '700 72px "Comic Sans MS", "Segoe Print", Arial';
   if (!fogBase) { fogBase = document.createElement('canvas'); fogBase.width = 512; fogBase.height = 256; const f = fogBase.getContext('2d'); let s = 3; const R = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     f.save(); f.scale(1, .55); const gr = f.createRadialGradient(256, 233, 10, 256, 233, 245); gr.addColorStop(0, 'rgba(235,240,245,.62)'); gr.addColorStop(.6, 'rgba(235,240,245,.4)'); gr.addColorStop(1, 'rgba(235,240,245,0)'); f.fillStyle = gr; f.fillRect(0, 0, 512, 470); f.restore();   // пятно дыхания — овал без краёв
@@ -1337,7 +1337,7 @@ function fogWrite(o, k) {   // туман на стекле; k — скольк�
     L.forEach((s, i) => { const f = clamp(k * 2 - i, 0, 1); if (f <= 0) return; const w = x.measureText(s).width; x.save(); x.beginPath(); x.rect(x0 - 10, ys[i] - 80, (w + 20) * f, 100); x.clip(); x.strokeText(s, x0, ys[i]); x.fillText(s, x0, ys[i]); x.restore(); });
     x.globalCompositeOperation = 'source-over'; d.tx.needsUpdate = true; }
   const i = Math.min(1, Math.floor(k * 2)), f = clamp(k * 2 - i, 0, 1), w = x.measureText(L[i]).width, px = x0 + w * f, py = ys[i] - 26 + Math.sin(f * 46) * 16;
-  return [.62 - (px / 512 - .5) * .8, 1.42 + (.5 - py / 256) * .4, 5.986];
+  return [.62 - (px / 512 - .5) * .8, 1.42 + (.5 - py / 256) * .4, 5.976];
 }
 const LZ = 6.3, LX = .62, EYE_IN = [.78, 1.66, 5.52];   // где стоит «Лили» снаружи; где глаза Итана у двери
 // поза у стекла: mode 'press' — ладони на стекле, всхлипывает; 'look' — оглянулась назад; 'slam' — бьёт ладонями; 'scratch' — ногти по стеклу сверху вниз; 'stand' — руки опущены
@@ -1419,9 +1419,9 @@ SH.e_hands = { loc: 'lobby', pos: [.95, 1.72, 6.05], look: [.55, 1.36, 5.15], fo
 SH.e_face = { loc: 'lobby', pos: [.6, 1.64, 5.55], look: [.55, 1.62, 4.95], fov: 34, face: { temych: 'dread' }, set: (o, t) => [['temych', .55, 0, 4.95, 0, { clips: [['Idle_Loop', t + 1.3, 1]], talk: 1, legs: 'feet' }, 'cam']] };
 // ---- А1: будка. Запер дверь будки, выключил лампу, сполз под стойку; утром сменщик пятится; отражение в стекле ----
 SH.h_lock = { loc: 'lobby', pos: [6.2, 1.6, -.75], look: [7.35, 1.05, .4], fov: 40, set: (o, t) => [['temych', 7.12, 0, -.05, .35, ethanKey(o, t, o.boothLock, .9), null]] };
-SH.h_lamp = { loc: 'lobby', pos: [6.75, 1.25, -.85], look: [6.12, .85, -.12], fov: 40, set: (o, t) => { const off = t > .75; o.lamp.intensity = off ? 0 : 1.6; o.lampBulb.visible = !off;
-  const R = locR(6.35, -.75, -.6), k = seg(t, 0, .55) * (1 - seg(t, 1.0, 1.5));
-  return [['temych', 6.35, 0, -.75, -.6, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', spine: { to: [6.15, .85, -.1], k: .25 * k }, arm: { r: { at: [6.16, .835, -.07], by: 'tip', fdir: [0, -1, .3], w: k } }, fing: { r: ['point', k] }, look: [6.1, .85, -.1] }, null]]; } };
+SH.h_lamp = { loc: 'lobby', pos: [5.55, 1.2, -.8], look: [6.5, 1.3, -.3], fov: 50, set: (o, t) => { const off = t > .75; o.lamp.intensity = off ? 0 : 1.6; o.lampBulb.visible = !off;
+  const k = seg(t, 0, .55) * (1 - seg(t, 1.0, 1.5));   // стоит справа от второго стула (на нём куртка Фрэнка — раньше Итан стоял прямо в нём), камера — из-за стола: лицо в свете лампы, щелчок — темно
+  return [['temych', 6.68, 0, -.36, -1.1, { clips: [['Idle_Loop', t + 1.3, 1]], legs: 'feet', spine: { to: [6.15, .85, -.1], k: .25 * k }, arm: { r: { at: [6.16, .835, -.07], by: 'tip', fdir: [0, -1, .3], w: k } }, fing: { r: ['point', k] }, look: [6.1, .85, -.1] }, null]]; } };
 // сполз под стойку: сидит на корточках, спиной к передней стойке
 const CROUCH = [5.75, -.1];   // сидит на корточках за стойкой: таз и спина на 32–48 см позади корня — точка на 15 см дальше от панели стойки (раньше спина проходила сквозь неё; проверка — World.clips)
 // под столом: стол 0,78 м — на корточках голова была выше столешницы и торчала сквозь неё; поэтому таз ниже, корпус сжат вперёд (голова ~0,52)
@@ -2287,7 +2287,7 @@ SH.hush_hide = { loc: 'lobby', pos: [6.42, 2.32, .32], look: [5.65, .95, -.7], f
   o.lamp.intensity = 0; o.lampBulb.visible = false; o.boothLight.intensity = .2; o.l1.intensity = .3; o.amb.intensity = .14; o.flickOn = false;
   o.faceL.position.set(6.0, 1.9, -.2); o.faceL.color.setHex(0xc0ccd8); o.faceL.distance = 2.2; o.faceL.intensity = 1.0;   // лицо к объективу
   const lean = seg(t, .35, 1.2), sh = seg(t, 1.2, 1.75), lips = C => { const h = C.bone.Head.getWorldPosition(_tv); return lin([5.98, .83, -.47], [h.x + .07, h.y - .07, h.z + .08], sh); };   // пальцы упёрты в стол — потом к губам, к объективу (от пояса читалось как «рука на бедре»)
-  return [['temych', CROUCH[0], 0, CROUCH[1], PI, eCrouch(t), null], ['monster', 5.75, 0, -1.05, 0, Object.assign(STILL('Idle_Loop', 1.7), { pelvis: [0, -.18 * lean, 0], spine: { to: [5.75, .7, -.2], k: .5 * lean },
+  return [['temych', CROUCH[0], 0, CROUCH[1], PI, eCrouch(t), null], ['monster', 5.8, 0, -.97, 0, Object.assign(STILL('Idle_Loop', 1.7), { pelvis: [0, -.18 * lean, 0], spine: { to: [5.8, .7, -.2], k: .5 * lean },
     arm: { r: { at: [5.62, .55, -.4], by: 'palm', fdir: [0, -.25, 1], pdir: [0, -1, 0], w: lean, pole: [5.3, .9, -1.1] }, l: { at: lips, by: 'tip', fdir: nrm(lin([0, -.6, 1], [0, 1, 0], sh)), pdir: nrm(lin([0, -1, -.3], [-.5, 0, .85], sh)), w: lean } },
     fing: { r: ['claw', .4], l: sh > .3 ? ['point', 1] : ['flat', .55] } }), 'cam']]; } };
 // ---- постановка v3: передача ключей (сменщик протягивает связку через окно будки, Итан берёт её в ладонь) ----
@@ -2844,7 +2844,7 @@ const SOL_SEG = [['pelvis', 'spine_01', 'core', 'thigh'], ['spine_01', 'spine_02
 function solidCols(o) {   // коллайдеры места: список один раз (сцена без актёров и предметов в руках), положение — каждый кадр (solidNow)
   if (o._sol) return o._sol;
   const out = [], roots = new Set(Object.values(A).map(C => C.root));
-  const add = (m, kind, lc, lh, x) => out.push(Object.assign({ m, kind, lc, lh, c: new T.Vector3(), c0: null, u: [new T.Vector3(), new T.Vector3(), new T.Vector3()], e: [0, 0, 0], dP: new T.Vector3(1, 0, 0), br: 0, on: false, small: false, thin: false, ax: 0, sg: 1, sup: false }, x));
+  const add = (m, kind, lc, lh, x) => out.push(Object.assign({ m, kind, lc, lh, c: new T.Vector3(), c0: null, u: [new T.Vector3(), new T.Vector3(), new T.Vector3()], e: [0, 0, 0], dP: new T.Vector3(1, 0, 0), br: 0, on: false, small: false, thin: false, ax: 0, sg: 1, sup: false, pq: -1, pa: [0, 0] }, x));
   (function walk(n) {
     if (roots.has(n) || n.userData.solid === false || n.isLight) return;
     const sd = n.userData.solid;
@@ -2875,15 +2875,16 @@ function solidNow(K, full) {   // где коллайдер сейчас: цен
   const mx = 2 * Math.max(K.e[0], K.e[1], K.e[2]); if (mx < .15) return;   // мелочь (кружка, ключи, кнопка) тело не держит
   K.small = mx < .4; K.thin = K.kind === 'cyl' && K.e[0] < .1; K.br = Math.hypot(K.e[0], K.e[1], K.e[2]); K.on = true;
 }
-const _sq = new T.Vector3(), _sh = [0, 0];
+const _sq = new T.Vector3(), _sh = [0, 0], _cq = new T.Vector3();
 function solidSide(K, P) {   // с какой стороны предмета таз персонажа — туда и выталкиваем; ось почти отвесна — это опора (сиденье, стол, ступень)
   _sq.subVectors(P, K.c);
   if (K.kind === 'cyl') { const a = K.u[1], h = _sq.dot(a), rx = _sq.x - a.x * h, ry = _sq.y - a.y * h, rz = _sq.z - a.z * h, rl = Math.hypot(rx, ry, rz);
     if (rl <= K.e[0] && Math.abs(h) > K.e[1]) { K.ax = 1; K.sg = Math.sign(h) || 1; K.sup = Math.abs(a.y) > .6; return; }   // над торцом (сидит на табурете) или под ним
     K.ax = -1; K.sup = false; if (rl > 1e-4) K.dP.set(rx / rl, ry / rl, rz / rl); return; }
-  let bi = 0, bo = -1e9, mi = 0, mn = 1e9, inside = true;
-  for (let i = 0; i < 3; i++) { const o = Math.abs(_sq.dot(K.u[i])) - K.e[i]; if (o > bo) { bo = o; bi = i; } if (o > 0) inside = false; if (-o < mn) { mn = -o; mi = i; } }
-  const i = inside ? mi : bi; K.ax = i; K.sg = Math.sign(_sq.dot(K.u[i])) || 1; K.sup = Math.abs(K.u[i].y) > .6;
+  let bi = 0, bo = -1e9, mi = 0, mn = 1e9, inside = true, ti = -1;
+  for (let i = 0; i < 3; i++) { const o = Math.abs(_sq.dot(K.u[i])) - K.e[i]; if (o > bo) { bo = o; bi = i; } if (o > 0) inside = false; if (-o < mn) { mn = -o; mi = i; } if (K.e[i] <= .03 && (ti < 0 || K.e[i] < K.e[ti])) ti = i; }
+  const i = ti >= 0 ? ti : inside ? mi : bi; K.ax = i; K.sg = Math.sign(_sq.dot(K.u[i])) || 1; K.sup = Math.abs(K.u[i].y) > .6;   // тонкая пластина (столешница, стекло, дверь) — только по толщине: локти на столе — опора, а не «сквозь стол вдоль»
+  K.pq = Math.abs(_sq.dot(K.u[i])); K.pa[0] = _sq.dot(K.u[(i + 1) % 3]); K.pa[1] = _sq.dot(K.u[(i + 2) % 3]);   // где таз относительно пластины: для проверки «насквозь или мимо края» (solidPen)
 }
 function solidPen(K, p, r, depth) {   // насколько шар (r = 0 — точка) вошёл в предмет со стороны таза; _sh — куда выталкивать по полу. depth — просто глубина (детектор, и для опор)
   _sq.subVectors(p, K.c);
@@ -2900,8 +2901,21 @@ function solidPen(K, p, r, depth) {   // насколько шар (r = 0 — т
   }
   const i = K.ax, u = K.u[i];
   for (let j = 0; j < 3; j++) if (j !== i && Math.abs(_sq.dot(K.u[j])) > K.e[j] + r * .7) return 0;
+  let side = false; if (!depth) for (let j = 0; j < 3; j++) if (j !== i && Math.abs(_sq.dot(K.u[j])) > K.e[j]) side = true;
+  if (side && Math.abs(_sq.dot(u)) <= K.e[i] + r) {   // центр шара у боковой грани или ребра (рука скользит по крышке, бедро у края спинки): выталкиваем от ближайшей точки предмета, а не со стороны таза
+    _cq.copy(K.c); for (let j = 0; j < 3; j++) _cq.addScaledVector(K.u[j], clamp(_sq.dot(K.u[j]), -K.e[j], K.e[j]));
+    _cq.subVectors(p, _cq); const dl = _cq.length(), pn = r - dl; if (pn <= 0 || dl < 1e-5) return 0;
+    const hl = Math.hypot(_cq.x, _cq.z) / dl; if (hl < .8) return 0;   // сверху на крышке — опора
+    _sh[0] = _cq.x / (hl * dl); _sh[1] = _cq.z / (hl * dl); return pn / hl;
+  }
   const q = _sq.dot(u) * K.sg; if (q < -K.e[i] - r && (K.e[i] > .03 || K.sup)) return 0;   // за дальней гранью толстого предмета — обнял колонну, а не прошёл сквозь; над столешницей, когда таз под ней (сидит за столом), — тоже не сквозь
-  const pen = K.e[i] + r - q; if (pen <= 0) return 0; if (depth) return pen;
+  let pen = K.e[i] + r - q, edge = false;
+  if (q < 0 && K.sup) pen = K.e[i] + r + q;   // опора, а таз с другой стороны (сидит за столом, пальцы на столешнице): глубина от той грани, на которой лежит рука
+  else if (q < 0 && K.e[i] <= .03 && K.pq >= 0) {   // за тонкой пластиной: насквозь, только если прямая от таза идёт через саму пластину; мимо края (стоит сбоку от спинки стула, нога за ней) — лишь касание с той стороны
+    const t = K.pq / Math.max(1e-6, K.pq - q), j = (i + 1) % 3, l = (i + 2) % 3;
+    if (Math.abs(K.pa[0] + (_sq.dot(K.u[j]) - K.pa[0]) * t) > K.e[j] + r || Math.abs(K.pa[1] + (_sq.dot(K.u[l]) - K.pa[1]) * t) > K.e[l] + r) { pen = K.e[i] + r + q; edge = true; }
+  }
+  if (pen <= 0) return 0; if (depth) return pen; if (edge) return 0;
   const hx = u.x * K.sg, hz = u.z * K.sg, hl = Math.hypot(hx, hz); if (hl < .8) return 0;
   _sh[0] = hx / hl; _sh[1] = hz / hl; return pen / hl;
 }
@@ -2933,7 +2947,7 @@ function solidFit(C) {   // шары тела по самой модели: дл
   const DEF = { core: .11, arm: .045, hand: .025, leg: .06, foot: .04 };
   C.solF = { seg: seg.map((S, k) => { if (!fr[k]) return null; const g = SOL_SEG[k][2];
     if (fr[k].L) { const rd = q(S.de, .8) || DEF.core * ss, rl = q(S.la, .9) || rd; return { r: Math.min(.3 * ss, rd * .92), wo: Math.max(0, rl - rd) }; }
-    return { r: Math.min(.2 * ss, (q(S.d, .7) || DEF[g] * ss) * .92), wo: 0 }; }) };
+    return { r: Math.min(.2 * ss, (q(S.d, g === 'leg' ? .5 : .7) || DEF[g] * ss) * .92), wo: 0 }; }) };
   if (head.length && hinv) { const c = new T.Vector3(); for (const p of head) c.add(p); c.multiplyScalar(1 / head.length); C.solF.hr = Math.min(.2 * ss, q(head.map(p => p.distanceTo(c)), .75) * .92); C.solF.hc = c.applyMatrix4(hinv); }
   C.solS = []; for (let i = 0; i < 200; i++) C.solS.push({ p: new T.Vector3(), r: 0, g: 'core' });
 }
@@ -2954,6 +2968,13 @@ function solidBody(C) {   // шары тела в мире по текущей �
 }
 const _pel = new T.Vector3(), _sp = new T.Vector3(), SOL_Z = [0, 0];
 const SOLID_ON = true, SOL_MAX = .15;   // твёрдый мир: мелкие касания (до 15 см) поправляются сами; window.__SOLID = 0 — сравнить без него
+const _sw = [0, 0];
+function solidWorst(near, S, nS, dx, dz) {   // самое глубокое проникновение шаров тела (сдвинутых на dx, dz) и шаг наружу из него (_sw)
+  let best = .001; _sw[0] = _sw[1] = 0;
+  for (const K of near) for (let i = 0; i < nS; i++) { const s = S[i]; if (K.small && (s.g === 'hand' || s.g === 'arm')) continue;   // мелкий предмет рука может держать и трогать
+    _sp.set(s.p.x + dx, s.p.y, s.p.z + dz); const pen = solidPen(K, _sp, s.r) - SOL_TOL[s.g]; if (pen > best) { best = pen; _sw[0] = _sh[0] * pen; _sw[1] = _sh[1] * pen; } }
+  return best;
+}
 function solidPass(loc, used, sh, T0, id) {   // после поз: каждого, кто вошёл в стену или предмет, — на шаг в сторону, и поза заново
   if (!(window.__SOLID ?? SOLID_ON) || !used.size) return;
   const cols = solidCols(loc), gh = sh.ghost; let any = false;
@@ -2965,12 +2986,10 @@ function solidPass(loc, used, sh, T0, id) {   // после поз: каждог
     const S = solidBody(C), nS = C.solN; C.bone.pelvis.getWorldPosition(_pel); _pel.x -= d0[0]; _pel.z -= d0[1];
     for (let i = 0; i < nS; i++) { S[i].p.x -= d0[0]; S[i].p.z -= d0[1]; }   // считаем от места, где персонажа поставил кадр
     const near = []; for (const K of cols) if (K.on && K.c.distanceTo(_pel) < K.br + 1.3 * C.ss) { solidSide(K, _pel); if (!K.sup) near.push(K); }
-    let dx = 0, dz = 0;
-    for (let it = 0; it < 4 && near.length; it++) {   // самое глубокое проникновение — первым; угол двух стен — за два шага
-      let best = .001, bx = 0, bz = 0;
-      for (const K of near) for (let i = 0; i < nS; i++) { const s = S[i]; if (K.small && (s.g === 'hand' || s.g === 'arm')) continue;   // мелкий предмет рука может держать и трогать
-        _sp.set(s.p.x + dx, s.p.y, s.p.z + dz); const pen = solidPen(K, _sp, s.r) - SOL_TOL[s.g]; if (pen > best) { best = pen; bx = _sh[0] * pen; bz = _sh[1] * pen; } }
-      if (best <= .001) break; dx += bx; dz += bz;
+    let dx = 0, dz = 0; const w0 = near.length ? solidWorst(near, S, nS, 0, 0) : 0;
+    for (let it = 0, w = w0; it < 4 && w > .001; it++) {   // самое глубокое проникновение — первым; угол двух стен — за два шага
+      dx += _sw[0]; dz += _sw[1]; w = solidWorst(near, S, nS, dx, dz);
+      if (it === 3 || w <= .001) { if (w > w0 * .8) dx = dz = 0; break; }   // сдвиг не помог (из одного предмета — в другой): пусть стоит, как поставил кадр
     }
     let L = Math.hypot(dx, dz);
     if (window.__SOLLOG && L > .02) window.__SOLLOG.push([id, k, +dx.toFixed(3), +dz.toFixed(3)]);   // для проверки: кого и насколько отодвинули
@@ -3007,7 +3026,18 @@ function clips(tol = .02) {
   }
   return out.sort((x, y) => y.d - x.d);
 }
+// для отладки: почему твёрдый мир двигает персонажа k — по каждому предмету самый глубокий шар тела (как в solidPass, от места, где его поставил кадр)
+function solidWhy(k) {
+  const C = A[k]; if (!C || !curLoc || !C.bone || !C.bone.pelvis) return [];
+  const cols = solidCols(curLoc), d0 = C.solD || SOL_Z, S = solidBody(C), out = []; for (const K of cols) solidNow(K);
+  C.bone.pelvis.getWorldPosition(_pel); _pel.x -= d0[0]; _pel.z -= d0[1];
+  for (const K of cols) { if (!K.on || K.c.distanceTo(_pel) >= K.br + 1.3 * C.ss) continue; solidSide(K, _pel); if (K.sup) continue;
+    let best = 0, bs = null; for (let i = 0; i < C.solN; i++) { const s = S[i]; if (K.small && (s.g === 'hand' || s.g === 'arm')) continue;
+      _sp.set(s.p.x - d0[0], s.p.y, s.p.z - d0[1]); const pen = solidPen(K, _sp, s.r) - SOL_TOL[s.g]; if (pen > best) { best = pen; bs = s; } }
+    if (bs) out.push({ prop: solidName(K), c: [K.c.x, K.c.y, K.c.z].map(x => +x.toFixed(2)), size: K.e.map(x => +(2 * x).toFixed(2)), pen: +best.toFixed(3), g: bs.g, r: +bs.r.toFixed(3), at: [bs.p.x - d0[0], bs.p.y, bs.p.z - d0[1]].map(x => +x.toFixed(2)), push: [+_sh[0].toFixed(2), +_sh[1].toFixed(2)] }); }
+  return out.sort((x, y) => y.pen - x.pen);
+}
 // для отладки: включённые коллайдеры места (что «твёрдое» в текущем кадре)
 function solids() { if (!curLoc) return []; return solidCols(curLoc).map(K => (solidNow(K), K)).filter(K => K.on).map(K => ({ prop: solidName(K), kind: K.kind, wall: !!K.wall, glass: !!K.glass, small: K.small, c: [+K.c.x.toFixed(2), +K.c.y.toFixed(2), +K.c.z.toFixed(2)], size: K.e.map(x => +(2 * x).toFixed(2)) })); }
-window.World = { draw, init, warm, setLand, project, projectAt, heads, clips, solids, gfit: GFIT, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, get ultra() { return ULTRA; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
+window.World = { draw, init, warm, setLand, project, projectAt, heads, clips, solids, solidWhy, gfit: GFIT, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, get ultra() { return ULTRA; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();

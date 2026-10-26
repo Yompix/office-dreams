@@ -14,7 +14,8 @@ const SCAN = sel => {   // в странице: что не влезает вн�
     const rg = document.createRange(); rg.selectNodeContents(el); const t = rg.getBoundingClientRect(), txt = own.slice(0, 60);
     if (el.scrollWidth > el.clientWidth + 2 && /hidden|clip|auto|scroll/.test(cs.overflowX)) res.push(['обрезано', txt]);
     else if (t.right > r.right + 3 || t.left < r.left - 3) res.push(['вылезает из рамки', txt]);
-    if (t.right > innerWidth + 1 || t.left < -1 || t.bottom > innerHeight + 1 || t.top < -1) res.push(['за краем экрана', txt]);
+    let scroll = false; for (let e = el.parentElement; e && e !== document.body; e = e.parentElement) { const o = getComputedStyle(e).overflowY; if (/auto|scroll/.test(o) && e.scrollHeight > e.clientHeight + 2) { scroll = true; break; } }   // ниже края в прокручиваемом окне (настройки на вертикальном экране) — докручивается, не ошибка
+    if (t.right > innerWidth + 1 || t.left < -1 || (!scroll && (t.bottom > innerHeight + 1 || t.top < -1))) res.push(['за краем экрана', txt]);
     const btn = el.closest('button'); if (btn) { const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.25, n = Math.round(t.height / lh);
       if (el.matches('.sh-cams small') && n > 1) res.push(['подпись камеры в ' + n + ' строки', txt]); else if (n > 2) res.push(['кнопка в ' + n + ' строки', txt]); }
   }

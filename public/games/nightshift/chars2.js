@@ -885,13 +885,16 @@ function reachArm(C, sd, a) {
   const at = typeof a.at === 'function' ? a.at(C) : a.at;   // функция — точка от тела этого кадра (ухо, рот, грудь): мокап сидит и стоит по-своему, рука идёт за ним
   const want = new T.Vector3(at[0], at[1], at[2]), wrist = want.clone();
   if (a.by && a.by !== 'wrist') { const p = handPt(C, sd, a.by), hw = C.bone['hand_' + sd].getWorldPosition(new T.Vector3()); wrist.add(hw.sub(p)); }
+  const arm = ['upperarm_', 'lowerarm_', 'hand_'].map(n => C.bone[n + sd]), q0 = k < 1 && a.by && a.by !== 'wrist' ? arm.map(b => b.quaternion.clone()) : null;   // рука только тянется (вес < 1): кончик пальца считаем от кисти в конечной позе, а не от позы клипа — иначе палец пролетал цель (сквозь стекло)
   for (let it = 0; it < 3; it++) {
     const lp = C.root.worldToLocal(wrist.clone());
-    ik2(C, 'upperarm_' + sd, 'lowerarm_' + sd, 'hand_' + sd, lp.x, lp.y, lp.z, pole, k);
-    if (a.fdir) orientHand(C, sd, a.fdir, a.pdir, k);
-    if (!a.by || a.by === 'wrist' || k < 1) break;
+    ik2(C, 'upperarm_' + sd, 'lowerarm_' + sd, 'hand_' + sd, lp.x, lp.y, lp.z, pole, q0 ? 1 : k);
+    if (a.fdir) orientHand(C, sd, a.fdir, a.pdir, q0 ? 1 : k);
+    if (!a.by || a.by === 'wrist' || (k < 1 && !q0)) break;
     wrist.add(want.clone().sub(handPt(C, sd, a.by)));
   }
+  if (q0) { arm.forEach((b, i) => b.quaternion.copy(q0[i])); const lp = C.root.worldToLocal(wrist.clone());   // и уже к найденной точке — с весом
+    ik2(C, 'upperarm_' + sd, 'lowerarm_' + sd, 'hand_' + sd, lp.x, lp.y, lp.z, pole, k); if (a.fdir) orientHand(C, sd, a.fdir, a.pdir, k); }
 }
 function leanTo(C, to, k) {   // корпус к точке: поясница и грудь поровну
   C.root.updateWorldMatrix(true, true);
