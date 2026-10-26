@@ -954,7 +954,7 @@ function propMesh(name) {
   g.traverse(m => { if (m.isMesh) { m.castShadow = true; } });
   g.visible = false; return g;
 }
-function prop3(name) { return PROPS3[name] || (PROPS3[name] = { name, obj: propMesh(name), C: null, sd: null, from: null, k: 1 }); }
+function prop3(name) { if (!PROPS3[name]) { PROPS3[name] = { name, obj: propMesh(name), C: null, sd: null, from: null, k: 1 }; PROPS3[name].obj.userData.solid = false; } return PROPS3[name]; }   // предмет в руках — не преграда (твёрдый мир, scenes.js)
 // хват: [точка кисти, смещение (вдоль пальцев X, из ладони Y, поперёк Z), поворот в осях кисти, висит ли по отвесу]
 const GRIP3 = {
   keys: ['pinch', [0, .002, 0], [0, 0, 0], true],

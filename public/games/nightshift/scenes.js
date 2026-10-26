@@ -44,7 +44,10 @@ function buildLobby() {
   const holed = (w, h, m, x0, x1, y1) => { const sh = new T.Shape(); sh.moveTo(-w / 2, -h / 2); sh.lineTo(w / 2, -h / 2); sh.lineTo(w / 2, h / 2); sh.lineTo(-w / 2, h / 2); sh.closePath();
     const hl = new T.Path(); hl.moveTo(x0, -h / 2); hl.lineTo(x1, -h / 2); hl.lineTo(x1, Math.min(h / 2, y1 - h / 2)); hl.lineTo(x0, Math.min(h / 2, y1 - h / 2)); hl.closePath(); sh.holes.push(hl);
     const gm = new T.ShapeGeometry(sh), uv = gm.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) + w / 2) / w, (uv.getY(i) + h / 2) / h);
-    const me = new T.Mesh(gm, m); S.add(me); return me; };
+    const me = new T.Mesh(gm, m); S.add(me);
+    const yt = Math.min(h / 2, y1 - h / 2); me.userData.solid = [[(x0 - w / 2) / 2, 0, -.15, x0 + w / 2, h, .3, 'стена', 1], [(x1 + w / 2) / 2, 0, -.15, w / 2 - x1, h, .3, 'стена', 1]];   // твёрдая — кроме проёма
+    if (h / 2 - yt > .01) me.userData.solid.push([(x0 + x1) / 2, (yt + h / 2) / 2, -.15, x1 - x0, h / 2 - yt, .3, 'стена', 1]);
+    return me; };
   const back = holed(16, 4.2, wallM, -2.84, -1.56, 2.3); back.position.set(0, 2.1, -6);
   const left = plane(12, 4.2, wallM, S); left.rotation.y = PI / 2; left.position.set(-8, 2.1, 0);
   const right = plane(12, 4.2, wallM, S); right.rotation.y = -PI / 2; right.position.set(8, 2.1, 0);
@@ -71,7 +74,7 @@ function buildLobby() {
       const g = new T.Group(); g.position.set(x, 0, 1.0); S.add(g);
       box(.16, .98, .9, stM, 0, .49, 0, g); box(.17, .02, .91, capM, 0, .99, 0, g);
       box(.07, .012, .1, rdM, 0, 1.006, .28, g); box(.014, .006, .014, mat(0x30ff70, null, { basic: true }), 0, 1.014, .28, g);
-      for (const s of [-1, 1]) { if ((x < -1.7 && s < 0) || (x > .3 && s > 0)) continue; const f = plane(.21, .5, flapM, g); f.position.set(s * .185, .76, 0); }
+      for (const s of [-1, 1]) { if ((x < -1.7 && s < 0) || (x > .3 && s > 0)) continue; const f = plane(.21, .5, flapM, g); f.position.set(s * .185, .76, 0); f.userData.solid = false; }   // створки турникета распахиваются перед проходящим — не преграда
     }
   }
   // лифты на задней стене
@@ -461,9 +464,10 @@ function buildFacade(o, S) {
   // стекло фасада — без проёма дверей (у створок своё стекло, оно ходит вместе с ними)
   o.glass = new T.Mesh(new T.ShapeGeometry(new T.Shape([[-8, -1.68], [-1, -1.68], [-1, .58], [1, .58], [1, -1.68], [8, -1.68], [8, 1.68], [-8, 1.68]].map(([x, y]) => new T.Vector2(x, y)))), gm);
   o.glass.position.set(0, 1.78, 6); S.add(o.glass);
+  o.glass.userData.solid = [[-4.5, 0, 0, 7, 3.36, .02, 'стекло фасада'], [4.5, 0, 0, 7, 3.36, .02, 'стекло фасада'], [0, 1.13, 0, 2, 1.1, .02, 'стекло фасада']];   // твёрдое — кроме проёма дверей (у створок своё стекло)
   // пар от дыхания Тёмыча на стекле изнутри (её сторона остаётся чистой — улика)
   o.breath = plane(.2, .1, new T.MeshBasicMaterial({ map: TX.fogBreath, transparent: true, opacity: 0, depthWrite: false, color: 0xc8d0d8 }), S);
-  o.breath.rotation.y = PI; o.breath.position.set(.6, 1.4, 5.992); o.breath.visible = false;
+  o.breath.rotation.y = PI; o.breath.position.set(.6, 1.4, 5.992); o.breath.visible = false; o.breath.userData.solid = false;
   // запотевшее стекло изнутри (у двери, на уровне лица): по нему Итан выводит пальцем «Как звали собаку?» — сквозь буквы видно улицу
   { const c = document.createElement('canvas'); c.width = 512; c.height = 256; const tx = new T.CanvasTexture(c); tx.colorSpace = T.SRGBColorSpace;
     o.fogW = plane(.8, .4, ps1(new T.MeshBasicMaterial({ map: tx, transparent: true, depthWrite: false, color: 0x6a7278 })), S); o.fogW.rotation.y = PI; o.fogW.position.set(.62, 1.42, 5.988); o.fogW.visible = false;
@@ -564,7 +568,7 @@ function buildCorridor() {
   // офис на 10-м: одна дверь бывает приоткрыта (смена) — створка поворачивается внутрь, за ней свет или темнота
   o.door10 = new T.Group(); o.door10.position.set(wd / 2 - .03, 0, -5.6 - .475); S.add(o.door10); o.door10.visible = false;
   box(.05, 2.1, .95, mat(0xffffff, TX.door), 0, 1.05, .475, o.door10);
-  o.hole10 = plane(.95, 2.1, mat(0x050506, null, { basic: true }), S); o.hole10.rotation.y = -PI / 2; o.hole10.position.set(wd / 2 - .004, 1.05, -5.6); o.hole10.visible = false;   // тёмный проём за створкой
+  o.hole10 = plane(.95, 2.1, mat(0x050506, null, { basic: true }), S); o.hole10.rotation.y = -PI / 2; o.hole10.position.set(wd / 2 - .004, 1.05, -5.6); o.hole10.visible = false; o.hole10.userData.solid = false;   // тёмный проём за створкой
   o.ajar10 = k => { o.doorR10.visible = !k; o.door10.visible = o.hole10.visible = !!k; o.door10.rotation.y = -.55 * (k || 0); o.hole10.material = o.holeDark; };
   o.holeDark = o.hole10.material; o.holeLit = new T.MeshBasicMaterial({ color: 0x9a8a68 }); ps1(o.holeLit);   // в офисе за дверью горит свет
   // длинные серые пальцы обхватывают косяк 707 изнутри (видны только в сцене с уборщиком)
@@ -597,7 +601,7 @@ function buildCorridor() {
     cyl(.025, .025, .4, 6, mm, o.chair10).position.y = .28;
     for (let i = 0; i < 5; i++) { const a = i / 5 * PI * 2, leg = box(.035, .03, .3, mm, Math.sin(a) * .15, .06, Math.cos(a) * .15, o.chair10); leg.rotation.y = a; box(.045, .045, .045, wm, Math.sin(a) * .29, .03, Math.cos(a) * .29, o.chair10); }
     for (const sd of [-1, 1]) box(.05, .04, .3, cm, sd * .26, .7, -.02, o.chair10); }
-  o.sign = new T.Group(); S.add(o.sign);
+  o.sign = new T.Group(); S.add(o.sign); o.sign.userData.solid = [[0, .3, 0, .3, .6, .34, 'табличка «мокрый пол»']];   // домик из двух пластин — сквозь него не пройти
   for (const s of [-1, 1]) { const pnl = plane(.3, .62, mat(0xffffff, TX.wetSign, { side: T.DoubleSide }), o.sign); pnl.position.set(0, .3, s * .085); pnl.rotation.x = s * -.28; pnl.rotation.y = s < 0 ? PI : 0; }
   o.wet = new T.Mesh(new T.PlaneGeometry(2.2, 3.2), ps1(new T.MeshLambertMaterial({ color: 0x0e0e10, map: TX.puddle, transparent: true, opacity: .4, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 })));
   o.wet.rotation.x = -PI / 2; S.add(o.wet);
@@ -2586,8 +2590,9 @@ function stage(id, t, opt = {}, cont = false) {
   for (const [k, x, y, z, ry, pose, look, only] of acts) {
     const C = A[k]; used.add(k);
     if (C.root.parent !== o.S) o.S.add(C.root);
-    if (C.lastShot !== id) { C.lastShot = id; if (!cont || hardCut(C)) C.lookDir = null; C.prevP = null; C.walkV = null; }
-    C.root.position.set(x, y, z); C.root.rotation.set(0, ry, 0); C.pose = pose;   // наклон корпуса (вверх ногами и т. п.) кадр задаёт сам — в P.post, каждый кадр заново
+    if (C.lastShot !== id) { C.lastShot = id; if (!cont || hardCut(C)) C.lookDir = null; C.prevP = null; C.walkV = null; C.solD = null; }
+    C.root.position.set(x, y, z); C.root.rotation.set(0, ry, 0); C.pose = pose;
+    if (C.solD) { C.root.position.x += C.solD[0]; C.root.position.z += C.solD[1]; }   // твёрдый мир: в этом кадре его уже отодвигали от стены — начинаем оттуда (solidPass)   // наклон корпуса (вверх ногами и т. п.) кадр задаёт сам — в P.post, каждый кадр заново
     C.look = look === 'cam' ? new T.Vector3(...sh.pos) : look ? new T.Vector3(...look) : null;
     C.reflOnly = only === 'refl';   // виден только в отражении на стекле
   }
@@ -2696,6 +2701,7 @@ function draw(g, W, H, id, o) {
   // перемотка инструментов (__ns.seek): 0,9 с движения без рисования — снимок показывает позу и взгляд такими, какими их видит игрок, а не на полпути
   if (o.settle) for (let i = 9; i > 0; i--) for (const k of used) A[k].update(T0 - i * .1, .1);
   for (const k of used) A[k].update(T0, dt);
+  solidPass(loc, used, sh, T0, id);   // твёрдый мир: кто вошёл в стену или предмет — отходит, поза заново
   loc.tick(T0, dt);
   if (loc.post) loc.post(A, used, T0);
   if (sh.post) sh.post(loc, t, used);   // кадр смерти: кишки, раны, лужи — по костям после поз
@@ -2774,42 +2780,175 @@ function thumb(id, o = {}) {   // маленькая картинка кадра
 const _hq = new T.Vector3();
 function heads() { const r = {}; if (!A) return r; for (const k in A) { const C = A[k]; if (!C.root.parent || !C.root.visible || C.reflOnly) continue; const hb = C.bone && C.bone.Head;
   if (hb) hb.getWorldPosition(_hq); else { C.root.getWorldPosition(_hq); _hq.y += 1.6; } r[k] = project([_hq.x, _hq.y + .06, _hq.z]); } return r; }
-// проникновения тел в предметы (стул, стол, стены будки…): вершины тела (каждая N-я, с учётом скелета и мимики) внутри коробок и цилиндров рядом —
-// в осях предмета, с допуском tol (касание — не проникновение). → [{ k, prop, n вершин, d глубина м, at точка мира, size }] — для tools/story/sheet.js
-const _cw = new T.Vector3(), _cl = new T.Vector3(), _ci = new T.Matrix4(), _cb = new T.Box3(), _cs = new T.Vector3();
+/* ---------- твёрдый мир: тела не проходят сквозь стены и предметы ----------
+   Как в играх: у предметов места — простые коллайдеры (коробка, цилиндр; стена — плита 30 см за плоскостью; стекло, табличка, наклейка — тонкая пластина),
+   у тела — шары по костям, их размер подобран по самой модели (один раз на персонажа). Каждый кадр после поз: вошёл в стену или предмет — персонаж отходит
+   по полу ровно настолько, чтобы выйти, и поза пересчитывается на новом месте (рука на ручке двери, предметы в руках — где надо). Вверх не толкаем: сидит
+   на стуле, ладонь на столе, нога на ступеньке — это опора. «Снаружи» — там, где таз: тонкую дверь, стекло и табличку тело насквозь не проскакивает.
+   Те же коллайдеры видит детектор проникновений (clips). Кадр: sh.ghost = true | ['monster'] — кто проходит сквозь (видение, а не тело) */
+const SOL_TOL = { core: .012, head: .012, leg: .015, foot: .02, arm: .02, hand: .03 };   // касание до стольких метров — не проникновение (ладонь на стене, плечо у косяка)
+const SOL_SEG = [['pelvis', 'spine_01', 'core', 'thigh'], ['spine_01', 'spine_02', 'core', 'thigh'], ['spine_02', 'spine_03', 'core', 'upperarm'], ['spine_03', 'neck_01', 'core', 'upperarm'], ['neck_01', 'Head', 'core'],
+  ['upperarm_l', 'lowerarm_l', 'arm'], ['lowerarm_l', 'hand_l', 'arm'], ['hand_l', 'middle_01_l', 'hand'], ['middle_01_l', 'middle_03_l', 'hand'],
+  ['upperarm_r', 'lowerarm_r', 'arm'], ['lowerarm_r', 'hand_r', 'arm'], ['hand_r', 'middle_01_r', 'hand'], ['middle_01_r', 'middle_03_r', 'hand'],
+  ['thigh_l', 'calf_l', 'leg'], ['calf_l', 'foot_l', 'leg'], ['foot_l', 'ball_l', 'foot'], ['thigh_r', 'calf_r', 'leg'], ['calf_r', 'foot_r', 'leg'], ['foot_r', 'ball_r', 'foot']];   // кость → следующая, группа, ось ширины (корпус шире, чем толще)
+function solidCols(o) {   // коллайдеры места: список один раз (сцена без актёров и предметов в руках), положение — каждый кадр (solidNow)
+  if (o._sol) return o._sol;
+  const out = [], roots = new Set(Object.values(A).map(C => C.root));
+  const add = (m, kind, lc, lh, x) => out.push(Object.assign({ m, kind, lc, lh, c: new T.Vector3(), c0: null, u: [new T.Vector3(), new T.Vector3(), new T.Vector3()], e: [0, 0, 0], dP: new T.Vector3(1, 0, 0), br: 0, on: false, small: false, thin: false, ax: 0, sg: 1, sup: false }, x));
+  (function walk(n) {
+    if (roots.has(n) || n.userData.solid === false || n.isLight) return;
+    const sd = n.userData.solid;
+    if (Array.isArray(sd)) { for (const b of sd) add(n, 'box', new T.Vector3(b[0], b[1], b[2]), [b[3] / 2, b[4] / 2, b[5] / 2], { name: b[6] || n.name, wall: !!b[7] }); return; }   // свой коллайдер у сложного предмета (табличка-домик, стена с проёмом) — детей не смотрим
+    if (n.isMesh && !n.isSkinnedMesh && !n.isInstancedMesh && n.geometry) {
+      const P = n.geometry.parameters || {}, ty = n.geometry.type, mt = [].concat(n.material);
+      const back = mt.some(x => x && x.side === T.BackSide), clear = mt.every(x => x && x.transparent && !x.depthWrite);   // комната, видимая изнутри (за дверью 707), — не предмет
+      if (ty === 'BoxGeometry' && !back && !clear) add(n, 'box', new T.Vector3(), [P.width / 2, P.height / 2, P.depth / 2], {});
+      else if (ty === 'CylinderGeometry' && !back && !clear) add(n, 'cyl', new T.Vector3(), [Math.max(P.radiusTop, P.radiusBottom), P.height / 2, 0], {});
+      else if (ty === 'PlaneGeometry' && !back) {   // стена — плита за лицом; стекло (прозрачное), двустороннее и мелкое — тонкая пластина
+        const two = clear || mt.some(x => x && x.side === T.DoubleSide), wall = !two && P.width >= 1 && P.height >= 1.2, D = wall ? .3 : .02;
+        add(n, 'box', new T.Vector3(0, 0, two ? 0 : -D / 2), [P.width / 2, P.height / 2, D / 2], { plane: true, wall, glass: clear });
+      }
+    }
+    for (const ch of n.children) walk(ch);
+  })(o.S);
+  return (o._sol = out);
+}
+function solidNow(K, full) {   // где коллайдер сейчас: центр, оси, полуразмеры в мире; выключен — невидим, лежит (пол, лист на столе), мелочь, на полу
+  K.on = false; for (let q = K.m; q; q = q.parent) if (!q.visible) return;
+  K.m.updateWorldMatrix(true, false); const M = K.m.matrixWorld, e = M.elements, s = [0, 0, 0];
+  for (let i = 0; i < 3; i++) { const u = K.u[i].set(e[i * 4], e[i * 4 + 1], e[i * 4 + 2]); s[i] = u.length() || 1; u.multiplyScalar(1 / s[i]); K.e[i] = K.lh[i] * s[i]; }
+  if (K.kind === 'cyl') { K.e[0] = K.lh[0] * Math.max(s[0], s[2]); K.e[2] = K.e[0]; }
+  K.c.copy(K.lc).applyMatrix4(M); (K.c0 || (K.c0 = new T.Vector3())).copy(K.c);
+  if (K.plane && Math.abs(K.u[2].y) > .5) return;   // лежащая плоскость (пол, лужа, лист на столе) — не преграда
+  const ey = K.kind === 'cyl' ? Math.abs(K.u[1].y) * K.e[1] + Math.sqrt(Math.max(0, 1 - K.u[1].y * K.u[1].y)) * K.e[0] : Math.abs(K.u[0].y) * K.e[0] + Math.abs(K.u[1].y) * K.e[1] + Math.abs(K.u[2].y) * K.e[2];
+  if (K.c.y + ey < .08) return;   // на полу (коврик, порог, нижний плинтус): по нему ходят
+  const mx = 2 * Math.max(K.e[0], K.e[1], K.e[2]); if (mx < .15) return;   // мелочь (кружка, ключи, кнопка) тело не держит
+  K.small = mx < .4; K.thin = K.kind === 'cyl' && K.e[0] < .1; K.br = Math.hypot(K.e[0], K.e[1], K.e[2]); K.on = true;
+}
+const _sq = new T.Vector3(), _sh = [0, 0];
+function solidSide(K, P) {   // с какой стороны предмета таз персонажа — туда и выталкиваем; ось почти отвесна — это опора (сиденье, стол, ступень)
+  _sq.subVectors(P, K.c);
+  if (K.kind === 'cyl') { const a = K.u[1], h = _sq.dot(a), rx = _sq.x - a.x * h, ry = _sq.y - a.y * h, rz = _sq.z - a.z * h, rl = Math.hypot(rx, ry, rz);
+    if (rl <= K.e[0] && Math.abs(h) > K.e[1]) { K.ax = 1; K.sg = Math.sign(h) || 1; K.sup = Math.abs(a.y) > .6; return; }   // над торцом (сидит на табурете) или под ним
+    K.ax = -1; K.sup = false; if (rl > 1e-4) K.dP.set(rx / rl, ry / rl, rz / rl); return; }
+  let bi = 0, bo = -1e9, mi = 0, mn = 1e9, inside = true;
+  for (let i = 0; i < 3; i++) { const o = Math.abs(_sq.dot(K.u[i])) - K.e[i]; if (o > bo) { bo = o; bi = i; } if (o > 0) inside = false; if (-o < mn) { mn = -o; mi = i; } }
+  const i = inside ? mi : bi; K.ax = i; K.sg = Math.sign(_sq.dot(K.u[i])) || 1; K.sup = Math.abs(K.u[i].y) > .6;
+}
+function solidPen(K, p, r, depth) {   // насколько шар (r = 0 — точка) вошёл в предмет со стороны таза; _sh — куда выталкивать по полу. depth — просто глубина (детектор, и для опор)
+  _sq.subVectors(p, K.c);
+  if (K.kind === 'cyl') {
+    const a = K.u[1], h = _sq.dot(a);
+    if (K.ax === 1) { const rx = _sq.x - a.x * h, ry = _sq.y - a.y * h, rz = _sq.z - a.z * h; if (Math.hypot(rx, ry, rz) > K.e[0] + r * .7) return 0; const pen = K.e[1] + r - h * K.sg; return depth && pen > 0 ? pen : 0; }
+    if (Math.abs(h) > K.e[1] + r * .7) return 0;
+    const rx = _sq.x - a.x * h, ry = _sq.y - a.y * h, rz = _sq.z - a.z * h; let pen, dx, dy, dz;
+    if (K.thin) { const sd = rx * K.dP.x + ry * K.dP.y + rz * K.dP.z; if (Math.hypot(rx - K.dP.x * sd, ry - K.dP.y * sd, rz - K.dP.z * sd) > K.e[0] + r * .7) return 0; pen = K.e[0] + r - sd; dx = K.dP.x; dy = K.dP.y; dz = K.dP.z; }   // столбик, перила, черенок: насквозь не пройти
+    else { const rl = Math.hypot(rx, ry, rz); pen = K.e[0] + r - rl; if (rl > 1e-4) { dx = rx / rl; dy = ry / rl; dz = rz / rl; } else { dx = K.dP.x; dy = K.dP.y; dz = K.dP.z; } }
+    if (pen <= 0) return 0; if (depth) return pen;
+    const hl = Math.hypot(dx, dz); if (hl < .8) return 0;   // сверху или снизу трубы — опора
+    _sh[0] = dx / hl; _sh[1] = dz / hl; return pen / hl;
+  }
+  const i = K.ax, u = K.u[i];
+  for (let j = 0; j < 3; j++) if (j !== i && Math.abs(_sq.dot(K.u[j])) > K.e[j] + r * .7) return 0;
+  const q = _sq.dot(u) * K.sg; if (q < -K.e[i] - r && K.e[i] > .03) return 0;   // за дальней гранью толстого предмета — обнял колонну, а не прошёл сквозь
+  const pen = K.e[i] + r - q; if (pen <= 0) return 0; if (depth) return pen;
+  const hx = u.x * K.sg, hz = u.z * K.sg, hl = Math.hypot(hx, hz); if (hl < .8) return 0;
+  _sh[0] = hx / hl; _sh[1] = hz / hl; return pen / hl;
+}
+function solidFit(C) {   // шары тела по самой модели: для каждого сегмента — радиус по вершинам, которые держит его кость (один раз на персонажа)
+  C.root.updateMatrixWorld(true);
+  const B = C.bone, ss = C.ss || 1, seg = SOL_SEG.map(() => ({ d: [], la: [], de: [] })), head = [], segOf = {};
+  SOL_SEG.forEach((s, i) => { segOf[s[0]] = i; });
+  const idx = nm => { if (segOf[nm] != null) return segOf[nm]; if (/^clavicle_/.test(nm)) return segOf.spine_03; let m = /^thumb_0\d_([lr])$/.exec(nm); if (m) return segOf['hand_' + m[1]];
+    m = /^(index|middle|ring|pinky)_0\d_([lr])$/.exec(nm); if (m) return segOf['middle_01_' + m[2]]; m = /^ball_([lr])$/.exec(nm); return m ? segOf['foot_' + m[1]] : -1; };
+  const fr = SOL_SEG.map(s => { const a = B[s[0]], b = B[s[1]]; if (!a || !b) return null; const A0 = new T.Vector3().setFromMatrixPosition(a.matrixWorld), d = new T.Vector3().setFromMatrixPosition(b.matrixWorld).sub(A0), len = d.length(); d.multiplyScalar(1 / (len || 1));
+    let L = null; if (s[3] && B[s[3] + '_l'] && B[s[3] + '_r']) { L = new T.Vector3().setFromMatrixPosition(B[s[3] + '_l'].matrixWorld).sub(new T.Vector3().setFromMatrixPosition(B[s[3] + '_r'].matrixWorld)); L.addScaledVector(d, -L.dot(d)).normalize(); }
+    return { A0, d, len, L, D: L ? d.clone().cross(L) : null }; });
+  const v = new T.Vector3(), w = new T.Vector3(), hinv = B.Head ? B.Head.matrixWorld.clone().invert() : null;
+  C.root.traverse(sm => {
+    if (!sm.isSkinnedMesh || !sm.visible) return;
+    const g = sm.geometry, si = g.attributes.skinIndex, sw = g.attributes.skinWeight, n = g.attributes.position.count, step = Math.max(1, Math.floor(n / 3000)), bones = sm.skeleton.bones;
+    if (!si || !sw) return;
+    for (let i = 0; i < n; i += step) {
+      let bj = 0, bw = -1; for (let j = 0; j < 4; j++) { const x = sw.getComponent(i, j); if (x > bw) { bw = x; bj = si.getComponent(i, j); } }
+      const nm = bones[bj] && bones[bj].name; if (!nm) continue;
+      sm.getVertexPosition(i, v); v.applyMatrix4(sm.matrixWorld);
+      if (nm === 'Head') { head.push(v.clone()); continue; }
+      const k = idx(nm); if (k < 0 || !fr[k]) continue; const F = fr[k];
+      w.subVectors(v, F.A0); w.addScaledVector(F.d, -clamp(w.dot(F.d), 0, F.len));
+      if (F.L) { seg[k].la.push(Math.abs(w.dot(F.L))); seg[k].de.push(Math.abs(w.dot(F.D))); } else seg[k].d.push(w.length());
+    }
+  });
+  const q = (a, f) => { if (!a.length) return 0; a.sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.floor(a.length * f))]; };
+  const DEF = { core: .11, arm: .045, hand: .025, leg: .06, foot: .04 };
+  C.solF = { seg: seg.map((S, k) => { if (!fr[k]) return null; const g = SOL_SEG[k][2];
+    if (fr[k].L) { const rd = q(S.de, .8) || DEF.core * ss, rl = q(S.la, .9) || rd; return { r: Math.min(.3 * ss, rd * .92), wo: Math.max(0, rl - rd) }; }
+    return { r: Math.min(.2 * ss, (q(S.d, .7) || DEF[g] * ss) * .92), wo: 0 }; }) };
+  if (head.length && hinv) { const c = new T.Vector3(); for (const p of head) c.add(p); c.multiplyScalar(1 / head.length); C.solF.hr = Math.min(.2 * ss, q(head.map(p => p.distanceTo(c)), .75) * .92); C.solF.hc = c.applyMatrix4(hinv); }
+  C.solS = []; for (let i = 0; i < 200; i++) C.solS.push({ p: new T.Vector3(), r: 0, g: 'core' });
+}
+const _bA = new T.Vector3(), _bB = new T.Vector3(), _bd = new T.Vector3(), _bL = new T.Vector3(), _bR = new T.Vector3(), SOL_W3 = [-1, 0, 1], SOL_W1 = [0];
+function solidBody(C) {   // шары тела в мире по текущей позе → C.solS[0 … C.solN)
+  if (!C.solF) solidFit(C);
+  const B = C.bone, F = C.solF, S = C.solS; let n = 0;
+  C.root.updateMatrixWorld(true);
+  for (let k = 0; k < SOL_SEG.length; k++) {
+    const sg = SOL_SEG[k], f = F.seg[k]; if (!f) continue;
+    _bA.setFromMatrixPosition(B[sg[0]].matrixWorld); _bB.setFromMatrixPosition(B[sg[1]].matrixWorld); _bd.subVectors(_bB, _bA); const len = _bd.length();
+    let wo = f.wo; if (wo > .02 && sg[3]) { _bL.setFromMatrixPosition(B[sg[3] + '_l'].matrixWorld).sub(_bR.setFromMatrixPosition(B[sg[3] + '_r'].matrixWorld)); if (len > 1e-4) _bL.addScaledVector(_bd, -_bL.dot(_bd) / (len * len)); _bL.normalize(); } else wo = 0;
+    const m = Math.max(2, 1 + Math.ceil(len / (1.2 * Math.max(.02, f.r))));
+    for (let j = 0; j < m; j++) for (const o of wo ? SOL_W3 : SOL_W1) { if (n >= S.length) break; const s = S[n++]; s.p.copy(_bA).addScaledVector(_bd, j / (m - 1)); if (o) s.p.addScaledVector(_bL, o * wo); s.r = f.r; s.g = sg[2]; }
+  }
+  if (F.hc && B.Head && n < S.length) { const s = S[n++]; s.p.copy(F.hc).applyMatrix4(B.Head.matrixWorld); s.r = F.hr; s.g = 'head'; }
+  C.solN = n; return S;
+}
+const _pel = new T.Vector3(), _sp = new T.Vector3(), SOL_Z = [0, 0];
+const SOLID_ON = false;   // твёрдый мир включается всем после прогона всех сцен детектором (до того — window.__SOLID = 1 для проверки, 0 — сравнить без него)
+function solidPass(loc, used, sh, T0, id) {   // после поз: каждого, кто вошёл в стену или предмет, — на шаг в сторону, и поза заново
+  if (!(window.__SOLID ?? SOLID_ON) || !used.size) return;
+  const cols = solidCols(loc), gh = sh.ghost; let any = false;
+  for (const k of used) A[k].root.getWorldPosition(A[k].solR || (A[k].solR = new T.Vector3()));
+  for (const K of cols) { if (K.c0) { let near = false; for (const k of used) if (K.c0.distanceTo(A[k].solR) < K.br + 4) { near = true; break; } if (!near) { K.on = false; continue; } } solidNow(K); }   // далёкие от всех — не пересчитываем
+  for (const k of used) {
+    const C = A[k], d0 = C.solD || SOL_Z;
+    if (gh === true || (gh && gh.includes(k)) || C.reflOnly || !C.root.visible || !C.bone || !C.bone.pelvis) { if (C.solD) { C.root.position.x -= d0[0]; C.root.position.z -= d0[1]; C.solD = null; any = true; } continue; }
+    const S = solidBody(C), nS = C.solN; C.bone.pelvis.getWorldPosition(_pel); _pel.x -= d0[0]; _pel.z -= d0[1];
+    for (let i = 0; i < nS; i++) { S[i].p.x -= d0[0]; S[i].p.z -= d0[1]; }   // считаем от места, где персонажа поставил кадр
+    const near = []; for (const K of cols) if (K.on && K.c.distanceTo(_pel) < K.br + 1.3 * C.ss) { solidSide(K, _pel); if (!K.sup) near.push(K); }
+    let dx = 0, dz = 0;
+    for (let it = 0; it < 4 && near.length; it++) {   // самое глубокое проникновение — первым; угол двух стен — за два шага
+      let best = .001, bx = 0, bz = 0;
+      for (const K of near) for (let i = 0; i < nS; i++) { const s = S[i]; if (K.small && (s.g === 'hand' || s.g === 'arm')) continue;   // мелкий предмет рука может держать и трогать
+        _sp.set(s.p.x + dx, s.p.y, s.p.z + dz); const pen = solidPen(K, _sp, s.r) - SOL_TOL[s.g]; if (pen > best) { best = pen; bx = _sh[0] * pen; bz = _sh[1] * pen; } }
+      if (best <= .001) break; dx += bx; dz += bz;
+    }
+    const L = Math.hypot(dx, dz); if (L > .9) { dx *= .9 / L; dz *= .9 / L; }
+    if (window.__SOLLOG && L > .02) window.__SOLLOG.push([id, k, +dx.toFixed(3), +dz.toFixed(3)]);   // для проверки: кого и насколько отодвинули
+    if (Math.hypot(dx - d0[0], dz - d0[1]) > .003) { C.root.position.x += dx - d0[0]; C.root.position.z += dz - d0[1]; C.solD = L > 1e-4 ? [dx, dz] : null; any = true; }
+  }
+  if (any) for (const k of used) A[k].update(T0, 0);   // поза на новом месте: касания руками и предметы в руках — заново
+}
+function solidName(K) { const m = K.m; return K.name || m.name || (m.parent && m.parent.name) || (K.wall ? 'стена' : K.glass ? 'стекло' : K.plane ? 'пластина' : K.kind === 'cyl' ? 'цилиндр' : 'коробка'); }
+// проникновения тел в стены и предметы (для проверок: tools/story/sheet.js, tools/anim/clip_check.js): вершины тела (каждая N-я, с учётом скелета и мимики)
+// в коллайдерах твёрдого мира — глубина со стороны таза, с допуском tol (касание — не проникновение). → [{ k, prop, n вершин, d глубина м, at точка мира, size, scr }]
+const _cw = new T.Vector3(), _cp = new T.Vector3();
 function clips(tol = .02) {
   const out = []; if (!A || !curLoc || !curLoc.S) return out;
-  const own = new Set(); for (const k in A) if (A[k].root.parent) A[k].root.traverse(n => own.add(n));
-  const props = [];
-  curLoc.S.traverse(m => {
-    if (!m.isMesh || m.isSkinnedMesh || m.isInstancedMesh || own.has(m) || !m.geometry) return;
-    const ty = m.geometry.type; if (ty !== 'BoxGeometry' && ty !== 'CylinderGeometry') return;
-    if ([].concat(m.material).some(mt => mt && mt.side === T.BackSide)) return;   // комната, видимая изнутри (за дверью 707 и т. п.), — не предмет
-    if ([].concat(m.material).every(mt => mt && mt.transparent && !mt.depthWrite)) return;   // прозрачный объём (конус света фонаря, дымка) — сквозь него проходят
-    for (let q = m; q; q = q.parent) if (!q.visible) return;
-    const g = m.geometry; if (!g.boundingBox) g.computeBoundingBox(); g.boundingBox.getSize(_cs); m.getWorldScale(_cw); _cs.multiply(_cw);
-    if (Math.max(_cs.x, _cs.y, _cs.z) > 3.5 || Math.min(_cs.x, _cs.y, _cs.z) < .004) return;   // стены и пол целиком, плоские наклейки — мимо
-    props.push({ m, box: _cb.clone().copy(g.boundingBox).applyMatrix4(m.matrixWorld), inv: _ci.clone().copy(m.matrixWorld).invert(), sc: m.matrixWorld.getMaxScaleOnAxis(), size: [+_cs.x.toFixed(2), +_cs.y.toFixed(2), +_cs.z.toFixed(2)] });
-  });
+  const cols = solidCols(curLoc); for (const K of cols) solidNow(K);
   for (const k in A) {
     const C = A[k]; if (!C.root.parent || !C.root.visible || C.reflOnly) continue;
-    C.root.getWorldPosition(_cw); const near = props.filter(P => P.box.distanceToPoint(_cw) < 1.4); if (!near.length) continue;
+    C.root.updateMatrixWorld(true); if (C.bone && C.bone.pelvis) C.bone.pelvis.getWorldPosition(_cp); else C.root.getWorldPosition(_cp).y += .9;
+    const near = cols.filter(K => K.on && K.c.distanceTo(_cp) < K.br + 1.4 * (C.ss || 1)); near.forEach(K => solidSide(K, _cp));
     const hit = new Map();
-    C.root.traverse(sm => {
+    if (near.length) C.root.traverse(sm => {
       if (!sm.isSkinnedMesh || !sm.visible) return; const n = sm.geometry.attributes.position.count, step = Math.max(1, Math.floor(n / 400));
       for (let i = 0; i < n; i += step) {
         sm.getVertexPosition(i, _cw); _cw.applyMatrix4(sm.matrixWorld);
-        for (const P of near) {
-          if (!P.box.containsPoint(_cw)) continue;
-          _cl.copy(_cw).applyMatrix4(P.inv); const bb = P.m.geometry.boundingBox, t = tol / P.sc; let d;
-          if (P.m.geometry.type === 'CylinderGeometry') { const pr = P.m.geometry.parameters, R = Math.max(pr.radiusTop, pr.radiusBottom), r = Math.hypot(_cl.x, _cl.z); d = Math.min(R - r, _cl.y - bb.min.y, bb.max.y - _cl.y); }
-          else d = Math.min(_cl.x - bb.min.x, bb.max.x - _cl.x, _cl.y - bb.min.y, bb.max.y - _cl.y, _cl.z - bb.min.z, bb.max.z - _cl.z);
-          if (d <= t) continue;
-          let h = hit.get(P); if (!h) hit.set(P, h = { n: 0, d: 0, at: null }); h.n++; if (d * P.sc > h.d) { h.d = d * P.sc; h.at = [+_cw.x.toFixed(3), +_cw.y.toFixed(3), +_cw.z.toFixed(3)]; }
-        }
+        for (const K of near) { const d = solidPen(K, _cw, 0, true); if (d <= tol) continue;
+          let h = hit.get(K); if (!h) hit.set(K, h = { n: 0, d: 0, at: null }); h.n++; if (d > h.d) { h.d = d; h.at = [+_cw.x.toFixed(3), +_cw.y.toFixed(3), +_cw.z.toFixed(3)]; } }
       }
     });
-    for (const [P, h] of hit) out.push({ k, prop: P.m.name || (P.m.parent && P.m.parent.name) || '', size: P.size, n: h.n, d: +h.d.toFixed(3), at: h.at, scr: project(h.at) });
+    for (const [K, h] of hit) out.push({ k, prop: solidName(K), size: [+(2 * K.e[0]).toFixed(2), +(2 * K.e[1]).toFixed(2), +(2 * K.e[2]).toFixed(2)], n: h.n, d: +h.d.toFixed(3), at: h.at, scr: project(h.at), sup: K.sup, wall: !!K.wall });
     { const y0 = Math.min(0, C.root.position.y); let n = 0, d = 0, at = null;   // ниже пола (пол — y 0; корень может стоять выше — сидит/лежит на подъёме): ступня или таз ушли под пол
       C.root.traverse(sm => { if (!sm.isSkinnedMesh || !sm.visible) return; const cnt = sm.geometry.attributes.position.count, step = Math.max(1, Math.floor(cnt / 400));
         for (let i = 0; i < cnt; i += step) { sm.getVertexPosition(i, _cw); _cw.applyMatrix4(sm.matrixWorld); const dd = y0 - _cw.y; if (dd > tol) { n++; if (dd > d) { d = dd; at = [+_cw.x.toFixed(3), +_cw.y.toFixed(3), +_cw.z.toFixed(3)]; } } } });
@@ -2817,5 +2956,7 @@ function clips(tol = .02) {
   }
   return out.sort((x, y) => y.d - x.d);
 }
-window.World = { draw, init, warm, setLand, project, projectAt, heads, clips, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, get ultra() { return ULTRA; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
+// для отладки: включённые коллайдеры места (что «твёрдое» в текущем кадре)
+function solids() { if (!curLoc) return []; return solidCols(curLoc).map(K => (solidNow(K), K)).filter(K => K.on).map(K => ({ prop: solidName(K), kind: K.kind, wall: !!K.wall, glass: !!K.glass, small: K.small, c: [+K.c.x.toFixed(2), +K.c.y.toFixed(2), +K.c.z.toFixed(2)], size: K.e.map(x => +(2 * x).toFixed(2)) })); }
+window.World = { draw, init, warm, setLand, project, projectAt, heads, clips, solids, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, get ultra() { return ULTRA; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();

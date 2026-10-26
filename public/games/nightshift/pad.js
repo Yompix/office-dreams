@@ -32,7 +32,7 @@ function layer() {
 const items = root => root ? [...root.querySelectorAll(FOC)].filter(el => !el.disabled && vis(el)) : [];
 function defItem(list) {   // куда встаёт рамка в новом слое
   const pick = s => list.find(el => el.matches(s));
-  return pick('#pzGo') || pick('#oRetry') || pick('#hBtn') || pick('.bigbtn') || pick('.plug') || pick('.sh-cams button.on') || list.find(el => !el.matches('.sx, #tutSkip')) || list[0] || null;
+  return pick('#pzGo') || pick('#oRetry') || pick('#hBtn') || pick('#tutGo') || pick('.bigbtn') || pick('.plug') || pick('.sh-cams button.on') || list.find(el => !el.matches('.sx, #tutSkip')) || list[0] || null;
 }
 function reveal(el) {   // кнопка за краем прокрутки (настройки, журнал ночи) — докрутить; сам кадр (#stage) не двигаем
   for (let p = el.parentElement; p && p.id !== 'stage'; p = p.parentElement) {
@@ -48,8 +48,10 @@ function setCur(el) {
   el.classList.add('pfocus'); reveal(el);
   const a = document.activeElement; if (a && a !== el && a !== B && !a.matches('input, textarea')) a.blur();   // фокус клавиатуры (движок ставит его на «Попробовать снова») не светится второй рамкой
 }
+let goSeen = false;   // «Продолжить» у Веры (обучение) появилась — рамка сразу на неё
 function sync() {   // слой сменился или кнопка исчезла — рамку на кнопку по умолчанию (A не жмёт её сразу: только что появилась)
-  const root = layer(), list = items(root);
+  const root = layer(), list = items(root), go = list.find(el => el.id === 'tutGo');
+  if (!go) goSeen = false; else if (!goSeen) { goSeen = true; curRoot = root; armT = tnow() + 320; setCur(go); return list; }
   if (root !== curRoot) { curRoot = root; touched = false; armT = tnow() + (root && /^(choice|act|shPop)$/.test(root.id) ? 450 : 320); setCur(defItem(list)); return list; }   // выбор и окна смены — чуть дольше: решение, а не повтор
   if (cur && !list.includes(cur)) { armT = Math.max(armT, tnow() + 200); setCur(defItem(list)); }
   else if (!cur && list.length) setCur(defItem(list));

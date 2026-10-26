@@ -428,10 +428,10 @@ const VIS_CH = (() => { const m = {}, set = (s, v) => { for (const c of s) m[c] 
   set('áàâãäå', 'viseme_aa'); set('óòôõö', 'viseme_O'); set('úùûü', 'viseme_U'); set('íìîïіїý', 'viseme_I'); set('éèêëє', 'viseme_E'); set('ñ', 'viseme_nn'); set('çß', 'viseme_SS'); set('ґ', 'viseme_kk');   // испанский, португальский, немецкий, украинский
   return m; })();
 function visemeAt(k, tl) {
-  const w = (TIM[k] || {}).w; if (!w || !w.length) return null;
+  const tm = TIM[k] || {}, w = tm.ew || tm.w; if (!w || !w.length) return null;   // ew — слова английской записи: язык с субтитрами (японский, французский…) звучит английскими голосами — губы под то, что слышно
   let i = -1; for (let j = 0; j < w.length && w[j][0] <= tl; j++) i = j;
   if (i < 0) return 'sil';
-  const L = [...String(w[i][1]).toLowerCase()].filter(c => VIS_CH[c]); if (!L.length) return 'sil';
+  const L = [...String(w[i][1]).toLowerCase()].filter(c => VIS_CH[c]); if (!L.length) return /\p{L}/u.test(w[i][1]) ? null : 'sil';   // буквы без карты (иероглифы, хангыль) — рот по громкости голоса, а не закрыт
   const st = w[i][0], nx = i + 1 < w.length ? w[i + 1][0] : st + 9, en = Math.min(nx - .02, st + .075 * L.length + .1);   // слово кончилось — пауза, рот закрыт
   if (tl > en) return 'sil';
   return VIS_CH[L[Math.min(L.length - 1, Math.floor((tl - st) / Math.max(.05, en - st) * L.length))]];
@@ -977,12 +977,15 @@ function shiftProps() {   // что сейчас видно на камерах:
   return p;
 }
 function sayV(k, o = {}) {   // реплика во время смены: голос + слова по таймингу (нет озвучки — печатается текст)
-  const d = durOf(k), at = Math.max(now(), ...shf.vq.map(v => v.t0 + v.d + .25)), it = { k, t0: at + (o.delay || 0), d: TIM[k] ? d : Math.max(2.4, ((S.shift.lines || {})[k] || '').length / 14 + 1) };
+  const d = durOf(k), at = Math.max(now(), ...shf.vq.map(v => v.t0 + (v.show || v.d) + .25)), it = { k, t0: at + (o.delay || 0), d: TIM[k] ? d : Math.max(2.4, ((S.shift.lines || {})[k] || '').length / 14 + 1) };
+  it.show = SUB_ONLY ? Math.max(it.d, readT(k)) : it.d;   // субтитры под английскую запись: строка стоит, сколько её читать, а следующая ждёт
   shf.vq.push(it);
   const go = () => { if (TIM[k]) for (const vo of voiceFx(k)) { const x = play(k, Object.assign({ bus: 'voice' }, vo, { when: it.t0 - now() + (vo.dt || 0) })); if (x) x.voice = true; } };
   if (TIM[k] && !BUF[k] && AC) voiceReady([k]).then(() => { if (shf && shf.vq.includes(it)) go(); }); else go();   // ещё не декодирована — догоним, когда готова
   return it;
 }
+const SUB_ONLY = VL !== LNG, CPS = { ja: 5, zh: 8, ko: 11 };   // язык субтитрами под чужую запись; знаков в секунду, которые успевают прочесть (как в стандартах субтитров: японский ~4–5, китайский ~9, корейский ~12, латиница ~16)
+const readT = k => .9 + String((TIM[k] || {}).t || tr((S.shift.lines || {})[k] || '')).length / (CPS[LNG] || 16);
 // Гас и Итан на камерах во время разговора по рации (смена S2): позы считает кадр (scenes.js cam07/cam02) по этим долям 0..1
 const GUS_TAKE = 2, sgE = (t, a, b) => ease(clamp((t - a) / (b - a), 0, 1));
 function radioTalk() {
@@ -1084,7 +1087,7 @@ function shiftUI() {
     <div class="sh-task hide" id="shTask"></div><div class="sh-toast" id="shToast"></div>
     <div class="sh-cams">${cams.map(c => `<button data-c="${c}" class="${c === shf.cam ? 'on' : ''}${c === '13' ? ' c13' : ''}"><b>${camNo(c)}</b><small>${tr(CAMS[c] || '???')}</small></button>`).join('')}</div>
     <div class="sh-act"><button id="shLog">${ICON.pen || ''}<span>${tr('Записать')}</span></button><button id="shPanel"><span>${tr('Пульт')}</span></button><button id="shBook"><span>${tr('Журнал')}</span></button><button id="shHelp" class="sh-q" title="${tr('Как играть')}">?</button></div>
-    <div class="tut-card hide" id="tutCard"><div class="tut-hd"><i class="tut-wave"><b></b><b></b><b></b><b></b><b></b></i>${tr('ПУЛЬТ «ЩИТ» · ДИСПЕТЧЕР ВЕРА')}</div><div class="tut-do" id="tutDo"></div><button id="tutSkip">${tr('Пропустить обучение')}</button></div>
+    <div class="tut-card hide" id="tutCard"><div class="tut-hd"><i class="tut-wave"><b></b><b></b><b></b><b></b><b></b></i>${tr('ПУЛЬТ «ЩИТ» · ДИСПЕТЧЕР ВЕРА')}</div><div class="tut-do" id="tutDo"></div><button id="tutGo" class="tut-go hide">${tr('Продолжить')}</button><button id="tutSkip">${tr('Пропустить обучение')}</button></div>
     <div class="tut-ring hide" id="tutRing"><i>▼</i></div>
     <div class="sh-pop hide" id="shPop"></div></div>`;
   mgEl.classList.remove('hide');
@@ -1150,13 +1153,20 @@ function tutMark(target) {   // кольцо со стрелкой вокруг 
   else { const el = mgEl.querySelector(target); if (!el) { ring.classList.add('hide'); return; } r = el.getBoundingClientRect(); }
   const p = 6; Object.assign(ring.style, { left: (r.left - b.left - p) + 'px', top: (r.top - b.top - p) + 'px', width: (r.width + 2 * p) + 'px', height: (r.height + 2 * p) + 'px' }); ring.classList.remove('hide');
 }
+function tutGo(target, it) {   // как в диалогах: Вера договорила — ждём «Продолжить» (клик, Пробел/Enter, A на пульте); «Авто» — сам, когда текст прочитан
+  const b = $('tutGo'); if (!b) return Promise.resolve(true);
+  let go = false; const tA = performance.now() / 1000 + Math.max(1.2, readT(it.k) - it.d);
+  b.classList.remove('hide'); b.onclick = e => { e.stopPropagation(); go = true; play('click'); }; if (!target) tutMark('#tutGo');
+  return tutWait(() => go || (auto && performance.now() / 1000 > tA && !paused)).then(r => { b.classList.add('hide'); b.onclick = null; return r; });
+}
 async function tutorial() {
   if (!shf || mode !== 'shift' || !$('tutCard')) return; const me = tut = { target: null, seen: {}, shf }; shSpd = 0; $('tutCard').classList.remove('hide'); shiftPop(null);
   const card = (cls, on) => { const c = $('tutCard'); if (c) c.classList.toggle(cls, on); };
   const step = async (k, target, cond) => { if (tut !== me || !$('tutDo')) return false; tutMark(target); $('tutDo').textContent = tr(TUT_DO[k] || ''); card('talk', true);
     const it = sayV(k), rEnd = performance.now() / 1000 + (it.t0 - now()) + it.d + .3;   // голос идёт в реальном времени, даже если кадры медленные
-    if (!(await tutWait(() => performance.now() / 1000 > rEnd && !paused))) return false; card('talk', false);
-    return cond ? tutWait(cond) : true; };
+    it.hold = true; const done = r => { it.hold = false; return r; };   // субтитр Веры не убегает: стоит, пока игрок не сделал, что она просит, или не нажал «Продолжить»
+    if (!(await tutWait(() => performance.now() / 1000 > rEnd && !paused))) return done(false); card('talk', false);
+    return done(await (cond ? tutWait(cond) : tutGo(target, it))); };
   const ok = await (async () => {
     if (!await step('t01')) return false;
     if (!await step('t02', 'button[data-c="03"]', () => shf.cam === '03')) return false;
@@ -1929,7 +1939,7 @@ function frame(tp) {
       if (jump) { grain(.95); if (a.jumpN !== n) { a.jumpN = n; tear(1); play('static', { gain: .55 + .12 * n }); } } }   // рывок — вспышка ряби на весь кадр и треск
     if (st < .22) grain(.95);   // переключение камеры
     vignette(); cctvHud(camLabel(c), T);
-    const v = shf.vq.find(v => T >= v.t0 && T < v.t0 + v.d + .35);
+    const v = shf.vq.find(v => T >= v.t0 && (v.hold || T < v.t0 + (v.show || v.d) + .35));   // hold — Вера ждёт «Продолжить» (обучение)
     if (v) { const tm = TIM[v.k];
       if (tm) { const w = tm.w || [], on = w.filter(x => T - v.t0 >= x[0] - .02).length; sayWords(whoOf(v.k), chunks(v.k, w), on); voiceNow = T < v.t0 + v.d; }
       else { const s = tr((S.shift.lines || {})[v.k] || ''); say((S.shift.who || {})[v.k] || 'ИТАН', s, Math.floor(Math.min(1, (T - v.t0) / Math.max(.5, v.d - .8)) * s.length)); } }
