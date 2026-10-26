@@ -1,6 +1,6 @@
 # Тексты к трейлерам (скопировать при публикации)
 
-Ссылку на страницу itch.io вставить вместо `ССЫЛКА` (вид: `https://НИК.itch.io/hush-till-six`).
+Страница itch.io: https://yompix-games.itch.io/hush-till-six (вставлена вместо `https://yompix-games.itch.io/hush-till-six` 26 окт).
 
 ## YouTube — English
 **Title:** Hush Till Six — Official Trailer | Night Shift Horror Game (18+)
@@ -10,12 +10,14 @@ Don't answer. Don't open. Wait for six.
 
 You take the night shift at an empty office tower. The guard before you vanished from his booth a week ago. At three in the morning your little sister is standing outside the glass doors, in the rain, calling your name. She's supposed to be asleep two hundred miles away.
 
-▶ Play now on itch.io — free demo in your browser: ССЫЛКА
+▶ Play the free demo in your browser: https://yompix-games.itch.io/hush-till-six
 🔜 Coming soon to Steam & Android
 
 • 2–3 hour interactive horror story, 4 endings, 14 ways to die
 • Watch the cameras, log what's wrong — and don't stare at CAM 13
-• Fully voiced in English and Russian
+• Voiced in English, Russian, Spanish, Portuguese and German; subtitles in 13 languages
+• Play in your browser on PC or phone, or download for Windows and Linux
+
 18+: violence, blood, jump scares, flashing lights.
 
 #horror #horrorgame #indiegame #nightshift #scary #indiehorror
@@ -27,7 +29,7 @@ You take the night shift at an empty office tower. The guard before you vanished
 3. Ночная смена в пустом бизнес-центре | Hush Till Six — трейлер хоррора
 
 **Описание** (первые две строки видны в поиске — в них ключевые слова):
-Хоррор-игра про ночную смену: не отвечай, не открывай, дождись шести. Бесплатное демо прямо в браузере — ССЫЛКА
+Хоррор-игра про ночную смену: не отвечай, не открывай, дождись шести. Бесплатное демо прямо в браузере — https://yompix-games.itch.io/hush-till-six
 Скоро в Steam и на Android.
 
 Ты выходишь охранником в ночную смену в пустой бизнес-центр «Горизонт». Охранник до тебя неделю назад пропал прямо из будки. В три часа ночи за стеклянной дверью стоит твоя младшая сестра — под дождём, и зовёт тебя по имени. Хотя должна спать в трёхстах километрах отсюда.
@@ -50,7 +52,7 @@ You take the night shift at an empty office tower. The guard before you vanished
 - Аудитория — «Нет, это видео не для детей». Возрастное ограничение 18+ на YouTube **не ставить**: такие видео почти не попадают в рекомендации (в трейлере нет крови, пометки «18+» в кадре достаточно).
 - Категория — «Компьютерные игры». Обложка — `HushTillSix_Thumbnail_YouTube_RU.jpg`.
 - Конечная заставка — на последние 6 секунд (там карточка itch.io): кнопка «Подписаться» + ваше видео/плейлист.
-- Сразу после публикации — закрепить комментарий: «Бесплатное демо — ССЫЛКА. А ты бы ответил, если бы она позвала тебя по имени?» (вопрос = комментарии = рекомендации) и в первый час отвечать на комментарии.
+- Сразу после публикации — закрепить комментарий: «Бесплатное демо — https://yompix-games.itch.io/hush-till-six. А ты бы ответил, если бы она позвала тебя по имени?» (вопрос = комментарии = рекомендации) и в первый час отвечать на комментарии.
 - Время — вечер по Москве (18:00–20:00), лучше пятница или суббота.
 - Через 1–2 дня — вертикальную версию (TikTok RU) выложить как Shorts и в поле «Связанное видео» указать этот трейлер: Shorts приводят зрителей на основной ролик.
 - Для русскоязычных зрителей там, где YouTube медленный: тот же ролик — в VK Видео (вертикальный — в VK Клипы), RuTube и Telegram, с тем же названием и описанием.
