@@ -21,3 +21,13 @@ bash tools/trailer/make.sh tt ru OUT      # потом tt en, yt ru, yt en (ан
   («Играй сейчас на itch.io», «Скоро в Steam и на Android», 18+). `--png DIR --at 12.5,40` — снимки кадров для проверки надписей.
 
 Рендер 3D — около 2 с на кадр Full HD на 4 ядрах: YouTube ≈ 1 ч, TikTok ≈ 30 мин на язык.
+
+## Звук на других языках для YouTube (мультиязычный звук: к одному ролику — дорожки разных языков)
+```
+python3 tools/trailer/dub.py OUT/tl_yt_en.json ru|es|pt|de OUT/HushTillSix_Trailer_YouTube_audio_RU.wav
+python3 tools/trailer/dub.py OUT/tl_yt_en.json en OUT/HushTillSix_Trailer_YouTube_audio_EN.wav OUT/a_yt_en.wav
+```
+`dub.py` — звук под **английский** монтаж: та же музыка, звуки и склейки, реплики игры на языке дорожки с теми же эффектами (`audio.py`).
+Реплика стоит там же, где английская; длиннее своего места — начинается чуть раньше (до 0,3 с) и ускоряется без смены высоты (до ×1.25);
+правила (`dg08`) режутся по словам языка в паузах. Длина — ровно кадры / 24 (97,75 с), 48 кГц, −14 LUFS. Губы в кадре — под английский.
+Своя озвучка есть только у RU, EN, ES, PT, DE; остальные языки игры — субтитрами.
