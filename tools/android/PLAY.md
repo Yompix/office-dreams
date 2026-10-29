@@ -1,7 +1,7 @@
 # Hush Till Six → Google Play (что делает владелец, по шагам)
 
 Сборка: `node tools/android/build.js` → `tools/android/out/HushTillSix-v<версия>.aab` (загружать в Play Console) и `.apk` (поставить на свой телефон для проверки).
-Значок и баннер: `python3 tools/android/assets.py` → `dist/play/icon-512.png`, `dist/play/feature-1024x500.png`. Скриншоты — `dist/itch/screens/*.png` (1280×720) или новые снимки.
+Значок и баннер: `python3 tools/android/assets.py` → `dist/play/icon-512.png`, `dist/play/feature-1024x500.png`. Скриншоты телефона (1920×1080, интерфейс приложения, EN и RU) — `dist/play/screenshots/*_phone.png`: `PHONE=1 PORT=8785 node tools/desktop/steam/kit.js dist/play shots` (сервер статики — как в начале kit.js).
 
 - **Пакет (ID приложения): `com.yompix.hushtillsix`** — после первой загрузки в Play его поменять нельзя.
 - **Версия** — как у ПК-версии (`tools/desktop/package.json`), номер сборки 1.2.6 → 10206. Каждая новая загрузка — с номером больше: поднять версию и пересобрать.
@@ -47,7 +47,7 @@ Create app → App name **Hush Till Six**, Default language English (US), **Game
   Content warning: 18+. Violence, blood and gore, jump scares, flashing lights ("fewer flashes" option in settings).
 
 - **Полное описание (RU):** как в `tools/itch/page.md` (раздел «Описание (RU)»), без строк про браузер и демо; список — как в EN выше.
-- **Графика:** значок `dist/play/icon-512.png` (512×512), баннер `dist/play/feature-1024x500.png`, скриншоты телефона — 4–8 шт. (16:9 или 9:16, сторона от 1080 px).
+- **Графика:** значок `dist/play/icon-512.png` (512×512), баннер `dist/play/feature-1024x500.png`, скриншоты телефона — 4–8 шт. из `dist/play/screenshots/` (`*_en_phone.png` — в основную страницу, `*_ru_phone.png` — в русский перевод страницы).
 - **Category:** Games → Adventure (или Casual/Role Playing — на выбор). **Tags:** Horror, Story, Interactive story. **Contact:** почта разработчика (видна в магазине).
 
 ## 5. Загрузка сборки

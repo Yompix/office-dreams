@@ -64,6 +64,7 @@ async function shots(b) {
   const PHONE = !!process.env.PHONE;
   const p = PHONE ? await (await b.newContext({ viewport: { width: 640, height: 360 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true })).newPage() : await b.newPage({ viewport: { width: 1920, height: 1080 } });
   p.on('pageerror', e => console.log('ошибка JS:', String(e).slice(0, 200)));
+  if (PHONE) await p.addInitScript(() => { window.nsAppNative = { quit() {}, orient() {} }; });   // интерфейс как в Android-приложении: без кнопки «во весь экран» и доната
   await p.addInitScript(() => { localStorage.setItem('ns1_land3', 'true'); localStorage.setItem('ns1_tutDone', '1'); localStorage.setItem('ns1_qa', 'false'); });
   for (const lang of (process.env.LANGS || 'en,ru').split(',')) {
     await p.goto(`http://127.0.0.1:${PORT}/nightshift/index.html?gfx=cine&lang=${lang}&rs=${process.env.RS || '.85'}`);
