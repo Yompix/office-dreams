@@ -11,7 +11,7 @@ Don't answer. Don't open. Wait for six.
 You take the night shift at an empty office tower. The guard before you vanished from his booth a week ago. At three in the morning your little sister is standing outside the glass doors, in the rain, calling your name. She's supposed to be asleep two hundred miles away.
 
 ▶ Play the free demo in your browser: https://yompix-games.itch.io/hush-till-six
-🔜 Coming soon to Steam & Android
+🔜 Coming soon to Steam, Google Play & App Store
 
 • 2–3 hour interactive horror story, 4 endings, 14 ways to die
 • Watch the cameras, log what's wrong — and don't stare at CAM 13
@@ -30,7 +30,7 @@ You take the night shift at an empty office tower. The guard before you vanished
 
 **Описание** (первые две строки видны в поиске — в них ключевые слова):
 Хоррор-игра про ночную смену: не отвечай, не открывай, дождись шести. Бесплатное демо прямо в браузере — https://yompix-games.itch.io/hush-till-six
-Скоро в Steam и на Android.
+Скоро в Steam, Google Play и App Store.
 
 Ты выходишь охранником в ночную смену в пустой бизнес-центр «Горизонт». Охранник до тебя неделю назад пропал прямо из будки. В три часа ночи за стеклянной дверью стоит твоя младшая сестра — под дождём, и зовёт тебя по имени. Хотя должна спать в трёхстах километрах отсюда.
 
@@ -58,9 +58,9 @@ You take the night shift at an empty office tower. The guard before you vanished
 - Для русскоязычных зрителей там, где YouTube медленный: тот же ролик — в VK Видео (вертикальный — в VK Клипы), RuTube и Telegram, с тем же названием и описанием.
 
 ## TikTok / Shorts — English
-If someone calls your name at night… don't answer. 🎧 Hush Till Six — free demo on itch.io, coming soon to Steam & Android. Link in bio.
+If someone calls your name at night… don't answer. 🎧 Hush Till Six — free demo on itch.io, coming soon to Steam, Google Play & App Store. Link in bio.
 #horror #horrorgame #indiegame #scary #nightshift #gaming #fyp
 
 ## TikTok / Shorts — Русский
-Если ночью тебя зовут по имени… не отзывайся. 🎧 Hush Till Six — бесплатное демо на itch.io, скоро в Steam и на Android. Ссылка в профиле.
+Если ночью тебя зовут по имени… не отзывайся. 🎧 Hush Till Six — бесплатное демо на itch.io, скоро в Steam, Google Play и App Store. Ссылка в профиле.
 #хоррор #хорроригра #страшно #инди #игры #ночнаясмена #fyp

@@ -48,9 +48,9 @@ function pageMain() {
     g.letterSpacing = sp + 'px'; const w = g.measureText(s).width; g.textAlign = 'left';
     g.fillText(s, align === 'center' ? x - w / 2 + sp / 2 : align === 'right' ? x - w : x, y); g.letterSpacing = '0px'; return w;
   }
-  function subs(text, a) {
+  function subs(text, a, y0) {   // y0 — низ субтитров в вертикальном кадре (Shorts — ниже: не на лице крупных планов, но выше подписи и кнопок YouTube)
     g.save(); g.globalAlpha = a; const fs = (LAND ? 50 : 54) * U; g.font = `600 ${fs}px NSUI, Arial`; g.textBaseline = 'alphabetic';
-    const maxW = LAND ? W * .7 : 780 * U, lines = wrap(text, maxW), lh = fs * 1.22, yb = LAND ? H - 78 * U : 1240 * U;
+    const maxW = LAND ? W * .7 : 780 * U, lines = wrap(text, maxW), lh = fs * 1.22, yb = LAND ? H - 78 * U : (y0 || 1240) * U;
     lines.forEach((l, i) => { const y = yb - (lines.length - 1 - i) * lh; g.lineJoin = 'round'; g.strokeStyle = 'rgba(0,0,0,.85)'; g.lineWidth = 7 * U; g.textAlign = 'center';
       g.shadowColor = 'rgba(0,0,0,.8)'; g.shadowBlur = 14 * U; g.strokeText(l, W / 2, y); g.shadowBlur = 0; g.fillStyle = '#f4f1e8'; g.fillText(l, W / 2, y); });
     g.restore();
@@ -121,7 +121,7 @@ function pageMain() {
       spaced(L === 'ru' ? 'БЕСПЛАТНОЕ ДЕМО В БРАУЗЕРЕ' : 'FREE DEMO IN YOUR BROWSER', W / 2, yf, 5 * U);
       const y2 = yf + 34 * U; g.fillStyle = 'rgba(236,232,220,.35)'; g.globalAlpha = a * pulse; g.fillRect(W / 2 - 160 * U, y2, 320 * U, 3 * U); g.globalAlpha = a;
       g.font = `600 ${(LAND ? 40 : 44) * U}px NSUI`; g.fillStyle = 'rgba(236,232,220,.85)';
-      const l2 = L === 'ru' ? 'СКОРО В STEAM И НА ANDROID' : 'COMING SOON TO STEAM & ANDROID'; const lines2 = wrap(l2, LAND ? W * .8 : 880 * U);
+      const l2 = L === 'ru' ? 'СКОРО В STEAM, GOOGLE PLAY И APP STORE' : 'COMING SOON TO STEAM, GOOGLE PLAY & APP STORE'; const lines2 = wrap(l2, LAND ? W * .8 : 880 * U);
       lines2.forEach((l, i) => spaced(l, W / 2, y2 + 76 * U + i * 56 * U, 5 * U));
       const by = y2 + 76 * U + lines2.length * 56 * U + (LAND ? 50 : 80) * U; badge18(W / 2, by, (LAND ? 38 : 46) * U, a);
       g.restore();
@@ -173,7 +173,7 @@ function pageMain() {
     if (s.fadeOut && tau > s.dur - s.fadeOut) { g.fillStyle = `rgba(0,0,0,${(tau - (s.dur - s.fadeOut)) / s.fadeOut})`; g.fillRect(0, 0, W, H); }
     for (const cd of o.cards) card(cd, o.t, o.T, o.L);
     if (!o.img && !o.bg) grain(.05);
-    for (const sb of o.subs) subs(sb.text, fade(o.t, sb.at, sb.dur, .08, .12));
+    for (const sb of o.subs) subs(sb.text, fade(o.t, sb.at, sb.dur, .08, .12), o.subY);
     return o.png ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', .92);
   };
 }
@@ -204,7 +204,7 @@ function pageMain() {
     const img = seg.shot && man[seg.id] ? `http://tr.local/${index[seg.id]}/${man[seg.id][Math.min(i, man[seg.id].length - 1)]}` : null;
     if (seg.shot && !img && !PNG) throw new Error('нет кадров сегмента ' + seg.id + ' — сначала render.js');   // в --png без кадров — серая заглушка (проверка надписей)
     const cards = TL.cards.filter(cd => t >= cd.at - .01 && t < cd.at + cd.dur), subs = TL.subs.filter(sb => t >= sb.at && t < sb.end);
-    const o = { f, t, T: 100 + t, tau, seg, img, stub: !!(seg.shot && !img), bg: seg.id === 'end' ? bgUrl : null, cards, subs, L: TL.lang, tear: tears.has(f), png: !!PNG };
+    const o = { f, t, T: 100 + t, tau, seg, img, stub: !!(seg.shot && !img), bg: seg.id === 'end' ? bgUrl : null, cards, subs, L: TL.lang, subY: TL.fmt === 'sh' ? 1385 : 1240, tear: tears.has(f), png: !!PNG };
     const url = await p.evaluate(o => window.__comp(o), o);
     const buf = Buffer.from(url.split(',')[1], 'base64');
     if (PNG) fs.writeFileSync(path.join(PNG, `${TL.fmt}_${TL.lang}_${t.toFixed(2)}.png`), buf);
