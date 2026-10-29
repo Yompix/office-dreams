@@ -1,4 +1,4 @@
-// «Hush Till Six» — монтаж трейлеров. node tools/trailer/edl.js yt|tt ru|en > timeline.json
+// «Hush Till Six» — монтаж трейлеров. node tools/trailer/edl.js yt|tt|sh ru|en > timeline.json   (sh — YouTube Shorts)
 // Кадры — только из движка игры (World.draw), голоса — snd/*.mp3 и snd/en/*.mp3, музыка — tools/trailer/audio.py (код).
 // Сегмент: { shot, t0 — секунда анимации кадра в начале сегмента, cam [cx, cy, z0, z1] (доли кадра 9:16, как cams в story.js),
 //   cctv — подпись камеры (HUD), fx — static|dark|rain|flicker|lamp, props, sh — props странностей смены (камеры cam01…),
@@ -101,9 +101,32 @@ function tiktok(L) {
   return S;
 }
 
+// YouTube Shorts 9:16, ~30 с: крючок с первого кадра (голос и надпись), «должна быть за двести миль», улыбка, на камере пусто,
+// «Вот ты где» и бросок, звонок «Итан?.. Это ты?» — «Да. Это я.» и двойник на камере; логотип коротко — и по кругу (конец переходит в начало).
+// Звук других языков к этому ролику — tools/trailer/dub.py (дорожки той же длины).
+function shorts(L) {
+  const S = [], HOOK = T('ЕСЛИ НОЧЬЮ ТЕБЯ ЗОВУТ ПО ИМЕНИ…', 'IF SOMEONE CALLS YOUR NAME AT NIGHT…');
+  S.push({ id: 'lily', shot: 'gl_face', from: 'glass2:1', t0: 1, cam: [.5, .5, 1.1, 1.2], fx: 'rain', vo: [['g05', .1]], tail: .25, card: { kind: 'hook', at: 0, dur: 99, lines: [HOOK] },
+    sfx: [['rain', 0, { gain: .3, cut: 8 }], ['glass_hit', .25, { gain: .3 }], ['glass_hit', .95, { gain: .28 }]], mark: 'build' });
+  S.push({ id: 'far', shot: 'gl_wide', from: 'glass2:2', t0: 1, cam: [.5, .5, 1.04, 1.1], fx: 'rain', vo: [['g06', .05]], tail: .25, card: { kind: 'hook', at: 0, dur: 99, lines: [HOOK, T('НЕ ОТЗЫВАЙСЯ.', "DON'T ANSWER.")] } });
+  S.push({ id: 'smile', shot: 'b_smile', from: 'branch_b:2', t0: .4, cam: [.5, .47, 1.0, 1.22], fx: 'rain', vo: [['b02', .25]], tail: .3, sfx: [['skin_stretch', 1.8, { gain: .45 }], ['drone_dread', 0, { gain: .3 }]] });
+  S.push({ id: 'lilycam', shot: 'entrance_empty', from: 'glass2:4', t0: 1, cam: [.5, .5, 1.0, 1.08], cctv: T('CAM 01  ВХОД', 'CAM 01  ENTRANCE'), clock: '03:31', fx: 'static', vo: [['g08', .1]], tail: .2,
+    sfx: [['static', 0, { gain: .45, cut: .45 }]], mark: 'silence' });
+  S.push({ id: 'there', shot: 'h_face_open', from: 'over_k5:0', t0: 1, cam: [.5, .5, 1.1, 1.2], fx: 'dark', vo: [['k5a', .15]], tail: .1 });
+  S.push({ id: 'lunge', shot: 'lunge_booth', t0: .55, cam: [.5, .5, 1, 1], scareAt: .75, dur: 1.6, sfx: [['jumpscare', .75, { gain: 1 }], ['scare', .75, { gain: .8 }]], mark: 'scare' });
+  S.push({ id: 'cut', black: .5, sfx: [['tinnitus', 0, { gain: .3, cut: 1.9 }]] });
+  S.push({ id: 'ring', black: 1.4, sfx: [['buzz', .1, { gain: .45, cut: .55 }], ['buzz', .75, { gain: .45, cut: .55 }]], mark: 'stinger' });   // гудки обрезаны — не накрывают «Итан?..»
+  S.push({ id: 'call2', black: 0, vo: [['n20', 0]], tail: .6, card: { kind: 'phone', at: 0, name: T('Лили', 'Lily') } });
+  S.push({ id: 'me', black: 0, vo: [['n23m', 0]], tail: .35, card: { kind: 'phone', at: 0, name: T('Лили', 'Lily') } });
+  S.push({ id: 'dbl', shot: 'dbl_cam', from: 'over_phone:2', t0: 2.2, cam: [.72, .55, 2.3, 2.6], cctv: T('CAM 02  ХОЛЛ', 'CAM 02  LOBBY'), clock: '05:59', dur: 1.9, dz: [.4, .6, 1.0, 2.1],   // наезд на двойника с телефоном
+    sfx: [['phone_crackle', 0, { gain: .5 }], ['static', 1.5, { gain: .7, cut: .4 }]] });
+  S.push({ id: 'end', black: 2.6, card: { kind: 'end', at: 0, dur: 2.6, logo: 1 }, sfx: [['boom', 0, { gain: .8 }], ['knock', 1.45, { gain: .6 }], ['knock', 1.9, { gain: .6 }]], mark: 'end' });
+  return S;
+}
+
 // ------- сборка: время каждого сегмента, реплики, субтитры, надписи -------
 function build(fmt, L) {
-  const segs = (fmt === 'yt' ? youtube : tiktok)(L), out = { fmt, lang: L, fps: FPS, W: fmt === 'yt' ? 1920 : 1080, H: fmt === 'yt' ? 1080 : 1920, segs: [], vo: [], sfx: [], subs: [], cards: [], marks: {} };
+  const segs = (fmt === 'yt' ? youtube : fmt === 'sh' ? shorts : tiktok)(L), out = { fmt, lang: L, fps: FPS, W: fmt === 'yt' ? 1920 : 1080, H: fmt === 'yt' ? 1080 : 1920, segs: [], vo: [], sfx: [], subs: [], cards: [], marks: {} };
   let t = 0;
   for (const s of segs) {
     const o = Object.assign({}, s), src = s.from ? beat(s.from) : null;

@@ -146,7 +146,12 @@ function pageMain() {
       const im = await createImageBitmap(await (await fetch(o.img)).blob());
       let shx = 0, shy = 0;
       if (s.scareAt != null && tau >= s.scareAt) { const st = tau - s.scareAt, amp = (st < .05 ? 46 : 34 * Math.max(0, 1 - st / .7)) * U; shx = (rnd() - .5) * amp; shy = (rnd() - .5) * amp; }
-      g.drawImage(im, shx, shy, W, H); im.close();
+      if (s.dz) {   // цифровой наезд камеры наблюдения на точку [cx, cy] (доли кадра): z0 → z1 за сегмент, точка плавно уходит в центр
+        const [cx, cy, z0, z1] = s.dz, e = sm(0, 1, tau / Math.max(.1, s.dur)), k = z0 + (z1 - z0) * e, fx = cx * W, fy = cy * H;
+        const X = cl(W / 2 + (fx - W / 2) * (1 - e) - fx * k, W - W * k, 0), Y = cl(H / 2 + (fy - H / 2) * (1 - e) - fy * k, H - H * k, 0);
+        g.drawImage(im, X + shx, Y + shy, W * k, H * k);
+      } else g.drawImage(im, shx, shy, W, H);
+      im.close();
       const fx = s.fx || '';
       if (s.cctv) { if (o.tear) tear(); grain(.12); }
       if (fx === 'static') { grain(.42); g.fillStyle = `rgba(255,255,255,${.04 + .04 * Math.sin(o.T * 40)})`; g.fillRect(0, 0, W, H); }

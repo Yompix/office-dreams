@@ -1,6 +1,6 @@
 #!/bin/bash
 # «Hush Till Six» — трейлер целиком: монтаж → кадры движка → звук → сборка → MP4 (H.264 + AAC, −14 LUFS).
-#   bash tools/trailer/make.sh yt|tt ru|en OUTDIR [CACHE]
+#   bash tools/trailer/make.sh yt|tt|sh ru|en OUTDIR [CACHE]   (sh — YouTube Shorts)
 # Нужен сервер статики: cd public/games && python3 -m http.server 8771 --bind 127.0.0.1
 # Английская версия берёт из русской кадры без надписей и без говорящих в кадре (probe.js) — сначала собрать русскую.
 set -e
@@ -17,6 +17,6 @@ fi
 node "$D/render.js" "$TL" "$CACHE" $EXTRA
 python3 "$D/audio.py" "$TL" "$OUT/a_${FMT}_${L}.wav"
 node "$D/comp.js" "$TL" "$CACHE" "$OUT/v_${FMT}_${L}.mp4"
-NAME=$([ "$FMT" = yt ] && echo youtube || echo tiktok)
+NAME=$([ "$FMT" = yt ] && echo youtube || ([ "$FMT" = sh ] && echo shorts || echo tiktok))
 ffmpeg -v error -y -i "$OUT/v_${FMT}_${L}.mp4" -i "$OUT/a_${FMT}_${L}.wav" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -ar 48000 -shortest -movflags +faststart "$OUT/HushTillSix_trailer_${NAME}_${L}.mp4"
 echo "$OUT/HushTillSix_trailer_${NAME}_${L}.mp4"
