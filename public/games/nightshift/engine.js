@@ -71,7 +71,7 @@ async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
   const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
-  const world = Promise.all([models, Promise.resolve(window.NS_FONTS).catch(() => null)]).then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));   // иероглифы (NSCJK) — до текстур с надписями
+  const world = Promise.all([models, Promise.resolve(window.NS_FONTS).catch(() => null)]).then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(true); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));   // иероглифы (NSCJK) — до текстур с надписями
   // версии timing_<язык>.json — поднимать при каждой новой нарезке/сборке (кэш браузера)
   const TIMV = { en: 13, uk: 6, es: 2, pt: 2, de: 2, fr: 3, it: 3, pl: 3, tr: 3, zh: 3, ja: 3, ko: 3 };
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
@@ -1585,7 +1585,7 @@ function cctvHud(label, T, rw) {   // rw = { tag, clock } — запись на 
   g.fillText(rw ? rw.tag : 'REC', 124, 204);
   if (!rw && window.World && World.ir) { g.fillStyle = 'rgba(235,240,235,.75)'; g.fillText('IR', 250, 204); g.fillStyle = 'rgba(235,240,235,.9)'; }   // темно — камера в ИК
   if (label) g.fillText(label, 84, 258);
-  g.font = '700 34px "Courier New", monospace'; g.fillText((rw && rw.date || hudDate()) + '  ' + (rw ? rw.clock : gameClock()), 84, 310);
+  g.font = '700 34px "Courier New", monospace'; g.fillText(locDate(rw && rw.date || hudDate()) + '  ' + (rw ? rw.clock : gameClock()), 84, 310);
   if (mode === 'shift' && shf && !rw) {   // микрофон камеры: что-то слышно — столбики прыгают
     shf.mic = (shf.mic || 0) * .94; const lv = Math.min(1, .1 + Math.random() * .1 + shf.mic * (.75 + Math.random() * .25));
     g.font = '700 26px "Courier New", monospace'; g.fillText('MIC', 84, 356);
@@ -1595,6 +1595,9 @@ function cctvHud(label, T, rw) {   // rw = { tag, clock } — запись на 
 }
 let hudRef = null, hudT0 = 0;
 function hudDate() { return +lastTime.slice(0, 2) < 12 ? '29.10.2026' : '28.10.2026'; }   // ночь с 28 на 29 октября (запись Итана в журнале — 28.10)
+// дата на записи камер — как пишут в стране игрока: США 10-29-2026, Азия 2026/10/29, Корея 2026.10.29, юг Европы 29/10/2026, остальные 29.10.2026
+function locDate(d) { const [dd, mm, yy] = String(d).split('.'); if (!yy) return d;
+  return LNG === 'en' ? `${mm}-${dd}-${yy}` : LNG === 'ja' || LNG === 'zh' ? `${yy}/${mm}/${dd}` : LNG === 'ko' ? `${yy}.${mm}.${dd}` : /^(es|pt|fr|it)$/.test(LNG) ? `${dd}/${mm}/${yy}` : d; }
 function grain(a) { g.save(); g.globalAlpha = a; g.globalCompositeOperation = 'overlay'; const ox = Math.random() * 256, oy = Math.random() * 256; g.translate(-ox, -oy); g.fillStyle = noisePat || (noisePat = g.createPattern(noise, 'repeat')); g.fillRect(0, 0, W + 256, H + 256); g.restore(); }
 // старое фото (fx 'photo'): выцветшие тёплые цвета, царапины; на общем плане — белая рамка и блик стекла на столе.
 // P.smudge — мировая точка лица, стёртого пальцем (светлое пятно); P.backCam — план, где снимок перевёрнут: оборот с подписью P.back
@@ -1825,9 +1828,9 @@ function frame(tp) {
       const lg = beat.fx === 'lunge';
       if (sc && st < .05) { if (blackT !== T && T - blackT > .5) buzz(lg ? [250, 40, 350] : [90, 30, 160]); if (!lg) blackT = T; shakeAmp = lg ? (calm() ? 30 : 46) : 22; }
       if (lg && sc && st < .7) shakeAmp = Math.max(shakeAmp, (calm() ? 20 : 34) * (1 - st / .7));
-      const lk = lookStep(dt, beat.fx === 'cctv' || beat.fx === 'static' || beat.fx === 'lunge' || !!beat.phone);
-      const sx = lk.x + (Math.sin(T * 1.6) * 8 + Math.sin(T * 4.9) * 3) + (Math.random() - .5) * shakeAmp, sy = lk.y + (Math.cos(T * 1.2) * 8 + Math.sin(T * 4.1) * 3) + (Math.random() - .5) * shakeAmp;
-      shakeAmp *= .9;
+      const fixedCam = beat.fx === 'cctv' || beat.fx === 'static' || (beat.fx === 'glitch' && !!beat.label), lk = lookStep(dt, fixedCam || beat.fx === 'lunge' || !!beat.phone);
+      const hd = handCam(T, fixedCam ? 0 : 1), sx = lk.x + hd.x + noise1(T * 14, 7) * shakeAmp * .55, sy = lk.y + hd.y + noise1(T * 14, 8) * shakeAmp * .55, sr = hd.r + noise1(T * 12, 9) * shakeAmp * .3;   // камера наблюдения висит на стене — не дышит
+      shakeAmp *= Math.pow(.9, dt * 30);
       if (beat.phone) phone(beat.phone, t);
       else if (beat.img) {
         const cams = beat.cams || [[.5, .5, 1, 1.1]], n = cams.length; let ci, lp;
@@ -1837,12 +1840,13 @@ function frame(tp) {
         if (Array.isArray(c[0]) && window.World && World.projectAt) { const q = World.projectAt(c[4] || beat.img, c[0]);   // план целится в точку мира (лицо), а не в долю экрана
           c = [LAND ? .5 + (q[0] - .5) * (16 / 9) / (9 / 16) : q[0], q[1] + (c[1] || 0), c[2], c[3], c[4]]; }   // в 16:9 shot() пересчитает доли из 9:16 (scrX) — отдаём в долях 9:16; c[1] — сдвиг по вертикали (минус — точка выше центра)
         let z = c[2] + (c[3] - c[2]) * ease(lp); if (sc && beat.fx !== 'lunge') z = Math.max(z, c[3]) * (1.1 + .04 * Math.exp(-st * 6));
+        const gl = still || sc ? { cx: c[0], cy: c[1], z } : camGlide(c[4] || beat.img, c[0], c[1], z, T, beatRun, ci);   // тот же план в следующей реплике: камера доезжает, а не прыгает
         const cr = creep && t >= creep.at && t < creep.at + creep.len ? creep.seed : 0;
         if (cr && !creep.hit) { creep.hit = true; if (Math.random() < .35) play('whispers', { gain: .18 }); }   // молча: заметит не каждый — так страшнее
         cam = beat.fx === 'cctv' || beat.fx === 'static' || (beat.fx === 'glitch' && !!beat.label);
         // реакции тела по ходу реплики: beat.react = { ГАС: ['no', 1.2, 3.5] } — кто, что (yes/no/arms) и с какой по какую секунду кадра
         let react = null; if (reactW) for (const who in reactW) { const r = reactW[who]; if (t >= r[1] && t < r[2]) (react = react || {})[who] = r[0]; }
-        const so = still ? { cx: c[0], cy: c[1], z, t: (beat.photo || {}).t ?? 2, T: 100, sx: 0, sy: 0 } : { cx: c[0], cy: c[1], z, t: t + shotOff, T, sx, sy, talk, react, creep: cr, scare: sc ? Math.exp(-st * 2.2) : 0 };
+        const so = still ? { cx: c[0], cy: c[1], z, t: (beat.photo || {}).t ?? 2, T: 100, sx: 0, sy: 0 } : { cx: gl.cx, cy: gl.cy, z: gl.z, t: t + shotOff, T, sx, sy, sr, talk, react, creep: cr, scare: sc ? Math.exp(-st * 2.2) : 0 };
         if (cam) so.cctv = 1;
         const im = c[4] || beat.img;   // план может быть другим кадром (склейка на другой ракурс посреди реплики)
         if (still) {   // фото — неподвижный снимок: 3D и эффект старого фото считаются один раз на план и кладутся в кэш, дальше только копия с наездом
@@ -1922,7 +1926,7 @@ function frame(tp) {
     duck(voiceNow);
   } else if (mode === 'cams' && camView) {
     const t = T - camView.t0, c = camView.c; g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    const jt = camView.jump ? t - 1.25 : -1, sx = (Math.random() - .5) * shakeAmp, sy = (Math.random() - .5) * shakeAmp; shakeAmp *= .9;
+    const jt = camView.jump ? t - 1.25 : -1, sx = noise1(T * 14, 7) * shakeAmp * .55, sy = noise1(T * 14, 8) * shakeAmp * .55; shakeAmp *= Math.pow(.9, dt * 30);
     if (jt >= 0 && jt < .75) shot(c.jump, { cx: .5, cy: .5, z: 1, t: jt, T, sx, sy, cctv: 1, scare: Math.exp(-jt * 2.2) });
     else heldShot(c.img, { cx: c.c[0], cy: c.c[1], z: c.c[2] + t * .04, t, T, sx, sy, cctv: 1 }, T, 'cam' + c.id);
     vignette(); cctvHud(c.id + '  ' + c.name, T); if (jt >= .75) { grain(.9); if (!calm()) { g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(0, 0, W, H); } }
@@ -1947,12 +1951,12 @@ function frame(tp) {
     place = img ? placeOf(img) : null; cam = true;
   } else if (mode === 'mg' && mgView) {
     const t = T - mgView.t0, k = Math.min(1, t / (mgView.dur || 3)); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    shot(mgView.img, { cx: mgView.c[0], cy: mgView.c[1], z: mgView.c[2] + (mgView.c[3] - mgView.c[2]) * k * k, t: mgView.tAt != null ? mgView.tAt : mgView.st ? mgView.st + t : t, T, sx: (Math.random() - .5) * shakeAmp, sy: (Math.random() - .5) * shakeAmp, cctv: mgView.label ? 1 : undefined, torch: mgView.torch });
+    shot(mgView.img, { cx: mgView.c[0], cy: mgView.c[1], z: mgView.c[2] + (mgView.c[3] - mgView.c[2]) * k * k, t: mgView.tAt != null ? mgView.tAt : mgView.st ? mgView.st + t : t, T, sx: noise1(T * 14, 7) * shakeAmp * .55, sy: noise1(T * 14, 8) * shakeAmp * .55, sr: mgView.label ? 0 : noise1(T * 12, 9) * shakeAmp * .3, cctv: mgView.label ? 1 : undefined, torch: mgView.torch });
     if (mgView.fog) { g.imageSmoothingEnabled = true; g.drawImage(mgView.fog, 0, 0, W, H); }
     // перемотка: дрожит и рвётся строками, пока тянут ползунок
     if (mgView.rw > .02) { const n = 2 + Math.floor(mgView.rw * 5); for (let i = 0; i < n; i++) { const y = Math.random() * H, h = 6 + Math.random() * 30 * mgView.rw; g.drawImage(cv, 0, y, W, h, (Math.random() - .5) * 90 * mgView.rw, y, W, h); g.fillStyle = `rgba(255,255,255,${.06 + .12 * Math.random() * mgView.rw})`; g.fillRect(0, y, W, 2 + Math.random() * 4); } mgView.rw *= .88; }
     if (mgView.run) { const L = mgView.run === 'L', gr = g.createLinearGradient(L ? 0 : W, 0, W / 2, 0); gr.addColorStop(0, 'rgba(0,0,0,.97)'); gr.addColorStop(.7, 'rgba(0,0,0,.75)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); }
-    shakeAmp *= .9; vignette(); if (mgView.label) { cctvHud(mgView.label, T, mgView.rwHud); if (t > .3) grain(mgView.tAt != null ? .2 : .25 + k * .5); }
+    shakeAmp *= Math.pow(.9, dt * 30); vignette(); if (mgView.label) { cctvHud(mgView.label, T, mgView.rwHud); if (t > .3) grain(mgView.tAt != null ? .2 : .25 + k * .5); }
     place = placeOf(mgView.img); quiet = true; cam = !!mgView.label;
   } else if (mode === 'menu') {
     // титул: живой кадр, медленный наезд (20 с), сверху темнее — там логотип, снизу — меню
@@ -2017,6 +2021,26 @@ $('stage').addEventListener('pointerdown', e => { if (e.target.closest('button, 
 // оглядеться: на ПК взгляд чуть ведёт мышь, на телефоне — наклон (где браузер даёт гироскоп без запроса). Камеры наблюдения и бросок — неподвижны
 const lookT = { x: 0, y: 0 }, look = { x: 0, y: 0 }; let tilt0 = null;
 const lookOn = () => LS.get('look', true);
+// камера «с рук»: гладкий шум вместо случайного дрожания. Тряска при испуге — частая (14 Гц), но гладкая и одинаковая при 30 и 144 кадрах;
+// дыхание оператора — медленный дрейф и лёгкий крен (в единицах sx: ×0,00012 рад; крен ×0,0004 рад), не синусоида с заметным периодом
+const hsh = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+function noise1(x, seed = 0) { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f), o = seed * 57.31; return (hsh(i + o) * (1 - u) + hsh(i + 1 + o) * u) * 2 - 1; }
+function handCam(T, k = 1) {
+  if (!k) return { x: 0, y: 0, r: 0 };
+  return { x: (noise1(T * .33, 1) * 10 + noise1(T * 1.07, 2) * 4 + noise1(T * 3.1, 3) * 1.4) * k, y: (noise1(T * .29, 4) * 9 + noise1(T * .93, 5) * 3.6 + noise1(T * 2.8, 6) * 1.2) * k, r: (noise1(T * .21, 11) * 5 + noise1(T * .8, 12) * 2) * k };
+}
+// тот же план в следующей реплике, но наезд или точка чуть другие (в сценарии 22 таких места): камера плавно доезжает за 0,85 с, а не прыгает.
+// Большая разница (наезд в 1,2 раза и больше, другая точка) — это задуманная склейка на крупнее, её не трогаем; склейки внутри реплики (по словам) — тоже
+let camLast = null, camFrom = null;
+function camGlide(im, cx, cy, z, T, run, ci) {
+  if (camLast && camLast.run !== run) { const dz = Math.abs(z / camLast.z - 1), dc = Math.hypot(cx - camLast.cx, cy - camLast.cy);
+    camFrom = camLast.im === im && (dz > .004 || dc > .003) && dz < .2 && dc < .09 ? { cx: camLast.cx, cy: camLast.cy, z: camLast.z, t0: T } : null; }
+  else if (camLast && camLast.ci !== ci) camFrom = null;
+  let o = { cx, cy, z };
+  if (camFrom) { const k = (T - camFrom.t0) / .85; if (k >= 1 || k < 0) camFrom = null; else { const e = k * k * (3 - 2 * k); o = { cx: camFrom.cx + (cx - camFrom.cx) * e, cy: camFrom.cy + (cy - camFrom.cy) * e, z: camFrom.z + (z - camFrom.z) * e }; } }
+  camLast = { im, cx: o.cx, cy: o.cy, z: o.z, run, ci };
+  return o;
+}
 function lookStep(dt, fixed) {
   const tx = fixed || !lookOn() ? 0 : lookT.x, ty = fixed || !lookOn() ? 0 : lookT.y, k = Math.min(1, dt * 2.2);
   look.x += (tx - look.x) * k; look.y += (ty - look.y) * k;
@@ -2059,11 +2083,13 @@ function afterSplash() {
   uiEl.innerHTML = `<div class="screen boot"><div class="card">${ICON.phones}<span>${tr('18+ · жестокость и кровь · лучше в наушниках · в игре есть вспышки света и резкие звуки')}</span></div><div id="loadbar"><i style="width:${loadP * 100}%"></i></div></div>`;
 }
 studio();
+// остальные места догреваются в фоне по одному (World.warmMore: шейдеры собирает драйвер в своих потоках, кадр не рисуется): в меню и на паузе — подряд и с тенями, в игре — реже и без лишних кадров
+function warmBg() { const idle = mode === 'menu' || userPause; let p = null; try { p = window.World && World.warmMore && World.warmMore(idle); } catch (e) { console.warn(e); } if (p) p.then(() => setTimeout(warmBg, idle ? 40 : 700)); }
 load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).catch(() => {}).then(() => {
-  initAudio(); loaded = true;
+  initAudio(); loaded = true; setTimeout(warmBg, 1600);
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
 });
-window.__ns = { back: () => menu(), startScene, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
+window.__ns = { back: () => menu(), startScene, get cam() { return camLast; }, get flags() { return flags; }, setFlags: f => { for (const k in flags) delete flags[k]; Object.assign(flags, f); LS.set('flags', flags); }, get music() { return curMusicName; }, get fin() { return !!(mode === "play" && beat && beat.fin); }, shSpeed: v => (shSpd = v), get shf() { return shf; }, get shProps() { return mode === 'shift' && shf ? shiftProps() : null; }, get nowT() { return now(); }, get shk() { return shk; }, shiftCam: c => shiftCam(c), shiftLog: () => shiftLog(), shiftPanel: () => shiftPanel(), shiftBook: () => shiftBook(), get mode() { return mode; }, get scene() { return sceneId; }, skipBeat, showSms, get dbg() { return [clockT.toFixed(2), bT0.toFixed(2), bDur, bi, holding, waiting, paused, pre].join(' '); }, get audio() { return AC ? AC.state : null; },
   get voiceMiss() { return voiceMiss; }, set voiceMiss(v) { voiceMiss = v; }, get voiceLate() { return voiceLate; },
   // для режима проверки и инструментов: начать сцену как из меню, номер и секунда кадра, пауза, реплики, перемотка кадра на секунду (картинка, без звука)
   begin, get bi() { return bi; }, get bt() { return mode === 'play' && beat && !waiting ? Math.max(0, now() - bT0) : 0; }, get tim() { return TIM; }, pause: on => { if (!on) holdN = -1; setPause(!!on); }, get userPause() { return userPause; },

@@ -23,13 +23,15 @@ async function load(onFile) {
   const L = new window.THREE_GLTFLoader();
   if (window.MeshoptDecoder) { try { await window.MeshoptDecoder.ready; L.setMeshoptDecoder(window.MeshoptDecoder); } catch (e) { console.warn('meshopt', e); } }
   // каждый файл — со второй попыткой: один сбой сети не должен откатывать всех людей к запасным
-  const url = n => 'models/' + n + '.glb?v=' + (HUMANS.includes(n) ? 4 : n === 'anims2' ? 1 : 1);   // anims2 — поднимать при пересборке мокапа
-  const one = n => get(url(n)).catch(() => get(url(n))).then(b => new Promise((ok, no) => L.parse(b, '', g => { G[n] = g; if (onFile) onFile(); ok(); }, no)));
+  const url = n => 'models/' + n + '.glb?v=' + (HUMANS.includes(n) ? 4 : n === 'anims2' ? 2 : 1);   // anims2 — поднимать при пересборке мокапа
+  const fetch1 = n => get(url(n)).catch(() => get(url(n))), parse = (n, b) => new Promise((ok, no) => L.parse(b, '', g => { G[n] = g; if (onFile) onFile(); ok(); }, no));
+  const one = n => fetch1(n).then(b => parse(n, b));
+  const raw2 = window.MeshoptDecoder ? fetch1('anims2').catch(() => null) : null;   // мокап качается вместе с остальными, а не после них (на 4G — секунда-две раньше меню)
   // anims.glb — только скелет male.glb и 41 клип Quaternius UAL 1–2 (CC0), перенесённые tools/anim/retarget.py
   try { await Promise.all(['anims', ...HUMANS].map(one)); V3 = !!window.MeshoptDecoder; }
   catch (e) { console.warn('models v3', e); V3 = false; }
   // anims2.glb — живые движения с пальцами (мокап Rokoko и CMU, перенесён на этот же скелет: tools/anim/mocap.py); без него игра идёт на клипах Quaternius
-  if (V3) { try { await one('anims2'); } catch (e) { console.warn('anims2', e); } }
+  if (V3) { try { const b = await raw2; if (!b) throw new Error('no file'); await parse('anims2', b); } catch (e) { console.warn('anims2', e); } }
   if (!V3) { try { await Promise.all(FILES.filter(n => !G[n]).map(one)); } catch (e) { console.warn('models', e); return false; } }
   for (const c of [...(G.anims || G.male).animations, ...(G.anims2 ? G.anims2.animations : [])]) {
     // только повороты костей (+ высота таза): так одна анимация подходит всем — и мужчине, и женщине, и вытянутому Жильцу
@@ -741,7 +743,24 @@ function kneel(C, tt) {
 // ступня сохраняет поворот в мире (после поправки ноги подошва остаётся на полу)
 function keepWorld(C, name, q) { const b = C.bone[name]; b.parent.getWorldQuaternion(_Q3); b.quaternion.copy(_Q3.invert().multiply(q)); b.updateWorldMatrix(false, true); }
 // точка хвата в ладони (в осях персонажа): между запястьем и основанием среднего пальца, чуть к ладони
-const _UP = new T.Vector3(0, 1, 0);
+const _UP = new T.Vector3(0, 1, 0), _twQ = new T.Quaternion(), _flA = new T.Vector3(), _flB = new T.Vector3(), _flL = new T.Vector3(), _flQ = new T.Quaternion();
+// опорная стопа не едет по полу: пока человек идёт (корень движется) и нога стоит (лодыжка ниже другой не больше чем на 2 см, у пола), место стопы
+// на полу запоминается, и нога доводится туда IK; стопа отрывается — плавно отпускаем к клипу. Уехала дальше 16 см — отпускаем, а не тянем ногу.
+// Состояние меняется только при dt > 0: повторный расчёт позы в том же кадре (твёрдый мир, dt = 0) даёт ту же позу
+function footLock(C, dt) {
+  const ss = C.ss || 1, rp = C.root.position, F = C.flk || (C.flk = { l: { on: false, p: new T.Vector3(), w: 0 }, r: { on: false, p: new T.Vector3(), w: 0 }, prev: null, v: 0 });
+  if (dt > 0) { if (F.prev) { const v = Math.hypot(rp.x - F.prev.x, rp.z - F.prev.z) / dt; F.v += (Math.min(v, 4) - F.v) * Math.min(1, dt * 10); } (F.prev || (F.prev = new T.Vector3())).copy(rp); }
+  const fl = C.bone.foot_l, fr = C.bone.foot_r; if (!fl || !fr) return;
+  const moving = F.v > .25; if (dt > 0) F.still = moving ? 0 : (F.still || 0) + dt; const active = moving || F.still < .6;   // остановился — ещё 0,6 с стоит на тех же местах, потом стопы мягко уходят в стойку
+  C.root.updateWorldMatrix(true, true); const hl = fl.getWorldPosition(_flL).y - rp.y, hr = fr.getWorldPosition(_flA).y - rp.y, lo = Math.min(hl, hr);
+  for (const sd of ['l', 'r']) { const S = F[sd], ft = C.bone['foot_' + sd], wp = ft.getWorldPosition(_flA), h = wp.y - rp.y, down = h <= lo + .02 * ss && h < .17 * ss;
+    if (dt > 0) { if (moving && down && !S.on) { S.on = true; S.p.copy(wp); } else if (S.on && !(active && down)) S.on = false;
+      S.w = S.on ? Math.min(1, S.w + dt * 14) : Math.max(0, S.w - dt * (moving ? 9 : 3.5)); }
+    if (S.w <= 0) continue;
+    _flB.set(S.p.x, wp.y, S.p.z); if (Math.hypot(_flB.x - wp.x, _flB.z - wp.z) > .16 * ss) { if (dt > 0) S.on = false; continue; }
+    _flB.lerp(wp, 1 - S.w); const fq = ft.getWorldQuaternion(_flQ), lp = C.root.worldToLocal(_flB);
+    ik2(C, 'thigh_' + sd, 'calf_' + sd, 'foot_' + sd, lp.x, lp.y, lp.z, [sd === 'l' ? .1 : -.1, 0, 1]); keepWorld(C, 'foot_' + sd, fq); }
+}
 function gripPt(C, s) { C.root.updateWorldMatrix(true, true); const h = C.bone['hand_' + s].getWorldPosition(new T.Vector3()), m = C.bone['middle_01_' + s].getWorldPosition(new T.Vector3());
   return C.root.worldToLocal(h.lerp(m, .62)); }
 // небольшой поворот кости вокруг её оси (для судорог, кивков): ax — ось в осях кости
@@ -1111,7 +1130,8 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
       pel.parent.updateWorldMatrix(true, false); pel.position.copy(pel.parent.worldToLocal(wp)); pel.updateWorldMatrix(false, true); }
     for (const [sd, wpos, wq] of feet) { const lp = C.root.worldToLocal(wpos.clone()); ik2(C, 'thigh_' + sd, 'calf_' + sd, 'foot_' + sd, lp.x, lp.y, lp.z, [sd === 'l' ? .15 : -.15, 0, 1]); keepWorld(C, 'foot_' + sd, wq); }
   }
-  if (!P.still) breathe(C, tt, dT);   // до касаний рук: ладони останутся там, где их поставил кадр
+  if (!P.still) breathe(C, tt, dT, P.br);   // до касаний рук: ладони останутся там, где их поставил кадр
+  if (P.pain) painLife(C, dT, P.pain);
   if (!C.o.monster && list.every(c => SOFTC.has(c[0])))   // обычная стойка, речь, ходьба, сидя: кисти мягкие (если кадр не задал пальцы и в руке ничего нет)
     for (const sd of ['l', 'r']) if (!(P.fing && P.fing[sd]) && !(P.hold && P.hold[sd])) { setFingers(C, sd, 'soft', 1); if (!P.still) fingerLife(C, sd, tt); }
   if (C.o.monster) { buildHands(); for (const sd of ['l', 'r']) if (!(P.fing && P.fing[sd]) && !(P.hold && P.hold[sd])) hookHand(C, sd); }   // Жилец: пальцы всегда крючьями, когтями вперёд (клипы Quaternius сжимали их в кулаки — «боксёр»)
@@ -1150,16 +1170,26 @@ function rotChar(C, bn, ax, ay, az, ang) {
 }
 // дыхание: на вдохе грудь чуть раскрывается, плечи поднимаются. Спокойно ~14 вдохов в минуту, в страхе — чаще и глубже,
 // затаил дыхание («тсс», оцепенел) — едва-едва; пока говорит — мельче (воздух уходит на слова)
-function breathe(C, tt, dT) {
+function breathe(C, tt, dT, br) {   // br = [глубина, частота] из кадра: раненый Фрэнк дышит тяжело и часто
   if (!alive(C)) return;
   const fs = C.fsNow || {}, scared = !!(fs.wide || fs.dart || fs.scream), held = !!fs.press;
-  const amp = (held ? .2 * (1 - clamp(fs.press, 0, 1)) : scared ? 1.6 : 1) * (C.talk > .06 ? .5 : 1);   // «тсс», оцепенел (press 1) — не дышит совсем
-  C.brPh = (C.brPh ?? rnd() * 6.3) + dT * (held ? .1 : scared ? .42 : .23) * 2 * Math.PI;
+  const amp = (held ? .2 * (1 - clamp(fs.press, 0, 1)) : scared ? 1.6 : 1) * (C.talk > .06 ? .5 : 1) * (br ? br[0] : 1);   // «тсс», оцепенел (press 1) — не дышит совсем
+  C.brPh = (C.brPh ?? rnd() * 6.3) + dT * (held ? .1 : scared ? .42 : .23) * (br ? br[1] : 1) * 2 * Math.PI;
   C.brA = C.brA == null ? amp : lerp(C.brA, amp, Math.min(1, dT * 1.5));
   const s = Math.sin(C.brPh), inh = (s > 0 ? s : s * .7) * C.brA;   // вдох короче и заметнее выдоха
   if (Math.abs(inh) < 1e-3) return;
   rotChar(C, 'spine_02', 1, 0, 0, -.006 * inh); rotChar(C, 'spine_03', 1, 0, 0, -.014 * inh);
   rotChar(C, 'clavicle_l', 0, 0, 1, .03 * inh); rotChar(C, 'clavicle_r', 0, 0, 1, -.03 * inh);
+}
+// боль: раз в 3–6 с (пока молчит) — короткая судорога: корпус сгибается, голова уходит вниз, плечо поднимается, за ~1,4 с отпускает
+function painLife(C, dT, k) {
+  if (!alive(C)) return;
+  const g = C.pn || (C.pn = { t: 9, d: 1.4, a: 0, next: 1 + rnd() * 2, w: 0 });
+  g.w += dT; if (g.t >= g.d && g.w > g.next && C.talk < .06) { g.t = 0; g.d = 1.1 + rnd() * .6; g.a = (.6 + rnd() * .4) * k; g.w = 0; g.next = 3 + rnd() * 3; }
+  if (g.t >= g.d) return; g.t += dT;
+  const u = Math.min(g.t / g.d, 1), e = (u < .22 ? ease3(u / .22) : 1 - ease3((u - .22) / .78)) * g.a;
+  rotChar(C, 'spine_02', 1, 0, 0, .05 * e); rotChar(C, 'spine_03', 1, 0, 0, .06 * e); rotChar(C, 'neck_01', 1, 0, 0, .1 * e);
+  rotChar(C, 'clavicle_r', 0, 0, 1, -.06 * e); rotChar(C, 'spine_03', 0, 0, 1, .03 * e);
 }
 // пальцы не каменные: свободная кисть чуть «дышит» — каждый палец медленно сгибается на 1–3° сам по себе
 function fingerLife(C, sd, tt) {
@@ -1236,7 +1266,7 @@ function updateSkinned(C, t, dt) {
   const tt = t + C.t0, P = C.pose, U = C.U, cut = C.cut || C.lastT == null || t - C.lastT > (window.__CUTGAP || .5) || t < C.lastT;   // __CUTGAP — для проб на медленной машине (tools/anim/*_probe.js)
   const dT = cut ? 0 : Math.max(0, t - C.lastT);   // сколько прошло на самом деле (на паузе — 0; больше 0,5 с — это уже склейка)
   C.cut = false; C.lastT = t; C.cutNow = cut;
-  if (cut) { C.lookDir = null; C.prevP = null; C.walkV = null; }
+  if (cut) { C.lookDir = null; C.prevP = null; C.walkV = null; C.flk = null; C.twist = null; }
   // реакция по реплике (beat.react в story.js): тело (кивок, «нет», руки скрещены) и/или лицо — 'no+worry', 'sad'
   { const rp = typeof C.react === 'string' ? C.react.split('+') : []; C.reactBody = rp.find(x => REACT[x]) || null; C.reactFace = rp.find(x => !REACT[x] && C.faceSets[x]) || null; }
   C.fsNow = C.faceSets[C.reactFace || C.faceSet] || {};
@@ -1303,6 +1333,7 @@ function updateSkinned(C, t, dt) {
     }
   }
   if (C.v3 && (P === 'sitfloor' || P === 'sitpaper' || P === 'kneel')) kneel(C, tt);
+  if (C.v3 && !C.o.monster && !(OBJ && P.still)) footLock(C, dt);   // идёт: опорная стопа стоит на полу, а не едет (было ~26 % скорости шага)
   // руки поверх анимации
   if (P === 'knock' || P === 'slam' || P === 'press') {   // press — ладони прижаты к стеклу, без ударов (оно не стучит — только зовёт)
     // стук в стекло: левая ладонь лежит на стекле, правая рука кулаком стучит сериями по три удара, корпус чуть к стеклу
@@ -1412,6 +1443,14 @@ function updateSkinned(C, t, dt) {
   if (life) { const [hy, hp, hr] = headLife(C, tt, dT, talking, hearing); offDir(LD, hy, hp); C.rollNow = hr; }
   else if (talking && !C.o.monster) { LD.y += Math.sin(tt * 3.1) * .035 + Math.sin(tt * 1.3) * .02; LD.x += Math.sin(tt * .9) * .025; LD.normalize(); }
   if (C.no > 0) { _q.setFromAxisAngle(_UP, Math.sin(tt * 6.5) * .42 * C.no); LD.applyQuaternion(_q); }   // мотает головой: «нет, нет, нет»
+  // корпус помогает голове: взгляд в сторону — грудь доворачивается на треть (не больше ~24°), шея и голова — остальное (раньше крутилась одна шея).
+  // Не трогаем, если руки держат что-то или тянутся к точке (плечи увели бы кисти с цели)
+  if (life && !(P && (P.arm || P.hold)) && C.bone.spine_02 && C.bone.spine_03) {
+    let yw = Math.atan2(LD.x, LD.z) - Math.atan2(_c.x, _c.z); yw = Math.atan2(Math.sin(yw), Math.cos(yw));
+    const tw = clamp(yw * .3, -.42, .42); C.twist = cut || C.twist == null ? tw : C.twist + (tw - C.twist) * Math.min(1, sdt * 4);
+    if (Math.abs(C.twist) > .004) for (const [bn, f] of [['spine_02', .4], ['spine_03', .6]]) { const b = C.bone[bn]; b.updateWorldMatrix(true, false);
+      const bw = b.getWorldQuaternion(_twQ).premultiply(_q3.setFromAxisAngle(_UP, C.twist * f)); b.parent.getWorldQuaternion(_pq); b.quaternion.copy(_pq.invert().multiply(bw)); _pq.identity(); b.updateWorldMatrix(false, true); }
+  }
   for (const [bn, f] of [['neck_01', .45], ['Head', .9]]) {
     const b = C.bone[bn]; b.updateWorldMatrix(true, false);
     const bw = b.getWorldQuaternion(new T.Quaternion());

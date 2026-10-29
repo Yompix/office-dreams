@@ -1,6 +1,7 @@
 """Мокап → клипы под скелет models/male.glb → public/games/nightshift/models/anims2.glb (повороты int16, прореженные ключи).
 
-  python3 -I tools/anim/mocap.py ПАПКА_С_FBX tools/anim/mocap_spec.json public/games/nightshift/models/anims2.glb
+  python3 -I tools/anim/mocap.py ПАПКА_С_FBX tools/anim/mocap_spec.json /tmp/anims2_raw.glb
+  gltf-transform meshopt /tmp/anims2_raw.glb public/games/nightshift/models/anims2.glb --level medium   (1,8 → 1,3 МБ; в chars2.js поднять версию anims2)
 
 Источники (скачать в одну папку; сырые FBX в репозиторий и на сайт НЕ класть — в игру идут только перенесённые клипы):
   Rokoko, бесплатные наборы с сайта (мокап всего тела с пальцами; «можно использовать в любом проекте, включая коммерческий»):

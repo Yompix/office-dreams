@@ -177,7 +177,7 @@ function buildLobby() {
   for (let r = 0; r < 2; r++) for (let c2 = 0; c2 < 2; c2++) {
     const g = new T.Group(); g.position.set((c2 - .5) * .48, 1.03 + r * .34, 0); bank.add(g);
     box(.5, .36, .12, mat(0x1a1b1d), 0, 0, -.06, g);
-    const scr = plane(.44, .3, new T.MeshBasicMaterial({ color: 0xffffff, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }), g); scr.position.z = .001; ps1(scr.material);
+    const scr = plane(.44, .3, new T.MeshBasicMaterial({ color: 0xffffff, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }), g); scr.position.z = .001; crt(ps1(scr.material));
     o.screens.push(scr);
   }
   // лампа
@@ -512,6 +512,16 @@ function resetFacade(o) {
   const U = o.glassU; U.uRef.value = 1.7; U.uPrint.value = 0; U.uRain.value = 1; o.breath.visible = false; o.glass.visible = true; o.leaves.forEach(l => (l.rotation.y = 0)); o.reflBoost = 1; if (o.fogW) o.fogW.visible = false; if (o.wetSteps) o.wetSteps.visible = false;
 }
 
+// экран монитора охраны: почти ч/б и зеленоватый, строки и затемнённые углы кинескопа; в «Кино» ярче белого — светится в темноте будки
+function crt(m) {
+  const prev = m.onBeforeCompile;
+  m.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r); sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+    #ifdef USE_MAP
+    { float l = dot(diffuseColor.rgb, vec3(.299, .587, .114)); vec2 q = vMapUv - .5;
+      diffuseColor.rgb = mix(vec3(l), diffuseColor.rgb, .3) * vec3(.8, 1., .88) * (1. - dot(q, q) * 1.5) * (.84 + .16 * sin(vMapUv.y * 452.4)) * ${CINE ? '1.45' : '1.1'}; }
+    #endif`); };
+  m.customProgramCacheKey = () => 'crt'; return m;
+}
 /* ---------- 7 этаж: длинный коридор, двери, лампы, кабинет 713 ---------- */
 function buildCorridor() {
   const S = new T.Scene(), o = { S }; S.background = new T.Color(FOGC); o.fogD = .05; S.fog = new T.FogExp2(FOGC, o.fogD);
@@ -824,7 +834,7 @@ function buildStairs() {
     sg.material.alphaTest = .5; sg.rotation.y = PI; sg.position.set(-.35, y0 + 1.65, -.012); o.signs.push(sg);
     // лампа-«бочка» над средней площадкой и над дверью
     for (const [lx, ly, lz] of [[0, y0 + 3.9, -5.85], [.75, y0 + 2.45, -.06]]) {
-      const sh = box(.2, .12, .08, mat(0xfff2d0, null, { basic: true, glow: 3 }), lx, ly, lz, S);
+      const sh = box(.2, .12, .08, mat(0xfff2d0, null, { basic: true, glow: 3, own: 'st' + k + lz }), lx, ly, lz, S);
       const li = new T.PointLight(0xffe2b0, 1.5, 7, 1.5); li.position.set(lx, ly - .12, lz + (lz < -3 ? .3 : -.3)); S.add(li); o.bulbs.push({ li, sh, base: 1.5 });
     }
   }
@@ -832,7 +842,7 @@ function buildStairs() {
   o.irL = new T.PointLight(0xffffff, 0, 16, 1.2); S.add(o.irL);
   o.setFloor = (k, n) => relabel(o.signs[k], String(n));   // какой этаж написан на уровне k (для разных камер)
   o.reset = () => { o.faceL.intensity = 0; o.amb.intensity = .3; S.fog.density = o.fogD; o.bulbs.forEach(l => { l.li.intensity = l.base; l.sh.material.color.setHex(0xfff2d0); }); o.flick = null; o.signs.forEach((s, k) => o.setFloor(k, k - 2)); };
-  o.tick = t => { if (o.flick) o.bulbs.forEach((l, i) => { const on = o.flick(t, i); l.li.intensity = l.base * on; }); };
+  o.tick = t => { if (o.flick) o.bulbs.forEach((l, i) => { const on = o.flick(t, i); l.li.intensity = l.base * on; l.sh.material.color.setHex(on > .55 ? 0xfff2d0 : on > .2 ? 0x8a7c62 : 0x3a3428); }); };   // плафон гаснет вместе со своей лампой
   return o;
 }
 // ---- подвал (CAM −2; Б1): бетонный коридор, трубы, лампы в сетке; в конце — железная дверь серверной, под ней полоска тёплого света.
@@ -856,7 +866,7 @@ function buildBasement() {
   // лампы в сетке: средняя ненадёжная
   o.bulbs = [];
   for (const z of [-2.4, -7.2, -12.0]) {
-    const bulb = box(.08, .1, .08, mat(0xffe8b8, null, { basic: true, glow: 3 }), 0, hgt - .14, z, S);
+    const bulb = box(.08, .1, .08, mat(0xffe8b8, null, { basic: true, glow: 3, own: 'bs' + z }), 0, hgt - .14, z, S);   // свой материал у каждой: иначе гасла и мигала бы не одна лампа, а все
     for (let i = 0; i < 4; i++) { const w = box(.012, .14, .012, mat(0x202020), Math.cos(i * PI / 2) * .06, hgt - .12, z + Math.sin(i * PI / 2) * .06, S); }
     const li = new T.PointLight(0xffd8a0, 1.6, 6.5, 1.6); li.position.set(0, hgt - .25, z); S.add(li); o.bulbs.push({ li, bulb, base: 1.6 });
   }
@@ -1458,7 +1468,7 @@ function srvSet(o) { o.salt.position.set(SRV_C[0], .012, SRV_C[1]); o.candle.pos
 const SPLINT = ['calf_l', [0, .2, 0], [0, 0, 0]];
 // сидит на полу (кадр из клипа «встаёт с пола»: опирается на руку, ноги вытянуты); sheet — держит лист к камере; reach — тянется на голос
 function frankSit(t, o2 = {}) {
-  const P = { clips: [['LayToIdle', o2.sheet ? .62 : o2.u ?? .45, 1]], wear: { splint: SPLINT }, talk: 1, look: o2.look, heels: 0 };   // heels: пол серверной (y = 0) — пятка вытянутой ноги на полу, а не под ним
+  const P = { clips: [['LayToIdle', o2.sheet ? .62 : o2.u ?? .45, 1]], wear: { splint: SPLINT }, talk: 1, look: o2.look, heels: 0, br: [2.2, 1.5], pain: o2.sheet ? .5 : 1 };   // сломана нога: дышит тяжело, иногда сводит от боли   // heels: пол серверной (y = 0) — пятка вытянутой ноги на полу, а не под ним
   if (o2.sheet) { P.fing = { l: ['pinch', 1], r: ['pinch', 1] }; }
   if (o2.no) P.wig = [['neck_01', [0, 1, 0], Math.sin(t * 7) * .35 * o2.no]];
   return P;
@@ -2607,12 +2617,15 @@ const _v = new T.Vector3(), _d = new T.Vector3();
 // вертикальный экран: кадры поставлены под 16:9, при том же вертикальном угле в 9:16 по бокам остаётся треть кадра — двое в кадре не помещаются.
 // Поэтому в вертикали угол шире (по горизонтали ~47° вместо ~26° при fov 44): больше пола и потолка, но герои и предметы в кадре
 const PORT_K = 1.9;
-function aim(c, pos, look, fov, cx, cy, z, sx, sy) {
+function aim(c, pos, look, fov, cx, cy, z, sx, sy, dk = 0) {
   if (!V.land) fov = 2 * Math.atan(Math.tan(fov * PI / 360) * PORT_K) * 180 / PI;
   c.position.set(pos[0], pos[1], pos[2]); c.fov = fov; c.aspect = V.RW / V.RH; c.updateProjectionMatrix(); c.lookAt(look[0], look[1], look[2]); c.updateMatrixWorld();
   // точка (cx, cy) кадра → направление; зум сужает угол обзора вокруг неё (как настоящий объектив)
   _v.set((cx - .5) * 2, -(cy - .5) * 2, .5).unproject(c); _d.copy(_v).sub(c.position).normalize();
   c.lookAt(c.position.x + _d.x, c.position.y + _d.y, c.position.z + _d.z);
+  if (dk > 0 && z > 1.001) {   // наезд — наполовину настоящий проезд камеры (фон смещается относительно героя, есть глубина), наполовину объективом; герой на плане того же размера
+    const D = Math.max(.6, _v.set(look[0] - pos[0], look[1] - pos[1], look[2] - pos[2]).dot(_d)), m = Math.min(.3, dk * D * (1 - 1 / Math.min(z, 1.35)));   // не дальше 30 см: в тесной будке не въехать в предмет
+    c.position.addScaledVector(_d, m); z *= (D - m) / D; }
   c.fov = 2 * Math.atan(Math.tan(fov * PI / 360) / Math.max(.3, z)) * 180 / PI; c.updateProjectionMatrix();
   c.rotateY(-sx * .00012); c.rotateX(-sy * .00012);
 }
@@ -2671,6 +2684,7 @@ function renderRefl(R, o, used, force) {
   rcam.projectionMatrix.copy(cam.projectionMatrix); rcam.projectionMatrixInverse.copy(cam.projectionMatrixInverse); rcam.updateMatrixWorld();
   const hid = [];
   for (const m of inside ? o.outObjs : o.inObjs) if (m.visible) { m.visible = false; hid.push(m); }
+  if (o.blobs) for (const m of o.blobs) if (m.visible) { m.visible = false; hid.push(m); }   // контактные тени в отражении не нужны (а у спрятанных людей остались бы пятна без людей)
   for (const k in A) { const C = A[k]; if (C.root.parent !== o.S) continue; const z = C.root.position.z;
     if (C.reflOnly) C.root.visible = true; else if ((inside ? z > 5.9 : z < 6.1) && C.root.visible) { C.root.visible = false; hid.push(C.root); } }
   R.setRenderTarget(reflRT); R.render(o.S, rcam);
@@ -2678,13 +2692,13 @@ function renderRefl(R, o, used, force) {
   for (const k in A) if (A[k].reflOnly) A[k].root.visible = false;
   o.glassU.uTM.value.copy(BIAS).multiply(rcam.projectionMatrix).multiply(rcam.matrixWorldInverse);
 }
-function renderFeeds(R, T0, sh, t) {
+function renderFeeds(R, T0, sh, t, one = null) {
   // мониторы в будке: 0 — холл, 1 — вход, 2 — седьмой этаж, 3 — помехи (камера 13)
   const lob = L.lobby, cor = L.corridor;
   const views = [[lob.S, [7.45, 3.85, 5.45], [-2.2, .9, -5]], [lob.S, [-.9, 3.25, 8.1], [.15, .8, 6.2]], [cor.S, [1.0, 2.75, -.5], [-.1, .9, -25]]];
   lob.screens.forEach(s => (s.visible = false));   // экраны не должны снимать сами себя
   const gr = lob.glassU.uRef.value; lob.glassU.uRef.value = 0;   // отражение посчитано для главной камеры — на мониторах его нет
-  views.forEach(([S, p, l], i) => { feedCam.position.set(...p); feedCam.lookAt(...l); R.setRenderTarget(feedRT[i]); R.render(S, feedCam); });
+  views.forEach(([S, p, l], i) => { if (one != null && one !== i) return; feedCam.position.set(...p); feedCam.lookAt(...l); R.setRenderTarget(feedRT[i]); R.render(S, feedCam); });
   lob.screens.forEach(s => (s.visible = true)); lob.glassU.uRef.value = gr;
   // помехи
   const nt = TX.noise; const c = nt.cx; const d = c.createImageData(64, 48);
@@ -2693,6 +2707,31 @@ function renderFeeds(R, T0, sh, t) {
   // кадр гасит экраны: sh.feedMap(i, t) → 'noise' | 'black' | null (как обычно)
   lob.screens.forEach((s, i) => { const m = sh && sh.feedMap ? sh.feedMap(i, t) : null; s.material.map = m === 'noise' || (i === 3 && m !== 'black') ? nt : feedRT[i].texture; s.material.color.setScalar(m === 'black' ? 0 : 1); });
   R.setRenderTarget(null);
+}
+// контактные тени: под каждой ступнёй — тёмное мягкое пятно (тем светлее, чем выше нога над полом), под телом — пятно пошире,
+// у лежащего — вытянутое вдоль тела. Свет ламп даёт тени далеко не везде (точечные лампы без карт теней), а без пятна у ног фигура «висит».
+// Пол — уровень корня персонажа (лестница, подъём); кто под потолком или только в отражении — без пятен
+let blobTex = null; const _bf = new T.Vector3(), _bb = new T.Vector3(), _bh = new T.Vector3();
+function contactShadows(loc, used) {
+  if (!blobTex) { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    for (let i = 0; i <= 8; i++) { const r = i / 8; gr.addColorStop(r, `rgba(255,255,255,${(Math.exp(-r * r * 3.2) - Math.exp(-3.2)) / (1 - Math.exp(-3.2))})`); }
+    x.fillStyle = gr; x.fillRect(0, 0, 64, 64); blobTex = new T.CanvasTexture(c); }
+  const pool = loc.blobs || (loc.blobs = []); let n = 0; if (window.__NOCS) { pool.forEach(m => { m.visible = false; }); return; }   // window.__NOCS = 1 — сравнить без контактных теней
+  const put = (x, y, z, sx, sz, ang, a) => { if (a < .02) return; let m = pool[n];
+    if (!m) { m = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ color: 0x000000, alphaMap: blobTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -6 }));
+      m.rotation.order = 'YXZ'; m.renderOrder = 1; m.userData.solid = false; pool.push(m); }
+    if (m.parent !== loc.S) loc.S.add(m);
+    m.position.set(x, y + .004, z); m.rotation.set(-PI / 2, ang, 0); m.scale.set(sx, sz, 1); m.material.opacity = a; m.visible = true; n++; };
+  for (const k of used) { const C = A[k]; if (!C.bone || !C.bone.pelvis || !C.root.visible || C.reflOnly || C.o.ghostOnly) continue;
+    const fy = C.root.position.y; if (fy > 1.4) continue; const ss = C.ss || 1;
+    C.bone.pelvis.getWorldPosition(_bb); if (C.bone.Head) C.bone.Head.getWorldPosition(_bh); else _bh.copy(_bb).y += .6;
+    const lay = _bh.y - fy < .7 && _bb.y - fy < .5;
+    if (lay) { const dx = _bh.x - _bb.x, dz = _bh.z - _bb.z, L = Math.hypot(dx, dz); put((_bb.x + _bh.x) / 2, fy, (_bb.z + _bh.z) / 2, .55 * ss, L + .7 * ss, Math.atan2(dx, dz), .42); }
+    else put(_bb.x, fy, _bb.z, .66 * ss, .66 * ss, 0, .3 * (1 - clamp((_bb.y - fy - 1.1 * ss) / .6, 0, 1)));
+    for (const sd of ['l', 'r']) { const f = C.bone['foot_' + sd], b = C.bone['ball_' + sd]; if (!f) continue; f.getWorldPosition(_bf); if (b) b.getWorldPosition(_bb); else _bb.copy(_bf);
+      const h = Math.min(_bf.y, _bb.y) - fy, dx = _bb.x - _bf.x, dz = _bb.z - _bf.z;
+      put((_bf.x + _bb.x) / 2, fy, (_bf.z + _bb.z) / 2, .16 * ss, .32 * ss, Math.atan2(dx, dz), .62 * (1 - clamp((h - .03) / .17, 0, 1))); } }
+  for (let i = n; i < pool.length; i++) pool[i].visible = false;
 }
 // главный вызов: нарисовать кадр shotId в 2D-контекст g размером W×H
 // где может мелькнуть Жилец (случайное появление): за стеклом на улице, между колоннами, у лифтов, в конце коридора, за стойками
@@ -2735,8 +2774,10 @@ function draw(g, W, H, id, o) {
   if (!init()) return false;
   const R = window.__W3core.R;
   const t = o.t || 0, T0 = o.T || 0, dt = Math.min(.05, Math.max(0, T0 - lastT)) || .016; lastT = T0;
+  const CO = o.compile || 0;   // фоновый прогрев (warmMore): всё как перед рисованием, но без поз; 1 — только собрать шейдеры, 2 — кадр в буфер (тени), на экран не идёт
   const newShot = id !== lastId, cont = newShot && !!lastId && sameView(SH[ALIAS[lastId] || lastId], SH[ALIAS[id] || id]); lastId = id;
   const { sh, o: loc, used } = stage(id, t, o, cont);
+  const LIVE = !CO || !(o.live && [...used].some(k => o.live.has(k)));   // прогрев: позы считаем, только если этих людей сейчас нет на экране (иначе собьём им взгляд и шаг)
   // кто говорит: рот двигается по громкости голоса
   for (const k in A) { A[k].talk = 0; A[k].vis = null; A[k].react = null; A[k].hear = 0; }
   if (o.react) for (const who in o.react) for (const k of NAME[who] || []) if (used.has(k)) A[k].react = o.react[who];   // кивок/«нет»/руки скрещены, лицо — по реплике (движок, beat.react)
@@ -2747,25 +2788,33 @@ function draw(g, W, H, id, o) {
     const fx = (window.__ns && window.__ns.talkFx) || '', eerie = /^(fake|muffle|glass|phonefake|near)$/.test(fx) || o.talk.who === '???' || o.talk.who === 'ГОЛОС';
     for (const k of used) if (k !== sp) { A[k].hear = o.talk.v; A[k].hearOk = !eerie; } }
   if (sh.hum && used.has(sh.hum) && !(o.talk && o.talk.who)) A[sh.hum].talk = .1 + .12 * Math.abs(Math.sin(t * 4.3)) * (Math.sin(t * 1.1) > -.5 ? 1 : 0);   // мурлычет себе под нос
+  if (LIVE) {
   if (newShot || o.settle) for (const k of used) { A[k].smDone = false; if (o.settle || !cont || hardCut(A[k])) A[k].cut = true; }   // после склейки — сразу новая поза (и покадровый Жилец тоже), без перехода из прошлого кадра; тот же ракурс — продолжаем
   // перемотка инструментов (__ns.seek): 0,9 с движения без рисования — снимок показывает позу и взгляд такими, какими их видит игрок, а не на полпути
   if (o.settle) for (let i = 9; i > 0; i--) for (const k of used) A[k].update(T0 - i * .1, .1);
   for (const k of used) A[k].update(T0, dt);
   solidPass(loc, used, sh, T0, id);   // твёрдый мир: кто вошёл в стену или предмет — отходит, поза заново
+  }
   loc.tick(T0, dt);
+  if (LIVE) {
   if (loc.post) loc.post(A, used, T0);
   if (sh.post) sh.post(loc, t, used);   // кадр смерти: кишки, раны, лужи — по костям после поз
+  contactShadows(loc, used);   // мягкая тень под ступнями и телом — человек стоит на полу, а не висит над ним
   // скример строго в лицо: голову Жильца ставим на ось камеры (поза рук и корпуса уводили её влево)
   const M = A.monster;
   if (M.aim && M.aim.on && used.has('monster')) { M.bone.Head.updateWorldMatrix(true, false); M.bone.Head.getWorldPosition(_hp); const P = sh.pos; _hd.set(sh.look[0] - P[0], 0, sh.look[2] - P[2]).normalize();
     const rx = _hp.x - P[0], rz = _hp.z - P[2], al = rx * _hd.x + rz * _hd.z;
     M.root.position.x -= rx - _hd.x * al; M.root.position.z -= rz - _hd.z * al; M.root.position.y += (P[1] - .04 - _hp.y) * M.aim.k; M.root.updateMatrixWorld(true); }
+  }
   let crept = false;
   // на мониторах в будке: лицо вплотную к камере холла
-  if (o.creep && sh.feeds && !used.has('monster') && L.lobby === loc) { const C = A.monster; if (C.root.parent !== loc.S) loc.S.add(C.root); C.root.position.set(5.6, 0, 3.0); C.root.rotation.y = .75; C.pose = 'monster'; C.look = new T.Vector3(7.45, 3.85, 5.45); C.update(T0, dt); crept = true; }
-  if (sh.feeds && (crept || ++feedT % 3 === 0)) renderFeeds(R, T0, sh, t);
-  aim(cam, sh.pos, sh.look, sh.fov, o.cx ?? .5, o.cy ?? .5, o.z ?? 1, o.sx || 0, o.sy || 0);
+  if (o.creep && !CO && sh.feeds && !used.has('monster') && L.lobby === loc) { const C = A.monster; if (C.root.parent !== loc.S) loc.S.add(C.root); C.root.position.set(5.6, 0, 3.0); C.root.rotation.y = .75; C.pose = 'monster'; C.look = new T.Vector3(7.45, 3.85, 5.45); C.update(T0, dt); crept = true; }
+  if (CO) ;
+  else if (sh.feeds && (crept || ++feedT % 3 === 0)) renderFeeds(R, T0, sh, t);
+  else if (!sh.feeds && loc === L.lobby && (newShot || ++feedT % 20 === 0)) renderFeeds(R, T0, null, t, newShot ? null : (feedT / 20 | 0) % 3);   // мониторы видны и в других кадрах будки: не чёрные, а камеры (по одной раз в ~2 с)
+  aim(cam, sh.pos, sh.look, sh.fov, o.cx ?? .5, o.cy ?? .5, o.z ?? 1, o.sx || 0, o.sy || 0, (o.cctv ?? sh.cctv) || o.scare || sh.noDolly ? 0 : .5);   // камеры наблюдения и бросок — только объективом
   if (sh.roll) cam.rotateZ(typeof sh.roll === 'function' ? sh.roll(t) : sh.roll);   // завал горизонта: упал на пол, голова набок
+  if (o.sr) cam.rotateZ(o.sr * .0004);   // лёгкий крен камеры с рук (движок: handCam)
   // фонарь в руке: луч туда, куда показывает палец (o.torch = {x, y} — доли экрана)
   if (!loc.torch && /^(corridor|stairs|basement)$/.test(loc.name)) { const l = loc.torch = new T.SpotLight(0xfff0d8, 0, 0, .3, .35, 1); l.map = TX.torch; loc.S.add(l, l.target); }
   // крупный план: контровой свет из-за головы (холодный, сверху-сзади) — волосы и плечи отделяются от тёмного фона, лицо объёмнее
@@ -2781,17 +2830,19 @@ function draw(g, W, H, id, o) {
       // луч ведёт рука, а не камера: направление сглажено — тряска кадра и шаги не дёргают пятно света
       if (newShot || !loc.torchAim) loc.torchAim = _p.clone(); else loc.torchAim.lerp(_p, Math.min(1, dt * 7));
       l.target.position.copy(loc.torchAim); l.target.updateMatrixWorld(); } }
-  if (o.creep && !crept && !used.has('monster') && placeCreep(loc, o.creep, R)) A.monster.update(T0, dt);
+  if (o.creep && !CO && !crept && !used.has('monster') && placeCreep(loc, o.creep, R)) A.monster.update(T0, dt);
   const cctv = o.cctv ?? sh.cctv ?? 0;
   const PU = postMat.uniforms; PU.uCctv.value = cctv ? 1 : 0; PU.uIr.value = loc.ir ? 1 : 0; if (PB && PB.comp) PB.comp.uniforms.uIr.value = loc.ir ? 1 : 0; PU.uT.value = T0; PU.uScare.value = clamp(o.scare || 0, 0, 1); PU.uVhs.value = o.vhs ?? VHS;
   if (loc === L.lobby) {
     const U = loc.glassU, lit = clamp((loc.l1.intensity / 1.9) * .55 + (loc.l4.intensity / 1.25) * .25 + loc.amb.intensity * .5, 0, 1.4);
     U.uLit.value = lit; U.uT.value = T0; U.uFogD.value = loc.S.fog.density; U.uRef.value *= loc.reflBoost ?? 1;
     U.uDropC.value.setRGB(.42, .46, .52).multiplyScalar(.5 + .5 * clamp(loc.canopy.intensity / 1.5 + loc.street.intensity / 2.4, 0, 1.4));
-    cam.updateMatrixWorld(); renderRefl(R, loc, used, newShot);
+    cam.updateMatrixWorld(); if (!CO) renderRefl(R, loc, used, newShot);
   }
   for (const k of used) if (A[k].reflOnly) A[k].root.visible = false;
-  if (CINE) { cineTick(loc, T0); R.shadowMap.needsUpdate = FINE || (++shadowN & 1) === 0; }   // на телефоне тени обновляются через кадр: это самая дорогая часть «Кино»
+  if (CINE) { cineTick(loc, T0); if (!CO) R.shadowMap.needsUpdate = FINE || (++shadowN & 1) === 0; }   // на телефоне тени обновляются через кадр: это самая дорогая часть «Кино»
+  if (CO === 1) return compileOnly(R, loc.S);
+  if (CO) { const R0 = R.getRenderTarget(); R.shadowMap.needsUpdate = true; R.setRenderTarget(window.__W3core.RT); R.render(loc.S, cam); R.setRenderTarget(R0); return null; }   // тени ламп (их шейдеры собираются только при рисовании)
   R.setRenderTarget(window.__W3core.RT); R.render(loc.S, cam);
   if (CINE) cineRender(R, T0, cctv ? 1 : 0, clamp(o.scare || 0, 0, 1), o.vhs ?? VHS);
   else { R.setRenderTarget(null); R.render(postScene, postCam); }
@@ -2802,13 +2853,48 @@ function draw(g, W, H, id, o) {
   g.imageSmoothingEnabled = true;
   return true;
 }
-// прогрев: по кадру из каждого места, чтобы все шейдеры собрались во время загрузки
-function warm() {
-  const c = document.createElement('canvas'); c.width = 54; c.height = 96; const g = c.getContext('2d');
-  // шейдеры под каждую расстановку света собираются при загрузке, а не посреди сцены (стук в серверную «долго грузился» — сборка шейдеров подвала и серверной)
-  for (const id of ['hall_cam', 'monitors', 'katya_face', 'corridor_cam', 'server_mih', 'cam13_mih_monster', 'exterior', 'ny_photo', 'srv_room', 'bm_view',
-    'bs_knock', 'bs_open', 'bs_frank', 'srv_in', 'srv_dark', 'srv_hold', 'srv_crawl', 'c13_gus', 'gl_face', 'h_crouch', 'jr_desk', 'booth_call', 'f7_close', 'lunge_server', 'cam02', 'cam_m2',
-    'pro_ext', 'pro_two', 'pro_offer']) if (SH[ALIAS[id] || id]) draw(g, 54, 96, id, { t: 1, T: 1 });   // пролог: улица под дождём и сменщик в холле — его текстуры готовы до первой сцены
+// прогрев: по кадру из каждого места, чтобы все шейдеры собрались до того, как понадобятся
+// (стук в серверную «долго грузился» — сборка шейдеров подвала и серверной посреди сцены). Шейдеры под каждую расстановку света.
+// warm(true) при загрузке — только титул, пролог и будка (меню появляется сразу: раньше все 29 мест собирались до меню, на слабом ПК — десятки секунд);
+// остальное — warmMore() в фоне, пока игрок в меню и в прологе: без рисования, драйвер собирает шейдеры в своих потоках (KHR_parallel_shader_compile)
+const WARM = ['door_katya', 'exterior', 'pro_ext', 'pro_two', 'pro_offer', 'hall_cam', 'monitors', 'booth_call', 'katya_face', 'jr_desk', 'cam02', 'corridor_cam', 'server_mih',
+  'cam13_mih_monster', 'ny_photo', 'srv_room', 'bm_view', 'bs_knock', 'bs_open', 'bs_frank', 'srv_in', 'srv_dark', 'srv_hold', 'srv_crawl', 'c13_gus', 'gl_face', 'h_crouch',
+  'f7_close', 'lunge_server', 'cam_m2'], WARM1 = 5;   // первые WARM1 — до меню: титул, улица и сменщик в прологе (будка и мониторы — первыми в фоне)
+let warmQ = null, warmBusy = null;
+const warmIds = () => warmQ || (warmQ = WARM.filter(id => SH[ALIAS[id] || id]));
+function warm(first) {
+  if (first && navigator.webdriver && !/[?&]warm=bg/.test(location.search)) first = false;   // автотесты и снимки кадров (Playwright): всё до меню, как раньше — в медленном программном рендере сборка посреди сцены сбивает их часы
+  const c = document.createElement('canvas'); c.width = 54; c.height = 96; const g = c.getContext('2d'), q = warmIds();
+  for (const id of q.splice(0, first ? WARM1 : q.length)) draw(g, 54, 96, id, { t: 1, T: 1 });
+  return q.length;
+}
+// один кадр из очереди прогрева; обещание — когда его шейдеры собраны (null — очередь пуста). Персонажи, камера и «прошлый кадр» остаются как были:
+// титул и идущая сцена не замечают, что между их кадрами собирался чужой
+// full — ещё и кадр в буфер (тени ламп): только в меню и на паузе, в игре это лишний кадр работы видеокарты (шейдеры теней маленькие — соберутся при первом кадре места)
+function warmMore(full) {
+  if (warmBusy) return warmBusy; const q = warmIds(); if (!q.length || !init()) return null;
+  const id = q.shift();
+  return (warmBusy = Promise.resolve(warmRun(id, 1)).catch(() => {}).then(() => full ? warmRun(id, 2) : null).then(() => { warmBusy = null; }));
+}
+function warmRun(id, k) {
+  const keep = [lastId, lastT, curLoc], ak = {}, cp = cam.position.clone(), cq = cam.quaternion.clone(), cf = [cam.fov, cam.aspect];   // камера — как в последнем кадре (по ней World.project ставит точки обхода)
+  for (const n in A) { const C = A[n]; ak[n] = [C.lastShot, C.lookDir, C.prevP, C.walkV, C.solD, C.root.parent]; }
+  const live = new Set(Object.keys(A).filter(n => A[n].root.parent));   // кто сейчас в кадре
+  let p = null; try { p = draw(null, 54, 96, id, { t: 1, T: 1, compile: k, live }); } catch (e) { console.warn('warm', id, e); }
+  [lastId, lastT] = keep;
+  for (const n in A) { const C = A[n], a = ak[n]; [C.lastShot, C.lookDir, C.prevP, C.walkV, C.solD] = a; if (C.root.parent !== a[5]) { if (a[5]) a[5].add(C.root); else if (C.root.parent) C.root.parent.remove(C.root); } }
+  if (keep[2] && curLoc !== keep[2]) { curLoc.reset(); curLoc = keep[2]; }
+  cam.position.copy(cp); cam.quaternion.copy(cq); [cam.fov, cam.aspect] = cf; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+  return p;
+}
+// собрать шейдеры сцены, не рисуя: как в R.render в буфер кадра (те же тон и цвет на выходе — иначе соберутся не те шейдеры)
+function compileOnly(R, S) {
+  const R0 = R.getRenderTarget(); R.setRenderTarget(window.__W3core.RT); let mats = null;
+  try { mats = R.compile(S, cam); } finally { R.setRenderTarget(R0); }
+  if (!mats || !mats.size || !R.properties) return Promise.resolve();
+  return new Promise(res => { const t0 = performance.now(), tick = () => {
+    for (const m of mats) { let ok = true; try { const pr = R.properties.get(m).currentProgram; ok = !pr || pr.isReady(); } catch (e) {} if (ok) mats.delete(m); }
+    if (!mats.size || performance.now() - t0 > 20000) res(); else setTimeout(tick, 16); }; tick(); });
 }
 // точка мира → место на кадре (доли ширины и высоты) по камере последнего кадра: точки обхода стоят на предметах
 const _pj = new T.Vector3(); let lastMirror = false;
@@ -3039,5 +3125,5 @@ function solidWhy(k) {
 }
 // для отладки: включённые коллайдеры места (что «твёрдое» в текущем кадре)
 function solids() { if (!curLoc) return []; return solidCols(curLoc).map(K => (solidNow(K), K)).filter(K => K.on).map(K => ({ prop: solidName(K), kind: K.kind, wall: !!K.wall, glass: !!K.glass, small: K.small, c: [+K.c.x.toFixed(2), +K.c.y.toFixed(2), +K.c.z.toFixed(2)], size: K.e.map(x => +(2 * x).toFixed(2)) })); }
-window.World = { draw, init, warm, setLand, project, projectAt, heads, clips, solids, solidWhy, gfit: GFIT, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, get ultra() { return ULTRA; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
+window.World = { draw, init, warm, warmMore, get warmLeft() { return warmQ ? warmQ.length : -1; }, get warmBusy() { return !!warmBusy; }, setLand, project, projectAt, heads, clips, solids, solidWhy, gfit: GFIT, names: NAME, perf: perfTick, get actors() { return A; }, get land() { return V.land; }, get cine() { return CINE; }, get ultra() { return ULTRA; }, thumb, shots: SH, alias: ALIAS, props: null, get ok() { return scenesReady; }, get tube() { return curLoc ? curLoc.tubeOK ?? 1 : 1; }, get ir() { return !!(curLoc && curLoc.ir); }, set vhs(v) { VHS = clamp(+v || 0, 0, 1); }, get vhs() { return VHS; } };
 })();

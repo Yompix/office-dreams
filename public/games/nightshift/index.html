@@ -99,6 +99,9 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 #act .spot:active i { transform: scale(.85); }
 #act .spot.up { flex-direction: column-reverse; transform: translate(-50%, calc(-100% + 4.5 * var(--u))); }   /* подпись над точкой: снизу соседняя */
 @keyframes spot { 0%, 100% { transform: scale(.82); opacity: .75; } 50% { transform: scale(1.08); opacity: 1; } }
+/* мышь: точка под курсором отвечает сразу — кольцо замирает крупным и ярким, подпись светлеет (на телефоне — только :active) */
+@media (pointer: fine) { #act .spot:hover i, #act .spot:focus-visible i { animation: none; transform: scale(1.18); opacity: 1; border-color: #ffd84a; box-shadow: 0 0 calc(5 * var(--u)) rgba(255,216,74,.95), inset 0 0 calc(2.5 * var(--u)) rgba(255,216,74,.7); }
+  #act .spot:hover span, #act .spot:focus-visible span { background: rgba(0,0,0,.82); color: #fff; } #act .spot:focus-visible { outline: none; } #act .spot:active i { transform: scale(.92); } }
 #act .ex-leave { position: absolute; left: 12%; right: 12%; bottom: 9%; width: auto; pointer-events: auto; }
 #act .talk { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 7% 12%; pointer-events: auto; }
 #act .talk h2 { margin: 0 0 calc(3 * var(--u)); text-align: center; font: 700 calc(5.2 * var(--u))/1.1 NSUI, NSCJK, Inter, Arial, sans-serif; letter-spacing: calc(.6 * var(--u)); text-transform: uppercase; color: #8fd0ff; text-shadow: 0 0 calc(2 * var(--u)) #000; }
@@ -452,10 +455,10 @@ img, a, svg { -webkit-user-drag: none; }
 <script src="lib/meshopt_decoder.js"></script>
 <script src="world.js?v=17"></script>
 <script src="chars.js?v=2"></script>
-<script src="chars2.js?v=30"></script>
-<script src="scenes.js?v=42"></script>
+<script src="chars2.js?v=31"></script>
+<script src="scenes.js?v=43"></script>
 <script src="story.js?v=27"></script>
-<script src="engine.js?v=48"></script>
+<script src="engine.js?v=49"></script>
 <script src="pad.js?v=3"></script>
 </body>
 </html>
