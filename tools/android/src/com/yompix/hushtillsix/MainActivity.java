@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.DisplayCutout;
 import android.view.View;
 import android.view.Window;
@@ -33,7 +34,8 @@ import java.util.Map;
    https://appassets.androidplatform.net/game/index.html: файлы отдаёт само приложение (shouldInterceptRequest) — без сервера и интернета,
    а у страницы настоящий https-адрес (сохранения в localStorage живут в данных приложения; file:// с XHR новые WebView не пускают).
    Свернули — пауза и тишина (игра открывает меню паузы); «Назад» — как Esc в игре, в главном меню — выход;
-   процесс WebView убит системой (мало памяти) — WebView создаётся заново, а приложение не вылетает (сохранения остаются). */
+   процесс страницы упал или система забрала его память — WebView создаётся заново, а приложение не вылетает (сохранения остаются):
+   свёрнутую игру — когда игрок вернётся; на виду — сразу и в «Ретро» (?rp=1, world.js); третий раз за 2 минуты — игра закрывается, а не крутится по кругу. */
 public class MainActivity extends Activity {
   static final String HOST = "appassets.androidplatform.net", START = "https://" + HOST + "/game/index.html";
   static final boolean WEB_DEBUG = false;   // true — только в проверочной сборке (build.js --webview-debug): страницу видят Appium/chrome://inspect
@@ -48,6 +50,8 @@ public class MainActivity extends Activity {
   private FrameLayout root;
   private WebView web;
   private Object backCb;
+  private boolean resumed, lost;   // lost — страница пропала, пока игра свёрнута: WebView заново в onResume
+  private int gone; private long goneT;
 
   @Override protected void onCreate(Bundle b) {
     super.onCreate(b);
@@ -64,12 +68,12 @@ public class MainActivity extends Activity {
       return ins;
     });
     setContentView(root);
-    makeWeb();
+    makeWeb(START);
     if (Build.VERSION.SDK_INT >= 33) backCb = Back33.register(this);
     immersive();
   }
 
-  private void makeWeb() {
+  private void makeWeb(String url) {
     if (WEB_DEBUG) WebView.setWebContentsDebuggingEnabled(true);
     web = new WebView(this);
     web.setBackgroundColor(Color.BLACK);
@@ -94,15 +98,19 @@ public class MainActivity extends Activity {
         try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception e) { }   // внешние ссылки (лицензии) — в браузере
         return true;
       }
-      @Override public boolean onRenderProcessGone(WebView v, RenderProcessGoneDetail d) { recreateWeb(); return true; }
+      @Override public boolean onRenderProcessGone(WebView v, RenderProcessGoneDetail d) { pageGone(v); return true; }
     });
     root.addView(web, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-    web.loadUrl(START);
+    web.setFocusable(true); web.setFocusableInTouchMode(true); web.requestFocus();   // клавиши и кнопки геймпада идут в игру
+    web.loadUrl(url);
   }
 
-  private void recreateWeb() {
-    if (web != null) { root.removeView(web); web.destroy(); web = null; }
-    makeWeb();
+  private void pageGone(WebView v) {
+    if (v != web) return;
+    root.removeView(web); web.destroy(); web = null;
+    long t = SystemClock.elapsedRealtime(); if (t - goneT > 120000) gone = 0; goneT = t;
+    if (++gone >= 3) { finish(); return; }
+    if (resumed) makeWeb(START + "?rp=1"); else lost = true;
   }
 
   // файл игры из assets/: путь адреса /game/... → assets/game/...; ?v=… (версии файлов) не важен
@@ -143,14 +151,15 @@ public class MainActivity extends Activity {
   @Override public void onWindowFocusChanged(boolean f) { super.onWindowFocusChanged(f); if (f) immersive(); }
 
   @Override protected void onPause() {
-    super.onPause();
+    super.onPause(); resumed = false;
     js("window.__nsApp && window.__nsApp.pause()");   // меню паузы и тишина, пока игра свёрнута (звонок, другое приложение)
     if (web != null) { web.onPause(); web.pauseTimers(); }
   }
 
   @Override protected void onResume() {
-    super.onResume();
-    if (web != null) { web.resumeTimers(); web.onResume(); }
+    super.onResume(); resumed = true;
+    if (lost) { lost = false; makeWeb(START); }
+    if (web != null) { web.resumeTimers(); web.onResume(); }   // pauseTimers — на все WebView процесса: новой странице таймеры тоже нужно вернуть
     js("window.__nsApp && window.__nsApp.resume()");
     immersive();
   }

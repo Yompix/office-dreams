@@ -1267,8 +1267,9 @@ function logoMask() {   // эрозия букв: редкие выщербин�
   return (logoURL = c.toDataURL());
 }
 // «Кино» на этой видеокарте рисовало чёрным — игра сама включила «Ретро» (scenes.js, gfxCheck): сказать об этом один раз
-function gfxNote() { const a = LS.get('gfxAuto', 0); if (a !== 1 && a !== 4) return; LS.set('gfxAuto', 3);
-  const n = document.createElement('div'); n.className = 'gfx-note'; n.textContent = tr(a === 4 ? 'На этом телефоне «Кино» шло слишком медленно — включена «Ретро». Вернуть: Настройки → Графика.' : 'Графика «Кино» на этом устройстве рисовала слишком темно — включена «Ретро». Вернуть: Настройки → Графика.');
+function gfxNote() { const a = LS.get('gfxAuto', 0); if (a !== 1 && a !== 4 && a !== 6) return; LS.set('gfxAuto', 3);   // 6 — приложение: страница упала на виду (world.js, ?rp=1)
+  const n = document.createElement('div'); n.className = 'gfx-note'; n.textContent = tr(a === 4 ? 'На этом телефоне «Кино» шло слишком медленно — включена «Ретро». Вернуть: Настройки → Графика.'
+    : a === 6 ? 'На этом телефоне «Кино» оказалось слишком тяжёлым — включена «Ретро». Вернуть: Настройки → Графика.' : 'Графика «Кино» на этом устройстве рисовала слишком темно — включена «Ретро». Вернуть: Настройки → Графика.');
   ($('stage') || document.body).appendChild(n); setTimeout(() => n.remove(), 9000); }
 function menu() {
   gen++; mode = 'menu'; overBg = null; document.body.classList.remove('shifting'); gfxNote(); menuT0 = now(); titleT0 = now(); stopAll(false); music(null); for (const k in ambient) amb(k, false); if (hushOn) hush(false); $('hud').classList.add('hide'); hideSms();

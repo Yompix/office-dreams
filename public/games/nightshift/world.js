@@ -73,6 +73,10 @@ const GPU = (() => {
     return { name: r.replace(/^ANGLE \((.*)\)$/, '$1').slice(0, 90), tier: g2 ? tier : Math.min(tier, 1) };
   } catch (e) { return { name: '', tier: 2 }; }
 })();
+// приложение для Android: процесс страницы упал на виду (телефону не хватило памяти или видеокарта не вытянула «Кино») — MainActivity открыла игру
+// заново с ?rp=1: дальше «Ретро» (gfxAuto 6 — в меню одна подсказка, как вернуть); адрес без ?rp=1, чтобы перезагрузка (язык, графика) не повторила это
+if (/[?&]rp=1\b/.test(location.search)) { try { if (JSON.parse(localStorage.getItem('ns1_gfx')) !== 'retro') { localStorage.setItem('ns1_gfx', '"retro"'); localStorage.setItem('ns1_gfxAuto', '6'); } } catch {}
+  try { history.replaceState(null, '', location.pathname + location.hash); } catch {} }
 const GFX = (() => { const q = /[?&]gfx=(retro|cine|ultra)/.exec(location.search); if (q) return q[1];
   try { const v = JSON.parse(localStorage.getItem('ns1_gfx')); if (v === 'retro' || v === 'cine' || (v === 'ultra' && FINE)) return v; } catch {}
   return GPU.tier === 0 ? 'retro' : FINE && GPU.tier === 4 ? 'ultra' : 'cine'; })();   // «Ретро» сам — только без видеокарты (программная графика); слабым «Кино» сбавит авто-качество (владелец: «Кино и Ультра стали хуже»)
