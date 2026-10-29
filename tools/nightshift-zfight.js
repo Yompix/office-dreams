@@ -71,7 +71,7 @@ const HTML = `<!doctype html><html><head><meta charset="utf-8"></head><body>
           const gap = Math.abs(t1.d - t2.d); if (gap > .003) continue;
           if (t1.bb[2] <= t2.bb[0] || t2.bb[2] <= t1.bb[0] || t1.bb[3] <= t2.bb[1] || t2.bb[3] <= t1.bb[1]) continue;
           const ov = clip(t1.P, t2.P); if (ov.length < 3) continue; const a = Math.abs(area2(ov)); if (a < 1e-6) continue;
-          const lo = t1.mi <= t2.mi ? t1 : t2, hi = lo === t1 ? t2 : t1, pk = lo.id + '~' + hi.id + '~' + (t1.face === t2.face);
+          const lo = t1.mi <= t2.mi ? t1 : t2, hi = lo === t1 ? t2 : t1, pk = lo.id + '~' + hi.id + '~' + key + '|' + db + '~' + (t1.face === t2.face);   // каждая плоскость пары — отдельно (низ у пола не прячет бока)
           const r = pair.get(pk) || { a: 0, gap: 9, mi: [lo.mi, hi.mi], same: t1.face === t2.face, n: key, fa: lo.face, d: +lo.d.toFixed(3) }; r.a += a; r.gap = Math.min(r.gap, gap); pair.set(pk, r);
         }
       }
