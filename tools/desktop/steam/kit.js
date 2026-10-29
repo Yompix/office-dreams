@@ -2,6 +2,7 @@
 //   frames → ПАПКА/frames/*.png — кадры «Кино» без интерфейса для капсул, фона библиотеки и иконок достижений
 //            (потом python3 tools/desktop/steam/kit.py ПАПКА — капсулы с логотипом, иконки 256×256 открытые/закрытые)
 //   shots  → ПАПКА/screenshots/*.png — настоящая игра с интерфейсом, 1920×1080 (субтитры, выбор, смена, мини-игра)
+//            PHONE=1 — снимки для Google Play: телефон (сенсорный интерфейс, экран 640×360 при плотности 3 → тоже 1920×1080), *_phone.png
 // Сервер статики: cd public/games && python3 -m http.server 8785 --bind 127.0.0.1 (PORT=…). ONLY=имя,имя — только эти кадры.
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path');
@@ -60,7 +61,8 @@ async function frames(b) {
 
 async function shots(b) {
   const dir = path.join(out, 'screenshots'); fs.mkdirSync(dir, { recursive: true });
-  const p = await b.newPage({ viewport: { width: 1920, height: 1080 } });
+  const PHONE = !!process.env.PHONE;
+  const p = PHONE ? await (await b.newContext({ viewport: { width: 640, height: 360 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true })).newPage() : await b.newPage({ viewport: { width: 1920, height: 1080 } });
   p.on('pageerror', e => console.log('ошибка JS:', String(e).slice(0, 200)));
   await p.addInitScript(() => { localStorage.setItem('ns1_land3', 'true'); localStorage.setItem('ns1_tutDone', '1'); localStorage.setItem('ns1_qa', 'false'); });
   for (const lang of (process.env.LANGS || 'en,ru').split(',')) {
@@ -84,7 +86,7 @@ async function shots(b) {
         await p.evaluate(t => window.__ns.seek(t), Math.min(t, Math.max(0, dur - .05)));
         await p.waitForFunction(() => window.__ns.held, null, { polling: 50, timeout: 300000 });
       }
-      const f = path.join(dir, `${name}_${lang}.png`); await p.screenshot({ path: f, timeout: 300000 });
+      const f = path.join(dir, `${name}_${lang}${PHONE ? '_phone' : ''}.png`); await p.screenshot({ path: f, timeout: 300000 });
       console.log(`снимок ${path.basename(f)} — ${((Date.now() - t0) / 1000).toFixed(0)} с`);
       await p.evaluate(() => window.__ns.pause(false)).catch(() => {});
     }

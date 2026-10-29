@@ -16,7 +16,7 @@ const targets = args.filter(a => a === 'win' || a === 'linux'); if (!targets.len
 const E = PKG.electron, VER = PKG.version, CACHE = path.join(os.homedir(), '.cache/hush-desktop');
 const NAME = 'Hush Till Six', LOCALES = /^(en-US|en-GB|ru|uk|es|es-419|pt-BR|pt-PT|de)\.pak$/;   // язык меню Chromium (почти не видно) — остальные 50 локалей не нужны
 // что из папки игры не нужно в ПК-версии: картинки для соцсетей и страницы, режим проверки, манифест веб-приложения
-const SKIP = /^(og\.(jpg|webp)|cover\.webp|manifest\.json|qa\.js|apple-touch-icon\.png|icon-maskable-.*\.png)$/;
+const SKIP = /^(og\.(jpg|webp)|cover\.webp|manifest\.json|privacy\.html|qa\.js|apple-touch-icon\.png|icon-maskable-.*\.png)$/;
 // NSIS 3.0.4.1 из electron-builder-binaries — тот же архив, что берёт electron-builder (его SHA-512 совпадает с прописанным там)
 const NSIS = { ver: '3.0.4.1', sha: '9877df902530f96357d13a7a31ae2b9df67f48b11ffc9a1700a7c961574ec5fa' };
 const SW = path.join(__dirname, 'node_modules/steamworks.js');

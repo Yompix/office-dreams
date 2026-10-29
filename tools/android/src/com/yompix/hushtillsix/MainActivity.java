@@ -2,6 +2,7 @@ package com.yompix.hushtillsix;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -33,6 +34,7 @@ import java.util.Map;
 /* Hush Till Six для Android. Игра (папка public/games/nightshift) лежит в assets/game и открывается во WebView по адресу
    https://appassets.androidplatform.net/game/index.html: файлы отдаёт само приложение (shouldInterceptRequest) — без сервера и интернета,
    а у страницы настоящий https-адрес (сохранения в localStorage живут в данных приложения; file:// с XHR новые WebView не пускают).
+   Экран повёрнут так, как выбран кадр в игре (по умолчанию 16:9 — альбомный; книжный 9:16 — в настройках игры), иначе кадр был бы узкой полосой.
    Свернули — пауза и тишина (игра открывает меню паузы); «Назад» — как Esc в игре, в главном меню — выход;
    процесс страницы упал или система забрала его память — WebView создаётся заново, а приложение не вылетает (сохранения остаются):
    свёрнутую игру — когда игрок вернётся; на виду — сразу и в «Ретро» (?rp=1, world.js); третий раз за 2 минуты — игра закрывается, а не крутится по кругу. */
@@ -188,5 +190,9 @@ public class MainActivity extends Activity {
   // мост для страницы: window.nsAppNative — по нему игра узнаёт, что она в приложении (без доната и спонсоров, кнопка «Выйти из игры»)
   final class Bridge {
     @JavascriptInterface public void quit() { runOnUiThread(MainActivity.this::finish); }
+    // экран — как кадр в игре (Настройки → Экран, applyLand в engine.js): 16:9 — альбомный, 9:16 — книжный; переворот на 180° — по датчику, если поворот не заблокирован
+    @JavascriptInterface public void orient(boolean land) {
+      runOnUiThread(() -> setRequestedOrientation(land ? ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT));
+    }
   }
 }

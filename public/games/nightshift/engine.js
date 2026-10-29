@@ -8,7 +8,8 @@ const S = window.STORY, $ = id => document.getElementById(id);
 const tr = window.tr || (s => s), trf = window.trf || ((s, v) => s.replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m)), LNG = window.NS_LANG || 'ru', EN = LNG !== 'ru';
 const DESK = window.nsDesktop || null;   // ПК-версия (tools/desktop: окно Electron): выход из игры, полный экран окна, без доната и спонсоров из интернета
 // Android-приложение (tools/android: WebView с игрой внутри, мост nsAppNative): выход из игры, во весь экран само, без доната, спонсоров и интернета
-const APP = window.nsAppNative ? { quit: () => { try { window.nsAppNative.quit(); } catch (e) {} } } : null;
+const APP = window.nsAppNative ? { quit: () => { try { window.nsAppNative.quit(); } catch (e) {} },
+  orient: l => { try { window.nsAppNative.orient(!!l); } catch (e) {} } } : null;   // orient — экран телефона как выбран кадр (16:9 — альбомный, 9:16 — книжный): в браузере это делает lock() в goFull
 const VL = window.NS_VOICE || (EN ? 'en' : 'ru');   // чьими записями озвучен язык игры (папка snd/<VL>/; русский — snd/)
 const OVERS0 = S.overs.slice(), OVER0 = {};   // названия смертей по-русски — ключи для счётчика «Смертей найдено» (переведённые терялись при смене языка, а в английской две смерти звались одинаково)
 for (const id in S.scenes) { const th = S.scenes[id].then; if (th && th.over) OVER0[id] = th.over; }
@@ -2017,7 +2018,7 @@ function applyLand(l) {
   LAND = !!l; W = Math.round((LAND ? 1920 : 1080) * CS); H = Math.round((LAND ? 1080 : 1920) * CS); US = H / 1920; if (act) act.laid = false;   // точки обхода — разложить подписи заново
   for (const c of [cv, heldC, frozenC]) { c.width = W; c.height = H; }
   heldT = -9; drops = drops.map(() => ({ x: Math.random() * W, y: Math.random() * H, v: 1800 + Math.random() * 1400, l: 40 + Math.random() * 70 }));
-  document.body.classList.toggle('land', LAND);
+  document.body.classList.toggle('land', LAND); if (APP) APP.orient(LAND);
   if (window.World && World.setLand) World.setLand(LAND);
   ambFit();
 }
