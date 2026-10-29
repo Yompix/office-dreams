@@ -32,7 +32,7 @@ Hush Till Six — официальный трейлер | Хоррор-игра 
 #хоррор #страшныеигры #инди #horror #horrorgame
 ```
 
-## Español
+## Español (в YouTube — «Испанский» без страны; если просят выбрать — «Латинская Америка»)
 
 **Título:**
 ```text
@@ -50,14 +50,14 @@ Aceptas el turno de noche en una torre de oficinas vacía. El guardia anterior d
 • Historia de terror interactiva de 2–3 horas: 4 finales y 14 formas de morir
 • Vigila las cámaras, anota lo que no cuadra… y no te quedes mirando la CAM 13
 • Voces en inglés, ruso, español, portugués y alemán; subtítulos en 13 idiomas
-• Juega en el navegador desde el PC o el móvil, o descárgalo para Windows y Linux
+• Juega en el navegador desde tu PC o tu teléfono, o descárgalo para Windows y Linux
 
 18+: violencia, sangre, sustos repentinos y destellos de luz.
 
 #terror #juegodeterror #juegosindie #horror #horrorgame
 ```
 
-## Português (Brasil)
+## Português (Brasil) (в YouTube — «Португальский (Бразилия)»: озвучка и перевод бразильские)
 
 **Título:**
 ```text
