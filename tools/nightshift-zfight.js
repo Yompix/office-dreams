@@ -1,72 +1,92 @@
-// Night Shift: поиск мигающих мест (совпадающие плоскости, z-fighting) во всех местах действия.
-// Нужен сервер статики: cd public/games && python3 -m http.server 8771 --bind 127.0.0.1;  запуск: node tools/nightshift-zfight.js [допуск_м=0.012]
-// SAME — одинаковый материал без текстуры (не видно), OFFSET — уже с polygonOffset, hidden — объект скрыт.
+// Night Shift: поиск мигающих мест — две поверхности разных предметов в одной плоскости (z-fighting) во всех местах действия.
+// Нужен сервер статики: cd public/games && python3 -m http.server 8771 --bind 127.0.0.1
+// Запуск: node tools/nightshift-zfight.js [--near] [--gfx=retro] [--json=OUT.json]
+// «СПОР» — плоскости совпадают (зазор < 0,3 мм), перекрытие ≥ 4 см², вид разный, обе рисуются с одной стороны, хотя бы одна пишет
+// глубину или стоит на непрозрачной (прозрачное стекло без записи глубины тоже спорит с гранью позади — так мигала полоса над EXIT).
+// «не видно?» — грани вниз у пола и т. п., проверить глазами. --near — ещё пары с зазором 0,3–3 мм (на WebGL 1 с 16-битной глубиной могут мигать).
+// Проверка в движении — tools/nightshift-jitter.js.
 const { chromium } = require('/opt/node-tools/node_modules/playwright');
+const fs = require('fs');
+const arg = k => (process.argv.find(a => a.startsWith('--' + k + '=')) || '').split('=')[1], NEAR = process.argv.includes('--near');
 const HTML = `<!doctype html><html><head><meta charset="utf-8"></head><body>
-<script src="lib/three.min.js"></script><script src="lib/gltf.min.js"></script><script src="world.js"></script><script src="chars.js"></script><script src="chars2.js"></script><script src="scenes.js"></script></body></html>`;
+<script src="lib/three.min.js"></script><script src="lib/gltf.min.js"></script><script src="lib/meshopt_decoder.js"></script><script src="i18n.js"></script><script src="world.js"></script><script src="chars.js"></script><script src="chars2.js"></script><script src="scenes.js"></script><script src="story.js"></script></body></html>`;
 (async () => {
-  const tol = +(process.argv[2] || .02);
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const p = await b.newPage();
   p.on('pageerror', e => console.log('PAGEERR', String(e)));
-  await p.route('**/nightshift/_a.html', r => r.fulfill({ contentType: 'text/html', body: HTML }));
-  await p.goto('http://127.0.0.1:8771/nightshift/_a.html');
-  await p.waitForFunction(() => window.World && window.__W3chars && window.__W3chars.load, null, { timeout: 90000 });
-  const res = await p.evaluate(async (tol) => {
-    await window.__W3chars.load(); World.init();
-    const T = THREE, L = window.__dbgL, out = [];
-    for (const [ln, o] of Object.entries(L)) {
-      o.reset && o.reset();
-      o.S.updateMatrixWorld(true);
-      const F = [];
-      o.S.traverse(m => {
-        if (!m.isMesh || m.isSkinnedMesh) return;
-        let par = m, inChar = false; while (par) { if (par.userData && par.userData.char) inChar = true; par = par.parent; }
-        const g = m.geometry, pos = g.attributes.position; if (!pos) return;
-        const idx = g.index ? g.index.array : null, n = idx ? idx.length : pos.count;
-        const mats = Array.isArray(m.material) ? m.material : [m.material];
-        const groups = g.groups.length ? g.groups : [{ start: 0, count: n, materialIndex: 0 }];
-        const flip = m.matrixWorld.determinant() < 0;
-        const name = (m.name || m.geometry.type.replace('Geometry', '')) + '@' + new T.Vector3().setFromMatrixPosition(m.matrixWorld).toArray().map(v => v.toFixed(2)).join(',');
-        for (const gr of groups) {
-          const mt = Array.isArray(m.material) ? mats[gr.materialIndex || 0] : m.material; if (!mt || mt.visible === false) continue;
-          for (let i = gr.start; i < Math.min(n, gr.start + gr.count); i += 3) {
-            const v = [0, 1, 2].map(k => new T.Vector3().fromBufferAttribute(pos, idx ? idx[i + k] : i + k).applyMatrix4(m.matrixWorld));
-            const nr = new T.Vector3().crossVectors(v[1].clone().sub(v[0]), v[2].clone().sub(v[0]));
-            const area = nr.length() / 2; if (area < 1e-5) continue; nr.normalize(); if (flip) nr.negate();
-            const sides = mt.side === T.DoubleSide ? [nr, nr.clone().negate()] : mt.side === T.BackSide ? [nr.clone().negate()] : [nr];
-            for (const s of sides) F.push({ m, name, v, n: s, d: s.dot(v[0]), mt, off: !!mt.polygonOffset, tr: !!mt.transparent, vis: m.visible });
+  await p.route('**/nightshift/_a.html*', r => r.fulfill({ contentType: 'text/html', body: HTML }));
+  await p.goto('http://127.0.0.1:8771/nightshift/_a.html?gfx=' + (arg('gfx') || 'cine') + '&lang=en');
+  await p.waitForFunction(() => window.World && window.__W3chars && window.__W3chars.load, null, { timeout: 300000 });
+  await p.evaluate(async () => { await window.__W3chars.load(); World.init(); });
+  const res = await p.evaluate(() => {
+    const T = THREE, L = window.__dbgL, A = window.__dbgA, TX = window.__W3core.TX, out = [];
+    const txName = new Map(); for (const k in TX) if (TX[k] && TX[k].isTexture) txName.set(TX[k], k);
+    const charRoots = new Set(Object.values(A).map(c => c.root));
+    const area2 = P => { let s = 0; for (let i = 0; i < P.length; i++) { const a = P[i], c = P[(i + 1) % P.length]; s += a[0] * c[1] - c[0] * a[1]; } return s / 2; };
+    const clip = (subj, cl) => {   // Сазерленд — Ходжмен: subj ∩ cl (cl — выпуклый, против часовой)
+      let o = subj;
+      for (let i = 0; i < cl.length && o.length; i++) {
+        const a = cl[i], c = cl[(i + 1) % cl.length], inp = o; o = [];
+        const side = q => (c[0] - a[0]) * (q[1] - a[1]) - (c[1] - a[1]) * (q[0] - a[0]);
+        for (let j = 0; j < inp.length; j++) { const P = inp[j], Q = inp[(j + 1) % inp.length], sp = side(P), sq = side(Q);
+          if (sp >= 0) o.push(P); if ((sp >= 0) !== (sq >= 0)) { const t = sp / (sp - sq); o.push([P[0] + (Q[0] - P[0]) * t, P[1] + (Q[1] - P[1]) * t]); } }
+      }
+      return o;
+    };
+    const desc = m => {
+      const M = Array.isArray(m.material) ? m.material[0] : m.material, bb = new T.Box3().setFromObject(m), c = bb.getCenter(new T.Vector3()), s = bb.getSize(new T.Vector3());
+      let vis = true; for (let q = m; q; q = q.parent) if (!q.visible) { vis = false; break; }
+      const g = m.geometry.parameters ? m.geometry.type.replace('Geometry', '') + '(' + Object.values(m.geometry.parameters).filter(v => typeof v === 'number').map(v => +v.toFixed(3)).join(',') + ')' : m.geometry.type;
+      return { g, c: [c.x, c.y, c.z].map(v => +v.toFixed(3)), s: [s.x, s.y, s.z].map(v => +v.toFixed(3)), vis, mt: M ? M.type.replace('Material', '') : '?',
+        col: M && M.color ? M.color.getHexString() : '', map: M && M.map ? (txName.get(M.map) || 'map') : '', tr: !!(M && M.transparent), dw: M ? M.depthWrite !== false : true,
+        po: !!(M && M.polygonOffset), side: M ? M.side : 0 };
+    };
+    for (const lk in L) {
+      const S = L[lk].S; S.updateMatrixWorld(true);
+      const meshes = []; S.traverse(m => { if (!m.isMesh || m.isSkinnedMesh || !m.geometry || !m.geometry.attributes.position) return; for (let q = m; q; q = q.parent) if (charRoots.has(q)) return; meshes.push(m); });
+      const B = new Map(), v0 = new T.Vector3(), v1 = new T.Vector3(), v2 = new T.Vector3(), e1 = new T.Vector3(), e2 = new T.Vector3(), n = new T.Vector3(), IM = new T.Matrix4(), W = new T.Matrix4();
+      meshes.forEach((m, mi) => {   // треугольники по ячейкам: направление плоскости (до 0,01) × расстояние до начала (по 3 мм)
+        const pos = m.geometry.attributes.position, idx = m.geometry.index, cnt = idx ? idx.count : pos.count;
+        for (let ii = 0; ii < (m.isInstancedMesh ? m.count : 1); ii++) {
+          if (m.isInstancedMesh) { m.getMatrixAt(ii, IM); W.multiplyMatrices(m.matrixWorld, IM); } else W.copy(m.matrixWorld);
+          const id = m.isInstancedMesh ? mi + ':' + ii : mi + '';
+          for (let t = 0; t + 2 < cnt; t += 3) {
+            v0.fromBufferAttribute(pos, idx ? idx.getX(t) : t).applyMatrix4(W); v1.fromBufferAttribute(pos, idx ? idx.getX(t + 1) : t + 1).applyMatrix4(W); v2.fromBufferAttribute(pos, idx ? idx.getX(t + 2) : t + 2).applyMatrix4(W);
+            e1.subVectors(v1, v0); e2.subVectors(v2, v0); n.crossVectors(e1, e2); if (n.length() < 4e-5) continue; n.normalize();
+            const ax = Math.abs(n.x) >= Math.abs(n.y) && Math.abs(n.x) >= Math.abs(n.z) ? 0 : Math.abs(n.y) >= Math.abs(n.z) ? 1 : 2, sg = n.getComponent(ax) >= 0 ? 1 : -1;
+            const nk = [n.x * sg, n.y * sg, n.z * sg], d = nk[0] * v0.x + nk[1] * v0.y + nk[2] * v0.z, ua = ax === 0 ? 1 : 0, va = ax === 2 ? 1 : 2;
+            const P = [v0, v1, v2].map(v => [v.getComponent(ua), v.getComponent(va)]); if (area2(P) < 0) P.reverse();
+            const key = nk.map(x => Math.round(x * 100)).join(), db = Math.round(d / .003), k2 = key + '|' + db;
+            if (!B.has(k2)) B.set(k2, []);
+            B.get(k2).push({ mi, id, face: sg, d, P, key, db, bb: [Math.min(P[0][0], P[1][0], P[2][0]), Math.min(P[0][1], P[1][1], P[2][1]), Math.max(P[0][0], P[1][0], P[2][0]), Math.max(P[0][1], P[1][1], P[2][1])] });
           }
         }
       });
-      // пары: почти одна плоскость, смотрят в одну сторону, перекрываются
-      const key = f => [Math.round(f.n.x * 20), Math.round(f.n.y * 20), Math.round(f.n.z * 20)].join();
-      const byN = {}; for (const f of F) (byN[key(f)] = byN[key(f)] || []).push(f);
-      const pairs = {};
-      for (const arr of Object.values(byN)) {
-        arr.sort((a, b) => a.d - b.d);
-        for (let i = 0; i < arr.length; i++) for (let j = i + 1; j < arr.length && arr[j].d - arr[i].d < tol; j++) {
-          const A = arr[i], B = arr[j]; if (A.m === B.m || A.n.dot(B.n) < .999) continue;
-          // 2D-проекция на плоскость, SAT для треугольников (с усадкой 2 мм, чтобы соседние куски не считались)
-          const u = new T.Vector3(), w = new T.Vector3(); u.copy(Math.abs(A.n.x) < .9 ? new T.Vector3(1, 0, 0) : new T.Vector3(0, 1, 0)).cross(A.n).normalize(); w.crossVectors(A.n, u);
-          const pr = t => t.v.map(p => [p.dot(u), p.dot(w)]);
-          const shrink = P => { const c = [(P[0][0] + P[1][0] + P[2][0]) / 3, (P[0][1] + P[1][1] + P[2][1]) / 3]; return P.map(q => { const dx = q[0] - c[0], dy = q[1] - c[1], l = Math.hypot(dx, dy) || 1; return [q[0] - dx / l * .002, q[1] - dy / l * .002]; }); };
-          const P = shrink(pr(A)), Q = shrink(pr(B));
-          let sep = false;
-          for (const R of [P, Q]) for (let e = 0; e < 3 && !sep; e++) { const a = R[e], c = R[(e + 1) % 3], ax = [-(c[1] - a[1]), c[0] - a[0]];
-            const pj = S => S.map(q => q[0] * ax[0] + q[1] * ax[1]); const p1 = pj(P), p2 = pj(Q);
-            if (Math.max(...p1) <= Math.min(...p2) || Math.max(...p2) <= Math.min(...p1)) sep = true; }
-          if (sep) continue;
-          const k = [A.name, B.name].sort().join(' | ');
-          const g = pairs[k] = pairs[k] || { a: A.name, b: B.name, gap: B.d - A.d, n: A.n.toArray().map(x => +x.toFixed(2)), cnt: 0, off: A.off || B.off, tr: A.tr || B.tr, vis: A.vis && B.vis, same: A.mt === B.mt && !A.mt.map, ca: (A.mt.map ? 'T' : '') + (A.mt.color ? A.mt.color.getHexString() : ''), cb: (B.mt.map ? 'T' : '') + (B.mt.color ? B.mt.color.getHexString() : '') };
-          g.cnt++;
+      const pair = new Map();
+      for (const [k2, arr] of B) {
+        const [key, dbS] = k2.split('|'), db = +dbS, cand = arr.concat(B.get(key + '|' + (db + 1)) || []);
+        if (new Set(cand.map(t => t.id)).size < 2) continue;
+        for (const t1 of arr) for (const t2 of cand) {
+          if (t2.id === t1.id || (t2.db === db && t1.id > t2.id)) continue;   // каждую пару в своей ячейке — один раз
+          const gap = Math.abs(t1.d - t2.d); if (gap > .003) continue;
+          if (t1.bb[2] <= t2.bb[0] || t2.bb[2] <= t1.bb[0] || t1.bb[3] <= t2.bb[1] || t2.bb[3] <= t1.bb[1]) continue;
+          const ov = clip(t1.P, t2.P); if (ov.length < 3) continue; const a = Math.abs(area2(ov)); if (a < 1e-6) continue;
+          const lo = t1.mi <= t2.mi ? t1 : t2, hi = lo === t1 ? t2 : t1, pk = lo.id + '~' + hi.id + '~' + (t1.face === t2.face);
+          const r = pair.get(pk) || { a: 0, gap: 9, mi: [lo.mi, hi.mi], same: t1.face === t2.face, n: key, fa: lo.face, d: +lo.d.toFixed(3) }; r.a += a; r.gap = Math.min(r.gap, gap); pair.set(pk, r);
         }
       }
-      for (const g of Object.values(pairs)) out.push(Object.assign({ loc: ln }, g));
+      for (const r of pair.values()) if (r.a >= 4e-4) out.push(Object.assign({ loc: lk, area: +r.a.toFixed(4), gap: +(r.gap * 1000).toFixed(2), same: r.same, n: r.n, fa: r.fa, d: r.d }, { a: desc(meshes[r.mi[0]]), b: desc(meshes[r.mi[1]]) }));
     }
     return out;
-  }, tol);
-  for (const r of res.sort((a, b) => a.loc.localeCompare(b.loc) || a.gap - b.gap)) console.log(`${r.loc}\tgap ${r.gap.toFixed(4)}\t${r.off ? 'OFFSET ' : ''}${r.tr ? 'TRANSP ' : ''}${r.vis ? '' : 'hidden '}${r.same ? 'SAME ' : ''}n=${r.n}\t${r.a} #${r.ca}  ~  ${r.b} #${r.cb}  (${r.cnt})`);
-  console.log('total', res.length);
+  });
+  const conflict = r => { const { a, b } = r; if (a.po || b.po) return false; if (a.tr && !a.dw && b.tr && !b.dw) return false;   // два прозрачных без записи глубины не спорят
+    if (a.side === 2 || b.side === 2) return true; return r.same !== (a.side === 1) !== (b.side === 1); };   // BackSide меняет сторону, с которой грань видна
+  const samelook = r => r.a.col === r.b.col && r.a.map === r.b.map && r.a.mt === r.b.mt;
+  const hidden = r => r.n === '0,100,0' && r.fa < 0 && r.d < .03;   // грань вниз у самого пола
+  const ax = { '100,0,0': 'x', '0,100,0': 'y', '0,0,100': 'z' }, s = d => `${d.g} ${d.mt} #${d.col}${d.map ? ' ' + d.map : ''} @${d.c.join(',')}${d.tr ? ' TR' : ''}${d.dw ? '' : ' noDW'}${d.side ? ' side' + d.side : ''}${d.vis ? '' : ' hidden'}`;
+  const K = res.filter(r => conflict(r) && !samelook(r) && (NEAR || r.gap < .3)).sort((x, y) => x.gap >= .3 === y.gap >= .3 ? y.area - x.area : x.gap - y.gap);
+  for (const r of K) console.log(`${r.gap < .3 ? (hidden(r) ? 'не видно?' : 'СПОР') : 'близко'}\t${r.loc}\t${Math.round(r.area * 1e4)} см²\t${ax[r.n] || r.n}=${r.d}\tзазор ${r.gap} мм\t${s(r.a)}  ~  ${s(r.b)}`);
+  console.log('всего пар в одной плоскости:', res.length, '| СПОР:', K.filter(r => r.gap < .3 && !hidden(r)).length);
+  if (arg('json')) fs.writeFileSync(arg('json'), JSON.stringify(res, null, 1));
   await b.close();
 })();

@@ -154,12 +154,12 @@ function buildLobby() {
     const exi = plane(.5, .25, mat(0xffffff, TX.exit, { basic: true }), S); exi.rotation.y = PI; exi.position.set(.3, 3.35, 5.9);
     // торговый автомат: тёмный корпус, подсвеченная витрина с рядами банок, лампа внутри моргает (o.vendL, в o.tick)
     { const vm = new T.Group(); vm.position.set(-7.55, 0, -2.1); vm.rotation.y = PI / 2; S.add(vm); o.vend = vm;
-      box(.95, 1.95, .8, mat(0x24262a, null, { metal: .3, rough: .5 }), 0, .975, 0, vm); box(.95, .12, .82, mat(0x18191c), 0, 1.98, 0, vm);
+      box(.95, 1.95, .8, mat(0x24262a, null, { metal: .3, rough: .5 }), 0, .975, 0, vm); box(.97, .12, .82, mat(0x18191c), 0, 1.98, 0, vm);   // крышка чуть шире корпуса: бока не в одной плоскости (иначе мерцают)
       const vt = ctex(96, 160, (x, w, h) => { x.fillStyle = '#0b0d12'; x.fillRect(0, 0, w, h); for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) { const cols = ['#d12a2a', '#2a63d1', '#e2b422', '#2aa352', '#d8d8d8']; x.fillStyle = cols[(r * 2 + c) % 5]; x.fillRect(8 + c * 17, 10 + r * 30, 11, 22); x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(9 + c * 17, 12 + r * 30, 3, 18); }
         for (let r = 0; r <= 5; r++) { x.fillStyle = '#3a3d44'; x.fillRect(4, 6 + r * 30, w - 8, 3); } x.fillStyle = 'rgba(120,160,220,.08)'; x.fillRect(0, 0, w, h); });
       const win = plane(.62, 1.3, new T.MeshBasicMaterial({ map: vt, color: 0xbfd0e8 }), vm); win.position.set(-.1, 1.15, .401); ps1(win.material); o.vendWin = win;
       const lg = ctex(96, 20, (x, w, h) => { x.fillStyle = '#e8402a'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = '800 12px Arial'; x.textAlign = 'center'; x.fillText(tr('НАПИТКИ'), w / 2, 15, w - 6); });
-      const lp = plane(.8, .14, new T.MeshBasicMaterial({ map: lg }), vm); lp.position.set(0, 1.82, .401); ps1(lp.material);
+      const lp = plane(.8, .14, new T.MeshBasicMaterial({ map: lg }), vm); lp.position.set(0, 1.82, .403);   // поверх верхнего края витрины (в её плоскости мерцала) ps1(lp.material);
       box(.22, .5, .02, mat(0x101114), .33, 1.2, .4, vm); box(.14, .1, .03, mat(0x101114, null, { emissive: 0x203040 }), .33, 1.35, .41, vm); box(.5, .22, .03, mat(0x111214), -.1, .3, .405, vm);   // панель выбора, купюроприёмник, лоток выдачи
       o.vendL = new T.PointLight(0xc8d8ff, .7, 2.6, 1.6); o.vendL.position.set(-.1, 1.2, .9); vm.add(o.vendL); }
     const bin = cyl(.17, .15, .62, 12, mat(0x3a3c40, null, { metal: .4, rough: .5 }), S); bin.position.set(1.95, .31, -5.5); cyl(.18, .18, .05, 12, mat(0x2a2c30), S).position.set(1.95, .64, -5.5);
@@ -279,7 +279,7 @@ function buildLobby() {
     // будка закрытая: над левой стойкой тоже стекло, сзади перегородка (панель + стекло), справа дверь с замком и глухая панель до стены
     for (const [x, z, w, ry] of [[3.62, -.55, 1.96, PI / 2], [5.81, -1.55, 4.38, 0]]) {
       const pg = new T.Group(); pg.position.set(x, 0, z); pg.rotation.y = ry; S.add(pg);
-      if (z < -1) box(w, 1.15, .06, counterM, 0, .575, 0, pg);
+      if (z < -1) box(w, 1.148, .06, counterM, 0, .574, 0, pg);   // верх на 2 мм ниже поручня стены (в одной плоскости с ним мерцал)
       const gl = plane(w - .04, .86, gmL, pg); gl.position.y = 1.65; const d = plane(w - .04, .86, gmD, pg); d.position.set(0, 1.65, .001);
       box(w, .03, .04, frM, 0, 2.095, 0, pg); box(w, .03, .05, frM, 0, 1.2, 0, pg); o.boothGlass.push(pg);
     }
@@ -312,8 +312,9 @@ function buildLobby() {
   box(40, .15, .3, mat(0xffffff, TX.curb), 0, .075, 11, S);
   const road = plane(60, 20, mat(0xffffff, TX.asphalt), S); road.rotation.x = -PI / 2; road.position.set(0, -.05, 21);
   for (let x = -24; x < 24; x += 6) { const ln = plane(2.4, .15, mat(0xb8b8a8, null, { decal: 1 }), S); ln.rotation.x = -PI / 2; ln.position.set(x, -.04, 17); }
-  // навес над входом
-  box(5, .2, 2.4, mat(0x1a1c1f), 0, 3.4, 7.2, S); o.canopyLamp = box(.6, .04, .3, mat(0xfff0d0, null, { basic: true, glow: 3 }), 0, 3.29, 7.2, S);
+  // навес над входом. Его задняя грань — за рамами (z = 6.1), а не в плоскости стекла (z = 6): там стекло и навес «спорили» по глубине,
+  // и полоса стекла под верхней рамой мигала при любом движении камеры (владелец 29 окт: «мигает текстура» над EXIT)
+  box(5, .2, 2.3, mat(0x1a1c1f), 0, 3.4, 7.25, S); o.canopyLamp = box(.6, .04, .3, mat(0xfff0d0, null, { basic: true, glow: 3 }), 0, 3.29, 7.2, S);
   o.canopy = new T.PointLight(0xffe2b0, 1.5, 6, 1.6); o.canopy.position.set(0, 3.1, 7.2); S.add(o.canopy);   // свет сверху: глазницы в тени
   const sgn = plane(3, .55, mat(0xffffff, TX.signOut, { basic: true }), S); sgn.position.set(0, 3.95, 6.17);
   // фонарь
@@ -882,7 +883,7 @@ function buildBasement() {
   const sg = label(.7, .16, 70, 16, (c, w, h) => { c.fillStyle = '#1e3a6e'; c.fillRect(0, 0, w, h); c.fillStyle = '#e8eef8'; c.font = '700 10px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tr('СЕРВЕРНАЯ'), w / 2, h / 2 + 1); }, S, false);
   sg.rotation.y = 0; sg.position.set(0, 2.25, D + .08);
   // полоска света под дверью: свеча за дверью (её свет на полу коридора — мягкое пятно)
-  o.slit = plane(.86, .014, mat(0xffb060, null, { basic: true }), S); o.slit.position.set(0, .008, D + .045);
+  o.slit = plane(.86, .014, mat(0xffb060, null, { basic: true }), S); o.slit.position.set(0, .008, D + .047);   // на 2 мм перед полотном: в его плоскости полоска мерцала
   o.glow = plane(1.2, .6, new T.MeshBasicMaterial({ map: TX.fogBreath, transparent: true, opacity: .55, depthWrite: false, blending: T.AdditiveBlending, color: 0xff9a40 }), S);
   o.glow.rotation.x = -PI / 2; o.glow.position.set(0, .006, D + .3);
   // обход в 22:05: соль насыпана изнутри по всему порогу (видна в щель, когда смотришь у самого пола); тень проходит за дверью мимо щели
@@ -893,7 +894,7 @@ function buildBasement() {
     const gr = new T.InstancedMesh(new T.BoxGeometry(.006, .005, .006), sm, 120); gr.frustumCulled = false; o.saltLine.add(gr);
     { const m4 = new T.Matrix4(), q = new T.Quaternion(); for (let i = 0; i < 120; i++) { q.setFromAxisAngle(new T.Vector3(0, 1, 0), rnd() * PI);
       m4.compose(new T.Vector3((rnd() - .5) * .9, .0025, (rnd() < .5 ? -1 : 1) * (.025 + Math.pow(rnd(), 2) * .07)), q, new T.Vector3(1, 1, 1)); gr.setMatrixAt(i, m4); } }
-    o.slitShadow = plane(.3, .016, mat(0x000000, null, { basic: true }), S); o.slitShadow.position.set(0, .0085, D + .047); o.slitShadow.visible = false; }
+    o.slitShadow = plane(.3, .016, mat(0x000000, null, { basic: true }), S); o.slitShadow.position.set(0, .0085, D + .049); o.slitShadow.visible = false; }
   // за дверью: пол, стены, стойки, круг соли у порога, свеча
   const rm = room(3.4, hgt, 3.6, mat(0x1c1e1e, TX.concrete), S); rm.position.set(0, 0, D - 1.8);
   for (const x of [-1.2, 1.2]) { const m = mat(0xffffff, TX.rack, { emissive: 0x081008 }); m.emissiveMap = TX.rackEm; m.emissive.setHex(0xd0d0d0); box(.6, 2.0, .8, m, x, 1.0, D - 2.6, S); }
