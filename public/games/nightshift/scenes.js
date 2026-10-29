@@ -418,7 +418,7 @@ const GLASS_FS = (CINE ? '#define CINE\n' : '') + `uniform sampler2D tRef, tGrim
   void main(){
     vec2 p = vW.xy; float fw = (fwidth(p.x) + fwidth(p.y)) / .04;
     vec3 V = normalize(cameraPosition - vW);
-    float fr = .14 + .56 * pow(1. - abs(V.z), 3.);
+    float fr = .14 + .56 * pow(max(0., 1. - abs(V.z)), 3.);
     vec3 ref = texture2DProj(tRef, vR).rgb; ref = ref / (1. + ref * 1.4) * fr * uRef; float rl = dot(ref, vec3(.3, .55, .15));
     vec2 gu = vec2((p.x + 2.) / 4., (p.y - .4) / 2.);
     float sm = (gu.x > 0. && gu.x < 1. && gu.y > 0. && gu.y < 1.) ? texture2D(tGrime, gu).a : 0.;
@@ -2339,10 +2339,15 @@ const BEAM_FS = `varying vec3 vN, vV, vW; varying float vY; uniform vec3 uC; uni
   float h(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
   float n3(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
     return mix(mix(mix(h(i), h(i + vec3(1,0,0)), f.x), mix(h(i + vec3(0,1,0)), h(i + vec3(1,1,0)), f.x), f.y), mix(mix(h(i + vec3(0,0,1)), h(i + vec3(1,0,1)), f.x), mix(h(i + vec3(0,1,1)), h(i + vec3(1,1,1)), f.x), f.y), f.z); }
-  void main(){ float f = abs(dot(normalize(vN), normalize(vV))); float d = length(vV);
-    float a = pow(f, 2.5) * pow(vY, 1.4) * uI * exp(-d * uFog * 1.4) * smoothstep(.15, 1.2, d);
+  void main(){ float f = clamp(abs(dot(normalize(vN), normalize(vV))), 0., 1.); float d = length(vV);
+    // vY у самого пола интерполируется чуть ниже нуля: pow(-0.000001, 1.4) на видеокартах — NaN, обработка кадра делала из него чёрную точку,
+    // и по основанию каждого конуса шёл чёрный пунктирный круг (на полу 7-го этажа — «петли», 29 окт). Программная графика pow считает по модулю
+    float a = pow(f, 2.5) * pow(clamp(vY, 0., 1.), 1.4) * uI * exp(-d * uFog * 1.4) * smoothstep(.15, 1.2, d);
     a *= .65 + .7 * n3(vW * 2.2 + vec3(0., -uT * .15, uT * .07));
-    gl_FragColor = vec4(uC * a * .22, 1.); }`;
+    #if __VERSION__ >= 300
+    if (isnan(a) || isinf(a)) a = 0.;
+    #endif
+    gl_FragColor = vec4(uC * max(a, 0.) * .22, 1.); }`;
 // пылинки: висят вокруг камеры (сетка повторяется), светятся только в лучах ламп
 const DUST_VS = `uniform vec3 uCam; uniform float uT, uPx; uniform vec4 uL[6]; varying float vA;
   void main(){ vec3 p = position + vec3(sin(uT * .13 + position.y * 3.) * .3, -uT * .025, cos(uT * .11 + position.x * 2.) * .3);
@@ -2496,13 +2501,13 @@ function cinePost() {
         c += glw * 1.15 + glw * vec3(.4, .14, .05) * (1. - uCctv) + bl * vec3(.04, .022, .014);  // свечение ламп; тёплая кайма вокруг ярких мест (халация плёнки)
         c = aces(c * uExp);
         c = mix(c * 12.92, 1.055 * pow(max(c, vec3(.0031308)), vec3(1. / 2.4)) - .055, step(.0031308, c));
-        c = pow(c, vec3(1.15)) * .988 + .012;                                                   // ночь: тени глубже, но чёрное — не «дыра» (чёрная точка ~.012)
+        c = pow(max(c, vec3(0.)), vec3(1.15)) * .988 + .012;                                                   // ночь: тени глубже, но чёрное — не «дыра» (чёрная точка ~.012)
         float l = dot(c, vec3(.299, .587, .114));
         float sk = smoothstep(.012, .07, c.r - c.g) * smoothstep(-.01, .04, c.g - c.b) * smoothstep(.03, .14, l);   // тёплые тона (кожа, дерево, лампы): холодный сдвиг теней их не трогает — лицо не зеленеет
         c = mix(c * mix(vec3(.86, 1.0, 1.07), vec3(.97, .99, 1.), sk) + vec3(0., .008, .018) * (1. - .7 * sk), c * vec3(1.06, .99, .9), smoothstep(.18, .7, l));   // холодные тени, тёплый свет
         c = mix(vec3(l), c, .88 + .07 * sk);
         c = mix(c, vec3(l) * vec3(.86, 1., .9), uCctv * mix(.55, .38, uHQ)) + max(c - .6, 0.) * uCctv * .8;
-        c = mix(c, vec3(pow(l, .78) * 1.2) * vec3(.9, 1., .94), uIr);                          // ИК-режим камеры: ч/б, светлее у объектива
+        c = mix(c, vec3(pow(max(l, 0.), .78) * 1.2) * vec3(.9, 1., .94), uIr);                          // ИК-режим камеры: ч/б, светлее у объектива
         c *= 1. - uCctv * mix(.09, .035, uHQ) * step(1., mod(floor(gl_FragCoord.y / 2.), 2.));
         c *= 1. - smoothstep(.55, 1.5, r) * .6;                                                   // виньетка
         c += (h(gl_FragCoord.xy + fract(uT * 7.13) * 731.) - .5) * (.03 * (.45 + 2.2 * l * (1. - l)) + uCctv * mix(.05, .022, uHQ) + uVhs * .015);   // зерно: сильнее в полутонах, слабее в чёрном и белом
@@ -2591,11 +2596,11 @@ function init() {
         float ca = (.85 + 2.6 * uScare) / uB.x;                                     // цветная кайма: 1 px, на скримере 3–4
         vec3 c = vec3(texture2D(tD, uv + vec2(ca, 0.)).r, texture2D(tD, uv).g, texture2D(tD, uv - vec2(ca, 0.)).b);
         c = mix(c * 12.92, 1.055 * pow(max(c, vec3(.0031308)), vec3(1. / 2.4)) - .055, step(.0031308, c));   // буфер линейный → sRGB
-        c = pow(c, vec3(uGam));   // ночь: тени глубже, но без пятен
+        c = pow(max(c, vec3(0.)), vec3(uGam));   // ночь: тени глубже, но без пятен
         float l = dot(c, vec3(.299, .587, .114));
         c = mix(c * vec3(.86, 1.02, 1.08) + vec3(0., .012, .024), c * vec3(1.06, .98, .88), smoothstep(.25, .8, l));   // холодные тени, тёплый свет
         c = mix(c, vec3(l) * vec3(.88, 1., .9), uCctv * .3) + max(c - .62, 0.) * uCctv * .9;                         // камера: блеклая, свет «горит»
-        c = mix(c, vec3(pow(l, .78) * 1.2) * vec3(.9, 1., .94), uIr);                                                 // ИК-режим камеры
+        c = mix(c, vec3(pow(max(l, 0.), .78) * 1.2) * vec3(.9, 1., .94), uIr);                                                 // ИК-режим камеры
         c *= 1. - (.06 + .07 * uCctv) * step(1., mod(floor(gl_FragCoord.y / uHD), 2.));           // строки
         c += cr * .22 * h(vec2(gl_FragCoord.x, fr)) + band * .05 * h(gl_FragCoord.xy + fr);
         if (uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.) c = vec3(0.);

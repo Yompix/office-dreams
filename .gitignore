@@ -9,3 +9,7 @@ __pycache__/
 tools/i18n/*.part*.json
 tools/desktop/out/
 .claude/worktrees/
+tools/android/out/
+*.jks
+*.keystore
+*.p12

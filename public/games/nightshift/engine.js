@@ -7,6 +7,8 @@
 const S = window.STORY, $ = id => document.getElementById(id);
 const tr = window.tr || (s => s), trf = window.trf || ((s, v) => s.replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m)), LNG = window.NS_LANG || 'ru', EN = LNG !== 'ru';
 const DESK = window.nsDesktop || null;   // ПК-версия (tools/desktop: окно Electron): выход из игры, полный экран окна, без доната и спонсоров из интернета
+// Android-приложение (tools/android: WebView с игрой внутри, мост nsAppNative): выход из игры, во весь экран само, без доната, спонсоров и интернета
+const APP = window.nsAppNative ? { quit: () => { try { window.nsAppNative.quit(); } catch (e) {} } } : null;
 const VL = window.NS_VOICE || (EN ? 'en' : 'ru');   // чьими записями озвучен язык игры (папка snd/<VL>/; русский — snd/)
 const OVERS0 = S.overs.slice(), OVER0 = {};   // названия смертей по-русски — ключи для счётчика «Смертей найдено» (переведённые терялись при смене языка, а в английской две смерти звались одинаково)
 for (const id in S.scenes) { const th = S.scenes[id].then; if (th && th.over) OVER0[id] = th.over; }
@@ -85,7 +87,7 @@ async function load(onp) {
 // Реплики декодируются по мере надобности: все 273 сразу — это ~210 МБ памяти, телефон от этого тормозит и вылетает.
 // Нужны реплики текущей сцены и следующих за ней (чтобы склейка не ждала); старые отпускаются, держим не больше VOICE_KEEP
 const voiceWant = new Set(), voiceOrder = [], sndJob = {}, sndQ = []; let sndBusy = 0, voiceMiss = 0;   // voiceMiss — реплика должна была прозвучать, а буфера не было (проверяют тесты)
-const VOICE_KEEP = 32, isVoice = k => !!TIM[k], LAZY_RE = /^(shift|end_)/;   // большая музыка (смена 96 с, финалы) тоже декодируется по надобности
+const VOICE_KEEP = 32, isVoice = k => !!TIM[k], LAZY_RE = /^(shift|end_|theme$)/;   // большая музыка (смена 96 с, финалы, тема титула 64 с — 21 МБ в памяти) декодируется по надобности и отпускается, когда сменилась (music)
 const sceneKeys = sc => { const ks = []; for (const b of (sc && sc.beats) || []) for (const k of b.say || []) ks.push(k); return ks; };
 const objKeys = o => { const ks = new Set(); JSON.stringify(o, (k, v) => { if (typeof v === 'string' && isVoice(v)) ks.add(v); return v; }); return [...ks]; };   // все ключи реплик внутри объекта (события смены, странности, звонки)
 const decQ = {};   // идущие декодирования реплик — чтобы не декодировать одну дважды
@@ -172,7 +174,7 @@ function initAudio() {   // контекст создаём заранее (он
     const h2 = filt('highpass', 330, .7), l2 = filt('lowpass', 3300, .7); h2.connect(l2); l2.connect(voiceG); phoneBus = h2; }
   analyser = AC.createAnalyser(); analyser.fftSize = 512; voiceG.connect(analyser); abuf = new Uint8Array(analyser.fftSize);
   bedInit();
-  return (decoding = Promise.all(Object.entries(rawSnd).filter(([k]) => SNDS.includes(k)).map(([k, b]) => decodeOne(k, b))).then(() => {
+  return (decoding = Promise.all(Object.entries(rawSnd).filter(([k]) => SNDS.includes(k) && !LAZY_RE.test(k)).map(([k, b]) => decodeOne(k, b))).then(() => {
     for (const [k, b] of Object.entries(rawSnd)) if (!BUF[k] && !isVoice(k) && !LAZY_RE.test(k)) decodeOne(k, b);   // фоновые звуки — не задерживают старт; реплики — по сценам (voiceReady), большая музыка — в music()
   }));
 }
@@ -181,11 +183,11 @@ function unlockAudio() {   // только внутри нажатия: инач
   try { AC.resume(); const b = AC.createBuffer(1, 1, 22050), s = AC.createBufferSource(); s.buffer = b; s.connect(AC.destination); s.start(0); } catch {}
 }
 // кнопка «во весь экран» в углу: видна, когда браузер умеет полный экран, а игра сейчас не в нём (вышли жестом «назад» или Esc)
-function fullBtn() { const b = $('bFull'), d = document; if (!b) return; const can = d.fullscreenEnabled || d.webkitFullscreenEnabled, on = d.fullscreenElement || d.webkitFullscreenElement; b.classList.toggle('hide', !!DESK || !can || !!on); }
+function fullBtn() { const b = $('bFull'), d = document; if (!b) return; const can = d.fullscreenEnabled || d.webkitFullscreenEnabled, on = d.fullscreenElement || d.webkitFullscreenElement; b.classList.toggle('hide', !!DESK || !!APP || !can || !!on); }
 document.addEventListener('fullscreenchange', fullBtn); document.addEventListener('webkitfullscreenchange', fullBtn);
 function goFull() {   // полный экран по нажатию «Играть»: только внутри нажатия, иначе браузер откажет
   const d = document, el = d.documentElement;
-  if (DESK || d.fullscreenElement || d.webkitFullscreenElement) return;   // ПК-версия: окно уже во весь экран (игрок мог сам выйти — не возвращаем)
+  if (DESK || APP || d.fullscreenElement || d.webkitFullscreenElement) return;   // ПК-версия и приложение: окно уже во весь экран (игрок мог сам выйти — не возвращаем)
   try {
     const r = (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el, { navigationUI: 'hide' });
     if (r && r.then) r.then(() => { try { screen.orientation.lock(LAND ? 'landscape' : 'portrait').catch(() => {}); } catch {} }).catch(() => {});
@@ -219,7 +221,7 @@ function stopAll(keepMusic = true) { for (const o of [...playing]) if (!(keepMus
 let curMusic = null, curMusicName = '';
 function music(name) {
   if (!AC || name === curMusicName) return; curMusicName = name;
-  const old = curMusic; if (old) { old.gn.gain.setTargetAtTime(0, AC.currentTime, .6); setTimeout(() => { try { old.s.stop(); } catch {} }, 2500); }
+  const old = curMusic; if (old) { old.gn.gain.setTargetAtTime(0, AC.currentTime, .6); setTimeout(() => { try { old.s.stop(); } catch {} if (LAZY_RE.test(old.name) && curMusicName !== old.name) delete BUF[old.name]; }, 2500); }   // большой трек отыграл — буфер отпускаем (на телефоне это десятки МБ), сжатые байты остаются
   if (name && !BUF[name] && rawSnd[name] && !decQ[name]) {   // музыка смены и финалов декодируется, когда понадобилась (иначе ~100 МБ лежали бы в памяти всю игру)
     decQ[name] = decodeOne(name, rawSnd[name]).then(() => { delete decQ[name]; if (curMusicName === name && !curMusic) { curMusicName = ''; music(name); } }); curMusic = null; return; }
   curMusic = name ? play(name, { bus: 'music', loop: true, gain: .0001 }) : null; if (name && !curMusic) curMusicName = null;   // ещё не скачана — попробуем позже
@@ -1237,7 +1239,7 @@ function gallery() {
 /* ---------- спонсоры игры (донаты звёздами Telegram через бота) ---------- */
 const API = /railway\.app$|^localhost$/.test(location.hostname) ? '' : 'https://office-dreams-production.up.railway.app';
 let SP = { donate: 'https://t.me/officedream1_bot?start=games', list: [] };
-if (!DESK) get(API + '/api/games/sponsors', 'json').then(j => { if (j && j.ok) SP = Object.assign(SP, j, { donate: j.donate || SP.donate }); }).catch(() => {});
+if (!DESK && !APP) get(API + '/api/games/sponsors', 'json').then(j => { if (j && j.ok) SP = Object.assign(SP, j, { donate: j.donate || SP.donate }); }).catch(() => {});
 function sponsorsHtml() {
   const names = SP.list.slice(0, 30).map(r => `<span>${escH(r.name)}</span>`).join('');
   return `<div class="spons"><b>${tr('СПОНСОРЫ ИГРЫ')}</b>${names || `<i>${tr('Стань первым — твоё имя будет здесь')}</i>`}</div>`;
@@ -1281,13 +1283,13 @@ function menu() {
       <button id="mNew">${tr(save ? 'Начать заново' : 'Начать смену')}</button>
       <button id="mGal">${tr('Концовки')}</button>
       <button id="mSet">${tr('Настройки')}</button>
-      ${DESK ? `<button id="mQuit">${tr('Выйти из игры')}</button>` : DEMO ? buyBtn('mBuy', 'msup') : supportBtn('msup')}
+      ${DESK || APP ? `<button id="mQuit">${tr('Выйти из игры')}</button>` : DEMO ? buyBtn('mBuy', 'msup') : supportBtn('msup')}
     </nav>
     <div class="hp">${ICON.phones}<span>${tr('Лучше в наушниках · в игре есть вспышки света')}</span></div><div class="hp"><b style="color:#e33;margin-right:6px">18+</b><span>${tr('Жестокость, кровь и сцены насилия')}</span></div></div>`;
   const lg = $('logo'), m = `url(${logoMask()})`; lg.style.webkitMaskImage = lg.style.maskImage = m; lg.style.webkitMaskSize = lg.style.maskSize = '100% 100%';
   const T0 = uiEl.querySelector('.title'), ok = () => gateDone && now() - gateT > .45;   // тот же тап, что открыл меню, не жмёт кнопку под пальцем
   const btn = (id, fn) => { const b = $(id); if (b) b.onclick = e => { e.stopPropagation(); if (!ok()) return; uiSnd(); fn(); }; };
-  btn('mNew', () => begin('intro')); btn('mCont', () => begin(save)); btn('mSet', settings); btn('mQuit', () => DESK.quit());
+  btn('mNew', () => begin('intro')); btn('mCont', () => begin(save)); btn('mSet', settings); btn('mQuit', () => (DESK || APP).quit());
   btn('mGal', () => { subScreen(`<h1>${tr('КОНЦОВКИ')}</h1>${gallery()}`); });
   const sup = T0.querySelector('.msup'); if (sup) sup.onclick = e => { if (!ok()) e.preventDefault(); };
   if (!gateDone) { T0.onpointerdown = e => { if (e.target.closest('button, a')) return; openGate(); }; if (navigator.webdriver) setTimeout(openGate, 1200); }   // автотесты не умеют «тапнуть, чтобы начать»
@@ -1322,6 +1324,14 @@ function pauseMenu() {
   $('pzMenu').onclick = e => { e.stopPropagation(); unpause(true); menu(); };
 }
 function unpause(quiet) { pzEl.classList.add('hide'); pzEl.innerHTML = ''; setPause(false); if (!quiet) uiSnd('back'); }
+// Android-приложение: свернули — в игре открывается пауза (вернулся — продолжаешь сам, а не посреди скримера), звук стоит;
+// «Назад» — как Esc: закрыть окно, пауза; в главном меню — выход. Зовёт MainActivity (tools/android)
+window.__nsApp = {
+  pause() { if (inGame() && pzEl.classList.contains('hide')) pauseMenu(); paused = true; if (AC) AC.suspend().catch(() => {}); },
+  resume() { paused = document.hidden || userPause; if (AC && !paused) AC.resume().catch(() => {}); lastP = performance.now(); },
+  back() { const ov = pzEl.classList.contains('hide') ? uiEl : pzEl, x = ov.querySelector('.sx') || ov.querySelector('#mBack');
+    if (x) return x.click(); if (!pzEl.classList.contains('hide')) return unpause(); if (inGame()) return pauseMenu(); if (mode === 'end') return menu(); if (APP) APP.quit(); },
+};
 // язык и графика собираются при загрузке страницы: перезагружаем, но игра продолжается с того же места (сцена и кадр или час смены и минута)
 // слабый телефон: «Кино» не тянет даже на 55 % — движок (scenes.js, perfTick) просит перейти на «Ретро», игра продолжится с того же места
 window.nsGfxFallback = reason => { LS.set('gfx', 'retro'); LS.set('gfxAuto', reason); reloadKeep(inGame() ? 'pause' : 'menu'); };
@@ -1463,7 +1473,7 @@ function endScreen(th) {
       <div class="jr-stamp" style="--d:${(d += .7).toFixed(2)}s">${escH(tr(S.endings[th.ending]))}${fresh ? `<i>${tr('новая концовка')}</i>` : ''}</div></div>`;
   uiEl.innerHTML = `<div class="screen jr">${page}<div class="jr-side">${gallery()}
       ${fork ? `<button class="btn" id="eBack">${tr('Вернуться к выбору')}<small>${escH(pickQ(fork))}</small></button>` : ''}
-      <button class="btn${fork ? ' ghost' : ''}" id="eAgain">${tr('Начать заново')}</button><button class="btn ghost" id="eMenu">${tr('Меню')}</button>${DESK ? '' : supportBtn() + sponsorsHtml()}</div></div>`;
+      <button class="btn${fork ? ' ghost' : ''}" id="eAgain">${tr('Начать заново')}</button><button class="btn ghost" id="eMenu">${tr('Меню')}</button>${DESK || APP ? '' : supportBtn() + sponsorsHtml()}</div></div>`;
   // строки ложатся по очереди под скрип ручки, в конце — штамп
   uiEl.querySelectorAll('.jr .ln').forEach((el, i) => { if (i % 2 === 0) setTimeout(() => { if (mode === 'end' && gen === my) play('pen', { gain: .22, cut: .6 }); }, parseFloat(el.style.getPropertyValue('--d')) * 1000); });
   setTimeout(() => { if (mode === 'end' && gen === my) { play('bolt', { gain: .45, cut: .45 }); buzz(30); } }, (d + .1) * 1000);
@@ -1960,7 +1970,7 @@ function frame(tp) {
     place = placeOf(mgView.img); quiet = true; cam = !!mgView.label;
   } else if (mode === 'menu') {
     // титул: живой кадр, медленный наезд (20 с), сверху темнее — там логотип, снизу — меню
-    if (curMusicName !== 'theme' && BUF.theme) music('theme');   // тема титула — как только раскодирована
+    if (curMusicName !== 'theme' && (BUF.theme || rawSnd.theme)) music('theme');   // тема титула (раскодируется при первом показе меню)
     const tt = T - titleT0, z = 1 + .06 * ease(Math.min(1, tt / 20));
     shot(TITLE_SHOT, { cx: .5, cy: .47, z, t: tt + 3, T, sx: 0, sy: 0 }); knockSync(T);
     let gr = g.createLinearGradient(0, 0, 0, H * .5); gr.addColorStop(0, 'rgba(0,0,0,.88)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H * .5);

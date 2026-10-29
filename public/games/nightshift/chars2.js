@@ -89,7 +89,7 @@ vec4 cloth(vec3 p, float lum) {
   float sh = 1.;   // складки и тени в сгибах
   if (arm) {
     float u = ax, th = atan(p.z + .068, p.y - 1.455 + 1e-5);   // u — вдоль руки (плечо .215 → запястье .665), th: 0 — сверху, ±π — снизу
-    float el = exp(-pow((u - .45) / .05, 2.));
+    float eq = (u - .45) / .05, el = exp(-eq * eq);   // не pow(x, 2.): у отрицательного x на видеокартах pow — NaN (чёрные точки)
     sh *= 1. - .25 * el * smoothstep(.2, .9, sin(u * 150. + sin(th * 2. + u * 30.) * 2.2)) * smoothstep(-.3, .8, sin(th));   // складки в локтевом сгибе
     sh *= 1. - .12 * smoothstep(.45, .9, sin(th * 3. + u * 40.)) * smoothstep(.3, .62, u);                                    // продольные заломы рукава
     sh *= 1. - .3 * ln(3.1416 - abs(th), .09);                                                                                  // шов снизу рукава
@@ -108,7 +108,7 @@ vec4 cloth(vec3 p, float lum) {
     float lx = ax - .114, lz = p.z + .03;
     sh *= 1. + .16 * ln(lx, .006) * step(.0, lz) * step(p.y, .9);                                   // стрелка на брюках
     sh *= 1. - .3 * ln(lz, .008) * step(.03, lx);                                                    // боковой шов
-    sh *= 1. - .14 * exp(-pow((p.y - .52) / .05, 2.)) * smoothstep(.2, .9, sin(p.y * 140. + sin(ax * 60.) * 2.));   // колени
+    sh *= 1. - .14 * exp(-((p.y - .52) / .05) * ((p.y - .52) / .05)) * smoothstep(.2, .9, sin(p.y * 140. + sin(ax * 60.) * 2.));   // колени
     sh *= 1. - .16 * smoothstep(.27, .14, p.y) * smoothstep(.25, .9, sin(p.y * 105. + p.x * 40. + sin(p.z * 70.)));   // сборка над ботинком
     sh *= mix(1., .7, smoothstep(.9, .97, p.y) * smoothstep(.1, .03, ax));                           // тень в паху
     sh *= 1. - .2 * smoothstep(.93, .87, p.y) * smoothstep(.06, .015, ax) * step(.0, p.z);
@@ -178,8 +178,8 @@ const BODY_PAINT = `
     // Жилец: истощённое тело тонет в темноте, из неё проступает только бледное лицо; рёбра, пятна
     // мёртвая бледная кожа: синеватые вены просвечивают, трупные пятна, гниль, мокрая грязь; рёбра; тело тонет в темноте
     float ax0 = abs(p.x), mo1 = vn(p * 7.), mo2 = vn(p * 26. + 3.);
-    float vv = pow(1. - abs(vn(p * 34.) * 2. - 1.), 18.) * smoothstep(.25, .7, vn(p * 3.5 + 7.)) + pow(1. - abs(vn(p * 13. + 9.) * 2. - 1.), 30.) * .8;
-    float vf = pow(1. - abs(vn(p * 42. + 5.) * 2. - 1.), 14.) * .6;
+    float vv = pow(max(0., 1. - abs(vn(p * 34.) * 2. - 1.)), 18.) * smoothstep(.25, .7, vn(p * 3.5 + 7.)) + pow(max(0., 1. - abs(vn(p * 13. + 9.) * 2. - 1.)), 30.) * .8;
+    float vf = pow(max(0., 1. - abs(vn(p * 42. + 5.) * 2. - 1.)), 14.) * .6;
     vec3 sc = vec3(.66, .68, .63) * (.78 + .3 * mo2);
     sc = mix(sc, vec3(.2, .26, .36), clamp(vv * 1.3 + vf * smoothstep(1.4, 1.8, p.y), 0., 1.) * .85);
     sc = mix(sc, vec3(.4, .27, .36), smoothstep(.6, .85, mo1) * .55);
@@ -292,7 +292,7 @@ function bodyMat(src, U, shell, side, rough = .62) {
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  if (gR >= 0.) roughnessFactor = gR;')
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  normal = bumpN(-vViewPosition, normal, gH * (uNaked > .5 ? .0022 : .00016));')
       // блеск мокрого дождевика: светлый край по контуру и блик сверху (от ламп на потолке); у ткани — лёгкий бархатный край
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + (shell ? `{ vec3 vd = normalize(vViewPosition); float fr = pow(1. - abs(dot(normal, vd)), 3.);
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + (shell ? `{ vec3 vd = normalize(vViewPosition); float fr = pow(max(0., 1. - abs(dot(normal, vd))), 3.);
         vec3 up = normalize((viewMatrix * vec4(0., 1., 0., 0.)).xyz); float top = pow(max(0., dot(normal, up)), 6.);
         float pvc = step(.5, uKind) * step(uKind, 1.5);
         totalEmissiveRadiance += diffuseColor.rgb * (fr * mix(.12, .55, pvc) + top * .45 * pvc) + vec3(.05, .05, .045) * fr * pvc; }` : ''));
@@ -1582,7 +1582,7 @@ const SHROUD_FS = `float gCloth, gWet; vec3 gClothC;
     diffuseColor.rgb *= 1. - .34 * vein * vec3(1., .8, .7); }
 `;
 // кожа Жильца в «Кино»: сухая, бугристая, мелкие трещинки пятнами (крупная сетка на кистях читалась узором «мозг»; рельеф — в SHROUD_N); ak гасит трещины, когда пиксель крупнее их
-const SKIN_MH = `float skH(vec3 p, float ak) { float cr = 1. - abs(vn3(p * 170.) * 2. - 1.); return -pow(cr, 10.) * .00024 * ak * smoothstep(.3, .7, vn3(p * 7. + 5.)) + (vn3(p * 22.) - .5) * .0012; }
+const SKIN_MH = `float skH(vec3 p, float ak) { float cr = 1. - abs(vn3(p * 170.) * 2. - 1.); return -pow(max(cr, 0.), 10.) * .00024 * ak * smoothstep(.3, .7, vn3(p * 7. + 5.)) + (vn3(p * 22.) - .5) * .0012; }
 `;
 const RE_ARGS = 'const in IncidentLight directLight, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in PhysicalMaterial material, inout ReflectedLight reflectedLight';
 const HUM_RE = {
@@ -1692,7 +1692,7 @@ ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H + (CINE ? SKIN_MH : '') : 
     diffuseColor.rgb = mix(diffuseColor.rgb, lay * (.72 + .5 * nz), rim);
     vec2 u = q.xy / max(R0, .06); float lu = length(u), dp = clamp(1. - lu, 0., 1.);
     vec3 inn;
-    if (uRipK < .5) { float c = sin((u.x * 3.1 + sin(u.y * 4.3 + nz2 * 3.) * .9) * 6.3) * .5 + .5; inn = mix(vec3(.16, .015, .02), vec3(.5, .2, .18), pow(c, 1.7)); }   // кишки: петли с бликом
+    if (uRipK < .5) { float c = sin((u.x * 3.1 + sin(u.y * 4.3 + nz2 * 3.) * .9) * 6.3) * .5 + .5; inn = mix(vec3(.16, .015, .02), vec3(.5, .2, .18), pow(max(c, 0.), 1.7)); }   // кишки: петли с бликом
     else if (uRipK < 1.5) { float rb = smoothstep(.55, .82, sin(u.y * 9.5) * .5 + .5); inn = mix(vec3(.22, .02, .03), vec3(.66, .58, .48), rb); }   // рёбра и лёгкое
     else if (uRipK < 2.5) { float tr = smoothstep(.5, .86, sin(u.y * 15.) * .5 + .5) * smoothstep(.62, .22, abs(u.x)); inn = mix(vec3(.18, .01, .02), vec3(.58, .44, .4), tr); }   // трахея
     else if (uRipK < 3.5) { float th = step(-.4, u.y) * step(u.y, -.08) * smoothstep(.42, .5, fract(u.x * 5.5)); inn = mix(vec3(.3, .02, .03), vec3(.74, .7, .6), th); }   // зубы и кость
