@@ -53,6 +53,15 @@ var act_view: ActView
 var shift: ShiftGame       # смена идёт
 var mg: MiniGames
 var ambs := {}             # фоновые петли: heart, static…
+var gore_idx := {}         # смерти: bake/gore/index.json (вид, основа, сценарий по секундам, файлы записи)
+var death := {}            # смерть этой сцены: { g, gd } — бросок в объектив, потом финал
+const JUMP_D := 0.75
+const GORE_D := 3.4
+var ends: EndScreens
+var run := {}              # прохождение (для журнала дежурств): решения, время, часы смены, записи, пропуски
+var save_scene := ""       # откуда «Попробовать снова» (@save): последняя сцена, не смерть
+static var endings_got := {}   # найденные концовки и смерти (сохранение — позже)
+static var overs_got := {}
 var shift_ui: ShiftUI
 var autoplay := false      # автопрогон для проверки: кадры сами, выбор — по умолчанию, обход — по порядку (--autoplay)
 
@@ -86,7 +95,11 @@ func _ready() -> void:
 		if _arg("then", "") != "":   # сразу то, что после сцены (обход, разговор, выбор)
 			scene_id = _arg("scene", "")
 			scene = StoryDB.scene(scene_id)
-			_run_then(scene.get("then", {}))
+			var th: Dictionary = scene.get("then", {})
+			if _arg("then", "") == "fin":   # проверка: сразу журнал дежурств
+				th = th.merged({"fin": true})
+				run = {"picks": [{"sc": "glass2", "q": "Открыть?", "a": "Не открывать"}], "sec": 3725.0, "rec": 21, "ok": 17, "miss": 2, "hrs": ["S1", "S2", "S3", "S4", "S6"]}
+			_run_then(th)
 		else:
 			start_scene(_arg("scene", ""), int(_arg("beat", "0")))
 	else:
@@ -112,6 +125,13 @@ func start_scene(id: String, at_beat := 0) -> void:
 	if id == "intro":   # новая ночь
 		flags.clear()
 		last_time = "02:55"
+		run = {"picks": [], "sec": 0.0, "rec": 0, "ok": 0, "miss": 0, "hrs": []}
+		ShiftGame.shk = {}
+	if not id.begins_with("over_"):
+		save_scene = id
+	if run.is_empty():
+		run = {"picks": [], "sec": 0.0, "rec": 0, "ok": 0, "miss": 0, "hrs": []}
+	ends.hide_all()
 	if scene.has("time"):
 		last_time = String(scene.time)
 	clock_t0 = T
@@ -162,6 +182,9 @@ func next_beat() -> void:
 		t = maxf(t, t0 + typed.d)
 	bdur = maxf(t + float(beat.get("pad", 0.3)), 1.2)
 	_beat_audio()
+	death = {}
+	if scene_id.begins_with("over_") and beat.get("black") != null:
+		_death_setup()
 	var img = beat.get("img")
 	phone.visible = false
 	if beat.has("phone"):   # экран телефона на весь кадр
@@ -183,7 +206,11 @@ func _process(delta: float) -> void:
 		return
 	if not test.is_empty():
 		delta = 1.0 / 30.0
+		if mode == "end" and ends._t >= float(test.at):
+			_snap()
 	T += delta
+	if mode in ["play", "choice", "mg", "shift", "explore", "talk"] and not run.is_empty():
+		run.sec += delta
 	if mode == "mg":
 		_mg_frame(delta)
 		if not test.is_empty() and mg.t >= float(test.at):
@@ -236,6 +263,16 @@ func _process(delta: float) -> void:
 		phone.tick(bt)
 	_show_line()
 	_talk(delta)
+	# смерть: после обрыва — бросок в объектив и финал (своя запись, свой звук)
+	if not death.is_empty() and bt >= float(beat.black):
+		dlg.visible = false
+		hud.visible = false
+		_death_frame()
+		if bt >= bdur and not holding:
+			next_beat()
+		elif not test.is_empty() and bt >= float(test.at):
+			_snap()
+		return
 	# постановка и камера
 	var fx := String(beat.get("fx", ""))
 	var cctv := fx == "cctv" or fx == "static" or (fx == "glitch" and beat.has("label"))
@@ -318,6 +355,13 @@ func _run_then(th: Dictionary) -> void:
 		_start_shift(th)
 	elif th.has("mg"):
 		_start_mg(th)
+	elif th.has("ending"):
+		if th.get("fin", false):
+			_end_screen(th)
+		else:
+			_finale(th)
+	elif th.has("over"):
+		_over_screen(th)
 	else:
 		var kind := "конец ветки"
 		for k in ["explore", "talk", "mg", "shift", "ending", "over", "back"]:
@@ -431,6 +475,178 @@ func _back_to(id: String) -> void:
 	if scene.is_empty():
 		return
 	_run_then(scene.get("then", {}))
+
+
+# ---------- концовки и экран смерти ----------
+## Концовка: последний кадр идёт дальше ~8,5 с и темнеет, своя музыка, название по буквам; клик — журнал дежурств.
+func _finale(th: Dictionary) -> void:
+	var last := {}
+	for b in scene.get("beats", []):
+		if b.get("img") != null:
+			last = b
+	var img = th.get("bg", last.get("img"))
+	if img == null:
+		_end_screen(th.merged({"fin": true}))
+		return
+	var cams: Array = last.get("cams", [[0.5, 0.5, 1.0, 1.1]])
+	var c: Array = th.get("bgCam", [0.5, 0.5, 1.0, 1.08]) if th.has("bg") else cams[cams.size() - 1]
+	var z: float = float(c[2]) if th.has("bg") else float(c[3])
+	var fin := {"img": img, "fx": th.get("bgFx", "") if th.has("bg") else last.get("fx", ""), "cams": [[c[0], c[1], z, float(c[3]) if th.has("bg") else z * 1.08]],
+		"auto": true, "fin": true, "pad": 8.5}
+	if not th.has("bg"):
+		if last.has("label"):
+			fin.label = last.label
+		if last.has("hud"):
+			fin.hud = last.hud
+	scene = scene.duplicate()
+	scene.beats = scene.get("beats", []) + [fin]
+	scene.then = th.merged({"fin": true})
+	_music("end_" + String(th.ending) if ResourceLoader.exists("res://assets/snd/end_%s.mp3" % th.ending) else "drone")
+	_play("boom", {"gain": 0.45})
+	bi = scene.beats.size() - 2
+	beat = {}
+	next_beat()
+	ends.show_fin(String(th.get("title", "")), String(th.get("sub", "")))
+
+
+func _end_screen(th: Dictionary) -> void:
+	mode = "end"
+	beat = {}
+	hud.visible = false
+	dlg.visible = false
+	var fresh := not endings_got.has(th.ending)
+	endings_got[th.ending] = true
+	if not th.get("fin", false):
+		_play("boom")
+	var mins := maxi(1, int(round(float(run.get("sec", 0.0)) / 60.0)))
+	var dur := (StoryDB.t("{h} ч {m} мин").replace("{h}", str(mins / 60)).replace("{m}", str(mins % 60))) if mins >= 60 else StoryDB.t("{m} мин").replace("{m}", str(mins))
+	var rows := [["Время в игре", dur], ["Часов смены отстоял", run.get("hrs", []).size()], ["Странностей замечено", run.get("ok", 0)],
+		["Записей в журнале", run.get("rec", 0)], ["Пропущено", run.get("miss", 0)]]
+	var picks := []
+	for p in run.get("picks", []):
+		picks.append(StoryDB.t(String(p.a)))
+	var fork := {}
+	for p in run.get("picks", []):
+		fork = p
+	var gal := []
+	for k in StoryDB.story.endings:
+		gal.append([StoryDB.t(String(StoryDB.story.endings[k])), endings_got.has(k)])
+	ends.show_journal(rows, picks, game_clock(false) + " — " + String(th.get("title", "")), String(th.get("sub", "")),
+		StoryDB.t(String(StoryDB.story.endings.get(th.ending, th.ending))), fresh, gal, StoryDB.t(String(fork.get("q", ""))) if not fork.is_empty() else "")
+	if autoplay:
+		print("концовка ", th.ending)
+		get_tree().quit()
+
+
+func _over_screen(th: Dictionary) -> void:
+	mode = "end"
+	beat = {}
+	hud.visible = false
+	dlg.visible = false
+	overs_got[String(th.over)] = true
+	_music("")
+	ends.show_over(String(th.over), String(th.get("sub", "")), overs_got.size(), StoryDB.story.overs.size())
+	ends.set_meta("retry", String(th.get("retry", "@save")))
+	if autoplay:
+		print("смерть ", th.over)
+		get_tree().quit()
+
+
+## «Попробовать снова» — с места решения (выбор, мини-игра, обход), а не с начала сцены.
+func _retry() -> void:
+	var r := String(ends.get_meta("retry", "@save"))
+	if r == "@save":
+		r = save_scene if save_scene != "" else String(StoryDB.story.get("start", "intro"))
+	var sc := StoryDB.scene(r)
+	if sc.is_empty():
+		r = String(StoryDB.story.get("start", "intro"))
+		sc = StoryDB.scene(r)
+	var t2: Dictionary = sc.get("then", {})
+	var dec: bool = (t2.has("choice") or t2.has("mg") or t2.has("explore") or t2.has("talk")) and sc.get("beats", []).size() > 1
+	start_scene(r, sc.beats.size() - 1 if dec else 0)
+
+
+# ---------- смерти ----------
+## Смерть (over_*): в миг обрыва — бросок в объектив, крик в три слоя и удар по низам; потом финал «как оно убивает» по сценарию
+## (свои звуки на кадрах касаний, вспышка, брызги на объектив), в конце — в черноту. Как beatAudio / frame в engine.js.
+func _death_setup() -> void:
+	if gore_idx.is_empty() and FileAccess.file_exists("res://bake/gore/index.json"):
+		gore_idx = JSON.parse_string(FileAccess.get_file_as_string("res://bake/gore/index.json"))
+	var g: Dictionary = gore_idx.get("overs", {}).get(scene_id, {})
+	var tl = g.get("tl")
+	var gd: float = float(tl.d) if tl is Dictionary else GORE_D
+	death = {"g": g, "gd": gd if not g.is_empty() else 0.0}
+	var bl := float(beat.black)
+	bdur = maxf(bdur, bl + JUMP_D + float(death.gd) + 0.3)
+	for e in [["jumpscare", 0.0, {"gain": 1.0}], ["jumpscare", 0.01, {"gain": 0.55, "rate": 0.55}], ["jumpscare", 0.03, {"gain": 0.3, "rate": 1.45}],
+			["boom", 0.0, {"gain": 0.9}], ["static", 0.0, {"gain": 0.45, "cut": 0.5}]]:
+		sfx_q.append({"at": bl + e[1], "n": e[0], "op": e[2], "done": false})
+	if g.is_empty():
+		return
+	var g0 := bl + JUMP_D
+	var gk := String(g.kind).trim_suffix("L").trim_suffix("D").trim_suffix("F")
+	var S := []
+	if tl is Dictionary:
+		for x in tl.get("sfx", []):
+			S.append([x[0], x[1], x[2] if x.size() > 2 else 1.0, x[3] if x.size() > 3 and x[3] is Dictionary else {}])
+	elif gk in ["eat", "limb", "heart"]:
+		S = [["breath_close", 0.15, 0.7], ["skin_stretch", 0.5, 1.0], ["eat_wet", 0.6, 1.0], ["skin_stretch", 1.15, 0.9, {"rate": 0.85}], ["eat_wet", 1.22, 1.0, {"rate": 0.9}], ["eat_wet", 2.3, 0.9], ["eat_wet", 2.85, 0.8, {"rate": 1.1}]]
+	elif gk == "drag":
+		S = [["skin_stretch", 0.1, 0.8], ["breath_close", 0.3, 0.7], ["eat_wet", 0.9, 0.5, {"rate": 0.7}], ["skin_stretch", 1.8, 0.7, {"rate": 0.8}]]
+	elif gk == "chest":
+		S = [["breath_close", 0.1, 0.7], ["boom", 0.5, 0.7], ["skin_stretch", 0.5, 1.0], ["eat_wet", 0.6, 1.0], ["eat_wet", 1.25, 1.0, {"rate": 0.85}], ["skin_stretch", 1.3, 0.8], ["eat_wet", 2.2, 0.7]]
+	elif gk == "neck" or gk == "hang":
+		S = [["breath_close", 0.2, 0.8], ["skin_stretch", 0.55, 0.7], ["neck_crack", 1.25, 1.0], ["neck_crack", 1.32, 0.75, {"rate": 0.8}], ["skin_stretch", 1.3, 0.8]]
+	else:
+		S = [["breath_close", 0.15, 0.7], ["skin_stretch", 0.5, 1.0], ["eat_wet", 0.55, 1.0], ["eat_wet", 1.1, 0.9, {"rate": 0.9}], ["breath_close", 1.6, 0.6, {"rate": 0.7}], ["eat_wet", 2.0, 0.8]]
+	for x in S:
+		var op: Dictionary = (x[3] as Dictionary).duplicate() if x.size() > 3 else {}
+		op.gain = x[2]
+		sfx_q.append({"at": g0 + float(x[1]), "n": String(x[0]), "op": op, "done": false})
+
+
+func _death_frame() -> void:
+	var js: float = bt - float(beat.black)
+	var g: Dictionary = death.g
+	var gd: float = death.gd
+	post.beat_fx("", bt, T, 0.0, {}, bdur)
+	player.visible = true
+	player.talk = {}
+	player.aim_cx = 0.5
+	player.aim_cy = 0.5
+	player.aim_dk = 0.0
+	if js < JUMP_D:   # бросок в объектив: пасть, зум, тряска, красное
+		if player.shot == null or player.shot.id != "death_scream":
+			player.play("death_scream")
+		player.aim_z = 1.05 + 0.65 * minf(1.0, js / 0.4)
+		player.apply(2.2 + js)
+		post.set_p("scare", 1.0 - js / JUMP_D)
+		post.set_p("tint", Vector3(1.0, (60.0 + 150.0 * js / JUMP_D) / 255.0, 40.0 / 255.0))
+		post.set_p("invert", 1.0 if js < 0.05 else 0.0)
+		post.set_p("grain_k", 0.3)
+	elif not g.is_empty() and js < JUMP_D + gd:   # как оно убивает
+		var gt := js - JUMP_D
+		var tl = g.get("tl")
+		var files: Array = g.get("files", [])
+		var f := String(files[0])
+		if not (tl is Dictionary) and not String(g.kind).begins_with("drag") and gt > 0.55 and gt < 2.15 and files.size() > 1:
+			f = String(files[1])   # общий план → крупно рана → общий
+		if player.shot == null or player.shot.id != f:
+			player.play(f)
+		player.aim_z = 1.0 if tl is Dictionary else 1.0 + 0.04 * gt
+		player.apply(gt)
+		var hit: bool = (gt >= float(tl.hit) and gt < float(tl.hit) + 0.09) if tl is Dictionary else gt < 0.12
+		if hit:
+			post.set_p("tint", Vector3(1.0, 0.19, 0.19))   # вспышка — на касании
+		var sp = tl.get("splat") if tl is Dictionary else (0.55 if RegEx.create_from_string("^(face|throat|eyes|chest|hang)").search(String(g.kind)) else null)
+		if sp != null and gt > float(sp):
+			post.set_p("splat_k", minf(1.0, (gt - float(sp)) * 3.0))
+			post.set_p("splat_seed", float(scene_id.length() * 7 + String(g.kind).length()))
+		post.set_p("grain_k", 0.25)
+		if gt > gd - 0.35:
+			post.set_p("black_k", (gt - gd + 0.35) / 0.35)
+	else:
+		post.set_p("black_k", 1.0)
 
 
 # ---------- мини-игры ----------
@@ -631,6 +847,8 @@ func _pick(i: int) -> void:
 	choice_t = -1.0
 	choice_box.visible = false
 	_set_flags(o.get("set"))
+	if not String(o.go).begins_with("over_") and not run.is_empty():   # решения ночи — в журнал дежурств
+		run.picks.append({"sc": scene_id, "q": String(scene.get("then", {}).get("choice", "")), "a": String(o.t)})
 	start_scene(String(o.go))
 
 
@@ -811,6 +1029,18 @@ func _build_ui() -> void:
 	act_view.picked.connect(_act_pick)
 	shift_ui = ShiftUI.new()
 	mg = MiniGames.new()
+	ends = EndScreens.new()
+	ends.next_pressed.connect(func():
+		_play("click")
+		next_beat())
+	ends.retry_pressed.connect(_retry)
+	ends.restart_pressed.connect(func(): start_scene("intro"))
+	ends.menu_pressed.connect(func(): start_scene("intro"))   # меню — позже
+	ends.back_pressed.connect(func():
+		var f: Dictionary = run.picks[run.picks.size() - 1] if not run.get("picks", []).is_empty() else {}
+		if not f.is_empty():
+			var sc := StoryDB.scene(String(f.sc))
+			start_scene(String(f.sc), maxi(0, sc.get("beats", []).size() - 1)))
 	var font: FontFile = load("res://assets/fonts/ns-ui.woff") if ResourceLoader.exists("res://assets/fonts/ns-ui.woff") else null
 	var theme := Theme.new()
 	if font:
@@ -883,6 +1113,7 @@ func _build_ui() -> void:
 	ui.add_child(act_view)
 	ui.add_child(shift_ui)
 	ui.add_child(mg)
+	ui.add_child(ends)
 	ui.move_child(dlg, -1)   # субтитры поверх смены
 
 

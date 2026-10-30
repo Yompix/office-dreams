@@ -336,6 +336,8 @@ func event(e: Dictionary) -> void:
 
 func resolve(a: Dictionary, how: String) -> void:
 	shf.act.erase(a)
+	if a.id != "tut13" and not game.run.is_empty():
+		game.run.ok += 1
 	game._play("click", {"gain": 0.5})
 	if a.def.has("ok"):
 		say_v(String(a.def.ok))
@@ -362,6 +364,8 @@ func miss(a: Dictionary) -> void:
 	if String(a.def.get("fix", "log")) == "none":
 		return
 	shf.miss += 1
+	if not game.run.is_empty():
+		game.run.miss += 1
 	if game.autoplay:
 		print("  пропуск ", a.id, " (", a.def.cam, ", ", a.def.get("fix", "log"), ") ", min_str(shf.M), " камера ", shf.cam)
 	game._play("heart", {"gain": 0.9})
@@ -394,6 +398,8 @@ func end() -> void:
 	shf.ended = true
 	ui.pop_close()
 	var n := String(shf.seg.next)
+	if not game.run.is_empty() and not (shf.id in game.run.hrs):
+		game.run.hrs.append(shf.id)
 	_close()
 	ended.emit(n)
 
@@ -462,6 +468,8 @@ func _log_pick(c: String, k: String) -> void:
 			hit = a
 			break
 	shk.log.append({"m": min_str(shf.M), "cam": c, "k": k, "ok": hit != null})
+	if not game.run.is_empty():
+		game.run.rec += 1
 	game._play("pen", {"gain": 0.5, "cut": 1.3})
 	ui.pop_open("Записываю…", ShiftUI.cam_label(c) + " · " + min_str(shf.M) + " — " + StoryDB.t(k), true)
 	var my: Dictionary = shf

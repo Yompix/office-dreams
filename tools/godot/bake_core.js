@@ -3,7 +3,8 @@
 //   opts: { dur, fps, hold, props (World.draw props: { sh: {…} } — состояние смены), store (имя: запомнить кадр 0 как основу),
 //           ref (имя основы: писать только то, что отличается от неё, — слой смены), loop (без «ожидания»: запись — петля) }
 module.exports = function pageBake([id, o]) {
-  const W = window.World, R = window.__W3core.R, T = window.THREE, sh = W.shots[id] || W.shots[(W.alias || {})[id]]; if (!sh) return { err: 'нет кадра' };
+  const W = window.World, R = window.__W3core.R, T = window.THREE, sh = W.shots[id] || W.shots[(W.alias || {})[id]] || (/^gore@/.test(id) && window.__goreShot ? window.__goreShot(id) : null);
+  if (!sh) return { err: 'нет кадра' };
   const FPS = o.fps || 30, HOLD = o.loop ? 0 : (o.hold ?? 6), dur = o.dur;
   const c = document.createElement('canvas'); c.width = 64; c.height = 36; const g = c.getContext('2d');
   const draw = (t, TT) => W.draw(g, 64, 36, id, Object.assign({ t, T: TT, cx: .5, cy: .5, z: 1, sx: 0, sy: 0 }, o.props ? { props: o.props } : {}));

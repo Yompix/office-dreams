@@ -21,6 +21,11 @@ uniform float dawn = 0.0;          // рассвет: тёплый мягкий 
 uniform float dawn_p = 0.0;
 uniform float tear = 0.0;          // перемотка записи: строки рвутся вбок
 uniform float run_side = 0.0;      // бег: свет гаснет слева (-1) или справа (1)
+uniform vec3 tint = vec3(1.0);     // умножение цвета: красная вспышка смерти
+uniform float invert = 0.0;        // вспышка-негатив в миг броска
+uniform float splat_k = 0.0;       // брызги крови на объективе (0…1), всегда одни и те же для смерти
+uniform float splat_seed = 0.0;
+float r1(float i) { return fract(sin(splat_seed * 91.7 + i * 12.9898) * 43758.5453); }
 float h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 vec3 overlay(vec3 c, float n) { return mix(2.0 * c * n, 1.0 - 2.0 * (1.0 - c) * (1.0 - n), step(0.5, c)); }
 vec3 soft(vec3 c, vec3 s) { return mix(2.0 * c * s + c * c * (1.0 - 2.0 * s), sqrt(max(c, 0.0)) * (2.0 * s - 1.0) + 2.0 * c * (1.0 - s), step(0.5, s)); }
@@ -63,6 +68,26 @@ void fragment() {
 		c = 1.0 - (1.0 - c) * (1.0 - vec3(0.275, 0.137, 0.04) * (0.15 + 0.15 * dawn_p) * dawn);
 	}
 	c = mix(c, overlay(clamp(c, 0.0, 1.0), h(FRAGCOORD.xy * 0.73 + fract(t * 3.7) * 977.0)), grain_k);
+	c *= tint;
+	if (splat_k > 0.0) {   // пятна с подтёками (splatBlood в engine.js)
+		vec2 sz = 1.0 / px;
+		float U = min(sz.x, sz.y);
+		vec2 q = SCREEN_UV * sz;
+		for (int i = 0; i < 9; i++) {
+			float fi = float(i);
+			vec2 ctr = vec2(r1(fi) * sz.x, r1(fi + 20.0) * sz.y * 0.8);
+			float rr = U * (0.03 + r1(fi + 40.0) * 0.09);
+			float dd = length(q - ctr) / rr;
+			if (dd < 1.0) {
+				vec3 bc = mix(vec3(70.0, 0.0, 0.0) / 255.0, vec3(110.0, 4.0, 4.0) / 255.0, clamp(dd / 0.7, 0.0, 1.0));
+				float ba = dd < 0.7 ? mix(0.95, 0.8, dd / 0.7) : mix(0.8, 0.0, (dd - 0.7) / 0.3);
+				c = mix(c, bc, ba * 0.85 * splat_k);
+			}
+			float dl = rr * (1.5 + r1(fi + 60.0) * 3.0) * splat_k;
+			if (abs(q.x - ctr.x) < rr * 0.08 && q.y > ctr.y && q.y < ctr.y + dl) c = mix(c, vec3(90.0, 2.0, 2.0) / 255.0, 0.72 * splat_k);
+		}
+	}
+	c = mix(c, 1.0 - c, invert);
 	c = mix(c, vec3(1.0), white_k + tb * tear * 0.12 * step(0.8, fract(uv.y * 36.0)));
 	if (run_side != 0.0) {   // свет гаснет с этой стороны: от края к середине
 		float s = (run_side < 0.0 ? SCREEN_UV.x : 1.0 - SCREEN_UV.x) / 0.5;
@@ -128,3 +153,7 @@ func beat_fx(fx: String, t: float, T: float, p: float, beat: Dictionary, bdur: f
 	set_p("black_k", clampf(black, 0.0, 1.0))
 	set_p("dawn", 1.0 if fx == "dawn" else 0.0)
 	set_p("dawn_p", p)
+	set_p("tint", Vector3.ONE)
+	set_p("invert", 0.0)
+	set_p("splat_k", 0.0)
+	set_p("scare", 0.0)
