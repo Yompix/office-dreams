@@ -8,6 +8,14 @@ var meta: Dictionary = {}
 var lights: Dictionary = {}   # ключ места (l1, lamp, boothLight…) → Light3D
 var env: Environment
 var pc := true                # Forward+ (ПК): тени, объёмный туман; иначе — как на сайте
+## Свет three.js (legacy) гаснет как (1 − d/r)^decay, без обратного квадрата; в Godot подбираем затухание и яркость под тот же вид
+const LIGHT_ATT := 0.5
+const LIGHT_K := 1.0
+const AMB_K := 1.0
+
+
+static func light_k() -> float:
+	return float(OS.get_environment("LK")) if OS.get_environment("LK") != "" else LIGHT_K
 
 
 static func create(name: String) -> Location:
@@ -23,6 +31,7 @@ func _build() -> void:
 	var geo: Node3D = (load("res://world/%s.glb" % loc) as PackedScene).instantiate()
 	add_child(geo)
 	_fix_materials(geo)
+	_probe(geo)
 	meta = JSON.parse_string(FileAccess.get_file_as_string("res://world/%s.json" % loc))
 	env = Environment.new()
 	env.background_mode = Environment.BG_COLOR
@@ -40,7 +49,7 @@ func _build() -> void:
 			"PointLight", "SpotLight", "DirectionalLight":
 				_add_light(d)
 	env.ambient_light_color = Color(amb.r, amb.g, amb.b).clamp()
-	env.ambient_light_energy = 1.0
+	env.ambient_light_energy = float(OS.get_environment("AMB")) if OS.get_environment("AMB") != "" else AMB_K
 	var fog = meta.get("fog")
 	if fog:
 		env.fog_enabled = true
@@ -64,17 +73,17 @@ func _add_light(d: Dictionary) -> void:
 		s.spot_range = float(d.get("distance", 0)) if float(d.get("distance", 0)) > 0 else 20.0
 		s.spot_angle = rad_to_deg(float(d.angle))
 		s.spot_angle_attenuation = 1.0 + float(d.get("penumbra", 0)) * 2.0
-		s.spot_attenuation = float(d.get("decay", 1))
+		s.spot_attenuation = float(OS.get_environment("ATT")) if OS.get_environment("ATT") != "" else LIGHT_ATT
 		l = s
 	elif d.type == "DirectionalLight":
 		l = DirectionalLight3D.new()
 	else:
 		var o := OmniLight3D.new()
 		o.omni_range = float(d.get("distance", 0)) if float(d.get("distance", 0)) > 0 else 20.0
-		o.omni_attenuation = float(d.get("decay", 1))
+		o.omni_attenuation = float(OS.get_environment("ATT")) if OS.get_environment("ATT") != "" else LIGHT_ATT
 		l = o
 	l.light_color = _col(d.color)
-	l.light_energy = float(d.intensity)
+	l.light_energy = float(d.intensity) * light_k()
 	l.shadow_enabled = pc and bool(d.get("shadow", false))
 	l.visible = bool(d.get("visible", true))
 	add_child(l)
@@ -84,6 +93,39 @@ func _add_light(d: Dictionary) -> void:
 		l.position = p
 	if String(d.get("key", "")) != "":
 		lights[d.key] = l
+
+
+## Проба отражений по всему месту: как карта окружения (PMREM) в старой игре — свет комнаты падает на героев со всех сторон.
+func _probe(geo: Node3D) -> void:
+	var box := AABB()
+	var first := true
+	for mi in geo.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		if not m.visible:
+			continue
+		var bb := _local_xform(m) * m.get_aabb()
+		if bb.size.length() > 60.0:
+			continue   # небо и далёкие фасады улицы — не комната
+		box = bb if first else box.merge(bb)
+		first = false
+	var p := ReflectionProbe.new()
+	p.position = box.get_center()
+	p.size = box.size + Vector3(0.5, 0.5, 0.5)
+	p.interior = true
+	p.box_projection = true
+	p.ambient_mode = ReflectionProbe.AMBIENT_ENVIRONMENT
+	p.intensity = float(OS.get_environment("PROBE")) if OS.get_environment("PROBE") != "" else 1.0
+	p.update_mode = ReflectionProbe.UPDATE_ONCE
+	add_child(p)
+
+
+func _local_xform(n: Node) -> Transform3D:
+	var t := Transform3D.IDENTITY
+	while n != null and n != self:
+		if n is Node3D:
+			t = (n as Node3D).transform * t
+		n = n.get_parent()
+	return t
 
 
 ## Особые материалы старой игры приходят с меткой в имени материала (tools/godot/export_world.js): подставляем свои.

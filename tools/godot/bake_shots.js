@@ -37,6 +37,16 @@ function needs() {
       const draw = (t, TT) => W.draw(g, 64, 36, id, { t, T: TT, cx: .5, cy: .5, z: 1, sx: 0, sy: 0 });
       R.render = () => {};
       const L = window.__dbgL[sh.loc], S = L.S, actors = Object.entries(W.actors).filter(([k, C]) => C && C.root);
+      // состояние места по умолчанию (как в выгруженной модели): постоянные каналы места, совпадающие с ним, не нужны
+      if (L.reset) L.reset(); S.updateMatrixWorld(true); const base = {};
+      const skip0 = new Set([...['beams', 'dust', 'blobs', 'pad'].flatMap(k => [].concat(L[k] || []))]), aroots = new Set(actors.map(([k, C]) => C.root));
+      (function walk(o) { if (aroots.has(o) || skip0.has(o)) return;
+        if (o.isLight) { const n = o.name; base[`l:${n}:i`] = [o.intensity]; base[`l:${n}:v`] = [o.visible ? 1 : 0]; base[`l:${n}:c`] = [o.color.r, o.color.g, o.color.b];
+          const w = new T.Vector3(); o.getWorldPosition(w); base[`l:${n}:t`] = w.toArray(); if (o.target) { o.target.getWorldPosition(w); base[`l:${n}:d`] = w.toArray(); }
+          if (o.distance !== undefined) base[`l:${n}:r`] = [o.distance]; }
+        else if (o.name && o !== S) { const n = o.name; base[`o:${n}:t`] = o.position.toArray(); base[`o:${n}:r`] = [o.quaternion.x, o.quaternion.y, o.quaternion.z, o.quaternion.w];
+          base[`o:${n}:s`] = o.scale.toArray(); base[`o:${n}:v`] = [o.visible ? 1 : 0]; }
+        for (const c of o.children) walk(c); })(S);
       const frames = []; const times = [];
       for (let i = 0; i <= Math.round(dur * FPS); i++) times.push([i / FPS, i / FPS]);
       for (let i = 1; i <= HOLD * FPS; i++) times.push([dur, dur + i / FPS]);   // ожидание выбора: время кадра стоит, жизнь идёт
@@ -57,7 +67,9 @@ function needs() {
         row['cam'] = [...num(sh.pos), ...num(sh.look), typeof sh.fov === 'number' ? sh.fov : 50, typeof sh.roll === 'number' ? sh.roll : 0];
         const skipK = new Set([...['beams', 'dust', 'blobs', 'pad'].flatMap(k => [].concat(L[k] || []))]);
         (function walk(o) { if (roots.has(o) || skipK.has(o)) return;
-          if (o.isLight) { const n = o.name; row[`l:${n}:i`] = [o.intensity]; row[`l:${n}:v`] = [o.visible ? 1 : 0]; row[`l:${n}:c`] = [o.color.r, o.color.g, o.color.b]; }
+          if (o.isLight) { const n = o.name; row[`l:${n}:i`] = [o.intensity]; row[`l:${n}:v`] = [o.visible ? 1 : 0]; row[`l:${n}:c`] = [o.color.r, o.color.g, o.color.b];
+            o.getWorldPosition(v); row[`l:${n}:t`] = [v.x, v.y, v.z]; if (o.target) { o.target.getWorldPosition(v); row[`l:${n}:d`] = [v.x, v.y, v.z]; }
+            if (o.distance !== undefined) row[`l:${n}:r`] = [o.distance]; }
           else if (o.name && o !== S) { const n = o.name; row[`o:${n}:t`] = o.position.toArray(); row[`o:${n}:r`] = [o.quaternion.x, o.quaternion.y, o.quaternion.z, o.quaternion.w];
             row[`o:${n}:s`] = o.scale.toArray(); row[`o:${n}:v`] = [o.visible ? 1 : 0]; }
           for (const c of o.children) walk(c); })(S);
@@ -71,7 +83,8 @@ function needs() {
       const data = [];
       for (const k of keys) { const first = frames[0][k]; let same = !!first;
         for (const f of frames) { const x = f[k]; if (!x || !first || x.length !== first.length || x.some((y, i) => Math.abs(y - first[i]) > 1e-5)) { same = false; break; } }
-        if (same) { if (!/^[ol]:/.test(k)) meta.const[k] = first.map(x => typeof x === 'number' ? +x.toFixed(6) : 0); continue; }   // постоянные части места не нужны — они уже в модели
+        if (same) { const b0 = base[k], asBase = b0 && b0.length === first.length && b0.every((y, i) => Math.abs(y - first[i]) < 1e-5);
+          if (!(/^[ol]:/.test(k) && asBase)) meta.const[k] = first.map(x => typeof x === 'number' ? +x.toFixed(6) : 0); continue; }   // часть места как в модели — не нужна
         const n = Math.max(...frames.map(f => f[k] ? f[k].length : 0)); meta.chans.push([k, n]);
         for (const f of frames) { const x = f[k]; for (let i = 0; i < n; i++) data.push(x ? x[i] : NaN); } }
       const f32 = new Float32Array(data); let s = ''; const u8 = new Uint8Array(f32.buffer); for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
