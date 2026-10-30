@@ -1,0 +1,256 @@
+# Hush Till Six → Godot 4.7: UI / i18n / audio / input / QA map
+
+Read-only; nothing edited. Paths are relative to `public/games/nightshift/`: E=engine.js, H=index.html, P=pad.js, Q=qa.js, I=i18n.js, Wd=world.js.
+
+Two premises in the brief don't match the code:
+- There are **1497 mp3**, not 352.
+- The music is **not generated at runtime in WebAudio**. It is pre-rendered by `tools/music/compose.py`.
+
+Dead code you can skip: the `#subs`/`#who` CSS (H:48-54), `#skip` (H:222), and camGame/camgrid (E:757; no scene uses `camgame`).
+
+## 1. Screens and UI
+- **Stage** (H:35-40)
+  - A fixed 9:16 or 16:9 box (`body.land`), letterboxed.
+  - Unit `--u` is 1% of stage width in portrait and 0.68% of stage height in landscape, so text keeps the same physical size.
+  - The 2D canvas is 1080×1920 or 1920×1080 (E:2027); it drops to 2/3 size on slow Retro phones (E:1810).
+  - **Every device defaults to landscape** (`land3`=true, E:31).
+  - Desktop with a wide window shows a blurred frame glow `#amb` and a key legend `#keys` (H:366-374). Both are hidden in landscape.
+  - FINE (pointer:fine, or Electron; Wd:53) controls: CLICK vs TAP TO START, mouse vs tilt look, hover states, the Ultra option, and the GPU name in settings.
+- **Layers** (H:438-450): `#cv`, `.layer` (#rule/#chap/#tap/#dlg), #mg, #choice, #act, #clock, #hud, #note, #sms, #ui (screens), #pz (pause, z20).
+- **Boot**: studio splash for 1.4 s, tap to skip (E:2095, H:171-185) → 18+/headphones card with a load bar (E:2102).
+- **Title / main menu** (E:1284-1318, H:238-259)
+  - The live 3D shot `door_katya` plays under the UI.
+  - Logo HUSH/TILL SIX uses NSLogo, an erosion mask generated in code (E:1269), and a flicker with a lamp sound.
+  - The gate tap unlocks audio (E:1313).
+  - Menu items: Continue (if a save exists) · New/Restart · Endings (2×2 gallery plus counters, E:1244) · Settings · then Quit (desktop/app), Buy (demo) or Support (web).
+- **Settings** (E:1381-1417, H:265-288/344-352)
+  - Language: list of native names (E:1418).
+  - Screen: H/V.
+  - Graphics: RETRO | CINE | ULTRA (Ultra on PC only).
+  - Voice-over on/off.
+  - Volume sliders: Master (+mute), Music, Voices, Sounds, Rain&ambience; 0–100 in steps of 5, with a probe sound on release (E:1429).
+  - Resolution (Cine only): AUTO/50/75/100, plus 150/200 in Ultra.
+  - VHS film: off / weak / normal.
+  - Fewer flashes; Auto lines; Look by mouse/tilt.
+  - Desktop only: Fullscreen, Sound in background.
+  - The footer shows key hints and the GPU name. Landscape uses a 2-column grid.
+  - Changing language, graphics or resolution reloads the page and resumes at the same beat or shift minute (sessionStorage `ns1_resume`, 5-min TTL, E:1349-1372).
+- **Pause** (E:1323-1336): PAUSE · Continue/Settings/Main menu · X. The AudioContext is suspended.
+- **HUD** (H:446, E:2036)
+  - Top-right: Rules, Auto, Mute, Fullscreen (web only), Menu.
+  - Top-left: red Courier clock, dimmed on CCTV shots (E:1803).
+- **Subtitles = dialogue box `#dlg`** (H:59-70, E:1778-1802/1929-1941)
+  - Bottom panel. Landscape: centred, 124u wide. Raised during the shift (H:377-379).
+  - Speaker plate plus a left bar in the speaker's colour (SPK E:426). Ethan's narration is italic with a "you" tag; `???` is red and letter-spaced.
+  - Karaoke: words not yet spoken sit at 28% opacity.
+  - When a line ends, ▼ blinks; after 2.2 s a "Space/click — next" hint appears (E:1823).
+  - Unvoiced text types out with ticks. Also: chapter card #chap (time+title) and tap prompt #tap.
+- **Choices** (E:735-754, H:88-117)
+  - Bottom gradient panel with numbered red buttons and a timer bar.
+  - All 9 choices are timed (8–12 s) and tick for the last 3 s. On timeout the game picks `def`, or a random option.
+- **Explore**: pulsing rings projected from 3D points every frame; labels are placed automatically (E:696-734).
+- **Talk**: numbered blue topics (left column in landscape).
+- **Rules**: a taped paper note `#rule` on rule beats (H:56). The Rules button opens the memo plus every rule seen so far (E:641-648).
+- **Phone** (drawn on canvas, E:1655-1744)
+  - Lock screen with a procedural crayon drawing, clock and notifications.
+  - Message thread; incoming, outgoing and in-call screens.
+  - DOM SMS banner `#sms` (E:651, H:355-365). Canvas "connection lost" box (E:1759-1776).
+- **CCTV HUD** (canvas, E:1598-1617): corner brackets, blinking REC or ◀◀ RECORDING, IR, camera label, localized date (E:1620) plus clock, and a MIC meter during the shift.
+- **Shift console** (E:948-1155, H:290-343)
+  - Camera buttons at the bottom: 01/02/03/04/07/10/−2. A red 13 appears once unlocked; tapping it warns once, then kills you.
+  - Right column: Log / Panel / Journal / ?. Task banner and toast.
+  - Popup contents:
+    - log grid (8 kinds);
+    - panel (door, elevator, lights on 13 floors);
+    - journal tabs Memo/Frank/My shift;
+    - SMS reply; call take/ignore;
+    - hold-Frank bar; help.
+  - Portrait puts the actions in a row above the wrapped camera buttons.
+  - 7 hours (S1–S6, A1); one game minute is 7 s (E:953).
+- **Tutorial** (E:1156-1204, H:324-339): card at the top for Vera, the dispatcher (voice wave, instruction, Continue, Skip), plus a pulsing ring with ▼ on the target. 9 steps; the clock is frozen.
+- **Minigames** (E:787-946): hold (big button + meter), door (mash), cord (drag down), run (left/right), wipe (erase a fog canvas), torch (beam follows the finger), tape (scrub).
+- **Death** (E:1503-1517): black, then a red title and subtitle. Retry (from the decision point), Menu, deaths found x/14.
+- **Endings** (E:1456-1493, H:139-170)
+  - The title's letters fly in over the live last frame.
+  - Then a night-journal page: stats, decisions, ending stamp, pen sound.
+  - Side panel: gallery, Back to choice, Restart, Menu. Side by side in landscape.
+- **Demo upsell** (E:1494): "WILL YOU OPEN FOR HER?" plus "Full version — $3" (`window.NS_DEMO`, set by tools/itch/demo.js).
+
+## 2. i18n
+- **Languages** (I:7): ru, en, es, pt, de, fr, it, pl, tr, uk, zh, ja, ko.
+  - Selection order: `?lang=` → `ns1_lang` → browser language (ru/be/kk → ru; otherwise a match, else en) (I:9-12).
+- **Format**: the Russian string is the key.
+  - `EN` map (I:13-206) and `DICT{lang:{ru→text}}` (I:208-6106, generated by tools/i18n/build.js).
+  - Each has 534 keys, and the key sets are identical.
+  - A language is listed only if its dictionary exists (`READY`, I:6109).
+- **Lookup**
+  - `tr(s)` (I:6111): ru returns s; otherwise D[s] ?? EN[s] ?? s, so missing strings fall back to English.
+  - `trf(s,{k})` substitutes `{k}` (I:6113).
+  - `trStory` translates every string in the story except `kind/kinds/who`, which stay as Russian IDs (I:6116).
+- **Voices** (`VOICE`, I:8)
+  - Own recordings: ru (`snd/`), en, es, pt, de (`snd/<lang>/`).
+  - fr/it/pl/tr/uk/zh/ja/ko play the English recordings with translated subtitles.
+- **Timing files** (E:79-80): `timing.json` (ru) or `timing_<lang>.json`.
+  - 286 keys, each `{t, dur, w:[[sec,word]], who (ru key), g (loudness gain), fx, ew}`.
+  - `ew` holds the English word timings, used for lip-sync and word-cuts in English-voiced languages (E:440/539).
+  - In those languages (`SUB_ONLY`, E:999) a line stays up for its reading time: 0.9 s + chars/CPS (ja 5, zh 8, ko 11, else 16).
+  - For zh/ja, `w` holds phrase chunks without spaces (E:1789/1800).
+  - The story's regexes for word-synced cuts list words from several languages (story.js:33/60).
+- **Fonts**
+  - NSUI is an Oswald subset (Latin Ext-A + Cyrillic incl. Ukrainian) for headings and buttons. NSLogo holds the logo glyphs only.
+  - Body text uses system Inter/Arial; Courier New for notes and HUD; Georgia for the journals (H:224-225).
+  - CJK uses NSCJK: Noto Sans SC/JP/KR Bold subsets with only the translated glyphs, loaded through `unicode-range` (fonts/cjk/faces.js, I:6123-6131). The canvas `font` setter is patched to put NSCJK first.
+  - CSS line-break rules are set per `:lang` (H:44-46).
+- **Text on textures** is drawn into canvases at load via tr(): signs, badge, evacuation plan, salt, journal pages, notes, fog writing (Wd:234-368, scenes.js:149-888, chars2.js:446/534). That is why a language change reloads the page.
+
+## 3. Audio
+- **snd/ layout** (~110 MB)
+  - Root: 348 files = 286 RU voice lines + 62 others.
+  - `en/` 288; `es/`, `pt/`, `de/` 287 each (voices plus `ch_katya`; en also has `ch_monster`).
+- **Naming**
+  - Voice files are named by line id: p (prologue), fb, dg (calls), j (journal), n01–n43 (shift), t01–t09 (Vera), k* (death lines)…
+  - Lines per speaker: Ethan 202, Lily 21, Frank 21, Gus 15, day guard 13, Vera 9.
+  - URL rule: E:72.
+  - SFX are named by what they are.
+  - Loops: rain, room_tone, static, heart, tinnitus.
+  - Music: theme (64 s title loop), shift (96 s loop), end_{dawn,newentry,inside,sister}, tension (choices/minigames), drone.
+- **Music generation** (`compose.py`, numpy)
+  - Instruments: additive inharmonic piano, music box, detuned-saw pads, a drone with a beating fifth.
+  - FFT convolution reverb. Motif A–F–E–D in D minor at 60 bpm.
+  - Loops are rendered three times over and the middle pass is kept, so they are seamless. RMS is normalised to −18…−24 dBFS.
+  - The only runtime synths are the 100 Hz saw hum, drips, tink, tube buzz and the UI thump (E:255-299).
+- **Graph** (E:142-180)
+  - All buses feed `master` → compressor (−16 dB, 4:1) → `outG` (Master slider/mute).
+  - `directG` carries screams around the compressor, with −4 dB at 4.5 kHz.
+  - Music sits at .55, ducks to .22 under voice (E:1948) and drops to .012 during a hush.
+  - Voice and sfx (.8) have convolution-reverb sends.
+  - `lowSend` adds harmonics for phone speakers (LP260 → tanh → BP200–1400) from music, the ambient bed and low sounds (E:197).
+- **Voice fx** (from timing `fx`, E:125-138)
+  - radio: HP480 + tanh + LP2600.
+  - phone: HP330/LP3300.
+  - fake/phonefake: a ghost layer an octave down.
+  - glass/muffle: LP1100 + reverb.
+  - near: dry.
+  - Each line's gain is scaled by `g` (E:203).
+- **Ambient bed** (E:250-278)
+  - room_tone, rain and the hum go through a lowpass set by location (lobby/corridor/server) and rain exposure (out/glass/in/far/none).
+  - Level is 1 in play (0.45 under voice), .9 in the menu, .5 on end screens.
+  - Distant one-shots play every 8–20 s and wait while someone talks (E:302-325).
+  - Lily's knock is synced to her animation (E:346). The monster's "signature" sound plays 2.5 s before he appears (E:377).
+- **Silence**
+  - The bed means there is never digital silence.
+  - 1.5 s before a scare: hush plus tinnitus plus a "fridge-off" click (E:241).
+  - "Connection lost" is true silence (E:661). Pause suspends the AudioContext.
+  - Voices are decoded on demand, at most 32 at a time; big music tracks decode lazily (E:91).
+
+## 4. Input
+- **Pointer and touch**
+  - A tap on the stage advances (E:2042/627); scares can't be skipped.
+  - Hold buttons use pointer capture. Drag drives the minigames.
+  - Look: mouse movement, or tilt with a slowly adapting zero point (E:2066-2075).
+  - Vibration through `buzz`, off when muted (E:417).
+- **Keys** (E:2076-2087; the Russian keyboard layout is handled)
+  - Space/Enter advance; 1–4 pick a choice; 1–9 pick a talk topic.
+  - Esc closes, pauses or returns to the menu.
+  - F fullscreen, V voice, M mute, O orientation.
+  - Death screen: Enter retries, Esc goes to the menu. QA: B.
+  - pad.js adds Arrows/WASD to move focus, Enter/Space = A, Esc/Backspace = B (P:96-105).
+- **Gamepad** (P:1-9/196-235)
+  - A presses the focused button or advances; holding A works on hold buttons.
+  - B goes back; Start pauses.
+  - D-pad or left stick moves the yellow focus frame (spatial; repeats after 380 ms, then every 120 ms).
+  - LB/RB cycle the shift cameras and skip 13.
+  - X opens Log. Y opens Panel, or toggles Auto outside the shift.
+  - View opens Journal, or Rules outside the shift.
+  - Right stick looks around.
+  - In wipe/torch the stick moves a virtual cursor.
+  - A is ignored for 320–450 ms after a new layer appears. Picking a choice from the keyboard needs a second press.
+  - Moving the mouse leaves pad mode. Disconnecting the pad pauses.
+- **Steam Deck**
+  - The non-standard Linux pad mapping is remapped (P:83-95).
+  - Steam Input keyboard templates are handled.
+  - GPU "vangogh" → Cine at 85% (Wd:64); rendering is capped at screen size (Wd:93).
+- **Electron** (`nsDesktop`, tools/desktop/app/preload.js)
+  - API: quit, full, isFull, bgSound, ach. F11/Alt+Enter.
+  - Losing focus pauses and mutes.
+  - Achievements: END_*, DEATH_01–14, ALL_*, NIGHT_DONE.
+  - ns1_* keys are copied to cloud/save.json every 15 s (Steam Cloud).
+  - No donate button, sponsors or network.
+- **Android** (`nsAppNative`, MainActivity.java)
+  - quit() and orient(land); the app calls `__nsApp.pause/resume/back` (E:1340).
+  - A WebView crash reloads with `?rp=1` and forces Retro (Wd:78).
+  - Immersive mode; no qa.js.
+
+## 5. localStorage (`ns1_` + JSON, E:26)
+- **Settings**
+  - lang; land3.
+  - gfx: retro|cine|ultra.
+  - gfxAuto — why the graphics mode changed:
+    - 1: auto-Retro after dark frames;
+    - 2: chosen by the player;
+    - 3: notice already shown;
+    - 4: too slow;
+    - 5: graphics context lost;
+    - 6: Android crash.
+  - res (0 = auto, up to 2); vhs (0–2).
+  - vol {all,mus,voice,sfx,amb}; mute; voice; calm; auto; look.
+- **Progress**
+  - save: scene id or `sh_<hour>`; saveT: the clock.
+  - flags (including `v:<scene>`); seen.
+  - rules2: ["scene:beat"].
+  - endings; overs (Russian death titles); alt_<death> (rotates death variants).
+  - run {picks,sec,rec,ok,miss,hrs}: data for the night journal.
+  - shk: shift state carried over (door, lift, lights, log, st, c13, read). shk0: snapshot at the start of the hour. doorLock.
+  - tutDone.
+- **QA and desktop**: qa; qaBugs; desktop `ns1__cloud`.
+- **Session**: ns1_resume.
+
+## 6. QA (`?qa=1`, persisted; not in demo or APK; E:2126)
+- **Bar** (Q:69-90): `scene:beat:sec · fps`.
+  - ⏮ restarts the beat; pressing twice goes to the previous one.
+  - ⏭ skips; 🐞 reports a bug.
+- **🐞 or B** (Q:101-152) pauses and captures:
+  - a screenshot including subtitles (html2canvas);
+  - code, graphics mode, orientation, language, fps;
+  - frames over 120 ms; voiceMiss/voiceLate;
+  - JS errors, flags, device, script versions.
+  - The report adds 7 tags and a comment; then save, save & send, or cancel.
+- **Send** (Q:155-218): JPEG sheets 1080 px wide with 6 bugs each, via Web Share, or download plus the text copied to the clipboard.
+- **Menu "🐞 Scenes"** (Q:221-256): a searchable list of 4 endings, 14 deaths with variants and places, the story scenes and the shift hours; picking one starts it immediately.
+- **Debug API**: `window.__ns` (E:2114): startScene, begin, seek, skipBeat, pause, flags, shiftCam…
+
+## Godot recommendation
+- **Scenes**
+  - `Main` holds a SubViewport for 3D and a `Stage` AspectRatioContainer (9:16 or 16:9).
+  - Content scale is 1080×1920 or 1920×1080, swapped on orientation change; u = 10.8 px in portrait, 7.34 px in landscape.
+  - One Control scene per screen above. The CCTV and phone screens are drawn with `_draw` or shaders. QA is an autoload.
+- **Theme**
+  - Font sizes scaled in code by u.
+  - Colours: #e0303a, #f2c21b, #ece8dc.
+  - Bundle Oswald, Noto Sans, a mono and a serif font, with Noto CJK as fallbacks (all OFL).
+- **i18n**
+  - Keep the dictionaries as JSON. At boot, build a `Translation` per locale with the Russian text as msgid and `en` as the fallback locale.
+  - Use `tr().format()` for substitutions. Leave kind/who untranslated.
+  - Switch language live and redraw the Label3D/SubViewport textures.
+- **Buses**
+  - Master (user volume) ← Mix (Compressor) ← Music, Voice{Dry, Room, Radio, Phone, Muffle}, SFX, SFXRoom, Amb.
+  - Direct → Master. Optional LowHarm for phones.
+  - Lip-sync from `AudioServer.get_bus_peak_volume_left_db`.
+  - Ghost layers are a second player at pitch 0.5. Use OGG with import-time loops.
+- **InputMap**
+  - Actions: advance, back, pause, choice_1–9, cam_prev/next, log, panel, journal_rules, toggle_auto, look_x/y, fullscreen, voice, mute, orient, qa_bug.
+  - Bind physical keycodes. Godot focus neighbours replace pad.js; SDL handles the Deck.
+- **Saves**
+  - `user://settings.cfg` and `user://save.cfg` via ConfigFile.
+  - An importer for the Electron cloud/save.json.
+  - Steam Auto-Cloud on user://; GodotSteam for achievements.
+
+## Risks
+- **Voice/subtitle sync**: the web shifts the beat clock when a voice arrives late. Drive beats from audio playback time.
+- **Word-synced cuts** need both `w` and `ew`.
+- **Per-sound effects**: Godot effects are per bus, so per-sound lowpass, pan and reverb sends need bus pools or AudioStreamPlayer3D filters.
+- **CJK**: the subset fonts show tofu for any new string, and there is no Japanese phrase line-breaking.
+- **Uppercase**: needs locale-aware handling (Turkish İ).
+- **Procedural canvas art** must be re-coded.
+- **Web export**: GitHub Pages can't send COOP/COEP headers, so it must be single-threaded, which affects audio.
+- **Saves**: Electron saves need migrating.
