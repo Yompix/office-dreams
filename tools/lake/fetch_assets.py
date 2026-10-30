@@ -8,7 +8,8 @@
 import json, os, subprocess, sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 OUT = os.path.join(ROOT, 'godot/lake/assets')
-MODELS = ['fir_tree_01', 'pine_tree_01', 'fir_sapling_medium', 'dead_tree_trunk', 'modular_electricity_poles']
+MODELS = ['dead_tree_trunk', 'modular_electricity_poles']
+TREE_TEX = ['fir_tree_01', 'pine_tree_01']   # у этих моделей сетки — фотосканы по 0.5–1 ГБ: берём только текстуры хвои и коры, ели строим кодом
 TEXTURES = ['asphalt_snow', 'snow_02']
 HDRIS = ['narrow_moonlit_road']
 
@@ -32,6 +33,12 @@ def main():
         for rel, f in g.get('include', {}).items():
             curl(f['url'], os.path.join(d, rel))
         print('модель', m)
+    for m in TREE_TEX:
+        g = files(m)['gltf']['1k']['gltf']
+        for rel, f in g.get('include', {}).items():
+            if rel.endswith('.jpg') or rel.endswith('.png'):
+                curl(f['url'], os.path.join(OUT, 'ph', m, rel))
+        print('текстуры дерева', m)
     for t in TEXTURES:
         f = files(t)
         d = os.path.join(OUT, 'ph', t)
@@ -45,7 +52,7 @@ def main():
         curl(f['url'], os.path.join(OUT, 'ph', h + '_1k.hdr'))
         print('небо', h)
     with open(os.path.join(OUT, 'ph', 'LICENSE.txt'), 'w') as fp:
-        fp.write('Poly Haven assets — CC0 1.0 (public domain), https://polyhaven.com/license\n' + '\n'.join(MODELS + TEXTURES + HDRIS) + '\n')
+        fp.write('Poly Haven assets — CC0 1.0 (public domain), https://polyhaven.com/license\n' + '\n'.join(MODELS + TREE_TEX + TEXTURES + HDRIS) + '\n')
     # герои и движения — из Hush Till Six (CC0 / свободный мокап), жёсткие ссылки
     src = os.path.join(ROOT, 'public/games/nightshift/models')
     dst = os.path.join(OUT, 'models')
