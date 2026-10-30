@@ -132,6 +132,8 @@
   "t0": 3.0,
   "t1": 15.0,
   "loop": true,
-  "stab": 4
+  "stab": 4,
+  "ground": "fk",
+  "lift": 0.025
  }
 ]

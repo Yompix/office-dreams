@@ -71,7 +71,7 @@ def rot_between(a, b):
     q = np.array([c[0], c[1], c[2], 1 + d]); return q / np.linalg.norm(q)
 
 HIPL, HIPR = 'LeftUpLeg', 'RightUpLeg'
-def retarget(src, t0=None, t1=None, fps=30, loop=False, inplace=True, stab=0, pelvis=None, xf=.6, walk=False, lift=0):
+def retarget(src, t0=None, t1=None, fps=30, loop=False, inplace=True, stab=0, pelvis=None, xf=.6, walk=False, lift=0, ground=None):
     tgt = Skel(MALE); WTt, WRt, _ = tgt.world()
     T, R = src.local(); WTs, WRs = src.world(T, R)
     names = [src.name[i] for i in src.order]; sidx = {n: k for k, n in enumerate(names)}
@@ -148,6 +148,15 @@ def retarget(src, t0=None, t1=None, fps=30, loop=False, inplace=True, stab=0, pe
         low = (P[:, 1] + (np.minimum(WTs[:, sidx['LeftFoot'], 1], WTs[:, sidx['RightFoot'], 1]) - WTs[:, kh, 1]) * sc).min()
         P[:, 1] += ank - low + lift
     jr = tgt.idx['root']; Pl = qrot(qinv(WRt[jr])[None], P - WTt[jr][None])
+    if ground == 'fk' and pelvis is None:   # высота по ноге самой цели (прямая кинематика её скелета), а не по позициям источника:
+        # у CMU 14_13 (мытьё) суставы бедра сидят ниже таза иначе, чем у цели, — клип висел над полом на 12 см (стопы в воздухе)
+        Tl = np.repeat(tgt.T[None], F, 0); Rl = np.repeat(tgt.R[None], F, 0)
+        for j, tr in tracks.items(): Rl[:, j] = tr['rotation']
+        Tl[:, tgt.idx['pelvis']] = Pl; WTf = tgt.world(Tl, Rl)[0]
+        low = np.minimum(WTf[:, tgt.idx['foot_l'], 1], WTf[:, tgt.idx['foot_r'], 1])
+        dy = WTt[tgt.idx['foot_l'], 1] + lift - np.percentile(low, 5)   # опорная стопа на полу почти всегда (5-й процентиль — без редких провалов мокапа)
+        P[:, 1] += dy; Pl = qrot(qinv(WRt[jr])[None], P - WTt[jr][None])
+        print(f'   высота по ноге цели: таз {dy * 100:+.1f} см')
     tracks[tgt.idx['pelvis']]['translation'] = Pl
     if loop: loopify(tracks, F, src.fps, xf)
     return tgt, set(bones), ts2, tracks
@@ -224,6 +233,6 @@ if __name__ == '__main__':
     for it in spec:
         path = os.path.join(srcdir, it['src'])
         src = canon(FbxSkel(path, it.get('fps', 30)) if path.lower().endswith('.fbx') else BvhSkel(path, it.get('fps', 30)))
-        tgt, keep, ts, tracks = retarget(src, it.get('t0'), it.get('t1'), loop=it.get('loop', False), inplace=it.get('inplace', True), stab=it.get('stab', 0), pelvis=it.get('pelvis'), xf=it.get('xf', .6), walk=it.get('walk', False), lift=it.get('lift', 0))
+        tgt, keep, ts, tracks = retarget(src, it.get('t0'), it.get('t1'), loop=it.get('loop', False), inplace=it.get('inplace', True), stab=it.get('stab', 0), pelvis=it.get('pelvis'), xf=it.get('xf', .6), walk=it.get('walk', False), lift=it.get('lift', 0), ground=it.get('ground'))
         clips[it['name']] = (ts, tracks); print(f"{it['name']:24s} {len(ts):4d} кадров {ts[-1]:6.2f} с")
     n, k = save(outp, tgt, keep, clips); print('→', outp, n // 1024, 'КБ, ключей', k)

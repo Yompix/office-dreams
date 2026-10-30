@@ -216,18 +216,32 @@ body.land #qaP img { max-height: 70vh; grid-row: span 6; }
     }
     return new Promise(r => c.toBlob(r, 'image/jpeg', .86));
   }
-  // список сцен (из меню)
+  // список сцен (из меню). Сверху — 4 концовки и все смерти по порядку (владелец: «отсортируй смерти и 4 концовки, чтоб удобно находить»):
+  // у смерти — номер, заголовок экрана смерти и где Итан, когда проиграл; варианты тех же смертей в другие часы — сразу под основной
+  const DEATHS = [['over_k1', 'будка, камера 13'], ['over_k1_srv', 'серверная, час S6'], ['over_k1_hide', 'под стойкой, час A1'], ['over_k2', '7 этаж, коридор'],
+    ['over_k3', 'будка, рация'], ['over_k4', 'будка, камера 13'], ['over_k5', 'под столом в будке'], ['over_k5b', 'под столом в будке, час A1'], ['over_k6', 'бег по коридору'],
+    ['over_k7', 'подвал, дверь серверной'], ['over_k8', 'серверная, Фрэнк'], ['over_k9', 'будка, звонок Лили'], ['over_fmom', 'будка, телефон Фрэнка'], ['over_door', 'будка, вход'],
+    ['over_come', 'будка'], ['over_come_srv', 'серверная, час S6'], ['over_stare', 'будка, «тсс»'], ['over_stare_b', 'будка, камера 07'], ['over_stare_srv', 'серверная, час S6'],
+    ['over_stare_hide', 'под стойкой, час A1'], ['over_phone', 'будка, телефон'], ['over_phone_hide', 'под стойкой, час A1']];
   function list() {
     const S = window.STORY, tim = N.tim || {}; let tm = '';
     const rows = Object.entries(S.scenes).map(([id, sc]) => {
       if (sc.time) tm = sc.time;
       const b0 = (sc.beats || []).find(b => (b.say && b.say.length) || b.text) || {}, k = (b0.say || [])[0], th = sc.then || {};
       const line = (k && tim[k] && tim[k].t) || b0.text || (th.shift ? 'час смены ' + th.shift : th.explore ? 'обход' : th.talk ? 'разговор' : '');
-      return { id, tm: sc.time || tm, line: String(line).replace(/^—\s*/, '').slice(0, 90), g: id.startsWith('over_') ? 'Смерти' : id.startsWith('sh_') ? 'Часы смены' : 'Сюжет' };
+      return { id, tm: sc.time || tm, line: String(line).replace(/^—\s*/, '').slice(0, 90), g: th.ending ? 'end' : id.startsWith('over_') ? 'Смерти' : id.startsWith('sh_') ? 'Часы смены' : 'Сюжет' };
     });
+    const top = [], ends = rows.filter(x => x.g === 'end'), dn = {};
+    ends.forEach((x, i) => { const th = S.scenes[x.id].then; top.push({ id: x.id, tm: 'К' + (i + 1), line: (th.title || x.id) + (th.sub ? ' — ' + th.sub : ''), g: 'Концовки — ' + ends.length }); });
+    let n = 0; const known = new Set(DEATHS.map(d => d[0]));
+    for (const [id, where] of [...DEATHS, ...rows.filter(x => x.g === 'Смерти' && !known.has(x.id)).map(x => [x.id, ''])]) { const sc = S.scenes[id]; if (!sc) continue;
+      const base = id.replace(/_(srv|hide|b)$/, '').replace(/^over_k5b$/, 'over_k5'), first = !(base in dn); if (first) dn[base] = ++n;
+      top.push({ id, tm: first ? 'С' + dn[base] : '↳', line: ((sc.then && sc.then.over) || id) + (where ? ' · ' + where : ''), g: 'Смерти — ' + n }); }
+    const DG = 'Смерти — ' + n; top.forEach(x => { if (x.g.startsWith('Смерти')) x.g = DG; });
+    const all = [...top, ...rows.filter(x => x.g === 'Сюжет' || x.g === 'Часы смены')], groups = [...new Set(all.map(x => x.g))];
     const ui = $('ui');
     ui.innerHTML = `<div class="screen sub qa-list"><h1>СЦЕНЫ</h1><input id="qlQ" placeholder="поиск: id или слова" autocomplete="off"><div id="qlL"></div><button class="btn ghost" id="qlB">Назад</button></div>`;
-    const L = $('qlL'), draw = q => { L.innerHTML = ['Сюжет', 'Часы смены', 'Смерти'].map(g => { const r = rows.filter(x => x.g === g && (!q || (x.id + ' ' + x.line).toLowerCase().includes(q))); return r.length ? `<h3>${g}</h3>` + r.map(x => `<button data-id="${x.id}"><b>${esc(x.tm)}</b><i>${esc(x.id)}</i><span>${esc(x.line)}</span></button>`).join('') : ''; }).join('') || '<p>Ничего не нашлось</p>'; };
+    const L = $('qlL'), draw = q => { L.innerHTML = groups.map(g => { const r = all.filter(x => x.g === g && (!q || (x.id + ' ' + x.line).toLowerCase().includes(q))); return r.length ? `<h3>${g}</h3>` + r.map(x => `<button data-id="${x.id}"><b>${esc(x.tm)}</b><i>${esc(x.id)}</i><span>${esc(x.line)}</span></button>`).join('') : ''; }).join('') || '<p>Ничего не нашлось</p>'; };
     draw('');
     $('qlQ').oninput = e => draw(e.target.value.trim().toLowerCase());
     $('qlQ').onkeydown = e => e.stopPropagation();

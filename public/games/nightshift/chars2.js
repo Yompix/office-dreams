@@ -23,7 +23,7 @@ async function load(onFile) {
   const L = new window.THREE_GLTFLoader();
   if (window.MeshoptDecoder) { try { await window.MeshoptDecoder.ready; L.setMeshoptDecoder(window.MeshoptDecoder); } catch (e) { console.warn('meshopt', e); } }
   // каждый файл — со второй попыткой: один сбой сети не должен откатывать всех людей к запасным
-  const url = n => 'models/' + n + '.glb?v=' + (HUMANS.includes(n) ? 4 : n === 'anims2' ? 2 : 1);   // anims2 — поднимать при пересборке мокапа
+  const url = n => 'models/' + n + '.glb?v=' + (HUMANS.includes(n) ? 4 : n === 'anims2' ? 3 : 1);   // anims2 — поднимать при пересборке мокапа
   const fetch1 = n => get(url(n)).catch(() => get(url(n))), parse = (n, b) => new Promise((ok, no) => L.parse(b, '', g => { G[n] = g; if (onFile) onFile(); ok(); }, no));
   const one = n => fetch1(n).then(b => parse(n, b));
   const raw2 = window.MeshoptDecoder ? fetch1('anims2').catch(() => null) : null;   // мокап качается вместе с остальными, а не после них (на 4G — секунда-две раньше меню)
@@ -743,14 +743,18 @@ function kneel(C, tt) {
 // ступня сохраняет поворот в мире (после поправки ноги подошва остаётся на полу)
 function keepWorld(C, name, q) { const b = C.bone[name]; b.parent.getWorldQuaternion(_Q3); b.quaternion.copy(_Q3.invert().multiply(q)); b.updateWorldMatrix(false, true); }
 // точка хвата в ладони (в осях персонажа): между запястьем и основанием среднего пальца, чуть к ладони
-const _UP = new T.Vector3(0, 1, 0), _twQ = new T.Quaternion(), _flA = new T.Vector3(), _flB = new T.Vector3(), _flL = new T.Vector3(), _flQ = new T.Quaternion();
+const _UP = new T.Vector3(0, 1, 0), _twQ = new T.Quaternion(), _flA = new T.Vector3(), _flB = new T.Vector3(), _flL = new T.Vector3(), _flQ = new T.Quaternion(), _flP = new T.Vector3();
 // опорная стопа не едет по полу: пока человек идёт (корень движется) и нога стоит (лодыжка ниже другой не больше чем на 2 см, у пола), место стопы
 // на полу запоминается, и нога доводится туда IK; стопа отрывается — плавно отпускаем к клипу. Уехала дальше 16 см — отпускаем, а не тянем ногу.
 // Состояние меняется только при dt > 0: повторный расчёт позы в том же кадре (твёрдый мир, dt = 0) даёт ту же позу
 function footLock(C, dt) {
   const ss = C.ss || 1, rp = C.root.position, F = C.flk || (C.flk = { l: { on: false, p: new T.Vector3(), w: 0 }, r: { on: false, p: new T.Vector3(), w: 0 }, prev: null, v: 0 });
-  if (dt > 0) { if (F.prev) { const v = Math.hypot(rp.x - F.prev.x, rp.z - F.prev.z) / dt; F.v += (Math.min(v, 4) - F.v) * Math.min(1, dt * 10); } (F.prev || (F.prev = new T.Vector3())).copy(rp); }
   const fl = C.bone.foot_l, fr = C.bone.foot_r; if (!fl || !fr) return;
+  // скорость — корня или таза (что больше): в клипе «на месте» (мытьё, CMU 14_13) человек ходит внутри клипа — корень стоит, таз переступает;
+  // раньше там замок не включался, и стопы ехали по полу ~0,23 м/с
+  if (dt > 0) { C.root.updateWorldMatrix(true, true); const pw = C.bone.pelvis ? C.bone.pelvis.getWorldPosition(_flP) : rp;
+    if (F.prev) { const v = Math.max(Math.hypot(rp.x - F.prev.x, rp.z - F.prev.z), Math.hypot(pw.x - F.pp.x, pw.z - F.pp.z)) / dt; F.v += (Math.min(v, 4) - F.v) * Math.min(1, dt * 10); }
+    (F.prev || (F.prev = new T.Vector3())).copy(rp); (F.pp || (F.pp = new T.Vector3())).copy(pw); }
   const moving = F.v > .25; if (dt > 0) F.still = moving ? 0 : (F.still || 0) + dt; const active = moving || F.still < .6;   // остановился — ещё 0,6 с стоит на тех же местах, потом стопы мягко уходят в стойку
   C.root.updateWorldMatrix(true, true); const hl = fl.getWorldPosition(_flL).y - rp.y, hr = fr.getWorldPosition(_flA).y - rp.y, lo = Math.min(hl, hr);
   for (const sd of ['l', 'r']) { const S = F[sd], ft = C.bone['foot_' + sd], wp = ft.getWorldPosition(_flA), h = wp.y - rp.y, down = h <= lo + .02 * ss && h < .17 * ss;
@@ -950,10 +954,14 @@ function propMesh(name) {
     fl.position.y = .05; g.add(fl); g.userData.flame = fl;
   } else if (name === 'mop') {
     const al = mat(0x9aa0a8, null, { metal: .8, rough: .35 }), pl = mat(0x2a3a7a, null, { rough: .6 });
-    cyl(.012, .012, 1.42, 8, al, g).position.y = .73; cyl(.016, .016, .12, 8, mat(0x1a1a1a, null, { rough: .8 }), g).position.y = 1.38;   // черенок и ручка
-    box(.42, .035, .1, pl, 0, .045, 0, g); cyl(.02, .02, .07, 6, pl, g).position.y = .09;                                                // колодка
+    cyl(.012, .012, 1.56, 8, al, g).position.y = .80; cyl(.016, .016, .12, 8, mat(0x1a1a1a, null, { rough: .8 }), g).position.y = 1.52;   // черенок 1,6 м (промышленная швабра: руки уборщика в мокапе — на длинном черенке) и ручка
+    cyl(.02, .02, .07, 6, pl, g).position.y = .09;                                                                                     // втулка шарнира
+    // колодка с тряпкой — на шарнире (как у настоящей плоской швабры): лежит на полу ровно, наклоняется только черенок (propAim).
+    // Раньше колодка наклонялась вместе с черенком и край её с тряпкой уходил в пол на 9–15 см
+    const hd = new T.Group(); g.add(hd); g.userData.head = hd;
+    box(.42, .035, .1, pl, 0, .045, 0, hd);
     const fm = mat(0xd8d2c4, null, { rough: .95 }), fm2 = mat(0xa8a294, null, { rough: .95 });
-    for (let i = 0; i < 40; i++) { const f = box(.026, .022, .2 + rnd() * .07, i % 3 ? fm : fm2, -.21 + (i % 20) * .022, .011, (i < 20 ? .06 : -.06), g); f.rotation.y = (rnd() - .5) * .5; }   // тряпка — жгуты
+    for (let i = 0; i < 40; i++) { const f = box(.026, .022, .2 + rnd() * .07, i % 3 ? fm : fm2, -.21 + (i % 20) * .022, .011, (i < 20 ? .06 : -.06), hd); f.rotation.y = (rnd() - .5) * .5; }   // тряпка — жгуты
   } else if (name === 'splint') {   // картон по бокам голени, обмотан серым скотчем (начало — середина голени, вдоль +Y)
     const cb = mat(0x9a7a50, null, { rough: .9 }), tp = mat(0x8c9094, null, { rough: .45 });
     for (const s of [-1, 1]) box(.012, .38, .11, cb, s * .062, 0, 0, g);
@@ -1016,8 +1024,18 @@ function holdProp(C, sd, spec, dt) {
 // кадр сам кладёт предмет в мир (на стол, на пол): где и как
 function propAt(name, scene, pos, rot) { const pr = prop3(name); if (pr.obj.parent !== scene) scene.add(pr.obj); pr.obj.position.set(...pos); pr.obj.rotation.set(...(rot || [0, 0, 0])); pr.obj.visible = true; pr.C = null; pr.seen = true; }
 // в начале кадра все предметы прячутся; видны только те, что кто-то держит или кадр положил (pr.was — был ли виден в прошлом кадре)
-function propAim(name, scene, pos, dir, yaw = 0) { const pr = prop3(name); if (pr.obj.parent !== scene) scene.add(pr.obj); pr.obj.position.set(...pos);
-  pr.obj.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(...dir).normalize()).multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), yaw)); pr.obj.visible = true; pr.C = null; }
+function propAim(name, scene, pos, dir, yaw = 0, floor = null) { const pr = prop3(name); if (pr.obj.parent !== scene) scene.add(pr.obj); pr.obj.position.set(...pos);
+  pr.obj.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(...dir).normalize()).multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), yaw)); pr.obj.visible = true; pr.C = null;
+  const hd = pr.obj.userData.head; if (hd) { _hdi.copy(pr.obj.quaternion).invert(); hd.quaternion.copy(_hdi).multiply(_hdq.setFromAxisAngle(_UP, headYaw(dir, yaw)));   // колодка — ровно на полу
+    hd.position.set(0, floor == null ? 0 : floor - pos[1], 0).applyQuaternion(_hdi); } }   // floor — пол под колодкой, когда шарнир выше неё (швабра лежит: черенок от верха колодки к полу)
+// поворот колодки швабры: черенок почти отвесный — как задал кадр (yaw); наклонён — колодка поперёк наклона (буквой «Т»), без переворота на 180°
+const _hdq = new T.Quaternion(), _hdi = new T.Quaternion();
+function headYaw(dir, yaw) {
+  const h = Math.hypot(dir[0], dir[2]) / Math.hypot(dir[0], dir[1], dir[2]); if (h < .15) return yaw;
+  let a = Math.atan2(dir[0], dir[2]);   // ось колодки X поперёк наклона: угол X = направление наклона ± 90°
+  const wrap = x => Math.atan2(Math.sin(x), Math.cos(x)); if (Math.abs(wrap(a - yaw)) > Math.PI / 2) a += Math.PI;
+  return yaw + wrap(a - yaw) * clamp((h - .15) / .25, 0, 1);
+}
 function propsFrame() { for (const k in PROPS3) { const pr = PROPS3[k]; pr.was = pr.obj.visible; pr.obj.visible = false; pr.obj.updateMatrix(); } }
 // тело на полу: сустав, ушедший ниже пола (судороги, клип «лёжа»), кость над ним поднимает — поворотом в суставе вокруг горизонтальной оси, сверху вниз по цепочке
 const LAY_CH = [['spine_02', 'neck_01', .1], ['neck_01', 'Head', .1], ['thigh_l', 'calf_l', .07], ['calf_l', 'foot_l', .05], ['thigh_r', 'calf_r', .07], ['calf_r', 'foot_r', .05],
@@ -1130,6 +1148,13 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
       pel.parent.updateWorldMatrix(true, false); pel.position.copy(pel.parent.worldToLocal(wp)); pel.updateWorldMatrix(false, true); }
     for (const [sd, wpos, wq] of feet) { const lp = C.root.worldToLocal(wpos.clone()); ik2(C, 'thigh_' + sd, 'calf_' + sd, 'foot_' + sd, lp.x, lp.y, lp.z, [sd === 'l' ? .15 : -.15, 0, 1]); keepWorld(C, 'foot_' + sd, wq); }
   }
+  // ступни в заданных точках мира (переступает на месте — scenes.js turnSteps): at — лодыжка, yaw — на сколько стопа повёрнута относительно корня
+  // (опорная ещё «смотрит» туда, где её поставили, пока корпус поворачивается)
+  if (P.feet) { C.root.updateWorldMatrix(true, true);
+    for (const sd of ['l', 'r']) { const F = P.feet[sd]; if (!F) continue; const ft = C.bone['foot_' + sd], wq = ft.getWorldQuaternion(new T.Quaternion());
+      if (F.yaw) wq.premultiply(_q3.setFromAxisAngle(_UP, F.yaw));
+      const px = sd === 'l' ? .15 : -.15, y = F.yaw || 0, pole = [px * Math.cos(y) + Math.sin(y), 0, -px * Math.sin(y) + Math.cos(y)];   // колено — туда, куда смотрит стопа (иначе ноги перекручиваются)
+      const lp = C.root.worldToLocal(new T.Vector3(F.at[0], F.at[1], F.at[2])); ik2(C, 'thigh_' + sd, 'calf_' + sd, 'foot_' + sd, lp.x, lp.y, lp.z, pole, F.w ?? 1); keepWorld(C, 'foot_' + sd, wq); } }
   if (!P.still) breathe(C, tt, dT, P.br);   // до касаний рук: ладони останутся там, где их поставил кадр
   if (P.pain) painLife(C, dT, P.pain);
   if (!C.o.monster && list.every(c => SOFTC.has(c[0])))   // обычная стойка, речь, ходьба, сидя: кисти мягкие (если кадр не задал пальцы и в руке ничего нет)
@@ -1143,6 +1168,7 @@ function act3Body(C, P, tt, dt, dT = dt, cut = false) {
   if (P.gest) gestBeat(C, P, tt, dT);
   if (P.arm) for (const sd of ['l', 'r']) if (P.arm[sd]) reachArm(C, sd, P.arm[sd]);
   if (P.heels != null) heelFloor(C, P.heels);   // heels — высота пола (корень сидящего бывает приподнят над полом)
+  if (P.toes) footFloor(C);   // носки не под полом (падает: смесь клипов опускала стопы на 4–5 см под пол)
   if (P.after) P.after(C, tt);
   if (P.hold) for (const sd of ['l', 'r']) if (P.hold[sd]) holdProp(C, sd, P.hold[sd], dt);
   if (P.wear) for (const name in P.wear) wearProp(C, name, P.wear[name]);
@@ -1333,7 +1359,7 @@ function updateSkinned(C, t, dt) {
     }
   }
   if (C.v3 && (P === 'sitfloor' || P === 'sitpaper' || P === 'kneel')) kneel(C, tt);
-  if (C.v3 && !C.o.monster && !(OBJ && P.still)) footLock(C, dt);   // идёт: опорная стопа стоит на полу, а не едет (было ~26 % скорости шага)
+  if (C.v3 && !C.o.monster && !(OBJ && (P.still || P.feet))) footLock(C, dt);   // идёт: опорная стопа стоит на полу, а не едет (было ~26 % скорости шага); ступни задал кадр — не мешаем
   // руки поверх анимации
   if (P === 'knock' || P === 'slam' || P === 'press') {   // press — ладони прижаты к стеклу, без ударов (оно не стучит — только зовёт)
     // стук в стекло: левая ладонь лежит на стекле, правая рука кулаком стучит сериями по три удара, корпус чуть к стеклу
@@ -1442,6 +1468,9 @@ function updateSkinned(C, t, dt) {
   const LD = _ld.copy(C.lookDir); C.rollNow = 0;
   if (life) { const [hy, hp, hr] = headLife(C, tt, dT, talking, hearing); offDir(LD, hy, hp); C.rollNow = hr; }
   else if (talking && !C.o.monster) { LD.y += Math.sin(tt * 3.1) * .035 + Math.sin(tt * 1.3) * .02; LD.x += Math.sin(tt * .9) * .025; LD.normalize(); }
+  // прислушивается (P.listen: k, yaw, pitch, tilt): голова повёрнута ухом к звуку, склонена, взгляд ниже; заговорил — почти лицом к нему (без рывка)
+  if (life && OBJ && P.listen) { const Ls = P.listen; C.lisW = lerp(C.lisW ?? 0, (Ls.k ?? 1) * (talking ? .25 : 1), cut ? 1 : Math.min(1, sdt * 2.5));
+    if (C.lisW > .001) { offDir(LD, (Ls.yaw ?? .5) * C.lisW, -(Ls.pitch ?? .14) * C.lisW); C.rollNow += (Ls.tilt ?? .16) * C.lisW; } } else C.lisW = 0;
   if (C.no > 0) { _q.setFromAxisAngle(_UP, Math.sin(tt * 6.5) * .42 * C.no); LD.applyQuaternion(_q); }   // мотает головой: «нет, нет, нет»
   // корпус помогает голове: взгляд в сторону — грудь доворачивается на треть (не больше ~24°), шея и голова — остальное (раньше крутилась одна шея).
   // Не трогаем, если руки держат что-то или тянутся к точке (плечи увели бы кисти с цели)
@@ -1806,6 +1835,7 @@ function makeHuman(o) {
   fitProps(C);
   if (o.monster) clawHands(C.mesh);
   if (o.gown) skinGown(C);
+  if (o.monster && C.hairM) capsOn(C, C.hairM, .008 * C.ss);   // длинные волосы — по спине и плечам, а не сквозь них
   return C;
 }
 
@@ -1860,7 +1890,7 @@ function skinGown(C) {
   const side = Math.sign(thL.x - pel.x) || 1, yTop = neck.y - .05 * C.ss, yHip = pel.y, yBot = cfL.y - .2 * C.ss, armCut = Math.abs(arm.x - base.x) * .92;
   const pts = [], pa = sk.geometry.attributes.position, v = new T.Vector3(), step = Math.max(1, Math.floor(pa.count / 6000));   // точки тела в позе покоя (мир)
   for (let i = 0; i < pa.count; i += step) { sk.getVertexPosition(i, v); v.applyMatrix4(sk.matrixWorld); pts.push([v.x, v.y, v.z]); }
-  const NR = 16, NA = 32, rows = [], ySh = arm.y;   // верхнее кольцо — вокруг шеи, второе — на высоте плечевых суставов: между ними плечи (руки выходят по бокам)
+  const NR = 22, NA = 44, rows = [], ySh = arm.y;   // мельче сетка: крупный треугольник ткани резал колено   // верхнее кольцо — вокруг шеи, второе — на высоте плечевых суставов: между ними плечи (руки выходят по бокам)
   const band = (y, dy, cut) => { let x0 = 9, x1 = -9, z0 = 9, z1 = -9;
     for (const [px, py, pz] of pts) { if (Math.abs(py - y) > dy || Math.abs(px - base.x) > cut) continue; x0 = Math.min(x0, px); x1 = Math.max(x1, px); z0 = Math.min(z0, pz); z1 = Math.max(z1, pz); }
     if (x1 < x0) { x0 = base.x - .15; x1 = base.x + .15; z0 = base.z - .1; z1 = base.z + .1; }
@@ -1873,7 +1903,7 @@ function skinGown(C) {
     if (r.neckRow) { r.rx += .022 * C.ss; r.rz += .022 * C.ss; continue; }   // ворот — у самой шеи
     const loose = .05 + .3 * Math.pow(r.f, 1.4); r.rx = r.rx * (1 + loose) + .02 * C.ss; r.rz = r.rz * (1 + loose * 1.2) + .03 * C.ss; }
   const pos = [], aB = [], aF = [], aS = [], si = [], sw = [], idx = [];
-  const bones = ['spine_03', 'spine_02', 'spine_01', 'pelvis', 'thigh_l', 'thigh_r'].filter(n => C.bone[n]), bi = n => bones.indexOf(n), yS3 = sp3.y, yS1 = sp1.y;
+  const bones = ['spine_03', 'spine_02', 'spine_01', 'pelvis', 'thigh_l', 'thigh_r'].filter(n => C.bone[n]), bi = n => bones.indexOf(n), yS3 = sp3.y, yS1 = sp1.y, yKn = cfL.y;
   for (const r of rows) for (let i = 0; i <= NA; i++) {
     const a = i / NA * Math.PI * 2, sa = Math.sin(a), ca = Math.cos(a), wave = 1 + .05 * r.f * Math.sin(a * 9 + .6) + .022 * r.f * Math.sin(a * 23);
     const ell = 1 / Math.sqrt(Math.pow(sa / r.rx, 2) + Math.pow(ca / r.rz, 2)), w = new T.Vector3(r.cx + sa * ell * wave, r.y, r.cz + ca * ell * wave);
@@ -1883,7 +1913,10 @@ function skinGown(C) {
     if (r.y >= yS3) W = { spine_03: 1 };
     else if (r.y >= yS1) { const k = (yS3 - r.y) / Math.max(.01, yS3 - yS1); W = { spine_03: 1 - k, spine_01: k }; }
     else if (r.y >= yHip) { const k = (yS1 - r.y) / Math.max(.01, yS1 - yHip); W = { spine_01: 1 - k, pelvis: k }; }
-    else { const g = Math.min(1, Math.pow((yHip - r.y) / Math.max(.01, yHip - yBot), 1.15)) * .82, l = T.MathUtils.smoothstep(sa * side, -.55, .55); W = { pelvis: 1 - g, thigh_l: g * l, thigh_r: g * (1 - l) }; }
+    else {   // перед подола идёт за бедром целиком (присел — ткань на коленях, а не колени сквозь ткань); спина свисает с таза, как раньше
+      const fr = T.MathUtils.smoothstep(ca, -.25, .65), l = T.MathUtils.smoothstep(sa * side, -.55, .55);
+      const gB = Math.min(1, Math.pow((yHip - r.y) / Math.max(.01, yHip - yBot), 1.15)) * .82, gF = Math.min(1, (yHip - r.y) / Math.max(.01, yHip - yKn)), g = gB + (gF - gB) * fr;
+      W = { pelvis: 1 - g, thigh_l: g * l, thigh_r: g * (1 - l) }; }
     const ks = Object.keys(W).filter(n => bi(n) >= 0); while (ks.length < 4) ks.push(null);
     for (const n of ks) { si.push(n ? bi(n) : 0); sw.push(n ? W[n] : 0); }
   }
@@ -1893,6 +1926,41 @@ function skinGown(C) {
   geo.setAttribute('skinIndex', new T.Uint16BufferAttribute(si, 4)); geo.setAttribute('skinWeight', new T.Float32BufferAttribute(sw, 4)); geo.computeVertexNormals();
   const m = new T.SkinnedMesh(geo, gownMat(C)); m.name = 'gown'; m.frustumCulled = false; par.add(m); m.updateWorldMatrix(true, false);
   m.bind(new T.Skeleton(bones.map(n => C.bone[n]))); C.gown = m;
+  capsOn(C, m, .014 * C.ss);   // подол и рубаха — поверх тела (присел, наклонился, бросок)
+}
+// тело Жильца капсулами по костям (владелец: «чтоб у монстра одежда через него не проходила и волосы не заходили внутрь тела»): ткань рубахи
+// и длинные волосы не уходят в тело ни в какой позе (присел — колени и бёдра проходили сквозь подол, наклонился — волосы в плечи и спину).
+// Толщина капсулы — по самой модели в позе покоя (вершины кожи, у которых эта кость главная; перцентиль q — у туловища меньше: оно не круглое),
+// концы капсул каждый кадр переводятся в оси сетки (onBeforeRender), а видеокарта после скиннинга выталкивает вершину на поверхность капсулы (CAP_VS)
+const CAP_DEF = [['pelvis', 'spine_02', .55], ['spine_02', 'spine_03', .55], ['spine_03', 'neck_01', .55], ['neck_01', 'Head', .6], ['clavicle_l', 'upperarm_l', .6], ['clavicle_r', 'upperarm_r', .6],
+  ['upperarm_l', 'lowerarm_l', .8], ['lowerarm_l', 'hand_l', .8], ['upperarm_r', 'lowerarm_r', .8], ['lowerarm_r', 'hand_r', .8],
+  ['thigh_l', 'calf_l', .85], ['calf_l', 'foot_l', .85], ['thigh_r', 'calf_r', .85], ['calf_r', 'foot_r', .85]];
+const CAP_N = CAP_DEF.length;
+const CAP_VS = `
+  for (int cpI = 0; cpI < ${CAP_N}; cpI++) { vec3 cpA = uCapA[cpI], cpD = uCapB[cpI] - cpA; float cpH = clamp(dot(transformed - cpA, cpD) / max(dot(cpD, cpD), 1e-6), 0., 1.);
+    vec3 cpC = cpA + cpD * cpH, cpV = transformed - cpC; float cpL = length(cpV), cpR = mix(uCapR[cpI].x, uCapR[cpI].y, cpH); if (cpL < cpR) transformed = cpC + (cpL > 1e-5 ? cpV / cpL : vec3(0., 0., 1.)) * cpR; }`;
+function capsBuild(C) {   // капсула — конус: толщина у каждого конца своя (бедро у таза толще, чем у колена; колено — начало голени)
+  const sk = C.mesh; if (!sk || !sk.skeleton) { C.caps = []; return; } C.root.updateWorldMatrix(true, true);
+  const names = sk.skeleton.bones.map(b => b.name), pa = sk.geometry.attributes.position, si = sk.geometry.attributes.skinIndex, sw = sk.geometry.attributes.skinWeight, v = new T.Vector3(), by = {};
+  for (let i = 0, step = Math.max(1, Math.floor(pa.count / 9000)); i < pa.count; i += step) { let bi = 0, bw = -1; for (let j = 0; j < 4; j++) { const w = sw.getComponent(i, j); if (w > bw) { bw = w; bi = si.getComponent(i, j); } }
+    sk.getVertexPosition(i, v); v.applyMatrix4(sk.matrixWorld); (by[names[bi]] || (by[names[bi]] = [])).push(v.clone()); }
+  C.caps = CAP_DEF.filter(([a, b]) => C.bone[a] && C.bone[b]).map(([a, b, q]) => {
+    const A = C.bone[a].getWorldPosition(new T.Vector3()), ab = C.bone[b].getWorldPosition(new T.Vector3()).sub(A), L2 = Math.max(1e-6, ab.lengthSq()), c = new T.Vector3(), d = new T.Vector3(), end = [[], []];
+    for (const p of [...(by[a] || []), ...(by[b] || [])]) { const h0 = d.copy(p).sub(A).dot(ab) / L2; if (h0 < -.15 || h0 > 1.15) continue; const h = clamp(h0, 0, 1), r = p.distanceTo(c.copy(A).addScaledVector(ab, h));
+      if (r > .35 * (C.ss || 1)) continue; if (h < .3) end[0].push(r); if (h > .7) end[1].push(r); }
+    const pr = L => { L.sort((x, y) => x - y); return L.length ? L[Math.floor((L.length - 1) * q)] : .04 * (C.ss || 1); };
+    return [a, b, pr(end[0]), pr(end[1])]; });
+}
+function capsOn(C, mesh, pad) {   // pad — запас: толщина ткани, пряди (м)
+  if (!mesh || !mesh.material) return; if (!C.caps) capsBuild(C);
+  const m = mesh.material, U = { uCapA: { value: Array.from({ length: CAP_N }, () => new T.Vector3()) }, uCapB: { value: Array.from({ length: CAP_N }, () => new T.Vector3()) }, uCapR: { value: Array.from({ length: CAP_N }, () => new T.Vector2()) } };
+  const prev = m.onBeforeCompile, key = m.customProgramCacheKey;
+  m.onBeforeCompile = (sh, r) => { if (prev) prev.call(m, sh, r); Object.assign(sh.uniforms, U);
+    sh.vertexShader = `uniform vec3 uCapA[${CAP_N}], uCapB[${CAP_N}]; uniform vec2 uCapR[${CAP_N}];\n` + sh.vertexShader.replace('#include <skinning_vertex>', '#include <skinning_vertex>' + CAP_VS); };
+  m.customProgramCacheKey = () => (key ? key.call(m) : '') + 'cap'; m.needsUpdate = true;
+  const _a = new T.Vector3(), _s = new T.Vector3();
+  mesh.onBeforeRender = () => { mesh.updateWorldMatrix(true, false); const k = 1 / (mesh.getWorldScale(_s).x || 1);
+    C.caps.forEach(([a, b, ra, rb], i) => { mesh.worldToLocal(U.uCapA.value[i].copy(C.bone[a].getWorldPosition(_a))); mesh.worldToLocal(U.uCapB.value[i].copy(C.bone[b].getWorldPosition(_a))); U.uCapR.value[i].set((ra + pad) * k, (rb + pad) * k); }); };
 }
 function gownMat(C) {
   const m = litMat({ color: 0xffffff, side: T.DoubleSide }, .92);
@@ -2110,5 +2178,5 @@ function cast() {
   return A;
 }
 
-Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3, handPt, reachArm, hasClip: n => !!CLIP[n] && !window.__NOMOCAP });
+Object.assign(window.__W3chars, { load, makeSkinned, propAt, propAim, propsFrame, HANDP, prop3, handPt, reachArm, layFloor, hasClip: n => !!CLIP[n] && !window.__NOMOCAP });
 })();

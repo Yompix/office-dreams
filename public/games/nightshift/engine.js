@@ -394,11 +394,18 @@ let perf2S = 0, perf2N = 0;
 const JUMP_D = .75;   // сколько длится скример смерти (с)
 const GORE_D = 3.4;   // после скримера: как оно убивает (кадр gore@… в scenes.js, этапы: захват → когти → рывок → ест), потом чернота
 // у каждой смерти своё (владелец: «больше жести, во всех 14 уникальное»): L — «Лили», D — двойник, F — жертва Фрэнк
-const GORE_KIND = { over_k1: 'face', over_k2: 'hang', over_k3: 'eat', over_k4: 'neck', over_k5: 'drag', over_k5b: 'drag', over_k6: 'limb', over_k7: 'chest', over_k8: 'neckF',
+const GORE_KIND = { over_k1: 'face', over_k2: 'hang', over_k3: 'eat', over_k4: 'neck', over_k5: 'dragL', over_k5b: 'dragL', over_k6: 'limb', over_k7: 'chest', over_k8: 'neckF',
   over_k9: 'throatL', over_fmom: 'throat', over_door: 'chestL', over_come: 'heart', over_stare: 'eyes', over_stare_b: 'eyes', over_phone: 'faceD' };
 const goreKind = id => GORE_KIND[id] || GORE_KIND[id.replace(/_(srv|hide)$/, '')] || null;
+// финал-сцена по сценарию (scenes.js GTL): своя длина, камера внутри кадра, звуки ровно на кадрах касаний; у остальных — старые 3,4 с
+const goreShotId = id => 'gore@' + (GORE_BASE[id] || (beat && beat.img)) + ':' + goreKind(id);
+const goreTL = id => (goreKind(id) && window.World && World.goreTL && World.goreTL(goreShotId(id))) || null;
+const goreDur = id => (goreTL(id) || {}).d || GORE_D;
 // откуда снимать финал: последний кадр смерти, а где он тесный (будка, стол) — соседний кадр той же локации с открытым местом
-const GORE_BASE = { over_k3: 'dbl_cam', over_k5: 'dbl_cam', over_k5b: 'dbl_cam', over_k7: 'bm_view', over_stare: 'door_tilt', over_stare_b: 'door_tilt', over_stare_hide: 'door_tilt' };
+// смерть там, где Итан проиграл (владелец: «смерти должны быть логичны, смотря где проиграл»): за пультом в будке — hush_face (scenes.js seatSet)
+const GORE_BASE = { over_k1: 'hush_face', over_k3: 'hush_face', over_k4: 'hush_face', over_k9: 'hush_face', over_fmom: 'hush_face', over_door: 'hush_face', over_come: 'hush_face',
+  over_stare: 'hush_face', over_stare_b: 'hush_face', over_phone: 'hush_face', over_k5: 'k5_drag', over_k5b: 'k5_drag', over_k7: 'bm_view', over_stare_hide: 'door_tilt',
+  over_k1_srv: 'hush_srv', over_k1_hide: 'k1_hide' };   // часы S6 и A1: Итан в серверной / под стойкой — там и финал (было: коридор седьмого с CAM 13)
 let jumpBuzz = 0;
 let flashT = -9, blackT = -9, scareAt = null, shakeAmp = 0, typed = null, hb = 0, pre = 0, trig = [], subl = null, sublScene = '', voiceNow = false;
 let creep = null, creepCool = 25, mgView = null;   // случайное появление Жильца в кадре; кадр под мини-игрой
@@ -518,7 +525,7 @@ function nextBeat() {
   if (beat.scare != null) scareAt = beat.scare;
   creep = null;
   bDur = Math.max(t + (beat.pad || .3), 1.2);
-  if (sceneId.startsWith('over_') && beat.black != null) bDur = Math.max(bDur, beat.black + JUMP_D + (goreKind(sceneId) ? GORE_D : 0) + .3);   // скример и финал смерти успевают до экрана смерти
+  if (sceneId.startsWith('over_') && beat.black != null) bDur = Math.max(bDur, beat.black + JUMP_D + (goreKind(sceneId) ? goreDur(sceneId) : 0) + .3);   // скример и финал смерти успевают до экрана смерти
   // склейки по словам: cutAt — слова первой реплики (regexp, русское|английское), на которых меняется план cams; без них планы делят кадр поровну
   bCuts = null;
   if (beat.cutAt && sched.length) { const it = sched[0], w = (TIM[it.k] || {}).ew || (TIM[it.k] || {}).w || [];   // ew — слова английской записи (языки без своей озвучки): склейка ровно на звучащем слове
@@ -601,7 +608,9 @@ function beatAudio() {
     play(J, { when: da, gain: calm() ? .8 : 1 }); play(J, { when: da + .01, gain: .55, rate: .55, to: D }); play(J, { when: da + .03, gain: .3, rate: 1.45, pan: -.5, to: D });
     if (BUF.boom) play('boom', { when: da, gain: .9 }); play('static', { when: da, gain: .45, cut: .5 });
     const gk = (goreKind(sceneId) || '').replace(/[LDF]$/, ''), g0 = da + JUMP_D, S = (n, dt, gain, o) => { if (BUF[n]) play(n, Object.assign({ when: g0 + dt, gain }, o)); };   // финал: мокрые, рвущиеся, хрустящие звуки
-    if (gk === 'eat' || gk === 'limb' || gk === 'heart') { S('breath_close', .15, .7); S('skin_stretch', .5, 1); S('eat_wet', .6, 1); S('skin_stretch', 1.15, .9, { rate: .85 }); S('eat_wet', 1.22, 1, { rate: .9 }); S('eat_wet', 2.3, .9); S('eat_wet', 2.85, .8, { rate: 1.1 }); }
+    const GT = goreTL(sceneId);
+    if (GT) for (const [n, dt, gain, o] of GT.sfx || []) S(n, dt, gain, o);   // по сценарию: на кадрах касаний
+    else if (gk === 'eat' || gk === 'limb' || gk === 'heart') { S('breath_close', .15, .7); S('skin_stretch', .5, 1); S('eat_wet', .6, 1); S('skin_stretch', 1.15, .9, { rate: .85 }); S('eat_wet', 1.22, 1, { rate: .9 }); S('eat_wet', 2.3, .9); S('eat_wet', 2.85, .8, { rate: 1.1 }); }
     else if (gk === 'drag') { S('skin_stretch', .1, .8); S('breath_close', .3, .7); S('eat_wet', .9, .5, { rate: .7 }); S('skin_stretch', 1.8, .7, { rate: .8 }); }
     else if (gk === 'chest') { S('breath_close', .1, .7); S('boom', .5, .7); S('skin_stretch', .5, 1); S('eat_wet', .6, 1); S('eat_wet', 1.25, 1, { rate: .85 }); S('skin_stretch', 1.3, .8); S('eat_wet', 2.2, .7); }
     else if (gk === 'neck' || gk === 'hang') { S('breath_close', .2, .8); S('skin_stretch', .55, .7); S('neck_crack', 1.25, 1); S('neck_crack', 1.32, .75, { rate: .8 }); S('skin_stretch', 1.3, .8); }
@@ -1905,13 +1914,14 @@ function frame(tp) {
             if (!calm()) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = `rgb(255,${60 + 150 * js / JUMP_D | 0},40)`; g.fillRect(0, 0, W, H); g.restore();
               if (js < .05) { g.save(); g.globalCompositeOperation = 'difference'; g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.restore(); } }
             grain(.3);
-          } else if (sceneId.startsWith('over_') && goreKind(sceneId) && js < JUMP_D + GORE_D) {   // финал: как оно убивает — крупно, 2,6 с
-            const gt = js - JUMP_D, gk = goreKind(sceneId);
-            const cl = gk !== 'drag' && gt > .55 && gt < 2.15;   // раскадровка: общий план → крупно рана (когти, рывок) → общий (ест)
-            shot('gore@' + (GORE_BASE[sceneId] || beat.img) + ':' + gk + (cl ? '|c' : ''), { cx: .5, cy: .5, z: 1 + .04 * gt, t: gt, T, sx: 0, sy: 0 });
-            if (gt < .12 && !calm()) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = '#ff3030'; g.fillRect(0, 0, W, H); g.restore(); }
-            if (/^(face|throat|eyes|chest|hang)/.test(gk) && gt > .55) splatBlood(g, W, H, Math.min(1, (gt - .55) * 3), sceneId.length * 7 + gk.length);
-            if (gt > GORE_D - .35) { g.fillStyle = `rgba(0,0,0,${(gt - GORE_D + .35) / .35})`; g.fillRect(0, 0, W, H); }
+          } else if (sceneId.startsWith('over_') && goreKind(sceneId) && js < JUMP_D + goreDur(sceneId)) {   // финал: как оно убивает
+            const gt = js - JUMP_D, gk = goreKind(sceneId), GT = goreTL(sceneId), gd = GT ? GT.d : GORE_D;
+            const cl = !GT && gk !== 'drag' && gt > .55 && gt < 2.15;   // старая раскадровка: общий план → крупно рана (когти, рывок) → общий (ест); у сценария камера своя
+            shot(goreShotId(sceneId) + (cl ? '|c' : ''), { cx: .5, cy: .5, z: GT ? 1 : 1 + .04 * gt, t: gt, T, sx: 0, sy: 0 });
+            if ((GT ? gt >= GT.hit && gt < GT.hit + .09 : gt < .12) && !calm()) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = '#ff3030'; g.fillRect(0, 0, W, H); g.restore(); }   // вспышка — на касании
+            const sp = GT ? GT.splat : /^(face|throat|eyes|chest|hang)/.test(gk) ? .55 : null;
+            if (sp != null && gt > sp) splatBlood(g, W, H, Math.min(1, (gt - sp) * 3), sceneId.length * 7 + gk.length);
+            if (gt > gd - .35) { g.fillStyle = `rgba(0,0,0,${(gt - gd + .35) / .35})`; g.fillRect(0, 0, W, H); }
             grain(.25);
           } else { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); } }
         else jumpBuzz = 0;
@@ -2113,5 +2123,5 @@ window.__ns = { back: () => menu(), startScene, get cam() { return camLast; }, g
   get held() { return holdN === 0; }, get canvas() { return [W, H, CS]; }, get bufN() { return Object.keys(BUF).length; }, get voiceN() { return Object.keys(BUF).filter(isVoice).length; },
   get vols() { const g = n => n ? +n.gain.value.toFixed(3) : null; return { out: g(outG), mus: g(uMus), sfx: g(uSfx), sfxRev: g(sfxRev), sfxLow: g(sfxLow), amb: g(uAmb), bedLow: g(bedLow), voice: g(voiceOut), voiceRev: g(voiceRev), direct: g(directG), bed: g(bedG) }; } };
 // режим проверки для владельца (qa.js): ?qa=1 — включить (запоминается), ?qa=0 — выключить; в демо itch.io не включается
-{ const q = /[?&]qa=([01])/.exec(location.search); if (q) LS.set('qa', q[1] === '1'); if (LS.get('qa', false) && !DEMO) { const sc = document.createElement('script'); sc.src = 'qa.js?v=2'; document.head.appendChild(sc); } }
+{ const q = /[?&]qa=([01])/.exec(location.search); if (q) LS.set('qa', q[1] === '1'); if (LS.get('qa', false) && !DEMO) { const sc = document.createElement('script'); sc.src = 'qa.js?v=3'; document.head.appendChild(sc); } }
 })();
