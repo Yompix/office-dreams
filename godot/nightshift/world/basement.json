@@ -1,0 +1,238 @@
+{
+ "loc": "basement",
+ "fog": {
+  "color": 724756,
+  "density": 0.075
+ },
+ "lights": [
+  {
+   "type": "AmbientLight",
+   "key": "amb",
+   "name": "",
+   "color": 4739148,
+   "intensity": 0.22,
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "casters_0",
+   "name": "",
+   "color": 16767136,
+   "intensity": 1.6,
+   "pos": [
+    0,
+    2.35,
+    -2.4
+   ],
+   "distance": 6.5,
+   "decay": 1.6,
+   "shadow": true,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "casters_1",
+   "name": "",
+   "color": 16767136,
+   "intensity": 1.6,
+   "pos": [
+    0,
+    2.35,
+    -7.2
+   ],
+   "distance": 6.5,
+   "decay": 1.6,
+   "shadow": true,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "casters_2",
+   "name": "",
+   "color": 16767136,
+   "intensity": 1.6,
+   "pos": [
+    0,
+    2.35,
+    -12
+   ],
+   "distance": 6.5,
+   "decay": 1.6,
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "candle",
+   "name": "",
+   "color": 16756832,
+   "intensity": 1,
+   "pos": [
+    -0.55,
+    0.32,
+    -14.55
+   ],
+   "distance": 5,
+   "decay": 1.6,
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "SpotLight",
+   "key": "etorch",
+   "name": "",
+   "color": 16773336,
+   "intensity": 0,
+   "pos": [
+    0.06999999999999999,
+    1.12,
+    -13.399999999999999
+   ],
+   "distance": 9,
+   "decay": 1.2,
+   "angle": 0.34,
+   "penumbra": 0.55,
+   "target": [
+    0,
+    0.9,
+    -14.6
+   ],
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "casters_3",
+   "name": "",
+   "color": 16767152,
+   "intensity": 0,
+   "pos": [
+    -0.45,
+    1.1,
+    -15.1
+   ],
+   "distance": 4.5,
+   "decay": 1.6,
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "faceL",
+   "name": "",
+   "color": 14542591,
+   "intensity": 0,
+   "pos": [
+    0.3,
+    1,
+    -14.1
+   ],
+   "distance": 2.6,
+   "decay": 2,
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "casters_4",
+   "name": "",
+   "color": 16777215,
+   "intensity": 0,
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "distance": 16,
+   "decay": 1.2,
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "SpotLight",
+   "key": "rimC",
+   "name": "",
+   "color": 12571903,
+   "intensity": 0.10289999999999999,
+   "pos": [
+    0.42459356918192753,
+    2.3316135511532528,
+    -13.680154550743715
+   ],
+   "distance": 3.2,
+   "decay": 1.6,
+   "angle": 0.5,
+   "penumbra": 0.7,
+   "target": [
+    -0.21046806233898824,
+    1.631613551153253,
+    -13.04242676855919
+   ],
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "SpotLight",
+   "key": "torch",
+   "name": "",
+   "color": 16773336,
+   "intensity": 0,
+   "pos": [
+    0.33185400076057525,
+    1.454048267816072,
+    -10.67343679659688
+   ],
+   "distance": 0,
+   "decay": 1,
+   "angle": 0.3,
+   "penumbra": 0.35,
+   "target": [
+    -0.29308541146447387,
+    -0.6146365763897677,
+    -20.428340024787467
+   ],
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "HemisphereLight",
+   "key": "",
+   "name": "",
+   "color": 0,
+   "intensity": 0,
+   "pos": [
+    0,
+    1,
+    0
+   ],
+   "ground": 0,
+   "shadow": false,
+   "visible": true
+  }
+ ],
+ "named": {
+  "sdoor": "sdoor",
+  "slit": "slit",
+  "glow": "glow",
+  "saltLine": "saltLine",
+  "slitShadow": "slitShadow",
+  "salt": "salt",
+  "prints": "prints",
+  "dust": "dust",
+  "blobs_0": "blobs_0",
+  "blobs_1": "blobs_1",
+  "blobs_2": "blobs_2",
+  "blobs_3": "blobs_3",
+  "blobs_4": "blobs_4",
+  "blobs_5": "blobs_5"
+ },
+ "flipped": 1,
+ "merged": 1,
+ "bg": 724756
+}

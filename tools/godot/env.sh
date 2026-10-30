@@ -6,3 +6,5 @@ export VK_DRIVER_FILES=/usr/share/vulkan/icd.d/lvp_icd.json VK_ICD_FILENAMES=/us
 # gd_pc  — как на ПК (Forward+: живой свет, объёмный туман);  gd_web — как на сайте (Compatibility)
 gd_pc()  { xvfb-run -a -s "-screen 0 1920x1080x24" "$GODOT" --rendering-driver vulkan --rendering-method forward_plus "$@"; }
 gd_web() { LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1920x1080x24" "$GODOT" --rendering-driver opengl3 --rendering-method gl_compatibility "$@"; }
+# пересканировать проект: импорт новых ассетов и реестр классов (class_name) — после новых скриптов и файлов
+gd_import() { timeout 600 "$GODOT" --headless --path "${1:-.}" --import 2>&1 | grep -iE "error|fail" | grep -viE "alsa|audio" | head -20; }

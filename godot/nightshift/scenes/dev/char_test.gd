@@ -23,9 +23,11 @@ func _ready():
 	var hero: Node3D = (load("res://assets/models/%s.glb" % who) as PackedScene).instantiate()
 	add_child(hero)
 	var model: Node = hero.get_child(0)
+	var rig := HumanRig.rebase(hero)
+	print("pelvis k=", rig.k)
 	ap = AnimationPlayer.new()
 	model.add_child(ap)
-	ap.add_animation_library("", AnimLib.library())
+	ap.add_animation_library("", AnimLib.library(rig.k))
 	var clip: String = OS.get_environment("CLIP") if OS.get_environment("CLIP") != "" else "Idle_Talking"
 	ap.play(clip)
 	ap.seek(1.0, true)

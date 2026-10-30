@@ -1,0 +1,174 @@
+{
+ "loc": "server",
+ "fog": {
+  "color": 724756,
+  "density": 0.085
+ },
+ "lights": [
+  {
+   "type": "AmbientLight",
+   "key": "amb",
+   "name": "",
+   "color": 4870224,
+   "intensity": 0.24,
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "casters_0",
+   "name": "",
+   "color": 8376496,
+   "intensity": 1.35,
+   "pos": [
+    -2.4,
+    2.4,
+    0
+   ],
+   "distance": 7,
+   "decay": 1.4,
+   "shadow": true,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "casters_1",
+   "name": "",
+   "color": 8376496,
+   "intensity": 1.1,
+   "pos": [
+    2.4,
+    2.4,
+    -1
+   ],
+   "distance": 7,
+   "decay": 1.4,
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "candle",
+   "name": "",
+   "color": 16756832,
+   "intensity": 1.2,
+   "pos": [
+    1.35,
+    0.3,
+    2.55
+   ],
+   "distance": 5,
+   "decay": 1.6,
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "casters_2",
+   "name": "",
+   "color": 16719904,
+   "intensity": 1.4,
+   "pos": [
+    0,
+    2.8,
+    2.6
+   ],
+   "distance": 9,
+   "decay": 1.5,
+   "shadow": true,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "rim",
+   "name": "",
+   "color": 10535120,
+   "intensity": 2.6,
+   "pos": [
+    1.4,
+    2.7,
+    0.9
+   ],
+   "distance": 5,
+   "decay": 1.3,
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "PointLight",
+   "key": "faceL",
+   "name": "",
+   "color": 14542591,
+   "intensity": 0,
+   "pos": [
+    0.34264543070355435,
+    1.33,
+    2.5802255857436
+   ],
+   "distance": 4.8,
+   "decay": 2,
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "SpotLight",
+   "key": "rimC",
+   "name": "",
+   "color": 12571903,
+   "intensity": 0.07202999999999998,
+   "pos": [
+    1.047973472401988,
+    1.2624808617139853,
+    3.055072266403622
+   ],
+   "distance": 3.2,
+   "decay": 1.6,
+   "angle": 0.5,
+   "penumbra": 0.7,
+   "target": [
+    1.9345466926881003,
+    0.5624808617139854,
+    3.209952623684693
+   ],
+   "shadow": false,
+   "visible": true
+  },
+  {
+   "type": "HemisphereLight",
+   "key": "",
+   "name": "",
+   "color": 0,
+   "intensity": 0,
+   "pos": [
+    0,
+    1,
+    0
+   ],
+   "ground": 0,
+   "shadow": false,
+   "visible": true
+  }
+ ],
+ "named": {
+  "salt": "salt",
+  "door": "door",
+  "sheets_0": "sheets_0",
+  "sheets_1": "sheets_1",
+  "sheets_2": "sheets_2",
+  "dust": "dust",
+  "blobs_0": "blobs_0",
+  "blobs_1": "blobs_1",
+  "blobs_2": "blobs_2",
+  "blobs_3": "blobs_3",
+  "blobs_4": "blobs_4",
+  "blobs_5": "blobs_5"
+ },
+ "flipped": 0,
+ "merged": 0,
+ "bg": 724756
+}
