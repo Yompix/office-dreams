@@ -1,0 +1,4 @@
+Шрифты экрана телефона (подмножества: латиница, латиница-1 и расширенная-A, кириллица с украинскими буквами; tools/godot — pyftsubset, woff2):
+Inter-300/500/600/700.woff2 — Inter, Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter), SIL Open Font License 1.1.
+Pangolin-Regular.woff2 — Pangolin (подписи на детском рисунке Лили), Copyright 2016 The Pangolin Project Authors (https://github.com/googlefonts/pangolin), SIL Open Font License 1.1.
+Текст лицензии: https://openfontlicense.org

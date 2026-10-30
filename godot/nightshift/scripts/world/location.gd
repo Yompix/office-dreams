@@ -8,6 +8,15 @@ var meta: Dictionary = {}
 var lights: Dictionary = {}   # ключ места (l1, lamp, boothLight…) → Light3D
 var env: Environment
 var pc := true                # Forward+ (ПК): тени, объёмный туман; иначе — как на сайте
+var layer := 2                # слой отрисовки места: все места стоят в одних координатах, камера видит только слой своего места
+var screens: Array[MeshInstance3D] = []   # мониторы будки (холл): на них — живые камеры (Feeds)
+var probe: ReflectionProbe
+## слои мест (биты 2…6); 20 — мониторы будки (камеры мониторов их не снимают — экран не снимает сам себя)
+const LAYERS := {"lobby": 2, "corridor": 3, "server": 4, "stairs": 5, "basement": 6}
+const SCREEN_LAYER := 20
+## свет места, которое видно только на мониторе будки (камера 2 — седьмой этаж): все семь ламп коридора горят (в кадрах коридора 2,4; на мониторе тусклее — экран маленький и пересвечен)
+const FEED_LIGHTS := {"corridor": {"casters_0": 1.4, "casters_1": 1.4, "casters_2": 1.4, "casters_3": 1.4, "casters_4": 1.4,
+	"casters_5": 1.4, "casters_6": 1.4}}
 ## Свет three.js (legacy) гаснет как (1 − d/r)^decay, без обратного квадрата; в Godot подбираем затухание и яркость под тот же вид
 const LIGHT_ATT := 0.5
 const LIGHT_K := 1.0
@@ -23,8 +32,57 @@ static func create(name: String) -> Location:
 	l.loc = name
 	l.name = name
 	l.pc = RenderingServer.get_current_rendering_method() == "forward_plus"
+	l.layer = LAYERS.get(name, 7)
 	l._build()
+	l.set_layer(l, 1 << (l.layer - 1))
 	return l
+
+
+## Всё видимое и весь свет места — на его слой (свет освещает только своё место).
+func set_layer(n: Node, bit: int) -> void:
+	if n is MeshInstance3D and (n as MeshInstance3D) in screens:
+		(n as VisualInstance3D).layers = 1 << (SCREEN_LAYER - 1)
+	elif n is VisualInstance3D and not (n is Light3D) and not (n is ReflectionProbe):
+		(n as VisualInstance3D).layers = bit
+	if n is Light3D:   # свет тоже на слое места: камера видит только свет своего места
+		(n as Light3D).layers = bit
+		(n as Light3D).light_cull_mask = bit | (1 << (SCREEN_LAYER - 1))
+	if n is ReflectionProbe:
+		(n as ReflectionProbe).cull_mask = bit
+		(n as ReflectionProbe).reflection_mask = bit
+	for c in n.get_children():
+		set_layer(c, bit)
+
+
+## Свет места: текущее место — со всеми тенями; место, которое видно только на мониторе, — без теней; остальные погашены.
+## Каждый раз свет возвращается к выгруженному состоянию — запись кадра ставит поверх своё (что не меняет — так и было).
+func set_lit(on: bool, shadows: bool) -> void:
+	for l in find_children("*", "Light3D", true, false):
+		var li := l as Light3D
+		if not li.has_meta("vis0"):
+			li.set_meta("vis0", li.visible)
+			li.set_meta("sh0", li.shadow_enabled)
+			li.set_meta("e0", li.light_energy)
+			li.set_meta("c0", li.light_color)
+			li.set_meta("x0", li.transform)
+			li.set_meta("r0", (li as OmniLight3D).omni_range if li is OmniLight3D else ((li as SpotLight3D).spot_range if li is SpotLight3D else 0.0))
+		li.visible = on and bool(li.get_meta("vis0"))
+		li.shadow_enabled = shadows and bool(li.get_meta("sh0"))
+		li.light_energy = li.get_meta("e0")
+		li.light_color = li.get_meta("c0")
+		li.transform = li.get_meta("x0")
+		if li is OmniLight3D:
+			(li as OmniLight3D).omni_range = li.get_meta("r0")
+		elif li is SpotLight3D:
+			(li as SpotLight3D).spot_range = li.get_meta("r0")
+	if not on:
+		return
+	# место видно только на мониторе: обычная ночь (лампы седьмого этажа горят — их включают кадры коридора, lampSet в scenes.js)
+	if not shadows and FEED_LIGHTS.has(loc):
+		for k in FEED_LIGHTS[loc]:
+			if lights.has(k):
+				lights[k].light_energy = FEED_LIGHTS[loc][k] * light_k()
+				lights[k].visible = true
 
 
 func _build() -> void:
@@ -32,6 +90,12 @@ func _build() -> void:
 	add_child(geo)
 	_fix_materials(geo)
 	_probe(geo)
+	for i in 4:
+		var sc := geo.find_child("screens_%d" % i, true, false)
+		if sc:
+			var mi := (sc if sc is MeshInstance3D else sc.find_children("*", "MeshInstance3D", true, false).front()) as MeshInstance3D
+			if mi:
+				screens.append(mi)
 	meta = JSON.parse_string(FileAccess.get_file_as_string("res://world/%s.json" % loc))
 	env = Environment.new()
 	env.background_mode = Environment.BG_COLOR
@@ -117,6 +181,7 @@ func _probe(geo: Node3D) -> void:
 	p.intensity = float(OS.get_environment("PROBE")) if OS.get_environment("PROBE") != "" else 1.0
 	p.update_mode = ReflectionProbe.UPDATE_ONCE
 	add_child(p)
+	probe = p
 
 
 func _local_xform(n: Node) -> Transform3D:
