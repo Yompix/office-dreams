@@ -40,6 +40,8 @@ var _cache := {}           # записи слоёв смены (маленьк�
 var feeds: Feeds                  # живые камеры на мониторах будки
 var _touched := {}                # узел места → [transform, visible] до первой записи, которая его двигала
 var ir := false                   # камера кадра в ИК (темно): ч/б в обработке кадра
+var torch = null                  # фонарь в руке (мини-игра): точка экрана (доли) — луч туда, куда показывает палец
+var _torch_aim = null
 static var SHOTS := {}            # статические поля кадров старой игры (data/shots.json): место, камера, feeds…
 var _last_t := -1.0
 
@@ -172,6 +174,7 @@ func apply(t: float, wait := 0.0, loop := false) -> void:
 	for i in layers.size():
 		_apply_plan(layers[i].shot, layers[i].plan, fr[i])
 	_faces(dt, now)
+	_torch(dt)
 	if feeds and shot.loc == "lobby":
 		feeds.all_often = bool(SHOTS.get(shot.id, {}).get("feeds", false))
 		feeds.tick()
@@ -241,6 +244,27 @@ func _props() -> void:
 		m.clockM.rotation.z = -mi / 60.0 * TAU
 	if m.has("clockH"):
 		m.clockH.rotation.z = -((h % 12) + mi / 60.0) / 12.0 * TAU
+
+
+## Фонарь в руке: у объектива чуть справа и ниже, луч на точку экрана; направление сглажено — тряска кадра не дёргает пятно.
+func _torch(dt: float) -> void:
+	if torch == null:
+		_torch_aim = null
+		return
+	var l = locations[shot.loc].lights.get("torch")
+	if l == null:
+		return
+	var vp := get_viewport().get_visible_rect().size
+	var p: Vector3 = camera.project_position(Vector2(torch.x * vp.x, torch.y * vp.y), 10.0)
+	_torch_aim = p if _torch_aim == null else (_torch_aim as Vector3).lerp(p, minf(1.0, dt * 7.0))
+	(l as Light3D).visible = true
+	(l as Light3D).light_energy = 9.0 * Location.light_k()
+	(l as Node3D).global_position = camera.global_transform * Vector3(0.18, -0.25, 0.0)
+	if (l as Node3D).global_position.distance_to(_torch_aim) > 0.01:
+		(l as Node3D).look_at(_torch_aim)
+	if l is SpotLight3D:
+		(l as SpotLight3D).spot_range = 20.0
+		(l as SpotLight3D).spot_angle = rad_to_deg(0.3)
 
 
 ## Лицо: выражение из записи кадра + живые губы того, кто говорит; язык — своими весами (как faceV3).

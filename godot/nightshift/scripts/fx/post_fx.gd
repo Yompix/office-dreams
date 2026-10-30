@@ -19,6 +19,8 @@ uniform float white_k = 0.0;       // белая засветка (static, flick
 uniform float black_k = 0.0;       // затемнение (lamp, dark, light, fin, чёрная склейка)
 uniform float dawn = 0.0;          // рассвет: тёплый мягкий свет
 uniform float dawn_p = 0.0;
+uniform float tear = 0.0;          // перемотка записи: строки рвутся вбок
+uniform float run_side = 0.0;      // бег: свет гаснет слева (-1) или справа (1)
 float h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 vec3 overlay(vec3 c, float n) { return mix(2.0 * c * n, 1.0 - 2.0 * (1.0 - c) * (1.0 - n), step(0.5, c)); }
 vec3 soft(vec3 c, vec3 s) { return mix(2.0 * c * s + c * c * (1.0 - 2.0 * s), sqrt(max(c, 0.0)) * (2.0 * s - 1.0) + 2.0 * c * (1.0 - s), step(0.5, s)); }
@@ -31,6 +33,9 @@ void fragment() {
 	float row = floor(uv.y * 540.0), fr = floor(t * 24.0);
 	uv.x += (h(vec2(row, fr)) - 0.5) * vhs * cctv * 0.002;                         // запись с камеры чуть дрожит строками
 	uv += d * scare * 0.05 * (h(vec2(fr, 3.0)) - 0.5);
+	float band = floor(uv.y * 36.0);
+	float tb = step(1.0 - 0.35 * tear, h(vec2(band, fr)));
+	uv.x += tb * (h(vec2(band, fr + 7.0)) - 0.5) * 0.09 * tear;
 	float ca = (mix(0.0012, 0.0006, hq) + 0.012 * scare) * (0.25 + r * r * 1.4);   // цветная кайма объектива
 	vec3 c = vec3(texture(screen, uv + d * ca).r, texture(screen, uv).g, texture(screen, uv - d * ca).b);
 	if (cctv > 0.5) {   // дешёвая оптика и сжатие: картинка мягче
@@ -58,7 +63,12 @@ void fragment() {
 		c = 1.0 - (1.0 - c) * (1.0 - vec3(0.275, 0.137, 0.04) * (0.15 + 0.15 * dawn_p) * dawn);
 	}
 	c = mix(c, overlay(clamp(c, 0.0, 1.0), h(FRAGCOORD.xy * 0.73 + fract(t * 3.7) * 977.0)), grain_k);
-	c = mix(c, vec3(1.0), white_k);
+	c = mix(c, vec3(1.0), white_k + tb * tear * 0.12 * step(0.8, fract(uv.y * 36.0)));
+	if (run_side != 0.0) {   // свет гаснет с этой стороны: от края к середине
+		float s = (run_side < 0.0 ? SCREEN_UV.x : 1.0 - SCREEN_UV.x) / 0.5;
+		float a = s < 0.7 ? mix(0.97, 0.75, s / 0.7) : mix(0.75, 0.0, clamp((s - 0.7) / 0.3, 0.0, 1.0));
+		c *= 1.0 - a;
+	}
 	c *= 1.0 - black_k;
 	if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) c = vec3(0.0);
 	COLOR = vec4(c, 1.0);

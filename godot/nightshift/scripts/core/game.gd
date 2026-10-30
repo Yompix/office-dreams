@@ -51,6 +51,8 @@ var last_time := "02:55"   # часы ночи (scene.time / beat.time)
 var act := {}              # обход или разговор: { th, kind, t }
 var act_view: ActView
 var shift: ShiftGame       # смена идёт
+var mg: MiniGames
+var ambs := {}             # фоновые петли: heart, static…
 var shift_ui: ShiftUI
 var autoplay := false      # автопрогон для проверки: кадры сами, выбор — по умолчанию, обход — по порядку (--autoplay)
 
@@ -182,6 +184,11 @@ func _process(delta: float) -> void:
 	if not test.is_empty():
 		delta = 1.0 / 30.0
 	T += delta
+	if mode == "mg":
+		_mg_frame(delta)
+		if not test.is_empty() and mg.t >= float(test.at):
+			_snap()
+		return
 	if mode == "shift":
 		_shift_frame(delta)
 		if not test.is_empty() and shift and shift.T >= float(test.at):
@@ -309,6 +316,8 @@ func _run_then(th: Dictionary) -> void:
 		_back_to(String(th.back))
 	elif th.has("shift"):
 		_start_shift(th)
+	elif th.has("mg"):
+		_start_mg(th)
 	else:
 		var kind := "конец ветки"
 		for k in ["explore", "talk", "mg", "shift", "ending", "over", "back"]:
@@ -422,6 +431,87 @@ func _back_to(id: String) -> void:
 	if scene.is_empty():
 		return
 	_run_then(scene.get("then", {}))
+
+
+# ---------- мини-игры ----------
+func _start_mg(th: Dictionary) -> void:
+	mode = "mg"
+	beat = {}
+	dlg.visible = false
+	hint_lbl.visible = false
+	phone.visible = false
+	choice_box.visible = false
+	if autoplay:
+		print("мини-игра ", th.mg)
+	if not mg.finished.is_connected(_mg_done):
+		mg.finished.connect(_mg_done)
+	mg.start(th, self)
+
+
+func _mg_done(next: String) -> void:
+	player.torch = null
+	post.set_p("tear", 0.0)
+	post.set_p("run_side", 0.0)
+	hud.visible = false
+	start_scene(next)
+
+
+## Кадр под мини-игрой: запись, план с зумом (k²), время (перемотка / с начала), фонарь, тёмная сторона, надписи камеры.
+func _mg_frame(_delta: float) -> void:
+	var v: Dictionary = mg.view
+	if v.is_empty() or not v.has("img"):   # «держать»: прошлый кадр, затемнённый
+		post.beat_fx("", mg.t, T, 0.0, {}, 1.0)
+		post.set_p("black_k", 0.45)
+		hud.visible = false
+		return
+	var img := String(v.img)
+	if ResourceLoader.exists("res://bake/%s.json" % img) and (player.shot == null or player.shot.id != img):
+		player.play(img)
+	player.visible = true
+	black.visible = false
+	var k := minf(1.0, mg.t / float(v.get("dur", 3.0)))
+	var c: Array = v.c
+	player.aim_cx = float(c[0])
+	player.aim_cy = float(c[1])
+	player.aim_z = float(c[2]) + (float(c[3]) - float(c[2])) * k * k
+	player.aim_dk = 0.0
+	player.talk = {}
+	player.torch = v.get("torch")
+	var st: float = float(v.tAt) if v.has("tAt") else (float(v.st) + mg.t if v.has("st") else mg.t)
+	if player.shot:
+		player.apply(minf(maxf(st, 0.0), player.shot.dur), maxf(0.0, st - player.shot.dur))
+	var cctv := v.has("label")
+	post.set_p("cctv", 1.0 if cctv else 0.0)
+	post.set_p("ir", 1.0 if (cctv and player.ir) else 0.0)
+	post.beat_fx("cctv" if cctv else "", mg.t, T, 0.0, {}, 1.0)
+	post.set_p("grain_k", (0.2 if v.has("tAt") else 0.25 + k * 0.5) if cctv and mg.t > 0.3 else 0.07)
+	post.set_p("tear", float(v.get("rw", 0.0)))
+	post.set_p("run_side", (-1.0 if v.run == "L" else 1.0) if v.has("run") else 0.0)
+	hud.visible = cctv
+	if cctv:
+		hud.T = T
+		hud.label = String(v.label)
+		hud.ir = player.ir
+		hud.tag = String(v.get("rw_tag", "REC"))
+		hud.date = _hud_date()
+		hud.clock = String(v.get("rw_clock", game_clock()))
+		hud.mic = -1.0
+
+
+## Фоновая петля звука (сердце, помехи): включить с громкостью или выключить.
+func _amb(n: String, on: bool, gain := 1.0) -> void:
+	if not ambs.has(n):
+		var a := AudioStreamPlayer.new()
+		add_child(a)
+		ambs[n] = a
+	var p: AudioStreamPlayer = ambs[n]
+	if on:
+		if not p.playing and ResourceLoader.exists("res://assets/snd/%s.mp3" % n):
+			p.stream = _loop_stream(n)
+			p.play()
+		p.volume_db = linear_to_db(gain)
+	else:
+		p.stop()
 
 
 # ---------- смена ----------
@@ -720,6 +810,7 @@ func _build_ui() -> void:
 	act_view = ActView.new()
 	act_view.picked.connect(_act_pick)
 	shift_ui = ShiftUI.new()
+	mg = MiniGames.new()
 	var font: FontFile = load("res://assets/fonts/ns-ui.woff") if ResourceLoader.exists("res://assets/fonts/ns-ui.woff") else null
 	var theme := Theme.new()
 	if font:
@@ -791,6 +882,7 @@ func _build_ui() -> void:
 	ui.add_child(choice_box)
 	ui.add_child(act_view)
 	ui.add_child(shift_ui)
+	ui.add_child(mg)
 	ui.move_child(dlg, -1)   # субтитры поверх смены
 
 

@@ -16,7 +16,11 @@ function needs() {
       if (b.text) d += b.text.length / 14; d = Math.max(d + (b.pad != null ? b.pad : .3), 1.2);
       if (b.img && b.img === prev) acc += d; else acc = d; prev = b.img;
       if (b.img) need[b.img] = Math.max(need[b.img] || 0, acc); }
-    const th = sc.then || {}; for (const k of ['explore', 'talk']) if (th[k] && th[k].img) need[th[k].img] = Math.max(need[th[k].img] || 0, 4); }
+    const th = sc.then || {}; for (const k of ['explore', 'talk']) if (th[k] && th[k].img) need[th[k].img] = Math.max(need[th[k].img] || 0, 4);
+    if (th.mg) {   // кадры мини-игр: перемотка — длина записи, провод — время до броска, фонарь и бег — с запасом (время идёт, пока играешь)
+      const d = { tape: (th.len || 5.6) + 1, cord: (th.dur || 3.2) + 1, wipe: 4, torch: 20, run: 12 }[th.mg] || 4;
+      for (const k of ['img', 'img2', 'img3', 'slam']) if (th[k]) need[th[k]] = Math.max(need[th[k]] || 0, d);
+      if (th.mg === 'run') need.run_lit = Math.max(need.run_lit || 0, d); } }
   return need;
 }
 (async () => {
