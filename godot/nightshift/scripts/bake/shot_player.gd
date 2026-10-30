@@ -44,6 +44,7 @@ var torch = null                  # фонарь в руке (мини-игра)
 var _torch_aim = null
 static var SHOTS := {}            # статические поля кадров старой игры (data/shots.json): место, камера, feeds…
 var _last_t := -1.0
+var amb_dirty := {}               # места, у которых запись поменяла фоновый свет в этом кадре
 
 
 func _ready() -> void:
@@ -111,7 +112,7 @@ func _make_plan(b: BakedShot) -> Array:
 			"a":
 				var a := _actor(p[1])
 				if p[2] == "q" or p[2] == "p" or p[2] == "s":
-					var bi: int = a.skel.find_bone(BONE.get(p[3], p[3]))
+					var bi: int = a.skel.find_bone(p[3] if a.native else BONE.get(p[3], p[3]))
 					if bi >= 0:
 						plan.append([c, "b" + p[2], a, bi])
 				elif p[2] == "f":
@@ -129,6 +130,8 @@ func _make_plan(b: BakedShot) -> Array:
 				var l: Light3D = locations[b.loc].lights.get(p[1])
 				if l:
 					plan.append([c, "l" + p[2], l])
+				elif locations[b.loc].ambs.has(p[1]) and p[2] in ["i", "v", "c"]:   # фоновый свет — свет окружения места
+					plan.append([c, "e" + p[2], locations[b.loc], p[1]])
 	return plan
 
 
@@ -171,8 +174,16 @@ func apply(t: float, wait := 0.0, loop := false) -> void:
 		if a.node.visible:
 			a.node.position = Vector3(r[0], r[1], r[2])
 			a.node.quaternion = Quaternion(r[3], r[4], r[5], r[6]).normalized()
+	amb_dirty.clear()
 	for i in layers.size():
 		_apply_plan(layers[i].shot, layers[i].plan, fr[i])
+	for l in amb_dirty:
+		l.amb_update()
+	for k in locations:   # лучи ламп: сила по лампам после записи кадра; пыль — у места кадра
+		var L: Location = locations[k]
+		L.beams.tick(now, camera)
+		if L.beams.dust:
+			L.beams.dust.visible = k == shot.loc
 	_faces(dt, now)
 	_torch(dt)
 	if feeds and shot.loc == "lobby":
@@ -206,11 +217,14 @@ func _apply_plan(b: BakedShot, plan: Array, f: float) -> void:
 			"ov":
 				e[2].visible = v[0] > 0.5
 			"li":
-				e[2].light_energy = v[0] * Location.light_k()
+				Location.set_intensity(e[2], v[0])
 			"lv":
 				e[2].visible = v[0] > 0.5
-			"lc":
-				e[2].light_color = Color(v[0], v[1], v[2])
+			"lc":   # цвет в записи линейный (three.js хранит так), Godot ждёт sRGB
+				e[2].light_color = Color(v[0], v[1], v[2]).linear_to_srgb()
+			"ei", "ev", "ec":
+				e[2].amb_set(e[3], kind.substr(1), v)
+				amb_dirty[e[2]] = true
 			"lt":
 				e[2].global_position = Vector3(v[0], v[1], v[2])
 			"ld":
@@ -218,11 +232,7 @@ func _apply_plan(b: BakedShot, plan: Array, f: float) -> void:
 				if not (e[2] is OmniLight3D) and e[2].global_position.distance_to(tgt) > 0.001:
 					e[2].look_at(tgt)
 			"lr":
-				if v[0] > 0.0:
-					if e[2] is OmniLight3D:
-						e[2].omni_range = v[0]
-					elif e[2] is SpotLight3D:
-						e[2].spot_range = v[0]
+				Location.set_range(e[2], v[0])
 
 
 ## Тихие перемены в холле (o.props в scenes.js): куртка пропала после открытой двери, журнал перевязан до 02:50, телефон Фрэнка
@@ -258,12 +268,12 @@ func _torch(dt: float) -> void:
 	var p: Vector3 = camera.project_position(Vector2(torch.x * vp.x, torch.y * vp.y), 10.0)
 	_torch_aim = p if _torch_aim == null else (_torch_aim as Vector3).lerp(p, minf(1.0, dt * 7.0))
 	(l as Light3D).visible = true
-	(l as Light3D).light_energy = 9.0 * Location.light_k()
+	Location.set_intensity(l, 9.0)
 	(l as Node3D).global_position = camera.global_transform * Vector3(0.18, -0.25, 0.0)
 	if (l as Node3D).global_position.distance_to(_torch_aim) > 0.01:
 		(l as Node3D).look_at(_torch_aim)
+	Location.set_range(l, 20.0)
 	if l is SpotLight3D:
-		(l as SpotLight3D).spot_range = 20.0
 		(l as SpotLight3D).spot_angle = rad_to_deg(0.3)
 
 
@@ -376,6 +386,8 @@ func _node(name: String) -> Node3D:
 	return null
 
 
+## Герой: своя модель, выгруженная из старой игры (actors/<ключ>.glb — tools/godot/export_actors.js: одежда, рубаха Жильца,
+## кепка, волосы, скелет и имена костей — как в записи кадров), иначе — общая модель с перекладкой скелета (HumanRig).
 func _actor(key: String) -> Dictionary:
 	if actors.has(key):
 		return actors[key]
@@ -383,9 +395,18 @@ func _actor(key: String) -> Dictionary:
 	node.name = "actor_" + key
 	var inner := Node3D.new()
 	node.add_child(inner)
-	var model: Node3D = (load("res://assets/models/%s.glb" % CAST.get(key, "ethan")) as PackedScene).instantiate()
+	var native := ResourceLoader.exists("res://actors/%s.glb" % key)
+	var model: Node3D = (load("res://actors/%s.glb" % key if native else "res://assets/models/%s.glb" % CAST.get(key, "ethan")) as PackedScene).instantiate()
 	inner.add_child(model)
-	var rig := HumanRig.rebase(model)
+	var skel: Skeleton3D
+	if native:
+		skel = model.find_children("*", "Skeleton3D", true, false)[0]
+		var gi := model.find_child("__inner", true, false)
+		if gi:
+			inner = gi   # рост — на том же узле, что в старой игре
+	else:
+		skel = HumanRig.rebase(model).skel
+	CharLook.apply(model, key, RenderingServer.get_current_rendering_method() == "forward_plus")
 	var morph := {}    # имена форм, которые есть у героя
 	var meshes := []   # [сетка, {форма → индекс}, это язык]
 	for mi in model.find_children("*", "MeshInstance3D", true, false):
@@ -403,6 +424,6 @@ func _actor(key: String) -> Dictionary:
 	var lips := LipSync.new(key)
 	lips.lag = LIP_LAG.get(key, 0.0)
 	lips.live = not (key in FROZEN)
-	var a := {"node": node, "inner": inner, "skel": rig.skel, "morph": morph, "meshes": meshes, "W": {}, "lips": lips}
+	var a := {"node": node, "inner": inner, "skel": skel, "morph": morph, "meshes": meshes, "W": {}, "lips": lips, "native": native}
 	actors[key] = a
 	return a

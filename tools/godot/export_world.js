@@ -1,6 +1,7 @@
 // Выгружает 5 локаций старой игры (three.js) для Godot: godot/nightshift/world/<место>.glb + <место>.json
 // (свет, туман, подвижные части по именам, коллайдеры). Геометрия и текстуры — те же, что в игре (графика «Ультра»).
-// Сервер: cd public/games && python3 -m http.server 8771 --bind 127.0.0.1;  запуск: node tools/godot/export_world.js
+// Сервер: cd public/games && python3 -m http.server 8771 --bind 127.0.0.1;  запуск: node tools/godot/export_world.js [места]
+// META_ONLY=1 — только описания мест (<место>.json: свет, лучи, туман), без моделей и предметов
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path');
 const OUT = path.join(__dirname, '../../godot/nightshift/world'), PORT = process.env.PORT || 8771;
@@ -20,7 +21,7 @@ const EXPORTER = fs.readFileSync(path.join(__dirname, 'vendor/GLTFExporter.r159.
   fs.writeFileSync(path.join(__dirname, '../../godot/nightshift/data/shots.json'), JSON.stringify(shots));
   console.log('shots.json:', Object.keys(shots.shots).length, 'кадров');
   for (const loc of (process.argv[2] || 'lobby,corridor,server,stairs,basement').split(',')) {
-    const r = await p.evaluate(async loc => {
+    const r = await p.evaluate(async ([loc, metaOnly]) => {
       const T = window.THREE, L = window.__dbgL[loc], S = L.S; if (L.reset) L.reset(); S.updateMatrixWorld(true);
       const shown = o => { for (let x = o; x; x = x.parent) if (!x.visible) return false; return true; }, vis0 = new Map(); S.traverse(o => vis0.set(o, shown(o)));
       const hidden = [], hide = o => { if (o && o.isObject3D && o.visible) { o.visible = false; hidden.push(o); } };
@@ -86,19 +87,24 @@ const EXPORTER = fs.readFileSync(path.join(__dirname, 'vendor/GLTFExporter.r159.
       const unmapped = []; S.traverse(o => { if (!o.isMesh || !o.visible) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if (!m) return;
         for (const k of ['map', 'emissiveMap', 'roughnessMap', 'metalnessMap', 'normalMap', 'bumpMap', 'alphaMap', 'aoMap', 'lightMap']) { const t = m[k];
           if (t && (t.isRenderTargetTexture || !ok(t.image))) { unmapped.push([m, k, t]); m[k] = null; } } }); });
-      const glb = await new window.GLTFExporter().parseAsync(S, { binary: true, onlyVisible: true, embedImages: true, maxTextureSize: 2048, trs: true });
+      const glb = metaOnly ? null : await new window.GLTFExporter().parseAsync(S, { binary: true, onlyVisible: true, embedImages: true, maxTextureSize: 2048, trs: true });
       hidden.forEach(o => o.visible = true);
       unmapped.forEach(([m, k, t]) => m[k] = t);
       swapped.forEach(([o, m]) => o.material = m);
       merged.forEach(([o, me]) => { me.parent.remove(me); o.visible = true; });
       flipped.forEach(([o, me]) => { me.parent.remove(me); o.visible = true; });
-      let s = ''; const u8 = new Uint8Array(glb); for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
-      return { glb: btoa(s), meta: { loc, fog, lights, named, flipped: flipped.length, merged: merged.length, bg: S.background && S.background.isColor ? S.background.getHex() : null } };
-    }, loc);
-    fs.writeFileSync(path.join(OUT, loc + '.glb'), Buffer.from(r.glb, 'base64'));
+      let s = ''; if (glb) { const u8 = new Uint8Array(glb); for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); }
+      // лучи ламп (конусы под лампами выше 2.3 м, cineLoc в scenes.js): чья лампа, сила «по умолчанию» (base), размеры конуса и где он стоит —
+      // Godot строит такие же конусы со своим шейдером (сила луча = сила лампы / base, как в cineTick)
+      const beamList = [].concat(L.beams || []).filter(x => x && x.m && x.l).map(x => { const gp = x.m.geometry.parameters, w = new T.Vector3(); x.m.getWorldPosition(w);
+        return { l: x.l.name, base: x.base, h: gp.height, r0: gp.radiusTop, r1: gp.radiusBottom, pos: w.toArray() }; });
+      return { glb: glb ? btoa(s) : null, meta: { loc, fog, lights, beams: beamList, named, flipped: flipped.length, merged: merged.length, bg: S.background && S.background.isColor ? S.background.getHex() : null } };
+    }, [loc, !!process.env.META_ONLY]);
+    if (r.glb) fs.writeFileSync(path.join(OUT, loc + '.glb'), Buffer.from(r.glb, 'base64'));
     fs.writeFileSync(path.join(OUT, loc + '.json'), JSON.stringify(r.meta, null, 1));
-    console.log(loc, (Buffer.from(r.glb, 'base64').length / 1e6).toFixed(1) + ' МБ,', r.meta.lights.length, 'ламп,', Object.keys(r.meta.named).length, 'частей,', r.meta.flipped, 'комнат изнутри,', r.meta.merged, 'размноженных');
+    console.log(loc, r.glb ? (Buffer.from(r.glb, 'base64').length / 1e6).toFixed(1) + ' МБ,' : '(только описание)', r.meta.lights.length, 'ламп,', r.meta.beams.length, 'лучей,', Object.keys(r.meta.named).length, 'частей,', r.meta.flipped, 'комнат изнутри,', r.meta.merged, 'размноженных');
   }
+  if (process.env.META_ONLY) { await b.close(); return; }
   // предметы в руках (старая игра строит их кодом: chars2 propMesh) — отдельными моделями world/props/prop_<имя>.glb
   fs.mkdirSync(path.join(OUT, 'props'), { recursive: true });
   for (const name of ['keys', 'phone', 'sheet', 'radio', 'torch', 'mop', 'lighter', 'cig', 'pen', 'apple', 'splint', 'head']) {

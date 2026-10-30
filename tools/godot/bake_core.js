@@ -10,8 +10,10 @@ module.exports = function pageBake([id, o]) {
   const draw = (t, TT) => W.draw(g, 64, 36, id, Object.assign({ t, T: TT, cx: .5, cy: .5, z: 1, sx: 0, sy: 0 }, o.props ? { props: o.props } : {}));
   R.render = () => {};
   const L = window.__dbgL[sh.loc], S = L.S, actors = Object.entries(W.actors).filter(([k, C]) => C && C.root);
-  // состояние места по умолчанию (как в выгруженной модели): постоянные каналы места, совпадающие с ним, не нужны
-  if (L.reset) L.reset(); S.updateMatrixWorld(true); const base = {};
+  // состояние места по умолчанию — как в выгруженной модели (export_world.js снимает место сразу после загрузки страницы и reset):
+  // снимок берём один раз за сессию, при первой записи кадра этого места. Сравнивать с живым состоянием после reset нельзя —
+  // reset старой игры возвращает не всё (фоновый свет, лампы), и постоянный канал, совпавший с прошлым кадром, терялся
+  const B0 = window.__base0 || (window.__base0 = {}); if (L.reset) L.reset(); S.updateMatrixWorld(true); const base = B0[sh.loc] || (B0[sh.loc] = {}); const fresh = !Object.keys(base).length;
   const skip0 = new Set([...['beams', 'dust', 'blobs', 'pad'].flatMap(k => [].concat(L[k] || []))]), aroots = new Set(actors.map(([k, C]) => C.root));
   const v = new T.Vector3(), q = new T.Quaternion();
   const walkLoc = row => (function walk(x) { if (aroots.has(x) || skip0.has(x)) return;
@@ -21,7 +23,7 @@ module.exports = function pageBake([id, o]) {
     else if (x.name && x !== S) { const n = x.name; row[`o:${n}:t`] = x.position.toArray(); row[`o:${n}:r`] = [x.quaternion.x, x.quaternion.y, x.quaternion.z, x.quaternion.w];
       row[`o:${n}:s`] = x.scale.toArray(); row[`o:${n}:v`] = [x.visible ? 1 : 0]; }
     for (const ch of x.children) walk(ch); })(S);
-  walkLoc(base);
+  if (fresh) walkLoc(base);
   const times = [];
   for (let i = 0; i <= Math.round(dur * FPS); i++) times.push([i / FPS, i / FPS]);
   for (let i = 1; i <= HOLD * FPS; i++) times.push([dur, dur + i / FPS]);   // ожидание выбора: время кадра стоит, жизнь идёт

@@ -1137,7 +1137,6 @@ func _build_ui() -> void:
 	shift_ui = ShiftUI.new()
 	mg = MiniGames.new()
 	menu = MainMenu.new()
-	menu.theme = dlg.theme
 	menu.new_game.connect(func():
 		menu.close()
 		start_scene("intro"))
@@ -1233,6 +1232,7 @@ func _build_ui() -> void:
 	ui.add_child(mg)
 	ui.add_child(ends)
 	ui.add_child(menu)
+	menu.theme = dlg.theme
 	ui.move_child(dlg, -1)   # субтитры поверх смены
 
 
