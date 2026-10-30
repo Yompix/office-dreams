@@ -34,9 +34,12 @@ var aim_z := 1.0
 var aim_dk := 0.5
 var talk := {}                    # кто говорит сейчас: { who, v (громкость), vis (форма рта) } — ставит движок перед apply
 var norms := {}                   # «нормы» холла из хода игры (propsNow): часы, куртка Фрэнка, пропуск, журнал, телефон Фрэнка
-var _plan: Array = []      # подготовленные каналы текущего кадра
+var layers: Array = []     # основа и слои: [{ shot, plan }] (у кадра сюжета — один)
+var _ids: Array = []
+var _cache := {}           # записи слоёв смены (маленькие, нужны часто)
 var feeds: Feeds                  # живые камеры на мониторах будки
 var _touched := {}                # узел места → [transform, visible] до первой записи, которая его двигала
+var ir := false                   # камера кадра в ИК (темно): ч/б в обработке кадра
 static var SHOTS := {}            # статические поля кадров старой игры (data/shots.json): место, камера, feeds…
 var _last_t := -1.0
 
@@ -61,19 +64,45 @@ func _ready() -> void:
 
 
 func play(id: String) -> void:
+	play_layers([id])
+
+
+## Основа и слои поверх неё: первая запись — основа (место, камера кадра), остальные меняют только своё (камеры смены:
+## свет этажей, странности, кто где). Тот же набор подряд — ничего не делает; та же основа — время и лица идут дальше.
+func play_layers(ids: Array) -> void:
 	if SHOTS.is_empty():
 		SHOTS = JSON.parse_string(FileAccess.get_file_as_string("res://data/shots.json")).shots
-	shot = BakedShot.load_shot(id)
+	if ids == _ids:
+		return
+	var same_base: bool = not _ids.is_empty() and _ids[0] == ids[0]
+	_ids = ids.duplicate()
+	layers.clear()
+	for id in ids:
+		var b: BakedShot
+		if _cache.has(id):
+			b = _cache[id]
+		else:
+			b = BakedShot.load_shot(id)
+			if String(id).begins_with("shift/"):   # слои смены нужны снова и снова — держим в памяти (они маленькие)
+				_cache[id] = b
+		layers.append({"shot": b, "plan": []})
+	shot = layers[0].shot
 	_use_location(shot.loc)
-	_plan.clear()
 	for n in _touched:   # всё, что двигали прошлые кадры, — на место (запись не хранит то, что совпадает с выгрузкой)
 		if is_instance_valid(n):
 			n.transform = _touched[n][0]
 			n.visible = _touched[n][1]
-	_last_t = -1.0
-	for k in actors:
-		actors[k].lips.reset()
-	for ch in shot.chans.keys() + shot.consts.keys():
+	if not same_base:
+		_last_t = -1.0
+		for k in actors:
+			actors[k].lips.reset()
+	for L in layers:
+		L.plan = _make_plan(L.shot)
+
+
+func _make_plan(b: BakedShot) -> Array:
+	var plan := []
+	for ch in b.chans.keys() + b.consts.keys():
 		var c := String(ch)
 		var p := c.split(":")
 		match p[0]:
@@ -82,27 +111,37 @@ func play(id: String) -> void:
 				if p[2] == "q" or p[2] == "p" or p[2] == "s":
 					var bi: int = a.skel.find_bone(BONE.get(p[3], p[3]))
 					if bi >= 0:
-						_plan.append([c, "b" + p[2], a, bi])
+						plan.append([c, "b" + p[2], a, bi])
 				elif p[2] == "f":
 					if a.morph.has(p[3]):
-						_plan.append([c, "f", a, p[3]])
+						plan.append([c, "f", a, p[3]])
 				elif p[2] == "inner":
-					_plan.append([c, "inner", a])
+					plan.append([c, "inner", a])
 			"o":
 				var n := _node(p[1])
 				if n:
 					if not _touched.has(n):
 						_touched[n] = [n.transform, n.visible]
-					_plan.append([c, "o" + p[2], n])
+					plan.append([c, "o" + p[2], n])
 			"l":
-				var l: Light3D = locations[shot.loc].lights.get(p[1])
+				var l: Light3D = locations[b.loc].lights.get(p[1])
 				if l:
-					_plan.append([c, "l" + p[2], l])
+					plan.append([c, "l" + p[2], l])
+	return plan
 
 
-func apply(t: float, wait := 0.0) -> void:
-	var f := shot.frame_at(t, wait)
+## Кадр в момент t (wait — сколько секунд кадр ждёт игрока). loop — записи-петли (камеры смены): время идёт по кругу.
+func apply(t: float, wait := 0.0, loop := false) -> void:
+	var fr := []
+	for L in layers:
+		fr.append(L.shot.loop_frame(t) if loop else L.shot.frame_at(t, wait))
+	var f: float = fr[0]
 	var now := t + wait
+	ir = false
+	for i in layers.size():
+		var irv: PackedFloat32Array = layers[i].shot.value("x:ir", fr[i])
+		if irv.size() > 0:
+			ir = irv[0] > 0.5
 	var dt := clampf(now - _last_t, 0.0, 0.05) if _last_t >= 0.0 else 0.0
 	_last_t = now
 	for k in actors:
@@ -115,16 +154,33 @@ func apply(t: float, wait := 0.0) -> void:
 		base_fov = cam[6]
 		base_roll = cam[7] if cam.size() > 7 else 0.0
 	aim(aim_cx, aim_cy, aim_z, aim_dk)
+	var hidden := {}
+	for L in layers:
+		for h in L.shot.hide:
+			hidden[h] = true
 	for k in actors:
 		var a: Dictionary = actors[k]
-		var r := shot.value("a:%s:root" % k, f, 3)
-		a.node.visible = r.size() == 7
+		var r := PackedFloat32Array()
+		for i in layers.size():
+			var ri: PackedFloat32Array = layers[i].shot.value("a:%s:root" % k, fr[i], 3)
+			if ri.size() == 7:
+				r = ri
+		a.node.visible = r.size() == 7 and not hidden.has(k)
 		if a.node.visible:
 			a.node.position = Vector3(r[0], r[1], r[2])
 			a.node.quaternion = Quaternion(r[3], r[4], r[5], r[6]).normalized()
-	for e in _plan:
+	for i in layers.size():
+		_apply_plan(layers[i].shot, layers[i].plan, fr[i])
+	_faces(dt, now)
+	if feeds and shot.loc == "lobby":
+		feeds.all_often = bool(SHOTS.get(shot.id, {}).get("feeds", false))
+		feeds.tick()
+
+
+func _apply_plan(b: BakedShot, plan: Array, f: float) -> void:
+	for e in plan:
 		var kind: String = e[1]
-		var v := shot.value(e[0], f, 0 if (kind == "bq" or kind == "or") else -1)
+		var v := b.value(e[0], f, 0 if (kind == "bq" or kind == "or") else -1)
 		if v.is_empty():
 			continue
 		match kind:
@@ -164,11 +220,6 @@ func apply(t: float, wait := 0.0) -> void:
 						e[2].omni_range = v[0]
 					elif e[2] is SpotLight3D:
 						e[2].spot_range = v[0]
-
-	_faces(dt, now)
-	if feeds and shot.loc == "lobby":
-		feeds.all_often = bool(SHOTS.get(shot.id, {}).get("feeds", false))
-		feeds.tick()
 
 
 ## Тихие перемены в холле (o.props в scenes.js): куртка пропала после открытой двери, журнал перевязан до 02:50, телефон Фрэнка

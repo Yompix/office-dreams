@@ -12,6 +12,7 @@ var main_frames := 0
 var chans := {}                      # имя канала → [смещение, ширина]
 var consts := {}                     # имя → PackedFloat32Array (не меняется весь кадр)
 var data := PackedFloat32Array()
+var hide: Array = []                 # слой смены: герои основы, которых в этом состоянии нет
 
 
 static func load_shot(shot_id: String) -> BakedShot:
@@ -29,6 +30,7 @@ static func load_shot(shot_id: String) -> BakedShot:
 		off += int(c[1]) * s.frames
 	for k in j.get("const", {}):
 		s.consts[k] = PackedFloat32Array(j.const[k])
+	s.hide = j.get("hide", [])
 	var b := FileAccess.get_file_as_bytes("res://bake/%s.bin" % shot_id)
 	s.data = b.to_float32_array()
 	return s
@@ -39,6 +41,11 @@ func frame_at(t: float, wait := 0.0) -> float:
 	if wait > 0.0 and frames > main_frames + 1:
 		return main_frames + fposmod(wait * fps, float(frames - main_frames - 1))
 	return clampf(t * fps, 0.0, float(main_frames - 1))
+
+
+## Запись-петля (камеры смены): время идёт по кругу.
+func loop_frame(t: float) -> float:
+	return fposmod(t * fps, float(maxi(1, frames - 1)))
 
 
 func has(ch: String) -> bool:

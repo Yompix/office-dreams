@@ -21,6 +21,11 @@ var voices: Array[AudioStreamPlayer] = []
 var sfx_pool: Array[AudioStreamPlayer] = []
 var amb_static: AudioStreamPlayer
 var phone: PhoneScreen
+var post: PostFX
+var hud: CctvHud
+var clock_t0 := 0.0        # с какого момента идут секунды часов ночи (gameClock)
+var sec_base := 7
+var T := 0.0               # время игры (для мигания, зерна, ламп)
 var sfx_q: Array = []      # звуки кадра по времени: [{at, n, op, done}]
 
 var scene_id := ""
@@ -45,6 +50,8 @@ var mode := "play"         # play — кадры сцены; choice — выбо
 var last_time := "02:55"   # часы ночи (scene.time / beat.time)
 var act := {}              # обход или разговор: { th, kind, t }
 var act_view: ActView
+var shift: ShiftGame       # смена идёт
+var shift_ui: ShiftUI
 var autoplay := false      # автопрогон для проверки: кадры сами, выбор — по умолчанию, обход — по порядку (--autoplay)
 
 
@@ -105,6 +112,7 @@ func start_scene(id: String, at_beat := 0) -> void:
 		last_time = "02:55"
 	if scene.has("time"):
 		last_time = String(scene.time)
+	clock_t0 = T
 	_music(String(scene.get("music", "")))
 	bi = at_beat - 1
 	beat = {}
@@ -129,6 +137,8 @@ func next_beat() -> void:
 	_set_flags(beat.get("set"))
 	if beat.has("time"):
 		last_time = String(beat.time)
+		sec_base = 0
+		clock_t0 = T
 	player.norms = _props_now()
 	var same: bool = not prev.is_empty() and prev.get("img") != null and prev.get("img") == beat.get("img")
 	shot_off = shot_off + prev_t if same else 0.0
@@ -171,7 +181,17 @@ func _process(delta: float) -> void:
 		return
 	if not test.is_empty():
 		delta = 1.0 / 30.0
+	T += delta
+	if mode == "shift":
+		_shift_frame(delta)
+		if not test.is_empty() and shift and shift.T >= float(test.at):
+			_snap()
+		return
 	if mode == "explore" or mode == "talk":
+		post.beat_fx("", act.get("t", 0.0), T, 0.0, {}, 1.0)
+		post.set_p("cctv", 0.0)
+		post.set_p("ir", 0.0)
+		hud.visible = false
 		_act_frame(delta)
 		if autoplay and act.t > 1.0:   # автопрогон: осматриваем по порядку, потом уходим
 			var it := _act_items(act.th)
@@ -210,10 +230,27 @@ func _process(delta: float) -> void:
 	_show_line()
 	_talk(delta)
 	# постановка и камера
+	var fx := String(beat.get("fx", ""))
+	var cctv := fx == "cctv" or fx == "static" or (fx == "glitch" and beat.has("label"))
 	if player.shot and player.visible:
 		var st := minf(shot_off + bt, player.shot.dur)
+		if cctv:   # запись камеры наблюдения — 12 кадров в секунду
+			st = floor(st * 12.0) / 12.0
 		_plan()
 		player.apply(st, wait)
+	post.set_p("cctv", 1.0 if cctv else 0.0)
+	post.set_p("ir", 1.0 if (cctv and player.ir) else 0.0)
+	post.beat_fx(fx, bt, T, clampf(bt / bdur, 0.0, 1.0), beat, bdur)
+	hud.visible = cctv and not phone.visible
+	if hud.visible:
+		var hd: Dictionary = beat.get("hud", {}) if beat.get("hud") is Dictionary else {}
+		hud.T = T
+		hud.label = String(beat.get("label", ""))
+		hud.ir = player.ir
+		hud.tag = String(hd.get("tag", "REC"))
+		hud.date = String(hd.get("date", _hud_date()))
+		hud.clock = (String(hd.at) + ":%02d" % (int(bt) % 60)) if hd.has("at") else game_clock()
+		hud.mic = -1.0
 	if bt >= bdur and not holding:
 		if auto or beat.get("auto", false) or beat.get("say", []).is_empty() and String(beat.get("text", "")) == "":
 			next_beat()
@@ -270,6 +307,8 @@ func _run_then(th: Dictionary) -> void:
 		_show_act(th.talk, "talk")
 	elif th.has("back"):
 		_back_to(String(th.back))
+	elif th.has("shift"):
+		_start_shift(th)
 	else:
 		var kind := "конец ветки"
 		for k in ["explore", "talk", "mg", "shift", "ending", "over", "back"]:
@@ -292,6 +331,18 @@ func _act_items(th: Dictionary) -> Array:
 		if _flag_ok(s.get("if")) and not (s.get("once", true) != false and flags.has("v:" + String(s.go))):
 			out.append({"s": s, "i": i})
 	return out
+
+
+## Часы ночи с секундами (gameClock в engine.js).
+func game_clock(with_sec := true) -> String:
+	var p := last_time.split(":")
+	var s := int(p[0]) * 3600 + int(p[1]) * 60 + sec_base + int(floor(maxf(0.0, T - clock_t0)))
+	return "%02d:%02d" % [(s / 3600) % 24, (s / 60) % 60] + (":%02d" % (s % 60) if with_sec else "")
+
+
+## Дата ночи на записях: с 28 на 29 октября (после полуночи — 29-е).
+func _hud_date() -> String:
+	return "29.10.2026" if int(last_time.substr(0, 2)) < 12 else "28.10.2026"
 
 
 ## Тихие перемены в холле по ходу ночи (propsNow в engine.js).
@@ -371,6 +422,87 @@ func _back_to(id: String) -> void:
 	if scene.is_empty():
 		return
 	_run_then(scene.get("then", {}))
+
+
+# ---------- смена ----------
+func _start_shift(th: Dictionary) -> void:
+	mode = "shift"
+	beat = {}
+	dlg.visible = false
+	hint_lbl.visible = false
+	phone.visible = false
+	black.visible = false
+	choice_box.visible = false
+	if shift:
+		shift.queue_free()
+	shift = ShiftGame.new()
+	add_child(shift)
+	shift.ended.connect(func(n): _shift_done(n))
+	shift.died.connect(func(n): _shift_done(n))
+	shift.start(th, self, player, shift_ui)
+
+
+func _shift_done(next: String) -> void:
+	if shift:
+		shift.queue_free()
+		shift = null
+	hud.visible = false
+	if autoplay:
+		print("смена → ", next)
+	start_scene(next)
+
+
+## Кадр смены: камера по слоям (12 кадров в секунду, как запись камеры), надписи камеры, микрофон, субтитры реплик.
+func _shift_frame(_delta: float) -> void:
+	if shift == null or shift.shf.is_empty():
+		return
+	var c := String(shift.shf.cam)
+	var ids := shift.view_ids(c)
+	if ids.is_empty():
+		return
+	player.visible = true
+	player.play_layers(ids)
+	var P := _props_now()
+	if c == "03":   # часы холла идут по времени смены (или крутятся назад)
+		var v: float = shift.shf.M - (shift.T * 40.0 if shift.props().get("clockSpin") else 0.0)
+		P.clock = ShiftGame.min_str(fposmod(v, 1440.0))
+	else:
+		P.clock = null
+	player.norms = P
+	player.aim_cx = 0.5
+	player.aim_cy = 0.5
+	player.aim_z = 1.0
+	player.aim_dk = 0.0
+	player.talk = {}
+	player.apply(floor(shift.T * 12.0) / 12.0, 0.0, true)
+	post.set_p("cctv", 1.0)
+	post.set_p("ir", 1.0 if player.ir else 0.0)
+	post.beat_fx("cctv", shift.T, T, 0.0, {}, 1.0)
+	hud.visible = true
+	hud.T = T
+	hud.label = ShiftUI.cam_label(c)
+	hud.ir = player.ir
+	hud.tag = "REC"
+	hud.date = _hud_date()
+	hud.clock = game_clock()
+	hud.mic = float(shift.shf.mic)
+	# реплики смены
+	var cur := shift.cur_line()
+	if cur.is_empty():
+		dlg.visible = false
+		return
+	var k := String(cur.k)
+	var lt: float = shift.T - float(cur.t0)
+	if StoryDB.line(k).is_empty():   # без озвучки — печатается
+		var tx := StoryDB.t(String(StoryDB.story.shift.get("lines", {}).get(k, "")))
+		_say_text(String(StoryDB.story.shift.get("who", {}).get(k, "ИТАН")), tx.substr(0, int(minf(1.0, lt / maxf(0.5, float(cur.d) - 0.9)) * tx.length())))
+		return
+	var w: Array = StoryDB.line(k).get("w", [])
+	var on := 0
+	for x in w:
+		if lt >= float(x[0]) - 0.02:
+			on += 1
+	_say_words(StoryDB.who_of(k), StoryDB.chunks(k), on if lt < float(cur.d) + 0.1 else w.size())
 
 
 func _choice(th: Dictionary) -> void:
@@ -576,12 +708,18 @@ func _music(name: String) -> void:
 
 # ---------- интерфейс ----------
 func _build_ui() -> void:
+	post = PostFX.new()
+	add_child(post)
 	ui = CanvasLayer.new()
+	ui.layer = 1
 	add_child(ui)
 	phone = PhoneScreen.new()
 	ui.add_child(phone)
+	hud = CctvHud.new()
+	ui.add_child(hud)
 	act_view = ActView.new()
 	act_view.picked.connect(_act_pick)
+	shift_ui = ShiftUI.new()
 	var font: FontFile = load("res://assets/fonts/ns-ui.woff") if ResourceLoader.exists("res://assets/fonts/ns-ui.woff") else null
 	var theme := Theme.new()
 	if font:
@@ -652,6 +790,8 @@ func _build_ui() -> void:
 	choice_box.add_child(timer_bar)
 	ui.add_child(choice_box)
 	ui.add_child(act_view)
+	ui.add_child(shift_ui)
+	ui.move_child(dlg, -1)   # субтитры поверх смены
 
 
 func _snap() -> void:
