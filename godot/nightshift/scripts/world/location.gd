@@ -123,10 +123,8 @@ func _build() -> void:
 			env.volumetric_fog_enabled = true
 			env.volumetric_fog_density = float(fog.density) * 0.5
 			env.volumetric_fog_albedo = _col(fog.color).lightened(0.5)
-	if pc:
-		env.ssao_enabled = true
-		env.glow_enabled = true
-		env.glow_bloom = 0.15
+	env.glow_bloom = 0.15
+	Graphics.env(env)
 
 
 func _add_light(d: Dictionary) -> void:

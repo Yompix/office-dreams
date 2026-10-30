@@ -67,22 +67,33 @@ var autoplay := false      # автопрогон для проверки: ка�
 
 
 func _ready() -> void:
-	StoryDB.setup(_arg("lang", "ru"))
+	Save.load_all()
+	Save.ensure_buses()
+	var lang := _arg("lang", String(Save.setting("lang", "")))
+	if lang == "":   # первый запуск — язык системы, если он есть в игре
+		lang = OS.get_locale_language()
+	StoryDB.setup(lang)
+	Graphics.apply(get_viewport())
+	auto = bool(Save.setting("auto", false))
 	player = ShotPlayer.new()
 	add_child(player)
 	_build_ui()
 	music = AudioStreamPlayer.new()
 	music.volume_db = -6.0
+	music.bus = "Music"
 	add_child(music)
 	for i in 4:
 		var v := AudioStreamPlayer.new()
+		v.bus = "Voice"
 		add_child(v)
 		voices.append(v)
 	for i in 8:
 		var v := AudioStreamPlayer.new()
+		v.bus = "SFX"
 		add_child(v)
 		sfx_pool.append(v)
 	amb_static = AudioStreamPlayer.new()
+	amb_static.bus = "Amb"
 	add_child(amb_static)
 	autoplay = OS.get_cmdline_user_args().has("--autoplay")
 	auto = auto or autoplay
@@ -102,8 +113,12 @@ func _ready() -> void:
 			_run_then(th)
 		else:
 			start_scene(_arg("scene", ""), int(_arg("beat", "0")))
-	else:
+	elif autoplay:
 		start_scene(StoryDB.story.get("start", "intro"))
+	else:
+		if _arg("shot", "") != "":   # проверка титула: -- --at 3 --shot файл
+			test = {"at": float(_arg("at", "3.0")), "shot": _arg("shot", "")}
+		go_menu()
 
 
 func _arg(name: String, def: String) -> String:
@@ -129,6 +144,14 @@ func start_scene(id: String, at_beat := 0) -> void:
 		ShiftGame.shk = {}
 	if not id.begins_with("over_"):
 		save_scene = id
+		if not autoplay and test.is_empty():   # «Продолжить» — с этой сцены
+			Save.d.save = id
+			Save.d.saveT = last_time
+			Save.d.flags = flags
+			Save.d.shk = ShiftGame.shk
+			Save.d.tutDone = ShiftGame.tut_done
+			Save.d.run = run
+			Save.write()
 	if run.is_empty():
 		run = {"picks": [], "sec": 0.0, "rec": 0, "ok": 0, "miss": 0, "hrs": []}
 	ends.hide_all()
@@ -211,6 +234,11 @@ func _process(delta: float) -> void:
 	T += delta
 	if mode in ["play", "choice", "mg", "shift", "explore", "talk"] and not run.is_empty():
 		run.sec += delta
+	if mode == "menu":
+		_menu_frame()
+		if not test.is_empty() and T - _menu_t0 >= float(test.at):
+			_snap()
+		return
 	if mode == "mg":
 		_mg_frame(delta)
 		if not test.is_empty() and mg.t >= float(test.at):
@@ -327,6 +355,11 @@ func _plan() -> void:
 
 
 func _input(e: InputEvent) -> void:
+	if e.is_action_pressed("ui_cancel") and mode in ["play", "choice", "mg", "shift", "explore", "talk"] and not get_tree().paused:
+		get_tree().paused = true
+		menu.show_pause()
+		get_viewport().set_input_as_handled()
+		return
 	if mode != "play" and mode != "choice":
 		return
 	if e.is_action_pressed("ui_accept") or (e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT and not choice_box.visible):
@@ -477,6 +510,71 @@ func _back_to(id: String) -> void:
 	_run_then(scene.get("then", {}))
 
 
+# ---------- меню, пауза, продолжение ----------
+var menu: MainMenu
+var _menu_t0 := 0.0
+
+
+## Титул: живой кадр (Лили за стеклом), медленный наезд за 20 с.
+func go_menu() -> void:
+	get_tree().paused = false
+	mode = "menu"
+	scene = {"beats": []}
+	beat = {}
+	for v in voices:
+		v.stop()
+	for v in sfx_pool:
+		v.stop()
+	for k in ambs:
+		ambs[k].stop()
+	amb_static.stop()
+	if shift:
+		shift.queue_free()
+		shift = null
+	shift_ui.visible = false
+	mg.visible = false
+	act_view.close()
+	ends.hide_all()
+	dlg.visible = false
+	hint_lbl.visible = false
+	phone.visible = false
+	choice_box.visible = false
+	hud.visible = false
+	black.visible = false
+	_menu_t0 = T
+	if ResourceLoader.exists("res://bake/door_katya.json"):
+		player.play("door_katya")
+		player.visible = true
+	_music("theme")
+	menu.show_title(Save.get_v("save") != null and StoryDB.scene(String(Save.get_v("save", ""))).size() > 0, OS.has_feature("pc"))
+
+
+func _menu_frame() -> void:
+	var tt := T - _menu_t0
+	var k := minf(1.0, tt / 20.0)
+	player.aim_cx = 0.5
+	player.aim_cy = 0.47
+	player.aim_z = 1.0 + 0.06 * (k * k * (3.0 - 2.0 * k))
+	player.aim_dk = 0.0
+	player.talk = {}
+	if player.shot:
+		player.apply(minf(tt + 3.0, player.shot.dur), maxf(0.0, tt + 3.0 - player.shot.dur))
+	post.beat_fx("", tt, T, 0.0, {}, 1.0)
+	post.set_p("cctv", 0.0)
+	post.set_p("ir", 0.0)
+	post.set_p("grain_k", 0.09)
+
+
+func _continue() -> void:
+	menu.close()
+	flags = Save.get_v("flags", {}).duplicate()
+	ShiftGame.shk = Save.get_v("shk", {}).duplicate(true)
+	ShiftGame.tut_done = bool(Save.get_v("tutDone", false))
+	run = Save.get_v("run", {}).duplicate(true)
+	last_time = String(Save.get_v("saveT", "02:55"))
+	start_scene(String(Save.get_v("save", "intro")))
+
+
 # ---------- концовки и экран смерти ----------
 ## Концовка: последний кадр идёт дальше ~8,5 с и темнеет, своя музыка, название по буквам; клик — журнал дежурств.
 func _finale(th: Dictionary) -> void:
@@ -514,8 +612,12 @@ func _end_screen(th: Dictionary) -> void:
 	beat = {}
 	hud.visible = false
 	dlg.visible = false
+	endings_got = Save.get_v("endings", {})
 	var fresh := not endings_got.has(th.ending)
 	endings_got[th.ending] = true
+	Save.d.endings = endings_got
+	Save.d.erase("save")
+	Save.write()
 	if not th.get("fin", false):
 		_play("boom")
 	var mins := maxi(1, int(round(float(run.get("sec", 0.0)) / 60.0)))
@@ -543,7 +645,9 @@ func _over_screen(th: Dictionary) -> void:
 	beat = {}
 	hud.visible = false
 	dlg.visible = false
+	overs_got = Save.get_v("overs", {})
 	overs_got[String(th.over)] = true
+	Save.set_v("overs", overs_got)
 	_music("")
 	ends.show_over(String(th.over), String(th.get("sub", "")), overs_got.size(), StoryDB.story.overs.size())
 	ends.set_meta("retry", String(th.get("retry", "@save")))
@@ -718,6 +822,7 @@ func _mg_frame(_delta: float) -> void:
 func _amb(n: String, on: bool, gain := 1.0) -> void:
 	if not ambs.has(n):
 		var a := AudioStreamPlayer.new()
+		a.bus = "Amb"
 		add_child(a)
 		ambs[n] = a
 	var p: AudioStreamPlayer = ambs[n]
@@ -923,6 +1028,8 @@ func _loop_stream(n: String) -> AudioStreamMP3:
 
 # ---------- голос и субтитры ----------
 func _say(k: String) -> void:
+	if not Save.setting("voice", true):   # без озвучки остаются субтитры
+		return
 	var p := StoryDB.voice_path(k)
 	if not ResourceLoader.exists(p):
 		return
@@ -1029,13 +1136,24 @@ func _build_ui() -> void:
 	act_view.picked.connect(_act_pick)
 	shift_ui = ShiftUI.new()
 	mg = MiniGames.new()
+	menu = MainMenu.new()
+	menu.theme = dlg.theme
+	menu.new_game.connect(func():
+		menu.close()
+		start_scene("intro"))
+	menu.continue_game.connect(_continue)
+	menu.resume.connect(func():
+		menu.close()
+		get_tree().paused = false)
+	menu.to_menu.connect(go_menu)
+	menu.quit_game.connect(func(): get_tree().quit())
 	ends = EndScreens.new()
 	ends.next_pressed.connect(func():
 		_play("click")
 		next_beat())
 	ends.retry_pressed.connect(_retry)
 	ends.restart_pressed.connect(func(): start_scene("intro"))
-	ends.menu_pressed.connect(func(): start_scene("intro"))   # меню — позже
+	ends.menu_pressed.connect(go_menu)
 	ends.back_pressed.connect(func():
 		var f: Dictionary = run.picks[run.picks.size() - 1] if not run.get("picks", []).is_empty() else {}
 		if not f.is_empty():
@@ -1114,6 +1232,7 @@ func _build_ui() -> void:
 	ui.add_child(shift_ui)
 	ui.add_child(mg)
 	ui.add_child(ends)
+	ui.add_child(menu)
 	ui.move_child(dlg, -1)   # субтитры поверх смены
 
 

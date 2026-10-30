@@ -21,6 +21,7 @@ function needs() {
       const d = { tape: (th.len || 5.6) + 1, cord: (th.dur || 3.2) + 1, wipe: 4, torch: 20, run: 12 }[th.mg] || 4;
       for (const k of ['img', 'img2', 'img3', 'slam']) if (th[k]) need[th[k]] = Math.max(need[th[k]] || 0, d);
       if (th.mg === 'run') need.run_lit = Math.max(need.run_lit || 0, d); } }
+  need.door_katya = Math.max(need.door_katya || 0, 26);   // титул: живой кадр, медленный наезд 20 с (engine.js TITLE_SHOT)
   return need;
 }
 (async () => {
