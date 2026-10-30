@@ -35,7 +35,7 @@ const GK = eval('(' + /const GORE_KIND = (\{[\s\S]*?\});/.exec(ENG)[1] + ')'), G
     }, [id, gk, GB[id], +st]);
     const bad = r.rows.filter(x => x.cl.length || Object.values(x.under).some(u => u[0] < -.03));
     console.log(id, r.sid, r.tl ? 'сценарий' : 'старый', 'снимков', r.rows.length, 'с проблемами', bad.length);
-    for (const x of bad.slice(0, 14)) console.log('  ', x.t, x.cl.slice(0, 3).join(' | '), JSON.stringify(x.under));
+    for (const x of bad.slice(0, +process.env.N || 14)) console.log('  ', x.t, x.cl.slice(0, 3).join(' | '), JSON.stringify(x.under));   // N=99 — все снимки с проблемами
   }
   if (errs.length) console.log('ОШИБКИ JS:', errs.slice(0, 5));
   await br.close();

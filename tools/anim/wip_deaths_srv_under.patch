@@ -1,0 +1,338 @@
+diff --git a/public/games/nightshift/engine.js b/public/games/nightshift/engine.js
+index 291d3a2..200a45e 100644
+--- a/public/games/nightshift/engine.js
++++ b/public/games/nightshift/engine.js
+@@ -404,8 +404,8 @@ const goreDur = id => (goreTL(id) || {}).d || GORE_D;
+ // откуда снимать финал: последний кадр смерти, а где он тесный (будка, стол) — соседний кадр той же локации с открытым местом
+ // смерть там, где Итан проиграл (владелец: «смерти должны быть логичны, смотря где проиграл»): за пультом в будке — hush_face (scenes.js seatSet)
+ const GORE_BASE = { over_k1: 'hush_face', over_k3: 'hush_face', over_k4: 'hush_face', over_k9: 'hush_face', over_fmom: 'hush_face', over_door: 'hush_face', over_come: 'hush_face',
+-  over_stare: 'hush_face', over_stare_b: 'hush_face', over_phone: 'hush_face', over_k5: 'k5_drag', over_k5b: 'k5_drag', over_k7: 'bm_view', over_stare_hide: 'door_tilt',
+-  over_k1_srv: 'hush_srv', over_k1_hide: 'k1_hide' };   // часы S6 и A1: Итан в серверной / под стойкой — там и финал (было: коридор седьмого с CAM 13)
++  over_stare: 'hush_face', over_stare_b: 'hush_face', over_phone: 'hush_face', over_k5: 'k5_drag', over_k5b: 'k5_drag', over_k7: 'bm_view', over_stare_hide: 'k1_hide', over_phone_hide: 'k1_hide',
++  over_k1_srv: 'hush_srv', over_come_srv: 'hush_srv', over_stare_srv: 'hush_srv', over_k1_hide: 'k1_hide' };   // часы S6 и A1: Итан в серверной (в круге соли — scenes.js srvGSet) / под стойкой (undSet) — там и финал (было: коридор седьмого с CAM 13)
+ let jumpBuzz = 0;
+ let flashT = -9, blackT = -9, scareAt = null, shakeAmp = 0, typed = null, hb = 0, pre = 0, trig = [], subl = null, sublScene = '', voiceNow = false;
+ let creep = null, creepCool = 25, mgView = null;   // случайное появление Жильца в кадре; кадр под мини-игрой
+diff --git a/public/games/nightshift/scenes.js b/public/games/nightshift/scenes.js
+index 35b2a0d..094d77f 100644
+--- a/public/games/nightshift/scenes.js
++++ b/public/games/nightshift/scenes.js
+@@ -1587,7 +1587,7 @@ function goreFx(loc) {
+   const pm = ps1(new T.MeshPhongMaterial({ color: 0x3a0306, specular: 0x5a2020, shininess: 110, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
+   f.pool = new T.Mesh(new T.CircleGeometry(1, 32), pm); f.pool.rotation.x = -PI / 2; f.pool.visible = false; S.add(f.pool);
+   f.trail = new T.Mesh(new T.PlaneGeometry(1, 1), pm); f.trail.rotation.x = -PI / 2; f.trail.visible = false; S.add(f.trail);
+-  f.spray = new T.InstancedMesh(new T.SphereGeometry(.0075, 6, 4), mat(0x4a0404, null, { basic: true }), 64); f.spray.frustumCulled = false; f.spray.visible = false; S.add(f.spray);   // капли (были кубики — «квадратики»)
++  f.spray = new T.InstancedMesh(new T.SphereGeometry(.0075, 9, 6), mat(0x4a0404, null, { basic: true }), 64); f.spray.frustumCulled = false; f.spray.visible = false; S.add(f.spray);   // капли (были кубики — «квадратики»)
+   f.heart = new T.Mesh(new T.SphereGeometry(.055, 10, 8), loc.gutM || (loc.gutM = GUT_M())); f.heart.scale.set(1, 1.25, .9); f.heart.visible = false; S.add(f.heart);
+   return f;
+ }
+@@ -1603,6 +1603,8 @@ function sprayAt(f, from, dir, t, bursts) {   // брызги дугой из р
+   for (; n < 64; n++) { _gm4.makeScale(0, 0, 0); f.spray.setMatrixAt(n, _gm4); }
+   f.spray.instanceMatrix.needsUpdate = true; f.spray.visible = true;
+ }
++const heartAt = M => { const W3 = window.__W3chars, h = M.bone.hand_r.getWorldPosition(new T.Vector3()); if (!W3 || !W3.handPt) return h.add(new T.Vector3(0, .02, 0));   // сердце — в горсти, между ладонью и пальцами
++  return W3.handPt(M, 'r', 'palm').lerp(W3.handPt(M, 'r', 'tip'), .35); };
+ function twistHead(C, up, ang) {   // голова за предел: шея и голова поворачиваются вокруг оси тела (в мире)
+   for (const [bn, k] of [['neck_01', .45], ['Head', .55]]) { const b = C.bone[bn]; if (!b) continue; b.updateWorldMatrix(true, false);
+     const wq = b.getWorldQuaternion(new T.Quaternion()).premultiply(new T.Quaternion().setFromAxisAngle(up, ang * k));
+@@ -1671,6 +1673,14 @@ function goreShot(id) {
+     const TL = Object.assign({}, GTH);
+     return (GORE[id] = { loc: 'lobby', pos: [5.75, .5, -.22], look: [5.82, .58, -1.2], fov: 50, gore: kind, tl: TL, noDolly: 1,
+       set: (o, t, sh) => hideSet(o, t, kind, TL, sh), post: (o, t, used) => hidePost(o, t, kind, TL, used) }); }
++  if (GPLACE[m[1]] === 'under' && GTU[bk]) { if (close) return (GORE[id] = goreShot(id.slice(0, -2)));   // под стойкой (undSet)
++    const TL = Object.assign({}, GTU[bk]);
++    return (GORE[id] = { loc: 'lobby', pos: [6.88, .66, -.88], look: [5.7, .62, -.62], fov: 46, gore: kind, tl: TL, noDolly: 1,
++      set: (o, t, sh) => undSet(o, t, kind, TL, sh), post: (o, t, used) => undPost(o, t, kind, TL, used) }); }
++  if (GPLACE[m[1]] === 'salt' && GTR[bk]) { if (close) return (GORE[id] = goreShot(id.slice(0, -2)));   // в серверной, в круге соли (srvGSet)
++    const TL = Object.assign({}, GTR[bk]);
++    return (GORE[id] = { loc: 'server', pos: [1.0, 1.25, 1.9], look: [2.3, 1.12, 2.02], fov: 42, gore: kind, tl: TL, noDolly: 1,
++      set: (o, t, sh) => srvGSet(o, t, kind, TL, sh), post: (o, t, used) => srvGPost(o, t, kind, TL, used) }); }
+   if (GPLACE[m[1]] === 'seat' && GTS[bk]) { if (close) return (GORE[id] = goreShot(id.slice(0, -2)));   // в будке за пультом (seatSet)
+     const TL = Object.assign({}, GTS[bk]);
+     return (GORE[id] = { loc: 'lobby', pos: [4.66, 1.31, .04], look: [5.3, 1.42, -.68], fov: 46, gore: kind, tl: TL, noDolly: 1,
+@@ -1770,7 +1780,7 @@ GTL.chest = { d: 5.9, hit: .55, kill: 1.35, drop: 2.05, kp: [.16, 1.32], cam: [[
+   sfx: [['breath_close', .05, .75], ['skin_stretch', .55, .8], ['boom', 1.35, .7], ['skin_stretch', 1.35, 1], ['eat_wet', 1.4, 1], ['eat_wet', 1.95, .85, { rate: .85 }], ['boom', 2.95, .5, { rate: .55 }]] };
+ const gtl = kind => GTL[goreWho(kind).base] || null;
+ // где Итан, когда проиграл (по кадру-основе финала, engine.js GORE_BASE): seat — за пультом в будке; остальное — стоя (gStage)
+-const GPLACE = { hush_face: 'seat', k5_drag: 'hide' };
++const GPLACE = { hush_face: 'seat', k5_drag: 'hide', hush_srv: 'salt', k1_hide: 'under' };   // salt — в серверной, в круге соли (часы S6); under — под стойкой (час A1)
+ // ключи [[секунда, значение, ход], …] → значение в секунду t; ход участка: плавно (по умолчанию), 'in' — разгон (бросок), 'out' — торможение, 'lin' — ровно
+ function keyAt(t, K) {
+   const n = K.length; if (t <= K[0][0]) return K[0][1]; if (t >= K[n - 1][0]) return K[n - 1][1];
+@@ -1860,17 +1870,19 @@ function gMon(S, TL, t, C) {
+ }
+ function gSet(o, t, kind, S, TL, sh) {
+   const { V, K } = goreWho(kind), C = A[V], M = A[K];
+-  M.gore = 1; gLight(o, t, S); gCam(sh, S, TL, t);
++  const base = goreWho(kind).base; M.gore = base === 'chest' ? .2 * stg(t, TL.kill, TL.kill + .2) : 0;   // кровь на лице — только брызги из раны после удара (было: красная маска с первого кадра, хотя оно не кусает)
++  gLight(o, t, S); gCam(sh, S, TL, t);
+   const ci = TL.cam.reduce((a, k, i) => t >= k[0] ? i : a, 0);   // склейка внутри кадра — позы сразу новые (и у покадрового Жильца), как на настоящей склейке
+   if (S.ci !== ci) { if (S.ci != null && t > .01) for (const X of [C, M]) { X.smDone = false; X.cut = true; } S.ci = ci; }
+-  const base = goreWho(kind).base, vp = gVic(S, TL, t, C, base), [mp, mry, mpose] = gMon(S, TL, t, M);
++  const vp = gVic(S, TL, t, C, base), [mp, mry, mpose] = gMon(S, TL, t, M);
+   return [[V, S.V.x, gLiftY(TL, t), S.V.z, S.ryV, vp, null], [K, mp.x, 0, mp.z, mry, mpose, t > TL.d - 1.05 ? 'cam' : null]];
+ }
+ // лежащее тело не уходит под пол: суставы не ниже своей «толщины» над полом (клип Death01 кладёт спину и затылок на 11 см под пол)
+ const G_LIFT = [['pelvis', .11], ['spine_02', .12], ['spine_03', .12], ['neck_01', .08], ['Head', .1], ['upperarm_l', .07], ['upperarm_r', .07], ['thigh_l', .08], ['thigh_r', .08], ['calf_l', .06], ['calf_r', .06]];
+-function gLift(C) {
++const G_LIFT_SIDE = G_LIFT.concat([['foot_l', .07], ['foot_r', .07], ['hand_l', .04], ['hand_r', .04]]);   // упал набок с корточек: стопы и кисти — тоже по полу
++function gLift(C, list = G_LIFT) {
+   C.root.updateWorldMatrix(true, true); let d = 0;
+-  for (const [bn, r] of G_LIFT) { const b = C.bone[bn]; if (b) d = Math.max(d, r * (C.ss || 1) - b.getWorldPosition(_gv).y); }
++  for (const [bn, r] of list) { const b = C.bone[bn]; if (b) d = Math.max(d, r * (C.ss || 1) - b.getWorldPosition(_gv).y); }
+   if (d > 0) { C.root.position.y += d; C.root.updateMatrixWorld(true); }
+ }
+ // касания после поз: руки Жильца — к голове жертвы (предвестие → бросок дугой → держит → отпускает и провожает тело вниз), руки жертвы — на его предплечьях
+@@ -2021,7 +2033,7 @@ function seatPost(o, t, kind, TL, used) {
+       const k1 = seg(t, TL.hit, TL.kill - .2), k2 = stg(t, TL.kill - .16, TL.kill), k3 = seg(t, TL.rel - .35, TL.rel);
+       RA(M, 'r', { at: k3 > 0 ? lin(thru, back, k3) : k2 > 0 ? lin(wind, thru, k2 * k2) : lin(V3a(cr), wind, k1), by: 'palm', w: Math.max(wM, 1 - rel), pole: [-1, -.4, -.4] }); }
+     wound0 = 'chest'; wk = stg(t, TL.kill - .02, TL.kill + .15); sprayP = B.chest; sprayD = B.fw; bursts = [TL.kill + .02, TL.kill + .35, TL.rel - .3];
+-    if (act === 'heart') { const h = M.bone.hand_r.getWorldPosition(new T.Vector3()); f.heart.visible = t > TL.kill + .05; f.heart.position.copy(h); f.heart.position.y += .02; f.heart.scale.setScalar(1 + .14 * Math.max(0, Math.sin(t * 7.5)) ** 4 * (t < TL.rel + .8 ? 1 : 0)); } }
++    if (act === 'heart') { f.heart.visible = t > TL.kill + .05; f.heart.position.copy(heartAt(M)); f.heart.scale.setScalar(1.15 * (1 + .14 * Math.max(0, Math.sin(t * 7.5)) ** 4 * (t < TL.rel + .8 ? 1 : 0))); } }
+   else if (grip === 'belly') { const dig = seg(t, TL.kill - .1, TL.kill + .08), rip = seg(t, TL.kill + .3, TL.kill + .6);
+     go('l', V3a(P(B.belly, .02 + .06 * dig, .16 - .1 * dig + .14 * rip, .02 * rip))); go('r', V3a(P(B.belly, .02 + .06 * dig, -.16 + .1 * dig - .14 * rip, .02 * rip)));
+     wound0 = 'belly'; wk = stg(t, TL.kill, TL.kill + .5); sprayP = B.belly; sprayD = B.fw; bursts = [TL.kill + .05, TL.kill + .45]; }
+@@ -2726,6 +2738,243 @@ SH.hush_hide = { loc: 'lobby', pos: [6.42, 2.32, .32], look: [5.65, .95, -.7], f
+   return [['temych', CROUCH[0], 0, CROUCH[1], PI, eCrouch(t), null], ['monster', 5.8, 0, -.97, 0, Object.assign(STILL('Idle_Loop', 1.7), { pelvis: [0, -.18 * lean, 0], spine: { to: [5.8, .7, -.2], k: .5 * lean },
+     arm: { r: { at: [5.62, .55, -.4], by: 'palm', fdir: [0, -.25, 1], pdir: [0, -1, 0], w: lean, pole: [5.3, .9, -1.1] }, l: { at: lips, by: 'tip', fdir: nrm(lin([0, -.6, 1], [0, 1, 0], sh)), pdir: nrm(lin([0, -1, -.3], [-.5, 0, .85], sh)), w: lean } },
+     fing: { r: ['claw', .4], l: sh > .3 ? ['point', 1] : ['flat', .55] } }), 'cam']]; } };
++// ---- смерти в серверной (часы S6; владелец: «смерти должны быть логичны, смотря где проиграл»): Итан на корточках в круге соли рядом с Фрэнком.
++// Соль оно не переступает — стоит за чертой у него за спиной и тянется через неё. Сначала тихо: длинные пальцы ползут по его щекам (Итан замер и часто
++// дышит, Фрэнк вжался в дверь и смотрит на него) → хватка (hit) → Итан бьётся на корточках, держит его за руки → смерть (kill: укус в лицо /
++// большие пальцы в глаза / рука сквозь спину, сердце в когтях) → отпускает (rel): тело валится набок, голова ложится за черту, на соль.
++// Конец — с камеры 13 под потолком у двери: оно выпрямляется за чертой над телом и медленно поднимает лицо к объективу; Фрэнк в круге зажал рот рукой
++const SRV_M = [2.52, 1.38], SRV_MRY = -.26, SRV_ERY = -.75, SRV_H = [2.24, .86, 2.42];   // оно — за чертой, за правым плечом Итана (до стойки справа 45 см); SRV_H — его голова на корточках (замер)
++const GTR = {
++  face: { d: 6.1, touch: .35, hit: .9, kill: 1.6, rel: 2.4, cam: [[0, 'w'], [1.3, 'c'], [2.4, 'w'], [3.15, 'e']], splat: 1.66,
++    sfx: [['breath_close', .05, .9], ['skin_stretch', .4, .35, { rate: 1.4 }], ['skin_stretch', .9, .9], ['breath_close', 1.25, .6, { rate: .8 }], ['eat_wet', 1.62, 1], ['skin_stretch', 1.7, 1, { rate: .75 }],
++      ['eat_wet', 2.0, .75, { rate: 1.1 }], ['boom', 2.86, .5, { rate: .7 }], ['salt_crunch', 2.88, .9], ['eat_wet', 4.4, .5, { rate: 1.2 }]] },
++  eyes: { d: 6.0, touch: .35, hit: .9, kill: 1.55, rel: 2.45, cam: [[0, 'w'], [1.25, 'c'], [2.45, 'w'], [3.2, 'e']], splat: 1.62,
++    sfx: [['breath_close', .05, .9], ['skin_stretch', .4, .35, { rate: 1.4 }], ['skin_stretch', .9, .8], ['eat_wet', 1.57, .9, { rate: 1.3 }], ['skin_stretch', 1.6, .9, { rate: 1.2 }], ['eat_wet', 1.95, .6, { rate: 1.5 }],
++      ['boom', 2.91, .5, { rate: .7 }], ['salt_crunch', 2.93, .9]] },
++  heart: { d: 6.3, touch: .35, hit: .9, kill: 1.55, rel: 2.55, cam: [[0, 'w'], [1.25, 'c'], [1.95, 'w'], [3.3, 'e']],   // после удара — общий: видно, как вырывает сердце и поднимает splat: 1.6, dark: 1, kp: [2.3, 1.12, 2.2], kc: [1.8, 1.02, 2.8], kf: 40,   // «оно пришло»: свечи погасли; крупно — лицо и место над головой (туда поднимает сердце)
++    sfx: [['breath_close', .05, .9], ['skin_stretch', .4, .35, { rate: 1.4 }], ['skin_stretch', .9, .8], ['boom', 1.55, .7], ['skin_stretch', 1.55, 1], ['eat_wet', 1.6, 1], ['skin_stretch', 2.25, .9, { rate: .8 }],
++      ['eat_wet', 2.32, .8, { rate: .9 }], ['boom', 3.01, .5, { rate: .7 }], ['salt_crunch', 3.03, .9], ['heart', 3.4, .8], ['eat_wet', 4.9, .8]] },
++};
++// камера: w — от Фрэнка, низко (его ноги на переднем плане, Итан лицом к нам, оно за ним нависает), c — крупно лицо (сердце — грудь),
++// e — камера серверной в углу под потолком (CAM −2, как в кадре смерти) с приближением: видно всех троих и черту соли
++function srvGCam(sh, TL, t) {
++  const c = TL.cam.reduce((a, k) => t >= k[0] ? k : a, TL.cam[0]), lt = t - c[0];
++  let pos, look, fov;
++  if (c[1] === 'e') { pos = SRV_CAM.slice(); look = [2.1, .7, 1.9]; fov = 17; }
++  else if (c[1] === 'c') { pos = TL.kc || [1.85, 1.0, 2.72]; look = TL.kp || [2.27, 1.02, 2.28]; fov = TL.kf || 34; }
++  else { pos = [1.55, .95, 2.95]; look = [2.3, 1.22, 2.0]; fov = 46; }
++  const k = Math.min(.14, lt * .05), d = [look[0] - pos[0], look[1] - pos[1], look[2] - pos[2]], L = Math.hypot(...d) || 1;   // медленный наезд, чуть с рук
++  sh.pos = [pos[0] + d[0] / L * k + Math.sin(t * 1.3) * .004, pos[1] + d[1] / L * k + Math.sin(t * 1.9 + 1) * .003, pos[2] + d[2] / L * k]; sh.look = look; sh.fov = fov;
++}
++function srvGLight(o, t, TL) {
++  srvDim(o); o.candleK = TL.dark ? .08 : .9; o.redK = .3;
++  const fl = t > TL.kill && t < TL.kill + .6 && Math.sin(t * 40) > .2 ? .35 : 1;   // холодная лампа захлёбывается на смерти
++  const te = (TL.cam.find(k => k[1] === 'e') || [99])[0];
++  if (t >= te) faceLit(o, [1.55, 2.35, 1.1], 1.7, 0xc0ccd8), o.faceL.distance = 3.4;   // конец, камера серверной: свет сверху — тело на полу, лицо, поднятое к объективу
++  else faceLit(o, [1.65, 1.35, 2.85], 1.3 * fl, 0xc0ccd8), o.faceL.distance = 2.6;   // холодный свет спереди, от Фрэнка — на лица (рубаха за ними уходит в тень)
++}
++// Итан на корточках: смотрит на Фрэнка → замер, глаза в сторону пальцев на щеке, часто дышит → рывок, когда схватили → бьётся: рвётся вперёд, к Фрэнку,
++// а его держат за голову; ноги скребут пол → смерть → обмяк (валится набок — в srvGPost)
++function srvVic(TL, t, C, act) {
++  const R = locR(EIN[0], EIN[1], SRV_ERY), fz = stg(t, TL.touch, TL.touch + .15) * (1 - stg(t, TL.hit, TL.hit + .1));
++  const sg = stg(t, TL.hit + .03, TL.hit + .2) * (1 - stg(t, TL.kill, TL.kill + .12)), jolt = t > TL.hit ? Math.exp(-(t - TL.hit) * 7) * Math.min(1, (t - TL.hit) * 30) : 0;
++  const cv = stg(t, TL.kill, TL.kill + .1) * (1 - seg(t, TL.rel - .15, TL.rel + .3)), dead = t > TL.kill + .15;
++  const P = { clips: [['Crouch_Idle_Loop', .5 + Math.min(t, TL.touch) * .6, 1]], legs: 'plant', toes: 1, br: fz > 0 ? [1.25, 2.1] : undefined,
++    look: dead && !((act === 'bite' || act === 'gouge') && t < TL.rel - .1) ? null : t < TL.touch ? FRANK_HEAD : t < TL.hit ? R.p(-.6, .95, .35) : R.p(-.2, 1.7, -.55),   // мёртвого ещё держат за голову — лицо поднято
++    fing: { l: ['grip', Math.max(sg, .6 * fz)], r: ['grip', Math.max(sg, .6 * fz)] } };
++  P.spine = { to: R.p(0, .25, 1.4), k: .14 * sg + .12 * jolt + .12 * cv };   // рвётся вперёд-вниз, от него
++  P.twist = .2 * Math.sin((t - TL.hit) * 10) * sg;
++  const kick = sg + .5 * cv;   // ноги скребут пол
++  P.wig = kick > 0 ? [['calf_l', [1, 0, 0], .16 * Math.sin(t * 15 + 1) * kick], ['calf_r', [1, 0, 0], .16 * Math.sin(t * 12 + 3) * kick], ['hand_l', [0, 0, 1], .4 * Math.sin(t * 17) * cv], ['hand_r', [0, 0, 1], .4 * Math.sin(t * 19 + 1) * cv]]
++    : t > TL.rel + .6 ? [['hand_r', [0, 0, 1], .55 * Math.max(0, Math.sin(t * 13)) ** 8 * (t < TL.d - .9 ? 1 : 0)], ['index_01_r', [1, 0, 0], .5 * Math.max(0, Math.sin(t * 9 + 2)) ** 6]] : null;   // на полу ещё дёргаются пальцы
++  C.faceSets.g_v = dead ? { dead: 1, mouth: .45 + .25 * cv, wide: .9 } : fz > .3 ? { mouth: .18, wide: 1.5, browUp: 1, browIn: 1, tense: .8 } : { mouth: .25 + .6 * sg, wide: 1.4, browUp: 1, browIn: 1, tense: .55, scream: .6 * sg + .3 * jolt }; C.faceSet = 'g_v';
++  if (act === 'heart') C.gore = .8 * stg(t, TL.kill + .05, TL.kill + .4);   // удар в спину — кровь изо рта по подбородку
++  return P;
++}
++// оно за чертой: склоняется к нему через соль, лицо у его головы → хватка → для укуса голова вниз, к лицу, и рывок → отпускает →
++// конец: выпрямляется во весь рост за чертой и на камере 13 медленно поднимает лицо к объективу (сердце — в когтях у рта)
++function srvMon(TL, t, C, act, te) {
++  const bite = act === 'bite' ? keyAt(t, [[TL.kill - .14, 0], [TL.kill, 1, 'in'], [TL.kill + .12, 1], [TL.kill + .34, .3, 'out'], [TL.rel, .2]]) : 0;
++  const up = seg(t, te - .05, te + .3), lean = (keyAt(t, [[0, .55], [TL.touch, .85], [TL.hit, 1], [TL.rel, 1], [TL.rel + .5, .6]]) + .3 * bite) * (1 - .8 * up);
++  const dx = Math.sin(SRV_MRY), dz = Math.cos(SRV_MRY), H = SRV_H;
++  const P = { clips: [['Idle_Loop', 1.7, 1]], legs: 'plant', toes: 1, pelvis: [dx * .1 * lean, -.27 * Math.min(1, lean), dz * .1 * lean],   // toes — пальцы ног не в полу, когда приседает к укусу
++    spine: { to: bite > .05 ? [H[0], H[1] + .02, H[2] + .05] : [H[0] + .1, .3 + .4 * (1 - lean), H[2] - .25], k: .42 + .36 * lean },
++    look: t >= te + .9 ? null : bite > .05 ? [H[0], H[1], H[2] + .1] : t > TL.rel ? [1.75, .3, 1.95] : H };
++  C.faceSet = t > TL.hit - .1 && t < TL.kill + .35 ? 'scream' : 'grin';
++  C.gore = act === 'bite' ? .28 * stg(t, TL.kill, TL.kill + .15) : act === 'heart' && t > te + 1.2 ? .2 * stg(t, te + 1.2, te + 1.6) : 0;   // кровь у рта — только после укуса (сердце — когда поднёс ко рту)
++  return [SRV_M, P];
++}
++// Фрэнк в круге: смотрит на него, отпрянул к двери, часто дышит; после смерти зажал рот рукой и не дышит
++function srvFrank(TL, t, C) {
++  const sc = stg(t, TL.hit - .1, TL.hit + .3), P = frankSit(t, { look: t < TL.rel + .2 ? [2.42, 1.5, 1.72] : [2.0, .35, 1.95] });   // откинуться сильнее нельзя — спина уходила в пол
++  P.spine = { to: FR().p(0, .9, -.8), k: .1 * sc };   // отпрянул к двери
++  P.br = t < TL.kill + .2 ? [1.5, 2.4] : [.6, .4]; P.pain = 0;
++  C.faceSets.g_f = t > TL.kill ? { mouth: .5, wide: 1.5, browUp: 1, browIn: 1, tense: .8 } : { mouth: .2 + .3 * sc, wide: 1.3, browUp: 1, browIn: .9, tense: .5 }; C.faceSet = 'g_f';
++  return P;
++}
++function srvGSet(o, t, kind, TL, sh) {
++  const { V, K, base } = goreWho(kind), C = A[V], M = A[K], F = A.mihalych, [, act] = GSK[base], te = (TL.cam.find(k => k[1] === 'e') || [99])[0];
++  srvGLight(o, t, TL); srvGCam(sh, TL, t);
++  const ci = TL.cam.reduce((a, k, i) => t >= k[0] ? i : a, 0); if (TL.ci !== ci) { if (TL.ci != null && t > .01) for (const X of [C, M, F]) { X.smDone = false; X.cut = true; } TL.ci = ci; }
++  const [mp, mpose] = srvMon(TL, t, M, act, te);
++  return [[V, EIN[0], 0, EIN[1], SRV_ERY, srvVic(TL, t, C, act), null], [K, mp[0], 0, mp[1], SRV_MRY, mpose, t > te + .9 ? 'cam' : null],
++    ['mihalych', FRANK[0], FRANKY, FRANK[1], PI + .55, srvFrank(TL, t, F), null]];
++}
++// после поз: тело валится набок (корень — вокруг его оси «вперёд», вправо: к центру комнаты, голова — за черту), руки его — пальцы по щекам → хватка
++// (виски / большие пальцы в глаза / за плечо и сквозь спину) → отпускает; руки Итана — за его предплечья, после смерти — к ране; Фрэнк зажимает рот
++function srvGPost(o, t, kind, TL, used) {
++  const { V, K, base } = goreWho(kind), C = A[V], M = A[K]; if (!used.has(V) || !used.has(K) || !C.bone || !M.bone) return;
++  const W3 = window.__W3chars, RA = W3 && W3.reachArm; if (!RA) return;
++  const [grip, act] = GSK[base], f = goreFx(o), V3a = v => [v.x, v.y, v.z];
++  const fall = keyAt(t, [[TL.rel, 0], [TL.rel + .46, 1.45, 'in'], [TL.rel + .56, 1.36, 'out'], [TL.rel + .68, 1.41]]);   // валится: разгон, удар об пол, чуть отскок
++  if (fall > 0) { C.root.rotation.z = fall; C.root.updateMatrixWorld(true); if (W3.layFloor) W3.layFloor(C); gLift(C, G_LIFT_SIDE); }
++  C.root.updateMatrixWorld(true);
++  const B = bodyPts(C), H = C.bone.Head.getWorldPosition(new T.Vector3()), N = C.bone.neck_01.getWorldPosition(new T.Vector3());
++  const P = (o2, fw = 0, lr = 0, up = 0) => o2.clone().addScaledVector(B.fw, fw).addScaledVector(B.lr, lr).addScaledVector(B.up, up);
++  const te = (TL.cam.find(k => k[1] === 'e') || [99])[0], rel = stg(t, TL.rel - .05, TL.rel + .3), wM = (1 - rel) * keyAt(t, [[0, .8], [TL.touch, .9], [TL.hit, 1]]);
++  const R = locR(SRV_M[0], SRV_M[1], SRV_MRY);
++  const from = { l: R.p(.32, 1.55, .45), r: R.p(-.3, 1.5, .4) };   // руки подняты над его головой
++  const cheek = { l: V3a(P(H, .05, .085, -.07 + .06 * stg(t, TL.touch, TL.hit))), r: V3a(P(H, .05, -.085, -.07 + .06 * stg(t, TL.touch, TL.hit))) };   // кончики пальцев ползут по щекам вверх
++  const go = (sd, tgt, by) => { const kt = stg(t, TL.touch - .25, TL.touch), kg = stg(t, TL.hit - .12, TL.hit);
++    let p = t < TL.touch ? lin(from[sd], cheek[sd], kt * kt) : lin(cheek[sd], tgt, kg * kg); if (t < TL.touch) p[1] += Math.sin(PI * kt) * .06;
++    RA(M, sd, { at: t >= TL.hit ? tgt : p, by: t < TL.hit - .06 ? 'tip' : by || 'palm', w: wM, pole: sd === 'l' ? [1, -.3, -.5] : [-1, -.3, -.5] }); };
++  let cl = P(H, 0, .095, .02), cr = P(H, 0, -.095, .02), wound0 = null, wk = 0, sprayP = null, sprayD = null, bursts = [];
++  if (grip === 'head') { go('l', V3a(cl)); go('r', V3a(cr)); wound0 = 'face'; wk = stg(t, TL.kill, TL.kill + .25); sprayP = B.face; sprayD = B.fw; bursts = [TL.kill + .02, TL.kill + .4]; }
++  else if (grip === 'eyes') { const push = .03 * seg(t, TL.kill - .06, TL.kill + .1); go('l', V3a(P(H, .085 - push, .033, .035)), 'thumb'); go('r', V3a(P(H, .085 - push, -.033, .035)), 'thumb');
++    wound0 = 'eyes'; wk = stg(t, TL.kill, TL.kill + .3); if (C.HU && C.HU.uSocket) C.HU.uSocket.value = Math.max(C.HU.uSocket.value, wk); sprayP = B.face; sprayD = B.fw; bursts = [TL.kill + .03, TL.kill + .45]; }
++  else if (grip === 'chest') { go('l', V3a(P(N, -.03, .17, -.1)));   // левой держит за плечо
++    if (t < TL.hit) go('r', V3a(cr));   // сначала, как у всех, пальцы на его лице
++    else {   // на корточках грудь закрыта коленями — поэтому сзади: замах над спиной → удар сверху в спину между лопаток → рвёт обратно вверх — сердце над его головой → к пасти
++      const sp = C.bone.spine_03.getWorldPosition(new T.Vector3()), H0 = SRV_H, wind = V3a(P(sp, -.5, -.05, .42)), into = V3a(P(sp, -.03, -.02, -.02)), out = [H0[0] + .1, H0[1] + .5, H0[2] - .25];   // out — в мире: тело уже валится, рука его не провожает
++      const mo = mouthPt(M), mouth = [mo.x + .03, mo.y - .1 + .06 * seg(t, te + .9, te + 1.5), mo.z + .08];
++      const k1 = seg(t, TL.hit, TL.kill - .2), k2 = stg(t, TL.kill - .16, TL.kill), k3 = seg(t, TL.rel - .45, TL.rel - .05);
++      const at = t >= TL.rel - .05 ? lin(out, mouth, seg(t, te, te + .8)) : k3 > 0 ? lin(into, out, k3) : k2 > 0 ? lin(wind, into, k2 * k2) : lin(V3a(cr), wind, k1);
++      RA(M, 'r', { at, by: 'palm', w: 1, pole: [-1, -.2, -.6] }); }
++    wound0 = 'chest'; wk = stg(t, TL.kill - .02, TL.kill + .2); sprayP = P(B.chest, -.2, 0, .05); sprayD = B.up; bursts = [TL.kill + .02, TL.kill + .3, TL.rel - .4];
++    if (act === 'heart') { f.heart.visible = t > TL.rel - .4; f.heart.position.copy(heartAt(M)); f.heart.scale.setScalar(1.15 * (1 + .14 * Math.max(0, Math.sin(t * 7.5)) ** 4 * (t < te + 2 ? 1 : 0))); } }   // бьётся в когтях
++  if (wound0) wound(C, wound0, wk);
++  // руки Итана: схватили — за его предплечья; после смерти — к ране (лицо, глаза), пока не упал
++  const sg = stg(t, TL.hit + .03, TL.hit + .2) * (1 - stg(t, TL.kill, TL.kill + .12)), cw = (act === 'bite' || act === 'gouge') ? stg(t, TL.kill + .1, TL.kill + .25) * (1 - seg(t, TL.rel - .2, TL.rel + .1)) : 0;
++  if (sg > 0) { M.root.updateMatrixWorld(true); const fa = sd => M.bone['lowerarm_' + sd].getWorldPosition(new T.Vector3()).lerp(M.bone['hand_' + sd].getWorldPosition(new T.Vector3()), .5);
++    RA(C, 'l', { at: V3a(fa('l')), by: 'palm', w: sg }); RA(C, 'r', { at: V3a(fa('r')), by: 'palm', w: sg }); }
++  if (cw > 0) { const wp = B.face; RA(C, 'l', { at: V3a(P(wp, .06, .05, 0)), by: 'palm', w: cw }); RA(C, 'r', { at: V3a(P(wp, .06, -.05, 0)), by: 'palm', w: cw }); }
++  // Фрэнк: после смерти зажимает рот правой рукой
++  const F = A.mihalych; if (used.has('mihalych') && F.bone) { const cm = stg(t, TL.kill + .2, TL.kill + .6); if (cm > 0) { const mo = mouthPt(F); RA(F, 'r', { at: [mo.x, mo.y, mo.z], by: 'palm', w: cm }); } }
++  if (act === 'heart' && t > TL.rel - .4) { const h = M.bone.hand_r.getWorldPosition(new T.Vector3()); gutsDraw(o, [[h, h.clone().add(new T.Vector3(.02, -.13, 0)), .0, .011]], t); } else gutsDraw(o, [], t);   // с сердца свисает оборванный сосуд (длинная трубка до тела читалась как лапша)
++  if (sprayP) sprayAt(f, sprayP, sprayD.clone().multiplyScalar(-.25).addScaledVector(B.lr, -.8).normalize(), t, bursts);   // вбок, от камеры (вперёд — в объектив крупного плана: капли во весь кадр)
++  if (t > TL.rel + .45) { f.pool.visible = true; f.pool.position.set(B.face.x, .006, B.face.z); f.pool.scale.setScalar(.06 + .42 * stg(t, TL.rel + .45, TL.d)); }   // натекает под головой — на соль
++}
++// ---- смерти под стойкой (час A1): Итан на корточках под столом, вжался спиной в стойку. Оно в будке присело у просвета и склонило голову к самому
++// полу — заглядывает под столешницу, лицо в полуметре от его лица; длинные пальцы лезут к нему и ползут по щекам (он замер, часто дышит) → хватка за голову →
++// он бьётся под столом, держит его за запястья, ноги бьют в стойку → смерть (укус в лицо / большие пальцы в глаза; двойник — его же лицом) → рывок: выдёргивает
++// тело из-под стола за голову. Конец — с камеры будки (CAM 00): тело навзничь у просвета, ноги ещё под столом; оно сидит рядом и поднимает голову к объективу
++const UND_M = [5.72, -.98], UND_ME = [7.25, -.75], UND_MRYE = -2.42, UND_L = [5.9, -.5], UND_LRY = -.94, UND_H = [5.71, .54, -.31];   // оно у просвета (лицом к нему) / в конце сидит у его головы; тело: ноги (корень) у края стола, голова — к двери будки (там с камеры будки видно, стол не заслоняет); UND_H — его голова под столом (замер)
++// touch — пальцы на лице, hit — хватка, kill — смерть, rel — рывок за голову (склейка на камеру будки чуть позже); cam: i — сбоку, из будки (оба в профиль), c — крупно лица, e — CAM 00
++const GTU = {
++  face: { d: 6.2, touch: .5, hit: 1.05, kill: 1.8, rel: 2.55, cam: [[0, 'i'], [1.5, 'c'], [2.68, 'e']],
++    sfx: [['breath_close', .05, .9], ['skin_stretch', .5, .35, { rate: 1.4 }], ['skin_stretch', 1.05, .9], ['boom', 1.2, .4, { rate: 1.3 }], ['breath_close', 1.4, .6, { rate: 1.5 }], ['eat_wet', 1.82, 1], ['skin_stretch', 1.9, 1, { rate: .75 }],
++      ['eat_wet', 2.2, .75, { rate: 1.1 }], ['glass_scratch', 2.55, .5, { rate: .6 }], ['boom', 2.7, .6, { rate: .7 }], ['eat_wet', 4.5, .5, { rate: 1.2 }]] },
++  eyes: { d: 6.1, touch: .5, hit: 1.05, kill: 1.75, rel: 2.55, cam: [[0, 'i'], [1.45, 'c'], [2.68, 'e']],
++    sfx: [['breath_close', .05, .9], ['skin_stretch', .5, .35, { rate: 1.4 }], ['skin_stretch', 1.05, .8], ['boom', 1.2, .4, { rate: 1.3 }], ['eat_wet', 1.77, .9, { rate: 1.3 }], ['skin_stretch', 1.8, .9, { rate: 1.2 }],
++      ['eat_wet', 2.15, .6, { rate: 1.5 }], ['glass_scratch', 2.55, .5, { rate: .6 }], ['boom', 2.7, .6, { rate: .7 }]] },
++};
++function undCam(sh, TL, t) {
++  const c = TL.cam.reduce((a, k) => t >= k[0] ? k : a, TL.cam[0]), lt = t - c[0];
++  let pos, look, fov;
++  if (c[1] === 'e') { const k = Math.min(.18, lt * .035); pos = [6.42 + .1 * k, 2.32 - .9 * k, .32 - .6 * k]; look = [6.85, .3, -.95]; fov = 50; }   // камера будки, медленный цифровой наезд
++  else if (c[1] === 'c') { pos = [6.28, .7, -.8]; look = [5.71, .6, -.46]; fov = 38; }   // сбоку у просвета, чуть сверху: оба лица, его рука ниже
++  else { pos = [6.05, .52, .08]; look = [5.72, .62, -.75]; fov = 50; }   // из-под стола, через его правое плечо: в просвете — его лицо и руки
++  if (c[1] !== 'e') { const k = Math.min(.12, lt * .04), d = [look[0] - pos[0], look[1] - pos[1], look[2] - pos[2]], L = Math.hypot(...d) || 1; pos = [pos[0] + d[0] / L * k + Math.sin(t * 1.3) * .003, pos[1] + d[1] / L * k, pos[2] + d[2] / L * k]; }
++  sh.pos = pos; sh.look = look; sh.fov = fov;
++}
++function undLight(o, t, TL) {
++  lobbyBlack(o); o.l1.intensity = .2; o.amb.intensity = .07; o.flickOn = false; o.chair.position.set(4.3, 0, -1.2); if (o.ch2) o.ch2.position.set(4.85, 0, -1.3);   // стулья отлетели к левой стене
++  const fl = t > TL.kill && t < TL.kill + .6 && Math.sin(t * 40) > .2 ? .4 : 1, te = (TL.cam.find(k => k[1] === 'e') || [99])[0];
++  if (t < te) { o.faceL.position.set(6.35, .62, -.55); o.faceL.color.setHex(0xa8b8cc); o.faceL.distance = 1.9; o.faceL.intensity = 1.25 * fl; }   // холодный свет холла сбоку, низко — на оба лица у просвета
++  else { o.faceL.position.set(6.0, 1.55, -.75); o.faceL.color.setHex(0xc4d0dc); o.faceL.distance = 3.2; o.faceL.intensity = 1.8; o.lamp.intensity = .3; }   // над телом
++}
++// Итан под столом: вжался в стойку, глядит на лицо в просвете → замер, часто дышит → его тянут за голову к просвету, бьётся, ноги бьют под столом → смерть;
++// после рывка (склейка) — лежит навзничь, ноги под столом, пальцы скребут пол
++function undVic(TL, t, C, act, te) {
++  if (t >= te) { const tw = t < TL.d - .9 ? 1 : 0;
++    C.faceSets.g_v = { dead: 1, mouth: .5, wide: .9 }; C.faceSet = 'g_v';
++    return { clips: [['Death01', 2.4, 1]], heels: 0, fing: { l: ['claw', .7], r: ['claw', .7] },
++      wig: [['hand_r', [0, 0, 1], .5 * Math.max(0, Math.sin(t * 13)) ** 8 * tw], ['index_01_l', [1, 0, 0], .5 * Math.max(0, Math.sin(t * 9 + 2)) ** 6 * tw], ['calf_l', [1, 0, 0], .2 * Math.max(0, Math.sin(t * 7 + 1)) ** 10 * tw]] }; }
++  const P = eCrouch(t), fz = stg(t, TL.touch, TL.touch + .15) * (1 - stg(t, TL.hit, TL.hit + .1));
++  const sg = stg(t, TL.hit + .03, TL.hit + .2) * (1 - stg(t, TL.kill, TL.kill + .12)), jolt = t > TL.hit ? Math.exp(-(t - TL.hit) * 7) * Math.min(1, (t - TL.hit) * 30) : 0;
++  const cv = stg(t, TL.kill, TL.kill + .1), dead = t > TL.kill + .15, pull = stg(t, TL.hit, TL.hit + .35);   // pull — голову тянут к просвету
++  P.spine = { to: [CROUCH[0] - .02, .42 - .15 * pull, CROUCH[1] - .75], k: .35 + .25 * pull + .1 * jolt };
++  P.twist = .18 * Math.sin((t - TL.hit) * 10) * sg; P.toes = 1;
++  P.br = fz > 0 ? [1.25, 2.1] : undefined; P.look = dead ? null : [UND_M[0], t < TL.hit ? .72 : .66, UND_M[1] + .25];   // смотрит на его лицо в просвете
++  const kick = sg + .6 * cv * (1 - stg(t, TL.kill + .5, TL.kill + .9));   // ноги бьют под столом (и после смерти ещё полсекунды)
++  P.wig = kick > 0 ? [['calf_l', [1, 0, 0], .2 * Math.sin(t * 15 + 1) * kick], ['calf_r', [1, 0, 0], .2 * Math.sin(t * 12 + 3) * kick], ['hand_l', [0, 0, 1], .4 * Math.sin(t * 17) * cv], ['hand_r', [0, 0, 1], .4 * Math.sin(t * 19 + 1) * cv]] : null;
++  P.fing = { l: ['grip', Math.max(sg, .6 * fz)], r: ['grip', Math.max(sg, .6 * fz)] }; P.arm = null;
++  C.faceSets.g_v = dead ? { dead: 1, mouth: .45 + .25 * cv, wide: .9 } : fz > .3 ? { mouth: .18, wide: 1.5, browUp: 1, browIn: 1, tense: .8 } : { mouth: .25 + .6 * sg, wide: 1.4, browUp: 1, browIn: 1, tense: .55, scream: .6 * sg + .3 * jolt }; C.faceSet = 'g_v';
++  return P;
++}
++// оно у просвета: присело и склонило голову к полу, набок (заглядывает под столешницу) → руки под стол → хватка → укус: голова под край стола, к его лицу →
++// после склейки — сидит сбоку от тела, склонилось над лицом; в конце поднимает голову к объективу
++function undMon(TL, t, C, K, act, te) {
++  const mon = K === 'monster';
++  if (t >= te) { const up = seg(t, TL.d - 1.5, TL.d - .8);
++    if (mon) C.faceSet = 'grin'; else { C.faceSets.g_d = { dead: 1, smile: 1.05 * seg(t, te + .5, te + 1.2) }; C.faceSet = 'g_d'; } C.gore = act === 'bite' ? .3 : 0;
++    return [UND_ME, UND_MRYE, { clips: [['Crouch_Idle_Loop', 1.0, 1]], legs: 'plant', toes: 1, pelvis: [0, -.05, 0], spine: { to: [6.8, .1, -1.2], k: .6 * (1 - up) + .15 }, look: up > .5 ? null : [6.85, .2, -1.2],
++      fing: { l: ['claw', .8], r: ['claw', .8] } }]; }
++  const dn = seg(t, 0, .45), bite = act === 'bite' ? keyAt(t, [[TL.kill - .14, 0], [TL.kill, 1, 'in'], [TL.kill + .12, 1], [TL.kill + .34, .3, 'out'], [TL.rel, .2]]) : 0;
++  const H = UND_H, yank = stg(t, TL.rel, TL.rel + .12);
++  const P = { clips: [['Crouch_Idle_Loop', 1.0, 1]], legs: 'plant', toes: 1, pelvis: [0, -.06 * dn, -.04 * yank],
++    spine: { to: bite > .05 ? [H[0], H[1] - .04, H[2] - .12] : [H[0], .18, H[2] + .1], k: (mon ? .55 : .45) + .25 * dn + .2 * bite },   // укус — к его лицу (оно спереди, под краем столешницы)
++    look: bite > .05 ? [H[0], H[1] - .02, H[2] - .08] : [H[0], H[1] + .02, H[2]], fing: { l: ['claw', .6], r: ['claw', .6] },
++    post: X => headTwist(X, 0, (mon ? .55 : .35) * dn * (1 - bite)) };   // голова набок — дальше, чем может человек
++  if (mon) C.faceSet = t > TL.hit - .1 && t < TL.kill + .35 ? 'scream' : 'grin';
++  else { C.faceSets.g_d = bite > .05 ? { dead: 1, mouth: .85 } : t < TL.hit ? { dead: 1, smile: 1.05 } : { dead: 1, smile: .5, mouth: .3 }; C.faceSet = 'g_d'; }   // двойник: его же лицо, мёртвая улыбка шире человеческой
++  C.gore = act === 'bite' ? .3 * stg(t, TL.kill, TL.kill + .15) : 0;
++  return [UND_M, 0, P];
++}
++function undSet(o, t, kind, TL, sh) {
++  const { V, K, base } = goreWho(kind), C = A[V], M = A[K], [, act] = GSK[base], te = (TL.cam.find(k => k[1] === 'e') || [99])[0];
++  undLight(o, t, TL); undCam(sh, TL, t);
++  const ci = TL.cam.reduce((a, k, i) => t >= k[0] ? i : a, 0); if (TL.ci !== ci) { if (TL.ci != null && t > .01) for (const X of [C, M]) { X.smDone = false; X.cut = true; } TL.ci = ci; }
++  const [mp, mry, mpose] = undMon(TL, t, M, K, act, te), vp = undVic(TL, t, C, act, te);
++  const vic = t >= te ? [V, UND_L[0], 0, UND_L[1], UND_LRY, vp, null] : [V, CROUCH[0], 0, CROUCH[1], PI, vp, null];
++  return [vic, [K, mp[0], 0, mp[1], mry, mpose, t > TL.d - 1.4 ? 'cam' : null]];
++}
++// после поз: его руки — пальцы ползут по щекам → хватка (виски / большие пальцы в глаза) → держит → рывок; руки Итана — за его запястья, после смерти — к лицу;
++// после склейки: лежащий не уходит под пол, руки у лица (раскинутые уходили бы в того, кто сидит рядом), лужа под головой, след из-под стола
++function undPost(o, t, kind, TL, used) {
++  const { V, K, base } = goreWho(kind), C = A[V], M = A[K]; if (!used.has(V) || !used.has(K) || !C.bone || !M.bone) return;
++  const W3 = window.__W3chars, RA = W3 && W3.reachArm; if (!RA) return;
++  const [grip, act] = GSK[base], f = goreFx(o), V3a = v => [v.x, v.y, v.z], te = (TL.cam.find(k => k[1] === 'e') || [99])[0];
++  if (t >= te) { if (W3.layFloor) W3.layFloor(C); gLift(C); C.root.updateMatrixWorld(true);
++    const B = bodyPts(C), P = (o2, fw = 0, lr = 0, up = 0) => o2.clone().addScaledVector(B.fw, fw).addScaledVector(B.lr, lr).addScaledVector(B.up, up);
++    RA(C, 'l', { at: V3a(P(B.face, .05, .12, -.12)), by: 'palm', w: .85 }); RA(C, 'r', { at: V3a(P(B.chest, .1, -.12, 0)), by: 'palm', w: .8 });   // левая — у лица, правая — на груди
++    if (act === 'gouge' && C.HU && C.HU.uSocket) C.HU.uSocket.value = 1; wound(C, act === 'gouge' ? 'eyes' : 'face', 1);
++    RA(M, 'r', { at: V3a(P(B.face, .02, .08, .08)), by: 'palm', w: .9, pole: [-1, -.5, -.3] });   // ладонь на его лице
++    f.pool.visible = true; f.pool.position.set(B.face.x, .006, B.face.z); f.pool.scale.setScalar(.12 + .4 * stg(t, te, TL.d));
++    const ax = CROUCH[0], az = CROUCH[1] - .2, bx = B.face.x, bz = B.face.z, ln = Math.max(.05, Math.hypot(bx - ax, bz - az));   // смазанный след из-под стола — туда, где лежит голова
++    f.trail.visible = true; f.trail.position.set((ax + bx) / 2, .005, (az + bz) / 2); f.trail.rotation.set(-PI / 2, 0, Math.atan2(bx - ax, bz - az)); f.trail.scale.set(.22, ln, 1);
++    gutsDraw(o, [], t); return; }
++  C.root.updateMatrixWorld(true);
++  const B = bodyPts(C), H = C.bone.Head.getWorldPosition(new T.Vector3()), P = (o2, fw = 0, lr = 0, up = 0) => o2.clone().addScaledVector(B.fw, fw).addScaledVector(B.lr, lr).addScaledVector(B.up, up);
++  const R = locR(UND_M[0], UND_M[1], 0), big = K === 'monster' ? 1 : .75, wM = keyAt(t, [[0, .6], [TL.touch, .9], [TL.hit, 1]]);
++  const from = { l: R.p(.25 * big, .95, .3), r: R.p(-.25 * big, .95, .3) };   // руки у просвета, у края столешницы
++  const cheek = { l: V3a(P(H, .05, .085, -.07 + .06 * stg(t, TL.touch, TL.hit))), r: V3a(P(H, .05, -.085, -.07 + .06 * stg(t, TL.touch, TL.hit))) };
++  const yank = stg(t, TL.rel, TL.rel + .12), yv = [0, -.06 * yank, -.22 * yank];   // рывок к себе — голова уходит из-под стола
++  const go = (sd, tgt, by) => { const kt = stg(t, TL.touch - .35, TL.touch), kg = stg(t, TL.hit - .12, TL.hit);
++    let p = t < TL.touch ? lin(from[sd], cheek[sd], kt * kt) : lin(cheek[sd], tgt, kg * kg); if (t >= TL.hit) p = tgt;
++    RA(M, sd, { at: [p[0] + yv[0], p[1] + yv[1], p[2] + yv[2]], by: t < TL.hit - .06 ? 'tip' : by || 'palm', w: wM, pole: sd === 'l' ? [1, -1, -.2] : [-1, -1, -.2] }); };   // локти вниз и в стороны — под край столешницы, а не в неё
++  let wound0 = null, wk = 0, bursts = [];
++  if (grip === 'head') { go('l', V3a(P(H, 0, .095, .02))); go('r', V3a(P(H, 0, -.095, .02))); wound0 = 'face'; wk = stg(t, TL.kill, TL.kill + .25); bursts = [TL.kill + .02, TL.kill + .4]; }
++  else { const push = .03 * seg(t, TL.kill - .06, TL.kill + .1); go('l', V3a(P(H, .085 - push, .033, .035)), 'thumb'); go('r', V3a(P(H, .085 - push, -.033, .035)), 'thumb');
++    wound0 = 'eyes'; wk = stg(t, TL.kill, TL.kill + .3); if (C.HU && C.HU.uSocket) C.HU.uSocket.value = Math.max(C.HU.uSocket.value, wk); bursts = [TL.kill + .03, TL.kill + .45]; }
++  wound(C, wound0, wk);
++  const sg = stg(t, TL.hit + .03, TL.hit + .2) * (1 - stg(t, TL.kill, TL.kill + .12)), cw = stg(t, TL.kill + .1, TL.kill + .25);
++  if (sg > 0) { M.root.updateMatrixWorld(true); const fa = sd => M.bone['lowerarm_' + sd].getWorldPosition(new T.Vector3()).lerp(M.bone['hand_' + sd].getWorldPosition(new T.Vector3()), .6);
++    RA(C, 'l', { at: V3a(fa('r')), by: 'palm', w: sg }); RA(C, 'r', { at: V3a(fa('l')), by: 'palm', w: sg }); }   // лицом к нему: его левая — за его правую руку
++  if (cw > 0) { RA(C, 'l', { at: V3a(P(B.face, .06, .05, 0)), by: 'palm', w: cw * (1 - yank) }); RA(C, 'r', { at: V3a(P(B.face, .06, -.05, 0)), by: 'palm', w: cw * (1 - yank) }); }
++  gutsDraw(o, [], t); sprayAt(f, B.face, B.lr.clone().multiplyScalar(-1).add(new T.Vector3(0, .3, 0)).normalize(), t, bursts);   // брызги вбок, под столом (вперёд — в его лицо)
++  if (t > TL.kill) { f.pool.visible = true; f.pool.position.set(CROUCH[0], .006, CROUCH[1] - .1); f.pool.scale.setScalar(.06 + .25 * stg(t, TL.kill + .2, te)); }
++}
+ // ---- постановка v3: передача ключей (сменщик протягивает связку через окно будки, Итан берёт её в ладонь) ----
+ const ease = k => k * k * (3 - 2 * k), seg = (t, a, b) => ease(clamp((t - a) / (b - a), 0, 1));
+ const KEYH = [5.1, 1.29, .3];   // где встречаются руки: над внутренним краем стойки, в окне между стёклами
