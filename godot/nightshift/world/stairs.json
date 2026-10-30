@@ -8,7 +8,7 @@
   {
    "type": "AmbientLight",
    "key": "amb",
-   "name": "",
+   "name": "amb",
    "color": 5266016,
    "intensity": 0.3,
    "pos": [
@@ -22,7 +22,7 @@
   {
    "type": "PointLight",
    "key": "casters_0",
-   "name": "",
+   "name": "casters_0",
    "color": 16769712,
    "intensity": 1.5,
    "pos": [
@@ -38,7 +38,7 @@
   {
    "type": "PointLight",
    "key": "casters_1",
-   "name": "",
+   "name": "casters_1",
    "color": 16769712,
    "intensity": 1.5,
    "pos": [
@@ -54,7 +54,7 @@
   {
    "type": "PointLight",
    "key": "casters_2",
-   "name": "",
+   "name": "casters_2",
    "color": 16769712,
    "intensity": 1.5,
    "pos": [
@@ -70,7 +70,7 @@
   {
    "type": "PointLight",
    "key": "casters_3",
-   "name": "",
+   "name": "casters_3",
    "color": 16769712,
    "intensity": 1.5,
    "pos": [
@@ -86,7 +86,7 @@
   {
    "type": "PointLight",
    "key": "casters_4",
-   "name": "",
+   "name": "casters_4",
    "color": 16769712,
    "intensity": 1.5,
    "pos": [
@@ -102,7 +102,7 @@
   {
    "type": "PointLight",
    "key": "casters_5",
-   "name": "",
+   "name": "casters_5",
    "color": 16769712,
    "intensity": 1.5,
    "pos": [
@@ -118,7 +118,7 @@
   {
    "type": "PointLight",
    "key": "faceL",
-   "name": "",
+   "name": "faceL",
    "color": 14542591,
    "intensity": 0,
    "pos": [
@@ -133,8 +133,8 @@
   },
   {
    "type": "PointLight",
-   "key": "casters_6",
-   "name": "",
+   "key": "irL",
+   "name": "irL",
    "color": 16777215,
    "intensity": 0,
    "pos": [
@@ -150,7 +150,7 @@
   {
    "type": "SpotLight",
    "key": "rimC",
-   "name": "",
+   "name": "rimC",
    "color": 12571903,
    "intensity": 0,
    "pos": [
@@ -173,7 +173,7 @@
   {
    "type": "SpotLight",
    "key": "torch",
-   "name": "",
+   "name": "torch",
    "color": 16773336,
    "intensity": 0,
    "pos": [
@@ -195,8 +195,8 @@
   },
   {
    "type": "HemisphereLight",
-   "key": "",
-   "name": "",
+   "key": "light_4",
+   "name": "light_4",
    "color": 0,
    "intensity": 0,
    "pos": [

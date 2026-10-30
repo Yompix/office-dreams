@@ -8,7 +8,7 @@
   {
    "type": "AmbientLight",
    "key": "amb",
-   "name": "",
+   "name": "amb",
    "color": 4872296,
    "intensity": 0.36,
    "pos": [
@@ -22,7 +22,7 @@
   {
    "type": "PointLight",
    "key": "slitLight",
-   "name": "",
+   "name": "slitLight",
    "color": 16769184,
    "intensity": 1.2,
    "pos": [
@@ -38,7 +38,7 @@
   {
    "type": "PointLight",
    "key": "casters_0",
-   "name": "",
+   "name": "casters_0",
    "color": 14215392,
    "intensity": 0,
    "pos": [
@@ -54,7 +54,7 @@
   {
    "type": "PointLight",
    "key": "casters_1",
-   "name": "",
+   "name": "casters_1",
    "color": 14215392,
    "intensity": 0,
    "pos": [
@@ -70,7 +70,7 @@
   {
    "type": "PointLight",
    "key": "casters_2",
-   "name": "",
+   "name": "casters_2",
    "color": 14215392,
    "intensity": 0,
    "pos": [
@@ -86,7 +86,7 @@
   {
    "type": "PointLight",
    "key": "casters_3",
-   "name": "",
+   "name": "casters_3",
    "color": 14215392,
    "intensity": 0,
    "pos": [
@@ -102,7 +102,7 @@
   {
    "type": "PointLight",
    "key": "casters_4",
-   "name": "",
+   "name": "casters_4",
    "color": 14215392,
    "intensity": 0,
    "pos": [
@@ -118,7 +118,7 @@
   {
    "type": "PointLight",
    "key": "casters_5",
-   "name": "",
+   "name": "casters_5",
    "color": 14215392,
    "intensity": 0,
    "pos": [
@@ -134,7 +134,7 @@
   {
    "type": "PointLight",
    "key": "casters_6",
-   "name": "",
+   "name": "casters_6",
    "color": 14215392,
    "intensity": 0,
    "pos": [
@@ -150,7 +150,7 @@
   {
    "type": "PointLight",
    "key": "faceL",
-   "name": "",
+   "name": "faceL",
    "color": 14542591,
    "intensity": 0,
    "pos": [
@@ -165,8 +165,8 @@
   },
   {
    "type": "PointLight",
-   "key": "casters_7",
-   "name": "",
+   "key": "irL",
+   "name": "irL",
    "color": 16777215,
    "intensity": 0,
    "pos": [
@@ -182,7 +182,7 @@
   {
    "type": "SpotLight",
    "key": "rimC",
-   "name": "",
+   "name": "rimC",
    "color": 12571903,
    "intensity": 0,
    "pos": [
@@ -205,7 +205,7 @@
   {
    "type": "SpotLight",
    "key": "torch",
-   "name": "",
+   "name": "torch",
    "color": 16773336,
    "intensity": 0,
    "pos": [
@@ -227,8 +227,8 @@
   },
   {
    "type": "HemisphereLight",
-   "key": "",
-   "name": "",
+   "key": "light_2",
+   "name": "light_2",
    "color": 0,
    "intensity": 0,
    "pos": [

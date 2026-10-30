@@ -8,7 +8,7 @@
   {
    "type": "AmbientLight",
    "key": "amb",
-   "name": "",
+   "name": "amb",
    "color": 4739148,
    "intensity": 0.22,
    "pos": [
@@ -22,7 +22,7 @@
   {
    "type": "PointLight",
    "key": "casters_0",
-   "name": "",
+   "name": "casters_0",
    "color": 16767136,
    "intensity": 1.6,
    "pos": [
@@ -38,7 +38,7 @@
   {
    "type": "PointLight",
    "key": "casters_1",
-   "name": "",
+   "name": "casters_1",
    "color": 16767136,
    "intensity": 1.6,
    "pos": [
@@ -54,7 +54,7 @@
   {
    "type": "PointLight",
    "key": "casters_2",
-   "name": "",
+   "name": "casters_2",
    "color": 16767136,
    "intensity": 1.6,
    "pos": [
@@ -70,7 +70,7 @@
   {
    "type": "PointLight",
    "key": "candle",
-   "name": "",
+   "name": "candle",
    "color": 16756832,
    "intensity": 1,
    "pos": [
@@ -86,7 +86,7 @@
   {
    "type": "SpotLight",
    "key": "etorch",
-   "name": "",
+   "name": "etorch",
    "color": 16773336,
    "intensity": 0,
    "pos": [
@@ -108,8 +108,8 @@
   },
   {
    "type": "PointLight",
-   "key": "casters_3",
-   "name": "",
+   "key": "roomL",
+   "name": "roomL",
    "color": 16767152,
    "intensity": 0,
    "pos": [
@@ -125,7 +125,7 @@
   {
    "type": "PointLight",
    "key": "faceL",
-   "name": "",
+   "name": "faceL",
    "color": 14542591,
    "intensity": 0,
    "pos": [
@@ -140,8 +140,8 @@
   },
   {
    "type": "PointLight",
-   "key": "casters_4",
-   "name": "",
+   "key": "irL",
+   "name": "irL",
    "color": 16777215,
    "intensity": 0,
    "pos": [
@@ -157,7 +157,7 @@
   {
    "type": "SpotLight",
    "key": "rimC",
-   "name": "",
+   "name": "rimC",
    "color": 12571903,
    "intensity": 0.10289999999999999,
    "pos": [
@@ -180,7 +180,7 @@
   {
    "type": "SpotLight",
    "key": "torch",
-   "name": "",
+   "name": "torch",
    "color": 16773336,
    "intensity": 0,
    "pos": [
@@ -202,8 +202,8 @@
   },
   {
    "type": "HemisphereLight",
-   "key": "",
-   "name": "",
+   "key": "light_4",
+   "name": "light_4",
    "color": 0,
    "intensity": 0,
    "pos": [

@@ -20,7 +20,9 @@ static func create(name: String) -> Location:
 
 
 func _build() -> void:
-	add_child((load("res://world/%s.glb" % loc) as PackedScene).instantiate())
+	var geo: Node3D = (load("res://world/%s.glb" % loc) as PackedScene).instantiate()
+	add_child(geo)
+	_fix_materials(geo)
 	meta = JSON.parse_string(FileAccess.get_file_as_string("res://world/%s.json" % loc))
 	env = Environment.new()
 	env.background_mode = Environment.BG_COLOR
@@ -82,6 +84,50 @@ func _add_light(d: Dictionary) -> void:
 		l.position = p
 	if String(d.get("key", "")) != "":
 		lights[d.key] = l
+
+
+## Особые материалы старой игры приходят с меткой в имени материала (tools/godot/export_world.js): подставляем свои.
+func _fix_materials(n: Node) -> void:
+	if n is MeshInstance3D:
+		var mi := n as MeshInstance3D
+		for i in mi.mesh.get_surface_count():
+			var m := mi.mesh.surface_get_material(i)
+			var nm := m.resource_name if m else ""
+			if nm.begins_with("__beam") or nm.begins_with("__fx"):
+				mi.visible = false   # лучи света: на ПК их даёт объёмный туман
+			elif nm.begins_with("__glass"):
+				mi.set_surface_override_material(i, _glass())
+			elif nm.begins_with("__crt"):
+				mi.set_surface_override_material(i, _crt())
+			elif nm.begins_with("__add") and m is BaseMaterial3D:
+				var a := (m as BaseMaterial3D).duplicate() as BaseMaterial3D
+				a.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+				a.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+				a.no_depth_test = false
+				mi.set_surface_override_material(i, a)
+	for c in n.get_children():
+		_fix_materials(c)
+
+
+func _glass() -> StandardMaterial3D:
+	var g := StandardMaterial3D.new()
+	g.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	g.albedo_color = Color(0.32, 0.38, 0.44, 0.16)
+	g.roughness = 0.04
+	g.metallic = 0.0
+	g.metallic_specular = 0.9
+	g.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return g
+
+
+func _crt() -> StandardMaterial3D:
+	var c := StandardMaterial3D.new()
+	c.albedo_color = Color(0.02, 0.05, 0.04)
+	c.emission_enabled = true
+	c.emission = Color(0.2, 0.55, 0.45)
+	c.emission_energy_multiplier = 0.6
+	c.roughness = 0.15
+	return c
 
 
 ## Камера кадра старой игры (shots.json): позиция, куда смотрит, вертикальный угол обзора.

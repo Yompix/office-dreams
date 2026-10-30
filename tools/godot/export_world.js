@@ -4,7 +4,7 @@
 const { chromium } = require(process.env.PW || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path');
 const OUT = path.join(__dirname, '../../godot/nightshift/world'), PORT = process.env.PORT || 8771;
-const EXPORTER = fs.readFileSync(path.join(__dirname, 'vendor/GLTFExporter.r159.classic.js'), 'utf8');
+const EXPORTER = fs.readFileSync(path.join(__dirname, 'vendor/GLTFExporter.r159.classic.js'), 'utf8'), NAMING = require('./naming.js');
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
@@ -12,7 +12,7 @@ const EXPORTER = fs.readFileSync(path.join(__dirname, 'vendor/GLTFExporter.r159.
   await p.addInitScript(() => { localStorage.setItem('ns1_land3', 'true'); localStorage.setItem('ns1_tutDone', '1'); });
   await p.goto(`http://127.0.0.1:${PORT}/nightshift/index.html?gfx=ultra&lang=ru`);
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 300000 });
-  await p.addScriptTag({ content: EXPORTER });
+  await p.addScriptTag({ content: EXPORTER }); await p.evaluate(NAMING);
   const shots = await p.evaluate(() => { const out = {}; for (const [id, sh] of Object.entries(window.World.shots || {})) { const o = {};
       for (const [k, v] of Object.entries(sh)) { if (typeof v === 'function') { o[k] = '__fn'; continue; }
         if (v && v.isVector3) o[k] = [v.x, v.y, v.z]; else { try { JSON.stringify(v); o[k] = v; } catch (e) { o[k] = '__obj'; } } }
@@ -38,7 +38,7 @@ const EXPORTER = fs.readFileSync(path.join(__dirname, 'vendor/GLTFExporter.r159.
       const lights = []; const wp = new T.Vector3(), tp = new T.Vector3();
       S.updateMatrixWorld(true);
       S.traverse(o => { if (!o.isLight) return; o.getWorldPosition(wp); if (wp.y < -30) return;
-        const e = { type: o.type, key: keyOf.get(o) || '', name: o.name, color: o.color.getHex(), intensity: o.intensity, pos: wp.toArray() };
+        const e = { type: o.type, key: o.name, name: o.name, color: o.color.getHex(), intensity: o.intensity, pos: wp.toArray() };
         if (o.distance !== undefined) e.distance = o.distance; if (o.decay !== undefined) e.decay = o.decay;
         if (o.isSpotLight) { e.angle = o.angle; e.penumbra = o.penumbra; }
         if (o.target) { o.target.getWorldPosition(tp); e.target = tp.toArray(); }
@@ -69,6 +69,18 @@ const EXPORTER = fs.readFileSync(path.join(__dirname, 'vendor/GLTFExporter.r159.
         const me = new T.Mesh(g, Array.isArray(o.material) ? mm : mm[0]); me.name = o.name || 'room'; me.position.copy(o.position); me.quaternion.copy(o.quaternion); me.scale.copy(o.scale);
         flipped.push([o, me]); });
       flipped.forEach(([o, me]) => { o.parent.add(me); o.visible = false; });
+      // особые материалы старой игры (шейдеры стекла, лучей, ЭЛТ; «светящееся» сложение) экспортёр не переносит —
+      // ставим простые материалы с метками в имени, Godot по меткам подставляет свои (scripts/world/location.gd)
+      const screens = new Set(); [].concat(L.screens || []).forEach(o => o && o.traverse && o.traverse(x => screens.add(x)));
+      const beams = new Set([].concat(L.beams || [])), swapped = [];
+      S.traverse(o => { if (!o.isMesh || !o.visible) return; const arr = Array.isArray(o.material), ms = arr ? o.material : [o.material]; let ch = false;
+        const nm = ms.map(m => { if (!m) return m;
+          if (m.isShaderMaterial) { ch = true; const u = m.uniforms || {};
+            const kind = beams.has(o) || (o.geometry && o.geometry.type === 'CylinderGeometry') ? '__beam' : screens.has(o) ? '__crt' : (u.uPrint || /glass/i.test(o.name || '')) ? '__glass' : '__fx';
+            const r = new T.MeshStandardMaterial({ color: 0x808890, transparent: true, opacity: .25 }); r.name = kind; return r; }
+          if (m.blending === T.AdditiveBlending) { ch = true; const c = m.clone(); c.blending = T.NormalBlending; c.name = '__add'; return c; }
+          return m; });
+        if (ch) { swapped.push([o, o.material]); o.material = arr ? nm : nm[0]; } });
       // текстуры, которые рисуются на лету (картинки камер на мониторах — render target), экспортёр не умеет — на время снимаем
       const ok = im => im && (im instanceof HTMLCanvasElement || im instanceof HTMLImageElement || im instanceof ImageBitmap || (typeof OffscreenCanvas !== 'undefined' && im instanceof OffscreenCanvas) || im.data !== undefined);
       const unmapped = []; S.traverse(o => { if (!o.isMesh || !o.visible) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if (!m) return;
@@ -77,6 +89,7 @@ const EXPORTER = fs.readFileSync(path.join(__dirname, 'vendor/GLTFExporter.r159.
       const glb = await new window.GLTFExporter().parseAsync(S, { binary: true, onlyVisible: true, embedImages: true, maxTextureSize: 2048, trs: true });
       hidden.forEach(o => o.visible = true);
       unmapped.forEach(([m, k, t]) => m[k] = t);
+      swapped.forEach(([o, m]) => o.material = m);
       merged.forEach(([o, me]) => { me.parent.remove(me); o.visible = true; });
       flipped.forEach(([o, me]) => { me.parent.remove(me); o.visible = true; });
       let s = ''; const u8 = new Uint8Array(glb); for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
@@ -86,5 +99,17 @@ const EXPORTER = fs.readFileSync(path.join(__dirname, 'vendor/GLTFExporter.r159.
     fs.writeFileSync(path.join(OUT, loc + '.json'), JSON.stringify(r.meta, null, 1));
     console.log(loc, (Buffer.from(r.glb, 'base64').length / 1e6).toFixed(1) + ' МБ,', r.meta.lights.length, 'ламп,', Object.keys(r.meta.named).length, 'частей,', r.meta.flipped, 'комнат изнутри,', r.meta.merged, 'размноженных');
   }
+  // предметы в руках (старая игра строит их кодом: chars2 propMesh) — отдельными моделями world/props/prop_<имя>.glb
+  fs.mkdirSync(path.join(OUT, 'props'), { recursive: true });
+  for (const name of ['keys', 'phone', 'sheet', 'radio', 'torch', 'mop', 'lighter', 'cig', 'pen', 'apple', 'splint', 'head']) {
+    const g = await p.evaluate(async name => { const pr = window.__W3chars.prop3(name), o = pr.obj, par = o.parent, pos = o.position.clone(), q = o.quaternion.clone(), vis = o.visible;
+      if (par) par.remove(o); o.position.set(0, 0, 0); o.quaternion.identity(); o.visible = true;
+      const sc = new window.THREE.Scene(); sc.add(o);
+      const glb = await new window.GLTFExporter().parseAsync(sc, { binary: true, embedImages: true, trs: true });
+      sc.remove(o); o.position.copy(pos); o.quaternion.copy(q); o.visible = vis; if (par) par.add(o);
+      let s = ''; const u8 = new Uint8Array(glb); for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }, name).catch(e => null);
+    if (g) { fs.writeFileSync(path.join(OUT, 'props', 'prop_' + name + '.glb'), Buffer.from(g, 'base64')); } else console.log('предмет не выгружен:', name);
+  }
+  console.log('предметы:', fs.readdirSync(path.join(OUT, 'props')).length);
   console.log(errs.length ? 'ошибки JS:\n' + errs.join('\n') : 'ошибок JS нет'); await b.close();
 })();

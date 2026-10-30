@@ -8,7 +8,7 @@
   {
    "type": "AmbientLight",
    "key": "amb",
-   "name": "",
+   "name": "amb",
    "color": 4870224,
    "intensity": 0.24,
    "pos": [
@@ -21,8 +21,8 @@
   },
   {
    "type": "PointLight",
-   "key": "casters_0",
-   "name": "",
+   "key": "cold",
+   "name": "cold",
    "color": 8376496,
    "intensity": 1.35,
    "pos": [
@@ -37,8 +37,8 @@
   },
   {
    "type": "PointLight",
-   "key": "casters_1",
-   "name": "",
+   "key": "cold2",
+   "name": "cold2",
    "color": 8376496,
    "intensity": 1.1,
    "pos": [
@@ -54,7 +54,7 @@
   {
    "type": "PointLight",
    "key": "candle",
-   "name": "",
+   "name": "candle",
    "color": 16756832,
    "intensity": 1.2,
    "pos": [
@@ -69,8 +69,8 @@
   },
   {
    "type": "PointLight",
-   "key": "casters_2",
-   "name": "",
+   "key": "red",
+   "name": "red",
    "color": 16719904,
    "intensity": 1.4,
    "pos": [
@@ -86,7 +86,7 @@
   {
    "type": "PointLight",
    "key": "rim",
-   "name": "",
+   "name": "rim",
    "color": 10535120,
    "intensity": 2.6,
    "pos": [
@@ -102,7 +102,7 @@
   {
    "type": "PointLight",
    "key": "faceL",
-   "name": "",
+   "name": "faceL",
    "color": 14542591,
    "intensity": 0,
    "pos": [
@@ -118,7 +118,7 @@
   {
    "type": "SpotLight",
    "key": "rimC",
-   "name": "",
+   "name": "rimC",
    "color": 12571903,
    "intensity": 0.07202999999999998,
    "pos": [
@@ -140,8 +140,8 @@
   },
   {
    "type": "HemisphereLight",
-   "key": "",
-   "name": "",
+   "key": "light_7",
+   "name": "light_7",
    "color": 0,
    "intensity": 0,
    "pos": [
