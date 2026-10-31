@@ -27,6 +27,11 @@ const STATION_SHOTS := {
 	"st_roman": [Vector3(26.9, 1.85, -7.4), Vector3(26.4, 1.85, -9.3), 34.0],
 	"st_hand": [Vector3(25.2, 1.35, -9.3), Vector3(26.2, 1.0, -8.9), 42.0],
 	"st_noah_face": [Vector3(26.7, 1.85, -9.3), Vector3(26.4, 1.85, -7.5), 34.0],
+	"st_knuckles": [Vector3(13.6, 1.3, -3.2), Vector3(13.05, 1.0, -4.05), 32.0],
+	"st_window": [Vector3(19.4, 1.55, -5.2), Vector3(22.4, 0.6, -3.7), 40.0],
+	"st_danny_stare": [Vector3(19.1, 1.05, -4.2), Vector3(20.25, 0.98, -3.3), 32.0],
+	"st_kids": [Vector3(16.4, 1.62, -2.0), Vector3(19.65, 1.05, -3.4), 40.0],
+	"st_noah_out": [Vector3(19.2, 1.45, -3.25), Vector3(17.0, 1.62, -2.5), 36.0],
 }
 
 ## план → [позиция камеры, куда смотрит, угол обзора] (машина: вперёд −Z, водитель слева)
@@ -41,6 +46,9 @@ const SHOTS := {
 	"glovebox": [Vector3(0.05, 1.05, 0.05), Vector3(0.36, 0.72, -0.42), 44.0],
 	"front": [Vector3(0.6, 1.45, -5.5), Vector3(0.0, 1.0, 0.0), 40.0],
 	"road": [Vector3(-0.36, 1.17, 0.24), Vector3(-0.36, 0.6, -40.0), 50.0],
+	"cluster": [Vector3(-0.3, 1.05, -0.16), Vector3(-0.36, 0.89, -0.41), 30.0],
+	"pills": [Vector3(0.3, 0.86, -0.2), Vector3(0.36, 0.7, -0.46), 30.0],
+	"back": [Vector3(0.05, 1.25, -0.25), Vector3(0.32, 0.92, 1.4), 52.0],
 }
 
 
@@ -172,7 +180,111 @@ func park_at_station(lang := "ru") -> void:
 		props["news"] = tv
 	car.speed = 0.0
 	car.ride = false
-	car.position = Vector3(14.0, 0.0, -5.0)
+	car.position = Vector3(14.3, 0.0, -5.0)   # ближе к правому островку: слева у колонки место для Ноя
+
+
+## Трещины на стеклянной двери магазина (после провала): паутина от точки удара — текстура кодом.
+func crack_door() -> void:
+	var g := station.find_child("shop_door_glass", true, false) as MeshInstance3D
+	if g == null:
+		return
+	var n := 512
+	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.1, 0.12, 0.13, 0.2))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 13
+	var c := Vector2(n * 0.42, n * 0.48)
+	for i in 22:                                    # лучи от точки удара
+		var a := TAU * i / 22.0 + rng.randf() * 0.2
+		var p := c
+		var len := rng.randf_range(n * 0.25, n * 0.7)
+		var k := 0.0
+		while k < len:
+			a += rng.randf_range(-0.12, 0.12)
+			p += Vector2(cos(a), sin(a)) * 2.0
+			k += 2.0
+			if p.x < 1 or p.y < 1 or p.x > n - 2 or p.y > n - 2:
+				break
+			img.set_pixelv(p, Color(0.92, 0.95, 1.0, 0.9))
+			img.set_pixelv(p + Vector2(1, 0), Color(0.8, 0.85, 0.9, 0.6))
+	for r in [18.0, 42.0, 80.0]:                    # кольца трещин
+		for j in 360:
+			var a := deg_to_rad(j)
+			var q: Vector2 = c + Vector2(cos(a), sin(a)) * (float(r) + rng.randf_range(-3, 3))
+			if q.x > 0 and q.y > 0 and q.x < n and q.y < n and rng.randf() < 0.75:
+				img.set_pixelv(q, Color(0.9, 0.93, 1.0, 0.85))
+	img.generate_mipmaps()
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = ImageTexture.create_from_image(img)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.roughness = 0.1
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	g.material_override = m
+
+
+## Деньги на прилавке.
+func show_money() -> void:
+	for i in 3:
+		var b := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.155, 0.002, 0.068)
+		b.mesh = bm
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(0.55, 0.62, 0.5)
+		m.roughness = 0.8
+		b.material_override = m
+		b.position = Vector3(26.25 + i * 0.03, FLOOR + 1.052 + i * 0.002, -8.15 + i * 0.02)
+		b.rotation_degrees.y = 10.0 + i * 9.0
+		add_child(b)
+
+
+## Телефон на прилавке с вырванным проводом (провод висит).
+func rip_phone() -> void:
+	var ph := MeshInstance3D.new()
+	var pm := BoxMesh.new()
+	pm.size = Vector3(0.2, 0.08, 0.16)
+	ph.mesh = pm
+	ph.material_override = _dark()
+	ph.position = Vector3(27.35, FLOOR + 1.09, -8.6)
+	ph.rotation_degrees.y = 25.0
+	add_child(ph)
+	var cord := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.004
+	cm.bottom_radius = 0.004
+	cm.height = 0.9
+	cord.mesh = cm
+	cord.material_override = _dark()
+	cord.position = Vector3(27.5, FLOOR + 0.62, -8.15)
+	cord.rotation_degrees = Vector3(12, 0, 8)
+	add_child(cord)
+
+
+func _dark() -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.03, 0.03, 0.03)
+	m.roughness = 0.5
+	return m
+
+
+## Тёмное пятно под кассиром — растекается.
+func blood_pool(p: Vector3) -> void:
+	var d := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.5
+	cm.bottom_radius = 0.5
+	cm.height = 0.002
+	cm.radial_segments = 40
+	d.mesh = cm
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.09, 0.006, 0.006)
+	m.roughness = 0.12
+	m.metallic_specular = 0.7
+	d.material_override = m
+	d.position = p
+	d.scale = Vector3(0.2, 1.0, 0.16)
+	add_child(d)
+	create_tween().tween_property(d, "scale", Vector3(1.0, 1.0, 0.75), 6.0).set_ease(Tween.EASE_OUT)
 
 
 ## Камера на план (в координатах машины; планы заправки — в координатах мира).

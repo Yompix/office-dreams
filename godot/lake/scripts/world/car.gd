@@ -8,6 +8,7 @@ const DRIVER := Vector3(-0.36, 0.0, 0.3)     # точка посадки вод�
 const INTERIOR := ["dash", "binnacle", "cluster", "stack", "radio", "vent", "glove", "steer", "seat", "door", "headliner", "roofrail",
 	"pillar", "visor", "shelf", "carpet", "tunnel", "toeboard", "console", "gear", "knob", "handbrake", "mirror_in", "mirror_glass"]
 const PASSENGER := Vector3(0.36, 0.0, 0.3)
+const BACK := Vector3(0.38, 0.0, 1.26)         # заднее сиденье справа (Дэнни)
 var wheel: Node3D
 var wipers: Array[Node3D] = []
 var glovebox: Node3D
@@ -24,6 +25,10 @@ var column: MeshInstance3D
 var notebook: MeshInstance3D
 var glove_open := 0.0
 var glove_base := 0.0
+var fuel_blink := false                         # мигает лампа бензина
+var fuel_lamp: MeshInstance3D
+var pills: Node3D                               # пузырёк таблеток в бардачке
+var pills_label: Label3D
 var wheels: Array[MeshInstance3D] = []          # колёса снаружи: крутятся по скорости
 var speed := 25.0                               # м/с, как у дороги; на стоянке — 0
 var ride := true                               # кузов качается на дороге (на стоянке — нет)
@@ -114,6 +119,63 @@ func setup(pc: bool) -> void:
 		q.position = Vector3(g[0], 0.884, -0.404)
 		q.rotation_degrees = Vector3(72, 0, 0)
 		add_child(q)
+	fuel_lamp = MeshInstance3D.new()                  # лампа бензина на щитке (мигает в сцене 4)
+	var fq := QuadMesh.new()
+	fq.size = Vector2(0.022, 0.014)
+	fuel_lamp.mesh = fq
+	var fm := StandardMaterial3D.new()
+	fm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	fm.albedo_color = Color(1.0, 0.55, 0.05)
+	fuel_lamp.material_override = fm
+	fuel_lamp.position = Vector3(-0.36, 0.912, -0.398)
+	fuel_lamp.rotation_degrees = Vector3(-18, 0, 0)
+	fuel_lamp.visible = false
+	add_child(fuel_lamp)
+	pills = Node3D.new()                              # пузырёк: янтарный, белая крышка, этикетка
+	pills.position = Vector3(0.36, 0.665, -0.46)
+	pills.rotation_degrees = Vector3(0, -25, 0)
+	add_child(pills)
+	var bottle := MeshInstance3D.new()
+	var bc := CylinderMesh.new()
+	bc.top_radius = 0.021
+	bc.bottom_radius = 0.021
+	bc.height = 0.075
+	bottle.mesh = bc
+	var bmat := StandardMaterial3D.new()
+	bmat.albedo_color = Color(0.55, 0.28, 0.05, 0.85)
+	bmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	bmat.roughness = 0.15
+	bottle.material_override = bmat
+	bottle.position = Vector3(0, 0.0375, 0)
+	pills.add_child(bottle)
+	var cap := MeshInstance3D.new()
+	var cc := CylinderMesh.new()
+	cc.top_radius = 0.023
+	cc.bottom_radius = 0.023
+	cc.height = 0.02
+	cap.mesh = cc
+	cap.material_override = _m(Color(0.92, 0.92, 0.9), 0.5)
+	cap.position = Vector3(0, 0.085, 0)
+	pills.add_child(cap)
+	var lab := MeshInstance3D.new()
+	var lc := CylinderMesh.new()
+	lc.top_radius = 0.0215
+	lc.bottom_radius = 0.0215
+	lc.height = 0.04
+	lab.mesh = lc
+	lab.material_override = _m(Color(0.9, 0.88, 0.82), 0.7)
+	lab.position = Vector3(0, 0.036, 0)
+	pills.add_child(lab)
+	pills_label = Label3D.new()
+	pills_label.font = load("res://assets/fonts/Inter-700.woff2")
+	pills_label.font_size = 48
+	pills_label.pixel_size = 0.00012
+	pills_label.modulate = Color(0.08, 0.08, 0.1)
+	pills_label.outline_size = 0
+	pills_label.position = Vector3(0, 0.036, 0.0222)
+	pills_label.shaded = false
+	pills.add_child(pills_label)
+	pills.visible = false
 	clock = _label("03:12", Vector3(-0.36, 0.853, -0.4), 0.026, Color(1.0, 0.62, 0.25))
 	clock.rotation_degrees = Vector3(-18, 0, 0)
 	radio_lbl = _label("", Vector3(0.0, 0.762, -0.362), 0.018, Color(0.55, 0.9, 1.0))
@@ -283,6 +345,8 @@ func _process(delta: float) -> void:
 		glovebox.rotation_degrees.x = glove_base + glove_open * 75.0   # крышка откидывается вниз, к пассажиру
 	for w in wheels:
 		w.rotate_object_local(Vector3.RIGHT, -speed / 0.325 * delta)
+	if fuel_lamp:
+		fuel_lamp.visible = fuel_blink and fmod(t, 1.1) < 0.6
 	# лёгкая тряска дороги: свет приборов дышит вместе с машиной
 	dash_light.light_energy = 0.35 + 0.02 * sin(t * 13.0)
 	# кузов на неровной зимней дороге: чуть подпрыгивает и кренится в поворотах (головы и волосы отзываются сами)
@@ -294,10 +358,17 @@ func _process(delta: float) -> void:
 
 
 ## Посадка: герой ставится так, чтобы таз лёг на подушку кресла у спинки (у высоких и маленьких клипы сидят по-разному).
-func seat(a: Actor, s: Vector3) -> void:
+func seat(a: Actor, s: Vector3, h := 0.59, back := 0.17) -> void:
 	var sk := a.skel
 	var p := to_local(sk.global_transform * sk.get_bone_global_pose(sk.find_bone("pelvis")).origin)
-	a.position += s + Vector3(0, 0.59, 0.17) - p
+	a.position += s + Vector3(0, h, back) - p
+
+
+## Пузырёк в бардачке: показать (с надписью на этикетке) или убрать.
+func show_pills(v: bool, label := "") -> void:
+	pills.visible = v
+	if label != "":
+		pills_label.text = label
 
 
 ## Руль — в руки водителя: центр между ладонями, обод по их размаху, плоскость — к груди; колонка — от руля к торпедо.

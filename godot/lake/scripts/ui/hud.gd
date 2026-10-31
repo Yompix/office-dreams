@@ -23,7 +23,39 @@ var _toast_t := 0.0
 var font: Font
 var font_b: Font
 
-const NAME_COL := {"noah": Color(0.85, 0.9, 1.0), "iris": Color(1.0, 0.78, 0.6), "radio": Color(0.6, 0.85, 1.0)}
+const NAME_COL := {"noah": Color(0.85, 0.9, 1.0), "iris": Color(1.0, 0.78, 0.6), "radio": Color(0.6, 0.85, 1.0),
+	"danny": Color(0.75, 1.0, 0.75), "roman": Color(1.0, 0.92, 0.6)}
+var hum := 0.0              # «гул» в голове Ноя (начало провала): края кадра темнеют и пульсируют, 0…1
+var hum_to := 0.0
+var noise := 0.0            # белый шум провала, 0…1
+var vignette: ColorRect
+var static_rect: ColorRect
+var _ht := 0.0
+
+const VIGNETTE := """
+shader_type canvas_item;
+uniform float amount = 0.0;
+uniform float t = 0.0;
+void fragment() {
+	vec2 d = UV - 0.5;
+	float r = length(d * vec2(1.6, 1.0));
+	float pulse = 0.55 + 0.45 * sin(t * 5.5) * sin(t * 1.7 + 1.0);
+	float edge = smoothstep(0.35 - amount * 0.12, 0.95, r) * amount * (0.6 + 0.4 * pulse);
+	COLOR = vec4(0.12, 0.0, 0.0, clamp(edge * 1.4, 0.0, 0.92));
+}
+"""
+const STATIC := """
+shader_type canvas_item;
+uniform float amount = 0.0;
+uniform float t = 0.0;
+float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+void fragment() {
+	vec2 g = floor(UV * vec2(320.0, 180.0));
+	float n = h(g + floor(t * 30.0) * 17.0);
+	float band = smoothstep(0.0, 0.08, abs(fract(UV.y * 3.0 - t * 1.3) - 0.5));
+	COLOR = vec4(vec3(n * (0.6 + 0.4 * band)), amount);
+}
+"""
 
 
 func _ready() -> void:
@@ -39,6 +71,23 @@ func _ready() -> void:
 	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(fade)
+	vignette = ColorRect.new()
+	vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var vm := ShaderMaterial.new()
+	vm.shader = Shader.new()
+	vm.shader.code = VIGNETTE
+	vignette.material = vm
+	root.add_child(vignette)
+	root.move_child(vignette, 0)
+	static_rect = ColorRect.new()
+	static_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	static_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sm := ShaderMaterial.new()
+	sm.shader = Shader.new()
+	sm.shader.code = STATIC
+	static_rect.material = sm
+	root.add_child(static_rect)
 	sub_name = _label(root, 30, font_b, Color.WHITE)
 	sub_text = _label(root, 40, font, Color.WHITE)
 	note = _label(root, 34, font, Color(0.8, 0.82, 0.86))
@@ -209,6 +258,12 @@ func show_toast(text: String) -> void:
 
 
 func _process(delta: float) -> void:
+	_ht += delta
+	hum = move_toward(hum, hum_to, delta * 0.35)
+	(vignette.material as ShaderMaterial).set_shader_parameter("amount", hum)
+	(vignette.material as ShaderMaterial).set_shader_parameter("t", _ht)
+	(static_rect.material as ShaderMaterial).set_shader_parameter("amount", noise)
+	(static_rect.material as ShaderMaterial).set_shader_parameter("t", _ht)
 	if not _opts.is_empty():
 		_choice_t -= delta
 		var f := clampf(_choice_t / maxf(_choice_len, 0.01), 0.0, 1.0)

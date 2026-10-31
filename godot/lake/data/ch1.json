@@ -1,0 +1,1300 @@
+{
+ "id": "ch1",
+ "title": {
+  "ru": "Глава 1. Кровь на руках",
+  "en": "Chapter 1. Blood on His Hands"
+ },
+ "start": "prologue",
+ "flags": {
+  "trust": 0,
+  "shadow": 0,
+  "pills": 0,
+  "memory": 0,
+  "police": 0,
+  "police_late": 0,
+  "roman_ally": 0,
+  "roman_hurt": 0,
+  "roman_dead": 0,
+  "lapse1": 0,
+  "danny": 0,
+  "danny_left": 0,
+  "threw": 0
+ },
+ "names": {
+  "noah": {
+   "ru": "НОЙ",
+   "en": "NOAH"
+  },
+  "iris": {
+   "ru": "АЙРИС",
+   "en": "IRIS"
+  },
+  "radio": {
+   "ru": "РАДИО",
+   "en": "RADIO"
+  },
+  "danny": {
+   "ru": "ДЭННИ",
+   "en": "DANNY"
+  },
+  "roman": {
+   "ru": "РОМАН",
+   "en": "ROMAN"
+  }
+ },
+ "scenes": {
+  "prologue": {
+   "loc": "black",
+   "beats": [
+    {
+     "fx": "black"
+    },
+    {
+     "fx": "underwater"
+    },
+    {
+     "text": {
+      "ru": "…",
+      "en": "…"
+     },
+     "dur": 2.0
+    },
+    {
+     "fx": "lullaby"
+    },
+    {
+     "text": {
+      "ru": "Женский голос тихо напевает колыбельную.",
+      "en": "A woman's voice softly hums a lullaby."
+     },
+     "dur": 3.5,
+     "note": true
+    },
+    {
+     "fx": "flash_dock"
+    },
+    {
+     "text": {
+      "ru": "Мостки. Фонарь. Всплеск.",
+      "en": "The dock. A lantern. A splash."
+     },
+     "dur": 2.6,
+     "note": true
+    },
+    {
+     "text": {
+      "ru": "Детские глаза смотрят из щели в досках сарая.",
+      "en": "A child's eyes watch through a gap in the boathouse boards."
+     },
+     "dur": 3.0,
+     "note": true
+    },
+    {
+     "fx": "lullaby_stop"
+    },
+    {
+     "fx": "horn"
+    },
+    {
+     "go": "s1"
+    }
+   ]
+  },
+  "s1": {
+   "loc": "car",
+   "time": "03:12",
+   "beats": [
+    {
+     "fx": "wake"
+    },
+    {
+     "shot": "pov",
+     "dur": 0.6
+    },
+    {
+     "qte": "steer",
+     "t": 4.0,
+     "hint": {
+      "ru": "Удержи руль — A / D или стрелки",
+      "en": "Hold the wheel — A / D or arrow keys"
+     },
+     "fail": "s1_ditch"
+    },
+    {
+     "shot": "hands",
+     "dur": 2.6,
+     "fx": "blood_hands"
+    },
+    {
+     "shot": "iris",
+     "dur": 2.2
+    },
+    {
+     "say": "noah",
+     "shot": "noah",
+     "ru": "Айрис?.. Где мы?.. Чья это кровь?",
+     "en": "Iris?.. Where are we?.. Whose blood is this?"
+    },
+    {
+     "say": "iris",
+     "shot": "iris",
+     "ru": "Езжай. На север.",
+     "en": "Drive. North.",
+     "look": "notebook"
+    },
+    {
+     "choice": {
+      "t": 6,
+      "shot": "two",
+      "opts": [
+       {
+        "ru": "«Что случилось дома?»",
+        "en": "\"What happened at home?\"",
+        "go": "s1_a"
+       },
+       {
+        "ru": "«Мы возвращаемся»",
+        "en": "\"We're going back.\"",
+        "go": "s1_b"
+       },
+       {
+        "silent": true,
+        "go": "s1_c"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "s1_ditch": {
+   "loc": "car",
+   "beats": [
+    {
+     "fx": "crash"
+    },
+    {
+     "text": {
+      "ru": "Машину уносит в кювет.",
+      "en": "The car slides into the ditch."
+     },
+     "dur": 2.0,
+     "note": true
+    },
+    {
+     "fx": "retry"
+    },
+    {
+     "go": "s1"
+    }
+   ]
+  },
+  "s1_a": {
+   "loc": "car",
+   "beats": [
+    {
+     "say": "noah",
+     "shot": "noah",
+     "ru": "Что случилось дома?",
+     "en": "What happened at home?"
+    },
+    {
+     "fx": "iris_stop_drawing"
+    },
+    {
+     "say": "iris",
+     "shot": "iris",
+     "ru": "Ты правда не помнишь?",
+     "en": "You really don't remember?",
+     "look": "noah"
+    },
+    {
+     "say": "noah",
+     "shot": "noah",
+     "ru": "Нет.",
+     "en": "No."
+    },
+    {
+     "say": "iris",
+     "shot": "iris",
+     "ru": "…Тогда езжай.",
+     "en": "…Then drive.",
+     "look": "notebook"
+    },
+    {
+     "toast": "iris"
+    },
+    {
+     "go": "s2"
+    }
+   ]
+  },
+  "s1_b": {
+   "loc": "car",
+   "beats": [
+    {
+     "say": "noah",
+     "shot": "noah",
+     "ru": "Мы возвращаемся.",
+     "en": "We're going back."
+    },
+    {
+     "fx": "u_turn"
+    },
+    {
+     "say": "iris",
+     "shot": "two",
+     "ru": "НЕТ!",
+     "en": "NO!",
+     "fx": "grab_wheel"
+    },
+    {
+     "fx": "skid"
+    },
+    {
+     "say": "iris",
+     "shot": "iris",
+     "ru": "Вернёмся — тебя посадят, а меня в детдом. Езжай, Ной!",
+     "en": "If we go back, they'll lock you up and put me in a home. Drive, Noah!",
+     "look": "noah"
+    },
+    {
+     "set": {
+      "trust": -1
+     }
+    },
+    {
+     "toast": "iris"
+    },
+    {
+     "go": "s2"
+    }
+   ]
+  },
+  "s1_c": {
+   "loc": "car",
+   "beats": [
+    {
+     "shot": "iris",
+     "dur": 1.6,
+     "note": {
+      "ru": "Айрис косится на него.",
+      "en": "Iris glances at him."
+     }
+    },
+    {
+     "fx": "notebook_dash"
+    },
+    {
+     "shot": "notebook",
+     "dur": 3.0,
+     "note": {
+      "ru": "Их дом. Одно окно закрашено красным.",
+      "en": "Their house. One window is colored in red."
+     }
+    },
+    {
+     "set": {
+      "trust": 1,
+      "drawing1": 1
+     }
+    },
+    {
+     "toast": "iris"
+    },
+    {
+     "go": "s2"
+    }
+   ]
+  },
+  "s2": {
+   "loc": "car",
+   "beats": [
+    {
+     "shot": "two",
+     "dur": 2.4,
+     "note": {
+      "ru": "Тишина давит.",
+      "en": "The silence presses in."
+     }
+    },
+    {
+     "fx": "radio_on"
+    },
+    {
+     "shot": "radio",
+     "dur": 1.6
+    },
+    {
+     "say": "radio",
+     "shot": "two",
+     "ru": "…в своём доме найден мёртвым Виктор, сорок девять лет. Полиция разыскивает его детей — сына Ноя, девятнадцать лет, и дочь Айрис, пятнадцать. Сын может быть опасен. Если вы видели…",
+     "en": "…Victor, forty-nine, was found dead in his home. Police are searching for his children — his son Noah, nineteen, and his daughter Iris, fifteen. The son may be dangerous. If you have seen…"
+    },
+    {
+     "fx": "pencil_break"
+    },
+    {
+     "shot": "notebook",
+     "dur": 1.4,
+     "note": {
+      "ru": "У Айрис ломается карандаш.",
+      "en": "Iris's pencil snaps."
+     }
+    },
+    {
+     "choice": {
+      "t": 5,
+      "shot": "noah",
+      "opts": [
+       {
+        "ru": "Выключить радио",
+        "en": "Turn off the radio",
+        "go": "s2_a"
+       },
+       {
+        "ru": "Дослушать",
+        "en": "Keep listening",
+        "go": "s2_b"
+       },
+       {
+        "ru": "«Айрис… это я его?»",
+        "en": "\"Iris… did I do it?\"",
+        "go": "s2_c"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "s2_a": {
+   "loc": "car",
+   "beats": [
+    {
+     "fx": "radio_off"
+    },
+    {
+     "shot": "iris",
+     "dur": 2.0,
+     "note": {
+      "ru": "Айрис выдыхает.",
+      "en": "Iris lets out a breath."
+     }
+    },
+    {
+     "set": {
+      "trust": 1
+     }
+    },
+    {
+     "toast": "iris"
+    },
+    {
+     "go": "s4"
+    }
+   ]
+  },
+  "s2_b": {
+   "loc": "car",
+   "beats": [
+    {
+     "say": "radio",
+     "shot": "radio",
+     "ru": "…рост около ста восьмидесяти, тёмная куртка, мужская, старого кроя…",
+     "en": "…about six feet tall, wearing a dark, old-fashioned man's jacket…"
+    },
+    {
+     "shot": "iris",
+     "dur": 2.2,
+     "note": {
+      "ru": "Айрис закрывает уши и тихо напевает колыбельную — ту самую.",
+      "en": "Iris covers her ears and quietly hums a lullaby — the same one."
+     },
+     "fx": "lullaby_iris"
+    },
+    {
+     "fx": "flash_dock"
+    },
+    {
+     "text": {
+      "ru": "Мостки. Фонарь. Мамин голос.",
+      "en": "The dock. A lantern. Mom's voice."
+     },
+     "dur": 2.2,
+     "note": true
+    },
+    {
+     "set": {
+      "memory": 1
+     }
+    },
+    {
+     "fx": "radio_off"
+    },
+    {
+     "go": "s4"
+    }
+   ]
+  },
+  "s2_c": {
+   "loc": "car",
+   "beats": [
+    {
+     "say": "noah",
+     "shot": "noah",
+     "ru": "Айрис… это я его?",
+     "en": "Iris… did I do it?"
+    },
+    {
+     "shot": "iris",
+     "dur": 2.4,
+     "note": {
+      "ru": "Долгая пауза.",
+      "en": "A long pause."
+     }
+    },
+    {
+     "say": "iris",
+     "shot": "iris",
+     "ru": "Ты не помнишь. Значит, так надо.",
+     "en": "You don't remember. Then that's how it has to be.",
+     "look": "window"
+    },
+    {
+     "set": {
+      "asked": 1
+     }
+    },
+    {
+     "fx": "radio_off"
+    },
+    {
+     "go": "s4"
+    }
+   ]
+  },
+  "end": {
+   "loc": "station",
+   "beats": [
+    {
+     "end": true
+    }
+   ]
+  },
+  "s4": {
+   "loc": "car",
+   "beats": [
+    {
+     "shot": "road",
+     "dur": 2.2
+    },
+    {
+     "fx": "fuel_light",
+     "shot": "cluster",
+     "dur": 2.2,
+     "note": {
+      "ru": "Мигает лампа бензина.",
+      "en": "The fuel light is blinking."
+     }
+    },
+    {
+     "fx": "hum_up",
+     "shot": "noah",
+     "dur": 2.6,
+     "note": {
+      "ru": "В голове у Ноя нарастает гул. Края мира пульсируют.",
+      "en": "A hum builds inside Noah's head. The edges of the world pulse."
+     }
+    },
+    {
+     "say": "iris",
+     "shot": "iris",
+     "ru": "Где-то тут была карта…",
+     "en": "There was a map in here somewhere…",
+     "look": "glovebox"
+    },
+    {
+     "fx": "glove_open",
+     "shot": "glovebox",
+     "dur": 1.8
+    },
+    {
+     "shot": "pills",
+     "dur": 3.2,
+     "note": {
+      "ru": "Пузырёк таблеток. «Ной. Д-р С. Хейл. 1 таб. при головной боли».",
+      "en": "A bottle of pills. \"Noah. Dr. S. Hale. 1 tablet for headaches.\""
+     }
+    },
+    {
+     "shot": "iris",
+     "look": "noah",
+     "dur": 2.4,
+     "note": {
+      "ru": "Айрис смотрит на пузырёк. Потом на брата.",
+      "en": "Iris looks at the bottle. Then at her brother."
+     }
+    },
+    {
+     "choice": {
+      "t": 8,
+      "shot": "two",
+      "opts": [
+       {
+        "ru": "Принять таблетку",
+        "en": "Take a pill",
+        "go": "s4_a"
+       },
+       {
+        "ru": "Не принимать",
+        "en": "Don't take it",
+        "go": "s4_b"
+       },
+       {
+        "ru": "Выбросить в окно",
+        "en": "Throw it out the window",
+        "go": "s4_c"
+       },
+       {
+        "silent": true,
+        "go": "s4_b"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "s4_a": {
+   "loc": "car",
+   "beats": [
+    {
+     "fx": "pills_take",
+     "shot": "noah",
+     "dur": 2.4,
+     "note": {
+      "ru": "Ной глотает таблетку. Гул стихает.",
+      "en": "Noah swallows a pill. The hum fades."
+     }
+    },
+    {
+     "fx": "hum_down"
+    },
+    {
+     "fx": "glove_close",
+     "shot": "iris",
+     "look": "window",
+     "dur": 2.2,
+     "note": {
+      "ru": "Айрис отворачивается.",
+      "en": "Iris turns away."
+     }
+    },
+    {
+     "set": {
+      "pills": 1,
+      "trust": -1
+     }
+    },
+    {
+     "toast": "iris"
+    },
+    {
+     "go": "s5"
+    }
+   ]
+  },
+  "s4_b": {
+   "loc": "car",
+   "beats": [
+    {
+     "fx": "glove_close",
+     "shot": "glovebox",
+     "dur": 1.4
+    },
+    {
+     "say": "iris",
+     "shot": "iris",
+     "ru": "Ты же их ненавидел.",
+     "en": "You always hated them.",
+     "look": "noah"
+    },
+    {
+     "set": {
+      "trust": 1
+     }
+    },
+    {
+     "toast": "iris"
+    },
+    {
+     "go": "s5"
+    }
+   ]
+  },
+  "s4_c": {
+   "loc": "car",
+   "beats": [
+    {
+     "fx": "pills_throw",
+     "shot": "two",
+     "dur": 2.4,
+     "note": {
+      "ru": "Пузырёк исчезает в снегу за окном.",
+      "en": "The bottle vanishes into the snow outside."
+     }
+    },
+    {
+     "fx": "glove_close",
+     "shot": "iris",
+     "look": "noah",
+     "expr": {
+      "who": "iris",
+      "set": "smile"
+     },
+     "dur": 2.2,
+     "note": {
+      "ru": "Айрис почти улыбается.",
+      "en": "Iris almost smiles."
+     }
+    },
+    {
+     "expr": {
+      "who": "iris",
+      "set": "none"
+     }
+    },
+    {
+     "set": {
+      "trust": 1,
+      "threw": 1
+     }
+    },
+    {
+     "toast": "iris"
+    },
+    {
+     "go": "s5"
+    }
+   ]
+  },
+  "s5": {
+   "loc": "station",
+   "time": "03:40",
+   "beats": [
+    {
+     "fx": "fade_out",
+     "dur": 1.4
+    },
+    {
+     "station": true
+    },
+    {
+     "fx": "fade_in",
+     "shot": "st_wide",
+     "dur": 3.4,
+     "note": {
+      "ru": "Лесная заправка «24». Неон, снег, гудит вывеска.",
+      "en": "A lone gas station in the woods — the \"24\". Neon, snow, a buzzing sign."
+     }
+    },
+    {
+     "shot": "st_danny",
+     "dur": 3.4,
+     "note": {
+      "ru": "На ступеньке — мальчик лет десяти. Шапка до глаз, в руках детская рация. Он дышит в ладони.",
+      "en": "A boy of about ten sits on the step. Hat pulled down to his eyes, a toy walkie-talkie in his hands. He breathes into his palms."
+     }
+    },
+    {
+     "shot": "st_pump",
+     "dur": 2.4,
+     "note": {
+      "ru": "Других машин нет. Ной заправляет.",
+      "en": "No other cars. Noah fills the tank."
+     }
+    },
+    {
+     "walk": {
+      "who": "iris",
+      "to": [
+       19.4,
+       0.0,
+       -3.35
+      ],
+      "then": "Crouch_Idle",
+      "face": 90
+     },
+     "shot": "st_two",
+     "dur": 4.2
+    },
+    {
+     "look": {
+      "who": "danny",
+      "at": "iris"
+     },
+     "say": "iris",
+     "shot": "st_two",
+     "ru": "Ты чего тут один?",
+     "en": "What are you doing out here all alone?"
+    },
+    {
+     "say": "danny",
+     "shot": "st_danny",
+     "ru": "Мама сказала ждать. Она… уже долго.",
+     "en": "Mom told me to wait. She's been gone… a long time."
+    },
+    {
+     "walk": {
+      "who": "noah",
+      "to": [
+       20.55,
+       0.38,
+       -2.0
+      ],
+      "then": "Idle"
+     },
+     "shot": "st_door",
+     "dur": 3.6
+    },
+    {
+     "place": {
+      "who": "noah",
+      "at": [
+       26.4,
+       0.38,
+       -7.55
+      ],
+      "face": 180,
+      "clip": "Idle"
+     },
+     "look": {
+      "who": "roman",
+      "at": "tv"
+     }
+    },
+    {
+     "shot": "st_counter",
+     "dur": 2.6,
+     "note": {
+      "ru": "Кассир Роман. За его спиной — телевизор.",
+      "en": "Roman, the cashier. A TV behind him."
+     }
+    },
+    {
+     "shot": "st_tv",
+     "dur": 2.8
+    },
+    {
+     "look": {
+      "who": "roman",
+      "at": "noah"
+     },
+     "shot": "st_roman",
+     "dur": 2.6,
+     "note": {
+      "ru": "Роман смотрит на экран. На Ноя. На его руки.",
+      "en": "Roman looks at the screen. At Noah. At his hands."
+     }
+    },
+    {
+     "anim": {
+      "who": "roman",
+      "clip": "Interact"
+     },
+     "shot": "st_hand",
+     "dur": 2.4,
+     "note": {
+      "ru": "Медленно тянется под прилавок.",
+      "en": "Slowly, he reaches under the counter."
+     }
+    },
+    {
+     "if": {
+      "pills": ">0"
+     },
+     "go": "s5_calm",
+     "else": "s5_lapse"
+    }
+   ]
+  },
+  "s5_calm": {
+   "loc": "station",
+   "beats": [
+    {
+     "choice": {
+      "t": 6,
+      "shot": "st_noah_face",
+      "opts": [
+       {
+        "ru": "«Не надо. Я заплачу и уеду»",
+        "en": "\"Don't. I'll pay and go.\"",
+        "go": "s5_pay"
+       },
+       {
+        "ru": "Вырвать провод телефона",
+        "en": "Rip out the phone cord",
+        "go": "s5_cord"
+       },
+       {
+        "ru": "«Я не знаю, что я сделал. Помогите сестре»",
+        "en": "\"I don't know what I did. Help my sister.\"",
+        "go": "s5_help"
+       },
+       {
+        "silent": true,
+        "go": "s5_pay"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "s5_pay": {
+   "loc": "station",
+   "beats": [
+    {
+     "say": "noah",
+     "shot": "st_noah_face",
+     "ru": "Не надо. Я заплачу и уеду.",
+     "en": "Don't. I'll pay and go."
+    },
+    {
+     "fx": "money",
+     "shot": "st_counter",
+     "dur": 2.2,
+     "note": {
+      "ru": "Деньги на прилавке. Ной уходит.",
+      "en": "Money on the counter. Noah walks out."
+     }
+    },
+    {
+     "set": {
+      "police": 1
+     }
+    },
+    {
+     "go": "s6"
+    }
+   ]
+  },
+  "s5_cord": {
+   "loc": "station",
+   "beats": [
+    {
+     "fx": "phone_rip",
+     "shot": "st_counter",
+     "dur": 2.4,
+     "note": {
+      "ru": "Ной вырывает провод телефона. Роман отшатывается.",
+      "en": "Noah rips the phone cord out of the wall. Roman staggers back."
+     }
+    },
+    {
+     "anim": {
+      "who": "roman",
+      "clip": "Idle_No"
+     },
+     "shot": "st_roman",
+     "dur": 1.8
+    },
+    {
+     "set": {
+      "shadow": 1,
+      "police_late": 1
+     }
+    },
+    {
+     "go": "s6"
+    }
+   ]
+  },
+  "s5_help": {
+   "loc": "station",
+   "beats": [
+    {
+     "say": "noah",
+     "shot": "st_noah_face",
+     "ru": "Я не знаю, что я сделал. Помогите сестре.",
+     "en": "I don't know what I did. Help my sister."
+    },
+    {
+     "shot": "st_roman",
+     "dur": 2.6,
+     "note": {
+      "ru": "Роман долго молчит.",
+      "en": "Roman is silent for a long time."
+     }
+    },
+    {
+     "say": "roman",
+     "shot": "st_roman",
+     "ru": "Езжай, парень. Позвоню через десять минут.",
+     "en": "Go, kid. I'll make the call in ten minutes."
+    },
+    {
+     "set": {
+      "roman_ally": 1
+     }
+    },
+    {
+     "go": "s6"
+    }
+   ]
+  },
+  "s5_lapse": {
+   "loc": "station",
+   "beats": [
+    {
+     "fx": "ring",
+     "shot": "st_noah_face",
+     "dur": 1.6
+    },
+    {
+     "say": "roman",
+     "shot": "st_roman",
+     "ru": "Эй, парень…",
+     "en": "Hey, kid…"
+    },
+    {
+     "fx": "lapse",
+     "dur": 1.8
+    },
+    {
+     "text": {
+      "ru": "Бьётся стекло. Кричит ребёнок.",
+      "en": "Glass shatters. A child screams."
+     },
+     "dur": 2.8,
+     "note": true
+    },
+    {
+     "fx": "lapse_after",
+     "dur": 0.3
+    },
+    {
+     "fx": "wake",
+     "shot": "st_knuckles",
+     "dur": 3.0,
+     "note": {
+      "ru": "Ной у колонки. Пистолет в руке, костяшки в крови.",
+      "en": "Noah is at the pump. The nozzle in his hand. His knuckles are bloody."
+     }
+    },
+    {
+     "shot": "st_door",
+     "dur": 2.4,
+     "note": {
+      "ru": "Стеклянная дверь магазина треснула.",
+      "en": "The shop's glass door is cracked."
+     }
+    },
+    {
+     "if": {
+      "shadow": "==0"
+     },
+     "shot": "st_window",
+     "dur": 3.0,
+     "note": {
+      "ru": "Внутри на полу Роман. Стонет, держится за голову.",
+      "en": "Inside, Roman lies on the floor, groaning, clutching his head."
+     }
+    },
+    {
+     "if": {
+      "shadow": ">=1"
+     },
+     "shot": "st_window",
+     "dur": 3.4,
+     "note": {
+      "ru": "Внутри на полу Роман. Не шевелится. Под ним растекается тёмное. Глаза открыты.",
+      "en": "Inside, Roman lies on the floor. He doesn't move. Something dark spreads beneath him. His eyes are open."
+     }
+    },
+    {
+     "shot": "st_danny_stare",
+     "dur": 2.8,
+     "note": {
+      "ru": "Мальчик на ступеньке смотрит на Ноя. Не дышит.",
+      "en": "The boy on the step stares at Noah, not breathing."
+     }
+    },
+    {
+     "say": "iris",
+     "shot": "iris",
+     "ru": "Садись. Быстро.",
+     "en": "Get in. Now.",
+     "look": "noah"
+    },
+    {
+     "if": {
+      "pills": "==0"
+     },
+     "fx": "flash_dock",
+     "text": {
+      "ru": "Женская рука на досках мостков. Мокрый рукав.",
+      "en": "A woman's hand on the dock boards. A wet sleeve."
+     },
+     "dur": 2.6,
+     "note": true
+    },
+    {
+     "if": {
+      "shadow": "==0"
+     },
+     "set": {
+      "roman_hurt": 1
+     }
+    },
+    {
+     "if": {
+      "shadow": ">=1"
+     },
+     "set": {
+      "roman_dead": 1
+     }
+    },
+    {
+     "set": {
+      "memory": 1,
+      "lapse1": 1
+     }
+    },
+    {
+     "go": "s6"
+    }
+   ]
+  },
+  "s6": {
+   "loc": "station",
+   "beats": [
+    {
+     "fx": "kids_by_car"
+    },
+    {
+     "shot": "st_kids",
+     "dur": 2.6,
+     "note": {
+      "ru": "Айрис держит мальчика за руку.",
+      "en": "Iris is holding the boy's hand."
+     }
+    },
+    {
+     "choice": {
+      "t": 8,
+      "shot": "st_kids",
+      "opts": [
+       {
+        "ru": "«Поехали с нами»",
+        "en": "\"Come with us.\"",
+        "go": "s6_a"
+       },
+       {
+        "ru": "«Мы не можем его взять»",
+        "en": "\"We can't take him.\"",
+        "go": "s6_b"
+       },
+       {
+        "silent": true,
+        "go": "s6_c"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "s6_a": {
+   "loc": "station",
+   "beats": [
+    {
+     "say": "noah",
+     "shot": "st_noah_out",
+     "ru": "Поехали с нами.",
+     "en": "Come with us."
+    },
+    {
+     "if": {
+      "lapse1": ">0"
+     },
+     "shot": "st_kids",
+     "expr": {
+      "who": "danny",
+      "set": "fear"
+     },
+     "dur": 2.0,
+     "note": {
+      "ru": "Мальчик в ужасе пятится.",
+      "en": "The boy backs away in terror."
+     }
+    },
+    {
+     "if": {
+      "lapse1": ">0"
+     },
+     "say": "iris",
+     "shot": "st_kids",
+     "ru": "Я с тобой. Он тебя не тронет.",
+     "en": "I'm right here. He won't hurt you.",
+     "look": "danny"
+    },
+    {
+     "fx": "danny_in_car",
+     "shot": "back",
+     "dur": 2.4,
+     "note": {
+      "ru": "Дэнни садится назад.",
+      "en": "Danny climbs into the back seat."
+     }
+    },
+    {
+     "set": {
+      "danny": 1
+     }
+    },
+    {
+     "go": "s6_end"
+    }
+   ]
+  },
+  "s6_b": {
+   "loc": "station",
+   "beats": [
+    {
+     "say": "noah",
+     "shot": "st_noah_out",
+     "ru": "Мы не можем его взять.",
+     "en": "We can't take him."
+    },
+    {
+     "say": "iris",
+     "shot": "st_kids",
+     "ru": "Никто за ним не придёт. Ты же видишь.",
+     "en": "Nobody's coming for him. You can see that.",
+     "look": "noah"
+    },
+    {
+     "choice": {
+      "t": 6,
+      "shot": "st_noah_out",
+      "opts": [
+       {
+        "ru": "«Ладно. Садись назад»",
+        "en": "\"Fine. Get in the back.\"",
+        "go": "s6_a2"
+       },
+       {
+        "ru": "«Нет. Он остаётся»",
+        "en": "\"No. He stays.\"",
+        "go": "s6_leave"
+       },
+       {
+        "silent": true,
+        "go": "s6_c"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "s6_a2": {
+   "loc": "station",
+   "beats": [
+    {
+     "say": "noah",
+     "shot": "st_noah_out",
+     "ru": "Ладно. Садись назад.",
+     "en": "Fine. Get in the back."
+    },
+    {
+     "fx": "danny_in_car",
+     "shot": "back",
+     "dur": 2.4,
+     "note": {
+      "ru": "Дэнни садится назад.",
+      "en": "Danny climbs into the back seat."
+     }
+    },
+    {
+     "set": {
+      "danny": 1
+     }
+    },
+    {
+     "go": "s6_end"
+    }
+   ]
+  },
+  "s6_leave": {
+   "loc": "station",
+   "beats": [
+    {
+     "say": "noah",
+     "shot": "st_noah_out",
+     "ru": "Нет. Он остаётся.",
+     "en": "No. He stays."
+    },
+    {
+     "fx": "danny_stays",
+     "shot": "st_kids",
+     "dur": 3.0,
+     "note": {
+      "ru": "Айрис отпускает его руку. Мальчик остаётся один под навесом.",
+      "en": "Iris lets go of his hand. The boy stays behind, alone under the canopy."
+     }
+    },
+    {
+     "set": {
+      "trust": -2,
+      "danny_left": 1
+     }
+    },
+    {
+     "toast": "iris"
+    },
+    {
+     "go": "s6_end"
+    }
+   ]
+  },
+  "s6_c": {
+   "loc": "station",
+   "beats": [
+    {
+     "shot": "st_kids",
+     "dur": 2.6,
+     "note": {
+      "ru": "Ной молчит. Айрис решает сама.",
+      "en": "Noah says nothing. Iris decides for herself."
+     }
+    },
+    {
+     "fx": "danny_in_car",
+     "shot": "back",
+     "dur": 2.4,
+     "note": {
+      "ru": "Она сажает мальчика назад.",
+      "en": "She puts the boy in the back seat."
+     }
+    },
+    {
+     "set": {
+      "danny": 1
+     }
+    },
+    {
+     "go": "s6_end"
+    }
+   ]
+  },
+  "s6_end": {
+   "loc": "station",
+   "beats": [
+    {
+     "shot": "st_wide",
+     "dur": 2.6
+    },
+    {
+     "go": "end"
+    }
+   ]
+  }
+ }
+}
