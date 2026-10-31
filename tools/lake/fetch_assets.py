@@ -8,11 +8,16 @@
 import json, os, subprocess, sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 OUT = os.path.join(ROOT, 'godot/lake/assets')
-MODELS = ['dead_tree_trunk', 'modular_electricity_poles']
+MODELS = ['dead_tree_trunk', 'modular_electricity_poles',
+          # заправка «24»: касса, телевизор с новостями, полки, продукты, коробки, канистры, шины, знак «мокрый пол»; блокнот Айрис
+          'CashRegister_01', 'Television_01', 'Shelf_01', 'long_life_food', 'cardboard_box_01', 'metal_jerrycan', 'old_tyre',
+          'WetFloorSign_01', 'binder_notebook', 'stationery_supplies']
 TREE_TEX = ['fir_tree_01', 'pine_tree_01']   # у этих моделей сетки — фотосканы по 0.5–1 ГБ: берём только текстуры хвои и коры, ели строим кодом
 TEXTURES = ['asphalt_snow', 'snow_02',
             # ткани для одежды героев, которую генератор шьёт сам (tools/lake/garments.py)
-            'brown_leather', 'knitted_fleece', 'wool_boucle', 'cotton_jersey', 'poly_wool_herringbone', 'denim_fabric']
+            'brown_leather', 'knitted_fleece', 'wool_boucle', 'cotton_jersey', 'poly_wool_herringbone', 'denim_fabric',
+            # заправка: стены, бетон, плитка в магазине, металл навеса
+            'painted_plaster_wall', 'concrete_floor_02', 'floor_tiles_06', 'corrugated_iron', 'metal_plate']
 HDRIS = ['narrow_moonlit_road']
 TWIG_2K = {'fir_tree_01': ['twig_diff', 'twig_alpha', 'twig_nor_gl']}   # ели карточками: атлас лап с прозрачностью (road.gd)
 

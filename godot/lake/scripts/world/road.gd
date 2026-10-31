@@ -15,6 +15,7 @@ var forests: Array = []      # [MultiMeshInstance3D, шаг повтора]
 var poles: Node3D
 var snow: CPUParticles3D
 var pc := true
+var side_strips: Array[MeshInstance3D] = []   # снег справа от дороги (на стоянке — под площадкой)
 
 const ROAD_SHADER := """
 shader_type spatial;
@@ -57,9 +58,9 @@ func setup(is_pc: bool) -> void:
 	road_mat = _mat(sh, "asphalt_snow", 4.0, 1.0)
 	bank_mat = _mat(sh, "snow_02", 3.0, 0.0)
 	_strip(road_mat, -ROAD_W / 2.0, ROAD_W / 2.0, 0.0)
-	_strip(bank_mat, ROAD_W / 2.0, ROAD_W / 2.0 + 9.0, 0.05)        # обочина справа, чуть выше дороги
+	side_strips.append(_strip(bank_mat, ROAD_W / 2.0, ROAD_W / 2.0 + 9.0, 0.05))        # обочина справа, чуть выше дороги
 	_strip(bank_mat, -ROAD_W / 2.0 - 9.0, -ROAD_W / 2.0, 0.05)
-	_strip(bank_mat, ROAD_W / 2.0 + 9.0, 70.0, 0.15)                 # снег в лесу
+	side_strips.append(_strip(bank_mat, ROAD_W / 2.0 + 9.0, 70.0, 0.15))                 # снег в лесу
 	_strip(bank_mat, -70.0, -ROAD_W / 2.0 - 9.0, 0.15)
 	forests.append([_forest(7, 8.5, 23.0, 1.0, 37.0), 37.0])
 	forests.append([_forest(11, 12.0, 40.0, 1.25, 53.0), 53.0])
@@ -81,7 +82,7 @@ func _mat(sh: Shader, name: String, tile: float, marks: float) -> ShaderMaterial
 	return m
 
 
-func _strip(m: Material, x0: float, x1: float, y: float) -> void:
+func _strip(m: Material, x0: float, x1: float, y: float) -> MeshInstance3D:
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(x1 - x0, LEN + 40.0)
 	pm.subdivide_depth = 8
@@ -90,6 +91,48 @@ func _strip(m: Material, x0: float, x1: float, y: float) -> void:
 	mi.material_override = m
 	mi.position = Vector3((x0 + x1) / 2.0, y, -LEN / 2.0 + 20.0)
 	add_child(mi)
+	return mi
+
+
+## Стоянка (заправка): мир замирает, в прямоугольнике площадки (x, z) нет ни елей, ни столбов, снег справа — под площадкой,
+## снег падает сверху на всю округу, а не летит в фары.
+func park(lot: Rect2) -> void:
+	speed = 0.0
+	_process(0.0)
+	for f in forests:
+		var mi := f[0] as MultiMeshInstance3D
+		var mm := mi.multimesh
+		for i in mm.instance_count:
+			var xf := mm.get_instance_transform(i)
+			var o := mi.position + xf.origin
+			if lot.grow(2.5).has_point(Vector2(o.x, o.z)):
+				mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ONE * 0.0001), xf.origin + Vector3(0, -50, 0)))
+	for p in poles.get_children():
+		var o := poles.position + (p as Node3D).position
+		if lot.grow(3.0).has_point(Vector2(o.x, o.z)):
+			(p as Node3D).visible = false
+	for st in side_strips:
+		st.position.y = -0.03
+	road_mat.set_shader_parameter("marks", 1.0)
+	snow.position = Vector3(lot.get_center().x - 6.0, 9.0, lot.get_center().y)
+	snow.emission_box_extents = Vector3(lot.size.x * 0.6, 0.5, lot.size.y * 0.55)
+	snow.direction = Vector3(0.15, -1, 0.05)
+	snow.spread = 12.0
+	snow.gravity = Vector3(0, -0.6, 0)
+	snow.lifetime = 7.0
+	snow.preprocess = 7.0
+	snow.amount = 5000 if pc else 2000
+	set_process(false)
+	snow.initial_velocity_min = 1.0
+	snow.initial_velocity_max = 1.8
+
+
+## Материал площадки — тот же асфальт со снегом, без разметки.
+func lot_material() -> ShaderMaterial:
+	var m := road_mat.duplicate() as ShaderMaterial
+	m.set_shader_parameter("marks", 0.0)
+	m.set_shader_parameter("tile", 5.0)
+	return m
 
 
 ## Ель: ствол и 6–8 ярусов «юбок» из конусов, хвоя — текстура веток Poly Haven (fir_tree_01), снег на верхушках ярусов.

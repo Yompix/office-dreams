@@ -53,6 +53,8 @@ func _ready() -> void:
 	if "--snaps" in args:   # снимки кадра в секунды игры: --snaps 3,7.5,12 --snapdir папка
 		_snaps = Array(String(args[args.find("--snaps") + 1]).split(",")).map(func(x): return float(x))
 		_snapdir = args[args.find("--snapdir") + 1] if "--snapdir" in args else "user://"
+	if "--station" in args:   # проверка заправки: --station --shots st_wide,st_counter
+		scene.park_at_station(lang)
 	if "--shots" in args:   # проверка планов: каждый план — снимок, без сценария: --shots pov,hands,iris --snapdir папка
 		_shots(String(args[args.find("--shots") + 1]).split(","), args[args.find("--snapdir") + 1] if "--snapdir" in args else "user://")
 		return
@@ -160,6 +162,8 @@ func _shots(list: Array, dir: String) -> void:
 		_cut(String(sh))
 		await _wait(0.6)
 		get_viewport().get_texture().get_image().save_png("%s/shot_%s.png" % [dir, sh])
+		if sh == "st_tv" and scene.props.has("news"):   # кадр новостей целиком — проверить надписи
+			(scene.props["news"] as NewsTV).news.get_texture().get_image().save_png("%s/news_screen.png" % dir)
 	get_tree().quit()
 
 
