@@ -1,0 +1,56 @@
+[
+ {
+  "who": "noah",
+  "keys": [
+   "s1_1",
+   "s1_a_1",
+   "s1_a_3",
+   "s1_b_1",
+   "s2_c_1",
+   "s5_pay_1",
+   "s5_help_1",
+   "s6_a_1",
+   "s6_b_1",
+   "s6_a2_1",
+   "s6_leave_1",
+   "s7_a_1",
+   "s7_b_1"
+  ],
+  "prompt": "Iris?.. Where are we?.. Whose blood is this?\nWhat happened at home?\nNo.\nWe're going back.\nIris… did I do it?\nDon't. I'll pay and go.\nI don't know what I did. Help my sister.\nCome with us.\nWe can't take him.\nFine. Get in the back.\nNo. He stays.\nIt's going to be okay.\nI don't know what's wrong with me."
+ },
+ {
+  "who": "iris",
+  "keys": [
+   "s1_2",
+   "s1_a_2",
+   "s1_a_4",
+   "s1_b_2",
+   "s1_b_3",
+   "s2_c_2",
+   "s3_hit_1",
+   "s4_1",
+   "s4_b_1",
+   "s5_1",
+   "s5_lapse_2",
+   "s6_a_2",
+   "s6_b_2"
+  ],
+  "prompt": "Drive. North.\nYou really don't remember?\n…Then drive.\nNo!\nIf we go back, they'll lock you up and put me in a home. Drive, Noah!\nYou don't remember. Then that's how it has to be.\nNoah… It's suffering. Do something!\nThere was a map in here somewhere…\nYou always hated them.\nWhat are you doing out here all alone?\nGet in. Now.\nI'm right here. He won't hurt you.\nNobody's coming for him. You can see that."
+ },
+ {
+  "who": "radio",
+  "keys": [
+   "s2_1",
+   "s2_b_1"
+  ],
+  "prompt": "…Victor, forty-nine, was found dead in his home. Police are searching for his children — his son Noah, nineteen, and his daughter Iris, fifteen. The son may be dangerous. If you have seen…\n…about six feet tall, wearing a dark, old-fashioned man's jacket…"
+ },
+ {
+  "who": "roman",
+  "keys": [
+   "s5_help_2",
+   "s5_lapse_1"
+  ],
+  "prompt": "Go, kid. I'll make the call in ten minutes.\nHey, kid…"
+ }
+]

@@ -1,0 +1,2103 @@
+{
+ "chapter": 2,
+ "start": "c2_recap",
+ "title": {
+  "ru": "ГЛАВА 2 · ПОПУТЧИЦА",
+  "en": "CHAPTER 2 · THE HITCHHIKER"
+ },
+ "names": {
+  "zoe": {
+   "ru": "ЗОЯ",
+   "en": "ZOE"
+  },
+  "eva": {
+   "ru": "ЕВА",
+   "en": "EVA"
+  },
+  "cop": {
+   "ru": "ПОЛИЦЕЙСКИЙ",
+   "en": "OFFICER"
+  },
+  "trucker": {
+   "ru": "ДАЛЬНОБОЙЩИК",
+   "en": "TRUCKER"
+  },
+  "hale": {
+   "ru": "ГОЛОС",
+   "en": "VOICE"
+  }
+ },
+ "flags": {
+  "zoe": 0,
+  "zoe_passed": 0,
+  "zoe_front": 0,
+  "zoe_trust": 0,
+  "zoe_wary": 0,
+  "zoe_gone": 0,
+  "zoe_taken": 0,
+  "jealous": 0,
+  "romance": 0,
+  "cop_saw": 0,
+  "fled": 0,
+  "detour": 0,
+  "danny_fear": 0,
+  "promise": 0,
+  "pills_flushed": 0,
+  "heard_hale": 0,
+  "iris_saw": 0,
+  "eva": 0,
+  "eva_alone": 0,
+  "zoe_talked": 0,
+  "pills2": 0
+ },
+ "map": [
+  {
+   "key": "zoe",
+   "ru": "Зоя",
+   "en": "Zoe",
+   "opts": [
+    {
+     "id": "with",
+     "ru": "с вами",
+     "en": "with you",
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "id": "taken",
+     "ru": "пропала ночью",
+     "en": "gone in the night",
+     "if": {
+      "zoe_taken": ">0"
+     }
+    },
+    {
+     "id": "gone",
+     "ru": "осталась",
+     "en": "left behind",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "post",
+   "ru": "Пост полиции",
+   "en": "The checkpoint",
+   "opts": [
+    {
+     "id": "fled",
+     "ru": "бегство",
+     "en": "ran for it",
+     "if": {
+      "fled": ">0"
+     }
+    },
+    {
+     "id": "detour",
+     "ru": "объезд",
+     "en": "the long way",
+     "if": {
+      "detour": ">0"
+     }
+    },
+    {
+     "id": "zoe",
+     "ru": "говорила Зоя",
+     "en": "Zoe talked",
+     "if": {
+      "zoe_talked": ">0",
+      "fled": "==0"
+     }
+    },
+    {
+     "id": "me",
+     "ru": "говорил сам",
+     "en": "talked himself",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "pills2",
+   "ru": "Таблетки №2",
+   "en": "Pills #2",
+   "opts": [
+    {
+     "id": "take",
+     "ru": "принял",
+     "en": "took one",
+     "if": {
+      "pills2": ">0"
+     }
+    },
+    {
+     "id": "flush",
+     "ru": "смыл",
+     "en": "flushed them",
+     "if": {
+      "pills_flushed": ">0"
+     }
+    },
+    {
+     "id": "no",
+     "ru": "не принял",
+     "en": "refused",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "hale",
+   "ru": "Чёрная машина",
+   "en": "The black car",
+   "opts": [
+    {
+     "id": "voice",
+     "ru": "голос врача",
+     "en": "the doctor's voice",
+     "if": {
+      "heard_hale": ">0"
+     }
+    },
+    {
+     "id": "stay",
+     "ru": "остались до утра",
+     "en": "stayed till morning",
+     "if": {
+      "zoe_taken": ">0"
+     }
+    },
+    {
+     "id": "away",
+     "ru": "уехали",
+     "en": "slipped away",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "eva",
+   "ru": "Ева",
+   "en": "Eva",
+   "opts": [
+    {
+     "id": "with",
+     "ru": "с вами",
+     "en": "with you",
+     "if": {
+      "eva": ">0"
+     }
+    },
+    {
+     "id": "alone",
+     "ru": "одна у кафе",
+     "en": "alone at the diner",
+     "if": {}
+    }
+   ]
+  }
+ ],
+ "scenes": {
+  "c2_recap": {
+   "save": true,
+   "time": "07:40",
+   "beats": [
+    {
+     "fx": "black"
+    },
+    {
+     "text": {
+      "ru": "Ранее…",
+      "en": "Previously…"
+     },
+     "dur": 1.6,
+     "note": true
+    },
+    {
+     "text": {
+      "ru": "Олень на дороге. Ной успел затормозить.",
+      "en": "A deer on the road. Noah stopped in time."
+     },
+     "dur": 2.6,
+     "note": true,
+     "if": {
+      "deer": "==1"
+     }
+    },
+    {
+     "text": {
+      "ru": "Олень на дороге. Ной добил его монтировкой.",
+      "en": "A deer on the road. Noah finished it with a tire iron."
+     },
+     "dur": 2.6,
+     "note": true,
+     "if": {
+      "deer": "==2"
+     }
+    },
+    {
+     "text": {
+      "ru": "Олень на дороге. Ной уехал, а он кричал.",
+      "en": "A deer on the road. Noah drove away while it screamed."
+     },
+     "dur": 2.6,
+     "note": true,
+     "if": {
+      "deer": "==3"
+     }
+    },
+    {
+     "text": {
+      "ru": "Олень на дороге. Ной сидел с ним, пока он не затих.",
+      "en": "A deer on the road. Noah sat with it until it went still."
+     },
+     "dur": 2.6,
+     "note": true,
+     "if": {
+      "deer": "==4"
+     }
+    },
+    {
+     "text": {
+      "ru": "Олень на дороге. Ной не смог пошевелиться.",
+      "en": "A deer on the road. Noah couldn't move."
+     },
+     "dur": 2.6,
+     "note": true,
+     "if": {
+      "deer": "==5"
+     }
+    },
+    {
+     "text": {
+      "ru": "Заправка «24». Ной заплатил и уехал. Кассир позвонил в полицию.",
+      "en": "Gas station “24”. Noah paid and left. The cashier called the police."
+     },
+     "dur": 3.0,
+     "note": true,
+     "if": {
+      "police": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Заправка «24». Ной вырвал провод телефона.",
+      "en": "Gas station “24”. Noah ripped out the phone cord."
+     },
+     "dur": 3.0,
+     "note": true,
+     "if": {
+      "police_late": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Заправка «24». Кассир Роман отпустил их.",
+      "en": "Gas station “24”. Roman the cashier let them go."
+     },
+     "dur": 3.0,
+     "note": true,
+     "if": {
+      "roman_ally": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Заправка «24». Провал. Кассир на полу — живой.",
+      "en": "Gas station “24”. A blackout. The cashier on the floor — alive."
+     },
+     "dur": 3.0,
+     "note": true,
+     "if": {
+      "roman_hurt": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Заправка «24». Провал. Кассир на полу — мёртвый.",
+      "en": "Gas station “24”. A blackout. The cashier on the floor — dead."
+     },
+     "dur": 3.0,
+     "note": true,
+     "if": {
+      "roman_dead": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Мальчик Дэнни едет с ними.",
+      "en": "A boy named Danny is riding with them."
+     },
+     "dur": 2.4,
+     "note": true,
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Мальчик Дэнни остался на заправке один.",
+      "en": "Danny, the boy, stayed behind at the station, alone."
+     },
+     "dur": 2.4,
+     "note": true,
+     "if": {
+      "danny": "==0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Мамин дневник: «Если со мной что-то случится — Ной всё видел».",
+      "en": "Mom's diary: “If anything happens to me — Noah saw everything.”"
+     },
+     "dur": 3.2,
+     "note": true,
+     "if": {
+      "diary": ">0"
+     }
+    },
+    {
+     "go": "c2_s1"
+    }
+   ]
+  },
+  "c2_s1": {
+   "loc": "car",
+   "beats": [
+    {
+     "fx": "ch2_start"
+    },
+    {
+     "fx": "fade_in",
+     "shot": "road",
+     "note": {
+      "ru": "Глава 2. «Попутчица». Серое утро без солнца. Снег по обочинам выше машины.",
+      "en": "Chapter 2. “The Hitchhiker”. A grey, sunless morning. The snow along the road is piled higher than the car."
+     },
+     "dur": 3.4
+    },
+    {
+     "shot": "lamp_drive",
+     "note": {
+      "ru": "Светит одна фара.",
+      "en": "Only one headlight works."
+     },
+     "dur": 2.0,
+     "if": {
+      "lamp": ">0"
+     }
+    },
+    {
+     "shot": "iris",
+     "note": {
+      "ru": "Айрис спит, прижавшись к окну.",
+      "en": "Iris is asleep, pressed against the window."
+     },
+     "dur": 2.4
+    },
+    {
+     "shot": "back",
+     "note": {
+      "ru": "Дэнни спит сзади. Рация — в кулаке.",
+      "en": "Danny is asleep in the back, the walkie-talkie in his fist."
+     },
+     "dur": 2.4,
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "shot": "noah",
+     "note": {
+      "ru": "Ной один со своими мыслями.",
+      "en": "Noah is alone with his thoughts."
+     },
+     "dur": 2.2
+    },
+    {
+     "fx": "reflection",
+     "shot": "mirror_self",
+     "note": {
+      "ru": "В зеркале — его лицо. Красные от недосыпа глаза.",
+      "en": "His face in the mirror. Eyes red from no sleep."
+     },
+     "dur": 3.0
+    },
+    {
+     "choice": {
+      "t": 5,
+      "opts": [
+       {
+        "ru": "Отвернуться",
+        "en": "Look away",
+        "go": "c2_s1_a"
+       },
+       {
+        "ru": "Смотреть дальше",
+        "en": "Keep looking",
+        "go": "c2_s1_b"
+       },
+       {
+        "silent": true,
+        "go": "c2_s1_b"
+       }
+      ],
+      "shot": "mirror_self"
+     }
+    }
+   ]
+  },
+  "c2_s1_a": {
+   "beats": [
+    {
+     "fx": "reflection_off",
+     "shot": "two",
+     "note": {
+      "ru": "Ной отводит взгляд. В зеркале снова просто дорога.",
+      "en": "Noah looks away. The mirror shows only the road again."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c2_s2"
+    }
+   ]
+  },
+  "c2_s1_b": {
+   "beats": [
+    {
+     "set": {
+      "memory": 1
+     }
+    },
+    {
+     "set": {
+      "shadow": 1
+     },
+     "if": {
+      "shadow": ">=1"
+     }
+    },
+    {
+     "fx": "flash_dock",
+     "text": {
+      "ru": "Вода. Мостки. Мокрые волосы матери.",
+      "en": "Water. A dock. His mother's wet hair."
+     },
+     "dur": 2.4,
+     "note": true
+    },
+    {
+     "fx": "reflection_off"
+    },
+    {
+     "fx": "fade_in",
+     "shot": "noah",
+     "note": {
+      "ru": "Ной моргает. Руки сами держат руль.",
+      "en": "Noah blinks. His hands are on the wheel on their own."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c2_s2"
+    }
+   ]
+  },
+  "c2_s2": {
+   "beats": [
+    {
+     "fx": "zoe_road",
+     "shot": "road",
+     "note": {
+      "ru": "На обочине — девушка с рюкзаком в нашивках. Синие пряди из-под капюшона, большой палец вверх.",
+      "en": "A girl at the roadside, a backpack covered in patches. Blue streaks of hair under her hood, thumb up."
+     },
+     "dur": 3.2
+    },
+    {
+     "shot": "zoe_out",
+     "note": {
+      "ru": "Идёт спиной вперёд против ветра и машет обеими руками.",
+      "en": "She walks backwards into the wind, waving with both arms."
+     },
+     "dur": 2.6
+    },
+    {
+     "choice": {
+      "t": 5,
+      "opts": [
+       {
+        "ru": "Остановиться",
+        "en": "Stop",
+        "go": "c2_s2_stop"
+       },
+       {
+        "ru": "Проехать мимо",
+        "en": "Drive past",
+        "go": "c2_s2_pass"
+       },
+       {
+        "silent": true,
+        "go": "c2_s2_pass"
+       }
+      ],
+      "shot": "road"
+     }
+    }
+   ]
+  },
+  "c2_s2_pass": {
+   "beats": [
+    {
+     "set": {
+      "zoe_passed": 1
+     }
+    },
+    {
+     "fx": "zoe_pass",
+     "shot": "mirror",
+     "note": {
+      "ru": "В зеркале она становится всё меньше — и показывает вслед средний палец.",
+      "en": "In the mirror she gets smaller and smaller — and flips them off."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c2_s3"
+    }
+   ]
+  },
+  "c2_s2_stop": {
+   "beats": [
+    {
+     "fx": "car_stop",
+     "shot": "zoe_out",
+     "note": {
+      "ru": "Ной тормозит. Она бежит к машине, рюкзак лупит по спине.",
+      "en": "Noah brakes. She runs to the car, the backpack slapping her back."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "zoe_window",
+     "shot": "zoe_window",
+     "say": "zoe",
+     "ru": "Ты мой герой. Серьёзно. Ещё десять минут — и меня бы нашли весной.",
+     "en": "You're my hero. Seriously. Ten more minutes and they'd have found me in the spring."
+    },
+    {
+     "shot": "iris",
+     "note": {
+      "ru": "Айрис проснулась. Смотрит на неё, не мигая.",
+      "en": "Iris is awake. She stares at her without blinking."
+     },
+     "dur": 2.2
+    },
+    {
+     "choice": {
+      "t": 5,
+      "opts": [
+       {
+        "ru": "«Садись назад»",
+        "en": "“Get in the back”",
+        "go": "c2_s2_back"
+       },
+       {
+        "ru": "«Садись вперёд»",
+        "en": "“Get in the front”",
+        "go": "c2_s2_front"
+       },
+       {
+        "silent": true,
+        "go": "c2_s2_back"
+       }
+      ],
+      "shot": "noah"
+     }
+    }
+   ]
+  },
+  "c2_s2_back": {
+   "beats": [
+    {
+     "set": {
+      "zoe": 1
+     }
+    },
+    {
+     "fx": "zoe_back",
+     "shot": "back",
+     "say": "zoe",
+     "ru": "Привет, малой. Я Зоя. Не бойся, я не кусаюсь. Почти.",
+     "en": "Hey, kiddo. I'm Zoe. Don't worry, I don't bite. Mostly.",
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "fx": "zoe_back",
+     "shot": "back",
+     "say": "zoe",
+     "ru": "Зоя. Можно просто Зоя. Можно «спасительница», если очень хочется.",
+     "en": "Zoe. Just Zoe. Or “savior,” if you really want.",
+     "if": {
+      "danny": "==0"
+     }
+    },
+    {
+     "go": "c2_s2_ride"
+    }
+   ]
+  },
+  "c2_s2_front": {
+   "beats": [
+    {
+     "set": {
+      "zoe": 1,
+      "zoe_front": 1,
+      "trust": -1,
+      "jealous": 1
+     }
+    },
+    {
+     "fx": "zoe_front",
+     "shot": "back",
+     "note": {
+      "ru": "Айрис молча пересаживается назад. Зоя — на её место.",
+      "en": "Iris moves to the back without a word. Zoe takes her seat."
+     },
+     "dur": 2.6
+    },
+    {
+     "toast": true
+    },
+    {
+     "go": "c2_s2_ride"
+    }
+   ]
+  },
+  "c2_s2_ride": {
+   "beats": [
+    {
+     "fx": "drive_on"
+    },
+    {
+     "fx": "radio_music",
+     "shot": "radio",
+     "note": {
+      "ru": "Зоя переключает радио с новостей на музыку.",
+      "en": "Zoe switches the radio from the news to music."
+     },
+     "dur": 2.2
+    },
+    {
+     "shot": "two",
+     "note": {
+      "ru": "И подпевает — фальшиво и громко.",
+      "en": "And sings along — loud and off-key."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "danny_smile",
+     "shot": "back",
+     "note": {
+      "ru": "Дэнни впервые улыбается.",
+      "en": "For the first time, Danny smiles."
+     },
+     "dur": 2.4,
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "fx": "bracelet",
+     "shot": "mirror_zoe",
+     "note": {
+      "ru": "В зеркале: на её запястье — пластиковый больничный браслет. Заметив взгляд, она прячет его в рукав.",
+      "en": "In the mirror: a plastic hospital bracelet on her wrist. She catches him looking and tucks it into her sleeve."
+     },
+     "dur": 3.4
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "«Что за браслет?»",
+        "en": "“What's the bracelet?”",
+        "go": "c2_s2_q"
+       },
+       {
+        "silent": true,
+        "go": "c2_s2_s"
+       }
+      ],
+      "shot": "noah"
+     }
+    }
+   ]
+  },
+  "c2_s2_q": {
+   "beats": [
+    {
+     "set": {
+      "zoe_wary": 1
+     }
+    },
+    {
+     "shot": "noah",
+     "say": "noah",
+     "ru": "Что за браслет?",
+     "en": "What's the bracelet?"
+    },
+    {
+     "shot": "zoe",
+     "say": "zoe",
+     "ru": "Сувенир. Из санатория. Скучный был санаторий.",
+     "en": "A souvenir. From a sanatorium. Boring sanatorium."
+    },
+    {
+     "fx": "radio_off",
+     "shot": "two",
+     "note": {
+      "ru": "Она шутит. Но больше не поёт.",
+      "en": "She's joking. But she doesn't sing anymore."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c2_s3"
+    }
+   ]
+  },
+  "c2_s2_s": {
+   "beats": [
+    {
+     "set": {
+      "zoe_trust": 1
+     }
+    },
+    {
+     "shot": "zoe",
+     "note": {
+      "ru": "Зоя замечает: он видел — и не спросил.",
+      "en": "Zoe notices: he saw it — and didn't ask."
+     },
+     "dur": 2.4
+    },
+    {
+     "shot": "zoe",
+     "say": "zoe",
+     "ru": "…Спасибо.",
+     "en": "…Thanks."
+    },
+    {
+     "go": "c2_s3"
+    }
+   ]
+  },
+  "c2_s3": {
+   "save": true,
+   "beats": [
+    {
+     "fx": "post",
+     "shot": "road",
+     "note": {
+      "ru": "Впереди мигалки. Пост полиции, очередь из трёх машин.",
+      "en": "Flashing lights ahead. A police checkpoint, three cars in line."
+     },
+     "dur": 3.0
+    },
+    {
+     "fx": "radio_cop",
+     "shot": "post",
+     "note": {
+      "ru": "По рации у патрульной машины: «…тёмный седан, одна фара… водитель — молодой, может быть опасен».",
+      "en": "The patrol car radio: “…dark sedan, one headlight… driver's young, may be dangerous.”"
+     },
+     "dur": 3.6,
+     "if": {
+      "police": ">0",
+      "lamp": ">0"
+     }
+    },
+    {
+     "fx": "radio_cop",
+     "shot": "post",
+     "note": {
+      "ru": "По рации у патрульной машины: «…тёмный седан, номер… водитель — молодой, может быть опасен».",
+      "en": "The patrol car radio: “…dark sedan, plate number… driver's young, may be dangerous.”"
+     },
+     "dur": 3.6,
+     "if": {
+      "police": ">0",
+      "lamp": "==0"
+     }
+    },
+    {
+     "fx": "radio_cop",
+     "shot": "post",
+     "note": {
+      "ru": "По рации: «…убийство на заправке «24»… кассир…»",
+      "en": "The radio: “…homicide at the 24 station… the cashier…”"
+     },
+     "dur": 3.2,
+     "if": {
+      "roman_dead": ">0"
+     }
+    },
+    {
+     "shot": "back",
+     "note": {
+      "ru": "Дэнни начинает часто дышать.",
+      "en": "Danny starts breathing fast."
+     },
+     "dur": 2.2,
+     "if": {
+      "roman_dead": ">0",
+      "danny": ">0",
+      "lapse1": ">0"
+     }
+    },
+    {
+     "fx": "radio_cop",
+     "shot": "post",
+     "note": {
+      "ru": "По рации: «…нападение на заправке «24», кассир в больнице…»",
+      "en": "The radio: “…assault at the 24 station, cashier's in the hospital…”"
+     },
+     "dur": 3.2,
+     "if": {
+      "roman_hurt": ">0"
+     }
+    },
+    {
+     "shot": "hands",
+     "note": {
+      "ru": "У Ноя на рукаве — засохшая кровь.",
+      "en": "There's dried blood on Noah's sleeve."
+     },
+     "dur": 2.4
+    },
+    {
+     "shot": "zoe",
+     "note": {
+      "ru": "Зоя бледнеет. Полиция вернёт её туда, откуда она сбежала.",
+      "en": "Zoe goes pale. The police will send her back to where she ran from."
+     },
+     "dur": 2.8,
+     "if": {
+      "zoe": ">0"
+     }
+    },
+    {
+     "choice": {
+      "t": 8,
+      "opts": [
+       {
+        "ru": "«Говорить буду я»",
+        "en": "“I'll do the talking”",
+        "go": "c2_s3_me"
+       },
+       {
+        "ru": "Дать говорить Зое",
+        "en": "Let Zoe talk",
+        "go": "c2_s3_zoe",
+        "if": {
+         "zoe": ">0"
+        }
+       },
+       {
+        "ru": "Развернуться до поста",
+        "en": "Turn around before the checkpoint",
+        "go": "c2_s3_turn"
+       },
+       {
+        "silent": true,
+        "go": "c2_s3_me"
+       }
+      ],
+      "shot": "noah"
+     }
+    }
+   ]
+  },
+  "c2_s3_me": {
+   "beats": [
+    {
+     "fx": "cop_window",
+     "shot": "cop",
+     "say": "cop",
+     "ru": "Доброе утро. Документы.",
+     "en": "Morning. License and registration."
+    },
+    {
+     "shot": "noah",
+     "say": "noah",
+     "ru": "Вот…",
+     "en": "Here…"
+    },
+    {
+     "shot": "cop",
+     "say": "cop",
+     "ru": "Выйдите из машины.",
+     "en": "Step out of the car.",
+     "if": {
+      "police": ">0"
+     },
+     "else": "c2_s3_pass"
+    },
+    {
+     "go": "c2_s3_flee"
+    }
+   ]
+  },
+  "c2_s3_pass": {
+   "beats": [
+    {
+     "set": {
+      "cop_saw": 1
+     }
+    },
+    {
+     "shot": "cop",
+     "note": {
+      "ru": "Полицейский долго смотрит Ною в лицо. Потом машет: проезжайте.",
+      "en": "The officer looks at Noah's face for a long time. Then he waves them through."
+     },
+     "dur": 3.0
+    },
+    {
+     "fx": "post_pass"
+    },
+    {
+     "go": "c2_s4"
+    }
+   ]
+  },
+  "c2_s3_zoe": {
+   "beats": [
+    {
+     "set": {
+      "zoe_trust": 1,
+      "jealous": 1,
+      "zoe_talked": 1
+     }
+    },
+    {
+     "fx": "cop_window",
+     "shot": "cop",
+     "say": "cop",
+     "ru": "Доброе утро. Куда едем?",
+     "en": "Morning. Where are we headed?"
+    },
+    {
+     "shot": "zoe",
+     "say": "zoe",
+     "ru": "Везём мелких к бабушке. А у этого нос разбит — подрался за меня. Герой, да?",
+     "en": "Taking the kids to their grandma. And this one's got a busted nose — got in a fight over me. Hero, right?"
+    },
+    {
+     "shot": "cop",
+     "note": {
+      "ru": "Полицейский смотрит на номер машины.",
+      "en": "The officer looks at the license plate."
+     },
+     "dur": 2.6,
+     "if": {
+      "police": ">0"
+     },
+     "else": "c2_s3_zoe_ok"
+    },
+    {
+     "shot": "cop",
+     "say": "cop",
+     "ru": "Выйдите из машины. Все.",
+     "en": "Step out of the car. All of you."
+    },
+    {
+     "go": "c2_s3_flee"
+    }
+   ]
+  },
+  "c2_s3_zoe_ok": {
+   "beats": [
+    {
+     "shot": "cop",
+     "say": "cop",
+     "ru": "Счастливой дороги. Аккуратнее, к обеду метель.",
+     "en": "Safe travels. Careful — there's a blizzard coming by noon."
+    },
+    {
+     "fx": "post_pass",
+     "shot": "iris",
+     "note": {
+      "ru": "Айрис смотрит на Зою так, будто та украла у неё что-то.",
+      "en": "Iris looks at Zoe as if she'd stolen something from her."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c2_s4"
+    }
+   ]
+  },
+  "c2_s3_flee": {
+   "beats": [
+    {
+     "set": {
+      "shadow": 1,
+      "fled": 1
+     }
+    },
+    {
+     "fx": "flee",
+     "shot": "pov",
+     "note": {
+      "ru": "Ной давит на газ. Машину заносит, снег из-под колёс.",
+      "en": "Noah floors it. The car fishtails, snow spraying from the wheels."
+     },
+     "dur": 2.4
+    },
+    {
+     "fx": "siren",
+     "shot": "mirror",
+     "note": {
+      "ru": "Мигалки в зеркале. Потом — только снег.",
+      "en": "Flashing lights in the mirror. Then just snow."
+     },
+     "dur": 2.8
+    },
+    {
+     "shot": "iris",
+     "say": "iris",
+     "ru": "Ты псих.",
+     "en": "You're insane."
+    },
+    {
+     "go": "c2_s4"
+    }
+   ]
+  },
+  "c2_s3_turn": {
+   "beats": [
+    {
+     "set": {
+      "detour": 1
+     }
+    },
+    {
+     "fx": "u_turn",
+     "shot": "two",
+     "note": {
+      "ru": "Ной разворачивается до поста. Лесная дорога в объезд.",
+      "en": "Noah turns around before the checkpoint. A forest road, the long way."
+     },
+     "dur": 2.8
+    },
+    {
+     "shot": "road",
+     "note": {
+      "ru": "Проехали. Но потеряли час.",
+      "en": "They made it through. But they lost an hour."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c2_s4"
+    }
+   ]
+  },
+  "c2_s4": {
+   "save": true,
+   "time": "11:20",
+   "beats": [
+    {
+     "fx": "fade_out",
+     "dur": 1.2
+    },
+    {
+     "fx": "cafe"
+    },
+    {
+     "fx": "fade_in",
+     "shot": "cafe_ext",
+     "note": {
+      "ru": "Кафе для дальнобойщиков «У трёх сосен». Фуры у входа. Начинается буран.",
+      "en": "A truck stop called “Three Pines”. Trucks out front. A blizzard is starting."
+     },
+     "dur": 3.4
+    },
+    {
+     "shot": "cafe_wide",
+     "note": {
+      "ru": "Тёплый жёлтый свет, запах жареного, телевизор под потолком. Официантка и трое дальнобойщиков.",
+      "en": "Warm yellow light, the smell of frying, a TV up near the ceiling. A waitress and three truckers."
+     },
+     "dur": 3.4
+    },
+    {
+     "if": {
+      "zoe_passed": ">0"
+     },
+     "else": "c2_s4_eva"
+    },
+    {
+     "go": "c2_s4_zoe"
+    }
+   ]
+  },
+  "c2_s4_zoe": {
+   "beats": [
+    {
+     "fx": "zoe_cafe",
+     "shot": "cafe_zoe",
+     "note": {
+      "ru": "Зоя здесь — её подвёз дальнобойщик. Мокрая от снега и злая.",
+      "en": "Zoe is here — a trucker gave her a ride. Soaked with snow, and furious."
+     },
+     "dur": 2.8
+    },
+    {
+     "shot": "cafe_zoe",
+     "say": "zoe",
+     "ru": "Спасибо, что не остановились. Очень по-человечески.",
+     "en": "Thanks for not stopping. Real decent of you."
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "«Поехали с нами»",
+        "en": "“Come with us”",
+        "go": "c2_s4_zoe_yes"
+       },
+       {
+        "ru": "Промолчать и пройти мимо",
+        "en": "Say nothing and walk past",
+        "go": "c2_s4_zoe_no"
+       },
+       {
+        "silent": true,
+        "go": "c2_s4_zoe_no"
+       }
+      ],
+      "shot": "noah_cafe"
+     }
+    }
+   ]
+  },
+  "c2_s4_zoe_yes": {
+   "beats": [
+    {
+     "set": {
+      "zoe": 1
+     }
+    },
+    {
+     "shot": "cafe_zoe",
+     "say": "zoe",
+     "ru": "…Ладно. Но кофе с тебя. И извинения. Кофе сначала.",
+     "en": "…Fine. But you're buying the coffee. And apologizing. Coffee first."
+    },
+    {
+     "go": "c2_s4_eva"
+    }
+   ]
+  },
+  "c2_s4_zoe_no": {
+   "beats": [
+    {
+     "set": {
+      "zoe_gone": 1
+     }
+    },
+    {
+     "shot": "cafe_zoe",
+     "note": {
+      "ru": "Зоя отворачивается к окну. Больше они её не увидят.",
+      "en": "Zoe turns to the window. They won't see her again."
+     },
+     "dur": 2.8
+    },
+    {
+     "go": "c2_s4_eva"
+    }
+   ]
+  },
+  "c2_s4_eva": {
+   "beats": [
+    {
+     "fx": "eva_corner",
+     "shot": "cafe_eva",
+     "note": {
+      "ru": "В углу — беременная женщина в мужском пальто. Обручальное кольцо — на цепочке, на шее.",
+      "en": "In the corner — a pregnant woman in a man's coat. A wedding ring on a chain around her neck."
+     },
+     "dur": 3.2
+    },
+    {
+     "shot": "cafe_eva",
+     "say": "eva",
+     "ru": "Простите… Там моя машина, у входа, в канаве. Может, кто-нибудь вытащит? Я заплачу.",
+     "en": "I'm sorry… My car's out front, in the ditch. Could someone pull it out? I'll pay."
+    },
+    {
+     "shot": "cafe_truckers",
+     "say": "trucker",
+     "ru": "Девушка, какая машина. Буран идёт. Никто никуда не поедет.",
+     "en": "Lady, forget the car. There's a blizzard coming. Nobody's going anywhere."
+    },
+    {
+     "fx": "eva_car",
+     "shot": "eva_car",
+     "note": {
+      "ru": "Ной — механик. Он смотрит на её машину через окно: сломана полуось. Дальше она не поедет.",
+      "en": "Noah's a mechanic. He looks at her car through the window: a broken axle. It's not going anywhere."
+     },
+     "dur": 3.4
+    },
+    {
+     "shot": "cafe_eva",
+     "say": "eva",
+     "ru": "Мне надо к сестре. На север. Мне… через месяц.",
+     "en": "I need to get to my sister's. Up north. I'm due… next month."
+    },
+    {
+     "fx": "iris_draw",
+     "shot": "cafe_iris",
+     "note": {
+      "ru": "Айрис замечает, как Ева держится за живот. И рисует её.",
+      "en": "Iris notices the way Eva holds her belly. And she draws her."
+     },
+     "dur": 2.8
+    },
+    {
+     "fx": "iris_eva",
+     "shot": "cafe_iris_eva",
+     "note": {
+      "ru": "Айрис садится рядом. Ева поправляет ей капюшон — как мама. Айрис позволяет.",
+      "en": "Iris sits down next to her. Eva fixes her hood — like a mom would. Iris lets her."
+     },
+     "dur": 3.4
+    },
+    {
+     "if": {
+      "danny": ">0",
+      "lapse1": ">0"
+     },
+     "else": "c2_s4_wc"
+    },
+    {
+     "go": "c2_s4_danny"
+    }
+   ]
+  },
+  "c2_s4_danny": {
+   "beats": [
+    {
+     "shot": "cafe_danny",
+     "note": {
+      "ru": "Дэнни ест картошку, не поднимая глаз.",
+      "en": "Danny eats his fries without looking up."
+     },
+     "dur": 2.2
+    },
+    {
+     "shot": "cafe_danny",
+     "say": "danny",
+     "ru": "Ты сделал больно дяде на заправке?",
+     "en": "Did you hurt the man at the gas station?"
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "«Нет»",
+        "en": "“No”",
+        "go": "c2_s4_d1"
+       },
+       {
+        "ru": "«Да. Я не помню как. Но я больше никого не трону»",
+        "en": "“Yes. I don't remember how. But I won't hurt anyone again”",
+        "go": "c2_s4_d2"
+       },
+       {
+        "ru": "«Я не помню»",
+        "en": "“I don't remember”",
+        "go": "c2_s4_d3"
+       },
+       {
+        "silent": true,
+        "go": "c2_s4_d3"
+       }
+      ],
+      "shot": "noah_cafe"
+     }
+    }
+   ]
+  },
+  "c2_s4_d1": {
+   "beats": [
+    {
+     "set": {
+      "danny_fear": 1
+     }
+    },
+    {
+     "shot": "noah_cafe",
+     "say": "noah",
+     "ru": "Нет.",
+     "en": "No."
+    },
+    {
+     "shot": "cafe_danny",
+     "note": {
+      "ru": "Дэнни знает, что это неправда.",
+      "en": "Danny knows that's not true."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c2_s4_wc"
+    }
+   ]
+  },
+  "c2_s4_d2": {
+   "beats": [
+    {
+     "set": {
+      "promise": 1
+     }
+    },
+    {
+     "shot": "noah_cafe",
+     "say": "noah",
+     "ru": "Да. Я не помню как. Но я больше никого не трону.",
+     "en": "Yes. I don't remember how. But I won't hurt anyone again."
+    },
+    {
+     "fx": "danny_fries",
+     "shot": "cafe_danny",
+     "note": {
+      "ru": "Дэнни долго молчит. Потом двигает к Ною свою картошку.",
+      "en": "Danny is quiet for a long time. Then he pushes his fries toward Noah."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c2_s4_wc"
+    }
+   ]
+  },
+  "c2_s4_d3": {
+   "beats": [
+    {
+     "shot": "noah_cafe",
+     "say": "noah",
+     "ru": "Я не помню.",
+     "en": "I don't remember."
+    },
+    {
+     "shot": "cafe_danny",
+     "say": "danny",
+     "ru": "Мама тоже так говорила. Когда пила.",
+     "en": "My mom used to say that. When she drank."
+    },
+    {
+     "go": "c2_s4_wc"
+    }
+   ]
+  },
+  "c2_s4_wc": {
+   "beats": [
+    {
+     "fx": "wc",
+     "shot": "wc_sink",
+     "note": {
+      "ru": "Туалет. Ной отмывает из-под ногтей засохшую кровь. Вода в раковине — розовая.",
+      "en": "The restroom. Noah scrubs dried blood from under his nails. The water in the sink runs pink."
+     },
+     "dur": 3.4
+    },
+    {
+     "fx": "reflection_wc",
+     "shot": "wc_mirror",
+     "note": {
+      "ru": "В зеркале над раковиной — то же лицо, что утром.",
+      "en": "The mirror over the sink — the same face as this morning."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "pills2",
+     "shot": "wc_pills",
+     "note": {
+      "ru": "В кармане куртки — второй пузырёк.",
+      "en": "In his jacket pocket — a second bottle."
+     },
+     "dur": 2.4
+    },
+    {
+     "choice": {
+      "t": 8,
+      "opts": [
+       {
+        "ru": "Принять таблетку",
+        "en": "Take a pill",
+        "go": "c2_s4_p1"
+       },
+       {
+        "ru": "Не принимать",
+        "en": "Don't take it",
+        "go": "c2_s4_p2"
+       },
+       {
+        "ru": "Смыть всё в унитаз",
+        "en": "Flush them all",
+        "go": "c2_s4_p3"
+       },
+       {
+        "silent": true,
+        "go": "c2_s4_p2"
+       }
+      ],
+      "shot": "wc_mirror"
+     }
+    }
+   ]
+  },
+  "c2_s4_p1": {
+   "beats": [
+    {
+     "set": {
+      "pills": 1,
+      "pills2": 1
+     }
+    },
+    {
+     "fx": "hum_down",
+     "shot": "wc_mirror",
+     "note": {
+      "ru": "Тишина в голове. Как будто кто-то выключил свет в дальней комнате.",
+      "en": "Silence in his head. As if someone turned off the light in a room far away."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c2_s4_porch"
+    }
+   ]
+  },
+  "c2_s4_p2": {
+   "beats": [
+    {
+     "set": {
+      "memory": 1
+     }
+    },
+    {
+     "fx": "wc_boy",
+     "shot": "wc_mirror",
+     "note": {
+      "ru": "В зеркале на секунду — восьмилетний мальчик. Мокрый. Смотрит на Ноя.",
+      "en": "For a second the mirror shows an eight-year-old boy. Soaking wet. Looking at Noah."
+     },
+     "dur": 3.0
+    },
+    {
+     "fx": "wc_boy_off",
+     "shot": "wc_mirror",
+     "note": {
+      "ru": "Моргнул — никого.",
+      "en": "He blinks — nobody there."
+     },
+     "dur": 1.8
+    },
+    {
+     "go": "c2_s4_porch"
+    }
+   ]
+  },
+  "c2_s4_p3": {
+   "beats": [
+    {
+     "set": {
+      "pills_flushed": 1
+     }
+    },
+    {
+     "fx": "flush",
+     "shot": "wc_sink",
+     "note": {
+      "ru": "Таблетки уходят в воду. Больше их нет.",
+      "en": "The pills swirl away. There are no more."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c2_s4_porch"
+    }
+   ]
+  },
+  "c2_s4_porch": {
+   "beats": [
+    {
+     "if": {
+      "zoe": ">0"
+     },
+     "else": "c2_s5"
+    },
+    {
+     "fx": "zoe_porch",
+     "shot": "cafe_window_porch",
+     "note": {
+      "ru": "Зоя курит на крыльце, в снегу.",
+      "en": "Zoe is smoking on the porch, out in the snow."
+     },
+     "dur": 2.4
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "Выйти к ней",
+        "en": "Go out to her",
+        "go": "c2_s4_z"
+       },
+       {
+        "ru": "Остаться внутри",
+        "en": "Stay inside",
+        "go": "c2_s5"
+       },
+       {
+        "silent": true,
+        "go": "c2_s5"
+       }
+      ],
+      "shot": "noah_cafe"
+     }
+    }
+   ]
+  },
+  "c2_s4_z": {
+   "beats": [
+    {
+     "fx": "noah_porch",
+     "shot": "porch",
+     "say": "zoe",
+     "ru": "У меня тоже провалы. Только не минуты — дни. Просыпаешься, а уже четверг. И никто не говорит, где ты была.",
+     "en": "I get blackouts too. Only not minutes — days. You wake up and it's Thursday. And nobody tells you where you've been."
+    },
+    {
+     "choice": {
+      "t": 8,
+      "opts": [
+       {
+        "ru": "«У меня — минуты. Но в эти минуты я кого-то…»",
+        "en": "“Mine are minutes. But in those minutes I…”",
+        "go": "c2_s4_z1"
+       },
+       {
+        "ru": "Взять её за руку",
+        "en": "Take her hand",
+        "go": "c2_s4_z2"
+       },
+       {
+        "ru": "«Тебе надо ехать с кем-то другим»",
+        "en": "“You should ride with someone else”",
+        "go": "c2_s4_z3"
+       },
+       {
+        "silent": true,
+        "go": "c2_s4_z1"
+       }
+      ],
+      "shot": "porch"
+     }
+    }
+   ]
+  },
+  "c2_s4_z1": {
+   "beats": [
+    {
+     "set": {
+      "romance": 1,
+      "zoe_trust": 1
+     }
+    },
+    {
+     "shot": "porch",
+     "say": "noah",
+     "ru": "У меня — минуты. Но в эти минуты я кого-то…",
+     "en": "Mine are minutes. But in those minutes I…"
+    },
+    {
+     "shot": "porch_zoe",
+     "note": {
+      "ru": "Зоя смотрит на него иначе.",
+      "en": "Zoe looks at him differently."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c2_s4_zend"
+    }
+   ]
+  },
+  "c2_s4_z2": {
+   "beats": [
+    {
+     "set": {
+      "romance": 1
+     }
+    },
+    {
+     "fx": "hold_hand",
+     "shot": "porch",
+     "note": {
+      "ru": "Он берёт её за руку. Она не отнимает.",
+      "en": "He takes her hand. She doesn't pull away."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c2_s4_zend"
+    }
+   ]
+  },
+  "c2_s4_z3": {
+   "beats": [
+    {
+     "set": {
+      "romance": -1
+     }
+    },
+    {
+     "shot": "porch",
+     "say": "noah",
+     "ru": "Тебе надо ехать с кем-то другим.",
+     "en": "You should ride with someone else."
+    },
+    {
+     "shot": "porch_zoe",
+     "say": "zoe",
+     "ru": "Ага. С кем? С этими?",
+     "en": "Uh-huh. With who? Them?"
+    },
+    {
+     "shot": "porch_zoe",
+     "note": {
+      "ru": "Она кивает на фуры и смеётся. Невесело.",
+      "en": "She nods at the trucks and laughs. Not happily."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c2_s4_zend"
+    }
+   ]
+  },
+  "c2_s4_zend": {
+   "beats": [
+    {
+     "shot": "iris_window",
+     "note": {
+      "ru": "Айрис видит их в окно.",
+      "en": "Iris sees them through the window."
+     },
+     "dur": 2.2,
+     "set": {
+      "jealous": 1
+     }
+    },
+    {
+     "go": "c2_s5"
+    }
+   ]
+  },
+  "c2_s5": {
+   "save": true,
+   "beats": [
+    {
+     "fx": "sedan_arrive",
+     "shot": "cafe_window",
+     "note": {
+      "ru": "В конце парковки останавливается чёрный седан. Никто не выходит. Двигатель работает, дворники ходят.",
+      "en": "A black sedan pulls up at the far end of the lot. Nobody gets out. The engine's running, the wipers are going."
+     },
+     "dur": 3.6
+    },
+    {
+     "fx": "cup_drop",
+     "shot": "cafe_zoe_table",
+     "say": "zoe",
+     "ru": "Нет… нет-нет-нет. Это его машина.",
+     "en": "No… no, no, no. That's his car.",
+     "if": {
+      "zoe": ">0"
+     }
+    },
+    {
+     "shot": "noah_cafe",
+     "say": "noah",
+     "ru": "Чья?",
+     "en": "Whose?",
+     "if": {
+      "zoe": ">0"
+     }
+    },
+    {
+     "shot": "cafe_zoe_table",
+     "say": "zoe",
+     "ru": "Доктора. У которого я «лечилась». Он… стирает людей.",
+     "en": "The doctor's. The one who was “treating” me. He… erases people.",
+     "if": {
+      "zoe": ">0"
+     }
+    },
+    {
+     "shot": "cafe_iris",
+     "say": "iris",
+     "ru": "…Хейл.",
+     "en": "…Hale.",
+     "if": {
+      "trust": ">=2"
+     }
+    },
+    {
+     "fx": "pill_label",
+     "shot": "pill_label",
+     "note": {
+      "ru": "Имя из маминого дневника. Ной смотрит на этикетку пузырька: «Д-р С. Хейл».",
+      "en": "The name from Mom's diary. Noah looks at the label on his pill bottle: “Dr. S. Hale.”"
+     },
+     "dur": 3.2,
+     "if": {
+      "trust": ">=2"
+     }
+    },
+    {
+     "choice": {
+      "t": 8,
+      "opts": [
+       {
+        "ru": "Уехать сейчас, через задний двор",
+        "en": "Leave now, out the back",
+        "go": "c2_s5_go_away"
+       },
+       {
+        "ru": "Подойти к машине",
+        "en": "Walk over to the car",
+        "go": "c2_s5_walk"
+       },
+       {
+        "ru": "Остаться — в буран ехать опасно",
+        "en": "Stay — it's too dangerous to drive in this",
+        "go": "c2_s5_stay"
+       },
+       {
+        "silent": true,
+        "go": "c2_s5_stay"
+       }
+      ],
+      "shot": "cafe_window"
+     }
+    }
+   ]
+  },
+  "c2_s5_go_away": {
+   "beats": [
+    {
+     "set": {
+      "zoe_trust": 1
+     }
+    },
+    {
+     "fx": "back_door",
+     "shot": "cafe_back",
+     "note": {
+      "ru": "Через кухню, через задний двор — к машине. Буран глотает фары.",
+      "en": "Through the kitchen, out the back door, to the car. The blizzard swallows the headlights."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c2_s6"
+    }
+   ]
+  },
+  "c2_s5_walk": {
+   "beats": [
+    {
+     "set": {
+      "heard_hale": 1,
+      "memory": 1,
+      "iris_saw": 1
+     }
+    },
+    {
+     "fx": "noah_to_sedan",
+     "shot": "sedan_walk",
+     "note": {
+      "ru": "Ной идёт по снегу к седану.",
+      "en": "Noah walks across the snow toward the sedan."
+     },
+     "dur": 3.4
+    },
+    {
+     "fx": "sedan_window",
+     "shot": "sedan_window",
+     "note": {
+      "ru": "Заднее стекло опускается на два пальца. Темно. Лица не видно.",
+      "en": "The rear window slides down two fingers' width. It's dark inside. No face to see."
+     },
+     "dur": 3.0
+    },
+    {
+     "shot": "sedan_window",
+     "say": "hale",
+     "ru": "Здравствуй, Ной. Как голова? Таблетки ещё есть?",
+     "en": "Hello, Noah. How's your head? Still have your pills?"
+    },
+    {
+     "shot": "noah_sedan",
+     "note": {
+      "ru": "Ной стоит как вкопанный.",
+      "en": "Noah stands frozen to the spot."
+     },
+     "dur": 2.4
+    },
+    {
+     "fx": "sedan_leave",
+     "shot": "sedan_walk",
+     "note": {
+      "ru": "Седан медленно уезжает в снег.",
+      "en": "The sedan slowly pulls away into the snow."
+     },
+     "dur": 3.0
+    },
+    {
+     "shot": "iris_window",
+     "note": {
+      "ru": "Айрис видела всё — из окна.",
+      "en": "Iris saw everything — from the window."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c2_s6"
+    }
+   ]
+  },
+  "c2_s5_stay": {
+   "beats": [
+    {
+     "fx": "fade_out",
+     "dur": 1.2
+    },
+    {
+     "fx": "night_cafe"
+    },
+    {
+     "fx": "fade_in",
+     "shot": "cafe_window",
+     "note": {
+      "ru": "Вечер. Седан всё ещё на парковке.",
+      "en": "Evening. The sedan is still in the lot."
+     },
+     "dur": 2.8
+    },
+    {
+     "fx": "handle",
+     "text": {
+      "ru": "Ночью кто-то трогает ручку их машины.",
+      "en": "In the night, someone tries the handle on their car."
+     },
+     "dur": 3.0,
+     "note": true
+    },
+    {
+     "fx": "morning_cafe",
+     "shot": "bracelet_snow",
+     "note": {
+      "ru": "Утром Зои нет. Только её браслет на снегу.",
+      "en": "In the morning Zoe is gone. Only her bracelet, in the snow."
+     },
+     "dur": 3.2,
+     "if": {
+      "zoe": ">0"
+     },
+     "set": {
+      "zoe_gone": 1,
+      "zoe_taken": 1
+     }
+    },
+    {
+     "fx": "morning_cafe",
+     "shot": "cafe_window",
+     "note": {
+      "ru": "Утром седана нет. Только следы шин, заметённые снегом.",
+      "en": "In the morning the sedan is gone. Only tire tracks, drifting over with snow."
+     },
+     "dur": 3.0,
+     "if": {
+      "zoe": "==0"
+     }
+    },
+    {
+     "go": "c2_s6"
+    }
+   ]
+  },
+  "c2_s6": {
+   "beats": [
+    {
+     "fx": "eva_porch",
+     "shot": "eva_porch",
+     "note": {
+      "ru": "Ева — на крыльце, с сумкой. Смотрит на них.",
+      "en": "Eva is on the porch with her bag. She's watching them."
+     },
+     "dur": 2.8
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "Взять Еву",
+        "en": "Take Eva with you",
+        "go": "c2_s6_eva"
+       },
+       {
+        "ru": "Не брать",
+        "en": "Leave her",
+        "go": "c2_s6_alone"
+       },
+       {
+        "silent": true,
+        "go": "c2_s6_alone"
+       }
+      ],
+      "shot": "noah_out"
+     }
+    }
+   ]
+  },
+  "c2_s6_eva": {
+   "beats": [
+    {
+     "set": {
+      "eva": 1
+     }
+    },
+    {
+     "fx": "eva_in_car",
+     "shot": "back",
+     "note": {
+      "ru": "Теперь в машине тесно. Тепло. Айрис — рядом с Евой.",
+      "en": "It's crowded in the car now. And warm. Iris sits next to Eva."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c2_s6_road"
+    }
+   ]
+  },
+  "c2_s6_alone": {
+   "beats": [
+    {
+     "set": {
+      "eva_alone": 1
+     }
+    },
+    {
+     "shot": "eva_porch",
+     "say": "eva",
+     "ru": "Я поняла.",
+     "en": "I understand."
+    },
+    {
+     "go": "c2_s6_road"
+    }
+   ]
+  },
+  "c2_s6_road": {
+   "beats": [
+    {
+     "fx": "leave_cafe",
+     "shot": "road",
+     "note": {
+      "ru": "Буран. Дворники не успевают.",
+      "en": "The blizzard. The wipers can't keep up."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "truck_block",
+     "shot": "road",
+     "note": {
+      "ru": "Поперёк дороги сложилась фура. Мигалки в снегу. Объезда нет.",
+      "en": "A jackknifed semi blocks the road. Flashing lights in the snow. No way around."
+     },
+     "dur": 3.4
+    },
+    {
+     "shot": "iris",
+     "say": "iris",
+     "ru": "Направо. Там деревня. Там бабушка.",
+     "en": "Turn right. There's a village. Grandma's there."
+    },
+    {
+     "shot": "noah",
+     "say": "noah",
+     "ru": "У нас есть бабушка?..",
+     "en": "We have a grandma?.."
+    },
+    {
+     "shot": "iris",
+     "say": "iris",
+     "ru": "Мамина мама. Папа запрещал. Она в дневнике.",
+     "en": "Mom's mom. Dad wouldn't let us. She's in the diary."
+    },
+    {
+     "fx": "side_road",
+     "shot": "road",
+     "note": {
+      "ru": "Машина ползёт по боковой дороге. Указатель засыпан снегом наполовину.",
+      "en": "The car crawls down a side road. The signpost is half buried in snow."
+     },
+     "dur": 3.2
+    },
+    {
+     "fx": "far_lights",
+     "shot": "mirror",
+     "note": {
+      "ru": "В зеркале, далеко позади, в белой мгле — две фары.",
+      "en": "In the mirror, far behind, in the white haze — two headlights."
+     },
+     "dur": 3.4
+    },
+    {
+     "end": 2
+    }
+   ]
+  },
+  "c2_end": {
+   "beats": [
+    {
+     "end": 2
+    }
+   ]
+  }
+ }
+}

@@ -17,7 +17,9 @@ TEXTURES = ['asphalt_snow', 'snow_02',
             # ткани для одежды героев, которую генератор шьёт сам (tools/lake/garments.py)
             'brown_leather', 'knitted_fleece', 'wool_boucle', 'cotton_jersey', 'poly_wool_herringbone', 'denim_fabric',
             # заправка: стены, бетон, плитка в магазине, металл навеса
-            'painted_plaster_wall', 'concrete_floor_02', 'floor_tiles_06', 'corrugated_iron', 'metal_plate']
+            'painted_plaster_wall', 'concrete_floor_02', 'floor_tiles_06', 'corrugated_iron', 'metal_plate',
+            # кафе «У трёх сосен» (глава 2): пол, обшивка снаружи и внутри, столы, стойка
+            'old_wood_floor', 'weathered_plank_siding', 'wooden_panels', 'wood_table_worn', 'kitchen_wood']
 HDRIS = ['narrow_moonlit_road']
 TWIG_2K = {'fir_tree_01': ['twig_diff', 'twig_alpha', 'twig_nor_gl']}   # ели карточками: атлас лап с прозрачностью (road.gd)
 

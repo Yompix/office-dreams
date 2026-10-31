@@ -14,6 +14,40 @@ var station_root: Node3D   # всё, что ставит стоянка (пос�
 var road_items: Node3D     # что стоит на дороге (олень, кровь, указатель, чужая машина): едет назад вместе с ней
 const LOT := Rect2(4.2, -28.0, 33.6, 46.0)   # площадка заправки (x, z) справа от дороги
 const FLOOR := 0.38                          # пол магазина и крыльцо
+var cafe_root: Node3D      # кафе «У трёх сосен» (глава 2): постройка, свет, фуры, машины — уезжаем, и оно исчезает
+var cafe: Node3D
+var trucks: Array = []
+var eva_car: BlackCar
+const CAFE_LOT := Rect2(4.0, -44.0, 36.0, 68.0)
+const CF := 0.45                             # пол кафе и крыльцо
+const CAFE_BOOTHS := [-13.4, -11.1, -2.6, -0.3]
+## планы кафе (глава 2): [позиция камеры, куда смотрит, угол обзора]
+const CAFE_SHOTS := {
+	"cafe_ext": [Vector3(5.0, 2.3, 5.0), Vector3(23.0, 2.4, -7.5), 46.0],
+	"cafe_wide": [Vector3(22.9, CF + 1.9, -6.2), Vector3(31.0, CF + 1.0, -9.5), 64.0],
+	"cafe_eva": [Vector3(23.7, CF + 1.3, -12.3), Vector3(23.0, CF + 1.12, -14.15), 40.0],
+	"cafe_truckers": [Vector3(28.6, CF + 1.6, -6.0), Vector3(30.1, CF + 1.15, -10.4), 46.0],
+	"eva_car": [Vector3(23.0, CF + 1.55, -12.2), Vector3(18.9, 0.5, -16.4), 42.0],
+	"cafe_iris": [Vector3(23.3, CF + 1.22, -3.1), Vector3(22.75, CF + 1.12, -1.82), 38.0],
+	"noah_cafe": [Vector3(23.1, CF + 1.25, -2.15), Vector3(22.9, CF + 1.15, -3.38), 38.0],
+	"cafe_danny": [Vector3(22.8, CF + 1.15, -2.85), Vector3(23.42, CF + 0.98, -1.82), 38.0],
+	"cafe_iris_eva": [Vector3(24.0, CF + 1.45, -12.2), Vector3(23.0, CF + 1.0, -14.0), 46.0],
+	"cafe_zoe": [Vector3(28.2, CF + 1.45, -4.4), Vector3(30.1, CF + 1.25, -5.4), 40.0],
+	"cafe_zoe_table": [Vector3(22.85, CF + 1.22, -2.1), Vector3(23.42, CF + 1.12, -3.38), 40.0],
+	"wc_sink": [Vector3(32.75, CF + 1.75, -13.15), Vector3(33.45, CF + 0.95, -13.8), 46.0],
+	"wc_mirror": [Vector3(32.35, CF + 1.66, -13.55), Vector3(33.74, CF + 1.6, -13.8), 34.0],
+	"wc_pills": [Vector3(32.85, CF + 1.35, -13.25), Vector3(33.15, CF + 1.0, -13.7), 30.0],
+	"cafe_window_porch": [Vector3(23.1, CF + 1.5, -5.2), Vector3(21.0, CF + 1.25, -9.0), 46.0],
+	"porch": [Vector3(19.5, CF + 1.5, -7.4), Vector3(21.0, CF + 1.35, -8.9), 42.0],
+	"porch_zoe": [Vector3(21.3, CF + 1.5, -8.2), Vector3(20.85, CF + 1.45, -9.25), 36.0],
+	"iris_window": [Vector3(20.6, CF + 1.35, -2.4), Vector3(22.75, CF + 1.1, -1.82), 32.0],
+	"cafe_window": [Vector3(23.2, CF + 1.45, -3.6), Vector3(8.0, 0.9, -36.0), 40.0],
+	"cafe_back": [Vector3(37.0, 1.9, 2.5), Vector3(34.0, 1.3, -1.0), 50.0],
+	"sedan_walk": [Vector3(18.6, 2.1, -14.0), Vector3(8.6, 0.8, -34.0), 40.0],
+	"bracelet_snow": [Vector3(18.2, 0.55, -11.0), Vector3(18.5, 0.02, -11.7), 30.0],
+	"eva_porch": [Vector3(18.4, 1.6, -5.2), Vector3(21.0, CF + 1.3, -8.0), 40.0],
+	"noah_out": [Vector3(20.5, 1.65, -9.2), Vector3(18.4, 1.62, -11.0), 38.0],
+}
 const ROAD_EDGE := 3.5                       # край асфальта (полдороги)
 
 ## планы на заправке — в координатах мира: [позиция, куда смотрит, угол обзора]
@@ -231,6 +265,122 @@ func park_at_station(lang := "ru") -> void:
 	car.speed = 0.0
 	car.ride = false
 	car.position = Vector3(14.3, 0.0, -5.0)   # ближе к правому островку: слева у колонки место для Ноя
+
+
+## Кафе «У трёх сосен» (глава 2): дом у трассы, свет ламп и окон, вывеска на языке игры, три сосны, фуры у входа,
+## машина Евы в кювете у крыльца. Машина героев — у крыльца.
+func park_at_cafe(lang := "ru") -> void:
+	road.park(CAFE_LOT)
+	cafe_root = Node3D.new()
+	add_child(cafe_root)
+	cafe = (load("res://assets/models/cafe.glb") as PackedScene).instantiate() as Node3D
+	cafe_root.add_child(cafe)
+	for n in cafe.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var nm := String(mi.name)
+		if nm.begins_with("window") or nm.contains("glass") or nm.begins_with("pend") or nm.begins_with("ceiling_lamp"):
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var lb := Label3D.new()                           # вывеска над крыльцом
+	lb.text = "У ТРЁХ СОСЕН" if lang == "ru" else "THREE PINES"
+	lb.font_size = 150
+	lb.pixel_size = 0.0055
+	lb.modulate = Color(0.98, 0.86, 0.6)
+	lb.outline_size = 0
+	lb.shaded = false
+	lb.position = Vector3(21.86, CF + 3.45, -7.0)
+	lb.rotation_degrees = Vector3(0, -90, 0)
+	cafe_root.add_child(lb)
+	var warm := Color(1.0, 0.76, 0.46)
+	for zc in CAFE_BOOTHS:                            # лампы над столами
+		var ol := OmniLight3D.new()
+		ol.position = Vector3(23.05, CF + 2.0, zc)
+		ol.light_color = warm
+		ol.light_energy = 1.3
+		ol.omni_range = 4.2
+		ol.shadow_enabled = pc and zc == -2.6
+		ol.light_volumetric_fog_energy = 0.0
+		cafe_root.add_child(ol)
+	for z in [-11.0, -7.5, -4.0]:                     # над стойкой
+		var ol := OmniLight3D.new()
+		ol.position = Vector3(30.8, CF + 2.95, z)
+		ol.light_color = Color(1.0, 0.85, 0.62)
+		ol.light_energy = 1.0
+		ol.omni_range = 5.0
+		ol.light_volumetric_fog_energy = 0.0
+		cafe_root.add_child(ol)
+	for at in [[Vector3(27.0, CF + 2.95, -7.0), Color(1.0, 0.85, 0.62), 0.8, 6.5], [Vector3(32.0, CF + 2.9, -13.8), Color(0.92, 0.96, 1.0), 0.9, 3.4],
+			[Vector3(21.6, CF + 2.2, -8.1), warm, 1.4, 6.0], [Vector3(21.3, CF + 4.2, -7.0), Color(1.0, 0.82, 0.55), 1.2, 4.0]]:
+		var ol := OmniLight3D.new()
+		ol.position = at[0]
+		ol.light_color = at[1]
+		ol.light_energy = at[2]
+		ol.omni_range = at[3]
+		ol.light_volumetric_fog_energy = 0.4
+		cafe_root.add_child(ol)
+	for z in [-11.5, -2.0]:                           # тёплые окна на снегу
+		var sp := SpotLight3D.new()
+		sp.position = Vector3(23.4, 2.4, z)
+		sp.rotation_degrees = Vector3(-22, 90, 0)
+		sp.light_color = warm
+		sp.light_energy = 1.6
+		sp.spot_range = 13.0
+		sp.spot_angle = 60.0
+		sp.light_volumetric_fog_energy = 0.8
+		cafe_root.add_child(sp)
+	var items := [["Television_01", Vector3(33.35, CF + 2.3, 0.4), -135.0], ["CashRegister_01", Vector3(31.0, CF + 1.05, -9.8), 90.0]]
+	for it in items:
+		var path := "res://assets/ph/%s/%s.gltf" % [it[0], it[0]]
+		if not ResourceLoader.exists(path):
+			continue
+		var n := (load(path) as PackedScene).instantiate() as Node3D
+		cafe_root.add_child(n)
+		n.position = it[1]
+		n.rotation_degrees.y = it[2]
+		props[it[0]] = n
+	if props.has("Television_01"):
+		var tv := NewsTV.new()
+		cafe_root.add_child(tv)
+		tv.build(props["Television_01"], lang)
+		props["news"] = tv
+	for t in [[Vector3(14.5, 0.0, 9.0), 1.7, 3], [Vector3(10.8, 0.0, 13.5), 1.9, 5], [Vector3(17.2, 0.0, 15.0), 1.6, 8]]:   # три сосны
+		var tr := MeshInstance3D.new()
+		tr.mesh = road._fir_mesh2(int(t[2]))
+		tr.position = t[0]
+		tr.scale = Vector3.ONE * float(t[1])
+		tr.rotation.y = float(t[2]) * 1.3
+		cafe_root.add_child(tr)
+	trucks.clear()
+	for tk in [[Vector3(11.0, 0.0, -24.0), 8.0, Color(0.5, 0.06, 0.04)], [Vector3(15.0, 0.0, -30.0), 4.0, Color(0.78, 0.78, 0.76)],
+			[Vector3(28.0, 0.0, 12.0), 95.0, Color(0.1, 0.2, 0.45)]]:
+		var tru := Truck.new().setup(tk[2])
+		cafe_root.add_child(tru)
+		tru.position = tk[0]
+		tru.rotation_degrees.y = tk[1]
+		trucks.append(tru)
+	eva_car = BlackCar.new()                          # машина Евы — в кювете у входа, нос в снегу
+	eva_car.paint_color = Color(0.2, 0.3, 0.26)
+	eva_car.tinted = false
+	eva_car.has_driver = false
+	cafe_root.add_child(eva_car)
+	eva_car.position = Vector3(19.0, -0.35, -16.6)
+	eva_car.rotation_degrees = Vector3(9.0, 160.0, -11.0)
+	car.speed = 0.0
+	car.ride = false
+	car.position = Vector3(17.6, 0.0, -11.8)
+
+
+func leave_cafe() -> void:
+	if is_instance_valid(cafe_root):
+		cafe_root.queue_free()
+	cafe_root = null
+	cafe = null
+	trucks.clear()
+	props.clear()
+	road.unpark()
+	car.position = Vector3.ZERO
+	car.rotation = Vector3.ZERO
+	car.ride = true
+	car.speed = road.speed
 
 
 ## Трещины на стеклянной двери магазина (после провала): паутина от точки удара — текстура кодом.
@@ -468,8 +618,8 @@ func signpost(z: float, text: String) -> Node3D:
 
 ## Камера на план (в координатах машины; планы заправки — в координатах мира).
 func put_camera(cam: Camera3D, shot: String) -> void:
-	if STATION_SHOTS.has(shot) or ROAD_SHOTS.has(shot):
-		var w: Array = STATION_SHOTS.get(shot, ROAD_SHOTS.get(shot))
+	if STATION_SHOTS.has(shot) or ROAD_SHOTS.has(shot) or CAFE_SHOTS.has(shot):
+		var w: Array = STATION_SHOTS.get(shot, ROAD_SHOTS.get(shot, CAFE_SHOTS.get(shot)))
 		cam.fov = w[2]
 		cam.look_at_from_position(w[0], w[1])
 		return

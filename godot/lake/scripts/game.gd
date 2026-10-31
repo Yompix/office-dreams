@@ -51,6 +51,7 @@ var _ending := false
 var _skid_cd := 0.0
 var _vo := {}                 # озвучка языка: ключ реплики → {dur, w (слова со временем), e (громкость), g}
 var _vo_lang := ""
+var _chapters := {}           # номер главы → {start, ready, title, map}
 const IN_CAR := ["pov", "hands", "noah", "iris", "two", "notebook", "radio", "glovebox", "road", "cluster", "pills", "back",
 	"deer_eye", "mirror", "mirror_back"]    # планы из салона: снаружи слышно глухо
 const SHOP := ["st_counter", "st_tv", "st_roman", "st_hand", "st_noah_face"]   # планы в магазине заправки
@@ -87,6 +88,22 @@ func _ready() -> void:
 	sfx = Sfx.new()
 	add_child(sfx)
 	data = JSON.parse_string(FileAccess.get_file_as_string("res://data/ch1.json"))
+	data["chapter"] = 1
+	_chapters[1] = {"start": String(data.start), "ready": true}
+	for n in range(2, 6):   # главы 2–5: сцены, имена, флаги — в общий сценарий; карта и начало — по главам
+		var path := "res://data/ch%d.json" % n
+		if not FileAccess.file_exists(path):
+			continue
+		var ch = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if not (ch is Dictionary):
+			continue
+		_chapters[n] = {"start": String(ch.start), "ready": bool(ch.get("ready", false)), "title": ch.get("title", {}), "map": ch.get("map", [])}
+		for k in ch.scenes:
+			data.scenes[k] = ch.scenes[k]
+		for k in ch.get("names", {}):
+			data.names[k] = ch.names[k]
+		for k in ch.get("flags", {}):
+			data.flags[k] = ch.flags[k]
 	for sid in data.scenes:   # ключ озвучки каждой реплики: <сцена>_<номер реплики в сцене> (как tools/lake/voice.py)
 		var n := 0
 		for b in data.scenes[sid].beats:
@@ -286,7 +303,7 @@ func _beat(b: Dictionary):
 		var c: Dictionary = b.choice
 		if c.has("shot"):
 			_cut(String(c.shot))
-		var opts: Array = c.opts
+		var opts: Array = (c.opts as Array).filter(func(o): return not (o as Dictionary).has("if") or _cond(o["if"]))
 		hud.choice(opts, float(c.get("t", 6)))
 		if autoplay:
 			var want: int = (_forced.pop_front() if not _forced.is_empty() else _rng.randi() % opts.size())
@@ -306,8 +323,14 @@ func _beat(b: Dictionary):
 			return String(b.fail)
 	if b.has("go"):
 		return String(b.go)
-	if b.get("end", false):
-		await _end()
+	if b.has("end") and b.end:
+		var n := int(b.end) if (b.end is float or b.end is int) else 1
+		await _end(n)
+		var nx: Dictionary = _chapters.get(n + 1, {})
+		if not nx.is_empty() and nx.ready:
+			hud.title.text = ""
+			return String(nx.start)
+		await _to_be_continued()
 	return ""
 
 
@@ -976,9 +999,9 @@ func _sound(delta: float) -> void:
 	elif _blackout:
 		drone = -18.0
 	elif _menu_mode:
-		forest = -9.0
-		car = -24.0
-		drone = -14.0
+		forest = -12.0
+		car = -26.0
+		drone = off
 	elif _ending:
 		drone = -12.0
 	elif station:
@@ -1003,6 +1026,7 @@ func _sound(delta: float) -> void:
 	sfx.bed("shop_room", shop)
 	sfx.bed("blizzard", bliz)
 	sfx.bed("underwater", -3.0 if _underwater else off)
+	sfx.bed("lake_theme", -5.0 if _menu_mode else off)   # меню: мамина колыбельная (tools/lake/music.py)
 	sfx.bed("drone", drone + hud.hum * 10.0)
 	sfx.bed("hum_ring", lerpf(-34.0, -4.0, hud.hum) if hud.hum > 0.03 else off)
 	sfx.bed("radio_hiss", (-20.0 if inside else -34.0) if _radio and not _blackout else off)
@@ -1188,23 +1212,69 @@ func _chapter_map() -> void:
 	_log("карта главы: открыто %d из %d" % [opened, total])
 
 
-func _end() -> void:
+func _end(n := 1) -> void:
 	hud.clear_text()
 	create_tween().tween_property(hud.fade, "color:a", 1.0, 1.5)
 	await _wait(1.6)
 	_ending = true
 	sfx.play("boom", -5.0)
-	_chapter_map()
+	sfx.play("lake_end", -3.0, 1.0, 0.8)
+	if n == 1:
+		_chapter_map()
+	else:
+		_chapter_map_n(n)
 	await _wait(10.0)
 	if _shotlog != "":
-		get_viewport().get_texture().get_image().save_png("%s/zz_map.png" % _shotlog)
+		get_viewport().get_texture().get_image().save_png("%s/zz_map%d.png" % [_shotlog, n])
 	hud.hide_map()
+	_ending = false
+
+
+func _to_be_continued() -> void:
+	_ending = true
 	var t := "Продолжение следует" if lang == "ru" else "To be continued"
 	hud.title.text = t + "\n\n" + ("Доверие Айрис: %d" % flags.trust if lang == "ru" else "Iris's trust: %d" % flags.trust)
 	_log("конец отрывка, флаги " + JSON.stringify(flags))
 	await _wait(3.0)
 	if autoplay:
 		get_tree().quit()
+
+
+## Карта главы 2–5 из её данных: у варианта — условие "if" (первый подходящий — выбор игрока в этом прохождении).
+func _chapter_map_n(n: int) -> void:
+	var ch: Dictionary = _chapters.get(n, {})
+	var prog := {}
+	if FileAccess.file_exists("user://lake_progress.json"):
+		var j = JSON.parse_string(FileAccess.get_file_as_string("user://lake_progress.json"))
+		if j is Dictionary:
+			prog = j
+	var rows := []
+	var opened := 0
+	var total := 0
+	for r in ch.get("map", []):
+		var opts: Array = r.opts
+		var pick := -1
+		for i in opts.size():
+			if _cond(opts[i].get("if", {})):
+				pick = i
+				break
+		if pick >= 0:
+			prog["ch%d:%s:%s" % [n, r.key, opts[pick].id]] = true
+		var seen := []
+		var names := []
+		for o in opts:
+			var sn := prog.has("ch%d:%s:%s" % [n, r.key, o.id])
+			seen.append(sn)
+			names.append(String(o.get(lang, o.ru)))
+			opened += 1 if sn else 0
+			total += 1
+		rows.append({"name": r.get(lang, r.ru), "opts": names, "pick": pick, "seen": seen})
+	var f := FileAccess.open("user://lake_progress.json", FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify(prog))
+	var title: Dictionary = ch.get("title", {})
+	hud.chapter_map(String(title.get(lang, title.get("ru", ""))), rows, opened, total, int(flags.get("trust", 0)))
+	_log("карта главы %d: открыто %d из %d" % [n, opened, total])
 
 
 func _log(s: String) -> void:

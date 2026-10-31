@@ -209,12 +209,18 @@ func _process(delta: float) -> void:
 		_turn("neck", Z, (0.55 - lift * 0.35) * f)
 		_turn("neck2", Z, 0.35 * f)
 		_turn("head", X, 0.25 * f)
+		# ноги согнуты, как у лежащего зверя (прямые издалека похожи на прыжок): передние — в запястье, задние — в скакательном
 		_turn("fl_up", X, -0.9 * f)
 		_turn("fl_low", X, 1.2 * f)             # сломанная передняя
-		_turn("fr_up", X, 0.35 * f)
-		_turn("bl_up", X, -0.5 * f)
+		_turn("fl_foot", X, 0.3 * f)
+		_turn("fr_up", X, 0.45 * f)
+		_turn("fr_low", X, 0.95 * f)
+		_turn("fr_foot", X, 0.45 * f)
+		_turn("bl_up", X, -0.3 * f)
+		_turn("bl_low", X, (-0.65 + sin(t * 3.1) * 0.12 * alive) * f)   # нога дёргается
+		_turn("bl_foot", X, 0.5 * f)
 		_turn("br_up", X, 0.6 * f)
-		_turn("br_low", X, -0.7 * f)
-		_turn("bl_low", X, sin(t * 3.1) * 0.12 * alive * f)   # нога дёргается
+		_turn("br_low", X, -0.95 * f)
+		_turn("br_foot", X, 0.6 * f)
 	for i in _b.values():
 		skel.set_bone_pose_rotation(i, (_rest[i] as Quaternion) * (_acc.get(i, Quaternion.IDENTITY) as Quaternion))

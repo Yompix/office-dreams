@@ -13,21 +13,24 @@ var _tail_on: StandardMaterial3D
 var _tail_off: StandardMaterial3D
 var lit := false
 var speed := 0.0            # своя скорость вперёд (носом), м/с — поверх того, что едет вместе с дорогой
+var paint_color := Color(0.012, 0.012, 0.014)   # другие машины на дороге: свой цвет, обычные стёкла, без водителя
+var tinted := true
+var has_driver := true
 
 
 func _ready() -> void:
 	var model := (load("res://assets/models/sedan.glb") as PackedScene).instantiate() as Node3D
 	add_child(model)
 	var paint := StandardMaterial3D.new()
-	paint.albedo_color = Color(0.012, 0.012, 0.014)
-	paint.metallic = 0.5
-	paint.roughness = 0.28
+	paint.albedo_color = paint_color
+	paint.metallic = 0.5 if tinted else 0.25
+	paint.roughness = 0.28 if tinted else 0.4
 	paint.clearcoat_enabled = true
 	paint.clearcoat = 1.0
 	paint.clearcoat_roughness = 0.05
 	var glass := StandardMaterial3D.new()
 	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	glass.albedo_color = Color(0.02, 0.022, 0.025, 0.88)   # тонировка: внутри почти ничего не видно
+	glass.albedo_color = Color(0.02, 0.022, 0.025, 0.88) if tinted else Color(0.08, 0.1, 0.12, 0.35)   # тонировка: внутри почти ничего не видно
 	glass.roughness = 0.04
 	glass.metallic_specular = 1.0
 	_lamp_off = _m(Color(0.25, 0.25, 0.24), 0.0, Color.BLACK)
@@ -58,6 +61,9 @@ func _ready() -> void:
 		sl.rotation_degrees = Vector3(-3.0, 0, 0)
 		add_child(sl)
 		beams.append(sl)
+	if not has_driver:
+		lights(false)
+		return
 	# водитель — тёмный силуэт за рулём
 	var dark := StandardMaterial3D.new()
 	dark.albedo_color = Color(0.008, 0.008, 0.01)

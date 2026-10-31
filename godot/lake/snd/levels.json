@@ -20,6 +20,8 @@
  "glovebox": -3.4,
  "heartbeat": -2.3,
  "hum_ring": -6.6,
+ "lake_end": 0.5,
+ "lake_theme": -1.2,
  "lullaby": 13.4,
  "lullaby_girl": 10.0,
  "nozzle": -2.8,
