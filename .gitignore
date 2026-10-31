@@ -14,3 +14,4 @@ tools/android/out/
 *.jks
 *.keystore
 *.p12
+/out/
