@@ -56,16 +56,16 @@ func _ready() -> void:
 	_run(start)
 
 
-## Ной за рулём, Айрис рядом (модели пока из Hush Till Six: Итан и Лили — заменим своими).
+## Ной за рулём, Айрис рядом — свои герои (tools/lake/chars.json → assets/chars).
 func _cast() -> void:
-	var noah := Actor.make("noah", "ethan")
+	var noah := Actor.make("noah", "noah")
 	scene.car.add_child(noah)
 	noah.position = Car.DRIVER + Vector3(0, 0.15, 0)
 	noah.rotation_degrees = Vector3(0, 180, 0)
 	noah.play("Driving", 0.5)
 	noah.enable_blood()
 	actors.noah = noah
-	var iris := Actor.make("iris", "lily")
+	var iris := Actor.make("iris", "iris")
 	scene.car.add_child(iris)
 	iris.position = Car.PASSENGER + Vector3(0, 0.15, 0)
 	iris.rotation_degrees = Vector3(0, 180, 0)

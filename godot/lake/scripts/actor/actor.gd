@@ -34,7 +34,8 @@ static func make(k: String, file: String) -> Actor:
 	var a := Actor.new()
 	a.key = k
 	a.name = k
-	a.model = (load("res://assets/models/%s.glb" % file) as PackedScene).instantiate()
+	var path := file if file.begins_with("res://") else ("res://assets/chars/%s.glb" % file if ResourceLoader.exists("res://assets/chars/%s.glb" % file) else "res://assets/models/%s.glb" % file)
+	a.model = (load(path) as PackedScene).instantiate()
 	a.add_child(a.model)
 	var rig := HumanRig.rebase(a.model)
 	a.skel = rig.skel
@@ -44,6 +45,17 @@ static func make(k: String, file: String) -> Actor:
 	a.ap.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	for mi in a.model.find_children("*", "MeshInstance3D", true, false):
 		var m := mi as MeshInstance3D
+		var nm := String(m.name).to_lower()
+		if nm.contains("hair") or nm.contains("brows") or nm.contains("lashes"):   # пряди — вырезкой по альфе, мягкий порог, обе стороны
+			for i in m.mesh.get_surface_count():
+				var src := m.get_active_material(i) as BaseMaterial3D
+				if src:
+					var hm := src.duplicate() as BaseMaterial3D
+					hm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+					hm.alpha_scissor_threshold = 0.18 if nm.contains("hair") else 0.25
+					hm.cull_mode = BaseMaterial3D.CULL_DISABLED
+					hm.roughness = 0.7
+					m.set_surface_override_material(i, hm)
 		if m.mesh is ArrayMesh and (m.mesh as ArrayMesh).get_blend_shape_count() > 0:
 			var d := {}
 			for i in (m.mesh as ArrayMesh).get_blend_shape_count():

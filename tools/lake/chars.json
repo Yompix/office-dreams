@@ -1,0 +1,379 @@
+{
+ "_doc": "Герои WHAT THE LAKE KEEPS для tools/chars/gen.py (MakeHuman/MPFB2, только пакеты CC0: makehuman_system_assets, hair01, skins01/02, shirts01, pants01, suits01, hats01, shoes01, glasses01, dress01, skirts01 — пакеты CC-BY не берём). Внешность — по анкетам newgame/BIBLE.md. age MakeHuman: 0.1875 = 11 лет, 0.5 = 25, 1 = 90. targets — формы лица и тела MakeHuman (своё лицо у каждого). Сборка: tools/lake/build_chars.sh",
+ "noah": {
+  "_who": "Ной, 19: высокий, худой, тёмные волосы, отцовская куртка не по размеру, руки механика; не спал, мешки под глазами",
+  "phenotype": {
+   "gender": 1,
+   "age": 0.366,
+   "muscle": 0.42,
+   "weight": 0.28,
+   "proportions": 0.55,
+   "height": 0.74,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.02,
+    "caucasian": 0.95,
+    "african": 0.03
+   }
+  },
+  "skin": "young_caucasian_male2/young_caucasian_male2.mhmat",
+  "hair": "short01/short01.mhclo",
+  "brows": "eyebrow005/eyebrow005.mhclo",
+  "clothes": [
+   "male_casualsuit06/male_casualsuit06.mhclo",
+   "culturalibre_male_boots/culturalibre_male_boots.mhclo"
+  ],
+  "targets": {
+   "head-oval": 0.45,
+   "chin-prominent-incr": 0.35,
+   "nose-hump-incr": 0.35,
+   "nose-scale-vert-incr": 0.2,
+   "l-cheek-bones-incr": 0.35,
+   "r-cheek-bones-incr": 0.35,
+   "l-cheek-volume-decr": 0.4,
+   "r-cheek-volume-decr": 0.4,
+   "l-eye-bag-incr": 0.45,
+   "r-eye-bag-incr": 0.45,
+   "mouth-scale-horiz-decr": 0.15,
+   "neck-scale-vert-incr": 0.2
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "jacket",
+    "tex": "brown_leather",
+    "tint": [
+     0.72,
+     0.6,
+     0.5
+    ],
+    "off": 0.026,
+    "tile": 5
+   }
+  ]
+ },
+ "iris": {
+  "_who": "Айрис, 15: маленькая, худи, наушники без музыки, блокнот; короткая тёмная стрижка, редко смотрит в глаза; наушники и капюшон — в игре (своими моделями, CC0-пакетов с ними нет)",
+  "phenotype": {
+   "gender": 0,
+   "age": 0.277,
+   "muscle": 0.3,
+   "weight": 0.32,
+   "proportions": 0.5,
+   "height": 0.36,
+   "cupsize": 0.2,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.03,
+    "caucasian": 0.94,
+    "african": 0.03
+   }
+  },
+  "skin": "young_caucasian_female2/young_caucasian_female2.mhmat",
+  "hair": "bob01/bob01.mhclo",
+  "brows": "eyebrow002/eyebrow002.mhclo",
+  "clothes": [
+   "female_casualsuit01/female_casualsuit01.mhclo",
+   "toigo_ankle_boots_female/toigo_ankle_boots_female.mhclo"
+  ],
+  "targets": {
+   "head-round": 0.3,
+   "nose-scale-horiz-decr": 0.25,
+   "nose-point-up": 0.35,
+   "l-eye-scale-incr": 0.2,
+   "r-eye-scale-incr": 0.2,
+   "chin-width-decr": 0.25,
+   "mouth-lowerlip-volume-incr": 0.2,
+   "eyebrows-angle-down": 0.25
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "hoodie",
+    "tex": "cotton_jersey",
+    "tint": [
+     0.62,
+     0.66,
+     0.6
+    ],
+    "off": 0.022,
+    "tile": 6
+   },
+   {
+    "kind": "hood",
+    "name": "hood",
+    "tex": "cotton_jersey",
+    "tint": [
+     0.62,
+     0.66,
+     0.6
+    ],
+    "off": 0.024,
+    "back": 0.025,
+    "tile": 6
+   }
+  ]
+ },
+ "danny": {
+  "_who": "Дэнни, 10: худой, шапка до глаз, детская рация; упрямый; шапка — в игре (своя модель)",
+  "phenotype": {
+   "gender": 1,
+   "age": 0.169,
+   "muscle": 0.3,
+   "weight": 0.3,
+   "proportions": 0.5,
+   "height": 0.42,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.05,
+    "caucasian": 0.9,
+    "african": 0.05
+   }
+  },
+  "skin": "young_caucasian_male/young_caucasian_male.mhmat",
+  "hair": "",
+  "brows": "eyebrow004/eyebrow004.mhclo",
+  "clothes": [
+   "male_casualsuit04/male_casualsuit04.mhclo",
+   "toigo_ankle_boots_male/toigo_ankle_boots_male.mhclo"
+  ],
+  "targets": {
+   "head-round": 0.4,
+   "nose-point-up": 0.4,
+   "nose-scale-horiz-decr": 0.2,
+   "l-eye-scale-incr": 0.15,
+   "r-eye-scale-incr": 0.15,
+   "mouth-scale-horiz-decr": 0.15
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "parka",
+    "tex": "cotton_jersey",
+    "tint": [
+     0.24,
+     0.32,
+     0.48
+    ],
+    "off": 0.032,
+    "tile": 6
+   },
+   {
+    "kind": "beanie",
+    "name": "beanie",
+    "tex": "wool_boucle",
+    "tint": [
+     0.42,
+     0.14,
+     0.12
+    ],
+    "off": 0.016,
+    "tile": 8,
+    "low": -0.012
+   }
+  ]
+ },
+ "roman": {
+  "_who": "Роман, кассир заправки «24»: за пятьдесят, усталый, грузный",
+  "phenotype": {
+   "gender": 1,
+   "age": 0.731,
+   "muscle": 0.35,
+   "weight": 0.9,
+   "proportions": 0.45,
+   "height": 0.46,
+   "cupsize": 0.5,
+   "firmness": 0.35,
+   "race": {
+    "asian": 0.05,
+    "caucasian": 0.93,
+    "african": 0.02
+   }
+  },
+  "skin": "middleage_caucasian_male/middleage_caucasian_male.mhmat",
+  "hair": "short04/short04.mhclo",
+  "brows": "eyebrow007/eyebrow007.mhclo",
+  "clothes": [
+   "male_casualsuit03/male_casualsuit03.mhclo",
+   "shoes04/shoes04.mhclo"
+  ],
+  "targets": {
+   "head-fat-incr": 0.6,
+   "neck-double-incr": 0.6,
+   "nose-volume-incr": 0.45,
+   "nose-flaring-incr": 0.3,
+   "l-eye-bag-incr": 0.7,
+   "r-eye-bag-incr": 0.7,
+   "chin-width-incr": 0.3,
+   "mouth-angles-down": 0.4,
+   "head-square": 0.3
+  },
+  "garments": [
+   {
+    "kind": "vest",
+    "name": "vest",
+    "tex": "knitted_fleece",
+    "tint": [
+     0.26,
+     0.31,
+     0.25
+    ],
+    "off": 0.022,
+    "tile": 7
+   }
+  ]
+ },
+ "zoe": {
+  "_who": "Зоя, 20: яркая, синие пряди (красится в игре), рюкзак с нашивками, больничный браслет",
+  "phenotype": {
+   "gender": 0,
+   "age": 0.388,
+   "muscle": 0.45,
+   "weight": 0.42,
+   "proportions": 0.6,
+   "height": 0.55,
+   "cupsize": 0.4,
+   "firmness": 0.6,
+   "race": {
+    "asian": 0.1,
+    "caucasian": 0.85,
+    "african": 0.05
+   }
+  },
+  "skin": "toigo_light_skin_female_freckles/toigo_light_skin_female_freckles.mhmat",
+  "hair": "cortu_shaggy_green_hair/cortu_shaggy_green_hair.mhclo",
+  "brows": "eyebrow009/eyebrow009.mhclo",
+  "clothes": [
+   "female_casualsuit01/female_casualsuit01.mhclo",
+   "culturalibre_heroine_boots_1/culturalibre_heroine_boots_1.mhclo"
+  ],
+  "targets": {
+   "head-diamond": 0.35,
+   "nose-point-width-decr": 0.25,
+   "mouth-scale-horiz-incr": 0.2,
+   "mouth-upperlip-volume-incr": 0.2,
+   "l-eye-corner2-up": 0.3,
+   "r-eye-corner2-up": 0.3
+  }
+ },
+ "eva": {
+  "_who": "Ева, 26: беременная, усталая, мужское пальто поверх платья, кольцо на цепочке",
+  "phenotype": {
+   "gender": 0,
+   "age": 0.508,
+   "muscle": 0.35,
+   "weight": 0.5,
+   "proportions": 0.55,
+   "height": 0.5,
+   "cupsize": 0.55,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.05,
+    "caucasian": 0.9,
+    "african": 0.05
+   }
+  },
+  "skin": "young_caucasian_female/young_caucasian_female.mhmat",
+  "hair": "ponytail01/ponytail01.mhclo",
+  "brows": "eyebrow011/eyebrow011.mhclo",
+  "clothes": [
+   "toigo_shift_dress/toigo_shift_dress.mhclo",
+   "shoes05/shoes05.mhclo"
+  ],
+  "targets": {
+   "stomach-pregnant-incr": 1.0,
+   "head-oval": 0.3,
+   "l-eye-bag-incr": 0.35,
+   "r-eye-bag-incr": 0.35
+  }
+ },
+ "agnes": {
+  "_who": "Агнес, ~74: крепкая, седая коса, валенки, трубка",
+  "phenotype": {
+   "gender": 0,
+   "age": 0.877,
+   "muscle": 0.55,
+   "weight": 0.62,
+   "proportions": 0.4,
+   "height": 0.4,
+   "cupsize": 0.55,
+   "firmness": 0.3,
+   "race": {
+    "asian": 0.02,
+    "caucasian": 0.96,
+    "african": 0.02
+   }
+  },
+  "skin": "old_caucasian_female/old_caucasian_female.mhmat",
+  "hair": "braid01/braid01.mhclo",
+  "brows": "eyebrow010/eyebrow010.mhclo",
+  "clothes": [
+   "toigo_fisherman_sweater/toigo_fisherman_sweater.mhclo",
+   "toigo_long_full_skirt/toigo_long_full_skirt.mhclo",
+   "toigo_ankle_boots_female/toigo_ankle_boots_female.mhclo"
+  ],
+  "targets": {
+   "head-square": 0.3,
+   "nose-hump-incr": 0.3,
+   "nose-point-down": 0.3,
+   "chin-prominent-incr": 0.3,
+   "mouth-angles-down": 0.25
+  },
+  "retint": {
+   "fisherman_sweater": [
+    0.3,
+    0.26,
+    0.22
+   ],
+   "braid01": [
+    0.62,
+    0.6,
+    0.58
+   ]
+  }
+ },
+ "hale": {
+  "_who": "Доктор Саймон Хейл, ~56: аккуратный, очки (в игре), дорогое пальто, мягкий голос",
+  "phenotype": {
+   "gender": 1,
+   "age": 0.738,
+   "muscle": 0.4,
+   "weight": 0.48,
+   "proportions": 0.6,
+   "height": 0.6,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.02,
+    "caucasian": 0.96,
+    "african": 0.02
+   }
+  },
+  "skin": "old_caucasian_male/old_caucasian_male.mhmat",
+  "hair": "culturalibre_hair_02/culturalibre_hair_02.mhclo",
+  "brows": "eyebrow006/eyebrow006.mhclo",
+  "clothes": [
+   "toigo_male_suit_3/toigo_male_suit_3.mhclo",
+   "frankyaye_glasses_library_male/frankyaye_glasses_library_male.mhclo",
+   "toigo_ankle_boots_male/toigo_ankle_boots_male.mhclo"
+  ],
+  "targets": {
+   "head-rectangular": 0.4,
+   "nose-scale-vert-incr": 0.3,
+   "nose-point-width-decr": 0.3,
+   "chin-height-incr": 0.25,
+   "mouth-scale-horiz-decr": 0.2,
+   "l-cheek-volume-decr": 0.3,
+   "r-cheek-volume-decr": 0.3
+  },
+  "retint": {
+   "culturalibre_hair_02": [
+    0.42,
+    0.41,
+    0.4
+   ]
+  }
+ }
+}

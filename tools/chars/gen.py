@@ -30,12 +30,18 @@ CHARS = {
   'tenant': dict(phenotype=dict(gender=1, age=.75, muscle=0, weight=0, proportions=0, height=1, cupsize=0, firmness=0, race=R(0, 1, 0)),
                  skin='old_caucasian_male/old_caucasian_male.mhmat', hair='long01/long01.mhclo', brows='eyebrow012/eyebrow012.mhclo', clothes=[]),
 }
+# герои других игр (WHAT THE LAKE KEEPS — tools/lake/chars.json): тот же генератор, свой список
+if os.environ.get('CHARS_JSON'):
+    CHARS.update(json.load(open(os.environ['CHARS_JSON'], encoding='utf-8')))
 C = CHARS[name]
 for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
 info = HumanService._create_default_human_info_dict()
 info.update(name=name, phenotype=C['phenotype'], rig='game_engine', eyes='high-poly/high-poly.mhclo', eyebrows=C['brows'],
             eyelashes='eyelashes01/eyelashes01.mhclo', teeth='teeth_base/teeth_base.mhclo', tongue='tongue01/tongue01.mhclo',
             hair=C.get('hair', ''), clothes=C['clothes'], skin_mhmat=C['skin'], skin_material_type='MAKESKIN', eyes_material_type='MAKESKIN')
+# формы лица и тела MakeHuman (своё лицо у героя, живот беременной) — в описании человека: MPFB ставит их до примерки волос
+# и одежды (поставленные после — причёска садилась мимо изменённой головы)
+info['targets'] = [{'target': k, 'value': v} for k, v in C.get('targets', {}).items()]
 st = HumanService.get_default_deserialization_settings(); st.update(subdiv_levels=0, scale=.1)
 body = HumanService.deserialize_from_dict(info, st)
 FaceService.load_targets(body, load_microsoft_visemes=False, load_meta_visemes=True, load_arkit_faceunits=True)
@@ -67,6 +73,14 @@ for o in [o for o in bpy.data.objects if o.type == 'MESH']:
         for kb in list(me.shape_keys.key_blocks[1:]):
             if np.abs(co(kb) - b0).max() < 1e-4: o.shape_key_remove(kb)
         if len(me.shape_keys.key_blocks) == 1: o.shape_key_remove(me.shape_keys.key_blocks[0])
+# 1б) своя одежда (WHAT THE LAKE KEEPS): куртки, худи с капюшоном, жилет, шапка — оболочкой по телу (tools/lake/garments.py).
+#     Шьётся до масок: тело под одеждой MakeHuman ещё целое (иначе у куртки нет туловища)
+if C.get('garments'):
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../lake'))
+    import garments
+    garments.build(C['garments'])
+for o in [o for o in bpy.data.objects if o.type == 'MESH']:
+    me = o.data
     # 2) маски (вспомогательная геометрия MakeHuman и тело под одеждой) превращаем в настоящее удаление вершин
     kill = set()
     for m in [m for m in o.modifiers if m.type == 'MASK']:
@@ -118,6 +132,7 @@ for o in [o for o in bpy.data.objects if o.type == 'MESH']:
     for kb in list(kbs)[1:]: kb.data.foreach_set('co', sk[kb.name])
     o.data.update()
 bpy.context.view_layer.objects.active = arm; bpy.ops.object.mode_set(mode='POSE'); bpy.ops.pose.armature_apply(selected=False); bpy.ops.object.mode_set(mode='OBJECT')
+
 # 4) прозрачность только там, где она нужна (брови, ресницы, волосы — по альфа-порогу), иначе глаза и зубы «пропадают» при сортировке
 for o in [o for o in bpy.data.objects if o.type == 'MESH']:
     cut = any(k in o.name for k in ('eyebrow', 'eyelash')) or o.name.split('.', 1)[-1] == C.get('hair', '-').split('/')[0]

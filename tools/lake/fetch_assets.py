@@ -10,7 +10,9 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 OUT = os.path.join(ROOT, 'godot/lake/assets')
 MODELS = ['dead_tree_trunk', 'modular_electricity_poles']
 TREE_TEX = ['fir_tree_01', 'pine_tree_01']   # у этих моделей сетки — фотосканы по 0.5–1 ГБ: берём только текстуры хвои и коры, ели строим кодом
-TEXTURES = ['asphalt_snow', 'snow_02']
+TEXTURES = ['asphalt_snow', 'snow_02',
+            # ткани для одежды героев, которую генератор шьёт сам (tools/lake/garments.py)
+            'brown_leather', 'knitted_fleece', 'wool_boucle', 'cotton_jersey', 'poly_wool_herringbone', 'denim_fabric']
 HDRIS = ['narrow_moonlit_road']
 
 
