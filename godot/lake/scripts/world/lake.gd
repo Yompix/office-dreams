@@ -10,9 +10,36 @@ const ICE_Y := -0.4
 var model: Node3D
 var ice: MeshInstance3D
 var snow_parts: Array[MeshInstance3D] = []   # снег на крышах и сугробы — летом (в воспоминании) их нет
+var grounds: Array[MeshInstance3D] = []       # земля, берег, дальний берег: зимой снег, летом трава
 
 
 static var _snow: StandardMaterial3D
+static var _grass: StandardMaterial3D
+
+
+## Летняя земля (воспоминание): трава с проплешинами, неподвижный узор по трём осям.
+static func grass_mat() -> Material:
+	if _grass == null:
+		_grass = StandardMaterial3D.new()
+		var nt := NoiseTexture2D.new()
+		var fn := FastNoiseLite.new()
+		fn.frequency = 0.05
+		fn.fractal_octaves = 5
+		nt.noise = fn
+		nt.width = 512
+		nt.height = 512
+		nt.seamless = true
+		var cr := Gradient.new()
+		cr.set_color(0, Color(0.13, 0.17, 0.08))
+		cr.set_color(1, Color(0.3, 0.33, 0.16))
+		cr.add_point(0.55, Color(0.2, 0.25, 0.11))
+		cr.add_point(0.8, Color(0.29, 0.25, 0.15))
+		nt.color_ramp = cr
+		_grass.albedo_texture = nt
+		_grass.roughness = 0.95
+		_grass.uv1_triplanar = true
+		_grass.uv1_scale = Vector3(0.25, 0.25, 0.25)
+	return _grass
 
 
 ## Снег на земле — неподвижный (у дороги снег «едет» вместе с ней, тут — нет): snow_02 Poly Haven.
@@ -67,6 +94,7 @@ func build(road, pc: bool) -> void:
 	land.material_override = sm
 	land.position = Vector3(EDGE - 110.0 - 1.0, -0.5, 0.0)
 	add_child(land)
+	grounds.append(land)
 	var bank := MeshInstance3D.new()   # берег — скос к льду
 	var bb := BoxMesh.new()
 	bb.size = Vector3(2.4, 0.4, 420.0)
@@ -75,11 +103,13 @@ func build(road, pc: bool) -> void:
 	bank.position = Vector3(EDGE - 0.2, -0.32, 0.0)
 	bank.rotation_degrees = Vector3(0, 0, -12.0)
 	add_child(bank)
+	grounds.append(bank)
 	var far := MeshInstance3D.new()   # дальний берег
 	far.mesh = lb
 	far.material_override = sm
 	far.position = Vector3(FAR + 110.0, -0.3, 0.0)
 	add_child(far)
+	grounds.append(far)
 	ice = MeshInstance3D.new()   # лёд: голубоватый, местами под снегом, блестит
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(FAR - EDGE + 4.0, 420.0)
@@ -102,8 +132,8 @@ func build(road, pc: bool) -> void:
 	nt.color_ramp = cr
 	im.albedo_texture = nt
 	im.uv1_scale = Vector3(6, 6, 6)
-	im.roughness = 0.22
-	im.metallic_specular = 0.7
+	im.roughness = 0.38          # блик низкого солнца на льду — мягкий, а не белое пятно у ног
+	im.metallic_specular = 0.5
 	ice.material_override = im
 	ice.position = Vector3((FAR + EDGE) / 2.0, ICE_Y, 0.0)
 	add_child(ice)
@@ -129,7 +159,25 @@ func build(road, pc: bool) -> void:
 	firs(road, self, farp, 37, pc)
 
 
+## Дверь лодочного сарая (к озеру, +X): открыть — створка поворачивается на петлях у южного края проёма.
+func shed_door(open: bool) -> void:
+	var d := model.find_child("boathouse_door", true, false) as Node3D
+	if d == null:
+		return
+	if not d.has_meta("closed"):
+		d.set_meta("closed", d.transform)
+	var t0: Transform3D = d.get_meta("closed")
+	if not open:
+		d.transform = t0
+		return
+	var hinge := Vector3(t0.origin.x, t0.origin.y, t0.origin.z - 0.7)   # петли — у края проёма (створка шириной 1,4)
+	var r := Transform3D(Basis(Vector3.UP, deg_to_rad(100.0)), Vector3.ZERO)   # наружу, к озеру
+	d.transform = Transform3D(Basis(), hinge) * r * Transform3D(Basis(), -hinge) * t0
+
+
 ## Лето (воспоминание в главе 5): снега нет.
 func summer(on: bool) -> void:
 	for mi in snow_parts:
 		mi.visible = not on
+	for gm in grounds:
+		gm.material_override = grass_mat() if on else snow_mat()

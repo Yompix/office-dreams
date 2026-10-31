@@ -81,7 +81,7 @@ SC['c5_s1'] = {'save': True, 'time': '08:10', 'beats': [
     {'fx': 'stove5', 'shot': 'stove5', **N('Бабушка растапливает печь старыми дровами с веранды.', 'Grandma lights the stove with old wood from the porch.', 3.0, **I(agnes_dead='==0'))},
     {'fx': 'stove5', 'shot': 'stove5', **N('Ной растапливает печь старыми дровами с веранды.', 'Noah lights the stove with old wood from the porch.', 3.0, **I(agnes_dead='>0'))},
     N('Ева греет малышку у печи.', 'Eva warms the baby by the stove.', 2.4, shot='dacha_room', **I(eva_alive='>0')),
-    S('agnes', 'На лёд у мостков не ходите. Там ключи бьют — лёд и в лютый мороз не держит.', 'Stay off the ice by the dock. There’s springs under there — it won’t hold, not even in a hard freeze.', shot='agnes_window', **I(agnes_dead='==0')),
+    S('agnes', 'На лёд у мостков не ходите. Там ключи бьют — лёд и в лютый мороз не держит.', 'Stay off the ice by the dock. There’s springs under there — it won’t hold, not even in a hard freeze.', shot='agnes_window', fx='agnes_up', **I(agnes_dead='==0')),
     N('У мостков на льду — тёмное пятно.', 'By the dock, there’s a dark patch on the ice.', 2.4, shot='dark_ice', **I(agnes_dead='>0')),
     S('iris', 'Там лёд тёмный. Не ходи туда.', 'The ice is dark over there. Don’t go near it.', shot='iris_room', **I(agnes_dead='>0')),
     {'fx': 'coat_touch', 'shot': 'coat'},
@@ -89,6 +89,7 @@ SC['c5_s1'] = {'save': True, 'time': '08:10', 'beats': [
     {'go': 'c5_s1_hub'}]}
 
 SC['c5_s1_hub'] = {'beats': [
+    {'fx': 'hub_in'},
     N('Печь растапливается. Можно поговорить — с кем захочешь.', 'The stove is warming up. You can talk to whoever you want.', 2.6, shot='dacha_room', **I(hub_seen='==0')),
     SET(None, hub_seen=1),
     C(20, [O('Айрис', 'Iris', 'c5_t_iris', **I(t_iris='==0')),
@@ -337,7 +338,7 @@ SC['c5_s3_smile'] = {'beats': [
     S('hale', 'Ной. Ной, стой. Посмотри на меня. Ты же меня знаешь.', 'Noah. Noah, stop. Look at me. You know me.', shot='hale_ice'),
     {'fx': 'iris_sleeve', **S('iris', 'Ной, не надо!', 'Noah, don’t!', shot='iris_ice')},
     {'fx': 'iris_falls', 'shot': 'ice_two', **N('«Второй он» стряхивает её, как ветку. Айрис падает на тёмный лёд; Хейл отступает туда же.', '“The other him” shakes her off like a twig. Iris falls onto the dark ice; Hale backs onto it too.', 3.4)},
-    S('agnes', 'Не Аня это! Не она!', 'That’s not Anna! That’s not her!', shot='agnes_shore', **I(agnes_dead='==0')),
+    S('agnes', 'Не Аня это! Не она!', 'That’s not Anna! That’s not her!', shot='agnes_shore', fx='agnes_out', **I(agnes_dead='==0')),
     {'go': 'c5_s4_shadow'}]}
 
 SC['c5_s3_listen'] = {'beats': [
@@ -353,7 +354,7 @@ SC['c5_s4'] = {'save': True, 'beats': [
     SET({'zoe_hook': '>0'}, help=1), SET({'zoe_hook': '==0', 'danny_rope': '>0'}, help=1),
     {'fx': 'crack', 'shot': 'ice_two', **N('Тёмный лёд у мостков проваливается — под Айрис и под Хейлом.', 'The dark ice by the dock gives way — under Iris and under Hale.', 2.8)},
     {'fx': 'in_water', 'shot': 'hole', **N('Оба в чёрной воде. Хейл хватается за Айрис: утопающий хватается за всё, что рядом.', 'Both are in the black water. Hale grabs Iris: a drowning man grabs whatever is near.', 3.2)},
-    S('agnes', 'Ложись! На брюхо ложись, милок!', 'Get down! Flat on your belly, sonny!', shot='agnes_shore', **I(agnes_dead='==0')),
+    S('agnes', 'Ложись! На брюхо ложись, милок!', 'Get down! Flat on your belly, sonny!', shot='agnes_shore', fx='agnes_out', **I(agnes_dead='==0')),
     {'fx': 'crawl', 'shot': 'crawl', **N('Ной падает на лёд и ползёт к краю.', 'Noah drops onto the ice and crawls to the edge.', 2.6)},
     N('На вытянутую руку — запястье Айрис и воротник Хейла. Схватить можно только одного.', 'Within arm’s reach — Iris’s wrist and Hale’s collar. He can only grab one.', 3.4, shot='hole_hands'),
     C(6, [O('Айрис', 'Iris', 'c5_s4_iris'),
@@ -728,7 +729,7 @@ SC['c5_cards'] = {'beats': [
     {'end': 5}]}
 
 DATA = {
-    'chapter': 5, 'start': 'c5_recap', 'ready': False,   # True — когда постановка главы готова (chapter5.gd)
+    'chapter': 5, 'start': 'c5_recap', 'ready': True,    # True — когда постановка главы готова (chapter5.gd)
     'title': {'ru': 'ГЛАВА 5 · ОЗЕРО', 'en': 'CHAPTER 5 · THE LAKE'},
     'names': {'mom': {'ru': 'АННА', 'en': 'ANNA'}, 'victor': {'ru': 'ВИКТОР', 'en': 'VICTOR'}},
     'flags': {k: 0 for k in ['hostage', 'ptotal', 'hub_seen', 't_iris', 't_zoe', 't_agnes', 't_danny', 't_eva', 'zoe_hook', 'danny_rope',

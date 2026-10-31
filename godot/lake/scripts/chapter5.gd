@@ -7,6 +7,8 @@ class_name Ch5
 
 const P := Vector3(7.0, Lake.ICE_Y, 10.0)        # середина тёмного пятна у мостков (ключи бьют — лёд не держит)
 const HOLE := Vector3(7.6, Lake.ICE_Y, 11.0)     # полынья
+const PW := Ch4.LAKE + P                          # то же в мировых координатах (для героев и камер)
+const HOLEW := Ch4.LAKE + HOLE
 const ROOMS := Vector3(0.0, 0.0, 700.0)          # комнаты эпилогов: свидания, камера, белая комната
 const DX := -20.0                                 # дача: середина, пол — y 0.6, фасад к озеру (+x)
 const DF := 0.6
@@ -100,6 +102,16 @@ static func fx(g, k: String) -> bool:
 		"iris_frost":
 			put(g, "iris", D(2.55, 0.0, 2.0), 90.0, "Idle")
 			(g.actors.iris as Actor).reach = {"_r": D(2.95, 1.5, 2.1)}
+		"agnes_up":   # бабушка встаёт от печи и говорит в комнату (у устья камера стояла бы в печи)
+			put(g, "agnes", D(-0.5, 0.0, -1.3), 75.0, "Idle")
+		"hub_in":   # после разговора на крыльце (или у печи) — снова в комнате
+			for who in ["noah", "zoe"]:
+				if has(g, who) and (g.actors[who] as Actor).visible:
+					var ap: Vector3 = (g.actors[who] as Actor).global_position
+					var far := Vector2(ap.x - D(0, 0, 0).x, ap.z - D(0, 0, 0).z).length() > 3.2
+					var at_stove: bool = who == "noah" and ap.distance_to(D(-1.2, 0.0, -1.4)) < 0.4
+					if far or at_stove:
+						put(g, who, D(1.6, 0, 0.4) if who == "noah" else D(2.2, 0, 1.2), -110.0 if who == "noah" else -120.0, "Idle")
 		"zoe_porch":
 			put(g, "zoe", L(-16.2, DF, -0.9), 70.0, "Idle")
 			put(g, "noah", L(-15.6, DF, 0.6), -110.0, "Idle")
@@ -125,6 +137,7 @@ static func fx(g, k: String) -> bool:
 			Ch2.pill_bottle(g, false)
 			g.sfx.play("pills", -10.0)
 		"gap_ice", "kneel_gap":
+			lake(g).shed_door(true)   # Ной вошёл — дверь сарая открыта (бабушка встанет в проёме)
 			_shed_inside(g)
 		"summer_night":   # воспоминание: та же дача летней ночью одиннадцать лет назад
 			_summer_night(g, true)
@@ -166,7 +179,8 @@ static func fx(g, k: String) -> bool:
 		"young_hale":
 			_memory_car(g, "hale")
 			put(g, "victor", L(-14.0, 0.0, 11.0), -90.0, "Idle")
-		"shed_door":
+		"shed_door":   # Хейл открывает дверь сарая
+			lake(g).shed_door(true)
 			put(g, "hale_young", L(-7.9, 0.28, 13.0), -90.0, "Idle")
 			_kid(g, L(-9.6, 0.28, 12.4), 90.0)
 		"hale_crouch":
@@ -186,11 +200,11 @@ static func fx(g, k: String) -> bool:
 			_ice_stage(g)
 			_sedan(g)
 		"noah_ice":
-			put(g, "noah", P + Vector3(2.4, 0.0, 1.2), -120.0, "Walk")
+			put(g, "noah", PW + Vector3(2.4, 0.0, 1.2), -120.0, "Walk")
 		"hale_ice":
-			put(g, "hale", P + Vector3(0.4, 0.0, 3.6), 150.0, "Walk_Formal")
+			put(g, "hale", PW + Vector3(0.4, 0.0, 3.6), 150.0, "Walk_Formal")
 			Ch4._hale_glasses(g)
-			put(g, "noah", P + Vector3(2.4, 0.0, 1.2), -60.0, "Idle")
+			put(g, "noah", PW + Vector3(2.4, 0.0, 1.2), -60.0, "Idle")
 			(g.actors.noah as Actor).look_target = g._target("hale")
 		"tear_pages":
 			Ch4._diary(g, "hale")
@@ -202,21 +216,24 @@ static func fx(g, k: String) -> bool:
 			if dd and is_instance_valid(dd):
 				(dd as Node).queue_free()
 		"iris_ice":
-			put(g, "iris", P + Vector3(3.6, 0.0, 3.0), -120.0, "Idle_FoldArms")
+			put(g, "iris", PW + Vector3(3.6, 0.0, 3.0), -120.0, "Idle_FoldArms")
+		"agnes_out":   # бабушка выбежала на берег (без колыбельной её там не было — камера улетала)
+			if has(g, "agnes"):
+				put(g, "agnes", L(-10.5, 0.0, 4.5), 70.0, "Idle")
 		"agnes_sings":
 			put(g, "agnes", L(-10.5, 0.0, 4.5), 70.0, "Idle")
 			g.sfx.play("lullaby", -10.0, 0.94)
 		"hale_elbow5":
-			put(g, "hale", P + Vector3(2.0, 0.0, 1.9), 180.0, "Idle")
+			put(g, "hale", PW + Vector3(2.0, 0.0, 1.9), 180.0, "Idle")
 			(g.actors.hale as Actor).reach = {"_r": g._target("noah") + Vector3(0.1, -0.75, -0.1)}
 		"hale_breaks":
 			(g.actors.hale as Actor).expr = (g.EXPR["sad"] as Dictionary).duplicate()
 		"hale_grabs":
-			put(g, "hale", P + Vector3(3.0, 0.0, 2.5), -90.0, "Idle")
+			put(g, "hale", PW + Vector3(3.0, 0.0, 2.5), -90.0, "Idle")
 			(g.actors.hale as Actor).reach = {"_r": g._target("iris") + Vector3(0.0, -0.5, 0.05)}
 		"iris_back":
-			put(g, "iris", HOLE + Vector3(-0.3, 0.0, -0.2), 60.0, "Idle")
-			put(g, "hale", HOLE + Vector3(0.6, 0.0, 0.5), -120.0, "Walk")
+			put(g, "iris", HOLEW + Vector3(-0.3, 0.0, -0.2), 60.0, "Idle")
+			put(g, "hale", HOLEW + Vector3(0.6, 0.0, 0.5), -120.0, "Walk")
 			(g.actors.hale as Actor).reach = {}
 		"smile":
 			var n: Actor = g.actors.noah
@@ -224,53 +241,53 @@ static func fx(g, k: String) -> bool:
 			n.blink_t = 1e9
 			g.sfx.play("hum_ring", -14.0)
 		"hale_backs":
-			put(g, "hale", HOLE + Vector3(0.7, 0.0, 0.6), 60.0, "Walk")
-			put(g, "noah", P + Vector3(2.0, 0.0, 2.2), -120.0, "Walk")
+			put(g, "hale", HOLEW + Vector3(0.7, 0.0, 0.6), 60.0, "Walk")
+			put(g, "noah", PW + Vector3(2.0, 0.0, 2.2), -120.0, "Walk")
 		"iris_sleeve":
 			(g.actors.iris as Actor).reach = {"_r": g._target("noah") + Vector3(0, -0.6, 0)}
 		"iris_falls":
 			(g.actors.iris as Actor).reach = {}
-			put(g, "iris", HOLE + Vector3(-0.4, 0.0, -0.3), 60.0, "LayToIdle")
+			put(g, "iris", HOLEW + Vector3(-0.4, 0.0, -0.3), 60.0, "LayToIdle")
 			Ch3.hold(g.actors.iris, "LayToIdle", 0.0)
 		"eyes_close":
 			(g.actors.noah as Actor).expr = {"eyeBlinkLeft": 1.0, "eyeBlinkRight": 1.0}
 		"hale_pales":
 			(g.actors.hale as Actor).expr = (g.EXPR["shock"] as Dictionary).duplicate()
-			put(g, "hale", HOLE + Vector3(0.5, 0.0, 0.3), 60.0, "Walk")
+			put(g, "hale", HOLEW + Vector3(0.5, 0.0, 0.3), 60.0, "Walk")
 		"crack":
 			_hole(g, true)
 			g.sfx.play("ice_crack", -2.0)
 			g._shake = 0.5
 		"in_water", "ice_takes":
 			_hole(g, true)
-			_in_water(g, "hale", HOLE + Vector3(0.45, 0.0, 0.35), -140.0)
+			_in_water(g, "hale", HOLEW + Vector3(0.45, 0.0, 0.35), -140.0)
 			if k == "in_water" or on(g, "smiled"):
-				_in_water(g, "iris", HOLE + Vector3(-0.35, 0.0, -0.25), 40.0)
+				_in_water(g, "iris", HOLEW + Vector3(-0.35, 0.0, -0.25), 40.0)
 			g.sfx.play("splash", -2.0)
 		"crawl":
-			put(g, "noah", HOLE + Vector3(1.9, 0.0, 1.5), -130.0, "Crouch_Idle")
+			put(g, "noah", HOLEW + Vector3(1.9, 0.0, 1.5), -130.0, "Crouch_Idle")
 			if not on(g, "agnes_dead"):
 				put(g, "agnes", L(-6.0, 0.0, 6.0), 70.0, "Idle")
 		"grab_iris", "grab_hale", "reach_hale", "hand_edge":
 			var who := "iris" if k == "grab_iris" else "hale"
-			put(g, "noah", HOLE + Vector3(1.3, 0.0, 1.0), -130.0, "Crouch_Idle")
+			put(g, "noah", HOLEW + Vector3(1.3, 0.0, 1.0), -130.0, "Crouch_Idle")
 			if has(g, who):
 				(g.actors.noah as Actor).reach = {"_r": g._target(who) + Vector3(0.0, -0.25, 0.0)}
-				(g.actors[who] as Actor).reach = {"_r": g._target("noah") + Vector3(0.0, -0.5, 0.0), "_l": HOLE + Vector3(0.9, 0.05, 0.7)}
+				(g.actors[who] as Actor).reach = {"_r": g._target("noah") + Vector3(0.0, -0.5, 0.0), "_l": HOLEW + Vector3(0.9, 0.05, 0.7)}
 		"iris_out", "both_out", "hale_out":
 			var who := "hale" if k == "hale_out" else "iris"
 			if has(g, who):
-				put(g, who, HOLE + Vector3(2.4, 0.0, 2.2) + (Vector3(0.8, 0, -0.4) if who == "hale" else Vector3.ZERO), -40.0, "LayToIdle")
+				put(g, who, HOLEW + Vector3(2.4, 0.0, 2.2) + (Vector3(0.8, 0, -0.4) if who == "hale" else Vector3.ZERO), -40.0, "LayToIdle")
 				Ch3.hold(g.actors[who], "LayToIdle", 0.0)
 			if k == "both_out" and has(g, "hale"):
-				put(g, "hale", HOLE + Vector3(3.2, 0.0, 1.6), 20.0, "LayToIdle")
+				put(g, "hale", HOLEW + Vector3(3.2, 0.0, 1.6), 20.0, "LayToIdle")
 				Ch3.hold(g.actors.hale, "LayToIdle", 0.0)
 			(g.actors.noah as Actor).reach = {}
 			g.sfx.play("splash", -10.0, 1.2)
 		"hale_slips", "noah_under", "iris_gone", "iris_slips":
 			var who: String = {"hale_slips": "hale", "noah_under": "noah", "iris_gone": "iris", "iris_slips": "iris"}[k]
 			if k == "noah_under":
-				_in_water(g, "noah", HOLE + Vector3(0.1, 0.0, 0.1), 0.0)
+				_in_water(g, "noah", HOLEW + Vector3(0.1, 0.0, 0.1), 0.0)
 				g.get_tree().create_timer(1.2).timeout.connect(func():
 					if g.actors.has("noah"):
 						(g.actors.noah as Actor).visible = false)
@@ -288,14 +305,14 @@ static func fx(g, k: String) -> bool:
 		"edge_breaks":
 			g.sfx.play("ice_crack", -6.0, 1.2)
 			if g.actors.has("iris"):
-				put(g, "iris", HOLE + Vector3(2.2, 0.0, 2.0), -40.0, "LayToIdle")
+				put(g, "iris", HOLEW + Vector3(2.2, 0.0, 2.0), -40.0, "LayToIdle")
 				Ch3.hold(g.actors.iris, "LayToIdle", 0.0)
 		"dive":
-			_in_water(g, "noah", HOLE, 0.0)
-			put(g, "iris", HOLE + Vector3(2.2, 0.0, 2.0), -40.0, "LayToIdle")
+			_in_water(g, "noah", HOLEW, 0.0)
+			put(g, "iris", HOLEW + Vector3(2.2, 0.0, 2.0), -40.0, "LayToIdle")
 			Ch3.hold(g.actors.iris, "LayToIdle", 0.0)
 		"boot":
-			put(g, "noah", HOLE + Vector3(1.0, 0.0, 0.8), -130.0, "Idle")
+			put(g, "noah", HOLEW + Vector3(1.0, 0.0, 0.8), -130.0, "Idle")
 		"iris_sinking":
 			if g.actors.has("iris"):
 				var a: Actor = g.actors.iris
@@ -305,8 +322,8 @@ static func fx(g, k: String) -> bool:
 		"wake_up":
 			(g.actors.noah as Actor).expr = {}
 			(g.actors.noah as Actor).blink_t = 1.0
-			put(g, "noah", HOLE + Vector3(1.4, 0.0, 1.1), -130.0, "Crouch_Idle")
-			put(g, "iris", HOLE + Vector3(2.4, 0.0, 2.2), -40.0, "LayToIdle")
+			put(g, "noah", HOLEW + Vector3(1.4, 0.0, 1.1), -130.0, "Crouch_Idle")
+			put(g, "iris", HOLEW + Vector3(2.4, 0.0, 2.2), -40.0, "LayToIdle")
 			Ch3.hold(g.actors.iris, "LayToIdle", 0.0)
 		"eyes_clear":
 			(g.actors.noah as Actor).expr = {}
@@ -363,7 +380,7 @@ static func fx(g, k: String) -> bool:
 		"steel_smile":
 			(g.actors.noah as Actor).expr = {"mouthSmileLeft": 0.4, "mouthSmileRight": 0.36}
 		"iris_crawls", "iris_screams":
-			put(g, "iris", HOLE + Vector3(2.6, 0.0, 2.4), -40.0, "Crouch_Idle")
+			put(g, "iris", HOLEW + Vector3(2.6, 0.0, 2.4), -40.0, "Crouch_Idle")
 			(g.actors.iris as Actor).expr = (g.EXPR["fear" if k == "iris_crawls" else "pain"] as Dictionary).duplicate()
 		"notebook_ice":
 			_ice_notebook(g)
@@ -478,7 +495,7 @@ static func _inside(g) -> void:
 		m.albedo_texture = load("res://assets/textures/drawing_family.png")
 		m.roughness = 0.9
 		q.material_override = m
-		q.position = Vector3(DX - 2.78, DF + 1.55, 0.6)
+		q.position = Vector3(DX - 2.78, DF + 1.25, 0.6)   # под полкой (полка проходила по рисунку)
 		q.rotation_degrees = Vector3(0, 90, 0)
 		lk.add_child(q)
 
@@ -541,8 +558,10 @@ static func _summer_night(g, on_: bool) -> void:
 	lk.summer(on_)
 	var c5: Dictionary = g.c5
 	if on_:
+		lk.shed_door(false)   # мальчик прячется в сарае — дверь закрыта, пока её не откроет Хейл
 		s.set_daylight("night")
-		s.moon.light_energy = 0.22
+		s.moon.light_energy = 0.6   # летняя ночь светлее зимней: видно мостки, маму, воду
+		s.env.ambient_light_energy = s.env.ambient_light_energy * 1.8
 		s.env.fog_density = 0.004
 		if not c5.has("ice_mat"):
 			c5["ice_mat"] = lk.ice.material_override
@@ -554,8 +573,8 @@ static func _summer_night(g, on_: bool) -> void:
 		Road._twig_m.set_shader_parameter("snow", 0.0)
 		var lamp := OmniLight3D.new()   # фонарь на мостках
 		lamp.light_color = Color(1.0, 0.72, 0.38)
-		lamp.light_energy = 2.2
-		lamp.omni_range = 9.0
+		lamp.light_energy = 3.6
+		lamp.omni_range = 12.0
 		lamp.shadow_enabled = s.pc
 		lamp.position = Vector3(4.35, 1.45, 7.45)
 		lk.add_child(lamp)
@@ -597,6 +616,7 @@ static func _summer_night(g, on_: bool) -> void:
 		g.sfx.bed("frogs", -10.0)
 		c5["frogs"] = true
 	else:
+		lk.shed_door(true)   # снова зима: Ной и Айрис в сарае, дверь открыта
 		if c5.has("ice_mat"):
 			lk.ice.material_override = c5["ice_mat"]
 		Road._twig_m.set_shader_parameter("snow", 1.0)
@@ -711,7 +731,6 @@ static func _ice_stage(g) -> void:
 		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		m.roughness = 0.1
 		dp.material_override = m
-		dp.position = P - Ch4.LAKE + Vector3(0, 0.004, 0) + Ch4.LAKE - Ch4.LAKE
 		dp.position = Vector3(P.x, P.y + 0.004, P.z)
 		lk.add_child(dp)
 
@@ -729,7 +748,8 @@ static func _sedan(g) -> void:
 	bc.position = Vector3(-30.0, 0.0, 34.0)
 	bc.rotation_degrees = Vector3(0, -130, 0)
 	bc.lights(true)
-	g.create_tween().tween_property(bc, "position", Vector3(-14.5, 0.0, 18.5), 3.0).set_ease(Tween.EASE_OUT)
+	var tw: Tween = g.create_tween()
+	tw.tween_property(bc, "position", Vector3(-14.5, 0.0, 18.5), 3.0).set_ease(Tween.EASE_OUT)
 	var h := Ch2.actor(g, "hale", "hale" if ResourceLoader.exists("res://assets/chars/hale.glb") else "frank")
 	h.visible = true
 	put(g, "hale", L(-12.4, 0.0, 17.2), 110.0, "Idle")
@@ -738,6 +758,16 @@ static func _sedan(g) -> void:
 		o.visible = true
 		put(g, "orderly", L(-13.6, 0.0, 19.6), 120.0, "Idle")
 	_hostages(g, false)
+	var arrivals: Array = []   # из седана выходят, когда он встал (а не стоят у сарая, пока он едет)
+	for k in ["hale", "orderly", "zoe", "danny"]:
+		if g.actors.has(k) and is_instance_valid(g.actors[k]) and (g.actors[k] as Actor).visible \
+				and (g.actors[k] as Actor).global_position.distance_to(L(-14.0, 0.0, 18.5)) < 6.0:
+			(g.actors[k] as Actor).visible = false
+			arrivals.append(k)
+	tw.tween_callback(func():
+		for k in arrivals:
+			if g.actors.has(k) and is_instance_valid(g.actors[k]):
+				(g.actors[k] as Actor).visible = true)
 	g.sfx.play("engine_start", -12.0, 0.9)
 
 
@@ -854,6 +884,7 @@ static func _patrol(g) -> void:
 	var lk := lake(g)
 	var pc := Ch2.police_car(g)
 	lk.add_child(pc)
+	g.c5["patrol_car"] = pc
 	pc.position = Vector3(-34.0, 0.0, 40.0)
 	pc.rotation_degrees = Vector3(0, -140, 0)
 	g.create_tween().tween_property(pc, "position", Vector3(-19.0, 0.0, 26.0), 3.0).set_ease(Tween.EASE_OUT)
@@ -916,9 +947,15 @@ static func _room(g, kind: String) -> void:
 				(g.actors.iris as Actor).visible = true
 				put(g, "iris", o + Vector3(0, 0, 0.75), 180.0, "Rk_SitIdle")
 				Ch2.sit(g, "iris", o + Vector3(0, 0.47, 0.75), 180.0)
-			if on(g, "romance") and not on(g, "zoe_died") and g.actors.has("zoe"):
+			if on(g, "romance") and not on(g, "zoe_died") and g.actors.has("zoe"):   # Зоя сидит рядом с Айрис
 				(g.actors.zoe as Actor).visible = true
-				put(g, "zoe", o + Vector3(0.6, 0, 1.0), 200.0, "Idle")
+				if not (root as Node3D).has_node("zoe_stool"):
+					var st := StandardMaterial3D.new()
+					st.albedo_color = Color(0.3, 0.26, 0.22)
+					var zs := _rb(root, Vector3(0.45, 0.05, 0.45), Vector3(0.62, 0.45, 0.75), st)
+					zs.name = "zoe_stool"
+				put(g, "zoe", o + Vector3(0.62, 0, 0.75), 180.0, "Rk_SitIdle")
+				Ch2.sit(g, "zoe", o + Vector3(0.62, 0.47, 0.75), 180.0)
 		"cell":
 			put(g, "noah", o + Vector3(0, 0, -1.0), 180.0, "Interact")
 		"white":
@@ -989,11 +1026,11 @@ static func _water_mirror(g, on_: bool) -> void:
 		return
 	var n: Actor = g.actors.noah
 	n.visible = true
-	put(g, "noah", HOLE + Vector3(0.0, 0.0, 1.55), 180.0, "Crouch_Idle")
+	put(g, "noah", HOLEW + Vector3(0.0, 0.0, 1.55), 180.0, "Crouch_Idle")
 	n.expr = {}
 	var pm := PlanarMirror.new()
 	lake(g).add_child(pm)
-	pm.build(HOLE + Vector3(0, 0.012, 0.5), Vector3.UP, Vector2(1.6, 1.4), g.cam)
+	pm.build(HOLEW + Vector3(0, 0.012, 0.5), Vector3.UP, Vector2(1.6, 1.4), g.cam)
 	var dbl := Actor.make("noah_double", "noah")
 	g.scene.add_child(dbl)
 	dbl.global_transform = n.global_transform
@@ -1024,8 +1061,15 @@ static func _season(g, kind: String) -> void:
 	var dp = lk.get_node_or_null("dark_patch")
 	if dp:
 		dp.queue_free()
-	Ch4.day(g, "day" if kind == "spring" else "sunny")
+	Ch4.day(g, "lake_day" if kind == "spring" else "sunny")   # весна — серый, но светлый день (у «day» солнце еле светит)
 	g.scene.env.fog_density = 0.003
+	for kk in ["patrol_car"]:   # месяцы спустя: патруля и седана у сарая уже нет
+		var n = g.c5.get(kk)
+		if n and is_instance_valid(n):
+			(n as Node).queue_free()
+		g.c5.erase(kk)
+	if g.blackcar and is_instance_valid(g.blackcar):
+		g.blackcar.visible = false
 	looks_off(g)
 	for k in g.actors:
 		if is_instance_valid(g.actors[k]):
@@ -1058,6 +1102,10 @@ static func _season(g, kind: String) -> void:
 
 ## Из заднего окна седана: мостки уходят назад (Айрис с листом «Я ПОМНЮ ЗА ТЕБЯ» — или пусто).
 static func _mirror_view(g, k: String) -> void:
+	var mb: BlackCar = g.blackcar
+	if mb and is_instance_valid(mb):   # седан развернулся уезжать: задним стеклом — к мосткам
+		var to_dock := L(-3.6, 0.0, 7.0) - mb.global_position
+		mb.rotation.y = atan2(to_dock.x, to_dock.z)
 	for kk in ["agnes", "eva", "danny", "zoe"]:
 		if g.actors.has(kk) and is_instance_valid(g.actors[kk]):
 			(g.actors[kk] as Actor).visible = false
@@ -1122,13 +1170,13 @@ static func cam(g, shot: String) -> bool:
 		"dacha_room":
 			_look(c, D(2.4, 1.75, 2.9), D(-2.0, 0.8, -1.6), 60.0)
 		"wall_drawing":
-			_look(c, D(-1.9, 1.5, 0.6), D(-2.78, 1.55, 0.6), 34.0)
+			_look(c, D(-1.9, 1.3, 0.6), D(-2.78, 1.25, 0.6), 34.0)   # рисунок висит под полкой
 		"stove5":
 			_look(c, D(0.6, 1.2, 0.2), D(-1.6, 0.6, -2.0), 46.0)
 		"coat":
 			_look(c, D(1.4, 1.5, -1.4), D(2.7, 1.35, -2.6), 36.0)
 		"dark_ice":
-			_look(c, L(-13.8, 1.6, 0.8), P, 30.0)
+			_look(c, L(-13.8, 1.6, 0.8), PW, 30.0)
 		"bottle5":
 			var b = g.c2.get("bottle")
 			if not (b and is_instance_valid(b)):
@@ -1141,8 +1189,8 @@ static func cam(g, shot: String) -> bool:
 			_look(c, L(-9.555, 1.075, 10.85), L(2.0, 0.85, 6.9), 24.0)
 		"noah_gap", "shed_two":
 			_look(c, L(-8.75, 1.35, 12.3), L(-9.6, 0.85, 11.3), 50.0)
-		"memory_dock":
-			_look(c, L(-9.4, 1.15, 10.6), L(2.5, 0.8, 6.9), 46.0)
+		"memory_dock":   # с берега, ближе: мостки, фонарь, мама и отец читаются (издалека была одна точка фонаря)
+			_look(c, L(-3.0, 1.6, 11.5), L(2.6, 0.9, 7.0), 46.0)
 		"memory_road":
 			_look(c, L(-6.0, 1.4, 6.0), L(-26.0, 1.0, 9.5), 42.0)
 		"mom":
@@ -1180,19 +1228,20 @@ static func cam(g, shot: String) -> bool:
 			var fp: Vector3 = (f as Node3D).global_position
 			_look(c, fp + Vector3(0.5, 0.2, 0.5), fp, 34.0)
 		"agnes_shore":
-			return face(g, "agnes", 20.0, 1.1, 0.02, 36.0)
+			if not face(g, "agnes", 20.0, 1.1, 0.02, 36.0):
+				_look(c, L(16.0, 2.6, 22.0), L(3.0, 0.0, 9.0), 46.0)
 		"noah_smile":
 			return face(g, "noah", 8.0, 0.65, 0.0, 30.0)
 		"hole":
-			_look(c, HOLE + Vector3(3.2, 1.6, 3.4), HOLE + Vector3(0, 0.2, 0), 44.0)
+			_look(c, HOLEW + Vector3(3.2, 1.6, 3.4), HOLEW + Vector3(0, 0.2, 0), 44.0)
 		"crawl":
-			_look(c, HOLE + Vector3(4.2, 1.2, 0.4), HOLE + Vector3(1.0, 0.3, 0.8), 46.0)
+			_look(c, HOLEW + Vector3(4.2, 1.2, 0.4), HOLEW + Vector3(1.0, 0.3, 0.8), 46.0)
 		"hole_hands":
-			_look(c, HOLE + Vector3(1.6, 0.9, -0.6), HOLE + Vector3(0.6, 0.1, 0.5), 40.0)
+			_look(c, HOLEW + Vector3(1.6, 0.9, -0.6), HOLEW + Vector3(0.6, 0.1, 0.5), 40.0)
 		"noah_crawl":
 			return face(g, "noah", 30.0, 0.9, -0.05, 38.0)
 		"boot":
-			_look(c, HOLE + Vector3(1.6, 0.5, 1.6), HOLE + Vector3(0.8, 0.0, 0.7), 34.0)
+			_look(c, HOLEW + Vector3(1.6, 0.5, 1.6), HOLEW + Vector3(0.8, 0.0, 0.7), 34.0)
 		"hale_water":
 			return face(g, "hale", 12.0, 0.9, 0.15, 36.0)
 		"patrol":
@@ -1209,7 +1258,7 @@ static func cam(g, shot: String) -> bool:
 		"steel":
 			return face(g, "noah", 0.0, 0.6, 0.02, 30.0)
 		"hole_sit":
-			_look(c, HOLE + Vector3(3.0, 1.2, 3.6), HOLE + Vector3(0.0, 0.4, 1.3), 42.0)
+			_look(c, HOLEW + Vector3(3.0, 1.2, 3.6), HOLEW + Vector3(0.0, 0.4, 1.3), 42.0)
 		"notebook_ice":
 			var nb = g.c5.get("ice_notebook")
 			if not (nb and is_instance_valid(nb)):
@@ -1220,31 +1269,61 @@ static func cam(g, shot: String) -> bool:
 			var pm = g.c5.get("water_mirror")
 			if pm and is_instance_valid(pm):
 				var hp: Vector3 = g._target("noah")
-				_look(c, hp + Vector3(0.0, 0.25, 0.32), HOLE + Vector3(0, 0, 0.6), 38.0)
+				_look(c, hp + Vector3(0.0, 0.25, 0.32), HOLEW + Vector3(0, 0, 0.6), 38.0)
 			else:
 				return face(g, "noah", 0.0, 0.7, -0.3, 34.0)
 		"spring_dock", "summer_dock":
 			_look(c, L(8.5, 1.6, 3.0), L(3.0, 0.7, 7.0), 42.0)
-		"mirror_sign", "mirror_dock":
-			_look(c, L(-14.0, 1.35, 18.2), L(-3.6, 1.0, 7.0), 26.0)
+		"mirror_sign", "mirror_dock":   # из заднего окна седана (он развернулся уезжать): мостки уходят назад
+			var mb: BlackCar = g.blackcar
+			if mb and is_instance_valid(mb):
+				_look(c, mb.to_global(Vector3(0.0, 1.22, 0.85)), L(-3.6, 1.0, 7.0), 30.0)
+			else:
+				_look(c, L(-12.6, 1.6, 16.6), L(-3.6, 1.0, 7.0), 30.0)
 		"car_hale":
 			var bc: BlackCar = g.blackcar
 			if not (bc and is_instance_valid(bc)):
 				return false
 			_look(c, bc.to_global(Vector3(0.0, 1.25, 0.4)), bc.to_global(Vector3(0.0, 1.0, 1.3)), 56.0)
-		"white_room":
-			_look(c, ROOMS + Vector3(81.4, 1.7, 1.3), ROOMS + Vector3(80.0, 0.9, -0.4), 50.0)
+		"white_room":   # Ной за столом рисует: спереди-сбоку и чуть сверху — лицо и листок перед ним
+			if not has(g, "noah"):
+				_look(c, ROOMS + Vector3(81.4, 1.7, 1.3), ROOMS + Vector3(80.0, 0.9, -0.4), 50.0)
+				return true
+			var wa: Actor = g.actors.noah
+			var wh: Vector3 = g._target("noah")
+			var wf := wa.global_transform.basis.z
+			wf.y = 0.0
+			wf = wf.normalized()
+			_look(c, wh + wf.rotated(Vector3.UP, deg_to_rad(35.0)) * 1.0 + Vector3(0, 0.3, 0), wh + wf * 0.3 + Vector3(0, -0.4, 0), 46.0)
 		"hale_white":
 			return face(g, "hale", 20.0, 1.0, 0.02, 36.0)
+		"zoe_face":   # Зоя лежит в снегу: сверху над лицом (план «стоя» попадал в куртку)
+			if not has(g, "zoe"):
+				return false
+			var zh: Vector3 = g._target("zoe")
+			_look(c, zh + Vector3(0.3, 0.75, 0.35), zh, 40.0)
+		"iris_crawl":   # Айрис на льду низко, смотрит вниз — камера ниже, лицо под волосами видно
+			if not face(g, "iris", 26.0, 0.9, -0.3, 40.0):
+				_look(c, L(16.0, 2.6, 22.0), L(3.0, 0.0, 9.0), 46.0)
+		"noah_shed":   # Ной на коленях у щели: сбоку от головы, на её высоте — профиль (спереди уже стена), плечо не в кадре
+			if not has(g, "noah"):
+				return false
+			var nh: Vector3 = g._target("noah")
+			var cp := nh + Vector3(0.75, 0.12, -0.05)
+			cp.z = maxf(cp.z, L(0, 0, 10.97).z)
+			cp.x = minf(cp.x, L(-8.4, 0, 0).x)
+			_look(c, cp, nh, 40.0)
 		"iris_porch", "noah_porch", "iris_room", "noah_room", "danny_room", "eva_room", "iris_coat", "iris_window", "zoe_porch", \
-				"agnes_window", "agnes_stove5", "agnes_shed5", "iris_shed", "noah_shed", "hale_ice", "noah_ice", "iris_ice", \
-				"zoe_face", "noah_snow", "iris_snow", "iris_visit", "noah_visit", "iris_crawl", "agnes_spring", "iris_spring", \
+				"agnes_window", "agnes_stove5", "agnes_shed5", "iris_shed", "hale_ice", "noah_ice", "iris_ice", \
+				"noah_snow", "iris_snow", "iris_visit", "noah_visit", "agnes_spring", "iris_spring", \
 				"iris_summer", "noah_summer":
 			var who := shot.get_slice("_", 0)
 			var ang := 22.0
 			if shot.ends_with("_visit") or shot.ends_with("_summer"):
 				ang = 30.0
-			return face(g, who, ang, 1.0, 0.02, 38.0)
+			if not face(g, who, ang, 1.0, 0.02, 38.0) and (shot.ends_with("_ice") or shot.ends_with("_shore") or shot.ends_with("_snow")):
+				_look(c, L(16.0, 2.6, 22.0), L(3.0, 0.0, 9.0), 46.0)   # героя нет на месте — общий план озера, а не салон машины
+			return true
 		_:
 			return false
 	return true
