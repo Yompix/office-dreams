@@ -52,6 +52,7 @@ var _skid_cd := 0.0
 var _vo := {}                 # озвучка языка: ключ реплики → {dur, w (слова со временем), e (громкость), g}
 var _vo_lang := ""
 var _chapters := {}           # номер главы → {start, ready, title, map}
+var c2 := {}                  # состояние главы 2 (scripts/chapter2.gd): двойник в зеркале, пост, зеркало туалета…
 const IN_CAR := ["pov", "hands", "noah", "iris", "two", "notebook", "radio", "glovebox", "road", "cluster", "pills", "back",
 	"deer_eye", "mirror", "mirror_back"]    # планы из салона: снаружи слышно глухо
 const SHOP := ["st_counter", "st_tv", "st_roman", "st_hand", "st_noah_face"]   # планы в магазине заправки
@@ -64,10 +65,12 @@ const EXPR := {"fear": {"browInnerUp": 0.8, "eyeWideLeft": 0.7, "eyeWideRight": 
 	"pain": {"browDownLeft": 0.6, "browDownRight": 0.6, "eyeSquintLeft": 0.6, "eyeSquintRight": 0.6, "mouthStretchLeft": 0.4, "mouthStretchRight": 0.4, "jawOpen": 0.12},
 	"dead": {"jawOpen": 0.16, "eyeLookUpLeft": 0.2, "eyeLookUpRight": 0.2},
 	"wince": {"eyeBlinkLeft": 0.95, "eyeBlinkRight": 0.95, "browDownLeft": 0.6, "browDownRight": 0.6, "noseSneerLeft": 0.35,
-		"noseSneerRight": 0.35, "mouthStretchLeft": 0.35, "mouthStretchRight": 0.35}, "none": {}}
+		"noseSneerRight": 0.35, "mouthStretchLeft": 0.35, "mouthStretchRight": 0.35}, "none": {},
+	"sleep": {"eyeBlinkLeft": 1.0, "eyeBlinkRight": 1.0, "mouthClose": 0.1}}
 
 
 func _ready() -> void:
+	process_priority = 10   # режиссёр — после мира: дорога и герои уже сдвинулись за кадр, камера ставится без отставания
 	var args := OS.get_cmdline_user_args()
 	autoplay = "--autoplay" in args
 	if "--lang" in args:
@@ -189,11 +192,13 @@ func _load_save() -> bool:
 	var id := String(j.scene)
 	if float(flags.get("lamp", 0)) > 0.0:
 		scene.car.break_lamp()
-	if float(flags.get("danny", 0)) > 0.0 and id in ["s7", "s8"] and not actors.has("danny"):
+	if float(flags.get("danny", 0)) > 0.0 and (id in ["s7", "s8"] or id.begins_with("c")) and not actors.has("danny"):
 		var d := Actor.make("danny", "danny")
 		scene.car.add_child(d)
 		actors.danny = d
 		_seat_in_car("danny", "back")
+	if id.begins_with("c2"):
+		Ch2.restore(self, id)   # глава 2: кто в машине (Зоя, Ева), время суток
 	_run(id)
 	return true
 
@@ -201,6 +206,8 @@ func _load_save() -> bool:
 ## Ной за рулём, Айрис рядом — свои герои (tools/lake/chars.json → assets/chars).
 func _cast() -> void:
 	var noah := Actor.make("noah", "noah")
+	for mi in noah.find_children("*", "MeshInstance3D", true, false):
+		(mi as MeshInstance3D).layers = Car.DRIVER_LAYER   # Ной не попадает в зеркало заднего вида, когда оно смотрит назад
 	scene.car.add_child(noah)
 	noah.position = Car.DRIVER + Vector3(0, 0.15, 0)
 	noah.rotation_degrees = Vector3(0, 180, 0)
@@ -361,7 +368,7 @@ func _dt() -> float:
 
 func _cut(shot: String) -> void:
 	_shot = shot
-	scene.car.mirror(shot in ["mirror", "mirror_back"], "back" if shot == "mirror_back" else "road")
+	scene.car.mirror(shot in ["mirror", "mirror_back", "mirror_self", "mirror_zoe"], {"mirror_back": "back", "mirror_zoe": "back", "mirror_self": "self"}.get(shot, "road"))
 	_place_cam()
 	if _shotlog != "":
 		_shot_n += 1
@@ -378,7 +385,9 @@ func _place_cam() -> void:
 		var eye := hb.origin + hb.basis.y.normalized() * 0.09 + hb.basis.z.normalized() * 0.13
 		cam.fov = 72.0
 		cam.look_at_from_position(eye, eye - scene.car.global_transform.basis.z * 10.0 + Vector3(0, -3.0, 0))
-	elif _shot in ["mirror", "mirror_back"]:   # глазами Ноя — в зеркало заднего вида
+	elif Ch2.cam(self, _shot):   # планы главы 2, которые зависят от того, где герои
+		pass
+	elif _shot in ["mirror", "mirror_back", "mirror_self", "mirror_zoe"]:   # глазами Ноя — в зеркало заднего вида
 		var noah: Actor = actors.noah
 		var hb := noah.skel.global_transform * noah.skel.get_bone_global_pose(noah.skel.find_bone("head"))
 		var eye := hb.origin + hb.basis.y.normalized() * 0.09 + hb.basis.z.normalized() * 0.1
@@ -493,13 +502,13 @@ func _seat_in_car(who: String, seat: String) -> void:
 	var a: Actor = actors[who]
 	if a.get_parent() != scene.car:
 		a.reparent(scene.car, false)
-	var s: Vector3 = {"driver": Car.DRIVER, "passenger": Car.PASSENGER, "back": Car.BACK}[seat]
+	var s: Vector3 = {"driver": Car.DRIVER, "passenger": Car.PASSENGER, "back": Car.BACK, "back_l": Car.BACK_L, "back_m": Car.BACK_M}[seat]
 	a.position = s + Vector3(0, 0.15, 0)
 	a.rotation_degrees = Vector3(0, 180, 0)
 	a.play("Driving" if seat == "driver" else "Rk_SitIdle", 0.5)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	if seat == "back":
+	if seat.begins_with("back"):
 		scene.car.seat(a, s, 0.53, 0.16)
 	else:
 		scene.car.seat(a, s)
@@ -692,6 +701,8 @@ func _lapse_black() -> void:
 
 
 func _fx(k: String) -> void:
+	if Ch2.fx(self, k):   # события главы 2 (scripts/chapter2.gd)
+		return
 	_fx_sound(k)
 	var fade := hud.fade
 	match k:
@@ -721,9 +732,9 @@ func _fx(k: String) -> void:
 			tw.tween_property(scene.car, "steer", 0.6, 0.4)
 			tw.tween_property(scene.car, "steer", 0.0, 0.5)
 		"radio_on":
-			scene.car.radio_lbl.text = "FM 102.4"
+			scene.car.radio_display("FM 102.4")
 		"radio_off":
-			scene.car.radio_lbl.text = ""
+			scene.car.radio_display("")
 		"iris_stop_drawing", "notebook_dash", "pencil_break", "lullaby_iris":
 			(actors.iris as Actor).play("Rk_SitTalk", 0.0)
 		"blood_hands":
@@ -920,6 +931,7 @@ func _fx_sound(k: String) -> void:
 			if _radio:
 				sfx.play("radio_off", -6.0)
 			_radio = false
+			c2.erase("song")
 		"pencil_break":
 			sfx.play("pencil_snap", -2.0)
 		"notebook_dash":
@@ -986,7 +998,7 @@ func _fx_sound(k: String) -> void:
 func _sound(delta: float) -> void:
 	var off := Sfx.OFF
 	var inside := _shot in IN_CAR
-	var station := is_instance_valid(scene.station_root)
+	var station := is_instance_valid(scene.station_root) or is_instance_valid(scene.cafe_root)
 	var k := clampf(scene.road.speed / 25.0, 0.0, 1.0)
 	var car := off
 	var forest := off
@@ -1005,7 +1017,13 @@ func _sound(delta: float) -> void:
 	elif _ending:
 		drone = -12.0
 	elif station:
-		if _shot in SHOP:
+		if _shot.begins_with("cafe") or _shot.begins_with("wc") or _shot in ["noah_cafe", "pill_label"]:   # в кафе: зал, буран за окном
+			shop = -4.0
+			bliz = -24.0
+		elif is_instance_valid(scene.cafe_root):   # снаружи кафе: буран, ветер
+			bliz = -8.0
+			forest = -14.0
+		elif _shot in SHOP:
 			shop = -3.0
 			neon = -24.0
 		elif inside:
@@ -1029,7 +1047,9 @@ func _sound(delta: float) -> void:
 	sfx.bed("lake_theme", -5.0 if _menu_mode else off)   # меню: мамина колыбельная (tools/lake/music.py)
 	sfx.bed("drone", drone + hud.hum * 10.0)
 	sfx.bed("hum_ring", lerpf(-34.0, -4.0, hud.hum) if hud.hum > 0.03 else off)
-	sfx.bed("radio_hiss", (-20.0 if inside else -34.0) if _radio and not _blackout else off)
+	var song: bool = c2.get("song", false)
+	sfx.bed("radio_hiss", (-20.0 if inside else -34.0) if _radio and not _blackout and not song else off)
+	sfx.bed("radio_song", (-14.0 if inside else -30.0) if _radio and song and not _blackout else off)
 	var br := off
 	var dsteps := off
 	var life := 1.0
@@ -1317,6 +1337,9 @@ func _pause() -> void:
 func _process(delta: float) -> void:
 	_t += delta
 	_sound(delta)
+	if not c2.is_empty():
+		Ch2.process(self)
+		Ch2.flash(self, _t)
 	for who in _walks.keys():
 		var wk: Array = _walks[who]
 		var a: Actor = actors[who]

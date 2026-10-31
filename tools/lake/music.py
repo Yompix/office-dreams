@@ -6,7 +6,9 @@
 
 lake_theme — меню (петля 38,4 с, ля минор, 3/4): мамина колыбельная на шкатулке, которая «плывёт», как воспоминание;
              под ней — низкое пианино и тёмный пэд. Тот же мотив Айрис напевает в машине.
-lake_end   — карта главы (≈40 с): одно пианино, мотив медленно, в конце не разрешается — повисает на «ми»."""
+lake_end   — карта главы (≈40 с): одно пианино, мотив медленно, в конце не разрешается — повисает на «ми».
+radio_song — глава 2: песня по радио, под которую Зоя подпевает (петля 32 с, ре мажор, 120 ударов): барабаны, бас,
+             электропиано, синтезатор-мелодия — и всё через «динамик магнитолы» (узкая полоса, перегруз, шипение)."""
 import os, subprocess, sys
 import numpy as np
 
@@ -49,7 +51,95 @@ def lake_end(tr, t0):
     tr.add(t0 + end + 3.0, C.piano(C.hz('E4'), 5, vel=.22, bright=.7), pan=.2)   # повисает — не разрешается
 
 
-PIECES = {'lake_theme': (lake_theme, 16 * BAR, True, .42, 4.0, -21), 'lake_end': (lake_end, 40, False, .45, 4.5, -22)}
+Q = 0.5   # радиопесня: 120 ударов в минуту, такт 4/4 = 2 с
+SONG = [('A4', 0, 1), ('F#4', 1, .5), ('A4', 1.5, .5), ('B4', 2, 1), ('A4', 3, 1),
+        ('E4', 4, 1), ('E4', 5, .5), ('F#4', 5.5, .5), ('A4', 6, 1.5), ('G4', 7.5, .5),
+        ('F#4', 8, 1), ('D4', 9, 1), ('F#4', 10, .5), ('G4', 10.5, .5), ('A4', 11, 1),
+        ('B4', 12, 1.5), ('A4', 13.5, .5), ('G4', 14, 1), ('F#4', 15, 1),
+        ('A4', 16, 1), ('F#4', 17, .5), ('A4', 17.5, .5), ('D5', 18, 1), ('B4', 19, 1),
+        ('C#5', 20, 1), ('B4', 21, .5), ('A4', 21.5, .5), ('E4', 22, 2),
+        ('F#4', 24, 1), ('A4', 25, 1), ('B4', 26, .5), ('A4', 26.5, .5), ('F#4', 27, 1),
+        ('G4', 28, 1), ('F#4', 29, 1), ('E4', 30, 1), ('D4', 31, 1),
+        ('D5', 32, 1.5), ('C#5', 33.5, .5), ('B4', 34, 1), ('A4', 35, 1),
+        ('C#5', 36, 1.5), ('B4', 37.5, .5), ('A4', 38, 2),
+        ('B4', 40, 1), ('A4', 41, 1), ('F#4', 42, 1), ('D5', 43, 1),
+        ('D5', 44, 1), ('C#5', 45, .5), ('B4', 45.5, .5), ('A4', 46, 2),
+        ('D5', 48, 1.5), ('C#5', 49.5, .5), ('B4', 50, 1), ('A4', 51, 1),
+        ('C#5', 52, 1.5), ('E5', 53.5, .5), ('D5', 54, 2),
+        ('B4', 56, 1), ('D5', 57, 1), ('C#5', 58, 1), ('B4', 59, 1),
+        ('A4', 60, 2), ('F#4', 62, 2)]
+SONG_CHORDS = [(['D3', 'F#3', 'A3'], 'D2'), (['C#3', 'E3', 'A3'], 'A1'), (['D3', 'F#3', 'B3'], 'B1'), (['D3', 'G3', 'B3'], 'G1')]
+
+
+def _kick():
+    n = int(.35 * C.SR); t = np.arange(n) / C.SR
+    f = 45 + 80 * np.exp(-t / .03)
+    return (np.sin(2 * np.pi * np.cumsum(f) / C.SR) * np.exp(-t / .16) + .3 * np.exp(-t / .004) * C.rng.normal(0, 1, n)) * .9
+
+
+def _snare():
+    n = int(.3 * C.SR); t = np.arange(n) / C.SR
+    nz = C.rng.normal(0, 1, n)
+    body = C.lowpass(nz, 6000) - C.lowpass(nz, 900)
+    return body * np.exp(-t / .09) * .55 + np.sin(2 * np.pi * 190 * t) * np.exp(-t / .04) * .4
+
+
+def _hat(open_=False):
+    n = int((.25 if open_ else .06) * C.SR); t = np.arange(n) / C.SR
+    nz = C.rng.normal(0, 1, n)
+    return (nz - C.lowpass(nz, 7000)) * np.exp(-t / (.08 if open_ else .018)) * .22
+
+
+def _bass(f, dur):
+    n = int((dur + .05) * C.SR); t = np.arange(n) / C.SR
+    x = sum(np.sin(2 * np.pi * h * f * t) / h for h in range(1, 8))
+    x = C.lowpass(x, 700) * np.minimum(1, t / .005) * np.where(t < dur, 1, np.exp(-(t - dur) / .02))
+    return x * .5
+
+
+def _lead(f, dur):
+    n = int((dur + .12) * C.SR); t = np.arange(n) / C.SR
+    vib = 1 + .006 * np.sin(2 * np.pi * 5.5 * t) * np.minimum(1, t / .25)
+    ph = 2 * np.pi * f * np.cumsum(vib) / C.SR
+    x = sum(np.sin((2 * k - 1) * ph) / (2 * k - 1) for k in range(1, 7))   # «квадрат»: нечётные гармоники
+    x = C.lowpass(x, 2600) * np.minimum(1, t / .012) * np.where(t < dur, 1, np.exp(-(t - dur) / .05))
+    return x * .3
+
+
+def radio_song(tr, t0):
+    for bar in range(16):
+        at = t0 + bar * 4 * Q
+        ch, bass = SONG_CHORDS[bar % 4]
+        tr.add(at, C.pad([C.hz(nn) for nn in ch], 4 * Q, vel=.12, bright=1600, att=.05, rel=.4), pan=-.1)
+        for k in (0, 1.5, 2.5, 3.5):   # электропиано: «раз», и синкопы
+            for nn in ch:
+                tr.add(at + k * Q, C.piano(C.hz(nn) * 2, .4 * Q if k else .9 * Q, vel=.12, bright=.85), pan=.15)
+        for e in range(8):   # бас восьмыми
+            tr.add(at + e * Q / 2, _bass(C.hz(bass) * (2 if e % 4 == 3 else 1), Q / 2 * .85), pan=0)
+        for b in (0, 2, 2.5):
+            tr.add(at + b * Q, _kick())
+        for b in (1, 3):
+            tr.add(at + b * Q, _snare(), pan=.05)
+        for e in range(8):
+            tr.add(at + e * Q / 2, _hat(e == 7), pan=.3)
+    for nn, b, d in SONG:
+        tr.add(t0 + b * Q, _lead(C.hz(nn), d * Q * .92), pan=-.05)
+
+
+def radio_fx(y):
+    """Через динамик магнитолы: моно, полоса 300–3500 Гц, лёгкий перегруз, тихое шипение эфира."""
+    m = y.mean(1)
+    X = np.fft.rfft(m); f = np.fft.rfftfreq(len(m), 1 / C.SR)
+    X *= 1 / np.sqrt(1 + (300 / np.maximum(f, 1)) ** 4) / np.sqrt(1 + (f / 3500) ** 4)
+    m = np.fft.irfft(X, len(m))
+    m = np.tanh(m / (np.max(np.abs(m)) + 1e-9) * 1.4) / np.tanh(1.4)
+    hiss = C.rng.normal(0, 1, len(m)); hiss = (hiss - C.lowpass(hiss, 2500)) * .025
+    m = (m + hiss) * .85
+    return np.stack([m, m], 1)
+
+
+PIECES = {'lake_theme': (lake_theme, 16 * BAR, True, .42, 4.0, -21), 'lake_end': (lake_end, 40, False, .45, 4.5, -22),
+          'radio_song': (radio_song, 64 * Q, True, .12, 1.1, -18)}
 
 
 def save(name, y):
@@ -63,4 +153,5 @@ def save(name, y):
 if __name__ == '__main__':
     for name in (sys.argv[1:] or list(PIECES)):
         build, length, loop, wet, rt, target = PIECES[name]
-        save(name, C.render(build, length, loop, wet, rt, target))
+        y = C.render(build, length, loop, wet, rt, target)
+        save(name, radio_fx(y) if name == 'radio_song' else y)

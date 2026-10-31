@@ -398,7 +398,7 @@
      "dur": 2.4
     },
     {
-     "shot": "back",
+     "shot": "danny",
      "note": {
       "ru": "Дэнни спит сзади. Рация — в кулаке.",
       "en": "Danny is asleep in the back, the walkie-talkie in his fist."
@@ -574,7 +574,7 @@
    "beats": [
     {
      "fx": "car_stop",
-     "shot": "zoe_out",
+     "shot": "zoe_run",
      "note": {
       "ru": "Ной тормозит. Она бежит к машине, рюкзак лупит по спине.",
       "en": "Noah brakes. She runs to the car, the backpack slapping her back."
@@ -629,7 +629,7 @@
     },
     {
      "fx": "zoe_back",
-     "shot": "back",
+     "shot": "zoe",
      "say": "zoe",
      "ru": "Привет, малой. Я Зоя. Не бойся, я не кусаюсь. Почти.",
      "en": "Hey, kiddo. I'm Zoe. Don't worry, I don't bite. Mostly.",
@@ -639,7 +639,7 @@
     },
     {
      "fx": "zoe_back",
-     "shot": "back",
+     "shot": "zoe",
      "say": "zoe",
      "ru": "Зоя. Можно просто Зоя. Можно «спасительница», если очень хочется.",
      "en": "Zoe. Just Zoe. Or “savior,” if you really want.",
@@ -664,7 +664,7 @@
     },
     {
      "fx": "zoe_front",
-     "shot": "back",
+     "shot": "iris",
      "note": {
       "ru": "Айрис молча пересаживается назад. Зоя — на её место.",
       "en": "Iris moves to the back without a word. Zoe takes her seat."
@@ -703,7 +703,7 @@
     },
     {
      "fx": "danny_smile",
-     "shot": "back",
+     "shot": "danny",
      "note": {
       "ru": "Дэнни впервые улыбается.",
       "en": "For the first time, Danny smiles."
@@ -715,12 +715,27 @@
     },
     {
      "fx": "bracelet",
+     "shot": "zoe_wrist",
+     "note": {
+      "ru": "На её запястье — пластиковый больничный браслет. Заметив взгляд Ноя, она прячет его в рукав.",
+      "en": "A plastic hospital bracelet on her wrist. She catches Noah looking and tucks it into her sleeve."
+     },
+     "dur": 3.4,
+     "if": {
+      "zoe_front": ">0"
+     }
+    },
+    {
+     "fx": "bracelet",
      "shot": "mirror_zoe",
      "note": {
       "ru": "В зеркале: на её запястье — пластиковый больничный браслет. Заметив взгляд, она прячет его в рукав.",
       "en": "In the mirror: a plastic hospital bracelet on her wrist. She catches him looking and tucks it into her sleeve."
      },
-     "dur": 3.4
+     "dur": 3.4,
+     "if": {
+      "zoe_front": "==0"
+     }
     },
     {
      "choice": {
@@ -851,7 +866,7 @@
      }
     },
     {
-     "shot": "back",
+     "shot": "danny",
      "note": {
       "ru": "Дэнни начинает часто дышать.",
       "en": "Danny starts breathing fast."
@@ -892,6 +907,10 @@
      "dur": 2.8,
      "if": {
       "zoe": ">0"
+     },
+     "look": {
+      "who": "zoe",
+      "at": "windshield"
      }
     },
     {

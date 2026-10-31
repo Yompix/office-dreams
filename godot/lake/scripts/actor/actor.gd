@@ -26,6 +26,9 @@ var _hair_p := Vector3.ZERO      # точка на пружине: догоня�
 var _hair_v := Vector3.ZERO
 var _hair_init := false
 var breeze := 0.0                # ветер снаружи (0 — в машине)
+var wave := 0.0                  # машет обеими руками над головой (0…1): голосует на обочине, зовёт издалека
+var _wave_w := 0.0
+var _wave_t := 0.0
 var _eye := Vector2.ZERO         # куда смотрят глаза (вправо/вверх, доля полного хода); мелкие рывки — саккады
 var _eye_to := Vector2.ZERO
 var _sacc_t := 0.6
@@ -233,6 +236,7 @@ func _process(delta: float) -> void:
 			mi.set_blend_shape_value(d[bn], W.get(bn, 0.0))
 	_update_blood()
 	_update_hair(delta)
+	_update_wave(delta)
 	# взгляд: голова и шея поворачиваются к точке (поверх клипа)
 	look_w = move_toward(look_w, 1.0 if look_target != null else 0.0, delta * 2.5)
 	if look_w > 0.001 and _head >= 0 and look_target != null:
@@ -250,6 +254,40 @@ func _process(delta: float) -> void:
 				var local_axis := (bg.basis.inverse() * axis.normalized()).normalized()
 				var rot := skel.get_bone_pose_rotation(b[0]) * Quaternion(local_axis, ang * b[1])
 				skel.set_bone_pose_rotation(b[0], rot)
+
+
+## Машет обеими руками над головой (поверх клипа): плечи вверх и чуть в стороны, предплечья качаются навстречу друг другу.
+## Герой без поворота смотрит к +Z, его левая рука — к +X.
+func _update_wave(delta: float) -> void:
+	_wave_w = move_toward(_wave_w, wave, delta * 3.0)
+	if _wave_w < 0.001:
+		return
+	_wave_t += delta
+	var gb := skel.global_transform.basis
+	var up := gb.y.normalized()
+	var fwd := gb.z.normalized()
+	var left := gb.x.normalized()
+	for side in [[left, "_l", 0.0], [-left, "_r", PI]]:
+		var out: Vector3 = side[0]
+		var sw := sin(_wave_t * 6.5 + float(side[2]))
+		_aim_bone("upperarm" + side[1], "lowerarm" + side[1], (up * 0.85 + out * 0.5 + fwd * 0.18).normalized(), _wave_w)
+		_aim_bone("lowerarm" + side[1], "hand" + side[1], (up + out * (0.05 + 0.42 * sw) + fwd * 0.12).normalized(), _wave_w)
+
+
+## Повернуть кость так, чтобы она смотрела (от себя к дочерней) по направлению dir (мир); w — доля поворота.
+func _aim_bone(bone: String, child: String, dir: Vector3, w: float) -> void:
+	var b := skel.find_bone(bone)
+	var c := skel.find_bone(child)
+	if b < 0 or c < 0:
+		return
+	var bg := skel.global_transform * skel.get_bone_global_pose(b)
+	var cg := skel.global_transform * skel.get_bone_global_pose(c)
+	var cur := (cg.origin - bg.origin).normalized()
+	var axis := cur.cross(dir)
+	if axis.length() < 0.0001:
+		return
+	var local_axis := (bg.basis.inverse() * axis.normalized()).normalized()
+	skel.set_bone_pose_rotation(b, skel.get_bone_pose_rotation(b) * Quaternion(local_axis, cur.angle_to(dir) * w))
 
 
 ## Кровь на руках (сцена 1: «липкие, тёмно-красные, кровь под ногтями»): материал кожи заменяется своим — та же текстура,

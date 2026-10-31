@@ -455,12 +455,28 @@ func _snow() -> void:
 	snow.scale_amount_min = 0.6
 	snow.scale_amount_max = 1.4
 	var qm := QuadMesh.new()
-	qm.size = Vector2(0.028, 0.028)
+	qm.size = Vector2(0.034, 0.034)
 	var sm := StandardMaterial3D.new()
 	sm.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	sm.albedo_color = Color(0.92, 0.95, 1.0, 0.85)
 	sm.roughness = 1.0
+	# снежинка — мягкий круг, а не квадрат; у самой камеры тает (иначе перед объективом — белые квадраты во весь кадр)
+	var gr := Gradient.new()
+	gr.set_color(0, Color(1, 1, 1, 1))
+	gr.set_color(1, Color(1, 1, 1, 0))
+	gr.add_point(0.45, Color(1, 1, 1, 0.75))
+	var gt := GradientTexture2D.new()
+	gt.gradient = gr
+	gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.5)
+	gt.fill_to = Vector2(1.0, 0.5)
+	gt.width = 32
+	gt.height = 32
+	sm.albedo_texture = gt
+	sm.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
+	sm.distance_fade_min_distance = 0.45
+	sm.distance_fade_max_distance = 1.4
 	qm.material = sm
 	snow.mesh = qm
 	add_child(snow)

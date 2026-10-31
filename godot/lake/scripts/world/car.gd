@@ -9,11 +9,14 @@ const INTERIOR := ["dash", "binnacle", "cluster", "stack", "radio", "vent", "glo
 	"pillar", "visor", "shelf", "carpet", "tunnel", "toeboard", "console", "gear", "knob", "handbrake", "mirror_in", "mirror_glass"]
 const PASSENGER := Vector3(0.36, 0.0, 0.3)
 const BACK := Vector3(0.38, 0.0, 1.26)         # заднее сиденье справа (Дэнни)
+const BACK_L := Vector3(-0.38, 0.0, 1.26)      # заднее слева (Зоя, Айрис, Ева)
+const BACK_M := Vector3(0.0, 0.0, 1.26)        # заднее посередине (когда сзади трое)
 var wheel: Node3D
 var wipers: Array[Node3D] = []
 var glovebox: Node3D
 var clock: Label3D
 var radio_lbl: Label3D
+var radio_glow: MeshInstance3D                    # подсветка табло магнитолы (горит, когда играет)
 var dash_light: OmniLight3D
 var snow_bounce: OmniLight3D
 var headlights: Array[SpotLight3D] = []
@@ -24,6 +27,9 @@ var mirror_vp: SubViewport                       # что видно в зерк
 var mirror_cam: Camera3D
 var mirror_quad: MeshInstance3D
 var mirror_aim := Vector3(0, 1.0, 8.0)           # куда смотрит камера зеркала (оси машины): дорога позади или заднее сиденье
+var mirror_aim_name := "road"
+var mirror_hide_driver := false                  # «Тень»: в зеркале вместо Ноя его двойник (слой 2), сам Ной (слой 3) скрыт
+const DRIVER_LAYER := 4                          # Ной — на своём слое: камера зеркала назад его не видит (не торчит ухо)
 const MIRROR := Vector3(0.0, 1.445, -0.068)      # середина зеркала (оси машины)
 var t := 0.0
 var wiper_speed := 1.0
@@ -31,6 +37,7 @@ var steer := 0.0                               # поворот руля (рад
 var wheel_basis0 := Basis.IDENTITY
 var column: MeshInstance3D
 var notebook: MeshInstance3D
+var back_fill: OmniLight3D                        # днём: свет из окон на заднее сиденье (глава 2 — там сидят герои)
 var glove_open := 0.0
 var glove_base := 0.0
 var fuel_blink := false                         # мигает лампа бензина
@@ -195,6 +202,7 @@ func setup(pc: bool) -> void:
 	clock.rotation_degrees = Vector3(-18, 0, 0)
 	radio_lbl = _label("", Vector3(0.0, 0.762, -0.362), 0.018, Color(0.55, 0.9, 1.0))
 	radio_lbl.rotation_degrees = Vector3(-8, 0, 0)
+	_radio_face()
 	# руль: модель руля в узле wheel (его ставит fit_wheel в руки водителя), колонка — к торпедо
 	wheel = Node3D.new()
 	wheel.position = Vector3(-0.36, 0.93, -0.2)
@@ -260,7 +268,7 @@ func setup(pc: bool) -> void:
 	dash_light.omni_attenuation = 1.2
 	dash_light.light_volumetric_fog_energy = 0.0
 	dash_light.light_specular = 0.15             # без яркой точки-отражения в лобовом
-	dash_light.light_cull_mask = 1
+	dash_light.light_cull_mask = 1 | 2 | 4          # салон, люди и их «двойники» в зеркале
 	add_child(dash_light)
 	snow_bounce = OmniLight3D.new()
 	snow_bounce.position = Vector3(0, 1.3, -1.35)   # над капотом, перед лобовым: свет снега в фарах — снизу спереди
@@ -269,9 +277,20 @@ func setup(pc: bool) -> void:
 	snow_bounce.omni_range = 3.2
 	snow_bounce.omni_attenuation = 1.0
 	snow_bounce.light_volumetric_fog_energy = 0.0   # подсветка-«отражение от снега»: в тумане не светится шаром
-	snow_bounce.light_cull_mask = 1                 # только салон и люди
+	snow_bounce.light_cull_mask = 1 | 2 | 4         # только салон и люди
 	snow_bounce.shadow_enabled = pc
 	add_child(snow_bounce)
+	back_fill = OmniLight3D.new()
+	back_fill.position = Vector3(0.0, 1.42, 1.0)
+	back_fill.light_color = Color(0.74, 0.8, 0.92)
+	back_fill.light_energy = 0.4
+	back_fill.omni_range = 1.5
+	back_fill.omni_attenuation = 1.3
+	back_fill.light_volumetric_fog_energy = 0.0
+	back_fill.light_specular = 0.1
+	back_fill.light_cull_mask = 1 | 2 | 4
+	back_fill.visible = false
+	add_child(back_fill)
 
 
 func _m(c: Color, rough: float) -> StandardMaterial3D:
@@ -318,6 +337,54 @@ func _lamp_mat(c: Color, e: float) -> StandardMaterial3D:
 	m.emission_energy_multiplier = e
 	m.roughness = 0.1
 	return m
+
+
+## Лицевая панель магнитолы: табло (светится, когда играет), две ручки и кнопки станций.
+func _radio_face() -> void:
+	var face := Node3D.new()
+	face.position = Vector3(0.0, 0.762, -0.3645)
+	face.rotation_degrees = Vector3(-8, 0, 0)
+	add_child(face)
+	radio_glow = MeshInstance3D.new()
+	var q := QuadMesh.new()
+	q.size = Vector2(0.078, 0.022)
+	radio_glow.mesh = q
+	var gm := StandardMaterial3D.new()
+	gm.albedo_color = Color(0.015, 0.03, 0.04)
+	gm.roughness = 0.2
+	gm.emission_enabled = true
+	gm.emission = Color(0.08, 0.3, 0.42)
+	gm.emission_energy_multiplier = 0.0
+	radio_glow.material_override = gm
+	radio_glow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	face.add_child(radio_glow)
+	var km := _m(Color(0.045, 0.045, 0.05), 0.3)
+	var cap := _m(Color(0.5, 0.5, 0.52), 0.25)
+	for x in [-0.069, 0.069]:
+		var k := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.0085
+		cm.bottom_radius = 0.0098
+		cm.height = 0.013
+		k.mesh = cm
+		k.material_override = km
+		k.rotation_degrees = Vector3(90, 0, 0)
+		k.position = Vector3(x, 0.0, 0.0065)
+		face.add_child(k)
+		var c := _box(Vector3(0.0022, 0.009, 0.002), Vector3.ZERO, cap)   # риска на ручке
+		c.reparent(face, false)
+		c.position = Vector3(x, 0.004, 0.0132)
+	for i in 5:
+		var b := _box(Vector3(0.0105, 0.0055, 0.004), Vector3.ZERO, km)
+		b.reparent(face, false)
+		b.position = Vector3(-0.026 + i * 0.013, -0.0175, 0.002)
+
+
+## Табло магнитолы: частота (пусто — выключена).
+func radio_display(t: String) -> void:
+	radio_lbl.text = t
+	if radio_glow:
+		(radio_glow.material_override as StandardMaterial3D).emission_energy_multiplier = 0.7 if t != "" else 0.0
 
 
 func _box(size: Vector3, pos: Vector3, mat: Material, rot := Vector3.ZERO) -> MeshInstance3D:
@@ -400,10 +467,25 @@ func mirror(on: bool, aim := "road") -> void:
 		mirror_quad.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mirror_quad.position = Vector3(0, 0, 0.0028)
 		mirror_glass.add_child(mirror_quad)
-	mirror_aim = Vector3(0.32, 0.92, 1.35) if aim == "back" else Vector3(0.0, 1.0, 8.0)
+	mirror_aim = {"back": Vector3(0.0, 0.95, 1.35), "self": Vector3(-0.36, 1.27, 0.22)}.get(aim, Vector3(0.0, 1.0, 8.0))
+	mirror_aim_name = aim
+	mirror_cam.fov = 26.0 if aim == "self" else 17.0
+	mirror_mask()
 	mirror_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
 	mirror_quad.visible = on
 	_mirror_follow()
+
+
+## Кого видит зеркало: назад — без Ноя и его двойника; на себя — Ноя, а при «Тени» — двойника вместо него.
+func mirror_mask() -> void:
+	if mirror_cam == null:
+		return
+	if mirror_aim_name != "self":
+		mirror_cam.cull_mask = 0xFFFFF & ~DRIVER_LAYER & ~2
+	elif mirror_hide_driver:
+		mirror_cam.cull_mask = 0xFFFFF & ~DRIVER_LAYER
+	else:
+		mirror_cam.cull_mask = 0xFFFFF
 
 
 func _mirror_follow() -> void:

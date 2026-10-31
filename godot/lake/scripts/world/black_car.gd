@@ -104,6 +104,25 @@ func _m(c: Color, e: float, ec: Color) -> StandardMaterial3D:
 	return m
 
 
+## Заднее правое стекло опущено «на два пальца»: тёмная щель над стеклом.
+func window_gap(on: bool) -> void:
+	var g := get_node_or_null("gap")
+	if on and g == null:
+		var m := MeshInstance3D.new()
+		m.name = "gap"
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.02, 0.05, 0.62)
+		m.mesh = bm
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color(0.0, 0.0, 0.0)
+		mat.roughness = 1.0
+		m.material_override = mat
+		m.position = Vector3(0.79, 1.27, 0.55)
+		add_child(m)
+	elif not on and g:
+		g.queue_free()
+
+
 ## Фары и задние огни.
 func lights(on: bool) -> void:
 	lit = on

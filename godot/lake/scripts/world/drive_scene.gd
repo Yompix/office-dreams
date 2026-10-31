@@ -94,7 +94,7 @@ const SHOTS := {
 	"iris": [Vector3(-0.26, 1.14, -0.12), Vector3(0.36, 1.1, 0.32), 40.0],
 	"two": [Vector3(0.0, 1.22, -0.6), Vector3(0.0, 1.05, 0.45), 58.0],
 	"notebook": [Vector3(0.22, 1.18, -0.02), Vector3(0.38, 0.62, 0.2), 42.0],
-	"radio": [Vector3(-0.08, 0.98, -0.25), Vector3(0.0, 0.8, -0.45), 34.0],
+	"radio": [Vector3(-0.04, 0.87, -0.12), Vector3(0.0, 0.755, -0.365), 36.0],
 	"glovebox": [Vector3(0.05, 1.05, 0.05), Vector3(0.36, 0.72, -0.42), 44.0],
 	"front": [Vector3(0.6, 1.45, -5.5), Vector3(0.0, 1.0, 0.0), 40.0],
 	"road": [Vector3(-0.36, 1.17, 0.24), Vector3(-0.36, 0.6, -40.0), 50.0],
@@ -265,6 +265,29 @@ func park_at_station(lang := "ru") -> void:
 	car.speed = 0.0
 	car.ride = false
 	car.position = Vector3(14.3, 0.0, -5.0)   # ближе к правому островку: слева у колонки место для Ноя
+
+
+var daylight := "night"
+
+## Время суток: "night" (по умолчанию), "dawn" (серое утро без солнца), "day" (буран днём), "evening".
+func set_daylight(mode: String) -> void:
+	var p: Array = {"night": [Color(0.008, 0.01, 0.016), 0.018, Color(0.03, 0.035, 0.05), 0.012, 0.025, Color(0.55, 0.65, 0.9)],
+		"dawn": [Color(0.28, 0.31, 0.35), 0.5, Color(0.34, 0.37, 0.41), 0.009, 0.3, Color(0.75, 0.8, 0.88)],
+		"day": [Color(0.4, 0.42, 0.45), 0.7, Color(0.48, 0.5, 0.53), 0.022, 0.4, Color(0.85, 0.88, 0.92)],
+		"evening": [Color(0.05, 0.06, 0.09), 0.09, Color(0.09, 0.1, 0.13), 0.014, 0.07, Color(0.55, 0.6, 0.8)]}.get(mode, [])
+	if p.is_empty():
+		return
+	daylight = mode
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = p[0]
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY if mode == "night" else Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = (p[2] as Color) * 1.5
+	env.ambient_light_energy = p[1]
+	env.fog_light_color = p[2]
+	env.fog_density = p[3]
+	moon.light_energy = p[4]
+	moon.light_color = p[5]
+	moon.rotation_degrees = Vector3(-35, 140, 0) if mode == "night" else Vector3(-55, 120, 0)
 
 
 ## Кафе «У трёх сосен» (глава 2): дом у трассы, свет ламп и окон, вывеска на языке игры, три сосны, фуры у входа,

@@ -280,7 +280,7 @@
   "brows": "eyebrow009/eyebrow009.mhclo",
   "clothes": [
    "female_casualsuit01/female_casualsuit01.mhclo",
-   "culturalibre_heroine_boots_1/culturalibre_heroine_boots_1.mhclo"
+   "toigo_ankle_boots_female/toigo_ankle_boots_female.mhclo"
   ],
   "targets": {
    "head-diamond": 0.35,
@@ -289,6 +289,47 @@
    "mouth-upperlip-volume-incr": 0.2,
    "l-eye-corner2-up": 0.3,
    "r-eye-corner2-up": 0.3
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "parka",
+    "tex": "cotton_jersey",
+    "tint": [
+     0.66,
+     0.44,
+     0.15
+    ],
+    "off": 0.04,
+    "tile": 6,
+    "rough": 0.75
+   },
+   {
+    "kind": "hood",
+    "name": "hood",
+    "down": true,
+    "tex": "cotton_jersey",
+    "tint": [
+     0.66,
+     0.44,
+     0.15
+    ],
+    "off": 0.046,
+    "back": 0.03,
+    "tile": 6
+   }
+  ],
+  "tint": {
+   "female_casualsuit01_diffuse": [
+    0.42,
+    0.45,
+    0.55
+   ],
+   "BootsAnkle.png": [
+    0.26,
+    0.17,
+    0.11
+   ]
   }
  },
  "eva": {
@@ -313,13 +354,36 @@
   "brows": "eyebrow011/eyebrow011.mhclo",
   "clothes": [
    "toigo_shift_dress/toigo_shift_dress.mhclo",
-   "shoes05/shoes05.mhclo"
+   "toigo_ankle_boots_female/toigo_ankle_boots_female.mhclo"
   ],
   "targets": {
    "stomach-pregnant-incr": 1.0,
    "head-oval": 0.3,
    "l-eye-bag-incr": 0.35,
    "r-eye-bag-incr": 0.35
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "coat",
+    "tex": "wool_boucle",
+    "tint": [
+     0.26,
+     0.26,
+     0.28
+    ],
+    "off": 0.046,
+    "tile": 6,
+    "rough": 0.9,
+    "band": 0.4
+   }
+  ],
+  "tint": {
+   "BootsAnkle.png": [
+    0.12,
+    0.11,
+    0.11
+   ]
   }
  },
  "agnes": {

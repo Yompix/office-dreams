@@ -6,11 +6,11 @@
                                                        слова со временем и громкость (для губ) — snd/vo/<lang>/timing.json
   python3 tools/lake/voice.py check ru|en            → каких реплик ещё нет
 
-Реплики — шаги "say" в godot/lake/data/ch1.json; ключ реплики — "<сцена>_<номер реплики в сцене>" (s1_a_2).
+Реплики — шаги "say" в godot/lake/data/ch*.json (все главы); ключ реплики — "<сцена>_<номер реплики в сцене>" (s1_a_2).
 Пакет = подряд реплики одного голоса через пустую строку, у каждой — тег интонации ([scared] …). Нарезка не зависит
 от пауз: распознаём слова с временем (faster-whisper) и сопоставляем с текстом реплик (как tools/story/voice.py).
 Радио после нарезки — «через динамик» (полоса 300–3400 Гц, лёгкий перегруз)."""
-import difflib, json, os, re, subprocess, sys
+import difflib, glob, json, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 GAME = os.path.join(ROOT, 'godot/lake')
@@ -45,15 +45,17 @@ TAGS = {   # интонация (тег eleven_v4) по ключу реплик�
 
 
 def lines():
-    d = json.load(open(DATA))
+    """Реплики всех глав (data/ch1.json, ch2.json, …): ключ — как в игре, <сцена>_<номер реплики в сцене>."""
     out = {}
-    for sid, sc in d['scenes'].items():
-        n = 0
-        for b in sc['beats']:
-            if 'say' in b:
-                n += 1
-                k = f'{sid}_{n}'
-                out[k] = {'who': b['say'], 'ru': b.get('ru', ''), 'en': b.get('en', ''), 'tag': TAGS.get(k, 'natural')}
+    for f in sorted(glob.glob(os.path.join(GAME, 'data/ch*.json'))):
+        d = json.load(open(f))
+        for sid, sc in d['scenes'].items():
+            n = 0
+            for b in sc['beats']:
+                if 'say' in b:
+                    n += 1
+                    k = f'{sid}_{n}'
+                    out[k] = {'who': b['say'], 'ru': b.get('ru', ''), 'en': b.get('en', ''), 'tag': TAGS.get(k, 'natural')}
     return out
 
 

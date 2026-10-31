@@ -1,6 +1,7 @@
 """Звуки WHAT THE LAKE KEEPS, которые сделаны кодом (numpy), а не в ElevenLabs:
   underwater — пролог: глухой подводный гул и пузыри (10 с, петля);
-  ui_click   — щелчок выбора и кнопок меню (ElevenLabs дал почти тишину).
+  ui_click   — щелчок выбора и кнопок меню (ElevenLabs дал почти тишину);
+  siren      — глава 2, бегство с поста: вой сирены за машиной — громко, потом глуше и тише (отстали в снегу).
   python3 tools/lake/synth.py   → godot/lake/snd/<имя>.ogg"""
 import os, subprocess, wave
 import numpy as np
@@ -60,6 +61,27 @@ def ui_click():
     save('ui_click', x, 0.7)
 
 
+def siren():
+    T = 7.0
+    n = int(SR * T)
+    t = np.arange(n) / SR
+    f = 720 + 640 * (0.5 - 0.5 * np.cos(2 * np.pi * t / 3.1))   # «вой»: вверх-вниз за 3,1 с
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    tone = np.sin(ph) + 0.45 * np.sin(2 * ph) + 0.3 * np.sin(3 * ph) + 0.12 * np.sin(5 * ph)
+    tone = np.tanh(1.6 * tone)                                    # рупор: жёстко, с призвуком
+    far = lowpass(tone, 700.0, 2)                                 # издалека — глухо
+    k = np.clip((t - 1.4) / 3.6, 0.0, 1.0)                        # отстают: ближний звук переходит в дальний
+    x = tone * (1 - k) + far * k * 1.6
+    x *= np.minimum(1.0, t / 0.25) * np.exp(-np.maximum(0.0, t - 1.6) / 1.9)
+    for d, g in ((0.11, 0.35), (0.27, 0.22), (0.46, 0.12)):       # эхо от леса вдоль дороги
+        i = int(d * SR)
+        x[i:] += g * x[:-i]
+    fo = int(0.6 * SR)
+    x[-fo:] *= np.linspace(1, 0, fo) ** 2
+    save('siren', x, 0.75)
+
+
 if __name__ == '__main__':
-    underwater()
-    ui_click()
+    import sys
+    for name in (sys.argv[1:] or ['underwater', 'ui_click', 'siren']):
+        globals()[name]()
