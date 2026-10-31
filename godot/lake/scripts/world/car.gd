@@ -509,6 +509,12 @@ func break_lamp() -> void:
 			mi.material_override = m
 
 
+## Фары: включить или погасить (разбитая левая так и не светит).
+func lights(on: bool) -> void:
+	for sl in headlights:
+		sl.visible = on and not (lamp_broken and sl.position.x < 0.0)
+
+
 ## Трещины на стекле фары (белёсые лучи от удара).
 func _crack_tex() -> ImageTexture:
 	var n := 128

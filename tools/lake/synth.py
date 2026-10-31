@@ -1,7 +1,9 @@
 """Звуки WHAT THE LAKE KEEPS, которые сделаны кодом (numpy), а не в ElevenLabs:
   underwater — пролог: глухой подводный гул и пузыри (10 с, петля);
   ui_click   — щелчок выбора и кнопок меню (ElevenLabs дал почти тишину);
-  siren      — глава 2, бегство с поста: вой сирены за машиной — громко, потом глуше и тише (отстали в снегу).
+  siren      — глава 2, бегство с поста: вой сирены за машиной — громко, потом глуше и тише (отстали в снегу);
+  knock      — глава 3: стук костяшками в деревянную дверь (один удар; три — игра ставит с паузами);
+  baby_cry   — глава 3: плач новорождённой (тонкий голос с дрожью, вдох-всхлип, «уа-а»).
   python3 tools/lake/synth.py   → godot/lake/snd/<имя>.ogg"""
 import os, subprocess, wave
 import numpy as np
@@ -81,7 +83,40 @@ def siren():
     save('siren', x, 0.75)
 
 
+def knock():
+    n = int(0.35 * SR)
+    t = np.arange(n) / SR
+    body = np.sin(2 * np.pi * 145 * t) * np.exp(-t / 0.05) + 0.6 * np.sin(2 * np.pi * 310 * t) * np.exp(-t / 0.025)
+    hit = lowpass(rng.normal(0, 1, n), 1800.0, 1) * np.exp(-t / 0.006) * 1.5
+    x = body + hit
+    for d, g in ((0.018, 0.35), (0.041, 0.18)):   # гулкая дверь
+        i = int(d * SR)
+        x[i:] += g * x[:-i]
+    save('knock', x, 0.8)
+
+
+def baby_cry():
+    T = 4.2
+    n = int(SR * T)
+    t = np.arange(n) / SR
+    x = np.zeros(n)
+    for t0, d in ((0.15, 1.1), (1.55, 1.25), (3.05, 0.95)):   # три «уа-а» с всхлипами между
+        m = (t >= t0) & (t < t0 + d)
+        tt = t[m] - t0
+        f = 420 + 90 * np.sin(np.pi * tt / d) + 25 * np.sin(2 * np.pi * 7.5 * tt) + 40 * (tt < 0.08) * (0.08 - tt) / 0.08
+        ph = 2 * np.pi * np.cumsum(f) / SR
+        env = np.minimum(1, tt / 0.06) * np.minimum(1, (d - tt) / 0.18) * (0.75 + 0.25 * np.sin(2 * np.pi * 3.1 * tt))
+        v = sum((0.9 ** h) * np.sin(h * ph) for h in range(1, 9))
+        vow = 0.55 + 0.45 * np.minimum(1, tt / 0.25)                   # «у» → «а»: верх раскрывается
+        x[m] += env * (v * vow + 0.15 * np.sin(ph))
+        s0 = int((t0 + d + 0.05) * SR)
+        sob = lowpass(rng.normal(0, 1, int(0.22 * SR)), 2500.0, 1) * np.exp(-np.arange(int(0.22 * SR)) / (0.06 * SR)) * 0.25
+        x[s0:s0 + len(sob)] += sob[:max(0, min(len(sob), n - s0))]
+    x = lowpass(x, 5200.0, 1)
+    save('baby_cry', x, 0.7)
+
+
 if __name__ == '__main__':
     import sys
-    for name in (sys.argv[1:] or ['underwater', 'ui_click', 'siren']):
+    for name in (sys.argv[1:] or ['underwater', 'ui_click', 'siren', 'knock', 'baby_cry']):
         globals()[name]()

@@ -1,0 +1,2231 @@
+{
+ "chapter": 3,
+ "start": "c3_recap",
+ "ready": false,
+ "title": {
+  "ru": "ГЛАВА 3 · ДЕРЕВНЯ",
+  "en": "CHAPTER 3 · THE VILLAGE"
+ },
+ "names": {
+  "agnes": {
+   "ru": "АГНЕС",
+   "en": "AGNES"
+  },
+  "anna": {
+   "ru": "НОЙ — ЧУЖИМ ГОЛОСОМ",
+   "en": "NOAH — NOT HIS OWN VOICE"
+  }
+ },
+ "flags": {
+  "eva_found": 0,
+  "eva_cold": 0,
+  "walked": 0,
+  "iris_alone": 0,
+  "agnes_warm": 0,
+  "agnes_knows": 0,
+  "birth_time": 0,
+  "light": 0,
+  "went_noah": 0,
+  "lapse_shop": 0,
+  "hale_here": 0,
+  "hard": 0,
+  "eva_alive": 0,
+  "eva_dead": 0,
+  "baby": 0,
+  "agnes_knows_hale": 0,
+  "belief_doctor": 0,
+  "belief_healer": 0,
+  "belief_none": 0,
+  "pills_burned": 0,
+  "brew": 0,
+  "pills3": 0,
+  "pills_kept": 0,
+  "night_lapse": 0,
+  "danny_lost": 0,
+  "heard_song": 0,
+  "hale_brave": 0,
+  "hale_knows": 0,
+  "hale_lost": 0
+ },
+ "map": [
+  {
+   "key": "eva",
+   "ru": "Ева",
+   "en": "Eva",
+   "opts": [
+    {
+     "id": "alive",
+     "ru": "жива",
+     "en": "alive",
+     "if": {
+      "eva_alive": ">0"
+     }
+    },
+    {
+     "id": "dead",
+     "ru": "умерла",
+     "en": "died",
+     "if": {
+      "eva_dead": ">0"
+     }
+    },
+    {
+     "id": "none",
+     "ru": "не с ними",
+     "en": "not with them",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "gas",
+   "ru": "За бензином",
+   "en": "The gas run",
+   "opts": [
+    {
+     "id": "noah",
+     "ru": "ходил Ной",
+     "en": "Noah went",
+     "if": {
+      "went_noah": ">0"
+     }
+    },
+    {
+     "id": "zoe",
+     "ru": "ходила Зоя",
+     "en": "Zoe went",
+     "if": {
+      "hale_here": ">0"
+     }
+    },
+    {
+     "id": "none",
+     "ru": "при свечах",
+     "en": "by candlelight",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "belief",
+   "ru": "Во что верить",
+   "en": "What to believe",
+   "opts": [
+    {
+     "id": "doctor",
+     "ru": "болезнь",
+     "en": "an illness",
+     "if": {
+      "belief_doctor": ">0"
+     }
+    },
+    {
+     "id": "healer",
+     "ru": "мама с ним",
+     "en": "Mom is with him",
+     "if": {
+      "belief_healer": ">0"
+     }
+    },
+    {
+     "id": "none",
+     "ru": "не решил",
+     "en": "undecided",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "pills3",
+   "ru": "Таблетки №3",
+   "en": "Pills #3",
+   "opts": [
+    {
+     "id": "burned",
+     "ru": "сожжены",
+     "en": "burned",
+     "if": {
+      "pills_burned": ">0"
+     }
+    },
+    {
+     "id": "taken",
+     "ru": "принял",
+     "en": "took one",
+     "if": {
+      "pills3": ">0"
+     }
+    },
+    {
+     "id": "kept",
+     "ru": "не тронуты",
+     "en": "untouched",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "night",
+   "ru": "Ночь",
+   "en": "The night",
+   "opts": [
+    {
+     "id": "axe",
+     "ru": "топор и чужой голос",
+     "en": "the axe and the voice",
+     "if": {
+      "night_lapse": ">0"
+     }
+    },
+    {
+     "id": "song",
+     "ru": "колыбельная в рации",
+     "en": "the lullaby on the radio",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "danny",
+   "ru": "Дэнни",
+   "en": "Danny",
+   "opts": [
+    {
+     "id": "lost",
+     "ru": "ушёл в буран",
+     "en": "lost in the storm",
+     "if": {
+      "danny_lost": ">0"
+     }
+    },
+    {
+     "id": "with",
+     "ru": "с ними",
+     "en": "with them",
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "id": "none",
+     "ru": "остался на заправке",
+     "en": "left at the station",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "hale",
+   "ru": "Свет фар",
+   "en": "The headlights",
+   "opts": [
+    {
+     "id": "axe",
+     "ru": "вышел с топором",
+     "en": "went out with the axe",
+     "if": {
+      "hale_brave": ">0"
+     }
+    },
+    {
+     "id": "cellar",
+     "ru": "подпол",
+     "en": "the cellar",
+     "if": {
+      "hale_knows": ">0"
+     }
+    },
+    {
+     "id": "neighbor",
+     "ru": "ушли к соседке",
+     "en": "slipped away",
+     "if": {}
+    }
+   ]
+  }
+ ],
+ "scenes": {
+  "c3_recap": {
+   "save": true,
+   "time": "18:10",
+   "beats": [
+    {
+     "fx": "black"
+    },
+    {
+     "text": {
+      "ru": "Ранее…",
+      "en": "Previously…"
+     },
+     "dur": 1.6,
+     "note": true
+    },
+    {
+     "text": {
+      "ru": "Зоя едет с ними.",
+      "en": "Zoe is riding with them."
+     },
+     "dur": 2.4,
+     "note": true,
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Зоя пропала ночью у кафе. На снегу — её больничный браслет.",
+      "en": "Zoe vanished in the night at the diner. Her hospital bracelet lay in the snow."
+     },
+     "dur": 3.0,
+     "note": true,
+     "if": {
+      "zoe_taken": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Ной бежал с поста полиции.",
+      "en": "Noah ran the police checkpoint."
+     },
+     "dur": 2.4,
+     "note": true,
+     "if": {
+      "fled": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Второй пузырёк таблеток — смыт в унитаз.",
+      "en": "The second bottle of pills — flushed down the toilet."
+     },
+     "dur": 2.6,
+     "note": true,
+     "if": {
+      "pills_flushed": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "В туалете кафе в зеркале был мокрый мальчик.",
+      "en": "In the diner bathroom mirror — a soaking wet boy."
+     },
+     "dur": 2.6,
+     "note": true,
+     "if": {
+      "pills2": "==0",
+      "pills_flushed": "==0",
+      "memory": ">=2"
+     }
+    },
+    {
+     "text": {
+      "ru": "Голос из чёрного седана: «Как голова, Ной? Таблетки ещё есть?»",
+      "en": "A voice from the black sedan: “How’s your head, Noah? Still have your pills?”"
+     },
+     "dur": 3.2,
+     "note": true,
+     "if": {
+      "heard_hale": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Беременная Ева едет с ними на север.",
+      "en": "Eva, pregnant, is riding north with them."
+     },
+     "dur": 2.6,
+     "note": true,
+     "if": {
+      "eva": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Ева осталась у кафе одна.",
+      "en": "Eva stayed behind at the diner, alone."
+     },
+     "dur": 2.6,
+     "note": true,
+     "if": {
+      "eva_alone": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Буран. Поперёк трассы — фура. Боковая дорога. Позади — две фары.",
+      "en": "A blizzard. A jackknifed truck across the highway. A side road. Two headlights behind."
+     },
+     "dur": 3.2,
+     "note": true
+    },
+    {
+     "go": "c3_s1"
+    }
+   ]
+  },
+  "c3_s1": {
+   "save": true,
+   "time": "18:40",
+   "beats": [
+    {
+     "fx": "c3_start",
+     "shot": "road"
+    },
+    {
+     "fx": "fade_in",
+     "shot": "road",
+     "note": {
+      "ru": "Глава 3. «Деревня». Колея под снегом. Дворники не справляются.",
+      "en": "Chapter 3. “The Village.” Ruts under the snow. The wipers can’t keep up."
+     },
+     "dur": 3.4
+    },
+    {
+     "note": {
+      "ru": "В фарах — тёмные силуэты домов. Один огонёк.",
+      "en": "Dark shapes of houses in the headlights. One light."
+     },
+     "dur": 2.6,
+     "shot": "village_far"
+    },
+    {
+     "fx": "stuck",
+     "shot": "wheel",
+     "note": {
+      "ru": "Колёса буксуют. Машина садится в сугроб — в двухстах метрах от деревни.",
+      "en": "The wheels spin. The car sinks into a drift — two hundred meters from the village."
+     },
+     "dur": 3.0
+    },
+    {
+     "if": {
+      "eva_alone": ">0"
+     },
+     "else": "c3_s1_dig"
+    },
+    {
+     "go": "c3_s1_evacar"
+    }
+   ]
+  },
+  "c3_s1_evacar": {
+   "beats": [
+    {
+     "fx": "eva_ditch",
+     "shot": "eva_ditch",
+     "note": {
+      "ru": "В фарах — её машина в кювете, полузанесённая снегом.",
+      "en": "In the headlights — her car in the ditch, half buried in snow."
+     },
+     "dur": 2.8
+    },
+    {
+     "fx": "eva_in_ditch",
+     "shot": "eva_ditch_in",
+     "note": {
+      "ru": "Внутри — Ева. Схватки. Губы синие. Она поехала сама и застряла.",
+      "en": "Eva is inside. Contractions. Her lips are blue. She drove on alone and got stuck."
+     },
+     "dur": 3.2
+    },
+    {
+     "say": "eva",
+     "ru": "Я соврала… Не через месяц. Сейчас.",
+     "en": "I lied… It’s not next month. It’s now.",
+     "shot": "eva_ditch_in"
+    },
+    {
+     "set": {
+      "eva_found": 1
+     }
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "Нести её на руках к огоньку",
+        "en": "Carry her to the light",
+        "go": "c3_s1_carry"
+       },
+       {
+        "ru": "Бежать за помощью одному",
+        "en": "Run for help alone",
+        "go": "c3_s1_run"
+       },
+       {
+        "silent": true,
+        "go": "c3_s1_carry"
+       }
+      ],
+      "shot": "noah_out"
+     }
+    }
+   ]
+  },
+  "c3_s1_carry": {
+   "beats": [
+    {
+     "set": {
+      "eva_cold": 1,
+      "walked": 1
+     }
+    },
+    {
+     "fx": "carry_eva",
+     "shot": "walk_snow",
+     "note": {
+      "ru": "Ной несёт её на руках. Снег по колено. Айрис с Дэнни — следом.",
+      "en": "Noah carries her in his arms. Knee-deep snow. Iris and Danny follow."
+     },
+     "dur": 3.2,
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "fx": "carry_eva",
+     "shot": "walk_snow",
+     "note": {
+      "ru": "Ной несёт её на руках. Снег по колено. Айрис — следом.",
+      "en": "Noah carries her in his arms. Knee-deep snow. Iris follows."
+     },
+     "dur": 3.2,
+     "if": {
+      "danny": "==0"
+     }
+    },
+    {
+     "go": "c3_s2"
+    }
+   ]
+  },
+  "c3_s1_run": {
+   "beats": [
+    {
+     "set": {
+      "iris_alone": 1,
+      "trust": 1
+     }
+    },
+    {
+     "fx": "noah_run",
+     "shot": "walk_snow",
+     "note": {
+      "ru": "Ной бежит к огоньку один. Айрис остаётся с Евой в машине — греет её.",
+      "en": "Noah runs for the light alone. Iris stays with Eva in the car, keeping her warm."
+     },
+     "dur": 3.2
+    },
+    {
+     "note": {
+      "ru": "Он возвращается со стариковскими санками. Быстро. Айрис запомнит.",
+      "en": "He comes back with an old man’s sled. Fast. Iris will remember that."
+     },
+     "dur": 3.0,
+     "shot": "iris"
+    },
+    {
+     "go": "c3_s2"
+    }
+   ]
+  },
+  "c3_s1_dig": {
+   "beats": [
+    {
+     "fx": "water_break",
+     "shot": "back",
+     "note": {
+      "ru": "У Евы отходят воды.",
+      "en": "Eva’s water breaks."
+     },
+     "dur": 2.4,
+     "if": {
+      "eva": ">0"
+     }
+    },
+    {
+     "say": "eva",
+     "ru": "Я соврала… Не через месяц.",
+     "en": "I lied… It’s not next month.",
+     "shot": "eva",
+     "if": {
+      "eva": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Зоя пересаживается к ней назад и держит её за руку.",
+      "en": "Zoe climbs into the back beside her and holds her hand."
+     },
+     "dur": 2.8,
+     "shot": "back",
+     "if": {
+      "eva": ">0",
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "fx": "noah_dig",
+     "shot": "wheel_out",
+     "note": {
+      "ru": "Ной — механик. Спустить колёса и подложить коврики.",
+      "en": "Noah is a mechanic. Let air out of the tires and wedge the floor mats under them."
+     },
+     "dur": 2.8
+    },
+    {
+     "qte": "mash",
+     "t": 6.0,
+     "n": 12,
+     "hint": {
+      "ru": "Быстро жми E / пробел — подкопать, спустить, подложить",
+      "en": "Mash E / Space — dig, deflate, wedge"
+     },
+     "fail": "c3_s1_walk"
+    },
+    {
+     "fx": "unstuck",
+     "shot": "wheel",
+     "note": {
+      "ru": "Колёса цепляются за коврики. Машина выползает из сугроба.",
+      "en": "The tires bite on the mats. The car crawls out of the drift."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c3_s2"
+    }
+   ]
+  },
+  "c3_s1_walk": {
+   "beats": [
+    {
+     "set": {
+      "walked": 1,
+      "eva_cold": 1
+     }
+    },
+    {
+     "fx": "walk_snow",
+     "shot": "walk_snow",
+     "note": {
+      "ru": "Не вышло. Пешком: снег по колено, Айрис держит Дэнни за руку.",
+      "en": "No luck. On foot: knee-deep snow, Iris holding Danny’s hand."
+     },
+     "dur": 3.2,
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "fx": "walk_snow",
+     "shot": "walk_snow",
+     "note": {
+      "ru": "Не вышло. Пешком: снег по колено.",
+      "en": "No luck. On foot: knee-deep snow."
+     },
+     "dur": 3.0,
+     "if": {
+      "danny": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Ной ведёт Еву под руку. Она останавливается на каждой схватке.",
+      "en": "Noah holds Eva up. She stops at every contraction."
+     },
+     "dur": 3.0,
+     "shot": "walk_snow",
+     "if": {
+      "eva": ">0"
+     }
+    },
+    {
+     "go": "c3_s2"
+    }
+   ]
+  },
+  "c3_s2": {
+   "time": "19:20",
+   "beats": [
+    {
+     "fx": "village",
+     "shot": "village_street",
+     "note": {
+      "ru": "Деревня у леса. Несколько домов под снегом. Магазин с телефоном — тёмный.",
+      "en": "A village at the edge of the forest. A few houses under the snow. The store with the phone — dark."
+     },
+     "dur": 3.2
+    },
+    {
+     "say": "iris",
+     "ru": "Дом с синими ставнями. У колодца. Мама писала.",
+     "en": "The house with blue shutters. By the well. Mom wrote about it.",
+     "shot": "iris_out"
+    },
+    {
+     "fx": "agnes_door",
+     "shot": "agnes_door",
+     "note": {
+      "ru": "Дверь открывает старуха: седая коса, валенки, трубка в зубах. Она долго смотрит на Ноя.",
+      "en": "An old woman opens the door: a gray braid, felt boots, a pipe in her teeth. She looks at Noah for a long time."
+     },
+     "dur": 3.4
+    },
+    {
+     "say": "agnes",
+     "ru": "…Анечка.",
+     "en": "…Annie.",
+     "shot": "agnes"
+    },
+    {
+     "note": {
+      "ru": "Она видит в его лице мать. Потом смотрит на Айрис — и отступает, пропуская всех в тепло.",
+      "en": "She sees his mother in his face. Then she looks at Iris — and steps aside, letting them all into the warmth."
+     },
+     "dur": 3.4,
+     "shot": "agnes_door"
+    },
+    {
+     "fx": "house_in",
+     "shot": "house_wide",
+     "note": {
+      "ru": "Пахнет травами. В углу — печь. На стене — фотографии Анны девочкой.",
+      "en": "It smells of herbs. A stove in the corner. On the wall — photos of Anna as a girl."
+     },
+     "dur": 3.2
+    },
+    {
+     "note": {
+      "ru": "Анна на фотографии улыбается. Ной её не помнит. Помнит воду.",
+      "en": "Anna is smiling in the photo. Noah doesn’t remember her. He remembers water."
+     },
+     "dur": 3.0,
+     "shot": "photos"
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "«Ты — наша бабушка?»",
+        "en": "“Are you our grandmother?”",
+        "go": "c3_s2_gran"
+       },
+       {
+        "ru": "«Тут женщина рожает. Помогите»",
+        "en": "“There’s a woman in labor. Help us”",
+        "go": "c3_s2_help",
+        "if": {
+         "eva": ">0"
+        }
+       },
+       {
+        "ru": "«Тут женщина рожает. Помогите»",
+        "en": "“There’s a woman in labor. Help us”",
+        "go": "c3_s2_help",
+        "if": {
+         "eva_found": ">0"
+        }
+       },
+       {
+        "silent": true,
+        "go": "c3_s2_quiet"
+       }
+      ],
+      "shot": "noah_house"
+     }
+    }
+   ]
+  },
+  "c3_s2_gran": {
+   "beats": [
+    {
+     "set": {
+      "agnes_warm": 1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Ты — наша бабушка?",
+     "en": "Are you our grandmother?",
+     "shot": "noah_house"
+    },
+    {
+     "say": "agnes",
+     "ru": "Была. Пока ваш отец не запретил.",
+     "en": "I was. Until your father forbade it.",
+     "shot": "agnes"
+    },
+    {
+     "go": "c3_s3"
+    }
+   ]
+  },
+  "c3_s2_help": {
+   "beats": [
+    {
+     "set": {
+      "birth_time": 1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Тут женщина рожает. Помогите.",
+     "en": "There’s a woman in labor. Help us.",
+     "shot": "noah_house"
+    },
+    {
+     "fx": "sleeves",
+     "shot": "agnes"
+    },
+    {
+     "say": "agnes",
+     "ru": "Воду на печь. Чистые простыни — в сундуке.",
+     "en": "Water on the stove. Clean sheets are in the chest.",
+     "shot": "agnes"
+    },
+    {
+     "go": "c3_s3"
+    }
+   ]
+  },
+  "c3_s2_quiet": {
+   "beats": [
+    {
+     "set": {
+      "agnes_knows": 1
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Бабушка, это Ной. Он не помнит.",
+     "en": "Grandma, this is Noah. He doesn’t remember.",
+     "shot": "iris_house"
+    },
+    {
+     "fx": "agnes_nod",
+     "shot": "agnes"
+    },
+    {
+     "say": "agnes",
+     "ru": "Знаю. Это ему сделали.",
+     "en": "I know. Somebody did that to him.",
+     "shot": "agnes"
+    },
+    {
+     "go": "c3_s3"
+    }
+   ]
+  },
+  "c3_s3": {
+   "save": true,
+   "time": "21:30",
+   "beats": [
+    {
+     "if": {
+      "eva": ">0"
+     },
+     "else": "c3_s3_eva2"
+    },
+    {
+     "go": "c3_s3_dark"
+    }
+   ]
+  },
+  "c3_s3_eva2": {
+   "beats": [
+    {
+     "if": {
+      "eva_found": ">0"
+     },
+     "else": "c3_s4"
+    },
+    {
+     "go": "c3_s3_dark"
+    }
+   ]
+  },
+  "c3_s3_dark": {
+   "beats": [
+    {
+     "fx": "birth_bed",
+     "shot": "bed",
+     "note": {
+      "ru": "Еву кладут на кровать за печью. Схватки всё чаще.",
+      "en": "They lay Eva on the bed behind the stove. The contractions come faster."
+     },
+     "dur": 3.0
+    },
+    {
+     "fx": "lights_out",
+     "shot": "house_wide",
+     "note": {
+      "ru": "Свет мигает — и гаснет. Провода оборвало.",
+      "en": "The light flickers — and goes out. The lines are down."
+     },
+     "dur": 2.8
+    },
+    {
+     "say": "agnes",
+     "ru": "Без света не справлюсь. Генератор-то в сарае есть, а бензину нет. Бензин — в магазине, у Петра.",
+     "en": "I can’t do this without light. There’s a generator in the shed, but no gas. Gas is at the store — Pyotr’s place.",
+     "shot": "agnes_candle"
+    },
+    {
+     "choice": {
+      "t": 8,
+      "opts": [
+       {
+        "ru": "Пойду я",
+        "en": "I’ll go",
+        "go": "c3_s3_noah"
+       },
+       {
+        "ru": "Пусть сходит Зоя",
+        "en": "Let Zoe go",
+        "go": "c3_s3_zoe",
+        "if": {
+         "zoe": ">0",
+         "zoe_gone": "==0"
+        }
+       },
+       {
+        "ru": "Никто — свечи и печь",
+        "en": "No one — candles and the stove",
+        "go": "c3_s3_candles"
+       },
+       {
+        "silent": true,
+        "go": "c3_s3_candles"
+       }
+      ],
+      "shot": "noah_house"
+     }
+    }
+   ]
+  },
+  "c3_s3_noah": {
+   "beats": [
+    {
+     "set": {
+      "light": 1,
+      "went_noah": 1
+     }
+    },
+    {
+     "fx": "noah_storm",
+     "shot": "storm_noah",
+     "note": {
+      "ru": "Ной один в буране. Гул в голове нарастает.",
+      "en": "Noah alone in the blizzard. The hum in his head swells."
+     },
+     "dur": 3.0
+    },
+    {
+     "if": {
+      "pills": "==0"
+     },
+     "else": "c3_s3_noah_ok"
+    },
+    {
+     "go": "c3_s3_lapse"
+    }
+   ]
+  },
+  "c3_s3_noah_ok": {
+   "beats": [
+    {
+     "fx": "shop",
+     "shot": "shop",
+     "note": {
+      "ru": "Магазин. Дверь не заперта — Пётр спит в подсобке. Канистра у стены.",
+      "en": "The store. The door isn’t locked — Pyotr is asleep in the back. A gas can by the wall."
+     },
+     "dur": 3.0
+    },
+    {
+     "fx": "generator",
+     "shot": "house_wide",
+     "note": {
+      "ru": "Генератор кашляет и заводится. Свет.",
+      "en": "The generator coughs and starts. Light."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c3_s3_birth"
+    }
+   ]
+  },
+  "c3_s3_lapse": {
+   "beats": [
+    {
+     "set": {
+      "lapse_shop": 1
+     }
+    },
+    {
+     "fx": "lapse",
+     "dur": 1.4
+    },
+    {
+     "set": {
+      "shadow": 1
+     },
+     "if": {
+      "shadow": ">=1"
+     }
+    },
+    {
+     "fx": "shop_broken",
+     "shot": "shop",
+     "note": {
+      "ru": "Ной приходит в себя у магазина. В руке — канистра. Окно магазина разбито.",
+      "en": "Noah comes to outside the store. A gas can in his hand. The store window is smashed."
+     },
+     "dur": 3.2
+    },
+    {
+     "note": {
+      "ru": "Он не помнит, как сюда дошёл.",
+      "en": "He doesn’t remember getting here."
+     },
+     "dur": 2.4,
+     "shot": "noah_storm"
+    },
+    {
+     "fx": "generator",
+     "shot": "house_wide",
+     "note": {
+      "ru": "Генератор кашляет и заводится. Свет.",
+      "en": "The generator coughs and starts. Light."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c3_s3_birth"
+    }
+   ]
+  },
+  "c3_s3_zoe": {
+   "beats": [
+    {
+     "set": {
+      "light": 1,
+      "zoe_trust": 1,
+      "hale_here": 1
+     }
+    },
+    {
+     "fx": "zoe_storm",
+     "shot": "house_door",
+     "note": {
+      "ru": "Зоя уходит в метель. Долго. Потом — шаги на крыльце.",
+      "en": "Zoe walks out into the storm. A long time. Then — footsteps on the porch."
+     },
+     "dur": 3.0
+    },
+    {
+     "say": "zoe",
+     "ru": "На краю деревни стоит машина. Чёрная. С выключенными фарами.",
+     "en": "There’s a car at the edge of the village. Black. Headlights off.",
+     "shot": "zoe_house"
+    },
+    {
+     "fx": "generator",
+     "shot": "house_wide",
+     "note": {
+      "ru": "Генератор кашляет и заводится. Свет. Все знают, кто здесь.",
+      "en": "The generator coughs and starts. Light. Everyone knows who’s here."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c3_s3_birth"
+    }
+   ]
+  },
+  "c3_s3_candles": {
+   "beats": [
+    {
+     "fx": "candles",
+     "shot": "agnes_candle",
+     "note": {
+      "ru": "Свечи и отсвет печи. Агнес работает на ощупь.",
+      "en": "Candles and the glow of the stove. Agnes works by touch."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c3_s3_birth"
+    }
+   ]
+  },
+  "c3_s3_birth": {
+   "beats": [
+    {
+     "fx": "birth",
+     "shot": "bed",
+     "note": {
+      "ru": "Крик Евы. Агнес спокойная и жёсткая. Айрис держит Еву за руку.",
+      "en": "Eva screams. Agnes is calm and hard. Iris holds Eva’s hand."
+     },
+     "dur": 3.2
+    },
+    {
+     "note": {
+      "ru": "Дэнни сидит под столом, зажав уши.",
+      "en": "Danny sits under the table with his hands over his ears."
+     },
+     "dur": 2.6,
+     "shot": "danny_table",
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "say": "eva",
+     "ru": "Ты смелая, слышишь? Если меня не будет — ты справишься.",
+     "en": "You’re brave, you hear me? If I’m gone — you’ll manage.",
+     "shot": "eva_bed",
+     "if": {
+      "trust": ">=2"
+     }
+    },
+    {
+     "fx": "baby_cry",
+     "shot": "bed",
+     "note": {
+      "ru": "Плач. Девочка.",
+      "en": "A cry. A girl."
+     },
+     "dur": 2.4
+    },
+    {
+     "fx": "bleed",
+     "shot": "bed",
+     "note": {
+      "ru": "Но кровь не останавливается.",
+      "en": "But the bleeding won’t stop."
+     },
+     "dur": 2.4
+    },
+    {
+     "say": "agnes",
+     "ru": "Держи здесь! Сильнее!",
+     "en": "Press here! Harder!",
+     "shot": "agnes_bed"
+    },
+    {
+     "note": {
+      "ru": "Держит Айрис — Ной стоит у стены, его трясёт.",
+      "en": "Iris holds on — Noah stands by the wall, shaking."
+     },
+     "dur": 2.6,
+     "shot": "iris_bed",
+     "if": {
+      "lapse_shop": ">0"
+     }
+    },
+    {
+     "fx": "press",
+     "shot": "press"
+    },
+    {
+     "set": {
+      "hard": 1
+     },
+     "if": {
+      "eva_cold": ">0"
+     }
+    },
+    {
+     "set": {
+      "hard": 1
+     },
+     "if": {
+      "light": "==0"
+     }
+    },
+    {
+     "set": {
+      "hard": 1
+     },
+     "if": {
+      "lapse_shop": ">0"
+     }
+    },
+    {
+     "set": {
+      "hard": -1
+     },
+     "if": {
+      "birth_time": ">0"
+     }
+    },
+    {
+     "qte": "press",
+     "t": 7.0,
+     "n": 14,
+     "hint": {
+      "ru": "Держи! Жми E / пробел — в ритм, не отпускай",
+      "en": "Hold on! Press E / Space — keep the rhythm, don’t let go"
+     },
+     "fail": "c3_s3_dead",
+     "if": {
+      "hard": "<=0"
+     }
+    },
+    {
+     "qte": "press",
+     "t": 7.0,
+     "n": 19,
+     "hint": {
+      "ru": "Держи! Жми E / пробел — в ритм, не отпускай",
+      "en": "Hold on! Press E / Space — keep the rhythm, don’t let go"
+     },
+     "fail": "c3_s3_dead",
+     "if": {
+      "hard": "==1"
+     }
+    },
+    {
+     "qte": "press",
+     "t": 7.0,
+     "n": 24,
+     "hint": {
+      "ru": "Держи! Жми E / пробел — в ритм, не отпускай",
+      "en": "Hold on! Press E / Space — keep the rhythm, don’t let go"
+     },
+     "fail": "c3_s3_dead",
+     "if": {
+      "hard": ">=2"
+     }
+    },
+    {
+     "go": "c3_s3_alive"
+    }
+   ]
+  },
+  "c3_s3_alive": {
+   "beats": [
+    {
+     "set": {
+      "eva_alive": 1,
+      "baby": 1
+     }
+    },
+    {
+     "fx": "eva_baby",
+     "shot": "eva_bed",
+     "note": {
+      "ru": "За полночь. Ева, белая и мокрая, держит девочку.",
+      "en": "Past midnight. Eva, pale and soaked, holds the little girl."
+     },
+     "dur": 3.0
+    },
+    {
+     "say": "eva",
+     "ru": "Как её назвать?",
+     "en": "What should I call her?",
+     "shot": "eva_bed"
+    },
+    {
+     "say": "iris",
+     "ru": "Анна.",
+     "en": "Anna.",
+     "shot": "iris_bed"
+    },
+    {
+     "note": {
+      "ru": "Ева кивает.",
+      "en": "Eva nods."
+     },
+     "dur": 2.0,
+     "shot": "eva_bed"
+    },
+    {
+     "go": "c3_s4"
+    }
+   ]
+  },
+  "c3_s3_dead": {
+   "beats": [
+    {
+     "set": {
+      "eva_dead": 1,
+      "baby": 1
+     }
+    },
+    {
+     "fx": "eva_fading",
+     "shot": "eva_bed",
+     "note": {
+      "ru": "Кровь не останавливается.",
+      "en": "The bleeding won’t stop."
+     },
+     "dur": 2.4
+    },
+    {
+     "say": "eva",
+     "ru": "Назови её…",
+     "en": "Name her…",
+     "shot": "eva_bed"
+    },
+    {
+     "fx": "eva_dies",
+     "shot": "eva_bed",
+     "note": {
+      "ru": "Она не договаривает.",
+      "en": "She doesn’t finish."
+     },
+     "dur": 2.6
+    },
+    {
+     "say": "iris",
+     "ru": "Анна. Её зовут Анна.",
+     "en": "Anna. Her name is Anna.",
+     "shot": "iris_bed"
+    },
+    {
+     "note": {
+      "ru": "Младенец кричит. Агнес закрывает Еве глаза.",
+      "en": "The baby screams. Agnes closes Eva’s eyes."
+     },
+     "dur": 3.0,
+     "shot": "agnes_bed"
+    },
+    {
+     "go": "c3_s4"
+    }
+   ]
+  },
+  "c3_s4": {
+   "save": true,
+   "time": "01:10",
+   "beats": [
+    {
+     "fx": "night_stove",
+     "shot": "stove_two",
+     "note": {
+      "ru": "Дом затих. Агнес курит трубку у печи. Ной садится рядом.",
+      "en": "The house is quiet. Agnes smokes her pipe by the stove. Noah sits down beside her."
+     },
+     "dur": 3.2
+    },
+    {
+     "say": "agnes",
+     "ru": "Озеро своих не отпускает, милок. Кто утоп — тот при нём и остаётся. А злость его — в том, кто видел.",
+     "en": "The lake doesn’t let its own go, dear. Whoever drowns stays with it. And its anger lives in whoever saw.",
+     "shot": "agnes_stove"
+    },
+    {
+     "say": "agnes",
+     "ru": "Мать твоя в тебе сидит. Она Айрис и уберегла.",
+     "en": "Your mother lives in you. She’s the one who kept Iris safe.",
+     "shot": "agnes_stove"
+    },
+    {
+     "say": "noah",
+     "ru": "Врач говорил — это болезнь.",
+     "en": "The doctor said it’s an illness.",
+     "shot": "noah_stove"
+    },
+    {
+     "say": "agnes",
+     "ru": "Врач… Она ж ко мне приезжала. За неделю до того. Говорит: мам, уйду я от него. А я ей: сходи к доктору, он человек грамотный, поможет.",
+     "en": "The doctor… She came to me, you know. A week before. Said: Mom, I’m leaving him. And I told her: go see the doctor, he’s an educated man, he’ll help.",
+     "shot": "agnes_stove"
+    },
+    {
+     "fx": "pipe",
+     "shot": "agnes_stove"
+    },
+    {
+     "say": "agnes",
+     "ru": "Сама её к нему и послала.",
+     "en": "I sent her to him myself.",
+     "shot": "agnes_stove"
+    },
+    {
+     "if": {
+      "trust": ">=3"
+     },
+     "else": "c3_s4_belief"
+    },
+    {
+     "go": "c3_s4_diary"
+    }
+   ]
+  },
+  "c3_s4_diary": {
+   "beats": [
+    {
+     "set": {
+      "agnes_knows_hale": 1
+     }
+    },
+    {
+     "fx": "diary_agnes",
+     "shot": "iris_house",
+     "note": {
+      "ru": "Айрис достаёт мамин дневник и показывает бабушке последнюю страницу.",
+      "en": "Iris takes out Mom’s diary and shows Grandma the last page."
+     },
+     "dur": 3.0
+    },
+    {
+     "say": "iris",
+     "ru": "«Саймон обещал. В субботу ночью он нас увезёт. Ной уже собрал рюкзак».",
+     "en": "“Simon promised. Saturday night he’ll take us away. Noah has already packed his backpack.”",
+     "shot": "diary_page"
+    },
+    {
+     "note": {
+      "ru": "Агнес читает долго. Про ту ночь знал только доктор.",
+      "en": "Agnes reads for a long time. Only the doctor knew about that night."
+     },
+     "dur": 3.0,
+     "shot": "agnes_stove"
+    },
+    {
+     "go": "c3_s4_belief"
+    }
+   ]
+  },
+  "c3_s4_belief": {
+   "beats": [
+    {
+     "choice": {
+      "t": 8,
+      "opts": [
+       {
+        "ru": "«Это болезнь. Мне надо лечиться»",
+        "en": "“It’s an illness. I need treatment”",
+        "go": "c3_s4_doctor"
+       },
+       {
+        "ru": "«Значит… мама со мной?»",
+        "en": "“So… Mom is with me?”",
+        "go": "c3_s4_healer"
+       },
+       {
+        "ru": "«Я не знаю»",
+        "en": "“I don’t know”",
+        "go": "c3_s4_unsure"
+       },
+       {
+        "silent": true,
+        "go": "c3_s4_unsure"
+       }
+      ],
+      "shot": "noah_stove"
+     }
+    }
+   ]
+  },
+  "c3_s4_doctor": {
+   "beats": [
+    {
+     "set": {
+      "belief_doctor": 1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Это болезнь. Мне надо лечиться.",
+     "en": "It’s an illness. I need treatment.",
+     "shot": "noah_stove"
+    },
+    {
+     "note": {
+      "ru": "Агнес сжимает губы.",
+      "en": "Agnes presses her lips together."
+     },
+     "dur": 2.2,
+     "shot": "agnes_stove"
+    },
+    {
+     "go": "c3_s4_pills"
+    }
+   ]
+  },
+  "c3_s4_healer": {
+   "beats": [
+    {
+     "set": {
+      "belief_healer": 1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Значит… мама со мной?",
+     "en": "So… Mom is with me?",
+     "shot": "noah_stove"
+    },
+    {
+     "fx": "agnes_hand",
+     "shot": "stove_two",
+     "note": {
+      "ru": "Агнес берёт его руку в свои.",
+      "en": "Agnes takes his hand in both of hers."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c3_s4_pills"
+    }
+   ]
+  },
+  "c3_s4_unsure": {
+   "beats": [
+    {
+     "set": {
+      "belief_none": 1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Я не знаю.",
+     "en": "I don’t know.",
+     "shot": "noah_stove"
+    },
+    {
+     "say": "agnes",
+     "ru": "Узнаешь. У озера все узнают.",
+     "en": "You’ll find out. Everyone does, at the lake.",
+     "shot": "agnes_stove"
+    },
+    {
+     "go": "c3_s4_pills"
+    }
+   ]
+  },
+  "c3_s4_pills": {
+   "beats": [
+    {
+     "if": {
+      "pills_flushed": "==0"
+     },
+     "else": "c3_s4_brew"
+    },
+    {
+     "say": "agnes",
+     "ru": "Дай мне его отраву.",
+     "en": "Give me his poison.",
+     "shot": "agnes_stove"
+    },
+    {
+     "fx": "pills3",
+     "shot": "pill_label"
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "Отдать",
+        "en": "Give them to her",
+        "go": "c3_s4_give"
+       },
+       {
+        "ru": "Не отдавать и принять таблетку на ночь",
+        "en": "Keep them and take a pill for the night",
+        "go": "c3_s4_take"
+       },
+       {
+        "ru": "Не отдавать и не пить ничего",
+        "en": "Keep them and take nothing",
+        "go": "c3_s4_keep"
+       },
+       {
+        "silent": true,
+        "go": "c3_s4_keep"
+       }
+      ],
+      "shot": "noah_stove"
+     }
+    }
+   ]
+  },
+  "c3_s4_give": {
+   "beats": [
+    {
+     "set": {
+      "pills_burned": 1,
+      "brew": 1,
+      "night_lapse": 1
+     }
+    },
+    {
+     "fx": "burn_pills",
+     "shot": "stove_fire",
+     "note": {
+      "ru": "Агнес бросает пузырёк в печь. Пластик съёживается в огне.",
+      "en": "Agnes throws the bottle into the stove. The plastic shrivels in the fire."
+     },
+     "dur": 3.0
+    },
+    {
+     "say": "agnes",
+     "ru": "Пей. Спать будешь крепко.",
+     "en": "Drink. You’ll sleep soundly.",
+     "shot": "agnes_stove"
+    },
+    {
+     "fx": "drink_brew",
+     "shot": "noah_stove",
+     "note": {
+      "ru": "Отвар горький, пахнет землёй.",
+      "en": "The brew is bitter. It smells of earth."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c3_s5"
+    }
+   ]
+  },
+  "c3_s4_take": {
+   "beats": [
+    {
+     "set": {
+      "pills": 1,
+      "pills3": 1
+     }
+    },
+    {
+     "fx": "take_pill",
+     "shot": "noah_stove",
+     "note": {
+      "ru": "Ной глотает таблетку. Гул в голове стихает.",
+      "en": "Noah swallows a pill. The hum in his head fades."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "agnes_away",
+     "shot": "agnes_stove"
+    },
+    {
+     "say": "agnes",
+     "ru": "Ты так похож на него сейчас. На отца.",
+     "en": "You look so much like him right now. Like your father.",
+     "shot": "agnes_stove"
+    },
+    {
+     "go": "c3_s5"
+    }
+   ]
+  },
+  "c3_s4_keep": {
+   "beats": [
+    {
+     "set": {
+      "pills_kept": 1
+     }
+    },
+    {
+     "say": "agnes",
+     "ru": "Упрямый. Как она.",
+     "en": "Stubborn. Like her.",
+     "shot": "agnes_stove"
+    },
+    {
+     "set": {
+      "night_lapse": 1
+     },
+     "if": {
+      "shadow": ">=1"
+     }
+    },
+    {
+     "go": "c3_s5"
+    }
+   ]
+  },
+  "c3_s4_brew": {
+   "beats": [
+    {
+     "fx": "brew_cup",
+     "shot": "stove_two",
+     "note": {
+      "ru": "Таблеток нет. Агнес просто ставит перед ним кружку отвара.",
+      "en": "There are no pills. Agnes just sets a mug of her brew in front of him."
+     },
+     "dur": 3.0
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "Выпить",
+        "en": "Drink it",
+        "go": "c3_s4_brew_yes"
+       },
+       {
+        "ru": "Не пить",
+        "en": "Don’t drink",
+        "go": "c3_s4_brew_no"
+       },
+       {
+        "silent": true,
+        "go": "c3_s4_brew_no"
+       }
+      ],
+      "shot": "noah_stove"
+     }
+    }
+   ]
+  },
+  "c3_s4_brew_yes": {
+   "beats": [
+    {
+     "set": {
+      "brew": 1,
+      "night_lapse": 1
+     }
+    },
+    {
+     "fx": "drink_brew",
+     "shot": "noah_stove",
+     "note": {
+      "ru": "Отвар горький, пахнет землёй.",
+      "en": "The brew is bitter. It smells of earth."
+     },
+     "dur": 2.4
+    },
+    {
+     "say": "agnes",
+     "ru": "Пей. Спать будешь крепко.",
+     "en": "Drink. You’ll sleep soundly.",
+     "shot": "agnes_stove"
+    },
+    {
+     "go": "c3_s5"
+    }
+   ]
+  },
+  "c3_s4_brew_no": {
+   "beats": [
+    {
+     "say": "agnes",
+     "ru": "Упрямый. Как она.",
+     "en": "Stubborn. Like her.",
+     "shot": "agnes_stove"
+    },
+    {
+     "set": {
+      "night_lapse": 1
+     },
+     "if": {
+      "shadow": ">=1"
+     }
+    },
+    {
+     "go": "c3_s5"
+    }
+   ]
+  },
+  "c3_s5": {
+   "time": "03:40",
+   "beats": [
+    {
+     "fx": "fade_out",
+     "dur": 1.2
+    },
+    {
+     "if": {
+      "night_lapse": ">0"
+     },
+     "else": "c3_s5_song"
+    },
+    {
+     "go": "c3_s5_lapse"
+    }
+   ]
+  },
+  "c3_s5_lapse": {
+   "beats": [
+    {
+     "fx": "second_noah",
+     "shot": "axe_back",
+     "note": {
+      "ru": "Ной открывает глаза. Он стоит босиком в снегу у последнего дома — лицом к лесу, к озеру. В руке — топор из поленницы.",
+      "en": "Noah opens his eyes. He is standing barefoot in the snow by the last house — facing the forest, the lake. In his hand — an axe from the woodpile."
+     },
+     "dur": 4.0
+    },
+    {
+     "fx": "iris_behind",
+     "shot": "axe_iris",
+     "note": {
+      "ru": "Сзади хрустит снег. Айрис — в одной кофте.",
+      "en": "Snow crunches behind him. Iris — in nothing but a sweater."
+     },
+     "dur": 2.8
+    },
+    {
+     "say": "iris",
+     "ru": "Ной… Это я. Это Айрис.",
+     "en": "Noah… It’s me. It’s Iris.",
+     "shot": "axe_iris"
+    },
+    {
+     "fx": "noah_turn",
+     "shot": "axe_face"
+    },
+    {
+     "say": "anna",
+     "ru": "Не ходи к озеру одна.",
+     "en": "Don’t go to the lake alone.",
+     "shot": "axe_face",
+     "lips": "noah"
+    },
+    {
+     "fx": "axe_drop",
+     "shot": "axe_snow",
+     "note": {
+      "ru": "Он приходит в себя. Топор падает в снег.",
+      "en": "He comes to. The axe drops into the snow."
+     },
+     "dur": 2.8
+    },
+    {
+     "say": "agnes",
+     "ru": "Это была она.",
+     "en": "That was her.",
+     "shot": "agnes_door",
+     "if": {
+      "belief_doctor": "==0"
+     }
+    },
+    {
+     "if": {
+      "danny": ">0"
+     },
+     "else": "c3_s6"
+    },
+    {
+     "note": {
+      "ru": "Дэнни видел всё в окно.",
+      "en": "Danny saw it all through the window."
+     },
+     "dur": 2.4,
+     "shot": "danny_window"
+    },
+    {
+     "if": {
+      "danny_fear": ">0"
+     },
+     "else": "c3_s5_shadow2"
+    },
+    {
+     "go": "c3_s5_danny"
+    }
+   ]
+  },
+  "c3_s5_shadow2": {
+   "beats": [
+    {
+     "if": {
+      "shadow": ">=2"
+     },
+     "else": "c3_s6"
+    },
+    {
+     "go": "c3_s5_danny"
+    }
+   ]
+  },
+  "c3_s5_danny": {
+   "beats": [
+    {
+     "fx": "danny_door",
+     "shot": "danny_door",
+     "note": {
+      "ru": "Перед рассветом у двери — Дэнни. В валенках, с рацией.",
+      "en": "Before dawn, Danny is at the door. In felt boots, with his walkie-talkie."
+     },
+     "dur": 3.0
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "«Подожди. Я тебе обещал — и нарушил. Прости»",
+        "en": "“Wait. I made you a promise — and broke it. I’m sorry”",
+        "go": "c3_s5_sorry"
+       },
+       {
+        "ru": "«Иди. Я тебя не держу»",
+        "en": "“Go. I won’t stop you”",
+        "go": "c3_s5_go"
+       },
+       {
+        "ru": "Перегородить дверь",
+        "en": "Block the door",
+        "go": "c3_s5_block"
+       },
+       {
+        "silent": true,
+        "go": "c3_s5_go"
+       }
+      ],
+      "shot": "noah_house"
+     }
+    }
+   ]
+  },
+  "c3_s5_sorry": {
+   "beats": [
+    {
+     "say": "noah",
+     "ru": "Подожди. Я тебе обещал — и нарушил. Прости.",
+     "en": "Wait. I made you a promise — and broke it. I’m sorry.",
+     "shot": "noah_house"
+    },
+    {
+     "if": {
+      "danny_fear": "==0"
+     },
+     "else": "c3_s5_go_lie"
+    },
+    {
+     "fx": "danny_stays",
+     "shot": "danny_door",
+     "note": {
+      "ru": "Дэнни долго смотрит на него. Потом снимает валенки.",
+      "en": "Danny looks at him for a long time. Then he takes off the felt boots."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c3_s6"
+    }
+   ]
+  },
+  "c3_s5_go_lie": {
+   "beats": [
+    {
+     "note": {
+      "ru": "«Ты и тогда так говорил». Дэнни выходит в буран.",
+      "en": "“You said that last time too.” Danny walks out into the storm."
+     },
+     "dur": 3.0,
+     "shot": "danny_door"
+    },
+    {
+     "go": "c3_s5_lost"
+    }
+   ]
+  },
+  "c3_s5_go": {
+   "beats": [
+    {
+     "say": "noah",
+     "ru": "Иди. Я тебя не держу.",
+     "en": "Go. I won’t stop you.",
+     "shot": "noah_house"
+    },
+    {
+     "note": {
+      "ru": "Дэнни выходит в буран.",
+      "en": "Danny walks out into the storm."
+     },
+     "dur": 2.4,
+     "shot": "danny_door"
+    },
+    {
+     "go": "c3_s5_lost"
+    }
+   ]
+  },
+  "c3_s5_block": {
+   "beats": [
+    {
+     "fx": "block_door",
+     "shot": "danny_door",
+     "note": {
+      "ru": "Ной встаёт в дверях. Дэнни пятится — и через окно, в снег.",
+      "en": "Noah stands in the doorway. Danny backs away — and out the window, into the snow."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c3_s5_lost"
+    }
+   ]
+  },
+  "c3_s5_lost": {
+   "beats": [
+    {
+     "set": {
+      "danny_lost": 1
+     }
+    },
+    {
+     "fx": "danny_tracks",
+     "shot": "tracks",
+     "note": {
+      "ru": "Следы в сторону трассы заметает буран.",
+      "en": "The blizzard fills in the tracks heading toward the highway."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c3_s6"
+    }
+   ]
+  },
+  "c3_s5_song": {
+   "beats": [
+    {
+     "fx": "baby_night",
+     "shot": "house_night",
+     "note": {
+      "ru": "Ной просыпается от плача младенца.",
+      "en": "Noah wakes to the baby crying."
+     },
+     "dur": 2.6,
+     "if": {
+      "baby": ">0"
+     }
+    },
+    {
+     "fx": "baby_night",
+     "shot": "house_night",
+     "note": {
+      "ru": "Ной просыпается среди ночи. Тишина. Печь потрескивает.",
+      "en": "Noah wakes in the night. Silence. The stove crackles."
+     },
+     "dur": 2.8,
+     "if": {
+      "baby": "==0"
+     }
+    },
+    {
+     "if": {
+      "danny": ">0"
+     },
+     "else": "c3_s5_song2"
+    },
+    {
+     "fx": "radio_song",
+     "shot": "danny_window",
+     "note": {
+      "ru": "Дэнни сидит у окна с рацией. Рация трещит — и сквозь помехи тихо поёт женский голос. Та самая колыбельная.",
+      "en": "Danny sits by the window with his walkie-talkie. It crackles — and through the static a woman softly sings. That same lullaby."
+     },
+     "dur": 4.0
+    },
+    {
+     "note": {
+      "ru": "Дэнни смотрит на Ноя огромными глазами.",
+      "en": "Danny stares at Noah with enormous eyes."
+     },
+     "dur": 2.4,
+     "shot": "danny_window"
+    },
+    {
+     "go": "c3_s5_song3"
+    }
+   ]
+  },
+  "c3_s5_song2": {
+   "beats": [
+    {
+     "fx": "radio_song",
+     "shot": "house_night",
+     "note": {
+      "ru": "Из старого приёмника на полке, сквозь помехи, тихо поёт женский голос. Та самая колыбельная.",
+      "en": "From the old radio on the shelf, through the static, a woman softly sings. That same lullaby."
+     },
+     "dur": 4.0
+    },
+    {
+     "go": "c3_s5_song3"
+    }
+   ]
+  },
+  "c3_s5_song3": {
+   "beats": [
+    {
+     "set": {
+      "heard_song": 1
+     }
+    },
+    {
+     "say": "agnes",
+     "ru": "Это Аня поёт.",
+     "en": "That’s Annie singing.",
+     "shot": "agnes_sleep"
+    },
+    {
+     "go": "c3_s6"
+    }
+   ]
+  },
+  "c3_s6": {
+   "save": true,
+   "time": "06:20",
+   "beats": [
+    {
+     "fx": "dawn_street",
+     "shot": "street_end",
+     "note": {
+      "ru": "Под утро буран стихает. В конце улицы загораются фары — чёрный седан. Гаснут.",
+      "en": "Toward morning the storm dies down. At the end of the street, headlights come on — the black sedan. They go out."
+     },
+     "dur": 3.6
+    },
+    {
+     "say": "agnes",
+     "ru": "Это он. Он и тогда приезжал. После Ани.",
+     "en": "It’s him. He came back then too. After Annie.",
+     "shot": "agnes_window"
+    },
+    {
+     "say": "iris",
+     "ru": "До дачи двадцать километров. Лесом.",
+     "en": "It’s twenty kilometers to the cabin. Through the woods.",
+     "shot": "iris_house"
+    },
+    {
+     "choice": {
+      "t": 8,
+      "opts": [
+       {
+        "ru": "Выйти к машине — с топором",
+        "en": "Go out to the car — with the axe",
+        "go": "c3_s6_axe"
+       },
+       {
+        "ru": "Спрятать всех в подпол и ждать",
+        "en": "Hide everyone in the cellar and wait",
+        "go": "c3_s6_cellar"
+       },
+       {
+        "ru": "Уйти задами, огородами — к соседке",
+        "en": "Slip out the back, through the gardens — to the neighbor’s",
+        "go": "c3_s6_neighbor"
+       },
+       {
+        "silent": true,
+        "go": "c3_s6_cellar"
+       }
+      ],
+      "shot": "noah_house"
+     }
+    }
+   ]
+  },
+  "c3_s6_axe": {
+   "beats": [
+    {
+     "set": {
+      "shadow": 1,
+      "hale_brave": 1
+     }
+    },
+    {
+     "fx": "axe_walk",
+     "shot": "street_walk",
+     "note": {
+      "ru": "Ной идёт по пустой улице к седану. Топор в руке.",
+      "en": "Noah walks down the empty street toward the sedan. The axe in his hand."
+     },
+     "dur": 3.0
+    },
+    {
+     "fx": "sedan_reverse",
+     "shot": "street_end",
+     "note": {
+      "ru": "Седан уезжает задом, не включая фар.",
+      "en": "The sedan backs away without turning on its lights."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c3_end"
+    }
+   ]
+  },
+  "c3_s6_cellar": {
+   "beats": [
+    {
+     "set": {
+      "hale_knows": 1
+     }
+    },
+    {
+     "fx": "cellar",
+     "shot": "cellar",
+     "note": {
+      "ru": "Подпол. Темнота и запах картошки. Тишина — час.",
+      "en": "The cellar. Darkness and the smell of potatoes. Silence — for an hour."
+     },
+     "dur": 3.0
+    },
+    {
+     "fx": "knock",
+     "shot": "cellar",
+     "note": {
+      "ru": "Потом стук в дверь — три раза, вежливо. Никто не открывает. Шаги уходят.",
+      "en": "Then a knock at the door — three times, politely. No one answers. Footsteps walk away."
+     },
+     "dur": 3.6
+    },
+    {
+     "go": "c3_end"
+    }
+   ]
+  },
+  "c3_s6_neighbor": {
+   "beats": [
+    {
+     "set": {
+      "hale_lost": 1
+     }
+    },
+    {
+     "fx": "neighbor",
+     "shot": "gardens",
+     "note": {
+      "ru": "Агнес собирает узел трав и ведёт всех задами, огородами — к соседке на краю деревни.",
+      "en": "Agnes bundles up her herbs and leads everyone out the back, through the gardens — to the neighbor’s at the edge of the village."
+     },
+     "dur": 3.6
+    },
+    {
+     "note": {
+      "ru": "До света у Хейла нет их следа. Но лесом ночью, с младенцем, до дачи не дойти.",
+      "en": "Until daylight, Hale has lost their trail. But at night, through the woods, with a baby — they’d never reach the cabin."
+     },
+     "dur": 3.6,
+     "shot": "gardens"
+    },
+    {
+     "go": "c3_end"
+    }
+   ]
+  },
+  "c3_end": {
+   "beats": [
+    {
+     "fx": "fade_out",
+     "dur": 1.4
+    },
+    {
+     "end": 3
+    }
+   ]
+  }
+ }
+}

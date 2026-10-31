@@ -21,6 +21,7 @@ var _steer_in := 0.0
 var _qte := ""
 var _qte_ok := true
 var _qte_drift := 0.0
+var _qte_n := 10              # сколько нажатий нужно (действия mash и press)
 var _rng := RandomNumberGenerator.new()
 var log_lines: Array[String] = []
 var _snaps: Array = []
@@ -52,6 +53,7 @@ var _skid_cd := 0.0
 var _vo := {}                 # озвучка языка: ключ реплики → {dur, w (слова со временем), e (громкость), g}
 var _vo_lang := ""
 var _chapters := {}           # номер главы → {start, ready, title, map}
+var c3 := {}                  # состояние главы 3 (scripts/chapter3.gd): деревня, дом Агнес, роды, ночь
 var c2 := {}                  # состояние главы 2 (scripts/chapter2.gd): двойник в зеркале, пост, зеркало туалета…
 const IN_CAR := ["pov", "hands", "noah", "iris", "two", "notebook", "radio", "glovebox", "road", "cluster", "pills", "back",
 	"deer_eye", "mirror", "mirror_back"]    # планы из салона: снаружи слышно глухо
@@ -199,6 +201,8 @@ func _load_save() -> bool:
 		_seat_in_car("danny", "back")
 	if id.begins_with("c2"):
 		Ch2.restore(self, id)   # глава 2: кто в машине (Зоя, Ева), время суток
+	elif id.begins_with("c3"):
+		Ch3.restore(self, id)   # глава 3: дорога, деревня или дом Агнес
 	_run(id)
 	return true
 
@@ -287,12 +291,13 @@ func _beat(b: Dictionary):
 		var dur := clampf(0.9 + text.length() / 15.0, 1.4, 9.0)
 		var vo: Dictionary = _voice_line(String(b.get("_vo", "")))
 		hud.line(who, data.names.get(who, ""), b)
+		var lips := String(b.get("lips", who))   # чьи губы двигаются (говорит «чужой голос» — губы Ноя)
 		if not vo.is_empty():   # озвучка: длина реплики — по голосу, губы — по словам и громкости
 			dur = maxf(float(vo.dur) + 0.35, 1.0)
-			if actors.has(who):
-				(actors[who] as Actor).say(text, float(vo.dur), vo.get("w", []), String(vo.get("e", "")))
-		elif actors.has(who):
-			(actors[who] as Actor).say(text, dur * 0.8)
+			if actors.has(lips):
+				(actors[lips] as Actor).say(text, float(vo.dur), vo.get("w", []), String(vo.get("e", "")))
+		elif actors.has(lips):
+			(actors[lips] as Actor).say(text, dur * 0.8)
 		await _wait(dur)
 		sfx.voice_stop()
 		hud.clear_text()
@@ -324,6 +329,7 @@ func _beat(b: Dictionary):
 		_log("посмотрел: %s" % ("да" if seen else "нет"))
 		return String(b.yes if seen else b.no)
 	if b.has("qte"):
+		_qte_n = int(b.get("n", 10))
 		var ok: bool = await _do_qte(String(b.qte), float(b.get("t", 3.0)), b.get("hint"))
 		_log("действие %s: %s" % [b.qte, "удалось" if ok else "нет"])
 		if not ok and b.has("fail"):
@@ -385,7 +391,7 @@ func _place_cam() -> void:
 		var eye := hb.origin + hb.basis.y.normalized() * 0.09 + hb.basis.z.normalized() * 0.13
 		cam.fov = 72.0
 		cam.look_at_from_position(eye, eye - scene.car.global_transform.basis.z * 10.0 + Vector3(0, -3.0, 0))
-	elif Ch2.cam(self, _shot):   # планы главы 2, которые зависят от того, где герои
+	elif Ch2.cam(self, _shot) or Ch3.cam(self, _shot):   # планы глав 2 и 3, которые зависят от того, где герои
 		pass
 	elif _shot in ["mirror", "mirror_back", "mirror_self", "mirror_zoe"]:   # глазами Ноя — в зеркало заднего вида
 		var noah: Actor = actors.noah
@@ -704,7 +710,7 @@ func _lapse_black() -> void:
 
 
 func _fx(k: String) -> void:
-	if Ch2.fx(self, k):   # события главы 2 (scripts/chapter2.gd)
+	if Ch2.fx(self, k) or Ch3.fx(self, k):   # события глав 2 и 3 (scripts/chapter2.gd, chapter3.gd)
 		return
 	_fx_sound(k)
 	var fade := hud.fade
@@ -1100,15 +1106,40 @@ func _do_peek(t: float, hint_d) -> bool:
 
 
 func _do_qte(kind: String, t: float, hint_d) -> bool:
-	hud.hint.text = hud.T(hint_d) if hint_d != null else ""
+	var hint0: String = hud.T(hint_d) if hint_d != null else ""
+	hud.hint.text = hint0
 	_qte = kind
-	_qte_ok = true
+	_qte_ok = kind not in ["mash", "press"]   # жать: удалось, только если набрали нужное число нажатий
 	_qte_drift = 0.0
 	var left := t
+	var got := 0
+	var last_press := -1.0
+	var auto_t := 0.0
+	var held_prev := true   # нажатие, которое было до начала, не считаем
 	while left > 0.0:
 		await get_tree().process_frame
 		var dt := _dt()
 		left -= dt
+		if kind == "mash" or kind == "press":   # mash — быстро n раз; press — в ритм (чаще 8 раз в секунду не засчитывается)
+			var held := Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_SPACE) or Input.is_action_pressed("ui_accept") \
+				or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+			var hit := held and not held_prev
+			held_prev = held
+			if autoplay:
+				auto_t += dt
+				hit = auto_t >= 0.24 and not (kind in _miss)
+				if hit:
+					auto_t = 0.0
+			if hit and (kind == "mash" or t - left - last_press >= 0.12):
+				got += 1
+				last_press = t - left
+				_shake = maxf(_shake, 0.12)
+				sfx.play("blow" if kind == "press" else "snow_steps", -22.0 if kind == "press" else -14.0, randf_range(0.9, 1.15))
+			hud.hint.text = "%s   %s" % [hint0, "■".repeat(mini(got, _qte_n)) + "□".repeat(maxi(0, _qte_n - got))]
+			if got >= _qte_n:
+				_qte_ok = true
+				break
+			continue
 		if kind == "steer":   # машину ведёт к обочине: игрок держит её на полосе
 			var push := sin(_t * 1.3) * 0.9 + 0.6   # снос вправо (+), руль влево (−) его гасит
 			var inp := _steer_in if not autoplay else clampf(-_qte_drift * 3.0 - push / 2.2, -1.0, 1.0)
@@ -1343,6 +1374,8 @@ func _process(delta: float) -> void:
 	if not c2.is_empty():
 		Ch2.process(self)
 		Ch2.flash(self, _t)
+	if not c3.is_empty():
+		Ch3.process(self, delta)
 	for who in _walks.keys():
 		var wk: Array = _walks[who]
 		var a: Actor = actors[who]

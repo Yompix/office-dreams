@@ -42,7 +42,8 @@ static func leave_behind(g, key: String) -> void:
 
 ## Идёт глава 2 (сцены c2_*): планы героев в машине ставятся по месту, где кто сидит.
 static func active(g) -> bool:
-	return String(g._scene_id).begins_with("c2")
+	var sid := String(g._scene_id)
+	return sid.begins_with("c2") or sid.begins_with("c3")   # глава 3 начинается в той же машине
 
 
 static func on(g, f: String) -> bool:
@@ -93,6 +94,8 @@ static func restore(g, id: String) -> void:
 
 
 static func fx(g, k: String) -> bool:
+	if not String(g._scene_id).begins_with("c2"):
+		return false   # только в главе 2
 	var s: DriveScene = g.scene
 	var c2: Dictionary = g.c2
 	match k:
