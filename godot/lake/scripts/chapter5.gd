@@ -217,8 +217,8 @@ static func fx(g, k: String) -> bool:
 				(dd as Node).queue_free()
 		"iris_ice":
 			put(g, "iris", PW + Vector3(3.6, 0.0, 3.0), -120.0, "Idle_FoldArms")
-		"agnes_out":   # бабушка выбежала на берег (без колыбельной её там не было — камера улетала)
-			if has(g, "agnes"):
+		"agnes_out":   # бабушка выбежала на берег (без колыбельной её там не было — камера улетала); put сам делает её видимой
+			if not on(g, "agnes_dead"):
 				put(g, "agnes", L(-10.5, 0.0, 4.5), 70.0, "Idle")
 		"agnes_sings":
 			put(g, "agnes", L(-10.5, 0.0, 4.5), 70.0, "Idle")

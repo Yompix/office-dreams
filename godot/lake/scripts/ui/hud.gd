@@ -89,6 +89,8 @@ void fragment() {
 }
 """
 var peek: ColorRect
+var page_bg: ColorRect          # «осмотр»: лист блокнота поверх кадра (рисунки Айрис), под субтитрами
+var page_rect: TextureRect
 
 func _ready() -> void:
 	layer = 10
@@ -124,6 +126,23 @@ func _ready() -> void:
 	peek.visible = false
 	root.add_child(peek)
 	root.move_child(peek, 1)
+	page_bg = ColorRect.new()
+	page_bg.color = Color(0.02, 0.02, 0.03, 0.78)
+	page_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	page_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	page_bg.visible = false
+	root.add_child(page_bg)
+	root.move_child(page_bg, 2)
+	page_rect = TextureRect.new()
+	page_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	page_rect.anchor_top = 0.05
+	page_rect.anchor_bottom = 0.8
+	page_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	page_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	page_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	page_rect.visible = false
+	root.add_child(page_rect)
+	root.move_child(page_rect, 3)
 	static_rect = ColorRect.new()
 	static_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	static_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -558,3 +577,14 @@ func peek_on(on: bool) -> void:
 	var sz := get_viewport().get_visible_rect().size
 	(peek.material as ShaderMaterial).set_shader_parameter("amount", 1.0 if on else 0.0)
 	(peek.material as ShaderMaterial).set_shader_parameter("aspect", sz.x / maxf(sz.y, 1.0))
+
+
+## Лист блокнота во весь экран (осмотр рисунка): null — убрать.
+func page_view(tex: Texture2D) -> void:
+	if page_rect == null:
+		return
+	page_rect.texture = tex
+	page_rect.visible = tex != null
+	page_bg.visible = tex != null
+	note.anchor_top = 0.82 if tex != null else 0.45   # текст рассказчика — под листом, а не поверх рисунка
+	note.anchor_bottom = 0.97 if tex != null else 0.6

@@ -387,6 +387,8 @@ func _dt() -> float:
 func _cut(shot: String) -> void:
 	_shot = shot
 	hud.peek_on(shot in ["gap_view", "gap_close", "flash_shore"])   # глазами мальчика сквозь щель сарая
+	var pn := int(c4.get("page_n", 0))   # рисунок Айрис — листом поверх кадра, в какой бы позе ни держали блокнот
+	hud.page_view(load("res://assets/textures/drawing_%d.png" % pn) if shot == "drawing" and pn > 0 else null)
 	scene.car.mirror(shot in ["mirror", "mirror_back", "mirror_self", "mirror_zoe"], {"mirror_back": "back", "mirror_zoe": "back", "mirror_self": "self"}.get(shot, "road"))
 	_place_cam()
 	if _shotlog != "":

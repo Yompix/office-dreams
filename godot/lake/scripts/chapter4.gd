@@ -785,6 +785,7 @@ static func notebook(g, who: String) -> void:
 
 
 static func _page(g, n: int) -> void:
+	g.c4["page_n"] = n   # лист поверх кадра (game._cut → hud.page_view)
 	var page = g.c4.get("book_page")
 	if not (page and is_instance_valid(page)):
 		return
@@ -1236,8 +1237,12 @@ static func _far_sedan(g) -> void:
 	fb.rotation_degrees = Vector3(0, 0, 0)   # едет вдоль дальнего берега (носом к −z)
 	fb.speed = 2.2
 	fb.lights(true)
-	for h in fb.halos:   # издалека — два огня
+	for h in fb.halos:   # издалека — два огня: ярче неба (HDR) и сквозь утренний туман, иначе тонут в белом
 		h.scale = Vector3(4.0, 4.0, 4.0)
+		var hm := (h.material_override as StandardMaterial3D).duplicate() as StandardMaterial3D
+		hm.albedo_color = Color(5.0, 4.4, 3.4, 0.9)
+		hm.disable_fog = true
+		h.material_override = hm
 	g.c4["far_car"] = fb
 
 
@@ -1286,6 +1291,12 @@ static func process(g, delta: float) -> void:
 			var p: Vector3 = sl.global_position
 			if (target - p).length() > 0.1:
 				sl.global_transform = Transform3D(Basis.looking_at(target - p, Vector3.UP), p)
+			var wd = c4.get("woods")
+			if wd and is_instance_valid(wd):   # полосы света сквозь щели — там, где луч упёрся в стену
+				var tz := 99.0
+				if mode in ["hut_sweep", "hut"] and sl.visible:
+					tz = target.z - WOODS.z
+				(wd as Woods).beam_at(tz, t)
 	var ka = c4.get("kid_align")
 	if ka != null and int(ka) > 0 and has(g, "noah_kid"):   # глаза мальчика — точно в щель
 		var kid: Actor = g.actors.noah_kid

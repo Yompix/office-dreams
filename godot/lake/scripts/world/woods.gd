@@ -12,6 +12,7 @@ const WALL := 2.0
 var deep: MeshInstance3D
 var hut: Node3D
 var plank_m: StandardMaterial3D
+var shafts: Array = []   # полосы света сквозь щели стены к тропе (+X): [MeshInstance3D, z щели]; яркость ставит глава 4 по лучу фонаря
 
 
 func build(road, pc: bool) -> void:
@@ -96,6 +97,7 @@ func _hut(pc: bool) -> void:
 	var stove := _box(Vector3(0.45, 0.6, 0.45), Vector3(HW - 0.5, FLOOR + 0.3, -HD + 0.5), StandardMaterial3D.new())   # холодная буржуйка
 	(stove.material_override as StandardMaterial3D).albedo_color = Color(0.08, 0.08, 0.085)
 	(stove.material_override as StandardMaterial3D).metallic = 0.5
+	_shafts()
 	var moon := OmniLight3D.new()   # в избушке — холодный свет снега сквозь щели (лица читаются)
 	moon.light_color = Color(0.6, 0.7, 1.0)
 	moon.light_energy = 0.35
@@ -122,3 +124,54 @@ func _box(size: Vector3, pos: Vector3, m: Material) -> MeshInstance3D:
 	mi.position = pos
 	hut.add_child(mi)
 	return mi
+
+
+## Луч фонаря сквозь щели: тонкие листы света от каждой щели стены +X внутрь (объёмный туман слишком грубый для щелей в 4 см).
+## Лист в тумане ярок ребром и почти не виден плашмя — так полосы не складываются в белую стену.
+const SHAFT := """
+shader_type spatial;
+render_mode unshaded, blend_add, cull_disabled, depth_draw_never, shadows_disabled, fog_disabled;
+uniform float amount = 0.0;
+uniform vec4 tint : source_color = vec4(0.82, 0.88, 1.0, 1.0);
+void fragment() {
+	float edge = 1.0 - abs(dot(NORMAL, VIEW));
+	float v = smoothstep(0.0, 0.1, UV.y) * smoothstep(1.0, 0.9, UV.y);
+	float a = amount * pow(UV.x, 1.8) * (0.08 + 0.92 * edge * edge * edge) * v;
+	ALBEDO = tint.rgb;
+	ALPHA = clamp(a, 0.0, 1.0);
+}
+"""
+
+
+func _shafts() -> void:
+	var step := 0.19
+	var n := int(HD * 2 / step)
+	var sh := Shader.new()
+	sh.code = SHAFT
+	for k in n - 1:
+		var z := -HD + step * (k + 1)
+		var mi := MeshInstance3D.new()
+		var q := QuadMesh.new()
+		q.size = Vector2(2.4, WALL * 0.92)
+		mi.mesh = q
+		var m := ShaderMaterial.new()
+		m.shader = sh
+		mi.material_override = m
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.position = Vector3(HW - 1.2, FLOOR + WALL * 0.48, z)
+		mi.rotation_degrees = Vector3(0, 0, -6.0)   # чуть вниз: фонарь у охотника в руке, выше пола
+		mi.visible = false
+		hut.add_child(mi)
+		shafts.append([mi, z])
+
+
+## Яркость полос: луч фонаря упирается в стену на высоте z = tz (больше 50 — мимо избушки).
+func beam_at(tz: float, t: float) -> void:
+	for sh in shafts:
+		var mi: MeshInstance3D = sh[0]
+		var z: float = sh[1]
+		var a := 0.0
+		if tz < 50.0:
+			a = exp(-pow((z - tz) / 0.3, 2.0)) * 0.7 * (0.85 + 0.15 * sin(t * 13.0 + z * 7.0))
+		mi.visible = a > 0.01
+		(mi.material_override as ShaderMaterial).set_shader_parameter("amount", a)
