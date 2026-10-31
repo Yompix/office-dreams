@@ -1,0 +1,3066 @@
+{
+ "chapter": 4,
+ "start": "c4_recap",
+ "ready": false,
+ "title": {
+  "ru": "ГЛАВА 4 · ЧЁРНАЯ МАШИНА",
+  "en": "CHAPTER 4 · THE BLACK CAR"
+ },
+ "names": {
+  "hale": {
+   "ru": "ХЕЙЛ",
+   "en": "HALE"
+  }
+ },
+ "flags": {
+  "pills_pocket": 0,
+  "pills_snow": 0,
+  "pills_iris": 0,
+  "pills_left": 0,
+  "van_late": 0,
+  "zoe_believed": 0,
+  "zoe_doubted": 0,
+  "hale_radio": 0,
+  "drawings_shown": 0,
+  "drawings_peeked": 0,
+  "danny_for": 0,
+  "danny_against": 0,
+  "pine_talk": 0,
+  "pine_diary": 0,
+  "pine_attack": 0,
+  "pine_run": 0,
+  "pine_freeze": 0,
+  "hale_knows_mem": 0,
+  "diary_hale": 0,
+  "diary_kept": 0,
+  "orderly_dead": 0,
+  "iris_fought": 0,
+  "baby_cried": 0,
+  "zoe_saved": 0,
+  "zoe_taken4": 0,
+  "agnes_limp": 0,
+  "agnes_dead": 0,
+  "danny_hale": 0,
+  "danny_stayed": 0,
+  "hurt4": 0
+ },
+ "map": [
+  {
+   "key": "pills",
+   "ru": "Таблетки №4",
+   "en": "Pills #4",
+   "opts": [
+    {
+     "id": "pocket",
+     "ru": "в кармане",
+     "en": "in his pocket",
+     "if": {
+      "pills_pocket": ">0"
+     }
+    },
+    {
+     "id": "snow",
+     "ru": "в сугробе",
+     "en": "in the snow",
+     "if": {
+      "pills_snow": ">0"
+     }
+    },
+    {
+     "id": "iris",
+     "ru": "у Айрис",
+     "en": "with Iris",
+     "if": {
+      "pills_iris": ">0"
+     }
+    },
+    {
+     "id": "left",
+     "ru": "на сиденье",
+     "en": "left on the seat",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "van",
+   "ru": "Буханка",
+   "en": "The old van",
+   "opts": [
+    {
+     "id": "late",
+     "ru": "потеряли время",
+     "en": "lost time",
+     "if": {
+      "van_late": ">0"
+     }
+    },
+    {
+     "id": "fast",
+     "ru": "завелась сразу",
+     "en": "started right up",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "zoe_story",
+   "ru": "«Тихие сосны»",
+   "en": "Quiet Pines",
+   "opts": [
+    {
+     "id": "believed",
+     "ru": "поверил Зое",
+     "en": "believed Zoe",
+     "if": {
+      "zoe_believed": ">0"
+     }
+    },
+    {
+     "id": "doubted",
+     "ru": "поверил Айрис",
+     "en": "sided with Iris",
+     "if": {
+      "zoe_doubted": ">0"
+     }
+    },
+    {
+     "id": "radio",
+     "ru": "голос Хейла",
+     "en": "Hale’s voice",
+     "if": {
+      "hale_radio": ">0"
+     }
+    },
+    {
+     "id": "quiet",
+     "ru": "промолчал",
+     "en": "kept quiet",
+     "if": {
+      "zoe": ">0",
+      "zoe_taken": "==0"
+     }
+    },
+    {
+     "id": "none",
+     "ru": "Зои нет",
+     "en": "no Zoe",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "drawings",
+   "ru": "Рисунки",
+   "en": "The drawings",
+   "opts": [
+    {
+     "id": "shown",
+     "ru": "показала сама",
+     "en": "she showed him",
+     "if": {
+      "drawings_shown": ">0"
+     }
+    },
+    {
+     "id": "peeked",
+     "ru": "подсмотрел",
+     "en": "he peeked",
+     "if": {
+      "drawings_peeked": ">0"
+     }
+    },
+    {
+     "id": "none",
+     "ru": "не видел",
+     "en": "never saw them",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "danny",
+   "ru": "Дэнни",
+   "en": "Danny",
+   "opts": [
+    {
+     "id": "hale",
+     "ru": "ушёл на голос",
+     "en": "went to the voice",
+     "if": {
+      "danny_hale": ">0"
+     }
+    },
+    {
+     "id": "for",
+     "ru": "свидетель за Ноя",
+     "en": "a witness for Noah",
+     "if": {
+      "danny_for": ">0"
+     }
+    },
+    {
+     "id": "against",
+     "ru": "обещал молчать",
+     "en": "promised silence",
+     "if": {
+      "danny_against": ">0"
+     }
+    },
+    {
+     "id": "with",
+     "ru": "с ними",
+     "en": "with them",
+     "if": {
+      "danny": ">0",
+      "danny_lost": "==0"
+     }
+    },
+    {
+     "id": "none",
+     "ru": "не с ними",
+     "en": "not with them",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "pine",
+   "ru": "Сосна",
+   "en": "The pine",
+   "opts": [
+    {
+     "id": "talk",
+     "ru": "спросил про маму",
+     "en": "asked about Mom",
+     "if": {
+      "pine_talk": ">0"
+     }
+    },
+    {
+     "id": "diary",
+     "ru": "отдал дневник",
+     "en": "gave up the diary",
+     "if": {
+      "diary_hale": ">0"
+     }
+    },
+    {
+     "id": "kept",
+     "ru": "дневник у Айрис",
+     "en": "Iris kept the diary",
+     "if": {
+      "diary_kept": ">0"
+     }
+    },
+    {
+     "id": "killed",
+     "ru": "санитар убит",
+     "en": "the orderly killed",
+     "if": {
+      "orderly_dead": ">0"
+     }
+    },
+    {
+     "id": "attack",
+     "ru": "напал",
+     "en": "attacked",
+     "if": {
+      "pine_attack": ">0"
+     }
+    },
+    {
+     "id": "run",
+     "ru": "бежал в лес",
+     "en": "ran for the woods",
+     "if": {
+      "pine_run": ">0"
+     }
+    },
+    {
+     "id": "freeze",
+     "ru": "промолчал",
+     "en": "froze",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "baby",
+   "ru": "Избушка",
+   "en": "The cabin",
+   "opts": [
+    {
+     "id": "cried",
+     "ru": "плач выдал",
+     "en": "the crying gave them away",
+     "if": {
+      "baby_cried": ">0"
+     }
+    },
+    {
+     "id": "quiet",
+     "ru": "укачали",
+     "en": "rocked to sleep",
+     "if": {
+      "baby": ">0"
+     }
+    },
+    {
+     "id": "none",
+     "ru": "без младенца",
+     "en": "no baby",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "zoe",
+   "ru": "Зоя в лесу",
+   "en": "Zoe in the woods",
+   "opts": [
+    {
+     "id": "saved",
+     "ru": "спас",
+     "en": "saved",
+     "if": {
+      "zoe_saved": ">0"
+     }
+    },
+    {
+     "id": "taken",
+     "ru": "забрали",
+     "en": "taken",
+     "if": {
+      "zoe_taken4": ">0"
+     }
+    },
+    {
+     "id": "hale",
+     "ru": "у Хейла с кафе",
+     "en": "with Hale since the diner",
+     "if": {
+      "zoe_taken": ">0"
+     }
+    },
+    {
+     "id": "none",
+     "ru": "Зои нет",
+     "en": "no Zoe",
+     "if": {}
+    }
+   ]
+  },
+  {
+   "key": "agnes",
+   "ru": "Агнес",
+   "en": "Agnes",
+   "opts": [
+    {
+     "id": "dead",
+     "ru": "осталась в лесу",
+     "en": "left in the woods",
+     "if": {
+      "agnes_dead": ">0"
+     }
+    },
+    {
+     "id": "saved",
+     "ru": "вернулся за ней",
+     "en": "went back for her",
+     "if": {}
+    }
+   ]
+  }
+ ],
+ "scenes": {
+  "c4_recap": {
+   "save": true,
+   "time": "07:40",
+   "beats": [
+    {
+     "fx": "black"
+    },
+    {
+     "text": {
+      "ru": "Ранее…",
+      "en": "Previously…"
+     },
+     "dur": 1.6,
+     "note": true
+    },
+    {
+     "text": {
+      "ru": "Ева родила девочку. Её назвали Анной.",
+      "en": "Eva gave birth to a girl. They named her Anna."
+     },
+     "dur": 2.6,
+     "note": true,
+     "if": {
+      "eva_alive": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Ева умерла родами. Девочку назвали Анной.",
+      "en": "Eva died giving birth. They named the girl Anna."
+     },
+     "dur": 2.8,
+     "note": true,
+     "if": {
+      "eva_dead": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Зою забрал доктор Хейл.",
+      "en": "Dr. Hale took Zoe."
+     },
+     "dur": 2.4,
+     "note": true,
+     "if": {
+      "zoe_taken": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Ночью Ной стоял босиком в снегу с топором и говорил чужим голосом.",
+      "en": "In the night Noah stood barefoot in the snow with an axe, speaking in someone else’s voice."
+     },
+     "dur": 3.2,
+     "note": true,
+     "if": {
+      "night_lapse": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Ночью по рации пел женский голос. Та самая колыбельная.",
+      "en": "In the night a woman sang over the radio. That same lullaby."
+     },
+     "dur": 3.0,
+     "note": true,
+     "if": {
+      "heard_song": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Дэнни ушёл в буран.",
+      "en": "Danny walked out into the blizzard."
+     },
+     "dur": 2.4,
+     "note": true,
+     "if": {
+      "danny_lost": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Бабушка Агнес: «Сама её к нему и послала».",
+      "en": "Grandma Agnes: “I sent her to him myself.”"
+     },
+     "dur": 2.8,
+     "note": true
+    },
+    {
+     "text": {
+      "ru": "На рассвете в конце улицы зажглись фары чёрного седана.",
+      "en": "At dawn, the black sedan’s headlights came on at the end of the street."
+     },
+     "dur": 3.0,
+     "note": true
+    },
+    {
+     "go": "c4_s1"
+    }
+   ]
+  },
+  "c4_s1": {
+   "save": true,
+   "time": "08:30",
+   "beats": [
+    {
+     "fx": "c4_start",
+     "shot": "yard"
+    },
+    {
+     "fx": "fade_in",
+     "shot": "yard",
+     "note": {
+      "ru": "Глава 4. «Чёрная машина». Утро. Буран кончился, снег искрится.",
+      "en": "Chapter 4. “The Black Car.” Morning. The storm is over; the snow glitters."
+     },
+     "dur": 3.4
+    },
+    {
+     "note": {
+      "ru": "Они возвращаются к дому Агнес за машиной.",
+      "en": "They come back to Agnes’s house for the car."
+     },
+     "dur": 2.6,
+     "shot": "yard",
+     "if": {
+      "hale_lost": ">0"
+     }
+    },
+    {
+     "fx": "car_door",
+     "shot": "car_seat",
+     "note": {
+      "ru": "На водительском сиденье — пузырёк таблеток. Новый. Под ним — записка.",
+      "en": "On the driver’s seat — a bottle of pills. A new one. A note underneath."
+     },
+     "dur": 3.0
+    },
+    {
+     "fx": "hale_note",
+     "shot": "hale_note",
+     "note": {
+      "ru": "Ровный почерк: «Ной, тебе станет легче. Ты же знаешь, что бывает без них. — С. Х.»",
+      "en": "Neat handwriting: “Noah, you’ll feel better. You know what happens without them. — S. H.”"
+     },
+     "dur": 4.2
+    },
+    {
+     "say": "iris",
+     "ru": "Он был здесь. Ночью. Прямо тут.",
+     "en": "He was here. Last night. Right here.",
+     "shot": "iris_yard"
+    },
+    {
+     "note": {
+      "ru": "В кармане у Ноя — ещё и старый пузырёк.",
+      "en": "Noah still has the old bottle in his pocket, too."
+     },
+     "dur": 2.4,
+     "shot": "noah_yard",
+     "if": {
+      "pills_burned": "==0",
+      "pills_flushed": "==0"
+     }
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "Сунуть пузырёк в карман",
+        "en": "Pocket the bottle",
+        "go": "c4_s1_pocket"
+       },
+       {
+        "ru": "Забросить в сугроб",
+        "en": "Throw it into a snowdrift",
+        "go": "c4_s1_snow"
+       },
+       {
+        "ru": "Отдать Айрис: «Держи у себя. Решишь ты»",
+        "en": "Give it to Iris: “You keep it. You decide”",
+        "go": "c4_s1_iris"
+       },
+       {
+        "silent": true,
+        "go": "c4_s1_leave"
+       }
+      ],
+      "shot": "noah_yard"
+     }
+    }
+   ]
+  },
+  "c4_s1_pocket": {
+   "beats": [
+    {
+     "set": {
+      "pills_pocket": 1
+     }
+    },
+    {
+     "fx": "pills_pocket",
+     "shot": "noah_yard",
+     "note": {
+      "ru": "Ной суёт пузырёк в карман.",
+      "en": "Noah slips the bottle into his pocket."
+     },
+     "dur": 2.2
+    },
+    {
+     "note": {
+      "ru": "Айрис смотрит на карман. Молчит.",
+      "en": "Iris looks at the pocket. Says nothing."
+     },
+     "dur": 2.4,
+     "shot": "iris_yard"
+    },
+    {
+     "go": "c4_s1_van"
+    }
+   ]
+  },
+  "c4_s1_snow": {
+   "beats": [
+    {
+     "set": {
+      "pills_snow": 1,
+      "trust": 1
+     },
+     "toast": true
+    },
+    {
+     "fx": "pills_throw",
+     "shot": "yard_drift",
+     "note": {
+      "ru": "Пузырёк летит в сугроб и тонет в нём без звука.",
+      "en": "The bottle sails into a drift and sinks without a sound."
+     },
+     "dur": 2.6
+    },
+    {
+     "note": {
+      "ru": "Айрис выдыхает.",
+      "en": "Iris breathes out."
+     },
+     "dur": 1.8,
+     "shot": "iris_yard"
+    },
+    {
+     "go": "c4_s1_van"
+    }
+   ]
+  },
+  "c4_s1_iris": {
+   "beats": [
+    {
+     "set": {
+      "pills_iris": 1,
+      "trust": 2
+     },
+     "toast": true
+    },
+    {
+     "say": "noah",
+     "ru": "Держи у себя. Решишь ты.",
+     "en": "You keep it. You decide.",
+     "shot": "noah_yard"
+    },
+    {
+     "fx": "pills_give",
+     "shot": "iris_yard",
+     "note": {
+      "ru": "Айрис сжимает пузырёк в кулаке.",
+      "en": "Iris closes her fist around the bottle."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c4_s1_van"
+    }
+   ]
+  },
+  "c4_s1_leave": {
+   "beats": [
+    {
+     "set": {
+      "pills_left": 1
+     }
+    },
+    {
+     "note": {
+      "ru": "Ной не трогает пузырёк. Тот так и остаётся на сиденье.",
+      "en": "Noah doesn’t touch the bottle. It stays where it is, on the seat."
+     },
+     "dur": 2.8,
+     "shot": "car_seat"
+    },
+    {
+     "go": "c4_s1_van"
+    }
+   ]
+  },
+  "c4_s1_van": {
+   "beats": [
+    {
+     "fx": "shed_open",
+     "shot": "shed",
+     "note": {
+      "ru": "Всем в машину уже не влезть. В сарае у Агнес — старая буханка покойного деда.",
+      "en": "They won’t all fit in the car anymore. In Agnes’s shed — her late husband’s old van."
+     },
+     "dur": 3.4
+    },
+    {
+     "say": "agnes",
+     "ru": "Лет восемь не заводилась. Ты ж у нас механик?",
+     "en": "Hasn’t started in eight years. You’re the mechanic, aren’t you?",
+     "shot": "agnes_shed"
+    },
+    {
+     "fx": "van_hood",
+     "shot": "van_engine",
+     "note": {
+      "ru": "Свечи — из дедова ящика. Аккумулятор — из их машины. Остаётся «с толкача».",
+      "en": "Spark plugs from the old man’s toolbox. The battery from their car. All that’s left is a push start."
+     },
+     "dur": 3.4
+    },
+    {
+     "fx": "van_push",
+     "shot": "van_push"
+    },
+    {
+     "qte": "mash",
+     "t": 6.0,
+     "n": 12,
+     "hint": {
+      "ru": "С толкача! Быстро жми E / пробел — сцепление, газ",
+      "en": "Push start! Mash E / Space — clutch, gas"
+     },
+     "fail": "c4_s1_van2"
+    },
+    {
+     "go": "c4_s1_vango"
+    }
+   ]
+  },
+  "c4_s1_van2": {
+   "beats": [
+    {
+     "set": {
+      "van_late": 1
+     }
+    },
+    {
+     "note": {
+      "ru": "Мотор чихает и глохнет. Толкают ещё — всем миром. И ещё.",
+      "en": "The engine sputters and dies. They push again — everyone together. And again."
+     },
+     "dur": 3.0,
+     "shot": "van_push"
+    },
+    {
+     "note": {
+      "ru": "Время уходит.",
+      "en": "Time is slipping away."
+     },
+     "dur": 1.8,
+     "shot": "yard"
+    },
+    {
+     "go": "c4_s1_vango"
+    }
+   ]
+  },
+  "c4_s1_vango": {
+   "beats": [
+    {
+     "fx": "van_start",
+     "shot": "van_smoke",
+     "note": {
+      "ru": "Буханка кашляет чёрным дымом — и заводится.",
+      "en": "The van coughs out black smoke — and starts."
+     },
+     "dur": 2.8
+    },
+    {
+     "note": {
+      "ru": "Зоя хлопает в ладоши.",
+      "en": "Zoe claps her hands."
+     },
+     "dur": 2.0,
+     "fx": "zoe_clap",
+     "shot": "zoe_yard",
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "И главное: чёрная машина буханку не знает.",
+      "en": "And best of all: the black car doesn’t know the van."
+     },
+     "dur": 2.8,
+     "shot": "van_smoke"
+    },
+    {
+     "go": "c4_s2"
+    }
+   ]
+  },
+  "c4_s2": {
+   "time": "10:10",
+   "beats": [
+    {
+     "fx": "van_drive",
+     "shot": "van_road",
+     "note": {
+      "ru": "Лесная дорога. Буханку трясёт на каждой кочке.",
+      "en": "A forest road. The van rattles over every bump."
+     },
+     "dur": 2.8
+    },
+    {
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     },
+     "else": "c4_s2_b"
+    },
+    {
+     "go": "c4_s2_zoe"
+    }
+   ]
+  },
+  "c4_s2_b": {
+   "beats": [
+    {
+     "if": {
+      "zoe_taken": ">0"
+     },
+     "else": "c4_s3"
+    },
+    {
+     "go": "c4_s2_radio"
+    }
+   ]
+  },
+  "c4_s2_zoe": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Зоя долго смотрит в окно. Потом начинает сама, ни на кого не глядя.",
+      "en": "Zoe stares out the window for a long time. Then she starts talking, not looking at anyone."
+     },
+     "dur": 3.2,
+     "shot": "zoe_van"
+    },
+    {
+     "say": "zoe",
+     "ru": "Ладно. Раз уж мы все тут… в одной буханке.",
+     "en": "Okay. Since we’re all here… in one old van.",
+     "shot": "zoe_van"
+    },
+    {
+     "say": "zoe",
+     "ru": "Санаторий «Тихие сосны». В лесу. Белый такой, красивый. Нас там было человек десять. Мне — девятнадцать.",
+     "en": "Quiet Pines. A sanatorium in the woods. White, pretty. There were about ten of us. I was nineteen.",
+     "shot": "zoe_van"
+    },
+    {
+     "say": "zoe",
+     "ru": "Знаешь, кого туда кладут? Тех, кто что-то видел.",
+     "en": "You know who they put in there? People who saw something.",
+     "shot": "zoe_van"
+    },
+    {
+     "say": "noah",
+     "ru": "Что видела ты?",
+     "en": "What did you see?",
+     "shot": "noah_van"
+    },
+    {
+     "fx": "zoe_laugh",
+     "say": "zoe",
+     "ru": "Не помню. В том-то и фишка. Мама заплатила — и я не помню.",
+     "en": "I don’t remember. That’s the whole point. Mom paid, and I don’t remember.",
+     "shot": "zoe_van"
+    },
+    {
+     "say": "zoe",
+     "ru": "Помню только, что отчим после этого стал очень добрый.",
+     "en": "All I remember is my stepdad got really nice after that.",
+     "shot": "zoe_van"
+    },
+    {
+     "note": {
+      "ru": "Тишина. Только мотор.",
+      "en": "Silence. Just the engine."
+     },
+     "dur": 2.0,
+     "shot": "van_inside"
+    },
+    {
+     "say": "iris",
+     "ru": "Она врёт. Она с ним заодно. Он её подослал.",
+     "en": "She’s lying. She’s with him. He sent her.",
+     "shot": "iris_van"
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "«Я ей верю»",
+        "en": "“I believe her”",
+        "go": "c4_s2_believe"
+       },
+       {
+        "ru": "«Айрис… может, и так»",
+        "en": "“Iris… maybe you’re right”",
+        "go": "c4_s2_doubt"
+       },
+       {
+        "ru": "«Хватит. Обе»",
+        "en": "“Enough. Both of you”",
+        "go": "c4_s2_enough"
+       },
+       {
+        "silent": true,
+        "go": "c4_s2_quiet"
+       }
+      ],
+      "shot": "noah_van"
+     }
+    }
+   ]
+  },
+  "c4_s2_believe": {
+   "beats": [
+    {
+     "set": {
+      "zoe_believed": 1,
+      "zoe_trust": 1,
+      "jealous": 1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Я ей верю.",
+     "en": "I believe her.",
+     "shot": "noah_van"
+    },
+    {
+     "fx": "zoe_window",
+     "shot": "zoe_van",
+     "note": {
+      "ru": "Зоя отворачивается к окну. Но — благодарно.",
+      "en": "Zoe turns to the window. But she’s grateful."
+     },
+     "dur": 2.6
+    },
+    {
+     "note": {
+      "ru": "Айрис утыкается в блокнот.",
+      "en": "Iris buries her face in her notebook."
+     },
+     "dur": 2.2,
+     "shot": "iris_van"
+    },
+    {
+     "go": "c4_s3"
+    }
+   ]
+  },
+  "c4_s2_doubt": {
+   "beats": [
+    {
+     "set": {
+      "zoe_doubted": 1,
+      "zoe_trust": -1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Айрис… может, и так.",
+     "en": "Iris… maybe you’re right.",
+     "shot": "noah_van"
+    },
+    {
+     "say": "zoe",
+     "ru": "Ну спасибо.",
+     "en": "Gee, thanks.",
+     "shot": "zoe_van"
+    },
+    {
+     "fx": "zoe_window",
+     "shot": "zoe_van",
+     "note": {
+      "ru": "Зоя молчит до конца дороги.",
+      "en": "Zoe doesn’t say another word for the rest of the drive."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c4_s3"
+    }
+   ]
+  },
+  "c4_s2_enough": {
+   "beats": [
+    {
+     "say": "noah",
+     "ru": "Хватит. Обе.",
+     "en": "Enough. Both of you.",
+     "shot": "noah_van"
+    },
+    {
+     "note": {
+      "ru": "Обе замолкают.",
+      "en": "They both go quiet."
+     },
+     "dur": 2.0,
+     "shot": "van_inside"
+    },
+    {
+     "go": "c4_s3"
+    }
+   ]
+  },
+  "c4_s2_quiet": {
+   "beats": [
+    {
+     "fx": "zoe_window",
+     "shot": "zoe_van",
+     "note": {
+      "ru": "Ной молчит. Зоя хмыкает и отворачивается к окну.",
+      "en": "Noah says nothing. Zoe snorts and turns to the window."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c4_s3"
+    }
+   ]
+  },
+  "c4_s2_radio": {
+   "beats": [
+    {
+     "set": {
+      "hale_radio": 1
+     }
+    },
+    {
+     "if": {
+      "danny": ">0",
+      "danny_lost": "==0"
+     },
+     "else": "c4_s2_phone"
+    },
+    {
+     "fx": "radio_hale",
+     "shot": "danny_van",
+     "note": {
+      "ru": "У Дэнни в кармане трещит рация. Голос — мягкий, вежливый.",
+      "en": "The walkie-talkie in Danny’s pocket crackles. A voice — soft, polite."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c4_s2_hale"
+    }
+   ]
+  },
+  "c4_s2_phone": {
+   "beats": [
+    {
+     "fx": "phone_hale",
+     "shot": "agnes_van",
+     "note": {
+      "ru": "У Агнес звонит старый телефон. Номер не определён. Она включает громкую связь.",
+      "en": "Agnes’s old phone rings. Unknown number. She puts it on speaker."
+     },
+     "dur": 3.2
+    },
+    {
+     "go": "c4_s2_hale"
+    }
+   ]
+  },
+  "c4_s2_hale": {
+   "beats": [
+    {
+     "say": "hale",
+     "ru": "Ной. Это доктор Хейл. Зоя у меня. С ней всё хорошо — пока она принимает лекарства.",
+     "en": "Noah. This is Dr. Hale. Zoe is with me. She’s fine — as long as she takes her medication.",
+     "shot": "noah_van"
+    },
+    {
+     "say": "hale",
+     "ru": "Давай поговорим как взрослые люди. Без топоров.",
+     "en": "Let’s talk like adults. No axes.",
+     "shot": "noah_van",
+     "if": {
+      "hale_brave": ">0"
+     }
+    },
+    {
+     "say": "hale",
+     "ru": "Давай поговорим как взрослые люди.",
+     "en": "Let’s talk like adults.",
+     "shot": "noah_van",
+     "if": {
+      "hale_brave": "==0"
+     }
+    },
+    {
+     "fx": "radio_off",
+     "shot": "van_inside",
+     "note": {
+      "ru": "Шипение. Связь обрывается.",
+      "en": "Static. The line goes dead."
+     },
+     "dur": 2.2
+    },
+    {
+     "say": "iris",
+     "ru": "Не отвечай ему. Никогда.",
+     "en": "Don’t answer him. Ever.",
+     "shot": "iris_van"
+    },
+    {
+     "go": "c4_s3"
+    }
+   ]
+  },
+  "c4_s3": {
+   "save": true,
+   "time": "12:40",
+   "beats": [
+    {
+     "fx": "bus_stop",
+     "shot": "bus_stop",
+     "note": {
+      "ru": "Буханка закипает у заброшенной автобусной остановки. Из-под капота валит пар.",
+      "en": "The van overheats by an abandoned bus stop. Steam pours from under the hood."
+     },
+     "dur": 3.2
+    },
+    {
+     "fx": "hood_up",
+     "shot": "hose",
+     "note": {
+      "ru": "Лопнул шланг. Изолента — в дедовом ящике.",
+      "en": "A hose has split. There’s electrical tape in the old man’s toolbox."
+     },
+     "dur": 2.8
+    },
+    {
+     "qte": "press",
+     "t": 6.0,
+     "n": 10,
+     "hint": {
+      "ru": "Мотай изоленту: жми E / пробел в ритм",
+      "en": "Wrap the tape: press E / Space in rhythm"
+     },
+     "fail": "c4_s3_tape2"
+    },
+    {
+     "go": "c4_s3_iris"
+    }
+   ]
+  },
+  "c4_s3_tape2": {
+   "beats": [
+    {
+     "set": {
+      "van_late": 1
+     }
+    },
+    {
+     "note": {
+      "ru": "Изолента рвётся. Ещё раз — медленнее. Держит. Но время ушло.",
+      "en": "The tape tears. Again — slower. It holds. But time is gone."
+     },
+     "dur": 3.0,
+     "shot": "hose"
+    },
+    {
+     "go": "c4_s3_iris"
+    }
+   ]
+  },
+  "c4_s3_iris": {
+   "beats": [
+    {
+     "if": {
+      "trust": ">=3"
+     },
+     "else": "c4_s3_sleep"
+    },
+    {
+     "fx": "iris_bench",
+     "shot": "iris_stop",
+     "note": {
+      "ru": "Айрис сидит на лавке остановки с блокнотом. Потом сама протягивает его брату.",
+      "en": "Iris sits on the bus-stop bench with her notebook. Then she holds it out to her brother."
+     },
+     "dur": 3.2
+    },
+    {
+     "say": "iris",
+     "ru": "Ты хотел знать.",
+     "en": "You wanted to know.",
+     "shot": "iris_stop"
+    },
+    {
+     "set": {
+      "drawings_shown": 1,
+      "memory": 1
+     }
+    },
+    {
+     "go": "c4_s3_pages"
+    }
+   ]
+  },
+  "c4_s3_pages": {
+   "beats": [
+    {
+     "fx": "page_1",
+     "shot": "drawing",
+     "note": {
+      "ru": "Рисунки, как комикс. Лестница. Отец с ремнём.",
+      "en": "The drawings run like a comic. The stairs. Dad with his belt."
+     },
+     "dur": 2.8
+    },
+    {
+     "fx": "page_2",
+     "shot": "drawing",
+     "note": {
+      "ru": "Айрис за дверью. Ной встаёт между ними.",
+      "en": "Iris behind a door. Noah steps between them."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "page_3",
+     "shot": "drawing",
+     "note": {
+      "ru": "Лицо Ноя. Глаза пустые, как дырки.",
+      "en": "Noah’s face. The eyes empty, like holes."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "page_4",
+     "shot": "drawing",
+     "note": {
+      "ru": "Нож. Отец на полу.",
+      "en": "A knife. Dad on the floor."
+     },
+     "dur": 2.4
+    },
+    {
+     "fx": "page_5",
+     "shot": "drawing",
+     "note": {
+      "ru": "Айрис держит брата за руку. А он её не слышит.",
+      "en": "Iris holding her brother’s hand. And he can’t hear her."
+     },
+     "dur": 2.8
+    },
+    {
+     "if": {
+      "drawings_peeked": ">0"
+     },
+     "else": "c4_s3_talk"
+    },
+    {
+     "go": "c4_s3_woke"
+    }
+   ]
+  },
+  "c4_s3_talk": {
+   "beats": [
+    {
+     "fx": "notebook_close",
+     "shot": "iris_stop"
+    },
+    {
+     "say": "iris",
+     "ru": "Он шёл ко мне. Ты встал. А потом… это был не совсем ты.",
+     "en": "He was coming for me. You stood up. And then… it wasn’t quite you.",
+     "shot": "iris_stop"
+    },
+    {
+     "choice": {
+      "t": 8,
+      "opts": [
+       {
+        "ru": "«Прости меня»",
+        "en": "“I’m sorry”",
+        "go": "c4_s3_sorry"
+       },
+       {
+        "ru": "«Это был не я»",
+        "en": "“That wasn’t me”",
+        "go": "c4_s3_notme"
+       },
+       {
+        "ru": "Ничего не говорить — обнять её",
+        "en": "Say nothing — hold her",
+        "go": "c4_s3_hug"
+       },
+       {
+        "silent": true,
+        "go": "c4_s3_quiet"
+       }
+      ],
+      "shot": "noah_stop"
+     }
+    }
+   ]
+  },
+  "c4_s3_sorry": {
+   "beats": [
+    {
+     "set": {
+      "trust": 1,
+      "memory": 1
+     },
+     "toast": true
+    },
+    {
+     "say": "noah",
+     "ru": "Прости меня.",
+     "en": "I’m sorry.",
+     "shot": "noah_stop"
+    },
+    {
+     "fx": "iris_shake",
+     "shot": "iris_stop"
+    },
+    {
+     "say": "iris",
+     "ru": "Ты меня спас, дурак.",
+     "en": "You saved me, stupid.",
+     "shot": "iris_stop"
+    },
+    {
+     "go": "c4_s4"
+    }
+   ]
+  },
+  "c4_s3_notme": {
+   "beats": [
+    {
+     "set": {
+      "trust": -1
+     },
+     "toast": true
+    },
+    {
+     "say": "noah",
+     "ru": "Это был не я.",
+     "en": "That wasn’t me.",
+     "shot": "noah_stop"
+    },
+    {
+     "fx": "notebook_take",
+     "shot": "iris_stop"
+    },
+    {
+     "say": "iris",
+     "ru": "Ну да. Конечно.",
+     "en": "Right. Sure.",
+     "shot": "iris_stop"
+    },
+    {
+     "go": "c4_s4"
+    }
+   ]
+  },
+  "c4_s3_hug": {
+   "beats": [
+    {
+     "set": {
+      "trust": 2
+     },
+     "toast": true
+    },
+    {
+     "fx": "hug",
+     "shot": "hug",
+     "note": {
+      "ru": "Ной просто обнимает её. Она не отстраняется.",
+      "en": "Noah just holds her. She doesn’t pull away."
+     },
+     "dur": 2.8
+    },
+    {
+     "fx": "iris_cry",
+     "shot": "hug",
+     "note": {
+      "ru": "И впервые за всю дорогу плачет вслух.",
+      "en": "And for the first time on the whole trip, she cries out loud."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c4_s4"
+    }
+   ]
+  },
+  "c4_s3_quiet": {
+   "beats": [
+    {
+     "fx": "notebook_take",
+     "shot": "iris_stop",
+     "note": {
+      "ru": "Ной молчит. Айрис закрывает блокнот.",
+      "en": "Noah says nothing. Iris closes the notebook."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c4_s4"
+    }
+   ]
+  },
+  "c4_s3_sleep": {
+   "beats": [
+    {
+     "fx": "iris_sleep",
+     "shot": "iris_asleep",
+     "note": {
+      "ru": "Айрис уснула в буханке. Блокнот — у неё на коленях.",
+      "en": "Iris has fallen asleep in the van. The notebook is on her lap."
+     },
+     "dur": 3.0
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "Тихо посмотреть",
+        "en": "Take a quiet look",
+        "go": "c4_s3_peek"
+       },
+       {
+        "ru": "Не трогать",
+        "en": "Leave it",
+        "go": "c4_s3_leave"
+       },
+       {
+        "silent": true,
+        "go": "c4_s3_leave"
+       }
+      ],
+      "shot": "noah_door"
+     }
+    }
+   ]
+  },
+  "c4_s3_peek": {
+   "beats": [
+    {
+     "set": {
+      "drawings_peeked": 1,
+      "memory": 1
+     }
+    },
+    {
+     "fx": "notebook_peek",
+     "shot": "iris_asleep",
+     "note": {
+      "ru": "Ной осторожно вытягивает блокнот у неё из-под руки.",
+      "en": "Noah carefully slides the notebook out from under her hand."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c4_s3_pages"
+    }
+   ]
+  },
+  "c4_s3_woke": {
+   "beats": [
+    {
+     "set": {
+      "trust": -2
+     },
+     "toast": true
+    },
+    {
+     "fx": "iris_wake",
+     "shot": "iris_awake"
+    },
+    {
+     "say": "iris",
+     "ru": "Ты рылся в моих вещах.",
+     "en": "You went through my stuff.",
+     "shot": "iris_awake"
+    },
+    {
+     "fx": "notebook_take",
+     "shot": "iris_awake",
+     "note": {
+      "ru": "Она забирает блокнот и отворачивается к стене.",
+      "en": "She takes the notebook back and turns to the wall."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c4_s4"
+    }
+   ]
+  },
+  "c4_s3_leave": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Ной не трогает блокнот. Пусть спит.",
+      "en": "Noah doesn’t touch the notebook. Let her sleep."
+     },
+     "dur": 2.4,
+     "shot": "iris_asleep"
+    },
+    {
+     "go": "c4_s4"
+    }
+   ]
+  },
+  "c4_s4": {
+   "beats": [
+    {
+     "if": {
+      "danny": ">0",
+      "danny_lost": "==0",
+      "danny_fear": "==0",
+      "lapse1": ">0"
+     },
+     "else": "c4_s5"
+    },
+    {
+     "fx": "danny_sit",
+     "shot": "danny_stop",
+     "note": {
+      "ru": "Дэнни садится рядом, пока Ной возится с мотором.",
+      "en": "Danny sits down next to Noah while he works on the engine."
+     },
+     "dur": 2.8
+    },
+    {
+     "say": "danny",
+     "ru": "На заправке… Ты не был злой. Ты был… будто тебя там нет. Глаза пустые.",
+     "en": "At the gas station… You weren’t angry. You were… like you weren’t there. Empty eyes.",
+     "shot": "danny_stop"
+    },
+    {
+     "say": "danny",
+     "ru": "А потом ты сказал дяде «спи». Тихо так. Как мама говорит.",
+     "en": "And then you told the man, “sleep.” Real quiet. Like my mom says it.",
+     "shot": "danny_stop",
+     "if": {
+      "roman_dead": "==0"
+     }
+    },
+    {
+     "say": "danny",
+     "ru": "Он упал. Головой. Об эту… стойку. Ты потом плакал. Ты не хотел.",
+     "en": "He fell. Hit his head. On the… counter. You cried after. You didn’t mean it.",
+     "shot": "danny_stop",
+     "if": {
+      "roman_dead": ">0"
+     }
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "«Спасибо, что сказал»",
+        "en": "“Thanks for telling me”",
+        "go": "c4_s4_thanks"
+       },
+       {
+        "ru": "«Никому об этом не говори, ладно?»",
+        "en": "“Don’t tell anyone about this, okay?”",
+        "go": "c4_s4_secret"
+       },
+       {
+        "ru": "«Если спросят — говори правду. Как было»",
+        "en": "“If anyone asks — tell the truth. How it was”",
+        "go": "c4_s4_truth"
+       },
+       {
+        "silent": true,
+        "go": "c4_s4_quiet"
+       }
+      ],
+      "shot": "noah_engine"
+     }
+    }
+   ]
+  },
+  "c4_s4_thanks": {
+   "beats": [
+    {
+     "set": {
+      "danny_for": 1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Спасибо, что сказал.",
+     "en": "Thanks for telling me.",
+     "shot": "noah_engine"
+    },
+    {
+     "note": {
+      "ru": "Дэнни кивает.",
+      "en": "Danny nods."
+     },
+     "dur": 1.8,
+     "shot": "danny_stop"
+    },
+    {
+     "go": "c4_s5"
+    }
+   ]
+  },
+  "c4_s4_secret": {
+   "beats": [
+    {
+     "set": {
+      "danny_against": 1,
+      "shadow": 1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Никому об этом не говори, ладно?",
+     "en": "Don’t tell anyone about this, okay?",
+     "shot": "noah_engine"
+    },
+    {
+     "note": {
+      "ru": "Дэнни смотрит на него долго.",
+      "en": "Danny looks at him for a long time."
+     },
+     "dur": 2.4,
+     "shot": "danny_stop"
+    },
+    {
+     "say": "danny",
+     "ru": "Ладно.",
+     "en": "Okay.",
+     "shot": "danny_stop"
+    },
+    {
+     "go": "c4_s5"
+    }
+   ]
+  },
+  "c4_s4_truth": {
+   "beats": [
+    {
+     "set": {
+      "danny_for": 1,
+      "trust": 1
+     },
+     "toast": true
+    },
+    {
+     "say": "noah",
+     "ru": "Если спросят — говори правду. Как было.",
+     "en": "If anyone asks — tell the truth. How it was.",
+     "shot": "noah_engine"
+    },
+    {
+     "note": {
+      "ru": "Дэнни кивает. Айрис у буханки всё слышала.",
+      "en": "Danny nods. By the van, Iris heard every word."
+     },
+     "dur": 2.6,
+     "shot": "danny_stop"
+    },
+    {
+     "go": "c4_s5"
+    }
+   ]
+  },
+  "c4_s4_quiet": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Ной молчит. Дэнни встаёт и уходит к буханке.",
+      "en": "Noah says nothing. Danny gets up and walks back to the van."
+     },
+     "dur": 2.6,
+     "shot": "danny_stop"
+    },
+    {
+     "go": "c4_s5"
+    }
+   ]
+  },
+  "c4_s5": {
+   "save": true,
+   "time": "15:20",
+   "beats": [
+    {
+     "fx": "pine",
+     "shot": "pine_road",
+     "note": {
+      "ru": "Поперёк дороги лежит сосна.",
+      "en": "A pine tree lies across the road."
+     },
+     "dur": 2.4
+    },
+    {
+     "note": {
+      "ru": "Спил свежий, ровный. Её свалили.",
+      "en": "The cut is fresh and clean. Someone felled it."
+     },
+     "dur": 2.6,
+     "shot": "pine_cut"
+    },
+    {
+     "fx": "sedan_behind",
+     "shot": "van_mirror",
+     "note": {
+      "ru": "В зеркале — чёрный седан.",
+      "en": "In the mirror — the black sedan."
+     },
+     "dur": 2.4
+    },
+    {
+     "fx": "orderly_out",
+     "shot": "orderly",
+     "note": {
+      "ru": "Из-за руля выходит санитар: огромный, белый халат под пуховиком. Молчит.",
+      "en": "The orderly gets out from behind the wheel: huge, a white coat under his down jacket. Silent."
+     },
+     "dur": 3.2
+    },
+    {
+     "fx": "hale_out",
+     "shot": "hale_wide",
+     "note": {
+      "ru": "С заднего сиденья — доктор Хейл. Очки, хорошее пальто, шарф. Впервые видно его лицо.",
+      "en": "From the back seat — Dr. Hale. Glasses, a good coat, a scarf. For the first time, they see his face."
+     },
+     "dur": 3.6
+    },
+    {
+     "say": "hale",
+     "ru": "Ной. Ну наконец-то.",
+     "en": "Noah. At last.",
+     "shot": "hale"
+    },
+    {
+     "fx": "hale_look_van",
+     "say": "hale",
+     "ru": "Агнесса… Сколько лет.",
+     "en": "Agnessa… It’s been so long.",
+     "shot": "hale"
+    },
+    {
+     "say": "agnes",
+     "ru": "Не смей. Не смей звать меня по имени.",
+     "en": "Don’t you dare. Don’t you dare call me by my name.",
+     "shot": "agnes_pine"
+    },
+    {
+     "say": "hale",
+     "ru": "Я понимаю, ты напуган. Ты болен, Ной, и ты сам это знаешь.",
+     "en": "I understand, you’re frightened. You’re ill, Noah, and you know it.",
+     "shot": "hale"
+    },
+    {
+     "fx": "hale_nod_iris",
+     "say": "hale",
+     "ru": "Ты убил отца. Следующей будет она.",
+     "en": "You killed your father. She’ll be next.",
+     "shot": "hale"
+    },
+    {
+     "say": "hale",
+     "ru": "Поехали со мной. Я помогу. Как тогда.",
+     "en": "Come with me. I’ll help. Like before.",
+     "shot": "hale"
+    },
+    {
+     "say": "iris",
+     "ru": "Как тогда — это когда ты стёр ему маму.",
+     "en": "“Like before” — when you erased his mom.",
+     "shot": "iris_pine"
+    },
+    {
+     "choice": {
+      "t": 10,
+      "opts": [
+       {
+        "ru": "«Что случилось с моей мамой?»",
+        "en": "“What happened to my mother?”",
+        "go": "c4_s5_talk"
+       },
+       {
+        "ru": "Отдать ему дневник",
+        "en": "Give him the diary",
+        "go": "c4_s5_diary"
+       },
+       {
+        "ru": "Напасть — монтировка",
+        "en": "Attack — the tire iron",
+        "go": "c4_s5_attack"
+       },
+       {
+        "ru": "Бежать в лес",
+        "en": "Run into the woods",
+        "go": "c4_s5_run"
+       },
+       {
+        "silent": true,
+        "go": "c4_s5_freeze"
+       }
+      ],
+      "shot": "noah_pine"
+     }
+    }
+   ]
+  },
+  "c4_s5_talk": {
+   "beats": [
+    {
+     "set": {
+      "pine_talk": 1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Что случилось с моей мамой?",
+     "en": "What happened to my mother?",
+     "shot": "noah_pine"
+    },
+    {
+     "say": "hale",
+     "ru": "Несчастный случай, Ной. Ты спал. Ты не мог этого видеть.",
+     "en": "An accident, Noah. You were asleep. You couldn’t have seen it.",
+     "shot": "hale"
+    },
+    {
+     "if": {
+      "memory": ">=3"
+     },
+     "else": "c4_s5_doubt"
+    },
+    {
+     "set": {
+      "hale_knows_mem": 1,
+      "memory": 1
+     }
+    },
+    {
+     "fx": "flash_shore",
+     "shot": "flash_shore",
+     "note": {
+      "ru": "Вспышка. Ночь. Фары на берегу озера. Этот самый седан.",
+      "en": "A flash. Night. Headlights on the lakeshore. This very sedan."
+     },
+     "dur": 2.8
+    },
+    {
+     "fx": "flash_end",
+     "shot": "noah_pine"
+    },
+    {
+     "say": "noah",
+     "ru": "Вы там были. Той ночью. Я видел вашу машину.",
+     "en": "You were there. That night. I saw your car.",
+     "shot": "noah_pine"
+    },
+    {
+     "fx": "hale_cold",
+     "shot": "hale",
+     "note": {
+      "ru": "Хейл впервые теряет спокойствие.",
+      "en": "For the first time, Hale loses his composure."
+     },
+     "dur": 2.4
+    },
+    {
+     "say": "hale",
+     "ru": "Взять его.",
+     "en": "Take him.",
+     "shot": "hale"
+    },
+    {
+     "go": "c4_s5_chase"
+    }
+   ]
+  },
+  "c4_s5_doubt": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Ной сомневается. Хейл протягивает руку.",
+      "en": "Noah wavers. Hale holds out his hand."
+     },
+     "dur": 2.6,
+     "fx": "hale_hand",
+     "shot": "hale_wide"
+    },
+    {
+     "say": "hale",
+     "ru": "Поехали, Ной.",
+     "en": "Come on, Noah.",
+     "shot": "hale"
+    },
+    {
+     "fx": "iris_pull",
+     "shot": "iris_pine",
+     "note": {
+      "ru": "Айрис тянет брата за рукав назад.",
+      "en": "Iris pulls her brother back by the sleeve."
+     },
+     "dur": 2.4
+    },
+    {
+     "say": "iris",
+     "ru": "Ной. Бежим.",
+     "en": "Noah. Run.",
+     "shot": "iris_pine"
+    },
+    {
+     "go": "c4_s5_chase"
+    }
+   ]
+  },
+  "c4_s5_diary": {
+   "beats": [
+    {
+     "set": {
+      "pine_diary": 1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Айрис. Отдай ему дневник.",
+     "en": "Iris. Give him the diary.",
+     "shot": "noah_pine"
+    },
+    {
+     "if": {
+      "trust": ">=4"
+     },
+     "else": "c4_s5_diary_no"
+    },
+    {
+     "fx": "diary_give",
+     "shot": "iris_pine"
+    },
+    {
+     "say": "iris",
+     "ru": "Делай как знаешь.",
+     "en": "Do what you think is right.",
+     "shot": "iris_pine"
+    },
+    {
+     "go": "c4_s5_diary_hale"
+    }
+   ]
+  },
+  "c4_s5_diary_no": {
+   "beats": [
+    {
+     "fx": "diary_hold",
+     "shot": "iris_pine",
+     "note": {
+      "ru": "Айрис прижимает дневник к груди.",
+      "en": "Iris presses the diary to her chest."
+     },
+     "dur": 2.2
+    },
+    {
+     "say": "iris",
+     "ru": "Нет.",
+     "en": "No.",
+     "shot": "iris_pine"
+    },
+    {
+     "choice": {
+      "t": 5,
+      "opts": [
+       {
+        "ru": "Отобрать силой",
+        "en": "Take it by force",
+        "go": "c4_s5_diary_force"
+       },
+       {
+        "ru": "Отступить",
+        "en": "Back off",
+        "go": "c4_s5_diary_keep"
+       },
+       {
+        "silent": true,
+        "go": "c4_s5_diary_keep"
+       }
+      ],
+      "shot": "noah_pine"
+     }
+    }
+   ]
+  },
+  "c4_s5_diary_force": {
+   "beats": [
+    {
+     "set": {
+      "trust": -3
+     },
+     "toast": true
+    },
+    {
+     "fx": "diary_force",
+     "shot": "iris_pine",
+     "note": {
+      "ru": "Ной вырывает дневник у сестры.",
+      "en": "Noah wrenches the diary out of his sister’s hands."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c4_s5_diary_hale"
+    }
+   ]
+  },
+  "c4_s5_diary_keep": {
+   "beats": [
+    {
+     "set": {
+      "diary_kept": 1
+     }
+    },
+    {
+     "say": "hale",
+     "ru": "Ну что ж.",
+     "en": "Well then.",
+     "shot": "hale"
+    },
+    {
+     "fx": "hale_nod",
+     "say": "hale",
+     "ru": "Взять его.",
+     "en": "Take him.",
+     "shot": "hale"
+    },
+    {
+     "go": "c4_s5_chase"
+    }
+   ]
+  },
+  "c4_s5_diary_hale": {
+   "beats": [
+    {
+     "set": {
+      "diary_hale": 1
+     }
+    },
+    {
+     "fx": "hale_diary",
+     "shot": "hale",
+     "note": {
+      "ru": "Хейл листает дневник. Прячет во внутренний карман.",
+      "en": "Hale leafs through the diary. Tucks it into his inside pocket."
+     },
+     "dur": 2.8
+    },
+    {
+     "say": "hale",
+     "ru": "Спасибо. А теперь — ты.",
+     "en": "Thank you. And now — you.",
+     "shot": "hale"
+    },
+    {
+     "fx": "orderly_step",
+     "shot": "orderly",
+     "note": {
+      "ru": "Санитар делает шаг вперёд.",
+      "en": "The orderly steps forward."
+     },
+     "dur": 2.0
+    },
+    {
+     "go": "c4_s5_chase"
+    }
+   ]
+  },
+  "c4_s5_attack": {
+   "beats": [
+    {
+     "set": {
+      "pine_attack": 1
+     }
+    },
+    {
+     "fx": "crowbar",
+     "shot": "noah_pine",
+     "note": {
+      "ru": "Ной выхватывает из буханки монтировку.",
+      "en": "Noah grabs the tire iron out of the van."
+     },
+     "dur": 2.2
+    },
+    {
+     "fx": "orderly_grab",
+     "shot": "fight",
+     "note": {
+      "ru": "Санитар перехватывает его руку.",
+      "en": "The orderly catches his arm."
+     },
+     "dur": 2.2
+    },
+    {
+     "if": {
+      "pills3": "==0"
+     },
+     "else": "c4_s5_weak"
+    },
+    {
+     "go": "c4_s5_lapse"
+    }
+   ]
+  },
+  "c4_s5_lapse": {
+   "beats": [
+    {
+     "set": {
+      "orderly_dead": 1,
+      "shadow": 2,
+      "hurt4": 1
+     }
+    },
+    {
+     "fx": "lapse",
+     "dur": 1.4
+    },
+    {
+     "fx": "orderly_down"
+    },
+    {
+     "fx": "wake",
+     "shot": "fight_after",
+     "note": {
+      "ru": "Ной приходит в себя. Санитар лежит в снегу и больше не встаёт.",
+      "en": "Noah comes to. The orderly lies in the snow and doesn’t get up again."
+     },
+     "dur": 3.2
+    },
+    {
+     "note": {
+      "ru": "Костяшки Ноя в крови. Монтировка — в снегу.",
+      "en": "Noah’s knuckles are bloody. The tire iron lies in the snow."
+     },
+     "dur": 2.6,
+     "shot": "knuckles4"
+    },
+    {
+     "fx": "hale_back",
+     "shot": "hale_wide",
+     "note": {
+      "ru": "Хейл пятится к машине.",
+      "en": "Hale backs away toward his car."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c4_s5_chase"
+    }
+   ]
+  },
+  "c4_s5_weak": {
+   "beats": [
+    {
+     "set": {
+      "iris_fought": 1
+     }
+    },
+    {
+     "fx": "noah_down",
+     "shot": "fight",
+     "note": {
+      "ru": "Таблетка ещё в крови. Ной слабый и медленный — санитар валит его в снег.",
+      "en": "The pill is still in his blood. Noah is weak and slow — the orderly drives him down into the snow."
+     },
+     "dur": 3.2
+    },
+    {
+     "fx": "syringe",
+     "shot": "hale",
+     "note": {
+      "ru": "Хейл достаёт шприц.",
+      "en": "Hale takes out a syringe."
+     },
+     "dur": 2.2
+    },
+    {
+     "fx": "iris_hit",
+     "shot": "iris_pine",
+     "note": {
+      "ru": "Айрис бьёт Хейла по руке. Шприц — в снегу.",
+      "en": "Iris strikes Hale’s hand. The syringe drops into the snow."
+     },
+     "dur": 2.6
+    },
+    {
+     "say": "iris",
+     "ru": "Беги!",
+     "en": "Run!",
+     "shot": "iris_pine"
+    },
+    {
+     "go": "c4_s5_chase"
+    }
+   ]
+  },
+  "c4_s5_run": {
+   "beats": [
+    {
+     "set": {
+      "pine_run": 1
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "В лес! Все — в лес!",
+     "en": "Into the woods! Everyone — go!",
+     "shot": "noah_pine"
+    },
+    {
+     "go": "c4_s5_chase"
+    }
+   ]
+  },
+  "c4_s5_freeze": {
+   "beats": [
+    {
+     "set": {
+      "pine_freeze": 1
+     }
+    },
+    {
+     "fx": "hale_elbow",
+     "shot": "hale_wide",
+     "note": {
+      "ru": "Ной молчит. Хейл подходит и мягко берёт его под локоть.",
+      "en": "Noah says nothing. Hale walks up and gently takes his elbow."
+     },
+     "dur": 3.0
+    },
+    {
+     "say": "hale",
+     "ru": "Вот и умница.",
+     "en": "Good boy.",
+     "shot": "hale"
+    },
+    {
+     "fx": "iris_pull",
+     "shot": "iris_pine"
+    },
+    {
+     "say": "iris",
+     "ru": "Ной!",
+     "en": "Noah!",
+     "shot": "iris_pine"
+    },
+    {
+     "note": {
+      "ru": "Айрис вырывает брата у него из рук — и тянет в лес.",
+      "en": "Iris tears her brother out of his grip — and pulls him toward the trees."
+     },
+     "dur": 2.8,
+     "shot": "iris_pine"
+    },
+    {
+     "go": "c4_s5_chase"
+    }
+   ]
+  },
+  "c4_s5_chase": {
+   "beats": [
+    {
+     "fx": "run_woods",
+     "shot": "woods_run",
+     "note": {
+      "ru": "Все бросаются в лес. Снег по колено.",
+      "en": "They all bolt into the woods. Knee-deep snow."
+     },
+     "dur": 2.6
+    },
+    {
+     "note": {
+      "ru": "За ними — санитар с фонарём.",
+      "en": "Behind them — the orderly with a flashlight."
+     },
+     "dur": 2.4,
+     "shot": "woods_back",
+     "if": {
+      "orderly_dead": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "За ними — Хейл. Один. Не торопится.",
+      "en": "Behind them — Hale. Alone. In no hurry."
+     },
+     "dur": 2.6,
+     "shot": "woods_back",
+     "if": {
+      "orderly_dead": ">0"
+     }
+    },
+    {
+     "go": "c4_s6"
+    }
+   ]
+  },
+  "c4_s6": {
+   "save": true,
+   "time": "17:10",
+   "beats": [
+    {
+     "fx": "woods_dusk",
+     "shot": "woods",
+     "note": {
+      "ru": "Темнеет. Снег по колено. Впереди — охотничья избушка.",
+      "en": "It’s getting dark. Knee-deep snow. Ahead — a hunter’s cabin."
+     },
+     "dur": 3.0
+    },
+    {
+     "fx": "hut_in",
+     "shot": "hut",
+     "note": {
+      "ru": "Спрятаться. Сквозь щели в стенах пляшет луч фонаря.",
+      "en": "Hide. Through the gaps in the walls, a flashlight beam dances."
+     },
+     "dur": 3.0
+    },
+    {
+     "say": "hale",
+     "ru": "Ной… Я не сержусь. Тут холодно. Выходи — поговорим.",
+     "en": "Noah… I’m not angry. It’s cold out here. Come out — let’s talk.",
+     "shot": "hut_gap",
+     "if": {
+      "orderly_dead": ">0"
+     }
+    },
+    {
+     "if": {
+      "baby": ">0"
+     },
+     "else": "c4_s6_zoe"
+    },
+    {
+     "fx": "baby_whimper",
+     "shot": "baby_hut",
+     "note": {
+      "ru": "Маленькая Анна начинает хныкать.",
+      "en": "Little Anna starts to whimper."
+     },
+     "dur": 2.4
+    },
+    {
+     "if": {
+      "eva_alive": ">0"
+     },
+     "else": "c4_s6_rock_iris"
+    },
+    {
+     "fx": "eva_rock",
+     "shot": "baby_hut",
+     "note": {
+      "ru": "Ева прижимает её к себе и укачивает. Медленно. В ритм.",
+      "en": "Eva holds her close and rocks her. Slowly. In rhythm."
+     },
+     "dur": 2.8
+    },
+    {
+     "qte": "rock",
+     "t": 9.0,
+     "n": 5,
+     "gap": 0.7,
+     "hint": {
+      "ru": "Укачай: жми E / пробел медленно, в ритм — не торопись",
+      "en": "Rock her: press E / Space slowly, in rhythm — don’t rush"
+     },
+     "fail": "c4_s6_cry"
+    },
+    {
+     "go": "c4_s6_quiet"
+    }
+   ]
+  },
+  "c4_s6_rock_iris": {
+   "beats": [
+    {
+     "fx": "iris_rock",
+     "shot": "baby_hut",
+     "note": {
+      "ru": "Девочка у Айрис на руках. Укачать — медленно, в ритм, не торопясь.",
+      "en": "The baby is in Iris’s arms. Rock her — slowly, in rhythm, no rushing."
+     },
+     "dur": 3.0
+    },
+    {
+     "qte": "rock",
+     "t": 9.0,
+     "n": 7,
+     "gap": 0.8,
+     "hint": {
+      "ru": "Укачай: жми E / пробел медленно, в ритм — не торопись",
+      "en": "Rock her: press E / Space slowly, in rhythm — don’t rush"
+     },
+     "fail": "c4_s6_cry",
+     "if": {
+      "van_late": "==0"
+     }
+    },
+    {
+     "qte": "rock",
+     "t": 9.0,
+     "n": 8,
+     "gap": 0.85,
+     "hint": {
+      "ru": "Укачай: жми E / пробел медленно, в ритм — не торопись",
+      "en": "Rock her: press E / Space slowly, in rhythm — don’t rush"
+     },
+     "fail": "c4_s6_cry",
+     "if": {
+      "van_late": ">0"
+     }
+    },
+    {
+     "go": "c4_s6_quiet"
+    }
+   ]
+  },
+  "c4_s6_quiet": {
+   "beats": [
+    {
+     "fx": "beam_pass",
+     "shot": "hut_gap",
+     "note": {
+      "ru": "Тишина. Луч скользит по стене — и уходит мимо.",
+      "en": "Silence. The beam slides along the wall — and moves on."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c4_s6_zoe"
+    }
+   ]
+  },
+  "c4_s6_cry": {
+   "beats": [
+    {
+     "set": {
+      "baby_cried": 1
+     }
+    },
+    {
+     "fx": "baby_cry",
+     "shot": "baby_hut",
+     "note": {
+      "ru": "Плач.",
+      "en": "Crying."
+     },
+     "dur": 1.6
+    },
+    {
+     "fx": "beam_turn",
+     "shot": "hut_gap",
+     "note": {
+      "ru": "Луч останавливается. Поворачивается к избушке.",
+      "en": "The beam stops. Turns toward the cabin."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "hut_run",
+     "shot": "woods_run",
+     "note": {
+      "ru": "Бежать дальше — в темноту.",
+      "en": "Run on — into the dark."
+     },
+     "dur": 2.2
+    },
+    {
+     "go": "c4_s6_zoe"
+    }
+   ]
+  },
+  "c4_s6_zoe": {
+   "beats": [
+    {
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     },
+     "else": "c4_s6_agnes"
+    },
+    {
+     "fx": "zoe_grab",
+     "shot": "zoe_trail",
+     "note": {
+      "ru": "На тропе санитар хватает Зою.",
+      "en": "On the trail, the orderly grabs Zoe."
+     },
+     "dur": 2.4,
+     "if": {
+      "orderly_dead": "==0"
+     }
+    },
+    {
+     "fx": "zoe_grab",
+     "shot": "zoe_trail",
+     "note": {
+      "ru": "На тропе из темноты — Хейл. Шприц — Зое в шею.",
+      "en": "On the trail, out of the dark — Hale. A syringe to Zoe’s neck."
+     },
+     "dur": 2.8,
+     "if": {
+      "orderly_dead": ">0"
+     }
+    },
+    {
+     "say": "zoe",
+     "ru": "Беги! Бегите, ну!",
+     "en": "Run! Go, all of you, run!",
+     "shot": "zoe_trail",
+     "if": {
+      "romance": "<=0"
+     }
+    },
+    {
+     "say": "zoe",
+     "ru": "Ной!",
+     "en": "Noah!",
+     "shot": "zoe_trail",
+     "if": {
+      "romance": ">0"
+     }
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "Броситься на санитара",
+        "en": "Throw yourself at the orderly",
+        "go": "c4_s6_zoe_save",
+        "if": {
+         "orderly_dead": "==0"
+        }
+       },
+       {
+        "ru": "Броситься на Хейла",
+        "en": "Throw yourself at Hale",
+        "go": "c4_s6_zoe_save",
+        "if": {
+         "orderly_dead": ">0"
+        }
+       },
+       {
+        "ru": "Бежать с детьми",
+        "en": "Run with the kids",
+        "go": "c4_s6_zoe_lost"
+       },
+       {
+        "silent": true,
+        "go": "c4_s6_zoe_lost"
+       }
+      ],
+      "shot": "noah_woods"
+     }
+    }
+   ]
+  },
+  "c4_s6_zoe_save": {
+   "beats": [
+    {
+     "set": {
+      "zoe_saved": 1,
+      "zoe_trust": 1
+     }
+    },
+    {
+     "if": {
+      "pills3": "==0"
+     },
+     "else": "c4_s6_zoe_pull"
+    },
+    {
+     "set": {
+      "shadow": 1,
+      "hurt4": 1
+     }
+    },
+    {
+     "fx": "lapse",
+     "dur": 1.2
+    },
+    {
+     "fx": "zoe_rough"
+    },
+    {
+     "fx": "wake",
+     "shot": "zoe_after",
+     "note": {
+      "ru": "Ной приходит в себя. Зоя рядом. У Ноя разбиты руки.",
+      "en": "Noah comes to. Zoe is beside him. Noah’s hands are split open."
+     },
+     "dur": 3.0
+    },
+    {
+     "note": {
+      "ru": "Санитар стонет в снегу. «Второй он» вытащил её — жёстко.",
+      "en": "The orderly groans in the snow. “The other him” got her out — the hard way."
+     },
+     "dur": 3.0,
+     "shot": "zoe_after",
+     "if": {
+      "orderly_dead": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Хейл отползает в темноту. «Второй он» вытащил её — жёстко.",
+      "en": "Hale crawls off into the dark. “The other him” got her out — the hard way."
+     },
+     "dur": 3.0,
+     "shot": "zoe_after",
+     "if": {
+      "orderly_dead": ">0"
+     }
+    },
+    {
+     "go": "c4_s6_agnes"
+    }
+   ]
+  },
+  "c4_s6_zoe_pull": {
+   "beats": [
+    {
+     "fx": "zoe_pull",
+     "shot": "zoe_trail",
+     "note": {
+      "ru": "Ной сбивает санитара с ног. Зоя вырывается.",
+      "en": "Noah knocks the orderly off his feet. Zoe tears free."
+     },
+     "dur": 2.6,
+     "if": {
+      "orderly_dead": "==0"
+     }
+    },
+    {
+     "fx": "zoe_pull",
+     "shot": "zoe_trail",
+     "note": {
+      "ru": "Ной сбивает Хейла с ног. Шприц летит в снег. Зоя вырывается.",
+      "en": "Noah knocks Hale off his feet. The syringe flies into the snow. Zoe tears free."
+     },
+     "dur": 2.8,
+     "if": {
+      "orderly_dead": ">0"
+     }
+    },
+    {
+     "go": "c4_s6_agnes"
+    }
+   ]
+  },
+  "c4_s6_zoe_lost": {
+   "beats": [
+    {
+     "set": {
+      "zoe_taken4": 1,
+      "zoe_taken": 1,
+      "zoe_gone": 1
+     }
+    },
+    {
+     "fx": "zoe_dragged",
+     "shot": "woods_back",
+     "note": {
+      "ru": "Зою уводят к чёрной машине. Её крик — всё тише.",
+      "en": "They drag Zoe toward the black car. Her screams grow fainter."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c4_s6_agnes"
+    }
+   ]
+  },
+  "c4_s6_agnes": {
+   "beats": [
+    {
+     "fx": "agnes_sit",
+     "shot": "agnes_snow",
+     "note": {
+      "ru": "Бабушка отстаёт. Задыхается. Садится в снег.",
+      "en": "Grandma falls behind. She’s gasping. She sits down in the snow."
+     },
+     "dur": 2.8
+    },
+    {
+     "say": "agnes",
+     "ru": "Идите. Идите, кому говорю. Я старая. Я его задержу.",
+     "en": "Go. Go on, I said. I’m old. I’ll hold him off.",
+     "shot": "agnes_snow"
+    },
+    {
+     "fx": "hale_dark",
+     "say": "hale",
+     "ru": "Агнесса, не надо. Ты же знаешь, я врач.",
+     "en": "Agnessa, don’t. You know I’m a doctor.",
+     "shot": "woods_dark"
+    },
+    {
+     "say": "agnes",
+     "ru": "Это ты ему сказал. Аню. Ты её отдал.",
+     "en": "It was you who told him. About Annie. You gave her away.",
+     "shot": "agnes_snow",
+     "if": {
+      "agnes_knows_hale": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Хейл молчит.",
+      "en": "Hale says nothing."
+     },
+     "dur": 2.0,
+     "shot": "woods_dark",
+     "if": {
+      "agnes_knows_hale": ">0"
+     }
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "Вернуться за ней",
+        "en": "Go back for her",
+        "go": "c4_s6_agnes_save"
+       },
+       {
+        "ru": "Уйти",
+        "en": "Keep going",
+        "go": "c4_s6_agnes_lost"
+       },
+       {
+        "silent": true,
+        "go": "c4_s6_agnes_lost"
+       }
+      ],
+      "shot": "noah_woods"
+     }
+    }
+   ]
+  },
+  "c4_s6_agnes_save": {
+   "beats": [
+    {
+     "set": {
+      "agnes_limp": 1
+     }
+    },
+    {
+     "fx": "carry_agnes",
+     "shot": "woods_carry",
+     "note": {
+      "ru": "Ной возвращается и тащит бабушку на себе. Она подвернула ногу.",
+      "en": "Noah goes back and hauls Grandma along on his back. She’s twisted her ankle."
+     },
+     "dur": 3.0
+    },
+    {
+     "note": {
+      "ru": "Погоня ближе. Но она жива.",
+      "en": "The chase is closer. But she’s alive."
+     },
+     "dur": 2.4,
+     "shot": "woods_back"
+    },
+    {
+     "go": "c4_s6_danny"
+    }
+   ]
+  },
+  "c4_s6_agnes_lost": {
+   "beats": [
+    {
+     "set": {
+      "agnes_dead": 1
+     }
+    },
+    {
+     "fx": "agnes_left",
+     "shot": "woods_back",
+     "note": {
+      "ru": "Они уходят. Позади — голос бабушки, ровный.",
+      "en": "They walk away. Behind them — Grandma’s voice, steady."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "agnes_song",
+     "shot": "agnes_snow",
+     "note": {
+      "ru": "Колыбельная. Та самая.",
+      "en": "The lullaby. That same one."
+     },
+     "dur": 3.4
+    },
+    {
+     "fx": "song_stop",
+     "shot": "woods_dark",
+     "note": {
+      "ru": "Потом — тишина.",
+      "en": "Then — silence."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c4_s6_danny"
+    }
+   ]
+  },
+  "c4_s6_danny": {
+   "beats": [
+    {
+     "if": {
+      "danny": ">0",
+      "danny_lost": "==0",
+      "danny_fear": ">0"
+     },
+     "else": "c4_s7"
+    },
+    {
+     "fx": "hale_call",
+     "say": "hale",
+     "ru": "Дэнни. Дэнни, иди сюда. Мама в машине. Она тебя ищет.",
+     "en": "Danny. Danny, come here. Your mom’s in the car. She’s looking for you.",
+     "shot": "woods_dark"
+    },
+    {
+     "fx": "danny_freeze",
+     "shot": "danny_woods",
+     "note": {
+      "ru": "Дэнни замирает.",
+      "en": "Danny freezes."
+     },
+     "dur": 2.0
+    },
+    {
+     "choice": {
+      "t": 6,
+      "opts": [
+       {
+        "ru": "«Айрис, позови его»",
+        "en": "“Iris, call him”",
+        "go": "c4_s6_danny_iris"
+       },
+       {
+        "ru": "Бежать за ним",
+        "en": "Run after him",
+        "go": "c4_s6_danny_run"
+       },
+       {
+        "ru": "Отпустить",
+        "en": "Let him go",
+        "go": "c4_s6_danny_go"
+       },
+       {
+        "silent": true,
+        "go": "c4_s6_danny_go"
+       }
+      ],
+      "shot": "noah_woods"
+     }
+    }
+   ]
+  },
+  "c4_s6_danny_iris": {
+   "beats": [
+    {
+     "say": "iris",
+     "ru": "Дэнни. Иди ко мне.",
+     "en": "Danny. Come here, to me.",
+     "shot": "iris_woods"
+    },
+    {
+     "if": {
+      "hurt4": "==0"
+     },
+     "else": "c4_s6_danny_no"
+    },
+    {
+     "set": {
+      "danny_stayed": 1
+     }
+    },
+    {
+     "fx": "danny_to_iris",
+     "shot": "danny_woods",
+     "note": {
+      "ru": "Дэнни долго стоит. Потом идёт к Айрис.",
+      "en": "Danny stands there for a long time. Then he walks to Iris."
+     },
+     "dur": 2.8
+    },
+    {
+     "go": "c4_s7"
+    }
+   ]
+  },
+  "c4_s6_danny_no": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Дэнни смотрит на разбитые руки Ноя. И уходит на голос.",
+      "en": "Danny looks at Noah’s battered hands. And walks toward the voice."
+     },
+     "dur": 3.0,
+     "shot": "danny_woods"
+    },
+    {
+     "go": "c4_s6_danny_hale"
+    }
+   ]
+  },
+  "c4_s6_danny_run": {
+   "beats": [
+    {
+     "fx": "danny_bite",
+     "shot": "danny_woods",
+     "note": {
+      "ru": "Ной догоняет его — Дэнни кусает его за руку и убегает к машине.",
+      "en": "Noah catches up with him — Danny bites his hand and runs for the car."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c4_s6_danny_hale"
+    }
+   ]
+  },
+  "c4_s6_danny_go": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Дэнни уходит на голос.",
+      "en": "Danny walks toward the voice."
+     },
+     "dur": 2.2,
+     "shot": "danny_woods"
+    },
+    {
+     "go": "c4_s6_danny_hale"
+    }
+   ]
+  },
+  "c4_s6_danny_hale": {
+   "beats": [
+    {
+     "set": {
+      "danny_hale": 1
+     }
+    },
+    {
+     "fx": "danny_gone",
+     "shot": "woods_dark",
+     "note": {
+      "ru": "Фонарь гаснет. Где-то далеко хлопает дверь машины.",
+      "en": "The flashlight goes out. Somewhere far off, a car door slams."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c4_s7"
+    }
+   ]
+  },
+  "c4_s7": {
+   "save": true,
+   "time": "07:10",
+   "beats": [
+    {
+     "fx": "lake_dawn"
+    },
+    {
+     "fx": "fade_in",
+     "shot": "lake_wide",
+     "note": {
+      "ru": "На рассвете лес кончается. Белая гладь замёрзшего озера.",
+      "en": "At dawn the forest ends. The white expanse of a frozen lake."
+     },
+     "dur": 3.2
+    },
+    {
+     "note": {
+      "ru": "На берегу — старая дача, лодочный сарай, мостки под снегом. То самое место.",
+      "en": "On the shore — an old lake house, a boathouse, a dock under the snow. That same place."
+     },
+     "dur": 3.4,
+     "shot": "dacha"
+    },
+    {
+     "say": "iris",
+     "ru": "Мы приехали.",
+     "en": "We’re here.",
+     "shot": "iris_lake"
+    },
+    {
+     "fx": "boathouse_gap",
+     "shot": "boathouse",
+     "note": {
+      "ru": "Ной смотрит на сарай. Щель в досках.",
+      "en": "Noah looks at the boathouse. A gap between the boards."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "kid_eyes",
+     "shot": "gap_eyes",
+     "note": {
+      "ru": "На секунду — глаза восьмилетнего мальчика с той стороны.",
+      "en": "For a second — the eyes of an eight-year-old boy on the other side."
+     },
+     "dur": 2.8
+    },
+    {
+     "fx": "far_sedan",
+     "shot": "lake_far",
+     "note": {
+      "ru": "На другом берегу медленно загораются две фары. Чёрный седан объезжает озеро.",
+      "en": "On the far shore, two headlights slowly come on. The black sedan is circling the lake."
+     },
+     "dur": 3.6
+    },
+    {
+     "go": "c4_end"
+    }
+   ]
+  },
+  "c4_end": {
+   "beats": [
+    {
+     "fx": "fade_out",
+     "dur": 1.4
+    },
+    {
+     "text": {
+      "ru": "Агнес так и осталась в лесу. Её найдут потом — в снегу, будто уснула.",
+      "en": "Agnes stayed behind in the forest. They’ll find her later — in the snow, as if asleep."
+     },
+     "dur": 3.6,
+     "note": true,
+     "if": {
+      "agnes_dead": ">0"
+     }
+    },
+    {
+     "end": 4
+    }
+   ]
+  }
+ }
+}

@@ -423,16 +423,17 @@
     0.3,
     0.26,
     0.22
-   ],
+   ]
+  },
+  "gray": {
    "braid01": [
-    0.62,
-    0.6,
-    0.58
+    0.55,
+    1.0
    ]
   }
  },
  "hale": {
-  "_who": "Доктор Саймон Хейл, ~56: аккуратный, очки (в игре), дорогое пальто, мягкий голос",
+  "_who": "Доктор Саймон Хейл, ~56: аккуратный, очки, дорогое пальто (ёлочка) и шарф, мягкий голос",
   "phenotype": {
    "gender": 1,
    "age": 0.738,
@@ -471,7 +472,36 @@
     0.41,
     0.4
    ]
-  }
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "coat",
+    "tex": "poly_wool_herringbone",
+    "tint": [
+     0.5,
+     0.44,
+     0.38
+    ],
+    "off": 0.042,
+    "tile": 7,
+    "rough": 0.85,
+    "band": 0.4
+   },
+   {
+    "kind": "scarf",
+    "name": "scarf",
+    "tex": "wool_boucle",
+    "tint": [
+     0.36,
+     0.12,
+     0.12
+    ],
+    "off": 0.058,
+    "tile": 9,
+    "rough": 0.95
+   }
+  ]
  },
  "nina": {
   "_who": "Нина, 52: официантка кафе «У трёх сосен» (глава 2), полная, светлое каре с сединой, форменное платье",
@@ -566,6 +596,64 @@
     0.55,
     0.62,
     0.7
+   ]
+  }
+ },
+ "orderly": {
+  "_who": "Санитар Хейла (глава 4): огромный, молчит; белая роба санитара под тёмным пуховиком, стрижка под машинку",
+  "phenotype": {
+   "gender": 1,
+   "age": 0.47,
+   "muscle": 0.85,
+   "weight": 0.78,
+   "proportions": 0.5,
+   "height": 1.0,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.03,
+    "caucasian": 0.95,
+    "african": 0.02
+   }
+  },
+  "skin": "middleage_caucasian_male/middleage_caucasian_male.mhmat",
+  "hair": "short02/short02.mhclo",
+  "brows": "eyebrow001/eyebrow001.mhclo",
+  "clothes": [
+   "male_worksuit01/male_worksuit01.mhclo",
+   "toigo_ankle_boots_male/toigo_ankle_boots_male.mhclo"
+  ],
+  "targets": {
+   "head-square": 0.55,
+   "chin-width-incr": 0.45,
+   "chin-prominent-incr": 0.3,
+   "nose-volume-incr": 0.3,
+   "l-eye-bag-incr": 0.3,
+   "r-eye-bag-incr": 0.3,
+   "mouth-scale-horiz-decr": 0.2,
+   "neck-scale-horiz-incr": 0.5
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "puffer",
+    "tex": "cotton_jersey",
+    "tint": [
+     0.1,
+     0.12,
+     0.17
+    ],
+    "off": 0.065,
+    "tile": 5,
+    "rough": 0.7,
+    "band": 0.5,
+    "hem": 0.0
+   }
+  ],
+  "gray": {
+   "worksuit01": [
+    0.72,
+    0.3
    ]
   }
  }

@@ -696,9 +696,9 @@ static func pill_bottle(g, show: bool) -> void:
 		paper.material_override = pm
 		m.add_child(paper)
 		var lb := Label3D.new()
-		lb.text = "Д-р С. Хейл\nпо 1 таб. 2 р/д" if g.lang == "ru" else "Dr. S. Hale\n1 tab twice daily"
+		lb.text = "Ной\nД-р С. Хейл\n1 таб. при головной боли" if g.lang == "ru" else "Noah\nDr. S. Hale\n1 tab. for headaches"
 		lb.font_size = 40
-		lb.pixel_size = 0.00028
+		lb.pixel_size = 0.000088   # строка — не шире этикетки (Ø 4,6 см)
 		lb.modulate = Color(0.08, 0.08, 0.1)
 		lb.outline_size = 0
 		lb.shaded = false

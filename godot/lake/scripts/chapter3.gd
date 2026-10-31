@@ -61,6 +61,7 @@ static func village(g) -> Village:
 	s.add_child(v)
 	v.build(g.lang, s.pc)
 	g.c3["village"] = v
+	s.moon.light_energy = 0.12   # снег в деревне светится под луной (иначе ночью — чернота)
 	for n in s.road_items.get_children():   # дорожное (машина Евы, огни вдали) — убрать
 		n.queue_free()
 	return v
@@ -85,7 +86,11 @@ static func cast(g) -> Array:
 
 
 static func agnes(g) -> Actor:
-	return actor(g, "agnes", "agnes" if ResourceLoader.exists("res://assets/chars/agnes.glb") else "eva")
+	var fresh: bool = not has(g, "agnes")
+	var a := actor(g, "agnes", "agnes" if ResourceLoader.exists("res://assets/chars/agnes.glb") else "eva")
+	if fresh:
+		a.visible = true
+	return a
 
 
 ## Все в доме Агнес: у печи, у стола, на лавке.
@@ -135,6 +140,13 @@ static func restore(g, id: String) -> void:
 static func fx(g, k: String) -> bool:
 	if not String(g._scene_id).begins_with("c3"):
 		return false   # имена событий главы 3 бывают и в других главах (danny_stays)
+	if k != "diary_agnes" and g.c3.has("diary"):   # дневник убран — руки Айрис опускаются
+		var dn = g.c3.get("diary")
+		if dn and is_instance_valid(dn):
+			(dn as Node).queue_free()
+		g.c3.erase("diary")
+		if has(g, "iris"):
+			(g.actors.iris as Actor).reach = {}
 	var s: DriveScene = g.scene
 	var c3: Dictionary = g.c3
 	match k:
@@ -232,6 +244,7 @@ static func fx(g, k: String) -> bool:
 		"agnes_door":   # дверь открывает Агнес; Ной на ступенях
 			var a := agnes(g)
 			a.visible = true
+			village(g).open_door()
 			put(g, "agnes", Vector3(-7.95, 0.5, -45.0), 90.0, "Idle")
 			put(g, "noah", Vector3(-6.75, 0.25, -45.05), -90.0, "Idle")
 			put(g, "iris", Vector3(-5.9, 0.0, -44.1), -110.0, "Idle")
@@ -251,7 +264,7 @@ static func fx(g, k: String) -> bool:
 		"birth_bed":   # Еву — на кровать за печью
 			in_house(g)
 			lie(g, "eva", ag(-2.15, 0.6, 1.3), -90.0)
-			put(g, "agnes", ag(-1.15, 0.0, 1.35), -90.0, "Idle")
+			put(g, "agnes", ag(-1.9, 0.0, 2.35), 180.0, "Idle")
 			put(g, "iris", ag(-1.6, 0.0, 0.45), -30.0, "Crouch_Idle")
 		"lights_out":   # свет мигает и гаснет
 			var v := village(g)
@@ -355,8 +368,9 @@ static func fx(g, k: String) -> bool:
 			_house_sleepers(g)
 		"pipe":
 			pipe_puff(g)
-		"diary_agnes":
-			put(g, "iris", ag(0.15, 0.0, -0.45), -150.0, "Idle")
+		"diary_agnes":   # Айрис показывает бабушке мамин дневник
+			put(g, "iris", ag(0.25, 0.0, -0.35), -120.0, "Idle")
+			diary(g)
 		"agnes_hand":
 			(agnes(g)).reach = {"_l": g._target("noah") + Vector3(0, -0.55, 0)}
 		"pills3":
@@ -402,6 +416,14 @@ static func fx(g, k: String) -> bool:
 			ax.rotation_degrees = Vector3(90, 30, 0)
 			village(g).add_child(ax)
 			g.sfx.play("blow", -14.0, 0.7)
+			var a := agnes(g)
+			put(g, "agnes", Vector3(4.4, 0.0, -86.6), face_to(Vector3(4.4, 0, -86.6), Vector3(6.0, 0, -94.2)), "Idle_FoldArms")
+			a.look_target = g._target("noah")
+			(g.actors.noah as Actor).look_target = null
+		"danny_at_window":   # Дэнни в доме у окна — всё видел
+			if has(g, "danny"):
+				put(g, "danny", ag(2.75, 0.0, 2.2), 90.0, "Idle")
+				village(g).night_glow(true)
 		"danny_door":   # Дэнни у двери — в валенках, с рацией
 			in_house(g)
 			put(g, "danny", ag(2.75, 0.0, 0.05), -90.0, "Idle")
@@ -420,21 +442,26 @@ static func fx(g, k: String) -> bool:
 			s.road.snow.amount = 5200 if s.pc else 2400
 			g._blizzard = true
 		"baby_night":   # ночь в доме: печь потрескивает, все спят
+			pipe(g, false)
 			in_house(g)
 			village(g).set_power(false)
 			_house_sleepers(g)
 			Ch2.sit(g, "noah", ag(2.9, 0.47, 0.4), -90.0)
 			(g.actors.noah as Actor).play("Rk_SitIdle", 0.0)
 			if has(g, "danny"):
-				Ch2.sit(g, "danny", ag(2.9, 0.47, 2.1), 90.0)
+				Ch2.sit(g, "danny", ag(2.9, 0.47, 2.1), -90.0)
 			if on(g, "baby"):
 				g.sfx.play("baby_cry", -16.0, 1.05)
 		"radio_song":   # сквозь помехи — та самая колыбельная
+			village(g).night_glow(true)   # лицо у окна — в холодном свете снега
+			village(g).radio_glow(true)
 			g.sfx.play("static_burst", -16.0, 0.7)
 			g.sfx.play("lullaby", -12.0, 1.0, 0.6)
 		"dawn_street":   # под утро: буран стих; в конце улицы — фары седана, гаснут
 			var v := village(g)
 			v.set_power(false)
+			v.night_glow(false)
+			v.radio_glow(false)
 			s.set_daylight("dawn")
 			s.env.background_color = Color(0.16, 0.18, 0.22)
 			s.env.ambient_light_energy = 0.25
@@ -450,7 +477,7 @@ static func fx(g, k: String) -> bool:
 			g.blackcar.rotation_degrees = Vector3(0, 180, 0)
 			g.blackcar.speed = 0.0
 			g.blackcar.lights(true)
-			g.get_tree().create_timer(1.6).timeout.connect(func():
+			g.get_tree().create_timer(3.4).timeout.connect(func():   # горят, пока идёт кадр, — и гаснут
 				if is_instance_valid(g.blackcar):
 					g.blackcar.lights(false))
 			in_house(g)
@@ -533,23 +560,16 @@ static func snow_spray(g, enable: bool) -> void:
 		car.add_child(root)
 		for x in [-0.72, 0.72]:
 			var sp := CPUParticles3D.new()
-			sp.amount = 90
+			sp.amount = 160
 			sp.lifetime = 0.9
 			sp.direction = Vector3(0, 0.6, 1)
 			sp.spread = 30.0
 			sp.initial_velocity_min = 2.0
 			sp.initial_velocity_max = 4.5
 			sp.gravity = Vector3(0, -6.0, 0)
-			sp.scale_amount_min = 0.04
-			sp.scale_amount_max = 0.1
-			var mm := SphereMesh.new()
-			mm.radius = 0.5
-			mm.height = 1.0
-			var smat := StandardMaterial3D.new()
-			smat.albedo_color = Color(0.9, 0.92, 0.96)
-			smat.roughness = 1.0
-			mm.material = smat
-			sp.mesh = mm
+			sp.scale_amount_min = 1.0
+			sp.scale_amount_max = 2.6
+			sp.mesh = g.scene.road.snow.mesh   # снежная пыль: те же мягкие хлопья, что летят в фары
 			sp.position = Vector3(x, 0.15, 1.25)
 			root.add_child(sp)
 		g.c3["spray"] = root
@@ -605,7 +625,7 @@ static func restage_birth(g) -> void:
 	if not has(g, "eva"):
 		return
 	lie(g, "eva", ag(-2.15, 0.6, 1.3), -90.0)
-	put(g, "agnes", ag(-1.15, 0.0, 1.35), -90.0, "Idle")
+	put(g, "agnes", ag(-1.9, 0.0, 2.35), 180.0, "Idle")
 	put(g, "iris", ag(-1.6, 0.0, 0.45), -30.0, "Crouch_Idle")
 	(g.actors.iris as Actor).reach = {"_r": g._target("eva") + Vector3(0.25, -0.15, -0.1)}
 	put(g, "noah", ag(0.6, 0.0, 2.5), -140.0, "Idle_FoldArms")
@@ -663,6 +683,63 @@ static func baby(g, who: String) -> void:
 	face.position = Vector3(0.14, 0.03, 0.27)
 	ba.add_child(face)
 	g.c3["baby"] = ba
+
+
+## Мамин дневник — раскрытая тетрадь в руках Айрис (строчки — тёмные полоски).
+static func diary(g) -> void:
+	var old = g.c3.get("diary")
+	if old and is_instance_valid(old):
+		(old as Node).queue_free()
+	if not has(g, "iris"):
+		return
+	var iris: Actor = g.actors.iris
+	var book := Node3D.new()   # место — каждый кадр между ладонями (process)
+	village(g).add_child(book)
+	var fwd := iris.global_transform.basis.z.normalized()
+	var left := Vector3.UP.cross(fwd).normalized()   # левая рука героя — к +X при взгляде к +Z
+	var chest := iris.global_position + Vector3(0, 1.02, 0) + fwd * 0.3
+	iris.reach = {"_l": chest + left * 0.11, "_r": chest - left * 0.11}
+	var paper := StandardMaterial3D.new()
+	paper.albedo_color = Color(0.9, 0.87, 0.78)
+	paper.roughness = 0.9
+	var cover := StandardMaterial3D.new()
+	cover.albedo_color = Color(0.28, 0.14, 0.09)
+	cover.roughness = 0.6
+	var cv := MeshInstance3D.new()   # обложка под страницами
+	var cb := BoxMesh.new()
+	cb.size = Vector3(0.32, 0.004, 0.225)
+	cv.mesh = cb
+	cv.material_override = cover
+	cv.position = Vector3(0, -0.006, 0)
+	book.add_child(cv)
+	var hand: Font = load("res://assets/fonts/Pangolin-Regular.woff2")
+	var pages := ["Была у мамы. Она говорит —\nиди к Саймону, он поможет.\nОн же врач. Он друг.", "Саймон обещал. В субботу\nночью он нас увезёт.\nНой уже собрал рюкзак."] if g.lang == "ru" \
+		else ["Went to see Mom. She says —\ngo to Simon, he’ll help.\nHe’s a doctor. A friend.", "Simon promised. Saturday\nnight he’ll take us away.\nNoah already packed\nhis backpack."]
+	for k in 2:
+		var side := -1.0 if k == 0 else 1.0
+		var pg := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.152, 0.005, 0.21)
+		pg.mesh = bm
+		pg.material_override = paper
+		pg.position = Vector3(side * 0.078, 0.0, 0.0)
+		pg.rotation_degrees = Vector3(0, 0, -side * 6.0)
+		book.add_child(pg)
+		var lb := Label3D.new()   # строки почерком — лицом вверх (к лицу Айрис), сверху страницы
+		lb.text = pages[k]
+		lb.font = hand
+		lb.font_size = 64
+		lb.pixel_size = 0.00015   # строка «Была у мамы. Она говорит —» ≈ 11 см — в ширину страницы
+		lb.modulate = Color(0.13, 0.16, 0.36)
+		lb.outline_size = 0
+		lb.shaded = true
+		lb.double_sided = false
+		lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		lb.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		lb.position = Vector3(0.0, 0.0029, -0.085)
+		lb.rotation_degrees = Vector3(-90, 0, 0)
+		pg.add_child(lb)
+	g.c3["diary"] = book
 
 
 ## Топор в правой руке Ноя.
@@ -769,23 +846,49 @@ static func pipe(g, show: bool) -> void:
 		var ba := BoneAttachment3D.new()
 		ba.bone_name = "head"
 		a.skel.add_child(ba)
-		var m := MeshInstance3D.new()
+		var mat := StandardMaterial3D.new()   # тёмное дерево (кость головы: лицо — к +Z, макушка — к +Y)
+		mat.albedo_color = Color(0.3, 0.17, 0.08)
+		mat.roughness = 0.45
+		var dir := Vector3(0.18, -0.42, 0.89).normalized()   # из угла рта — вперёд и вниз
+		var start := Vector3(0.024, 0.012, 0.1)
+		var stem := MeshInstance3D.new()
 		var cm := CylinderMesh.new()
-		cm.top_radius = 0.008
-		cm.bottom_radius = 0.008
-		cm.height = 0.14
-		m.mesh = cm
-		var mat := StandardMaterial3D.new()
-		mat.albedo_color = Color(0.18, 0.1, 0.05)
-		m.material_override = mat
-		m.position = Vector3(0.03, 0.02, 0.12)
-		m.rotation_degrees = Vector3(70, 0, 0)
-		ba.add_child(m)
+		cm.top_radius = 0.0045
+		cm.bottom_radius = 0.0055
+		cm.height = 0.085
+		stem.mesh = cm
+		stem.material_override = mat
+		stem.transform = Transform3D(_basis_y(dir), start + dir * 0.0425)
+		ba.add_child(stem)
+		var bowl := MeshInstance3D.new()   # чашечка — стоит торчком на конце мундштука
+		var bm := CylinderMesh.new()
+		bm.top_radius = 0.015
+		bm.bottom_radius = 0.012
+		bm.height = 0.04
+		bowl.mesh = bm
+		bowl.material_override = mat
+		var tip := start + dir * 0.085
+		bowl.position = tip + Vector3(0, 0.014, 0.006)
+		ba.add_child(bowl)
+		var ash := MeshInstance3D.new()   # тлеющий табак
+		var am := CylinderMesh.new()
+		am.top_radius = 0.012
+		am.bottom_radius = 0.012
+		am.height = 0.004
+		ash.mesh = am
+		var amat := StandardMaterial3D.new()
+		amat.albedo_color = Color(0.25, 0.08, 0.03)
+		amat.emission_enabled = true
+		amat.emission = Color(1.0, 0.35, 0.08)
+		amat.emission_energy_multiplier = 0.6
+		ash.material_override = amat
+		ash.position = bowl.position + Vector3(0, 0.0185, 0)
+		ba.add_child(ash)
 		var ember := OmniLight3D.new()
 		ember.light_color = Color(1.0, 0.4, 0.1)
-		ember.light_energy = 0.3
-		ember.omni_range = 0.4
-		ember.position = Vector3(0.03, 0.04, 0.19)
+		ember.light_energy = 0.05
+		ember.omni_range = 0.22
+		ember.position = ash.position + Vector3(0, 0.02, 0)
 		ba.add_child(ember)
 		g.c3["pipe"] = ba
 		g.c3["ember"] = ember
@@ -795,12 +898,19 @@ static func pipe(g, show: bool) -> void:
 		g.c3.erase("ember")
 
 
+## Базис, у которого ось Y смотрит по dir (цилиндр вдоль направления).
+static func _basis_y(dir: Vector3) -> Basis:
+	var y := dir.normalized()
+	var x := y.cross(Vector3.FORWARD if absf(y.dot(Vector3.FORWARD)) < 0.95 else Vector3.RIGHT).normalized()
+	return Basis(x, y, x.cross(y).normalized())
+
+
 static func pipe_puff(g) -> void:
 	var e = g.c3.get("ember")
 	if e and is_instance_valid(e):
 		var tw: Tween = g.create_tween()
-		tw.tween_property(e, "light_energy", 1.4, 0.4)
-		tw.tween_property(e, "light_energy", 0.3, 1.0)
+		tw.tween_property(e, "light_energy", 0.22, 0.4)
+		tw.tween_property(e, "light_energy", 0.05, 1.0)
 
 
 ## Следы на снегу от крыльца — в сторону трассы.
@@ -871,7 +981,17 @@ static func cellar(g) -> void:
 
 
 static func process(g, _delta: float) -> void:
-	pass
+	var dn = g.c3.get("diary")
+	if dn and is_instance_valid(dn) and has(g, "iris"):   # раскрытая тетрадь — между ладонями, страницы к лицу
+		var iris: Actor = g.actors.iris
+		var sk := iris.skel
+		var hl := (sk.global_transform * sk.get_bone_global_pose(sk.find_bone("hand_l"))).origin
+		var hr := (sk.global_transform * sk.get_bone_global_pose(sk.find_bone("hand_r"))).origin
+		var fwd := iris.global_transform.basis.z
+		fwd = Vector3(fwd.x, 0.0, fwd.z).normalized()
+		var right := fwd.cross(Vector3.UP).normalized()
+		var n := (Vector3.UP * 0.75 - fwd * 0.66).normalized()
+		(dn as Node3D).global_transform = Transform3D(Basis(right, n, right.cross(n)), (hl + hr) * 0.5 + fwd * 0.07 + n * 0.065)
 
 
 ## Планы главы 3. true — план поставлен.
@@ -900,7 +1020,7 @@ static func cam(g, shot: String) -> bool:
 			if not (e and is_instance_valid(e)):
 				return false
 			c.fov = 40.0
-			c.look_at_from_position(s.car.to_global(Vector3(-0.5, 1.6, 1.6)), (e as Node3D).global_position + Vector3(0, 0.6, 0))
+			c.look_at_from_position(s.car.to_global(Vector3(-1.7, 1.75, 3.6)), (e as Node3D).global_position + Vector3(0, 0.6, 0))
 		"eva_ditch_in":   # сквозь боковое стекло — лицо Евы
 			return face(g, "eva", 30.0, 0.9, 0.05, 34.0)
 		"noah_out", "iris_out", "storm_noah", "axe_face", "agnes", "agnes_window", "agnes_candle":
@@ -913,16 +1033,47 @@ static func cam(g, shot: String) -> bool:
 			var n: Actor = g.actors.noah
 			c.fov = 50.0
 			c.look_at_from_position(n.global_position + Vector3(1.6, 1.9, 4.5), n.global_position + Vector3(0, 1.0, -6.0))
-		"noah_house", "iris_house", "zoe_house", "noah_stove", "agnes_stove", "eva_bed", "agnes_bed", "iris_bed", "danny_window", "danny_door", "agnes_sleep":
-			var who := shot.get_slice("_", 0)
-			var ang := -28.0 if shot.ends_with("stove") else 22.0
-			return face(g, who, ang, 1.05, 0.02, 36.0)
-		"diary_page":   # страница дневника крупно
+		"agnes_sleep":   # спит на печи: с уровня лежанки, из комнаты
+			if not has(g, "agnes"):
+				return false
+			var ah: Vector3 = g._target("agnes")
+			c.fov = 32.0
+			c.look_at_from_position(ah + Vector3(0.62, 0.06, 0.22), ah)
+		"eva_bed":   # лежит: камера сверху, чуть сбоку от лица
+			var who := "eva" if shot == "eva_bed" else "agnes"
+			if not has(g, who):
+				return false
+			var hp: Vector3 = g._target(who)
+			var bed: Vector3 = ag(-2.2, 0.6, 1.3)
+			var to := Vector3(bed.x - hp.x, 0.0, bed.z - hp.z)
+			to = to.normalized() if to.length() > 0.05 else Vector3(1, 0, 0)
+			c.fov = 38.0
+			c.look_at_from_position(hp + to * 0.42 + Vector3(0, 0.58, 0), hp + Vector3(0.0, -0.04, 0.0))
+		"iris_bed":   # через кровать — лицо Айрис, Ева на подушке на переднем плане
 			if not has(g, "iris"):
 				return false
 			var hp: Vector3 = g._target("iris")
-			c.fov = 30.0
-			c.look_at_from_position(hp + Vector3(0.0, -0.15, 0.0) + (g.actors.iris as Actor).global_transform.basis.z * 0.55, hp + Vector3(0, -0.5, 0))
+			var fz: Vector3 = (g.actors.iris as Actor).global_transform.basis.z
+			var fw := Vector3(fz.x, 0.0, fz.z).normalized()
+			var ev: Vector3 = g._target("eva") if has(g, "eva") else hp + fw   # прямо перед ней — Ева: камера сбоку, подальше от неё
+			var p1 := hp + fw.rotated(Vector3.UP, deg_to_rad(70.0)) * 0.7
+			var p2 := hp + fw.rotated(Vector3.UP, deg_to_rad(-70.0)) * 0.7
+			var cp := p1 if p1.distance_to(ev) > p2.distance_to(ev) else p2
+			c.fov = 40.0
+			c.look_at_from_position(cp + Vector3(0, 0.06, 0), hp + Vector3(0, -0.04, 0))
+		"agnes_stove":
+			return face(g, "agnes", 32.0, 1.0, 0.02, 36.0)
+		"diary_page":   # страница дневника — крупно, сверху
+			var dn = g.c3.get("diary")
+			if not (dn and is_instance_valid(dn)):
+				return false
+			var dt: Transform3D = (dn as Node3D).global_transform
+			c.fov = 36.0
+			c.look_at_from_position(dt.origin + dt.basis.y * 0.42 - dt.basis.z * 0.02, dt.origin)
+		"noah_house", "iris_house", "zoe_house", "noah_stove", "agnes_bed", "danny_window", "danny_door":
+			var who := shot.get_slice("_", 0)
+			var ang := -28.0 if shot.ends_with("stove") else 22.0
+			return face(g, who, ang, 1.05, 0.02, 36.0)
 		"street_walk":   # за спиной Ноя — улица, в конце седан
 			if not has(g, "noah"):
 				return false

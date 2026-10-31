@@ -78,6 +78,7 @@ def main():
             if not os.path.exists(p):
                 os.link(os.path.join(src, n), p)
     print('герои:', sorted(n for n in os.listdir(dst) if n.endswith('.glb')))
+    subprocess.run([sys.executable, os.path.join(ROOT, 'tools/lake/drawings.py')], check=True)   # рисунки Айрис и фото на стене
 
 
 if __name__ == '__main__':

@@ -274,7 +274,10 @@ func set_daylight(mode: String) -> void:
 	var p: Array = {"night": [Color(0.008, 0.01, 0.016), 0.018, Color(0.03, 0.035, 0.05), 0.012, 0.025, Color(0.55, 0.65, 0.9)],
 		"dawn": [Color(0.28, 0.31, 0.35), 0.5, Color(0.34, 0.37, 0.41), 0.009, 0.3, Color(0.75, 0.8, 0.88)],
 		"day": [Color(0.4, 0.42, 0.45), 0.7, Color(0.48, 0.5, 0.53), 0.022, 0.4, Color(0.85, 0.88, 0.92)],
-		"evening": [Color(0.05, 0.06, 0.09), 0.09, Color(0.09, 0.1, 0.13), 0.014, 0.07, Color(0.55, 0.6, 0.8)]}.get(mode, [])
+		"evening": [Color(0.05, 0.06, 0.09), 0.09, Color(0.09, 0.1, 0.13), 0.014, 0.07, Color(0.55, 0.6, 0.8)],
+		"sunny": [Color(0.52, 0.63, 0.8), 0.8, Color(0.6, 0.66, 0.76), 0.0035, 1.3, Color(1.0, 0.9, 0.76)],         # глава 4: утро, снег искрится
+		"dusk": [Color(0.06, 0.08, 0.13), 0.16, Color(0.12, 0.14, 0.2), 0.02, 0.1, Color(0.5, 0.58, 0.85)],          # синие сумерки в лесу
+		"lake_dawn": [Color(0.6, 0.56, 0.64), 0.55, Color(0.62, 0.6, 0.68), 0.006, 0.7, Color(1.0, 0.74, 0.62)]}.get(mode, [])   # розовый рассвет над озером
 	if p.is_empty():
 		return
 	daylight = mode
@@ -287,7 +290,8 @@ func set_daylight(mode: String) -> void:
 	env.fog_density = p[3]
 	moon.light_energy = p[4]
 	moon.light_color = p[5]
-	moon.rotation_degrees = Vector3(-35, 140, 0) if mode == "night" else Vector3(-55, 120, 0)
+	moon.rotation_degrees = {"night": Vector3(-35, 140, 0), "sunny": Vector3(-24, 115, 0), "dusk": Vector3(-12, 200, 0),
+		"lake_dawn": Vector3(-7, 70, 0)}.get(mode, Vector3(-55, 120, 0))   # зимнее солнце — низко
 
 
 ## Кафе «У трёх сосен» (глава 2): дом у трассы, свет ламп и окон, вывеска на языке игры, три сосны, фуры у входа,

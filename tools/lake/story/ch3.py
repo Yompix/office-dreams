@@ -158,8 +158,9 @@ SC['c3_s3_lapse'] = {'beats': [
     {'set': {'lapse_shop': 1}},
     {'fx': 'lapse', 'dur': 1.4},
     {'set': {'shadow': 1}, 'if': {'shadow': '>=1'}},
-    {'fx': 'shop_broken', 'shot': 'shop', **N('Ной приходит в себя у магазина. В руке — канистра. Окно магазина разбито.', 'Noah comes to outside the store. A gas can in his hand. The store window is smashed.', 3.2)},
-    N('Он не помнит, как сюда дошёл.', 'He doesn’t remember getting here.', 2.4, shot='noah_storm'),
+    {'fx': 'shop_broken'},
+    {'fx': 'wake', 'shot': 'shop', **N('Ной приходит в себя у магазина. В руке — канистра. Окно магазина разбито.', 'Noah comes to outside the store. A gas can in his hand. The store window is smashed.', 3.2)},
+    N('Он не помнит, как сюда дошёл.', 'He doesn’t remember getting here.', 2.4, shot='storm_noah'),
     {'fx': 'generator', 'shot': 'house_wide', **N('Генератор кашляет и заводится. Свет.', 'The generator coughs and starts. Light.', 2.6)},
     {'go': 'c3_s3_birth'}]}
 
@@ -255,7 +256,7 @@ SC['c3_s4_unsure'] = {'beats': [
 SC['c3_s4_pills'] = {'beats': [
     {'if': {'pills_flushed': '==0'}, 'else': 'c3_s4_brew'},
     S('agnes', 'Дай мне его отраву.', 'Give me his poison.', shot='agnes_stove'),
-    {'fx': 'pills3', 'shot': 'pill_label'},
+    {'fx': 'pills3', 'shot': 'pill_label', **N('Пузырёк Хейла. «Ной. Д-р С. Хейл. 1 таб. при головной боли».', 'Hale’s bottle. “Noah. Dr. S. Hale. 1 tab. for headaches.”', 2.8)},
     C(6, [O('Отдать', 'Give them to her', 'c3_s4_give'),
           O('Не отдавать и принять таблетку на ночь', 'Keep them and take a pill for the night', 'c3_s4_take'),
           O('Не отдавать и не пить ничего', 'Keep them and take nothing', 'c3_s4_keep')], shot='noah_stove', silent='c3_s4_keep')]}
@@ -303,15 +304,16 @@ SC['c3_s5'] = {'time': '03:40', 'beats': [
     {'go': 'c3_s5_lapse'}]}
 
 SC['c3_s5_lapse'] = {'beats': [
-    {'fx': 'second_noah', 'shot': 'axe_back', **N('Ной открывает глаза. Он стоит босиком в снегу у последнего дома — лицом к лесу, к озеру. В руке — топор из поленницы.', 'Noah opens his eyes. He is standing barefoot in the snow by the last house — facing the forest, the lake. In his hand — an axe from the woodpile.', 4.0)},
+    {'fx': 'second_noah'},
+    {'fx': 'fade_in', 'shot': 'axe_back', **N('Ной открывает глаза. Он стоит босиком в снегу у последнего дома — лицом к лесу, к озеру. В руке — топор из поленницы.', 'Noah opens his eyes. He is standing barefoot in the snow by the last house — facing the forest, the lake. In his hand — an axe from the woodpile.', 4.0)},
     {'fx': 'iris_behind', 'shot': 'axe_iris', **N('Сзади хрустит снег. Айрис — в одной кофте.', 'Snow crunches behind him. Iris — in nothing but a sweater.', 2.8)},
     S('iris', 'Ной… Это я. Это Айрис.', 'Noah… It’s me. It’s Iris.', shot='axe_iris'),
     {'fx': 'noah_turn', 'shot': 'axe_face'},
     S('anna', 'Не ходи к озеру одна.', 'Don’t go to the lake alone.', shot='axe_face', lips='noah'),
     {'fx': 'axe_drop', 'shot': 'axe_snow', **N('Он приходит в себя. Топор падает в снег.', 'He comes to. The axe drops into the snow.', 2.8)},
-    S('agnes', 'Это была она.', 'That was her.', shot='agnes_door', **{'if': {'belief_doctor': '==0'}}),
+    S('agnes', 'Это была она.', 'That was her.', shot='agnes', **{'if': {'belief_doctor': '==0'}}),
     {'if': {'danny': '>0'}, 'else': 'c3_s6'},
-    N('Дэнни видел всё в окно.', 'Danny saw it all through the window.', 2.4, shot='danny_window'),
+    {'fx': 'danny_at_window', 'shot': 'danny_window', **N('Дэнни видел всё в окно.', 'Danny saw it all through the window.', 2.4)},
     {'if': {'danny_fear': '>0'}, 'else': 'c3_s5_shadow2'},
     {'go': 'c3_s5_danny'}]}
 
@@ -350,8 +352,9 @@ SC['c3_s5_lost'] = {'beats': [
     {'go': 'c3_s6'}]}
 
 SC['c3_s5_song'] = {'beats': [
-    {'fx': 'baby_night', 'shot': 'house_night', **N('Ной просыпается от плача младенца.', 'Noah wakes to the baby crying.', 2.6, **{'if': {'baby': '>0'}})},
-    {'fx': 'baby_night', 'shot': 'house_night', **N('Ной просыпается среди ночи. Тишина. Печь потрескивает.', 'Noah wakes in the night. Silence. The stove crackles.', 2.8, **{'if': {'baby': '==0'}})},
+    {'fx': 'baby_night'},
+    {'fx': 'fade_in', 'shot': 'house_night', **N('Ной просыпается от плача младенца.', 'Noah wakes to the baby crying.', 2.6, **{'if': {'baby': '>0'}})},
+    {'fx': 'fade_in', 'shot': 'house_night', **N('Ной просыпается среди ночи. Тишина. Печь потрескивает.', 'Noah wakes in the night. Silence. The stove crackles.', 2.8, **{'if': {'baby': '==0'}})},
     {'if': {'danny': '>0'}, 'else': 'c3_s5_song2'},
     {'fx': 'radio_song', 'shot': 'danny_window', **N('Дэнни сидит у окна с рацией. Рация трещит — и сквозь помехи тихо поёт женский голос. Та самая колыбельная.', 'Danny sits by the window with his walkie-talkie. It crackles — and through the static a woman softly sings. That same lullaby.', 4.0)},
     N('Дэнни смотрит на Ноя огромными глазами.', 'Danny stares at Noah with enormous eyes.', 2.4, shot='danny_window'),
@@ -362,13 +365,14 @@ SC['c3_s5_song2'] = {'beats': [
     {'go': 'c3_s5_song3'}]}
 
 SC['c3_s5_song3'] = {'beats': [
-    {'set': {'heard_song': 1}},
+    {'set': {'heard_song': 1, 'memory': 1}},   # колыбельная — кусок памяти (DESIGN 7.8)
     S('agnes', 'Это Аня поёт.', 'That’s Annie singing.', shot='agnes_sleep'),
     {'go': 'c3_s6'}]}
 
 # ---------- Сцена 6. «Свет в конце улицы» ----------
 SC['c3_s6'] = {'save': True, 'time': '06:20', 'beats': [
-    {'fx': 'dawn_street', 'shot': 'street_end', **N('Под утро буран стихает. В конце улицы загораются фары — чёрный седан. Гаснут.', 'Toward morning the storm dies down. At the end of the street, headlights come on — the black sedan. They go out.', 3.6)},
+    {'fx': 'dawn_street'},
+    {'fx': 'fade_in', 'shot': 'street_end', **N('Под утро буран стихает. В конце улицы загораются фары — чёрный седан. Гаснут.', 'Toward morning the storm dies down. At the end of the street, headlights come on — the black sedan. They go out.', 3.6)},
     S('agnes', 'Это он. Он и тогда приезжал. После Ани.', 'It’s him. He came back then too. After Annie.', shot='agnes_window'),
     S('iris', 'До дачи двадцать километров. Лесом.', 'It’s twenty kilometers to the cabin. Through the woods.', shot='iris_house'),
     C(8, [O('Выйти к машине — с топором', 'Go out to the car — with the axe', 'c3_s6_axe'),
@@ -399,7 +403,7 @@ SC['c3_end'] = {'beats': [
     {'end': 3}]}
 
 DATA = {
-    'chapter': 3, 'start': 'c3_recap', 'ready': False,   # True — когда постановка главы готова (chapter3.gd)
+    'chapter': 3, 'start': 'c3_recap', 'ready': True,    # True — когда постановка главы готова (chapter3.gd)
     'title': {'ru': 'ГЛАВА 3 · ДЕРЕВНЯ', 'en': 'CHAPTER 3 · THE VILLAGE'},
     'names': {'agnes': {'ru': 'АГНЕС', 'en': 'AGNES'},
               'anna': {'ru': 'НОЙ — ЧУЖИМ ГОЛОСОМ', 'en': 'NOAH — NOT HIS OWN VOICE'}},

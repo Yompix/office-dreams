@@ -1,7 +1,7 @@
 {
  "chapter": 3,
  "start": "c3_recap",
- "ready": false,
+ "ready": true,
  "title": {
   "ru": "ГЛАВА 3 · ДЕРЕВНЯ",
   "en": "CHAPTER 3 · THE VILLAGE"
@@ -981,7 +981,10 @@
      }
     },
     {
-     "fx": "shop_broken",
+     "fx": "shop_broken"
+    },
+    {
+     "fx": "wake",
      "shot": "shop",
      "note": {
       "ru": "Ной приходит в себя у магазина. В руке — канистра. Окно магазина разбито.",
@@ -995,7 +998,7 @@
       "en": "He doesn’t remember getting here."
      },
      "dur": 2.4,
-     "shot": "noah_storm"
+     "shot": "storm_noah"
     },
     {
      "fx": "generator",
@@ -1521,7 +1524,12 @@
     },
     {
      "fx": "pills3",
-     "shot": "pill_label"
+     "shot": "pill_label",
+     "note": {
+      "ru": "Пузырёк Хейла. «Ной. Д-р С. Хейл. 1 таб. при головной боли».",
+      "en": "Hale’s bottle. “Noah. Dr. S. Hale. 1 tab. for headaches.”"
+     },
+     "dur": 2.8
     },
     {
      "choice": {
@@ -1753,7 +1761,10 @@
   "c3_s5_lapse": {
    "beats": [
     {
-     "fx": "second_noah",
+     "fx": "second_noah"
+    },
+    {
+     "fx": "fade_in",
      "shot": "axe_back",
      "note": {
       "ru": "Ной открывает глаза. Он стоит босиком в снегу у последнего дома — лицом к лесу, к озеру. В руке — топор из поленницы.",
@@ -1800,7 +1811,7 @@
      "say": "agnes",
      "ru": "Это была она.",
      "en": "That was her.",
-     "shot": "agnes_door",
+     "shot": "agnes",
      "if": {
       "belief_doctor": "==0"
      }
@@ -1812,12 +1823,13 @@
      "else": "c3_s6"
     },
     {
+     "fx": "danny_at_window",
+     "shot": "danny_window",
      "note": {
       "ru": "Дэнни видел всё в окно.",
       "en": "Danny saw it all through the window."
      },
-     "dur": 2.4,
-     "shot": "danny_window"
+     "dur": 2.4
     },
     {
      "if": {
@@ -1987,7 +1999,10 @@
   "c3_s5_song": {
    "beats": [
     {
-     "fx": "baby_night",
+     "fx": "baby_night"
+    },
+    {
+     "fx": "fade_in",
      "shot": "house_night",
      "note": {
       "ru": "Ной просыпается от плача младенца.",
@@ -1999,7 +2014,7 @@
      }
     },
     {
-     "fx": "baby_night",
+     "fx": "fade_in",
      "shot": "house_night",
      "note": {
       "ru": "Ной просыпается среди ночи. Тишина. Печь потрескивает.",
@@ -2058,7 +2073,8 @@
    "beats": [
     {
      "set": {
-      "heard_song": 1
+      "heard_song": 1,
+      "memory": 1
      }
     },
     {
@@ -2077,7 +2093,10 @@
    "time": "06:20",
    "beats": [
     {
-     "fx": "dawn_street",
+     "fx": "dawn_street"
+    },
+    {
+     "fx": "fade_in",
      "shot": "street_end",
      "note": {
       "ru": "Под утро буран стихает. В конце улицы загораются фары — чёрный седан. Гаснут.",

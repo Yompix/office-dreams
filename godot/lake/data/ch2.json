@@ -1886,7 +1886,11 @@
      "shot": "sedan_window",
      "say": "hale",
      "ru": "Здравствуй, Ной. Как голова? Таблетки ещё есть?",
-     "en": "Hello, Noah. How's your head? Still have your pills?"
+     "en": "Hello, Noah. How's your head? Still have your pills?",
+     "name": {
+      "ru": "ГОЛОС",
+      "en": "VOICE"
+     }
     },
     {
      "shot": "noah_sedan",

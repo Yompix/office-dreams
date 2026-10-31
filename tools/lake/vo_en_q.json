@@ -1,95 +1,86 @@
 [
  {
-  "who": "zoe",
-  "mode": "design",
-  "keys": [
-   "c2_s2_stop_1",
-   "c2_s2_back_1",
-   "c2_s2_back_2",
-   "c2_s2_q_2",
-   "c2_s2_s_1",
-   "c2_s3_zoe_2",
-   "c2_s4_zoe_1",
-   "c2_s4_zoe_yes_1",
-   "c2_s4_z_1",
-   "c2_s4_z3_2",
-   "c2_s5_1",
-   "c2_s5_3"
-  ],
-  "prompt": "You're my hero. Seriously. Ten more minutes and they'd have found me in the spring.\nHey, kiddo. I'm Zoe. Don't worry, I don't bite. Mostly.\nZoe. Just Zoe. Or “savior,” if you really want.\nA souvenir. From a sanatorium. Boring sanatorium.\n…Thanks.\nTaking the kids to their grandma. And this one's got a busted nose — got in a fight over me. Hero, right?\nThanks for not stopping. Real decent of you.\n…Fine. But you're buying the coffee. And apologizing. Coffee first.\nI get blackouts too. Only not minutes — days. You wake up and it's Thursday. And nobody tells you where you've been.\nUh-huh. With who? Them?\nNo… no, no, no. That's his car.\nThe doctor's. The one who was “treating” me. He… erases people."
- },
- {
-  "who": "noah",
+  "who": "eva",
   "mode": "clone",
   "keys": [
-   "c2_s2_q_1",
-   "c2_s3_me_2",
-   "c2_s4_d1_1",
-   "c2_s4_d2_1",
-   "c2_s4_d3_1",
-   "c2_s4_z1_1",
-   "c2_s4_z3_1",
-   "c2_s5_2",
-   "c2_s6_road_2"
+   "c3_s1_evacar_1",
+   "c3_s1_dig_1",
+   "c3_s3_birth_1",
+   "c3_s3_alive_1",
+   "c3_s3_dead_1"
   ],
-  "prompt": "What's the bracelet?\nHere…\nNo.\nYes. I don't remember how. But I won't hurt anyone again.\nI don't remember.\nMine are minutes. But in those minutes I…\nYou should ride with someone else.\nWhose?\nWe have a grandma?.."
- },
- {
-  "who": "cop",
-  "mode": "design",
-  "keys": [
-   "c2_s3_me_1",
-   "c2_s3_me_3",
-   "c2_s3_zoe_1",
-   "c2_s3_zoe_3",
-   "c2_s3_zoe_ok_1"
-  ],
-  "prompt": "Morning. License and registration.\nStep out of the car.\nMorning. Where are we headed?\nStep out of the car. All of you.\nSafe travels. Careful — there's a blizzard coming by noon."
+  "prompt": "I lied… It’s not next month. It’s now.\nI lied… It’s not next month.\nYou’re brave, you hear me? If I’m gone — you’ll manage.\nWhat should I call her?\nName her…"
  },
  {
   "who": "iris",
   "mode": "clone",
   "keys": [
-   "c2_s3_flee_1",
-   "c2_s5_4",
-   "c2_s6_road_1",
-   "c2_s6_road_3"
+   "c3_s2_1",
+   "c3_s2_quiet_1",
+   "c3_s3_alive_2",
+   "c3_s3_dead_2",
+   "c3_s4_diary_1",
+   "c3_s5_lapse_1",
+   "c3_s6_2"
   ],
-  "prompt": "You're insane.\n…Hale.\nTurn right. There's a village. Grandma's there.\nMom's mom. Dad wouldn't let us. She's in the diary."
+  "prompt": "The house with blue shutters. By the well. Mom wrote about it.\nGrandma, this is Noah. He doesn’t remember.\nAnna.\nAnna. Her name is Anna.\n“Simon promised. Saturday night he’ll take us away. Noah has already packed his backpack.”\nNoah… It’s me. It’s Iris.\nIt’s twenty kilometers to the cabin. Through the woods."
  },
  {
-  "who": "eva",
+  "who": "agnes",
   "mode": "design",
   "keys": [
-   "c2_s4_eva_1",
-   "c2_s4_eva_3",
-   "c2_s6_alone_1"
+   "c3_s2_2",
+   "c3_s2_gran_2",
+   "c3_s2_help_2",
+   "c3_s2_quiet_2",
+   "c3_s3_dark_1",
+   "c3_s3_birth_2",
+   "c3_s4_1",
+   "c3_s4_2",
+   "c3_s4_4",
+   "c3_s4_5",
+   "c3_s4_unsure_2",
+   "c3_s4_pills_1",
+   "c3_s4_give_1",
+   "c3_s4_take_1",
+   "c3_s4_keep_1",
+   "c3_s4_brew_yes_1",
+   "c3_s4_brew_no_1",
+   "c3_s5_lapse_3",
+   "c3_s5_song3_1",
+   "c3_s6_1"
   ],
-  "prompt": "I'm sorry… My car's out front, in the ditch. Could someone pull it out? I'll pay.\nI need to get to my sister's. Up north. I'm due… next month.\nI understand."
+  "prompt": "…Annie.\nI was. Until your father forbade it.\nWater on the stove. Clean sheets are in the chest.\nI know. Somebody did that to him.\nI can’t do this without light. There’s a generator in the shed, but no gas. Gas is at the store — Pyotr’s place.\nPress here! Harder!\nThe lake doesn’t let its own go, dear. Whoever drowns stays with it. And its anger lives in whoever saw.\nYour mother lives in you. She’s the one who kept Iris safe.\nThe doctor… She came to me, you know. A week before. Said: Mom, I’m leaving him. And I told her: go see the doctor, he’s an educated man, he’ll help.\nI sent her to him myself.\nYou’ll find out. Everyone does, at the lake.\nGive me his poison.\nDrink. You’ll sleep soundly.\nYou look so much like him right now. Like your father.\nStubborn. Like her.\nDrink. You’ll sleep soundly.\nStubborn. Like her.\nThat was her.\nThat’s Annie singing.\nIt’s him. He came back then too. After Annie."
  },
  {
-  "who": "trucker",
-  "mode": "design",
-  "keys": [
-   "c2_s4_eva_2"
-  ],
-  "prompt": "Lady, forget the car. There's a blizzard coming. Nobody's going anywhere."
- },
- {
-  "who": "danny",
+  "who": "noah",
   "mode": "clone",
   "keys": [
-   "c2_s4_danny_1",
-   "c2_s4_d3_2"
+   "c3_s2_gran_1",
+   "c3_s2_help_1",
+   "c3_s4_3",
+   "c3_s4_doctor_1",
+   "c3_s4_healer_1",
+   "c3_s4_unsure_1",
+   "c3_s5_sorry_1",
+   "c3_s5_go_1"
   ],
-  "prompt": "Did you hurt the man at the gas station?\nMy mom used to say that. When she drank."
+  "prompt": "Are you our grandmother?\nThere’s a woman in labor. Help us.\nThe doctor said it’s an illness.\nIt’s an illness. I need treatment.\nSo… Mom is with me?\nI don’t know.\nWait. I made you a promise — and broke it. I’m sorry.\nGo. I won’t stop you."
  },
  {
-  "who": "hale",
+  "who": "zoe",
+  "mode": "clone",
+  "keys": [
+   "c3_s3_zoe_1"
+  ],
+  "prompt": "There’s a car at the edge of the village. Black. Headlights off."
+ },
+ {
+  "who": "anna",
   "mode": "design",
   "keys": [
-   "c2_s5_walk_1"
+   "c3_s5_lapse_2"
   ],
-  "prompt": "Hello, Noah. How's your head? Still have your pills?"
+  "prompt": "Don’t go to the lake alone."
  }
 ]

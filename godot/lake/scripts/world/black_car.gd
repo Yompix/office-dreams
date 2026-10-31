@@ -7,6 +7,7 @@ extends Node3D
 var lamps: Array[MeshInstance3D] = []
 var tails: Array[MeshInstance3D] = []
 var beams: Array[SpotLight3D] = []
+var halos: Array[MeshInstance3D] = []   # ореол фар: издалека, в тумане, фары читаются как два огня
 var _lamp_on: StandardMaterial3D
 var _lamp_off: StandardMaterial3D
 var _tail_on: StandardMaterial3D
@@ -61,6 +62,31 @@ func _ready() -> void:
 		sl.rotation_degrees = Vector3(-3.0, 0, 0)
 		add_child(sl)
 		beams.append(sl)
+		var h := MeshInstance3D.new()
+		var q := QuadMesh.new()
+		q.size = Vector2(0.75, 0.75)
+		h.mesh = q
+		var hm := StandardMaterial3D.new()
+		hm.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+		hm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		hm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		hm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		hm.albedo_color = Color(1.0, 0.95, 0.85, 0.8)
+		var gr := Gradient.new()
+		gr.set_color(0, Color(1, 1, 1, 1))
+		gr.set_color(1, Color(1, 1, 1, 0))
+		gr.add_point(0.18, Color(1, 1, 1, 0.55))
+		var gt := GradientTexture2D.new()
+		gt.gradient = gr
+		gt.fill = GradientTexture2D.FILL_RADIAL
+		gt.fill_from = Vector2(0.5, 0.5)
+		gt.fill_to = Vector2(0.5, 0.0)
+		hm.albedo_texture = gt
+		h.material_override = hm
+		h.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		h.position = Vector3(x, 0.665, -2.98)
+		add_child(h)
+		halos.append(h)
 	if not has_driver:
 		lights(false)
 		return
@@ -135,3 +161,5 @@ func lights(on: bool) -> void:
 		mi.material_override = _tail_on if on else _tail_off
 	for sl in beams:
 		sl.visible = on
+	for h in halos:
+		h.visible = on

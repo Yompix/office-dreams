@@ -155,6 +155,16 @@ for key, rgb in C.get('retint', {}).items():
         new = lum[:, None] / base * tgt[None, :]
         c[:] = c * (1 - m[:, None]) + np.clip(new, 0, 1) * m[:, None]; img.pixels.foreach_set(a.ravel()); img.update()
         print('RETINT', img.name, rgb, 'base lum', round(base, 3), 'share', round(float(m.mean()), 3))
+# 4б′) седина: волосы — в серое и светлее, {"часть имени картинки": [яркость, холод]} (тёмная коса → седая)
+for key, (lift, cold) in C.get('gray', {}).items():
+    for img in bpy.data.images:
+        if key not in img.name or not img.size[0]: continue
+        a = np.empty(len(img.pixels), np.float32); img.pixels.foreach_get(a); a = a.reshape(-1, 4)
+        lum = a[:, :3] @ np.array([.3, .59, .11], np.float32)
+        v = np.clip(lift + (1 - lift) * lum * 1.6, 0, 1)
+        a[:, 0], a[:, 1], a[:, 2] = v * (1 - cold * .04), v * (1 - cold * .02), v
+        img.pixels.foreach_set(a.ravel()); img.update()
+        print('GRAY', img.name, lift)
 # 4в) просто темнее/другого оттенка — вся текстура (джинсы, ботинки): {"часть имени картинки": [r, g, b]}
 for key, rgb in C.get('tint', {}).items():
     for img in bpy.data.images:

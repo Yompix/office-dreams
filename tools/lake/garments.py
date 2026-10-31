@@ -8,6 +8,7 @@
   vest   — то же без рукавов
   hood   — капюшон на голове с вырезом для лица (с jacket — худи); down: true — опущенный: мешком на спине, валиком вокруг шеи
   beanie — шапка от макушки до бровей, с отворотом
+  scarf  — шарф: валик вокруг шеи поверх воротника и конец на груди
 """
 import bpy, bmesh, os, math, bisect
 from mathutils import Vector
@@ -424,6 +425,16 @@ def build(specs):
                 face = fwd > 0.12 and co[i].z < brow + 0.05   # вырез для лица — шире, капюшон не «шлем»
                 keep.append(skin[i] and w_head[i] > 0.5 and co[i].z > neck - 0.04 and not face)
             ob = _shell(body, name, keep, g.get('off', 0.035), g.get('thick', 0.006), smooth=5, center=center, back=g.get('back', 0.05))
+        elif kind == 'scarf':   # шарф: плотный валик вокруг шеи поверх воротника, один конец — на груди
+            a = _arm()
+            nb = a.matrix_world @ a.data.bones['neck_01'].head_local
+            keep = []
+            for i in range(len(co)):
+                d = co[i] - nb
+                ring = -0.025 < d.z < 0.06 and math.hypot(d.x, d.y) < 0.12
+                tail = d.y < -0.02 and -0.24 < d.z < -0.01 and 0.01 < d.x < 0.075   # конец свисает спереди (лицо — в −Y)
+                keep.append(skin[i] and (w_torso[i] + w_head[i]) > 0.5 and w_headonly[i] < 0.3 and w_arms[i] < 0.3 and (ring or tail))
+            ob = _shell(body, name, keep, g.get('off', 0.05), g.get('thick', 0.01), smooth=7, center=nb + Vector((0.0, 0.0, -0.06)))
         elif kind == 'beanie':
             cut = brow - g.get('low', 0.0)
             keep = [skin[i] and w_headonly[i] > 0.5 and co[i].z > cut for i in range(len(co))]

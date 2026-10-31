@@ -42,8 +42,13 @@ INSTRUCT = {
                'speaks loudly and lazily. Natural cinematic acting, not theatrical.',
     'hale': 'A 60-year-old man with a soft, calm, velvety voice. Unsettlingly gentle and polite, like a family doctor; '
             'speaks slowly and quietly with a faint smile in his voice. Natural cinematic acting, not theatrical.',
+    # глава 3
+    'agnes': 'A 74-year-old village grandmother with a low, husky, smoker\'s voice. Calm, tough and blunt, with deep old sorrow '
+             'underneath; speaks slowly, in short plain phrases, a little hoarse. Natural cinematic acting, not theatrical.',
+    'anna': 'A woman in her late thirties with a soft, warm, very quiet voice, almost a whisper — distant and eerie, as if '
+            'from far away under water; gentle and sad, unhurried. Natural, not theatrical.',
 }
-CLONE = {'noah', 'iris', 'danny'}   # звучали в главе 1 — клон с готовой реплики (refs/), а не новое описание
+CLONE = {'noah', 'iris', 'danny', 'zoe', 'eva'}   # уже звучали — клон с готовой реплики (refs/), а не новое описание
 LANG = {'ru': 'Russian', 'en': 'English'}
 MODEL = 'Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign'
 MODEL_CLONE = 'Qwen/Qwen3-TTS-12Hz-0.6B-Base'
@@ -63,8 +68,9 @@ def plan(lang):
         print(i, b['who'], b['mode'], len(b['keys']), 'реплик')
 
 
-REF_KEYS = {   # образец для клона: спокойные реплики главы 1 подряд (крик и шёпот дают крикливый или шепчущий клон)
-    'noah': ['s5_pay_1', 's6_a2_1'], 'iris': ['s6_a_2', 's2_c_2'], 'danny': ['s5_2']}
+REF_KEYS = {   # образец для клона: спокойные реплики подряд (крик и шёпот дают крикливый или шепчущий клон)
+    'noah': ['s5_pay_1', 's6_a2_1'], 'iris': ['s6_a_2', 's2_c_2'], 'danny': ['s5_2'],
+    'zoe': ['c2_s2_stop_1'], 'eva': ['c2_s4_eva_3']}
 
 
 def refs(lang):
