@@ -1,0 +1,26 @@
+App name:
+Hush Till Six
+
+Short description (70/80):
+Horror nel turno di notte. Non rispondere. Non aprire. Aspetta le sei.
+
+Full description (1552/4000):
+Non rispondere. Non aprire. Aspetta le sei.
+
+Prendi servizio di notte al centro d'affari Horizon, una torre di uffici vuota, chiusa da un mese. La guardia prima di te, Frank, ha trascorso vent'anni in quella guardiola. Una settimana fa non ha passato le consegne: la lampada era accesa, il tè si era raffreddato e Frank era sparito. Le telecamere non hanno registrato niente.
+
+La guardia diurna ti porge le chiavi con la mano che trema e ti dice di leggere il registro prima delle tre. Sull'ultima pagina, con la scrittura di Frank: NON RISPONDERE AL TUO NOME. NON APRIRE LA PORTA A QUELLA COSA. NON ANDARCI TU STESSO — NÉ VERSO LA LUCE, NÉ IN ASCENSORE.
+
+Alle tre e mezza di notte tua sorella minore, Lily, è fuori dalle porte a vetri. Sotto la pioggia. Ti chiama per nome.
+
+• Una storia horror interattiva di 2–3 ore, con scelte a tempo, quattro finali e quattordici modi di morire
+• Tra una scena e l'altra fai il tuo turno: sorveglia le telecamere a circuito chiuso, annota tutto ciò che non va, gestisci ascensore e luci… e non fissare la CAM 13
+• Doppiato in inglese, russo, spagnolo, portoghese e tedesco; sottotitoli in 13 lingue
+• Tre stili grafici: Retro (low poly in stile PS1), Cinema e Ultra; il gioco sceglie cosa può reggere il tuo telefono
+• In verticale o in orizzontale, touch o controller. Funziona offline. Consigliate le cuffie
+• Niente pubblicità, niente account, nessuna raccolta di dati
+
+Avviso sui contenuti: 18+. Violenza, sangue e scene cruente, jump scare e luci lampeggianti (nelle impostazioni c’è l’opzione «Meno lampi»).
+
+Release notes (118/500):
+Prima versione di prova. Gioca almeno fino a un finale e segnalaci crash, rallentamenti o qualsiasi cosa che non vada.

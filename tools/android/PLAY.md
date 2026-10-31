@@ -1,10 +1,11 @@
 # Hush Till Six → Google Play (что делает владелец, по шагам)
 
 Сборка: `node tools/android/build.js` → `tools/android/out/HushTillSix-v<версия>.aab` (загружать в Play Console) и `.apk` (поставить на свой телефон для проверки).
+**Что вписать в каждый раздел Play Console** (анкеты, страница на 13 языках, графика, закрытый тест) — `PLAY_FILL.md`; тексты страницы — `listing/` (`python3 tools/android/listing.py`).
 Значок и баннер: `python3 tools/android/assets.py` → `dist/play/icon-512.png`, `dist/play/feature-1024x500.png`. Скриншоты телефона (1920×1080, интерфейс приложения, EN и RU) — `dist/play/screenshots/*_phone.png`: `PHONE=1 PORT=8785 node tools/desktop/steam/kit.js dist/play shots` (сервер статики — как в начале kit.js).
 
 - **Пакет (ID приложения): `com.yompix.hushtillsix`** — после первой загрузки в Play его поменять нельзя.
-- **Версия** — как у ПК-версии (`tools/desktop/package.json`), номер сборки 1.2.6 → 10206. Каждая новая загрузка — с номером больше: поднять версию и пересобрать.
+- **Версия** — как у ПК-версии (`tools/desktop/package.json`), номер сборки 1.2.7 → 10207 (31 окт; в 1.2.6 не было исправления мигания над EXIT). Каждая новая загрузка — с номером больше: поднять версию и пересобрать.
 - **Android:** минимум 8.0 (API 26), target API 36 (Android 16 — Google Play требует его с 31.08.2026). Нужен OpenGL ES 3.0 (WebGL 2). Разрешение одно — вибрация; интернета у приложения нет.
 - **Ключ подписи.** AAB подписан *ключом загрузки* (upload key) `hush-upload.p12` (пароль — в `hush-upload.p12.pass`). Его хранит владелец: в надёжном месте (менеджер паролей, флешка), никому не отправлять. Для следующих сборок в облаке — секреты среды `ANDROID_KEYSTORE_B64` (файл в base64) и `ANDROID_KEYSTORE_PASS`, в чат не присылать. В Play включено «Подписание приложений Google Play»: телефоны получают приложение с ключом Google, а ключ загрузки, если пропадёт, можно заменить через поддержку Play (Setup → App signing → Request upload key reset).
 
@@ -70,7 +71,7 @@ Create app → App name **Hush Till Six**, Default language English (US), **Game
 - **Category:** Games → Adventure (или Casual/Role Playing — на выбор). **Tags:** Horror, Story, Interactive story. **Contact:** почта разработчика (видна в магазине).
 
 ## 5. Загрузка сборки
-1. Testing → **Internal testing** → Create release → загрузить `HushTillSix-v1.2.6.aab`. Play предложит «Google-managed app signing key» — согласиться.
+1. Testing → **Internal testing** → Create release → загрузить `HushTillSix-v1.2.7.aab`. Play предложит «Google-managed app signing key» — согласиться.
 2. Проверить на своём телефоне по ссылке внутреннего теста (до этого APK из сборки, поставленный вручную, нужно удалить: подписи разные).
 3. Testing → **Closed testing** → тот же AAB, добавить 12+ тестировщиков, 14 дней.
 4. После закрытого теста: Dashboard → **Apply for production** → три раздела вопросов (о закрытом тесте, об игре, о готовности) → ответ Google обычно до 7 дней. Потом Production → Create release → тот же AAB → страны → Review → Start rollout. Первая проверка выпуска — от нескольких часов до нескольких дней.

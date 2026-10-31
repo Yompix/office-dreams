@@ -1,0 +1,26 @@
+App name:
+Hush Till Six
+
+Short description (64/80):
+Gece vardiyasında korku. Cevap verme. Kapıyı açma. Altıyı bekle.
+
+Full description (1404/4000):
+Cevap verme. Kapıyı açma. Altıyı bekle.
+
+Horizon İş Merkezi'nde gece vardiyasını devralıyorsun — bir ay önce kapanmış, bomboş bir ofis kulesi. Senden önceki görevli Frank, yirmi yıl boyunca o güvenlik kulübesinde oturdu. Bir hafta önce vardiyasını devretmedi: lamba yanıyordu, çay soğumuştu, Frank ise ortada yoktu. Kameralar hiçbir şey kaydetmemişti.
+
+Gündüz nöbetçisi anahtarları sana titreyen eliyle uzatıyor ve defteri saat üçten önce okumanı söylüyor. Son sayfada, Frank'in el yazısıyla: ADINA CEVAP VERME. ONA KAPIYI AÇMA. ONA KENDİ AYAĞINLA GİTME — NE IŞIĞA, NE ASANSÖRE.
+
+Üç buçukta küçük kız kardeşin Lily cam kapının dışında duruyor. Yağmurun altında. Ve adınla sesleniyor.
+
+• 2–3 saatlik interaktif korku hikâyesi: süreli seçimler, dört son, ölmenin on dört yolu
+• Hikâye sahneleri arasında vardiyayı sen yürütüyorsun: güvenlik kameralarını izle, ters giden her şeyi deftere kaydet, asansörü ve ışıkları yönet — ve CAM 13'e dik dik bakma
+• İngilizce, Rusça, İspanyolca, Portekizce ve Almanca seslendirme; 13 dilde altyazı
+• Üç grafik tarzı: Retro (PS1 tarzı low-poly), Sinema ve Ultra; oyun, telefonunun kaldırabileceğini kendisi seçer
+• Dikey ya da yatay, dokunmatik ya da oyun kumandası. İnternetsiz çalışır. Kulaklık önerilir
+• Reklam yok, hesap yok, veri toplama yok
+
+İçerik uyarısı: 18+. Şiddet, kan ve vahşet, ani korkutmalar, yanıp sönen ışıklar (ayarlarda "Daha az flaş" seçeneği var).
+
+Release notes (108/500):
+İlk test sürümü. Lütfen en az bir sona kadar oyna; çökme, takılma ya da yanlış görünen her şeyi bize bildir.

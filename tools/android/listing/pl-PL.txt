@@ -1,0 +1,26 @@
+App name:
+Hush Till Six
+
+Short description (76/80):
+Horror na nocnej zmianie. Nie odpowiadaj. Nie otwieraj. Doczekaj do szóstej.
+
+Full description (1468/4000):
+Nie odpowiadaj. Nie otwieraj. Doczekaj do szóstej.
+
+Bierzesz nocną zmianę w Centrum Biznesowym Horizon — pustym biurowcu, który zamknięto miesiąc temu. Ochroniarz przed tobą, Frank, przesiedział w tej budce dwadzieścia lat. Tydzień temu nie zdał zmiany: lampa się paliła, herbata wystygła, a Franka nie było. Kamery nic nie nagrały.
+
+Dzienny ochroniarz podaje ci klucze drżącą ręką i każe przeczytać dziennik do trzeciej. Na ostatniej stronie, pismem Franka: NIE ODPOWIADAJ, GDY WOŁAJĄ CIĘ PO IMIENIU. NIE OTWIERAJ MU DRZWI. SAM DO NIEGO NIE CHODŹ — ANI DO ŚWIATŁA, ANI DO WINDY.
+
+O wpół do czwartej za szklanymi drzwiami stoi twoja młodsza siostra Lily. W deszczu. I woła cię po imieniu.
+
+• Interaktywna opowieść grozy na 2–3 godziny: wybory na czas, cztery zakończenia i czternaście sposobów, by umrzeć
+• Między scenami fabularnymi pracujesz na zmianie: obserwujesz kamery monitoringu, zapisujesz w dzienniku wszystko, co nie tak, obsługujesz windę i światło na piętrach — i nie wpatrujesz się w CAM 13
+• Dubbing po angielsku, rosyjsku, hiszpańsku, portugalsku i niemiecku; napisy w 13 językach
+• Trzy style grafiki: Retro (low poly w stylu PS1), Kino i Ultra; gra sama wybiera, co udźwignie twój telefon
+• Pionowo lub poziomo, dotyk albo pad. Działa offline. Najlepiej w słuchawkach
+• Bez reklam, bez kont, bez zbierania danych
+
+Ostrzeżenie o treści: 18+. Przemoc, krew i drastyczne sceny, jump scare’y, migające światło (w ustawieniach jest opcja „Mniej błysków”).
+
+Release notes (144/500):
+Pierwsza wersja testowa. Przejdź grę przynajmniej do jednego zakończenia i daj znać o awariach, spowolnieniach albo o wszystkim, co wygląda źle.
