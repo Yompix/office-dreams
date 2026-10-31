@@ -19,6 +19,12 @@ var snow_bounce: OmniLight3D
 var headlights: Array[SpotLight3D] = []
 var lamps: Array[MeshInstance3D] = []           # стёкла фар (светятся)
 var lamp_broken := false                         # сбили оленя: левая фара разбита до конца главы 2
+var mirror_glass: MeshInstance3D                 # зеркало заднего вида: стекло
+var mirror_vp: SubViewport                       # что видно в зеркале (своя камера смотрит назад)
+var mirror_cam: Camera3D
+var mirror_quad: MeshInstance3D
+var mirror_aim := Vector3(0, 1.0, 8.0)           # куда смотрит камера зеркала (оси машины): дорога позади или заднее сиденье
+const MIRROR := Vector3(0.0, 1.445, -0.068)      # середина зеркала (оси машины)
 var t := 0.0
 var wiper_speed := 1.0
 var steer := 0.0                               # поворот руля (рад), руки героя — за ним
@@ -101,6 +107,8 @@ func setup(pc: bool) -> void:
 			glovebox = mi
 		elif nm == "glove_handle":
 			handle = mi
+		elif nm == "mirror_glass":
+			mirror_glass = mi
 	if handle and glovebox:
 		handle.reparent(glovebox)                                                # ручка открывается вместе с крышкой
 	glove_base = glovebox.rotation_degrees.x if glovebox else 0.0
@@ -354,6 +362,7 @@ func _process(delta: float) -> void:
 		w.rotate_object_local(Vector3.RIGHT, -speed / 0.325 * delta)
 	if fuel_lamp:
 		fuel_lamp.visible = fuel_blink and fmod(t, 1.1) < 0.6
+	_mirror_follow()
 	# лёгкая тряска дороги: свет приборов дышит вместе с машиной
 	dash_light.light_energy = 0.35 + 0.02 * sin(t * 13.0)
 	# кузов на неровной зимней дороге: чуть подпрыгивает и кренится в поворотах (головы и волосы отзываются сами)
@@ -362,6 +371,45 @@ func _process(delta: float) -> void:
 			_y0 = position.y
 		position.y = _y0 + sin(t * 2.3) * 0.003 + sin(t * 5.7 + 1.0) * 0.0018 + sin(t * 11.3) * 0.0007
 		rotation.z = -steer * 0.035 + sin(t * 1.3) * 0.002
+
+
+## Зеркало заднего вида: включить (на крупных планах зеркала) — своя камера смотрит назад, картинка зеркально на стекле.
+## aim: "road" — дорога позади (через заднее стекло), "back" — заднее сиденье.
+func mirror(on: bool, aim := "road") -> void:
+	if mirror_glass == null:
+		return
+	if mirror_vp == null:
+		mirror_vp = SubViewport.new()
+		mirror_vp.size = Vector2i(1024, 240)
+		mirror_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		add_child(mirror_vp)
+		mirror_cam = Camera3D.new()
+		mirror_cam.fov = 17.0
+		mirror_cam.near = 0.05
+		mirror_vp.add_child(mirror_cam)
+		mirror_quad = MeshInstance3D.new()
+		var q := QuadMesh.new()
+		q.size = Vector2(0.226, 0.053)
+		mirror_quad.mesh = q
+		var m := StandardMaterial3D.new()
+		m.albedo_texture = mirror_vp.get_texture()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.uv1_scale = Vector3(-1, 1, 1)               # в зеркале лево и право меняются местами
+		m.uv1_offset = Vector3(1, 0, 0)
+		mirror_quad.material_override = m
+		mirror_quad.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mirror_quad.position = Vector3(0, 0, 0.0028)
+		mirror_glass.add_child(mirror_quad)
+	mirror_aim = Vector3(0.32, 0.92, 1.35) if aim == "back" else Vector3(0.0, 1.0, 8.0)
+	mirror_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
+	mirror_quad.visible = on
+	_mirror_follow()
+
+
+func _mirror_follow() -> void:
+	if mirror_cam and mirror_quad and mirror_quad.visible:
+		mirror_cam.global_transform = global_transform * Transform3D(Basis(), MIRROR + Vector3(0, -0.01, 0.06))
+		mirror_cam.look_at(to_global(mirror_aim))
 
 
 ## Разбитая фара (сбили оленя): левая гаснет — стекло тёмное, в трещинах, луч выключен; дальше светит одна.

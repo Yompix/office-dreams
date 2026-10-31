@@ -96,9 +96,19 @@ func _strip(m: Material, x0: float, x1: float, y: float) -> MeshInstance3D:
 
 ## Стоянка (заправка): мир замирает, в прямоугольнике площадки (x, z) нет ни елей, ни столбов, снег справа — под площадкой,
 ## снег падает сверху на всю округу, а не летит в фары.
+var _parked := {}   # что было до стоянки (ели, обочины) — чтобы снова выехать
+
+
 func park(lot: Rect2) -> void:
 	speed = 0.0
 	_process(0.0)
+	_parked = {"strips": side_strips.map(func(st): return st.position.y), "forest": []}
+	for f in forests:
+		var fm := (f[0] as MultiMeshInstance3D).multimesh
+		var arr := []
+		for i in fm.instance_count:
+			arr.append(fm.get_instance_transform(i))
+		_parked.forest.append(arr)
 	for f in forests:
 		var mi := f[0] as MultiMeshInstance3D
 		var mm := mi.multimesh
@@ -125,6 +135,28 @@ func park(lot: Rect2) -> void:
 	set_process(false)
 	snow.initial_velocity_min = 1.0
 	snow.initial_velocity_max = 1.8
+
+
+## Снова в путь после стоянки: ели и столбы на месте, снег летит в фары, дорога едет.
+func unpark() -> void:
+	if _parked.is_empty():
+		return
+	for fi in forests.size():
+		var fm := (forests[fi][0] as MultiMeshInstance3D).multimesh
+		var arr: Array = _parked.forest[fi]
+		for i in arr.size():
+			fm.set_instance_transform(i, arr[i])
+	for p in poles.get_children():
+		(p as Node3D).visible = true
+	for i in side_strips.size():
+		side_strips[i].position.y = float(_parked.strips[i])
+	snow.amount = 2600 if pc else 1200
+	snow.lifetime = 2.2
+	snow.preprocess = 2.2
+	snow.gravity = Vector3(0, -1.2, 0)
+	_parked = {}
+	speed = 25.0
+	set_process(true)
 
 
 ## Материал площадки — тот же асфальт со снегом, без разметки.

@@ -22,6 +22,10 @@ var _opts: Array = []
 var _toast_t := 0.0
 var font: Font
 var font_b: Font
+var font_hand: Font
+var root: Control
+var page: Control           # страница дневника крупно (почерк Анны)
+var map_panel: Control      # карта главы
 
 const NAME_COL := {"noah": Color(0.85, 0.9, 1.0), "iris": Color(1.0, 0.78, 0.6), "radio": Color(0.6, 0.85, 1.0),
 	"danny": Color(0.75, 1.0, 0.75), "roman": Color(1.0, 0.92, 0.6)}
@@ -62,7 +66,8 @@ func _ready() -> void:
 	layer = 10
 	font = load("res://assets/fonts/Inter-500.woff2")
 	font_b = load("res://assets/fonts/Inter-700.woff2")
-	var root := Control.new()
+	font_hand = load("res://assets/fonts/Pangolin-Regular.woff2")
+	root = Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
@@ -177,6 +182,113 @@ func show_note(text_d) -> void:
 	note.text = T(text_d)
 	sub_name.text = ""
 	sub_text.text = ""
+
+
+## Страница дневника крупно: бумага в линейку, почерк от руки (чернила), чуть наискосок.
+func show_page(text: String) -> void:
+	hide_page()
+	page = Control.new()
+	page.set_anchors_preset(Control.PRESET_FULL_RECT)
+	page.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(page)
+	root.move_child(page, root.get_child_count() - 1)
+	var w := 960
+	var h := 640
+	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3
+	for y in h:
+		for x in w:
+			var e := minf(minf(x, w - 1 - x), minf(y, h - 1 - y)) / 60.0
+			var age := 0.82 + 0.18 * clampf(e, 0.0, 1.0)
+			var c := Color(0.93, 0.9, 0.82) * age + Color(rng.randf_range(-0.015, 0.015), rng.randf_range(-0.015, 0.015), 0.0, 0.0)
+			if y > 70 and (y - 70) % 46 == 0:
+				c = c.lerp(Color(0.5, 0.62, 0.8), 0.45)
+			if x == 110 or x == 112:
+				c = c.lerp(Color(0.85, 0.35, 0.35), 0.35)
+			c.a = 1.0
+			img.set_pixel(x, y, c)
+	var tr := TextureRect.new()
+	tr.texture = ImageTexture.create_from_image(img)
+	tr.size = Vector2(w, h)
+	tr.pivot_offset = Vector2(w, h) * 0.5
+	tr.rotation = deg_to_rad(-2.0)
+	var vs := get_viewport().get_visible_rect().size
+	tr.position = (vs - Vector2(w, h)) * 0.5 - Vector2(0, 40)
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	page.add_child(tr)
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_override("font", font_hand)
+	l.add_theme_font_size_override("font_size", 52)
+	l.add_theme_color_override("font_color", Color(0.1, 0.14, 0.36))
+	l.add_theme_constant_override("line_spacing", 6)
+	l.position = Vector2(150, 105)
+	l.size = Vector2(w - 220, h - 160)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tr.add_child(l)
+	page.modulate.a = 0.0
+	create_tween().tween_property(page, "modulate:a", 1.0, 0.6)
+
+
+func hide_page() -> void:
+	if is_instance_valid(page):
+		page.queue_free()
+	page = null
+
+
+## Карта главы: строки «что решили» — выбранное ярко, виденное раньше — серым, ещё не открытое — «???»;
+## внизу — сколько веток открыто и доверие Айрис. rows: [{"name": …, "opts": [текст…], "pick": i, "seen": [bool…]}].
+func chapter_map(head: String, rows: Array, opened: int, total: int, trust: int) -> void:
+	hide_map()
+	map_panel = ColorRect.new()
+	(map_panel as ColorRect).color = Color(0.01, 0.012, 0.018, 0.96)
+	map_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	map_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(map_panel)
+	var t := _label(map_panel, 46, font_b, Color(0.92, 0.94, 1.0))
+	t.text = head
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t.anchor_left = 0.05
+	t.anchor_right = 0.95
+	t.anchor_top = 0.07
+	t.anchor_bottom = 0.15
+	var box := VBoxContainer.new()
+	box.anchor_left = 0.12
+	box.anchor_right = 0.92
+	box.anchor_top = 0.22
+	box.anchor_bottom = 0.85
+	box.add_theme_constant_override("separation", 34)
+	map_panel.add_child(box)
+	for r in rows:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 26)
+		box.add_child(row)
+		var n := _label(row, 36, font_b, Color(0.62, 0.66, 0.74))
+		n.text = String(r.name)
+		n.custom_minimum_size = Vector2(360, 0)
+		var opts: Array = r.opts
+		for i in opts.size():
+			var picked := i == int(r.pick)
+			var seen: bool = (r.seen as Array)[i]
+			var o := _label(row, 34, font_b if picked else font, Color(1.0, 0.92, 0.72) if picked else (Color(0.6, 0.62, 0.66) if seen else Color(0.32, 0.33, 0.36)))
+			o.text = ("● " + String(opts[i])) if picked else (String(opts[i]) if seen else "???")
+	var f := _label(map_panel, 28, font, Color(0.75, 0.78, 0.84))
+	f.text = ("Открыто веток: %d из %d        Доверие Айрис: %+d" if lang == "ru" else "Branches discovered: %d of %d        Iris's trust: %+d") % [opened, total, trust]
+	f.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	f.anchor_left = 0.05
+	f.anchor_right = 0.95
+	f.anchor_top = 0.87
+	f.anchor_bottom = 0.93
+	map_panel.modulate.a = 0.0
+	create_tween().tween_property(map_panel, "modulate:a", 1.0, 0.8)
+
+
+func hide_map() -> void:
+	if is_instance_valid(map_panel):
+		map_panel.queue_free()
+	map_panel = null
 
 
 func clear_text() -> void:

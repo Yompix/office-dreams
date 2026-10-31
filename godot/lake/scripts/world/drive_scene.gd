@@ -10,8 +10,11 @@ var moon: DirectionalLight3D
 var pc := true
 var station: Node3D
 var props := {}            # реквизит заправки по именам (касса, телевизор…)
+var station_root: Node3D   # всё, что ставит стоянка (постройки, свет, реквизит) — уезжаем, и оно исчезает
+var road_items: Node3D     # что стоит на дороге (олень, кровь, указатель, чужая машина): едет назад вместе с ней
 const LOT := Rect2(4.2, -28.0, 33.6, 46.0)   # площадка заправки (x, z) справа от дороги
 const FLOOR := 0.38                          # пол магазина и крыльцо
+const ROAD_EDGE := 3.5                       # край асфальта (полдороги)
 
 ## планы на заправке — в координатах мира: [позиция, куда смотрит, угол обзора]
 const STATION_SHOTS := {
@@ -33,6 +36,7 @@ const STATION_SHOTS := {
 	"st_danny_stare": [Vector3(19.1, 1.05, -4.2), Vector3(20.25, 0.98, -3.3), 32.0],
 	"st_kids": [Vector3(16.3, 1.65, -0.8), Vector3(19.65, 1.0, -3.4), 40.0],
 	"st_noah_out": [Vector3(19.2, 1.45, -3.25), Vector3(17.0, 1.62, -2.5), 36.0],
+	"st_blackcar": [Vector3(12.6, 1.6, -12.5), Vector3(9.2, 1.1, -24.0), 34.0],
 }
 
 ## планы на трассе снаружи машины (сцена 3, олень) — в координатах мира: машина стоит в начале координат, нос к −Z
@@ -65,6 +69,15 @@ const SHOTS := {
 	"back": [Vector3(0.05, 1.25, -0.25), Vector3(0.32, 0.92, 1.4), 52.0],
 	"deer_eye": [Vector3(-0.36, 1.17, 0.12), Vector3(-0.3, 1.05, -4.3), 40.0],
 }
+
+
+func _process(delta: float) -> void:
+	if road == null or road_items == null:
+		return
+	for c in road_items.get_children():   # всё на дороге едет назад вместе с ней; далеко позади — убрать
+		(c as Node3D).position.z += road.speed * delta
+		if (c as Node3D).position.z > 90.0:
+			c.queue_free()
 
 
 func setup(is_pc: bool) -> void:
@@ -113,14 +126,18 @@ func setup(is_pc: bool) -> void:
 	car = Car.new()
 	add_child(car)
 	car.setup(pc)
+	road_items = Node3D.new()
+	add_child(road_items)
 
 
 ## Заправка «24»: постройки (tools/lake/station.py), площадка, свет навеса, магазина и вывески, реквизит Poly Haven;
 ## машина — у колонки, стоит.
 func park_at_station(lang := "ru") -> void:
 	road.park(LOT)
+	station_root = Node3D.new()
+	add_child(station_root)
 	station = (load("res://assets/models/station.glb") as PackedScene).instantiate() as Node3D
-	add_child(station)
+	station_root.add_child(station)
 	for n in station.find_children("*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
 		var nm := String(mi.name)
@@ -143,7 +160,7 @@ func park_at_station(lang := "ru") -> void:
 			lb.double_sided = false
 			lb.position = Vector3(20.935, FLOOR + 3.13, -5.5)
 			lb.rotation_degrees = Vector3(0, -90, 0)
-			add_child(lb)
+			station_root.add_child(lb)
 	var lot := MeshInstance3D.new()
 	var pm := PlaneMesh.new()
 	pm.size = LOT.size
@@ -152,7 +169,7 @@ func park_at_station(lang := "ru") -> void:
 	lot.mesh = pm
 	lot.material_override = road.lot_material()
 	lot.position = Vector3(LOT.get_center().x, 0.004, LOT.get_center().y)
-	add_child(lot)
+	station_root.add_child(lot)
 	# свет: лампы навеса (холодные, конусы в снегу), лампы в магазине, витрина на снег, красная вывеска
 	for x in [12.0, 16.0]:
 		for z in [-9.0, -5.0, -1.0]:
@@ -166,7 +183,7 @@ func park_at_station(lang := "ru") -> void:
 			sl.spot_attenuation = 0.9
 			sl.shadow_enabled = pc and z == -5.0
 			sl.light_volumetric_fog_energy = 0.6
-			add_child(sl)
+			station_root.add_child(sl)
 	for x in [23.6, 27.2]:
 		for z in [-9.5, -5.5, -1.5]:
 			var ol := OmniLight3D.new()
@@ -175,7 +192,7 @@ func park_at_station(lang := "ru") -> void:
 			ol.light_energy = 0.9
 			ol.omni_range = 5.5
 			ol.light_volumetric_fog_energy = 0.0
-			add_child(ol)
+			station_root.add_child(ol)
 	var spill := SpotLight3D.new()                     # свет витрины на крыльцо и снег
 	spill.position = Vector3(21.6, 2.7, -5.0)
 	spill.rotation_degrees = Vector3(-25, 90, 0)
@@ -183,13 +200,13 @@ func park_at_station(lang := "ru") -> void:
 	spill.light_energy = 1.4
 	spill.spot_range = 12.0
 	spill.spot_angle = 70.0
-	add_child(spill)
+	station_root.add_child(spill)
 	var sign := OmniLight3D.new()
 	sign.position = Vector3(5.6, 6.2, 6.0)
 	sign.light_color = Color(1.0, 0.4, 0.28)
 	sign.light_energy = 2.2
 	sign.omni_range = 10.0
-	add_child(sign)
+	station_root.add_child(sign)
 	# реквизит: [модель, позиция, поворот вокруг вертикали]
 	var items := [["CashRegister_01", Vector3(25.75, FLOOR + 1.05, -8.42), 180.0], ["Television_01", Vector3(26.4, FLOOR + 2.145, -11.5), 0.0],
 		["long_life_food", Vector3(27.3, FLOOR + 1.05, -8.35), 160.0], ["WetFloorSign_01", Vector3(21.9, FLOOR, -0.6), 30.0],
@@ -201,14 +218,14 @@ func park_at_station(lang := "ru") -> void:
 		if not ResourceLoader.exists(path):
 			continue
 		var n := (load(path) as PackedScene).instantiate() as Node3D
-		add_child(n)
+		station_root.add_child(n)
 		n.position = it[1]
 		n.rotation_degrees.y = it[2]
 		if not props.has(it[0]):
 			props[it[0]] = n
 	if props.has("Television_01"):                    # новости с фото Ноя
 		var tv := NewsTV.new()
-		add_child(tv)
+		station_root.add_child(tv)
 		tv.build(props["Television_01"], lang)
 		props["news"] = tv
 	car.speed = 0.0
@@ -263,7 +280,7 @@ func crack_door() -> void:
 	q.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	q.position = Vector3(21.095, FLOOR + 1.12, -2.0)
 	q.rotation_degrees = Vector3(0, -90, 0)
-	add_child(q)
+	station_root.add_child(q)
 
 
 ## Деньги на прилавке.
@@ -279,7 +296,7 @@ func show_money() -> void:
 		b.material_override = m
 		b.position = Vector3(26.25 + i * 0.03, FLOOR + 1.052 + i * 0.002, -8.15 + i * 0.02)
 		b.rotation_degrees.y = 10.0 + i * 9.0
-		add_child(b)
+		station_root.add_child(b)
 
 
 ## Телефон на прилавке с вырванным проводом (провод висит).
@@ -291,7 +308,7 @@ func rip_phone() -> void:
 	ph.material_override = _dark()
 	ph.position = Vector3(27.35, FLOOR + 1.09, -8.6)
 	ph.rotation_degrees.y = 25.0
-	add_child(ph)
+	station_root.add_child(ph)
 	var cord := MeshInstance3D.new()
 	var cm := CylinderMesh.new()
 	cm.top_radius = 0.004
@@ -301,7 +318,7 @@ func rip_phone() -> void:
 	cord.material_override = _dark()
 	cord.position = Vector3(27.5, FLOOR + 0.62, -8.15)
 	cord.rotation_degrees = Vector3(12, 0, 8)
-	add_child(cord)
+	station_root.add_child(cord)
 
 
 func _dark() -> StandardMaterial3D:
@@ -327,7 +344,7 @@ func blood_pool(p: Vector3) -> void:
 	d.material_override = m
 	d.position = p
 	d.scale = Vector3(0.2, 1.0, 0.16)
-	add_child(d)
+	holder().add_child(d)
 	create_tween().tween_property(d, "scale", Vector3(1.0, 1.0, 0.75), 6.0).set_ease(Tween.EASE_OUT)
 
 
@@ -345,7 +362,108 @@ func blood_trail(a: Vector3, b: Vector3) -> void:
 	d.material_override = m
 	d.position = (a + b) * 0.5
 	d.rotation.y = atan2(b.x - a.x, b.z - a.z)
-	add_child(d)
+	holder().add_child(d)
+
+
+## Куда ставить предметы: на стоянке — к заправке, в пути — на дорогу (едут назад вместе с ней).
+func holder() -> Node3D:
+	return station_root if is_instance_valid(station_root) else road_items
+
+
+## Уезжаем с заправки: постройки и свет исчезают, ели и снег — как в пути, машина снова на трассе.
+func leave_station() -> void:
+	if is_instance_valid(station_root):
+		station_root.queue_free()
+	station_root = null
+	station = null
+	props.clear()
+	road.unpark()
+	car.position = Vector3.ZERO
+	car.rotation = Vector3.ZERO
+	car.ride = true
+	car.speed = road.speed
+
+
+## Огни заправки позади (в зеркале): вывеска «24», лампы навеса, витрина — светящиеся пятна за деревьями.
+func station_glow(z0: float) -> void:
+	var g := Node3D.new()
+	g.position = Vector3(0, 0, z0)
+	road_items.add_child(g)
+	var spots := [[Vector3(18.0, 4.6, 6.0), Vector2(2.4, 0.25), Color(0.85, 0.92, 1.0), 6.0], [Vector3(18.0, 4.6, 12.0), Vector2(2.4, 0.25), Color(0.85, 0.92, 1.0), 6.0],
+		[Vector3(24.0, 2.0, 10.0), Vector2(5.0, 1.6), Color(1.0, 0.86, 0.62), 2.2], [Vector3(6.5, 6.4, 3.0), Vector2(1.6, 1.2), Color(1.0, 0.12, 0.08), 3.0]]
+	for sp in spots:
+		var q := MeshInstance3D.new()
+		var qm := QuadMesh.new()
+		qm.size = sp[1]
+		q.mesh = qm
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.albedo_color = sp[2]
+		m.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+		m.emission_enabled = true
+		m.emission = sp[2]
+		m.emission_energy_multiplier = sp[3]
+		q.material_override = m
+		q.position = sp[0]
+		g.add_child(q)
+	var ol := OmniLight3D.new()                       # свет на снег у заправки
+	ol.position = Vector3(16.0, 4.0, 8.0)
+	ol.light_color = Color(0.9, 0.93, 1.0)
+	ol.light_energy = 2.0
+	ol.omni_range = 16.0
+	ol.light_volumetric_fog_energy = 0.4
+	g.add_child(ol)
+
+
+## Дорожный указатель справа на обочине: зелёный щит с белыми буквами.
+func signpost(z: float, text: String) -> Node3D:
+	var n := Node3D.new()
+	n.position = Vector3(ROAD_EDGE + 1.4, 0.05, z)
+	road_items.add_child(n)
+	var steel := StandardMaterial3D.new()
+	steel.albedo_color = Color(0.45, 0.46, 0.48)
+	steel.metallic = 0.7
+	steel.roughness = 0.45
+	for x in [-0.8, 0.8]:
+		var post := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.045
+		cm.bottom_radius = 0.045
+		cm.height = 3.0
+		post.mesh = cm
+		post.material_override = steel
+		post.position = Vector3(x, 1.5, 0)
+		n.add_child(post)
+	var board := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(2.4, 1.15, 0.05)
+	board.mesh = bm
+	var gm := StandardMaterial3D.new()
+	gm.albedo_color = Color(0.03, 0.3, 0.16)
+	gm.roughness = 0.35
+	gm.metallic_specular = 0.8
+	board.material_override = gm
+	board.position = Vector3(0, 2.55, 0)
+	n.add_child(board)
+	var lb := Label3D.new()
+	lb.text = text
+	lb.font_size = 110
+	lb.pixel_size = 0.004
+	lb.modulate = Color(0.96, 0.97, 0.95)
+	lb.outline_size = 0
+	lb.shaded = true
+	lb.position = Vector3(0, 2.55, 0.03)
+	n.add_child(lb)
+	var rim := MeshInstance3D.new()                    # белая кайма щита
+	var rm := BoxMesh.new()
+	rm.size = Vector3(2.5, 1.25, 0.04)
+	rim.mesh = rm
+	var wm := StandardMaterial3D.new()
+	wm.albedo_color = Color(0.9, 0.92, 0.9)
+	rim.material_override = wm
+	rim.position = Vector3(0, 2.55, -0.01)
+	n.add_child(rim)
+	return n
 
 
 ## Камера на план (в координатах машины; планы заправки — в координатах мира).

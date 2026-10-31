@@ -21,7 +21,9 @@
   "threw": 0,
   "deer": 0,
   "lamp": 0,
-  "late": 0
+  "late": 0,
+  "mirror": 0,
+  "diary": 0
  },
  "names": {
   "noah": {
@@ -843,14 +845,6 @@
     }
    ]
   },
-  "end": {
-   "loc": "station",
-   "beats": [
-    {
-     "end": true
-    }
-   ]
-  },
   "s4": {
    "loc": "car",
    "beats": [
@@ -1081,6 +1075,17 @@
      "note": {
       "ru": "Других машин нет. Ной заправляет.",
       "en": "No other cars. Noah fills the tank."
+     }
+    },
+    {
+     "if": {
+      "late": ">0"
+     },
+     "shot": "st_blackcar",
+     "dur": 3.2,
+     "note": {
+      "ru": "У края площадки, в темноте, стоит чёрная машина. Фары выключены. Водитель не шевелится.",
+      "en": "At the edge of the lot, in the dark, a black car is parked. Lights off. The driver doesn't move."
      }
     },
     {
@@ -1725,7 +1730,322 @@
      "dur": 2.6
     },
     {
+     "go": "s7"
+    }
+   ]
+  },
+  "s7": {
+   "loc": "car",
+   "time": "04:02",
+   "beats": [
+    {
+     "fx": "fade_out",
+     "dur": 1.2
+    },
+    {
+     "fx": "leave_station"
+    },
+    {
+     "fx": "fade_in",
+     "shot": "two",
+     "dur": 2.6,
+     "note": {
+      "ru": "Отъезжают.",
+      "en": "They pull away."
+     }
+    },
+    {
+     "peek": "mirror",
+     "t": 5.0,
+     "hint": {
+      "ru": "Посмотреть в зеркало — Q / ↑",
+      "en": "Check the mirror — Q / ↑"
+     },
+     "yes": "s7_m",
+     "no": "s7_q"
+    }
+   ]
+  },
+  "s7_m": {
+   "loc": "car",
+   "beats": [
+    {
+     "shot": "mirror",
+     "dur": 2.4,
+     "note": {
+      "ru": "На краю площадки, в темноте — чёрный седан. Фары выключены.",
+      "en": "At the edge of the lot, in the dark — a black sedan. Its lights are off."
+     }
+    },
+    {
+     "fx": "blackcar_lights",
+     "shot": "mirror",
+     "dur": 2.4,
+     "note": {
+      "ru": "Когда они проезжают — фары загораются.",
+      "en": "As they pass, its headlights come on."
+     }
+    },
+    {
+     "fx": "blackcar_turn",
+     "shot": "mirror",
+     "dur": 2.8,
+     "note": {
+      "ru": "Он не едет за ними. Он подъезжает к заправке.",
+      "en": "It doesn't follow them. It pulls up to the gas station."
+     }
+    },
+    {
+     "if": {
+      "danny": ">0"
+     },
+     "look": {
+      "who": "danny",
+      "at": "noah"
+     },
+     "shot": "mirror_back",
+     "dur": 2.6,
+     "note": {
+      "ru": "Дэнни смотрит на Ноя — и сразу опускает глаза.",
+      "en": "Danny looks at Noah — and drops his eyes at once."
+     }
+    },
+    {
+     "set": {
+      "mirror": 1
+     }
+    },
+    {
+     "go": "s7_iris"
+    }
+   ]
+  },
+  "s7_q": {
+   "loc": "car",
+   "beats": [
+    {
+     "go": "s7_iris"
+    }
+   ]
+  },
+  "s7_iris": {
+   "loc": "car",
+   "beats": [
+    {
+     "shot": "iris",
+     "expr": {
+      "who": "iris",
+      "set": "sad"
+     },
+     "look": "window",
+     "dur": 2.8,
+     "note": {
+      "ru": "Айрис плачет беззвучно.",
+      "en": "Iris is crying without a sound."
+     }
+    },
+    {
+     "choice": {
+      "t": 6,
+      "shot": "two",
+      "opts": [
+       {
+        "ru": "«Всё будет хорошо»",
+        "en": "\"It's going to be okay.\"",
+        "go": "s7_a"
+       },
+       {
+        "ru": "«Я не знаю, что со мной»",
+        "en": "\"I don't know what's wrong with me.\"",
+        "go": "s7_b"
+       },
+       {
+        "silent": true,
+        "go": "s7_c"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "s7_a": {
+   "loc": "car",
+   "beats": [
+    {
+     "say": "noah",
+     "shot": "noah",
+     "ru": "Всё будет хорошо.",
+     "en": "It's going to be okay."
+    },
+    {
+     "shot": "iris",
+     "dur": 2.4,
+     "note": {
+      "ru": "Айрис слышит, что это ложь.",
+      "en": "Iris can hear that it's a lie."
+     }
+    },
+    {
+     "go": "s8"
+    }
+   ]
+  },
+  "s7_b": {
+   "loc": "car",
+   "beats": [
+    {
+     "say": "noah",
+     "shot": "noah",
+     "ru": "Я не знаю, что со мной.",
+     "en": "I don't know what's wrong with me."
+    },
+    {
+     "shot": "iris",
+     "look": "noah",
+     "dur": 2.4,
+     "note": {
+      "ru": "Айрис поворачивается к нему.",
+      "en": "Iris turns to him."
+     }
+    },
+    {
+     "set": {
+      "trust": 1
+     }
+    },
+    {
+     "toast": "iris"
+    },
+    {
+     "go": "s8"
+    }
+   ]
+  },
+  "s7_c": {
+   "loc": "car",
+   "beats": [
+    {
+     "if": {
+      "danny": ">0"
+     },
+     "shot": "back",
+     "dur": 2.8,
+     "note": {
+      "ru": "Айрис молча протягивает Дэнни свою шапку.",
+      "en": "Without a word, Iris hands Danny her hat."
+     }
+    },
+    {
+     "if": {
+      "danny": "==0"
+     },
+     "shot": "two",
+     "dur": 2.2,
+     "note": {
+      "ru": "Молчание.",
+      "en": "Silence."
+     }
+    },
+    {
+     "go": "s8"
+    }
+   ]
+  },
+  "s8": {
+   "loc": "car",
+   "time": "04:36",
+   "beats": [
+    {
+     "expr": {
+      "who": "iris",
+      "set": "none"
+     }
+    },
+    {
+     "fx": "snow_heavy",
+     "shot": "road",
+     "dur": 1.2
+    },
+    {
+     "fx": "signpost",
+     "shot": "road",
+     "dur": 2.4
+    },
+    {
+     "shot": "road",
+     "dur": 2.6,
+     "note": {
+      "ru": "«Север — 640». Снег всё гуще: впереди буран.",
+      "en": "\"North — 640.\" The snow keeps thickening: a blizzard ahead."
+     }
+    },
+    {
+     "if": {
+      "trust": ">=2"
+     },
+     "go": "s8_diary",
+     "else": "s8_hide"
+    }
+   ]
+  },
+  "s8_diary": {
+   "loc": "car",
+   "beats": [
+    {
+     "shot": "iris",
+     "look": "noah",
+     "dur": 2.6,
+     "note": {
+      "ru": "Айрис достаёт дневник матери. Открывает последнюю страницу.",
+      "en": "Iris takes out their mother's diary and opens it to the last page."
+     }
+    },
+    {
+     "fx": "diary",
+     "dur": 5.2,
+     "shot": "iris"
+    },
+    {
+     "fx": "diary_off",
+     "shot": "noah",
+     "dur": 2.6,
+     "note": {
+      "ru": "Почерк мамы.",
+      "en": "Mom's handwriting."
+     }
+    },
+    {
+     "set": {
+      "diary": 1
+     }
+    },
+    {
      "go": "end"
+    }
+   ]
+  },
+  "s8_hide": {
+   "loc": "car",
+   "beats": [
+    {
+     "shot": "iris",
+     "look": "window",
+     "dur": 3.2,
+     "note": {
+      "ru": "Айрис прячет дневник под куртку. Ной замечает только уголок.",
+      "en": "Iris slips the diary under her jacket. Noah only catches a corner of it."
+     }
+    },
+    {
+     "go": "end"
+    }
+   ]
+  },
+  "end": {
+   "loc": "station",
+   "beats": [
+    {
+     "end": true
     }
    ]
   }

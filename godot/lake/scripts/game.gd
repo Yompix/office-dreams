@@ -3,7 +3,7 @@ extends Node3D
 ## даёт выбор на время и действия (руль, тормоз), запоминает выборы (доверие Айрис, «Тень», таблетки, память).
 ## Проверка без человека: godot --path godot/lake -- --autoplay (выборы случайные, действия удаются), --lang en, --scene s2;
 ## --pick 0,2,1 — какие варианты выбрать; --miss brake — какое действие провалить; --fast — паузы по 0,7 с (лист кадров быстро);
-## --stop s4 — закончить на этой сцене.
+## --stop s4 — закончить на этой сцене; --flags late=1,trust=2 — флаги на старте.
 
 var scene: DriveScene
 var cam: Camera3D
@@ -33,6 +33,7 @@ var _miss: Array = []         # --miss brake,steer: какие действия 
 var _stop := ""              # --stop s4: на этой сцене прогон заканчивается
 var _fast := false            # --fast: каждая пауза не дольше 0,7 с, ходьба — сразу на место (быстрый лист кадров)
 var deer: Deer                # олень на трассе (сцена 3): едет назад вместе с дорогой
+var blackcar: BlackCar        # чёрная машина Хейла (с конца главы 1)
 var _brake_in := false
 var _brake_a := 0.0           # торможение, м/с²
 var _pitch := 0.0             # клевок кузова при торможении (рад) и его скорость — пружина
@@ -80,6 +81,11 @@ func _ready() -> void:
 	if "--miss" in args:
 		_miss = Array(String(args[args.find("--miss") + 1]).split(","))
 	_fast = "--fast" in args
+	if "--flags" in args:   # проверка ветки: --flags late=1,trust=2,danny=1
+		for kv in String(args[args.find("--flags") + 1]).split(","):
+			var p := kv.split("=")
+			if p.size() == 2:
+				flags[p[0]] = float(p[1])
 	if "--stop" in args:   # проверка одной сцены: выйти, когда дошли до этой
 		_stop = args[args.find("--stop") + 1]
 	if "--snaps" in args:   # снимки кадра в секунды игры: --snaps 3,7.5,12 --snapdir папка
@@ -199,6 +205,10 @@ func _beat(b: Dictionary):
 		var i: int = await hud.chosen
 		_log("выбор %d: %s" % [i, "молчание" if opts[i].get("silent", false) else hud.T(opts[i])])
 		return String(opts[i].get("go", ""))
+	if b.has("peek"):   # можно посмотреть (в зеркало): нажал за t секунд — ветка «yes», нет — «no»
+		var seen: bool = await _do_peek(float(b.get("t", 5.0)), b.get("hint"))
+		_log("посмотрел: %s" % ("да" if seen else "нет"))
+		return String(b.yes if seen else b.no)
 	if b.has("qte"):
 		var ok: bool = await _do_qte(String(b.qte), float(b.get("t", 3.0)), b.get("hint"))
 		_log("действие %s: %s" % [b.qte, "удалось" if ok else "нет"])
@@ -233,6 +243,7 @@ func _wait(t: float) -> void:
 
 func _cut(shot: String) -> void:
 	_shot = shot
+	scene.car.mirror(shot in ["mirror", "mirror_back"], "back" if shot == "mirror_back" else "road")
 	_place_cam()
 	if _shotlog != "":
 		_shot_n += 1
@@ -249,6 +260,12 @@ func _place_cam() -> void:
 		var eye := hb.origin + hb.basis.y.normalized() * 0.09 + hb.basis.z.normalized() * 0.13
 		cam.fov = 72.0
 		cam.look_at_from_position(eye, eye - scene.car.global_transform.basis.z * 10.0 + Vector3(0, -3.0, 0))
+	elif _shot in ["mirror", "mirror_back"]:   # глазами Ноя — в зеркало заднего вида
+		var noah: Actor = actors.noah
+		var hb := noah.skel.global_transform * noah.skel.get_bone_global_pose(noah.skel.find_bone("head"))
+		var eye := hb.origin + hb.basis.y.normalized() * 0.09 + hb.basis.z.normalized() * 0.1
+		cam.fov = 13.0
+		cam.look_at_from_position(eye, scene.car.to_global(Car.MIRROR))
 	elif _shot == "hands":
 		cam.fov = 36.0
 		cam.look_at_from_position(scene.car.to_global(Vector3(0.12, 1.08, -0.42)), scene.car.wheel.global_position + Vector3(0, -0.02, 0))
@@ -283,7 +300,7 @@ func _target(at):
 			return (n.skel.global_transform * n.skel.get_bone_global_pose(n.skel.find_bone("hand_r")).origin
 				+ n.skel.global_transform * n.skel.get_bone_global_pose(n.skel.find_bone("hand_l")).origin) * 0.5
 		"deer":
-			if deer:
+			if is_instance_valid(deer):
 				return deer.head_pos()
 		"windshield":
 			return scene.car.to_global(Vector3(-0.3, 1.2, -0.75))
@@ -418,6 +435,11 @@ func _station() -> void:
 	await get_tree().process_frame
 	_sit("danny", Vector3(20.2, FLOOR + 0.1, -3.3))
 	_attach_walkie(actors.danny)
+	if float(flags.get("late", 0)) > 0.0:   # сидели с оленем — чёрная машина уже здесь: у края площадки, фары выключены
+		blackcar = BlackCar.new()
+		scene.station_root.add_child(blackcar)
+		blackcar.position = Vector3(9.2, 0.0, -24.0)
+		blackcar.rotation_degrees = Vector3(0, 200, 0)
 
 
 ## Детская рация в руках у Дэнни.
@@ -626,10 +648,46 @@ func _fx(k: String) -> void:
 			_danny_in_car()
 		"danny_stays":
 			_danny_stays()
+		"leave_station":   # отъезжаем: заправка позади, трасса; чёрная машина у края площадки (фары выключены), огни заправки — в зеркале
+			scene.leave_station()
+			for who in ["roman", "danny"]:
+				if actors.has(who) and (actors[who] as Actor).get_parent() != scene.car:
+					(actors[who] as Actor).queue_free()
+					actors.erase(who)
+			_place({"who": "noah", "car": "driver"})
+			_place({"who": "iris", "car": "passenger"})
+			scene.road.speed = 7.0
+			var tl := create_tween().set_parallel()
+			tl.tween_property(scene.road, "speed", 25.0, 14.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+			tl.tween_property(scene.car, "speed", 25.0, 14.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+			scene.car.speed = 7.0
+			scene.station_glow(14.0)
+			blackcar = BlackCar.new()
+			scene.road_items.add_child(blackcar)
+			blackcar.position = Vector3(4.4, 0.0, -26.0)    # у выезда с площадки, впереди: они проезжают мимо — и он позади, в зеркале
+			blackcar.rotation_degrees = Vector3(0, 35, 0)    # носом к дороге — ждёт
+		"blackcar_lights":
+			if is_instance_valid(blackcar):
+				blackcar.lights(true)
+		"blackcar_turn":   # не едет за ними — разворачивается к заправке
+			if is_instance_valid(blackcar):
+				var tb := create_tween()
+				tb.tween_property(blackcar, "rotation_degrees:y", 180.0, 2.2).set_ease(Tween.EASE_IN_OUT)
+				tb.parallel().tween_property(blackcar, "speed", 5.0, 2.2)
+		"signpost":
+			scene.signpost(-95.0, "СЕВЕР  640" if lang == "ru" else "NORTH  640")
+		"snow_heavy":   # впереди буран: снега больше, летит гуще
+			scene.road.snow.amount = 5200 if scene.pc else 2400
+			scene.env.fog_density = 0.02
+		"diary":
+			hud.show_page("Если со мной что-то случится —\nНой всё видел.\n\n                                      А." if lang == "ru"
+				else "If anything happens to me —\nNoah saw everything.\n\n                                      A.")
+		"diary_off":
+			hud.hide_page()
 		"deer_road":   # олень посреди дороги в 70 м: боком, голова к машине, глаза светятся в фарах
-			if deer == null:
+			if not is_instance_valid(deer):
 				deer = Deer.new()
-				scene.add_child(deer)
+				scene.road_items.add_child(deer)
 			deer.mode = "stand"
 			deer.fall = 0.0
 			deer.life = 1.0
@@ -638,20 +696,20 @@ func _fx(k: String) -> void:
 			deer.shine_from = scene.car.to_global(Vector3(0, 0.67, -2.85))
 			_brake_a = 0.0
 		"deer_look":   # встали в метре: олень смотрит в лобовое
-			if deer:
+			if is_instance_valid(deer):
 				deer.look_target = _target("windshield")
 		"deer_walk_off":   # уходит в лес — через встречную полосу
-			if deer:
+			if is_instance_valid(deer):
 				deer.look_target = null
 				deer.speed = 1.25
 				deer.mode = "walk"
 		"noah_to_deer":   # Ной выходит из машины и идёт к оленю: присаживается у его головы, со стороны машины
-			var hp := deer.head_pos() if deer else Vector3(-1.5, 0.0, -9.5)
+			var hp := deer.head_pos() if is_instance_valid(deer) else Vector3(-1.5, 0.0, -9.5)
 			var dst := Vector3(hp.x + 1.1, 0.0, hp.z + 0.6)
 			_place({"who": "noah", "at": [-1.35, 0.0, 0.25], "face": 180, "clip": "Idle"})
 			_walk({"who": "noah", "to": [dst.x, 0.0, dst.z], "then": "Crouch_Idle", "face": rad_to_deg(atan2(hp.x - dst.x, hp.z - dst.z))})
 		"deer_drag":   # оттащил с дороги: олень на обочине (в краю света фары), кровавый след; Ной на коленях у его головы
-			if deer:
+			if is_instance_valid(deer):
 				var from := deer.head_pos()
 				deer.place_body(Vector3(-4.3, 0.05, -11.6), 90.0)
 				var hp := deer.head_pos()
@@ -664,13 +722,13 @@ func _fx(k: String) -> void:
 			fill.omni_range = 5.5
 			fill.light_volumetric_fog_energy = 0.0
 			fill.position = Vector3(-2.6, 2.4, -10.2)
-			scene.add_child(fill)
+			scene.road_items.add_child(fill)
 			get_tree().create_timer(30.0).timeout.connect(fill.queue_free)
 		"deer_quiet":   # затихает: дыхание реже и слабее
-			if deer:
+			if is_instance_valid(deer):
 				deer.die(4.5)
 		"deer_dead":
-			if deer:
+			if is_instance_valid(deer):
 				deer.mode = "dead"
 		"thud":   # удар монтировкой — за кадром: кадр вздрагивает
 			_shake = 0.45
@@ -689,6 +747,24 @@ func _fx(k: String) -> void:
 func _jolt(k: float) -> void:
 	for a in actors.values():
 		(a as Actor).hair_kick(Vector3(randf_range(-1.0, 1.0) * k, k * 0.4, randf_range(-0.5, 0.5) * k))
+
+
+func _do_peek(t: float, hint_d) -> bool:
+	hud.hint.text = hud.T(hint_d) if hint_d != null else ""
+	var left := t
+	var seen := false
+	while left > 0.0:
+		await get_tree().process_frame
+		left -= get_process_delta_time()
+		if autoplay:
+			seen = not ("peek" in _miss) and t - left > 0.8
+		elif Input.is_key_pressed(KEY_Q) or Input.is_key_pressed(KEY_UP) or Input.is_key_pressed(KEY_TAB) \
+				or Input.is_action_pressed("ui_up") or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+			seen = true
+		if seen:
+			break
+	hud.hint.text = ""
+	return seen
 
 
 func _do_qte(kind: String, t: float, hint_d) -> bool:
@@ -710,7 +786,7 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 				_qte_ok = false
 				break
 		elif kind == "brake":   # олень впереди: тормоз вовремя — машина встаёт в метре от него; поздно или не нажал — удар
-			if deer == null:
+			if not is_instance_valid(deer):
 				break
 			var v: float = scene.road.speed
 			var gap := BUMPER - deer.body_center().z - 0.22
@@ -757,10 +833,78 @@ func _deer_hit() -> void:
 		scene.blood_pool(Vector3(h.x, 0.004, h.z)))
 
 
+## Карта главы 1: что решили (ярко), что видели в прошлых прохождениях (серым), что ещё не открыто («???»).
+## Открытые ветки копятся между прохождениями — user://lake_progress.json.
+const MAP1 := [
+	{"key": "deer", "ru": "Олень", "en": "The deer", "ids": ["1", "2", "3", "4", "5"],
+		"o_ru": ["успел", "добил", "уехал", "посидел с ним", "не смог шевельнуться"], "o_en": ["stopped in time", "finished it", "drove away", "stayed with it", "froze"]},
+	{"key": "pills", "ru": "Таблетка", "en": "The pill", "ids": ["take", "no", "throw"],
+		"o_ru": ["принял", "не принял", "выбросил"], "o_en": ["took one", "refused", "threw them out"]},
+	{"key": "roman", "ru": "Кассир Роман", "en": "Roman, the cashier", "ids": ["pay", "cord", "ally", "hurt", "dead"],
+		"o_ru": ["заплатил и ушёл", "вырвал провод", "союзник", "ранен", "мёртв"], "o_en": ["paid and left", "ripped the cord", "ally", "hurt", "dead"]},
+	{"key": "danny", "ru": "Дэнни", "en": "Danny", "ids": ["with", "left"], "o_ru": ["с вами", "остался"], "o_en": ["came along", "left behind"]},
+	{"key": "mirror", "ru": "Зеркало", "en": "The mirror", "ids": ["1", "0"], "o_ru": ["увидел чёрную машину", "не посмотрел"],
+		"o_en": ["saw the black car", "didn't look"]},
+]
+
+
+func _map_pick(key: String) -> String:
+	match key:
+		"deer":
+			return str(int(flags.get("deer", 1)))
+		"pills":
+			return "take" if float(flags.get("pills", 0)) > 0.0 else ("throw" if float(flags.get("threw", 0)) > 0.0 else "no")
+		"roman":
+			if float(flags.get("roman_ally", 0)) > 0.0:
+				return "ally"
+			if float(flags.get("roman_dead", 0)) > 0.0:
+				return "dead"
+			if float(flags.get("roman_hurt", 0)) > 0.0:
+				return "hurt"
+			return "cord" if float(flags.get("police_late", 0)) > 0.0 else "pay"
+		"danny":
+			return "with" if float(flags.get("danny", 0)) > 0.0 else "left"
+		"mirror":
+			return str(int(flags.get("mirror", 0)))
+	return ""
+
+
+func _chapter_map() -> void:
+	var prog := {}
+	if FileAccess.file_exists("user://lake_progress.json"):
+		var j = JSON.parse_string(FileAccess.get_file_as_string("user://lake_progress.json"))
+		if j is Dictionary:
+			prog = j
+	var rows := []
+	var opened := 0
+	var total := 0
+	for r in MAP1:
+		var pick := (r.ids as Array).find(_map_pick(String(r.key)))
+		if pick >= 0:
+			prog["ch1:%s:%s" % [r.key, r.ids[pick]]] = true
+		var seen := []
+		for id in r.ids:
+			var sn := prog.has("ch1:%s:%s" % [r.key, id])
+			seen.append(sn)
+			opened += 1 if sn else 0
+			total += 1
+		rows.append({"name": r.get(lang, r.ru), "opts": r.get("o_" + lang, r.o_ru), "pick": pick, "seen": seen})
+	var f := FileAccess.open("user://lake_progress.json", FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify(prog))
+	hud.chapter_map("ГЛАВА 1 · КРОВЬ НА РУКАХ" if lang == "ru" else "CHAPTER 1 · BLOOD ON HIS HANDS", rows, opened, total, int(flags.get("trust", 0)))
+	_log("карта главы: открыто %d из %d" % [opened, total])
+
+
 func _end() -> void:
 	hud.clear_text()
 	create_tween().tween_property(hud.fade, "color:a", 1.0, 1.5)
 	await _wait(1.6)
+	_chapter_map()
+	await _wait(10.0)
+	if _shotlog != "":
+		get_viewport().get_texture().get_image().save_png("%s/zz_map.png" % _shotlog)
+	hud.hide_map()
 	var t := "Продолжение следует" if lang == "ru" else "To be continued"
 	hud.title.text = t + "\n\n" + ("Доверие Айрис: %d" % flags.trust if lang == "ru" else "Iris's trust: %d" % flags.trust)
 	_log("конец отрывка, флаги " + JSON.stringify(flags))
@@ -807,11 +951,6 @@ func _process(delta: float) -> void:
 		_snaps.pop_front()
 		if _snaps.is_empty():
 			get_tree().quit()
-	if deer:   # олень на дороге едет назад вместе с ней; далеко позади — убрать
-		deer.position.z += scene.road.speed * delta
-		if deer.position.z > 60.0:
-			deer.queue_free()
-			deer = null
 	_brake_in = Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN) or Input.is_key_pressed(KEY_SPACE) \
 		or Input.is_action_pressed("ui_down") or Input.is_action_pressed("ui_accept") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	# клевок кузова: тормозит — нос вниз, встал — качнулся назад (пружина)
