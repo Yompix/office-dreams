@@ -177,7 +177,9 @@ def split(lang, idx, src):
     first = [min(j for j in range(len(ref)) if owner[j] == i) for i in range(len(keys))]
     last = [max(j for j in range(len(ref)) if owner[j] == i) for i in range(len(keys))]
     bad = [keys[i] for i in range(len(keys)) if not any(first[i] <= j <= last[i] for j in known)]
-    if bad:
+    if bad and all(len(toks(LINES[k][lang])) <= 2 for k in bad):   # короткий выкрик («Ной!») распознаватель слышит иначе —
+        print(f'внимание: не распознаны короткие реплики {bad} — границы между соседними (проверь на слух)')   # берём промежуток между соседями
+    elif bad:
         sys.exit(f'не распознаны реплики {bad} — проверь пакет (возможно, голос пропустил строку)')
     cuts = [0.0] + [(at[last[i]][1] + at[first[i + 1]][0]) / 2 if at[first[i + 1]][0] > at[last[i]][1] else at[last[i]][1]
                     for i in range(len(keys) - 1)] + [dur]
