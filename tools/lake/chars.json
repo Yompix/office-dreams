@@ -22,7 +22,7 @@
   "brows": "eyebrow005/eyebrow005.mhclo",
   "clothes": [
    "male_casualsuit06/male_casualsuit06.mhclo",
-   "culturalibre_male_boots/culturalibre_male_boots.mhclo"
+   "shoes03/shoes03.mhclo"
   ],
   "targets": {
    "head-oval": 0.45,
@@ -48,13 +48,14 @@
      0.6,
      0.5
     ],
-    "off": 0.026,
-    "tile": 5
+    "off": 0.03,
+    "tile": 5,
+    "band": 0.3
    }
   ]
  },
  "iris": {
-  "_who": "Айрис, 15: маленькая, худи, наушники без музыки, блокнот; короткая тёмная стрижка, редко смотрит в глаза; наушники и капюшон — в игре (своими моделями, CC0-пакетов с ними нет)",
+  "_who": "Айрис, 15: маленькая, худи (капюшон опущен), наушники без музыки, блокнот; короткая тёмная стрижка, редко смотрит в глаза",
   "phenotype": {
    "gender": 0,
    "age": 0.277,
@@ -62,7 +63,7 @@
    "weight": 0.32,
    "proportions": 0.5,
    "height": 0.36,
-   "cupsize": 0.2,
+   "cupsize": 0.05,
    "firmness": 0.5,
    "race": {
     "asian": 0.03,
@@ -97,23 +98,37 @@
      0.66,
      0.6
     ],
-    "off": 0.022,
-    "tile": 6
+    "off": 0.03,
+    "tile": 6,
+    "collar": false
    },
    {
     "kind": "hood",
     "name": "hood",
+    "down": true,
     "tex": "cotton_jersey",
     "tint": [
      0.62,
      0.66,
      0.6
     ],
-    "off": 0.024,
-    "back": 0.025,
+    "off": 0.034,
+    "back": 0.03,
     "tile": 6
    }
-  ]
+  ],
+  "tint": {
+   "female_casualsuit01_diffuse": [
+    0.4,
+    0.4,
+    0.48
+   ],
+   "BootsAnkle.png": [
+    0.2,
+    0.18,
+    0.18
+   ]
+  }
  },
  "danny": {
   "_who": "Дэнни, 10: худой, шапка до глаз, детская рация; упрямый; шапка — в игре (своя модель)",
@@ -157,8 +172,9 @@
      0.32,
      0.48
     ],
-    "off": 0.032,
-    "tile": 6
+    "off": 0.042,
+    "tile": 6,
+    "rough": 0.7
    },
    {
     "kind": "beanie",
@@ -171,7 +187,8 @@
     ],
     "off": 0.016,
     "tile": 8,
-    "low": -0.012
+    "low": -0.012,
+    "rough": 0.95
    }
   ]
  },
@@ -221,7 +238,8 @@
      0.25
     ],
     "off": 0.022,
-    "tile": 7
+    "tile": 7,
+    "rough": 0.92
    }
   ]
  },

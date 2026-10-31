@@ -53,6 +53,9 @@ func _ready() -> void:
 	if "--snaps" in args:   # снимки кадра в секунды игры: --snaps 3,7.5,12 --snapdir папка
 		_snaps = Array(String(args[args.find("--snaps") + 1]).split(",")).map(func(x): return float(x))
 		_snapdir = args[args.find("--snapdir") + 1] if "--snapdir" in args else "user://"
+	if "--shots" in args:   # проверка планов: каждый план — снимок, без сценария: --shots pov,hands,iris --snapdir папка
+		_shots(String(args[args.find("--shots") + 1]).split(","), args[args.find("--snapdir") + 1] if "--snapdir" in args else "user://")
+		return
 	_run(start)
 
 
@@ -72,6 +75,9 @@ func _cast() -> void:
 	iris.play("Rk_SitIdle", 1.0)
 	actors.iris = iris
 	await get_tree().process_frame
+	await get_tree().process_frame
+	scene.car.seat(noah, Car.DRIVER)
+	scene.car.seat(iris, Car.PASSENGER)
 	await get_tree().process_frame
 	scene.car.fit_wheel(noah)
 
@@ -147,6 +153,16 @@ func _beat(b: Dictionary):
 	return ""
 
 
+func _shots(list: Array, dir: String) -> void:
+	hud.fade.color.a = 0.0
+	await _wait(1.0)
+	for sh in list:
+		_cut(String(sh))
+		await _wait(0.6)
+		get_viewport().get_texture().get_image().save_png("%s/shot_%s.png" % [dir, sh])
+	get_tree().quit()
+
+
 func _wait(t: float) -> void:
 	var left := t
 	_skip = false
@@ -200,11 +216,13 @@ func _fx(k: String) -> void:
 			_shake = 1.0
 		"crash":
 			_shake = 1.5
+			_jolt(0.8)
 			create_tween().tween_property(fade, "color:a", 1.0, 0.6)
 		"retry":
 			hud.show_note({"ru": "Попробуй ещё раз.", "en": "Try again."})
 		"skid", "u_turn", "grab_wheel":
 			_shake = 0.8
+			_jolt(0.35)
 			var tw := create_tween()
 			tw.tween_property(scene.car, "steer", -0.9, 0.35)
 			tw.tween_property(scene.car, "steer", 0.6, 0.4)
@@ -217,6 +235,12 @@ func _fx(k: String) -> void:
 			(actors.iris as Actor).play("Rk_SitTalk", 0.0)
 		"blood_hands":
 			pass   # кровь на руках Ноя видна всегда (enable_blood); здесь — план крупно
+
+
+## Рывок машины: героев (и их волосы) встряхивает.
+func _jolt(k: float) -> void:
+	for a in actors.values():
+		(a as Actor).hair_kick(Vector3(randf_range(-1.0, 1.0) * k, k * 0.4, randf_range(-0.5, 0.5) * k))
 
 
 func _do_qte(kind: String, t: float, hint_d) -> bool:

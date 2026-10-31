@@ -21,6 +21,8 @@ var wheel_basis0 := Basis.IDENTITY
 var column: MeshInstance3D
 var notebook: MeshInstance3D
 var glove_open := 0.0
+var ride := true                               # кузов качается на дороге (на стоянке — нет)
+var _y0 = null
 
 var m_plastic: StandardMaterial3D
 var m_plastic2: StandardMaterial3D
@@ -110,15 +112,15 @@ func setup(pc: bool) -> void:
 	pages.position = Vector3(0, 0.008, 0)
 	notebook.add_child(pages)
 	# крыша, стойки, двери, лобовое и боковые стёкла
-	_box(Vector3(1.56, 0.04, 1.9), Vector3(0, 1.46, 0.45), m_roof)
+	_box(Vector3(1.56, 0.04, 1.52), Vector3(0, 1.57, 0.64), m_roof)   # крыша — по верхний край лобового (высокому Ною хватает места)
 	for sx in [-1.0, 1.0]:
 		_box(Vector3(0.07, 0.06, 0.82), Vector3(0.74 * sx, 1.22, -0.37), m_plastic, Vector3(-52, 0, 0))   # стойки
 		_box(Vector3(0.06, 0.62, 2.1), Vector3(0.79 * sx, 0.62, 0.35), m_plastic2)                         # двери
-		_box(Vector3(0.02, 0.48, 1.7), Vector3(0.8 * sx, 1.17, 0.4), m_glass)                              # боковые стёкла
+		_box(Vector3(0.02, 0.6, 1.7), Vector3(0.8 * sx, 1.23, 0.4), m_glass)                               # боковые стёкла
 	var ws := _box(Vector3(1.46, 0.02, 0.86), Vector3(0, 1.22, -0.38), m_glass, Vector3(-52, 0, 0))       # лобовое
 	ws.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_box(Vector3(0.2, 0.06, 0.02), Vector3(0, 1.36, -0.12), m_plastic)                                   # зеркало
-	var mir := _box(Vector3(0.18, 0.05, 0.005), Vector3(0, 1.36, -0.108), m_chrome)
+	_box(Vector3(0.2, 0.06, 0.02), Vector3(0, 1.44, -0.1), m_plastic)                                    # зеркало
+	var mir := _box(Vector3(0.18, 0.05, 0.005), Vector3(0, 1.44, -0.088), m_chrome)
 	mir.rotation_degrees = Vector3(0, 8, 0)
 	# капот и крылья — видны в лобовом
 	_box(Vector3(1.7, 0.08, 1.9), Vector3(0, 0.83, -1.8), m_paint, Vector3(4, 0, 0))
@@ -215,6 +217,19 @@ func _process(delta: float) -> void:
 	glovebox.rotation_degrees = Vector3(-glove_open * 70.0, 0, 0)
 	# лёгкая тряска дороги: свет приборов дышит вместе с машиной
 	dash_light.light_energy = 0.35 + 0.02 * sin(t * 13.0)
+	# кузов на неровной зимней дороге: чуть подпрыгивает и кренится в поворотах (головы и волосы отзываются сами)
+	if ride:
+		if _y0 == null:
+			_y0 = position.y
+		position.y = _y0 + sin(t * 2.3) * 0.003 + sin(t * 5.7 + 1.0) * 0.0018 + sin(t * 11.3) * 0.0007
+		rotation.z = -steer * 0.035 + sin(t * 1.3) * 0.002
+
+
+## Посадка: герой ставится так, чтобы таз лёг на подушку кресла у спинки (у высоких и маленьких клипы сидят по-разному).
+func seat(a: Actor, s: Vector3) -> void:
+	var sk := a.skel
+	var p := to_local(sk.global_transform * sk.get_bone_global_pose(sk.find_bone("pelvis")).origin)
+	a.position += s + Vector3(0, 0.59, 0.17) - p
 
 
 ## Руль — в руки водителя: центр между ладонями, обод по их размаху, плоскость — к груди; колонка — от руля к торпедо.

@@ -159,6 +159,133 @@ void fragment() {
 }
 """
 static var _fir_m: ShaderMaterial
+static var _twig_m: ShaderMaterial
+static var _bark_m: StandardMaterial3D
+
+## Хвоя: каждая ветка — карточка с фото еловой лапы (Poly Haven fir_tree_01, атлас веток с прозрачностью), ветки ярусами
+## вокруг ствола, свисают к низу; сверху на лапах снег; кончики чуть качаются. Нормали «шаром» от оси — дерево освещено
+## объёмно, а не плоскими карточками.
+const TWIG_SHADER := """
+shader_type spatial;
+render_mode cull_disabled;
+uniform sampler2D twig : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+uniform sampler2D twig_a : filter_linear_mipmap, repeat_disable;
+uniform sampler2D twig_n : hint_normal, filter_linear_mipmap, repeat_disable;
+uniform float snow = 1.0;
+varying float vSnow;
+varying float vTip;
+void vertex() {
+	vSnow = COLOR.r;
+	vTip = COLOR.g;
+	vec3 wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	VERTEX.y += sin(TIME * 1.1 + wp.x * 0.35 + wp.z * 0.25) * 0.035 * vTip * vTip;
+}
+void fragment() {
+	float a = texture(twig_a, UV).r;
+	vec3 c = texture(twig, UV).rgb * vec3(0.55, 0.62, 0.55);
+	vec3 nW = (INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz;
+	float up = FRONT_FACING ? 1.0 : -1.0;
+	float s = snow * vSnow * smoothstep(0.15, 0.7, nW.y) * smoothstep(0.25, 0.6, texture(twig, UV * 3.0).g + vTip * 0.3);
+	ALBEDO = mix(c, vec3(0.7, 0.74, 0.8), s * 0.9);
+	ALPHA = a;
+	ALPHA_SCISSOR_THRESHOLD = 0.45;
+	ROUGHNESS = mix(0.8, 0.55, s);
+	NORMAL_MAP = texture(twig_n, UV).rgb;
+	NORMAL_MAP_DEPTH = 0.7;
+	BACKLIGHT = vec3(0.12, 0.16, 0.1);
+}
+"""
+## лапы из атласа: [u0, v0, u1, v1] (основание ветки — внизу прямоугольника)
+const SPRIGS := [[0.303, 0.4, 0.645, 0.777], [0.635, 0.453, 0.957, 0.836], [0.186, 0.043, 0.434, 0.313], [0.65, 0.039, 0.938, 0.375]]
+
+
+func _fir_mesh2(seed_i: int) -> ArrayMesh:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_i
+	var H := 11.0
+	var cards := SurfaceTool.new()
+	cards.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var y := 0.9
+	var tier := 0
+	while y < H - 0.3:
+		var f := (y - 0.9) / (H - 1.2)                       # 0 — низ, 1 — верхушка
+		var L := lerpf(2.7, 0.35, pow(f, 0.85)) * rng.randf_range(0.85, 1.1)
+		var nb := 7 if f < 0.6 else 5
+		var droop := lerpf(0.42, 0.12, f)                     # нижние лапы свисают сильнее
+		for i in nb:
+			var a := TAU * (i + rng.randf() * 0.6) / nb + tier * 0.9
+			var dir := Vector3(cos(a), 0, sin(a))
+			for k in 2:                                       # две карточки на ветку: почти плоская и наклонная (объём сбоку)
+				var len := L * (1.0 if k == 0 else 0.8)
+				var roll := rng.randf_range(-0.25, 0.25) + (0.0 if k == 0 else 1.1)
+				var side := dir.cross(Vector3.UP).normalized().rotated(dir, roll)
+				var d := (dir * cos(droop) + Vector3.DOWN * sin(droop)).normalized()
+				var w := len * 0.62
+				var base := Vector3(0, y, 0) + dir * 0.08
+				var tip := base + d * len + Vector3.DOWN * len * len * 0.03
+				var spr: Array = SPRIGS[rng.randi() % SPRIGS.size()]
+				var quad := [[base - side * w * 0.5, Vector2(spr[0], spr[3]), 0.0], [base + side * w * 0.5, Vector2(spr[2], spr[3]), 0.0],
+					[tip + side * w * 0.5, Vector2(spr[2], spr[1]), 1.0], [tip - side * w * 0.5, Vector2(spr[0], spr[1]), 1.0]]
+				var cn := (side.cross(d)).normalized()
+				if cn.y < 0.0:
+					cn = -cn
+				for idx in [0, 1, 2, 0, 2, 3]:
+					var q: Array = quad[idx]
+					var pos: Vector3 = q[0]
+					var sph := (pos - Vector3(0, y + 0.5, 0)).normalized()   # нормаль «шаром»: объём кроны
+					cards.set_normal((sph * 0.65 + cn * 0.35).normalized())
+					cards.set_color(Color(clampf(1.0 - droop, 0.4, 1.0), q[2], 0))
+					cards.set_uv(q[1])
+					cards.add_vertex(pos)
+		y += lerpf(0.42, 0.3, f) * rng.randf_range(0.85, 1.15)
+		tier += 1
+	cards.generate_tangents()
+	var m := cards.commit()
+	# ствол: конус коры до верхушки
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var seg := 8
+	for i in seg:
+		var a0 := TAU * i / seg
+		var a1 := TAU * (i + 1) / seg
+		var b0 := Vector3(cos(a0) * 0.2, -0.2, sin(a0) * 0.2)
+		var b1 := Vector3(cos(a1) * 0.2, -0.2, sin(a1) * 0.2)
+		var t0 := Vector3(0, H, 0)
+		for v in [[b0, Vector2(float(i) / seg, 4.0)], [t0, Vector2(float(i) / seg, 0.0)], [b1, Vector2(float(i + 1) / seg, 4.0)]]:
+			st.set_normal(Vector3((v[0] as Vector3).x, 0.05, (v[0] as Vector3).z).normalized())
+			st.set_uv(v[1])
+			st.add_vertex(v[0])
+	st.commit(m)
+	# тёмная сердцевина кроны: без неё между лапами просвечивает небо — ель кажется «сквозной»
+	var core := SurfaceTool.new()
+	core.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var tiers := 5
+	for t in tiers:
+		var f := float(t) / tiers
+		var y0 := 1.0 + f * (H - 2.0)
+		var r := lerpf(1.25, 0.2, f)
+		var h := (H - 2.0) / tiers * 1.6
+		for i in 10:
+			var a0 := TAU * i / 10.0
+			var a1 := TAU * (i + 1) / 10.0
+			var pt := Vector3(0, y0 + h, 0)
+			var p0 := Vector3(cos(a0) * r, y0, sin(a0) * r)
+			var p1 := Vector3(cos(a1) * r, y0, sin(a1) * r)
+			var n := (p1 - pt).cross(p0 - pt).normalized()
+			core.set_normal(n)
+			core.set_color(Color(0.6, 0, 0))
+			core.set_uv(Vector2(0.5, 0.0))
+			core.add_vertex(pt)
+			core.set_uv(Vector2(float(i) / 10.0 * 2.0, 1.0))
+			core.add_vertex(p0)
+			core.set_uv(Vector2(float(i + 1) / 10.0 * 2.0, 1.0))
+			core.add_vertex(p1)
+	core.generate_tangents()
+	core.commit(m)
+	m.surface_set_material(0, _twig_m)
+	m.surface_set_material(1, _bark_m)
+	m.surface_set_material(2, _fir_m)
+	return m
 
 
 func _forest(seed_i: int, x_near: float, x_far: float, scale: float, period: float) -> MultiMeshInstance3D:
@@ -171,11 +298,24 @@ func _forest(seed_i: int, x_near: float, x_far: float, scale: float, period: flo
 		_fir_m.set_shader_parameter("twig", load(tx + "twig_diff_1k.jpg"))
 		_fir_m.set_shader_parameter("twig_n", load(tx + "twig_nor_gl_1k.jpg"))
 		_fir_m.set_shader_parameter("bark", load(tx + "bark_diff_1k.jpg"))
+		var sh2 := Shader.new()
+		sh2.code = TWIG_SHADER
+		_twig_m = ShaderMaterial.new()
+		_twig_m.shader = sh2
+		_twig_m.set_shader_parameter("twig", load(tx + "twig_diff_2k.jpg"))
+		_twig_m.set_shader_parameter("twig_a", load(tx + "twig_alpha_2k.jpg"))
+		_twig_m.set_shader_parameter("twig_n", load(tx + "twig_nor_gl_2k.jpg"))
+		_bark_m = StandardMaterial3D.new()
+		_bark_m.albedo_texture = load(tx + "bark_diff_1k.jpg")
+		_bark_m.albedo_color = Color(0.55, 0.52, 0.5)
+		_bark_m.normal_enabled = true
+		_bark_m.normal_texture = load(tx + "bark_nor_gl_1k.jpg")
+		_bark_m.roughness = 0.95
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_i
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.mesh = _fir_mesh(1.0)
+	mm.mesh = _fir_mesh2(seed_i)
 	var items: Array[Transform3D] = []
 	var span := LEN + period * 2.0
 	var n_per := int(period / (2.2 * scale))   # деревьев на шаг повтора с каждой стороны
@@ -194,7 +334,6 @@ func _forest(seed_i: int, x_near: float, x_far: float, scale: float, period: flo
 		mm.set_instance_transform(i, items[i])
 	var mi := MultiMeshInstance3D.new()
 	mi.multimesh = mm
-	mi.material_override = _fir_m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if pc else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mi)
 	return mi
