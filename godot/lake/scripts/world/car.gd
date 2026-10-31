@@ -17,6 +17,8 @@ var radio_lbl: Label3D
 var dash_light: OmniLight3D
 var snow_bounce: OmniLight3D
 var headlights: Array[SpotLight3D] = []
+var lamps: Array[MeshInstance3D] = []           # стёкла фар (светятся)
+var lamp_broken := false                         # сбили оленя: левая фара разбита до конца главы 2
 var t := 0.0
 var wiper_speed := 1.0
 var steer := 0.0                               # поворот руля (рад), руки героя — за ним
@@ -54,7 +56,7 @@ func setup(pc: bool) -> void:
 	m_chrome.metallic = 0.9
 	m_glass = StandardMaterial3D.new()
 	m_glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m_glass.albedo_color = Color(0.5, 0.6, 0.7, 0.06)
+	m_glass.albedo_color = Color(0.45, 0.52, 0.6, 0.16)   # стекло видно снаружи (блик, лёгкая тень), изнутри — лёгкая вуаль
 	m_glass.roughness = 0.05
 	m_glass.metallic_specular = 0.9
 	m_glass.cull_mode = BaseMaterial3D.CULL_DISABLED
@@ -76,6 +78,7 @@ func setup(pc: bool) -> void:
 			mi.layers = 2      # кузов снаружи: подсветка салона его не трогает (не было пятна на капоте)
 		if nm.begins_with("lamp") and not nm.begins_with("lamp_rim"):
 			mi.material_override = _lamp_mat(Color(1.0, 0.95, 0.85), 3.0)          # фары горят
+			lamps.append(mi)
 		elif nm.begins_with("tail"):
 			mi.material_override = _lamp_mat(Color(1.0, 0.06, 0.03), 0.8)
 		elif nm == "body":                                                       # лак: блики фонарей и снега на кузове
@@ -176,6 +179,10 @@ func setup(pc: bool) -> void:
 	pills_label.shaded = false
 	pills.add_child(pills_label)
 	pills.visible = false
+	if glovebox:                                      # пузырёк — на откинутой крышке бардачка (ниши в торпедо нет)
+		pills.reparent(glovebox, false)
+		pills.position = Vector3(0.02, 0.07, -0.03)
+		pills.rotation_degrees = Vector3(-(glove_base + 75.0), -25, 0)   # когда крышка открыта — стоит прямо
 	clock = _label("03:12", Vector3(-0.36, 0.853, -0.4), 0.026, Color(1.0, 0.62, 0.25))
 	clock.rotation_degrees = Vector3(-18, 0, 0)
 	radio_lbl = _label("", Vector3(0.0, 0.762, -0.362), 0.018, Color(0.55, 0.9, 1.0))
@@ -355,6 +362,42 @@ func _process(delta: float) -> void:
 			_y0 = position.y
 		position.y = _y0 + sin(t * 2.3) * 0.003 + sin(t * 5.7 + 1.0) * 0.0018 + sin(t * 11.3) * 0.0007
 		rotation.z = -steer * 0.035 + sin(t * 1.3) * 0.002
+
+
+## Разбитая фара (сбили оленя): левая гаснет — стекло тёмное, в трещинах, луч выключен; дальше светит одна.
+func break_lamp() -> void:
+	lamp_broken = true
+	for sl in headlights:
+		if sl.position.x < 0.0:
+			sl.visible = false
+	for mi in lamps:
+		if to_local(mi.global_transform * mi.get_aabb().get_center()).x < 0.0:
+			var m := StandardMaterial3D.new()
+			m.roughness = 0.35
+			m.metallic_specular = 0.9
+			m.albedo_texture = _crack_tex()
+			mi.material_override = m
+
+
+## Трещины на стекле фары (белёсые лучи от удара).
+func _crack_tex() -> ImageTexture:
+	var n := 128
+	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.05, 0.05, 0.055, 1))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	var c := Vector2(n * 0.4, n * 0.55)
+	for i in 14:
+		var a := TAU * i / 14.0 + rng.randf() * 0.3
+		var p := c
+		for k in rng.randi_range(25, 70):
+			a += rng.randf_range(-0.15, 0.15)
+			p += Vector2(cos(a), sin(a))
+			if p.x < 1 or p.y < 1 or p.x > n - 2 or p.y > n - 2:
+				break
+			img.set_pixelv(p, Color(0.55, 0.57, 0.6, 1))
+	img.generate_mipmaps()
+	return ImageTexture.create_from_image(img)
 
 
 ## Посадка: герой ставится так, чтобы таз лёг на подушку кресла у спинки (у высоких и маленьких клипы сидят по-разному).

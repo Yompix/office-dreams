@@ -330,12 +330,18 @@ def body():
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.mesh.separate(type='MATERIAL')
     bpy.ops.object.mode_set(mode='OBJECT')
-    for x in bpy.context.selected_objects:
-        if x.data.materials and x.data.materials[0] and len(x.data.polygons):
-            used = {p.material_index for p in x.data.polygons}
-            if used == {1}:
-                x.name = 'glass'
-                x.data.name = 'glass'
+    # после разделения Blender убирает пустые слоты материалов: стекло узнаём по имени материала, не по номеру
+    parts = list(bpy.context.selected_objects)
+    for x in parts:
+        used = {x.data.materials[p.material_index].name for p in x.data.polygons if x.data.materials}
+        if used == {'glass'}:
+            x.name = 'glass'
+            x.data.name = 'glass'
+    for x in parts:
+        if x.name != 'glass':
+            x.name = 'body'
+            x.data.name = 'body'
+            return x
     return bpy.data.objects['body']
 
 

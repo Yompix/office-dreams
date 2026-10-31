@@ -441,5 +441,11 @@ func _process(delta: float) -> void:
 	for f in forests:
 		(f[0] as Node3D).position.z = fmod(dist, f[1])
 	poles.position.z = fmod(dist, 50.0)
-	snow.initial_velocity_min = 4.0 + speed * 0.55
-	snow.initial_velocity_max = 6.0 + speed * 0.75
+	# снег: на ходу летит в фары, машина встала — падает сверху вокруг неё (переход по скорости)
+	var k := clampf(speed / 25.0, 0.0, 1.0)
+	snow.position = Vector3(0, 5.0, -10.0).lerp(Vector3(0, 3.2, -38.0), k)
+	snow.emission_box_extents = Vector3(12.0, 2.5, 14.0).lerp(Vector3(9.0, 4.0, 2.0), k)
+	snow.direction = Vector3(0.08, -1.0, 0.12).lerp(Vector3(0, -0.15, 1), k).normalized()
+	snow.spread = lerpf(14.0, 6.0, k)
+	snow.initial_velocity_min = lerpf(2.2, 17.75, k)
+	snow.initial_velocity_max = lerpf(3.2, 24.75, k)

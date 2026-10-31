@@ -1,7 +1,9 @@
 extends Node3D
 ## WHAT THE LAKE KEEPS — режиссёр главы: читает сценарий (data/ch1.json), ставит планы камеры, говорит репликами героев,
 ## даёт выбор на время и действия (руль, тормоз), запоминает выборы (доверие Айрис, «Тень», таблетки, память).
-## Проверка без человека: godot --path godot/lake -- --autoplay (выборы случайные, действия удаются), --lang en, --scene s2.
+## Проверка без человека: godot --path godot/lake -- --autoplay (выборы случайные, действия удаются), --lang en, --scene s2;
+## --pick 0,2,1 — какие варианты выбрать; --miss brake — какое действие провалить; --fast — паузы по 0,7 с (лист кадров быстро);
+## --stop s4 — закончить на этой сцене.
 
 var scene: DriveScene
 var cam: Camera3D
@@ -25,7 +27,17 @@ var _snaps: Array = []
 var _snapdir := ""
 var _walks := {}
 var _shotlog := ""            # --shotlog папка: снимок через 0,6 с после каждой склейки (лист кадров всей сцены)
-var _shot_n := 0              # кто идёт: [куда, скорость, клип по приходу, поворот по приходу]
+var _shot_n := 0
+var _forced: Array = []       # --pick 0,2,1: какие варианты выбирает автопрогон (по порядку выборов)
+var _miss: Array = []         # --miss brake,steer: какие действия автопрогон проваливает
+var _stop := ""              # --stop s4: на этой сцене прогон заканчивается
+var _fast := false            # --fast: каждая пауза не дольше 0,7 с, ходьба — сразу на место (быстрый лист кадров)
+var deer: Deer                # олень на трассе (сцена 3): едет назад вместе с дорогой
+var _brake_in := false
+var _brake_a := 0.0           # торможение, м/с²
+var _pitch := 0.0             # клевок кузова при торможении (рад) и его скорость — пружина
+var _pitch_v := 0.0
+const BUMPER := -2.94         # передний бампер машины (z в осях машины)
 const FLOOR := 0.38           # пол магазина и крыльцо заправки
 ## выражения лица (формы ARKit): страх, шок, улыбка, грусть, боль, «мёртвый взгляд»
 const EXPR := {"fear": {"browInnerUp": 0.8, "eyeWideLeft": 0.7, "eyeWideRight": 0.7, "mouthStretchLeft": 0.25, "mouthStretchRight": 0.25, "jawOpen": 0.08},
@@ -33,7 +45,9 @@ const EXPR := {"fear": {"browInnerUp": 0.8, "eyeWideLeft": 0.7, "eyeWideRight": 
 	"smile": {"mouthSmileLeft": 0.35, "mouthSmileRight": 0.28, "cheekSquintLeft": 0.15, "cheekSquintRight": 0.12},
 	"sad": {"browInnerUp": 0.55, "mouthFrownLeft": 0.4, "mouthFrownRight": 0.4},
 	"pain": {"browDownLeft": 0.6, "browDownRight": 0.6, "eyeSquintLeft": 0.6, "eyeSquintRight": 0.6, "mouthStretchLeft": 0.4, "mouthStretchRight": 0.4, "jawOpen": 0.12},
-	"dead": {"jawOpen": 0.16, "eyeLookUpLeft": 0.2, "eyeLookUpRight": 0.2}, "none": {}}
+	"dead": {"jawOpen": 0.16, "eyeLookUpLeft": 0.2, "eyeLookUpRight": 0.2},
+	"wince": {"eyeBlinkLeft": 0.95, "eyeBlinkRight": 0.95, "browDownLeft": 0.6, "browDownRight": 0.6, "noseSneerLeft": 0.35,
+		"noseSneerRight": 0.35, "mouthStretchLeft": 0.35, "mouthStretchRight": 0.35}, "none": {}}
 
 
 func _ready() -> void:
@@ -59,8 +73,15 @@ func _ready() -> void:
 	var start: String = data.start
 	if "--scene" in args:
 		start = args[args.find("--scene") + 1]
-	if autoplay and not ("--snaps" in args):
+	if autoplay and not ("--snaps" in args) and not ("--shotlog" in args):
 		Engine.time_scale = 4.0
+	if "--pick" in args:
+		_forced = Array(String(args[args.find("--pick") + 1]).split(",")).map(func(x): return int(x))
+	if "--miss" in args:
+		_miss = Array(String(args[args.find("--miss") + 1]).split(","))
+	_fast = "--fast" in args
+	if "--stop" in args:   # проверка одной сцены: выйти, когда дошли до этой
+		_stop = args[args.find("--stop") + 1]
 	if "--snaps" in args:   # снимки кадра в секунды игры: --snaps 3,7.5,12 --snapdir папка
 		_snaps = Array(String(args[args.find("--snaps") + 1]).split(",")).map(func(x): return float(x))
 		_snapdir = args[args.find("--snapdir") + 1] if "--snapdir" in args else "user://"
@@ -103,6 +124,9 @@ func _run(id: String) -> void:
 		push_error("нет сцены " + id)
 		return
 	_log("сцена " + id)
+	if id == _stop:
+		get_tree().quit()
+		return
 	if sc.has("time"):
 		scene.car.clock.text = sc.time
 	for b in sc.beats:
@@ -120,6 +144,11 @@ func _beat(b: Dictionary):
 		await _station()
 	if b.has("place"):
 		_place(b.place)
+	if b.has("sit"):   # сесть на крыльцо/ящик: таз — в точку (после того как встал клип сидя)
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var st: Array = b.sit.at
+		_sit(String(b.sit.who), Vector3(st[0], st[1], st[2]))
 	if b.has("walk"):
 		_walk(b.walk)
 	if b.has("anim"):
@@ -165,7 +194,8 @@ func _beat(b: Dictionary):
 		var opts: Array = c.opts
 		hud.choice(opts, float(c.get("t", 6)))
 		if autoplay:
-			get_tree().create_timer(1.0).timeout.connect(func(): if hud.choosing(): hud.pick(_rng.randi() % opts.size()))
+			var want: int = (_forced.pop_front() if not _forced.is_empty() else _rng.randi() % opts.size())
+			get_tree().create_timer(1.0).timeout.connect(func(): if hud.choosing(): hud.pick(clampi(want, 0, opts.size() - 1)))
 		var i: int = await hud.chosen
 		_log("выбор %d: %s" % [i, "молчание" if opts[i].get("silent", false) else hud.T(opts[i])])
 		return String(opts[i].get("go", ""))
@@ -194,7 +224,7 @@ func _shots(list: Array, dir: String) -> void:
 
 
 func _wait(t: float) -> void:
-	var left := t
+	var left := minf(t, 0.7) if _fast else t
 	_skip = false
 	while left > 0.0 and not _skip:
 		await get_tree().process_frame
@@ -207,7 +237,7 @@ func _cut(shot: String) -> void:
 	if _shotlog != "":
 		_shot_n += 1
 		var n := _shot_n
-		get_tree().create_timer(0.6, true, false, true).timeout.connect(func():
+		get_tree().create_timer(0.6).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png("%s/%03d_%s.png" % [_shotlog, n, shot]))
 
 
@@ -248,6 +278,15 @@ func _target(at):
 		var o: Actor = actors[s]
 		return o.skel.global_transform * o.skel.get_bone_global_pose(o.skel.find_bone("head")).origin + Vector3(0, 0.07, 0)
 	match s:
+		"noah_hands":   # кровь на руках
+			var n: Actor = actors.noah
+			return (n.skel.global_transform * n.skel.get_bone_global_pose(n.skel.find_bone("hand_r")).origin
+				+ n.skel.global_transform * n.skel.get_bone_global_pose(n.skel.find_bone("hand_l")).origin) * 0.5
+		"deer":
+			if deer:
+				return deer.head_pos()
+		"windshield":
+			return scene.car.to_global(Vector3(-0.3, 1.2, -0.75))
 		"notebook":
 			return scene.car.to_global(Vector3(0.36, 0.55, 0.05))
 		"window":
@@ -345,6 +384,12 @@ func _walk(w: Dictionary) -> void:
 	a.rotation.y = atan2(d.x, d.z)
 	a.play(String(w.get("clip", "Rk_Walk")), 0.0)
 	_walks[who] = [dst, float(w.get("speed", 1.15)), String(w.get("then", "Idle")), w.get("face")]
+	if _fast:   # быстрый лист кадров: сразу на месте
+		a.position = dst
+		a.play(String(w.get("then", "Idle")), 0.0)
+		if w.get("face") != null:
+			a.rotation.y = deg_to_rad(float(w.face))
+		_walks.erase(who)
 
 
 ## Сесть: таз героя — в точку p (на крыльцо, на ящик).
@@ -403,9 +448,50 @@ func _attach_walkie(a: Actor) -> void:
 	w.add_child(ant)
 
 
+## Заправочный пистолет в правой руке Ноя (после провала): ручка, носик, шланг вниз.
+func _attach_nozzle(a: Actor) -> void:
+	var ba := BoneAttachment3D.new()
+	ba.bone_name = "hand_r"
+	a.skel.add_child(ba)
+	var dark := StandardMaterial3D.new()
+	dark.albedo_color = Color(0.03, 0.03, 0.035)
+	dark.roughness = 0.5
+	var steel := StandardMaterial3D.new()
+	steel.albedo_color = Color(0.55, 0.56, 0.58)
+	steel.metallic = 0.9
+	steel.roughness = 0.3
+	var h := MeshInstance3D.new()
+	var hb := BoxMesh.new()
+	hb.size = Vector3(0.035, 0.13, 0.05)
+	h.mesh = hb
+	h.material_override = dark
+	h.position = Vector3(0.0, 0.07, 0.02)
+	ba.add_child(h)
+	var sp := MeshInstance3D.new()
+	var sc := CylinderMesh.new()
+	sc.top_radius = 0.009
+	sc.bottom_radius = 0.011
+	sc.height = 0.17
+	sp.mesh = sc
+	sp.material_override = steel
+	sp.position = Vector3(0.0, 0.11, 0.1)
+	sp.rotation_degrees = Vector3(75, 0, 0)
+	ba.add_child(sp)
+	var hose := MeshInstance3D.new()
+	var hc := CylinderMesh.new()
+	hc.top_radius = 0.016
+	hc.bottom_radius = 0.016
+	hc.height = 0.6
+	hose.mesh = hc
+	hose.material_override = dark
+	hose.position = Vector3(0.0, -0.25, -0.01)
+	ba.add_child(hose)
+
+
 ## Провал: Ной у колонки с пистолетом, дверь треснула, кассир на полу (жив — стонет; «Тень» ≥ 1 — нет), мальчик застыл, Айрис в машине.
 func _lapse_after() -> void:
 	_place({"who": "noah", "at": [13.0, 0.0, -4.1], "face": -100, "clip": "Idle"})
+	_attach_nozzle(actors.noah)
 	scene.crack_door()
 	var dead := float(flags.get("shadow", 0)) >= 1.0
 	var r: Actor = actors.roman
@@ -433,7 +519,7 @@ func _kids_by_car() -> void:
 	_expr({"who": "danny", "set": "fear" if lapse else "sad"})
 	(actors.danny as Actor).look_target = _target("noah")
 	(actors.iris as Actor).look_target = _target("noah")
-	(actors.noah as Actor).look_target = _target("danny")
+	(actors.noah as Actor).look_target = _target("iris")
 
 
 func _danny_in_car() -> void:
@@ -540,6 +626,63 @@ func _fx(k: String) -> void:
 			_danny_in_car()
 		"danny_stays":
 			_danny_stays()
+		"deer_road":   # олень посреди дороги в 70 м: боком, голова к машине, глаза светятся в фарах
+			if deer == null:
+				deer = Deer.new()
+				scene.add_child(deer)
+			deer.mode = "stand"
+			deer.fall = 0.0
+			deer.life = 1.0
+			deer.place_body(Vector3(-0.3, 0.0, BUMPER - 0.22 - 70.0), -90.0)
+			deer.look_target = scene.car.to_global(Vector3(0, 0.9, BUMPER))
+			deer.shine_from = scene.car.to_global(Vector3(0, 0.67, -2.85))
+			_brake_a = 0.0
+		"deer_look":   # встали в метре: олень смотрит в лобовое
+			if deer:
+				deer.look_target = _target("windshield")
+		"deer_walk_off":   # уходит в лес — через встречную полосу
+			if deer:
+				deer.look_target = null
+				deer.speed = 1.25
+				deer.mode = "walk"
+		"noah_to_deer":   # Ной выходит из машины и идёт к оленю: присаживается у его головы, со стороны машины
+			var hp := deer.head_pos() if deer else Vector3(-1.5, 0.0, -9.5)
+			var dst := Vector3(hp.x + 1.1, 0.0, hp.z + 0.6)
+			_place({"who": "noah", "at": [-1.35, 0.0, 0.25], "face": 180, "clip": "Idle"})
+			_walk({"who": "noah", "to": [dst.x, 0.0, dst.z], "then": "Crouch_Idle", "face": rad_to_deg(atan2(hp.x - dst.x, hp.z - dst.z))})
+		"deer_drag":   # оттащил с дороги: олень на обочине (в краю света фары), кровавый след; Ной на коленях у его головы
+			if deer:
+				var from := deer.head_pos()
+				deer.place_body(Vector3(-4.3, 0.05, -11.6), 90.0)
+				var hp := deer.head_pos()
+				scene.blood_trail(Vector3(from.x, 0.003, from.z), Vector3(hp.x, 0.053, hp.z))
+				var kn := Vector3(hp.x + 0.62, 0.05, hp.z + 0.3)
+				_place({"who": "noah", "at": [kn.x, kn.y, kn.z], "face": rad_to_deg(atan2(hp.x - kn.x, hp.z - kn.z)), "clip": "Fixing_Kneeling"})
+			var fill := OmniLight3D.new()                  # холодный свет «от снега и луны» на обочине — иначе там темно
+			fill.light_color = Color(0.55, 0.62, 0.82)
+			fill.light_energy = 0.7
+			fill.omni_range = 5.5
+			fill.light_volumetric_fog_energy = 0.0
+			fill.position = Vector3(-2.6, 2.4, -10.2)
+			scene.add_child(fill)
+			get_tree().create_timer(30.0).timeout.connect(fill.queue_free)
+		"deer_quiet":   # затихает: дыхание реже и слабее
+			if deer:
+				deer.die(4.5)
+		"deer_dead":
+			if deer:
+				deer.mode = "dead"
+		"thud":   # удар монтировкой — за кадром: кадр вздрагивает
+			_shake = 0.45
+			_jolt(0.12)
+		"drive_on":   # Ной за руль, поехали; олень остаётся позади
+			if (actors.noah as Actor).get_parent() != scene.car:
+				_place({"who": "noah", "car": "driver"})
+			(actors.iris as Actor).look_target = null
+			_expr({"who": "iris", "set": "none"})
+			var tw := create_tween().set_parallel()
+			tw.tween_property(scene.road, "speed", 25.0, 4.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+			tw.tween_property(scene.car, "speed", 25.0, 4.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
 
 
 ## Рывок машины: героев (и их волосы) встряхивает.
@@ -566,10 +709,52 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 			if absf(_qte_drift) >= 1.2:
 				_qte_ok = false
 				break
+		elif kind == "brake":   # олень впереди: тормоз вовремя — машина встаёт в метре от него; поздно или не нажал — удар
+			if deer == null:
+				break
+			var v: float = scene.road.speed
+			var gap := BUMPER - deer.body_center().z - 0.22
+			var press := _brake_in
+			if autoplay:
+				press = not ("brake" in _miss) and t - left > 0.6
+			if press and _brake_a == 0.0:   # сколько нужно, чтобы встать в метре; больше 11 м/с² не выйдет — удар
+				_brake_a = minf(v * v / (2.0 * maxf(gap - 1.1, 0.05)), 11.0) if gap > 1.15 else 11.0
+				_shake = 0.35
+				hud.hint.text = ""
+			if _brake_a > 0.0:
+				v = maxf(0.0, v - _brake_a * dt)
+				scene.road.speed = v
+				scene.car.speed = v
+			if gap <= 0.03 and v > 0.2:
+				_qte_ok = false
+				_deer_hit()
+				break
+			if _brake_a > 0.0 and v <= 0.0:
+				break
 	hud.hint.text = ""
 	_qte = ""
 	scene.car.steer = 0.0
 	return _qte_ok
+
+
+## Удар: темнота, рывок, машина встала, левая фара разбита; оленя отбросило на встречную полосу — лежит, бьётся, кровь.
+func _deer_hit() -> void:
+	hud.fade.color = Color(0, 0, 0, 1)
+	_shake = 1.6
+	_jolt(1.0)
+	_pitch_v = -0.4
+	scene.road.speed = 0.0
+	scene.car.speed = 0.0
+	scene.car.break_lamp()
+	flags["lamp"] = 1
+	deer.mode = "lie"
+	deer.fall = 1.0
+	deer.look_target = null
+	deer.shine_from = null
+	deer.place_body(Vector3(-2.3, 0.0, -9.6), 90.0)
+	get_tree().create_timer(0.15).timeout.connect(func():   # лужа — под головой (поза лёжа уже встала)
+		var h := deer.head_pos()
+		scene.blood_pool(Vector3(h.x, 0.004, h.z)))
 
 
 func _end() -> void:
@@ -622,6 +807,18 @@ func _process(delta: float) -> void:
 		_snaps.pop_front()
 		if _snaps.is_empty():
 			get_tree().quit()
+	if deer:   # олень на дороге едет назад вместе с ней; далеко позади — убрать
+		deer.position.z += scene.road.speed * delta
+		if deer.position.z > 60.0:
+			deer.queue_free()
+			deer = null
+	_brake_in = Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN) or Input.is_key_pressed(KEY_SPACE) \
+		or Input.is_action_pressed("ui_down") or Input.is_action_pressed("ui_accept") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	# клевок кузова: тормозит — нос вниз, встал — качнулся назад (пружина)
+	var want := -0.022 * (_brake_a / 11.0) if (_brake_a > 0.0 and scene.road.speed > 0.0) else 0.0
+	_pitch_v += ((want - _pitch) * 60.0 - _pitch_v * 7.0) * delta
+	_pitch += _pitch_v * delta
+	scene.car.rotation.x = _pitch
 	_steer_in = Input.get_axis("ui_left", "ui_right")
 	if Input.is_key_pressed(KEY_A):
 		_steer_in = -1.0

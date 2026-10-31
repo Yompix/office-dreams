@@ -19,19 +19,33 @@ const STATION_SHOTS := {
 	"st_sign": [Vector3(-1.5, 5.6, 10.0), Vector3(5.6, 6.4, 6.0), 34.0],
 	"st_arrive": [Vector3(9.0, 1.5, -16.0), Vector3(14.0, 1.1, -4.0), 46.0],
 	"st_danny": [Vector3(18.7, 1.1, -2.4), Vector3(20.3, 1.05, -3.3), 34.0],
-	"st_two": [Vector3(18.6, 1.3, -5.6), Vector3(19.9, 0.95, -3.3), 44.0],
+	"st_two": [Vector3(17.4, 1.25, -2.3), Vector3(20.1, 0.85, -3.7), 40.0],
 	"st_pump": [Vector3(15.9, 1.65, -0.8), Vector3(13.2, 1.25, -3.3), 40.0],
 	"st_door": [Vector3(17.2, 1.75, 1.2), Vector3(21.0, 1.5, -2.0), 46.0],
-	"st_counter": [Vector3(25.9, 2.0, -6.3), Vector3(26.4, 1.75, -9.3), 44.0],
+	"st_counter": [Vector3(27.7, 2.25, -6.5), Vector3(26.25, 1.75, -9.6), 44.0],
 	"st_tv": [Vector3(26.25, 2.45, -10.0), Vector3(26.4, 2.65, -11.45), 30.0],
 	"st_roman": [Vector3(26.9, 1.85, -7.4), Vector3(26.4, 1.85, -9.3), 34.0],
-	"st_hand": [Vector3(25.2, 1.35, -9.3), Vector3(26.2, 1.0, -8.9), 42.0],
+	"st_hand": [Vector3(28.05, 1.38, -9.75), Vector3(26.45, 1.02, -8.95), 40.0],
 	"st_noah_face": [Vector3(26.7, 1.85, -9.3), Vector3(26.4, 1.85, -7.5), 34.0],
-	"st_knuckles": [Vector3(13.6, 1.3, -3.2), Vector3(13.05, 1.0, -4.05), 32.0],
-	"st_window": [Vector3(19.4, 1.55, -5.2), Vector3(22.4, 0.6, -3.7), 40.0],
+	"st_knuckles": [Vector3(13.5, 1.6, -4.85), Vector3(12.95, 0.88, -4.3), 36.0],
+	"st_window": [Vector3(20.15, 2.45, -5.1), Vector3(23.1, 0.55, -3.65), 42.0],
+	"st_crack": [Vector3(19.55, 1.55, -0.85), Vector3(21.1, 1.45, -2.05), 40.0],
 	"st_danny_stare": [Vector3(19.1, 1.05, -4.2), Vector3(20.25, 0.98, -3.3), 32.0],
-	"st_kids": [Vector3(16.4, 1.62, -2.0), Vector3(19.65, 1.05, -3.4), 40.0],
+	"st_kids": [Vector3(16.3, 1.65, -0.8), Vector3(19.65, 1.0, -3.4), 40.0],
 	"st_noah_out": [Vector3(19.2, 1.45, -3.25), Vector3(17.0, 1.62, -2.5), 36.0],
+}
+
+## планы на трассе снаружи машины (сцена 3, олень) — в координатах мира: машина стоит в начале координат, нос к −Z
+const ROAD_SHOTS := {
+	"deer_face": [Vector3(-2.5, 1.25, -2.65), Vector3(-0.95, 1.18, -4.3), 34.0],
+	"deer_stop": [Vector3(3.2, 1.2, -8.0), Vector3(-0.6, 0.9, -3.5), 42.0],
+	"deer_walk": [Vector3(1.5, 1.5, -1.6), Vector3(-6.0, 0.9, -5.5), 48.0],
+	"deer_lie": [Vector3(0.3, 1.6, -5.8), Vector3(-1.9, 0.15, -9.6), 40.0],
+	"lamp": [Vector3(-0.3, 0.92, -5.2), Vector3(-0.2, 0.66, -2.85), 40.0],
+	"deer_walk_in": [Vector3(-2.6, 1.6, 1.8), Vector3(-1.4, 0.6, -8.5), 46.0],
+	"deer_noah": [Vector3(1.4, 1.3, -6.6), Vector3(-1.2, 0.6, -9.6), 44.0],
+	"iris_glass": [Vector3(0.95, 1.3, -3.9), Vector3(0.38, 1.12, 0.12), 16.0],
+	"deer_side": [Vector3(-1.5, 1.4, -8.3), Vector3(-3.9, 0.35, -11.5), 40.0],
 }
 
 ## план → [позиция камеры, куда смотрит, угол обзора] (машина: вперёд −Z, водитель слева)
@@ -47,8 +61,9 @@ const SHOTS := {
 	"front": [Vector3(0.6, 1.45, -5.5), Vector3(0.0, 1.0, 0.0), 40.0],
 	"road": [Vector3(-0.36, 1.17, 0.24), Vector3(-0.36, 0.6, -40.0), 50.0],
 	"cluster": [Vector3(-0.3, 1.05, -0.16), Vector3(-0.36, 0.89, -0.41), 30.0],
-	"pills": [Vector3(0.3, 0.86, -0.2), Vector3(0.36, 0.7, -0.46), 30.0],
+	"pills": [Vector3(0.22, 0.98, -0.02), Vector3(0.39, 0.64, -0.3), 26.0],
 	"back": [Vector3(0.05, 1.25, -0.25), Vector3(0.32, 0.92, 1.4), 52.0],
+	"deer_eye": [Vector3(-0.36, 1.17, 0.12), Vector3(-0.3, 1.05, -4.3), 40.0],
 }
 
 
@@ -111,6 +126,24 @@ func park_at_station(lang := "ru") -> void:
 		var nm := String(mi.name)
 		if nm.begins_with("window") or nm.contains("glass") or nm.begins_with("fridge_glow"):
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if nm.begins_with("shop_band"):              # световой короб над витриной: тусклее (не белое пятно) и с надписью
+			var bm := mi.get_active_material(0)
+			if bm is StandardMaterial3D:
+				bm = (bm as StandardMaterial3D).duplicate()
+				(bm as StandardMaterial3D).emission_energy_multiplier = 0.28
+				(bm as StandardMaterial3D).albedo_color = Color(0.7, 0.68, 0.62)
+				mi.set_surface_override_material(0, bm)
+			var lb := Label3D.new()
+			lb.text = "ПРОДУКТЫ  ·  КОФЕ  ·  24 ЧАСА" if lang == "ru" else "FOOD  ·  COFFEE  ·  OPEN 24 HRS"
+			lb.font_size = 120
+			lb.pixel_size = 0.0034
+			lb.modulate = Color(0.62, 0.06, 0.04)
+			lb.outline_size = 0
+			lb.shaded = false
+			lb.double_sided = false
+			lb.position = Vector3(20.935, FLOOR + 3.13, -5.5)
+			lb.rotation_degrees = Vector3(0, -90, 0)
+			add_child(lb)
 	var lot := MeshInstance3D.new()
 	var pm := PlaneMesh.new()
 	pm.size = LOT.size
@@ -185,9 +218,6 @@ func park_at_station(lang := "ru") -> void:
 
 ## Трещины на стеклянной двери магазина (после провала): паутина от точки удара — текстура кодом.
 func crack_door() -> void:
-	var g := station.find_child("shop_door_glass", true, false) as MeshInstance3D
-	if g == null:
-		return
 	var n := 512
 	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0.1, 0.12, 0.13, 0.2))
@@ -205,21 +235,35 @@ func crack_door() -> void:
 			k += 2.0
 			if p.x < 1 or p.y < 1 or p.x > n - 2 or p.y > n - 2:
 				break
-			img.set_pixelv(p, Color(0.92, 0.95, 1.0, 0.9))
-			img.set_pixelv(p + Vector2(1, 0), Color(0.8, 0.85, 0.9, 0.6))
+			for o in [Vector2(0, 0), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0), Vector2(0, -1)]:
+				var q: Vector2 = (p + o).clamp(Vector2.ZERO, Vector2(n - 1, n - 1))
+				img.set_pixelv(q, Color(0.92, 0.95, 1.0, 0.9 if o == Vector2.ZERO else 0.55))
 	for r in [18.0, 42.0, 80.0]:                    # кольца трещин
 		for j in 360:
 			var a := deg_to_rad(j)
 			var q: Vector2 = c + Vector2(cos(a), sin(a)) * (float(r) + rng.randf_range(-3, 3))
-			if q.x > 0 and q.y > 0 and q.x < n and q.y < n and rng.randf() < 0.75:
+			if q.x > 1 and q.y > 1 and q.x < n - 2 and q.y < n - 2 and rng.randf() < 0.75:
 				img.set_pixelv(q, Color(0.9, 0.93, 1.0, 0.85))
+				img.set_pixelv(q + Vector2(1, 0), Color(0.9, 0.93, 1.0, 0.5))
 	img.generate_mipmaps()
 	var m := StandardMaterial3D.new()
 	m.albedo_texture = ImageTexture.create_from_image(img)
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.roughness = 0.1
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	g.material_override = m
+	m.emission_enabled = true                          # трещины ловят свет магазина
+	m.emission_texture = m.albedo_texture
+	m.emission = Color(0.35, 0.37, 0.4)
+	m.emission_energy_multiplier = 0.6
+	var q := MeshInstance3D.new()                      # своя плоскость поверх стекла двери (у стекла нет развёртки)
+	var qm := QuadMesh.new()
+	qm.size = Vector2(0.98, 1.92)
+	q.mesh = qm
+	q.material_override = m
+	q.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	q.position = Vector3(21.095, FLOOR + 1.12, -2.0)
+	q.rotation_degrees = Vector3(0, -90, 0)
+	add_child(q)
 
 
 ## Деньги на прилавке.
@@ -277,7 +321,7 @@ func blood_pool(p: Vector3) -> void:
 	cm.radial_segments = 40
 	d.mesh = cm
 	var m := StandardMaterial3D.new()
-	m.albedo_color = Color(0.09, 0.006, 0.006)
+	m.albedo_color = Color(0.2, 0.012, 0.01)
 	m.roughness = 0.12
 	m.metallic_specular = 0.7
 	d.material_override = m
@@ -287,10 +331,27 @@ func blood_pool(p: Vector3) -> void:
 	create_tween().tween_property(d, "scale", Vector3(1.0, 1.0, 0.75), 6.0).set_ease(Tween.EASE_OUT)
 
 
+## Кровавый след по снегу от a к b (оттащили оленя с дороги).
+func blood_trail(a: Vector3, b: Vector3) -> void:
+	var d := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	var l := Vector2(b.x - a.x, b.z - a.z).length()
+	bm.size = Vector3(0.2, 0.002, l)
+	d.mesh = bm
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.32, 0.02, 0.015, 0.5)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.roughness = 0.3
+	d.material_override = m
+	d.position = (a + b) * 0.5
+	d.rotation.y = atan2(b.x - a.x, b.z - a.z)
+	add_child(d)
+
+
 ## Камера на план (в координатах машины; планы заправки — в координатах мира).
 func put_camera(cam: Camera3D, shot: String) -> void:
-	if STATION_SHOTS.has(shot):
-		var w: Array = STATION_SHOTS[shot]
+	if STATION_SHOTS.has(shot) or ROAD_SHOTS.has(shot):
+		var w: Array = STATION_SHOTS.get(shot, ROAD_SHOTS.get(shot))
 		cam.fov = w[2]
 		cam.look_at_from_position(w[0], w[1])
 		return

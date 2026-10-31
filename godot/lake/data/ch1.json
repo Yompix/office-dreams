@@ -18,7 +18,10 @@
   "lapse1": 0,
   "danny": 0,
   "danny_left": 0,
-  "threw": 0
+  "threw": 0,
+  "deer": 0,
+  "lamp": 0,
+  "late": 0
  },
  "names": {
   "noah": {
@@ -389,7 +392,7 @@
      "toast": "iris"
     },
     {
-     "go": "s4"
+     "go": "s3"
     }
    ]
   },
@@ -431,7 +434,7 @@
      "fx": "radio_off"
     },
     {
-     "go": "s4"
+     "go": "s3"
     }
    ]
   },
@@ -466,6 +469,374 @@
     },
     {
      "fx": "radio_off"
+    },
+    {
+     "go": "s3"
+    }
+   ]
+  },
+  "s3": {
+   "loc": "car",
+   "time": "03:24",
+   "beats": [
+    {
+     "fx": "fade_in",
+     "shot": "road",
+     "dur": 2.4,
+     "note": {
+      "ru": "Лесная трасса. Снег летит в фары.",
+      "en": "A forest highway. Snow streams into the headlights."
+     }
+    },
+    {
+     "fx": "deer_road",
+     "shot": "road",
+     "qte": "brake",
+     "t": 8.0,
+     "hint": {
+      "ru": "Тормози! — S / ↓ / пробел",
+      "en": "Brake! — S / ↓ / Space"
+     },
+     "fail": "s3_hit"
+    },
+    {
+     "go": "s3_stop"
+    }
+   ]
+  },
+  "s3_stop": {
+   "loc": "car",
+   "beats": [
+    {
+     "fx": "deer_look",
+     "shot": "deer_eye",
+     "dur": 2.8,
+     "note": {
+      "ru": "Машина замирает в метре. Олень смотрит в лобовое.",
+      "en": "The car stops a yard short. The deer stares into the windshield."
+     }
+    },
+    {
+     "shot": "deer_face",
+     "dur": 2.2
+    },
+    {
+     "shot": "iris",
+     "look": "deer",
+     "dur": 2.0
+    },
+    {
+     "fx": "deer_walk_off",
+     "shot": "deer_walk",
+     "dur": 3.6,
+     "note": {
+      "ru": "Потом уходит в лес.",
+      "en": "Then it walks off into the woods."
+     }
+    },
+    {
+     "fx": "drive_on",
+     "shot": "two",
+     "dur": 2.2
+    },
+    {
+     "set": {
+      "deer": 1
+     }
+    },
+    {
+     "go": "s4"
+    }
+   ]
+  },
+  "s3_hit": {
+   "loc": "car",
+   "beats": [
+    {
+     "text": {
+      "ru": "Удар.",
+      "en": "Impact."
+     },
+     "dur": 1.4,
+     "note": true
+    },
+    {
+     "fx": "fade_in",
+     "shot": "deer_lie",
+     "dur": 3.2,
+     "note": {
+      "ru": "Олень бьётся на дороге. Ноги сломаны. Он дышит — и кричит.",
+      "en": "The deer thrashes on the road. Its legs are broken. It breathes — and screams."
+     }
+    },
+    {
+     "shot": "lamp",
+     "dur": 2.0,
+     "note": {
+      "ru": "Одна фара разбита.",
+      "en": "One headlight is smashed."
+     }
+    },
+    {
+     "shot": "deer_walk_in",
+     "dur": 4.2,
+     "note": {
+      "ru": "Ной выходит. Снег. Кровь на белом.",
+      "en": "Noah gets out. Snow. Blood on the white."
+     },
+     "fx": "noah_to_deer"
+    },
+    {
+     "say": "iris",
+     "shot": "iris",
+     "look": "deer",
+     "expr": {
+      "who": "iris",
+      "set": "fear"
+     },
+     "ru": "Ной… Он же мучается. Сделай что-нибудь!",
+     "en": "Noah… It's suffering. Do something!"
+    },
+    {
+     "choice": {
+      "t": 8,
+      "shot": "deer_noah",
+      "opts": [
+       {
+        "ru": "Добить монтировкой",
+        "en": "Finish it with the tire iron",
+        "go": "s3_kill"
+       },
+       {
+        "ru": "Уехать",
+        "en": "Drive away",
+        "go": "s3_leave"
+       },
+       {
+        "ru": "Оттащить с дороги и посидеть с ним",
+        "en": "Drag it off the road and stay with it",
+        "go": "s3_sit"
+       },
+       {
+        "silent": true,
+        "go": "s3_freeze"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "s3_kill": {
+   "loc": "car",
+   "beats": [
+    {
+     "place": {
+      "who": "noah",
+      "at": [
+       -0.4,
+       0.0,
+       2.7
+      ],
+      "face": 180,
+      "clip": "Idle"
+     },
+     "shot": "iris",
+     "look": "deer",
+     "dur": 2.4,
+     "note": {
+      "ru": "Ной идёт к багажнику. Возвращается с монтировкой.",
+      "en": "Noah walks to the trunk. He comes back with the tire iron."
+     }
+    },
+    {
+     "fx": "thud",
+     "expr": {
+      "who": "iris",
+      "set": "wince"
+     },
+     "shot": "iris",
+     "dur": 1.1,
+     "note": {
+      "ru": "Глухой удар.",
+      "en": "A dull blow."
+     }
+    },
+    {
+     "fx": "thud",
+     "shot": "iris",
+     "dur": 1.0,
+     "note": {
+      "ru": "Ещё один.",
+      "en": "Another."
+     }
+    },
+    {
+     "fx": "thud",
+     "shot": "iris",
+     "dur": 1.2,
+     "note": {
+      "ru": "Ещё.",
+      "en": "Again."
+     }
+    },
+    {
+     "fx": "deer_dead",
+     "expr": {
+      "who": "iris",
+      "set": "sad"
+     },
+     "shot": "iris",
+     "dur": 2.4,
+     "note": {
+      "ru": "Тишина. Айрис не открывает глаз.",
+      "en": "Silence. Iris keeps her eyes shut."
+     }
+    },
+    {
+     "set": {
+      "shadow": 1,
+      "deer": 2
+     }
+    },
+    {
+     "fx": "drive_on",
+     "shot": "two",
+     "dur": 2.4
+    },
+    {
+     "go": "s4"
+    }
+   ]
+  },
+  "s3_leave": {
+   "loc": "car",
+   "beats": [
+    {
+     "fx": "drive_on",
+     "shot": "two",
+     "expr": {
+      "who": "iris",
+      "set": "pain"
+     },
+     "dur": 2.6,
+     "note": {
+      "ru": "Крик оленя тянется за машиной. Айрис закрывает уши.",
+      "en": "The deer's scream trails after the car. Iris covers her ears."
+     }
+    },
+    {
+     "shot": "iris",
+     "look": "window",
+     "dur": 2.0
+    },
+    {
+     "expr": {
+      "who": "iris",
+      "set": "none"
+     }
+    },
+    {
+     "set": {
+      "trust": -1,
+      "deer": 3
+     }
+    },
+    {
+     "toast": "iris"
+    },
+    {
+     "go": "s4"
+    }
+   ]
+  },
+  "s3_sit": {
+   "loc": "car",
+   "beats": [
+    {
+     "fx": "fade_out",
+     "dur": 1.0
+    },
+    {
+     "fx": "deer_drag"
+    },
+    {
+     "fx": "fade_in",
+     "shot": "deer_side",
+     "dur": 3.4,
+     "note": {
+      "ru": "Ной сидит в снегу. Ладонь на шее оленя.",
+      "en": "Noah sits in the snow, his palm on the deer's neck."
+     }
+    },
+    {
+     "shot": "iris_glass",
+     "look": "deer",
+     "dur": 2.6,
+     "note": {
+      "ru": "Айрис смотрит. Потом рисует.",
+      "en": "Iris watches. Then she draws."
+     }
+    },
+    {
+     "fx": "deer_quiet",
+     "shot": "deer_side",
+     "dur": 4.6,
+     "note": {
+      "ru": "Олень дышит всё реже. Затихает.",
+      "en": "The deer's breaths come slower. Then it's still."
+     }
+    },
+    {
+     "set": {
+      "trust": 1,
+      "late": 1,
+      "deer": 4
+     }
+    },
+    {
+     "toast": "iris"
+    },
+    {
+     "fx": "drive_on",
+     "shot": "two",
+     "dur": 2.4
+    },
+    {
+     "go": "s4"
+    }
+   ]
+  },
+  "s3_freeze": {
+   "loc": "car",
+   "beats": [
+    {
+     "shot": "deer_noah",
+     "dur": 3.0,
+     "note": {
+      "ru": "Ной не может пошевелиться.",
+      "en": "Noah can't move."
+     }
+    },
+    {
+     "fx": "deer_quiet",
+     "shot": "iris",
+     "look": "noah",
+     "dur": 4.4,
+     "note": {
+      "ru": "Олень кричит. Хрипит. Затихает сам.",
+      "en": "The deer screams. Rasps. Goes still on its own."
+     }
+    },
+    {
+     "set": {
+      "late": 1,
+      "deer": 5
+     }
+    },
+    {
+     "fx": "drive_on",
+     "shot": "two",
+     "dur": 2.4
     },
     {
      "go": "s4"
@@ -716,15 +1087,21 @@
      "walk": {
       "who": "iris",
       "to": [
-       19.4,
+       19.75,
        0.0,
-       -3.35
+       -4.05
       ],
-      "then": "Crouch_Idle",
+      "then": "Idle",
       "face": 90
      },
      "shot": "st_two",
      "dur": 4.2
+    },
+    {
+     "look": {
+      "who": "iris",
+      "at": "danny"
+     }
     },
     {
      "look": {
@@ -734,7 +1111,25 @@
      "say": "iris",
      "shot": "st_two",
      "ru": "Ты чего тут один?",
-     "en": "What are you doing out here all alone?"
+     "en": "What are you doing out here all alone?",
+     "place": {
+      "who": "iris",
+      "at": [
+       20.3,
+       0.38,
+       -4.05
+      ],
+      "face": -90,
+      "clip": "Rk_SitIdle"
+     },
+     "sit": {
+      "who": "iris",
+      "at": [
+       20.2,
+       0.48,
+       -4.05
+      ]
+     }
     },
     {
      "say": "danny",
@@ -754,6 +1149,18 @@
      },
      "shot": "st_door",
      "dur": 3.6
+    },
+    {
+     "place": {
+      "who": "roman",
+      "at": [
+       26.4,
+       0.38,
+       -9.4
+      ],
+      "face": 165,
+      "clip": "Idle"
+     }
     },
     {
      "place": {
@@ -789,16 +1196,38 @@
       "at": "noah"
      },
      "shot": "st_roman",
-     "dur": 2.6,
+     "dur": 1.6,
      "note": {
-      "ru": "Роман смотрит на экран. На Ноя. На его руки.",
-      "en": "Roman looks at the screen. At Noah. At his hands."
+      "ru": "Роман смотрит на экран. На Ноя.",
+      "en": "Roman looks at the screen. At Noah."
+     },
+     "place": {
+      "who": "roman",
+      "at": [
+       26.4,
+       0.38,
+       -9.25
+      ],
+      "face": 0,
+      "clip": "Idle"
+     }
+    },
+    {
+     "look": {
+      "who": "roman",
+      "at": "noah_hands"
+     },
+     "shot": "st_roman",
+     "dur": 1.6,
+     "note": {
+      "ru": "На его руки.",
+      "en": "At his hands."
      }
     },
     {
      "anim": {
       "who": "roman",
-      "clip": "Interact"
+      "clip": "Chest_Open"
      },
      "shot": "st_hand",
      "dur": 2.4,
@@ -980,7 +1409,7 @@
      }
     },
     {
-     "shot": "st_door",
+     "shot": "st_crack",
      "dur": 2.4,
      "note": {
       "ru": "Стеклянная дверь магазина треснула.",
@@ -1057,6 +1486,10 @@
       "memory": 1,
       "lapse1": 1
      }
+    },
+    {
+     "fx": "fade_in",
+     "dur": 0.2
     },
     {
      "go": "s6"

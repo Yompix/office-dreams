@@ -143,6 +143,8 @@ func play(c: String, at := 0.0) -> void:
 	if not ap.has_animation(c):
 		push_warning("нет клипа " + c)
 		return
+	if c != clip:   # кости, которых нет в новом клипе, — в покой (иначе остаётся поза прошлого: спина «в стуле» после посадки)
+		skel.reset_bone_poses()
 	clip = c
 	ap.play(c)
 	ap.seek(at, true)
