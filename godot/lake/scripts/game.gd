@@ -178,7 +178,13 @@ func _cut(shot: String) -> void:
 
 ## План: из таблицы машины; «руки» — крупно на руль, где бы он ни встал под руки героя.
 func _place_cam() -> void:
-	if _shot == "hands":
+	if _shot == "pov":   # глазами Ноя: камера у глаз (чуть перед лицом), вперёд по машине и немного вниз — руль и руки в кадре
+		var noah: Actor = actors.noah
+		var hb := noah.skel.global_transform * noah.skel.get_bone_global_pose(noah.skel.find_bone("head"))
+		var eye := hb.origin + hb.basis.y.normalized() * 0.09 + hb.basis.z.normalized() * 0.13
+		cam.fov = 72.0
+		cam.look_at_from_position(eye, eye - scene.car.global_transform.basis.z * 10.0 + Vector3(0, -3.0, 0))
+	elif _shot == "hands":
 		cam.fov = 36.0
 		cam.look_at_from_position(scene.car.to_global(Vector3(0.12, 1.08, -0.42)), scene.car.wheel.global_position + Vector3(0, -0.02, 0))
 	else:

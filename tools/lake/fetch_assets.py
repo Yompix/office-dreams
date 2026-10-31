@@ -14,6 +14,7 @@ TEXTURES = ['asphalt_snow', 'snow_02',
             # ткани для одежды героев, которую генератор шьёт сам (tools/lake/garments.py)
             'brown_leather', 'knitted_fleece', 'wool_boucle', 'cotton_jersey', 'poly_wool_herringbone', 'denim_fabric']
 HDRIS = ['narrow_moonlit_road']
+TWIG_2K = {'fir_tree_01': ['twig_diff', 'twig_alpha', 'twig_nor_gl']}   # ели карточками: атлас лап с прозрачностью (road.gd)
 
 
 def curl(url, dst):
@@ -41,6 +42,10 @@ def main():
             if rel.endswith('.jpg') or rel.endswith('.png'):
                 curl(f['url'], os.path.join(OUT, 'ph', m, rel))
         print('текстуры дерева', m)
+    for m, kinds in TWIG_2K.items():
+        for k in kinds:
+            curl('https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/%s/%s_%s_2k.jpg' % (m, m, k), os.path.join(OUT, 'ph', m, 'textures', '%s_%s_2k.jpg' % (m, k)))
+        print('лапы ели 2k', m)
     for t in TEXTURES:
         f = files(t)
         d = os.path.join(OUT, 'ph', t)

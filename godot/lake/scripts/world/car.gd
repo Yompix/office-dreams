@@ -1,10 +1,12 @@
 class_name Car
 extends Node3D
-## Машина отца изнутри (старый седан): торпедо, приборы с часами 03:12, руль, магнитола, бардачок, зеркало, кресла, стёкла,
-## дворники, капот в лобовом; фары — свет на дорогу. Своя система координат: вперёд −Z, водитель слева (x < 0), пол — y = 0.
+## Машина отца (старый седан 90-х): модель tools/lake/car.py — кузов, стёкла, колёса, салон (торпедо, руль, бардачок,
+## кресла, двери, потолок); здесь — приборы с часами 03:12, магнитола, дворники, свет фар на дорогу. Своя система координат: вперёд −Z, водитель слева (x < 0), пол — y = 0.
 ## Свет салона — от приборов (тёплый) и отражённый от снега в фарах (холодный снизу спереди) — так в кадре видно лица.
 
 const DRIVER := Vector3(-0.36, 0.0, 0.3)     # точка посадки водителя (таз — выше)
+const INTERIOR := ["dash", "binnacle", "cluster", "stack", "radio", "vent", "glove", "steer", "seat", "door", "headliner", "roofrail",
+	"pillar", "visor", "shelf", "carpet", "tunnel", "toeboard", "console", "gear", "knob", "handbrake", "mirror_in", "mirror_glass"]
 const PASSENGER := Vector3(0.36, 0.0, 0.3)
 var wheel: Node3D
 var wipers: Array[Node3D] = []
@@ -21,6 +23,9 @@ var wheel_basis0 := Basis.IDENTITY
 var column: MeshInstance3D
 var notebook: MeshInstance3D
 var glove_open := 0.0
+var glove_base := 0.0
+var wheels: Array[MeshInstance3D] = []          # колёса снаружи: крутятся по скорости
+var speed := 25.0                               # м/с, как у дороги; на стоянке — 0
 var ride := true                               # кузов качается на дороге (на стоянке — нет)
 var _y0 = null
 
@@ -48,86 +53,102 @@ func setup(pc: bool) -> void:
 	m_glass.roughness = 0.05
 	m_glass.metallic_specular = 0.9
 	m_glass.cull_mode = BaseMaterial3D.CULL_DISABLED
-	# пол, торпедо, панель приборов
-	_box(Vector3(1.6, 0.05, 2.6), Vector3(0, 0.12, 0.2), m_plastic2)
-	_box(Vector3(1.56, 0.3, 0.5), Vector3(0, 0.76, -0.62), m_plastic, Vector3(-12, 0, 0))          # торпедо
-	_box(Vector3(1.5, 0.06, 0.62), Vector3(0, 0.92, -0.7), m_plastic, Vector3(-6, 0, 0))            # верх торпедо
-	_box(Vector3(0.46, 0.12, 0.12), Vector3(-0.36, 0.96, -0.46), m_plastic2, Vector3(-15, 0, 0))      # козырёк приборов
-	_box(Vector3(0.3, 0.5, 0.42), Vector3(0, 0.52, -0.3), m_plastic2)                                # центральная консоль
-	glovebox = _box(Vector3(0.5, 0.2, 0.04), Vector3(0.36, 0.72, -0.36), m_plastic2)                 # бардачок (крышка)
-	# приборы: две шкалы и подсветка
-	for x in [-0.45, -0.27]:
-		var g := MeshInstance3D.new()
-		var cm := CylinderMesh.new()
-		cm.top_radius = 0.065
-		cm.bottom_radius = 0.065
-		cm.height = 0.01
-		g.mesh = cm
-		var gm := _m(Color(0.02, 0.02, 0.02), 0.4)
+	# машина целиком — модель tools/lake/car.py (кузов, стёкла, колёса, салон); детали — по именам
+	var model := (load("res://assets/models/sedan.glb") as PackedScene).instantiate() as Node3D
+	add_child(model)
+	var steer_mi: MeshInstance3D
+	var handle: Node3D
+	for n in model.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var nm := String(mi.name)
+		var inside := false
+		for pre in INTERIOR:
+			if nm.begins_with(pre):
+				inside = true
+		if nm.begins_with("mirror_stem") and absf(mi.position.x) < 0.5:
+			inside = true
+		if not inside:
+			mi.layers = 2      # кузов снаружи: подсветка салона его не трогает (не было пятна на капоте)
+		if nm.begins_with("lamp") and not nm.begins_with("lamp_rim"):
+			mi.material_override = _lamp_mat(Color(1.0, 0.95, 0.85), 3.0)          # фары горят
+		elif nm.begins_with("tail"):
+			mi.material_override = _lamp_mat(Color(1.0, 0.06, 0.03), 0.8)
+		elif nm == "body":                                                       # лак: блики фонарей и снега на кузове
+			var pm := mi.get_active_material(0) as StandardMaterial3D
+			if pm:
+				pm = pm.duplicate() as StandardMaterial3D
+				pm.clearcoat_enabled = true
+				pm.clearcoat = 0.8
+				pm.clearcoat_roughness = 0.08
+				mi.set_surface_override_material(0, pm)
+		elif nm == "glass":
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			for i in mi.mesh.get_surface_count():
+				mi.set_surface_override_material(i, m_glass)
+		elif nm.begins_with("wheel_"):
+			wheels.append(mi)
+		elif nm == "steer":
+			steer_mi = mi
+		elif nm == "glovebox":
+			glovebox = mi
+		elif nm == "glove_handle":
+			handle = mi
+	if handle and glovebox:
+		handle.reparent(glovebox)                                                # ручка открывается вместе с крышкой
+	glove_base = glovebox.rotation_degrees.x if glovebox else 0.0
+	# приборы: спидометр и тахометр — шкалы с подсветкой и стрелками (90 км/ч, 2600 об/мин)
+	for g in [[-0.46, 90.0 / 200.0], [-0.26, 2.6 / 7.0]]:
+		var q := MeshInstance3D.new()
+		var pm := PlaneMesh.new()
+		pm.size = Vector2(0.12, 0.12)
+		q.mesh = pm
+		var gm := StandardMaterial3D.new()
+		gm.albedo_color = Color(0.02, 0.02, 0.02)
 		gm.emission_enabled = true
-		gm.emission = Color(1.0, 0.55, 0.2)
-		gm.emission_energy_multiplier = 0.25
-		g.material_override = gm
-		g.position = Vector3(x, 0.905, -0.44)
-		g.rotation_degrees = Vector3(70, 0, 0)
-		add_child(g)
-	clock = _label("03:12", Vector3(-0.36, 0.875, -0.43), 0.03, Color(1.0, 0.62, 0.25))
-	radio_lbl = _label("", Vector3(0.0, 0.75, -0.44), 0.02, Color(0.55, 0.9, 1.0))
-	# руль: обод, спицы, колонка
+		gm.emission_texture = _dial_tex(g[1])
+		gm.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
+		gm.emission = Color(1, 1, 1)
+		gm.emission_energy_multiplier = 0.6
+		gm.roughness = 0.3
+		q.material_override = gm
+		q.position = Vector3(g[0], 0.884, -0.404)
+		q.rotation_degrees = Vector3(72, 0, 0)
+		add_child(q)
+	clock = _label("03:12", Vector3(-0.36, 0.853, -0.4), 0.026, Color(1.0, 0.62, 0.25))
+	clock.rotation_degrees = Vector3(-18, 0, 0)
+	radio_lbl = _label("", Vector3(0.0, 0.762, -0.362), 0.018, Color(0.55, 0.9, 1.0))
+	radio_lbl.rotation_degrees = Vector3(-8, 0, 0)
+	# руль: модель руля в узле wheel (его ставит fit_wheel в руки водителя), колонка — к торпедо
 	wheel = Node3D.new()
 	wheel.position = Vector3(-0.36, 0.93, -0.2)
 	wheel.rotation_degrees = Vector3(-62, 0, 0)
 	add_child(wheel)
-	var rim := MeshInstance3D.new()
-	var tm := TorusMesh.new()
-	tm.inner_radius = 0.165
-	tm.outer_radius = 0.19
-	tm.rings = 32
-	rim.mesh = tm
-	rim.material_override = m_plastic
-	wheel.add_child(rim)
-	for a in [0.0, 120.0, 240.0]:
-		var sp := MeshInstance3D.new()
-		var bm := BoxMesh.new()
-		bm.size = Vector3(0.025, 0.012, 0.17)
-		sp.mesh = bm
-		sp.material_override = m_plastic
-		sp.rotation_degrees = Vector3(0, a, 0)
-		sp.position = Vector3(sin(deg_to_rad(a)), 0, cos(deg_to_rad(a))) * 0.085
-		wheel.add_child(sp)
-	column = _box(Vector3(0.07, 0.07, 0.35), Vector3(-0.36, 0.86, -0.38), m_plastic2, Vector3(-28, 0, 0))   # колонка
+	if steer_mi:
+		steer_mi.reparent(wheel, false)
+		steer_mi.transform = Transform3D.IDENTITY
+	column = MeshInstance3D.new()
+	var colm := CylinderMesh.new()
+	colm.top_radius = 0.035
+	colm.bottom_radius = 0.045
+	colm.height = 0.35
+	colm.radial_segments = 16
+	column.mesh = colm
+	column.material_override = m_plastic
+	add_child(column)
+	column.position = Vector3(-0.36, 0.86, -0.38)
 	wheel_basis0 = wheel.transform.basis
-	# кресла: подушка и спинка с подголовником
-	for s in [DRIVER, PASSENGER]:
-		_box(Vector3(0.52, 0.14, 0.52), s + Vector3(0, 0.42, 0.05), m_fabric, Vector3(6, 0, 0))
-		_box(Vector3(0.52, 0.66, 0.14), s + Vector3(0, 0.82, 0.36), m_fabric, Vector3(-14, 0, 0))
-		_box(Vector3(0.26, 0.2, 0.12), s + Vector3(0, 1.28, 0.46), m_fabric, Vector3(-10, 0, 0))
-	_box(Vector3(1.5, 0.5, 0.6), Vector3(0, 0.55, 1.3), m_fabric)                                    # заднее сиденье
 	notebook = _box(Vector3(0.21, 0.012, 0.28), PASSENGER + Vector3(0.0, 0.66, -0.12), _m(Color(0.1, 0.12, 0.16), 0.8), Vector3(-25, 8, 0))
 	var pages := MeshInstance3D.new()
-	var pm := BoxMesh.new()
-	pm.size = Vector3(0.19, 0.004, 0.26)
-	pages.mesh = pm
+	var pm2 := BoxMesh.new()
+	pm2.size = Vector3(0.19, 0.004, 0.26)
+	pages.mesh = pm2
 	pages.material_override = _m(Color(0.86, 0.84, 0.78), 0.9)
 	pages.position = Vector3(0, 0.008, 0)
 	notebook.add_child(pages)
-	# крыша, стойки, двери, лобовое и боковые стёкла
-	_box(Vector3(1.56, 0.04, 1.52), Vector3(0, 1.57, 0.64), m_roof)   # крыша — по верхний край лобового (высокому Ною хватает места)
-	for sx in [-1.0, 1.0]:
-		_box(Vector3(0.07, 0.06, 0.82), Vector3(0.74 * sx, 1.22, -0.37), m_plastic, Vector3(-52, 0, 0))   # стойки
-		_box(Vector3(0.06, 0.62, 2.1), Vector3(0.79 * sx, 0.62, 0.35), m_plastic2)                         # двери
-		_box(Vector3(0.02, 0.6, 1.7), Vector3(0.8 * sx, 1.23, 0.4), m_glass)                               # боковые стёкла
-	var ws := _box(Vector3(1.46, 0.02, 0.86), Vector3(0, 1.22, -0.38), m_glass, Vector3(-52, 0, 0))       # лобовое
-	ws.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_box(Vector3(0.2, 0.06, 0.02), Vector3(0, 1.44, -0.1), m_plastic)                                    # зеркало
-	var mir := _box(Vector3(0.18, 0.05, 0.005), Vector3(0, 1.44, -0.088), m_chrome)
-	mir.rotation_degrees = Vector3(0, 8, 0)
-	# капот и крылья — видны в лобовом
-	_box(Vector3(1.7, 0.08, 1.9), Vector3(0, 0.83, -1.8), m_paint, Vector3(4, 0, 0))
 	# дворники
 	for x in [-0.55, 0.05]:
 		var piv := Node3D.new()
-		piv.position = Vector3(x, 0.93, -0.82)
+		piv.position = Vector3(x, 0.95, -0.7)
 		add_child(piv)
 		var arm := MeshInstance3D.new()
 		var bm := BoxMesh.new()
@@ -141,7 +162,7 @@ func setup(pc: bool) -> void:
 	# фары
 	for x in [-0.62, 0.62]:
 		var sl := SpotLight3D.new()
-		sl.position = Vector3(x, 0.7, -2.4)
+		sl.position = Vector3(x, 0.665, -2.9)
 		sl.light_color = Color(1.0, 0.93, 0.8)
 		sl.light_energy = 16.0
 		sl.spot_range = 75.0
@@ -160,13 +181,18 @@ func setup(pc: bool) -> void:
 	dash_light.light_energy = 0.35
 	dash_light.omni_range = 1.1
 	dash_light.omni_attenuation = 1.2
+	dash_light.light_volumetric_fog_energy = 0.0
+	dash_light.light_specular = 0.15             # без яркой точки-отражения в лобовом
+	dash_light.light_cull_mask = 1
 	add_child(dash_light)
 	snow_bounce = OmniLight3D.new()
-	snow_bounce.position = Vector3(0, 0.95, -1.5)
+	snow_bounce.position = Vector3(0, 1.3, -1.35)   # над капотом, перед лобовым: свет снега в фарах — снизу спереди
 	snow_bounce.light_color = Color(0.72, 0.8, 0.95)
 	snow_bounce.light_energy = 0.9
 	snow_bounce.omni_range = 3.2
 	snow_bounce.omni_attenuation = 1.0
+	snow_bounce.light_volumetric_fog_energy = 0.0   # подсветка-«отражение от снега»: в тумане не светится шаром
+	snow_bounce.light_cull_mask = 1                 # только салон и люди
 	snow_bounce.shadow_enabled = pc
 	add_child(snow_bounce)
 
@@ -175,6 +201,45 @@ func _m(c: Color, rough: float) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = c
 	m.roughness = rough
+	return m
+
+
+## Шкала прибора: деления по дуге 240°, крупные — через пять, стрелка на доле f.
+static func _dial_tex(f: float) -> ImageTexture:
+	var n := 256
+	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 1))
+	var c := Vector2(n, n) * 0.5
+	var tick := Color(1.0, 0.62, 0.28)
+	for i in 41:
+		var a := deg_to_rad(150.0 + i * 6.0)
+		var big := i % 5 == 0
+		var u := Vector2(cos(a), sin(a))
+		for k in 30:
+			var p := c + u * lerpf(n * (0.33 if big else 0.39), n * 0.45, k / 29.0)
+			for w in ([-1, 0, 1, 2] if big else [0, 1]):
+				img.set_pixelv((p + Vector2(-u.y, u.x) * w).clamp(Vector2.ZERO, Vector2(n - 1, n - 1)), tick)
+	var na := deg_to_rad(150.0 + 240.0 * f)
+	var nu := Vector2(cos(na), sin(na))
+	for k in 110:
+		var p := c + nu * lerpf(-n * 0.05, n * 0.4, k / 109.0)
+		for w in [-2, -1, 0, 1, 2]:
+			img.set_pixelv((p + Vector2(-nu.y, nu.x) * w * 0.6).clamp(Vector2.ZERO, Vector2(n - 1, n - 1)), Color(1.0, 0.25, 0.1))
+	for y in range(-9, 10):
+		for x in range(-9, 10):
+			if x * x + y * y < 80:
+				img.set_pixel(int(c.x) + x, int(c.y) + y, Color(0.15, 0.1, 0.08))
+	img.generate_mipmaps()
+	return ImageTexture.create_from_image(img)
+
+
+func _lamp_mat(c: Color, e: float) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = c * 0.6
+	m.emission_enabled = true
+	m.emission = c
+	m.emission_energy_multiplier = e
+	m.roughness = 0.1
 	return m
 
 
@@ -214,7 +279,10 @@ func _process(delta: float) -> void:
 		wipers[i].rotation_degrees = Vector3(-52, 0, 0)
 		wipers[i].rotate_object_local(Vector3.UP, deg_to_rad(a))
 	wheel.transform.basis = wheel_basis0 * Basis(Vector3.UP, steer)
-	glovebox.rotation_degrees = Vector3(-glove_open * 70.0, 0, 0)
+	if glovebox:
+		glovebox.rotation_degrees.x = glove_base + glove_open * 75.0   # крышка откидывается вниз, к пассажиру
+	for w in wheels:
+		w.rotate_object_local(Vector3.RIGHT, -speed / 0.325 * delta)
 	# лёгкая тряска дороги: свет приборов дышит вместе с машиной
 	dash_light.light_energy = 0.35 + 0.02 * sin(t * 13.0)
 	# кузов на неровной зимней дороге: чуть подпрыгивает и кренится в поворотах (головы и волосы отзываются сами)
@@ -248,7 +316,8 @@ func fit_wheel(a: Actor) -> void:
 	wheel.position = c
 	wheel_basis0 = Basis(side * k, nrm * k, side.cross(nrm).normalized() * k)   # ось обода (Y тора) — к груди
 	wheel.transform.basis = wheel_basis0
-	var dash := Vector3(c.x, 0.84, -0.52)   # колонка уходит в торпедо под приборами
+	var dash := Vector3(c.x, 0.7, -0.45)    # колонка уходит в торпедо снизу, под щитком (руль выше — как в жизни)
 	column.position = (c + dash) * 0.5
 	column.look_at(to_global(dash), Vector3.UP)
-	column.scale = Vector3(0.8, 0.8, c.distance_to(dash) / 0.35)
+	column.rotate_object_local(Vector3.RIGHT, PI / 2)   # цилиндр стоит по Y — кладём вдоль направления на торпедо
+	column.scale = Vector3(1.0, c.distance_to(dash) / 0.35, 1.0)
