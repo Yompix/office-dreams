@@ -4,6 +4,7 @@ extends CanvasLayer
 ## подсказка «Айрис это запомнит», подсказки действий (руль, тормоз), затемнение, надпись главы.
 
 signal chosen(i: int)
+signal menu_pick(id: String)     # главное меню и пауза: "new", "cont", "lang", "quit", "resume", "menu"
 var lang := "ru"
 var sub_name: Label
 var sub_text: Label
@@ -26,6 +27,7 @@ var font_hand: Font
 var root: Control
 var page: Control           # страница дневника крупно (почерк Анны)
 var map_panel: Control      # карта главы
+var menu_panel: Control     # главное меню / пауза
 
 const NAME_COL := {"noah": Color(0.85, 0.9, 1.0), "iris": Color(1.0, 0.78, 0.6), "radio": Color(0.6, 0.85, 1.0),
 	"danny": Color(0.75, 1.0, 0.75), "roman": Color(1.0, 0.92, 0.6)}
@@ -64,6 +66,7 @@ void fragment() {
 
 func _ready() -> void:
 	layer = 10
+	process_mode = Node.PROCESS_MODE_ALWAYS   # меню паузы работает, когда игра стоит
 	font = load("res://assets/fonts/Inter-500.woff2")
 	font_b = load("res://assets/fonts/Inter-700.woff2")
 	font_hand = load("res://assets/fonts/Pangolin-Regular.woff2")
@@ -285,6 +288,113 @@ func chapter_map(head: String, rows: Array, opened: int, total: int, trust: int)
 	create_tween().tween_property(map_panel, "modulate:a", 1.0, 0.8)
 
 
+## Главное меню: название слева на фоне ночной трассы, кнопки. has_save — есть ли что продолжить.
+func show_menu(has_save: bool) -> void:
+	hide_menu()
+	var ru := lang == "ru"
+	menu_panel = Control.new()
+	menu_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.add_child(menu_panel)
+	var shade := TextureRect.new()                     # затемнение слева, под названием и кнопками
+	var g := Gradient.new()
+	g.set_color(0, Color(0, 0, 0, 0.88))
+	g.set_color(1, Color(0, 0, 0, 0.0))
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill_from = Vector2(0, 0)
+	gt.fill_to = Vector2(1, 0)
+	shade.texture = gt
+	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shade.anchor_right = 0.75
+	shade.stretch_mode = TextureRect.STRETCH_SCALE
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	menu_panel.add_child(shade)
+	var t := _label(menu_panel, 88, font_b, Color(0.93, 0.95, 1.0))
+	t.text = "WHAT THE\nLAKE KEEPS"
+	t.anchor_left = 0.07
+	t.anchor_top = 0.16
+	t.anchor_right = 0.6
+	t.anchor_bottom = 0.42
+	var st := _label(menu_panel, 34, font, Color(0.62, 0.68, 0.78))
+	st.text = "Что хранит озеро" if ru else "A story in five chapters"
+	st.anchor_left = 0.075
+	st.anchor_top = 0.42
+	st.anchor_right = 0.6
+	st.anchor_bottom = 0.47
+	var items := []
+	if has_save:
+		items.append(["cont", "Продолжить" if ru else "Continue"])
+	items.append(["new", "Новая игра" if ru else "New game"])
+	items.append(["lang", "Язык: Русский" if ru else "Language: English"])
+	items.append(["quit", "Выход" if ru else "Quit"])
+	_menu_buttons(items, 0.07, 0.52)
+
+
+## Пауза (Esc): продолжить, в главное меню, выход.
+func show_pause() -> void:
+	hide_menu()
+	var ru := lang == "ru"
+	menu_panel = ColorRect.new()
+	(menu_panel as ColorRect).color = Color(0, 0, 0, 0.72)
+	menu_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.add_child(menu_panel)
+	var t := _label(menu_panel, 60, font_b, Color.WHITE)
+	t.text = "Пауза" if ru else "Paused"
+	t.anchor_left = 0.07
+	t.anchor_top = 0.3
+	t.anchor_right = 0.6
+	t.anchor_bottom = 0.4
+	_menu_buttons([["resume", "Продолжить" if ru else "Resume"], ["menu", "Главное меню" if ru else "Main menu"],
+		["quit", "Выход" if ru else "Quit"]], 0.07, 0.44)
+
+
+func _menu_buttons(items: Array, x: float, y: float) -> void:
+	var box := VBoxContainer.new()
+	box.anchor_left = x
+	box.anchor_right = x + 0.26
+	box.anchor_top = y
+	box.anchor_bottom = y + 0.4
+	box.add_theme_constant_override("separation", 12)
+	menu_panel.add_child(box)
+	for it in items:
+		var b := Button.new()
+		b.text = String(it[1])
+		b.add_theme_font_override("font", font_b)
+		b.add_theme_font_size_override("font_size", 38)
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0, 0, 0, 0.0)
+		sb.content_margin_left = 18
+		sb.content_margin_top = 8
+		sb.content_margin_bottom = 8
+		b.add_theme_stylebox_override("normal", sb)
+		var sbh := sb.duplicate() as StyleBoxFlat
+		sbh.bg_color = Color(1, 1, 1, 0.12)
+		sbh.border_color = Color(1, 0.88, 0.7, 0.9)
+		sbh.border_width_left = 4
+		b.add_theme_stylebox_override("hover", sbh)
+		b.add_theme_stylebox_override("pressed", sbh)
+		b.add_theme_stylebox_override("focus", sbh)
+		b.add_theme_color_override("font_color", Color(0.86, 0.88, 0.92))
+		b.add_theme_color_override("font_hover_color", Color(1.0, 0.92, 0.78))
+		b.add_theme_color_override("font_focus_color", Color(1.0, 0.92, 0.78))
+		var id := String(it[0])
+		b.pressed.connect(func(): menu_pick.emit(id))
+		box.add_child(b)
+	if box.get_child_count() > 0:
+		(box.get_child(0) as Button).grab_focus.call_deferred()   # клавиатура и геймпад: стрелки + Enter
+
+
+func hide_menu() -> void:
+	if is_instance_valid(menu_panel):
+		menu_panel.queue_free()
+	menu_panel = null
+
+
+func menu_open() -> bool:
+	return is_instance_valid(menu_panel)
+
+
 func hide_map() -> void:
 	if is_instance_valid(map_panel):
 		map_panel.queue_free()
@@ -376,7 +486,7 @@ func _process(delta: float) -> void:
 	(vignette.material as ShaderMaterial).set_shader_parameter("t", _ht)
 	(static_rect.material as ShaderMaterial).set_shader_parameter("amount", noise)
 	(static_rect.material as ShaderMaterial).set_shader_parameter("t", _ht)
-	if not _opts.is_empty():
+	if not _opts.is_empty() and not get_tree().paused:
 		_choice_t -= delta
 		var f := clampf(_choice_t / maxf(_choice_len, 0.01), 0.0, 1.0)
 		var w := get_viewport().get_visible_rect().size.x * 0.4

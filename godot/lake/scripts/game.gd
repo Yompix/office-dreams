@@ -34,6 +34,8 @@ var _stop := ""              # --stop s4: на этой сцене прогон 
 var _fast := false            # --fast: каждая пауза не дольше 0,7 с, ходьба — сразу на место (быстрый лист кадров)
 var deer: Deer                # олень на трассе (сцена 3): едет назад вместе с дорогой
 var blackcar: BlackCar        # чёрная машина Хейла (с конца главы 1)
+const SAVE := "user://lake_save.json"   # контрольная точка: сцена (с "save": true), флаги, язык
+var _menu_mode := false
 var _brake_in := false
 var _brake_a := 0.0           # торможение, м/с²
 var _pitch := 0.0             # клевок кузова при торможении (рад) и его скорость — пружина
@@ -98,7 +100,63 @@ func _ready() -> void:
 	if "--shots" in args:   # проверка планов: каждый план — снимок, без сценария: --shots pov,hands,iris --snapdir папка
 		_shots(String(args[args.find("--shots") + 1]).split(","), args[args.find("--snapdir") + 1] if "--snapdir" in args else "user://")
 		return
-	_run(start)
+	if autoplay or "--scene" in args or "--menu-skip" in args:
+		_run(start)
+	else:
+		_menu()
+
+
+## Главное меню поверх ночной трассы: новая игра, продолжить с контрольной точки, язык, выход.
+func _menu() -> void:
+	_menu_mode = true
+	_shot = "menu"
+	hud.fade.color = Color(0, 0, 0, 1)
+	create_tween().tween_property(hud.fade, "color:a", 0.0, 2.0)
+	while true:
+		hud.lang = lang
+		hud.show_menu(FileAccess.file_exists(SAVE))
+		var id: String = await hud.menu_pick
+		if id == "lang":
+			lang = "en" if lang == "ru" else "ru"
+			continue
+		hud.hide_menu()
+		_menu_mode = false
+		if id == "quit":
+			get_tree().quit()
+		elif id == "cont" and _load_save():
+			return
+		else:
+			flags = (data.flags as Dictionary).duplicate()
+			_run(String(data.start))
+		return
+
+
+func _save(id: String) -> void:
+	var f := FileAccess.open(SAVE, FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify({"scene": id, "flags": flags, "lang": lang}))
+
+
+## Продолжить: флаги и язык из сохранения; что видно (фара, Дэнни сзади) — по флагам; сцена — с начала.
+func _load_save() -> bool:
+	var j = JSON.parse_string(FileAccess.get_file_as_string(SAVE)) if FileAccess.file_exists(SAVE) else null
+	if not (j is Dictionary) or not data.scenes.has(String(j.get("scene", ""))):
+		return false
+	flags = (data.flags as Dictionary).duplicate()
+	for k in (j.flags as Dictionary):
+		flags[k] = j.flags[k]
+	lang = String(j.get("lang", lang))
+	hud.lang = lang
+	var id := String(j.scene)
+	if float(flags.get("lamp", 0)) > 0.0:
+		scene.car.break_lamp()
+	if float(flags.get("danny", 0)) > 0.0 and id in ["s7", "s8"] and not actors.has("danny"):
+		var d := Actor.make("danny", "danny")
+		scene.car.add_child(d)
+		actors.danny = d
+		_seat_in_car("danny", "back")
+	_run(id)
+	return true
 
 
 ## Ной за рулём, Айрис рядом — свои герои (tools/lake/chars.json → assets/chars).
@@ -130,6 +188,8 @@ func _run(id: String) -> void:
 		push_error("нет сцены " + id)
 		return
 	_log("сцена " + id)
+	if sc.get("save", false) and not autoplay:
+		_save(id)
 	if id == _stop:
 		get_tree().quit()
 		return
@@ -238,7 +298,12 @@ func _wait(t: float) -> void:
 	_skip = false
 	while left > 0.0 and not _skip:
 		await get_tree().process_frame
-		left -= get_process_delta_time()
+		left -= _dt()
+
+
+## Время кадра для пауз и действий: на паузе — 0 (сюжет стоит).
+func _dt() -> float:
+	return 0.0 if get_tree().paused else get_process_delta_time()
 
 
 func _cut(shot: String) -> void:
@@ -266,6 +331,10 @@ func _place_cam() -> void:
 		var eye := hb.origin + hb.basis.y.normalized() * 0.09 + hb.basis.z.normalized() * 0.1
 		cam.fov = 13.0
 		cam.look_at_from_position(eye, scene.car.to_global(Car.MIRROR))
+	elif _shot == "menu":   # меню: машина идёт на камеру в снегу, камера медленно плывёт сбоку
+		cam.fov = 34.0
+		var a := _t * 0.05
+		cam.look_at_from_position(scene.car.to_global(Vector3(-2.6 + sin(a) * 0.8, 0.95 + sin(a * 0.7) * 0.15, -8.5)), scene.car.to_global(Vector3(1.7, 0.9, -0.5)))
 	elif _shot == "hands":
 		cam.fov = 36.0
 		cam.look_at_from_position(scene.car.to_global(Vector3(0.12, 1.08, -0.42)), scene.car.wheel.global_position + Vector3(0, -0.02, 0))
@@ -755,7 +824,9 @@ func _do_peek(t: float, hint_d) -> bool:
 	var seen := false
 	while left > 0.0:
 		await get_tree().process_frame
-		left -= get_process_delta_time()
+		left -= _dt()
+		if get_tree().paused:
+			continue
 		if autoplay:
 			seen = not ("peek" in _miss) and t - left > 0.8
 		elif Input.is_key_pressed(KEY_Q) or Input.is_key_pressed(KEY_UP) or Input.is_key_pressed(KEY_TAB) \
@@ -775,7 +846,7 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 	var left := t
 	while left > 0.0:
 		await get_tree().process_frame
-		var dt := get_process_delta_time()
+		var dt := _dt()
 		left -= dt
 		if kind == "steer":   # машину ведёт к обочине: игрок держит её на полосе
 			var push := sin(_t * 1.3) * 0.9 + 0.6   # снос вправо (+), руль влево (−) его гасит
@@ -919,6 +990,9 @@ func _log(s: String) -> void:
 
 
 func _unhandled_input(e: InputEvent) -> void:
+	if e is InputEventKey and e.pressed and not e.echo and (e as InputEventKey).keycode == KEY_ESCAPE and not _menu_mode:
+		_pause()
+		return
 	if e is InputEventKey and e.pressed and not e.echo:
 		var k := (e as InputEventKey).keycode
 		if hud.choosing() and k >= KEY_1 and k <= KEY_3:
@@ -927,6 +1001,21 @@ func _unhandled_input(e: InputEvent) -> void:
 			_skip = true
 	elif e is InputEventMouseButton and e.pressed and not hud.choosing():
 		_skip = true
+
+
+## Пауза: всё стоит (герои, машина, таймер выбора), меню поверх.
+func _pause() -> void:
+	if get_tree().paused:
+		return
+	get_tree().paused = true
+	hud.show_pause()
+	var id: String = await hud.menu_pick
+	hud.hide_menu()
+	get_tree().paused = false
+	if id == "menu":
+		get_tree().reload_current_scene()
+	elif id == "quit":
+		get_tree().quit()
 
 
 func _process(delta: float) -> void:

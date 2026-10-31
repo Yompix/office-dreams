@@ -50,6 +50,7 @@
  "scenes": {
   "prologue": {
    "loc": "black",
+   "save": true,
    "beats": [
     {
      "fx": "black"
@@ -479,6 +480,7 @@
   },
   "s3": {
    "loc": "car",
+   "save": true,
    "time": "03:24",
    "beats": [
     {
@@ -847,6 +849,7 @@
   },
   "s4": {
    "loc": "car",
+   "save": true,
    "beats": [
     {
      "shot": "road",
@@ -1043,6 +1046,7 @@
   },
   "s5": {
    "loc": "station",
+   "save": true,
    "time": "03:40",
    "beats": [
     {
@@ -1736,6 +1740,7 @@
   },
   "s7": {
    "loc": "car",
+   "save": true,
    "time": "04:02",
    "beats": [
     {
