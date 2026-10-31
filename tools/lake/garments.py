@@ -427,9 +427,9 @@ def build(specs):
         elif kind == 'beanie':
             cut = brow - g.get('low', 0.0)
             keep = [skin[i] and w_headonly[i] > 0.5 and co[i].z > cut for i in range(len(co))]
-            ob = _shell(body, name, keep, g.get('off', 0.014), g.get('thick', 0.006), smooth=4)
-            band = [skin[i] and w_headonly[i] > 0.5 and cut < co[i].z < cut + 0.038 for i in range(len(co))]
-            ob2 = _shell(body, name + '_cuff', band, g.get('off', 0.014) + 0.008, 0.006, smooth=4)
+            ob = _shell(body, name, keep, g.get('off', 0.014), g.get('thick', 0.006), smooth=6, center=center, back=g.get('slouch', 0.02))
+            band = [skin[i] and w_headonly[i] > 0.5 and cut < co[i].z < cut + 0.045 for i in range(len(co))]   # отворот — плотно, не «поля»
+            ob2 = _shell(body, name + '_cuff', band, g.get('off', 0.014) + 0.004, 0.007, smooth=5)
             ob2.data.materials.append(_material(name + '_cuff_m', g['tex'], g.get('tint'), g.get('tile', 6.0), g.get('rough')))
         else:
             continue
