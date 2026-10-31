@@ -1,0 +1,73 @@
+[
+ {
+  "who": "noah",
+  "voice": "RvcToHi9ENVDatbeYNJe",
+  "keys": [
+   "s1_1",
+   "s1_a_1",
+   "s1_a_3",
+   "s1_b_1",
+   "s2_c_1",
+   "s5_pay_1",
+   "s5_help_1",
+   "s6_a_1",
+   "s6_b_1",
+   "s6_a2_1",
+   "s6_leave_1",
+   "s7_a_1",
+   "s7_b_1"
+  ],
+  "prompt": "[confused, breathless] Айрис?.. Где мы?.. Чья это кровь?\n\n[quiet, anxious] Что случилось дома?\n\n[quietly] Нет.\n\n[shaky, determined] Мы возвращаемся.\n\n[barely audible, horrified] Айрис… это я его?\n\n[nervous] Не надо. Я заплачу и уеду.\n\n[trembling, desperate] Я не знаю, что я сделал. Помогите сестре.\n\n[soft, tired] Поехали с нами.\n\n[tense, firm] Мы не можем его взять.\n\n[defeated, quiet] Ладно. Садись назад.\n\n[cold, firm] Нет. Он остаётся.\n\n[forced calm] Всё будет хорошо.\n\n[broken, whispering] Я не знаю, что со мной.",
+  "chars": 519
+ },
+ {
+  "who": "iris",
+  "voice": "CamFZN2KIaqnyvcaFe3E",
+  "keys": [
+   "s1_2",
+   "s1_a_2",
+   "s1_a_4",
+   "s1_b_2",
+   "s1_b_3",
+   "s2_c_2",
+   "s3_hit_1",
+   "s4_1",
+   "s4_b_1",
+   "s5_1",
+   "s5_lapse_2",
+   "s6_a_2",
+   "s6_b_2"
+  ],
+  "prompt": "[cold, flat] Езжай. На север.\n\n[hurt, quiet] Ты правда не помнишь?\n\n[tired, resigned] …Тогда езжай.\n\n[screaming] Нет!\n\n[panicked, tearful] Вернёмся — тебя посадят, а меня в детдом. Езжай, Ной!\n\n[cold, quiet] Ты не помнишь. Значит, так надо.\n\n[crying, desperate] Ной… Он же мучается. Сделай что-нибудь!\n\n[nervous, distracted] Где-то тут была карта…\n\n[quiet, suspicious] Ты же их ненавидел.\n\n[gentle, soft] Ты чего тут один?\n\n[urgent whisper] Садись. Быстро.\n\n[gentle, reassuring] Я с тобой. Он тебя не тронет.\n\n[angry, pleading] Никто за ним не придёт. Ты же видишь.",
+  "chars": 565
+ },
+ {
+  "who": "radio",
+  "voice": "LTkx8oHrUXaND7aaxdTA",
+  "keys": [
+   "s2_1",
+   "s2_b_1"
+  ],
+  "prompt": "[news announcer, neutral] …в своём доме найден мёртвым Виктор, сорок девять лет. Полиция разыскивает его детей — сына Ноя, девятнадцать лет, и дочь Айрис, пятнадцать. Сын может быть опасен. Если вы видели…\n\n[news announcer, neutral] …рост около ста восьмидесяти, тёмная куртка, мужская, старого кроя…",
+  "chars": 300
+ },
+ {
+  "who": "danny",
+  "voice": "XjGYkUkzth8BPs29fmcV",
+  "keys": [
+   "s5_2"
+  ],
+  "prompt": "[scared, quiet] Мама сказала ждать. Она… уже долго.",
+  "chars": 51
+ },
+ {
+  "who": "roman",
+  "voice": "9AjtU6o19uipv7QL8dLL",
+  "keys": [
+   "s5_help_2",
+   "s5_lapse_1"
+  ],
+  "prompt": "[gruff, reluctant] Езжай, парень. Позвоню через десять минут.\n\n[wary, uneasy] Эй, парень…",
+  "chars": 89
+ }
+]

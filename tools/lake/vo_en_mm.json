@@ -1,0 +1,122 @@
+[
+ {
+  "who": "noah",
+  "voice": "Casual_Guy",
+  "emotion": "fearful",
+  "keys": [
+   "s1_1",
+   "s1_a_1",
+   "s1_b_1",
+   "s2_c_1",
+   "s5_pay_1",
+   "s5_help_1"
+  ],
+  "prompt": "(gasps) Iris?.. Where are we?.. Whose blood is this? <#1.2#> What happened at home? <#1.2#> We're going back. <#1.2#> Iris… did I do it? <#1.2#> Don't. I'll pay and go. <#1.2#> I don't know what I did. Help my sister.",
+  "chars": 217
+ },
+ {
+  "who": "iris",
+  "voice": "Lovely_Girl",
+  "emotion": "neutral",
+  "keys": [
+   "s1_2",
+   "s2_c_2",
+   "s4_1",
+   "s4_b_1",
+   "s5_1"
+  ],
+  "prompt": "Drive. North. <#1.2#> You don't remember. Then that's how it has to be. <#1.2#> There was a map in here somewhere… <#1.2#> You always hated them. <#1.2#> What are you doing out here all alone?",
+  "chars": 192
+ },
+ {
+  "who": "iris",
+  "voice": "Lovely_Girl",
+  "emotion": "sad",
+  "keys": [
+   "s1_a_2",
+   "s1_a_4",
+   "s6_a_2"
+  ],
+  "prompt": "You really don't remember? <#1.2#> …Then drive. <#1.2#> I'm right here. He won't hurt you.",
+  "chars": 90
+ },
+ {
+  "who": "noah",
+  "voice": "Casual_Guy",
+  "emotion": "sad",
+  "keys": [
+   "s1_a_3",
+   "s6_a_1",
+   "s6_a2_1",
+   "s7_b_1"
+  ],
+  "prompt": "No. <#1.2#> Come with us. <#1.2#> Fine. Get in the back. <#1.2#> (sighs) I don't know what's wrong with me.",
+  "chars": 107
+ },
+ {
+  "who": "iris",
+  "voice": "Lovely_Girl",
+  "emotion": "angry",
+  "keys": [
+   "s1_b_2",
+   "s6_b_2"
+  ],
+  "prompt": "No! <#1.2#> Nobody's coming for him. You can see that.",
+  "chars": 54
+ },
+ {
+  "who": "iris",
+  "voice": "Lovely_Girl",
+  "emotion": "fearful",
+  "keys": [
+   "s1_b_3",
+   "s3_hit_1",
+   "s5_lapse_2"
+  ],
+  "prompt": "If we go back, they'll lock you up and put me in a home. Drive, Noah! <#1.2#> (sniffs) Noah… It's suffering. Do something! <#1.2#> Get in. Now.",
+  "chars": 143
+ },
+ {
+  "who": "radio",
+  "voice": "Elegant_Man",
+  "emotion": "neutral",
+  "keys": [
+   "s2_1",
+   "s2_b_1"
+  ],
+  "prompt": "…Victor, forty-nine, was found dead in his home. Police are searching for his children — his son Noah, nineteen, and his daughter Iris, fifteen. The son may be dangerous. If you have seen… <#1.2#> …about six feet tall, wearing a dark, old-fashioned man's jacket…",
+  "chars": 262
+ },
+ {
+  "who": "roman",
+  "voice": "Deep_Voice_Man",
+  "emotion": "neutral",
+  "keys": [
+   "s5_help_2",
+   "s5_lapse_1"
+  ],
+  "prompt": "Go, kid. I'll make the call in ten minutes. <#1.2#> Hey, kid…",
+  "chars": 61
+ },
+ {
+  "who": "noah",
+  "voice": "Casual_Guy",
+  "emotion": "angry",
+  "keys": [
+   "s6_b_1",
+   "s6_leave_1"
+  ],
+  "prompt": "We can't take him. <#1.2#> No. He stays.",
+  "chars": 40
+ },
+ {
+  "who": "noah",
+  "voice": "Casual_Guy",
+  "emotion": "neutral",
+  "keys": [
+   "s7_a_1"
+  ],
+  "prompt": "It's going to be okay.",
+  "chars": 22
+ }
+]

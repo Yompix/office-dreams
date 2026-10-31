@@ -1,0 +1,175 @@
+{
+ "_": "Звуки WHAT THE LAKE KEEPS: ключ → [описание для ElevenLabs Sound Effects (eleven_text_to_sound_v2, платный тариф владельца), длительность]. Петли — loop=true. Флоу «WHAT THE LAKE KEEPS — звуки главы 1» в ElevenLabs. Файлы — godot/lake/snd/<ключ>.ogg (ffmpeg → Vorbis q4, моно для разовых). underwater и ui_click — кодом (tools/lake/synth.py). Уровни громкости — snd/levels.json (tools/lake/snd_levels.py).",
+ "car_interior": [
+  "Inside an old sedan driving on a snowy highway at night, steady low engine hum, tire rumble on packed snow, faint wind against the windows, seamless loop",
+  20
+ ],
+ "wind_forest": [
+  "Cold winter wind through a dense pine forest at night, soft gusts, fine snow hiss, seamless loop",
+  20
+ ],
+ "station_hum": [
+  "Empty gas station at night, buzzing neon sign and fluorescent lights, distant wind, seamless loop",
+  20
+ ],
+ "shop_room": [
+  "Inside a small convenience store at night, refrigerator hum, fluorescent tube buzz, faint TV murmur, seamless loop",
+  20
+ ],
+ "blizzard": [
+  "Blizzard wind howling around a moving car, snow pelting the windshield, seamless loop",
+  20
+ ],
+ "drone": [
+  "Dark ambient horror drone, deep evolving low pad with slow beating, distant metallic resonance, seamless loop, no melody",
+  30
+ ],
+ "truck_horn": [
+  "Truck air horn blaring very close, passing at speed at night, doppler",
+  4.5
+ ],
+ "skid": [
+  "Car tires sliding on an icy road, short skid",
+  2
+ ],
+ "ditch_crash": [
+  "Car sliding off the road into a snowy ditch, heavy crunch of snow, metal thump",
+  3
+ ],
+ "radio_on": [
+  "Old car radio switching on, short static burst",
+  2
+ ],
+ "radio_off": [
+  "Car radio knob clicked off, static cuts out",
+  3
+ ],
+ "pencil_snap": [
+  "Pencil snapping in half, close, dry crack",
+  1
+ ],
+ "brake_squeal": [
+  "Car brakes slammed hard on snow, tires squealing and sliding to a stop",
+  3.6
+ ],
+ "deer_impact": [
+  "Car hitting a deer at speed, heavy body thud, plastic headlight cracking, glass shards falling",
+  3.4
+ ],
+ "deer_scream": [
+  "Wounded deer screaming in pain at night, distressed bleating cries",
+  7
+ ],
+ "deer_breath": [
+  "Ragged labored breathing of a dying large animal, close, wet snorts",
+  10
+ ],
+ "blow": [
+  "Dull heavy blow of a metal tire iron, muffled thud",
+  1
+ ],
+ "car_door": [
+  "Old car door opening, then closing with a solid thunk",
+  2
+ ],
+ "snow_steps": [
+  "Footsteps crunching in fresh snow, slow walking",
+  6
+ ],
+ "glovebox": [
+  "Car glovebox latch clicking open, plastic lid dropping",
+  2.2
+ ],
+ "pills": [
+  "Pills rattling in a plastic prescription bottle",
+  1
+ ],
+ "window_down": [
+  "Car window rolled down at speed, rush of cold wind",
+  3.2
+ ],
+ "fuel_chime": [
+  "Car dashboard warning chime, single soft beep",
+  2
+ ],
+ "hum_ring": [
+  "Rising high-pitched tinnitus ring over a low pulsing hum, disorienting",
+  8
+ ],
+ "static_burst": [
+  "Harsh white noise static burst with distorted crackle",
+  1
+ ],
+ "glass_shatter": [
+  "Glass shop door shattering, large pane breaking",
+  1
+ ],
+ "child_scream": [
+  "Young boy screaming in fear, distant, muffled through glass",
+  1
+ ],
+ "door_chime": [
+  "Shop door opening with an electronic two-tone door chime",
+  2
+ ],
+ "phone_rip": [
+  "Telephone cord yanked out of the wall, plastic snap",
+  1
+ ],
+ "bills": [
+  "Paper money bills tossed onto a counter",
+  1
+ ],
+ "engine_start": [
+  "Car engine starting and idling, distant, at night",
+  2
+ ],
+ "wipers": [
+  "Car windshield wipers swiping back and forth on glass, rhythmic",
+  4
+ ],
+ "page_turn": [
+  "Old diary paper page turning, close",
+  1
+ ],
+ "heartbeat": [
+  "Single heavy heartbeat thump, low",
+  2
+ ],
+ "nozzle": [
+  "Gas pump nozzle clicking off, fuel stops",
+  2
+ ],
+ "splash": [
+  "Heavy splash into dark lake water at night",
+  2
+ ],
+ "boom": [
+  "Low cinematic boom hit, deep sub bass impact with long tail",
+  1
+ ],
+ "lullaby": [
+  "A woman softly humming a slow, gentle lullaby melody, intimate and tender, slightly distant and muffled like a memory, no words",
+  12
+ ],
+ "lullaby_girl": [
+  "A teenage girl quietly humming a slow lullaby to herself, trembling voice, holding back tears, close, no words",
+  7
+ ],
+ "pencil_scribble": [
+  "Pencil scribbling fast and hard on paper in a notebook, close",
+  3
+ ],
+ "trunk": [
+  "Car trunk lid opening outdoors at night, rummaging through tools, a heavy metal tire iron lifted out",
+  3
+ ],
+ "radio_hiss": [
+  "Old car radio between stations, soft steady static hiss and faint crackle, seamless loop",
+  8
+ ],
+ "deer_snort": [
+  "A deer snorting and huffing nervously, close, at night in the snow",
+  2
+ ]
+}

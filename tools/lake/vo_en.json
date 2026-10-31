@@ -1,0 +1,73 @@
+[
+ {
+  "who": "noah",
+  "voice": "OwEAPhTFInN6VSRT9QXm",
+  "keys": [
+   "s1_1",
+   "s1_a_1",
+   "s1_a_3",
+   "s1_b_1",
+   "s2_c_1",
+   "s5_pay_1",
+   "s5_help_1",
+   "s6_a_1",
+   "s6_b_1",
+   "s6_a2_1",
+   "s6_leave_1",
+   "s7_a_1",
+   "s7_b_1"
+  ],
+  "prompt": "[confused, breathless] Iris?.. Where are we?.. Whose blood is this?\n\n[quiet, anxious] What happened at home?\n\n[quietly] No.\n\n[shaky, determined] We're going back.\n\n[barely audible, horrified] Iris… did I do it?\n\n[nervous] Don't. I'll pay and go.\n\n[trembling, desperate] I don't know what I did. Help my sister.\n\n[soft, tired] Come with us.\n\n[tense, firm] We can't take him.\n\n[defeated, quiet] Fine. Get in the back.\n\n[cold, firm] No. He stays.\n\n[forced calm] It's going to be okay.\n\n[broken, whispering] I don't know what's wrong with me.",
+  "chars": 538
+ },
+ {
+  "who": "iris",
+  "voice": "umKoJK6tP1ALjO0zo1EE",
+  "keys": [
+   "s1_2",
+   "s1_a_2",
+   "s1_a_4",
+   "s1_b_2",
+   "s1_b_3",
+   "s2_c_2",
+   "s3_hit_1",
+   "s4_1",
+   "s4_b_1",
+   "s5_1",
+   "s5_lapse_2",
+   "s6_a_2",
+   "s6_b_2"
+  ],
+  "prompt": "[cold, flat] Drive. North.\n\n[hurt, quiet] You really don't remember?\n\n[tired, resigned] …Then drive.\n\n[screaming] No!\n\n[panicked, tearful] If we go back, they'll lock you up and put me in a home. Drive, Noah!\n\n[cold, quiet] You don't remember. Then that's how it has to be.\n\n[crying, desperate] Noah… It's suffering. Do something!\n\n[nervous, distracted] There was a map in here somewhere…\n\n[quiet, suspicious] You always hated them.\n\n[gentle, soft] What are you doing out here all alone?\n\n[urgent whisper] Get in. Now.\n\n[gentle, reassuring] I'm right here. He won't hurt you.\n\n[angry, pleading] Nobody's coming for him. You can see that.",
+  "chars": 637
+ },
+ {
+  "who": "radio",
+  "voice": "9ZbFvrGBxO3uSmsw6wdI",
+  "keys": [
+   "s2_1",
+   "s2_b_1"
+  ],
+  "prompt": "[news announcer, neutral] …Victor, forty-nine, was found dead in his home. Police are searching for his children — his son Noah, nineteen, and his daughter Iris, fifteen. The son may be dangerous. If you have seen…\n\n[news announcer, neutral] …about six feet tall, wearing a dark, old-fashioned man's jacket…",
+  "chars": 307
+ },
+ {
+  "who": "danny",
+  "voice": "XjGYkUkzth8BPs29fmcV",
+  "keys": [
+   "s5_2"
+  ],
+  "prompt": "[scared, quiet] Mom told me to wait. She's been gone… a long time.",
+  "chars": 66
+ },
+ {
+  "who": "roman",
+  "voice": "wcATjh8zBDfepqUbl99V",
+  "keys": [
+   "s5_help_2",
+   "s5_lapse_1"
+  ],
+  "prompt": "[gruff, reluctant] Go, kid. I'll make the call in ten minutes.\n\n[wary, uneasy] Hey, kid…",
+  "chars": 88
+ }
+]

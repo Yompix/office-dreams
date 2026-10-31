@@ -644,6 +644,7 @@
       "face": 180,
       "clip": "Idle"
      },
+     "fx": "trunk",
      "shot": "iris",
      "look": "deer",
      "dur": 2.4,

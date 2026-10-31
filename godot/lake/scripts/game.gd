@@ -41,6 +41,19 @@ var _brake_a := 0.0           # торможение, м/с²
 var _pitch := 0.0             # клевок кузова при торможении (рад) и его скорость — пружина
 var _pitch_v := 0.0
 const BUMPER := -2.94         # передний бампер машины (z в осях машины)
+var sfx: Sfx                  # звук: фоны мест, петли, разовые (scripts/audio.gd)
+var _scene_id := ""
+var _underwater := false      # пролог: под водой
+var _blackout := false        # провал: всё глохнет
+var _blizzard := false        # конец главы: буран
+var _radio := false           # радио включено: под голосом диктора шипит эфир
+var _ending := false
+var _skid_cd := 0.0
+var _vo := {}                 # озвучка языка: ключ реплики → {dur, w (слова со временем), e (громкость), g}
+var _vo_lang := ""
+const IN_CAR := ["pov", "hands", "noah", "iris", "two", "notebook", "radio", "glovebox", "road", "cluster", "pills", "back",
+	"deer_eye", "mirror", "mirror_back"]    # планы из салона: снаружи слышно глухо
+const SHOP := ["st_counter", "st_tv", "st_roman", "st_hand", "st_noah_face"]   # планы в магазине заправки
 const FLOOR := 0.38           # пол магазина и крыльцо заправки
 ## выражения лица (формы ARKit): страх, шок, улыбка, грусть, боль, «мёртвый взгляд»
 const EXPR := {"fear": {"browInnerUp": 0.8, "eyeWideLeft": 0.7, "eyeWideRight": 0.7, "mouthStretchLeft": 0.25, "mouthStretchRight": 0.25, "jawOpen": 0.08},
@@ -71,7 +84,15 @@ func _ready() -> void:
 	hud = Hud.new()
 	hud.lang = lang
 	add_child(hud)
+	sfx = Sfx.new()
+	add_child(sfx)
 	data = JSON.parse_string(FileAccess.get_file_as_string("res://data/ch1.json"))
+	for sid in data.scenes:   # ключ озвучки каждой реплики: <сцена>_<номер реплики в сцене> (как tools/lake/voice.py)
+		var n := 0
+		for b in data.scenes[sid].beats:
+			if (b as Dictionary).has("say"):
+				n += 1
+				b["_vo"] = "%s_%d" % [sid, n]
 	flags = (data.flags as Dictionary).duplicate()
 	var start: String = data.start
 	if "--scene" in args:
@@ -116,6 +137,7 @@ func _menu() -> void:
 		hud.lang = lang
 		hud.show_menu(FileAccess.file_exists(SAVE))
 		var id: String = await hud.menu_pick
+		sfx.play("ui_click", -4.0)
 		if id == "lang":
 			lang = "en" if lang == "ru" else "ru"
 			continue
@@ -188,6 +210,7 @@ func _run(id: String) -> void:
 		push_error("нет сцены " + id)
 		return
 	_log("сцена " + id)
+	_scene_id = id
 	if sc.get("save", false) and not autoplay:
 		_save(id)
 	if id == _stop:
@@ -238,10 +261,16 @@ func _beat(b: Dictionary):
 		var who := String(b.say)
 		var text := hud.T(b)
 		var dur := clampf(0.9 + text.length() / 15.0, 1.4, 9.0)
+		var vo: Dictionary = _voice_line(String(b.get("_vo", "")))
 		hud.line(who, data.names.get(who, ""), b)
-		if actors.has(who):
+		if not vo.is_empty():   # озвучка: длина реплики — по голосу, губы — по словам и громкости
+			dur = maxf(float(vo.dur) + 0.35, 1.0)
+			if actors.has(who):
+				(actors[who] as Actor).say(text, float(vo.dur), vo.get("w", []), String(vo.get("e", "")))
+		elif actors.has(who):
 			(actors[who] as Actor).say(text, dur * 0.8)
 		await _wait(dur)
+		sfx.voice_stop()
 		hud.clear_text()
 	elif b.has("text"):
 		hud.show_note(b.text)
@@ -263,6 +292,7 @@ func _beat(b: Dictionary):
 			var want: int = (_forced.pop_front() if not _forced.is_empty() else _rng.randi() % opts.size())
 			get_tree().create_timer(1.0).timeout.connect(func(): if hud.choosing(): hud.pick(clampi(want, 0, opts.size() - 1)))
 		var i: int = await hud.chosen
+		sfx.play("ui_click", -4.0)
 		_log("выбор %d: %s" % [i, "молчание" if opts[i].get("silent", false) else hud.T(opts[i])])
 		return String(opts[i].get("go", ""))
 	if b.has("peek"):   # можно посмотреть (в зеркало): нажал за t секунд — ветка «yes», нет — «no»
@@ -639,6 +669,7 @@ func _lapse_black() -> void:
 
 
 func _fx(k: String) -> void:
+	_fx_sound(k)
 	var fade := hud.fade
 	match k:
 		"black":
@@ -812,6 +843,189 @@ func _fx(k: String) -> void:
 			tw.tween_property(scene.car, "speed", 25.0, 4.0).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
 
 
+## Озвучка реплики: играет её голос и отдаёт тайминг ({} — голоса нет, реплика идёт по тексту).
+func _voice_line(key: String) -> Dictionary:
+	if _vo_lang != lang:
+		_vo_lang = lang
+		_vo = {}
+		var tf := "res://snd/vo/%s/timing.json" % lang
+		if FileAccess.file_exists(tf):
+			var j = JSON.parse_string(FileAccess.get_file_as_string(tf))
+			if j is Dictionary:
+				_vo = j
+	if key == "" or not _vo.has(key) or _fast:
+		return {}
+	var v: Dictionary = _vo[key]
+	if not sfx.voice("res://snd/vo/%s/%s.ogg" % [lang, key], float(v.get("g", 1.0))):
+		return {}
+	_log("голос " + key)
+	return v
+
+
+## Разовые звуки к событиям сценария (fx).
+func _fx_sound(k: String) -> void:
+	var outside := (actors.noah as Actor).get_parent() != scene.car
+	match k:
+		"underwater":
+			_underwater = true
+		"lullaby":
+			sfx.play("lullaby", -1.0)
+		"lullaby_stop":
+			sfx.stop("lullaby", 0.8)
+		"flash_dock":
+			sfx.play("splash", -3.0)
+			sfx.play("boom", -10.0)
+		"horn":
+			_underwater = false
+			sfx.play("truck_horn", 0.0)
+		"wake":
+			_blackout = false
+			if is_instance_valid(scene.station_root):
+				sfx.play("nozzle", -2.0)
+			else:
+				sfx.play("heartbeat", -6.0)
+		"crash":
+			sfx.play("ditch_crash", 0.0)
+		"u_turn":
+			sfx.play("skid", -6.0)
+		"skid":
+			sfx.play("skid", -2.0)
+		"radio_on":
+			_radio = true
+			sfx.play("radio_on", -6.0)
+		"radio_off":
+			if _radio:
+				sfx.play("radio_off", -6.0)
+			_radio = false
+		"pencil_break":
+			sfx.play("pencil_snap", -2.0)
+		"notebook_dash":
+			sfx.play("pencil_scribble", -6.0)
+		"lullaby_iris":
+			sfx.play("lullaby_girl", -4.0)
+		"deer_look":
+			sfx.play("deer_snort", -4.0, 1.0, 0.5)
+		"noah_to_deer":
+			sfx.play("car_door", -4.0)
+		"trunk":
+			sfx.play("trunk", -3.0)
+		"thud":
+			sfx.play("blow", 0.0)
+		"deer_quiet":
+			if _scene_id == "s3_freeze":
+				sfx.play("deer_scream", -5.0)
+		"drive_on":
+			if outside:
+				sfx.play("car_door", -5.0)
+			if _scene_id == "s3_leave":   # крик оленя тянется за машиной
+				sfx.play("deer_scream", -9.0, 0.97, 0.6)
+		"fuel_light":
+			sfx.play("fuel_chime", -6.0)
+		"ring":
+			sfx.play("heartbeat", -3.0)
+		"glove_open":
+			sfx.play("glovebox", -4.0)
+		"glove_close":
+			sfx.play("glovebox", -9.0, 1.2)
+		"pills_take":
+			sfx.play("pills", -4.0)
+		"pills_throw":
+			sfx.play("window_down", -4.0)
+			sfx.play("pills", -10.0, 1.0, 0.7)
+		"money":
+			sfx.play("bills", -4.0)
+		"phone_rip":
+			sfx.play("phone_rip", -2.0)
+		"lapse":   # провал: белый шум, всё глохнет; в темноте — стекло и крик мальчика
+			_blackout = true
+			sfx.play("static_burst", -6.0, 1.0, 0.1)
+			sfx.play("boom", -8.0)
+			sfx.play("glass_shatter", -5.0, 1.0, 1.9)
+			sfx.play("child_scream", -12.0, 1.0, 2.5)
+		"danny_in_car", "danny_stays":
+			sfx.play("car_door", -6.0, 1.0, 0.6)
+		"leave_station":
+			sfx.play("engine_start", -6.0, 1.0, 0.2)
+		"blackcar_lights":
+			sfx.play("engine_start", -18.0, 0.92)
+		"snow_heavy":
+			_blizzard = true
+			sfx.play("wipers", -12.0)
+		"diary":
+			sfx.play("page_turn", -4.0)
+		"diary_off":
+			sfx.play("page_turn", -10.0, 1.1)
+
+
+## Звук места — каждый кадр: что слышно там, где камера. В салоне — мотор (выше и громче на скорости), снаружи глухо;
+## снаружи — ветер в лесу; на заправке — гул неона, в магазине — холодильники и телевизор; буран; гул в голове Ноя;
+## дыхание оленя (тише, когда далеко и когда он слабеет), шаги по снегу.
+func _sound(delta: float) -> void:
+	var off := Sfx.OFF
+	var inside := _shot in IN_CAR
+	var station := is_instance_valid(scene.station_root)
+	var k := clampf(scene.road.speed / 25.0, 0.0, 1.0)
+	var car := off
+	var forest := off
+	var neon := off
+	var shop := off
+	var bliz := off
+	var drone := -26.0
+	if _underwater:
+		drone = -16.0
+	elif _blackout:
+		drone = -18.0
+	elif _menu_mode:
+		forest = -9.0
+		car = -24.0
+		drone = -14.0
+	elif _ending:
+		drone = -12.0
+	elif station:
+		if _shot in SHOP:
+			shop = -3.0
+			neon = -24.0
+		elif inside:
+			neon = -18.0
+			forest = -24.0
+		else:
+			neon = -7.0
+			forest = -16.0
+	else:
+		car = lerpf(-16.0, -3.0, k) if inside else lerpf(-30.0, -14.0, k)
+		forest = -22.0 if inside else -5.0
+		if _blizzard:
+			bliz = -9.0 if inside else -3.0
+			forest -= 10.0
+	sfx.bed("car_interior", car, lerpf(0.7, 1.0, k))
+	sfx.bed("wind_forest", forest)
+	sfx.bed("station_hum", neon)
+	sfx.bed("shop_room", shop)
+	sfx.bed("blizzard", bliz)
+	sfx.bed("underwater", -3.0 if _underwater else off)
+	sfx.bed("drone", drone + hud.hum * 10.0)
+	sfx.bed("hum_ring", lerpf(-34.0, -4.0, hud.hum) if hud.hum > 0.03 else off)
+	sfx.bed("radio_hiss", (-20.0 if inside else -34.0) if _radio and not _blackout else off)
+	var br := off
+	var dsteps := off
+	var life := 1.0
+	if is_instance_valid(deer) and not _menu_mode and not _ending:
+		life = deer.life
+		var near := clampf((cam.global_position.distance_to(deer.head_pos()) - 1.5) / 14.0, 0.0, 1.0)
+		if deer.mode == "lie":
+			br = lerpf(-3.0, -22.0, near) - (9.0 if inside else 0.0) - (1.0 - life) * 14.0
+		elif deer.mode == "walk":
+			dsteps = lerpf(-8.0, -26.0, near) - (8.0 if inside else 0.0)
+	sfx.bed("deer_breath", br, lerpf(0.8, 1.0, life))
+	sfx.bed("deer_steps", dsteps, 0.8)
+	var steps := off
+	for who in _walks:
+		if (actors[who] as Actor).get_parent() == scene:
+			steps = -18.0 if inside else -7.0
+	sfx.bed("snow_steps", steps)
+	_skid_cd = maxf(0.0, _skid_cd - delta)
+
+
 ## Рывок машины: героев (и их волосы) встряхивает.
 func _jolt(k: float) -> void:
 	for a in actors.values():
@@ -852,6 +1066,9 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 			var push := sin(_t * 1.3) * 0.9 + 0.6   # снос вправо (+), руль влево (−) его гасит
 			var inp := _steer_in if not autoplay else clampf(-_qte_drift * 3.0 - push / 2.2, -1.0, 1.0)
 			_qte_drift = clampf(_qte_drift + (push + inp * 2.2) * dt, -1.2, 1.2)
+			if absf(_qte_drift) > 0.8 and _skid_cd <= 0.0:   # колёса срывает — визг шин
+				sfx.play("skid", -9.0)
+				_skid_cd = 2.0
 			scene.car.steer = -_qte_drift * 0.8
 			if absf(_qte_drift) >= 1.2:
 				_qte_ok = false
@@ -868,6 +1085,7 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 				_brake_a = minf(v * v / (2.0 * maxf(gap - 1.1, 0.05)), 11.0) if gap > 1.15 else 11.0
 				_shake = 0.35
 				hud.hint.text = ""
+				sfx.play("brake_squeal", -1.0)
 			if _brake_a > 0.0:
 				v = maxf(0.0, v - _brake_a * dt)
 				scene.road.speed = v
@@ -887,6 +1105,9 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 ## Удар: темнота, рывок, машина встала, левая фара разбита; оленя отбросило на встречную полосу — лежит, бьётся, кровь.
 func _deer_hit() -> void:
 	hud.fade.color = Color(0, 0, 0, 1)
+	sfx.play("deer_impact", 0.0)
+	sfx.play("boom", -7.0)
+	sfx.play("deer_scream", -3.0, 1.0, 1.5)
 	_shake = 1.6
 	_jolt(1.0)
 	_pitch_v = -0.4
@@ -971,6 +1192,8 @@ func _end() -> void:
 	hud.clear_text()
 	create_tween().tween_property(hud.fade, "color:a", 1.0, 1.5)
 	await _wait(1.6)
+	_ending = true
+	sfx.play("boom", -5.0)
 	_chapter_map()
 	await _wait(10.0)
 	if _shotlog != "":
@@ -1008,9 +1231,12 @@ func _pause() -> void:
 	if get_tree().paused:
 		return
 	get_tree().paused = true
+	sfx.duck(true)
 	hud.show_pause()
 	var id: String = await hud.menu_pick
+	sfx.play("ui_click", -4.0)
 	hud.hide_menu()
+	sfx.duck(false)
 	get_tree().paused = false
 	if id == "menu":
 		get_tree().reload_current_scene()
@@ -1020,6 +1246,7 @@ func _pause() -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
+	_sound(delta)
 	for who in _walks.keys():
 		var wk: Array = _walks[who]
 		var a: Actor = actors[who]

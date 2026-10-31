@@ -14,6 +14,8 @@ var look_w := 0.0
 var talk_text := ""
 var talk_t := -1.0
 var talk_dur := 0.0
+var talk_words: Array = []      # голос: [[начало, слово], …] — буквы губ идут по словам озвучки
+var talk_env := ""              # голос: громкость по 40 мс (0…9) — челюсть открывается по звуку
 var blink_t := 2.0
 var expr := {}                  # постоянное выражение: {форма → вес} (страх, слёзы…)
 var _head := -1
@@ -150,11 +152,33 @@ func play(c: String, at := 0.0) -> void:
 	ap.seek(at, true)
 
 
-## Реплика: губы по буквам текста за dur секунд.
-func say(text: String, dur: float) -> void:
+## Реплика: губы по буквам текста за dur секунд. С озвучкой — words ([[начало, слово]]) и env (громкость по 40 мс):
+## буква — из слова, которое звучит сейчас, челюсть — по громкости голоса.
+func say(text: String, dur: float, words: Array = [], env := "") -> void:
 	talk_text = text.to_lower()
 	talk_t = 0.0
 	talk_dur = maxf(0.4, dur)
+	talk_words = words
+	talk_env = env
+
+
+## Буква губ в момент t: по словам озвучки (слово до следующего или +0,45 с) или ровно по тексту.
+func _talk_char(t: float) -> String:
+	if talk_words.is_empty():
+		var i := int(t / talk_dur * talk_text.length())
+		return talk_text[i] if i < talk_text.length() else " "
+	for j in range(talk_words.size() - 1, -1, -1):
+		var w: Array = talk_words[j]
+		var t0 := float(w[0])
+		if t < t0:
+			continue
+		var word := String(w[1]).to_lower()
+		var t1 := float(talk_words[j + 1][0]) if j + 1 < talk_words.size() else t0 + 0.08 * word.length() + 0.1
+		t1 = minf(t1, t0 + 0.09 * word.length() + 0.15)
+		if t >= t1 or word.is_empty():
+			return " "
+		return word[mini(word.length() - 1, int((t - t0) / (t1 - t0) * word.length()))]
+	return " "
 
 
 func _process(delta: float) -> void:
@@ -191,10 +215,14 @@ func _process(delta: float) -> void:
 		if f >= 1.0:
 			talk_t = -1.0
 		else:
-			var i := int(f * talk_text.length())
-			var ch := talk_text[i] if i < talk_text.length() else " "
+			var ch := _talk_char(talk_t)
 			var v: String = VIS.get(ch, "")
 			var open := 0.0 if ch in [" ", ".", ",", "!", "?", "…", "-", "—"] else 0.35 + 0.25 * sin(talk_t * 21.0)
+			if talk_env != "":   # озвучка: челюсть по громкости голоса
+				var ei := int(talk_t / 0.04)
+				open = (float(talk_env.unicode_at(ei) - 48) / 9.0) * 0.75 if ei < talk_env.length() else 0.0
+				if ch == " ":
+					v = ""
 			if v != "":
 				W[v] = 0.7
 			W["jawOpen"] = open * (0.5 if v in ["viseme_PP", "viseme_FF"] else 1.0)
