@@ -1224,6 +1224,18 @@ static func _lake_stage(g) -> void:
 static func _kid(g, show: bool) -> void:
 	var kid := actor(g, "noah_kid", "noah_kid" if ResourceLoader.exists("res://assets/chars/noah_kid.glb") else "danny")
 	kid.visible = show
+	var lk := lake(g)
+	var fill := lk.get_node_or_null("kid_fill") as OmniLight3D
+	if fill == null:   # дневной свет сквозь щель — на лицо, без теней: при чётких тенях («Ультра») доски клали на рот чёрную полосу
+		fill = OmniLight3D.new()
+		fill.name = "kid_fill"
+		fill.light_color = Color(0.86, 0.9, 1.0)
+		fill.light_energy = 0.55
+		fill.omni_range = 1.3
+		fill.shadow_enabled = false
+		lk.add_child(fill)
+		fill.global_position = lpos(GAP.x, GAP.y + 0.05, GAP.z - 0.2)
+	fill.visible = show
 	if show:
 		put(g, "noah_kid", lpos(GAP.x, 0.28, GAP.z + 0.45), 180.0, "Idle")
 		g.c4["kid_align"] = 6   # несколько кадров: глаза — точно в щель

@@ -26,6 +26,7 @@ var _qte_gap := 0.7           # rock: не чаще одного нажатия 
 var _qte_got := 0             # сколько нажатий уже засчитано (для постановки: качать младенца в такт)
 var _rng := RandomNumberGenerator.new()
 var log_lines: Array[String] = []
+var _pad := false            # последним трогали геймпад (подсказки действий — под него)
 var _snaps: Array = []
 var _snapdir := ""
 var _walks := {}
@@ -45,6 +46,8 @@ var _pitch := 0.0             # клевок кузова при торможе�
 var _pitch_v := 0.0
 const BUMPER := -2.94         # передний бампер машины (z в осях машины)
 var sfx: Sfx                  # звук: фоны мест, петли, разовые (scripts/audio.gd)
+var settings := Settings.new() # настройки игрока (scripts/settings.gd): качество, экран, громкость, субтитры, язык
+var _pc := true                # Forward+ (ПК) или упрощённый рендер
 var _scene_id := ""
 var _underwater := false      # пролог: под водой
 var _blackout := false        # провал: всё глохнет
@@ -77,12 +80,21 @@ const EXPR := {"fear": {"browInnerUp": 0.8, "eyeWideLeft": 0.7, "eyeWideRight": 
 
 func _ready() -> void:
 	process_priority = 10   # режиссёр — после мира: дорога и герои уже сдвинулись за кадр, камера ставится без отставания
+	_pad_buttons()
+	_pad = not Input.get_connected_joypads().is_empty()
+	Input.joy_connection_changed.connect(func(_d: int, on: bool): _pad = on or not Input.get_connected_joypads().is_empty())
 	var args := OS.get_cmdline_user_args()
 	autoplay = "--autoplay" in args
+	settings.load_cfg()
+	if settings.lang != "":
+		lang = settings.lang
+	elif OS.get_locale_language() not in ["ru", "uk", "be", "kk"]:   # первый запуск: язык системы
+		lang = "en"
 	if "--lang" in args:
 		lang = args[args.find("--lang") + 1]
 	_rng.seed = 7 if not ("--seed" in args) else int(args[args.find("--seed") + 1])
 	var pc := RenderingServer.get_current_rendering_method() == "forward_plus"
+	_pc = pc
 	scene = DriveScene.new()
 	add_child(scene)
 	scene.setup(pc)
@@ -96,6 +108,15 @@ func _ready() -> void:
 	add_child(hud)
 	sfx = Sfx.new()
 	add_child(sfx)
+	if settings.quality < 0:
+		settings.quality = Settings.auto_quality(pc)
+	if autoplay:   # прогоны для проверки — всегда «Высокое», окно (кадры сравнимы)
+		settings.quality = 2
+	else:
+		settings.apply_display()
+	if "--quality" in args:   # проверка уровней качества: --quality 0…3
+		settings.quality = clampi(int(args[args.find("--quality") + 1]), 0, 3)
+	_apply_settings()
 	data = JSON.parse_string(FileAccess.get_file_as_string("res://data/ch1.json"))
 	data["chapter"] = 1
 	_chapters[1] = {"start": String(data.start), "ready": true}
@@ -147,10 +168,27 @@ func _ready() -> void:
 	if "--shots" in args:   # проверка планов: каждый план — снимок, без сценария: --shots pov,hands,iris --snapdir папка
 		_shots(String(args[args.find("--shots") + 1]).split(","), args[args.find("--snapdir") + 1] if "--snapdir" in args else "user://")
 		return
+	if ("--inputtest" in args or "--uitest" in args) and ResourceLoader.exists("res://scripts/dev/input_test.gd"):
+		add_child((load("res://scripts/dev/input_test.gd") as GDScript).new())   # проверка управления (только в проекте, не в сборке)
 	if autoplay or "--scene" in args or "--menu-skip" in args:
 		_run(start)
 	else:
 		_menu()
+
+
+## Геймпад: в этой версии Godot у ui_accept / ui_cancel нет кнопок геймпада (только Enter, пробел, Esc) — без этого A не выбирает
+## ответ, не листает реплики, не жмёт в действиях, а B не закрывает меню. Добавляем A и B (любой геймпад).
+static func _pad_buttons() -> void:
+	for pair in [["ui_accept", JOY_BUTTON_A], ["ui_cancel", JOY_BUTTON_B]]:
+		var has := false
+		for ev in InputMap.action_get_events(String(pair[0])):
+			if ev is InputEventJoypadButton and (ev as InputEventJoypadButton).button_index == int(pair[1]):
+				has = true
+		if not has:
+			var jb := InputEventJoypadButton.new()
+			jb.button_index = int(pair[1]) as JoyButton
+			jb.device = -1
+			InputMap.action_add_event(String(pair[0]), jb)
 
 
 ## Главное меню поверх ночной трассы: новая игра, продолжить с контрольной точки, язык, выход.
@@ -166,6 +204,17 @@ func _menu() -> void:
 		sfx.play("ui_click", -4.0)
 		if id == "lang":
 			lang = "en" if lang == "ru" else "ru"
+			continue
+		if id == "settings":
+			await _settings_screen()
+			continue
+		if id == "tree":
+			await _tree_screen()
+			if _tree_start != "":   # «переиграть отсюда» — сцена и флаги этой контрольной точки
+				hud.hide_menu()
+				_menu_mode = false
+				_play_checkpoint(_tree_start)
+				return
 			continue
 		hud.hide_menu()
 		_menu_mode = false
@@ -195,7 +244,12 @@ func _load_save() -> bool:
 		flags[k] = j.flags[k]
 	lang = String(j.get("lang", lang))
 	hud.lang = lang
-	var id := String(j.scene)
+	_resume_at(String(j.scene))
+	return true
+
+
+## Начать с контрольной точки (продолжить или «переиграть отсюда»): что видно — по флагам, сцена — с начала.
+func _resume_at(id: String) -> void:
 	if float(flags.get("lamp", 0)) > 0.0:
 		scene.car.break_lamp()
 	if float(flags.get("danny", 0)) > 0.0 and (id in ["s7", "s8"] or id.begins_with("c")) and not actors.has("danny"):
@@ -212,7 +266,6 @@ func _load_save() -> bool:
 	elif id.begins_with("c5"):
 		Ch5.restore(self, id)   # глава 5: дача, лёд у мостков
 	_run(id)
-	return true
 
 
 ## Ной за рулём, Айрис рядом — свои герои (tools/lake/chars.json → assets/chars).
@@ -234,10 +287,13 @@ func _cast() -> void:
 	actors.iris = iris
 	await get_tree().process_frame
 	await get_tree().process_frame
-	scene.car.seat(noah, Car.DRIVER)
-	scene.car.seat(iris, Car.PASSENGER)
+	if noah.get_parent() == scene.car:   # сцена могла уже вывести героев из машины (--scene сразу в главу 5)
+		scene.car.seat(noah, Car.DRIVER)
+	if iris.get_parent() == scene.car:
+		scene.car.seat(iris, Car.PASSENGER)
 	await get_tree().process_frame
-	scene.car.fit_wheel(noah)
+	if noah.get_parent() == scene.car:
+		scene.car.fit_wheel(noah)
 
 
 func _run(id: String) -> void:
@@ -249,6 +305,7 @@ func _run(id: String) -> void:
 	_scene_id = id
 	if sc.get("save", false) and not autoplay:
 		_save(id)
+		_checkpoint(id)
 	if id == _stop:
 		get_tree().quit()
 		return
@@ -310,11 +367,11 @@ func _beat(b: Dictionary):
 		sfx.voice_stop()
 		hud.clear_text()
 	elif b.has("text"):
-		hud.show_note(b.text)
+		hud.show_note(b.text, _on_black(b))
 		await _wait(float(b.get("dur", 2.5)))
 		hud.clear_text()
 	elif b.has("note") and b.note is Dictionary:
-		hud.show_note(b.note)
+		hud.show_note(b.note, _on_black(b))
 		await _wait(float(b.get("dur", 2.0)))
 		hud.clear_text()
 	elif b.has("dur"):
@@ -324,7 +381,7 @@ func _beat(b: Dictionary):
 		if c.has("shot"):
 			_cut(String(c.shot))
 		var opts: Array = (c.opts as Array).filter(func(o): return not (o as Dictionary).has("if") or _cond(o["if"]))
-		hud.choice(opts, float(c.get("t", 6)))
+		hud.choice(opts, float(c.get("t", 6)) * (1.6 if settings.choice_long else 1.0))
 		if autoplay:
 			var want: int = (_forced.pop_front() if not _forced.is_empty() else _rng.randi() % opts.size())
 			get_tree().create_timer(1.0).timeout.connect(func(): if hud.choosing(): hud.pick(clampi(want, 0, opts.size() - 1)))
@@ -369,6 +426,10 @@ func _shots(list: Array, dir: String) -> void:
 		if sh == "st_tv" and scene.props.has("news"):   # кадр новостей целиком — проверить надписи
 			(scene.props["news"] as NewsTV).news.get_texture().get_image().save_png("%s/news_screen.png" % dir)
 	get_tree().quit()
+
+
+func _on_black(b: Dictionary) -> bool:   # экран чёрный и не проявляется в этом шаге — текст посередине, как титр
+	return hud.fade.color.a > 0.85 and String(b.get("fx", "")) not in ["wake", "fade_in"]
 
 
 func _wait(t: float) -> void:
@@ -1101,7 +1162,8 @@ func _jolt(k: float) -> void:
 
 
 func _do_peek(t: float, hint_d) -> bool:
-	hud.hint.text = hud.T(hint_d) if hint_d != null else ""
+	var hint_raw: String = hud.T(hint_d) if hint_d != null else ""
+	hud.hint.text = _keys(hint_raw)
 	var left := t
 	var seen := false
 	while left > 0.0:
@@ -1109,6 +1171,7 @@ func _do_peek(t: float, hint_d) -> bool:
 		left -= _dt()
 		if get_tree().paused:
 			continue
+		hud.hint.text = _keys(hint_raw)
 		if autoplay:
 			seen = not ("peek" in _miss) and t - left > 0.8
 		elif Input.is_key_pressed(KEY_Q) or Input.is_key_pressed(KEY_UP) or Input.is_key_pressed(KEY_TAB) \
@@ -1121,7 +1184,8 @@ func _do_peek(t: float, hint_d) -> bool:
 
 
 func _do_qte(kind: String, t: float, hint_d) -> bool:
-	var hint0: String = hud.T(hint_d) if hint_d != null else ""
+	var hint_raw: String = hud.T(hint_d) if hint_d != null else ""
+	var hint0 := _keys(hint_raw)
 	hud.hint.text = hint0
 	_qte = kind
 	_qte_ok = kind not in ["mash", "press", "rock"]   # жать: удалось, только если набрали нужное число нажатий
@@ -1136,6 +1200,12 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 		await get_tree().process_frame
 		var dt := _dt()
 		left -= dt
+		if get_tree().paused:   # пауза: нажатия в меню паузы (A — «Продолжить») в действие не идут
+			held_prev = true
+			continue
+		hint0 = _keys(hint_raw)
+		if kind == "steer" or (kind == "brake" and _brake_a == 0.0):
+			hud.hint.text = hint0
 		if kind == "rock":   # укачать: медленно, в ритм — нажал раньше, чем через _qte_gap, — младенец снова хнычет (−1)
 			var held_r := Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_SPACE) or Input.is_action_pressed("ui_accept") \
 				or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
@@ -1295,6 +1365,7 @@ func _chapter_map() -> void:
 		var pick := (r.ids as Array).find(_map_pick(String(r.key)))
 		if pick >= 0:
 			prog["ch1:%s:%s" % [r.key, r.ids[pick]]] = true
+			prog["last:ch1:%s" % r.key] = String(r.ids[pick])   # дерево выборов: путь последнего прохождения
 		var seen := []
 		for id in r.ids:
 			var sn := prog.has("ch1:%s:%s" % [r.key, id])
@@ -1393,6 +1464,7 @@ func _chapter_map_n(n: int) -> void:
 				break
 		if pick >= 0:
 			prog["ch%d:%s:%s" % [n, r.key, opts[pick].id]] = true
+			prog["last:ch%d:%s" % [n, r.key]] = String(opts[pick].id)
 		var seen := []
 		var names := []
 		for o in opts:
@@ -1416,17 +1488,56 @@ func _log(s: String) -> void:
 
 
 func _unhandled_input(e: InputEvent) -> void:
-	if e is InputEventKey and e.pressed and not e.echo and (e as InputEventKey).keycode == KEY_ESCAPE and not _menu_mode:
+	if e.is_echo():
+		return
+	var key := e as InputEventKey
+	if key and key.pressed and (key.keycode == KEY_F11 or (key.keycode == KEY_ENTER and key.alt_pressed)):   # полный экран
+		settings.fullscreen = not settings.fullscreen
+		settings.apply_display()
+		settings.save()
+		get_viewport().set_input_as_handled()
+		return
+	var pause_in: bool = (key != null and key.pressed and key.keycode in [KEY_ESCAPE, KEY_P]) \
+		or (e is InputEventJoypadButton and e.pressed and (e as InputEventJoypadButton).button_index == JOY_BUTTON_START)
+	if pause_in and not _menu_mode and not hud.menu_open() and not hud.settings_open():
 		_pause()
 		return
-	if e is InputEventKey and e.pressed and not e.echo:
-		var k := (e as InputEventKey).keycode
-		if hud.choosing() and k >= KEY_1 and k <= KEY_3:
-			hud.pick_number(k - KEY_0)
-		elif k == KEY_SPACE or k == KEY_ENTER:
-			_skip = true
-	elif e is InputEventMouseButton and e.pressed and not hud.choosing():
-		_skip = true
+	if hud.choosing():   # выбор: цифры 1–9 (и цифровой блок), стрелки / крестовина — выделить, Enter / A — выбрать
+		if key and key.pressed:
+			if key.keycode >= KEY_1 and key.keycode <= KEY_9:
+				hud.pick_number(key.keycode - KEY_0)
+				return
+			if key.keycode >= KEY_KP_1 and key.keycode <= KEY_KP_9:
+				hud.pick_number(key.keycode - KEY_KP_0)
+				return
+		if e.is_action_pressed("ui_up") or e.is_action_pressed("ui_down") or e.is_action_pressed("ui_left") \
+				or e.is_action_pressed("ui_right") or e.is_action_pressed("ui_focus_next"):
+			hud.focus_choice()
+			get_viewport().set_input_as_handled()
+		return
+	if e.is_action_pressed("ui_accept") or (e is InputEventMouseButton and e.pressed and (e as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT):
+		_skip = true   # дальше: пробел, Enter, клик, A на геймпаде
+
+
+## Чем играют: тронули геймпад — подсказки в действиях под него («A» вместо «E / пробел»), клавиатура или мышь — обратно.
+func _input(e: InputEvent) -> void:
+	if e is InputEventJoypadButton or (e is InputEventJoypadMotion and absf((e as InputEventJoypadMotion).axis_value) > 0.5):
+		_pad = true
+	elif e is InputEventKey or e is InputEventMouseButton:
+		_pad = false
+
+
+const PAD_KEYS := {"ru": [["E / пробел", "A"], ["A / D или стрелки", "стик или крестовина"], ["S / ↓ / пробел", "A / ↓"],
+		["Q / ↑", "↑ на крестовине"]],
+	"en": [["E / Space", "A"], ["A / D or arrow keys", "stick or D-pad"], ["S / ↓ / Space", "A / ↓"], ["Q / ↑", "D-pad ↑"]]}
+
+
+func _keys(s: String) -> String:   # подсказка действия под геймпад
+	if not _pad:
+		return s
+	for pr in PAD_KEYS.get(lang, PAD_KEYS.en):
+		s = s.replace(String(pr[0]), String(pr[1]))
+	return s
 
 
 ## Пауза: всё стоит (герои, машина, таймер выбора), меню поверх.
@@ -1438,6 +1549,11 @@ func _pause() -> void:
 	hud.show_pause()
 	var id: String = await hud.menu_pick
 	sfx.play("ui_click", -4.0)
+	while id == "settings":   # настройки из паузы — и обратно в паузу
+		await _settings_screen()
+		hud.show_pause()
+		id = await hud.menu_pick
+		sfx.play("ui_click", -4.0)
 	hud.hide_menu()
 	sfx.duck(false)
 	get_tree().paused = false
@@ -1497,3 +1613,204 @@ func _process(delta: float) -> void:
 	var road := 0.004 if _shot in ["pov", "road", "hands"] else 0.002
 	cam.rotate_object_local(Vector3.RIGHT, sin(_t * 1.7) * 0.004 + sin(_t * 23.0) * road + (randf() - 0.5) * 0.03 * _shake)
 	cam.rotate_object_local(Vector3.UP, sin(_t * 1.1) * 0.005 + (randf() - 0.5) * 0.03 * _shake + _qte_drift * 0.12)
+
+
+
+## Применить все настройки: качество графики, яркость, громкость, субтитры.
+func _apply_settings() -> void:
+	settings.apply_quality(get_viewport(), scene.env, _pc)
+	settings.apply_brightness(scene.env)
+	sfx.set_volumes(settings.vol)
+	hud.set_subs_big(settings.subs_big)
+
+
+## Экран настроек (из меню или паузы): всё меняется сразу, при выходе — в файл.
+func _settings_screen() -> void:
+	hud.hide_menu()
+	hud.show_settings(settings)
+	var cb := func(key: String, v: Variant): _on_setting(key, v)
+	hud.settings_changed.connect(cb)
+	await hud.settings_closed
+	hud.settings_changed.disconnect(cb)
+	settings.lang = lang
+	settings.save()
+
+
+func _on_setting(key: String, v: Variant) -> void:
+	match key:
+		"quality":
+			settings.quality = int(v)
+			settings.apply_quality(get_viewport(), scene.env, _pc)
+		"fullscreen":
+			settings.fullscreen = int(v) == 1
+			settings.apply_display()
+		"vsync":
+			settings.vsync = int(v) == 1
+			settings.apply_display()
+		"brightness":
+			settings.brightness = float(v)
+			settings.apply_brightness(scene.env)
+		"master", "music", "sfx", "voice":
+			settings.vol[key] = float(v)
+			sfx.set_volumes(settings.vol)
+		"subs_big":
+			settings.subs_big = int(v) == 1
+			hud.set_subs_big(settings.subs_big)
+		"choice_long":
+			settings.choice_long = int(v) == 1
+		"lang":
+			lang = "ru" if int(v) == 0 else "en"
+			hud.lang = lang
+			settings.lang = lang
+			hud.show_settings(settings)   # подписи — на новом языке
+
+
+
+# ---------- дерево выборов: развилки каждой главы, открытые и закрытые ветки, переиграть с контрольной точки ----------
+const CHECKPOINTS := "user://lake_checkpoints.json"   # снимок флагов на каждой контрольной точке (для «переиграть отсюда»)
+const CP_TITLES := {
+	"prologue": ["Пролог", "Prologue"], "s3": ["Лесная трасса", "The forest road"], "s4": ["Лампа бензина", "Low fuel"],
+	"s5": ["Заправка «24»", "Gas station 24"], "s7": ["Отъезд", "Leaving"],
+	"c2_recap": ["Ранее", "Previously"], "c2_s1": ["Попутчица", "The hitchhiker"], "c2_s3": ["Пост полиции", "Police checkpoint"],
+	"c2_s4": ["Кафе «У трёх сосен»", "Three Pines diner"], "c2_s5": ["Чёрный седан", "The black sedan"], "c2_s6": ["Ева на крыльце", "Eva on the porch"],
+	"c2_s6_road": ["Буран", "The blizzard"],
+	"c3_recap": ["Ранее", "Previously"], "c3_s1": ["Сугроб", "The snowdrift"], "c3_s3": ["Роды", "The birth"], "c3_s4": ["У печи", "By the stove"],
+	"c3_s6": ["Утро и седан", "Morning, the sedan"],
+	"c4_recap": ["Ранее", "Previously"], "c4_s1": ["Двор и буханка", "The yard, the van"], "c4_s3": ["Остановка", "The bus stop"],
+	"c4_s5": ["Поваленная сосна", "The fallen pine"], "c4_s6": ["Избушка", "The hut"], "c4_s7": ["Озеро", "The lake"],
+	"c5_recap": ["Ранее", "Previously"], "c5_s1": ["Дача", "The lake house"], "c5_s2": ["Сарай", "The boathouse"], "c5_s3": ["Хейл на льду", "Hale on the ice"],
+	"c5_s4": ["Трещина", "The crack"], "c5_mama": ["«Мама»", "“Mother”"], "c5_shore": ["Берег", "The shore"],
+	"c5_witness": ["Концовка «Свидетель»", "Ending “Witness”"], "c5_shadow": ["Концовка «Тень»", "Ending “Shadow”"],
+	"c5_shadow_dark": ["«Тень»: тьма", "“Shadow”: darkness"], "c5_ice": ["Концовка «Лёд»", "Ending “Ice”"], "c5_oblivion": ["Концовка «Забытьё»", "Ending “Oblivion”"]}
+const MAP1_FLAGS := {"deer": ["deer"], "pills": ["pills", "threw"], "roman": ["roman_ally", "roman_dead", "roman_hurt", "police_late"],
+	"danny": ["danny"], "mirror": ["mirror"]}
+var _tree_start := ""
+
+
+func _json_file(path: String) -> Dictionary:
+	if FileAccess.file_exists(path):
+		var j = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if j is Dictionary:
+			return j
+	return {}
+
+
+func _checkpoint(id: String) -> void:
+	var cps := _json_file(CHECKPOINTS)
+	cps[id] = {"flags": flags.duplicate(), "lang": lang}
+	var f := FileAccess.open(CHECKPOINTS, FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify(cps))
+
+
+func _chapter_of(id: String) -> int:
+	if id.length() > 2 and id[0] == "c" and id[2] == "_":
+		return int(id[1])
+	return 1
+
+
+## Дерево по главам: контрольные точки по порядку сюжета, под каждой — её развилки (варианты: открыт / путь прошлого раза / «?»).
+func _tree_data() -> Array:
+	var prog := _json_file("user://lake_progress.json")
+	var cps := _json_file(CHECKPOINTS)
+	var ru := lang == "ru"
+	var out := []
+	for n in range(1, 6):
+		if not _chapters.has(n):
+			continue
+		var order: Array = []
+		for sid in data.scenes:
+			if _chapter_of(String(sid)) == n:
+				order.append(String(sid))
+		var sets := {}   # сцена → какие флаги она ставит
+		for sid in order:
+			var fl := []
+			for b in data.scenes[sid].beats:
+				if (b as Dictionary).has("set") and b.set is Dictionary:
+					fl.append_array((b.set as Dictionary).keys())
+			sets[sid] = fl
+		var sections := []
+		var sec_of := {}   # сцена → номер раздела (последняя контрольная точка до неё)
+		for sid in order:
+			if data.scenes[sid].get("save", false):
+				var tt: Array = CP_TITLES.get(sid, [sid, sid])
+				sections.append({"cp": sid, "title": String(tt[0] if ru else tt[1]), "reached": cps.has(sid), "rows": []})
+			sec_of[sid] = maxi(0, sections.size() - 1)
+		if sections.is_empty():
+			continue
+		var rows_src: Array = MAP1 if n == 1 else _chapters[n].get("map", [])
+		var opened := 0
+		var total := 0
+		var end_row = null
+		for r in rows_src:
+			var key := String(r.key)
+			var row := {"name": String(r.get(lang, r.ru)), "opts": []}
+			var ids: Array = []
+			var names: Array = []
+			var fl_row: Array = []
+			if n == 1:
+				ids = r.ids
+				names = r.get("o_" + lang, r.o_ru)
+				fl_row = MAP1_FLAGS.get(key, [])
+			else:
+				for o in r.opts:
+					ids.append(String(o.id))
+					names.append(String(o.get(lang, o.ru)))
+					for fk in (o.get("if", {}) as Dictionary):
+						if fk not in fl_row:
+							fl_row.append(fk)
+			var last := String(prog.get("last:ch%d:%s" % [n, key], ""))
+			for i in ids.size():
+				var seen := prog.has("ch%d:%s:%s" % [n, key, ids[i]])
+				opened += 1 if seen else 0
+				total += 1
+				row.opts.append({"text": String(names[i]), "seen": seen, "last": seen and String(ids[i]) == last})
+			if key == "end":
+				end_row = row
+				continue
+			var sec := sections.size() - 1
+			for sid in order:
+				var hit := false
+				for fk in fl_row:
+					if fk in sets[sid]:
+						hit = true
+				if hit:
+					sec = int(sec_of[sid])
+					break
+			(sections[sec].rows as Array).append(row)
+		var title := "ГЛАВА 1 · КРОВЬ НА РУКАХ" if ru else "CHAPTER 1 · BLOOD ON HIS HANDS"
+		if n > 1:
+			var td: Dictionary = _chapters[n].get("title", {})
+			title = String(td.get(lang, td.get("ru", "")))
+		out.append({"n": n, "title": title, "sections": sections, "end": end_row, "opened": opened, "total": total})
+	return out
+
+
+## Экран дерева (из главного меню): выбрать главу, посмотреть развилки, «переиграть отсюда».
+func _tree_screen() -> void:
+	_tree_start = ""
+	hud.hide_menu()
+	var data_t := _tree_data()
+	var cur := 0
+	var cps := _json_file(CHECKPOINTS)
+	for i in data_t.size():   # открыть на последней главе, до которой дошли
+		for sec in data_t[i].sections:
+			if cps.has(sec.cp):
+				cur = i
+	hud.show_tree(data_t, cur)
+	_tree_start = String(await hud.tree_closed)
+
+
+## «Переиграть отсюда»: флаги этой контрольной точки (как были, когда игрок её прошёл), сцена — с начала.
+func _play_checkpoint(id: String) -> void:
+	var cps := _json_file(CHECKPOINTS)
+	if not cps.has(id) or not data.scenes.has(id):
+		flags = (data.flags as Dictionary).duplicate()
+		_run(String(data.start))
+		return
+	flags = (data.flags as Dictionary).duplicate()
+	var snap: Dictionary = cps[id].get("flags", {})
+	for k in snap:
+		flags[k] = snap[k]
+	_save(id)
+	_resume_at(id)

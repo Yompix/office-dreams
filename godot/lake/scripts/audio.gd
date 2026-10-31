@@ -9,6 +9,7 @@ extends Node
 
 const OFF := -60.0
 const ALIAS := {"deer_steps": "snow_steps"}   # вторая петля из того же файла (шаги оленя)
+const MUSIC := ["lake_theme", "lake_end", "map_theme"]   # музыка (шина Music), остальное — шина SFX, голоса — Voice
 var _beds := {}                                # имя → [плеер, нужная громкость, нужная высота, текущая громкость]
 var _pool: Array[AudioStreamPlayer] = []
 var _cache := {}
@@ -25,11 +26,19 @@ func _ready() -> void:
 		var j = JSON.parse_string(FileAccess.get_file_as_string("res://snd/levels.json"))
 		if j is Dictionary:
 			_gain = j
+	for bn in ["Music", "SFX", "Voice"]:   # свои шины: громкость музыки, звуков и голосов — отдельно (настройки)
+		if AudioServer.get_bus_index(bn) < 0:
+			AudioServer.add_bus()
+			var i := AudioServer.bus_count - 1
+			AudioServer.set_bus_name(i, bn)
+			AudioServer.set_bus_send(i, "Master")
 	for i in 12:
 		var p := AudioStreamPlayer.new()
+		p.bus = "SFX"
 		add_child(p)
 		_pool.append(p)
 	_vo = AudioStreamPlayer.new()
+	_vo.bus = "Voice"
 	add_child(_vo)
 
 
@@ -67,6 +76,7 @@ func bed(name: String, db: float, pitch := 1.0) -> void:
 		var p := AudioStreamPlayer.new()
 		p.stream = s
 		p.volume_db = OFF
+		p.bus = "Music" if name in MUSIC else "SFX"
 		add_child(p)
 		b = [p, db, pitch, OFF]
 		_beds[name] = b
@@ -113,6 +123,7 @@ func play(name: String, db := 0.0, pitch := 1.0, delay := 0.0) -> void:
 	if p == null:
 		p = _pool[0]
 	p.stream = s
+	p.bus = "Music" if name in MUSIC else "SFX"
 	p.volume_db = db + gain(name)
 	p.pitch_scale = pitch
 	p.play()
@@ -146,6 +157,15 @@ func voice_stop() -> void:
 func set_master(v: float) -> void:
 	master = clampf(v, 0.0, 1.0)
 	_apply_bus()
+
+
+## Громкость из настроек: master (общая), music, sfx, voice — 0…1.
+func set_volumes(vol: Dictionary) -> void:
+	for k in ["music", "sfx", "voice"]:
+		var i := AudioServer.get_bus_index({"music": "Music", "sfx": "SFX", "voice": "Voice"}[k])
+		if i >= 0:
+			AudioServer.set_bus_volume_db(i, linear_to_db(maxf(float(vol.get(k, 1.0)), 0.0001)))
+	set_master(float(vol.get("master", 1.0)))
 
 
 ## Пауза: всё на 14 дБ тише.

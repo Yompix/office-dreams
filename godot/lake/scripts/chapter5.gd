@@ -80,7 +80,7 @@ static func fx(g, k: String) -> bool:
 			put(g, "noah", L(-12.6, 0.0, 1.6), -100.0, "Walk")
 			put(g, "iris", L(-12.2, 0.0, 3.0), -110.0, "Idle_FoldArms")
 		"key":
-			put(g, "noah", L(-13.8, 0.0, 0.4), -90.0, "Crouch_Idle")
+			put(g, "noah", L(-14.1, 0.0, 0.4), -90.0, "Crouch_Idle")   # у самой ступеньки — рука под ней
 			_key(g)
 			g.sfx.play("trunk", -18.0, 1.6)
 		"boards":
@@ -1165,7 +1165,7 @@ static func cam(g, shot: String) -> bool:
 		"dacha_front":
 			_look(c, L(-5.5, 1.7, -5.0), L(-18.0, 1.4, 0.0), 44.0)
 		"porch_step":
-			_look(c, L(-12.9, 0.95, 1.4), L(-14.6, 0.2, 0.0), 36.0)
+			_look(c, L(-14.15, 0.78, 2.35), L(-14.5, 0.36, 0.3), 38.0)   # сбоку: Ной на корточках, ступенька и рука с ключом
 		"dacha_window":
 			_look(c, L(-13.6, 1.6, 3.4), L(-17.0, 1.9, 2.0), 40.0)
 		"dacha_room":
