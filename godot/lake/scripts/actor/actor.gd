@@ -29,6 +29,8 @@ var breeze := 0.0                # ветер снаружи (0 — в маши�
 var wave := 0.0                  # машет обеими руками над головой (0…1): голосует на обочине, зовёт издалека
 var _wave_w := 0.0
 var _wave_t := 0.0
+var reach := {}                  # тянуть руку к точке (мир): {"_r": Vector3, "_l": Vector3} — взять за руку, дотронуться
+var _reach_w := 0.0
 var _eye := Vector2.ZERO         # куда смотрят глаза (вправо/вверх, доля полного хода); мелкие рывки — саккады
 var _eye_to := Vector2.ZERO
 var _sacc_t := 0.6
@@ -237,6 +239,7 @@ func _process(delta: float) -> void:
 	_update_blood()
 	_update_hair(delta)
 	_update_wave(delta)
+	_update_reach(delta)
 	# взгляд: голова и шея поворачиваются к точке (поверх клипа)
 	look_w = move_toward(look_w, 1.0 if look_target != null else 0.0, delta * 2.5)
 	if look_w > 0.001 and _head >= 0 and look_target != null:
@@ -272,6 +275,24 @@ func _update_wave(delta: float) -> void:
 		var sw := sin(_wave_t * 6.5 + float(side[2]))
 		_aim_bone("upperarm" + side[1], "lowerarm" + side[1], (up * 0.85 + out * 0.5 + fwd * 0.18).normalized(), _wave_w)
 		_aim_bone("lowerarm" + side[1], "hand" + side[1], (up + out * (0.05 + 0.42 * sw) + fwd * 0.12).normalized(), _wave_w)
+
+
+## Рука тянется к точке: плечо — к ней и чуть вниз (локоть согнут), предплечье — прямо в точку.
+func _update_reach(delta: float) -> void:
+	_reach_w = move_toward(_reach_w, 1.0 if not reach.is_empty() else 0.0, delta * 2.0)
+	if _reach_w < 0.001 or reach.is_empty():
+		return
+	var down := -skel.global_transform.basis.y.normalized()
+	for side in reach:
+		var tgt: Vector3 = reach[side]
+		var b := skel.find_bone("upperarm" + side)
+		if b < 0:
+			continue
+		var sh := (skel.global_transform * skel.get_bone_global_pose(b)).origin
+		_aim_bone("upperarm" + side, "lowerarm" + side, ((tgt - sh).normalized() + down * 0.35).normalized(), _reach_w)
+		var e := skel.find_bone("lowerarm" + side)
+		var el := (skel.global_transform * skel.get_bone_global_pose(e)).origin
+		_aim_bone("lowerarm" + side, "hand" + side, (tgt - el).normalized(), _reach_w)
 
 
 ## Повернуть кость так, чтобы она смотрела (от себя к дочерней) по направлению dir (мир); w — доля поворота.

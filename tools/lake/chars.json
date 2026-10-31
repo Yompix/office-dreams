@@ -472,5 +472,101 @@
     0.4
    ]
   }
+ },
+ "nina": {
+  "_who": "Нина, 52: официантка кафе «У трёх сосен» (глава 2), полная, светлое каре с сединой, форменное платье",
+  "brows": "eyebrow011/eyebrow011.mhclo",
+  "clothes": [
+   "toigo_shift_dress/toigo_shift_dress.mhclo",
+   "toigo_ankle_boots_female/toigo_ankle_boots_female.mhclo"
+  ],
+  "hair": "bob02/bob02.mhclo",
+  "phenotype": {
+   "age": 0.66,
+   "cupsize": 0.62,
+   "firmness": 0.4,
+   "gender": 0,
+   "height": 0.42,
+   "muscle": 0.4,
+   "proportions": 0.5,
+   "race": {
+    "african": 0.03,
+    "asian": 0.03,
+    "caucasian": 0.94
+   },
+   "weight": 0.74
+  },
+  "skin": "middleage_caucasian_female/middleage_caucasian_female.mhmat",
+  "targets": {
+   "head-round": 0.35,
+   "l-eye-bag-incr": 0.3,
+   "r-eye-bag-incr": 0.3,
+   "mouth-scale-horiz-incr": 0.1
+  },
+  "tint": {
+   "ShiftDress": [
+    0.55,
+    0.78,
+    0.8
+   ],
+   "BootsAnkle.png": [
+    0.12,
+    0.11,
+    0.11
+   ],
+   "bob02": [
+    0.95,
+    0.9,
+    0.82
+   ]
+  }
+ },
+ "noah_kid": {
+  "_who": "Ной в 8 лет — видение (глава 2, зеркало в туалете кафе; глава 5): мокрый после озера, тёмные волосы, летняя рубашка, босой",
+  "brows": "eyebrow005/eyebrow005.mhclo",
+  "clothes": [
+   "male_casualsuit03/male_casualsuit03.mhclo"
+  ],
+  "hair": "short02/short02.mhclo",
+  "phenotype": {
+   "age": 0.131,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "gender": 1,
+   "height": 0.38,
+   "muscle": 0.28,
+   "proportions": 0.5,
+   "race": {
+    "african": 0.03,
+    "asian": 0.02,
+    "caucasian": 0.95
+   },
+   "weight": 0.28
+  },
+  "skin": "young_caucasian_male/young_caucasian_male.mhmat",
+  "targets": {
+   "chin-prominent-incr": 0.15,
+   "head-oval": 0.35,
+   "l-cheek-bones-incr": 0.15,
+   "r-cheek-bones-incr": 0.15,
+   "nose-hump-incr": 0.1,
+   "mouth-scale-horiz-decr": 0.1,
+   "l-eye-scale-incr": 0.12,
+   "r-eye-scale-incr": 0.12
+  },
+  "tint": {
+   "short02": [
+    0.35,
+    0.3,
+    0.28
+   ]
+  },
+  "retint": {
+   "casualsuit03": [
+    0.55,
+    0.62,
+    0.7
+   ]
+  }
  }
 }

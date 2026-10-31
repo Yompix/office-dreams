@@ -78,12 +78,16 @@ static func seat_all(g) -> void:
 		g._place({"who": back[i], "car": slots[i]})
 	for k in g.actors:
 		(g.actors[k] as Actor).look_target = null
+		(g.actors[k] as Actor).reach = {}
 
 
 ## Продолжить с сохранения в главе 2.
 static func restore(g, id: String) -> void:
-	if id in ["c2_s4", "c2_s5"]:
+	if id == "c2_s4":
 		return   # кафе ставит сценарий (fx "cafe")
+	if id.begins_with("c2_s4_") or id.begins_with("c2_s5") or id in ["c2_s6", "c2_s6_eva", "c2_s6_alone"]:
+		cafe(g)   # продолжили в кафе: стоянка, герои за столом (дальше сцена ставит сама)
+		return
 	g.scene.set_daylight("dawn")
 	seat_all(g)
 
@@ -228,8 +232,13 @@ static func fx(g, k: String) -> bool:
 			g._place({"who": "noah", "at": [20.85, CF, -8.25], "face": rad_to_deg(atan2(20.2 - 20.85, -9.15 + 8.25)), "clip": "Idle"})
 			(g.actors.noah as Actor).look_target = g._target("zoe")
 			(g.actors.zoe as Actor).look_target = g._target("noah")
-		"hold_hand":
-			(g.actors.zoe as Actor).play("Idle", 0.3)
+		"hold_hand":   # он берёт её за руку: её левая и его правая встречаются между ними
+			var z: Actor = g.actors.zoe
+			var n: Actor = g.actors.noah
+			z.play("Idle", 0.3)
+			var mid := (z.global_position + n.global_position) * 0.5 + Vector3(0, 0.95, 0)
+			n.reach = {"_r": mid}
+			z.reach = {"_l": mid}
 		"sedan_arrive":   # чёрный седан в конце парковки: фары, мотор работает
 			cigarette(g, false)
 			if g.actors.has("zoe") and not on(g, "zoe_gone"):
@@ -237,9 +246,10 @@ static func fx(g, k: String) -> bool:
 			sit(g, "noah", Vector3(22.9, CF + 0.42, -3.38), 0.0, "Rk_SitIdle")
 			sit(g, "iris", Vector3(22.75, CF + 0.42, -1.82), 180.0, "Rk_SitIdle")
 			g.blackcar = BlackCar.new()
+			g.blackcar.gap_side = -1.0   # нос к кафе; к Ною (со стороны кафе) — левое заднее окно
 			s.cafe_root.add_child(g.blackcar)
-			g.blackcar.position = Vector3(8.2, 0.0, -36.0)
-			g.blackcar.rotation_degrees = Vector3(0, -20, 0)
+			g.blackcar.position = Vector3(17.5, 0.0, -40.0)   # в конце стоянки, мимо фур — его видно из окна кафе
+			g.blackcar.rotation_degrees = Vector3(0, 160, 0)
 			g.blackcar.lights(true)
 			g.sfx.play("engine_start", -20.0, 0.9)
 		"cup_drop":
@@ -251,7 +261,7 @@ static func fx(g, k: String) -> bool:
 			g.sfx.play("car_door", -8.0, 1.0, 1.4)
 		"noah_to_sedan":   # Ной идёт по снегу к седану, к заднему правому окну
 			pill_bottle(g, false)
-			var w: Vector3 = g.blackcar.to_global(Vector3(1.55, 0.0, 0.55))
+			var w: Vector3 = g.blackcar.to_global(Vector3(-1.55, 0.0, 0.55))
 			g._place({"who": "noah", "at": [21.4, CF, -7.8], "face": -120, "clip": "Idle"})
 			g._walk({"who": "noah", "to": [w.x, 0.0, w.z], "then": "Idle",
 				"face": rad_to_deg(atan2(g.blackcar.global_position.x - w.x, g.blackcar.global_position.z - w.z))})
@@ -262,9 +272,14 @@ static func fx(g, k: String) -> bool:
 			g.blackcar.window_gap(false)
 			g.blackcar.speed = 0.0
 			var tw: Tween = g.create_tween()
-			tw.tween_property(g.blackcar, "speed", 4.0, 3.0)
-		"night_cafe":   # вечер у кафе: седан всё ещё на парковке
+			tw.tween_property(g.blackcar, "speed", -3.5, 3.0)   # задним ходом — в снег, прочь от кафе
+		"night_cafe":   # вечер у кафе: седан всё ещё на парковке; в зале горят все лампы
 			s.set_daylight("evening")
+			if is_instance_valid(s.cafe_root) and not c2.get("night_lit", false):
+				c2["night_lit"] = true
+				for n in s.cafe_root.get_children():
+					if n is OmniLight3D:
+						(n as OmniLight3D).light_energy *= 1.8
 			if not is_instance_valid(g.blackcar):
 				fx(g, "sedan_arrive")
 		"handle":
@@ -292,7 +307,7 @@ static func fx(g, k: String) -> bool:
 		"leave_cafe":   # дальше в буран
 			for k2 in g.actors:
 				(g.actors[k2] as Actor).visible = true
-			for k2 in ["trucker1", "trucker2", "trucker3"]:
+			for k2 in ["trucker1", "trucker2", "trucker3", "waitress"]:
 				drop(g, k2)
 			if not on(g, "eva"):
 				drop(g, "eva")
@@ -303,19 +318,17 @@ static func fx(g, k: String) -> bool:
 			s.env.fog_density = 0.03
 			g._blizzard = true
 			drive(g, 12.0, 4.0)
-		"truck_block":   # поперёк дороги сложилась фура, аварийка мигает
+		"truck_block":   # поперёк дороги сложилась фура, аварийка мигает; встаём метрах в двенадцати
 			var tr := Truck.new().setup(Color(0.55, 0.55, 0.53))
 			s.road_items.add_child(tr)
-			tr.position = Vector3(1.0, 0.0, -62.0)
+			tr.position = Vector3(1.0, 0.0, -40.0)
 			tr.rotation_degrees.y = 72.0
 			tr.fold(-78.0)
 			tr.lights(true)
 			tr.hazard = true
-			var d := 48.0
-			var t := 2.0 * d / maxf(s.road.speed, 0.1)
-			var tw: Tween = g.create_tween().set_parallel()
-			tw.tween_property(s.road, "speed", 0.0, t)
-			tw.tween_property(s.car, "speed", 0.0, t)
+			c2["truck"] = tr
+			stop_in(g, 28.0, 4.0)
+			g.sfx.play("brake_squeal", -14.0, 0.9, 1.0)
 		"side_road":   # направо, на боковую: указатель засыпан снегом наполовину
 			var tw: Tween = g.create_tween()
 			tw.tween_property(s.car, "steer", 0.8, 0.8)
@@ -329,8 +342,16 @@ static func fx(g, k: String) -> bool:
 		"far_lights":   # в зеркале, далеко позади, — две фары: держатся на одном расстоянии
 			var bc := BlackCar.new()
 			s.road_items.add_child(bc)
-			bc.position = Vector3(0.0, 0.0, 70.0)
+			bc.position = Vector3(0.0, 0.0, 24.0)
 			bc.lights(true)
+			for x in [-0.6, 0.6]:   # ореол фар в снегу — его видно в зеркале сквозь мглу
+				var ol := OmniLight3D.new()
+				ol.light_color = Color(1.0, 0.95, 0.85)
+				ol.light_energy = 2.0
+				ol.omni_range = 4.0
+				ol.light_volumetric_fog_energy = 3.0
+				ol.position = Vector3(x, 0.75, -2.4)
+				bc.add_child(ol)
 			bc.speed = s.road.speed
 			c2["follower"] = bc
 		_:
@@ -375,6 +396,7 @@ static func _zoe_run(g) -> void:
 ## Посадить героя: клип сидя, таз — в точку p, лицом по face (градусы; 0 — к +Z).
 static func sit(g, who: String, p: Vector3, face: float, clip := "Rk_SitIdle") -> void:
 	var a := actor(g, who)
+	a.reach = {}
 	g._place({"who": who, "at": [p.x, p.y - 0.42, p.z], "face": face, "clip": clip})
 	await g.get_tree().process_frame
 	await g.get_tree().process_frame
@@ -401,8 +423,13 @@ static func cafe(g) -> void:
 	for t in tk:
 		actor(g, t[0], t[1])
 		sit(g, t[0], t[2], t[3])
+	if ResourceLoader.exists("res://assets/chars/nina.glb"):   # официантка Нина за стойкой
+		actor(g, "waitress", "nina")
+		g._place({"who": "waitress", "at": [31.75, CF, -6.6], "face": -90, "clip": "Idle"})
 	for k2 in g.actors:
 		(g.actors[k2] as Actor).look_target = null
+	if g.actors.has("waitress"):
+		(g.actors.waitress as Actor).look_target = g._target("trucker3")
 
 
 ## Отражение Ноя в зеркале. «Тень» 0 — обычное; 1 — двойник моргает невпопад; 2+ — не моргает и чуть улыбается.
@@ -497,7 +524,7 @@ static func bracelet_snow(g) -> void:
 	mat.albedo_color = Color(0.9, 0.92, 0.95)
 	mat.roughness = 0.35
 	m.material_override = mat
-	m.position = Vector3(18.5, 0.015, -11.7)
+	m.position = Vector3(19.05, 0.015, -11.35)   # у пассажирской двери, на снегу (не под машиной)
 	m.rotation_degrees = Vector3(8, 30, 0)
 	g.scene.cafe_root.add_child(m)
 
@@ -626,7 +653,7 @@ static func wc_mirror(g, enable: bool) -> void:
 	if enable and not (wm and is_instance_valid(wm)):
 		var pm := PlanarMirror.new()
 		g.scene.cafe_root.add_child(pm)
-		pm.build(Vector3(33.735, CF + 1.6, -13.8), Vector3(-1, 0, 0), Vector2(0.6, 0.75), g.cam)
+		pm.build(Vector3(33.727, CF + 1.6, -13.8), Vector3(-1, 0, 0), Vector2(0.6, 0.75), g.cam)   # лицо стекла модели — x 33.73
 		g.c2["wc_mirror"] = pm
 	elif not enable and wm and is_instance_valid(wm):
 		(wm as PlanarMirror).queue_free()
@@ -654,7 +681,29 @@ static func pill_bottle(g, show: bool) -> void:
 		m.material_override = mat
 		m.position = Vector3(0.0, 0.07, 0.03)
 		ba.add_child(m)
+		var paper := MeshInstance3D.new()   # бумажная этикетка вокруг пузырька
+		var pc := CylinderMesh.new()
+		pc.top_radius = 0.0232
+		pc.bottom_radius = 0.0232
+		pc.height = 0.045
+		paper.mesh = pc
+		var pm := StandardMaterial3D.new()
+		pm.albedo_color = Color(0.93, 0.92, 0.86)
+		pm.roughness = 0.8
+		paper.material_override = pm
+		m.add_child(paper)
+		var lb := Label3D.new()
+		lb.text = "Д-р С. Хейл\nпо 1 таб. 2 р/д" if g.lang == "ru" else "Dr. S. Hale\n1 tab twice daily"
+		lb.font_size = 40
+		lb.pixel_size = 0.00028
+		lb.modulate = Color(0.08, 0.08, 0.1)
+		lb.outline_size = 0
+		lb.shaded = false
+		lb.double_sided = false
+		lb.position = Vector3(0.0, 0.0, 0.0236)
+		m.add_child(lb)
 		g.c2["bottle"] = ba
+		g.c2["bottle_label"] = lb
 	elif not show and b and is_instance_valid(b):
 		(b as Node).queue_free()
 		g.c2.erase("bottle")
@@ -666,16 +715,33 @@ static func boy(g, show: bool) -> void:
 	if show and not (b and is_instance_valid(b)):
 		var a := Actor.make("noah_kid", "noah_kid" if ResourceLoader.exists("res://assets/chars/noah_kid.glb") else "danny")
 		g.scene.cafe_root.add_child(a)
-		a.position = Vector3(32.55, CF, -13.35)
-		a.rotation_degrees.y = 100.0
+		a.position = Vector3(32.78, CF, -14.5)   # сбоку за левым плечом Ноя — в поле зеркала из плана wc_mirror, не за его спиной
+		a.rotation_degrees.y = 26.0
 		a.play("Idle", 0.0)
 		a.look_target = g.actors.noah.global_position + Vector3(0, 1.6, 0)
+		_wet(a)
 		_layers(a, 2)
 		g.cam.cull_mask = 0xFFFFF & ~2
 		g.c2["boy"] = a
 	elif not show and b and is_instance_valid(b):
 		(b as Node).queue_free()
 		g.c2.erase("boy")
+
+
+## Мокрый (из озера): ткань и кожа темнее и блестят, волосы липнут (тёмные и глянцевые).
+static func _wet(a: Actor) -> void:
+	for mi in a.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		for i in m.mesh.get_surface_count():
+			var mat := m.get_active_material(i)
+			if mat is StandardMaterial3D:
+				var w := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+				w.albedo_color = w.albedo_color * Color(0.72, 0.74, 0.78, 1.0)
+				w.roughness = 0.18
+				w.metallic_specular = 0.75
+				m.set_surface_override_material(i, w)
+			elif mat is ShaderMaterial:
+				(mat as ShaderMaterial).set_shader_parameter("albedo", Color(0.45, 0.45, 0.5))
 
 
 ## Сигарета у Зои: огонёк и дым.
@@ -720,17 +786,17 @@ static func cigarette(g, show: bool) -> void:
 
 
 ## Герой в машине — лицом. Спереди пассажир — с места водителя (план «iris»); сзади — из просвета между передними
-## креслами, чуть со стороны, противоположной герою. false — героя нет в машине или это водитель (свой план «noah»).
+## креслами, чуть со стороны, противоположной герою. false — героя нет в машине.
 static func car_face(g, who: String) -> bool:
 	var a = g.actors.get(who)
 	if not is_instance_valid(a) or (a as Actor).get_parent() != g.scene.car:
 		return false
 	var car: Car = g.scene.car
 	var head: Vector3 = car.to_local(g._target(who))
-	if head.z < 0.75:
-		if head.x < 0.0:
-			return false
-		g.scene.put_camera(g.cam, "iris")
+	if head.z < 0.75:   # спереди: план по голове (поза за рулём бывает выше или ниже — лицо всегда в кадре)
+		var off := Vector3(0.62, -0.2, -0.48) if head.x < 0.0 else Vector3(-0.62, -0.12, -0.5)   # ниже козырьков
+		g.cam.fov = 40.0
+		g.cam.look_at_from_position(car.to_global(head + off), car.to_global(head + Vector3(0, -0.05, 0)))
 		return true
 	var cp := Vector3(-0.05 if head.x > 0.1 else (0.05 if head.x < -0.1 else 0.0), 1.1, 0.6)
 	g.cam.fov = 44.0
@@ -743,13 +809,26 @@ static func cam(g, shot: String) -> bool:
 	var s: DriveScene = g.scene
 	var c: Camera3D = g.cam
 	match shot:
-		"iris", "zoe", "danny", "eva":   # герой в машине — лицом, где бы он ни сидел
+		"iris", "zoe", "danny", "eva", "noah":   # герой в машине — лицом, где бы он ни сидел
 			return active(g) and car_face(g, shot)
 		"back":   # заднее сиденье целиком — из просвета между передними креслами
 			if not active(g):
 				return false
-			c.fov = 50.0
-			c.look_at_from_position(s.car.to_global(Vector3(0.0, 1.2, -0.05)), s.car.to_global(Vector3(0.0, 1.0, 1.3)))
+			c.fov = 58.0
+			c.look_at_from_position(s.car.to_global(Vector3(0.0, 1.15, 0.55)), s.car.to_global(Vector3(0.0, 1.0, 1.3)))
+		"truck":   # снаружи, у нашего капота: сложившаяся фура поперёк дороги, аварийка в снегу
+			var tr = g.c2.get("truck")
+			if not is_instance_valid(tr):
+				return false
+			c.fov = 46.0
+			c.look_at_from_position(s.car.to_global(Vector3(-1.7, 1.35, -3.2)), (tr as Node3D).global_position + Vector3(0, 1.6, 0))
+		"wc_pills":   # пузырёк в руке Ноя, крупно
+			var b = g.c2.get("bottle")
+			if not (b and is_instance_valid(b)):
+				return false
+			var bp: Vector3 = (b as Node3D).global_position
+			c.fov = 34.0
+			c.look_at_from_position(bp + Vector3(-0.42, 0.28, 0.3), bp)
 		"zoe_out":   # Зоя на обочине — снаружи, перед ней: машет обеими руками
 			var z: Actor = g.actors.get("zoe")
 			if z == null:
@@ -788,22 +867,25 @@ static func cam(g, shot: String) -> bool:
 				return false
 			c.fov = 44.0
 			c.look_at_from_position(s.car.to_global(Vector3(0.38, 1.2, 0.05)), g._target("cop"))
-		"sedan_window":   # из-за плеча Ноя — заднее стекло седана
+		"sedan_window":   # из-за правого плеча Ноя — заднее стекло седана, опущенное на два пальца
 			if not is_instance_valid(g.blackcar):
 				return false
-			var w: Vector3 = g.blackcar.to_global(Vector3(0.82, 1.08, 0.55))
+			var sd: float = g.blackcar.gap_side
 			c.fov = 34.0
-			c.look_at_from_position(g.blackcar.to_global(Vector3(2.3, 1.55, 1.3)), w)
-		"noah_sedan":   # лицо Ноя у седана
-			c.fov = 36.0
-			c.look_at_from_position(g.blackcar.to_global(Vector3(0.9, 1.4, 0.6)) if is_instance_valid(g.blackcar) else g._target("noah") + Vector3(-1, 0, 0), g._target("noah"))
-		"pill_label":
-			var b = g.c2.get("bottle")
-			if not (b and is_instance_valid(b)):
+			c.look_at_from_position(g.blackcar.to_global(Vector3(2.4 * sd, 2.0, 1.6)), g.blackcar.to_global(Vector3(0.79 * sd, 1.22, 0.55)))
+		"noah_sedan":   # лицо Ноя у седана — из-за стекла
+			if not is_instance_valid(g.blackcar):
 				return false
-			var bp: Vector3 = (b as Node3D).global_position
-			c.fov = 26.0
-			c.look_at_from_position(bp + Vector3(-0.35, 0.18, 0.25), bp)
+			c.fov = 36.0
+			c.look_at_from_position(g.blackcar.to_global(Vector3(0.95 * float(g.blackcar.gap_side), 1.45, 0.4)), g._target("noah"))
+		"pill_label":   # этикетка на пузырьке: «Д-р С. Хейл» — камера прямо на надпись
+			var lb = g.c2.get("bottle_label")
+			if not (lb and is_instance_valid(lb)):
+				return false
+			var lt: Transform3D = (lb as Node3D).global_transform
+			c.fov = 22.0
+			c.look_at_from_position(lt.origin + lt.basis.z.normalized() * 0.2, lt.origin, lt.basis.y.normalized())   # надпись — ровно
 		_:
 			return false
 	return true
+

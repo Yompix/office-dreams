@@ -25,28 +25,28 @@ const CAFE_BOOTHS := [-13.4, -11.1, -2.6, -0.3]
 const CAFE_SHOTS := {
 	"cafe_ext": [Vector3(5.0, 2.3, 5.0), Vector3(23.0, 2.4, -7.5), 46.0],
 	"cafe_wide": [Vector3(22.9, CF + 1.9, -6.2), Vector3(31.0, CF + 1.0, -9.5), 64.0],
-	"cafe_eva": [Vector3(23.7, CF + 1.3, -12.3), Vector3(23.0, CF + 1.12, -14.15), 40.0],
-	"cafe_truckers": [Vector3(28.6, CF + 1.6, -6.0), Vector3(30.1, CF + 1.15, -10.4), 46.0],
+	"cafe_eva": [Vector3(23.55, CF + 1.28, -12.75), Vector3(23.0, CF + 1.14, -14.15), 32.0],
+	"cafe_truckers": [Vector3(31.75, CF + 1.55, -7.9), Vector3(30.1, CF + 1.22, -10.1), 44.0],
 	"eva_car": [Vector3(23.0, CF + 1.55, -12.2), Vector3(18.9, 0.5, -16.4), 42.0],
-	"cafe_iris": [Vector3(23.3, CF + 1.22, -3.1), Vector3(22.75, CF + 1.12, -1.82), 38.0],
+	"cafe_iris": [Vector3(23.5, CF + 1.02, -2.75), Vector3(22.75, CF + 1.12, -1.82), 36.0],
 	"noah_cafe": [Vector3(23.1, CF + 1.25, -2.15), Vector3(22.9, CF + 1.15, -3.38), 38.0],
 	"cafe_danny": [Vector3(22.8, CF + 1.15, -2.85), Vector3(23.42, CF + 0.98, -1.82), 38.0],
 	"cafe_iris_eva": [Vector3(24.0, CF + 1.45, -12.2), Vector3(23.0, CF + 1.0, -14.0), 46.0],
 	"cafe_zoe": [Vector3(28.2, CF + 1.45, -4.4), Vector3(30.1, CF + 1.25, -5.4), 40.0],
 	"cafe_zoe_table": [Vector3(22.85, CF + 1.22, -2.1), Vector3(23.42, CF + 1.12, -3.38), 40.0],
-	"wc_sink": [Vector3(32.75, CF + 1.75, -13.15), Vector3(33.45, CF + 0.95, -13.8), 46.0],
-	"wc_mirror": [Vector3(32.35, CF + 1.66, -13.55), Vector3(33.74, CF + 1.6, -13.8), 34.0],
+	"wc_sink": [Vector3(33.4, CF + 1.6, -13.05), Vector3(33.45, CF + 0.95, -13.8), 50.0],
+	"wc_mirror": [Vector3(32.4, CF + 1.7, -13.25), Vector3(33.74, CF + 1.6, -13.9), 34.0],
 	"wc_pills": [Vector3(32.85, CF + 1.35, -13.25), Vector3(33.15, CF + 1.0, -13.7), 30.0],
-	"cafe_window_porch": [Vector3(23.1, CF + 1.5, -5.2), Vector3(21.0, CF + 1.25, -9.0), 46.0],
+	"cafe_window_porch": [Vector3(23.6, CF + 1.45, -7.2), Vector3(20.2, CF + 1.2, -9.15), 40.0],
 	"porch": [Vector3(19.5, CF + 1.5, -7.4), Vector3(21.0, CF + 1.35, -8.9), 42.0],
 	"porch_zoe": [Vector3(21.3, CF + 1.5, -8.2), Vector3(20.85, CF + 1.45, -9.25), 36.0],
-	"iris_window": [Vector3(20.6, CF + 1.35, -2.4), Vector3(22.75, CF + 1.1, -1.82), 32.0],
-	"cafe_window": [Vector3(23.2, CF + 1.45, -3.6), Vector3(8.0, 0.9, -36.0), 40.0],
+	"iris_window": [Vector3(20.6, CF + 1.35, -2.4), Vector3(22.75, CF + 1.12, -1.82), 24.0],
+	"cafe_window": [Vector3(23.2, CF + 1.45, -3.6), Vector3(17.5, 0.9, -40.0), 40.0],
 	"cafe_back": [Vector3(37.0, 1.9, 2.5), Vector3(34.0, 1.3, -1.0), 50.0],
-	"sedan_walk": [Vector3(18.6, 2.1, -14.0), Vector3(8.6, 0.8, -34.0), 40.0],
-	"bracelet_snow": [Vector3(18.2, 0.55, -11.0), Vector3(18.5, 0.02, -11.7), 30.0],
+	"sedan_walk": [Vector3(21.8, 2.4, -13.0), Vector3(18.4, 0.9, -38.0), 40.0],
+	"bracelet_snow": [Vector3(19.55, 0.62, -10.75), Vector3(19.05, 0.02, -11.35), 30.0],
 	"eva_porch": [Vector3(18.4, 1.6, -5.2), Vector3(21.0, CF + 1.3, -8.0), 40.0],
-	"noah_out": [Vector3(20.5, 1.65, -9.2), Vector3(18.4, 1.62, -11.0), 38.0],
+	"noah_out": [Vector3(20.9, 1.7, -10.3), Vector3(18.5, 1.62, -11.0), 38.0],
 }
 const ROAD_EDGE := 3.5                       # край асфальта (полдороги)
 
@@ -310,7 +310,7 @@ func park_at_cafe(lang := "ru") -> void:
 	lb.modulate = Color(0.98, 0.86, 0.6)
 	lb.outline_size = 0
 	lb.shaded = false
-	lb.position = Vector3(21.86, CF + 3.45, -7.0)
+	lb.position = Vector3(21.79, CF + 3.45, -7.0)   # перед доской вывески (доска — x 21.82…21.94)
 	lb.rotation_degrees = Vector3(0, -90, 0)
 	cafe_root.add_child(lb)
 	var warm := Color(1.0, 0.76, 0.46)
@@ -373,7 +373,7 @@ func park_at_cafe(lang := "ru") -> void:
 		tr.rotation.y = float(t[2]) * 1.3
 		cafe_root.add_child(tr)
 	trucks.clear()
-	for tk in [[Vector3(11.0, 0.0, -24.0), 8.0, Color(0.5, 0.06, 0.04)], [Vector3(15.0, 0.0, -30.0), 4.0, Color(0.78, 0.78, 0.76)],
+	for tk in [[Vector3(9.0, 0.0, -24.0), 8.0, Color(0.5, 0.06, 0.04)], [Vector3(13.0, 0.0, -30.0), 4.0, Color(0.78, 0.78, 0.76)],
 			[Vector3(28.0, 0.0, 12.0), 95.0, Color(0.1, 0.2, 0.45)]]:
 		var tru := Truck.new().setup(tk[2])
 		cafe_root.add_child(tru)

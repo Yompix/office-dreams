@@ -117,7 +117,7 @@ def plan2(lang):
         print(i, b['who'], b['emotion'], b['voice'], len(b['keys']), 'реплик |', b['prompt'][:90])
 
 
-NUM = {'ru': {}, 'en': {}}
+NUM = {'ru': {}, 'en': {"who's": 'whose', 'hail': 'hale'}}   # что распознаватель слышит иначе (омофоны)
 
 
 def norm(w, lang):

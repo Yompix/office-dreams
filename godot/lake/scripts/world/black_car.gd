@@ -105,6 +105,9 @@ func _m(c: Color, e: float, ec: Color) -> StandardMaterial3D:
 
 
 ## Заднее правое стекло опущено «на два пальца»: тёмная щель над стеклом.
+var gap_side := 1.0           # какое заднее окно опускается: 1 — правое (+X), −1 — левое
+
+
 func window_gap(on: bool) -> void:
 	var g := get_node_or_null("gap")
 	if on and g == null:
@@ -117,7 +120,7 @@ func window_gap(on: bool) -> void:
 		mat.albedo_color = Color(0.0, 0.0, 0.0)
 		mat.roughness = 1.0
 		m.material_override = mat
-		m.position = Vector3(0.79, 1.27, 0.55)
+		m.position = Vector3(0.79 * gap_side, 1.27, 0.55)
 		add_child(m)
 	elif not on and g:
 		g.queue_free()

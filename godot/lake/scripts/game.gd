@@ -506,12 +506,15 @@ func _seat_in_car(who: String, seat: String) -> void:
 	a.position = s + Vector3(0, 0.15, 0)
 	a.rotation_degrees = Vector3(0, 180, 0)
 	a.play("Driving" if seat == "driver" else "Rk_SitIdle", 0.5)
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if seat.begins_with("back"):
-		scene.car.seat(a, s, 0.53, 0.16)
-	else:
-		scene.car.seat(a, s)
+	for k in 2:   # дважды: если герой сел сразу после ходьбы или стоя, первая мерка таза бывает по старой позе
+		for f in 3:
+			await get_tree().process_frame
+		if not is_instance_valid(a) or a.get_parent() != scene.car:
+			return
+		if seat.begins_with("back"):
+			scene.car.seat(a, s, 0.53, 0.16)
+		else:
+			scene.car.seat(a, s)
 	if seat == "driver":
 		await get_tree().process_frame
 		scene.car.fit_wheel(a)

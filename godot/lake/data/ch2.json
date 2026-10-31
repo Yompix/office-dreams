@@ -1,6 +1,7 @@
 {
  "chapter": 2,
  "start": "c2_recap",
+ "ready": true,
  "title": {
   "ru": "ГЛАВА 2 · ПОПУТЧИЦА",
   "en": "CHAPTER 2 · THE HITCHHIKER"
@@ -447,7 +448,8 @@
       "shot": "mirror_self"
      }
     }
-   ]
+   ],
+   "save": true
   },
   "c2_s1_a": {
    "beats": [
@@ -2009,7 +2011,8 @@
       "shot": "noah_out"
      }
     }
-   ]
+   ],
+   "save": true
   },
   "c2_s6_eva": {
    "beats": [
@@ -2063,7 +2066,7 @@
     },
     {
      "fx": "truck_block",
-     "shot": "road",
+     "shot": "truck",
      "note": {
       "ru": "Поперёк дороги сложилась фура. Мигалки в снегу. Объезда нет.",
       "en": "A jackknifed semi blocks the road. Flashing lights in the snow. No way around."
@@ -2109,7 +2112,8 @@
     {
      "end": 2
     }
-   ]
+   ],
+   "save": true
   },
   "c2_end": {
    "beats": [
