@@ -1103,7 +1103,8 @@ static func _season(g, kind: String) -> void:
 ## Из заднего окна седана: мостки уходят назад (Айрис с листом «Я ПОМНЮ ЗА ТЕБЯ» — или пусто).
 static func _mirror_view(g, k: String) -> void:
 	var mb: BlackCar = g.blackcar
-	if mb and is_instance_valid(mb):   # седан развернулся уезжать: задним стеклом — к мосткам
+	if mb and is_instance_valid(mb):   # седан уже на дороге у дачи (у сарая мостки загораживал сарай), задним стеклом — к мосткам
+		mb.global_position = L(-24.0, 0.0, 6.0)
 		var to_dock := L(-3.6, 0.0, 7.0) - mb.global_position
 		mb.rotation.y = atan2(to_dock.x, to_dock.z)
 	for kk in ["agnes", "eva", "danny", "zoe"]:
@@ -1277,7 +1278,7 @@ static func cam(g, shot: String) -> bool:
 		"mirror_sign", "mirror_dock":   # из заднего окна седана (он развернулся уезжать): мостки уходят назад
 			var mb: BlackCar = g.blackcar
 			if mb and is_instance_valid(mb):
-				_look(c, mb.to_global(Vector3(0.0, 1.22, 0.85)), L(-3.6, 1.0, 7.0), 30.0)
+				_look(c, mb.to_global(Vector3(0.0, 1.22, 0.85)), L(-3.8, 1.1, 7.0), 19.0)   # ближе: Айрис с листом читается
 			else:
 				_look(c, L(-12.6, 1.6, 16.6), L(-3.6, 1.0, 7.0), 30.0)
 		"car_hale":
