@@ -68,7 +68,7 @@ func _hut(pc: bool) -> void:
 		var n := int(HD * 2 / step)
 		for k in n:
 			var z := -HD + step * 0.5 + k * step
-			_box(Vector3(0.05, WALL, step - 0.028), Vector3(side * HW, FLOOR + WALL / 2, z), plank_m)
+			_box(Vector3(0.05, WALL, step - 0.042), Vector3(side * HW, FLOOR + WALL / 2, z), plank_m)
 	var nz := int(HW * 2 / step)
 	for k in nz:   # задняя стена (−z) и передняя с дверным проёмом (+z)
 		var x := -HW + step * 0.5 + k * step
@@ -96,12 +96,18 @@ func _hut(pc: bool) -> void:
 	var stove := _box(Vector3(0.45, 0.6, 0.45), Vector3(HW - 0.5, FLOOR + 0.3, -HD + 0.5), StandardMaterial3D.new())   # холодная буржуйка
 	(stove.material_override as StandardMaterial3D).albedo_color = Color(0.08, 0.08, 0.085)
 	(stove.material_override as StandardMaterial3D).metallic = 0.5
+	var moon := OmniLight3D.new()   # в избушке — холодный свет снега сквозь щели (лица читаются)
+	moon.light_color = Color(0.6, 0.7, 1.0)
+	moon.light_energy = 0.35
+	moon.omni_range = 3.4
+	moon.position = Vector3(0.3, FLOOR + 1.6, 0.5)
+	hut.add_child(moon)
 	if pc:   # внутри — свой туман: луч фонаря сквозь щели виден полосами
 		var fv := FogVolume.new()
 		fv.size = Vector3(HW * 2 - 0.1, WALL, HD * 2 - 0.1)
 		fv.position = Vector3(0, FLOOR + WALL / 2, 0)
 		var fm := FogMaterial.new()
-		fm.density = 0.25
+		fm.density = 0.45
 		fm.albedo = Color(0.8, 0.84, 0.92)
 		fv.material = fm
 		hut.add_child(fv)

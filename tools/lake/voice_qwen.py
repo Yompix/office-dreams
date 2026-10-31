@@ -47,8 +47,13 @@ INSTRUCT = {
              'underneath; speaks slowly, in short plain phrases, a little hoarse. Natural cinematic acting, not theatrical.',
     'anna': 'A woman in her late thirties with a soft, warm, very quiet voice, almost a whisper — distant and eerie, as if '
             'from far away under water; gentle and sad, unhurried. Natural, not theatrical.',
+    # глава 5 (воспоминание: летняя ночь одиннадцать лет назад)
+    'mom': 'A woman in her early thirties with a soft, warm, gentle voice. A loving mother speaking quietly to her small son at '
+           'night, tender and reassuring, with hidden fear underneath. Natural cinematic acting, not theatrical.',
+    'victor': 'A 42-year-old man with a deep, rough, slightly slurred voice. Drunk but cold and controlled, menacing calm; '
+              'speaks slowly and flatly. Natural cinematic acting, not theatrical.',
 }
-CLONE = {'noah', 'iris', 'danny', 'zoe', 'eva'}   # уже звучали — клон с готовой реплики (refs/), а не новое описание
+CLONE = {'noah', 'iris', 'danny', 'zoe', 'eva', 'agnes', 'hale', 'anna'}   # уже звучали — клон с готовой реплики (refs/), а не новое описание
 LANG = {'ru': 'Russian', 'en': 'English'}
 MODEL = 'Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign'
 MODEL_CLONE = 'Qwen/Qwen3-TTS-12Hz-0.6B-Base'
@@ -70,7 +75,8 @@ def plan(lang):
 
 REF_KEYS = {   # образец для клона: спокойные реплики подряд (крик и шёпот дают крикливый или шепчущий клон)
     'noah': ['s5_pay_1', 's6_a2_1'], 'iris': ['s6_a_2', 's2_c_2'], 'danny': ['s5_2'],
-    'zoe': ['c2_s2_stop_1'], 'eva': ['c2_s4_eva_3']}
+    'zoe': ['c2_s2_stop_1'], 'eva': ['c2_s4_eva_3'],
+    'agnes': ['c3_s4_1'], 'hale': ['c2_s5_walk_1'], 'anna': ['c3_s5_lapse_2']}   # глава 4: бабушка — как у печи в главе 3, Хейл — как голос из седана
 
 
 def refs(lang):

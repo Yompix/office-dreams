@@ -11,6 +11,7 @@ var _main: Camera3D
 var _p := Vector3.ZERO
 var _n := Vector3(-1, 0, 0)
 var _size := Vector2.ONE
+var _up := Vector3.UP          # «верх» картинки: у лежачего зеркала (вода, глава 5) — вдоль −Z
 
 
 func build(p: Vector3, n: Vector3, size: Vector2, main: Camera3D) -> void:
@@ -18,6 +19,7 @@ func build(p: Vector3, n: Vector3, size: Vector2, main: Camera3D) -> void:
 	_n = n.normalized()
 	_main = main
 	_size = size
+	_up = Vector3.FORWARD if absf(_n.dot(Vector3.UP)) > 0.95 else Vector3.UP
 	vp = SubViewport.new()
 	vp.size = Vector2i(int(512 * size.x / size.y), 512)
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -38,7 +40,7 @@ func build(p: Vector3, n: Vector3, size: Vector2, main: Camera3D) -> void:
 	quad.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(quad)
 	quad.global_position = p + _n * 0.002   # чуть перед стеклом модели (иначе её блестящее стекло перекрывает картинку)
-	quad.look_at(quad.global_position - _n, Vector3.UP)   # −Z — в стену, лицевая сторона квада (+Z) — в комнату
+	quad.look_at(quad.global_position - _n, _up)   # −Z — в стену, лицевая сторона квада (+Z) — в комнату
 
 
 func _process(_d: float) -> void:
@@ -52,7 +54,7 @@ func _process(_d: float) -> void:
 	var d := (_p - r).dot(_n)
 	if d < 0.02:
 		return
-	var b := Basis.looking_at(_n, Vector3.UP)
+	var b := Basis.looking_at(_n, _up)
 	cam.global_transform = Transform3D(b, r)
 	var loc := b.inverse() * (_p - r)
 	cam.projection = Camera3D.PROJECTION_FRUSTUM

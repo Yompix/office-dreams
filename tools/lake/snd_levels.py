@@ -6,7 +6,7 @@ import glob, json, os, re, subprocess
 
 SND = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../godot/lake/snd')
 LOOPS = {'car_interior', 'wind_forest', 'station_hum', 'shop_room', 'blizzard', 'drone', 'deer_breath', 'snow_steps',
-         'underwater', 'radio_hiss', 'lake_theme', 'radio_song'}
+         'underwater', 'radio_hiss', 'lake_theme', 'radio_song', 'steam', 'frogs'}
 out = {}
 for f in sorted(glob.glob(os.path.join(SND, '*.ogg'))):
     name = os.path.basename(f)[:-4]

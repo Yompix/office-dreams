@@ -604,8 +604,8 @@
   "phenotype": {
    "gender": 1,
    "age": 0.47,
-   "muscle": 0.85,
-   "weight": 0.78,
+   "muscle": 0.95,
+   "weight": 0.6,
    "proportions": 0.5,
    "height": 1.0,
    "cupsize": 0.5,
@@ -631,9 +631,28 @@
    "l-eye-bag-incr": 0.3,
    "r-eye-bag-incr": 0.3,
    "mouth-scale-horiz-decr": 0.2,
-   "neck-scale-horiz-incr": 0.5
+   "neck-scale-horiz-incr": 0.5,
+   "torso-vshape-incr": 0.6,
+   "measure-shoulder-dist-incr": 0.5,
+   "torso-muscle-pectoral-decr": 0.35,
+   "measure-bust-circ-decr": 0.4
   },
   "garments": [
+   {
+    "kind": "vest",
+    "name": "robe",
+    "tex": "cotton_jersey",
+    "tint": [
+     0.76,
+     0.83,
+     0.88
+    ],
+    "off": 0.024,
+    "tile": 5,
+    "rough": 0.8,
+    "band": 0.4,
+    "hem": 0.0
+   },
    {
     "kind": "jacket",
     "name": "puffer",
@@ -647,7 +666,8 @@
     "tile": 5,
     "rough": 0.7,
     "band": 0.5,
-    "hem": 0.0
+    "hem": 0.0,
+    "open": 0.07
    }
   ],
   "gray": {
@@ -656,5 +676,178 @@
     0.3
    ]
   }
+ },
+ "anna": {
+  "_who": "Анна (мама Ноя и Айрис), ~33 — в воспоминании (глава 5, летняя ночь 11 лет назад): тёмные волосы до плеч, жёлтый плащ поверх летнего платья, мягкое лицо; похожа на Айрис",
+  "phenotype": {
+   "gender": 0,
+   "age": 0.43,
+   "muscle": 0.32,
+   "weight": 0.4,
+   "proportions": 0.55,
+   "height": 0.52,
+   "cupsize": 0.45,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.03,
+    "caucasian": 0.94,
+    "african": 0.03
+   }
+  },
+  "skin": "young_caucasian_female2/young_caucasian_female2.mhmat",
+  "hair": "toigo_curled_under_bob/toigo_curled_under_bob.mhclo",
+  "brows": "eyebrow002/eyebrow002.mhclo",
+  "clothes": [
+   "toigo_shift_dress/toigo_shift_dress.mhclo",
+   "toigo_ballet_flats/toigo_ballet_flats.mhclo"
+  ],
+  "targets": {
+   "head-round": 0.3,
+   "nose-scale-horiz-decr": 0.25,
+   "nose-point-up": 0.35,
+   "l-eye-scale-incr": 0.2,
+   "r-eye-scale-incr": 0.2,
+   "chin-width-decr": 0.25,
+   "mouth-lowerlip-volume-incr": 0.2,
+   "eyebrows-angle-down": 0.25
+  },
+  "tint": {
+   "toigo_shift_dress": [
+    0.55,
+    0.62,
+    0.75
+   ]
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "raincoat",
+    "tex": "cotton_jersey",
+    "tint": [
+     0.88,
+     0.7,
+     0.24
+    ],
+    "off": 0.034,
+    "tile": 5,
+    "rough": 0.42,
+    "band": 0.4
+   }
+  ]
+ },
+ "victor": {
+  "_who": "Виктор (отец), ~42 — в воспоминании (глава 5): крупный, небритый, тёмные волосы с проседью, рубашка навыпуск, пьяный, но идёт ровно",
+  "phenotype": {
+   "gender": 1,
+   "age": 0.6,
+   "muscle": 0.62,
+   "weight": 0.62,
+   "proportions": 0.5,
+   "height": 0.72,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.02,
+    "caucasian": 0.96,
+    "african": 0.02
+   }
+  },
+  "skin": "middleage_caucasian_male/middleage_caucasian_male.mhmat",
+  "hair": "short04/short04.mhclo",
+  "brows": "eyebrow007/eyebrow007.mhclo",
+  "clothes": [
+   "male_casualsuit05/male_casualsuit05.mhclo",
+   "shoes04/shoes04.mhclo"
+  ],
+  "targets": {
+   "head-square": 0.4,
+   "chin-width-incr": 0.35,
+   "chin-prominent-incr": 0.25,
+   "nose-hump-incr": 0.35,
+   "l-eye-bag-incr": 0.55,
+   "r-eye-bag-incr": 0.55,
+   "l-cheek-bones-incr": 0.3,
+   "r-cheek-bones-incr": 0.3,
+   "mouth-angles-down": 0.3,
+   "neck-scale-horiz-incr": 0.3
+  },
+  "retint": {
+   "casualsuit05": [
+    0.32,
+    0.3,
+    0.27
+   ]
+  }
+ },
+ "hale_young": {
+  "_who": "Хейл на 11 лет моложе (~45) — в воспоминании (глава 5): те же очки, пальто и шарф, волосы ещё тёмные",
+  "phenotype": {
+   "gender": 1,
+   "age": 0.58,
+   "muscle": 0.4,
+   "weight": 0.48,
+   "proportions": 0.6,
+   "height": 0.6,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.02,
+    "caucasian": 0.96,
+    "african": 0.02
+   }
+  },
+  "skin": "old_caucasian_male/old_caucasian_male.mhmat",
+  "hair": "culturalibre_hair_02/culturalibre_hair_02.mhclo",
+  "brows": "eyebrow006/eyebrow006.mhclo",
+  "clothes": [
+   "toigo_male_suit_3/toigo_male_suit_3.mhclo",
+   "frankyaye_glasses_library_male/frankyaye_glasses_library_male.mhclo",
+   "toigo_ankle_boots_male/toigo_ankle_boots_male.mhclo"
+  ],
+  "targets": {
+   "head-rectangular": 0.4,
+   "nose-scale-vert-incr": 0.3,
+   "nose-point-width-decr": 0.3,
+   "chin-height-incr": 0.25,
+   "mouth-scale-horiz-decr": 0.2,
+   "l-cheek-volume-decr": 0.3,
+   "r-cheek-volume-decr": 0.3
+  },
+  "retint": {
+   "culturalibre_hair_02": [
+    0.2,
+    0.16,
+    0.13
+   ]
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "coat",
+    "tex": "poly_wool_herringbone",
+    "tint": [
+     0.5,
+     0.44,
+     0.38
+    ],
+    "off": 0.042,
+    "tile": 7,
+    "rough": 0.85,
+    "band": 0.4
+   },
+   {
+    "kind": "scarf",
+    "name": "scarf",
+    "tex": "wool_boucle",
+    "tint": [
+     0.36,
+     0.12,
+     0.12
+    ],
+    "off": 0.058,
+    "tile": 9,
+    "rough": 0.95
+   }
+  ]
  }
 }

@@ -386,8 +386,8 @@ SC['c4_s5_weak'] = {'beats': [
     {'set': {'iris_fought': 1}},
     {'fx': 'noah_down', 'shot': 'fight', **N('Таблетка ещё в крови. Ной слабый и медленный — санитар валит его в снег.', 'The pill is still in his blood. Noah is weak and slow — the orderly drives him down into the snow.', 3.2)},
     {'fx': 'syringe', 'shot': 'hale', **N('Хейл достаёт шприц.', 'Hale takes out a syringe.', 2.2)},
-    {'fx': 'iris_hit', 'shot': 'iris_pine', **N('Айрис бьёт Хейла по руке. Шприц — в снегу.', 'Iris strikes Hale’s hand. The syringe drops into the snow.', 2.6)},
-    S('iris', 'Беги!', 'Run!', shot='iris_pine'),
+    {'fx': 'iris_hit', 'shot': 'hit_two', **N('Айрис бьёт Хейла по руке. Шприц — в снегу.', 'Iris strikes Hale’s hand. The syringe drops into the snow.', 2.6)},
+    S('iris', 'Беги!', 'Run!', shot='hit_two'),
     {'go': 'c4_s5_chase'}]}
 
 SC['c4_s5_run'] = {'beats': [
@@ -541,7 +541,7 @@ SC['c4_end'] = {'beats': [
     {'end': 4}]}
 
 DATA = {
-    'chapter': 4, 'start': 'c4_recap', 'ready': False,   # True — когда постановка главы готова (chapter4.gd)
+    'chapter': 4, 'start': 'c4_recap', 'ready': True,    # True — когда постановка главы готова (chapter4.gd)
     'title': {'ru': 'ГЛАВА 4 · ЧЁРНАЯ МАШИНА', 'en': 'CHAPTER 4 · THE BLACK CAR'},
     'names': {'hale': {'ru': 'ХЕЙЛ', 'en': 'HALE'}},
     'flags': {k: 0 for k in ['pills_pocket', 'pills_snow', 'pills_iris', 'pills_left', 'van_late', 'zoe_believed', 'zoe_doubted',

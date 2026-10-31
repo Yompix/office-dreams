@@ -172,12 +172,109 @@ def page5():   # Айрис держит брата за руку — он не 
     return im
 
 
+SUN = (214, 160, 40)
+BLUE = (58, 96, 160)
+BLACK = (24, 24, 28)
+
+
+def water(d, y0, y1, col=BLUE):
+    for y in range(int(y0), int(y1), 16):
+        pts = [(x, y + 5 * math.sin(x / 22 + y)) for x in range(10, W - 60, 12)]
+        wob(d, pts, col, 2, 1, 1.0)
+
+
+def dock(d, x0, x1, y):
+    wob(d, [(x0, y), (x1, y)], (96, 70, 44), 5)
+    for x in range(int(x0), int(x1), 26):
+        wob(d, [(x, y), (x, y + 70)], (96, 70, 44), 3, 1)
+
+
+def page6(car=False):   # они вдвоём на мостках, лето («Я нарисовала, как будет»)
+    im = paper(); d = ImageDraw.Draw(im)
+    circle(d, 520, 80, 38, SUN, 4)
+    for k in range(10):
+        a = k * math.tau / 10
+        wob(d, [(520 + 48 * math.cos(a), 80 + 48 * math.sin(a)), (520 + 70 * math.cos(a), 80 + 70 * math.sin(a))], SUN, 3, 1)
+    water(d, 300, 470)
+    dock(d, 40, 380, 300)
+    person(d, 230, 300, 150, arms=(-20, -60), col=PENCIL, w=3)    # Ной — сидит на краю
+    person(d, 300, 300, 100, arms=(-60, -20), col=PENCIL, w=3)    # Айрис рядом
+    wob(d, [(254, 285), (276, 285)], RED, 3)                        # держатся за руки
+    if car:   # чёрная машина на берегу
+        d.rectangle([60, 190, 190, 240], fill=BLACK)
+        d.polygon([(85, 190), (110, 160), (160, 160), (178, 190)], fill=BLACK)
+        for cx in (90, 160):
+            d.ellipse([cx - 16, 228, cx + 16, 260], fill=(10, 10, 12))
+        circle(d, 52, 212, 9, SUN, 2)
+    return im
+
+
+def page_family():   # детский рисунок фломастером на стене дачи: трое человечков и озеро (мама, Ной, Айрис)
+    im = Image.new('RGB', (W, H), (238, 232, 214)); d = ImageDraw.Draw(im)
+    water(d, 330, 470, (40, 110, 200))
+    circle(d, 110, 90, 40, SUN, 6)
+    person(d, 300, 330, 210, arms=(-10, -20), col=(200, 60, 120), w=6)     # мама — розовым
+    person(d, 400, 330, 130, arms=(-20, 10), col=(40, 140, 60), w=5)       # Ной — зелёным
+    person(d, 200, 330, 95, arms=(10, -30), col=(230, 120, 30), w=5)       # Айрис — оранжевым
+    return im
+
+
+def page8():   # Ной и мама держатся за руки под водой («Лёд»)
+    im = paper(); d = ImageDraw.Draw(im)
+    d.rectangle([0, 0, W - 54, H], fill=(196, 210, 228))
+    water(d, 40, 460, (90, 120, 170))
+    person(d, 250, 400, 220, arms=(30, -10), col=PENCIL, w=3)       # мама
+    for k in range(18):   # волосы плывут вверх
+        wob(d, [(230 + k * 3, 190), (215 + k * 4, 140 - (k % 4) * 8)], PENCIL, 2, 1, 1.2)
+    person(d, 390, 400, 200, arms=(-10, 30), col=PENCIL, w=3)       # Ной
+    wob(d, [(318, 262), (338, 262)], RED, 3)
+    for k in range(12):
+        circle(d, rnd.uniform(150, 480), rnd.uniform(40, 160), rnd.uniform(4, 10), (70, 100, 160), 2)
+    return im
+
+
+def page9(text):   # «Я ПОМНЮ ЗА ТЕБЯ» — крупно, маркером
+    from PIL import ImageFont
+    im = Image.new('RGB', (W, H), (240, 236, 224)); d = ImageDraw.Draw(im)
+    lines = text.split('\n')
+    size = 80
+    while True:   # самая длинная строка — с полями по краям листа
+        f = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', size)
+        if max(d.textlength(ln, font=f) for ln in lines) <= W - 110 or size <= 30:
+            break
+        size -= 4
+    y = H / 2 - len(lines) * 50
+    for ln in lines:
+        w = d.textlength(ln, font=f)
+        for k in range(3):   # маркер в несколько проходов, рука дрожит
+            d.text((W / 2 - w / 2 + rnd.uniform(-2, 2), y + rnd.uniform(-2, 2)), ln, font=f, fill=(30, 40, 90))
+        y += 100
+    return im
+
+
+def page10():   # мостки и фонарь — рисует взрослый Ной в белой комнате
+    im = Image.new('RGB', (W, H), (246, 246, 244)); d = ImageDraw.Draw(im)
+    water(d, 280, 460, (120, 130, 140))
+    dock(d, 120, 470, 280)
+    wob(d, [(440, 280), (440, 150)], PENCIL, 3)
+    wob(d, [(440, 150), (470, 150)], PENCIL, 3)
+    wob(d, [(462, 150), (462, 175), (480, 175), (480, 205), (444, 205), (444, 175), (462, 175)], PENCIL, 2)
+    for k in range(8):
+        a = k * math.tau / 8
+        wob(d, [(462 + 26 * math.cos(a), 190 + 26 * math.sin(a)), (462 + 40 * math.cos(a), 190 + 40 * math.sin(a))], (150, 140, 90), 2, 1)
+    return im
+
+
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
     for i, f in enumerate((page1, page2, page3, page4, page5), 1):
         im = f().filter(ImageFilter.GaussianBlur(0.6))
         im.save(os.path.join(OUT, f'drawing_{i}.png'))
         print('drawing', i)
+    for name, im in (('drawing_family', page_family()), ('drawing_dock', page6()), ('drawing_car', page6(True)), ('drawing_under', page8()),
+                     ('drawing_sign_ru', page9('Я ПОМНЮ\nЗА ТЕБЯ')), ('drawing_sign_en', page9("I'LL REMEMBER\nFOR YOU")), ('drawing_lantern', page10())):
+        im.filter(ImageFilter.GaussianBlur(0.6)).save(os.path.join(OUT, name + '.png'))
+        print('drawing', name)
     src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src/photos')
     for n in sorted(os.listdir(src)):
         shutil.copy(os.path.join(src, n), os.path.join(OUT, n))

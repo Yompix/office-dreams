@@ -1,86 +1,227 @@
 [
  {
-  "who": "eva",
-  "mode": "clone",
-  "keys": [
-   "c3_s1_evacar_1",
-   "c3_s1_dig_1",
-   "c3_s3_birth_1",
-   "c3_s3_alive_1",
-   "c3_s3_dead_1"
-  ],
-  "prompt": "I lied… It’s not next month. It’s now.\nI lied… It’s not next month.\nYou’re brave, you hear me? If I’m gone — you’ll manage.\nWhat should I call her?\nName her…"
- },
- {
   "who": "iris",
   "mode": "clone",
   "keys": [
-   "c3_s2_1",
-   "c3_s2_quiet_1",
-   "c3_s3_alive_2",
-   "c3_s3_dead_2",
-   "c3_s4_diary_1",
-   "c3_s5_lapse_1",
-   "c3_s6_2"
+   "c4_s1_1",
+   "c4_s2_zoe_7",
+   "c4_s2_hale_4",
+   "c4_s3_iris_1",
+   "c4_s3_talk_1",
+   "c4_s3_sorry_2",
+   "c4_s3_notme_2",
+   "c4_s3_woke_1",
+   "c4_s5_7",
+   "c4_s5_doubt_2",
+   "c4_s5_diary_2",
+   "c4_s5_diary_no_1",
+   "c4_s5_weak_1",
+   "c4_s5_freeze_2",
+   "c4_s6_danny_iris_1",
+   "c4_s7_1",
+   "c5_s1_1",
+   "c5_s1_4",
+   "c5_s1_5",
+   "c5_t_iris_2",
+   "c5_s1_ask_2",
+   "c5_s2_after_5",
+   "c5_s3_iris_1",
+   "c5_s3_iris_3",
+   "c5_s3_smile_2",
+   "c5_zoe_iris_1",
+   "c5_visit_1",
+   "c5_visit8_1",
+   "c5_visit2_1",
+   "c5_visit2_2",
+   "c5_visit_full_1",
+   "c5_visit_full_3",
+   "c5_visit_cold_1",
+   "c5_shadow_1",
+   "c5_ice_epi_2",
+   "c5_mama_epi_1"
   ],
-  "prompt": "The house with blue shutters. By the well. Mom wrote about it.\nGrandma, this is Noah. He doesn’t remember.\nAnna.\nAnna. Her name is Anna.\n“Simon promised. Saturday night he’ll take us away. Noah has already packed his backpack.”\nNoah… It’s me. It’s Iris.\nIt’s twenty kilometers to the cabin. Through the woods."
- },
- {
-  "who": "agnes",
-  "mode": "design",
-  "keys": [
-   "c3_s2_2",
-   "c3_s2_gran_2",
-   "c3_s2_help_2",
-   "c3_s2_quiet_2",
-   "c3_s3_dark_1",
-   "c3_s3_birth_2",
-   "c3_s4_1",
-   "c3_s4_2",
-   "c3_s4_4",
-   "c3_s4_5",
-   "c3_s4_unsure_2",
-   "c3_s4_pills_1",
-   "c3_s4_give_1",
-   "c3_s4_take_1",
-   "c3_s4_keep_1",
-   "c3_s4_brew_yes_1",
-   "c3_s4_brew_no_1",
-   "c3_s5_lapse_3",
-   "c3_s5_song3_1",
-   "c3_s6_1"
-  ],
-  "prompt": "…Annie.\nI was. Until your father forbade it.\nWater on the stove. Clean sheets are in the chest.\nI know. Somebody did that to him.\nI can’t do this without light. There’s a generator in the shed, but no gas. Gas is at the store — Pyotr’s place.\nPress here! Harder!\nThe lake doesn’t let its own go, dear. Whoever drowns stays with it. And its anger lives in whoever saw.\nYour mother lives in you. She’s the one who kept Iris safe.\nThe doctor… She came to me, you know. A week before. Said: Mom, I’m leaving him. And I told her: go see the doctor, he’s an educated man, he’ll help.\nI sent her to him myself.\nYou’ll find out. Everyone does, at the lake.\nGive me his poison.\nDrink. You’ll sleep soundly.\nYou look so much like him right now. Like your father.\nStubborn. Like her.\nDrink. You’ll sleep soundly.\nStubborn. Like her.\nThat was her.\nThat’s Annie singing.\nIt’s him. He came back then too. After Annie."
+  "prompt": "He was here. Last night. Right here.\nShe’s lying. She’s with him. He sent her.\nDon’t answer him. Ever.\nYou wanted to know.\nHe was coming for me. You stood up. And then… it wasn’t quite you.\nYou saved me, stupid.\nRight. Sure.\nYou went through my stuff.\n“Like before” — when you erased his mom.\nNoah. Run.\nDo what you think is right.\nNo.\nRun!\nNoah!\nDanny. Come here, to me.\nWe’re here.\nHow did you know?\nThe ice is dark over there. Don’t go near it.\nShe used to braid my hair here. I thought I’d dreamed that.\nI was four. I remember Mom’s hands. And everything smelled like the lake.\nNo. Not today. Please — remember.\nYou remember?\nThat night you told me not to go to the lake alone. Well, I’m not alone.\nI have. And I’ve read about you. In Mom’s diary.\nNoah, don’t!\nZoe, don’t fall asleep! Please… I’m not losing anyone else today.\nThree years. The judge said you were protecting me.\nEight years. The judge said that with Dad, you were protecting me. But the rest…\nThey let him go. It’s okay. I won’t be a kid forever.\nEveryone thinks he just drowned. Let them. I know.\nI’ll visit. Every week.\nI drew how it’s going to be.\nI can’t. Not yet. But I’ll come again.\nWhere is he? Where’s my brother?\nYou’re with Mom now. And I’m still here. I’ll live for both of us.\nWas it her?"
  },
  {
   "who": "noah",
   "mode": "clone",
   "keys": [
-   "c3_s2_gran_1",
-   "c3_s2_help_1",
-   "c3_s4_3",
-   "c3_s4_doctor_1",
-   "c3_s4_healer_1",
-   "c3_s4_unsure_1",
-   "c3_s5_sorry_1",
-   "c3_s5_go_1"
+   "c4_s1_iris_1",
+   "c4_s2_zoe_4",
+   "c4_s2_believe_1",
+   "c4_s2_doubt_1",
+   "c4_s2_enough_1",
+   "c4_s3_sorry_1",
+   "c4_s3_notme_1",
+   "c4_s4_thanks_1",
+   "c4_s4_secret_1",
+   "c4_s4_truth_1",
+   "c4_s5_talk_1",
+   "c4_s5_talk_3",
+   "c4_s5_diary_1",
+   "c4_s5_run_1",
+   "c5_s1_2",
+   "c5_t_iris_1",
+   "c5_t_zoe_2",
+   "c5_t_agnes_2",
+   "c5_t_danny_yes_1",
+   "c5_t_danny_try_1",
+   "c5_t_eva_2",
+   "c5_s1_ask_1",
+   "c5_s1_go_1",
+   "c5_s2_after_6",
+   "c5_s3_remember_1",
+   "c5_s3_remember_2",
+   "c5_s3_remember_3",
+   "c5_s3_remember_4",
+   "c5_s3_remember_5",
+   "c5_s3_remember_8",
+   "c5_s3_wont_1",
+   "c5_s4_iris_1",
+   "c5_s4_hale_1",
+   "c5_s4_hale_2",
+   "c5_zoe_sing_1",
+   "c5_zoe_believe_1",
+   "c5_zoe_me_1",
+   "c5_zoe_try_1",
+   "c5_visit_full_2"
   ],
-  "prompt": "Are you our grandmother?\nThere’s a woman in labor. Help us.\nThe doctor said it’s an illness.\nIt’s an illness. I need treatment.\nSo… Mom is with me?\nI don’t know.\nWait. I made you a promise — and broke it. I’m sorry.\nGo. I won’t stop you."
+  "prompt": "You keep it. You decide.\nWhat did you see?\nI believe her.\nIris… maybe you’re right.\nEnough. Both of you.\nI’m sorry.\nThat wasn’t me.\nThanks for telling me.\nDon’t tell anyone about this, okay?\nIf anyone asks — tell the truth. How it was.\nWhat happened to my mother?\nYou were there. That night. I saw your car.\nIris. Give him the diary.\nInto the woods! Everyone — go!\n…I don’t know.\nDo you remember what it was like here?\nLast time I was here, I was eight.\nYou knew? That it was him?\nI won’t.\nI don’t know. But I’ll try.\nThat was Grandma. And Iris.\nIris… give me one.\nI’m sorry. There’s nothing there.\nI remember.\nMom was waiting for you that night. Bags packed. You promised to get her out. And he showed up instead.\nShe kept looking at the boathouse, right to the end. So I wouldn’t come out.\nHe held her under. For a long time. And you wrote “accidental drowning.”\nI didn’t look. But I heard everything.\nAnd then you opened the boathouse and told me I’d dreamed it.\nYou helped yourself.\nI don’t know what happened back then. But I’m not giving you Iris.\nYour jacket! Get it off!\nHe’s going to answer for this.\nGet your chest on the ice! Kick with your legs!\nNo. No sleeping today. Sing. The one you sang in the car.\nI believe you. You hear me? I believe you.\nZoe. It’s me.\nStay awake! You hear me? Stay awake!\nYou drew us?"
+ },
+ {
+  "who": "agnes",
+  "mode": "clone",
+  "keys": [
+   "c4_s1_van_1",
+   "c4_s5_3",
+   "c4_s6_agnes_1",
+   "c4_s6_agnes_3",
+   "c5_s1_3",
+   "c5_t_agnes_1",
+   "c5_t_agnes_3",
+   "c5_s2_after_7",
+   "c5_s3_smile_3",
+   "c5_s4_1",
+   "c5_mama_reach_1",
+   "c5_mama_still_1",
+   "c5_ice_epi_1"
+  ],
+  "prompt": "Hasn’t started in eight years. You’re the mechanic, aren’t you?\nDon’t you dare. Don’t you dare call me by my name.\nGo. Go on, I said. I’m old. I’ll hold him off.\nIt was you who told him. About Annie. You gave her away.\nStay off the ice by the dock. There’s springs under there — it won’t hold, not even in a hard freeze.\nShe was happy here. Summers. Till that man came rolling in.\nI knew. And I kept my mouth shut. Eleven years, sonny.\nThen she’s with you.\nThat’s not Anna! That’s not her!\nGet down! Flat on your belly, sonny!\nShe’s let go.\nShe took what was hers. Now she’ll let go.\nThe lake keeps its own. Now they’re together down there."
  },
  {
   "who": "zoe",
   "mode": "clone",
   "keys": [
-   "c3_s3_zoe_1"
+   "c4_s2_zoe_1",
+   "c4_s2_zoe_2",
+   "c4_s2_zoe_3",
+   "c4_s2_zoe_5",
+   "c4_s2_zoe_6",
+   "c4_s2_doubt_2",
+   "c4_s6_zoe_1",
+   "c4_s6_zoe_2",
+   "c5_t_zoe_1",
+   "c5_t_zoe_3",
+   "c5_t_zoe_4",
+   "c5_shore_orderly_1",
+   "c5_zoe_believe_2",
+   "c5_zoe_wake_1"
   ],
-  "prompt": "There’s a car at the edge of the village. Black. Headlights off."
+  "prompt": "Okay. Since we’re all here… in one old van.\nQuiet Pines. A sanatorium in the woods. White, pretty. There were about ten of us. I was nineteen.\nYou know who they put in there? People who saw something.\nI don’t remember. That’s the whole point. Mom paid, and I don’t remember.\nAll I remember is my stepdad got really nice after that.\nGee, thanks.\nRun! Go, all of you, run!\nNoah!\nWhat is this, a harpoon? It’s pretty here. Creepy, but pretty.\nWhen I was eight, I got a hamster. It died. Sorry. I talk crap when I’m nervous.\nJust come back, okay? From wherever it is you go.\nIs it Thursday…?\nAt least somebody does…\nOh. It’s you… I thought it was the white room again."
+ },
+ {
+  "who": "hale",
+  "mode": "clone",
+  "keys": [
+   "c4_s2_hale_1",
+   "c4_s2_hale_2",
+   "c4_s2_hale_3",
+   "c4_s5_1",
+   "c4_s5_2",
+   "c4_s5_4",
+   "c4_s5_5",
+   "c4_s5_6",
+   "c4_s5_talk_2",
+   "c4_s5_talk_4",
+   "c4_s5_doubt_1",
+   "c4_s5_diary_keep_1",
+   "c4_s5_diary_keep_2",
+   "c4_s5_diary_hale_1",
+   "c4_s5_freeze_1",
+   "c4_s6_1",
+   "c4_s6_agnes_2",
+   "c4_s6_danny_1",
+   "c5_s2_after_2",
+   "c5_s2_after_3",
+   "c5_s2_after_4",
+   "c5_s3_1",
+   "c5_s3_2",
+   "c5_s3_3",
+   "c5_s3_4",
+   "c5_s3_iris_2",
+   "c5_s3_iris_4",
+   "c5_s3_iris_5",
+   "c5_s3_silent_1",
+   "c5_s3_remember_6",
+   "c5_s3_remember_7",
+   "c5_s3_remember_9",
+   "c5_s3_wont_2",
+   "c5_s3_smile_1",
+   "c5_s4_shadow_1",
+   "c5_mama_1",
+   "c5_oblivion_1",
+   "c5_oblivion_2",
+   "c5_obl_car_1",
+   "c5_obl_car_2"
+  ],
+  "prompt": "Noah. This is Dr. Hale. Zoe is with me. She’s fine — as long as she takes her medication.\nLet’s talk like adults. No axes.\nLet’s talk like adults.\nNoah. At last.\nAgnessa… It’s been so long.\nI understand, you’re frightened. You’re ill, Noah, and you know it.\nYou killed your father. She’ll be next.\nCome with me. I’ll help. Like before.\nAn accident, Noah. You were asleep. You couldn’t have seen it.\nTake him.\nCome on, Noah.\nWell then.\nTake him.\nThank you. And now — you.\nGood boy.\nNoah… I’m not angry. It’s cold out here. Come out — let’s talk.\nAgnessa, don’t. You know I’m a doctor.\nDanny. Danny, come here. Your mom’s in the car. She’s looking for you.\nGo inside, Vic. Get changed. I’ll take care of it.\nNoah… You were asleep. Do you hear me? You were asleep. You dreamed it.\nHere, take this. It’ll all be gone by morning.\nYou were in the boathouse. Whatever you saw in there, Noah, it was a dream. We’ve been through this a hundred times.\nHow’s the head? Took your pill? Good boy. See? Better already.\nHere’s your truth. Paper.\nGo on, take it. It’s all weather and recipes.\nIris, sweetheart, step away from him. You’ve seen what he can do.\nLook at the shore, Noah. Zoe’s had a lot of medication. In this cold, that’s dangerous — she needs a doctor. Come with me, and everyone goes home.\nLook at the shore. Danny’s frozen stiff. Come with me, and I’ll take him to his mom.\nThere’s a good boy.\nI… I only told him. I was scared, Noah. He would have… I never thought he’d…\nYou were eight. You screamed every night. I helped you.\nIris is coming with me. She needs help too.\nThat’s a shame. Then Iris is coming with me. She needs help too.\nNoah. Noah, stop. Look at me. You know me.\nNoah… Noah, please…\nNoah… Your hand…\nTake her inside, she needs to get warm.\nTake the boy inside, he’s freezing.\nGet some sleep, Noah.\nThat dream again? Don’t worry. We’ll take care of it."
+ },
+ {
+  "who": "danny",
+  "mode": "clone",
+  "keys": [
+   "c4_s4_1",
+   "c4_s4_2",
+   "c4_s4_3",
+   "c4_s4_secret_2",
+   "c5_t_danny_1"
+  ],
+  "prompt": "At the gas station… You weren’t angry. You were… like you weren’t there. Empty eyes.\nAnd then you told the man, “sleep.” Real quiet. Like my mom says it.\nHe fell. Hit his head. On the… counter. You cried after. You didn’t mean it.\nOkay.\nFound it in the boathouse. Just in case. You won’t leave us, right?"
+ },
+ {
+  "who": "eva",
+  "mode": "clone",
+  "keys": [
+   "c5_t_eva_1",
+   "c5_t_eva_3"
+  ],
+  "prompt": "Sorry, I never even said thank you. You… well, you know.\nAnd you. Don’t argue."
+ },
+ {
+  "who": "mom",
+  "mode": "design",
+  "keys": [
+   "c5_s2_1",
+   "c5_s2_2",
+   "c5_s2_4"
+  ],
+  "prompt": "Uncle Simon will be here soon, and then we’re going to Grandma’s. Shh, Iris is sleeping.\nNoah, into the boathouse. Quick. Quiet as a mouse, no matter what.\n…He promised."
+ },
+ {
+  "who": "victor",
+  "mode": "design",
+  "keys": [
+   "c5_s2_3",
+   "c5_s2_after_1"
+  ],
+  "prompt": "Going somewhere? Simon told me everything. Called me himself. Good friend, Simon.\nShe fell. You hear me? She slipped. All on her own."
  },
  {
   "who": "anna",
-  "mode": "design",
+  "mode": "clone",
   "keys": [
-   "c3_s5_lapse_2"
+   "c5_s3_listen_1"
   ],
-  "prompt": "Don’t go to the lake alone."
+  "prompt": "Hello, Simon. You promised."
  }
 ]

@@ -399,11 +399,13 @@ def build(specs):
                     ok = False
                 if kind == 'jacket' and co[i].z > neck + 0.03 and w_head[i] > 0.2:   # воротник — чуть выше основания шеи
                     ok = False
+                if g.get('open') and abs(co[i].x) < g['open'] and co[i].y < -0.02 and co[i].z < neck + 0.04:   # расстёгнута: полоса спереди (лицо — в −Y)
+                    ok = False
                 keep.append(ok)
             # воротник: немного шеи у основания
             for i in range(len(co)):
                 if skin[i] and g.get('collar', True) and w_head[i] > 0.3 and neck - 0.02 < co[i].z < neck + 0.06 and w_headonly[i] < 0.3:
-                    keep[i] = True
+                    keep[i] = not (g.get('open') and abs(co[i].x) < g['open'] and co[i].y < -0.02)
             ob = _shell(body, name, keep, g.get('off', 0.018), g.get('thick', 0.005), smooth=g.get('smooth', 6), drape=(w_torso, w_arms, w_head, g.get('slope', 0.12), g.get('band', 0.5)), nsmooth=8)
             hide |= _interior(body, keep, 1)
             covers.append((hem, kind == 'jacket', g.get('collar', True)))

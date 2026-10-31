@@ -5,15 +5,29 @@ extends Node3D
 ## Узел ставят далеко в стороне от дороги (Ch4.LAKE): своя земля, свой лес.
 
 const EDGE := -8.0
-const FAR := 175.0               # дальний берег (x)
+const FAR := 110.0               # дальний берег (x)
 const ICE_Y := -0.4
 var model: Node3D
 var ice: MeshInstance3D
 var snow_parts: Array[MeshInstance3D] = []   # снег на крышах и сугробы — летом (в воспоминании) их нет
 
 
-static func snow_mat(road) -> Material:
-	return road.lot_material() if road else StandardMaterial3D.new()
+static var _snow: StandardMaterial3D
+
+
+## Снег на земле — неподвижный (у дороги снег «едет» вместе с ней, тут — нет): snow_02 Poly Haven.
+static func snow_mat(_road = null) -> Material:
+	if _snow == null:
+		_snow = StandardMaterial3D.new()
+		var tx := "res://assets/ph/snow_02/snow_02_"
+		_snow.albedo_texture = load(tx + "diff_1k.jpg")
+		_snow.albedo_color = Color(0.93, 0.95, 1.0)
+		_snow.normal_enabled = true
+		_snow.normal_texture = load(tx + "nor_gl_1k.jpg")
+		_snow.roughness = 0.82
+		_snow.uv1_triplanar = true
+		_snow.uv1_scale = Vector3(0.35, 0.35, 0.35)
+	return _snow
 
 
 ## Ели (те же, что вдоль дороги) — по списку точек [x, z, масштаб].

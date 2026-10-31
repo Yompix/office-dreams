@@ -8,9 +8,9 @@ const WOODS := Vector3(160.0, 0.0, -60.0)      # лес и избушка — в
 const LAKE := Vector3(-420.0, 0.0, -60.0)      # озеро (и вся глава 5)
 const CAR_YARD := Vector3(2.2, 0.0, -37.0)     # их машина у забора (как в конце главы 3)
 const VAN_YARD := Vector3(-10.5, 0.0, -55.0)   # буханка у дома Агнес, носом к улице
-const GAP := Vector3(-9.62, 1.075, 10.88)      # щель в стене сарая (местные координаты озера)
-const NOTE := {"ru": "Ной, тебе станет легче.\nТы же знаешь, что бывает\nбез них.\n                — С. Х.",
-	"en": "Noah, you’ll feel better.\nYou know what happens\nwithout them.\n                — S. H."}
+const GAP := Vector3(-9.555, 1.075, 10.88)     # щель в стене сарая (местные координаты озера): середина просвета между досками
+const NOTE := {"ru": "Ной, тебе станет легче.\nТы же знаешь, что бывает\nбез них.", "en": "Noah, you’ll feel better.\nYou know what happens\nwithout them."}
+const NOTE_SIGN := {"ru": "— С. Х.", "en": "— S. H."}
 
 
 static func on(g, f: String) -> bool:
@@ -196,7 +196,7 @@ static func fx(g, k: String) -> bool:
 			vn.snow(true)
 		"van_hood":   # Ной у носа буханки — свечи, аккумулятор
 			put(g, "noah", VAN_YARD + Vector3(2.75, 0, 0.2), -90.0, "Fixing_Kneeling")
-			g.sfx.play("wrench", -12.0)
+			g.sfx.play("trunk", -14.0, 1.3)
 		"van_push":   # все толкают сзади, Ной за рулём
 			var vn := van(g)
 			var st: Array = vn.seat("driver")
@@ -218,6 +218,7 @@ static func fx(g, k: String) -> bool:
 			g.sfx.play("engine_start", -4.0, 0.8)
 			var tw: Tween = g.create_tween()
 			tw.tween_property(vn, "position", vn.position + vn.global_transform.basis.z * -2.2, 1.6).set_ease(Tween.EASE_OUT)
+			c4["van_tw"] = tw   # дорога остановит, если сцена сменится раньше
 			for kk in ["iris", "agnes", "zoe", "danny"]:
 				if has(g, kk) and (g.actors[kk] as Actor).visible:
 					(g.actors[kk] as Actor).play("Idle", 0.2)
@@ -237,11 +238,11 @@ static func fx(g, k: String) -> bool:
 			if has(g, "zoe"):
 				var z: Actor = g.actors.zoe
 				z.expr = {}
-				z.look_target = van(g).to_global(Vector3(2.5, 1.55, 0.7))
+				z.look_target = van(g).to_global(Vector3(0.4, 1.6, 3.2))   # в заднее окно — вполоборота (окно за спиной — шея не крутится на 180°)
 		"radio_hale":
 			g.sfx.play("static_burst", -12.0, 0.9)
 		"phone_hale":
-			g.sfx.play("ring", -10.0)
+			g.sfx.play("phone_ring", -6.0)
 			if has(g, "agnes"):
 				var a: Actor = g.actors.agnes
 				a.reach = {"_r": g._target("agnes") + Vector3(0.12, -0.08, -0.12)}
@@ -253,11 +254,11 @@ static func fx(g, k: String) -> bool:
 			_bus_stop(g)
 		"hood_up":
 			put(g, "noah", van(g).to_global(Vector3(0.25, 0.0, -2.85)), van(g).rotation_degrees.y, "Fixing_Kneeling")
-			g.sfx.play("steam", -10.0)
+			g.sfx.play("radio_hiss", -16.0, 0.6)
 		"iris_bench":   # Айрис на лавке; Ной садится рядом, она протягивает блокнот
 			var b: Node3D = c4.get("stop")
-			Ch2.sit(g, "iris", b.to_global(Vector3(-0.35, 0.47, -0.2)), b.rotation_degrees.y + 180.0, "Sitting_Idle")
-			Ch2.sit(g, "noah", b.to_global(Vector3(0.35, 0.47, -0.2)), b.rotation_degrees.y + 180.0, "Sitting_Idle")
+			Ch2.sit(g, "iris", b.to_global(Vector3(-0.35, 0.47, -0.2)), b.rotation_degrees.y + 180.0, "Rk_SitIdle")
+			Ch2.sit(g, "noah", b.to_global(Vector3(0.35, 0.47, -0.2)), b.rotation_degrees.y + 180.0, "Rk_SitIdle")
 			notebook(g, "iris")
 		"page_1", "page_2", "page_3", "page_4", "page_5":
 			var n := int(k.right(1))
@@ -277,7 +278,6 @@ static func fx(g, k: String) -> bool:
 		"iris_cry":
 			if has(g, "iris"):
 				(g.actors.iris as Actor).expr = {"browInnerUp": 0.9, "eyeSquintLeft": 0.5, "eyeSquintRight": 0.5, "mouthFrownLeft": 0.5, "mouthFrownRight": 0.5, "jawOpen": 0.12}
-				g.sfx.play("sob", -14.0)
 		"iris_sleep":   # Айрис спит в буханке, блокнот на коленях
 			var vn := van(g)
 			var st: Array = vn.seat("l1")
@@ -291,8 +291,8 @@ static func fx(g, k: String) -> bool:
 			g._expr({"who": "iris", "set": "none"})
 			if has(g, "iris"):
 				(g.actors.iris as Actor).look_target = g._target("noah")
-		"danny_sit":
-			put(g, "danny", van(g).to_global(Vector3(1.0, 0.0, -2.75)), van(g).rotation_degrees.y + 200.0, "Crouch_Idle")
+		"danny_sit":   # Дэнни садится на бампер рядом с Ноем
+			Ch2.sit(g, "danny", van(g).to_global(Vector3(0.85, 0.6, -2.4)), van(g).rotation_degrees.y + 190.0)
 		"pine":   # поперёк дороги — сосна; встаём
 			_pine(g)
 		"sedan_behind":
@@ -361,10 +361,12 @@ static func fx(g, k: String) -> bool:
 			Ch3.hold(g.actors.noah, "LayToIdle", 0.0)
 			put(g, "orderly", vn.to_global(Vector3(-0.2, 0.0, 5.3)), -60.0 + vn.rotation_degrees.y, "Crouch_Idle")
 			_crowbar(g, false)
-		"syringe":
+		"syringe":   # Хейл со шприцем шагает к Ною, лежащему в снегу
+			if has(g, "hale"):
+				put(g, "hale", van(g).to_global(Vector3(0.45, 0.0, 6.3)), -145.0 + van(g).rotation_degrees.y, "Idle")
 			_syringe(g, true)
-		"iris_hit":
-			put(g, "iris", van(g).to_global(Vector3(0.6, 0.0, 6.0)), 180.0 + van(g).rotation_degrees.y, "Punch_Jab")
+		"iris_hit":   # Айрис сбоку бьёт его по руке
+			put(g, "iris", van(g).to_global(Vector3(1.05, 0.0, 6.7)), -124.0 + van(g).rotation_degrees.y, "Punch_Jab")
 			_syringe(g, false)
 		"run_woods":   # все бегут в лес
 			_run_woods(g)
@@ -465,7 +467,7 @@ static func _yard(g) -> void:
 	v.radio_glow(false)
 	day(g, "sunny")
 	g._blizzard = false
-	s.road.snow.amount = 0 if not s.pc else 120   # редкие искры в воздухе
+	s.road.snow.amount = 1 if not s.pc else 120   # редкие искры в воздухе (0 частиц Godot не принимает)
 	s.env.fog_density = 0.0035
 	s.car.visible = true
 	s.car.position = CAR_YARD
@@ -507,7 +509,7 @@ static func _note_props(g, show: bool) -> void:
 	root.position = Vector3(-0.36, 0.53, 0.28)   # подушка водительского кресла
 	var paper := MeshInstance3D.new()
 	var pm := BoxMesh.new()
-	pm.size = Vector3(0.15, 0.002, 0.11)
+	pm.size = Vector3(0.16, 0.002, 0.115)
 	paper.mesh = pm
 	var wm := StandardMaterial3D.new()
 	wm.albedo_color = Color(0.93, 0.92, 0.88)
@@ -519,14 +521,19 @@ static func _note_props(g, show: bool) -> void:
 	lb.text = String(NOTE.get(g.lang, NOTE.en))
 	lb.font = load("res://assets/fonts/Pangolin-Regular.woff2")
 	lb.font_size = 48
-	lb.pixel_size = 0.00018
+	lb.pixel_size = 0.00021
 	lb.modulate = Color(0.1, 0.12, 0.25)
 	lb.outline_size = 0
 	lb.shaded = true
-	lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	lb.position = Vector3(0, 0.0015, 0)
+	lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT   # у Label3D «влево» = текст идёт вправо от точки: точка — у левого поля
+	lb.position = Vector3(-0.066, 0.0015, -0.01)
 	lb.rotation_degrees = Vector3(-90, 0, 0)
 	paper.add_child(lb)
+	var sg := lb.duplicate() as Label3D   # подпись — у правого поля, ниже
+	sg.text = String(NOTE_SIGN.get(g.lang, NOTE_SIGN.en))
+	sg.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	sg.position = Vector3(0.064, 0.0015, 0.03)
+	paper.add_child(sg)
 	var b := MeshInstance3D.new()   # пузырёк — на записке
 	var cm := CylinderMesh.new()
 	cm.top_radius = 0.02
@@ -538,7 +545,7 @@ static func _note_props(g, show: bool) -> void:
 	bm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	bm.roughness = 0.2
 	b.material_override = bm
-	b.position = Vector3(0.05, 0.038, -0.035)
+	b.position = Vector3(0.115, 0.038, 0.02)
 	root.add_child(b)
 	var cap := MeshInstance3D.new()
 	var cc := CylinderMesh.new()
@@ -590,8 +597,11 @@ static func _road(g) -> void:
 	s.car.visible = false
 	s.car.speed = 0.0
 	g._blizzard = false
-	s.road.snow.amount = 0
+	s.road.snow.amount = 1   # 0 частиц Godot не принимает
 	var vn := van(g)
+	var vt = g.c4.get("van_tw")
+	if vt and (vt as Tween).is_valid():
+		(vt as Tween).kill()
 	vn.position = Vector3.ZERO
 	vn.rotation = Vector3.ZERO
 	vn.snow(false)
@@ -613,7 +623,7 @@ static func _mirror(g, on_: bool) -> void:
 		var vn := van(g)
 		var pm := PlanarMirror.new()
 		vn.add_child(pm)
-		pm.build(vn.to_global(Vector3(-1.13, 1.6, -1.815)), vn.global_transform.basis * Vector3(0.28, 0.0, 1.0), Vector2(0.15, 0.21), g.cam)
+		pm.build(vn.to_global(Vector3(-1.141, 1.6, -1.84)), vn.global_transform.basis * Vector3(0.37, 0.037, 1.0), Vector2(0.15, 0.21), g.cam)   # глаз водителя → зеркало → дорога позади (седан в кадре)
 		g.c4["mirror"] = pm
 	elif not on_ and m and is_instance_valid(m):
 		(m as Node).queue_free()
@@ -627,10 +637,15 @@ static func _bus_stop(g) -> void:
 	var d := 24.0
 	root.position = Vector3(5.4, 0.15, -d - 1.0)
 	root.rotation_degrees = Vector3(0, -90, 0)   # открыт к дороге (−X)
-	var conc := StandardMaterial3D.new()
-	conc.albedo_texture = load("res://assets/models/cafe_concrete_floor_02_diff_1k.jpg")
-	conc.albedo_color = Color(0.78, 0.76, 0.72)
+	var conc := StandardMaterial3D.new()   # старый серый бетон в потёках (Poly Haven concrete_floor_02, по трём осям)
+	var tx := "res://assets/ph/concrete_floor_02/concrete_floor_02_"
+	conc.albedo_texture = load(tx + "diff_1k.jpg")
+	conc.albedo_color = Color(0.78, 0.78, 0.76)
+	conc.normal_enabled = true
+	conc.normal_texture = load(tx + "nor_gl_1k.jpg")
 	conc.roughness = 0.95
+	conc.uv1_triplanar = true
+	conc.uv1_scale = Vector3(0.45, 0.45, 0.45)
 	var dark := StandardMaterial3D.new()
 	dark.albedo_color = Color(0.25, 0.2, 0.17)
 	dark.roughness = 0.8
@@ -720,7 +735,7 @@ static func _out_at_stop(g) -> void:
 	cast(g)
 	put(g, "noah", vn.to_global(Vector3(0.25, 0.0, -2.85)), vn.rotation_degrees.y, "Fixing_Kneeling")
 	if b:
-		Ch2.sit(g, "iris", b.to_global(Vector3(-0.35, 0.47, 0.42)), b.rotation_degrees.y + 180.0, "Sitting_Idle")
+		Ch2.sit(g, "iris", b.to_global(Vector3(-0.35, 0.47, 0.42)), b.rotation_degrees.y + 180.0, "Rk_SitIdle")
 	put(g, "agnes", vn.to_global(Vector3(1.9, 0.0, 0.4)), vn.rotation_degrees.y - 70.0, "Idle_FoldArms")
 	put(g, "zoe", vn.to_global(Vector3(2.4, 0.0, -1.4)), vn.rotation_degrees.y - 120.0, "Idle")
 	put(g, "danny", vn.to_global(Vector3(1.4, 0.0, -2.2)), vn.rotation_degrees.y + 200.0, "Idle")
@@ -763,9 +778,10 @@ static func notebook(g, who: String) -> void:
 		fwd = Vector3(fwd.x, 0.0, fwd.z).normalized()
 		var left := Vector3.UP.cross(fwd).normalized()
 		var chest := a.global_position + Vector3(0, 0.95, 0) + fwd * 0.32
-		if a.ap and a.ap.current_animation.begins_with("Sitting"):
+		if a.ap and a.ap.current_animation.begins_with("Rk_Sit"):
 			chest = a.global_position + Vector3(0, 0.62, 0) + fwd * 0.38
 		a.reach = {"_l": chest + left * 0.12, "_r": chest - left * 0.12}
+		a._reach_w = 1.0   # руки — сразу с блокнотом (план может начаться в тот же миг)
 
 
 static func _page(g, n: int) -> void:
@@ -775,7 +791,7 @@ static func _page(g, n: int) -> void:
 	var pm := (page as MeshInstance3D).material_override as StandardMaterial3D
 	pm.albedo_texture = load("res://assets/textures/drawing_%d.png" % n) if n > 0 else null
 	if n > 0:
-		g.sfx.play("page", -14.0)
+		g.sfx.play("page_turn", -10.0)
 
 
 static func _hug(g, on_: bool) -> void:
@@ -790,15 +806,39 @@ static func _hug(g, on_: bool) -> void:
 		(bk as Node3D).visible = false
 	var ih: Vector3 = g._target("iris")
 	var nh: Vector3 = g._target("noah")
-	n.reach = {"_l": ih + Vector3(0, -0.32, 0) + (ih - nh).normalized() * 0.12, "_r": ih + Vector3(0, -0.3, 0)}
-	i.reach = {"_r": nh + Vector3(0, -0.35, 0)}
-	n.look_target = ih
-	i.look_target = nh + Vector3(0, -0.2, 0)
+	var side := Vector3(ih.x - nh.x, 0.0, ih.z - nh.z).normalized()   # от Ноя к Айрис
+	var nl: Vector3 = n.global_transform.basis.x                       # левая рука героя — к его +X
+	var near := "_l" if side.dot(nl) > 0.0 else "_r"
+	var far := "_r" if near == "_l" else "_l"
+	n.reach = {near: ih + side * 0.16 + Vector3(0, -0.24, 0), far: ih - side * 0.05 + Vector3(0, -0.42, 0)}
+	var il: Vector3 = i.global_transform.basis.x
+	i.reach = {("_l" if (-side).dot(il) > 0.0 else "_r"): nh + Vector3(0, -0.38, 0) + side * 0.05}
+	n.look_target = ih + Vector3(0, -0.05, 0)
+	i.look_target = nh + Vector3(0, -0.3, 0)
 
 
 # ---------- сосна, Хейл и санитар ----------
 static func _pine(g) -> void:
 	var s: DriveScene = g.scene
+	var vn := van(g)   # снова в пути: все в буханке, пар кончился, остановка уехала назад
+	var st = g.c4.get("steam")
+	if st and is_instance_valid(st):
+		(st as CPUParticles3D).emitting = false
+	var bk = g.c4.get("book")
+	if bk and is_instance_valid(bk):
+		(bk as Node).queue_free()
+		g.c4.erase("book")
+	_hug(g, false)
+	var stp = g.c4.get("stop")   # остановка осталась далеко позади
+	if stp and is_instance_valid(stp):
+		(stp as Node).queue_free()
+	g.c4.erase("stop")
+	seat_van(g)
+	vn.engine(true)
+	vn.ride = true
+	s.road.speed = 11.0
+	vn.speed = 11.0
+	_mirror(g, true)
 	var root := Node3D.new()
 	s.road_items.add_child(root)
 	var d := 30.0
@@ -873,12 +913,13 @@ static func _sedan(g) -> void:
 	if bc.get_parent() != g.scene:
 		bc.reparent(g.scene, false)
 	bc.visible = true
-	bc.position = vn.to_global(Vector3(0.0, 0.0, 34.0))
+	bc.position = vn.to_global(Vector3(-2.2, 0.0, 34.0))   # по встречной полосе — так его видно в левом зеркале (прямо позади его закрывает кузов)
 	bc.rotation = vn.rotation
 	bc.speed = 0.0
 	bc.lights(true)
 	var tw: Tween = g.create_tween()
-	tw.tween_property(bc, "position", vn.to_global(Vector3(0.0, 0.0, 9.5)), 2.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(bc, "position", vn.to_global(Vector3(-2.2, 0.0, 16.0)), 1.2).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(bc, "position", vn.to_global(Vector3(0.0, 0.0, 9.5)), 1.1).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 	tw.tween_callback(func():
 		if is_instance_valid(bc):
 			bc.lights(false))
@@ -888,7 +929,16 @@ static func _sedan(g) -> void:
 
 
 ## Все выходят из буханки: стоят между ней и седаном.
+static func _looks_off(g) -> void:
+	for k in g.actors:
+		var a = g.actors[k]
+		if is_instance_valid(a):
+			(a as Actor).look_target = null
+			(a as Actor).reach = {}
+
+
 static func _out_of_van(g) -> void:
+	_looks_off(g)
 	var vn := van(g)
 	_mirror(g, false)
 	var who := cast(g)
@@ -932,7 +982,7 @@ static func _diary(g, who: String) -> void:
 	ba.add_child(bm)
 	g.c4["diary"] = ba
 	if who == "hale":
-		g.sfx.play("page", -14.0)
+		g.sfx.play("page_turn", -10.0)
 
 
 static func _crowbar(g, show: bool) -> void:
@@ -1010,8 +1060,8 @@ static func _flash(g, on_: bool) -> void:
 		s.set_daylight("night")
 		var fb := BlackCar.new()
 		lk.add_child(fb)
-		fb.position = Vector3(-30.0, 0.0, 24.0)
-		fb.rotation_degrees = Vector3(0, -130, 0)
+		fb.position = Vector3(-15.5, 0.0, -2.0)   # на дороге у дачи, фарами к сараю и мосткам
+		fb.rotation_degrees = Vector3(0, 200, 0)
 		fb.lights(true)
 		g.c4["flash_car"] = fb
 		g.hud.fade.color = Color(1, 1, 1, 0.9)
@@ -1030,6 +1080,7 @@ static func _flash(g, on_: bool) -> void:
 
 # ---------- лес ----------
 static func _run_woods(g, from_hut := false) -> void:
+	woods(g)
 	var who := cast(g)
 	var base := wpos(30.0, 0.0, 1.0) if not from_hut else wpos(3.0, 0.0, 6.0)
 	var dest := wpos(14.0, 0.0, 1.0) if not from_hut else wpos(6.0, 0.0, 22.0)
@@ -1045,6 +1096,7 @@ static func _run_woods(g, from_hut := false) -> void:
 
 
 static func _woods_stage(g) -> void:
+	_looks_off(g)
 	var w := woods(g)
 	day(g, "dusk")
 	g._blizzard = false
@@ -1070,11 +1122,11 @@ static func _flash_actor(g) -> void:
 		a.skel.add_child(ba)
 		var sl := SpotLight3D.new()
 		sl.light_color = Color(0.92, 0.95, 1.0)
-		sl.light_energy = 6.0
+		sl.light_energy = 12.0
 		sl.spot_range = 28.0
 		sl.spot_angle = 16.0
 		sl.spot_attenuation = 0.8
-		sl.light_volumetric_fog_energy = 2.5
+		sl.light_volumetric_fog_energy = 5.0   # в тумане избушки луч сквозь щели виден полосами
 		sl.shadow_enabled = g.scene.pc
 		ba.add_child(sl)
 		sl.rotation_degrees = Vector3(-90, 0, 0)
@@ -1103,7 +1155,7 @@ static func _hut_in(g) -> void:
 		var sp: Array = spots[k]
 		put(g, k, wpos(0, Woods.FLOOR, 0) + (sp[0] as Vector3), float(sp[1]), "Crouch_Idle" if k != "eva" else "Idle")
 	if has(g, "eva") and (g.actors.eva as Actor).visible:
-		Ch2.sit(g, "eva", wpos(-Woods.HW + 0.3, Woods.FLOOR + 0.48, -0.5), 90.0, "Sitting_Idle")
+		Ch2.sit(g, "eva", wpos(-Woods.HW + 0.3, Woods.FLOOR + 0.48, -0.5), 90.0, "Rk_SitIdle")
 	baby(g)
 	var hunter := String(g.c4.get("hunter", "orderly"))
 	if has(g, hunter):
@@ -1134,13 +1186,14 @@ static func _carry_agnes(g) -> void:
 	a.reparent(ba, false)
 	a.position = Vector3(0.0, -0.55, -0.32)   # на спине: руки — через плечи
 	a.rotation_degrees = Vector3(10, 0, 0)
-	a.play("Sitting_Idle", 0.0)
+	a.play("Rk_SitIdle", 0.0)
 	a.reach = {}
 	g.c4["carry"] = ba
 
 
 # ---------- озеро ----------
 static func _lake_stage(g) -> void:
+	_looks_off(g)
 	var lk := lake(g)
 	lk.summer(false)
 	day(g, "lake_dawn")
@@ -1179,16 +1232,20 @@ static func _kid(g, show: bool) -> void:
 static func _far_sedan(g) -> void:
 	var fb := BlackCar.new()
 	lake(g).add_child(fb)
-	fb.position = Vector3(Lake.FAR + 8.0, 0.3, 30.0)
+	fb.position = Vector3(Lake.FAR + 1.6, 0.3, 30.0)   # по самому берегу, перед елями (иначе машину прячут деревья)
 	fb.rotation_degrees = Vector3(0, 0, 0)   # едет вдоль дальнего берега (носом к −z)
 	fb.speed = 2.2
 	fb.lights(true)
+	for h in fb.halos:   # издалека — два огня
+		h.scale = Vector3(4.0, 4.0, 4.0)
 	g.c4["far_car"] = fb
 
 
 # ---------- каждый кадр ----------
 static func process(g, delta: float) -> void:
 	var c4: Dictionary = g.c4
+	var st = c4.get("steam")   # пар из-под буханки — слышно рядом
+	g.sfx.bed("steam", -10.0 if (st and is_instance_valid(st) and (st as CPUParticles3D).emitting) else Sfx.OFF)
 	var bk = c4.get("book")
 	if bk and is_instance_valid(bk):   # блокнот — между ладонями того, кто держит
 		var who := String(c4.get("book_who", "iris"))
@@ -1247,11 +1304,11 @@ static func cam(g, shot: String) -> bool:
 	match shot:
 		"yard":
 			c.fov = 42.0
-			c.look_at_from_position(Vector3(8.5, 2.1, -29.5), Vector3(-1.5, 1.0, -39.5))
+			c.look_at_from_position(Vector3(5.0, 1.9, -31.2), Vector3(-1.5, 1.0, -39.5))
 		"car_seat":
 			var car: Car = g.scene.car
-			c.fov = 44.0
-			c.look_at_from_position(car.to_global(Vector3(0.45, 1.2, 0.1)), car.to_global(Vector3(-0.36, 0.55, 0.28)))
+			c.fov = 34.0
+			c.look_at_from_position(car.to_global(Vector3(0.4, 1.12, 0.12)), car.to_global(Vector3(-0.36, 0.55, 0.28)))
 		"hale_note":
 			var p = g.c4.get("note_paper")
 			if not (p and is_instance_valid(p)):
@@ -1291,11 +1348,8 @@ static func cam(g, shot: String) -> bool:
 		"van_mirror":   # глазами Ноя — в левое зеркало: позади седан
 			if not vn or not has(g, "noah"):
 				return false
-			var n: Actor = g.actors.noah
-			var hb := n.skel.global_transform * n.skel.get_bone_global_pose(n.skel.find_bone("head"))
-			var eye := hb.origin + hb.basis.y.normalized() * 0.09 + hb.basis.z.normalized() * 0.1
-			c.fov = 16.0
-			c.look_at_from_position(eye, (vn as Van).to_global(Vector3(-1.13, 1.6, -1.815)))
+			c.fov = 18.0
+			c.look_at_from_position((vn as Van).to_global(Vector3(-0.74, 1.66, -1.42)), (vn as Van).to_global(Vector3(-1.141, 1.6, -1.84)))
 		"noah_van":
 			return face(g, "noah", 28.0, 0.62, 0.03, 44.0)
 		"iris_van", "zoe_van", "danny_van", "agnes_van", "iris_awake":
@@ -1312,10 +1366,10 @@ static func cam(g, shot: String) -> bool:
 			c.look_at_from_position((vn as Van).to_global(Vector3(-0.35, 1.45, -0.55)), g._target("noah"))
 		"bus_stop":
 			var b = g.c4.get("stop")
-			if not (b and is_instance_valid(b)):
+			if not (b and is_instance_valid(b)) or not vn:
 				return false
-			c.fov = 42.0
-			c.look_at_from_position(Vector3(-4.2, 1.8, -12.0), (b as Node3D).global_position + Vector3(-3.0, 0.6, 3.0))
+			c.fov = 42.0   # спереди-слева: буханка подъезжает и встаёт, павильон выплывает справа и встаёт рядом
+			c.look_at_from_position((vn as Van).to_global(Vector3(-5.5, 1.7, -9.5)), (vn as Van).to_global(Vector3(2.0, 1.0, -0.8)))
 		"hose":
 			if not vn:
 				return false
@@ -1323,13 +1377,28 @@ static func cam(g, shot: String) -> bool:
 			c.look_at_from_position((vn as Van).to_global(Vector3(1.0, 1.05, -3.7)), (vn as Van).to_global(Vector3(0.15, 0.8, -2.4)))
 		"iris_stop", "noah_stop", "noah_engine", "danny_stop", "noah_yard", "iris_yard", "zoe_yard", "agnes_shed":
 			return face(g, shot.get_slice("_", 0), 24.0, 1.0, 0.02, 38.0)
-		"drawing":   # страница блокнота — во весь кадр
+		"drawing":   # страница блокнота — во весь кадр, глазами того, кто держит (камера не в голове и не в куртке)
 			var bk = g.c4.get("book")
 			if not (bk and is_instance_valid(bk)):
 				return false
 			var t: Transform3D = (bk as Node3D).global_transform
-			c.fov = 34.0
-			c.look_at_from_position(t.origin + t.basis.y * 0.36, t.origin, -t.basis.z)
+			var p := t.origin + t.basis.y * 0.42
+			var who := String(g.c4.get("book_who", "iris"))
+			if has(g, who):
+				var v: Vector3 = g._target(who) - t.origin
+				if v.dot(t.basis.y) > 0.05:   # лицо над страницей: камера между глазами и блокнотом
+					p = t.origin + v * 0.7
+			var dist := maxf((p - t.origin).length(), 0.05)
+			c.fov = clampf(rad_to_deg(2.0 * atan(0.125 / dist)), 18.0, 60.0)
+			c.look_at_from_position(p, t.origin, -t.basis.z)
+		"hit_two":   # Айрис и Хейл сбоку: удар по руке со шприцем
+			if not has(g, "iris") or not has(g, "hale") or not vn:
+				return false
+			var ih: Vector3 = g._target("iris")
+			var hh: Vector3 = g._target("hale")
+			var mid := (ih + hh) * 0.5 + Vector3(0, -0.2, 0)
+			c.fov = 42.0
+			c.look_at_from_position((vn as Van).to_global(Vector3(2.9, 1.5, 4.4)), mid)
 		"hug":
 			if not has(g, "iris"):
 				return false
@@ -1353,14 +1422,14 @@ static func cam(g, shot: String) -> bool:
 				return false
 			var sp: Vector3 = (p as Node3D).global_position + Vector3(6.1, 0.58, 0.6)
 			c.fov = 36.0
-			c.look_at_from_position(sp + Vector3(-0.7, 0.75, 0.6), sp)
+			c.look_at_from_position(sp + Vector3(0.8, 0.7, 0.5), sp)
 		"orderly":   # снизу: огромный
 			if not has(g, "orderly"):
 				return false
 			var oh: Vector3 = g._target("orderly")
 			var of := (g.actors.orderly as Actor).global_transform.basis.z
 			c.fov = 40.0
-			c.look_at_from_position(oh + Vector3(of.x, 0.0, of.z).normalized().rotated(Vector3.UP, 0.4) * 1.8 + Vector3(0, -0.85, 0), oh)
+			c.look_at_from_position(oh + Vector3(of.x, 0.0, of.z).normalized().rotated(Vector3.UP, 0.4) * 2.1 + Vector3(0, -0.45, 0), oh + Vector3(0, -0.12, 0))
 		"hale":
 			return face(g, "hale", 18.0, 0.95, 0.02, 34.0)
 		"hale_wide":
@@ -1372,7 +1441,7 @@ static func cam(g, shot: String) -> bool:
 			return face(g, shot.get_slice("_", 0), 26.0, 1.0, 0.02, 38.0)
 		"flash_shore":
 			c.fov = 40.0
-			c.look_at_from_position(lpos(GAP.x, GAP.y, GAP.z + 0.15), lpos(-30.0, 0.8, 24.0))
+			c.look_at_from_position(lpos(GAP.x, GAP.y, GAP.z - 0.03), lpos(-15.5, 0.8, -2.0))   # от щели наружу; доски по краям — маска hud.peek_on
 		"fight", "fight_after":
 			if not vn:
 				return false
@@ -1398,9 +1467,17 @@ static func cam(g, shot: String) -> bool:
 		"hut_gap":
 			c.fov = 46.0
 			c.look_at_from_position(wpos(-0.4, Woods.FLOOR + 1.1, -0.2), wpos(Woods.HW, Woods.FLOOR + 1.15, 0.3))
-		"baby_hut":
+		"baby_hut":   # снизу-спереди: лицо того, кто укачивает (он смотрит вниз), и свёрток в кадре
 			var who := baby_holder(g)
-			return face(g, who, 14.0, 0.62, -0.08, 40.0)
+			if not has(g, who) or not (g.actors[who] as Actor).visible:
+				return false
+			var ba: Actor = g.actors[who]
+			var bh: Vector3 = g._target(who)
+			var bf := ba.global_transform.basis.z
+			bf.y = 0.0
+			bf = bf.normalized().rotated(Vector3.UP, deg_to_rad(16.0))
+			c.fov = 42.0
+			c.look_at_from_position(bh + bf * 0.8 + Vector3(0, -0.34, 0), bh + Vector3(0, -0.2, 0))
 		"zoe_trail", "zoe_after":
 			c.fov = 42.0
 			c.look_at_from_position(wpos(6.0, 1.5, 6.4), wpos(8.8, 1.0, 3.2))
@@ -1417,7 +1494,7 @@ static func cam(g, shot: String) -> bool:
 			c.look_at_from_position(lpos(-17.0, 1.8, 46.0), lpos(12.0, 0.0, 2.0))
 		"dacha":
 			c.fov = 42.0
-			c.look_at_from_position(lpos(-6.0, 1.7, 15.0), lpos(-20.0, 1.6, 0.0))
+			c.look_at_from_position(lpos(-1.5, 1.8, -7.5), lpos(-20.0, 1.6, 0.0))
 		"iris_lake":
 			return face(g, "iris", 22.0, 1.0, 0.03, 38.0)
 		"boathouse":
@@ -1427,8 +1504,8 @@ static func cam(g, shot: String) -> bool:
 			c.fov = 30.0
 			c.look_at_from_position(lpos(GAP.x + 0.05, GAP.y + 0.02, GAP.z - 0.45), lpos(GAP.x, GAP.y, GAP.z))
 		"lake_far":
-			c.fov = 22.0
-			c.look_at_from_position(lpos(-11.0, 1.7, 35.0), lpos(Lake.FAR + 8.0, 0.8, 24.0))
+			c.fov = 14.0
+			c.look_at_from_position(lpos(-11.0, 1.7, 35.0), lpos(Lake.FAR + 1.6, 0.9, 27.0))
 		_:
 			return false
 	return true

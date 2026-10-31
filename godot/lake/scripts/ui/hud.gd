@@ -64,6 +64,32 @@ void fragment() {
 """
 
 
+## «Сквозь щель»: тёмные доски по краям кадра, просвет между ними с рваными краями (кадр снят от щели — края дорисованы).
+const PEEK := """
+shader_type canvas_item;
+uniform float amount = 0.0;
+uniform float aspect = 1.7778;
+float h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+float n1(float x) { float i = floor(x); float f = fract(x); return mix(h(vec2(i, 1.0)), h(vec2(i + 1.0, 1.0)), smoothstep(0.0, 1.0, f)); }
+void fragment() {
+	vec2 uv = UV;
+	float hw = 0.16 / aspect * 1.7778;
+	float l = 0.5 - hw + 0.022 * n1(uv.y * 9.0) + 0.01 * n1(uv.y * 31.0);
+	float r = 0.5 + hw - 0.022 * n1(uv.y * 8.0 + 5.0) - 0.01 * n1(uv.y * 29.0 + 3.0);
+	float t = 0.07 + 0.035 * n1(uv.x * 7.0);
+	float b = 0.93 - 0.035 * n1(uv.x * 6.0 + 2.0);
+	float e = 0.012;
+	float inside = smoothstep(l - e, l + e, uv.x) * (1.0 - smoothstep(r - e, r + e, uv.x))
+		* smoothstep(t - e, t + e, uv.y) * (1.0 - smoothstep(b - e, b + e, uv.y));
+	float grain = 0.5 + 0.5 * sin(uv.x * 260.0 + n1(uv.y * 14.0) * 9.0 + n1(uv.x * 40.0) * 3.0);
+	vec3 wood = vec3(0.11, 0.08, 0.055) * (0.55 + 0.45 * grain);
+	float d = min(min(abs(uv.x - l), abs(uv.x - r)), min(abs(uv.y - t), abs(uv.y - b)));
+	vec3 col = wood * (0.18 + 1.4 * exp(-d * 45.0));
+	COLOR = vec4(col, (1.0 - inside) * amount);
+}
+"""
+var peek: ColorRect
+
 func _ready() -> void:
 	layer = 10
 	process_mode = Node.PROCESS_MODE_ALWAYS   # меню паузы работает, когда игра стоит
@@ -88,6 +114,16 @@ func _ready() -> void:
 	vignette.material = vm
 	root.add_child(vignette)
 	root.move_child(vignette, 0)
+	peek = ColorRect.new()
+	peek.set_anchors_preset(Control.PRESET_FULL_RECT)
+	peek.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var pkm := ShaderMaterial.new()
+	pkm.shader = Shader.new()
+	pkm.shader.code = PEEK
+	peek.material = pkm
+	peek.visible = false
+	root.add_child(peek)
+	root.move_child(peek, 1)
 	static_rect = ColorRect.new()
 	static_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	static_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -438,6 +474,10 @@ func choice(opts: Array, t: float) -> void:
 		sbh.bg_color = Color(1, 1, 1, 0.18)
 		b.add_theme_stylebox_override("hover", sbh)
 		b.pressed.connect(func(): pick(i))
+		if o.get("shadow", false):   # «Тень» (глава 5, [улыбнуться]): вариант дрожит красным
+			b.add_theme_color_override("font_color", Color(0.85, 0.12, 0.1))
+			b.add_theme_color_override("font_hover_color", Color(1.0, 0.25, 0.2))
+			b.set_meta("shake", true)
 		choice_box.add_child(b)
 	timer_bg.visible = true
 	timer_bar.visible = true
@@ -487,6 +527,9 @@ func _process(delta: float) -> void:
 	(static_rect.material as ShaderMaterial).set_shader_parameter("amount", noise)
 	(static_rect.material as ShaderMaterial).set_shader_parameter("t", _ht)
 	if not _opts.is_empty() and not get_tree().paused:
+		for b in choice_box.get_children():   # «Тень» дрожит
+			if b.has_meta("shake"):
+				(b as Control).position.x = randf_range(-3.0, 3.0)
 		_choice_t -= delta
 		var f := clampf(_choice_t / maxf(_choice_len, 0.01), 0.0, 1.0)
 		var w := get_viewport().get_visible_rect().size.x * 0.4
@@ -505,3 +548,13 @@ func _process(delta: float) -> void:
 		toast.modulate.a = clampf(_toast_t, 0.0, 1.0)
 		if _toast_t <= 0.0:
 			toast.text = ""
+
+
+## Кадр «сквозь щель в досках» (мальчик в сарае): маска поверх картинки, под субтитрами.
+func peek_on(on: bool) -> void:
+	if peek == null:
+		return
+	peek.visible = on
+	var sz := get_viewport().get_visible_rect().size
+	(peek.material as ShaderMaterial).set_shader_parameter("amount", 1.0 if on else 0.0)
+	(peek.material as ShaderMaterial).set_shader_parameter("aspect", sz.x / maxf(sz.y, 1.0))

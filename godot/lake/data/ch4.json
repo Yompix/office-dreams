@@ -1,7 +1,7 @@
 {
  "chapter": 4,
  "start": "c4_recap",
- "ready": false,
+ "ready": true,
  "title": {
   "ru": "ГЛАВА 4 · ЧЁРНАЯ МАШИНА",
   "en": "CHAPTER 4 · THE BLACK CAR"
@@ -2189,7 +2189,7 @@
     },
     {
      "fx": "iris_hit",
-     "shot": "iris_pine",
+     "shot": "hit_two",
      "note": {
       "ru": "Айрис бьёт Хейла по руке. Шприц — в снегу.",
       "en": "Iris strikes Hale’s hand. The syringe drops into the snow."
@@ -2200,7 +2200,7 @@
      "say": "iris",
      "ru": "Беги!",
      "en": "Run!",
-     "shot": "iris_pine"
+     "shot": "hit_two"
     },
     {
      "go": "c4_s5_chase"

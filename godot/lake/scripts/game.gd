@@ -55,11 +55,12 @@ var _skid_cd := 0.0
 var _vo := {}                 # озвучка языка: ключ реплики → {dur, w (слова со временем), e (громкость), g}
 var _vo_lang := ""
 var _chapters := {}           # номер главы → {start, ready, title, map}
+var c5 := {}                  # состояние главы 5 (scripts/chapter5.gd): дача, воспоминание, лёд, концовки
 var c4 := {}                  # состояние главы 4 (scripts/chapter4.gd): буханка, остановка, сосна, лес, озеро
 var c3 := {}                  # состояние главы 3 (scripts/chapter3.gd): деревня, дом Агнес, роды, ночь
 var c2 := {}                  # состояние главы 2 (scripts/chapter2.gd): двойник в зеркале, пост, зеркало туалета…
 const IN_CAR := ["pov", "hands", "noah", "iris", "two", "notebook", "radio", "glovebox", "road", "cluster", "pills", "back",
-	"deer_eye", "mirror", "mirror_back"]    # планы из салона: снаружи слышно глухо
+	"deer_eye", "mirror", "mirror_back", "noah_van", "iris_van", "zoe_van", "danny_van", "agnes_van", "van_inside", "van_mirror"]    # планы из салона: снаружи слышно глухо
 const SHOP := ["st_counter", "st_tv", "st_roman", "st_hand", "st_noah_face"]   # планы в магазине заправки
 const FLOOR := 0.38           # пол магазина и крыльцо заправки
 ## выражения лица (формы ARKit): страх, шок, улыбка, грусть, боль, «мёртвый взгляд»
@@ -208,6 +209,8 @@ func _load_save() -> bool:
 		Ch3.restore(self, id)   # глава 3: дорога, деревня или дом Агнес
 	elif id.begins_with("c4"):
 		Ch4.restore(self, id)   # глава 4: двор Агнес, буханка, лес, озеро
+	elif id.begins_with("c5"):
+		Ch5.restore(self, id)   # глава 5: дача, лёд у мостков
 	_run(id)
 	return true
 
@@ -349,6 +352,9 @@ func _beat(b: Dictionary):
 		if not nx.is_empty() and nx.ready:
 			hud.title.text = ""
 			return String(nx.start)
+		if n == 5:
+			await _the_end()
+			return ""
 		await _to_be_continued()
 	return ""
 
@@ -380,6 +386,7 @@ func _dt() -> float:
 
 func _cut(shot: String) -> void:
 	_shot = shot
+	hud.peek_on(shot in ["gap_view", "gap_close", "flash_shore"])   # глазами мальчика сквозь щель сарая
 	scene.car.mirror(shot in ["mirror", "mirror_back", "mirror_self", "mirror_zoe"], {"mirror_back": "back", "mirror_zoe": "back", "mirror_self": "self"}.get(shot, "road"))
 	_place_cam()
 	if _shotlog != "":
@@ -397,7 +404,7 @@ func _place_cam() -> void:
 		var eye := hb.origin + hb.basis.y.normalized() * 0.09 + hb.basis.z.normalized() * 0.13
 		cam.fov = 72.0
 		cam.look_at_from_position(eye, eye - scene.car.global_transform.basis.z * 10.0 + Vector3(0, -3.0, 0))
-	elif Ch2.cam(self, _shot) or Ch3.cam(self, _shot) or Ch4.cam(self, _shot):   # планы глав 2–4, которые зависят от того, где герои
+	elif Ch2.cam(self, _shot) or Ch3.cam(self, _shot) or Ch4.cam(self, _shot) or Ch5.cam(self, _shot):   # планы глав 2–5, которые зависят от того, где герои
 		pass
 	elif _shot in ["mirror", "mirror_back", "mirror_self", "mirror_zoe"]:   # глазами Ноя — в зеркало заднего вида
 		var noah: Actor = actors.noah
@@ -716,7 +723,7 @@ func _lapse_black() -> void:
 
 
 func _fx(k: String) -> void:
-	if Ch2.fx(self, k) or Ch3.fx(self, k) or Ch4.fx(self, k):   # события глав 2–4 (scripts/chapter2.gd, chapter3.gd, chapter4.gd)
+	if Ch2.fx(self, k) or Ch3.fx(self, k) or Ch4.fx(self, k) or Ch5.fx(self, k):   # события глав 2–5 (scripts/chapter2.gd … chapter5.gd)
 		return
 	_fx_sound(k)
 	var fade := hud.fade
@@ -1318,6 +1325,34 @@ func _end(n := 1) -> void:
 	_ending = false
 
 
+## Конец игры: какая концовка и сколько из пяти уже открыто (прогресс — тот же, что у карт глав).
+func _the_end() -> void:
+	_ending = true
+	var ends := {"witness": ["«Свидетель»", "“Witness”"], "shadow": ["«Тень»", "“Shadow”"], "ice": ["«Лёд»", "“Ice”"],
+		"mama": ["«Мама»", "“Mother”"], "oblivion": ["«Забытьё»", "“Oblivion”"]}
+	var cur := "oblivion"
+	for k in ["mama", "shadow", "ice", "witness"]:
+		if float(flags.get("end_" + k, 0)) > 0.0:
+			cur = k
+			break
+	var opened := 0
+	var prog := _prog_load()
+	for k in ends:
+		if prog.has("ch5:end:%s" % k) or k == cur:
+			opened += 1
+	var ru := lang == "ru"
+	hud.title.text = ("КОНЕЦ" if ru else "THE END") + "\n\n" + (("Концовка " if ru else "Ending ") + String(ends[cur][0 if ru else 1])) \
+		+ "\n" + (("Открыто концовок: %d из 5" if ru else "Endings found: %d of 5") % opened)
+	_log("конец игры: %s, открыто %d из 5" % [cur, opened])
+	await _wait(6.0)
+	if autoplay:
+		get_tree().quit()
+		return
+	await _wait(4.0)
+	hud.title.text = ""
+	get_tree().reload_current_scene()   # обратно в главное меню: «Продолжить» — с последнего сохранения главы 5 (другие концовки)
+
+
 func _to_be_continued() -> void:
 	_ending = true
 	var t := "Продолжение следует" if lang == "ru" else "To be continued"
@@ -1326,6 +1361,14 @@ func _to_be_continued() -> void:
 	await _wait(3.0)
 	if autoplay:
 		get_tree().quit()
+
+
+func _prog_load() -> Dictionary:
+	if FileAccess.file_exists("user://lake_progress.json"):
+		var j = JSON.parse_string(FileAccess.get_file_as_string("user://lake_progress.json"))
+		if j is Dictionary:
+			return j
+	return {}
 
 
 ## Карта главы 2–5 из её данных: у варианта — условие "if" (первый подходящий — выбор игрока в этом прохождении).
@@ -1412,6 +1455,8 @@ func _process(delta: float) -> void:
 		Ch3.process(self, delta)
 	if not c4.is_empty():
 		Ch4.process(self, delta)
+	if not c5.is_empty():
+		Ch5.process(self, delta)
 	for who in _walks.keys():
 		var wk: Array = _walks[who]
 		var a: Actor = actors[who]
