@@ -104,6 +104,9 @@ func _ready() -> void:
 	cam.near = 0.02
 	add_child(cam)
 	cam.make_current()
+	Actor.view_cam = cam   # дальних и невидимых героев анимация считает реже
+	# модели героев — в фоне, пока игрок в меню: герой, появившийся посреди сцены, не даёт рывка 0,3–0,5 с
+	Actor.prefetch(["noah", "iris", "danny", "roman", "zoe", "eva", "agnes", "hale", "orderly", "noah_kid", "anna", "victor", "hale_young", "nina"])
 	_cast()
 	hud = Hud.new()
 	hud.lang = lang
@@ -359,6 +362,10 @@ func _beat(b: Dictionary):
 		var vo: Dictionary = _voice_line(_vo_key(_scene_id, b))
 		hud.line(who, b.get("name", data.names.get(who, "")), b)   # "name" в реплике — своё имя (голос Хейла в главе 2 — «ГОЛОС»)
 		var lips := String(b.get("lips", who))   # чьи губы двигаются (говорит «чужой голос» — губы Ноя)
+		if actors.has(lips):
+			for k in actors:
+				if k != lips and is_instance_valid(actors[k]):
+					(actors[k] as Actor).listen_to = actors[lips]
 		if not vo.is_empty():   # озвучка: длина реплики — по голосу, губы — по словам и громкости
 			dur = maxf(float(vo.dur) + 0.35, 1.0)
 			if actors.has(lips):
@@ -497,7 +504,8 @@ func _look(what) -> void:
 		at = what.get("at")
 	var a: Actor = actors.get(who)
 	if a:
-		a.look_target = _target(at)
+		a.look_actor = actors.get(String(at)) if (at is String and actors.has(String(at))) else null
+		a.look_target = null if a.look_actor else _target(at)
 
 
 func _target(at):
@@ -562,7 +570,7 @@ func _cond(c: Dictionary) -> bool:
 func _expr(e: Dictionary) -> void:
 	var a: Actor = actors.get(String(e.who))
 	if a:
-		a.expr = (EXPR.get(String(e.set), {}) as Dictionary).duplicate()
+		a.set_expr(String(e.set), EXPR.get(String(e.set), {}))
 
 
 ## Герой — на место: {"who", "at": [x, y, z], "face": градусы, "clip"}; {"who", "car": "driver|passenger|back"} — в машину.
@@ -576,10 +584,12 @@ func _place(p: Dictionary) -> void:
 	if a.get_parent() != scene:
 		a.reparent(scene, false)
 	var at: Array = p.at
+	a.stop_walk()
 	a.position = Vector3(at[0], at[1], at[2])
 	a.rotation = Vector3(0, deg_to_rad(float(p.get("face", 0.0))), 0)
+	a.placed()
 	if p.has("clip"):
-		a.play(String(p.clip), float(p.get("t", 0.3)))
+		a.play(String(p.clip), float(p.get("t", 0.3)), 0.0)
 
 
 func _seat_in_car(who: String, seat: String) -> void:
@@ -587,9 +597,11 @@ func _seat_in_car(who: String, seat: String) -> void:
 	if a.get_parent() != scene.car:
 		a.reparent(scene.car, false)
 	var s: Vector3 = {"driver": Car.DRIVER, "passenger": Car.PASSENGER, "back": Car.BACK, "back_l": Car.BACK_L, "back_m": Car.BACK_M}[seat]
+	a.stop_walk()
 	a.position = s + Vector3(0, 0.15, 0)
 	a.rotation_degrees = Vector3(0, 180, 0)
-	a.play("Driving" if seat == "driver" else "Rk_SitIdle", 0.5)
+	a.placed()
+	a.play("Driving" if seat == "driver" else "Rk_SitIdle", 0.5, 0.0)
 	for k in 2:   # дважды: если герой сел сразу после ходьбы или стоя, первая мерка таза бывает по старой позе
 		for f in 3:
 			await get_tree().process_frame
@@ -617,16 +629,16 @@ func _walk(w: Dictionary) -> void:
 		a.rotation = Vector3(0, a.rotation.y, 0)
 	var to: Array = w.to
 	var dst := Vector3(to[0], to[1], to[2])
-	var d := dst - a.position
-	a.rotation.y = atan2(d.x, d.z)
-	a.play(String(w.get("clip", "Rk_Walk")), 0.0)
-	_walks[who] = [dst, float(w.get("speed", 1.15)), String(w.get("then", "Idle")), w.get("face")]
 	if _fast:   # быстрый лист кадров: сразу на месте
 		a.position = dst
-		a.play(String(w.get("then", "Idle")), 0.0)
+		a.play(String(w.get("then", "Idle")), 0.0, 0.0)
 		if w.get("face") != null:
 			a.rotation.y = deg_to_rad(float(w.face))
-		_walks.erase(who)
+		a.placed()
+		return
+	# плавно: разворот, разгон, торможение у цели; шаг клипа — под скорость и рост (Actor.walk_to)
+	a.walk_to(dst, float(w.get("speed", 1.15)), String(w.get("clip", "Rk_Walk")), String(w.get("then", "Idle")), w.get("face"))
+	_walks[who] = true
 
 
 ## Сесть: таз героя — в точку p (на крыльцо, на ящик).
@@ -1630,20 +1642,9 @@ func _process(delta: float) -> void:
 	if not c5.is_empty():
 		Ch5.process(self, delta)
 	for who in _walks.keys():
-		var wk: Array = _walks[who]
-		var a: Actor = actors[who]
-		var dst: Vector3 = wk[0]
-		var d := Vector3(dst.x - a.position.x, 0.0, dst.z - a.position.z)
-		var step := float(wk[1]) * delta
-		if d.length() <= step:
-			a.position = dst
-			a.play(String(wk[2]), 0.0)
-			if wk[3] != null:
-				a.rotation.y = deg_to_rad(float(wk[3]))
+		if not actors.has(who) or not is_instance_valid(actors[who]) or not (actors[who] as Actor).walking:
 			_walks.erase(who)
-		else:
-			a.position += d.normalized() * step
-			a.position.y = move_toward(a.position.y, dst.y, delta * 0.8)
+	_life_hints(delta)
 	if not _snaps.is_empty() and _t >= float(_snaps[0]):
 		get_viewport().get_texture().get_image().save_png("%s/snap_%05.1f.png" % [_snapdir, float(_snaps[0])])
 		_snaps.pop_front()
@@ -1668,6 +1669,25 @@ func _process(delta: float) -> void:
 	cam.rotate_object_local(Vector3.RIGHT, sin(_t * 1.7) * 0.004 + sin(_t * 23.0) * road + (randf() - 0.5) * 0.03 * _shake)
 	cam.rotate_object_local(Vector3.UP, sin(_t * 1.1) * 0.005 + (randf() - 0.5) * 0.03 * _shake + _qte_drift * 0.12)
 
+
+
+## Подсказки манере героев: ветер в буран снаружи; Айрис раскрывается при доверии, Дэнни — рядом с Айрис.
+func _life_hints(delta: float) -> void:
+	var tr := float(flags.get("trust", 0))
+	for k in actors:
+		var a: Actor = actors[k]
+		if not is_instance_valid(a):
+			continue
+		if _blizzard and a.get_parent() == scene:
+			a.breeze = move_toward(a.breeze, 0.9, delta)
+		elif a.get_parent() == scene.car:
+			a.breeze = 0.0
+		var relax := 0.0
+		if k == "iris":
+			relax = clampf((tr - 1.0) / 4.0, 0.0, 0.7)
+		elif k == "danny" and actors.has("iris") and is_instance_valid(actors.iris):
+			relax = 1.0 if (actors.iris as Actor).global_position.distance_to(a.global_position) < 1.6 else 0.0
+		a.set_meta("relax", move_toward(float(a.get_meta("relax", 0.0)), relax, delta * 0.4))
 
 
 ## Применить все настройки: качество графики, яркость, громкость, субтитры.

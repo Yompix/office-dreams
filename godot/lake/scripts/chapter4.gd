@@ -1178,18 +1178,84 @@ static func _zoe_grab(g) -> void:
 
 
 static func _carry_agnes(g) -> void:
+	if not (has(g, "noah") and has(g, "agnes")):
+		return
 	var n: Actor = g.actors.noah
 	var a: Actor = g.actors.agnes
-	put(g, "noah", wpos(5.6, 0.0, 15.0), 10.0, "Walk_Carry")
+	# идёт через кадр (а не шагает на месте): из глубины леса к камере плана woods_carry
+	put(g, "noah", wpos(5.3, 0.0, 12.4), 10.0, "Walk")
+	g.c4["carry"] = piggyback(n, a)
+	g._walk({"who": "noah", "to": _arr(wpos(5.95, 0.0, 16.4)), "speed": 0.65, "then": "Idle", "clip": "Walk"})
+
+
+## Агнес на спине у Ноя (система скелета Ноя в покое: +X — его левая рука, +Z — вперёд). Привязана к его тазу — вес на
+## пояснице, и его наклон вперёд её не опрокидывает. Середина её тазобедренных суставов — за его поясницей, чуть правее
+## (голова — у его правого плеча, а не в затылке); бёдра горизонтально и разведены — обхватывают его пояс; корпус наклонён
+## вперёд, к его спине. Числа подобраны на стенде (anim_lab --lab carry --piggy). Сильнее разводить бёдра нельзя: юбка Агнес
+## привязана к бёдрам без своих костей и ткани — растягивается шатром (см. docs/CHARACTER_AUDIT.md).
+const PIGGY_HIP := Vector3(-0.06, 1.08, -0.24)
+const PIGGY_LEAN := 22.0
+const PIGGY_SPREAD := 24.0
+
+
+static func piggyback(n: Actor, a: Actor) -> BoneAttachment3D:
 	var ba := BoneAttachment3D.new()
-	ba.bone_name = "spine_03"
+	ba.bone_name = "pelvis"
 	n.skel.add_child(ba)
 	a.reparent(ba, false)
-	a.position = Vector3(0.0, -0.55, -0.32)   # на спине: руки — через плечи
-	a.rotation_degrees = Vector3(10, 0, 0)
-	a.play("Rk_SitIdle", 0.0)
 	a.reach = {}
-	g.c4["carry"] = ba
+	Ch3.hold(a, "Sitting_Idle", 0.0)
+	var ask := a.skel
+	ask.force_update_all_bone_transforms()
+	var sk_in := a.global_transform.affine_inverse() * ask.global_transform
+	var bp := func(k: String) -> Vector3:
+		return sk_in * ask.get_bone_global_pose(ask.find_bone(k)).origin
+	var hip: Vector3 = ((bp.call("thigh_l") as Vector3) + bp.call("thigh_r")) * 0.5
+	var knee: Vector3 = ((bp.call("calf_l") as Vector3) + bp.call("calf_r")) * 0.5
+	var thigh0 := atan2(knee.y - hip.y, knee.z - hip.z)   # бёдра в позе клипа: + — колени выше таза
+	var b := Basis(Vector3.RIGHT, deg_to_rad(PIGGY_LEAN))   # корпус вперёд — к его спине
+	var nsk := n.skel
+	a.transform = nsk.get_bone_global_rest(nsk.find_bone("pelvis")).affine_inverse() * Transform3D(b, PIGGY_HIP - b * hip)
+	var gb := a.global_transform.basis.orthonormalized()
+	# бёдра: поднять до горизонтали (наклон корпуса и поза клипа их опустили), потом развести — обхватить его пояс
+	var lift := deg_to_rad(PIGGY_LEAN) - thigh0
+	for side in ["_l", "_r"]:
+		var bt := a._bi("thigh" + side)
+		a._rot_now(bt, gb.x, -lift)
+		a._rot_now(bt, gb.y, deg_to_rad(PIGGY_SPREAD) * (1.0 if side == "_l" else -1.0))
+	ClothFit.ride(a, true)   # середина юбки — от таза, а не между разведённых колен
+	n.set_meta("carrying", "back")
+	a.placed()   # руки и взгляд — сразу, на склейке
+	return ba
+
+
+## Каждый кадр, пока Агнес на спине: кисти Ноя — под её бёдрами у колен (локти назад), её руки — через его плечи на грудь,
+## голова — чуть в сторону, мимо его затылка.
+static func piggy_update(n: Actor, a: Actor) -> void:
+	var ask := a.skel
+	var bp := func(k: String) -> Vector3:
+		return ask.global_transform * ask.get_bone_global_pose(ask.find_bone(k)).origin
+	var ab := a.global_transform.basis.orthonormalized()
+	var nb := n.global_transform.basis.orthonormalized()
+	var nr := {}
+	var palm := {}
+	for side in ["_l", "_r"]:
+		var hp: Vector3 = bp.call("thigh" + side)
+		var kn: Vector3 = bp.call("calf" + side)
+		var th := (kn - hp).normalized()
+		var under := (-ab.y - th * (-ab.y).dot(th)).normalized()
+		nr[side] = hp.lerp(kn, 0.7) + under * 0.065
+		palm[side] = -under
+	n.reach = nr
+	n.reach_palm = palm
+	n.reach_pole = {"_l": -nb.z + nb.x * 0.6, "_r": -nb.z - nb.x * 0.6}
+	var nsk := n.skel
+	var chest := nsk.global_transform * nsk.get_bone_global_pose(nsk.find_bone("spine_03")).origin
+	a.reach = {"_l": chest + nb.z * 0.15 + nb.x * 0.07 + nb.y * 0.1, "_r": chest + nb.z * 0.15 - nb.x * 0.07 + nb.y * 0.1}
+	a.reach_pole = {"_l": nb.y + nb.x * 0.7, "_r": nb.y - nb.x * 0.7}
+	a.reach_palm = {"_l": -nb.z, "_r": -nb.z}
+	a.look_target = n.head_pos() + nb.z * 2.0 - nb.x * 1.2   # смотрит вперёд-вправо, мимо его головы
+	n.set_meta("carrying", "back")
 
 
 # ---------- озеро ----------
@@ -1261,6 +1327,16 @@ static func _far_sedan(g) -> void:
 # ---------- каждый кадр ----------
 static func process(g, delta: float) -> void:
 	var c4: Dictionary = g.c4
+	var cb = c4.get("carry")   # Агнес на спине у Ноя: руки и взгляд — каждый кадр (они идут)
+	if cb and is_instance_valid(cb) and has(g, "noah") and has(g, "agnes") and (g.actors.agnes as Actor).get_parent() == cb:
+		piggy_update(g.actors.noah, g.actors.agnes)
+	elif has(g, "noah") and String((g.actors.noah as Actor).get_meta("carrying", "")) == "back":
+		(g.actors.noah as Actor).remove_meta("carrying")
+		(g.actors.noah as Actor).reach = {}
+		if has(g, "agnes"):
+			(g.actors.agnes as Actor).reach = {}
+			(g.actors.agnes as Actor).look_target = null
+			ClothFit.ride(g.actors.agnes, false)
 	var st = c4.get("steam")   # пар из-под буханки — слышно рядом
 	g.sfx.bed("steam", -10.0 if (st and is_instance_valid(st) and (st as CPUParticles3D).emitting) else Sfx.OFF)
 	var bk = c4.get("book")

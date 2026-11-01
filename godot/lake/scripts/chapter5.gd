@@ -260,6 +260,7 @@ static func fx(g, k: String) -> bool:
 			var n: Actor = g.actors.noah
 			n.expr = {"mouthSmileLeft": 0.42, "mouthSmileRight": 0.38, "cheekSquintLeft": 0.1}
 			n.blink_t = 1e9
+			n.set_mood("other")   # «второй он»: выпрямлен, не моргает, взгляд не отводит
 			g.sfx.play("hum_ring", -14.0)
 		"hale_backs":
 			put(g, "hale", HOLEW + Vector3(0.7, 0.0, 0.6), 60.0, "Walk")

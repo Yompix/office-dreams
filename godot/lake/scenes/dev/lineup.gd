@@ -23,7 +23,7 @@ func _ready():
 		var a := Actor.make(names[i], names[i])
 		add_child(a)
 		a.position = Vector3((i - (names.size() - 1) / 2.0) * 0.75, 0, 0)
-		a.play("Idle", 0.5)
+		a.play(OS.get_environment("CLIP") if OS.get_environment("CLIP") != "" else "Idle", float(OS.get_environment("AT")) if OS.get_environment("AT") != "" else 0.5)
 		if OS.get_environment("ONLY") != "":   # проверка: только части с этим словом в имени
 			for mi in a.find_children("*", "MeshInstance3D", true, false):
 				(mi as MeshInstance3D).visible = String(mi.name).contains(OS.get_environment("ONLY"))

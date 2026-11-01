@@ -37,7 +37,7 @@ static func put(g, who: String, p: Vector3, face: float, clip := "Idle") -> void
 
 ## Замереть в позе: клип на времени t и стоп (лежит, стоит на коленях…).
 static func hold(a: Actor, clip: String, t := 0.0) -> void:
-	a.play(clip, t)
+	a.play(clip, t, 0.0)   # поза сразу, без смешивания: замерший кадр — именно этого клипа
 	a.ap.pause()
 
 
@@ -399,6 +399,7 @@ static func fx(g, k: String) -> bool:
 			mug(g, false)
 			pipe(g, false)
 			put(g, "noah", Vector3(6.0, 0.0, -94.2), 180.0, "Idle")
+			(g.actors.noah as Actor).set_mood("other")   # «второй он»: выпрямлен, не моргает, не отводит взгляд
 			axe(g, true)
 			for kk in ["iris", "danny", "zoe", "eva", "agnes"]:
 				if has(g, kk):
@@ -411,6 +412,7 @@ static func fx(g, k: String) -> bool:
 			(g.actors.noah as Actor).look_target = g._target("iris")
 		"axe_drop":
 			axe(g, false)
+			(g.actors.noah as Actor).set_mood("tense")   # пришёл в себя
 			var ax := axe_mesh()
 			ax.position = Vector3(6.1, 0.03, -94.25)
 			ax.rotation_degrees = Vector3(90, 30, 0)
@@ -587,13 +589,24 @@ static func walkers(g, carry_eva: bool) -> void:
 		if k == "eva" and carry_eva:
 			continue
 		var p := s.car.to_global(Vector3(-0.9 + 0.6 * float(i % 3), 0.0, -2.6 - 0.9 * float(i / 3)))
-		put(g, k, p, 180.0, "Walk_Carry" if (k == "noah" and carry_eva) else "Walk")
-		g._walk({"who": k, "to": [p.x, 0.0, p.z - 26.0], "speed": 0.8 if k != "noah" else 0.75, "then": "Idle",
-			"clip": "Walk_Carry" if (k == "noah" and carry_eva) else "Walk"})
+		put(g, k, p, 180.0, "Walk")   # Walk_Carry (ящик в руках) откидывает корпус на 27° и задирает голову — для ноши на руках не годится
+		g._walk({"who": k, "to": [p.x, 0.0, p.z - 26.0], "speed": 0.8 if k != "noah" else 0.7, "then": "Idle", "clip": "Walk"})
 		i += 1
 
 
-## Ева на руках у Ноя (лежит поперёк рук).
+## Как Ева сидит на руках у Ноя (система скелета Ноя в покое: +X — его левая рука, +Z — вперёд). Середина её тазобедренных
+## суставов — перед его животом, вплотную; бёдра — к его левой руке, чуть вверх (CARRY_THIGH°); спина откинута на его правую
+## руку (CARRY_TORSO° от вертикали: часть — наклон всего тела, остальное — разгиб поясницы и груди). Углы считаются от позы
+## «сидя» как она есть (у клипа бёдра опущены), числа подобраны на стенде (anim_lab --lab carry): обе кисти Ноя достают до
+## опоры с согнутыми локтями, её бок касается его груди, но не входит в неё.
+const CARRY_HIP := Vector3(-0.05, 1.2, 0.27)
+const CARRY_THIGH := 22.0
+const CARRY_TORSO := 40.0
+const CARRY_SPINE := {"spine_01": 0.5, "spine_02": 0.3, "spine_03": 0.2}   # как делится разгиб спины
+
+
+## Ева на руках у Ноя: сидячая поза (бёдра поперёк его рук, колени согнуты, голени свисают отвесно), спина — на его правой
+## руке, голова у его плеча. Привязана к его груди (spine_03): идёт — она покачивается вместе с ним. Руки ставит process().
 static func carry(g) -> void:
 	var noah: Actor = g.actors.noah
 	var ev: Actor = g.actors.eva
@@ -601,9 +614,37 @@ static func carry(g) -> void:
 	ba.bone_name = "spine_03"
 	noah.skel.add_child(ba)
 	ev.reparent(ba, false)
-	ev.position = Vector3(0.0, -0.35, 0.42)
-	ev.rotation_degrees = Vector3(0, 90, 90)
-	hold(ev, "LayToIdle", 0.0)
+	ev.reach = {}
+	hold(ev, "Sitting_Idle", 0.0)
+	var esk := ev.skel
+	esk.force_update_all_bone_transforms()
+	var sk_in_ev := ev.global_transform.affine_inverse() * esk.global_transform
+	var bp := func(k: String) -> Vector3:
+		return sk_in_ev * esk.get_bone_global_pose(esk.find_bone(k)).origin
+	var hip: Vector3 = ((bp.call("thigh_l") as Vector3) + bp.call("thigh_r")) * 0.5
+	var knee: Vector3 = ((bp.call("calf_l") as Vector3) + bp.call("calf_r")) * 0.5
+	var foot: Vector3 = ((bp.call("foot_l") as Vector3) + bp.call("foot_r")) * 0.5
+	var chest: Vector3 = bp.call("spine_03")
+	var thigh0 := atan2(knee.y - hip.y, knee.z - hip.z)              # бёдра в позе клипа: + — колени выше таза
+	var torso0 := atan2(-(chest.z - hip.z), chest.y - hip.y)        # корпус: + — откинут назад
+	var body := deg_to_rad(CARRY_THIGH) - thigh0                    # наклон всего тела назад
+	var spine := deg_to_rad(CARRY_TORSO) - torso0 - body            # остальное — разгиб спины
+	var b := Basis(Vector3.UP, deg_to_rad(90.0)) * Basis(Vector3.RIGHT, -body)
+	var nsk := noah.skel
+	var rest3 := nsk.get_bone_global_rest(nsk.find_bone("spine_03"))
+	ev.transform = rest3.affine_inverse() * Transform3D(b, CARRY_HIP - b * hip)
+	var lat := ev.global_transform.basis.orthonormalized() * Vector3(1, 0, 0)   # её левый бок — к Ною
+	for k in CARRY_SPINE:
+		ev._rot_now(ev._bi(k), lat, -spine * float(CARRY_SPINE[k]))
+	# голени — отвесно: в её системе «вниз» после наклона тела — (0, −cos, −sin); сгиб колена до него
+	var shin := (foot - knee)
+	var want := Vector3(0, -cos(body), -sin(body))
+	var bend := atan2(shin.normalized().cross(want).x, shin.normalized().dot(want))
+	for k in ["calf_l", "calf_r"]:
+		ev._rot_now(ev._bi(k), lat, bend)
+	ev.look_actor = noah
+	ev.placed()   # руки и взгляд — сразу, на склейке
+	noah.set_meta("carrying", "front")
 	g.c3["carry"] = ba
 
 
@@ -981,6 +1022,24 @@ static func cellar(g) -> void:
 
 
 static func process(g, _delta: float) -> void:
+	# Ной несёт Еву: правая рука — под её спиной, левая — под бёдрами у колен, ладони к телу; корпус откинут под весом.
+	# Ева: левая рука — на его груди у плеча, правая — на животе; смотрит на него.
+	var cb = g.c3.get("carry")
+	if cb and is_instance_valid(cb) and has(g, "noah") and has(g, "eva") and (g.actors.eva as Actor).get_parent() == cb:
+		var n: Actor = g.actors.noah
+		var ev: Actor = g.actors.eva
+		var t := carry_targets(n, ev)
+		n.reach = {"_r": t.back, "_l": t.knees}
+		n.reach_palm = {"_r": t.back_palm, "_l": t.knees_palm}
+		ev.reach = {"_l": t.chest, "_r": t.belly}
+		ev.reach_palm = {"_r": t.belly_palm}
+		n.set_meta("carrying", "front")
+	elif has(g, "noah") and (g.actors.noah as Actor).has_meta("carrying"):
+		(g.actors.noah as Actor).remove_meta("carrying")
+		(g.actors.noah as Actor).reach = {}
+		if has(g, "eva") and (g.actors.eva as Actor).look_actor == g.actors.noah:
+			(g.actors.eva as Actor).look_actor = null
+			(g.actors.eva as Actor).reach = {}
 	var dn = g.c3.get("diary")
 	if dn and is_instance_valid(dn) and has(g, "iris"):   # раскрытая тетрадь — между ладонями, страницы к лицу
 		var iris: Actor = g.actors.iris
@@ -992,6 +1051,29 @@ static func process(g, _delta: float) -> void:
 		var right := fwd.cross(Vector3.UP).normalized()
 		var n := (Vector3.UP * 0.75 - fwd * 0.66).normalized()
 		(dn as Node3D).global_transform = Transform3D(Basis(right, n, right.cross(n)), (hl + hr) * 0.5 + fwd * 0.07 + n * 0.065)
+
+
+## Точки опоры при переноске на руках (мир): где ладони Ноя (под спиной, под бёдрами) и Евы (его грудь, её живот).
+static func carry_targets(n: Actor, ev: Actor) -> Dictionary:
+	var esk := ev.skel
+	var bp := func(k: String) -> Vector3:
+		return esk.global_transform * esk.get_bone_global_pose(esk.find_bone(k)).origin
+	var lat: Vector3 = ev.global_transform.basis.orthonormalized().x   # её левый бок (к Ною)
+	var hip: Vector3 = ((bp.call("thigh_l") as Vector3) + bp.call("thigh_r")) * 0.5
+	var up_back: Vector3 = (bp.call("spine_02") as Vector3).lerp(bp.call("spine_03"), 0.6)
+	var torso: Vector3 = (up_back - hip).normalized()
+	var front: Vector3 = lat.cross(torso).normalized()            # куда смотрит её грудь и живот
+	var back: Vector3 = -front                                     # наружу из спины
+	var knee: Vector3 = ((bp.call("calf_l") as Vector3) + bp.call("calf_r")) * 0.5
+	var th: Vector3 = (knee - hip).normalized()
+	var under: Vector3 = lat.cross(th).normalized()               # наружу из-под бёдер
+	var nsk := n.skel
+	var nb := n.global_transform.basis.orthonormalized()
+	var chest := nsk.global_transform * nsk.get_bone_global_pose(nsk.find_bone("spine_03")).origin
+	return {"back": up_back + back * 0.075 - lat * 0.03, "back_palm": -back,
+		"knees": hip.lerp(knee, 0.72) + under * 0.075 - lat * 0.03, "knees_palm": -under,
+		"chest": chest + nb.z * 0.13 - nb.x * 0.08 + nb.y * 0.02,      # её ладонь — на его груди справа
+		"belly": (bp.call("spine_01") as Vector3) + front * 0.2, "belly_palm": -front}            # её правая ладонь — на животе
 
 
 ## Планы главы 3. true — план поставлен.
