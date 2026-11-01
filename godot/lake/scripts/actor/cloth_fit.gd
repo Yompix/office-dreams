@@ -64,6 +64,8 @@ static func ride(a: Actor, on: bool) -> void:
 		var m := mi as MeshInstance3D
 		if not String(m.name).to_lower().contains("skirt") or m.skin == null:
 			continue
+		if m.has_meta("skirt_rig"):   # у юбки свои кости подола (SkirtRig): висит на пружинах, перевешивать не нужно
+			continue
 		if not on:
 			if m.has_meta("ride_orig"):
 				m.mesh = m.get_meta("ride_orig")

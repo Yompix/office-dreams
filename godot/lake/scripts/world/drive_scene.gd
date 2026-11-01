@@ -268,6 +268,7 @@ func park_at_station(lang := "ru") -> void:
 
 
 var daylight := "night"
+var sun_shadows := true   # тени от солнца днём (качество «низкое» — без них; ставит игра из настроек)
 
 ## Время суток: "night" (по умолчанию), "dawn" (серое утро без солнца), "day" (буран днём), "evening".
 func set_daylight(mode: String) -> void:
@@ -293,6 +294,19 @@ func set_daylight(mode: String) -> void:
 	moon.light_color = p[5]
 	moon.rotation_degrees = {"night": Vector3(-35, 140, 0), "sunny": Vector3(-24, 115, 0), "dusk": Vector3(-12, 200, 0),
 		"lake_dawn": Vector3(-7, 70, 0), "lake_day": Vector3(-30, 100, 0)}.get(mode, Vector3(-55, 120, 0))   # зимнее солнце — низко
+	_sun_shadow()
+
+
+## Солнечные тени — там, где солнце правда светит (ясное утро гл. 4, рассвет и день у озера): раньше «солнце» было без
+## теней даже в ясный день, и герои не стояли на снегу, а висели над ним. Ночью, в пасмурный день и в сумерках — без них.
+func _sun_shadow() -> void:
+	var on := sun_shadows and daylight in ["sunny", "lake_dawn", "lake_day"]
+	moon.shadow_enabled = on
+	if on:
+		moon.shadow_opacity = 0.75 if daylight == "lake_day" else 0.85   # серый день — мягче
+		moon.shadow_blur = 1.5
+		moon.directional_shadow_max_distance = 60.0
+		moon.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 
 
 ## Кафе «У трёх сосен» (глава 2): дом у трассы, свет ламп и окон, вывеска на языке игры, три сосны, фуры у входа,

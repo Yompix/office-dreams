@@ -184,7 +184,7 @@ static func fx(g, k: String) -> bool:
 			_note_props(g, false)
 			var iris: Actor = g.actors.iris
 			iris.reach = {"_r": g._target("noah") + Vector3(0, -0.45, 0)}
-			g.get_tree().create_timer(1.4).timeout.connect(func():
+			g.get_tree().create_timer(1.4, false).timeout.connect(func():
 				if is_instance_valid(iris):
 					iris.reach = {})
 			g.sfx.play("pills", -16.0)
@@ -248,6 +248,8 @@ static func fx(g, k: String) -> bool:
 				a.reach = {"_r": g._target("agnes") + Vector3(0.12, -0.08, -0.12)}
 		"radio_off":
 			g.sfx.play("static_burst", -16.0, 1.1)
+			g._radio = false   # своя обработка гасит и общее радио (раньше песня главы 2 играла дальше)
+			g.c2.erase("song")
 			if has(g, "agnes"):
 				(g.actors.agnes as Actor).reach = {}
 		"bus_stop":   # буханка закипает у заброшенной остановки
@@ -347,7 +349,7 @@ static func fx(g, k: String) -> bool:
 			var o: Actor = g.actors.orderly
 			put(g, "orderly", van(g).to_global(Vector3(-1.3, 0.0, 5.4)), 120.0, "Death01")
 			o.play("Death01", 0.0)
-			g.get_tree().create_timer(0.1).timeout.connect(func():
+			g.get_tree().create_timer(0.1, false).timeout.connect(func():
 				if is_instance_valid(o):
 					Ch3.hold(o, "Death01", 3.0))
 			(g.actors.noah as Actor).play("Idle", 0.0)
@@ -711,7 +713,7 @@ static func _bus_stop(g) -> void:
 	steam.position = Vector3(0.0, 0.85, -2.3)
 	vn.add_child(steam)
 	g.c4["steam"] = steam
-	g.get_tree().create_timer(t).timeout.connect(func():
+	g.get_tree().create_timer(t, false).timeout.connect(func():
 		if is_instance_valid(vn):
 			vn.engine(false)
 			_out_at_stop(g))

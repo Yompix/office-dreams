@@ -22,6 +22,7 @@ var _qte := ""
 var _qte_ok := true
 var _qte_drift := 0.0
 var _qte_n := 10              # сколько нажатий нужно (действия mash, press и rock)
+var _qte_sfx := ""            # звук на каждое нажатие (поле "sfx" действия в данных); пусто — по виду действия
 var _qte_gap := 0.7           # rock: не чаще одного нажатия за столько секунд (укачать — медленно, в ритм)
 var _qte_got := 0             # сколько нажатий уже засчитано (для постановки: качать младенца в такт)
 var _rng := RandomNumberGenerator.new()
@@ -41,8 +42,14 @@ var _fast := false            # --fast: каждая пауза не дольш�
 var deer: Deer                # олень на трассе (сцена 3): едет назад вместе с дорогой
 var blackcar: BlackCar        # чёрная машина Хейла (с конца главы 1)
 const SAVE := "user://lake_save.json"   # контрольная точка: сцена (с "save": true), флаги, язык
+const SAVE_VERSION := 2                  # формат файла: 2 — с полем версии (1 — без него, читается так же)
 var _menu_mode := false
+var _cam_s := Transform3D()     # сглаженное положение камеры (_smooth_cam)
+var _cam_v := Vector3.ZERO      # сглаженная скорость цели камеры
+var _cam_prev := Vector3.ZERO
+var _cam_snap := true           # следующий кадр — без сглаживания (склейка)
 var _brake_in := false
+var _brake_armed := false     # тормоз: клавишу отпустили после начала действия (зажатая заранее не считается)
 var _brake_a := 0.0           # торможение, м/с²
 var _pitch := 0.0             # клевок кузова при торможении (рад) и его скорость — пружина
 var _pitch_v := 0.0
@@ -67,6 +74,13 @@ var c2 := {}                  # состояние главы 2 (scripts/chapter
 const IN_CAR := ["pov", "hands", "noah", "iris", "two", "notebook", "radio", "glovebox", "road", "cluster", "pills", "back",
 	"deer_eye", "mirror", "mirror_back", "noah_van", "iris_van", "zoe_van", "danny_van", "agnes_van", "van_inside", "van_mirror"]    # планы из салона: снаружи слышно глухо
 const SHOP := ["st_counter", "st_tv", "st_roman", "st_hand", "st_noah_face"]   # планы в магазине заправки
+## планы в помещениях (дом Агнес, погреб, сарай, избушка, лодочная, дача, палата): ветер — глухо из-за стен, мотора
+## машины и радио не слышно, шагов по снегу нет (раньше в доме звучал полный уличный ветер и шаги по снегу)
+const INDOOR := ["house_wide", "photos", "bed", "danny_table", "press", "stove_two", "stove_fire", "house_night", "house_door",
+	"agnes_candle", "agnes_sleep", "eva_bed", "iris_bed", "agnes_stove", "diary_page", "noah_house", "iris_house", "zoe_house",
+	"noah_stove", "agnes_bed", "danny_window", "danny_door", "cellar", "hut", "hut_gap", "baby_hut", "shed", "agnes_shed",
+	"boathouse", "dacha_room", "wall_drawing", "stove5", "bottle5", "visit", "visit_table", "cell", "white_room", "hale_white",
+	"noah_shed", "shed_two"]
 const FLOOR := 0.38           # пол магазина и крыльцо заправки
 ## выражения лица (формы ARKit): страх, шок, улыбка, грусть, боль, «мёртвый взгляд»
 const EXPR := {"fear": {"browInnerUp": 0.8, "eyeWideLeft": 0.7, "eyeWideRight": 0.7, "mouthStretchLeft": 0.25, "mouthStretchRight": 0.25, "jawOpen": 0.08},
@@ -230,35 +244,67 @@ func _menu() -> void:
 		return
 
 
+## Контрольная точка: сначала во временный файл, прошлая — запасной копией (.bak), потом подмена. Если игра упадёт
+## посреди записи или файл испортится, «Продолжить» возьмёт запасную копию, а не пропадёт (раньше файл писался поверх).
 func _save(id: String) -> void:
-	var f := FileAccess.open(SAVE, FileAccess.WRITE)
-	if f:
-		f.store_string(JSON.stringify({"scene": id, "flags": flags, "lang": lang}))
+	var tmp := SAVE + ".tmp"
+	var f := FileAccess.open(tmp, FileAccess.WRITE)
+	if f == null:
+		return
+	var clock := String(scene.car.clock.text) if scene != null and is_instance_valid(scene.car) else ""
+	f.store_string(JSON.stringify({"v": SAVE_VERSION, "scene": id, "flags": flags, "lang": lang, "clock": clock}))
+	f.close()
+	var d := DirAccess.open(SAVE.get_base_dir())
+	if d == null:
+		return
+	if d.file_exists(SAVE.get_file()):
+		d.copy(SAVE.get_file(), SAVE.get_file() + ".bak")
+		d.remove(SAVE.get_file())
+	d.rename(tmp.get_file(), SAVE.get_file())
 
 
 ## Продолжить: флаги и язык из сохранения; что видно (фара, Дэнни сзади) — по флагам; сцена — с начала.
 func _load_save() -> bool:
-	var j = JSON.parse_string(FileAccess.get_file_as_string(SAVE)) if FileAccess.file_exists(SAVE) else null
-	if not (j is Dictionary) or not data.scenes.has(String(j.get("scene", ""))):
+	var j = _read_save(SAVE)
+	if j == null:   # файл испорчен или сцены такой больше нет — запасная копия
+		j = _read_save(SAVE + ".bak")
+	if j == null:
 		return false
 	flags = (data.flags as Dictionary).duplicate()
 	for k in (j.flags as Dictionary):
 		flags[k] = j.flags[k]
-	lang = String(j.get("lang", lang))
+	# язык — из настроек (их игрок мог поменять после сохранения); в старых сохранениях без настроек — из файла
+	if not FileAccess.file_exists("user://lake_settings.cfg"):
+		lang = String(j.get("lang", lang))
 	hud.lang = lang
+	if String(j.get("clock", "")) != "" and is_instance_valid(scene.car):   # часы в машине — как были (не «03:12» по умолчанию)
+		scene.car.clock.text = String(j.clock)
 	_resume_at(String(j.scene))
 	return true
+
+
+## Прочитать контрольную точку: null — нет файла, не JSON, нет флагов или такой сцены в игре больше нет.
+func _read_save(path: String) -> Variant:
+	if not FileAccess.file_exists(path):
+		return null
+	var j = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not (j is Dictionary) or not (j.get("flags") is Dictionary) or not data.scenes.has(String(j.get("scene", ""))):
+		return null
+	return j
 
 
 ## Начать с контрольной точки (продолжить или «переиграть отсюда»): что видно — по флагам, сцена — с начала.
 func _resume_at(id: String) -> void:
 	if float(flags.get("lamp", 0)) > 0.0:
 		scene.car.break_lamp()
-	if float(flags.get("danny", 0)) > 0.0 and (id in ["s7", "s8"] or id.begins_with("c")) and not actors.has("danny"):
+	# Дэнни: с рацией (раньше после загрузки был без неё) и не возвращается, если потерялся в деревне (danny_lost)
+	if float(flags.get("danny", 0)) > 0.0 and float(flags.get("danny_lost", 0)) <= 0.0 \
+			and (id in ["s7", "s8"] or id.begins_with("c")) and not actors.has("danny"):
 		var d := Actor.make("danny", "danny")
 		scene.car.add_child(d)
 		actors.danny = d
 		_seat_in_car("danny", "back")
+		_attach_walkie(d)
 	if id.begins_with("c2"):
 		Ch2.restore(self, id)   # глава 2: кто в машине (Зоя, Ева), время суток
 	elif id.begins_with("c3"):
@@ -267,6 +313,9 @@ func _resume_at(id: String) -> void:
 		Ch4.restore(self, id)   # глава 4: двор Агнес, буханка, лес, озеро
 	elif id.begins_with("c5"):
 		Ch5.restore(self, id)   # глава 5: дача, лёд у мостков
+	# больничный браслет Зои (надет в c2_s2_ride, не в контрольной точке) — после загрузки снова на запястье
+	if actors.has("zoe") and is_instance_valid(actors.zoe) and id.begins_with("c") and not (id in ["c2_recap", "c2_s1"]):
+		Ch2.bracelet(self)
 	_run(id)
 
 
@@ -305,6 +354,10 @@ func _run(id: String) -> void:
 		return
 	_log("сцена " + id)
 	_scene_id = id
+	if id.ends_with("_recap"):   # новая глава: радио выключено, песня главы 2 и тема конца главы не тянутся дальше
+		_radio = false
+		c2.erase("song")
+		sfx.stop("lake_end", 2.5)
 	for k in actors.keys():   # модели, которые постановка уже удалила (полицейский с поста, ушедшие герои), — из списка вон
 		if not is_instance_valid(actors[k]):
 			actors.erase(k)
@@ -374,6 +427,8 @@ func _beat(b: Dictionary):
 			(actors[lips] as Actor).say(text, dur * 0.8)
 		await _wait(dur)
 		sfx.voice_stop()
+		if actors.has(lips) and is_instance_valid(actors[lips]):   # пропуск реплики: губы закрываются вместе с голосом
+			(actors[lips] as Actor).shut()
 		hud.clear_text()
 	elif b.has("text"):
 		hud.show_note(b.text, _on_black(b))
@@ -393,7 +448,7 @@ func _beat(b: Dictionary):
 		hud.choice(opts, float(c.get("t", 6)) * (1.6 if settings.choice_long else 1.0))
 		if autoplay:
 			var want: int = (_forced.pop_front() if not _forced.is_empty() else _rng.randi() % opts.size())
-			get_tree().create_timer(1.0).timeout.connect(func(): if hud.choosing(): hud.pick(clampi(want, 0, opts.size() - 1)))
+			get_tree().create_timer(1.0, false).timeout.connect(func(): if hud.choosing(): hud.pick(clampi(want, 0, opts.size() - 1)))
 		var i: int = await hud.chosen
 		sfx.play("ui_click", -4.0)
 		_log("выбор %d: %s" % [i, "молчание" if opts[i].get("silent", false) else hud.T(opts[i])])
@@ -405,6 +460,7 @@ func _beat(b: Dictionary):
 	if b.has("qte"):
 		_qte_n = int(b.get("n", 10))
 		_qte_gap = float(b.get("gap", 0.7))
+		_qte_sfx = String(b.get("sfx", ""))
 		var ok: bool = await _do_qte(String(b.qte), float(b.get("t", 3.0)), b.get("hint"))
 		_log("действие %s: %s" % [b.qte, "удалось" if ok else "нет"])
 		if not ok and b.has("fail"):
@@ -456,6 +512,7 @@ func _dt() -> float:
 
 func _cut(shot: String) -> void:
 	_shot = shot
+	_cam_snap = true   # склейка — камера встаёт на новый план сразу, без проезда
 	hud.peek_on(shot in ["gap_view", "gap_close", "flash_shore"])   # глазами мальчика сквозь щель сарая
 	var pn := int(c4.get("page_n", 0))   # рисунок Айрис — листом поверх кадра, в какой бы позе ни держали блокнот
 	hud.page_view(load("res://assets/textures/drawing_%d.png" % pn) if shot == "drawing" and pn > 0 else null)
@@ -464,8 +521,8 @@ func _cut(shot: String) -> void:
 	if _shotlog != "":
 		_shot_n += 1
 		var n := _shot_n
-		get_tree().create_timer(0.6).timeout.connect(func():
-			get_viewport().get_texture().get_image().save_png("%s/%03d_%s.png" % [_shotlog, n, shot]))
+		get_tree().create_timer(0.6, false).timeout.connect(func():
+			get_viewport().get_texture().get_image().save_png("%s/%03d_%s_%s.png" % [_shotlog, n, _scene_id, shot]))   # номер, сцена, план
 
 
 ## План: из таблицы машины; «руки» — крупно на руль, где бы он ни встал под руки героя.
@@ -578,6 +635,7 @@ func _place(p: Dictionary) -> void:
 	var who := String(p.who)
 	var a: Actor = actors[who]
 	_walks.erase(who)
+	a.set_meta("place_n", int(a.get_meta("place_n", 0)) + 1)   # номер расстановки: отложенная посадка (Ch2.sit) видит, что героя уже переставили
 	if p.has("car"):
 		_seat_in_car(who, String(p.car))
 		return
@@ -958,7 +1016,7 @@ func _fx(k: String) -> void:
 			fill.light_volumetric_fog_energy = 0.0
 			fill.position = Vector3(-2.6, 2.4, -10.2)
 			scene.road_items.add_child(fill)
-			get_tree().create_timer(30.0).timeout.connect(fill.queue_free)
+			get_tree().create_timer(30.0, false).timeout.connect(fill.queue_free)
 		"deer_quiet":   # затихает: дыхание реже и слабее
 			if is_instance_valid(deer):
 				deer.die(4.5)
@@ -1130,6 +1188,7 @@ func _fx_sound(k: String) -> void:
 func _sound(delta: float) -> void:
 	var off := Sfx.OFF
 	var inside := _shot in IN_CAR
+	var indoor := _shot in INDOOR
 	var station := is_instance_valid(scene.station_root) or is_instance_valid(scene.cafe_root)
 	var k := clampf(scene.road.speed / 25.0, 0.0, 1.0)
 	var car := off
@@ -1165,10 +1224,11 @@ func _sound(delta: float) -> void:
 			neon = -7.0
 			forest = -16.0
 	else:
-		car = lerpf(-16.0, -3.0, k) if inside else lerpf(-30.0, -14.0, k)
-		forest = -22.0 if inside else -5.0
+		# мотор: в салоне — всегда; снаружи — только пока машина едет (стоящая машина больше не гудит из ниоткуда)
+		car = lerpf(-16.0, -3.0, k) if inside else (lerpf(-30.0, -14.0, k) if k > 0.03 and not indoor else off)
+		forest = -22.0 if inside else (-25.0 if indoor else -5.0)
 		if _blizzard:
-			bliz = -9.0 if inside else -3.0
+			bliz = -9.0 if inside else (-15.0 if indoor else -3.0)
 			forest -= 10.0
 	sfx.bed("car_interior", car, lerpf(0.7, 1.0, k))
 	sfx.bed("wind_forest", forest)
@@ -1180,8 +1240,10 @@ func _sound(delta: float) -> void:
 	sfx.bed("drone", drone + hud.hum * 10.0)
 	sfx.bed("hum_ring", lerpf(-34.0, -4.0, hud.hum) if hud.hum > 0.03 else off)
 	var song: bool = c2.get("song", false)
-	sfx.bed("radio_hiss", (-20.0 if inside else -34.0) if _radio and not _blackout and not song else off)
-	sfx.bed("radio_song", (-14.0 if inside else -30.0) if _radio and song and not _blackout else off)
+	# радио слышно в салоне и рядом с машиной на улице — не в кафе, не в доме, не на озере без машины
+	var by_car := inside or (not indoor and not station and is_instance_valid(scene.car) and scene.car.is_visible_in_tree())
+	sfx.bed("radio_hiss", (-20.0 if inside else -34.0) if _radio and by_car and not _blackout and not song else off)
+	sfx.bed("radio_song", (-14.0 if inside else -30.0) if _radio and by_car and song and not _blackout else off)
 	var br := off
 	var dsteps := off
 	var life := 1.0
@@ -1196,7 +1258,7 @@ func _sound(delta: float) -> void:
 	sfx.bed("deer_steps", dsteps, 0.8)
 	var steps := off
 	for who in _walks:
-		if (actors[who] as Actor).get_parent() == scene:
+		if (actors[who] as Actor).get_parent() == scene and not indoor:   # шаги по снегу — только на улице
 			steps = -18.0 if inside else -7.0
 	sfx.bed("snow_steps", steps)
 	_skid_cd = maxf(0.0, _skid_cd - delta)
@@ -1213,16 +1275,20 @@ func _do_peek(t: float, hint_d) -> bool:
 	hud.hint.text = _keys(hint_raw)
 	var left := t
 	var seen := false
+	var armed := false   # клавиша, зажатая ещё до подсказки, не считается: сначала отпустить
 	while left > 0.0:
 		await get_tree().process_frame
 		left -= _dt()
 		if get_tree().paused:
 			continue
 		hud.hint.text = _keys(hint_raw)
+		var held := Input.is_key_pressed(KEY_Q) or Input.is_key_pressed(KEY_UP) or Input.is_key_pressed(KEY_TAB) \
+				or Input.is_action_pressed("ui_up") or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
+		if not held:
+			armed = true
 		if autoplay:
 			seen = not ("peek" in _miss) and t - left > 0.8
-		elif Input.is_key_pressed(KEY_Q) or Input.is_key_pressed(KEY_UP) or Input.is_key_pressed(KEY_TAB) \
-				or Input.is_action_pressed("ui_up") or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		elif held and armed:
 			seen = true
 		if seen:
 			break
@@ -1241,6 +1307,7 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 	_qte_ok = kind not in ["mash", "press", "rock"]   # жать: удалось, только если набрали нужное число нажатий
 	_qte_got = 0
 	_qte_drift = 0.0
+	_brake_armed = false
 	var left := t
 	var got := 0
 	var last_press := -1.0
@@ -1269,8 +1336,7 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 			if hit_r:
 				var now := t - left
 				if last_press < 0.0 or now - last_press >= _qte_gap:
-					got += 1
-					sfx.play("snow_steps", -24.0, 0.7)
+					got += 1   # укачивание — без звука шагов (раньше на каждое нажатие играла петля шагов по снегу)
 				else:
 					got = maxi(0, got - 1)
 					sfx.play("baby_cry", -20.0, 1.1)
@@ -1297,7 +1363,11 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 				last_press = t - left
 				_shake = maxf(_shake, 0.12)
 				_qte_got = got
-				sfx.play("blow" if kind == "press" else "snow_steps", -22.0 if kind == "press" else -14.0, randf_range(0.9, 1.15))
+				# звук нажатия — из данных действия ("sfx"); по умолчанию: mash — короткий шаг по снегу (кусок петли, а не
+				# весь 6-секундный файл: пул звуков переполнялся), press — без звука (схватки при родах — не удар монтировкой)
+				var qs := "" if _qte_sfx == "none" else (_qte_sfx if _qte_sfx != "" else ("snow_steps" if kind == "mash" else ""))
+				if qs != "":
+					sfx.play(qs, -14.0 if qs == "snow_steps" else -20.0, randf_range(0.9, 1.15), 0.0, 0.3 if qs == "snow_steps" else 0.0)
 			hud.hint.text = "%s   %s" % [hint0, "■".repeat(mini(got, _qte_n)) + "□".repeat(maxi(0, _qte_n - got))]
 			if got >= _qte_n:
 				_qte_ok = true
@@ -1319,7 +1389,9 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 				break
 			var v: float = scene.road.speed
 			var gap := BUMPER - deer.body_center().z - 0.22
-			var press := _brake_in
+			if not _brake_in:
+				_brake_armed = true   # пробел или клик, зажатые с прошлой реплики, не тормозят сразу: сначала отпустить
+			var press := _brake_in and _brake_armed
 			if autoplay:
 				press = not ("brake" in _miss) and t - left > 0.6
 			if press and _brake_a == 0.0:   # сколько нужно, чтобы встать в метре; больше 11 м/с² не выйдет — удар
@@ -1364,7 +1436,7 @@ func _deer_hit() -> void:
 	deer.look_target = null
 	deer.shine_from = null
 	deer.place_body(Vector3(-2.3, 0.0, -9.6), 90.0)
-	get_tree().create_timer(0.15).timeout.connect(func():   # лужа — под головой (поза лёжа уже встала)
+	get_tree().create_timer(0.15, false).timeout.connect(func():   # лужа — под головой (поза лёжа уже встала)
 		var h := deer.head_pos()
 		scene.blood_pool(Vector3(h.x, 0.004, h.z)))
 
@@ -1665,9 +1737,33 @@ func _process(delta: float) -> void:
 	# ручная камера: лёгкое дыхание кадра, тряска после рывков; дорога потряхивает вид из машины
 	_shake = maxf(0.0, _shake - delta * 0.8)
 	_place_cam()
+	_smooth_cam(delta)
 	var road := 0.004 if _shot in ["pov", "road", "hands"] else 0.002
-	cam.rotate_object_local(Vector3.RIGHT, sin(_t * 1.7) * 0.004 + sin(_t * 23.0) * road + (randf() - 0.5) * 0.03 * _shake)
-	cam.rotate_object_local(Vector3.UP, sin(_t * 1.1) * 0.005 + (randf() - 0.5) * 0.03 * _shake + _qte_drift * 0.12)
+	# тряска — плавный шум (две несоизмеримые частоты), а не новое случайное число каждый кадр (дёргало кадр)
+	var jx := (sin(_t * 13.1) + sin(_t * 19.7 + 1.3)) * 0.5
+	var jy := (sin(_t * 11.3 + 0.7) + sin(_t * 17.9 + 2.1)) * 0.5
+	cam.rotate_object_local(Vector3.RIGHT, sin(_t * 1.7) * 0.004 + sin(_t * 23.0) * road + jx * 0.015 * _shake)
+	cam.rotate_object_local(Vector3.UP, sin(_t * 1.1) * 0.005 + jy * 0.015 * _shake + _qte_drift * 0.12)
+
+
+## Камера за целью без дрожи: планы, привязанные к костям (лицо, голова, рука), раньше повторяли каждое микродвижение
+## кости. Положение идёт за целью с предсказанием по её сглаженной скорости (едущая машина — без отставания),
+## поворот — плавно; склейка или скачок больше 1,5 м — сразу на место.
+func _smooth_cam(delta: float) -> void:
+	var tgt := cam.global_transform
+	if _cam_snap or delta <= 0.0 or _cam_s.origin.distance_to(tgt.origin) > 1.5:
+		_cam_s = tgt
+		_cam_v = Vector3.ZERO
+		_cam_prev = tgt.origin
+		_cam_snap = false
+		return
+	var v := (tgt.origin - _cam_prev) / delta
+	_cam_prev = tgt.origin
+	_cam_v = _cam_v.lerp(v, 1.0 - exp(-delta * 4.0))
+	var p := (_cam_s.origin + _cam_v * delta).lerp(tgt.origin, 1.0 - exp(-delta * 14.0))
+	var q := _cam_s.basis.get_rotation_quaternion().slerp(tgt.basis.get_rotation_quaternion(), 1.0 - exp(-delta * 16.0))
+	_cam_s = Transform3D(Basis(q), p)
+	cam.global_transform = _cam_s
 
 
 
@@ -1693,6 +1789,8 @@ func _life_hints(delta: float) -> void:
 ## Применить все настройки: качество графики, яркость, громкость, субтитры.
 func _apply_settings() -> void:
 	settings.apply_quality(get_viewport(), scene.env, _pc)
+	scene.sun_shadows = settings.quality >= 1   # солнечные тени днём — со «среднего» качества
+	scene._sun_shadow()
 	settings.apply_brightness(scene.env)
 	sfx.set_volumes(settings.vol)
 	hud.set_subs_big(settings.subs_big)
@@ -1715,6 +1813,8 @@ func _on_setting(key: String, v: Variant) -> void:
 		"quality":
 			settings.quality = int(v)
 			settings.apply_quality(get_viewport(), scene.env, _pc)
+			scene.sun_shadows = settings.quality >= 1
+			scene._sun_shadow()
 		"fullscreen":
 			settings.fullscreen = int(v) == 1
 			settings.apply_display()

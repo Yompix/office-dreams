@@ -9,7 +9,7 @@ extends Node
 
 const OFF := -60.0
 const ALIAS := {"deer_steps": "snow_steps"}   # вторая петля из того же файла (шаги оленя)
-const MUSIC := ["lake_theme", "lake_end", "map_theme"]   # музыка (шина Music), остальное — шина SFX, голоса — Voice
+const MUSIC := ["lake_theme", "lake_end"]   # музыка (шина Music), остальное — шина SFX, голоса — Voice
 var _beds := {}                                # имя → [плеер, нужная громкость, нужная высота, текущая громкость]
 var _pool: Array[AudioStreamPlayer] = []
 var _cache := {}
@@ -18,6 +18,7 @@ var master := 1.0                              # общая громкость (
 var _duck := 0.0                               # пауза: всё тише
 var _vo: AudioStreamPlayer                     # голос реплики (одна за раз)
 var _vo_duck := 0.0                            # пока звучит голос, фоны тише на 5 дБ
+var _vo_tw: Tween = null                       # мягкий обрыв реплики (пропуск)
 
 
 func _ready() -> void:
@@ -90,7 +91,9 @@ func beds_off() -> void:
 
 
 func _process(delta: float) -> void:
-	_vo_duck = move_toward(_vo_duck, -5.0 if _vo.playing else 0.0, delta * 20.0)
+	# приглушение фонов под голосом: быстро вниз, медленно вверх — в паузе 0,35 с между репликами фоны не «качает»
+	var dk := -5.0 if voice_playing() else 0.0
+	_vo_duck = move_toward(_vo_duck, dk, delta * (20.0 if dk < _vo_duck else 4.0))
 	for k in _beds:
 		var b: Array = _beds[k]
 		var p: AudioStreamPlayer = b[0]
@@ -98,7 +101,8 @@ func _process(delta: float) -> void:
 		var cur: float = b[3]
 		if want > OFF and not p.playing:
 			cur = OFF
-			p.play(randf() * maxf(0.0, p.stream.get_length() - 1.0))
+			# фоны — с любого места (не слышно повтора); музыка — с начала фразы (тема меню начиналась с середины)
+			p.play(0.0 if k in MUSIC else randf() * maxf(0.0, p.stream.get_length() - 1.0))
 		cur = move_toward(cur, want, delta * (70.0 if want > cur else 45.0))
 		b[3] = cur
 		p.volume_db = cur + gain(k) + _vo_duck
@@ -107,10 +111,11 @@ func _process(delta: float) -> void:
 			p.stop()
 
 
-## Разовый звук: громкость (дБ), высота, через сколько секунд.
-func play(name: String, db := 0.0, pitch := 1.0, delay := 0.0) -> void:
-	if delay > 0.0:
-		get_tree().create_timer(delay, true).timeout.connect(play.bind(name, db, pitch, 0.0))
+## Разовый звук: громкость (дБ), высота, через сколько секунд; dur > 0 — только первые dur секунд (кусочек длинного
+## файла: шаг из петли шагов), с коротким затуханием.
+func play(name: String, db := 0.0, pitch := 1.0, delay := 0.0, dur := 0.0) -> void:
+	if delay > 0.0:   # таймер стоит, пока игра на паузе (раньше отложенные звуки звучали под меню паузы)
+		get_tree().create_timer(delay, false).timeout.connect(play.bind(name, db, pitch, 0.0, dur))
 		return
 	var s := _stream(name, false)
 	if s == null:
@@ -127,6 +132,13 @@ func play(name: String, db := 0.0, pitch := 1.0, delay := 0.0) -> void:
 	p.volume_db = db + gain(name)
 	p.pitch_scale = pitch
 	p.play()
+	if dur > 0.0:
+		var tm := get_tree().create_timer(dur, false)
+		tm.timeout.connect(func():
+			if p.playing and p.stream == s:
+				var tw := create_tween()
+				tw.tween_property(p, "volume_db", p.volume_db - 30.0, 0.08)
+				tw.tween_callback(p.stop))
 
 
 ## Остановить разовый звук (колыбельная): плавно за fade секунд.
@@ -143,15 +155,30 @@ func stop(name: String, fade := 0.5) -> void:
 func voice(path: String, g := 1.0) -> bool:
 	if not ResourceLoader.exists(path):
 		return false
+	if _vo_tw:
+		_vo_tw.kill()
+		_vo_tw = null
 	_vo.stop()
 	_vo.stream = load(path)
 	_vo.volume_db = linear_to_db(maxf(g, 0.01))
+	_vo.stream_paused = false
 	_vo.play()
 	return true
 
 
-func voice_stop() -> void:
-	_vo.stop()
+## Конец реплики или пропуск: голос гаснет за 60 мс (без щелчка обрыва).
+func voice_stop(fade := 0.06) -> void:
+	if not _vo.playing:
+		return
+	if _vo_tw:
+		_vo_tw.kill()
+	_vo_tw = create_tween()
+	_vo_tw.tween_property(_vo, "volume_db", _vo.volume_db - 30.0, fade)
+	_vo_tw.tween_callback(_vo.stop)
+
+
+func voice_playing() -> bool:
+	return _vo.playing and not _vo.stream_paused
 
 
 func set_master(v: float) -> void:
@@ -168,10 +195,15 @@ func set_volumes(vol: Dictionary) -> void:
 	set_master(float(vol.get("master", 1.0)))
 
 
-## Пауза: всё на 14 дБ тише.
+## Пауза: фоны на 14 дБ тише, голос реплики и разовые звуки замирают и продолжаются с того же места (раньше реплика
+## доигрывала под меню, а после паузы субтитр и губы шли молча).
 func duck(on: bool) -> void:
 	_duck = -14.0 if on else 0.0
 	_apply_bus()
+	_vo.stream_paused = on and _vo.playing
+	for p in _pool:
+		if p.playing or p.stream_paused:
+			p.stream_paused = on
 
 
 func _apply_bus() -> void:

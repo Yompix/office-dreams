@@ -42,15 +42,37 @@
    {
     "kind": "jacket",
     "name": "jacket",
-    "tex": "brown_leather",
+    "tex": "leather_red_02",
     "tint": [
-     0.72,
-     0.6,
-     0.5
+     0.36,
+     0.22,
+     0.14
     ],
     "off": 0.03,
-    "tile": 5,
-    "band": 0.3
+    "tile": 3,
+    "band": 0.3,
+    "rough": 0.55,
+    "sim": "leather",
+    "inset": 0.008,
+    "frames": 30,
+    "tailor": {
+     "ease": 0.04,
+     "ease_top": 0.035,
+     "ease_cuff": 0.02,
+     "box": 3.0,
+     "slope": 0.05
+    },
+    "neck": "turn",
+    "trims": {
+     "zip": true,
+     "pockets": "welt"
+    },
+    "hem": 0.09,
+    "belt": false,
+    "drop": 0,
+    "grow": 0.12,
+    "self_col": false,
+    "pin_fall": 0.2
    }
   ]
  },
@@ -92,21 +114,39 @@
    {
     "kind": "jacket",
     "name": "hoodie",
-    "tex": "cotton_jersey",
+    "tex": "jogging_melange",
     "tint": [
      0.62,
      0.66,
      0.6
     ],
     "off": 0.03,
-    "tile": 6,
-    "collar": false
+    "tile": 5,
+    "collar": false,
+    "sim": "cotton",
+    "inset": 0.006,
+    "frames": 36,
+    "tailor": {
+     "ease": 0.035,
+     "ease_top": 0.03,
+     "ease_cuff": 0.012,
+     "box": 2.6,
+     "slope": 0.1
+    },
+    "trims": {
+     "pockets": "kangaroo"
+    },
+    "hem": 0.06,
+    "belt": true,
+    "grow": 0.15,
+    "self_col": false,
+    "pin_fall": 0.2
    },
    {
     "kind": "hood",
     "name": "hood",
     "down": true,
-    "tex": "cotton_jersey",
+    "tex": "jogging_melange",
     "tint": [
      0.62,
      0.66,
@@ -114,7 +154,7 @@
     ],
     "off": 0.034,
     "back": 0.03,
-    "tile": 6
+    "tile": 5
    }
   ],
   "tint": {
@@ -166,15 +206,36 @@
    {
     "kind": "jacket",
     "name": "parka",
-    "tex": "cotton_jersey",
+    "tex": "stretch_poplin",
     "tint": [
-     0.24,
-     0.32,
-     0.48
+     0.2,
+     0.27,
+     0.42
     ],
     "off": 0.042,
-    "tile": 6,
-    "rough": 0.7
+    "tile": 5,
+    "rough": 0.7,
+    "sim": "canvas",
+    "inset": 0.008,
+    "frames": 36,
+    "tailor": {
+     "ease": 0.04,
+     "ease_top": 0.035,
+     "ease_cuff": 0.018,
+     "box": 3.0,
+     "slope": 0.04
+    },
+    "neck": "stand",
+    "trims": {
+     "zip": true,
+     "pockets": "flap"
+    },
+    "hem": 0.09,
+    "belt": false,
+    "drop": 0.08,
+    "grow": 0.12,
+    "self_col": false,
+    "pin_fall": 0.2
    },
    {
     "kind": "beanie",
@@ -294,29 +355,75 @@
    {
     "kind": "jacket",
     "name": "parka",
-    "tex": "cotton_jersey",
+    "tex": "stretch_poplin",
     "tint": [
-     0.66,
-     0.44,
-     0.15
+     0.62,
+     0.42,
+     0.16
     ],
     "off": 0.04,
-    "tile": 6,
-    "rough": 0.75
+    "tile": 5,
+    "rough": 0.75,
+    "sim": "canvas",
+    "inset": 0.008,
+    "frames": 36,
+    "tailor": {
+     "ease": 0.045,
+     "ease_top": 0.04,
+     "ease_cuff": 0.02,
+     "box": 3.0,
+     "slope": 0.04
+    },
+    "neck": "stand",
+    "trims": {
+     "zip": true,
+     "pockets": "flap",
+     "patches": [
+      {
+       "at": "arm_l",
+       "style": "star",
+       "color": [
+        0.75,
+        0.18,
+        0.15
+       ],
+       "w": 0.065,
+       "h": 0.065
+      },
+      {
+       "x": 0.11,
+       "dz": 0.15,
+       "style": "circle",
+       "color": [
+        0.15,
+        0.35,
+        0.7
+       ],
+       "w": 0.055,
+       "h": 0.055
+      }
+     ]
+    },
+    "hem": 0.09,
+    "belt": false,
+    "drop": 0.1,
+    "grow": 0.12,
+    "self_col": false,
+    "pin_fall": 0.2
    },
    {
     "kind": "hood",
     "name": "hood",
     "down": true,
-    "tex": "cotton_jersey",
+    "tex": "stretch_poplin",
     "tint": [
-     0.66,
-     0.44,
-     0.15
+     0.62,
+     0.42,
+     0.16
     ],
     "off": 0.046,
     "back": 0.03,
-    "tile": 6
+    "tile": 5
    }
   ],
   "tint": {
@@ -366,16 +473,37 @@
    {
     "kind": "jacket",
     "name": "coat",
-    "tex": "wool_boucle",
+    "tex": "caban",
     "tint": [
-     0.26,
-     0.26,
-     0.28
+     0.3,
+     0.29,
+     0.29
     ],
     "off": 0.046,
-    "tile": 6,
+    "tile": 4,
     "rough": 0.9,
-    "band": 0.4
+    "band": 0.4,
+    "sim": "wool",
+    "inset": 0.01,
+    "frames": 36,
+    "tailor": {
+     "ease": 0.05,
+     "ease_top": 0.04,
+     "ease_cuff": 0.025,
+     "box": 3.0,
+     "slope": 0.02
+    },
+    "neck": "turn",
+    "trims": {
+     "buttons": 4,
+     "pockets": "welt"
+    },
+    "hem": 0.09,
+    "belt": false,
+    "drop": 0.42,
+    "grow": 0.08,
+    "self_col": false,
+    "pin_fall": 0.2
    }
   ],
   "tint": {
@@ -429,6 +557,13 @@
    "braid01": [
     0.55,
     1.0
+   ]
+  },
+  "tint": {
+   "BootsAnkle.png": [
+    0.16,
+    0.12,
+    0.09
    ]
   }
  },
@@ -484,9 +619,30 @@
      0.38
     ],
     "off": 0.042,
-    "tile": 7,
+    "tile": 6,
     "rough": 0.85,
-    "band": 0.4
+    "band": 0.4,
+    "sim": "wool",
+    "inset": 0.01,
+    "frames": 36,
+    "tailor": {
+     "ease": 0.045,
+     "ease_top": 0.035,
+     "ease_cuff": 0.022,
+     "box": 3.2,
+     "slope": 0.02
+    },
+    "neck": "turn",
+    "trims": {
+     "buttons": 4,
+     "pockets": "welt"
+    },
+    "hem": 0.09,
+    "belt": false,
+    "drop": 0.45,
+    "grow": 0.08,
+    "self_col": false,
+    "pin_fall": 0.2
    },
    {
     "kind": "scarf",
@@ -641,11 +797,11 @@
    {
     "kind": "vest",
     "name": "robe",
-    "tex": "cotton_jersey",
+    "tex": "stretch_poplin",
     "tint": [
-     0.76,
-     0.83,
-     0.88
+     0.82,
+     0.86,
+     0.9
     ],
     "off": 0.024,
     "tile": 5,
@@ -656,7 +812,7 @@
    {
     "kind": "jacket",
     "name": "puffer",
-    "tex": "cotton_jersey",
+    "tex": "bi_stretch",
     "tint": [
      0.1,
      0.12,
@@ -666,8 +822,29 @@
     "tile": 5,
     "rough": 0.7,
     "band": 0.5,
-    "hem": 0.0,
-    "open": 0.07
+    "hem": 0.06,
+    "sim": "puffer",
+    "inset": 0.01,
+    "frames": 30,
+    "tailor": {
+     "ease": 0.06,
+     "ease_top": 0.05,
+     "ease_cuff": 0.03,
+     "box": 3.0,
+     "slope": 0.03
+    },
+    "neck": "stand",
+    "trims": {
+     "zip": true
+    },
+    "belt": false,
+    "grow": 0.1,
+    "self_col": false,
+    "pin_fall": 0.2,
+    "quilt": [
+     0.085,
+     0.016
+    ]
    }
   ],
   "gray": {
@@ -722,7 +899,7 @@
    {
     "kind": "jacket",
     "name": "raincoat",
-    "tex": "cotton_jersey",
+    "tex": "bi_stretch",
     "tint": [
      0.88,
      0.7,
@@ -730,8 +907,28 @@
     ],
     "off": 0.034,
     "tile": 5,
-    "rough": 0.42,
-    "band": 0.4
+    "rough": 0.35,
+    "band": 0.4,
+    "sim": "canvas",
+    "inset": 0.008,
+    "frames": 36,
+    "tailor": {
+     "ease": 0.04,
+     "ease_top": 0.035,
+     "ease_cuff": 0.02,
+     "box": 3.0,
+     "slope": 0.03
+    },
+    "neck": "turn",
+    "trims": {
+     "buttons": 4
+    },
+    "hem": 0.09,
+    "belt": false,
+    "drop": 0.32,
+    "grow": 0.08,
+    "self_col": false,
+    "pin_fall": 0.2
    }
   ]
  },
@@ -831,9 +1028,30 @@
      0.38
     ],
     "off": 0.042,
-    "tile": 7,
+    "tile": 6,
     "rough": 0.85,
-    "band": 0.4
+    "band": 0.4,
+    "sim": "wool",
+    "inset": 0.01,
+    "frames": 36,
+    "tailor": {
+     "ease": 0.045,
+     "ease_top": 0.035,
+     "ease_cuff": 0.022,
+     "box": 3.2,
+     "slope": 0.02
+    },
+    "neck": "turn",
+    "trims": {
+     "buttons": 4,
+     "pockets": "welt"
+    },
+    "hem": 0.09,
+    "belt": false,
+    "drop": 0.45,
+    "grow": 0.08,
+    "self_col": false,
+    "pin_fall": 0.2
    },
    {
     "kind": "scarf",

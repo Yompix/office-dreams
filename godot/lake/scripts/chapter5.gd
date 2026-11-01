@@ -65,8 +65,14 @@ static func restore(g, id: String) -> void:
 	if id in ["c5_recap", "c5_s1"]:
 		return
 	_dacha_stage(g)
-	if id.begins_with("c5_s3") or id.begins_with("c5_s4") or id.begins_with("c5_mama") or id.begins_with("c5_shore"):
+	if id.begins_with("c5_s3") or id.begins_with("c5_s4") or id.begins_with("c5_mama") or id.begins_with("c5_shore") \
+			or id.begins_with("c5_shadow") or id.begins_with("c5_ice"):   # концовки на льду: пятно и полынья тоже
 		_ice_stage(g)
+	# после приезда седана (сцена c5_s3) Хейл, санитар и машина уже у берега: после загрузки — там же, без приезда
+	if id in ["c5_s4", "c5_s4_alone", "c5_mama", "c5_shore", "c5_witness", "c5_shadow", "c5_shadow_dark", "c5_ice", "c5_oblivion"]:
+		_sedan(g, true)
+		if not (id in ["c5_s4", "c5_s4_alone"]):   # на берегу и в концовках заложники уже освобождены (двери открыты в c5_s4)
+			_hostages(g, true)
 
 
 static func fx(g, k: String) -> bool:
@@ -123,7 +129,7 @@ static func fx(g, k: String) -> bool:
 		"head_ring":
 			put(g, "noah", D(1.0, 0.0, -0.2), 70.0, "Idle")
 			g.hud.hum_to = 0.6
-			g.get_tree().create_timer(3.5).timeout.connect(func(): g.hud.hum_to = 0.0)
+			g.get_tree().create_timer(3.5, false).timeout.connect(func(): g.hud.hum_to = 0.0)
 		"bottle5":
 			Ch2.pill_bottle(g, true)
 		"iris_burns", "burn5":
@@ -167,7 +173,7 @@ static func fx(g, k: String) -> bool:
 			g.hud.fade.color = Color(0, 0, 0, 1)
 			g.sfx.play("splash", -4.0)
 			g.sfx.play("splash", -8.0, 0.9, 1.1)
-			g.get_tree().create_timer(3.4).timeout.connect(func(): g.create_tween().tween_property(g.hud.fade, "color:a", 0.0, 1.0))
+			g.get_tree().create_timer(3.4, false).timeout.connect(func(): g.create_tween().tween_property(g.hud.fade, "color:a", 0.0, 1.0))
 			_drown(g)
 		"after_drown":
 			g.hud.fade.color.a = 0.0
@@ -310,17 +316,17 @@ static func fx(g, k: String) -> bool:
 			var who: String = {"hale_slips": "hale", "noah_under": "noah", "iris_gone": "iris", "iris_slips": "iris"}[k]
 			if k == "noah_under":
 				_in_water(g, "noah", HOLEW + Vector3(0.1, 0.0, 0.1), 0.0)
-				g.get_tree().create_timer(1.2).timeout.connect(func():
+				g.get_tree().create_timer(1.2, false).timeout.connect(func():
 					if g.actors.has("noah"):
 						(g.actors.noah as Actor).visible = false)
 				if g.actors.has("hale") and not g.c5.get("hale_out", false):   # Хейл, который выбрался, остаётся на льду
-					g.get_tree().create_timer(1.2).timeout.connect(func():
+					g.get_tree().create_timer(1.2, false).timeout.connect(func():
 						if g.actors.has("hale"):
 							(g.actors.hale as Actor).visible = false)
 			elif k != "iris_slips" and g.actors.has(who):
 				var a: Actor = g.actors[who]
 				g.create_tween().tween_property(a, "position:y", a.position.y - 1.5, 1.6)
-				g.get_tree().create_timer(1.6).timeout.connect(func():
+				g.get_tree().create_timer(1.6, false).timeout.connect(func():
 					if is_instance_valid(a):
 						a.visible = false)
 			g.sfx.play("splash", -8.0, 0.8)
@@ -426,7 +432,8 @@ static func fx(g, k: String) -> bool:
 		"white_room":
 			_room(g, "white")
 		"hale_takes":
-			(g.actors.hale as Actor).reach = {"_r": ROOMS + Vector3(80.0, 0.78, 0.2)}
+			if has(g, "hale"):   # без Хейла (загрузка в концовке) — без ошибки скрипта
+				(g.actors.hale as Actor).reach = {"_r": ROOMS + Vector3(80.0, 0.78, 0.2)}
 		_:
 			return false
 	return true
@@ -757,7 +764,8 @@ static func _ice_stage(g) -> void:
 		lk.add_child(dp)
 
 
-static func _sedan(g) -> void:
+## parked — машина уже стоит (загрузка контрольной точки): без проезда, звука мотора и выхода из машины.
+static func _sedan(g, parked := false) -> void:
 	var lk := lake(g)
 	if not (g.blackcar and is_instance_valid(g.blackcar)):
 		g.blackcar = BlackCar.new()
@@ -770,8 +778,11 @@ static func _sedan(g) -> void:
 	bc.position = Vector3(-30.0, 0.0, 34.0)
 	bc.rotation_degrees = Vector3(0, -130, 0)
 	bc.lights(true)
+	if parked:
+		bc.position = Vector3(-14.5, 0.0, 18.5)
+		bc.lights(false)
 	var tw: Tween = g.create_tween()
-	tw.tween_property(bc, "position", Vector3(-14.5, 0.0, 18.5), 3.0).set_ease(Tween.EASE_OUT)
+	tw.tween_property(bc, "position", Vector3(-14.5, 0.0, 18.5), 0.01 if parked else 3.0).set_ease(Tween.EASE_OUT)
 	var h := Ch2.actor(g, "hale", "hale" if ResourceLoader.exists("res://assets/chars/hale.glb") else "frank")
 	h.visible = true
 	put(g, "hale", L(-12.4, 0.0, 17.2), 110.0, "Idle")
@@ -781,7 +792,7 @@ static func _sedan(g) -> void:
 		put(g, "orderly", L(-13.6, 0.0, 19.6), 120.0, "Idle")
 	_hostages(g, false)
 	var arrivals: Array = []   # из седана выходят, когда он встал (а не стоят у сарая, пока он едет)
-	for k in ["hale", "orderly", "zoe", "danny"]:
+	for k in ([] if parked else ["hale", "orderly", "zoe", "danny"]):
 		if g.actors.has(k) and is_instance_valid(g.actors[k]) and (g.actors[k] as Actor).visible \
 				and (g.actors[k] as Actor).global_position.distance_to(L(-14.0, 0.0, 18.5)) < 6.0:
 			(g.actors[k] as Actor).visible = false
@@ -790,7 +801,8 @@ static func _sedan(g) -> void:
 		for k in arrivals:
 			if g.actors.has(k) and is_instance_valid(g.actors[k]):
 				(g.actors[k] as Actor).visible = true)
-	g.sfx.play("engine_start", -12.0, 0.9)
+	if not parked:
+		g.sfx.play("engine_start", -12.0, 0.9)
 
 
 ## Заложники Хейла: у машины (санитар держит Зою под локоть) или — освобождены (у сарая, Дэнни бежит к Айрис).

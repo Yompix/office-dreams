@@ -3951,7 +3951,8 @@
       "ru": "Растирай руки — быстро жми E / пробел",
       "en": "Rub her hands — mash E / Space"
      },
-     "fail": "c5_zoe_dies"
+     "fail": "c5_zoe_dies",
+     "sfx": "none"
     },
     {
      "go": "c5_zoe_wake"
@@ -3983,7 +3984,8 @@
       "ru": "Растирай руки — быстро жми E / пробел",
       "en": "Rub her hands — mash E / Space"
      },
-     "fail": "c5_zoe_dies"
+     "fail": "c5_zoe_dies",
+     "sfx": "none"
     },
     {
      "go": "c5_zoe_wake"

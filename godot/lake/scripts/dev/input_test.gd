@@ -335,7 +335,24 @@ func _save_test() -> void:
 	var res: Dictionary = sres
 	match step:
 		0:
-			if save_mode == "B":
+			if save_mode == "D":   # испорченный файл + запасная копия у озера (после приезда седана)
+				var fb := FileAccess.open("user://lake_save.json.bak", FileAccess.WRITE)
+				fb.store_string(JSON.stringify({"v": 2, "scene": "c5_s4", "lang": "ru", "clock": "05:40",
+					"flags": {"danny": 1, "zoe": 1, "eva": 1, "eva_alive": 1, "baby": 1, "trust": 2}}))
+				fb = null
+				var fm := FileAccess.open("user://lake_save.json", FileAccess.WRITE)
+				fm.store_string("{\"scene\": \"c5_s4\", \"flags\": {")   # оборван посреди записи
+				fm = null
+				g.hud.menu_pick.emit("cont")
+				next(30)
+			elif save_mode == "E":   # дом Агнес утром, Дэнни потерялся в буран
+				var fe := FileAccess.open("user://lake_save.json", FileAccess.WRITE)
+				fe.store_string(JSON.stringify({"v": 2, "scene": "c3_s6", "lang": "ru",
+					"flags": {"danny": 1, "danny_lost": 1, "zoe": 1, "eva": 1, "eva_alive": 1, "baby": 1}}))
+				fe = null
+				g.hud.menu_pick.emit("cont")
+				next(40)
+			elif save_mode == "B":
 				g.hud.menu_pick.emit("cont")
 				next(10)
 			elif save_mode == "C":
@@ -385,6 +402,29 @@ func _save_test() -> void:
 				check("C: другой выбор — следов первого нет (zoe_talked %s, jealous %s → %s)" % [g.flags.get("zoe_talked", 0), a.get("jealous", 0), g.flags.get("jealous", 0)],
 					float(g.flags.get("zoe_talked", 0)) == 0.0 and float(g.flags.get("jealous", 0)) == float(a.get("jealous", 0)) \
 					and float(g.flags.get("cop_saw", 0)) == float(a.get("cop_saw", 0)) + 1.0)
+				next(99)
+		30:
+			if String(g._scene_id) == "c5_s4" and t > 2.0:
+				var hv: bool = g.actors.has("hale") and is_instance_valid(g.actors.hale)
+				var ov: bool = g.actors.has("orderly") and is_instance_valid(g.actors.orderly)
+				var bc: bool = g.blackcar != null and is_instance_valid(g.blackcar) and (g.blackcar as Node3D).visible
+				check("D: испорченный файл — загружена запасная копия (c5_s4)", true)
+				check("D: Хейл, санитар и седан у берега после загрузки (Хейл %s, санитар %s, седан %s)" % [hv, ov, bc], hv and ov and bc)
+				check("D: часы в машине из сохранения (%s)" % g.scene.car.clock.text, String(g.scene.car.clock.text) == "05:40")
+				check("D: лёд у мостков построен (тёмное пятно)", Ch4.lake(g).has_node("dark_patch"))
+				next(99)
+			elif t > 40.0:
+				check("D: запасная копия не загрузилась (сцена %s)" % g._scene_id, false)
+				next(99)
+		40:
+			if String(g._scene_id) == "c3_s6" and t > 2.0:
+				var dv: bool = g.actors.has("danny") and is_instance_valid(g.actors.danny) and (g.actors.danny as Node3D).is_visible_in_tree()
+				check("E: потерявшийся Дэнни не появляется в доме после загрузки (виден: %s)" % dv, not dv)
+				var hasbaby: bool = g.c3.get("baby") != null and is_instance_valid(g.c3.get("baby"))
+				check("E: младенец на руках после загрузки (%s)" % hasbaby, hasbaby)
+				next(99)
+			elif t > 40.0:
+				check("E: сохранение c3_s6 не загрузилось (сцена %s)" % g._scene_id, false)
 				next(99)
 		99:
 			res["checks_" + save_mode] = self.res

@@ -202,8 +202,8 @@ func _ready() -> void:
 	note.anchor_bottom = 0.95
 	note.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	choice_box = VBoxContainer.new()
-	choice_box.anchor_left = 0.3
-	choice_box.anchor_right = 0.7
+	choice_box.anchor_left = 0.25
+	choice_box.anchor_right = 0.75
 	choice_box.anchor_top = 0.62
 	choice_box.anchor_bottom = 0.9
 	choice_box.add_theme_constant_override("separation", 14)
@@ -235,10 +235,11 @@ func _ready() -> void:
 	toast.anchor_bottom = 0.1
 	hint = _label(root, 34, font_b, Color.WHITE)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.anchor_left = 0.2
-	hint.anchor_right = 0.8
-	hint.anchor_top = 0.12
-	hint.anchor_bottom = 0.2
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # длинная подсказка (24 квадрата) — в две строки, а не за край
+	hint.anchor_left = 0.1
+	hint.anchor_right = 0.9
+	hint.anchor_top = 0.1
+	hint.anchor_bottom = 0.24
 	title = _label(root, 64, font_b, Color.WHITE)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -269,6 +270,25 @@ func line(who: String, name_d, text_d) -> void:
 	sub_name.add_theme_color_override("font_color", NAME_COL.get(who, Color.WHITE))
 	sub_text.text = T(text_d)
 	note.text = ""
+	_fit_subs()
+
+
+## Высота реплики по числу строк: текст прижат к низу (0,95 экрана) и растёт вверх, имя — сразу над ним
+## (крупные субтитры: длинная реплика в 4 строки уходила за нижний край, имя налезало на текст).
+func _fit_subs() -> void:
+	var vs := get_viewport().get_visible_rect().size
+	if vs.y <= 0.0 or sub_text.text == "":
+		return
+	var fs := sub_text.get_theme_font_size("font_size")
+	var w := vs.x * (sub_text.anchor_right - sub_text.anchor_left)
+	var h := font.get_multiline_string_size(sub_text.text, HORIZONTAL_ALIGNMENT_CENTER, w, fs).y + 8.0
+	var top := clampf(0.95 - h / vs.y, 0.5, 0.79)
+	sub_text.anchor_top = top
+	sub_text.anchor_bottom = 0.95
+	sub_text.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	var nh := float(sub_name.get_theme_font_size("font_size")) * 1.25
+	sub_name.anchor_bottom = top
+	sub_name.anchor_top = top - nh / vs.y
 
 
 ## Текст рассказчика: поверх кадра — внизу курсивом, как титры; на чёрном экране (пересказ «Ранее…») — посередине.
@@ -430,6 +450,9 @@ func show_menu(has_save: bool) -> void:
 ## Пауза (Esc): продолжить, в главное меню, выход.
 func show_pause() -> void:
 	hide_menu()
+	for b in choice_box.get_children():   # варианты выбора под паузой — без фокуса
+		(b as Control).focus_mode = Control.FOCUS_NONE
+		(b as Control).release_focus()
 	var ru := lang == "ru"
 	menu_panel = ColorRect.new()
 	(menu_panel as ColorRect).color = Color(0, 0, 0, 0.72)
@@ -484,6 +507,8 @@ func _menu_buttons(items: Array, x: float, y: float) -> void:
 
 
 func hide_menu() -> void:
+	for b in choice_box.get_children():
+		(b as Control).focus_mode = Control.FOCUS_ALL
 	if is_instance_valid(menu_panel):
 		menu_panel.queue_free()
 	menu_panel = null
@@ -512,6 +537,8 @@ func choice(opts: Array, t: float) -> void:
 	_opts = opts
 	_choice_len = t
 	_choice_t = t
+	var shown := opts.filter(func(o): return not (o as Dictionary).get("silent", false)).size()
+	var fs := 32 if shown <= 4 else 27   # 5–6 вариантов (глава 5, дача) — мельче, иначе нижние уходили за край
 	var n := 0
 	for i in opts.size():
 		var o: Dictionary = opts[i]
@@ -522,8 +549,9 @@ func choice(opts: Array, t: float) -> void:
 		var b := Button.new()
 		b.text = "%d   %s" % [n, T(o)]
 		b.add_theme_font_override("font", font)
-		b.add_theme_font_size_override("font_size", 32)
+		b.add_theme_font_size_override("font_size", fs)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # длинный вариант (английский) — в две строки, а не за край
 		b.focus_mode = Control.FOCUS_ALL   # стрелки / крестовина геймпада выделяют, Enter / A выбирает
 		var sb := StyleBoxFlat.new()
 		sb.bg_color = Color(0, 0, 0, 0.55)
@@ -546,6 +574,20 @@ func choice(opts: Array, t: float) -> void:
 			b.add_theme_color_override("font_hover_color", Color(1.0, 0.25, 0.2))
 			b.set_meta("shake", true)
 		choice_box.add_child(b)
+	# место под варианты: сколько их и сколько строк — блок поднимается, чтобы все и подпись «промолчать» влезли
+	var vs := get_viewport().get_visible_rect().size
+	var need := 0.0
+	var wbox := vs.x * (choice_box.anchor_right - choice_box.anchor_left) - 40.0
+	for o in opts:
+		if (o as Dictionary).get("silent", false):
+			continue
+		need += font.get_multiline_string_size("0   " + T(o), HORIZONTAL_ALIGNMENT_LEFT, wbox, fs).y + 22.0 + 14.0
+	var top := clampf(0.89 - need / maxf(vs.y, 1.0), 0.3, 0.62)
+	choice_box.anchor_top = top
+	timer_bg.anchor_top = top - 0.02
+	timer_bg.anchor_bottom = top - 0.02
+	timer_bar.anchor_top = top - 0.02
+	timer_bar.anchor_bottom = top - 0.02
 	timer_bg.visible = true
 	timer_bar.visible = true
 
@@ -565,7 +607,7 @@ func choosing() -> bool:
 
 
 func pick(i: int) -> void:
-	if _opts.is_empty():
+	if _opts.is_empty() or get_tree().paused:   # под меню паузы выбор не делается (стрелки/Tab доходили до вариантов)
 		return
 	clear_choice()
 	chosen.emit(i)
@@ -620,7 +662,7 @@ func _process(delta: float) -> void:
 				if _opts[i].get("silent", false):
 					idx = i
 			pick(idx)
-	if _toast_t > 0.0:
+	if _toast_t > 0.0 and not get_tree().paused:   # плашка «запомнит» не тает под паузой
 		_toast_t -= delta
 		toast.modulate.a = clampf(_toast_t, 0.0, 1.0)
 		if _toast_t <= 0.0:
@@ -653,6 +695,7 @@ func set_subs_big(on: bool) -> void:
 	sub_name.add_theme_font_size_override("font_size", 38 if on else 30)
 	sub_text.add_theme_font_size_override("font_size", 52 if on else 40)
 	note.add_theme_font_size_override("font_size", 44 if on else 34)
+	_fit_subs()
 
 
 func settings_open() -> bool:

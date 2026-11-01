@@ -141,7 +141,7 @@ static func fx(g, k: String) -> bool:
 			if z:
 				z.wave = 0.0
 				z.play("Yes", 0.2)
-				g.get_tree().create_timer(t * 0.9).timeout.connect(func():
+				g.get_tree().create_timer(t * 0.9, false).timeout.connect(func():
 					if g.actors.get("zoe") == z and is_instance_valid(z) and not g._walks.has("zoe") and z.get_parent() == s.road_items:
 						_zoe_run(g))
 		"zoe_window":   # подбежала к окну пассажира
@@ -401,9 +401,12 @@ static func sit(g, who: String, p: Vector3, face: float, clip := "Rk_SitIdle") -
 	var a := actor(g, who)
 	a.reach = {}
 	g._place({"who": who, "at": [p.x, p.y - 0.42, p.z], "face": face, "clip": clip})
+	var tok := int(a.get_meta("place_n", 0))
 	await g.get_tree().process_frame
 	await g.get_tree().process_frame
-	if is_instance_valid(a):
+	# посадка по тазу — только если за эти два кадра героя не переставили (иначе Ева, уже уложенная спать, через два
+	# кадра возвращалась на скамью — в сидящую там Айрис: гл. 3, дом Агнес, торсы друг в друге на 20 см)
+	if is_instance_valid(a) and int(a.get_meta("place_n", 0)) == tok:
 		g._sit(who, p)
 
 

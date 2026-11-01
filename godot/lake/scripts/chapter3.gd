@@ -103,7 +103,8 @@ static func in_house(g) -> void:
 	put(g, "agnes", ag(-0.55, 0.0, -1.2), 60.0, "Idle")
 	put(g, "noah", ag(1.0, 0.0, -0.4), -100.0, "Idle")
 	put(g, "iris", ag(1.4, 0.0, 0.55), -120.0, "Idle_FoldArms")
-	put(g, "danny", ag(2.0, 0.0, 0.1), -95.0, "Idle")
+	if not on(g, "danny_lost"):   # потерявшийся в деревне Дэнни в доме не появляется
+		put(g, "danny", ag(2.0, 0.0, 0.1), -95.0, "Idle")
 	put(g, "zoe", ag(0.6, 0.0, 1.5), -150.0, "Idle")
 	if has(g, "eva"):
 		put(g, "eva", ag(2.95, 0.0, 1.6), -90.0, "Rk_SitIdle")
@@ -135,6 +136,8 @@ static func restore(g, id: String) -> void:
 		g.c3["dark"] = false
 	in_house(g)
 	g.scene.set_daylight("night")
+	if id.begins_with("c3_s6") and on(g, "baby"):   # утро в доме: свёрток — у матери или у Айрис
+		baby(g, Ch4.baby_holder(g))
 
 
 static func fx(g, k: String) -> bool:
@@ -337,6 +340,9 @@ static func fx(g, k: String) -> bool:
 			(g.actors[who] as Actor).reach = {"_l": ag(-1.95, 0.62, 1.3), "_r": ag(-1.85, 0.62, 1.2)}
 			if who == "iris":
 				put(g, "noah", ag(0.7, 0.0, 2.6), -150.0, "Idle_FoldArms")
+			elif has(g, "iris"):   # место у кровати занимает Ной — Айрис отходит на шаг (раньше сидела в нём, торсы на 10 см друг в друге)
+				put(g, "iris", ag(-0.95, 0.0, 0.1), -55.0, "Crouch_Idle")
+				(g.actors.iris as Actor).look_target = g._target("eva")
 		"eva_baby":   # Ева держит девочку
 			baby(g, "eva")
 			if has(g, "eva"):
@@ -344,6 +350,9 @@ static func fx(g, k: String) -> bool:
 			for kk in ["noah", "iris"]:
 				if has(g, kk):
 					(g.actors[kk] as Actor).reach = {}
+			# Ной, прижимавший рану, встаёт и отходит на шаг — Айрис садится у изголовья (раньше — в его коленях)
+			if has(g, "noah") and (g.actors.noah as Actor).ap.current_animation == "Fixing_Kneeling":
+				put(g, "noah", ag(-0.85, 0.0, 1.05), -75.0, "Idle")
 			put(g, "iris", ag(-1.5, 0.0, 0.5), -35.0, "Crouch_Idle")
 		"eva_fading":
 			if has(g, "eva"):
@@ -479,7 +488,7 @@ static func fx(g, k: String) -> bool:
 			g.blackcar.rotation_degrees = Vector3(0, 180, 0)
 			g.blackcar.speed = 0.0
 			g.blackcar.lights(true)
-			g.get_tree().create_timer(3.4).timeout.connect(func():   # горят, пока идёт кадр, — и гаснут
+			g.get_tree().create_timer(3.4, false).timeout.connect(func():   # горят, пока идёт кадр, — и гаснут
 				if is_instance_valid(g.blackcar):
 					g.blackcar.lights(false))
 			in_house(g)
@@ -684,6 +693,8 @@ static func _house_sleepers(g) -> void:
 		g._expr({"who": "eva", "set": "sleep"})
 		if on(g, "baby"):
 			baby(g, "eva")
+	elif on(g, "baby"):   # Евы нет — младенец у Айрис (как в игре после «eva_dies»; после загрузки его не было)
+		baby(g, "iris")
 	for k in ["iris", "zoe"]:
 		if has(g, k):
 			Ch2.sit(g, k, ag(2.9 if k == "iris" else 1.9, 0.47, 1.6 if k == "iris" else 2.9), -90.0 if k == "iris" else 180.0)

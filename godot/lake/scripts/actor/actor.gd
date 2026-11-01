@@ -51,6 +51,7 @@ var _grip_w := {"_r": 0.0, "_l": 0.0}
 var walking := false
 var _hair: Array[ShaderMaterial] = []
 var hair_sim: SpringBoneSimulator3D = null
+var skirt_sim: SpringBoneSimulator3D = null   # подол пальто, юбки, платья (SkirtRig)
 var _kick := Vector3.ZERO       # толчок прядям (рывок машины): затухает
 var _m: Dictionary = {}         # манера героя
 var _bone := {}                 # имя кости → индекс
@@ -213,6 +214,7 @@ static func make(k: String, file: String) -> Actor:
 				mm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 				mm.alpha_scissor_threshold = 0.25
 				mm.cull_mode = BaseMaterial3D.CULL_DISABLED
+				mm.normal_enabled = false   # у бровей MakeHuman в слоте нормалей — сама цветная текстура (бугры на лбу)
 			elif nm == "skin":
 				mm.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
 				mm.subsurf_scatter_enabled = true      # свет чуть проходит под кожу (ПК); в браузере — без этого
@@ -226,9 +228,11 @@ static func make(k: String, file: String) -> Actor:
 			elif mm.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
 				mm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 				mm.alpha_scissor_threshold = 0.5
+			Fabric.tune(mm, nm)   # ткань по имени сетки: шерсть, трикотаж, кожа, нейлон, дождевик… (Fabric)
 			m.set_surface_override_material(i, mm)
 	if hair_mi:
 		a.hair_sim = HairRig.build(a, hair_mi)
+	a.skirt_sim = SkirtRig.build(a)
 	for mi in a.model.find_children("*", "MeshInstance3D", true, false):
 		var m := mi as MeshInstance3D
 		if m.mesh is ArrayMesh and (m.mesh as ArrayMesh).get_blend_shape_count() > 0:
@@ -305,9 +309,16 @@ func placed() -> void:
 	_turn_to = null
 	if hair_sim:
 		hair_sim.reset()
+	if skirt_sim:
+		skirt_sim.reset()
 
 
 ## Реплика: губы по буквам текста за dur секунд. С озвучкой — words ([[начало, слово]]) и env (громкость по 40 мс).
+## Реплика оборвана (пропуск, конец сцены): губы закрываются сразу, а не шевелятся молча до конца строки.
+func shut() -> void:
+	talk_t = -1.0
+
+
 func say(text: String, dur: float, words: Array = [], env := "") -> void:
 	talk_text = text.to_lower()
 	talk_t = 0.0
@@ -398,6 +409,8 @@ func _tick(delta: float) -> void:
 		_capture_base()
 	else:
 		_restore_base()   # поза удержана (клип кончился или на паузе): слои ниже пишут поверх неё, а не поверх прошлого кадра
+	if skirt_sim:
+		SkirtRig.drive(skel, skirt_sim)   # поводки подола — за бёдрами клипа (до пружин)
 	if _snap > 0:
 		_snap -= 1
 	if vw > 1.5:   # не в кадре: позу держим, остальное не считаем
@@ -1098,12 +1111,15 @@ func _update_blood() -> void:
 
 ## Ветер и толчки — в симулятор прядей: порывы (медленные волны силы), а не дрожь; толчок затухает за ~0,3 с.
 func _update_hair(dt: float) -> void:
-	if hair_sim == null:
+	if hair_sim == null and skirt_sim == null:
 		return
 	var gust := 0.55 + 0.45 * (0.5 + 0.5 * sin(_t * 0.9 + _seed)) * (0.6 + 0.4 * sin(_t * 0.37 + _seed * 2.0))
 	var wind := wind_dir.normalized() * breeze * 2.2 * gust
 	_kick = _kick.lerp(Vector3.ZERO, 1.0 - exp(-dt * 6.0))
-	hair_sim.external_force = wind + _kick
+	if hair_sim:
+		hair_sim.external_force = wind + _kick
+	if skirt_sim:   # тяжёлая ткань подола — ветер слабее, чем волосам
+		skirt_sim.external_force = wind * 0.35
 
 
 ## Толчок прядям (рывок машины, удар, резкий поворот головы): м/с.

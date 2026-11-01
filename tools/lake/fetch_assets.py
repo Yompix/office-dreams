@@ -16,6 +16,8 @@ TREE_TEX = ['fir_tree_01', 'pine_tree_01']   # у этих моделей сет
 TEXTURES = ['asphalt_snow', 'snow_02',
             # ткани для одежды героев, которую генератор шьёт сам (tools/lake/garments.py)
             'brown_leather', 'knitted_fleece', 'wool_boucle', 'cotton_jersey', 'poly_wool_herringbone', 'denim_fabric',
+            # настоящие ткани по виду вещи (ТЗ 1 ноя): кожа куртки, плащёвка парки, полиэстер пуховика, трикотаж худи, пальтовая шерсть
+            'leather_red_02', 'stretch_poplin', 'bi_stretch', 'jogging_melange', 'caban',
             # заправка: стены, бетон, плитка в магазине, металл навеса
             'painted_plaster_wall', 'concrete_floor_02', 'floor_tiles_06', 'corrugated_iron', 'metal_plate',
             # кафе «У трёх сосен» (глава 2): пол, обшивка снаружи и внутри, столы, стойка
@@ -60,6 +62,12 @@ def main():
             if kind in f and '1k' in f[kind]:
                 ent = f[kind]['1k'].get('jpg') or f[kind]['1k'].get('png')
                 curl(ent['url'], os.path.join(d, '%s_%s_1k.jpg' % (t, key)))
+        diff = os.path.join(d, '%s_diff_1k.jpg' % t)
+        if 'Diffuse' not in f and not os.path.exists(diff):   # у части тканей нет цвета (красится оттенком героя): серый из AO
+            from PIL import Image
+            arm = Image.open(os.path.join(d, '%s_arm_1k.jpg' % t)).convert('RGB')
+            ao = arm.split()[0].point(lambda x: int(150 + x * 0.41))
+            Image.merge('RGB', (ao, ao, ao)).save(diff, quality=92)
         print('текстура', t)
     for h in HDRIS:
         f = files(h)['hdri']['1k']['hdr']
