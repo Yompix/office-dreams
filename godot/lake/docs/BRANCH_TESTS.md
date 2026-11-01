@@ -19,17 +19,17 @@ python3 tools/lake/story_audit.py flags      # где каждый флаг ме
 
 | Проверка | Результат |
 |---|---|
-| Сцен в данных / пройдено хоть одной веткой | __SCENES__ |
-| Состояний (сцена + флаги) | __STATES__ |
+| Сцен в данных / пройдено хоть одной веткой | 289 / 289 |
+| Состояний (сцена + флаги) | 5 011 091 (полный проход, без обрезки) |
 | Переходы в несуществующие сцены | 0 |
 | Недостижимые сцены | 0 (была одна — c2_end, удалена) |
-| Тупики (шаги сцены кончились без перехода) | __DEAD__ |
-| Реплика героя, которого нет рядом | __VIOL__ |
-| Концовки достижимы (разных путей) | __ENDS__ |
+| Тупики (шаги сцены кончились без перехода) | 0 |
+| Реплика героя, которого нет рядом | 0 (до правок — 1: Ева после смерти, R-23) |
+| Концовки достижимы (разных путей) | все пять: «Свидетель» 28 327 936, «Лёд» 2 042 880, «Мама» 1 677 312, «Тень» 709 632, «Забытьё» 125 440 |
 
 До редактуры тот же проход нашёл: реплику Евы после её смерти (порядок шагов, R-23) и ложные срабатывания, из-за
 которых модель присутствия уточнена (заложники на берегу в гл. 5; Дэнни, который пошёл к Айрис, — с ними).
-Упоминания отсутствующих в пересказах «Ранее…» и карточках — намеренные (рассказ о прошлом).
+Отдельно проход выдаёт «упоминания» отсутствующего героя в ремарках и титрах — 34, все проверены руками и верны: пересказы «Ранее…», карточки судьбы, заложники Хейла (Зоя, Дэнни в седане и их освобождение на берегу и в «Забытьи»), Зоя на свидании (она жива и свободна).
 
 ## Б. Прогоны в движке (Godot 4.7.2, без окна)
 
@@ -56,11 +56,11 @@ $GODOT --headless --path . -- --autoplay --fast --scene c5_s3 --flags remembered
 | Лёд: помощь Зои, Хейла не спасать | `--scene c5_s4 --flags zoe_hook=1 --pick 0,1 --stop c5_patrol` | c5_s4_iris → c5_s4_still → c5_shore | 0 ошибок ✔ |
 | Лёд: Ной тонет, заложники в седане | `--scene c5_s4 --flags hostage=1,zoe_taken=1,orderly_dead=1 --pick 1 --miss press --stop c5_patrol` | c5_s4_hale → hale_fail → c5_ice → c5_shore | двери открывает Айрис ✔ |
 | «Забытьё» с надписью | `--scene c5_s3 --flags remembered=1,trust=3 --pick 0` | c5_oblivion → c5_obl_car → c5_cards | ✔ |
-| **Концовка «Свидетель»** | `--scene c5_s3 --flags remembered=1 --pick 1,0,0` | remember → s4_iris → s4_reach → shore → witness → visit → cards | `конец игры: witness` ✔ |
-| **Концовка «Тень»** | `--scene c5_s3 --flags shadow=2 --pick 2` | smile → s4_shadow → shore → shadow → cards | `конец игры: shadow` ✔ |
-| **Концовка «Лёд»** | `--scene c5_s3 --flags remembered=1 --pick 1,2` | remember → s4_dive → ice → shore → ice_epi → cards | `конец игры: ice` ✔ |
-| **Концовка «Мама»** | `--scene c5_s3 --flags remembered=1,belief_healer=1 --pick 2,0` | listen → mama → mama_reach → shore → mama_epi → cards | `конец игры: mama` ✔ |
-| **Концовка «Забытьё»** | `--scene c5_s3 --pick 0` | oblivion → obl_forgot → obl_car → cards | `конец игры: oblivion` ✔ |
+| **Концовка «Свидетель»** | `--scene c5_s3 --flags remembered=1 --pick 1,0,0` | c5_s3_remember → c5_s4_iris → c5_s4_reach → c5_shore → c5_witness → c5_visit → c5_cards | `конец игры: witness` ✔ |
+| **Концовка «Тень»** | `--scene c5_s3 --flags shadow=2 --pick 2` | c5_s3_smile → c5_s4_shadow → c5_shore → c5_shadow → c5_cards | `конец игры: shadow` ✔ |
+| **Концовка «Лёд»** | `--scene c5_s3 --flags remembered=1 --pick 1,2` | c5_s3_remember → c5_s4_dive → c5_ice → c5_shore → c5_ice_epi → c5_cards | `конец игры: ice` ✔ |
+| **Концовка «Мама»** | `--scene c5_s3 --flags remembered=1,belief_healer=1 --pick 2,0` | c5_s3_listen → c5_mama → c5_mama_reach → c5_shore → c5_mama_epi → c5_cards | `конец игры: mama` ✔ |
+| **Концовка «Забытьё»** | `--scene c5_s3 --pick 0` | c5_oblivion → c5_obl_forgot → c5_obl_car → c5_cards | `конец игры: oblivion` ✔ |
 | Вся игра, 4 случайных прохождения | `--seed 1…4` | 105–113 сцен от пролога до карточек | после исправления E-2 — 0 ошибок во всех четырёх ✔ |
 
 Замечание: запуск с середины главы (`--scene c2_s4_porch`, `--scene c2_s5`) пишет ошибки постановки — герои

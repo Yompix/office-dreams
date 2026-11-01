@@ -270,12 +270,13 @@ def present(who, f, sid):
         if ch == 2:
             return g('eva')
         return (g('eva') or g('eva_found')) and not g('eva_dead')
-    if who == 'agnes':
-        return ch >= 3 and not g('agnes_dead')
+    if who == 'agnes':   # с её дома (c3_s2); до встречи в гл. 3 её рядом нет
+        met = ch >= 4 or (ch == 3 and sid != 'c3_recap' and not sid.startswith('c3_s1'))
+        return met and not g('agnes_dead')
     return True
 
 
-PRESENCE_KEYS = {'eva_alive', 'baby', 'zoe', 'zoe_gone', 'zoe_taken', 'zoe_taken4', 'zoe_died', 'danny', 'danny_lost', 'danny_hale', 'danny_stayed',
+PRESENCE_KEYS = {'eva_alone', 'danny_left', 'zoe_passed', 'eva_alive', 'baby', 'zoe', 'zoe_gone', 'zoe_taken', 'zoe_taken4', 'zoe_died', 'danny', 'danny_lost', 'danny_hale', 'danny_stayed',
                  'eva', 'eva_found', 'eva_dead', 'agnes_dead', 'end_witness', 'end_shadow', 'end_ice', 'end_mama', 'end_oblivion'}
 COUNTERS = {'trust', 'shadow', 'memory', 'proof', 'ptotal', 'romance', 'hard', 'zoe_trust'}   # числа с порогами — в проходе «любое»
 

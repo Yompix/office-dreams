@@ -70,7 +70,9 @@ def main():
             ins.append('%s%s' % (src, (': ' + cond) if cond else ''))
         if sid == data['start']:
             ins.insert(0, 'начало игры')
-        p = pres.get(sid, {})
+        p = dict(pres.get(sid, {}))
+        if sid == 'c3_recap' or sid.startswith('c3_s1'):   # до встречи с Агнес (модель присутствия уточнена после прохода)
+            p['agnes'] = {False}
         who = []
         for k, nm in WHO:
             v = p.get(k)
