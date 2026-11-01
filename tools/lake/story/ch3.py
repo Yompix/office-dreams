@@ -57,9 +57,10 @@ SC['c3_s1'] = {'save': True, 'time': '18:40', 'beats': [
     {'go': 'c3_s1_evacar'}]}
 
 SC['c3_s1_evacar'] = {'beats': [
-    {'fx': 'eva_ditch', 'shot': 'eva_ditch', **N('В фарах — её машина в кювете, полузанесённая снегом.', 'In the headlights — her car in the ditch, half buried in snow.', 2.8)},
-    {'fx': 'eva_in_ditch', 'shot': 'eva_ditch_in', **N('Внутри — Ева. Схватки. Губы синие. Она поехала сама и застряла.', 'Eva is inside. Contractions. Her lips are blue. She drove on alone and got stuck.', 3.2)},
+    {'fx': 'eva_ditch', 'shot': 'eva_ditch', **N('В фарах — чужой пикап в кювете, полузанесённый снегом. Мотор заглох, фары едва светят.', 'In the headlights — someone’s pickup in the ditch, half buried in snow. The engine’s dead; the headlights barely glow.', 3.0)},
+    {'fx': 'eva_in_ditch', 'shot': 'eva_ditch_in', **N('Внутри — Ева. Схватки. Губы синие. Водителя нет — его следы к деревне давно замело.', 'Eva is inside. Contractions. Her lips are blue. The driver’s gone — his tracks toward the village filled in long ago.', 3.4)},
     S('eva', 'Я соврала… Не через месяц. Сейчас.', 'I lied… It’s not next month. It’s now.', shot='eva_ditch_in'),
+    S('eva', 'Подвёз дальнобойщик… Сказал, фуру объедем через деревню. Застряли. Он ушёл за трактором. Давно.', 'A trucker gave me a ride… Said we’d get around the semi through the village. We got stuck. He went for a tractor. Ages ago.', shot='eva_ditch_in'),
     {'set': {'eva_found': 1}},
     C(6, [O('Нести её на руках к огоньку', 'Carry her to the light', 'c3_s1_carry'),
           O('Бежать за помощью одному', 'Run for help alone', 'c3_s1_run')], shot='noah_out', silent='c3_s1_carry')]}
@@ -138,6 +139,7 @@ SC['c3_s3_dark'] = {'beats': [
     {'fx': 'birth_bed', 'shot': 'bed', **N('Еву кладут на кровать за печью. Схватки всё чаще.', 'They lay Eva on the bed behind the stove. The contractions come faster.', 3.0)},
     {'fx': 'lights_out', 'shot': 'house_wide', **N('Свет мигает — и гаснет. Провода оборвало.', 'The light flickers — and goes out. The lines are down.', 2.8)},
     S('agnes', 'Без света не справлюсь. Генератор-то в сарае есть, а бензину нет. Бензин — в магазине, у Петра.', 'I can’t do this without light. There’s a generator in the shed, but no gas. Gas is at the store — Pyotr’s place.', shot='agnes_candle'),
+    N('Бак их машины почти пуст: стрелка лежит на нуле ещё с трассы.', 'Their car’s tank is nearly empty: the needle has been on zero since the highway.', 2.8, shot='noah_house'),
     C(8, [O('Пойду я', 'I’ll go', 'c3_s3_noah'),
           O('Пусть сходит Зоя', 'Let Zoe go', 'c3_s3_zoe', **{'if': {'zoe': '>0', 'zoe_gone': '==0'}}),
           O('Никто — свечи и печь', 'No one — candles and the stove', 'c3_s3_candles')],
@@ -168,7 +170,7 @@ SC['c3_s3_zoe'] = {'beats': [
     {'set': {'light': 1, 'zoe_trust': 1, 'hale_here': 1}},
     {'fx': 'zoe_storm', 'shot': 'house_door', **N('Зоя уходит в метель. Долго. Потом — шаги на крыльце.', 'Zoe walks out into the storm. A long time. Then — footsteps on the porch.', 3.0)},
     S('zoe', 'На краю деревни стоит машина. Чёрная. С выключенными фарами.', 'There’s a car at the edge of the village. Black. Headlights off.', shot='zoe_house'),
-    {'fx': 'generator', 'shot': 'house_wide', **N('Генератор кашляет и заводится. Свет. Все знают, кто здесь.', 'The generator coughs and starts. Light. Everyone knows who’s here.', 3.0)},
+    {'fx': 'generator', 'shot': 'house_wide', **N('Генератор кашляет и заводится. Свет. Зоя не отходит от окна.', 'The generator coughs and starts. Light. Zoe won’t leave the window.', 3.0)},
     {'go': 'c3_s3_birth'}]}
 
 SC['c3_s3_candles'] = {'beats': [
@@ -178,11 +180,12 @@ SC['c3_s3_candles'] = {'beats': [
 SC['c3_s3_birth'] = {'beats': [
     {'fx': 'birth', 'shot': 'bed', **N('Крик Евы. Агнес спокойная и жёсткая. Айрис держит Еву за руку.', 'Eva screams. Agnes is calm and hard. Iris holds Eva’s hand.', 3.2)},
     N('Дэнни сидит под столом, зажав уши.', 'Danny sits under the table with his hands over his ears.', 2.6, shot='danny_table', **{'if': {'danny': '>0'}}),
+    N('Зоя таскает воду и шутит без остановки. Голос у неё дрожит.', 'Zoe hauls water and keeps cracking jokes. Her voice is shaking.', 2.8, shot='house_wide', **{'if': {'zoe': '>0', 'zoe_gone': '==0'}}),
     S('eva', 'Ты смелая, слышишь? Если меня не будет — ты справишься.', 'You’re brave, you hear me? If I’m gone — you’ll manage.', shot='eva_bed', **{'if': {'trust': '>=2'}}),
     {'fx': 'baby_cry', 'shot': 'bed', **N('Плач. Девочка.', 'A cry. A girl.', 2.4)},
     {'fx': 'bleed', 'shot': 'bed', **N('Но кровь не останавливается.', 'But the bleeding won’t stop.', 2.4)},
     S('agnes', 'Держи здесь! Сильнее!', 'Press here! Harder!', shot='agnes_bed'),
-    N('Держит Айрис — Ной стоит у стены, его трясёт.', 'Iris holds on — Noah stands by the wall, shaking.', 2.6, shot='iris_bed', **{'if': {'lapse_shop': '>0'}}),
+    N('Ноя трясёт после провала у магазина. Агнес кладёт его ладони поверх рук Айрис: «Дави!»', 'Noah is still shaking from the blackout at the store. Agnes presses his palms over Iris’s hands: “Push down!”', 3.0, shot='iris_bed', **{'if': {'lapse_shop': '>0'}}),
     {'fx': 'press', 'shot': 'press'},
     # сложность: Ева из кювета (замёрзла), нет света, провал у Ноя — каждое сверху тяжелее
     {'set': {'hard': 1}, 'if': {'eva_cold': '>0'}},
@@ -203,17 +206,18 @@ SC['c3_s3_alive'] = {'beats': [
     {'go': 'c3_s4'}]}
 
 SC['c3_s3_dead'] = {'beats': [
-    {'set': {'eva_dead': 1, 'baby': 1}},
+    {'set': {'baby': 1}},
     {'fx': 'eva_fading', 'shot': 'eva_bed', **N('Кровь не останавливается.', 'The bleeding won’t stop.', 2.4)},
     S('eva', 'Назови её…', 'Name her…', shot='eva_bed'),
     {'fx': 'eva_dies', 'shot': 'eva_bed', **N('Она не договаривает.', 'She doesn’t finish.', 2.6)},
     S('iris', 'Анна. Её зовут Анна.', 'Anna. Her name is Anna.', shot='iris_bed'),
     N('Младенец кричит. Агнес закрывает Еве глаза.', 'The baby screams. Agnes closes Eva’s eyes.', 3.0, shot='agnes_bed'),
+    {'set': {'eva_dead': 1}},
     {'go': 'c3_s4'}]}
 
 # ---------- Сцена 4. «Озеро не отпускает» ----------
 SC['c3_s4'] = {'save': True, 'time': '01:10', 'beats': [
-    {'fx': 'night_stove', 'shot': 'stove_two', **N('Дом затих. Агнес курит трубку у печи. Ной садится рядом.', 'The house is quiet. Agnes smokes her pipe by the stove. Noah sits down beside her.', 3.2)},
+    {'fx': 'night_stove', 'shot': 'stove_two', **N('Дом затих. Айрис клюёт носом у печи — перед этим она долго шепталась с бабушкой. Агнес курит трубку. Ной садится рядом.', 'The house is quiet. Iris is nodding off by the stove — before that she whispered with Grandma for a long time. Agnes smokes her pipe. Noah sits down beside her.', 3.6)},
     S('agnes', 'Озеро своих не отпускает, милок. Кто утоп — тот при нём и остаётся. А злость его — в том, кто видел.', 'The lake doesn’t let its own go, dear. Whoever drowns stays with it. And its anger lives in whoever saw.', shot='agnes_stove'),
     S('agnes', 'Мать твоя в тебе сидит. Она Айрис и уберегла.', 'Your mother lives in you. She’s the one who kept Iris safe.', shot='agnes_stove'),
     S('noah', 'Врач говорил — это болезнь.', 'The doctor said it’s an illness.', shot='noah_stove'),
@@ -255,6 +259,7 @@ SC['c3_s4_unsure'] = {'beats': [
 
 SC['c3_s4_pills'] = {'beats': [
     {'if': {'pills_flushed': '==0'}, 'else': 'c3_s4_brew'},
+    N('Ной поворачивается — в кармане гремит пузырёк. Агнес слышит.', 'Noah shifts — the pill bottle rattles in his pocket. Agnes hears it.', 2.6, shot='noah_stove'),
     S('agnes', 'Дай мне его отраву.', 'Give me his poison.', shot='agnes_stove'),
     {'fx': 'pills3', 'shot': 'pill_label', **N('Пузырёк Хейла. «Ной. Д-р С. Хейл. 1 таб. при головной боли».', 'Hale’s bottle. “Noah. Dr. S. Hale. 1 tab. for headaches.”', 2.8)},
     C(6, [O('Отдать', 'Give them to her', 'c3_s4_give'),
@@ -311,6 +316,7 @@ SC['c3_s5_lapse'] = {'beats': [
     {'fx': 'noah_turn', 'shot': 'axe_face'},
     S('anna', 'Не ходи к озеру одна.', 'Don’t go to the lake alone.', shot='axe_face', lips='noah'),
     {'fx': 'axe_drop', 'shot': 'axe_snow', **N('Он приходит в себя. Топор падает в снег.', 'He comes to. The axe drops into the snow.', 2.8)},
+    N('На крыльце — Агнес с фонарём.', 'Agnes is on the porch with a lantern.', 2.2, shot='agnes', **{'if': {'belief_doctor': '==0'}}),
     S('agnes', 'Это была она.', 'That was her.', shot='agnes', **{'if': {'belief_doctor': '==0'}}),
     {'if': {'danny': '>0'}, 'else': 'c3_s6'},
     {'fx': 'danny_at_window', 'shot': 'danny_window', **N('Дэнни видел всё в окно.', 'Danny saw it all through the window.', 2.4)},
@@ -323,7 +329,9 @@ SC['c3_s5_shadow2'] = {'beats': [
 
 SC['c3_s5_danny'] = {'beats': [
     {'fx': 'danny_door', 'shot': 'danny_door', **N('Перед рассветом у двери — Дэнни. В валенках, с рацией.', 'Before dawn, Danny is at the door. In felt boots, with his walkie-talkie.', 3.0)},
-    C(6, [O('«Подожди. Я тебе обещал — и нарушил. Прости»', '“Wait. I made you a promise — and broke it. I’m sorry”', 'c3_s5_sorry'),
+    S('danny', 'Я к маме пойду. Она, наверно, уже вернулась на заправку.', 'I’m gonna go find my mom. She’s probably back at the gas station by now.', shot='danny_door'),
+    C(6, [O('«Подожди. Я тебе обещал — и нарушил. Прости»', '“Wait. I made you a promise — and broke it. I’m sorry”', 'c3_s5_sorry', **{'if': {'promise': '>0'}}),
+          O('«Подожди. Я не хотел тебя напугать. Прости»', '“Wait. I didn’t mean to scare you. I’m sorry”', 'c3_s5_sorry2', **{'if': {'promise': '==0'}}),
           O('«Иди. Я тебя не держу»', '“Go. I won’t stop you”', 'c3_s5_go'),
           O('Перегородить дверь', 'Block the door', 'c3_s5_block')], shot='noah_house', silent='c3_s5_go')]}
 
@@ -333,8 +341,14 @@ SC['c3_s5_sorry'] = {'beats': [
     {'fx': 'danny_stays', 'shot': 'danny_door', **N('Дэнни долго смотрит на него. Потом снимает валенки.', 'Danny looks at him for a long time. Then he takes off the felt boots.', 3.0)},
     {'go': 'c3_s6'}]}
 
-SC['c3_s5_go_lie'] = {'beats': [
-    N('«Ты и тогда так говорил». Дэнни выходит в буран.', '“You said that last time too.” Danny walks out into the storm.', 3.0, shot='danny_door'),
+SC['c3_s5_sorry2'] = {'beats': [   # обещания в кафе не было (Ной ответил «нет», «не помню» или разговора не было)
+    S('noah', 'Подожди. Я не хотел тебя напугать. Прости.', 'Wait. I didn’t mean to scare you. I’m sorry.', shot='noah_house'),
+    {'if': {'danny_fear': '==0'}, 'else': 'c3_s5_go_lie'},
+    {'fx': 'danny_stays', 'shot': 'danny_door', **N('Дэнни долго смотрит на него. Потом снимает валенки.', 'Danny looks at him for a long time. Then he takes off the felt boots.', 3.0)},
+    {'go': 'c3_s6'}]}
+
+SC['c3_s5_go_lie'] = {'beats': [   # Ной соврал ему в кафе («Нет»)
+    N('«Ты и тогда врал». Дэнни выходит в буран.', '“You lied that time too.” Danny walks out into the storm.', 3.0, shot='danny_door'),
     {'go': 'c3_s5_lost'}]}
 
 SC['c3_s5_go'] = {'beats': [

@@ -1,0 +1,1592 @@
+{
+"c2_s2_back_1": {
+"en": "Hey, kiddo. I'm Zoe. Don't worry, I don't bite. Mostly.",
+"ru": "Привет, малой. Я Зоя. Не бойся, я не кусаюсь. Почти.",
+"scene": "c2_s2_back",
+"who": "zoe"
+},
+"c2_s2_back_2": {
+"en": "Zoe. Just Zoe. Or “savior,” if you really want.",
+"ru": "Зоя. Можно просто Зоя. Можно «спасительница», если очень хочется.",
+"scene": "c2_s2_back",
+"who": "zoe"
+},
+"c2_s2_q_1": {
+"en": "What's the bracelet?",
+"ru": "Что за браслет?",
+"scene": "c2_s2_q",
+"who": "noah"
+},
+"c2_s2_q_2": {
+"en": "A souvenir. From a sanatorium. Boring sanatorium.",
+"ru": "Сувенир. Из санатория. Скучный был санаторий.",
+"scene": "c2_s2_q",
+"who": "zoe"
+},
+"c2_s2_s_1": {
+"en": "…Thanks.",
+"ru": "…Спасибо.",
+"scene": "c2_s2_s",
+"who": "zoe"
+},
+"c2_s2_stop_1": {
+"en": "You're my hero. Seriously. Ten more minutes and they'd have found me in the spring.",
+"ru": "Ты мой герой. Серьёзно. Ещё десять минут — и меня бы нашли весной.",
+"scene": "c2_s2_stop",
+"who": "zoe"
+},
+"c2_s3_flee_1": {
+"en": "You're insane.",
+"ru": "Ты псих.",
+"scene": "c2_s3_flee",
+"who": "iris"
+},
+"c2_s3_me_1": {
+"en": "Morning. License and registration.",
+"ru": "Доброе утро. Документы.",
+"scene": "c2_s3_me",
+"who": "cop"
+},
+"c2_s3_me_2": {
+"en": "Here…",
+"ru": "Вот…",
+"scene": "c2_s3_me",
+"who": "noah"
+},
+"c2_s3_me_3": {
+"en": "Step out of the car.",
+"ru": "Выйдите из машины.",
+"scene": "c2_s3_me",
+"who": "cop"
+},
+"c2_s3_zoe_1": {
+"en": "Morning. Where are we headed?",
+"ru": "Доброе утро. Куда едем?",
+"scene": "c2_s3_zoe",
+"who": "cop"
+},
+"c2_s3_zoe_2": {
+"en": "Taking the kids to their grandma. And this one's got a busted nose — got in a fight over me. Hero, right?",
+"ru": "Везём мелких к бабушке. А у этого нос разбит — подрался за меня. Герой, да?",
+"scene": "c2_s3_zoe",
+"who": "zoe"
+},
+"c2_s3_zoe_3": {
+"en": "Step out of the car. All of you.",
+"ru": "Выйдите из машины. Все.",
+"scene": "c2_s3_zoe",
+"who": "cop"
+},
+"c2_s3_zoe_ok_1": {
+"en": "Safe travels. Careful — there's a blizzard coming by noon.",
+"ru": "Счастливой дороги. Аккуратнее, к обеду метель.",
+"scene": "c2_s3_zoe_ok",
+"who": "cop"
+},
+"c2_s4_d1_1": {
+"en": "No.",
+"ru": "Нет.",
+"scene": "c2_s4_d1",
+"who": "noah"
+},
+"c2_s4_d2_1": {
+"en": "Yes. I don't remember how. But I won't hurt anyone again.",
+"ru": "Да. Я не помню как. Но я больше никого не трону.",
+"scene": "c2_s4_d2",
+"who": "noah"
+},
+"c2_s4_d3_1": {
+"en": "I don't remember.",
+"ru": "Я не помню.",
+"scene": "c2_s4_d3",
+"who": "noah"
+},
+"c2_s4_d3_2": {
+"en": "My mom used to say that. When she drank.",
+"ru": "Мама тоже так говорила. Когда пила.",
+"scene": "c2_s4_d3",
+"who": "danny"
+},
+"c2_s4_danny_1": {
+"en": "Did you hurt the man at the gas station?",
+"ru": "Ты сделал больно дяде на заправке?",
+"scene": "c2_s4_danny",
+"who": "danny"
+},
+"c2_s4_eva_1": {
+"en": "I'm sorry… My car's out front, in the ditch. Could someone pull it out? I'll pay.",
+"ru": "Простите… Там моя машина, у входа, в канаве. Может, кто-нибудь вытащит? Я заплачу.",
+"scene": "c2_s4_eva",
+"who": "eva"
+},
+"c2_s4_eva_2": {
+"en": "Lady, forget the car. There's a blizzard coming. Nobody's going anywhere.",
+"ru": "Девушка, какая машина. Буран идёт. Никто никуда не поедет.",
+"scene": "c2_s4_eva",
+"who": "trucker"
+},
+"c2_s4_eva_3": {
+"en": "I need to get to my sister's. Up north. I'm due… next month.",
+"ru": "Мне надо к сестре. На север. Мне… через месяц.",
+"scene": "c2_s4_eva",
+"who": "eva"
+},
+"c2_s4_z1_1": {
+"en": "Mine are minutes. But in those minutes I…",
+"ru": "У меня — минуты. Но в эти минуты я кого-то…",
+"scene": "c2_s4_z1",
+"who": "noah"
+},
+"c2_s4_z3_1": {
+"en": "You should ride with someone else.",
+"ru": "Тебе надо ехать с кем-то другим.",
+"scene": "c2_s4_z3",
+"who": "noah"
+},
+"c2_s4_z3_2": {
+"en": "Uh-huh. With who? Them?",
+"ru": "Ага. С кем? С этими?",
+"scene": "c2_s4_z3",
+"who": "zoe"
+},
+"c2_s4_z_1": {
+"en": "I get blackouts too. Only not minutes — days. You wake up and it's Thursday. And nobody tells you where you've been.",
+"ru": "У меня тоже провалы. Только не минуты — дни. Просыпаешься, а уже четверг. И никто не говорит, где ты была.",
+"scene": "c2_s4_z",
+"who": "zoe"
+},
+"c2_s4_zoe_1": {
+"en": "Thanks for not stopping. Real decent of you.",
+"ru": "Спасибо, что не остановились. Очень по-человечески.",
+"scene": "c2_s4_zoe",
+"who": "zoe"
+},
+"c2_s4_zoe_yes_1": {
+"en": "…Fine. But you're buying the coffee. And apologizing. Coffee first.",
+"ru": "…Ладно. Но кофе с тебя. И извинения. Кофе сначала.",
+"scene": "c2_s4_zoe_yes",
+"who": "zoe"
+},
+"c2_s5_1": {
+"en": "No… no, no, no. That's his car.",
+"ru": "Нет… нет-нет-нет. Это его машина.",
+"scene": "c2_s5",
+"who": "zoe"
+},
+"c2_s5_2": {
+"en": "Whose?",
+"ru": "Чья?",
+"scene": "c2_s5",
+"who": "noah"
+},
+"c2_s5_3": {
+"en": "The doctor's. The one who was “treating” me. He… erases people.",
+"ru": "Доктора. У которого я «лечилась». Он… стирает людей.",
+"scene": "c2_s5",
+"who": "zoe"
+},
+"c2_s5_4": {
+"en": "…Hale.",
+"ru": "…Хейл.",
+"scene": "c2_s5",
+"who": "iris"
+},
+"c2_s5_walk_1": {
+"en": "Hello, Noah. How's your head? Still have your pills?",
+"ru": "Здравствуй, Ной. Как голова? Таблетки ещё есть?",
+"scene": "c2_s5_walk",
+"who": "hale"
+},
+"c2_s6_alone_1": {
+"en": "I understand.",
+"ru": "Я поняла.",
+"scene": "c2_s6_alone",
+"who": "eva"
+},
+"c2_s6_road_1": {
+"en": "Turn right. There's a village. Grandma's there.",
+"ru": "Направо. Там деревня. Там бабушка.",
+"scene": "c2_s6_road",
+"who": "iris"
+},
+"c2_s6_road_2": {
+"en": "We have a grandma?..",
+"ru": "У нас есть бабушка?..",
+"scene": "c2_s6_road",
+"who": "noah"
+},
+"c2_s6_road_3": {
+"en": "Mom's mom. Dad wouldn't let us. She's in the diary.",
+"ru": "Мамина мама. Папа запрещал. Она в дневнике.",
+"scene": "c2_s6_road",
+"who": "iris"
+},
+"c3_s1_dig_1": {
+"en": "I lied… It’s not next month.",
+"ru": "Я соврала… Не через месяц.",
+"scene": "c3_s1_dig",
+"who": "eva"
+},
+"c3_s1_evacar_1": {
+"en": "I lied… It’s not next month. It’s now.",
+"ru": "Я соврала… Не через месяц. Сейчас.",
+"scene": "c3_s1_evacar",
+"who": "eva"
+},
+"c3_s2_1": {
+"en": "The house with blue shutters. By the well. Mom wrote about it.",
+"ru": "Дом с синими ставнями. У колодца. Мама писала.",
+"scene": "c3_s2",
+"who": "iris"
+},
+"c3_s2_2": {
+"en": "…Annie.",
+"ru": "…Анечка.",
+"scene": "c3_s2",
+"who": "agnes"
+},
+"c3_s2_gran_1": {
+"en": "Are you our grandmother?",
+"ru": "Ты — наша бабушка?",
+"scene": "c3_s2_gran",
+"who": "noah"
+},
+"c3_s2_gran_2": {
+"en": "I was. Until your father forbade it.",
+"ru": "Была. Пока ваш отец не запретил.",
+"scene": "c3_s2_gran",
+"who": "agnes"
+},
+"c3_s2_help_1": {
+"en": "There’s a woman in labor. Help us.",
+"ru": "Тут женщина рожает. Помогите.",
+"scene": "c3_s2_help",
+"who": "noah"
+},
+"c3_s2_help_2": {
+"en": "Water on the stove. Clean sheets are in the chest.",
+"ru": "Воду на печь. Чистые простыни — в сундуке.",
+"scene": "c3_s2_help",
+"who": "agnes"
+},
+"c3_s2_quiet_1": {
+"en": "Grandma, this is Noah. He doesn’t remember.",
+"ru": "Бабушка, это Ной. Он не помнит.",
+"scene": "c3_s2_quiet",
+"who": "iris"
+},
+"c3_s2_quiet_2": {
+"en": "I know. Somebody did that to him.",
+"ru": "Знаю. Это ему сделали.",
+"scene": "c3_s2_quiet",
+"who": "agnes"
+},
+"c3_s3_alive_1": {
+"en": "What should I call her?",
+"ru": "Как её назвать?",
+"scene": "c3_s3_alive",
+"who": "eva"
+},
+"c3_s3_alive_2": {
+"en": "Anna.",
+"ru": "Анна.",
+"scene": "c3_s3_alive",
+"who": "iris"
+},
+"c3_s3_birth_1": {
+"en": "You’re brave, you hear me? If I’m gone — you’ll manage.",
+"ru": "Ты смелая, слышишь? Если меня не будет — ты справишься.",
+"scene": "c3_s3_birth",
+"who": "eva"
+},
+"c3_s3_birth_2": {
+"en": "Press here! Harder!",
+"ru": "Держи здесь! Сильнее!",
+"scene": "c3_s3_birth",
+"who": "agnes"
+},
+"c3_s3_dark_1": {
+"en": "I can’t do this without light. There’s a generator in the shed, but no gas. Gas is at the store — Pyotr’s place.",
+"ru": "Без света не справлюсь. Генератор-то в сарае есть, а бензину нет. Бензин — в магазине, у Петра.",
+"scene": "c3_s3_dark",
+"who": "agnes"
+},
+"c3_s3_dead_1": {
+"en": "Name her…",
+"ru": "Назови её…",
+"scene": "c3_s3_dead",
+"who": "eva"
+},
+"c3_s3_dead_2": {
+"en": "Anna. Her name is Anna.",
+"ru": "Анна. Её зовут Анна.",
+"scene": "c3_s3_dead",
+"who": "iris"
+},
+"c3_s3_zoe_1": {
+"en": "There’s a car at the edge of the village. Black. Headlights off.",
+"ru": "На краю деревни стоит машина. Чёрная. С выключенными фарами.",
+"scene": "c3_s3_zoe",
+"who": "zoe"
+},
+"c3_s4_1": {
+"en": "The lake doesn’t let its own go, dear. Whoever drowns stays with it. And its anger lives in whoever saw.",
+"ru": "Озеро своих не отпускает, милок. Кто утоп — тот при нём и остаётся. А злость его — в том, кто видел.",
+"scene": "c3_s4",
+"who": "agnes"
+},
+"c3_s4_2": {
+"en": "Your mother lives in you. She’s the one who kept Iris safe.",
+"ru": "Мать твоя в тебе сидит. Она Айрис и уберегла.",
+"scene": "c3_s4",
+"who": "agnes"
+},
+"c3_s4_3": {
+"en": "The doctor said it’s an illness.",
+"ru": "Врач говорил — это болезнь.",
+"scene": "c3_s4",
+"who": "noah"
+},
+"c3_s4_4": {
+"en": "The doctor… She came to me, you know. A week before. Said: Mom, I’m leaving him. And I told her: go see the doctor, he’s an educated man, he’ll help.",
+"ru": "Врач… Она ж ко мне приезжала. За неделю до того. Говорит: мам, уйду я от него. А я ей: сходи к доктору, он человек грамотный, поможет.",
+"scene": "c3_s4",
+"who": "agnes"
+},
+"c3_s4_5": {
+"en": "I sent her to him myself.",
+"ru": "Сама её к нему и послала.",
+"scene": "c3_s4",
+"who": "agnes"
+},
+"c3_s4_brew_no_1": {
+"en": "Stubborn. Like her.",
+"ru": "Упрямый. Как она.",
+"scene": "c3_s4_brew_no",
+"who": "agnes"
+},
+"c3_s4_brew_yes_1": {
+"en": "Drink. You’ll sleep soundly.",
+"ru": "Пей. Спать будешь крепко.",
+"scene": "c3_s4_brew_yes",
+"who": "agnes"
+},
+"c3_s4_diary_1": {
+"en": "“Simon promised. Saturday night he’ll take us away. Noah has already packed his backpack.”",
+"ru": "«Саймон обещал. В субботу ночью он нас увезёт. Ной уже собрал рюкзак».",
+"scene": "c3_s4_diary",
+"who": "iris"
+},
+"c3_s4_doctor_1": {
+"en": "It’s an illness. I need treatment.",
+"ru": "Это болезнь. Мне надо лечиться.",
+"scene": "c3_s4_doctor",
+"who": "noah"
+},
+"c3_s4_give_1": {
+"en": "Drink. You’ll sleep soundly.",
+"ru": "Пей. Спать будешь крепко.",
+"scene": "c3_s4_give",
+"who": "agnes"
+},
+"c3_s4_healer_1": {
+"en": "So… Mom is with me?",
+"ru": "Значит… мама со мной?",
+"scene": "c3_s4_healer",
+"who": "noah"
+},
+"c3_s4_keep_1": {
+"en": "Stubborn. Like her.",
+"ru": "Упрямый. Как она.",
+"scene": "c3_s4_keep",
+"who": "agnes"
+},
+"c3_s4_pills_1": {
+"en": "Give me his poison.",
+"ru": "Дай мне его отраву.",
+"scene": "c3_s4_pills",
+"who": "agnes"
+},
+"c3_s4_take_1": {
+"en": "You look so much like him right now. Like your father.",
+"ru": "Ты так похож на него сейчас. На отца.",
+"scene": "c3_s4_take",
+"who": "agnes"
+},
+"c3_s4_unsure_1": {
+"en": "I don’t know.",
+"ru": "Я не знаю.",
+"scene": "c3_s4_unsure",
+"who": "noah"
+},
+"c3_s4_unsure_2": {
+"en": "You’ll find out. Everyone does, at the lake.",
+"ru": "Узнаешь. У озера все узнают.",
+"scene": "c3_s4_unsure",
+"who": "agnes"
+},
+"c3_s5_go_1": {
+"en": "Go. I won’t stop you.",
+"ru": "Иди. Я тебя не держу.",
+"scene": "c3_s5_go",
+"who": "noah"
+},
+"c3_s5_lapse_1": {
+"en": "Noah… It’s me. It’s Iris.",
+"ru": "Ной… Это я. Это Айрис.",
+"scene": "c3_s5_lapse",
+"who": "iris"
+},
+"c3_s5_lapse_2": {
+"en": "Don’t go to the lake alone.",
+"ru": "Не ходи к озеру одна.",
+"scene": "c3_s5_lapse",
+"who": "anna"
+},
+"c3_s5_lapse_3": {
+"en": "That was her.",
+"ru": "Это была она.",
+"scene": "c3_s5_lapse",
+"who": "agnes"
+},
+"c3_s5_song3_1": {
+"en": "That’s Annie singing.",
+"ru": "Это Аня поёт.",
+"scene": "c3_s5_song3",
+"who": "agnes"
+},
+"c3_s5_sorry_1": {
+"en": "Wait. I made you a promise — and broke it. I’m sorry.",
+"ru": "Подожди. Я тебе обещал — и нарушил. Прости.",
+"scene": "c3_s5_sorry",
+"who": "noah"
+},
+"c3_s6_1": {
+"en": "It’s him. He came back then too. After Annie.",
+"ru": "Это он. Он и тогда приезжал. После Ани.",
+"scene": "c3_s6",
+"who": "agnes"
+},
+"c3_s6_2": {
+"en": "It’s twenty kilometers to the cabin. Through the woods.",
+"ru": "До дачи двадцать километров. Лесом.",
+"scene": "c3_s6",
+"who": "iris"
+},
+"c4_s1_1": {
+"en": "He was here. Last night. Right here.",
+"ru": "Он был здесь. Ночью. Прямо тут.",
+"scene": "c4_s1",
+"who": "iris"
+},
+"c4_s1_iris_1": {
+"en": "You keep it. You decide.",
+"ru": "Держи у себя. Решишь ты.",
+"scene": "c4_s1_iris",
+"who": "noah"
+},
+"c4_s1_van_1": {
+"en": "Hasn’t started in eight years. You’re the mechanic, aren’t you?",
+"ru": "Лет восемь не заводилась. Ты ж у нас механик?",
+"scene": "c4_s1_van",
+"who": "agnes"
+},
+"c4_s2_believe_1": {
+"en": "I believe her.",
+"ru": "Я ей верю.",
+"scene": "c4_s2_believe",
+"who": "noah"
+},
+"c4_s2_doubt_1": {
+"en": "Iris… maybe you’re right.",
+"ru": "Айрис… может, и так.",
+"scene": "c4_s2_doubt",
+"who": "noah"
+},
+"c4_s2_doubt_2": {
+"en": "Gee, thanks.",
+"ru": "Ну спасибо.",
+"scene": "c4_s2_doubt",
+"who": "zoe"
+},
+"c4_s2_enough_1": {
+"en": "Enough. Both of you.",
+"ru": "Хватит. Обе.",
+"scene": "c4_s2_enough",
+"who": "noah"
+},
+"c4_s2_hale_1": {
+"en": "Noah. This is Dr. Hale. Zoe is with me. She’s fine — as long as she takes her medication.",
+"ru": "Ной. Это доктор Хейл. Зоя у меня. С ней всё хорошо — пока она принимает лекарства.",
+"scene": "c4_s2_hale",
+"who": "hale"
+},
+"c4_s2_hale_2": {
+"en": "Let’s talk like adults. No axes.",
+"ru": "Давай поговорим как взрослые люди. Без топоров.",
+"scene": "c4_s2_hale",
+"who": "hale"
+},
+"c4_s2_hale_3": {
+"en": "Let’s talk like adults.",
+"ru": "Давай поговорим как взрослые люди.",
+"scene": "c4_s2_hale",
+"who": "hale"
+},
+"c4_s2_hale_4": {
+"en": "Don’t answer him. Ever.",
+"ru": "Не отвечай ему. Никогда.",
+"scene": "c4_s2_hale",
+"who": "iris"
+},
+"c4_s2_zoe_1": {
+"en": "Okay. Since we’re all here… in one old van.",
+"ru": "Ладно. Раз уж мы все тут… в одной буханке.",
+"scene": "c4_s2_zoe",
+"who": "zoe"
+},
+"c4_s2_zoe_2": {
+"en": "Quiet Pines. A sanatorium in the woods. White, pretty. There were about ten of us. I was nineteen.",
+"ru": "Санаторий «Тихие сосны». В лесу. Белый такой, красивый. Нас там было человек десять. Мне — девятнадцать.",
+"scene": "c4_s2_zoe",
+"who": "zoe"
+},
+"c4_s2_zoe_3": {
+"en": "You know who they put in there? People who saw something.",
+"ru": "Знаешь, кого туда кладут? Тех, кто что-то видел.",
+"scene": "c4_s2_zoe",
+"who": "zoe"
+},
+"c4_s2_zoe_4": {
+"en": "What did you see?",
+"ru": "Что видела ты?",
+"scene": "c4_s2_zoe",
+"who": "noah"
+},
+"c4_s2_zoe_5": {
+"en": "I don’t remember. That’s the whole point. Mom paid, and I don’t remember.",
+"ru": "Не помню. В том-то и фишка. Мама заплатила — и я не помню.",
+"scene": "c4_s2_zoe",
+"who": "zoe"
+},
+"c4_s2_zoe_6": {
+"en": "All I remember is my stepdad got really nice after that.",
+"ru": "Помню только, что отчим после этого стал очень добрый.",
+"scene": "c4_s2_zoe",
+"who": "zoe"
+},
+"c4_s2_zoe_7": {
+"en": "She’s lying. She’s with him. He sent her.",
+"ru": "Она врёт. Она с ним заодно. Он её подослал.",
+"scene": "c4_s2_zoe",
+"who": "iris"
+},
+"c4_s3_iris_1": {
+"en": "You wanted to know.",
+"ru": "Ты хотел знать.",
+"scene": "c4_s3_iris",
+"who": "iris"
+},
+"c4_s3_notme_1": {
+"en": "That wasn’t me.",
+"ru": "Это был не я.",
+"scene": "c4_s3_notme",
+"who": "noah"
+},
+"c4_s3_notme_2": {
+"en": "Right. Sure.",
+"ru": "Ну да. Конечно.",
+"scene": "c4_s3_notme",
+"who": "iris"
+},
+"c4_s3_sorry_1": {
+"en": "I’m sorry.",
+"ru": "Прости меня.",
+"scene": "c4_s3_sorry",
+"who": "noah"
+},
+"c4_s3_sorry_2": {
+"en": "You saved me, stupid.",
+"ru": "Ты меня спас, дурак.",
+"scene": "c4_s3_sorry",
+"who": "iris"
+},
+"c4_s3_talk_1": {
+"en": "He was coming for me. You stood up. And then… it wasn’t quite you.",
+"ru": "Он шёл ко мне. Ты встал. А потом… это был не совсем ты.",
+"scene": "c4_s3_talk",
+"who": "iris"
+},
+"c4_s3_woke_1": {
+"en": "You went through my stuff.",
+"ru": "Ты рылся в моих вещах.",
+"scene": "c4_s3_woke",
+"who": "iris"
+},
+"c4_s4_1": {
+"en": "At the gas station… You weren’t angry. You were… like you weren’t there. Empty eyes.",
+"ru": "На заправке… Ты не был злой. Ты был… будто тебя там нет. Глаза пустые.",
+"scene": "c4_s4",
+"who": "danny"
+},
+"c4_s4_2": {
+"en": "And then you told the man, “sleep.” Real quiet. Like my mom says it.",
+"ru": "А потом ты сказал дяде «спи». Тихо так. Как мама говорит.",
+"scene": "c4_s4",
+"who": "danny"
+},
+"c4_s4_3": {
+"en": "He fell. Hit his head. On the… counter. You cried after. You didn’t mean it.",
+"ru": "Он упал. Головой. Об эту… стойку. Ты потом плакал. Ты не хотел.",
+"scene": "c4_s4",
+"who": "danny"
+},
+"c4_s4_secret_1": {
+"en": "Don’t tell anyone about this, okay?",
+"ru": "Никому об этом не говори, ладно?",
+"scene": "c4_s4_secret",
+"who": "noah"
+},
+"c4_s4_secret_2": {
+"en": "Okay.",
+"ru": "Ладно.",
+"scene": "c4_s4_secret",
+"who": "danny"
+},
+"c4_s4_thanks_1": {
+"en": "Thanks for telling me.",
+"ru": "Спасибо, что сказал.",
+"scene": "c4_s4_thanks",
+"who": "noah"
+},
+"c4_s4_truth_1": {
+"en": "If anyone asks — tell the truth. How it was.",
+"ru": "Если спросят — говори правду. Как было.",
+"scene": "c4_s4_truth",
+"who": "noah"
+},
+"c4_s5_1": {
+"en": "Noah. At last.",
+"ru": "Ной. Ну наконец-то.",
+"scene": "c4_s5",
+"who": "hale"
+},
+"c4_s5_2": {
+"en": "Agnessa… It’s been so long.",
+"ru": "Агнесса… Сколько лет.",
+"scene": "c4_s5",
+"who": "hale"
+},
+"c4_s5_3": {
+"en": "Don’t you dare. Don’t you dare call me by my name.",
+"ru": "Не смей. Не смей звать меня по имени.",
+"scene": "c4_s5",
+"who": "agnes"
+},
+"c4_s5_4": {
+"en": "I understand, you’re frightened. You’re ill, Noah, and you know it.",
+"ru": "Я понимаю, ты напуган. Ты болен, Ной, и ты сам это знаешь.",
+"scene": "c4_s5",
+"who": "hale"
+},
+"c4_s5_5": {
+"en": "You killed your father. She’ll be next.",
+"ru": "Ты убил отца. Следующей будет она.",
+"scene": "c4_s5",
+"who": "hale"
+},
+"c4_s5_6": {
+"en": "Come with me. I’ll help. Like before.",
+"ru": "Поехали со мной. Я помогу. Как тогда.",
+"scene": "c4_s5",
+"who": "hale"
+},
+"c4_s5_7": {
+"en": "“Like before” — when you erased his mom.",
+"ru": "Как тогда — это когда ты стёр ему маму.",
+"scene": "c4_s5",
+"who": "iris"
+},
+"c4_s5_diary_1": {
+"en": "Iris. Give him the diary.",
+"ru": "Айрис. Отдай ему дневник.",
+"scene": "c4_s5_diary",
+"who": "noah"
+},
+"c4_s5_diary_2": {
+"en": "Do what you think is right.",
+"ru": "Делай как знаешь.",
+"scene": "c4_s5_diary",
+"who": "iris"
+},
+"c4_s5_diary_hale_1": {
+"en": "Thank you. And now — you.",
+"ru": "Спасибо. А теперь — ты.",
+"scene": "c4_s5_diary_hale",
+"who": "hale"
+},
+"c4_s5_diary_keep_1": {
+"en": "Well then.",
+"ru": "Ну что ж.",
+"scene": "c4_s5_diary_keep",
+"who": "hale"
+},
+"c4_s5_diary_keep_2": {
+"en": "Take him.",
+"ru": "Взять его.",
+"scene": "c4_s5_diary_keep",
+"who": "hale"
+},
+"c4_s5_diary_no_1": {
+"en": "No.",
+"ru": "Нет.",
+"scene": "c4_s5_diary_no",
+"who": "iris"
+},
+"c4_s5_doubt_1": {
+"en": "Come on, Noah.",
+"ru": "Поехали, Ной.",
+"scene": "c4_s5_doubt",
+"who": "hale"
+},
+"c4_s5_doubt_2": {
+"en": "Noah. Run.",
+"ru": "Ной. Бежим.",
+"scene": "c4_s5_doubt",
+"who": "iris"
+},
+"c4_s5_freeze_1": {
+"en": "Good boy.",
+"ru": "Вот и умница.",
+"scene": "c4_s5_freeze",
+"who": "hale"
+},
+"c4_s5_freeze_2": {
+"en": "Noah!",
+"ru": "Ной!",
+"scene": "c4_s5_freeze",
+"who": "iris"
+},
+"c4_s5_run_1": {
+"en": "Into the woods! Everyone — go!",
+"ru": "В лес! Все — в лес!",
+"scene": "c4_s5_run",
+"who": "noah"
+},
+"c4_s5_talk_1": {
+"en": "What happened to my mother?",
+"ru": "Что случилось с моей мамой?",
+"scene": "c4_s5_talk",
+"who": "noah"
+},
+"c4_s5_talk_2": {
+"en": "An accident, Noah. You were asleep. You couldn’t have seen it.",
+"ru": "Несчастный случай, Ной. Ты спал. Ты не мог этого видеть.",
+"scene": "c4_s5_talk",
+"who": "hale"
+},
+"c4_s5_talk_3": {
+"en": "You were there. That night. I saw your car.",
+"ru": "Вы там были. Той ночью. Я видел вашу машину.",
+"scene": "c4_s5_talk",
+"who": "noah"
+},
+"c4_s5_talk_4": {
+"en": "Take him.",
+"ru": "Взять его.",
+"scene": "c4_s5_talk",
+"who": "hale"
+},
+"c4_s5_weak_1": {
+"en": "Run!",
+"ru": "Беги!",
+"scene": "c4_s5_weak",
+"who": "iris"
+},
+"c4_s6_1": {
+"en": "Noah… I’m not angry. It’s cold out here. Come out — let’s talk.",
+"ru": "Ной… Я не сержусь. Тут холодно. Выходи — поговорим.",
+"scene": "c4_s6",
+"who": "hale"
+},
+"c4_s6_agnes_1": {
+"en": "Go. Go on, I said. I’m old. I’ll hold him off.",
+"ru": "Идите. Идите, кому говорю. Я старая. Я его задержу.",
+"scene": "c4_s6_agnes",
+"who": "agnes"
+},
+"c4_s6_agnes_2": {
+"en": "Agnessa, don’t. You know I’m a doctor.",
+"ru": "Агнесса, не надо. Ты же знаешь, я врач.",
+"scene": "c4_s6_agnes",
+"who": "hale"
+},
+"c4_s6_agnes_3": {
+"en": "It was you who told him. About Annie. You gave her away.",
+"ru": "Это ты ему сказал. Аню. Ты её отдал.",
+"scene": "c4_s6_agnes",
+"who": "agnes"
+},
+"c4_s6_danny_1": {
+"en": "Danny. Danny, come here. Your mom’s in the car. She’s looking for you.",
+"ru": "Дэнни. Дэнни, иди сюда. Мама в машине. Она тебя ищет.",
+"scene": "c4_s6_danny",
+"who": "hale"
+},
+"c4_s6_danny_iris_1": {
+"en": "Danny. Come here, to me.",
+"ru": "Дэнни. Иди ко мне.",
+"scene": "c4_s6_danny_iris",
+"who": "iris"
+},
+"c4_s6_zoe_1": {
+"en": "Run! Go, all of you, run!",
+"ru": "Беги! Бегите, ну!",
+"scene": "c4_s6_zoe",
+"who": "zoe"
+},
+"c4_s6_zoe_2": {
+"en": "Noah!",
+"ru": "Ной!",
+"scene": "c4_s6_zoe",
+"who": "zoe"
+},
+"c4_s7_1": {
+"en": "We’re here.",
+"ru": "Мы приехали.",
+"scene": "c4_s7",
+"who": "iris"
+},
+"c5_ice_epi_1": {
+"en": "The lake keeps its own. Now they’re together down there.",
+"ru": "Озеро своих не отпускает. Теперь они там вдвоём.",
+"scene": "c5_ice_epi",
+"who": "agnes"
+},
+"c5_ice_epi_2": {
+"en": "You’re with Mom now. And I’m still here. I’ll live for both of us.",
+"ru": "Ты теперь с мамой. А я тут. Буду жить за двоих.",
+"scene": "c5_ice_epi",
+"who": "iris"
+},
+"c5_mama_1": {
+"en": "Noah… Your hand…",
+"ru": "Ной… Руку…",
+"scene": "c5_mama",
+"who": "hale"
+},
+"c5_mama_epi_1": {
+"en": "Was it her?",
+"ru": "Это была она?",
+"scene": "c5_mama_epi",
+"who": "iris"
+},
+"c5_mama_reach_1": {
+"en": "She’s let go.",
+"ru": "Отпустила.",
+"scene": "c5_mama_reach",
+"who": "agnes"
+},
+"c5_mama_still_1": {
+"en": "She took what was hers. Now she’ll let go.",
+"ru": "Своё забрала. Теперь отпустит.",
+"scene": "c5_mama_still",
+"who": "agnes"
+},
+"c5_obl_car_1": {
+"en": "Get some sleep, Noah.",
+"ru": "Поспи, Ной.",
+"scene": "c5_obl_car",
+"who": "hale"
+},
+"c5_obl_car_2": {
+"en": "That dream again? Don’t worry. We’ll take care of it.",
+"ru": "Опять этот сон? Ничего. Мы с ним справимся.",
+"scene": "c5_obl_car",
+"who": "hale"
+},
+"c5_oblivion_1": {
+"en": "Take her inside, she needs to get warm.",
+"ru": "Отведите её в дом, ей нужно в тепло.",
+"scene": "c5_oblivion",
+"who": "hale"
+},
+"c5_oblivion_2": {
+"en": "Take the boy inside, he’s freezing.",
+"ru": "Отведите мальчика в дом, он замёрз.",
+"scene": "c5_oblivion",
+"who": "hale"
+},
+"c5_s1_1": {
+"en": "How did you know?",
+"ru": "Откуда ты знал?",
+"scene": "c5_s1",
+"who": "iris"
+},
+"c5_s1_2": {
+"en": "…I don’t know.",
+"ru": "…Не знаю.",
+"scene": "c5_s1",
+"who": "noah"
+},
+"c5_s1_3": {
+"en": "Stay off the ice by the dock. There’s springs under there — it won’t hold, not even in a hard freeze.",
+"ru": "На лёд у мостков не ходите. Там ключи бьют — лёд и в лютый мороз не держит.",
+"scene": "c5_s1",
+"who": "agnes"
+},
+"c5_s1_4": {
+"en": "The ice is dark over there. Don’t go near it.",
+"ru": "Там лёд тёмный. Не ходи туда.",
+"scene": "c5_s1",
+"who": "iris"
+},
+"c5_s1_5": {
+"en": "She used to braid my hair here. I thought I’d dreamed that.",
+"ru": "Она мне тут косы заплетала. Я думала, это сон.",
+"scene": "c5_s1",
+"who": "iris"
+},
+"c5_s1_ask_1": {
+"en": "Iris… give me one.",
+"ru": "Айрис… дай мне одну.",
+"scene": "c5_s1_ask",
+"who": "noah"
+},
+"c5_s1_ask_2": {
+"en": "No. Not today. Please — remember.",
+"ru": "Нет. Не сегодня. Пожалуйста, вспомни.",
+"scene": "c5_s1_ask",
+"who": "iris"
+},
+"c5_s1_go_1": {
+"en": "I’m sorry. There’s nothing there.",
+"ru": "Прости. Там ничего нет.",
+"scene": "c5_s1_go",
+"who": "noah"
+},
+"c5_s2_1": {
+"en": "Uncle Simon will be here soon, and then we’re going to Grandma’s. Shh, Iris is sleeping.",
+"ru": "Скоро приедет дядя Саймон, и поедем к бабушке. Только тихо, Айрис спит.",
+"scene": "c5_s2",
+"who": "mom"
+},
+"c5_s2_2": {
+"en": "Noah, into the boathouse. Quick. Quiet as a mouse, no matter what.",
+"ru": "Ной, в сарай. Быстро. Сиди тихо, как мышка, что бы ни было.",
+"scene": "c5_s2",
+"who": "mom"
+},
+"c5_s2_3": {
+"en": "Going somewhere? Simon told me everything. Called me himself. Good friend, Simon.",
+"ru": "Куда собралась? Саймон всё рассказал. Сам позвонил. Друг всё-таки.",
+"scene": "c5_s2",
+"who": "victor"
+},
+"c5_s2_4": {
+"en": "…He promised.",
+"ru": "…Он же обещал.",
+"scene": "c5_s2",
+"who": "mom"
+},
+"c5_s2_after_1": {
+"en": "She fell. You hear me? She slipped. All on her own.",
+"ru": "Она сама. Слышишь? Сама. Поскользнулась.",
+"scene": "c5_s2_after",
+"who": "victor"
+},
+"c5_s2_after_2": {
+"en": "Go inside, Vic. Get changed. I’ll take care of it.",
+"ru": "Иди в дом, Вить. Переоденься. Я всё сделаю.",
+"scene": "c5_s2_after",
+"who": "hale"
+},
+"c5_s2_after_3": {
+"en": "Noah… You were asleep. Do you hear me? You were asleep. You dreamed it.",
+"ru": "Ной… Ты спал. Слышишь меня? Ты спал. Тебе это приснилось.",
+"scene": "c5_s2_after",
+"who": "hale"
+},
+"c5_s2_after_4": {
+"en": "Here, take this. It’ll all be gone by morning.",
+"ru": "Выпей. К утру всё пройдёт.",
+"scene": "c5_s2_after",
+"who": "hale"
+},
+"c5_s2_after_5": {
+"en": "You remember?",
+"ru": "Ты вспомнил?",
+"scene": "c5_s2_after",
+"who": "iris"
+},
+"c5_s2_after_6": {
+"en": "I remember.",
+"ru": "Вспомнил.",
+"scene": "c5_s2_after",
+"who": "noah"
+},
+"c5_s2_after_7": {
+"en": "Then she’s with you.",
+"ru": "Тогда она с тобой.",
+"scene": "c5_s2_after",
+"who": "agnes"
+},
+"c5_s3_1": {
+"en": "You were in the boathouse. Whatever you saw in there, Noah, it was a dream. We’ve been through this a hundred times.",
+"ru": "Ты был в сарае. Что бы ты там ни увидел, Ной, — это сон. Мы это сто раз проходили.",
+"scene": "c5_s3",
+"who": "hale"
+},
+"c5_s3_2": {
+"en": "How’s the head? Took your pill? Good boy. See? Better already.",
+"ru": "Как голова? Выпил таблетку? Умница. Видишь — сразу легче.",
+"scene": "c5_s3",
+"who": "hale"
+},
+"c5_s3_3": {
+"en": "Here’s your truth. Paper.",
+"ru": "Вот она, ваша правда. Бумага.",
+"scene": "c5_s3",
+"who": "hale"
+},
+"c5_s3_4": {
+"en": "Go on, take it. It’s all weather and recipes.",
+"ru": "Забирай. Там про погоду и рецепты.",
+"scene": "c5_s3",
+"who": "hale"
+},
+"c5_s3_iris_1": {
+"en": "That night you told me not to go to the lake alone. Well, I’m not alone.",
+"ru": "Ты мне тогда сказал: не ходи к озеру одна. А я не одна.",
+"scene": "c5_s3_iris",
+"who": "iris"
+},
+"c5_s3_iris_2": {
+"en": "Iris, sweetheart, step away from him. You’ve seen what he can do.",
+"ru": "Айрис, детка, отойди от него. Ты же видела, на что он способен.",
+"scene": "c5_s3_iris",
+"who": "hale"
+},
+"c5_s3_iris_3": {
+"en": "I have. And I’ve read about you. In Mom’s diary.",
+"ru": "Видела. А про тебя — читала. В мамином дневнике.",
+"scene": "c5_s3_iris",
+"who": "iris"
+},
+"c5_s3_iris_4": {
+"en": "Look at the shore, Noah. Zoe’s had a lot of medication. In this cold, that’s dangerous — she needs a doctor. Come with me, and everyone goes home.",
+"ru": "Посмотри на берег, Ной. Зоя приняла много лекарства. На морозе это опасно, ей нужен врач. Поедешь со мной — и все разъедутся по домам.",
+"scene": "c5_s3_iris",
+"who": "hale"
+},
+"c5_s3_iris_5": {
+"en": "Look at the shore. Danny’s frozen stiff. Come with me, and I’ll take him to his mom.",
+"ru": "Посмотри на берег. Дэнни совсем замёрз. Поедешь со мной — отвезу его к маме.",
+"scene": "c5_s3_iris",
+"who": "hale"
+},
+"c5_s3_listen_1": {
+"en": "Hello, Simon. You promised.",
+"ru": "Здравствуй, Саймон. Ты же обещал.",
+"scene": "c5_s3_listen",
+"who": "anna"
+},
+"c5_s3_remember_1": {
+"en": "Mom was waiting for you that night. Bags packed. You promised to get her out. And he showed up instead.",
+"ru": "Мама ждала тебя той ночью. С сумками. Ты обещал её увезти. А приехал он.",
+"scene": "c5_s3_remember",
+"who": "noah"
+},
+"c5_s3_remember_2": {
+"en": "She kept looking at the boathouse, right to the end. So I wouldn’t come out.",
+"ru": "Она до конца смотрела на сарай. Чтобы я не вышел.",
+"scene": "c5_s3_remember",
+"who": "noah"
+},
+"c5_s3_remember_3": {
+"en": "He held her under. For a long time. And you wrote “accidental drowning.”",
+"ru": "Он держал её под водой. Долго. А ты написал: «несчастный случай».",
+"scene": "c5_s3_remember",
+"who": "noah"
+},
+"c5_s3_remember_4": {
+"en": "I didn’t look. But I heard everything.",
+"ru": "Я не смотрел. Но я всё слышал.",
+"scene": "c5_s3_remember",
+"who": "noah"
+},
+"c5_s3_remember_5": {
+"en": "And then you opened the boathouse and told me I’d dreamed it.",
+"ru": "А потом ты открыл сарай и сказал, что мне это приснилось.",
+"scene": "c5_s3_remember",
+"who": "noah"
+},
+"c5_s3_remember_6": {
+"en": "I… I only told him. I was scared, Noah. He would have… I never thought he’d…",
+"ru": "Я… я только сказал ему. Я испугался, Ной. Он бы меня… Я не думал, что он её…",
+"scene": "c5_s3_remember",
+"who": "hale"
+},
+"c5_s3_remember_7": {
+"en": "You were eight. You screamed every night. I helped you.",
+"ru": "Тебе было восемь. Ты кричал по ночам. Я тебе помог.",
+"scene": "c5_s3_remember",
+"who": "hale"
+},
+"c5_s3_remember_8": {
+"en": "You helped yourself.",
+"ru": "Ты помог себе.",
+"scene": "c5_s3_remember",
+"who": "noah"
+},
+"c5_s3_remember_9": {
+"en": "Iris is coming with me. She needs help too.",
+"ru": "Айрис поедет со мной. Ей тоже нужна помощь.",
+"scene": "c5_s3_remember",
+"who": "hale"
+},
+"c5_s3_silent_1": {
+"en": "There’s a good boy.",
+"ru": "Вот и умница.",
+"scene": "c5_s3_silent",
+"who": "hale"
+},
+"c5_s3_smile_1": {
+"en": "Noah. Noah, stop. Look at me. You know me.",
+"ru": "Ной. Ной, стой. Посмотри на меня. Ты же меня знаешь.",
+"scene": "c5_s3_smile",
+"who": "hale"
+},
+"c5_s3_smile_2": {
+"en": "Noah, don’t!",
+"ru": "Ной, не надо!",
+"scene": "c5_s3_smile",
+"who": "iris"
+},
+"c5_s3_smile_3": {
+"en": "That’s not Anna! That’s not her!",
+"ru": "Не Аня это! Не она!",
+"scene": "c5_s3_smile",
+"who": "agnes"
+},
+"c5_s3_wont_1": {
+"en": "I don’t know what happened back then. But I’m not giving you Iris.",
+"ru": "Я не знаю, что тогда было. Но Айрис я вам не отдам.",
+"scene": "c5_s3_wont",
+"who": "noah"
+},
+"c5_s3_wont_2": {
+"en": "That’s a shame. Then Iris is coming with me. She needs help too.",
+"ru": "Жаль. Тогда Айрис поедет со мной. Ей тоже нужна помощь.",
+"scene": "c5_s3_wont",
+"who": "hale"
+},
+"c5_s4_1": {
+"en": "Get down! Flat on your belly, sonny!",
+"ru": "Ложись! На брюхо ложись, милок!",
+"scene": "c5_s4",
+"who": "agnes"
+},
+"c5_s4_hale_1": {
+"en": "He’s going to answer for this.",
+"ru": "Он за всё ответит.",
+"scene": "c5_s4_hale",
+"who": "noah"
+},
+"c5_s4_hale_2": {
+"en": "Get your chest on the ice! Kick with your legs!",
+"ru": "Ложись грудью на лёд! Ногами работай!",
+"scene": "c5_s4_hale",
+"who": "noah"
+},
+"c5_s4_iris_1": {
+"en": "Your jacket! Get it off!",
+"ru": "Куртку! Снимай куртку!",
+"scene": "c5_s4_iris",
+"who": "noah"
+},
+"c5_s4_shadow_1": {
+"en": "Noah… Noah, please…",
+"ru": "Ной… Ной, пожалуйста…",
+"scene": "c5_s4_shadow",
+"who": "hale"
+},
+"c5_shadow_1": {
+"en": "Where is he? Where’s my brother?",
+"ru": "Где он? Где мой брат?",
+"scene": "c5_shadow",
+"who": "iris"
+},
+"c5_shore_orderly_1": {
+"en": "Is it Thursday…?",
+"ru": "Сегодня четверг?..",
+"scene": "c5_shore_orderly",
+"who": "zoe"
+},
+"c5_t_agnes_1": {
+"en": "She was happy here. Summers. Till that man came rolling in.",
+"ru": "Счастливая она тут была. Летом-то. Пока этот не нагрянет.",
+"scene": "c5_t_agnes",
+"who": "agnes"
+},
+"c5_t_agnes_2": {
+"en": "You knew? That it was him?",
+"ru": "Ты знала? Что это он её?",
+"scene": "c5_t_agnes",
+"who": "noah"
+},
+"c5_t_agnes_3": {
+"en": "I knew. And I kept my mouth shut. Eleven years, sonny.",
+"ru": "Знала. И молчала. Одиннадцать лет молчала, милок.",
+"scene": "c5_t_agnes",
+"who": "agnes"
+},
+"c5_t_danny_1": {
+"en": "Found it in the boathouse. Just in case. You won’t leave us, right?",
+"ru": "В сарае нашёл. Вдруг пригодится. Ты нас не бросишь?",
+"scene": "c5_t_danny",
+"who": "danny"
+},
+"c5_t_danny_try_1": {
+"en": "I don’t know. But I’ll try.",
+"ru": "Не знаю. Но я постараюсь.",
+"scene": "c5_t_danny_try",
+"who": "noah"
+},
+"c5_t_danny_yes_1": {
+"en": "I won’t.",
+"ru": "Не брошу.",
+"scene": "c5_t_danny_yes",
+"who": "noah"
+},
+"c5_t_eva_1": {
+"en": "Sorry, I never even said thank you. You… well, you know.",
+"ru": "Прости, я тебе даже спасибо не сказала. Ты нас… Ну, ты понял.",
+"scene": "c5_t_eva",
+"who": "eva"
+},
+"c5_t_eva_2": {
+"en": "That was Grandma. And Iris.",
+"ru": "Это бабушка. И Айрис.",
+"scene": "c5_t_eva",
+"who": "noah"
+},
+"c5_t_eva_3": {
+"en": "And you. Don’t argue.",
+"ru": "И ты. Не спорь.",
+"scene": "c5_t_eva",
+"who": "eva"
+},
+"c5_t_iris_1": {
+"en": "Do you remember what it was like here?",
+"ru": "Ты помнишь, как тут было?",
+"scene": "c5_t_iris",
+"who": "noah"
+},
+"c5_t_iris_2": {
+"en": "I was four. I remember Mom’s hands. And everything smelled like the lake.",
+"ru": "Мне было четыре. Помню мамины руки. И что всё пахло озером.",
+"scene": "c5_t_iris",
+"who": "iris"
+},
+"c5_t_zoe_1": {
+"en": "What is this, a harpoon? It’s pretty here. Creepy, but pretty.",
+"ru": "Это что, гарпун? Красиво тут. Жутко, но красиво.",
+"scene": "c5_t_zoe",
+"who": "zoe"
+},
+"c5_t_zoe_2": {
+"en": "Last time I was here, I was eight.",
+"ru": "Я тут последний раз был в восемь.",
+"scene": "c5_t_zoe",
+"who": "noah"
+},
+"c5_t_zoe_3": {
+"en": "When I was eight, I got a hamster. It died. Sorry. I talk crap when I’m nervous.",
+"ru": "А мне в восемь подарили хомяка. Он сдох. Прости. Когда нервничаю, несу чушь.",
+"scene": "c5_t_zoe",
+"who": "zoe"
+},
+"c5_t_zoe_4": {
+"en": "Just come back, okay? From wherever it is you go.",
+"ru": "Ты только возвращайся, ладно? Ну, оттуда, куда ты уходишь.",
+"scene": "c5_t_zoe",
+"who": "zoe"
+},
+"c5_visit2_1": {
+"en": "They let him go. It’s okay. I won’t be a kid forever.",
+"ru": "Его отпустили. Ничего. Я вырасту.",
+"scene": "c5_visit2",
+"who": "iris"
+},
+"c5_visit2_2": {
+"en": "Everyone thinks he just drowned. Let them. I know.",
+"ru": "Все думают, он просто утонул. Пусть думают. Я-то знаю.",
+"scene": "c5_visit2",
+"who": "iris"
+},
+"c5_visit8_1": {
+"en": "Eight years. The judge said that with Dad, you were protecting me. But the rest…",
+"ru": "Восемь лет. Судья сказал: за папу — ты меня защищал. А остальное…",
+"scene": "c5_visit8",
+"who": "iris"
+},
+"c5_visit_1": {
+"en": "Three years. The judge said you were protecting me.",
+"ru": "Три года. Судья сказал, ты меня защищал.",
+"scene": "c5_visit",
+"who": "iris"
+},
+"c5_visit_cold_1": {
+"en": "I can’t. Not yet. But I’ll come again.",
+"ru": "Я пока не могу. Но я ещё приду.",
+"scene": "c5_visit_cold",
+"who": "iris"
+},
+"c5_visit_full_1": {
+"en": "I’ll visit. Every week.",
+"ru": "Я буду приходить. Каждую неделю.",
+"scene": "c5_visit_full",
+"who": "iris"
+},
+"c5_visit_full_2": {
+"en": "You drew us?",
+"ru": "Ты нарисовала нас?",
+"scene": "c5_visit_full",
+"who": "noah"
+},
+"c5_visit_full_3": {
+"en": "I drew how it’s going to be.",
+"ru": "Я нарисовала, как будет.",
+"scene": "c5_visit_full",
+"who": "iris"
+},
+"c5_zoe_believe_1": {
+"en": "I believe you. You hear me? I believe you.",
+"ru": "Я тебе верю. Слышишь? Верю.",
+"scene": "c5_zoe_believe",
+"who": "noah"
+},
+"c5_zoe_believe_2": {
+"en": "At least somebody does…",
+"ru": "Ну хоть кто-то…",
+"scene": "c5_zoe_believe",
+"who": "zoe"
+},
+"c5_zoe_iris_1": {
+"en": "Zoe, don’t fall asleep! Please… I’m not losing anyone else today.",
+"ru": "Зоя, не спи! Пожалуйста… Я сегодня больше никого не отдам.",
+"scene": "c5_zoe_iris",
+"who": "iris"
+},
+"c5_zoe_me_1": {
+"en": "Zoe. It’s me.",
+"ru": "Зоя. Это я.",
+"scene": "c5_zoe_me",
+"who": "noah"
+},
+"c5_zoe_sing_1": {
+"en": "No. No sleeping today. Sing. The one you sang in the car.",
+"ru": "Нет. Сегодня ты не спишь. Пой. Ту, что в машине пела.",
+"scene": "c5_zoe_sing",
+"who": "noah"
+},
+"c5_zoe_try_1": {
+"en": "Stay awake! You hear me? Stay awake!",
+"ru": "Не спи! Слышишь? Не спи!",
+"scene": "c5_zoe_try",
+"who": "noah"
+},
+"c5_zoe_wake_1": {
+"en": "Oh. It’s you… I thought it was the white room again.",
+"ru": "Ой. Это ты… А я думала — опять белая комната.",
+"scene": "c5_zoe_wake",
+"who": "zoe"
+},
+"s1_1": {
+"en": "Iris?.. Where are we?.. Whose blood is this?",
+"ru": "Айрис?.. Где мы?.. Чья это кровь?",
+"scene": "s1",
+"who": "noah"
+},
+"s1_2": {
+"en": "Drive. North.",
+"ru": "Езжай. На север.",
+"scene": "s1",
+"who": "iris"
+},
+"s1_a_1": {
+"en": "What happened at home?",
+"ru": "Что случилось дома?",
+"scene": "s1_a",
+"who": "noah"
+},
+"s1_a_2": {
+"en": "You really don't remember?",
+"ru": "Ты правда не помнишь?",
+"scene": "s1_a",
+"who": "iris"
+},
+"s1_a_3": {
+"en": "No.",
+"ru": "Нет.",
+"scene": "s1_a",
+"who": "noah"
+},
+"s1_a_4": {
+"en": "…Then drive.",
+"ru": "…Тогда езжай.",
+"scene": "s1_a",
+"who": "iris"
+},
+"s1_b_1": {
+"en": "We're going back.",
+"ru": "Мы возвращаемся.",
+"scene": "s1_b",
+"who": "noah"
+},
+"s1_b_2": {
+"en": "NO!",
+"ru": "НЕТ!",
+"scene": "s1_b",
+"who": "iris"
+},
+"s1_b_3": {
+"en": "If we go back, they'll lock you up and put me in a home. Drive, Noah!",
+"ru": "Вернёмся — тебя посадят, а меня в детдом. Езжай, Ной!",
+"scene": "s1_b",
+"who": "iris"
+},
+"s2_1": {
+"en": "…Victor, forty-nine, was found dead in his home. Police are searching for his children — his son Noah, nineteen, and his daughter Iris, fifteen. The son may be dangerous. If you have seen…",
+"ru": "…в своём доме найден мёртвым Виктор, сорок девять лет. Полиция разыскивает его детей — сына Ноя, девятнадцать лет, и дочь Айрис, пятнадцать. Сын может быть опасен. Если вы видели…",
+"scene": "s2",
+"who": "radio"
+},
+"s2_b_1": {
+"en": "…about six feet tall, wearing a dark, old-fashioned man's jacket…",
+"ru": "…рост около ста восьмидесяти, тёмная куртка, мужская, старого кроя…",
+"scene": "s2_b",
+"who": "radio"
+},
+"s2_c_1": {
+"en": "Iris… did I do it?",
+"ru": "Айрис… это я его?",
+"scene": "s2_c",
+"who": "noah"
+},
+"s2_c_2": {
+"en": "You don't remember. Then that's how it has to be.",
+"ru": "Ты не помнишь. Значит, так надо.",
+"scene": "s2_c",
+"who": "iris"
+},
+"s3_hit_1": {
+"en": "Noah… It's suffering. Do something!",
+"ru": "Ной… Он же мучается. Сделай что-нибудь!",
+"scene": "s3_hit",
+"who": "iris"
+},
+"s4_1": {
+"en": "There was a map in here somewhere…",
+"ru": "Где-то тут была карта…",
+"scene": "s4",
+"who": "iris"
+},
+"s4_b_1": {
+"en": "You always hated them.",
+"ru": "Ты же их ненавидел.",
+"scene": "s4_b",
+"who": "iris"
+},
+"s5_1": {
+"en": "What are you doing out here all alone?",
+"ru": "Ты чего тут один?",
+"scene": "s5",
+"who": "iris"
+},
+"s5_2": {
+"en": "Mom told me to wait. She's been gone… a long time.",
+"ru": "Мама сказала ждать. Она… уже долго.",
+"scene": "s5",
+"who": "danny"
+},
+"s5_help_1": {
+"en": "I don't know what I did. Help my sister.",
+"ru": "Я не знаю, что я сделал. Помогите сестре.",
+"scene": "s5_help",
+"who": "noah"
+},
+"s5_help_2": {
+"en": "Go, kid. I'll make the call in ten minutes.",
+"ru": "Езжай, парень. Позвоню через десять минут.",
+"scene": "s5_help",
+"who": "roman"
+},
+"s5_lapse_1": {
+"en": "Hey, kid…",
+"ru": "Эй, парень…",
+"scene": "s5_lapse",
+"who": "roman"
+},
+"s5_lapse_2": {
+"en": "Get in. Now.",
+"ru": "Садись. Быстро.",
+"scene": "s5_lapse",
+"who": "iris"
+},
+"s5_pay_1": {
+"en": "Don't. I'll pay and go.",
+"ru": "Не надо. Я заплачу и уеду.",
+"scene": "s5_pay",
+"who": "noah"
+},
+"s6_a2_1": {
+"en": "Fine. Get in the back.",
+"ru": "Ладно. Садись назад.",
+"scene": "s6_a2",
+"who": "noah"
+},
+"s6_a_1": {
+"en": "Come with us.",
+"ru": "Поехали с нами.",
+"scene": "s6_a",
+"who": "noah"
+},
+"s6_a_2": {
+"en": "I'm right here. He won't hurt you.",
+"ru": "Я с тобой. Он тебя не тронет.",
+"scene": "s6_a",
+"who": "iris"
+},
+"s6_b_1": {
+"en": "We can't take him.",
+"ru": "Мы не можем его взять.",
+"scene": "s6_b",
+"who": "noah"
+},
+"s6_b_2": {
+"en": "Nobody's coming for him. You can see that.",
+"ru": "Никто за ним не придёт. Ты же видишь.",
+"scene": "s6_b",
+"who": "iris"
+},
+"s6_leave_1": {
+"en": "No. He stays.",
+"ru": "Нет. Он остаётся.",
+"scene": "s6_leave",
+"who": "noah"
+},
+"s7_a_1": {
+"en": "It's going to be okay.",
+"ru": "Всё будет хорошо.",
+"scene": "s7_a",
+"who": "noah"
+},
+"s7_b_1": {
+"en": "I don't know what's wrong with me.",
+"ru": "Я не знаю, что со мной.",
+"scene": "s7_b",
+"who": "noah"
+}
+}

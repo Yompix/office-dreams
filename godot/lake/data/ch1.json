@@ -23,7 +23,9 @@
   "lamp": 0,
   "late": 0,
   "mirror": 0,
-  "diary": 0
+  "diary": 0,
+  "asked": 0,
+  "drawing1": 0
  },
  "names": {
   "noah": {
@@ -227,6 +229,11 @@
      "look": "notebook"
     },
     {
+     "set": {
+      "asked": 1
+     }
+    },
+    {
      "toast": "iris"
     },
     {
@@ -294,8 +301,8 @@
      "shot": "notebook",
      "dur": 3.0,
      "note": {
-      "ru": "Их дом. Одно окно закрашено красным.",
-      "en": "Their house. One window is colored in red."
+      "ru": "В блокноте у Айрис — их дом. Одно окно закрашено красным.",
+      "en": "In Iris's notebook — their house. One window is colored in red."
      }
     },
     {
@@ -366,6 +373,10 @@
         "ru": "«Айрис… это я его?»",
         "en": "\"Iris… did I do it?\"",
         "go": "s2_c"
+       },
+       {
+        "silent": true,
+        "go": "s2_b"
        }
       ]
      }
@@ -1516,8 +1527,8 @@
      "shot": "st_kids",
      "dur": 2.6,
      "note": {
-      "ru": "Айрис держит мальчика за руку.",
-      "en": "Iris is holding the boy's hand."
+      "ru": "Айрис держит мальчика за руку. Его зовут Дэнни — она уже успела спросить.",
+      "en": "Iris is holding the boy's hand. His name is Danny — she's already asked."
      }
     },
     {
@@ -1656,6 +1667,17 @@
      }
     },
     {
+     "note": {
+      "ru": "Мальчик забивается в угол — как можно дальше от Ноя.",
+      "en": "The boy squeezes into the corner — as far from Noah as he can get."
+     },
+     "dur": 2.4,
+     "shot": "back",
+     "if": {
+      "lapse1": ">0"
+     }
+    },
+    {
      "set": {
       "danny": 1
      }
@@ -1715,6 +1737,17 @@
      "note": {
       "ru": "Она сажает мальчика назад.",
       "en": "She puts the boy in the back seat."
+     }
+    },
+    {
+     "note": {
+      "ru": "Мальчик забивается в угол — как можно дальше от Ноя.",
+      "en": "The boy squeezes into the corner — as far from Noah as he can get."
+     },
+     "dur": 2.4,
+     "shot": "back",
+     "if": {
+      "lapse1": ">0"
      }
     },
     {

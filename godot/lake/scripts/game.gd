@@ -134,12 +134,7 @@ func _ready() -> void:
 			data.names[k] = ch.names[k]
 		for k in ch.get("flags", {}):
 			data.flags[k] = ch.flags[k]
-	for sid in data.scenes:   # ключ озвучки каждой реплики: <сцена>_<номер реплики в сцене> (как tools/lake/voice.py)
-		var n := 0
-		for b in data.scenes[sid].beats:
-			if (b as Dictionary).has("say"):
-				n += 1
-				b["_vo"] = "%s_%d" % [sid, n]
+	_vo_index()
 	flags = (data.flags as Dictionary).duplicate()
 	var start: String = data.start
 	if "--scene" in args:
@@ -303,6 +298,9 @@ func _run(id: String) -> void:
 		return
 	_log("сцена " + id)
 	_scene_id = id
+	for k in actors.keys():   # модели, которые постановка уже удалила (полицейский с поста, ушедшие герои), — из списка вон
+		if not is_instance_valid(actors[k]):
+			actors.erase(k)
 	if sc.get("save", false) and not autoplay:
 		_save(id)
 		_checkpoint(id)
@@ -354,7 +352,7 @@ func _beat(b: Dictionary):
 		var who := String(b.say)
 		var text := hud.T(b)
 		var dur := clampf(0.9 + text.length() / 15.0, 1.4, 9.0)
-		var vo: Dictionary = _voice_line(String(b.get("_vo", "")))
+		var vo: Dictionary = _voice_line(_vo_key(_scene_id, b))
 		hud.line(who, b.get("name", data.names.get(who, "")), b)   # "name" в реплике — своё имя (голос Хейла в главе 2 — «ГОЛОС»)
 		var lips := String(b.get("lips", who))   # чьи губы двигаются (говорит «чужой голос» — губы Ноя)
 		if not vo.is_empty():   # озвучка: длина реплики — по голосу, губы — по словам и громкости
@@ -605,6 +603,8 @@ func _seat_in_car(who: String, seat: String) -> void:
 ## Пройти к точке: {"who", "to": [x, y, z], "speed", "clip" (шаг), "then" (клип по приходу), "face" (поворот по приходу)}.
 func _walk(w: Dictionary) -> void:
 	var who := String(w.who)
+	if not actors.has(who) or not is_instance_valid(actors[who]):   # героя нет в этой ветке (Зоя не с ними и т. п.)
+		return
 	var a: Actor = actors[who]
 	if a.get_parent() != scene:
 		var g := a.global_transform
@@ -963,6 +963,37 @@ func _fx(k: String) -> void:
 
 
 ## Озвучка реплики: играет её голос и отдаёт тайминг ({} — голоса нет, реплика идёт по тексту).
+## Голос реплики ищется по тексту, который озвучивали (data/vo_lines.json, tools/lake/vo_index.py): сначала в той же
+## сцене, потом у того же героя где угодно. Вставили реплику — голоса не съезжают; текст поменяли — старый голос
+## не звучит (только субтитр), пока реплику не переозвучат.
+var _vo_by := {}
+
+
+func _vo_index() -> void:
+	_vo_by = {"ru": {}, "en": {}}
+	var j = JSON.parse_string(FileAccess.get_file_as_string("res://data/vo_lines.json")) \
+		if FileAccess.file_exists("res://data/vo_lines.json") else null
+	if not (j is Dictionary):
+		push_warning("нет data/vo_lines.json — реплики пойдут без голоса")
+		return
+	for key in j:
+		var v: Dictionary = j[key]
+		for l in ["ru", "en"]:
+			if v.has(l):
+				var t := "%s|%s" % [String(v.who), String(v[l])]
+				(_vo_by[l] as Dictionary)[String(v.scene) + "|" + t] = String(key)
+				if not (_vo_by[l] as Dictionary).has("|" + t):
+					(_vo_by[l] as Dictionary)["|" + t] = String(key)
+
+
+func _vo_key(sid: String, b: Dictionary) -> String:
+	if b.has("vo"):
+		return String(b.vo)
+	var ix: Dictionary = _vo_by.get(lang, {})
+	var t := "%s|%s" % [String(b.get("say", "")), String(b.get(lang, b.get("ru", "")))]
+	return String(ix.get(sid + "|" + t, ix.get("|" + t, "")))
+
+
 func _voice_line(key: String) -> Dictionary:
 	if _vo_lang != lang:
 		_vo_lang = lang
@@ -1541,6 +1572,13 @@ func _keys(s: String) -> String:   # подсказка действия под 
 
 
 ## Пауза: всё стоит (герои, машина, таймер выбора), меню поверх.
+## Окно потеряло фокус (Alt+Tab, свернули, телефон ушёл в фон) — пауза: таймер выбора и действия без игрока не идут.
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED] and not autoplay and not _menu_mode \
+			and not _ending and hud != null and is_inside_tree() and not get_tree().paused:
+		_pause()
+
+
 func _pause() -> void:
 	if get_tree().paused:
 		return

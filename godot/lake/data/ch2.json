@@ -49,7 +49,8 @@
   "eva": 0,
   "eva_alone": 0,
   "zoe_talked": 0,
-  "pills2": 0
+  "pills2": 0,
+  "zoe_unasked": 0
  },
  "map": [
   {
@@ -795,7 +796,8 @@
    "beats": [
     {
      "set": {
-      "zoe_trust": 1
+      "zoe_trust": 1,
+      "zoe_unasked": 1
      }
     },
     {
@@ -987,10 +989,10 @@
     {
      "shot": "cop",
      "note": {
-      "ru": "Полицейский долго смотрит Ною в лицо. Потом машет: проезжайте.",
-      "en": "The officer looks at Noah's face for a long time. Then he waves them through."
+      "ru": "Полицейский долго смотрит Ною в лицо. Рация на плече хрипит: «…фура сложилась на трассе, все экипажи — туда». Он машет: проезжайте.",
+      "en": "The officer studies Noah's face for a long time. The radio on his shoulder crackles: “…semi jackknifed on the highway, all units respond.” He waves them through."
      },
-     "dur": 3.0
+     "dur": 4.2
     },
     {
      "fx": "post_pass"
@@ -1020,7 +1022,19 @@
      "shot": "zoe",
      "say": "zoe",
      "ru": "Везём мелких к бабушке. А у этого нос разбит — подрался за меня. Герой, да?",
-     "en": "Taking the kids to their grandma. And this one's got a busted nose — got in a fight over me. Hero, right?"
+     "en": "Taking the kids to their grandma. And this one's got a busted nose — got in a fight over me. Hero, right?",
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "say": "zoe",
+     "ru": "Везём сестрёнку к бабушке. А у этого нос разбит — подрался за меня. Герой, да?",
+     "en": "Taking his little sister to their grandma's. And this one busted his nose — got in a fight over me. Hero, right?",
+     "shot": "zoe",
+     "if": {
+      "danny": "==0"
+     }
     },
     {
      "shot": "cop",
@@ -1611,7 +1625,13 @@
   "c2_s4_z": {
    "beats": [
     {
+     "say": "zoe",
+     "ru": "Ты иногда выпадаешь. Секунду назад был тут — и нет. Я заметила.",
+     "en": "You zone out sometimes. One second you're here, the next you're gone. I noticed.",
      "fx": "noah_porch",
+     "shot": "porch"
+    },
+    {
      "shot": "porch",
      "say": "zoe",
      "ru": "У меня тоже провалы. Только не минуты — дни. Просыпаешься, а уже четверг. И никто не говорит, где ты была.",
@@ -1757,6 +1777,29 @@
      "dur": 3.6
     },
     {
+     "note": {
+      "ru": "Ной узнаёт её: эта машина ночью стояла у заправки.",
+      "en": "Noah recognizes it: this car was parked at the gas station last night."
+     },
+     "dur": 2.6,
+     "shot": "cafe_window",
+     "if": {
+      "mirror": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Ной её уже видел — ночью, у заправки, в темноте.",
+      "en": "Noah has seen it before — last night, at the gas station, in the dark."
+     },
+     "dur": 2.6,
+     "shot": "cafe_window",
+     "if": {
+      "mirror": "==0",
+      "late": ">0"
+     }
+    },
+    {
      "fx": "cup_drop",
      "shot": "cafe_zoe_table",
      "say": "zoe",
@@ -1790,15 +1833,26 @@
      "ru": "…Хейл.",
      "en": "…Hale.",
      "if": {
-      "trust": ">=2"
+      "trust": ">=2",
+      "zoe": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Это машина доктора. Хейла. Он к тебе приезжал.",
+     "en": "That's the doctor's car. Hale's. He used to come see you.",
+     "shot": "cafe_iris",
+     "if": {
+      "trust": ">=2",
+      "zoe": "==0"
      }
     },
     {
      "fx": "pill_label",
      "shot": "pill_label",
      "note": {
-      "ru": "Имя из маминого дневника. Ной смотрит на этикетку пузырька: «Д-р С. Хейл».",
-      "en": "The name from Mom's diary. Noah looks at the label on his pill bottle: “Dr. S. Hale.”"
+      "ru": "Имя из маминого дневника. И с этикетки на его таблетках: «Д-р С. Хейл».",
+      "en": "The name from Mom’s diary. And from the label on his pills: “Dr. S. Hale.”"
      },
      "dur": 3.2,
      "if": {
@@ -1839,6 +1893,9 @@
     {
      "set": {
       "zoe_trust": 1
+     },
+     "if": {
+      "zoe": ">0"
      }
     },
     {
@@ -2053,6 +2110,14 @@
      "en": "I understand."
     },
     {
+     "note": {
+      "ru": "Когда они отъезжают, к Еве подходит один из дальнобойщиков и кивает на свой пикап.",
+      "en": "As they pull away, one of the truckers walks over to Eva and nods toward his pickup."
+     },
+     "dur": 3.0,
+     "shot": "eva_porch"
+    },
+    {
      "go": "c2_s6_road"
     }
    ]
@@ -2118,13 +2183,6 @@
     }
    ],
    "save": true
-  },
-  "c2_end": {
-   "beats": [
-    {
-     "end": 2
-    }
-   ]
   }
  }
 }

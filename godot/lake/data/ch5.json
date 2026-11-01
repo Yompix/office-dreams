@@ -57,6 +57,8 @@
   "exposed": 0,
   "bitter": 0,
   "note_pocket": 0,
+  "home": 0,
+  "hale_let_go": 0,
   "end_witness": 0,
   "end_shadow": 0,
   "end_shadow_dark": 0,
@@ -464,6 +466,41 @@
      }
     },
     {
+     "set": {
+      "home": 1
+     },
+     "if": {
+      "agnes_dead": "==0"
+     }
+    },
+    {
+     "set": {
+      "home": 1
+     },
+     "if": {
+      "eva_alive": ">0"
+     }
+    },
+    {
+     "set": {
+      "home": 1
+     },
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "set": {
+      "home": 1
+     },
+     "if": {
+      "danny": ">0",
+      "danny_lost": "==0",
+      "danny_hale": "==0"
+     }
+    },
+    {
      "fx": "c5_start"
     },
     {
@@ -694,10 +731,8 @@
    "beats": [
     {
      "set": {
-      "t_iris": 1,
-      "trust": 1
-     },
-     "toast": true
+      "t_iris": 1
+     }
     },
     {
      "fx": "iris_frost",
@@ -718,7 +753,36 @@
      "say": "iris",
      "ru": "Мне было четыре. Помню мамины руки. И что всё пахло озером.",
      "en": "I was four. I remember Mom’s hands. And everything smelled like the lake.",
-     "shot": "iris_window"
+     "shot": "iris_window",
+     "if": {
+      "trust": ">=1"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Помню. Только тебе-то зачем?",
+     "en": "I remember. Why do you even care?",
+     "shot": "iris_window",
+     "if": {
+      "trust": "<1"
+     }
+    },
+    {
+     "note": {
+      "ru": "Но пальцем она дорисовывает на стекле второго человечка — рядом с первым.",
+      "en": "But with her finger she adds a second stick figure on the glass — next to the first."
+     },
+     "dur": 2.8,
+     "shot": "iris_window",
+     "if": {
+      "trust": "<1"
+     }
+    },
+    {
+     "set": {
+      "trust": 1
+     },
+     "toast": true
     },
     {
      "go": "c5_s1_hub"
@@ -741,6 +805,33 @@
       "en": "Zoe smokes on the porch, turning a boat hook from the boathouse over in her hands."
      },
      "dur": 3.0
+    },
+    {
+     "say": "zoe",
+     "ru": "А, это ты. Тот самый «может, и так».",
+     "en": "Oh. It’s you. Mr. “Maybe you’re right.”",
+     "shot": "zoe_porch",
+     "if": {
+      "zoe_doubted": ">0"
+     }
+    },
+    {
+     "say": "zoe",
+     "ru": "Спасибо за тогда. В буханке. Мне редко верят.",
+     "en": "Thanks for back there. In the van. People don’t usually believe me.",
+     "shot": "zoe_porch",
+     "if": {
+      "zoe_believed": ">0"
+     }
+    },
+    {
+     "say": "zoe",
+     "ru": "Я видела, что ты сделал с санитаром. Мне не страшно. Почти.",
+     "en": "I saw what you did to the orderly. I’m not scared. Mostly.",
+     "shot": "zoe_porch",
+     "if": {
+      "orderly_dead": ">0"
+     }
     },
     {
      "say": "zoe",
@@ -848,6 +939,24 @@
     },
     {
      "say": "danny",
+     "ru": "Я никому не сказал. Про заправку. Как ты просил.",
+     "en": "I didn’t tell anybody. About the gas station. Like you said.",
+     "shot": "danny_room",
+     "if": {
+      "danny_against": ">0"
+     }
+    },
+    {
+     "say": "danny",
+     "ru": "Если спросят — я скажу, как было. Ты сам велел.",
+     "en": "If anybody asks, I’ll tell them how it was. You told me to.",
+     "shot": "danny_room",
+     "if": {
+      "danny_truth": ">0"
+     }
+    },
+    {
+     "say": "danny",
      "ru": "В сарае нашёл. Вдруг пригодится. Ты нас не бросишь?",
      "en": "Found it in the boathouse. Just in case. You won’t leave us, right?",
      "shot": "danny_room"
@@ -932,6 +1041,15 @@
     },
     {
      "say": "eva",
+     "ru": "Ты меня тогда у кафе не взял. А потом всё равно вытащил из сугроба.",
+     "en": "You didn’t take me at the diner. And then you dug me out of a snowdrift anyway.",
+     "shot": "eva_room",
+     "if": {
+      "eva_found": ">0"
+     }
+    },
+    {
+     "say": "eva",
      "ru": "Прости, я тебе даже спасибо не сказала. Ты нас… Ну, ты понял.",
      "en": "Sorry, I never even said thank you. You… well, you know.",
      "shot": "eva_room"
@@ -968,11 +1086,52 @@
      "if": {
       "pills_pocket": ">0"
      },
-     "else": "c5_s1_pills2"
+     "else": "c5_s1_pills_old"
     },
     {
      "fx": "bottle5",
      "shot": "bottle5"
+    },
+    {
+     "choice": {
+      "t": 8,
+      "opts": [
+       {
+        "ru": "Принять",
+        "en": "Take one",
+        "go": "c5_s1_take"
+       },
+       {
+        "ru": "Бросить в печь",
+        "en": "Throw them in the stove",
+        "go": "c5_s1_burn"
+       },
+       {
+        "silent": true,
+        "go": "c5_s1_keep"
+       }
+      ],
+      "shot": "noah_room"
+     }
+    }
+   ]
+  },
+  "c5_s1_pills_old": {
+   "beats": [
+    {
+     "if": {
+      "pills_old": ">0"
+     },
+     "else": "c5_s1_pills2"
+    },
+    {
+     "fx": "bottle5",
+     "shot": "bottle5",
+     "note": {
+      "ru": "В кармане — старый пузырёк Хейла, ещё из дома.",
+      "en": "In his pocket — Hale’s old bottle, from home."
+     },
+     "dur": 2.6
     },
     {
      "choice": {
@@ -1162,7 +1321,20 @@
      "dur": 2.8,
      "shot": "dacha_room",
      "if": {
-      "baby": ">0"
+      "baby": ">0",
+      "home": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Айрис укладывает малышку в бельевую корзину у тёплой печи — оставить её больше не с кем.",
+      "en": "Iris tucks the baby into a laundry basket by the warm stove — there’s no one else to leave her with."
+     },
+     "dur": 3.2,
+     "shot": "dacha_room",
+     "if": {
+      "baby": ">0",
+      "home": "==0"
      }
     },
     {
@@ -1540,7 +1712,12 @@
     },
     {
      "fx": "agnes_door5",
-     "shot": "agnes_shed5"
+     "shot": "agnes_shed5",
+     "note": {
+      "ru": "В дверях сарая — бабушка.",
+      "en": "Grandma is in the boathouse doorway."
+     },
+     "dur": 1.8
     },
     {
      "say": "agnes",
@@ -2261,12 +2438,34 @@
      "shot": "noah_crawl"
     },
     {
+     "note": {
+      "ru": "Зоя подползает с багром и цепляет им Айрис за капюшон.",
+      "en": "Zoe crawls up with the boat hook and snags Iris by the hood."
+     },
+     "dur": 2.4,
+     "shot": "hole",
+     "if": {
+      "zoe_hook": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Дэнни бросает верёвку. Ной наматывает её на руку — Дэнни тянет с мостков.",
+      "en": "Danny throws the rope. Noah wraps it around his hand — Danny pulls from the dock."
+     },
+     "dur": 2.6,
+     "shot": "hole",
+     "if": {
+      "danny_rope": ">0"
+     }
+    },
+    {
      "qte": "press",
-     "t": 7.0,
+     "t": 9.0,
      "n": 12,
      "hint": {
-      "ru": "Тяни! Жми E / пробел в ритм",
-      "en": "Pull! Press E / Space in rhythm"
+      "ru": "Тяните вместе! Жми E / пробел в ритм",
+      "en": "Pull together! Press E / Space in rhythm"
      },
      "fail": "c5_s4_iris_fail",
      "if": {
@@ -2290,11 +2489,11 @@
     },
     {
      "qte": "press",
-     "t": 7.0,
+     "t": 9.0,
      "n": 17,
      "hint": {
-      "ru": "Тяни! Жми E / пробел в ритм",
-      "en": "Pull! Press E / Space in rhythm"
+      "ru": "Тяните вместе! Жми E / пробел в ритм",
+      "en": "Pull together! Press E / Space in rhythm"
      },
      "fail": "c5_s4_iris_fail",
      "if": {
@@ -2389,11 +2588,11 @@
     },
     {
      "qte": "mash",
-     "t": 6.0,
+     "t": 8.0,
      "n": 9,
      "hint": {
-      "ru": "Вытаскивай! Быстро жми E / пробел",
-      "en": "Haul him out! Mash E / Space"
+      "ru": "Тяните вместе! Быстро жми E / пробел",
+      "en": "Haul together! Mash E / Space"
      },
      "fail": "c5_s4_hale_gone",
      "if": {
@@ -2451,6 +2650,7 @@
     {
      "set": {
       "hale_drowned": 1,
+      "hale_let_go": 1,
       "end_witness": 1
      }
     },
@@ -2538,12 +2738,34 @@
      "shot": "noah_crawl"
     },
     {
+     "note": {
+      "ru": "Зоя цепляет багром куртку Айрис и тянет её к кромке.",
+      "en": "Zoe hooks Iris’s jacket with the boat hook and drags her toward the edge."
+     },
+     "dur": 2.4,
+     "shot": "hole",
+     "if": {
+      "zoe_hook": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Дэнни бросает верёвку. Айрис хватается за неё.",
+      "en": "Danny throws the rope. Iris grabs hold of it."
+     },
+     "dur": 2.2,
+     "shot": "hole",
+     "if": {
+      "danny_rope": ">0"
+     }
+    },
+    {
      "qte": "press",
-     "t": 7.0,
+     "t": 9.0,
      "n": 14,
      "hint": {
-      "ru": "Тяни! Жми E / пробел в ритм",
-      "en": "Pull! Press E / Space in rhythm"
+      "ru": "Тяните вместе! Жми E / пробел в ритм",
+      "en": "Pull together! Press E / Space in rhythm"
      },
      "fail": "c5_s4_hale_fail",
      "if": {
@@ -2567,11 +2789,11 @@
     },
     {
      "qte": "press",
-     "t": 7.0,
+     "t": 9.0,
      "n": 19,
      "hint": {
-      "ru": "Тяни! Жми E / пробел в ритм",
-      "en": "Pull! Press E / Space in rhythm"
+      "ru": "Тяните вместе! Жми E / пробел в ритм",
+      "en": "Pull together! Press E / Space in rhythm"
      },
      "fail": "c5_s4_hale_fail",
      "if": {
@@ -2616,6 +2838,14 @@
   },
   "c5_s4_hale_fail": {
    "beats": [
+    {
+     "note": {
+      "ru": "Хейл выползает на лёд по спине Ноя.",
+      "en": "Hale crawls out onto the ice over Noah’s back."
+     },
+     "dur": 2.4,
+     "shot": "hole"
+    },
     {
      "fx": "iris_slips",
      "shot": "hole",
@@ -2901,7 +3131,22 @@
       "ru": "Седан стоит у сарая с работающим мотором. Ной открывает задние двери снаружи. В машине тепло.",
       "en": "The sedan sits by the boathouse with its engine running. Noah opens the back doors from outside. It’s warm inside."
      },
-     "dur": 3.6
+     "dur": 3.6,
+     "if": {
+      "noah_drowned": "==0"
+     }
+    },
+    {
+     "fx": "unlock",
+     "shot": "sedan_shore",
+     "note": {
+      "ru": "Седан стоит у сарая с работающим мотором. Айрис, вся мокрая, открывает задние двери снаружи. В машине тепло.",
+      "en": "The sedan sits by the boathouse with its engine running. Iris, soaked through, opens the back doors from outside. It’s warm inside."
+     },
+     "dur": 3.6,
+     "if": {
+      "noah_drowned": ">0"
+     }
     },
     {
      "note": {
@@ -3207,6 +3452,18 @@
   "c5_patrol": {
    "beats": [
     {
+     "note": {
+      "ru": "Санитар не ждёт, чем кончится на льду, — седан уезжает.",
+      "en": "The orderly doesn’t wait to see how it ends on the ice — the sedan pulls away."
+     },
+     "dur": 2.8,
+     "shot": "sedan_shore",
+     "if": {
+      "orderly_dead": "==0",
+      "hostage": "==0"
+     }
+    },
+    {
      "fx": "patrol",
      "shot": "patrol",
      "note": {
@@ -3214,6 +3471,17 @@
       "en": "By noon a police patrol drives down to the shore: that morning they found the abandoned van at the fallen pine, and from there only one road leads — to the lake."
      },
      "dur": 4.2
+    },
+    {
+     "note": {
+      "ru": "Среди патрульных — тот самый полицейский с поста. Он узнаёт Ноя.",
+      "en": "One of the officers is the one from the checkpoint. He recognizes Noah."
+     },
+     "dur": 2.8,
+     "shot": "patrol",
+     "if": {
+      "cop_saw": ">0"
+     }
     },
     {
      "note": {
@@ -3511,7 +3779,18 @@
      "en": "Everyone thinks he just drowned. Let them. I know.",
      "shot": "iris_visit",
      "if": {
-      "hale_saved": "==0"
+      "hale_saved": "==0",
+      "hale_let_go": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Он утонул, а виноватым остался ты. Я-то знаю, как было.",
+     "en": "He drowned, and you’re the one they blame. I know what really happened.",
+     "shot": "iris_visit",
+     "if": {
+      "hale_saved": "==0",
+      "hale_let_go": "==0"
      }
     },
     {
@@ -3563,8 +3842,7 @@
      "shot": "visit",
      "if": {
       "romance": ">0",
-      "zoe_died": "==0",
-      "zoe_taken": "==0"
+      "zoe_died": "==0"
      }
     },
     {
@@ -3722,7 +4000,21 @@
       "en": "Then she gets up — because someone on the shore needs help."
      },
      "dur": 3.0,
-     "shot": "iris_crawl"
+     "shot": "iris_crawl",
+     "if": {
+      "hostage": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Потом она встаёт. В доме плачет малышка.",
+      "en": "Then she gets up. In the house, the baby is crying."
+     },
+     "dur": 3.0,
+     "shot": "iris_crawl",
+     "if": {
+      "hostage": "==0"
+     }
     },
     {
      "go": "c5_shore"
@@ -4085,10 +4377,10 @@
      "fx": "sign",
      "shot": "mirror_sign",
      "note": {
-      "ru": "Айрис бежит по мосткам и держит перед собой раскрытый блокнот. Крупными буквами.",
-      "en": "Iris runs down the dock holding her notebook open in front of her. In big letters."
+      "ru": "Айрис бежит по мосткам и держит перед собой раскрытый блокнот. Крупными буквами: «Я ПОМНЮ ЗА ТЕБЯ».",
+      "en": "Iris runs down the dock holding her notebook open in front of her. In big letters: “I’LL REMEMBER FOR YOU.”"
      },
-     "dur": 3.6
+     "dur": 3.8
     },
     {
      "go": "c5_obl_car"
@@ -4395,6 +4687,17 @@
     },
     {
      "text": {
+      "ru": "Зою они больше не видели.",
+      "en": "They never saw Zoe again."
+     },
+     "dur": 2.4,
+     "note": true,
+     "if": {
+      "zoe": "==0"
+     }
+    },
+    {
+     "text": {
       "ru": "Зоя жива. Но ей никто не поверил.",
       "en": "Zoe is alive. But no one believed her."
      },
@@ -4469,8 +4772,8 @@
     },
     {
      "text": {
-      "ru": "Ева погибла в буран. Анну забрала её сестра.",
-      "en": "Eva died in the storm. Her sister took Anna."
+      "ru": "Ева умерла родами в буран. Анну забрала её сестра.",
+      "en": "Eva died giving birth during the storm. Her sister took Anna."
      },
      "dur": 3.0,
      "note": true,
@@ -4550,6 +4853,17 @@
     },
     {
      "text": {
+      "ru": "Дэнни с заправки забрала полиция. Через неделю за ним приехала мама.",
+      "en": "The police picked Danny up at the gas station. A week later his mom came for him."
+     },
+     "dur": 3.2,
+     "note": true,
+     "if": {
+      "danny_left": ">0"
+     }
+    },
+    {
+     "text": {
       "ru": "Дэнни больше никогда не верит взрослым на слово.",
       "en": "Danny never takes a grown-up at their word again."
      },
@@ -4581,7 +4895,20 @@
      "note": true,
      "if": {
       "agnes_dead": "==0",
-      "end_ice": "==0"
+      "end_ice": "==0",
+      "end_mama": "==0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Агнес живёт с внуками.",
+      "en": "Agnes lives with her grandchildren."
+     },
+     "dur": 2.4,
+     "note": true,
+     "if": {
+      "agnes_dead": "==0",
+      "end_mama": ">0"
      }
     },
     {

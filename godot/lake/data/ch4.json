@@ -42,7 +42,9 @@
   "agnes_dead": 0,
   "danny_hale": 0,
   "danny_stayed": 0,
-  "hurt4": 0
+  "hurt4": 0,
+  "danny_truth": 0,
+  "pills_old": 0
  },
  "map": [
   {
@@ -413,10 +415,10 @@
     },
     {
      "text": {
-      "ru": "Зою забрал доктор Хейл.",
-      "en": "Dr. Hale took Zoe."
+      "ru": "Зоя пропала ночью у кафе. На снегу остался её браслет.",
+      "en": "Zoe vanished in the night at the diner. Her bracelet was left in the snow."
      },
-     "dur": 2.4,
+     "dur": 2.8,
      "note": true,
      "if": {
       "zoe_taken": ">0"
@@ -618,6 +620,18 @@
     },
     {
      "note": {
+      "ru": "Следом — и старый, из кармана.",
+      "en": "The old one from his pocket goes after it."
+     },
+     "dur": 2.0,
+     "shot": "yard_drift",
+     "if": {
+      "pills_burned": "==0",
+      "pills_flushed": "==0"
+     }
+    },
+    {
+     "note": {
       "ru": "Айрис выдыхает.",
       "en": "Iris breathes out."
      },
@@ -654,6 +668,18 @@
      "dur": 2.4
     },
     {
+     "note": {
+      "ru": "Ной отдаёт ей и старый — из кармана.",
+      "en": "Noah hands her the old one from his pocket too."
+     },
+     "dur": 2.2,
+     "shot": "iris_yard",
+     "if": {
+      "pills_burned": "==0",
+      "pills_flushed": "==0"
+     }
+    },
+    {
      "go": "c4_s1_van"
     }
    ]
@@ -674,6 +700,27 @@
      "shot": "car_seat"
     },
     {
+     "set": {
+      "pills_old": 1
+     },
+     "if": {
+      "pills_burned": "==0",
+      "pills_flushed": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Старый пузырёк — по-прежнему у него в кармане.",
+      "en": "The old bottle is still in his pocket."
+     },
+     "dur": 2.2,
+     "shot": "car_seat",
+     "if": {
+      "pills_burned": "==0",
+      "pills_flushed": "==0"
+     }
+    },
+    {
      "go": "c4_s1_van"
     }
    ]
@@ -684,8 +731,8 @@
      "fx": "shed_open",
      "shot": "shed",
      "note": {
-      "ru": "Всем в машину уже не влезть. В сарае у Агнес — старая буханка покойного деда.",
-      "en": "They won’t all fit in the car anymore. In Agnes’s shed — her late husband’s old van."
+      "ru": "Их седан Хейл знает наизусть. А в сарае у Агнес — старая буханка покойного деда.",
+      "en": "Hale knows their sedan by heart. But in Agnes’s shed there’s her late husband’s old van."
      },
      "dur": 3.4
     },
@@ -837,6 +884,24 @@
     },
     {
      "say": "zoe",
+     "ru": "Ты тогда спросил про браслет.",
+     "en": "You asked about the bracelet, back then.",
+     "shot": "zoe_van",
+     "if": {
+      "zoe_wary": ">0"
+     }
+    },
+    {
+     "say": "zoe",
+     "ru": "Ты тогда не спросил про браслет. Я запомнила.",
+     "en": "You didn’t ask about the bracelet, back then. I noticed.",
+     "shot": "zoe_van",
+     "if": {
+      "zoe_unasked": ">0"
+     }
+    },
+    {
+     "say": "zoe",
      "ru": "Ладно. Раз уж мы все тут… в одной буханке.",
      "en": "Okay. Since we’re all here… in one old van.",
      "shot": "zoe_van"
@@ -882,9 +947,21 @@
     },
     {
      "say": "iris",
+     "ru": "Откуда мы знаем, что она не с ним?",
+     "en": "How do we know she isn’t with him?",
+     "shot": "iris_van",
+     "if": {
+      "jealous": "==0"
+     }
+    },
+    {
+     "say": "iris",
      "ru": "Она врёт. Она с ним заодно. Он её подослал.",
      "en": "She’s lying. She’s with him. He sent her.",
-     "shot": "iris_van"
+     "shot": "iris_van",
+     "if": {
+      "jealous": ">0"
+     }
     },
     {
      "choice": {
@@ -1041,10 +1118,10 @@
      "fx": "radio_hale",
      "shot": "danny_van",
      "note": {
-      "ru": "У Дэнни в кармане трещит рация. Голос — мягкий, вежливый.",
-      "en": "The walkie-talkie in Danny’s pocket crackles. A voice — soft, polite."
+      "ru": "У Дэнни в кармане трещит рация — детская, на её волне может говорить кто угодно. Голос — мягкий, вежливый.",
+      "en": "The walkie-talkie in Danny’s pocket crackles — it’s a toy; anyone can talk on its channel. A voice — soft, polite."
      },
-     "dur": 3.0
+     "dur": 3.4
     },
     {
      "go": "c4_s2_hale"
@@ -1057,10 +1134,10 @@
      "fx": "phone_hale",
      "shot": "agnes_van",
      "note": {
-      "ru": "У Агнес звонит старый телефон. Номер не определён. Она включает громкую связь.",
-      "en": "Agnes’s old phone rings. Unknown number. She puts it on speaker."
+      "ru": "У Агнес в кармане оживает старый кнопочный телефон — на горке поймалась связь. Номер не определён. Она включает громкую связь.",
+      "en": "The old push-button phone in Agnes’s pocket comes alive — they’ve caught a signal on the hill. Unknown number. She puts it on speaker."
      },
-     "dur": 3.2
+     "dur": 3.6
     },
     {
      "go": "c4_s2_hale"
@@ -1191,7 +1268,19 @@
      "say": "iris",
      "ru": "Ты хотел знать.",
      "en": "You wanted to know.",
-     "shot": "iris_stop"
+     "shot": "iris_stop",
+     "if": {
+      "asked": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Тебе надо это увидеть.",
+     "en": "You need to see this.",
+     "shot": "iris_stop",
+     "if": {
+      "asked": "==0"
+     }
     },
     {
      "set": {
@@ -1650,6 +1739,7 @@
     {
      "set": {
       "danny_for": 1,
+      "danny_truth": 1,
       "trust": 1
      },
      "toast": true
@@ -1731,10 +1821,10 @@
      "fx": "hale_out",
      "shot": "hale_wide",
      "note": {
-      "ru": "С заднего сиденья — доктор Хейл. Очки, хорошее пальто, шарф. Впервые видно его лицо.",
-      "en": "From the back seat — Dr. Hale. Glasses, a good coat, a scarf. For the first time, they see his face."
+      "ru": "С заднего сиденья — доктор Хейл, главный врач санатория «Тихие сосны». Очки, хорошее пальто, шарф. Впервые видно его лицо.",
+      "en": "From the back seat — Dr. Hale, head physician of the Quiet Pines sanatorium. Glasses, a good coat, a scarf. For the first time, we see his face."
      },
-     "dur": 3.6
+     "dur": 4.0
     },
     {
      "say": "hale",
@@ -2280,6 +2370,18 @@
       "en": "They all bolt into the woods. Knee-deep snow."
      },
      "dur": 2.6
+    },
+    {
+     "note": {
+      "ru": "Айрис тащит Дэнни за руку: «Дэнни, не отставай!» Хейл слышит имя.",
+      "en": "Iris drags Danny by the hand: “Danny, keep up!” Hale hears the name."
+     },
+     "dur": 2.8,
+     "shot": "woods_run",
+     "if": {
+      "danny": ">0",
+      "danny_lost": "==0"
+     }
     },
     {
      "note": {

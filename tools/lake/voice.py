@@ -45,17 +45,20 @@ TAGS = {   # интонация (тег eleven_v4) по ключу реплик�
 
 
 def lines():
-    """Реплики всех глав (data/ch1.json, ch2.json, …): ключ — как в игре, <сцена>_<номер реплики в сцене>."""
+    """Реплики всех глав: ключ — как ищет игра (tools/lake/story_audit.py vo_keys): озвученная реплика — её прежний
+    ключ <сцена>_<номер>, новая — <сцена>_n<номер> (старые файлы не затираются). После озвучки новой реплики:
+    python3 tools/lake/vo_index.py add <ключ>."""
+    import sys as _s
+    _s.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import story_audit as _A
+    data, _, _, _ = _A.load()
+    keys = _A.vo_keys(data)
     out = {}
-    for f in sorted(glob.glob(os.path.join(GAME, 'data/ch*.json'))):
-        d = json.load(open(f))
-        for sid, sc in d['scenes'].items():
-            n = 0
-            for b in sc['beats']:
-                if 'say' in b:
-                    n += 1
-                    k = f'{sid}_{n}'
-                    out[k] = {'who': b['say'], 'ru': b.get('ru', ''), 'en': b.get('en', ''), 'tag': TAGS.get(k, 'natural')}
+    for sid, sc in data['scenes'].items():
+        for i, b in enumerate(sc['beats']):
+            if 'say' in b:
+                k = keys[(sid, i)]
+                out[k] = {'who': b['say'], 'ru': b.get('ru', ''), 'en': b.get('en', ''), 'tag': TAGS.get(k, 'natural')}
     return out
 
 

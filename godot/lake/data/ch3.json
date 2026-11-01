@@ -415,24 +415,30 @@
      "fx": "eva_ditch",
      "shot": "eva_ditch",
      "note": {
-      "ru": "В фарах — её машина в кювете, полузанесённая снегом.",
-      "en": "In the headlights — her car in the ditch, half buried in snow."
+      "ru": "В фарах — чужой пикап в кювете, полузанесённый снегом. Мотор заглох, фары едва светят.",
+      "en": "In the headlights — someone’s pickup in the ditch, half buried in snow. The engine’s dead; the headlights barely glow."
      },
-     "dur": 2.8
+     "dur": 3.0
     },
     {
      "fx": "eva_in_ditch",
      "shot": "eva_ditch_in",
      "note": {
-      "ru": "Внутри — Ева. Схватки. Губы синие. Она поехала сама и застряла.",
-      "en": "Eva is inside. Contractions. Her lips are blue. She drove on alone and got stuck."
+      "ru": "Внутри — Ева. Схватки. Губы синие. Водителя нет — его следы к деревне давно замело.",
+      "en": "Eva is inside. Contractions. Her lips are blue. The driver’s gone — his tracks toward the village filled in long ago."
      },
-     "dur": 3.2
+     "dur": 3.4
     },
     {
      "say": "eva",
      "ru": "Я соврала… Не через месяц. Сейчас.",
      "en": "I lied… It’s not next month. It’s now.",
+     "shot": "eva_ditch_in"
+    },
+    {
+     "say": "eva",
+     "ru": "Подвёз дальнобойщик… Сказал, фуру объедем через деревню. Застряли. Он ушёл за трактором. Давно.",
+     "en": "A trucker gave me a ride… Said we’d get around the semi through the village. We got stuck. He went for a tractor. Ages ago.",
      "shot": "eva_ditch_in"
     },
     {
@@ -876,6 +882,14 @@
      "shot": "agnes_candle"
     },
     {
+     "note": {
+      "ru": "Бак их машины почти пуст: стрелка лежит на нуле ещё с трассы.",
+      "en": "Their car’s tank is nearly empty: the needle has been on zero since the highway."
+     },
+     "dur": 2.8,
+     "shot": "noah_house"
+    },
+    {
      "choice": {
       "t": 8,
       "opts": [
@@ -1042,8 +1056,8 @@
      "fx": "generator",
      "shot": "house_wide",
      "note": {
-      "ru": "Генератор кашляет и заводится. Свет. Все знают, кто здесь.",
-      "en": "The generator coughs and starts. Light. Everyone knows who’s here."
+      "ru": "Генератор кашляет и заводится. Свет. Зоя не отходит от окна.",
+      "en": "The generator coughs and starts. Light. Zoe won’t leave the window."
      },
      "dur": 3.0
     },
@@ -1091,6 +1105,18 @@
      }
     },
     {
+     "note": {
+      "ru": "Зоя таскает воду и шутит без остановки. Голос у неё дрожит.",
+      "en": "Zoe hauls water and keeps cracking jokes. Her voice is shaking."
+     },
+     "dur": 2.8,
+     "shot": "house_wide",
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
      "say": "eva",
      "ru": "Ты смелая, слышишь? Если меня не будет — ты справишься.",
      "en": "You’re brave, you hear me? If I’m gone — you’ll manage.",
@@ -1125,10 +1151,10 @@
     },
     {
      "note": {
-      "ru": "Держит Айрис — Ной стоит у стены, его трясёт.",
-      "en": "Iris holds on — Noah stands by the wall, shaking."
+      "ru": "Ноя трясёт после провала у магазина. Агнес кладёт его ладони поверх рук Айрис: «Дави!»",
+      "en": "Noah is still shaking from the blackout at the store. Agnes presses his palms over Iris’s hands: “Push down!”"
      },
-     "dur": 2.6,
+     "dur": 3.0,
      "shot": "iris_bed",
      "if": {
       "lapse_shop": ">0"
@@ -1260,7 +1286,6 @@
    "beats": [
     {
      "set": {
-      "eva_dead": 1,
       "baby": 1
      }
     },
@@ -1303,6 +1328,11 @@
      "shot": "agnes_bed"
     },
     {
+     "set": {
+      "eva_dead": 1
+     }
+    },
+    {
      "go": "c3_s4"
     }
    ]
@@ -1315,10 +1345,10 @@
      "fx": "night_stove",
      "shot": "stove_two",
      "note": {
-      "ru": "Дом затих. Агнес курит трубку у печи. Ной садится рядом.",
-      "en": "The house is quiet. Agnes smokes her pipe by the stove. Noah sits down beside her."
+      "ru": "Дом затих. Айрис клюёт носом у печи — перед этим она долго шепталась с бабушкой. Агнес курит трубку. Ной садится рядом.",
+      "en": "The house is quiet. Iris is nodding off by the stove — before that she whispered with Grandma for a long time. Agnes smokes her pipe. Noah sits down beside her."
      },
-     "dur": 3.2
+     "dur": 3.6
     },
     {
      "say": "agnes",
@@ -1515,6 +1545,14 @@
       "pills_flushed": "==0"
      },
      "else": "c3_s4_brew"
+    },
+    {
+     "note": {
+      "ru": "Ной поворачивается — в кармане гремит пузырёк. Агнес слышит.",
+      "en": "Noah shifts — the pill bottle rattles in his pocket. Agnes hears it."
+     },
+     "dur": 2.6,
+     "shot": "noah_stove"
     },
     {
      "say": "agnes",
@@ -1808,6 +1846,17 @@
      "dur": 2.8
     },
     {
+     "note": {
+      "ru": "На крыльце — Агнес с фонарём.",
+      "en": "Agnes is on the porch with a lantern."
+     },
+     "dur": 2.2,
+     "shot": "agnes",
+     "if": {
+      "belief_doctor": "==0"
+     }
+    },
+    {
      "say": "agnes",
      "ru": "Это была она.",
      "en": "That was her.",
@@ -1867,13 +1916,30 @@
      "dur": 3.0
     },
     {
+     "say": "danny",
+     "ru": "Я к маме пойду. Она, наверно, уже вернулась на заправку.",
+     "en": "I’m gonna go find my mom. She’s probably back at the gas station by now.",
+     "shot": "danny_door"
+    },
+    {
      "choice": {
       "t": 6,
       "opts": [
        {
         "ru": "«Подожди. Я тебе обещал — и нарушил. Прости»",
         "en": "“Wait. I made you a promise — and broke it. I’m sorry”",
-        "go": "c3_s5_sorry"
+        "go": "c3_s5_sorry",
+        "if": {
+         "promise": ">0"
+        }
+       },
+       {
+        "ru": "«Подожди. Я не хотел тебя напугать. Прости»",
+        "en": "“Wait. I didn’t mean to scare you. I’m sorry”",
+        "go": "c3_s5_sorry2",
+        "if": {
+         "promise": "==0"
+        }
        },
        {
         "ru": "«Иди. Я тебя не держу»",
@@ -1923,12 +1989,40 @@
     }
    ]
   },
+  "c3_s5_sorry2": {
+   "beats": [
+    {
+     "say": "noah",
+     "ru": "Подожди. Я не хотел тебя напугать. Прости.",
+     "en": "Wait. I didn’t mean to scare you. I’m sorry.",
+     "shot": "noah_house"
+    },
+    {
+     "if": {
+      "danny_fear": "==0"
+     },
+     "else": "c3_s5_go_lie"
+    },
+    {
+     "fx": "danny_stays",
+     "shot": "danny_door",
+     "note": {
+      "ru": "Дэнни долго смотрит на него. Потом снимает валенки.",
+      "en": "Danny looks at him for a long time. Then he takes off the felt boots."
+     },
+     "dur": 3.0
+    },
+    {
+     "go": "c3_s6"
+    }
+   ]
+  },
   "c3_s5_go_lie": {
    "beats": [
     {
      "note": {
-      "ru": "«Ты и тогда так говорил». Дэнни выходит в буран.",
-      "en": "“You said that last time too.” Danny walks out into the storm."
+      "ru": "«Ты и тогда врал». Дэнни выходит в буран.",
+      "en": "“You lied that time too.” Danny walks out into the storm."
      },
      "dur": 3.0,
      "shot": "danny_door"
