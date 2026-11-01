@@ -14,6 +14,10 @@ END = {'witness': '«Свидетель»', 'shadow': '«Тень»', 'ice': '«
 def main():
     sim = json.load(open('/tmp/lake_sim.json'))
     gd = json.load(open('/tmp/lake_tests.json')) if os.path.exists('/tmp/lake_tests.json') else {}
+    rh = {}
+    if os.path.exists('/tmp/lake_rhythm.txt'):   # python3 tools/lake/story_rhythm.py > /tmp/lake_rhythm.txt
+        for m in re.finditer(r'^(\S+) — всего (\d+) мин', open('/tmp/lake_rhythm.txt', encoding='utf-8').read(), re.M):
+            rh[m.group(1)] = m.group(2) + ' мин'
     rows = []
     ok_n = 0
     for name, t in sim.items():
@@ -21,13 +25,11 @@ def main():
         if g:
             ok = g['path_equal'] and g['ending_sim'] == g['ending_godot'] and not g['flag_diff'] and not g['errors']
             ok_n += ok
-            txt = open(g['log'], encoding='utf-8', errors='replace').read() if os.path.exists(g['log']) else ''
-            tm = re.findall(r'^время игры: ([\d.]+) мин', txt, re.M)
             res = ('совпало: путь %d сцен, концовка, флаги; ошибок 0' % g['path_len']) if ok else \
                   ('РАСХОДИТСЯ: путь %s, концовка %s, флаги %s, ошибки %s' % (g['path_equal'], g['ending_godot'], g['flag_diff'], g['errors'][:2]))
-            tm = (tm[-1] + ' мин') if tm else '—'
         else:
-            res, tm = 'в Godot не запускался', '—'
+            res = 'в Godot не запускался'
+        tm = rh.get(name, '—')
         fl = t['flags']
         key = ', '.join('%s=%g' % (k, fl[k]) for k in KEY if fl.get(k))
         ch = '; '.join('%s: %s' % (s, c) for s, c in t['choices'])
@@ -37,7 +39,7 @@ def main():
         if t.get('missin'):
             opt += ' --missin ' + ','.join(t['missin'])
         rows.append((name, t, res, tm, key, ch, opt))
-    print('| Тест | Что проверяет | Концовка | Godot | Время сценария |')
+    print('| Тест | Что проверяет | Концовка | Godot | Экранное время (оценка) |')
     print('|---|---|---|---|---|')
     for name, t, res, tm, key, ch, opt in rows:
         print('| %s | %s | %s | %s | %s |' % (name, t['title'], END.get(t['ending'], t['ending']), res, tm))
