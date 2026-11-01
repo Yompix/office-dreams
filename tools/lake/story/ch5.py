@@ -59,7 +59,7 @@ SC['c5_recap'] = {'save': True, 'time': '07:20', 'beats': [
     T('Ной вспомнил фары на берегу: «Вы там были. Той ночью».', 'Noah remembered headlights on the shore: “You were there. That night.”', 3.0, **I(hale_knows_mem='>0')),
     T('Хейл забрал мамин дневник.', 'Hale took Mom’s diary.', 2.4, **I(diary_hale='>0')),
     T('«Второй он» убил санитара.', '“The other him” killed the orderly.', 2.4, **I(orderly_dead='>0')),
-    T('Зоя — у Хейла.', 'Zoe is with Hale.', 2.2, **I(zoe_taken='>0')),
+    T('Зоя — у Хейла.', 'Hale has Zoe.', 2.2, **I(zoe_taken='>0')),
     T('Дэнни ушёл на голос Хейла.', 'Danny walked toward Hale’s voice.', 2.4, **I(danny_hale='>0')),
     T('Бабушка осталась в лесу.', 'Grandma stayed behind in the forest.', 2.4, **I(agnes_dead='>0')),
     T('Ной нёс бабушку на себе. Она подвернула ногу.', 'Noah carried Grandma on his back. She twisted her ankle.', 2.6, **I(agnes_limp='>0')),
@@ -70,7 +70,9 @@ SC['c5_recap'] = {'save': True, 'time': '07:20', 'beats': [
 SC['c5_s1'] = {'save': True, 'time': '08:10', 'beats': [
     SET({'zoe_taken': '>0'}, hostage=1),
     SET({'zoe_taken': '==0', 'danny_hale': '>0'}, hostage=1),
-    SET({'pills': '>0'}, ptotal=1), SET({'pills2': '>0'}, ptotal=1), SET({'pills3': '>0'}, ptotal=1),
+    # сколько таблеток Ной выпил в гл. 1–3: pills считает каждую (гл. 2 и 3 ставят ещё pills2/pills3 — это метки глав, не вторая таблетка)
+    SET({'pills': '>=1'}, ptotal=1), SET({'pills': '>=2'}, ptotal=1), SET({'pills': '>=3'}, ptotal=1),
+    SET({'zoe': '>0', 'zoe_gone': '==0'}, zoe_here=1), SET({'danny': '>0', 'danny_lost': '==0', 'danny_hale': '==0'}, danny_here=1),
     SET({'agnes_dead': '==0'}, home=1), SET({'eva_alive': '>0'}, home=1), SET({'zoe': '>0', 'zoe_gone': '==0'}, home=1),
     SET({'danny': '>0', 'danny_lost': '==0', 'danny_hale': '==0'}, home=1),
     {'fx': 'c5_start'},
@@ -153,12 +155,12 @@ SC['c5_t_danny_yes'] = {'beats': [
 
 SC['c5_t_danny_try'] = {'beats': [
     S('noah', 'Не знаю. Но я постараюсь.', 'I don’t know. But I’ll try.', shot='noah_room'),
-    N('Дэнни долго смотрит на него. Честно — это тоже ответ.', 'Danny looks at him for a long time. Honest is an answer too.', 2.6, shot='danny_room'),
+    N('Дэнни долго смотрит на него. Честно — это тоже ответ.', 'Danny looks at him for a long time. An honest “I don’t know” is an answer too.', 2.6, shot='danny_room'),
     {'go': 'c5_s1_hub'}]}
 
 SC['c5_t_eva'] = {'beats': [
     {'set': {'t_eva': 1}},
-    S('eva', 'Ты меня тогда у кафе не взял. А потом всё равно вытащил из сугроба.', 'You didn’t take me at the diner. And then you dug me out of a snowdrift anyway.', shot='eva_room', **I(eva_found='>0')),
+    S('eva', 'Ты меня тогда у кафе не взял. А потом всё равно вытащил из сугроба.', 'You didn’t take me with you at the diner. And then you pulled me out of a snowdrift anyway.', shot='eva_room', **I(eva_found='>0')),
     S('eva', 'Прости, я тебе даже спасибо не сказала. Ты нас… Ну, ты понял.', 'Sorry, I never even said thank you. You… well, you know.', shot='eva_room'),
     S('noah', 'Это бабушка. И Айрис.', 'That was Grandma. And Iris.', shot='noah_room'),
     S('eva', 'И ты. Не спорь.', 'And you. Don’t argue.', shot='eva_room'),
@@ -174,13 +176,13 @@ SC['c5_s1_pills'] = {'beats': [
 
 SC['c5_s1_pills_old'] = {'beats': [   # новый пузырёк остался на сиденье, а старый — в кармане
     {'if': {'pills_old': '>0'}, 'else': 'c5_s1_pills2'},
-    {'fx': 'bottle5', 'shot': 'bottle5', **N('В кармане — старый пузырёк Хейла, ещё из дома.', 'In his pocket — Hale’s old bottle, from home.', 2.6)},
+    {'fx': 'bottle5', 'shot': 'bottle5', **N('В кармане — запасной пузырёк, тот, что был в куртке.', 'In his pocket — the spare bottle, the one from his jacket.', 2.6)},
     C(8, [O('Принять', 'Take one', 'c5_s1_take'),
           O('Бросить в печь', 'Throw them in the stove', 'c5_s1_burn')], shot='noah_room', silent='c5_s1_keep')]}
 
 SC['c5_s1_pills2'] = {'beats': [
     {'if': {'pills_iris': '>0'}, 'else': 'c5_s1_go'},
-    N('Пузырёк — у Айрис. Она смотрит на брата.', 'The bottle is with Iris. She watches her brother.', 2.6, shot='iris_room'),
+    N('Пузырёк — у Айрис. Она смотрит на брата.', 'Iris has the bottle. She watches her brother.', 2.6, shot='iris_room'),
     C(8, [O('Попросить таблетку', 'Ask her for a pill', 'c5_s1_ask'),
           O('Не просить', 'Don’t ask', 'c5_s1_keep')], shot='noah_room', silent='c5_s1_keep')]}
 
@@ -210,9 +212,43 @@ SC['c5_s1_keep'] = {'beats': [
     N('Ной ничего не принимает. Звон остаётся.', 'Noah takes nothing. The ringing stays.', 2.4, shot='noah_room'),
     {'go': 'c5_s1_go'}]}
 
-SC['c5_s1_go'] = {'beats': [
-    N('Уходя к сараю, Айрис отдаёт малышку тем, кто остаётся в доме.', 'On her way out to the boathouse, Iris hands the baby to whoever stays in the house.', 2.8, shot='dacha_room', **{'if': {'baby': '>0', 'home': '>0'}}),
-    N('Айрис укладывает малышку в бельевую корзину у тёплой печи — оставить её больше не с кем.', 'Iris tucks the baby into a laundry basket by the warm stove — there’s no one else to leave her with.', 3.2, shot='dacha_room', **{'if': {'baby': '>0', 'home': '==0'}}),
+SC['c5_s1_go'] = {'beats': [   # кто остаётся с малышкой: мать → бабушка → Зоя или Дэнни (выбор) → никого: Айрис берёт её с собой
+    {'if': {'baby': '>0'}, 'else': 'c5_s1_go2'},
+    N('Малышка остаётся с Евой у печи.', 'The baby stays with Eva by the stove.', 2.4, shot='dacha_room', **I(eva_alive='>0')),
+    {'if': {'eva_alive': '==0'}, 'else': 'c5_s1_go2'},
+    N('Айрис отдаёт малышку бабушке.', 'Iris hands the baby to Grandma.', 2.4, shot='dacha_room', **I(agnes_dead='==0')),
+    {'if': {'agnes_dead': '>0'}, 'else': 'c5_s1_go2'},
+    {'if': {'zoe_here': '>0', 'danny_here': '>0'}, 'else': 'c5_s1_sit1'},
+    N('Взрослых в доме больше нет. С малышкой должен остаться кто-то один — и он уже не выйдет к озеру.', 'There are no grown-ups left in the house. Someone has to stay with the baby — and whoever stays won’t come down to the lake.', 3.6, shot='dacha_room'),
+    C(8, [O('«Зоя, побудь с ней»', '“Zoe, stay with her”', 'c5_s1_sit_zoe'),
+          O('«Дэнни, ты за старшего»', '“Danny, you’re in charge”', 'c5_s1_sit_danny')], shot='noah_room', silent='c5_s1_sit_zoe')]}
+
+SC['c5_s1_sit_zoe'] = {'beats': [
+    {'set': {'sitter_zoe': 1}},
+    N('Зоя берёт малышку неловко — как что-то, что может взорваться.', 'Zoe takes the baby awkwardly — like something that might go off.', 2.6, shot='dacha_room'),
+    S('zoe', 'Я с детьми не очень. Но ладно. Иди.', 'I’m not great with babies. But fine. Go.', shot='dacha_room'),
+    {'go': 'c5_s1_go2'}]}
+
+SC['c5_s1_sit_danny'] = {'beats': [
+    {'set': {'sitter_danny': 1}},
+    N('Дэнни садится рядом с корзиной и не сводит с малышки глаз.', 'Danny sits down by the basket and doesn’t take his eyes off the baby.', 2.6, shot='dacha_room'),
+    S('danny', 'Я буду считать, как она дышит.', 'I’ll count her breaths.', shot='dacha_room'),
+    {'go': 'c5_s1_go2'}]}
+
+SC['c5_s1_sit1'] = {'beats': [   # из Зои и Дэнни здесь только один (или никого)
+    {'if': {'zoe_here': '>0'}, 'else': 'c5_s1_sit1d'},
+    {'go': 'c5_s1_sit_zoe'}]}
+
+SC['c5_s1_sit1d'] = {'beats': [
+    {'if': {'danny_here': '>0'}, 'else': 'c5_s1_along'},
+    {'go': 'c5_s1_sit_danny'}]}
+
+SC['c5_s1_along'] = {'beats': [   # в доме никого: одну малышку не оставляют — Айрис берёт её с собой и в финале остаётся с ней в сарае
+    {'set': {'baby_along': 1}},
+    N('Оставить малышку не с кем. Айрис заворачивает её в мамин плащ и берёт с собой.', 'There’s no one to leave the baby with. Iris wraps her in Mom’s raincoat and takes her along.', 3.2, shot='dacha_room'),
+    {'go': 'c5_s1_go2'}]}
+
+SC['c5_s1_go2'] = {'beats': [
     {'if': {'pills5': '>0'}, 'else': 'c5_s2'},
     {'fx': 'gap_ice', 'shot': 'gap_view', **N('Ной заходит в сарай и смотрит в щель. Там просто лёд.', 'Noah goes into the boathouse and looks through the gap. There’s only ice.', 3.0)},
     S('noah', 'Прости. Там ничего нет.', 'I’m sorry. There’s nothing there.', shot='noah_shed'),
@@ -221,15 +257,15 @@ SC['c5_s1_go'] = {'beats': [
 
 # ---------- Сцена 2. «Сарай» (воспоминание) ----------
 SC['c5_s2'] = {'save': True, 'beats': [
-    {'fx': 'kneel_gap', 'shot': 'noah_gap', **N('В сарае пахнет смолой и старой лодкой. Ной встаёт на колени у щели.', 'The boathouse smells of tar and old boat. Noah kneels by the gap.', 3.0)},
+    {'fx': 'kneel_gap', 'shot': 'noah_gap', **N('В сарае пахнет смолой и старой лодкой. Ной встаёт на колени у щели.', 'The boathouse smells of tar and old boats. Noah kneels by the gap.', 3.0)},
     {'fx': 'summer_night'},
-    {'fx': 'fade_in', 'shot': 'memory_dock', **N('А там — уже лето. Тёплая ночь, лягушки. На мостках — фонарь, у ног — сумки.', 'And there — it’s summer. A warm night, frogs. A lantern on the dock, bags at her feet.', 3.6)},
+    {'fx': 'fade_in', 'shot': 'memory_dock', **N('А там — уже лето. Тёплая ночь, лягушки. На мостках — фонарь, у ног — сумки.', 'And there — it’s summer. A warm night, frogs. A lantern on the dock, packed bags beside it.', 3.6)},
     {'fx': 'mom_hum', 'shot': 'mom', **N('Мама сидит рядом и тихо напевает ту самую колыбельную.', 'Mom sits beside him, softly humming that same lullaby.', 3.0)},
     S('mom', 'Скоро приедет дядя Саймон, и поедем к бабушке. Только тихо, Айрис спит.', 'Uncle Simon will be here soon, and then we’re going to Grandma’s. Shh, Iris is sleeping.', shot='mom'),
     {'fx': 'road_lights', 'shot': 'memory_road', **N('На дороге — фары. Мама улыбается — и улыбка гаснет: это не та машина.', 'Headlights on the road. Mom smiles — and the smile dies: it’s the wrong car.', 3.2)},
     S('mom', 'Ной, в сарай. Быстро. Сиди тихо, как мышка, что бы ни было.', 'Noah, into the boathouse. Quick. Quiet as a mouse, no matter what.', shot='mom'),
     {'fx': 'hum_stop'},
-    {'fx': 'victor_walk', 'shot': 'memory_dock', **N('По мосткам идёт отец. Пьяный, но шагает ровно — как человек, который уже всё решил.', 'Dad walks down the dock. Drunk, but his steps are steady — like a man who has already decided.', 3.4)},
+    {'fx': 'victor_walk', 'shot': 'memory_dock', **N('По мосткам идёт отец. Пьяный, но шагает ровно — как человек, который уже всё решил.', 'Dad walks down the dock. Drunk, but his steps are steady — like a man whose mind is made up.', 3.4)},
     {'fx': 'kick_bag', **S('victor', 'Куда собралась? Саймон всё рассказал. Сам позвонил. Друг всё-таки.', 'Going somewhere? Simon told me everything. Called me himself. Good friend, Simon.', shot='victor')},
     S('mom', '…Он же обещал.', '…He promised.', shot='mom'),
     {'fx': 'grab_hair', 'shot': 'memory_dock', **N('Отец хватает её за волосы и тащит к краю мостков.', 'Dad grabs her by the hair and drags her to the edge of the dock.', 2.8)},
@@ -269,11 +305,12 @@ SC['c5_s2_after'] = {'beats': [
     {'fx': 'first_pill', **S('hale', 'Выпей. К утру всё пройдёт.', 'Here, take this. It’ll all be gone by morning.', shot='young_hale_low')},
     {'fx': 'fade_out', 'dur': 1.2, **N('Первая таблетка. Сарай темнеет.', 'The first pill. The boathouse goes dark.', 2.6)},
     {'fx': 'winter_back'},
-    {'fx': 'fade_in', 'shot': 'noah_gap', **N('Снова зима. Ной стоит на коленях у щели. Сзади — Айрис.', 'Winter again. Noah is on his knees by the gap. Iris is behind him.', 3.0)},
+    {'fx': 'fade_in', 'shot': 'noah_gap', **N('Снова зима. Ной стоит на коленях у щели. Сзади — Айрис.', 'Winter again. Noah is on his knees by the gap. Iris is behind him.', 3.0, **I(baby_along='==0'))},
+    {'fx': 'fade_in', 'shot': 'noah_gap', **N('Снова зима. Ной стоит на коленях у щели. Сзади — Айрис, малышка у неё на руках.', 'Winter again. Noah is on his knees by the gap. Iris is behind him, the baby in her arms.', 3.0, **I(baby_along='>0'))},
     S('iris', 'Ты вспомнил?', 'You remember?', shot='iris_shed'),
     S('noah', 'Вспомнил.', 'I remember.', shot='noah_shed'),
     {'set': {'remembered': 1, 'memory': 1}},
-    {'fx': 'iris_lean', 'shot': 'shed_two', **N('Айрис утыкается лбом ему в плечо — будто наконец донесла то, что несла одна всю дорогу.', 'Iris presses her forehead to his shoulder — as if she’d finally delivered what she’d carried alone the whole way.', 3.8)},
+    {'fx': 'iris_lean', 'shot': 'shed_two', **N('Айрис утыкается лбом ему в плечо — будто наконец донесла то, что несла одна всю дорогу.', 'Iris presses her forehead to his shoulder — as if she could finally set down what she’d carried alone the whole way.', 3.8)},
     {'if': {'agnes_dead': '==0', 'belief_healer': '>0'}, 'else': 'c5_s3'},
     {'fx': 'agnes_door5', 'shot': 'agnes_shed5', **N('В дверях сарая — бабушка.', 'Grandma is in the boathouse doorway.', 1.8)},
     S('agnes', 'Тогда она с тобой.', 'Then she’s with you.', shot='agnes_shed5'),
@@ -285,11 +322,12 @@ SC['c5_s3'] = {'save': True, 'time': '09:20', 'beats': [
     SET({'agnes_dead': '==0', 'remembered': '>0', 'belief_healer': '==0', 'belief_doctor': '==0', 'look_mom': '>0'}, agnes_sings=1),
     {'fx': 'sedan_arrives', 'shot': 'sedan_shore', **N('С дороги спускается чёрный седан и встаёт у сарая. Мотор работает.', 'The black sedan comes down from the road and stops by the boathouse. The engine keeps running.', 3.2)},
     N('Первым выходит санитар и открывает заднюю дверь.', 'The orderly gets out first and opens the back door.', 2.6, shot='sedan_shore', **I(orderly_dead='==0')),
-    N('Зоя — сонная, в чужом пуховике. Санитар держит её под локоть.', 'Zoe — drowsy, in a stranger’s down jacket. The orderly holds her by the elbow.', 3.0, shot='sedan_shore', **{'if': {'zoe_taken': '>0', 'orderly_dead': '==0'}}),
+    N('Зоя — сонная, в чужом пуховике. Санитар держит её под локоть.', 'Zoe — drowsy, in a down jacket that isn’t hers. The orderly holds her by the elbow.', 3.0, shot='sedan_shore', **{'if': {'zoe_taken': '>0', 'orderly_dead': '==0'}}),
     N('Дэнни молча держится за его рукав.', 'Danny silently holds on to his sleeve.', 2.4, shot='sedan_shore', **{'if': {'danny_hale': '>0', 'orderly_dead': '==0'}}),
-    N('Хейл за рулём сам. На заднем сиденье — заложники. Двери на детском замке.', 'Hale is driving himself. In the back seat — the hostages. Child locks on the doors.', 3.0, shot='sedan_shore', **{'if': {'orderly_dead': '>0', 'hostage': '>0'}}),
-    {'fx': 'noah_ice', 'shot': 'ice_wide', **N('Ной выходит на мостки и спускается на лёд — подальше от дома, где младенец.', 'Noah walks out onto the dock and down onto the ice — away from the house with the baby.', 3.2)},
-    {'fx': 'hale_ice', 'shot': 'ice_wide', **N('Хейл идёт к мосткам той же тропой, что одиннадцать лет назад. И выходит за ним на лёд.', 'Hale walks to the dock by the same path as eleven years ago. And follows him onto the ice.', 3.4)},
+    N('Хейл за рулём сам. На заднем сиденье — заложники. Двери на детском замке.', 'Hale is at the wheel himself. In the back seat — the hostages. Child locks on the doors.', 3.0, shot='sedan_shore', **{'if': {'orderly_dead': '>0', 'hostage': '>0'}}),
+    {'fx': 'noah_ice', 'shot': 'ice_wide', **N('Ной выходит на мостки и спускается на лёд — подальше от дома, где младенец.', 'Noah walks out onto the dock and down onto the ice — away from the house with the baby.', 3.2, **I(baby_along='==0'))},
+    {'fx': 'noah_ice', 'shot': 'ice_wide', **N('Ной выходит на мостки и спускается на лёд — подальше от сарая, где Айрис с малышкой.', 'Noah walks out onto the dock and down onto the ice — away from the boathouse where Iris is with the baby.', 3.2, **I(baby_along='>0'))},
+    {'fx': 'hale_ice', 'shot': 'ice_wide', **N('Хейл идёт к мосткам той же тропой, что одиннадцать лет назад. И выходит за ним на лёд.', 'Hale walks to the dock along the same path he took eleven years ago. And follows him onto the ice.', 3.4)},
     N('Они останавливаются у края тёмного пятна.', 'They stop at the edge of the dark patch.', 2.4, shot='ice_two'),
     S('hale', 'Ты был в сарае. Что бы ты там ни увидел, Ной, — это сон. Мы это сто раз проходили.', 'You were in the boathouse. Whatever you saw in there, Noah, it was a dream. We’ve been through this a hundred times.', shot='hale_ice', **I(remembered='>0')),
     S('hale', 'Как голова? Выпил таблетку? Умница. Видишь — сразу легче.', 'How’s the head? Took your pill? Good boy. See? Better already.', shot='hale_ice', **I(pills5='>0')),
@@ -302,6 +340,7 @@ SC['c5_s3'] = {'save': True, 'time': '09:20', 'beats': [
     {'go': 'c5_s3_iris'}]}
 
 SC['c5_s3_iris'] = {'beats': [
+    {'if': {'baby_along': '==0'}, 'else': 'c5_s3_shed'},
     {'fx': 'iris_ice', 'shot': 'ice_wide', **N('Айрис выходит по мосткам на лёд — следом за братом.', 'Iris walks down the dock onto the ice — after her brother.', 2.8)},
     S('iris', 'Ты мне тогда сказал: не ходи к озеру одна. А я не одна.', 'That night you told me not to go to the lake alone. Well, I’m not alone.', shot='iris_ice', **I(night_lapse='>0')),
     S('hale', 'Айрис, детка, отойди от него. Ты же видела, на что он способен.', 'Iris, sweetheart, step away from him. You’ve seen what he can do.', shot='hale_ice'),
@@ -317,6 +356,22 @@ SC['c5_s3_iris'] = {'beats': [
            O('[улыбнуться]', '[smile]', 'c5_s3_smile', **{'if': {'shadow': '>=2', 'pills5': '==0'}, 'shadow': True}),
            O('[слушать]', '[listen]', 'c5_s3_listen', **I(agnes_sings='>0'))],
       shot='noah_ice', silent='c5_s3_silent')]}
+
+SC['c5_s3_shed'] = {'beats': [   # Айрис с малышкой осталась в сарае: смотрит в щель, как он когда-то
+    {'fx': 'iris_shed_door', 'shot': 'ice_wide', **N('Айрис остаётся в сарае с малышкой и смотрит в щель — как он когда-то.', 'Iris stays in the boathouse with the baby and watches through the gap — the way he once did.', 3.4)},
+    S('hale', 'Айрис, детка, выходи. Девочке нужно в тепло.', 'Iris, sweetheart, come on out. The little one needs to get warm.', shot='hale_ice'),
+    S('iris', 'Я читала про тебя. В мамином дневнике.', 'I’ve read about you. In Mom’s diary.', shot='iris_shed'),
+    S('hale', 'Посмотри на берег, Ной. Зоя приняла много лекарства. На морозе это опасно, ей нужен врач. Поедешь со мной — и все разъедутся по домам.', 'Look at the shore, Noah. Zoe’s had a lot of medication. In this cold, that’s dangerous — she needs a doctor. Come with me, and everyone goes home.', shot='hale_ice', **I(zoe_taken='>0')),
+    S('hale', 'Посмотри на берег. Дэнни совсем замёрз. Поедешь со мной — отвезу его к маме.', 'Look at the shore. Danny’s frozen stiff. Come with me, and I’ll take him to his mom.', shot='hale_ice', **{'if': {'zoe_taken': '==0', 'danny_hale': '>0'}}),
+    C(10, [O('«Отпусти их. Тогда поеду»', '“Let them go. Then I’ll come”', 'c5_oblivion', **{'if': {'hostage': '>0', 'remembered': '>0'}}),
+           O('«Отпустите их. Тогда поеду»', '“Let them go. Then I’ll come”', 'c5_oblivion', **{'if': {'hostage': '>0', 'remembered': '==0'}}),
+           O('«Ладно. Поехали»', '“Fine. Let’s go”', 'c5_oblivion', **I(hostage='==0')),
+           O('«Я всё помню»', '“I remember everything”', 'c5_s3_remember', **I(remembered='>0')),
+           O('«Я не поеду»', '“I’m not going”', 'c5_s3_wont', **I(remembered='==0')),
+           O('[улыбнуться]', '[smile]', 'c5_s3_smile', **{'if': {'shadow': '>=2', 'pills5': '==0'}, 'shadow': True}),
+           O('[слушать]', '[listen]', 'c5_s3_listen', **I(agnes_sings='>0'))],
+      shot='noah_ice', silent='c5_s3_silent')]}
+
 
 SC['c5_s3_silent'] = {'beats': [
     {'set': {'silent_ice': 1}},
@@ -335,29 +390,39 @@ SC['c5_s3_remember'] = {'beats': [
     S('hale', 'Я… я только сказал ему. Я испугался, Ной. Он бы меня… Я не думал, что он её…', 'I… I only told him. I was scared, Noah. He would have… I never thought he’d…', shot='hale_ice'),
     S('hale', 'Тебе было восемь. Ты кричал по ночам. Я тебе помог.', 'You were eight. You screamed every night. I helped you.', shot='hale_ice'),
     S('noah', 'Ты помог себе.', 'You helped yourself.', shot='noah_ice'),
-    {'fx': 'hale_grabs', 'shot': 'ice_two', **N('Хейл берёт Айрис за руку — крепко, как врач берёт буйного пациента.', 'Hale takes Iris by the arm — firmly, the way a doctor takes hold of a violent patient.', 3.2)},
+    {'fx': 'hale_grabs', 'shot': 'ice_two', **N('Хейл берёт Айрис за руку — крепко, как врач берёт буйного пациента.', 'Hale takes Iris by the arm — firmly, the way a doctor takes hold of a violent patient.', 3.2, **I(baby_along='==0'))},
+    N('Хейл поворачивается к сараю — к щели, за которой Айрис.', 'Hale turns toward the boathouse — toward the gap Iris is watching through.', 2.8, shot='ice_two', **I(baby_along='>0')),
     S('hale', 'Айрис поедет со мной. Ей тоже нужна помощь.', 'Iris is coming with me. She needs help too.', shot='hale_ice'),
     {'go': 'c5_s3_onice'}]}
 
 SC['c5_s3_wont'] = {'beats': [
     {'set': {'said_wont': 1}},
     S('noah', 'Я не знаю, что тогда было. Но Айрис я вам не отдам.', 'I don’t know what happened back then. But I’m not giving you Iris.', shot='noah_ice'),
-    {'fx': 'hale_grabs', 'shot': 'ice_two', **N('Хейл вздыхает и берёт Айрис за руку.', 'Hale sighs and takes Iris by the arm.', 2.6)},
+    {'fx': 'hale_grabs', 'shot': 'ice_two', **N('Хейл вздыхает и берёт Айрис за руку.', 'Hale sighs and takes Iris by the arm.', 2.6, **I(baby_along='==0'))},
+    N('Хейл вздыхает и поворачивается к сараю.', 'Hale sighs and turns toward the boathouse.', 2.4, shot='ice_two', **I(baby_along='>0')),
     S('hale', 'Жаль. Тогда Айрис поедет со мной. Ей тоже нужна помощь.', 'That’s a shame. Then Iris is coming with me. She needs help too.', shot='hale_ice'),
     {'go': 'c5_s3_onice'}]}
 
 SC['c5_s3_onice'] = {'beats': [
+    {'if': {'baby_along': '==0'}, 'else': 'c5_s3_onice2'},
     {'fx': 'iris_back', 'shot': 'ice_two', **N('Айрис вырывается и отступает — на тёмный лёд. Хейл шагает за ней.', 'Iris tears free and backs away — onto the dark ice. Hale steps after her.', 3.0)},
     {'go': 'c5_s4'}]}
+
+SC['c5_s3_onice2'] = {'beats': [   # Айрис в сарае: Хейл идёт к ней напрямик — по тёмному льду
+    {'fx': 'hale_backs', 'shot': 'ice_two', **N('Хейл идёт к сараю напрямик — по тёмному льду.', 'Hale heads straight for the boathouse — across the dark ice.', 2.6)},
+    {'go': 'c5_s4_alone'}]}
 
 SC['c5_s3_smile'] = {'beats': [
     {'set': {'smiled': 1}},
     {'fx': 'smile', 'shot': 'noah_smile', **N('Звук уходит. Ной улыбается — и это не его улыбка.', 'The sound drains away. Noah smiles — and it isn’t his smile.', 3.0)},
     {'fx': 'hale_backs', 'shot': 'ice_two', **N('Он идёт к Хейлу. Хейл пятится.', 'He walks toward Hale. Hale backs away.', 2.4)},
     S('hale', 'Ной. Ной, стой. Посмотри на меня. Ты же меня знаешь.', 'Noah. Noah, stop. Look at me. You know me.', shot='hale_ice'),
-    {'fx': 'iris_sleeve', **S('iris', 'Ной, не надо!', 'Noah, don’t!', shot='iris_ice')},
-    {'fx': 'iris_falls', 'shot': 'ice_two', **N('«Второй он» стряхивает её, как ветку. Айрис падает на тёмный лёд; Хейл отступает туда же.', '“The other him” shakes her off like a twig. Iris falls onto the dark ice; Hale backs onto it too.', 3.4)},
+    {'fx': 'iris_sleeve', **S('iris', 'Ной, не надо!', 'Noah, don’t!', shot='iris_ice', **I(baby_along='==0'))},
+    S('iris', 'Ной, не надо!', 'Noah, don’t!', shot='iris_shed', **I(baby_along='>0')),
+    {'fx': 'iris_falls', 'shot': 'ice_two', **N('«Второй он» стряхивает её, как ветку. Айрис падает на тёмный лёд; Хейл отступает туда же.', '“The other him” shakes her off like a twig. Iris falls onto the dark ice; Hale backs onto it too.', 3.4, **I(baby_along='==0'))},
+    N('Из сарая кричит Айрис. «Второй он» не слышит. Хейл пятится — прямо на тёмный лёд.', 'Iris screams from the boathouse. “The other him” doesn’t hear. Hale backs away — straight onto the dark ice.', 3.2, shot='ice_two', **I(baby_along='>0')),
     S('agnes', 'Не Аня это! Не она!', 'That’s not Anna! That’s not her!', shot='agnes_shore', fx='agnes_out', **I(agnes_dead='==0')),
+    {'if': {'baby_along': '==0'}, 'else': 'c5_s4_shadow_alone'},
     {'go': 'c5_s4_shadow'}]}
 
 SC['c5_s3_listen'] = {'beats': [
@@ -370,7 +435,7 @@ SC['c5_s3_listen'] = {'beats': [
 # ---------- Сцена 4. «Трещина» ----------
 SC['c5_s4'] = {'save': True, 'beats': [
     SET({'ptotal': '>=3'}, weak=1), SET({'ptotal': '<3', 'pills5': '>0'}, weak=1),
-    SET({'zoe_hook': '>0'}, help=1), SET({'zoe_hook': '==0', 'danny_rope': '>0'}, help=1),
+    SET({'zoe_hook': '>0', 'sitter_zoe': '==0'}, help=1), SET({'danny_rope': '>0', 'sitter_danny': '==0', 'help': '==0'}, help=1),
     {'fx': 'crack', 'shot': 'ice_two', **N('Тёмный лёд у мостков проваливается — под Айрис и под Хейлом.', 'The dark ice by the dock gives way — under Iris and under Hale.', 2.8)},
     {'fx': 'in_water', 'shot': 'hole', **N('Оба в чёрной воде. Хейл хватается за Айрис: утопающий хватается за всё, что рядом.', 'Both are in the black water. Hale grabs Iris: a drowning man grabs whatever is near.', 3.2)},
     S('agnes', 'Ложись! На брюхо ложись, милок!', 'Get down! Flat on your belly, sonny!', shot='agnes_shore', fx='agnes_out', **I(agnes_dead='==0')),
@@ -380,11 +445,29 @@ SC['c5_s4'] = {'save': True, 'beats': [
           O('Хейла', 'Hale', 'c5_s4_hale'),
           O('Нырнуть', 'Dive in', 'c5_s4_dive')], shot='noah_crawl', silent='c5_s4_iris')]}
 
+SC['c5_s4_alone'] = {'save': True, 'beats': [
+    {'fx': 'crack', 'shot': 'ice_two', **N('Тёмный лёд у мостков проваливается под Хейлом.', 'The dark ice by the dock gives way under Hale.', 2.6)},
+    {'fx': 'ice_takes', 'shot': 'hole', **N('Хейл в чёрной воде. Пальцы скребут по кромке.', 'Hale is in the black water. His fingers scrape at the edge.', 2.8)},
+    {'fx': 'crawl', 'shot': 'crawl', **N('Ной падает на лёд и ползёт к краю.', 'Noah drops onto the ice and crawls to the edge.', 2.6)},
+    {'fx': 'hand_edge', **S('hale', 'Ной… Руку…', 'Noah… Your hand…', shot='hole')},
+    C(5, [O('Протянуть руку Хейлу', 'Reach out to Hale', 'c5_s4_reach'),
+          O('Не двигаться', 'Don’t move', 'c5_s4_still')], shot='noah_crawl', silent='c5_s4_still')]}
+
+SC['c5_s4_shadow_alone'] = {'beats': [
+    {'fx': 'crack', 'shot': 'hole', **N('Лёд проваливается под Хейлом. Он цепляется за кромку.', 'The ice gives way under Hale. He clings to the edge.', 2.6)},
+    {'fx': 'ice_takes', 'shot': 'hole'},
+    {'fx': 'boot', 'shot': 'boot', **N('«Второй он» не ложится на лёд. Он подходит к Хейлу и наступает ботинком ему на пальцы.', '“The other him” doesn’t lie down on the ice. He walks up to Hale and steps on his fingers.', 3.4)},
+    S('hale', 'Ной… Ной, пожалуйста…', 'Noah… Noah, please…', shot='hale_water'),
+    {'fx': 'hale_slips', 'shot': 'hole', **N('Пальцы Хейла соскальзывают. Он уходит под лёд.', 'Hale’s fingers slip. He goes under the ice.', 3.0)},
+    {'set': {'hale_killed': 1, 'end_shadow': 1}},
+    N('Ной приходит в себя. Над полыньёй — тишина. Из щели сарая на него смотрит Айрис.', 'Noah comes back to himself. Silence over the hole. Through the gap in the boathouse, Iris is watching him.', 3.4, shot='ice_two'),
+    {'go': 'c5_shore'}]}
+
 SC['c5_s4_iris'] = {'beats': [
     {'fx': 'grab_iris', 'shot': 'hole_hands', **N('Ной хватает её за запястье. Хейл держит её за куртку и тянет вниз.', 'Noah grabs her wrist. Hale has her by the jacket and is dragging her down.', 3.0)},
     S('noah', 'Куртку! Снимай куртку!', 'Your jacket! Get it off!', shot='noah_crawl'),
-    N('Зоя подползает с багром и цепляет им Айрис за капюшон.', 'Zoe crawls up with the boat hook and snags Iris by the hood.', 2.4, shot='hole', **I(zoe_hook='>0')),
-    N('Дэнни бросает верёвку. Ной наматывает её на руку — Дэнни тянет с мостков.', 'Danny throws the rope. Noah wraps it around his hand — Danny pulls from the dock.', 2.6, shot='hole', **I(danny_rope='>0')),
+    N('Зоя подползает с багром и цепляет им Айрис за капюшон.', 'Zoe crawls up with the boat hook and snags Iris by the hood.', 2.4, shot='hole', fx='helper_zoe', **I(zoe_hook='>0', sitter_zoe='==0')),
+    N('Дэнни бросает верёвку. Ной наматывает её на руку — Дэнни тянет с мостков.', 'Danny throws the rope. Noah wraps it around his hand — Danny pulls from the dock.', 2.6, shot='hole', fx='helper_danny', **I(danny_rope='>0', sitter_danny='==0')),
     {'qte': 'press', 't': 9.0, 'n': 12, 'hint': PULL_HELP, 'fail': 'c5_s4_iris_fail', 'if': {'weak': '==0', 'help': '>0'}},
     {'qte': 'press', 't': 7.0, 'n': 15, 'hint': PULL, 'fail': 'c5_s4_iris_fail', 'if': {'weak': '==0', 'help': '==0'}},
     {'qte': 'press', 't': 9.0, 'n': 17, 'hint': PULL_HELP, 'fail': 'c5_s4_iris_fail', 'if': {'weak': '>0', 'help': '>0'}},
@@ -396,8 +479,8 @@ SC['c5_s4_iris'] = {'beats': [
 
 SC['c5_s4_reach'] = {'beats': [
     {'fx': 'reach_hale', 'shot': 'hole_hands', **N('Ной протягивает руку.', 'Noah reaches out.', 2.0)},
-    N('Зоя подаёт багор.', 'Zoe holds out the boat hook.', 2.0, shot='hole', **I(zoe_hook='>0')),
-    N('Дэнни бросает верёвку.', 'Danny throws the rope.', 2.0, shot='hole', **I(danny_rope='>0')),
+    N('Зоя подаёт багор.', 'Zoe holds out the boat hook.', 2.0, shot='hole', fx='helper_zoe', **I(zoe_hook='>0', sitter_zoe='==0')),
+    N('Дэнни бросает верёвку.', 'Danny throws the rope.', 2.0, shot='hole', fx='helper_danny', **I(danny_rope='>0', sitter_danny='==0')),
     {'qte': 'mash', 't': 8.0, 'n': 9, 'hint': {'ru': 'Тяните вместе! Быстро жми E / пробел', 'en': 'Haul together! Mash E / Space'}, 'fail': 'c5_s4_hale_gone', 'if': {'help': '>0'}},
     {'qte': 'mash', 't': 6.0, 'n': 13, 'hint': {'ru': 'Вытаскивай! Быстро жми E / пробел', 'en': 'Haul him out! Mash E / Space'}, 'fail': 'c5_s4_hale_gone', 'if': {'help': '==0'}},
     {'set': {'hale_saved': 1}},
@@ -411,7 +494,7 @@ SC['c5_s4_still'] = {'beats': [
     {'go': 'c5_shore'}]}
 
 SC['c5_s4_hale_gone'] = {'beats': [
-    {'fx': 'hale_slips', 'shot': 'hole', **N('Не хватает сил. Рука Хейла выскальзывает. Озеро забирает его.', 'Not enough strength. Hale’s hand slips free. The lake takes him.', 3.0)},
+    {'fx': 'hale_slips', 'shot': 'hole', **N('Не хватает сил. Рука Хейла выскальзывает. Озеро забирает его.', 'His strength gives out. Hale’s hand slips free. The lake takes him.', 3.0)},
     {'set': {'hale_drowned': 1, 'end_witness': 1}},
     {'go': 'c5_shore'}]}
 
@@ -425,8 +508,8 @@ SC['c5_s4_hale'] = {'beats': [
     {'fx': 'grab_hale', 'shot': 'hole_hands', **N('Ной хватает Хейла за воротник. Хейл отпускает Айрис и вцепляется в Ноя обеими руками.', 'Noah grabs Hale by the collar. Hale lets go of Iris and clamps onto Noah with both hands.', 3.4)},
     S('noah', 'Он за всё ответит.', 'He’s going to answer for this.', shot='noah_crawl'),
     S('noah', 'Ложись грудью на лёд! Ногами работай!', 'Get your chest on the ice! Kick with your legs!', shot='noah_crawl'),
-    N('Зоя цепляет багром куртку Айрис и тянет её к кромке.', 'Zoe hooks Iris’s jacket with the boat hook and drags her toward the edge.', 2.4, shot='hole', **I(zoe_hook='>0')),
-    N('Дэнни бросает верёвку. Айрис хватается за неё.', 'Danny throws the rope. Iris grabs hold of it.', 2.2, shot='hole', **I(danny_rope='>0')),
+    N('Зоя цепляет багром куртку Айрис и тянет её к кромке.', 'Zoe hooks Iris’s jacket with the boat hook and drags her toward the edge.', 2.4, shot='hole', fx='helper_zoe', **I(zoe_hook='>0', sitter_zoe='==0')),
+    N('Дэнни бросает верёвку. Айрис хватается за неё.', 'Danny throws the rope. Iris grabs hold of it.', 2.2, shot='hole', fx='helper_danny', **I(danny_rope='>0', sitter_danny='==0')),
     {'qte': 'press', 't': 9.0, 'n': 14, 'hint': PULL_HELP, 'fail': 'c5_s4_hale_fail', 'if': {'weak': '==0', 'help': '>0'}},
     {'qte': 'press', 't': 7.0, 'n': 17, 'hint': PULL, 'fail': 'c5_s4_hale_fail', 'if': {'weak': '==0', 'help': '==0'}},
     {'qte': 'press', 't': 9.0, 'n': 19, 'hint': PULL_HELP, 'fail': 'c5_s4_hale_fail', 'if': {'weak': '>0', 'help': '>0'}},
@@ -436,9 +519,10 @@ SC['c5_s4_hale'] = {'beats': [
     {'go': 'c5_shore'}]}
 
 SC['c5_s4_hale_fail'] = {'beats': [
-    N('Хейл выползает на лёд по спине Ноя.', 'Hale crawls out onto the ice over Noah’s back.', 2.4, shot='hole'),
+    N('Хейл выползает на лёд по спине Ноя.', 'Hale crawls out onto the ice over Noah’s back.', 2.4, shot='hole', fx='hale_crawls_out'),
     {'fx': 'iris_slips', 'shot': 'hole', **N('Пальцы Айрис соскальзывают с кромки. Ной ныряет за ней.', 'Iris’s fingers slip off the edge. Noah dives after her.', 3.0)},
     {'fx': 'noah_under', 'shot': 'hole', **N('Снизу он выталкивает её на лёд — и не всплывает.', 'From below, he pushes her up onto the ice — and doesn’t come back up.', 3.2)},
+    {'fx': 'iris_pushed_out', 'shot': 'hole', 'dur': 1.2},
     {'set': {'hale_saved': 1, 'iris_saved': 1, 'noah_drowned': 1, 'end_ice': 1}},
     {'go': 'c5_ice'}]}
 
@@ -487,7 +571,7 @@ SC['c5_shore'] = {'save': True, 'time': '10:30', 'beats': [
     {'if': {'hostage': '>0'}, 'else': 'c5_patrol'},
     {'if': {'orderly_dead': '>0'}, 'else': 'c5_shore_orderly'},
     {'fx': 'unlock', 'shot': 'sedan_shore', **N('Седан стоит у сарая с работающим мотором. Ной открывает задние двери снаружи. В машине тепло.', 'The sedan sits by the boathouse with its engine running. Noah opens the back doors from outside. It’s warm inside.', 3.6, **I(noah_drowned='==0'))},
-    {'fx': 'unlock', 'shot': 'sedan_shore', **N('Седан стоит у сарая с работающим мотором. Айрис, вся мокрая, открывает задние двери снаружи. В машине тепло.', 'The sedan sits by the boathouse with its engine running. Iris, soaked through, opens the back doors from outside. It’s warm inside.', 3.6, **I(noah_drowned='>0'))},
+    {'fx': 'unlock_iris', 'shot': 'sedan_shore', **N('Седан стоит у сарая с работающим мотором. Айрис, вся мокрая, открывает задние двери снаружи. В машине тепло.', 'The sedan sits by the boathouse with its engine running. Iris, soaked through, opens the back doors from outside. It’s warm inside.', 3.6, **I(noah_drowned='>0'))},
     N('Зоя сонная, но живая.', 'Zoe is drowsy, but alive.', 2.4, shot='zoe_car', **I(zoe_taken='>0')),
     {'set': {'zoe_safe': 1}, 'if': {'zoe_taken': '>0'}},
     N('Дэнни бежит к Айрис.', 'Danny runs to Iris.', 2.2, shot='sedan_shore', **I(danny_hale='>0')),
@@ -501,13 +585,19 @@ SC['c5_shore_orderly'] = {'beats': [
     {'if': {'noah_drowned': '==0'}, 'else': 'c5_zoe_iris'},
     {'fx': 'rub_hands', 'shot': 'zoe_snow', **N('Растирать руки, трясти, тащить к дому — и всё время говорить с ней.', 'Rub her hands, shake her, drag her to the house — and keep talking to her the whole time.', 3.0)},
     S('zoe', 'Сегодня четверг?..', 'Is it Thursday…?', shot='zoe_face'),
-    C(8, [O('«Пой. Ту, что в машине пела»', '“Sing. The one you sang in the car”', 'c5_zoe_sing', **I(zoe='>0')),
+    C(8, [O('«Пой. Ту, что в машине пела»', '“Sing. The one you sang in the car”', 'c5_zoe_sing', **I(zoe='>0', zoe_passed='==0')),
+          O('«Пой. Что угодно — только пой»', '“Sing. Anything — just sing”', 'c5_zoe_sing2', **I(zoe='>0', zoe_passed='>0')),   # в машине она пела только подобранная на дороге
           O('«Я тебе верю»', '“I believe you”', 'c5_zoe_believe', **I(zoe_believed='>0')),
           O('«Зоя. Это я»', '“Zoe. It’s me”', 'c5_zoe_me', **I(romance='>0')),
           O('«Не спи! Слышишь? Не спи!»', '“Stay awake! You hear me? Stay awake!”', 'c5_zoe_try')], shot='noah_snow', silent='c5_zoe_try')]}
 
 SC['c5_zoe_sing'] = {'beats': [
     S('noah', 'Нет. Сегодня ты не спишь. Пой. Ту, что в машине пела.', 'No. No sleeping today. Sing. The one you sang in the car.', shot='noah_snow'),
+    N('Она поёт — тихо и фальшиво.', 'She sings — softly and off-key.', 2.6, fx='zoe_sing', shot='zoe_face'),
+    {'go': 'c5_zoe_wake'}]}
+
+SC['c5_zoe_sing2'] = {'beats': [   # Зою подобрали в кафе — песни в машине не было
+    S('noah', 'Нет. Сегодня ты не спишь. Пой. Что угодно — только пой.', 'No. No sleeping today. Sing. Anything — just sing.', shot='noah_snow'),
     N('Она поёт — тихо и фальшиво.', 'She sings — softly and off-key.', 2.6, fx='zoe_sing', shot='zoe_face'),
     {'go': 'c5_zoe_wake'}]}
 
@@ -527,7 +617,7 @@ SC['c5_zoe_try'] = {'beats': [
     {'go': 'c5_zoe_wake'}]}
 
 SC['c5_zoe_iris'] = {'beats': [
-    {'fx': 'rub_hands', 'shot': 'zoe_snow', **N('Ноя нет. Зою растирает Айрис — мокрая, сама вся дрожит.', 'Noah is gone. Iris rubs Zoe’s hands — soaked, shaking herself.', 3.0)},
+    {'fx': 'rub_hands', 'shot': 'zoe_snow', **N('Ноя нет. Зою растирает Айрис — мокрая, сама вся дрожит.', 'Noah is gone. Iris rubs Zoe’s hands — soaked through and shivering herself.', 3.0)},
     S('iris', 'Зоя, не спи! Пожалуйста… Я сегодня больше никого не отдам.', 'Zoe, don’t fall asleep! Please… I’m not losing anyone else today.', shot='iris_snow'),
     {'qte': 'mash', 't': 6.0, 'n': 14, 'hint': {'ru': 'Растирай руки — быстро жми E / пробел', 'en': 'Rub her hands — mash E / Space'}, 'fail': 'c5_zoe_dies'},
     {'go': 'c5_zoe_wake'}]}
@@ -543,7 +633,20 @@ SC['c5_zoe_dies'] = {'beats': [
     {'fx': 'zoe_still', 'shot': 'zoe_face', **N('Зоя засыпает в снегу. И больше не просыпается.', 'Zoe falls asleep in the snow. And never wakes up.', 3.2)},
     {'go': 'c5_patrol'}]}
 
-SC['c5_patrol'] = {'beats': [
+EVIDENCE = [   # независимые источники против Хейла: каждый — один раз, сколько бы раз ни спасали свидетеля
+    SET({'diary_burned': '==0'}, ev_diary=1),                    # мамин дневник цел (страницы о Хейле)
+    SET({'zoe': '>0', 'zoe_gone': '==0'}, ev_zoe=1),             # Зоя — пациентка «Тихих сосен»: с ними до конца…
+    SET({'zoe_safe': '>0', 'ev_zoe': '==0'}, ev_zoe=1),          # …или выпущена из седана…
+    SET({'zoe_alive5': '>0', 'ev_zoe': '==0'}, ev_zoe=1),        # …или отогрета на берегу
+    SET({'agnes_dead': '==0'}, ev_agnes=1),                      # Агнес: Анна уходила от мужа, Агнес сама послала её к Хейлу
+    SET({'orderly_dead': '==0'}, ev_orderly=1),                  # санитар: «всё рассказал сам»
+    SET({'danny_hale': '>0'}, ev_danny=1),                       # Дэнни: Хейл выманил и держал его
+    SET({'ev_diary': '>0'}, proof=1), SET({'ev_zoe': '>0'}, proof=1), SET({'ev_agnes': '>0'}, proof=1),
+    SET({'ev_orderly': '>0'}, proof=1), SET({'ev_danny': '>0'}, proof=1),
+    SET({'remembered': '>0', 'proof': '>=2'}, exposed=1),        # показания Ноя (вспомнил) + минимум два независимых подтверждения
+]
+
+SC['c5_patrol'] = {'beats': EVIDENCE + [
     N('Санитар не ждёт, чем кончится на льду, — седан уезжает.', 'The orderly doesn’t wait to see how it ends on the ice — the sedan pulls away.', 2.8, shot='sedan_shore', **I(orderly_dead='==0', hostage='==0')),
     {'fx': 'patrol', 'shot': 'patrol', **N('К полудню на берег выезжает патруль: утром у поваленной сосны нашли брошенную буханку, а оттуда одна дорога — к озеру.', 'By noon a police patrol drives down to the shore: that morning they found the abandoned van at the fallen pine, and from there only one road leads — to the lake.', 4.2)},
     N('Среди патрульных — тот самый полицейский с поста. Он узнаёт Ноя.', 'One of the officers is the one from the checkpoint. He recognizes Noah.', 2.8, shot='patrol', **I(cop_saw='>0')),
@@ -560,21 +663,12 @@ SC['c5_route3'] = {'beats': [
     {'go': 'c5_mama_epi'}]}
 
 # ---------- доказательства (для «Свидетеля», «Лёда», «Мамы») ----------
-PROOF = [
-    SET({'diary_burned': '==0'}, proof=1),
-    SET({'zoe': '>0', 'zoe_gone': '==0'}, proof=1),
-    SET({'zoe_alive5': '>0'}, proof=1), SET({'zoe_safe': '>0'}, proof=1),
-    SET({'agnes_dead': '==0'}, proof=1),
-    SET({'orderly_dead': '==0'}, proof=1),
-    SET({'danny_hale': '>0'}, proof=1),
-    SET({'look_dad': '>0'}, proof=1),
-    SET({'remembered': '>0', 'proof': '>=2'}, exposed=1),
-]
 
 # ---------- «Свидетель» ----------
-SC['c5_witness'] = {'save': True, 'beats': PROOF + [
+SC['c5_witness'] = {'save': True, 'beats': [
     {'fx': 'hands_out', 'shot': 'patrol', **N('Ной сам идёт навстречу патрулю и протягивает руки.', 'Noah walks toward the patrol himself and holds out his hands.', 3.0)},
-    {'fx': 'hale_stove', 'shot': 'stove5', **N('Хейла, синего от холода, сажают у печки. Из сухого остался только мамин плащ.', 'Hale, blue with cold, is sat down by the stove. The only dry thing left is Mom’s raincoat.', 3.6, **I(hale_saved='>0'))},
+    {'fx': 'hale_stove', 'shot': 'stove5', **N('Хейла, синего от холода, сажают у печки. Из сухого остался только мамин плащ.', 'They sit Hale down by the stove, blue with cold. The only dry thing left is Mom’s raincoat.', 3.6, **I(hale_saved='>0', baby_along='==0'))},
+    {'fx': 'hale_stove', 'shot': 'stove5', **N('Хейла, синего от холода, сажают у печки. Мамин плащ — на малышке, Хейлу достаётся старое одеяло.', 'They sit Hale down by the stove, blue with cold. Mom’s raincoat is wrapped around the baby; Hale gets an old blanket.', 3.6, **I(hale_saved='>0', baby_along='>0'))},
     N('Бабушка молча накидывает плащ Хейлу на плечи.', 'Grandma silently drapes the raincoat over Hale’s shoulders.', 3.0, shot='stove5', **{'if': {'hale_saved': '>0', 'agnes_dead': '==0'}}),
     {'fx': 'fade_out', 'dur': 1.4},
     {'if': {'exposed': '>0'}, 'else': 'c5_witness_bitter'},
@@ -621,15 +715,15 @@ SC['c5_visit_cold'] = {'beats': [
 
 # ---------- «Тень» ----------
 SC['c5_shadow'] = {'save': True, 'beats': [
-    {'fx': 'iris_crawls', 'shot': 'iris_crawl', **N('Айрис лежит на льду, мокрая, и смотрит на брата. Потом отползает от него — как от чужого.', 'Iris lies on the ice, soaked, staring at her brother. Then she crawls away from him — like from a stranger.', 3.6)},
+    {'fx': 'iris_crawls', 'shot': 'iris_crawl', **N('Айрис лежит на льду, мокрая, и смотрит на брата. Потом отползает от него — как от чужого.', 'Iris lies on the ice, soaked, staring at her brother. Then she crawls away from him — as if he were a stranger.', 3.6, **I(baby_along='==0'))},
+    N('Айрис стоит в дверях сарая, прижимая малышку, и смотрит на брата. Потом отступает — как от чужого.', 'Iris stands in the boathouse doorway, holding the baby close, staring at her brother. Then she backs away — as if he were a stranger.', 3.6, shot='ice_two', **I(baby_along='>0')),
     S('iris', 'Где он? Где мой брат?', 'Where is he? Where’s my brother?', shot='iris_crawl'),
     N('Приезжает патруль. Ной не сопротивляется. Айрис уезжает вместе со всеми и ни разу не оборачивается.', 'The patrol arrives. Noah doesn’t resist. Iris leaves with everyone else and never once looks back.', 3.8, shot='patrol'),
     {'fx': 'fade_out', 'dur': 1.4},
     {'fx': 'cell'},
     {'fx': 'fade_in', 'shot': 'cell', **N('Камера. Вместо зеркала — полированная сталь. Ной умывается и поднимает голову.', 'A cell. Instead of a mirror — polished steel. Noah washes his face and looks up.', 3.4)},
     {'fx': 'steel_smile', 'shot': 'steel', **N('Отражение улыбается чуть раньше, чем он.', 'His reflection smiles a moment before he does.', 3.4)},
-    {'set': {'end_shadow': 1}},
-    {'go': 'c5_cards'}]}
+    {'go': 'c5_cards'}]}   # end_shadow уже стоит (c5_s4_shadow / c5_s4_shadow_alone)
 
 SC['c5_shadow_dark'] = {'save': True, 'beats': [
     {'set': {'iris_lost': 1, 'end_shadow_dark': 1, 'end_shadow': 1}},
@@ -647,21 +741,25 @@ SC['c5_ice'] = {'save': True, 'beats': [
     N('Потом она встаёт. В доме плачет малышка.', 'Then she gets up. In the house, the baby is crying.', 3.0, shot='iris_crawl', **I(hostage='==0')),
     {'go': 'c5_shore'}]}
 
-SC['c5_ice_epi'] = {'beats': PROOF + [
+SC['c5_ice_epi'] = {'beats': [
     {'fx': 'fade_out', 'dur': 1.4},
     {'fx': 'spring'},
     {'fx': 'fade_in', 'shot': 'spring_dock', **N('Весна. Лёд сошёл. Айрис на мостках опускает в воду рисунок: Ной и мама держатся за руки под водой.', 'Spring. The ice is gone. On the dock, Iris lowers a drawing into the water: Noah and Mom holding hands under the water.', 4.4)},
     S('agnes', 'Озеро своих не отпускает. Теперь они там вдвоём.', 'The lake keeps its own. Now they’re together down there.', shot='agnes_spring', **I(agnes_dead='==0')),
     S('iris', 'Ты теперь с мамой. А я тут. Буду жить за двоих.', 'You’re with Mom now. And I’m still here. I’ll live for both of us.', shot='iris_spring', **I(agnes_dead='>0')),
-    T('Правду о Хейле суду рассказала Айрис.', 'Iris told the court the truth about Hale.', 3.0, **I(exposed='>0')),
+    T('Хейла судят. Правду о нём суду рассказала Айрис.', 'Hale stands trial. Iris told the court the truth about him.', 3.2, **I(exposed='>0', hale_saved='>0')),
+    T('Хейл утонул. Правду о нём следователю рассказала Айрис. «Тихие сосны» закрывают.', 'Hale drowned. Iris told the investigators the truth about him. Quiet Pines is shut down.', 3.6, **I(exposed='>0', hale_saved='==0')),
     {'go': 'c5_cards'}]}
 
 # ---------- «Мама» — эпилог ----------
-SC['c5_mama_epi'] = {'beats': PROOF + [
+SC['c5_mama_epi'] = {'beats': [
     {'fx': 'hands_out', 'shot': 'patrol', **N('Ной сам идёт к патрулю.', 'Noah walks to the patrol himself.', 2.6)},
     T('Хейла судят.', 'Hale stands trial.', 2.6, **{'if': {'hale_saved': '>0', 'exposed': '>0'}}),
     {'fx': 'fade_out', 'dur': 1.4},
     {'fx': 'summer_day'},
+    T('Три года спустя.', 'Three years later.', 2.4, **I(roman_dead='==0', orderly_dead='==0')),
+    T('Восемь лет спустя.', 'Eight years later.', 2.4, **I(roman_dead='>0')),
+    T('Восемь лет спустя.', 'Eight years later.', 2.4, **I(roman_dead='==0', orderly_dead='>0')),
     {'fx': 'fade_in', 'shot': 'summer_dock', **N('Лето. Ной вернулся. Мостки. Айрис — постарше, с блокнотом.', 'Summer. Noah is back. The dock. Iris — a little older, with her notebook.', 3.6)},
     N('Провалов больше нет: отражение в воде моргает вместе с ним.', 'No more blackouts: his reflection in the water blinks when he does.', 3.0, shot='water_face'),
     S('iris', 'Это была она?', 'Was it her?', shot='iris_summer'),
@@ -673,17 +771,19 @@ SC['c5_oblivion'] = {'save': True, 'beats': [
     {'set': {'end_oblivion': 1}},
     S('hale', 'Отведите её в дом, ей нужно в тепло.', 'Take her inside, she needs to get warm.', shot='hale_ice', **I(zoe_taken='>0')),
     S('hale', 'Отведите мальчика в дом, он замёрз.', 'Take the boy inside, he’s freezing.', shot='hale_ice', **{'if': {'zoe_taken': '==0', 'danny_hale': '>0'}}),
-    N('Зою уводят к печке.', 'They lead Zoe in to the stove.', 2.2, shot='sedan_shore', **I(zoe_taken='>0')),
+    N('Зою уводят к печке.', 'They take Zoe inside, to the stove.', 2.2, shot='sedan_shore', **I(zoe_taken='>0')),
     N('Дэнни бежит к Айрис.', 'Danny runs to Iris.', 2.2, shot='sedan_shore', **I(danny_hale='>0')),
     {'if': {'remembered': '>0'}, 'else': 'c5_obl_forgot'},
     {'fx': 'walk_car', 'shot': 'ice_wide', **N('Ной идёт к машине сам.', 'Noah walks to the car on his own.', 2.4, **I(silent_ice='==0'))},
     {'fx': 'walk_car', 'shot': 'ice_wide', **N('Хейл ведёт его под локоть, и Ной идёт, как во сне.', 'Hale leads him by the elbow, and Noah walks as if in a dream.', 2.8, **I(silent_ice='>0'))},
     {'if': {'trust': '>=3'}, 'else': 'c5_obl_still'},
-    {'fx': 'sign', 'shot': 'mirror_sign', **N('Айрис бежит по мосткам и держит перед собой раскрытый блокнот. Крупными буквами: «Я ПОМНЮ ЗА ТЕБЯ».', 'Iris runs down the dock holding her notebook open in front of her. In big letters: “I’LL REMEMBER FOR YOU.”', 3.8)},
+    {'fx': 'sign', 'shot': 'mirror_sign', **N('Айрис бежит по мосткам и держит перед собой раскрытый блокнот. Крупными буквами: «Я ПОМНЮ ЗА ТЕБЯ».', 'Iris runs down the dock holding her notebook open in front of her. In big letters: “I’LL REMEMBER FOR YOU.”', 3.8, **I(baby_along='==0'))},
+    {'fx': 'sign', 'shot': 'mirror_sign', **N('Айрис выходит из сарая с малышкой на руках и поднимает над головой раскрытый блокнот. Крупными буквами: «Я ПОМНЮ ЗА ТЕБЯ».', 'Iris steps out of the boathouse with the baby in her arms and holds her open notebook above her head. In big letters: “I’LL REMEMBER FOR YOU.”', 4.0, **I(baby_along='>0'))},
     {'go': 'c5_obl_car'}]}
 
 SC['c5_obl_still'] = {'beats': [
-    {'fx': 'iris_dock', 'shot': 'mirror_dock', **N('Айрис стоит на мостках и не двигается. В зеркале она становится всё меньше.', 'Iris stands on the dock and doesn’t move. In the mirror she grows smaller and smaller.', 3.6)},
+    {'fx': 'iris_dock', 'shot': 'mirror_dock', **N('Айрис стоит на мостках и не двигается. В зеркале она становится всё меньше.', 'Iris stands on the dock and doesn’t move. In the mirror she grows smaller and smaller.', 3.6, **I(baby_along='==0'))},
+    {'fx': 'iris_dock', 'shot': 'mirror_dock', **N('Айрис стоит в дверях сарая с малышкой и не двигается. В зеркале она становится всё меньше.', 'Iris stands in the boathouse doorway with the baby and doesn’t move. In the mirror she grows smaller and smaller.', 3.6, **I(baby_along='>0'))},
     {'go': 'c5_obl_car'}]}
 
 SC['c5_obl_forgot'] = {'beats': [
@@ -697,10 +797,10 @@ SC['c5_obl_car'] = {'beats': [
     {'fx': 'injection', **S('hale', 'Поспи, Ной.', 'Get some sleep, Noah.', shot='car_hale')},
     {'fx': 'fade_out', 'dur': 1.4},
     T('На дороге седан останавливает патруль. Хейл показывает бумаги: «Мой пациент».', 'A patrol stops the sedan on the road. Hale shows them papers: “My patient.”', 3.6),
-    T('Суд признаёт Ноя невменяемым. Принудительное лечение. Лечащий врач — доктор Хейл.', 'The court finds Noah not responsible. Compulsory treatment. Attending physician: Dr. Hale.', 3.8),
+    T('Суд признаёт Ноя невменяемым. Принудительное лечение. Лечащий врач — доктор Хейл.', 'The court finds Noah not guilty by reason of insanity. Involuntary commitment. Attending physician: Dr. Hale.', 3.8),
     {'fx': 'white_room'},
     {'fx': 'fade_in', 'shot': 'white_room', **N('Белая комната. Ной рисует на листке мостки и фонарь — и не понимает, что рисует.', 'A white room. Noah draws a dock and a lantern on a sheet of paper — and doesn’t understand what he’s drawing.', 3.8)},
-    N('В руке — листок Айрис: они вдвоём на мостках. Он не узнаёт ни её, ни себя.', 'In his hand — Iris’s note: the two of them on the dock. He recognizes neither her nor himself.', 3.6, shot='white_room', **I(note_pocket='>0')),
+    N('В руке — листок Айрис: они вдвоём на мостках. Он не узнаёт ни её, ни себя.', 'In his hand — Iris’s folded drawing: the two of them on the dock. He doesn’t recognize her. Or himself.', 3.6, shot='white_room', **I(note_pocket='>0')),
     {'fx': 'hale_takes', **S('hale', 'Опять этот сон? Ничего. Мы с ним справимся.', 'That dream again? Don’t worry. We’ll take care of it.', shot='hale_white')},
     {'go': 'c5_cards'}]}
 
@@ -730,7 +830,7 @@ SC['c5_cards'] = {'beats': [
     T('Зоя уснула в снегу у сарая.', 'Zoe fell asleep in the snow by the boathouse.', 2.8, **I(zoe_died='>0')),
     T('Зою через месяц мать снова отвезла в «Тихие сосны». Ей кажется, что сегодня четверг.', 'A month later, her mother took Zoe back to Quiet Pines. She thinks it’s Thursday.', 3.6, **{'if': {'zoe': '>0', 'end_oblivion': '>0'}}),
     T('Она ждёт его.', 'She’s waiting for him.', 2.4, **{'if': {'romance': '>0', 'zoe_died': '==0', 'end_witness': '>0'}}),
-    T('Она дождалась.', 'She waited for him.', 2.4, **{'if': {'romance': '>0', 'zoe_died': '==0', 'end_mama': '>0'}}),
+    T('Она дождалась.', 'She waited — and he came home.', 2.4, **{'if': {'romance': '>0', 'zoe_died': '==0', 'end_mama': '>0'}}),
     # Ева
     T('Ева назвала дочь Анной, к мужу не вернулась и живёт у сестры на севере.', 'Eva named her daughter Anna, never went back to her husband, and lives with her sister up north.', 3.6, **I(eva_alive='>0')),
     T('Ева умерла родами в буран. Анну забрала её сестра.', 'Eva died giving birth during the storm. Her sister took Anna.', 3.0, **I(eva_dead='>0')),
@@ -738,8 +838,8 @@ SC['c5_cards'] = {'beats': [
     T('За Дэнни приехала мама — трезвая. На прощание он отдал Айрис свою рацию.', 'Danny’s mom came for him — sober. As a goodbye, he gave Iris his walkie-talkie.', 3.6, **{'if': {'danny': '>0', 'danny_lost': '==0', 'danny_hale': '==0'}}),
     T('На суде Дэнни сказал про Ноя: «Он не хотел».', 'At the trial, Danny said of Noah: “He didn’t mean to.”', 3.0, **I(danny_for='>0')),
     T('На суде Дэнни сказал: «Он просил никому не говорить».', 'At the trial, Danny said: “He told me not to tell anyone.”', 3.0, **I(danny_against='>0')),
-    T('Дэнни рассказал полиции, как доктор выманил его в лесу.', 'Danny told the police how the doctor lured him out in the woods.', 3.0, **{'if': {'danny_hale': '>0', 'end_oblivion': '==0'}}),
-    T('Дэнни рассказал, как доктор выманил его в лесу. Ему никто не поверил.', 'Danny told how the doctor lured him out in the woods. No one believed him.', 3.2, **{'if': {'danny_hale': '>0', 'end_oblivion': '>0'}}),
+    T('Дэнни рассказал полиции, как доктор выманил его в лесу.', 'Danny told the police how the doctor lured him away in the woods.', 3.0, **{'if': {'danny_hale': '>0', 'end_oblivion': '==0'}}),
+    T('Дэнни рассказал, как доктор выманил его в лесу. Ему никто не поверил.', 'Danny told everyone how the doctor lured him away in the woods. No one believed him.', 3.2, **{'if': {'danny_hale': '>0', 'end_oblivion': '>0'}}),
     T('Дэнни так и не нашли.', 'Danny was never found.', 2.6, **I(danny_lost='>0')),
     T('Дэнни с заправки забрала полиция. Через неделю за ним приехала мама.', 'The police picked Danny up at the gas station. A week later his mom came for him.', 3.2, **I(danny_left='>0')),
     T('Дэнни больше никогда не верит взрослым на слово.', 'Danny never takes a grown-up at their word again.', 3.0, **{'if': {'promise5': '>0', 'end_oblivion': '>0'}}),
@@ -756,9 +856,16 @@ SC['c5_cards'] = {'beats': [
     T('Хейл — под судом.', 'Hale — on trial.', 2.4, **{'if': {'hale_saved': '>0', 'exposed': '>0'}}),
     T('Хейла отпустили за недостатком улик.', 'Hale was released for lack of evidence.', 2.8, **{'if': {'hale_saved': '>0', 'exposed': '==0'}}),
     T('Хейл утонул. «Несчастный случай».', 'Hale drowned. “An accident.”', 2.8, **I(hale_drowned='>0')),
-    T('Хейла убил «второй Ной».', '“The other Noah” killed Hale.', 2.6, **I(hale_killed='>0')),
+    T('Хейла убил «второй он».', '“The other him” killed Hale.', 2.6, **I(hale_killed='>0')),
     T('Хейл лечит Ноя.', 'Hale is treating Noah.', 2.4, **I(end_oblivion='>0')),
     {'end': 5}]}
+
+# разговорные выборы — 10–12 с на раздумье (срочные — как были)
+REFLECTIVE = {'c5_t_danny': 10, 'c5_s1_pills': 10, 'c5_s1_pills_old': 10, 'c5_s1_pills2': 10, 'c5_s1_go': 10}
+for _sid, _t in REFLECTIVE.items():
+    _c = [b for b in SC[_sid]['beats'] if 'choice' in b]
+    assert len(_c) == 1, _sid
+    _c[0]['choice']['t'] = _t
 
 DATA = {
     'chapter': 5, 'start': 'c5_recap', 'ready': True,    # True — когда постановка главы готова (chapter5.gd)
@@ -768,7 +875,8 @@ DATA = {
                              'promise5', 'iris_refused', 'pills5', 'pills_burned5', 'look_mom', 'look_dad', 'eyes_shut', 'remembered',
                              'agnes_sings', 'diary_burned', 'silent_ice', 'said_remember', 'said_wont', 'smiled', 'listened', 'weak', 'help',
                              'iris_saved', 'hale_saved', 'hale_drowned', 'hale_killed', 'noah_drowned', 'iris_lost', 'zoe_safe',
-                             'zoe_alive5', 'zoe_died', 'proof', 'exposed', 'bitter', 'note_pocket', 'home', 'hale_let_go',
+                             'zoe_alive5', 'zoe_died', 'proof', 'exposed', 'bitter', 'note_pocket', 'home', 'hale_let_go', 'zoe_here', 'danny_here', 'sitter_zoe', 'sitter_danny', 'baby_along',
+                             'ev_diary', 'ev_zoe', 'ev_agnes', 'ev_orderly', 'ev_danny',
                              'end_witness', 'end_shadow', 'end_shadow_dark', 'end_ice', 'end_mama', 'end_oblivion']},
     'map': [
         {'key': 'pills', 'ru': 'Таблетки', 'en': 'The pills', 'opts': [

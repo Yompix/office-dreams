@@ -14,6 +14,8 @@ var presses := 0
 var txt0 := ""
 var shots := ""
 var want := -1
+var save_mode := ""   # --savetest A|B|C: сохранение и загрузка без двойного начисления флагов (три запуска подряд)
+var s0 := {}
 
 
 func _ready() -> void:
@@ -24,6 +26,8 @@ func _ready() -> void:
 	qte = "--qtetest" in args   # godot --path godot/lake -- --inputtest --qtetest --scene c4_s3: A листает и жмёт в действии
 	if "--shotlog" in args:
 		shots = args[args.find("--shotlog") + 1]
+	if "--savetest" in args:
+		save_mode = args[args.find("--savetest") + 1]
 	if "--inputlog" in args:   # отладка: какие события пришли и у кого фокус
 		get_viewport().gui_focus_changed.connect(func(c: Control): print("  фокус → ", c.get_class(), " ", c.get("text")))
 
@@ -85,7 +89,9 @@ func next(s: int) -> void:
 
 func _process(d: float) -> void:
 	t += d
-	if ui:
+	if save_mode != "":
+		_save_test()
+	elif ui:
 		_ui()
 	elif qte:
 		_qte()
@@ -295,4 +301,95 @@ func _ui() -> void:
 				next(99)
 		99:
 			print("ИТОГ ПРОВЕРКИ ЭКРАНОВ: %d из %d" % [res.filter(func(r): return r.begins_with("ОК")).size(), res.size()])
+			get_tree().quit()
+
+
+## Сохранения (три запуска, один за другим; общий user://):
+##  A: godot … -- --inputtest --savetest A --scene c2_s3 --flags zoe=1   сохранение на входе в пост → «Дать говорить Зое» → сохранение c2_s4
+##  B: godot … -- --inputtest --savetest B                              «Продолжить»: флаги c2_s4 те же, ничего не начислено второй раз
+##  C: godot … -- --inputtest --savetest C                              раннее сохранение (пост) → другой выбор: следов первого нет
+const SAVE_RES := "/tmp/lake_savetest.json"
+
+
+func _save_flags() -> Dictionary:
+	var j = JSON.parse_string(FileAccess.get_file_as_string("user://lake_save.json")) if FileAccess.file_exists("user://lake_save.json") else null
+	return j if j is Dictionary else {}
+
+
+func _same(a: Dictionary, b: Dictionary) -> bool:
+	for k in a.keys() + b.keys():
+		if float(a.get(k, 0)) != float(b.get(k, 0)):
+			return false
+	return true
+
+
+var sres := {}   # итоги трёх запусков (файл SAVE_RES): S0 — флаги на входе в пост, F1 — после выбора
+
+
+func _save_test() -> void:
+	if sres.is_empty() and FileAccess.file_exists(SAVE_RES):
+		var j = JSON.parse_string(FileAccess.get_file_as_string(SAVE_RES))
+		sres = j if j is Dictionary else {"_": 1}
+	if sres.is_empty():
+		sres = {"_": 1}
+	var res: Dictionary = sres
+	match step:
+		0:
+			if save_mode == "B":
+				g.hud.menu_pick.emit("cont")
+				next(10)
+			elif save_mode == "C":
+				var f := FileAccess.open("user://lake_save.json", FileAccess.WRITE)
+				f.store_string(JSON.stringify({"scene": "c2_s3", "flags": res.get("S0", {}), "lang": "ru"}))
+				f = null
+				g.hud.menu_pick.emit("cont")
+				next(20)
+			elif g.hud.choosing() and t > 1.0:   # A: на посту, выбор на экране
+				s0 = (g.flags as Dictionary).duplicate()
+				var sv := _save_flags()
+				check("A: сохранение на входе в c2_s3 = флаги на входе", String(sv.get("scene", "")) == "c2_s3" and _same(sv.get("flags", {}), s0))
+				res["S0"] = s0
+				want = nth_visible(2)
+				key(KEY_2)   # «Дать говорить Зое»
+				next(1)
+		1:
+			if String(g._scene_id) == "c2_s4" and t > 0.5:
+				var sv := _save_flags()
+				res["F1"] = (g.flags as Dictionary).duplicate()
+				check("A: после выбора сохранение c2_s4, флаги с выбором (zoe_talked=%s)" % sv.get("flags", {}).get("zoe_talked", 0),
+					String(sv.get("scene", "")) == "c2_s4" and float(sv.get("flags", {}).get("zoe_talked", 0)) == 1.0)
+				next(99)
+		10:
+			if String(g._scene_id) == "c2_s4" and t > 1.0:
+				var dif := []
+				var f1: Dictionary = res.get("F1", {})
+				for k in g.flags.keys() + f1.keys():
+					if float(g.flags.get(k, 0)) != float(f1.get(k, 0)) and not (k in dif):
+						dif.append("%s %s→%s" % [k, f1.get(k, 0), g.flags.get(k, 0)])
+				check("B: «Продолжить» — флаги как при сохранении, без повторного начисления %s" % [dif], dif.is_empty())
+				next(99)
+			elif t > 30.0:
+				check("B: игра не продолжилась с сохранения", false)
+				next(99)
+		20:
+			if g.hud.choosing() and String(g._scene_id) == "c2_s3" and t > 1.0:
+				check("C: загружено раннее сохранение — флаги как до выбора", _same(g.flags, res.get("S0", {})))
+				key(KEY_1)   # «Говорить буду я»
+				next(21)
+			elif t > 40.0:
+				check("C: выбор на посту не появился", false)
+				next(99)
+		21:
+			if String(g._scene_id) == "c2_s4" and t > 0.5:
+				var a: Dictionary = res.get("S0", {})
+				check("C: другой выбор — следов первого нет (zoe_talked %s, jealous %s → %s)" % [g.flags.get("zoe_talked", 0), a.get("jealous", 0), g.flags.get("jealous", 0)],
+					float(g.flags.get("zoe_talked", 0)) == 0.0 and float(g.flags.get("jealous", 0)) == float(a.get("jealous", 0)) \
+					and float(g.flags.get("cop_saw", 0)) == float(a.get("cop_saw", 0)) + 1.0)
+				next(99)
+		99:
+			res["checks_" + save_mode] = self.res
+			var fo := FileAccess.open(SAVE_RES, FileAccess.WRITE)
+			fo.store_string(JSON.stringify(res))
+			fo = null
+			print("ИТОГ ПРОВЕРКИ СОХРАНЕНИЙ %s: %d из %d" % [save_mode, self.res.filter(func(r): return r.begins_with("ОК")).size(), self.res.size()])
 			get_tree().quit()

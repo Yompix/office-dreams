@@ -50,7 +50,8 @@
   "eva_alone": 0,
   "zoe_talked": 0,
   "pills2": 0,
-  "zoe_unasked": 0
+  "zoe_unasked": 0,
+  "stepped_out": 0
  },
  "map": [
   {
@@ -231,7 +232,7 @@
     {
      "text": {
       "ru": "Олень на дороге. Ной добил его монтировкой.",
-      "en": "A deer on the road. Noah finished it with a tire iron."
+      "en": "A deer on the road. Noah finished it off with the tire iron."
      },
      "dur": 2.6,
      "note": true,
@@ -264,7 +265,7 @@
     {
      "text": {
       "ru": "Олень на дороге. Ной не смог пошевелиться.",
-      "en": "A deer on the road. Noah couldn't move."
+      "en": "A deer on the road. Noah couldn’t move."
      },
      "dur": 2.6,
      "note": true,
@@ -275,7 +276,7 @@
     {
      "text": {
       "ru": "Заправка «24». Ной заплатил и уехал. Кассир позвонил в полицию.",
-      "en": "Gas station “24”. Noah paid and left. The cashier called the police."
+      "en": "The “24” gas station. Noah paid and left. The cashier called the police."
      },
      "dur": 3.0,
      "note": true,
@@ -286,7 +287,7 @@
     {
      "text": {
       "ru": "Заправка «24». Ной вырвал провод телефона.",
-      "en": "Gas station “24”. Noah ripped out the phone cord."
+      "en": "The “24” gas station. Noah ripped out the phone cord."
      },
      "dur": 3.0,
      "note": true,
@@ -297,7 +298,7 @@
     {
      "text": {
       "ru": "Заправка «24». Кассир Роман отпустил их.",
-      "en": "Gas station “24”. Roman the cashier let them go."
+      "en": "The “24” gas station. Roman the cashier let them go."
      },
      "dur": 3.0,
      "note": true,
@@ -308,7 +309,7 @@
     {
      "text": {
       "ru": "Заправка «24». Провал. Кассир на полу — живой.",
-      "en": "Gas station “24”. A blackout. The cashier on the floor — alive."
+      "en": "The “24” gas station. Noah blacked out. The cashier on the floor — alive."
      },
      "dur": 3.0,
      "note": true,
@@ -319,7 +320,7 @@
     {
      "text": {
       "ru": "Заправка «24». Провал. Кассир на полу — мёртвый.",
-      "en": "Gas station “24”. A blackout. The cashier on the floor — dead."
+      "en": "The “24” gas station. Noah blacked out. The cashier on the floor — dead."
      },
      "dur": 3.0,
      "note": true,
@@ -341,7 +342,7 @@
     {
      "text": {
       "ru": "Мальчик Дэнни остался на заправке один.",
-      "en": "Danny, the boy, stayed behind at the station, alone."
+      "en": "A boy named Danny was left alone at the gas station."
      },
      "dur": 2.4,
      "note": true,
@@ -352,7 +353,7 @@
     {
      "text": {
       "ru": "Мамин дневник: «Если со мной что-то случится — Ной всё видел».",
-      "en": "Mom's diary: “If anything happens to me — Noah saw everything.”"
+      "en": "Mom’s diary: “If anything happens to me — Noah saw everything.”"
      },
      "dur": 3.2,
      "note": true,
@@ -376,7 +377,7 @@
      "shot": "road",
      "note": {
       "ru": "Глава 2. «Попутчица». Серое утро без солнца. Снег по обочинам выше машины.",
-      "en": "Chapter 2. “The Hitchhiker”. A grey, sunless morning. The snow along the road is piled higher than the car."
+      "en": "Chapter 2. “The Hitchhiker.” A gray, sunless morning. The snow along the road is piled higher than the car."
      },
      "dur": 3.4
     },
@@ -429,7 +430,7 @@
     },
     {
      "choice": {
-      "t": 5,
+      "t": 8,
       "opts": [
        {
         "ru": "Отвернуться",
@@ -487,7 +488,7 @@
      "fx": "flash_dock",
      "text": {
       "ru": "Вода. Мостки. Мокрые волосы матери.",
-      "en": "Water. A dock. His mother's wet hair."
+      "en": "Water. The dock. His mother’s wet hair."
      },
      "dur": 2.4,
      "note": true
@@ -500,7 +501,7 @@
      "shot": "noah",
      "note": {
       "ru": "Ной моргает. Руки сами держат руль.",
-      "en": "Noah blinks. His hands are on the wheel on their own."
+      "en": "Noah blinks. His hands are steering on their own."
      },
      "dur": 2.4
     },
@@ -516,7 +517,7 @@
      "shot": "road",
      "note": {
       "ru": "На обочине — девушка с рюкзаком в нашивках. Синие пряди из-под капюшона, большой палец вверх.",
-      "en": "A girl at the roadside, a backpack covered in patches. Blue streaks of hair under her hood, thumb up."
+      "en": "A girl on the roadside with a patch-covered backpack. Blue streaks of hair under her hood, thumb out."
      },
      "dur": 3.2
     },
@@ -589,7 +590,7 @@
      "shot": "zoe_window",
      "say": "zoe",
      "ru": "Ты мой герой. Серьёзно. Ещё десять минут — и меня бы нашли весной.",
-     "en": "You're my hero. Seriously. Ten more minutes and they'd have found me in the spring."
+     "en": "You’re my hero. Seriously. Ten more minutes and they’d have found me in the spring."
     },
     {
      "shot": "iris",
@@ -601,7 +602,7 @@
     },
     {
      "choice": {
-      "t": 5,
+      "t": 8,
       "opts": [
        {
         "ru": "«Садись назад»",
@@ -635,7 +636,7 @@
      "shot": "zoe",
      "say": "zoe",
      "ru": "Привет, малой. Я Зоя. Не бойся, я не кусаюсь. Почти.",
-     "en": "Hey, kiddo. I'm Zoe. Don't worry, I don't bite. Mostly.",
+     "en": "Hey, kiddo. I’m Zoe. Don’t worry, I don’t bite. Mostly.",
      "if": {
       "danny": ">0"
      }
@@ -720,7 +721,7 @@
      "fx": "bracelet",
      "shot": "zoe_wrist",
      "note": {
-      "ru": "На её запястье — пластиковый больничный браслет. Заметив взгляд Ноя, она прячет его в рукав.",
+      "ru": "На её запястье — пластиковый больничный браслет. Заметив взгляд Ноя, она прячет браслет в рукав.",
       "en": "A plastic hospital bracelet on her wrist. She catches Noah looking and tucks it into her sleeve."
      },
      "dur": 3.4,
@@ -732,7 +733,7 @@
      "fx": "bracelet",
      "shot": "mirror_zoe",
      "note": {
-      "ru": "В зеркале: на её запястье — пластиковый больничный браслет. Заметив взгляд, она прячет его в рукав.",
+      "ru": "В зеркале: на её запястье — пластиковый больничный браслет. Заметив взгляд, она прячет браслет в рукав.",
       "en": "In the mirror: a plastic hospital bracelet on her wrist. She catches him looking and tucks it into her sleeve."
      },
      "dur": 3.4,
@@ -742,11 +743,11 @@
     },
     {
      "choice": {
-      "t": 6,
+      "t": 10,
       "opts": [
        {
         "ru": "«Что за браслет?»",
-        "en": "“What's the bracelet?”",
+        "en": "“What’s the bracelet?”",
         "go": "c2_s2_q"
        },
        {
@@ -770,7 +771,7 @@
      "shot": "noah",
      "say": "noah",
      "ru": "Что за браслет?",
-     "en": "What's the bracelet?"
+     "en": "What’s the bracelet?"
     },
     {
      "shot": "zoe",
@@ -783,7 +784,7 @@
      "shot": "two",
      "note": {
       "ru": "Она шутит. Но больше не поёт.",
-      "en": "She's joking. But she doesn't sing anymore."
+      "en": "She’s joking. But she doesn’t sing anymore."
      },
      "dur": 2.4
     },
@@ -804,7 +805,7 @@
      "shot": "zoe",
      "note": {
       "ru": "Зоя замечает: он видел — и не спросил.",
-      "en": "Zoe notices: he saw it — and didn't ask."
+      "en": "Zoe notices: he saw it — and didn’t ask."
      },
      "dur": 2.4
     },
@@ -836,7 +837,7 @@
      "shot": "post",
      "note": {
       "ru": "По рации у патрульной машины: «…тёмный седан, одна фара… водитель — молодой, может быть опасен».",
-      "en": "The patrol car radio: “…dark sedan, one headlight… driver's young, may be dangerous.”"
+      "en": "The patrol car radio: “…dark sedan, one headlight… driver’s young, may be dangerous.”"
      },
      "dur": 3.6,
      "if": {
@@ -849,7 +850,7 @@
      "shot": "post",
      "note": {
       "ru": "По рации у патрульной машины: «…тёмный седан, номер… водитель — молодой, может быть опасен».",
-      "en": "The patrol car radio: “…dark sedan, plate number… driver's young, may be dangerous.”"
+      "en": "The patrol car radio: “…dark sedan, plate number… driver’s young, may be dangerous.”"
      },
      "dur": 3.6,
      "if": {
@@ -861,8 +862,8 @@
      "fx": "radio_cop",
      "shot": "post",
      "note": {
-      "ru": "По рации: «…убийство на заправке «24»… кассир…»",
-      "en": "The radio: “…homicide at the 24 station… the cashier…”"
+      "ru": "По рации: «…убийство на заправке „24“… кассир…»",
+      "en": "The radio: “…homicide at the ‘24’ gas station… the cashier…”"
      },
      "dur": 3.2,
      "if": {
@@ -886,8 +887,8 @@
      "fx": "radio_cop",
      "shot": "post",
      "note": {
-      "ru": "По рации: «…нападение на заправке «24», кассир в больнице…»",
-      "en": "The radio: “…assault at the 24 station, cashier's in the hospital…”"
+      "ru": "По рации: «…нападение на заправке „24“, кассир в больнице…»",
+      "en": "The radio: “…assault at the ‘24’ gas station, cashier’s in the hospital…”"
      },
      "dur": 3.2,
      "if": {
@@ -898,7 +899,7 @@
      "shot": "hands",
      "note": {
       "ru": "У Ноя на рукаве — засохшая кровь.",
-      "en": "There's dried blood on Noah's sleeve."
+      "en": "There’s dried blood on Noah’s sleeve."
      },
      "dur": 2.4
     },
@@ -923,7 +924,7 @@
       "opts": [
        {
         "ru": "«Говорить буду я»",
-        "en": "“I'll do the talking”",
+        "en": "“I’ll do the talking”",
         "go": "c2_s3_me"
        },
        {
@@ -975,7 +976,7 @@
      "else": "c2_s3_pass"
     },
     {
-     "go": "c2_s3_flee"
+     "go": "c2_s3_order"
     }
    ]
   },
@@ -990,7 +991,7 @@
      "shot": "cop",
      "note": {
       "ru": "Полицейский долго смотрит Ною в лицо. Рация на плече хрипит: «…фура сложилась на трассе, все экипажи — туда». Он машет: проезжайте.",
-      "en": "The officer studies Noah's face for a long time. The radio on his shoulder crackles: “…semi jackknifed on the highway, all units respond.” He waves them through."
+      "en": "The officer studies Noah’s face for a long time. The radio on his shoulder crackles: “…semi jackknifed on the highway, all units respond.” He waves them through."
      },
      "dur": 4.2
     },
@@ -1022,7 +1023,7 @@
      "shot": "zoe",
      "say": "zoe",
      "ru": "Везём мелких к бабушке. А у этого нос разбит — подрался за меня. Герой, да?",
-     "en": "Taking the kids to their grandma. And this one's got a busted nose — got in a fight over me. Hero, right?",
+     "en": "Taking the kids to their grandma. And this one’s got a busted nose — got in a fight over me. Hero, right?",
      "if": {
       "danny": ">0"
      }
@@ -1030,7 +1031,7 @@
     {
      "say": "zoe",
      "ru": "Везём сестрёнку к бабушке. А у этого нос разбит — подрался за меня. Герой, да?",
-     "en": "Taking his little sister to their grandma's. And this one busted his nose — got in a fight over me. Hero, right?",
+     "en": "Taking his little sister to their grandma’s. And this one’s got a busted nose — got in a fight over me. Hero, right?",
      "shot": "zoe",
      "if": {
       "danny": "==0"
@@ -1055,7 +1056,7 @@
      "en": "Step out of the car. All of you."
     },
     {
-     "go": "c2_s3_flee"
+     "go": "c2_s3_order"
     }
    ]
   },
@@ -1065,14 +1066,14 @@
      "shot": "cop",
      "say": "cop",
      "ru": "Счастливой дороги. Аккуратнее, к обеду метель.",
-     "en": "Safe travels. Careful — there's a blizzard coming by noon."
+     "en": "Safe travels. Careful — there’s a blizzard coming by noon."
     },
     {
      "fx": "post_pass",
      "shot": "iris",
      "note": {
       "ru": "Айрис смотрит на Зою так, будто та украла у неё что-то.",
-      "en": "Iris looks at Zoe as if she'd stolen something from her."
+      "en": "Iris looks at Zoe as if she’d stolen something from her."
      },
      "dur": 2.6
     },
@@ -1111,7 +1112,161 @@
      "shot": "iris",
      "say": "iris",
      "ru": "Ты псих.",
-     "en": "You're insane."
+     "en": "You’re insane."
+    },
+    {
+     "go": "c2_s4"
+    }
+   ]
+  },
+  "c2_s3_order": {
+   "beats": [
+    {
+     "shot": "cop",
+     "note": {
+      "ru": "Из патрульной машины выходит второй полицейский. Рука — на кобуре.",
+      "en": "A second officer climbs out of the patrol car. His hand is on his holster."
+     },
+     "dur": 2.8
+    },
+    {
+     "say": "iris",
+     "ru": "Ной… Не выходи. Пожалуйста.",
+     "en": "Noah… Don’t get out. Please.",
+     "shot": "iris"
+    },
+    {
+     "say": "zoe",
+     "ru": "Если меня вернут туда — я оттуда уже не выйду.",
+     "en": "If they send me back there, I’m never getting out.",
+     "shot": "zoe",
+     "if": {
+      "zoe": ">0"
+     }
+    },
+    {
+     "choice": {
+      "t": 6,
+      "shot": "pov",
+      "opts": [
+       {
+        "ru": "Газ в пол",
+        "en": "Floor it",
+        "go": "c2_s3_flee"
+       },
+       {
+        "ru": "Подчиниться",
+        "en": "Do as he says",
+        "go": "c2_s3_out"
+       },
+       {
+        "silent": true,
+        "go": "c2_s3_frozen"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "c2_s3_frozen": {
+   "beats": [
+    {
+     "shot": "cop",
+     "note": {
+      "ru": "Ной не может пошевелиться. Луч фонарика бьёт ему в глаза.",
+      "en": "Noah can’t move. A flashlight beam hits him in the eyes."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c2_s3_out"
+    }
+   ]
+  },
+  "c2_s3_out": {
+   "beats": [
+    {
+     "set": {
+      "cop_saw": 1,
+      "stepped_out": 1,
+      "trust": -1
+     },
+     "toast": "iris"
+    },
+    {
+     "shot": "cop",
+     "note": {
+      "ru": "Ной кладёт обе руки на руль. Луч фонарика ползёт по рукаву — к засохшей крови.",
+      "en": "Noah puts both hands on the wheel. A flashlight beam crawls along his sleeve — to the dried blood."
+     },
+     "dur": 3.2
+    },
+    {
+     "say": "cop",
+     "ru": "Что у вас на рукаве?",
+     "en": "What’s that on your sleeve?",
+     "shot": "cop"
+    },
+    {
+     "say": "noah",
+     "ru": "…Не знаю.",
+     "en": "…I don’t know.",
+     "shot": "noah"
+    },
+    {
+     "say": "cop",
+     "ru": "Выходите. Медленно.",
+     "en": "Out of the car. Slowly.",
+     "shot": "cop"
+    },
+    {
+     "fx": "radio_cop",
+     "shot": "cop",
+     "note": {
+      "ru": "Рация в патрульной машине взрывается голосами: «…фура сложилась на трассе, люди зажаты, все экипажи — туда!»",
+      "en": "The radio in the patrol car erupts: “…semi jackknifed on the highway, people trapped, all units respond!”"
+     },
+     "dur": 3.6
+    },
+    {
+     "shot": "cop",
+     "note": {
+      "ru": "Второй полицейский уже бежит к машине. Первый смотрит на Ноя — потом на номер.",
+      "en": "The second officer is already running for the car. The first one looks at Noah — then at the plate."
+     },
+     "dur": 3.0
+    },
+    {
+     "say": "cop",
+     "ru": "Стой здесь. Мы вернёмся.",
+     "en": "Stay right here. We’ll be back.",
+     "shot": "cop"
+    },
+    {
+     "fx": "siren",
+     "shot": "cop",
+     "note": {
+      "ru": "Мигалки уходят в снег.",
+      "en": "The lights vanish into the snow."
+     },
+     "dur": 2.2
+    },
+    {
+     "fx": "post_pass",
+     "shot": "pov",
+     "note": {
+      "ru": "Ждать Ной не стал.",
+      "en": "Noah doesn’t wait."
+     },
+     "dur": 2.2
+    },
+    {
+     "set": {
+      "zoe_trust": -1
+     },
+     "if": {
+      "zoe": ">0"
+     }
     },
     {
      "go": "c2_s4"
@@ -1138,7 +1293,7 @@
      "shot": "road",
      "note": {
       "ru": "Проехали. Но потеряли час.",
-      "en": "They made it through. But they lost an hour."
+      "en": "They got around it. But they lost an hour."
      },
      "dur": 2.4
     },
@@ -1163,7 +1318,7 @@
      "shot": "cafe_ext",
      "note": {
       "ru": "Кафе для дальнобойщиков «У трёх сосен». Фуры у входа. Начинается буран.",
-      "en": "A truck stop called “Three Pines”. Trucks out front. A blizzard is starting."
+      "en": "A truckers’ diner called Three Pines. Trucks out front. A blizzard is starting."
      },
      "dur": 3.4
     },
@@ -1171,7 +1326,7 @@
      "shot": "cafe_wide",
      "note": {
       "ru": "Тёплый жёлтый свет, запах жареного, телевизор под потолком. Официантка и трое дальнобойщиков.",
-      "en": "Warm yellow light, the smell of frying, a TV up near the ceiling. A waitress and three truckers."
+      "en": "Warm yellow light, the smell of fried food, a TV up near the ceiling. A waitress and three truckers."
      },
      "dur": 3.4
     },
@@ -1205,7 +1360,7 @@
     },
     {
      "choice": {
-      "t": 6,
+      "t": 8,
       "opts": [
        {
         "ru": "«Поехали с нами»",
@@ -1238,7 +1393,7 @@
      "shot": "cafe_zoe",
      "say": "zoe",
      "ru": "…Ладно. Но кофе с тебя. И извинения. Кофе сначала.",
-     "en": "…Fine. But you're buying the coffee. And apologizing. Coffee first."
+     "en": "…Fine. But you’re buying the coffee. And apologizing. Coffee first."
     },
     {
      "go": "c2_s4_eva"
@@ -1256,7 +1411,7 @@
      "shot": "cafe_zoe",
      "note": {
       "ru": "Зоя отворачивается к окну. Больше они её не увидят.",
-      "en": "Zoe turns to the window. They won't see her again."
+      "en": "Zoe turns to the window. They won’t see her again."
      },
      "dur": 2.8
     },
@@ -1272,7 +1427,7 @@
      "shot": "cafe_eva",
      "note": {
       "ru": "В углу — беременная женщина в мужском пальто. Обручальное кольцо — на цепочке, на шее.",
-      "en": "In the corner — a pregnant woman in a man's coat. A wedding ring on a chain around her neck."
+      "en": "In the corner — a pregnant woman in a man’s coat. A wedding ring on a chain around her neck."
      },
      "dur": 3.2
     },
@@ -1280,20 +1435,20 @@
      "shot": "cafe_eva",
      "say": "eva",
      "ru": "Простите… Там моя машина, у входа, в канаве. Может, кто-нибудь вытащит? Я заплачу.",
-     "en": "I'm sorry… My car's out front, in the ditch. Could someone pull it out? I'll pay."
+     "en": "I’m sorry… My car’s out front, in the ditch. Could someone pull it out? I’ll pay."
     },
     {
      "shot": "cafe_truckers",
      "say": "trucker",
      "ru": "Девушка, какая машина. Буран идёт. Никто никуда не поедет.",
-     "en": "Lady, forget the car. There's a blizzard coming. Nobody's going anywhere."
+     "en": "Lady, forget the car. There’s a blizzard coming. Nobody’s going anywhere."
     },
     {
      "fx": "eva_car",
      "shot": "eva_car",
      "note": {
       "ru": "Ной — механик. Он смотрит на её машину через окно: сломана полуось. Дальше она не поедет.",
-      "en": "Noah's a mechanic. He looks at her car through the window: a broken axle. It's not going anywhere."
+      "en": "Noah’s a mechanic. He looks at her car through the window: a broken axle. It’s not going anywhere."
      },
      "dur": 3.4
     },
@@ -1301,7 +1456,7 @@
      "shot": "cafe_eva",
      "say": "eva",
      "ru": "Мне надо к сестре. На север. Мне… через месяц.",
-     "en": "I need to get to my sister's. Up north. I'm due… next month."
+     "en": "I need to get to my sister’s. Up north. I’m due… next month."
     },
     {
      "fx": "iris_draw",
@@ -1351,7 +1506,7 @@
     },
     {
      "choice": {
-      "t": 6,
+      "t": 10,
       "opts": [
        {
         "ru": "«Нет»",
@@ -1360,12 +1515,12 @@
        },
        {
         "ru": "«Да. Я не помню как. Но я больше никого не трону»",
-        "en": "“Yes. I don't remember how. But I won't hurt anyone again”",
+        "en": "“Yes. I don’t remember how. But I won’t hurt anyone again”",
         "go": "c2_s4_d2"
        },
        {
         "ru": "«Я не помню»",
-        "en": "“I don't remember”",
+        "en": "“I don’t remember”",
         "go": "c2_s4_d3"
        },
        {
@@ -1395,7 +1550,7 @@
      "shot": "cafe_danny",
      "note": {
       "ru": "Дэнни знает, что это неправда.",
-      "en": "Danny knows that's not true."
+      "en": "Danny knows that’s not true."
      },
      "dur": 2.4
     },
@@ -1415,7 +1570,7 @@
      "shot": "noah_cafe",
      "say": "noah",
      "ru": "Да. Я не помню как. Но я больше никого не трону.",
-     "en": "Yes. I don't remember how. But I won't hurt anyone again."
+     "en": "Yes. I don’t remember how. But I won’t hurt anyone again."
     },
     {
      "fx": "danny_fries",
@@ -1437,7 +1592,7 @@
      "shot": "noah_cafe",
      "say": "noah",
      "ru": "Я не помню.",
-     "en": "I don't remember."
+     "en": "I don’t remember."
     },
     {
      "shot": "cafe_danny",
@@ -1474,14 +1629,14 @@
      "fx": "pills2",
      "shot": "wc_pills",
      "note": {
-      "ru": "В кармане куртки — второй пузырёк.",
-      "en": "In his jacket pocket — a second bottle."
+      "ru": "В кармане куртки — второй пузырёк, запасной. Та же этикетка: «Д-р С. Хейл».",
+      "en": "In his jacket pocket — a second bottle, a spare. The same label: “Dr. S. Hale.”"
      },
-     "dur": 2.4
+     "dur": 3.0
     },
     {
      "choice": {
-      "t": 8,
+      "t": 10,
       "opts": [
        {
         "ru": "Принять таблетку",
@@ -1490,7 +1645,7 @@
        },
        {
         "ru": "Не принимать",
-        "en": "Don't take it",
+        "en": "Don’t take it",
         "go": "c2_s4_p2"
        },
        {
@@ -1521,7 +1676,7 @@
      "shot": "wc_mirror",
      "note": {
       "ru": "Тишина в голове. Как будто кто-то выключил свет в дальней комнате.",
-      "en": "Silence in his head. As if someone turned off the light in a room far away."
+      "en": "Silence in his head. As if someone had switched off the light in a back room."
      },
      "dur": 3.0
     },
@@ -1600,7 +1755,7 @@
     },
     {
      "choice": {
-      "t": 6,
+      "t": 10,
       "opts": [
        {
         "ru": "Выйти к ней",
@@ -1627,7 +1782,7 @@
     {
      "say": "zoe",
      "ru": "Ты иногда выпадаешь. Секунду назад был тут — и нет. Я заметила.",
-     "en": "You zone out sometimes. One second you're here, the next you're gone. I noticed.",
+     "en": "You zone out sometimes. One second you’re here, the next you’re gone. I noticed.",
      "fx": "noah_porch",
      "shot": "porch"
     },
@@ -1635,11 +1790,11 @@
      "shot": "porch",
      "say": "zoe",
      "ru": "У меня тоже провалы. Только не минуты — дни. Просыпаешься, а уже четверг. И никто не говорит, где ты была.",
-     "en": "I get blackouts too. Only not minutes — days. You wake up and it's Thursday. And nobody tells you where you've been."
+     "en": "I get blackouts too. Only not minutes — days. You wake up and it’s Thursday. And nobody tells you where you’ve been."
     },
     {
      "choice": {
-      "t": 8,
+      "t": 12,
       "opts": [
        {
         "ru": "«У меня — минуты. Но в эти минуты я кого-то…»",
@@ -1704,8 +1859,8 @@
      "fx": "hold_hand",
      "shot": "porch",
      "note": {
-      "ru": "Он берёт её за руку. Она не отнимает.",
-      "en": "He takes her hand. She doesn't pull away."
+      "ru": "Он берёт её за руку. Она не отнимает руки.",
+      "en": "He takes her hand. She doesn’t pull away."
      },
      "dur": 2.6
     },
@@ -1737,7 +1892,7 @@
      "shot": "porch_zoe",
      "note": {
       "ru": "Она кивает на фуры и смеётся. Невесело.",
-      "en": "She nods at the trucks and laughs. Not happily."
+      "en": "She nods at the trucks and gives a joyless laugh."
      },
      "dur": 2.4
     },
@@ -1772,13 +1927,13 @@
      "shot": "cafe_window",
      "note": {
       "ru": "В конце парковки останавливается чёрный седан. Никто не выходит. Двигатель работает, дворники ходят.",
-      "en": "A black sedan pulls up at the far end of the lot. Nobody gets out. The engine's running, the wipers are going."
+      "en": "A black sedan pulls up at the far end of the lot. Nobody gets out. The engine’s running, the wipers are going."
      },
      "dur": 3.6
     },
     {
      "note": {
-      "ru": "Ной узнаёт её: эта машина ночью стояла у заправки.",
+      "ru": "Ной узнаёт машину: ночью она стояла у заправки.",
       "en": "Noah recognizes it: this car was parked at the gas station last night."
      },
      "dur": 2.6,
@@ -1789,7 +1944,7 @@
     },
     {
      "note": {
-      "ru": "Ной её уже видел — ночью, у заправки, в темноте.",
+      "ru": "Ной уже видел эту машину — ночью, у заправки, в темноте.",
       "en": "Noah has seen it before — last night, at the gas station, in the dark."
      },
      "dur": 2.6,
@@ -1804,7 +1959,7 @@
      "shot": "cafe_zoe_table",
      "say": "zoe",
      "ru": "Нет… нет-нет-нет. Это его машина.",
-     "en": "No… no, no, no. That's his car.",
+     "en": "No… no, no, no. That’s his car.",
      "if": {
       "zoe": ">0"
      }
@@ -1822,7 +1977,7 @@
      "shot": "cafe_zoe_table",
      "say": "zoe",
      "ru": "Доктора. У которого я «лечилась». Он… стирает людей.",
-     "en": "The doctor's. The one who was “treating” me. He… erases people.",
+     "en": "The doctor’s. The one who was “treating” me. He… erases people.",
      "if": {
       "zoe": ">0"
      }
@@ -1840,7 +1995,7 @@
     {
      "say": "iris",
      "ru": "Это машина доктора. Хейла. Он к тебе приезжал.",
-     "en": "That's the doctor's car. Hale's. He used to come see you.",
+     "en": "That’s the doctor’s car. Hale’s. He used to come see you.",
      "shot": "cafe_iris",
      "if": {
       "trust": ">=2",
@@ -1875,7 +2030,7 @@
        },
        {
         "ru": "Остаться — в буран ехать опасно",
-        "en": "Stay — it's too dangerous to drive in this",
+        "en": "Stay — it’s too dangerous to drive in this",
         "go": "c2_s5_stay"
        },
        {
@@ -1935,7 +2090,7 @@
      "shot": "sedan_window",
      "note": {
       "ru": "Заднее стекло опускается на два пальца. Темно. Лица не видно.",
-      "en": "The rear window slides down two fingers' width. It's dark inside. No face to see."
+      "en": "The rear window rolls down a crack. It’s dark inside. No face visible."
      },
      "dur": 3.0
     },
@@ -1943,7 +2098,7 @@
      "shot": "sedan_window",
      "say": "hale",
      "ru": "Здравствуй, Ной. Как голова? Таблетки ещё есть?",
-     "en": "Hello, Noah. How's your head? Still have your pills?",
+     "en": "Hello, Noah. How’s your head? Still have your pills?",
      "name": {
       "ru": "ГОЛОС",
       "en": "VOICE"
@@ -2046,13 +2201,13 @@
      "shot": "eva_porch",
      "note": {
       "ru": "Ева — на крыльце, с сумкой. Смотрит на них.",
-      "en": "Eva is on the porch with her bag. She's watching them."
+      "en": "Eva is on the porch with her bag. She’s watching them."
      },
      "dur": 2.8
     },
     {
      "choice": {
-      "t": 6,
+      "t": 10,
       "opts": [
        {
         "ru": "Взять Еву",
@@ -2087,7 +2242,7 @@
      "shot": "back",
      "note": {
       "ru": "Теперь в машине тесно. Тепло. Айрис — рядом с Евой.",
-      "en": "It's crowded in the car now. And warm. Iris sits next to Eva."
+      "en": "It’s crowded in the car now. And warm. Iris sits next to Eva."
      },
      "dur": 3.0
     },
@@ -2129,7 +2284,7 @@
      "shot": "road",
      "note": {
       "ru": "Буран. Дворники не успевают.",
-      "en": "The blizzard. The wipers can't keep up."
+      "en": "The blizzard. The wipers can’t keep up."
      },
      "dur": 2.6
     },
@@ -2146,19 +2301,19 @@
      "shot": "iris",
      "say": "iris",
      "ru": "Направо. Там деревня. Там бабушка.",
-     "en": "Turn right. There's a village. Grandma's there."
+     "en": "Turn right. There’s a village. Grandma’s there."
     },
     {
      "shot": "noah",
      "say": "noah",
      "ru": "У нас есть бабушка?..",
-     "en": "We have a grandma?.."
+     "en": "We have a grandma…?"
     },
     {
      "shot": "iris",
      "say": "iris",
      "ru": "Мамина мама. Папа запрещал. Она в дневнике.",
-     "en": "Mom's mom. Dad wouldn't let us. She's in the diary."
+     "en": "Mom’s mom. Dad wouldn’t let us. She’s in the diary."
     },
     {
      "fx": "side_road",

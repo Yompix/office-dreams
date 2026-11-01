@@ -52,7 +52,7 @@ SC['c3_s1'] = {'save': True, 'time': '18:40', 'beats': [
     {'fx': 'c3_start', 'shot': 'road'},
     {'fx': 'fade_in', 'shot': 'road', **N('Глава 3. «Деревня». Колея под снегом. Дворники не справляются.', 'Chapter 3. “The Village.” Ruts under the snow. The wipers can’t keep up.', 3.4)},
     N('В фарах — тёмные силуэты домов. Один огонёк.', 'Dark shapes of houses in the headlights. One light.', 2.6, shot='village_far'),
-    {'fx': 'stuck', 'shot': 'wheel', **N('Колёса буксуют. Машина садится в сугроб — в двухстах метрах от деревни.', 'The wheels spin. The car sinks into a drift — two hundred meters from the village.', 3.0)},
+    {'fx': 'stuck', 'shot': 'wheel', **N('Колёса буксуют. Машина садится в сугроб — в двухстах метрах от деревни.', 'The wheels spin. The car sinks into a drift — two hundred yards from the village.', 3.0)},
     {'if': {'eva_alone': '>0'}, 'else': 'c3_s1_dig'},
     {'go': 'c3_s1_evacar'}]}
 
@@ -74,14 +74,15 @@ SC['c3_s1_carry'] = {'beats': [
 SC['c3_s1_run'] = {'beats': [
     {'set': {'iris_alone': 1, 'trust': 1}},
     {'fx': 'noah_run', 'shot': 'walk_snow', **N('Ной бежит к огоньку один. Айрис остаётся с Евой в машине — греет её.', 'Noah runs for the light alone. Iris stays with Eva in the car, keeping her warm.', 3.2)},
-    N('Он возвращается со стариковскими санками. Быстро. Айрис запомнит.', 'He comes back with an old man’s sled. Fast. Iris will remember that.', 3.0, shot='iris'),
+    N('Он быстро возвращается со старыми деревянными санками.', 'He’s back fast, with an old wooden sled.', 3.0, shot='iris'),
+    {'toast': 'iris'},
     {'go': 'c3_s2'}]}
 
 SC['c3_s1_dig'] = {'beats': [
     {'fx': 'water_break', 'shot': 'back', **N('У Евы отходят воды.', 'Eva’s water breaks.', 2.4, **{'if': {'eva': '>0'}})},
     S('eva', 'Я соврала… Не через месяц.', 'I lied… It’s not next month.', shot='eva', **{'if': {'eva': '>0'}}),
     N('Зоя пересаживается к ней назад и держит её за руку.', 'Zoe climbs into the back beside her and holds her hand.', 2.8, shot='back', **{'if': {'eva': '>0', 'zoe': '>0', 'zoe_gone': '==0'}}),
-    {'fx': 'noah_dig', 'shot': 'wheel_out', **N('Ной — механик. Спустить колёса и подложить коврики.', 'Noah is a mechanic. Let air out of the tires and wedge the floor mats under them.', 2.8)},
+    {'fx': 'noah_dig', 'shot': 'wheel_out', **N('Ной — механик. Спустить колёса и подложить коврики.', 'Noah is a mechanic. He knows the trick: let some air out of the tires, wedge the floor mats under them.', 2.8)},
     {'qte': 'mash', 't': 6.0, 'n': 12, 'hint': {'ru': 'Быстро жми E / пробел — подкопать, спустить, подложить', 'en': 'Mash E / Space — dig, deflate, wedge'}, 'fail': 'c3_s1_walk'},
     {'fx': 'unstuck', 'shot': 'wheel', **N('Колёса цепляются за коврики. Машина выползает из сугроба.', 'The tires bite on the mats. The car crawls out of the drift.', 3.0)},
     {'go': 'c3_s2'}]}
@@ -139,8 +140,8 @@ SC['c3_s3_dark'] = {'beats': [
     {'fx': 'birth_bed', 'shot': 'bed', **N('Еву кладут на кровать за печью. Схватки всё чаще.', 'They lay Eva on the bed behind the stove. The contractions come faster.', 3.0)},
     {'fx': 'lights_out', 'shot': 'house_wide', **N('Свет мигает — и гаснет. Провода оборвало.', 'The light flickers — and goes out. The lines are down.', 2.8)},
     S('agnes', 'Без света не справлюсь. Генератор-то в сарае есть, а бензину нет. Бензин — в магазине, у Петра.', 'I can’t do this without light. There’s a generator in the shed, but no gas. Gas is at the store — Pyotr’s place.', shot='agnes_candle'),
-    N('Бак их машины почти пуст: стрелка лежит на нуле ещё с трассы.', 'Their car’s tank is nearly empty: the needle has been on zero since the highway.', 2.8, shot='noah_house'),
-    C(8, [O('Пойду я', 'I’ll go', 'c3_s3_noah'),
+    N('Бак их машины почти пуст: стрелка лежит на нуле ещё с трассы.', 'Their car’s tank is almost dry: the needle has been sitting on empty since the highway.', 2.8, shot='noah_house'),
+    C(8, [O('«Пойду я»', '“I’ll go”', 'c3_s3_noah'),
           O('Пусть сходит Зоя', 'Let Zoe go', 'c3_s3_zoe', **{'if': {'zoe': '>0', 'zoe_gone': '==0'}}),
           O('Никто — свечи и печь', 'No one — candles and the stove', 'c3_s3_candles')],
       shot='noah_house', silent='c3_s3_candles')]}
@@ -168,7 +169,7 @@ SC['c3_s3_lapse'] = {'beats': [
 
 SC['c3_s3_zoe'] = {'beats': [
     {'set': {'light': 1, 'zoe_trust': 1, 'hale_here': 1}},
-    {'fx': 'zoe_storm', 'shot': 'house_door', **N('Зоя уходит в метель. Долго. Потом — шаги на крыльце.', 'Zoe walks out into the storm. A long time. Then — footsteps on the porch.', 3.0)},
+    {'fx': 'zoe_storm', 'shot': 'house_door', **N('Зоя уходит в метель. Долго. Потом — шаги на крыльце.', 'Zoe walks out into the storm. She’s gone a long time. Then — footsteps on the porch.', 3.0)},
     S('zoe', 'На краю деревни стоит машина. Чёрная. С выключенными фарами.', 'There’s a car at the edge of the village. Black. Headlights off.', shot='zoe_house'),
     {'fx': 'generator', 'shot': 'house_wide', **N('Генератор кашляет и заводится. Свет. Зоя не отходит от окна.', 'The generator coughs and starts. Light. Zoe won’t leave the window.', 3.0)},
     {'go': 'c3_s3_birth'}]}
@@ -178,7 +179,7 @@ SC['c3_s3_candles'] = {'beats': [
     {'go': 'c3_s3_birth'}]}
 
 SC['c3_s3_birth'] = {'beats': [
-    {'fx': 'birth', 'shot': 'bed', **N('Крик Евы. Агнес спокойная и жёсткая. Айрис держит Еву за руку.', 'Eva screams. Agnes is calm and hard. Iris holds Eva’s hand.', 3.2)},
+    {'fx': 'birth', 'shot': 'bed', **N('Крик Евы. Агнес спокойная и жёсткая. Айрис держит Еву за руку.', 'Eva screams. Agnes is calm and firm. Iris holds Eva’s hand.', 3.2)},
     N('Дэнни сидит под столом, зажав уши.', 'Danny sits under the table with his hands over his ears.', 2.6, shot='danny_table', **{'if': {'danny': '>0'}}),
     N('Зоя таскает воду и шутит без остановки. Голос у неё дрожит.', 'Zoe hauls water and keeps cracking jokes. Her voice is shaking.', 2.8, shot='house_wide', **{'if': {'zoe': '>0', 'zoe_gone': '==0'}}),
     S('eva', 'Ты смелая, слышишь? Если меня не будет — ты справишься.', 'You’re brave, you hear me? If I’m gone — you’ll manage.', shot='eva_bed', **{'if': {'trust': '>=2'}}),
@@ -199,7 +200,7 @@ SC['c3_s3_birth'] = {'beats': [
 
 SC['c3_s3_alive'] = {'beats': [
     {'set': {'eva_alive': 1, 'baby': 1}},
-    {'fx': 'eva_baby', 'shot': 'eva_bed', **N('За полночь. Ева, белая и мокрая, держит девочку.', 'Past midnight. Eva, pale and soaked, holds the little girl.', 3.0)},
+    {'fx': 'eva_baby', 'shot': 'eva_bed', **N('За полночь. Ева, белая и мокрая, держит девочку.', 'Past midnight. Eva, pale and soaked, holds her baby girl.', 3.0)},
     S('eva', 'Как её назвать?', 'What should I call her?', shot='eva_bed'),
     S('iris', 'Анна.', 'Anna.', shot='iris_bed'),
     N('Ева кивает.', 'Eva nods.', 2.0, shot='eva_bed'),
@@ -217,7 +218,7 @@ SC['c3_s3_dead'] = {'beats': [
 
 # ---------- Сцена 4. «Озеро не отпускает» ----------
 SC['c3_s4'] = {'save': True, 'time': '01:10', 'beats': [
-    {'fx': 'night_stove', 'shot': 'stove_two', **N('Дом затих. Айрис клюёт носом у печи — перед этим она долго шепталась с бабушкой. Агнес курит трубку. Ной садится рядом.', 'The house is quiet. Iris is nodding off by the stove — before that she whispered with Grandma for a long time. Agnes smokes her pipe. Noah sits down beside her.', 3.6)},
+    {'fx': 'night_stove', 'shot': 'stove_two', **N('Дом затих. Айрис клюёт носом у печи — перед этим она долго шепталась с бабушкой. Агнес курит трубку. Ной садится рядом.', 'The house is quiet. Iris is nodding off by the stove — she spent a long time whispering with Grandma first. Agnes smokes her pipe. Noah sits down beside her.', 3.6)},
     S('agnes', 'Озеро своих не отпускает, милок. Кто утоп — тот при нём и остаётся. А злость его — в том, кто видел.', 'The lake doesn’t let its own go, dear. Whoever drowns stays with it. And its anger lives in whoever saw.', shot='agnes_stove'),
     S('agnes', 'Мать твоя в тебе сидит. Она Айрис и уберегла.', 'Your mother lives in you. She’s the one who kept Iris safe.', shot='agnes_stove'),
     S('noah', 'Врач говорил — это болезнь.', 'The doctor said it’s an illness.', shot='noah_stove'),
@@ -261,7 +262,7 @@ SC['c3_s4_pills'] = {'beats': [
     {'if': {'pills_flushed': '==0'}, 'else': 'c3_s4_brew'},
     N('Ной поворачивается — в кармане гремит пузырёк. Агнес слышит.', 'Noah shifts — the pill bottle rattles in his pocket. Agnes hears it.', 2.6, shot='noah_stove'),
     S('agnes', 'Дай мне его отраву.', 'Give me his poison.', shot='agnes_stove'),
-    {'fx': 'pills3', 'shot': 'pill_label', **N('Пузырёк Хейла. «Ной. Д-р С. Хейл. 1 таб. при головной боли».', 'Hale’s bottle. “Noah. Dr. S. Hale. 1 tab. for headaches.”', 2.8)},
+    {'fx': 'pills3', 'shot': 'pill_label', **N('Пузырёк Хейла. «Ной. Д-р С. Хейл. 1 таб. при головной боли».', 'Hale’s bottle. “Noah. Dr. S. Hale. 1 tablet for headaches.”', 2.8)},
     C(6, [O('Отдать', 'Give them to her', 'c3_s4_give'),
           O('Не отдавать и принять таблетку на ночь', 'Keep them and take a pill for the night', 'c3_s4_take'),
           O('Не отдавать и не пить ничего', 'Keep them and take nothing', 'c3_s4_keep')], shot='noah_stove', silent='c3_s4_keep')]}
@@ -371,7 +372,7 @@ SC['c3_s5_song'] = {'beats': [
     {'fx': 'fade_in', 'shot': 'house_night', **N('Ной просыпается среди ночи. Тишина. Печь потрескивает.', 'Noah wakes in the night. Silence. The stove crackles.', 2.8, **{'if': {'baby': '==0'}})},
     {'if': {'danny': '>0'}, 'else': 'c3_s5_song2'},
     {'fx': 'radio_song', 'shot': 'danny_window', **N('Дэнни сидит у окна с рацией. Рация трещит — и сквозь помехи тихо поёт женский голос. Та самая колыбельная.', 'Danny sits by the window with his walkie-talkie. It crackles — and through the static a woman softly sings. That same lullaby.', 4.0)},
-    N('Дэнни смотрит на Ноя огромными глазами.', 'Danny stares at Noah with enormous eyes.', 2.4, shot='danny_window'),
+    N('Дэнни смотрит на Ноя огромными глазами.', 'Danny stares at Noah, wide-eyed.', 2.4, shot='danny_window'),
     {'go': 'c3_s5_song3'}]}
 
 SC['c3_s5_song2'] = {'beats': [
@@ -403,18 +404,25 @@ SC['c3_s6_axe'] = {'beats': [
 SC['c3_s6_cellar'] = {'beats': [
     {'set': {'hale_knows': 1}},
     {'fx': 'cellar', 'shot': 'cellar', **N('Подпол. Темнота и запах картошки. Тишина — час.', 'The cellar. Darkness and the smell of potatoes. Silence — for an hour.', 3.0)},
-    {'fx': 'knock', 'shot': 'cellar', **N('Потом стук в дверь — три раза, вежливо. Никто не открывает. Шаги уходят.', 'Then a knock at the door — three times, politely. No one answers. Footsteps walk away.', 3.6)},
+    {'fx': 'knock', 'shot': 'cellar', **N('Потом стук в дверь — три раза, вежливо. Никто не открывает. Шаги уходят.', 'Then three polite knocks at the door. No one answers. The footsteps move away.', 3.6)},
     {'go': 'c3_end'}]}
 
 SC['c3_s6_neighbor'] = {'beats': [
     {'set': {'hale_lost': 1}},
     {'fx': 'neighbor', 'shot': 'gardens', **N('Агнес собирает узел трав и ведёт всех задами, огородами — к соседке на краю деревни.', 'Agnes bundles up her herbs and leads everyone out the back, through the gardens — to the neighbor’s at the edge of the village.', 3.6)},
-    N('До света у Хейла нет их следа. Но лесом ночью, с младенцем, до дачи не дойти.', 'Until daylight, Hale has lost their trail. But at night, through the woods, with a baby — they’d never reach the cabin.', 3.6, shot='gardens'),
+    N('До света у Хейла нет их следа. Но лесом ночью, с младенцем, до дачи не дойти.', 'Hale won’t pick up their trail before daylight. But at night, through the woods, with a baby — they’d never make it to the lake house.', 3.6, shot='gardens'),
     {'go': 'c3_end'}]}
 
 SC['c3_end'] = {'beats': [
     {'fx': 'fade_out', 'dur': 1.4},
     {'end': 3}]}
+
+# разговорные выборы — 10–12 с на раздумье (срочные — как были)
+REFLECTIVE = {'c3_s2': 10, 'c3_s4_belief': 12, 'c3_s4_pills': 10, 'c3_s4_brew': 10, 'c3_s5_danny': 10}
+for _sid, _t in REFLECTIVE.items():
+    _c = [b for b in SC[_sid]['beats'] if 'choice' in b]
+    assert len(_c) == 1, _sid
+    _c[0]['choice']['t'] = _t
 
 DATA = {
     'chapter': 3, 'start': 'c3_recap', 'ready': True,    # True — когда постановка главы готова (chapter3.gd)

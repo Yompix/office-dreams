@@ -49,7 +49,7 @@ SC['c4_recap'] = {'save': True, 'time': '07:40', 'beats': [
     T('Ева умерла родами. Девочку назвали Анной.', 'Eva died giving birth. They named the girl Anna.', 2.8, **I(eva_dead='>0')),
     T('Зоя пропала ночью у кафе. На снегу остался её браслет.', 'Zoe vanished in the night at the diner. Her bracelet was left in the snow.', 2.8, **I(zoe_taken='>0')),
     T('Ночью Ной стоял босиком в снегу с топором и говорил чужим голосом.', 'In the night Noah stood barefoot in the snow with an axe, speaking in someone else’s voice.', 3.2, **I(night_lapse='>0')),
-    T('Ночью по рации пел женский голос. Та самая колыбельная.', 'In the night a woman sang over the radio. That same lullaby.', 3.0, **I(heard_song='>0')),
+    T('Ночью сквозь помехи пел женский голос. Та самая колыбельная.', 'In the night a woman sang over the radio. That same lullaby.', 3.0, **I(heard_song='>0')),
     T('Дэнни ушёл в буран.', 'Danny walked out into the blizzard.', 2.4, **I(danny_lost='>0')),
     T('Бабушка Агнес: «Сама её к нему и послала».', 'Grandma Agnes: “I sent her to him myself.”', 2.8),
     T('На рассвете в конце улицы зажглись фары чёрного седана.', 'At dawn, the black sedan’s headlights came on at the end of the street.', 3.0),
@@ -59,11 +59,12 @@ SC['c4_recap'] = {'save': True, 'time': '07:40', 'beats': [
 SC['c4_s1'] = {'save': True, 'time': '08:30', 'beats': [
     {'fx': 'c4_start', 'shot': 'yard'},
     {'fx': 'fade_in', 'shot': 'yard', **N('Глава 4. «Чёрная машина». Утро. Буран кончился, снег искрится.', 'Chapter 4. “The Black Car.” Morning. The storm is over; the snow glitters.', 3.4)},
-    N('Они возвращаются к дому Агнес за машиной.', 'They come back to Agnes’s house for the car.', 2.6, shot='yard', **I(hale_lost='>0')),
+    N('Остаток ночи — у соседки, бабы Нюры, в тёмной кухне. Свет не зажигают.', 'They spend the rest of the night at the neighbor’s — old Nyura’s — in a dark kitchen. No lights.', 3.0, shot='yard', **I(hale_lost='>0')),
+    N('На рассвете седан Хейла медленно уезжает из деревни — к лесной дороге. Только тогда, задами, огородами, они возвращаются к дому Агнес.', 'At dawn Hale’s sedan slowly drives out of the village, toward the forest road. Only then, through the back gardens, do they return to Agnes’s house.', 4.0, shot='yard', **I(hale_lost='>0')),
     {'fx': 'car_door', 'shot': 'car_seat', **N('На водительском сиденье — пузырёк таблеток. Новый. Под ним — записка.', 'On the driver’s seat — a bottle of pills. A new one. A note underneath.', 3.0)},
     {'fx': 'hale_note', 'shot': 'hale_note', **N('Ровный почерк: «Ной, тебе станет легче. Ты же знаешь, что бывает без них. — С. Х.»', 'Neat handwriting: “Noah, you’ll feel better. You know what happens without them. — S. H.”', 4.2)},
     S('iris', 'Он был здесь. Ночью. Прямо тут.', 'He was here. Last night. Right here.', shot='iris_yard'),
-    N('В кармане у Ноя — ещё и старый пузырёк.', 'Noah still has the old bottle in his pocket, too.', 2.4, shot='noah_yard', **I(pills_burned='==0', pills_flushed='==0')),
+    N('В кармане у Ноя — ещё и запасной пузырёк, тот, что был в куртке.', 'Noah still has the spare bottle in his pocket, too — the one from his jacket.', 2.4, shot='noah_yard', **I(pills_burned='==0', pills_flushed='==0')),
     C(6, [O('Сунуть пузырёк в карман', 'Pocket the bottle', 'c4_s1_pocket'),
           O('Забросить в сугроб', 'Throw it into a snowdrift', 'c4_s1_snow'),
           O('Отдать Айрис: «Держи у себя. Решишь ты»', 'Give it to Iris: “You keep it. You decide”', 'c4_s1_iris')],
@@ -78,7 +79,7 @@ SC['c4_s1_pocket'] = {'beats': [
 SC['c4_s1_snow'] = {'beats': [
     {'set': {'pills_snow': 1, 'trust': 1}, 'toast': True},
     {'fx': 'pills_throw', 'shot': 'yard_drift', **N('Пузырёк летит в сугроб и тонет в нём без звука.', 'The bottle sails into a drift and sinks without a sound.', 2.6)},
-    N('Следом — и старый, из кармана.', 'The old one from his pocket goes after it.', 2.0, shot='yard_drift', **{'if': {'pills_burned': '==0', 'pills_flushed': '==0'}}),
+    N('Следом — и запасной, из кармана.', 'The spare from his pocket goes after it.', 2.0, shot='yard_drift', **{'if': {'pills_burned': '==0', 'pills_flushed': '==0'}}),
     N('Айрис выдыхает.', 'Iris breathes out.', 1.8, shot='iris_yard'),
     {'go': 'c4_s1_van'}]}
 
@@ -86,20 +87,20 @@ SC['c4_s1_iris'] = {'beats': [
     {'set': {'pills_iris': 1, 'trust': 2}, 'toast': True},
     S('noah', 'Держи у себя. Решишь ты.', 'You keep it. You decide.', shot='noah_yard'),
     {'fx': 'pills_give', 'shot': 'iris_yard', **N('Айрис сжимает пузырёк в кулаке.', 'Iris closes her fist around the bottle.', 2.4)},
-    N('Ной отдаёт ей и старый — из кармана.', 'Noah hands her the old one from his pocket too.', 2.2, shot='iris_yard', **{'if': {'pills_burned': '==0', 'pills_flushed': '==0'}}),
+    N('Ной отдаёт ей и запасной — из кармана.', 'Noah hands her the spare from his pocket too.', 2.2, shot='iris_yard', **{'if': {'pills_burned': '==0', 'pills_flushed': '==0'}}),
     {'go': 'c4_s1_van'}]}
 
 SC['c4_s1_leave'] = {'beats': [
     {'set': {'pills_left': 1}},
     N('Ной не трогает пузырёк. Тот так и остаётся на сиденье.', 'Noah doesn’t touch the bottle. It stays where it is, on the seat.', 2.8, shot='car_seat'),
     {'set': {'pills_old': 1}, 'if': {'pills_burned': '==0', 'pills_flushed': '==0'}},
-    N('Старый пузырёк — по-прежнему у него в кармане.', 'The old bottle is still in his pocket.', 2.2, shot='car_seat', **{'if': {'pills_burned': '==0', 'pills_flushed': '==0'}}),
+    N('Запасной пузырёк — по-прежнему у него в кармане.', 'The spare bottle is still in his pocket.', 2.2, shot='car_seat', **{'if': {'pills_burned': '==0', 'pills_flushed': '==0'}}),
     {'go': 'c4_s1_van'}]}
 
 SC['c4_s1_van'] = {'beats': [
     {'fx': 'shed_open', 'shot': 'shed', **N('Их седан Хейл знает наизусть. А в сарае у Агнес — старая буханка покойного деда.', 'Hale knows their sedan by heart. But in Agnes’s shed there’s her late husband’s old van.', 3.4)},
     S('agnes', 'Лет восемь не заводилась. Ты ж у нас механик?', 'Hasn’t started in eight years. You’re the mechanic, aren’t you?', shot='agnes_shed'),
-    {'fx': 'van_hood', 'shot': 'van_engine', **N('Свечи — из дедова ящика. Аккумулятор — из их машины. Остаётся «с толкача».', 'Spark plugs from the old man’s toolbox. The battery from their car. All that’s left is a push start.', 3.4)},
+    {'fx': 'van_hood', 'shot': 'van_engine', **N('Свечи — из дедова ящика. Аккумулятор — из их машины. Остаётся «с толкача».', 'Spark plugs from Grandpa’s toolbox. The battery from their car. All that’s left is a push start.', 3.4)},
     {'fx': 'van_push', 'shot': 'van_push'},
     {'qte': 'mash', 't': 6.0, 'n': 12, 'hint': {'ru': 'С толкача! Быстро жми E / пробел — сцепление, газ', 'en': 'Push start! Mash E / Space — clutch, gas'}, 'fail': 'c4_s1_van2'},
     {'go': 'c4_s1_vango'}]}
@@ -113,7 +114,7 @@ SC['c4_s1_van2'] = {'beats': [
 SC['c4_s1_vango'] = {'beats': [
     {'fx': 'van_start', 'shot': 'van_smoke', **N('Буханка кашляет чёрным дымом — и заводится.', 'The van coughs out black smoke — and starts.', 2.8)},
     N('Зоя хлопает в ладоши.', 'Zoe claps her hands.', 2.0, fx='zoe_clap', shot='zoe_yard', **{'if': ZOE}),
-    N('И главное: чёрная машина буханку не знает.', 'And best of all: the black car doesn’t know the van.', 2.8, shot='van_smoke'),
+    N('И главное: чёрная машина буханку не знает.', 'And best of all: the black car has never seen this van.', 2.8, shot='van_smoke'),
     {'go': 'c4_s2'}]}
 
 # ---------- Сцена 2. «Санаторий» ----------
@@ -181,25 +182,25 @@ SC['c4_s2_hale'] = {'beats': [
     S('hale', 'Ной. Это доктор Хейл. Зоя у меня. С ней всё хорошо — пока она принимает лекарства.', 'Noah. This is Dr. Hale. Zoe is with me. She’s fine — as long as she takes her medication.', shot='noah_van'),
     S('hale', 'Давай поговорим как взрослые люди. Без топоров.', 'Let’s talk like adults. No axes.', shot='noah_van', **I(hale_brave='>0')),
     S('hale', 'Давай поговорим как взрослые люди.', 'Let’s talk like adults.', shot='noah_van', **I(hale_brave='==0')),
-    {'fx': 'radio_off', 'shot': 'van_inside', **N('Шипение. Связь обрывается.', 'Static. The line goes dead.', 2.2)},
+    {'fx': 'radio_off', 'shot': 'van_inside', **N('Шипение. Связь обрывается.', 'Static. Then nothing.', 2.2)},
     S('iris', 'Не отвечай ему. Никогда.', 'Don’t answer him. Ever.', shot='iris_van'),
     {'go': 'c4_s3'}]}
 
 # ---------- Сцена 3. «Рисунки» ----------
 SC['c4_s3'] = {'save': True, 'time': '12:40', 'beats': [
     {'fx': 'bus_stop', 'shot': 'bus_stop', **N('Буханка закипает у заброшенной автобусной остановки. Из-под капота валит пар.', 'The van overheats by an abandoned bus stop. Steam pours from under the hood.', 3.2)},
-    {'fx': 'hood_up', 'shot': 'hose', **N('Лопнул шланг. Изолента — в дедовом ящике.', 'A hose has split. There’s electrical tape in the old man’s toolbox.', 2.8)},
+    {'fx': 'hood_up', 'shot': 'hose', **N('Лопнул шланг. Изолента — в дедовом ящике.', 'A hose has split. There’s electrical tape in Grandpa’s toolbox.', 2.8)},
     {'qte': 'press', 't': 6.0, 'n': 10, 'hint': {'ru': 'Мотай изоленту: жми E / пробел в ритм', 'en': 'Wrap the tape: press E / Space in rhythm'}, 'fail': 'c4_s3_tape2'},
     {'go': 'c4_s3_iris'}]}
 
 SC['c4_s3_tape2'] = {'beats': [
     {'set': {'van_late': 1}},
-    N('Изолента рвётся. Ещё раз — медленнее. Держит. Но время ушло.', 'The tape tears. Again — slower. It holds. But time is gone.', 3.0, shot='hose'),
+    N('Изолента рвётся. Ещё раз — медленнее. Держит. Но время ушло.', 'The tape tears. Again — slower. It holds. But it’s cost them time.', 3.0, shot='hose'),
     {'go': 'c4_s3_iris'}]}
 
 SC['c4_s3_iris'] = {'beats': [
     {'if': {'trust': '>=3'}, 'else': 'c4_s3_sleep'},
-    {'fx': 'iris_bench', 'shot': 'iris_stop', **N('Айрис сидит на лавке остановки с блокнотом. Потом сама протягивает его брату.', 'Iris sits on the bus-stop bench with her notebook. Then she holds it out to her brother.', 3.2)},
+    {'fx': 'iris_bench', 'shot': 'iris_stop', **N('Айрис сидит на лавке остановки с блокнотом. Потом сама протягивает его брату.', 'Iris sits on the bus-stop bench with her notebook. Then, without being asked, she holds it out to her brother.', 3.2)},
     S('iris', 'Ты хотел знать.', 'You wanted to know.', shot='iris_stop', **I(asked='>0')),
     S('iris', 'Тебе надо это увидеть.', 'You need to see this.', shot='iris_stop', **I(asked='==0')),
     {'set': {'drawings_shown': 1, 'memory': 1}},
@@ -272,7 +273,7 @@ SC['c4_s4'] = {'beats': [
     {'if': {'danny': '>0', 'danny_lost': '==0', 'danny_fear': '==0', 'lapse1': '>0'}, 'else': 'c4_s5'},
     {'fx': 'danny_sit', 'shot': 'danny_stop', **N('Дэнни садится рядом, пока Ной возится с мотором.', 'Danny sits down next to Noah while he works on the engine.', 2.8)},
     S('danny', 'На заправке… Ты не был злой. Ты был… будто тебя там нет. Глаза пустые.', 'At the gas station… You weren’t angry. You were… like you weren’t there. Empty eyes.', shot='danny_stop'),
-    S('danny', 'А потом ты сказал дяде «спи». Тихо так. Как мама говорит.', 'And then you told the man, “sleep.” Real quiet. Like my mom says it.', shot='danny_stop', **I(roman_dead='==0')),
+    S('danny', 'А потом ты сказал дяде «спи». Тихо так. Как мама говорит.', 'And then you told the man, “Sleep.” Real quiet. Like my mom says it.', shot='danny_stop', **I(roman_dead='==0')),
     S('danny', 'Он упал. Головой. Об эту… стойку. Ты потом плакал. Ты не хотел.', 'He fell. Hit his head. On the… counter. You cried after. You didn’t mean it.', shot='danny_stop', **I(roman_dead='>0')),
     C(6, [O('«Спасибо, что сказал»', '“Thanks for telling me”', 'c4_s4_thanks'),
           O('«Никому об этом не говори, ладно?»', '“Don’t tell anyone about this, okay?”', 'c4_s4_secret'),
@@ -392,7 +393,7 @@ SC['c4_s5_lapse'] = {'beats': [
 
 SC['c4_s5_weak'] = {'beats': [
     {'set': {'iris_fought': 1}},
-    {'fx': 'noah_down', 'shot': 'fight', **N('Таблетка ещё в крови. Ной слабый и медленный — санитар валит его в снег.', 'The pill is still in his blood. Noah is weak and slow — the orderly drives him down into the snow.', 3.2)},
+    {'fx': 'noah_down', 'shot': 'fight', **N('Таблетка ещё в крови. Ной слабый и медленный — санитар валит его в снег.', 'The pill is still in his system. Noah is weak and slow — the orderly takes him down into the snow.', 3.2)},
     {'fx': 'syringe', 'shot': 'hale', **N('Хейл достаёт шприц.', 'Hale takes out a syringe.', 2.2)},
     {'fx': 'iris_hit', 'shot': 'hit_two', **N('Айрис бьёт Хейла по руке. Шприц — в снегу.', 'Iris strikes Hale’s hand. The syringe drops into the snow.', 2.6)},
     S('iris', 'Беги!', 'Run!', shot='hit_two'),
@@ -421,8 +422,8 @@ SC['c4_s5_chase'] = {'beats': [
 
 # ---------- Сцена 6. «Лес» ----------
 SC['c4_s6'] = {'save': True, 'time': '17:10', 'beats': [
-    {'fx': 'woods_dusk', 'shot': 'woods', **N('Темнеет. Снег по колено. Впереди — охотничья избушка.', 'It’s getting dark. Knee-deep snow. Ahead — a hunter’s cabin.', 3.0)},
-    {'fx': 'hut_in', 'shot': 'hut', **N('Спрятаться. Сквозь щели в стенах пляшет луч фонаря.', 'Hide. Through the gaps in the walls, a flashlight beam dances.', 3.0)},
+    {'fx': 'woods_dusk', 'shot': 'woods', **N('Темнеет. Снег по колено. Впереди — охотничья избушка.', 'It’s getting dark. Knee-deep snow. Ahead — a hunting hut.', 3.0)},
+    {'fx': 'hut_in', 'shot': 'hut', **N('Спрятаться. Сквозь щели в стенах пляшет луч фонаря.', 'They hide. Through the gaps in the walls, a flashlight beam dances.', 3.0)},
     S('hale', 'Ной… Я не сержусь. Тут холодно. Выходи — поговорим.', 'Noah… I’m not angry. It’s cold out here. Come out — let’s talk.', shot='hut_gap', **I(orderly_dead='>0')),
     {'if': {'baby': '>0'}, 'else': 'c4_s6_zoe'},
     {'fx': 'baby_whimper', 'shot': 'baby_hut', **N('Маленькая Анна начинает хныкать.', 'Little Anna starts to whimper.', 2.4)},
@@ -444,8 +445,8 @@ SC['c4_s6_quiet'] = {'beats': [
 SC['c4_s6_cry'] = {'beats': [
     {'set': {'baby_cried': 1}},
     {'fx': 'baby_cry', 'shot': 'baby_hut', **N('Плач.', 'Crying.', 1.6)},
-    {'fx': 'beam_turn', 'shot': 'hut_gap', **N('Луч останавливается. Поворачивается к избушке.', 'The beam stops. Turns toward the cabin.', 2.6)},
-    {'fx': 'hut_run', 'shot': 'woods_run', **N('Бежать дальше — в темноту.', 'Run on — into the dark.', 2.2)},
+    {'fx': 'beam_turn', 'shot': 'hut_gap', **N('Луч останавливается. Поворачивается к избушке.', 'The beam stops. Turns toward the hut.', 2.6)},
+    {'fx': 'hut_run', 'shot': 'woods_run', **N('Бежать дальше — в темноту.', 'They run on — into the dark.', 2.2)},
     {'go': 'c4_s6_zoe'}]}
 
 SC['c4_s6_zoe'] = {'beats': [
@@ -491,7 +492,7 @@ SC['c4_s6_agnes'] = {'beats': [
 SC['c4_s6_agnes_save'] = {'beats': [
     {'set': {'agnes_limp': 1}},
     {'fx': 'carry_agnes', 'shot': 'woods_carry', **N('Ной возвращается и тащит бабушку на себе. Она подвернула ногу.', 'Noah goes back and hauls Grandma along on his back. She’s twisted her ankle.', 3.0)},
-    N('Погоня ближе. Но она жива.', 'The chase is closer. But she’s alive.', 2.4, shot='woods_back'),
+    N('Погоня ближе. Но она жива.', 'The pursuers are closing in. But she’s alive.', 2.4, shot='woods_back'),
     {'go': 'c4_s6_danny'}]}
 
 SC['c4_s6_agnes_lost'] = {'beats': [
@@ -549,6 +550,13 @@ SC['c4_end'] = {'beats': [
     T('Агнес так и осталась в лесу. Её найдут потом — в снегу, будто уснула.', 'Agnes stayed behind in the forest. They’ll find her later — in the snow, as if asleep.', 3.6, **I(agnes_dead='>0')),
     {'end': 4}]}
 
+# разговорные выборы — 10–12 с на раздумье (срочные — как были)
+REFLECTIVE = {'c4_s1': 10, 'c4_s2_zoe': 10, 'c4_s3_talk': 12, 'c4_s3_sleep': 8, 'c4_s4': 10}
+for _sid, _t in REFLECTIVE.items():
+    _c = [b for b in SC[_sid]['beats'] if 'choice' in b]
+    assert len(_c) == 1, _sid
+    _c[0]['choice']['t'] = _t
+
 DATA = {
     'chapter': 4, 'start': 'c4_recap', 'ready': True,    # True — когда постановка главы готова (chapter4.gd)
     'title': {'ru': 'ГЛАВА 4 · ЧЁРНАЯ МАШИНА', 'en': 'CHAPTER 4 · THE BLACK CAR'},
@@ -591,7 +599,7 @@ DATA = {
             {'id': 'attack', 'ru': 'напал', 'en': 'attacked', 'if': {'pine_attack': '>0'}},
             {'id': 'run', 'ru': 'бежал в лес', 'en': 'ran for the woods', 'if': {'pine_run': '>0'}},
             {'id': 'freeze', 'ru': 'промолчал', 'en': 'froze', 'if': {}}]},
-        {'key': 'baby', 'ru': 'Избушка', 'en': 'The cabin', 'opts': [
+        {'key': 'baby', 'ru': 'Избушка', 'en': 'The hunting hut', 'opts': [
             {'id': 'cried', 'ru': 'плач выдал', 'en': 'the crying gave them away', 'if': {'baby_cried': '>0'}},
             {'id': 'quiet', 'ru': 'укачали', 'en': 'rocked to sleep', 'if': {'baby': '>0'}},
             {'id': 'none', 'ru': 'без младенца', 'en': 'no baby', 'if': {}}]},

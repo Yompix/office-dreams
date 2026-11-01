@@ -217,6 +217,27 @@ static func fx(g, k: String) -> bool:
 				(dd as Node).queue_free()
 		"iris_ice":
 			put(g, "iris", PW + Vector3(3.6, 0.0, 3.0), -120.0, "Idle_FoldArms")
+		"iris_shed_door":   # малышку не с кем оставить: Айрис с ней в сарае, у щели
+			put(g, "iris", L(-8.6, 0.28, 12.3), -90.0, "Idle_FoldArms")
+		"helper_zoe":   # Зоя с багром у полыньи (если не осталась с малышкой)
+			if has(g, "zoe"):
+				put(g, "zoe", HOLEW + Vector3(2.7, 0.0, 0.3), -95.0, "Crouch_Idle")
+		"helper_danny":   # Дэнни с верёвкой у мостков
+			if has(g, "danny"):
+				put(g, "danny", HOLEW + Vector3(3.5, 0.0, 1.7), -120.0, "Idle")
+		"hale_crawls_out":   # Хейл выбрался на лёд по спине Ноя — дальше его не прятать
+			g.c5["hale_out"] = true
+			if has(g, "hale"):
+				put(g, "hale", HOLEW + Vector3(3.2, 0.0, 1.6), 20.0, "LayToIdle")
+				Ch3.hold(g.actors.hale, "LayToIdle", 0.0)
+		"iris_pushed_out":   # Ной снизу вытолкнул Айрис на лёд
+			if has(g, "iris"):
+				put(g, "iris", HOLEW + Vector3(2.2, 0.0, 2.0), -40.0, "LayToIdle")
+				Ch3.hold(g.actors.iris, "LayToIdle", 0.0)
+		"unlock_iris":   # Ной подо льдом — двери седана открывает Айрис
+			if has(g, "iris"):
+				put(g, "iris", L(-13.2, 0.0, 19.2), 30.0, "Interact")
+			_hostages(g, true)
 		"agnes_out":   # бабушка выбежала на берег (без колыбельной её там не было — камера улетала); put сам делает её видимой
 			if not on(g, "agnes_dead"):
 				put(g, "agnes", L(-10.5, 0.0, 4.5), 70.0, "Idle")
@@ -261,7 +282,7 @@ static func fx(g, k: String) -> bool:
 		"in_water", "ice_takes":
 			_hole(g, true)
 			_in_water(g, "hale", HOLEW + Vector3(0.45, 0.0, 0.35), -140.0)
-			if k == "in_water" or on(g, "smiled"):
+			if (k == "in_water" or on(g, "smiled")) and not on(g, "baby_along"):   # Айрис с малышкой — в сарае, не на льду
 				_in_water(g, "iris", HOLEW + Vector3(-0.35, 0.0, -0.25), 40.0)
 			g.sfx.play("splash", -2.0)
 		"crawl":
@@ -291,7 +312,7 @@ static func fx(g, k: String) -> bool:
 				g.get_tree().create_timer(1.2).timeout.connect(func():
 					if g.actors.has("noah"):
 						(g.actors.noah as Actor).visible = false)
-				if g.actors.has("hale"):
+				if g.actors.has("hale") and not g.c5.get("hale_out", false):   # Хейл, который выбрался, остаётся на льду
 					g.get_tree().create_timer(1.2).timeout.connect(func():
 						if g.actors.has("hale"):
 							(g.actors.hale as Actor).visible = false)

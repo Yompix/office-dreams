@@ -34,6 +34,8 @@ var _shotlog := ""            # --shotlog папка: снимок через 0,
 var _shot_n := 0
 var _forced: Array = []       # --pick 0,2,1: какие варианты выбирает автопрогон (по порядку выборов)
 var _miss: Array = []         # --miss brake,steer: какие действия автопрогон проваливает
+var _miss_in: Array = []
+var _qte_missin := ""      # --missin c3_s3_birth,c5_s4_iris: в каких сценах автопрогон проваливает действие
 var _stop := ""              # --stop s4: на этой сцене прогон заканчивается
 var _fast := false            # --fast: каждая пауза не дольше 0,7 с, ходьба — сразу на место (быстрый лист кадров)
 var deer: Deer                # олень на трассе (сцена 3): едет назад вместе с дорогой
@@ -145,6 +147,8 @@ func _ready() -> void:
 		_forced = Array(String(args[args.find("--pick") + 1]).split(",")).map(func(x): return int(x))
 	if "--miss" in args:
 		_miss = Array(String(args[args.find("--miss") + 1]).split(","))
+	if "--missin" in args:
+		_miss_in = Array(String(args[args.find("--missin") + 1]).split(","))
 	_fast = "--fast" in args
 	if "--flags" in args:   # проверка ветки: --flags late=1,trust=2,danny=1
 		for kv in String(args[args.find("--flags") + 1]).split(","):
@@ -894,7 +898,7 @@ func _fx(k: String) -> void:
 				tb.tween_property(blackcar, "rotation_degrees:y", 180.0, 2.2).set_ease(Tween.EASE_IN_OUT)
 				tb.parallel().tween_property(blackcar, "speed", 5.0, 2.2)
 		"signpost":
-			scene.signpost(-95.0, "СЕВЕР  640" if lang == "ru" else "NORTH  640")
+			scene.signpost(-95.0, "СЕВЕР  640" if lang == "ru" else "NORTH  400")   # км по-русски, мили по-английски
 		"snow_heavy":   # впереди буран: снега больше, летит гуще
 			scene.road.snow.amount = 5200 if scene.pc else 2400
 			scene.env.fog_density = 0.02
@@ -1218,6 +1222,9 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 	var hint_raw: String = hud.T(hint_d) if hint_d != null else ""
 	var hint0 := _keys(hint_raw)
 	hud.hint.text = hint0
+	if autoplay and _scene_id in _miss_in and not (kind in _miss):   # проверки веток: провалить действие именно в этой сцене
+		_miss.append(kind)
+		_qte_missin = kind
 	_qte = kind
 	_qte_ok = kind not in ["mash", "press", "rock"]   # жать: удалось, только если набрали нужное число нажатий
 	_qte_got = 0
@@ -1286,7 +1293,7 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 			continue
 		if kind == "steer":   # машину ведёт к обочине: игрок держит её на полосе
 			var push := sin(_t * 1.3) * 0.9 + 0.6   # снос вправо (+), руль влево (−) его гасит
-			var inp := _steer_in if not autoplay else clampf(-_qte_drift * 3.0 - push / 2.2, -1.0, 1.0)
+			var inp := _steer_in if not autoplay else (0.0 if "steer" in _miss else clampf(-_qte_drift * 3.0 - push / 2.2, -1.0, 1.0))   # --miss steer: автопрогон не рулит
 			_qte_drift = clampf(_qte_drift + (push + inp * 2.2) * dt, -1.2, 1.2)
 			if absf(_qte_drift) > 0.8 and _skid_cd <= 0.0:   # колёса срывает — визг шин
 				sfx.play("skid", -9.0)
@@ -1321,6 +1328,9 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 	hud.hint.text = ""
 	_qte = ""
 	scene.car.steer = 0.0
+	if _qte_missin != "":
+		_miss.erase(_qte_missin)
+		_qte_missin = ""
 	return _qte_ok
 
 
@@ -1448,6 +1458,12 @@ func _the_end() -> void:
 	hud.title.text = ("КОНЕЦ" if ru else "THE END") + "\n\n" + (("Концовка " if ru else "Ending ") + String(ends[cur][0 if ru else 1])) \
 		+ "\n" + (("Открыто концовок: %d из 5" if ru else "Endings found: %d of 5") % opened)
 	_log("конец игры: %s, открыто %d из 5" % [cur, opened])
+	var nz := {}
+	for fk in flags:
+		if float(flags[fk]) != 0.0:
+			nz[fk] = flags[fk]
+	_log("итог флаги " + JSON.stringify(nz))
+	_log("время игры: %.1f мин" % (Time.get_ticks_msec() / 1000.0 * Engine.time_scale / 60.0))
 	await _wait(6.0)
 	if autoplay:
 		get_tree().quit()

@@ -290,7 +290,7 @@
   {
    "key": "baby",
    "ru": "Избушка",
-   "en": "The cabin",
+   "en": "The hunting hut",
    "opts": [
     {
      "id": "cried",
@@ -437,7 +437,7 @@
     },
     {
      "text": {
-      "ru": "Ночью по рации пел женский голос. Та самая колыбельная.",
+      "ru": "Ночью сквозь помехи пел женский голос. Та самая колыбельная.",
       "en": "In the night a woman sang over the radio. That same lullaby."
      },
      "dur": 3.0,
@@ -497,10 +497,21 @@
     },
     {
      "note": {
-      "ru": "Они возвращаются к дому Агнес за машиной.",
-      "en": "They come back to Agnes’s house for the car."
+      "ru": "Остаток ночи — у соседки, бабы Нюры, в тёмной кухне. Свет не зажигают.",
+      "en": "They spend the rest of the night at the neighbor’s — old Nyura’s — in a dark kitchen. No lights."
      },
-     "dur": 2.6,
+     "dur": 3.0,
+     "shot": "yard",
+     "if": {
+      "hale_lost": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "На рассвете седан Хейла медленно уезжает из деревни — к лесной дороге. Только тогда, задами, огородами, они возвращаются к дому Агнес.",
+      "en": "At dawn Hale’s sedan slowly drives out of the village, toward the forest road. Only then, through the back gardens, do they return to Agnes’s house."
+     },
+     "dur": 4.0,
      "shot": "yard",
      "if": {
       "hale_lost": ">0"
@@ -532,8 +543,8 @@
     },
     {
      "note": {
-      "ru": "В кармане у Ноя — ещё и старый пузырёк.",
-      "en": "Noah still has the old bottle in his pocket, too."
+      "ru": "В кармане у Ноя — ещё и запасной пузырёк, тот, что был в куртке.",
+      "en": "Noah still has the spare bottle in his pocket, too — the one from his jacket."
      },
      "dur": 2.4,
      "shot": "noah_yard",
@@ -544,7 +555,7 @@
     },
     {
      "choice": {
-      "t": 6,
+      "t": 10,
       "opts": [
        {
         "ru": "Сунуть пузырёк в карман",
@@ -620,8 +631,8 @@
     },
     {
      "note": {
-      "ru": "Следом — и старый, из кармана.",
-      "en": "The old one from his pocket goes after it."
+      "ru": "Следом — и запасной, из кармана.",
+      "en": "The spare from his pocket goes after it."
      },
      "dur": 2.0,
      "shot": "yard_drift",
@@ -669,8 +680,8 @@
     },
     {
      "note": {
-      "ru": "Ной отдаёт ей и старый — из кармана.",
-      "en": "Noah hands her the old one from his pocket too."
+      "ru": "Ной отдаёт ей и запасной — из кармана.",
+      "en": "Noah hands her the spare from his pocket too."
      },
      "dur": 2.2,
      "shot": "iris_yard",
@@ -710,8 +721,8 @@
     },
     {
      "note": {
-      "ru": "Старый пузырёк — по-прежнему у него в кармане.",
-      "en": "The old bottle is still in his pocket."
+      "ru": "Запасной пузырёк — по-прежнему у него в кармане.",
+      "en": "The spare bottle is still in his pocket."
      },
      "dur": 2.2,
      "shot": "car_seat",
@@ -747,7 +758,7 @@
      "shot": "van_engine",
      "note": {
       "ru": "Свечи — из дедова ящика. Аккумулятор — из их машины. Остаётся «с толкача».",
-      "en": "Spark plugs from the old man’s toolbox. The battery from their car. All that’s left is a push start."
+      "en": "Spark plugs from Grandpa’s toolbox. The battery from their car. All that’s left is a push start."
      },
      "dur": 3.4
     },
@@ -825,7 +836,7 @@
     {
      "note": {
       "ru": "И главное: чёрная машина буханку не знает.",
-      "en": "And best of all: the black car doesn’t know the van."
+      "en": "And best of all: the black car has never seen this van."
      },
      "dur": 2.8,
      "shot": "van_smoke"
@@ -965,7 +976,7 @@
     },
     {
      "choice": {
-      "t": 6,
+      "t": 10,
       "opts": [
        {
         "ru": "«Я ей верю»",
@@ -1175,7 +1186,7 @@
      "shot": "van_inside",
      "note": {
       "ru": "Шипение. Связь обрывается.",
-      "en": "Static. The line goes dead."
+      "en": "Static. Then nothing."
      },
      "dur": 2.2
     },
@@ -1208,7 +1219,7 @@
      "shot": "hose",
      "note": {
       "ru": "Лопнул шланг. Изолента — в дедовом ящике.",
-      "en": "A hose has split. There’s electrical tape in the old man’s toolbox."
+      "en": "A hose has split. There’s electrical tape in Grandpa’s toolbox."
      },
      "dur": 2.8
     },
@@ -1237,7 +1248,7 @@
     {
      "note": {
       "ru": "Изолента рвётся. Ещё раз — медленнее. Держит. Но время ушло.",
-      "en": "The tape tears. Again — slower. It holds. But time is gone."
+      "en": "The tape tears. Again — slower. It holds. But it’s cost them time."
      },
      "dur": 3.0,
      "shot": "hose"
@@ -1260,7 +1271,7 @@
      "shot": "iris_stop",
      "note": {
       "ru": "Айрис сидит на лавке остановки с блокнотом. Потом сама протягивает его брату.",
-      "en": "Iris sits on the bus-stop bench with her notebook. Then she holds it out to her brother."
+      "en": "Iris sits on the bus-stop bench with her notebook. Then, without being asked, she holds it out to her brother."
      },
      "dur": 3.2
     },
@@ -1365,7 +1376,7 @@
     },
     {
      "choice": {
-      "t": 8,
+      "t": 12,
       "opts": [
        {
         "ru": "«Прости меня»",
@@ -1511,7 +1522,7 @@
     },
     {
      "choice": {
-      "t": 6,
+      "t": 8,
       "opts": [
        {
         "ru": "Тихо посмотреть",
@@ -1631,7 +1642,7 @@
     {
      "say": "danny",
      "ru": "А потом ты сказал дяде «спи». Тихо так. Как мама говорит.",
-     "en": "And then you told the man, “sleep.” Real quiet. Like my mom says it.",
+     "en": "And then you told the man, “Sleep.” Real quiet. Like my mom says it.",
      "shot": "danny_stop",
      "if": {
       "roman_dead": "==0"
@@ -1648,7 +1659,7 @@
     },
     {
      "choice": {
-      "t": 6,
+      "t": 10,
       "opts": [
        {
         "ru": "«Спасибо, что сказал»",
@@ -2264,7 +2275,7 @@
      "shot": "fight",
      "note": {
       "ru": "Таблетка ещё в крови. Ной слабый и медленный — санитар валит его в снег.",
-      "en": "The pill is still in his blood. Noah is weak and slow — the orderly drives him down into the snow."
+      "en": "The pill is still in his system. Noah is weak and slow — the orderly takes him down into the snow."
      },
      "dur": 3.2
     },
@@ -2419,7 +2430,7 @@
      "shot": "woods",
      "note": {
       "ru": "Темнеет. Снег по колено. Впереди — охотничья избушка.",
-      "en": "It’s getting dark. Knee-deep snow. Ahead — a hunter’s cabin."
+      "en": "It’s getting dark. Knee-deep snow. Ahead — a hunting hut."
      },
      "dur": 3.0
     },
@@ -2428,7 +2439,7 @@
      "shot": "hut",
      "note": {
       "ru": "Спрятаться. Сквозь щели в стенах пляшет луч фонаря.",
-      "en": "Hide. Through the gaps in the walls, a flashlight beam dances."
+      "en": "They hide. Through the gaps in the walls, a flashlight beam dances."
      },
      "dur": 3.0
     },
@@ -2568,7 +2579,7 @@
      "shot": "hut_gap",
      "note": {
       "ru": "Луч останавливается. Поворачивается к избушке.",
-      "en": "The beam stops. Turns toward the cabin."
+      "en": "The beam stops. Turns toward the hut."
      },
      "dur": 2.6
     },
@@ -2577,7 +2588,7 @@
      "shot": "woods_run",
      "note": {
       "ru": "Бежать дальше — в темноту.",
-      "en": "Run on — into the dark."
+      "en": "They run on — into the dark."
      },
      "dur": 2.2
     },
@@ -2876,7 +2887,7 @@
     {
      "note": {
       "ru": "Погоня ближе. Но она жива.",
-      "en": "The chase is closer. But she’s alive."
+      "en": "The pursuers are closing in. But she’s alive."
      },
      "dur": 2.4,
      "shot": "woods_back"

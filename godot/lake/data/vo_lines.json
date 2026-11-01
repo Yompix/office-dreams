@@ -1,6 +1,6 @@
 {
 "c2_s2_back_1": {
-"en": "Hey, kiddo. I'm Zoe. Don't worry, I don't bite. Mostly.",
+"en": "Hey, kiddo. I’m Zoe. Don’t worry, I don’t bite. Mostly.",
 "ru": "Привет, малой. Я Зоя. Не бойся, я не кусаюсь. Почти.",
 "scene": "c2_s2_back",
 "who": "zoe"
@@ -12,7 +12,7 @@
 "who": "zoe"
 },
 "c2_s2_q_1": {
-"en": "What's the bracelet?",
+"en": "What’s the bracelet?",
 "ru": "Что за браслет?",
 "scene": "c2_s2_q",
 "who": "noah"
@@ -30,13 +30,13 @@
 "who": "zoe"
 },
 "c2_s2_stop_1": {
-"en": "You're my hero. Seriously. Ten more minutes and they'd have found me in the spring.",
+"en": "You’re my hero. Seriously. Ten more minutes and they’d have found me in the spring.",
 "ru": "Ты мой герой. Серьёзно. Ещё десять минут — и меня бы нашли весной.",
 "scene": "c2_s2_stop",
 "who": "zoe"
 },
 "c2_s3_flee_1": {
-"en": "You're insane.",
+"en": "You’re insane.",
 "ru": "Ты псих.",
 "scene": "c2_s3_flee",
 "who": "iris"
@@ -66,7 +66,7 @@
 "who": "cop"
 },
 "c2_s3_zoe_2": {
-"en": "Taking the kids to their grandma. And this one's got a busted nose — got in a fight over me. Hero, right?",
+"en": "Taking the kids to their grandma. And this one’s got a busted nose — got in a fight over me. Hero, right?",
 "ru": "Везём мелких к бабушке. А у этого нос разбит — подрался за меня. Герой, да?",
 "scene": "c2_s3_zoe",
 "who": "zoe"
@@ -78,7 +78,7 @@
 "who": "cop"
 },
 "c2_s3_zoe_ok_1": {
-"en": "Safe travels. Careful — there's a blizzard coming by noon.",
+"en": "Safe travels. Careful — there’s a blizzard coming by noon.",
 "ru": "Счастливой дороги. Аккуратнее, к обеду метель.",
 "scene": "c2_s3_zoe_ok",
 "who": "cop"
@@ -90,13 +90,13 @@
 "who": "noah"
 },
 "c2_s4_d2_1": {
-"en": "Yes. I don't remember how. But I won't hurt anyone again.",
+"en": "Yes. I don’t remember how. But I won’t hurt anyone again.",
 "ru": "Да. Я не помню как. Но я больше никого не трону.",
 "scene": "c2_s4_d2",
 "who": "noah"
 },
 "c2_s4_d3_1": {
-"en": "I don't remember.",
+"en": "I don’t remember.",
 "ru": "Я не помню.",
 "scene": "c2_s4_d3",
 "who": "noah"
@@ -114,19 +114,19 @@
 "who": "danny"
 },
 "c2_s4_eva_1": {
-"en": "I'm sorry… My car's out front, in the ditch. Could someone pull it out? I'll pay.",
+"en": "I’m sorry… My car’s out front, in the ditch. Could someone pull it out? I’ll pay.",
 "ru": "Простите… Там моя машина, у входа, в канаве. Может, кто-нибудь вытащит? Я заплачу.",
 "scene": "c2_s4_eva",
 "who": "eva"
 },
 "c2_s4_eva_2": {
-"en": "Lady, forget the car. There's a blizzard coming. Nobody's going anywhere.",
+"en": "Lady, forget the car. There’s a blizzard coming. Nobody’s going anywhere.",
 "ru": "Девушка, какая машина. Буран идёт. Никто никуда не поедет.",
 "scene": "c2_s4_eva",
 "who": "trucker"
 },
 "c2_s4_eva_3": {
-"en": "I need to get to my sister's. Up north. I'm due… next month.",
+"en": "I need to get to my sister’s. Up north. I’m due… next month.",
 "ru": "Мне надо к сестре. На север. Мне… через месяц.",
 "scene": "c2_s4_eva",
 "who": "eva"
@@ -150,7 +150,7 @@
 "who": "zoe"
 },
 "c2_s4_z_1": {
-"en": "I get blackouts too. Only not minutes — days. You wake up and it's Thursday. And nobody tells you where you've been.",
+"en": "I get blackouts too. Only not minutes — days. You wake up and it’s Thursday. And nobody tells you where you’ve been.",
 "ru": "У меня тоже провалы. Только не минуты — дни. Просыпаешься, а уже четверг. И никто не говорит, где ты была.",
 "scene": "c2_s4_z",
 "who": "zoe"
@@ -162,13 +162,13 @@
 "who": "zoe"
 },
 "c2_s4_zoe_yes_1": {
-"en": "…Fine. But you're buying the coffee. And apologizing. Coffee first.",
+"en": "…Fine. But you’re buying the coffee. And apologizing. Coffee first.",
 "ru": "…Ладно. Но кофе с тебя. И извинения. Кофе сначала.",
 "scene": "c2_s4_zoe_yes",
 "who": "zoe"
 },
 "c2_s5_1": {
-"en": "No… no, no, no. That's his car.",
+"en": "No… no, no, no. That’s his car.",
 "ru": "Нет… нет-нет-нет. Это его машина.",
 "scene": "c2_s5",
 "who": "zoe"
@@ -180,7 +180,7 @@
 "who": "noah"
 },
 "c2_s5_3": {
-"en": "The doctor's. The one who was “treating” me. He… erases people.",
+"en": "The doctor’s. The one who was “treating” me. He… erases people.",
 "ru": "Доктора. У которого я «лечилась». Он… стирает людей.",
 "scene": "c2_s5",
 "who": "zoe"
@@ -192,7 +192,7 @@
 "who": "iris"
 },
 "c2_s5_walk_1": {
-"en": "Hello, Noah. How's your head? Still have your pills?",
+"en": "Hello, Noah. How’s your head? Still have your pills?",
 "ru": "Здравствуй, Ной. Как голова? Таблетки ещё есть?",
 "scene": "c2_s5_walk",
 "who": "hale"
@@ -204,19 +204,19 @@
 "who": "eva"
 },
 "c2_s6_road_1": {
-"en": "Turn right. There's a village. Grandma's there.",
+"en": "Turn right. There’s a village. Grandma’s there.",
 "ru": "Направо. Там деревня. Там бабушка.",
 "scene": "c2_s6_road",
 "who": "iris"
 },
 "c2_s6_road_2": {
-"en": "We have a grandma?..",
+"en": "We have a grandma…?",
 "ru": "У нас есть бабушка?..",
 "scene": "c2_s6_road",
 "who": "noah"
 },
 "c2_s6_road_3": {
-"en": "Mom's mom. Dad wouldn't let us. She's in the diary.",
+"en": "Mom’s mom. Dad wouldn’t let us. She’s in the diary.",
 "ru": "Мамина мама. Папа запрещал. Она в дневнике.",
 "scene": "c2_s6_road",
 "who": "iris"
@@ -630,7 +630,7 @@
 "who": "danny"
 },
 "c4_s4_2": {
-"en": "And then you told the man, “sleep.” Real quiet. Like my mom says it.",
+"en": "And then you told the man, “Sleep.” Real quiet. Like my mom says it.",
 "ru": "А потом ты сказал дяде «спи». Тихо так. Как мама говорит.",
 "scene": "c4_s4",
 "who": "danny"
@@ -1404,7 +1404,7 @@
 "who": "zoe"
 },
 "s1_1": {
-"en": "Iris?.. Where are we?.. Whose blood is this?",
+"en": "Iris…? Where are we…? Whose blood is this?",
 "ru": "Айрис?.. Где мы?.. Чья это кровь?",
 "scene": "s1",
 "who": "noah"
@@ -1422,7 +1422,7 @@
 "who": "noah"
 },
 "s1_a_2": {
-"en": "You really don't remember?",
+"en": "You really don’t remember?",
 "ru": "Ты правда не помнишь?",
 "scene": "s1_a",
 "who": "iris"
@@ -1440,7 +1440,7 @@
 "who": "iris"
 },
 "s1_b_1": {
-"en": "We're going back.",
+"en": "We’re going back.",
 "ru": "Мы возвращаемся.",
 "scene": "s1_b",
 "who": "noah"
@@ -1452,7 +1452,7 @@
 "who": "iris"
 },
 "s1_b_3": {
-"en": "If we go back, they'll lock you up and put me in a home. Drive, Noah!",
+"en": "If we go back, they’ll lock you up and put me in a home. Drive, Noah!",
 "ru": "Вернёмся — тебя посадят, а меня в детдом. Езжай, Ной!",
 "scene": "s1_b",
 "who": "iris"
@@ -1464,7 +1464,7 @@
 "who": "radio"
 },
 "s2_b_1": {
-"en": "…about six feet tall, wearing a dark, old-fashioned man's jacket…",
+"en": "…about six feet tall, wearing a dark, old-fashioned man’s jacket…",
 "ru": "…рост около ста восьмидесяти, тёмная куртка, мужская, старого кроя…",
 "scene": "s2_b",
 "who": "radio"
@@ -1476,13 +1476,13 @@
 "who": "noah"
 },
 "s2_c_2": {
-"en": "You don't remember. Then that's how it has to be.",
+"en": "You don’t remember. Then that’s how it has to be.",
 "ru": "Ты не помнишь. Значит, так надо.",
 "scene": "s2_c",
 "who": "iris"
 },
 "s3_hit_1": {
-"en": "Noah… It's suffering. Do something!",
+"en": "Noah… It’s suffering. Do something!",
 "ru": "Ной… Он же мучается. Сделай что-нибудь!",
 "scene": "s3_hit",
 "who": "iris"
@@ -1506,19 +1506,19 @@
 "who": "iris"
 },
 "s5_2": {
-"en": "Mom told me to wait. She's been gone… a long time.",
+"en": "Mom told me to wait. She’s been gone… a long time.",
 "ru": "Мама сказала ждать. Она… уже долго.",
 "scene": "s5",
 "who": "danny"
 },
 "s5_help_1": {
-"en": "I don't know what I did. Help my sister.",
+"en": "I don’t know what I did. Help my sister.",
 "ru": "Я не знаю, что я сделал. Помогите сестре.",
 "scene": "s5_help",
 "who": "noah"
 },
 "s5_help_2": {
-"en": "Go, kid. I'll make the call in ten minutes.",
+"en": "Go, kid. I’ll make the call in ten minutes.",
 "ru": "Езжай, парень. Позвоню через десять минут.",
 "scene": "s5_help",
 "who": "roman"
@@ -1536,7 +1536,7 @@
 "who": "iris"
 },
 "s5_pay_1": {
-"en": "Don't. I'll pay and go.",
+"en": "Don’t. I’ll pay and go.",
 "ru": "Не надо. Я заплачу и уеду.",
 "scene": "s5_pay",
 "who": "noah"
@@ -1554,19 +1554,19 @@
 "who": "noah"
 },
 "s6_a_2": {
-"en": "I'm right here. He won't hurt you.",
+"en": "I’m right here. He won’t hurt you.",
 "ru": "Я с тобой. Он тебя не тронет.",
 "scene": "s6_a",
 "who": "iris"
 },
 "s6_b_1": {
-"en": "We can't take him.",
+"en": "We can’t take him.",
 "ru": "Мы не можем его взять.",
 "scene": "s6_b",
 "who": "noah"
 },
 "s6_b_2": {
-"en": "Nobody's coming for him. You can see that.",
+"en": "Nobody’s coming for him. You can see that.",
 "ru": "Никто за ним не придёт. Ты же видишь.",
 "scene": "s6_b",
 "who": "iris"
@@ -1578,13 +1578,13 @@
 "who": "noah"
 },
 "s7_a_1": {
-"en": "It's going to be okay.",
+"en": "It’s going to be okay.",
 "ru": "Всё будет хорошо.",
 "scene": "s7_a",
 "who": "noah"
 },
 "s7_b_1": {
-"en": "I don't know what's wrong with me.",
+"en": "I don’t know what’s wrong with me.",
 "ru": "Я не знаю, что со мной.",
 "scene": "s7_b",
 "who": "noah"

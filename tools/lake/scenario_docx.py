@@ -35,13 +35,13 @@ def sig(sid, b):
     out = []
     c = json.dumps(b.get('if'), sort_keys=True)
     if 'say' in b:
-        out.append((sid, 'say', b['say'], b['ru'], c))
+        out.append((sid, 'say', b['say'], b['ru'], b.get('en', ''), c))
     for k in ('note', 'text'):
         if isinstance(b.get(k), dict):
-            out.append((sid, k, b[k]['ru'], c))
+            out.append((sid, k, b[k]['ru'], b[k].get('en', ''), c))
     if 'choice' in b:
         for o in b['choice']['opts']:
-            out.append((sid, 'opt', o.get('ru', ''), json.dumps(o.get('if'), sort_keys=True), o.get('go')))
+            out.append((sid, 'opt', o.get('ru', ''), o.get('en', ''), json.dumps(o.get('if'), sort_keys=True), o.get('go')))
     if 'qte' in b:
         out.append((sid, 'qte', b['qte'], b.get('t'), b.get('n'), c))
     return out
@@ -63,13 +63,14 @@ def main():
     for s in doc.sections:
         s.left_margin = s.right_margin = Cm(2.0)
     doc.add_heading('WHAT THE LAKE KEEPS', 0)
-    doc.add_paragraph('Сценарий интерактивного фильма — версия для редактора (после редактуры диалогов и веток, %s).'
+    doc.add_paragraph('Сценарий интерактивного фильма — версия для редактора (собрано %s).'
                       % datetime.date.today().strftime('%d.%m.%Y'))
     doc.add_paragraph('Собрано из данных игры (godot/lake/data/ch1–ch5.json): это ровно то, что идёт в игре. '
                       'Реплика — имя и текст по-русски, ниже английский. [ЕСЛИ …] — условие показа (флаги). '
                       'ВЫБОР — варианты с таймером и сценой, куда ведут; [молчание] — что будет, если не выбрать. '
                       'ДЕЙСТВИЕ — что жмёт игрок; «провал →» — куда при неудаче.'
-                      + (' Жёлтым — новое или изменённое при редактуре (подробно — docs/DIALOGUE_REVISIONS.md).' if olds else ''))
+                      + (' Жёлтым — новое или изменённое по сравнению с прошлой версией, по-русски или по-английски '
+                         '(подробно — godot/lake/docs/CHANGELOG.md, DIALOGUE_REVISIONS.md, LOCALIZATION_AUDIT.md).' if olds else ''))
     cur = 0
     nlines = 0
     for sid, sc in data['scenes'].items():
@@ -134,7 +135,7 @@ def main():
                     q = para()
                     q.paragraph_format.left_indent = Cm(0.8)
                     oc = ('  [ЕСЛИ %s]' % A.cond_s(o['if'])) if o.get('if') else ''
-                    on = olds and (sid, 'opt', o.get('ru', ''), json.dumps(o.get('if'), sort_keys=True), o.get('go')) not in olds
+                    on = olds and (sid, 'opt', o.get('ru', ''), o.get('en', ''), json.dumps(o.get('if'), sort_keys=True), o.get('go')) not in olds
                     if o.get('silent'):
                         rr = q.add_run('[молчание] → %s' % o.get('go'))
                     else:

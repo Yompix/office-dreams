@@ -59,6 +59,16 @@
   "note_pocket": 0,
   "home": 0,
   "hale_let_go": 0,
+  "zoe_here": 0,
+  "danny_here": 0,
+  "sitter_zoe": 0,
+  "sitter_danny": 0,
+  "baby_along": 0,
+  "ev_diary": 0,
+  "ev_zoe": 0,
+  "ev_agnes": 0,
+  "ev_orderly": 0,
+  "ev_danny": 0,
   "end_witness": 0,
   "end_shadow": 0,
   "end_shadow_dark": 0,
@@ -366,7 +376,7 @@
     {
      "text": {
       "ru": "Зоя — у Хейла.",
-      "en": "Zoe is with Hale."
+      "en": "Hale has Zoe."
      },
      "dur": 2.2,
      "note": true,
@@ -446,7 +456,7 @@
       "ptotal": 1
      },
      "if": {
-      "pills": ">0"
+      "pills": ">=1"
      }
     },
     {
@@ -454,7 +464,7 @@
       "ptotal": 1
      },
      "if": {
-      "pills2": ">0"
+      "pills": ">=2"
      }
     },
     {
@@ -462,7 +472,26 @@
       "ptotal": 1
      },
      "if": {
-      "pills3": ">0"
+      "pills": ">=3"
+     }
+    },
+    {
+     "set": {
+      "zoe_here": 1
+     },
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "set": {
+      "danny_here": 1
+     },
+     "if": {
+      "danny": ">0",
+      "danny_lost": "==0",
+      "danny_hale": "==0"
      }
     },
     {
@@ -963,7 +992,7 @@
     },
     {
      "choice": {
-      "t": 8,
+      "t": 10,
       "opts": [
        {
         "ru": "«Не брошу»",
@@ -1022,7 +1051,7 @@
     {
      "note": {
       "ru": "Дэнни долго смотрит на него. Честно — это тоже ответ.",
-      "en": "Danny looks at him for a long time. Honest is an answer too."
+      "en": "Danny looks at him for a long time. An honest “I don’t know” is an answer too."
      },
      "dur": 2.6,
      "shot": "danny_room"
@@ -1042,7 +1071,7 @@
     {
      "say": "eva",
      "ru": "Ты меня тогда у кафе не взял. А потом всё равно вытащил из сугроба.",
-     "en": "You didn’t take me at the diner. And then you dug me out of a snowdrift anyway.",
+     "en": "You didn’t take me with you at the diner. And then you pulled me out of a snowdrift anyway.",
      "shot": "eva_room",
      "if": {
       "eva_found": ">0"
@@ -1094,7 +1123,7 @@
     },
     {
      "choice": {
-      "t": 8,
+      "t": 10,
       "opts": [
        {
         "ru": "Принять",
@@ -1128,14 +1157,14 @@
      "fx": "bottle5",
      "shot": "bottle5",
      "note": {
-      "ru": "В кармане — старый пузырёк Хейла, ещё из дома.",
-      "en": "In his pocket — Hale’s old bottle, from home."
+      "ru": "В кармане — запасной пузырёк, тот, что был в куртке.",
+      "en": "In his pocket — the spare bottle, the one from his jacket."
      },
      "dur": 2.6
     },
     {
      "choice": {
-      "t": 8,
+      "t": 10,
       "opts": [
        {
         "ru": "Принять",
@@ -1168,14 +1197,14 @@
     {
      "note": {
       "ru": "Пузырёк — у Айрис. Она смотрит на брата.",
-      "en": "The bottle is with Iris. She watches her brother."
+      "en": "Iris has the bottle. She watches her brother."
      },
      "dur": 2.6,
      "shot": "iris_room"
     },
     {
      "choice": {
-      "t": 8,
+      "t": 10,
       "opts": [
        {
         "ru": "Попросить таблетку",
@@ -1314,29 +1343,184 @@
   "c5_s1_go": {
    "beats": [
     {
-     "note": {
-      "ru": "Уходя к сараю, Айрис отдаёт малышку тем, кто остаётся в доме.",
-      "en": "On her way out to the boathouse, Iris hands the baby to whoever stays in the house."
+     "if": {
+      "baby": ">0"
      },
-     "dur": 2.8,
+     "else": "c5_s1_go2"
+    },
+    {
+     "note": {
+      "ru": "Малышка остаётся с Евой у печи.",
+      "en": "The baby stays with Eva by the stove."
+     },
+     "dur": 2.4,
      "shot": "dacha_room",
      "if": {
-      "baby": ">0",
-      "home": ">0"
+      "eva_alive": ">0"
+     }
+    },
+    {
+     "if": {
+      "eva_alive": "==0"
+     },
+     "else": "c5_s1_go2"
+    },
+    {
+     "note": {
+      "ru": "Айрис отдаёт малышку бабушке.",
+      "en": "Iris hands the baby to Grandma."
+     },
+     "dur": 2.4,
+     "shot": "dacha_room",
+     "if": {
+      "agnes_dead": "==0"
+     }
+    },
+    {
+     "if": {
+      "agnes_dead": ">0"
+     },
+     "else": "c5_s1_go2"
+    },
+    {
+     "if": {
+      "zoe_here": ">0",
+      "danny_here": ">0"
+     },
+     "else": "c5_s1_sit1"
+    },
+    {
+     "note": {
+      "ru": "Взрослых в доме больше нет. С малышкой должен остаться кто-то один — и он уже не выйдет к озеру.",
+      "en": "There are no grown-ups left in the house. Someone has to stay with the baby — and whoever stays won’t come down to the lake."
+     },
+     "dur": 3.6,
+     "shot": "dacha_room"
+    },
+    {
+     "choice": {
+      "t": 10,
+      "opts": [
+       {
+        "ru": "«Зоя, побудь с ней»",
+        "en": "“Zoe, stay with her”",
+        "go": "c5_s1_sit_zoe"
+       },
+       {
+        "ru": "«Дэнни, ты за старшего»",
+        "en": "“Danny, you’re in charge”",
+        "go": "c5_s1_sit_danny"
+       },
+       {
+        "silent": true,
+        "go": "c5_s1_sit_zoe"
+       }
+      ],
+      "shot": "noah_room"
+     }
+    }
+   ]
+  },
+  "c5_s1_sit_zoe": {
+   "beats": [
+    {
+     "set": {
+      "sitter_zoe": 1
      }
     },
     {
      "note": {
-      "ru": "Айрис укладывает малышку в бельевую корзину у тёплой печи — оставить её больше не с кем.",
-      "en": "Iris tucks the baby into a laundry basket by the warm stove — there’s no one else to leave her with."
+      "ru": "Зоя берёт малышку неловко — как что-то, что может взорваться.",
+      "en": "Zoe takes the baby awkwardly — like something that might go off."
      },
-     "dur": 3.2,
-     "shot": "dacha_room",
-     "if": {
-      "baby": ">0",
-      "home": "==0"
+     "dur": 2.6,
+     "shot": "dacha_room"
+    },
+    {
+     "say": "zoe",
+     "ru": "Я с детьми не очень. Но ладно. Иди.",
+     "en": "I’m not great with babies. But fine. Go.",
+     "shot": "dacha_room"
+    },
+    {
+     "go": "c5_s1_go2"
+    }
+   ]
+  },
+  "c5_s1_sit_danny": {
+   "beats": [
+    {
+     "set": {
+      "sitter_danny": 1
      }
     },
+    {
+     "note": {
+      "ru": "Дэнни садится рядом с корзиной и не сводит с малышки глаз.",
+      "en": "Danny sits down by the basket and doesn’t take his eyes off the baby."
+     },
+     "dur": 2.6,
+     "shot": "dacha_room"
+    },
+    {
+     "say": "danny",
+     "ru": "Я буду считать, как она дышит.",
+     "en": "I’ll count her breaths.",
+     "shot": "dacha_room"
+    },
+    {
+     "go": "c5_s1_go2"
+    }
+   ]
+  },
+  "c5_s1_sit1": {
+   "beats": [
+    {
+     "if": {
+      "zoe_here": ">0"
+     },
+     "else": "c5_s1_sit1d"
+    },
+    {
+     "go": "c5_s1_sit_zoe"
+    }
+   ]
+  },
+  "c5_s1_sit1d": {
+   "beats": [
+    {
+     "if": {
+      "danny_here": ">0"
+     },
+     "else": "c5_s1_along"
+    },
+    {
+     "go": "c5_s1_sit_danny"
+    }
+   ]
+  },
+  "c5_s1_along": {
+   "beats": [
+    {
+     "set": {
+      "baby_along": 1
+     }
+    },
+    {
+     "note": {
+      "ru": "Оставить малышку не с кем. Айрис заворачивает её в мамин плащ и берёт с собой.",
+      "en": "There’s no one to leave the baby with. Iris wraps her in Mom’s raincoat and takes her along."
+     },
+     "dur": 3.2,
+     "shot": "dacha_room"
+    },
+    {
+     "go": "c5_s1_go2"
+    }
+   ]
+  },
+  "c5_s1_go2": {
+   "beats": [
     {
      "if": {
       "pills5": ">0"
@@ -1379,7 +1563,7 @@
      "shot": "noah_gap",
      "note": {
       "ru": "В сарае пахнет смолой и старой лодкой. Ной встаёт на колени у щели.",
-      "en": "The boathouse smells of tar and old boat. Noah kneels by the gap."
+      "en": "The boathouse smells of tar and old boats. Noah kneels by the gap."
      },
      "dur": 3.0
     },
@@ -1391,7 +1575,7 @@
      "shot": "memory_dock",
      "note": {
       "ru": "А там — уже лето. Тёплая ночь, лягушки. На мостках — фонарь, у ног — сумки.",
-      "en": "And there — it’s summer. A warm night, frogs. A lantern on the dock, bags at her feet."
+      "en": "And there — it’s summer. A warm night, frogs. A lantern on the dock, packed bags beside it."
      },
      "dur": 3.6
     },
@@ -1433,7 +1617,7 @@
      "shot": "memory_dock",
      "note": {
       "ru": "По мосткам идёт отец. Пьяный, но шагает ровно — как человек, который уже всё решил.",
-      "en": "Dad walks down the dock. Drunk, but his steps are steady — like a man who has already decided."
+      "en": "Dad walks down the dock. Drunk, but his steps are steady — like a man whose mind is made up."
      },
      "dur": 3.4
     },
@@ -1674,7 +1858,22 @@
       "ru": "Снова зима. Ной стоит на коленях у щели. Сзади — Айрис.",
       "en": "Winter again. Noah is on his knees by the gap. Iris is behind him."
      },
-     "dur": 3.0
+     "dur": 3.0,
+     "if": {
+      "baby_along": "==0"
+     }
+    },
+    {
+     "fx": "fade_in",
+     "shot": "noah_gap",
+     "note": {
+      "ru": "Снова зима. Ной стоит на коленях у щели. Сзади — Айрис, малышка у неё на руках.",
+      "en": "Winter again. Noah is on his knees by the gap. Iris is behind him, the baby in her arms."
+     },
+     "dur": 3.0,
+     "if": {
+      "baby_along": ">0"
+     }
     },
     {
      "say": "iris",
@@ -1699,7 +1898,7 @@
      "shot": "shed_two",
      "note": {
       "ru": "Айрис утыкается лбом ему в плечо — будто наконец донесла то, что несла одна всю дорогу.",
-      "en": "Iris presses her forehead to his shoulder — as if she’d finally delivered what she’d carried alone the whole way."
+      "en": "Iris presses her forehead to his shoulder — as if she could finally set down what she’d carried alone the whole way."
      },
      "dur": 3.8
     },
@@ -1779,7 +1978,7 @@
     {
      "note": {
       "ru": "Зоя — сонная, в чужом пуховике. Санитар держит её под локоть.",
-      "en": "Zoe — drowsy, in a stranger’s down jacket. The orderly holds her by the elbow."
+      "en": "Zoe — drowsy, in a down jacket that isn’t hers. The orderly holds her by the elbow."
      },
      "dur": 3.0,
      "shot": "sedan_shore",
@@ -1803,7 +2002,7 @@
     {
      "note": {
       "ru": "Хейл за рулём сам. На заднем сиденье — заложники. Двери на детском замке.",
-      "en": "Hale is driving himself. In the back seat — the hostages. Child locks on the doors."
+      "en": "Hale is at the wheel himself. In the back seat — the hostages. Child locks on the doors."
      },
      "dur": 3.0,
      "shot": "sedan_shore",
@@ -1819,14 +2018,29 @@
       "ru": "Ной выходит на мостки и спускается на лёд — подальше от дома, где младенец.",
       "en": "Noah walks out onto the dock and down onto the ice — away from the house with the baby."
      },
-     "dur": 3.2
+     "dur": 3.2,
+     "if": {
+      "baby_along": "==0"
+     }
+    },
+    {
+     "fx": "noah_ice",
+     "shot": "ice_wide",
+     "note": {
+      "ru": "Ной выходит на мостки и спускается на лёд — подальше от сарая, где Айрис с малышкой.",
+      "en": "Noah walks out onto the dock and down onto the ice — away from the boathouse where Iris is with the baby."
+     },
+     "dur": 3.2,
+     "if": {
+      "baby_along": ">0"
+     }
     },
     {
      "fx": "hale_ice",
      "shot": "ice_wide",
      "note": {
       "ru": "Хейл идёт к мосткам той же тропой, что одиннадцать лет назад. И выходит за ним на лёд.",
-      "en": "Hale walks to the dock by the same path as eleven years ago. And follows him onto the ice."
+      "en": "Hale walks to the dock along the same path he took eleven years ago. And follows him onto the ice."
      },
      "dur": 3.4
     },
@@ -1907,6 +2121,12 @@
   "c5_s3_iris": {
    "beats": [
     {
+     "if": {
+      "baby_along": "==0"
+     },
+     "else": "c5_s3_shed"
+    },
+    {
      "fx": "iris_ice",
      "shot": "ice_wide",
      "note": {
@@ -1965,6 +2185,122 @@
      "dur": 3.6,
      "if": {
       "agnes_sings": ">0"
+     }
+    },
+    {
+     "choice": {
+      "t": 10,
+      "opts": [
+       {
+        "ru": "«Отпусти их. Тогда поеду»",
+        "en": "“Let them go. Then I’ll come”",
+        "go": "c5_oblivion",
+        "if": {
+         "hostage": ">0",
+         "remembered": ">0"
+        }
+       },
+       {
+        "ru": "«Отпустите их. Тогда поеду»",
+        "en": "“Let them go. Then I’ll come”",
+        "go": "c5_oblivion",
+        "if": {
+         "hostage": ">0",
+         "remembered": "==0"
+        }
+       },
+       {
+        "ru": "«Ладно. Поехали»",
+        "en": "“Fine. Let’s go”",
+        "go": "c5_oblivion",
+        "if": {
+         "hostage": "==0"
+        }
+       },
+       {
+        "ru": "«Я всё помню»",
+        "en": "“I remember everything”",
+        "go": "c5_s3_remember",
+        "if": {
+         "remembered": ">0"
+        }
+       },
+       {
+        "ru": "«Я не поеду»",
+        "en": "“I’m not going”",
+        "go": "c5_s3_wont",
+        "if": {
+         "remembered": "==0"
+        }
+       },
+       {
+        "ru": "[улыбнуться]",
+        "en": "[smile]",
+        "go": "c5_s3_smile",
+        "if": {
+         "shadow": ">=2",
+         "pills5": "==0"
+        },
+        "shadow": true
+       },
+       {
+        "ru": "[слушать]",
+        "en": "[listen]",
+        "go": "c5_s3_listen",
+        "if": {
+         "agnes_sings": ">0"
+        }
+       },
+       {
+        "silent": true,
+        "go": "c5_s3_silent"
+       }
+      ],
+      "shot": "noah_ice"
+     }
+    }
+   ]
+  },
+  "c5_s3_shed": {
+   "beats": [
+    {
+     "fx": "iris_shed_door",
+     "shot": "ice_wide",
+     "note": {
+      "ru": "Айрис остаётся в сарае с малышкой и смотрит в щель — как он когда-то.",
+      "en": "Iris stays in the boathouse with the baby and watches through the gap — the way he once did."
+     },
+     "dur": 3.4
+    },
+    {
+     "say": "hale",
+     "ru": "Айрис, детка, выходи. Девочке нужно в тепло.",
+     "en": "Iris, sweetheart, come on out. The little one needs to get warm.",
+     "shot": "hale_ice"
+    },
+    {
+     "say": "iris",
+     "ru": "Я читала про тебя. В мамином дневнике.",
+     "en": "I’ve read about you. In Mom’s diary.",
+     "shot": "iris_shed"
+    },
+    {
+     "say": "hale",
+     "ru": "Посмотри на берег, Ной. Зоя приняла много лекарства. На морозе это опасно, ей нужен врач. Поедешь со мной — и все разъедутся по домам.",
+     "en": "Look at the shore, Noah. Zoe’s had a lot of medication. In this cold, that’s dangerous — she needs a doctor. Come with me, and everyone goes home.",
+     "shot": "hale_ice",
+     "if": {
+      "zoe_taken": ">0"
+     }
+    },
+    {
+     "say": "hale",
+     "ru": "Посмотри на берег. Дэнни совсем замёрз. Поедешь со мной — отвезу его к маме.",
+     "en": "Look at the shore. Danny’s frozen stiff. Come with me, and I’ll take him to his mom.",
+     "shot": "hale_ice",
+     "if": {
+      "zoe_taken": "==0",
+      "danny_hale": ">0"
      }
     },
     {
@@ -2148,7 +2484,21 @@
       "ru": "Хейл берёт Айрис за руку — крепко, как врач берёт буйного пациента.",
       "en": "Hale takes Iris by the arm — firmly, the way a doctor takes hold of a violent patient."
      },
-     "dur": 3.2
+     "dur": 3.2,
+     "if": {
+      "baby_along": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Хейл поворачивается к сараю — к щели, за которой Айрис.",
+      "en": "Hale turns toward the boathouse — toward the gap Iris is watching through."
+     },
+     "dur": 2.8,
+     "shot": "ice_two",
+     "if": {
+      "baby_along": ">0"
+     }
     },
     {
      "say": "hale",
@@ -2181,7 +2531,21 @@
       "ru": "Хейл вздыхает и берёт Айрис за руку.",
       "en": "Hale sighs and takes Iris by the arm."
      },
-     "dur": 2.6
+     "dur": 2.6,
+     "if": {
+      "baby_along": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Хейл вздыхает и поворачивается к сараю.",
+      "en": "Hale sighs and turns toward the boathouse."
+     },
+     "dur": 2.4,
+     "shot": "ice_two",
+     "if": {
+      "baby_along": ">0"
+     }
     },
     {
      "say": "hale",
@@ -2197,6 +2561,12 @@
   "c5_s3_onice": {
    "beats": [
     {
+     "if": {
+      "baby_along": "==0"
+     },
+     "else": "c5_s3_onice2"
+    },
+    {
      "fx": "iris_back",
      "shot": "ice_two",
      "note": {
@@ -2207,6 +2577,22 @@
     },
     {
      "go": "c5_s4"
+    }
+   ]
+  },
+  "c5_s3_onice2": {
+   "beats": [
+    {
+     "fx": "hale_backs",
+     "shot": "ice_two",
+     "note": {
+      "ru": "Хейл идёт к сараю напрямик — по тёмному льду.",
+      "en": "Hale heads straight for the boathouse — across the dark ice."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c5_s4_alone"
     }
    ]
   },
@@ -2246,7 +2632,19 @@
      "say": "iris",
      "ru": "Ной, не надо!",
      "en": "Noah, don’t!",
-     "shot": "iris_ice"
+     "shot": "iris_ice",
+     "if": {
+      "baby_along": "==0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Ной, не надо!",
+     "en": "Noah, don’t!",
+     "shot": "iris_shed",
+     "if": {
+      "baby_along": ">0"
+     }
     },
     {
      "fx": "iris_falls",
@@ -2255,7 +2653,21 @@
       "ru": "«Второй он» стряхивает её, как ветку. Айрис падает на тёмный лёд; Хейл отступает туда же.",
       "en": "“The other him” shakes her off like a twig. Iris falls onto the dark ice; Hale backs onto it too."
      },
-     "dur": 3.4
+     "dur": 3.4,
+     "if": {
+      "baby_along": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Из сарая кричит Айрис. «Второй он» не слышит. Хейл пятится — прямо на тёмный лёд.",
+      "en": "Iris screams from the boathouse. “The other him” doesn’t hear. Hale backs away — straight onto the dark ice."
+     },
+     "dur": 3.2,
+     "shot": "ice_two",
+     "if": {
+      "baby_along": ">0"
+     }
     },
     {
      "say": "agnes",
@@ -2266,6 +2678,12 @@
      "if": {
       "agnes_dead": "==0"
      }
+    },
+    {
+     "if": {
+      "baby_along": "==0"
+     },
+     "else": "c5_s4_shadow_alone"
     },
     {
      "go": "c5_s4_shadow"
@@ -2334,7 +2752,8 @@
       "help": 1
      },
      "if": {
-      "zoe_hook": ">0"
+      "zoe_hook": ">0",
+      "sitter_zoe": "==0"
      }
     },
     {
@@ -2342,8 +2761,9 @@
       "help": 1
      },
      "if": {
-      "zoe_hook": "==0",
-      "danny_rope": ">0"
+      "danny_rope": ">0",
+      "sitter_danny": "==0",
+      "help": "==0"
      }
     },
     {
@@ -2420,6 +2840,125 @@
     }
    ]
   },
+  "c5_s4_alone": {
+   "save": true,
+   "beats": [
+    {
+     "fx": "crack",
+     "shot": "ice_two",
+     "note": {
+      "ru": "Тёмный лёд у мостков проваливается под Хейлом.",
+      "en": "The dark ice by the dock gives way under Hale."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "ice_takes",
+     "shot": "hole",
+     "note": {
+      "ru": "Хейл в чёрной воде. Пальцы скребут по кромке.",
+      "en": "Hale is in the black water. His fingers scrape at the edge."
+     },
+     "dur": 2.8
+    },
+    {
+     "fx": "crawl",
+     "shot": "crawl",
+     "note": {
+      "ru": "Ной падает на лёд и ползёт к краю.",
+      "en": "Noah drops onto the ice and crawls to the edge."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "hand_edge",
+     "say": "hale",
+     "ru": "Ной… Руку…",
+     "en": "Noah… Your hand…",
+     "shot": "hole"
+    },
+    {
+     "choice": {
+      "t": 5,
+      "opts": [
+       {
+        "ru": "Протянуть руку Хейлу",
+        "en": "Reach out to Hale",
+        "go": "c5_s4_reach"
+       },
+       {
+        "ru": "Не двигаться",
+        "en": "Don’t move",
+        "go": "c5_s4_still"
+       },
+       {
+        "silent": true,
+        "go": "c5_s4_still"
+       }
+      ],
+      "shot": "noah_crawl"
+     }
+    }
+   ]
+  },
+  "c5_s4_shadow_alone": {
+   "beats": [
+    {
+     "fx": "crack",
+     "shot": "hole",
+     "note": {
+      "ru": "Лёд проваливается под Хейлом. Он цепляется за кромку.",
+      "en": "The ice gives way under Hale. He clings to the edge."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "ice_takes",
+     "shot": "hole"
+    },
+    {
+     "fx": "boot",
+     "shot": "boot",
+     "note": {
+      "ru": "«Второй он» не ложится на лёд. Он подходит к Хейлу и наступает ботинком ему на пальцы.",
+      "en": "“The other him” doesn’t lie down on the ice. He walks up to Hale and steps on his fingers."
+     },
+     "dur": 3.4
+    },
+    {
+     "say": "hale",
+     "ru": "Ной… Ной, пожалуйста…",
+     "en": "Noah… Noah, please…",
+     "shot": "hale_water"
+    },
+    {
+     "fx": "hale_slips",
+     "shot": "hole",
+     "note": {
+      "ru": "Пальцы Хейла соскальзывают. Он уходит под лёд.",
+      "en": "Hale’s fingers slip. He goes under the ice."
+     },
+     "dur": 3.0
+    },
+    {
+     "set": {
+      "hale_killed": 1,
+      "end_shadow": 1
+     }
+    },
+    {
+     "note": {
+      "ru": "Ной приходит в себя. Над полыньёй — тишина. Из щели сарая на него смотрит Айрис.",
+      "en": "Noah comes back to himself. Silence over the hole. Through the gap in the boathouse, Iris is watching him."
+     },
+     "dur": 3.4,
+     "shot": "ice_two"
+    },
+    {
+     "go": "c5_shore"
+    }
+   ]
+  },
   "c5_s4_iris": {
    "beats": [
     {
@@ -2444,8 +2983,10 @@
      },
      "dur": 2.4,
      "shot": "hole",
+     "fx": "helper_zoe",
      "if": {
-      "zoe_hook": ">0"
+      "zoe_hook": ">0",
+      "sitter_zoe": "==0"
      }
     },
     {
@@ -2455,8 +2996,10 @@
      },
      "dur": 2.6,
      "shot": "hole",
+     "fx": "helper_danny",
      "if": {
-      "danny_rope": ">0"
+      "danny_rope": ">0",
+      "sitter_danny": "==0"
      }
     },
     {
@@ -2571,8 +3114,10 @@
      },
      "dur": 2.0,
      "shot": "hole",
+     "fx": "helper_zoe",
      "if": {
-      "zoe_hook": ">0"
+      "zoe_hook": ">0",
+      "sitter_zoe": "==0"
      }
     },
     {
@@ -2582,8 +3127,10 @@
      },
      "dur": 2.0,
      "shot": "hole",
+     "fx": "helper_danny",
      "if": {
-      "danny_rope": ">0"
+      "danny_rope": ">0",
+      "sitter_danny": "==0"
      }
     },
     {
@@ -2666,7 +3213,7 @@
      "shot": "hole",
      "note": {
       "ru": "Не хватает сил. Рука Хейла выскальзывает. Озеро забирает его.",
-      "en": "Not enough strength. Hale’s hand slips free. The lake takes him."
+      "en": "His strength gives out. Hale’s hand slips free. The lake takes him."
      },
      "dur": 3.0
     },
@@ -2744,8 +3291,10 @@
      },
      "dur": 2.4,
      "shot": "hole",
+     "fx": "helper_zoe",
      "if": {
-      "zoe_hook": ">0"
+      "zoe_hook": ">0",
+      "sitter_zoe": "==0"
      }
     },
     {
@@ -2755,8 +3304,10 @@
      },
      "dur": 2.2,
      "shot": "hole",
+     "fx": "helper_danny",
      "if": {
-      "danny_rope": ">0"
+      "danny_rope": ">0",
+      "sitter_danny": "==0"
      }
     },
     {
@@ -2844,7 +3395,8 @@
       "en": "Hale crawls out onto the ice over Noah’s back."
      },
      "dur": 2.4,
-     "shot": "hole"
+     "shot": "hole",
+     "fx": "hale_crawls_out"
     },
     {
      "fx": "iris_slips",
@@ -2863,6 +3415,11 @@
       "en": "From below, he pushes her up onto the ice — and doesn’t come back up."
      },
      "dur": 3.2
+    },
+    {
+     "fx": "iris_pushed_out",
+     "shot": "hole",
+     "dur": 1.2
     },
     {
      "set": {
@@ -3137,7 +3694,7 @@
      }
     },
     {
-     "fx": "unlock",
+     "fx": "unlock_iris",
      "shot": "sedan_shore",
      "note": {
       "ru": "Седан стоит у сарая с работающим мотором. Айрис, вся мокрая, открывает задние двери снаружи. В машине тепло.",
@@ -3250,7 +3807,17 @@
         "en": "“Sing. The one you sang in the car”",
         "go": "c5_zoe_sing",
         "if": {
-         "zoe": ">0"
+         "zoe": ">0",
+         "zoe_passed": "==0"
+        }
+       },
+       {
+        "ru": "«Пой. Что угодно — только пой»",
+        "en": "“Sing. Anything — just sing”",
+        "go": "c5_zoe_sing2",
+        "if": {
+         "zoe": ">0",
+         "zoe_passed": ">0"
         }
        },
        {
@@ -3290,6 +3857,28 @@
      "say": "noah",
      "ru": "Нет. Сегодня ты не спишь. Пой. Ту, что в машине пела.",
      "en": "No. No sleeping today. Sing. The one you sang in the car.",
+     "shot": "noah_snow"
+    },
+    {
+     "note": {
+      "ru": "Она поёт — тихо и фальшиво.",
+      "en": "She sings — softly and off-key."
+     },
+     "dur": 2.6,
+     "fx": "zoe_sing",
+     "shot": "zoe_face"
+    },
+    {
+     "go": "c5_zoe_wake"
+    }
+   ]
+  },
+  "c5_zoe_sing2": {
+   "beats": [
+    {
+     "say": "noah",
+     "ru": "Нет. Сегодня ты не спишь. Пой. Что угодно — только пой.",
+     "en": "No. No sleeping today. Sing. Anything — just sing.",
      "shot": "noah_snow"
     },
     {
@@ -3376,7 +3965,7 @@
      "shot": "zoe_snow",
      "note": {
       "ru": "Ноя нет. Зою растирает Айрис — мокрая, сама вся дрожит.",
-      "en": "Noah is gone. Iris rubs Zoe’s hands — soaked, shaking herself."
+      "en": "Noah is gone. Iris rubs Zoe’s hands — soaked through and shivering herself."
      },
      "dur": 3.0
     },
@@ -3451,6 +4040,114 @@
   },
   "c5_patrol": {
    "beats": [
+    {
+     "set": {
+      "ev_diary": 1
+     },
+     "if": {
+      "diary_burned": "==0"
+     }
+    },
+    {
+     "set": {
+      "ev_zoe": 1
+     },
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "set": {
+      "ev_zoe": 1
+     },
+     "if": {
+      "zoe_safe": ">0",
+      "ev_zoe": "==0"
+     }
+    },
+    {
+     "set": {
+      "ev_zoe": 1
+     },
+     "if": {
+      "zoe_alive5": ">0",
+      "ev_zoe": "==0"
+     }
+    },
+    {
+     "set": {
+      "ev_agnes": 1
+     },
+     "if": {
+      "agnes_dead": "==0"
+     }
+    },
+    {
+     "set": {
+      "ev_orderly": 1
+     },
+     "if": {
+      "orderly_dead": "==0"
+     }
+    },
+    {
+     "set": {
+      "ev_danny": 1
+     },
+     "if": {
+      "danny_hale": ">0"
+     }
+    },
+    {
+     "set": {
+      "proof": 1
+     },
+     "if": {
+      "ev_diary": ">0"
+     }
+    },
+    {
+     "set": {
+      "proof": 1
+     },
+     "if": {
+      "ev_zoe": ">0"
+     }
+    },
+    {
+     "set": {
+      "proof": 1
+     },
+     "if": {
+      "ev_agnes": ">0"
+     }
+    },
+    {
+     "set": {
+      "proof": 1
+     },
+     "if": {
+      "ev_orderly": ">0"
+     }
+    },
+    {
+     "set": {
+      "proof": 1
+     },
+     "if": {
+      "ev_danny": ">0"
+     }
+    },
+    {
+     "set": {
+      "exposed": 1
+     },
+     "if": {
+      "remembered": ">0",
+      "proof": ">=2"
+     }
+    },
     {
      "note": {
       "ru": "Санитар не ждёт, чем кончится на льду, — седан уезжает.",
@@ -3535,80 +4232,6 @@
    "save": true,
    "beats": [
     {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "diary_burned": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "zoe": ">0",
-      "zoe_gone": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "zoe_alive5": ">0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "zoe_safe": ">0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "agnes_dead": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "orderly_dead": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "danny_hale": ">0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "look_dad": ">0"
-     }
-    },
-    {
-     "set": {
-      "exposed": 1
-     },
-     "if": {
-      "remembered": ">0",
-      "proof": ">=2"
-     }
-    },
-    {
      "fx": "hands_out",
      "shot": "patrol",
      "note": {
@@ -3622,11 +4245,25 @@
      "shot": "stove5",
      "note": {
       "ru": "Хейла, синего от холода, сажают у печки. Из сухого остался только мамин плащ.",
-      "en": "Hale, blue with cold, is sat down by the stove. The only dry thing left is Mom’s raincoat."
+      "en": "They sit Hale down by the stove, blue with cold. The only dry thing left is Mom’s raincoat."
      },
      "dur": 3.6,
      "if": {
-      "hale_saved": ">0"
+      "hale_saved": ">0",
+      "baby_along": "==0"
+     }
+    },
+    {
+     "fx": "hale_stove",
+     "shot": "stove5",
+     "note": {
+      "ru": "Хейла, синего от холода, сажают у печки. Мамин плащ — на малышке, Хейлу достаётся старое одеяло.",
+      "en": "They sit Hale down by the stove, blue with cold. Mom’s raincoat is wrapped around the baby; Hale gets an old blanket."
+     },
+     "dur": 3.6,
+     "if": {
+      "hale_saved": ">0",
+      "baby_along": ">0"
      }
     },
     {
@@ -3871,9 +4508,23 @@
      "shot": "iris_crawl",
      "note": {
       "ru": "Айрис лежит на льду, мокрая, и смотрит на брата. Потом отползает от него — как от чужого.",
-      "en": "Iris lies on the ice, soaked, staring at her brother. Then she crawls away from him — like from a stranger."
+      "en": "Iris lies on the ice, soaked, staring at her brother. Then she crawls away from him — as if he were a stranger."
      },
-     "dur": 3.6
+     "dur": 3.6,
+     "if": {
+      "baby_along": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Айрис стоит в дверях сарая, прижимая малышку, и смотрит на брата. Потом отступает — как от чужого.",
+      "en": "Iris stands in the boathouse doorway, holding the baby close, staring at her brother. Then she backs away — as if he were a stranger."
+     },
+     "dur": 3.6,
+     "shot": "ice_two",
+     "if": {
+      "baby_along": ">0"
+     }
     },
     {
      "say": "iris",
@@ -3913,11 +4564,6 @@
       "en": "His reflection smiles a moment before he does."
      },
      "dur": 3.4
-    },
-    {
-     "set": {
-      "end_shadow": 1
-     }
     },
     {
      "go": "c5_cards"
@@ -4024,80 +4670,6 @@
   "c5_ice_epi": {
    "beats": [
     {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "diary_burned": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "zoe": ">0",
-      "zoe_gone": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "zoe_alive5": ">0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "zoe_safe": ">0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "agnes_dead": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "orderly_dead": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "danny_hale": ">0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "look_dad": ">0"
-     }
-    },
-    {
-     "set": {
-      "exposed": 1
-     },
-     "if": {
-      "remembered": ">0",
-      "proof": ">=2"
-     }
-    },
-    {
      "fx": "fade_out",
      "dur": 1.4
     },
@@ -4133,13 +4705,26 @@
     },
     {
      "text": {
-      "ru": "Правду о Хейле суду рассказала Айрис.",
-      "en": "Iris told the court the truth about Hale."
+      "ru": "Хейла судят. Правду о нём суду рассказала Айрис.",
+      "en": "Hale stands trial. Iris told the court the truth about him."
      },
-     "dur": 3.0,
+     "dur": 3.2,
      "note": true,
      "if": {
-      "exposed": ">0"
+      "exposed": ">0",
+      "hale_saved": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Хейл утонул. Правду о нём следователю рассказала Айрис. «Тихие сосны» закрывают.",
+      "en": "Hale drowned. Iris told the investigators the truth about him. Quiet Pines is shut down."
+     },
+     "dur": 3.6,
+     "note": true,
+     "if": {
+      "exposed": ">0",
+      "hale_saved": "==0"
      }
     },
     {
@@ -4149,80 +4734,6 @@
   },
   "c5_mama_epi": {
    "beats": [
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "diary_burned": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "zoe": ">0",
-      "zoe_gone": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "zoe_alive5": ">0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "zoe_safe": ">0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "agnes_dead": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "orderly_dead": "==0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "danny_hale": ">0"
-     }
-    },
-    {
-     "set": {
-      "proof": 1
-     },
-     "if": {
-      "look_dad": ">0"
-     }
-    },
-    {
-     "set": {
-      "exposed": 1
-     },
-     "if": {
-      "remembered": ">0",
-      "proof": ">=2"
-     }
-    },
     {
      "fx": "hands_out",
      "shot": "patrol",
@@ -4250,6 +4761,41 @@
     },
     {
      "fx": "summer_day"
+    },
+    {
+     "text": {
+      "ru": "Три года спустя.",
+      "en": "Three years later."
+     },
+     "dur": 2.4,
+     "note": true,
+     "if": {
+      "roman_dead": "==0",
+      "orderly_dead": "==0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Восемь лет спустя.",
+      "en": "Eight years later."
+     },
+     "dur": 2.4,
+     "note": true,
+     "if": {
+      "roman_dead": ">0"
+     }
+    },
+    {
+     "text": {
+      "ru": "Восемь лет спустя.",
+      "en": "Eight years later."
+     },
+     "dur": 2.4,
+     "note": true,
+     "if": {
+      "roman_dead": "==0",
+      "orderly_dead": ">0"
+     }
     },
     {
      "fx": "fade_in",
@@ -4318,7 +4864,7 @@
     {
      "note": {
       "ru": "Зою уводят к печке.",
-      "en": "They lead Zoe in to the stove."
+      "en": "They take Zoe inside, to the stove."
      },
      "dur": 2.2,
      "shot": "sedan_shore",
@@ -4380,7 +4926,22 @@
       "ru": "Айрис бежит по мосткам и держит перед собой раскрытый блокнот. Крупными буквами: «Я ПОМНЮ ЗА ТЕБЯ».",
       "en": "Iris runs down the dock holding her notebook open in front of her. In big letters: “I’LL REMEMBER FOR YOU.”"
      },
-     "dur": 3.8
+     "dur": 3.8,
+     "if": {
+      "baby_along": "==0"
+     }
+    },
+    {
+     "fx": "sign",
+     "shot": "mirror_sign",
+     "note": {
+      "ru": "Айрис выходит из сарая с малышкой на руках и поднимает над головой раскрытый блокнот. Крупными буквами: «Я ПОМНЮ ЗА ТЕБЯ».",
+      "en": "Iris steps out of the boathouse with the baby in her arms and holds her open notebook above her head. In big letters: “I’LL REMEMBER FOR YOU.”"
+     },
+     "dur": 4.0,
+     "if": {
+      "baby_along": ">0"
+     }
     },
     {
      "go": "c5_obl_car"
@@ -4396,7 +4957,22 @@
       "ru": "Айрис стоит на мостках и не двигается. В зеркале она становится всё меньше.",
       "en": "Iris stands on the dock and doesn’t move. In the mirror she grows smaller and smaller."
      },
-     "dur": 3.6
+     "dur": 3.6,
+     "if": {
+      "baby_along": "==0"
+     }
+    },
+    {
+     "fx": "iris_dock",
+     "shot": "mirror_dock",
+     "note": {
+      "ru": "Айрис стоит в дверях сарая с малышкой и не двигается. В зеркале она становится всё меньше.",
+      "en": "Iris stands in the boathouse doorway with the baby and doesn’t move. In the mirror she grows smaller and smaller."
+     },
+     "dur": 3.6,
+     "if": {
+      "baby_along": ">0"
+     }
     },
     {
      "go": "c5_obl_car"
@@ -4472,7 +5048,7 @@
     {
      "text": {
       "ru": "Суд признаёт Ноя невменяемым. Принудительное лечение. Лечащий врач — доктор Хейл.",
-      "en": "The court finds Noah not responsible. Compulsory treatment. Attending physician: Dr. Hale."
+      "en": "The court finds Noah not guilty by reason of insanity. Involuntary commitment. Attending physician: Dr. Hale."
      },
      "dur": 3.8,
      "note": true
@@ -4492,7 +5068,7 @@
     {
      "note": {
       "ru": "В руке — листок Айрис: они вдвоём на мостках. Он не узнаёт ни её, ни себя.",
-      "en": "In his hand — Iris’s note: the two of them on the dock. He recognizes neither her nor himself."
+      "en": "In his hand — Iris’s folded drawing: the two of them on the dock. He doesn’t recognize her. Or himself."
      },
      "dur": 3.6,
      "shot": "white_room",
@@ -4749,7 +5325,7 @@
     {
      "text": {
       "ru": "Она дождалась.",
-      "en": "She waited for him."
+      "en": "She waited — and he came home."
      },
      "dur": 2.4,
      "note": true,
@@ -4819,7 +5395,7 @@
     {
      "text": {
       "ru": "Дэнни рассказал полиции, как доктор выманил его в лесу.",
-      "en": "Danny told the police how the doctor lured him out in the woods."
+      "en": "Danny told the police how the doctor lured him away in the woods."
      },
      "dur": 3.0,
      "note": true,
@@ -4831,7 +5407,7 @@
     {
      "text": {
       "ru": "Дэнни рассказал, как доктор выманил его в лесу. Ему никто не поверил.",
-      "en": "Danny told how the doctor lured him out in the woods. No one believed him."
+      "en": "Danny told everyone how the doctor lured him away in the woods. No one believed him."
      },
      "dur": 3.2,
      "note": true,
@@ -5004,8 +5580,8 @@
     },
     {
      "text": {
-      "ru": "Хейла убил «второй Ной».",
-      "en": "“The other Noah” killed Hale."
+      "ru": "Хейла убил «второй он».",
+      "en": "“The other him” killed Hale."
      },
      "dur": 2.6,
      "note": true,
