@@ -310,6 +310,8 @@ func _sun_shadow() -> void:
 		moon.directional_shadow_max_distance = 35.0
 		moon.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 		moon.directional_shadow_blend_splits = true
+		# тени отбрасывают только герои (Actor.SUN_LAYER) и кузов машины (слой 2): дома, лес и сугробы — нет, как и раньше
+		moon.shadow_caster_mask = Actor.SUN_LAYER | 2
 
 
 ## Кафе «У трёх сосен» (глава 2): дом у трассы, свет ламп и окон, вывеска на языке игры, три сосны, фуры у входа,

@@ -50,6 +50,9 @@ var grip := {}                  # держит предмет: {"_r": 0…1, "_l
 var _grip_w := {"_r": 0.0, "_l": 0.0}
 var walking := false
 var _hair: Array[ShaderMaterial] = []
+## слой «отбрасывает солнечную тень»: солнце днём рисует тени только от героев (и кузова машины), а не от домов и леса —
+## герои стоят на снегу, а цена теней — десятки вызовов отрисовки, а не тысячи (замер: двор гл. 4 — 2988 → см. PERFORMANCE_AUDIT)
+const SUN_LAYER := 1 << 11
 var hair_sim: SpringBoneSimulator3D = null
 var skirt_sim: SpringBoneSimulator3D = null   # подол пальто, юбки, платья (SkirtRig)
 var _kick := Vector3.ZERO       # толчок прядям (рывок машины): затухает
@@ -190,6 +193,8 @@ static func make(k: String, file: String) -> Actor:
 	a.ap.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	a.ap.deterministic = true            # при смешивании кости, которых нет в новом клипе, плавно уходят в покой
 	ClothFit.apply(a, file)
+	for gi in a.model.find_children("*", "GeometryInstance3D", true, false):
+		(gi as GeometryInstance3D).layers |= SUN_LAYER
 	var hair_mi: MeshInstance3D = null
 	for mi in a.model.find_children("*", "MeshInstance3D", true, false):
 		var m := mi as MeshInstance3D

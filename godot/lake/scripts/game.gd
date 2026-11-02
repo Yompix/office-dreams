@@ -323,7 +323,7 @@ func _resume_at(id: String) -> void:
 func _cast() -> void:
 	var noah := Actor.make("noah", "noah")
 	for mi in noah.find_children("*", "MeshInstance3D", true, false):
-		(mi as MeshInstance3D).layers = Car.DRIVER_LAYER   # Ной не попадает в зеркало заднего вида, когда оно смотрит назад
+		(mi as MeshInstance3D).layers = Car.DRIVER_LAYER | Actor.SUN_LAYER   # Ной не попадает в зеркало заднего вида, когда оно смотрит назад
 	scene.car.add_child(noah)
 	noah.position = Car.DRIVER + Vector3(0, 0.15, 0)
 	noah.rotation_degrees = Vector3(0, 180, 0)
