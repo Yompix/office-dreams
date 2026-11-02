@@ -415,6 +415,93 @@ def _sim2d(src, dst):
     sc = np.trace(np.diag(S) @ D) / (a ** 2).sum(1).mean(); return sc * R, md - sc * R @ ms
 
 
+def _ref_views(s, body, L, co):
+    """общие для fit/photo: ориентиры нашей головы и подобие «наша камера → пиксели картинки» для каждого вида"""
+    O = L['O']; rel = co - O
+    E = _world(_find('eyes')); el = E[E[:, 0] > 0].mean(0); er = E[E[:, 0] < 0].mean(0)
+    mid = np.abs(rel[:, 0]) < .006; lipf = rel[mid & (np.abs(rel[:, 2] - L['mz']) < .004)]; lip = lipf[lipf[:, 1].argmin()] + O
+    tip = L['tip'] + O; mouth = np.array([0, lip[1], O[2] + L['mz']])
+    out = []
+    for v in s['views']:
+        cam = v['cam']
+        def proj(P, cam=cam):
+            if cam == 'front':
+                return np.stack([P[..., 0], -P[..., 2]], -1), P[..., 1]
+            if cam == 'right':
+                return np.stack([-P[..., 1], -P[..., 2]], -1), P[..., 0]
+            return np.stack([P[..., 1], -P[..., 2]], -1), -P[..., 0]
+        axes = {'front': (np.array([1., 0, 0]), np.array([0, 0, -1.])), 'right': (np.array([0, -1., 0]), np.array([0, 0, -1.])),
+                'left': (np.array([0, 1., 0]), np.array([0, 0, -1.]))}[cam]
+        lm3 = {'eye_r': er, 'eye_l': el, 'nose': tip, 'mouth': mouth, 'eye': er if cam == 'right' else el}
+        out.append(dict(v=v, proj=proj, axes=axes, lm3=lm3))
+    return out
+
+
+def _fit_sim(V, d, w):
+    v = V['v']; names = list(v['lm']); src = np.array([V['proj'](V['lm3'][k])[0] for k in names]); dst = np.array([v['lm'][k] for k in names], np.float64)
+    if v['cam'] == 'left':
+        dst[:, 0] = w - 1 - dst[:, 0]
+    return _sim2d(src, dst)
+
+
+def fit(s):
+    """Форма головы по силуэтам референса (анфас и профили): кромка силуэта нашей головы подтягивается к кромке на картинке,
+       остальное — плавно следом (смещения сглаживаются по сетке). Середина лица (глаза, нос, рот) и уши не двигаются —
+       мимика и губы остаются наши. Волосы и борода с картинки становятся объёмом самой головы (сетку волос MakeHuman не берём)."""
+    d = os.environ.get(s.get('env', 'DAYGUARD_REF'), '')
+    if not d or not os.path.isdir(d):
+        print('FIT нет папки референса'); return
+    body = _body(); me = body.data; rel, L = _head_frame(body); O = L['O']; co = _world(body); rel = co - O
+    M3 = np.array(body.matrix_world, np.float32)[:3, :3]; n = _normals(body) @ M3.T; n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-9)
+    head = rel[:, 2] > s.get('below', -.15)
+    x, z, dd = np.abs(rel[:, 0]), rel[:, 2], rel[:, 1]
+    # не трогать: середину лица (глаза, нос, губы — впадины, которых силуэт не видит) и уши (тонкие)
+    face = _ss(.05, .035, x) * _ss(.03, .015, z) * _ss(L['mz'] - .03, L['mz'] - .015, z) * _ss(.02, .0, dd)
+    ear = _ss(.058, .066, x) * _ss(L['ear_d'] - .012, L['ear_d'] - .002, dd) * _ss(-.06, -.045, z) * _ss(.025, .01, z)
+    pin = np.clip(face + ear, 0, 1)
+    tgt = np.zeros_like(co); tw = np.zeros(len(co), np.float32)
+    for V in _ref_views(s, body, L, co):
+        v = V['v']
+        im = bpy.data.images.load(os.path.join(d, v['sil'])); S = _img_get(im)[::-1, :, 0] > .5; bpy.data.images.remove(im)
+        h, w = S.shape
+        if v['cam'] == 'left':
+            S = S[:, ::-1]
+        Rm, t = _fit_sim(V, d, w); sc = float(np.sqrt(abs(np.linalg.det(Rm))))
+        xy, _ = V['proj'](co); uv = xy @ Rm.T + t
+        a1, a2 = V['axes']; view = np.cross(a1, a2); view /= np.linalg.norm(view)
+        nu, nv = n @ a1, n @ a2; nl = np.hypot(nu, nv) + 1e-9
+        rim = np.clip(1 - np.abs(n @ view), 0, 1) ** s.get('rim_power', 6) * head * (1 - pin)
+        dimg = np.stack([nu / nl, nv / nl], -1) @ Rm.T; dimg /= np.linalg.norm(dimg, axis=-1, keepdims=True) + 1e-9
+        ks = np.arange(-int(.035 * sc), int(.035 * sc) + 1)   # до 3,5 см в обе стороны
+        P = uv[:, None, :] + dimg[:, None, :] * ks[None, :, None]
+        ix = np.clip(P[..., 0].astype(int), 0, w - 1); iy = np.clip(P[..., 1].astype(int), 0, h - 1)
+        ins = S[iy, ix]; c0 = ins[:, len(ks) // 2]
+        chg = ins != c0[:, None]
+        kk = np.where(chg, np.abs(ks)[None, :], 10 ** 6); j = kk.argmin(1); found = chg[np.arange(len(co)), j]
+        dist_px = ks[j].astype(np.float32)   # знак: + наружу (по нормали)
+        dist_m = np.where(found, dist_px / sc, 0)
+        dir3 = (nu / nl)[:, None] * a1[None, :] + (nv / nl)[:, None] * a2[None, :]
+        wv = rim * found * v.get('weight', 1.0)
+        tgt += dir3 * (dist_m * wv)[:, None]; tw += wv
+        print('FIT вид', v['sil'], v['cam'], 'кромочных вершин', int((wv > .3).sum()), 'среднее смещение мм', round(float(np.abs(dist_m[wv > .3]).mean() * 1000) if (wv > .3).any() else 0, 1))
+    tgt = np.where(tw[:, None] > 1e-6, tgt / np.maximum(tw, 1e-6)[:, None], 0)
+    # сглаживание: кромки тянут к цели, прибитые — к нулю, остальные — к среднему соседей
+    ed = np.array([e.vertices[:] for e in me.edges], np.int64); a, b = ed[:, 0], ed[:, 1]
+    deg = np.bincount(a, minlength=len(co)) + np.bincount(b, minlength=len(co))
+    disp = tgt.copy(); dw = np.clip(tw, 0, 1) * 4; pw = pin * 50 + (~head) * 50
+    for _ in range(s.get('iters', 160)):
+        nb = np.zeros_like(disp); np.add.at(nb, a, disp[b]); np.add.at(nb, b, disp[a])
+        nb /= np.maximum(deg, 1)[:, None]
+        disp = (dw[:, None] * tgt + nb) / (dw + pw + 1)[:, None]
+    disp *= _ss(s.get('below', -.15), s.get('below', -.15) + .03, rel[:, 2])[:, None]
+    off = disp @ np.linalg.inv(M3).T
+    if me.shape_keys:
+        for kb in me.shape_keys.key_blocks:
+            q = np.empty(len(kb.data) * 3, np.float32); kb.data.foreach_get('co', q); kb.data.foreach_set('co', (q.reshape(-1, 3) + off).ravel())
+    me.vertices.foreach_set('co', (_co(body) + off).ravel()); me.update()
+    m = np.linalg.norm(disp, axis=1); print('FIT смещение головы: среднее мм', round(float(m[head].mean() * 1000), 1), 'макс мм', round(float(m.max() * 1000), 1))
+
+
 def photo(s):
     """Лицо с картинки владельца (референс): анфас и профиль проецируются на кожу головы; от картинки — цвет и крупные черты
        (брови, губы, тени, тон кожи), от исходной кожи — мелкие поры (смешивание по частотам). Картинки референса в
@@ -485,6 +572,12 @@ def photo(s):
     a = _img_get(simg); orig = a[..., :3].copy()
     proj_c = acc / np.maximum(ws, 1e-6)[..., None]
     m = np.clip(ws / s.get('full', .35), 0, 1); m = _blur(m[..., None], 6)[..., 0] * (ws > .002)
+    if s.get('hair_rgb'):   # макушка и затылок (их не видно ни спереди, ни в профиль) — цвет волос с картинки, с прядями
+        R3 = Pos - O; zone = (_ss(-.06, -.04, R3[..., 2]) * _ss(L['ear_d'] - .03, L['ear_d'], R3[..., 1]) + _ss(.07, .095, R3[..., 2])).clip(0, 1) * cov
+        zone = _blur(zone[..., None].astype(np.float32), 4)[..., 0]
+        k = zone * (1 - m); nz = .82 + .36 * _blur(RNG.random(m.shape, np.float32)[..., None], 1)[..., 0]
+        fill = np.array(s['hair_rgb'], np.float32)[None, None, :] * nz[..., None]
+        proj_c = proj_c * (1 - k[..., None]) + fill * k[..., None]; m = np.maximum(m, zone)
     r = s.get('radius', 5)
     lp = _blur(proj_c * m[..., None], r) / np.maximum(_blur(m[..., None], r), 1e-4)
     hp = orig - _blur(orig, r)
@@ -510,5 +603,7 @@ def post(C):
         hair(C['hair_fx'])
     if C.get('beard'):
         beard(C['beard'])
+    if C.get('fit'):
+        fit(C['fit'])
     if C.get('photo'):
         photo(C['photo'])
