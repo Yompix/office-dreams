@@ -1643,27 +1643,28 @@ void RE_Direct_Hum( ${RE_ARGS} ) {
 }`,
 };
 function humanMat(C, n, kind, Q) {
-  const o = C.o, src = n.material, cut = kind === 'brows' || kind === 'lashes' || kind === 'hair' || (kind === 'eyes' && o.deadEyes == null), cloth = kind.startsWith('cloth');
-  const R = { skin: CINE ? .6 : .64, eyes: .06, brows: .85, lashes: .85, teeth: .3, tongue: .4, hair: CINE ? .68 : .55 }[kind] ?? .86;   // в «Кино» волосы матовее: широкий блик делал из них лакированную шапку; блеск — прядями (hh3 ниже) и контровым светом
+  const hk = /^beard/.test(kind) ? 'hair' : kind;   // борода (сменщик: два слоя по лицу) — как волосы: порог альфы, блик прядями
+  const o = C.o, src = n.material, cut = kind === 'brows' || kind === 'lashes' || hk === 'hair' || (kind === 'eyes' && o.deadEyes == null), cloth = kind.startsWith('cloth');
+  const R = { skin: CINE ? .6 : .64, eyes: .06, brows: .85, lashes: .85, teeth: .3, tongue: .4, hair: CINE ? .68 : .55 }[hk] ?? .86;   // в «Кино» волосы матовее: широкий блик делал из них лакированную шапку; блеск — прядями (hh3 ниже) и контровым светом
   let tint = null; for (const k in (o.tint || {})) if (kind === k || kind.includes(k)) tint = o.tint[k];
   const p = { map: src.map || null };
   if (typeof tint === 'number') p.color = tint;
   if (kind === 'eyes' && o.eyeC != null) p.color = o.eyeC;
   if (kind === 'eyes' && o.deadEyes != null) { p.map = null; p.color = o.deadEyes; }
   if (kind === 'teeth') p.color = o.monster ? 0x8a8070 : 0xd8d0c2;
-  if (CINE && src.normalMap && (cloth || kind === 'hair')) p.normalMap = src.normalMap;
-  if (cut) Object.assign(p, kind === 'eyes' ? { alphaTest: .3 } : { alphaTest: kind === 'hair' ? .18 : .25, side: T.DoubleSide });   // волосы одинаково в обоих видах: в «Ретро» порог .3 срезал тонкие пряди — Лили была лысой   // в «Кино» у волос остаются тонкие пряди по краю — линия лба мягче   // глаз: внешняя роговица прозрачная — иначе радужку не видно
+  if (CINE && src.normalMap && (cloth || hk === 'hair')) p.normalMap = src.normalMap;
+  if (cut) Object.assign(p, kind === 'eyes' ? { alphaTest: .3 } : { alphaTest: kind === 'beard' ? .3 : kind === 'beard2' ? .62 : kind === 'hair' ? .18 : .25, side: T.DoubleSide });   // борода: внутренний слой — плотный, внешний — только длинные волоски   // волосы одинаково в обоих видах: в «Ретро» порог .3 срезал тонкие пряди — Лили была лысой   // в «Кино» у волос остаются тонкие пряди по краю — линия лба мягче   // глаз: внешняя роговица прозрачная — иначе радужку не видно
   const m = ps1(litMat(p, R));
   if (CINE && cut && kind !== 'eyes') m.alphaToCoverage = true;
   if (CINE && kind === 'eyes') m.envMapIntensity = .9;
   if (CINE && (kind === 'skin' || cloth)) m.envMapIntensity = .22;   // иначе на контровом свете кожа светится ореолом
-  if (CINE && kind === 'hair') { m.envMapIntensity = .1; if (m.normalMap) m.normalScale.set(.45, .45); }   // лампы потолка отражались в макушке золотым «обручем» (пробор у Лили); блеск волос — прядями, не зеркалом, рельеф карты мягче
+  if (CINE && hk === 'hair') { m.envMapIntensity = .1; if (m.normalMap) m.normalScale.set(.45, .45); }   // лампы потолка отражались в макушке золотым «обручем» (пробор у Лили); блеск волос — прядями, не зеркалом, рельеф карты мягче
   if (CINE && (kind === 'teeth' || kind === 'tongue')) { m.envMapIntensity = .06; m.roughness = .55; }   // во рту нет бликов от комнаты
   const re = Array.isArray(tint) ? tint : null, U = Object.assign({}, C.HU, { uQ: { value: Q }, uTint: { value: new T.Color(re ? re[0] : 0xffffff) }, uGain: { value: re ? re[1] : 1 } });
   const hem = /pants|jeans|trousers/.test(kind) && C.hemY != null ? C.hemY : null;
   const infl = /sweater|shirt|hoodie/.test(kind) && C.hemY != null ? .007 / Q.getMaxScaleOnAxis() : 0;   // низ кофты чуть наружу — лежит поверх брюк и на шаге
   const shroud = kind === 'skin' && o.shroud;   // Жилец: длинная грязная рваная рубаха-саван от шеи ниже колен (была голая серая фигура)
-  const hre0 = CINE && (!o.monster || kind === 'hair') ? HUM_RE[kind === 'skin' ? 'skin' : kind === 'hair' ? 'hair' : cloth ? 'cloth' : ''] : null;
+  const hre0 = CINE && (!o.monster || kind === 'hair') ? HUM_RE[kind === 'skin' ? 'skin' : hk === 'hair' ? 'hair' : cloth ? 'cloth' : ''] : null;
   const hre = hre0 && o.monster ? hre0.replace('( s1 * .045 + s2 * .06 * material.diffuseColor )', '( s1 * .045 + s2 * .06 * material.diffuseColor ) * .3') : hre0;   // у Жильца блик прядей слабее: кольцом по макушке читался как обруч   // у Жильца своя кожа (мёртвая, мокрая) — как было; волосы — прядями, как у всех (обычный блик делал из мокрых чёрных прядей белые пластиковые ленты)
   const claws = o.monster && kind === 'skin';   // Жилец: ногти-когти и почерневшие кончики пальцев (aNail — clawHands)
   if (shroud) m.extensions = Object.assign({}, m.extensions, { derivatives: true });   // складки рубахи — dFdx (WebGL1 в «Ретро»)
@@ -1681,7 +1682,7 @@ ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H + (CINE ? SKIN_MH : '') : 
   ${re ? `diffuseColor.rgb = mix(vec3(${LUMA}) * uTint * uGain, uTint, ${(re[2] || 0).toFixed(2)});` : ''}
   ${kind === 'skin' ? `{ float s = smoothstep(.04, .012, length(vB - uEyeL3)) + smoothstep(.04, .012, length(vB - uEyeR3)); diffuseColor.rgb *= 1. - .9 * uSocket * clamp(s, 0., 1.); }` : ''}
   ${shroud ? SHROUD_FS : ''}
-  ${kind === 'hair' && CINE ? `diffuseColor.rgb *= .86 + .28 * vn3(vec3(vB.x * 260., vB.y * 9., vB.z * 260.));   // пряди: соседние полоски (вдоль — сверху вниз) чуть разной яркости — волосы не сплошная шапка; без клеток (на макушке были квадраты)
+  ${hk === 'hair' && CINE ? `diffuseColor.rgb *= .86 + .28 * vn3(vec3(vB.x * 260., vB.y * 9., vB.z * 260.));   // пряди: соседние полоски (вдоль — сверху вниз) чуть разной яркости — волосы не сплошная шапка; без клеток (на макушке были квадраты)
   ${hre ? 'gHairS = (vn3(vec3(vB.x * 300., vB.y * 7., vB.z * 300.) + 17.) - .5) * .14 + (vn3(vB * 40.) - .5) * .06;   // блик вдоль прядей у каждой пряди чуть выше или ниже' : ''}` : ''}
   ${kind === 'eyes' && CINE && o.deadEyes == null ? `{ vec3 q = vB - (vB.x > 0. ? uEyeL3 : uEyeR3);   // белок не белее бумаги (чуть тёплый); верхнее веко и уголки затеняют глаз — глаз сидит в глазнице, а не наклейка
     float scl = smoothstep(.45, .7, min(diffuseColor.r, min(diffuseColor.g, diffuseColor.b)));
@@ -1741,7 +1742,7 @@ ${CINE || shroud ? HUM_NOISE : ''}${shroud ? SHROUD_H + (CINE ? SKIN_MH : '') : 
   };
   // ключ программы: код шейдера у зубов, языка и «приглушённой» одежды свой — иначе three.js отдаёт им чужую готовую программу с тем же набором текстур
   const dimK = (() => { for (const k in (o.dim || {})) if (kind.includes(k)) return 'd' + o.dim[k]; return ''; })();
-  m.customProgramCacheKey = () => 'hum3' + (shroud ? 'S' : '') + (claws ? 'k' : '') + (o.monster ? 'M' : '') + (hre ? 'R' : '') + (kind === 'eyes' ? 'e' + (o.deadEyes == null ? 1 : 0) : '') + (cloth ? 'C' : '') + (hem != null ? 'p' + hem.toFixed(3) : '') + (infl ? 'i' + C.hemY.toFixed(3) : '') + (kind === 'skin' ? 's' : '') + (kind === 'hair' ? 'h' : '') + (kind === 'teeth' ? 't' : kind === 'tongue' ? 'g' : '') + dimK + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
+  m.customProgramCacheKey = () => 'hum3' + (shroud ? 'S' : '') + (claws ? 'k' : '') + (o.monster ? 'M' : '') + (hre ? 'R' : '') + (kind === 'eyes' ? 'e' + (o.deadEyes == null ? 1 : 0) : '') + (cloth ? 'C' : '') + (hem != null ? 'p' + hem.toFixed(3) : '') + (infl ? 'i' + C.hemY.toFixed(3) : '') + (kind === 'skin' ? 's' : '') + (hk === 'hair' ? 'h' : '') + (kind === 'teeth' ? 't' : kind === 'tongue' ? 'g' : '') + dimK + (re ? 'r' + (re[2] || 0) : '') + (CINE ? 'c' : '');
   return m;
 }
 
@@ -2096,7 +2097,7 @@ function castV3() {
   const A = {}, H = makeHuman;
   const POLO = c => ({ polo: [c, 2.1], pants: [0x1b1d22, 1.7] });
   A.temych = H({ name: 'temych', model: 'ethan', tint: { hair: [0x6b4a30, 2.4], brows: [0x4a3220, 2] } });                                                         // Итан: своя стёганая куртка (цвет — при сборке модели)
-  A.smenshik = H({ name: 'smenshik', model: 'dayguard', cap: 0x15203a });                                  // дневной охранник: тёмно-синяя куртка, кепка
+  A.smenshik = H({ name: 'smenshik', model: 'dayguard', cap: 0x15203a });                                  // дневной охранник: тёмно-синяя куртка, кепка (новая модель по референсу владельца — в работе)
   A.mihalych = H({ name: 'mihalych', model: 'frank', sheet: ['НЕ ЗОВИ МЕНЯ.', 'СТУЧИ ТРИ РАЗА'], tint: Object.assign(POLO(0x2b3036), { hair: [0xb8b6b0, 1.6, .55], brows: [0xa8a6a0, 1.6, .5] }) });   // Фрэнк
   const lily = { model: 'lily', fem: true, wet: 1, tint: { sweater: [0xf0c020, 3.4, .3], hair: [0x3a2618, 1.7] } };   // жёлтый свитер — видно и ночью под дождём
   A.katya = H(Object.assign({ name: 'katya', noBlink: true, lipLag: .12 }, lily));                       // «Лили» за стеклом

@@ -68,7 +68,7 @@ function get(url, type) { return new Promise((ok, no) => { const x = new XMLHttp
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
-const SNDV = { sv08: 5, n26: 5 };   // перезаписанные реплики — своя версия файла (остальные звуки из кэша не перекачиваются)
+const SNDV = { sv08: 5, n26: 5, theme: 5 };   // перезаписанные реплики и звуки — своя версия файла (остальные из кэша не перекачиваются); theme: 5 — музыка меню владельца (2 ноя)
 const sndUrl = k => (VL !== 'ru' && (VOICE_RE.test(k) || TIM[k]) ? 'snd/' + VL + '/' : 'snd/') + k + '.mp3?v=' + (SNDV[k] || 4);
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
@@ -88,7 +88,7 @@ async function load(onp) {
 // Реплики декодируются по мере надобности: все 273 сразу — это ~210 МБ памяти, телефон от этого тормозит и вылетает.
 // Нужны реплики текущей сцены и следующих за ней (чтобы склейка не ждала); старые отпускаются, держим не больше VOICE_KEEP
 const voiceWant = new Set(), voiceOrder = [], sndJob = {}, sndQ = []; let sndBusy = 0, voiceMiss = 0;   // voiceMiss — реплика должна была прозвучать, а буфера не было (проверяют тесты)
-const VOICE_KEEP = 32, isVoice = k => !!TIM[k], LAZY_RE = /^(shift|end_|theme$)/;   // большая музыка (смена 96 с, финалы, тема титула 64 с — 21 МБ в памяти) декодируется по надобности и отпускается, когда сменилась (music)
+const VOICE_KEEP = 32, isVoice = k => !!TIM[k], LAZY_RE = /^(shift|end_|theme$)/;   // большая музыка (смена 96 с, финалы, тема титула 110 с — 39 МБ в памяти) декодируется по надобности и отпускается, когда сменилась (music)
 const sceneKeys = sc => { const ks = []; for (const b of (sc && sc.beats) || []) for (const k of b.say || []) ks.push(k); return ks; };
 const objKeys = o => { const ks = new Set(); JSON.stringify(o, (k, v) => { if (typeof v === 'string' && isVoice(v)) ks.add(v); return v; }); return [...ks]; };   // все ключи реплик внутри объекта (события смены, странности, звонки)
 const decQ = {};   // идущие декодирования реплик — чтобы не декодировать одну дважды

@@ -1,6 +1,7 @@
 """Персонажи Night Shift из MakeHuman/MPFB2 (всё CC0) → glb с костями (имена как у UE/Quaternius) и лицевыми формами
    (52 ARKit face units + 15 визем). Запуск: blender -b --python tools/chars/gen.py -- <name> <out.glb>
-   Описание персонажей — CHARS ниже. Нужен MPFB2 и пакеты: system assets, faceunits01, visemes02, skins01, hair01, shirts01, pants01, suits01, hats01."""
+   Описание персонажей — CHARS ниже. Нужен MPFB2 и пакеты: system assets, faceunits01, visemes02, skins01, hair01, shirts01, pants01, suits01, hats01, shoes01.
+   Борода, вышивка, перекраска, объём волос, сглаживание одежды — tools/chars/extras.py (нужен системный python3 с Pillow для надписей)."""
 import bpy, sys, os, json, bmesh
 from bl_ext.user_default.mpfb.services import HumanService, FaceService, ObjectService
 name, out = sys.argv[sys.argv.index('--') + 1:][:2]
@@ -22,6 +23,39 @@ CHARS = {
   'dayguard': dict(phenotype=dict(gender=1, age=.7, muscle=.5, weight=.7, proportions=.5, height=.48, cupsize=.5, firmness=.5, race=R(.1, .85, .05)),
                    skin='middleage_caucasian_male/middleage_caucasian_male.mhmat', hair='culturalibre_hair_02/culturalibre_hair_02.mhclo', brows='eyebrow003/eyebrow003.mhclo',
                    clothes=['male_casualsuit05/male_casualsuit05.mhclo', 'shoes04/shoes04.mhclo'], retint={'casualsuit05': (.07, .085, .13)}),
+  # ЗАГОТОВКА (2 ноя, владелец пока не принял — «не тот человек»): дневной охранник (сменщик), ~40 — по референсу владельца: плотный, с животом; волосы зачёсаны назад с объёмом, короткая
+  # густая борода; тёмное поло-меланж с белой вышивкой «Wake Syren» слева на груди, чёрные карго, чёрные ботинки, без кепки.
+  # Борода, вышивка, перекраска, объём волос, сглаживание карго — tools/chars/extras.py; шрифт Allura (OFL) — tools/chars/fonts
+  'dayguard_ref': dict(phenotype=dict(gender=1, age=.66, muscle=.6, weight=.74, proportions=.5, height=.52, cupsize=.5, firmness=.45, race=R(.05, .9, .05)),
+                   targets={'head-rectangular': .4, 'head-square': .25, 'head-scale-horiz-incr': .15, 'head-scale-vert-incr': .06, 'head-trans-forward': .8,
+                            'neck-trans-forward': .6, 'chin-width-incr': .5, 'head-fat-incr': .4, 'neck-scale-horiz-incr': .4, 'torso-scale-horiz-incr': .3, 'torso-scale-depth-decr': .4,
+                            'measure-waist-circ-incr': .35, 'measure-shoulder-dist-incr': .3, 'stomach-pregnant-incr': .12, 'nose-scale-horiz-incr': .1,
+                            'l-cheek-bones-incr': .2, 'r-cheek-bones-incr': .2, 'eyebrows-trans-forward': .3, 'eyebrows-angle-down': .2,
+                            # пропорции лица по замерам референса (в межзрачковых): глаза шире, рот и подбородок выше, уши дальше назад
+                            'l-eye-trans-out': .8, 'r-eye-trans-out': .8, 'mouth-trans-up': 1.0, 'head-scale-vert-decr': .4, 'chin-height-decr': .8,
+                            'nose-scale-vert-incr': .35, 'nose-scale-depth-incr': .45, 'nose-trans-forward': .3, 'forehead-trans-backward': .45,
+                            'head-back-scale-depth-incr': 1.0, 'head-scale-depth-incr': .5, 'eyebrows-trans-down': .3,
+                            **{f'{s}-{k}': v for s in 'lr' for k, v in (('ear-trans-backward', 1.0), ('ear-flap-decr', 1.0), ('ear-trans-up', .3))},
+                            **{f'{s}-{k}': v for s in 'lr' for k, v in (('upperarm-fat-incr', .35), ('lowerarm-fat-incr', .3), ('lowerarm-muscle-incr', .3),
+                                                                        ('upperarm-muscle-incr', .2), ('eye-push1-in', .25), ('eye-bag-incr', .3))}},
+                   skin='middleage_caucasian_male/middleage_caucasian_male.mhmat', hair='culturalibre_hair_02/culturalibre_hair_02.mhclo', brows='eyebrow008/eyebrow008.mhclo',
+                   clothes=['namuhekam_male_polo_shirt/namuhekam_male_polo_shirt.mhclo', 'cortu_cargo_pants/cortu_cargo_pants.mhclo', 'shoes03/shoes03.mhclo'],
+                   subdiv=['cortu_cargo_pants'], loose={'cortu_cargo_pants': [.012, -.12, 0]}, hide=['cortu_cargo_pants'],
+                   swap={'brown_eye': 'eyes/materials/grey_eye.png'},
+                   recolor={'Polo_Base': dict(rgb=(.19, .195, .205), heather=.35), 'cargo_pants_diff': dict(rgb=(.075, .075, .08), gamma=.9),
+                            'male02_diffuse': dict(rgb=(.2, .13, .09), gamma=.7), 'eyebrow008': dict(rgb=(.2, .125, .09), gamma=.9)},
+                   tex2k=['Polo_Base'],
+                   emb=[dict(mesh='polo', img='Polo_Base_Color', text='Wake Syren', font='fonts/Allura-Regular.ttf', at=(.088, -.085), ref='clavicle_l', width=.085, rgb=(.9, .9, .88))],
+                   hair_fx=dict(volume=dict(top=.018, front=.016, side=.002, back=.012), scalp=(.16, .105, .065)),
+                   beard=dict(len=.0055, rgb=(.36, .25, .19), density=.07, base=.8, cheek=[-.055, -.05, -.04, -.028, -.01, .01],
+                             neck=[-.108, -.104, -.095, -.08, -.07]),   # короткая ухоженная борода, как на референсе: линия шеи по челюсти; цвет — замер с картинки
+                   # лицо с картинки владельца (анфас и профиль): ориентиры — пиксели вырезок 648×768 и 718×768 (глаза, кончик носа, рот).
+                   # Картинки спонсора в открытый репозиторий не кладём: папка в DAYGUARD_REF (см. HANDOFF); без неё лицо остаётся без проекции
+                   photo=dict(env='DAYGUARD_REF', views=[
+                       dict(img='front.png', cam='front', lm={'eye_r': (212, 362), 'eye_l': (410, 362), 'nose': (318, 465), 'mouth': (318, 545)},
+                            holes=[(212, 362, 42, 19), (410, 362, 42, 19)], zmin=-.112),
+                       dict(img='side_r.png', cam='right', lm={'eye': (540, 355), 'nose': (655, 440), 'mouth': (600, 510)}, holes=[(540, 355, 26, 17)], zmin=-.112),
+                       dict(img='side_r.png', cam='left', lm={'eye': (540, 355), 'nose': (655, 440), 'mouth': (600, 510)}, holes=[(540, 355, 26, 17)], zmin=-.112)])),
   # Лили, 20 — сестра Итана: жёлтая куртка (свитер, перекрашивается в игре), джинсы, кеды
   'lily': dict(phenotype=dict(gender=0, age=.38, muscle=.4, weight=.4, proportions=.65, height=.6, cupsize=.45, firmness=.6, race=R(.05, .9, .05)),
                skin='young_caucasian_female/young_caucasian_female.mhmat', hair='long01/long01.mhclo', brows='eyebrow011/eyebrow011.mhclo',
@@ -93,6 +127,10 @@ for o in [o for o in bpy.data.objects if o.type == 'MESH']:
         bmesh.ops.delete(bm, geom=[bm.verts[i] for i in kill], context='VERTS'); bm.to_mesh(me); bm.free()
     for m in [m for m in o.modifiers if m.type not in ('ARMATURE',)]: o.modifiers.remove(m)
     print('MESH', o.name, len(me.vertices), [k.name for k in me.shape_keys.key_blocks][:3] if me.shape_keys else 0, len(me.shape_keys.key_blocks) if me.shape_keys else 0)
+# 2б) одежда глаже и свободнее, кожа под брюками (у брюк MakeHuman нет delete_verts — ноги протыкали ткань): tools/chars/extras.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import extras
+extras.pre(C)
 # 3) поза покоя как у анимаций игры (модель Quaternius, «Т»): поворачиваем кости MPFB вдоль костей Quaternius,
 #    запекаем позу в сетку (вместе с лицевыми формами) и делаем её позой покоя — тогда клипы Quaternius встают без перекосов
 import struct, mathutils
@@ -144,6 +182,8 @@ for o in [o for o in bpy.data.objects if o.type == 'MESH']:
     t = ObjectService.get_object_type(o); k = KIND.get(t) or 'cloth_' + o.name.split('.', 1)[-1]
     o.name = k; o.data.name = k
     print('PART', t, '->', k)
+# 4а) перекраска целиком, «вышивка» надписи, борода объёмом (tools/chars/extras.py)
+extras.post(C)
 # 4б) перекраска одежды: красятся только малонасыщенные пиксели (ткань куртки), джинсы и полоски рубашки остаются своими
 for key, rgb in C.get('retint', {}).items():
     for img in bpy.data.images:
@@ -175,7 +215,7 @@ for key, rgb in C.get('tint', {}).items():
 # 5) текстуры поменьше: кожа 2048, остальное 1024
 for img in bpy.data.images:
     if not img.size[0]: continue
-    lim = 2048 if 'skin' in img.filepath.lower() or 'diffuse' in img.name.lower() and 'male' in img.name.lower() else 1024
+    lim = 2048 if 'skin' in img.filepath.lower() or 'diffuse' in img.name.lower() and 'male' in img.name.lower() or any(k in img.name for k in C.get('tex2k', [])) else 1024   # tex2k — ткань с надписью (иначе буквы расплываются)
     if max(img.size) > lim: img.scale(lim, lim); print('IMG', img.name, lim)
 os.makedirs(os.path.dirname(out), exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=out.replace('.glb', '.blend'))
