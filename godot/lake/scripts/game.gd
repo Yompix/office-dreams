@@ -82,6 +82,9 @@ const INDOOR := ["house_wide", "photos", "bed", "danny_table", "press", "stove_t
 	"boathouse", "dacha_room", "wall_drawing", "stove5", "bottle5", "visit", "visit_table", "cell", "white_room", "hale_white",
 	"noah_shed", "shed_two"]
 const FLOOR := 0.38           # пол магазина и крыльцо заправки
+## Дэнни сидит на краю крыльца (край — x 19.9, верх — FLOOR): таз в 8 см от края, бёдра свисают, голени и стопы
+## перед крыльцом (было 20.2 — колени над бетоном, голени и стопы на 5–10 см в крыльце, заметил владелец)
+const DANNY_SEAT := Vector3(19.98, FLOOR + 0.1, -3.3)
 ## выражения лица (формы ARKit): страх, шок, улыбка, грусть, боль, «мёртвый взгляд»
 const EXPR := {"fear": {"browInnerUp": 0.8, "eyeWideLeft": 0.7, "eyeWideRight": 0.7, "mouthStretchLeft": 0.25, "mouthStretchRight": 0.25, "jawOpen": 0.08},
 	"shock": {"browInnerUp": 0.6, "browOuterUpLeft": 0.5, "browOuterUpRight": 0.5, "eyeWideLeft": 0.8, "eyeWideRight": 0.8, "jawOpen": 0.18},
@@ -549,8 +552,10 @@ func _place_cam() -> void:
 		var a := _t * 0.05
 		cam.look_at_from_position(scene.car.to_global(Vector3(-2.6 + sin(a) * 0.8, 0.95 + sin(a * 0.7) * 0.15, -8.5)), scene.car.to_global(Vector3(1.7, 0.9, -0.5)))
 	elif _shot == "hands":
-		cam.fov = 36.0
-		cam.look_at_from_position(scene.car.to_global(Vector3(0.14, 1.2, -0.24)), scene.car.wheel.global_position + Vector3(0, -0.02, 0))   # не из торпеды: колонка не лезет в кадр
+		# из-за правого плеча Ноя, у самой головы: кулаки на ободе сверху, щиток. Раньше — сбоку, от пассажира на уровне
+		# руля: в кадре был раструб пустого рукава и кисть у спицы (заметил владелец); подобрано из 5 ракурсов по кадрам
+		cam.fov = 46.0
+		cam.look_at_from_position(scene.car.to_global(Vector3(-0.2, 1.3, 0.36)), scene.car.wheel.global_position + Vector3(0, -0.03, 0))
 	else:
 		scene.put_camera(cam, _shot)
 
@@ -725,12 +730,12 @@ func _station() -> void:
 	_place({"who": "roman", "at": [26.4, FLOOR, -9.25], "face": 0, "clip": "Idle"})
 	_place({"who": "noah", "at": [13.0, 0.0, -4.0], "face": -110, "clip": "Idle"})
 	_place({"who": "iris", "at": [15.0, 0.0, -2.2], "face": 70, "clip": "Idle"})
-	_place({"who": "danny", "at": [20.3, FLOOR, -3.3], "face": -90, "clip": "Rk_SitIdle"})
+	_place({"who": "danny", "at": [DANNY_SEAT.x + 0.1, FLOOR, DANNY_SEAT.z], "face": -90, "clip": "Rk_SitIdle"})
 	(actors.noah as Actor).look_target = null
 	(actors.iris as Actor).look_target = null
 	await get_tree().process_frame
 	await get_tree().process_frame
-	_sit("danny", Vector3(20.2, FLOOR + 0.1, -3.3))
+	_sit("danny", DANNY_SEAT)
 	_attach_walkie(actors.danny)
 	if float(flags.get("late", 0)) > 0.0:   # сидели с оленем — чёрная машина уже здесь: у края площадки, фары выключены
 		blackcar = BlackCar.new()
@@ -850,12 +855,12 @@ func _danny_in_car() -> void:
 
 
 func _danny_stays() -> void:
-	_place({"who": "danny", "at": [20.3, FLOOR, -3.3], "face": -90, "clip": "Rk_SitIdle"})
+	_place({"who": "danny", "at": [DANNY_SEAT.x + 0.1, FLOOR, DANNY_SEAT.z], "face": -90, "clip": "Rk_SitIdle"})
 	_place({"who": "iris", "car": "passenger"})
 	_place({"who": "noah", "car": "driver"})
 	await get_tree().process_frame
 	await get_tree().process_frame
-	_sit("danny", Vector3(20.2, FLOOR + 0.1, -3.3))
+	_sit("danny", DANNY_SEAT)
 	_expr({"who": "danny", "set": "sad"})
 
 

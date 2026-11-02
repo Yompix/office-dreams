@@ -554,13 +554,29 @@ func show_pills(v: bool, label := "") -> void:
 		pills_label.text = label
 
 
-## Руль — в руки водителя: центр между ладонями, обод по их размаху, плоскость — к груди; колонка — от руля к торпедо.
+## Запястье (оси машины) → в осях руля, со сдвигом: пустота кулака (hollow) ложится на обод — радиус 0,178 в плоскости
+## обода. Руль не меньше 0,85 своего размера, и кулаки в клипе бывают ближе друг к другу, чем обод: тогда кисти чуть
+## расходятся к ободу, а не обод сжимается до игрушечного.
+func _on_rim(wrist: Vector3, hollow: Vector3) -> Vector3:
+	var w := wheel.to_local(to_global(wrist))
+	var h := wheel.to_local(to_global(hollow))
+	var r := Vector2(h.x, h.z)
+	if r.length() < 0.01:
+		return w
+	var on := r.normalized() * 0.178
+	return w + Vector3(on.x - r.x, -h.y, on.y - r.y)
+
+
+## Руль — в руки водителя: центр между кулаками, обод по их размаху, плоскость — к груди; колонка — от руля к торпедо.
 func fit_wheel(a: Actor) -> void:
 	var sk := a.skel
 	var gp := func(n: String) -> Vector3:
 		return to_local(sk.global_transform * sk.get_bone_global_pose(sk.find_bone(n)).origin)
-	var pl: Vector3 = (gp.call("hand_l") + gp.call("middle_01_l")) * 0.5
-	var pr: Vector3 = (gp.call("hand_r") + gp.call("middle_01_r")) * 0.5
+	# обод — через пустоту сжатого кулака: на 2,5 см перед серединой ладони (по нормали ладони). Раньше — через саму
+	# середину ладони (линию костей): обод шёл сквозь мякоть, а пальцы сжимались рядом с ним (кадр владельца, 2 ноя)
+	var inv := global_transform.basis.orthonormalized().inverse()
+	var pl: Vector3 = (gp.call("hand_l") + gp.call("middle_01_l")) * 0.5 + (inv * a.palm_normal("_l")).normalized() * 0.025
+	var pr: Vector3 = (gp.call("hand_r") + gp.call("middle_01_r")) * 0.5 + (inv * a.palm_normal("_r")).normalized() * 0.025
 	var chest: Vector3 = gp.call("spine_03")
 	var c := (pl + pr) * 0.5
 	var nrm := (chest - c).normalized()
@@ -571,8 +587,8 @@ func fit_wheel(a: Actor) -> void:
 	wheel_basis0 = Basis(side * k, nrm * k, side.cross(nrm).normalized() * k)   # ось обода (Y тора) — к груди
 	wheel.transform.basis = wheel_basis0 * Basis(Vector3.UP, steer)
 	# кисти водителя держат обод там, где легли: точки — в координатах руля, поворачиваются вместе с ним (Game._hold_wheel)
-	grip_l = wheel.to_local(to_global(gp.call("hand_l")))
-	grip_r = wheel.to_local(to_global(gp.call("hand_r")))
+	grip_l = _on_rim(gp.call("hand_l"), pl)
+	grip_r = _on_rim(gp.call("hand_r"), pr)
 	# колонка — тонкая, от ступицы прямо вперёд и чуть вниз, к щитку приборов (раньше — толстая труба к точке под щитком,
 	# через колени водителя)
 	var end := Vector3(c.x, c.y - 0.18, -0.42)

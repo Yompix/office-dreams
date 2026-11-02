@@ -421,6 +421,13 @@ func _tick(delta: float) -> void:
 	else:
 		_restore_base()   # поза удержана (клип кончился или на паузе): слои ниже пишут поверх неё, а не поверх прошлого кадра
 	if skirt_sim:
+		# лёжа — без пружин: сила тяжести мира тянула полы пальто к матрасу, бёдра выталкивали их вверх, и подол вставал
+		# шатром (гл. 3, роды: «тёмный ком»); без пружин полы лежат вдоль ног, как у стоящей
+		var lying := clip in LIE
+		if skirt_sim.active == lying:
+			skirt_sim.active = not lying
+			if not lying:
+				skirt_sim.reset()
 		SkirtRig.drive(skel, skirt_sim)   # поводки подола — за бёдрами клипа (до пружин)
 	if _snap > 0:
 		_snap -= 1
@@ -614,6 +621,24 @@ func _attention() -> Variant:
 	return null
 
 
+## Оси тела по костям: X — влево, Y — от таза к шее, Z — куда смотрит грудь (Basis() — если костей нет).
+func _body_basis() -> Basis:
+	var p := _bi("pelvis")
+	var n := _bi("neck_01")
+	var ul := _bi("upperarm_l")
+	var ur := _bi("upperarm_r")
+	if p < 0 or n < 0 or ul < 0 or ur < 0:
+		return Basis()
+	var sgt := skel.global_transform
+	var up := ((sgt * skel.get_bone_global_pose(n)).origin - (sgt * skel.get_bone_global_pose(p)).origin).normalized()
+	var left := (sgt * skel.get_bone_global_pose(ul)).origin - (sgt * skel.get_bone_global_pose(ur)).origin
+	left = left - up * left.dot(up)
+	if left.length() < 1e-4:
+		return Basis()
+	left = left.normalized()
+	return Basis(left, up, left.cross(up))
+
+
 func head_pos() -> Vector3:
 	var h := _bi("head")
 	if h < 0:
@@ -626,6 +651,12 @@ func _gaze(dt: float) -> void:
 	if h < 0:
 		return
 	var basis := global_transform.basis.orthonormalized()
+	if clip in LIE:
+		# лёжа: «вверх» — вдоль позвоночника к голове, «вперёд» — куда смотрит грудь. По осям корня (вертикаль мира)
+		# поворот к собеседнику гнул шею вбок по подушке — голова съезжала к краю кровати (гл. 3, роды)
+		var bb := _body_basis()
+		if bb != Basis():
+			basis = bb
 	var up := basis.y
 	var fwd := basis.z
 	var hg := skel.global_transform * skel.get_bone_global_pose(h)

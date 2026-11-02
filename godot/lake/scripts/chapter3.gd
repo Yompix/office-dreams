@@ -7,6 +7,11 @@ extends RefCounted
 
 const AGX := -11.0
 const AGZ := -45.0
+const BABY := preload("res://scripts/world/baby.gd")   # младенец-свёрток
+const BED_COVER := preload("res://scripts/world/bed_cover.gd")   # одеяло на кровати за печью
+## Ева на кровати за печью (корень, дом): голова — на подушке у изголовья (x −1,55), ноги — у стены, спина — на
+## матрасе. Было (−2,15; 0,6): тело на 7–8 см в матрасе, макушка за краем кровати, волосы свисали (заметил владелец)
+const EVA_BED := Vector3(-2.4, 0.66, 1.3)
 
 
 static func ag(x: float, y: float, z: float) -> Vector3:
@@ -33,6 +38,8 @@ static func put(g, who: String, p: Vector3, face: float, clip := "Idle") -> void
 	(g.actors[who] as Actor).reach = {}
 	(g.actors[who] as Actor).wave = 0.0
 	g._place({"who": who, "at": [p.x, p.y, p.z], "face": face, "clip": clip})
+	if who == "eva" and not (clip in Actor.LIE):
+		bed_cover(g)   # встала с кровати — одеяло снова ровно (лёжа — после позы, в lie)
 
 
 ## Замереть в позе: клип на времени t и стоп (лежит, стоит на коленях…).
@@ -266,7 +273,7 @@ static func fx(g, k: String) -> bool:
 			(agnes(g)).play("Yes", 0.2)
 		"birth_bed":   # Еву — на кровать за печью
 			in_house(g)
-			lie(g, "eva", ag(-2.15, 0.6, 1.3), -90.0)
+			lie(g, "eva", ag(EVA_BED.x, EVA_BED.y, EVA_BED.z), -90.0)
 			put(g, "agnes", ag(-1.9, 0.0, 2.35), 180.0, "Idle")
 			put(g, "iris", ag(-1.6, 0.0, 0.45), -30.0, "Crouch_Idle")
 		"lights_out":   # свет мигает и гаснет
@@ -330,14 +337,16 @@ static func fx(g, k: String) -> bool:
 			bl.albedo_color = Color(0.32, 0.02, 0.02)
 			bl.roughness = 0.25
 			m.material_override = bl
-			m.position = ag(-1.85, 0.575, 1.3)
+			m.position = ag(EVA_BED.x + 0.3, 0.575, EVA_BED.z)   # под тазом лежащей
 			village(g).add_child(m)
 			if has(g, "eva"):
 				(g.actors.eva as Actor).expr = {"eyeSquintLeft": 0.5, "eyeSquintRight": 0.5, "mouthFrownLeft": 0.4, "mouthFrownRight": 0.4}
 		"press":   # прижимать рану: Ной (или Айрис — если у Ноя был провал)
 			var who := "iris" if on(g, "lapse_shop") else "noah"
-			put(g, who, ag(-1.55, 0.0, 0.55), -40.0, "Fixing_Kneeling")
-			(g.actors[who] as Actor).reach = {"_l": ag(-1.95, 0.62, 1.3), "_r": ag(-1.85, 0.62, 1.2)}
+			# на коленях у кровати напротив её живота; ладони — на низ живота (раньше — у изголовья, руки не доставали
+			# и висели прямыми над краем кровати)
+			put(g, who, ag(EVA_BED.x + 0.45, 0.0, 0.6), -13.0, "Fixing_Kneeling")
+			(g.actors[who] as Actor).reach = {"_l": ag(EVA_BED.x + 0.3, 0.84, 1.3), "_r": ag(EVA_BED.x + 0.38, 0.83, 1.18)}
 			if who == "iris":
 				put(g, "noah", ag(0.7, 0.0, 2.6), -150.0, "Idle_FoldArms")
 			elif has(g, "iris"):   # место у кровати занимает Ной — Айрис отходит на шаг (раньше сидела в нём, торсы на 10 см друг в друге)
@@ -668,13 +677,44 @@ static func lie(g, who: String, p: Vector3, face: float) -> void:
 	put(g, who, p, face, "LayToIdle")
 	a.rotation = Vector3(0, deg_to_rad(face), 0)
 	hold(a, "LayToIdle", 0.0)
+	if who == "eva":
+		bed_cover(g)   # на кровати — укрыта одеялом по позе
+
+
+## Одеяло на кровати за печью (scripts/world/bed_cover.gd): укрывает Еву от ног до бёдер, если она там лежит, иначе
+## лежит на постели. Пересобирается, только если это изменилось.
+static func bed_cover(g) -> void:
+	# одна сборка в конце кадра — по последнему состоянию (в одном кадре героиню могут пересадить и уложить)
+	if not bool(g.c3.get("cover_queued", false)):
+		g.c3["cover_queued"] = true
+		_bed_cover_now.bind(g).call_deferred()
+
+
+static func _bed_cover_now(g) -> void:
+	g.c3["cover_queued"] = false
+	var v := vil(g)
+	if v == null:
+		return
+	var lying: Actor = null
+	if has(g, "eva"):
+		var e: Actor = g.actors.eva
+		if e.visible and e.clip in Actor.LIE and e.global_position.distance_to(ag(EVA_BED.x, EVA_BED.y, EVA_BED.z)) < 0.3:
+			lying = e
+	var key := "flat" if lying == null else "eva@%s" % str(lying.global_position.snapped(Vector3.ONE * 0.01))
+	var old = g.c3.get("cover")
+	if old and is_instance_valid(old):
+		if String(g.c3.get("cover_key", "")) == key:
+			return
+		(old as Node).queue_free()
+	g.c3["cover"] = BED_COVER.build(v, lying)
+	g.c3["cover_key"] = key
 
 
 ## Роды: Ева на кровати, Агнес у изножья, Айрис на коленях у изголовья.
 static func restage_birth(g) -> void:
 	if not has(g, "eva"):
 		return
-	lie(g, "eva", ag(-2.15, 0.6, 1.3), -90.0)
+	lie(g, "eva", ag(EVA_BED.x, EVA_BED.y, EVA_BED.z), -90.0)
 	put(g, "agnes", ag(-1.9, 0.0, 2.35), 180.0, "Idle")
 	put(g, "iris", ag(-1.6, 0.0, 0.45), -30.0, "Crouch_Idle")
 	(g.actors.iris as Actor).reach = {"_r": g._target("eva") + Vector3(0.25, -0.15, -0.1)}
@@ -689,7 +729,7 @@ static func _house_sleepers(g) -> void:
 		lie(g, "agnes", ag(-1.95, 1.95, -2.35), 0.0)
 		g._expr({"who": "agnes", "set": "sleep"})
 	if has(g, "eva"):
-		lie(g, "eva", ag(-2.15, 0.6, 1.3), -90.0)
+		lie(g, "eva", ag(EVA_BED.x, EVA_BED.y, EVA_BED.z), -90.0)
 		g._expr({"who": "eva", "set": "sleep"})
 		if on(g, "baby"):
 			baby(g, "eva")
@@ -701,40 +741,15 @@ static func _house_sleepers(g) -> void:
 	a.visible = true
 
 
-## Младенец — свёрток на руках (у груди героя).
+## Младенец — свёрток-«конверт» на руках у груди героя (сетка, место и руки — scripts/world/baby.gd).
 static func baby(g, who: String) -> void:
 	var b = g.c3.get("baby")
 	if b and is_instance_valid(b):
 		(b as Node).queue_free()
+	g.c3.erase("baby")
 	if not has(g, who):
 		return
-	var a: Actor = g.actors[who]
-	var ba := BoneAttachment3D.new()
-	ba.bone_name = "spine_03"
-	a.skel.add_child(ba)
-	var m := MeshInstance3D.new()
-	var cm := CapsuleMesh.new()
-	cm.radius = 0.09
-	cm.height = 0.42
-	m.mesh = cm
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.86, 0.84, 0.78)
-	mat.roughness = 0.95
-	m.material_override = mat
-	m.position = Vector3(0.0, 0.0, 0.2)
-	m.rotation_degrees = Vector3(0, 0, 80)
-	ba.add_child(m)
-	var face := MeshInstance3D.new()
-	var sm := SphereMesh.new()
-	sm.radius = 0.055
-	sm.height = 0.1
-	face.mesh = sm
-	var fm := StandardMaterial3D.new()
-	fm.albedo_color = Color(0.86, 0.62, 0.55)
-	face.material_override = fm
-	face.position = Vector3(0.14, 0.03, 0.27)
-	ba.add_child(face)
-	g.c3["baby"] = ba
+	g.c3["baby"] = BABY.attach(g.actors[who])
 
 
 ## Мамин дневник — раскрытая тетрадь в руках Айрис (строчки — тёмные полоски).
@@ -1140,20 +1155,20 @@ static func cam(g, shot: String) -> bool:
 			var bed: Vector3 = ag(-2.2, 0.6, 1.3)
 			var to := Vector3(bed.x - hp.x, 0.0, bed.z - hp.z)
 			to = to.normalized() if to.length() > 0.05 else Vector3(1, 0, 0)
+			# сверху, со стороны ног: лицо и грудь (у Евы на груди — младенец) в кадре; раньше камера висела прямо над грудью
+			# и свёрток оставался под ней, вне кадра
 			c.fov = 38.0
-			c.look_at_from_position(hp + to * 0.42 + Vector3(0, 0.58, 0), hp + Vector3(0.0, -0.04, 0.0))
+			c.look_at_from_position(hp + to * 0.78 + Vector3(0, 0.72, 0), hp + to * 0.22 + Vector3(0.0, -0.06, 0.0))
 		"iris_bed":   # через кровать — лицо Айрис, Ева на подушке на переднем плане
 			if not has(g, "iris"):
 				return false
 			var hp: Vector3 = g._target("iris")
-			var fz: Vector3 = (g.actors.iris as Actor).global_transform.basis.z
-			var fw := Vector3(fz.x, 0.0, fz.z).normalized()
-			var ev: Vector3 = g._target("eva") if has(g, "eva") else hp + fw   # прямо перед ней — Ева: камера сбоку, подальше от неё
-			var p1 := hp + fw.rotated(Vector3.UP, deg_to_rad(70.0)) * 0.7
-			var p2 := hp + fw.rotated(Vector3.UP, deg_to_rad(-70.0)) * 0.7
-			var cp := p1 if p1.distance_to(ev) > p2.distance_to(ev) else p2
+			var ev: Vector3 = g._target("eva") if has(g, "eva") else hp + (g.actors.iris as Actor).global_transform.basis.z
+			# с того края кровати, через голову Евы — на Айрис (раньше камера вставала сбоку от Айрис и брала её затылок)
+			var across := Vector3(ev.x - hp.x, 0.0, ev.z - hp.z)
+			across = across.normalized() if across.length() > 0.05 else Vector3(0, 0, 1)
 			c.fov = 40.0
-			c.look_at_from_position(cp + Vector3(0, 0.06, 0), hp + Vector3(0, -0.04, 0))
+			c.look_at_from_position(ev + across * 0.55 + Vector3(0, 0.32, 0), hp + Vector3(0, -0.02, 0))
 		"agnes_stove":
 			return face(g, "agnes", 32.0, 1.0, 0.02, 36.0)
 		"diary_page":   # страница дневника — крупно, сверху
