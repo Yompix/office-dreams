@@ -228,7 +228,7 @@ static func make(k: String, file: String) -> Actor:
 			elif mm.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
 				mm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 				mm.alpha_scissor_threshold = 0.5
-			Fabric.tune(mm, nm)   # ткань по имени сетки: шерсть, трикотаж, кожа, нейлон, дождевик… (Fabric)
+			Fabric.tune(mm, nm, String(src.resource_name))   # ткань по имени сетки: шерсть, трикотаж, кожа, нейлон, дождевик… (Fabric)
 			m.set_surface_override_material(i, mm)
 	if hair_mi:
 		a.hair_sim = HairRig.build(a, hair_mi)

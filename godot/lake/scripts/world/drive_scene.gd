@@ -305,8 +305,11 @@ func _sun_shadow() -> void:
 	if on:
 		moon.shadow_opacity = 0.75 if daylight == "lake_day" else 0.85   # серый день — мягче
 		moon.shadow_blur = 1.5
-		moon.directional_shadow_max_distance = 60.0
-		moon.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
+		# 2 каскада до 35 м: тени у героев, машин, построек рядом; дальний лес — без них. 4 каскада до 60 м удваивали
+		# вызовы отрисовки и примитивы в ясных сценах (замер: c4_s1 706 → 2586 вызовов)
+		moon.directional_shadow_max_distance = 35.0
+		moon.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+		moon.directional_shadow_blend_splits = true
 
 
 ## Кафе «У трёх сосен» (глава 2): дом у трассы, свет ламп и окон, вывеска на языке игры, три сосны, фуры у входа,

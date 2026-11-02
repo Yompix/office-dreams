@@ -44,7 +44,11 @@ static func kind_of(mesh_name: String) -> String:
 
 
 ## Настроить копию материала под ткань (вызывается для каждой поверхности одежды при создании героя).
-static func tune(mm: BaseMaterial3D, mesh_name: String) -> void:
+## Детали влиты в сетку одежды отдельными поверхностями — молния, пуговицы, нашивки остаются со своими материалами.
+static func tune(mm: BaseMaterial3D, mesh_name: String, mat_name := "") -> void:
+	for skip: String in ["_zip", "_button", "_emb", "_pull"]:
+		if mat_name.contains(skip):
+			return
 	var k := kind_of(mesh_name)
 	if k == "":
 		return

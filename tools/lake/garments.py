@@ -731,6 +731,23 @@ def _trims(ob, g, name, neck_z, hem_z):
     tr = g.get('trims') or {}
     if not tr:
         return
+    before = set(bpy.data.objects.keys())
+    _trims_build(ob, g, name, neck_z, hem_z, tr)
+    # детали — в саму одежду (одна сетка, поверхности по материалам): у пальто было 8–9 отдельных сеток — 8–9 вызовов
+    # отрисовки на героя (и столько же в каждом проходе теней); теперь ткань + пуговицы/молния + нашивки — 2–3
+    new = [o for o in bpy.data.objects if o.type == 'MESH' and o.name not in before and o.name.startswith(name + '_')]
+    if new:
+        for o in bpy.context.selected_objects:
+            o.select_set(False)
+        for o in new:
+            o.select_set(True)
+        ob.select_set(True)
+        bpy.context.view_layer.objects.active = ob
+        bpy.ops.object.join()
+        print('TRIM влиты в', ob.name, len(new), 'сеток, поверхностей', len(ob.data.materials))
+
+
+def _trims_build(ob, g, name, neck_z, hem_z, tr):
     mat = ob.data.materials[0] if ob.data.materials else None
     uvpm = _uv_density(ob)
     z_top = neck_z - 0.025

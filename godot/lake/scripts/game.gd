@@ -1789,7 +1789,7 @@ func _life_hints(delta: float) -> void:
 ## Применить все настройки: качество графики, яркость, громкость, субтитры.
 func _apply_settings() -> void:
 	settings.apply_quality(get_viewport(), scene.env, _pc)
-	scene.sun_shadows = settings.quality >= 1   # солнечные тени днём — со «среднего» качества
+	scene.sun_shadows = settings.quality >= 2   # солнечные тени днём — на «высоком» и «ультра» (на «среднем» — без них)
 	scene._sun_shadow()
 	settings.apply_brightness(scene.env)
 	sfx.set_volumes(settings.vol)
@@ -1813,7 +1813,7 @@ func _on_setting(key: String, v: Variant) -> void:
 		"quality":
 			settings.quality = int(v)
 			settings.apply_quality(get_viewport(), scene.env, _pc)
-			scene.sun_shadows = settings.quality >= 1
+			scene.sun_shadows = settings.quality >= 2
 			scene._sun_shadow()
 		"fullscreen":
 			settings.fullscreen = int(v) == 1

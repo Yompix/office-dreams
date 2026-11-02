@@ -30,16 +30,21 @@ func _process(_d: float) -> bool:
 		var meshes := {}
 		for mi in model.find_children("*", "MeshInstance3D", true, false):
 			var m := mi as MeshInstance3D
-			if m.skin == null or m.mesh.get_surface_count() != 1:
+			if m.skin == null:
 				continue
 			var j := 0
 			var b := m.skin.get_bind_bone(j)
 			if b < 0:
 				b = sk.find_bone(m.skin.get_bind_name(j))
 			var to_sk := sk.get_bone_global_rest(b) * m.skin.get_bind_pose(j)
-			var arr := m.mesh.surface_get_arrays(0)
-			var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
-			var ns: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			# одежда с влитыми деталями — несколько поверхностей: как верхний слой берутся все; сдвигаются (ClothFit)
+			# только сетки из одной поверхности
+			var vs := PackedVector3Array()
+			var ns := PackedVector3Array()
+			for si in m.mesh.get_surface_count():
+				var arr := m.mesh.surface_get_arrays(si)
+				vs.append_array(arr[Mesh.ARRAY_VERTEX])
+				ns.append_array(arr[Mesh.ARRAY_NORMAL])
 			var pts := PackedVector3Array()
 			var nrm := PackedVector3Array()
 			pts.resize(vs.size())
@@ -48,7 +53,7 @@ func _process(_d: float) -> bool:
 			for i in vs.size():
 				pts[i] = to_sk * vs[i]
 				nrm[i] = (nb * ns[i]).normalized()
-			meshes[String(m.name)] = {"pts": pts, "nrm": nrm, "to_mesh": to_sk.basis.inverse()}
+			meshes[String(m.name)] = {"pts": pts, "nrm": nrm, "to_mesh": to_sk.basis.inverse(), "multi": m.mesh.get_surface_count() > 1}
 		var out := {}
 		var total := 0
 		if OS.get_environment("FITDBG") != "":
@@ -63,6 +68,8 @@ func _process(_d: float) -> bool:
 		for inner_name in meshes:
 			var role := _role(inner_name)
 			if role == "" or role == "outer" and not inner_name.contains("hoodie"):
+				continue
+			if bool(meshes[inner_name].get("multi", false)):   # сдвигать можно только сетку из одной поверхности
 				continue
 			var covers: Array = []
 			for cn in meshes:
