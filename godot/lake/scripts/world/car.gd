@@ -35,6 +35,8 @@ var t := 0.0
 var wiper_speed := 1.0
 var steer := 0.0                               # поворот руля (рад), руки героя — за ним
 var wheel_basis0 := Basis.IDENTITY
+var grip_l := Vector3.INF                        # где кисти водителя держат обод — в координатах руля (ставит fit_wheel)
+var grip_r := Vector3.INF
 var column: MeshInstance3D
 var notebook: MeshInstance3D
 var back_fill: OmniLight3D                        # днём: свет из окон на заднее сиденье (глава 2 — там сидят герои)
@@ -213,8 +215,8 @@ func setup(pc: bool) -> void:
 		steer_mi.transform = Transform3D.IDENTITY
 	column = MeshInstance3D.new()
 	var colm := CylinderMesh.new()
-	colm.top_radius = 0.035
-	colm.bottom_radius = 0.045
+	colm.top_radius = 0.02
+	colm.bottom_radius = 0.025
 	colm.height = 0.35
 	colm.radial_segments = 16
 	column.mesh = colm
@@ -477,13 +479,15 @@ func mirror(on: bool, aim := "road") -> void:
 
 
 ## Кого видит зеркало: назад — без Ноя и его двойника; на себя — Ноя, а при «Тени» — двойника вместо него.
+## У Ноя кроме своего слоя есть слой солнечных теней (Actor.SUN_LAYER) — его тоже убираем из маски, иначе Ной виден
+## через него (у остальных героев есть слой 1, они остаются в зеркале).
 func mirror_mask() -> void:
 	if mirror_cam == null:
 		return
 	if mirror_aim_name != "self":
-		mirror_cam.cull_mask = 0xFFFFF & ~DRIVER_LAYER & ~2
+		mirror_cam.cull_mask = 0xFFFFF & ~DRIVER_LAYER & ~2 & ~Actor.SUN_LAYER
 	elif mirror_hide_driver:
-		mirror_cam.cull_mask = 0xFFFFF & ~DRIVER_LAYER
+		mirror_cam.cull_mask = 0xFFFFF & ~DRIVER_LAYER & ~Actor.SUN_LAYER
 	else:
 		mirror_cam.cull_mask = 0xFFFFF
 
@@ -562,12 +566,17 @@ func fit_wheel(a: Actor) -> void:
 	var nrm := (chest - c).normalized()
 	var side := (pr - pl).normalized()
 	var r := pl.distance_to(pr) * 0.5
-	var k := r / 0.178
+	var k := clampf(r / 0.178, 0.85, 1.15)   # руль не раздувается и не сжимается, если кисти в клипе разошлись или сошлись
 	wheel.position = c
 	wheel_basis0 = Basis(side * k, nrm * k, side.cross(nrm).normalized() * k)   # ось обода (Y тора) — к груди
-	wheel.transform.basis = wheel_basis0
-	var dash := Vector3(c.x, 0.7, -0.45)    # колонка уходит в торпедо снизу, под щитком (руль выше — как в жизни)
-	column.position = (c + dash) * 0.5
-	column.look_at(to_global(dash), Vector3.UP)
-	column.rotate_object_local(Vector3.RIGHT, PI / 2)   # цилиндр стоит по Y — кладём вдоль направления на торпедо
-	column.scale = Vector3(1.0, c.distance_to(dash) / 0.35, 1.0)
+	wheel.transform.basis = wheel_basis0 * Basis(Vector3.UP, steer)
+	# кисти водителя держат обод там, где легли: точки — в координатах руля, поворачиваются вместе с ним (Game._hold_wheel)
+	grip_l = wheel.to_local(to_global(gp.call("hand_l")))
+	grip_r = wheel.to_local(to_global(gp.call("hand_r")))
+	# колонка — тонкая, от ступицы прямо вперёд и чуть вниз, к щитку приборов (раньше — толстая труба к точке под щитком,
+	# через колени водителя)
+	var end := Vector3(c.x, c.y - 0.18, -0.42)
+	column.position = (c + end) * 0.5
+	column.look_at(to_global(end), Vector3.UP)
+	column.rotate_object_local(Vector3.RIGHT, PI / 2)   # цилиндр стоит по Y — кладём вдоль направления на щиток
+	column.scale = Vector3(1.0, c.distance_to(end) / 0.35, 1.0)

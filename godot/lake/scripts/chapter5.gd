@@ -1074,7 +1074,7 @@ static func _water_mirror(g, on_: bool) -> void:
 	Ch2._layers(n, Car.DRIVER_LAYER)
 	Ch2._layers(dbl, 2)
 	g.cam.cull_mask = 0xFFFFF & ~2
-	pm.cam.cull_mask = 0xFFFFF & ~Car.DRIVER_LAYER
+	pm.cam.cull_mask = 0xFFFFF & ~Car.DRIVER_LAYER & ~Actor.SUN_LAYER
 	g.c5["water_mirror"] = pm
 	g.c5["double"] = dbl
 

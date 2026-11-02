@@ -538,7 +538,10 @@ func _place_cam() -> void:
 	elif _shot in ["mirror", "mirror_back", "mirror_self", "mirror_zoe"]:   # глазами Ноя — в зеркало заднего вида
 		var noah: Actor = actors.noah
 		var hb := noah.skel.global_transform * noah.skel.get_bone_global_pose(noah.skel.find_bone("head"))
-		var eye := hb.origin + hb.basis.y.normalized() * 0.09 + hb.basis.z.normalized() * 0.1
+		# глаз — от головы, но вверх и вперёд по машине, а не по повороту головы: когда Ной оглядывался на заднее сиденье
+		# (план mirror_zoe), точка «перед лицом» уезжала вбок, и камера смотрела на зеркало сквозь его волосы — чёрный кадр
+		var cb := scene.car.global_transform.basis
+		var eye := hb.origin + cb.y.normalized() * 0.09 - cb.z.normalized() * 0.13
 		cam.fov = 13.0
 		cam.look_at_from_position(eye, scene.car.to_global(Car.MIRROR))
 	elif _shot == "menu":   # меню: машина идёт на камеру в снегу, камера медленно плывёт сбоку
@@ -547,7 +550,7 @@ func _place_cam() -> void:
 		cam.look_at_from_position(scene.car.to_global(Vector3(-2.6 + sin(a) * 0.8, 0.95 + sin(a * 0.7) * 0.15, -8.5)), scene.car.to_global(Vector3(1.7, 0.9, -0.5)))
 	elif _shot == "hands":
 		cam.fov = 36.0
-		cam.look_at_from_position(scene.car.to_global(Vector3(0.12, 1.08, -0.42)), scene.car.wheel.global_position + Vector3(0, -0.02, 0))
+		cam.look_at_from_position(scene.car.to_global(Vector3(0.14, 1.2, -0.24)), scene.car.wheel.global_position + Vector3(0, -0.02, 0))   # не из торпеды: колонка не лезет в кадр
 	else:
 		scene.put_camera(cam, _shot)
 
@@ -652,6 +655,7 @@ func _place(p: Dictionary) -> void:
 
 func _seat_in_car(who: String, seat: String) -> void:
 	var a: Actor = actors[who]
+	var pn := int(a.get_meta("place_n", 0))   # номер расстановки: пересадили, пока ждём кадры, — эта поправка отменяется
 	if a.get_parent() != scene.car:
 		a.reparent(scene.car, false)
 	var s: Vector3 = {"driver": Car.DRIVER, "passenger": Car.PASSENGER, "back": Car.BACK, "back_l": Car.BACK_L, "back_m": Car.BACK_M}[seat]
@@ -663,7 +667,9 @@ func _seat_in_car(who: String, seat: String) -> void:
 	for k in 2:   # дважды: если герой сел сразу после ходьбы или стоя, первая мерка таза бывает по старой позе
 		for f in 3:
 			await get_tree().process_frame
-		if not is_instance_valid(a) or a.get_parent() != scene.car:
+		# две посадки подряд (Ева села — и сразу поехали: seat_all дважды): отложенная поправка по тазу от первой посадки
+		# не должна ложиться поверх второй
+		if not is_instance_valid(a) or a.get_parent() != scene.car or int(a.get_meta("place_n", 0)) != pn:
 			return
 		if seat.begins_with("back"):
 			scene.car.seat(a, s, 0.53, 0.16)
@@ -671,7 +677,8 @@ func _seat_in_car(who: String, seat: String) -> void:
 			scene.car.seat(a, s)
 	if seat == "driver":
 		await get_tree().process_frame
-		scene.car.fit_wheel(a)
+		if is_instance_valid(a) and int(a.get_meta("place_n", 0)) == pn:
+			scene.car.fit_wheel(a)
 
 
 ## Пройти к точке: {"who", "to": [x, y, z], "speed", "clip" (шаг), "then" (клип по приходу), "face" (поворот по приходу)}.
@@ -1717,6 +1724,7 @@ func _process(delta: float) -> void:
 		if not actors.has(who) or not is_instance_valid(actors[who]) or not (actors[who] as Actor).walking:
 			_walks.erase(who)
 	_life_hints(delta)
+	_hold_wheel()
 	if not _snaps.is_empty() and _t >= float(_snaps[0]):
 		get_viewport().get_texture().get_image().save_png("%s/snap_%05.1f.png" % [_snapdir, float(_snaps[0])])
 		_snaps.pop_front()
@@ -1770,6 +1778,30 @@ func _smooth_cam(delta: float) -> void:
 	_cam_s = Transform3D(Basis(q), p)
 	cam.global_transform = _cam_s
 
+
+
+## Руки Ноя на руле: руль ставится под его ладони при посадке (`Car.fit_wheel`), дальше кисти держат обод там, где
+## легли, и поворачиваются вместе с рулём. Раньше руки шли по клипу Driving и уходили с руля (ладонь вверх в воздухе).
+## Если рукам задана другая цель (взять, подать, бардачок) — не трогаем; отпустил — снова на руль; вышел — руки свободны.
+func _hold_wheel() -> void:
+	var noah = actors.get("noah")
+	if not (noah is Actor) or not is_instance_valid(noah) or scene == null:
+		return
+	var a := noah as Actor
+	var car: Car = scene.car
+	var last: Dictionary = a.get_meta("wheel_reach", {})   # {} — руль рукам цель не задавал
+	if a.get_parent() != car or a.clip != "Driving" or car.grip_l == Vector3.INF:
+		if not last.is_empty():
+			if a.reach == last:
+				a.reach = {}
+			a.set_meta("wheel_reach", {})
+		return
+	if not a.reach.is_empty() and a.reach != last:
+		a.set_meta("wheel_reach", {})   # руки заняты действием — цель задал не руль
+		return
+	var want := {"_l": car.wheel.to_global(car.grip_l), "_r": car.wheel.to_global(car.grip_r)}
+	a.reach = want
+	a.set_meta("wheel_reach", want)
 
 
 ## Подсказки манере героев: ветер в буран снаружи; Айрис раскрывается при доверии, Дэнни — рядом с Айрис.

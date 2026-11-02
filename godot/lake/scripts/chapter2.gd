@@ -462,7 +462,7 @@ static func reflection(g, shadow: float) -> void:
 	_layers(dbl, 2)
 	g.cam.cull_mask = 0xFFFFF & ~2
 	g.scene.car.mirror_hide_driver = true
-	_mirror_mask(g, 0xFFFFF & ~Car.DRIVER_LAYER)
+	_mirror_mask(g, 0xFFFFF & ~Car.DRIVER_LAYER & ~Actor.SUN_LAYER)
 	dbl.set_meta("shadow", shadow)
 	if shadow >= 2.0:
 		dbl.blink_t = 1e9
@@ -471,9 +471,12 @@ static func reflection(g, shadow: float) -> void:
 		dbl.blink_t = 1.2
 
 
+## Слои сеток героя. Ной на своём слое (Car.DRIVER_LAYER) сохраняет слой солнечных теней — иначе после первого же
+## зеркала он до конца игры был без тени в ясный день; двойник и мальчик «в зеркале» (слой 2) — без неё (лишняя тень).
 static func _layers(a: Actor, layer_bits: int) -> void:
+	var bits := layer_bits | (Actor.SUN_LAYER if (layer_bits & Car.DRIVER_LAYER) != 0 else 0)
 	for mi in a.find_children("*", "MeshInstance3D", true, false):
-		(mi as MeshInstance3D).layers = layer_bits
+		(mi as MeshInstance3D).layers = bits
 
 
 static func _mirror_mask(g, mask: int) -> void:
