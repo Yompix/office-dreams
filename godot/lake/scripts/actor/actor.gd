@@ -53,6 +53,10 @@ var _hair: Array[ShaderMaterial] = []
 ## слой «отбрасывает солнечную тень»: солнце днём рисует тени только от героев (и кузова машины), а не от домов и леса —
 ## герои стоят на снегу, а цена теней — десятки вызовов отрисовки, а не тысячи (замер: двор гл. 4 — 2988 → см. PERFORMANCE_AUDIT)
 const SUN_LAYER := 1 << 11
+## Части лица без тени: глаза, зубы и язык — внутри головы (их тень падает внутрь черепа и рта), брови и ресницы лежат
+## на коже тоньше пикселя карты теней. Каждая сетка с тенью — отдельный вызов отрисовки в каждом проходе теней (солнце —
+## 2 каскада, лампа — до 6 граней куба), а видно эту тень не было. Свет и тени на самих этих частях — как раньше.
+const NO_SHADOW := ["eyes", "teeth", "tongue", "brows", "lashes"]
 var hair_sim: SpringBoneSimulator3D = null
 var skirt_sim: SpringBoneSimulator3D = null   # подол пальто, юбки, платья (SkirtRig)
 var _kick := Vector3.ZERO       # толчок прядям (рывок машины): затухает
@@ -199,6 +203,8 @@ static func make(k: String, file: String) -> Actor:
 	for mi in a.model.find_children("*", "MeshInstance3D", true, false):
 		var m := mi as MeshInstance3D
 		var nm := String(m.name).to_lower()
+		if nm in NO_SHADOW:
+			m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		for i in m.mesh.get_surface_count():
 			var src := m.get_active_material(i) as BaseMaterial3D
 			if src == null:

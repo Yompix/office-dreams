@@ -1724,10 +1724,15 @@ func _process(delta: float) -> void:
 			get_tree().quit()
 	_brake_in = Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN) or Input.is_key_pressed(KEY_SPACE) \
 		or Input.is_action_pressed("ui_down") or Input.is_action_pressed("ui_accept") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-	# клевок кузова: тормозит — нос вниз, встал — качнулся назад (пружина)
+	# клевок кузова: тормозит — нос вниз, встал — качнулся назад (пружина). Пружина жёсткая — считаем её долями шага
+	# не длиннее 1/120 с: одним шагом на долгом кадре (дольше 0,17 с — подвисание, слабая видеокарта) она раскачивалась
+	# до бесконечности, и машина, камера и все в салоне получали «нечисло» в положении до конца игры
 	var want := -0.022 * (_brake_a / 11.0) if (_brake_a > 0.0 and scene.road.speed > 0.0) else 0.0
-	_pitch_v += ((want - _pitch) * 60.0 - _pitch_v * 7.0) * delta
-	_pitch += _pitch_v * delta
+	var steps := clampi(ceili(delta * 120.0), 1, 240)
+	var h := delta / steps
+	for i in steps:
+		_pitch_v += ((want - _pitch) * 60.0 - _pitch_v * 7.0) * h
+		_pitch += _pitch_v * h
 	scene.car.rotation.x = _pitch
 	_steer_in = Input.get_axis("ui_left", "ui_right")
 	if Input.is_key_pressed(KEY_A):

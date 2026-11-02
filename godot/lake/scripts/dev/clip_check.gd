@@ -4,7 +4,9 @@ extends SceneTree
 ##   cam  — камера внутри тела видимого героя (глубина = насколько камера внутри капсулы);
 ##   pair — два героя друг в друге: голова/торс одного в голове/торсе другого глубже 6 см (кроме ноши: кто привязан к
 ##          скелету другого — на руках, на спине);
-##   hand — кисть внутри своего торса глубже 4 см.
+##   hand — кисть внутри своего торса глубже 4 см;
+##   foot — стопа в полу: пятка (сустав стопы) или носок (подушка стопы) ниже своей высоты в позе покоя больше 3 см
+##          (в покое подошва стоит на полу; корень героя — на полу его точки).
 ## По сценам и планам — сколько кадров с нарушением и самая большая глубина.
 ##   $GODOT --headless --fixed-fps 30 --path godot/lake --script res://scripts/dev/clip_check.gd -- --autoplay --fast \
 ##     --pick 0,1,… --clipout файл.json
@@ -12,6 +14,7 @@ var out := "/tmp/lake_clip.json"
 var rows := {}        # "сцена|план|вид|кто" → [кадров, наибольшая глубина]
 var frames := 0
 var dumped := false
+var rest_h := {}      # "герой:кость" → высота кости над корнем героя в позе покоя, м
 
 const SEG := [   # [кость, кость-конец или "", радиус (взрослый), часть тела]
 	["head", "", 0.105, "head"], ["neck_01", "head", 0.06, "neck"],
@@ -97,20 +100,25 @@ func _process(_d: float) -> bool:
 			var d := _seg_pt(cp, c[0], c[1])
 			if d < float(c[2]) - 0.01:
 				_hit("%s|%s|cam|%s:%s" % [sid, shot, v[0], c[3]], float(c[2]) - d)
-		# стопы под полом: герой стоит на своей точке (корень на полу) — стопа ниже неё больше 6 см = сквозь пол
-		# (кроме ноши — её корень на несущем, и сцен, где герой нарочно в воде по пояс: полынья)
+		# стопы в полу: герой стоит на своей точке (корень на полу); пятка (сустав стопы) или носок (подушка) ниже своей
+		# высоты в позе покоя больше 3 см = подошва в полу (кроме ноши — её корень на несущем, и сцен, где герой нарочно
+		# в воде или ползёт: полынья)
 		var act: Actor = v[1]
 		var clipn := String(act.ap.current_animation)   # сидя и лёжа корень героя не на полу — не проверяем
 		if act.get_parent() == g.get("scene") and not shot.begins_with("hole") and not ("water" in shot) and not ("crawl" in shot) \
 				and not (clipn in Actor.SEAT) and not (clipn in Actor.LIE) and clipn != "":
 			var sk2: Skeleton3D = act.skel
-			for fb in ["foot_l", "foot_r"]:
+			var inv := act.global_transform.affine_inverse()
+			for fb in ["foot_l", "foot_r", "ball_l", "ball_r"]:
 				var fi := sk2.find_bone(fb)
 				if fi < 0:
 					continue
-				var fp := sk2.global_transform * sk2.get_bone_global_pose(fi).origin
-				var under := act.global_position.y - fp.y
-				if under > 0.06:
+				var key := "%d:%d" % [act.get_instance_id(), fi]
+				if not rest_h.has(key):
+					rest_h[key] = (inv * (sk2.global_transform * sk2.get_bone_global_rest(fi).origin)).y
+				var now_h := (inv * (sk2.global_transform * sk2.get_bone_global_pose(fi).origin)).y
+				var under := (float(rest_h[key]) - now_h) * act.global_transform.basis.get_scale().y
+				if under > 0.03:
 					_hit("%s|%s|foot|%s" % [sid, shot, v[0]], under)
 		# кисть в своём торсе
 		var sk: Skeleton3D = (v[1] as Actor).skel
