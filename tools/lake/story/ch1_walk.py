@@ -149,6 +149,7 @@ SPOTS = [
      'label': L('Поговорить с Айрис', 'Talk to Iris'),
      'cam': [[17.7, 1.45, -4.65], [20.25, 1.1, -4.05], 38],
      'beats': [
+         {'look': {'who': 'noah', 'at': 'iris'}},
          say('noah', 'Ты как?', 'You okay?', look={'who': 'iris', 'at': 'noah'}),
          say('iris', 'Нормально.', 'Fine.'),
          note('Она прячет блокнот под куртку.', 'She tucks the notebook under her jacket.', 2.4),
@@ -157,12 +158,14 @@ SPOTS = [
          say('iris', 'Опять голова?', 'Your head again?', **{'if': {'pills': '==0'}}),
          say('noah', 'Пройдёт.', 'It’ll pass.', **{'if': {'pills': '==0'}}),
          {'look': {'who': 'iris', 'at': 'danny'}},
+         {'look': {'who': 'noah', 'at': None}},
      ]},
     {'id': 'danny', 'once': False, 'at': [19.98, 1.25, -3.3], 'where': [18.95, -3.25], 'r': 1.3, 'stand': [18.95, -3.25], 'face': 90,
      'label': L('Поговорить с Дэнни', 'Talk to Danny'),
      'cam': [[19.25, 1.2, -1.55], [19.7, 0.95, -3.35], 40],   # сбоку: Ной присел перед Дэнни, оба в профиль, Айрис за ними
      'beats': [
          {'anim': {'who': 'noah', 'clip': 'Crouch_Idle'}, 'look': {'who': 'danny', 'at': 'noah'}},
+         {'look': {'who': 'noah', 'at': 'danny'}},   # Ной смотрит на мальчика, а не в камеру (кадр 3 ноя)
          say('danny', 'У тебя руки грязные.', 'Your hands are dirty.', set={'danny_hands': 1},
              **{'if': {'washed': '==0', 'danny_hands': '==0'}}),
          note('Ной прячет руки в карманы.', 'Noah shoves his hands into his pockets.', 2.2, set={'danny_hands': 1},
@@ -204,7 +207,7 @@ SPOTS = [
              say('noah', 'Сначала заплачу.', 'I have to pay first.', set={'danny_bye': 1}, **{'if': {'danny_bye': '==0'}}),
          ]},
      ]},
-     'after': [{'anim': {'who': 'noah', 'clip': 'Idle'}, 'look': {'who': 'danny', 'at': 'iris'}}]},
+     'after': [{'anim': {'who': 'noah', 'clip': 'Idle'}, 'look': {'who': 'danny', 'at': 'iris'}}, {'look': {'who': 'noah', 'at': None}}]},
 ]
 
 WALK = {

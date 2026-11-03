@@ -3488,6 +3488,12 @@
      ],
      "beats": [
       {
+       "look": {
+        "who": "noah",
+        "at": "iris"
+       }
+      },
+      {
        "say": "noah",
        "ru": "Ты как?",
        "en": "You okay?",
@@ -3545,6 +3551,12 @@
         "who": "iris",
         "at": "danny"
        }
+      },
+      {
+       "look": {
+        "who": "noah",
+        "at": null
+       }
       }
      ]
     },
@@ -3592,6 +3604,12 @@
        "look": {
         "who": "danny",
         "at": "noah"
+       }
+      },
+      {
+       "look": {
+        "who": "noah",
+        "at": "danny"
        }
       },
       {
@@ -3814,6 +3832,12 @@
        "look": {
         "who": "danny",
         "at": "iris"
+       }
+      },
+      {
+       "look": {
+        "who": "noah",
+        "at": null
        }
       }
      ]
