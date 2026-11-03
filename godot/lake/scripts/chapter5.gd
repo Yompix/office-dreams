@@ -96,6 +96,35 @@ static func fx(g, k: String) -> bool:
 			g.sfx.play("blow", -12.0, 1.1, 0.5)
 		"dacha_in":
 			_inside(g)
+		"yard5", "house5":   # прогулки у дачи (c5d) и в доме (c5h): качели, поленница, чашки, шкатулка, рюкзак уже на местах
+			pass
+		"iris_turn5":   # Айрис отворачивается от стекла к Ною — разговор лицом к лицу
+			if has(g, "iris"):
+				var ir: Actor = g.actors.iris
+				ir.reach = {}
+				put(g, "iris", D(2.55, 0.0, 2.0), -149.0, "Idle")
+				ir.look_target = g._target("noah")
+				if has(g, "noah"):   # и Ной поворачивается к ней всем телом: иначе голова на пределе поворота — план «noah_room» видел затылок
+					var np: Vector3 = (g.actors.noah as Actor).global_position
+					if Vector2(np.x - ir.global_position.x, np.z - ir.global_position.z).length() > 0.7:
+						put(g, "noah", np, Ch3.face_to(np, ir.global_position), "Idle")
+		"key_up":   # ключ в руке — Ной встаёт и оборачивается к Айрис
+			put(g, "noah", L(-14.1, 0.0, 0.4), 36.0, "Idle")
+			if has(g, "iris"):
+				(g.actors.iris as Actor).look_target = g._target("noah")
+		"backpack":   # рюкзак из щели между кроватью и стеной — на пол
+			var bp = c5.get("pack")
+			if bp and is_instance_valid(bp):
+				(bp as Node3D).position = Vector3(DX - 1.75, DF + 0.17, 2.95)
+				(bp as Node3D).rotation_degrees = Vector3(0.0, 25.0, 0.0)
+		"box_open":   # крышка шкатулки откинута, внутри — сложенное письмо
+			var lid = c5.get("box_lid")
+			if lid and is_instance_valid(lid):
+				g.create_tween().tween_property(lid, "rotation_degrees:z", 105.0, 0.5)
+			var lt = c5.get("box_letter")
+			if lt and is_instance_valid(lt):
+				(lt as Node3D).visible = true
+			g.sfx.play("glovebox", -14.0, 1.4)
 		"wall_drawing", "coat_touch":
 			if k == "coat_touch":
 				put(g, "iris", D(2.25, 0.0, -2.2), 40.0, "Idle")
@@ -446,6 +475,7 @@ static func _a(v: Vector3) -> Array:
 # ---------- дача ----------
 static func _dacha_stage(g, outside := true) -> void:
 	var lk := lake(g)
+	yard_props(g)
 	lk.summer(false)
 	Ch4.day(g, "lake_day")
 	g._blizzard = false
@@ -462,6 +492,145 @@ static func _dacha_stage(g, outside := true) -> void:
 	var bk = g.c4.get("book")
 	if bk and is_instance_valid(bk):
 		(bk as Node3D).visible = false
+
+
+## Двор дачи: качели на двух столбах (одна верёвка оборвана), поленница под навесом (сухие серые дрова — ещё при маме).
+## Строится один раз и стоит с главы 4 (лёд на рассвете) до конца — Ch4._lake_stage зовёт тоже.
+static func yard_props(g) -> void:
+	var lk := lake(g)
+	if lk.has_node("swing"):
+		return
+	var wood := StandardMaterial3D.new()
+	wood.albedo_color = Color(0.36, 0.3, 0.24)
+	wood.roughness = 0.9
+	var rope := StandardMaterial3D.new()
+	rope.albedo_color = Color(0.55, 0.5, 0.4)
+	rope.roughness = 0.95
+	var snow := StandardMaterial3D.new()
+	snow.albedo_color = Color(0.9, 0.92, 0.96)
+	snow.roughness = 0.9
+	var sw := Node3D.new()
+	sw.name = "swing"
+	lk.add_child(sw)
+	sw.position = Vector3(-12.6, 0.0, -6.4)
+	for x in [-0.95, 0.95]:
+		_cyl(sw, 0.06, 2.35, Vector3(x, 1.175, 0.0), Vector3.ZERO, wood)
+	_cyl(sw, 0.05, 2.1, Vector3(0.0, 2.3, 0.0), Vector3(0, 0, 90), wood)
+	_cyl(sw, 0.012, 1.72, Vector3(-0.35, 1.44, 0.0), Vector3.ZERO, rope)            # целая верёвка
+	_cyl(sw, 0.012, 0.75, Vector3(0.35, 1.92, 0.0), Vector3.ZERO, rope)             # оборванная — висит
+	_cyl(sw, 0.012, 0.6, Vector3(0.42, 0.08, 0.12), Vector3(80, 20, 0), rope)       # её конец вмёрз в снег
+	_rb(sw, Vector3(0.7, 0.04, 0.24), Vector3(0.0, 0.36, 0.0), wood).rotation_degrees = Vector3(0, 0, 24)
+	_rb(sw, Vector3(0.66, 0.05, 0.22), Vector3(0.0, 0.4, 0.0), snow).rotation_degrees = Vector3(0, 0, 24)
+	var wp := Node3D.new()   # поленница: торцы к дорожке
+	wp.name = "woodpile"
+	lk.add_child(wp)
+	wp.position = Vector3(-13.6, 0.0, -3.2)
+	var bark := StandardMaterial3D.new()   # сухие поленья: торцы светлые (кора текстурой давала чёрные круги на торцах)
+	bark.albedo_color = Color(0.56, 0.46, 0.34)
+	bark.roughness = 0.92
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	var lm := CylinderMesh.new()
+	lm.top_radius = 0.07
+	lm.bottom_radius = 0.075
+	lm.height = 0.5
+	lm.radial_segments = 8
+	mm.mesh = lm
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	var ts: Array = []
+	for row in 7:
+		for k in 9:
+			var x := -0.6 + k * 0.15 + (0.075 if row % 2 == 1 else 0.0)
+			if x > 0.62:
+				continue
+			ts.append(Transform3D(Basis(Vector3.RIGHT, PI / 2.0).rotated(Vector3.UP, rng.randf_range(-0.06, 0.06)),
+				Vector3(x, 0.07 + row * 0.135, rng.randf_range(-0.03, 0.03))))
+	mm.instance_count = ts.size()
+	for i in ts.size():
+		mm.set_instance_transform(i, ts[i])
+	var mi := MultiMeshInstance3D.new()
+	mi.multimesh = mm
+	mi.material_override = bark
+	wp.add_child(mi)
+	for x in [-0.72, 0.72]:
+		_rb(wp, Vector3(0.06, 1.25, 0.06), Vector3(x, 0.62, 0.32), wood)
+	_rb(wp, Vector3(1.6, 0.05, 0.85), Vector3(0.0, 1.22, 0.05), wood).rotation_degrees = Vector3(-8, 0, 0)
+	_rb(wp, Vector3(1.55, 0.1, 0.8), Vector3(0.0, 1.29, 0.05), snow).rotation_degrees = Vector3(-8, 0, 0)
+
+
+## В доме: три чашки вверх дном на столе (одна детская), мамина жестяная шкатулка на полке (кодовый замок, крышка на
+## петле, внутри — письмо), рюкзак Ноя в щели между кроватью и стеной.
+static func _house_props(g) -> void:
+	var lk := lake(g)
+	if lk.has_node("cups"):
+		return
+	var cups := Node3D.new()
+	cups.name = "cups"
+	lk.add_child(cups)
+	var top := DF + 0.76 + 0.025
+	for c in [[1.15, 1.3, Color(0.9, 0.9, 0.87)], [1.42, 1.55, Color(0.66, 0.74, 0.88)], [1.18, 1.82, Color(0.96, 0.86, 0.6)]]:
+		var m := StandardMaterial3D.new()
+		m.albedo_color = c[2]
+		m.roughness = 0.35
+		_cyl(cups, 0.04, 0.085, Vector3(DX + float(c[0]), top + 0.0425, float(c[1])), Vector3.ZERO, m)
+		_rb(cups, Vector3(0.012, 0.05, 0.035), Vector3(DX + float(c[0]) + 0.05, top + 0.045, float(c[1])), m)
+	var tin := StandardMaterial3D.new()
+	tin.albedo_color = Color(0.5, 0.32, 0.22)
+	tin.metallic = 0.6
+	tin.roughness = 0.5
+	var gold := StandardMaterial3D.new()
+	gold.albedo_color = Color(0.72, 0.6, 0.3)
+	gold.metallic = 0.8
+	gold.roughness = 0.4
+	var box := Node3D.new()
+	box.name = "tin_box"
+	lk.add_child(box)
+	box.position = Vector3(DX - 2.69, DF + 1.6 + 0.02, 0.45)   # на полке (верх полки — пол + 1,62)
+	_rb(box, Vector3(0.2, 0.11, 0.15), Vector3(0.0, 0.055, 0.0), tin)
+	var hinge := Node3D.new()   # петля — у стены (−x); крышка тянется к комнате
+	box.add_child(hinge)
+	hinge.position = Vector3(-0.1, 0.11, 0.0)
+	_rb(hinge, Vector3(0.205, 0.018, 0.155), Vector3(0.1, 0.009, 0.0), tin)
+	_rb(hinge, Vector3(0.03, 0.035, 0.05), Vector3(0.2, -0.01, 0.0), gold)            # кодовый замок
+	g.c5["box_lid"] = hinge
+	var letter := MeshInstance3D.new()
+	var lm := BoxMesh.new()
+	lm.size = Vector3(0.13, 0.006, 0.1)
+	letter.mesh = lm
+	var paper := StandardMaterial3D.new()
+	paper.albedo_color = Color(0.9, 0.88, 0.8)
+	letter.material_override = paper
+	letter.position = Vector3(0.0, 0.1, 0.0)
+	letter.visible = false
+	box.add_child(letter)
+	g.c5["box_letter"] = letter
+	var pack := Node3D.new()   # детский рюкзак: синий, с карманом
+	pack.name = "pack"
+	lk.add_child(pack)
+	pack.position = Vector3(DX - 2.2, DF + 0.17, 3.05)
+	pack.rotation_degrees = Vector3(0.0, 80.0, 0.0)
+	var blue := StandardMaterial3D.new()
+	blue.albedo_color = Color(0.18, 0.28, 0.5)
+	blue.roughness = 0.85
+	_rb(pack, Vector3(0.3, 0.34, 0.16), Vector3.ZERO, blue)
+	_rb(pack, Vector3(0.22, 0.14, 0.05), Vector3(0.0, -0.06, 0.1), blue)
+	g.c5["pack"] = pack
+
+
+static func _cyl(parent: Node3D, r: float, h: float, pos: Vector3, rot: Vector3, m: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = r
+	cm.bottom_radius = r
+	cm.height = h
+	cm.radial_segments = 10
+	mi.mesh = cm
+	mi.material_override = m
+	mi.position = pos
+	mi.rotation_degrees = rot
+	parent.add_child(mi)
+	return mi
 
 
 static func _key(g) -> void:
@@ -514,6 +683,7 @@ static func _inside(g) -> void:
 		wl.omni_range = 6.0
 		wl.position = Vector3(DX + 2.2, DF + 1.8, 1.5)
 		lk.add_child(wl)
+	_house_props(g)
 	if not lk.has_node("family_drawing"):   # детский рисунок фломастером на стене
 		var q := MeshInstance3D.new()
 		q.name = "family_drawing"

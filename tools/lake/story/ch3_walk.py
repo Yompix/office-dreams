@@ -53,7 +53,7 @@ VIL_SPOTS = [
 
     {'id': 'well', 'at': [-5.5, 1.1, -40.0], 'where': [-4.4, -40.7], 'r': 1.2, 'stand': [-4.35, -40.8], 'face': -54,
      'label': L('Колодец', 'The well'),
-     'cam': [[-3.0, 1.75, -42.2], [-5.4, 0.95, -40.0], 42],
+     'cam': [[-3.2, 1.6, -38.6], [-5.5, 0.9, -40.0], 42],   # сбоку: колодец в кадре, Ной у края
      'beats': [
          note('Колодец. Ворот обледенел, цепь вмёрзла в сруб.', 'The well. The windlass is iced over; the chain is frozen to the frame.', 2.8),
          note('Дом с синими ставнями, у колодца. Всё, как писала мама.', 'The house with blue shutters, by the well. Just like Mom wrote.', 2.8),
@@ -130,7 +130,7 @@ GEN = [
 HOUSE_SPOTS = [
     {'id': 'photos', 'at': A3(-3.0, 1.8, 0.55), 'where': A(-2.25, 0.45), 'r': 0.55, 'stand': A(-2.25, 0.45), 'face': -90,
      'label': L('Фотографии Анны', 'Anna’s photos'),
-     'cam': [A3(-2.2, 1.65, 1.15), A3(-3.06, 1.72, 0.55), 30],
+     'cam': [A3(-2.0, 1.75, 0.95), A3(-3.06, 1.78, 0.55), 40],   # вся стена: три фото и приёмник
      'beats': [
          {'look': {'who': 'noah', 'at': A3(-3.06, 1.75, 0.55)}},
          note('Анна — девочкой, с двумя косами. Анна с удочкой на мостках. Анна в школьном фартуке, с букетом выше головы.',
@@ -186,7 +186,7 @@ HOUSE_SPOTS = [
 
     {'id': 'iris', 'if': {'eva_dead': '==0'}, 'at': A3(2.9, 1.0, 1.6), 'where': A(2.35, 0.45), 'r': 0.55, 'stand': A(2.35, 0.45),
      'face': 26, 'label': L('Айрис', 'Iris'),
-     'cam': [A3(1.6, 1.45, 0.3), A3(2.85, 0.95, 1.6), 40],
+     'cam': [A3(1.75, 1.3, 1.0), A3(2.85, 1.0, 1.6), 38],   # через стол — лицо Айрис
      'beats': [
          note('Айрис уснула сидя, прижав к себе мамин дневник.', 'Iris has fallen asleep sitting up, holding Mom’s diary to her chest.', 2.8),
      ],
@@ -201,7 +201,7 @@ HOUSE_SPOTS = [
 
     {'id': 'iris_baby', 'if': {'eva_dead': '>0'}, 'at': A3(2.9, 1.0, 1.6), 'where': A(2.35, 0.45), 'r': 0.55, 'stand': A(2.35, 0.45),
      'face': 26, 'label': L('Айрис', 'Iris'),
-     'cam': [A3(1.6, 1.45, 0.3), A3(2.85, 0.95, 1.6), 40],
+     'cam': [A3(1.75, 1.3, 1.0), A3(2.85, 1.0, 1.6), 38],
      'beats': [
          note('Айрис уснула сидя, с малышкой на руках. Держит крепко — как держала Еву за руку.', 'Iris has fallen asleep sitting up, the baby in her arms. Holding on tight — the way she held Eva’s hand.', 3.2),
          note('Ной не будит её.', 'Noah doesn’t wake her.', 2.0),
@@ -249,7 +249,7 @@ HOUSE_SPOTS = [
 
     {'id': 'hatch', 'at': A3(-0.2, 0.1, -1.0), 'where': A(0.55, -0.75), 'r': 0.45, 'stand': A(0.55, -0.75), 'face': -108,
      'label': L('Лаз в подпол', 'The cellar hatch'),
-     'cam': [A3(-0.3, 1.55, 0.15), A3(-0.2, 0.15, -1.0), 46],
+     'cam': [A3(-0.1, 2.2, -0.15), A3(-0.2, 0.0, -1.05), 50],   # сверху: лаз, кольцо, валенки Агнес у края
      'beats': [
          note('Лаз в подпол. Кольцо примёрзло к доскам — из щелей тянет холодом.', 'A hatch to the cellar. The ring is frozen to the boards — cold seeps up through the cracks.', 2.8),
          say('agnes', 'Там картошка да соленья. И сухо. Запомни — мало ли.', 'Potatoes and pickles down there. And it’s dry. Remember it — just in case.',

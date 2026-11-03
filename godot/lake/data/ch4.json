@@ -44,7 +44,17 @@
   "danny_stayed": 0,
   "hurt4": 0,
   "danny_truth": 0,
-  "pills_old": 0
+  "pills_old": 0,
+  "c4_plugs": 0,
+  "c4_plugs2": 0,
+  "c4_batt": 0,
+  "c4_gas": 0,
+  "c4_sign": 0,
+  "ice_wet": 0,
+  "c4_card": 0,
+  "c4_anna": 0,
+  "c4_zoef": 0,
+  "ev_archive": 0
  },
  "map": [
   {
@@ -754,13 +764,18 @@
      "shot": "agnes_shed"
     },
     {
-     "fx": "van_hood",
-     "shot": "van_engine",
+     "fx": "van_walk"
+    },
+    {
+     "explore": "c4v"
+    },
+    {
      "note": {
-      "ru": "Свечи — из дедова ящика. Аккумулятор — из их машины. Остаётся «с толкача».",
-      "en": "Spark plugs from Grandpa’s toolbox. The battery from their car. All that’s left is a push start."
+      "ru": "Всё на месте. Осталось только «с толкача».",
+      "en": "Everything’s in place. All that’s left is a push start."
      },
-     "dur": 3.4
+     "dur": 2.6,
+     "shot": "van_engine"
     },
     {
      "fx": "van_push",
@@ -1215,6 +1230,12 @@
      "dur": 3.2
     },
     {
+     "fx": "stop_walk"
+    },
+    {
+     "explore": "c4b"
+    },
+    {
      "fx": "hood_up",
      "shot": "hose",
      "note": {
@@ -1622,7 +1643,7 @@
       "danny_fear": "==0",
       "lapse1": ">0"
      },
-     "else": "c4_s5"
+     "else": "c4_s4_road"
     },
     {
      "fx": "danny_sit",
@@ -1708,7 +1729,7 @@
      "shot": "danny_stop"
     },
     {
-     "go": "c4_s5"
+     "go": "c4_s4_road"
     }
    ]
   },
@@ -1741,7 +1762,7 @@
      "shot": "danny_stop"
     },
     {
-     "go": "c4_s5"
+     "go": "c4_s4_road"
     }
    ]
   },
@@ -1770,7 +1791,7 @@
      "shot": "danny_stop"
     },
     {
-     "go": "c4_s5"
+     "go": "c4_s4_road"
     }
    ]
   },
@@ -1785,7 +1806,7 @@
      "shot": "danny_stop"
     },
     {
-     "go": "c4_s5"
+     "go": "c4_s4_road"
     }
    ]
   },
@@ -2453,48 +2474,7 @@
      }
     },
     {
-     "if": {
-      "baby": ">0"
-     },
-     "else": "c4_s6_zoe"
-    },
-    {
-     "fx": "baby_whimper",
-     "shot": "baby_hut",
-     "note": {
-      "ru": "Маленькая Анна начинает хныкать.",
-      "en": "Little Anna starts to whimper."
-     },
-     "dur": 2.4
-    },
-    {
-     "if": {
-      "eva_alive": ">0"
-     },
-     "else": "c4_s6_rock_iris"
-    },
-    {
-     "fx": "eva_rock",
-     "shot": "baby_hut",
-     "note": {
-      "ru": "Ева прижимает её к себе и укачивает. Медленно. В ритм.",
-      "en": "Eva holds her close and rocks her. Slowly. In rhythm."
-     },
-     "dur": 2.8
-    },
-    {
-     "qte": "rock",
-     "t": 9.0,
-     "n": 5,
-     "gap": 0.7,
-     "hint": {
-      "ru": "Укачай: жми E / пробел медленно, в ритм — не торопись",
-      "en": "Rock her: press E / Space slowly, in rhythm — don’t rush"
-     },
-     "fail": "c4_s6_cry"
-    },
-    {
-     "go": "c4_s6_quiet"
+     "go": "c4_s6_hide"
     }
    ]
   },
@@ -3108,6 +3088,25 @@
      "dur": 3.2
     },
     {
+     "fx": "ice_walk"
+    },
+    {
+     "explore": "c4i"
+    },
+    {
+     "fx": "ice_done"
+    },
+    {
+     "note": {
+      "ru": "Ной стучит зубами. Штаны — ледяная корка.",
+      "en": "Noah’s teeth are chattering. His trousers are a crust of ice."
+     },
+     "dur": 2.6,
+     "if": {
+      "ice_wet": ">0"
+     }
+    },
+    {
      "note": {
       "ru": "На берегу — старая дача, лодочный сарай, мостки под снегом. То самое место.",
       "en": "On the shore — an old lake house, a boathouse, a dock under the snow. That same place."
@@ -3174,6 +3173,3300 @@
      "end": 4
     }
    ]
+  },
+  "c4_s6_baby": {
+   "beats": [
+    {
+     "if": {
+      "baby": ">0"
+     },
+     "else": "c4_s6_zoe"
+    },
+    {
+     "fx": "baby_whimper",
+     "shot": "baby_hut",
+     "note": {
+      "ru": "Маленькая Анна начинает хныкать.",
+      "en": "Little Anna starts to whimper."
+     },
+     "dur": 2.4
+    },
+    {
+     "if": {
+      "eva_alive": ">0"
+     },
+     "else": "c4_s6_rock_iris"
+    },
+    {
+     "fx": "eva_rock",
+     "shot": "baby_hut",
+     "note": {
+      "ru": "Ева прижимает её к себе и укачивает. Медленно. В ритм.",
+      "en": "Eva holds her close and rocks her. Slowly. In rhythm."
+     },
+     "dur": 2.8
+    },
+    {
+     "qte": "rock",
+     "t": 9.0,
+     "n": 5,
+     "gap": 0.7,
+     "hint": {
+      "ru": "Укачай: жми E / пробел медленно, в ритм — не торопись",
+      "en": "Rock her: press E / Space slowly, in rhythm — don’t rush"
+     },
+     "fail": "c4_s6_cry"
+    },
+    {
+     "go": "c4_s6_quiet"
+    }
+   ]
+  },
+  "c4_s6_hide": {
+   "beats": [
+    {
+     "fx": "snd:snow_steps:-14",
+     "shot": "hut",
+     "note": {
+      "ru": "Шаги вокруг избушки. Снег скрипит у самой стены.",
+      "en": "Footsteps circle the hut. The snow creaks right by the wall."
+     },
+     "dur": 3.0
+    },
+    {
+     "shot": "hut",
+     "note": {
+      "ru": "Дверь приоткрыта — на ладонь. В щель тянет холодом. И светом.",
+      "en": "The door is ajar — a hand’s width. Cold seeps through the gap. And light."
+     },
+     "dur": 3.0
+    },
+    {
+     "choice": {
+      "t": 7,
+      "opts": [
+       {
+        "ru": "Закрыть дверь — медленно",
+        "en": "Close the door — slowly",
+        "go": "c4_s6_door"
+       },
+       {
+        "ru": "Не трогать — замереть",
+        "en": "Leave it — freeze",
+        "go": "c4_s6_still"
+       },
+       {
+        "silent": true,
+        "go": "c4_s6_still"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "c4_s6_door": {
+   "beats": [
+    {
+     "fx": "hut_door",
+     "shot": "hut",
+     "note": {
+      "ru": "Ной ползёт к двери. Пальцы — на холодной доске.",
+      "en": "Noah crawls to the door. His fingers on the cold board."
+     },
+     "dur": 2.6
+    },
+    {
+     "qte": "rock",
+     "t": 8.0,
+     "n": 4,
+     "gap": 0.75,
+     "hint": {
+      "ru": "Медленно… Жми E / пробел редко, в ритм — не торопись",
+      "en": "Slowly… Press E / Space rarely, in rhythm — don’t rush"
+     },
+     "fail": "c4_s6_creak"
+    },
+    {
+     "shot": "hut",
+     "note": {
+      "ru": "Дверь встаёт на место. Без звука.",
+      "en": "The door settles into place. Without a sound."
+     },
+     "dur": 2.4
+    },
+    {
+     "go": "c4_s6_wait"
+    }
+   ]
+  },
+  "c4_s6_creak": {
+   "beats": [
+    {
+     "fx": "snd:knock:-16",
+     "shot": "hut_gap",
+     "note": {
+      "ru": "Петля скрипит. Луч дёргается к двери…",
+      "en": "A hinge creaks. The beam jerks toward the door…"
+     },
+     "dur": 2.6
+    },
+    {
+     "shot": "hut_gap",
+     "note": {
+      "ru": "…и, помедлив, уходит дальше по стене.",
+      "en": "…and, after a moment, moves on along the wall."
+     },
+     "dur": 2.6
+    },
+    {
+     "go": "c4_s6_wait"
+    }
+   ]
+  },
+  "c4_s6_still": {
+   "beats": [
+    {
+     "shot": "hut",
+     "note": {
+      "ru": "Ной не дышит. Полоса света ложится на пол — у самых его ботинок. И уходит.",
+      "en": "Noah doesn’t breathe. A strip of light falls across the floor — right at the tips of his boots. And moves away."
+     },
+     "dur": 3.4
+    },
+    {
+     "go": "c4_s6_wait"
+    }
+   ]
+  },
+  "c4_s6_wait": {
+   "beats": [
+    {
+     "shot": "hut",
+     "note": {
+      "ru": "Дэнни трясётся. Ной кладёт ладонь ему на затылок — тише, тише.",
+      "en": "Danny is shaking. Noah lays a palm on the back of his head — hush, hush."
+     },
+     "dur": 3.0,
+     "if": {
+      "danny": ">0",
+      "danny_lost": "==0"
+     }
+    },
+    {
+     "shot": "hut",
+     "note": {
+      "ru": "Агнес закашливается в кулак. Айрис прижимает к её губам край шарфа.",
+      "en": "Agnes coughs into her fist. Iris presses the end of her scarf to her lips."
+     },
+     "dur": 3.2,
+     "if": {
+      "agnes_dead": "==0"
+     }
+    },
+    {
+     "fx": "beam_pass2",
+     "shot": "hut_gap",
+     "note": {
+      "ru": "Луч проходит по щелям — раз, другой. Будто пересчитывает доски.",
+      "en": "The beam runs over the gaps — once, twice. As if it’s counting the boards."
+     },
+     "dur": 3.2
+    },
+    {
+     "go": "c4_s6_baby"
+    }
+   ]
+  },
+  "c4_s4_road": {
+   "beats": [
+    {
+     "fx": "sana_fork",
+     "shot": "van_road",
+     "note": {
+      "ru": "Снова в пути. Мотор тянет ровно — шланг держит.",
+      "en": "Back on the road. The engine pulls steadily — the hose is holding."
+     },
+     "dur": 2.6
+    },
+    {
+     "ask": {
+      "id": "road4",
+      "max": 2,
+      "opts": [
+       {
+        "ru": "«Бабушка, какой была мама?»",
+        "en": "“Grandma, what was Mom like?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Бабушка… а какой она была? Мама.",
+          "en": "Grandma… what was she like? Mom.",
+          "shot": "noah_van",
+          "vo": "c4_s4_road_a468d79"
+         },
+         {
+          "say": "agnes",
+          "ru": "Упрямой. В восемь лет ушла пешком в город — за котёнком. Двенадцать вёрст. И принесла.",
+          "en": "Stubborn. At eight she walked to town on her own — for a kitten. Twelve versts. And she brought it home.",
+          "shot": "agnes_van",
+          "vo": "c4_s4_road_a771c4f"
+         },
+         {
+          "say": "agnes",
+          "ru": "Ты в неё. Тоже упёртый.",
+          "en": "You take after her. Just as pigheaded.",
+          "shot": "agnes_van",
+          "vo": "c4_s4_road_adba54b"
+         }
+        ]
+       },
+       {
+        "ru": "«Дэнни, ты как?»",
+        "en": "“Danny, you okay?”",
+        "if": {
+         "danny": ">0",
+         "danny_lost": "==0"
+        },
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Дэнни, ты как там?",
+          "en": "Danny, you doing okay back there?",
+          "shot": "noah_van",
+          "vo": "c4_s4_road_a814c75"
+         },
+         {
+          "say": "danny",
+          "ru": "Трясёт, как на тракторе. Мне нравится.",
+          "en": "It shakes like a tractor. I like it.",
+          "shot": "danny_van",
+          "vo": "c4_s4_road_a9bc986"
+         }
+        ]
+       },
+       {
+        "ru": "«Зоя, ты в порядке?»",
+        "en": "“Zoe, are you all right?”",
+        "if": {
+         "zoe": ">0",
+         "zoe_gone": "==0"
+        },
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Зоя, ты в порядке?",
+          "en": "Zoe, are you all right?",
+          "shot": "noah_van",
+          "vo": "c4_s4_road_a5912b0"
+         },
+         {
+          "say": "zoe",
+          "ru": "Нет. Но спасибо, что спросил. Это редкость.",
+          "en": "No. But thanks for asking. That’s rare.",
+          "shot": "zoe_van",
+          "vo": "c4_s4_road_a12888e"
+         }
+        ]
+       },
+       {
+        "ru": "«Айрис, поспи»",
+        "en": "“Iris, get some sleep”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Айрис, поспи. Я разбужу.",
+          "en": "Iris, get some sleep. I’ll wake you.",
+          "shot": "noah_van",
+          "vo": "c4_s4_road_ab9125e"
+         },
+         {
+          "say": "iris",
+          "ru": "Не разбудишь. Ты сам за рулём «выпадаешь» — я видела.",
+          "en": "You won’t. You blank out at the wheel yourself — I’ve seen it.",
+          "shot": "iris_van",
+          "vo": "c4_s4_road_a4830e6"
+         }
+        ]
+       },
+       {
+        "leave": true,
+        "ru": "Смотреть на дорогу",
+        "en": "Watch the road",
+        "beats": [
+         {
+          "note": {
+           "ru": "Ели, снег, ели. Буханку покачивает на колеях.",
+           "en": "Firs, snow, firs. The van rocks in the ruts."
+          },
+          "dur": 2.4,
+          "shot": "van_road"
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "fx": "sana_stop",
+     "shot": "sana_turn",
+     "note": {
+      "ru": "Ной притормаживает. Тот самый указатель — у поворота в лес. «Тихие сосны», два километра.",
+      "en": "Noah slows down. That same sign — by a turnoff into the woods. “Quiet Pines,” two kilometers."
+     },
+     "dur": 3.2,
+     "if": {
+      "c4_sign": ">0"
+     }
+    },
+    {
+     "fx": "sana_stop",
+     "shot": "sana_turn",
+     "note": {
+      "ru": "У поворота в лес — ржавый указатель: «Санаторий „Тихие сосны“». Агнес просит притормозить.",
+      "en": "By a turnoff into the woods — a rusty sign: “Quiet Pines Sanatorium.” Agnes asks him to slow down."
+     },
+     "dur": 3.4,
+     "if": {
+      "c4_sign": "==0"
+     }
+    },
+    {
+     "say": "agnes",
+     "ru": "Он ничего не выбрасывает. Если где и лежит правда про Аню — то там.",
+     "en": "He never throws anything away. If the truth about Annie is anywhere — it’s there.",
+     "shot": "agnes_van"
+    },
+    {
+     "say": "zoe",
+     "ru": "Только без меня. Я туда не вернусь. Ни за что.",
+     "en": "Count me out. I’m not going back in there. No way.",
+     "shot": "zoe_van",
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "choice": {
+      "t": 10,
+      "shot": "noah_van",
+      "opts": [
+       {
+        "ru": "Ехать дальше — к озеру",
+        "en": "Keep driving — to the lake",
+        "go": "c4_s5"
+       },
+       {
+        "ru": "Свернуть к санаторию",
+        "en": "Turn off to the sanatorium",
+        "go": "c4_sana"
+       },
+       {
+        "silent": true,
+        "go": "c4_s5"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "c4_sana": {
+   "beats": [
+    {
+     "fx": "sana_arrive",
+     "shot": "sana_gate",
+     "note": {
+      "ru": "Лесная дорога упирается в ворота. За ними — белый корпус в два этажа, все окна заколочены.",
+      "en": "The forest road ends at a gate. Beyond it — a white two-story building, every window boarded up."
+     },
+     "dur": 3.4
+    },
+    {
+     "note": {
+      "ru": "На воротах цепь. Снег во дворе нетронутый — сюда не приезжали с осени.",
+      "en": "There’s a chain on the gate. The snow in the yard is untouched — no one’s been here since fall."
+     },
+     "dur": 3.0,
+     "shot": "sana_gate"
+    },
+    {
+     "say": "iris",
+     "ru": "Я с тобой.",
+     "en": "I’m coming with you.",
+     "shot": "iris_van"
+    },
+    {
+     "say": "noah",
+     "ru": "Стой у ворот. Если кто поедет — кричи.",
+     "en": "Wait by the gate. If anyone comes — shout.",
+     "shot": "noah_van"
+    },
+    {
+     "fx": "sana_gate_out",
+     "shot": "sana_gap",
+     "note": {
+      "ru": "Одна створка провисла на петлях. Ной протискивается боком.",
+      "en": "One side of the gate sags on its hinges. Noah squeezes through sideways."
+     },
+     "dur": 2.8
+    },
+    {
+     "explore": "c4s"
+    },
+    {
+     "fx": "sana_board",
+     "shot": "sana_window",
+     "note": {
+      "ru": "Окно пристройки. Доска держится на одном гвозде.",
+      "en": "A window in the annex. The board is hanging by a single nail."
+     },
+     "dur": 2.6
+    },
+    {
+     "qte": "mash",
+     "t": 6.0,
+     "n": 12,
+     "sfx": "none",
+     "hint": {
+      "ru": "Отдирай доску — быстро жми E / пробел",
+      "en": "Pry the board off — mash E / Space"
+     }
+    },
+    {
+     "fx": "sana_in",
+     "shot": "sana_inside",
+     "note": {
+      "ru": "Доска поддаётся. Ной перелезает через подоконник.",
+      "en": "The board gives way. Noah climbs over the sill."
+     },
+     "dur": 2.6
+    },
+    {
+     "note": {
+      "ru": "Архив. Пахнет бумагой и мышами. Свет — только из окна.",
+      "en": "The archive. It smells of paper and mice. The only light comes from the window."
+     },
+     "dur": 3.0,
+     "shot": "sana_inside"
+    },
+    {
+     "explore": "c4a"
+    },
+    {
+     "fx": "sana_back",
+     "shot": "sana_back",
+     "note": {
+      "ru": "Айрис так и простояла всё это время у ворот.",
+      "en": "Iris has been standing by the gate the whole time."
+     },
+     "dur": 2.6
+    },
+    {
+     "say": "iris",
+     "ru": "Ну что там?",
+     "en": "Well? What’s in there?",
+     "shot": "sana_back"
+    },
+    {
+     "say": "noah",
+     "ru": "Мама. Потом расскажу. Поехали.",
+     "en": "Mom. I’ll tell you later. Let’s go.",
+     "shot": "sana_back",
+     "if": {
+      "ev_archive": ">0"
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Ничего. Поехали.",
+     "en": "Nothing. Let’s go.",
+     "shot": "sana_back",
+     "if": {
+      "ev_archive": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Ной прячет папки под сиденье буханки.",
+      "en": "Noah tucks the folders under the van’s seat."
+     },
+     "dur": 2.4,
+     "shot": "sana_back",
+     "if": {
+      "ev_archive": ">0"
+     }
+    },
+    {
+     "fx": "fade_out",
+     "dur": 1.3
+    },
+    {
+     "fx": "sana_out"
+    },
+    {
+     "fx": "fade_in"
+    },
+    {
+     "go": "c4_s5"
+    }
+   ]
+  }
+ },
+ "explore": {
+  "c4v": {
+   "who": "noah",
+   "start": {
+    "at": [
+     -7.3,
+     0.0,
+     -51.6
+    ],
+    "face": -150
+   },
+   "intro": [
+    {
+     "note": {
+      "ru": "Свечи, аккумулятор, бензин. И чтобы мотор, восемь лет простоявший в снегу, вспомнил, как это — заводиться.",
+      "en": "Spark plugs, a battery, gas. And an engine that’s sat in the snow for eight years has to remember how to start."
+     },
+     "dur": 3.6
+    }
+   ],
+   "walk": [
+    [
+     -16.6,
+     -58.4,
+     -6.65,
+     -49.4
+    ]
+   ],
+   "block": [
+    [
+     -12.85,
+     -56.1,
+     -8.15,
+     -53.9
+    ],
+    [
+     -16.95,
+     -54.4,
+     -16.4,
+     -52.2
+    ],
+    [
+     -7.95,
+     -58.15,
+     -7.25,
+     -57.45
+    ],
+    [
+     -15.1,
+     -57.9,
+     -14.5,
+     -57.3
+    ],
+    [
+     -14.9,
+     -50.5,
+     -14.3,
+     -49.9,
+     {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    ],
+    [
+     -12.3,
+     -58.1,
+     -11.7,
+     -57.5,
+     {
+      "danny": ">0",
+      "danny_lost": "==0"
+     }
+    ],
+    [
+     -15.3,
+     -54.8,
+     -14.7,
+     -54.2,
+     {
+      "eva_alive": ">0"
+     }
+    ]
+   ],
+   "cam_block": [
+    [
+     -14.4,
+     -48.9,
+     -7.6,
+     -41.1,
+     99.0
+    ],
+    [
+     -20.1,
+     -53.8,
+     -16.9,
+     -50.2,
+     99.0
+    ],
+    [
+     -12.85,
+     -56.1,
+     -8.15,
+     -53.9,
+     2.3
+    ]
+   ],
+   "nav": [
+    [
+     -7.3,
+     -51.6
+    ],
+    [
+     -7.3,
+     -53.0
+    ],
+    [
+     -7.2,
+     -57.0
+    ],
+    [
+     -10.5,
+     -57.4
+    ],
+    [
+     -13.6,
+     -57.0
+    ],
+    [
+     -13.6,
+     -53.2
+    ],
+    [
+     -13.4,
+     -51.0
+    ],
+    [
+     -10.5,
+     -52.8
+    ]
+   ],
+   "spots": [
+    {
+     "id": "toolbox",
+     "at": [
+      -16.55,
+      0.45,
+      -51.2
+     ],
+     "where": [
+      -15.85,
+      -51.2
+     ],
+     "r": 0.7,
+     "stand": [
+      -15.85,
+      -51.2
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Дедов ящик у сарая",
+      "en": "Grandpa’s toolbox by the shed"
+     },
+     "cam": [
+      [
+       -14.4,
+       1.55,
+       -50.0
+      ],
+      [
+       -16.5,
+       0.35,
+       -51.3
+      ],
+      44
+     ],
+     "beats": [
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Crouch_Idle"
+       }
+      },
+      {
+       "note": {
+        "ru": "Дедов ящик. Ключи в масле, в промасленной газете — свечи. Новые, в коробке.",
+        "en": "Grandpa’s toolbox. Wrenches slick with oil; wrapped in oily newspaper — spark plugs. New ones, still boxed."
+       },
+       "dur": 3.2
+      },
+      {
+       "say": "agnes",
+       "ru": "Он их берёг. Говорил: на чёрный день. Вот он и пришёл.",
+       "en": "He was saving them. Said they were for a rainy day. Well, here it is.",
+       "look": {
+        "who": "agnes",
+        "at": "noah"
+       },
+       "vo": "c4v_toolbox_6e2efc"
+      },
+      {
+       "set": {
+        "c4_plugs": 1
+       },
+       "anim": {
+        "who": "noah",
+        "clip": "Idle"
+       }
+      }
+     ],
+     "after": [
+      {
+       "look": {
+        "who": "agnes",
+        "at": null
+       }
+      }
+     ]
+    },
+    {
+     "id": "plugs",
+     "if": {
+      "c4_plugs": ">0"
+     },
+     "at": [
+      -8.25,
+      0.9,
+      -55.0
+     ],
+     "where": [
+      -7.45,
+      -55.0
+     ],
+     "r": 0.6,
+     "stand": [
+      -7.55,
+      -55.0
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Вкрутить свечи",
+      "en": "Put in the spark plugs"
+     },
+     "cam": [
+      [
+       -6.95,
+       1.6,
+       -53.6
+      ],
+      [
+       -8.4,
+       0.8,
+       -55.0
+      ],
+      46
+     ],
+     "beats": [
+      {
+       "fx": "van_hood"
+      },
+      {
+       "note": {
+        "ru": "Старые свечи — в нагаре, чёрные, как угли. Ной выкручивает их по одной.",
+        "en": "The old plugs are fouled, black as coal. Noah unscrews them one by one."
+       },
+       "dur": 3.0
+      },
+      {
+       "qte": "press",
+       "t": 6.0,
+       "n": 8,
+       "sfx": "none",
+       "hint": {
+        "ru": "Вкручивай свечи — жми E / пробел в ритм",
+        "en": "Screw in the plugs — press E / Space in rhythm"
+       }
+      },
+      {
+       "note": {
+        "ru": "Новые встают туго, с хрустом резьбы. Четыре из четырёх.",
+        "en": "The new ones go in tight, the threads crunching. Four out of four."
+       },
+       "dur": 2.8
+      },
+      {
+       "note": {
+        "ru": "Пока резьба схватывается, Ной притаскивает аккумулятор с их седана у забора. Руки отваливаются.",
+        "en": "While the threads bite, Noah hauls the battery over from their sedan by the fence. His arms are about to fall off."
+       },
+       "dur": 3.4
+      },
+      {
+       "set": {
+        "c4_plugs2": 1
+       },
+       "anim": {
+        "who": "noah",
+        "clip": "Idle"
+       }
+      }
+     ]
+    },
+    {
+     "id": "battery",
+     "if": {
+      "c4_plugs2": ">0",
+      "c4_batt": "==0"
+     },
+     "once": false,
+     "at": [
+      -9.3,
+      0.8,
+      -53.95
+     ],
+     "where": [
+      -9.3,
+      -53.3
+     ],
+     "r": 0.6,
+     "stand": [
+      -9.3,
+      -53.25
+     ],
+     "face": 180,
+     "label": {
+      "ru": "Подключить аккумулятор",
+      "en": "Hook up the battery"
+     },
+     "cam": [
+      [
+       -8.0,
+       1.6,
+       -52.2
+      ],
+      [
+       -9.4,
+       0.8,
+       -54.0
+      ],
+      44
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Аккумулятор — под пассажирским сиденьем. Два провода: красный и чёрный.",
+        "en": "The battery goes under the passenger seat. Two cables: red and black."
+       },
+       "dur": 2.8
+      }
+     ],
+     "ask": {
+      "max": 1,
+      "opts": [
+       {
+        "ru": "Красный — на «плюс»",
+        "en": "Red to the positive",
+        "beats": [
+         {
+          "note": {
+           "ru": "Клеммы садятся плотно. На щитке вспыхивает лампочка.",
+           "en": "The clamps bite down tight. A light blinks on the dash."
+          },
+          "dur": 2.6,
+          "set": {
+           "c4_batt": 1
+          }
+         }
+        ]
+       },
+       {
+        "ru": "Чёрный — на «плюс»",
+        "en": "Black to the positive",
+        "beats": [
+         {
+          "note": {
+           "ru": "Искра — Ной отдёргивает руку. Не тот провод.",
+           "en": "A spark — Noah jerks his hand back. Wrong cable."
+          },
+          "dur": 2.4,
+          "fx": "snd:static_burst:-10"
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "gas",
+     "at": [
+      -11.1,
+      0.9,
+      -56.05
+     ],
+     "where": [
+      -11.1,
+      -56.75
+     ],
+     "r": 0.6,
+     "stand": [
+      -11.1,
+      -56.8
+     ],
+     "face": 0,
+     "label": {
+      "ru": "Залить бензин",
+      "en": "Pour in the gas"
+     },
+     "cam": [
+      [
+       -12.6,
+       1.5,
+       -57.8
+      ],
+      [
+       -11.0,
+       0.85,
+       -56.1
+      ],
+      44
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Дедова канистра из сарая. Бензин старый, пахнет лаком — но гореть будет.",
+        "en": "Grandpa’s gas can from the shed. The gas is old and smells like varnish — but it’ll burn."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "И остаток из генератора — на донышке.",
+        "en": "And what’s left in the generator — the last few drops."
+       },
+       "dur": 2.2,
+       "if": {
+        "light": ">0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Дэнни держит воронку обеими руками — очень серьёзно.",
+        "en": "Danny holds the funnel with both hands — very seriously."
+       },
+       "dur": 2.6,
+       "if": {
+        "danny": ">0",
+        "danny_lost": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Воронку держит Айрис. Молча.",
+        "en": "Iris holds the funnel. Without a word."
+       },
+       "dur": 2.4,
+       "if": {
+        "danny": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Воронку держит Айрис. Молча.",
+        "en": "Iris holds the funnel. Without a word."
+       },
+       "dur": 2.4,
+       "if": {
+        "danny": ">0",
+        "danny_lost": ">0"
+       }
+      },
+      {
+       "set": {
+        "c4_gas": 1
+       }
+      }
+     ]
+    },
+    {
+     "id": "agnes",
+     "at": [
+      -7.6,
+      1.5,
+      -57.8
+     ],
+     "where": [
+      -8.3,
+      -57.35
+     ],
+     "r": 0.6,
+     "stand": [
+      -8.3,
+      -57.3
+     ],
+     "face": 125,
+     "label": {
+      "ru": "Агнес",
+      "en": "Agnes"
+     },
+     "cam": [
+      [
+       -9.4,
+       1.55,
+       -58.9
+      ],
+      [
+       -7.6,
+       1.5,
+       -57.8
+      ],
+      40
+     ],
+     "beats": [
+      {
+       "look": {
+        "who": "agnes",
+        "at": "noah"
+       }
+      }
+     ],
+     "ask": {
+      "max": 2,
+      "opts": [
+       {
+        "ru": "«Чья это буханка?»",
+        "en": "“Whose van is this?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Чья это буханка?",
+          "en": "Whose van is this?",
+          "vo": "c4v_agnes_f154ba"
+         },
+         {
+          "say": "agnes",
+          "ru": "Деда. Возил на ней Аню в школу, за двенадцать вёрст. Она в кузове песни орала — всю дорогу.",
+          "en": "Grandpa’s. Drove Annie to school in it, twelve versts each way. She’d belt out songs in the back the whole ride.",
+          "vo": "c4v_agnes_92325e"
+         }
+        ]
+       },
+       {
+        "ru": "«Почему вы её не продали?»",
+        "en": "“Why didn’t you sell it?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Почему вы её не продали?",
+          "en": "Why didn’t you sell it?",
+          "vo": "c4v_agnes_1a617d"
+         },
+         {
+          "say": "agnes",
+          "ru": "Кому она нужна. А мне — нужна. Сядешь — пахнет им. Махоркой и бензином.",
+          "en": "Who’d want it? But I need it. You sit inside — it smells of him. Shag tobacco and gasoline.",
+          "vo": "c4v_agnes_829351"
+         }
+        ]
+       },
+       {
+        "ru": "«Куда мы поедем?»",
+        "en": "“Where are we going?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Куда мы поедем?",
+          "en": "Where are we going?",
+          "vo": "c4v_agnes_99951e"
+         },
+         {
+          "say": "agnes",
+          "ru": "К озеру. Куда ж ещё. Вы ведь туда с самого начала и ехали.",
+          "en": "To the lake. Where else? That’s where you were headed from the start.",
+          "vo": "c4v_agnes_09af0e"
+         }
+        ]
+       },
+       {
+        "leave": true,
+        "ru": "Отойти",
+        "en": "Step away",
+        "beats": [
+         {
+          "dur": 0.3
+         }
+        ]
+       }
+      ]
+     },
+     "after": [
+      {
+       "look": {
+        "who": "agnes",
+        "at": null
+       }
+      }
+     ]
+    }
+   ],
+   "nudge": {
+    "after": 150,
+    "beats": [
+     {
+      "say": "agnes",
+      "ru": "Ну что, механик? Солнце-то уже высоко.",
+      "en": "Well, mechanic? The sun’s already high.",
+      "vo": "c4v_nudge_242f2c"
+     }
+    ]
+   },
+   "exit": {
+    "id": "push",
+    "if": {
+     "c4_plugs2": ">0",
+     "c4_batt": ">0",
+     "c4_gas": ">0"
+    },
+    "at": [
+     -9.3,
+     1.0,
+     -56.05
+    ],
+    "where": [
+     -9.3,
+     -56.75
+    ],
+    "r": 0.6,
+    "stand": [
+     -9.3,
+     -56.75
+    ],
+    "face": 0,
+    "label": {
+     "ru": "Завести «с толкача»",
+     "en": "Push-start it"
+    },
+    "beats": [
+     {
+      "dur": 0.3
+     }
+    ]
+   }
+  },
+  "c4b": {
+   "who": "noah",
+   "start": {
+    "at": [
+     1.6,
+     0.0,
+     -2.9
+    ],
+    "face": 120
+   },
+   "intro": [
+    {
+     "note": {
+      "ru": "Мотор кипит. Трогать нельзя — только ждать, пока остынет.",
+      "en": "The engine is boiling. Can’t touch it — just wait for it to cool."
+     },
+     "dur": 2.8
+    },
+    {
+     "say": "agnes",
+     "ru": "Остынет — сделаешь. Дед всегда ждал по полчаса. Курил.",
+     "en": "Let it cool, then fix it. Grandpa always waited half an hour. Smoked.",
+     "look": {
+      "who": "agnes",
+      "at": "noah"
+     },
+     "vo": "c4b_intro_37537a"
+    }
+   ],
+   "walk": [
+    [
+     -3.5,
+     -9.0,
+     9.5,
+     6.5
+    ]
+   ],
+   "block": [
+    [
+     -1.1,
+     -2.45,
+     1.1,
+     2.45
+    ],
+    [
+     4.55,
+     -2.65,
+     4.75,
+     0.65
+    ],
+    [
+     4.55,
+     -2.65,
+     6.2,
+     -2.45
+    ],
+    [
+     4.55,
+     0.45,
+     6.2,
+     0.65
+    ],
+    [
+     4.75,
+     -2.35,
+     5.25,
+     0.35
+    ],
+    [
+     5.8,
+     1.2,
+     6.0,
+     1.4
+    ],
+    [
+     7.45,
+     -5.65,
+     7.75,
+     -5.35
+    ],
+    [
+     -1.9,
+     0.9,
+     -1.3,
+     1.5
+    ],
+    [
+     -2.0,
+     -1.5,
+     -1.4,
+     -0.9,
+     {
+      "eva_alive": ">0"
+     }
+    ],
+    [
+     2.5,
+     -4.5,
+     3.1,
+     -3.9
+    ],
+    [
+     6.5,
+     1.9,
+     7.1,
+     2.5,
+     {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    ],
+    [
+     2.7,
+     2.3,
+     3.3,
+     2.9,
+     {
+      "danny": ">0",
+      "danny_lost": "==0"
+     }
+    ],
+    [
+     3.3,
+     2.6,
+     3.9,
+     3.2,
+     {
+      "danny": ">0",
+      "danny_lost": "==0"
+     }
+    ]
+   ],
+   "floors": [
+    [
+     4.3,
+     -3.1,
+     6.9,
+     1.5,
+     0.15
+    ]
+   ],
+   "cam_block": [
+    [
+     4.55,
+     -2.65,
+     6.2,
+     0.65,
+     2.45
+    ],
+    [
+     -1.1,
+     -2.45,
+     1.1,
+     2.45,
+     2.2
+    ]
+   ],
+   "nav": [
+    [
+     1.6,
+     -2.9
+    ],
+    [
+     2.6,
+     -3.3
+    ],
+    [
+     7.2,
+     -3.0
+    ],
+    [
+     7.2,
+     -1.6
+    ],
+    [
+     2.2,
+     1.0
+    ],
+    [
+     2.0,
+     3.6
+    ],
+    [
+     6.6,
+     1.8
+    ]
+   ],
+   "spots": [
+    {
+     "id": "timetable",
+     "at": [
+      4.8,
+      1.6,
+      -1.6
+     ],
+     "where": [
+      5.75,
+      -1.6
+     ],
+     "r": 0.55,
+     "stand": [
+      5.8,
+      -1.6
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Расписание",
+      "en": "The timetable"
+     },
+     "cam": [
+      [
+       6.9,
+       1.65,
+       -0.4
+      ],
+      [
+       4.8,
+       1.5,
+       -1.6
+      ],
+      42
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Расписание под мутным пластиком. Последний автобус — «19:40». Год на листке выцвел.",
+        "en": "A timetable under cloudy plastic. The last bus — “7:40 p.m.” The year on the sheet has faded away."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Кто-то нацарапал ключом: «ЗДЕСЬ БЫЛ…» Дальше соскоблено.",
+        "en": "Someone scratched with a key: “I WAS HERE…” The rest is scraped off."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "id": "sign",
+     "at": [
+      7.6,
+      1.7,
+      -5.5
+     ],
+     "where": [
+      7.0,
+      -4.6
+     ],
+     "r": 0.7,
+     "stand": [
+      7.0,
+      -4.55
+     ],
+     "face": 147,
+     "label": {
+      "ru": "Указатель",
+      "en": "The road sign"
+     },
+     "cam": [
+      [
+       5.6,
+       1.5,
+       -3.2
+      ],
+      [
+       7.6,
+       1.75,
+       -5.5
+      ],
+      40
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Ржавый указатель: «Санаторий „Тихие сосны“ — 6 км». Стрелка смотрит на лесную дорогу.",
+        "en": "A rusty road sign: “‘Quiet Pines’ Sanatorium — 6 km.” The arrow points down a forest road."
+       },
+       "dur": 3.2
+      },
+      {
+       "note": {
+        "ru": "Зоя видит указатель — и отворачивается.",
+        "en": "Zoe sees the sign — and turns away."
+       },
+       "dur": 2.4,
+       "if": {
+        "zoe": ">0",
+        "zoe_gone": "==0"
+       }
+      },
+      {
+       "say": "agnes",
+       "ru": "«Тихие сосны»… Туда я её и отправила. К нему, к доктору.",
+       "en": "“Quiet Pines”… That’s where I sent her. To him. To the doctor.",
+       "look": {
+        "who": "agnes",
+        "at": "noah"
+       },
+       "vo": "c4b_sign_3d33c3"
+      },
+      {
+       "set": {
+        "c4_sign": 1
+       }
+      }
+     ],
+     "after": [
+      {
+       "look": {
+        "who": "agnes",
+        "at": null
+       }
+      }
+     ]
+    },
+    {
+     "id": "danny",
+     "if": {
+      "danny": ">0",
+      "danny_lost": "==0"
+     },
+     "at": [
+      3.0,
+      0.8,
+      2.6
+     ],
+     "where": [
+      2.2,
+      1.9
+     ],
+     "r": 0.6,
+     "stand": [
+      2.2,
+      1.85
+     ],
+     "face": 50,
+     "label": {
+      "ru": "Дэнни",
+      "en": "Danny"
+     },
+     "cam": [
+      [
+       1.4,
+       1.2,
+       0.9
+      ],
+      [
+       3.2,
+       0.6,
+       2.7
+      ],
+      44
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Дэнни лепит у павильона снеговика — сосредоточенно, как взрослый.",
+        "en": "By the shelter, Danny is building a snowman — focused, like a grown-up."
+       },
+       "dur": 2.8
+      }
+     ],
+     "ask": {
+      "max": 1,
+      "opts": [
+       {
+        "ru": "«Кого лепишь?»",
+        "en": "“Who are you making?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Кого лепишь?",
+          "en": "Who are you making?",
+          "vo": "c4b_danny_5b32b8"
+         },
+         {
+          "say": "danny",
+          "ru": "Сторожа. Чтобы машину сторожил, пока нас нет.",
+          "en": "A guard. So he can watch the van while we’re gone.",
+          "look": {
+           "who": "danny",
+           "at": "noah"
+          },
+          "vo": "c4b_danny_b668a0"
+         }
+        ]
+       },
+       {
+        "ru": "«Не отходи далеко»",
+        "en": "“Don’t go far”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Не отходи далеко.",
+          "en": "Don’t go far.",
+          "vo": "c4b_danny_acf3d0"
+         },
+         {
+          "say": "danny",
+          "ru": "Я тут. Я буханку вижу.",
+          "en": "I’m right here. I can see the van.",
+          "look": {
+           "who": "danny",
+           "at": "noah"
+          },
+          "vo": "c4b_danny_2db012"
+         }
+        ]
+       }
+      ]
+     },
+     "after": [
+      {
+       "look": {
+        "who": "danny",
+        "at": null
+       }
+      }
+     ]
+    }
+   ],
+   "nudge": {
+    "after": 140,
+    "beats": [
+     {
+      "say": "agnes",
+      "ru": "Ну, остыл уже. Не век же тут стоять.",
+      "en": "Well, it’s cooled off by now. We can’t stand here forever.",
+      "vo": "c4b_nudge_cfea36"
+     }
+    ]
+   },
+   "exit": {
+    "id": "hood",
+    "at": [
+     0.0,
+     1.0,
+     -2.45
+    ],
+    "where": [
+     0.4,
+     -3.3
+    ],
+    "r": 0.6,
+    "stand": [
+     0.25,
+     -3.35
+    ],
+    "face": 0,
+    "label": {
+     "ru": "Мотор остыл — к шлангу",
+     "en": "Engine’s cool — check the hose"
+    },
+    "beats": [
+     {
+      "dur": 0.3
+     }
+    ]
+   }
+  },
+  "c4i": {
+   "who": "noah",
+   "start": {
+    "at": [
+     -426.5,
+     -0.4,
+     14.0
+    ],
+    "face": 180
+   },
+   "intro": [
+    {
+     "note": {
+      "ru": "Берегом не пройти — бурелом, обрыв. Только по льду, вдоль берега. До мостков — метров семьдесят.",
+      "en": "There’s no way along the shore — windfall, a steep drop. Only across the ice, along the bank. About seventy meters to the dock."
+     },
+     "dur": 3.6
+    },
+    {
+     "note": {
+      "ru": "Белый лёд — старый, под снегом, держит. Чёрный — молодой, тонкий. По чёрному не ступать.",
+      "en": "White ice is old, under snow — it holds. Black ice is young and thin. Don’t step on the black."
+     },
+     "dur": 3.4
+    },
+    {
+     "say": "agnes",
+     "ru": "По белому идите. Где чёрный — не ступать. Слышите?",
+     "en": "Walk on the white. Where it’s black — don’t step. You hear me?",
+     "if": {
+      "agnes_dead": "==0"
+     },
+     "vo": "c4i_intro_7a5f79"
+    },
+    {
+     "note": {
+      "ru": "Ной идёт первым. Остальные — след в след.",
+      "en": "Noah goes first. The others step in his footprints."
+     },
+     "dur": 2.4
+    }
+   ],
+   "walk": [
+    [
+     -427.7,
+     -51.8,
+     -404.0,
+     18.0
+    ]
+   ],
+   "floors": [
+    [
+     -428.0,
+     -60.0,
+     -400.0,
+     20.0,
+     -0.4
+    ]
+   ],
+   "block": [
+    [
+     -428.3,
+     -43.1,
+     -424.7,
+     -41.7
+    ],
+    [
+     -422.4,
+     -1.4,
+     -417.6,
+     3.4,
+     {
+      "ice_wet": ">0"
+     }
+    ],
+    [
+     -427.0,
+     -15.4,
+     -421.6,
+     -10.6,
+     {
+      "ice_wet": ">0"
+     }
+    ],
+    [
+     -417.4,
+     -29.4,
+     -411.6,
+     -24.6,
+     {
+      "ice_wet": ">0"
+     }
+    ],
+    [
+     -427.0,
+     -37.4,
+     -422.6,
+     -33.6,
+     {
+      "ice_wet": ">0"
+     }
+    ]
+   ],
+   "cam_block": [
+    [
+     -450.0,
+     -70.0,
+     -428.6,
+     30.0,
+     0.5
+    ]
+   ],
+   "nav": [
+    [
+     -426.5,
+     14.0
+    ],
+    [
+     -426.2,
+     6.0
+    ],
+    [
+     -426.0,
+     -5.0
+    ],
+    [
+     -415.8,
+     -7.0
+    ],
+    [
+     -415.8,
+     -18.0
+    ],
+    [
+     -423.2,
+     -22.0
+    ],
+    [
+     -423.2,
+     -31.0
+    ],
+    [
+     -417.2,
+     -34.0
+    ],
+    [
+     -417.2,
+     -41.0
+    ],
+    [
+     -423.6,
+     -40.6
+    ],
+    [
+     -418.0,
+     -50.0
+    ]
+   ],
+   "zones": [
+    {
+     "rect": [
+      -422.4,
+      -1.4,
+      -417.6,
+      3.4
+     ],
+     "manual": true,
+     "if": {
+      "ice_wet": "==0"
+     },
+     "to": [
+      -426.2,
+      1.0,
+      180
+     ],
+     "beats": [
+      {
+       "fx": "ice_fall"
+      },
+      {
+       "note": {
+        "ru": "Лёд проваливается. Вода — по пояс, ледяная. Ноги сразу немеют.",
+        "en": "The ice gives way. The water is waist-deep and freezing. His legs go numb at once."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон, Зоя — за руку. Рывок — и он на белом льду.",
+        "en": "Iris grabs his hood, Zoe his hand. One heave — and he’s back on the white ice."
+       },
+       "dur": 3.2,
+       "if": {
+        "zoe": ">0",
+        "zoe_gone": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон и тянет — откуда только силы. Он выползает на белый лёд.",
+        "en": "Iris grabs his hood and pulls — who knows where she finds the strength. He crawls out onto the white ice."
+       },
+       "dur": 3.4,
+       "if": {
+        "zoe": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон и тянет — откуда только силы. Он выползает на белый лёд.",
+        "en": "Iris grabs his hood and pulls — who knows where she finds the strength. He crawls out onto the white ice."
+       },
+       "dur": 3.4,
+       "if": {
+        "zoe": ">0",
+        "zoe_gone": ">0"
+       }
+      },
+      {
+       "set": {
+        "ice_wet": 1
+       },
+       "fx": "ice_out"
+      },
+      {
+       "note": {
+        "ru": "Мокрый до пояса. На морозе штаны сразу встают колом.",
+        "en": "Soaked to the waist. In the frost his trousers stiffen at once."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "rect": [
+      -427.0,
+      -15.4,
+      -421.6,
+      -10.6
+     ],
+     "manual": true,
+     "if": {
+      "ice_wet": "==0"
+     },
+     "to": [
+      -415.8,
+      -13.0,
+      180
+     ],
+     "beats": [
+      {
+       "fx": "ice_fall"
+      },
+      {
+       "note": {
+        "ru": "Лёд проваливается. Вода — по пояс, ледяная. Ноги сразу немеют.",
+        "en": "The ice gives way. The water is waist-deep and freezing. His legs go numb at once."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон, Зоя — за руку. Рывок — и он на белом льду.",
+        "en": "Iris grabs his hood, Zoe his hand. One heave — and he’s back on the white ice."
+       },
+       "dur": 3.2,
+       "if": {
+        "zoe": ">0",
+        "zoe_gone": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон и тянет — откуда только силы. Он выползает на белый лёд.",
+        "en": "Iris grabs his hood and pulls — who knows where she finds the strength. He crawls out onto the white ice."
+       },
+       "dur": 3.4,
+       "if": {
+        "zoe": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон и тянет — откуда только силы. Он выползает на белый лёд.",
+        "en": "Iris grabs his hood and pulls — who knows where she finds the strength. He crawls out onto the white ice."
+       },
+       "dur": 3.4,
+       "if": {
+        "zoe": ">0",
+        "zoe_gone": ">0"
+       }
+      },
+      {
+       "set": {
+        "ice_wet": 1
+       },
+       "fx": "ice_out"
+      },
+      {
+       "note": {
+        "ru": "Мокрый до пояса. На морозе штаны сразу встают колом.",
+        "en": "Soaked to the waist. In the frost his trousers stiffen at once."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "rect": [
+      -417.4,
+      -29.4,
+      -411.6,
+      -24.6
+     ],
+     "manual": true,
+     "if": {
+      "ice_wet": "==0"
+     },
+     "to": [
+      -423.2,
+      -27.0,
+      180
+     ],
+     "beats": [
+      {
+       "fx": "ice_fall"
+      },
+      {
+       "note": {
+        "ru": "Лёд проваливается. Вода — по пояс, ледяная. Ноги сразу немеют.",
+        "en": "The ice gives way. The water is waist-deep and freezing. His legs go numb at once."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон, Зоя — за руку. Рывок — и он на белом льду.",
+        "en": "Iris grabs his hood, Zoe his hand. One heave — and he’s back on the white ice."
+       },
+       "dur": 3.2,
+       "if": {
+        "zoe": ">0",
+        "zoe_gone": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон и тянет — откуда только силы. Он выползает на белый лёд.",
+        "en": "Iris grabs his hood and pulls — who knows where she finds the strength. He crawls out onto the white ice."
+       },
+       "dur": 3.4,
+       "if": {
+        "zoe": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон и тянет — откуда только силы. Он выползает на белый лёд.",
+        "en": "Iris grabs his hood and pulls — who knows where she finds the strength. He crawls out onto the white ice."
+       },
+       "dur": 3.4,
+       "if": {
+        "zoe": ">0",
+        "zoe_gone": ">0"
+       }
+      },
+      {
+       "set": {
+        "ice_wet": 1
+       },
+       "fx": "ice_out"
+      },
+      {
+       "note": {
+        "ru": "Мокрый до пояса. На морозе штаны сразу встают колом.",
+        "en": "Soaked to the waist. In the frost his trousers stiffen at once."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "rect": [
+      -427.0,
+      -37.4,
+      -422.6,
+      -33.6
+     ],
+     "manual": true,
+     "if": {
+      "ice_wet": "==0"
+     },
+     "to": [
+      -417.2,
+      -36.0,
+      180
+     ],
+     "beats": [
+      {
+       "fx": "ice_fall"
+      },
+      {
+       "note": {
+        "ru": "Лёд проваливается. Вода — по пояс, ледяная. Ноги сразу немеют.",
+        "en": "The ice gives way. The water is waist-deep and freezing. His legs go numb at once."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон, Зоя — за руку. Рывок — и он на белом льду.",
+        "en": "Iris grabs his hood, Zoe his hand. One heave — and he’s back on the white ice."
+       },
+       "dur": 3.2,
+       "if": {
+        "zoe": ">0",
+        "zoe_gone": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон и тянет — откуда только силы. Он выползает на белый лёд.",
+        "en": "Iris grabs his hood and pulls — who knows where she finds the strength. He crawls out onto the white ice."
+       },
+       "dur": 3.4,
+       "if": {
+        "zoe": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Айрис хватает его за капюшон и тянет — откуда только силы. Он выползает на белый лёд.",
+        "en": "Iris grabs his hood and pulls — who knows where she finds the strength. He crawls out onto the white ice."
+       },
+       "dur": 3.4,
+       "if": {
+        "zoe": ">0",
+        "zoe_gone": ">0"
+       }
+      },
+      {
+       "set": {
+        "ice_wet": 1
+       },
+       "fx": "ice_out"
+      },
+      {
+       "note": {
+        "ru": "Мокрый до пояса. На морозе штаны сразу встают колом.",
+        "en": "Soaked to the waist. In the frost his trousers stiffen at once."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "rect": [
+      -424.2,
+      -3.2,
+      -415.8,
+      5.2
+     ],
+     "manual": true,
+     "to": [
+      -426.2,
+      1.0,
+      180
+     ],
+     "beats": [
+      {
+       "fx": "ice_crack"
+      },
+      {
+       "note": {
+        "ru": "Под ногой — тёмный лёд. Треск, как выстрел. Назад, по белому!",
+        "en": "Dark ice underfoot. A crack like a gunshot. Back — onto the white!"
+       },
+       "dur": 2.6
+      }
+     ]
+    },
+    {
+     "rect": [
+      -428.8,
+      -17.2,
+      -419.8,
+      -8.8
+     ],
+     "manual": true,
+     "to": [
+      -415.8,
+      -13.0,
+      180
+     ],
+     "beats": [
+      {
+       "fx": "ice_crack"
+      },
+      {
+       "note": {
+        "ru": "Под ногой — тёмный лёд. Треск, как выстрел. Назад, по белому!",
+        "en": "Dark ice underfoot. A crack like a gunshot. Back — onto the white!"
+       },
+       "dur": 2.6
+      }
+     ]
+    },
+    {
+     "rect": [
+      -419.2,
+      -31.2,
+      -409.8,
+      -22.8
+     ],
+     "manual": true,
+     "to": [
+      -423.2,
+      -27.0,
+      180
+     ],
+     "beats": [
+      {
+       "fx": "ice_crack"
+      },
+      {
+       "note": {
+        "ru": "Под ногой — тёмный лёд. Треск, как выстрел. Назад, по белому!",
+        "en": "Dark ice underfoot. A crack like a gunshot. Back — onto the white!"
+       },
+       "dur": 2.6
+      }
+     ]
+    },
+    {
+     "rect": [
+      -428.8,
+      -39.2,
+      -420.8,
+      -31.8
+     ],
+     "manual": true,
+     "to": [
+      -417.2,
+      -36.0,
+      180
+     ],
+     "beats": [
+      {
+       "fx": "ice_crack"
+      },
+      {
+       "note": {
+        "ru": "Под ногой — тёмный лёд. Треск, как выстрел. Назад, по белому!",
+        "en": "Dark ice underfoot. A crack like a gunshot. Back — onto the white!"
+       },
+       "dur": 2.6
+      }
+     ]
+    }
+   ],
+   "spots": [
+    {
+     "id": "hole",
+     "at": [
+      -425.2,
+      -0.2,
+      6.5
+     ],
+     "where": [
+      -425.6,
+      7.6
+     ],
+     "r": 0.8,
+     "stand": [
+      -425.6,
+      7.7
+     ],
+     "face": 160,
+     "label": {
+      "ru": "Старая лунка",
+      "en": "An old ice hole"
+     },
+     "cam": [
+      [
+       -423.4,
+       1.0,
+       8.8
+      ],
+      [
+       -425.2,
+       -0.3,
+       6.4
+      ],
+      44
+     ],
+     "beats": [
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Crouch_Idle"
+       }
+      },
+      {
+       "note": {
+        "ru": "Старая лунка, затянутая льдом. Рядом — сломанная удочка, вмёрзшая в снег.",
+        "en": "An old ice-fishing hole, frozen over. Beside it — a broken rod, frozen into the snow."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Значит, здесь лёд держал. Когда-то.",
+        "en": "So the ice held here. Once."
+       },
+       "dur": 2.2
+      },
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Idle"
+       }
+      }
+     ]
+    },
+    {
+     "id": "back",
+     "at": [
+      -413.5,
+      1.2,
+      -7.5
+     ],
+     "where": [
+      -414.2,
+      -7.6
+     ],
+     "r": 0.9,
+     "stand": [
+      -414.2,
+      -7.6
+     ],
+     "face": 20,
+     "label": {
+      "ru": "Оглянуться",
+      "en": "Look back"
+     },
+     "cam": [
+      [
+       -414.8,
+       1.3,
+       -9.4
+      ],
+      [
+       -434.0,
+       2.5,
+       16.0
+      ],
+      50
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Позади, у кромки леса, — пусто. Ни фонаря, ни голосов.",
+        "en": "Behind them, at the edge of the forest — nothing. No flashlight, no voices."
+       },
+       "dur": 2.8
+      },
+      {
+       "note": {
+        "ru": "Только их следы — цепочкой, по белому. Как по нитке.",
+        "en": "Only their footprints — a single line across the white. Like following a thread."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "id": "boat",
+     "at": [
+      -426.5,
+      0.6,
+      -42.4
+     ],
+     "where": [
+      -424.0,
+      -41.0
+     ],
+     "r": 0.8,
+     "stand": [
+      -424.0,
+      -40.9
+     ],
+     "face": -110,
+     "label": {
+      "ru": "Лодка у берега",
+      "en": "The boat by the shore"
+     },
+     "cam": [
+      [
+       -422.4,
+       1.3,
+       -39.4
+      ],
+      [
+       -426.5,
+       0.4,
+       -42.4
+      ],
+      44
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Лодка вверх дном, вмёрзла у берега. На борту — облезлая краска, буквы не разобрать. Только первую: «А».",
+        "en": "A boat, upside down, frozen in by the shore. Peeling paint on the side — the letters are illegible. Only the first: “A.”"
+       },
+       "dur": 3.6
+      }
+     ]
+    }
+   ],
+   "nudge": {
+    "after": 150,
+    "beats": [
+     {
+      "note": {
+       "ru": "Солнце поднимается. Лёд начинает потрескивать от тепла.",
+       "en": "The sun is climbing. The ice starts to tick and crackle in the warmth."
+      },
+      "dur": 2.8
+     }
+    ]
+   },
+   "exit": {
+    "id": "pier",
+    "at": [
+     -418.0,
+     0.6,
+     -53.0
+    ],
+    "where": [
+     -418.0,
+     -51.3
+    ],
+    "r": 0.8,
+    "stand": [
+     -418.0,
+     -51.25
+    ],
+    "face": 180,
+    "label": {
+     "ru": "К мосткам",
+     "en": "To the dock"
+    },
+    "beats": [
+     {
+      "dur": 0.3
+     }
+    ]
+   }
+  },
+  "c4s": {
+   "who": "noah",
+   "start": {
+    "at": [
+     480.8,
+     0.0,
+     -52.0
+    ],
+    "face": 180
+   },
+   "intro": [
+    {
+     "note": {
+      "ru": "Двор. Так тихо, что слышно, как с сосен осыпается снег.",
+      "en": "The yard. So quiet you can hear snow sliding off the pines."
+     },
+     "dur": 2.8
+    }
+   ],
+   "walk": [
+    [
+     467.5,
+     -65.5,
+     491.7,
+     -50.4
+    ]
+   ],
+   "block": [
+    [
+     477.35,
+     -66.0,
+     482.65,
+     -63.0
+    ],
+    [
+     478.25,
+     -59.25,
+     481.75,
+     -55.75
+    ],
+    [
+     475.25,
+     -56.1,
+     476.75,
+     -55.9
+    ],
+    [
+     476.65,
+     -53.65,
+     476.95,
+     -53.35
+    ],
+    [
+     483.05,
+     -53.65,
+     483.35,
+     -53.35
+    ],
+    [
+     473.2,
+     -59.8,
+     473.8,
+     -58.2
+    ],
+    [
+     486.2,
+     -59.8,
+     486.8,
+     -58.2
+    ],
+    [
+     480.3,
+     -51.3,
+     481.5,
+     -50.4
+    ],
+    [
+     481.5,
+     -50.8,
+     482.6,
+     -50.4
+    ]
+   ],
+   "cam_block": [
+    [
+     466.9,
+     -78.1,
+     493.1,
+     -65.95,
+     99.0
+    ],
+    [
+     491.95,
+     -66.05,
+     500.05,
+     -58.45,
+     3.7
+    ]
+   ],
+   "nav": [
+    [
+     480.8,
+     -52.0
+    ],
+    [
+     483.0,
+     -54.0
+    ],
+    [
+     477.0,
+     -54.0
+    ],
+    [
+     476.85,
+     -55.0
+    ],
+    [
+     479.1,
+     -55.3
+    ],
+    [
+     477.0,
+     -60.6
+    ],
+    [
+     483.0,
+     -60.6
+    ],
+    [
+     478.7,
+     -62.75
+    ],
+    [
+     474.5,
+     -63.4
+    ],
+    [
+     471.75,
+     -64.9
+    ],
+    [
+     485.5,
+     -63.0
+    ],
+    [
+     489.0,
+     -62.0
+    ],
+    [
+     491.1,
+     -61.0
+    ]
+   ],
+   "spots": [
+    {
+     "id": "board",
+     "at": [
+      476.0,
+      1.5,
+      -55.95
+     ],
+     "where": [
+      476.8,
+      -55.0
+     ],
+     "r": 0.6,
+     "stand": [
+      476.85,
+      -55.0
+     ],
+     "face": -138,
+     "label": {
+      "ru": "Доска объявлений",
+      "en": "The notice board"
+     },
+     "cam": [
+      [
+       474.8,
+       1.6,
+       -54.0
+      ],
+      [
+       476.0,
+       1.45,
+       -56.0
+      ],
+      34
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Под мутным стеклом — выгоревший лист: «Санаторий закрыт на зимний период. Администрация».",
+        "en": "Under the cloudy glass — a faded sheet: “The sanatorium is closed for the winter. The Management.”"
+       },
+       "dur": 3.2
+      },
+      {
+       "note": {
+        "ru": "Ниже — список врачей. Верхнюю строчку кто-то оторвал. Осталось: «Главный врач — д-р С. Х…»",
+        "en": "Below — a list of doctors. Someone tore off the top line. What’s left: “Head physician — Dr. S. H…”"
+       },
+       "dur": 3.4
+      },
+      {
+       "note": {
+        "ru": "С. Х. Как подпись на записке в машине.",
+        "en": "S. H. Like the signature on the note in the car."
+       },
+       "dur": 2.6
+      }
+     ]
+    },
+    {
+     "id": "fountain",
+     "at": [
+      480.0,
+      0.9,
+      -57.5
+     ],
+     "where": [
+      479.1,
+      -55.35
+     ],
+     "r": 0.7,
+     "stand": [
+      479.1,
+      -55.3
+     ],
+     "face": 170,
+     "label": {
+      "ru": "Фонтан",
+      "en": "The fountain"
+     },
+     "cam": [
+      [
+       481.9,
+       1.35,
+       -53.8
+      ],
+      [
+       480.3,
+       0.45,
+       -55.8
+      ],
+      36
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Фонтан. В чаше — снег вровень с краями.",
+        "en": "A fountain. The basin is filled with snow to the brim."
+       },
+       "dur": 2.4
+      },
+      {
+       "note": {
+        "ru": "На бортике, под коркой льда, кто-то выцарапал: «Я НЕ СУМАСШЕДШАЯ».",
+        "en": "On the rim, under a crust of ice, someone has scratched: “I AM NOT CRAZY.”"
+       },
+       "dur": 3.2
+      }
+     ]
+    },
+    {
+     "id": "porch",
+     "at": [
+      480.0,
+      1.6,
+      -65.9
+     ],
+     "where": [
+      478.7,
+      -62.8
+     ],
+     "r": 0.7,
+     "stand": [
+      478.7,
+      -62.75
+     ],
+     "face": 165,
+     "label": {
+      "ru": "Главный вход",
+      "en": "The main entrance"
+     },
+     "cam": [
+      [
+       480.9,
+       1.55,
+       -61.0
+      ],
+      [
+       479.95,
+       2.25,
+       -65.95
+      ],
+      50
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Главный вход заколочен крест-накрест. Над дверью: «Лечебный корпус».",
+        "en": "The main entrance is boarded up crosswise. Above the door: “Treatment Building.”"
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Из щели под дверью тянет холодом и хлоркой. Даже сейчас.",
+        "en": "From the gap under the door comes a draft of cold and bleach. Even now."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "id": "ward",
+     "at": [
+      471.75,
+      1.7,
+      -65.95
+     ],
+     "where": [
+      471.75,
+      -64.95
+     ],
+     "r": 0.6,
+     "stand": [
+      471.75,
+      -64.9
+     ],
+     "face": 180,
+     "label": {
+      "ru": "Окно без досок",
+      "en": "The unboarded window"
+     },
+     "cam": [
+      [
+       473.3,
+       1.75,
+       -63.3
+      ],
+      [
+       471.7,
+       1.65,
+       -66.0
+      ],
+      40
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "С этого окна доски сорваны. Внутри — длинный коридор и ряд одинаковых дверей.",
+        "en": "The boards on this window have been torn off. Inside — a long corridor and a row of identical doors."
+       },
+       "dur": 3.2
+      },
+      {
+       "note": {
+        "ru": "На каждой двери — глазок. Снаружи.",
+        "en": "Every door has a peephole. On the outside."
+       },
+       "dur": 2.6
+      }
+     ]
+    }
+   ],
+   "nudge": {
+    "after": 150,
+    "beats": [
+     {
+      "note": {
+       "ru": "От ворот свистит Айрис: долго ещё?",
+       "en": "Iris whistles from the gate: how much longer?"
+      },
+      "dur": 2.4
+     }
+    ]
+   },
+   "exit": {
+    "id": "window",
+    "at": [
+     492.0,
+     1.5,
+     -61.0
+    ],
+    "where": [
+     491.15,
+     -61.0
+    ],
+    "r": 0.6,
+    "stand": [
+     491.1,
+     -61.0
+    ],
+    "face": 90,
+    "label": {
+     "ru": "Окно архива",
+     "en": "The archive window"
+    },
+    "beats": [
+     {
+      "dur": 0.3
+     }
+    ]
+   }
+  },
+  "c4a": {
+   "who": "noah",
+   "start": {
+    "at": [
+     492.8,
+     0.15,
+     -61.0
+    ],
+    "face": 90
+   },
+   "walk": [
+    [
+     492.45,
+     -65.55,
+     499.55,
+     -58.95
+    ]
+   ],
+   "block": [
+    [
+     493.7,
+     -65.8,
+     499.3,
+     -65.15
+    ],
+    [
+     493.7,
+     -59.32,
+     499.3,
+     -58.7
+    ],
+    [
+     498.75,
+     -64.85,
+     499.85,
+     -63.9
+    ],
+    [
+     493.85,
+     -63.8,
+     495.35,
+     -63.0
+    ],
+    [
+     494.3,
+     -63.0,
+     494.9,
+     -62.4
+    ]
+   ],
+   "floors": [
+    [
+     492.2,
+     -65.8,
+     499.8,
+     -58.7,
+     0.15
+    ]
+   ],
+   "cam_block": [
+    [
+     -999.0,
+     -999.0,
+     492.15,
+     999.0,
+     99.0
+    ],
+    [
+     499.85,
+     -999.0,
+     999.0,
+     999.0,
+     99.0
+    ],
+    [
+     -999.0,
+     -999.0,
+     999.0,
+     -65.85,
+     99.0
+    ],
+    [
+     -999.0,
+     -58.65,
+     999.0,
+     999.0,
+     99.0
+    ]
+   ],
+   "nav": [
+    [
+     492.9,
+     -61.0
+    ],
+    [
+     496.5,
+     -61.6
+    ],
+    [
+     496.5,
+     -64.55
+    ],
+    [
+     499.25,
+     -63.45
+    ],
+    [
+     495.85,
+     -62.2
+    ],
+    [
+     495.85,
+     -63.0
+    ],
+    [
+     497.4,
+     -59.95
+    ]
+   ],
+   "spots": [
+    {
+     "id": "rows",
+     "at": [
+      496.5,
+      1.6,
+      -65.3
+     ],
+     "where": [
+      496.5,
+      -64.6
+     ],
+     "r": 0.7,
+     "stand": [
+      496.5,
+      -64.55
+     ],
+     "face": 180,
+     "label": {
+      "ru": "Стеллажи",
+      "en": "The shelves"
+     },
+     "cam": [
+      [
+       497.7,
+       1.75,
+       -62.5
+      ],
+      [
+       496.4,
+       1.3,
+       -65.4
+      ],
+      46
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Стеллажи от пола до потолка. На корешках — только фамилии и годы.",
+        "en": "Shelves from floor to ceiling. On the spines — only surnames and years."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Сотни людей, которые что-то видели. И забыли.",
+        "en": "Hundreds of people who saw something. And forgot."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "id": "cards",
+     "at": [
+      499.35,
+      1.0,
+      -64.15
+     ],
+     "where": [
+      498.65,
+      -63.5
+     ],
+     "r": 0.6,
+     "stand": [
+      498.65,
+      -63.5
+     ],
+     "face": 133,
+     "label": {
+      "ru": "Картотека",
+      "en": "The card index"
+     },
+     "cam": [
+      [
+       499.5,
+       1.5,
+       -62.35
+      ],
+      [
+       499.1,
+       0.75,
+       -64.2
+      ],
+      42
+     ],
+     "beats": [
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Interact"
+       }
+      },
+      {
+       "note": {
+        "ru": "Картотека. Один ящик выдвинут — его открывали недавно.",
+        "en": "A card index. One drawer is pulled out — someone opened it recently."
+       },
+       "dur": 2.8
+      },
+      {
+       "note": {
+        "ru": "Сверху — карточка: «Ной, 8 лет. Поступил после несчастного случая на озере. Кричит по ночам. Зовёт маму».",
+        "en": "On top — a card: “Noah, age 8. Admitted after an accident at the lake. Screams at night. Calls for his mother.”"
+       },
+       "dur": 3.8
+      },
+      {
+       "note": {
+        "ru": "Ниже — назначения, год за годом, одним почерком. Последняя строка — свежими чернилами: «Отец умер. Возобновить».",
+        "en": "Below — prescriptions, year after year, in the same handwriting. The last line, in fresh ink: “Father dead. Resume.”"
+       },
+       "dur": 3.8
+      },
+      {
+       "set": {
+        "c4_card": 1
+       },
+       "anim": {
+        "who": "noah",
+        "clip": "Idle"
+       }
+      }
+     ]
+    },
+    {
+     "id": "anna",
+     "at": [
+      495.0,
+      0.95,
+      -63.42
+     ],
+     "where": [
+      495.85,
+      -63.0
+     ],
+     "r": 0.6,
+     "stand": [
+      495.85,
+      -63.0
+     ],
+     "face": -110,
+     "label": {
+      "ru": "Папка на столе",
+      "en": "The folder on the desk"
+     },
+     "cam": [
+      [
+       493.4,
+       1.85,
+       -62.0
+      ],
+      [
+       495.1,
+       0.83,
+       -63.45
+      ],
+      42
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "На столе — одна папка. Не на полке: её доставали недавно. Пыли нет.",
+        "en": "On the desk — a single folder. Not on a shelf: someone took it out recently. No dust."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "На обложке — мамино имя.",
+        "en": "On the cover — Mom’s name."
+       },
+       "dur": 2.2
+      },
+      {
+       "say": "noah",
+       "ru": "Мама…",
+       "en": "Mom…",
+       "vo": "c4a_anna_feb527"
+      },
+      {
+       "note": {
+        "ru": "Одна запись — за неделю до озера: «Жалобы: бессонница, страх. Боится мужа. Хочет уйти от него вместе с детьми».",
+        "en": "A single entry — a week before the lake: “Complaints: insomnia, fear. Afraid of her husband. Wants to leave him and take the children.”"
+       },
+       "dur": 4.0
+      },
+      {
+       "note": {
+        "ru": "Следующий лист вырван. Остался только корешок.",
+        "en": "The next page has been torn out. Only the stub is left."
+       },
+       "dur": 2.6
+      },
+      {
+       "set": {
+        "c4_anna": 1
+       }
+      }
+     ],
+     "ask": {
+      "max": 1,
+      "opts": [
+       {
+        "ru": "Забрать папку с собой",
+        "en": "Take the folder",
+        "beats": [
+         {
+          "note": {
+           "ru": "Ной прячет папку под куртку.",
+           "en": "Noah tucks the folder under his jacket."
+          },
+          "dur": 2.2
+         },
+         {
+          "note": {
+           "ru": "И свою карточку — тоже.",
+           "en": "His own card too."
+          },
+          "dur": 2.0,
+          "if": {
+           "c4_card": ">0"
+          }
+         },
+         {
+          "set": {
+           "ev_archive": 1
+          }
+         }
+        ]
+       },
+       {
+        "ru": "Положить, как лежала",
+        "en": "Put it back the way it was",
+        "beats": [
+         {
+          "note": {
+           "ru": "Ной кладёт папку на место. Ровно так, как лежала. Пусть думает, что сюда никто не заходил.",
+           "en": "Noah puts the folder back. Exactly the way it was. Let him think no one’s been here."
+          },
+          "dur": 3.2
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "zoe",
+     "if": {
+      "zoe": ">0"
+     },
+     "at": [
+      497.4,
+      1.2,
+      -59.25
+     ],
+     "where": [
+      497.4,
+      -60.0
+     ],
+     "r": 0.6,
+     "stand": [
+      497.4,
+      -59.95
+     ],
+     "face": 0,
+     "label": {
+      "ru": "Знакомое имя",
+      "en": "A familiar name"
+     },
+     "cam": [
+      [
+       495.7,
+       1.7,
+       -61.9
+      ],
+      [
+       497.4,
+       1.1,
+       -59.2
+      ],
+      42
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Среди папок — одна с именем, которое Ной знает: «Зоя».",
+        "en": "Among the folders — one with a name Noah knows: “Zoe.”"
+       },
+       "dur": 2.6
+      },
+      {
+       "note": {
+        "ru": "«Поступила по просьбе матери. Видит то, чего не было». На выписке — два слова: «Не помнит».",
+        "en": "“Admitted at her mother’s request. Sees things that weren’t there.” At discharge — two words: “Doesn’t remember.”"
+       },
+       "dur": 3.6
+      },
+      {
+       "note": {
+        "ru": "Зоя ждёт в буханке. Ной не знает, захочет ли она это видеть.",
+        "en": "Zoe is waiting in the van. Noah doesn’t know if she’d want to see this."
+       },
+       "dur": 2.8,
+       "if": {
+        "zoe": ">0",
+        "zoe_gone": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Зоя сейчас у него. Снова.",
+        "en": "Zoe is with him now. Again."
+       },
+       "dur": 2.4,
+       "if": {
+        "zoe_taken": ">0"
+       }
+      },
+      {
+       "set": {
+        "c4_zoef": 1
+       }
+      }
+     ]
+    }
+   ],
+   "nudge": {
+    "after": 90,
+    "beats": [
+     {
+      "note": {
+       "ru": "Где-то на трассе гудит мотор. Ной замирает. Звук уходит дальше — не сюда. Пора.",
+       "en": "Somewhere out on the highway, an engine drones. Noah freezes. The sound moves on — not this way. Time to go."
+      },
+      "dur": 3.4
+     }
+    ]
+   },
+   "exit": {
+    "id": "out",
+    "at": [
+     492.1,
+     1.5,
+     -61.0
+    ],
+    "where": [
+     492.75,
+     -61.0
+    ],
+    "r": 0.6,
+    "stand": [
+     492.8,
+     -61.0
+    ],
+    "face": -90,
+    "label": {
+     "ru": "Вылезти в окно",
+     "en": "Climb out the window"
+    },
+    "beats": [
+     {
+      "dur": 0.3
+     }
+    ]
+   }
   }
  }
 }

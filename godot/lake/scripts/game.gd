@@ -204,7 +204,10 @@ func _ready() -> void:
 	if ("--inputtest" in args or "--uitest" in args) and ResourceLoader.exists("res://scripts/dev/input_test.gd"):
 		add_child((load("res://scripts/dev/input_test.gd") as GDScript).new())   # проверка управления (только в проекте, не в сборке)
 	if autoplay or "--scene" in args or "--menu-skip" in args:
-		_run(start)
+		if "--restore" in args and "--scene" in args:   # проверка с середины главы — как «продолжить»: свет и кто где, потом сцена
+			_resume_at(start)
+		else:
+			_run(start)
 	else:
 		_menu()
 
@@ -271,13 +274,11 @@ func _save(id: String) -> void:
 	var clock := String(scene.car.clock.text) if scene != null and is_instance_valid(scene.car) else ""
 	f.store_string(JSON.stringify({"v": SAVE_VERSION, "scene": id, "flags": flags, "lang": lang, "clock": clock}))
 	f.close()
-	var d := DirAccess.open(SAVE.get_base_dir())
-	if d == null:
-		return
-	if d.file_exists(SAVE.get_file()):
-		d.copy(SAVE.get_file(), SAVE.get_file() + ".bak")
-		d.remove(SAVE.get_file())
-	d.rename(tmp.get_file(), SAVE.get_file())
+	# пути — полные (user://…): с относительными именами копия в .bak не создавалась («Failed to open») — запасной не было
+	if FileAccess.file_exists(SAVE):
+		DirAccess.copy_absolute(SAVE, SAVE + ".bak")
+		DirAccess.remove_absolute(SAVE)
+	DirAccess.rename_absolute(tmp, SAVE)
 
 
 ## Продолжить: флаги и язык из сохранения; что видно (фара, Дэнни сзади) — по флагам; сцена — с начала.
@@ -443,6 +444,10 @@ func _beat(b: Dictionary):
 			for k in actors:
 				if k != lips and is_instance_valid(actors[k]):
 					(actors[k] as Actor).listen_to = actors[lips]
+			# кто заговорил первым (его ещё никто не спрашивал) — говорит Ною, а не в пустоту: раньше голова шла по клипу
+			var sp: Actor = actors[lips]
+			if lips != "noah" and actors.has("noah") and is_instance_valid(actors.noah) and not (sp.listen_to and is_instance_valid(sp.listen_to)):
+				sp.listen_to = actors.noah
 		if not vo.is_empty():   # озвучка: длина реплики — по голосу, губы — по словам и громкости
 			dur = maxf(float(vo.dur) + 0.35, 1.0)
 			if actors.has(lips):
@@ -1983,6 +1988,7 @@ func _life_hints(delta: float) -> void:
 			a.breeze = move_toward(a.breeze, 0.9, delta)
 		elif a.get_parent() == scene.car:
 			a.breeze = 0.0
+		a.set_meta("in_car", a.get_parent() == scene.car)   # в машине поворот головы к соседу меньше (actor.gd, _gaze)
 		var relax := 0.0
 		if k == "iris":
 			relax = clampf((tr - 1.0) / 4.0, 0.0, 0.7)

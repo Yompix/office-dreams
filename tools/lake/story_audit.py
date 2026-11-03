@@ -86,27 +86,41 @@ def cond_s(c):
 
 
 def nested(b, data):
-    """Шаги внутри прогулки ("explore": точки, разговоры, выход) и разговора с выбором тем ("ask") — все подряд."""
+    """Шаги внутри прогулки ("explore": точки, разговоры, выход) и разговора с выбором тем ("ask") — все подряд.
+    Условие точки или темы (`if`) переносится в её шаги (копии): тема «Зоя, откуда ты?» есть только при Зое — её реплики
+    не «говорит тот, кого нет рядом» (раньше условие темы терялось — ложные находки аудита)."""
     out = []
 
-    def ask(q):
+    def add(beats, cond):
+        for nb in beats:
+            if cond:
+                c = dict(cond)
+                c.update(nb.get('if') or {})
+                nb = dict(nb)
+                nb['if'] = c
+            out.append(nb)
+
+    def ask(q, cond):
         for o in q.get('opts', []):
-            out.extend(o.get('beats', []))
-        out.extend(q.get('end', []))
+            c = dict(cond or {})
+            c.update(o.get('if') or {})
+            add(o.get('beats', []), c)
+        add(q.get('end', []), cond)
 
     if 'explore' in b:
         d = data.get('explore', {}).get(b['explore'], {})
-        out.extend(d.get('setup', []) + d.get('intro', []))
+        add(d.get('setup', []) + d.get('intro', []), None)
         for s in d.get('spots', []) + ([d['exit']] if d.get('exit') else []):
-            out.extend(s.get('beats', []))
+            c = s.get('if') or {}
+            add(s.get('beats', []), c)
             if s.get('ask'):
-                ask(s['ask'])
-            out.extend(s.get('after', []))
+                ask(s['ask'], c)
+            add(s.get('after', []), c)
         for z in d.get('zones', []):
-            out.extend(z.get('beats', []))
-        out.extend(d.get('nudge', {}).get('beats', []))
+            add(z.get('beats', []), z.get('if') or {})
+        add(d.get('nudge', {}).get('beats', []), None)
     if 'ask' in b:
-        ask(b['ask'])
+        ask(b['ask'], None)
     return out
 
 
@@ -274,12 +288,61 @@ def flag_index(data, chapters):
                 for o in b['choice']['opts']:
                     for k in o.get('if', {}):
                         reads[k].append('%s#%d(вариант)' % (sid, i))
+        for i, b in enumerate(s['beats']):   # прогулки и разговоры с темами: точки, темы, зоны, преграды
+            for where, x in walk_parts(b, data):
+                for k, v in (x.get('set') or {}).items():
+                    sets[k].append('%s#%d(%s)' % (sid, i, where))
+                for k in (x.get('if') or {}):
+                    reads[k].append('%s#%d(%s)' % (sid, i, where))
     for n, ch in chapters.items():
         for r in ch.get('map', []):
             for o in r.get('opts', []):
                 for k in (o.get('if') or {}):
                     reads[k].append('карта гл.%d' % n)
     return sets, reads
+
+
+def walk_parts(b, data):
+    """(где, словарь) — все шаги и условия внутри прогулки или разговора с темами шага b, с подписью места."""
+    out = []
+
+    def deep(where, x):
+        if isinstance(x, dict):
+            if isinstance(x.get('set'), dict) or isinstance(x.get('if'), dict):
+                out.append((where, x))
+            for v in x.values():
+                deep(where, v)
+        elif isinstance(x, list):
+            if len(x) >= 3 and isinstance(x[-1], dict) and all(isinstance(v, (int, float)) for v in x[:-1]):
+                out.append((where + ' [преграда]', {'if': x[-1]}))   # прямоугольник с условием (block, зона)
+            for v in x:
+                deep(where, v)
+
+    if 'explore' in b:
+        d = data.get('explore', {}).get(b['explore'], {})
+        for k, v in d.items():
+            if k == 'spots':
+                for sp in v:
+                    deep('%s.%s' % (b['explore'], sp.get('id', '?')), sp)
+            elif k == 'exit':
+                deep('%s.выход' % b['explore'], v)
+            else:
+                deep('%s.%s' % (b['explore'], k), v)
+    if 'ask' in b:
+        deep('разговор', b['ask'])
+    return out
+
+
+def walk_flags(data):
+    """Флаги, которые ставят только прогулки и разговоры: точку и тему можно пропустить — в проходе такой флаг «любой»
+    (условие по нему — обе ветки). Раньше он в проходе всегда был 0, и ветки «осмотрел точку» не проверялись."""
+    inwalk, inscene = set(), set()
+    for s in data['scenes'].values():
+        for b in s['beats']:
+            inscene |= set(b.get('set') or {})
+            for _, x in walk_parts(b, data):
+                inwalk |= set(x.get('set') or {})
+    return inwalk - inscene
 
 
 # ---------- проход по всем веткам ----------
@@ -310,7 +373,7 @@ COUNTERS = {'trust', 'shadow', 'memory', 'proof', 'ptotal', 'romance', 'hard', '
 ENCOUNTER = {
     'danny': ['s5', 's6'],
     'zoe': ['c2_s2_stop', 'c2_s2_back', 'c2_s2_front', 'c2_s4_zoe', 'c5_shore', 'c5_zoe'],   # гл. 5: заложницу выпускают на берегу
-    'eva': ['c2_s4_eva', 'c2_s6', 'c3_s1_evacar'],
+    'eva': ['c2_s4', 'c2_s6', 'c3_s1_evacar'],   # в кафе Ева сидит в углу с самого входа (chapter2.gd, cafe())
     'roman': ['s5'],
     'trucker': ['c2_s4'],
     'cop': ['c2_s3'],
@@ -324,6 +387,9 @@ SET_CH = {}   # флаг → главы, где он меняется (запо�
 CUR_CH = [1]
 
 
+WALKF = set()   # флаги только из прогулок и разговоров (walk_flags): «может быть», если точка, которая их ставит, доступна
+
+
 def unknown_flag(k):
     if k in COUNTERS:
         return True
@@ -334,7 +400,7 @@ def cond3(c, f):
     """True / False / None (зависит от «любого» флага: проход идёт по обеим веткам)."""
     unknown = False
     for k, e in c.items():
-        if unknown_flag(k):
+        if unknown_flag(k) or (k in WALKF and f.get('~' + k)):
             unknown = True
             continue
         if not cond_ok({k: e}, f):
@@ -389,6 +455,9 @@ def explore(data, chapters, owner, limit=8_000_000, check_who=None):
         for b in s['beats']:
             for k in b.get('set', {}):
                 SET_CH.setdefault(k, set()).add(owner[sid])
+            for _, x in walk_parts(b, data):
+                for k in (x.get('set') or {}):
+                    SET_CH.setdefault(k, set()).add(owner[sid])
     starts = {ch['start']: n for n, ch in chapters.items()}
 
     keep_cache = {}
@@ -397,7 +466,8 @@ def explore(data, chapters, owner, limit=8_000_000, check_who=None):
         CUR_CH[0] = owner[sid]
         keep = keep_cache.get(sid)
         if keep is None:
-            keep = keep_cache[sid] = frozenset(k for k in (live[sid] | PRESENCE_KEYS | KEEP) if not unknown_flag(k) or k in PRESENCE_KEYS)
+            keep = keep_cache[sid] = frozenset(k for k in (live[sid] | PRESENCE_KEYS | KEEP) if not unknown_flag(k) or k in PRESENCE_KEYS) | \
+                frozenset('~' + k for k in live[sid] if k in WALKF and not unknown_flag(k))
         return sid, tuple(sorted((k, v) for k, v in f.items() if k in keep and v))
 
     def here(who, f, sid):
@@ -414,6 +484,8 @@ def explore(data, chapters, owner, limit=8_000_000, check_who=None):
     visits = collections.Counter()
     presence_at = {}   # сцена → герой → {True/False}: бывает ли он рядом на входе в сцену
     states = 0
+    WALKF.clear()
+    WALKF.update(walk_flags(data))
     stack = collections.deque([(data['start'], {k: v for k, v in data['flags'].items() if k not in COUNTERS}, ())])
     while stack:
         sid, f, path = stack.popleft()   # в ширину: главы по порядку, путь-пример — самый короткий
@@ -421,7 +493,7 @@ def explore(data, chapters, owner, limit=8_000_000, check_who=None):
             continue
         if sid in starts:   # новая глава: прошлое — только присутствие и KEEP
             CUR_CH[0] = starts[sid]
-            f = {kk: v for kk, v in f.items() if not unknown_flag(kk)}
+            f = {kk: v for kk, v in f.items() if not unknown_flag(kk) and not kk.startswith('~')}
         k = key(sid, f)
         if k in seen:
             continue
@@ -471,7 +543,18 @@ def explore(data, chapters, owner, limit=8_000_000, check_who=None):
                     for w, rx in NAMES.items():
                         if t and re.search(rx, t) and not here(w, f, sid):
                             ment.setdefault((sid, i, w), path)
-                for nb in nested(b, data):   # прогулка и разговор: кто говорит — должен быть рядом (условия шага — как есть)
+                inner = nested(b, data)
+                if inner:   # прогулка или разговор: флаг точки «может быть», если её условие не ложно (до неподвижной точки)
+                    grew = True
+                    while grew:
+                        grew = False
+                        for nb in inner:
+                            for kk in (nb.get('set') or {}):
+                                if kk in WALKF and not f.get('~' + kk) and cond3(nb.get('if') or {}, f) is not False:
+                                    f = dict(f)
+                                    f['~' + kk] = 1
+                                    grew = True
+                for nb in inner:   # прогулка и разговор: кто говорит — должен быть рядом (условия шага — как есть)
                     if 'if' in nb and cond3(nb['if'], f) is False:
                         continue
                     if 'say' in nb and (not check_who or nb['say'] in check_who) and not here(nb['say'], f, sid):

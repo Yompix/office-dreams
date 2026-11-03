@@ -533,6 +533,7 @@ static func fx(g, k: String) -> bool:
 			g._blizzard = true
 			g.sfx.play("hum_ring", -14.0, 0.8)
 			car_tracks(g, true)
+			shop_interior(g)
 		"window_candle":   # огонёк свечи за окном дома напротив: кто-то смотрит из-за занавески
 			candle_window(g, true)
 		"window_candle_off":
@@ -818,6 +819,66 @@ static func car_tracks(g, show: bool) -> void:
 		mi.position = Vector3(x, 0.013, -41.0)
 		root.add_child(mi)
 	g.c3["car_tracks"] = root
+
+
+## Магазин Петра изнутри (за витриной): тёмный зал, стеллаж с банками у задней стены, мешок сахара у окна, полоска света
+## под дверью подсобки. В модели деревни магазин — пустая коробка: сквозь стекло была видна белая стена.
+static func shop_interior(g) -> void:
+	if g.c3.has("shop_in"):
+		return
+	var v := village(g)
+	var root := Node3D.new()
+	v.add_child(root)
+	var dark := StandardMaterial3D.new()
+	dark.albedo_color = Color(0.05, 0.05, 0.06)
+	dark.roughness = 1.0
+	var shell := MeshInstance3D.new()   # зал — тёмный (внутренние грани коробки)
+	var sb := BoxMesh.new()
+	sb.size = Vector3(4.7, 2.9, 5.7)
+	sb.flip_faces = true
+	shell.mesh = sb
+	shell.material_override = dark
+	shell.position = Vector3(11.05, 1.82, -28.0)
+	root.add_child(shell)
+	var wood := StandardMaterial3D.new()
+	wood.albedo_color = Color(0.2, 0.13, 0.08)
+	wood.roughness = 0.9
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	for sh in 4:   # стеллаж у задней стены: полки и банки, пачки
+		_box(root, Vector3(0.36, 0.04, 4.2), Vector3(13.15, 0.75 + sh * 0.5, -28.0), wood)
+		for k in 14:
+			var c := Color.from_hsv(rng.randf(), rng.randf_range(0.25, 0.6), rng.randf_range(0.25, 0.5))
+			var m := StandardMaterial3D.new()
+			m.albedo_color = c
+			m.roughness = 0.7
+			_box(root, Vector3(0.18, rng.randf_range(0.14, 0.3), 0.16), Vector3(13.1, 0.85 + sh * 0.5, -29.9 + k * 0.29), m)
+	var sack := StandardMaterial3D.new()   # мешок сахара у витрины
+	sack.albedo_color = Color(0.62, 0.6, 0.55)
+	sack.roughness = 1.0
+	_box(root, Vector3(0.5, 0.62, 0.42), Vector3(9.05, 0.66, -26.7), sack)
+	var strip := StandardMaterial3D.new()   # свет из-под двери подсобки (керосиновая лампа)
+	strip.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	strip.albedo_color = Color(1.0, 0.72, 0.38)
+	_box(root, Vector3(0.02, 0.025, 0.8), Vector3(13.33, 0.37, -25.9), strip)
+	var gl := OmniLight3D.new()
+	gl.light_color = Color(1.0, 0.7, 0.4)
+	gl.light_energy = 0.25
+	gl.omni_range = 2.4
+	gl.position = Vector3(13.0, 0.45, -25.9)
+	root.add_child(gl)
+	g.c3["shop_in"] = root
+
+
+static func _box(parent: Node3D, size: Vector3, pos: Vector3, m: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = size
+	mi.mesh = bm
+	mi.material_override = m
+	mi.position = pos
+	parent.add_child(mi)
+	return mi
 
 
 ## Огонёк свечи за окном дома напротив Агнес (h4, окно на улицу): кто-то смотрит из-за занавески; false — гаснет.

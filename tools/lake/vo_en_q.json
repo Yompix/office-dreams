@@ -21,6 +21,10 @@
    "s7_talk_af344a6",
    "s7_talk_a428bc4",
    "s7_talk_a9d9131",
+   "c2_s3_road_a9a853b",
+   "c2_s3_road_a36bdb1",
+   "c2_s3_road_ac47ad6",
+   "c2_s3_road_aaba348",
    "c3p_truckers_ab0b22",
    "c3p_truckers_1a8953",
    "c3p_truckers_db6671",
@@ -46,9 +50,30 @@
    "c2_storm_wait_n4",
    "c2_storm_wait_n6",
    "c2_storm_wait_n8",
-   "c2_storm_back_n1"
+   "c2_storm_back_n1",
+   "c3h_photos_c73626",
+   "c4v_agnes_f154ba",
+   "c4v_agnes_1a617d",
+   "c4v_agnes_99951e",
+   "c4b_danny_5b32b8",
+   "c4b_danny_acf3d0",
+   "c4_s4_road_a468d79",
+   "c4_s4_road_a814c75",
+   "c4_s4_road_a5912b0",
+   "c4_s4_road_ab9125e",
+   "c4_sana_n2",
+   "c4a_anna_feb527",
+   "c4_sana_n4",
+   "c4_sana_n5",
+   "c5h_pack_aa018d",
+   "c5h_tinbox_f3e955",
+   "c5_t_iris_a622a30",
+   "c5_t_iris_a76b9fa",
+   "c5_t_iris_a3bd59d",
+   "c5_t_iris_ab11163",
+   "c5_t_iris_a8c3cbf"
   ],
-  "prompt": "You okay?\nIt’ll pass.\nWhat’s your name?\nNoah.\nWhat’s the walkie-talkie for?\nWhere’s your mom?\nHere.\nWrap up.\nI have to pay first.\nDo you remember Mom?\nWater. For some reason, always water.\nWhat’s up north?\nThat’s not an answer.\nIris… what happened at home?\nWhat are we going to do with him?\nMy head’s quiet.\nWas I wrong to throw them out?\nMaybe I should have taken one.\nWhat’s going on with the highway?\nIs there a way around?\nYou coming from the north?\nTwo coffees. One to go — out on the porch.\nI promised.\nCoffee. If that’s all right.\nWhat do we owe you?\nIs it always this empty?\nIt’s all the same. Blizzard.\nShow me.\nI won’t bother you.\nWhat are you drawing?\nYour mom will find you.\nWe’ll tell her where you are.\nI’m keeping the engine running. Or we’ll freeze.\nTell me about Grandma.\nWhy?\nEva, how are you doing?\nA month, you said?\nYou said he erases people. What does that mean?\nDanny, you cold?\nThe exhaust’s buried.\nCrack the windows. Nobody sleeps.\nI’ll dig it out. You can’t start it with the pipe blocked.\nI’ll find the car. By feel.\nKeep the window open a crack."
+  "prompt": "Iris…? Where are we…? Whose blood is this?\nYou okay?\nIt’ll pass.\nWhat’s your name?\nNoah.\nWhat’s the walkie-talkie for?\nWhere’s your mom?\nHere.\nWrap up.\nI have to pay first.\nDo you remember Mom?\nWater. For some reason, always water.\nWhat’s up north?\nThat’s not an answer.\nIris… what happened at home?\nWhat are we going to do with him?\nMy head’s quiet.\nWas I wrong to throw them out?\nMaybe I should have taken one.\n…I don’t know.\nIris… how are you holding up?\nDanny, what’s she like — your mom?\nZoe, where are you even from?\nIris, where are we actually going?\nWhat’s going on with the highway?\nIs there a way around?\nYou coming from the north?\nTwo coffees. One to go — out on the porch.\nI promised.\nCoffee. If that’s all right.\nWhat do we owe you?\nIs it always this empty?\nIt’s all the same. Blizzard.\nShow me.\nI won’t bother you.\nWhat are you drawing?\nYour mom will find you.\nWe’ll tell her where you are.\nI’m keeping the engine running. Or we’ll freeze.\nTell me about Grandma.\nWhy?\nEva, how are you doing?\nA month, you said?\nYou said he erases people. What does that mean?\nDanny, you cold?\nThe exhaust’s buried.\nCrack the windows. Nobody sleeps.\nI’ll dig it out. You can’t start it with the pipe blocked.\nI’ll find the car. By feel.\nKeep the window open a crack.\nWas she happy?\nWait. I didn’t mean to scare you. I’m sorry.\nWhose van is this?\nWhy didn’t you sell it?\nWhere are we going?\nWho are you making?\nDon’t go far.\nGrandma… what was she like? Mom.\nDanny, you doing okay back there?\nZoe, are you all right?\nIris, get some sleep. I’ll wake you.\nWait by the gate. If anyone comes — shout.\nMom…\nMom. I’ll tell you later. Let’s go.\nNothing. Let’s go.\nI packed it myself. So Mom wouldn’t get mad that I was slow.\nHe knew where we’d be. And when.\nWhy did you bring me here? Honestly.\nThat night, at home… Was it really me?\nI’m sorry. About the diary.\nAnd after? When it’s all over?\nI won’t let anyone take you.\nI’m sorry. There’s nothing there.\nNo. No sleeping today. Sing. Anything — just sing."
  },
  {
   "who": "iris",
@@ -70,6 +95,9 @@
    "s7_talk_acf7440",
    "s7_talk_a0b7989",
    "s7_talk_ad678cd",
+   "c2_s3_road_aeda2c7",
+   "c2_s3_road_ae1fe58",
+   "c2_s3_road_a044e70",
    "c3p_iris_eva_e00912",
    "c3p_nudge_5b8af2",
    "c2_storm_wait_n1",
@@ -85,9 +113,27 @@
    "c2_storm_inside_n9",
    "c2_storm_inside_n11",
    "c2_storm_inside_n13",
-   "c2_storm_back_n6"
+   "c2_storm_back_n6",
+   "c4_s4_road_a4830e6",
+   "c4_sana_n1",
+   "c4_sana_n3",
+   "c5d_shed_00c7ae",
+   "c5d_swing_6173e4",
+   "c5h_pack_19e4e7",
+   "c5h_cups_f9320a",
+   "c5h_tinbox_912168",
+   "c5h_tinbox_443456",
+   "c5h_tinbox_03835c",
+   "c5_t_iris_acdf6aa",
+   "c5_t_iris_a76fac6",
+   "c5_t_iris_a52873f",
+   "c5_t_iris_adbb697",
+   "c5_t_iris_a0b26f0",
+   "c5_t_iris_aa399aa",
+   "c5_t_iris_a79ac67",
+   "c5_t_iris_a174ef1"
   ],
-  "prompt": "Fine.\nGo pay. I’ll sit with him.\nPay and come straight back. Don’t talk to anyone.\nYour head again?\nNoah! Don’t go over there.\nNoah. We need to go.\nA little. Her hands. …You?\nNo one’s looking for us there.\nIt’s the only one I’ve got.\nYou already asked.\nNot now. Please.\nI don’t know. But we’re not leaving him.\nYou can.\nQuiet isn’t the same as okay.\nOn them you sleep with your eyes open.\nI don’t know, Noah. I really don’t.\nIt’s not Mom. It’s just… a woman.\nNoah. Sit down already. People are looking.\nDon’t drive. Let’s wait till it dies down.\nAgnes. Mom’s mom. Dad wouldn’t even let us talk about her.\nI don’t know. In the diary, Mom writes about her like she’s asking forgiveness.\nI’ve never even seen her.\nI don’t know.\nWhere are you going?\nYou won’t see a thing out there.\nAlways.\nAnd you left?\nHe doesn’t.\n…I remember we have to keep going.\nDigging the car out.\nHe always comes back.\nTurn it off."
+  "prompt": "Drive. North.\nFine.\nGo pay. I’ll sit with him.\nPay and come straight back. Don’t talk to anyone.\nYour head again?\nNoah! Don’t go over there.\nNoah. We need to go.\nA little. Her hands. …You?\nNo one’s looking for us there.\nIt’s the only one I’ve got.\nYou already asked.\nNot now. Please.\nI don’t know. But we’re not leaving him.\nYou can.\nQuiet isn’t the same as okay.\nOn them you sleep with your eyes open.\nI don’t know, Noah. I really don’t.\nNoah… Don’t get out. Please.\nYou ran from the police with kids in the car. How do you think I am?\nFine. Don’t ask, okay? Just get us there.\nNorth. I’ll tell you the rest later. Just drive.\nIt’s not Mom. It’s just… a woman.\nNoah. Sit down already. People are looking.\nThat’s the doctor’s car. Hale’s. He used to come see you.\nDon’t drive. Let’s wait till it dies down.\nAgnes. Mom’s mom. Dad wouldn’t even let us talk about her.\nI don’t know. In the diary, Mom writes about her like she’s asking forgiveness.\nI’ve never even seen her.\nI don’t know.\nWhere are you going?\nYou won’t see a thing out there.\nAlways.\nAnd you left?\nHe doesn’t.\n…I remember we have to keep going.\nDigging the car out.\nHe always comes back.\nTurn it off.\nHow do we know she isn’t with him?\nYou need to see this.\nYou won’t. You blank out at the wheel yourself — I’ve seen it.\nI’m coming with you.\nWell? What’s in there?\nWe’ll go down there. Together. Just not yet.\nYou used to push me here. Higher, higher… And Mom would shout from the porch, “Easy, you two!”\nYou packed mine too. I remember the bunny in the pocket.\nThat one’s mine. I drank milk out of it. Warm, with skin on top — gross.\nI thought it was a phone number.\nHe has the diary… Wait. There were numbers inside the cover. I thought it was a phone number.\n“Not even your mother”… He made sure Grandma didn’t know either.\nI remember. Why do you even care?\nSo you’d remember. You’re the only one who saw what happened that night. Without you, nothing happens to him.\nAnd so you’d stop taking his pills. I want my brother back. The real one.\nYou stood between us. If it weren’t for you, I wouldn’t be here.\nIt wasn’t quite you. But it wasn’t him either. I don’t know, Noah. I really don’t.\nYou gave Mom to him. A second time.\nYou wanted him to let us go. I know. It still hurts.\nThey’ll send me to a children’s home. And you — back to him. Or to prison.\nGrandma says I can live with her. If they let me.\nI’ve read about you. In Mom’s diary.\nHe drowned, and you’re the one they blame. I know what really happened."
  },
  {
   "who": "danny",
@@ -104,14 +150,41 @@
    "st24_danny_b652b1",
    "s7_talk_ac739fc",
    "s7_talk_ae80c23",
+   "c2_s3_road_a2fdd9a",
+   "c2_s3_road_a7ec43b",
    "c3p_danny_613646",
    "c3p_danny_bc1ebd",
    "c2_storm_wait_ab46d78",
    "c2_storm_wait_aac266b",
    "c2_storm_inside_n10",
-   "c2_storm_inside_n12"
+   "c2_storm_inside_n12",
+   "c3h_danny_3e1049",
+   "c4b_danny_b668a0",
+   "c4b_danny_2db012",
+   "c4_s4_road_a9bc986"
   ],
-  "prompt": "Your hands are dirty.\nDanny. You?\nLike in the book. With the boat and the animals.\nMom has the other one. She said: if anything happens, push and talk.\nMom. Over…\nShe never answers the first time.\nShe said: wait here, I’ll be quick.\nIt was still light out.\nAre you leaving?\nI’m not asleep. I can hear you.\nCan I eat the chocolate now?\nA house. Mom. And the walkie-talkie — so she can hear.\nWhat if we go really far?\nNo. Is your grandma nice?\nJust so you know, I’m not scared of her.\nWhere’s Noah?\nHe won’t get lost?"
+  "prompt": "Your hands are dirty.\nDanny. You?\nLike in the book. With the boat and the animals.\nMom has the other one. She said: if anything happens, push and talk.\nMom. Over…\nShe never answers the first time.\nShe said: wait here, I’ll be quick.\nIt was still light out.\nAre you leaving?\nI’m not asleep. I can hear you.\nCan I eat the chocolate now?\nShe sings when she’s nice. When she drinks, she sleeps. I left her the other walkie-talkie.\nIf she turns it on, she’ll find me. She always finds me.\nA house. Mom. And the walkie-talkie — so she can hear.\nWhat if we go really far?\nNo. Is your grandma nice?\nJust so you know, I’m not scared of her.\nWhere’s Noah?\nHe won’t get lost?\nMom… I’m here…\nI’m gonna go find my mom. She’s probably back at the gas station by now.\nA guard. So he can watch the van while we’re gone.\nI’m right here. I can see the van.\nOkay.\nIt shakes like a tractor. I like it.\nI didn’t tell anybody. About the gas station. Like you said.\nIf anybody asks, I’ll tell them how it was. You told me to.\nI’ll count her breaths."
+ },
+ {
+  "who": "zoe",
+  "mode": "clone",
+  "keys": [
+   "c2_s3_road_a8f5269",
+   "c2_s3_road_af08df6",
+   "c2_storm_wait_a112f02",
+   "c2_storm_wait_a27570c",
+   "c2_storm_inside_n6",
+   "c2_storm_inside_n8",
+   "c4_s4_road_a12888e",
+   "c4_s4_road_n2"
+  ],
+  "prompt": "Taking his little sister to their grandma’s. And this one’s got a busted nose — got in a fight over me. Hero, right?\nIf they send me back there, I’m never getting out.\nA little bit of everywhere. Right now — from the side of the road.\nDon’t ask any more, okay? I’ll start lying and you’ll notice. You’re that kind.\nYou zone out sometimes. One second you’re here, the next you’re gone. I noticed.\nYou go to him with something wrong. You leave without it.\nAnd without pieces of yourself. You just don’t remember which ones.\nListen. Does he really not remember what happened at home?\nAnd you?\nYou asked about the bracelet, back then.\nYou didn’t ask about the bracelet, back then. I noticed.\nNo. But thanks for asking. That’s rare.\nCount me out. I’m not going back in there. No way.\nOh. It’s you. Mr. “Maybe you’re right.”\nThanks for back there. In the van. People don’t usually believe me.\nI saw what you did to the orderly. I’m not scared. Mostly.\nI’m not great with babies. But fine. Go."
+ },
+ {
+  "who": "cop",
+  "mode": "design",
+  "keys": [],
+  "prompt": ""
  },
  {
   "who": "trucker",
@@ -159,18 +232,7 @@
    "c2_storm_inside_n3",
    "c2_storm_inside_n5"
   ],
-  "prompt": "She draws well. At her age all I could do was horses.\nLeave her be. We’re fine.\nMy belly keeps going hard. It’s nothing, it happens.\n…Yes. A month.\nIs he always like this — doing everything himself?\nMine decided everything himself too. For me.\nI left. But I can’t throw the ring away."
- },
- {
-  "who": "zoe",
-  "mode": "clone",
-  "keys": [
-   "c2_storm_wait_a112f02",
-   "c2_storm_wait_a27570c",
-   "c2_storm_inside_n6",
-   "c2_storm_inside_n8"
-  ],
-  "prompt": "You go to him with something wrong. You leave without it.\nAnd without pieces of yourself. You just don’t remember which ones.\nListen. Does he really not remember what happened at home?\nAnd you?"
+  "prompt": "She draws well. At her age all I could do was horses.\nLeave her be. We’re fine.\nMy belly keeps going hard. It’s nothing, it happens.\n…Yes. A month.\nIs he always like this — doing everything himself?\nMine decided everything himself too. For me.\nI left. But I can’t throw the ring away.\nA trucker gave me a ride… Said we’d get around the semi through the village. We got stuck. He went for a tractor. Ages ago.\nYou didn’t take me with you at the diner. And then you pulled me out of a snowdrift anyway."
  },
  {
   "who": "radio",
@@ -182,5 +244,37 @@
    "c2_storm_back_n5"
   ],
   "prompt": "…northbound highway: a jackknifed truck. The road is closed until morning.\nHeavy drifts on side roads. If your car gets stuck, keep the exhaust pipe clear of snow and leave a window open.\nPolice are asking anyone who sees a dark sedan with one headlight…\nPolice are asking anyone who sees a dark sedan, license plate…"
+ },
+ {
+  "who": "agnes",
+  "mode": "clone",
+  "keys": [
+   "c3h_photos_72e380",
+   "c3h_photos_6e1355",
+   "c3h_chest_22e1c8",
+   "c3h_hatch_86766f",
+   "c3h_nudge_e9343d",
+   "c4v_toolbox_6e2efc",
+   "c4v_agnes_92325e",
+   "c4v_agnes_829351",
+   "c4v_agnes_09af0e",
+   "c4v_nudge_242f2c",
+   "c4b_intro_37537a",
+   "c4b_sign_3d33c3",
+   "c4b_nudge_cfea36",
+   "c4i_intro_7a5f79",
+   "c4_s4_road_a771c4f",
+   "c4_s4_road_adba54b",
+   "c4_s4_road_n1",
+   "c5d_wood_8c1c95",
+   "c5h_tinbox_80164c"
+  ],
+  "prompt": "I cut him out. The year he forbade her to visit me.\nBefore him — yes. She sang all the time. Then she stopped.\nPut it back where you found it, dear. I go through those myself.\nPotatoes and pickles down there. And it’s dry. Remember it — just in case.\nSit down, dear. Those legs aren’t made of iron.\nHe was saving them. Said they were for a rainy day. Well, here it is.\nGrandpa’s. Drove Annie to school in it, twelve versts each way. She’d belt out songs in the back the whole ride.\nWho’d want it? But I need it. You sit inside — it smells of him. Shag tobacco and gasoline.\nTo the lake. Where else? That’s where you were headed from the start.\nWell, mechanic? The sun’s already high.\nLet it cool, then fix it. Grandpa always waited half an hour. Smoked.\n“Quiet Pines”… That’s where I sent her. To him. To the doctor.\nWell, it’s cooled off by now. We can’t stand here forever.\nWalk on the white. Where it’s black — don’t step. You hear me?\nStubborn. At eight she walked to town on her own — for a kitten. Twelve versts. And she brought it home.\nYou take after her. Just as pigheaded.\nHe never throws anything away. If the truth about Annie is anywhere — it’s there.\nGrandpa split them. Every summer — enough for two winters ahead.\nThat’s why she never told me anything. He told her not to."
+ },
+ {
+  "who": "hale",
+  "mode": "clone",
+  "keys": [],
+  "prompt": "Iris, sweetheart, come on out. The little one needs to get warm.\nLook at the shore, Noah. Zoe’s had a lot of medication. In this cold, that’s dangerous — she needs a doctor. Come with me, and everyone goes home.\nLook at the shore. Danny’s frozen stiff. Come with me, and I’ll take him to his mom.\nNoah… Your hand…\nNoah… Noah, please…"
  }
 ]

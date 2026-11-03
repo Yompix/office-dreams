@@ -9,9 +9,10 @@ extends RefCounted
 ##   floors — [x0, z0, x1, z1, высота] (крыльцо); cam_block — [x0, z0, x1, z1, высота] куда не заходит камера (ниже камеры — не мешает, она смотрит поверх);
 ##   spots — точки: {id, at (кружок), where (где нажимать; нет — at), r, stand, face, cam [поз, цель, угол],
 ##     label {ru, en}, if, once (по умолчанию да), beats, ask (выбор тем, game._ask), after, exit};
-##   zones — {rect, if, beats}: один раз, когда герой зашёл; nudge {after, beats} — поторопить один раз;
+##   zones — {rect, if, beats, to, manual}: один раз, когда герой зашёл; to [x, z, лицом] — потом встать туда (лёд: отступил);
+##     manual — только для игрока (автопрогон зону не задевает); nudge {after, beats} — поторопить один раз;
 ##   hum {if, v} — гул в голове на время прогулки; watch — кто смотрит на героя, когда тот рядом.
-## Автопрогон (--autoplay) обходит точки по порядку сам; --explore exit — сразу к выходу.
+## Автопрогон (--autoplay) обходит точки по порядку сам; --explore exit — сразу к выходу; --skip a,b — эти точки обойти.
 
 const SPEED := 1.35          # шаг Ноя, м/с (у клипа Rk_Walk при его росте естественно 1,38)
 const RAD := 0.22            # «толщина» героя: на столько он не подходит к стенам
@@ -344,6 +345,8 @@ func _zones_check() -> void:
 		var key := JSON.stringify(z.rect)
 		if _zones.has(key) or (z.has("if") and not g._cond(z["if"])):
 			continue
+		if z.get("manual", false) and g.autoplay:   # «только для игрока» (тонкий лёд): автопрогон идёт по белому, как задумано
+			continue
 		var rc: Array = z.rect
 		var p := a.position
 		if p.x >= float(rc[0]) and p.x <= float(rc[2]) and p.z >= float(rc[1]) and p.z <= float(rc[3]):
@@ -352,6 +355,15 @@ func _zones_check() -> void:
 			g.hud.prompt("")
 			for b in z.get("beats", []):
 				await g._beat(b)
+			if z.has("to"):   # после шагов — на безопасное место [x, z, лицом]: отступил от тонкого льда, вытащили из полыньи
+				var to: Array = z.to
+				a.stop_walk()
+				a.position = Vector3(float(to[0]), _floor(float(to[0]), float(to[1])), float(to[1]))
+				if to.size() > 2:
+					a.rotation.y = deg_to_rad(float(to[2]))
+				a.play("Idle", 0.0)
+				_prev = a.position
+				_vel = Vector2.ZERO
 			busy = false
 
 
@@ -478,9 +490,10 @@ func _auto() -> void:
 	var args := OS.get_cmdline_user_args()
 	if "--explore" in args:
 		mode = args[args.find("--explore") + 1]
+	var skip: PackedStringArray = args[args.find("--skip") + 1].split(",") if "--skip" in args else PackedStringArray()   # маршрут обходит эти точки (необязательная шкатулка и т. п.)
 	if mode != "exit":
 		for s in d.get("spots", []):
-			if not _avail(s):
+			if String(s.id) in skip or not _avail(s):
 				continue
 			if mode != "all" and not (String(s.id) in mode.split(",")):
 				continue

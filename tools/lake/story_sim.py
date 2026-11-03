@@ -36,8 +36,9 @@ def sim_ask(q, f, data, asked, key):
     sim_beats(q.get('end', []), f, data, asked, key)
 
 
-def sim_explore(d, f, data, asked):
-    """Прогулка, как scripts/explore.gd::_auto: точки по порядку (разговор — пока есть темы), потом выход."""
+def sim_explore(d, f, data, asked, skip=()):
+    """Прогулка, как scripts/explore.gd::_auto: точки по порядку (разговор — пока есть темы), потом выход.
+    skip — id точек, которые маршрут обходит стороной (как --skip у автопрогона: необязательная шкатулка и т. п.)."""
     used = {}
 
     def avail(s):
@@ -58,7 +59,7 @@ def sim_explore(d, f, data, asked):
 
     sim_beats(d.get('setup', []) + d.get('intro', []), f, data, asked, '')
     for s in d.get('spots', []):
-        if not avail(s):
+        if s['id'] in skip or not avail(s):
             continue
         use(s)
         while 'ask' in s and avail(s):
@@ -69,7 +70,7 @@ def sim_explore(d, f, data, asked):
         use(e)
 
 
-def sim_beats(beats, f, data, asked, key):
+def sim_beats(beats, f, data, asked, key, skip=()):
     for b in beats:
         if 'if' in b and not A.cond_ok(b['if'], f):
             continue
@@ -77,12 +78,12 @@ def sim_beats(beats, f, data, asked, key):
             for k, v in b['set'].items():
                 f[k] = f.get(k, 0) + int(v)
         if 'explore' in b:
-            sim_explore(data['explore'][b['explore']], f, data, asked)
+            sim_explore(data['explore'][b['explore']], f, data, asked, skip)
         if 'ask' in b:
             sim_ask(b['ask'], f, data, asked, key + '|' + b['ask'].get('id', ''))
 
 
-def simulate(data, chapters, rules, miss=(), missin=(), default=0):
+def simulate(data, chapters, rules, miss=(), missin=(), default=0, skip=()):
     """rules: {сцена: правило} — правило: номер видимого варианта, 'silent', подстрока русского текста варианта
     или список таких правил (по очереди, для сцен, куда возвращаются: хаб на даче)."""
     sc = data['scenes']
@@ -108,7 +109,7 @@ def simulate(data, chapters, rules, miss=(), missin=(), default=0):
                 for k, v in b['set'].items():
                     f[k] = f.get(k, 0) + int(v)
             if 'explore' in b:   # прогулка — как автопрогон (точки по порядку)
-                sim_explore(data['explore'][b['explore']], f, data, asked)
+                sim_explore(data['explore'][b['explore']], f, data, asked, skip)
             if 'choice' in b:
                 opts = [o for o in b['choice']['opts'] if 'if' not in o or A.cond_ok(o['if'], f)]
                 r = rules.get(sid, default)
@@ -228,9 +229,12 @@ TESTS = {
                                   rules=T(PEACE, c4_s6_agnes='Уйти', c5_s1_go='Зоя, побудь с ней'), missin=['c3_s3_birth']),
     '16_ice_hale_saved': dict(title='Лёд: Ной вытащил Хейла, Айрис соскользнула, Ной ныряет за ней', rules=T(PEACE, c5_s4='Хейла'),
                               missin=['c5_s4_hale']),
-    '17_witness_bitter': dict(title='«Свидетель» без суда: дневник у Хейла, свидетелей мало', rules=T(DARK, c5_s3_iris='Я всё помню', c5_s4='Айрис',
-                                                                                                c5_s4_iris='Не двигаться', c4_s5='Отдать ему дневник',
-                                                                                                c4_s5_diary_no='Отобрать силой')),
+    '17_witness_bitter': dict(title='«Свидетель» без суда: дневник у Хейла, свидетелей мало, мамину шкатулку не открывали',
+                              rules=T(DARK, c5_s3_iris='Я всё помню', c5_s4='Айрис', c5_s4_iris='Не двигаться', c4_s5='Отдать ему дневник',
+                                      c4_s5_diary_no='Отобрать силой'), skip=['tinbox']),
+    '17b_witness_letter': dict(title='Как 17, но шкатулку открыли (код вспомнила Айрис): письмо Саймона вместо сгоревшего дневника — суд',
+                               rules=T(DARK, c5_s3_iris='Я всё помню', c5_s4='Айрис', c5_s4_iris='Не двигаться', c4_s5='Отдать ему дневник',
+                                       c4_s5_diary_no='Отобрать силой')),
     # финальная доработка: новые развилки (кювет, пост с полицией, кто сидит с малышкой, песня Зои из кафе)
     '18_ditch_police_obey': dict(title='Кювет в начале, Ной заплатил и уехал (кассир звонит в полицию), на посту — выйти из машины',
                                  rules=T(PEACE, s5_calm='Не надо. Я заплачу', c2_s3_order='Подчиниться'), miss=['steer']),
@@ -252,6 +256,11 @@ TESTS = {
     '27_mama_still': dict(title='«Мама»: Ной не протянул руку — Хейла забрало озеро', rules=T(PEACE, c5_s3_iris='[слушать]', c5_mama='Не двигаться')),
     '28_witness_let_go': dict(title='«Свидетель»: Айрис спасена, Ной не стал спасать Хейла («Я-то знаю»)',
                               rules=T(PEACE, c5_s4_iris='Не двигаться')),
+    # мастер-промпт (3 ноя): необязательный заезд в «Тихие сосны» — папки из архива одной уликой
+    '29_archive_witness': dict(title='Как 17, но свернули в «Тихие сосны» и забрали папку Анны: улик хватает — суд, не «горький» финал',
+                               rules=T(DARK, c5_s3_iris='Я всё помню', c5_s4='Айрис', c5_s4_iris='Не двигаться', c4_s5='Отдать ему дневник',
+                                       c4_s5_diary_no='Отобрать силой', c4_s4_road='Свернуть')),
+    '30_archive_peace': dict(title='Мирный путь с заездом в «Тихие сосны» (Зоя ждёт в буханке)', rules=T(PEACE, c4_s4_road='Свернуть')),
 }
 
 
@@ -267,10 +276,10 @@ def main():
     for k in names:
         t = TESTS[k]
         try:
-            r = simulate(data, chapters, t['rules'], t.get('miss', ()), t.get('missin', ()))
+            r = simulate(data, chapters, t['rules'], t.get('miss', ()), t.get('missin', ()), skip=t.get('skip', ()))
         except RuntimeError as e:
             raise SystemExit('тест %s: %s' % (k, e))
-        r.update(title=t['title'], miss=t.get('miss', []), missin=t.get('missin', []))
+        r.update(title=t['title'], miss=t.get('miss', []), missin=t.get('missin', []), skip=t.get('skip', []))
         out[k] = r
         if cmd == 'run':
             print(t['title'])

@@ -221,6 +221,168 @@
 "scene": "c2_s6_road",
 "who": "iris"
 },
+"c2_storm_back_n1": {
+"en": "Keep the window open a crack.",
+"ru": "Окно не закрывай.",
+"scene": "c2_storm_back",
+"who": "noah"
+},
+"c2_storm_back_n2": {
+"en": "…northbound highway: a jackknifed truck. The road is closed until morning.",
+"ru": "…на трассе на север — затор: сложилась фура. Движение закрыто до утра.",
+"scene": "c2_storm_back",
+"who": "radio"
+},
+"c2_storm_back_n3": {
+"en": "Heavy drifts on side roads. If your car gets stuck, keep the exhaust pipe clear of snow and leave a window open.",
+"ru": "На боковых дорогах заносы. Если машина встала — держите выхлопную трубу свободной от снега и приоткройте окно.",
+"scene": "c2_storm_back",
+"who": "radio"
+},
+"c2_storm_back_n4": {
+"en": "Police are asking anyone who sees a dark sedan with one headlight…",
+"ru": "Полиция просит сообщать о тёмном седане с одной фарой…",
+"scene": "c2_storm_back",
+"who": "radio"
+},
+"c2_storm_back_n5": {
+"en": "Police are asking anyone who sees a dark sedan, license plate…",
+"ru": "Полиция просит сообщать о тёмном седане, номер…",
+"scene": "c2_storm_back",
+"who": "radio"
+},
+"c2_storm_back_n6": {
+"en": "Turn it off.",
+"ru": "Выключи.",
+"scene": "c2_storm_back",
+"who": "iris"
+},
+"c2_storm_inside_n1": {
+"en": "Is he always like this — doing everything himself?",
+"ru": "Он всегда так — всё сам?",
+"scene": "c2_storm_inside",
+"who": "eva"
+},
+"c2_storm_inside_n10": {
+"en": "Where’s Noah?",
+"ru": "Где Ной?",
+"scene": "c2_storm_inside",
+"who": "danny"
+},
+"c2_storm_inside_n11": {
+"en": "Digging the car out.",
+"ru": "Откапывает машину.",
+"scene": "c2_storm_inside",
+"who": "iris"
+},
+"c2_storm_inside_n12": {
+"en": "He won’t get lost?",
+"ru": "Он не потеряется?",
+"scene": "c2_storm_inside",
+"who": "danny"
+},
+"c2_storm_inside_n13": {
+"en": "He always comes back.",
+"ru": "Он всегда возвращается.",
+"scene": "c2_storm_inside",
+"who": "iris"
+},
+"c2_storm_inside_n2": {
+"en": "Always.",
+"ru": "Всегда.",
+"scene": "c2_storm_inside",
+"who": "iris"
+},
+"c2_storm_inside_n3": {
+"en": "Mine decided everything himself too. For me.",
+"ru": "Мой тоже всё сам решал. За меня.",
+"scene": "c2_storm_inside",
+"who": "eva"
+},
+"c2_storm_inside_n4": {
+"en": "And you left?",
+"ru": "И ты уехала?",
+"scene": "c2_storm_inside",
+"who": "iris"
+},
+"c2_storm_inside_n5": {
+"en": "I left. But I can’t throw the ring away.",
+"ru": "Уехала. А кольцо выбросить не могу.",
+"scene": "c2_storm_inside",
+"who": "eva"
+},
+"c2_storm_inside_n6": {
+"en": "Listen. Does he really not remember what happened at home?",
+"ru": "Слушай. Он правда не помнит, что было дома?",
+"scene": "c2_storm_inside",
+"who": "zoe"
+},
+"c2_storm_inside_n7": {
+"en": "He doesn’t.",
+"ru": "Не помнит.",
+"scene": "c2_storm_inside",
+"who": "iris"
+},
+"c2_storm_inside_n8": {
+"en": "And you?",
+"ru": "А ты?",
+"scene": "c2_storm_inside",
+"who": "zoe"
+},
+"c2_storm_inside_n9": {
+"en": "…I remember we have to keep going.",
+"ru": "…Я помню, что надо ехать.",
+"scene": "c2_storm_inside",
+"who": "iris"
+},
+"c2_storm_wait_n1": {
+"en": "Don’t drive. Let’s wait till it dies down.",
+"ru": "Не едь. Подождём, пока стихнет.",
+"scene": "c2_storm_wait",
+"who": "iris"
+},
+"c2_storm_wait_n2": {
+"en": "I’m keeping the engine running. Or we’ll freeze.",
+"ru": "Мотор не глушу. Иначе замёрзнем.",
+"scene": "c2_storm_wait",
+"who": "noah"
+},
+"c2_storm_wait_n3": {
+"en": "The exhaust’s buried.",
+"ru": "Трубу замело.",
+"scene": "c2_storm_wait",
+"who": "noah"
+},
+"c2_storm_wait_n4": {
+"en": "Crack the windows. Nobody sleeps.",
+"ru": "Окна — на щель. Не спать.",
+"scene": "c2_storm_wait",
+"who": "noah"
+},
+"c2_storm_wait_n5": {
+"en": "Where are you going?",
+"ru": "Ты куда?",
+"scene": "c2_storm_wait",
+"who": "iris"
+},
+"c2_storm_wait_n6": {
+"en": "I’ll dig it out. You can’t start it with the pipe blocked.",
+"ru": "Откопаю. С забитой трубой заводить нельзя.",
+"scene": "c2_storm_wait",
+"who": "noah"
+},
+"c2_storm_wait_n7": {
+"en": "You won’t see a thing out there.",
+"ru": "Ты там ничего не увидишь.",
+"scene": "c2_storm_wait",
+"who": "iris"
+},
+"c2_storm_wait_n8": {
+"en": "I’ll find the car. By feel.",
+"ru": "Машину увижу. На ощупь.",
+"scene": "c2_storm_wait",
+"who": "noah"
+},
 "c3_s1_dig_1": {
 "en": "I lied… It’s not next month.",
 "ru": "Я соврала… Не через месяц.",
@@ -641,6 +803,18 @@
 "scene": "c4_s4",
 "who": "danny"
 },
+"c4_s4_road_n1": {
+"en": "He never throws anything away. If the truth about Annie is anywhere — it’s there.",
+"ru": "Он ничего не выбрасывает. Если где и лежит правда про Аню — то там.",
+"scene": "c4_s4_road",
+"who": "agnes"
+},
+"c4_s4_road_n2": {
+"en": "Count me out. I’m not going back in there. No way.",
+"ru": "Только без меня. Я туда не вернусь. Ни за что.",
+"scene": "c4_s4_road",
+"who": "zoe"
+},
 "c4_s4_secret_1": {
 "en": "Don’t tell anyone about this, okay?",
 "ru": "Никому об этом не говори, ладно?",
@@ -856,6 +1030,36 @@
 "ru": "Мы приехали.",
 "scene": "c4_s7",
 "who": "iris"
+},
+"c4_sana_n1": {
+"en": "I’m coming with you.",
+"ru": "Я с тобой.",
+"scene": "c4_sana",
+"who": "iris"
+},
+"c4_sana_n2": {
+"en": "Wait by the gate. If anyone comes — shout.",
+"ru": "Стой у ворот. Если кто поедет — кричи.",
+"scene": "c4_sana",
+"who": "noah"
+},
+"c4_sana_n3": {
+"en": "Well? What’s in there?",
+"ru": "Ну что там?",
+"scene": "c4_sana",
+"who": "iris"
+},
+"c4_sana_n4": {
+"en": "Mom. I’ll tell you later. Let’s go.",
+"ru": "Мама. Потом расскажу. Поехали.",
+"scene": "c4_sana",
+"who": "noah"
+},
+"c4_sana_n5": {
+"en": "Nothing. Let’s go.",
+"ru": "Ничего. Поехали.",
+"scene": "c4_sana",
+"who": "noah"
 },
 "c5_ice_epi_1": {
 "en": "The lake keeps its own. Now they’re together down there.",

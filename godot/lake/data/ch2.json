@@ -1015,7 +1015,7 @@
      "fx": "post_pass"
     },
     {
-     "go": "c2_s4"
+     "go": "c2_s3_road"
     }
    ]
   },
@@ -1094,7 +1094,7 @@
      "dur": 2.6
     },
     {
-     "go": "c2_s4"
+     "go": "c2_s3_road"
     }
    ]
   },
@@ -1131,7 +1131,7 @@
      "en": "You’re insane."
     },
     {
-     "go": "c2_s4"
+     "go": "c2_s3_road"
     }
    ]
   },
@@ -1285,7 +1285,7 @@
      }
     },
     {
-     "go": "c2_s4"
+     "go": "c2_s3_road"
     }
    ]
   },
@@ -1312,6 +1312,167 @@
       "en": "They got around it. But they lost an hour."
      },
      "dur": 2.4
+    },
+    {
+     "go": "c2_s3_road"
+    }
+   ]
+  },
+  "c2_s3_road": {
+   "beats": [
+    {
+     "note": {
+      "ru": "До кафе — час пути. Печка гудит, дворники скрипят. Можно поговорить — или помолчать.",
+      "en": "An hour to the diner. The heater hums, the wipers creak. You can talk — or keep quiet."
+     },
+     "dur": 3.0,
+     "shot": "road"
+    },
+    {
+     "ask": {
+      "id": "road2",
+      "max": 3,
+      "opts": [
+       {
+        "ru": "«Айрис, ты как?»",
+        "en": "“Iris, how are you holding up?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Айрис… ты как?",
+          "en": "Iris… how are you holding up?",
+          "shot": "noah",
+          "vo": "c2_s3_road_a9a853b"
+         },
+         {
+          "say": "iris",
+          "ru": "Ты удирал от полиции с детьми в машине. Как я, по-твоему?",
+          "en": "You ran from the police with kids in the car. How do you think I am?",
+          "shot": "iris",
+          "if": {
+           "fled": ">0"
+          },
+          "vo": "c2_s3_road_aeda2c7"
+         },
+         {
+          "say": "iris",
+          "ru": "Нормально. Не спрашивай, ладно? Просто довези нас.",
+          "en": "Fine. Don’t ask, okay? Just get us there.",
+          "shot": "iris",
+          "if": {
+           "fled": "==0"
+          },
+          "vo": "c2_s3_road_ae1fe58"
+         }
+        ]
+       },
+       {
+        "ru": "«Дэнни, расскажи про маму»",
+        "en": "“Danny, tell me about your mom”",
+        "if": {
+         "danny": ">0",
+         "danny_lost": "==0"
+        },
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Дэнни, а какая она — твоя мама?",
+          "en": "Danny, what’s she like — your mom?",
+          "shot": "noah",
+          "vo": "c2_s3_road_a36bdb1"
+         },
+         {
+          "say": "danny",
+          "ru": "Она поёт, когда добрая. А когда пьёт — спит. Я ей вторую рацию оставил.",
+          "en": "She sings when she’s nice. When she drinks, she sleeps. I left her the other walkie-talkie.",
+          "shot": "back",
+          "vo": "c2_s3_road_a2fdd9a"
+         },
+         {
+          "say": "danny",
+          "ru": "Если включит — найдёт. Она всегда находит.",
+          "en": "If she turns it on, she’ll find me. She always finds me.",
+          "shot": "back",
+          "vo": "c2_s3_road_a7ec43b"
+         }
+        ]
+       },
+       {
+        "ru": "«Зоя, откуда ты?»",
+        "en": "“Zoe, where are you from?”",
+        "if": {
+         "zoe": ">0",
+         "zoe_gone": "==0"
+        },
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Зоя, а ты вообще откуда?",
+          "en": "Zoe, where are you even from?",
+          "shot": "noah",
+          "vo": "c2_s3_road_ac47ad6"
+         },
+         {
+          "say": "zoe",
+          "ru": "Отовсюду понемногу. Сейчас — с обочины.",
+          "en": "A little bit of everywhere. Right now — from the side of the road.",
+          "shot": "zoe",
+          "vo": "c2_s3_road_a8f5269"
+         },
+         {
+          "say": "zoe",
+          "ru": "Не спрашивай дальше, ладно? Я начну врать, а ты заметишь. Ты такой.",
+          "en": "Don’t ask any more, okay? I’ll start lying and you’ll notice. You’re that kind.",
+          "shot": "zoe",
+          "vo": "c2_s3_road_af08df6"
+         }
+        ]
+       },
+       {
+        "ru": "«Куда мы едем?»",
+        "en": "“Where are we going?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Айрис, куда мы вообще едем?",
+          "en": "Iris, where are we actually going?",
+          "shot": "noah",
+          "vo": "c2_s3_road_aaba348"
+         },
+         {
+          "say": "iris",
+          "ru": "На север. Дальше скажу. Просто рули.",
+          "en": "North. I’ll tell you the rest later. Just drive.",
+          "shot": "iris",
+          "vo": "c2_s3_road_a044e70"
+         },
+         {
+          "note": {
+           "ru": "Она отворачивается к окну. В отражении видно: губы шевелятся — будто считает километры.",
+           "en": "She turns to the window. In the reflection her lips are moving — as if she’s counting kilometers."
+          },
+          "dur": 3.0,
+          "shot": "iris"
+         }
+        ]
+       },
+       {
+        "leave": true,
+        "ru": "Помолчать",
+        "en": "Say nothing",
+        "beats": [
+         {
+          "note": {
+           "ru": "Ной молчит. Радио шипит между станциями.",
+           "en": "Noah says nothing. The radio hisses between stations."
+          },
+          "dur": 2.4,
+          "shot": "road"
+         }
+        ]
+       }
+      ]
+     }
     },
     {
      "go": "c2_s4"
@@ -2490,6 +2651,13 @@
            ]
           },
           "vo": "c2_storm_wait_ac84a8f"
+         },
+         {
+          "dur": 1.2,
+          "look": {
+           "who": "iris",
+           "at": null
+          }
          }
         ]
        },

@@ -6,6 +6,7 @@ class_name Ch4
 
 const WOODS := Vector3(160.0, 0.0, -60.0)      # лес и избушка — в стороне от дороги (её ельник кончается у x 65)
 const LAKE := Vector3(-420.0, 0.0, -60.0)      # озеро (и вся глава 5)
+const SANA := Vector3(480.0, 0.0, -60.0)       # санаторий «Тихие сосны» (необязательный заезд): далеко от леса и озера
 const CAR_YARD := Vector3(2.2, 0.0, -37.0)     # их машина у забора (как в конце главы 3)
 const VAN_YARD := Vector3(-10.5, 0.0, -55.0)   # буханка у дома Агнес, носом к улице
 const GAP := Vector3(-9.555, 1.075, 10.88)     # щель в стене сарая (местные координаты озера): середина просвета между досками
@@ -96,6 +97,22 @@ static func woods(g) -> Woods:
 	return wd
 
 
+static func sana(g) -> Sana:
+	var v = g.c4.get("sana")
+	if v and is_instance_valid(v):
+		return v
+	var sn := Sana.new()
+	g.scene.add_child(sn)
+	sn.position = SANA
+	sn.build(g.scene.road, g.scene.pc, g.lang)
+	g.c4["sana"] = sn
+	return sn
+
+
+static func spos(x: float, y: float, z: float) -> Vector3:
+	return SANA + Vector3(x, y, z)
+
+
 static func wpos(x: float, y: float, z: float) -> Vector3:
 	return WOODS + Vector3(x, y, z)
 
@@ -129,9 +146,13 @@ static func stop_in(g, d: float, tmax := 3.0) -> float:
 	var vn := van(g)
 	var v0: float = s.road.speed
 	var t := clampf(2.0 * d / maxf(v0, 0.1), 0.6, tmax)
+	var old = g.c4.get("speed_tw")
+	if old is Tween and (old as Tween).is_valid():
+		(old as Tween).kill()
 	var tw: Tween = g.create_tween().set_parallel()
 	tw.tween_property(s.road, "speed", 0.0, t)
 	tw.tween_property(vn, "speed", 0.0, t)
+	g.c4["speed_tw"] = tw
 	return t
 
 
@@ -146,7 +167,7 @@ static func restore(g, id: String) -> void:
 	g.c4["on"] = true
 	if id in ["c4_recap", "c4_s1"]:
 		return   # двор ставит сценарий (fx c4_start)
-	if id.begins_with("c4_s3") or id.begins_with("c4_s4") or id.begins_with("c4_s5") or id.begins_with("c4_s2"):
+	if id.begins_with("c4_s3") or id.begins_with("c4_s4") or id.begins_with("c4_s5") or id.begins_with("c4_s2") or id.begins_with("c4_sana"):
 		_road(g)
 		day(g, "sunny")
 		seat_van(g)
@@ -254,6 +275,38 @@ static func fx(g, k: String) -> bool:
 				(g.actors.agnes as Actor).reach = {}
 		"bus_stop":   # буханка закипает у заброшенной остановки
 			_bus_stop(g)
+		"van_walk":   # двор: Ной сам готовит буханку (прогулка c4v); дедов ящик у сарая, остальные — по углам двора
+			_van_walk_stage(g)
+		"stop_walk":   # остановка: мотор кипит — ждём, пока остынет (прогулка c4b); все вышли размяться
+			_stop_walk_stage(g)
+		"sana_fork":   # снова в пути после остановки
+			_back_on_road(g)
+		"sana_stop":   # у поворота в лес Ной притормозил: справа — указатель на «Тихие сосны»
+			_sana_turn(g)
+		"sana_arrive":   # свернули: лесная дорога упирается в ворота санатория; все в буханке
+			_sana_arrive(g)
+		"sana_gate_out":   # Ной и Айрис вышли к воротам; створка провисла — Ной протискивается
+			put(g, "iris", spos(-0.9, 0.0, 10.75), 180.0, "Idle_FoldArms")
+			put(g, "noah", spos(0.35, 0.0, 10.6), 200.0, "Idle")
+			g.sfx.play("car_door", -16.0, 0.9)
+		"sana_board":   # окно архива: доска на одном гвозде
+			put(g, "noah", spos(11.25, 0.0, -1.0), 90.0, "Interact")
+		"sana_in":   # доска отодрана — Ной внутри, у окна
+			var sn := sana(g)
+			if sn.plank and is_instance_valid(sn.plank):
+				sn.plank.position = Vector3(Sana.AX0 - 0.55, 0.04, -0.7)
+				sn.plank.rotation_degrees = Vector3(0.0, 12.0, 90.0)
+			g.sfx.play("blow", -16.0, 1.3)
+			put(g, "noah", spos(12.8, Sana.AFLOOR, -1.0), 90.0, "Idle")
+			_sana_dim(g)
+		"sana_back":   # вылез, вернулся к воротам; Айрис ждёт — лицом друг к другу; снова день
+			day(g, "sunny")
+			put(g, "noah", spos(0.5, 0.0, 11.3), -105.0, "Idle")
+			put(g, "iris", spos(-0.6, 0.0, 11.0), 75.0, "Idle_FoldArms")
+			if has(g, "iris"):
+				(g.actors.iris as Actor).look_target = g._target("noah")
+		"sana_out":   # обратно на трассу (на чёрном): санаторий убрать, буханка — снова в начале координат, все по местам
+			_sana_out(g)
 		"hood_up":
 			put(g, "noah", van(g).to_global(Vector3(0.25, 0.0, -2.85)), van(g).rotation_degrees.y, "Fixing_Kneeling")
 			g.sfx.play("radio_hiss", -16.0, 0.6)
@@ -376,6 +429,11 @@ static func fx(g, k: String) -> bool:
 			_woods_stage(g)
 		"hut_in":
 			_hut_in(g)
+		"hut_door":   # Ной ползёт к приоткрытой двери избушки
+			put(g, "noah", wpos(0.3, Woods.FLOOR, 1.35), 0.0, "Crouch_Idle")
+			g.sfx.play("snow_steps", -18.0, 0.7)
+		"beam_pass2":   # луч ещё раз проходит по щелям (шаги за стеной)
+			g.sfx.play("snow_steps", -15.0, 0.8)
 		"baby_whimper":
 			g.sfx.play("baby_cry", -18.0, 1.15)
 		"eva_rock", "iris_rock":
@@ -444,6 +502,22 @@ static func fx(g, k: String) -> bool:
 			g.sfx.play("car_door", -20.0, 0.9)
 		"lake_dawn":   # рассвет: лес кончается — белое озеро, дача, сарай, мостки
 			_lake_stage(g)
+		"ice_walk":   # лёд вдоль берега к мосткам (прогулка c4i): тёмные пятна молодого льда, старая лунка; все — у кромки леса
+			_ice_stage(g)
+		"ice_crack":   # тёмный лёд под ногой трещит — назад
+			g.sfx.play("ice_crack", -6.0, 1.1)
+			g._shake = maxf(g._shake, 0.35)
+		"ice_fall":   # провалился по пояс
+			g.sfx.play("ice_crack", -2.0, 0.9)
+			g.sfx.play("splash", -4.0, 0.8)
+			g._shake = maxf(g._shake, 0.7)
+			var n: Actor = g.actors.noah
+			_ice_hole(g, n.global_position)
+			n.position.y -= 0.7
+		"ice_out":
+			pass
+		"ice_done":   # перешли: все у мостков, напротив лодочного сарая
+			_ice_done(g)
 		"boathouse_gap":
 			_kid(g, false)
 		"kid_eyes":
@@ -716,7 +790,8 @@ static func _bus_stop(g) -> void:
 	g.get_tree().create_timer(t, false).timeout.connect(func():
 		if is_instance_valid(vn):
 			vn.engine(false)
-			_out_at_stop(g))
+			if not g.c4.get("stop_walk", false):   # прогулка у остановки уже всех расставила (fx stop_walk)
+				_out_at_stop(g))
 
 
 static func _mbox(parent: Node3D, size: Vector3, pos: Vector3, m: Material) -> MeshInstance3D:
@@ -728,6 +803,96 @@ static func _mbox(parent: Node3D, size: Vector3, pos: Vector3, m: Material) -> M
 	mi.position = pos
 	parent.add_child(mi)
 	return mi
+
+
+## Двор Агнес перед прогулкой «буханка»: дедов ящик у двери сарая; Агнес у буханки, остальные — по углам двора.
+static func _van_walk_stage(g) -> void:
+	var v := Ch3.village(g)
+	if not g.c4.has("toolbox"):
+		var box := Node3D.new()
+		v.add_child(box)
+		box.position = Vector3(-16.55, 0.0, -51.2)
+		var wood := StandardMaterial3D.new()
+		wood.albedo_color = Color(0.3, 0.2, 0.12)
+		wood.roughness = 0.85
+		_mbox(box, Vector3(0.5, 0.28, 0.32), Vector3(0, 0.14, 0), wood)
+		var steel := StandardMaterial3D.new()
+		steel.albedo_color = Color(0.35, 0.36, 0.38)
+		steel.metallic = 0.6
+		steel.roughness = 0.45
+		_mbox(box, Vector3(0.42, 0.03, 0.05), Vector3(0, 0.34, 0), steel)   # ручка
+		g.c4["toolbox"] = box
+	put(g, "agnes", Vector3(-7.6, 0.0, -57.8), -120.0, "Idle_FoldArms")
+	put(g, "iris", Vector3(-14.8, 0.0, -57.6), 60.0, "Idle_FoldArms")
+	put(g, "zoe", Vector3(-14.6, 0.0, -50.2), 120.0, "Idle")
+	put(g, "danny", Vector3(-12.0, 0.0, -57.8), 20.0, "Idle")
+	put(g, "eva", Vector3(-15.0, 0.0, -54.5), 90.0, "Idle")
+	baby(g)
+	for k in g.actors:
+		(g.actors[k] as Actor).look_target = null
+
+
+## Остановка перед прогулкой «пока остывает»: дорога встала намертво, павильон — на своём месте; все вышли размяться;
+## у павильона — указатель на «Тихие сосны», Дэнни лепит снеговика.
+static func _stop_walk_stage(g) -> void:
+	var s: DriveScene = g.scene
+	var vn := van(g)
+	var tw = g.c4.get("speed_tw")
+	if tw is Tween and (tw as Tween).is_valid():
+		(tw as Tween).kill()
+	s.road.speed = 0.0
+	vn.speed = 0.0
+	vn.engine(false)
+	var b: Node3D = g.c4.get("stop")
+	if b and is_instance_valid(b):
+		b.position = Vector3(5.4, 0.15, -1.0)
+	g.c4["stop_walk"] = true
+	cast(g)
+	put(g, "agnes", Vector3(-1.6, 0.0, 1.2), 90.0, "Idle_FoldArms")
+	put(g, "eva", Vector3(-1.7, 0.0, -1.2), 90.0, "Idle")
+	put(g, "iris", Vector3(2.8, 0.0, -4.2), 160.0, "Idle_FoldArms")
+	put(g, "zoe", Vector3(6.8, 0.0, 2.2), 120.0, "Idle")
+	put(g, "danny", Vector3(3.0, 0.0, 2.6), 60.0, "Crouch_Idle")
+	baby(g)
+	for k in g.actors:
+		(g.actors[k] as Actor).look_target = null
+	if b and is_instance_valid(b) and not g.c4.has("sana_sign"):
+		var post := StandardMaterial3D.new()
+		post.albedo_color = Color(0.3, 0.27, 0.24)
+		post.roughness = 0.8
+		var board := StandardMaterial3D.new()   # синий щит, краска облезла
+		board.albedo_color = Color(0.16, 0.26, 0.42)
+		board.roughness = 0.7
+		# мир (7,6; −5,5) → местные оси павильона (повёрнут на −90°: x мира = 5,4 − z, z мира = −1 + x)
+		_mbox(b, Vector3(0.08, 2.1, 0.08), Vector3(-4.5, 0.9, -2.2), post)
+		_mbox(b, Vector3(1.25, 0.46, 0.04), Vector3(-4.5, 1.72, -2.16), board)
+		var lb := Label3D.new()
+		lb.text = "САНАТОРИЙ\n«ТИХИЕ СОСНЫ» 6 км →" if g.lang == "ru" else "QUIET PINES\nSANATORIUM 6 km →"
+		lb.font_size = 64
+		lb.pixel_size = 0.0028
+		lb.modulate = Color(0.92, 0.93, 0.9)
+		lb.outline_size = 0
+		lb.shaded = true
+		lb.position = Vector3(-4.5, 1.72, -2.135)
+		b.add_child(lb)
+		g.c4["sana_sign"] = lb
+	if has(g, "danny") and not g.c4.has("snowman"):   # снеговик Дэнни: два кома и ветка
+		var sn := Node3D.new()
+		g.scene.road_items.add_child(sn)
+		sn.position = Vector3(3.6, 0.0, 2.9)
+		var white := StandardMaterial3D.new()
+		white.albedo_color = Color(0.9, 0.92, 0.96)
+		white.roughness = 0.9
+		for ball in [[0.28, 0.26], [0.18, 0.64]]:
+			var mi := MeshInstance3D.new()
+			var sm := SphereMesh.new()
+			sm.radius = ball[0]
+			sm.height = ball[0] * 2.0
+			mi.mesh = sm
+			mi.material_override = white
+			mi.position = Vector3(0, ball[1], 0)
+			sn.add_child(mi)
+		g.c4["snowman"] = sn
 
 
 ## Вышли у остановки: Айрис — на лавку, Ной — к носу буханки, остальные рядом.
@@ -821,9 +986,10 @@ static func _hug(g, on_: bool) -> void:
 
 
 # ---------- сосна, Хейл и санитар ----------
-static func _pine(g) -> void:
+## Снова в пути: все в буханке, пар кончился, остановка (и снеговик Дэнни) остались позади.
+static func _back_on_road(g) -> void:
 	var s: DriveScene = g.scene
-	var vn := van(g)   # снова в пути: все в буханке, пар кончился, остановка уехала назад
+	var vn := van(g)
 	var st = g.c4.get("steam")
 	if st and is_instance_valid(st):
 		(st as CPUParticles3D).emitting = false
@@ -832,15 +998,104 @@ static func _pine(g) -> void:
 		(bk as Node).queue_free()
 		g.c4.erase("book")
 	_hug(g, false)
-	var stp = g.c4.get("stop")   # остановка осталась далеко позади
-	if stp and is_instance_valid(stp):
-		(stp as Node).queue_free()
-	g.c4.erase("stop")
+	for key in ["stop", "snowman", "turn_sign"]:
+		var n = g.c4.get(key)
+		if n and is_instance_valid(n):
+			(n as Node).queue_free()
+		g.c4.erase(key)
+	var tw = g.c4.get("speed_tw")
+	if tw is Tween and (tw as Tween).is_valid():
+		(tw as Tween).kill()
 	seat_van(g)
 	vn.engine(true)
 	vn.ride = true
 	s.road.speed = 11.0
 	vn.speed = 11.0
+
+
+## Поворот на «Тихие сосны»: буханка стоит, ржавый указатель — справа у обочины, в паре метров перед носом.
+static func _sana_turn(g) -> void:
+	var s: DriveScene = g.scene
+	var vn := van(g)
+	var tw = g.c4.get("speed_tw")
+	if tw is Tween and (tw as Tween).is_valid():
+		(tw as Tween).kill()
+	s.road.speed = 0.0
+	vn.speed = 0.0
+	var old = g.c4.get("turn_sign")
+	if old and is_instance_valid(old):
+		(old as Node).queue_free()
+	var post := StandardMaterial3D.new()
+	post.albedo_color = Color(0.3, 0.27, 0.24)
+	post.roughness = 0.8
+	var board := StandardMaterial3D.new()
+	board.albedo_color = Color(0.16, 0.26, 0.42)
+	board.roughness = 0.7
+	var root := Node3D.new()
+	s.road_items.add_child(root)
+	root.position = Vector3(3.9, 0.0, -8.2)
+	_mbox(root, Vector3(0.08, 2.1, 0.08), Vector3(0.0, 1.05, 0.0), post)
+	_mbox(root, Vector3(1.3, 0.5, 0.04), Vector3(0.0, 1.8, 0.04), board)
+	var lb := Label3D.new()   # щит повёрнут к дороге (+z): его видно из кабины
+	lb.text = "САНАТОРИЙ\n«ТИХИЕ СОСНЫ» 2 км →" if g.lang == "ru" else "QUIET PINES\nSANATORIUM 2 km →"
+	lb.font_size = 64
+	lb.pixel_size = 0.0028
+	lb.modulate = Color(0.92, 0.93, 0.9)
+	lb.outline_size = 0
+	lb.shaded = true
+	lb.double_sided = false
+	lb.position = Vector3(0.0, 1.8, 0.065)
+	root.add_child(lb)
+	g.c4["turn_sign"] = root
+
+
+## Заезд в санаторий: дорогу остановить, буханку — к воротам (носом к ним), все сидят по местам.
+static func _sana_arrive(g) -> void:
+	var s: DriveScene = g.scene
+	var vn := van(g)
+	var tw = g.c4.get("speed_tw")
+	if tw is Tween and (tw as Tween).is_valid():
+		(tw as Tween).kill()
+	s.road.speed = 0.0
+	vn.speed = 0.0
+	vn.ride = false
+	vn.engine(false)
+	_mirror(g, false)
+	var tsn = g.c4.get("turn_sign")
+	if tsn and is_instance_valid(tsn):
+		(tsn as Node).queue_free()
+	g.c4.erase("turn_sign")
+	sana(g)
+	vn.position = SANA + Vector3(0.0, 0.0, 15.6)
+	vn.rotation = Vector3.ZERO
+	seat_van(g)
+	for k in g.actors:
+		(g.actors[k] as Actor).look_target = null
+
+
+## Внутри архива: солнце сквозь крышу не светит (тени от солнца у построек выключены — ради скорости), поэтому
+## день на время архива приглушён — свет даёт окно (прожектор в пристройке) и слабая заливка. Наружу — fx sana_back.
+static func _sana_dim(g) -> void:
+	var s: DriveScene = g.scene
+	var tw: Tween = g.create_tween().set_parallel()
+	tw.tween_property(s.moon, "light_energy", 0.1, 0.5)
+	tw.tween_property(s.env, "ambient_light_energy", 0.2, 0.5)
+
+
+static func _sana_out(g) -> void:
+	var sn = g.c4.get("sana")
+	if sn and is_instance_valid(sn):
+		(sn as Node).queue_free()
+	g.c4.erase("sana")
+	_road(g)
+	day(g, "sunny")
+	seat_van(g)
+	van(g).engine(true)
+
+
+static func _pine(g) -> void:
+	var s: DriveScene = g.scene
+	_back_on_road(g)
 	_mirror(g, true)
 	var root := Node3D.new()
 	s.road_items.add_child(root)
@@ -1262,6 +1517,7 @@ static func piggy_update(n: Actor, a: Actor) -> void:
 
 # ---------- озеро ----------
 static func _lake_stage(g) -> void:
+	Ch5.yard_props(g)   # качели и поленница у дачи — те же, что в главе 5
 	_looks_off(g)
 	var lk := lake(g)
 	lk.summer(false)
@@ -1286,6 +1542,114 @@ static func _lake_stage(g) -> void:
 	for k in who:
 		var sp: Array = spots[k]
 		put(g, k, lpos(0, 0, 0) + (sp[0] as Vector3), float(sp[1]), "Idle" if k != "agnes" or not on(g, "agnes_limp") else "Idle_FoldArms")
+	baby(g)
+
+
+## Лёд перед прогулкой: пятна молодого (чёрного) льда — по зонам «провалился» из data/ch4.json (прогулка c4i), старая лунка
+## с удочкой; Ной впереди, остальные — у кромки леса, за ним.
+static func _ice_stage(g) -> void:
+	var lk := lake(g)
+	if not g.c4.has("black_ice"):
+		var root := Node3D.new()
+		lk.add_child(root)
+		var gt := GradientTexture2D.new()   # мягкий край пятна
+		gt.fill = GradientTexture2D.FILL_RADIAL
+		gt.fill_from = Vector2(0.5, 0.5)
+		gt.fill_to = Vector2(1.0, 0.5)
+		var gr := Gradient.new()
+		gr.set_color(0, Color(1, 1, 1, 1))
+		gr.set_color(1, Color(1, 1, 1, 0))
+		gr.add_point(0.7, Color(1, 1, 1, 0.92))
+		gt.gradient = gr
+		var m := StandardMaterial3D.new()
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.albedo_color = Color(0.05, 0.08, 0.11)
+		m.albedo_texture = gt
+		m.roughness = 0.06
+		m.metallic_specular = 0.8
+		var ex: Dictionary = g.data.explore.get("c4i", {})
+		for z in ex.get("zones", []):
+			var bs: Array = z.get("beats", [])
+			if bs.is_empty() or String((bs[0] as Dictionary).get("fx", "")) != "ice_fall":
+				continue
+			var rc: Array = z.rect   # мир → местные координаты озера; пятно — на 0,6 м шире зоны провала
+			var x0 := float(rc[0]) - LAKE.x - 0.6
+			var z0 := float(rc[1]) - LAKE.z - 0.6
+			var x1 := float(rc[2]) - LAKE.x + 0.6
+			var z1 := float(rc[3]) - LAKE.z + 0.6
+			var mi := MeshInstance3D.new()
+			var pm := PlaneMesh.new()
+			pm.size = Vector2(x1 - x0 + 1.2, z1 - z0 + 1.2)
+			mi.mesh = pm
+			mi.material_override = m
+			mi.position = Vector3((x0 + x1) / 2.0, Lake.ICE_Y + 0.008, (z0 + z1) / 2.0)
+			root.add_child(mi)
+		var dark := StandardMaterial3D.new()   # лунка: тёмный кружок, удочка вмёрзла рядом
+		dark.albedo_color = Color(0.08, 0.1, 0.12)
+		dark.roughness = 0.2
+		var hole := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.16
+		cm.bottom_radius = 0.16
+		cm.height = 0.01
+		hole.mesh = cm
+		hole.material_override = dark
+		hole.position = Vector3(-5.2, Lake.ICE_Y + 0.01, 66.5)
+		root.add_child(hole)
+		var rod := MeshInstance3D.new()
+		var rm := CylinderMesh.new()
+		rm.top_radius = 0.008
+		rm.bottom_radius = 0.012
+		rm.height = 0.9
+		rod.mesh = rm
+		var rmat := StandardMaterial3D.new()
+		rmat.albedo_color = Color(0.25, 0.18, 0.1)
+		rod.material_override = rmat
+		rod.position = Vector3(-4.9, Lake.ICE_Y + 0.05, 66.2)
+		rod.rotation_degrees = Vector3(0, 30, 84)
+		root.add_child(rod)
+		g.c4["black_ice"] = root
+	var who := cast(g)
+	if on(g, "agnes_dead"):
+		who.erase("agnes")
+	var spots := {"iris": [-5.4, 76.4], "agnes": [-7.0, 77.6], "zoe": [-4.4, 77.2], "danny": [-6.2, 77.0], "eva": [-7.3, 78.4]}
+	for k in who:
+		if k == "noah":
+			continue
+		var sp: Array = spots.get(k, [-6.0, 77.0])
+		put(g, k, lpos(float(sp[0]), Lake.ICE_Y, float(sp[1])), 180.0, "Idle_FoldArms" if k == "agnes" else "Idle")
+	put(g, "noah", lpos(-6.5, Lake.ICE_Y, 74.0), 180.0, "Idle")
+	baby(g)
+
+
+## Провалился: тёмная вода в проломе льда — там, где стоял.
+static func _ice_hole(g, at: Vector3) -> void:
+	var lk := lake(g)
+	var w := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.75
+	cm.bottom_radius = 0.75
+	cm.height = 0.02
+	w.mesh = cm
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.03, 0.05, 0.07)
+	m.roughness = 0.02
+	m.metallic_specular = 1.0
+	w.material_override = m
+	lk.add_child(w)
+	w.global_position = Vector3(at.x, Lake.ICE_Y + 0.012, at.z)
+
+
+## Перешли по льду: все у мостков, напротив лодочного сарая (щель в его стене — к мосткам).
+static func _ice_done(g) -> void:
+	var who := cast(g)
+	if on(g, "agnes_dead"):
+		who.erase("agnes")
+	var spots := {"noah": [-9.5, 8.6, 0.0], "iris": [-8.6, 8.2, -20.0], "agnes": [-11.0, 8.0, 20.0], "zoe": [-8.3, 9.6, -40.0],
+		"danny": [-9.9, 7.8, 10.0], "eva": [-11.4, 9.2, 30.0]}
+	for k in who:
+		var sp: Array = spots.get(k, [-10.0, 8.4, 0.0])
+		put(g, k, lpos(float(sp[0]), 0.0, float(sp[1])), float(sp[2]), "Idle" if k != "agnes" or not on(g, "agnes_limp") else "Idle_FoldArms")
 	baby(g)
 
 
@@ -1453,7 +1817,12 @@ static func cam(g, shot: String) -> bool:
 			c.look_at_from_position((vn as Van).to_global(Vector3(-0.74, 1.66, -1.42)), (vn as Van).to_global(Vector3(-1.141, 1.6, -1.84)))
 		"noah_van":
 			return face(g, "noah", 28.0, 0.62, 0.03, 44.0)
-		"iris_van", "zoe_van", "danny_van", "agnes_van", "iris_awake":
+		"zoe_van":   # Зоя — справа, лицом к проходу: камера из прохода (прежний план «в лицо» вставал в голову Евы на лавке напротив)
+			if not vn or not has(g, "zoe") or not (g.actors.zoe as Actor).visible:
+				return false
+			c.fov = 42.0
+			c.look_at_from_position((vn as Van).to_global(Vector3(-0.05, 1.42, 0.05)), g._target("zoe") + Vector3(0, -0.04, 0))
+		"iris_van", "danny_van", "agnes_van", "iris_awake":
 			return face(g, shot.get_slice("_", 0), 22.0, 0.95, 0.02, 40.0)
 		"iris_asleep":
 			if not vn or not has(g, "iris"):
@@ -1471,6 +1840,27 @@ static func cam(g, shot: String) -> bool:
 				return false
 			c.fov = 42.0   # спереди-слева: буханка подъезжает и встаёт, павильон выплывает справа и встаёт рядом
 			c.look_at_from_position((vn as Van).to_global(Vector3(-5.5, 1.7, -9.5)), (vn as Van).to_global(Vector3(2.0, 1.0, -0.8)))
+		"sana_turn":   # из кабины через лобовое: указатель у поворота в лес
+			var ts = g.c4.get("turn_sign")
+			if not (ts and is_instance_valid(ts)) or not vn:
+				return false
+			c.fov = 38.0
+			c.look_at_from_position((vn as Van).to_global(Vector3(-0.15, 1.72, -0.75)), (ts as Node3D).global_position + Vector3(0.0, 1.6, 0.0))
+		"sana_gate":   # слева-сзади от буханки: ворота, вывеска, белый корпус за ними
+			c.fov = 46.0
+			c.look_at_from_position(spos(-5.6, 1.7, 18.6), spos(0.6, 2.4, -1.5))
+		"sana_gap":   # со двора: Ной боком в щель между створками
+			c.fov = 42.0
+			c.look_at_from_position(spos(2.6, 1.55, 6.4), spos(0.3, 1.15, 10.0))
+		"sana_window":   # окно пристройки: доска на одном гвозде
+			c.fov = 40.0
+			c.look_at_from_position(spos(9.2, 1.75, 1.6), spos(12.0, 1.35, -1.0))
+		"sana_inside":   # архив изнутри: полоса света из окна, стеллажи
+			c.fov = 52.0
+			c.look_at_from_position(spos(18.9, 2.25, -0.2), spos(12.8, 1.0, -1.9))
+		"sana_back":   # у ворот: Ной и Айрис друг против друга; слева — створка, за ними — двор
+			c.fov = 40.0
+			c.look_at_from_position(spos(-2.4, 1.6, 12.9), spos(0.3, 1.35, 11.0))
 		"hose":
 			if not vn:
 				return false

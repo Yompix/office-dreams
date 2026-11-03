@@ -355,6 +355,7 @@ STORM_SCENES = {
                 say('iris', 'Не знаю. В дневнике мама пишет о ней так, будто просит прощения.',
                     'I don’t know. In the diary, Mom writes about her like she’s asking forgiveness.', shot='iris'),
                 say('iris', 'Я её ни разу не видела.', 'I’ve never even seen her.', shot='iris', look={'who': 'iris', 'at': [1.6, 1.2, -0.6]}),
+                {'dur': 1.2, 'look': {'who': 'iris', 'at': None}},   # посмотрела в окно — и снова к разговору (раньше так и смотрела до конца бурана)
             ]},
             {'ru': '«Ева, вы как?»', 'en': '“Eva, how are you doing?”', 'if': {'eva': '>0'}, 'beats': [
                 say('noah', 'Ева, вы как?', 'Eva, how are you doing?', shot='noah'),
@@ -478,6 +479,45 @@ STORM_SCENES = {
 }
 
 
+# ---------------------------------------------- после поста: час до кафе (разговор с темами; мастер-промпт, §17)
+ZOE_CAR = {'zoe': '>0', 'zoe_gone': '==0'}
+DANNY_CAR = {'danny': '>0', 'danny_lost': '==0'}
+ROAD_TALK = {'c2_s3_road': {'beats': [
+    note('До кафе — час пути. Печка гудит, дворники скрипят. Можно поговорить — или помолчать.',
+         'An hour to the diner. The heater hums, the wipers creak. You can talk — or keep quiet.', 3.0, shot='road'),
+    {'ask': {'id': 'road2', 'max': 3, 'opts': [
+        {'ru': '«Айрис, ты как?»', 'en': '“Iris, how are you holding up?”', 'beats': [
+            say('noah', 'Айрис… ты как?', 'Iris… how are you holding up?', shot='noah'),
+            say('iris', 'Ты удирал от полиции с детьми в машине. Как я, по-твоему?', 'You ran from the police with kids in the car. How do you think I am?',
+                shot='iris', **IF(fled='>0')),
+            say('iris', 'Нормально. Не спрашивай, ладно? Просто довези нас.', 'Fine. Don’t ask, okay? Just get us there.', shot='iris', **IF(fled='==0')),
+        ]},
+        {'ru': '«Дэнни, расскажи про маму»', 'en': '“Danny, tell me about your mom”', 'if': DANNY_CAR, 'beats': [
+            say('noah', 'Дэнни, а какая она — твоя мама?', 'Danny, what’s she like — your mom?', shot='noah'),
+            say('danny', 'Она поёт, когда добрая. А когда пьёт — спит. Я ей вторую рацию оставил.',
+                'She sings when she’s nice. When she drinks, she sleeps. I left her the other walkie-talkie.', shot='back'),
+            say('danny', 'Если включит — найдёт. Она всегда находит.', 'If she turns it on, she’ll find me. She always finds me.', shot='back'),
+        ]},
+        {'ru': '«Зоя, откуда ты?»', 'en': '“Zoe, where are you from?”', 'if': ZOE_CAR, 'beats': [
+            say('noah', 'Зоя, а ты вообще откуда?', 'Zoe, where are you even from?', shot='noah'),
+            say('zoe', 'Отовсюду понемногу. Сейчас — с обочины.', 'A little bit of everywhere. Right now — from the side of the road.', shot='zoe'),
+            say('zoe', 'Не спрашивай дальше, ладно? Я начну врать, а ты заметишь. Ты такой.',
+                'Don’t ask any more, okay? I’ll start lying and you’ll notice. You’re that kind.', shot='zoe'),
+        ]},
+        {'ru': '«Куда мы едем?»', 'en': '“Where are we going?”', 'beats': [
+            say('noah', 'Айрис, куда мы вообще едем?', 'Iris, where are we actually going?', shot='noah'),
+            say('iris', 'На север. Дальше скажу. Просто рули.', 'North. I’ll tell you the rest later. Just drive.', shot='iris'),
+            note('Она отворачивается к окну. В отражении видно: губы шевелятся — будто считает километры.',
+                 'She turns to the window. In the reflection her lips are moving — as if she’s counting kilometers.', 3.0, shot='iris'),
+        ]},
+        {'leave': True, 'ru': 'Помолчать', 'en': 'Say nothing', 'beats': [
+            note('Ной молчит. Радио шипит между станциями.', 'Noah says nothing. The radio hisses between stations.', 2.4, shot='road'),
+        ]},
+    ]}},
+    {'go': 'c2_s4'},
+]}}
+
+
 def main():
     j = json.load(open(DATA, encoding='utf-8'))
     sc = j['scenes']
@@ -508,6 +548,18 @@ def main():
         if b.get('shot') == 'iris_window':
             b['shot'] = 'iris_window_eva'
             b['look'] = {'who': 'iris', 'at': 'noah'}
+    # после поста — час до кафе: разговор с темами (все исходы поста → c2_s3_road → кафе)
+    for k in ['c2_s3_pass', 'c2_s3_zoe_ok', 'c2_s3_flee', 'c2_s3_out', 'c2_s3_turn']:
+        for b in sc[k]['beats']:
+            if b.get('go') == 'c2_s4':
+                b['go'] = 'c2_s3_road'
+    if 'c2_s3_road' not in sc:
+        order = list(sc)
+        pos = order.index('c2_s3_turn') + 1
+        items = [(k, sc[k]) for k in order[:pos]] + list(ROAD_TALK.items()) + [(k, sc[k]) for k in order[pos:]]
+        j['scenes'] = sc = dict(items)
+    else:
+        sc.update(ROAD_TALK)
     # конец главы: «Машина ползёт по боковой дороге…» → буран → «В зеркале… две фары»
     road = sc['c2_s6_road']['beats']
     if 'c2_storm' not in sc:

@@ -323,6 +323,18 @@ func _same(a: Dictionary, b: Dictionary) -> bool:
 	return true
 
 
+## Разговор в дороге после поста (c2_s3_road, темы без таймера) — «помолчать», чтобы дойти до кафе (c2_s4).
+func _skip_talk() -> bool:
+	if String(g._scene_id) != "c2_s3_road" or not g.hud.choosing() or t < 0.5:
+		return false
+	for i in g.hud._opts.size():
+		if (g.hud._opts[i] as Dictionary).get("leave", false):
+			g.hud.pick(i)
+			t = 0.0
+			return true
+	return false
+
+
 var sres := {}   # итоги трёх запусков (файл SAVE_RES): S0 — флаги на входе в пост, F1 — после выбора
 
 
@@ -370,7 +382,9 @@ func _save_test() -> void:
 				key(KEY_2)   # «Дать говорить Зое»
 				next(1)
 		1:
-			if String(g._scene_id) == "c2_s4" and t > 0.5:
+			if _skip_talk():
+				pass
+			elif String(g._scene_id) == "c2_s4" and t > 0.5:
 				var sv := _save_flags()
 				res["F1"] = (g.flags as Dictionary).duplicate()
 				check("A: после выбора сохранение c2_s4, флаги с выбором (zoe_talked=%s)" % sv.get("flags", {}).get("zoe_talked", 0),
@@ -397,7 +411,9 @@ func _save_test() -> void:
 				check("C: выбор на посту не появился", false)
 				next(99)
 		21:
-			if String(g._scene_id) == "c2_s4" and t > 0.5:
+			if _skip_talk():
+				pass
+			elif String(g._scene_id) == "c2_s4" and t > 0.5:
 				var a: Dictionary = res.get("S0", {})
 				check("C: другой выбор — следов первого нет (zoe_talked %s, jealous %s → %s)" % [g.flags.get("zoe_talked", 0), a.get("jealous", 0), g.flags.get("jealous", 0)],
 					float(g.flags.get("zoe_talked", 0)) == 0.0 and float(g.flags.get("jealous", 0)) == float(a.get("jealous", 0)) \

@@ -36,7 +36,10 @@
    "l-eye-bag-incr": 0.45,
    "r-eye-bag-incr": 0.45,
    "mouth-scale-horiz-decr": 0.15,
-   "neck-scale-vert-incr": 0.2
+   "neck-scale-vert-incr": 0.2,
+   "torso-muscle-pectoral-decr": 1.0,
+   "torso-scale-depth-decr": 0.3,
+   "measure-bust-circ-decr": 0.4
   },
   "garments": [
    {
@@ -48,18 +51,18 @@
      0.22,
      0.14
     ],
-    "off": 0.03,
+    "off": 0.02,
     "tile": 3,
     "band": 0.3,
-    "rough": 0.55,
+    "rough": 0.75,
     "sim": "leather",
     "inset": 0.008,
     "frames": 30,
     "tailor": {
-     "ease": 0.04,
-     "ease_top": 0.035,
+     "ease": 0.02,
+     "ease_top": 0.03,
      "ease_cuff": 0.02,
-     "box": 3.0,
+     "box": 4.0,
      "slope": 0.05
     },
     "neck": "turn",
@@ -70,7 +73,7 @@
     "hem": 0.09,
     "belt": false,
     "drop": 0,
-    "grow": 0.12,
+    "grow": 0.07,
     "self_col": false,
     "pin_fall": 0.2
    }
@@ -200,7 +203,9 @@
    "nose-scale-horiz-decr": 0.2,
    "l-eye-scale-incr": 0.15,
    "r-eye-scale-incr": 0.15,
-   "mouth-scale-horiz-decr": 0.15
+   "mouth-scale-horiz-decr": 0.15,
+   "torso-muscle-pectoral-decr": 1.0,
+   "measure-bust-circ-decr": 0.3
   },
   "garments": [
    {
@@ -212,17 +217,17 @@
      0.27,
      0.42
     ],
-    "off": 0.042,
+    "off": 0.034,
     "tile": 5,
-    "rough": 0.7,
+    "rough": 0.78,
     "sim": "canvas",
     "inset": 0.008,
     "frames": 36,
     "tailor": {
-     "ease": 0.04,
+     "ease": 0.028,
      "ease_top": 0.035,
      "ease_cuff": 0.018,
-     "box": 3.0,
+     "box": 4.0,
      "slope": 0.04
     },
     "neck": "stand",
@@ -267,7 +272,7 @@
    "gender": 1,
    "age": 0.731,
    "muscle": 0.35,
-   "weight": 0.9,
+   "weight": 0.82,
    "proportions": 0.45,
    "height": 0.46,
    "cupsize": 0.5,
@@ -294,7 +299,9 @@
    "r-eye-bag-incr": 0.7,
    "chin-width-incr": 0.3,
    "mouth-angles-down": 0.4,
-   "head-square": 0.3
+   "head-square": 0.3,
+   "measure-bust-circ-decr": 1.0,
+   "torso-muscle-pectoral-decr": 1.0
   },
   "garments": [
    {
@@ -599,7 +606,10 @@
    "chin-height-incr": 0.25,
    "mouth-scale-horiz-decr": 0.2,
    "l-cheek-volume-decr": 0.3,
-   "r-cheek-volume-decr": 0.3
+   "r-cheek-volume-decr": 0.3,
+   "torso-muscle-pectoral-decr": 1.0,
+   "torso-scale-depth-decr": 0.2,
+   "measure-bust-circ-decr": 0.6
   },
   "retint": {
    "culturalibre_hair_02": [
@@ -618,7 +628,7 @@
      0.44,
      0.38
     ],
-    "off": 0.042,
+    "off": 0.032,
     "tile": 6,
     "rough": 0.85,
     "band": 0.4,
@@ -626,10 +636,10 @@
     "inset": 0.01,
     "frames": 36,
     "tailor": {
-     "ease": 0.045,
+     "ease": 0.03,
      "ease_top": 0.035,
      "ease_cuff": 0.022,
-     "box": 3.2,
+     "box": 4.0,
      "slope": 0.02
     },
     "neck": "turn",
@@ -790,8 +800,8 @@
    "neck-scale-horiz-incr": 0.5,
    "torso-vshape-incr": 0.6,
    "measure-shoulder-dist-incr": 0.5,
-   "torso-muscle-pectoral-decr": 0.35,
-   "measure-bust-circ-decr": 0.4
+   "torso-muscle-pectoral-decr": 1.0,
+   "measure-bust-circ-decr": 0.6
   },
   "garments": [
    {
@@ -818,7 +828,7 @@
      0.12,
      0.17
     ],
-    "off": 0.065,
+    "off": 0.055,
     "tile": 5,
     "rough": 0.7,
     "band": 0.5,
@@ -827,10 +837,10 @@
     "inset": 0.01,
     "frames": 30,
     "tailor": {
-     "ease": 0.06,
+     "ease": 0.045,
      "ease_top": 0.05,
      "ease_cuff": 0.03,
-     "box": 3.0,
+     "box": 3.5,
      "slope": 0.03
     },
     "neck": "stand",
@@ -966,7 +976,9 @@
    "l-cheek-bones-incr": 0.3,
    "r-cheek-bones-incr": 0.3,
    "mouth-angles-down": 0.3,
-   "neck-scale-horiz-incr": 0.3
+   "neck-scale-horiz-incr": 0.3,
+   "torso-muscle-pectoral-decr": 0.6,
+   "measure-bust-circ-decr": 0.3
   },
   "retint": {
    "casualsuit05": [
@@ -1008,7 +1020,10 @@
    "chin-height-incr": 0.25,
    "mouth-scale-horiz-decr": 0.2,
    "l-cheek-volume-decr": 0.3,
-   "r-cheek-volume-decr": 0.3
+   "r-cheek-volume-decr": 0.3,
+   "torso-muscle-pectoral-decr": 1.0,
+   "torso-scale-depth-decr": 0.2,
+   "measure-bust-circ-decr": 0.6
   },
   "retint": {
    "culturalibre_hair_02": [
@@ -1027,7 +1042,7 @@
      0.44,
      0.38
     ],
-    "off": 0.042,
+    "off": 0.032,
     "tile": 6,
     "rough": 0.85,
     "band": 0.4,
@@ -1035,10 +1050,10 @@
     "inset": 0.01,
     "frames": 36,
     "tailor": {
-     "ease": 0.045,
+     "ease": 0.03,
      "ease_top": 0.035,
      "ease_cuff": 0.022,
-     "box": 3.2,
+     "box": 4.0,
      "slope": 0.02
     },
     "neck": "turn",

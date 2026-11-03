@@ -74,7 +74,11 @@
   "end_shadow_dark": 0,
   "end_ice": 0,
   "end_mama": 0,
-  "end_oblivion": 0
+  "end_oblivion": 0,
+  "c5_pack": 0,
+  "c5_box": 0,
+  "c5_letter": 0,
+  "ev_letter": 0
  },
  "map": [
   {
@@ -542,6 +546,12 @@
      "dur": 3.6
     },
     {
+     "fx": "yard5"
+    },
+    {
+     "explore": "c5d"
+    },
+    {
      "fx": "key",
      "shot": "porch_step",
      "note": {
@@ -549,6 +559,9 @@
       "en": "Without thinking, Noah bends down and pulls a rusty key from under the third step."
      },
      "dur": 3.4
+    },
+    {
+     "fx": "key_up"
     },
     {
      "say": "iris",
@@ -663,6 +676,12 @@
      "ru": "Она мне тут косы заплетала. Я думала, это сон.",
      "en": "She used to braid my hair here. I thought I’d dreamed that.",
      "shot": "iris_coat"
+    },
+    {
+     "fx": "house5"
+    },
+    {
+     "explore": "c5h"
     },
     {
      "go": "c5_s1_hub"
@@ -812,6 +831,169 @@
       "trust": 1
      },
      "toast": true
+    },
+    {
+     "fx": "iris_turn5",
+     "dur": 0.6
+    },
+    {
+     "ask": {
+      "id": "iris5",
+      "max": 2,
+      "opts": [
+       {
+        "ru": "«Зачем ты везла меня сюда?»",
+        "en": "“Why did you bring me here?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Зачем ты везла меня сюда? Только честно.",
+          "en": "Why did you bring me here? Honestly.",
+          "shot": "noah_room",
+          "vo": "c5_t_iris_a622a30"
+         },
+         {
+          "say": "iris",
+          "ru": "Чтобы ты вспомнил. Ты один видел, что было той ночью. Без тебя ему ничего не будет.",
+          "en": "So you’d remember. You’re the only one who saw what happened that night. Without you, nothing happens to him.",
+          "shot": "iris_room",
+          "vo": "c5_t_iris_acdf6aa"
+         },
+         {
+          "say": "iris",
+          "ru": "И чтобы ты больше не пил его таблетки. Я хочу брата. Настоящего.",
+          "en": "And so you’d stop taking his pills. I want my brother back. The real one.",
+          "shot": "iris_room",
+          "if": {
+           "trust": ">=3"
+          },
+          "vo": "c5_t_iris_a76fac6"
+         }
+        ]
+       },
+       {
+        "ru": "«Та ночь, дома…»",
+        "en": "“That night, at home…”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Та ночь, дома… Это правда был я?",
+          "en": "That night, at home… Was it really me?",
+          "shot": "noah_room",
+          "vo": "c5_t_iris_a76b9fa"
+         },
+         {
+          "say": "iris",
+          "ru": "Ты встал между нами. Если бы не ты — меня бы уже не было.",
+          "en": "You stood between us. If it weren’t for you, I wouldn’t be here.",
+          "shot": "iris_room",
+          "if": {
+           "trust": ">=2"
+          },
+          "vo": "c5_t_iris_a52873f"
+         },
+         {
+          "say": "iris",
+          "ru": "Это был не совсем ты. Но и не он. Я не знаю, Ной. Правда не знаю.",
+          "en": "It wasn’t quite you. But it wasn’t him either. I don’t know, Noah. I really don’t.",
+          "shot": "iris_room",
+          "if": {
+           "trust": "<2"
+          },
+          "vo": "c5_t_iris_adbb697"
+         }
+        ]
+       },
+       {
+        "ru": "«Прости. За дневник»",
+        "en": "“I’m sorry. About the diary”",
+        "if": {
+         "diary_hale": ">0"
+        },
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Прости. За дневник.",
+          "en": "I’m sorry. About the diary.",
+          "shot": "noah_room",
+          "vo": "c5_t_iris_a3bd59d"
+         },
+         {
+          "say": "iris",
+          "ru": "Ты отдал ему маму. Второй раз.",
+          "en": "You gave Mom to him. A second time.",
+          "shot": "iris_room",
+          "if": {
+           "trust": "<2"
+          },
+          "vo": "c5_t_iris_a0b26f0"
+         },
+         {
+          "say": "iris",
+          "ru": "Ты хотел, чтобы он нас отпустил. Я знаю. Всё равно больно.",
+          "en": "You wanted him to let us go. I know. It still hurts.",
+          "shot": "iris_room",
+          "if": {
+           "trust": ">=2"
+          },
+          "vo": "c5_t_iris_aa399aa"
+         }
+        ]
+       },
+       {
+        "ru": "«Что будет потом?»",
+        "en": "“What happens after?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "А потом? Когда всё кончится?",
+          "en": "And after? When it’s all over?",
+          "shot": "noah_room",
+          "vo": "c5_t_iris_ab11163"
+         },
+         {
+          "say": "iris",
+          "ru": "Меня отправят в детдом. А тебя — обратно к нему. Или в тюрьму.",
+          "en": "They’ll send me to a children’s home. And you — back to him. Or to prison.",
+          "shot": "iris_room",
+          "vo": "c5_t_iris_a79ac67"
+         },
+         {
+          "say": "iris",
+          "ru": "Бабушка говорит — к ней. Если разрешат.",
+          "en": "Grandma says I can live with her. If they let me.",
+          "shot": "iris_room",
+          "if": {
+           "agnes_dead": "==0"
+          },
+          "vo": "c5_t_iris_a174ef1"
+         },
+         {
+          "say": "noah",
+          "ru": "Я никому тебя не отдам.",
+          "en": "I won’t let anyone take you.",
+          "shot": "noah_room",
+          "vo": "c5_t_iris_a8c3cbf"
+         }
+        ]
+       },
+       {
+        "leave": true,
+        "ru": "Просто посидеть рядом",
+        "en": "Just sit with her",
+        "beats": [
+         {
+          "note": {
+           "ru": "Они сидят рядом и молчат. Печь потрескивает. Этого хватает.",
+           "en": "They sit side by side in silence. The stove crackles. It’s enough."
+          },
+          "dur": 2.8,
+          "shot": "iris_room"
+         }
+        ]
+       }
+      ]
+     }
     },
     {
      "go": "c5_s1_hub"
@@ -4052,6 +4234,15 @@
     },
     {
      "set": {
+      "ev_letter": 1
+     },
+     "if": {
+      "c5_letter": ">0",
+      "ev_diary": "==0"
+     }
+    },
+    {
+     "set": {
       "ev_zoe": 1
      },
      "if": {
@@ -4143,6 +4334,22 @@
     },
     {
      "set": {
+      "proof": 1
+     },
+     "if": {
+      "ev_archive": ">0"
+     }
+    },
+    {
+     "set": {
+      "proof": 1
+     },
+     "if": {
+      "ev_letter": ">0"
+     }
+    },
+    {
+     "set": {
       "exposed": 1
      },
      "if": {
@@ -4191,6 +4398,28 @@
      "shot": "patrol",
      "if": {
       "orderly_dead": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Письмо Саймона из маминой шкатулки Айрис отдаёт следователю сама.",
+      "en": "Iris hands Simon’s letter from Mom’s tin box to the investigator herself."
+     },
+     "dur": 3.0,
+     "shot": "patrol",
+     "if": {
+      "c5_letter": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Под сиденьем брошенной буханки патрульные нашли папки из архива «Тихих сосен». С его почерком.",
+      "en": "Under the seat of the abandoned van, the officers found folders from the Quiet Pines archive. In his handwriting."
+     },
+     "dur": 3.4,
+     "shot": "patrol",
+     "if": {
+      "ev_archive": ">0"
      }
     },
     {
@@ -5606,6 +5835,914 @@
      "end": 5
     }
    ]
+  }
+ },
+ "explore": {
+  "c5d": {
+   "who": "noah",
+   "intro": [
+    {
+     "note": {
+      "ru": "Дача молчит. Окна заколочены, крыльцо замело. Всё — как одиннадцать лет назад.",
+      "en": "The lake house is silent. The windows are boarded up, the porch is snowed in. Everything is just as it was eleven years ago."
+     },
+     "dur": 3.2
+    }
+   ],
+   "walk": [
+    [
+     -436.4,
+     -67.6,
+     -429.2,
+     -50.4
+    ]
+   ],
+   "block": [
+    [
+     -437.0,
+     -61.6,
+     -434.5,
+     -58.4
+    ],
+    [
+     -436.9,
+     -58.2,
+     -435.7,
+     -56.6
+    ],
+    [
+     -436.9,
+     -63.4,
+     -435.7,
+     -61.8
+    ],
+    [
+     -433.6,
+     -66.6,
+     -431.6,
+     -66.2
+    ],
+    [
+     -434.3,
+     -63.55,
+     -432.9,
+     -62.85
+    ],
+    [
+     -432.5,
+     -57.3,
+     -431.9,
+     -56.7
+    ],
+    [
+     -431.5,
+     -58.1,
+     -430.9,
+     -57.5,
+     {
+      "agnes_dead": "==0"
+     }
+    ],
+    [
+     -431.3,
+     -56.7,
+     -430.7,
+     -56.1,
+     {
+      "eva_alive": ">0"
+     }
+    ],
+    [
+     -432.1,
+     -56.1,
+     -431.5,
+     -55.5,
+     {
+      "danny_here": ">0"
+     }
+    ],
+    [
+     -432.3,
+     -60.7,
+     -431.7,
+     -60.1,
+     {
+      "zoe_here": ">0"
+     }
+    ]
+   ],
+   "cam_block": [
+    [
+     -443.6,
+     -64.8,
+     -436.5,
+     -55.2,
+     99.0
+    ]
+   ],
+   "nav": [
+    [
+     -432.6,
+     -58.4
+    ],
+    [
+     -433.2,
+     -56.4
+    ],
+    [
+     -432.9,
+     -54.4
+    ],
+    [
+     -432.0,
+     -53.4
+    ],
+    [
+     -433.4,
+     -61.4
+    ],
+    [
+     -433.6,
+     -62.25
+    ],
+    [
+     -432.6,
+     -65.15
+    ],
+    [
+     -434.0,
+     -59.6
+    ],
+    [
+     -431.0,
+     -62.0
+    ]
+   ],
+   "spots": [
+    {
+     "id": "shed",
+     "at": [
+      -430.0,
+      1.6,
+      -47.4
+     ],
+     "where": [
+      -432.0,
+      -53.4
+     ],
+     "r": 0.8,
+     "stand": [
+      -432.0,
+      -53.4
+     ],
+     "face": 17,
+     "label": {
+      "ru": "Сарай у воды",
+      "en": "The boathouse"
+     },
+     "cam": [
+      [
+       -435.0,
+       2.0,
+       -56.4
+      ],
+      [
+       -430.4,
+       1.2,
+       -47.6
+      ],
+      38
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Лодочный сарай у самой воды. Доски почернели. В одной — щель, низко, на уровне глаз ребёнка.",
+        "en": "The boathouse right by the water. The boards have gone black. One has a gap — low, at a child’s eye level."
+       },
+       "dur": 3.6
+      },
+      {
+       "fx": "snd:frogs:-26",
+       "note": {
+        "ru": "Ной смотрит на щель слишком долго. В ушах — лягушки. Летние. Откуда они зимой?",
+        "en": "Noah stares at the gap too long. Frogs in his ears. Summer frogs. Where would they come from in winter?"
+       },
+       "dur": 3.6
+      },
+      {
+       "say": "iris",
+       "ru": "Туда мы ещё сходим. Вместе. Только не сейчас.",
+       "en": "We’ll go down there. Together. Just not yet.",
+       "vo": "c5d_shed_00c7ae"
+      }
+     ]
+    },
+    {
+     "id": "swing",
+     "at": [
+      -432.6,
+      1.0,
+      -66.4
+     ],
+     "where": [
+      -432.6,
+      -65.2
+     ],
+     "r": 0.7,
+     "stand": [
+      -432.6,
+      -65.15
+     ],
+     "face": 180,
+     "label": {
+      "ru": "Качели",
+      "en": "The swing"
+     },
+     "cam": [
+      [
+       -429.2,
+       1.6,
+       -63.4
+      ],
+      [
+       -432.6,
+       0.9,
+       -66.4
+      ],
+      46
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Качели на двух столбах. Доска обледенела; одна верёвка оборвана и вмёрзла в снег.",
+        "en": "A swing between two posts. The seat is iced over; one rope has snapped and frozen into the snow."
+       },
+       "dur": 3.2
+      },
+      {
+       "say": "iris",
+       "ru": "Ты меня тут раскачивал. Выше, выше… А мама кричала с крыльца: «Тише вы!»",
+       "en": "You used to push me here. Higher, higher… And Mom would shout from the porch, “Easy, you two!”",
+       "vo": "c5d_swing_6173e4"
+      },
+      {
+       "note": {
+        "ru": "Ной берётся за верёвку. Пальцы сами находят узел — будто вчера завязывал.",
+        "en": "Noah takes hold of the rope. His fingers find the knot on their own — as if he tied it yesterday."
+       },
+       "dur": 3.2
+      }
+     ]
+    },
+    {
+     "id": "wood",
+     "at": [
+      -433.6,
+      0.8,
+      -63.2
+     ],
+     "where": [
+      -433.6,
+      -62.3
+     ],
+     "r": 0.6,
+     "stand": [
+      -433.6,
+      -62.25
+     ],
+     "face": 180,
+     "label": {
+      "ru": "Поленница",
+      "en": "The woodpile"
+     },
+     "cam": [
+      [
+       -432.3,
+       1.4,
+       -62.9
+      ],
+      [
+       -433.7,
+       0.65,
+       -63.25
+      ],
+      46
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Поленница под навесом. Дрова сухие, серые — их складывали ещё при маме.",
+        "en": "A woodpile under a little roof. The logs are dry and gray — stacked back when Mom was still here."
+       },
+       "dur": 3.0
+      },
+      {
+       "say": "agnes",
+       "ru": "Дед колол. Каждое лето — на две зимы вперёд.",
+       "en": "Grandpa split them. Every summer — enough for two winters ahead.",
+       "if": {
+        "agnes_dead": "==0"
+       },
+       "vo": "c5d_wood_8c1c95"
+      },
+      {
+       "note": {
+        "ru": "Хватит на печь. Хватит надолго.",
+        "en": "Enough for the stove. Enough for a long time."
+       },
+       "dur": 2.4,
+       "if": {
+        "agnes_dead": ">0"
+       }
+      }
+     ]
+    }
+   ],
+   "nudge": {
+    "after": 120,
+    "beats": [
+     {
+      "note": {
+       "ru": "Айрис дует на замёрзшие пальцы и смотрит на крыльцо.",
+       "en": "Iris blows on her frozen fingers and looks at the porch."
+      },
+      "dur": 2.6
+     }
+    ]
+   },
+   "exit": {
+    "id": "porch",
+    "at": [
+     -434.65,
+     0.45,
+     -59.6
+    ],
+    "where": [
+     -433.95,
+     -59.6
+    ],
+    "r": 0.7,
+    "stand": [
+     -434.1,
+     -59.6
+    ],
+    "face": -90,
+    "label": {
+     "ru": "Крыльцо",
+     "en": "The porch"
+    },
+    "beats": [
+     {
+      "dur": 0.3
+     }
+    ]
+   }
+  },
+  "c5h": {
+   "who": "noah",
+   "start": {
+    "at": [
+     -438.6,
+     0.6,
+     -59.7
+    ],
+    "face": -110
+   },
+   "walk": [
+    [
+     -442.58,
+     -63.08,
+     -437.42,
+     -56.92
+    ]
+   ],
+   "block": [
+    [
+     -442.55,
+     -62.85,
+     -441.25,
+     -61.55
+    ],
+    [
+     -442.7,
+     -59.22,
+     -441.7,
+     -57.18
+    ],
+    [
+     -439.17,
+     -59.12,
+     -438.23,
+     -57.68
+    ],
+    [
+     -437.8,
+     -59.22,
+     -437.4,
+     -57.58
+    ],
+    [
+     -437.45,
+     -62.95,
+     -437.15,
+     -62.25
+    ],
+    [
+     -438.05,
+     -62.5,
+     -437.45,
+     -61.9
+    ],
+    [
+     -440.8,
+     -61.6,
+     -440.2,
+     -61.0,
+     {
+      "agnes_dead": "==0"
+     }
+    ],
+    [
+     -441.2,
+     -58.9,
+     -440.6,
+     -58.3,
+     {
+      "eva_alive": ">0"
+     }
+    ],
+    [
+     -439.4,
+     -58.7,
+     -438.8,
+     -58.1,
+     {
+      "danny_here": ">0"
+     }
+    ],
+    [
+     -438.1,
+     -59.1,
+     -437.5,
+     -58.5,
+     {
+      "zoe_here": ">0"
+     }
+    ]
+   ],
+   "floors": [
+    [
+     -442.8,
+     -63.3,
+     -437.2,
+     -56.7,
+     0.6
+    ]
+   ],
+   "cam_block": [
+    [
+     -999.0,
+     -999.0,
+     -442.78,
+     999.0,
+     99.0
+    ],
+    [
+     -437.22,
+     -999.0,
+     999.0,
+     999.0,
+     99.0
+    ],
+    [
+     -999.0,
+     -999.0,
+     999.0,
+     -63.28,
+     99.0
+    ],
+    [
+     -999.0,
+     -56.72,
+     999.0,
+     999.0,
+     99.0
+    ]
+   ],
+   "nav": [
+    [
+     -438.6,
+     -59.7
+    ],
+    [
+     -439.8,
+     -59.6
+    ],
+    [
+     -440.9,
+     -57.4
+    ],
+    [
+     -441.45,
+     -57.05
+    ],
+    [
+     -438.7,
+     -59.55
+    ],
+    [
+     -442.25,
+     -59.85
+    ],
+    [
+     -440.6,
+     -60.4
+    ]
+   ],
+   "spots": [
+    {
+     "id": "pack",
+     "at": [
+      -442.2,
+      0.95,
+      -56.95
+     ],
+     "where": [
+      -441.45,
+      -57.05
+     ],
+     "r": 0.6,
+     "stand": [
+      -441.45,
+      -57.05
+     ],
+     "face": -90,
+     "label": {
+      "ru": "За кроватью",
+      "en": "Behind the bed"
+     },
+     "cam": [
+      [
+       -442.45,
+       2.55,
+       -58.0
+      ],
+      [
+       -441.7,
+       1.05,
+       -57.05
+      ],
+      50
+     ],
+     "beats": [
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Crouch_Idle"
+       }
+      },
+      {
+       "fx": "backpack",
+       "note": {
+        "ru": "Между кроватью и стеной — детский рюкзак. Застёгнут на все молнии.",
+        "en": "Wedged between the bed and the wall — a child’s backpack. Every zipper done up."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Внутри — свитер, фонарик, машинка без колеса. Собран в дорогу. Одиннадцать лет назад.",
+        "en": "Inside — a sweater, a flashlight, a toy car missing a wheel. Packed for a trip. Eleven years ago."
+       },
+       "dur": 3.4
+      },
+      {
+       "say": "noah",
+       "ru": "Я его сам собирал. Чтобы мама не ругалась, что долго.",
+       "en": "I packed it myself. So Mom wouldn’t get mad that I was slow.",
+       "vo": "c5h_pack_aa018d"
+      },
+      {
+       "say": "iris",
+       "ru": "Ты и мой собрал. Я помню зайца в кармане.",
+       "en": "You packed mine too. I remember the bunny in the pocket.",
+       "vo": "c5h_pack_19e4e7"
+      },
+      {
+       "set": {
+        "c5_pack": 1
+       },
+       "anim": {
+        "who": "noah",
+        "clip": "Idle"
+       }
+      }
+     ]
+    },
+    {
+     "id": "cups",
+     "at": [
+      -438.7,
+      1.5,
+      -58.5
+     ],
+     "where": [
+      -438.7,
+      -59.5
+     ],
+     "r": 0.6,
+     "stand": [
+      -438.7,
+      -59.55
+     ],
+     "face": 0,
+     "label": {
+      "ru": "Стол",
+      "en": "The table"
+     },
+     "cam": [
+      [
+       -437.55,
+       2.15,
+       -60.3
+      ],
+      [
+       -438.75,
+       1.42,
+       -58.55
+      ],
+      42
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "На столе — три чашки вверх дном, чтобы не пылились. Одна — детская, с зайцем.",
+        "en": "On the table — three cups turned upside down to keep the dust out. One is a child’s, with a bunny on it."
+       },
+       "dur": 3.2
+      },
+      {
+       "say": "iris",
+       "ru": "Это моя. Я из неё молоко пила. Тёплое, с пенкой — гадость.",
+       "en": "That one’s mine. I drank milk out of it. Warm, with skin on top — gross.",
+       "vo": "c5h_cups_f9320a"
+      },
+      {
+       "note": {
+        "ru": "Вторая — с отбитой ручкой. Ной откуда-то знает: его.",
+        "en": "The second one has a chipped handle. Somehow Noah knows: it’s his."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "id": "tinbox",
+     "once": false,
+     "at": [
+      -442.72,
+      2.32,
+      -59.55
+     ],
+     "where": [
+      -442.2,
+      -59.85
+     ],
+     "r": 0.6,
+     "stand": [
+      -442.25,
+      -59.85
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Мамина шкатулка",
+      "en": "Mom’s tin box"
+     },
+     "cam": [
+      [
+       -441.6,
+       2.45,
+       -58.8
+      ],
+      [
+       -442.7,
+       2.22,
+       -59.55
+      ],
+      40
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "На полке — мамина жестяная шкатулка из-под чая. На крышке — маленький кодовый замок, четыре колёсика.",
+        "en": "On the shelf — Mom’s old tea tin. On the lid — a little combination lock, four wheels."
+       },
+       "dur": 3.4,
+       "if": {
+        "c5_box": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Айрис открывает дневник. На обороте обложки — четыре цифры маминым почерком: 1907.",
+        "en": "Iris opens the diary. On the inside of the cover — four digits in Mom’s handwriting: 1907."
+       },
+       "dur": 3.4,
+       "if": {
+        "diary_hale": "==0",
+        "c5_box": "==0"
+       }
+      },
+      {
+       "say": "iris",
+       "ru": "Я думала, это телефон.",
+       "en": "I thought it was a phone number.",
+       "if": {
+        "diary_hale": "==0",
+        "c5_box": "==0"
+       },
+       "vo": "c5h_tinbox_912168"
+      },
+      {
+       "say": "iris",
+       "ru": "Дневник у него… Подожди. На обложке изнутри были цифры. Я думала, это телефон.",
+       "en": "He has the diary… Wait. There were numbers inside the cover. I thought it was a phone number.",
+       "if": {
+        "diary_hale": ">0",
+        "c5_box": "==0"
+       },
+       "vo": "c5h_tinbox_443456"
+      },
+      {
+       "note": {
+        "ru": "Айрис закрывает глаза и беззвучно шевелит губами: один… девять… ноль… семь.",
+        "en": "Iris closes her eyes, her lips moving silently: one… nine… zero… seven."
+       },
+       "dur": 3.2,
+       "if": {
+        "diary_hale": ">0",
+        "c5_box": "==0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Шкатулка открыта. Письмо — у Айрис.",
+        "en": "The box is open. Iris has the letter."
+       },
+       "dur": 2.2,
+       "if": {
+        "c5_box": ">0"
+       }
+      }
+     ],
+     "ask": {
+      "max": 3,
+      "opts": [
+       {
+        "ru": "1 · 7 · 0 · 9",
+        "en": "1 · 7 · 0 · 9",
+        "if": {
+         "c5_box": "==0"
+        },
+        "beats": [
+         {
+          "fx": "snd:ui_click:-14",
+          "note": {
+           "ru": "Колёсики встают на место. Замок не поддаётся.",
+           "en": "The little wheels click into place. The lock doesn’t give."
+          },
+          "dur": 2.2
+         }
+        ]
+       },
+       {
+        "ru": "1 · 9 · 0 · 7",
+        "en": "1 · 9 · 0 · 7",
+        "if": {
+         "c5_box": "==0"
+        },
+        "beats": [
+         {
+          "fx": "box_open",
+          "note": {
+           "ru": "Замок щёлкает. В шкатулке — мамины серёжки, две метрики и письмо, сложенное вчетверо.",
+           "en": "The lock clicks. Inside the box — Mom’s earrings, two birth certificates, and a letter folded in four."
+          },
+          "dur": 3.4
+         },
+         {
+          "note": {
+           "ru": "Почерк с наклоном: «Аня, в субботу ночью. Ждите на мостках — я подъеду с дороги. Только дети и документы. Никому ни слова, даже матери. — С.»",
+           "en": "A slanted hand: “Anya, Saturday night. Wait on the dock — I’ll drive up from the road. Just the children and the papers. Not a word to anyone, not even your mother. — S.”"
+          },
+          "dur": 5.2
+         },
+         {
+          "say": "iris",
+          "ru": "«Даже матери»… Он и бабушке не дал знать.",
+          "en": "“Not even your mother”… He made sure Grandma didn’t know either.",
+          "vo": "c5h_tinbox_03835c"
+         },
+         {
+          "say": "noah",
+          "ru": "Он знал, где мы будем. И когда.",
+          "en": "He knew where we’d be. And when.",
+          "vo": "c5h_tinbox_f3e955"
+         },
+         {
+          "say": "agnes",
+          "ru": "Вот почему она мне ничего не сказала. Он велел.",
+          "en": "That’s why she never told me anything. He told her not to.",
+          "if": {
+           "agnes_dead": "==0"
+          },
+          "vo": "c5h_tinbox_80164c"
+         },
+         {
+          "set": {
+           "c5_box": 1,
+           "c5_letter": 1
+          }
+         },
+         {
+          "note": {
+           "ru": "Айрис прячет письмо во внутренний карман.",
+           "en": "Iris tucks the letter into her inside pocket."
+          },
+          "dur": 2.4
+         }
+        ]
+       },
+       {
+        "ru": "0 · 7 · 1 · 9",
+        "en": "0 · 7 · 1 · 9",
+        "if": {
+         "c5_box": "==0"
+        },
+        "beats": [
+         {
+          "fx": "snd:ui_click:-14",
+          "note": {
+           "ru": "Колёсики встают на место. Замок не поддаётся.",
+           "en": "The little wheels click into place. The lock doesn’t give."
+          },
+          "dur": 2.2
+         }
+        ]
+       },
+       {
+        "leave": true,
+        "ru": "Не открывать",
+        "en": "Leave it closed",
+        "beats": [
+         {
+          "dur": 0.3
+         }
+        ]
+       }
+      ]
+     }
+    }
+   ],
+   "nudge": {
+    "after": 150,
+    "beats": [
+     {
+      "note": {
+       "ru": "От печи тянет теплом. Остальные ждут.",
+       "en": "Warmth drifts over from the stove. The others are waiting."
+      },
+      "dur": 2.4
+     }
+    ]
+   },
+   "exit": {
+    "id": "warm",
+    "at": [
+     -441.3,
+     1.6,
+     -61.45
+    ],
+    "where": [
+     -440.6,
+     -60.4
+    ],
+    "r": 0.6,
+    "stand": [
+     -440.6,
+     -60.4
+    ],
+    "face": -130,
+    "label": {
+     "ru": "К печи — к остальным",
+     "en": "To the stove — to the others"
+    },
+    "beats": [
+     {
+      "dur": 0.3
+     }
+    ]
+   }
   }
  }
 }

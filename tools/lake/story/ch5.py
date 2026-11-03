@@ -635,14 +635,17 @@ SC['c5_zoe_dies'] = {'beats': [
 
 EVIDENCE = [   # независимые источники против Хейла: каждый — один раз, сколько бы раз ни спасали свидетеля
     SET({'diary_burned': '==0'}, ev_diary=1),                    # мамин дневник цел (страницы о Хейле)
+    SET({'c5_letter': '>0', 'ev_diary': '==0'}, ev_letter=1),    # письмо Саймона из шкатулки — тот же факт, что в дневнике: в счёт, только если дневник сгорел
     SET({'zoe': '>0', 'zoe_gone': '==0'}, ev_zoe=1),             # Зоя — пациентка «Тихих сосен»: с ними до конца…
     SET({'zoe_safe': '>0', 'ev_zoe': '==0'}, ev_zoe=1),          # …или выпущена из седана…
     SET({'zoe_alive5': '>0', 'ev_zoe': '==0'}, ev_zoe=1),        # …или отогрета на берегу
     SET({'agnes_dead': '==0'}, ev_agnes=1),                      # Агнес: Анна уходила от мужа, Агнес сама послала её к Хейлу
     SET({'orderly_dead': '==0'}, ev_orderly=1),                  # санитар: «всё рассказал сам»
     SET({'danny_hale': '>0'}, ev_danny=1),                       # Дэнни: Хейл выманил и держал его
+    # папки из архива «Тихих сосен» (гл. 4, необязательный заезд): ev_archive ставится один раз, когда Ной забрал папку Анны
     SET({'ev_diary': '>0'}, proof=1), SET({'ev_zoe': '>0'}, proof=1), SET({'ev_agnes': '>0'}, proof=1),
-    SET({'ev_orderly': '>0'}, proof=1), SET({'ev_danny': '>0'}, proof=1),
+    SET({'ev_orderly': '>0'}, proof=1), SET({'ev_danny': '>0'}, proof=1), SET({'ev_archive': '>0'}, proof=1),
+    SET({'ev_letter': '>0'}, proof=1),
     SET({'remembered': '>0', 'proof': '>=2'}, exposed=1),        # показания Ноя (вспомнил) + минимум два независимых подтверждения
 ]
 
@@ -651,6 +654,8 @@ SC['c5_patrol'] = {'beats': EVIDENCE + [
     {'fx': 'patrol', 'shot': 'patrol', **N('К полудню на берег выезжает патруль: утром у поваленной сосны нашли брошенную буханку, а оттуда одна дорога — к озеру.', 'By noon a police patrol drives down to the shore: that morning they found the abandoned van at the fallen pine, and from there only one road leads — to the lake.', 4.2)},
     N('Среди патрульных — тот самый полицейский с поста. Он узнаёт Ноя.', 'One of the officers is the one from the checkpoint. He recognizes Noah.', 2.8, shot='patrol', **I(cop_saw='>0')),
     N('Санитар далеко не уехал: на дороге его остановил тот же патруль. Он всё рассказал сам.', 'The orderly didn’t get far: the same patrol stopped him on the road. He told them everything himself.', 3.6, shot='patrol', **I(orderly_dead='==0')),
+    N('Письмо Саймона из маминой шкатулки Айрис отдаёт следователю сама.', 'Iris hands Simon’s letter from Mom’s tin box to the investigator herself.', 3.0, shot='patrol', **I(c5_letter='>0')),
+    N('Под сиденьем брошенной буханки патрульные нашли папки из архива «Тихих сосен». С его почерком.', 'Under the seat of the abandoned van, the officers found folders from the Quiet Pines archive. In his handwriting.', 3.4, shot='patrol', **I(ev_archive='>0')),
     {'if': {'end_ice': '>0'}, 'else': 'c5_route2'},
     {'go': 'c5_ice_epi'}]}
 
@@ -916,6 +921,11 @@ DATA = {
 }
 
 if __name__ == '__main__':
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import ch5_walk, vokeys   # прогулки у дачи и в доме, шкатулка, разговор с Айрис у окна (мастер-промпт, 3 ноя); ключи голоса
+    ch5_walk.apply(DATA)
+    vokeys.assign(DATA)
     json.dump(DATA, open(OUT, 'w'), ensure_ascii=False, indent=1)
     open(OUT, 'a').write('\n')
     says = sum(1 for s in SC.values() for b in s['beats'] if 'say' in b)

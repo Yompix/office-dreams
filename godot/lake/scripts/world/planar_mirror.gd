@@ -52,7 +52,7 @@ func _process(_d: float) -> void:
 	var e := _main.global_position
 	var r := e - 2.0 * (e - _p).dot(_n) * _n
 	var d := (_p - r).dot(_n)
-	if d < 0.02:
+	if d < 0.02 or d > 59.0:   # камера дальше 30 м от зеркала: ближняя плоскость за дальней (ошибка Godot «p_far <= p_near»)
 		return
 	var b := Basis.looking_at(_n, _up)
 	cam.global_transform = Transform3D(b, r)

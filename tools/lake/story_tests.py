@@ -16,6 +16,8 @@ def run(name, t):
         args += ['--miss', ','.join(t['miss'])]
     if t.get('missin'):
         args += ['--missin', ','.join(t['missin'])]
+    if t.get('skip'):
+        args += ['--skip', ','.join(t['skip'])]
     log = '/tmp/lake_test_%s.log' % name
     with open(log, 'w') as fo:
         subprocess.run(args, stdout=fo, stderr=subprocess.STDOUT, timeout=1500)
