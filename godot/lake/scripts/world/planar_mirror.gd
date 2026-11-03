@@ -12,6 +12,8 @@ var _p := Vector3.ZERO
 var _n := Vector3(-1, 0, 0)
 var _size := Vector2.ONE
 var _up := Vector3.UP          # «верх» картинки: у лежачего зеркала (вода, глава 5) — вдоль −Z
+var _res := -1                 # уровень качества, под который выставлено разрешение отражения
+var _frame := 0
 
 
 func build(p: Vector3, n: Vector3, size: Vector2, main: Camera3D) -> void:
@@ -43,8 +45,34 @@ func build(p: Vector3, n: Vector3, size: Vector2, main: Camera3D) -> void:
 	quad.look_at(quad.global_position - _n, _up)   # −Z — в стену, лицевая сторона квада (+Z) — в комнату
 
 
+## Отражение рисуется заново (вторая отрисовка всей сцены!), только когда зеркало видно в кадре и ближе 30 м; на «Низком» —
+## через кадр и вдвое меньше (256 точек по высоте), на «Среднем» — 384. Раньше рисовалось каждый кадр всегда: боковое
+## зеркало буханки удваивало отрисовку леса всю дорогу в главе 4 — на встроенной видеокарте это половина кадров в секунду.
+func _visible_now() -> bool:
+	if not quad.is_visible_in_tree() or _main.global_position.distance_to(_p) > 30.0:
+		return false
+	var b := quad.global_transform.basis
+	var hx := b.x.normalized() * _size.x * 0.5
+	var hy := b.y.normalized() * _size.y * 0.5
+	for c in [_p, _p + hx + hy, _p + hx - hy, _p - hx + hy, _p - hx - hy]:
+		if _main.is_position_in_frustum(c):
+			return true
+	return false
+
+
 func _process(_d: float) -> void:
 	if _main == null or cam == null:
+		return
+	var q := clampi(Settings.fx, 0, 3)
+	if q != _res:
+		_res = q
+		var h: int = [256, 384, 512, 512][q]
+		vp.size = Vector2i(maxi(16, int(h * _size.x / _size.y)), h)
+	_frame += 1
+	var vis := _visible_now()
+	vp.render_target_update_mode = SubViewport.UPDATE_DISABLED if not vis \
+		else (SubViewport.UPDATE_ONCE if q == 0 and _frame % 2 == 0 else (SubViewport.UPDATE_DISABLED if q == 0 else SubViewport.UPDATE_ALWAYS))
+	if not vis:
 		return
 	# камера зеркала — отражение глаза главной камеры за плоскость стекла; смотрит перпендикулярно стеклу в комнату,
 	# пирамида видимости — ровно через прямоугольник зеркала (косая проекция): ближняя плоскость = плоскость стекла,

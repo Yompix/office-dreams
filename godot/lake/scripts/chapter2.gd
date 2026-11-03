@@ -93,7 +93,7 @@ static func restore(g, id: String) -> void:
 	seat_all(g)
 	if id.begins_with("c2_storm") or id == "c2_s6_road":   # буран на боковой дороге
 		g._blizzard = true
-		g.scene.road.snow.amount = 7000 if g.scene.pc else 3200
+		g.scene.road.snow.amount = Settings.pn(7000 if g.scene.pc else 3200)
 		g.scene.env.fog_density = 0.075
 		if id.begins_with("c2_storm") and id != "c2_storm":
 			drift(g, 0.55)
@@ -325,7 +325,7 @@ static func fx(g, k: String) -> bool:
 			s.leave_cafe()
 			s.set_daylight("day")
 			seat_all(g)
-			s.road.snow.amount = 5200 if s.pc else 2400
+			s.road.snow.amount = Settings.pn(5200 if s.pc else 2400)
 			s.env.fog_density = 0.03
 			g._blizzard = true
 			drive(g, 12.0, 4.0)
@@ -400,7 +400,7 @@ static func fx(g, k: String) -> bool:
 		# ------------------------------------------------ буран на боковой дороге (сцены c2_storm…, прогулка "storm")
 		"storm_white":   # белая мгла: снег гуще, видно на пару шагов; машина ползёт
 			s.env.fog_density = 0.075
-			s.road.snow.amount = 7000 if s.pc else 3200
+			s.road.snow.amount = Settings.pn(7000 if s.pc else 3200)
 			g._blizzard = true
 			drive(g, 5.0, 2.5)
 		"storm_stop":

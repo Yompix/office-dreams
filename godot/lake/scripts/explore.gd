@@ -77,7 +77,7 @@ func run() -> void:
 	for b in d.get("intro", []):
 		await g._beat(b)
 	g._cut("explore")
-	if g.autoplay:
+	if g.autoplay or "--walkauto" in OS.get_cmdline_user_args():   # --walkauto: проверки управления (--qtetest) проходят прогулку сами
 		await _auto()
 	else:
 		await _loop()

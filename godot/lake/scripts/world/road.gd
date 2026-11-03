@@ -131,7 +131,7 @@ func park(lot: Rect2) -> void:
 	snow.gravity = Vector3(0, -0.6, 0)
 	snow.lifetime = 7.0
 	snow.preprocess = 7.0
-	snow.amount = 5000 if pc else 2000
+	snow.amount = Settings.pn(5000 if pc else 2000)
 	set_process(false)
 	snow.initial_velocity_min = 1.0
 	snow.initial_velocity_max = 1.8
@@ -150,7 +150,7 @@ func unpark() -> void:
 		(p as Node3D).visible = true
 	for i in side_strips.size():
 		side_strips[i].position.y = float(_parked.strips[i])
-	snow.amount = 2600 if pc else 1200
+	snow.amount = Settings.pn(2600 if pc else 1200)
 	snow.lifetime = 2.2
 	snow.preprocess = 2.2
 	snow.gravity = Vector3(0, -1.2, 0)
@@ -441,7 +441,7 @@ func _poles() -> void:
 
 func _snow() -> void:
 	snow = CPUParticles3D.new()
-	snow.amount = 2600 if pc else 1200
+	snow.amount = Settings.pn(2600 if pc else 1200)
 	snow.lifetime = 2.2
 	snow.preprocess = 2.2
 	snow.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX

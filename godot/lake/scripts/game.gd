@@ -58,6 +58,7 @@ const BUMPER := -2.94         # передний бампер машины (z в
 var sfx: Sfx                  # звук: фоны мест, петли, разовые (scripts/audio.gd)
 var settings := Settings.new() # настройки игрока (scripts/settings.gd): качество, экран, громкость, субтитры, язык
 var _pc := true                # Forward+ (ПК) или упрощённый рендер
+var _restart_after_settings := false   # сменили видеорежим — перезапуск после экрана настроек
 var _scene_id := ""
 var _underwater := false      # пролог: под водой
 var _blackout := false        # провал: всё глохнет
@@ -118,6 +119,25 @@ func _ready() -> void:
 	_rng.seed = 7 if not ("--seed" in args) else int(args[args.find("--seed") + 1])
 	var pc := RenderingServer.get_current_rendering_method() == "forward_plus"
 	_pc = pc
+	if settings.quality < 0:
+		settings.quality = Settings.auto_quality(pc)
+	elif not settings.hw_checked:   # настройки от прошлых сборок: на встроенной Radeon/Intel стояло «Высокое» — не выше подбора
+		settings.quality = mini(settings.quality, Settings.auto_quality(pc))
+	settings.hw_checked = true
+	match BootGuard.start(settings, pc):   # прошлый запуск закрылся аварийно — графика ниже, потом совместимый режим
+		"low":
+			print("BootGuard: прошлый запуск закрылся аварийно — графика «Низкое»")
+		"compat":
+			print("BootGuard: снова вылет на «Низком» — перезапуск в совместимом видеорежиме (OpenGL)")
+			BootGuard.restart(get_tree())
+			return
+	if autoplay:   # прогоны для проверки — всегда «Высокое», окно (кадры сравнимы)
+		settings.quality = 2
+	else:
+		settings.apply_display()
+	if "--quality" in args:   # проверка уровней качества: --quality 0…3
+		settings.quality = clampi(int(args[args.find("--quality") + 1]), 0, 3)
+	Settings.fx = clampi(settings.quality, 0, 3)   # до постройки мира: снег, зеркала — сразу под качество
 	scene = DriveScene.new()
 	add_child(scene)
 	scene.setup(pc)
@@ -134,14 +154,6 @@ func _ready() -> void:
 	add_child(hud)
 	sfx = Sfx.new()
 	add_child(sfx)
-	if settings.quality < 0:
-		settings.quality = Settings.auto_quality(pc)
-	if autoplay:   # прогоны для проверки — всегда «Высокое», окно (кадры сравнимы)
-		settings.quality = 2
-	else:
-		settings.apply_display()
-	if "--quality" in args:   # проверка уровней качества: --quality 0…3
-		settings.quality = clampi(int(args[args.find("--quality") + 1]), 0, 3)
 	_apply_settings()
 	data = JSON.parse_string(FileAccess.get_file_as_string("res://data/ch1.json"))
 	data["chapter"] = 1
@@ -1126,7 +1138,7 @@ func _fx(k: String) -> void:
 		"signpost":
 			scene.signpost(-95.0, "СЕВЕР  640" if lang == "ru" else "NORTH  400")   # км по-русски, мили по-английски
 		"snow_heavy":   # впереди буран: снега больше, летит гуще
-			scene.road.snow.amount = 5200 if scene.pc else 2400
+			scene.road.snow.amount = Settings.pn(5200 if scene.pc else 2400)
 			scene.env.fog_density = 0.02
 		"diary":
 			hud.show_page("Если со мной что-то случится —\nНой всё видел.\n\n                                      А." if lang == "ru"
@@ -1849,6 +1861,10 @@ func _keys(s: String) -> String:   # подсказка действия под 
 	return s
 
 
+func _exit_tree() -> void:
+	BootGuard.clean_exit()   # нормальный выход (окно, «Выход», возврат в меню) — не вылет
+
+
 ## Пауза: всё стоит (герои, машина, таймер выбора), меню поверх.
 ## Окно потеряло фокус (Alt+Tab, свернули, телефон ушёл в фон) — пауза: таймер выбора и действия без игрока не идут.
 func _notification(what: int) -> void:
@@ -1880,6 +1896,8 @@ func _pause() -> void:
 
 
 func _process(delta: float) -> void:
+	if scene == null:   # перезапуск в другом видеорежиме (BootGuard) — мир не строился
+		return
 	_t += delta
 	_sound(delta)
 	if not c2.is_empty():
@@ -2017,6 +2035,8 @@ func _settings_screen() -> void:
 	hud.settings_changed.disconnect(cb)
 	settings.lang = lang
 	settings.save()
+	if _restart_after_settings:
+		BootGuard.restart(get_tree())
 
 
 func _on_setting(key: String, v: Variant) -> void:
@@ -2048,6 +2068,10 @@ func _on_setting(key: String, v: Variant) -> void:
 			hud.lang = lang
 			settings.lang = lang
 			hud.show_settings(settings)   # подписи — на новом языке
+		"renderer":   # видеорежим: обычный (Forward+) или совместимый (OpenGL) — со следующего запуска, игра перезапустится
+			if BootGuard.active():
+				BootGuard.set_compat(int(v) == 1)
+				_restart_after_settings = (int(v) == 1) != (not _pc)
 
 
 

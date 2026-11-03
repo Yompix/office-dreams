@@ -167,7 +167,7 @@ static func fx(g, k: String) -> bool:
 			s.car.lights(true)
 			s.road.speed = 6.0
 			s.car.speed = 6.0
-			s.road.snow.amount = 5200 if s.pc else 2400
+			s.road.snow.amount = Settings.pn(5200 if s.pc else 2400)
 			s.env.fog_density = 0.034
 			g._blizzard = true
 			far_lights(g)
@@ -240,7 +240,7 @@ static func fx(g, k: String) -> bool:
 			var v := village(g)
 			v.set_power(true)
 			s.set_daylight("night")
-			s.road.snow.amount = 3200 if s.pc else 1600
+			s.road.snow.amount = Settings.pn(3200 if s.pc else 1600)
 			s.env.fog_density = 0.02
 			g._blizzard = true
 			cast(g)
@@ -290,7 +290,7 @@ static func fx(g, k: String) -> bool:
 		"noah_storm":   # Ной один в буране
 			put(g, "noah", Vector3(1.4, 0.0, -33.0), 160.0, "Walk")
 			g._walk({"who": "noah", "to": [6.0, 0.0, -27.5], "speed": 1.0, "then": "Idle"})
-			s.road.snow.amount = 5200 if s.pc else 2400
+			s.road.snow.amount = Settings.pn(5200 if s.pc else 2400)
 			s.env.fog_density = 0.035
 			g.sfx.play("hum_ring", -14.0, 0.8)
 		"shop":
@@ -416,7 +416,7 @@ static func fx(g, k: String) -> bool:
 			var v := village(g)
 			v.set_power(false)
 			s.set_daylight("night")
-			s.road.snow.amount = 1800 if s.pc else 900
+			s.road.snow.amount = Settings.pn(1800 if s.pc else 900)
 			s.env.fog_density = 0.016
 			g._blizzard = false
 			mug(g, false)
@@ -464,7 +464,7 @@ static func fx(g, k: String) -> bool:
 		"danny_tracks":   # следы в сторону трассы
 			Ch2.drop(g, "danny")
 			tracks(g)
-			s.road.snow.amount = 5200 if s.pc else 2400
+			s.road.snow.amount = Settings.pn(5200 if s.pc else 2400)
 			g._blizzard = true
 		"baby_night":   # ночь в доме: печь потрескивает, все спят
 			pipe(g, false)
@@ -490,7 +490,7 @@ static func fx(g, k: String) -> bool:
 			s.set_daylight("dawn")
 			s.env.background_color = Color(0.16, 0.18, 0.22)
 			s.env.ambient_light_energy = 0.25
-			s.road.snow.amount = 600 if s.pc else 300
+			s.road.snow.amount = Settings.pn(600 if s.pc else 300)
 			s.env.fog_density = 0.012
 			g._blizzard = false
 			mug(g, false)
@@ -528,7 +528,7 @@ static func fx(g, k: String) -> bool:
 		"noah_out":   # Ной один выходит в буран: за калиткой Агнес; на улице — чужая колея к лесу
 			village(g).set_power(false)
 			put(g, "noah", Vector3(-4.2, 0.0, -45.0), 90.0, "Idle")
-			s.road.snow.amount = 5200 if s.pc else 2400
+			s.road.snow.amount = Settings.pn(5200 if s.pc else 2400)
 			s.env.fog_density = 0.035
 			g._blizzard = true
 			g.sfx.play("hum_ring", -14.0, 0.8)

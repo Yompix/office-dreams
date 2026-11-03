@@ -449,7 +449,7 @@ func mirror(on: bool, aim := "road") -> void:
 		return
 	if mirror_vp == null:
 		mirror_vp = SubViewport.new()
-		mirror_vp.size = Vector2i(1024, 240)
+		mirror_vp.size = Vector2i(1024, 240) if Settings.fx >= 1 else Vector2i(512, 120)   # «Низкое» — вдвое меньше
 		mirror_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
 		add_child(mirror_vp)
 		mirror_cam = Camera3D.new()

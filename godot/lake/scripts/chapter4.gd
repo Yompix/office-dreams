@@ -543,7 +543,7 @@ static func _yard(g) -> void:
 	v.radio_glow(false)
 	day(g, "sunny")
 	g._blizzard = false
-	s.road.snow.amount = 1 if not s.pc else 120   # редкие искры в воздухе (0 частиц Godot не принимает)
+	s.road.snow.amount = Settings.pn(1 if not s.pc else 120)   # редкие искры в воздухе (0 частиц Godot не принимает)
 	s.env.fog_density = 0.0035
 	s.car.visible = true
 	s.car.position = CAR_YARD

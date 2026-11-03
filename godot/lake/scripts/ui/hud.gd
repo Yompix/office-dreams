@@ -771,6 +771,9 @@ func show_settings(st: Settings) -> void:
 		["lang", "Язык" if ru else "Language", "cycle", 0 if lang == "ru" else 1, 2,
 			func(v: int) -> String: return "Русский" if v == 0 else "English"],
 	]
+	if OS.has_feature("pc"):   # видеорежим: после вылетов включается сам; вернуть — здесь (игра перезапустится)
+		rows.append(["renderer", "Видеорежим" if ru else "Renderer", "cycle", 1 if BootGuard.compat_on() else 0, 2,
+			func(v: int) -> String: return (("Совместимый" if v == 1 else "Обычный") if ru else ("Compatible" if v == 1 else "Standard"))])
 	for r in rows:
 		var key := String(r[0])
 		var l := Label.new()

@@ -23,7 +23,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	var args := OS.get_cmdline_user_args()
 	ui = "--uitest" in args
-	qte = "--qtetest" in args   # godot --path godot/lake -- --inputtest --qtetest --scene c4_s3: A листает и жмёт в действии
+	qte = "--qtetest" in args   # godot --path godot/lake -- --inputtest --qtetest --scene c4_s3 --walkauto --explore exit: A листает и жмёт в действии (прогулку у остановки — сам, сразу к выходу)
 	if "--shotlog" in args:
 		shots = args[args.find("--shotlog") + 1]
 	if "--savetest" in args:
