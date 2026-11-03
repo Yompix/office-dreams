@@ -1551,8 +1551,8 @@
     },
     {
      "note": {
-      "ru": "Ной поворачивается — в кармане гремит пузырёк. Агнес слышит.",
-      "en": "Noah shifts — the pill bottle rattles in his pocket. Agnes hears it."
+      "ru": "Ной поворачивается — в кармане гремят таблетки. Агнес слышит.",
+      "en": "Noah shifts — the pills rattle in his pocket. Agnes hears it."
      },
      "dur": 2.6,
      "shot": "noah_stove"
@@ -1614,8 +1614,8 @@
      "fx": "burn_pills",
      "shot": "stove_fire",
      "note": {
-      "ru": "Агнес бросает пузырёк в печь. Пластик съёживается в огне.",
-      "en": "Agnes throws the bottle into the stove. The plastic shrivels in the fire."
+      "ru": "Агнес бросает в печь всё, что было у него в кармане. Пластик съёживается в огне.",
+      "en": "Agnes throws everything from his pocket into the stove. The plastic shrivels in the fire."
      },
      "dur": 3.0
     },

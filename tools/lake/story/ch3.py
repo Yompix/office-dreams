@@ -260,7 +260,7 @@ SC['c3_s4_unsure'] = {'beats': [
 
 SC['c3_s4_pills'] = {'beats': [
     {'if': {'pills_flushed': '==0'}, 'else': 'c3_s4_brew'},
-    N('Ной поворачивается — в кармане гремит пузырёк. Агнес слышит.', 'Noah shifts — the pill bottle rattles in his pocket. Agnes hears it.', 2.6, shot='noah_stove'),
+    N('Ной поворачивается — в кармане гремят таблетки. Агнес слышит.', 'Noah shifts — the pills rattle in his pocket. Agnes hears it.', 2.6, shot='noah_stove'),
     S('agnes', 'Дай мне его отраву.', 'Give me his poison.', shot='agnes_stove'),
     {'fx': 'pills3', 'shot': 'pill_label', **N('Пузырёк Хейла. «Ной. Д-р С. Хейл. 1 таб. при головной боли».', 'Hale’s bottle. “Noah. Dr. S. Hale. 1 tablet for headaches.”', 2.8)},
     C(6, [O('Отдать', 'Give them to her', 'c3_s4_give'),
@@ -269,7 +269,7 @@ SC['c3_s4_pills'] = {'beats': [
 
 SC['c3_s4_give'] = {'beats': [
     {'set': {'pills_burned': 1, 'brew': 1, 'night_lapse': 1}},
-    {'fx': 'burn_pills', 'shot': 'stove_fire', **N('Агнес бросает пузырёк в печь. Пластик съёживается в огне.', 'Agnes throws the bottle into the stove. The plastic shrivels in the fire.', 3.0)},
+    {'fx': 'burn_pills', 'shot': 'stove_fire', **N('Агнес бросает в печь всё, что было у него в кармане. Пластик съёживается в огне.', 'Agnes throws everything from his pocket into the stove. The plastic shrivels in the fire.', 3.0)},
     S('agnes', 'Пей. Спать будешь крепко.', 'Drink. You’ll sleep soundly.', shot='agnes_stove'),
     {'fx': 'drink_brew', 'shot': 'noah_stove', **N('Отвар горький, пахнет землёй.', 'The brew is bitter. It smells of earth.', 2.4)},
     {'go': 'c3_s5'}]}

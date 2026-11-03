@@ -613,13 +613,13 @@ SC['c5_zoe_me'] = {'beats': [
 
 SC['c5_zoe_try'] = {'beats': [
     S('noah', 'Не спи! Слышишь? Не спи!', 'Stay awake! You hear me? Stay awake!', shot='noah_snow'),
-    {'qte': 'mash', 't': 6.0, 'n': 16, 'hint': {'ru': 'Растирай руки — быстро жми E / пробел', 'en': 'Rub her hands — mash E / Space'}, 'fail': 'c5_zoe_dies'},
+    {'qte': 'mash', 't': 6.0, 'n': 16, 'hint': {'ru': 'Растирай руки — быстро жми E / пробел', 'en': 'Rub her hands — mash E / Space'}, 'fail': 'c5_zoe_dies', 'sfx': 'none'},
     {'go': 'c5_zoe_wake'}]}
 
 SC['c5_zoe_iris'] = {'beats': [
     {'fx': 'rub_hands', 'shot': 'zoe_snow', **N('Ноя нет. Зою растирает Айрис — мокрая, сама вся дрожит.', 'Noah is gone. Iris rubs Zoe’s hands — soaked through and shivering herself.', 3.0)},
     S('iris', 'Зоя, не спи! Пожалуйста… Я сегодня больше никого не отдам.', 'Zoe, don’t fall asleep! Please… I’m not losing anyone else today.', shot='iris_snow'),
-    {'qte': 'mash', 't': 6.0, 'n': 14, 'hint': {'ru': 'Растирай руки — быстро жми E / пробел', 'en': 'Rub her hands — mash E / Space'}, 'fail': 'c5_zoe_dies'},
+    {'qte': 'mash', 't': 6.0, 'n': 14, 'hint': {'ru': 'Растирай руки — быстро жми E / пробел', 'en': 'Rub her hands — mash E / Space'}, 'fail': 'c5_zoe_dies', 'sfx': 'none'},
     {'go': 'c5_zoe_wake'}]}
 
 SC['c5_zoe_wake'] = {'beats': [

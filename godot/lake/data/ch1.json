@@ -193,7 +193,21 @@
     },
     {
      "shot": "iris",
-     "dur": 2.2
+     "dur": 2.2,
+     "if": {
+      "ditch": "==0"
+     }
+    },
+    {
+     "shot": "iris",
+     "dur": 2.8,
+     "if": {
+      "ditch": ">0"
+     },
+     "note": {
+      "ru": "Айрис так и не отпустила ручку двери. Пальцы у неё белые.",
+      "en": "Iris still hasn’t let go of the door handle. Her knuckles are white."
+     }
     },
     {
      "say": "noah",
@@ -1467,10 +1481,10 @@
     {
      "fx": "wake",
      "shot": "st_knuckles",
-     "dur": 3.0,
+     "dur": 3.6,
      "note": {
-      "ru": "Ной у колонки. В руке — заправочный пистолет, костяшки в крови.",
-      "en": "Noah is at the pump, the fuel nozzle in his hand. His knuckles are bloody."
+      "ru": "Ной стоит у колонки и сжимает заправочный пистолет — будто собрался заправляться. Бак полный. Костяшки в крови.",
+      "en": "Noah is standing at the pump, gripping the fuel nozzle — as if he were about to fill up. The tank is full. His knuckles are bloody."
      }
     },
     {

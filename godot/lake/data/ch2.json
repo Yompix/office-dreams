@@ -1632,7 +1632,22 @@
       "ru": "В кармане куртки — второй пузырёк, запасной. Та же этикетка: «Д-р С. Хейл».",
       "en": "In his jacket pocket — a second bottle, a spare. The same label: “Dr. S. Hale.”"
      },
-     "dur": 3.0
+     "dur": 3.0,
+     "if": {
+      "threw": ">0"
+     }
+    },
+    {
+     "fx": "pills2",
+     "shot": "wc_pills",
+     "note": {
+      "ru": "В кармане куртки — пузырёк из машины, а под ним второй, запасной. Та же этикетка: «Д-р С. Хейл».",
+      "en": "In his jacket pocket — the bottle from the car, and under it a second one, a spare. The same label: “Dr. S. Hale.”"
+     },
+     "dur": 3.4,
+     "if": {
+      "threw": "==0"
+     }
     },
     {
      "choice": {
