@@ -2048,104 +2048,6 @@
     }
    ]
   },
-  "s8": {
-   "loc": "car",
-   "time": "04:36",
-   "beats": [
-    {
-     "expr": {
-      "who": "iris",
-      "set": "none"
-     }
-    },
-    {
-     "fx": "snow_heavy",
-     "shot": "road",
-     "dur": 1.2
-    },
-    {
-     "fx": "signpost",
-     "shot": "road",
-     "dur": 2.4
-    },
-    {
-     "shot": "road",
-     "dur": 2.6,
-     "note": {
-      "ru": "«Север — 640». Снег всё гуще: впереди буран.",
-      "en": "“North — 400.” The snow is getting heavier: a blizzard ahead."
-     }
-    },
-    {
-     "if": {
-      "trust": ">=2"
-     },
-     "go": "s8_diary",
-     "else": "s8_hide"
-    }
-   ]
-  },
-  "s8_diary": {
-   "loc": "car",
-   "beats": [
-    {
-     "shot": "iris",
-     "look": "noah",
-     "dur": 2.6,
-     "note": {
-      "ru": "Айрис достаёт дневник матери. Открывает последнюю страницу.",
-      "en": "Iris takes out their mother’s diary and opens it to the last page."
-     }
-    },
-    {
-     "fx": "diary",
-     "dur": 5.2,
-     "shot": "iris"
-    },
-    {
-     "fx": "diary_off",
-     "shot": "noah",
-     "dur": 2.6,
-     "note": {
-      "ru": "Почерк мамы.",
-      "en": "Mom’s handwriting."
-     }
-    },
-    {
-     "set": {
-      "diary": 1
-     }
-    },
-    {
-     "go": "end"
-    }
-   ]
-  },
-  "s8_hide": {
-   "loc": "car",
-   "beats": [
-    {
-     "shot": "iris",
-     "look": "window",
-     "dur": 3.2,
-     "note": {
-      "ru": "Айрис прячет дневник под куртку. Ной замечает только уголок.",
-      "en": "Iris slips the diary under her jacket. Noah only glimpses a corner of it."
-     }
-    },
-    {
-     "go": "end"
-    }
-   ]
-  },
-  "end": {
-   "loc": "station",
-   "beats": [
-    {
-     "end": true
-    }
-   ]
-  },
   "s7_talk": {
    "loc": "car",
    "beats": [
@@ -2424,6 +2326,104 @@
     },
     {
      "go": "s8"
+    }
+   ]
+  },
+  "s8": {
+   "loc": "car",
+   "time": "04:36",
+   "beats": [
+    {
+     "expr": {
+      "who": "iris",
+      "set": "none"
+     }
+    },
+    {
+     "fx": "snow_heavy",
+     "shot": "road",
+     "dur": 1.2
+    },
+    {
+     "fx": "signpost",
+     "shot": "road",
+     "dur": 2.4
+    },
+    {
+     "shot": "road",
+     "dur": 2.6,
+     "note": {
+      "ru": "«Север — 640». Снег всё гуще: впереди буран.",
+      "en": "“North — 400.” The snow is getting heavier: a blizzard ahead."
+     }
+    },
+    {
+     "if": {
+      "trust": ">=2"
+     },
+     "go": "s8_diary",
+     "else": "s8_hide"
+    }
+   ]
+  },
+  "s8_diary": {
+   "loc": "car",
+   "beats": [
+    {
+     "shot": "iris",
+     "look": "noah",
+     "dur": 2.6,
+     "note": {
+      "ru": "Айрис достаёт дневник матери. Открывает последнюю страницу.",
+      "en": "Iris takes out their mother’s diary and opens it to the last page."
+     }
+    },
+    {
+     "fx": "diary",
+     "dur": 5.2,
+     "shot": "iris"
+    },
+    {
+     "fx": "diary_off",
+     "shot": "noah",
+     "dur": 2.6,
+     "note": {
+      "ru": "Почерк мамы.",
+      "en": "Mom’s handwriting."
+     }
+    },
+    {
+     "set": {
+      "diary": 1
+     }
+    },
+    {
+     "go": "end"
+    }
+   ]
+  },
+  "s8_hide": {
+   "loc": "car",
+   "beats": [
+    {
+     "shot": "iris",
+     "look": "window",
+     "dur": 3.2,
+     "note": {
+      "ru": "Айрис прячет дневник под куртку. Ной замечает только уголок.",
+      "en": "Iris slips the diary under her jacket. Noah only glimpses a corner of it."
+     }
+    },
+    {
+     "go": "end"
+    }
+   ]
+  },
+  "end": {
+   "loc": "station",
+   "beats": [
+    {
+     "end": true
     }
    ]
   }

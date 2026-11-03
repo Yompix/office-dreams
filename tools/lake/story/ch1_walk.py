@@ -356,8 +356,12 @@ def main():
                 alt['dur'] = 2.0
                 sc['s6']['beats'].insert(i + 1, alt)
             break
-    # сцена 7 → разговор в дороге → сцена 8
+    # сцена 7 → разговор в дороге → сцена 8 (в файле — перед s8, чтобы сценарий читался по порядку)
+    order = [k for k in sc if k != 's7_talk']
+    pos = order.index('s8')
+    order.insert(pos, 's7_talk')
     sc['s7_talk'] = TALK
+    j['scenes'] = sc = {k: sc[k] for k in order}
     for k in ('s7_a', 's7_b', 's7_c'):
         for b in sc[k]['beats']:
             if b.get('go') == 's8':
