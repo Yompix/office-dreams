@@ -18,6 +18,7 @@ var timer_bg: ColorRect
 var silent_lbl: Label
 var toast: Label
 var hint: Label
+var prompt_lbl: Label        # прогулка: «E   Поговорить с Дэнни» внизу кадра
 var scrim: TextureRect      # мягкое затемнение низа кадра под субтитрами и текстом рассказчика
 var fade: ColorRect
 var title: Label
@@ -240,6 +241,13 @@ func _ready() -> void:
 	hint.anchor_right = 0.9
 	hint.anchor_top = 0.1
 	hint.anchor_bottom = 0.24
+	prompt_lbl = _label(root, 30, font_b, Color(1.0, 0.97, 0.92))
+	prompt_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	prompt_lbl.anchor_left = 0.2
+	prompt_lbl.anchor_right = 0.8
+	prompt_lbl.anchor_top = 0.885
+	prompt_lbl.anchor_bottom = 0.94
+	prompt_lbl.modulate.a = 0.0
 	title = _label(root, 64, font_b, Color.WHITE)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -588,8 +596,8 @@ func choice(opts: Array, t: float) -> void:
 	timer_bg.anchor_bottom = top - 0.02
 	timer_bar.anchor_top = top - 0.02
 	timer_bar.anchor_bottom = top - 0.02
-	timer_bg.visible = true
-	timer_bar.visible = true
+	timer_bg.visible = t > 0.0   # выбор без таймера (разговор на прогулке, темы в дороге) — без полоски времени
+	timer_bar.visible = t > 0.0
 
 
 func clear_choice() -> void:
@@ -632,6 +640,13 @@ func pick_number(n: int) -> void:   # клавиши 1–9: номер сред�
 				return
 
 
+## Подсказка прогулки внизу кадра («E   Осмотреть»); пустая строка — убрать (тает).
+func prompt(text: String) -> void:
+	if text != "":
+		prompt_lbl.text = text
+	prompt_lbl.set_meta("on", text != "")
+
+
 func show_toast(text: String) -> void:
 	toast.text = text
 	_toast_t = 3.0
@@ -649,19 +664,21 @@ func _process(delta: float) -> void:
 		for b in choice_box.get_children():   # «Тень» дрожит
 			if b.has_meta("shake"):
 				(b as Control).position.x = randf_range(-3.0, 3.0)
-		_choice_t -= delta
+		_choice_t -= delta if _choice_len > 0.0 else 0.0
 		var f := clampf(_choice_t / maxf(_choice_len, 0.01), 0.0, 1.0)
 		var w := get_viewport().get_visible_rect().size.x * 0.4
 		timer_bar.offset_left = get_viewport().get_visible_rect().size.x * 0.3 + w * (1.0 - f) * 0.5
 		timer_bar.offset_right = get_viewport().get_visible_rect().size.x * 0.3 + w * (1.0 - (1.0 - f) * 0.5)
 		timer_bar.anchor_left = 0.0
 		timer_bar.anchor_right = 0.0
-		if _choice_t <= 0.0:   # время вышло: молчание, если оно есть, иначе — первый вариант
+		if _choice_len > 0.0 and _choice_t <= 0.0:   # время вышло: молчание, если оно есть, иначе — первый вариант
 			var idx := 0
 			for i in _opts.size():
 				if _opts[i].get("silent", false):
 					idx = i
 			pick(idx)
+	var pw := 1.0 if (prompt_lbl.get_meta("on", false) and sub_text.text == "" and note.text == "" and _opts.is_empty()) else 0.0
+	prompt_lbl.modulate.a = move_toward(prompt_lbl.modulate.a, pw, delta * 5.0)
 	if _toast_t > 0.0 and not get_tree().paused:   # плашка «запомнит» не тает под паузой
 		_toast_t -= delta
 		toast.modulate.a = clampf(_toast_t, 0.0, 1.0)

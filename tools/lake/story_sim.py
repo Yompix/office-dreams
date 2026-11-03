@@ -13,6 +13,75 @@ import story_audit as A
 ENDS = ['mama', 'shadow', 'ice', 'witness']   # порядок как в game.gd::_the_end; иначе «Забытьё»
 
 
+def _ask_opts(q, used, f):
+    return [(i, o) for i, o in enumerate(q.get('opts', []))
+            if not (o.get('once', True) and not o.get('leave') and i in used) and ('if' not in o or A.cond_ok(o['if'], f))]
+
+
+def sim_ask(q, f, data, asked, key):
+    """Разговор с выбором тем, как game.gd::_ask на автопрогоне: каждый раз первая несказанная тема, пока темы есть
+    и не набрали "max"; «уйти» автопрогон не выбирает."""
+    used = asked.setdefault(key, set())
+    n = 0
+    while True:
+        opts = [(i, o) for i, o in _ask_opts(q, used, f) if not o.get('leave')]
+        if not opts:
+            break
+        i, o = opts[0]
+        used.add(i)
+        sim_beats(o.get('beats', []), f, data, asked, key)
+        n += 1
+        if 'max' in q and n >= int(q['max']):
+            break
+    sim_beats(q.get('end', []), f, data, asked, key)
+
+
+def sim_explore(d, f, data, asked):
+    """Прогулка, как scripts/explore.gd::_auto: точки по порядку (разговор — пока есть темы), потом выход."""
+    used = {}
+
+    def avail(s):
+        if 'if' in s and not A.cond_ok(s['if'], f):
+            return False
+        if s.get('once', True) and s['id'] in used:
+            return False
+        if 'ask' in s and not [1 for i, o in _ask_opts(s['ask'], asked.get('ex_' + s['id'], set()), f) if not o.get('leave')]:
+            return False
+        return True
+
+    def use(s):
+        used[s['id']] = used.get(s['id'], 0) + 1
+        sim_beats(s.get('beats', []), f, data, asked, 'ex_' + s['id'])
+        if 'ask' in s:
+            sim_ask(s['ask'], f, data, asked, 'ex_' + s['id'])
+        sim_beats(s.get('after', []), f, data, asked, 'ex_' + s['id'])
+
+    sim_beats(d.get('setup', []) + d.get('intro', []), f, data, asked, '')
+    for s in d.get('spots', []):
+        if not avail(s):
+            continue
+        use(s)
+        while 'ask' in s and avail(s):
+            use(s)
+    if d.get('exit'):
+        e = dict(d['exit'])
+        e.setdefault('id', 'exit')
+        use(e)
+
+
+def sim_beats(beats, f, data, asked, key):
+    for b in beats:
+        if 'if' in b and not A.cond_ok(b['if'], f):
+            continue
+        if 'set' in b:
+            for k, v in b['set'].items():
+                f[k] = f.get(k, 0) + int(v)
+        if 'explore' in b:
+            sim_explore(data['explore'][b['explore']], f, data, asked)
+        if 'ask' in b:
+            sim_ask(b['ask'], f, data, asked, key + '|' + b['ask'].get('id', ''))
+
+
 def simulate(data, chapters, rules, miss=(), missin=(), default=0):
     """rules: {сцена: правило} — правило: номер видимого варианта, 'silent', подстрока русского текста варианта
     или список таких правил (по очереди, для сцен, куда возвращаются: хаб на даче)."""
@@ -20,6 +89,7 @@ def simulate(data, chapters, rules, miss=(), missin=(), default=0):
     f = dict(data['flags'])
     sid = data['start']
     picks, path, said, used = [], [], [], {}
+    asked = {}
     ending = None
     guard = 0
     while sid:
@@ -37,6 +107,8 @@ def simulate(data, chapters, rules, miss=(), missin=(), default=0):
             if 'set' in b:
                 for k, v in b['set'].items():
                     f[k] = f.get(k, 0) + int(v)
+            if 'explore' in b:   # прогулка — как автопрогон (точки по порядку)
+                sim_explore(data['explore'][b['explore']], f, data, asked)
             if 'choice' in b:
                 opts = [o for o in b['choice']['opts'] if 'if' not in o or A.cond_ok(o['if'], f)]
                 r = rules.get(sid, default)
@@ -62,6 +134,8 @@ def simulate(data, chapters, rules, miss=(), missin=(), default=0):
                 said.append((sid, 'молчание' if o.get('silent') else o['ru']))
                 nxt = o.get('go')
                 break
+            if 'ask' in b:   # разговор с выбором тем
+                sim_ask(b['ask'], f, data, asked, sid + '|' + b['ask'].get('id', ''))
             if 'peek' in b:
                 nxt = b['no'] if 'peek' in miss else b['yes']
                 break

@@ -378,6 +378,44 @@ func stop_walk() -> void:
 	ap.speed_scale = 1.0
 
 
+## Прогулка: скорость (м/с, с учётом стен) задаёт explore.gd и сам двигает героя; здесь — поворот к ходу,
+## шаг клипа под скорость (стопы не едут), «Idle», когда встал.
+func drive(v: Vector3, delta: float, face_dir := Vector3.ZERO) -> void:
+	walking = false
+	var sp := Vector2(v.x, v.z).length()
+	var look := face_dir if face_dir.length() > 0.01 else v
+	if Vector2(look.x, look.z).length() > 0.05:
+		_turn_to = null
+		rotation.y = lerp_angle(rotation.y, atan2(look.x, look.z), 1.0 - exp(-delta * 9.0))
+	if sp > 0.08:
+		_walk_clip = "Rk_Walk"
+		if clip != "Rk_Walk":
+			play("Rk_Walk")
+		ap.speed_scale = clampf(sp / (float(STRIDE.get("Rk_Walk", 1.45)) * leg), 0.55, 1.45)
+	elif clip == "Rk_Walk":
+		ap.speed_scale = 1.0
+		play("Idle")
+	_v = sp
+
+
+## Плавно повернуться на месте (рад, как rotation.y).
+func face_to(yaw: float) -> void:
+	if walking:
+		stop_walk()
+		play("Idle")
+	_turn_to = yaw
+
+
+func speed() -> float:
+	return _v
+
+
+## Кровь на руках: 1 — как после дома, меньше — отмыл (под ногтями остаётся).
+func set_blood(v: float) -> void:
+	for sm in _blood_mats:
+		sm.set_shader_parameter("blood", v)
+
+
 func _process(delta: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	_tick(delta)

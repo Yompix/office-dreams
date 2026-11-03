@@ -70,6 +70,9 @@ var _chapters := {}           # номер главы → {start, ready, title, 
 var c5 := {}                  # состояние главы 5 (scripts/chapter5.gd): дача, воспоминание, лёд, концовки
 var c4 := {}                  # состояние главы 4 (scripts/chapter4.gd): буханка, остановка, сосна, лес, озеро
 var c3 := {}                  # состояние главы 3 (scripts/chapter3.gd): деревня, дом Агнес, роды, ночь
+var _ex: Explore = null        # прогулка идёт (scripts/explore.gd): камера за плечом, точки осмотра
+var _asked := {}              # разговоры с выбором тем: что уже спрошено (ключ разговора → {номер темы: да})
+var _cam_free: Array = []     # план «free»: [позиция, куда смотрит, угол] — прямо из шага сценария ("cam")
 var c2 := {}                  # состояние главы 2 (scripts/chapter2.gd): двойник в зеркале, пост, зеркало туалета…
 const IN_CAR := ["pov", "hands", "noah", "iris", "two", "notebook", "radio", "glovebox", "road", "cluster", "pills", "back",
 	"deer_eye", "mirror", "mirror_back", "noah_van", "iris_van", "zoe_van", "danny_van", "agnes_van", "van_inside", "van_mirror"]    # планы из салона: снаружи слышно глухо
@@ -141,6 +144,8 @@ func _ready() -> void:
 	_apply_settings()
 	data = JSON.parse_string(FileAccess.get_file_as_string("res://data/ch1.json"))
 	data["chapter"] = 1
+	if not data.has("explore"):
+		data["explore"] = {}
 	_chapters[1] = {"start": String(data.start), "ready": true}
 	for n in range(2, 6):   # главы 2–5: сцены, имена, флаги — в общий сценарий; карта и начало — по главам
 		var path := "res://data/ch%d.json" % n
@@ -156,6 +161,8 @@ func _ready() -> void:
 			data.names[k] = ch.names[k]
 		for k in ch.get("flags", {}):
 			data.flags[k] = ch.flags[k]
+		for k in ch.get("explore", {}):   # прогулки глав 2–5
+			data.explore[k] = ch.explore[k]
 	_vo_index()
 	flags = (data.flags as Dictionary).duplicate()
 	var start: String = data.start
@@ -187,6 +194,8 @@ func _ready() -> void:
 	if "--shots" in args:   # проверка планов: каждый план — снимок, без сценария: --shots pov,hands,iris --snapdir папка
 		_shots(String(args[args.find("--shots") + 1]).split(","), args[args.find("--snapdir") + 1] if "--snapdir" in args else "user://")
 		return
+	if "--walktest" in args and ResourceLoader.exists("res://scripts/dev/walk_test.gd"):
+		add_child((load("res://scripts/dev/walk_test.gd") as GDScript).new())   # прогулка «как игрок» (только в проекте)
 	if ("--inputtest" in args or "--uitest" in args) and ResourceLoader.exists("res://scripts/dev/input_test.gd"):
 		add_child((load("res://scripts/dev/input_test.gd") as GDScript).new())   # проверка управления (только в проекте, не в сборке)
 	if autoplay or "--scene" in args or "--menu-skip" in args:
@@ -298,6 +307,8 @@ func _read_save(path: String) -> Variant:
 
 ## Начать с контрольной точки (продолжить или «переиграть отсюда»): что видно — по флагам, сцена — с начала.
 func _resume_at(id: String) -> void:
+	if float(flags.get("washed", 0)) > 0.0:   # отмыл руки на заправке (прогулка главы 1)
+		(actors.noah as Actor).set_blood(0.3)
 	if float(flags.get("lamp", 0)) > 0.0:
 		scene.car.break_lamp()
 	# Дэнни: с рацией (раньше после загрузки был без неё) и не возвращается, если потерялся в деревне (danny_lost)
@@ -411,6 +422,11 @@ func _beat(b: Dictionary):
 		_cut(String(b.shot))
 	if b.has("look"):
 		_look(b.look)
+	if b.has("cam"):   # свой план прямо в шаге: [позиция, куда смотрит, угол]
+		_cam_free = b.cam
+		_cut("free")
+	if b.has("explore"):   # прогулка: игрок сам ведёт героя до выхода (scripts/explore.gd)
+		await _explore(String(b.explore))
 	if b.has("say"):
 		var who := String(b.say)
 		var text := hud.T(b)
@@ -456,6 +472,10 @@ func _beat(b: Dictionary):
 		sfx.play("ui_click", -4.0)
 		_log("выбор %d: %s" % [i, "молчание" if opts[i].get("silent", false) else hud.T(opts[i])])
 		return String(opts[i].get("go", ""))
+	if b.has("ask"):   # разговор с выбором тем, без таймера
+		var ga := await _ask(b.ask)
+		if ga != "":
+			return ga
 	if b.has("peek"):   # можно посмотреть (в зеркало): нажал за t секунд — ветка «yes», нет — «no»
 		var seen: bool = await _do_peek(float(b.get("t", 5.0)), b.get("hint"))
 		_log("посмотрел: %s" % ("да" if seen else "нет"))
@@ -536,6 +556,13 @@ func _place_cam() -> void:
 		var eye := hb.origin + hb.basis.y.normalized() * 0.09 + hb.basis.z.normalized() * 0.13
 		cam.fov = 72.0
 		cam.look_at_from_position(eye, eye - scene.car.global_transform.basis.z * 10.0 + Vector3(0, -3.0, 0))
+	elif _shot == "explore" and _ex != null:   # прогулка: камера за плечом героя
+		_ex.place_cam(cam)
+	elif _shot == "free" and _cam_free.size() >= 2:
+		var p0: Array = _cam_free[0]
+		var p1: Array = _cam_free[1]
+		cam.fov = float(_cam_free[2]) if _cam_free.size() > 2 else 44.0
+		cam.look_at_from_position(Vector3(p0[0], p0[1], p0[2]), Vector3(p1[0], p1[1], p1[2]))
 	elif Ch2.cam(self, _shot) or Ch3.cam(self, _shot) or Ch4.cam(self, _shot) or Ch5.cam(self, _shot):   # планы глав 2–5, которые зависят от того, где герои
 		pass
 	elif _shot in ["mirror", "mirror_back", "mirror_self", "mirror_zoe"]:   # глазами Ноя — в зеркало заднего вида
@@ -711,6 +738,81 @@ func _walk(w: Dictionary) -> void:
 	_walks[who] = true
 
 
+## Прогулка по имени из data "explore" (scripts/explore.gd): игрок ведёт героя, пока не дойдёт до выхода.
+func _explore(id: String) -> void:
+	var def: Dictionary = (data.get("explore", {}) as Dictionary).get(id, {})
+	if def.is_empty():
+		push_error("нет прогулки " + id)
+		return
+	_log("прогулка " + id)
+	await Explore.new(self, def).run()
+
+
+## Разговор с выбором тем, без таймера: {"opts": [{ru, en, beats, once?, if?, leave?}], "max"?, "shot"?, "end"?}.
+## Тема ("once" — по умолчанию) после выбора пропадает; "leave" — закончить; "max" — сколько тем успевают за разговор.
+## key — под каким именем помнить спрошенное (точка прогулки); иначе — сцена. Возвращает сцену, если тема ведёт в переход.
+## Автопрогон берёт темы по порядку (а не из --pick: тот — для главных выборов, его порядок не сбивается).
+func _ask(q: Dictionary, key := "") -> String:
+	var k := key if key != "" else _scene_id + "|" + String(q.get("id", ""))
+	var used: Dictionary = _asked.get(k, {})
+	_asked[k] = used
+	var n := 0
+	while true:
+		var opts := _ask_opts(q, used)
+		if opts.filter(func(o): return not (o as Dictionary).get("leave", false)).is_empty():
+			break
+		if q.has("shot"):
+			_cut(String(q.shot))
+		hud.choice(opts, 0.0)
+		if autoplay:
+			var want := 0
+			for i in opts.size():
+				if not (opts[i] as Dictionary).get("leave", false):
+					want = i
+					break
+			get_tree().create_timer(0.8, false).timeout.connect(func(): if hud.choosing(): hud.pick(want))
+		var c: int = await hud.chosen
+		sfx.play("ui_click", -4.0)
+		var o: Dictionary = opts[c]
+		used[int(o._i)] = true
+		_log("тема: " + hud.T(o))
+		for b in o.get("beats", []):
+			var go = await _beat(b)
+			if go is String and go != "":
+				return go
+		n += 1
+		if o.get("leave", false) or (q.has("max") and n >= int(q.max)):
+			break
+	for b in q.get("end", []):
+		var go2 = await _beat(b)
+		if go2 is String and go2 != "":
+			return go2
+	return ""
+
+
+func _ask_opts(q: Dictionary, used: Dictionary) -> Array:
+	var out: Array = []
+	var opts: Array = q.get("opts", [])
+	for i in opts.size():
+		var o: Dictionary = opts[i]
+		if o.get("once", true) and not o.get("leave", false) and used.has(i):
+			continue
+		if o.has("if") and not _cond(o["if"]):
+			continue
+		var c := o.duplicate()
+		c["_i"] = i
+		out.append(c)
+	return out
+
+
+## Остались ли в разговоре несказанные темы (точка прогулки пропадает, когда всё спрошено).
+func _ask_left(q: Dictionary, key: String) -> bool:
+	for o in _ask_opts(q, _asked.get(key, {})):
+		if not (o as Dictionary).get("leave", false):
+			return true
+	return false
+
+
 ## Сесть: таз героя — в точку p (на крыльцо, на ящик).
 func _sit(who: String, p: Vector3) -> void:
 	var a: Actor = actors[who]
@@ -737,6 +839,9 @@ func _station() -> void:
 	await get_tree().process_frame
 	_sit("danny", DANNY_SEAT)
 	_attach_walkie(actors.danny)
+	scene.props.merge(StationProps.build(scene.station_root, lang), true)   # прогулка: автомат, таксофон, доска, ведро
+	if float(flags.get("washed", 0)) > 0.0:
+		StationProps.pink_water(scene.station_root)
 	if float(flags.get("late", 0)) > 0.0:   # сидели с оленем — чёрная машина уже здесь: у края площадки, фары выключены
 		blackcar = BlackCar.new()
 		scene.station_root.add_child(blackcar)
@@ -875,8 +980,29 @@ func _fx(k: String) -> void:
 	if Ch2.fx(self, k) or Ch3.fx(self, k) or Ch4.fx(self, k) or Ch5.fx(self, k):   # события глав 2–5 (scripts/chapter2.gd … chapter5.gd)
 		return
 	_fx_sound(k)
+	if k.begins_with("snd:"):   # просто звук: "snd:имя" или "snd:имя:громкость_дБ"
+		var sp := k.split(":")
+		sfx.play(sp[1], float(sp[2]) if sp.size() > 2 else -6.0)
+		return
 	var fade := hud.fade
 	match k:
+		"hum_spike":   # удар в голове: гул резко вверх и тает обратно (hud.hum идёт к hum_to сам)
+			hud.hum = 0.95
+			_shake = 0.35
+		"trunk_open":   # прогулка: багажник открыт (накладка на кузов — scripts/world/station_props.gd)
+			StationProps.trunk(scene.car, true)
+			sfx.play("trunk", -6.0)
+		"trunk_close":
+			StationProps.trunk(scene.car, false)
+			sfx.play("trunk", -10.0)
+		"trunk_blanket":
+			StationProps.trunk_take_blanket(scene.car)
+		"phone_pick", "phone_hang":   # таксофон: трубка в руке у Ноя / снова на рычаге
+			StationProps.receiver(scene.station_root, actors.noah, k == "phone_pick")
+		"wash_hands":   # прогулка на заправке: Ной отмыл ладони в ведре для стёкол — под ногтями осталось
+			(actors.noah as Actor).set_blood(0.3)
+			StationProps.pink_water(scene.station_root)
+			sfx.play("splash", -16.0)
 		"black":
 			fade.color.a = 1.0
 		"wake":
@@ -1664,6 +1790,8 @@ func _unhandled_input(e: InputEvent) -> void:
 
 ## Чем играют: тронули геймпад — подсказки в действиях под него («A» вместо «E / пробел»), клавиатура или мышь — обратно.
 func _input(e: InputEvent) -> void:
+	if _ex != null and e is InputEventMouseMotion and ((e as InputEventMouseMotion).button_mask & MOUSE_BUTTON_MASK_RIGHT):
+		_ex.mouse_dx += (e as InputEventMouseMotion).relative.x   # прогулка: правая кнопка мыши — повернуть камеру
 	if e is InputEventJoypadButton or (e is InputEventJoypadMotion and absf((e as InputEventJoypadMotion).axis_value) > 0.5):
 		_pad = true
 	elif e is InputEventKey or e is InputEventMouseButton:
@@ -1756,6 +1884,8 @@ func _process(delta: float) -> void:
 	_shake = maxf(0.0, _shake - delta * 0.8)
 	_place_cam()
 	_smooth_cam(delta)
+	if _shot == "explore" and _ex != null:   # прогулка: сглаживание не заводит камеру в стену магазина
+		_ex.clamp_cam(cam)
 	var road := 0.004 if _shot in ["pov", "road", "hands"] else 0.002
 	# тряска — плавный шум (две несоизмеримые частоты), а не новое случайное число каждый кадр (дёргало кадр)
 	var jx := (sin(_t * 13.1) + sin(_t * 19.7 + 1.3)) * 0.5

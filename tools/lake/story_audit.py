@@ -37,6 +37,7 @@ def load():
             owner[k] = n
         data['names'].update(ch.get('names', {}))
         data['flags'].update(ch.get('flags', {}))
+        data.setdefault('explore', {}).update(ch.get('explore', {}))   # прогулки глав 2–5
     for sid, sc in data['scenes'].items():   # ключ озвучки, как в game.gd: <сцена>_<номер реплики>
         n = 0
         for b in sc['beats']:
@@ -82,6 +83,31 @@ def cond_ok(c, flags):
 
 def cond_s(c):
     return ', '.join('%s%s' % (k, v if str(v)[:1] in '<>=!' else '==' + str(v)) for k, v in c.items())
+
+
+def nested(b, data):
+    """Шаги внутри прогулки ("explore": точки, разговоры, выход) и разговора с выбором тем ("ask") — все подряд."""
+    out = []
+
+    def ask(q):
+        for o in q.get('opts', []):
+            out.extend(o.get('beats', []))
+        out.extend(q.get('end', []))
+
+    if 'explore' in b:
+        d = data.get('explore', {}).get(b['explore'], {})
+        out.extend(d.get('setup', []) + d.get('intro', []))
+        for s in d.get('spots', []) + ([d['exit']] if d.get('exit') else []):
+            out.extend(s.get('beats', []))
+            if s.get('ask'):
+                ask(s['ask'])
+            out.extend(s.get('after', []))
+        for z in d.get('zones', []):
+            out.extend(z.get('beats', []))
+        out.extend(d.get('nudge', {}).get('beats', []))
+    if 'ask' in b:
+        ask(b['ask'])
+    return out
 
 
 def txt(d, lang='ru'):
@@ -445,6 +471,11 @@ def explore(data, chapters, owner, limit=8_000_000, check_who=None):
                     for w, rx in NAMES.items():
                         if t and re.search(rx, t) and not here(w, f, sid):
                             ment.setdefault((sid, i, w), path)
+                for nb in nested(b, data):   # прогулка и разговор: кто говорит — должен быть рядом (условия шага — как есть)
+                    if 'if' in nb and cond3(nb['if'], f) is False:
+                        continue
+                    if 'say' in nb and (not check_who or nb['say'] in check_who) and not here(nb['say'], f, sid):
+                        viol.setdefault((sid, i, nb['say']), path)
                 if 'choice' in b:
                     for o in b['choice']['opts']:
                         if 'if' in o and cond3(o['if'], f) is False:
