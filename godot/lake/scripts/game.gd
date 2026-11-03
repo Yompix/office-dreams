@@ -168,7 +168,7 @@ func _ready() -> void:
 	var start: String = data.start
 	if "--scene" in args:
 		start = args[args.find("--scene") + 1]
-	if autoplay and not ("--snaps" in args) and not ("--shotlog" in args):
+	if autoplay and not ("--snaps" in args) and not ("--shotlog" in args) and not ("--realtime" in args):   # --realtime: автопрогон в обычном темпе (запись видео --write-movie)
 		Engine.time_scale = 4.0
 	if "--pick" in args:
 		_forced = Array(String(args[args.find("--pick") + 1]).split(",")).map(func(x): return int(x))
