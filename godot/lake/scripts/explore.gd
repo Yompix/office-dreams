@@ -6,7 +6,7 @@ extends RefCounted
 ## Прогулка кончается у выхода (дверь магазина и т. п.). Сценарий — data/chN.json → "explore": {имя: описание}:
 ##   who — кого ведём; start {at, face} — откуда (нет — с того места, где стоит); intro / setup — шаги в начале;
 ##   walk — прямоугольники [x0, z0, x1, z1], где можно ходить; block — где нельзя (постройки, машина, люди);
-##   floors — [x0, z0, x1, z1, высота] (крыльцо); cam_block — [x0, z0, x1, z1] куда не заходит камера;
+##   floors — [x0, z0, x1, z1, высота] (крыльцо); cam_block — [x0, z0, x1, z1, высота] куда не заходит камера (ниже камеры — не мешает, она смотрит поверх);
 ##   spots — точки: {id, at (кружок), where (где нажимать; нет — at), r, stand, face, cam [поз, цель, угол],
 ##     label {ru, en}, if, once (по умолчанию да), beats, ask (выбор тем, game._ask), after, exit};
 ##   zones — {rect, if, beats}: один раз, когда герой зашёл; nudge {after, beats} — поторопить один раз;
@@ -38,6 +38,7 @@ var _zones := {}
 var _exit := false
 var _e_prev := true          # клавиша E была нажата в прошлом кадре (нажатие до начала прогулки не считаем)
 var _looks := {}             # кто куда смотрел до прогулки — вернуть в конце
+var _tight := false          # камере тесно (вплотную к стене): она над плечом — смотрит дальше вперёд, а не в землю
 static var _ring: Texture2D
 
 
@@ -364,7 +365,10 @@ func place_cam(cam: Camera3D) -> void:
 	var eye := head - f * DIST + r * 0.38 + Vector3(0, RISE, 0)
 	eye = _cam_clear(head + r * 0.2, eye)
 	cam.fov = 56.0
-	cam.look_at_from_position(eye, head + f * 1.4 + r * 0.22 + Vector3(0, -0.38, 0))
+	if _tight:   # над плечом: цель дальше и выше — в кадре дорога впереди и макушка героя, а не одна земля
+		cam.look_at_from_position(eye, head + f * 3.6 + r * 0.22 + Vector3(0, -0.3, 0))
+	else:
+		cam.look_at_from_position(eye, head + f * 1.4 + r * 0.22 + Vector3(0, -0.38, 0))
 
 
 ## После сглаживания (game._smooth_cam тянет камеру с упреждением) — если всё же въехала в постройку, вытолкнуть к герою.
@@ -380,23 +384,31 @@ func clamp_cam(cam: Camera3D) -> void:
 			return
 
 
-func _cam_in(q: Vector3) -> bool:
+## over — не считать преграды ниже этой высоты (камера и так над ними).
+func _cam_in(q: Vector3, over := -1.0) -> bool:
 	for b in d.get("cam_block", []):
+		var top := float(b[4]) if b.size() > 4 else 99.0
+		if top < over:
+			continue
 		if q.x > float(b[0]) - 0.12 and q.x < float(b[2]) + 0.12 and q.z > float(b[1]) - 0.12 and q.z < float(b[3]) + 0.12 \
-				and q.y < (float(b[4]) if b.size() > 4 else 99.0):
+				and q.y < top:
 			return true
 	return false
 
 
 ## Камера не заходит в постройки: идём от головы героя к камере, пока не упрёмся; совсем тесно — выше, над плечом.
+## Низкое (машина ниже камеры) не мешает: камера и так над ним и смотрит поверх — раньше у бока машины
+## она прыгала над головой Ноя и смотрела в снег (видео главы 1, 3 ноя).
 func _cam_clear(head: Vector3, eye: Vector3) -> Vector3:
+	_tight = false
 	var last := head
 	for i in range(1, 25):
 		var q := head.lerp(eye, i / 24.0)
-		if _cam_in(q):
+		if _cam_in(q, eye.y - 0.1):
 			if head.distance_to(last) > 1.0:
 				return last
-			return head.lerp(eye, 0.3) + Vector3(0, 0.75, 0)
+			_tight = true
+			return head.lerp(eye, 0.3) + Vector3(0, 0.5, 0)
 		last = q
 	return eye
 
