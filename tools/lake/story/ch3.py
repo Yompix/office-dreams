@@ -466,6 +466,11 @@ DATA = {
 }
 
 if __name__ == '__main__':
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import ch3_walk, vokeys   # прогулки «бензин у Петра» и «дом Агнес ночью» (мастер-промпт, 3 ноя); ключи голоса в них
+    ch3_walk.apply(DATA)
+    vokeys.assign(DATA)
     json.dump(DATA, open(OUT, 'w'), ensure_ascii=False, indent=1)
     open(OUT, 'a').write('\n')
     says = sum(1 for s in SC.values() for b in s['beats'] if 'say' in b)

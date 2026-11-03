@@ -54,7 +54,7 @@ static func cast(g) -> Array:
 
 
 static func baby_holder(g) -> String:
-	return "eva" if has(g, "eva") and (g.actors.eva as Actor).visible else "iris"
+	return "eva" if has(g, "eva") and (g.actors.eva as Actor).visible and not on(g, "eva_dead") else "iris"
 
 
 static func baby(g) -> void:

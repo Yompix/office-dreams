@@ -303,6 +303,11 @@ static func fx(g, k: String) -> bool:
 			g.sfx.play("glass_shatter", -14.0, 0.9)
 		"generator":   # генератор завёлся — свет
 			canister(g, false)
+			car_tracks(g, false)   # колею уже замело (из окна ночью её не видно)
+			var gf = c3.get("gen_fill")
+			if gf and is_instance_valid(gf):
+				(gf as Node).queue_free()
+			c3.erase("gen_fill")
 			in_house(g)
 			c3["dark"] = false
 			village(g).set_power(true)
@@ -519,6 +524,42 @@ static func fx(g, k: String) -> bool:
 		"knock":
 			for i in 3:
 				g.sfx.play("knock", -6.0, 1.0, 0.9 + float(i) * 0.55)
+		# ------------------------------------------------ бензин: прогулка c3v (Ной сам — к магазину), обратно бегом
+		"noah_out":   # Ной один выходит в буран: за калиткой Агнес; на улице — чужая колея к лесу
+			village(g).set_power(false)
+			put(g, "noah", Vector3(-4.2, 0.0, -45.0), 90.0, "Idle")
+			s.road.snow.amount = 5200 if s.pc else 2400
+			s.env.fog_density = 0.035
+			g._blizzard = true
+			g.sfx.play("hum_ring", -14.0, 0.8)
+			car_tracks(g, true)
+		"window_candle":   # огонёк свечи за окном дома напротив: кто-то смотрит из-за занавески
+			candle_window(g, true)
+		"window_candle_off":
+			candle_window(g, false)
+		"car_tracks":
+			car_tracks(g, true)
+		"gas_run":   # обратно — бегом, с канистрой, по левой стороне улицы (мимо их машины)
+			canister(g, true)
+			put(g, "noah", Vector3(-0.5, 0.0, -30.5), -174.0, "Jog_Fwd")
+			g._walk({"who": "noah", "to": [-1.5, 0.0, -40.5], "speed": 3.0, "clip": "Jog_Fwd", "then": "Idle"})
+		"shed_gen":   # у сарая: генератор, Ной на корточках льёт бензин
+			shed_generator(g)
+			put(g, "noah", Vector3(-15.7, 0.0, -50.7), -117.0, "Crouch_Idle")
+			canister(g, true)
+		# ------------------------------------------------ дом Агнес ночью: прогулка c3h, потом разговор у печи
+		"house_walk":   # все спят; Агнес с трубкой у печи; Ной на ногах
+			fx(g, "night_stove")
+			put(g, "noah", ag(1.25, 0.0, -0.3), -110.0, "Idle")
+		"radio_static":   # приёмник: треск и сводка, потом Ной выключает
+			var vr := village(g)
+			vr.radio_glow(true)
+			g.sfx.play("static_burst", -14.0, 0.9)
+			g.sfx.play("radio_hiss", -18.0, 1.0)
+			g.get_tree().create_timer(3.4, false).timeout.connect(func():
+				if is_instance_valid(vr):
+					vr.radio_glow(false)
+				g.sfx.play("radio_off", -12.0))
 		"neighbor":   # задами, огородами — к соседке
 			for kk in g.actors:
 				(g.actors[kk] as Actor).visible = true
@@ -731,13 +772,16 @@ static func _house_sleepers(g) -> void:
 	if has(g, "eva"):
 		lie(g, "eva", ag(EVA_BED.x, EVA_BED.y, EVA_BED.z), -90.0)
 		g._expr({"who": "eva", "set": "sleep"})
-		if on(g, "baby"):
-			baby(g, "eva")
+		if on(g, "baby"):   # умерла родами — малышка у Айрис (раньше свёрток клали на грудь умершей)
+			baby(g, "iris" if on(g, "eva_dead") else "eva")
 	elif on(g, "baby"):   # Евы нет — младенец у Айрис (как в игре после «eva_dies»; после загрузки его не было)
 		baby(g, "iris")
 	for k in ["iris", "zoe"]:
 		if has(g, k):
 			Ch2.sit(g, k, ag(2.9 if k == "iris" else 1.9, 0.47, 1.6 if k == "iris" else 2.9), -90.0 if k == "iris" else 180.0)
+	if g._scene_id.begins_with("c3_s4") and has(g, "danny") and not on(g, "danny_lost"):   # Дэнни спит на печи (не у трубы)
+		lie(g, "danny", ag(-1.55, 1.95, -2.35), 0.0)
+		g._expr({"who": "danny", "set": "sleep"})
 	a.visible = true
 
 
@@ -750,6 +794,97 @@ static func baby(g, who: String) -> void:
 	if not has(g, who):
 		return
 	g.c3["baby"] = BABY.attach(g.actors[who])
+
+
+## Свежая колея на улице (чужая машина проехала к лесу): две полосы на снегу; false — замело.
+static func car_tracks(g, show: bool) -> void:
+	var old = g.c3.get("car_tracks")
+	if old and is_instance_valid(old):
+		(old as Node).queue_free()
+	g.c3.erase("car_tracks")
+	if not show:
+		return
+	var root := Node3D.new()
+	village(g).add_child(root)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.5, 0.55, 0.64)
+	mat.roughness = 1.0
+	for x in [-1.2, 0.3]:
+		var mi := MeshInstance3D.new()
+		var pm := PlaneMesh.new()
+		pm.size = Vector2(0.3, 46.0)
+		mi.mesh = pm
+		mi.material_override = mat
+		mi.position = Vector3(x, 0.013, -41.0)
+		root.add_child(mi)
+	g.c3["car_tracks"] = root
+
+
+## Огонёк свечи за окном дома напротив Агнес (h4, окно на улицу): кто-то смотрит из-за занавески; false — гаснет.
+static func candle_window(g, on: bool) -> void:
+	var old = g.c3.get("candle_win")
+	if not on:
+		if old and is_instance_valid(old):
+			var tw: Tween = g.create_tween()
+			tw.tween_property(old, "light_energy", 0.0, 0.5)
+			tw.tween_callback((old as Node).queue_free)
+		g.c3.erase("candle_win")
+		return
+	if old and is_instance_valid(old):
+		return
+	var l := OmniLight3D.new()
+	l.light_color = Color(1.0, 0.7, 0.38)
+	l.light_energy = 1.1
+	l.omni_range = 2.4
+	l.position = Vector3(8.45, 1.6, -50.0)
+	village(g).add_child(l)
+	var fl := MeshInstance3D.new()   # язычок пламени за стеклом
+	var qm := QuadMesh.new()
+	qm.size = Vector2(0.03, 0.06)
+	fl.mesh = qm
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(1.0, 0.8, 0.45)
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	fl.material_override = m
+	fl.position = Vector3(-0.12, -0.05, 0.0)
+	l.add_child(fl)
+	g.c3["candle_win"] = l
+
+
+## Генератор у двери сарая (бензиновый, на раме): бак, мотор, ручка стартера; отсвет снега, чтобы ночью было видно.
+static func shed_generator(g) -> void:
+	var v := village(g)
+	var old = g.c3.get("gen")
+	if old and is_instance_valid(old):
+		return
+	var root := Node3D.new()
+	v.add_child(root)
+	root.position = Vector3(-16.3, 0.0, -51.0)
+	root.rotation_degrees.y = 90.0
+	for p in [[Vector3(0.62, 0.04, 0.44), Vector3(0, 0.02, 0), Color(0.08, 0.08, 0.08), 0.5],      # рама
+			[Vector3(0.44, 0.3, 0.32), Vector3(-0.04, 0.21, 0), Color(0.24, 0.25, 0.26), 0.55],   # мотор
+			[Vector3(0.5, 0.2, 0.34), Vector3(0, 0.46, 0), Color(0.62, 0.1, 0.06), 0.35],         # бак
+			[Vector3(0.06, 0.05, 0.06), Vector3(0.12, 0.58, 0.0), Color(0.1, 0.1, 0.1), 0.4],     # крышка бака
+			[Vector3(0.05, 0.08, 0.08), Vector3(0.24, 0.24, 0.1), Color(0.1, 0.1, 0.1), 0.4]]:    # ручка стартера
+		var mi := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = p[0]
+		mi.mesh = bm
+		var m := StandardMaterial3D.new()
+		m.albedo_color = p[2]
+		m.roughness = p[3]
+		mi.material_override = m
+		mi.position = p[1]
+		root.add_child(mi)
+	g.c3["gen"] = root
+	var fill := OmniLight3D.new()
+	fill.light_color = Color(0.62, 0.7, 0.9)
+	fill.light_energy = 0.35
+	fill.omni_range = 5.0
+	fill.position = Vector3(-14.6, 2.2, -49.4)
+	v.add_child(fill)
+	g.c3["gen_fill"] = fill
 
 
 ## Мамин дневник — раскрытая тетрадь в руках Айрис (строчки — тёмные полоски).

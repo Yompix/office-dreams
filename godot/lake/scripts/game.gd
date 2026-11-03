@@ -21,6 +21,7 @@ var _steer_in := 0.0
 var _qte := ""
 var _qte_ok := true
 var _qte_drift := 0.0
+var _tune_lock := 0.0          # «поймать волну» (действие tune): сколько секунд стрелка простояла на станции
 var _qte_n := 10              # сколько нажатий нужно (действия mash, press и rock)
 var _qte_sfx := ""            # звук на каждое нажатие (поле "sfx" действия в данных); пусто — по виду действия
 var _qte_gap := 0.7           # rock: не чаще одного нажатия за столько секунд (укачать — медленно, в ритм)
@@ -192,6 +193,10 @@ func _ready() -> void:
 	if "--station" in args:   # проверка заправки: --station --shots st_wide,st_counter
 		scene.park_at_station(lang)
 	if "--shots" in args:   # проверка планов: каждый план — снимок, без сценария: --shots pov,hands,iris --snapdir папка
+		if "--fx" in args:   # сначала постановка глав: --scene c2_s4 --fx cafe,iris_eva --shots iris_window_eva (кафе строит только fx cafe)
+			_scene_id = start   # события глав срабатывают только в своей главе (по имени сцены)
+			for k in String(args[args.find("--fx") + 1]).split(","):
+				_fx(k)
 		_shots(String(args[args.find("--shots") + 1]).split(","), args[args.find("--snapdir") + 1] if "--snapdir" in args else "user://")
 		return
 	if "--walktest" in args and ResourceLoader.exists("res://scripts/dev/walk_test.gd"):
@@ -507,8 +512,16 @@ func _beat(b: Dictionary):
 func _shots(list: Array, dir: String) -> void:
 	hud.fade.color.a = 0.0
 	await _wait(1.0)
+	var n := 0
 	for sh in list:
-		_cut(String(sh))
+		n += 1
+		if String(sh).begins_with("@"):   # свой план: @x:y:z:куда_x:куда_y:куда_z:угол (точки прогулок)
+			var v := Array(String(sh).substr(1).split(":")).map(func(x): return float(x))
+			_cam_free = [[v[0], v[1], v[2]], [v[3], v[4], v[5]], v[6]]
+			_cut("free")
+			sh = "free%d" % n
+		else:
+			_cut(String(sh))
 		await _wait(0.6)
 		get_viewport().get_texture().get_image().save_png("%s/shot_%s.png" % [dir, sh])
 		if sh == "st_tv" and scene.props.has("news"):   # кадр новостей целиком — проверить надписи
@@ -1364,6 +1377,8 @@ func _sound(delta: float) -> void:
 	else:
 		# мотор: в салоне — всегда; снаружи — только пока машина едет (стоящая машина больше не гудит из ниоткуда)
 		car = lerpf(-16.0, -3.0, k) if inside else (lerpf(-30.0, -14.0, k) if k > 0.03 and not indoor else off)
+		if c2.get("engine_off", false):   # буран: Ной заглушил мотор — в салоне только ветер
+			car = off
 		forest = -22.0 if inside else (-25.0 if indoor else -5.0)
 		if _blizzard:
 			bliz = -9.0 if inside else (-15.0 if indoor else -3.0)
@@ -1442,9 +1457,10 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 		_miss.append(kind)
 		_qte_missin = kind
 	_qte = kind
-	_qte_ok = kind not in ["mash", "press", "rock"]   # жать: удалось, только если набрали нужное число нажатий
+	_qte_ok = kind not in ["mash", "press", "rock", "tune"]   # жать / ловить волну: удалось, только если дожали / поймали
 	_qte_got = 0
-	_qte_drift = 0.0
+	_qte_drift = 0.85 if kind == "tune" else 0.0   # волну начинаем искать в стороне от станции
+	_tune_lock = 0.0
 	_brake_armed = false
 	var left := t
 	var got := 0
@@ -1508,6 +1524,23 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 					sfx.play(qs, -14.0 if qs == "snow_steps" else -20.0, randf_range(0.9, 1.15), 0.0, 0.3 if qs == "snow_steps" else 0.0)
 			hud.hint.text = "%s   %s" % [hint0, "■".repeat(mini(got, _qte_n)) + "□".repeat(maxi(0, _qte_n - got))]
 			if got >= _qte_n:
+				_qte_ok = true
+				break
+			continue
+		if kind == "tune":   # поймать волну: стрелку уводит то влево, то вправо; игрок держит её на станции (A / D) — 1,5 с подряд
+			var push_t := sin(_t * 0.9) * 0.55 + sin(_t * 2.3 + 1.0) * 0.35
+			var inp_t := _steer_in if not autoplay else (0.0 if "tune" in _miss else clampf(-_qte_drift * 2.6 - push_t / 1.6, -1.0, 1.0))
+			_qte_drift = clampf(_qte_drift + (push_t * 0.6 + inp_t * 1.6) * dt, -1.0, 1.0)
+			_tune_lock = (_tune_lock + dt) if absf(_qte_drift) < 0.16 else maxf(0.0, _tune_lock - dt * 0.5)
+			if is_instance_valid(scene.car):
+				scene.car.radio_display("FM %.1f" % (104.7 + _qte_drift * 4.0))
+			var cells := 21
+			var pos := int(round((_qte_drift + 1.0) * 0.5 * float(cells - 1)))
+			var bar := ""
+			for i in cells:
+				bar += "◆" if i == pos else ("┃" if i == cells / 2 else "─")
+			hud.hint.text = "%s   %s   %s" % [hint0, bar, "■".repeat(mini(5, int(_tune_lock / 0.3))) + "□".repeat(maxi(0, 5 - int(_tune_lock / 0.3)))]
+			if _tune_lock >= 1.5:
 				_qte_ok = true
 				break
 			continue

@@ -2086,19 +2086,22 @@
           "say": "noah",
           "ru": "Ты маму помнишь?",
           "en": "Do you remember Mom?",
-          "shot": "noah"
+          "shot": "noah",
+          "vo": "s7_talk_ae0a46a"
          },
          {
           "say": "iris",
           "ru": "Немножко. Руки. …А ты?",
           "en": "A little. Her hands. …You?",
-          "shot": "iris"
+          "shot": "iris",
+          "vo": "s7_talk_a089597"
          },
          {
           "say": "noah",
           "ru": "Воду. Почему-то всегда воду.",
           "en": "Water. For some reason, always water.",
-          "shot": "noah"
+          "shot": "noah",
+          "vo": "s7_talk_a3bc038"
          },
          {
           "note": {
@@ -2119,25 +2122,29 @@
           "say": "noah",
           "ru": "Что там, на севере?",
           "en": "What’s up north?",
-          "shot": "noah"
+          "shot": "noah",
+          "vo": "s7_talk_a9d3a10"
          },
          {
           "say": "iris",
           "ru": "Там нас никто не ищет.",
           "en": "No one’s looking for us there.",
-          "shot": "iris"
+          "shot": "iris",
+          "vo": "s7_talk_a978b90"
          },
          {
           "say": "noah",
           "ru": "Это не ответ.",
           "en": "That’s not an answer.",
-          "shot": "noah"
+          "shot": "noah",
+          "vo": "s7_talk_ae86bae"
          },
          {
           "say": "iris",
           "ru": "Другого пока нет.",
           "en": "It’s the only one I’ve got.",
-          "shot": "iris"
+          "shot": "iris",
+          "vo": "s7_talk_ab7bd9b"
          }
         ]
        },
@@ -2149,7 +2156,8 @@
           "say": "noah",
           "ru": "Айрис… что было дома?",
           "en": "Iris… what happened at home?",
-          "shot": "noah"
+          "shot": "noah",
+          "vo": "s7_talk_a409e09"
          },
          {
           "say": "iris",
@@ -2158,13 +2166,15 @@
           "shot": "iris",
           "if": {
            "asked": ">0"
-          }
+          },
+          "vo": "s7_talk_a805a24"
          },
          {
           "say": "iris",
           "ru": "Не сейчас. Пожалуйста.",
           "en": "Not now. Please.",
-          "shot": "iris"
+          "shot": "iris",
+          "vo": "s7_talk_a2960c7"
          },
          {
           "note": {
@@ -2195,13 +2205,15 @@
           "say": "noah",
           "ru": "Что мы будем с ним делать?",
           "en": "What are we going to do with him?",
-          "shot": "noah"
+          "shot": "noah",
+          "vo": "s7_talk_a0b0dad"
          },
          {
           "say": "iris",
           "ru": "Не знаю. Но не бросим.",
           "en": "I don’t know. But we’re not leaving him.",
-          "shot": "iris"
+          "shot": "iris",
+          "vo": "s7_talk_a257470"
          },
          {
           "say": "danny",
@@ -2210,7 +2222,8 @@
           "shot": "back",
           "if": {
            "lapse1": "==0"
-          }
+          },
+          "vo": "s7_talk_ac739fc"
          },
          {
           "say": "danny",
@@ -2220,7 +2233,8 @@
           "if": {
            "lapse1": "==0",
            "choco_given": ">0"
-          }
+          },
+          "vo": "s7_talk_ae80c23"
          },
          {
           "say": "iris",
@@ -2234,7 +2248,8 @@
           "if": {
            "lapse1": "==0",
            "choco_given": ">0"
-          }
+          },
+          "vo": "s7_talk_a15958b"
          },
          {
           "note": {
@@ -2266,7 +2281,8 @@
           "shot": "noah",
           "if": {
            "pills": ">0"
-          }
+          },
+          "vo": "s7_talk_af344a6"
          },
          {
           "say": "iris",
@@ -2275,7 +2291,8 @@
           "shot": "iris",
           "if": {
            "pills": ">0"
-          }
+          },
+          "vo": "s7_talk_acf7440"
          },
          {
           "say": "noah",
@@ -2285,7 +2302,8 @@
           "if": {
            "pills": "==0",
            "threw": ">0"
-          }
+          },
+          "vo": "s7_talk_a428bc4"
          },
          {
           "say": "noah",
@@ -2295,7 +2313,8 @@
           "if": {
            "pills": "==0",
            "threw": "==0"
-          }
+          },
+          "vo": "s7_talk_a9d9131"
          },
          {
           "say": "iris",
@@ -2305,7 +2324,8 @@
           "if": {
            "pills": "==0",
            "lapse1": "==0"
-          }
+          },
+          "vo": "s7_talk_a0b7989"
          },
          {
           "say": "iris",
@@ -2315,7 +2335,8 @@
           "if": {
            "pills": "==0",
            "lapse1": ">0"
-          }
+          },
+          "vo": "s7_talk_ad678cd"
          }
         ]
        },
@@ -3514,12 +3535,14 @@
        "look": {
         "who": "iris",
         "at": "noah"
-       }
+       },
+       "vo": "st24_iris_b94330"
       },
       {
        "say": "iris",
        "ru": "Нормально.",
-       "en": "Fine."
+       "en": "Fine.",
+       "vo": "st24_iris_c6d8a0"
       },
       {
        "note": {
@@ -3534,7 +3557,8 @@
        "en": "Go pay. I’ll sit with him.",
        "if": {
         "trust": ">=2"
-       }
+       },
+       "vo": "st24_iris_01aa08"
       },
       {
        "say": "iris",
@@ -3542,7 +3566,8 @@
        "en": "Pay and come straight back. Don’t talk to anyone.",
        "if": {
         "trust": "<2"
-       }
+       },
+       "vo": "st24_iris_f14539"
       },
       {
        "say": "iris",
@@ -3550,7 +3575,8 @@
        "en": "Your head again?",
        "if": {
         "pills": "==0"
-       }
+       },
+       "vo": "st24_iris_4bcb2f"
       },
       {
        "say": "noah",
@@ -3558,7 +3584,8 @@
        "en": "It’ll pass.",
        "if": {
         "pills": "==0"
-       }
+       },
+       "vo": "st24_iris_a5949a"
       },
       {
        "look": {
@@ -3636,7 +3663,8 @@
        "if": {
         "washed": "==0",
         "danny_hands": "==0"
-       }
+       },
+       "vo": "st24_danny_166a7b"
       },
       {
        "note": {
@@ -3662,17 +3690,20 @@
          {
           "say": "noah",
           "ru": "Как тебя зовут?",
-          "en": "What’s your name?"
+          "en": "What’s your name?",
+          "vo": "st24_danny_44069d"
          },
          {
           "say": "danny",
           "ru": "Дэнни. А ты?",
-          "en": "Danny. You?"
+          "en": "Danny. You?",
+          "vo": "st24_danny_7459f4"
          },
          {
           "say": "noah",
           "ru": "Ной.",
-          "en": "Noah."
+          "en": "Noah.",
+          "vo": "st24_danny_290e2c"
          },
          {
           "say": "danny",
@@ -3680,7 +3711,8 @@
           "en": "Like in the book. With the boat and the animals.",
           "set": {
            "danny_name": 1
-          }
+          },
+          "vo": "st24_danny_6d7b36"
          }
         ]
        },
@@ -3691,12 +3723,14 @@
          {
           "say": "noah",
           "ru": "Что за рация?",
-          "en": "What’s the walkie-talkie for?"
+          "en": "What’s the walkie-talkie for?",
+          "vo": "st24_danny_695eb7"
          },
          {
           "say": "danny",
           "ru": "Вторая у мамы. Она сказала: если что — нажми и говори.",
-          "en": "Mom has the other one. She said: if anything happens, push and talk."
+          "en": "Mom has the other one. She said: if anything happens, push and talk.",
+          "vo": "st24_danny_a14e3e"
          },
          {
           "note": {
@@ -3709,7 +3743,8 @@
          {
           "say": "danny",
           "ru": "Мама. Приём…",
-          "en": "Mom. Over…"
+          "en": "Mom. Over…",
+          "vo": "st24_danny_15f3e9"
          },
          {
           "dur": 1.2
@@ -3717,7 +3752,8 @@
          {
           "say": "danny",
           "ru": "Она всегда сначала не отвечает.",
-          "en": "She never answers the first time."
+          "en": "She never answers the first time.",
+          "vo": "st24_danny_ea28f7"
          }
         ]
        },
@@ -3728,12 +3764,14 @@
          {
           "say": "noah",
           "ru": "Где твоя мама?",
-          "en": "Where’s your mom?"
+          "en": "Where’s your mom?",
+          "vo": "st24_danny_382fc6"
          },
          {
           "say": "danny",
           "ru": "Сказала: жди тут, я быстро.",
-          "en": "She said: wait here, I’ll be quick."
+          "en": "She said: wait here, I’ll be quick.",
+          "vo": "st24_danny_5fd011"
          },
          {
           "note": {
@@ -3757,7 +3795,8 @@
           "look": {
            "who": "danny",
            "at": "noah"
-          }
+          },
+          "vo": "st24_danny_d0b759"
          }
         ]
        },
@@ -3771,7 +3810,8 @@
          {
           "say": "noah",
           "ru": "Держи.",
-          "en": "Here."
+          "en": "Here.",
+          "vo": "st24_danny_eb6e69"
          },
          {
           "note": {
@@ -3795,7 +3835,8 @@
          {
           "say": "noah",
           "ru": "Укройся.",
-          "en": "Wrap up."
+          "en": "Wrap up.",
+          "vo": "st24_danny_6279ab"
          },
          {
           "note": {
@@ -3820,7 +3861,8 @@
           "en": "Are you leaving?",
           "if": {
            "danny_bye": "==0"
-          }
+          },
+          "vo": "st24_danny_b652b1"
          },
          {
           "say": "noah",
@@ -3831,7 +3873,8 @@
           },
           "if": {
            "danny_bye": "==0"
-          }
+          },
+          "vo": "st24_danny_396728"
          }
         ]
        }
@@ -3872,7 +3915,8 @@
       {
        "say": "iris",
        "ru": "Ной! Не ходи туда.",
-       "en": "Noah! Don’t go over there."
+       "en": "Noah! Don’t go over there.",
+       "vo": "st24_z0_0514cb"
       }
      ]
     }
@@ -3883,7 +3927,8 @@
      {
       "say": "iris",
       "ru": "Ной. Нам надо ехать.",
-      "en": "Noah. We need to go."
+      "en": "Noah. We need to go.",
+      "vo": "st24_nudge_e40c7f"
      }
     ]
    },

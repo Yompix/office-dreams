@@ -91,6 +91,14 @@ static func restore(g, id: String) -> void:
 		return
 	g.scene.set_daylight("dawn")
 	seat_all(g)
+	if id.begins_with("c2_storm") or id == "c2_s6_road":   # буран на боковой дороге
+		g._blizzard = true
+		g.scene.road.snow.amount = 7000 if g.scene.pc else 3200
+		g.scene.env.fog_density = 0.075
+		if id.begins_with("c2_storm") and id != "c2_storm":
+			drift(g, 0.55)
+		if id.begins_with("c2_storm_") and id not in ["c2_storm_slip", "c2_storm_wait", "c2_storm_end"]:
+			frost(g, true)   # загрузились посреди бурана: мотор уже глушили — стёкла в инее
 
 
 static func fx(g, k: String) -> bool:
@@ -123,7 +131,7 @@ static func fx(g, k: String) -> bool:
 			z.breeze = 1.0
 			c2["zoe_bracelet"] = false
 			# к ~16 м от неё — шагом (пока Ной решает, она остаётся впереди)
-			var tw: Tween = g.create_tween().set_parallel()
+			var tw: Tween = _speed_tw(g)
 			tw.tween_property(s.road, "speed", 1.5, 2.2)
 			tw.tween_property(s.car, "speed", 1.5, 2.2)
 		"zoe_pass":   # газ: она остаётся позади и показывает вслед средний палец
@@ -330,7 +338,13 @@ static func fx(g, k: String) -> bool:
 			tr.lights(true)
 			tr.hazard = true
 			c2["truck"] = tr
-			stop_in(g, 28.0, 4.0)
+			# встать перед ближним краем фуры, а не перед кабиной: сложенный прицеп (13 м) торчит назад, к нам, — машина
+			# вставала «в 12 м от кабины» прямо внутри прицепа (план «Ной» после кафе — чёрный кадр: камера в кузове)
+			var near_z := -40.0
+			for mi in tr.find_children("*", "MeshInstance3D", true, false):
+				var bb: AABB = (mi as MeshInstance3D).global_transform * (mi as MeshInstance3D).get_aabb()
+				near_z = maxf(near_z, bb.end.z)
+			stop_in(g, maxf(6.0, -near_z - 2.3 - 7.0), 4.0)   # нос машины (z −2,3) — в 7 м от края
 			g.sfx.play("brake_squeal", -14.0, 0.9, 1.0)
 		"side_road":   # направо, на боковую: указатель засыпан снегом наполовину
 			var tw: Tween = g.create_tween()
@@ -357,14 +371,272 @@ static func fx(g, k: String) -> bool:
 				bc.add_child(ol)
 			bc.speed = s.road.speed
 			c2["follower"] = bc
+		# ------------------------------------------------ кафе: прогулка после туалета (data/ch2.json → explore "c3p")
+		"cafe_walk":   # из туалета — в зал: зеркало и пузырёк убраны, Зоя курит на крыльце, Ной стоит в двери туалета
+			pill_bottle(g, false)
+			reflection(g, 0.0)
+			wc_mirror(g, false)
+			if on(g, "zoe") and not on(g, "zoe_gone"):
+				actor(g, "zoe")
+				g._place({"who": "zoe", "at": [20.2, CF, -9.15], "face": -60, "clip": "Idle_Rail"})
+				cigarette(g, true)
+			(g.actors.noah as Actor).look_target = null
+		"tv_off":   # Ной выключает телевизор с новостями (на экране — его фото)
+			var tv = s.props.get("news")
+			if tv and is_instance_valid(tv):
+				(tv as NewsTV).power(false)
+			g.sfx.play("ui_click", -6.0, 0.7)
+		"tv_weather":   # «Оставить»: фото Ноя висит ещё пару секунд, потом — карта погоды
+			var tvw = s.props.get("news")
+			if tvw and is_instance_valid(tvw):
+				g.get_tree().create_timer(2.0, false).timeout.connect(func():
+					if is_instance_valid(tvw):
+						(tvw as NewsTV).weather(true))
+		"noah_sit_cafe":   # назад за свой стол
+			sit(g, "noah", Vector3(22.9, CF + 0.42, -3.38), 0.0)
+		"zoe_coffee":   # кружка кофе у Зои в руках (Ной принёс со стойки)
+			if g.actors.has("zoe"):
+				mug(g, g.actors.zoe as Actor)
+		# ------------------------------------------------ буран на боковой дороге (сцены c2_storm…, прогулка "storm")
+		"storm_white":   # белая мгла: снег гуще, видно на пару шагов; машина ползёт
+			s.env.fog_density = 0.075
+			s.road.snow.amount = 7000 if s.pc else 3200
+			g._blizzard = true
+			drive(g, 5.0, 2.5)
+		"storm_stop":
+			stop_in(g, 2.5, 2.0)
+			drift(g, 0.55)
+		"storm_slip":   # порыв: заднюю часть заносит в сугроб у обочины
+			g.sfx.play("skid", -4.0)
+			var tw2: Tween = g.create_tween()
+			tw2.tween_property(s.car, "steer", -0.9, 0.25)
+			tw2.tween_property(s.car, "steer", 0.6, 0.35)
+			tw2.tween_property(s.car, "steer", 0.0, 0.5)
+			stop_in(g, 1.5, 1.2)
+			drift(g, 1.0)
+			g._shake = 0.4
+		"storm_wait":
+			pass
+		"storm_drowsy":   # угар: в глазах темнеет и отпускает
+			var fd: ColorRect = g.hud.fade
+			var tw3: Tween = g.create_tween()
+			tw3.tween_property(fd, "color:a", 0.35, 1.2)
+			tw3.tween_property(fd, "color:a", 0.0, 1.4)
+		"engine_off":
+			c2["engine_off"] = true
+			g.sfx.play("radio_off", -12.0, 0.6)
+			frost(g, true, 8.0)
+		"iris_glass":   # Айрис повернулась к окну и пишет пальцем по стеклу изнутри
+			if g.actors.has("iris"):
+				var ir: Actor = g.actors.iris
+				ir.look_target = g._target("noah")
+				ir.reach = {"_r": s.car.to_global(Vector3(0.76, 1.13, 0.16))}
+		"iris_glass_off":
+			if g.actors.has("iris"):
+				(g.actors.iris as Actor).reach = {}
+		"storm_out":   # Ной выходит в метель; мгла гуще; остальные — в машине
+			g.sfx.play("car_door", -4.0)
+			s.env.fog_density = 0.13
+			g._place({"who": "noah", "at": [-1.55, 0.0, 0.35], "face": -120, "clip": "Idle"})
+			for k2 in g.actors:
+				(g.actors[k2] as Actor).look_target = null
+		"storm_lights":
+			g.sfx.play("snow_steps", -12.0, 1.1, 0.0, 0.6)
+		"storm_name":   # Айрис пишет пальцем на стекле изнутри; снаружи буквы задом наперёд
+			name_on_glass(g)
+		"storm_dig":
+			g._place({"who": "noah", "at": [0.6, 0.0, 3.15], "face": 180, "clip": "Crouch_Idle"})
+		"storm_dug":   # труба свободна: сугроб сзади осел, видно чёрный кружок
+			var dr = c2.get("drift")
+			if dr and is_instance_valid(dr):
+				var tw4: Tween = g.create_tween()
+				tw4.tween_property(dr, "scale", (dr as Node3D).scale * Vector3(1.0, 0.35, 0.6), 0.8)
+			g.sfx.play("snow_steps", -10.0, 0.8, 0.0, 0.8)
+		"storm_inside":
+			pass
+		"eva_ring":
+			if g.actors.has("eva"):
+				(g.actors.eva as Actor).look_target = null
+		"storm_in":   # Ной снова за рулём, весь в снегу
+			g.sfx.play("car_door", -4.0)
+			s.env.fog_density = 0.075
+			g._place({"who": "noah", "car": "driver"})
+			var lb = c2.get("glass_name")
+			if lb and is_instance_valid(lb):
+				(lb as Node3D).queue_free()
+		"iris_rubs":
+			if g.actors.has("iris"):
+				(g.actors.iris as Actor).look_target = g._target("noah")
+		"engine_on":
+			c2["engine_off"] = false
+			g.sfx.play("engine_start", -6.0, 0.95, 0.4)
+		"radio_tune":   # радио включено, частота гуляет; дальше действие tune — поймать волну
+			g._radio = true
+			g.sfx.play("radio_on", -6.0)
+			s.car.radio_display("FM 100.9")
+		"radio_report":
+			s.car.radio_display("FM 104.7")
+		"radio_off_storm":
+			if g._radio:
+				g.sfx.play("radio_off", -6.0)
+			g._radio = false
+			s.car.radio_display("")
+		"storm_go":   # мгла редеет; ползём дальше; печка отогрела стёкла
+			s.env.fog_density = 0.04
+			frost(g, false, 5.0)
+			var dr2 = c2.get("drift")
+			if dr2 and is_instance_valid(dr2):
+				(dr2 as Node3D).queue_free()
+			drive(g, 8.0, 3.0)
 		_:
 			return false
 	return true
 
 
+## Кружка кофе в правой руке героя (Зоя на крыльце).
+static func mug(g, a: Actor) -> void:
+	if a.has_meta("mug"):
+		return
+	var ba := BoneAttachment3D.new()
+	ba.bone_name = "hand_r"
+	a.skel.add_child(ba)
+	var w := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.042
+	cm.bottom_radius = 0.038
+	cm.height = 0.1
+	w.mesh = cm
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.92, 0.9, 0.86)
+	m.roughness = 0.35
+	w.material_override = m
+	w.position = Vector3(0.0, 0.07, 0.05)
+	ba.add_child(w)
+	a.set_meta("mug", true)
+
+
+## Сугроб, который наметает на задний бампер и трубу (k — насколько высокий: 1 — машину занесло задом в обочину).
+static func drift(g, k: float) -> void:
+	var s: DriveScene = g.scene
+	var old = g.c2.get("drift")
+	if old and is_instance_valid(old):
+		(old as Node3D).queue_free()
+	var root := Node3D.new()   # сугроб у заднего бампера — три кома разной высоты (одно гладкое яйцо читалось как пластик)
+	s.car.add_child(root)
+	root.position = Vector3(0.35, -0.1, 2.85)
+	var h := 0.25 + 0.3 * k
+	for lump in [[Vector3.ZERO, Vector3(1.25, h, 0.75), 0.0], [Vector3(0.62, -0.04, -0.16), Vector3(0.72, h * 0.8, 0.55), 25.0],
+			[Vector3(-0.66, -0.05, 0.12), Vector3(0.82, h * 0.7, 0.62), -18.0]]:
+		var mi := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = 1.0
+		sm.height = 2.0
+		sm.radial_segments = 24
+		sm.rings = 12
+		mi.mesh = sm
+		mi.material_override = snow_mat()
+		root.add_child(mi)
+		mi.position = lump[0]
+		mi.scale = lump[1]
+		mi.rotation_degrees.y = float(lump[2])
+	g.c2["drift"] = root
+	if not g.c2.has("pipe"):   # выхлопная труба сзади справа — её и заметает
+		var pi := MeshInstance3D.new()
+		var cy := CylinderMesh.new()
+		cy.top_radius = 0.028
+		cy.bottom_radius = 0.028
+		cy.height = 0.22
+		pi.mesh = cy
+		var pm := StandardMaterial3D.new()
+		pm.albedo_color = Color(0.08, 0.08, 0.08)
+		pm.roughness = 0.6
+		pm.metallic = 0.6
+		pi.material_override = pm
+		s.car.add_child(pi)
+		pi.position = Vector3(0.55, 0.28, 2.38)
+		pi.rotation_degrees = Vector3(90, 0, 0)
+		g.c2["pipe"] = pi
+
+
+static var _snow_m: StandardMaterial3D
+
+
+## Снег для сугробов: фотоскан Poly Haven (snow_02) — трипланар по миру, цвет как у снега на обочине в сумерках бурана.
+static func snow_mat() -> StandardMaterial3D:
+	if _snow_m:
+		return _snow_m
+	var m := StandardMaterial3D.new()
+	var base := "res://assets/ph/snow_02/snow_02"
+	if ResourceLoader.exists(base + "_diff_1k.jpg"):
+		m.albedo_texture = load(base + "_diff_1k.jpg")
+		m.normal_enabled = true
+		m.normal_texture = load(base + "_nor_gl_1k.jpg")
+		m.normal_scale = 1.4
+		m.roughness_texture = load(base + "_arm_1k.jpg")
+		m.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
+	m.albedo_color = Color(0.78, 0.81, 0.87)
+	m.roughness = 1.0
+	m.uv1_triplanar = true
+	m.uv1_world_triplanar = true
+	m.uv1_scale = Vector3(0.9, 0.9, 0.9)
+	_snow_m = m
+	return m
+
+
+## Стёкла в инее: мотор заглушен — стёкла белеют (снаружи — снег, изнутри — дыхание); false — печка отогрела, как было.
+static func frost(g, on: bool, t := -1.0) -> void:
+	var car: Car = g.scene.car
+	if car.m_glass == null:
+		return
+	if not g.c2.has("glass0"):
+		g.c2["glass0"] = [car.m_glass.albedo_color, car.m_glass.roughness]
+	var c0: Array = g.c2["glass0"]
+	var col: Color = Color(0.8, 0.84, 0.9, 0.6) if on else c0[0]
+	var rough: float = 0.75 if on else float(c0[1])
+	g.c2["frost"] = on
+	if t <= 0.0:
+		car.m_glass.albedo_color = col
+		car.m_glass.roughness = rough
+		return
+	var tw: Tween = g.create_tween().set_parallel()
+	tw.tween_property(car.m_glass, "albedo_color", col, t)
+	tw.tween_property(car.m_glass, "roughness", rough, t)
+
+
+## Имя на запотевшем стекле пассажира: Айрис пишет изнутри — снаружи читается задом наперёд.
+static func name_on_glass(g) -> void:
+	var s: DriveScene = g.scene
+	if g.c2.has("glass_name"):
+		return
+	var lb := Label3D.new()
+	lb.text = "НОЙ" if g.lang == "ru" else "NOAH"
+	lb.font_size = 64
+	lb.pixel_size = 0.0022
+	lb.modulate = Color(0.16, 0.18, 0.22, 0.85)   # палец протёр иней: в буквах темно, как в салоне
+	lb.outline_size = 0
+	lb.double_sided = true
+	lb.shaded = false
+	s.car.add_child(lb)
+	lb.position = Vector3(0.83, 1.12, 0.15)
+	lb.rotation_degrees = Vector3(0, -90, 0)   # лицом внутрь машины: снаружи (справа) буквы зеркальные
+	g.c2["glass_name"] = lb
+
+
+## Скорость дороги и колёс меняет одна анимация: новая останавливает прежнюю. Раньше разгон после кафе (4 с) ещё шёл,
+## когда началось торможение перед фурой, — они тянули скорость в разные стороны, машина не вставала в 12 м от фуры,
+## и фура проезжала сквозь салон (план «Ной»: «У нас есть бабушка?..» — чёрный кадр, вместо лица — днище прицепа).
+static func _speed_tw(g) -> Tween:
+	var old = g.c2.get("speed_tw")
+	if old is Tween and (old as Tween).is_valid():
+		(old as Tween).kill()
+	var tw: Tween = g.create_tween().set_parallel()
+	g.c2["speed_tw"] = tw
+	return tw
+
+
 ## Едем: скорость дороги и колёс плавно к v за t секунд.
 static func drive(g, v: float, t: float) -> void:
-	var tw: Tween = g.create_tween().set_parallel()
+	var tw: Tween = _speed_tw(g)
 	tw.tween_property(g.scene.road, "speed", v, t).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(g.scene.car, "speed", v, t).set_trans(Tween.TRANS_SINE)
 
@@ -373,7 +645,7 @@ static func drive(g, v: float, t: float) -> void:
 static func stop_in(g, d: float, tmax := 3.0) -> float:
 	var s: DriveScene = g.scene
 	var v0: float = s.road.speed
-	var tw: Tween = g.create_tween().set_parallel()
+	var tw: Tween = _speed_tw(g)
 	if d <= 0.05:
 		tw.tween_property(s.road, "speed", 0.0, 0.6)
 		tw.tween_property(s.car, "speed", 0.0, 0.6)
@@ -564,7 +836,7 @@ static func post(g) -> void:
 	cop.play("Idle_Talking", 0.0)
 	var d := 75.0
 	var t := 2.0 * d / maxf(s.road.speed, 0.1)
-	var tw: Tween = g.create_tween().set_parallel()
+	var tw: Tween = _speed_tw(g)
 	tw.tween_property(s.road, "speed", 0.0, t)
 	tw.tween_property(s.car, "speed", 0.0, t)
 
@@ -894,6 +1166,15 @@ static func cam(g, shot: String) -> bool:
 			var lt: Transform3D = (lb as Node3D).global_transform
 			c.fov = 22.0
 			c.look_at_from_position(lt.origin + lt.basis.z.normalized() * 0.2, lt.origin, lt.basis.y.normalized())   # надпись — ровно
+		"storm_side":   # буран, снаружи: Ной у водительской двери, машина тонет в белом
+			var nb: Actor = g.actors.get("noah")
+			if nb == null:
+				return false
+			c.fov = 48.0
+			c.look_at_from_position(s.car.to_global(Vector3(-3.1, 1.55, -1.9)), nb.global_position + Vector3(0, 1.3, 0))
+		"storm_rear":   # буран, сзади низко: сугроб на бампере, труба, руки Ноя
+			c.fov = 46.0
+			c.look_at_from_position(s.car.to_global(Vector3(1.9, 0.95, 4.4)), s.car.to_global(Vector3(0.45, 0.35, 2.55)))
 		_:
 			return false
 	return true

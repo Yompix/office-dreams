@@ -9,16 +9,19 @@ var news: SubViewport
 var screen: MeshInstance3D
 var glow: OmniLight3D
 var ticker: Label
+var wx: Control                                       # прогноз погоды (кафе: «Потом — карта погоды…»), скрыт
 var _t := 0.0
 var _frames := 0
 
 const TEXT := {
 	"ru": {"logo": "НОВОСТИ", "live": "В ЭФИРЕ", "head": "РАЗЫСКИВАЕТСЯ: НОЙ, 19 ЛЕТ",
 		"sub": "Убийство в доме у озера. Может быть опасен. С ним сестра, 15 лет.",
-		"tick": "Если вы видели этого человека — сообщите в полицию  •  Трасса на север: метель, видимость до 50 метров  •  "},
+		"tick": "Если вы видели этого человека — сообщите в полицию  •  Трасса на север: метель, видимость до 50 метров  •  ",
+		"wx": "ПОГОДА", "wx_sub": "МЕТЕЛЬ  •  ВИДИМОСТЬ ДО 50 М"},
 	"en": {"logo": "NEWS", "live": "LIVE", "head": "WANTED: NOAH, 19",
 		"sub": "Lake house killing. May be dangerous. Travelling with his sister, 15.",
-		"tick": "If you have seen this man, contact the police  •  Northbound highway: blizzard, visibility under 50 metres  •  "},
+		"tick": "If you have seen this man, contact the police  •  Northbound highway: blizzard, visibility under 50 metres  •  ",
+		"wx": "WEATHER", "wx_sub": "BLIZZARD  •  VISIBILITY UNDER 50 M"},
 }
 
 
@@ -111,7 +114,32 @@ func build(tv: Node3D, lang: String) -> void:
 	news.add_child(tickbg)
 	ticker = _label(T.tick + T.tick, Vector2(0, 334), 22, mid, Color(1.0, 0.85, 0.3))
 	news.add_child(ticker)
-	# экран поверх кинескопа: по габаритам модели (кинескоп — левые ~62 % лицевой стороны)
+	# карта погоды: область, озеро, над всей областью — белое пятно метели (под бегущей строкой)
+	wx = Control.new()
+	wx.size = Vector2(512, 320)
+	wx.visible = false
+	news.add_child(wx)
+	news.move_child(wx, tickbg.get_index())
+	var sea := ColorRect.new()
+	sea.color = Color(0.06, 0.16, 0.34)
+	sea.size = Vector2(512, 320)
+	wx.add_child(sea)
+	wx.add_child(_blob(Vector2(36, 56), Vector2(440, 214), Color(0.22, 0.36, 0.26), 70))
+	wx.add_child(_blob(Vector2(330, 96), Vector2(86, 52), Color(0.12, 0.3, 0.52), 26))
+	for bl in [[Vector2(60, 70), Vector2(340, 190)], [Vector2(150, 58), Vector2(290, 160)], [Vector2(240, 110), Vector2(210, 150)]]:
+		wx.add_child(_blob(bl[0], bl[1], Color(0.95, 0.96, 1.0, 0.7), 95))
+	wx.add_child(_label(T.wx, Vector2(18, 8), 26, bold, Color(1, 1, 1)))
+	var wband := ColorRect.new()
+	wband.color = Color(0.1, 0.22, 0.5)
+	wband.position = Vector2(0, 274)
+	wband.size = Vector2(512, 46)
+	wx.add_child(wband)
+	var wsub := _label(T.wx_sub, Vector2(16, 281), 23, bold, Color(1, 1, 1))
+	wsub.clip_text = true
+	wsub.size = Vector2(486, 40)
+	wx.add_child(wsub)
+	# экран поверх кинескопа: по габаритам модели в её собственных осях (кинескоп — левые ~62 % лицевой стороны +Z);
+	# телевизор может стоять повёрнутым (кафе: −135°) — экран поворачивается вместе с ним
 	var ab := _aabb(tv)
 	screen = MeshInstance3D.new()
 	var qm := QuadMesh.new()
@@ -128,7 +156,8 @@ func build(tv: Node3D, lang: String) -> void:
 	m.roughness = 0.15
 	screen.material_override = m
 	add_child(screen)
-	screen.global_position = Vector3(ab.position.x + ab.size.x * 0.385, ab.position.y + ab.size.y * 0.56, ab.end.z + 0.004)
+	screen.global_transform = tv.global_transform.orthonormalized() * Transform3D(Basis(),
+		Vector3(ab.position.x + ab.size.x * 0.385, ab.position.y + ab.size.y * 0.56, ab.end.z + 0.004))
 	glow = OmniLight3D.new()
 	glow.light_color = Color(0.55, 0.65, 1.0)
 	glow.light_energy = 0.35
@@ -136,7 +165,7 @@ func build(tv: Node3D, lang: String) -> void:
 	glow.light_volumetric_fog_energy = 0.0
 	glow.light_specular = 0.0                         # без блика-точки на самом экране
 	add_child(glow)
-	glow.global_position = screen.global_position + Vector3(0, 0, 0.5)
+	glow.global_position = screen.global_position + screen.global_transform.basis.z.normalized() * 0.5
 
 
 func _frame_cam(cam: Camera3D, a: Actor) -> void:
@@ -145,6 +174,18 @@ func _frame_cam(cam: Camera3D, a: Actor) -> void:
 	var h := a.skel.global_transform * a.skel.get_bone_global_pose(a.skel.find_bone("head"))
 	var face := h.origin + h.basis.y.normalized() * 0.06
 	cam.look_at_from_position(face + Vector3(0, 0.0, 1.7), face + Vector3(0, -0.07, 0))   # голова и плечи, как на фото
+
+
+func _blob(p: Vector2, sz: Vector2, c: Color, r: int) -> Panel:   # пятно на карте: скруглённый прямоугольник
+	var pn := Panel.new()
+	var st := StyleBoxFlat.new()
+	st.bg_color = c
+	st.set_corner_radius_all(r)
+	st.anti_aliasing = true
+	pn.add_theme_stylebox_override("panel", st)
+	pn.position = p
+	pn.size = sz
+	return pn
 
 
 func _label(t: String, p: Vector2, size: int, f: Font, c: Color) -> Label:
@@ -157,12 +198,13 @@ func _label(t: String, p: Vector2, size: int, f: Font, c: Color) -> Label:
 	return l
 
 
-func _aabb(n: Node3D) -> AABB:
+func _aabb(n: Node3D) -> AABB:   # габариты в осях самой модели (без её поворота и сдвига)
 	var out := AABB()
 	var first := true
+	var inv := n.global_transform.orthonormalized().affine_inverse()
 	for c in n.find_children("*", "MeshInstance3D", true, false):
 		var mi := c as MeshInstance3D
-		var b := mi.global_transform * mi.get_aabb()
+		var b := (inv * mi.global_transform) * mi.get_aabb()
 		out = b if first else out.merge(b)
 		first = false
 	return out
@@ -177,3 +219,18 @@ func _process(delta: float) -> void:
 		ticker.position.x = -fmod(_t * 60.0, ticker.size.x * 0.5)
 	if glow:                                          # кинескоп мерцает: отсвет на стене дышит
 		glow.light_energy = 0.32 + 0.05 * sin(_t * 31.0) + 0.04 * sin(_t * 7.3)
+
+
+## Кнопка на корпусе: экран гаснет (глава 2, кафе — Ной выключает новости со своим фото) или снова включается.
+func power(on: bool) -> void:
+	if is_instance_valid(screen):
+		screen.visible = on
+	if is_instance_valid(glow):
+		glow.visible = on
+	set_process(on)
+
+
+## Прогноз погоды вместо фото Ноя (или обратно).
+func weather(on: bool) -> void:
+	if is_instance_valid(wx):
+		wx.visible = on

@@ -26,6 +26,14 @@
   "hale": {
    "ru": "ГОЛОС",
    "en": "VOICE"
+  },
+  "trucker_b": {
+   "ru": "ДАЛЬНОБОЙЩИК",
+   "en": "TRUCKER"
+  },
+  "waitress": {
+   "ru": "НИНА",
+   "en": "NINA"
   }
  },
  "flags": {
@@ -51,7 +59,15 @@
   "zoe_talked": 0,
   "pills2": 0,
   "zoe_unasked": 0,
-  "stepped_out": 0
+  "stepped_out": 0,
+  "porch": 0,
+  "cafe_tv": 0,
+  "coffee_zoe": 0,
+  "cafe_paid": 0,
+  "storm_slip": 0,
+  "storm_tool": 0,
+  "frost": 0,
+  "storm_radio": 0
  },
  "map": [
   {
@@ -1754,46 +1770,42 @@
   "c2_s4_porch": {
    "beats": [
     {
+     "fx": "cafe_walk"
+    },
+    {
+     "explore": "c3p"
+    },
+    {
      "if": {
-      "zoe": ">0"
+      "porch": ">0"
      },
-     "else": "c2_s5"
+     "go": "c2_s4_z"
     },
     {
-     "fx": "zoe_porch",
-     "shot": "cafe_window_porch",
-     "note": {
-      "ru": "Зоя курит на крыльце, в снегу.",
-      "en": "Zoe is smoking on the porch, out in the snow."
-     },
-     "dur": 2.4
-    },
-    {
-     "choice": {
-      "t": 10,
-      "opts": [
-       {
-        "ru": "Выйти к ней",
-        "en": "Go out to her",
-        "go": "c2_s4_z"
-       },
-       {
-        "ru": "Остаться внутри",
-        "en": "Stay inside",
-        "go": "c2_s5"
-       },
-       {
-        "silent": true,
-        "go": "c2_s5"
-       }
-      ],
-      "shot": "noah_cafe"
-     }
+     "go": "c2_s5"
     }
    ]
   },
   "c2_s4_z": {
    "beats": [
+    {
+     "fx": "noah_porch",
+     "if": {
+      "coffee_zoe": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Ной протягивает ей кружку. Зоя греет об неё руки и делает вид, что так и надо.",
+      "en": "Noah hands her the mug. Zoe warms her hands on it and acts like it’s no big deal."
+     },
+     "dur": 3.0,
+     "shot": "porch",
+     "fx": "zoe_coffee",
+     "if": {
+      "coffee_zoe": ">0"
+     }
+    },
     {
      "say": "zoe",
      "ru": "Ты иногда выпадаешь. Секунду назад был тут — и нет. Я заметила.",
@@ -1919,7 +1931,7 @@
   "c2_s4_zend": {
    "beats": [
     {
-     "shot": "iris_window",
+     "shot": "iris_window_eva",
      "note": {
       "ru": "Айрис видит их в окно.",
       "en": "Iris sees them through the window."
@@ -1927,6 +1939,10 @@
      "dur": 2.2,
      "set": {
       "jealous": 1
+     },
+     "look": {
+      "who": "iris",
+      "at": "noah"
      }
     },
     {
@@ -2340,6 +2356,777 @@
      "dur": 3.2
     },
     {
+     "go": "c2_storm"
+    }
+   ],
+   "save": true
+  },
+  "c2_storm": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Белая мгла. Фары упираются в снег в двух шагах. Где кончается дорога — не видно.",
+      "en": "A white haze. The headlights hit snow two steps ahead. There’s no telling where the road ends."
+     },
+     "dur": 3.4,
+     "fx": "storm_white",
+     "shot": "road"
+    },
+    {
+     "qte": "steer",
+     "t": 4.0,
+     "hint": {
+      "ru": "Удержи руль — A / D или стрелки",
+      "en": "Hold the wheel — A / D or arrow keys"
+     },
+     "fail": "c2_storm_slip"
+    },
+    {
+     "note": {
+      "ru": "Ной останавливается. Колёса ещё на дороге — кажется.",
+      "en": "Noah stops. The wheels are still on the road — he thinks."
+     },
+     "dur": 2.8,
+     "fx": "storm_stop",
+     "shot": "two"
+    },
+    {
+     "go": "c2_storm_wait"
+    }
+   ]
+  },
+  "c2_storm_slip": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Порыв сносит машину к обочине. Ной тормозит — задом её разворачивает в сугроб.",
+      "en": "A gust shoves the car toward the shoulder. Noah brakes — the back end swings round into a drift."
+     },
+     "dur": 3.4,
+     "fx": "storm_slip",
+     "shot": "two"
+    },
+    {
+     "set": {
+      "storm_slip": 1
+     }
+    },
+    {
+     "go": "c2_storm_wait"
+    }
+   ]
+  },
+  "c2_storm_wait": {
+   "beats": [
+    {
+     "say": "iris",
+     "ru": "Не едь. Подождём, пока стихнет.",
+     "en": "Don’t drive. Let’s wait till it dies down.",
+     "shot": "iris"
+    },
+    {
+     "say": "noah",
+     "ru": "Мотор не глушу. Иначе замёрзнем.",
+     "en": "I’m keeping the engine running. Or we’ll freeze.",
+     "shot": "noah"
+    },
+    {
+     "note": {
+      "ru": "Печка гудит. Стёкла снаружи заметает, изнутри они запотевают.",
+      "en": "The heater hums. Snow piles up on the windows outside; inside, they fog over."
+     },
+     "dur": 3.0,
+     "shot": "two",
+     "fx": "storm_wait"
+    },
+    {
+     "ask": {
+      "max": 2,
+      "shot": "two",
+      "opts": [
+       {
+        "ru": "Про бабушку",
+        "en": "About Grandma",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Расскажи про бабушку.",
+          "en": "Tell me about Grandma.",
+          "shot": "noah",
+          "vo": "c2_storm_wait_a836cff"
+         },
+         {
+          "say": "iris",
+          "ru": "Агнес. Мамина мама. Папа запрещал о ней даже говорить.",
+          "en": "Agnes. Mom’s mom. Dad wouldn’t even let us talk about her.",
+          "shot": "iris",
+          "vo": "c2_storm_wait_ada9c9d"
+         },
+         {
+          "say": "noah",
+          "ru": "Почему?",
+          "en": "Why?",
+          "shot": "noah",
+          "vo": "c2_storm_wait_a2c79ec"
+         },
+         {
+          "say": "iris",
+          "ru": "Не знаю. В дневнике мама пишет о ней так, будто просит прощения.",
+          "en": "I don’t know. In the diary, Mom writes about her like she’s asking forgiveness.",
+          "shot": "iris",
+          "vo": "c2_storm_wait_a153526"
+         },
+         {
+          "say": "iris",
+          "ru": "Я её ни разу не видела.",
+          "en": "I’ve never even seen her.",
+          "shot": "iris",
+          "look": {
+           "who": "iris",
+           "at": [
+            1.6,
+            1.2,
+            -0.6
+           ]
+          },
+          "vo": "c2_storm_wait_ac84a8f"
+         }
+        ]
+       },
+       {
+        "ru": "«Ева, вы как?»",
+        "en": "“Eva, how are you doing?”",
+        "if": {
+         "eva": ">0"
+        },
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Ева, вы как?",
+          "en": "Eva, how are you doing?",
+          "shot": "noah",
+          "vo": "c2_storm_wait_aaf695b"
+         },
+         {
+          "say": "eva",
+          "ru": "Живот каменеет. Это ничего, так бывает.",
+          "en": "My belly keeps going hard. It’s nothing, it happens.",
+          "shot": "back",
+          "vo": "c2_storm_wait_adfad44"
+         },
+         {
+          "say": "noah",
+          "ru": "Через месяц, вы говорили?",
+          "en": "A month, you said?",
+          "shot": "noah",
+          "vo": "c2_storm_wait_ae85fdc"
+         },
+         {
+          "say": "eva",
+          "ru": "…Да. Через месяц.",
+          "en": "…Yes. A month.",
+          "shot": "back",
+          "vo": "c2_storm_wait_a31cc89"
+         },
+         {
+          "note": {
+           "ru": "Ева отворачивается к окну и долго дышит — медленно, будто считает.",
+           "en": "Eva turns to the window and breathes for a long time — slowly, as if counting."
+          },
+          "dur": 3.2,
+          "shot": "back"
+         }
+        ]
+       },
+       {
+        "ru": "«Зоя, что значит — стирает?»",
+        "en": "“Zoe, what do you mean, erases?”",
+        "if": {
+         "zoe": ">0",
+         "zoe_gone": "==0"
+        },
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Ты сказала — он стирает людей. Как это?",
+          "en": "You said he erases people. What does that mean?",
+          "shot": "noah",
+          "vo": "c2_storm_wait_a492595"
+         },
+         {
+          "say": "zoe",
+          "ru": "Приходишь к нему с бедой. Уходишь без беды.",
+          "en": "You go to him with something wrong. You leave without it.",
+          "shot": "back",
+          "vo": "c2_storm_wait_a112f02"
+         },
+         {
+          "say": "zoe",
+          "ru": "И без кусков себя. Только не помнишь — каких.",
+          "en": "And without pieces of yourself. You just don’t remember which ones.",
+          "shot": "back",
+          "vo": "c2_storm_wait_a27570c"
+         },
+         {
+          "note": {
+           "ru": "Айрис смотрит на брата и ничего не говорит.",
+           "en": "Iris looks at her brother and says nothing."
+          },
+          "dur": 2.6,
+          "shot": "iris"
+         }
+        ]
+       },
+       {
+        "ru": "«Дэнни, не замёрз?»",
+        "en": "“Danny, you cold?”",
+        "if": {
+         "danny": ">0"
+        },
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Дэнни, не замёрз?",
+          "en": "Danny, you cold?",
+          "shot": "noah",
+          "vo": "c2_storm_wait_a43721a"
+         },
+         {
+          "say": "danny",
+          "ru": "Нет. А бабушка добрая?",
+          "en": "No. Is your grandma nice?",
+          "shot": "back",
+          "vo": "c2_storm_wait_ab46d78"
+         },
+         {
+          "say": "iris",
+          "ru": "Не знаю.",
+          "en": "I don’t know.",
+          "shot": "iris",
+          "vo": "c2_storm_wait_ac6671f"
+         },
+         {
+          "say": "danny",
+          "ru": "Если что, я её не боюсь.",
+          "en": "Just so you know, I’m not scared of her.",
+          "shot": "back",
+          "vo": "c2_storm_wait_aac266b"
+         }
+        ]
+       },
+       {
+        "leave": true,
+        "ru": "Помолчать",
+        "en": "Stay quiet",
+        "beats": [
+         {
+          "note": {
+           "ru": "Они молчат. Снег шуршит по крыше, печка гудит.",
+           "en": "They sit in silence. Snow whispers on the roof, the heater hums."
+          },
+          "dur": 3.0
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "note": {
+      "ru": "Тянет выхлопом — сладковато, тошно. Сзади машина зарылась в сугроб.",
+      "en": "A smell of exhaust — sweetish, sickening. The back of the car is buried in the drift."
+     },
+     "dur": 3.4,
+     "shot": "two",
+     "if": {
+      "storm_slip": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Проходит полчаса. Тянет выхлопом — сладковато, тошно.",
+      "en": "Half an hour goes by. A smell of exhaust — sweetish, sickening."
+     },
+     "dur": 3.2,
+     "shot": "two",
+     "if": {
+      "storm_slip": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Дэнни спит, привалившись к двери. Слишком крепко.",
+      "en": "Danny is asleep against the door. Too deeply."
+     },
+     "dur": 2.8,
+     "shot": "back",
+     "fx": "storm_drowsy",
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "У Айрис слипаются глаза.",
+      "en": "Iris’s eyes keep closing."
+     },
+     "dur": 2.4,
+     "shot": "iris",
+     "fx": "storm_drowsy",
+     "if": {
+      "danny": "==0"
+     }
+    },
+    {
+     "say": "noah",
+     "ru": "Трубу замело.",
+     "en": "The exhaust’s buried.",
+     "shot": "noah"
+    },
+    {
+     "note": {
+      "ru": "Ной глушит мотор. Сразу — тишина и вой ветра.",
+      "en": "Noah kills the engine. At once — silence, and the howl of the wind."
+     },
+     "dur": 2.8,
+     "fx": "engine_off",
+     "shot": "two"
+    },
+    {
+     "say": "noah",
+     "ru": "Окна — на щель. Не спать.",
+     "en": "Crack the windows. Nobody sleeps.",
+     "fx": "snd:window_down:-8",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Ты куда?",
+     "en": "Where are you going?",
+     "shot": "iris"
+    },
+    {
+     "say": "noah",
+     "ru": "Откопаю. С забитой трубой заводить нельзя.",
+     "en": "I’ll dig it out. You can’t start it with the pipe blocked.",
+     "shot": "noah"
+    },
+    {
+     "say": "iris",
+     "ru": "Ты там ничего не увидишь.",
+     "en": "You won’t see a thing out there.",
+     "shot": "iris"
+    },
+    {
+     "say": "noah",
+     "ru": "Машину увижу. На ощупь.",
+     "en": "I’ll find the car. By feel.",
+     "shot": "noah"
+    },
+    {
+     "fx": "storm_out"
+    },
+    {
+     "explore": "storm"
+    },
+    {
+     "go": "c2_storm_dig"
+    }
+   ]
+  },
+  "c2_storm_dig": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Сзади — сугроб по бампер. Трубы не видно.",
+      "en": "At the back — a drift up to the bumper. No sign of the pipe."
+     },
+     "dur": 2.6,
+     "shot": "storm_rear"
+    },
+    {
+     "note": {
+      "ru": "Ной долбит наст монтировкой.",
+      "en": "Noah hacks at the crust with the tire iron."
+     },
+     "dur": 2.2,
+     "if": {
+      "storm_tool": ">0"
+     }
+    },
+    {
+     "qte": "mash",
+     "t": 6.0,
+     "n": 10,
+     "hint": {
+      "ru": "Разгребай снег — быстро жми E / пробел",
+      "en": "Dig the snow away — mash E / Space"
+     },
+     "fail": "c2_storm_dig_slow",
+     "if": {
+      "storm_tool": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Ной разгребает снег голыми руками.",
+      "en": "Noah digs at the snow with his bare hands."
+     },
+     "dur": 2.2,
+     "if": {
+      "storm_tool": "==0"
+     }
+    },
+    {
+     "qte": "mash",
+     "t": 6.0,
+     "n": 16,
+     "hint": {
+      "ru": "Разгребай снег — быстро жми E / пробел",
+      "en": "Dig the snow away — mash E / Space"
+     },
+     "fail": "c2_storm_dig_slow",
+     "if": {
+      "storm_tool": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Под снегом — чёрный кружок трубы. Из неё сыплется ледяная крошка.",
+      "en": "Under the snow — the black ring of the pipe. Ice crumbs trickle out of it."
+     },
+     "dur": 3.0,
+     "fx": "storm_dug",
+     "shot": "storm_rear"
+    },
+    {
+     "go": "c2_storm_inside"
+    }
+   ]
+  },
+  "c2_storm_dig_slow": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Пальцы перестают слушаться. Ной гребёт ладонями, как лопатой, — пока не нащупывает трубу.",
+      "en": "His fingers stop obeying him. Noah scoops with his palms like a shovel — until he feels the pipe."
+     },
+     "dur": 3.6,
+     "shot": "storm_rear"
+    },
+    {
+     "set": {
+      "frost": 1
+     },
+     "fx": "storm_dug"
+    },
+    {
+     "go": "c2_storm_inside"
+    }
+   ]
+  },
+  "c2_storm_inside": {
+   "beats": [
+    {
+     "note": {
+      "ru": "В машине без мотора холод приходит быстро.",
+      "en": "Without the engine running, the cold creeps into the car fast."
+     },
+     "dur": 2.6,
+     "fx": "storm_inside",
+     "shot": "two"
+    },
+    {
+     "say": "eva",
+     "ru": "Он всегда так — всё сам?",
+     "en": "Is he always like this — doing everything himself?",
+     "shot": "back",
+     "if": {
+      "eva": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Всегда.",
+     "en": "Always.",
+     "shot": "iris",
+     "if": {
+      "eva": ">0"
+     }
+    },
+    {
+     "say": "eva",
+     "ru": "Мой тоже всё сам решал. За меня.",
+     "en": "Mine decided everything himself too. For me.",
+     "shot": "back",
+     "if": {
+      "eva": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "И ты уехала?",
+     "en": "And you left?",
+     "shot": "iris",
+     "if": {
+      "eva": ">0"
+     }
+    },
+    {
+     "say": "eva",
+     "ru": "Уехала. А кольцо выбросить не могу.",
+     "en": "I left. But I can’t throw the ring away.",
+     "shot": "back",
+     "fx": "eva_ring",
+     "if": {
+      "eva": ">0"
+     }
+    },
+    {
+     "say": "zoe",
+     "ru": "Слушай. Он правда не помнит, что было дома?",
+     "en": "Listen. Does he really not remember what happened at home?",
+     "shot": "back",
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Не помнит.",
+     "en": "He doesn’t.",
+     "shot": "iris",
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "say": "zoe",
+     "ru": "А ты?",
+     "en": "And you?",
+     "shot": "back",
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "…Я помню, что надо ехать.",
+     "en": "…I remember we have to keep going.",
+     "shot": "iris",
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    },
+    {
+     "say": "danny",
+     "ru": "Где Ной?",
+     "en": "Where’s Noah?",
+     "shot": "back",
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Откапывает машину.",
+     "en": "Digging the car out.",
+     "shot": "iris",
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "say": "danny",
+     "ru": "Он не потеряется?",
+     "en": "He won’t get lost?",
+     "shot": "back",
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Он всегда возвращается.",
+     "en": "He always comes back.",
+     "shot": "iris",
+     "if": {
+      "danny": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Айрис одна. Считает вслух до ста. Потом снова.",
+      "en": "Iris is alone. She counts out loud to a hundred. Then starts again."
+     },
+     "dur": 3.0,
+     "shot": "iris",
+     "if": {
+      "eva": "==0",
+      "zoe": "==0",
+      "danny": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Айрис одна. Считает вслух до ста. Потом снова.",
+      "en": "Iris is alone. She counts out loud to a hundred. Then starts again."
+     },
+     "dur": 3.0,
+     "shot": "iris",
+     "if": {
+      "eva": "==0",
+      "zoe": ">0",
+      "zoe_gone": ">0",
+      "danny": "==0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Дверь распахивается. Ной падает на сиденье — весь в снегу.",
+      "en": "The door flies open. Noah drops into the seat, caked in snow."
+     },
+     "dur": 2.8,
+     "fx": "storm_in",
+     "shot": "two"
+    },
+    {
+     "go": "c2_storm_back"
+    }
+   ]
+  },
+  "c2_storm_back": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Пальцы белые и не гнутся. Айрис молча растирает их в ладонях.",
+      "en": "His fingers are white and won’t bend. Iris rubs them between her palms without a word."
+     },
+     "dur": 3.2,
+     "shot": "two",
+     "fx": "iris_rubs",
+     "if": {
+      "frost": ">0"
+     }
+    },
+    {
+     "note": {
+      "ru": "Ключ. Мотор схватывает со второго раза.",
+      "en": "The key. The engine catches on the second try."
+     },
+     "dur": 2.4,
+     "fx": "engine_on",
+     "shot": "noah"
+    },
+    {
+     "say": "noah",
+     "ru": "Окно не закрывай.",
+     "en": "Keep the window open a crack.",
+     "shot": "noah"
+    },
+    {
+     "fx": "radio_tune",
+     "shot": "radio",
+     "dur": 0.6
+    },
+    {
+     "qte": "tune",
+     "t": 10.0,
+     "hint": {
+      "ru": "Поймай волну — A / D или стрелки",
+      "en": "Find the station — A / D or arrow keys"
+     },
+     "fail": "c2_storm_static"
+    },
+    {
+     "set": {
+      "storm_radio": 1
+     },
+     "fx": "radio_report"
+    },
+    {
+     "say": "radio",
+     "ru": "…на трассе на север — затор: сложилась фура. Движение закрыто до утра.",
+     "en": "…northbound highway: a jackknifed truck. The road is closed until morning.",
+     "shot": "radio"
+    },
+    {
+     "say": "radio",
+     "ru": "На боковых дорогах заносы. Если машина встала — держите выхлопную трубу свободной от снега и приоткройте окно.",
+     "en": "Heavy drifts on side roads. If your car gets stuck, keep the exhaust pipe clear of snow and leave a window open.",
+     "shot": "radio"
+    },
+    {
+     "say": "radio",
+     "ru": "Полиция просит сообщать о тёмном седане с одной фарой…",
+     "en": "Police are asking anyone who sees a dark sedan with one headlight…",
+     "shot": "radio",
+     "if": {
+      "police": ">0",
+      "lamp": ">0"
+     }
+    },
+    {
+     "say": "radio",
+     "ru": "Полиция просит сообщать о тёмном седане, номер…",
+     "en": "Police are asking anyone who sees a dark sedan, license plate…",
+     "shot": "radio",
+     "if": {
+      "police": ">0",
+      "lamp": "==0"
+     }
+    },
+    {
+     "say": "iris",
+     "ru": "Выключи.",
+     "en": "Turn it off.",
+     "shot": "iris",
+     "fx": "radio_off_storm"
+    },
+    {
+     "go": "c2_storm_go"
+    }
+   ]
+  },
+  "c2_storm_static": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Только шипение — то громче, то тише. Айрис выключает радио.",
+      "en": "Nothing but hiss, rising and fading. Iris switches the radio off."
+     },
+     "dur": 3.0,
+     "fx": "radio_off_storm",
+     "shot": "radio"
+    },
+    {
+     "go": "c2_storm_go"
+    }
+   ]
+  },
+  "c2_storm_go": {
+   "beats": [
+    {
+     "note": {
+      "ru": "Ветер стихает — не весь, но дорогу снова видно на пару столбов вперёд.",
+      "en": "The wind eases — not all the way, but now the road shows a couple of posts ahead."
+     },
+     "dur": 3.2,
+     "fx": "storm_go",
+     "shot": "road"
+    },
+    {
+     "go": "c2_storm_end"
+    }
+   ]
+  },
+  "c2_storm_end": {
+   "beats": [
+    {
      "fx": "far_lights",
      "shot": "mirror",
      "note": {
@@ -2351,8 +3138,1655 @@
     {
      "end": 2
     }
+   ]
+  }
+ },
+ "explore": {
+  "c3p": {
+   "who": "noah",
+   "start": {
+    "at": [
+     28.85,
+     0.45,
+     -13.3
+    ],
+    "face": -60
+   },
+   "intro": [
+    {
+     "note": {
+      "ru": "Ной выходит из туалета. Руки ещё мокрые.",
+      "en": "Noah comes out of the restroom. His hands are still wet."
+     },
+     "dur": 2.4,
+     "shot": "cafe_wide"
+    },
+    {
+     "note": {
+      "ru": "За окном, на крыльце, — огонёк сигареты. Зоя.",
+      "en": "Out the window, on the porch — the glow of a cigarette. Zoe."
+     },
+     "dur": 2.6,
+     "shot": "cafe_window_porch",
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     }
+    }
    ],
-   "save": true
+   "hum": {
+    "if": {
+     "pills2": "==0"
+    },
+    "v": 0.22
+   },
+   "watch": [
+    "iris",
+    "eva",
+    "danny",
+    "waitress"
+   ],
+   "walk": [
+    [
+     22.4,
+     -12.5,
+     30.5,
+     0.65
+    ],
+    [
+     22.4,
+     -14.65,
+     29.25,
+     -12.5
+    ],
+    [
+     30.5,
+     -2.9,
+     33.6,
+     0.65
+    ]
+   ],
+   "block": [
+    [
+     22.3,
+     -14.55,
+     23.85,
+     -9.95
+    ],
+    [
+     22.3,
+     -3.75,
+     23.85,
+     0.85
+    ],
+    [
+     30.55,
+     -12.6,
+     34.0,
+     -2.95
+    ],
+    [
+     29.7,
+     -11.9,
+     30.55,
+     -7.95
+    ],
+    [
+     29.95,
+     -7.1,
+     30.3,
+     -6.7
+    ],
+    [
+     29.95,
+     -5.6,
+     30.3,
+     -5.2
+    ],
+    [
+     29.95,
+     -4.1,
+     30.3,
+     -3.7
+    ],
+    [
+     22.2,
+     -9.3,
+     22.55,
+     -8.0
+    ],
+    [
+     29.3,
+     -15.0,
+     34.0,
+     -12.5
+    ]
+   ],
+   "floors": [
+    [
+     22.0,
+     -15.0,
+     34.0,
+     1.0,
+     0.45
+    ]
+   ],
+   "cam_block": [
+    [
+     10.0,
+     -30.0,
+     22.15,
+     10.0,
+     99.0
+    ],
+    [
+     33.85,
+     -30.0,
+     45.0,
+     10.0,
+     99.0
+    ],
+    [
+     10.0,
+     -30.0,
+     45.0,
+     -14.85,
+     99.0
+    ],
+    [
+     10.0,
+     0.85,
+     45.0,
+     10.0,
+     99.0
+    ],
+    [
+     29.3,
+     -15.0,
+     34.0,
+     -12.5,
+     99.0
+    ],
+    [
+     22.3,
+     -14.55,
+     23.85,
+     -9.95,
+     1.7
+    ],
+    [
+     22.3,
+     -3.75,
+     23.85,
+     0.85,
+     1.7
+    ],
+    [
+     30.55,
+     -12.6,
+     33.85,
+     -2.95,
+     1.1
+    ]
+   ],
+   "nav": [
+    [
+     24.3,
+     -12.4
+    ],
+    [
+     24.3,
+     -8.0
+    ],
+    [
+     24.3,
+     -4.6
+    ],
+    [
+     24.3,
+     -1.0
+    ],
+    [
+     27.0,
+     -12.0
+    ],
+    [
+     27.0,
+     -8.0
+    ],
+    [
+     27.0,
+     -4.0
+    ],
+    [
+     27.0,
+     0.0
+    ],
+    [
+     29.3,
+     -2.4
+    ],
+    [
+     31.2,
+     -1.6
+    ],
+    [
+     29.3,
+     -6.2
+    ]
+   ],
+   "spots": [
+    {
+     "id": "truckers",
+     "at": [
+      30.12,
+      1.95,
+      -8.4
+     ],
+     "where": [
+      29.72,
+      -6.9
+     ],
+     "r": 1.3,
+     "stand": [
+      29.72,
+      -6.9
+     ],
+     "face": 160,
+     "label": {
+      "ru": "Подсесть к дальнобойщикам",
+      "en": "Join the truckers"
+     },
+     "cam": [
+      [
+       31.45,
+       2.0500000000000003,
+       -4.8
+      ],
+      [
+       30.0,
+       1.63,
+       -8.8
+      ],
+      48
+     ],
+     "beats": [
+      {
+       "look": {
+        "who": "noah",
+        "at": "trucker3"
+       }
+      },
+      {
+       "note": {
+        "ru": "Трое у стойки — над тарелками, в тулупах нараспашку. Пахнет мокрой овчиной и луком.",
+        "en": "Three men at the counter, hunched over their plates, sheepskins hanging open. It smells of wet fleece and onions."
+       },
+       "dur": 3.4,
+       "look": {
+        "who": "trucker3",
+        "at": "noah"
+       }
+      }
+     ],
+     "ask": {
+      "max": 2,
+      "opts": [
+       {
+        "ru": "«Что с трассой?»",
+        "en": "“What’s going on with the highway?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Что с трассой?",
+          "en": "What’s going on with the highway?",
+          "vo": "c3p_truckers_ab0b22"
+         },
+         {
+          "say": "trucker",
+          "ru": "Фура на сорок шестом сложилась. Поперёк дороги. До утра там никто не проедет.",
+          "en": "A rig jackknifed at kilometer forty-six. Right across the road. Nobody’s getting through till morning.",
+          "lips": "trucker3",
+          "vo": "c3p_truckers_d3dd44"
+         },
+         {
+          "say": "trucker_b",
+          "ru": "А нам и не надо. Мы тут ночуем.",
+          "en": "Suits us. We’re spending the night.",
+          "lips": "trucker2",
+          "vo": "c3p_truckers_e00d48"
+         }
+        ]
+       },
+       {
+        "ru": "«А в объезд?»",
+        "en": "“Is there a way around?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "А в объезд?",
+          "en": "Is there a way around?",
+          "vo": "c3p_truckers_1a8953"
+         },
+         {
+          "say": "trucker",
+          "ru": "Направо есть боковая, через деревни. Если не заметёт.",
+          "en": "There’s a side road to the right, through the villages. If it doesn’t drift over.",
+          "lips": "trucker3",
+          "vo": "c3p_truckers_be4f4d"
+         },
+         {
+          "say": "trucker",
+          "ru": "Я бы в буран не совался. Встанешь в поле — никто не найдёт.",
+          "en": "I wouldn’t try it in a blizzard. Get stuck out in the fields and nobody’ll find you.",
+          "lips": "trucker3",
+          "vo": "c3p_truckers_a8ceea"
+         }
+        ]
+       },
+       {
+        "ru": "«Вы с севера?»",
+        "en": "“You coming from the north?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Вы с севера?",
+          "en": "You coming from the north?",
+          "vo": "c3p_truckers_db6671"
+         },
+         {
+          "say": "trucker",
+          "ru": "С севера. Там сейчас хуже, чем тут.",
+          "en": "From the north. It’s worse up there than here.",
+          "lips": "trucker3",
+          "vo": "c3p_truckers_c3df24"
+         },
+         {
+          "say": "trucker_b",
+          "ru": "Озёра в этом году встали рано. Лёд чёрный.",
+          "en": "The lakes froze early this year. Black ice.",
+          "lips": "trucker2",
+          "vo": "c3p_truckers_8c0f13"
+         },
+         {
+          "say": "trucker_b",
+          "ru": "Чёрный — красивый. Только не держит.",
+          "en": "Black ice is pretty. It just won’t hold you.",
+          "lips": "trucker2",
+          "vo": "c3p_truckers_77071f"
+         },
+         {
+          "note": {
+           "ru": "Ной не понимает, почему от этих слов у него немеет затылок.",
+           "en": "Noah doesn’t understand why those words make the back of his neck go numb."
+          },
+          "dur": 3.0,
+          "fx": "hum_spike",
+          "if": {
+           "pills2": "==0"
+          }
+         }
+        ]
+       },
+       {
+        "leave": true,
+        "ru": "Отойти",
+        "en": "Step away",
+        "beats": [
+         {
+          "dur": 0.4
+         }
+        ]
+       }
+      ]
+     },
+     "after": [
+      {
+       "look": {
+        "who": "trucker3",
+        "at": null
+       }
+      },
+      {
+       "look": {
+        "who": "noah",
+        "at": null
+       }
+      }
+     ]
+    },
+    {
+     "id": "nina",
+     "at": [
+      31.75,
+      2.3000000000000003,
+      -6.6
+     ],
+     "where": [
+      29.72,
+      -5.4
+     ],
+     "r": 1.3,
+     "stand": [
+      29.72,
+      -5.4
+     ],
+     "face": 110,
+     "label": {
+      "ru": "Подойти к стойке",
+      "en": "Go to the counter"
+     },
+     "cam": [
+      [
+       28.9,
+       2.1,
+       -4.6
+      ],
+      [
+       31.7,
+       1.9,
+       -6.6
+      ],
+      38
+     ],
+     "beats": [
+      {
+       "look": {
+        "who": "noah",
+        "at": "waitress"
+       }
+      },
+      {
+       "say": "waitress",
+       "ru": "Ещё чаю, милый?",
+       "en": "More tea, love?",
+       "look": {
+        "who": "waitress",
+        "at": "noah"
+       },
+       "vo": "c3p_nina_efc1c5"
+      }
+     ],
+     "ask": {
+      "max": 2,
+      "opts": [
+       {
+        "ru": "«Два кофе»",
+        "en": "“Two coffees”",
+        "if": {
+         "zoe": ">0",
+         "zoe_gone": "==0"
+        },
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Два кофе. Один — с собой, на крыльцо.",
+          "en": "Two coffees. One to go — out on the porch.",
+          "vo": "c3p_nina_e42c36"
+         },
+         {
+          "note": {
+           "ru": "Нина наливает в толстые белые кружки. Себе Ной не берёт.",
+           "en": "Nina pours into thick white mugs. Noah doesn’t take one for himself."
+          },
+          "dur": 2.8,
+          "set": {
+           "coffee_zoe": 1
+          }
+         },
+         {
+          "say": "noah",
+          "ru": "Обещал.",
+          "en": "I promised.",
+          "vo": "c3p_nina_d0c31d"
+         }
+        ]
+       },
+       {
+        "ru": "«Кофе»",
+        "en": "“Coffee”",
+        "if": {
+         "zoe": "==0"
+        },
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Кофе. Если можно.",
+          "en": "Coffee. If that’s all right.",
+          "vo": "c3p_nina_b8b599"
+         },
+         {
+          "note": {
+           "ru": "Нина наливает в толстую белую кружку. Кофе горький, пережжённый. Ной пьёт до дна.",
+           "en": "Nina pours it into a thick white mug. The coffee is bitter and burnt. Noah drinks it to the bottom."
+          },
+          "dur": 3.2
+         }
+        ]
+       },
+       {
+        "ru": "«Сколько с нас?»",
+        "en": "“What do we owe you?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Сколько с нас?",
+          "en": "What do we owe you?",
+          "vo": "c3p_nina_6ddc95"
+         },
+         {
+          "say": "waitress",
+          "ru": "Сто сорок. Да не спеши, буран всё равно никого не выпустит.",
+          "en": "A hundred and forty. No rush, though — the blizzard won’t let anybody out.",
+          "vo": "c3p_nina_39b81b"
+         },
+         {
+          "note": {
+           "ru": "Ной выкладывает на стойку последние деньги. Нина не пересчитывает.",
+           "en": "Noah lays the last of his money on the counter. Nina doesn’t count it."
+          },
+          "dur": 2.8,
+          "set": {
+           "cafe_paid": 1
+          }
+         }
+        ]
+       },
+       {
+        "ru": "«Тут всегда так пусто?»",
+        "en": "“Is it always this empty?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Тут всегда так пусто?",
+          "en": "Is it always this empty?",
+          "vo": "c3p_nina_8c7e7c"
+         },
+         {
+          "say": "waitress",
+          "ru": "Зимой — да. Летом рыбаки едут на озёра, не протолкнёшься.",
+          "en": "In winter, yes. In summer the fishermen head up to the lakes — you can’t squeeze through.",
+          "vo": "c3p_nina_317eac"
+         },
+         {
+          "say": "waitress",
+          "ru": "А зимой только эти. Да такие, как вы. Кому очень надо на север.",
+          "en": "In winter it’s only this lot. And folks like you. The ones who really need to get north.",
+          "look": {
+           "who": "waitress",
+           "at": "trucker2"
+          },
+          "vo": "c3p_nina_0217eb"
+         }
+        ]
+       },
+       {
+        "leave": true,
+        "ru": "Отойти",
+        "en": "Step away",
+        "beats": [
+         {
+          "dur": 0.4
+         }
+        ]
+       }
+      ]
+     },
+     "after": [
+      {
+       "look": {
+        "who": "waitress",
+        "at": "trucker3"
+       }
+      },
+      {
+       "look": {
+        "who": "noah",
+        "at": null
+       }
+      }
+     ]
+    },
+    {
+     "id": "tv",
+     "at": [
+      33.35,
+      2.75,
+      0.4
+     ],
+     "where": [
+      31.2,
+      -1.6
+     ],
+     "r": 1.4,
+     "stand": [
+      31.2,
+      -1.6
+     ],
+     "face": 47,
+     "label": {
+      "ru": "Посмотреть телевизор",
+      "en": "Look at the TV"
+     },
+     "cam": [
+      [
+       30.3,
+       2.0,
+       -2.6
+      ],
+      [
+       33.3,
+       3.0,
+       0.35
+      ],
+      36
+     ],
+     "beats": [
+      {
+       "look": {
+        "who": "noah",
+        "at": [
+         33.35,
+         2.75,
+         0.4
+        ]
+       }
+      },
+      {
+       "note": {
+        "ru": "Телевизор под потолком, звук выключен. Новости.",
+        "en": "A TV up by the ceiling, sound off. The news."
+       },
+       "dur": 2.4
+      },
+      {
+       "note": {
+        "ru": "Его школьная фотография. Красная плашка: «Разыскивается».",
+        "en": "His school photo. A red banner: “Wanted.”"
+       },
+       "dur": 2.8,
+       "cam": [
+        [
+         32.4,
+         2.6500000000000004,
+         -0.55
+        ],
+        [
+         33.35,
+         3.0500000000000003,
+         0.4
+        ],
+        28
+       ]
+      },
+      {
+       "note": {
+        "ru": "Ной оглядывается. На экран никто не смотрит. Пока.",
+        "en": "Noah looks around. Nobody’s watching the screen. Not yet."
+       },
+       "dur": 2.8,
+       "cam": [
+        [
+         33.0,
+         2.75,
+         -0.2
+        ],
+        [
+         27.0,
+         1.45,
+         -6.0
+        ],
+        52
+       ]
+      }
+     ],
+     "ask": {
+      "max": 1,
+      "opts": [
+       {
+        "ru": "Выключить",
+        "en": "Turn it off",
+        "beats": [
+         {
+          "note": {
+           "ru": "Ной тянется и жмёт кнопку на корпусе. Экран гаснет.",
+           "en": "Noah reaches up and presses the button on the set. The screen goes dark."
+          },
+          "dur": 2.6,
+          "fx": "tv_off",
+          "set": {
+           "cafe_tv": 1
+          }
+         },
+         {
+          "say": "trucker_b",
+          "ru": "Э, парень. Мы погоду смотрели.",
+          "en": "Hey, kid. We were watching the weather.",
+          "lips": "trucker2",
+          "vo": "c3p_tv_391534"
+         },
+         {
+          "say": "noah",
+          "ru": "Там одно и то же. Буран.",
+          "en": "It’s all the same. Blizzard.",
+          "vo": "c3p_tv_88dfce"
+         },
+         {
+          "say": "trucker_b",
+          "ru": "…Тоже верно.",
+          "en": "…Fair enough.",
+          "lips": "trucker2",
+          "vo": "c3p_tv_e257b8"
+         }
+        ]
+       },
+       {
+        "ru": "Оставить",
+        "en": "Leave it on",
+        "beats": [
+         {
+          "note": {
+           "ru": "Фото держится на экране целую вечность. Потом — карта погоды: над всей областью белое пятно.",
+           "en": "The photo stays on screen for an eternity. Then the weather map: a white blot over the whole region."
+          },
+          "dur": 3.6,
+          "fx": "tv_weather",
+          "cam": [
+           [
+            32.4,
+            2.6500000000000004,
+            -0.55
+           ],
+           [
+            33.35,
+            3.0500000000000003,
+            0.4
+           ],
+           28
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     "after": [
+      {
+       "look": {
+        "who": "noah",
+        "at": null
+       }
+      }
+     ]
+    },
+    {
+     "id": "window",
+     "at": [
+      22.15,
+      2.0500000000000003,
+      -5.0
+     ],
+     "where": [
+      22.9,
+      -5.0
+     ],
+     "r": 1.2,
+     "stand": [
+      22.9,
+      -5.0
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Посмотреть в окно",
+      "en": "Look out the window"
+     },
+     "cam": [
+      [
+       22.6,
+       1.9,
+       -4.3
+      ],
+      [
+       17.2,
+       0.8,
+       -11.6
+      ],
+      46
+     ],
+     "beats": [
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Rk_Watching"
+       }
+      },
+      {
+       "note": {
+        "ru": "Снег идёт стеной. Фуры у входа — уже по колёса в снегу.",
+        "en": "The snow comes down like a wall. The rigs out front are already buried to their wheels."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Их седан у крыльца. На капоте — ладонь снега.",
+        "en": "Their sedan by the porch. A hand’s depth of snow on the hood."
+       },
+       "dur": 2.6
+      },
+      {
+       "note": {
+        "ru": "Въезд пустой. Только снег.",
+        "en": "The entrance to the lot is empty. Just snow."
+       },
+       "dur": 2.4
+      },
+      {
+       "note": {
+        "ru": "В углу Ева тоже смотрит в окно — на свою машину в канаве.",
+        "en": "In the corner, Eva is looking out the window too — at her car in the ditch."
+       },
+       "dur": 2.8,
+       "cam": [
+        [
+         24.0,
+         1.9,
+         -12.2
+        ],
+        [
+         23.0,
+         1.55,
+         -14.0
+        ],
+        46
+       ],
+       "look": {
+        "who": "eva",
+        "at": [
+         19.0,
+         0.4,
+         -16.6
+        ]
+       }
+      },
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Idle"
+       },
+       "look": {
+        "who": "eva",
+        "at": "iris"
+       }
+      }
+     ]
+    },
+    {
+     "id": "iris_eva",
+     "at": [
+      23.3,
+      1.8,
+      -14.2
+     ],
+     "where": [
+      24.35,
+      -13.0
+     ],
+     "r": 1.2,
+     "stand": [
+      24.35,
+      -13.0
+     ],
+     "face": -137,
+     "label": {
+      "ru": "Подойти к Айрис и Еве",
+      "en": "Go over to Iris and Eva"
+     },
+     "cam": [
+      [
+       24.0,
+       1.9,
+       -12.2
+      ],
+      [
+       23.0,
+       1.45,
+       -14.0
+      ],
+      46
+     ],
+     "beats": [
+      {
+       "look": {
+        "who": "noah",
+        "at": "iris"
+       }
+      },
+      {
+       "note": {
+        "ru": "Айрис прикрывает блокнот локтем.",
+        "en": "Iris covers her notebook with her elbow."
+       },
+       "dur": 2.2,
+       "look": {
+        "who": "iris",
+        "at": "noah"
+       }
+      }
+     ],
+     "ask": {
+      "max": 1,
+      "opts": [
+       {
+        "ru": "«Покажи»",
+        "en": "“Show me”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Покажи.",
+          "en": "Show me.",
+          "vo": "c3p_iris_eva_585151"
+         },
+         {
+          "dur": 1.0
+         },
+         {
+          "note": {
+           "ru": "Айрис убирает локоть. Ева — в профиль, рука на животе, кольцо на цепочке.",
+           "en": "Iris moves her elbow away. Eva, in profile — a hand on her belly, the ring on its chain."
+          },
+          "dur": 3.2
+         },
+         {
+          "note": {
+           "ru": "Рядом — вторая женщина. Без лица: только волосы и руки.",
+           "en": "Next to her, a second woman. No face — just hair and hands."
+          },
+          "dur": 2.8
+         },
+         {
+          "say": "iris",
+          "ru": "Это не мама. Просто… женщина.",
+          "en": "It’s not Mom. It’s just… a woman.",
+          "vo": "c3p_iris_eva_e00912"
+         },
+         {
+          "say": "eva",
+          "ru": "Хорошо рисует. Я в её годы только лошадей умела.",
+          "en": "She draws well. At her age all I could do was horses.",
+          "look": {
+           "who": "eva",
+           "at": "noah"
+          },
+          "vo": "c3p_iris_eva_662ebe"
+         }
+        ]
+       },
+       {
+        "ru": "«Не буду мешать»",
+        "en": "“I won’t bother you”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Не буду мешать.",
+          "en": "I won’t bother you.",
+          "vo": "c3p_iris_eva_6d1114"
+         },
+         {
+          "say": "eva",
+          "ru": "Оставь её. Нам хорошо.",
+          "en": "Leave her be. We’re fine.",
+          "look": {
+           "who": "eva",
+           "at": "noah"
+          },
+          "vo": "c3p_iris_eva_ae81fb"
+         },
+         {
+          "note": {
+           "ru": "Айрис не поднимает головы. Карандаш снова шуршит.",
+           "en": "Iris doesn’t look up. The pencil starts scratching again."
+          },
+          "dur": 2.6,
+          "fx": "snd:pencil_scribble:-16"
+         }
+        ]
+       }
+      ]
+     },
+     "after": [
+      {
+       "look": {
+        "who": "eva",
+        "at": "iris"
+       }
+      },
+      {
+       "look": {
+        "who": "iris",
+        "at": "eva"
+       }
+      },
+      {
+       "look": {
+        "who": "noah",
+        "at": null
+       }
+      }
+     ]
+    },
+    {
+     "id": "danny",
+     "if": {
+      "danny": ">0"
+     },
+     "at": [
+      23.42,
+      1.65,
+      -1.82
+     ],
+     "where": [
+      24.4,
+      -1.6
+     ],
+     "r": 1.15,
+     "stand": [
+      24.35,
+      -1.75
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Подсесть к Дэнни",
+      "en": "Sit with Danny"
+     },
+     "cam": [
+      [
+       23.2,
+       1.55,
+       -3.2
+      ],
+      [
+       23.75,
+       1.4,
+       -1.75
+      ],
+      44
+     ],
+     "beats": [
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Crouch_Idle"
+       },
+       "look": {
+        "who": "noah",
+        "at": "danny"
+       }
+      },
+      {
+       "note": {
+        "ru": "Дэнни отодвигается к стенке.",
+        "en": "Danny shifts away toward the wall."
+       },
+       "dur": 2.2,
+       "if": {
+        "danny_fear": ">0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Дэнни двигает к Ною тарелку с картошкой.",
+        "en": "Danny pushes his plate of fries toward Noah."
+       },
+       "dur": 2.4,
+       "if": {
+        "promise": ">0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Дэнни рисует на салфетке.",
+        "en": "Danny is drawing on a napkin."
+       },
+       "dur": 2.2,
+       "if": {
+        "danny_fear": "==0",
+        "promise": "==0"
+       }
+      }
+     ],
+     "ask": {
+      "max": 2,
+      "opts": [
+       {
+        "ru": "«Что рисуешь?»",
+        "en": "“What are you drawing?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Что рисуешь?",
+          "en": "What are you drawing?",
+          "vo": "c3p_danny_6529bb"
+         },
+         {
+          "say": "danny",
+          "ru": "Дом. Маму. И рацию — чтобы она услышала.",
+          "en": "A house. Mom. And the walkie-talkie — so she can hear.",
+          "look": {
+           "who": "danny",
+           "at": "noah"
+          },
+          "vo": "c3p_danny_613646"
+         }
+        ]
+       },
+       {
+        "ru": "«Мама тебя найдёт»",
+        "en": "“Your mom will find you”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Мама тебя найдёт.",
+          "en": "Your mom will find you.",
+          "vo": "c3p_danny_480241"
+         },
+         {
+          "say": "danny",
+          "ru": "А если мы уедем далеко?",
+          "en": "What if we go really far?",
+          "vo": "c3p_danny_bc1ebd"
+         },
+         {
+          "say": "noah",
+          "ru": "Мы ей скажем, где ты.",
+          "en": "We’ll tell her where you are.",
+          "vo": "c3p_danny_d12a55"
+         },
+         {
+          "note": {
+           "ru": "Дэнни кивает, будто это договор.",
+           "en": "Danny nods, as if it’s a deal."
+          },
+          "dur": 2.2
+         }
+        ]
+       },
+       {
+        "leave": true,
+        "ru": "Отойти",
+        "en": "Step away",
+        "beats": [
+         {
+          "dur": 0.4
+         }
+        ]
+       }
+      ]
+     },
+     "after": [
+      {
+       "look": {
+        "who": "danny",
+        "at": "iris"
+       }
+      },
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Idle"
+       },
+       "look": {
+        "who": "noah",
+        "at": null
+       }
+      }
+     ]
+    },
+    {
+     "id": "porch",
+     "if": {
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     },
+     "exit": true,
+     "at": [
+      22.1,
+      2.45,
+      -7.0
+     ],
+     "where": [
+      22.75,
+      -7.0
+     ],
+     "r": 1.1,
+     "stand": [
+      22.75,
+      -7.0
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Выйти к Зое на крыльцо",
+      "en": "Go out to Zoe on the porch"
+     },
+     "beats": [
+      {
+       "set": {
+        "porch": 1
+       },
+       "fx": "snd:door_chime:-12",
+       "dur": 0.5
+      }
+     ]
+    }
+   ],
+   "nudge": {
+    "after": 150,
+    "beats": [
+     {
+      "say": "iris",
+      "ru": "Ной. Сядь уже. На тебя смотрят.",
+      "en": "Noah. Sit down already. People are looking.",
+      "vo": "c3p_nudge_5b8af2"
+     }
+    ]
+   },
+   "exit": {
+    "id": "table",
+    "at": [
+     23.0,
+     1.75,
+     -3.4
+    ],
+    "where": [
+     24.3,
+     -3.9
+    ],
+    "r": 1.15,
+    "stand": [
+     24.3,
+     -3.9
+    ],
+    "face": -90,
+    "label": {
+     "ru": "Сесть за стол",
+     "en": "Sit back down at the table"
+    },
+    "beats": [
+     {
+      "fx": "noah_sit_cafe",
+      "shot": "noah_cafe",
+      "dur": 1.2
+     }
+    ]
+   }
+  },
+  "storm": {
+   "who": "noah",
+   "start": {
+    "at": [
+     -1.55,
+     0.0,
+     0.35
+    ],
+    "face": -120
+   },
+   "intro": [
+    {
+     "note": {
+      "ru": "Ветер рвёт дверь из рук. Отойдёшь на пять шагов — машины уже не видно.",
+      "en": "The wind tears the door out of his hands. Five steps away and the car would be gone."
+     },
+     "dur": 3.0,
+     "shot": "storm_side"
+    },
+    {
+     "note": {
+      "ru": "Ной ведёт ладонью по крыше, чтобы не потерять её.",
+      "en": "Noah runs his palm along the roof so he won’t lose it."
+     },
+     "dur": 2.6
+    }
+   ],
+   "walk": [
+    [
+     -3.0,
+     -5.0,
+     3.0,
+     4.6
+    ]
+   ],
+   "block": [
+    [
+     -0.95,
+     -2.95,
+     0.95,
+     2.45
+    ]
+   ],
+   "cam_block": [
+    [
+     -0.95,
+     -2.95,
+     0.95,
+     2.45,
+     1.5
+    ]
+   ],
+   "nav": [
+    [
+     -1.6,
+     -3.6
+    ],
+    [
+     1.6,
+     -3.6
+    ],
+    [
+     1.7,
+     3.4
+    ],
+    [
+     -1.7,
+     3.4
+    ],
+    [
+     -1.6,
+     0.4
+    ],
+    [
+     1.6,
+     0.4
+    ]
+   ],
+   "spots": [
+    {
+     "id": "trunk",
+     "at": [
+      -0.45,
+      1.05,
+      2.45
+     ],
+     "where": [
+      -0.75,
+      3.25
+     ],
+     "r": 1.0,
+     "stand": [
+      -0.75,
+      3.25
+     ],
+     "face": 180,
+     "label": {
+      "ru": "Открыть багажник",
+      "en": "Open the trunk"
+     },
+     "cam": [
+      [
+       -1.9,
+       1.7,
+       4.6
+      ],
+      [
+       -0.45,
+       0.8,
+       2.3
+      ],
+      50
+     ],
+     "beats": [
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Chest_Open"
+       },
+       "dur": 0.8
+      },
+      {
+       "note": {
+        "ru": "Замок примёрз. Ной бьёт по нему кулаком, пока крышка не поддаётся.",
+        "en": "The lock is frozen. Noah pounds it with his fist until the lid gives."
+       },
+       "dur": 3.0,
+       "fx": "snd:trunk:-6"
+      },
+      {
+       "note": {
+        "ru": "Монтировка. Ей можно долбить наст.",
+        "en": "The tire iron. He can break up the crust with it."
+       },
+       "dur": 2.6,
+       "set": {
+        "storm_tool": 1
+       }
+      },
+      {
+       "note": {
+        "ru": "На ней бурое и шерсть. Ной старается не смотреть.",
+        "en": "There are brown stains on it, and fur. Noah tries not to look."
+       },
+       "dur": 2.8,
+       "if": {
+        "deer": "==2"
+       }
+      }
+     ],
+     "after": [
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Idle"
+       },
+       "fx": "snd:trunk:-9",
+       "dur": 0.5
+      }
+     ]
+    },
+    {
+     "id": "lights",
+     "at": [
+      0.0,
+      0.75,
+      -2.95
+     ],
+     "where": [
+      0.0,
+      -3.9
+     ],
+     "r": 1.1,
+     "stand": [
+      0.0,
+      -3.9
+     ],
+     "face": 0,
+     "label": {
+      "ru": "Протереть фары",
+      "en": "Wipe the headlights"
+     },
+     "cam": [
+      [
+       1.6,
+       1.5,
+       -5.6
+      ],
+      [
+       0.0,
+       0.7,
+       -3.0
+      ],
+      46
+     ],
+     "beats": [
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Crouch_Idle"
+       }
+      },
+      {
+       "note": {
+        "ru": "Фары залеплены снегом. Ной сгребает его рукавом.",
+        "en": "The headlights are plastered with snow. Noah scrapes it off with his sleeve."
+       },
+       "dur": 2.8,
+       "fx": "storm_lights"
+      },
+      {
+       "note": {
+        "ru": "Свет становится белой стеной — в двух шагах. Дальше нет ничего.",
+        "en": "The light turns into a white wall two steps ahead. Beyond it, nothing."
+       },
+       "dur": 3.0
+      },
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Idle"
+       }
+      }
+     ]
+    },
+    {
+     "id": "look_in",
+     "at": [
+      0.9,
+      1.25,
+      0.25
+     ],
+     "where": [
+      1.6,
+      0.4
+     ],
+     "r": 1.0,
+     "stand": [
+      1.6,
+      0.4
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Заглянуть в салон",
+      "en": "Look inside"
+     },
+     "cam": [
+      [
+       2.6,
+       1.55,
+       1.6
+      ],
+      [
+       0.6,
+       1.15,
+       0.2
+      ],
+      40
+     ],
+     "beats": [
+      {
+       "look": {
+        "who": "noah",
+        "at": "iris"
+       },
+       "fx": "iris_glass"
+      },
+      {
+       "note": {
+        "ru": "Сквозь заиндевевшее стекло — Айрис. Она водит пальцем по стеклу изнутри.",
+        "en": "Through the frosted glass — Iris. She’s tracing something on the inside of the window."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Буквы задом наперёд: «ЙОН».",
+        "en": "The letters are backwards: “HAON.”"
+       },
+       "dur": 2.6,
+       "fx": "storm_name"
+      },
+      {
+       "look": {
+        "who": "noah",
+        "at": null
+       },
+       "fx": "iris_glass_off"
+      }
+     ]
+    }
+   ],
+   "zones": [
+    {
+     "rect": [
+      -3.0,
+      -5.0,
+      -2.3,
+      4.6
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Шаг от машины — и её нет. Только белое и вой. Ной на ощупь находит бок машины.",
+        "en": "One step from the car and it’s gone. Only white, and the howl. Noah gropes his way back to its side."
+       },
+       "dur": 3.4
+      }
+     ]
+    },
+    {
+     "rect": [
+      2.3,
+      -5.0,
+      3.0,
+      4.6
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Справа — пустота. Ни обочины, ни столбов.",
+        "en": "To the right — emptiness. No shoulder, no posts."
+       },
+       "dur": 2.6
+      }
+     ]
+    }
+   ],
+   "nudge": {
+    "after": 120,
+    "beats": [
+     {
+      "note": {
+       "ru": "Холод добирается до костей. Надо откапывать трубу.",
+       "en": "The cold is getting into his bones. He has to dig out the pipe."
+      },
+      "dur": 2.8
+     }
+    ]
+   },
+   "exit": {
+    "id": "exhaust",
+    "at": [
+     0.55,
+     0.45,
+     2.45
+    ],
+    "where": [
+     0.6,
+     3.2
+    ],
+    "r": 1.0,
+    "stand": [
+     0.6,
+     3.2
+    ],
+    "face": 180,
+    "label": {
+     "ru": "Откопать выхлоп",
+     "en": "Dig out the exhaust"
+    },
+    "beats": [
+     {
+      "fx": "storm_dig",
+      "dur": 0.4
+     }
+    ]
+   }
   }
  }
 }

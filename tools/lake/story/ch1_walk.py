@@ -366,6 +366,9 @@ def main():
         for b in sc[k]['beats']:
             if b.get('go') == 's8':
                 b['go'] = 's7_talk'
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import vokeys   # свой ключ голоса у реплик внутри прогулок и разговоров
+    vokeys.assign(j)
     s = json.dumps(j, ensure_ascii=False, indent=1) + '\n'
     open(DATA, 'w', encoding='utf-8').write(s)
     print('ch1.json: прогулка st24 (%d точек), разговор s7_talk, флаги %s' % (len(SPOTS), ', '.join(NEW_FLAGS)))

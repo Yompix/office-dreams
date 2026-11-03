@@ -41,6 +41,7 @@ const CAFE_SHOTS := {
 	"porch": [Vector3(19.5, CF + 1.5, -7.4), Vector3(21.0, CF + 1.35, -8.9), 42.0],
 	"porch_zoe": [Vector3(21.3, CF + 1.5, -8.2), Vector3(20.85, CF + 1.45, -9.25), 36.0],
 	"iris_window": [Vector3(20.6, CF + 1.35, -2.4), Vector3(22.75, CF + 1.12, -1.82), 24.0],
+	"iris_window_eva": [Vector3(21.3, CF + 1.3, -12.4), Vector3(23.5, CF + 1.1, -14.2), 30.0],   # снаружи в окно: Айрис (у Евы) смотрит на крыльцо
 	"cafe_window": [Vector3(23.2, CF + 1.45, -3.6), Vector3(17.5, 0.9, -40.0), 40.0],
 	"cafe_back": [Vector3(37.0, 1.9, 2.5), Vector3(34.0, 1.3, -1.0), 50.0],
 	"sedan_walk": [Vector3(21.8, 2.4, -13.0), Vector3(18.4, 0.9, -38.0), 40.0],

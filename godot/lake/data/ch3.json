@@ -45,7 +45,9 @@
   "heard_song": 0,
   "hale_brave": 0,
   "hale_knows": 0,
-  "hale_lost": 0
+  "hale_lost": 0,
+  "c3_radio": 0,
+  "c3_chest": 0
  },
  "map": [
   {
@@ -934,13 +936,16 @@
      }
     },
     {
-     "fx": "noah_storm",
-     "shot": "storm_noah",
+     "fx": "noah_out",
+     "shot": "noah_out",
      "note": {
       "ru": "Ной один в буране. Гул в голове нарастает.",
       "en": "Noah alone in the blizzard. The hum in his head swells."
      },
      "dur": 3.0
+    },
+    {
+     "explore": "c3v"
     },
     {
      "if": {
@@ -963,6 +968,34 @@
       "en": "The store. The door isn’t locked — Pyotr is asleep in the back. A gas can by the wall."
      },
      "dur": 3.0
+    },
+    {
+     "fx": "gas_run",
+     "shot": "gas_run",
+     "note": {
+      "ru": "Обратно — бегом, с канистрой. Ветер теперь толкает в спину.",
+      "en": "Back at a run, with the gas can. Now the wind is at his back."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "shed_gen",
+     "shot": "shed_gen",
+     "note": {
+      "ru": "Сарай. Генератор под брезентом. Ной льёт бензин — руки трясутся, половина мимо.",
+      "en": "The shed. The generator under a tarp. Noah pours the gas — his hands are shaking, half of it misses."
+     },
+     "dur": 3.2
+    },
+    {
+     "qte": "mash",
+     "t": 6.0,
+     "n": 8,
+     "sfx": "none",
+     "hint": {
+      "ru": "Дёргай шнур стартера — жми E / пробел",
+      "en": "Yank the starter cord — press E / Space"
+     }
     },
     {
      "fx": "generator",
@@ -1016,6 +1049,34 @@
      },
      "dur": 2.4,
      "shot": "storm_noah"
+    },
+    {
+     "fx": "gas_run",
+     "shot": "gas_run",
+     "note": {
+      "ru": "Обратно — бегом, с канистрой. Ветер теперь толкает в спину.",
+      "en": "Back at a run, with the gas can. Now the wind is at his back."
+     },
+     "dur": 2.6
+    },
+    {
+     "fx": "shed_gen",
+     "shot": "shed_gen",
+     "note": {
+      "ru": "Сарай. Генератор под брезентом. Ной льёт бензин — руки трясутся, половина мимо.",
+      "en": "The shed. The generator under a tarp. Noah pours the gas — his hands are shaking, half of it misses."
+     },
+     "dur": 3.2
+    },
+    {
+     "qte": "mash",
+     "t": 6.0,
+     "n": 8,
+     "sfx": "none",
+     "hint": {
+      "ru": "Дёргай шнур стартера — жми E / пробел",
+      "en": "Yank the starter cord — press E / Space"
+     }
     },
     {
      "fx": "generator",
@@ -1345,11 +1406,17 @@
    "time": "01:10",
    "beats": [
     {
+     "fx": "house_walk"
+    },
+    {
+     "explore": "c3h"
+    },
+    {
      "fx": "night_stove",
      "shot": "stove_two",
      "note": {
-      "ru": "Дом затих. Айрис клюёт носом у печи — перед этим она долго шепталась с бабушкой. Агнес курит трубку. Ной садится рядом.",
-      "en": "The house is quiet. Iris is nodding off by the stove — she spent a long time whispering with Grandma first. Agnes smokes her pipe. Noah sits down beside her."
+      "ru": "Айрис клюёт носом на лавке — перед этим она долго шепталась с бабушкой. Агнес курит трубку. Ной садится рядом.",
+      "en": "Iris is nodding off on the bench — she spent a long time whispering with Grandma first. Agnes smokes her pipe. Noah sits down beside her."
      },
      "dur": 3.6
     },
@@ -2342,6 +2409,1468 @@
      "end": 3
     }
    ]
+  }
+ },
+ "explore": {
+  "c3v": {
+   "who": "noah",
+   "start": {
+    "at": [
+     -4.2,
+     0.0,
+     -45.0
+    ],
+    "face": 90
+   },
+   "intro": [
+    {
+     "note": {
+      "ru": "Магазин Петра — через улицу, у таксофона. Ветер толкает в грудь.",
+      "en": "Pyotr’s store is across the street, by the payphone. The wind shoves at his chest."
+     },
+     "dur": 2.8
+    }
+   ],
+   "hum": {
+    "if": {
+     "pills": "==0"
+    },
+    "v": 0.3
+   },
+   "walk": [
+    [
+     -6.9,
+     -47.3,
+     -5.9,
+     -42.7
+    ],
+    [
+     -6.0,
+     -52.2,
+     6.0,
+     -22.0
+    ],
+    [
+     5.9,
+     -30.3,
+     7.0,
+     -25.7
+    ],
+    [
+     6.6,
+     -32.4,
+     7.95,
+     -24.6
+    ]
+   ],
+   "block": [
+    [
+     -6.15,
+     -40.65,
+     -4.85,
+     -39.35
+    ],
+    [
+     1.2,
+     -39.6,
+     3.2,
+     -34.4,
+     {
+      "walked": "==0"
+     }
+    ]
+   ],
+   "cam_block": [
+    [
+     -14.4,
+     -48.9,
+     -7.6,
+     -41.1,
+     99.0
+    ],
+    [
+     8.4,
+     -31.2,
+     13.6,
+     -24.8,
+     99.0
+    ],
+    [
+     7.9,
+     -53.6,
+     14.1,
+     -46.4,
+     99.0
+    ],
+    [
+     -6.2,
+     -40.8,
+     -4.8,
+     -39.2,
+     2.15
+    ]
+   ],
+   "nav": [
+    [
+     -4.2,
+     -45.0
+    ],
+    [
+     -3.4,
+     -42.0
+    ],
+    [
+     -3.4,
+     -38.0
+    ],
+    [
+     0.2,
+     -41.0
+    ],
+    [
+     4.4,
+     -46.5
+    ],
+    [
+     -1.6,
+     -32.5
+    ],
+    [
+     3.8,
+     -29.0
+    ],
+    [
+     6.3,
+     -28.0
+    ],
+    [
+     7.3,
+     -28.0
+    ],
+    [
+     7.3,
+     -31.0
+    ]
+   ],
+   "zones": [
+    {
+     "rect": [
+      -3.5,
+      -38.5,
+      3.5,
+      -33.0
+     ],
+     "if": {
+      "pills": "==0"
+     },
+     "beats": [
+      {
+       "note": {
+        "ru": "Гул в голове — как вода в ушах. Ной трясёт головой, но он не уходит.",
+        "en": "The hum in his head is like water in his ears. Noah shakes his head, but it won’t go away."
+       },
+       "dur": 3.0,
+       "fx": "snd:hum_ring:-12"
+      }
+     ]
+    }
+   ],
+   "spots": [
+    {
+     "id": "window",
+     "at": [
+      8.0,
+      1.95,
+      -50.0
+     ],
+     "where": [
+      5.4,
+      -49.2
+     ],
+     "r": 1.2,
+     "stand": [
+      5.45,
+      -49.25
+     ],
+     "face": 105,
+     "label": {
+      "ru": "Окно напротив",
+      "en": "The window across the street"
+     },
+     "cam": [
+      [
+       4.1,
+       1.75,
+       -47.5
+      ],
+      [
+       8.0,
+       1.85,
+       -50.2
+      ],
+      40
+     ],
+     "beats": [
+      {
+       "fx": "window_candle",
+       "look": {
+        "who": "noah",
+        "at": [
+         8.0,
+         1.9,
+         -50.0
+        ]
+       }
+      },
+      {
+       "note": {
+        "ru": "В доме напротив, за тёмным окном, дрожит огонёк свечи.",
+        "en": "In the house across the street, behind a dark window, a candle flame trembles."
+       },
+       "dur": 2.8
+      },
+      {
+       "note": {
+        "ru": "Кто-то стоит за занавеской и смотрит на Ноя. Не прячется.",
+        "en": "Someone is standing behind the curtain, watching Noah. Not hiding."
+       },
+       "dur": 2.8
+      },
+      {
+       "note": {
+        "ru": "Огонёк гаснет.",
+        "en": "The flame goes out."
+       },
+       "dur": 2.2,
+       "fx": "window_candle_off"
+      }
+     ],
+     "after": [
+      {
+       "look": {
+        "who": "noah",
+        "at": null
+       }
+      }
+     ]
+    },
+    {
+     "id": "well",
+     "at": [
+      -5.5,
+      1.1,
+      -40.0
+     ],
+     "where": [
+      -4.4,
+      -40.7
+     ],
+     "r": 1.2,
+     "stand": [
+      -4.35,
+      -40.8
+     ],
+     "face": -54,
+     "label": {
+      "ru": "Колодец",
+      "en": "The well"
+     },
+     "cam": [
+      [
+       -3.0,
+       1.75,
+       -42.2
+      ],
+      [
+       -5.4,
+       0.95,
+       -40.0
+      ],
+      42
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Колодец. Ворот обледенел, цепь вмёрзла в сруб.",
+        "en": "The well. The windlass is iced over; the chain is frozen to the frame."
+       },
+       "dur": 2.8
+      },
+      {
+       "note": {
+        "ru": "Дом с синими ставнями, у колодца. Всё, как писала мама.",
+        "en": "The house with blue shutters, by the well. Just like Mom wrote."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "id": "tracks",
+     "at": [
+      -0.9,
+      0.2,
+      -36.5
+     ],
+     "where": [
+      -1.8,
+      -33.6
+     ],
+     "r": 1.3,
+     "stand": [
+      -1.8,
+      -33.5
+     ],
+     "face": 165,
+     "label": {
+      "ru": "Колея на дороге",
+      "en": "Tire tracks in the road"
+     },
+     "cam": [
+      [
+       -1.2,
+       0.95,
+       -31.0
+      ],
+      [
+       -0.2,
+       0.1,
+       -42.0
+      ],
+      46
+     ],
+     "beats": [
+      {
+       "fx": "car_tracks"
+      },
+      {
+       "note": {
+        "ru": "На дороге — свежая колея. Широкая, не от их машины.",
+        "en": "Fresh tire tracks in the road. Wide ones — not from their car."
+       },
+       "dur": 2.8
+      },
+      {
+       "note": {
+        "ru": "Тянется мимо дома Агнес, в конец улицы, к лесу.",
+        "en": "They run past Agnes’s house, down to the end of the street, toward the woods."
+       },
+       "dur": 2.8
+      },
+      {
+       "note": {
+        "ru": "Снег её ещё не засыпал. Кто-то проехал совсем недавно.",
+        "en": "The snow hasn’t filled them in yet. Someone drove through not long ago."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "id": "payphone",
+     "at": [
+      8.28,
+      1.6,
+      -31.35
+     ],
+     "where": [
+      7.45,
+      -31.4
+     ],
+     "r": 1.0,
+     "stand": [
+      7.5,
+      -31.35
+     ],
+     "face": 90,
+     "label": {
+      "ru": "Таксофон",
+      "en": "The payphone"
+     },
+     "cam": [
+      [
+       6.2,
+       1.7,
+       -32.9
+      ],
+      [
+       8.2,
+       1.45,
+       -31.3
+      ],
+      40
+     ],
+     "beats": [
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Interact"
+       }
+      },
+      {
+       "note": {
+        "ru": "Таксофон под козырьком. Трубка ледяная — пальцы липнут к пластику.",
+        "en": "A payphone under a little hood. The receiver is ice-cold — his fingers stick to the plastic."
+       },
+       "dur": 3.0,
+       "fx": "snd:phone_rip:-14"
+      },
+      {
+       "note": {
+        "ru": "Гудка нет. Провода оборвало вместе со светом.",
+        "en": "No dial tone. The lines went down with the power."
+       },
+       "dur": 2.6
+      },
+      {
+       "anim": {
+        "who": "noah",
+        "clip": "Idle"
+       }
+      }
+     ]
+    },
+    {
+     "id": "shopwin",
+     "at": [
+      8.48,
+      1.95,
+      -27.1
+     ],
+     "where": [
+      7.45,
+      -27.2
+     ],
+     "r": 1.1,
+     "stand": [
+      7.5,
+      -27.2
+     ],
+     "face": 90,
+     "label": {
+      "ru": "Витрина магазина",
+      "en": "The store window"
+     },
+     "cam": [
+      [
+       6.4,
+       1.75,
+       -25.2
+      ],
+      [
+       8.5,
+       1.7,
+       -27.6
+      ],
+      42
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "За стеклом — полки, банки, мешок сахара. На двери табличка «Закрыто».",
+        "en": "Behind the glass — shelves, tins, a sack of sugar. A sign on the door: “Closed.”"
+       },
+       "dur": 2.8
+      },
+      {
+       "note": {
+        "ru": "Ниже, от руки: «Стучите громче. Пётр».",
+        "en": "Underneath, by hand: “Knock louder. Pyotr.”"
+       },
+       "dur": 2.4
+      },
+      {
+       "note": {
+        "ru": "В глубине, под дверью подсобки, — полоска света. Керосиновая лампа.",
+        "en": "At the back, under the storeroom door — a strip of light. A kerosene lamp."
+       },
+       "dur": 2.8
+      }
+     ]
+    }
+   ],
+   "nudge": {
+    "after": 120,
+    "beats": [
+     {
+      "note": {
+       "ru": "Из дома Агнес, сквозь ветер, — крик Евы.",
+       "en": "From Agnes’s house, through the wind — Eva screams."
+      },
+      "dur": 2.6
+     }
+    ]
+   },
+   "exit": {
+    "id": "door",
+    "at": [
+     8.48,
+     1.4,
+     -30.2
+    ],
+    "where": [
+     7.5,
+     -30.2
+    ],
+    "r": 1.0,
+    "stand": [
+     7.6,
+     -30.2
+    ],
+    "face": 90,
+    "label": {
+     "ru": "Войти в магазин",
+     "en": "Go into the store"
+    },
+    "beats": [
+     {
+      "fx": "snd:knock:-10",
+      "dur": 0.5
+     }
+    ]
+   }
+  },
+  "c3h": {
+   "who": "noah",
+   "start": {
+    "at": [
+     -9.75,
+     0.5,
+     -45.3
+    ],
+    "face": -110
+   },
+   "intro": [
+    {
+     "note": {
+      "ru": "Дом затих. Только печь потрескивает. Агнес курит трубку у огня.",
+      "en": "The house has gone quiet. Only the stove crackles. Agnes smokes her pipe by the fire."
+     },
+     "dur": 2.8
+    }
+   ],
+   "hum": {
+    "if": {
+     "pills": "==0"
+    },
+    "v": 0.16
+   },
+   "watch": [
+    "agnes"
+   ],
+   "walk": [
+    [
+     -14.0,
+     -48.5,
+     -8.0,
+     -41.5
+    ]
+   ],
+   "block": [
+    [
+     -13.85,
+     -48.35,
+     -11.8,
+     -46.35
+    ],
+    [
+     -14.2,
+     -44.2,
+     -12.2,
+     -43.2
+    ],
+    [
+     -9.35,
+     -44.2,
+     -8.25,
+     -42.6
+    ],
+    [
+     -8.25,
+     -44.35,
+     -7.85,
+     -42.45
+    ],
+    [
+     -9.85,
+     -42.3,
+     -8.15,
+     -41.9
+    ],
+    [
+     -10.9,
+     -41.9,
+     -9.9,
+     -41.3
+    ],
+    [
+     -12.05,
+     -46.45,
+     -11.3,
+     -45.65
+    ]
+   ],
+   "floors": [
+    [
+     -14.1,
+     -48.6,
+     -7.9,
+     -41.4,
+     0.5
+    ]
+   ],
+   "cam_block": [
+    [
+     -30.0,
+     -60.0,
+     -14.05,
+     -30.0,
+     99.0
+    ],
+    [
+     -7.95,
+     -60.0,
+     10.0,
+     -30.0,
+     99.0
+    ],
+    [
+     -30.0,
+     -60.0,
+     10.0,
+     -48.55,
+     99.0
+    ],
+    [
+     -30.0,
+     -41.45,
+     10.0,
+     -30.0,
+     99.0
+    ],
+    [
+     -13.85,
+     -48.35,
+     -11.8,
+     -46.35,
+     99.0
+    ]
+   ],
+   "nav": [
+    [
+     -10.0,
+     -45.3
+    ],
+    [
+     -10.4,
+     -43.8
+    ],
+    [
+     -11.6,
+     -44.7
+    ],
+    [
+     -11.9,
+     -42.8
+    ],
+    [
+     -9.8,
+     -44.8
+    ],
+    [
+     -9.0,
+     -46.6
+    ],
+    [
+     -10.9,
+     -47.3
+    ],
+    [
+     -11.4,
+     -46.9
+    ]
+   ],
+   "spots": [
+    {
+     "id": "photos",
+     "at": [
+      -14.0,
+      2.3,
+      -44.45
+     ],
+     "where": [
+      -13.25,
+      -44.55
+     ],
+     "r": 0.55,
+     "stand": [
+      -13.25,
+      -44.55
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Фотографии Анны",
+      "en": "Anna’s photos"
+     },
+     "cam": [
+      [
+       -13.2,
+       2.15,
+       -43.85
+      ],
+      [
+       -14.06,
+       2.22,
+       -44.45
+      ],
+      30
+     ],
+     "beats": [
+      {
+       "look": {
+        "who": "noah",
+        "at": [
+         -14.06,
+         2.25,
+         -44.45
+        ]
+       }
+      },
+      {
+       "note": {
+        "ru": "Анна — девочкой, с двумя косами. Анна с удочкой на мостках. Анна в школьном фартуке, с букетом выше головы.",
+        "en": "Anna as a girl, with two braids. Anna with a fishing rod on a dock. Anna in her school pinafore, holding flowers taller than her head."
+       },
+       "dur": 3.8
+      },
+      {
+       "note": {
+        "ru": "На свадебном снимке край отрезан ножницами. Рядом с невестой — только чужое плечо в пиджаке.",
+        "en": "On the wedding photo, one edge has been cut off with scissors. Next to the bride — only a stranger’s shoulder in a suit."
+       },
+       "dur": 3.4
+      },
+      {
+       "say": "agnes",
+       "ru": "Я его отрезала. В тот год, когда он запретил ей ко мне ездить.",
+       "en": "I cut him out. The year he forbade her to visit me.",
+       "look": {
+        "who": "agnes",
+        "at": "noah"
+       },
+       "vo": "c3h_photos_72e380"
+      }
+     ],
+     "ask": {
+      "max": 1,
+      "opts": [
+       {
+        "ru": "«Она была счастливой?»",
+        "en": "“Was she happy?”",
+        "beats": [
+         {
+          "say": "noah",
+          "ru": "Она была счастливой?",
+          "en": "Was she happy?",
+          "vo": "c3h_photos_c73626"
+         },
+         {
+          "say": "agnes",
+          "ru": "До него — да. Пела всё время. Потом перестала.",
+          "en": "Before him — yes. She sang all the time. Then she stopped.",
+          "vo": "c3h_photos_6e1355"
+         }
+        ]
+       },
+       {
+        "ru": "Промолчать",
+        "en": "Say nothing",
+        "beats": [
+         {
+          "note": {
+           "ru": "Ной долго смотрит на отрезанный край. Ножницы шли ровно — не сгоряча.",
+           "en": "Noah looks at the cut edge for a long time. The scissors went straight — not in a rage."
+          },
+          "dur": 3.0
+         }
+        ]
+       }
+      ]
+     },
+     "after": [
+      {
+       "look": {
+        "who": "noah",
+        "at": null
+       }
+      },
+      {
+       "look": {
+        "who": "agnes",
+        "at": null
+       }
+      }
+     ]
+    },
+    {
+     "id": "radio",
+     "at": [
+      -13.98,
+      2.26,
+      -44.9
+     ],
+     "where": [
+      -13.3,
+      -45.5
+     ],
+     "r": 0.5,
+     "stand": [
+      -13.3,
+      -45.45
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Приёмник на полке",
+      "en": "The radio on the shelf"
+     },
+     "cam": [
+      [
+       -13.0,
+       2.35,
+       -44.05
+      ],
+      [
+       -13.98,
+       2.24,
+       -44.9
+      ],
+      34
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Старый приёмник. Ручка настройки стёрта до блеска — его крутили годами.",
+        "en": "An old radio. The tuning knob is worn shiny — someone has turned it for years."
+       },
+       "dur": 2.8
+      }
+     ],
+     "ask": {
+      "max": 1,
+      "opts": [
+       {
+        "ru": "Включить тихо",
+        "en": "Turn it on, quietly",
+        "beats": [
+         {
+          "note": {
+           "ru": "Треск. Сквозь треск — сводка: трасса на север закрыта, метель до утра.",
+           "en": "Static. Through the static — a bulletin: the northbound highway is closed, the blizzard will last till morning."
+          },
+          "dur": 3.4,
+          "fx": "radio_static",
+          "set": {
+           "c3_radio": 1
+          }
+         },
+         {
+          "note": {
+           "ru": "Ной выключает. Агнес у печи даже не обернулась.",
+           "en": "Noah switches it off. Agnes at the stove doesn’t even turn around."
+          },
+          "dur": 2.6
+         }
+        ]
+       },
+       {
+        "ru": "Не трогать",
+        "en": "Leave it",
+        "beats": [
+         {
+          "note": {
+           "ru": "Ной не трогает. В этом доме всё ждёт кого-то, кто уже не придёт.",
+           "en": "Noah doesn’t touch it. Everything in this house is waiting for someone who isn’t coming back."
+          },
+          "dur": 3.0
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "eva",
+     "if": {
+      "eva_alive": ">0"
+     },
+     "at": [
+      -13.0,
+      1.4,
+      -43.7
+     ],
+     "where": [
+      -11.85,
+      -43.7
+     ],
+     "r": 0.6,
+     "stand": [
+      -11.85,
+      -43.7
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Ева и малышка",
+      "en": "Eva and the baby"
+     },
+     "cam": [
+      [
+       -11.6,
+       2.1,
+       -44.6
+      ],
+      [
+       -13.0,
+       1.3,
+       -43.65
+      ],
+      44
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Ева спит. Малышка у неё на груди — крошечный кулак у самого рта.",
+        "en": "Eva is asleep. The baby on her chest — a tiny fist right by her mouth."
+       },
+       "dur": 3.0
+      },
+      {
+       "note": {
+        "ru": "Обе дышат в такт. Ной стоит, пока не убеждается в этом.",
+        "en": "They breathe in time. Noah stands there until he’s sure of it."
+       },
+       "dur": 2.8
+      }
+     ]
+    },
+    {
+     "id": "eva_dead",
+     "if": {
+      "eva_dead": ">0"
+     },
+     "at": [
+      -13.0,
+      1.4,
+      -43.7
+     ],
+     "where": [
+      -11.85,
+      -43.7
+     ],
+     "r": 0.6,
+     "stand": [
+      -11.85,
+      -43.7
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Кровать за печью",
+      "en": "The bed behind the stove"
+     },
+     "cam": [
+      [
+       -11.6,
+       2.1,
+       -44.6
+      ],
+      [
+       -13.0,
+       1.3,
+       -43.65
+      ],
+      44
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Ева лежит, будто спит. Агнес закрыла ей глаза и укрыла до подбородка.",
+        "en": "Eva lies as if asleep. Agnes closed her eyes and drew the blanket up to her chin."
+       },
+       "dur": 3.2
+      },
+      {
+       "note": {
+        "ru": "Ной стоит рядом. Малышка у Айрис — та даже во сне её не отпускает.",
+        "en": "Noah stands beside her. The baby is with Iris — even asleep, she won’t let go."
+       },
+       "dur": 3.0
+      }
+     ]
+    },
+    {
+     "id": "iris",
+     "if": {
+      "eva_dead": "==0"
+     },
+     "at": [
+      -8.1,
+      1.5,
+      -43.4
+     ],
+     "where": [
+      -8.65,
+      -44.55
+     ],
+     "r": 0.55,
+     "stand": [
+      -8.65,
+      -44.55
+     ],
+     "face": 26,
+     "label": {
+      "ru": "Айрис",
+      "en": "Iris"
+     },
+     "cam": [
+      [
+       -9.4,
+       1.95,
+       -44.7
+      ],
+      [
+       -8.15,
+       1.45,
+       -43.4
+      ],
+      40
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Айрис уснула сидя, прижав к себе мамин дневник.",
+        "en": "Iris has fallen asleep sitting up, holding Mom’s diary to her chest."
+       },
+       "dur": 2.8
+      }
+     ],
+     "ask": {
+      "max": 1,
+      "opts": [
+       {
+        "ru": "Забрать дневник, чтобы не упал",
+        "en": "Take the diary so it won’t fall",
+        "beats": [
+         {
+          "note": {
+           "ru": "Ной тянет тетрадь — Айрис во сне сжимает её крепче. Не отдаёт.",
+           "en": "Noah tugs at the notebook — in her sleep, Iris grips it tighter. She won’t let go."
+          },
+          "dur": 3.0
+         }
+        ]
+       },
+       {
+        "ru": "Не будить",
+        "en": "Let her sleep",
+        "beats": [
+         {
+          "note": {
+           "ru": "Пусть спит. Здесь она впервые за много дней не вздрагивает во сне.",
+           "en": "Let her sleep. Here, for the first time in days, she isn’t flinching in her sleep."
+          },
+          "dur": 3.0
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "iris_baby",
+     "if": {
+      "eva_dead": ">0"
+     },
+     "at": [
+      -8.1,
+      1.5,
+      -43.4
+     ],
+     "where": [
+      -8.65,
+      -44.55
+     ],
+     "r": 0.55,
+     "stand": [
+      -8.65,
+      -44.55
+     ],
+     "face": 26,
+     "label": {
+      "ru": "Айрис",
+      "en": "Iris"
+     },
+     "cam": [
+      [
+       -9.4,
+       1.95,
+       -44.7
+      ],
+      [
+       -8.15,
+       1.45,
+       -43.4
+      ],
+      40
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Айрис уснула сидя, с малышкой на руках. Держит крепко — как держала Еву за руку.",
+        "en": "Iris has fallen asleep sitting up, the baby in her arms. Holding on tight — the way she held Eva’s hand."
+       },
+       "dur": 3.2
+      },
+      {
+       "note": {
+        "ru": "Ной не будит её.",
+        "en": "Noah doesn’t wake her."
+       },
+       "dur": 2.0
+      }
+     ]
+    },
+    {
+     "id": "chest",
+     "at": [
+      -10.4,
+      1.1,
+      -41.6
+     ],
+     "where": [
+      -10.4,
+      -42.4
+     ],
+     "r": 0.55,
+     "stand": [
+      -10.4,
+      -42.4
+     ],
+     "face": 0,
+     "label": {
+      "ru": "Сундук",
+      "en": "The chest"
+     },
+     "cam": [
+      [
+       -11.4,
+       2.0,
+       -42.8
+      ],
+      [
+       -10.4,
+       1.1,
+       -41.6
+      ],
+      44
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Сундук. Сверху — простыни. Под ними — свёрток в газете.",
+        "en": "A chest. Sheets on top. Underneath — a bundle wrapped in newspaper."
+       },
+       "dur": 2.8
+      }
+     ],
+     "ask": {
+      "max": 1,
+      "opts": [
+       {
+        "ru": "Развернуть",
+        "en": "Unwrap it",
+        "beats": [
+         {
+          "note": {
+           "ru": "Детское платье в горошек. Красная лента для кос. Школьная тетрадь: «Аня, 3 „Б“».",
+           "en": "A little polka-dot dress. A red ribbon for braids. A school notebook: “Anya, Grade 3.”"
+          },
+          "dur": 3.4,
+          "set": {
+           "c3_chest": 1
+          }
+         },
+         {
+          "note": {
+           "ru": "Сочинение «Кем я буду». Детским почерком: «Я буду смелой».",
+           "en": "An essay: “What I Will Be.” In a child’s handwriting: “I will be brave.”"
+          },
+          "dur": 3.0
+         },
+         {
+          "say": "agnes",
+          "ru": "Положи, где взял, милок. Это я сама перебираю.",
+          "en": "Put it back where you found it, dear. I go through those myself.",
+          "look": {
+           "who": "agnes",
+           "at": "noah"
+          },
+          "vo": "c3h_chest_22e1c8"
+         }
+        ]
+       },
+       {
+        "ru": "Не трогать",
+        "en": "Leave it",
+        "beats": [
+         {
+          "note": {
+           "ru": "Ной закрывает крышку. Это не его.",
+           "en": "Noah closes the lid. It isn’t his."
+          },
+          "dur": 2.2
+         }
+        ]
+       }
+      ]
+     },
+     "after": [
+      {
+       "look": {
+        "who": "agnes",
+        "at": null
+       }
+      }
+     ]
+    },
+    {
+     "id": "danny",
+     "if": {
+      "danny": ">0",
+      "danny_lost": "==0"
+     },
+     "at": [
+      -12.55,
+      2.6,
+      -47.35
+     ],
+     "where": [
+      -11.5,
+      -47.65
+     ],
+     "r": 0.5,
+     "stand": [
+      -11.55,
+      -47.65
+     ],
+     "face": -90,
+     "label": {
+      "ru": "Дэнни на печи",
+      "en": "Danny on the stove"
+     },
+     "cam": [
+      [
+       -10.9,
+       2.75,
+       -47.0
+      ],
+      [
+       -12.55,
+       2.55,
+       -47.45
+      ],
+      40
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Дэнни спит на печи, под старым тулупом. Рация зажата в кулаке.",
+        "en": "Danny is asleep on top of the stove, under an old sheepskin. His walkie-talkie is clenched in his fist."
+       },
+       "dur": 3.0
+      },
+      {
+       "say": "danny",
+       "ru": "Мам… я тут…",
+       "en": "Mom… I’m here…",
+       "vo": "c3h_danny_3e1049"
+      }
+     ]
+    },
+    {
+     "id": "window",
+     "at": [
+      -7.8,
+      2.0,
+      -47.2
+     ],
+     "where": [
+      -8.45,
+      -47.2
+     ],
+     "r": 0.55,
+     "stand": [
+      -8.45,
+      -47.2
+     ],
+     "face": 90,
+     "label": {
+      "ru": "Окно",
+      "en": "The window"
+     },
+     "cam": [
+      [
+       -8.55,
+       2.22,
+       -46.7
+      ],
+      [
+       -3.0,
+       1.7,
+       -49.2
+      ],
+      46
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "За окном — улица. Снег валит так, что дома напротив не видно.",
+        "en": "Outside the window — the street. The snow is so thick you can’t see the house across the way."
+       },
+       "dur": 2.8
+      },
+      {
+       "note": {
+        "ru": "Колею на дороге уже замело — будто никто и не проезжал.",
+        "en": "The tire tracks in the road are already snowed over — as if no one had ever driven through."
+       },
+       "dur": 2.8,
+       "if": {
+        "went_noah": ">0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Где-то там, на краю деревни, — чёрная машина с выключенными фарами. Отсюда её не видно.",
+        "en": "Somewhere out there, at the edge of the village, is a black car with its lights off. You can’t see it from here."
+       },
+       "dur": 3.2,
+       "if": {
+        "hale_here": ">0"
+       }
+      },
+      {
+       "note": {
+        "ru": "Ни огонька. Деревня будто вымерла.",
+        "en": "Not a single light. The village might as well be dead."
+       },
+       "dur": 2.4,
+       "if": {
+        "went_noah": "==0",
+        "hale_here": "==0"
+       }
+      }
+     ]
+    },
+    {
+     "id": "hatch",
+     "at": [
+      -11.2,
+      0.6,
+      -46.0
+     ],
+     "where": [
+      -10.45,
+      -45.75
+     ],
+     "r": 0.45,
+     "stand": [
+      -10.45,
+      -45.75
+     ],
+     "face": -108,
+     "label": {
+      "ru": "Лаз в подпол",
+      "en": "The cellar hatch"
+     },
+     "cam": [
+      [
+       -11.3,
+       2.05,
+       -44.85
+      ],
+      [
+       -11.2,
+       0.65,
+       -46.0
+      ],
+      46
+     ],
+     "beats": [
+      {
+       "note": {
+        "ru": "Лаз в подпол. Кольцо примёрзло к доскам — из щелей тянет холодом.",
+        "en": "A hatch to the cellar. The ring is frozen to the boards — cold seeps up through the cracks."
+       },
+       "dur": 2.8
+      },
+      {
+       "say": "agnes",
+       "ru": "Там картошка да соленья. И сухо. Запомни — мало ли.",
+       "en": "Potatoes and pickles down there. And it’s dry. Remember it — just in case.",
+       "look": {
+        "who": "agnes",
+        "at": "noah"
+       },
+       "vo": "c3h_hatch_86766f"
+      }
+     ],
+     "after": [
+      {
+       "look": {
+        "who": "agnes",
+        "at": null
+       }
+      }
+     ]
+    }
+   ],
+   "nudge": {
+    "after": 150,
+    "beats": [
+     {
+      "say": "agnes",
+      "ru": "Сядь, милок. Ноги-то не казённые.",
+      "en": "Sit down, dear. Those legs aren’t made of iron.",
+      "vo": "c3h_nudge_e9343d"
+     }
+    ]
+   },
+   "exit": {
+    "id": "stove",
+    "at": [
+     -11.7,
+     1.5,
+     -46.05
+    ],
+    "where": [
+     -10.25,
+     -46.75
+    ],
+    "r": 0.5,
+    "stand": [
+     -10.25,
+     -46.75
+    ],
+    "face": -100,
+    "label": {
+     "ru": "Сесть к Агнес у печи",
+     "en": "Sit with Agnes by the stove"
+    },
+    "beats": [
+     {
+      "dur": 0.3
+     }
+    ]
+   }
   }
  }
 }

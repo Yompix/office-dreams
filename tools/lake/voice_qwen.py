@@ -40,6 +40,10 @@ INSTRUCT = {
            'cold and suspicious; short, even, routine phrases. Natural cinematic acting, not theatrical.',
     'trucker': 'A 55-year-old long-haul trucker with a deep, rough, booming voice. Blunt, gruff and a little mocking; '
                'speaks loudly and lazily. Natural cinematic acting, not theatrical.',
+    'trucker_b': 'A 45-year-old trucker with a dry, mid-pitched, slightly nasal voice. Laconic and deadpan, half-joking, '
+                 'unhurried, a little tired. Natural cinematic acting, not theatrical.',
+    'waitress': 'A 50-year-old roadside cafe waitress with a warm, husky, motherly voice. Kind and practical, a little weary; '
+                'calls customers "love"; speaks calmly at an easy pace. Natural cinematic acting, not theatrical.',
     'hale': 'A 60-year-old man with a soft, calm, velvety voice. Unsettlingly gentle and polite, like a family doctor; '
             'speaks slowly and quietly with a faint smile in his voice. Natural cinematic acting, not theatrical.',
     # глава 3
@@ -53,7 +57,7 @@ INSTRUCT = {
     'victor': 'A 42-year-old man with a deep, rough, slightly slurred voice. Drunk but cold and controlled, menacing calm; '
               'speaks slowly and flatly. Natural cinematic acting, not theatrical.',
 }
-CLONE = {'noah', 'iris', 'danny', 'zoe', 'eva', 'agnes', 'hale', 'anna'}   # уже звучали — клон с готовой реплики (refs/), а не новое описание
+CLONE = {'noah', 'iris', 'danny', 'zoe', 'eva', 'agnes', 'hale', 'anna', 'trucker', 'radio'}   # уже звучали — клон с готовой реплики (refs/), а не новое описание
 LANG = {'ru': 'Russian', 'en': 'English'}
 MODEL = 'Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign'
 MODEL_CLONE = 'Qwen/Qwen3-TTS-12Hz-0.6B-Base'
@@ -63,8 +67,9 @@ REFS = os.path.join(ROOT, 'tools/lake/refs')
 def plan(lang):
     tim = json.load(open(V.tfile(lang))) if os.path.exists(V.tfile(lang)) else {}
     by = {}
+    only = tuple(p for p in os.environ.get('ONLY', '').split(',') if p)   # ONLY=c3p_,storm_ — только ключи с этими началами
     for k, L in V.LINES.items():
-        if k not in tim:
+        if k not in tim and (not only or k.startswith(only)):
             by.setdefault(L['who'], []).append(k)
     out = [{'who': who, 'mode': 'clone' if who in CLONE else 'design', 'keys': keys,
             'prompt': '\n'.join(V.say_text(V.LINES[k][lang]) for k in keys)} for who, keys in by.items()]
@@ -76,7 +81,8 @@ def plan(lang):
 REF_KEYS = {   # образец для клона: спокойные реплики подряд (крик и шёпот дают крикливый или шепчущий клон)
     'noah': ['s5_pay_1', 's6_a2_1'], 'iris': ['s6_a_2', 's2_c_2'], 'danny': ['s5_2'],
     'zoe': ['c2_s2_stop_1'], 'eva': ['c2_s4_eva_3'],
-    'agnes': ['c3_s4_1'], 'hale': ['c2_s5_walk_1'], 'anna': ['c3_s5_lapse_2']}   # глава 4: бабушка — как у печи в главе 3, Хейл — как голос из седана
+    'agnes': ['c3_s4_1'], 'hale': ['c2_s5_walk_1'], 'anna': ['c3_s5_lapse_2'],
+    'trucker': ['c2_s4_eva_2'], 'radio': ['s2_1']}   # глава 2: дальнобойщик из кафе, диктор — как радио в главе 1   # глава 4: бабушка — как у печи в главе 3, Хейл — как голос из седана
 
 
 def refs(lang):

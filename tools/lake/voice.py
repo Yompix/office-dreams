@@ -59,6 +59,10 @@ def lines():
             if 'say' in b:
                 k = keys[(sid, i)]
                 out[k] = {'who': b['say'], 'ru': b.get('ru', ''), 'en': b.get('en', ''), 'tag': TAGS.get(k, 'natural')}
+            for nb in _A.nested(b, data):   # реплики внутри прогулок и разговоров — со своим ключом vo (story/vokeys.py)
+                if 'say' in nb and nb.get('vo'):
+                    k = nb['vo']
+                    out[k] = {'who': nb['say'], 'ru': nb.get('ru', ''), 'en': nb.get('en', ''), 'tag': TAGS.get(k, 'natural')}
     return out
 
 
