@@ -48,6 +48,8 @@ var _e_prev := true          # клавиша E была нажата в про�
 var _looks := {}             # кто куда смотрел до прогулки — вернуть в конце
 var _tight := false          # камере тесно (вплотную к стене): она над плечом — смотрит дальше вперёд, а не в землю
 var _opened := {}            # id двери → узел-петля, на котором повёрнута створка
+var _intro := false          # надписи вступления ещё идут (герой уже ходит): осмотр и зоны — после них
+var _use_later := false      # «Осмотреть» нажали во время вступления — осмотреть, как только оно кончится
 static var _ring: Texture2D
 
 
@@ -82,13 +84,28 @@ func run() -> void:
 	_make_marks()
 	g._ex = self
 	g._cut("explore")
-	for b in d.get("intro", []):
-		await g._beat(b)
-	g._cut("explore")
+	var intro: Array = d.get("intro", [])
 	if g.autoplay or "--walkauto" in OS.get_cmdline_user_args():   # --walkauto: проверки управления (--qtetest) проходят прогулку сами
+		for b in intro:
+			await g._beat(b)
+		g._cut("explore")
 		await _auto()
 	else:
+		# Игрок ведёт героя сразу (владелец, 4 ноя: «не во всех локациях на телефоне получается ходить»): раньше всё
+		# вступление (надписи, реплики — 3–9 с) шло до управления, а камера и джойстик уже были прогулочные — палец
+		# и клавиши не слушались. Теперь до управления — только общие планы вступления (шаги со склейкой «shot»),
+		# надписи и реплики идут уже на ходу; осмотр и зоны — после них.
+		var k := 0
+		while k < intro.size() and (intro[k] as Dictionary).has("shot"):
+			await g._beat(intro[k])
+			k += 1
+		g._cut("explore")
+		if k < intro.size():
+			_intro_walk(intro.slice(k))
 		await _loop()
+		while _intro:   # выход не жмётся во время вступления, но на всякий случай — не оставлять надпись в следующей сцене
+			g._skip = true
+			await g.get_tree().process_frame
 	g.hud.prompt("")
 	for m in _marks.values():
 		if is_instance_valid(m):
@@ -111,23 +128,42 @@ func run() -> void:
 
 # ---------------------------------------------------------------------------------------------------- игрок ведёт
 
+## Надписи и реплики вступления — пока игрок уже ведёт героя (склейки из них убраны: камера — прогулочная).
+func _intro_walk(beats: Array) -> void:
+	_intro = true
+	for b in beats:
+		if _exit:
+			break
+		var bb: Dictionary = (b as Dictionary).duplicate()
+		bb.erase("shot")
+		await g._beat(bb)
+	_intro = false
+
+
 func _loop() -> void:
 	while not _exit:
 		await g.get_tree().process_frame
 		var dt: float = g._dt()
 		if dt <= 0.0 or busy:
 			continue
-		_t += dt
+		if not _intro:
+			_t += dt   # время прогулки — после надписей вступления (подсказка «как ходить», «поторопить»)
 		_tick(dt)
 		var e: bool = Input.is_physical_key_pressed(KEY_E)
 		var lmb: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not TouchCtl.enabled   # телефон: касание джойстика — не «осмотреть»
 		var press: bool = (e and not _e_prev) or Input.is_action_just_pressed("ui_accept") \
 			or lmb and not _e_prev or TouchCtl.take_use()
 		_e_prev = e or lmb
-		if press and not _near.is_empty() and not g.hud.choosing():
+		var later := _use_later and not _intro   # «Осмотреть» нажали во время надписей вступления — сразу после них
+		if later:
+			_use_later = false
+		if press and _intro and not _near.is_empty():
+			_use_later = true
+		if (press or later) and not _near.is_empty() and not g.hud.choosing() and not _intro:
 			await _use(_near)
 			continue
-		await _zones_check()
+		if not _intro:
+			await _zones_check()
 		var nd: Dictionary = d.get("nudge", {})
 		if not _nudged and not nd.is_empty() and _t > float(nd.get("after", 180.0)):
 			_nudged = true
@@ -288,6 +324,9 @@ func _find_near() -> void:
 			best = s
 	if best != _near:
 		_near = best
+	if _intro:   # надписи вступления — там же, внизу кадра: подсказки — сразу после них, а не одна на другой
+		g.hud.prompt("")
+		return
 	if not _near.is_empty():
 		var key := "A" if g._pad else ("" if TouchCtl.enabled else "E")
 		g.hud.prompt(("%s   %s" % [key, g.hud.T(_near.get("label", {}))]).strip_edges())
