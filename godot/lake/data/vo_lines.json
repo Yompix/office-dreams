@@ -1781,6 +1781,12 @@
 "scene": "s6_leave",
 "who": "noah"
 },
+"s6_n1": {
+"en": "His name’s Danny.",
+"ru": "Его Дэнни зовут.",
+"scene": "s6",
+"who": "iris"
+},
 "s7_a_1": {
 "en": "It’s going to be okay.",
 "ru": "Всё будет хорошо.",
