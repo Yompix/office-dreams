@@ -29,6 +29,9 @@ var _qte_got := 0             # сколько нажатий уже засчи�
 var _qte_what := ""           # что происходит в мире во время действия (поле "what"): "fuel" — табло колонки, "ice" — лёд в ведре
 var _qte_f := 0.0             # hold: сколько уже сделано (0…1)
 var _pump_on := false         # заправка: насос сейчас качает (держат кнопку)
+var _hose: MeshInstance3D = null   # шланг заправки (пока пистолет в руке)
+const HOSE_FROM := Vector3(12.27, 1.68, -4.61)
+const ICE_AT := Vector3(12.45, 0.48, -8.55)   # корка льда в ведре для стёкол (station_props: ведро у островка)   # где шланг выходит из колонки Ноя (station.py: hose, сторона к машине)
 var _rng := RandomNumberGenerator.new()
 var log_lines: Array[String] = []
 var _pad := false            # последним трогали геймпад (подсказки действий — под него)
@@ -1084,6 +1087,7 @@ func _attach_nozzle(a: Actor) -> void:
 	hose.mesh = hc
 	hose.material_override = dark
 	hose.position = Vector3(0.0, -0.25, -0.01)
+	hose.name = "hose_stub"   # обрывок шланга (провал); при заправке вместо него — шланг от колонки (StationProps.hose_mesh)
 	ba.add_child(hose)
 
 
@@ -1169,6 +1173,14 @@ func _fx(k: String) -> void:
 			StationProps.trunk_take_blanket(scene.car)
 		"phone_pick", "phone_hang":   # таксофон: трубка в руке у Ноя / снова на рычаге
 			StationProps.receiver(scene.station_root, actors.noah, k == "phone_pick")
+		"ice_ready":   # ведро: Ной присел, правая рука занесена над коркой льда
+			(actors.noah as Actor).reach = {"_r": ICE_AT + Vector3(0.0, 0.16, 0.02)}
+		"hands_in_water":   # обе руки в воду под разбитый лёд — плеск, холод
+			(actors.noah as Actor).reach = {"_r": ICE_AT + Vector3(0.04, -0.07, 0.05), "_l": ICE_AT + Vector3(-0.03, -0.07, -0.06)}
+			sfx.play("splash", -12.0, 0.95)
+			_shake = maxf(_shake, 0.06)
+		"hands_out":   # руки из воды: кисти свободны
+			(actors.noah as Actor).reach = {}
 		"wash_hands":   # прогулка на заправке: Ной отмыл ладони в ведре для стёкол — под ногтями осталось
 			(actors.noah as Actor).set_blood(0.3)
 			StationProps.pink_water(scene.station_root)
@@ -1229,14 +1241,35 @@ func _fx(k: String) -> void:
 			tg.tween_callback(scene.car.show_pills.bind(false))
 		"pills_take", "pills_throw":
 			scene.car.show_pills(false)
-		"nozzle_take":   # заправка (прогулка «24»): пистолет из колонки — в правую руку Ноя, на табло загораются нули
-			_attach_nozzle(actors.noah)
+		"nozzle_take":   # заправка (прогулка «24»): лючок открыт, пистолет из держателя колонки — в правую руку Ноя и в
+			# горловину (кисть — по IK), шланг тянется от колонки к руке; на табло загораются нули
+			var na: Actor = actors.noah
+			_attach_nozzle(na)
+			var stub: Node3D = na.skel.get_node("nozzle_in_hand").get_node_or_null("hose_stub")
+			if stub:
+				stub.visible = false
+			StationProps.fuel_flap(scene.car, true)
+			StationProps.holster(scene.station_root, false)
+			na.reach = {"_r": scene.car.to_global(StationProps.FILLER + Vector3(-0.07, 0.03, 0.0))}
+			_hose = MeshInstance3D.new()
+			var hm := StandardMaterial3D.new()
+			hm.albedo_color = Color(0.03, 0.03, 0.035)
+			hm.roughness = 0.45
+			_hose.material_override = hm
+			scene.station_root.add_child(_hose)
 			StationProps.pump_display(scene.station_root, 0.0, lang)
 			sfx.play("nozzle", -12.0, 1.1)
-		"nozzle_back":   # пистолет обратно в держатель колонки
-			var nz: Node = actors.noah.skel.get_node_or_null("nozzle_in_hand")
+		"nozzle_back":   # пистолет обратно в держатель колонки, лючок закрыт ладонью
+			var nb: Actor = actors.noah
+			var nz: Node = nb.skel.get_node_or_null("nozzle_in_hand")
 			if nz:
 				nz.queue_free()
+			nb.reach = {}
+			if _hose and is_instance_valid(_hose):
+				_hose.queue_free()
+			_hose = null
+			StationProps.holster(scene.station_root, true)
+			StationProps.fuel_flap(scene.car, false)
 			sfx.play("nozzle", -14.0, 0.8)
 		"money":
 			scene.show_money()
@@ -1616,6 +1649,18 @@ func _do_peek(t: float, hint_d) -> bool:
 	return seen
 
 
+## Удар по льду в ведре: правая кисть (IK) резко вниз к корке и обратно — на каждом нажатии действия «лёд».
+func _ice_strike() -> void:
+	var na: Actor = actors.get("noah")
+	if na == null:
+		return
+	var tw := create_tween()
+	var up := ICE_AT + Vector3(0.0, 0.16, 0.02)
+	var hit := ICE_AT + Vector3(0.0, 0.005, 0.02)
+	tw.tween_method(func(p: Vector3): na.reach = {"_r": p}, up, hit, 0.09).set_ease(Tween.EASE_IN)
+	tw.tween_method(func(p: Vector3): na.reach = {"_r": p}, hit, up, 0.3).set_ease(Tween.EASE_OUT).set_delay(0.08)
+
+
 ## Кнопка действия зажата: E, пробел, Enter, A на геймпаде, мышь или палец на экране.
 func _act_held() -> bool:
 	return Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_SPACE) or Input.is_action_pressed("ui_accept") \
@@ -1641,6 +1686,7 @@ func _qte_world(what: String, held: bool, f: float, stage := -1) -> void:
 					sfx.stop("pump_run", 0.08)
 		"ice":
 			if stage > 0:
+				_ice_strike()   # кулак Ноя бьёт по корке
 				StationProps.ice_stage(scene.station_root, stage)
 				sfx.play("ice_crack", -8.0 if stage == 1 else -4.0, 1.25 if stage == 1 else 1.0)
 				if stage == 2:
@@ -2114,6 +2160,10 @@ func _pause() -> void:
 func _process(delta: float) -> void:
 	if scene == null:   # перезапуск в другом видеорежиме (BootGuard) — мир не строился
 		return
+	if _hose and is_instance_valid(_hose):   # шланг заправки: от колонки к пистолету в руке Ноя
+		var hn: Node3D = actors.noah.skel.get_node_or_null("nozzle_in_hand") if actors.has("noah") else null
+		if hn:
+			StationProps.hose_mesh(_hose, HOSE_FROM, hn.global_transform * Vector3(0.0, 0.01, -0.01))
 	_beat_t += delta
 	if _beat_t >= 30.0:   # пульс BootGuard: запуск жив; закрытие после 2 минут — уже не «вылет при загрузке»
 		_beat_t = 0.0

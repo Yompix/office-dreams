@@ -198,6 +198,89 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 	return out
 
 
+## Лючок бака на левом заднем крыле машины (машина у колонки: нос к −Z, левый бок — к колонке Ноя). Замер кузова
+## sedan.glb: x ±0,894, y 0,21…1,60, z −2,86…2,21; горловина — над задним колесом, перед крышкой багажника.
+const FILLER := Vector3(-0.9, 0.9, 1.68)   # горловина в осях машины
+static func fuel_flap(car: Node3D, open: bool) -> void:
+	var ff: Node3D = car.get_node_or_null("fuel_flap")
+	if ff == null:
+		ff = Node3D.new()
+		ff.name = "fuel_flap"
+		car.add_child(ff)
+		ff.position = FILLER + Vector3(0.012, 0, 0)
+		var dark := _mat(Color(0.02, 0.02, 0.022), 0.6)
+		_box(ff, Vector3(0.02, 0.15, 0.15), Vector3(0.0, 0, 0), dark)                 # ниша лючка
+		var cap := _cyl(ff, 0.034, 0.03, Vector3(-0.012, 0, 0), _mat(Color(0.06, 0.06, 0.06), 0.5))   # крышка горловины
+		cap.rotation_degrees = Vector3(0, 0, 90)
+		cap.name = "cap"
+		var hinge := Node3D.new()   # петля лючка — у его переднего края (к носу машины)
+		hinge.name = "hinge"
+		hinge.position = Vector3(-0.004, 0, -0.08)
+		ff.add_child(hinge)
+		var paint: Material = _mat(Color(0.09, 0.12, 0.2), 0.35, 0.3)
+		for n in car.find_children("body*", "MeshInstance3D", true, false):
+			var m: Material = (n as MeshInstance3D).get_active_material(0)
+			if m:
+				paint = m
+				break
+		var lid := _box(hinge, Vector3(0.008, 0.155, 0.155), Vector3(-0.006, 0, 0.0775), paint)
+		lid.name = "lid"
+	var hg: Node3D = ff.get_node("hinge")
+	var tw := ff.create_tween()
+	tw.tween_property(hg, "rotation_degrees:y", -78.0 if open else 0.0, 0.35).set_trans(Tween.TRANS_SINE)
+	var cap_n: Node3D = ff.get_node("cap")
+	cap_n.visible = not open   # крышка снята — лежит в руке/на лючке (кадр её не держит)
+
+
+## Пистолет и шланг в держателе колонки Ноя (модель станции): спрятать, пока пистолет у Ноя в руке, и вернуть.
+static func holster(root: Node3D, show: bool) -> void:
+	for pair in [["nozzle", Vector3(12.34, 1.16, -4.7)], ["hose", Vector3(12.5, 0.8, -4.55)]]:
+		var best: Node3D = null
+		var bd := 0.6
+		for n in root.find_children(String(pair[0]) + "*", "MeshInstance3D", true, false):
+			var c: Vector3 = (n as MeshInstance3D).global_transform * (n as MeshInstance3D).get_aabb().get_center()
+			var dd: float = c.distance_to(pair[1])
+			if dd < bd:
+				bd = dd
+				best = n
+		if best:
+			best.visible = show
+
+
+## Шланг от колонки к пистолету в руке: трубка по кривой с провисом (перестраивается каждый кадр, пока пистолет в руке).
+static func hose_mesh(mi: MeshInstance3D, a: Vector3, b: Vector3) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var sag := Vector3(0, -minf(1.0, 0.25 + a.distance_to(b) * 0.45), 0)
+	var c1 := a + Vector3(0.25, -0.5, 0.0) + sag * 0.6
+	var c2 := b + Vector3(-0.15, -0.35, 0.05) + sag * 0.5
+	var N := 18
+	var R := 0.016
+	var pts: Array[Vector3] = []
+	for i in N + 1:
+		var t := float(i) / N
+		var u := 1.0 - t
+		pts.append(a * u * u * u + c1 * 3.0 * u * u * t + c2 * 3.0 * u * t * t + b * t * t * t)
+	for i in N:
+		var p0: Vector3 = pts[i]
+		var p1: Vector3 = pts[i + 1]
+		var dir := (p1 - p0).normalized()
+		var side := dir.cross(Vector3.UP).normalized() if absf(dir.dot(Vector3.UP)) < 0.95 else dir.cross(Vector3.RIGHT).normalized()
+		var up := side.cross(dir).normalized()
+		for k in 6:
+			var a0 := TAU * k / 6.0
+			var a1 := TAU * (k + 1) / 6.0
+			var o0 := (side * cos(a0) + up * sin(a0)) * R
+			var o1 := (side * cos(a1) + up * sin(a1)) * R
+			st.set_normal(o0.normalized()); st.add_vertex(p0 + o0)
+			st.set_normal(o1.normalized()); st.add_vertex(p0 + o1)
+			st.set_normal(o1.normalized()); st.add_vertex(p1 + o1)
+			st.set_normal(o0.normalized()); st.add_vertex(p0 + o0)
+			st.set_normal(o1.normalized()); st.add_vertex(p1 + o1)
+			st.set_normal(o0.normalized()); st.add_vertex(p1 + o0)
+	mi.mesh = st.commit()
+
+
 ## Табло колонки Ноя (островок x = 12, сторона к машине): литры и сумма бегут, пока идёт бензин (заправка удержанием).
 const PRICE := 55.4   # цена литра на табло
 static func pump_display(root: Node3D, liters: float, lang := "ru") -> void:

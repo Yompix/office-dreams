@@ -19,14 +19,18 @@ def L(ru, en):
     return {'ru': ru, 'en': en}
 
 
-REFUEL = [   # эпизод 1, шаг 7: камера ¾ сзади-сбоку у бака, в глубине — ступенька с детьми
-    {'ref': 'refuel', 'place': {'who': 'noah', 'at': [13.0, 0.0, -3.3], 'face': 90, 'clip': 'Idle'},
-     'cam': [[12.35, 1.62, -1.55], [13.55, 1.0, -3.6], 46], 'fx': 'nozzle_take', 'dur': 0.9},
+REFUEL = [   # эпизод 1, шаг 7: Ной у горловины (лючок над левым задним колесом), камера от заднего угла машины —
+    # рука с пистолетом в горловине, шланг от колонки, табло колонки за спиной Ноя
+    {'ref': 'refuel', 'place': {'who': 'noah', 'at': [12.9, 0.0, -3.45], 'face': 90, 'clip': 'Idle'},
+     'cam': [[13.95, 1.45, -1.35], [13.05, 1.0, -3.6], 44], 'fx': 'nozzle_take', 'dur': 1.0},
     {'ref': 'refuel', 'qte': 'hold', 't': 7.0, 'what': 'fuel',
      'hint': L('Заправить — держите [E]', 'Fill up — hold [E]')},
+    {'ref': 'refuel', 'cam': [[13.05, 1.47, -4.62], [12.3, 1.42, -5.0], 28], 'dur': 1.4},   # отсечка: табло встало
     {'ref': 'refuel', 'fx': 'nozzle_back', 'dur': 1.0},
 ]
 ICE = {'ref': 'ice', 'qte': 'ice', 'what': 'ice', 'hint': L('Разбить лёд — [E]', 'Break the ice — [E]')}
+BUCKET_CAM = [[12.98, 1.0, -8.1], [12.45, 0.42, -8.56], 36]   # крупно: ведро, корка льда, руки Ноя
+HANDS_CAM = [[12.3, 1.45, -7.7], [13.0, 1.15, -8.5], 38]       # спереди-сбоку: Ной встал и смотрит на ладони
 
 
 def main():
@@ -48,6 +52,25 @@ def main():
                 break
         else:
             raise SystemExit('st24/bucket: не нашёл шаг «Ной разбивает лёд»')
+    # постановка у ведра: крупно ведро (синяя вода, тонкий лёд — видно, подпись не нужна), рука бьёт по корке на каждом
+    # нажатии, обе руки — в воду, вода розовеет (подпись не нужна); ладони — потом, с подписью, пока нет крупного плана рук
+    for b in bt:
+        nt = (b.get('note') or {}).get('ru', '')
+        if nt.startswith('Ведро со щёткой для стёкол'):
+            b.pop('note')
+            b.update({'ref': 'ice', 'cam': BUCKET_CAM, 'dur': 1.6})
+        elif b.get('ref') == 'ice' and b.get('anim'):
+            b['fx'] = 'ice_ready'
+        elif b.get('qte') == 'ice':
+            b['cam'] = BUCKET_CAM
+        elif b.get('ref') == 'ice' and b.get('fx') in ('snd:splash:-14', 'hands_in_water'):
+            b.update({'fx': 'hands_in_water', 'cam': BUCKET_CAM, 'dur': 1.4})
+        elif nt == 'Вода розовеет.':
+            b.pop('note')
+            b.update({'ref': 'ice', 'cam': BUCKET_CAM, 'dur': 2.2})
+        elif nt.startswith('Ладони чистые'):
+            b['fx'] = 'hands_out'
+            b['cam'] = HANDS_CAM
     open(DATA, 'w', encoding='utf-8').write(json.dumps(j, ensure_ascii=False, indent=1) + '\n')
     print('ch1.json: st24 — заправка удержанием, лёд в ведре действием')
 
