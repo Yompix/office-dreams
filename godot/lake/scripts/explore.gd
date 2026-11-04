@@ -108,9 +108,10 @@ func _loop() -> void:
 		_t += dt
 		_tick(dt)
 		var e: bool = Input.is_physical_key_pressed(KEY_E)
+		var lmb: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not TouchCtl.enabled   # телефон: касание джойстика — не «осмотреть»
 		var press: bool = (e and not _e_prev) or Input.is_action_just_pressed("ui_accept") \
-			or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _e_prev
-		_e_prev = e or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+			or lmb and not _e_prev or TouchCtl.take_use()
+		_e_prev = e or lmb
 		if press and not _near.is_empty() and not g.hud.choosing():
 			await _use(_near)
 			continue
@@ -205,6 +206,8 @@ func _input_vec() -> Vector2:
 	if Input.is_joy_button_pressed(0, JOY_BUTTON_DPAD_RIGHT):
 		p.x = 1.0
 	var v := p if p.length() > k.length() else k.normalized()
+	if TouchCtl.enabled and TouchCtl.move.length() > maxf(v.length(), 0.12):   # телефон: джойстик на экране
+		v = TouchCtl.move
 	return v.limit_length(1.0)
 
 
@@ -267,8 +270,10 @@ func _find_near() -> void:
 	if best != _near:
 		_near = best
 	if not _near.is_empty():
-		var key := "A" if g._pad else "E"
-		g.hud.prompt("%s   %s" % [key, g.hud.T(_near.get("label", {}))])
+		var key := "A" if g._pad else ("" if TouchCtl.enabled else "E")
+		g.hud.prompt(("%s   %s" % [key, g.hud.T(_near.get("label", {}))]).strip_edges())
+	elif not _moved and _t < 14.0 and TouchCtl.enabled and not g._pad:
+		g.hud.prompt("Джойстик слева — идти   ·   «Осмотреть» — справа" if g.lang == "ru" else "Joystick on the left — walk   ·   «Look» — on the right")
 	elif not _moved and _t < 14.0:
 		g.hud.prompt(("Стик — идти   ·   A — осмотреть" if g._pad else "WASD — идти   ·   E — осмотреть") if g.lang == "ru"
 			else ("Stick — walk   ·   A — interact" if g._pad else "WASD — walk   ·   E — interact"))

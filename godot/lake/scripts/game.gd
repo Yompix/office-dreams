@@ -147,11 +147,17 @@ func _ready() -> void:
 	cam.make_current()
 	Actor.view_cam = cam   # дальних и невидимых героев анимация считает реже
 	# модели героев — в фоне, пока игрок в меню: герой, появившийся посреди сцены, не даёт рывка 0,3–0,5 с
-	Actor.prefetch(["noah", "iris", "danny", "roman", "zoe", "eva", "agnes", "hale", "orderly", "noah_kid", "anna", "victor", "hale_young", "nina"])
+	if not OS.has_feature("mobile"):   # на телефоне память дороже рывка: герои грузятся, когда нужны
+		Actor.prefetch(["noah", "iris", "danny", "roman", "zoe", "eva", "agnes", "hale", "orderly", "noah_kid", "anna", "victor", "hale_young", "nina"])
 	_cast()
 	hud = Hud.new()
 	hud.lang = lang
 	add_child(hud)
+	if (OS.has_feature("mobile") or "--touch" in args) and not autoplay:   # телефон: джойстик, «Осмотреть», пауза
+		TouchCtl.enabled = true
+		var tc := TouchCtl.new()
+		tc.g = self
+		hud.add_child(tc)
 	sfx = Sfx.new()
 	add_child(sfx)
 	_apply_settings()
@@ -1453,7 +1459,8 @@ func _do_peek(t: float, hint_d) -> bool:
 			continue
 		hud.hint.text = _keys(hint_raw)
 		var held := Input.is_key_pressed(KEY_Q) or Input.is_key_pressed(KEY_UP) or Input.is_key_pressed(KEY_TAB) \
-				or Input.is_action_pressed("ui_up") or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
+				or Input.is_action_pressed("ui_up") or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) \
+				or (TouchCtl.enabled and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT))   # телефон: коснуться экрана
 		if not held:
 			armed = true
 		if autoplay:
@@ -1853,7 +1860,17 @@ const PAD_KEYS := {"ru": [["E / пробел", "A"], ["A / D или стрелк
 	"en": [["E / Space", "A"], ["A / D or arrow keys", "stick or D-pad"], ["S / ↓ / Space", "A / ↓"], ["Q / ↑", "D-pad ↑"]]}
 
 
-func _keys(s: String) -> String:   # подсказка действия под геймпад
+const TOUCH_KEYS := {"ru": [["быстро жми E / пробел", "быстро касайся экрана"], ["жми E / пробел", "касайся экрана"],
+		["E / пробел", "касание"], ["A / D или стрелки", "джойстик"], ["S / ↓ / пробел", "коснись экрана"], ["Q / ↑", "коснись экрана"]],
+	"en": [["press E / Space", "tap the screen"], ["E / Space", "tap"], ["A / D or arrow keys", "joystick"],
+		["S / ↓ / Space", "tap the screen"], ["Q / ↑", "tap the screen"]]}
+
+
+func _keys(s: String) -> String:   # подсказка действия под геймпад (или под касание на телефоне)
+	if TouchCtl.enabled and not _pad:
+		for pr in TOUCH_KEYS.get(lang, TOUCH_KEYS.en):
+			s = s.replace(String(pr[0]), String(pr[1]))
+		return s
 	if not _pad:
 		return s
 	for pr in PAD_KEYS.get(lang, PAD_KEYS.en):
@@ -1868,9 +1885,9 @@ func _exit_tree() -> void:
 ## Пауза: всё стоит (герои, машина, таймер выбора), меню поверх.
 ## Окно потеряло фокус (Alt+Tab, свернули, телефон ушёл в фон) — пауза: таймер выбора и действия без игрока не идут.
 func _notification(what: int) -> void:
-	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED] and not autoplay and not _menu_mode \
-			and not _ending and hud != null and is_inside_tree() and not get_tree().paused:
-		_pause()
+	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_GO_BACK_REQUEST] \
+			and not autoplay and not _menu_mode and not _ending and hud != null and is_inside_tree() and not get_tree().paused:
+		_pause()   # «Назад» на телефоне — тоже пауза (выход — из меню паузы)
 
 
 func _pause() -> void:
@@ -1936,6 +1953,8 @@ func _process(delta: float) -> void:
 		_steer_in = -1.0
 	elif Input.is_key_pressed(KEY_D):
 		_steer_in = 1.0
+	elif TouchCtl.enabled and absf(TouchCtl.move.x) > 0.15:   # телефон: джойстик влево / вправо
+		_steer_in = TouchCtl.move.x
 	# ручная камера: лёгкое дыхание кадра, тряска после рывков; дорога потряхивает вид из машины
 	_shake = maxf(0.0, _shake - delta * 0.8)
 	_place_cam()

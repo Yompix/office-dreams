@@ -247,6 +247,8 @@ func _ready() -> void:
 	prompt_lbl.anchor_right = 0.8
 	prompt_lbl.anchor_top = 0.885
 	prompt_lbl.anchor_bottom = 0.94
+	prompt_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # длинная подсказка — в две строки, а не за край экрана
+	prompt_lbl.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	prompt_lbl.modulate.a = 0.0
 	title = _label(root, 64, font_b, Color.WHITE)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
