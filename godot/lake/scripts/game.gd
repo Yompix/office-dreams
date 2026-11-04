@@ -138,6 +138,7 @@ func _ready() -> void:
 	if "--quality" in args:   # проверка уровней качества: --quality 0…3
 		settings.quality = clampi(int(args[args.find("--quality") + 1]), 0, 3)
 	Settings.fx = clampi(settings.quality, 0, 3)   # до постройки мира: снег, зеркала — сразу под качество
+	get_tree().node_added.connect(_aniso)   # до постройки мира: всем его материалам — анизотропная фильтрация
 	scene = DriveScene.new()
 	add_child(scene)
 	scene.setup(pc)
@@ -771,6 +772,34 @@ func _seat_in_car(who: String, seat: String) -> void:
 		await get_tree().process_frame
 		if is_instance_valid(a) and int(a.get_meta("place_n", 0)) == pn:
 			scene.car.fit_wheel(a)
+
+
+var _aniso_seen := {}   # id материала → уже с анизотропной фильтрацией
+
+
+## Текстуры под углом — чёткие (снег, дорога, пол, стены): у материалов из моделей и из кода по умолчанию фильтр без
+## анизотропии, и вдали поверхности «мылились», будто текстуры пережаты (владелец, 4 ноя). Уровень — project.godot:
+## 8× на ПК, 4× на телефоне. Материалы-шейдеры (волосы, снег) задают фильтр сами — их не трогаем.
+func _aniso(n: Node) -> void:
+	if not (n is GeometryInstance3D) or n is Label3D:
+		return
+	var mats: Array = [(n as GeometryInstance3D).material_override]
+	var mesh: Mesh = null
+	if n is MeshInstance3D:
+		mesh = (n as MeshInstance3D).mesh
+		if mesh:
+			for i in mesh.get_surface_count():
+				mats.append((n as MeshInstance3D).get_surface_override_material(i))
+	elif n is MultiMeshInstance3D and (n as MultiMeshInstance3D).multimesh:
+		mesh = (n as MultiMeshInstance3D).multimesh.mesh
+	if mesh:
+		for i in mesh.get_surface_count():
+			mats.append(mesh.surface_get_material(i))
+	for m in mats:
+		if m is BaseMaterial3D and not _aniso_seen.has(m.get_instance_id()):
+			_aniso_seen[m.get_instance_id()] = true
+			if (m as BaseMaterial3D).texture_filter == BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS:
+				(m as BaseMaterial3D).texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 
 
 ## Пройти к точке: {"who", "to": [x, y, z], "speed", "clip" (шаг), "then" (клип по приходу), "face" (поворот по приходу)}.

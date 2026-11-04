@@ -23,6 +23,8 @@ renderer/rendering_method.web="gl_compatibility"
 limits/opengl/max_lights_per_object=16
 gl_compatibility/driver.windows="opengl3_angle"
 textures/vram_compression/import_etc2_astc=true
+textures/default_filters/anisotropic_filtering_level=3
+textures/default_filters/anisotropic_filtering_level.mobile=2
 
 [importer_defaults]
 
