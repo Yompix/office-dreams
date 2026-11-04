@@ -13,6 +13,7 @@ from docx.enum.text import WD_COLOR_INDEX
 RU = {'noah': 'НОЙ', 'iris': 'АЙРИС', 'zoe': 'ЗОЯ', 'danny': 'ДЭННИ', 'eva': 'ЕВА', 'agnes': 'АГНЕС', 'hale': 'ХЕЙЛ',
       'roman': 'РОМАН', 'cop': 'ПОЛИЦЕЙСКИЙ', 'trucker': 'ДАЛЬНОБОЙЩИК', 'radio': 'РАДИО', 'anna': 'НОЙ — ЧУЖИМ ГОЛОСОМ',
       'mom': 'АННА', 'victor': 'ВИКТОР'}
+CH_NAME = {1: 'Кровь на руках'}   # у главы 1 названия в данных нет (титр рисует game.gd)
 GRAY = RGBColor(0x66, 0x66, 0x66)
 BLUE = RGBColor(0x2F, 0x55, 0x8A)
 
@@ -159,10 +160,17 @@ def render(doc, sid, beats, data, chapters, olds, depth, cnt):
                 t = para(0.8)
                 t.add_run('• Подсказка, если долго стоять (%s с)' % nd.get('after', '')).bold = True
                 render(doc, sid, nd['beats'], data, chapters, olds, depth + 2, cnt)
+            for dr in e.get('doors', []):   # двери, которые герой открывает сам и заходит внутрь (4 ноя)
+                lab = dr.get('label') or {}
+                t = para(0.8)
+                t.add_run('• %s / %s' % (lab.get('ru', dr.get('id')), lab.get('en', ''))).bold = True
+                small(t, '  [дверь: створка открывается, можно зайти внутрь]')
             ex = e.get('exit') or {}
             if ex:
                 t = para(0.8)
                 t.add_run('• Выход: %s / %s' % ((ex.get('label') or {}).get('ru', ''), (ex.get('label') or {}).get('en', ''))).bold = True
+                if ex.get('need'):
+                    small(t, '  [только когда открыта дверь «%s»]' % ex['need'])
                 render(doc, sid, ex.get('beats', []), data, chapters, olds, depth + 2, cnt)
         if 'peek' in b:
             para().add_run('ВЗГЛЯД (%s с): посмотрел → %s, нет → %s' % (b.get('t', 5), b['yes'], b['no'])).bold = True
@@ -214,7 +222,8 @@ def main():
             cur = ch
             t = chapters[ch].get('title') or {}
             doc.add_page_break()
-            doc.add_heading('Глава %d. %s' % (ch, (t.get('ru') if isinstance(t, dict) else '') or ''), 1)
+            name = ((t.get('ru') if isinstance(t, dict) else '') or '').split('·')[-1].strip() or CH_NAME.get(ch, '')
+            doc.add_heading('Глава %d · %s' % (ch, name[:1].upper() + name[1:].lower()), 1)   # «ГЛАВА 2 · ПОПУТЧИЦА» → «Глава 2 · Попутчица»
         doc.add_heading(sid + ('  ·  %s' % sc['time'] if sc.get('time') else '') + ('  ·  сохранение' if sc.get('save') else ''), 3)
         render(doc, sid, sc['beats'], data, chapters, olds, 0, cnt)
     os.makedirs(os.path.dirname(out), exist_ok=True)
