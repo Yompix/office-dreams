@@ -616,6 +616,8 @@ static func name_on_glass(g) -> void:
 	lb.outline_size = 0
 	lb.double_sided = true
 	lb.shaded = false
+	Signs.style(lb, "hand")   # пальцем по инею — почерком, а не печатными буквами
+	lb.alpha_cut = Label3D.ALPHA_CUT_DISABLED   # полупрозрачные буквы на стекле: смешивание, не вырезка
 	s.car.add_child(lb)
 	lb.position = Vector3(0.83, 1.12, 0.15)
 	lb.rotation_degrees = Vector3(0, -90, 0)   # лицом внутрь машины: снаружи (справа) буквы зеркальные
@@ -984,6 +986,7 @@ static func pill_bottle(g, show: bool) -> void:
 		lb.outline_size = 0
 		lb.shaded = false
 		lb.double_sided = false
+		Signs.style(lb, "notice")   # аптечная этикетка — печатный шрифт с кириллицей, чёткий вблизи
 		lb.position = Vector3(0.0, 0.0, 0.0236)
 		m.add_child(lb)
 		g.c2["bottle"] = ba

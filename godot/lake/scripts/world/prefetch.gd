@@ -2,7 +2,7 @@ class_name Prefetch
 extends RefCounted
 ## Плавная игра (владелец, 4 ноя: «видно, как по ходу прогружаются главы»): модели мест и героев главы грузятся
 ## в фоне заранее — следующая глава, пока идёт текущая. Раньше кафе, деревня, озеро, буханка и новые герои
-## (на телефоне — все) грузились прямо посреди сцены: кадр замирал на 0,3–2 с.
+## (на телефоне — все) грузились прямо посреди сцены: кадр замирал на 0,3–2 с. На телефоне заранее — только места.
 ## Место берёт модель через Prefetch.scene(путь) — готовую из фона или (если фон не успел) обычной загрузкой.
 
 const CHAPTERS := {
@@ -22,7 +22,8 @@ static func chapter(n: int) -> void:
 	_asked[n] = true
 	for m in CHAPTERS[n].world:
 		request("res://assets/models/%s.glb" % m)
-	Actor.prefetch(CHAPTERS[n].chars)
+	if not OS.has_feature("mobile"):   # на телефоне герои (по 20–40 МБ видеопамяти) — когда нужны: памяти меньше
+		Actor.prefetch(CHAPTERS[n].chars)
 
 
 static func request(path: String) -> void:
