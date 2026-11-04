@@ -744,7 +744,7 @@ static func _bus_stop(g) -> void:
 	pc.height = 2.6
 	pole.mesh = pc
 	pole.material_override = dark
-	pole.position = Vector3(2.3, 1.3, -0.5)
+	pole.position = Vector3(2.3, 1.3, -0.44)   # за кругом знака (лицо знака — к −z): раньше столб шёл перед буквой «А»
 	root.add_child(pole)
 	var sign := MeshInstance3D.new()
 	var sc := CylinderMesh.new()

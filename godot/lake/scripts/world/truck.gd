@@ -17,7 +17,7 @@ var _t := 0.0
 
 
 func setup(paint: Color) -> Truck:
-	var model := (load("res://assets/models/truck.glb") as PackedScene).instantiate() as Node3D
+	var model := Prefetch.scene("res://assets/models/truck.glb").instantiate() as Node3D
 	add_child(model)
 	_on = {"lamp": _m(Color(1.0, 0.97, 0.9), 5.0, Color(1.0, 0.96, 0.88)), "tail": _m(Color(0.9, 0.04, 0.02), 2.5, Color(1.0, 0.06, 0.02)),
 		"marker": _m(Color(1.0, 0.55, 0.05), 3.0, Color(1.0, 0.5, 0.05))}

@@ -76,7 +76,7 @@ func setup(pc: bool) -> void:
 	m_glass.metallic_specular = 0.9
 	m_glass.cull_mode = BaseMaterial3D.CULL_DISABLED
 	# машина целиком — модель tools/lake/car.py (кузов, стёкла, колёса, салон); детали — по именам
-	var model := (load("res://assets/models/sedan.glb") as PackedScene).instantiate() as Node3D
+	var model := Prefetch.scene("res://assets/models/sedan.glb").instantiate() as Node3D
 	add_child(model)
 	var steer_mi: MeshInstance3D
 	var handle: Node3D
@@ -202,6 +202,7 @@ func setup(pc: bool) -> void:
 		pills.rotation_degrees = Vector3(-(glove_base + 75.0), -25, 0)   # когда крышка открыта — стоит прямо
 	clock = _label("03:12", Vector3(-0.36, 0.853, -0.4), 0.026, Color(1.0, 0.62, 0.25))
 	clock.rotation_degrees = Vector3(-18, 0, 0)
+	clock.position += clock.transform.basis.z * 0.0018   # над стеклом табло, а не вровень с ним (не мерцает)
 	radio_lbl = _label("", Vector3(0.0, 0.762, -0.362), 0.018, Color(0.55, 0.9, 1.0))
 	radio_lbl.rotation_degrees = Vector3(-8, 0, 0)
 	_radio_face()

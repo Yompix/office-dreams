@@ -147,8 +147,17 @@ func _ready() -> void:
 	cam.make_current()
 	Actor.view_cam = cam   # дальних и невидимых героев анимация считает реже
 	# модели героев — в фоне, пока игрок в меню: герой, появившийся посреди сцены, не даёт рывка 0,3–0,5 с
-	if not OS.has_feature("mobile"):   # на телефоне память дороже рывка: герои грузятся, когда нужны
+	if not OS.has_feature("mobile"):   # на телефоне память дороже: там — только своя глава и следующая (Prefetch в _run)
 		Actor.prefetch(["noah", "iris", "danny", "roman", "zoe", "eva", "agnes", "hale", "orderly", "noah_kid", "anna", "victor", "hale_young", "nina"])
+	var ch0 := 1   # глава, с которой начнут: --scene, иначе — из сохранения («Продолжить»)
+	if "--scene" in args:
+		ch0 = _chapter_of(String(args[args.find("--scene") + 1]))
+	elif FileAccess.file_exists(SAVE):
+		var sv = JSON.parse_string(FileAccess.get_file_as_string(SAVE))
+		if sv is Dictionary and sv.has("scene"):
+			ch0 = _chapter_of(String(sv.scene))
+	Prefetch.chapter(ch0)   # места и герои главы, с которой начнут, и следующей — в фоне, пока меню
+	Prefetch.chapter(ch0 + 1)
 	_cast()
 	hud = Hud.new()
 	hud.lang = lang
@@ -393,6 +402,7 @@ func _run(id: String) -> void:
 		return
 	_log("сцена " + id)
 	_scene_id = id
+	Prefetch.chapter(_chapter_of(id) + 1)   # следующая глава грузится в фоне, пока идёт эта (без рывков на стыке глав)
 	if id.ends_with("_recap"):   # новая глава: радио выключено, песня главы 2 и тема конца главы не тянутся дальше
 		_radio = false
 		c2.erase("song")

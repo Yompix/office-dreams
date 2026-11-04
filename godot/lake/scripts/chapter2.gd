@@ -619,6 +619,7 @@ static func name_on_glass(g) -> void:
 	s.car.add_child(lb)
 	lb.position = Vector3(0.83, 1.12, 0.15)
 	lb.rotation_degrees = Vector3(0, -90, 0)   # лицом внутрь машины: снаружи (справа) буквы зеркальные
+	lb.position += lb.transform.basis.z * 0.0028   # на внутренней стороне стекла, где палец протёр иней (было в толще стекла)
 	g.c2["glass_name"] = lb
 
 

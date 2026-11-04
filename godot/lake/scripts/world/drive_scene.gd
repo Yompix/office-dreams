@@ -171,7 +171,7 @@ func park_at_station(lang := "ru") -> void:
 	road.park(LOT)
 	station_root = Node3D.new()
 	add_child(station_root)
-	station = (load("res://assets/models/station.glb") as PackedScene).instantiate() as Node3D
+	station = Prefetch.scene("res://assets/models/station.glb").instantiate() as Node3D
 	station_root.add_child(station)
 	for n in station.find_children("*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
@@ -321,7 +321,7 @@ func park_at_cafe(lang := "ru") -> void:
 	road.park(CAFE_LOT)
 	cafe_root = Node3D.new()
 	add_child(cafe_root)
-	cafe = (load("res://assets/models/cafe.glb") as PackedScene).instantiate() as Node3D
+	cafe = Prefetch.scene("res://assets/models/cafe.glb").instantiate() as Node3D
 	cafe_root.add_child(cafe)
 	for n in cafe.find_children("*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D

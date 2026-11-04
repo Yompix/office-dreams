@@ -51,7 +51,7 @@ var _t := 0.0
 
 func build(lang: String, is_pc: bool) -> void:
 	pc = is_pc
-	model = (load("res://assets/models/village.glb") as PackedScene).instantiate() as Node3D
+	model = Prefetch.scene("res://assets/models/village.glb").instantiate() as Node3D
 	add_child(model)
 	for n in model.find_children("*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D

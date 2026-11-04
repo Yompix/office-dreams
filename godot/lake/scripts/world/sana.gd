@@ -52,7 +52,7 @@ func _gate(ru: bool, brick: Material, iron: Material, white: Material) -> void:
 		_cube(Vector3(0.92, 0.14, 0.92), Vector3(sx * 2.9, 2.67, 10.0), white)
 		_cube(Vector3(0.08, 0.32, 0.08), Vector3(sx * 2.9, 2.9, 10.0), iron)
 	_cube(Vector3(6.4, 0.56, 0.07), Vector3(0.0, 3.3, 10.0), iron)   # вывеска над воротами
-	_label("САНАТОРИЙ «ТИХИЕ СОСНЫ»" if ru else "QUIET PINES SANATORIUM", Vector3(0.0, 3.3, 10.04), 0.0046, Color(0.88, 0.82, 0.58), 0.0)
+	_label("САНАТОРИЙ «ТИХИЕ СОСНЫ»" if ru else "QUIET PINES SANATORIUM", Vector3(0.0, 3.3, 10.0365), 0.0046, Color(0.88, 0.82, 0.58), 0.0)
 	for side in [-1.0, 1.0]:   # створки: прутья через 0,155 м и две перекладины; левая закрыта, правая провисла внутрь двора
 		var hinge := Vector3(side * 2.5, 0.0, 10.0)
 		var rot := Basis() if side < 0.0 else Basis(Vector3.UP, deg_to_rad(-30.0))
@@ -100,8 +100,8 @@ func _yard(ru: bool, iron: Material, board: Material, plaster: Material, white: 
 	var paper := _mat(Color(0.86, 0.84, 0.76), 0.9)
 	_cube(Vector3(1.25, 0.78, 0.01), Vector3(-4.0, 1.5, 4.035), paper)
 	_label("САНАТОРИЙ ЗАКРЫТ\nНА ЗИМНИЙ ПЕРИОД\nАдминистрация" if ru else "THE SANATORIUM IS CLOSED\nFOR THE WINTER\nThe Management",
-		Vector3(-4.0, 1.7, 4.042), 0.0014, Color(0.12, 0.12, 0.14), 0.0, false, "notice_b")
-	_label("Главный врач — д-р С. Х" if ru else "Head physician — Dr. S. H", Vector3(-4.17, 1.33, 4.042), 0.0011, Color(0.16, 0.16, 0.2), 0.0, false, "notice")
+		Vector3(-4.0, 1.7, 4.0415), 0.0014, Color(0.12, 0.12, 0.14), 0.0, false, "notice_b")
+	_label("Главный врач — д-р С. Х" if ru else "Head physician — Dr. S. H", Vector3(-4.17, 1.33, 4.0415), 0.0011, Color(0.16, 0.16, 0.2), 0.0, false, "notice")
 	var torn := _mat(Color(0.78, 0.76, 0.68), 0.9)   # оторванный край строки
 	_cube(Vector3(0.34, 0.06, 0.012), Vector3(-3.52, 1.33, 4.04), torn, Basis(Vector3.BACK, 0.25))
 	# скамейки по краям, занесённые снегом; фонари у дорожки

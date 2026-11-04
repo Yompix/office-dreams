@@ -12,6 +12,11 @@ extends RefCounted
 ##   zones — {rect, if, beats, to, manual}: один раз, когда герой зашёл; to [x, z, лицом] — потом встать туда (лёд: отступил);
 ##     manual — только для игрока (автопрогон зону не задевает); nudge {after, beats} — поторопить один раз;
 ##   hum {if, v} — гул в голове на время прогулки; watch — кто смотрит на героя, когда тот рядом.
+##   doors — двери, которые герой открывает сам и заходит внутрь (владелец, 4 ноя: «не могу открыть дверь и зайти»):
+##     {id, mesh [имена створки и её стекла в модели], hinge [x, z] — ось петли, open — угол (°), где/кольцо/подпись как
+##     у точки, sfx; unblock / block — какие препятствия снять (весь дом) и какие поставить (стены без проёма, мебель),
+##     cam_unblock / cam_block — то же для камеры, floors, nav — пол и точки пути внутри}. Точка с need — только когда
+##     эта дверь открыта (выход «Заплатить» — у прилавка). В конце прогулки двери закрываются.
 ## Автопрогон (--autoplay) обходит точки по порядку сам; --explore exit — сразу к выходу; --skip a,b — эти точки обойти.
 
 const SPEED := 1.35          # шаг Ноя, м/с (у клипа Rk_Walk при его росте естественно 1,38)
@@ -42,12 +47,13 @@ var _exit := false
 var _e_prev := true          # клавиша E была нажата в прошлом кадре (нажатие до начала прогулки не считаем)
 var _looks := {}             # кто куда смотрел до прогулки — вернуть в конце
 var _tight := false          # камере тесно (вплотную к стене): она над плечом — смотрит дальше вперёд, а не в землю
+var _opened := {}            # id двери → узел-петля, на котором повёрнута створка
 static var _ring: Texture2D
 
 
 func _init(game, def: Dictionary) -> void:
 	g = game
-	d = def
+	d = def.duplicate(true)   # двери меняют препятствия, пол и путь — на копии (данные главы остаются как были)
 
 
 func run() -> void:
@@ -95,6 +101,10 @@ func run() -> void:
 			(w as Actor).look_target = _looks[k][1]
 	if not hum.is_empty():
 		g.hud.hum_to = hum0
+	for k in _opened:   # двери закрываются за героем (на склейке; узел-петля остаётся, створка — на месте)
+		var pv: Node3D = _opened[k]
+		if is_instance_valid(pv):
+			pv.rotation.y = 0.0
 	g._ex = null
 	g._log("прогулка: осмотрено %s" % JSON.stringify(_used))
 
@@ -246,6 +256,8 @@ func _floor(x: float, z: float) -> float:
 func _avail(s: Dictionary) -> bool:
 	if s.has("if") and not g._cond(s["if"]):
 		return false
+	if s.has("need") and not _opened.has(String(s.need)):   # за этой дверью — ещё закрыта
+		return false
 	if s.get("once", true) and _used.has(String(s.id)):
 		return false
 	if s.has("ask") and not g._ask_left(s.ask, "ex_" + String(s.id)):   # все темы разговора уже спрошены
@@ -291,6 +303,11 @@ func _find_near() -> void:
 
 func _spots() -> Array:
 	var all: Array = (d.get("spots", []) as Array).duplicate()
+	for dr in d.get("doors", []):
+		if not _opened.has(String(dr.id)):
+			var e: Dictionary = (dr as Dictionary).duplicate()
+			e["door"] = true
+			all.append(e)
 	if d.has("exit"):
 		var e: Dictionary = (d.exit as Dictionary).duplicate()
 		e["exit"] = true
@@ -327,6 +344,8 @@ func _use(s: Dictionary) -> void:
 			a.face_to(deg_to_rad(float(s.face)))
 	elif s.get("face") != null:
 		a.face_to(deg_to_rad(float(s.face)))
+	if s.get("door", false):
+		await _open_door(s)
 	_used[id] = int(_used.get(id, 0)) + 1
 	if s.has("cam"):
 		g._cam_free = s.cam
@@ -346,6 +365,56 @@ func _use(s: Dictionary) -> void:
 	_prev = a.position
 	_e_prev = true
 	busy = false
+
+
+## Открыть дверь: створка (и её стекло) поворачивается на петле, звук; проём свободен — снять с дома «сплошное»
+## препятствие, поставить стены без проёма и мебель внутри, пол и точки пути внутри, камере — стены вместо дома.
+func _open_door(s: Dictionary) -> void:
+	var id := String(s.id)
+	var hinge: Array = s.get("hinge", [])
+	var leaves: Array = []
+	for nm in s.get("mesh", []):
+		for n in g.scene.find_children(String(nm), "Node3D", true, false):
+			var n3 := n as Node3D
+			if hinge.size() >= 2 and Vector2(n3.global_position.x - float(hinge[0]), n3.global_position.z - float(hinge[1])).length() > 3.0:
+				continue   # одноимённая дверь в другом месте (shop_door — и на заправке, и в деревне)
+			leaves.append(n3)
+	if not leaves.is_empty():
+		var first: Node3D = leaves[0]
+		var piv := Node3D.new()
+		piv.name = "hinge_" + id
+		first.get_parent().add_child(piv)
+		piv.global_position = Vector3(float(hinge[0]), first.global_position.y, float(hinge[1])) if hinge.size() >= 2 else first.global_position
+		for l in leaves:
+			(l as Node3D).reparent(piv, true)
+		_opened[id] = piv
+		var tw: Tween = g.create_tween()
+		tw.tween_property(piv, "rotation:y", deg_to_rad(float(s.get("open", 90.0))), 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	else:
+		_opened[id] = null
+	if s.has("sfx"):
+		g.sfx.play(String(s.sfx), -8.0)
+	_swap("block", s.get("unblock", []), s.get("block", []))
+	_swap("cam_block", s.get("cam_unblock", []), s.get("cam_block", []))
+	for key in ["floors", "nav", "walk"]:
+		if s.has(key):
+			if not d.has(key):
+				d[key] = []
+			(d[key] as Array).append_array(s[key])
+	await g._wait(0.5)   # створка приоткрылась — дальше игрок идёт сам
+
+
+## В списке препятствий: убрать прямоугольники из out (по первым четырём числам), добавить add.
+func _swap(key: String, out: Array, add: Array) -> void:
+	var cur: Array = d.get(key, [])
+	for o in out:
+		for i in range(cur.size() - 1, -1, -1):
+			var b: Array = cur[i]
+			if absf(float(b[0]) - float(o[0])) < 0.02 and absf(float(b[1]) - float(o[1])) < 0.02 \
+					and absf(float(b[2]) - float(o[2])) < 0.02 and absf(float(b[3]) - float(o[3])) < 0.02:
+				cur.remove_at(i)
+	cur.append_array(add)
+	d[key] = cur
 
 
 ## Камера после точки: за спину героя, если он стоит лицом к стене / человеку — иначе туда же, куда была.
@@ -521,6 +590,13 @@ func _auto() -> void:
 		e["exit"] = true
 		if not e.has("id"):
 			e["id"] = "exit"
+		if e.has("need"):   # выход за дверью: сначала открыть её
+			for dr in d.get("doors", []):
+				if String(dr.id) == String(e.need) and not _opened.has(String(dr.id)):
+					var ds: Dictionary = (dr as Dictionary).duplicate()
+					ds["door"] = true
+					await _auto_go(ds)
+					await _use(ds)
 		await _auto_go(e)
 		await _use(e)
 

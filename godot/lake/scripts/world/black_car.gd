@@ -20,7 +20,7 @@ var has_driver := true
 
 
 func _ready() -> void:
-	var model := (load("res://assets/models/sedan.glb") as PackedScene).instantiate() as Node3D
+	var model := Prefetch.scene("res://assets/models/sedan.glb").instantiate() as Node3D
 	add_child(model)
 	var paint := StandardMaterial3D.new()
 	paint.albedo_color = paint_color

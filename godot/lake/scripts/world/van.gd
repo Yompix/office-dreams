@@ -40,7 +40,7 @@ var _wheel_b0 := Basis.IDENTITY
 
 
 func _ready() -> void:
-	model = (load("res://assets/models/van.glb") as PackedScene).instantiate() as Node3D
+	model = Prefetch.scene("res://assets/models/van.glb").instantiate() as Node3D
 	add_child(model)
 	_lamp_off = _m(Color(0.75, 0.75, 0.7), 0.0)
 	_lamp_on = _m(Color(1.0, 0.97, 0.88), 4.0)

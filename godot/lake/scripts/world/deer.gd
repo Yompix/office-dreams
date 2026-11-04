@@ -29,7 +29,7 @@ const PERIOD := 1.15
 
 
 func _ready() -> void:
-	model = (load("res://assets/models/deer.glb") as PackedScene).instantiate() as Node3D
+	model = Prefetch.scene("res://assets/models/deer.glb").instantiate() as Node3D
 	add_child(model)
 	skel = model.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
 	for i in skel.get_bone_count():

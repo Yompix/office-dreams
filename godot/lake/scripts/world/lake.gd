@@ -77,7 +77,7 @@ static func firs(road, parent: Node3D, pts: Array, seed_i: int, pc: bool) -> Mul
 
 
 func build(road, pc: bool) -> void:
-	model = (load("res://assets/models/lake.glb") as PackedScene).instantiate() as Node3D
+	model = Prefetch.scene("res://assets/models/lake.glb").instantiate() as Node3D
 	add_child(model)
 	for n in model.find_children("*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
