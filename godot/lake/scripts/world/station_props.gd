@@ -198,6 +198,104 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 	return out
 
 
+## Табло колонки Ноя (островок x = 12, сторона к машине): литры и сумма бегут, пока идёт бензин (заправка удержанием).
+const PRICE := 55.4   # цена литра на табло
+static func pump_display(root: Node3D, liters: float, lang := "ru") -> void:
+	var lb := root.get_node_or_null("pump_digits") as Label3D
+	if lb == null:
+		lb = Label3D.new()
+		lb.name = "pump_digits"
+		lb.position = Vector3(12.298, 1.43, -5.0)   # на стекле табло (pump_display: x 12,285 + 0,01)
+		lb.rotation_degrees = Vector3(0, 90, 0)     # лицом к машине (+x)
+		lb.pixel_size = 0.0011
+		lb.font_size = 60
+		lb.line_spacing = -6.0
+		lb.modulate = Color(1.0, 0.68, 0.24)
+		lb.outline_size = 0
+		lb.shaded = false
+		lb.double_sided = false
+		lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		lb.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		root.add_child(lb)
+	lb.text = "%.2f %s\n%.2f" % [liters, "Л" if lang == "ru" else "L", liters * PRICE]
+
+
+## Лёд в ведре (действие «лёд», два нажатия): 1 — по корке бегут белые трещины; 2 — корка разломана на пластины,
+## между ними тёмная вода; пластины покачиваются.
+static func ice_stage(root: Node3D, n: int) -> void:
+	var bk := root.get_node_or_null("bucket")
+	if bk == null:
+		return
+	var ic := bk.get_node_or_null("ice") as MeshInstance3D
+	if n == 1:
+		if bk.get_node_or_null("cracks"):
+			return
+		var q := MeshInstance3D.new()
+		q.name = "cracks"
+		var pm := PlaneMesh.new()
+		pm.size = Vector2(0.32, 0.32)
+		q.mesh = pm
+		var m := StandardMaterial3D.new()
+		m.albedo_texture = _crack_tex()
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.roughness = 0.2
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+		q.material_override = m
+		q.position = Vector3(0, 0.3045, 0)
+		bk.add_child(q)
+		return
+	for nm in ["cracks", "ice"]:
+		var nd := bk.get_node_or_null(nm)
+		if nd:
+			(nd as Node3D).visible = false
+	if bk.get_node_or_null("plates"):
+		return
+	var pl := Node3D.new()
+	pl.name = "plates"
+	bk.add_child(pl)
+	var im := _mat(Color(0.86, 0.93, 0.98, 0.62), 0.18)
+	im.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 24
+	for k in 6:   # обломки корки: тонкие неровные пластины по кругу, одна-две ушли под воду краем
+		var a := TAU * float(k) / 6.0 + rng.randf_range(-0.3, 0.3)
+		var r := rng.randf_range(0.04, 0.1)
+		var b := _box(pl, Vector3(rng.randf_range(0.07, 0.11), 0.006, rng.randf_range(0.05, 0.08)),
+			Vector3(cos(a) * r, 0.296 + rng.randf_range(-0.004, 0.003), sin(a) * r), im,
+			Vector3(rng.randf_range(-14, 14), rad_to_deg(a) + rng.randf_range(-30, 30), rng.randf_range(-14, 14)))
+		var tw := b.create_tween().set_loops()   # покачиваются на воде
+		var y0 := b.position.y
+		tw.tween_property(b, "position:y", y0 - 0.002, 0.9 + 0.1 * k).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(b, "position:y", y0 + 0.001, 0.9 + 0.1 * k).set_trans(Tween.TRANS_SINE)
+
+
+## Корка льда с трещинами: полупрозрачный круг, от удара в центре — ломаные белые линии к краю.
+static func _crack_tex() -> ImageTexture:
+	var S := 160
+	var img := Image.create(S, S, false, Image.FORMAT_RGBA8)
+	var c := Vector2(S, S) * 0.5
+	for y in S:
+		for x in S:
+			var d := Vector2(x, y).distance_to(c) / (S * 0.5)
+			img.set_pixel(x, y, Color(0.85, 0.92, 0.97, 0.0 if d > 0.98 else 0.42))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	for k in 9:   # лучи от места удара, с изломами и веточками
+		var p := c + Vector2(rng.randf_range(-6, 6), rng.randf_range(-6, 6))
+		var ang := TAU * float(k) / 9.0 + rng.randf_range(-0.2, 0.2)
+		for st in 70:
+			ang += rng.randf_range(-0.28, 0.28)
+			p += Vector2(cos(ang), sin(ang)) * 1.1
+			if p.distance_to(c) > S * 0.48:
+				break
+			for o: Vector2 in [Vector2.ZERO, Vector2(1, 0), Vector2(0, 1)]:
+				var q: Vector2 = (p + o).floor()
+				if q.x >= 0 and q.y >= 0 and q.x < S and q.y < S:
+					img.set_pixelv(Vector2i(q), Color(1, 1, 1, 0.95))
+	img.generate_mipmaps()
+	return ImageTexture.create_from_image(img)
+
+
 ## Отмыл руки: вода розовеет, лёд разбит.
 static func pink_water(root: Node3D) -> void:
 	var bk := root.get_node_or_null("bucket")
@@ -208,9 +306,10 @@ static func pink_water(root: Node3D) -> void:
 		var m := (w.material_override as StandardMaterial3D).duplicate() as StandardMaterial3D
 		m.albedo_color = Color(0.55, 0.32, 0.38, 0.88)
 		w.material_override = m
-	var ic := bk.get_node_or_null("ice")
-	if ic:
-		(ic as Node3D).visible = false
+	for nm in ["ice", "cracks"]:   # лёд уже разбит (действие «лёд» или старое сохранение)
+		var nd := bk.get_node_or_null(nm)
+		if nd:
+			(nd as Node3D).visible = false
 
 
 ## Багажник машины (прогулка главы 1): кузов в модели одной деталью, поэтому «открытый» багажник — накладка поверх

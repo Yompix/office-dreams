@@ -7,7 +7,9 @@
   phone_ring — глава 4: старый кнопочный телефон Агнес звонит (две трели);
   steam      — глава 4: пар из-под капота закипевшей буханки (шипение, петля);
   frogs      — глава 5: летняя ночь у озера, лягушки (хор с перекличкой, петля);
-  ice_crack  — глава 5: лёд трещит и проваливается (низкий гул, щелчки, хруст).
+  ice_crack  — глава 5: лёд трещит и проваливается (низкий гул, щелчки, хруст);
+  pump_run   — глава 1, заправка «24»: насос колонки качает — гул мотора, шум топлива в горловине, тиканье счётчика
+               (9 с; играет, пока игрок держит кнопку, отпустил — стоп).
   python3 tools/lake/synth.py   → godot/lake/snd/<имя>.ogg"""
 import os, subprocess, wave
 import numpy as np
@@ -197,6 +199,28 @@ def ice_crack():
     tt = np.arange(m) / SR
     x[i:] += lowpass(rng.normal(0, 1, m), 1500.0, 1) * np.exp(-tt / 0.35) * 1.4
     save('ice_crack', x, 0.85)
+
+
+def pump_run():
+    n = int(9.0 * SR)
+    t = np.arange(n) / SR
+    spin = np.clip(t / 0.18, 0, 1)                                                   # мотор разгоняется
+    f0 = 98.0 * (0.92 + 0.08 * spin) * (1 + 0.004 * np.sin(2 * np.pi * 0.7 * t))
+    ph = 2 * np.pi * np.cumsum(f0) / SR
+    motor = (np.sin(ph) + 0.5 * np.sin(2 * ph) + 0.25 * np.sin(3 * ph) + 0.12 * np.sin(5 * ph)) * spin
+    motor *= 1 + 0.08 * np.sin(2 * np.pi * 7.5 * t)                                  # пульсация поршня
+    flow = lowpass(rng.normal(0, 1, n), 700.0, 2)                                    # бензин шумит в горловине
+    gurgle = 1 + 0.5 * lowpass(rng.normal(0, 1, n), 3.0, 1) * 18                     # неровно, с «бульками»
+    flow *= np.clip(gurgle, 0.3, 2.0) * np.clip((t - 0.25) / 0.4, 0, 1)
+    tick = np.zeros(n)                                                               # счётчик: колёсики цифр
+    for k in range(int(9.0 * 9)):
+        i = int((0.3 + k / 9.0) * SR)
+        if i + 400 < n:
+            tt = np.arange(400) / SR
+            tick[i:i + 400] += np.sin(2 * np.pi * 2400 * tt) * np.exp(-tt / 0.002) * (0.6 if k % 10 else 1.0)
+    x = 0.55 * motor + 0.9 * flow + 0.18 * tick
+    x *= np.clip((9.0 - t) / 0.3, 0, 1)                                              # без щелчка в конце
+    save('pump_run', x, 0.7)
 
 
 if __name__ == '__main__':

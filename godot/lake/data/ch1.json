@@ -1359,7 +1359,7 @@
        },
        {
         "silent": true,
-        "go": "s5_pay"
+        "go": "s5_silent"
        }
       ]
      }
@@ -1383,6 +1383,24 @@
       "ru": "Деньги на прилавке. Ной уходит.",
       "en": "Money on the counter. Noah walks out."
      }
+    },
+    {
+     "set": {
+      "police": 1
+     }
+    },
+    {
+     "go": "s6"
+    }
+   ]
+  },
+  "s5_silent": {
+   "loc": "station",
+   "beats": [
+    {
+     "fx": "money",
+     "shot": "st_counter",
+     "dur": 2.8
     },
     {
      "set": {
@@ -1593,24 +1611,16 @@
     },
     {
      "shot": "st_kids",
-     "dur": 2.6,
-     "note": {
-      "ru": "Айрис держит мальчика за руку. Его зовут Дэнни — она уже успела спросить.",
-      "en": "Iris is holding the boy’s hand. His name is Danny — she’s already asked."
-     },
-     "if": {
-      "danny_name": "==0"
-     }
+     "dur": 2.0
     },
     {
+     "say": "iris",
      "shot": "st_kids",
-     "dur": 2.0,
-     "note": {
-      "ru": "Айрис держит мальчика за руку.",
-      "en": "Iris is holding the boy’s hand."
-     },
+     "ru": "Его Дэнни зовут.",
+     "en": "His name’s Danny.",
+     "look": "noah",
      "if": {
-      "danny_name": ">0"
+      "danny_name": "==0"
      }
     },
     {
@@ -1708,7 +1718,7 @@
     },
     {
      "choice": {
-      "t": 6,
+      "t": 8,
       "shot": "st_noah_out",
       "opts": [
        {
@@ -2514,22 +2524,47 @@
    ],
    "intro": [
     {
-     "note": {
-      "ru": "Щелчок. Колонка встаёт: полный бак.",
-      "en": "A click. The pump shuts off: the tank is full."
+     "ref": "refuel",
+     "place": {
+      "who": "noah",
+      "at": [
+       13.0,
+       0.0,
+       -3.3
+      ],
+      "face": 90,
+      "clip": "Idle"
      },
-     "dur": 2.6,
-     "fx": "snd:nozzle:-8"
+     "cam": [
+      [
+       12.35,
+       1.62,
+       -1.55
+      ],
+      [
+       13.55,
+       1.0,
+       -3.6
+      ],
+      46
+     ],
+     "fx": "nozzle_take",
+     "dur": 0.9
     },
     {
-     "note": {
-      "ru": "Гул в голове не стихает.",
-      "en": "The hum in his head won’t let up."
-     },
-     "dur": 2.2,
-     "if": {
-      "pills": "==0"
+     "ref": "refuel",
+     "qte": "hold",
+     "t": 7.0,
+     "what": "fuel",
+     "hint": {
+      "ru": "Заправить — держите [E]",
+      "en": "Fill up — hold [E]"
      }
+    },
+    {
+     "ref": "refuel",
+     "fx": "nozzle_back",
+     "dur": 1.0
     },
     {
      "note": {
@@ -2804,16 +2839,26 @@
        "dur": 2.8
       },
       {
-       "note": {
-        "ru": "Ной разбивает лёд и опускает руки. Холод — до локтей.",
-        "en": "Noah breaks the ice and plunges his hands in. The cold reaches his elbows."
-       },
-       "dur": 3.0,
        "anim": {
         "who": "noah",
         "clip": "Crouch_Idle"
        },
-       "fx": "snd:splash:-14"
+       "dur": 0.7,
+       "ref": "ice"
+      },
+      {
+       "ref": "ice",
+       "qte": "ice",
+       "what": "ice",
+       "hint": {
+        "ru": "Разбить лёд — [E]",
+        "en": "Break the ice — [E]"
+       }
+      },
+      {
+       "fx": "snd:splash:-14",
+       "dur": 1.2,
+       "ref": "ice"
       },
       {
        "note": {

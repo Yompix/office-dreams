@@ -26,6 +26,9 @@ var _qte_n := 10              # сколько нажатий нужно (дей
 var _qte_sfx := ""            # звук на каждое нажатие (поле "sfx" действия в данных); пусто — по виду действия
 var _qte_gap := 0.7           # rock: не чаще одного нажатия за столько секунд (укачать — медленно, в ритм)
 var _qte_got := 0             # сколько нажатий уже засчитано (для постановки: качать младенца в такт)
+var _qte_what := ""           # что происходит в мире во время действия (поле "what"): "fuel" — табло колонки, "ice" — лёд в ведре
+var _qte_f := 0.0             # hold: сколько уже сделано (0…1)
+var _pump_on := false         # заправка: насос сейчас качает (держат кнопку)
 var _rng := RandomNumberGenerator.new()
 var log_lines: Array[String] = []
 var _pad := false            # последним трогали геймпад (подсказки действий — под него)
@@ -42,6 +45,7 @@ var _stop := ""              # --stop s4: на этой сцене прогон 
 var _fast := false            # --fast: каждая пауза не дольше 0,7 с, ходьба — сразу на место (быстрый лист кадров)
 var deer: Deer                # олень на трассе (сцена 3): едет назад вместе с дорогой
 var blackcar: BlackCar        # чёрная машина Хейла (с конца главы 1)
+const FUEL_L := 41.6   # заправка на «24»: столько литров встаёт на табло к отсечке (лист постановки)
 const SAVE := "user://lake_save.json"   # контрольная точка: сцена (с "save": true), флаги, язык
 const SAVE_VERSION := 3                  # формат файла: 3 — сцены, переименованные в новой версии, ищутся по SCENE_RENAMES
 const PROGRESS := "user://lake_progress.json"   # открытые ветки и концовки (копятся между прохождениями)
@@ -603,6 +607,7 @@ func _beat(b: Dictionary):
 		_qte_n = int(b.get("n", 10))
 		_qte_gap = float(b.get("gap", 0.7))
 		_qte_sfx = String(b.get("sfx", ""))
+		_qte_what = String(b.get("what", ""))
 		var ok: bool = await _do_qte(String(b.qte), float(b.get("t", 3.0)), b.get("hint"))
 		_log("действие %s: %s" % [b.qte, "удалось" if ok else "нет"])
 		if not ok and b.has("fail"):
@@ -1041,7 +1046,10 @@ func _attach_walkie(a: Actor) -> void:
 
 ## Заправочный пистолет в правой руке Ноя (после провала): ручка, носик, шланг вниз.
 func _attach_nozzle(a: Actor) -> void:
+	if a.skel.get_node_or_null("nozzle_in_hand"):
+		return
 	var ba := BoneAttachment3D.new()
+	ba.name = "nozzle_in_hand"
 	ba.bone_name = "hand_r"
 	a.skel.add_child(ba)
 	var dark := StandardMaterial3D.new()
@@ -1221,6 +1229,15 @@ func _fx(k: String) -> void:
 			tg.tween_callback(scene.car.show_pills.bind(false))
 		"pills_take", "pills_throw":
 			scene.car.show_pills(false)
+		"nozzle_take":   # заправка (прогулка «24»): пистолет из колонки — в правую руку Ноя, на табло загораются нули
+			_attach_nozzle(actors.noah)
+			StationProps.pump_display(scene.station_root, 0.0, lang)
+			sfx.play("nozzle", -12.0, 1.1)
+		"nozzle_back":   # пистолет обратно в держатель колонки
+			var nz: Node = actors.noah.skel.get_node_or_null("nozzle_in_hand")
+			if nz:
+				nz.queue_free()
+			sfx.play("nozzle", -14.0, 0.8)
 		"money":
 			scene.show_money()
 		"phone_rip":
@@ -1599,6 +1616,38 @@ func _do_peek(t: float, hint_d) -> bool:
 	return seen
 
 
+## Кнопка действия зажата: E, пробел, Enter, A на геймпаде, мышь или палец на экране.
+func _act_held() -> bool:
+	return Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_SPACE) or Input.is_action_pressed("ui_accept") \
+		or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+
+
+## Что действие делает в мире (поле "what"). fuel: табло колонки (литры и сумма), звук насоса, отсечка (stage 9);
+## ice: лёд в ведре — 1 трещины, 2 пластины.
+func _qte_world(what: String, held: bool, f: float, stage := -1) -> void:
+	match what:
+		"fuel":
+			StationProps.pump_display(scene.station_root, f * FUEL_L, lang)
+			if stage == 9:
+				sfx.stop("pump_run", 0.05)
+				sfx.play("nozzle", -6.0)   # щелчок отсечки
+				_shake = maxf(_shake, 0.12)
+				_pump_on = false
+			elif held != _pump_on:
+				_pump_on = held
+				if held:
+					sfx.play("pump_run", -16.0)
+				else:
+					sfx.stop("pump_run", 0.08)
+		"ice":
+			if stage > 0:
+				StationProps.ice_stage(scene.station_root, stage)
+				sfx.play("ice_crack", -8.0 if stage == 1 else -4.0, 1.25 if stage == 1 else 1.0)
+				if stage == 2:
+					sfx.play("splash", -16.0, 1.15, 0.12)
+				_shake = maxf(_shake, 0.08)
+
+
 func _do_qte(kind: String, t: float, hint_d) -> bool:
 	var hint_raw: String = hud.T(hint_d) if hint_d != null else ""
 	var hint0 := _keys(hint_raw)
@@ -1616,6 +1665,8 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 	var got := 0
 	var last_press := -1.0
 	var auto_t := 0.0
+	var idle := 0.0   # ice: сколько секунд игрок ничего не жмёт
+	_qte_f = 0.0
 	var held_prev := true   # нажатие, которое было до начала, не считаем
 	while left > 0.0:
 		await get_tree().process_frame
@@ -1650,6 +1701,34 @@ func _do_qte(kind: String, t: float, hint_d) -> bool:
 			hud.hint.text = "%s   %s%s" % [hint0, "■".repeat(mini(got, _qte_n)) + "□".repeat(maxi(0, _qte_n - got)), calm]
 			if got >= _qte_n:
 				_qte_ok = true
+				break
+			continue
+		if kind == "hold":   # держать (заправка): пока держат — идёт (табло бежит), отпустил — стоит; провала нет, срока нет
+			left = 1.0
+			var held_h := _act_held() or (autoplay and not (kind in _miss))
+			if held_h:
+				_qte_f = minf(_qte_f + dt / maxf(t, 0.1), 1.0)
+			_qte_world(_qte_what, held_h, _qte_f)
+			hud.hint.text = "%s   %s" % [hint0, "■".repeat(int(_qte_f * 10.0)) + "□".repeat(10 - int(_qte_f * 10.0))]
+			if _qte_f >= 1.0:
+				_qte_world(_qte_what, false, 1.0, 9)   # отсечка
+				break
+			continue
+		if kind == "ice":   # лёд в ведре: два нажатия (трещины → пластины); 3 с без нажатия — Ной разбивает сам; провала нет
+			left = 1.0
+			var held_i := _act_held()
+			var hit_i := held_i and not held_prev
+			held_prev = held_i
+			idle += dt
+			if autoplay:
+				hit_i = idle >= 0.6
+			if hit_i or idle >= 3.0:
+				got += 1
+				idle = 0.0
+				_qte_got = got
+				_qte_world(_qte_what, true, float(got) / 2.0, got)
+			hud.hint.text = "%s   %s" % [hint0, "■".repeat(got) + "□".repeat(maxi(0, 2 - got))]
+			if got >= 2:
 				break
 			continue
 		if kind == "mash" or kind == "press":   # mash — быстро n раз; press — в ритм (чаще 8 раз в секунду не засчитывается)
