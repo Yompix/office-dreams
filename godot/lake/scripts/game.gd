@@ -43,8 +43,14 @@ var _fast := false            # --fast: каждая пауза не дольш�
 var deer: Deer                # олень на трассе (сцена 3): едет назад вместе с дорогой
 var blackcar: BlackCar        # чёрная машина Хейла (с конца главы 1)
 const SAVE := "user://lake_save.json"   # контрольная точка: сцена (с "save": true), флаги, язык
-const SAVE_VERSION := 2                  # формат файла: 2 — с полем версии (1 — без него, читается так же)
+const SAVE_VERSION := 3                  # формат файла: 3 — сцены, переименованные в новой версии, ищутся по SCENE_RENAMES
+const PROGRESS := "user://lake_progress.json"   # открытые ветки и концовки (копятся между прохождениями)
+## Переименования сцен между версиями: старое имя → новое. Сохранение и контрольная точка со старым именем открываются
+## на новом месте, а не пропадают. Пополнять при каждом переименовании сцены (с 1.2 ничего не переименовано).
+const SCENE_RENAMES := {}
 var _menu_mode := false
+var _boot_note := ""            # BootGuard что-то поменял после аварийного закрытия — сказать плашкой в меню (один раз)
+var _beat_t := 0.0              # пульс BootGuard (раз в 30 с)
 var _cam_s := Transform3D()     # сглаженное положение камеры (_smooth_cam)
 var _cam_v := Vector3.ZERO      # сглаженная скорость цели камеры
 var _cam_prev := Vector3.ZERO
@@ -124,13 +130,17 @@ func _ready() -> void:
 	elif not settings.hw_checked:   # настройки от прошлых сборок: на встроенной Radeon/Intel стояло «Высокое» — не выше подбора
 		settings.quality = mini(settings.quality, Settings.auto_quality(pc))
 	settings.hw_checked = true
-	match BootGuard.start(settings, pc):   # прошлый запуск закрылся аварийно — графика ниже, потом совместимый режим
-		"low":
-			print("BootGuard: прошлый запуск закрылся аварийно — графика «Низкое»")
+	var boot := BootGuard.start(settings, pc)   # прошлый запуск закрылся аварийно — графика ниже, потом совместимый режим
+	match boot:
+		"low", "lower":
+			print("BootGuard: прошлый запуск закрылся аварийно (%s) — графика %d" % [boot, settings.quality])
 		"compat":
 			print("BootGuard: снова вылет на «Низком» — перезапуск в совместимом видеорежиме (OpenGL)")
 			BootGuard.restart(get_tree())
 			return
+	if boot == "":
+		boot = BootGuard.take_note()   # совместимый режим включился перед перезапуском — сказать уже в нём
+	_boot_note = boot
 	if autoplay:   # прогоны для проверки — всегда «Высокое», окно (кадры сравнимы)
 		settings.quality = 2
 	else:
@@ -262,6 +272,9 @@ func _menu() -> void:
 	_shot = "menu"
 	hud.fade.color = Color(0, 0, 0, 1)
 	create_tween().tween_property(hud.fade, "color:a", 0.0, 2.0)
+	if _boot_note != "":   # графику снизили после аварийного закрытия — не молча
+		hud.show_toast(_boot_text(_boot_note), 10.0)
+		_boot_note = ""
 	while true:
 		hud.lang = lang
 		hud.show_menu(FileAccess.file_exists(SAVE))
@@ -281,6 +294,18 @@ func _menu() -> void:
 				_play_checkpoint(_tree_start)
 				return
 			continue
+		if id == "cont" and _read_save(SAVE) == null and _read_save(SAVE + ".bak") == null:
+			# сохранение не прочиталось (и запасная копия тоже): сказать об этом, а не начинать молча новую игру
+			if not await _confirm("Сохранение не удалось прочитать. Можно начать новую игру — найденные концовки и дерево выборов останутся." if lang == "ru"
+					else "The save file could not be read. You can start a new game — the endings you found and the choice tree stay.",
+					"Начать новую игру" if lang == "ru" else "Start a new game"):
+				continue
+			id = "new"
+		elif id == "new" and FileAccess.file_exists(SAVE):
+			if not await _confirm("Начать заново? Сохранение этого прохождения заменится новым. Найденные концовки и дерево выборов останутся." if lang == "ru"
+					else "Start over? This playthrough’s save will be replaced. The endings you found and the choice tree stay.",
+					"Начать заново" if lang == "ru" else "Start over"):
+				continue
 		hud.hide_menu()
 		_menu_mode = false
 		if id == "quit":
@@ -293,21 +318,56 @@ func _menu() -> void:
 		return
 
 
+## Плашка в меню после того, как BootGuard сам поменял графику (раньше — молча).
+func _boot_text(act: String) -> String:
+	var ru := lang == "ru"
+	match act:
+		"low":
+			return "Прошлый запуск закрылся аварийно — графика переключена на «Низкое». Вернуть можно в «Настройках»." if ru \
+				else "The last session closed unexpectedly — graphics were set to Low. You can change it back in Settings."
+		"lower":
+			return "Прошлый запуск закрылся без выхода из игры — графика на ступень ниже. Вернуть можно в «Настройках»." if ru \
+				else "The last session closed without exiting the game — graphics were lowered one step. You can change it back in Settings."
+		"compat":
+			return "После вылетов включён совместимый видеорежим. Вернуть обычный — «Настройки → Видеорежим»." if ru \
+				else "After repeated crashes, compatibility video mode is on. To switch back: Settings → Renderer."
+	return ""
+
+
+## Вопрос в меню: текст и две кнопки — «да» (подпись yes) и «Назад». true — согласились.
+func _confirm(text: String, yes: String) -> bool:
+	hud.show_confirm(text, [["yes", yes], ["back", "Назад" if lang == "ru" else "Back"]], 1)   # сразу выбрано «Назад»
+	var a: String = await hud.menu_pick
+	sfx.play("ui_click", -4.0)
+	return a == "yes"
+
+
 ## Контрольная точка: сначала во временный файл, прошлая — запасной копией (.bak), потом подмена. Если игра упадёт
 ## посреди записи или файл испортится, «Продолжить» возьмёт запасную копию, а не пропадёт (раньше файл писался поверх).
 func _save(id: String) -> void:
-	var tmp := SAVE + ".tmp"
+	var clock := String(scene.car.clock.text) if scene != null and is_instance_valid(scene.car) else ""
+	_write_json(SAVE, {"v": SAVE_VERSION, "scene": id, "flags": flags, "lang": lang, "clock": clock})
+
+
+## Любой файл игрока (сохранение, прогресс, контрольные точки): сначала во временный файл, прошлый — запасной копией
+## (.bak), потом подмена. Сбой посреди записи не стирает ни концовки, ни дерево выборов. false — записать не удалось.
+## Пути — полные (user://…): с относительными именами копия в .bak не создавалась («Failed to open»).
+func _write_json(path: String, d: Dictionary) -> bool:
+	var tmp := path + ".tmp"
 	var f := FileAccess.open(tmp, FileAccess.WRITE)
 	if f == null:
-		return
-	var clock := String(scene.car.clock.text) if scene != null and is_instance_valid(scene.car) else ""
-	f.store_string(JSON.stringify({"v": SAVE_VERSION, "scene": id, "flags": flags, "lang": lang, "clock": clock}))
+		_log("не записать %s (ошибка %d)" % [path, FileAccess.get_open_error()])
+		return false
+	var ok := f.store_string(JSON.stringify(d))
 	f.close()
-	# пути — полные (user://…): с относительными именами копия в .bak не создавалась («Failed to open») — запасной не было
-	if FileAccess.file_exists(SAVE):
-		DirAccess.copy_absolute(SAVE, SAVE + ".bak")
-		DirAccess.remove_absolute(SAVE)
-	DirAccess.rename_absolute(tmp, SAVE)
+	if not ok:
+		_log("не записать %s: диск" % path)
+		DirAccess.remove_absolute(tmp)
+		return false
+	if FileAccess.file_exists(path):
+		DirAccess.copy_absolute(path, path + ".bak")
+		DirAccess.remove_absolute(path)
+	return DirAccess.rename_absolute(tmp, path) == OK
 
 
 ## Продолжить: флаги и язык из сохранения; что видно (фара, Дэнни сзади) — по флагам; сцена — с начала.
@@ -335,9 +395,21 @@ func _read_save(path: String) -> Variant:
 	if not FileAccess.file_exists(path):
 		return null
 	var j = JSON.parse_string(FileAccess.get_file_as_string(path))
-	if not (j is Dictionary) or not (j.get("flags") is Dictionary) or not data.scenes.has(String(j.get("scene", ""))):
+	if not (j is Dictionary) or not (j.get("flags") is Dictionary):
+		return null
+	j.scene = _scene_now(String(j.get("scene", "")))
+	if not data.scenes.has(String(j.scene)):
 		return null
 	return j
+
+
+## Имя сцены в этой версии игры (сохранения и контрольные точки из старых версий — через SCENE_RENAMES).
+static func _scene_now(id: String) -> String:
+	var seen := 0
+	while SCENE_RENAMES.has(id) and seen < 8:   # цепочка переименований, без зацикливания
+		id = String(SCENE_RENAMES[id])
+		seen += 1
+	return id
 
 
 ## Начать с контрольной точки (продолжить или «переиграть отсюда»): что видно — по флагам, сцена — с начала.
@@ -1727,11 +1799,7 @@ func _map_pick(key: String) -> String:
 
 
 func _chapter_map() -> void:
-	var prog := {}
-	if FileAccess.file_exists("user://lake_progress.json"):
-		var j = JSON.parse_string(FileAccess.get_file_as_string("user://lake_progress.json"))
-		if j is Dictionary:
-			prog = j
+	var prog := _json_file(PROGRESS)
 	var rows := []
 	var opened := 0
 	var total := 0
@@ -1747,9 +1815,7 @@ func _chapter_map() -> void:
 			opened += 1 if sn else 0
 			total += 1
 		rows.append({"name": r.get(lang, r.ru), "opts": r.get("o_" + lang, r.o_ru), "pick": pick, "seen": seen})
-	var f := FileAccess.open("user://lake_progress.json", FileAccess.WRITE)
-	if f:
-		f.store_string(JSON.stringify(prog))
+	_write_json(PROGRESS, prog)
 	hud.chapter_map("ГЛАВА 1 · КРОВЬ НА РУКАХ" if lang == "ru" else "CHAPTER 1 · BLOOD ON HIS HANDS", rows, opened, total, int(flags.get("trust", 0)))
 	_log("карта главы: открыто %d из %d" % [opened, total])
 
@@ -1817,21 +1883,13 @@ func _to_be_continued() -> void:
 
 
 func _prog_load() -> Dictionary:
-	if FileAccess.file_exists("user://lake_progress.json"):
-		var j = JSON.parse_string(FileAccess.get_file_as_string("user://lake_progress.json"))
-		if j is Dictionary:
-			return j
-	return {}
+	return _json_file(PROGRESS)
 
 
 ## Карта главы 2–5 из её данных: у варианта — условие "if" (первый подходящий — выбор игрока в этом прохождении).
 func _chapter_map_n(n: int) -> void:
 	var ch: Dictionary = _chapters.get(n, {})
-	var prog := {}
-	if FileAccess.file_exists("user://lake_progress.json"):
-		var j = JSON.parse_string(FileAccess.get_file_as_string("user://lake_progress.json"))
-		if j is Dictionary:
-			prog = j
+	var prog := _json_file(PROGRESS)
 	var rows := []
 	var opened := 0
 	var total := 0
@@ -1854,9 +1912,7 @@ func _chapter_map_n(n: int) -> void:
 			opened += 1 if sn else 0
 			total += 1
 		rows.append({"name": r.get(lang, r.ru), "opts": names, "pick": pick, "seen": seen})
-	var f := FileAccess.open("user://lake_progress.json", FileAccess.WRITE)
-	if f:
-		f.store_string(JSON.stringify(prog))
+	_write_json(PROGRESS, prog)
 	var title: Dictionary = ch.get("title", {})
 	hud.chapter_map(String(title.get(lang, title.get("ru", ""))), rows, opened, total, int(flags.get("trust", 0)))
 	_log("карта главы %d: открыто %d из %d" % [n, opened, total])
@@ -1979,6 +2035,10 @@ func _pause() -> void:
 func _process(delta: float) -> void:
 	if scene == null:   # перезапуск в другом видеорежиме (BootGuard) — мир не строился
 		return
+	_beat_t += delta
+	if _beat_t >= 30.0:   # пульс BootGuard: запуск жив; закрытие после 2 минут — уже не «вылет при загрузке»
+		_beat_t = 0.0
+		BootGuard.beat(Time.get_ticks_msec() / 1000.0)
 	_t += delta
 	_sound(delta)
 	if not c2.is_empty():
@@ -2179,20 +2239,29 @@ const MAP1_FLAGS := {"deer": ["deer"], "pills": ["pills", "threw"], "roman": ["r
 var _tree_start := ""
 
 
+## Прочитать файл игрока; если он испорчен (оборван посреди записи) — запасную копию .bak.
 func _json_file(path: String) -> Dictionary:
-	if FileAccess.file_exists(path):
-		var j = JSON.parse_string(FileAccess.get_file_as_string(path))
-		if j is Dictionary:
-			return j
+	for p in [path, path + ".bak"]:
+		if FileAccess.file_exists(p):
+			var j = JSON.parse_string(FileAccess.get_file_as_string(p))
+			if j is Dictionary:
+				return j
 	return {}
 
 
+## Контрольные точки (снимки флагов) с именами сцен этой версии (старые имена — через SCENE_RENAMES).
+func _checkpoints() -> Dictionary:
+	var out := {}
+	var raw := _json_file(CHECKPOINTS)
+	for k in raw:
+		out[_scene_now(String(k))] = raw[k]
+	return out
+
+
 func _checkpoint(id: String) -> void:
-	var cps := _json_file(CHECKPOINTS)
+	var cps := _checkpoints()
 	cps[id] = {"flags": flags.duplicate(), "lang": lang}
-	var f := FileAccess.open(CHECKPOINTS, FileAccess.WRITE)
-	if f:
-		f.store_string(JSON.stringify(cps))
+	_write_json(CHECKPOINTS, cps)
 
 
 func _chapter_of(id: String) -> int:
@@ -2203,8 +2272,8 @@ func _chapter_of(id: String) -> int:
 
 ## Дерево по главам: контрольные точки по порядку сюжета, под каждой — её развилки (варианты: открыт / путь прошлого раза / «?»).
 func _tree_data() -> Array:
-	var prog := _json_file("user://lake_progress.json")
-	var cps := _json_file(CHECKPOINTS)
+	var prog := _json_file(PROGRESS)
+	var cps := _checkpoints()
 	var ru := lang == "ru"
 	var out := []
 	for n in range(1, 6):
@@ -2284,7 +2353,7 @@ func _tree_screen() -> void:
 	hud.hide_menu()
 	var data_t := _tree_data()
 	var cur := 0
-	var cps := _json_file(CHECKPOINTS)
+	var cps := _checkpoints()
 	for i in data_t.size():   # открыть на последней главе, до которой дошли
 		for sec in data_t[i].sections:
 			if cps.has(sec.cp):
@@ -2295,7 +2364,7 @@ func _tree_screen() -> void:
 
 ## «Переиграть отсюда»: флаги этой контрольной точки (как были, когда игрок её прошёл), сцена — с начала.
 func _play_checkpoint(id: String) -> void:
-	var cps := _json_file(CHECKPOINTS)
+	var cps := _checkpoints()
 	if not cps.has(id) or not data.scenes.has(id):
 		flags = (data.flags as Dictionary).duplicate()
 		_run(String(data.start))

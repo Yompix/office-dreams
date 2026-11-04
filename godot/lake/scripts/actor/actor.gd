@@ -228,9 +228,10 @@ static func make(k: String, file: String) -> Actor:
 				mm.normal_enabled = false   # у бровей MakeHuman в слоте нормалей — сама цветная текстура (бугры на лбу)
 			elif nm == "skin":
 				mm.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
-				mm.subsurf_scatter_enabled = true      # свет чуть проходит под кожу (ПК); в браузере — без этого
-				mm.subsurf_scatter_strength = 0.35
-				mm.subsurf_scatter_skin_mode = true
+				if Actor.sss_ok():   # свет чуть проходит под кожу — только Forward+ (ПК); телефон и сайт его не умеют
+					mm.subsurf_scatter_enabled = true
+					mm.subsurf_scatter_strength = 0.35
+					mm.subsurf_scatter_skin_mode = true
 			elif nm == "eyes":                      # влажные глаза: блик от фар и приборов — взгляд «живой»
 				mm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
 				mm.alpha_scissor_threshold = 0.5
@@ -1326,6 +1327,12 @@ func _face_update(dt: float) -> void:
 			_shape_last.erase(bn)
 
 
+## Свет под кожей (subsurface scattering) есть только в Forward+; в Compatibility (телефон, сайт, совместимый режим ПК)
+## движок на каждую кожу пишет предупреждение — там его не включаем (выглядит так же: эффект там всё равно не рисуется).
+static func sss_ok() -> bool:
+	return RenderingServer.get_current_rendering_method() == "forward_plus"
+
+
 ## Кровь на руках (сцена 1: «липкие, тёмно-красные, кровь под ногтями»): материал кожи заменяется своим — та же текстура,
 ## а у кистей (отрезок запястье → середина ладони) кожа темнеет до засохшей крови пятнами, свежая — с блеском.
 const BLOOD_SKIN := """
@@ -1367,7 +1374,7 @@ var _blood_mats: Array[ShaderMaterial] = []
 
 func enable_blood() -> void:
 	var sh := Shader.new()
-	sh.code = BLOOD_SKIN
+	sh.code = BLOOD_SKIN if Actor.sss_ok() else BLOOD_SKIN.replace("render_mode sss_mode_skin;", "").replace("SSS_STRENGTH = 0.35 * (1.0 - m);", "")
 	for m in meshes:
 		var mi: MeshInstance3D = m[0]
 		if not String(mi.name).to_lower().contains("skin"):

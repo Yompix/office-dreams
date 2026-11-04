@@ -30,9 +30,8 @@ static func take_use() -> bool:
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	size = get_viewport_rect().size   # родитель — CanvasLayer: размер по окну задаём сами (иначе 0×0 и всё за краем)
-	process_mode = Node.PROCESS_MODE_ALWAYS
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)   # размер по окну ставит _process (с первого кадра):
+	process_mode = Node.PROCESS_MODE_ALWAYS                       # в _ready движок ругается на размер при таких якорях
 
 
 func _stick_on() -> bool:

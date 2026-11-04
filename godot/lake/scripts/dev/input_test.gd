@@ -15,6 +15,8 @@ var txt0 := ""
 var shots := ""
 var want := -1
 var save_mode := ""   # --savetest A|B|C: сохранение и загрузка без двойного начисления флагов (три запуска подряд)
+var snow_test := false   # --snowtest: снег на елях после весеннего/летнего эпилога и возврата в меню
+var boot_test := ""      # --boottest СЛУЧАЙ --want-q N [--want-note 1]: BootGuard после аварийного закрытия (файлы — заранее)
 var s0 := {}
 
 
@@ -26,6 +28,9 @@ func _ready() -> void:
 	qte = "--qtetest" in args   # godot --path godot/lake -- --inputtest --qtetest --scene c4_s3 --walkauto --explore exit: A листает и жмёт в действии (прогулку у остановки — сам, сразу к выходу)
 	if "--shotlog" in args:
 		shots = args[args.find("--shotlog") + 1]
+	snow_test = "--snowtest" in args
+	if "--boottest" in args:
+		boot_test = args[args.find("--boottest") + 1]
 	if "--savetest" in args:
 		save_mode = args[args.find("--savetest") + 1]
 	if "--inputlog" in args:   # отладка: какие события пришли и у кого фокус
@@ -89,7 +94,11 @@ func next(s: int) -> void:
 
 func _process(d: float) -> void:
 	t += d
-	if save_mode != "":
+	if boot_test != "":
+		_boot_test()
+	elif snow_test:
+		_snow_test()
+	elif save_mode != "":
 		_save_test()
 	elif ui:
 		_ui()
@@ -308,7 +317,9 @@ func _ui() -> void:
 ##  A: godot … -- --inputtest --savetest A --scene c2_s3 --flags zoe=1   сохранение на входе в пост → «Дать говорить Зое» → сохранение c2_s4
 ##  B: godot … -- --inputtest --savetest B                              «Продолжить»: флаги c2_s4 те же, ничего не начислено второй раз
 ##  C: godot … -- --inputtest --savetest C                              раннее сохранение (пост) → другой выбор: следов первого нет
+##  D…G: испорченный файл и запасная копия; Дэнни потерялся; испорчены оба файла (F); «Новая игра» поверх сохранения (G)
 const SAVE_RES := "/tmp/lake_savetest.json"
+const BROKEN := "{\"scene\": \"c5_s4\", \"flags\": {"   # файл, оборванный посреди записи
 
 
 func _save_flags() -> Dictionary:
@@ -373,6 +384,36 @@ func _save_test() -> void:
 				f = null
 				g.hud.menu_pick.emit("cont")
 				next(20)
+			elif save_mode == "F":   # испорчены и сохранение, и запасная копия: «Продолжить» спрашивает, а не начинает молча новую игру
+				for p in ["user://lake_save.json", "user://lake_save.json.bak"]:
+					var fx := FileAccess.open(p, FileAccess.WRITE)
+					fx.store_string(BROKEN)
+					fx = null
+				g.hud.menu_pick.emit("cont")
+				next(50)
+			elif save_mode == "H":   # прогресс и контрольные точки: испорченный файл → запасная копия; запись — целым файлом с .bak
+				for p in ["user://lake_progress.json", "user://lake_checkpoints.json"]:
+					var fb := FileAccess.open(p + ".bak", FileAccess.WRITE)
+					fb.store_string(JSON.stringify({"c2_s3": {"flags": {"zoe": 1}, "lang": "ru"}, "seen_test": 1}))
+					fb = null
+					var fm := FileAccess.open(p, FileAccess.WRITE)
+					fm.store_string(BROKEN)
+					fm = null
+				check("H: испорченный прогресс — прочитана запасная копия", float(g._prog_load().get("seen_test", 0)) == 1.0)
+				check("H: испорченные контрольные точки — прочитана запасная копия", g._checkpoints().has("c2_s3"))
+				g.flags = {"zoe": 1}
+				g._checkpoint("c2_s4")
+				var cj = JSON.parse_string(FileAccess.get_file_as_string("user://lake_checkpoints.json"))
+				check("H: после записи файл целый, в нём и старая точка, и новая",
+					cj is Dictionary and (cj as Dictionary).has("c2_s3") and (cj as Dictionary).has("c2_s4"))
+				check("H: временного файла не осталось", not FileAccess.file_exists("user://lake_checkpoints.json.tmp"))
+				next(99)
+			elif save_mode == "G":   # есть сохранение: «Новая игра» спрашивает, прежде чем заменить его
+				var fg := FileAccess.open("user://lake_save.json", FileAccess.WRITE)
+				fg.store_string(JSON.stringify({"v": 3, "scene": "c2_s3", "lang": "ru", "flags": {"zoe": 1}}))
+				fg = null
+				g.hud.menu_pick.emit("new")
+				next(60)
 			elif g.hud.choosing() and t > 1.0:   # A: на посту, выбор на экране
 				s0 = (g.flags as Dictionary).duplicate()
 				var sv := _save_flags()
@@ -442,6 +483,59 @@ func _save_test() -> void:
 			elif t > 40.0:
 				check("E: сохранение c3_s6 не загрузилось (сцена %s)" % g._scene_id, false)
 				next(99)
+		50:
+			if t > 0.5:
+				snap("save_F_confirm")
+				check("F: испорченное сохранение — «Продолжить» показывает вопрос, игра не началась", g.hud._menu_kind == "confirm" and g._menu_mode)
+				check("F: до ответа файл сохранения не тронут", FileAccess.get_file_as_string("user://lake_save.json") == BROKEN)
+				g.hud.menu_pick.emit("back")
+				next(51)
+		51:
+			if t > 0.5:
+				check("F: «Назад» — снова главное меню", g.hud._menu_kind == "main" and g._menu_mode)
+				g.hud.menu_pick.emit("cont")
+				next(52)
+		52:
+			if t > 0.5:
+				check("F: снова «Продолжить» — снова вопрос", g.hud._menu_kind == "confirm")
+				g.hud.menu_pick.emit("yes")
+				next(53)
+		53:
+			if not g._menu_mode and String(g._scene_id) != "" and t > 1.0:
+				check("F: «Начать новую игру» — игра с начала (%s)" % g._scene_id, String(g._scene_id) == String(g.data.start))
+				next(99)
+			elif t > 40.0:
+				check("F: новая игра не началась", false)
+				next(99)
+		60:
+			if t > 0.5:
+				snap("save_G_confirm")
+				check("G: «Новая игра» при сохранении — вопрос, игра не началась", g.hud._menu_kind == "confirm" and g._menu_mode)
+				var fo := get_viewport().gui_get_focus_owner()
+				check("G: сразу выбрано «Назад» (%s)" % (fo.get("text") if fo else "нет фокуса"), fo is Button and String((fo as Button).text) == ("Назад" if g.lang == "ru" else "Back"))
+				key(KEY_ENTER)   # Enter на выбранной кнопке — «Назад», сохранение не тронуто
+				next(61)
+		61:
+			if t > 0.5:
+				var sv := _save_flags()
+				check("G: Enter — «Назад»: главное меню, сохранение то же (сцена %s)" % sv.get("scene", ""),
+					g.hud._menu_kind == "main" and String(sv.get("scene", "")) == "c2_s3")
+				g.hud.menu_pick.emit("new")
+				next(62)
+		62:
+			if t > 0.5 and g.hud._menu_kind == "confirm":
+				g.hud.menu_pick.emit("yes")
+				next(63)
+			elif t > 5.0:
+				check("G: второй раз вопрос не появился", false)
+				next(99)
+		63:
+			if not g._menu_mode and String(g._scene_id) != "" and t > 1.0:
+				check("G: «Начать заново» — игра с начала (%s)" % g._scene_id, String(g._scene_id) == String(g.data.start))
+				next(99)
+			elif t > 40.0:
+				check("G: новая игра не началась", false)
+				next(99)
 		99:
 			res["checks_" + save_mode] = self.res
 			var fo := FileAccess.open(SAVE_RES, FileAccess.WRITE)
@@ -449,3 +543,59 @@ func _save_test() -> void:
 			fo = null
 			print("ИТОГ ПРОВЕРКИ СОХРАНЕНИЙ %s: %d из %d" % [save_mode, self.res.filter(func(r): return r.begins_with("ОК")).size(), self.res.size()])
 			get_tree().quit()
+
+
+## Снег на елях (`DEVELOPMENT_ROADMAP.md` 1.7): эпилог весной/летом ставит общему материалу хвои snow = 0, конец игры
+## перезагружает сцену (меню). Проверка: snow = 0 → перезагрузка (как после титров) → в новой игре снова 1.
+## godot --headless --path godot/lake -- --inputtest --snowtest
+const SNOW_MARK := "/tmp/lake_snowtest.mark"
+
+
+func _snow_test() -> void:
+	if t < 1.0 or step == 99:
+		return
+	if not FileAccess.file_exists(SNOW_MARK):
+		Road._twig_m.set_shader_parameter("snow", 0.0)   # как в эпилоге «весна» / «лето» (chapter5.gd)
+		var f := FileAccess.open(SNOW_MARK, FileAccess.WRITE)
+		f.store_string("1")
+		f = null
+		step = 99
+		get_tree().reload_current_scene()   # как после титров: обратно в главное меню
+		return
+	DirAccess.remove_absolute(SNOW_MARK)
+	var v = Road._twig_m.get_shader_parameter("snow")
+	check("снег на елях после эпилога и возврата в меню (snow = %s)" % v, v != null and float(v) == 1.0)
+	print("ИТОГ ПРОВЕРКИ СНЕГА: %d из %d" % [res.filter(func(r): return r.begins_with("ОК")).size(), res.size()])
+	step = 99
+	get_tree().quit()
+
+
+## BootGuard (`DEVELOPMENT_ROADMAP.md` 1.4). Файлы user://lake_boot.cfg и lake_settings.cfg готовит оболочка перед запуском:
+##   late  — прошлый запуск проработал 300 с и закрылся без выхода, графика 2 → ждём 1 и плашку, совместимый режим не включён;
+##   early — закрылся через 10 с (вылет при загрузке), графика 2 → ждём 0 и плашку;
+##   lowlate — 300 с, графика уже 0 → ничего не меняется, плашки нет, совместимого режима нет;
+##   clean — прошлый выход нормальный → ничего; beat — пульс: через 31 с в lake_boot.cfg alive ≥ 30.
+## godot --headless --path godot/lake -- --inputtest --bootguard --boottest late --want-q 1 --want-note 1
+func _boot_test() -> void:
+	if step == 99:
+		return
+	var args := OS.get_cmdline_user_args()
+	if boot_test == "beat":
+		if t < 31.5:
+			return
+		var c := ConfigFile.new()
+		c.load(BootGuard.PATH)
+		var alive := float(c.get_value("boot", "alive", 0.0))
+		check("пульс BootGuard: alive = %.0f с, метка «запущена» стоит" % alive, alive >= 30.0 and bool(c.get_value("boot", "running", false)))
+	else:
+		if t < 1.0:
+			return
+		var want_q := int(args[args.find("--want-q") + 1]) if "--want-q" in args else -9
+		var want_note := "--want-note" in args
+		check("BootGuard %s: графика %d (ждали %d)" % [boot_test, g.settings.quality, want_q], g.settings.quality == want_q)
+		check("BootGuard %s: плашка в меню «%s»" % [boot_test, g.hud.toast.text], (String(g.hud.toast.text) != "") == want_note)
+		check("BootGuard %s: совместимый режим не включён" % boot_test, not BootGuard.compat_on())
+		snap("boot_" + boot_test)
+	print("ИТОГ ПРОВЕРКИ BOOTGUARD %s: %d из %d" % [boot_test, res.filter(func(r): return r.begins_with("ОК")).size(), res.size()])
+	step = 99
+	get_tree().quit()

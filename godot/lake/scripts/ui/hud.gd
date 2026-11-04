@@ -237,8 +237,9 @@ func _ready() -> void:
 	toast = _label(root, 28, font, Color(1.0, 0.9, 0.75))
 	toast.anchor_left = 0.04
 	toast.anchor_top = 0.05
-	toast.anchor_right = 0.5
+	toast.anchor_right = 0.6
 	toast.anchor_bottom = 0.1
+	toast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # длинная плашка (BootGuard в меню) — в несколько строк, не за край
 	hint = _label(root, 34, font_b, Color.WHITE)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # длинная подсказка (24 квадрата) — в две строки, а не за край
@@ -517,7 +518,26 @@ func show_pause() -> void:
 	_menu_kind = "pause"
 
 
-func _menu_buttons(items: Array, x: float, y: float) -> void:
+## Вопрос поверх главного меню (сохранение не прочиталось, начать заново): текст и кнопки; ответ — menu_pick (id кнопки).
+## focus — какая кнопка выбрана сразу (клавиатура, геймпад): безопасная, чтобы двойное нажатие ничего не стёрло.
+func show_confirm(text: String, items: Array, focus := 0) -> void:
+	hide_menu()
+	menu_panel = ColorRect.new()
+	(menu_panel as ColorRect).color = Color(0, 0, 0, 0.82)
+	menu_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.add_child(menu_panel)
+	var t := _label(menu_panel, 34 if phone else 36, font, Color(0.9, 0.92, 0.96))
+	t.text = text
+	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	t.anchor_left = 0.07
+	t.anchor_top = 0.22 if phone else 0.26
+	t.anchor_right = 0.62 if not phone else 0.9
+	t.anchor_bottom = 0.42
+	_menu_buttons(items, 0.07, 0.46, focus)
+	_menu_kind = "confirm"
+
+
+func _menu_buttons(items: Array, x: float, y: float, focus := 0) -> void:
 	var box := VBoxContainer.new()
 	box.anchor_left = x
 	box.anchor_right = x + 0.26
@@ -557,7 +577,7 @@ func _menu_buttons(items: Array, x: float, y: float) -> void:
 		b.pressed.connect(func(): menu_pick.emit(id))
 		box.add_child(b)
 	if box.get_child_count() > 0 and not phone:   # на телефоне подсветка «выбрано» без касания только путает
-		(box.get_child(0) as Button).grab_focus.call_deferred()   # клавиатура и геймпад: стрелки + Enter
+		(box.get_child(clampi(focus, 0, box.get_child_count() - 1)) as Button).grab_focus.call_deferred()   # клавиатура и геймпад: стрелки + Enter
 
 
 func hide_menu() -> void:
@@ -699,9 +719,10 @@ func prompt(text: String) -> void:
 	prompt_lbl.set_meta("on", text != "")
 
 
-func show_toast(text: String) -> void:
+func show_toast(text: String, dur := 3.0) -> void:
 	toast.text = text
-	_toast_t = 3.0
+	_toast_t = dur
+	toast.move_to_front()   # поверх меню (плашка BootGuard в главном меню иначе под его затемнением)
 
 
 func _process(delta: float) -> void:
@@ -1022,6 +1043,9 @@ func _unhandled_input(e: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif _menu_kind == "pause":
 		menu_pick.emit("resume")
+		get_viewport().set_input_as_handled()
+	elif _menu_kind == "confirm":   # Esc / B — «Назад»
+		menu_pick.emit("back")
 		get_viewport().set_input_as_handled()
 
 

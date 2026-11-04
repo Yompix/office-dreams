@@ -53,6 +53,8 @@ void fragment() {
 
 func setup(is_pc: bool) -> void:
 	pc = is_pc
+	if _twig_m != null:   # материал хвои общий на всю игру (static): эпилог весной и летом снимает снег — после
+		_twig_m.set_shader_parameter("snow", 1.0)   # возврата в меню новая игра и «Продолжить» снова зимой
 	var sh := Shader.new()
 	sh.code = ROAD_SHADER
 	road_mat = _mat(sh, "asphalt_snow", 4.0, 1.0)
