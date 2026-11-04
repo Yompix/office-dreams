@@ -85,13 +85,13 @@ def main():
             url = css.split('url(')[1].split(')')[0]
             curl(url, dst)
         print('шрифт', fname)
-    lic = os.path.join(OUT, 'fonts', 'LICENSE.txt')
-    old_lic = open(lic, encoding='utf-8').read() if os.path.exists(lic) else ''
-    if 'Lobster' not in old_lic:
-        with open(lic, 'a', encoding='utf-8') as fp:
-            fp.write('Шрифты надписей на предметах (Google Fonts, SIL Open Font License 1.1, https://openfontlicense.org): '
-                     'Lobster (Pablo Impallari), Oswald (Vernon Adams, Kalapi Gajjar, Cyreal), PT Sans и PT Sans Narrow '
-                     '(ParaType), Caveat (Impallari Type).\n')
+    # своим файлом: fonts/LICENSE.txt — жёсткая ссылка на шрифты Hush Till Six (godot/nightshift/ui/fonts), его не трогаем
+    with open(os.path.join(OUT, 'fonts', 'LICENSE-signs.txt'), 'w', encoding='utf-8') as fp:
+        fp.write('Шрифты надписей на предметах WHAT THE LAKE KEEPS (scripts/world/signs.gd; Google Fonts, SIL Open Font License 1.1, '
+                 'https://openfontlicense.org):\nLobster-Regular.ttf — Lobster, Copyright 2010 Pablo Impallari.\n'
+                 'Oswald-SemiBold.ttf, Oswald-Medium.ttf — Oswald, Copyright 2016 The Oswald Project Authors.\n'
+                 'PTSans-Regular.ttf, PTSans-Bold.ttf, PTSansNarrow-Bold.ttf — PT Sans, Copyright 2009 ParaType Ltd.\n'
+                 'Caveat-SemiBold.ttf — Caveat, Copyright 2014 The Caveat Project Authors.\n')
     with open(os.path.join(OUT, 'ph', 'LICENSE.txt'), 'w') as fp:
         fp.write('Poly Haven assets — CC0 1.0 (public domain), https://polyhaven.com/license\n' + '\n'.join(MODELS + TREE_TEX + TEXTURES + HDRIS) + '\n')
     # герои и движения — из Hush Till Six (CC0 / свободный мокап), жёсткие ссылки
