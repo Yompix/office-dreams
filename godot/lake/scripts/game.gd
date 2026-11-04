@@ -30,8 +30,8 @@ var _qte_what := ""           # что происходит в мире во в�
 var _qte_f := 0.0             # hold: сколько уже сделано (0…1)
 var _pump_on := false         # заправка: насос сейчас качает (держат кнопку)
 var _hose: MeshInstance3D = null   # шланг заправки (пока пистолет в руке)
-const HOSE_FROM := Vector3(12.27, 1.68, -4.61)
-const ICE_AT := Vector3(12.45, 0.48, -8.55)   # корка льда в ведре для стёкол (station_props: ведро у островка)   # где шланг выходит из колонки Ноя (station.py: hose, сторона к машине)
+const HOSE_FROM := Vector3(12.27, 1.68, -4.61)   # где шланг выходит из колонки Ноя (station.py: hose, сторона к машине)
+const ICE_AT := Vector3(12.45, 0.48, -8.55)      # корка льда в ведре для стёкол (station_props: ведро у островка)
 var _rng := RandomNumberGenerator.new()
 var log_lines: Array[String] = []
 var _pad := false            # последним трогали геймпад (подсказки действий — под него)
@@ -243,7 +243,11 @@ func _ready() -> void:
 			_scene_id = start   # события глав срабатывают только в своей главе (по имени сцены)
 			for k in String(args[args.find("--fx") + 1]).split(","):
 				_fx(k)
-		_shots(String(args[args.find("--shots") + 1]).split(","), args[args.find("--snapdir") + 1] if "--snapdir" in args else "user://")
+		var pre: Array = []
+		if "--beats" in args:   # проверка постановки: шаги сценария до снимков (JSON), напр. '[{"station":true},{"fx":"nozzle_take"}]'
+			var jb = JSON.parse_string(args[args.find("--beats") + 1])
+			pre = jb if jb is Array else []
+		_shots(String(args[args.find("--shots") + 1]).split(","), args[args.find("--snapdir") + 1] if "--snapdir" in args else "user://", pre)
 		return
 	if "--walktest" in args and ResourceLoader.exists("res://scripts/dev/walk_test.gd"):
 		add_child((load("res://scripts/dev/walk_test.gd") as GDScript).new())   # прогулка «как игрок» (только в проекте)
@@ -631,7 +635,10 @@ func _beat(b: Dictionary):
 	return ""
 
 
-func _shots(list: Array, dir: String) -> void:
+func _shots(list: Array, dir: String, pre: Array = []) -> void:
+	hud.fade.color.a = 0.0
+	for b in pre:   # --beats: постановка до снимков
+		await _beat(b)
 	hud.fade.color.a = 0.0
 	await _wait(1.0)
 	var n := 0
@@ -1179,6 +1186,8 @@ func _fx(k: String) -> void:
 			(actors.noah as Actor).reach = {"_r": ICE_AT + Vector3(0.04, -0.07, 0.05), "_l": ICE_AT + Vector3(-0.03, -0.07, -0.06)}
 			sfx.play("splash", -12.0, 0.95)
 			_shake = maxf(_shake, 0.06)
+		"ice_stage1", "ice_stage2":   # стадии льда без игрока (постановка, проверка кадрами): 1 — трещины, 2 — пластины
+			_qte_world("ice", true, 0.5, 1 if k == "ice_stage1" else 2)
 		"hands_out":   # руки из воды: кисти свободны
 			(actors.noah as Actor).reach = {}
 		"wash_hands":   # прогулка на заправке: Ной отмыл ладони в ведре для стёкол — под ногтями осталось

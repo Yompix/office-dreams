@@ -71,6 +71,12 @@ def main():
         elif nt.startswith('Ладони чистые'):
             b['fx'] = 'hands_out'
             b['cam'] = HANDS_CAM
+    # Айрис на крыльце (s5): таз в 8 см от края, как у Дэнни (game.gd DANNY_SEAT) — раньше сидела в 30 см от края:
+    # колени над бетоном, голени и стопы в ступеньке (владелец, кадр 4 ноя: «ноги в текстурах застревают»)
+    for b in j['scenes']['s5']['beats']:
+        if (b.get('sit') or {}).get('who') == 'iris':
+            b['place']['at'] = [20.08, 0.38, -4.05]
+            b['sit']['at'] = [19.98, 0.48, -4.05]
     open(DATA, 'w', encoding='utf-8').write(json.dumps(j, ensure_ascii=False, indent=1) + '\n')
     print('ch1.json: st24 — заправка удержанием, лёд в ведре действием')
 
