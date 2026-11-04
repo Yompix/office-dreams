@@ -1297,10 +1297,12 @@ static func _season(g, kind: String) -> void:
 	else:
 		(g.actors.iris as Actor).visible = true
 		(g.actors.noah as Actor).visible = true
-		put(g, "noah", L(3.4, 0.42, 6.75), 90.0, "Rk_SitIdle")
-		Ch2.sit(g, "noah", L(3.4, 0.47, 6.75), 90.0)
-		put(g, "iris", L(3.4, 0.42, 7.3), 90.0, "Rk_SitIdle")
-		Ch2.sit(g, "iris", L(3.4, 0.47, 7.3), 90.0)
+		# на самом краю мостков (настил кончается на x 3,89): ноги свешены над водой. Раньше — x 3,4, в 0,5 м от края:
+		# голени уходили сквозь доски, а Айрис (ноги короче) висела над настилом
+		put(g, "noah", L(3.6, 0.42, 6.75), 90.0, "Rk_SitIdle")
+		Ch2.sit(g, "noah", L(3.6, 0.47, 6.75), 90.0)
+		put(g, "iris", L(3.62, 0.42, 7.3), 90.0, "Rk_SitIdle")
+		Ch2.sit(g, "iris", L(3.62, 0.47, 7.3), 90.0)
 		Ch4.notebook(g, "iris")
 
 

@@ -1215,7 +1215,12 @@
       "en": "Danny nods. He’ll remember that."
      },
      "dur": 2.2,
-     "shot": "danny_room"
+     "shot": "danny_room",
+     "gesture": {
+      "who": "danny",
+      "do": "nod",
+      "dur": 2.2
+     }
     },
     {
      "go": "c5_s1_hub"
@@ -1455,7 +1460,12 @@
       "en": "Iris silently hands him the bottle and turns away."
      },
      "dur": 2.6,
-     "shot": "iris_room"
+     "shot": "iris_room",
+     "gesture": {
+      "who": "iris",
+      "do": "give",
+      "dur": 1.6
+     }
     },
     {
      "go": "c5_s1_take"
@@ -4110,7 +4120,14 @@
       "en": "Her fingers squeeze his hand."
      },
      "dur": 2.4,
-     "shot": "zoe_face"
+     "shot": "zoe_face",
+     "gesture": {
+      "who": "zoe",
+      "do": "take_hand",
+      "dur": 3.0,
+      "to": "noah",
+      "bone": "hand_l"
+     }
     },
     {
      "go": "c5_zoe_wake"
@@ -6090,7 +6107,12 @@
         "ru": "Ной берётся за верёвку. Пальцы сами находят узел — будто вчера завязывал.",
         "en": "Noah takes hold of the rope. His fingers find the knot on their own — as if he tied it yesterday."
        },
-       "dur": 3.2
+       "dur": 3.2,
+       "gesture": {
+        "who": "noah",
+        "do": "give",
+        "dur": 1.8
+       }
       }
      ]
     },
@@ -6669,7 +6691,12 @@
            "ru": "Айрис прячет письмо во внутренний карман.",
            "en": "Iris tucks the letter into her inside pocket."
           },
-          "dur": 2.4
+          "dur": 2.4,
+          "gesture": {
+           "who": "iris",
+           "do": "chest",
+           "dur": 1.8
+          }
          }
         ]
        },

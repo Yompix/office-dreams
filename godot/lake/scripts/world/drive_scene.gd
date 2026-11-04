@@ -188,12 +188,12 @@ func park_at_station(lang := "ru") -> void:
 			var lb := Label3D.new()
 			lb.text = "ПРОДУКТЫ  ·  КОФЕ  ·  24 ЧАСА" if lang == "ru" else "FOOD  ·  COFFEE  ·  OPEN 24 HRS"
 			lb.font_size = 120
-			lb.pixel_size = 0.0034
 			lb.modulate = Color(0.62, 0.06, 0.04)
 			lb.outline_size = 0
 			lb.shaded = false
 			lb.double_sided = false
-			lb.position = Vector3(20.935, FLOOR + 3.13, -5.5)
+			Signs.fit(Signs.style(lb, "shop"), 7.0, 0.62, 0.84)   # короб 7 × 0,62 м
+			lb.position = Vector3(20.9385, FLOOR + 3.13, -5.5)   # на лице короба (x 20,94)
 			lb.rotation_degrees = Vector3(0, -90, 0)
 			station_root.add_child(lb)
 	var lot := MeshInstance3D.new()
@@ -328,14 +328,16 @@ func park_at_cafe(lang := "ru") -> void:
 		var nm := String(mi.name)
 		if nm.begins_with("window") or nm.contains("glass") or nm.begins_with("pend") or nm.begins_with("ceiling_lamp"):
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var lb := Label3D.new()                           # вывеска над крыльцом
-	lb.text = "У ТРЁХ СОСЕН" if lang == "ru" else "THREE PINES"
+	var lb := Label3D.new()                           # вывеска над крыльцом: рукописная, как у придорожных кафе
+	lb.text = "У трёх сосен" if lang == "ru" else "Three Pines"
 	lb.font_size = 150
-	lb.pixel_size = 0.0055
 	lb.modulate = Color(0.98, 0.86, 0.6)
 	lb.outline_size = 0
 	lb.shaded = false
-	lb.position = Vector3(21.79, CF + 3.45, -7.0)   # перед доской вывески (доска — x 21.82…21.94)
+	# доска 5,2 × 0,9 м на стойках над скатом (лицо — x 21,82, центр — пол + 3,85); низ доски с парковки чуть прячет
+	# снег на навесе крыльца — текст чуть выше середины
+	Signs.fit(Signs.style(lb, "cafe"), 5.2, 0.62, 0.86)
+	lb.position = Vector3(21.8185, CF + 3.92, -7.0)   # на доске: раньше висела в 3 см перед ней
 	lb.rotation_degrees = Vector3(0, -90, 0)
 	cafe_root.add_child(lb)
 	var warm := Color(1.0, 0.76, 0.46)
@@ -357,7 +359,7 @@ func park_at_cafe(lang := "ru") -> void:
 		ol.light_volumetric_fog_energy = 0.0
 		cafe_root.add_child(ol)
 	for at in [[Vector3(27.0, CF + 2.95, -7.0), Color(1.0, 0.85, 0.62), 0.8, 6.5], [Vector3(32.0, CF + 2.9, -13.8), Color(0.92, 0.96, 1.0), 0.9, 3.4],
-			[Vector3(21.6, CF + 2.2, -8.1), warm, 1.4, 6.0], [Vector3(21.3, CF + 4.2, -7.0), Color(1.0, 0.82, 0.55), 1.2, 4.0]]:
+			[Vector3(21.6, CF + 2.2, -8.1), warm, 1.4, 6.0], [Vector3(21.3, CF + 4.6, -7.0), Color(1.0, 0.82, 0.55), 1.2, 4.0]]:
 		var ol := OmniLight3D.new()
 		ol.position = at[0]
 		ol.light_color = at[1]
@@ -646,11 +648,12 @@ func signpost(z: float, text: String) -> Node3D:
 	var lb := Label3D.new()
 	lb.text = text
 	lb.font_size = 110
-	lb.pixel_size = 0.004
 	lb.modulate = Color(0.96, 0.97, 0.95)
 	lb.outline_size = 0
 	lb.shaded = true
-	lb.position = Vector3(0, 2.55, 0.03)
+	if text != "":
+		Signs.fit(Signs.style(lb, "road"), 2.4, 1.15, 0.8)   # щит 2,4 × 1,15 м
+	lb.position = Vector3(0, 2.55, 0.0265)   # на лице щита (z 0,025), раньше — в 5 мм перед ним
 	n.add_child(lb)
 	var rim := MeshInstance3D.new()                    # белая кайма щита
 	var rm := BoxMesh.new()

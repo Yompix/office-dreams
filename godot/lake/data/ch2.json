@@ -543,7 +543,12 @@
       "ru": "Идёт спиной вперёд против ветра и машет обеими руками.",
       "en": "She walks backwards into the wind, waving with both arms."
      },
-     "dur": 2.6
+     "dur": 2.6,
+     "gesture": {
+      "who": "zoe",
+      "do": "wave",
+      "dur": 2.6
+     }
     },
     {
      "choice": {
@@ -1009,7 +1014,12 @@
       "ru": "Полицейский долго смотрит Ною в лицо. Рация на плече хрипит: «…фура сложилась на трассе, все экипажи — туда». Он машет: проезжайте.",
       "en": "The officer studies Noah’s face for a long time. The radio on his shoulder crackles: “…semi jackknifed on the highway, all units respond.” He waves them through."
      },
-     "dur": 4.2
+     "dur": 4.2,
+     "gesture": {
+      "who": "cop",
+      "do": "give",
+      "dur": 1.6
+     }
     },
     {
      "fx": "post_pass"
@@ -1215,13 +1225,23 @@
       "ru": "Ной кладёт обе руки на руль. Луч фонарика ползёт по рукаву — к засохшей крови.",
       "en": "Noah puts both hands on the wheel. A flashlight beam crawls along his sleeve — to the dried blood."
      },
-     "dur": 3.2
+     "dur": 3.2,
+     "gesture": {
+      "who": "noah",
+      "do": "sleeve",
+      "dur": 2.6
+     }
     },
     {
      "say": "cop",
      "ru": "Что у вас на рукаве?",
      "en": "What’s that on your sleeve?",
-     "shot": "cop"
+     "shot": "cop",
+     "gesture": {
+      "who": "noah",
+      "do": "sleeve",
+      "dur": 1.6
+     }
     },
     {
      "say": "noah",
@@ -1452,7 +1472,13 @@
            "en": "She turns to the window. In the reflection her lips are moving — as if she’s counting kilometers."
           },
           "dur": 3.0,
-          "shot": "iris"
+          "shot": "iris",
+          "gesture": {
+           "who": "iris",
+           "do": "look_away",
+           "dur": 3.0,
+           "bone": "r"
+          }
          }
         ]
        },
@@ -1590,7 +1616,13 @@
       "ru": "Зоя отворачивается к окну. Больше они её не увидят.",
       "en": "Zoe turns to the window. They won’t see her again."
      },
-     "dur": 2.8
+     "dur": 2.8,
+     "gesture": {
+      "who": "zoe",
+      "do": "look_away",
+      "dur": 2.6,
+      "bone": "r"
+     }
     },
     {
      "go": "c2_s4_eva"
@@ -2082,7 +2114,12 @@
       "ru": "Она кивает на фуры и смеётся. Невесело.",
       "en": "She nods at the trucks and gives a joyless laugh."
      },
-     "dur": 2.4
+     "dur": 2.4,
+     "gesture": {
+      "who": "zoe",
+      "do": "nod",
+      "dur": 2.2
+     }
     },
     {
      "go": "c2_s4_zend"
@@ -2702,7 +2739,13 @@
            "en": "Eva turns to the window and breathes for a long time — slowly, as if counting."
           },
           "dur": 3.2,
-          "shot": "back"
+          "shot": "back",
+          "gesture": {
+           "who": "eva",
+           "do": "look_away",
+           "dur": 3.2,
+           "bone": "l"
+          }
          }
         ]
        },
@@ -4474,7 +4517,12 @@
            "ru": "Дэнни кивает, будто это договор.",
            "en": "Danny nods, as if it’s a deal."
           },
-          "dur": 2.2
+          "dur": 2.2,
+          "gesture": {
+           "who": "danny",
+           "do": "nod",
+           "dur": 2.2
+          }
          }
         ]
        },
@@ -4734,6 +4782,12 @@
        "dur": 2.8,
        "if": {
         "deer": "==2"
+       },
+       "gesture": {
+        "who": "noah",
+        "do": "look_away",
+        "dur": 2.4,
+        "bone": "l"
        }
       }
      ],

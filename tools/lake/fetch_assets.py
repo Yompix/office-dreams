@@ -23,6 +23,10 @@ TEXTURES = ['asphalt_snow', 'snow_02',
             # кафе «У трёх сосен» (глава 2): пол, обшивка снаружи и внутри, столы, стойка
             'old_wood_floor', 'weathered_plank_siding', 'wooden_panels', 'wood_table_worn', 'kitchen_wood']
 HDRIS = ['narrow_moonlit_road']
+# шрифты надписей на предметах (scripts/world/signs.gd): Google Fonts, SIL Open Font License 1.1, с кириллицей
+SIGN_FONTS = {'Lobster-Regular': ('Lobster', 400), 'Oswald-SemiBold': ('Oswald', 600), 'Oswald-Medium': ('Oswald', 500),
+              'PTSans-Regular': ('PT Sans', 400), 'PTSans-Bold': ('PT Sans', 700), 'PTSansNarrow-Bold': ('PT Sans Narrow', 700),
+              'Caveat-SemiBold': ('Caveat', 600)}
 TWIG_2K = {'fir_tree_01': ['twig_diff', 'twig_alpha', 'twig_nor_gl']}   # ели карточками: атлас лап с прозрачностью (road.gd)
 
 
@@ -73,6 +77,21 @@ def main():
         f = files(h)['hdri']['1k']['hdr']
         curl(f['url'], os.path.join(OUT, 'ph', h + '_1k.hdr'))
         print('небо', h)
+    for fname, (fam, wt) in SIGN_FONTS.items():   # CSS без браузерного User-Agent отдаёт ссылку на целый .ttf
+        dst = os.path.join(OUT, 'fonts', fname + '.ttf')
+        if not os.path.exists(dst):
+            css = subprocess.run(['curl', '-sSfL', 'https://fonts.googleapis.com/css2?family=%s:wght@%d' % (fam.replace(' ', '+'), wt)],
+                                 check=True, capture_output=True, text=True).stdout
+            url = css.split('url(')[1].split(')')[0]
+            curl(url, dst)
+        print('шрифт', fname)
+    lic = os.path.join(OUT, 'fonts', 'LICENSE.txt')
+    old_lic = open(lic, encoding='utf-8').read() if os.path.exists(lic) else ''
+    if 'Lobster' not in old_lic:
+        with open(lic, 'a', encoding='utf-8') as fp:
+            fp.write('Шрифты надписей на предметах (Google Fonts, SIL Open Font License 1.1, https://openfontlicense.org): '
+                     'Lobster (Pablo Impallari), Oswald (Vernon Adams, Kalapi Gajjar, Cyreal), PT Sans и PT Sans Narrow '
+                     '(ParaType), Caveat (Impallari Type).\n')
     with open(os.path.join(OUT, 'ph', 'LICENSE.txt'), 'w') as fp:
         fp.write('Poly Haven assets — CC0 1.0 (public domain), https://polyhaven.com/license\n' + '\n'.join(MODELS + TREE_TEX + TEXTURES + HDRIS) + '\n')
     # герои и движения — из Hush Till Six (CC0 / свободный мокап), жёсткие ссылки

@@ -674,11 +674,13 @@ static func sit(g, who: String, p: Vector3, face: float, clip := "Rk_SitIdle") -
 	a.reach = {}
 	g._place({"who": who, "at": [p.x, p.y - 0.42, p.z], "face": face, "clip": clip})
 	var tok := int(a.get_meta("place_n", 0))
+	a.set_meta("sit_pending", tok)   # пока таз не в точке посадки, отложенная посадка Actor (Seats.settle) ждёт
 	await g.get_tree().process_frame
 	await g.get_tree().process_frame
 	# посадка по тазу — только если за эти два кадра героя не переставили (иначе Ева, уже уложенная спать, через два
 	# кадра возвращалась на скамью — в сидящую там Айрис: гл. 3, дом Агнес, торсы друг в друге на 20 см)
 	if is_instance_valid(a) and int(a.get_meta("place_n", 0)) == tok:
+		a.remove_meta("sit_pending")
 		g._sit(who, p)
 
 

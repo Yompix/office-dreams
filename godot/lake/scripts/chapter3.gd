@@ -410,8 +410,7 @@ static func fx(g, k: String) -> bool:
 		"take_pill":
 			g.sfx.play("pills", -10.0)
 		"agnes_away":
-			var a := agnes(g)
-			a.rotation_degrees.y += 160.0
+			Seats.turn(agnes(g), 160.0)   # отворачивается, сидя на месте (вокруг таза — не съезжает с табурета)
 		"second_noah":   # ночь, снег, последний дом; Ной босиком, топор в руке, лицом к лесу
 			var v := village(g)
 			v.set_power(false)
@@ -471,7 +470,7 @@ static func fx(g, k: String) -> bool:
 			in_house(g)
 			village(g).set_power(false)
 			_house_sleepers(g)
-			Ch2.sit(g, "noah", ag(2.9, 0.47, 0.4), -90.0)
+			Ch2.sit(g, "noah", ag(2.9, 0.47, 1.0), -90.0)   # на лавке у окна (лавка — z 0,7…2,5; раньше z 0,4 — мимо, в воздухе)
 			(g.actors.noah as Actor).play("Rk_SitIdle", 0.0)
 			if has(g, "danny"):
 				Ch2.sit(g, "danny", ag(2.9, 0.47, 2.1), -90.0)

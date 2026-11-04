@@ -45,7 +45,7 @@ static func _cyl(parent: Node3D, r: float, h: float, pos: Vector3, m: Material, 
 	return mi
 
 
-static func _text(parent: Node3D, t: String, pos: Vector3, size: int, col: Color, px := 0.0016, rot := Vector3.ZERO, w := 0.0) -> Label3D:
+static func _text(parent: Node3D, t: String, pos: Vector3, size: int, col: Color, px := 0.0016, rot := Vector3.ZERO, w := 0.0, kind := "notice") -> Label3D:
 	var lb := Label3D.new()
 	lb.text = t
 	lb.font_size = size
@@ -59,7 +59,9 @@ static func _text(parent: Node3D, t: String, pos: Vector3, size: int, col: Color
 	if w > 0.0:
 		lb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		lb.width = w / px
+	Signs.style(lb, kind)
 	parent.add_child(lb)
+	Signs.flush.call_deferred(lb)   # к листу/табличке (висели в 4–6 мм перед ними)
 	return lb
 
 
@@ -89,7 +91,7 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 	for k in 6:
 		_box(vm, Vector3(0.012, 0.035, 0.05), Vector3(-0.34, 1.38 - k * 0.07, 0.26), _mat(Color(0.8, 0.8, 0.75), 0.4, 0.0, Color(0.9, 0.9, 0.8), 0.25))
 	_box(vm, Vector3(0.03, 0.16, 0.5), Vector3(-0.32, 0.36, -0.1), dark)   # лоток
-	var vt := _text(vm, "КОФЕ · ШОКОЛАД" if ru else "COFFEE · CANDY", Vector3(-0.316, 1.79, 0.0), 44, Color(1.0, 0.92, 0.8), 0.0016, Vector3(0, -90, 0))
+	var vt := _text(vm, "КОФЕ · ШОКОЛАД" if ru else "COFFEE · CANDY", Vector3(-0.316, 1.79, 0.0), 44, Color(1.0, 0.92, 0.8), 0.0016, Vector3(0, -90, 0), 0.0, "label")
 	vt.shaded = false   # светящаяся надпись — видна и в темноте
 	var vl := OmniLight3D.new()   # стекло светится на снег
 	vl.position = Vector3(-0.6, 1.2, -0.1)
@@ -129,9 +131,9 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 	var paper2 := _mat(Color(0.93, 0.9, 0.7), 0.95)
 	var ink := Color(0.08, 0.08, 0.09)
 	var n1 := _box(bd, Vector3(0.3, 0.22, 0.004), Vector3(-0.42, 1.68, 0.048), paper, Vector3(0, 0, 3))
-	_text(n1, "ПРОДАМ\nДРОВА\nтел. 2-14" if ru else "FIREWOOD\nFOR SALE\ncall 2-14", Vector3(0, 0, 0.003), 46, ink)
+	_text(n1, "ПРОДАМ\nДРОВА\nтел. 2-14" if ru else "FIREWOOD\nFOR SALE\ncall 2-14", Vector3(0, 0, 0.003), 46, ink, 0.0016, Vector3.ZERO, 0.0, "hand")
 	var n2 := _box(bd, Vector3(0.27, 0.34, 0.004), Vector3(-0.42, 1.33, 0.048), paper2, Vector3(0, 0, -4))
-	_text(n2, "ПРОПАЛА\nСОБАКА\n\nрыжая,\nзовут Лиса" if ru else "LOST\nDOG\n\nginger,\nanswers\nto Foxy", Vector3(0, 0, 0.003), 38, ink)
+	_text(n2, "ПРОПАЛА\nСОБАКА\n\nрыжая,\nзовут Лиса" if ru else "LOST\nDOG\n\nginger,\nanswers\nto Foxy", Vector3(0, 0, 0.003), 38, ink, 0.0016, Vector3.ZERO, 0.0, "hand")
 	# выцветший плакат санатория: голубое небо, ели, белый корпус
 	var pst := Node3D.new()
 	bd.add_child(pst)
@@ -159,7 +161,7 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 			tri.position = Vector3(x, -0.06 + h * (0.12 + t * 0.24), 0.006 + t * 0.0004)
 			pst.add_child(tri)
 	_box(pst, Vector3(0.52, 0.04, 0.003), Vector3(0, -0.1, 0.006), _mat(Color(0.18, 0.32, 0.25), 0.9))
-	_text(pst, "САНАТОРИЙ\n«ТИХИЕ СОСНЫ»" if ru else "QUIET PINES\nSANATORIUM", Vector3(0, 0.26, 0.006), 44, Color(0.1, 0.22, 0.3))
+	_text(pst, "САНАТОРИЙ\n«ТИХИЕ СОСНЫ»" if ru else "QUIET PINES\nSANATORIUM", Vector3(0, 0.26, 0.006), 44, Color(0.1, 0.22, 0.3), 0.0016, Vector3.ZERO, 0.0, "shop")
 	_text(pst, "сон · тишина · сосновый воздух" if ru else "sleep · silence · pine air", Vector3(0, -0.2, 0.006), 26, Color(0.12, 0.2, 0.25))
 	_text(pst, "Северная трасса" if ru else "Northern Highway", Vector3(0, -0.29, 0.006), 22, Color(0.25, 0.3, 0.32))
 	out["board"] = bd

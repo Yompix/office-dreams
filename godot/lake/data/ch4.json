@@ -1726,7 +1726,12 @@
       "en": "Danny nods."
      },
      "dur": 1.8,
-     "shot": "danny_stop"
+     "shot": "danny_stop",
+     "gesture": {
+      "who": "danny",
+      "do": "nod",
+      "dur": 2.2
+     }
     },
     {
      "go": "c4_s4_road"
@@ -1788,7 +1793,12 @@
       "en": "Danny nods. By the van, Iris heard every word."
      },
      "dur": 2.6,
-     "shot": "danny_stop"
+     "shot": "danny_stop",
+     "gesture": {
+      "who": "danny",
+      "do": "nod",
+      "dur": 2.2
+     }
     },
     {
      "go": "c4_s4_road"
@@ -3350,7 +3360,21 @@
      "if": {
       "danny": ">0",
       "danny_lost": "==0"
-     }
+     },
+     "gesture": [
+      {
+       "who": "danny",
+       "do": "tremble",
+       "dur": 3.2
+      },
+      {
+       "who": "noah",
+       "do": "palm_to",
+       "dur": 3.2,
+       "to": "danny",
+       "bone": "head"
+      }
+     ]
     },
     {
      "shot": "hut",
@@ -4643,6 +4667,12 @@
        "if": {
         "zoe": ">0",
         "zoe_gone": "==0"
+       },
+       "gesture": {
+        "who": "zoe",
+        "do": "look_away",
+        "dur": 2.4,
+        "bone": "l"
        }
       },
       {
@@ -6312,7 +6342,12 @@
            "ru": "Ной прячет папку под куртку.",
            "en": "Noah tucks the folder under his jacket."
           },
-          "dur": 2.2
+          "dur": 2.2,
+          "gesture": {
+           "who": "noah",
+           "do": "chest",
+           "dur": 2.0
+          }
          },
          {
           "note": {
@@ -6340,7 +6375,12 @@
            "ru": "Ной кладёт папку на место. Ровно так, как лежала. Пусть думает, что сюда никто не заходил.",
            "en": "Noah puts the folder back. Exactly the way it was. Let him think no one’s been here."
           },
-          "dur": 3.2
+          "dur": 3.2,
+          "gesture": {
+           "who": "noah",
+           "do": "give",
+           "dur": 1.8
+          }
          }
         ]
        }

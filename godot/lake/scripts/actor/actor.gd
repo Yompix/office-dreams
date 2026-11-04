@@ -299,6 +299,8 @@ func play(c: String, at := 0.0, blend := -1.0) -> void:
 		if at > 0.0:
 			ap.seek(at, true)
 	_base.clear()
+	# сел — когда поза встанет (после смешивания), тело ложится на сиденье, а не в него (Seats.settle)
+	_settle_t = (b + 0.08) if (c in SEAT and not c in ["Crouch_Idle", "Fixing_Kneeling", "Driving"]) else -1.0
 
 
 func _blend_time(from: String, to: String) -> float:
@@ -311,6 +313,181 @@ func _blend_time(from: String, to: String) -> float:
 	if to in STRIDE or from in STRIDE:
 		return 0.28
 	return 0.35
+
+
+## Жесты по подписям сцены («Ной прячет руки в карманы», «Дэнни кивает» — теперь и движением), см. do_gesture()
+var gesture := ""
+var _gest_t := 0.0
+var _gest_to: Actor = null
+var _gest_bone := "head"
+var _gest_look = null
+var _gest_reach0 := {}
+var _gest_palm0 := {}
+var _gest_pole0 := {}
+var _nod_t := -1.0
+var _shake_t := -1.0
+var _trem_t := -1.0
+var _wave_end := -1.0
+var _gest_side := 1.0
+var _seat_depth := {}   # клип → глубина «таз → низ тела» сидя (м), см. seat_depth()
+var _settle_t := -1.0   # через сколько секунд положить тело на сиденье (сел; −1 — не нужно)
+var stool: Node3D = null   # свой табурет (Seats.settle), если посадили туда, где мебели нет
+
+
+## Сидя: на сколько кость таза выше самой низкой точки тела под ней (ягодицы, бёдра, штаны) в текущей позе — на столько
+## таз должен быть выше верха сиденья, чтобы тело лежало на подушке, а не уходило в неё (Game._settle_seat).
+## Считается один раз на клип: кожа и одежда скиннингом на процессоре, только вершины таза и бёдер рядом с тазом.
+func seat_depth() -> float:
+	if _seat_depth.has(clip):
+		return float(_seat_depth[clip])
+	skel.force_update_all_bone_transforms()
+	var sg := skel.global_transform
+	var pel: Vector3 = sg * skel.get_bone_global_pose(skel.find_bone("pelvis")).origin
+	var hips := {}
+	for nm in ["pelvis", "thigh_l", "thigh_r"]:
+		var bi := skel.find_bone(nm)
+		if bi >= 0:
+			hips[bi] = true
+	var low := INF
+	for n in model.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var nm := String(mi.name).to_lower()
+		if mi.mesh == null or mi.skin == null or not (nm == "skin" or nm.begins_with("cloth_")) or nm.contains("shoe") or nm.contains("boot"):
+			continue
+		var sr: Skin = mi.skin
+		var bones: Array = []
+		var xf: Array = []
+		for b in sr.get_bind_count():
+			var bi := sr.get_bind_bone(b)
+			if bi < 0:
+				bi = skel.find_bone(sr.get_bind_name(b))
+			bones.append(bi)
+			xf.append(skel.get_bone_global_pose(bi) * sr.get_bind_pose(b) if bi >= 0 else Transform3D.IDENTITY)
+		for si in mi.mesh.get_surface_count():
+			var arr := mi.mesh.surface_get_arrays(si)
+			var vv: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var bo: PackedInt32Array = arr[Mesh.ARRAY_BONES] if arr[Mesh.ARRAY_BONES] != null else PackedInt32Array()
+			var we: PackedFloat32Array = arr[Mesh.ARRAY_WEIGHTS] if arr[Mesh.ARRAY_WEIGHTS] != null else PackedFloat32Array()
+			if vv.is_empty() or bo.is_empty():
+				continue
+			var st := bo.size() / vv.size()
+			for i in vv.size():
+				var hw := 0.0
+				for j in st:
+					var b := bo[i * st + j]
+					if b < bones.size() and hips.has(bones[b]):
+						hw += we[i * st + j]
+				if hw < 0.5:
+					continue
+				var q := Vector3.ZERO
+				for j in st:
+					var w := we[i * st + j]
+					if w > 0.0:
+						q += ((xf[bo[i * st + j]] as Transform3D) * vv[i]) * w
+				q = sg * q
+				if Vector2(q.x - pel.x, q.z - pel.z).length() < 0.22 and q.y < low:
+					low = q.y
+	var d := clampf(pel.y - low, 0.03, 0.25) if low < INF else 0.1
+	_seat_depth[clip] = d
+	return d
+
+
+## Жест на dur секунд. Руки — к точкам у своего тела каждый кадр (идут вместе с героем): pockets — в карманы,
+## look_hands — ладони перед собой и взгляд на них, behind — за спину, give — протянуть руку, palm_to — ладонь на
+## кость другого героя (голова, плечо), take_hand — взять за руку, sleeve — взгляд на свой рукав.
+## Головой: nod — кивок, shake — «нет»; tremble — дрожь. После — руки и взгляд как были.
+func do_gesture(kind: String, dur := 2.0, other: Actor = null, bone := "head") -> void:
+	match kind:
+		"nod":
+			_nod_t = 0.0
+		"shake":
+			_shake_t = 0.0
+		"tremble":
+			_trem_t = dur
+		"wave":
+			wave = 1.0
+			_wave_end = dur
+		_:
+			if gesture == "":
+				_gest_reach0 = reach.duplicate()
+				_gest_palm0 = reach_palm.duplicate()
+				_gest_pole0 = reach_pole.duplicate()
+				_gest_look = look_target
+			gesture = kind
+			_gest_t = dur
+			_gest_to = other
+			_gest_bone = bone
+			_gest_side = -1.0 if bone == "l" else 1.0
+
+
+func _update_gesture(dt: float) -> void:
+	if _wave_end >= 0.0:
+		_wave_end -= dt
+		if _wave_end < 0.0:
+			wave = 0.0
+	if gesture == "":
+		return
+	_gest_t -= dt
+	if _gest_t <= 0.0:
+		gesture = ""
+		reach = _gest_reach0
+		reach_palm = _gest_palm0
+		reach_pole = _gest_pole0
+		look_target = _gest_look
+		return
+	var sg := skel.global_transform
+	var bp := func(n: String) -> Vector3:
+		return sg * skel.get_bone_global_pose(_bi(n)).origin
+	var pv: Vector3 = bp.call("pelvis")
+	var ch: Vector3 = bp.call("spine_03")
+	var right: Vector3 = bp.call("thigh_r") - bp.call("thigh_l")
+	right.y = 0.0
+	right = right.normalized() if right.length() > 1e-4 else global_transform.basis.x
+	var fwd := global_transform.basis.z
+	fwd.y = 0.0
+	fwd = fwd.normalized()
+	var up := Vector3.UP
+	var r := {}
+	var palm := {}
+	match gesture:
+		"pockets":
+			r = {"_r": pv + fwd * 0.09 + right * 0.17 - up * 0.03, "_l": pv + fwd * 0.09 - right * 0.17 - up * 0.03}
+			palm = {"_r": -right, "_l": right}
+		"look_hands":
+			var c := ch + fwd * 0.32 - up * 0.22
+			r = {"_r": c + right * 0.09, "_l": c - right * 0.09}
+			palm = {"_r": up, "_l": up}
+			look_target = c
+		"behind":
+			r = {"_r": pv - fwd * 0.17 + right * 0.06 + up * 0.04, "_l": pv - fwd * 0.17 - right * 0.06 + up * 0.04}
+		"sleeve":
+			look_target = bp.call("lowerarm_r")
+		"chest":   # прижать к груди (спрятать под куртку): на уровне груди, а не живота
+			r = {"_r": ch + fwd * 0.16 + up * 0.03 + right * 0.04, "_l": ch + fwd * 0.16 + up * 0.03 - right * 0.04}
+			palm = {"_r": -fwd, "_l": -fwd}
+		"look_away":   # отвернуться (к окну): взгляд в сторону — bone "l" или "r"
+			look_target = head_pos() + right * (2.0 * _gest_side) + fwd * 0.6
+		"give":
+			r = {"_r": ch + fwd * 0.45 - up * 0.12 + right * 0.08}
+			palm = {"_r": up}
+		"palm_to", "take_hand":
+			if is_instance_valid(_gest_to) and _gest_to.skel != null:
+				var ob := _gest_to.skel.find_bone(_gest_bone)
+				if ob >= 0:
+					var tp: Vector3 = _gest_to.skel.global_transform * _gest_to.skel.get_bone_global_pose(ob).origin
+					if gesture == "palm_to":
+						tp += up * 0.07
+						palm = {"_r": -up}
+					else:
+						palm = {"_r": (tp - ch).normalized()}
+					r = {"_r": tp}
+	if not r.is_empty():
+		reach = r
+		reach_palm = palm
+	elif reach != _gest_reach0:   # жест одной головой (отвернуться, на рукав) после жеста руками: руки — как были до жестов
+		reach = _gest_reach0
+		reach_palm = _gest_palm0
+		reach_pole = _gest_pole0
 
 
 ## Встал сюда (расстановка в начале плана): поза сразу, без перетекания, волосы — без рывка.
@@ -419,6 +596,13 @@ func set_blood(v: float) -> void:
 func _process(delta: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	_tick(delta)
+	if _settle_t >= 0.0:
+		_settle_t -= delta
+		if _settle_t < 0.0:
+			if has_meta("sit_pending"):   # Ch2.sit ещё ставит таз в точку — посадить, когда поставит
+				_settle_t = 0.03
+			else:
+				Seats.settle(self)
 	prof_us += Time.get_ticks_usec() - t0
 	var fr := Engine.get_process_frames()
 	if fr != _prof_frame:
@@ -479,6 +663,7 @@ func _tick(delta: float) -> void:
 	_gaze(dt)
 	var q2 := Time.get_ticks_usec()
 	_update_wave(dt)
+	_update_gesture(dt)
 	_update_reach(dt)
 	_update_grip(dt)
 	var q3 := Time.get_ticks_usec()
@@ -765,6 +950,26 @@ func _gaze(dt: float) -> void:
 	_rot(h, pitch_axis, -dp * 0.65)
 	# наклон головы набок — едва заметно
 	_rot(h, dir_h, deg_to_rad(1.2) * ha * _noise(9.0, 2.2))
+	# жесты головой (do_gesture): кивок, «нет», дрожь
+	if _nod_t >= 0.0:
+		_nod_t += dt
+		var nk := _nod_t / 0.9
+		if nk >= 1.0:
+			_nod_t = -1.0
+		else:
+			_rot(h, pitch_axis, sin(nk * TAU * 2.0) * 0.17 * sin(nk * PI))
+			_rot(_bi("neck_01"), pitch_axis, sin(nk * TAU * 2.0) * 0.07 * sin(nk * PI))
+	if _shake_t >= 0.0:
+		_shake_t += dt
+		var sn := _shake_t / 1.1
+		if sn >= 1.0:
+			_shake_t = -1.0
+		else:
+			_rot(h, up, sin(sn * TAU * 2.0) * 0.24 * sin(sn * PI))
+	if _trem_t > 0.0:
+		_trem_t -= dt
+		_rot(_bi("spine_03"), global_transform.basis.x.normalized(), sin(_t * 41.0) * 0.012 + sin(_t * 27.0) * 0.008)
+		_rot(h, up, sin(_t * 37.0) * 0.012)
 	# глаза: на цель (быстрее головы), мелкие саккады вокруг
 	var ex := 0.0
 	var ey := 0.0

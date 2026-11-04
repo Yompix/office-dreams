@@ -433,6 +433,13 @@ func _beat(b: Dictionary):
 	if b.has("anim"):
 		var an: Dictionary = b.anim
 		(actors[String(an.who)] as Actor).play(String(an.clip), float(an.get("at", 0.0)))
+	if b.has("gesture"):   # жест по подписи: {"who", "do", "dur", "to", "bone"} или список таких
+		for gv in (b.gesture if b.gesture is Array else [b.gesture]):
+			var gw := String(gv.get("who", "noah"))
+			if actors.has(gw) and is_instance_valid(actors[gw]):
+				var other = actors.get(String(gv.get("to", "")))
+				(actors[gw] as Actor).do_gesture(String(gv.get("do", "")), float(gv.get("dur", 2.2)),
+					other if (other is Actor and is_instance_valid(other)) else null, String(gv.get("bone", "head")))
 	if b.has("expr"):
 		_expr(b.expr)
 	if b.has("fx"):
@@ -708,6 +715,8 @@ func _place(p: Dictionary) -> void:
 	var a: Actor = actors[who]
 	_walks.erase(who)
 	a.set_meta("place_n", int(a.get_meta("place_n", 0)) + 1)   # номер расстановки: отложенная посадка (Ch2.sit) видит, что героя уже переставили
+	if a.has_meta("sit_pending"):   # прошлую посадку перебили новой расстановкой (её Ch2.sit сам ничего не сделает)
+		a.remove_meta("sit_pending")
 	if p.has("car"):
 		_seat_in_car(who, String(p.car))
 		return
@@ -720,6 +729,10 @@ func _place(p: Dictionary) -> void:
 	a.placed()
 	if p.has("clip"):
 		a.play(String(p.clip), float(p.get("t", 0.3)), 0.0)
+	# переставили стоя — свой табурет (Seats.settle) остаётся там, где сидел, и герой встал бы в него: убираем (склейка)
+	if is_instance_valid(a.stool) and not (String(p.get("clip", a.clip)) in Actor.SEAT):
+		a.stool.queue_free()
+		a.stool = null
 
 
 func _seat_in_car(who: String, seat: String) -> void:
@@ -856,6 +869,7 @@ func _sit(who: String, p: Vector3) -> void:
 	var sk := a.skel
 	var cur := sk.global_transform * sk.get_bone_global_pose(sk.find_bone("pelvis")).origin
 	a.global_position += p - cur
+	Seats.settle(a)   # точка p — примерная; по высоте тело кладётся на настоящий верх сиденья
 
 
 ## Заправка «24»: машина у колонки, Ной у колонки, Айрис рядом с машиной, мальчик на крыльце с рацией, кассир за прилавком.

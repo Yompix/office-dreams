@@ -1286,6 +1286,11 @@
      },
      "if": {
       "washed": "==0"
+     },
+     "gesture": {
+      "who": "noah",
+      "do": "pockets",
+      "dur": 2.6
      }
     },
     {
@@ -1301,6 +1306,11 @@
      },
      "if": {
       "washed": ">0"
+     },
+     "gesture": {
+      "who": "noah",
+      "do": "pockets",
+      "dur": 2.6
      }
     },
     {
@@ -2044,6 +2054,11 @@
      "note": {
       "ru": "Айрис молча протягивает Дэнни свои варежки.",
       "en": "Without a word, Iris hands Danny her mittens."
+     },
+     "gesture": {
+      "who": "iris",
+      "do": "give",
+      "dur": 2.2
      }
     },
     {
@@ -2182,7 +2197,12 @@
            "en": "She grips the notebook until her knuckles go white."
           },
           "dur": 2.4,
-          "shot": "notebook"
+          "shot": "notebook",
+          "gesture": {
+           "who": "iris",
+           "do": "chest",
+           "dur": 2.6
+          }
          },
          {
           "if": {
@@ -3549,7 +3569,12 @@
         "ru": "Она прячет блокнот под куртку.",
         "en": "She tucks the notebook under her jacket."
        },
-       "dur": 2.4
+       "dur": 2.4,
+       "gesture": {
+        "who": "iris",
+        "do": "chest",
+        "dur": 1.8
+       }
       },
       {
        "say": "iris",
@@ -3664,7 +3689,12 @@
         "washed": "==0",
         "danny_hands": "==0"
        },
-       "vo": "st24_danny_166a7b"
+       "vo": "st24_danny_166a7b",
+       "gesture": {
+        "who": "noah",
+        "do": "look_hands",
+        "dur": 1.9
+       }
       },
       {
        "note": {
@@ -3678,6 +3708,11 @@
        "if": {
         "washed": "==0",
         "danny_hands": "==1"
+       },
+       "gesture": {
+        "who": "noah",
+        "do": "pockets",
+        "dur": 3.4
        }
       }
      ],
@@ -3821,7 +3856,19 @@
           "dur": 3.6,
           "set": {
            "choco_given": 1
-          }
+          },
+          "gesture": [
+           {
+            "who": "danny",
+            "do": "chest",
+            "dur": 1.2
+           },
+           {
+            "who": "danny",
+            "do": "nod",
+            "dur": 2.2
+           }
+          ]
          }
         ]
        },

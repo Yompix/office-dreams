@@ -312,8 +312,9 @@ static func fx(g, k: String) -> bool:
 			g.sfx.play("radio_hiss", -16.0, 0.6)
 		"iris_bench":   # Айрис на лавке; Ной садится рядом, она протягивает блокнот
 			var b: Node3D = c4.get("stop")
-			Ch2.sit(g, "iris", b.to_global(Vector3(-0.35, 0.47, -0.2)), b.rotation_degrees.y + 180.0, "Rk_SitIdle")
-			Ch2.sit(g, "noah", b.to_global(Vector3(0.35, 0.47, -0.2)), b.rotation_degrees.y + 180.0, "Rk_SitIdle")
+			# на лавку (лавка — z 0,25…0,65 по остановке; раньше z −0,2 — перед лавкой, в воздухе)
+			Ch2.sit(g, "iris", b.to_global(Vector3(-0.35, 0.47, 0.42)), b.rotation_degrees.y + 180.0, "Rk_SitIdle")
+			Ch2.sit(g, "noah", b.to_global(Vector3(0.35, 0.47, 0.42)), b.rotation_degrees.y + 180.0, "Rk_SitIdle")
 			notebook(g, "iris")
 		"page_1", "page_2", "page_3", "page_4", "page_5":
 			var n := int(k.right(1))
@@ -756,16 +757,16 @@ static func _bus_stop(g) -> void:
 	ym.roughness = 0.7
 	sign.material_override = ym
 	sign.position = Vector3(2.3, 2.45, -0.5)
-	sign.rotation_degrees = Vector3(90, 90, 0)
+	sign.rotation_degrees = Vector3(90, 0, 0)   # лицом к −z, как буквы (было (90, 90, 0) — круг стоял ребром к надписи)
 	root.add_child(sign)
 	var lb := Label3D.new()
 	lb.text = "А" if g.lang == "ru" else "BUS"
 	lb.font_size = 160
-	lb.pixel_size = 0.0018 if g.lang == "ru" else 0.0011
 	lb.modulate = Color(0.12, 0.14, 0.2)
 	lb.outline_size = 0
 	lb.shaded = true
-	lb.position = Vector3(2.3, 2.45, -0.512)
+	Signs.fit(Signs.style(lb, "road"), 0.4, 0.4, 0.86)   # в круге Ø 0,56 м
+	lb.position = Vector3(2.3, 2.45, -0.5115)   # на лице круга (z −0,51)
 	lb.rotation_degrees = Vector3(0, 180, 0)
 	root.add_child(lb)
 	_mbox(root, Vector3(4.6, 0.4, 2.6), Vector3(0.2, -0.05, -0.2), snow)   # площадка в снегу
@@ -869,11 +870,11 @@ static func _stop_walk_stage(g) -> void:
 		var lb := Label3D.new()
 		lb.text = "САНАТОРИЙ\n«ТИХИЕ СОСНЫ» 6 км →" if g.lang == "ru" else "QUIET PINES\nSANATORIUM 6 km →"
 		lb.font_size = 64
-		lb.pixel_size = 0.0028
 		lb.modulate = Color(0.92, 0.93, 0.9)
 		lb.outline_size = 0
 		lb.shaded = true
-		lb.position = Vector3(-4.5, 1.72, -2.135)
+		Signs.fit(Signs.style(lb, "road"), 1.25, 0.46, 0.84)   # текст был шире щита (1,25 м) — свисал по краям
+		lb.position = Vector3(-4.5, 1.72, -2.1385)   # на лице щита (z −2,14)
 		b.add_child(lb)
 		g.c4["sana_sign"] = lb
 	if has(g, "danny") and not g.c4.has("snowman"):   # снеговик Дэнни: два кома и ветка
@@ -1039,12 +1040,12 @@ static func _sana_turn(g) -> void:
 	var lb := Label3D.new()   # щит повёрнут к дороге (+z): его видно из кабины
 	lb.text = "САНАТОРИЙ\n«ТИХИЕ СОСНЫ» 2 км →" if g.lang == "ru" else "QUIET PINES\nSANATORIUM 2 km →"
 	lb.font_size = 64
-	lb.pixel_size = 0.0028
 	lb.modulate = Color(0.92, 0.93, 0.9)
 	lb.outline_size = 0
 	lb.shaded = true
 	lb.double_sided = false
-	lb.position = Vector3(0.0, 1.8, 0.065)
+	Signs.fit(Signs.style(lb, "road"), 1.3, 0.5, 0.84)   # щит 1,3 × 0,5 м
+	lb.position = Vector3(0.0, 1.8, 0.0615)   # на лице щита (z 0,06)
 	root.add_child(lb)
 	g.c4["turn_sign"] = root
 

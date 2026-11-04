@@ -1339,7 +1339,12 @@
       "en": "Eva nods."
      },
      "dur": 2.0,
-     "shot": "eva_bed"
+     "shot": "eva_bed",
+     "gesture": {
+      "who": "eva",
+      "do": "nod",
+      "dur": 2.2
+     }
     },
     {
      "go": "c3_s4"
@@ -3464,7 +3469,19 @@
            "ru": "Ной тянет тетрадь — Айрис во сне сжимает её крепче. Не отдаёт.",
            "en": "Noah tugs at the notebook — in her sleep, Iris grips it tighter. She won’t let go."
           },
-          "dur": 3.0
+          "dur": 3.0,
+          "gesture": [
+           {
+            "who": "noah",
+            "do": "give",
+            "dur": 1.6
+           },
+           {
+            "who": "iris",
+            "do": "chest",
+            "dur": 2.4
+           }
+          ]
          }
         ]
        },

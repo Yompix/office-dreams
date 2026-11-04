@@ -91,7 +91,7 @@ func _yard(ru: bool, iron: Material, board: Material, plaster: Material, white: 
 	_cyl(1.55, 1.55, 0.1, Vector3(0.0, 0.58, 2.5), white)
 	_cyl(0.42, 0.16, 1.1, Vector3(0.0, 0.95, 2.5), plaster)
 	_cube(Vector3(0.8, 0.12, 0.8), Vector3(0.0, 1.56, 2.5), white)
-	_label("Я НЕ СУМАСШЕДШАЯ" if ru else "I AM NOT CRAZY", Vector3(0.35, 0.42, 4.235), 0.0013, Color(0.3, 0.3, 0.33), 10.0, false)
+	_label("Я НЕ СУМАСШЕДШАЯ" if ru else "I AM NOT CRAZY", Vector3(0.35, 0.42, 4.235), 0.0013, Color(0.3, 0.3, 0.33), 10.0, false, "hand")
 	# доска объявлений: два столба, щит, лист под стеклом
 	_cube(Vector3(0.08, 1.9, 0.08), Vector3(-4.65, 0.95, 4.0), iron)
 	_cube(Vector3(0.08, 1.9, 0.08), Vector3(-3.35, 0.95, 4.0), iron)
@@ -100,8 +100,8 @@ func _yard(ru: bool, iron: Material, board: Material, plaster: Material, white: 
 	var paper := _mat(Color(0.86, 0.84, 0.76), 0.9)
 	_cube(Vector3(1.25, 0.78, 0.01), Vector3(-4.0, 1.5, 4.035), paper)
 	_label("САНАТОРИЙ ЗАКРЫТ\nНА ЗИМНИЙ ПЕРИОД\nАдминистрация" if ru else "THE SANATORIUM IS CLOSED\nFOR THE WINTER\nThe Management",
-		Vector3(-4.0, 1.7, 4.042), 0.0014, Color(0.12, 0.12, 0.14), 0.0, false)
-	_label("Главный врач — д-р С. Х" if ru else "Head physician — Dr. S. H", Vector3(-4.17, 1.33, 4.042), 0.0011, Color(0.16, 0.16, 0.2), 0.0, false)
+		Vector3(-4.0, 1.7, 4.042), 0.0014, Color(0.12, 0.12, 0.14), 0.0, false, "notice_b")
+	_label("Главный врач — д-р С. Х" if ru else "Head physician — Dr. S. H", Vector3(-4.17, 1.33, 4.042), 0.0011, Color(0.16, 0.16, 0.2), 0.0, false, "notice")
 	var torn := _mat(Color(0.78, 0.76, 0.68), 0.9)   # оторванный край строки
 	_cube(Vector3(0.34, 0.06, 0.012), Vector3(-3.52, 1.33, 4.04), torn, Basis(Vector3.BACK, 0.25))
 	# скамейки по краям, занесённые снегом; фонари у дорожки
@@ -171,7 +171,7 @@ func _archive(ru: bool, plaster: Material, board: Material, dark: Material, roof
 	_box(Vector3(0.2, WIN_Y0 - AFLOOR, WIN_Z1 - WIN_Z0), Vector3(AX0 + 0.1, (AFLOOR + WIN_Y0) * 0.5, (WIN_Z0 + WIN_Z1) * 0.5), plaster)
 	_box(Vector3(0.2, AFLOOR + wh - WIN_Y1, WIN_Z1 - WIN_Z0), Vector3(AX0 + 0.1, (WIN_Y1 + AFLOOR + wh) * 0.5, (WIN_Z0 + WIN_Z1) * 0.5), plaster)
 	_cube(Vector3(0.32, 0.06, 1.15), Vector3(AX0 + 0.05, WIN_Y0 + 0.03, -1.0), white)   # снег на подоконнике
-	_label("АРХИВ" if ru else "ARCHIVE", Vector3(AX0 - 0.015, 2.4, -2.3), 0.0034, Color(0.18, 0.18, 0.2), -90.0, false)
+	_label("АРХИВ" if ru else "ARCHIVE", Vector3(AX0 - 0.015, 2.4, -2.3), 0.0034, Color(0.18, 0.18, 0.2), -90.0, false, "label")
 	plank = MeshInstance3D.new()   # доска на одном гвозде — наискосок через окно
 	var pb := BoxMesh.new()
 	pb.size = Vector3(0.04, 0.2, 1.35)
@@ -337,7 +337,7 @@ func _multi(items: Array) -> void:
 	add_child(mi)
 
 
-func _label(text: String, pos: Vector3, px: float, c: Color, yaw: float, outline := true) -> Label3D:
+func _label(text: String, pos: Vector3, px: float, c: Color, yaw: float, outline := true, kind := "shop") -> Label3D:
 	var lb := Label3D.new()
 	lb.text = text
 	lb.font_size = 64
@@ -349,7 +349,9 @@ func _label(text: String, pos: Vector3, px: float, c: Color, yaw: float, outline
 	lb.shaded = true
 	lb.position = pos
 	lb.rotation_degrees = Vector3(0.0, yaw, 0.0)
+	Signs.style(lb, kind)
 	add_child(lb)
+	Signs.flush.call_deferred(lb)
 	return lb
 
 

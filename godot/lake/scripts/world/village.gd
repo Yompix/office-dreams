@@ -63,13 +63,14 @@ func build(lang: String, is_pc: bool) -> void:
 	var lb := Label3D.new()                                  # вывеска магазина
 	lb.text = "МАГАЗИН" if lang == "ru" else "STORE"
 	lb.font_size = 120
-	lb.pixel_size = 0.0045
 	lb.modulate = Color(0.95, 0.92, 0.8)
 	lb.outline_size = 0
 	lb.shaded = true
+	Signs.fit(Signs.style(lb, "shop"), 3.6, 0.6, 0.8)   # зелёная доска 3,6 × 0,6 м
 	lb.position = Vector3(8.25, 3.0, -27.4)
 	lb.rotation_degrees = Vector3(0, -90, 0)
 	add_child(lb)
+	Signs.flush.call_deferred(lb)   # к доске (висела в 6 см перед ней)
 	for zp in [-15.0, -55.0, -92.0]:                         # фонари на столбах
 		var sl := OmniLight3D.new()
 		sl.position = Vector3(3.55, 5.9, zp)
