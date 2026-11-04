@@ -4,7 +4,7 @@ extends Node3D
 ## Кадры: <поза>_<камера>.png; камеры: close (грудь и руки), front (в рост, 3/4), back (в рост сзади), side (сбоку).
 
 const POSES := {"Idle": 0.6, "Walk": 0.35, "Jog_Fwd": 0.25, "Rk_SitIdle": 3.0, "Crouch_Idle": 0.8, "PickUp_Table": 0.45, "Idle_FoldArms": 0.8}
-const CAMS := ["close", "front", "back", "side"]
+var CAMS: Array = ["close", "front", "back", "side"]   # --cams: ещё neckb / neckf / neck3 (шея и ворот крупно)
 var who := "noah"
 var out := "/tmp/wardrobe"
 var poses: Array = []
@@ -24,6 +24,7 @@ func _ready() -> void:
 	out = arg.call("--out", "/tmp/wardrobe")
 	light = arg.call("--light", "studio")
 	poses = Array(String(arg.call("--poses", ",".join(POSES.keys()))).split(","))
+	CAMS = Array(String(arg.call("--cams", ",".join(CAMS))).split(","))
 	DirAccess.make_dir_recursive_absolute(out)
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
@@ -81,6 +82,23 @@ func _ready() -> void:
 	a = Actor.make(who, file)
 	add_child(a)
 	a.play("Idle", 0.0, 0.0)
+	if "--plain" in args:   # одна серая матовая ткань без текстур: видна только форма (бугор — сетка, пятно — текстура)
+		var plain_m := StandardMaterial3D.new()
+		plain_m.albedo_color = Color(0.7, 0.7, 0.72)
+		plain_m.roughness = 0.6
+		for mi in a.find_children("*", "MeshInstance3D", true, false):
+			(mi as MeshInstance3D).material_override = plain_m
+	if "--ids" in args:   # каждая сетка — своим плоским цветом: видно, что именно проступает (кожа, рубашка, куртка)
+		var pal := [Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.MAGENTA, Color.CYAN, Color.ORANGE, Color.WHITE, Color.PURPLE, Color.BROWN, Color.PINK, Color.LIME_GREEN]
+		var k := 0
+		for mi in a.find_children("*", "MeshInstance3D", true, false):
+			var m := StandardMaterial3D.new()
+			m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			m.albedo_color = pal[k % pal.size()]
+			m.cull_mode = BaseMaterial3D.CULL_DISABLED
+			(mi as MeshInstance3D).material_override = m
+			print("IDS ", mi.name, " = ", pal[k % pal.size()].to_html(false))
+			k += 1
 
 
 func _process(_d: float) -> void:
@@ -129,6 +147,11 @@ func _aim(c: String) -> void:
 	var hip: Vector3 = bp.call("pelvis")
 	var mid: Vector3 = (chest + hip) * 0.5 + Vector3(0, -0.15, 0)
 	match c:
+		"neckb", "neckf", "neck3":   # шея и ворот крупно: сзади, спереди, сбоку-сзади (камера прогулки)
+			var nk: Vector3 = bp.call("neck_01")
+			var off: Vector3 = {"neckb": Vector3(0.0, 0.12, -0.75), "neckf": Vector3(0.0, 0.05, 0.75), "neck3": Vector3(-0.5, 0.18, -0.55)}[c]
+			cam.fov = 30.0
+			cam.look_at_from_position(nk + a.global_transform.basis * off, nk + Vector3(0, -0.04, 0))
 		"close":
 			cam.fov = 30.0
 			cam.look_at_from_position(chest + Vector3(0.35, 0.05, 1.15), chest + Vector3(0, -0.12, 0))

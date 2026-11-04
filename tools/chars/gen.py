@@ -107,6 +107,12 @@ for o in [o for o in bpy.data.objects if o.type == 'MESH']:
         for kb in list(me.shape_keys.key_blocks[1:]):
             if np.abs(co(kb) - b0).max() < 1e-4: o.shape_key_remove(kb)
         if len(me.shape_keys.key_blocks) == 1: o.shape_key_remove(me.shape_keys.key_blocks[0])
+# 1а) мужская грудь — плоско (WHAT THE LAKE KEEPS, C['chest_flat'] — сколько выпуклости оставить): тело и всё, что на нём
+#     спереди, — до своей одежды (она шьётся по уже ровному телу)
+if C.get('chest_flat') is not None:
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../lake'))
+    import garments
+    garments.flatten_chest(float(C['chest_flat']), top=float(C.get('chest_flat_top', 0.0)))
 # 1б) своя одежда (WHAT THE LAKE KEEPS): куртки, худи с капюшоном, жилет, шапка — оболочкой по телу (tools/lake/garments.py).
 #     Шьётся до масок: тело под одеждой MakeHuman ещё целое (иначе у куртки нет туловища)
 if C.get('garments'):

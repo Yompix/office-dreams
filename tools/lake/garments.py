@@ -50,6 +50,132 @@ def _bone_z(name):
     return (a.matrix_world @ a.data.bones[name].head_local).z
 
 
+def flatten_chest(keep=0.25, fall=0.12, allow=0.012, top=0.0):
+    """Мужская грудь — без «бюста» (владелец: «у мужских персонажей видно грудь»). Сбоку у тел MakeHuman (особенно полных и
+    средних лет) грудь выступает вперёд, а под ней перед уходит внутрь — силуэт женского бюста, и одежда (MakeHuman и наша)
+    его повторяет. По каждому столбцу груди (x) профиль переда по высоте: выступ груди над линией под ключицами сверх allow
+    сжимается до keep, а ниже вершины перед не уходит внутрь круче fall (ткань падает с груди прямо вниз, впадина под грудью
+    заполняется). Тот же сдвиг получает всё, что надето спереди в этой точке, — зазоры между слоями не меняются. Перед тела
+    меряется лучами (BVH по коже без вспомогательной геометрии). Звать до своей одежды (build)."""
+    import numpy as np
+    body = _body()
+    a = _arm()
+    bz = lambda n: (a.matrix_world @ a.data.bones[n].head_local) if n in a.data.bones else None
+    foot, ball = bz('foot_l'), bz('ball_l')
+    fwd = -1.0 if (ball is None or foot is None or ball.y < foot.y) else 1.0   # куда смотрит герой по Y
+    z_top = (_bone_z('clavicle_l') + _bone_z('neck_01')) * 0.5 - 0.02 + top   # top < 0 — горловину не трогать (пуховик у шеи)
+    z_lo = _bone_z('spine_01') + 0.02
+    M = body.matrix_world
+    me = body.data
+    gb = body.vertex_groups.get('body')
+    inb = None if gb is None else set(v.index for v in me.vertices if any(g.group == gb.index and g.weight > 0.5 for g in v.groups))
+    verts = [M @ v.co for v in me.vertices]
+    polys = [tuple(p.vertices) for p in me.polygons if inb is None or all(i in inb for i in p.vertices)]
+    bvh = BVHTree.FromPolygons(verts, polys)
+    D = 0.01
+    xs = np.arange(-0.20, 0.2001, D)
+    zs = np.arange(z_lo - 0.08, z_top + 0.06, D)
+    nz, nx = len(zs), len(xs)
+
+    def hit(x, z, side):   # side = +1: перед, −1: спина; «переднесть» точки поверхности
+        o = Vector((x, side * fwd * 0.9, z))
+        h = bvh.ray_cast(o, Vector((0.0, -side * fwd, 0.0)), 1.8)
+        return None if h[0] is None else fwd * h[0].y
+
+    F = np.full((nz, nx), np.nan)
+    for k, z in enumerate(zs):
+        for i, x in enumerate(xs):
+            f = hit(float(x), float(z), 1)
+            if f is not None:
+                F[k, i] = f
+    mid = np.full(nz, np.nan)
+    for k, z in enumerate(zs):
+        f, b = hit(0.0, float(z), 1), hit(0.0, float(z), -1)
+        if f is not None and b is not None:
+            mid[k] = (f + b) * 0.5
+    if np.isnan(mid).all():
+        print('FLATTEN: нет торса — пропуск'); return
+    okm = ~np.isnan(mid)
+    mid = np.interp(np.arange(nz), np.nonzero(okm)[0], mid[okm])
+    kt = int(np.argmin(np.abs(zs - z_top)))
+    # только грудь, без живота: у полного Романа «вершиной» становился живот, его верх утягивало на 6 см —
+    # получалась ступенька, а после сглаживания ложбинка «под грудью»
+    z_c0 = z_lo + 0.45 * (z_top - z_lo)
+    band = np.nonzero((zs > z_c0) & (zs < z_top - 0.04))[0]
+    Dl = np.zeros((nz, nx))
+    worst = 0.0
+    for i in range(nx):
+        prof = F[:, i]
+        good = ~np.isnan(prof)
+        if good.sum() < nz * 0.6 or np.isnan(prof[kt]):
+            continue
+        prof = np.interp(np.arange(nz), np.nonzero(good)[0], prof[good])
+        Fa = prof[kt]
+        kp = int(band[np.argmax(prof[band])])
+        Fp = prof[kp]
+        G = prof.copy()
+        below = prof[max(0, kp - 6):kp]
+        bulge = kp > band[0] and below.size > 0 and Fp - float(below.min()) > 0.003   # настоящий выступ: ниже перед уходит назад
+        if bulge and Fp - Fa > allow:   # выступ груди над линией под ключицами — до keep
+            ratio = (allow + keep * (Fp - Fa - allow)) / (Fp - Fa)
+            kd = kp   # впадина под грудью: ниже вершины, где перед перестаёт уходить внутрь
+            while kd > 1 and prof[kd - 1] <= prof[kd] + 1e-4:
+                kd -= 1
+            for k in range(kd, kt + 1):
+                if prof[k] > Fa:
+                    G[k] = Fa + (prof[k] - Fa) * ratio
+        Gp = G[kp]
+        if bulge:
+            for k in range(0, kp):   # ниже вершины — не круче fall внутрь (ткань падает с груди)
+                G[k] = max(G[k], Gp - fall * (zs[kp] - zs[k]))
+        Dl[:, i] = G - prof
+        worst = max(worst, float(np.abs(Dl[:, i]).max()))
+    sm = lambda t, a0, a1: (lambda u: u * u * (3 - 2 * u))(np.clip((t - a0) / (a1 - a0), 0.0, 1.0))
+    W = (1.0 - sm(np.abs(xs), 0.12, 0.20))[None, :] * sm(zs, z_lo - 0.07, z_lo + 0.01)[:, None] * (1.0 - sm(zs, z_top - 0.01, z_top + 0.05))[:, None]
+    Dl *= W
+    for _ in range(3):   # гладко, без ступенек
+        Q = np.pad(Dl, 1, mode='edge')
+        Dl = (Q[:-2, 1:-1] + Q[2:, 1:-1] + Q[1:-1, :-2] + Q[1:-1, 2:] + 2 * Q[1:-1, 1:-1]) / 6.0
+    print('FLATTEN: грудь без бюста — назад до %.1f см, вперёд (под грудью) до %.1f см (fwd %+d, z %.2f…%.2f)' % (
+        -Dl.min() * 100, Dl.max() * 100, fwd, z_lo, z_top))
+    if np.abs(Dl).max() < 0.002:
+        return
+    skip = {'Eyes', 'Eyebrows', 'Eyelashes', 'Teeth', 'Tongue', 'Hair'}
+    X0, Z0 = float(xs[0]), float(zs[0])
+
+    def delta(pw):   # сдвиг «вперёд» (+) или «назад» (−) для точки мира
+        if not (zs[0] <= pw[2] <= zs[-1] and xs[0] <= pw[0] <= xs[-1]):
+            return 0.0
+        k = (pw[2] - Z0) / D
+        i = (pw[0] - X0) / D
+        k0, i0 = min(int(k), nz - 2), min(int(i), nx - 2)
+        fk, fi = k - k0, i - i0
+        d = (Dl[k0, i0] * (1 - fk) * (1 - fi) + Dl[k0 + 1, i0] * fk * (1 - fi) + Dl[k0, i0 + 1] * (1 - fk) * fi + Dl[k0 + 1, i0 + 1] * fk * fi)
+        md = float(np.interp(pw[2], zs, mid))
+        g = fwd * pw[1] - md            # перед — полностью, у середины торса — на нет
+        return d * float(np.clip((g + 0.01) / 0.04, 0.0, 1.0))
+
+    for o in [o for o in bpy.data.objects if o.type == 'MESH' and _otype(o) not in skip]:
+        Mo = o.matrix_world
+        Mi = Mo.inverted().to_3x3()
+        base = o.data.shape_keys.key_blocks[0].data if o.data.shape_keys else o.data.vertices
+        dl = []
+        for v in base:
+            d = delta(Mo @ v.co)
+            dl.append(Mi @ Vector((0.0, fwd * d, 0.0)) if abs(d) > 1e-5 else None)
+        if not any(x is not None for x in dl):
+            continue
+        blocks = list(o.data.shape_keys.key_blocks) if o.data.shape_keys else []
+        for j, v in enumerate(o.data.vertices):
+            if dl[j] is not None:
+                v.co += dl[j]
+        for kb in blocks:
+            for j, pt in enumerate(kb.data):
+                if dl[j] is not None:
+                    pt.co += dl[j]
+        o.data.update()
+
+
 def _brow_z():
     br = [o for o in bpy.data.objects if o.type == 'MESH' and _otype(o) == 'Eyebrows']
     if not br:
@@ -112,6 +238,30 @@ def _material(name, tex, tint, tile, rough=None):
     return m
 
 
+def _straight_axis(sl, ks, DZ):
+    """ось туловища — прямая: МНК по центрам габаритов срезов. Раньше центр среза был средним вершин — у MakeHuman сетка
+    гуще на груди, и центр на высоте груди уезжал вперёд на 6–9 см; радиусы и запасы соседних срезов, отложенные от такой
+    «гуляющей» оси, выдавливали ткань вперёд — жилет и куртки получали «бюст» даже на мужчинах (жилет Романа: +9 см)."""
+    zz, xx, yy = [], [], []
+    for zb in ks:
+        pts = sl[zb]
+        if len(pts) < 6:
+            continue
+        zz.append((zb + 0.5) * DZ)
+        xx.append((min(q.x for q in pts) + max(q.x for q in pts)) * 0.5)
+        yy.append((min(q.y for q in pts) + max(q.y for q in pts)) * 0.5)
+    n = len(zz)
+    if n < 3:
+        allp = [q for zb in ks for q in sl[zb]]
+        c = (sum(q.x for q in allp) / len(allp), sum(q.y for q in allp) / len(allp))
+        return {zb: c for zb in ks}
+    mz, mx, my = sum(zz) / n, sum(xx) / n, sum(yy) / n
+    vz = sum((z - mz) ** 2 for z in zz) or 1e-9
+    bx = sum((z - mz) * (x - mx) for z, x in zip(zz, xx)) / vz
+    by = sum((z - mz) * (y - my) for z, y in zip(zz, yy)) / vz
+    return {zb: (mx + bx * ((zb + 0.5) * DZ - mz), my + by * ((zb + 0.5) * DZ - mz)) for zb in ks}
+
+
 def _drape(bm, M, src, w_torso, w_arms, w_head, slope=0.12, band=0.5):
     """ткань висит, а не облегает: вокруг оси торса радиус берётся по самым выступающим местам рядом (грудь, лопатки,
     живот), ниже них ткань падает почти отвесно (спереди и сзади — круче, по бокам — ближе к телу, чтобы не лезть в руки);
@@ -130,10 +280,7 @@ def _drape(bm, M, src, w_torso, w_arms, w_head, slope=0.12, band=0.5):
         if k >= 1.0:
             sl.setdefault(math.floor(p.z / DZ), []).append(p)
     ks = sorted(sl)
-    cen = {}
-    for zb in ks:   # ось торса: центр среза на каждой высоте, сглаженный по ±4.5 см
-        acc = [q for j in range(zb - 3, zb + 4) for q in sl.get(j, [])]
-        cen[zb] = (sum(q.x for q in acc) / len(acc), sum(q.y for q in acc) / len(acc))
+    cen = _straight_axis(sl, ks, DZ)   # ось торса — прямая (не средняя вершин: та уезжала вперёд на груди)
 
     def axis(z):
         zb = math.floor(z / DZ)
@@ -251,10 +398,7 @@ def _tailor(bm, M, src, co, w_torso, w_arms, w_head, w_hands, arm, ease=0.035, e
     for p in tv:
         sl.setdefault(math.floor(p.z / DZ), []).append(p)
     ks = sorted(sl)
-    cen = {}
-    for zb in ks:
-        acc = [q for j in range(zb - 3, zb + 4) for q in sl.get(j, [])]
-        cen[zb] = (sum(q.x for q in acc) / len(acc), sum(q.y for q in acc) / len(acc))
+    cen = _straight_axis(sl, ks, DZ)   # прямая ось: запасы короба по высоте — от одной линии, а не от «гуляющего» центра
     ext = {}
     for zb in ks:
         cx, cy = cen[zb]
@@ -1106,7 +1250,102 @@ def _quilt(ob, pitch, depth):
     print('QUILT', pitch, depth)
 
 
-def _shell(body, name, keep, offset, thick, smooth=3, center=None, back=0.0, drape=None, nsmooth=4, sim=None, pin_fn=None, grow_fn=None, grow_max=0.0, tailor=None, drop=0.0, self_col=True, neck=None, inset=0.0, frames=48, quilt=None):
+def _mark_nipples(bm, rings=2):
+    """места сосков и пупка (у тела там свои грани с другим номером материала, сетка мельче) — пометить вместе с
+    соседями: на ткани, снятой с тела, они давали маленькие «соски» и защипы (куртка Ноя, пальто)"""
+    lay = bm.verts.layers.int.get('lake_nip') or bm.verts.layers.int.new('lake_nip')
+    mark = set()
+    for f in bm.faces:
+        if f.material_index != 0:
+            mark.update(f.verts)
+    for _ in range(rings):
+        ring = set()
+        for v in mark:
+            for e in v.link_edges:
+                ring.add(e.other_vert(v))
+        mark |= ring
+    for v in bm.verts:
+        v[lay] = 1 if v in mark else 0
+
+
+def _relax_marked(bm, iters=14):
+    """сгладить помеченные места (соски, пупок) по соседям: край пометки стоит, внутри — без бугорков и защипов"""
+    lay = bm.verts.layers.int.get('lake_nip')
+    if lay is None:
+        return
+    vs = [v for v in bm.verts if v[lay] == 1 and not v.is_boundary]
+    if not vs:
+        return
+    for _ in range(iters):
+        new = {}
+        for v in vs:
+            nb = [e.other_vert(v).co for e in v.link_edges]
+            if nb:
+                avg = sum(nb, Vector()) / len(nb)
+                new[v] = v.co * 0.4 + avg * 0.6
+        for v, c in new.items():
+            v.co = c
+    bm.normal_update()
+
+
+def _relax_pinches(bm, M, thr=0.55, rings=2, iters=12):
+    """защипы ткани на груди и животе (куртка Ноя после ткани по физике: звёздочки-«соски» там, где у тела сетка
+    сходится в одну вершину): вершины, отстоящие от среднего соседей больше чем на thr длины ребра, вместе с соседями
+    сглаживаются; край выкройки стоит. Только перед туловища — складки у манжет и подола не трогаются."""
+    a = _arm()
+    bz = lambda n: (a.matrix_world @ a.data.bones[n].head_local)
+    try:
+        fwd = -1.0 if bz('ball_l').y < bz('foot_l').y else 1.0
+        z0, z1 = bz('spine_01').z, bz('neck_01').z - 0.05
+    except KeyError:
+        return 0
+    cy = sum((M @ v.co).y for v in bm.verts) / max(1, len(bm.verts))
+    seeds = set()
+    for v in bm.verts:
+        if v.is_boundary or not v.link_edges:
+            continue
+        p = M @ v.co
+        if not (z0 < p.z < z1) or fwd * (p.y - cy) < 0.0:
+            continue
+        nb = [e.other_vert(v) for e in v.link_edges]
+        avg = sum((x.co for x in nb), Vector()) / len(nb)
+        el = sum((x.co - v.co).length for x in nb) / len(nb)
+        if (avg - v.co).length > thr * max(el, 1e-6):
+            seeds.add(v)
+    mark = set(seeds)
+    for _ in range(rings):
+        ring = set()
+        for v in mark:
+            for e in v.link_edges:
+                ring.add(e.other_vert(v))
+        mark |= ring
+    vs = [v for v in mark if not v.is_boundary]
+    for _ in range(iters):
+        new = {}
+        for v in vs:
+            nb = [e.other_vert(v).co for e in v.link_edges]
+            new[v] = v.co * 0.4 + (sum(nb, Vector()) / len(nb)) * 0.6
+        for v, c in new.items():
+            v.co = c
+    bm.normal_update()
+    return len(seeds)
+
+
+def _smooth_boundary(bm, iters=8):
+    """край выкройки — плавной линией: каждая вершина края к середине двух соседей по краю (лесенка по граням тела
+    у конца шарфа Хейла читалась как рваная ткань)"""
+    bnd = [v for v in bm.verts if v.is_boundary]
+    for _ in range(iters):
+        new = {}
+        for v in bnd:
+            nb = [e.other_vert(v) for e in v.link_edges if e.is_boundary]
+            if len(nb) == 2:
+                new[v] = v.co * 0.5 + (nb[0].co + nb[1].co) * 0.25
+        for v, c in new.items():
+            v.co = c
+
+
+def _shell(body, name, keep, offset, thick, smooth=3, center=None, back=0.0, drape=None, nsmooth=4, sim=None, pin_fn=None, grow_fn=None, grow_max=0.0, tailor=None, drop=0.0, self_col=True, neck=None, inset=0.0, frames=48, quilt=None, edge_smooth=0):
     me = body.data.copy()
     me.name = name
     ob = bpy.data.objects.new(name, me)
@@ -1129,6 +1368,7 @@ def _shell(body, name, keep, offset, thick, smooth=3, center=None, back=0.0, dra
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not keep[v.index]], context='VERTS')
     _islands_clean(bm)
     bm.normal_update()
+    _mark_nipples(bm)
     nrm = {v: v.normal.copy() for v in bm.verts}
     for _ in range(nsmooth):   # нормали сглажены: мелкие формы тела (соски, пупок, рёбра) не дают на ткани бугорков и складок
         nn = {}
@@ -1172,6 +1412,10 @@ def _shell(body, name, keep, offset, thick, smooth=3, center=None, back=0.0, dra
             if h < need[v]:
                 v.co += n0 * (need[v] - h)
     _flatten_edges(bm)
+    if edge_smooth:   # край выкройки сложной формы (конец шарфа) — без лесенки по граням тела
+        _smooth_boundary(bm, edge_smooth)
+    _relax_marked(bm)
+    _relax_pinches(bm, body.matrix_world)
     for f in bm.faces:   # у части граней тела свой номер материала (соски, пупок) — на одежде без них были белые пятна
         f.material_index = 0
         f.smooth = True     # и все гладкие: новые грани подола выходят плоскими — свет ложится «кубиками»
@@ -1198,6 +1442,10 @@ def _shell(body, name, keep, offset, thick, smooth=3, center=None, back=0.0, dra
         bm = bmesh.new()
         bm.from_mesh(me)
         _flatten_edges(bm)
+        _relax_marked(bm)
+        npin = _relax_pinches(bm, ob.matrix_world)
+        if npin:
+            print('PINCH', name, 'защипов сглажено', npin)
         bm.to_mesh(me)
         bm.free()
     if quilt:   # простёжка — после ткани по физике и до воротника и толщины
@@ -1310,7 +1558,9 @@ def build(specs):
                 keep.append(ok)
             # воротник: немного шеи у основания
             for i in range(len(co)):
-                if skin[i] and g.get('collar', True) and w_head[i] > 0.3 and neck - 0.02 < co[i].z < neck + 0.06 and w_headonly[i] < 0.3:
+                # снизу без границы: раньше полоса начиналась на 2 см ниже основания шеи, а туловище кончалось там, где вес шеи
+                # ≥ 0.45, — между ними оставалось кольцо без ткани, и спереди под воротником светилась кожа (шея Ноя)
+                if skin[i] and g.get('collar', True) and w_head[i] > 0.3 and hem < co[i].z < neck + 0.06 and w_headonly[i] < 0.3:
                     keep[i] = not (g.get('open') and abs(co[i].x) < g['open'] and co[i].y < -0.02)
             band_z = hem + 0.025   # пояс: нижние 2,5 см куртки держатся на бёдрах (резинка, пояс), ткань над ним напускается
             def pin_top(i, p, _neck=neck, _band=band_z, _belt=g.get('belt', True)):   # плечи и ворот держат куртку; манжеты и пояс — на месте
@@ -1333,7 +1583,7 @@ def build(specs):
             _trims(ob, g, name, neck, hem)
             print('GARMENT', name, kind, len(ob.data.vertices))
             hide |= _interior(body, keep, 1)
-            covers.append((hem, kind == 'jacket', g.get('collar', True)))
+            covers.append((hem, kind == 'jacket', g.get('collar', True), set(i for i, k in enumerate(keep) if k)))
             continue
         elif kind == 'hood' and g.get('down'):
             a = _arm()
@@ -1362,7 +1612,7 @@ def build(specs):
                 ring = -0.025 < d.z < 0.06 and math.hypot(d.x, d.y) < 0.12
                 tail = d.y < -0.02 and -0.24 < d.z < -0.01 and 0.01 < d.x < 0.075   # конец свисает спереди (лицо — в −Y)
                 keep.append(skin[i] and (w_torso[i] + w_head[i]) > 0.5 and w_headonly[i] < 0.3 and w_arms[i] < 0.3 and (ring or tail))
-            ob = _shell(body, name, keep, g.get('off', 0.05), g.get('thick', 0.01), smooth=7, center=nb + Vector((0.0, 0.0, -0.06)))
+            ob = _shell(body, name, keep, g.get('off', 0.05), g.get('thick', 0.01), smooth=7, center=nb + Vector((0.0, 0.0, -0.06)), edge_smooth=10)
         elif kind == 'beanie':
             cut = brow - g.get('low', 0.0)
             keep = [skin[i] and w_headonly[i] > 0.5 and co[i].z > cut for i in range(len(co))]
@@ -1423,11 +1673,13 @@ def _hide_under(body, covers, w_torso, w_arms, w_head, w_headonly, neck):
         for v in o.data.vertices:
             p = o.matrix_world @ v.co
             _, idx, dist = kd.find(p)
-            for hem, sleeves, collar in covers:
+            for hem, sleeves, collar, cov in covers:
                 if v.index in light and hem - 0.10 < p.z <= hem + 0.012 and w_torso[idx] > 0.3:   # край рубашки под подолом — заправлен
                     under.add(v.index)
                     break
-                if p.z > hem + 0.012 and (w_torso[idx] > 0.4 or (sleeves and w_arms[idx] > 0.4)) or \
+                # у жилета (без рукавов) — только там, где он и правда лежит: раньше рубашку срезало по весу туловища,
+                # и на плече между жилетом и рукавом рубашки светилась кожа (Роман)
+                if p.z > hem + 0.012 and ((w_torso[idx] > 0.4 and (sleeves or idx in cov)) or (sleeves and w_arms[idx] > 0.4)) or \
                         collar and w_head[idx] > 0.3 and w_headonly[idx] < 0.3 and p.z < neck + 0.05:   # ворот футболки под воротником
                     under.add(v.index)
                     break

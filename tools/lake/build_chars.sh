@@ -10,7 +10,7 @@ BLENDER=${BLENDER:-/home/user/tools/blender45/blender}
 OUT=godot/lake/assets/chars; mkdir -p "$OUT"
 NAMES=${*:-noah iris danny roman}
 for n in $NAMES; do
-  CHARS_JSON=tools/lake/chars.json "$BLENDER" -b --python tools/chars/gen.py -- "$n" "$PWD/$OUT/$n.glb" 2>&1 | grep -E "DONE|RETINT|TARGET|Error|Traceback|not found|WARNING.*mhclo" || true
+  CHARS_JSON=tools/lake/chars.json "$BLENDER" -b --python tools/chars/gen.py -- "$n" "$PWD/$OUT/$n.glb" 2>&1 | grep -E "DONE|RETINT|TARGET|FLATTEN|PINCH|Error|Traceback|not found|WARNING.*mhclo" || true
   rm -f "$OUT/$n.blend" "$OUT/$n.blend1"
   ls -la "$OUT/$n.glb" 2>/dev/null || echo "$n: не собран"
 done

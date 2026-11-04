@@ -158,6 +158,7 @@ func _ready() -> void:
 		var tc := TouchCtl.new()
 		tc.g = self
 		hud.add_child(tc)
+		hud.set_phone(true)   # свой интерфейс телефона: крупнее, плашки под палец, без ПК-шных пунктов
 	sfx = Sfx.new()
 	add_child(sfx)
 	_apply_settings()
@@ -1885,6 +1886,16 @@ func _exit_tree() -> void:
 ## Пауза: всё стоит (герои, машина, таймер выбора), меню поверх.
 ## Окно потеряло фокус (Alt+Tab, свернули, телефон ушёл в фон) — пауза: таймер выбора и действия без игрока не идут.
 func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and hud != null and not autoplay and is_inside_tree():   # «Назад» телефона
+		if hud.settings_open():
+			hud.close_settings()
+			return
+		if hud.tree_open():
+			hud.close_tree("")
+			return
+		if get_tree().paused and hud.menu_open() and not _menu_mode:   # из паузы — обратно в игру
+			hud.menu_pick.emit("resume")
+			return
 	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_GO_BACK_REQUEST] \
 			and not autoplay and not _menu_mode and not _ending and hud != null and is_inside_tree() and not get_tree().paused:
 		_pause()   # «Назад» на телефоне — тоже пауза (выход — из меню паузы)

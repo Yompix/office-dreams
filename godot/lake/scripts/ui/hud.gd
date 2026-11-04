@@ -39,6 +39,11 @@ var _tree_data: Array = []
 var _tree_body: ScrollContainer
 var _tree_tabs: HBoxContainer
 var _menu_kind := ""        # "main" / "pause"
+## Телефон (Android или ключ --touch): свой интерфейс, а не ПК-шный с кнопками поверх — всё крупнее (масштаб холста),
+## кнопки меню и ответы — плашки под палец, без «Выхода» и подсказок про клавиатуру, настройки — одним списком
+## с прокруткой (без экрана, V-Sync и видеорежима), отступы от выреза камеры.
+var phone := false
+const PHONE_SCALE := 1.3
 
 const NAME_COL := {"noah": Color(0.85, 0.9, 1.0), "iris": Color(1.0, 0.78, 0.6), "radio": Color(0.6, 0.85, 1.0),
 	"danny": Color(0.75, 1.0, 0.75), "roman": Color(1.0, 0.92, 0.6)}
@@ -257,6 +262,35 @@ func _ready() -> void:
 	clear_choice()
 
 
+## Включить телефонный интерфейс (game.gd — один раз при старте).
+func set_phone(on: bool) -> void:
+	phone = on
+	if not on:
+		return
+	get_tree().root.content_scale_factor = PHONE_SCALE   # весь интерфейс на 30 % крупнее; раскладка — по долям экрана
+	toast.anchor_left = 0.08   # подальше от выреза камеры
+	choice_box.anchor_left = 0.08
+	choice_box.anchor_right = 0.92
+	prompt_lbl.anchor_left = 0.24
+	prompt_lbl.anchor_right = 0.76   # между джойстиком и кнопкой «Осмотреть»
+	prompt_lbl.anchor_top = 0.80
+	prompt_lbl.anchor_bottom = 0.86
+
+
+## Плашка под палец (телефон): заметная и без наведения мышью.
+func _phone_box(alpha := 0.42) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.05, 0.07, alpha)
+	sb.border_color = Color(1, 1, 1, 0.16)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(14)
+	sb.content_margin_left = 30
+	sb.content_margin_right = 30
+	sb.content_margin_top = 16
+	sb.content_margin_bottom = 16
+	return sb
+
+
 func _label(parent: Control, size: int, f: Font, col: Color) -> Label:
 	var l := Label.new()
 	l.add_theme_font_override("font", f)
@@ -434,26 +468,27 @@ func show_menu(has_save: bool) -> void:
 	shade.stretch_mode = TextureRect.STRETCH_SCALE
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	menu_panel.add_child(shade)
-	var t := _label(menu_panel, 88, font_b, Color(0.93, 0.95, 1.0))
+	var t := _label(menu_panel, 72 if phone else 88, font_b, Color(0.93, 0.95, 1.0))
 	t.text = "WHAT THE\nLAKE KEEPS"
 	t.anchor_left = 0.07
-	t.anchor_top = 0.16
+	t.anchor_top = 0.06 if phone else 0.16
 	t.anchor_right = 0.6
-	t.anchor_bottom = 0.42
-	var st := _label(menu_panel, 34, font, Color(0.62, 0.68, 0.78))
+	t.anchor_bottom = 0.30 if phone else 0.42
+	var st := _label(menu_panel, 30 if phone else 34, font, Color(0.62, 0.68, 0.78))
 	st.text = "Что хранит озеро" if ru else "A story in five chapters"
 	st.anchor_left = 0.075
-	st.anchor_top = 0.42
+	st.anchor_top = 0.30 if phone else 0.42
 	st.anchor_right = 0.6
-	st.anchor_bottom = 0.47
+	st.anchor_bottom = 0.35 if phone else 0.47
 	var items := []
 	if has_save:
 		items.append(["cont", "Продолжить" if ru else "Continue"])
 	items.append(["new", "Новая игра" if ru else "New game"])
 	items.append(["tree", "Дерево выборов" if ru else "Choice tree"])
 	items.append(["settings", "Настройки" if ru else "Settings"])
-	items.append(["quit", "Выход" if ru else "Quit"])
-	_menu_buttons(items, 0.07, 0.52)
+	if not phone:   # на телефоне выходят кнопкой «Домой» — «Выход» не нужен
+		items.append(["quit", "Выход" if ru else "Quit"])
+	_menu_buttons(items, 0.07, 0.39 if phone else 0.52)
 	_menu_kind = "main"
 
 
@@ -474,8 +509,11 @@ func show_pause() -> void:
 	t.anchor_top = 0.3
 	t.anchor_right = 0.6
 	t.anchor_bottom = 0.4
-	_menu_buttons([["resume", "Продолжить" if ru else "Resume"], ["settings", "Настройки" if ru else "Settings"],
-		["menu", "Главное меню" if ru else "Main menu"], ["quit", "Выход" if ru else "Quit"]], 0.07, 0.44)
+	var items := [["resume", "Продолжить" if ru else "Resume"], ["settings", "Настройки" if ru else "Settings"],
+		["menu", "Главное меню" if ru else "Main menu"]]
+	if not phone:
+		items.append(["quit", "Выход" if ru else "Quit"])
+	_menu_buttons(items, 0.07, 0.42 if phone else 0.44)
 	_menu_kind = "pause"
 
 
@@ -485,7 +523,10 @@ func _menu_buttons(items: Array, x: float, y: float) -> void:
 	box.anchor_right = x + 0.26
 	box.anchor_top = y
 	box.anchor_bottom = y + 0.4
-	box.add_theme_constant_override("separation", 12)
+	box.add_theme_constant_override("separation", 16 if phone else 12)
+	if phone:
+		box.anchor_right = x + 0.34
+		box.anchor_bottom = y + 0.55
 	menu_panel.add_child(box)
 	for it in items:
 		var b := Button.new()
@@ -498,6 +539,9 @@ func _menu_buttons(items: Array, x: float, y: float) -> void:
 		sb.content_margin_left = 18
 		sb.content_margin_top = 8
 		sb.content_margin_bottom = 8
+		if phone:
+			sb = _phone_box()
+			b.custom_minimum_size = Vector2(0, 80)
 		b.add_theme_stylebox_override("normal", sb)
 		var sbh := sb.duplicate() as StyleBoxFlat
 		sbh.bg_color = Color(1, 1, 1, 0.12)
@@ -512,7 +556,7 @@ func _menu_buttons(items: Array, x: float, y: float) -> void:
 		var id := String(it[0])
 		b.pressed.connect(func(): menu_pick.emit(id))
 		box.add_child(b)
-	if box.get_child_count() > 0:
+	if box.get_child_count() > 0 and not phone:   # на телефоне подсветка «выбрано» без касания только путает
 		(box.get_child(0) as Button).grab_focus.call_deferred()   # клавиатура и геймпад: стрелки + Enter
 
 
@@ -549,6 +593,8 @@ func choice(opts: Array, t: float) -> void:
 	_choice_t = t
 	var shown := opts.filter(func(o): return not (o as Dictionary).get("silent", false)).size()
 	var fs := 32 if shown <= 4 else 27   # 5–6 вариантов (глава 5, дача) — мельче, иначе нижние уходили за край
+	if phone:
+		fs = 30 if shown <= 4 else 25   # × масштаб 1,3 — крупнее, чем на ПК
 	var n := 0
 	for i in opts.size():
 		var o: Dictionary = opts[i]
@@ -557,7 +603,7 @@ func choice(opts: Array, t: float) -> void:
 			continue
 		n += 1
 		var b := Button.new()
-		b.text = "%d   %s" % [n, T(o)]
+		b.text = T(o) if phone else "%d   %s" % [n, T(o)]   # номера — для клавиш 1–9, на телефоне не нужны
 		b.add_theme_font_override("font", font)
 		b.add_theme_font_size_override("font_size", fs)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -570,10 +616,14 @@ func choice(opts: Array, t: float) -> void:
 		sb.content_margin_left = 22
 		sb.content_margin_top = 10
 		sb.content_margin_bottom = 10
+		if phone:
+			sb = _phone_box(0.6)
+			b.custom_minimum_size = Vector2(0, 84 if shown <= 4 else 70)
 		b.add_theme_stylebox_override("normal", sb)
 		var sbh := sb.duplicate() as StyleBoxFlat
 		sbh.bg_color = Color(1, 1, 1, 0.18)
 		b.add_theme_stylebox_override("hover", sbh)
+		b.add_theme_stylebox_override("pressed", sbh)
 		var sbf := sbh.duplicate() as StyleBoxFlat
 		sbf.border_color = Color(1, 0.88, 0.7, 0.95)
 		sbf.border_width_left = 5
@@ -591,8 +641,8 @@ func choice(opts: Array, t: float) -> void:
 	for o in opts:
 		if (o as Dictionary).get("silent", false):
 			continue
-		need += font.get_multiline_string_size("0   " + T(o), HORIZONTAL_ALIGNMENT_LEFT, wbox, fs).y + 22.0 + 14.0
-	var top := clampf(0.89 - need / maxf(vs.y, 1.0), 0.3, 0.62)
+		need += maxf(font.get_multiline_string_size("0   " + T(o), HORIZONTAL_ALIGNMENT_LEFT, wbox, fs).y + 22.0, 84.0 if phone else 0.0) + 14.0 + (12.0 if phone else 0.0)
+	var top := clampf(0.89 - need / maxf(vs.y, 1.0), 0.22 if phone else 0.3, 0.62)
 	choice_box.anchor_top = top
 	timer_bg.anchor_top = top - 0.02
 	timer_bg.anchor_bottom = top - 0.02
@@ -751,16 +801,33 @@ func show_settings(st: Settings) -> void:
 	grid.anchor_bottom = 0.92
 	grid.add_theme_constant_override("h_separation", 36)
 	grid.add_theme_constant_override("v_separation", 10)
-	p.add_child(grid)
+	if phone:   # телефон: две колонки строк во всю ширину (экран широкий) — без прокрутки, строки под палец
+		var sc := ScrollContainer.new()   # прокрутка — на всякий случай (узкий экран, крупный шрифт системы)
+		sc.anchor_left = 0.04
+		sc.anchor_right = 0.96
+		sc.anchor_top = 0.16
+		sc.anchor_bottom = 0.85
+		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		p.add_child(sc)
+		grid.columns = 4
+		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_theme_constant_override("h_separation", 26)
+		grid.add_theme_constant_override("v_separation", 16)
+		sc.add_child(grid)
+	else:
+		p.add_child(grid)
 	var on_off := func(v: bool) -> String: return (("Вкл" if v else "Выкл") if ru else ("On" if v else "Off"))
 	var first: Control = null
 	var rows := [
-		["quality", "Качество графики" if ru else "Graphics quality", "cycle", st.quality, 4,
+		["quality", "Качество графики" if ru else "Graphics quality", "cycle", mini(st.quality, 2) if phone else st.quality, 3 if phone else 4,
 			func(v: int) -> String: return Settings.quality_name(v, lang)],
-		["fullscreen", "Экран" if ru else "Display", "cycle", 1 if st.fullscreen else 0, 2,
-			func(v: int) -> String: return (("Полный экран" if v == 1 else "Окно") if ru else ("Fullscreen" if v == 1 else "Windowed"))],
-		["vsync", "Вертикальная синхронизация" if ru else "V-Sync", "cycle", 1 if st.vsync else 0, 2,
-			func(v: int) -> String: return on_off.call(v == 1)],
+	]
+	if not phone:   # окно, полный экран и V-Sync — только у ПК
+		rows.append(["fullscreen", "Экран" if ru else "Display", "cycle", 1 if st.fullscreen else 0, 2,
+			func(v: int) -> String: return (("Полный экран" if v == 1 else "Окно") if ru else ("Fullscreen" if v == 1 else "Windowed"))])
+		rows.append(["vsync", "Вертикальная синхронизация" if ru else "V-Sync", "cycle", 1 if st.vsync else 0, 2,
+			func(v: int) -> String: return on_off.call(v == 1)])
+	rows.append_array([
 		["brightness", "Яркость" if ru else "Brightness", "slider", st.brightness, 0.6, 1.5],
 		["master", "Громкость: общая" if ru else "Volume: master", "slider", float(st.vol.master), 0.0, 1.0],
 		["music", "Музыка" if ru else "Music", "slider", float(st.vol.music), 0.0, 1.0],
@@ -772,8 +839,8 @@ func show_settings(st: Settings) -> void:
 			func(v: int) -> String: return on_off.call(v == 1)],
 		["lang", "Язык" if ru else "Language", "cycle", 0 if lang == "ru" else 1, 2,
 			func(v: int) -> String: return "Русский" if v == 0 else "English"],
-	]
-	if OS.has_feature("pc"):   # видеорежим: после вылетов включается сам; вернуть — здесь (игра перезапустится)
+	])
+	if OS.has_feature("pc") and not phone:   # видеорежим: после вылетов включается сам; вернуть — здесь (игра перезапустится)
 		rows.append(["renderer", "Видеорежим" if ru else "Renderer", "cycle", 1 if BootGuard.compat_on() else 0, 2,
 			func(v: int) -> String: return (("Совместимый" if v == 1 else "Обычный") if ru else ("Compatible" if v == 1 else "Standard"))])
 	for r in rows:
@@ -785,6 +852,9 @@ func show_settings(st: Settings) -> void:
 		l.add_theme_color_override("font_color", Color(0.78, 0.81, 0.86))
 		l.custom_minimum_size = Vector2(460, 50)
 		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		if phone:
+			l.custom_minimum_size = Vector2(330, 84)
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		grid.add_child(l)
 		var c: Control
 		if String(r[2]) == "cycle":
@@ -819,11 +889,21 @@ func show_settings(st: Settings) -> void:
 			gs.bg_color = Color(1, 1, 1, 0.16)
 			gs.content_margin_top = 4
 			gs.content_margin_bottom = 4
+			if phone:   # дорожка толще, тянуть пальцем по всей длине (касание ставит значение в точку)
+				sl.custom_minimum_size = Vector2(440, 84)
+				sl.focus_mode = Control.FOCUS_NONE
+				gs.content_margin_top = 10
+				gs.content_margin_bottom = 10
+				gs.set_corner_radius_all(10)
 			sl.add_theme_stylebox_override("slider", gs)
 			var ga := StyleBoxFlat.new()
 			ga.bg_color = Color(1.0, 0.86, 0.66, 0.85)
 			ga.content_margin_top = 4
 			ga.content_margin_bottom = 4
+			if phone:
+				ga.content_margin_top = 10
+				ga.content_margin_bottom = 10
+				ga.set_corner_radius_all(10)
 			sl.add_theme_stylebox_override("grabber_area", ga)
 			sl.add_theme_stylebox_override("grabber_area_highlight", ga)
 			var fs := StyleBoxFlat.new()
@@ -851,6 +931,17 @@ func show_settings(st: Settings) -> void:
 	help.anchor_right = 0.96
 	help.anchor_top = 0.15
 	help.anchor_bottom = 0.95
+	if phone:   # управление касанием — коротко внизу, вместо клавиатуры и геймпада
+		help.anchor_left = 0.06
+		help.anchor_right = 0.94
+		help.anchor_top = 0.86
+		help.anchor_bottom = 0.98
+		help.add_theme_font_size_override("font_size", 22)
+		help.text = ("Касание — дальше и выбрать ответ  ·  джойстик слева — идти  ·  «Осмотреть» справа  ·  ‖ — пауза  ·  «Назад» телефона — пауза"
+			if ru else "Tap — continue, pick an answer  ·  left joystick — walk  ·  «Look» on the right  ·  ‖ — pause  ·  phone Back — pause")
+		if first and not phone:
+			first.grab_focus.call_deferred()
+		return
 	help.text = ("УПРАВЛЕНИЕ\n\nКлавиатура и мышь\n1–9 или клик — выбрать ответ\n↑ ↓ — выделить ответ, Enter — выбрать\n"
 		+ "Пробел, Enter, клик — дальше\nE, пробел, клик — действие (жать, тянуть, укачивать)\nS, ↓ — тормоз\n"
 		+ "↑, Q, правая кнопка — посмотреть (в зеркало)\nEsc или P — пауза\nF11 или Alt+Enter — полный экран\n\n"
@@ -879,6 +970,11 @@ func _settings_button() -> Button:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(1, 1, 1, 0.06)
 	sb.content_margin_left = 16
+	if phone:
+		b.custom_minimum_size = Vector2(440, 84)
+		b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		sb.set_corner_radius_all(12)
+		sb.bg_color = Color(1, 1, 1, 0.09)
 	b.add_theme_stylebox_override("normal", sb)
 	var sbh := sb.duplicate() as StyleBoxFlat
 	sbh.bg_color = Color(1, 1, 1, 0.14)
@@ -1091,8 +1187,12 @@ func _tree_chapter(i: int, focus_body := false) -> void:
 	canvas.queue_redraw()
 	var foot := tree_panel.get_node_or_null("foot") as Label
 	if foot:
-		foot.text = (("Открыто вариантов: %d из %d   ·   ◆ — контрольная точка: нажми дважды, чтобы переиграть с неё   ·   Esc / B — назад" if ru
-			else "Branches found: %d of %d   ·   ◆ — checkpoint: press twice to replay from it   ·   Esc / B — back") % [int(ch.opened), int(ch.total)])
+		if phone:   # без клавиш: назад — кнопкой вверху справа или «Назад» телефона
+			foot.text = (("Открыто вариантов: %d из %d   ·   ◆ — контрольная точка: коснись дважды, чтобы переиграть с неё" if ru
+				else "Branches found: %d of %d   ·   ◆ — checkpoint: tap twice to replay from it") % [int(ch.opened), int(ch.total)])
+		else:
+			foot.text = (("Открыто вариантов: %d из %d   ·   ◆ — контрольная точка: нажми дважды, чтобы переиграть с неё   ·   Esc / B — назад" if ru
+				else "Branches found: %d of %d   ·   ◆ — checkpoint: press twice to replay from it   ·   Esc / B — back") % [int(ch.opened), int(ch.total)])
 	if focus_body:   # к первой пройденной контрольной точке; если в главе ещё ничего не пройдено — на её вкладку
 		(first_cp if first_cp else _tree_tabs.get_child(i) as Control).grab_focus.call_deferred()
 

@@ -47,16 +47,31 @@ func _pause_on() -> bool:
 	return g != null and not get_tree().paused and not g._menu_mode and not g._ending
 
 
+## Отступы от выреза камеры и закруглений экрана (телефон), в точках холста: x — слева, y — сверху, z — справа, w — снизу.
+func _inset() -> Vector4:
+	if not OS.has_feature("mobile"):
+		return Vector4.ZERO
+	var sa := DisplayServer.get_display_safe_area()
+	var ws := Vector2(DisplayServer.window_get_size())
+	if sa.size.x <= 0 or ws.x <= 0.0:
+		return Vector4.ZERO
+	var k := size.x / ws.x
+	return Vector4(sa.position.x * k, sa.position.y * k, (ws.x - sa.end.x) * k, (ws.y - sa.end.y) * k)
+
+
 func _home() -> Vector2:   # где джойстик стоит, пока его не трогают
-	return Vector2(250.0, size.y - 250.0)
+	var i := _inset()
+	return Vector2(250.0 + i.x, size.y - 250.0 - i.w)
 
 
 func _use_rect() -> Rect2:
-	return Rect2(size.x - 300.0, size.y - 300.0, 220.0, 220.0)
+	var i := _inset()
+	return Rect2(size.x - 300.0 - i.z, size.y - 300.0 - i.w, 220.0, 220.0)
 
 
 func _pause_rect() -> Rect2:
-	return Rect2(size.x - 150.0, 24.0, 120.0, 120.0)
+	var i := _inset()
+	return Rect2(size.x - 150.0 - i.z, 24.0 + i.y, 120.0, 120.0)
 
 
 func _input(e: InputEvent) -> void:
