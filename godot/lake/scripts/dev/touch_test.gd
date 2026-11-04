@@ -1,6 +1,6 @@
 extends SceneTree
-## Проверка управления касанием (телефон) в облаке: прогулка — джойстик двигает Ноя, «Осмотреть» доходит до прогулки,
-## кнопка паузы ставит паузу; снимок экрана с джойстиком.
+## Проверка управления касанием (телефон) в облаке: прогулка — джойстик двигает Ноя, палец справа поворачивает камеру,
+## «Осмотреть» доходит до прогулки, кнопка паузы ставит паузу; снимок экрана с джойстиком.
 ##   xvfb-run -a -s "-screen 0 1280x720x24" $GODOT --rendering-method gl_compatibility --path godot/lake \
 ##     --script res://scripts/dev/touch_test.gd -- --scene c2_s4_porch --restore --touch --snapdir папка
 var t := 0.0
@@ -9,6 +9,8 @@ var p0 := Vector3.ZERO
 var res: Array = []
 var dir := "user://"
 var drag_t := 0.0
+var yaw0 := 0.0
+var look_x := 0.0
 
 
 func _init() -> void:
@@ -32,10 +34,11 @@ func _touch(i: int, p: Vector2, on: bool) -> void:
 	Input.parse_input_event(e)
 
 
-func _drag(i: int, p: Vector2) -> void:
+func _drag(i: int, p: Vector2, rel := Vector2.ZERO) -> void:
 	var e := InputEventScreenDrag.new()
 	e.index = i
 	e.position = _w(p)
+	e.relative = _w(rel)
 	Input.parse_input_event(e)
 
 
@@ -75,6 +78,18 @@ func _process(d: float) -> bool:
 		2:
 			if t > 0.8:
 				check("джойстик отпущен — стоит (TouchCtl.move = 0)", TouchCtl.move.length() < 0.01)
+				yaw0 = float(g._ex.yaw)
+				_touch(3, Vector2(vs.x * 0.7, vs.y * 0.4), true)
+				step = 21
+				t = 0.0
+		21:   # палец справа ведём влево на 300 точек — камера поворачивается (сдвиг — сколько прошёл палец с прошлого кадра)
+			var lx := vs.x * 0.7 - minf(1.0, t * 2.0) * 300.0
+			_drag(3, Vector2(lx, vs.y * 0.4), Vector2(lx - look_x, 0) if look_x > 0.0 else Vector2.ZERO)
+			look_x = lx
+			if t > 0.6:
+				_touch(3, Vector2(vs.x * 0.7 - 300.0, vs.y * 0.4), false)
+				var dy := absf(angle_difference(yaw0, float(g._ex.yaw)))
+				check("палец справа поворачивает камеру (%.0f°)" % rad_to_deg(dy), dy > 0.3)
 				_touch(1, Vector2(vs.x - 190, vs.y - 190), true)
 				_touch(1, Vector2(vs.x - 190, vs.y - 190), false)
 				step = 3

@@ -25,7 +25,9 @@ var d: Dictionary            # описание прогулки
 var a: Actor                 # кого ведём
 var yaw := 0.0               # камера: куда смотрит (рад, как rotation.y героя: вперёд — (sin, 0, cos))
 var busy := false
-var mouse_dx := 0.0          # поворот мышью (правая кнопка) — копит game._input
+var mouse_dx := 0.0          # поворот мышью (правая кнопка) — копит game._input; на телефоне — палец справа (touch_ctl)
+var look_dy := 0.0           # взгляд вверх / вниз: палец справа по вертикали (телефон)
+var pitch := 0.0             # наклон взгляда камеры: + вверх, − вниз (рад, −0,45…0,55)
 var _orbit_t := 9.0          # сколько секунд назад игрок сам поворачивал камеру
 var _prev := Vector3.ZERO    # последнее разрешённое место героя
 var _near: Dictionary = {}   # точка, у которой стоим
@@ -136,9 +138,14 @@ func _tick(dt: float) -> void:
 		yaw -= mouse_dx * 0.006
 		mouse_dx = 0.0
 		_orbit_t = 0.0
+	if absf(look_dy) > 0.0:
+		pitch = clampf(pitch + look_dy * 0.004, -0.45, 0.55)
+		look_dy = 0.0
+		_orbit_t = 0.0
 	_orbit_t += dt
 	if a.speed() > 0.3 and _orbit_t > 1.5:
 		yaw = lerp_angle(yaw, a.rotation.y, 1.0 - exp(-dt * 1.25))
+		pitch = lerpf(pitch, 0.0, 1.0 - exp(-dt * 1.5))   # пошёл — взгляд сам возвращается к дороге
 	# ход: куда жмут — относительно камеры; скорость с разгоном и торможением, стены — по осям отдельно
 	# (упёрся в стену наискось — скользит вдоль неё; внутрь препятствия шаг не делается никогда)
 	var v := _input_vec()
@@ -273,7 +280,8 @@ func _find_near() -> void:
 		var key := "A" if g._pad else ("" if TouchCtl.enabled else "E")
 		g.hud.prompt(("%s   %s" % [key, g.hud.T(_near.get("label", {}))]).strip_edges())
 	elif not _moved and _t < 14.0 and TouchCtl.enabled and not g._pad:
-		g.hud.prompt("Джойстик слева — идти   ·   «Осмотреть» — справа" if g.lang == "ru" else "Joystick on the left — walk   ·   «Look» — on the right")
+		g.hud.prompt("Слева веди пальцем — идти   ·   справа — смотреть   ·   «Осмотреть» — кнопка" if g.lang == "ru"
+			else "Drag on the left — walk   ·   on the right — look around   ·   «Look» — button")
 	elif not _moved and _t < 14.0:
 		g.hud.prompt(("Стик — идти   ·   A — осмотреть" if g._pad else "WASD — идти   ·   E — осмотреть") if g.lang == "ru"
 			else ("Stick — walk   ·   A — interact" if g._pad else "WASD — walk   ·   E — interact"))
@@ -379,13 +387,15 @@ func place_cam(cam: Camera3D) -> void:
 	var f := Vector3(sin(yaw), 0.0, cos(yaw))
 	var r := f.cross(Vector3.UP)
 	var head := a.global_position + Vector3(0, 1.5, 0)
-	var eye := head - f * DIST + r * 0.38 + Vector3(0, RISE, 0)
+	var eye := head - f * DIST + r * 0.38 + Vector3(0, RISE - pitch * 0.55, 0)   # смотрит вверх — камера чуть ниже
+	eye.y = maxf(eye.y, a.global_position.y + 0.45)
 	eye = _cam_clear(head + r * 0.2, eye)
 	cam.fov = 56.0
+	var up := Vector3(0, pitch * 2.6, 0)   # взгляд вверх / вниз (палец справа на телефоне)
 	if _tight:   # над плечом: цель дальше и выше — в кадре дорога впереди и макушка героя, а не одна земля
-		cam.look_at_from_position(eye, head + f * 3.6 + r * 0.22 + Vector3(0, -0.3, 0))
+		cam.look_at_from_position(eye, head + f * 3.6 + r * 0.22 + Vector3(0, -0.3, 0) + up)
 	else:
-		cam.look_at_from_position(eye, head + f * 1.4 + r * 0.22 + Vector3(0, -0.38, 0))
+		cam.look_at_from_position(eye, head + f * 1.4 + r * 0.22 + Vector3(0, -0.38, 0) + up)
 
 
 ## После сглаживания (game._smooth_cam тянет камеру с упреждением) — если всё же въехала в постройку, вытолкнуть к герою.
