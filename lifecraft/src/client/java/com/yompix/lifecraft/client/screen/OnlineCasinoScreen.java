@@ -111,9 +111,9 @@ public class OnlineCasinoScreen extends LifeScreen {
         }
         int cy = y + 44;
         switch (tab) {
-            case "bj" -> blackjack(ctx, x, cy, w, h - 44);
-            case "crash" -> crashGame(ctx, x, cy, w, h - 44);
-            default -> coinGame(ctx, x, cy, w, h - 44);
+            case "bj" -> blackjack(ctx, x, cy, w, h - 66);
+            case "crash" -> crashGame(ctx, x, cy, w, h - 66);
+            default -> coinGame(ctx, x, cy, w, h - 66);
         }
         // ставка
         int by = y + h - 18;
@@ -127,8 +127,8 @@ public class OnlineCasinoScreen extends LifeScreen {
 
     // ---------------------------------------------------------------- блэкджек
     private void blackjack(DrawContext ctx, int x, int y, int w, int h) {
-        ctx.fill(x + 6, y, x + w - 6, y + h - 26, 0xFF0F5A2E);
-        ctx.drawBorder(x + 6, y, w - 12, h - 26, 0xFFC9A227);
+        ctx.fill(x + 6, y, x + w - 6, y + h, 0xFF0F5A2E);
+        ctx.drawBorder(x + 6, y, w - 12, h, 0xFFC9A227);
         ctx.drawText(textRenderer, "Дилер" + (ds >= 0 && bjDone ? ": " + ds : ""), x + 12, y + 4, 0xFFE0FFE0, false);
         cards(ctx, dealer, x + 12, y + 14, !bjDone);
         ctx.drawText(textRenderer, "Ты" + (player.length > 0 ? ": " + ps : ""), x + 12, y + 62, 0xFFE0FFE0, false);
@@ -180,7 +180,7 @@ public class OnlineCasinoScreen extends LifeScreen {
     }
 
     private void crashGame(DrawContext ctx, int x, int y, int w, int h) {
-        int gx = x + 8, gy = y, gw = w - 110, gh = h - 28;
+        int gx = x + 8, gy = y, gw = w - 110, gh = h - 12;
         ctx.fill(gx, gy, gx + gw, gy + gh, 0xFF0B0614);
         for (int i = 1; i < 4; i++) ctx.fill(gx, gy + gh * i / 4, gx + gw, gy + gh * i / 4 + 1, 0x22FFFFFF);
         long now = mc().world.getTime();
@@ -216,7 +216,7 @@ public class OnlineCasinoScreen extends LifeScreen {
             double hv = history.get(i);
             ctx.drawText(textRenderer, String.format("×%.2f", hv), bx + (i % 2) * 44, y + 48 + (i / 2) * 11, hv >= 2 ? 0xFF7CFF8A : 0xFFE57373, false);
         }
-        wrap(ctx, "Множитель растёт. Нажми «Забрать» до краша!", gx, y + h - 24, gw, 0xFF9E86B0);
+        ctx.drawText(textRenderer, "Забери до краша!", gx, y + h - 9, 0xFF9E86B0, false);
     }
 
     // ---------------------------------------------------------------- монетка
@@ -232,8 +232,8 @@ public class OnlineCasinoScreen extends LifeScreen {
         if (rw > 10) bigText(ctx, showHeads ? "О" : "Р", cx, cy - 10 - lift, 2.4f, 0xFF5D4037);
         if (t >= 1200 && coinWin >= 0) center(ctx, (coinHeads ? "Орёл" : "Решка") + (coinWin > 0 ? " — выигрыш $" + coinWin + "!" : " — мимо"), cx, cy + 34, coinWin > 0 ? 0xFFFFE082 : 0xFFFFCDD2);
         boolean ready = t >= 1200;
-        button(ctx, cx - 92, y + h - 46, 88, 18, "Орёл $" + bet(), 0xFFFFA000, ready && LifeCraftClient.data.money >= bet(), () -> flip(true));
-        button(ctx, cx + 4, y + h - 46, 88, 18, "Решка $" + bet(), 0xFF607D8B, ready && LifeCraftClient.data.money >= bet(), () -> flip(false));
+        button(ctx, cx - 92, y + h - 18, 88, 18, "Орёл $" + bet(), 0xFFFFA000, ready && LifeCraftClient.data.money >= bet(), () -> flip(true));
+        button(ctx, cx + 4, y + h - 18, 88, 18, "Решка $" + bet(), 0xFF607D8B, ready && LifeCraftClient.data.money >= bet(), () -> flip(false));
     }
 
     private void flip(boolean heads) {

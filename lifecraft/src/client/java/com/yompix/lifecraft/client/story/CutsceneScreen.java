@@ -30,7 +30,11 @@ public class CutsceneScreen extends LifeScreen {
     private ArmorStandEntity cam;
     private boolean hudWas, done;
     private int subIndex = -1;
-    private long subAt;
+    private long subAt, startAt = System.currentTimeMillis();
+
+    private float elapsed() {
+        return (System.currentTimeMillis() - startAt) / 1000f;
+    }
 
     public CutsceneScreen(NbtCompound n) {
         super("Кат-сцена");
@@ -57,6 +61,8 @@ public class CutsceneScreen extends LifeScreen {
     @Override
     protected void init() {
         if (cam == null && mc().world != null) {
+            subIndex = -1;
+            startAt = System.currentTimeMillis();
             cam = new ArmorStandEntity(EntityType.ARMOR_STAND, mc().world);
             cam.setInvisible(true);
             hudWas = mc().options.hudHidden;
@@ -97,7 +103,7 @@ public class CutsceneScreen extends LifeScreen {
     @Override
     public void tick() {
         if (cam == null) return;
-        float time = seconds();
+        float time = elapsed();
         place(Math.min(time, total), 0);
         // субтитры идут по очереди: следующая — когда голос закончился
         if (subIndex < 0 || (!Voice.playing() && System.currentTimeMillis() - subAt > 1200)) {
@@ -125,6 +131,17 @@ public class CutsceneScreen extends LifeScreen {
     public void close() {
     }
 
+    /** Если окно закрыла чужая загрузка — вернуть камеру игроку и показать кат-сцену позже. */
+    @Override
+    public void removed() {
+        if (done || cam == null) return;
+        mc().options.hudHidden = hudWas;
+        if (mc().player != null) mc().setCameraEntity(mc().player);
+        Voice.stop();
+        cam = null;
+        com.yompix.lifecraft.client.LifeCraftClient.requeue(this);
+    }
+
     @Override
     public boolean shouldCloseOnEsc() {
         return false;
@@ -145,11 +162,11 @@ public class CutsceneScreen extends LifeScreen {
 
     @Override
     protected void draw(DrawContext ctx, float delta) {
-        if (cam != null) place(Math.min(seconds(), total), delta);
+        if (cam != null) place(Math.min(elapsed(), total), delta);
         int bar = (int) (height * 0.12f);
         ctx.fill(0, 0, width, bar, 0xFF000000);
         ctx.fill(0, height - bar, width, height, 0xFF000000);
-        float fade = Math.min(1, seconds() / 1.2f);
+        float fade = Math.min(1, elapsed() / 1.2f);
         if (fade < 1) ctx.fill(0, 0, width, height, (int) ((1 - fade) * 255) << 24);
         if (subIndex >= 0 && subIndex < subs.size()) {
             Sub s = subs.get(subIndex);

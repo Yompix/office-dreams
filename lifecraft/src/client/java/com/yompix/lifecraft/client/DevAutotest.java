@@ -1,20 +1,25 @@
 package com.yompix.lifecraft.client;
 
+import com.yompix.lifecraft.client.screen.OnlineCasinoScreen;
 import com.yompix.lifecraft.client.screen.PhoneScreen;
-import com.yompix.lifecraft.client.screen.RouletteScreen;
-import com.yompix.lifecraft.client.screen.ShopScreen;
-import com.yompix.lifecraft.client.screen.SlotsScreen;
+import com.yompix.lifecraft.client.story.YompixSplash;
+import com.yompix.lifecraft.entity.CitizenEntity;
+import com.yompix.lifecraft.life.Life;
+import com.yompix.lifecraft.story.Npcs;
+import com.yompix.lifecraft.story.Story;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.server.integrated.IntegratedServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Только для разработки: запускается с -Dlifecraft.autotest=true, сам ходит по городу,
+ * Только для разработки: запускается с -Dlifecraft.autotest=true, сам проходит начало сюжета,
  * открывает экраны и делает скриншоты, чтобы проверить мод без человека за клавиатурой.
  */
 public final class DevAutotest {
@@ -24,99 +29,161 @@ public final class DevAutotest {
 
     private static final List<Step> STEPS = new ArrayList<>();
     private static int index = -1, timer;
+    private static final String P = "Dev";
 
     public static void init() {
         if (System.getProperty("lifecraft.autotest") == null) return;
-        String p = "Dev";
-        cmd(200, "gamerule doDaylightCycle false");
-        cmd(5, "time set 3000");
-        cmd(5, "weather clear");
-        cmd(5, "gamemode spectator " + p);
-        cmd(5, "tp " + p + " 0 -22 105 180 28");
-        shot(120, "01_city_overview");
-        cmd(5, "tp " + p + " -30 -55 30 -60 8");
-        cmd(2, "gamemode creative " + p);
-        shot(80, "02_street");
-        cmd(5, "tp " + p + " 0 -56 16 180 5");
-        shot(80, "03_school_front");
-        cmd(5, "tp " + p + " -10 -56 -6 180 10");
-        shot(80, "04_classroom");
-        run(5, c -> c.setScreen(new PhoneScreen(null)));
-        shot(40, "05_phone_home");
-        run(5, c -> c.setScreen(new PhoneScreen("map")));
-        shot(40, "06_phone_map");
-        run(5, c -> c.setScreen(new PhoneScreen("jobs")));
-        shot(30, "07_phone_jobs");
+        YompixSplash.markShown();
+        run(80, c -> c.setScreen(new YompixSplash(null)));
+        shot(30, "00_splash_logo");
+        shot(70, "00b_splash_title");
+        run(2, c -> c.setScreen(null));
+        // сюжет стартует сам: кат-сцена облёта
+        shot(100, "01_intro_cutscene");
+        shot(120, "02_intro_cutscene2");
+        key(5, GLFW.GLFW_KEY_SPACE);            // пропустить кат-сцену
+        shot(40, "03_chapter_title");
+        shot(140, "04_mom_dialog");
+        spaces(12);
+        run(5, c -> pressKey(c, GLFW.GLFW_KEY_1));
+        spaces(4);
+        shot(30, "05_objective_dad");
+        talk(5, "dad");
+        shot(30, "06_dad_dialog");
+        spaces(10);
+        run(10, c -> c.setScreen(new PhoneScreen("story")));
+        shot(30, "07_phone_story");
         run(5, c -> c.setScreen(null));
-        cmd(5, "tp " + p + " -10 -56 -10 180 10");
-        server(5, s -> com.yompix.lifecraft.life.School.start(s.getPlayerManager().getPlayer(p)));
-        shot(60, "08_lesson");
-        for (int i = 0; i < 5; i++) {
-            run(25, c -> {
-                if (c.currentScreen != null) c.currentScreen.keyPressed(49, 0, 0);
-            });
-        }
-        shot(60, "08b_lesson_result");
-        run(5, c -> c.setScreen(new ShopScreen(false)));
-        shot(30, "09_shop");
-        cmd(5, "lifecraft edu " + p + " 12");
-        cmd(5, "lifecraft money " + p + " 5000");
-        run(20, c -> c.setScreen(new SlotsScreen()));
-        shot(30, "10_slots");
-        run(2, c -> {
-            if (c.currentScreen instanceof SlotsScreen) c.currentScreen.keyPressed(32, 0, 0);
-        });
-        shot(12, "11_slots_spin");
-        shot(60, "12_slots_result");
-        run(5, c -> c.setScreen(new RouletteScreen()));
-        shot(30, "13_roulette");
-        run(5, c -> c.setScreen(null));
-        cmd(5, "tp " + p + " 5 -56 34 0 5");
-        shot(80, "14_casino");
-        cmd(5, "tp " + p + " -52 -56 -53 200 10");
-        shot(80, "15_house");
-        cmd(5, "time set 15000");
-        cmd(5, "tp " + p + " -38 -55 19 -100 15");
-        shot(100, "16_night_street");
+        shot(20, "08_hud_go_school");
+        // дальше по сюжету — к школе, знакомство с Тёмой
         server(5, s -> {
-            var pl = s.getPlayerManager().getPlayer(p);
-            var cars = pl.getServerWorld().getEntitiesByClass(com.yompix.lifecraft.entity.CarEntity.class, pl.getBoundingBox().expand(40), e -> true);
-            if (!cars.isEmpty()) {
-                var car = cars.get(0);
-                pl.teleport(pl.getServerWorld(), car.getX() + Math.sin(Math.toRadians(car.getYaw())) * 6, car.getY() + 1.5, car.getZ() - Math.cos(Math.toRadians(car.getYaw())) * 6, car.getYaw() + 180, 15);
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var v = Story.place(p.getServerWorld(), "school_front");
+            p.teleport(p.getServerWorld(), v.x, v.y, v.z + 3, 180, 0);
+        });
+        shot(80, "09_tema_dialog");
+        spaces(8);
+        run(5, c -> pressKey(c, GLFW.GLFW_KEY_2));
+        spaces(4);
+        shot(40, "10_gleb_target");
+        // ряд жителей — проверить 3D-причёски, бороды, рост и движения
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            double bx = 60, bz = 60;
+            int y = Story.topY(w, (int) bx, (int) bz);
+            for (int i = 0; i < 18; i++) {
+                CitizenEntity c = new CitizenEntity(com.yompix.lifecraft.ModContent.CITIZEN, w);
+                int skin = i < 8 ? 8 + i : CitizenEntity.RANDOM_FROM + (i - 8) * 4;
+                c.setup(skin, CitizenEntity.Role.CITIZEN, true, CitizenEntity.SKINS[skin]);
+                c.refreshPositionAndAngles(bx - 13 + i * 1.5, y, bz, 0, 0);
+                c.setHeadYaw(0);
+                c.lockActivity(CitizenEntity.Activity.values()[i % 8]);
+                if (i % 5 == 3) c.setScale(0.7f);
+                w.spawnEntity(c);
             }
+            p.teleport(w, bx, y + 1, bz + 6, 180, 8);
         });
-        shot(60, "17_car_night");
+        shot(80, "11_lineup");
+        server(5, s -> s.getPlayerManager().getPlayer(P).teleport(s.getOverworld(), 60, Story.topY(s.getOverworld(), 60, 60) + 1, 63, 180, 15));
+        shot(40, "12_lineup_close");
+        // взрослый — онлайн-казино и награды
         server(5, s -> {
-            var pl = s.getPlayerManager().getPlayer(p);
-            var cars = pl.getServerWorld().getEntitiesByClass(com.yompix.lifecraft.entity.CarEntity.class, pl.getBoundingBox().expand(40), e -> true);
-            if (!cars.isEmpty()) pl.startRiding(cars.get(0), true);
+            var d = Life.get(s.getPlayerManager().getPlayer(P));
+            d.edu = 12;
+            d.money = 5000;
+            Life.sync(s.getPlayerManager().getPlayer(P));
         });
-        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
-        shot(60, "18_driving_night");
-        cmd(5, "time set 6000");
-        shot(40, "19_driving_day");
-        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
-        run(20, c -> c.scheduleStop());
+        run(10, c -> c.setScreen(new OnlineCasinoScreen()));
+        run(10, c -> LifeCraftClient.send("bj", nbt("action", "deal", 10)));
+        shot(30, "13_blackjack");
+        run(5, c -> click(c, "crash"));
+        run(5, c -> LifeCraftClient.send("crash_start", nbt(null, null, 10)));
+        shot(70, "14_crash");
+        run(30, c -> click(c, "coin"));
+        run(5, c -> LifeCraftClient.send("coin", nbt(null, null, 10)));
+        shot(15, "15_coin_spin");
+        run(5, c -> c.setScreen(new PhoneScreen("trophy")));
+        shot(30, "16_trophies");
+        run(5, c -> c.setScreen(new PhoneScreen(null)));
+        shot(30, "17_phone_home");
+        // кадры для фона главного меню: ночной неон, казино, город сверху, школа днём
+        run(5, c -> c.setScreen(null));
+        cmd(5, "gamemode spectator " + P);
+        cmd(5, "time set 14500");
+        run(5, c -> c.options.hudHidden = true);
+        cmd(5, "tp " + P + " -38 -53 20 -110 10");
+        shot(260, "bg1");
+        cmd(5, "tp " + P + " 4 -50 30 0 12");
+        shot(80, "bg2");
+        cmd(5, "tp " + P + " 30 -25 70 135 30");
+        shot(100, "bg3");
+        cmd(5, "time set 3000");
+        cmd(5, "tp " + P + " 6 -52 24 160 6");
+        shot(80, "bg4");
+        run(5, c -> c.options.hudHidden = false);
+        run(5, c -> c.setScreen(new com.yompix.lifecraft.client.menu.LifeMenuScreen()));
+        shot(60, "18_main_menu");
+        run(5, c -> c.setScreen(new com.yompix.lifecraft.client.menu.LifePauseScreen()));
+        shot(30, "19_pause");
+        run(20, MinecraftClient::scheduleStop);
     }
 
-    private static void cmd(int wait, String command) {
-        server(wait, s -> s.getCommandManager().executeWithPrefix(s.getCommandSource(), command));
+    private static net.minecraft.nbt.NbtCompound nbt(String k, String v, int bet) {
+        var n = new net.minecraft.nbt.NbtCompound();
+        if (k != null) n.putString(k, v);
+        n.putInt("bet", bet);
+        return n;
     }
 
-    private static void server(int wait, Consumer<IntegratedServer> action) {
-        STEPS.add(new Step(wait, c -> {
+    private static void click(MinecraftClient c, String tab) {
+        if (c.currentScreen instanceof OnlineCasinoScreen) {
+            try {
+                var f = OnlineCasinoScreen.class.getDeclaredField("tab");
+                f.setAccessible(true);
+                f.set(c.currentScreen, tab);
+            } catch (ReflectiveOperationException ignored) {
+            }
+        }
+    }
+
+    private static void pressKey(MinecraftClient c, int key) {
+        if (c.currentScreen != null) c.currentScreen.keyPressed(key, 0, 0);
+    }
+
+    private static void key(int delay, int key) {
+        run(delay, c -> pressKey(c, key));
+    }
+
+    private static void spaces(int n) {
+        for (int i = 0; i < n; i++) key(14, GLFW.GLFW_KEY_SPACE);
+    }
+
+    private static void talk(int delay, String npc) {
+        server(delay, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            CitizenEntity c = Npcs.find(p.getServerWorld(), npc);
+            if (c != null) Story.onTalk(p, c);
+        });
+    }
+
+    private static void cmd(int delay, String command) {
+        server(delay, s -> s.getCommandManager().executeWithPrefix(s.getCommandSource(), command));
+    }
+
+    private static void server(int delay, Consumer<IntegratedServer> action) {
+        STEPS.add(new Step(delay, c -> {
             IntegratedServer s = c.getServer();
             if (s != null) s.execute(() -> action.accept(s));
         }));
     }
 
-    private static void run(int wait, Consumer<MinecraftClient> action) {
-        STEPS.add(new Step(wait, action));
+    private static void run(int delay, Consumer<MinecraftClient> action) {
+        STEPS.add(new Step(delay, action));
     }
 
-    private static void shot(int wait, String name) {
-        STEPS.add(new Step(wait, c -> ScreenshotRecorder.saveScreenshot(c.runDirectory, name + ".png", c.getFramebuffer(), t -> {})));
+    private static void shot(int delay, String name) {
+        STEPS.add(new Step(delay, c -> ScreenshotRecorder.saveScreenshot(c.runDirectory, name + ".png", c.getFramebuffer(), t -> {})));
     }
 
     static {

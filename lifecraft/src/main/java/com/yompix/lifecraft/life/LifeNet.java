@@ -66,6 +66,7 @@ public final class LifeNet {
     private static void handle(ServerPlayerEntity p, String type, NbtCompound d) {
         switch (type) {
             case "hello" -> Life.sync(p);
+            case "ready" -> com.yompix.lifecraft.story.Story.onClientReady(p);
             case "dialog_done" -> com.yompix.lifecraft.story.Story.onDialogDone(p, d.getInt("choice"));
             case "cutscene_done" -> com.yompix.lifecraft.story.Story.onCutsceneDone(p);
             case "credits_done" -> com.yompix.lifecraft.story.Story.onCreditsDone(p);

@@ -162,12 +162,15 @@ public class YompixSplash extends Screen {
         ctx.getMatrices().translate(width / 2f, height / 2f - 30, 0);
         ctx.getMatrices().scale(scale, scale, 1);
         int a = (int) (k * 255) << 24;
-        ctx.drawText(textRenderer, s, -textRenderer.getWidth(s) / 2 + 1, 1, a | 0x6A3DFF, false);
+        ctx.getMatrices().push();
+        ctx.getMatrices().translate(0.35f, 0.35f, 0);
+        ctx.drawText(textRenderer, s, -textRenderer.getWidth(s) / 2, 0, a | 0x6A3DFF, false);
+        ctx.getMatrices().pop();
         ctx.drawText(textRenderer, s, -textRenderer.getWidth(s) / 2, 0, a | 0xFFFFFF, false);
         ctx.getMatrices().pop();
         float sub = MathHelper.clamp((t - 1300) / 600f, 0, 1);
         String st = "жизнь, которую строишь ты";
-        ctx.drawText(textRenderer, st, width / 2 - textRenderer.getWidth(st) / 2, height / 2 + 10, (int) (sub * 255) << 24 | 0xFFC107, true);
+        ctx.drawText(textRenderer, st, width / 2 - textRenderer.getWidth(st) / 2, height / 2 + 26, (int) (sub * 255) << 24 | 0xFFC107, true);
     }
 
     private static int lerpColor(int a, int b, float k) {

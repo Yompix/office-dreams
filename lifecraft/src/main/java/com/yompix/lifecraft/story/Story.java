@@ -54,7 +54,7 @@ public final class Story {
     /** То, что живёт только пока игрок в игре: таймеры, состояние гонки и экзамена. */
     static final class Run {
         int ticks, timer, countdown = -1, rivalIndex, violations;
-        boolean waitingDialog, dialogSent, started;
+        boolean waitingDialog, dialogSent, started, ready;
         Vec3d lastCarPos;
         int lastStep = -1;
     }
@@ -126,10 +126,15 @@ public final class Story {
         if (!d.storyStarted) {
             d.storyStarted = true;
             d.chapter = d.mission = d.step = 0;
-            run(p).timer = 60; // дать миру прогрузиться
+            run(p).timer = 30;
         } else if (!d.storyDone) {
-            run(p).timer = 40;
+            run(p).timer = 20;
         }
+    }
+
+    /** Клиент догрузил мир и закрыл экран загрузки — можно показывать кат-сцены и разговоры. */
+    public static void onClientReady(ServerPlayerEntity p) {
+        run(p).ready = true;
     }
 
     public static void onLeave(ServerPlayerEntity p) {
@@ -143,7 +148,7 @@ public final class Story {
         Run r = run(p);
         r.ticks++;
         if (!r.started) {
-            if (--r.timer > 0) return;
+            if (!r.ready || --r.timer > 0) return;
             r.started = true;
             enter(p, d, freshStep(d));
             return;

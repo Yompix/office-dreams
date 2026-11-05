@@ -2,6 +2,7 @@ package com.yompix.lifecraft.world;
 
 import com.yompix.lifecraft.LifeCraft;
 import com.yompix.lifecraft.ModContent;
+import com.yompix.lifecraft.block.NeonBlock;
 import com.yompix.lifecraft.entity.CarEntity;
 import com.yompix.lifecraft.entity.CitizenEntity;
 import com.yompix.lifecraft.life.Names;
@@ -153,6 +154,16 @@ public final class TownBuilder {
                 }
             }
         }
+        // неоновые полосы вдоль бордюров: вечером дороги светятся
+        for (int c : ROADS) {
+            for (int t = -EDGE + 2; t <= EDGE - 2; t++) {
+                if (nearestRoadDist(t) <= 8) continue;
+                for (int curb : new int[]{-5, 5}) {
+                    b.set(t, 0, c + curb, neon(ModContent.NEON_FLOOR, NeonBlock.Color.CYAN, Direction.NORTH));
+                    b.set(c + curb, 0, t, neon(ModContent.NEON_FLOOR, NeonBlock.Color.PINK, Direction.EAST));
+                }
+            }
+        }
         // светофоры на углах перекрёстков
         for (int cx : ROADS) {
             for (int cz : ROADS) {
@@ -172,6 +183,10 @@ public final class TownBuilder {
                 lamp(b, c - 6, t + 6, Direction.EAST);
             }
         }
+    }
+
+    static BlockState neon(Block block, NeonBlock.Color color, Direction facing) {
+        return block.getDefaultState().with(HorizontalFacingBlock.FACING, facing).with(NeonBlock.COLOR, color);
     }
 
     private static int nearestRoadDist(int t) {
@@ -311,6 +326,7 @@ public final class TownBuilder {
         b.place("prom_2", 3, 0, 12, 180);
         b.place("prom_3", 6, 0, 10, 180);
         b.label(0, 8, 2, "🏫 ШКОЛА №1", Formatting.GOLD);
+        b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.YELLOW);
     }
 
     // ---------------------------------------------------------------- магазин
@@ -348,6 +364,7 @@ public final class TownBuilder {
         b.car(-6, 12, 0, 2);
         b.car(6, 12, 0, 4);
         b.label(0, h + 2, z2, "🛒 СУПЕРМАРКЕТ", Formatting.RED);
+        b.neonLine(x1, x2, 3, z2 + 1, NeonBlock.Color.RED);
         b.place("shop_door", 0, 0, 6, 180);
         b.place("shop_counter", -5, 0, 2, 180);
     }
@@ -389,6 +406,8 @@ public final class TownBuilder {
         lights(b, x1, z1, x2, z2, h - 1);
         b.mailbox(-5, 0, z2 + 2);
         b.label(0, h + 2, z2, "💼 ОФИС · ЦЕНТР ЗАНЯТОСТИ", Formatting.AQUA);
+        b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.CYAN);
+        b.neonLine(x1, x2, 3, z2 + 1, NeonBlock.Color.BLUE);
     }
 
     // ---------------------------------------------------------------- парк
@@ -495,6 +514,7 @@ public final class TownBuilder {
             b.fill(x2, 1, z, x2, 2, z, Blocks.GLASS.getDefaultState());
         }
         b.door(0, 0, z2, Direction.SOUTH, Blocks.SPRUCE_DOOR, false);
+        b.neonLine(-3, 3, 3, z2 + 1, r.nextBoolean() ? NeonBlock.Color.ORANGE : NeonBlock.Color.PINK);
         // спальня, гостиная с телевизором и диваном, кухня
         b.bed(-4, 0, -8, Direction.NORTH, Blocks.LIGHT_BLUE_BED);
         b.set(-5, 0, -9, Blocks.CHEST.getDefaultState().with(net.minecraft.block.ChestBlock.FACING, Direction.EAST));
@@ -552,6 +572,7 @@ public final class TownBuilder {
         b.car(14, 8, -90, 5);
         b.mailbox(-3, 0, z2 + 2);
         b.label(-8, h + 2, z2, "🚗 АВТОСАЛОН", Formatting.YELLOW);
+        b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.ORANGE);
         b.label(13, 3, 12, "🚕 ТАКСИ", Formatting.YELLOW);
     }
 
@@ -591,6 +612,8 @@ public final class TownBuilder {
         for (int x = x1 + 3; x <= x2 - 3; x += 5)
             for (int z = z1 + 3; z <= z2 - 2; z += 5) b.set(x, h - 1, z, Blocks.SEA_LANTERN.getDefaultState());
         b.label(-5, h + 2, z2, "🎰 КАЗИНО «ФОРТУНА» 18+", Formatting.LIGHT_PURPLE);
+        b.neonLine(x1, x2, h - 2, z2 + 1, NeonBlock.Color.PINK);
+        b.neonLine(x1, x2, 4, z2 + 1, NeonBlock.Color.PURPLE);
         b.place("casino_door", -5, 0, 7, 0);
         b.place("casino_door2", -7, 0, 9, 0);
         b.place("casino_door3", -3, 0, 9, 0);
@@ -611,6 +634,7 @@ public final class TownBuilder {
         lights(b, bx1, z1 + 2, bx2, z2, 5);
         b.mailbox(16, 0, z2 + 2);
         b.label(12, 8, z2, "🏦 БАНК", Formatting.GREEN);
+        b.neonLine(bx1, bx2, 4, z2 + 1, NeonBlock.Color.GREEN);
     }
 
     // ---------------------------------------------------------------- общие помощники
@@ -705,6 +729,11 @@ public final class TownBuilder {
             BlockState s = bed.getDefaultState().with(BedBlock.FACING, toHead);
             set(x, y, z, s.with(BedBlock.PART, BedPart.FOOT));
             set(x + toHead.getOffsetX(), y, z + toHead.getOffsetZ(), s.with(BedBlock.PART, BedPart.HEAD));
+        }
+
+        /** Неоновая трубка вдоль фасада (фасад смотрит в +z, трубка висит снаружи). */
+        void neonLine(int x1, int x2, int y, int z, NeonBlock.Color color) {
+            for (int x = x1; x <= x2; x++) set(x, y, z, neon(ModContent.NEON, color, Direction.SOUTH));
         }
 
         void mailbox(int x, int y, int z) {

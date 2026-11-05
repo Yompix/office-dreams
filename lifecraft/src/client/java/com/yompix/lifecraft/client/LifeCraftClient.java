@@ -71,15 +71,28 @@ public class LifeCraftClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(LifeNet.S2C.ID, (payload, ctx) -> receive(ctx.client(), payload.type(), payload.data()));
         ClientPlayConnectionEvents.JOIN.register((h, s, c) -> {
+            readySent = false;
             data = new LifeData();
             com.yompix.lifecraft.client.story.ClientStory.objective = new NbtCompound();
             send("hello", new NbtCompound());
         });
         ClientTickEvents.END_CLIENT_TICK.register(LifeCraftClient::tick);
-        // заставка студии один раз при запуске и подпись на главном экране
+        // заставка студии при запуске, своё главное меню и пауза вместо ванильных
         ClientTickEvents.END_CLIENT_TICK.register(c -> {
-            if (c.currentScreen instanceof net.minecraft.client.gui.screen.TitleScreen t && !com.yompix.lifecraft.client.story.YompixSplash.shown())
-                c.setScreen(new com.yompix.lifecraft.client.story.YompixSplash(t));
+            if (c.currentScreen instanceof net.minecraft.client.gui.screen.TitleScreen) {
+                c.setScreen(com.yompix.lifecraft.client.story.YompixSplash.shown() ? new com.yompix.lifecraft.client.menu.LifeMenuScreen()
+                        : new com.yompix.lifecraft.client.story.YompixSplash(new com.yompix.lifecraft.client.menu.LifeMenuScreen()));
+            } else if (c.currentScreen instanceof net.minecraft.client.gui.screen.GameMenuScreen g && g.shouldShowMenu()) {
+                c.setScreen(new com.yompix.lifecraft.client.menu.LifePauseScreen());
+            }
+        });
+        net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register((c, screen, w, h) -> {
+            String what = screen instanceof net.minecraft.client.gui.screen.world.LevelLoadingScreen ? "Строим Новоград"
+                    : screen instanceof net.minecraft.client.gui.screen.DownloadingTerrainScreen ? "Входим в город"
+                    : screen instanceof net.minecraft.client.gui.screen.MessageScreen ? "Минутку" : null;
+            if (what != null)
+                net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.afterRender(screen).register((sc, ctx, mx, my, d) ->
+                        com.yompix.lifecraft.client.menu.LoadingOverlay.draw(ctx, w, h, what));
         });
         net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register((c, screen, w, h) -> {
             if (screen instanceof net.minecraft.client.gui.screen.TitleScreen)
@@ -109,9 +122,9 @@ public class LifeCraftClient implements ClientModInitializer {
                 data = LifeData.fromNbt(n);
                 dataVersion++;
             }
-            case "dialog" -> client.setScreen(new com.yompix.lifecraft.client.story.DialogScreen(n));
-            case "cutscene" -> client.setScreen(new com.yompix.lifecraft.client.story.CutsceneScreen(n));
-            case "credits" -> client.setScreen(new com.yompix.lifecraft.client.story.CreditsScreen());
+            case "dialog" -> show(client, new com.yompix.lifecraft.client.story.DialogScreen(n));
+            case "cutscene" -> show(client, new com.yompix.lifecraft.client.story.CutsceneScreen(n));
+            case "credits" -> show(client, new com.yompix.lifecraft.client.story.CreditsScreen());
             case "objective" -> com.yompix.lifecraft.client.story.ClientStory.objective = n;
             case "title" -> {
                 com.yompix.lifecraft.client.story.ClientStory.title(n.getString("title"), n.getString("subtitle"));
@@ -154,8 +167,32 @@ public class LifeCraftClient implements ClientModInitializer {
         }
     }
 
+    private static boolean readySent;
+    private static int calmTicks;
+    @org.jetbrains.annotations.Nullable private static net.minecraft.client.gui.screen.Screen pending;
+
+    /** Сюжетный экран откроется, только когда игра не занята загрузкой. */
+    public static void show(MinecraftClient client, net.minecraft.client.gui.screen.Screen s) {
+        if (client.currentScreen == null || client.currentScreen instanceof com.yompix.lifecraft.client.screen.LifeScreen) client.setScreen(s);
+        else pending = s;
+    }
+
+    public static void requeue(net.minecraft.client.gui.screen.Screen s) {
+        pending = s;
+    }
+
     private static void tick(MinecraftClient client) {
         if (client.player == null) return;
+        calmTicks = client.currentScreen == null ? calmTicks + 1 : 0;
+        if (!readySent && calmTicks > 20 && client.world != null) {
+            readySent = true;
+            send("ready");
+        }
+        if (pending != null && client.currentScreen == null && calmTicks > 5) {
+            var s = pending;
+            pending = null;
+            client.setScreen(s);
+        }
         while (phoneKey.wasPressed()) {
             if (client.currentScreen == null && client.player.getInventory().count(ModContent.PHONE) > 0) {
                 client.setScreen(new PhoneScreen(null));

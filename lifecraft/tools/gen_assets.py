@@ -209,6 +209,22 @@ def blocks():
     ImageDraw.Draw(rs).rectangle([0, 0, 15, 2], fill=rgb('1b6b3a'))
     save(rs, 'block', 'roulette_side.png')
 
+    # Неон: светящаяся трубка 8 цветов (вкл/выкл)
+    NEON = {'pink': 'ff2fb4', 'purple': 'a855f7', 'cyan': '22e5ff', 'blue': '3d7bff', 'yellow': 'ffe14d', 'green': '39ff88', 'red': 'ff3b3b', 'orange': 'ff9a1f'}
+    for name, col in NEON.items():
+        c = rgb(col)
+        on = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+        d = ImageDraw.Draw(on)
+        d.rectangle([0, 0, 15, 15], fill=shade(c, 0.85))
+        d.rectangle([0, 5, 15, 10], fill=c)
+        d.rectangle([0, 7, 15, 8], fill=(255, 255, 255, 255))
+        for x in range(0, 16, 4):
+            d.point([(x, 6), (x + 2, 9)], fill=shade(c, 1.3))
+        save(on, 'block', f'neon_{name}.png')
+    off = Image.new('RGBA', (16, 16), rgb('3a3d45'))
+    ImageDraw.Draw(off).rectangle([0, 6, 15, 9], fill=rgb('5a5f6a'))
+    save(off, 'block', 'neon_off.png')
+
     # Компьютер: монитор с бегущим кодом
     save(noise((16, 16), rgb('d7d9dc'), 3, 17), 'block', 'computer_body.png')
     frames = []

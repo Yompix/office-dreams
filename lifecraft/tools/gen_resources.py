@@ -169,6 +169,15 @@ def blocks():
     facing_state('slot_machine')
     block_item('slot_machine')
 
+    colors = ['pink', 'purple', 'cyan', 'blue', 'yellow', 'green', 'red', 'orange']
+    for c in colors + ['off']:
+        model(f'neon_{c}', {'t': t(f'neon_{c}')}, [el([0, 6.5, 14], [16, 9.5, 16], 't')])
+        model(f'neon_floor_{c}', {'t': t(f'neon_{c}')}, [el([0, 0, 6.5], [16, 1, 9.5], 't')])
+    facing_state('neon', lambda st: f"neon_{st['color'] if st['lit'] == 'true' else 'off'}", {'color': colors, 'lit': ['true', 'false']})
+    facing_state('neon_floor', lambda st: f"neon_floor_{st['color'] if st['lit'] == 'true' else 'off'}", {'color': colors, 'lit': ['true', 'false']})
+    block_item('neon', 'neon_pink')
+    block_item('neon_floor', 'neon_floor_cyan')
+
     model('clue', {'paper': 'minecraft:block/white_wool', 'mark': 'minecraft:block/gold_block'}, [
         el([3, 0, 3], [13, 1, 13], 'paper'), el([5, 1, 5], [11, 2.5, 11], 'mark')])
     simple_state('clue')
@@ -194,7 +203,7 @@ BLOCKS = {
     'job_board': ('Доска вакансий', 'Job board', 'axe'), 'mailbox': ('Почтовый ящик', 'Mailbox', 'pickaxe'),
     'shop_counter': ('Прилавок с кассой', 'Shop counter', 'axe'), 'computer': ('Компьютер', 'Computer', 'pickaxe'),
     'slot_machine': ('Игровой автомат', 'Slot machine', 'pickaxe'), 'roulette': ('Стол рулетки', 'Roulette table', 'axe'),
-    'clue': ('Улика', 'Clue', 'pickaxe'),
+    'clue': ('Улика', 'Clue', 'pickaxe'), 'neon': ('Неоновая трубка', 'Neon tube', 'pickaxe'), 'neon_floor': ('Неоновая полоса', 'Neon strip', 'pickaxe'),
 }
 ITEMS = {
     'phone': ('Телефон', 'Phone'), 'banknote': ('Купюра $10', '$10 banknote'), 'bank_card': ('Банковская карта', 'Bank card'),

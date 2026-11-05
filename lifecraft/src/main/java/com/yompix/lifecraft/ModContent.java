@@ -84,6 +84,10 @@ public final class ModContent {
     public static final Block SLOT_MACHINE = block("slot_machine", new LifeBlock(metal().nonOpaque().luminance(s -> 8), LifeBlock.Kind.SLOT_MACHINE, box(1, 0, 2, 15, 16, 15)));
     public static final Block ROULETTE = block("roulette", new LifeBlock(wood().nonOpaque().luminance(s -> 4), LifeBlock.Kind.ROULETTE, box(0, 0, 0, 16, 13, 16)));
 
+    public static final Block NEON = block("neon", new com.yompix.lifecraft.block.NeonBlock(AbstractBlock.Settings.create().strength(0.5f).nonOpaque().noCollision()
+            .sounds(BlockSoundGroup.GLASS).luminance(s -> s.get(com.yompix.lifecraft.block.NeonBlock.LIT) ? 12 : 0), box(0, 6, 13, 16, 10, 16)));
+    public static final Block NEON_FLOOR = block("neon_floor", new com.yompix.lifecraft.block.NeonBlock(AbstractBlock.Settings.create().strength(0.5f).nonOpaque().noCollision()
+            .sounds(BlockSoundGroup.GLASS).luminance(s -> s.get(com.yompix.lifecraft.block.NeonBlock.LIT) ? 10 : 0), box(0, 0, 6, 16, 1, 10)));
     public static final Block CLUE = block("clue", new com.yompix.lifecraft.block.ClueBlock(AbstractBlock.Settings.create().strength(-1f, 3600000f).noCollision().nonOpaque().luminance(s -> 10).dropsNothing()));
 
     // ---------- предметы ----------
