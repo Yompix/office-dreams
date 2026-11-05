@@ -551,8 +551,8 @@ func _door_handle(piv: Node3D, leaves: Array) -> Vector3:
 
 ## Доводчик (дверь с "closer"): отошёл от двери дальше 2,4 м — створка медленно закрывается, колокольчик звякает тише;
 ## подходит ближе 2,1 м — открывается заранее (раньше открывалась в 1,3 м
-## от петли за 0,6 с, и герой успевал войти в закрытую створку наполовину — владелец, 5 ноя). Створка двигается каждый
-## кадр и не проходит сквозь героя: упрётся — ждёт, пока он отойдёт.
+## от петли за 0,6 с, и герой успевал войти в закрытую створку наполовину — владелец, 5 ноя), от героя: снаружи —
+## внутрь, изнутри — наружу. Створка двигается каждый кадр и не проходит сквозь героя: упрётся — ждёт, пока он отойдёт.
 func _closers() -> void:
 	var dt: float = g._dt()
 	for id in _closer:
@@ -566,8 +566,16 @@ func _closers() -> void:
 			c.chimed = false
 		elif not bool(c.open) and dist < 2.1:
 			c.open = true
+			# маятниковая дверь: снаружи её толкают внутрь, изнутри — наружу (открытая внутрь створка вставала поперёк
+			# прохода у полки, и к выходу из глубины магазина приходилось протискиваться — проверка 5 ноя)
+			c.sgn = 1.0
+			if _leaf.has(id):
+				var lf: Dictionary = _leaf[id]
+				var od: Vector2 = (lf.dir0 as Vector2).rotated(-float(c.ang))   # куда смотрит створка, открытая внутрь
+				if (Vector2(a.position.x, a.position.z) - (lf.hinge as Vector2)).dot(od) > 0.0:
+					c.sgn = -1.0
 			g.sfx.play("door_chime", -12.0)
-		var want := float(c.ang) if bool(c.open) else 0.0
+		var want := float(c.ang) * float(c.get("sgn", 1.0)) if bool(c.open) else 0.0
 		var cur := piv.rotation.y
 		if absf(want - cur) < 0.002:
 			piv.rotation.y = want
