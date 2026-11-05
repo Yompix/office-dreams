@@ -1310,17 +1310,17 @@
     },
     {
      "ref": "intro",
-     "fx": "door_r_open",
      "place": {
       "who": "iris",
       "at": [
-       15.55,
+       15.2,
        0.0,
-       -4.65
+       -0.45
       ],
-      "face": 90,
+      "face": 60,
       "clip": "Idle"
-     }
+     },
+     "fx": "snd:car_door:-14"
     },
     {
      "walk": {
@@ -1334,8 +1334,7 @@
       "face": 90
      },
      "shot": "st_two",
-     "dur": 4.2,
-     "fx": "door_r_close"
+     "dur": 4.2
     },
     {
      "look": {
@@ -1795,6 +1794,12 @@
      "en": "Hey, kid…"
     },
     {
+     "ref": "lapse",
+     "fx": "lapse_tv",
+     "shot": "st_tv",
+     "dur": 1.0
+    },
+    {
      "fx": "lapse",
      "dur": 1.8
     },
@@ -1804,77 +1809,143 @@
       "en": "Glass shatters. A child screams."
      },
      "dur": 2.8,
-     "note": true
+     "note": true,
+     "mute": true
     },
     {
      "fx": "lapse_after",
      "dur": 0.3
     },
     {
+     "ref": "lapse",
      "fx": "wake",
-     "shot": "st_knuckles",
-     "dur": 3.6,
-     "note": {
-      "ru": "Ной стоит у колонки и сжимает заправочный пистолет — будто собрался заправляться. Бак полный. Костяшки в крови.",
-      "en": "Noah is standing at the pump, gripping the fuel nozzle — as if he were about to fill up. The tank is full. His knuckles are bloody."
-     }
+     "cam": [
+      [
+       12.25,
+       1.38,
+       -4.55
+      ],
+      [
+       12.92,
+       1.08,
+       -4.12
+      ],
+      36
+     ],
+     "dur": 0.1
     },
     {
+     "ref": "lapse",
+     "fx": "wake_drop",
+     "dur": 3.5
+    },
+    {
+     "ref": "lapse",
      "shot": "st_crack",
-     "dur": 2.4,
-     "note": {
-      "ru": "Стеклянная дверь магазина треснула.",
-      "en": "The shop’s glass door is cracked."
-     }
+     "fx": "bell_swing",
+     "dur": 2.5
     },
     {
+     "ref": "lapse",
      "if": {
       "shadow": "==0"
      },
      "shot": "st_window",
-     "dur": 3.0,
-     "note": {
-      "ru": "Внутри на полу Роман. Стонет, держится за голову.",
-      "en": "Inside, Roman lies on the floor, groaning, clutching his head."
-     }
+     "fx": "roman_groan",
+     "dur": 3.2
     },
     {
+     "ref": "lapse",
      "if": {
       "shadow": ">=1"
      },
      "shot": "st_window",
-     "dur": 3.4,
-     "note": {
-      "ru": "Внутри на полу Роман. Не шевелится. Под ним растекается тёмное. Глаза открыты.",
-      "en": "Inside, Roman lies on the floor. He doesn’t move. Something dark spreads beneath him. His eyes are open."
-     }
+     "dur": 3.4
     },
     {
+     "ref": "lapse",
      "shot": "st_danny_stare",
-     "dur": 2.8,
-     "note": {
-      "ru": "Мальчик на ступеньке смотрит на Ноя. Не дышит.",
-      "en": "The boy on the step stares at Noah, not breathing."
-     }
+     "dur": 3.0
     },
     {
      "say": "iris",
-     "shot": "iris",
      "ru": "Садись. Быстро.",
      "en": "Get in. Now.",
-     "look": "noah"
+     "look": "noah",
+     "cam": [
+      [
+       12.55,
+       1.72,
+       -4.45
+      ],
+      [
+       19.25,
+       1.45,
+       -3.45
+      ],
+      32
+     ]
     },
     {
+     "ref": "lapse",
      "if": {
       "pills": "==0"
      },
-     "fx": "flash_dock",
-     "text": {
-      "ru": "Женская рука на досках мостков. Мокрый рукав.",
-      "en": "A woman’s hand on the dock boards. A wet sleeve."
+     "fx": "memory_dock",
+     "dur": 2.0
+    },
+    {
+     "ref": "lapse",
+     "if": {
+      "pills": "==0"
      },
-     "dur": 2.6,
-     "note": true
+     "fx": "memory_back",
+     "cam": [
+      [
+       12.35,
+       1.62,
+       -4.2
+      ],
+      [
+       13.0,
+       1.6,
+       -4.1
+      ],
+      30
+     ],
+     "dur": 0.8
+    },
+    {
+     "ref": "lapse",
+     "fx": "nozzle_drop",
+     "cam": [
+      [
+       11.6,
+       1.45,
+       -6.2
+      ],
+      [
+       12.9,
+       0.95,
+       -4.3
+      ],
+      44
+     ],
+     "dur": 1.4
+    },
+    {
+     "ref": "lapse",
+     "walk": {
+      "who": "noah",
+      "to": [
+       13.15,
+       0.0,
+       -5.6
+      ],
+      "then": "Idle",
+      "face": 180
+     },
+     "dur": 1.8
     },
     {
      "if": {
@@ -1911,26 +1982,48 @@
    "loc": "station",
    "beats": [
     {
-     "fx": "kids_by_car"
-    },
-    {
-     "shot": "st_kids",
-     "dur": 2.0
+     "ref": "ep7",
+     "fx": "kids_to_car",
+     "cam": [
+      [
+       12.3,
+       1.6,
+       -0.7
+      ],
+      [
+       13.0,
+       1.15,
+       -4.2
+      ],
+      40
+     ],
+     "dur": 4.2
     },
     {
      "say": "iris",
-     "shot": "st_kids",
      "ru": "Его Дэнни зовут.",
      "en": "His name’s Danny.",
      "look": "noah",
      "if": {
       "danny_name": "==0"
-     }
+     },
+     "cam": [
+      [
+       12.85,
+       1.78,
+       -6.0
+      ],
+      [
+       12.95,
+       1.25,
+       -3.6
+      ],
+      36
+     ]
     },
     {
      "choice": {
       "t": 8,
-      "shot": "st_kids",
       "opts": [
        {
         "ru": "«Поехали с нами»",
@@ -1946,6 +2039,19 @@
         "silent": true,
         "go": "s6_c"
        }
+      ],
+      "cam": [
+       [
+        12.85,
+        1.78,
+        -6.0
+       ],
+       [
+        12.95,
+        1.25,
+        -3.6
+       ],
+       36
       ]
      }
     }
@@ -1956,43 +2062,91 @@
    "beats": [
     {
      "say": "noah",
-     "shot": "st_noah_out",
      "ru": "Поехали с нами.",
-     "en": "Come with us."
+     "en": "Come with us.",
+     "fx": "rear_door_open",
+     "cam": [
+      [
+       12.35,
+       1.45,
+       -6.4
+      ],
+      [
+       13.0,
+       1.05,
+       -4.0
+      ],
+      38
+     ]
     },
     {
+     "ref": "ep7",
      "if": {
       "lapse1": ">0"
      },
-     "shot": "st_kids",
-     "expr": {
-      "who": "danny",
-      "set": "fear"
+     "fx": "danny_back_away",
+     "cam": [
+      [
+       12.3,
+       1.6,
+       -0.7
+      ],
+      [
+       13.0,
+       1.15,
+       -4.2
+      ],
+      40
+     ],
+     "dur": 1.6
+    },
+    {
+     "ref": "ep7",
+     "if": {
+      "lapse1": ">0"
      },
-     "dur": 2.0,
-     "note": {
-      "ru": "Мальчик в ужасе пятится.",
-      "en": "The boy backs away in terror."
-     }
+     "fx": "iris_kneel",
+     "dur": 0.5
     },
     {
      "if": {
       "lapse1": ">0"
      },
      "say": "iris",
-     "shot": "st_kids",
      "ru": "Я с тобой. Он тебя не тронет.",
      "en": "I’m right here. He won’t hurt you.",
-     "look": "danny"
+     "look": "danny",
+     "cam": [
+      [
+       12.3,
+       1.6,
+       -0.7
+      ],
+      [
+       13.0,
+       1.15,
+       -4.2
+      ],
+      40
+     ]
     },
     {
-     "fx": "danny_in_car",
-     "shot": "back",
-     "dur": 2.4,
-     "note": {
-      "ru": "Дэнни садится назад.",
-      "en": "Danny climbs into the back seat."
-     }
+     "ref": "ep7",
+     "fx": "danny_climb_in",
+     "cam": [
+      [
+       12.3,
+       1.6,
+       -0.7
+      ],
+      [
+       13.0,
+       1.15,
+       -4.2
+      ],
+      40
+     ],
+     "dur": 2.8
     },
     {
      "set": {
@@ -2009,21 +2163,52 @@
    "beats": [
     {
      "say": "noah",
-     "shot": "st_noah_out",
      "ru": "Мы не можем его взять.",
-     "en": "We can’t take him."
+     "en": "We can’t take him.",
+     "cam": [
+      [
+       12.85,
+       1.78,
+       -6.0
+      ],
+      [
+       12.95,
+       1.25,
+       -3.6
+      ],
+      36
+     ]
     },
     {
      "say": "iris",
-     "shot": "st_kids",
      "ru": "Никто за ним не придёт. Ты же видишь.",
      "en": "Nobody’s coming for him. You can see that.",
-     "look": "noah"
+     "look": "noah",
+     "cam": [
+      [
+       12.85,
+       1.78,
+       -6.0
+      ],
+      [
+       12.95,
+       1.25,
+       -3.6
+      ],
+      36
+     ]
+    },
+    {
+     "ref": "ep7",
+     "look": {
+      "who": "danny",
+      "at": "danny_walkie"
+     },
+     "dur": 1.2
     },
     {
      "choice": {
       "t": 8,
-      "shot": "st_noah_out",
       "opts": [
        {
         "ru": "«Ладно. Садись назад»",
@@ -2039,6 +2224,19 @@
         "silent": true,
         "go": "s6_c"
        }
+      ],
+      "cam": [
+       [
+        12.35,
+        1.45,
+        -6.4
+       ],
+       [
+        13.0,
+        1.05,
+        -4.0
+       ],
+       38
       ]
      }
     }
@@ -2049,29 +2247,40 @@
    "beats": [
     {
      "say": "noah",
-     "shot": "st_noah_out",
      "ru": "Ладно. Садись назад.",
-     "en": "Fine. Get in the back."
+     "en": "Fine. Get in the back.",
+     "fx": "rear_door_open",
+     "cam": [
+      [
+       12.35,
+       1.45,
+       -6.4
+      ],
+      [
+       13.0,
+       1.05,
+       -4.0
+      ],
+      38
+     ]
     },
     {
-     "fx": "danny_in_car",
-     "shot": "back",
-     "dur": 2.4,
-     "note": {
-      "ru": "Дэнни садится назад.",
-      "en": "Danny climbs into the back seat."
-     }
-    },
-    {
-     "note": {
-      "ru": "Мальчик забивается в угол — как можно дальше от Ноя.",
-      "en": "The boy squeezes into the corner — as far from Noah as he can get."
-     },
-     "dur": 2.4,
-     "shot": "back",
-     "if": {
-      "lapse1": ">0"
-     }
+     "ref": "ep7",
+     "fx": "danny_climb_in",
+     "cam": [
+      [
+       12.3,
+       1.6,
+       -0.7
+      ],
+      [
+       13.0,
+       1.15,
+       -4.2
+      ],
+      40
+     ],
+     "dur": 2.8
     },
     {
      "set": {
@@ -2088,18 +2297,44 @@
    "beats": [
     {
      "say": "noah",
-     "shot": "st_noah_out",
      "ru": "Нет. Он остаётся.",
-     "en": "No. He stays."
+     "en": "No. He stays.",
+     "cam": [
+      [
+       12.35,
+       1.45,
+       -6.4
+      ],
+      [
+       13.0,
+       1.05,
+       -4.0
+      ],
+      38
+     ]
     },
     {
+     "ref": "ep7",
+     "fx": "iris_release",
+     "cam": [
+      [
+       12.5,
+       1.35,
+       -2.6
+      ],
+      [
+       12.98,
+       0.95,
+       -3.55
+      ],
+      30
+     ],
+     "dur": 2.2
+    },
+    {
+     "ref": "ep7",
      "fx": "danny_stays",
-     "shot": "st_kids",
-     "dur": 3.0,
-     "note": {
-      "ru": "Айрис отпускает его руку. Мальчик остаётся один под навесом.",
-      "en": "Iris lets go of his hand. The boy stays behind, alone under the canopy."
-     }
+     "dur": 0.2
     },
     {
      "set": {
@@ -2119,32 +2354,47 @@
    "loc": "station",
    "beats": [
     {
-     "shot": "st_kids",
-     "dur": 2.6,
-     "note": {
-      "ru": "Ной молчит. Айрис решает сама.",
-      "en": "Noah says nothing. Iris decides for herself."
-     }
-    },
-    {
-     "fx": "danny_in_car",
-     "shot": "back",
-     "dur": 2.4,
-     "note": {
-      "ru": "Она сажает мальчика назад.",
-      "en": "She puts the boy in the back seat."
-     }
-    },
-    {
-     "note": {
-      "ru": "Мальчик забивается в угол — как можно дальше от Ноя.",
-      "en": "The boy squeezes into the corner — as far from Noah as he can get."
+     "ref": "ep7",
+     "look": {
+      "who": "noah",
+      "at": [
+       0.0,
+       1.2,
+       -30.0
+      ]
      },
-     "dur": 2.4,
-     "shot": "back",
-     "if": {
-      "lapse1": ">0"
-     }
+     "cam": [
+      [
+       12.85,
+       1.78,
+       -6.0
+      ],
+      [
+       12.95,
+       1.25,
+       -3.6
+      ],
+      36
+     ],
+     "dur": 2.0
+    },
+    {
+     "ref": "ep7",
+     "fx": "iris_buckle",
+     "cam": [
+      [
+       12.3,
+       1.6,
+       -0.7
+      ],
+      [
+       13.0,
+       1.15,
+       -4.2
+      ],
+      40
+     ],
+     "dur": 3.4
     },
     {
      "set": {
@@ -2160,8 +2410,112 @@
    "loc": "station",
    "beats": [
     {
-     "shot": "st_wide",
-     "dur": 2.6
+     "ref": "ep7",
+     "fx": "noah_to_car",
+     "cam": [
+      [
+       12.35,
+       1.45,
+       -6.4
+      ],
+      [
+       13.0,
+       1.05,
+       -4.0
+      ],
+      38
+     ],
+     "dur": 2.4
+    },
+    {
+     "ref": "ep7",
+     "fx": "engine_on",
+     "cam": [
+      [
+       14.62,
+       1.27,
+       -3.8
+      ],
+      [
+       14.05,
+       0.92,
+       -5.35
+      ],
+      54
+     ],
+     "dur": 1.6
+    },
+    {
+     "ref": "ep7",
+     "fx": "roman_window"
+    },
+    {
+     "ref": "ep7",
+     "if": {
+      "lapse1": "==0"
+     },
+     "fx": "car_depart",
+     "cam": [
+      [
+       12.2,
+       1.55,
+       -9.0
+      ],
+      [
+       26.4,
+       1.7,
+       -9.0
+      ],
+      30
+     ],
+     "dur": 3.6
+    },
+    {
+     "ref": "ep7",
+     "if": {
+      "lapse1": ">0"
+     },
+     "fx": "car_depart",
+     "cam": [
+      [
+       20.4,
+       2.6,
+       -8.4
+      ],
+      [
+       26.0,
+       0.55,
+       -10.0
+      ],
+      36
+     ],
+     "dur": 3.6
+    },
+    {
+     "ref": "ep7",
+     "fx": "neon_flicker",
+     "cam": [
+      [
+       -1.8,
+       1.0,
+       -30.0
+      ],
+      [
+       13.0,
+       2.0,
+       -6.0
+      ],
+      46
+     ],
+     "dur": 3.4
+    },
+    {
+     "ref": "ep7",
+     "if": {
+      "danny_left": ">0"
+     },
+     "fx": "danny_alone",
+     "dur": 1.4
     },
     {
      "go": "s7"

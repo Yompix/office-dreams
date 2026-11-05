@@ -75,7 +75,8 @@ def intro_s5():
         B(anim={'who': 'noah', 'clip': 'Sitting_Exit'}, fx='noah_step_out', dur=1.1),   # ботинки в снег — встаёт, выходит из проёма
         B(anim={'who': 'noah', 'clip': 'Idle'}, gesture={'who': 'noah', 'do': 'collar', 'dur': 1.4}, dur=1.4),
         B(walk={'who': 'noah', 'to': [12.9, 0.0, -3.45], 'then': 'Idle', 'face': 90}, fx='door_l_close', dur=1.3),
-        B(fx='door_r_open', place={'who': 'iris', 'at': [15.55, 0.0, -4.65], 'face': 90, 'clip': 'Idle'}),
+        # Айрис вышла (склейка): справа машина в 16 см от островка — правую дверь не открыть; идёт к ступеньке из-за машины
+        B(place={'who': 'iris', 'at': [15.2, 0.0, -0.45], 'face': 60, 'clip': 'Idle'}, fx='snd:car_door:-14'),
     ]
 
 
@@ -148,6 +149,152 @@ def shop(j):
         B(fx='snd:door_chime:-10'),
         {'set': {'roman_ally': 1}},
         {'go': 's6'},
+    ]
+
+
+# ---------- эпизод 6 (провал памяти, s5_lapse): подписи — кадрами и звуком ----------
+HANDS_PUMP = [[12.25, 1.38, -4.55], [12.92, 1.08, -4.12], 36]      # 3: крупно руки на пистолете
+IRIS_OTS = [[12.55, 1.72, -4.45], [19.25, 1.45, -3.45], 32]        # 7: через плечо Ноя на Айрис у ступеньки
+NOAH_FACE_PUMP = [[12.35, 1.62, -4.2], [13.0, 1.6, -4.1], 30]      # 8: назад из вспышки — Ной моргает
+PUMP_MED = [[11.6, 1.45, -6.2], [12.9, 0.95, -4.3], 44]            # 9: средний у колонки — пистолет падает
+LAPSE_CAPTIONS = ('Ной стоит у колонки', 'Стеклянная дверь магазина', 'Внутри на полу Роман', 'Мальчик на ступеньке')
+
+
+def lapse(j):
+    bs = j['scenes']['s5_lapse']['beats']
+    if any(b.get('ref') == 'lapse' for b in bs):
+        return   # уже переставлено
+    L_ = {'ref': 'lapse'}
+    def B(**kw):
+        d = dict(L_)
+        d.update(kw)
+        return d
+    out = []
+    for b in bs:
+        nt = (b.get('note') or {}).get('ru', '') if isinstance(b.get('note'), dict) else ''
+        tx = (b.get('text') or {}).get('ru', '')
+        if b.get('say') == 'roman':
+            out.append(b)
+            out.append(B(fx='lapse_tv', shot='st_tv', dur=1.0))          # 1: фокус — на фото Ноя в телевизоре
+        elif tx.startswith('Бьётся стекло'):
+            b['mute'] = True                                             # 2: со звуком подпись не нужна
+            out.append(b)
+        elif b.get('fx') == 'wake':
+            out.append(B(fx='wake', cam=HANDS_PUMP, dur=0.1))            # 3: резкая склейка — руки на пистолете
+            out.append(B(fx='wake_drop', dur=3.5))
+        elif nt.startswith('Стеклянная дверь'):
+            out.append(B(shot='st_crack', fx='bell_swing', dur=2.5))     # 4: трещина звездой, колокольчик качается
+        elif nt.startswith('Внутри на полу') and b['if'].get('shadow') == '==0':
+            out.append(B(**{'if': b['if'], 'shot': 'st_window', 'fx': 'roman_groan', 'dur': 3.2}))   # 5: жив — стонет
+        elif nt.startswith('Внутри на полу'):
+            out.append(B(**{'if': b['if'], 'shot': 'st_window', 'dur': 3.4}))                          # 5: не шевелится
+        elif nt.startswith('Мальчик на ступеньке'):
+            out.append(B(shot='st_danny_stare', dur=3.0))                # 6: Дэнни не дышит, Айрис заслоняет
+        elif b.get('say') == 'iris':
+            b2 = dict(b)
+            b2.pop('shot', None)
+            b2['cam'] = IRIS_OTS                                         # 7: через плечо Ноя на Айрис
+            out.append(b2)
+        elif b.get('fx') == 'flash_dock':
+            out.append(B(**{'if': b.get('if', {}), 'fx': 'memory_dock', 'dur': 2.0}))   # 8: рука на мостках, синий свет
+            out.append(B(**{'if': b.get('if', {}), 'fx': 'memory_back', 'cam': NOAH_FACE_PUMP, 'dur': 0.8}))
+            out.append(B(fx='nozzle_drop', cam=PUMP_MED, dur=1.4))     # 9: пистолет падает и повисает на шланге
+            out.append(B(walk={'who': 'noah', 'to': [13.15, 0.0, -5.6], 'then': 'Idle', 'face': 180}, dur=1.8))
+        else:
+            out.append(b)
+    j['scenes']['s5_lapse']['beats'] = out
+
+
+# ---------- эпизод 7 (s6…): дети у машины, решение про Дэнни, отъезд с последствиями в витрине ----------
+KIDS_CAM = [[12.3, 1.6, -0.7], [13.0, 1.15, -4.2], 40]           # средний у задней двери (сзади-слева машины)
+NOAH_OTS = [[12.85, 1.78, -6.0], [12.95, 1.25, -3.6], 36]        # через плечо Ноя на Айрис и Дэнни
+DOOR_HOLD = [[12.35, 1.45, -6.4], [13.0, 1.05, -4.0], 38]        # крупно: Ной у открытой задней двери
+HANDS_LET = [[12.5, 1.35, -2.6], [12.98, 0.95, -3.55], 30]       # крупно руки: Айрис отпускает руку Дэнни
+IN_DASH = [[14.62, 1.27, -3.8], [14.05, 0.92, -5.35], 54]         # салон: приборы загораются
+PASSBY = [[12.2, 1.55, -9.0], [26.4, 1.7, -9.0], 30]              # мимо витрины: машина проходит в кадре, за стеклом — Роман
+PASSBY_LOW = [[20.4, 2.6, -8.4], [26.0, 0.55, -10.0], 36]         # после провала: сверху за прилавок (Роман на полу)
+ROAD_BACK = [[-1.8, 1.0, -30.0], [13.0, 2.0, -6.0], 46]           # с трассы назад: машина уезжает, «4» подмигивает
+EP7_CAPTIONS = ('Мальчик в ужасе пятится', 'Дэнни садится назад', 'Мальчик забивается в угол', 'Ной молчит. Айрис решает сама',
+                'Она сажает мальчика назад', 'Айрис отпускает его руку')
+
+
+def episode7(j):
+    sc = j['scenes']
+    E = {'ref': 'ep7'}
+    def B(**kw):
+        d = dict(E)
+        d.update(kw)
+        return d
+    def says(sid):
+        return [b for b in sc[sid]['beats'] if b.get('say')]
+    def choice(sid):
+        return next(b for b in sc[sid]['beats'] if b.get('choice'))
+    # s6: дети подходят к машине; «Его Дэнни зовут» (если имя не спрашивали); выбор — через плечо Ноя
+    s6 = sc['s6']['beats']
+    if not any(b.get('ref') == 'ep7' for b in s6):
+        name = next(b for b in s6 if b.get('say') == 'iris')
+        name.pop('shot', None)
+        name['cam'] = NOAH_OTS
+        ch = choice('s6')
+        ch['choice'].pop('shot', None)
+        ch['choice']['cam'] = NOAH_OTS
+        sc['s6']['beats'] = [B(fx='kids_to_car', cam=KIDS_CAM, dur=4.2), name, ch]
+    # s6_a: «Поехали с нами» — тянется к двери, открывает и держит; после провала мальчик пятится, Айрис на корточках
+    if not any(b.get('ref') == 'ep7' for b in sc['s6_a']['beats']):
+        l0, rest = says('s6_a')[0], says('s6_a')[1:]
+        l0 = dict(l0, fx='rear_door_open')
+        l0.pop('shot', None)
+        l0['cam'] = DOOR_HOLD
+        out = [l0, B(**{'if': {'lapse1': '>0'}, 'fx': 'danny_back_away', 'cam': KIDS_CAM, 'dur': 1.6})]
+        for r in rest:   # «Я с тобой. Он тебя не тронет.» — присев перед ним
+            out.append(B(**{'if': r.get('if', {}), 'fx': 'iris_kneel', 'dur': 0.5}))
+            r = dict(r)
+            r.pop('shot', None)
+            r['cam'] = KIDS_CAM
+            out.append(r)
+        out += [B(fx='danny_climb_in', cam=KIDS_CAM, dur=2.8), {'set': {'danny': 1}}, {'go': 's6_end'}]
+        sc['s6_a']['beats'] = out
+    # s6_a2: «Ладно. Садись назад» — открывает дверь; Дэнни садится (после провала — в дальний угол)
+    if not any(b.get('ref') == 'ep7' for b in sc['s6_a2']['beats']):
+        l0 = dict(says('s6_a2')[0], fx='rear_door_open')
+        l0.pop('shot', None)
+        l0['cam'] = DOOR_HOLD
+        sc['s6_a2']['beats'] = [l0, B(fx='danny_climb_in', cam=KIDS_CAM, dur=2.8), {'set': {'danny': 1}}, {'go': 's6_end'}]
+    # s6_b: Дэнни опускает глаза на рацию; второй выбор — крупно Ной у двери
+    if not any(b.get('ref') == 'ep7' for b in sc['s6_b']['beats']):
+        bb = sc['s6_b']['beats']
+        for b in bb:
+            if b.get('say'):
+                b.pop('shot', None)
+                b['cam'] = NOAH_OTS
+        ch = choice('s6_b')
+        ch['choice'].pop('shot', None)
+        ch['choice']['cam'] = DOOR_HOLD
+        i = bb.index(ch)
+        bb.insert(i, B(look={'who': 'danny', 'at': 'danny_walkie'}, dur=1.2))
+    # s6_c: молчание — Ной смотрит на трассу; Айрис сама сажает мальчика и пристёгивает
+    if not any(b.get('ref') == 'ep7' for b in sc['s6_c']['beats']):
+        sc['s6_c']['beats'] = [
+            B(look={'who': 'noah', 'at': [0.0, 1.2, -30.0]}, cam=NOAH_OTS, dur=2.0),
+            B(fx='iris_buckle', cam=KIDS_CAM, dur=3.4),
+            {'set': {'danny': 1}}, {'go': 's6_end'}]
+    # s6_leave: «Нет. Он остаётся» — крупно руки: Айрис отпускает руку; мальчик остаётся под навесом
+    if not any(b.get('ref') == 'ep7' for b in sc['s6_leave']['beats']):
+        l0 = dict(says('s6_leave')[0])
+        l0.pop('shot', None)
+        l0['cam'] = DOOR_HOLD
+        rest = [b for b in sc['s6_leave']['beats'] if b.get('set') or b.get('toast')]
+        sc['s6_leave']['beats'] = [l0, B(fx='iris_release', cam=HANDS_LET, dur=2.2), B(fx='danny_stays', dur=0.2)] + rest + [{'go': 's6_end'}]
+    # отъезд: Ной садится за руль, мотор, фары; мимо витрины (что с Романом — по ветке); с трассы назад; «4» мигает
+    sc['s6_end']['beats'] = [
+        B(fx='noah_to_car', cam=DOOR_HOLD, dur=2.4),
+        B(fx='engine_on', cam=IN_DASH, dur=1.6),
+        B(fx='roman_window'),
+        B(**{'if': {'lapse1': '==0'}, 'fx': 'car_depart', 'cam': PASSBY, 'dur': 3.6}),
+        B(**{'if': {'lapse1': '>0'}, 'fx': 'car_depart', 'cam': PASSBY_LOW, 'dur': 3.6}),
+        B(fx='neon_flicker', cam=ROAD_BACK, dur=3.4),
+        B(**{'if': {'danny_left': '>0'}, 'fx': 'danny_alone', 'dur': 1.4}),
+        {'go': 's7'},
     ]
 
 
@@ -225,12 +372,14 @@ def main():
                 late = None
             rest.append(b)
         bs[st + 1:] = intro_s5() + rest
-    for b in bs:   # Айрис идёт к ступеньке от своей двери (дверь закрывается за ней); Ной в глубине кадра открывает лючок
+    for b in bs:   # Ной в глубине кадра открывает лючок, пока Айрис говорит с Дэнни
         if (b.get('walk') or {}).get('who') == 'iris' and b.get('shot') == 'st_two':
-            b['fx'] = 'door_r_close'
+            b.pop('fx', None)
         if b.get('say') == 'iris' and b.get('ru', '').startswith('Ты чего тут один'):
             b['fx'] = 'fuel_flap_open'
     shop(j)
+    lapse(j)
+    episode7(j)
     # Роман на табурете у телевизора — с самого начала прогулки (видно сквозь витрину), а не только у прилавка
     w['setup'] = [b for b in w.get('setup', []) if (b.get('place') or {}).get('who') != 'roman' and b.get('fx') != 'roman_stool']
     w['setup'].insert(0, {'fx': 'roman_stool', 'ref': 'shop'})

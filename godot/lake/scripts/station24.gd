@@ -46,6 +46,50 @@ static func fx(g, k: String) -> bool:
 			var na: Actor = g.actors.noah
 			var tw: Tween = g.create_tween()
 			tw.tween_property(na, "position", na.position + Vector3(-0.5, -0.06, 0.05), 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		"lapse_tv":   # провал, шаг 1: фокус соскальзывает с Романа на фото Ноя в телевизоре — гул в голове вверх
+			g.hud.hum = 0.95
+			g._shake = maxf(g._shake, 0.25)
+		"wake_drop":   # пробуждение: по рукоятке стекает капля крови с разбитых костяшек
+			_blood_drop(g)
+			g.sfx.play("breath_ragged", -8.0)
+		"bell_swing":   # колокольчик над треснувшей дверью ещё качается — беззвучно
+			StationProps.door_bell(g.scene.station_root, true)
+		"roman_groan":   # Роман жив: стонет на полу (глухо, сквозь стекло)
+			g.sfx.play("groan", -14.0)
+		"memory_dock":   # вспышка памяти: женская рука на мостках, мокрый рукав, холодный синий свет, плеск
+			_memory_dock(g)
+		"memory_back":
+			_memory_back(g)
+		"nozzle_drop":   # разжал пальцы: пистолет падает и повисает на шланге, качаясь
+			_nozzle_drop(g)
+		"kids_to_car":   # эпизод 7: Айрис ведёт Дэнни за руку к левой задней двери, Ной подходит от колонки
+			_kids_to_car(g)
+		"rear_door_open":   # Ной открывает заднюю дверь за ручку и держит её (левая: справа островок в 16 см)
+			var na: Actor = g.actors.noah
+			g.scene.car.door_open("rl", 0.8, 0.8)
+			g.sfx.play("car_door", -10.0, 1.1)
+			na.reach = {"_l": g.scene.car.to_global(Vector3(-0.9, 0.95, 0.62))}
+		"danny_back_away":   # после провала: Дэнни в ужасе пятится, вырывает руку у Айрис, отступает в снег
+			_danny_back_away(g)
+		"iris_kneel":   # Айрис опускается перед ним, берёт за оба плеча
+			_iris_kneel(g)
+		"danny_climb_in":   # руки на дверной раме, колено на сиденье — влезает назад; Ной закрывает дверь, не хлопая
+			_danny_climb_in(g)
+		"iris_buckle":   # молчание: Айрис сама сажает мальчика и пристёгивает ремнём
+			_iris_buckle(g)
+		"iris_release":   # «Он остаётся»: Айрис медленно отпускает руку Дэнни
+			_iris_release(g)
+		"noah_to_car":   # Ной садится за руль: дверь, сел, дверь закрыта
+			_noah_to_car(g)
+		"engine_on":   # мотор заводится, фары и приборы загораются
+			g.scene.car.dash_on(0.4)
+			g.sfx.play("engine_start", -6.0, 1.0, 0.1)
+		"roman_window":   # что видно в витрине при отъезде — по ветке у кассы
+			_roman_window(g)
+		"car_depart":   # машина трогается, проезжает мимо витрины и выезжает на трассу
+			_car_depart(g)
+		"danny_alone":   # «Он остаётся»: маленькая фигура под навесом, тихо шипит рация
+			g.sfx.play("radio_hiss", -22.0)
 		"walkie_hide", "walkie_show":   # рация Дэнни зажата коленями, пока он дышит в ладони (лист, шаг 3)
 			var da: Actor = g.actors.get("danny")
 			if da:
@@ -57,12 +101,181 @@ static func fx(g, k: String) -> bool:
 	return true
 
 
-## Шнуры телефона — каждый кадр, пока реквизит прилавка на месте (game.gd _process).
+## Каждый кадр: шнуры телефона у прилавка; левая рука Ноя на стволе пистолета (пробуждение у колонки).
 static func tick(g) -> void:
 	var root = g.scene.station_root
-	if root == null or not is_instance_valid(root) or root.get_node_or_null("counter_props") == null:
+	if root == null or not is_instance_valid(root):
 		return
-	StationProps.cord_update(root, bool(g.flags.get("_cord_ripped", 0.0) > 0.0))
+	if root.get_node_or_null("counter_props") != null:
+		StationProps.cord_update(root, bool(g.flags.get("_cord_ripped", 0.0) > 0.0))
+	var na = g.actors.get("noah")
+	if na is Actor and (na as Actor).has_meta("left_on_nozzle"):
+		var hn := (na as Actor).skel.get_node_or_null("nozzle_in_hand") as Node3D
+		if hn and (na as Actor).reach.has("_l"):
+			(na as Actor).reach["_l"] = hn.global_transform * Vector3(0.0, 0.1, 0.12)   # ствол пистолета
+
+
+## Пробуждение у колонки: пистолет в обеих руках, шланг от колонки (не обрывок), табло — литры заправки.
+static func wake_at_pump(g) -> void:
+	var na: Actor = g.actors.noah
+	var root: Node3D = g.scene.station_root
+	var hn := na.skel.get_node_or_null("nozzle_in_hand") as Node3D
+	if hn:
+		var stub := hn.get_node_or_null("hose_stub") as Node3D
+		if stub:
+			stub.visible = false
+	StationProps.holster(root, false)
+	if g._hose == null or not is_instance_valid(g._hose):
+		g._hose = MeshInstance3D.new()
+		var hm := StandardMaterial3D.new()
+		hm.albedo_color = Color(0.03, 0.03, 0.035)
+		hm.roughness = 0.45
+		g._hose.material_override = hm
+		root.add_child(g._hose)
+	StationProps.pump_display(root, g.FUEL_L, g.lang)
+	na.reach = {"_l": na.global_position + Vector3(0, 1.0, 0)}
+	na.set_meta("left_on_nozzle", true)
+	na.set_meta("auto_grip", false)
+	na.grip = {"_r": 0.85, "_l": 0.7}
+
+
+## Капля крови с костяшек стекает по рукоятке пистолета и падает в снег.
+static func _blood_drop(g) -> void:
+	var na: Actor = g.actors.noah
+	var hn := na.skel.get_node_or_null("nozzle_in_hand") as Node3D
+	if hn == null:
+		return
+	var d := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = 0.006
+	sm.height = 0.014
+	d.mesh = sm
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.22, 0.01, 0.01)
+	m.roughness = 0.1
+	m.metallic_specular = 0.8
+	d.material_override = m
+	hn.add_child(d)
+	d.position = Vector3(0.022, 0.12, 0.03)
+	var tw := d.create_tween()
+	tw.tween_interval(0.6)
+	tw.tween_property(d, "position", Vector3(0.022, 0.02, 0.03), 1.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		var gp := d.global_position
+		d.reparent(g.scene.station_root, true)
+		var tf := d.create_tween()
+		tf.tween_property(d, "global_position", Vector3(gp.x, 0.02, gp.z), 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tf.tween_callback(d.queue_free))
+
+
+## Разжал пальцы: пистолет падает, повисает на шланге у колонки и качается; Ной идёт к машине.
+static func _nozzle_drop(g) -> void:
+	var na: Actor = g.actors.noah
+	var hn := na.skel.get_node_or_null("nozzle_in_hand") as Node3D
+	na.remove_meta("left_on_nozzle")
+	na.clear_hands()
+	na.grip = {}
+	na.set_meta("auto_grip", true)
+	if hn == null:
+		return
+	var root: Node3D = g.scene.station_root
+	var hold := Node3D.new()   # пистолет — отдельно от руки: висит на шланге
+	hold.name = "nozzle_dropped"
+	root.add_child(hold)
+	hold.global_transform = hn.global_transform
+	for c in hn.get_children():
+		(c as Node3D).reparent(hold, true)
+	hn.queue_free()
+	g.set_meta("nozzle_node", hold)
+	var hang := Vector3(12.55, 0.55, -4.45)   # повис у колонки, низко над снегом
+	var tw := hold.create_tween()
+	tw.tween_property(hold, "global_position", hang, 0.32).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(hold, "rotation_degrees", Vector3(160, hold.rotation_degrees.y, 10), 0.32)
+	for k in 4:   # качается и замирает
+		var amp := 22.0 * pow(0.55, k)
+		tw.tween_property(hold, "rotation_degrees:z", amp, 0.35).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(hold, "rotation_degrees:z", -amp * 0.7, 0.35).set_trans(Tween.TRANS_SINE)
+	g.sfx.play("nozzle", -6.0, 0.8, 0.25)
+
+
+## Вспышка памяти: мини-сцена далеко в стороне от «24» (в воздухе, чтобы ничего из мира не попало в кадр) — мокрые
+## доски мостков, тёмная вода, женская рука в мокром рукаве (Анна), холодный синий свет сверху; камера — крупно на руку.
+const DOCK := Vector3(400.0, 60.0, 400.0)
+static func _memory_dock(g) -> void:
+	var root: Node3D = g.scene.station_root
+	var set_ := root.get_node_or_null("dock_memory") as Node3D
+	if set_ == null:
+		set_ = Node3D.new()
+		set_.name = "dock_memory"
+		root.add_child(set_)
+		set_.global_position = DOCK
+		var water := MeshInstance3D.new()
+		var pm := PlaneMesh.new()
+		pm.size = Vector2(12, 12)
+		water.mesh = pm
+		var wm := StandardMaterial3D.new()
+		wm.albedo_color = Color(0.01, 0.02, 0.035)
+		wm.roughness = 0.05
+		wm.metallic_specular = 1.0
+		water.material_override = wm
+		water.position = Vector3(0, -0.35, 0)
+		set_.add_child(water)
+		var wood := StandardMaterial3D.new()
+		wood.albedo_color = Color(0.16, 0.13, 0.1)
+		wood.roughness = 0.2   # мокрые
+		for i in 7:   # доски поперёк, с щелями
+			var b := MeshInstance3D.new()
+			var bm := BoxMesh.new()
+			bm.size = Vector3(3.0, 0.04, 0.17)
+			b.mesh = bm
+			b.material_override = wood
+			b.position = Vector3(0.6, 0, -0.6 + i * 0.19)
+			set_.add_child(b)
+		var sl := SpotLight3D.new()   # холодный синий свет
+		sl.light_color = Color(0.45, 0.62, 1.0)
+		sl.light_energy = 3.0
+		sl.spot_range = 6.0
+		sl.spot_angle = 40.0
+		set_.add_child(sl)
+		sl.position = Vector3(-0.3, 2.6, 0.2)
+		sl.rotation_degrees = Vector3(-80, 0, 0)
+		var an := Actor.make("anna", "anna")
+		set_.add_child(an)
+		an.name = "anna_dock"
+		an.position = Vector3(1.05, 0.02, 0.0)
+		an.rotation_degrees = Vector3(0, 90, 0)
+		an.play("Death01", 0.0, 0.0)
+		an.ap.seek(maxf(0.0, an.ap.current_animation_length - 0.05), true)
+		an.ap.pause()
+		an.blink_t = 1e9
+		for mi in an.find_children("*", "MeshInstance3D", true, false):   # мокрая ткань: темнее и с бликом
+			var m := (mi as MeshInstance3D).get_active_material(0)
+			if m is StandardMaterial3D and String(mi.name).begins_with("cloth"):
+				var wm2 := (m as StandardMaterial3D).duplicate() as StandardMaterial3D
+				wm2.albedo_color = wm2.albedo_color.darkened(0.35)
+				wm2.roughness = 0.18
+				(mi as MeshInstance3D).set_surface_override_material(0, wm2)
+	g.set_meta("dock_prev", [g._shot, g._cam_free])
+	var hand := Vector3.ZERO
+	var an2 := set_.get_node_or_null("anna_dock") as Actor
+	if an2:
+		hand = an2.skel.global_transform * an2.skel.get_bone_global_pose(an2.skel.find_bone("hand_r")).origin
+	else:
+		hand = DOCK
+	g._cam_free = [[hand.x - 0.35, hand.y + 0.9, hand.z + 0.25], [hand.x, hand.y, hand.z], 34]
+	g._cam_free_to = []
+	g._cut("free")
+	g.sfx.play("splash", -14.0, 0.7)
+	g.sfx.play("splash", -18.0, 0.8, 0.9)
+
+
+static func _memory_back(g) -> void:
+	var root: Node3D = g.scene.station_root
+	var set_ := root.get_node_or_null("dock_memory")
+	if set_:
+		set_.queue_free()
+	g._shake = maxf(g._shake, 0.3)
+
 
 
 static func _bone(a: Actor, b: String) -> Vector3:
@@ -366,3 +579,209 @@ static func _hand_counter(g) -> void:
 	tw.tween_method(func(p: Vector3):
 		if ra.reach.has("_r"):
 			ra.reach["_r"] = p, from, to, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+# ------------------------------------------------------------------ эпизод 7: дети у машины и отъезд
+const RL_DOOR := Vector3(12.98, 0.0, -3.95)    # у левой задней двери, в проходе между машиной и левым островком
+
+
+## Айрис ведёт Дэнни за руку из-за машины к левой задней двери; Ной идёт навстречу от колонки.
+static func _kids_to_car(g) -> void:
+	var lapse := float(g.flags.get("lapse1", 0)) > 0.0
+	var da: Actor = g.actors.danny
+	var ia: Actor = g.actors.iris
+	var na: Actor = g.actors.noah
+	da.clear_hands()
+	ia.clear_hands()
+	g._place({"who": "danny", "at": [13.35, 0.0, -1.35], "face": -150, "clip": "Idle"})
+	g._place({"who": "iris", "at": [13.75, 0.0, -1.2], "face": -150, "clip": "Idle"})
+	g._place({"who": "noah", "at": [12.95, 0.0, -5.7], "face": 0, "clip": "Idle"})
+	g._walk({"who": "danny", "to": [RL_DOOR.x, 0.0, RL_DOOR.z + 0.2], "then": "Idle", "face": 180, "speed": 0.9})
+	g._walk({"who": "iris", "to": [RL_DOOR.x - 0.05, 0.0, RL_DOOR.z + 0.85], "then": "Idle", "face": 180, "speed": 0.9})
+	g._walk({"who": "noah", "to": [12.95, 0.0, -5.1], "then": "Idle", "face": 0, "speed": 0.7})
+	g._expr({"who": "danny", "set": "fear" if lapse else "sad"})
+	da.look_target = g._target("noah")
+	ia.look_target = g._target("noah")
+	na.look_target = g._target("iris")
+	var tw: Tween = g.create_tween()   # рука в руке: левая Айрис держит правую Дэнни
+	tw.tween_interval(0.2)
+	tw.tween_method(func(_f: float):
+		if is_instance_valid(da) and is_instance_valid(ia) and da.walking:
+			ia.reach = {"_l": _bone(da, "hand_r") + Vector3(0, 0.02, 0)}, 0.0, 1.0, 3.2)
+	tw.tween_callback(func(): ia.reach = {"_l": _bone(da, "hand_r") + Vector3(0, 0.02, 0)})
+
+
+## Дэнни пятится в снег, вырывая руку у Айрис.
+static func _danny_back_away(g) -> void:
+	var da: Actor = g.actors.danny
+	var ia: Actor = g.actors.iris
+	ia.clear_hands()
+	g._expr({"who": "danny", "set": "fear"})
+	da.play("Walk", 0.0, 0.2)
+	da.ap.speed_scale = -0.9
+	var tw: Tween = g.create_tween()
+	tw.tween_property(da, "position", da.position + Vector3(-0.15, 0.0, 0.85), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(func(): da.play("Idle", 0.0, 0.25))
+	da.do_gesture("chest", 6.0)
+
+
+## Айрис опускается перед мальчиком на корточки и берёт его за оба плеча.
+static func _iris_kneel(g) -> void:
+	var da: Actor = g.actors.danny
+	var ia: Actor = g.actors.iris
+	var d0 := da.global_position
+	g._place({"who": "iris", "at": [d0.x + 0.05, 0.0, d0.z - 0.55], "face": 10, "clip": "Crouch_Idle"})
+	ia.reach_lean = 20.0
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(0.35)
+	tw.tween_callback(func():
+		ia.reach = {"_r": _bone(da, "upperarm_l") + Vector3(0, 0.02, 0), "_l": _bone(da, "upperarm_r") + Vector3(0, 0.02, 0)}
+		ia.look_target = g._target("danny"))
+
+
+## Дэнни садится назад через левую заднюю дверь: руки на раме, колено на сиденье — и внутрь; дверь закрывается тихо.
+static func _danny_climb_in(g) -> void:
+	var da: Actor = g.actors.danny
+	var ia: Actor = g.actors.iris
+	var na: Actor = g.actors.noah
+	ia.clear_hands()
+	da.clear_hands()
+	g.scene.car.door_open("rl", 0.8, 0.5)
+	g._place({"who": "danny", "at": [13.05, 0.0, -3.85], "face": 90, "clip": "Idle"})
+	da.reach = {"_r": g.scene.car.to_global(Vector3(-0.88, 1.18, 0.6)), "_l": g.scene.car.to_global(Vector3(-0.88, 1.18, 1.2))}
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(0.45)
+	tw.tween_callback(func(): da.play("Sitting_Enter", 0.0, 0.3))
+	tw.tween_property(da, "position", Vector3(13.6, 0.18, -3.85), 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_callback(func():
+		da.clear_hands()
+		var lapse := float(g.flags.get("lapse1", 0)) > 0.0
+		g._place({"who": "danny", "car": "back" if lapse else "back_l"})   # после провала — в дальний угол, подальше от Ноя
+		g._expr({"who": "danny", "set": "fear" if lapse else "sad"})
+		g.scene.car.door_open("rl", 0.0, 0.7)   # не хлопая — медленно
+		g.sfx.play("car_door", -16.0, 1.05, 0.6)
+		na.clear_hands())
+
+
+## Айрис сама сажает мальчика и пристёгивает: дверь, Дэнни внутрь, она тянется через него к пряжке.
+static func _iris_buckle(g) -> void:
+	_danny_climb_in(g)
+	var ia: Actor = g.actors.iris
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(1.6)
+	tw.tween_callback(func():
+		ia.reach_lean = 40.0
+		ia.reach = {"_r": g.scene.car.to_global(Vector3(-0.2, 0.62, 1.15))}
+		g.sfx.play("belt_click", -10.0, 1.0, 0.7))
+	tw.tween_interval(1.2)
+	tw.tween_callback(func(): ia.clear_hands())
+
+
+## «Нет. Он остаётся»: пальцы Айрис медленно разжимаются, рука мальчика выскальзывает; она идёт к машине, не глядя на Ноя.
+static func _iris_release(g) -> void:
+	var ia: Actor = g.actors.iris
+	var da: Actor = g.actors.danny
+	var hand := _bone(da, "hand_r")
+	ia.reach = {"_l": hand}
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(0.8)
+	tw.tween_method(func(f: float):
+		if ia.reach.has("_l"):
+			ia.reach["_l"] = hand + Vector3(-0.02, 0.03, 0.08) * f, 0.0, 1.0, 1.0)
+	tw.tween_callback(func():
+		ia.clear_hands()
+		ia.look_target = null)
+
+
+## Ной садится за руль: открыл свою дверь, сел (край сиденья — внутрь), дверь закрыта.
+static func _noah_to_car(g) -> void:
+	var na: Actor = g.actors.noah
+	na.clear_hands()
+	var ia: Actor = g.actors.iris
+	if ia.get_parent() != g.scene.car:   # Айрис уже села (вне кадра: справа дверь не открыть — островок в 16 см)
+		ia.clear_hands()
+		g._place({"who": "iris", "car": "passenger"})
+		ia.look_target = null
+	g._place({"who": "noah", "at": [12.98, 0.0, -4.45], "face": 90, "clip": "Idle"})
+	g.scene.car.door_open("l", 0.72, 0.6)
+	g.sfx.play("car_door", -9.0, 1.05)
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(0.55)
+	tw.tween_callback(func(): na.play("Sitting_Enter", 0.0, 0.3))
+	tw.tween_property(na, "position", Vector3(13.5, 0.06, -4.6), 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_callback(func():
+		g._place({"who": "noah", "car": "driver"})
+		g.scene.car.door_open("l", 0.0, 0.45)
+		g.sfx.play("car_door", -5.0, 1.0, 0.4))
+
+
+## Витрина при отъезде — последствия кассы (лист «24», эпизод 7, шаг 3): police — Роман у телефона, трубка у уха;
+## police_late — Роман с оборванным шнуром в руке смотрит на дверь; roman_ally — Роман смотрит им вслед, трубка
+## лежит на прилавке; roman_hurt — поднимается с пола; roman_dead — не поднимается.
+static func _roman_window(g) -> void:
+	var ra: Actor = g.actors.roman
+	var root: Node3D = g.scene.station_root
+	var f: Dictionary = g.flags
+	var props := StationProps.counter_props(root)
+	var rc: Node3D = props.get("receiver")
+	ra.end_gesture()
+	if float(f.get("roman_dead", 0)) > 0.0:
+		return   # лежит, как лежал
+	if float(f.get("roman_hurt", 0)) > 0.0:
+		ra.ap.play("LayToIdle", 0.3)   # поднимается с пола, держась за голову
+		ra.clear_hands()
+		return
+	g._place({"who": "roman", "at": [26.35, 0.38, -9.2], "face": 0, "clip": "Idle"})
+	if float(f.get("police_late", 0)) > 0.0:   # с оборванным шнуром в руке
+		var cord := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.004
+		cm.bottom_radius = 0.004
+		cm.height = 0.7
+		cord.mesh = cm
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(0.1, 0.1, 0.1)
+		cord.material_override = m
+		_hold(ra, cord)
+		cord.position = Vector3(0.0, -0.25, 0.03)
+		cord.rotation_degrees = Vector3.ZERO
+		g._look({"who": "roman", "at": [21.0, 1.6, -2.0]})   # на дверь
+		return
+	if float(f.get("police", 0)) > 0.0:   # у телефона: трубка у уха
+		if rc:
+			_hold(ra, rc)
+		ra.reach = {"_r": ra.head_pos() - ra.global_transform.basis.x * 0.09 + Vector3(0, -0.03, 0.02)}
+		ra.play("Idle_TalkingPhone", 0.0, 0.3)
+		return
+	if float(f.get("roman_ally", 0)) > 0.0:   # смотрит им вслед; трубка лежит на прилавке
+		if rc:
+			rc.reparent(root, true)
+			rc.global_position = Vector3(26.0, TOP + 0.02, -8.6)
+			rc.rotation = Vector3(0, 0.4, 1.5708)
+		g._look({"who": "roman", "at": [14.3, 1.2, -9.0]})
+
+
+## Отъезд: машина трогается от колонки вперёд, проезжает вдоль навеса мимо витрины и дугой выезжает на трассу.
+static func _car_depart(g, dur := 7.0) -> void:
+	var car: Car = g.scene.car
+	var p0 := car.position
+	var p1 := Vector3(p0.x, 0.0, -16.0)
+	var p2 := Vector3(0.5, 0.0, -19.0)
+	var p3 := Vector3(0.5, 0.0, -36.0)
+	var bez := func(t: float) -> Vector3:
+		var u := 1.0 - t
+		return p0 * (u * u * u) + p1 * (3.0 * u * u * t) + p2 * (3.0 * u * t * t) + p3 * (t * t * t)
+	var st := {"yaw": car.rotation.y}
+	car.ride = true
+	var tw: Tween = g.create_tween()
+	tw.tween_method(func(k: float):
+		var t := k * k * (1.6 - 0.6 * k)   # трогается плавно, разгоняется
+		var p: Vector3 = bez.call(t)
+		var d: Vector3 = (bez.call(minf(t + 0.004, 1.0)) as Vector3) - (bez.call(maxf(t - 0.004, 0.0)) as Vector3)
+		var yaw := atan2(-d.x, -d.z) if d.length() > 1e-5 else float(st.yaw)
+		car.position = p
+		car.rotation.y = yaw
+		car.speed = 2.0 + 10.0 * k
+		car.steer = clampf(-wrapf(yaw - float(st.yaw), -PI, PI) * 55.0, -0.9, 0.9)
+		st.yaw = yaw, 0.0, 1.0, dur)
+

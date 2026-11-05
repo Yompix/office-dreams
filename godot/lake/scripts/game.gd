@@ -521,6 +521,8 @@ func _run(id: String) -> void:
 func _beat(b: Dictionary):
 	if b.has("if") and not _cond(b["if"]):   # условие не выполнено: шаг пропускается или переход в «else»
 		return String(b.get("else", ""))
+	if b.get("mute", false) and float(settings.vol.get("master", 1.0)) > 0.01 and float(settings.vol.get("sfx", 1.0)) > 0.01:
+		return ""   # субтитр звука («Бьётся стекло…») — только если звук выключен: со звуком его заменяет звук
 	if b.get("station", false):
 		await _station()
 	if b.has("place"):
@@ -601,7 +603,11 @@ func _beat(b: Dictionary):
 		await _wait(float(b.dur))
 	if b.has("choice"):
 		var c: Dictionary = b.choice
-		if c.has("shot"):
+		if c.has("cam"):   # свой план выбора: [позиция, куда смотрит, угол]
+			_cam_free = c.cam
+			_cam_free_to = []
+			_cut("free")
+		elif c.has("shot"):
 			_cut(String(c.shot))
 		var opts: Array = (c.opts as Array).filter(func(o): return not (o as Dictionary).has("if") or _cond(o["if"]))
 		hud.choice(opts, float(c.get("t", 6)) * (1.6 if settings.choice_long else 1.0))
@@ -772,6 +778,9 @@ func _target(at):
 		var o: Actor = actors[s]
 		return o.skel.global_transform * o.skel.get_bone_global_pose(o.skel.find_bone("head")).origin + Vector3(0, 0.07, 0)
 	match s:
+		"danny_walkie":   # Дэнни опускает глаза на рацию (она в правой руке)
+			var dk: Actor = actors.danny
+			return dk.skel.global_transform * dk.skel.get_bone_global_pose(dk.skel.find_bone("hand_r")).origin
 		"noah_hands":   # кровь на руках
 			var n: Actor = actors.noah
 			return (n.skel.global_transform * n.skel.get_bone_global_pose(n.skel.find_bone("hand_r")).origin
@@ -1123,20 +1132,37 @@ func _lapse_after() -> void:
 	_place({"who": "noah", "at": [13.0, 0.0, -4.1], "face": -100, "clip": "Idle"})
 	_attach_nozzle(actors.noah)
 	(actors.noah as Actor).set_knuckles(1.0)   # кровь, третье состояние: разбитые костяшки (лист «24»)
+	St24.wake_at_pump(self)   # пистолет в обеих руках, шланг от колонки, на табло — литры заправки
 	scene.crack_door()
+	StationProps.door_bell(scene.station_root)
 	var dead := float(flags.get("shadow", 0)) >= 1.0
 	var r: Actor = actors.roman
-	_place({"who": "roman", "at": [22.9, FLOOR, -3.7], "face": 80, "clip": "Death01"})
+	r.clear_hands()
+	# Роман на полу между прилавком и полкой (за прилавком), вокруг рассыпаны пачки сигарет (лист «24», провал, шаг 5)
+	var rp := Vector3(26.0, FLOOR, -10.0)
+	_place({"who": "roman", "at": [rp.x, rp.y, rp.z], "face": 80, "clip": "Death01"})
 	r.ap.seek(maxf(0.0, r.ap.current_animation_length - 0.05), true)
 	r.ap.pause()
 	r.look_target = null
+	StationProps.scatter_packs(scene.station_root, rp)
 	_expr({"who": "roman", "set": "dead" if dead else "pain"})
 	if dead:
 		r.blink_t = 1e9
-		scene.blood_pool(Vector3(22.0, FLOOR + 0.004, -3.75))
+		scene.blood_pool(rp + Vector3(-0.45, 0.004, 0.05))
+	else:   # жив: держится за голову обеими руками
+		get_tree().create_timer(0.1).timeout.connect(func():
+			if is_instance_valid(r):
+				var hd: Vector3 = r.skel.global_transform * r.skel.get_bone_global_pose(r.skel.find_bone("head")).origin
+				r.reach = {"_r": hd + Vector3(0.0, 0.06, -0.09), "_l": hd + Vector3(0.0, 0.06, 0.09)})
 	_expr({"who": "danny", "set": "fear"})
-	(actors.danny as Actor).look_target = _target("noah")
-	_place({"who": "iris", "car": "passenger"})
+	var da: Actor = actors.danny
+	da.look_target = _target("noah")
+	da.do_gesture("chest", 30.0)   # рация прижата к груди
+	# Айрис уже стоит между мальчиком и Ноем, левая рука чуть отведена назад — заслоняет его (шаг 6)
+	_place({"who": "iris", "at": [19.25, 0.0, -3.45], "face": -90, "clip": "Idle"})
+	var ia: Actor = actors.iris
+	ia.look_target = _target("noah")
+	ia.reach = {"_l": Vector3(19.55, 0.9, -3.15)}
 	hud.hum_to = 0.0
 	hud.hum = 0.0
 
@@ -1375,8 +1401,11 @@ func _fx(k: String) -> void:
 		"phone_rip":
 			scene.rip_phone()
 			_shake = 0.4
+		"lapse_crack":   # провал: на удар стекла — вспышка в 4 кадра, по стеклу бежит белая трещина
+			hud.flash_crack()
 		"lapse":                                     # провал: белая вспышка → белый шум → чернота
 			fade.color = Color(1, 1, 1, 1)
+			get_tree().create_timer(1.9, false).timeout.connect(hud.flash_crack)   # удар стекла — белая трещина, 4 кадра
 			var tl := create_tween()
 			tl.tween_property(fade, "color", Color(1, 1, 1, 0.0), 0.12)
 			tl.tween_callback(func(): hud.noise = 0.9)
@@ -2341,8 +2370,10 @@ func _pause() -> void:
 func _process(delta: float) -> void:
 	if scene == null:   # перезапуск в другом видеорежиме (BootGuard) — мир не строился
 		return
-	if _hose and is_instance_valid(_hose):   # шланг заправки: от колонки к пистолету в руке Ноя
+	if _hose and is_instance_valid(_hose):   # шланг заправки: от колонки к пистолету в руке Ноя (или выпавшему — висит)
 		var hn: Node3D = actors.noah.skel.get_node_or_null("nozzle_in_hand") if actors.has("noah") else null
+		if hn == null and has_meta("nozzle_node") and is_instance_valid(get_meta("nozzle_node")):
+			hn = get_meta("nozzle_node")
 		if hn:
 			StationProps.hose_mesh(_hose, HOSE_FROM, hn.global_transform * Vector3(0.0, 0.01, -0.01))
 	_beat_t += delta

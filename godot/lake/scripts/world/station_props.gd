@@ -560,7 +560,8 @@ static func neon_four(root: Node3D) -> Array:
 					var a2 := arr.duplicate()
 					a2[Mesh.ARRAY_INDEX] = pair[1]
 					(pair[0] as ArrayMesh).add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a2)
-					(pair[0] as ArrayMesh).surface_set_material((pair[0] as ArrayMesh).get_surface_count() - 1, mat)
+					if mat:
+						(pair[0] as ArrayMesh).surface_set_material((pair[0] as ArrayMesh).get_surface_count() - 1, mat)
 			if cut.get_surface_count() == 0:
 				continue
 			for si in mi.mesh.get_surface_count():
@@ -737,4 +738,56 @@ static func tube_flicker(root: Node3D) -> void:
 			var on: bool = sd[0]
 			tw.tween_callback(func(): mi.visible = on)
 			tw.tween_interval(float(sd[1]))
+
+
+## Колокольчик над дверью магазина (кронштейн у притолоки): swing — качается и затихает (после провала — беззвучно).
+static func door_bell(root: Node3D, swing := false) -> Node3D:
+	var b := root.get_node_or_null("door_bell") as Node3D
+	if b == null:
+		b = Node3D.new()
+		b.name = "door_bell"
+		root.add_child(b)
+		b.position = Vector3(21.0, FLOOR_S + 2.12, -2.25)   # изнутри, над створкой
+		var brass := _mat(Color(0.62, 0.48, 0.2), 0.3, 0.9)
+		_box(b, Vector3(0.012, 0.012, 0.14), Vector3(0, 0, -0.07), brass)   # кронштейн
+		var cup := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.012
+		cm.bottom_radius = 0.035
+		cm.height = 0.05
+		cup.mesh = cm
+		cup.material_override = brass
+		cup.position = Vector3(0, -0.04, 0)
+		cup.name = "cup"
+		b.add_child(cup)
+	if swing:
+		var tw := b.create_tween()
+		for k in 6:
+			var amp := 28.0 * pow(0.7, k)
+			tw.tween_property(b, "rotation_degrees:z", amp, 0.32).set_trans(Tween.TRANS_SINE)
+			tw.tween_property(b, "rotation_degrees:z", -amp * 0.8, 0.32).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(b, "rotation_degrees:z", 0.0, 0.3)
+	return b
+
+
+## После провала: пачки сигарет рассыпаны по полу вокруг Романа (стойка у него за спиной опрокинута в драке).
+static func scatter_packs(root: Node3D, around: Vector3) -> void:
+	counter_props(root)
+	var rk := root.find_child("cigs", true, false) as Node3D
+	if rk == null:
+		return
+	rk.rotation_degrees = Vector3(0, 0, 0)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 24
+	var i := 0
+	for pk in rk.find_children("pack_*", "MeshInstance3D", false, false):
+		if rng.randf() > 0.6:
+			continue
+		var n := pk as Node3D
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(0.25, 1.1)
+		n.global_position = around + Vector3(cos(a) * r, 0.0, sin(a) * r * 0.7)
+		n.global_position.y = FLOOR_S + 0.015
+		n.rotation_degrees = Vector3(90 if rng.randf() > 0.5 else 0, rng.randf_range(0, 360), 0)
+		i += 1
 

@@ -11,7 +11,8 @@
   pump_run   — глава 1, заправка «24»: насос колонки качает — гул мотора, шум топлива в горловине, тиканье счётчика
                (9 с; играет, пока игрок держит кнопку, отпустил — стоп);
   car_arrive, engine_off, belt_click — «24», вступление: машина подкатывает к колонке, ключ — мотор глохнет, ремень;
-  phone_pickup, dial_tone, phone_dial — «24», прилавок: трубку сняли, гудок, набор номера.
+  phone_pickup, dial_tone, phone_dial — «24», прилавок: трубку сняли, гудок, набор номера;
+  breath_ragged, groan — «24», провал: рваное дыхание Ноя, стон Романа за стеклом.
   python3 tools/lake/synth.py   → godot/lake/snd/<имя>.ogg"""
 import os, subprocess, wave
 import numpy as np
@@ -329,6 +330,57 @@ def phone_dial():
         x[i:i + 300] += 0.6 * np.sin(2 * np.pi * 3000 * tt[:300]) * np.exp(-tt[:300] / 0.002)   # кнопка
         c += 0.13 + 0.05 * ((k * 7) % 3)
     save('phone_dial', x, 0.55)
+
+
+def breath_ragged():
+    """Частое рваное дыхание после провала: короткие вдохи сквозь зубы и выдохи паром. 3 с."""
+    dur = 3.0
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    x = np.zeros(n)
+    c = 0.05
+    k = 0
+    while c < dur - 0.3:
+        ln = 0.22 if k % 2 == 0 else 0.3          # вдох короче выдоха
+        i0, i1 = int(c * SR), int((c + ln) * SR)
+        m = i1 - i0
+        env = np.sin(np.linspace(0, np.pi, m)) ** (1.5 if k % 2 == 0 else 0.8)
+        noise = rng.normal(0, 1, m)
+        band = lowpass(noise, 2600.0 if k % 2 == 0 else 1300.0, 1) - lowpass(noise, 350.0, 1)
+        x[i0:i1] += band * env * (0.8 if k % 2 == 0 else 0.6)
+        c += ln + (0.05 if k % 2 == 0 else 0.12)
+        k += 1
+    save('breath_ragged', x, 0.6)
+
+
+def groan():
+    """Роман на полу за стеклом стонет: низкий голос с «о», высота падает, глухо (фильтр стекла). 3,2 с."""
+    dur = 3.2
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    x = np.zeros(n)
+    for c0, ln, f0 in ((0.1, 1.1, 118.0), (1.6, 1.3, 108.0)):
+        i0 = int(c0 * SR)
+        m = int(ln * SR)
+        tt = np.arange(m) / SR
+        f = f0 * (1.0 - 0.18 * tt / ln) * (1 + 0.012 * np.sin(2 * np.pi * 5.5 * tt))   # падает, дрожит
+        ph = 2 * np.pi * np.cumsum(f) / SR
+        glot = sum(np.sin(h * ph) / h ** 1.2 for h in range(1, 14))                 # голосовой источник
+        voc = np.zeros(m)
+        for fm, bw, g in ((480.0, 90.0, 1.0), (820.0, 110.0, 0.55), (2400.0, 160.0, 0.12)):   # гласная «о»
+            r = np.exp(-np.pi * bw / SR)
+            th = 2 * np.pi * fm / SR
+            y1 = y2 = 0.0
+            out = np.zeros(m)
+            for i in range(m):
+                y = glot[i] + 2 * r * np.cos(th) * y1 - r * r * y2
+                out[i] = y
+                y2, y1 = y1, y
+            voc += g * out / np.max(np.abs(out) + 1e-9)
+        env = np.sin(np.linspace(0, np.pi, m)) ** 0.7
+        x[i0:i0 + m] += voc * env + 0.15 * lowpass(rng.normal(0, 1, m), 1500.0, 1) * env
+    x = lowpass(x, 900.0, 2)   # сквозь стекло витрины
+    save('groan', x, 0.5)
 
 
 if __name__ == '__main__':

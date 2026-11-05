@@ -650,7 +650,8 @@ func door(side: String) -> Node3D:
 				var a2 := arr.duplicate()
 				a2[Mesh.ARRAY_INDEX] = ii
 				am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a2)
-				am.surface_set_material(am.get_surface_count() - 1, mat)
+				if mat:
+					am.surface_set_material(am.get_surface_count() - 1, mat)
 		if cut.get_surface_count() == 0:
 			continue
 		for s in src.mesh.get_surface_count():   # переопределённые материалы — теперь в самих сетках

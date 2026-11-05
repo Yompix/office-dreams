@@ -721,6 +721,51 @@ func pick_number(n: int) -> void:   # клавиши 1–9: номер сред�
 				return
 
 
+## Провал: на удар стекла — вспышка в 4 кадра, по экрану бежит белая трещина (поверх чёрного), потом снова темнота.
+var _crack_rect: TextureRect = null
+func flash_crack() -> void:
+	if _crack_rect == null:
+		var W := 640
+		var H := 360
+		var img := Image.create(W, H, false, Image.FORMAT_RGBA8)
+		img.fill(Color(1, 1, 1, 0))
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 41
+		var c := Vector2(W * 0.46, H * 0.44)
+		for i in 26:   # лучи от точки удара, с изломами
+			var a := TAU * i / 26.0 + rng.randf_range(-0.12, 0.12)
+			var p := c
+			var len := rng.randf_range(H * 0.3, W * 0.7)
+			var k := 0.0
+			while k < len:
+				a += rng.randf_range(-0.16, 0.16)
+				p += Vector2(cos(a), sin(a)) * 1.6
+				k += 1.6
+				if p.x < 1 or p.y < 1 or p.x > W - 2 or p.y > H - 2:
+					break
+				img.set_pixelv(Vector2i(p), Color(1, 1, 1, 1))
+				img.set_pixelv(Vector2i(p) + Vector2i(1, 0), Color(1, 1, 1, 0.6))
+		for r: float in [14.0, 34.0, 66.0]:   # кольца трещин вокруг удара
+			for j in 220:
+				var a := TAU * j / 220.0
+				if rng.randf() < 0.35:
+					continue
+				var q: Vector2 = c + Vector2(cos(a), sin(a)) * r * rng.randf_range(0.92, 1.08)
+				if q.x > 0 and q.y > 0 and q.x < W - 1 and q.y < H - 1:
+					img.set_pixelv(Vector2i(q), Color(1, 1, 1, 0.9))
+		_crack_rect = TextureRect.new()
+		_crack_rect.texture = ImageTexture.create_from_image(img)
+		_crack_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_crack_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_crack_rect.stretch_mode = TextureRect.STRETCH_SCALE
+		_crack_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_crack_rect)
+	_crack_rect.visible = true
+	_crack_rect.move_to_front()
+	_crack_rect.modulate = Color(1, 1, 1, 1)
+	get_tree().create_timer(0.17).timeout.connect(func(): _crack_rect.visible = false)
+
+
 ## Цель прогулки вверху слева: появляется, когда управление переходит к игроку; пустая строка — убрать (тает).
 func goal(text: String) -> void:
 	if text != "":
