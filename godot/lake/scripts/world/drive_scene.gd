@@ -196,6 +196,7 @@ func park_at_station(lang := "ru") -> void:
 			lb.position = Vector3(20.9385, FLOOR + 3.13, -5.5)   # на лице короба (x 20,94)
 			lb.rotation_degrees = Vector3(0, -90, 0)
 			station_root.add_child(lb)
+	_shop_sill(station)
 	var lot := MeshInstance3D.new()
 	var pm := PlaneMesh.new()
 	pm.size = LOT.size
@@ -317,6 +318,106 @@ func _sun_shadow() -> void:
 
 ## Кафе «У трёх сосен» (глава 2): дом у трассы, свет ламп и окон, вывеска на языке игры, три сосны, фуры у входа,
 ## машина Евы в кювете у крыльца. Машина героев — у крыльца.
+## Низ витрины магазина (tools/lake/station.py, front_low: 0,7 м штукатурки во всю длину фасада) шёл и поперёк дверного
+## проёма: низ двери прятался в стенке («дверь наполовину в стене» — владелец, 5 ноя), а Ной входил сквозь неё. Здесь
+## он — два куска до краёв проёма (z −2,55 … −1,45), развёртка как в модели (коробкой, 1 м = 1). В исправленной модели
+## кусков уже два и ни один не перекрывает проём — тогда ничего не делаем.
+const SHOP_DOOR_Z := Vector2(-2.55, -1.45)
+
+func _shop_sill(root: Node3D) -> void:
+	for n in root.find_children("front_low*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var bb: AABB = mi.global_transform * mi.get_aabb()
+		if bb.position.z > SHOP_DOOR_Z.x or bb.end.z < SHOP_DOOR_Z.y:
+			continue   # проём не перекрывает
+		var m := mi.get_active_material(0)
+		var parent := mi.get_parent() as Node3D
+		for zr in [Vector2(bb.position.z, SHOP_DOOR_Z.x), Vector2(SHOP_DOOR_Z.y, bb.end.z)]:
+			var len: float = zr.y - zr.x
+			if len < 0.02:
+				continue
+			var piece := uv_box(Vector3(bb.size.x, bb.size.y, len), Vector3(bb.get_center().x, bb.get_center().y, (zr.x + zr.y) * 0.5), m)
+			piece.name = "front_low_cut"
+			parent.add_child(piece)
+			piece.global_transform = Transform3D(Basis(), piece.position)
+		mi.visible = false
+
+
+## Брусок с развёрткой «коробкой» в мировых метрах — как box_uv в tools/lake/bl.py после экспорта в glTF
+## (v = 1 − v): грани по X — (−z, 1 − y), по Z — (x, 1 − y), по Y — (x, 1 + z). Нужен, чтобы доделанные в игре
+## куски стен и мебели легли тем же рисунком, что соседние из модели.
+static func uv_box(size: Vector3, center: Vector3, m: Material) -> MeshInstance3D:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var h := size * 0.5
+	var faces := [[Vector3.RIGHT, Vector3.FORWARD, Vector3.UP], [Vector3.LEFT, Vector3.BACK, Vector3.UP],
+		[Vector3.BACK, Vector3.RIGHT, Vector3.UP], [Vector3.FORWARD, Vector3.LEFT, Vector3.UP],
+		[Vector3.UP, Vector3.RIGHT, Vector3.FORWARD], [Vector3.DOWN, Vector3.RIGHT, Vector3.BACK]]
+	for f in faces:
+		var nrm: Vector3 = f[0]
+		var u: Vector3 = f[1]
+		var v: Vector3 = f[2]
+		# u × v = нормаль: углы против часовой, если смотреть снаружи; лицевые в Godot — по часовой
+		var c := [center + nrm * h * nrm.abs() - u * h * u.abs() - v * h * v.abs(),
+			center + nrm * h * nrm.abs() + u * h * u.abs() - v * h * v.abs(),
+			center + nrm * h * nrm.abs() + u * h * u.abs() + v * h * v.abs(),
+			center + nrm * h * nrm.abs() - u * h * u.abs() + v * h * v.abs()]
+		for i in [0, 2, 1, 0, 3, 2]:
+			var p: Vector3 = c[i]
+			var uv := Vector2(p.x, 1.0 + p.z)
+			if absf(nrm.x) > 0.5:
+				uv = Vector2(-p.z, 1.0 - p.y)
+			elif absf(nrm.z) > 0.5:
+				uv = Vector2(p.x, 1.0 - p.y)
+			st.set_normal(nrm)
+			st.set_uv(uv)
+			st.add_vertex(p - center)
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	mi.material_override = m
+	mi.position = center
+	return mi
+
+
+## Кафе: проход за стойку (к Нине) с торца был открыт глазу, но закрыт для ходьбы — «упирался в невидимую стену»
+## (владелец, 5 ноя). Теперь там видно, почему не пройти: низкая загородка от торца стойки до стены и калитка
+## с табличкой «Только для персонала» (дерево стойки). В данных прогулки граница та же (z −2,95).
+func _staff_gate(lang: String) -> void:
+	var m: Material = null
+	for n in cafe.find_children("counter*", "MeshInstance3D", true, false):
+		m = (n as MeshInstance3D).get_active_material(0)
+		if m:
+			break
+	var z := -3.0
+	var y0 := CF
+	for part in [[Vector3(1.17, 1.0, 0.06), Vector3(31.96, y0 + 0.5, z)],      # глухая часть от торца стойки
+			[Vector3(1.23, 0.05, 0.12), Vector3(31.96, y0 + 1.025, z)],         # поручень сверху
+			[Vector3(0.07, 1.05, 0.07), Vector3(32.58, y0 + 0.525, z)],         # столбик петель
+			[Vector3(0.78, 0.86, 0.045), Vector3(33.0, y0 + 0.55, z)],          # калитка
+			[Vector3(0.07, 1.05, 0.07), Vector3(33.43, y0 + 0.525, z)],         # столбик защёлки
+			[Vector3(0.285, 1.0, 0.06), Vector3(33.61, y0 + 0.5, z)]]:          # до стены, под полкой раздачи
+		var b := uv_box(part[0], part[1], m)
+		b.name = "staff_gate"
+		cafe_root.add_child(b)
+	var sign := Label3D.new()
+	sign.text = "ТОЛЬКО ДЛЯ ПЕРСОНАЛА" if lang == "ru" else "STAFF ONLY"
+	sign.font_size = 34
+	sign.pixel_size = 0.0016
+	sign.modulate = Color(0.92, 0.9, 0.84)
+	sign.outline_size = 0
+	sign.shaded = true
+	sign.position = Vector3(33.0, y0 + 0.74, z + 0.025)   # на калитке, лицом в зал (+z)
+	cafe_root.add_child(sign)
+	var plate := uv_box(Vector3(0.62, 0.12, 0.006), Vector3(33.0, y0 + 0.74, z + 0.0255), null)
+	var pmat := StandardMaterial3D.new()
+	pmat.albedo_color = Color(0.12, 0.2, 0.16)
+	pmat.roughness = 0.6
+	plate.material_override = pmat
+	plate.name = "staff_gate_plate"
+	cafe_root.add_child(plate)
+	sign.position.z = z + 0.03
+
+
 func park_at_cafe(lang := "ru") -> void:
 	road.park(CAFE_LOT)
 	cafe_root = Node3D.new()
@@ -328,6 +429,7 @@ func park_at_cafe(lang := "ru") -> void:
 		var nm := String(mi.name)
 		if nm.begins_with("window") or nm.contains("glass") or nm.begins_with("pend") or nm.begins_with("ceiling_lamp"):
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_staff_gate(lang)
 	var lb := Label3D.new()                           # вывеска над крыльцом: рукописная, как у придорожных кафе
 	lb.text = "У трёх сосен" if lang == "ru" else "Three Pines"
 	lb.font_size = 150
