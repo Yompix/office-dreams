@@ -27,6 +27,8 @@
   "block.lifecraft.neon_floor": "Neon strip",
   "item.lifecraft.phone": "Phone",
   "item.lifecraft.banknote": "$10 banknote",
+  "item.lifecraft.banknote_50": "$50 banknote",
+  "item.lifecraft.banknote_100": "$100 banknote",
   "item.lifecraft.bank_card": "Bank card",
   "item.lifecraft.parcel": "Parcel",
   "item.lifecraft.scooter": "E-scooter",
@@ -64,9 +66,13 @@
   "itemGroup.lifecraft": "LifeCraft",
   "key.lifecraft.phone": "Phone",
   "key.lifecraft.horn": "Car horn",
+  "key.lifecraft.lights": "Headlights",
+  "key.lifecraft.left": "Left turn signal",
+  "key.lifecraft.right": "Right turn signal",
+  "key.lifecraft.hazard": "Hazard lights",
   "key.lifecraft.map": "Map and quests",
   "key.lifecraft.radio": "Car radio",
-  "key.lifecraft.grade": "Cinematic graphics",
+  "key.lifecraft.grade": "Graphics: pretty / light / off",
   "category.lifecraft": "LifeCraft",
   "generator.lifecraft.city": "LifeCraft: City"
 }

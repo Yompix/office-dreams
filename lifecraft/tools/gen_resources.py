@@ -238,7 +238,7 @@ BLOCKS = {
     'clue': ('Улика', 'Clue', 'pickaxe'), 'neon': ('Неоновая трубка', 'Neon tube', 'pickaxe'), 'neon_floor': ('Неоновая полоса', 'Neon strip', 'pickaxe'),
 }
 ITEMS = {
-    'phone': ('Телефон', 'Phone'), 'banknote': ('Купюра $10', '$10 banknote'), 'bank_card': ('Банковская карта', 'Bank card'),
+    'phone': ('Телефон', 'Phone'), 'banknote': ('Купюра $10', '$10 banknote'), 'banknote_50': ('Купюра $50', '$50 banknote'), 'banknote_100': ('Купюра $100', '$100 banknote'), 'bank_card': ('Банковская карта', 'Bank card'),
     'parcel': ('Посылка', 'Parcel'), 'scooter': ('Электроскутер', 'E-scooter'), 'suit': ('Костюм для выпускного', 'Prom suit'), 'diploma': ('Диплом', 'Diploma'), 'textbook': ('Учебник', 'Textbook'),
     'burger': ('Бургер', 'Burger'), 'cola': ('Кола', 'Cola'), 'pizza': ('Пицца', 'Pizza'), 'salad': ('Салат', 'Salad'),
     'car_red': ('Машина (красная)', 'Car (red)'), 'car_blue': ('Машина (синяя)', 'Car (blue)'), 'car_yellow': ('Машина (жёлтая)', 'Car (yellow)'),
@@ -271,7 +271,7 @@ def lang():
         en[f'subtitles.{NS}.{n}'] = e
     extra = {
         f'entity.{NS}.car': ('Машина', 'Car'), f'entity.{NS}.scooter': ('Электроскутер', 'E-scooter'), f'entity.{NS}.ball': ('Мяч', 'Ball'), f'entity.{NS}.citizen': ('Житель', 'Citizen'), f'entity.{NS}.seat': ('Сиденье', 'Seat'),
-        f'itemGroup.{NS}': ('LifeCraft — жизнь', 'LifeCraft'), 'key.lifecraft.phone': ('Телефон', 'Phone'), 'key.lifecraft.horn': ('Гудок', 'Car horn'), 'key.lifecraft.map': ('Карта и задания', 'Map and quests'), 'key.lifecraft.radio': ('Радио в машине', 'Car radio'), 'key.lifecraft.grade': ('Кино-графика вкл/выкл', 'Cinematic graphics'),
+        f'itemGroup.{NS}': ('LifeCraft — жизнь', 'LifeCraft'), 'key.lifecraft.phone': ('Телефон', 'Phone'), 'key.lifecraft.horn': ('Гудок', 'Car horn'), 'key.lifecraft.lights': ('Фары вкл/выкл', 'Headlights'), 'key.lifecraft.left': ('Левый поворотник', 'Left turn signal'), 'key.lifecraft.right': ('Правый поворотник', 'Right turn signal'), 'key.lifecraft.hazard': ('Аварийка', 'Hazard lights'), 'key.lifecraft.map': ('Карта и задания', 'Map and quests'), 'key.lifecraft.radio': ('Радио в машине', 'Car radio'), 'key.lifecraft.grade': ('Графика: красивая / лёгкая / выкл', 'Graphics: pretty / light / off'),
         'category.lifecraft': ('LifeCraft', 'LifeCraft'), 'generator.lifecraft.city': ('LifeCraft: Город', 'LifeCraft: City'),
     }
     for k, (r, e) in extra.items():

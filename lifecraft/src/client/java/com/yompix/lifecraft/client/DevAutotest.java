@@ -46,6 +46,126 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("gfx")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                d.storyStarted = true;
+                d.storyDone = true;
+                d.chapter = 99;
+            });
+            for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); c.options.hudHidden = true; });
+            cmd(10, "gamemode spectator " + P);
+            cmd(5, "tp " + P + " 30 -45 30 135 12");
+            String[][] shots = {{"12600", "1", "g_sunset"}, {"12600", "0", "g_sunset_lite"}, {"17000", "1", "g_night"}, {"17000", "0", "g_night_lite"}, {"6000", "1", "g_day"}};
+            for (String[] v : shots) {
+                cmd(5, "time set " + v[0]);
+                run(2, c -> { com.yompix.lifecraft.client.render.ColorGrade.enabled = true; com.yompix.lifecraft.client.render.ColorGrade.quality = Float.parseFloat(v[1]); });
+                shot(40, v[2]);
+            }
+            run(2, c -> com.yompix.lifecraft.client.render.ColorGrade.enabled = false);
+            shot(20, "g_off");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("atm")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                d.storyStarted = true;
+                d.storyDone = true;
+                d.chapter = 99;
+                d.money = 800;
+                Life.sync(s.getPlayerManager().getPlayer(P));
+            });
+            for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> c.setScreen(new com.yompix.lifecraft.client.screen.AtmScreen(800, 0)));
+            shot(8, "atm_card");
+            shot(30, "atm_menu");
+            run(2, c -> { if (c.currentScreen instanceof com.yompix.lifecraft.client.screen.AtmScreen a) a.pressWithdraw(250); });
+            shot(10, "atm_proc");
+            shot(22, "atm_cash1");
+            shot(10, "atm_cash2");
+            run(30, c -> c.setScreen(null));
+            server(5, s -> {
+                var inv = s.getPlayerManager().getPlayer(P).getInventory();
+                for (int i = 0; i < inv.size(); i++) if (!inv.getStack(i).isEmpty())
+                    com.yompix.lifecraft.LifeCraft.LOG.info("[atm] {} x{}", inv.getStack(i).getName().getString(), inv.getStack(i).getCount());
+                com.yompix.lifecraft.LifeCraft.LOG.info("[atm] balance {}", Life.get(s.getPlayerManager().getPlayer(P)).money);
+            });
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("wheel")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                d.storyStarted = true;
+                d.storyDone = true;
+                d.chapter = 99;
+                d.age = 20;
+                Story.applyAge(s.getPlayerManager().getPlayer(P), 20);
+            });
+            for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            cmd(10, "gamemode creative " + P);
+            cmd(5, "time set 6000");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                int y = Story.topY(w, -40, 24);
+                var car = new com.yompix.lifecraft.entity.CarEntity(com.yompix.lifecraft.ModContent.CAR, w);
+                car.refreshPositionAndAngles(-45.5, y, 24.5, -90, 0);
+                car.setVariant(1);
+                w.spawnEntity(car);
+                p.startRiding(car, true);
+            });
+            cmd(5, "time set 15000");
+            server(5, s -> {
+                if (s.getPlayerManager().getPlayer(P).getVehicle() instanceof com.yompix.lifecraft.entity.CarEntity car) {
+                    car.toggleLight(com.yompix.lifecraft.entity.CarEntity.HEADLIGHTS);
+                    car.toggleLight(com.yompix.lifecraft.entity.CarEntity.LEFT);
+                }
+            });
+            run(10, c -> { c.player.setYaw(-90); c.player.setPitch(30); });
+            shot(20, "wh1");
+            shot(4, "wh1b");
+            run(5, c -> { c.player.setPitch(10); c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT); });
+            shot(20, "wh2");
+            run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
+            shot(20, "wh3");
+            shot(4, "wh3b");
+            shot(4, "wh3c");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("stuck")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                d.storyStarted = true;
+                d.storyDone = true;
+                d.chapter = 99;
+            });
+            for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            cmd(10, "gamemode spectator " + P);
+            cmd(5, "gamerule doDaylightCycle true");
+            cmd(5, "time set 0");
+            // держим все чанки города загруженными: игрок летает по кругу над городом
+            for (int k = 0; k < 40; k++) {
+                int kk = k;
+                server(60, s -> {
+                    ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                    double a = kk * 0.6;
+                    p.teleport(p.getServerWorld(), Math.cos(a) * 40 + 20, -30, Math.sin(a) * 40, 0, 90);
+                    if (kk % 8 == 0) s.getCommandManager().executeWithPrefix(s.getCommandSource(), "time add 2500");
+                });
+            }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("traffic")) {
             YompixSplash.markShown();
             server(150, s -> {

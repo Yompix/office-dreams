@@ -18,6 +18,12 @@ import java.util.Map;
 
 /** Блок, который смотрит на игрока при установке. Форма задаётся для севера и сама поворачивается. */
 public class FacingBlock extends HorizontalFacingBlock {
+    /** Столбы, банкоматы, ящики, парты — непроходимы для поиска пути, иначе жители упираются в тонкий столб. */
+    @Override
+    protected boolean canPathfindThrough(net.minecraft.block.BlockState state, net.minecraft.entity.ai.pathing.NavigationType type) {
+        return false;
+    }
+
     public static final MapCodec<FacingBlock> CODEC = createCodec(FacingBlock::new);
     private final Map<Direction, VoxelShape> shapes = new EnumMap<>(Direction.class);
 

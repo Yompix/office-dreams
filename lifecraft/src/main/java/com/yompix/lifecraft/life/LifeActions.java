@@ -141,7 +141,7 @@ public final class LifeActions {
                 String sex = CitizenEntity.isSlim(c.getSkin()) ? "f" : "m";
                 int v = 1 + (c.getUuid().hashCode() & 1);
                 net.minecraft.nbt.NbtCompound vn = new net.minecraft.nbt.NbtCompound();
-                vn.putString("voice", "amb_" + group + "_" + sex + v + "_" + ph.key());
+                vn.putString("voice", ""); // прохожие говорят только текстом (озвучены лишь сюжетные герои)
                 vn.putInt("entity", c.getId());
                 LifeNet.send(p, "ambient", vn);
                 c.getLookControl().lookAt(p, 30, 30);

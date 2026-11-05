@@ -10,6 +10,19 @@ public final class ColorGrade {
     private ColorGrade() {}
 
     public static boolean enabled = true;
+    /** 1 — «Красивая» (со свечением), 0 — «Лёгкая» для слабых ноутбуков. */
+    public static float quality = 1f;
+
+    /** Клавиша K: Красивая → Лёгкая → Выключена → Красивая. Возвращает название режима. */
+    public static String cycle() {
+        if (enabled && quality > 0.5f) quality = 0f;
+        else if (enabled) enabled = false;
+        else {
+            enabled = true;
+            quality = 1f;
+        }
+        return !enabled ? "выключена" : quality > 0.5f ? "красивая (свечение огней)" : "лёгкая (для слабых ноутбуков)";
+    }
     private static PostEffectProcessor fx;
     private static boolean failed;
     private static int w, h;
@@ -34,6 +47,13 @@ public final class ColorGrade {
             if (t >= 22500) night = MathHelper.clamp(1 - (t - 22500) / 1500f, 0, 1);
             fx.setUniforms("Night", night);
             fx.setUniforms("Strength", 1f);
+            // закат и рассвет: золотой час
+            long dawn = Math.min(Math.abs(t - 23300), Math.abs(t + 24000 - 23300));
+            float sunset = Math.max(1 - Math.abs(t - 12500) / 1300f, 1 - dawn / 1000f);
+            fx.setUniforms("Sunset", MathHelper.clamp(sunset, 0, 1));
+            fx.setUniforms("Rain", mc.world.getRainGradient(tickDelta));
+            fx.setUniforms("Quality", quality);
+            fx.setUniforms("Time", (mc.world.getTime() % 1000 + tickDelta) / 20f);
             fx.render(tickDelta);
             mc.getFramebuffer().beginWrite(false);
         } catch (Exception e) {

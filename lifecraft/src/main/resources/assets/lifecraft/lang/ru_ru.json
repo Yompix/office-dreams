@@ -27,6 +27,8 @@
   "block.lifecraft.neon_floor": "Неоновая полоса",
   "item.lifecraft.phone": "Телефон",
   "item.lifecraft.banknote": "Купюра $10",
+  "item.lifecraft.banknote_50": "Купюра $50",
+  "item.lifecraft.banknote_100": "Купюра $100",
   "item.lifecraft.bank_card": "Банковская карта",
   "item.lifecraft.parcel": "Посылка",
   "item.lifecraft.scooter": "Электроскутер",
@@ -64,9 +66,13 @@
   "itemGroup.lifecraft": "LifeCraft — жизнь",
   "key.lifecraft.phone": "Телефон",
   "key.lifecraft.horn": "Гудок",
+  "key.lifecraft.lights": "Фары вкл/выкл",
+  "key.lifecraft.left": "Левый поворотник",
+  "key.lifecraft.right": "Правый поворотник",
+  "key.lifecraft.hazard": "Аварийка",
   "key.lifecraft.map": "Карта и задания",
   "key.lifecraft.radio": "Радио в машине",
-  "key.lifecraft.grade": "Кино-графика вкл/выкл",
+  "key.lifecraft.grade": "Графика: красивая / лёгкая / выкл",
   "category.lifecraft": "LifeCraft",
   "generator.lifecraft.city": "LifeCraft: Город"
 }

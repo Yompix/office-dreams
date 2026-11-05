@@ -95,6 +95,13 @@ public final class LifeNet {
             case "photo" -> Achievements.give(p, "photo");
             case "slots" -> Casino.spin(p, d.getInt("bet"));
             case "roulette" -> Casino.roulette(p, d.getInt("bet"), d.getString("kind"), d.getInt("number"));
+            case "car_light" -> {
+                if (p.getVehicle() instanceof CarEntity car && car.getControllingPassenger() == p) {
+                    int bit = d.getInt("bit");
+                    car.toggleLight(bit);
+                    p.getWorld().playSound(null, car.getBlockPos(), net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.NEUTRAL, 0.25f, 1.8f);
+                }
+            }
             case "horn" -> {
                 long now = p.getServerWorld().getTime();
                 if (p.getVehicle() instanceof CarEntity car && car.getControllingPassenger() == p && now - HORN.getOrDefault(p.getUuid(), 0L) >= 12) {

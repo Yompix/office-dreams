@@ -15,6 +15,9 @@ import org.joml.Matrix4f;
 public final class StoryHud {
     private StoryHud() {}
 
+    private static String lastHint = "";
+    private static long bannerAt = -1;
+
     public static void render(DrawContext ctx) {
         MinecraftClient mc = MinecraftClient.getInstance();
         TextRenderer tr = mc.textRenderer;
@@ -23,18 +26,65 @@ public final class StoryHud {
         var o = ClientStory.objective;
         if (o.contains("hint") && !o.getString("hint").isEmpty() && ClientStory.titleAt < 0) {
             String mission = o.getString("mission"), hint = o.getString("hint"), extra = o.getString("extra");
-            Vec3d t = ClientStory.target();
-            if (t != null && mc.player != null) {
-                int dist = (int) Math.sqrt(t.squaredDistanceTo(mc.player.getPos()));
-                hint += "  · " + dist + " м";
+            String where = o.getString("where"), how = o.getString("how");
+            // новая цель — заметный баннер и звук
+            if (!hint.equals(lastHint)) {
+                lastHint = hint;
+                bannerAt = now;
+                if (mc.player != null) mc.player.playSound(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_CHIME.value(), 0.7f, 1.2f);
             }
-            int bw = Math.max(tr.getWidth(hint), tr.getWidth(mission)) + 16;
-            int x = w / 2 - bw / 2, y = 4;
-            ctx.fill(x, y, x + bw, y + (extra.isEmpty() ? 26 : 36), 0x99000000);
+            Vec3d t = ClientStory.target();
+            String dist = "";
+            if (t != null && mc.player != null) dist = (int) Math.sqrt(t.squaredDistanceTo(mc.player.getPos())) + " м";
+            String whereLine = where.isEmpty() ? (dist.isEmpty() ? "" : "📍 " + dist) : "📍 " + where + (dist.isEmpty() ? "" : " · " + dist);
+            java.util.List<String[]> lines = new java.util.ArrayList<>();
+            lines.add(new String[]{mission, "FFC107"});
+            lines.add(new String[]{"▶ " + hint, "FFFFFF"});
+            if (!whereLine.isEmpty()) lines.add(new String[]{whereLine, "7FE3FF"});
+            if (!how.isEmpty()) lines.add(new String[]{how, "B0BEC5"});
+            if (!extra.isEmpty()) lines.add(new String[]{extra, "9FE6FF"});
+            int bw = 0;
+            for (String[] l : lines) bw = Math.max(bw, tr.getWidth(l[0]));
+            bw += 16;
+            int x = w / 2 - bw / 2, y = 4, bh = lines.size() * 10 + 6;
+            ctx.fill(x, y, x + bw, y + bh, 0xA0000000);
             ctx.fill(x, y, x + bw, y + 1, 0xFFFFC107);
-            ctx.drawText(tr, mission, w / 2 - tr.getWidth(mission) / 2, y + 4, 0xFFFFC107, true);
-            ctx.drawText(tr, hint, w / 2 - tr.getWidth(hint) / 2, y + 15, 0xFFFFFFFF, true);
-            if (!extra.isEmpty()) ctx.drawText(tr, extra, w / 2 - tr.getWidth(extra) / 2, y + 25, 0xFF9FE6FF, true);
+            for (int i = 0; i < lines.size(); i++) {
+                String[] l = lines.get(i);
+                ctx.drawText(tr, l[0], w / 2 - tr.getWidth(l[0]) / 2, y + 4 + i * 10, 0xFF000000 | Integer.parseInt(l[1], 16), true);
+            }
+            // стрелка-компас: куда повернуть
+            if (t != null && mc.player != null) {
+                double dx = t.x - mc.player.getX(), dz = t.z - mc.player.getZ();
+                float want = (float) Math.toDegrees(Math.atan2(-dx, dz));
+                float rel = MathHelper.wrapDegrees(want - mc.player.getYaw());
+                int ax = w / 2, ay = y + bh + 16;
+                ctx.getMatrices().push();
+                ctx.getMatrices().translate(ax, ay, 0);
+                ctx.getMatrices().multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Z.rotationDegrees(rel));
+                int col = Math.abs(rel) < 20 ? 0xFF66FF88 : 0xFFFFC107;
+                for (int i = 0; i < 7; i++) ctx.fill(-i, -9 + i * 2, i + 1, -7 + i * 2, col);
+                ctx.fill(-2, 4, 3, 10, col);
+                ctx.getMatrices().pop();
+                if (Math.abs(rel) > 100) {
+                    String back = "развернись";
+                    ctx.drawText(tr, back, ax - tr.getWidth(back) / 2, ay + 13, 0xFFFFC107, true);
+                }
+            }
+            // баннер «НОВАЯ ЦЕЛЬ»
+            float bt = (now - bannerAt) / 1000f;
+            if (bannerAt > 0 && bt < 3.2f) {
+                float a = bt < 0.3f ? bt / 0.3f : bt > 2.6f ? (3.2f - bt) / 0.6f : 1;
+                int al = (int) (a * 255) << 24;
+                ctx.fill(0, h / 3 - 18, w, h / 3 + 26, (int) (a * 150) << 24);
+                ctx.getMatrices().push();
+                ctx.getMatrices().translate(w / 2f, h / 3f - 12, 0);
+                ctx.getMatrices().scale(1.6f, 1.6f, 1);
+                ctx.drawText(tr, "НОВАЯ ЦЕЛЬ", -tr.getWidth("НОВАЯ ЦЕЛЬ") / 2, 0, al | 0xFFC107, true);
+                ctx.getMatrices().pop();
+                ctx.drawText(tr, hint, w / 2 - tr.getWidth(hint) / 2, h / 3 + 4, al | 0xFFFFFF, true);
+                if (!whereLine.isEmpty()) ctx.drawText(tr, whereLine, w / 2 - tr.getWidth(whereLine) / 2, h / 3 + 15, al | 0x7FE3FF, true);
+            }
         }
         // заставка главы / «прошло три года»
         if (ClientStory.titleAt > 0) {

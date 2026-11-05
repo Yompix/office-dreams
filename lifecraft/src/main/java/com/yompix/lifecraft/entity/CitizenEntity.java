@@ -157,6 +157,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @Override
     protected void initGoals() {
         goalSelector.add(0, new SwimGoal(this));
+        // деревянные двери жители открывают сами (и закрывают за собой)
+        if (getNavigation() instanceof net.minecraft.entity.ai.pathing.MobNavigation nav) nav.setCanPathThroughDoors(true);
+        goalSelector.add(1, new net.minecraft.entity.ai.goal.LongDoorInteractGoal(this, true));
         goalSelector.add(1, new HomeGoal(this));
         goalSelector.add(2, new PlayBallGoal(this));
         goalSelector.add(3, new BusyGoal(this));
@@ -418,6 +421,23 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         net.minecraft.util.math.Vec3d now = getPos();
         if (stuckFrom != null && now.squaredDistanceTo(stuckFrom) < 0.16) {
             stuckTimes++;
+            // упёрся в закрытую дверь (в том числе железную в магазине) — открыть
+            for (net.minecraft.util.math.BlockPos d : new net.minecraft.util.math.BlockPos[]{getBlockPos().offset(getHorizontalFacing()), getBlockPos()}) {
+                var st = getWorld().getBlockState(d);
+                if (st.getBlock() instanceof net.minecraft.block.DoorBlock db && !st.get(net.minecraft.block.DoorBlock.OPEN)) {
+                    db.setOpen(this, getWorld(), st, d, true);
+                    getNavigation().recalculatePath();
+                    return;
+                }
+            }
+            if (Boolean.getBoolean("lifecraft.debugstuck")) {
+                var bp = getBlockPos();
+                var path = getNavigation().getCurrentPath();
+                com.yompix.lifecraft.LifeCraft.LOG.info("[stuck] {} at {} feet={} front={} target={} times={}", getName().getString(), bp,
+                        getWorld().getBlockState(bp).getBlock().getTranslationKey(),
+                        getWorld().getBlockState(bp.offset(getHorizontalFacing())).getBlock().getTranslationKey(),
+                        path == null ? null : path.getTarget(), stuckTimes);
+            }
             if (stuckTimes == 1) {
                 getJumpControl().setActive();
                 getNavigation().recalculatePath();

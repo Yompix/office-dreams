@@ -61,7 +61,7 @@ public class LifeCraftClient implements ClientModInitializer {
     public static LifeData data = new LifeData();
     public static long dataVersion;
 
-    private static KeyBinding phoneKey, hornKey, mapKey, radioKey, gradeKey;
+    private static KeyBinding phoneKey, hornKey, mapKey, radioKey, gradeKey, lightsKey, leftKey, rightKey, hazardKey;
     private static int station = -1;
     private static final String[][] STATIONS = {{"Новоград FM", "pigstep"}, {"Ретро 90", "cat"}, {"Чилл-волна", "strad"}, {"Рок-Радио", "otherside"}, {"Ночной джаз", "wait"}};
     private static final Map<Integer, CarEngineSound> ENGINES = new HashMap<>();
@@ -89,6 +89,10 @@ public class LifeCraftClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c -> tickLog());
         radioKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.radio", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.lifecraft"));
         hornKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.horn", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "category.lifecraft"));
+        lightsKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.lights", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_L, "category.lifecraft"));
+        leftKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.left", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_Z, "category.lifecraft"));
+        rightKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.right", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_X, "category.lifecraft"));
+        hazardKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.hazard", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_C, "category.lifecraft"));
 
         LifeCraft.CLIENT = new ClientHooks() {
             @Override
@@ -99,6 +103,11 @@ public class LifeCraftClient implements ClientModInitializer {
             @Override
             public void carTick(CarEntity car) {
                 engine(car);
+            }
+
+            @Override
+            public net.minecraft.entity.Entity player() {
+                return MinecraftClient.getInstance().player;
             }
         };
 
@@ -197,6 +206,10 @@ public class LifeCraftClient implements ClientModInitializer {
                 }
             }
             case "open_phone" -> client.setScreen(new PhoneScreen(n.getString("app")));
+            case "open_atm" -> client.setScreen(new com.yompix.lifecraft.client.screen.AtmScreen(n.getInt("balance"), n.getInt("cash")));
+            case "atm_result" -> {
+                if (client.currentScreen instanceof com.yompix.lifecraft.client.screen.AtmScreen s) s.result(n);
+            }
             case "rhythm" -> client.setScreen(new com.yompix.lifecraft.client.screen.RhythmScreen(n.getString("mode")));
             case "open_lesson" -> client.setScreen(new LessonScreen(n));
             case "lesson_result" -> {
@@ -251,9 +264,19 @@ public class LifeCraftClient implements ClientModInitializer {
             }
         }
         while (hornKey.wasPressed()) send("horn");
+        int[][] carKeys = {{0, com.yompix.lifecraft.entity.CarEntity.HEADLIGHTS}, {1, com.yompix.lifecraft.entity.CarEntity.LEFT},
+                {2, com.yompix.lifecraft.entity.CarEntity.RIGHT}, {3, com.yompix.lifecraft.entity.CarEntity.HAZARD}};
+        KeyBinding[] ck = {lightsKey, leftKey, rightKey, hazardKey};
+        for (int[] k : carKeys)
+            while (ck[k[0]].wasPressed()) {
+                if (client.player != null && client.player.getVehicle() instanceof com.yompix.lifecraft.entity.CarEntity car && car.getControllingPassenger() == client.player) {
+                    NbtCompound n = new NbtCompound();
+                    n.putInt("bit", k[1]);
+                    send("car_light", n);
+                }
+            }
         while (gradeKey.wasPressed()) {
-            com.yompix.lifecraft.client.render.ColorGrade.enabled = !com.yompix.lifecraft.client.render.ColorGrade.enabled;
-            client.player.sendMessage(net.minecraft.text.Text.literal("Кино-графика LifeCraft: " + (com.yompix.lifecraft.client.render.ColorGrade.enabled ? "включена" : "выключена")), true);
+            client.player.sendMessage(net.minecraft.text.Text.literal("Графика LifeCraft: " + com.yompix.lifecraft.client.render.ColorGrade.cycle()), true);
         }
         while (radioKey.wasPressed()) {
             if (!(client.player.getVehicle() instanceof CarEntity)) continue;

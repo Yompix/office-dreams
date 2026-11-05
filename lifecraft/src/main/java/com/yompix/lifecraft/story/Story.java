@@ -460,7 +460,61 @@ public final class Story {
         }
         String extra = StepLogic.extra(p, d, run(p), s);
         if (!extra.isEmpty()) n.putString("extra", extra);
+        n.putString("where", where(p, s, target));
+        n.putString("how", how(s));
         LifeNet.send(p, "objective", n);
+    }
+
+    /** Куда идти — понятным словом: «к Тёме · Школьный двор», «Пиццерия «Мама Мия»». */
+    private static String where(ServerPlayerEntity p, JsonObject s, @Nullable Vec3d target) {
+        String who = "";
+        String npc = str(s, "npc", "");
+        if (!npc.isEmpty()) {
+            JsonObject ch = root().getAsJsonObject("characters").getAsJsonObject(npc);
+            if (ch != null) who = "к: " + ch.get("name").getAsString();
+        }
+        String place = "";
+        if (target != null) {
+            double best = 30 * 30;
+            for (var e : com.yompix.lifecraft.life.Taxi.PLACES.entrySet()) {
+                Vec3d v = place(p.getServerWorld(), e.getKey());
+                if (v == null) continue;
+                double d2 = v.squaredDistanceTo(target.x, v.y, target.z);
+                if (d2 < best) {
+                    best = d2;
+                    place = e.getValue();
+                }
+            }
+        }
+        if (!who.isEmpty() && !place.isEmpty()) return who + " · " + place;
+        return who.isEmpty() ? place : who;
+    }
+
+    /** Как это сделать — подсказка по типу шага. */
+    private static String how(JsonObject s) {
+        return switch (str(s, "type", "")) {
+            case "goto" -> s.has("vehicle") ? "Садись в машину (ПКМ) и езжай к жёлтой метке" : "Иди к жёлтому лучу — стрелка вверху показывает, куда";
+            case "talk" -> "Подойди к герою с «!» над головой и нажми ПКМ";
+            case "party" -> "Подойди к герою праздника и нажми ПКМ";
+            case "lesson" -> "Зайди в класс и нажми ПКМ по доске или учительнице";
+            case "money" -> "Заработай на работе: телефон (G) → «Работа»";
+            case "buy" -> "Супермаркет: нажми ПКМ по продавцу и купи";
+            case "collect" -> "Ищи светящиеся улики у метки и нажми по ним ПКМ";
+            case "race" -> "Беги через все отметки быстрее соперника";
+            case "drivetest" -> "Проезжай отметки, не превышай скорость";
+            case "sleep" -> "Ляг в кровать дома (ПКМ по кровати)";
+            case "phone" -> "Нажми G, чтобы открыть телефон";
+            case "ball" -> "Подбеги к мячу и пинай его в ворота";
+            case "job" -> switch (str(s, "job", "")) {
+                case "courier" -> "Возьми посылку у доски вакансий в офисе и отнеси в ящик по адресу";
+                case "cashier" -> "Супермаркет: ПКМ по прилавку, посчитай покупки";
+                case "pizza" -> "ПКМ по печи в пиццерии → отнеси пиццу к ящику по адресу (ПКМ по ящику)";
+                case "workout" -> "Спортзал: ПКМ по беговой дорожке или штанге, жми стрелки в ритм";
+                case "dj" -> "Клуб «Неон»: ПКМ по пульту на сцене, жми стрелки в ритм";
+                default -> "Выполни работу";
+            };
+            default -> "";
+        };
     }
 
     // ------------------------------------------------------------------------------------ места, возраст, кат-сцены

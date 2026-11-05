@@ -34,6 +34,9 @@ public class CarEntity extends Entity {
     public static final int[] COLORS = {0xD7262C, 0x2C6ECB, 0xF2C032, 0x2A2C31, 0xE8E8EA, 0xF7C600};
     private static final TrackedData<Integer> VARIANT = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Integer> WOBBLE = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    /** Свет: 1 — фары, 2 — левый поворотник, 4 — правый, 8 — аварийка. */
+    private static final TrackedData<Integer> LIGHTS = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    public static final int HEADLIGHTS = 1, LEFT = 2, RIGHT = 4, HAZARD = 8;
 
     /** Посадочные места: x — вправо, z — вперёд (в блоках). */
     private static final double[][] SEATS = {{-0.44, -0.12}, {0.44, -0.12}, {-0.44, -0.94}, {0.44, -0.94}};
@@ -57,6 +60,27 @@ public class CarEntity extends Entity {
         autoMax = maxSpeed;
         onArrive = arrive;
     }
+
+    public int lights() {
+        return dataTracker.get(LIGHTS);
+    }
+
+    public boolean light(int bit) {
+        return (lights() & bit) != 0;
+    }
+
+    /** Переключатели водителя: фары, поворотники (взаимоисключающие), аварийка. */
+    public void toggleLight(int bit) {
+        int l = lights();
+        if (bit == LEFT || bit == RIGHT) l = (l & ~(LEFT | RIGHT)) | ((l & bit) != 0 ? 0 : bit);
+        else l ^= bit;
+        dataTracker.set(LIGHTS, l);
+        signalYaw = getYaw();
+    }
+
+    private float signalYaw;
+    /** Яркость стоп-сигналов и заднего хода считается на каждом клиенте по движению машины. */
+    public float brakeGlow, reverseGlow;
 
     public boolean onRoute() {
         return route != null;
@@ -82,6 +106,7 @@ public class CarEntity extends Entity {
     protected void initDataTracker(DataTracker.Builder builder) {
         builder.add(VARIANT, 0);
         builder.add(WOBBLE, 0);
+        builder.add(LIGHTS, 0);
     }
 
     public int getVariant() {
@@ -229,6 +254,8 @@ public class CarEntity extends Entity {
         // поворот машины передаём пассажирам в updatePassengerPosition — после их тика,
         // тогда камера поворачивается плавно между кадрами, а не ступеньками раз в тик
         tickYawDelta = MathHelper.wrapDegrees(getYaw() - yawBefore);
+        if (!getWorld().isClient && route == null && (light(LEFT) || light(RIGHT)) && Math.abs(MathHelper.wrapDegrees(getYaw() - signalYaw)) > 70
+                && Math.abs(tickYawDelta) < 0.5f) dataTracker.set(LIGHTS, lights() & ~(LEFT | RIGHT));
         yawTick = age;
         if (getWorld().isClient) {
             clientAnimations();
@@ -329,6 +356,17 @@ public class CarEntity extends Entity {
                 }
                 float want = (float) Math.toDegrees(Math.atan2(-(tx - getX()), tz - getZ()));
                 float diff = MathHelper.wrapDegrees(want - getYaw());
+                if (!getWorld().isClient && age % 10 == 0) {
+                    long tod = getWorld().getTimeOfDay() % 24000;
+                    int l = (tod > 12300 && tod < 23700 ? HEADLIGHTS : 0);
+                    // поворачиваем к следующей точке маршрута — заранее мигаем поворотником
+                    Vec3d next = routeIndex + 1 < route.size() ? route.get(routeIndex + 1) : null;
+                    float turn = Math.abs(diff) > 25 ? diff : 0;
+                    if (turn == 0 && next != null && dist < 14) turn = MathHelper.wrapDegrees((float) Math.toDegrees(Math.atan2(-(next.x - t.x), next.z - t.z)) - getYaw());
+                    if (Math.abs(turn) > 30) l |= turn > 0 ? RIGHT : LEFT;
+                    if (dodge != 0) l |= dodge > 0 ? LEFT : RIGHT;
+                    dataTracker.set(LIGHTS, l);
+                }
                 side = MathHelper.clamp(-diff / 18f, -1, 1);
                 // тормозим перед поворотами, у цели и перед тем, кто впереди
                 float limit = Math.abs(diff) > 50 ? 0.18f : last && dist < 10 ? 0.22f : autoMax;
@@ -387,6 +425,12 @@ public class CarEntity extends Entity {
         double along = dx * -Math.sin(rad) + dz * Math.cos(rad);
         float lastSpeed = clientSpeed;
         clientSpeed = (float) along;
+        // тормозим — стопы ярко; едем назад — белые огни заднего хода
+        boolean slowing = Math.abs(clientSpeed) < Math.abs(lastSpeed) - 0.004f && Math.abs(lastSpeed) > 0.03f;
+        brakeGlow = slowing || braking ? 1 : Math.max(0, brakeGlow - 0.1f);
+        reverseGlow = clientSpeed < -0.01f ? 1 : Math.max(0, reverseGlow - 0.2f);
+        if ((light(LEFT) || light(RIGHT) || light(HAZARD)) && getWorld().getTime() % 8 == 0 && com.yompix.lifecraft.LifeCraft.CLIENT.player() != null && hasPassenger(com.yompix.lifecraft.LifeCraft.CLIENT.player()))
+            getWorld().playSound(getX(), getY(), getZ(), net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(), net.minecraft.sound.SoundCategory.NEUTRAL, 0.15f, (getWorld().getTime() / 8) % 2 == 0 ? 1.9f : 1.6f, false);
         wheelRot += (float) (along / (5.0 / 16.0));
         float yawRate = MathHelper.wrapDegrees(getYaw() - lastYaw);
         lastYaw = getYaw();

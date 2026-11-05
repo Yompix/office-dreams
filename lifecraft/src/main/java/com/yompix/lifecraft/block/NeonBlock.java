@@ -14,6 +14,12 @@ import net.minecraft.world.World;
 
 /** Неоновая трубка: сама загорается вечером и гаснет утром. На стене или на земле, восемь цветов. */
 public class NeonBlock extends FacingBlock {
+    /** Неоновые полоски на тротуаре — по ним можно ходить. */
+    @Override
+    protected boolean canPathfindThrough(net.minecraft.block.BlockState state, net.minecraft.entity.ai.pathing.NavigationType type) {
+        return true;
+    }
+
     public enum Color implements StringIdentifiable {
         PINK, PURPLE, CYAN, BLUE, YELLOW, GREEN, RED, ORANGE;
 

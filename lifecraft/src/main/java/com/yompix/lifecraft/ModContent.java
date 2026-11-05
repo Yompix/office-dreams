@@ -98,6 +98,8 @@ public final class ModContent {
     // ---------- предметы ----------
     public static final Item PHONE = item("phone", new PhoneItem(new Item.Settings().maxCount(1)));
     public static final Item BANKNOTE = item("banknote", new Item(new Item.Settings()));
+    public static final Item BANKNOTE_50 = item("banknote_50", new Item(new Item.Settings()));
+    public static final Item BANKNOTE_100 = item("banknote_100", new Item(new Item.Settings()));
     public static final Item BANK_CARD = item("bank_card", new Item(new Item.Settings().maxCount(1)));
     public static final Item PARCEL = item("parcel", new Item(new Item.Settings().maxCount(1)));
     public static final Item DIPLOMA = item("diploma", new Item(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));

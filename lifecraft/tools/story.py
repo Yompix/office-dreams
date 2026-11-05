@@ -654,8 +654,7 @@ for group, phrases in AMBIENT.items():
             for key, ph, _ in phrases:
                 if group == 'old' and key == 'again' and sex == 'm':
                     ph = 'Я же тебе уже говорил… Или не тебе?'
-                voice_lines.append({'id': f'amb_{group}_{sex}{k + 1}_{key}', 'who': f'amb_{group}', 'text': ph,
-                                    'speaker': sp, 'pitch': 4.0 if group == 'kid' else 0.0})
+                pass  # прохожие без озвучки — только текст
 # сервер берёт фразы отсюда (тот же текст, что озвучен)
 with open(os.path.join(HERE, '..', 'src', 'main', 'resources', 'assets', 'lifecraft', 'ambient.json'), 'w', encoding='utf-8') as f:
     json.dump({g: [{'key': k, 'text': t, 'tags': tags.split()} for k, t, tags in ps] for g, ps in AMBIENT.items()}, f, ensure_ascii=False, indent=1)

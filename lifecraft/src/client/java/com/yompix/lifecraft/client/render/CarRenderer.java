@@ -104,16 +104,33 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
                 .cuboid(-11, 10.25f, -16.5f, 22, 0.1f, 7), ModelTransform.NONE);
         r.addChild("gear", ModelPartBuilder.create().uv(0, 0).cuboid(-0.3f, 11, 3.2f, 0.6f, 2.4f, 0.6f).cuboid(-0.7f, 13.2f, 2.9f, 1.4f, 1.2f, 1.2f), ModelTransform.NONE);
         r.addChild("mirror_in", box(-2, 26.5f, 7.5f, 2, 28, 8.2f), ModelTransform.NONE);
+        // руль: круглый обод из 16 сегментов, три спицы и ступица; наклонён к водителю
         ModelPartData wheel = r.addChild("steering", ModelPartBuilder.create().uv(0, 0)
-                .cuboid(-3, -0.4f, -0.3f, 6, 0.8f, 0.6f).cuboid(-0.4f, -3, -0.3f, 0.8f, 3, 0.6f)
-                .cuboid(-3, -3, -0.3f, 6, 0.8f, 0.6f).cuboid(-3, 2.2f, -0.3f, 6, 0.8f, 0.6f)
-                .cuboid(-3, -3, -0.3f, 0.8f, 6, 0.6f).cuboid(2.2f, -3, -0.3f, 0.8f, 6, 0.6f)
-                .cuboid(-1, -1, -0.5f, 2, 2, 0.6f), ModelTransform.of(7, 16.5f, 4.2f, -0.5f, 0, 0));
-        wheel.addChild("column", box(-0.5f, -0.5f, 0.2f, 0.5f, 0.5f, 3), ModelTransform.NONE);
+                .cuboid(-1.1f, -1.1f, -0.45f, 2.2f, 2.2f, 0.7f)                 // ступица с подушкой
+                .cuboid(-3.0f, -0.35f, -0.2f, 1.95f, 0.7f, 0.4f)                // спица влево
+                .cuboid(1.05f, -0.35f, -0.2f, 1.95f, 0.7f, 0.4f)                // спица вправо
+                .cuboid(-0.35f, -3.0f, -0.2f, 0.7f, 1.95f, 0.4f),               // спица вниз (ось y тут смотрит вверх)
+                ModelTransform.of(7, 17.6f, 4.0f, -0.55f, 0, 0));
+        for (int i = 0; i < 16; i++) {
+            float a = (float) (i * Math.PI * 2 / 16);
+            wheel.addChild("rim" + i, box(-0.62f, -0.3f, -0.3f, 0.62f, 0.3f, 0.3f),
+                    ModelTransform.of((float) Math.cos(a) * 3.1f, (float) Math.sin(a) * 3.1f, 0, 0, 0, a + (float) Math.PI / 2));
+        }
+        wheel.addChild("column", box(-0.45f, -0.45f, 0.3f, 0.45f, 0.45f, 1.6f), ModelTransform.NONE);
         r.addChild("bumpers", ModelPartBuilder.create().uv(0, 0).cuboid(-15, 5, 25, 30, 4, 2).cuboid(-15, 5, -27, 30, 4, 2), ModelTransform.NONE);
         r.addChild("grille", box(-6, 8, 25, 6, 12, 25.5f), ModelTransform.NONE);
         r.addChild("plates", ModelPartBuilder.create().uv(0, 0).cuboid(-4, 6, 27, 8, 2, 0.3f).cuboid(-4, 6, -27.3f, 8, 2, 0.3f), ModelTransform.NONE);
         r.addChild("headlights", ModelPartBuilder.create().uv(0, 0).cuboid(-13, 9.5f, 25, 5, 3, 0.6f).cuboid(8, 9.5f, 25, 5, 3, 0.6f), ModelTransform.NONE);
+        // поворотники: оранжевые углы спереди и сзади (левый борт машины — +x)
+        r.addChild("signal_l", ModelPartBuilder.create().uv(0, 0).cuboid(13.2f, 9.5f, 25, 1.8f, 1.6f, 0.7f).cuboid(13.2f, 9.5f, -25.7f, 1.8f, 1.6f, 0.7f)
+                .cuboid(15, 13.2f, 7.4f, 0.4f, 0.6f, 1.2f), ModelTransform.NONE);
+        r.addChild("signal_r", ModelPartBuilder.create().uv(0, 0).cuboid(-15, 9.5f, 25, 1.8f, 1.6f, 0.7f).cuboid(-15, 9.5f, -25.7f, 1.8f, 1.6f, 0.7f)
+                .cuboid(-15.4f, 13.2f, 7.4f, 0.4f, 0.6f, 1.2f), ModelTransform.NONE);
+        r.addChild("reverse_lights", ModelPartBuilder.create().uv(0, 0).cuboid(-8, 9.8f, -25.6f, 2, 1.6f, 0.6f).cuboid(6, 9.8f, -25.6f, 2, 1.6f, 0.6f), ModelTransform.NONE);
+        // индикаторы на приборке у водителя: ← фары →
+        r.addChild("ind_l", box(0.9f, 15.3f, 5.2f, 1.7f, 15.9f, 5.3f), ModelTransform.NONE);
+        r.addChild("ind_r", box(-1.7f, 15.3f, 5.2f, -0.9f, 15.9f, 5.3f), ModelTransform.NONE);
+        r.addChild("ind_head", box(-0.4f, 15.3f, 5.2f, 0.4f, 15.9f, 5.3f), ModelTransform.NONE);
         r.addChild("taillights", ModelPartBuilder.create().uv(0, 0).cuboid(-13, 9.5f, -25.6f, 4, 3, 0.6f).cuboid(9, 9.5f, -25.6f, 4, 3, 0.6f), ModelTransform.NONE);
         r.addChild("mirrors", ModelPartBuilder.create().uv(0, 0).cuboid(-17, 14, 7, 2, 2, 2).cuboid(15, 14, 7, 2, 2, 2), ModelTransform.NONE);
         r.addChild("taxi_sign", box(-5, 31, -6, 5, 34, -1), ModelTransform.NONE);
@@ -186,13 +203,26 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
             m.pop();
             wheel.render(m, solid, light, ov, 0xFF1A1A1C);
         }
-        // фары светятся всегда, ночью ярче; стопы горят у машины с водителем
-        part("headlights", m, solid, night || driven ? full : light, night ? 0xFFFFF6C8 : 0xFFE8E4C8);
-        part("taillights", m, solid, driven ? full : light, driven ? 0xFFFF2A2A : 0xFF8A1A1A);
+        // свет: фары по выключателю, габариты у заведённой машины, стопы ярче при торможении,
+        // белые огни заднего хода, поворотники и аварийка мигают
+        boolean head = car.light(CarEntity.HEADLIGHTS);
+        part("headlights", m, solid, head ? full : light, head ? 0xFFFFF6C8 : 0xFFD8D4C0);
+        float br = car.brakeGlow;
+        int tail = br > 0.1f ? 0xFFFF1A1A : driven || head ? 0xFFC42020 : 0xFF6A1414;
+        part("taillights", m, solid, br > 0.1f || driven || head ? full : light, tail);
+        part("reverse_lights", m, solid, car.reverseGlow > 0.1f ? full : light, car.reverseGlow > 0.1f ? 0xFFFFFFFF : 0xFF9A9A9A);
+        boolean blink = (car.getWorld().getTime() / 8) % 2 == 0;
+        boolean hz = car.light(CarEntity.HAZARD);
+        boolean l = blink && (hz || car.light(CarEntity.LEFT)), rr = blink && (hz || car.light(CarEntity.RIGHT));
+        part("signal_l", m, solid, l ? full : light, l ? 0xFFFFA000 : 0xFF8A5A10);
+        part("signal_r", m, solid, rr ? full : light, rr ? 0xFFFFA000 : 0xFF8A5A10);
+        part("ind_l", m, solid, full, l ? 0xFF3DFF5A : 0xFF1A2A1A);
+        part("ind_r", m, solid, full, rr ? 0xFF3DFF5A : 0xFF1A2A1A);
+        part("ind_head", m, solid, full, head ? 0xFF4FA3FF : 0xFF1A1A2A);
         if (car.isTaxi()) part("taxi_sign", m, solid, full, 0xFFFFE14D);
         VertexConsumer glass = buffers.getBuffer(RenderLayer.getEntityTranslucent(BASE));
         root.getChild("glass").render(m, glass, light, ov, 0x5A6A8AA8);
-        if (night && driven) beams(m, buffers);
+        if (head) beams(m, buffers, night ? 120 : 35);
         m.pop();
         super.render(car, yaw, tickDelta, m, buffers, light);
     }
@@ -202,14 +232,14 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
     }
 
     /** Ночью от фар вперёд расходятся полупрозрачные лучи. */
-    private static void beams(MatrixStack m, VertexConsumerProvider buffers) {
+    private static void beams(MatrixStack m, VertexConsumerProvider buffers, int alpha) {
         VertexConsumer vc = buffers.getBuffer(RenderLayer.getLightning());
         var mat = m.peek().getPositionMatrix();
         for (float side : new float[]{-0.66f, 0.66f}) {
             float y = 11f / 16f, z = 25.6f / 16f;
             float len = 7f, spread = 1.4f;
-            vc.vertex(mat, side - 0.12f, y + 0.08f, z).color(255, 250, 210, 70);
-            vc.vertex(mat, side + 0.12f, y + 0.08f, z).color(255, 250, 210, 70);
+            vc.vertex(mat, side - 0.12f, y + 0.08f, z).color(255, 250, 210, alpha);
+            vc.vertex(mat, side + 0.12f, y + 0.08f, z).color(255, 250, 210, alpha);
             vc.vertex(mat, side + spread, y - 0.6f, z + len).color(255, 250, 210, 0);
             vc.vertex(mat, side - spread, y - 0.6f, z + len).color(255, 250, 210, 0);
         }

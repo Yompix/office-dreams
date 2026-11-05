@@ -406,6 +406,18 @@ def items():
         d.point([(7, 7)], fill=rgb('3d8a48'))
     item('banknote', banknote)
 
+    def note(paper, dark, stripe):
+        def draw(d, img):
+            d.rectangle([1, 4, 14, 11], fill=rgb(paper))
+            d.rectangle([2, 5, 13, 10], outline=rgb(dark))
+            d.rectangle([3, 6, 4, 9], fill=rgb(stripe))
+            d.ellipse([7, 6, 10, 9], fill=rgb('f6f0e0'))
+            d.point([(8, 7), (9, 8)], fill=rgb(dark))
+            d.line([(11, 6), (12, 9)], fill=rgb(dark))
+        return draw
+    item('banknote_50', note('6f8fe0', '3a55a8', 'c7d3ff'))
+    item('banknote_100', note('e8944a', 'a8521e', 'ffe0b8'))
+
     def burger(d, img):
         d.chord([2, 3, 13, 11], 180, 360, fill=rgb('e0a24a'))
         d.point([(5, 5), (8, 4), (10, 6)], fill=rgb('fff3c4'))
