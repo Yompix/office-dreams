@@ -40,15 +40,12 @@ public final class LifeActions {
         LifeNet.send(p, "open_casino", n);
     }
 
-    private static final String[][] PHRASES = {
-            {"Не опаздывай на урок!", "Домашнее задание сделал?", "Кто выучит таблицу умножения — получит пятёрку."},
-            {"Свежие бургеры, всего $8!", "Заходи ещё!", "Скидок сегодня нет, но кола холодная."},
-            {"Ты из какого класса?", "После уроков — в футбол?", "Завтра контрольная по математике…"},
-            {"Слышал? В городе открыли казино.", "Я хочу стать программистом.", "Пошли в магазин за колой?"},
-            {"Тяжёлая смена сегодня.", "Курьерам платят неплохо!", "Осторожно, тут дорога."},
-            {"Опять дедлайн…", "Без диплома в офис не берут.", "Кофе — лучший друг программиста."},
-            {"Соблюдайте правила дорожного движения!", "На красный не ходи.", "В городе спокойно."},
-            {"Внучек, учись хорошо!", "Раньше хлеб стоил копейку…", "Шапку надень, холодно!"}};
+
+    /** Те же фразы, что озвучены в tools/story.py (AMBIENT). */
+    private static final java.util.Map<String, String[]> AMBIENT = java.util.Map.of(
+            "kid", new String[]{"Привет!", "Пошли играть в футбол!", "У меня завтра контрольная…", "Ты видел новую приставку?", "Мама зовёт обедать!"},
+            "adult", new String[]{"Добрый день!", "Хорошая погода сегодня.", "Опять пробки на Центральной…", "Не подскажете, где банк?", "Удачи!"},
+            "old", new String[]{"Здравствуй, внучек!", "Шапку надень, простудишься!", "Раньше хлеб был вкуснее.", "Ох, молодёжь…"});
 
     public static void talk(CitizenEntity c, ServerPlayerEntity p) {
         switch (c.getRole()) {
@@ -58,9 +55,20 @@ public final class LifeActions {
             case DEALER -> openCasino(p, "roulette");
             case BANKER -> LifeNet.send(p, "open_phone", Jobs.app("bank"));
             default -> {
-                String[] lines = PHRASES[c.getSkin() % PHRASES.length];
+                LifeData ld = Life.get(p);
+                if (++ld.talks >= 20) Achievements.give(p, "friend");
+                ld.mood = Math.min(100, ld.mood + 1);
+                // голос прохожего: детский, взрослый или пожилой
+                String group = c.getScale() < 0.85f ? "kid" : (c.getSkin() == 7 || c.getSkin() == 13) ? "old" : "adult";
+                String[] lines = AMBIENT.get(group);
+                int i = p.getRandom().nextInt(lines.length);
+                net.minecraft.nbt.NbtCompound vn = new net.minecraft.nbt.NbtCompound();
+                vn.putString("voice", "amb_" + group + "_" + String.format("%02d", i + 1));
+                vn.putInt("entity", c.getId());
+                LifeNet.send(p, "ambient", vn);
+                c.lockActivity(null);
                 String name = c.hasCustomName() ? c.getCustomName().getString() : "Житель";
-                p.sendMessage(Text.literal(name + ": ").formatted(Formatting.YELLOW).append(Text.literal(lines[p.getRandom().nextInt(lines.length)]).formatted(Formatting.WHITE)), false);
+                p.sendMessage(Text.literal(name + ": ").formatted(Formatting.YELLOW).append(Text.literal(lines[i]).formatted(Formatting.WHITE)), false);
             }
         }
     }

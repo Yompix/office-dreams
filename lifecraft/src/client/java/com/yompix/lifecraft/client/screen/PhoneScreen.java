@@ -39,7 +39,8 @@ public class PhoneScreen extends LifeScreen {
             new App("bank", "Банк", 0xFF2FA84F), new App("school", "Школа", 0xFFF29B2B), new App("jobs", "Работа", 0xFF5A6ACF),
             new App("messages", "СМС", 0xFF34C759), new App("map", "Карта", 0xFF3AA0E6), new App("shop", "Магазин", 0xFFE05A47),
             new App("casino", "Казино", 0xFF8E1B3A), new App("music", "Музыка", 0xFFFF375F), new App("camera", "Камера", 0xFF4B4F58),
-            new App("weather", "Погода", 0xFF64B5F6), new App("story", "Сюжет", 0xFFFFB300));
+            new App("weather", "Погода", 0xFF64B5F6), new App("story", "Сюжет", 0xFFFFB300), new App("trophy", "Награды", 0xFFC99A2E),
+            new App("home", "Дом", 0xFFA0785A));
 
     private static final String[][] DISCS = {{"cat", "C418 — cat"}, {"chirp", "C418 — chirp"}, {"mall", "C418 — mall"}, {"mellohi", "C418 — mellohi"},
             {"stal", "C418 — stal"}, {"strad", "C418 — strad"}, {"wait", "C418 — wait"}, {"pigstep", "Lena Raine — Pigstep"},
@@ -156,6 +157,8 @@ public class PhoneScreen extends LifeScreen {
                 case "music" -> music(ctx, cy);
                 case "weather" -> weather(ctx, cy);
                 case "story" -> story(ctx, cy);
+                case "trophy" -> trophies(ctx, cy);
+                case "home" -> homes(ctx, cy);
                 default -> {}
             }
         }
@@ -227,7 +230,7 @@ public class PhoneScreen extends LifeScreen {
             case "shop" -> mc().setScreen(new ShopScreen(true));
             case "camera" -> LifeCraftClient.takePhoto();
             case "casino" -> {
-                if (LifeCraftClient.data.adult()) mc().setScreen(new SlotsScreen());
+                if (LifeCraftClient.data.adult()) mc().setScreen(new OnlineCasinoScreen());
                 else openApp("casino");
             }
             default -> openApp(id);
@@ -468,6 +471,48 @@ public class PhoneScreen extends LifeScreen {
         if (music != null) mc().getSoundManager().stop(music);
         music = null;
         playing = "";
+    }
+
+    private void trophies(DrawContext ctx, int y) {
+        LifeData d = LifeCraftClient.data;
+        int got = 0;
+        for (String id : com.yompix.lifecraft.life.Achievements.ALL.keySet()) if (d.achievements.contains(id)) got++;
+        ctx.drawText(textRenderer, "Получено " + got + " из " + com.yompix.lifecraft.life.Achievements.ALL.size(), sx + 8, y, 0xFF8A6D00, false);
+        int yy = y + 12 - scroll;
+        for (var e : com.yompix.lifecraft.life.Achievements.ALL.entrySet()) {
+            boolean has = d.achievements.contains(e.getKey());
+            roundRect(ctx, sx + 6, yy, sw - 12, 22, has ? 0xFFFFF3C4 : 0xFFE8E8EC);
+            ctx.drawText(textRenderer, (has ? "★ " : "☆ ") + e.getValue()[0], sx + 10, yy + 3, has ? 0xFF8A6D00 : 0xFF999999, false);
+            ctx.getMatrices().push();
+            ctx.getMatrices().translate(sx + 10, yy + 13, 0);
+            ctx.getMatrices().scale(0.7f, 0.7f, 1);
+            ctx.drawText(textRenderer, e.getValue()[1], 0, 0, 0xFF777777, false);
+            ctx.getMatrices().pop();
+            yy += 24;
+        }
+    }
+
+    private void homes(DrawContext ctx, int y) {
+        LifeData d = LifeCraftClient.data;
+        wrap(ctx, "Купи свой дом — после сна будешь просыпаться там.", sx + 8, y, sw - 16, 0xFF555555);
+        int yy = y + 24;
+        if (d.flags.contains("own_home")) {
+            roundRect(ctx, sx + 6, yy, sw - 12, 18, 0xFFDDF5DD);
+            ctx.drawText(textRenderer, "Родительский дом — твой", sx + 10, yy + 5, 0xFF2E7D32, false);
+            yy += 22;
+        }
+        for (String[] h : com.yompix.lifecraft.life.CityLife.HOUSES) {
+            boolean own = d.flags.contains("house:" + h[0]);
+            roundRect(ctx, sx + 6, yy, sw - 12, 34, own ? 0xFFDDF5DD : 0xFFFFFFFF);
+            ctx.drawText(textRenderer, h[1], sx + 10, yy + 4, 0xFF333333, false);
+            if (own) ctx.drawText(textRenderer, "Куплен ✔", sx + 10, yy + 18, 0xFF2E7D32, false);
+            else button(ctx, sx + 10, yy + 16, sw - 28, 13, "Купить $" + h[2], 0xFFA0785A, d.adult() && d.money >= Integer.parseInt(h[2]), () -> {
+                net.minecraft.nbt.NbtCompound n = new net.minecraft.nbt.NbtCompound();
+                n.putString("id", h[0]);
+                LifeCraftClient.send("buy_house", n);
+            });
+            yy += 38;
+        }
     }
 
     /** Дневник сюжета: глава, миссия и что делать дальше. */

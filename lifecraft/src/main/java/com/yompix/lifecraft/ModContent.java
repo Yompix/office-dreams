@@ -94,8 +94,8 @@ public final class ModContent {
     public static final Item DIPLOMA = item("diploma", new Item(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
     public static final Item TEXTBOOK = item("textbook", new Item(new Item.Settings().maxCount(16)));
     public static final Item SUIT = item("suit", new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
-    public static final Item BURGER = item("burger", new Item(new Item.Settings().food(new FoodComponent.Builder().nutrition(8).saturationModifier(0.8f).build())));
-    public static final Item COLA = item("cola", new Item(new Item.Settings().food(new FoodComponent.Builder().nutrition(2).saturationModifier(0.3f).alwaysEdible().snack().build())));
+    public static final Item BURGER = item("burger", new com.yompix.lifecraft.item.SnackItem(new Item.Settings().food(new FoodComponent.Builder().nutrition(8).saturationModifier(0.8f).build()), false));
+    public static final Item COLA = item("cola", new com.yompix.lifecraft.item.SnackItem(new Item.Settings().food(new FoodComponent.Builder().nutrition(2).saturationModifier(0.3f).alwaysEdible().snack().build()), true));
 
     // ---------- существа ----------
     public static final EntityType<CarEntity> CAR = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("car"),

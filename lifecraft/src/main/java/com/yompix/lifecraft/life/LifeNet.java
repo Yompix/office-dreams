@@ -83,6 +83,12 @@ public final class LifeNet {
             case "work_answer" -> Jobs.answer(p, d);
             case "transfer" -> transfer(p, d.getString("to"), d.getInt("amount"));
             case "atm" -> Bank.atm(p, d.getString("action"), d.getInt("amount"));
+            case "bj" -> OnlineCasino.blackjack(p, d.getString("action"), d.getInt("bet"));
+            case "crash_start" -> OnlineCasino.crashStart(p, d.getInt("bet"));
+            case "crash_cashout" -> OnlineCasino.crashCashout(p);
+            case "coin" -> OnlineCasino.coin(p, d.getInt("bet"), d.getBoolean("heads"));
+            case "buy_house" -> CityLife.buyHouse(p, d.getString("id"));
+            case "photo" -> Achievements.give(p, "photo");
             case "slots" -> Casino.spin(p, d.getInt("bet"));
             case "roulette" -> Casino.roulette(p, d.getInt("bet"), d.getString("kind"), d.getInt("number"));
             case "horn" -> {

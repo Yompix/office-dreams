@@ -26,7 +26,10 @@ public final class LifeEvents {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> server.execute(() -> onJoin(handler.player)));
         ServerLifecycleEvents.SERVER_STARTED.register(TownBuilder::autoBuildIfCityWorld);
         ServerTickEvents.END_SERVER_TICK.register(LifeEvents::tick);
-        ServerTickEvents.END_SERVER_TICK.register(s -> s.getPlayerManager().getPlayerList().forEach(com.yompix.lifecraft.story.Story::tick));
+        ServerTickEvents.END_SERVER_TICK.register(s -> s.getPlayerManager().getPlayerList().forEach(p -> {
+            com.yompix.lifecraft.story.Story.tick(p);
+            OnlineCasino.tick(p);
+        }));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> com.yompix.lifecraft.story.Story.onLeave(handler.player));
     }
 
@@ -59,7 +62,16 @@ public final class LifeEvents {
             }
         }
         lastTimeOfDay = tod;
+        CityLife.worldTick(server);
+        int second = server.getTicks() / 20;
+        String today = CityLife.event(world);
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+            CityLife.playerTick(p, second);
+            Achievements.check(p);
+            if (!Life.get(p).today.equals(today)) {
+                Life.get(p).today = today;
+                Life.sync(p);
+            }
             Jobs.tickTaxi(p);
             LifeData d = Life.get(p);
             if (tod >= 1000 && d.lastAllowanceDay != day) {

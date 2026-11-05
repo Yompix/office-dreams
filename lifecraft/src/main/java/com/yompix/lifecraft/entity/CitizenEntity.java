@@ -172,6 +172,8 @@ public class CitizenEntity extends PathAwareEntity {
                 next = x < 50 ? Activity.IDLE : x < 65 ? Activity.PHONE : x < 78 ? Activity.TALK : x < 88 ? Activity.THINK : x < 94 ? Activity.CHEER : Activity.IDLE;
             }
             dataTracker.set(ACTIVITY, next.ordinal());
+            equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, next == Activity.PHONE
+                    ? new net.minecraft.item.ItemStack(com.yompix.lifecraft.ModContent.PHONE) : net.minecraft.item.ItemStack.EMPTY);
             activityTicks = next == Activity.WAVE ? 40 : 80 + r.nextInt(160);
         }
     }

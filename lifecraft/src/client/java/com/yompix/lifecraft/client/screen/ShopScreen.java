@@ -29,7 +29,7 @@ public class ShopScreen extends LifeScreen {
         int x = width / 2 - w / 2, y = (int) (height / 2 - h / 2 + (1 - a) * 30);
         panel(ctx, x, y, w, h, 0xFFFDFBF7, 0xFFF1ECE2);
         ctx.fill(x, y, x + w, y + 22, 0xFFE05A47);
-        ctx.drawText(textRenderer, delivery ? "Магазин · доставка +20%" : "Супермаркет", x + 8, y + 7, 0xFFFFFFFF, true);
+        ctx.drawText(textRenderer, (delivery ? "Магазин · доставка +20%" : "Супермаркет") + (LifeCraftClient.data.today.equals("fair") ? " · ЯРМАРКА −30%" : ""), x + 8, y + 7, 0xFFFFFFFF, true);
         String money = "$" + LifeCraftClient.data.money;
         ctx.drawText(textRenderer, money, x + w - 8 - textRenderer.getWidth(money), y + 7, 0xFFFFF4B0, true);
         List<String> tabs = new ArrayList<>();
@@ -57,7 +57,7 @@ public class ShopScreen extends LifeScreen {
             roundRect(ctx, x + 6, ry, w - 12, 22, flash ? 0xFFC8F5D0 : 0xFFFFFFFF);
             ctx.drawItem(new ItemStack(e.item().get(), e.count()), x + 10, ry + 3);
             ctx.drawText(textRenderer, e.name(), x + 32, ry + 7, 0xFF333333, false);
-            int price = Shop.price(e, delivery);
+            int price = Shop.price(e, delivery, LifeCraftClient.data.today);
             boolean locked = LifeCraftClient.data.edu < e.minEdu();
             boolean afford = LifeCraftClient.data.money >= price;
             String label = locked ? "18+" : "$" + price;

@@ -126,6 +126,7 @@ public final class Jobs {
         d.tasksDone++;
         Life.earn(p, reward, "доставка выполнена");
         com.yompix.lifecraft.story.Story.onJobDone(p, "courier");
+        if (d.tasksDone >= 10) Achievements.give(p, "courier10");
     }
 
     // ---------- такси ----------
@@ -180,6 +181,7 @@ public final class Jobs {
         d.tasksDone++;
         Life.earn(p, reward, "поездка оплачена");
         com.yompix.lifecraft.story.Story.onJobDone(p, "taxi");
+        if (d.tasksDone >= 10) Achievements.give(p, "taxi10");
     }
 
     // ---------- кассир ----------

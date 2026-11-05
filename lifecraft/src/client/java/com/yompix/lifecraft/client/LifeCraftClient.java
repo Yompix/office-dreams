@@ -76,6 +76,19 @@ public class LifeCraftClient implements ClientModInitializer {
             send("hello", new NbtCompound());
         });
         ClientTickEvents.END_CLIENT_TICK.register(LifeCraftClient::tick);
+        // заставка студии один раз при запуске и подпись на главном экране
+        ClientTickEvents.END_CLIENT_TICK.register(c -> {
+            if (c.currentScreen instanceof net.minecraft.client.gui.screen.TitleScreen t && !com.yompix.lifecraft.client.story.YompixSplash.shown())
+                c.setScreen(new com.yompix.lifecraft.client.story.YompixSplash(t));
+        });
+        net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register((c, screen, w, h) -> {
+            if (screen instanceof net.minecraft.client.gui.screen.TitleScreen)
+                net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.afterRender(screen).register((sc, ctx, mx, my, d) -> {
+                    var tr = c.textRenderer;
+                    ctx.drawText(tr, "LifeCraft 0.2", 4, h - 30, 0xFFFFC107, true);
+                    ctx.drawText(tr, "© Yompix Games", 4, h - 20, 0xFF8A5CFF, true);
+                });
+        });
         HudRenderCallback.EVENT.register(LifeHud::render);
         HudRenderCallback.EVENT.register((ctx, t) -> com.yompix.lifecraft.client.story.StoryHud.render(ctx));
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_TRANSLUCENT.register(com.yompix.lifecraft.client.story.StoryHud::renderWorld);
@@ -106,6 +119,22 @@ public class LifeCraftClient implements ClientModInitializer {
             }
             case "mission_done" -> com.yompix.lifecraft.client.story.ClientStory.missionDone(n.getString("title"));
             case "countdown" -> com.yompix.lifecraft.client.story.ClientStory.countdown(n.getString("text"));
+            case "bj_state" -> {
+                if (client.currentScreen instanceof com.yompix.lifecraft.client.screen.OnlineCasinoScreen s) s.bj(n);
+            }
+            case "crash_start", "crash_cashout", "crash_end" -> {
+                if (client.currentScreen instanceof com.yompix.lifecraft.client.screen.OnlineCasinoScreen s) s.crash(type, n);
+            }
+            case "coin_result" -> {
+                if (client.currentScreen instanceof com.yompix.lifecraft.client.screen.OnlineCasinoScreen s) s.coin(n);
+            }
+            case "achievement" -> com.yompix.lifecraft.client.story.ClientStory.achievement(n.getString("name"), n.getString("desc"));
+            case "ambient" -> {
+                var e = client.world == null ? null : client.world.getEntityById(n.getInt("entity"));
+                if (e != null) client.getSoundManager().play(new net.minecraft.client.sound.PositionedSoundInstance(LifeCraft.id("voice." + n.getString("voice")),
+                        net.minecraft.sound.SoundCategory.VOICE, 1f, 1f, net.minecraft.util.math.random.Random.create(), false, 0,
+                        net.minecraft.client.sound.SoundInstance.AttenuationType.LINEAR, e.getX(), e.getEyeY(), e.getZ(), false));
+            }
             case "open_phone" -> client.setScreen(new PhoneScreen(n.getString("app")));
             case "open_lesson" -> client.setScreen(new LessonScreen(n));
             case "lesson_result" -> {
@@ -152,6 +181,7 @@ public class LifeCraftClient implements ClientModInitializer {
         hudWasHidden = c.options.hudHidden;
         c.options.hudHidden = true;
         screenshotIn = 3;
+        send("photo");
         if (c.player != null) c.player.playSound(ModContent.PHONE_CLICK, 1f, 0.6f);
     }
 

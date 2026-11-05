@@ -133,6 +133,8 @@ public final class School {
         if (usedHint) takeOne(p, ModContent.TEXTBOOK);
         d.lastLesson = now;
         d.addGrade(grade);
+        Achievements.give(p, "first_lesson");
+        if (grade == 5) Achievements.give(p, "excellent");
         String who = d.adult() ? "Деканат" : "Классный руководитель";
         if (grade >= 3) {
             d.lessons++;

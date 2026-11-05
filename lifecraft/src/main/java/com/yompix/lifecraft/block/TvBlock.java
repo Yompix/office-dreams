@@ -33,6 +33,7 @@ public class TvBlock extends FacingBlock {
         int ch = player.isSneaking() ? 0 : state.get(CHANNEL) % 5 + 1;
         if (!world.isClient) {
             world.setBlockState(pos, state.with(CHANNEL, ch));
+            if (ch > 0 && player instanceof net.minecraft.server.network.ServerPlayerEntity sp) com.yompix.lifecraft.life.Achievements.give(sp, "tv");
             world.playSound(null, pos, ModContent.TV_SWITCH, SoundCategory.BLOCKS, 0.6f, 1f);
             player.sendMessage(Text.literal(ch == 0 ? "📺 Телевизор выключен" : "📺 Канал " + ch + ": " + NAMES[ch]), true);
         }

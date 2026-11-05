@@ -42,7 +42,8 @@ public class LifeData {
     public float returnYaw;
 
     // потребности и прогресс
-    public int energy = 100, mood = 70;
+    public int energy = 100, mood = 70, talks;
+    public String today = "";
     public java.util.Set<String> achievements = new java.util.HashSet<>();
 
     public static int lessonsNeeded(int edu) {
@@ -122,6 +123,8 @@ public class LifeData {
         n.putFloat("returnYaw", returnYaw);
         n.putInt("energy", energy);
         n.putInt("mood", mood);
+        n.putInt("talks", talks);
+        n.putString("today", today);
         n.put("achievements", strings(achievements));
         return n;
     }
@@ -160,6 +163,8 @@ public class LifeData {
         d.returnYaw = n.getFloat("returnYaw");
         if (n.contains("energy")) d.energy = n.getInt("energy");
         if (n.contains("mood")) d.mood = n.getInt("mood");
+        d.talks = n.getInt("talks");
+        d.today = n.getString("today");
         for (NbtElement e : n.getList("achievements", NbtElement.STRING_TYPE)) d.achievements.add(e.asString());
         return d;
     }

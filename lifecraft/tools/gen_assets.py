@@ -410,6 +410,16 @@ def items():
                 d.rectangle([7, 2, 8, 3], fill=rgb('222222'))
         item('car_' + name, car)
 
+    def suit(d, img):
+        d.polygon([(4, 2), (11, 2), (13, 5), (13, 14), (2, 14), (2, 5)], fill=rgb('1c1f2a'))
+        d.polygon([(6, 2), (9, 2), (8, 9), (7, 9)], fill=rgb('f4f4f4'))
+        d.line([7, 3, 7, 8], fill=rgb('c62828'))
+        d.line([8, 3, 8, 8], fill=rgb('a51f1f'))
+        d.line([5, 3, 7, 9], fill=rgb('2c3142'))
+        d.line([10, 3, 8, 9], fill=rgb('2c3142'))
+        d.point([(9, 11), (9, 13)], fill=rgb('d4af37'))
+    item('suit', suit)
+
     def key(d, img):
         d.ellipse([2, 2, 7, 7], fill=rgb('2a2c31'))
         d.ellipse([4, 4, 5, 5], fill=rgb('888888'))
@@ -427,102 +437,247 @@ def entities():
     save(glow, 'entity', 'car', 'glow.png')
 
     variants = {
-        'teacher':    dict(skin='e9c1a0', hair='5a3a22', shirt='7b4fa1', pants='2b2b3a', shoes='3a2416', long=True, glasses=True),
-        'shopkeeper': dict(skin='d9a47c', hair='1f1f1f', shirt='e05a47', pants='3c4a6b', shoes='222222', apron=True),
-        'student':    dict(skin='f0c8a6', hair='a0662e', shirt='2c6ecb', pants='3a3a46', shoes='eeeeee', bag=True),
-        'student2':   dict(skin='c99067', hair='2a1a10', shirt='e8e8e8', pants='5a2a3a', shoes='222222', long=True, bag=True),
-        'worker':     dict(skin='e0b48f', hair='7a5230', shirt='f28c28', pants='2f3b55', shoes='4a3020', helmet=True),
-        'office':     dict(skin='efc9a8', hair='3a2a1a', shirt='f4f4f4', pants='2a2d36', shoes='111111', tie=True),
-        'police':     dict(skin='d8a982', hair='222222', shirt='1d3f8a', pants='1b2440', shoes='111111', cap=True),
-        'grandma':    dict(skin='edc7ab', hair='d9d9d9', shirt='9c5a7a', pants='5a3a4a', shoes='3a2a2a', long=True),
+        'teacher':    dict(skin='e9c1a0', hair='5a3a22', top='sweater', shirt='7b4fa1', pants='2b2b3a', shoes='3a2416', style='bob', glasses=True, slim=True, dress=True),
+        'shopkeeper': dict(skin='d9a47c', hair='1f1f1f', top='tshirt', shirt='e05a47', pants='3c4a6b', shoes='222222', style='short', apron=True),
+        'student':    dict(skin='f0c8a6', hair='a0662e', top='tshirt', shirt='2c6ecb', pants='3a3a46', shoes='eeeeee', style='short', bag=True),
+        'student2':   dict(skin='c99067', hair='2a1a10', top='tshirt', shirt='e8e8e8', pants='5a2a3a', shoes='222222', style='ponytail', bag=True, slim=True, dress=True),
+        'worker':     dict(skin='e0b48f', hair='7a5230', top='jacket', shirt='f28c28', inner='dfe6ee', pants='2f3b55', shoes='4a3020', style='short', helmet=True, beard='7a5230'),
+        'office':     dict(skin='efc9a8', hair='3a2a1a', top='suit', shirt='2a2d36', inner='f4f4f4', pants='2a2d36', shoes='111111', style='short', tie='c62828'),
+        'police':     dict(skin='d8a982', hair='222222', top='jacket', shirt='1d3f8a', inner='9fb8e8', pants='1b2440', shoes='111111', style='buzz', cap='1b2440', badge=True),
+        'grandma':    dict(skin='edc7ab', hair='d9d9d9', top='sweater', shirt='9c5a7a', pants='5a3a4a', shoes='3a2a2a', style='bob', glasses=True, slim=True, dress=True),
+        # герои сюжета
+        'mom':        dict(skin='efc6a4', hair='6b3d1f', top='sweater', shirt='e91e63', pants='37474f', shoes='5d4037', style='long', slim=True, blush=True),
+        'dad':        dict(skin='e2b48e', hair='3e2723', top='jacket', shirt='1565c0', inner='eceff1', pants='263238', shoes='3e2723', style='short', beard='3e2723'),
+        'tema':       dict(skin='f3cbb0', hair='d2691e', top='hoodie', shirt='2e7d32', pants='37474f', shoes='fafafa', style='curly', freckles=True),
+        'lisa':       dict(skin='f6d2b8', hair='f2d16b', top='tshirt', shirt='ffca28', pants='ad1457', shoes='fafafa', style='ponytail', slim=True, dress=True, blush=True),
+        'gleb':       dict(skin='dcae8a', hair='212121', top='jacket', shirt='b71c1c', inner='212121', pants='1c1c1c', shoes='212121', style='buzz', scar=True),
+        'instructor': dict(skin='e0b08a', hair='9e9e9e', top='jacket', shirt='ef6c00', inner='fff3e0', pants='455a64', shoes='3e2723', style='bald', mustache='757575'),
+        'baron':      dict(skin='e8c0a0', hair='0d0d0d', top='suit', shirt='111111', inner='ffd54f', pants='111111', shoes='111111', style='slick', tie='ffc107', glasses='gold', mustache='0d0d0d'),
+        'guard':      dict(skin='c8956c', hair='111111', top='suit', shirt='151515', inner='eeeeee', pants='151515', shoes='050505', style='buzz', tie='151515', glasses='shades'),
     }
+    looks = []
     for name, v in variants.items():
         save(skin(v), 'entity', 'citizen', name + '.png')
+        looks.append(look(v))
+    # 40 случайных горожан: чётные — девушки (тонкие руки), разные лица, причёски и одежда
+    r = random.Random(2024)
+    skins = ['f6d2b8', 'efc6a4', 'e2b48e', 'd8a982', 'c99067', 'a8714a', '8d5a3b', '6b4429']
+    hairs = ['1a1a1a', '3e2723', '6b3d1f', 'a0662e', 'd2691e', 'f2d16b', 'e0e0e0', '8e24aa', 'e91e63', '1e88e5']
+    clothes = ['e53935', '1e88e5', '43a047', 'fdd835', '8e24aa', 'fb8c00', '00897b', '546e7a', 'f06292', '3949ab', 'ffffff', '212121', '6d4c41', '26c6da']
+    pants = ['1a237e', '263238', '37474f', '4e342e', '212121', '5d4037', '1565c0', '6a1b9a']
+    for i in range(40):
+        girl = i % 2 == 0
+        hair = r.choice(hairs[:7]) if r.random() < 0.85 else r.choice(hairs[7:])
+        v = dict(skin=r.choice(skins), hair=hair, shirt=r.choice(clothes), pants=r.choice(pants), shoes=r.choice(['fafafa', '212121', '5d4037', 'e53935', '1e88e5']),
+                 top=r.choice(['tshirt', 'tshirt', 'hoodie', 'jacket', 'sweater'] + (['dress'] if girl else ['suit'])), inner=r.choice(clothes),
+                 style=r.choice(['long', 'ponytail', 'bob', 'curly'] if girl else ['short', 'buzz', 'curly', 'slick', 'bald', 'short']), slim=girl)
+        if girl and r.random() < 0.5: v['blush'] = True
+        if r.random() < 0.25: v['glasses'] = r.choice([True, 'shades'])
+        if not girl and r.random() < 0.25: v['beard'] = v['hair']
+        if r.random() < 0.2: v['cap'] = r.choice(clothes)
+        elif r.random() < 0.12: v['beanie'] = r.choice(clothes)
+        if r.random() < 0.15: v['freckles'] = True
+        if r.random() < 0.2: v['bag'] = True
+        if v['top'] == 'dress': v['dress'] = True
+        save(skin(v), 'entity', 'citizen', f'c{i:02d}.png')
+        looks.append(look(v))
+    with open(os.path.join(ROOT, 'citizen_looks.json'), 'w') as f:
+        json.dump(looks, f)
+    # текстура волос: пряди
+    hair = Image.new('RGBA', (64, 64))
+    hp = hair.load()
+    rr = random.Random(5)
+    for x in range(64):
+        base = 200 + rr.randint(-25, 25)
+        for y in range(64):
+            v_ = max(120, min(255, base + rr.randint(-12, 12) - (18 if (x + y // 3) % 5 == 0 else 0)))
+            hp[x, y] = (v_, v_, v_, 255)
+    save(hair, 'entity', 'citizen', 'hair.png')
+
+
+def look(v):
+    """Что рисовать объёмом поверх головы: причёска, борода, усы, головной убор, очки."""
+    out = {'style': v.get('style', 'short'), 'hair': v['hair']}
+    if v.get('beard'): out['beard'] = v['beard']
+    if v.get('mustache'): out['mustache'] = v['mustache']
+    if v.get('helmet'): out['helmet'] = 'f2c032'
+    elif v.get('cap'): out['cap'] = v['cap'] if isinstance(v['cap'], str) else '1b2440'
+    if v.get('beanie'): out['beanie'] = v['beanie']
+    if v.get('glasses'): out['glasses'] = v['glasses'] if isinstance(v['glasses'], str) else 'frame'
+    return out
 
 
 def skin(v):
-    """Скин 64x64 в формате игрока."""
+    """Скин 64x64 в формате игрока (классические или тонкие руки), с причёской, одеждой и аксессуарами."""
     img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     S, H, SH, P, SO = (rgb(v[k]) for k in ('skin', 'hair', 'shirt', 'pants', 'shoes'))
+    IN = rgb(v.get('inner', v['shirt']))
+    top = v.get('top', 'tshirt')
+    style = v.get('style', 'short')
+    aw = 3 if v.get('slim') else 4
 
-    def box(u, vv, w, h, dd, col, sides=None):
-        # стандартная развёртка куба: top, bottom, right, front, left, back
-        sides = sides or {}
+    def box(u, vv, w, h, dd, col):
         regions = {
             'top': (u + dd, vv, w, dd), 'bottom': (u + dd + w, vv, w, dd),
             'right': (u, vv + dd, dd, h), 'front': (u + dd, vv + dd, w, h),
             'left': (u + dd + w, vv + dd, dd, h), 'back': (u + dd + w + dd, vv + dd, w, h)}
         for k, (x, y, ww, hh) in regions.items():
-            c = sides.get(k, col)
             for yy in range(hh):
                 for xx in range(ww):
                     j = random.Random(x * 131 + y * 7 + xx * 17 + yy).randint(-6, 6)
-                    img.putpixel((x + xx, y + yy), shade(c, 1 + j / 255))
+                    img.putpixel((x + xx, y + yy), shade(col, 1 + j / 255))
         return regions
 
-    # голова
+    def rect(r, x0, y0, x1, y1, col):
+        x, y, w, h = r
+        d.rectangle([x + x0, y + y0, x + min(x1, w - 1), y + min(y1, h - 1)], fill=col)
+
+    # ---- голова
     r = box(0, 0, 8, 8, 8, S)
-    fx, fy, _, _ = r['front']
-    d.rectangle([fx, fy, fx + 7, fy + 1], fill=H)
-    for k in ('right', 'left', 'back'):
-        x, y, w, h = r[k]
-        d.rectangle([x, y, x + w - 1, y + (5 if v.get('long') else 2)], fill=H)
-    x, y, w, h = r['top']
-    d.rectangle([x, y, x + w - 1, y + h - 1], fill=H)
-    d.point([(fx + 2, fy + 4), (fx + 5, fy + 4)], fill=rgb('ffffff'))
-    d.point([(fx + 2, fy + 4 + 0)], fill=rgb('ffffff'))
-    d.point([(fx + 3, fy + 4), (fx + 4, fy + 4)], fill=shade(S, .9))
-    d.point([(fx + 2, fy + 4)], fill=rgb('ffffff'))
-    d.point([(fx + 3, fy + 4)], fill=rgb('2a3a6a'))
-    d.point([(fx + 5, fy + 4)], fill=rgb('2a3a6a'))
-    d.point([(fx + 6, fy + 4)], fill=rgb('ffffff'))
+    F = r['front']
+    fx, fy = F[0], F[1]
+    if style != 'bald':
+        rect(r['top'], 0, 0, 7, 7, H)
+        fringe = {'short': 1, 'buzz': 0, 'curly': 2, 'slick': 1, 'long': 1, 'ponytail': 1, 'bob': 2}.get(style, 1)
+        rect(F, 0, 0, 7, fringe, H)
+        side = {'short': 2, 'buzz': 1, 'curly': 3, 'slick': 2, 'long': 7, 'ponytail': 3, 'bob': 5}.get(style, 2)
+        for k in ('right', 'left'):
+            rect(r[k], 0, 0, 7, side, H)
+        rect(r['back'], 0, 0, 7, 7 if style in ('long', 'bob', 'ponytail') else side + 1, H)
+        if style in ('long', 'bob'):
+            d.point([(fx, fy + 2), (fx, fy + 3), (fx + 7, fy + 2), (fx + 7, fy + 3)], fill=H)
+            if style == 'long':
+                d.point([(fx, fy + 4), (fx + 7, fy + 4), (fx, fy + 5), (fx + 7, fy + 5)], fill=H)
+        if style == 'curly':
+            for xx in range(0, 8, 2):
+                d.point([(fx + xx, fy + 2)], fill=shade(H, 0.8))
+        if style == 'slick':
+            d.line([fx + 2, fy, fx + 7, fy + 1], fill=shade(H, 1.4))
+    else:
+        rect(r['top'], 2, 2, 5, 5, shade(S, 1.05))
+    # глаза, брови, рот
+    eye = rgb(random.Random(v['skin'] + v['hair']).choice(['2a3a6a', '3e6b2a', '4e342e', '1a1a1a', '2e7d9a']))
+    d.point([(fx + 1, fy + 4), (fx + 5, fy + 4)], fill=rgb('ffffff'))
+    d.point([(fx + 2, fy + 4), (fx + 6, fy + 4)], fill=eye)
+    d.line([fx + 1, fy + 3, fx + 2, fy + 3], fill=shade(H if style != 'bald' else S, 0.7))
+    d.line([fx + 5, fy + 3, fx + 6, fy + 3], fill=shade(H if style != 'bald' else S, 0.7))
+    d.point([(fx + 3, fy + 5), (fx + 4, fy + 5)], fill=shade(S, 0.88))
     d.line([fx + 3, fy + 6, fx + 4, fy + 6], fill=rgb('a0524a'))
-    if v.get('long'):
-        d.point([(fx, fy + 2), (fx, fy + 3), (fx + 7, fy + 2), (fx + 7, fy + 3)], fill=H)
-    if v.get('glasses'):
-        d.rectangle([fx + 1, fy + 3, fx + 3, fy + 5], outline=rgb('222222'))
-        d.rectangle([fx + 5, fy + 3, fx + 7, fy + 5], outline=rgb('222222'))
-    # слой шляпы (32,0)
-    if v.get('helmet') or v.get('cap'):
-        col = rgb('f2c032') if v.get('helmet') else rgb('1b2440')
-        hx, hy = 32, 0
-        for k, (x, y, w, h) in {'top': (hx + 8, hy, 8, 8), 'front': (hx + 8, hy + 8, 8, 3), 'right': (hx, hy + 8, 8, 3),
-                                'left': (hx + 16, hy + 8, 8, 3), 'back': (hx + 24, hy + 8, 8, 3)}.items():
-            d.rectangle([x, y, x + w - 1, y + h - 1], fill=col)
-        if v.get('cap'):
-            d.point([(hx + 11, hy + 9), (hx + 12, hy + 9)], fill=rgb('f2c032'))
-    # тело
+    d.point([(fx + 2, fy + 6)], fill=shade(S, 0.8)) if not v.get('slim') else None
+    if v.get('blush'):
+        d.point([(fx + 1, fy + 5), (fx + 6, fy + 5)], fill=rgb('f48fb1'))
+    if v.get('freckles'):
+        d.point([(fx + 1, fy + 5), (fx + 2, fy + 5), (fx + 5, fy + 5), (fx + 6, fy + 5)], fill=shade(S, 0.75))
+    if v.get('scar'):
+        d.line([fx + 6, fy + 2, fx + 7, fy + 4], fill=rgb('b0705a'))
+    if v.get('beard'):
+        B = rgb(v['beard'])
+        d.rectangle([fx, fy + 6, fx + 7, fy + 7], fill=B)
+        d.point([(fx, fy + 5), (fx + 7, fy + 5)], fill=B)
+        d.line([fx + 3, fy + 6, fx + 4, fy + 6], fill=rgb('7a3b2e'))
+        for k in ('right', 'left'):
+            rect(r[k], 0, 6, 7, 7, B)
+    if v.get('mustache'):
+        d.line([fx + 2, fy + 5, fx + 5, fy + 5], fill=rgb(v['mustache']))
+    g = v.get('glasses')
+    if g:
+        col = rgb('d4af37') if g == 'gold' else rgb('111111')
+        if g == 'shades':
+            d.rectangle([fx + 1, fy + 3, fx + 6, fy + 4], fill=rgb('111111'))
+        else:
+            d.line([fx, fy + 3, fx + 7, fy + 3], fill=col)
+            d.point([(fx + 1, fy + 4), (fx + 5, fy + 4)], fill=rgb('cfe8ff'))
+            d.point([(fx, fy + 4), (fx + 3, fy + 4), (fx + 4, fy + 4), (fx + 7, fy + 4)], fill=col)
+    # слой поверх головы (32,0): хвост, кепка, шапка, каска
+    hx, hy = 32, 0
+    hat = {'top': (hx + 8, hy, 8, 8), 'front': (hx + 8, hy + 8, 8, 8), 'right': (hx, hy + 8, 8, 8), 'left': (hx + 16, hy + 8, 8, 8), 'back': (hx + 24, hy + 8, 8, 8)}
+    if style == 'ponytail':
+        x, y, w, h = hat['back']
+        d.rectangle([x + 3, y + 1, x + 4, y + 7], fill=shade(H, 0.9))
+        d.rectangle([x + 3, y + 1, x + 4, y + 1], fill=rgb(v['shirt']))
+    if style == 'curly':
+        for k in ('top', 'right', 'left', 'back'):
+            x, y, w, h = hat[k]
+            for xx in range(0, w, 2):
+                d.point([(x + xx, y + (0 if k == 'top' else 0))], fill=shade(H, 1.1))
+    cap = v.get('cap') or (v.get('helmet') and 'f2c032')
+    if cap:
+        C = rgb(cap if isinstance(cap, str) else 'f2c032')
+        for k in ('top',):
+            x, y, w, h = hat[k]
+            d.rectangle([x, y, x + w - 1, y + h - 1], fill=C)
+        for k in ('front', 'right', 'left', 'back'):
+            x, y, w, h = hat[k]
+            d.rectangle([x, y, x + w - 1, y + 2], fill=C)
+        if v.get('badge') or v.get('helmet'):
+            x, y, w, h = hat['front']
+            d.point([(x + 3, y + 1), (x + 4, y + 1)], fill=rgb('ffd54f'))
+    if v.get('beanie'):
+        C = rgb(v['beanie'])
+        x, y, w, h = hat['top']
+        d.rectangle([x, y, x + w - 1, y + h - 1], fill=C)
+        for k in ('front', 'right', 'left', 'back'):
+            x, y, w, h = hat[k]
+            d.rectangle([x, y, x + w - 1, y + 3], fill=C)
+            d.line([x, y + 3, x + w - 1, y + 3], fill=shade(C, 0.8))
+    # ---- тело
     r = box(16, 16, 8, 12, 4, SH)
-    fx, fy, _, _ = r['front']
-    if v.get('tie'):
-        d.line([fx + 3, fy, fx + 3, fy + 8], fill=rgb('c62828'))
-        d.line([fx + 4, fy, fx + 4, fy + 8], fill=rgb('a51f1f'))
+    F = r['front']
+    fx, fy = F[0], F[1]
+    if top == 'jacket' or top == 'suit':
+        d.rectangle([fx + 3, fy, fx + 4, fy + 11], fill=IN)
+        d.point([(fx + 2, fy), (fx + 5, fy)], fill=IN)
+        if top == 'jacket':
+            d.line([fx + 3, fy + 3, fx + 3, fy + 11], fill=shade(SH, 0.7))
+        if v.get('badge'):
+            d.point([(fx + 1, fy + 3)], fill=rgb('ffd54f'))
+    if top == 'hoodie':
+        d.rectangle([fx + 1, fy + 7, fx + 6, fy + 9], fill=shade(SH, 0.85))
+        d.point([(fx + 3, fy + 1), (fx + 4, fy + 1)], fill=rgb('eeeeee'))
+        d.line([fx + 3, fy + 1, fx + 3, fy + 4], fill=rgb('eeeeee'))
+        d.line([fx + 4, fy + 1, fx + 4, fy + 4], fill=rgb('eeeeee'))
+        x, y, w, h = r['back']
+        d.rectangle([x + 1, y, x + 6, y + 2], fill=shade(SH, 0.85))
+    if top == 'sweater':
+        for yy in (2, 6):
+            d.line([fx, fy + yy, fx + 7, fy + yy], fill=shade(SH, 1.25))
+    if top == 'tshirt':
+        d.rectangle([fx + 2, fy, fx + 5, fy], fill=shade(S, 0.95))
+    tie = v.get('tie')
+    if tie:
+        d.line([fx + 3, fy + 1, fx + 3, fy + 8], fill=rgb(tie))
+        d.line([fx + 4, fy + 1, fx + 4, fy + 8], fill=shade(rgb(tie), 0.85))
     if v.get('apron'):
         d.rectangle([fx + 1, fy + 3, fx + 6, fy + 11], fill=rgb('f4f4f4'))
-    if v.get('helmet'):
-        d.rectangle([fx, fy + 6, fx + 7, fy + 7], fill=rgb('dfe6ee'))
-    if v.get('cap'):
-        d.point([(fx + 5, fy + 2)], fill=rgb('f2c032'))
     if v.get('bag'):
-        bx, by, _, _ = r['back']
-        d.rectangle([bx + 1, by + 1, bx + 6, by + 9], fill=rgb('e53935'))
+        x, y, w, h = r['back']
+        d.rectangle([x + 1, y + 1, x + 6, y + 9], fill=rgb('e53935'))
         d.line([fx + 1, fy, fx + 1, fy + 5], fill=rgb('b71c1c'))
         d.line([fx + 6, fy, fx + 6, fy + 5], fill=rgb('b71c1c'))
-    d.rectangle([fx, fy + 10, fx + 7, fy + 11], fill=shade(P, .8))
-    # руки (правая 40,16; левая 32,48)
+    if not v.get('dress'):
+        d.rectangle([fx, fy + 10, fx + 7, fy + 11], fill=shade(P, .8))
+        d.point([(fx + 3, fy + 10)], fill=rgb('c0c0c0'))
+    # ---- руки: правая (40,16), левая (32,48); тонкие — ширина 3
+    long_sleeve = top in ('hoodie', 'jacket', 'suit', 'sweater')
     for (u, vv) in ((40, 16), (32, 48)):
-        r = box(u, vv, 4, 12, 4, SH)
+        r = box(u, vv, aw, 12, 4, SH)
         for k in ('right', 'front', 'left', 'back'):
             x, y, w, h = r[k]
-            d.rectangle([x, y + 4 if v['shirt'] != v['skin'] else y, x + w - 1, y + h - 1], fill=S)
+            if long_sleeve:
+                d.rectangle([x, y + 10, x + w - 1, y + h - 1], fill=S)
+            else:
+                d.rectangle([x, y + 4, x + w - 1, y + h - 1], fill=S)
         x, y, w, h = r['bottom']
         d.rectangle([x, y, x + w - 1, y + h - 1], fill=S)
-    # ноги (правая 0,16; левая 16,48)
+    # ---- ноги: правая (0,16), левая (16,48); у платья верх ног — цвет платья
     for (u, vv) in ((0, 16), (16, 48)):
-        r = box(u, vv, 4, 12, 4, P)
+        r = box(u, vv, 4, 12, 4, P if not v.get('dress') else S)
         for k in ('right', 'front', 'left', 'back'):
             x, y, w, h = r[k]
+            if v.get('dress'):
+                d.rectangle([x, y, x + w - 1, y + 4], fill=rgb(v['pants']))
+                d.rectangle([x, y + 5, x + w - 1, y + 9], fill=shade(S, 0.97))
             d.rectangle([x, y + 10, x + w - 1, y + h - 1], fill=SO)
         x, y, w, h = r['bottom']
         d.rectangle([x, y, x + w - 1, y + h - 1], fill=SO)
@@ -708,6 +863,25 @@ def sounds():
     tt = t_(.25)
     st = np.random.default_rng(4).normal(0, 1, len(tt)) * np.exp(-tt / .06) * .4
     write_ogg('tv_switch', st + np.sin(2 * np.pi * 15000 * tt) * np.exp(-tt / .1) * .05)
+
+    # джингл Yompix Games: восходящее арпеджио с переливом и мягким «бумом»
+    out = np.zeros(int(SR * 3.2))
+    notes = [523.25, 659.25, 783.99, 987.77, 1174.66, 1567.98]
+    for i, f in enumerate(notes):
+        tt = t_(2.2 - i * 0.12)
+        st = int(SR * (0.1 + i * 0.11))
+        tone = sum(np.sin(2 * np.pi * f * k * tt) / (k * k) for k in (1, 2, 3, 4)) * (1 + 0.3 * np.sin(2 * np.pi * 5 * tt))
+        out[st:st + len(tt)] += tone * env(len(tt), .005, .6) * .16
+    tt = t_(1.6)
+    st = int(SR * 0.85)
+    pad = sum(np.sin(2 * np.pi * f * tt) for f in (130.81, 196.0, 261.63, 329.63)) * np.minimum(1, tt / .2) * np.exp(-tt / .9)
+    out[st:st + len(tt)] += pad * .1
+    boom = np.sin(2 * np.pi * (60 * np.exp(-t_(0.8) * 3)) * t_(0.8)) * np.exp(-t_(0.8) / .25)
+    out[st:st + len(boom)] += boom * .5
+    shimmer = np.random.default_rng(9).normal(0, 1, int(SR * 1.5))
+    shimmer = np.convolve(shimmer, [1, -1], 'same') * np.exp(-np.arange(len(shimmer)) / SR / .5) * .04
+    out[int(SR * .9):int(SR * .9) + len(shimmer)] += shimmer
+    write_ogg('yompix_jingle', out)
 
     # повышение класса / диплом: фанфары
     out = np.zeros(int(SR * 1.6))

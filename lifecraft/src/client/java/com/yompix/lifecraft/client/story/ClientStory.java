@@ -13,6 +13,8 @@ public final class ClientStory {
     public static long titleAt = -1;
     public static String countdown = "";
     public static long countdownAt = -1;
+    public static String achName = "", achDesc = "";
+    public static long achAt = -1;
     public static String missionDone = "";
     public static long missionDoneAt = -1;
 
@@ -30,6 +32,12 @@ public final class ClientStory {
     public static void countdown(String t) {
         countdown = t;
         countdownAt = System.currentTimeMillis();
+    }
+
+    public static void achievement(String name, String desc) {
+        achName = name;
+        achDesc = desc;
+        achAt = System.currentTimeMillis();
     }
 
     public static void missionDone(String t) {

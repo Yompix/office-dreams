@@ -20,6 +20,16 @@ public final class LifeHud {
         return String.format("%02d:%02d", t / 1000, t % 1000 * 60 / 1000);
     }
 
+    private static void bar(DrawContext ctx, TextRenderer tr, int x, int y, String label, int value, int color) {
+        ctx.fill(x, y, x + 84, y + 7, 0x88101020);
+        ctx.fill(x + 1, y + 1, x + 1 + (int) (82 * value / 100f), y + 6, color);
+        ctx.getMatrices().push();
+        ctx.getMatrices().translate(x + 3, y + 1, 0);
+        ctx.getMatrices().scale(0.6f, 0.6f, 1);
+        ctx.drawText(tr, label + " " + value + "%", 0, 0, 0xFFFFFFFF, true);
+        ctx.getMatrices().pop();
+    }
+
     public static void render(DrawContext ctx, RenderTickCounter tick) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.player == null || mc.options.hudHidden || mc.getDebugHud().shouldShowDebugHud()) return;
@@ -54,6 +64,11 @@ public final class LifeHud {
             ctx.fill(mx, y, mx + tr.getWidth(m) + 6, y + 12, 0xCC2FA84F);
             ctx.drawTextWithShadow(tr, m, mx + 3, y + 2, 0xFFFFFFFF);
         }
+        // энергия и настроение
+        int ny = y + h + 2;
+        bar(ctx, tr, x, ny, "Энергия", d.energy, d.energy < 20 ? 0xFFE53935 : 0xFF42A5F5);
+        bar(ctx, tr, x, ny + 9, "Настроение", d.mood, d.mood < 30 ? 0xFFFF7043 : 0xFFFFCA28);
+        h += 20;
         // задание: адрес и стрелка-направление
         if (d.taskPos != null && !d.taskKind.isEmpty()) {
             BlockPos p = d.taskPos;

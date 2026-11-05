@@ -80,6 +80,21 @@ public final class StoryHud {
                 ctx.drawText(tr, sub, w / 2 - tr.getWidth(sub) / 2, (int) (h * 0.32f) + 30, a | 0xFFFFFF, true);
             }
         }
+        // награда: плашка выезжает справа
+        if (ClientStory.achAt > 0) {
+            float t = (now - ClientStory.achAt) / 1000f;
+            if (t > 5f) ClientStory.achAt = -1;
+            else {
+                float k = t < 0.4f ? t / 0.4f : t > 4.4f ? (5f - t) / 0.6f : 1;
+                int bw = Math.max(tr.getWidth(ClientStory.achDesc), tr.getWidth(ClientStory.achName)) + 34;
+                int bx = w - (int) (bw * k) - 4, by = h / 2 - 50;
+                ctx.fill(bx, by, bx + bw, by + 28, 0xE0201A0A);
+                ctx.fill(bx, by, bx + 2, by + 28, 0xFFFFC107);
+                ctx.drawText(tr, "★", bx + 8, by + 10, 0xFFFFC107, false);
+                ctx.drawText(tr, "Награда: " + ClientStory.achName, bx + 22, by + 5, 0xFFFFC107, true);
+                ctx.drawText(tr, ClientStory.achDesc, bx + 22, by + 16, 0xFFDDDDDD, false);
+            }
+        }
         if (ClientStory.countdownAt > 0) {
             float t = (now - ClientStory.countdownAt) / 1000f;
             if (t > 1f) ClientStory.countdownAt = -1;

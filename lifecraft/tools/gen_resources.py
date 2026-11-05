@@ -169,6 +169,11 @@ def blocks():
     facing_state('slot_machine')
     block_item('slot_machine')
 
+    model('clue', {'paper': 'minecraft:block/white_wool', 'mark': 'minecraft:block/gold_block'}, [
+        el([3, 0, 3], [13, 1, 13], 'paper'), el([5, 1, 5], [11, 2.5, 11], 'mark')])
+    simple_state('clue')
+    block_item('clue')
+
     model('roulette', {'top': t('roulette_top'), 'side': t('roulette_side'), 'leg': 'minecraft:block/dark_oak_log'}, [
         {'from': [0, 10, 0], 'to': [16, 13, 16], 'faces': {
             'up': {'texture': '#top', 'uv': [0, 0, 16, 16]}, 'down': {'texture': '#side'},
@@ -189,10 +194,11 @@ BLOCKS = {
     'job_board': ('Доска вакансий', 'Job board', 'axe'), 'mailbox': ('Почтовый ящик', 'Mailbox', 'pickaxe'),
     'shop_counter': ('Прилавок с кассой', 'Shop counter', 'axe'), 'computer': ('Компьютер', 'Computer', 'pickaxe'),
     'slot_machine': ('Игровой автомат', 'Slot machine', 'pickaxe'), 'roulette': ('Стол рулетки', 'Roulette table', 'axe'),
+    'clue': ('Улика', 'Clue', 'pickaxe'),
 }
 ITEMS = {
     'phone': ('Телефон', 'Phone'), 'banknote': ('Купюра $10', '$10 banknote'), 'bank_card': ('Банковская карта', 'Bank card'),
-    'parcel': ('Посылка', 'Parcel'), 'diploma': ('Диплом', 'Diploma'), 'textbook': ('Учебник', 'Textbook'),
+    'parcel': ('Посылка', 'Parcel'), 'suit': ('Костюм для выпускного', 'Prom suit'), 'diploma': ('Диплом', 'Diploma'), 'textbook': ('Учебник', 'Textbook'),
     'burger': ('Бургер', 'Burger'), 'cola': ('Кола', 'Cola'),
     'car_red': ('Машина (красная)', 'Car (red)'), 'car_blue': ('Машина (синяя)', 'Car (blue)'), 'car_yellow': ('Машина (жёлтая)', 'Car (yellow)'),
     'car_black': ('Машина (чёрная)', 'Car (black)'), 'car_white': ('Машина (белая)', 'Car (white)'), 'car_taxi': ('Такси', 'Taxi'),
@@ -240,6 +246,11 @@ def sounds():
     for n in SOUNDS:
         entry = {'sounds': [{'name': f'{NS}:{n}', 'stream': n == 'car_engine'}], 'subtitle': f'subtitles.{NS}.{n}'}
         out[n] = entry
+    # озвучка сюжета: voice.<id> → sounds/voice/<id>.ogg (файлы делает tools/voice.py)
+    vl = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voice_lines.json'), encoding='utf-8'))
+    for line in vl + [{'id': 'yompix'}]:
+        out['voice.' + line['id']] = {'sounds': [{'name': f"{NS}:voice/{line['id']}", 'stream': True}]}
+    out['yompix_jingle'] = {'sounds': [{'name': f'{NS}:yompix_jingle', 'stream': True}]}
     w(f'{A}/sounds.json', out)
 
 

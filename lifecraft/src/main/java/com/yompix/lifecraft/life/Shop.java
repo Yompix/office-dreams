@@ -57,7 +57,13 @@ public final class Shop {
     }
 
     public static int price(Entry e, boolean delivery) {
-        return delivery ? e.price() + (e.price() + 4) / 5 : e.price();
+        return price(e, delivery, "");
+    }
+
+    /** Цена с доставкой (+20%) и ярмаркой (−30%). */
+    public static int price(Entry e, boolean delivery, String today) {
+        int p = delivery ? e.price() + (e.price() + 4) / 5 : e.price();
+        return today.equals("fair") ? Math.max(1, p * 7 / 10) : p;
     }
 
     static void buy(ServerPlayerEntity p, int index, boolean delivery) {
@@ -67,7 +73,8 @@ public final class Shop {
             p.sendMessage(Text.literal("Это можно купить только взрослым (после школы)").formatted(Formatting.RED), true);
             return;
         }
-        if (!Life.pay(p, price(e, delivery), e.name())) return;
+        if (!Life.pay(p, price(e, delivery, CityLife.event(p.getServerWorld())), e.name())) return;
+        if (e.category().equals("Транспорт")) Achievements.give(p, "car");
         School.give(p, new ItemStack(e.item().get(), e.count()));
         Life.sound(p, ModContent.CASH, 1.2f);
     }
