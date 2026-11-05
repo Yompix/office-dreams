@@ -628,8 +628,9 @@ def skin(v):
         rect(r['top'], 2, 2, 5, 5, shade(S, 1.05))
     # глаза, брови, рот
     eye = rgb(random.Random(v['skin'] + v['hair']).choice(['2a3a6a', '3e6b2a', '4e342e', '1a1a1a', '2e7d9a']))
-    d.point([(fx + 1, fy + 4), (fx + 5, fy + 4)], fill=rgb('ffffff'))
-    d.point([(fx + 2, fy + 4), (fx + 6, fy + 4)], fill=eye)
+    # глаза симметричные: белок снаружи, зрачок ближе к носу
+    d.point([(fx + 1, fy + 4), (fx + 6, fy + 4)], fill=rgb('ffffff'))
+    d.point([(fx + 2, fy + 4), (fx + 5, fy + 4)], fill=eye)
     d.line([fx + 1, fy + 3, fx + 2, fy + 3], fill=shade(H if style != 'bald' else S, 0.7))
     d.line([fx + 5, fy + 3, fx + 6, fy + 3], fill=shade(H if style != 'bald' else S, 0.7))
     d.point([(fx + 3, fy + 5), (fx + 4, fy + 5)], fill=shade(S, 0.88))
@@ -638,7 +639,6 @@ def skin(v):
     if v.get('girl'):
         lash = rgb('1a1010')
         d.point([(fx, fy + 3), (fx + 7, fy + 3), (fx + 1, fy + 3), (fx + 6, fy + 3)], fill=lash)
-        d.point([(fx + 1, fy + 4), (fx + 6, fy + 4)], fill=rgb('ffffff'))
         d.line([fx + 3, fy + 6, fx + 4, fy + 6], fill=rgb('d6455a'))
         d.point([(fx + 3, fy + 7), (fx + 4, fy + 7)], fill=shade(S, 0.93))
     if v.get('blush'):
@@ -646,7 +646,7 @@ def skin(v):
     if v.get('freckles'):
         d.point([(fx + 1, fy + 5), (fx + 2, fy + 5), (fx + 5, fy + 5), (fx + 6, fy + 5)], fill=shade(S, 0.75))
     if v.get('scar'):
-        d.line([fx + 6, fy + 2, fx + 7, fy + 4], fill=rgb('b0705a'))
+        d.line([fx + 6, fy + 5, fx + 7, fy + 6], fill=rgb('b0705a'))
     if v.get('beard'):
         B = rgb(v['beard'])
         d.rectangle([fx, fy + 6, fx + 7, fy + 7], fill=B)

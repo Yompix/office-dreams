@@ -13,6 +13,8 @@ public final class ClientStory {
     public static NbtCompound places = new NbtCompound();
     /** Своя метка на карте (ставится на карте M). */
     @Nullable public static Vec3d waypoint;
+    /** Все игроки на сервере (для карты и «Друзей»), приходит раз в 2 секунды. */
+    public static NbtCompound players = new NbtCompound();
     /** Кто сейчас говорит (id существа → до какого времени шевелить губами). */
     public static final java.util.Map<Integer, Long> talking = new java.util.HashMap<>();
 

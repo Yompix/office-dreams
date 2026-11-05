@@ -141,6 +141,7 @@ public class LifeCraftClient implements ClientModInitializer {
                 com.yompix.lifecraft.client.story.ClientStory.sirenAt = System.currentTimeMillis();
                 if (client.player != null) client.player.playSound(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), 1f, 1.6f);
             }
+            case "players" -> com.yompix.lifecraft.client.story.ClientStory.players = n;
             case "places" -> com.yompix.lifecraft.client.story.ClientStory.places = n;
             case "dialog_close" -> {
                 if (client.currentScreen instanceof com.yompix.lifecraft.client.story.DialogScreen ds) ds.forceClose();

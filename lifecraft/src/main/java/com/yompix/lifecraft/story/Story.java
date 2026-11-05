@@ -127,6 +127,9 @@ public final class Story {
         ServerPlayerEntity lead = leader(p);
         if (lead != null && (!d.storyStarted || stepKey(Life.get(lead)) > stepKey(d))) {
             copyProgress(Life.get(lead), d);
+            applyAge(p, d.age);
+            // появиться рядом с другом, а не на точке входа
+            p.teleport(lead.getServerWorld(), lead.getX() + 1, lead.getY(), lead.getZ() + 1, lead.getYaw(), 0);
             p.sendMessage(net.minecraft.text.Text.literal("Ты присоединился к сюжету друзей: " + str(chapter(d) != null ? chapter(d) : new JsonObject(), "title", "")).formatted(Formatting.AQUA), false);
             run(p).timer = 20;
             return;

@@ -69,6 +69,23 @@ public final class LifeEvents {
         }
         lastTimeOfDay = tod;
         CityLife.worldTick(server);
+        // игра по сети: раз в 2 секунды все видят друзей на карте, даже далеко
+        if (server.getTicks() % 40 == 0 && server.getPlayerManager().getCurrentPlayerCount() > 1) {
+            NbtCompound pl = new NbtCompound();
+            net.minecraft.nbt.NbtList list = new net.minecraft.nbt.NbtList();
+            for (ServerPlayerEntity q : server.getPlayerManager().getPlayerList()) {
+                NbtCompound e = new NbtCompound();
+                e.putString("name", q.getName().getString());
+                e.putDouble("x", q.getX());
+                e.putDouble("z", q.getZ());
+                e.putFloat("yaw", q.getYaw());
+                e.putString("job", Jobs.job(q).title);
+                e.putInt("age", Life.get(q).age);
+                list.add(e);
+            }
+            pl.put("list", list);
+            for (ServerPlayerEntity q : server.getPlayerManager().getPlayerList()) LifeNet.send(q, "players", pl);
+        }
         SideQuests.tick(server, server.getTicks() / 20);
         Police.tick(server);
         int second = server.getTicks() / 20;

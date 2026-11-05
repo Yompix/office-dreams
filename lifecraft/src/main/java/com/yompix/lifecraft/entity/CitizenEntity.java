@@ -136,6 +136,7 @@ public class CitizenEntity extends PathAwareEntity {
     public void lockActivity(Activity a) {
         lockedActivity = a != null;
         dataTracker.set(ACTIVITY, (a == null ? Activity.IDLE : a).ordinal());
+        if (a != null) equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, net.minecraft.item.ItemStack.EMPTY);
     }
 
     public void setup(int skin, Role role, boolean stationary, String name) {

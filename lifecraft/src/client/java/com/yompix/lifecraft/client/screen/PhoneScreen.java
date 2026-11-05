@@ -542,6 +542,16 @@ public class PhoneScreen extends LifeScreen {
             roundRect(ctx, sx + 6, yy, sw - 12, 26, 0xFFFFFFFF);
             ctx.drawText(textRenderer, name + (name.equals(mc().player.getGameProfile().getName()) ? " (ты)" : ""), sx + 10, yy + 3, 0xFF4527A0, false);
             String where = pl == null ? "далеко" : (int) pl.distanceTo(mc().player) + " м от тебя";
+            for (var el : com.yompix.lifecraft.client.story.ClientStory.players.getList("list", net.minecraft.nbt.NbtElement.COMPOUND_TYPE)) {
+                var f = (net.minecraft.nbt.NbtCompound) el;
+                if (!f.getString("name").equals(name)) continue;
+                double dx = f.getDouble("x") - mc().player.getX(), dz = f.getDouble("z") - mc().player.getZ();
+                where = (pl == null ? (int) Math.sqrt(dx * dx + dz * dz) + " м · " : where + " · ") + f.getString("job");
+                if (pl == null) {
+                    final Vec3d at = new Vec3d(f.getDouble("x"), mc().player.getY(), f.getDouble("z"));
+                    button(ctx, sx + sw - 46, yy + 6, 38, 13, "Метка", 0xFF7E57C2, true, () -> com.yompix.lifecraft.client.story.ClientStory.waypoint = at);
+                }
+            }
             ctx.drawText(textRenderer, where, sx + 10, yy + 14, 0xFF777777, false);
             if (pl != null && pl != mc().player) {
                 final Vec3d at = pl.getPos();

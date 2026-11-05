@@ -140,6 +140,17 @@ public class MapScreen extends LifeScreen {
                 ctx.drawText(textRenderer, n, x - textRenderer.getWidth(n) / 2, y - 14, 0xFFD1C4E9, true);
             }
         }
+        // друзья далеко (их нет в прогруженном мире) — по данным сервера
+        for (var el : ClientStory.players.getList("list", net.minecraft.nbt.NbtElement.COMPOUND_TYPE)) {
+            NbtCompound f = (NbtCompound) el;
+            String n = f.getString("name");
+            if (n.equals(mc().player.getGameProfile().getName())) continue;
+            if (mc().world.getPlayers().stream().anyMatch(pp -> pp.getGameProfile().getName().equals(n))) continue;
+            int x = sx(f.getDouble("x")), y = sy(f.getDouble("z"));
+            ctx.fill(x - 3, y - 3, x + 4, y + 4, 0xFF7E57C2);
+            ctx.fill(x - 1, y - 1, x + 2, y + 2, 0xFFFFFFFF);
+            ctx.drawText(textRenderer, n, x - textRenderer.getWidth(n) / 2, y - 13, 0xFFD1C4E9, true);
+        }
         ctx.disableScissor();
         panel(ctx, width - panelW - 8, mapY, panelW, mapH);
     }

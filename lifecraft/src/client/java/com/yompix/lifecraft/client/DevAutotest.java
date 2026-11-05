@@ -33,6 +33,19 @@ public final class DevAutotest {
 
     public static void init() {
         if (System.getProperty("lifecraft.autotest") == null) return;
+        String mode = System.getProperty("lifecraft.autotest");
+        if (mode.startsWith("mp")) {
+            // игра по сети: A проходит разговоры пробелом, B просто смотрит; оба делают снимки
+            YompixSplash.markShown();
+            boolean a = mode.equals("mpA");
+            for (int i = 0; i < 14; i++) {
+                if (a) for (int k = 0; k < 6; k++) key(25, GLFW.GLFW_KEY_SPACE);
+                else run(150, c -> {});
+                shot(10, mode + "_" + i);
+            }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (System.getProperty("lifecraft.autotest").equals("taxi")) {
             taxiOnly();
             return;
