@@ -36,7 +36,7 @@ public class CarEntity extends Entity {
     private static final TrackedData<Integer> WOBBLE = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
     /** Посадочные места: x — вправо, z — вперёд (в блоках). */
-    private static final double[][] SEATS = {{-0.42, 0.05}, {0.42, 0.05}, {-0.42, -0.85}, {0.42, -0.85}};
+    private static final double[][] SEATS = {{-0.44, -0.12}, {0.44, -0.12}, {-0.44, -0.94}, {0.44, -0.94}};
 
     @Nullable private UUID owner;
     public float speed;          // блоков за тик, минус — назад
@@ -138,7 +138,24 @@ public class CarEntity extends Entity {
     @Nullable
     @Override
     public LivingEntity getControllingPassenger() {
+        if (hasNpcDriver()) return null; // за рулём таксист — едет автопилот, игрок пассажир
         return getFirstPassenger() instanceof PlayerEntity p ? p : null;
+    }
+
+    /** В машине житель-водитель (такси): он всегда за рулём, даже если игрок сел позже. */
+    public boolean hasNpcDriver() {
+        for (Entity e : getPassengerList()) if (e instanceof CitizenEntity) return true;
+        return false;
+    }
+
+    /**
+     * Какое место занимает пассажир. Ванилла ставит игрока первым в список (то есть за руль),
+     * поэтому места раздаём сами: житель-водитель — руль, «сумка» такси — рядом, остальные — сзади.
+     */
+    public int seatOf(Entity passenger) {
+        java.util.List<Entity> order = new java.util.ArrayList<>(getPassengerList());
+        order.sort(java.util.Comparator.comparingInt(e -> e instanceof CitizenEntity ? 0 : e instanceof net.minecraft.entity.decoration.ArmorStandEntity ? 1 : 2));
+        return Math.max(0, order.indexOf(passenger));
     }
 
     @Override
@@ -318,14 +335,16 @@ public class CarEntity extends Entity {
     @Override
     protected void updatePassengerPosition(Entity passenger, PositionUpdater updater) {
         if (!hasPassenger(passenger)) return;
-        int i = getPassengerList().indexOf(passenger);
+        int i = seatOf(passenger);
         double[] seat = isScooter() ? new double[]{0, -0.15} : SEATS[Math.max(0, Math.min(i, SEATS.length - 1))];
         double rad = Math.toRadians(getYaw());
         double fx = -Math.sin(rad), fz = Math.cos(rad);
         double rx = -Math.cos(rad), rz = -Math.sin(rad);
         double x = getX() + fx * seat[1] + rx * seat[0];
         double z = getZ() + fz * seat[1] + rz * seat[0];
-        double y = getY() + (isScooter() ? -0.05 : -0.32); // в машине сидим низко
+        float sc = passenger instanceof LivingEntity le ? le.getScale() : 1f;
+        // бёдра ровно на подушке сиденья (с учётом роста); ребёнок сидит на бустере, чтобы видеть дорогу
+        double y = getY() + (isScooter() ? 0.7 - 0.75 * sc : 0.645 - 0.75 * sc + (1 - sc) * 0.35);
         updater.accept(passenger, x, y, z);
         if (passenger instanceof LivingEntity le) le.setBodyYaw(getYaw());
     }
@@ -333,7 +352,7 @@ public class CarEntity extends Entity {
     @Override
     public Vec3d updatePassengerForDismount(LivingEntity passenger) {
         double rad = Math.toRadians(getYaw());
-        double side = getPassengerList().indexOf(passenger) % 2 == 0 ? -1.8 : 1.8;
+        double side = seatOf(passenger) % 2 == 0 ? -1.8 : 1.8;
         Vec3d out = new Vec3d(getX() - Math.cos(rad) * side, getY(), getZ() - Math.sin(rad) * side);
         return getWorld().isSpaceEmpty(passenger, passenger.getDimensions(passenger.getPose()).getBoxAt(out)) ? out : super.updatePassengerForDismount(passenger);
     }

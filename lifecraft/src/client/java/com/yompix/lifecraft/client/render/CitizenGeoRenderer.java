@@ -115,11 +115,13 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
         /** Голова поворачивается туда, куда смотрит житель. */
         @Override
         public void setCustomAnimations(CitizenEntity e, long instanceId, AnimationState<CitizenEntity> state) {
-            var head = getAnimationProcessor().getBone("head");
+            var head = getAnimationProcessor().getBone("neck");
             var data = state.getData(DataTickets.ENTITY_MODEL_DATA);
             if (head != null && data != null) {
-                head.setRotX(head.getRotX() + data.headPitch() * MathHelper.RADIANS_PER_DEGREE);
-                head.setRotY(head.getRotY() + data.netHeadYaw() * MathHelper.RADIANS_PER_DEGREE);
+                // ставим, а не прибавляем: иначе поворот копится каждый кадр и голову «колбасит»
+                head.setRotX(data.headPitch() * MathHelper.RADIANS_PER_DEGREE);
+                head.setRotY(data.netHeadYaw() * MathHelper.RADIANS_PER_DEGREE);
+                head.setRotZ(0);
             }
         }
     }

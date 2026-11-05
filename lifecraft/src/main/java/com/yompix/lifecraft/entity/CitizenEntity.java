@@ -58,6 +58,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     private static final software.bernie.geckolib.animation.RawAnimation IDLE = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.idle");
     private static final software.bernie.geckolib.animation.RawAnimation WALK = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.walk");
     private static final software.bernie.geckolib.animation.RawAnimation RUN = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.run");
+    private static final software.bernie.geckolib.animation.RawAnimation RIDE = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.ride");
     private static final java.util.Map<Activity, software.bernie.geckolib.animation.RawAnimation> ACTS = new java.util.EnumMap<>(Activity.class);
 
     static {
@@ -69,6 +70,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     public void registerControllers(software.bernie.geckolib.animation.AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new software.bernie.geckolib.animation.AnimationController<>(this, "body", 5, state -> {
             Activity a = getActivity();
+            if (hasVehicle()) return state.setAndContinue(RIDE); // в машине — сидит на сиденье
             double v = getVelocity().horizontalLengthSquared();
             boolean moving = state.isMoving() && v > 1e-4;
             if (a != Activity.IDLE && (!moving || a == Activity.DANCE || a == Activity.SIT)) return state.setAndContinue(ACTS.get(a));

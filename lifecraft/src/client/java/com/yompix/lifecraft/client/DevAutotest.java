@@ -82,13 +82,46 @@ public final class DevAutotest {
                 for (int i = 0; i < 2; i++) {
                     CitizenEntity c = new CitizenEntity(com.yompix.lifecraft.ModContent.CITIZEN, w);
                     c.setup(20 + i * 5, CitizenEntity.Role.CITIZEN, false, i == 0 ? "WALK" : "RUN");
-                    c.refreshPositionAndAngles(bx - 8 + i * 4, y, bz + 3, 90, 0);
+                    c.refreshPositionAndAngles(bx - 12, y, bz + 5 + i * 2, -90, 0);
                     w.spawnEntity(c);
-                    c.getNavigation().startMovingTo(bx + 12, y, bz + 3, i == 0 ? 0.6 : 1.3);
+                    c.getNavigation().startMovingTo(bx + 14, y, bz + 5 + i * 2, i == 0 ? 0.6 : 1.3);
                 }
                 p.teleport(w, bx, y + 1.2, bz + 10, 180, 8);
             });
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                int y = Story.topY(w, 0, 18);
+                // такси с водителем-жителем и игроком на пассажирском — проверить посадку
+                var car = new com.yompix.lifecraft.entity.CarEntity(com.yompix.lifecraft.ModContent.CAR, w);
+                car.refreshPositionAndAngles(-20.5, y, 18.5, 90, 0);
+                car.setVariant(5);
+                w.spawnEntity(car);
+                CitizenEntity drv = new CitizenEntity(com.yompix.lifecraft.ModContent.CITIZEN, w);
+                drv.setup(20, CitizenEntity.Role.CITIZEN, true, "Таксист");
+                drv.refreshPositionAndAngles(-20.5, y, 18.5, 90, 0);
+                w.spawnEntity(drv);
+                drv.startRiding(car, true);
+            });
             shot(30, "g1");
+            for (int i = 0; i < 8; i++) shot(3, "w" + i);
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                for (CitizenEntity c : w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(30), c -> c.getVehicle() == null && c.getNavigation().isIdle())) {
+                    c.setYaw(90); c.setBodyYaw(90); c.setHeadYaw(90);
+                }
+                p.teleport(w, -4.5, Story.topY(w, -4, 15) + 0.1, 15.5, 180, 5);
+            });
+            run(3, c -> {
+                for (var e : c.world.getEntities()) if (e instanceof CitizenEntity ce && ce.getVehicle() == null) { ce.bodyYaw = 90; ce.prevBodyYaw = 90; ce.headYaw = 90; ce.prevHeadYaw = 90; }
+            });
+            shot(10, "side1");
+            server(3, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                p.teleport(p.getServerWorld(), 4.5, Story.topY(p.getServerWorld(), 4, 15) + 0.1, 15.5, 180, 5);
+            });
+            shot(10, "side2");
             shot(7, "g2");
             shot(7, "g3");
             server(5, s -> {
@@ -106,6 +139,39 @@ public final class DevAutotest {
                 p.teleport(p.getServerWorld(), -14, p.getY(), 12, -100, 5);
             });
             shot(30, "g6");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                p.teleport(p.getServerWorld(), -20.8, Story.topY(p.getServerWorld(), -20, 23) + 0.4, 21.0, 180, 18);
+            });
+            shot(30, "t_side");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                p.getAbilities().flying = true; p.sendAbilitiesUpdate();
+                p.teleport(p.getServerWorld(), -20.5, Story.topY(p.getServerWorld(), -20, 18) + 3.3, 20.3, 180, 60);
+            });
+            shot(30, "t_top");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var cars = p.getServerWorld().getEntitiesByClass(com.yompix.lifecraft.entity.CarEntity.class, p.getBoundingBox().expand(10), c -> true);
+                if (!cars.isEmpty()) p.startRiding(cars.get(0), true);
+            });
+            run(5, c -> { c.player.setYaw(90); c.player.setPitch(12); });
+            shot(20, "t_inside");
+            run(5, c -> { c.player.setYaw(-60); c.player.setPitch(25); });
+            shot(20, "t_back");
+            run(5, c -> { c.player.setYaw(90); c.player.setPitch(20); c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK); });
+            shot(20, "t_3rd");
+            server(2, s -> {
+                for (var car : s.getPlayerManager().getPlayer(P).getServerWorld().getEntitiesByClass(com.yompix.lifecraft.entity.CarEntity.class, s.getPlayerManager().getPlayer(P).getBoundingBox().expand(10), c -> true))
+                    for (var e : car.getPassengerList())
+                        com.yompix.lifecraft.LifeCraft.LOG.info("[seat] car {} {} {} yaw {} -> {} seat {} at {} {} {}", car.getX(), car.getY(), car.getZ(), car.getYaw(), e.getType(), car.seatOf(e), e.getX(), e.getY(), e.getZ());
+            });
+            run(2, c -> {
+                for (var e : c.world.getEntities()) if (e.getVehicle() != null)
+                    com.yompix.lifecraft.LifeCraft.LOG.info("[seat-client] {} at {} {} {} pose {} vis {}", e.getType(), e.getX(), e.getY(), e.getZ(), e.getPose(), !e.isInvisible());
+            });
+            run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT));
+            shot(30, "t_front");
             run(20, MinecraftClient::scheduleStop);
             return;
         }

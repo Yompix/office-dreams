@@ -53,7 +53,8 @@ def model(slim):
     bone('chest', 'waist', [0, 18, 0], [
         cube([-4, 18, -2], [8, 6, 4], faces(16, 16, 8, 12, 4, 0, 6, bottom=False)),
         cube([-4, 18, -2], [8, 6, 4], faces(16, 32, 8, 12, 4, 0, 6, bottom=False), 0.25)])
-    bone('head', 'chest', [0, 24, 0], [
+    bone('neck', 'chest', [0, 24, 0])  # сюда — куда смотрит житель (код), анимации трогают только head
+    bone('head', 'neck', [0, 24, 0], [
         cube([-4, 24, -4], [8, 8, 8], faces(0, 0, 8, 8, 8)),
         cube([-4, 24, -4], [8, 8, 8], faces(32, 0, 8, 8, 8), 0.5)])
     # руки: правая (+x, скин 40,16 / рукав 40,32), левая (−x, 32,48 / 48,48)
@@ -169,6 +170,17 @@ ANIMS = {
         'left_forearm': {'rotation': track(lambda t: [30, 0, 0], 4.0, 2)},
         'chest': {'rotation': track(lambda t: [sine(t, 4, 1.5), 0, 0], 4.0)},
     }),
+    'ride': anim(4.0, {
+        'right_leg': {'rotation': track(lambda t: [-80, 4, 0], 4.0, 2)},
+        'left_leg': {'rotation': track(lambda t: [-80, -4, 0], 4.0, 2)},
+        'right_shin': {'rotation': track(lambda t: [60, 0, 0], 4.0, 2)},
+        'left_shin': {'rotation': track(lambda t: [60, 0, 0], 4.0, 2)},
+        'right_arm': {'rotation': track(lambda t: [-45 + sine(t, 4, 2), -8, 0], 4.0)},
+        'left_arm': {'rotation': track(lambda t: [-45 + sine(t, 4, 2, 0.5), 8, 0], 4.0)},
+        'right_forearm': {'rotation': track(lambda t: [-20, 0, 0], 4.0, 2)},
+        'left_forearm': {'rotation': track(lambda t: [-20, 0, 0], 4.0, 2)},
+        'chest': {'rotation': track(lambda t: [-4 + sine(t, 4, 1), 0, 0], 4.0)},
+    }),
     'dance': anim(1.2, {
         'root': {'position': track(lambda t: [sine(t, 1.2, 0.8), abs(math.sin(2 * math.pi * t / 0.6)) * 1.4, 0], 1.2)},
         'waist': {'rotation': track(lambda t: [0, sine(t, 1.2, 25), sine(t, 0.6, 6)], 1.2)},
@@ -201,7 +213,19 @@ ANIMS = {
 }
 
 
+def fix_joints():
+    """Локти и колени гнутся только в свою сторону: предплечье вперёд (−X), голень назад (+X).
+    Ключи выше записаны «наоборот» — переворачиваем (сидячие позы уже записаны верно)."""
+    for name, a in ANIMS.items():
+        for bone, ch in a['bones'].items():
+            flip = (bone.endswith('_forearm') and name != 'ride') or (bone.endswith('_shin') and name not in ('sit', 'ride'))
+            if flip and 'rotation' in ch:
+                for k, v in ch['rotation'].items():
+                    ch['rotation'][k] = [-v[0], v[1], v[2]]
+
+
 def main():
+    fix_joints()
     os.makedirs(f'{ROOT}/geo', exist_ok=True)
     os.makedirs(f'{ROOT}/animations', exist_ok=True)
     for slim in (False, True):

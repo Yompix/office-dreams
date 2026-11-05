@@ -38,7 +38,7 @@ public class CarEngineSound extends MovingSoundInstance {
         y = car.getY();
         z = car.getZ();
         float speed = Math.abs(car.clientSpeed);
-        boolean driven = car.getControllingPassenger() != null;
+        boolean driven = car.getControllingPassenger() != null || car.hasNpcDriver();
         idle = driven ? 0 : idle + 1;
         float targetVol = driven ? 0.45f + speed * 0.5f : 0;
         volume = MathHelper.lerp(0.15f, volume, targetVol);

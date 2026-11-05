@@ -47,38 +47,76 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
     public static TexturedModelData modelData() {
         ModelData data = new ModelData();
         ModelPartData r = data.getRoot();
+        // кузов полый: пол, борта, моторный отсек и багажник — внутри салон с сиденьями
         r.addChild("chassis", box(-14, 3, -26, 14, 7, 26), ModelTransform.NONE);
-        r.addChild("body", box(-15, 6, -25, 15, 14, 25), ModelTransform.NONE);
-        r.addChild("hood", box(-14, 14, 11, 14, 15, 24), ModelTransform.NONE);
-        r.addChild("trunk", box(-14, 14, -24, 14, 15, -16), ModelTransform.NONE);
+        r.addChild("body", ModelPartBuilder.create().uv(0, 0)
+                .cuboid(-15, 6, -25, 2, 7, 50).cuboid(13, 6, -25, 2, 7, 50)     // борта (двери)
+                .cuboid(-13, 6, 9, 26, 7, 16)                                   // моторный отсек
+                .cuboid(-13, 6, -25, 26, 7, 6), ModelTransform.NONE);           // багажник
+        r.addChild("hood", box(-14, 13, 10, 14, 14, 24), ModelTransform.NONE);
+        r.addChild("trunk", box(-14, 13, -24, 14, 14, -19), ModelTransform.NONE);
         r.addChild("pillars", ModelPartBuilder.create().uv(0, 0)
-                .cuboid(-13, 14, 8, 2, 10, 2).cuboid(11, 14, 8, 2, 10, 2)
-                .cuboid(-13, 14, -15, 2, 10, 2).cuboid(11, 14, -15, 2, 10, 2)
-                .cuboid(-13, 14, -3, 1, 10, 1).cuboid(12, 14, -3, 1, 10, 1), ModelTransform.NONE);
-        r.addChild("roof", box(-13, 24, -15, 13, 26, 10), ModelTransform.NONE);
+                .cuboid(-13, 13, 8, 2, 16, 2).cuboid(11, 13, 8, 2, 16, 2)       // передние стойки
+                .cuboid(-13, 13, -19, 2, 16, 2).cuboid(11, 13, -19, 2, 16, 2)   // задние
+                .cuboid(-13, 13, -7, 1, 16, 1.5f).cuboid(12, 13, -7, 1, 16, 1.5f), ModelTransform.NONE);
+        r.addChild("roof", box(-13, 29, -19, 13, 31, 10), ModelTransform.NONE);
+        r.addChild("headliner", box(-12.5f, 28.6f, -18.5f, 12.5f, 29, 9.5f), ModelTransform.NONE);
         r.addChild("glass", ModelPartBuilder.create().uv(0, 0)
-                .cuboid(-12.5f, 14, 9, 25, 10, 0.4f)          // лобовое
-                .cuboid(-12.5f, 14, -14.4f, 25, 10, 0.4f)     // заднее
-                .cuboid(-13, 15, -13, 0.4f, 9, 21)            // левое
-                .cuboid(12.6f, 15, -13, 0.4f, 9, 21), ModelTransform.NONE);
-        r.addChild("dashboard", ModelPartBuilder.create().uv(0, 0).cuboid(-12.5f, 14, 6.5f, 25, 3, 2.5f).cuboid(-12.5f, 13, 4, 25, 1, 5), ModelTransform.NONE);
-        r.addChild("gauges", ModelPartBuilder.create().uv(0, 0).cuboid(-9.5f, 16.2f, 6.4f, 5, 1.5f, 0.2f).cuboid(2, 15.5f, 6.4f, 6, 1.5f, 0.2f), ModelTransform.NONE);
-        r.addChild("seats", ModelPartBuilder.create().uv(0, 0)
-                .cuboid(-11, 14, -4, 8, 1.5f, 7).cuboid(-11, 14, -5.5f, 8, 8, 1.5f)
-                .cuboid(3, 14, -4, 8, 1.5f, 7).cuboid(3, 14, -5.5f, 8, 8, 1.5f)
-                .cuboid(-11, 14, -13.5f, 22, 1.5f, 6).cuboid(-11, 14, -14, 22, 7, 1.2f), ModelTransform.NONE);
+                .cuboid(-12.5f, 13, 9, 25, 16, 0.4f)          // лобовое
+                .cuboid(-12.5f, 13, -18.4f, 25, 16, 0.4f)     // заднее
+                .cuboid(-13, 14, -17, 0.4f, 15, 25)           // левые окна
+                .cuboid(12.6f, 14, -17, 0.4f, 15, 25), ModelTransform.NONE);
+        r.addChild("floor", box(-13, 7, -19, 13, 7.6f, 9), ModelTransform.NONE);
+        // двери изнутри: обивка, подлокотник, ручка
+        r.addChild("trim", ModelPartBuilder.create().uv(0, 0)
+                .cuboid(-13, 7.6f, -18, 0.8f, 5.4f, 26).cuboid(12.2f, 7.6f, -18, 0.8f, 5.4f, 26)
+                .cuboid(-13, 12, -16, 1.6f, 1, 6).cuboid(11.4f, 12, -16, 1.6f, 1, 6)
+                .cuboid(-13, 12, -4, 1.6f, 1, 7).cuboid(11.4f, 12, -4, 1.6f, 1, 7), ModelTransform.NONE);
+        r.addChild("handles", ModelPartBuilder.create().uv(0, 0)
+                .cuboid(-12.3f, 11, 3.5f, 0.5f, 0.6f, 2).cuboid(11.8f, 11, 3.5f, 0.5f, 0.6f, 2)
+                .cuboid(-12.3f, 11, -9, 0.5f, 0.6f, 2).cuboid(11.8f, 11, -9, 0.5f, 0.6f, 2)
+                .cuboid(-15.3f, 11.5f, 1, 0.4f, 0.6f, 3).cuboid(14.9f, 11.5f, 1, 0.4f, 0.6f, 3)
+                .cuboid(-15.3f, 11.5f, -12, 0.4f, 0.6f, 3).cuboid(14.9f, 11.5f, -12, 0.4f, 0.6f, 3), ModelTransform.NONE);
+        r.addChild("dashboard", ModelPartBuilder.create().uv(0, 0)
+                .cuboid(-12.5f, 11, 5.5f, 25, 6, 3.5f)        // торпедо
+                .cuboid(-12.5f, 16, 3.5f, 25, 1.2f, 2)        // козырёк над приборами
+                .cuboid(-2.5f, 7.6f, 3, 5, 5, 3), ModelTransform.NONE);  // центр под магнитолой
+        r.addChild("gauges", ModelPartBuilder.create().uv(0, 0)
+                .cuboid(7.8f, 13.5f, 5.3f, 2.2f, 2.2f, 0.2f).cuboid(4.8f, 13.5f, 5.3f, 2.2f, 2.2f, 0.2f)   // спидометр и тахометр
+                .cuboid(-1.8f, 12.5f, 5.3f, 3.6f, 2.6f, 0.2f), ModelTransform.NONE);                     // экран магнитолы
+        // передние ковши: подушка, спинка, подголовник на стойках; сзади — диван на троих
+        ModelPartBuilder seats = ModelPartBuilder.create().uv(0, 0);
+        for (float x : new float[]{-11, 3}) {
+            seats.cuboid(x, 7.6f, -4, 8, 2.6f, 8)              // подушка
+                    .cuboid(x - 0.2f, 8, -4, 1, 3.2f, 8).cuboid(x + 7.2f, 8, -4, 1, 3.2f, 8)  // боковая поддержка
+                    .cuboid(x, 10.2f, -6, 8, 13, 2)             // спинка
+                    .cuboid(x + 1.5f, 24.2f, -5.8f, 5, 3.5f, 1.6f)  // подголовник
+                    .cuboid(x + 2.3f, 23.2f, -5.4f, 0.6f, 1, 0.6f).cuboid(x + 5.1f, 23.2f, -5.4f, 0.6f, 1, 0.6f);
+        }
+        seats.cuboid(-12, 7.6f, -17, 24, 2.6f, 8)                   // задний диван
+                .cuboid(-12, 10.2f, -19, 24, 12, 2)
+                .cuboid(-10, 22.5f, -18.8f, 5, 3, 1.4f).cuboid(5, 22.5f, -18.8f, 5, 3, 1.4f)
+                .cuboid(-2, 7.6f, -3, 4, 3.4f, 6);                    // тоннель с подлокотником
+        r.addChild("seats", seats, ModelTransform.NONE);
+        r.addChild("seam", ModelPartBuilder.create().uv(0, 0)        // строчка/вставки сидений
+                .cuboid(-9, 10.25f, -3.5f, 4, 0.1f, 7).cuboid(5, 10.25f, -3.5f, 4, 0.1f, 7)
+                .cuboid(-9, 12, -3.95f, 4, 10, 0.1f).cuboid(5, 12, -3.95f, 4, 10, 0.1f)
+                .cuboid(-11, 10.25f, -16.5f, 22, 0.1f, 7), ModelTransform.NONE);
+        r.addChild("gear", ModelPartBuilder.create().uv(0, 0).cuboid(-0.3f, 11, 3.2f, 0.6f, 2.4f, 0.6f).cuboid(-0.7f, 13.2f, 2.9f, 1.4f, 1.2f, 1.2f), ModelTransform.NONE);
+        r.addChild("mirror_in", box(-2, 26.5f, 7.5f, 2, 28, 8.2f), ModelTransform.NONE);
         ModelPartData wheel = r.addChild("steering", ModelPartBuilder.create().uv(0, 0)
-                .cuboid(-3, -0.4f, -0.3f, 6, 0.8f, 0.6f).cuboid(-0.4f, -3, -0.3f, 0.8f, 6, 0.6f)
+                .cuboid(-3, -0.4f, -0.3f, 6, 0.8f, 0.6f).cuboid(-0.4f, -3, -0.3f, 0.8f, 3, 0.6f)
                 .cuboid(-3, -3, -0.3f, 6, 0.8f, 0.6f).cuboid(-3, 2.2f, -0.3f, 6, 0.8f, 0.6f)
-                .cuboid(-3, -3, -0.3f, 0.8f, 6, 0.6f).cuboid(2.2f, -3, -0.3f, 0.8f, 6, 0.6f), ModelTransform.of(-6.7f, 18.5f, 5.2f, -0.45f, 0, 0));
+                .cuboid(-3, -3, -0.3f, 0.8f, 6, 0.6f).cuboid(2.2f, -3, -0.3f, 0.8f, 6, 0.6f)
+                .cuboid(-1, -1, -0.5f, 2, 2, 0.6f), ModelTransform.of(7, 16.5f, 4.2f, -0.5f, 0, 0));
         wheel.addChild("column", box(-0.5f, -0.5f, 0.2f, 0.5f, 0.5f, 3), ModelTransform.NONE);
         r.addChild("bumpers", ModelPartBuilder.create().uv(0, 0).cuboid(-15, 5, 25, 30, 4, 2).cuboid(-15, 5, -27, 30, 4, 2), ModelTransform.NONE);
         r.addChild("grille", box(-6, 8, 25, 6, 12, 25.5f), ModelTransform.NONE);
         r.addChild("plates", ModelPartBuilder.create().uv(0, 0).cuboid(-4, 6, 27, 8, 2, 0.3f).cuboid(-4, 6, -27.3f, 8, 2, 0.3f), ModelTransform.NONE);
-        r.addChild("headlights", ModelPartBuilder.create().uv(0, 0).cuboid(-13, 10, 25, 5, 3, 0.6f).cuboid(8, 10, 25, 5, 3, 0.6f), ModelTransform.NONE);
-        r.addChild("taillights", ModelPartBuilder.create().uv(0, 0).cuboid(-13, 10, -25.6f, 4, 3, 0.6f).cuboid(9, 10, -25.6f, 4, 3, 0.6f), ModelTransform.NONE);
+        r.addChild("headlights", ModelPartBuilder.create().uv(0, 0).cuboid(-13, 9.5f, 25, 5, 3, 0.6f).cuboid(8, 9.5f, 25, 5, 3, 0.6f), ModelTransform.NONE);
+        r.addChild("taillights", ModelPartBuilder.create().uv(0, 0).cuboid(-13, 9.5f, -25.6f, 4, 3, 0.6f).cuboid(9, 9.5f, -25.6f, 4, 3, 0.6f), ModelTransform.NONE);
         r.addChild("mirrors", ModelPartBuilder.create().uv(0, 0).cuboid(-17, 14, 7, 2, 2, 2).cuboid(15, 14, 7, 2, 2, 2), ModelTransform.NONE);
-        r.addChild("taxi_sign", box(-5, 26, -6, 5, 29, -1), ModelTransform.NONE);
+        r.addChild("taxi_sign", box(-5, 31, -6, 5, 34, -1), ModelTransform.NONE);
         float[][] wheels = {{13, 16}, {-13, 16}, {13, -16}, {-13, -16}};
         for (int i = 0; i < 4; i++) {
             ModelPartData w = r.addChild(WHEELS[i], box(-2.5f, -5, -5, 2.5f, 5, 5), ModelTransform.pivot(wheels[i][0], 5, wheels[i][1]));
@@ -111,7 +149,7 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         int color = 0xFF000000 | CarEntity.COLORS[car.getVariant()];
         long time = car.getWorld().getTimeOfDay() % 24000;
         boolean night = time > 12300 && time < 23700;
-        boolean driven = car.getControllingPassenger() != null;
+        boolean driven = car.getControllingPassenger() != null || car.hasNpcDriver();
         VertexConsumer solid = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(BASE));
         int ov = OverlayTexture.DEFAULT_UV;
         int full = LightmapTextureManager.MAX_LIGHT_COORDINATE;
@@ -128,7 +166,15 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         part("plates", m, solid, light, 0xFFF4F4F4);
         part("dashboard", m, solid, light, 0xFF26282D);
         part("gauges", m, solid, LightmapTextureManager.MAX_LIGHT_COORDINATE, 0xFF6FE3FF);
-        part("seats", m, solid, light, car.isTaxi() ? 0xFF3B2F25 : 0xFF2E3138);
+        int seat = car.isTaxi() ? 0xFF4B3A2A : 0xFF33363D;
+        part("seats", m, solid, light, seat);
+        part("seam", m, solid, light, LifeShade.shade(seat, 0.75f));
+        part("floor", m, solid, light, 0xFF1C1D20);
+        part("trim", m, solid, light, car.isTaxi() ? 0xFF5A4A3A : 0xFF3E424A);
+        part("handles", m, solid, light, 0xFFB8BDC4);
+        part("headliner", m, solid, light, 0xFFD4CFC4);
+        part("gear", m, solid, light, 0xFF141414);
+        part("mirror_in", m, solid, light, 0xFF202226);
         root.getChild("steering").roll = -steer * 2.2f;
         part("steering", m, solid, light, 0xFF141414);
         for (String w : WHEELS) {
@@ -160,7 +206,7 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         VertexConsumer vc = buffers.getBuffer(RenderLayer.getLightning());
         var mat = m.peek().getPositionMatrix();
         for (float side : new float[]{-0.66f, 0.66f}) {
-            float y = 11.5f / 16f, z = 25.6f / 16f;
+            float y = 11f / 16f, z = 25.6f / 16f;
             float len = 7f, spread = 1.4f;
             vc.vertex(mat, side - 0.12f, y + 0.08f, z).color(255, 250, 210, 70);
             vc.vertex(mat, side + 0.12f, y + 0.08f, z).color(255, 250, 210, 70);

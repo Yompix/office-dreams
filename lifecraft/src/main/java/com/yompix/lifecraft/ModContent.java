@@ -103,7 +103,7 @@ public final class ModContent {
 
     // ---------- существа ----------
     public static final EntityType<CarEntity> CAR = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("car"),
-            EntityType.Builder.<CarEntity>create(CarEntity::new, SpawnGroup.MISC).dimensions(2.2f, 1.6f).maxTrackingRange(10).build("car"));
+            EntityType.Builder.<CarEntity>create(CarEntity::new, SpawnGroup.MISC).dimensions(2.2f, 1.95f).maxTrackingRange(10).build("car"));
     public static final EntityType<CitizenEntity> CITIZEN = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("citizen"),
             EntityType.Builder.<CitizenEntity>create(CitizenEntity::new, SpawnGroup.MISC).dimensions(0.6f, 1.8f).eyeHeight(1.62f).maxTrackingRange(10).build("citizen"));
     public static final EntityType<SeatEntity> SEAT = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("seat"),
