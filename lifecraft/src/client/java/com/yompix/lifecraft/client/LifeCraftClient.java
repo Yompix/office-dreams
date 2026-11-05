@@ -72,10 +72,13 @@ public class LifeCraftClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(LifeNet.S2C.ID, (payload, ctx) -> receive(ctx.client(), payload.type(), payload.data()));
         ClientPlayConnectionEvents.JOIN.register((h, s, c) -> {
             data = new LifeData();
+            com.yompix.lifecraft.client.story.ClientStory.objective = new NbtCompound();
             send("hello", new NbtCompound());
         });
         ClientTickEvents.END_CLIENT_TICK.register(LifeCraftClient::tick);
         HudRenderCallback.EVENT.register(LifeHud::render);
+        HudRenderCallback.EVENT.register((ctx, t) -> com.yompix.lifecraft.client.story.StoryHud.render(ctx));
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_TRANSLUCENT.register(com.yompix.lifecraft.client.story.StoryHud::renderWorld);
         DevAutotest.init();
     }
 
@@ -93,6 +96,16 @@ public class LifeCraftClient implements ClientModInitializer {
                 data = LifeData.fromNbt(n);
                 dataVersion++;
             }
+            case "dialog" -> client.setScreen(new com.yompix.lifecraft.client.story.DialogScreen(n));
+            case "cutscene" -> client.setScreen(new com.yompix.lifecraft.client.story.CutsceneScreen(n));
+            case "credits" -> client.setScreen(new com.yompix.lifecraft.client.story.CreditsScreen());
+            case "objective" -> com.yompix.lifecraft.client.story.ClientStory.objective = n;
+            case "title" -> {
+                com.yompix.lifecraft.client.story.ClientStory.title(n.getString("title"), n.getString("subtitle"));
+                if (client.player != null) client.player.playSound(ModContent.LEVEL_UP, 0.7f, 0.8f);
+            }
+            case "mission_done" -> com.yompix.lifecraft.client.story.ClientStory.missionDone(n.getString("title"));
+            case "countdown" -> com.yompix.lifecraft.client.story.ClientStory.countdown(n.getString("text"));
             case "open_phone" -> client.setScreen(new PhoneScreen(n.getString("app")));
             case "open_lesson" -> client.setScreen(new LessonScreen(n));
             case "lesson_result" -> {

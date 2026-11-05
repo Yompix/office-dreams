@@ -39,7 +39,7 @@ public class PhoneScreen extends LifeScreen {
             new App("bank", "Банк", 0xFF2FA84F), new App("school", "Школа", 0xFFF29B2B), new App("jobs", "Работа", 0xFF5A6ACF),
             new App("messages", "СМС", 0xFF34C759), new App("map", "Карта", 0xFF3AA0E6), new App("shop", "Магазин", 0xFFE05A47),
             new App("casino", "Казино", 0xFF8E1B3A), new App("music", "Музыка", 0xFFFF375F), new App("camera", "Камера", 0xFF4B4F58),
-            new App("weather", "Погода", 0xFF64B5F6));
+            new App("weather", "Погода", 0xFF64B5F6), new App("story", "Сюжет", 0xFFFFB300));
 
     private static final String[][] DISCS = {{"cat", "C418 — cat"}, {"chirp", "C418 — chirp"}, {"mall", "C418 — mall"}, {"mellohi", "C418 — mellohi"},
             {"stal", "C418 — stal"}, {"strad", "C418 — strad"}, {"wait", "C418 — wait"}, {"pigstep", "Lena Raine — Pigstep"},
@@ -76,7 +76,13 @@ public class PhoneScreen extends LifeScreen {
         amountField.setPlaceholder(Text.literal("сумма $"));
         amountField.setTextPredicate(s -> s.matches("\\d*"));
         openApp(app);
+        if (!opened) {
+            opened = true;
+            LifeCraftClient.send("phone_opened");
+        }
     }
+
+    private boolean opened;
 
     private void openApp(@Nullable String id) {
         app = id;
@@ -149,6 +155,7 @@ public class PhoneScreen extends LifeScreen {
                 case "casino" -> casino(ctx, cy);
                 case "music" -> music(ctx, cy);
                 case "weather" -> weather(ctx, cy);
+                case "story" -> story(ctx, cy);
                 default -> {}
             }
         }
@@ -461,6 +468,29 @@ public class PhoneScreen extends LifeScreen {
         if (music != null) mc().getSoundManager().stop(music);
         music = null;
         playing = "";
+    }
+
+    /** Дневник сюжета: глава, миссия и что делать дальше. */
+    private void story(DrawContext ctx, int y) {
+        var o = com.yompix.lifecraft.client.story.ClientStory.objective;
+        LifeData d = LifeCraftClient.data;
+        if (d.storyDone) {
+            center(ctx, "Сюжет пройден!", sx + sw / 2, y + 10, 0xFF2FA84F);
+            wrap(ctx, "Город твой: работай, учись, покупай машины и дома. Тёма, Лиза и Глеб всегда рады тебя видеть.", sx + 8, y + 26, sw - 16, 0xFF444444);
+            return;
+        }
+        if (!o.contains("mission")) {
+            wrap(ctx, "Сюжет начнётся в мире «LifeCraft: Город».", sx + 8, y + 10, sw - 16, 0xFF444444);
+            return;
+        }
+        ctx.drawText(textRenderer, o.getString("chapter"), sx + 8, y, 0xFF8A6D00, false);
+        roundRect(ctx, sx + 6, y + 12, sw - 12, 16, 0xFFFFE9A8);
+        ctx.drawText(textRenderer, o.getString("mission"), sx + 10, y + 16, 0xFF5A4300, false);
+        ctx.drawText(textRenderer, "Что делать:", sx + 8, y + 34, 0xFF222222, false);
+        int h = wrap(ctx, o.getString("hint"), sx + 8, y + 45, sw - 16, 0xFF444444);
+        if (o.contains("extra")) wrap(ctx, o.getString("extra"), sx + 8, y + 49 + h, sw - 16, 0xFF1E88E5);
+        ctx.drawText(textRenderer, "Возраст: " + (d.age == 0 ? 18 : d.age) + " · " + d.eduName(), sx + 8, y + 74 + h, 0xFF888888, false);
+        wrap(ctx, "Золотой столб света показывает, куда идти. Карта в телефоне тоже.", sx + 8, y + 90 + h, sw - 16, 0xFF888888);
     }
 
     private void weather(DrawContext ctx, int y) {

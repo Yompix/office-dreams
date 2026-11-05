@@ -89,13 +89,14 @@ public final class School {
             p.sendMessage(Text.literal("🎓 Ты уже закончил университет. Пора работать!").formatted(Formatting.GOLD), true);
             return;
         }
-        if (!schoolTime(p)) {
+        boolean story = com.yompix.lifecraft.story.Story.forcedLesson(p);
+        if (!story && !schoolTime(p)) {
             p.sendMessage(Text.literal("🔔 Уроки с 8:00 до 18:00. Ночью можно поспать — кровать перемотает время.").formatted(Formatting.YELLOW), false);
             return;
         }
         long now = p.getServerWorld().getTime();
         long wait = d.lastLesson + LESSON_COOLDOWN - now;
-        if (wait > 0) {
+        if (wait > 0 && !story) {
             p.sendMessage(Text.literal("☕ Перемена! Следующий урок через " + (wait / 20 + 1) + " с").formatted(Formatting.YELLOW), true);
             return;
         }
@@ -142,7 +143,7 @@ public final class School {
             Life.sound(p, ModContent.ANSWER_WRONG, 1f);
             Life.message(p, who, "Двойка по предмету «" + lesson.subject() + "». Подготовься и попробуй ещё раз!");
         }
-        if (d.lessons >= LifeData.lessonsNeeded(d.edu)) promote(p, d);
+        if (d.lessons >= LifeData.lessonsNeeded(d.edu) && !com.yompix.lifecraft.story.Story.active(p)) promote(p, d);
         NbtCompound n = new NbtCompound();
         n.putInt("grade", grade);
         n.putInt("right", right);
@@ -151,6 +152,7 @@ public final class School {
         n.put("correct", corr);
         LifeNet.send(p, "lesson_result", n);
         Life.sync(p);
+        com.yompix.lifecraft.story.Story.onLesson(p, grade);
     }
 
     private static void promote(ServerPlayerEntity p, LifeData d) {

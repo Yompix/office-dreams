@@ -84,6 +84,8 @@ public final class ModContent {
     public static final Block SLOT_MACHINE = block("slot_machine", new LifeBlock(metal().nonOpaque().luminance(s -> 8), LifeBlock.Kind.SLOT_MACHINE, box(1, 0, 2, 15, 16, 15)));
     public static final Block ROULETTE = block("roulette", new LifeBlock(wood().nonOpaque().luminance(s -> 4), LifeBlock.Kind.ROULETTE, box(0, 0, 0, 16, 13, 16)));
 
+    public static final Block CLUE = block("clue", new com.yompix.lifecraft.block.ClueBlock(AbstractBlock.Settings.create().strength(-1f, 3600000f).noCollision().nonOpaque().luminance(s -> 10).dropsNothing()));
+
     // ---------- предметы ----------
     public static final Item PHONE = item("phone", new PhoneItem(new Item.Settings().maxCount(1)));
     public static final Item BANKNOTE = item("banknote", new Item(new Item.Settings()));
@@ -91,6 +93,7 @@ public final class ModContent {
     public static final Item PARCEL = item("parcel", new Item(new Item.Settings().maxCount(1)));
     public static final Item DIPLOMA = item("diploma", new Item(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
     public static final Item TEXTBOOK = item("textbook", new Item(new Item.Settings().maxCount(16)));
+    public static final Item SUIT = item("suit", new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
     public static final Item BURGER = item("burger", new Item(new Item.Settings().food(new FoodComponent.Builder().nutrition(8).saturationModifier(0.8f).build())));
     public static final Item COLA = item("cola", new Item(new Item.Settings().food(new FoodComponent.Builder().nutrition(2).saturationModifier(0.3f).alwaysEdible().snack().build())));
 

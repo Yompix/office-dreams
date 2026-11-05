@@ -32,6 +32,19 @@ public class LifeData {
     public boolean started;
     public int casinoWon, casinoLost;
 
+    // сюжет
+    public int age;                 // 0 — сюжет не начат (взрослый размер)
+    public boolean storyStarted, storyDone;
+    public int chapter, mission, step, stepCount;
+    public java.util.Set<String> flags = new java.util.HashSet<>();
+    public int prevMode = -1;       // режим игры до кат-сцены
+    public long returnPos;
+    public float returnYaw;
+
+    // потребности и прогресс
+    public int energy = 100, mood = 70;
+    public java.util.Set<String> achievements = new java.util.HashSet<>();
+
     public static int lessonsNeeded(int edu) {
         return edu <= SCHOOL_END ? 3 : 4;
     }
@@ -57,6 +70,22 @@ public class LifeData {
         while (grades.size() > 12) grades.remove(grades.size() - 1);
     }
 
+    private static NbtList strings(java.util.Collection<String> c) {
+        NbtList l = new NbtList();
+        for (String s : c) l.add(NbtString.of(s));
+        return l;
+    }
+
+    /** Рост по возрасту: первоклассник — маленький, к 18 — обычный размер. */
+    public static float scaleForAge(int age) {
+        if (age <= 0) return 1f;
+        if (age <= 7) return 0.62f;
+        if (age <= 10) return 0.72f;
+        if (age <= 13) return 0.82f;
+        if (age <= 16) return 0.93f;
+        return 1f;
+    }
+
     public NbtCompound toNbt() {
         NbtCompound n = new NbtCompound();
         n.putInt("money", money);
@@ -80,6 +109,20 @@ public class LifeData {
         n.putBoolean("started", started);
         n.putInt("casinoWon", casinoWon);
         n.putInt("casinoLost", casinoLost);
+        n.putInt("age", age);
+        n.putBoolean("storyStarted", storyStarted);
+        n.putBoolean("storyDone", storyDone);
+        n.putInt("chapter", chapter);
+        n.putInt("mission", mission);
+        n.putInt("step", step);
+        n.putInt("stepCount", stepCount);
+        n.put("flags", strings(flags));
+        n.putInt("prevMode", prevMode);
+        n.putLong("returnPos", returnPos);
+        n.putFloat("returnYaw", returnYaw);
+        n.putInt("energy", energy);
+        n.putInt("mood", mood);
+        n.put("achievements", strings(achievements));
         return n;
     }
 
@@ -104,6 +147,20 @@ public class LifeData {
         d.started = n.getBoolean("started");
         d.casinoWon = n.getInt("casinoWon");
         d.casinoLost = n.getInt("casinoLost");
+        d.age = n.getInt("age");
+        d.storyStarted = n.getBoolean("storyStarted");
+        d.storyDone = n.getBoolean("storyDone");
+        d.chapter = n.getInt("chapter");
+        d.mission = n.getInt("mission");
+        d.step = n.getInt("step");
+        d.stepCount = n.getInt("stepCount");
+        for (NbtElement e : n.getList("flags", NbtElement.STRING_TYPE)) d.flags.add(e.asString());
+        d.prevMode = n.contains("prevMode") ? n.getInt("prevMode") : -1;
+        d.returnPos = n.getLong("returnPos");
+        d.returnYaw = n.getFloat("returnYaw");
+        if (n.contains("energy")) d.energy = n.getInt("energy");
+        if (n.contains("mood")) d.mood = n.getInt("mood");
+        for (NbtElement e : n.getList("achievements", NbtElement.STRING_TYPE)) d.achievements.add(e.asString());
         return d;
     }
 }

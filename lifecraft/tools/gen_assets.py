@@ -553,6 +553,9 @@ def gui():
     icon('home', 'a0785a', lambda d: (d.polygon([(2, 8), (8, 3), (14, 8)], fill=rgb('ffffff')), d.rectangle([4, 8, 12, 13], fill=rgb('ffffff')), d.rectangle([7, 10, 9, 13], fill=rgb('a0785a'))))
     icon('settings', '8e8e93', lambda d: (d.ellipse([3, 3, 12, 12], outline=rgb('ffffff'), width=2), d.ellipse([6, 6, 9, 9], fill=rgb('ffffff'))))
 
+    icon('story', 'ffb300', lambda d: (d.rectangle([3, 3, 12, 13], fill=rgb('ffffff')), d.rectangle([3, 3, 4, 13], fill=rgb('b07d00')), d.polygon([(8, 5), (9, 7), (11, 7), (9, 9), (10, 11), (8, 10), (6, 11), (7, 9), (5, 7), (7, 7)], fill=rgb('ffb300'))))
+    icon('online', '6a1b9a', lambda d: (d.ellipse([3, 3, 12, 12], outline=rgb('ffffff')), d.line([7, 3, 7, 12], fill=rgb('ffffff')), d.line([3, 7, 12, 7], fill=rgb('ffffff')), d.ellipse([9, 9, 14, 14], fill=rgb('ffd54f'))))
+    icon('trophy', 'c99a2e', lambda d: (d.rectangle([5, 3, 10, 8], fill=rgb('ffe082')), d.line([3, 4, 5, 6], fill=rgb('ffe082')), d.line([12, 4, 10, 6], fill=rgb('ffe082')), d.rectangle([7, 9, 8, 11], fill=rgb('ffe082')), d.rectangle([5, 12, 10, 13], fill=rgb('ffe082'))))
     icon('casino', '8e1b3a', lambda d: (d.ellipse([3, 7, 7, 11], fill=rgb('ff3b4f')), d.ellipse([8, 8, 12, 12], fill=rgb('ff3b4f')), d.line([5, 7, 8, 3, 10, 8], fill=rgb('5bd16a')), d.point([(4, 8), (9, 9)], fill=rgb('ffffff'))))
 
     # символы игрового автомата 16x16

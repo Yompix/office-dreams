@@ -26,17 +26,23 @@ public final class LifeEvents {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> server.execute(() -> onJoin(handler.player)));
         ServerLifecycleEvents.SERVER_STARTED.register(TownBuilder::autoBuildIfCityWorld);
         ServerTickEvents.END_SERVER_TICK.register(LifeEvents::tick);
+        ServerTickEvents.END_SERVER_TICK.register(s -> s.getPlayerManager().getPlayerList().forEach(com.yompix.lifecraft.story.Story::tick));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> com.yompix.lifecraft.story.Story.onLeave(handler.player));
     }
 
     private static void onJoin(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
-        if (!d.started) {
+        boolean storyWorld = !TownState.get(p.getServerWorld()).places.isEmpty();
+        if (!d.started && storyWorld) {
+            d.started = true;
+        } else if (!d.started) {
             d.started = true;
             School.give(p, new ItemStack(ModContent.PHONE));
             Life.message(p, "Мама", "Доброе утро! Не опаздывай в школу: уроки с 8:00. Я положила тебе $50 на карту ❤");
             Life.message(p, "Школа", "Добро пожаловать в 1 класс! Подойди к доске в классе или к учителю, чтобы начать урок.");
             p.sendMessage(Text.literal("📱 Нажми G (или ПКМ телефоном), чтобы открыть телефон").formatted(Formatting.AQUA), false);
         }
+        com.yompix.lifecraft.story.Story.onJoin(p);
         Life.sync(p);
     }
 

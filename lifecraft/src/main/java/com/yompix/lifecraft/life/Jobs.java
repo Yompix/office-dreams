@@ -125,6 +125,7 @@ public final class Jobs {
         d.taskPos = null;
         d.tasksDone++;
         Life.earn(p, reward, "доставка выполнена");
+        com.yompix.lifecraft.story.Story.onJobDone(p, "courier");
     }
 
     // ---------- такси ----------
@@ -178,6 +179,7 @@ public final class Jobs {
         d.taskPos = null;
         d.tasksDone++;
         Life.earn(p, reward, "поездка оплачена");
+        com.yompix.lifecraft.story.Story.onJobDone(p, "taxi");
     }
 
     // ---------- кассир ----------
@@ -280,6 +282,7 @@ public final class Jobs {
             pay = right * 22;
         }
         data.tasksDone++;
+        if (right >= 3) com.yompix.lifecraft.story.Story.onJobDone(p, w.kind());
         if (pay > 0) Life.earn(p, pay, "смена: " + right + " из 5");
         else {
             p.sendMessage(Text.literal("Смена без оплаты: ни одного верного ответа").formatted(Formatting.RED), true);

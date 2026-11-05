@@ -21,6 +21,20 @@ public class TownState extends PersistentState {
     public boolean built;
     @Nullable public BlockPos origin, school;
     public final List<BlockPos> mailboxes = new ArrayList<>();
+    /** Именованные места для сюжета: x, y, z, поворот, наклон (для камер). */
+    public final java.util.Map<String, double[]> places = new java.util.HashMap<>();
+    /** Герои сюжета: id → UUID жителя. */
+    public final java.util.Map<String, java.util.UUID> storyNpcs = new java.util.HashMap<>();
+
+    public void place(String name, double x, double y, double z, float yaw, float pitch) {
+        places.put(name, new double[]{x, y, z, yaw, pitch});
+        markDirty();
+    }
+
+    @Nullable
+    public double[] place(String name) {
+        return places.get(name);
+    }
 
     public static TownState get(ServerWorld world) {
         return world.getServer().getOverworld().getPersistentStateManager().getOrCreate(TYPE, "lifecraft_town");
@@ -71,6 +85,16 @@ public class TownState extends PersistentState {
         if (origin != null) nbt.putLong("origin", origin.asLong());
         if (school != null) nbt.putLong("school", school.asLong());
         nbt.putLongArray("mailboxes", mailboxes.stream().mapToLong(BlockPos::asLong).toArray());
+        NbtCompound pl = new NbtCompound();
+        places.forEach((k, v) -> {
+            net.minecraft.nbt.NbtList l = new net.minecraft.nbt.NbtList();
+            for (double d : v) l.add(net.minecraft.nbt.NbtDouble.of(d));
+            pl.put(k, l);
+        });
+        nbt.put("places", pl);
+        NbtCompound npcs = new NbtCompound();
+        storyNpcs.forEach(npcs::putUuid);
+        nbt.put("storyNpcs", npcs);
         return nbt;
     }
 
@@ -80,6 +104,15 @@ public class TownState extends PersistentState {
         if (nbt.contains("origin")) s.origin = BlockPos.fromLong(nbt.getLong("origin"));
         if (nbt.contains("school")) s.school = BlockPos.fromLong(nbt.getLong("school"));
         for (long l : nbt.getLongArray("mailboxes")) s.mailboxes.add(BlockPos.fromLong(l));
+        NbtCompound pl = nbt.getCompound("places");
+        for (String k : pl.getKeys()) {
+            net.minecraft.nbt.NbtList l = pl.getList(k, net.minecraft.nbt.NbtElement.DOUBLE_TYPE);
+            double[] v = new double[5];
+            for (int i = 0; i < Math.min(5, l.size()); i++) v[i] = l.getDouble(i);
+            s.places.put(k, v);
+        }
+        NbtCompound npcs = nbt.getCompound("storyNpcs");
+        for (String k : npcs.getKeys()) if (npcs.containsUuid(k)) s.storyNpcs.put(k, npcs.getUuid(k));
         return s;
     }
 }

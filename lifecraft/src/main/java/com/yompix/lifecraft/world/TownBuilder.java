@@ -63,6 +63,8 @@ public final class TownBuilder {
         TownState state = TownState.get(world);
         state.origin = origin;
         state.mailboxes.clear();
+        state.places.clear();
+        state.storyNpcs.clear();
         B b = new B(world, origin.getX(), origin.getY(), origin.getZ(), BlockRotation.NONE);
         if (flatten) {
             b.fill(-EDGE - 2, -4, -EDGE - 2, EDGE + 2, -2, EDGE + 2, Blocks.DIRT.getDefaultState());
@@ -72,18 +74,31 @@ public final class TownBuilder {
         roads(b);
         // кварталы: центр квартала и поворот (фасад к ближайшей дороге)
         int[] centers = {-48, 0, 48};
-        plot(world, origin, centers[0], centers[0], BlockRotation.NONE, TownBuilder::houses);
+        plot(world, origin, centers[0], centers[0], BlockRotation.NONE, b2 -> houses(b2, "home", "gleb"));
         plot(world, origin, centers[1], centers[0], BlockRotation.NONE, TownBuilder::park);
-        plot(world, origin, centers[2], centers[0], BlockRotation.NONE, TownBuilder::houses);
+        plot(world, origin, centers[2], centers[0], BlockRotation.NONE, b2 -> houses(b2, "lisa", "house4"));
         plot(world, origin, centers[0], centers[1], BlockRotation.NONE, TownBuilder::shop);
         plot(world, origin, centers[1], centers[1], BlockRotation.NONE, TownBuilder::school);
         plot(world, origin, centers[2], centers[1], BlockRotation.NONE, TownBuilder::office);
         plot(world, origin, centers[0], centers[2], BlockRotation.CLOCKWISE_180, TownBuilder::dealership);
         plot(world, origin, centers[1], centers[2], BlockRotation.CLOCKWISE_180, TownBuilder::casino);
-        plot(world, origin, centers[2], centers[2], BlockRotation.CLOCKWISE_180, TownBuilder::houses);
+        plot(world, origin, centers[2], centers[2], BlockRotation.CLOCKWISE_180, b2 -> houses(b2, "tema", "house6"));
         streetLife(b);
+        // точки сюжета на дорогах и камеры
+        b.place("race_1", 24, 0, -44, 270);
+        b.place("drive_1", -48, 0, 24, 90);
+        b.place("drive_2", -24, 0, 0, 180);
+        b.place("drive_3", -48, 0, -24, 90);
+        b.place("drive_4", -72, 0, 0, 0);
+        b.cam("cam_city_far", 40, 50, 40, 135, 35);
+        b.cam("cam_city_near", 14, 22, 14, 135, 22);
+        b.cam("cam_school_a", 0, 7, 32, 180, 8);
+        b.cam("cam_school_b", 0, 4, 20, 180, 2);
+        b.cam("cam_home_a", -56, 9, -28, 180, 22);
+        b.cam("cam_home_b", -56, 4, -36, 180, 8);
 
         state.school = origin.add(0, 0, 5);
+        rules0(world);
         state.built = true;
         state.markDirty();
         world.setSpawnPos(origin.add(0, 0, 9), 180);
@@ -94,6 +109,10 @@ public final class TownBuilder {
         rules.get(GameRules.DO_TRADER_SPAWNING).set(false, world.getServer());
         world.setTimeOfDay(0);
         LifeCraft.LOG.info("Город построен за {} мс, почтовых ящиков: {}", System.currentTimeMillis() - t0, state.mailboxes.size());
+    }
+
+    private static void rules0(ServerWorld world) {
+        world.getGameRules().get(GameRules.KEEP_INVENTORY).set(true, world.getServer());
     }
 
     interface PlotBuilder {
@@ -179,12 +198,13 @@ public final class TownBuilder {
         // припаркованные машины, на которых может прокатиться любой
         int[][] cars = {{-40, 26, 90, 1}, {-52, 26, 90, 4}, {40, 22, -90, 0}, {58, -22, -90, 3}, {26, -40, 0, 2}, {-26, 46, 180, 5}};
         for (int[] c : cars) b.car(c[0], c[1], c[2], c[3]);
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 16; i++) {
             int c = ROADS[r.nextInt(ROADS.length)] + (r.nextBoolean() ? 5 : -5);
             int t = -60 + r.nextInt(120);
-            int skin = 2 + r.nextInt(6);
-            if (r.nextBoolean()) b.citizen(t, 0, c, skin, CitizenEntity.Role.CITIZEN, false, Names.random(r), 0);
-            else b.citizen(c, 0, t, skin, CitizenEntity.Role.CITIZEN, false, Names.random(r), 0);
+            int skin = CitizenEntity.randomSkin(r);
+            CitizenEntity ce = r.nextBoolean() ? b.citizen(t, 0, c, skin, CitizenEntity.Role.CITIZEN, false, Names.random(r), 0)
+                    : b.citizen(c, 0, t, skin, CitizenEntity.Role.CITIZEN, false, Names.random(r), 0);
+            ce.randomizeBody(r, i % 3 == 0);
         }
     }
 
@@ -214,6 +234,7 @@ public final class TownBuilder {
         b.fill(x1 + 1, 0, -5, x2 - 1, h - 2, -5, white);
         for (int x : new int[]{-5, 5}) b.fill(x, 0, z1 + 1, x, h - 2, -5, white);
         String[] teachers = {"Марья Ивановна", "Анна Петровна", "Сергей Олегович"};
+        Random r0 = b.world.getRandom();
         for (int i = 0; i < rooms.length; i++) {
             int a = rooms[i][0], c = rooms[i][1], mid = (a + c) / 2;
             b.fill(mid, 0, -5, mid, 1, -5, Blocks.AIR.getDefaultState());
@@ -225,7 +246,8 @@ public final class TownBuilder {
             b.set(mid, 0, z1 + 3, Blocks.SPRUCE_PLANKS.getDefaultState());
             b.set(mid - 1, 1, z1 + 3, Blocks.FLOWER_POT.getDefaultState());
             b.set(mid, 1, z1 + 3, Blocks.POTTED_RED_TULIP.getDefaultState());
-            b.citizen(mid + 1, 0, z1 + 3, 0, CitizenEntity.Role.TEACHER, true, teachers[i], 0);
+            CitizenEntity t = b.citizen(mid + 1, 0, z1 + 3, i == 0 ? 0 : CitizenEntity.randomSkin(r0), CitizenEntity.Role.TEACHER, true, teachers[i], 0);
+            if (i == 0) b.story(t, "teacher");
             for (int row = 0; row < 3; row++)
                 for (int col = a + 1; col <= c - 1; col += 2)
                     b.set(col, 0, z1 + 6 + row * 2, ModContent.SCHOOL_DESK.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.NORTH));
@@ -247,7 +269,7 @@ public final class TownBuilder {
         b.set(x2 - 2, 1, z2 - 1, Blocks.GOLD_BLOCK.getDefaultState());
         b.set(x2 - 3, 0, z2 - 1, ModContent.TV.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.NORTH).with(com.yompix.lifecraft.block.TvBlock.CHANNEL, 1));
         Random r = b.world.getRandom();
-        for (int i = 0; i < 3; i++) b.citizen(-8 + i * 7, 0, -2, 2 + (i % 2), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0);
+        for (int i = 0; i < 3; i++) b.citizen(-8 + i * 7, 0, -2, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0).randomizeBody(r, true);
         // школьный двор: мини-футбол, флагшток, скамейки
         b.fill(-14, -1, 5, 14, -1, 16, Blocks.GRASS_BLOCK.getDefaultState());
         for (int x = -12; x <= 12; x++) {
@@ -278,8 +300,16 @@ public final class TownBuilder {
         b.stairs(6, 0, 4, Direction.NORTH, Blocks.OAK_STAIRS);
         b.stairs(7, 0, 4, Direction.NORTH, Blocks.OAK_STAIRS);
         b.mailbox(4, 0, 4);
-        b.citizen(-5, 0, 11, 2, CitizenEntity.Role.CITIZEN, false, Names.random(r), 0);
-        b.citizen(5, 0, 10, 3, CitizenEntity.Role.CITIZEN, false, Names.random(r), 0);
+        b.citizen(-5, 0, 11, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0).randomizeBody(r, true);
+        b.citizen(5, 0, 10, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0).randomizeBody(r, true);
+        b.place("school_front", 3, 0, 6, 180);
+        b.place("school_yard", 0, 0, 11, 180);
+        b.place("classroom1", -10, 0, -9, 180);
+        b.place("classroom1_desk", -12, 0, -10, 180);
+        b.place("prom_stage", 0, 0, 8, 0);
+        b.place("prom_1", -3, 0, 12, 180);
+        b.place("prom_2", 3, 0, 12, 180);
+        b.place("prom_3", 6, 0, 10, 180);
         b.label(0, 8, 2, "🏫 ШКОЛА №1", Formatting.GOLD);
     }
 
@@ -318,6 +348,8 @@ public final class TownBuilder {
         b.car(-6, 12, 0, 2);
         b.car(6, 12, 0, 4);
         b.label(0, h + 2, z2, "🛒 СУПЕРМАРКЕТ", Formatting.RED);
+        b.place("shop_door", 0, 0, 6, 180);
+        b.place("shop_counter", -5, 0, 2, 180);
     }
 
     // ---------------------------------------------------------------- офис и центр занятости
@@ -330,7 +362,12 @@ public final class TownBuilder {
         b.set(1, 1, z2 + 1, Blocks.STONE_BUTTON.getDefaultState().with(net.minecraft.block.ButtonBlock.FACING, Direction.SOUTH));
         b.set(-1, 1, z2 - 1, Blocks.STONE_BUTTON.getDefaultState().with(net.minecraft.block.ButtonBlock.FACING, Direction.NORTH));
         for (int x = -2; x <= 2; x++) b.set(x, 1, z1 + 1, ModContent.JOB_BOARD.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.SOUTH));
-        b.citizen(0, 0, z1 + 3, 5, CitizenEntity.Role.CITIZEN, true, "Менеджер Ирина", 0);
+        b.story(b.citizen(0, 0, z1 + 3, 5, CitizenEntity.Role.CITIZEN, true, "Менеджер Ирина", 0), "irina");
+        b.place("office_door", 0, 0, 6, 180);
+        b.place("office_desk", 0, 0, z1 + 4, 180);
+        b.place("clue_flash", 11, 0, -12, 0);
+        b.place("guard_point", 3, 0, 7, 0);
+        b.place("chase_car", -6, 0, 9, 90);
         Random r = b.world.getRandom();
         int n = 0;
         for (int z = -8; z <= -2; z += 3) {
@@ -338,7 +375,7 @@ public final class TownBuilder {
                 b.set(x, 0, z, Blocks.SPRUCE_PLANKS.getDefaultState());
                 b.set(x, 1, z, ModContent.COMPUTER.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.SOUTH));
                 b.stairs(x, 0, z + 1, Direction.NORTH, Blocks.DARK_OAK_STAIRS);
-                if (n++ % 3 == 0) b.citizen(x, 0, z + 1, 5, CitizenEntity.Role.CITIZEN, true, Names.full(r), 180);
+                if (n++ % 3 == 0) b.citizen(x, 0, z + 1, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, true, Names.full(r), 180).lockActivity(CitizenEntity.Activity.THINK);
             }
         }
         b.set(x2 - 1, 0, z2 - 1, Blocks.POTTED_FERN.getDefaultState());
@@ -385,8 +422,14 @@ public final class TownBuilder {
             if (Math.abs(x) > 2 && Math.abs(z) > 2 && x * x + z * z > 40 && b.get(x, 0, z).isAir()) b.set(x, 0, z, flowers[r.nextInt(flowers.length)]);
         }
         b.citizen(-7, 0, 4, 7, CitizenEntity.Role.CITIZEN, false, "Баба Валя", 0);
-        b.citizen(7, 0, -4, 6, CitizenEntity.Role.CITIZEN, false, "Полицейский Петров", 0);
-        b.citizen(9, 0, 9, 4, CitizenEntity.Role.CITIZEN, false, Names.random(r), 0);
+        b.story(b.citizen(5, 0, 7, 6, CitizenEntity.Role.CITIZEN, true, "Лейтенант Петров", 0), "petrov");
+        b.citizen(9, 0, 9, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0).randomizeBody(r, false);
+        b.citizen(-9, 0, -9, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0).randomizeBody(r, true);
+        b.citizen(-10, 0, 9, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0).randomizeBody(r, true);
+        b.place("park_center", 5, 0, 8, 180);
+        b.place("clue_backpack", -12, 0, -6, 0);
+        b.place("race_2", 12, 0, 2, 270);
+        b.place("race_3", 0, 0, 7, 0);
         b.label(0, 6, 0, "🌳 ПАРК", Formatting.GREEN);
     }
 
@@ -404,18 +447,24 @@ public final class TownBuilder {
     }
 
     // ---------------------------------------------------------------- дома
-    private static void houses(B b) {
+    private static void houses(B b, String a, String c) {
         BlockState[][] styles = {
                 {Blocks.OAK_PLANKS.getDefaultState(), Blocks.SPRUCE_PLANKS.getDefaultState(), Blocks.DARK_OAK_PLANKS.getDefaultState()},
                 {Blocks.WHITE_TERRACOTTA.getDefaultState(), Blocks.BRICKS.getDefaultState(), Blocks.RED_NETHER_BRICKS.getDefaultState()},
                 {Blocks.LIGHT_BLUE_TERRACOTTA.getDefaultState(), Blocks.STONE_BRICKS.getDefaultState(), Blocks.DEEPSLATE_TILES.getDefaultState()},
                 {Blocks.YELLOW_TERRACOTTA.getDefaultState(), Blocks.BIRCH_PLANKS.getDefaultState(), Blocks.MANGROVE_PLANKS.getDefaultState()}};
         Random r = b.world.getRandom();
-        house(b.sub(-8), styles[r.nextInt(styles.length)], r);
-        house(b.sub(8), styles[r.nextInt(styles.length)], r);
+        house(b.sub(-8), styles[r.nextInt(styles.length)], r, a);
+        house(b.sub(8), styles[r.nextInt(styles.length)], r, c);
     }
 
-    private static void house(B b, BlockState[] style, Random r) {
+    private static void house(B b, BlockState[] style, Random r, String name) {
+        b.place(name + "_door", 0, 0, 4, 180);
+        b.place(name + "_living", 0, 0, -2, 0);
+        b.place(name + "_bed", -3, 0, -8, 90);
+        b.place(name + "_yard", -3, 0, 6, 0);
+        b.place(name + "_yard2", 3, 0, 6, 0);
+        b.place(name + "_yard3", 0, 0, 7, 0);
         int x1 = -6, x2 = 6, z1 = -10, z2 = 2, h = 5;
         b.fill(x1, -1, z1, x2, -1, z2, style[1]);
         b.walls(x1, 0, z1, x2, h - 1, z2, style[0]);
@@ -489,6 +538,9 @@ public final class TownBuilder {
         b.car(-5, -7, -30, 4);
         b.set(-13, 0, -2, ModContent.SHOP_COUNTER.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.EAST));
         b.citizen(-14, 0, -2, 5, CitizenEntity.Role.SHOPKEEPER, true, "Автодилер Гена", -90);
+        b.place("dealer_door", -8, 0, 5, 0);
+        b.place("dealer_desk", -12, 0, -4, 0);
+        b.place("drive_start", 8, 0, 0, 90);
         // стоянка и стоянка такси
         b.fill(1, -1, -15, 16, -1, 15, ModContent.ASPHALT.getDefaultState());
         for (int z = -15; z <= 15; z += 5) b.fill(1, -1, z, 6, -1, z, Blocks.WHITE_CONCRETE.getDefaultState());
@@ -539,6 +591,13 @@ public final class TownBuilder {
         for (int x = x1 + 3; x <= x2 - 3; x += 5)
             for (int z = z1 + 3; z <= z2 - 2; z += 5) b.set(x, h - 1, z, Blocks.SEA_LANTERN.getDefaultState());
         b.label(-5, h + 2, z2, "🎰 КАЗИНО «ФОРТУНА» 18+", Formatting.LIGHT_PURPLE);
+        b.place("casino_door", -5, 0, 7, 0);
+        b.place("casino_door2", -7, 0, 9, 0);
+        b.place("casino_door3", -3, 0, 9, 0);
+        b.place("casino_door4", -1, 0, 10, 0);
+        b.place("casino_office", -12, 0, -10, 0);
+        b.place("clue_scheme", -5, 0, -16, 0);
+        b.place("clue_books", 17, 0, -6, 0);
 
         // банк
         int bx1 = 8, bx2 = 16;
@@ -652,7 +711,22 @@ public final class TownBuilder {
             set(x, y, z, ModContent.MAILBOX.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.SOUTH));
         }
 
-        void citizen(int x, int y, int z, int skin, CitizenEntity.Role role, boolean stationary, String name, float yaw) {
+        void place(String name, int x, int y, int z, float yaw) {
+            BlockPos p = pos(x, y, z);
+            TownState.get(world).place(name, p.getX() + 0.5, p.getY(), p.getZ() + 0.5, yaw + rotYaw(), 0);
+        }
+
+        void cam(String name, double x, double y, double z, float yaw, float pitch) {
+            TownState.get(world).place(name, ox + x, oy + y, oz + z, yaw, pitch);
+        }
+
+        CitizenEntity story(CitizenEntity c, String id) {
+            c.setStoryId(id);
+            TownState.get(world).storyNpcs.put(id, c.getUuid());
+            return c;
+        }
+
+        CitizenEntity citizen(int x, int y, int z, int skin, CitizenEntity.Role role, boolean stationary, String name, float yaw) {
             CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, world);
             BlockPos p = pos(x, y, z);
             float worldYaw = yaw + rotYaw();
@@ -661,6 +735,7 @@ public final class TownBuilder {
             c.setBodyYaw(worldYaw);
             c.setup(skin, role, stationary, name);
             world.spawnEntity(c);
+            return c;
         }
 
         void car(int x, int z, float yaw, int variant) {
