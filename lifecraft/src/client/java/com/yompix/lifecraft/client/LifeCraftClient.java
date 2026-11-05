@@ -38,6 +38,26 @@ import java.util.Map;
 
 public class LifeCraftClient implements ClientModInitializer {
     private static net.minecraft.client.sound.SoundInstance ambientVoice;
+    private static double lastCamX = Double.NaN;
+
+    /** Отладка плавности: где камера в каждом кадре (-Dlifecraft.camlog=true). */
+    private static double lastTickX = Double.NaN;
+
+    /** Отладка: шаг машины под игроком за каждый клиентский тик. */
+    public static void tickLog() {
+        var mc = MinecraftClient.getInstance();
+        if (!Boolean.getBoolean("lifecraft.camlog") || mc.player == null || mc.player.getVehicle() == null) return;
+        double x = mc.player.getVehicle().getX();
+        if (!Double.isNaN(lastTickX)) LifeCraft.LOG.info("[tick] {}", String.format("%.4f", x - lastTickX));
+        lastTickX = x;
+    }
+
+    public static void camLog() {
+        var mc = MinecraftClient.getInstance();
+        if (!Boolean.getBoolean("lifecraft.camlog") || mc.player == null || !mc.player.hasVehicle()) return;
+        var cam = mc.gameRenderer.getCamera().getPos();
+        lastCamX = cam.x;
+    }
     public static LifeData data = new LifeData();
     public static long dataVersion;
 
@@ -65,6 +85,8 @@ public class LifeCraftClient implements ClientModInitializer {
         mapKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.map", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.lifecraft"));
         gradeKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.grade", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_K, "category.lifecraft"));
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(c -> com.yompix.lifecraft.client.render.ColorGrade.render(c.tickCounter().getTickDelta(false)));
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(c -> camLog());
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c -> tickLog());
         radioKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.radio", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.lifecraft"));
         hornKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.horn", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "category.lifecraft"));
 

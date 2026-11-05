@@ -53,6 +53,7 @@ public class CarEntity extends Entity {
     public void setRoute(java.util.List<Vec3d> points, float maxSpeed, @Nullable Runnable arrive) {
         route = points.isEmpty() ? null : points;
         routeIndex = 0;
+        legFrom = getPos();
         autoMax = maxSpeed;
         onArrive = arrive;
     }
@@ -62,7 +63,9 @@ public class CarEntity extends Entity {
     }
 
     // плавное движение для тех, кто не за рулём
-    private int lerpTicks;
+    private int lerpTicks, coast, yawTick = -1;
+    private float tickYawDelta;
+    private static final java.util.Map<Entity, Integer> YAW_DONE = new java.util.WeakHashMap<>();
     private double lerpX, lerpY, lerpZ, lerpYaw;
 
     // только клиент: для анимаций
@@ -223,11 +226,10 @@ public class CarEntity extends Entity {
             }
             if (!getWorld().isClient && getControllingPassenger() == null) drive();
         }
-        float yawDelta = MathHelper.wrapDegrees(getYaw() - yawBefore);
-        for (Entity p : getPassengerList()) {
-            p.setYaw(p.getYaw() + yawDelta);
-            p.setHeadYaw(p.getHeadYaw() + yawDelta);
-        }
+        // поворот машины передаём пассажирам в updatePassengerPosition — после их тика,
+        // тогда камера поворачивается плавно между кадрами, а не ступеньками раз в тик
+        tickYawDelta = MathHelper.wrapDegrees(getYaw() - yawBefore);
+        yawTick = age;
         if (getWorld().isClient) {
             clientAnimations();
             LifeCraft.CLIENT.carTick(this);
@@ -237,6 +239,30 @@ public class CarEntity extends Entity {
     }
 
     /** Физика: газ, тормоз, задний ход, руль зависит от скорости, гравитация, ступеньки до 1 блока. */
+    /** Кто впереди на полосе движения. */
+    private record Obstacle(double dist, double lat, boolean still, boolean living) {}
+
+    private int blocked, dodgeTicks, reverse;
+    private Vec3d legFrom;
+    private float dodge;
+
+    @org.jetbrains.annotations.Nullable
+    private Obstacle scanAhead(Vec3d fwd, Vec3d side) {
+        Obstacle best = null;
+        for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(11, 2, 11),
+                e -> !hasPassenger(e) && !e.hasVehicle() && (e instanceof CarEntity || e instanceof LivingEntity) && !(e instanceof net.minecraft.entity.decoration.ArmorStandEntity) && !e.isSpectator())) {
+            Vec3d rel = e.getPos().subtract(getPos());
+            double along = rel.dotProduct(fwd), lat = rel.dotProduct(side);
+            double halfW = e instanceof CarEntity ? 2.0 : 1.4;
+            if (along < 1.0 || along > 11 || Math.abs(lat - dodge) > halfW) continue;
+            if (best == null || along < best.dist) {
+                boolean still = e.getVelocity().horizontalLengthSquared() < 0.003 && !(e instanceof CarEntity c && Math.abs(c.speed) > 0.05f);
+                best = new Obstacle(along, lat, still, e instanceof LivingEntity);
+            }
+        }
+        return best;
+    }
+
     private void drive() {
         float fwd = 0, side = 0;
         if (getControllingPassenger() instanceof PlayerEntity p) {
@@ -255,14 +281,65 @@ public class CarEntity extends Entity {
                     Runnable r = onArrive;
                     onArrive = null;
                     if (r != null) r.run();
-                } else routeIndex++;
+                } else {
+                    legFrom = t;
+                    routeIndex++;
+                }
             } else {
-                float want = (float) Math.toDegrees(Math.atan2(-dx, dz));
+                // смотрим вперёд: кто на нашей полосе — машина, человек, игрок
+                double rad0 = Math.toRadians(getYaw());
+                Vec3d fwdV = new Vec3d(-Math.sin(rad0), 0, Math.cos(rad0)), sideV = new Vec3d(-Math.cos(rad0), 0, -Math.sin(rad0));
+                Obstacle ob = scanAhead(fwdV, sideV);
+                if (Boolean.getBoolean("lifecraft.debugcar") && age % 20 == 0)
+                    LifeCraft.LOG.info("car {} ob {} blocked {} dodge {} rev {} speed {}", getId(), ob, blocked, dodge, reverse, speed);
+                if (ob != null && ob.still && Math.abs(speed) < 0.06f) blocked++;
+                else if (ob == null) blocked = Math.max(0, blocked - 2);
+                if (blocked > 35 && dodge == 0 && ob != null) {
+                    // стоит намертво (припаркованная машина, зевака) — сдаём чуть назад и объезжаем с другой стороны
+                    dodge = ob.lat > 0 ? -3.4f : 3.4f;
+                    dodgeTicks = 120;
+                    blocked = 0;
+                    if (ob.dist < 6) reverse = 22;
+                }
+                // линия маршрута от прошлой точки до цели: по ней считаем «свою полосу» и соседнюю
+                if (legFrom == null) legFrom = getPos();
+                Vec3d line = new Vec3d(t.x - legFrom.x, 0, t.z - legFrom.z);
+                if (line.lengthSquared() < 0.01) line = fwdV;
+                line = line.normalize();
+                Vec3d perp = new Vec3d(-line.z, 0, line.x);
+                if (dodge != 0) {
+                    // пока помеха рядом с нашей полосой — держимся соседней
+                    for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(9, 2, 9), e -> e instanceof CarEntity || (e instanceof LivingEntity && !e.hasVehicle()))) {
+                        if (hasPassenger(e)) continue;
+                        Vec3d rel = e.getPos().subtract(getPos());
+                        double al = rel.dotProduct(line), la = e.getPos().subtract(legFrom).dotProduct(perp) - getPos().subtract(legFrom).dotProduct(perp) + getPos().subtract(legFrom).dotProduct(perp);
+                        if (al > -4.5 && al < 9 && Math.abs(e.getPos().subtract(legFrom).dotProduct(perp)) < 1.9) dodgeTicks = Math.max(dodgeTicks, 30);
+                    }
+                    if (--dodgeTicks <= 0) dodge = 0;
+                }
+                if (ob != null && ob.living && ob.dist < 7 && age % 50 == 0 && !getWorld().isClient)
+                    getWorld().playSound(null, getBlockPos(), ModContent.CAR_HORN, SoundCategory.NEUTRAL, 0.6f, 1.1f);
+                double tx = t.x, tz = t.z;
+                if (dodge != 0) {
+                    // перестраиваемся: цель — точка в 7 блоках впереди на соседней полосе
+                    double along = getPos().subtract(legFrom).dotProduct(line);
+                    Vec3d aim = legFrom.add(line.multiply(along + 7)).add(perp.multiply(dodge));
+                    tx = aim.x;
+                    tz = aim.z;
+                }
+                float want = (float) Math.toDegrees(Math.atan2(-(tx - getX()), tz - getZ()));
                 float diff = MathHelper.wrapDegrees(want - getYaw());
                 side = MathHelper.clamp(-diff / 18f, -1, 1);
-                // тормозим перед поворотами и у цели
+                // тормозим перед поворотами, у цели и перед тем, кто впереди
                 float limit = Math.abs(diff) > 50 ? 0.18f : last && dist < 10 ? 0.22f : autoMax;
-                fwd = speed < limit ? 1 : speed > limit + 0.05f ? -1 : 0;
+                if (ob != null) limit = Math.min(limit, (float) Math.max(0, (ob.dist - (ob.living ? 3.2 : 4.6)) / 6.0) * autoMax);
+                if (reverse > 0) {
+                    // задний ход, колёса прямо
+                    reverse--;
+                    side = 0;
+                    limit = -1;
+                }
+                fwd = limit < 0 ? -1 : speed < limit ? 1 : speed > limit + 0.05f ? -1 : 0;
                 if (horizontalCollision && speed < 0.05f) setYaw(getYaw() + MathHelper.clamp(diff, -20, 20));
             }
         }
@@ -346,6 +423,11 @@ public class CarEntity extends Entity {
         // бёдра ровно на подушке сиденья (с учётом роста); ребёнок сидит на бустере, чтобы видеть дорогу
         double y = getY() + (isScooter() ? 0.7 - 0.75 * sc : 0.645 - 0.75 * sc + (1 - sc) * 0.35);
         updater.accept(passenger, x, y, z);
+        if (yawTick == age && YAW_DONE.getOrDefault(passenger, -1) != age) {
+            YAW_DONE.put(passenger, age);
+            passenger.setYaw(passenger.getYaw() + tickYawDelta);
+            passenger.setHeadYaw(passenger.getHeadYaw() + tickYawDelta);
+        }
         if (passenger instanceof LivingEntity le) le.setBodyYaw(getYaw());
     }
 
@@ -373,7 +455,8 @@ public class CarEntity extends Entity {
         lerpY = y;
         lerpZ = z;
         lerpYaw = yaw;
-        lerpTicks = 10;
+        // сервер шлёт позицию каждый тик — догоняем ровно за 3 тика: постоянная маленькая задержка вместо рывков
+        lerpTicks = 3;
     }
 
     @Override

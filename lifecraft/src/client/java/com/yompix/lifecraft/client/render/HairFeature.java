@@ -172,7 +172,9 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         if (look.has("skin")) {
             long t = e.age + e.getId() * 37L;
             boolean blink = t % 90 < 3 || (t % 230 > 100 && t % 230 < 103);
-            if (blink && !look.has("glasses")) render("lids", m, flat, light, color(look, "skin", 0.82f));
+            // спящий — глаза закрыты (и в очках тоже)
+            if (e.asleep()) render("lids", m, flat, light, color(look, "skin", 0.82f));
+            else if (blink && !look.has("glasses")) render("lids", m, flat, light, color(look, "skin", 0.82f));
             if (com.yompix.lifecraft.client.story.ClientStory.isTalking(e.getId()) || e.getActivity() == CitizenEntity.Activity.TALK) {
                 int phase = (int) ((System.currentTimeMillis() / 110 + e.getId()) % 4);
                 if (phase == 1) render("mouth_open", m, flat, light, 0xFF5A1A1A);

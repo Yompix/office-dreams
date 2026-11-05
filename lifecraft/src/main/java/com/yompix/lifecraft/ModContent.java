@@ -110,7 +110,7 @@ public final class ModContent {
 
     // ---------- существа ----------
     public static final EntityType<CarEntity> CAR = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("car"),
-            EntityType.Builder.<CarEntity>create(CarEntity::new, SpawnGroup.MISC).dimensions(2.2f, 1.95f).maxTrackingRange(10).build("car"));
+            EntityType.Builder.<CarEntity>create(CarEntity::new, SpawnGroup.MISC).dimensions(2.2f, 1.95f).maxTrackingRange(10).trackingTickInterval(1).alwaysUpdateVelocity(true).build("car"));
     public static final EntityType<CitizenEntity> CITIZEN = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("citizen"),
             EntityType.Builder.<CitizenEntity>create(CitizenEntity::new, SpawnGroup.MISC).dimensions(0.6f, 1.8f).eyeHeight(1.62f).maxTrackingRange(10).build("citizen"));
     public static final EntityType<SeatEntity> SEAT = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("seat"),
@@ -119,7 +119,7 @@ public final class ModContent {
     public static final EntityType<com.yompix.lifecraft.entity.BallEntity> BALL = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("ball"),
             EntityType.Builder.<com.yompix.lifecraft.entity.BallEntity>create(com.yompix.lifecraft.entity.BallEntity::new, SpawnGroup.MISC).dimensions(0.45f, 0.45f).maxTrackingRange(8).trackingTickInterval(1).build("ball"));
     public static final EntityType<CarEntity> SCOOTER = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("scooter"),
-            EntityType.Builder.<CarEntity>create(CarEntity::new, SpawnGroup.MISC).dimensions(0.9f, 1.1f).maxTrackingRange(10).build("scooter"));
+            EntityType.Builder.<CarEntity>create(CarEntity::new, SpawnGroup.MISC).dimensions(0.9f, 1.1f).maxTrackingRange(10).trackingTickInterval(1).alwaysUpdateVelocity(true).build("scooter"));
     public static final Item SCOOTER_ITEM = item("scooter", new CarItem(new Item.Settings().maxCount(1), 0, true));
 
     public static final Item[] CARS = new Item[CarEntity.VARIANTS.length];

@@ -58,6 +58,11 @@ public final class TownBuilder {
             state.markDirty();
             return;
         }
+        if (state.built && state.origin != null && state.place("burger_door") == null && state.place("pizza_door") != null) {
+            BlockPos o = state.origin;
+            state.place("burger_door", o.getX() + 96 + 17 + 0.5, o.getY(), o.getZ() + 6 + 0.5, 180, 0);
+            state.markDirty();
+        }
         if (state.built) return;
         BlockPos spawn = world.getSpawnPos();
         if (!world.getBiome(spawn).matchesKey(CITY_BIOME)) return;
@@ -621,6 +626,7 @@ public final class TownBuilder {
         b.place("pizza_door3", -3, 0, 8, 180);
         b.place("pizza_door4", 6, 0, 9, 200);
         b.place("pizza_counter", 0, 0, -3, 180);
+        b.place("burger_door", 17, 0, 6, 180);
     }
 
     /** Клуб «Неон»: светящийся танцпол, диджейский пульт на сцене, бар, неон на стенах. */

@@ -45,6 +45,13 @@ public final class Taxi {
         PLACES.put("lisa_door", "Дом Лизы");
         PLACES.put("tema_door", "Дом Тёмы");
         PLACES.put("gleb_door", "Дом Глеба");
+        PLACES.put("house4_door", "Дом на Садовой");
+        PLACES.put("house6_door", "Дом на Речной");
+        PLACES.put("school_yard", "Школьный двор");
+        PLACES.put("gym_door", "Фитнес «Атлант»");
+        PLACES.put("pizza_door", "Пиццерия «Мама Мия»");
+        PLACES.put("burger_door", "Жир-Бургер");
+        PLACES.put("club_door", "Клуб «Неон»");
     }
 
     record Order(UUID client, Vec3d dest, String destName, int price, long at) {}

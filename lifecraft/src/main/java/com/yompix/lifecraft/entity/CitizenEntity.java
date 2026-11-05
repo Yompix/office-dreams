@@ -161,6 +161,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         goalSelector.add(2, new PlayBallGoal(this));
         goalSelector.add(3, new BusyGoal(this));
         goalSelector.add(4, new ScheduleGoal(this));
+        goalSelector.add(4, new StoryLifeGoal(this));
         goalSelector.add(5, new WanderAroundFarGoal(this, 0.6) {
             @Override
             public boolean canStart() {
@@ -191,8 +192,24 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         dataTracker.set(SKIN, skin);
         this.role = role;
         this.stationary = stationary;
-        setCustomName(net.minecraft.text.Text.literal(name));
+        setCustomName(net.minecraft.text.Text.literal(matchGender(name)));
         setCustomNameVisible(role != Role.CITIZEN);
+    }
+
+    /**
+     * Имя и пол совпадают. Случайное имя («Егор Козлов») меняем под внешность;
+     * заданное («Продавец Зина», «Сергей Олегович») — оставляем, а внешность подбираем под имя.
+     */
+    private String matchGender(String name) {
+        boolean female = isSlim(getSkin());
+        String fixed = com.yompix.lifecraft.life.Names.fixGender(name, female, getUuid().getLeastSignificantBits());
+        if (!fixed.equals(name)) return fixed;
+        Boolean g = com.yompix.lifecraft.life.Names.genderOf(name);
+        if (g != null && g != female && getSkin() < RANDOM_FROM || (g != null && g != female)) {
+            int k = (int) Math.floorMod(getUuid().getMostSignificantBits(), RANDOM_COUNT / 2);
+            dataTracker.set(SKIN, RANDOM_FROM + k * 2 + (g ? 0 : 1)); // чётные — девушки
+        }
+        return name;
     }
 
     public void setStoryId(String id) {
@@ -206,6 +223,63 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     public void setStationary(boolean s) {
         stationary = s;
+        anchor = s ? getPos() : null;
+    }
+
+    /** Где сюжетный герой «живёт» сейчас: гуляет рядом, но далеко не уходит. */
+    @org.jetbrains.annotations.Nullable private net.minecraft.util.math.Vec3d anchor;
+
+    /** Сюжетные герои между сценами: прогуливаются рядом, болтают друг с другом, замирают, когда подходит игрок. */
+    static class StoryLifeGoal extends net.minecraft.entity.ai.goal.Goal {
+        private final CitizenEntity c;
+        private int left;
+
+        StoryLifeGoal(CitizenEntity c) {
+            this.c = c;
+            setControls(java.util.EnumSet.of(Control.MOVE));
+        }
+
+        @Override
+        public boolean canStart() {
+            if (c.storyId.isEmpty() || c.anchor == null || c.lockedActivity || c.busyTicks > 0 || c.hasVehicle()) return false;
+            if (c.getRandom().nextInt(160) != 0) return false;
+            return c.getWorld().getClosestPlayer(c, 4) == null;
+        }
+
+        @Override
+        public void start() {
+            var r = c.getRandom();
+            left = 200;
+            // иногда — подойти поболтать к другому герою рядом
+            CitizenEntity mate = c.getWorld().getEntitiesByClass(CitizenEntity.class, c.getBoundingBox().expand(7),
+                    o -> o != c && !o.storyId.isEmpty() && !o.lockedActivity).stream().findAny().orElse(null);
+            if (mate != null && r.nextInt(3) == 0) {
+                c.getNavigation().startMovingTo(mate, 0.5);
+                return;
+            }
+            net.minecraft.util.math.Vec3d to = c.anchor.add(r.nextInt(7) - 3, 0, r.nextInt(7) - 3);
+            c.getNavigation().startMovingTo(to.x, to.y, to.z, 0.45);
+        }
+
+        @Override
+        public boolean shouldContinue() {
+            return --left > 0 && !c.getNavigation().isIdle() && !c.lockedActivity && c.getWorld().getClosestPlayer(c, 3) == null;
+        }
+
+        @Override
+        public void stop() {
+            c.getNavigation().stop();
+            CitizenEntity mate = c.getWorld().getEntitiesByClass(CitizenEntity.class, c.getBoundingBox().expand(2.2),
+                    o -> o != c && !o.storyId.isEmpty() && !o.lockedActivity && o.busyTicks == 0).stream().findAny().orElse(null);
+            if (mate != null && c.busyTicks == 0 && !c.lockedActivity) {
+                c.face(mate);
+                mate.face(c);
+                c.busy(Activity.TALK, 120, null, net.minecraft.item.ItemStack.EMPTY);
+                mate.busy(c.getRandom().nextBoolean() ? Activity.LAUGH : Activity.TALK, 120, null, net.minecraft.item.ItemStack.EMPTY);
+            }
+            // далеко ушёл (толкнули, сбился) — вернуться к своему месту
+            if (c.anchor != null && c.squaredDistanceTo(c.anchor) > 49) c.getNavigation().startMovingTo(c.anchor.x, c.anchor.y, c.anchor.z, 0.5);
+        }
     }
 
     /** Исчезнуть через несколько тиков (клиент такси вышел и ушёл по делам). */
@@ -221,6 +295,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             return;
         }
         if (removeIn > 0 && --removeIn == 0) discard();
+        unstick();
         if (busyTicks > 0 && --busyTicks == 0) {
             dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
             equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, net.minecraft.item.ItemStack.EMPTY);
@@ -317,6 +392,55 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         if (phase == 5 || phase == 16) {
             partner.triggerAnim("action", "hit");
             getWorld().playSound(null, partner.getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, net.minecraft.sound.SoundCategory.NEUTRAL, 0.7f, 0.9f + getRandom().nextFloat() * 0.3f);
+        }
+    }
+
+    // ------------------------------------------------------------------ не застревать
+    private net.minecraft.util.math.Vec3d stuckFrom;
+    private int stuckTimes;
+
+    /**
+     * Каждые 2 секунды: если житель куда-то идёт, а сам стоит на месте (упёрся в машину, фонарь, забор),
+     * сначала подпрыгивает и ищет путь заново, а если не помогло — делает шаг на ближайшее свободное место.
+     */
+    private void unstick() {
+        if (stationary || hasVehicle() || hidden || asleep() || age % 40 != 0) return;
+        boolean walking = !getNavigation().isIdle();
+        if (isInsideWall()) {
+            escape();
+            return;
+        }
+        if (!walking) {
+            stuckFrom = null;
+            stuckTimes = 0;
+            return;
+        }
+        net.minecraft.util.math.Vec3d now = getPos();
+        if (stuckFrom != null && now.squaredDistanceTo(stuckFrom) < 0.16) {
+            stuckTimes++;
+            if (stuckTimes == 1) {
+                getJumpControl().setActive();
+                getNavigation().recalculatePath();
+            } else if (stuckTimes >= 2) {
+                escape();
+                getNavigation().stop();
+                stuckTimes = 0;
+            }
+        } else stuckTimes = 0;
+        stuckFrom = now;
+    }
+
+    /** Шаг на ближайшее свободное место с твёрдым полом. */
+    private void escape() {
+        net.minecraft.util.math.BlockPos at = getBlockPos();
+        for (net.minecraft.util.math.BlockPos p : net.minecraft.util.math.BlockPos.iterateOutwards(at, 3, 2, 3)) {
+            if (p.equals(at)) continue;
+            var box = getDimensions(getPose()).getBoxAt(p.getX() + 0.5, p.getY(), p.getZ() + 0.5);
+            if (getWorld().isSpaceEmpty(this, box) && getWorld().getBlockState(p.down()).isSolidBlock(getWorld(), p.down())
+                    && getWorld().getOtherEntities(this, box, e -> e instanceof CarEntity).isEmpty()) {
+                refreshPositionAndAngles(p.getX() + 0.5, p.getY(), p.getZ() + 0.5, getYaw(), getPitch());
+                return;
+            }
         }
     }
 
@@ -608,5 +732,10 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         home = nbt.getString("Home");
         hidden = nbt.getBoolean("Hidden");
         if (nbt.getBoolean("Asleep")) dataTracker.set(ACTIVITY, Activity.SLEEP.ordinal());
+        // жители из старых версий: имя и внешность по полу
+        if (storyId.isEmpty() && hasCustomName()) {
+            String n = getCustomName().getString(), f = matchGender(n);
+            if (!f.equals(n)) setCustomName(net.minecraft.text.Text.literal(f));
+        }
     }
 }

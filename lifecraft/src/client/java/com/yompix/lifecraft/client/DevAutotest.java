@@ -46,6 +46,86 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("traffic")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                d.storyStarted = true;
+                d.storyDone = true;
+                d.chapter = 99;
+            });
+            for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            cmd(10, "gamemode spectator " + P);
+            cmd(5, "time set 6000");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                int y = Story.topY(w, -40, 24);
+                var taxi = new com.yompix.lifecraft.entity.CarEntity(com.yompix.lifecraft.ModContent.CAR, w);
+                taxi.refreshPositionAndAngles(-45.5, y, 24.5, -90, 0);
+                taxi.setVariant(5);
+                w.spawnEntity(taxi);
+                CitizenEntity drv = new CitizenEntity(com.yompix.lifecraft.ModContent.CITIZEN, w);
+                drv.setup(20, CitizenEntity.Role.CITIZEN, true, "Таксист");
+                drv.refreshPositionAndAngles(-45.5, y, 24.5, -90, 0);
+                w.spawnEntity(drv);
+                drv.startRiding(taxi, true);
+                var parked = new com.yompix.lifecraft.entity.CarEntity(com.yompix.lifecraft.ModContent.CAR, w);
+                parked.refreshPositionAndAngles(-30.5, y, 24.5, -90, 0);
+                w.spawnEntity(parked);
+                CitizenEntity walker = new CitizenEntity(com.yompix.lifecraft.ModContent.CITIZEN, w);
+                walker.setup(CitizenEntity.RANDOM_FROM + 3, CitizenEntity.Role.CITIZEN, true, "Зевака");
+                walker.refreshPositionAndAngles(-12.5, y, 24.5, 90, 0);
+                w.spawnEntity(walker);
+                taxi.setRoute(java.util.List.of(new net.minecraft.util.math.Vec3d(12.5, y, 24.5)), 0.5f,
+                        () -> com.yompix.lifecraft.LifeCraft.LOG.info("[traffic] arrived"));
+                if (Boolean.getBoolean("lifecraft.ride")) p.startRiding(taxi, true);
+                else p.teleport(w, -28.5, y + 22, 24.5, -90, 70);
+            });
+            server(5, s -> {
+                var w = s.getPlayerManager().getPlayer(P).getServerWorld();
+                for (var c : w.getEntitiesByClass(CitizenEntity.class, s.getPlayerManager().getPlayer(P).getBoundingBox().expand(200), c -> c.getStoryId().isEmpty()))
+                    com.yompix.lifecraft.LifeCraft.LOG.info("[names] {} {}", CitizenEntity.isSlim(c.getSkin()) ? "Ж" : "М", c.getName().getString());
+            });
+            for (int i = 0; i < 12; i++) {
+                shot(40, "tr" + i);
+                server(1, s -> {
+                    var w = s.getPlayerManager().getPlayer(P).getServerWorld();
+                    for (var car : w.getEntitiesByClass(com.yompix.lifecraft.entity.CarEntity.class, s.getPlayerManager().getPlayer(P).getBoundingBox().expand(80), c -> c.isTaxi()))
+                        com.yompix.lifecraft.LifeCraft.LOG.info("[traffic] taxi at {} {} route {}", String.format("%.1f", car.getX()), String.format("%.1f", car.getZ()), car.onRoute());
+                });
+            }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("scooter")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                d.storyStarted = true;
+                d.storyDone = true;
+                d.chapter = 99;
+            });
+            for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            cmd(10, "gamemode survival " + P);
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                int y = Story.topY(w, -40, 24);
+                var sc = new com.yompix.lifecraft.entity.CarEntity(com.yompix.lifecraft.ModContent.SCOOTER, w);
+                sc.refreshPositionAndAngles(-50.5, y, 22.5, -90, 0);
+                w.spawnEntity(sc);
+                p.teleport(w, -50.5, y, 22.5, -90, 0);
+                p.startRiding(sc, true);
+            });
+            run(20, c -> c.options.forwardKey.setPressed(true));
+            for (int i = 0; i < 6; i++) shot(20, "sc" + i);
+            run(5, c -> c.options.forwardKey.setPressed(false));
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("c6")) {
             YompixSplash.markShown();
             server(150, s -> {
