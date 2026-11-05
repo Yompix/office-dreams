@@ -27,6 +27,11 @@ public final class LifeActions {
             case COMPUTER -> Jobs.computer(p);
             case SLOT_MACHINE -> openCasino(p, "slots");
             case ROULETTE -> openCasino(p, "roulette");
+            case TREADMILL -> Fitness.openWorkout(p, "run");
+            case BARBELL -> Fitness.openWorkout(p, "lift");
+            case SCALES -> Fitness.weigh(p);
+            case DJ_DECK -> Fitness.openWorkout(p, "dj");
+            case PIZZA_OVEN -> Jobs.pizzaOrder(p);
         }
     }
 

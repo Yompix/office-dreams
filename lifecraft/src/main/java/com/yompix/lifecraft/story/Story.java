@@ -123,6 +123,13 @@ public final class Story {
         RUNS.remove(p.getUuid());
         TownState town = TownState.get(p.getServerWorld());
         if (town.places.isEmpty()) return;
+        // вышла новая глава: кто уже прошёл сюжет — продолжает с неё
+        if (d.storyDone && chapter(d) != null) {
+            d.storyDone = false;
+            d.flags.remove("entered:" + stepKey(d));
+            Life.message(p, "Новоград", "Вышла новая глава сюжета: «" + str(chapter(d), "subtitle", "") + "»!");
+            run(p).timer = 60;
+        }
         // игра с друзьями: новичок подхватывает сюжет того, кто ушёл дальше всех
         ServerPlayerEntity lead = leader(p);
         if (lead != null && (!d.storyStarted || stepKey(Life.get(lead)) > stepKey(d))) {
@@ -317,7 +324,7 @@ public final class Story {
         advance(p);
     }
 
-    static final String[] NPC_IDS = {"mom", "dad", "tema", "lisa", "gleb", "teacher", "irina", "instructor", "petrov", "baron", "guard"};
+    static final String[] NPC_IDS = {"mom", "dad", "tema", "lisa", "gleb", "teacher", "irina", "instructor", "petrov", "baron", "guard", "marco", "zhanna", "coach"};
 
     public static void onCutsceneDone(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
@@ -342,6 +349,12 @@ public final class Story {
     public static void onLesson(ServerPlayerEntity p, int grade) {
         JsonObject s = step(Life.get(p));
         if (s != null && grade >= num(s, "min", 2)) progress(p, "lesson", null, num(s, "count", 1));
+    }
+
+    /** Сейчас сюжет ждёт именно эту работу (пускаем к пульту/печи без выбора работы). */
+    public static boolean wantsJob(ServerPlayerEntity p, String job) {
+        JsonObject s = active(p) ? step(Life.get(p)) : null;
+        return s != null && str(s, "type", "").equals("job") && str(s, "job", "").equals(job);
     }
 
     public static void onJobDone(ServerPlayerEntity p, String job) {

@@ -297,6 +297,9 @@ final class StepLogic {
                 return switch (Story.str(s, "job", "")) {
                     case "courier" -> Story.place(w, "office_desk");
                     case "cashier" -> Story.place(w, "shop_counter");
+                    case "pizza" -> Story.place(w, "pizza_counter");
+                    case "workout" -> Story.place(w, "gym_center");
+                    case "dj" -> Story.place(w, "club_dj");
                     default -> null;
                 };
             }

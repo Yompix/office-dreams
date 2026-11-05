@@ -82,6 +82,11 @@ public final class ModContent {
             VoxelShapes.union(box(2, 0, 9, 14, 1, 13), box(7, 1, 10, 9, 4, 12), box(1, 4, 9, 15, 14, 11))));
 
     public static final Block SLOT_MACHINE = block("slot_machine", new LifeBlock(metal().nonOpaque().luminance(s -> 8), LifeBlock.Kind.SLOT_MACHINE, box(1, 0, 2, 15, 16, 15)));
+    public static final Block TREADMILL = block("treadmill", new LifeBlock(metal().nonOpaque(), LifeBlock.Kind.TREADMILL, box(1, 0, 0, 15, 14, 16)));
+    public static final Block BARBELL = block("barbell", new LifeBlock(metal().nonOpaque(), LifeBlock.Kind.BARBELL, box(0, 0, 3, 16, 15, 13)));
+    public static final Block SCALES = block("scales", new LifeBlock(metal().nonOpaque(), LifeBlock.Kind.SCALES, box(3, 0, 3, 13, 16, 13)));
+    public static final Block DJ_DECK = block("dj_deck", new LifeBlock(metal().nonOpaque().luminance(s -> 10), LifeBlock.Kind.DJ_DECK, box(0, 0, 3, 16, 14, 13)));
+    public static final Block PIZZA_OVEN = block("pizza_oven", new LifeBlock(net.minecraft.block.AbstractBlock.Settings.copy(net.minecraft.block.Blocks.BRICKS).nonOpaque().luminance(s -> 12), LifeBlock.Kind.PIZZA_OVEN, box(0, 0, 0, 16, 16, 16)));
     public static final Block ROULETTE = block("roulette", new LifeBlock(wood().nonOpaque().luminance(s -> 4), LifeBlock.Kind.ROULETTE, box(0, 0, 0, 16, 13, 16)));
 
     public static final Block NEON = block("neon", new com.yompix.lifecraft.block.NeonBlock(AbstractBlock.Settings.create().strength(0.5f).nonOpaque().noCollision()
@@ -100,6 +105,8 @@ public final class ModContent {
     public static final Item SUIT = item("suit", new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
     public static final Item BURGER = item("burger", new com.yompix.lifecraft.item.SnackItem(new Item.Settings().food(new FoodComponent.Builder().nutrition(8).saturationModifier(0.8f).build()), false));
     public static final Item COLA = item("cola", new com.yompix.lifecraft.item.SnackItem(new Item.Settings().food(new FoodComponent.Builder().nutrition(2).saturationModifier(0.3f).alwaysEdible().snack().build()), true));
+    public static final Item PIZZA = item("pizza", new com.yompix.lifecraft.item.SnackItem(new Item.Settings().food(new FoodComponent.Builder().nutrition(7).saturationModifier(0.7f).build()), false, 0.4f));
+    public static final Item SALAD = item("salad", new com.yompix.lifecraft.item.SnackItem(new Item.Settings().food(new FoodComponent.Builder().nutrition(4).saturationModifier(0.6f).alwaysEdible().build()), false, -0.15f));
 
     // ---------- существа ----------
     public static final EntityType<CarEntity> CAR = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("car"),

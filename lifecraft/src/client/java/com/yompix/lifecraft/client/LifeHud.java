@@ -68,6 +68,7 @@ public final class LifeHud {
         int ny = y + h + 2;
         bar(ctx, tr, x, ny, "Энергия", d.energy, d.energy < 20 ? 0xFFE53935 : 0xFF42A5F5);
         bar(ctx, tr, x, ny + 9, "Настроение", d.mood, d.mood < 30 ? 0xFFFF7043 : 0xFFFFCA28);
+        ctx.drawTextWithShadow(tr, "⚖ " + Math.round(d.weight) + " кг · форма " + d.fitness, x, ny + 18, d.weight > 85 ? 0xFFFFA726 : 0xFFB0BEC5);
         h += 20;
         // задание: адрес и стрелка-направление
         if (d.taskPos != null && !d.taskKind.isEmpty()) {

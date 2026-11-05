@@ -17,7 +17,7 @@ import net.minecraft.world.World;
 
 /** Блоки города, на которые можно нажать: доска, парта, банкомат, вакансии, почта, касса, компьютер. */
 public class LifeBlock extends FacingBlock {
-    public enum Kind { CHALKBOARD, DESK, ATM, JOB_BOARD, MAILBOX, SHOP_COUNTER, COMPUTER, SLOT_MACHINE, ROULETTE }
+    public enum Kind { CHALKBOARD, DESK, ATM, JOB_BOARD, MAILBOX, SHOP_COUNTER, COMPUTER, SLOT_MACHINE, ROULETTE, TREADMILL, BARBELL, SCALES, DJ_DECK, PIZZA_OVEN }
 
     public final Kind kind;
 

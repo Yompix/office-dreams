@@ -90,6 +90,7 @@ public final class LifeNet {
             case "crash_start" -> OnlineCasino.crashStart(p, d.getInt("bet"));
             case "crash_cashout" -> OnlineCasino.crashCashout(p);
             case "coin" -> OnlineCasino.coin(p, d.getInt("bet"), d.getBoolean("heads"));
+            case "rhythm_done" -> Fitness.result(p, d.getString("mode"), d.getInt("score"));
             case "buy_house" -> CityLife.buyHouse(p, d.getString("id"));
             case "photo" -> Achievements.give(p, "photo");
             case "slots" -> Casino.spin(p, d.getInt("bet"));

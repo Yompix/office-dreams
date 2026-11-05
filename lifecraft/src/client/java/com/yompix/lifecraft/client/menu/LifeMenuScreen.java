@@ -34,7 +34,11 @@ import java.util.List;
  * Главное меню LifeCraft вместо обычного меню Майнкрафта: живой фон из кадров Новограда,
  * неоновый логотип, кнопки «Продолжить», «Новая жизнь» (сразу мир-город), миры, сеть, настройки, авторы.
  */
+/** Версия мода из fabric.mod.json — показывается на главном экране. */
 public class LifeMenuScreen extends Screen {
+    public static final String VERSION = net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("lifecraft")
+            .map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?");
+
     public static final Identifier[] BACKGROUNDS = {LifeCraft.id("textures/gui/menu/bg1.png"), LifeCraft.id("textures/gui/menu/bg2.png"),
             LifeCraft.id("textures/gui/menu/bg3.png"), LifeCraft.id("textures/gui/menu/bg4.png")};
     private static final String[] TIPS = {
@@ -167,6 +171,11 @@ public class LifeMenuScreen extends Screen {
         ctx.getMatrices().pop();
         ctx.drawText(textRenderer, "жизнь, которую строишь ты", lx + 2, ly + 38, 0xFFFFC107, true);
         ctx.drawText(textRenderer, "Yompix Games", lx + 2, ly + 50, 0xFF8A5CFF, false);
+        // значок версии рядом с названием
+        String badge = "v" + VERSION;
+        int vbw = textRenderer.getWidth(badge) + 8, bxv = lx + 2 + textRenderer.getWidth("Yompix Games") + 8;
+        ctx.fill(bxv, ly + 48, bxv + vbw, ly + 60, 0xCC8A5CFF);
+        ctx.drawText(textRenderer, badge, bxv + 4, ly + 50, 0xFFFFFFFF, false);
         // кнопки
         int by = ly + 72;
         for (int i = 0; i < buttons.size(); i++) {
@@ -192,7 +201,8 @@ public class LifeMenuScreen extends Screen {
         // совет дня и версия
         String tip = TIPS[(int) (t / 6) % TIPS.length];
         ctx.drawText(textRenderer, tip, width - textRenderer.getWidth(tip) - 8, height - 24, 0xCCFFFFFF, true);
-        ctx.drawText(textRenderer, "LifeCraft 0.2 · Minecraft 1.21.1 · © Yompix Games", width - textRenderer.getWidth("LifeCraft 0.2 · Minecraft 1.21.1 · © Yompix Games") - 8, height - 12, 0x88FFFFFF, false);
+        String ver = "LifeCraft " + VERSION + " · Minecraft 1.21.1 · © Yompix Games";
+        ctx.drawText(textRenderer, ver, width - textRenderer.getWidth(ver) - 8, height - 12, 0x88FFFFFF, false);
         super.render(ctx, mouseX, mouseY, delta);
     }
 

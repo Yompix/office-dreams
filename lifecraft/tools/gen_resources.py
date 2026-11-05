@@ -260,6 +260,7 @@ def sounds():
     for line in vl + [{'id': 'yompix'}]:
         out['voice.' + line['id']] = {'sounds': [{'name': f"{NS}:voice/{line['id']}", 'stream': True}]}
     out['yompix_jingle'] = {'sounds': [{'name': f'{NS}:yompix_jingle', 'stream': True}]}
+    out['yompix_intro'] = {'sounds': [{'name': f'{NS}:yompix_intro', 'stream': True}]}
     w(f'{A}/sounds.json', out)
 
 

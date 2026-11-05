@@ -30,7 +30,9 @@ public final class Jobs {
         COURIER("courier", "Курьер", 5, "Возьми посылку у доски вакансий и отнеси в почтовый ящик по адресу. $12–40 за доставку."),
         CASHIER("cashier", "Кассир", 7, "ПКМ по прилавку в магазине: считай покупки клиентов. $6 за верный чек."),
         TAXI("taxi", "Таксист", 12, "Нужна своя машина. Сядь за руль и нажми «Взять заказ» в телефоне. $25–90 за поездку."),
-        PROGRAMMER("programmer", "Программист", 16, "Компьютер в офисе: печатай код без ошибок. $22 за строку.");
+        PROGRAMMER("programmer", "Программист", 16, "Компьютер в офисе: печатай код без ошибок. $22 за строку."),
+        PIZZA("pizza", "Курьер пиццы", 5, "Печь в пиццерии «Мама Мия»: возьми горячую пиццу и довези до ящика по адресу. Быстрее — больше чаевых!"),
+        DJ("dj", "Диджей", 12, "Вечером в клубе «Неон»: встань за пульт и держи ритм. Чем лучше играешь — тем больше танцуют и платят.");
 
         public final String id, title, desc;
         public final int minEdu;
@@ -107,6 +109,35 @@ public final class Jobs {
         Life.message(p, "Курьерская служба", "Новая доставка: " + addr + ". Оплата $" + d.taskReward + ".");
     }
 
+    /** Печь пиццерии: горячая пицца с адресом. Чем быстрее довёз — тем больше чаевых. */
+    public static void pizzaOrder(ServerPlayerEntity p) {
+        LifeData d = Life.get(p);
+        if (job(p) != Job.PIZZA) {
+            p.sendMessage(Text.literal("🍕 Дядя Марко: «Хочешь развозить пиццу? Выбери работу «Курьер пиццы» в телефоне»").formatted(Formatting.GOLD), false);
+            return;
+        }
+        if (d.taskKind.equals("pizza") && d.taskPos != null) {
+            p.sendMessage(Text.literal("🍕 Пицца стынет! Адрес: " + TownState.get(p.getServerWorld()).address(d.taskPos)).formatted(Formatting.YELLOW), false);
+            return;
+        }
+        BlockPos target = TownState.get(p.getServerWorld()).randomMailbox(p.getRandom(), p.getBlockPos(), 25);
+        if (target == null) return;
+        ItemStack box = new ItemStack(ModContent.PARCEL);
+        box.set(ModContent.DELIVERY_TARGET, target);
+        String addr = TownState.get(p.getServerWorld()).address(target);
+        box.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME, Text.literal("🍕 Горячая пицца: " + addr).formatted(Formatting.GOLD));
+        School.give(p, box);
+        d.taskKind = "pizza";
+        d.taskPos = target;
+        d.taskReward = 10 + (int) Math.min(25, Math.sqrt(target.getSquaredDistance(p.getBlockPos())) / 6);
+        PIZZA_AT.put(p.getUuid(), p.getServerWorld().getTime());
+        p.getServerWorld().playSound(null, p.getBlockPos(), net.minecraft.sound.SoundEvents.BLOCK_FIRE_EXTINGUISH, net.minecraft.sound.SoundCategory.BLOCKS, 0.5f, 1.4f);
+        Life.message(p, "Мама Мия", "Заказ: " + addr + ". Базовая оплата $" + d.taskReward + " + чаевые за скорость.");
+        Life.sync(p);
+    }
+
+    private static final Map<UUID, Long> PIZZA_AT = new HashMap<>();
+
     public static void mailbox(ServerPlayerEntity p, BlockPos pos, ItemStack stack) {
         LifeData d = Life.get(p);
         TownState town = TownState.get(p.getServerWorld());
@@ -122,6 +153,17 @@ public final class Jobs {
         stack.decrement(1);
         if (d.taskKind.equals("quest")) {
             SideQuests.letterDelivered(p);
+            return;
+        }
+        if (d.taskKind.equals("pizza")) {
+            long sec = (p.getServerWorld().getTime() - PIZZA_AT.getOrDefault(p.getUuid(), p.getServerWorld().getTime())) / 20;
+            int tip = sec < 40 ? 15 : sec < 70 ? 8 : sec < 110 ? 3 : 0;
+            int pay = d.taskReward + tip;
+            d.taskKind = "";
+            d.taskPos = null;
+            d.tasksDone++;
+            Life.earn(p, pay, tip > 0 ? "пицца горячая! чаевые $" + tip : "пицца остыла — без чаевых");
+            com.yompix.lifecraft.story.Story.onJobDone(p, "pizza");
             return;
         }
         int reward = d.taskKind.equals("courier") ? d.taskReward : 10;

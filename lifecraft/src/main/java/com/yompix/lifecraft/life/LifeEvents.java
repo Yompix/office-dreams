@@ -39,6 +39,7 @@ public final class LifeEvents {
 
     private static void onJoin(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
+        Fitness.apply(p, d);
         boolean storyWorld = !TownState.get(p.getServerWorld()).places.isEmpty();
         if (!d.started && storyWorld) {
             d.started = true;
@@ -81,6 +82,7 @@ public final class LifeEvents {
                 e.putFloat("yaw", q.getYaw());
                 e.putString("job", Jobs.job(q).title);
                 e.putInt("age", Life.get(q).age);
+                e.putFloat("kg", Life.get(q).weight);
                 list.add(e);
             }
             pl.put("list", list);
@@ -99,6 +101,7 @@ public final class LifeEvents {
                 Life.sync(p);
             }
             Jobs.tickTaxi(p);
+            Fitness.tick(p);
             LifeData d = Life.get(p);
             if (tod >= 1000 && d.lastAllowanceDay != day) {
                 d.lastAllowanceDay = day;

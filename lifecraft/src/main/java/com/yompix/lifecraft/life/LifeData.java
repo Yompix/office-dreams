@@ -43,6 +43,9 @@ public class LifeData {
 
     // потребности и прогресс
     public int energy = 100, mood = 70, talks;
+    /** Вес (кг) и спортивная форма 0–100: от фастфуда полнеет, от бега и спортзала худеет. */
+    public float weight = 62;
+    public int fitness = 10, workouts;
     public String questType = "", questNpc = "", questItem = "", questText = "";
     public int questReward, questsDone, fines;
     public String today = "";
@@ -92,6 +95,9 @@ public class LifeData {
     public NbtCompound toNbt() {
         NbtCompound n = new NbtCompound();
         n.putInt("money", money);
+        n.putFloat("weight", weight);
+        n.putInt("fitness", fitness);
+        n.putInt("workouts", workouts);
         n.putInt("edu", edu);
         n.putInt("lessons", lessons);
         n.putIntArray("grades", grades);
@@ -141,6 +147,9 @@ public class LifeData {
     public static LifeData fromNbt(NbtCompound n) {
         LifeData d = new LifeData();
         if (n.contains("money")) d.money = n.getInt("money");
+        if (n.contains("weight")) d.weight = n.getFloat("weight");
+        if (n.contains("fitness")) d.fitness = n.getInt("fitness");
+        d.workouts = n.getInt("workouts");
         if (n.contains("edu")) d.edu = Math.max(1, n.getInt("edu"));
         d.lessons = n.getInt("lessons");
         if (n.get("grades") instanceof NbtIntArray arr) for (int g : arr.getIntArray()) d.grades.add(g);

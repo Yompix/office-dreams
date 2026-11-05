@@ -175,6 +175,7 @@ public class LifeCraftClient implements ClientModInitializer {
                 }
             }
             case "open_phone" -> client.setScreen(new PhoneScreen(n.getString("app")));
+            case "rhythm" -> client.setScreen(new com.yompix.lifecraft.client.screen.RhythmScreen(n.getString("mode")));
             case "open_lesson" -> client.setScreen(new LessonScreen(n));
             case "lesson_result" -> {
                 if (client.currentScreen instanceof LessonScreen s) s.result(n);
