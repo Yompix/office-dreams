@@ -90,6 +90,12 @@ static func fx(g, k: String) -> bool:
 			_car_depart(g)
 		"danny_alone":   # «Он остаётся»: маленькая фигура под навесом, тихо шипит рация
 			g.sfx.play("radio_hiss", -22.0)
+		"blanket_carry":   # багажник: Ной вытягивает одеяло из-под ящика, встряхивает и берёт под мышку
+			_blanket_carry(g)
+		"blanket_give":   # «Укройся»: Ной отдаёт одеяло Айрис, она встряхивает его и закутывает Дэнни по плечи
+			_blanket_give(g)
+		"choco_give":   # «Держи»: Дэнни берёт батончик обеими руками, прячет во внутренний карман, прижимает ладонью
+			_choco_give(g)
 		"walkie_hide", "walkie_show":   # рация Дэнни зажата коленями, пока он дышит в ладони (лист, шаг 3)
 			var da: Actor = g.actors.get("danny")
 			if da:
@@ -106,8 +112,14 @@ static func tick(g) -> void:
 	var root = g.scene.station_root
 	if root == null or not is_instance_valid(root):
 		return
-	if root.get_node_or_null("counter_props") != null:
-		StationProps.cord_update(root, bool(g.flags.get("_cord_ripped", 0.0) > 0.0))
+	var cp := root.get_node_or_null("counter_props") as Node3D
+	if cp != null:
+		var via = null
+		if cp.has_meta("fist"):   # витой шнур зажат в кулаке Ноя
+			var fa = cp.get_meta("fist")
+			if fa is Actor and is_instance_valid(fa):
+				via = (_bone(fa, "hand_r") + _bone(fa, "middle_01_r")) * 0.5 + (fa as Actor).palm_normal("_r").normalized() * 0.02
+		StationProps.cord_update(root, bool(g.flags.get("_cord_ripped", 0.0) > 0.0), via)
 	var na = g.actors.get("noah")
 	if na is Actor and (na as Actor).has_meta("left_on_nozzle"):
 		var hn := (na as Actor).skel.get_node_or_null("nozzle_in_hand") as Node3D
@@ -337,6 +349,7 @@ static func _phone_reach(g) -> void:
 	var target := rc.global_position + Vector3(0.0, 0.035, 0.0)
 	ra.reach = {"_r": start}
 	ra.reach_palm = {"_r": Vector3.DOWN}
+	ra.reach_lean = 22.0
 	var tw: Tween = g.create_tween()
 	tw.tween_method(func(p: Vector3):
 		if ra.reach.has("_r"):
@@ -362,17 +375,25 @@ static func _pickup(g) -> void:
 	g.sfx.play("dial_tone", -24.0, 1.0, 0.5)
 
 
-## Предмет — в правую кисть героя (BoneAttachment), трубкой вдоль ладони.
-static func _hold(a: Actor, item: Node3D) -> void:
-	var ba := a.skel.get_node_or_null("prop_hand_r") as BoneAttachment3D
+## Предмет — в кисть героя (BoneAttachment), трубкой вдоль ладони. Левая кисть — зеркально правому хвату
+## (оси костей левой руки отражены, поэтому хват переводится через позу покоя обеих кистей).
+static func _hold(a: Actor, item: Node3D, side := "_r") -> void:
+	var ba := a.skel.get_node_or_null("prop_hand" + side) as BoneAttachment3D
 	if ba == null:
 		ba = BoneAttachment3D.new()
-		ba.name = "prop_hand_r"
-		ba.bone_name = "hand_r"
+		ba.name = "prop_hand" + side
+		ba.bone_name = "hand" + side
 		a.skel.add_child(ba)
 	item.reparent(ba, false)
-	item.position = Vector3(0.0, 0.09, 0.03)
-	item.rotation_degrees = Vector3(0, 0, 90)
+	var xr := Transform3D(Basis.from_euler(Vector3(0, 0, deg_to_rad(90.0))), Vector3(0.0, 0.09, 0.03))
+	if side == "_r":
+		item.transform = xr
+	else:
+		var sk := a.skel
+		var rr := sk.get_bone_global_rest(sk.find_bone("hand_r"))
+		var rl := sk.get_bone_global_rest(sk.find_bone("hand_l"))
+		var m := Transform3D(Basis(Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, 1)), Vector3.ZERO)
+		item.transform = rl.affine_inverse() * (m * (rr * xr) * m)
 	a.set_meta("auto_grip", true)
 
 
@@ -426,7 +447,7 @@ static func _backoff(g) -> void:
 	na.play("Walk", 0.0, 0.25)
 	na.ap.speed_scale = -0.8   # шаги назад
 	var p0 := na.position
-	var p1 := p0 + na.global_transform.basis.z * -1.0 * -1.6   # назад = против взгляда (лицом к −Z → идём к +Z)
+	var p1 := p0 - na.global_transform.basis.z * 1.6   # назад = против взгляда (лицом к прилавку, −Z → идёт к +Z, к выходу)
 	var tw: Tween = g.create_tween()
 	tw.tween_property(na, "position", p1, 2.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_callback(func():
@@ -439,17 +460,18 @@ static func _dial(g) -> void:
 	var ra: Actor = g.actors.roman
 	var props := StationProps.counter_props(g.scene.station_root)
 	var rc: Node3D = props.get("receiver")
-	if rc and not (rc.get_parent() is BoneAttachment3D):
-		_hold(ra, rc)
-	var ear := ra.head_pos() - ra.global_transform.basis.x * 0.09 + Vector3(0, -0.03, 0.02)
-	var key := StationProps.PHONE_AT + Vector3(0.03, 0.05, -0.02)
-	ra.reach = {"_r": ear, "_l": key}
-	ra.reach_lean = 25.0
+	if rc:   # трубка — в левую руку (к левому уху), правая свободна для кнопок: телефон под правой рукой
+		_hold(ra, rc, "_l")
+	var ear := ra.head_pos() + ra.global_transform.basis.x * 0.09 + Vector3(0, -0.03, 0.02)
+	var key := StationProps.PHONE_AT + Vector3(0.02, 0.06, -0.02)
+	ra.reach = {"_l": ear, "_r": key}
+	ra.reach_palm = {"_r": Vector3.DOWN}
+	ra.reach_lean = 22.0
 	var tw: Tween = g.create_tween()
 	tw.tween_interval(0.6)
 	tw.tween_method(func(f: float):   # набирает: кисть постукивает по кнопкам
-		if ra.reach.has("_l"):
-			ra.reach["_l"] = key + Vector3(0.02 * sin(f * 9.0), 0.02 * absf(sin(f * 18.0)), 0.015 * cos(f * 7.0)), 0.0, 1.0, 1.8)
+		if ra.reach.has("_r"):
+			ra.reach["_r"] = key + Vector3(0.02 * sin(f * 9.0), 0.02 * absf(sin(f * 18.0)), 0.015 * cos(f * 7.0)), 0.0, 1.0, 1.8)
 	g.sfx.play("phone_dial", -16.0, 1.0, 0.6)
 
 
@@ -463,14 +485,21 @@ static func _cord_rip(g) -> void:
 	var ph: Node3D = props.get("phone")
 	var rc: Node3D = props.get("receiver")
 	na.clear_hands()
-	var grab := Vector3(StationProps.PHONE_AT.x + 0.15, TOP + 0.1, -8.72)   # шнур над задним краем прилавка
+	var cp := root.get_node_or_null("counter_props") as Node3D
+	var p0 := na.position
+	na.create_tween().tween_property(na, "position", Vector3(p0.x, p0.y, -7.84), 0.3).set_trans(Tween.TRANS_SINE)   # вплотную к прилавку
+	var grab := Vector3(StationProps.PHONE_AT.x + 0.1, TOP + 0.06, -8.86)   # витой шнур у заднего края прилавка
 	na.reach = {"_r": grab}
 	na.reach_lean = 55.0
 	na.reach_palm = {"_r": Vector3.DOWN}
 	na.set_meta("auto_grip", false)
 	na.grip = {"_r": 0.95}
 	var tw: Tween = g.create_tween()
-	tw.tween_interval(0.55)
+	tw.tween_interval(0.4)
+	tw.tween_callback(func():   # пальцы сомкнулись на шнуре — дальше шнур идёт через кулак
+		if cp:
+			cp.set_meta("fist", na))
+	tw.tween_interval(0.15)
 	tw.tween_callback(func():
 		g.sfx.play("phone_rip", -2.0)
 		g._shake = 0.4
@@ -481,19 +510,26 @@ static func _cord_rip(g) -> void:
 			var tr := rc.create_tween()
 			tr.tween_property(rc, "global_position", Vector3(StationProps.PHONE_AT.x + 0.3, TOP + 0.03, -8.45), 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		ra.clear_hands()
-		if ph:   # аппарат слетает с полки и падает на пол перед прилавком
+		if ph:   # аппарат рывком вверх с полки, через прилавок — на пол сбоку от Ноя (не сквозь столешницу)
 			ph.reparent(root, true)
 			var tp := ph.create_tween()
-			tp.tween_property(ph, "global_position", Vector3(StationProps.PHONE_AT.x + 0.35, TOP + 0.25, -8.3), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-			tp.tween_property(ph, "global_position", Vector3(StationProps.PHONE_AT.x + 0.45, 0.42, -7.8), 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-			tp.parallel().tween_property(ph, "rotation_degrees", Vector3(70, 120, 30), 0.35)
-		na.reach = {"_r": Vector3(NOAH_AT.x + 0.25, 1.35, -7.75)})   # рывок на себя
+			tp.tween_property(ph, "global_position", Vector3(StationProps.PHONE_AT.x + 0.1, TOP + 0.22, -8.75), 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tp.tween_property(ph, "global_position", Vector3(StationProps.PHONE_AT.x + 0.05, TOP + 0.12, -8.0), 0.2)
+			tp.tween_property(ph, "global_position", Vector3(25.72, 0.42, -7.7), 0.32).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			var tq := ph.create_tween()
+			tq.tween_property(ph, "rotation_degrees", Vector3(70, 120, 30), 0.66)
+		na.reach = {"_r": Vector3(NOAH_AT.x + 0.25, 1.35, -7.75)}   # рывок на себя
+		na.reach_lean = 0.0
+		na.create_tween().tween_property(na, "position", p0, 0.35).set_trans(Tween.TRANS_SINE))
 
 
 ## Шнур — на пол, руки свободны.
 static func _cord_drop(g) -> void:
 	var na: Actor = g.actors.noah
 	na.clear_hands()
+	var cp := (g.scene.station_root as Node3D).get_node_or_null("counter_props") as Node3D
+	if cp and cp.has_meta("fist"):
+		cp.remove_meta("fist")
 
 
 ## Искры и обломки пластика из розетки.
@@ -581,6 +617,290 @@ static func _hand_counter(g) -> void:
 			ra.reach["_r"] = p, from, to, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
+# ------------------------------------------------------------------ эпизод 4: одеяло и батончик (вместо подписей)
+## Клетчатый плед (как в багажнике: кирпично-бурый с зелёной и горчичной клеткой), шерсть — матовая, с ворсом по краю.
+const PLAID := """
+shader_type spatial;
+render_mode cull_disabled, diffuse_burley;
+uniform float scale = 6.0;
+float band(float x, float c, float w) { float d = abs(fract(x - c + 0.5) - 0.5); return 1.0 - smoothstep(w * 0.5, w * 0.5 + 0.02, d); }
+float h2(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+void fragment() {
+	vec2 p = UV * scale;
+	vec3 base = vec3(0.084, 0.018, 0.010);
+	vec3 green = vec3(0.012, 0.035, 0.022);
+	vec3 mustard = vec3(0.26, 0.15, 0.04);
+	float gu = band(p.x, 0.0, 0.34);
+	float gv = band(p.y, 0.0, 0.34);
+	float mu = band(p.x, 0.5, 0.05);
+	float mv = band(p.y, 0.5, 0.05);
+	vec3 c = mix(base, green, max(gu, gv) * 0.85);
+	c = mix(c, green * 0.55, gu * gv * 0.6);   // пересечение полос — темнее
+	c = mix(c, mustard, max(mu, mv) * 0.9);
+	float twill = 0.9 + 0.1 * sin((UV.x + UV.y) * scale * 80.0);   // саржевая диагональ
+	ALBEDO = c * twill * (0.88 + 0.24 * h2(floor(UV * 700.0)));
+	ROUGHNESS = 1.0;
+	SPECULAR = 0.2;
+	RIM = 0.4;
+	RIM_TINT = 0.85;
+}
+"""
+static var _plaid: ShaderMaterial = null
+
+
+static func plaid() -> ShaderMaterial:
+	if _plaid == null:
+		var sh := Shader.new()
+		sh.code = PLAID
+		_plaid = ShaderMaterial.new()
+		_plaid.shader = sh
+	return _plaid
+
+
+## Сложенное одеяло (несёт Ной, лежит в багажнике): стопка из трёх слоёв с мягким краем.
+static func _folded() -> Node3D:
+	var n := Node3D.new()
+	n.name = "blanket_folded"
+	for i in 3:
+		var b := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.4 - i * 0.006, 0.026, 0.27 - i * 0.004)
+		b.mesh = bm
+		b.material_override = plaid()
+		b.position = Vector3(i * 0.003, i * 0.027, -i * 0.002)
+		n.add_child(b)
+	return n
+
+
+## Прикрепить предмет к кости так, чтобы он встал в мировое положение xf (кость — в текущей позе героя).
+static func _attach_world(a: Actor, bone: String, item: Node3D, xf: Transform3D, ba_name := "") -> void:
+	var ba := BoneAttachment3D.new()
+	ba.bone_name = bone
+	if ba_name != "":
+		ba.name = ba_name
+	a.skel.add_child(ba)
+	var bi := a.skel.find_bone(bone)
+	var bone_w := a.skel.global_transform * a.skel.get_bone_global_pose(bi)
+	ba.add_child(item)
+	item.transform = bone_w.affine_inverse() * xf
+
+
+## Одеяло из багажника: правая рука под ящик, левая приподнимает ящик (лязг), одеяло встряхнуто — и под мышку.
+static func _blanket_carry(g) -> void:
+	var na: Actor = g.actors.noah
+	var car: Node3D = g.scene.car
+	StationProps.trunk_take_blanket(car)
+	var tr: Node3D = car.get_node_or_null("trunk_open")
+	var box: Node3D = null
+	if tr:   # ящик с инструментами — самый широкий красный брусок в нише
+		for c in tr.find_children("*", "MeshInstance3D", true, false):
+			var bm = (c as MeshInstance3D).mesh
+			if bm is BoxMesh and absf((bm as BoxMesh).size.x - 0.42) < 0.01:
+				box = c
+	na.clear_hands()
+	var src: Vector3 = car.to_global(Vector3(0.3, 1.08, 2.05))
+	na.reach = {"_r": src, "_l": car.to_global(Vector3(-0.38, 1.12, 2.05))}
+	na.reach_lean = 30.0
+	var f := _folded()
+	g.scene.station_root.add_child(f)
+	f.visible = false
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(0.45)
+	tw.tween_callback(func():
+		if box:
+			box.create_tween().tween_property(box, "position:y", box.position.y + 0.04, 0.2)
+		g.sfx.play("trunk", -18.0, 1.4)
+		f.visible = true
+		_hold(na, f)
+		f.position = Vector3(0.0, 0.1, 0.06))
+	tw.tween_interval(0.35)
+	tw.tween_callback(func():   # встряхнул: короткий рывок вверх, шорох
+		if box:
+			box.create_tween().tween_property(box, "position:y", box.position.y - 0.04, 0.15)
+		na.reach_lean = 0.0
+		na.reach = {"_r": na.global_position + Vector3(0, 1.15, 0) + na.global_transform.basis.z * 0.35}
+		g.sfx.play("cloth", -12.0))
+	tw.tween_interval(0.5)
+	tw.tween_callback(func():   # под левую руку: между плечом и рёбрами, длинной стороной вперёд
+		na.clear_hands()
+		f.get_parent().remove_child(f)
+		var up := Vector3.UP
+		var fwd := na.global_transform.basis.z.normalized()
+		var left := up.cross(fwd).normalized()   # у героя, смотрящего к +Z, левая сторона — +X
+		var sh := _bone(na, "upperarm_l")
+		var p := sh - up * 0.18 - left * 0.03 + fwd * 0.09   # перед подмышкой, прижато плечом к рёбрам
+		var xf := Transform3D(Basis(fwd, left, up).orthonormalized(), p)   # длинной стороной вперёд, стопка — поперёк
+		_attach_world(na, "upperarm_l", f, xf, "blanket_carry")
+		na.set_meta("blanket_carry", true))
+
+
+## Обёртка на плечах: оболочка вокруг груди и плеч (по плечи, край — под подбородком), запахнута спереди внахлёст,
+## мягкие складки книзу. Строится по текущей позе мальчика и крепится к груди (spine_03).
+static func _wrap(da: Actor) -> MeshInstance3D:
+	var fwd := da.global_transform.basis.z.normalized()
+	var up := (_bone(da, "neck_01") - _bone(da, "spine_01")).normalized()
+	var side := fwd.cross(up).normalized()   # поперёк плеч (сторона не важна — оболочка симметрична, кроме запаха)
+	var neck := _bone(da, "neck_01") + up * 0.05
+	var chest := _bone(da, "spine_03")
+	var waist := _bone(da, "spine_01") - up * 0.06
+	var half := (_bone(da, "upperarm_l") - _bone(da, "upperarm_r")).length() * 0.5
+	var rx := half + 0.085
+	var rz := 0.125
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var NT := 14
+	var NA := 44
+	var span := TAU + 0.5
+	var a0 := PI + 0.3
+	var rows := []
+	for i in NT + 1:
+		var t := float(i) / NT
+		var c: Vector3 = neck.lerp(chest, smoothstep(0.0, 0.45, t)) if t < 0.45 else chest.lerp(waist, (t - 0.45) / 0.55)
+		c += fwd * 0.03 * smoothstep(0.1, 0.5, t)
+		var k := smoothstep(0.0, 0.3, t)   # у шеи — узко (подоткнуто под подбородок), к плечам — во всю ширину
+		var ax := lerpf(0.085, rx, k) * (1.0 + 0.05 * smoothstep(0.7, 1.0, t))
+		var az := lerpf(0.08, rz, k)
+		var row := []
+		for j in NA + 1:
+			var u := float(j) / NA
+			var th := a0 + u * span
+			var fold := 1.0 + 0.045 * sin(th * 8.0 + t * 3.0) * smoothstep(0.25, 1.0, t)
+			var grow := 1.0 + 0.04 * u   # запах: внешний край поверх внутреннего
+			var p := c + (-fwd * cos(th) * az + side * sin(th) * ax) * fold * grow
+			row.append(p)
+		rows.append(row)
+	var ba_w := da.skel.global_transform * da.skel.get_bone_global_pose(da.skel.find_bone("spine_03"))
+	var inv := ba_w.affine_inverse()
+	for i in NT:
+		for j in NA:
+			var q := [[i, j], [i + 1, j], [i + 1, j + 1], [i, j], [i + 1, j + 1], [i, j + 1]]
+			for v in q:
+				st.set_uv(Vector2(float(v[1]) / NA * 2.2, float(v[0]) / NT * 0.9))
+				st.add_vertex(inv * (rows[v[0]][v[1]] as Vector3))
+	st.generate_normals()
+	var mi := MeshInstance3D.new()
+	mi.name = "blanket_wrap"
+	mi.mesh = st.commit()
+	mi.material_override = plaid()
+	var ba := BoneAttachment3D.new()
+	ba.name = "blanket_wrap_ba"
+	ba.bone_name = "spine_03"
+	da.skel.add_child(ba)
+	ba.add_child(mi)
+	return mi
+
+
+## «Укройся»: одеяло из-под руки Ноя — в руки Айрис; встряхнула и накинула мальчику на плечи, подоткнула под подбородок.
+static func _blanket_give(g) -> void:
+	var na: Actor = g.actors.noah
+	var ia: Actor = g.actors.iris
+	var da: Actor = g.actors.danny
+	var f: Node3D = na.skel.find_child("blanket_folded", true, false) as Node3D
+	if f == null:
+		f = _folded()
+		g.scene.station_root.add_child(f)
+	var mid := (_bone(da, "spine_03") + _bone(ia, "spine_03")) * 0.5 + Vector3(-0.25, -0.1, 0.0)
+	_hold(na, f)
+	f.position = Vector3(0.0, 0.1, 0.06)
+	na.set_meta("blanket_carry", null)
+	na.reach = {"_r": mid}
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(0.6)
+	tw.tween_callback(func():
+		ia.reach = {"_r": mid + Vector3(0, 0.02, -0.06), "_l": mid + Vector3(0, 0.02, 0.06)})
+	tw.tween_interval(0.45)
+	tw.tween_callback(func():   # в руках у Айрис; Ной отпускает
+		_hold(ia, f)
+		f.position = Vector3(0.0, 0.1, 0.06)
+		na.clear_hands())
+	tw.tween_interval(0.15)
+	tw.tween_callback(func():   # встряхнула: руки вверх и в стороны, плед раскрывается
+		var c := _bone(ia, "spine_03") + ia.global_transform.basis.z * 0.35 + Vector3(0, 0.15, 0)
+		ia.reach = {"_r": c + ia.global_transform.basis.x * -0.22, "_l": c + ia.global_transform.basis.x * 0.22}
+		f.create_tween().tween_property(f, "scale", Vector3(2.6, 0.4, 2.2), 0.3)
+		g.sfx.play("cloth", -10.0))
+	tw.tween_interval(0.45)
+	tw.tween_callback(func():   # на плечи мальчику
+		f.queue_free()
+		var w := _wrap(da)
+		w.scale = Vector3(1.18, 1.1, 1.18)
+		w.create_tween().tween_property(w, "scale", Vector3.ONE, 0.55).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		ia.reach = {"_r": _bone(da, "upperarm_r") + Vector3(0, 0.06, 0), "_l": _bone(da, "upperarm_l") + Vector3(0, 0.06, 0)}
+		ia.reach_lean = 20.0)
+	tw.tween_interval(0.6)
+	tw.tween_callback(func():   # подоткнула край под подбородок
+		ia.reach = {"_r": _bone(da, "neck_01") + da.global_transform.basis.z * 0.1 + Vector3(0, -0.03, 0)}
+		g.sfx.play("cloth", -18.0, 1.2))
+	tw.tween_interval(0.5)
+	tw.tween_callback(func():   # плечи опускаются — он перестаёт дрожать
+		ia.clear_hands()
+		ia.reach_lean = 0.0
+		g._expr({"who": "danny", "set": "sad"})
+		da.set_meta("blanket", true))
+
+
+## «Держи»: батончик из кармана Ноя — мальчику; он берёт его обеими руками, разглядывает, не ест — прячет
+## во внутренний карман, прижимает ладонью и кивает: на потом.
+static func _choco_give(g) -> void:
+	var na: Actor = g.actors.noah
+	var da: Actor = g.actors.danny
+	var bar := Node3D.new()
+	bar.name = "choco"
+	var w := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(0.035, 0.013, 0.12)
+	w.mesh = bm
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.45, 0.06, 0.05)   # красная обёртка
+	m.roughness = 0.35
+	m.metallic = 0.3
+	w.material_override = m
+	bar.add_child(w)
+	var lab := MeshInstance3D.new()   # светлая полоса надписи поперёк
+	var lm := BoxMesh.new()
+	lm.size = Vector3(0.036, 0.014, 0.03)
+	lab.mesh = lm
+	var l2 := StandardMaterial3D.new()
+	l2.albedo_color = Color(0.85, 0.75, 0.45)
+	l2.roughness = 0.4
+	lab.material_override = l2
+	bar.add_child(lab)
+	g.scene.station_root.add_child(bar)
+	_hold(na, bar)
+	var mid := (_bone(na, "hand_r") + _bone(da, "spine_02")) * 0.5 + Vector3(0, 0.05, 0)
+	var dmid := _bone(da, "spine_02") + da.global_transform.basis.z * 0.28 + Vector3(0, 0.05, 0)
+	na.reach = {"_r": dmid - da.global_transform.basis.z * -0.05}
+	g.sfx.play("wrapper", -16.0)
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(0.65)
+	tw.tween_callback(func():   # обеими руками
+		var side := da.global_transform.basis.x * 0.045
+		da.reach = {"_r": dmid - side, "_l": dmid + side}
+		da.look_target = dmid)
+	tw.tween_interval(0.5)
+	tw.tween_callback(func():
+		_hold(da, bar)
+		na.clear_hands()
+		da.reach = {"_r": dmid + Vector3(0, 0.1, 0) + da.global_transform.basis.z * -0.06}   # ближе к глазам — разглядывает
+		g.sfx.play("wrapper", -20.0, 1.1))
+	tw.tween_interval(0.85)
+	tw.tween_callback(func():   # во внутренний карман: под полу куртки слева на груди
+		var pocket := _bone(da, "spine_03") + da.global_transform.basis.x * 0.07 + da.global_transform.basis.z * 0.06 - Vector3(0, 0.04, 0)
+		da.reach = {"_r": pocket}
+		da.look_target = null)
+	tw.tween_interval(0.45)
+	tw.tween_callback(func():
+		bar.visible = false
+		da.clear_hands()
+		da.do_gesture("chest", 1.6)   # ладонь прижата к карману
+		g.sfx.play("cloth", -22.0, 1.4))
+	tw.tween_interval(1.0)
+	tw.tween_callback(func():
+		da.do_gesture("nod", 1.0)
+		da.set_meta("choco", true)
+		bar.queue_free())
+
+
 # ------------------------------------------------------------------ эпизод 7: дети у машины и отъезд
 const RL_DOOR := Vector3(12.98, 0.0, -3.95)    # у левой задней двери, в проходе между машиной и левым островком
 
@@ -594,21 +914,23 @@ static func _kids_to_car(g) -> void:
 	da.clear_hands()
 	ia.clear_hands()
 	g._place({"who": "danny", "at": [13.35, 0.0, -1.35], "face": -150, "clip": "Idle"})
-	g._place({"who": "iris", "at": [13.75, 0.0, -1.2], "face": -150, "clip": "Idle"})
+	g._place({"who": "iris", "at": [12.98, 0.0, -1.2], "face": -150, "clip": "Idle"})   # слева от него: в правой у Дэнни рация
 	g._place({"who": "noah", "at": [12.95, 0.0, -5.7], "face": 0, "clip": "Idle"})
 	g._walk({"who": "danny", "to": [RL_DOOR.x, 0.0, RL_DOOR.z + 0.2], "then": "Idle", "face": 180, "speed": 0.9})
-	g._walk({"who": "iris", "to": [RL_DOOR.x - 0.05, 0.0, RL_DOOR.z + 0.85], "then": "Idle", "face": 180, "speed": 0.9})
+	g._walk({"who": "iris", "to": [RL_DOOR.x - 0.2, 0.0, RL_DOOR.z + 0.75], "then": "Idle", "face": 180, "speed": 0.9})
 	g._walk({"who": "noah", "to": [12.95, 0.0, -5.1], "then": "Idle", "face": 0, "speed": 0.7})
 	g._expr({"who": "danny", "set": "fear" if lapse else "sad"})
 	da.look_target = g._target("noah")
 	ia.look_target = g._target("noah")
 	na.look_target = g._target("iris")
-	var tw: Tween = g.create_tween()   # рука в руке: левая Айрис держит правую Дэнни
+	if float(g.flags.get("choco_given", 0)) > 0.0:   # лист, эпизод 7: ладонь (с рацией) прижата к карману с батончиком
+		da.do_gesture("chest", 30.0)
+	var tw: Tween = g.create_tween()   # рука в руке: правая Айрис держит левую Дэнни (в правой у него рация)
 	tw.tween_interval(0.2)
 	tw.tween_method(func(_f: float):
 		if is_instance_valid(da) and is_instance_valid(ia) and da.walking:
-			ia.reach = {"_l": _bone(da, "hand_r") + Vector3(0, 0.02, 0)}, 0.0, 1.0, 3.2)
-	tw.tween_callback(func(): ia.reach = {"_l": _bone(da, "hand_r") + Vector3(0, 0.02, 0)})
+			ia.reach = {"_r": _bone(da, "hand_l") + Vector3(0, 0.02, 0)}, 0.0, 1.0, 3.2)
+	tw.tween_callback(func(): ia.reach = {"_r": _bone(da, "hand_l") + Vector3(0, 0.02, 0)})
 
 
 ## Дэнни пятится в снег, вырывая руку у Айрис.
@@ -681,13 +1003,13 @@ static func _iris_buckle(g) -> void:
 static func _iris_release(g) -> void:
 	var ia: Actor = g.actors.iris
 	var da: Actor = g.actors.danny
-	var hand := _bone(da, "hand_r")
-	ia.reach = {"_l": hand}
+	var hand := _bone(da, "hand_l")   # правая Айрис держит левую руку мальчика (в правой — рация)
+	ia.reach = {"_r": hand}
 	var tw: Tween = g.create_tween()
 	tw.tween_interval(0.8)
 	tw.tween_method(func(f: float):
-		if ia.reach.has("_l"):
-			ia.reach["_l"] = hand + Vector3(-0.02, 0.03, 0.08) * f, 0.0, 1.0, 1.0)
+		if ia.reach.has("_r"):
+			ia.reach["_r"] = hand + Vector3(-0.02, 0.03, 0.08) * f, 0.0, 1.0, 1.0)
 	tw.tween_callback(func():
 		ia.clear_hands()
 		ia.look_target = null)

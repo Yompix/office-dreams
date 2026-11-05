@@ -587,8 +587,8 @@ static func neon_four(root: Node3D) -> Array:
 # ------------------------------------------------------------------ магазин: прилавок Романа (лист «24», эпизод 5)
 const FLOOR_S := 0.38                               # пол магазина
 const STOOL := Vector3(26.45, FLOOR_S, -9.5)        # высокий табурет за прилавком
-const PHONE_AT := Vector3(26.95, 1.2, -8.93)        # телефон на полке под прилавком, со стороны Романа
-const SOCKET := Vector3(27.25, 0.62, -8.79)         # розетка на задней стенке прилавка — шнур в стену
+const PHONE_AT := Vector3(26.1, 1.32, -8.93)        # телефон на полке у задней стенки прилавка — под правой рукой Романа (на высоте колен — не дотягивался)
+const SOCKET := Vector3(25.7, 0.62, -8.83)          # розетка на задней стенке прилавка (сторона Романа) — шнур в стену
 const CIG_RACK := Vector3(27.45, FLOOR_S, -10.35)   # стойка с сигаретами за спиной Романа
 
 ## Прилавок изнутри: высокий табурет Романа, полка под столешницей с телефоном (трубка лежит на рычагах, витой шнур
@@ -596,9 +596,11 @@ const CIG_RACK := Vector3(27.45, FLOOR_S, -10.35)   # стойка с сигар
 static func counter_props(root: Node3D) -> Dictionary:
 	var out := {}
 	var cp := root.get_node_or_null("counter_props") as Node3D
-	if cp:
+	if cp:   # ссылки, а не поиск по имени: трубка бывает в руке у Романа, аппарат — на полу (уже не внутри counter_props)
+		var refs: Dictionary = cp.get_meta("refs", {})
 		for k in ["stool", "phone", "receiver", "cigs"]:
-			out[k] = cp.find_child(k, true, false)
+			var n = refs.get(k)
+			out[k] = n if (n != null and is_instance_valid(n)) else cp.find_child(k, true, false)
 		return out
 	cp = Node3D.new()
 	cp.name = "counter_props"
@@ -630,7 +632,7 @@ static func counter_props(root: Node3D) -> Dictionary:
 	ph.name = "phone"
 	cp.add_child(ph)
 	ph.position = PHONE_AT
-	ph.rotation_degrees.y = 15.0
+	ph.rotation_degrees.y = -12.0   # кнопками к Роману
 	var plast := _mat(Color(0.52, 0.48, 0.4), 0.45)   # бежевый пластик 90-х
 	_box(ph, Vector3(0.2, 0.07, 0.17), Vector3(0, -0.012, 0), plast)
 	_box(ph, Vector3(0.09, 0.012, 0.07), Vector3(0.02, 0.028, -0.02), _mat(Color(0.12, 0.12, 0.12), 0.5))   # кнопки
@@ -643,12 +645,12 @@ static func counter_props(root: Node3D) -> Dictionary:
 		_box(rc, Vector3(0.06, 0.045, 0.055), Vector3(0, -0.012, zz), plast)
 	out["phone"] = ph
 	out["receiver"] = rc
-	for nm in ["cord_rx", "cord_wall"]:   # витой шнур трубки и шнур в розетку — тянутся каждый кадр (game.gd)
+	for nm in ["cord_rx", "cord_rx2", "cord_wall"]:   # витой шнур трубки (две половины, если зажат в кулаке) и шнур в розетку
 		var cm := MeshInstance3D.new()
 		cm.name = nm
-		cm.material_override = _mat(Color(0.45, 0.41, 0.34) if nm == "cord_rx" else Color(0.1, 0.1, 0.1), 0.6)
+		cm.material_override = _mat(Color(0.45, 0.41, 0.34) if nm != "cord_wall" else Color(0.1, 0.1, 0.1), 0.6)
 		cp.add_child(cm)
-	_box(cp, Vector3(0.07, 0.11, 0.015), SOCKET + Vector3(0, 0, -0.008), _mat(Color(0.85, 0.83, 0.78), 0.5))   # розетка
+	_box(cp, Vector3(0.07, 0.11, 0.015), SOCKET + Vector3(0, 0, 0.008), _mat(Color(0.85, 0.83, 0.78), 0.5))   # розетка: на грани прилавка
 	cord_update(root)
 	# стойка с сигаретами: открытый шкафчик, пачки рядами (часть упадёт, когда Роман отшатнётся)
 	var rk := Node3D.new()
@@ -656,6 +658,7 @@ static func counter_props(root: Node3D) -> Dictionary:
 	cp.add_child(rk)
 	rk.position = CIG_RACK
 	var dark := _mat(Color(0.12, 0.1, 0.08), 0.75)
+	cp.set_meta("refs", {"stool": st, "phone": ph, "receiver": rc, "cigs": rk})
 	_box(rk, Vector3(0.6, 1.3, 0.04), Vector3(0, 0.95, -0.17), dark)
 	for sx in [-1, 1]:
 		_box(rk, Vector3(0.03, 1.3, 0.36), Vector3(sx * 0.3, 0.95, 0), dark)
@@ -671,21 +674,30 @@ static func counter_props(root: Node3D) -> Dictionary:
 
 ## Шнуры телефона по положению трубки и аппарата: витой — от аппарата к трубке (где бы она ни была: на рычагах, у уха
 ## Романа, в кулаке Ноя), прямой — от аппарата в розетку (вырван — свисает с аппарата).
-static func cord_update(root: Node3D, ripped := false) -> void:
+static func cord_update(root: Node3D, ripped := false, via = null) -> void:
 	var cp := root.get_node_or_null("counter_props") as Node3D
 	if cp == null:
 		return
-	var ph := cp.find_child("phone", true, false) as Node3D
-	var rc := cp.find_child("receiver", true, false) as Node3D
+	var refs := counter_props(root)
+	var ph := refs.get("phone") as Node3D
+	var rc := refs.get("receiver") as Node3D
 	var crx := cp.get_node("cord_rx") as MeshInstance3D
+	var crx2 := cp.get_node_or_null("cord_rx2") as MeshInstance3D
 	var cw := cp.get_node("cord_wall") as MeshInstance3D
 	if ph == null or rc == null:
 		return
 	var a := ph.global_transform * Vector3(-0.09, -0.01, 0.05)
 	var b := rc.global_transform * Vector3(0, -0.02, 0.1)
-	cord_mesh(crx, a, b, 0.006, 0.12, 0.012)
+	if via is Vector3 and crx2:   # шнур зажат в кулаке: от аппарата к кулаку и от кулака к трубке, почти без провиса
+		cord_mesh(crx, a, via, 0.006, 0.02, 0.012)
+		cord_mesh(crx2, via, b, 0.006, 0.03, 0.012)
+		crx2.visible = true
+	else:
+		cord_mesh(crx, a, b, 0.006, 0.12, 0.012)
+		if crx2:
+			crx2.visible = false
 	var c := ph.global_transform * Vector3(0.09, -0.03, -0.06)
-	var w := c + Vector3(0.05, -0.45, 0.02) if ripped else SOCKET
+	var w := Vector3(c.x + 0.3, maxf(c.y - 0.45, FLOOR_S + 0.01), c.z + 0.12) if ripped else SOCKET   # вырван — конец на полу
 	cord_mesh(cw, c, w, 0.004, 0.05, 0.0)
 
 

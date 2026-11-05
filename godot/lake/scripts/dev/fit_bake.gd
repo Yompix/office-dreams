@@ -18,9 +18,7 @@ func _process(_d: float) -> bool:
 	if _f < 2:
 		return false
 	var only: Array = Array(OS.get_cmdline_user_args())
-	for k in CAST:
-		if not only.is_empty() and not (k in only):
-			continue
+	for k in (CAST if only.is_empty() else only):   # по списку — и новые версии героев (iris_v2, danny_v2)
 		var path := "res://assets/chars/%s.glb" % k
 		if not ResourceLoader.exists(path):
 			continue

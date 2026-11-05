@@ -169,7 +169,7 @@ static func _hair_shader() -> Shader:
 ## Заранее подгрузить модели героев в фоне (меню, начало главы): потом Actor.make — миллисекунды, а не 0,3–0,5 с посреди сцены.
 static func prefetch(keys: Array) -> void:
 	for k in keys:
-		var path := "res://assets/chars/%s.glb" % k
+		var path := "res://assets/chars/%s.glb" % look_file(String(k))
 		if ResourceLoader.exists(path) and not ResourceLoader.has_cached(path):
 			ResourceLoader.load_threaded_request(path)
 
@@ -182,7 +182,21 @@ static func _load_model(path: String) -> PackedScene:
 	return load(path) as PackedScene
 
 
+## Новые версии героев заправки (порядок редактора от 5 ноя, п. 6): отдельные файлы рядом со старыми — старые не
+## перезаписываются до утверждения эталона. Вернуть прежний облик: запуск с --looks1 (или LOOKS_V2 = false).
+const LOOKS := {"iris": "iris_v2", "danny": "danny_v2"}
+static var LOOKS_V2 := true
+
+
+static func look_file(file: String) -> String:
+	if not LOOKS_V2 or "--looks1" in OS.get_cmdline_user_args():
+		return file
+	var f2: String = LOOKS.get(file, "")
+	return f2 if f2 != "" and ResourceLoader.exists("res://assets/chars/%s.glb" % f2) else file
+
+
 static func make(k: String, file: String) -> Actor:
+	file = look_file(file)
 	var a := Actor.new()
 	a.key = k
 	a.name = k
@@ -217,6 +231,8 @@ static func make(k: String, file: String) -> Actor:
 				hm.shader = _hair_shader()
 				hm.set_shader_parameter("albedo_tex", src.albedo_texture)
 				hm.set_shader_parameter("albedo", src.albedo_color)
+				if src.albedo_texture and src.albedo_texture.resource_path.contains("short_messy"):
+					hm.set_shader_parameter("cut", 0.09)   # стрижка прядями (Айрис, Дэнни): тонкие пряди — порог ниже, иначе «ниточки»
 				m.set_surface_override_material(i, hm)
 				a._hair.append(hm)
 				hair_mi = m
@@ -245,6 +261,7 @@ static func make(k: String, file: String) -> Actor:
 				mm.alpha_scissor_threshold = 0.5
 			Fabric.tune(mm, nm, String(src.resource_name))   # ткань по имени сетки: шерсть, трикотаж, кожа, нейлон, дождевик… (Fabric)
 			m.set_surface_override_material(i, mm)
+	a._leather = Leather.apply(a, a.skel)   # куртка Ноя: зерно кожи, складки на сгибах (лист «24», п. 6 редактора)
 	if hair_mi:
 		a.hair_sim = HairRig.build(a, hair_mi)
 	a.skirt_sim = SkirtRig.build(a)
@@ -742,6 +759,7 @@ func _tick(delta: float) -> void:
 	_face_update(dt)
 	var q4 := Time.get_ticks_usec()
 	_update_blood()
+	Leather.update(_leather, self, skel)
 	_update_hair(dt)
 	if prof_sections:
 		sec_us["тело"] = int(sec_us.get("тело", 0)) + q1 - q0
@@ -1520,6 +1538,7 @@ void fragment() {
 """
 var _blood_mats: Array[ShaderMaterial] = []
 var _cuff_mats: Array[ShaderMaterial] = []
+var _leather: Array[ShaderMaterial] = []   # куртка Ноя (Leather): суставы рук и таз — каждый кадр
 
 ## Манжеты куртки в засохшей крови (лист «24»: «под ногтями и на манжете осталось бурое» — водой не отходит):
 ## второй проход поверх материала куртки — пятно у запястья, сам материал куртки не меняется.
@@ -1582,10 +1601,13 @@ func enable_blood() -> void:
 				continue
 			var cm := ShaderMaterial.new()
 			cm.shader = csh
+			_cuff_mats.append(cm)
+			if jm is ShaderMaterial:   # кожа куртки (Leather) — своя у героя: второй проход прямо на неё (копия не получала бы кости)
+				jm.next_pass = cm
+				continue
 			var jd := jm.duplicate() as Material
 			jd.next_pass = cm
 			mi.set_surface_override_material(0, jd)
-			_cuff_mats.append(cm)
 
 
 func _update_blood() -> void:

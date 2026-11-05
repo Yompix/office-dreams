@@ -1482,14 +1482,14 @@
      },
      "cam": [
       [
-       25.35,
-       1.0,
-       -9.45
+       25.3,
+       1.36,
+       -9.25
       ],
       [
-       25.95,
-       1.18,
-       -8.93
+       26.05,
+       1.33,
+       -8.95
       ],
       46
      ],
@@ -1850,17 +1850,41 @@
      "if": {
       "shadow": "==0"
      },
-     "shot": "st_window",
      "fx": "roman_groan",
-     "dur": 3.2
+     "dur": 3.2,
+     "cam": [
+      [
+       19.9,
+       2.0,
+       -9.0
+      ],
+      [
+       25.9,
+       0.5,
+       -10.0
+      ],
+      30
+     ]
     },
     {
      "ref": "lapse",
      "if": {
       "shadow": ">=1"
      },
-     "shot": "st_window",
-     "dur": 3.4
+     "dur": 3.4,
+     "cam": [
+      [
+       19.9,
+       2.0,
+       -9.0
+      ],
+      [
+       25.9,
+       0.5,
+       -10.0
+      ],
+      30
+     ]
     },
     {
      "ref": "lapse",
@@ -3732,15 +3756,11 @@
         "en": "Take the blanket",
         "beats": [
          {
-          "note": {
-           "ru": "Ной берёт одеяло под мышку.",
-           "en": "Noah tucks the blanket under his arm."
-          },
-          "dur": 2.0,
+          "dur": 1.6,
           "set": {
            "blanket": 1
           },
-          "fx": "trunk_blanket"
+          "fx": "blanket_carry"
          }
         ]
        },
@@ -4626,26 +4646,11 @@
           "vo": "st24_danny_eb6e69"
          },
          {
-          "note": {
-           "ru": "Дэнни берёт батончик обеими руками. Не ест — прячет в карман. На потом.",
-           "en": "Danny takes the bar in both hands. He doesn’t eat it — he tucks it in his pocket. For later."
-          },
-          "dur": 3.6,
+          "dur": 3.8,
           "set": {
            "choco_given": 1
           },
-          "gesture": [
-           {
-            "who": "danny",
-            "do": "chest",
-            "dur": 1.2
-           },
-           {
-            "who": "danny",
-            "do": "nod",
-            "dur": 2.2
-           }
-          ]
+          "fx": "choco_give"
          }
         ]
        },
@@ -4663,14 +4668,24 @@
           "vo": "st24_danny_6279ab"
          },
          {
-          "note": {
-           "ru": "Айрис закутывает его в отцовское одеяло. Дэнни перестаёт дрожать.",
-           "en": "Iris wraps him in their father’s blanket. Danny stops shivering."
-          },
-          "dur": 3.4,
+          "dur": 3.6,
           "set": {
            "blanket_given": 1
-          }
+          },
+          "fx": "blanket_give",
+          "cam": [
+           [
+            18.75,
+            1.3,
+            -2.35
+           ],
+           [
+            20.0,
+            0.85,
+            -3.65
+           ],
+           42
+          ]
          }
         ]
        },

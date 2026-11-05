@@ -174,6 +174,118 @@
    ]
   }
  },
+ "iris_v2": {
+  "_who": "Айрис, 15 — новая версия (порядок редактора от 5 ноя, п. 6): рост 1,50–1,55 м (было ~1,27), короткая тёмная стрижка с отдельными прядями (Cortu Johnstone, CC0); лицо, одежда и худи — как были. Старая модель — iris.glb, рядом до утверждения",
+  "phenotype": {
+   "gender": 0,
+   "age": 0.277,
+   "muscle": 0.3,
+   "weight": 0.32,
+   "proportions": 0.5,
+   "height": 0.64,
+   "cupsize": 0.05,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.03,
+    "caucasian": 0.94,
+    "african": 0.03
+   }
+  },
+  "skin": "young_caucasian_female2/young_caucasian_female2.mhmat",
+  "hair": "cortu_short_messy_hair/cortu_short_messy_hair.mhclo",
+  "brows": "eyebrow002/eyebrow002.mhclo",
+  "clothes": [
+   "female_casualsuit01/female_casualsuit01.mhclo",
+   "toigo_ankle_boots_female/toigo_ankle_boots_female.mhclo"
+  ],
+  "targets": {
+   "head-round": 0.3,
+   "nose-scale-horiz-decr": 0.25,
+   "nose-point-up": 0.35,
+   "l-eye-scale-incr": 0.2,
+   "r-eye-scale-incr": 0.2,
+   "chin-width-decr": 0.25,
+   "mouth-lowerlip-volume-incr": 0.2,
+   "eyebrows-angle-down": 0.25
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "hoodie",
+    "tex": "jogging_melange",
+    "tint": [
+     0.62,
+     0.66,
+     0.6
+    ],
+    "off": 0.03,
+    "tile": 5,
+    "collar": false,
+    "sim": "cotton",
+    "inset": 0.006,
+    "frames": 36,
+    "tailor": {
+     "ease": 0.035,
+     "ease_top": 0.03,
+     "ease_cuff": 0.012,
+     "box": 2.6,
+     "slope": 0.1
+    },
+    "trims": {
+     "pockets": "kangaroo"
+    },
+    "hem": 0.06,
+    "belt": true,
+    "grow": 0.15,
+    "self_col": false,
+    "pin_fall": 0.2
+   },
+   {
+    "kind": "hood",
+    "name": "hood",
+    "down": true,
+    "tex": "jogging_melange",
+    "tint": [
+     0.62,
+     0.66,
+     0.6
+    ],
+    "off": 0.034,
+    "back": 0.03,
+    "tile": 5
+   }
+  ],
+  "tint": {
+   "female_casualsuit01_diffuse": [
+    0.4,
+    0.4,
+    0.48
+   ],
+   "BootsAnkle.png": [
+    0.2,
+    0.18,
+    0.18
+   ],
+   "short_messy_diff": [
+    0.24,
+    0.2,
+    0.18
+   ]
+  },
+  "hair_fx": {
+   "volume": {
+    "top": 0.006,
+    "front": 0.004,
+    "side": 0.0,
+    "back": 0.003
+   },
+   "scalp": [
+    0.15,
+    0.11,
+    0.09
+   ]
+  }
+ },
  "danny": {
   "_who": "Дэнни, 10: худой, шапка до глаз, детская рация; упрямый; шапка — в игре (своя модель)",
   "phenotype": {
@@ -264,6 +376,111 @@
     0.55,
     0.5,
     0.45
+   ]
+  }
+ },
+ "danny_v2": {
+  "_who": "Дэнни, 10 — новая версия (порядок редактора от 5 ноя, п. 6): рост прежний; из-под шапки видны волосы — чёлка, виски, затылок (под шапкой пряди прижаты, не протыкают вязку); шапка на 1,5 см выше. Старая модель — danny.glb, рядом до утверждения",
+  "phenotype": {
+   "gender": 1,
+   "age": 0.169,
+   "muscle": 0.3,
+   "weight": 0.3,
+   "proportions": 0.5,
+   "height": 0.42,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.05,
+    "caucasian": 0.9,
+    "african": 0.05
+   }
+  },
+  "skin": "young_caucasian_male/young_caucasian_male.mhmat",
+  "hair": "cortu_short_messy_hair/cortu_short_messy_hair.mhclo",
+  "brows": "eyebrow004/eyebrow004.mhclo",
+  "clothes": [
+   "male_casualsuit04/male_casualsuit04.mhclo",
+   "toigo_ankle_boots_male/toigo_ankle_boots_male.mhclo"
+  ],
+  "targets": {
+   "head-round": 0.4,
+   "nose-point-up": 0.4,
+   "nose-scale-horiz-decr": 0.2,
+   "l-eye-scale-incr": 0.15,
+   "r-eye-scale-incr": 0.15,
+   "mouth-scale-horiz-decr": 0.15,
+   "torso-muscle-pectoral-decr": 1.0,
+   "measure-bust-circ-decr": 0.3
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "parka",
+    "tex": "stretch_poplin",
+    "tint": [
+     0.2,
+     0.27,
+     0.42
+    ],
+    "off": 0.034,
+    "tile": 5,
+    "rough": 0.78,
+    "sim": "canvas",
+    "inset": 0.008,
+    "frames": 36,
+    "tailor": {
+     "ease": 0.028,
+     "ease_top": 0.035,
+     "ease_cuff": 0.018,
+     "box": 4.0,
+     "slope": 0.04
+    },
+    "neck": "stand",
+    "trims": {
+     "zip": true,
+     "pockets": "flap"
+    },
+    "hem": 0.09,
+    "belt": false,
+    "drop": 0.08,
+    "grow": 0.12,
+    "self_col": false,
+    "pin_fall": 0.2
+   },
+   {
+    "kind": "beanie",
+    "name": "beanie",
+    "tex": "wool_boucle",
+    "tint": [
+     0.42,
+     0.14,
+     0.12
+    ],
+    "off": 0.016,
+    "tile": 8,
+    "low": -0.025,
+    "rough": 0.95,
+    "slouch": 0.012
+   }
+  ],
+  "tint": {
+   "male_casualsuit04_diffuse": [
+    0.55,
+    0.5,
+    0.45
+   ],
+   "short_messy_diff": [
+    0.42,
+    0.32,
+    0.24
+   ]
+  },
+  "hair_fx": {
+   "scalp": [
+    0.27,
+    0.19,
+    0.13
    ]
   }
  },

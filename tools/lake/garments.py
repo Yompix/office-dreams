@@ -1620,12 +1620,53 @@ def build(specs):
             band = [skin[i] and w_headonly[i] > 0.5 and cut < co[i].z < cut + 0.045 for i in range(len(co))]   # отворот — плотно, не «поля»
             ob2 = _shell(body, name + '_cuff', band, g.get('off', 0.014) + 0.004, 0.007, smooth=5)
             ob2.data.materials.append(_material(name + '_cuff_m', g['tex'], g.get('tint'), g.get('tile', 6.0), g.get('rough')))
+            _hat_hair(body, co, skin, w_headonly, cut, g.get('off', 0.014))
         else:
             continue
         ob.data.materials.append(_material(name + '_m', g['tex'], g.get('tint'), g.get('tile', 6.0), g.get('rough')))
         print('GARMENT', name, kind, len(ob.data.vertices))
     _hide_skin(body, hide)
     _hide_under(body, covers, w_torso, w_arms, w_head, w_headonly, neck)
+
+
+def _hat_hair(body, co, skin, w_headonly, cut, off):
+    """волосы под шапкой (Дэнни, лист «24», п. 6 редактора: «видимые волосы из-под шапки»): всё, что выше края шапки,
+    прижимается к голове под вязку (иначе пряди протыкают шапку); ниже края — чёлка, виски, затылок — остаются
+    как есть и видны из-под шапки. Переход — плавный, по высоте в 2 см над краем (пряди не ломаются о край)."""
+    from bl_ext.user_default.mpfb.services import ObjectService
+    hair = next((o for o in bpy.data.objects if o.type == 'MESH' and ObjectService.get_object_type(o) == 'Hair'), None)
+    if hair is None:
+        return
+    kd = KDTree(len(co))
+    for i, p in enumerate(co):
+        if skin[i] and w_headonly[i] > 0.5:
+            kd.insert(p, i)
+    kd.balance()
+    r3 = body.matrix_world.to_3x3()
+    nrm = [(r3 @ v.normal).normalized() for v in body.data.vertices]
+    me = hair.data
+    mw = hair.matrix_world
+    inv = mw.inverted().to_3x3()
+    keys = me.shape_keys.key_blocks if me.shape_keys else []
+    lim = off * 0.4   # под тканью шапки (оболочка шапки — на off от кожи)
+    lim2 = 0.022      # ниже края: пряди не дальше 2,2 см от головы (без «щупалец» у висков и на щеках)
+    moved = 0
+    for v in me.vertices:
+        w = mw @ v.co
+        k = min(1.0, max(0.0, (w.z - (cut - 0.006)) / 0.03))
+        p, j, d = kd.find(w)
+        if j is None:
+            continue
+        h = (w - p).dot(nrm[j])
+        tgt = lim * k + lim2 * (1.0 - k)
+        if h <= tgt:
+            continue
+        delta = inv @ (-nrm[j] * (h - tgt))
+        v.co += delta
+        for kb in keys:
+            kb.data[v.index].co += delta
+        moved += 1
+    print('HATHAIR', hair.name, moved, 'of', len(me.vertices))
 
 
 def _light_faces(o):

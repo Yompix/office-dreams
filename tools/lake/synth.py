@@ -383,6 +383,40 @@ def groan():
     save('groan', x, 0.5)
 
 
+def cloth():
+    """Шерстяное одеяло: встряхнули (хлопок ткани) и закутали — мягкий шорох. 1,4 с."""
+    dur = 1.4
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    noise = rng.normal(0, 1, n)
+    rust = lowpass(noise, 3200.0, 2) - lowpass(noise, 300.0, 1)            # шорох — середина, без гула
+    am = 0.55 + 0.45 * lowpass(np.abs(rng.normal(0, 1, n)), 18.0, 2) / 0.4   # неровный, «шерстяной»
+    env = np.clip(t / 0.05, 0, 1) * np.exp(-np.maximum(0, t - 0.45) / 0.35)
+    x = 0.5 * rust * am * env
+    i = int(0.12 * SR)                                                       # хлопок встряхнутой ткани
+    tt = np.arange(int(0.08 * SR)) / SR
+    x[i:i + len(tt)] += 0.9 * lowpass(rng.normal(0, 1, len(tt)), 900.0, 2) * np.exp(-tt / 0.02)
+    save('cloth', x, 0.5)
+
+
+def wrapper():
+    """Обёртка батончика: сухой хруст фольги и бумаги, короткими пачками. 0,9 с."""
+    dur = 0.9
+    n = int(dur * SR)
+    x = np.zeros(n)
+    for k in range(26):
+        c0 = 0.04 + 0.8 * (k / 26.0) + 0.012 * rng.normal()
+        i = int(max(0.0, c0) * SR)
+        m = int(rng.uniform(0.004, 0.018) * SR)
+        if i + m >= n:
+            continue
+        tt = np.arange(m) / SR
+        burst = rng.normal(0, 1, m) * np.exp(-tt / (m / SR / 3))
+        x[i:i + m] += rng.uniform(0.3, 1.0) * burst
+    x = x - lowpass(x, 1500.0, 1)                                            # только верх — сухо, без «гула»
+    save('wrapper', x, 0.45)
+
+
 if __name__ == '__main__':
     import sys
     for name in (sys.argv[1:] or ['underwater', 'ui_click', 'siren', 'knock', 'baby_cry', 'phone_ring', 'steam', 'frogs', 'ice_crack']):

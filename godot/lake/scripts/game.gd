@@ -47,6 +47,7 @@ var _miss: Array = []         # --miss brake,steer: какие действия 
 var _miss_in: Array = []
 var _qte_missin := ""      # --missin c3_s3_birth,c5_s4_iris: в каких сценах автопрогон проваливает действие
 var _stop := ""              # --stop s4: на этой сцене прогон заканчивается
+var _fast_to := ""           # --fastto s5_calm: до этой сцены прогон бегом, дальше — обычный темп (запись одной ветки)
 var _fast := false            # --fast: каждая пауза не дольше 0,7 с, ходьба — сразу на место (быстрый лист кадров)
 var deer: Deer                # олень на трассе (сцена 3): едет назад вместе с дорогой
 var blackcar: BlackCar        # чёрная машина Хейла (с конца главы 1)
@@ -230,6 +231,9 @@ func _ready() -> void:
 	if "--missin" in args:
 		_miss_in = Array(String(args[args.find("--missin") + 1]).split(","))
 	_fast = "--fast" in args
+	if "--fastto" in args:   # запись ветки: до этой сцены — бегом (--fast), с неё — в обычном темпе: --fastto s5_calm
+		_fast = true
+		_fast_to = args[args.find("--fastto") + 1]
 	if "--flags" in args:   # проверка ветки: --flags late=1,trust=2,danny=1
 		for kv in String(args[args.find("--flags") + 1]).split(","):
 			var p := kv.split("=")
@@ -494,6 +498,8 @@ func _run(id: String) -> void:
 		return
 	_log("сцена " + id)
 	_scene_id = id
+	if _fast_to != "" and id == _fast_to:
+		_fast = false
 	Prefetch.chapter(_chapter_of(id) + 1)   # следующая глава грузится в фоне, пока идёт эта (без рывков на стыке глав)
 	if id.ends_with("_recap"):   # новая глава: радио выключено, песня главы 2 и тема конца главы не тянутся дальше
 		_radio = false
@@ -1148,7 +1154,7 @@ func _lapse_after() -> void:
 	_expr({"who": "roman", "set": "dead" if dead else "pain"})
 	if dead:
 		r.blink_t = 1e9
-		scene.blood_pool(rp + Vector3(-0.45, 0.004, 0.05))
+		scene.blood_pool(rp + Vector3(-0.3, 0.012, 0.05))   # над плиткой пола (на 4 мм её не было видно — пол магазина чуть выше 0,38)
 	else:   # жив: держится за голову обеими руками
 		get_tree().create_timer(0.1).timeout.connect(func():
 			if is_instance_valid(r):
