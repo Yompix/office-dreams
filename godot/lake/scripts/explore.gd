@@ -876,9 +876,24 @@ func _seg_free(p: Vector2, q: Vector2) -> bool:
 
 
 ## Путь для автопрогона: напрямую, если свободно, иначе — кратчайший по точкам "nav" (Дейкстра по видимости).
+## Точка осмотра бывает вплотную к препятствию (в его запасе RAD) — тогда путь идёт от ближайшей свободной точки рядом
+## и до ближайшей свободной точки у цели. Раньше из такой точки (таксофон) не находилось ни одного свободного отрезка,
+## и герой шёл к следующей точке напрямик — сквозь стены магазина, камера за ним (запись 5 ноя, таксофон → витрина).
 func _path(p: Vector2, q: Vector2) -> Array:
+	var pre: Array = []
+	var post: Array = []
+	if not _free(p.x, p.y):
+		var e := _escape(p)
+		if e != p:
+			pre.append(e)
+			p = e
+	if not _free(q.x, q.y):
+		var e2 := _escape(q)
+		if e2 != q:
+			post.append(q)
+			q = e2
 	if _seg_free(p, q):
-		return [q]
+		return pre + [q] + post
 	var nodes: Array = [p]
 	for w in d.get("nav", []):
 		nodes.append(Vector2(float(w[0]), float(w[1])))
@@ -910,10 +925,22 @@ func _path(p: Vector2, q: Vector2) -> Array:
 				dist[v] = alt
 				prev[v] = u
 	if int(prev[n - 1]) < 0:
-		return [q]
+		g._log("автопрогон: нет пути (%.2f, %.2f) → (%.2f, %.2f) — напрямик" % [p.x, p.y, q.x, q.y])
+		return pre + [q] + post
 	var out: Array = []
 	var c := n - 1
 	while c > 0:
 		out.push_front(nodes[c])
 		c = int(prev[c])
-	return out
+	return pre + out + post
+
+
+## Ближайшая свободная точка рядом (до 0,8 м), если эта — в запасе препятствия; нет такой — эта же.
+func _escape(p: Vector2) -> Vector2:
+	for k in range(1, 9):
+		var r := 0.1 * k
+		for j in 16:
+			var c := p + Vector2(r, 0.0).rotated(TAU * j / 16.0)
+			if _free(c.x, c.y):
+				return c
+	return p
