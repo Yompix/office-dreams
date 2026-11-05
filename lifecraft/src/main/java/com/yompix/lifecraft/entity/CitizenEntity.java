@@ -56,6 +56,9 @@ public class CitizenEntity extends PathAwareEntity {
     private int removeIn = -1;
     private String storyId = "";
     private int activityTicks;
+    /** Занятие на месте (покупки, лавочка, игра): сколько ещё тиков. */
+    private int busyTicks;
+    @org.jetbrains.annotations.Nullable private net.minecraft.util.math.Vec3d busyAt;
     private boolean lockedActivity;
 
     public CitizenEntity(EntityType<? extends PathAwareEntity> type, World world) {
@@ -107,6 +110,8 @@ public class CitizenEntity extends PathAwareEntity {
     @Override
     protected void initGoals() {
         goalSelector.add(0, new SwimGoal(this));
+        goalSelector.add(2, new PlayBallGoal(this));
+        goalSelector.add(3, new BusyGoal(this));
         goalSelector.add(4, new ScheduleGoal(this));
         goalSelector.add(5, new WanderAroundFarGoal(this, 0.6) {
             @Override
@@ -164,7 +169,12 @@ public class CitizenEntity extends PathAwareEntity {
         super.tick();
         if (getWorld().isClient) return;
         if (removeIn > 0 && --removeIn == 0) discard();
-        if (lockedActivity) return;
+        if (busyTicks > 0 && --busyTicks == 0) {
+            dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
+            equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, net.minecraft.item.ItemStack.EMPTY);
+            busyAt = null;
+        }
+        if (lockedActivity || busyTicks > 0) return;
         // жители сами меняют занятия: машут проходящим, болтают по телефону, задумываются
         if (--activityTicks <= 0) {
             Random r = getRandom();
@@ -228,13 +238,23 @@ public class CitizenEntity extends PathAwareEntity {
             if (!(c.getWorld() instanceof net.minecraft.server.world.ServerWorld w)) return false;
             long t = w.getTimeOfDay() % 24000;
             String[] where;
+            chosen = null;
             if (c.isKid()) where = t < 1500 || t > 15000 ? HOMES : t < 9000 ? new String[]{"school_yard", "school_front"} : new String[]{"park_center", "shop_door", "school_yard"};
             else where = t < 1500 || t > 16500 ? HOMES : t < 10500 ? new String[]{"office_door", "shop_door", "bank_door", "dealer_door"}
                     : new String[]{"park_center", "casino_door", "shop_door", "park_center"};
-            double[] p = com.yompix.lifecraft.world.TownState.get(w).place(where[c.getRandom().nextInt(where.length)]);
+            chosen = where[c.getRandom().nextInt(where.length)];
+            double[] p = com.yompix.lifecraft.world.TownState.get(w).place(chosen);
             if (p == null) return false;
             target = new net.minecraft.util.math.Vec3d(p[0] - 5 + c.getRandom().nextInt(11), p[1], p[2] - 5 + c.getRandom().nextInt(11));
             return c.squaredDistanceTo(target) > 64;
+        }
+
+        private String chosen;
+
+        @Override
+        public void stop() {
+            if (chosen != null && target != null && c.squaredDistanceTo(target) <= 16) c.arrived(chosen);
+            target = null;
         }
 
         private static final String[] HOMES = {"home_yard", "lisa_yard", "tema_yard", "gleb_yard", "house4_yard", "house6_yard"};
@@ -259,6 +279,121 @@ public class CitizenEntity extends PathAwareEntity {
         @Override
         public void tick() {
             if (c.getNavigation().isIdle()) step();
+        }
+    }
+
+    /** Пришёл на место — занимается делом: покупки, лавочка, казино, работа, мяч. */
+    void arrived(String place) {
+        var r = getRandom();
+        var w = (net.minecraft.server.world.ServerWorld) getWorld();
+        double[] p = com.yompix.lifecraft.world.TownState.get(w).place(place);
+        if (p == null) return;
+        // место у двери смотрит в здание (yaw = p[3]) — «внутрь» на 8 блоков вперёд по взгляду
+        double rad = Math.toRadians(p[3]);
+        net.minecraft.util.math.Vec3d in = new net.minecraft.util.math.Vec3d(p[0] - Math.sin(rad) * 8, p[1], p[2] + Math.cos(rad) * 8);
+        switch (place) {
+            case "shop_door" -> {
+                net.minecraft.item.Item[] goods = {net.minecraft.item.Items.BREAD, net.minecraft.item.Items.APPLE, com.yompix.lifecraft.ModContent.COLA,
+                        net.minecraft.item.Items.MILK_BUCKET, net.minecraft.item.Items.CAKE, com.yompix.lifecraft.ModContent.BURGER};
+                busy(Activity.THINK, 300 + r.nextInt(200), in.add(r.nextInt(9) - 4, 0, r.nextInt(5) - 2), new net.minecraft.item.ItemStack(goods[r.nextInt(goods.length)]));
+            }
+            case "casino_door" -> busy(r.nextBoolean() ? Activity.CHEER : Activity.THINK, 400, in.add(r.nextInt(9) - 4, 0, r.nextInt(5) - 2), net.minecraft.item.ItemStack.EMPTY);
+            case "office_door", "bank_door" -> busy(Activity.PHONE, 400, in.add(r.nextInt(7) - 3, 0, 0), new net.minecraft.item.ItemStack(com.yompix.lifecraft.ModContent.PHONE));
+            case "park_center" -> {
+                if (!isKid()) {
+                    // лавочка: ближайшие ступеньки в парке
+                    net.minecraft.util.math.BlockPos bench = net.minecraft.util.math.BlockPos.findClosest(getBlockPos(), 10, 2,
+                            b -> w.getBlockState(b).getBlock() instanceof net.minecraft.block.StairsBlock).orElse(null);
+                    if (bench != null && r.nextBoolean()) busy(Activity.SIT, 500, net.minecraft.util.math.Vec3d.ofBottomCenter(bench), net.minecraft.item.ItemStack.EMPTY);
+                    else busy(r.nextBoolean() ? Activity.TALK : Activity.PHONE, 300, null, net.minecraft.item.ItemStack.EMPTY);
+                }
+            }
+            default -> {
+                if (place.endsWith("_yard")) busy(Activity.TALK, 200 + r.nextInt(200), null, net.minecraft.item.ItemStack.EMPTY);
+            }
+        }
+    }
+
+    public void busy(Activity a, int ticks, @org.jetbrains.annotations.Nullable net.minecraft.util.math.Vec3d at, net.minecraft.item.ItemStack held) {
+        busyTicks = ticks;
+        busyAt = at;
+        dataTracker.set(ACTIVITY, a.ordinal());
+        equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, held);
+        if (at != null) getNavigation().startMovingTo(at.x, at.y, at.z, 0.6);
+    }
+
+    /** Держит занятие: стоит у полки, сидит на лавочке. */
+    static class BusyGoal extends net.minecraft.entity.ai.goal.Goal {
+        private final CitizenEntity c;
+
+        BusyGoal(CitizenEntity c) {
+            this.c = c;
+            setControls(java.util.EnumSet.of(Control.MOVE));
+        }
+
+        @Override
+        public boolean canStart() {
+            return c.busyTicks > 0;
+        }
+
+        @Override
+        public void tick() {
+            if (c.busyAt != null && c.getNavigation().isIdle() && c.squaredDistanceTo(c.busyAt) > 2)
+                c.getNavigation().startMovingTo(c.busyAt.x, c.busyAt.y, c.busyAt.z, 0.6);
+            if (c.getActivity() == Activity.SIT && c.busyAt != null && c.squaredDistanceTo(c.busyAt) <= 2) c.getNavigation().stop();
+        }
+    }
+
+    /** Дети гоняют мяч: бегут к нему и пинают в сторону другого ребёнка или «ворот». */
+    static class PlayBallGoal extends net.minecraft.entity.ai.goal.Goal {
+        private final CitizenEntity c;
+        private BallEntity ball;
+        private int left;
+
+        PlayBallGoal(CitizenEntity c) {
+            this.c = c;
+            setControls(java.util.EnumSet.of(Control.MOVE, Control.LOOK));
+        }
+
+        @Override
+        public boolean canStart() {
+            if (!c.isKid() || c.stationary || c.lockedActivity || !c.storyId.isEmpty() || c.busyTicks > 0) return false;
+            long t = c.getWorld().getTimeOfDay() % 24000;
+            if (t > 12500 || c.getRandom().nextInt(40) != 0) return false;
+            ball = c.getWorld().getEntitiesByClass(BallEntity.class, c.getBoundingBox().expand(20), b -> true).stream().findFirst().orElse(null);
+            return ball != null;
+        }
+
+        @Override
+        public void start() {
+            left = 400 + c.getRandom().nextInt(400);
+            c.dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
+        }
+
+        @Override
+        public boolean shouldContinue() {
+            return ball != null && ball.isAlive() && --left > 0 && c.squaredDistanceTo(ball) < 30 * 30;
+        }
+
+        @Override
+        public void tick() {
+            c.getLookControl().lookAt(ball, 30, 30);
+            if (c.age % 5 == 0) c.getNavigation().startMovingTo(ball, 1.15);
+            if (c.squaredDistanceTo(ball) < 1.6) {
+                // пас другому ребёнку рядом или удар в случайную сторону
+                CitizenEntity mate = c.getWorld().getEntitiesByClass(CitizenEntity.class, c.getBoundingBox().expand(12), o -> o != c && o.isKid()).stream().findAny().orElse(null);
+                net.minecraft.util.math.Vec3d dir = mate != null ? mate.getPos().subtract(ball.getPos())
+                        : new net.minecraft.util.math.Vec3d(c.getRandom().nextGaussian(), 0, c.getRandom().nextGaussian());
+                ball.kick(dir, 0.45 + c.getRandom().nextDouble() * 0.35, 0.08 + c.getRandom().nextDouble() * 0.2);
+                if (c.getRandom().nextInt(6) == 0) c.dataTracker.set(ACTIVITY, Activity.CHEER.ordinal());
+                else c.dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
+            }
+        }
+
+        @Override
+        public void stop() {
+            c.getNavigation().stop();
+            ball = null;
         }
     }
 

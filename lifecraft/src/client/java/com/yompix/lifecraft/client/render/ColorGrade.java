@@ -16,7 +16,7 @@ public final class ColorGrade {
 
     public static void render(float tickDelta) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        if (!enabled || failed || mc.world == null) return;
+        if (!enabled || failed || mc.world == null || irisShaders()) return;
         try {
             if (fx == null) {
                 fx = new PostEffectProcessor(mc.getTextureManager(), mc.getResourceManager(), mc.getFramebuffer(), LifeCraft.id("shaders/post/grade.json"));
@@ -39,6 +39,18 @@ public final class ColorGrade {
         } catch (Exception e) {
             failed = true;
             LifeCraft.LOG.warn("Цветокоррекция LifeCraft выключена (несовместима с шейдерами?)", e);
+        }
+    }
+
+    /** С шейдерами Iris наша коррекция не нужна — они сами рисуют картинку. */
+    private static boolean irisShaders() {
+        if (!net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("iris")) return false;
+        try {
+            Class<?> api = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+            Object inst = api.getMethod("getInstance").invoke(null);
+            return (boolean) api.getMethod("isShaderPackInUse").invoke(inst);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return false;
         }
     }
 

@@ -489,6 +489,13 @@ def entities():
     glow = Image.new('RGBA', (64, 64), (255, 255, 255, 255))
     save(glow, 'entity', 'car', 'glow.png')
 
+    # мяч: белые и чёрные пятна на развёртке куба 7×7
+    ball = Image.new('RGBA', (28, 14), rgb('f4f4f4'))
+    d = ImageDraw.Draw(ball)
+    for (x, y) in ((9, 2), (16, 9), (2, 9), (23, 9), (9, 9), (16, 2)):
+        d.rectangle([x, y, x + 2, y + 2], fill=rgb('1a1a1a'))
+    save(ball, 'entity', 'ball.png')
+
     variants = {
         'teacher':    dict(skin='e9c1a0', hair='5a3a22', top='sweater', shirt='7b4fa1', pants='2b2b3a', shoes='3a2416', style='bob', glasses=True, slim=True, dress=True, girl=True),
         'shopkeeper': dict(skin='d9a47c', hair='1f1f1f', top='tshirt', shirt='e05a47', pants='3c4a6b', shoes='222222', style='short', apron=True),

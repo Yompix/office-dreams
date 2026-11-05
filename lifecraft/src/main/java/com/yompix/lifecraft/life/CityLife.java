@@ -67,6 +67,11 @@ public final class CityLife {
             if (!text.isEmpty()) for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) Life.message(p, "Новоград-гид", text);
         }
         Vec3d park = Story.place(w, "park_center"), school = Story.place(w, "school_yard");
+        // мячи во дворе школы и в парке: укатился — появится новый
+        if (tod % 1200 < 20) for (Vec3d at : new Vec3d[]{school, park}) {
+            if (at != null && w.getEntitiesByClass(com.yompix.lifecraft.entity.BallEntity.class, new Box(BlockPos.ofFloored(at)).expand(30), e -> true).isEmpty()
+                    && w.isChunkLoaded(BlockPos.ofFloored(at))) com.yompix.lifecraft.world.TownBuilder.ball(w, BlockPos.ofFloored(at).up());
+        }
         if (ev.equals("concert") && tod >= 12000 && tod < 12100 && !concertDone && park != null) {
             concertDone = true;
             Random r = w.getRandom();

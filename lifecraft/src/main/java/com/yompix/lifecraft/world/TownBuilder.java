@@ -85,6 +85,8 @@ public final class TownBuilder {
         plot(world, origin, centers[1], centers[2], BlockRotation.CLOCKWISE_180, TownBuilder::casino);
         plot(world, origin, centers[2], centers[2], BlockRotation.CLOCKWISE_180, b2 -> houses(b2, "tema", "house6"));
         streetLife(b);
+        ball(world, origin.add(0, 0, 11));
+        ball(world, origin.add(4, 0, -44));
         // точки сюжета на дорогах и камеры
         b.place("race_1", 24, 0, -44, 270);
         b.place("drive_1", -48, 0, 24, 90);
@@ -114,6 +116,13 @@ public final class TownBuilder {
 
     private static void rules0(ServerWorld world) {
         world.getGameRules().get(GameRules.KEEP_INVENTORY).set(true, world.getServer());
+    }
+
+    public static void ball(ServerWorld w, BlockPos at) {
+        var ball = ModContent.BALL.create(w);
+        if (ball == null) return;
+        ball.refreshPositionAndAngles(at.getX() + 0.5, at.getY() + 0.5, at.getZ() + 0.5, 0, 0);
+        w.spawnEntity(ball);
     }
 
     interface PlotBuilder {
@@ -717,7 +726,7 @@ public final class TownBuilder {
         }
 
         void door(int x, int y, int z, Direction facing, Block door, boolean rightHinge) {
-            BlockState s = door.getDefaultState().with(DoorBlock.FACING, facing)
+            BlockState s = door.getDefaultState().with(DoorBlock.FACING, facing).with(DoorBlock.OPEN, door == Blocks.IRON_DOOR)
                     .with(DoorBlock.HINGE, rightHinge ? net.minecraft.block.enums.DoorHinge.RIGHT : net.minecraft.block.enums.DoorHinge.LEFT);
             set(x, y, z, s.with(DoorBlock.HALF, DoubleBlockHalf.LOWER));
             set(x, y + 1, z, s.with(DoorBlock.HALF, DoubleBlockHalf.UPPER));

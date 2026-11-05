@@ -51,6 +51,8 @@ public class LifeCraftClient implements ClientModInitializer {
     public void onInitializeClient() {
         EntityModelLayerRegistry.registerModelLayer(CarRenderer.LAYER, CarRenderer::modelData);
         EntityRendererRegistry.register(ModContent.CAR, CarRenderer::new);
+        EntityModelLayerRegistry.registerModelLayer(com.yompix.lifecraft.client.render.BallRenderer.LAYER, com.yompix.lifecraft.client.render.BallRenderer::modelData);
+        EntityRendererRegistry.register(ModContent.BALL, com.yompix.lifecraft.client.render.BallRenderer::new);
         EntityModelLayerRegistry.registerModelLayer(com.yompix.lifecraft.client.render.ScooterRenderer.LAYER, com.yompix.lifecraft.client.render.ScooterRenderer::modelData);
         EntityRendererRegistry.register(ModContent.SCOOTER, com.yompix.lifecraft.client.render.ScooterRenderer::new);
         EntityRendererRegistry.register(ModContent.CITIZEN, CitizenRenderer::new);
