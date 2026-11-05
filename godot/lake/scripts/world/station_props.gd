@@ -182,8 +182,25 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 	bk.name = "bucket"
 	root.add_child(bk)
 	bk.position = Vector3(12.45, 0.18, -8.55)   # у края островка: Ной моет руки с земли, присев
-	_cyl(bk, 0.17, 0.32, Vector3(0, 0.16, 0), _mat(Color(0.12, 0.3, 0.55), 0.5), 0.14)
-	var water := _mat(Color(0.25, 0.45, 0.6, 0.85), 0.08)
+	# ведро открытое: стенки пластика видны и изнутри, сверху — ободок; вода и корка льда — на 3 см ниже края,
+	# их видно сверху, руки уходят в воду (раньше ведро было сплошным цилиндром — вода и лёд прятались внутри)
+	var plastic := _mat(Color(0.12, 0.3, 0.55), 0.5)
+	plastic.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var shell := _cyl(bk, 0.17, 0.32, Vector3(0, 0.16, 0), plastic, 0.14)
+	shell.name = "shell"
+	(shell.mesh as CylinderMesh).cap_top = false
+	var rim := MeshInstance3D.new()
+	rim.name = "rim"
+	var tm := TorusMesh.new()
+	tm.inner_radius = 0.163
+	tm.outer_radius = 0.181
+	tm.rings = 28
+	tm.ring_segments = 6
+	rim.mesh = tm
+	rim.material_override = plastic
+	rim.position = Vector3(0, 0.32, 0)
+	bk.add_child(rim)
+	var water := _mat(Color(0.25, 0.45, 0.6, 0.72), 0.08)   # чуть прозрачная: руки под водой видны тенью
 	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	var wt := _cyl(bk, 0.16, 0.01, Vector3(0, 0.29, 0), water)
 	wt.name = "water"
@@ -377,6 +394,33 @@ static func _crack_tex() -> ImageTexture:
 					img.set_pixelv(Vector2i(q), Color(1, 1, 1, 0.95))
 	img.generate_mipmaps()
 	return ImageTexture.create_from_image(img)
+
+
+## Круги по воде в ведре: руки вошли в воду (pts — точки в мире). Тонкие светлые кольца расходятся и гаснут.
+static func ripples(root: Node3D, pts: Array) -> void:
+	var bk := root.get_node_or_null("bucket") as Node3D
+	if bk == null:
+		return
+	for p in pts:
+		var lp := bk.to_local(p as Vector3)
+		for k in 2:
+			var mi := MeshInstance3D.new()
+			var tm := TorusMesh.new()
+			tm.inner_radius = 0.017
+			tm.outer_radius = 0.022
+			tm.rings = 24
+			tm.ring_segments = 4
+			mi.mesh = tm
+			var m := _mat(Color(0.82, 0.9, 0.96, 0.55), 0.1)
+			m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			mi.material_override = m
+			bk.add_child(mi)
+			mi.position = Vector3(lp.x, 0.297, lp.z)
+			mi.scale = Vector3(1.0, 0.25, 1.0)
+			var tw := mi.create_tween().set_parallel()
+			tw.tween_property(mi, "scale", Vector3(4.2, 0.25, 4.2), 1.2).set_delay(k * 0.3).set_ease(Tween.EASE_OUT)
+			tw.tween_property(m, "albedo_color:a", 0.0, 1.2).set_delay(k * 0.3).set_ease(Tween.EASE_IN)
+			tw.chain().tween_callback(mi.queue_free)
 
 
 ## Отмыл руки: вода розовеет, лёд разбит.

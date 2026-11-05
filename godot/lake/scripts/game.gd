@@ -30,6 +30,8 @@ var _qte_what := ""           # что происходит в мире во в�
 var _qte_f := 0.0             # hold: сколько уже сделано (0…1)
 var _pump_on := false         # заправка: насос сейчас качает (держат кнопку)
 var _hose: MeshInstance3D = null   # шланг заправки (пока пистолет в руке)
+var _wash_tw: Tween = null          # ведро: ладони трут друг друга в воде (до «руки из воды»)
+var _strike_tw: Tween = null        # ведро: удар кулаком по льду (не должен перебить «руки в воду»)
 const HOSE_FROM := Vector3(12.27, 1.68, -4.61)   # где шланг выходит из колонки Ноя (station.py: hose, сторона к машине)
 const ICE_AT := Vector3(12.45, 0.48, -8.55)      # корка льда в ведре для стёкол (station_props: ведро у островка)
 var _rng := RandomNumberGenerator.new()
@@ -1183,16 +1185,61 @@ func _fx(k: String) -> void:
 			StationProps.trunk_take_blanket(scene.car)
 		"phone_pick", "phone_hang":   # таксофон: трубка в руке у Ноя / снова на рычаге
 			StationProps.receiver(scene.station_root, actors.noah, k == "phone_pick")
-		"ice_ready":   # ведро: Ной присел, правая рука занесена над коркой льда
-			(actors.noah as Actor).reach = {"_r": ICE_AT + Vector3(0.0, 0.16, 0.02)}
-		"hands_in_water":   # обе руки в воду под разбитый лёд — плеск, холод
-			(actors.noah as Actor).reach = {"_r": ICE_AT + Vector3(0.04, -0.07, 0.05), "_l": ICE_AT + Vector3(-0.03, -0.07, -0.06)}
+		"ice_ready":   # ведро: Ной присел, правая рука занесена над коркой льда; до льда тянется корпусом
+			var na: Actor = actors.noah
+			na.reach = {"_r": ICE_AT + Vector3(0.02, 0.16, -0.02)}
+			na.reach_lean = 35.0
+			na.reach_palm = {"_r": Vector3.DOWN}   # кулак над коркой
+			na.set_meta("auto_grip", false)          # кулак ставим сами: авто-хват (по предмету в руке) его разжал бы
+			na.grip = {"_r": 0.9}
+		"hands_in_water":   # обе руки в воду под разбитый лёд — плеск, круги по воде; трёт ладони, пока вода не порозовеет
+			var na: Actor = actors.noah
+			# Ной смотрит в −X: правая рука — к −Z, левая — к +Z (раньше цели были перекрещены); кисти на 5 см под водой,
+			# ближе к Ною — пальцы не упираются в дальнюю стенку
+			var r0 := ICE_AT + Vector3(0.05, -0.06, -0.05)
+			var l0 := ICE_AT + Vector3(0.05, -0.06, 0.05)
+			if _strike_tw:   # удар по льду ещё доигрывает — не даём ему вернуть руку наверх
+				_strike_tw.kill()
+				_strike_tw = null
+			na.reach = {"_r": r0, "_l": l0}
+			na.reach_lean = 35.0
+			na.reach_palm = {"_r": Vector3(0.0, -0.45, 1.0).normalized(), "_l": Vector3(0.0, -0.45, -1.0).normalized()}   # ладонь к ладони
+			na.grip = {}
+			na.set_meta("auto_grip", true)
+			StationProps.ripples(scene.station_root, [r0, l0])
 			sfx.play("splash", -12.0, 0.95)
 			_shake = maxf(_shake, 0.06)
+			if _wash_tw:
+				_wash_tw.kill()
+			_wash_tw = create_tween().set_loops()
+			_wash_tw.tween_method(func(t: float):
+				if na.reach.has("_r") and na.reach.has("_l"):   # ладони трут друг друга: кисти ходят навстречу по кругу
+					na.reach["_r"] = r0 + Vector3(sin(t) * 0.015, 0.0, cos(t) * 0.02)
+					na.reach["_l"] = l0 + Vector3(-sin(t) * 0.015, 0.0, -cos(t) * 0.02), 0.0, TAU, 1.1)
+		"dump_car":   # проверка постановки (--beats): кузов машины и руки Ноя — где кисти, плечо, цели IK
+			for n in scene.car.find_children("*", "MeshInstance3D", true, false):
+				var mi := n as MeshInstance3D
+				if String(mi.name) in ["body", "headliner", "glass"]:
+					print("dump_car ", mi.name, " vis=", mi.is_visible_in_tree(), " layers=", mi.layers, " pos=", mi.global_position,
+						" scale=", mi.global_transform.basis.get_scale(), " mat=", mi.get_active_material(0), " aabb=", mi.get_aabb(),
+						" cast=", mi.cast_shadow, " vr=", mi.visibility_range_end)
+			print("dump_car cam mask=", cam.cull_mask, " near=", cam.near, " car=", scene.car.global_transform)
+			var na: Actor = actors.get("noah")
+			if na:
+				var sk := na.skel
+				for bn in ["hand_r", "hand_l", "upperarm_r", "head", "pelvis"]:
+					print("dump_noah ", bn, " ", sk.global_transform * sk.get_bone_global_pose(sk.find_bone(bn)).origin)
+				print("dump_noah reach=", na.reach, " clip=", na.clip)
+
 		"ice_stage1", "ice_stage2":   # стадии льда без игрока (постановка, проверка кадрами): 1 — трещины, 2 — пластины
 			_qte_world("ice", true, 0.5, 1 if k == "ice_stage1" else 2)
+		"knuckles":   # костяшки сбиты (третье состояние крови: после провала) — для постановки и проверки кадрами
+			(actors.noah as Actor).set_knuckles(1.0)
 		"hands_out":   # руки из воды: кисти свободны
-			(actors.noah as Actor).reach = {}
+			if _wash_tw:
+				_wash_tw.kill()
+				_wash_tw = null
+			(actors.noah as Actor).clear_hands()
 		"wash_hands":   # прогулка на заправке: Ной отмыл ладони в ведре для стёкол — под ногтями осталось
 			(actors.noah as Actor).set_blood(0.0)   # кровь, второе состояние: ладони чистые, под ногтями тёмное
 			StationProps.pink_water(scene.station_root)
@@ -1666,11 +1713,22 @@ func _ice_strike() -> void:
 	var na: Actor = actors.get("noah")
 	if na == null:
 		return
-	var tw := create_tween()
-	var up := ICE_AT + Vector3(0.0, 0.16, 0.02)
-	var hit := ICE_AT + Vector3(0.0, 0.005, 0.02)
-	tw.tween_method(func(p: Vector3): na.reach = {"_r": p}, up, hit, 0.09).set_ease(Tween.EASE_IN)
-	tw.tween_method(func(p: Vector3): na.reach = {"_r": p}, hit, up, 0.3).set_ease(Tween.EASE_OUT).set_delay(0.08)
+	if _strike_tw:
+		_strike_tw.kill()
+	var up := ICE_AT + Vector3(0.02, 0.16, -0.02)     # правая рука Ноя (смотрит в −X) — к −Z от середины ведра
+	var hit := ICE_AT + Vector3(0.02, 0.005, -0.02)
+	if not na.reach.has("_r"):
+		na.reach = {"_r": up}
+		na.reach_lean = 35.0
+	na.reach_palm = {"_r": Vector3.DOWN}   # бьёт кулаком сверху: ладонь вниз, пальцы сжаты
+	na.set_meta("auto_grip", false)
+	na.grip = {"_r": 0.9}
+	var mv := func(p: Vector3):   # цель меняется на месте: ладонь и наклон корпуса не сбрасываются каждый кадр
+		if na.reach.has("_r"):
+			na.reach["_r"] = p
+	_strike_tw = create_tween()
+	_strike_tw.tween_method(mv, up, hit, 0.09).set_ease(Tween.EASE_IN)
+	_strike_tw.tween_method(mv, hit, up, 0.3).set_ease(Tween.EASE_OUT).set_delay(0.08)
 
 
 ## Кнопка действия зажата: E, пробел, Enter, A на геймпаде, мышь или палец на экране.

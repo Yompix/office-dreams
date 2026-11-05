@@ -42,6 +42,9 @@ var reach := {}:                # кисть — в точку (мир): {"_r": 
 		reach = v
 		reach_pole = {}         # локоть и ладонь задаются заново к каждой новой цели — не тянутся из прошлой сцены
 		reach_palm = {}
+		if v.is_empty():
+			reach_lean = 0.0    # руки свободны — корпус больше не тянется
+var reach_lean := 0.0           # цель дальше длины руки: корпус наклоняется к ней, не больше стольких градусов (0 — стоит как в клипе)
 var reach_pole := {}            # куда смотрит локоть (мир): {"_r": Vector3}; по умолчанию — вниз, наружу и чуть назад
 var reach_palm := {}            # куда повёрнута ладонь (мир): {"_r": Vector3}; по умолчанию — как в клипе
 var _reach_w := 0.0
@@ -319,6 +322,7 @@ func _blend_time(from: String, to: String) -> float:
 ## Жесты по подписям сцены («Ной прячет руки в карманы», «Дэнни кивает» — теперь и движением), см. do_gesture()
 var gesture := ""
 var _gest_t := 0.0
+var _gest_dur := 1.0
 var _gest_to: Actor = null
 var _gest_bone := "head"
 var _gest_look = null
@@ -393,8 +397,20 @@ func seat_depth() -> float:
 	return d
 
 
+## Руки свободны: цели IK, снимок рук до жеста и хват сброшены — жест, начатый в этом же шаге сценария, по окончании
+## не вернёт руки к старым целям (ведро: «руки из воды» и осмотр ладоней в одном шаге).
+func clear_hands() -> void:
+	reach = {}
+	_gest_reach0 = {}
+	_gest_palm0 = {}
+	_gest_pole0 = {}
+	if gesture != "check_hands":   # осмотр ладоней сам держит пальцы разжатыми
+		grip = {}
+		set_meta("auto_grip", true)
+
+
 ## Жест на dur секунд. Руки — к точкам у своего тела каждый кадр (идут вместе с героем): pockets — в карманы,
-## look_hands — ладони перед собой и взгляд на них, behind — за спину, give — протянуть руку, palm_to — ладонь на
+## look_hands — ладони перед собой и взгляд на них, check_hands — то же, потом перевернуть (ногти, костяшки), behind — за спину, give — протянуть руку, palm_to — ладонь на
 ## кость другого героя (голова, плечо), take_hand — взять за руку, sleeve — взгляд на свой рукав.
 ## Головой: nod — кивок, shake — «нет»; tremble — дрожь. После — руки и взгляд как были.
 func do_gesture(kind: String, dur := 2.0, other: Actor = null, bone := "head") -> void:
@@ -416,6 +432,9 @@ func do_gesture(kind: String, dur := 2.0, other: Actor = null, bone := "head") -
 				_gest_look = look_target
 			gesture = kind
 			_gest_t = dur
+			_gest_dur = maxf(dur, 0.1)
+			if kind == "check_hands":
+				set_meta("auto_grip", false)   # пальцы разжаты жестом, авто-хват их не трогает
 			_gest_to = other
 			_gest_bone = bone
 			_gest_side = -1.0 if bone == "l" else 1.0
@@ -430,6 +449,9 @@ func _update_gesture(dt: float) -> void:
 		return
 	_gest_t -= dt
 	if _gest_t <= 0.0:
+		if gesture == "check_hands":   # пальцы — снова как в клипе (или по предмету в руке)
+			grip = {}
+			set_meta("auto_grip", true)
 		gesture = ""
 		reach = _gest_reach0
 		reach_palm = _gest_palm0
@@ -458,6 +480,15 @@ func _update_gesture(dt: float) -> void:
 			var c := ch + fwd * 0.32 - up * 0.22
 			r = {"_r": c + right * 0.09, "_l": c - right * 0.09}
 			palm = {"_r": up, "_l": up}
+			look_target = c
+		"check_hands":   # осмотреть руки: ладонями вверх, потом перевернуть тыльной стороной — ногти, костяшки.
+			# Кисти — у груди (локти согнуты, предплечья почти горизонтально), пальцы разжаты: видно ладони и ногти
+			var c := ch + fwd * 0.28
+			r = {"_r": c + right * 0.1, "_l": c - right * 0.1}
+			var k := smoothstep(0.42, 0.62, 1.0 - _gest_t / _gest_dur) * PI   # ладонь вверх → внутрь → вниз (поворот предплечья)
+			var g := lerpf(-0.45, -1.0, k / PI)   # тыльной стороной — пальцы прямее: видно ногти
+			grip = {"_r": g, "_l": g}
+			palm = {"_r": up * cos(k) - right * sin(k), "_l": up * cos(k) + right * sin(k)}
 			look_target = c
 		"behind":
 			r = {"_r": pv - fwd * 0.17 + right * 0.06 + up * 0.04, "_l": pv - fwd * 0.17 - right * 0.06 + up * 0.04}
@@ -1035,6 +1066,8 @@ func _update_reach(delta: float) -> void:
 	if _reach_w < 0.001 or reach.is_empty():
 		return
 	var e := ease(_reach_w, -1.8)   # плавно в начале и в конце движения
+	if reach_lean > 0.0:
+		_lean_to_reach(e)
 	var sgt := skel.global_transform
 	var gb := sgt.basis.orthonormalized()
 	for side in reach:
@@ -1084,6 +1117,51 @@ func _update_reach(delta: float) -> void:
 		# 3) ладонь: поворот вокруг оси предплечья (60% — предплечье, 40% — кисть), не больше 100°
 		if reach_palm.has(side):
 			_turn_palm(side, (reach_palm[side] as Vector3).normalized(), e)
+		# 4) осмотр рук: кисть — в линию с предплечьем (в клипе она свисает), иначе пальцы смотрят в пол
+		if gesture in ["check_hands", "look_hands"] and _bi("middle_01" + side) >= 0:
+			var fa := ((sgt * skel.get_bone_global_pose(bh)).origin - (sgt * skel.get_bone_global_pose(bl)).origin).normalized()
+			_aim_bone("hand" + side, "middle_01" + side, fa, e * 0.85)
+
+
+## Цель дальше длины руки (Ной присел у ведра и тянется к воде): корпус наклоняется к цели — поясница, середина
+## и верх спины вместе (40/35/25 %), не больше reach_lean градусов; плечо подходит так, что рука остаётся чуть согнутой.
+## Угол — по повороту плеча вокруг середины спины (spine_02): так же сдвигает плечо, как этот наклон тремя позвонками.
+func _lean_to_reach(e: float) -> void:
+	var sgt := skel.global_transform
+	var sp := [_bi("spine_01"), _bi("spine_02"), _bi("spine_03")]
+	if sp.has(-1):
+		return
+	var p := (sgt * skel.get_bone_global_pose(sp[1])).origin
+	var lim := deg_to_rad(reach_lean)
+	var need := 0.0
+	var axis := Vector3.ZERO
+	for side in reach:
+		var bu := _bi("upperarm" + side)
+		var bl := _bi("lowerarm" + side)
+		var bh := _bi("hand" + side)
+		if bu < 0 or bl < 0 or bh < 0 or not reach[side] is Vector3:
+			continue
+		var s := (sgt * skel.get_bone_global_pose(bu)).origin
+		var el := (sgt * skel.get_bone_global_pose(bl)).origin
+		var arm := (s.distance_to(el) + el.distance_to((sgt * skel.get_bone_global_pose(bh)).origin)) * 0.9
+		var tgt: Vector3 = reach[side]
+		if s.distance_to(tgt) <= arm:
+			continue
+		var ax := (s - p).cross(tgt - p)
+		if ax.length() < 1e-5:
+			continue
+		ax = ax.normalized()
+		var a := 0.0
+		while a < lim and (p + (s - p).rotated(ax, a)).distance_to(tgt) > arm:
+			a += 0.0175
+		if a > need:
+			need = a
+			axis = ax
+	if need <= 0.0:
+		return
+	var parts := [0.4, 0.35, 0.25]
+	for k in 3:
+		_rot_now(sp[k], axis, need * float(parts[k]) * e)
 
 
 ## Направление сгиба руки (единичное, поперёк плеча u): куда от линии плеча уходит предплечье f. У почти прямой руки —
@@ -1169,18 +1247,29 @@ func _update_grip(delta: float) -> void:
 		var want := float(grip.get(side, 0.0))
 		_grip_w[side] = move_toward(float(_grip_w[side]), want, delta * 4.0)
 		var w := float(_grip_w[side])
-		if w < 0.001:
+		if absf(w) < 0.001:   # w < 0 — разжать: пальцы распрямляются из позы клипа (осмотр ладоней)
 			continue
 		var hb := _bi("hand" + side)
 		if hb < 0:
 			continue
 		var hg := skel.global_transform * skel.get_bone_global_pose(hb)
 		var curl := hg.basis.x.normalized() * (1.0 if side == "_l" else -1.0)
+		# кисть сдвинута IK (reach, поворот ладони) — снимок поз начала кадра устарел: пальцы гнём по свежей позе,
+		# иначе ось сгиба уходит вбок и кулак выходит растопыренной ладонью (ведро: удар по льду)
+		var fresh := reach.has(side)
+		# разжать (w < 0): в клипе сильнее всего согнуты концевые фаланги — их и распрямляем больше
+		var joints := [["_01", 50.0], ["_02", 65.0], ["_03", 40.0]] if w > 0.0 else [["_01", 25.0], ["_02", 50.0], ["_03", 70.0]]
 		for f in ["index", "middle", "ring", "pinky"]:
-			for j in [["_01", 50.0], ["_02", 65.0], ["_03", 40.0]]:
-				_rot(_bi(f + String(j[0]) + side), curl, deg_to_rad(float(j[1])) * w)
+			for j in joints:
+				if fresh:
+					_rot_now(_bi(f + String(j[0]) + side), curl, deg_to_rad(float(j[1])) * w)
+				else:
+					_rot(_bi(f + String(j[0]) + side), curl, deg_to_rad(float(j[1])) * w)
 		for j in [["thumb_02", 25.0], ["thumb_03", 20.0]]:
-			_rot(_bi(String(j[0]) + side), curl, deg_to_rad(float(j[1])) * w * 0.6)
+			if fresh:
+				_rot_now(_bi(String(j[0]) + side), curl, deg_to_rad(float(j[1])) * w * 0.6)
+			else:
+				_rot(_bi(String(j[0]) + side), curl, deg_to_rad(float(j[1])) * w * 0.6)
 
 
 ## Повернуть кость так, чтобы она смотрела (от себя к дочерней) по направлению dir (мир); w — доля поворота.
@@ -1383,18 +1472,18 @@ void fragment() {
 	float fresh = smoothstep(0.68, 0.85, n3(vW * 33.0 + 4.0));
 	c = mix(c, mix(vec3(0.085, 0.022, 0.016), vec3(0.15, 0.016, 0.012), fresh), m * 0.9);   // засохшая — бурая, свежая — тёмно-красная
 	vec3 wN = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
-	// под ногтями: тёмные серпики у самых кончиков пальцев, с тыльной стороны (где ноготь)
+	// под ногтями: тёмное на ногтях и самых кончиках пальцев (с тыльной стороны и по краю), подушечки и ладонь — чистые
 	float dt = 1.0;
 	for (int i = 0; i < 10; i++) { dt = min(dt, distance(vW, tips[i])); }
 	vec3 dors = distance(vW, tips[2]) < distance(vW, tips[7]) ? dors_l : dors_r;
-	float mn = nails * (1.0 - smoothstep(0.006, 0.013, dt)) * smoothstep(-0.2, 0.35, dot(wN, dors));
+	float mn = nails * (1.0 - smoothstep(0.009, 0.019, dt)) * smoothstep(-0.35, 0.25, dot(wN, dors));
 	c = mix(c, vec3(0.06, 0.02, 0.015), mn * 0.85);
 	// разбитые костяшки: свежая кровь и ссадины по линии оснований пальцев, только тыльная сторона
 	float dk = 1.0;
 	for (int i = 0; i < 8; i++) { dk = min(dk, distance(vW, kn[i])); }
 	vec3 dors2 = distance(vW, kn[1]) < distance(vW, kn[5]) ? dors_l : dors_r;
 	float nk = n3(vW * 120.0);
-	float mk = knuckles * (1.0 - smoothstep(0.012, 0.024, dk + (nk - 0.5) * 0.01)) * smoothstep(0.1, 0.5, dot(wN, dors2));
+	float mk = knuckles * (1.0 - smoothstep(0.01, 0.021, dk + (nk - 0.5) * 0.01)) * smoothstep(0.1, 0.5, dot(wN, dors2));
 	c = mix(c, mix(vec3(0.32, 0.03, 0.025), vec3(0.12, 0.01, 0.01), step(0.62, nk)), mk);   // ссадина — алая, трещины — тёмные
 	ALBEDO = c;
 	ROUGHNESS = mix(mix(rough, mix(0.68, 0.32, fresh), m), 0.25, mk);   // свежая кровь блестит
@@ -1403,6 +1492,38 @@ void fragment() {
 }
 """
 var _blood_mats: Array[ShaderMaterial] = []
+var _cuff_mats: Array[ShaderMaterial] = []
+
+## Манжеты куртки в засохшей крови (лист «24»: «под ногтями и на манжете осталось бурое» — водой не отходит):
+## второй проход поверх материала куртки — пятно у запястья, сам материал куртки не меняется.
+const BLOOD_CUFF := """
+shader_type spatial;
+render_mode blend_mix, depth_draw_never, cull_back;
+uniform vec3 hl0; uniform vec3 hr0;   // запястья (мир)
+uniform vec3 el; uniform vec3 er;     // локти: пятно — по краю рукава, а не по всему предплечью
+uniform float amount = 1.0;
+varying vec3 vW;
+float h3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+float n3(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(mix(h3(i), h3(i + vec3(1.0, 0.0, 0.0)), f.x), mix(h3(i + vec3(0.0, 1.0, 0.0)), h3(i + vec3(1.0, 1.0, 0.0)), f.x), f.y),
+		mix(mix(h3(i + vec3(0.0, 0.0, 1.0)), h3(i + vec3(1.0, 0.0, 1.0)), f.x), mix(h3(i + vec3(0.0, 1.0, 1.0)), h3(i + vec3(1.0, 1.0, 1.0)), f.x), f.y), f.z); }
+void vertex() { vW = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+void fragment() {
+	// расстояние вдоль предплечья от запястья к локтю: пятно — последние ~9 см рукава
+	vec3 al = normalize(el - hl0); vec3 ar = normalize(er - hr0);
+	float tl = dot(vW - hl0, al); float tr = dot(vW - hr0, ar);
+	float dl = length(vW - hl0 - al * tl); float dr = length(vW - hr0 - ar * tr);
+	float t = dl < dr ? tl : tr;
+	float rad = min(dl, dr);
+	float n = n3(vW * 55.0) * 0.6 + n3(vW * 17.0) * 0.4;
+	// только сам рукав: от запястья к локтю (не за кистью) и не дальше его радиуса — бок куртки у опущенной руки чистый
+	float m = amount * smoothstep(-0.03, 0.0, t) * (1.0 - smoothstep(0.05, 0.11, t + (n - 0.5) * 0.05)) * (1.0 - smoothstep(0.065, 0.085, rad));
+	m *= smoothstep(0.42, 0.62, n3(vW * 38.0 + 2.3) * 0.6 + n * 0.7);
+	ALBEDO = mix(vec3(0.13, 0.026, 0.018), vec3(0.24, 0.04, 0.028), n3(vW * 29.0));
+	ROUGHNESS = 0.55;
+	ALPHA = clamp(m, 0.0, 1.0) * 0.8;
+}
+"""
 
 
 func enable_blood() -> void:
@@ -1424,6 +1545,20 @@ func enable_blood() -> void:
 			mi.set_surface_override_material(i, sm)
 			sm.set_shader_parameter("nails", 1.0)   # кровь под ногтями — с самого начала (отмыть её в ведре не выйдет)
 			_blood_mats.append(sm)
+	if _cuff_mats.is_empty():   # манжеты куртки — вторым проходом поверх её материала
+		var csh := Shader.new()
+		csh.code = BLOOD_CUFF
+		for n in find_children("cloth_jacket", "MeshInstance3D", true, false):   # куртки нет в meshes (там — меши с формами лица)
+			var mi := n as MeshInstance3D
+			var jm := mi.get_active_material(0)
+			if jm == null:
+				continue
+			var cm := ShaderMaterial.new()
+			cm.shader = csh
+			var jd := jm.duplicate() as Material
+			jd.next_pass = cm
+			mi.set_surface_override_material(0, jd)
+			_cuff_mats.append(cm)
 
 
 func _update_blood() -> void:
@@ -1435,18 +1570,26 @@ func _update_blood() -> void:
 	var hr0: Vector3 = g.call("hand_r")
 	var hl1: Vector3 = hl0 + (g.call("middle_02_l") - hl0) * 1.05
 	var hr1: Vector3 = hr0 + (g.call("middle_02_r") - hr0) * 1.05
-	var tips := PackedVector3Array()   # кончики: продолжение последней фаланги на её длину × 0,8
+	var tips := PackedVector3Array()   # кончики: продолжение последней фаланги на её длину × 0,55 (у края ногтя)
 	var kn := PackedVector3Array()
 	for sd in ["_l", "_r"]:
 		for f in ["thumb", "index", "middle", "ring", "pinky"]:
 			var a: Vector3 = g.call(f + "_02" + sd)
 			var b: Vector3 = g.call(f + "_03" + sd)
-			tips.append(b + (b - a) * 0.8)
+			tips.append(b + (b - a) * 0.55)
 		for f in ["index", "middle", "ring", "pinky"]:
 			kn.append(g.call(f + "_01" + sd))
 	# тыльная сторона кисти: нормаль к плоскости «запястье — указательный — мизинец», наружу от ладони
 	var dl: Vector3 = (kn[0] - hl0).cross(kn[3] - hl0).normalized()
 	var dr: Vector3 = (kn[7] - hr0).cross(kn[4] - hr0).normalized()
+	if not _cuff_mats.is_empty():
+		var el: Vector3 = g.call("lowerarm_l")
+		var er: Vector3 = g.call("lowerarm_r")
+		for cm in _cuff_mats:
+			cm.set_shader_parameter("hl0", hl0)
+			cm.set_shader_parameter("hr0", hr0)
+			cm.set_shader_parameter("el", el)
+			cm.set_shader_parameter("er", er)
 	for sm in _blood_mats:
 		sm.set_shader_parameter("hl0", hl0)
 		sm.set_shader_parameter("hl1", hl1)
