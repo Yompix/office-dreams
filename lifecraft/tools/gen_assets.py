@@ -53,36 +53,62 @@ def noise(size, base, amp=10, seed=0):
 
 # ---------- блоки ----------
 def blocks():
-    asphalt = noise((16, 16), rgb('3a3d42'), 9, 1)
-    px = asphalt.load()
-    for _ in range(10):
-        x, y = rnd.randrange(16), rnd.randrange(16)
-        px[x, y] = rgb('55595f')
-    save(asphalt, 'block', 'asphalt.png')
+    # дороги и тротуары в 32×32: щебень, трещины, затёртая разметка
+    R = random.Random(11)
 
-    line = asphalt.copy()
-    d = ImageDraw.Draw(line)
-    d.rectangle([7, 0, 8, 9], fill=rgb('f2c335'))
+    def asphalt_tex(seed):
+        img = noise((32, 32), rgb('3a3d42'), 7, seed)
+        px = img.load()
+        rr = random.Random(seed)
+        for _ in range(70):
+            x, y = rr.randrange(32), rr.randrange(32)
+            px[x, y] = shade(rgb('5a5e66'), rr.uniform(0.8, 1.25))
+        for _ in range(25):
+            x, y = rr.randrange(32), rr.randrange(32)
+            px[x, y] = rgb('26282c')
+        d = ImageDraw.Draw(img)
+        if rr.random() < 0.6:
+            x, y = rr.randrange(32), rr.randrange(32)
+            pts = [(x, y)]
+            for _ in range(5):
+                x += rr.randint(-3, 3)
+                y += rr.randint(1, 4)
+                pts.append((x, y))
+            d.line(pts, fill=rgb('2a2c30'))
+        return img
+
+    def worn(d, box, col, rr):
+        d.rectangle(box, fill=col)
+        for _ in range(10):
+            x, y = rr.randint(box[0], box[2]), rr.randint(box[1], box[3])
+            d.point([(x, y)], fill=shade(col, 0.72))
+
+    save(asphalt_tex(1), 'block', 'asphalt.png')
+    line = asphalt_tex(2)
+    worn(ImageDraw.Draw(line), [14, 0, 17, 19], rgb('f2c335'), R)
     save(line, 'block', 'asphalt_line.png')
-
-    edge = asphalt.copy()
-    ImageDraw.Draw(edge).rectangle([0, 0, 1, 15], fill=rgb('e8e8e8'))
+    edge = asphalt_tex(3)
+    worn(ImageDraw.Draw(edge), [0, 0, 3, 31], rgb('e8e8e8'), R)
     save(edge, 'block', 'asphalt_edge.png')
-
-    cross = asphalt.copy()
+    cross = asphalt_tex(4)
     d = ImageDraw.Draw(cross)
-    for x in (1, 6, 11):
-        d.rectangle([x, 0, x + 2, 15], fill=rgb('f0f0f0'))
+    for x in (2, 12, 22):
+        worn(d, [x, 0, x + 6, 31], rgb('f0f0f0'), R)
     save(cross, 'block', 'crosswalk.png')
 
-    side = Image.new('RGBA', (16, 16))
+    side = Image.new('RGBA', (32, 32))
     d = ImageDraw.Draw(side)
     for ty in range(2):
         for tx in range(2):
-            c = shade(rgb('b9b4aa'), 1 + rnd.uniform(-.05, .05))
-            d.rectangle([tx * 8, ty * 8, tx * 8 + 7, ty * 8 + 7], fill=c)
-            d.line([tx * 8, ty * 8 + 7, tx * 8 + 7, ty * 8 + 7], fill=rgb('8f8a82'))
-            d.line([tx * 8 + 7, ty * 8, tx * 8 + 7, ty * 8 + 7], fill=rgb('8f8a82'))
+            c = shade(rgb('bdb8ad'), 1 + R.uniform(-.05, .05))
+            x0, y0 = tx * 16, ty * 16
+            d.rectangle([x0, y0, x0 + 15, y0 + 15], fill=c)
+            for _ in range(30):
+                d.point([(x0 + R.randrange(1, 15), y0 + R.randrange(1, 15))], fill=shade(c, R.uniform(0.9, 1.08)))
+            d.line([x0, y0, x0 + 15, y0], fill=shade(c, 1.12))
+            d.line([x0, y0, x0, y0 + 15], fill=shade(c, 1.08))
+            d.line([x0, y0 + 15, x0 + 15, y0 + 15], fill=rgb('8a857c'))
+            d.line([x0 + 15, y0, x0 + 15, y0 + 15], fill=rgb('8a857c'))
     save(side, 'block', 'sidewalk.png')
 
     # Школьная доска: зелёная, мел, рамка из дерева
@@ -435,6 +461,17 @@ def items():
         d.line([10, 3, 8, 9], fill=rgb('2c3142'))
         d.point([(9, 11), (9, 13)], fill=rgb('d4af37'))
     item('suit', suit)
+
+    def scooter(d, img):
+        d.rectangle([3, 11, 12, 12], fill=rgb('1e88e5'))
+        d.line([11, 3, 11, 11], fill=rgb('b0bec5'))
+        d.line([9, 3, 13, 3], fill=rgb('263238'))
+        d.rectangle([4, 8, 7, 9], fill=rgb('212121'))
+        d.line([5, 9, 5, 11], fill=rgb('90a4ae'))
+        d.ellipse([2, 11, 5, 14], fill=rgb('151515'))
+        d.ellipse([10, 11, 13, 14], fill=rgb('151515'))
+        d.point([(12, 5)], fill=rgb('fff6c8'))
+    item('scooter', scooter)
 
     def key(d, img):
         d.ellipse([2, 2, 7, 7], fill=rgb('2a2c31'))

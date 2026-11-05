@@ -137,9 +137,19 @@ public final class Taxi {
         driver.refreshPositionAndAngles(start.x, t.origin.getY(), start.z, 0, 0);
         w.spawnEntity(driver);
         driver.startRiding(car, true);
+        // переднее пассажирское место занято сумкой водителя — клиент садится назад, обзор не закрывает водитель
+        net.minecraft.entity.decoration.ArmorStandEntity bag = new net.minecraft.entity.decoration.ArmorStandEntity(w, start.x, t.origin.getY(), start.z);
+        bag.setInvisible(true);
+        bag.setNoGravity(true);
+        bag.setInvulnerable(true);
+        bag.addCommandTag("lifecraft_taxi_seat");
+        w.spawnEntity(bag);
+        bag.startRiding(car, true);
         CARS.put(p.getUuid(), car.getUuid());
         Vec3d pickup = nearestRoad(t, p.getPos());
-        car.setRoute(route(t, start, pickup), 0.55f, () -> arrivedForClient(p.getUuid(), car));
+        List<Vec3d> r = route(t, start, pickup);
+        com.yompix.lifecraft.LifeCraft.LOG.info("taxi route from {} to {}: {}", start, pickup, r);
+        car.setRoute(r, 0.55f, () -> arrivedForClient(p.getUuid(), car));
         int secs = (int) (Math.sqrt(start.squaredDistanceTo(pickup)) / 9) + 3;
         Life.message(p, "Такси", "Жёлтая машина едет к тебе, примерно " + secs + " с. Выйди к дороге — золотой столб покажет место.");
         Life.get(p).taskKind = "taxi_wait";
@@ -211,7 +221,7 @@ public final class Taxi {
     private static void leave(CarEntity car, TownState t) {
         Vec3d away = roadPointAround(t, car.getPos(), 40);
         car.setRoute(route(t, car.getPos(), away), 0.6f, () -> {
-            for (Entity e : car.getPassengerList()) if (e instanceof CitizenEntity) e.discard();
+            for (Entity e : car.getPassengerList()) if (e instanceof CitizenEntity || e.getCommandTags().contains("lifecraft_taxi_seat")) e.discard();
             car.discard();
         });
     }

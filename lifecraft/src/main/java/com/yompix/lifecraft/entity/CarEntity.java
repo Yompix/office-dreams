@@ -132,7 +132,7 @@ public class CarEntity extends Entity {
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
-        return getPassengerList().size() < SEATS.length;
+        return getPassengerList().size() < (isScooter() ? 1 : SEATS.length);
     }
 
     @Nullable
@@ -146,6 +146,14 @@ public class CarEntity extends Entity {
         if (player.shouldCancelInteraction()) return ActionResult.PASS;
         if (getWorld().isClient) return ActionResult.SUCCESS;
         boolean driver = getPassengerList().isEmpty();
+        if (driver && !isScooter() && !player.isCreative() && player instanceof ServerPlayerEntity sp) {
+            var d = com.yompix.lifecraft.life.Life.get(sp);
+            boolean young = d.age > 0 ? d.age < 18 : d.edu <= com.yompix.lifecraft.life.LifeData.SCHOOL_END;
+            if (young) {
+                player.sendMessage(Text.literal("Водить машину можно с 18 лет и с правами. Пока — электроскутер (есть в магазине)!"), true);
+                return ActionResult.CONSUME;
+            }
+        }
         if (driver && owner != null && !owner.equals(player.getUuid()) && !player.isCreative()) {
             // за руль чужой машины нельзя; пассажиром — можно, когда хозяин уже сел
             player.sendMessage(Text.literal("🔒 Это чужая машина: за руль садится только хозяин"), true);
@@ -168,7 +176,7 @@ public class CarEntity extends Entity {
                 discard();
             } else if (mine && p.isSneaking()) {
                 if (++hits >= 3) {
-                    ItemStack stack = new ItemStack(ModContent.CARS[getVariant()]);
+                    ItemStack stack = getPickBlockStack();
                     if (!p.getInventory().insertStack(stack)) dropStack(stack);
                     removeAllPassengers();
                     discard();
@@ -219,6 +227,8 @@ public class CarEntity extends Entity {
             side = p.sidewaysSpeed;
         } else if (route != null) {
             Vec3d t = route.get(routeIndex);
+            if (Boolean.getBoolean("lifecraft.debugcar") && age % 40 == 0)
+                LifeCraft.LOG.info("car {} pos {} target#{} {} speed {} hc {} ground {}", getId(), getPos(), routeIndex, t, speed, horizontalCollision, isOnGround());
             double dx = t.x - getX(), dz = t.z - getZ(), dist = Math.sqrt(dx * dx + dz * dz);
             boolean last = routeIndex == route.size() - 1;
             if (dist < (last ? 2.5 : 3.5)) {
@@ -240,7 +250,7 @@ public class CarEntity extends Entity {
             }
         }
         braking = false;
-        float max = isTouchingWater() ? 0.15f : route != null ? autoMax + 0.05f : 0.95f;
+        float max = isTouchingWater() ? 0.15f : isScooter() ? 0.42f : route != null ? autoMax + 0.05f : 0.95f;
         if (fwd > 0) {
             speed += speed < 0 ? 0.05f : 0.018f * (1 - speed / max * 0.6f);
         } else if (fwd < 0) {
@@ -288,8 +298,8 @@ public class CarEntity extends Entity {
         lastYaw = getYaw();
         float targetSteer = isLogicalSideForUpdatingMovement() ? steer : MathHelper.clamp(-yawRate / 4f, -1, 1);
         visualSteer = MathHelper.lerp(0.3f, visualSteer, targetSteer);
-        roll = MathHelper.lerp(0.15f, roll, MathHelper.clamp(yawRate * Math.abs(clientSpeed) * 1.6f, -6, 6));
-        pitchLean = MathHelper.lerp(0.2f, pitchLean, MathHelper.clamp((clientSpeed - lastSpeed) * -60f, -3, 3));
+        roll = MathHelper.lerp(0.12f, roll, MathHelper.clamp(yawRate * Math.abs(clientSpeed) * 0.8f, -2.5f, 2.5f));
+        pitchLean = MathHelper.lerp(0.1f, pitchLean, MathHelper.clamp((clientSpeed - lastSpeed) * -30f, -1.5f, 1.5f));
         // выхлоп
         if (getControllingPassenger() != null && age % (Math.abs(clientSpeed) > 0.2f ? 2 : 6) == 0) {
             double bx = getX() + Math.sin(rad) * 1.75 - Math.cos(rad) * 0.5;
@@ -309,13 +319,13 @@ public class CarEntity extends Entity {
     protected void updatePassengerPosition(Entity passenger, PositionUpdater updater) {
         if (!hasPassenger(passenger)) return;
         int i = getPassengerList().indexOf(passenger);
-        double[] seat = SEATS[Math.max(0, Math.min(i, SEATS.length - 1))];
+        double[] seat = isScooter() ? new double[]{0, -0.15} : SEATS[Math.max(0, Math.min(i, SEATS.length - 1))];
         double rad = Math.toRadians(getYaw());
         double fx = -Math.sin(rad), fz = Math.cos(rad);
         double rx = -Math.cos(rad), rz = -Math.sin(rad);
         double x = getX() + fx * seat[1] + rx * seat[0];
         double z = getZ() + fz * seat[1] + rz * seat[0];
-        double y = getY() - 0.32; // сидим низко, как в настоящей машине
+        double y = getY() + (isScooter() ? -0.05 : -0.32); // в машине сидим низко
         updater.accept(passenger, x, y, z);
         if (passenger instanceof LivingEntity le) le.setBodyYaw(getYaw());
     }
@@ -369,7 +379,7 @@ public class CarEntity extends Entity {
 
     @Override
     public ItemStack getPickBlockStack() {
-        return new ItemStack(ModContent.CARS[getVariant()]);
+        return new ItemStack(isScooter() ? ModContent.SCOOTER_ITEM : ModContent.CARS[getVariant()]);
     }
 
     @Override
@@ -386,6 +396,20 @@ public class CarEntity extends Entity {
 
     @Override
     protected Text getDefaultName() {
-        return Text.translatable("item.lifecraft.car_" + VARIANTS[getVariant()]);
+        return Text.translatable(isScooter() ? "item.lifecraft.scooter" : "item.lifecraft.car_" + VARIANTS[getVariant()]);
+    }
+
+    public boolean isScooter() {
+        return getType() == ModContent.SCOOTER;
+    }
+
+    /** Сервер не пересчитывает столкновения машины игрока — иначе на бордюрах её дёргает назад («moved wrongly»). */
+    @Override
+    public void move(MovementType type, Vec3d movement) {
+        if (type == MovementType.PLAYER && !getWorld().isClient) {
+            setPosition(getX() + movement.x, getY() + movement.y, getZ() + movement.z);
+            return;
+        }
+        super.move(type, movement);
     }
 }

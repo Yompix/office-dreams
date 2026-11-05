@@ -109,7 +109,9 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         JsonObject look = all.get(skin).getAsJsonObject();
         m.push();
         getContextModel().head.rotate(m);
+        this.buffers = buffers;
         VertexConsumer hair = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR));
+        hairTag = hair;
         int ov = OverlayTexture.DEFAULT_UV;
         int hc = color(look, "hair", 1.0f);
         boolean hat = look.has("cap") || look.has("beanie") || look.has("helmet");
@@ -167,12 +169,18 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         if (look.has("skirt")) {
             m.push();
             getContextModel().body.rotate(m);
-            render("skirt", m, buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR)), light, color(look, "skirt", 0.95f));
+            render("skirt", m, hairTag, light, color(look, "skirt", 0.95f));
             m.pop();
         }
     }
 
+    private VertexConsumerProvider buffers;
+
+    /** vc — только метка слоя; сам буфер берём заново, ведь смена слоя закрывает предыдущий. */
     private void render(String name, MatrixStack m, VertexConsumer vc, int light, int color) {
-        parts.get(name).render(m, vc, light, OverlayTexture.DEFAULT_UV, color);
+        Identifier tex = vc == hairTag ? HAIR : SOLID;
+        parts.get(name).render(m, buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(tex)), light, OverlayTexture.DEFAULT_UV, color);
     }
+
+    private VertexConsumer hairTag;
 }

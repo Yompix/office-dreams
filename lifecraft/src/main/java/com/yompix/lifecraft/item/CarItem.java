@@ -20,9 +20,16 @@ import java.util.List;
 public class CarItem extends Item {
     public final int variant;
 
+    public final boolean scooter;
+
     public CarItem(Settings settings, int variant) {
+        this(settings, variant, false);
+    }
+
+    public CarItem(Settings settings, int variant, boolean scooter) {
         super(settings);
         this.variant = variant;
+        this.scooter = scooter;
     }
 
     @Override
@@ -30,7 +37,7 @@ public class CarItem extends Item {
         World world = ctx.getWorld();
         Vec3d at = ctx.getHitPos();
         if (world instanceof ServerWorld sw) {
-            CarEntity car = new CarEntity(ModContent.CAR, sw);
+            CarEntity car = new CarEntity(scooter ? ModContent.SCOOTER : ModContent.CAR, sw);
             car.refreshPositionAndAngles(at.x, ctx.getBlockPos().getY() + 1, at.z, ctx.getPlayer() != null ? ctx.getPlayer().getYaw() : 0, 0);
             car.setVariant(variant);
             if (ctx.getPlayer() != null) car.setOwner(ctx.getPlayer().getUuid());

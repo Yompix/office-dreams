@@ -38,6 +38,7 @@ public final class Shop {
             new Entry("Дом", "Почтовый ящик", () -> ModContent.MAILBOX.asItem(), 1, 30, 1),
             new Entry("Дом", "Уличный фонарь", () -> ModContent.STREET_LAMP.asItem(), 1, 35, 1),
             new Entry("Дом", "Игровой автомат", () -> ModContent.SLOT_MACHINE.asItem(), 1, 900, 12),
+            new Entry("Транспорт", "Электроскутер (с любого возраста)", () -> ModContent.SCOOTER_ITEM, 1, 120, 1),
             new Entry("Транспорт", "Машина: красная", () -> ModContent.CARS[0], 1, 700, 12),
             new Entry("Транспорт", "Машина: синяя", () -> ModContent.CARS[1], 1, 700, 12),
             new Entry("Транспорт", "Машина: жёлтая", () -> ModContent.CARS[2], 1, 800, 12),

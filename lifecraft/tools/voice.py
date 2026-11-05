@@ -58,18 +58,24 @@ def speaker_and_pitch(line):
 
 
 done = 0
-for line in lines:
+import torch
+torch.set_num_threads(int(os.environ.get('THREADS', '2')))
+part, parts = map(int, os.environ.get('WORKER', '0/1').split('/'))
+for li, line in enumerate(lines):
+    if li % parts != part:
+        continue
     vid = line['id']
     dst = os.path.join(OUT, vid + '.ogg')
     if only and vid not in only:
         continue
-    if os.path.exists(dst) and not force and not only:
+    older = float(os.environ.get('FORCE_OLDER', '0'))
+    if os.path.exists(dst) and not force and not only and os.path.getmtime(dst) >= older:
         continue
     sp, pitch = speaker_and_pitch(line)
     best = (-1, None, 0)
     with tempfile.TemporaryDirectory() as tmp:
         # минимум 3 дубля, максимум 8; берём самый чистый: точность слов + уверенность распознавания каждого слова
-        for attempt in range(8):
+        for attempt in range(5):
             wav = os.path.join(tmp, f'{attempt}.wav')
             tts.tts_to_file(text=line['text'], speaker=sp, language='ru', file_path=wav,
                             temperature=0.55, top_p=0.8, top_k=40, repetition_penalty=6.0, length_penalty=1.0)
@@ -84,7 +90,7 @@ for line in lines:
             score = sim * 0.7 + minp * 0.3 - (0 if dur_ok else 0.2)
             if score > best[0]:
                 best = (score, wav, sim)
-            if attempt >= 2 and sim >= 0.96 and minp >= 0.55 and dur_ok:
+            if sim >= 0.94 and minp >= 0.4 and dur_ok:
                 break
         score, wav, sim = best
         af = f'rubberband=pitch={2 ** (pitch / 12):.4f}:formant=preserved,' if pitch else ''

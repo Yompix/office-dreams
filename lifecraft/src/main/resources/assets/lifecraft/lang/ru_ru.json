@@ -24,6 +24,7 @@
   "item.lifecraft.banknote": "Купюра $10",
   "item.lifecraft.bank_card": "Банковская карта",
   "item.lifecraft.parcel": "Посылка",
+  "item.lifecraft.scooter": "Электроскутер",
   "item.lifecraft.suit": "Костюм для выпускного",
   "item.lifecraft.diploma": "Диплом",
   "item.lifecraft.textbook": "Учебник",
@@ -49,6 +50,7 @@
   "subtitles.lifecraft.level_up": "Фанфары",
   "subtitles.lifecraft.traffic_beep": "Сигнал светофора",
   "entity.lifecraft.car": "Машина",
+  "entity.lifecraft.scooter": "Электроскутер",
   "entity.lifecraft.citizen": "Житель",
   "entity.lifecraft.seat": "Сиденье",
   "itemGroup.lifecraft": "LifeCraft — жизнь",
@@ -56,6 +58,7 @@
   "key.lifecraft.horn": "Гудок",
   "key.lifecraft.map": "Карта и задания",
   "key.lifecraft.radio": "Радио в машине",
+  "key.lifecraft.grade": "Кино-графика вкл/выкл",
   "category.lifecraft": "LifeCraft",
   "generator.lifecraft.city": "LifeCraft: Город"
 }

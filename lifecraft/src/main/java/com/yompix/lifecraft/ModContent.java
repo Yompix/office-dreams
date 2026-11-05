@@ -109,6 +109,10 @@ public final class ModContent {
     public static final EntityType<SeatEntity> SEAT = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("seat"),
             EntityType.Builder.<SeatEntity>create(SeatEntity::new, SpawnGroup.MISC).dimensions(0.01f, 0.01f).disableSummon().build("seat"));
 
+    public static final EntityType<CarEntity> SCOOTER = Registry.register(Registries.ENTITY_TYPE, LifeCraft.id("scooter"),
+            EntityType.Builder.<CarEntity>create(CarEntity::new, SpawnGroup.MISC).dimensions(0.9f, 1.1f).maxTrackingRange(10).build("scooter"));
+    public static final Item SCOOTER_ITEM = item("scooter", new CarItem(new Item.Settings().maxCount(1), 0, true));
+
     public static final Item[] CARS = new Item[CarEntity.VARIANTS.length];
     static {
         for (int i = 0; i < CarEntity.VARIANTS.length; i++)

@@ -24,6 +24,7 @@
   "item.lifecraft.banknote": "$10 banknote",
   "item.lifecraft.bank_card": "Bank card",
   "item.lifecraft.parcel": "Parcel",
+  "item.lifecraft.scooter": "E-scooter",
   "item.lifecraft.suit": "Prom suit",
   "item.lifecraft.diploma": "Diploma",
   "item.lifecraft.textbook": "Textbook",
@@ -49,6 +50,7 @@
   "subtitles.lifecraft.level_up": "Fanfare",
   "subtitles.lifecraft.traffic_beep": "Traffic beep",
   "entity.lifecraft.car": "Car",
+  "entity.lifecraft.scooter": "E-scooter",
   "entity.lifecraft.citizen": "Citizen",
   "entity.lifecraft.seat": "Seat",
   "itemGroup.lifecraft": "LifeCraft",
@@ -56,6 +58,7 @@
   "key.lifecraft.horn": "Car horn",
   "key.lifecraft.map": "Map and quests",
   "key.lifecraft.radio": "Car radio",
+  "key.lifecraft.grade": "Cinematic graphics",
   "category.lifecraft": "LifeCraft",
   "generator.lifecraft.city": "LifeCraft: City"
 }

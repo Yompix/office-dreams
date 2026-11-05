@@ -40,7 +40,7 @@ public class LifeCraftClient implements ClientModInitializer {
     public static LifeData data = new LifeData();
     public static long dataVersion;
 
-    private static KeyBinding phoneKey, hornKey, mapKey, radioKey;
+    private static KeyBinding phoneKey, hornKey, mapKey, radioKey, gradeKey;
     private static int station = -1;
     private static final String[][] STATIONS = {{"Новоград FM", "pigstep"}, {"Ретро 90", "cat"}, {"Чилл-волна", "strad"}, {"Рок-Радио", "otherside"}, {"Ночной джаз", "wait"}};
     private static final Map<Integer, CarEngineSound> ENGINES = new HashMap<>();
@@ -51,6 +51,8 @@ public class LifeCraftClient implements ClientModInitializer {
     public void onInitializeClient() {
         EntityModelLayerRegistry.registerModelLayer(CarRenderer.LAYER, CarRenderer::modelData);
         EntityRendererRegistry.register(ModContent.CAR, CarRenderer::new);
+        EntityModelLayerRegistry.registerModelLayer(com.yompix.lifecraft.client.render.ScooterRenderer.LAYER, com.yompix.lifecraft.client.render.ScooterRenderer::modelData);
+        EntityRendererRegistry.register(ModContent.SCOOTER, com.yompix.lifecraft.client.render.ScooterRenderer::new);
         EntityRendererRegistry.register(ModContent.CITIZEN, CitizenRenderer::new);
         EntityRendererRegistry.register(ModContent.SEAT, EmptyEntityRenderer::new);
         BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getCutout(), ModContent.TV, ModContent.TRAFFIC_LIGHT, ModContent.STREET_LAMP,
@@ -58,6 +60,8 @@ public class LifeCraftClient implements ClientModInitializer {
 
         phoneKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.phone", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.lifecraft"));
         mapKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.map", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.lifecraft"));
+        gradeKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.grade", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_K, "category.lifecraft"));
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(c -> com.yompix.lifecraft.client.render.ColorGrade.render(c.tickCounter().getTickDelta(false)));
         radioKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.radio", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.lifecraft"));
         hornKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.horn", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "category.lifecraft"));
 
@@ -216,6 +220,10 @@ public class LifeCraftClient implements ClientModInitializer {
             }
         }
         while (hornKey.wasPressed()) send("horn");
+        while (gradeKey.wasPressed()) {
+            com.yompix.lifecraft.client.render.ColorGrade.enabled = !com.yompix.lifecraft.client.render.ColorGrade.enabled;
+            client.player.sendMessage(net.minecraft.text.Text.literal("Кино-графика LifeCraft: " + (com.yompix.lifecraft.client.render.ColorGrade.enabled ? "включена" : "выключена")), true);
+        }
         while (radioKey.wasPressed()) {
             if (!(client.player.getVehicle() instanceof CarEntity)) continue;
             station = station + 1 >= STATIONS.length ? -1 : station + 1;

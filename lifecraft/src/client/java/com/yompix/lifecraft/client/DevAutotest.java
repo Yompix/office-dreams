@@ -33,6 +33,10 @@ public final class DevAutotest {
 
     public static void init() {
         if (System.getProperty("lifecraft.autotest") == null) return;
+        if (System.getProperty("lifecraft.autotest").equals("taxi")) {
+            taxiOnly();
+            return;
+        }
         YompixSplash.markShown();
         run(80, c -> c.setScreen(new YompixSplash(null)));
         shot(30, "00_splash_logo");
@@ -74,7 +78,7 @@ public final class DevAutotest {
             int y = Story.topY(w, (int) bx, (int) bz);
             for (int i = 0; i < 18; i++) {
                 CitizenEntity c = new CitizenEntity(com.yompix.lifecraft.ModContent.CITIZEN, w);
-                int skin = i < 8 ? 8 + i : CitizenEntity.RANDOM_FROM + (i - 8) * 4;
+                int skin = i < 8 ? 8 + i : CitizenEntity.RANDOM_FROM + (i - 8) * 2;
                 c.setup(skin, CitizenEntity.Role.CITIZEN, true, CitizenEntity.SKINS[skin]);
                 c.refreshPositionAndAngles(bx - 13 + i * 1.5, y, bz, 0, 0);
                 c.setHeadYaw(0);
@@ -107,6 +111,41 @@ public final class DevAutotest {
         shot(30, "16_trophies");
         run(5, c -> c.setScreen(new PhoneScreen(null)));
         shot(30, "17_phone_home");
+        // 0.3: карта, такси с автопилотом, вид из салона, «!» над жителем
+        run(5, c -> c.setScreen(null));
+        server(5, s -> s.getCommandManager().executeWithPrefix(s.getCommandSource(), "time set 4000"));
+        run(5, c -> c.setScreen(new com.yompix.lifecraft.client.screen.MapScreen()));
+        shot(40, "20_map");
+        run(5, c -> c.setScreen(null));
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var v = Story.place(p.getServerWorld(), "school_front");
+            p.teleport(p.getServerWorld(), v.x, v.y, v.z + 4, 180, 5);
+            com.yompix.lifecraft.life.Taxi.call(p, "shop_door");
+        });
+        shot(200, "21_taxi_coming");
+        shot(300, "22_taxi_arrived");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var cars = p.getServerWorld().getEntitiesByClass(com.yompix.lifecraft.entity.CarEntity.class, p.getBoundingBox().expand(30), c -> c.isTaxi() && c.hasPassengers());
+            if (!cars.isEmpty()) p.startRiding(cars.get(0), true);
+        });
+        shot(120, "23_inside_taxi");
+        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
+        shot(120, "24_taxi_driving");
+        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            p.stopRiding();
+            var w = p.getServerWorld();
+            var list = w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(60), c -> c.getStoryId().isEmpty() && c.getRole() == CitizenEntity.Role.CITIZEN);
+            if (!list.isEmpty()) {
+                var c = list.get(0);
+                c.setQuest(true);
+                p.teleport(w, c.getX(), c.getY(), c.getZ() + 4, 180, 0);
+            }
+        });
+        shot(60, "25_quest_marker");
         // кадры для фона главного меню: ночной неон, казино, город сверху, школа днём
         run(5, c -> c.setScreen(null));
         cmd(5, "gamemode spectator " + P);
@@ -126,6 +165,26 @@ public final class DevAutotest {
         shot(60, "18_main_menu");
         run(5, c -> c.setScreen(new com.yompix.lifecraft.client.menu.LifePauseScreen()));
         shot(30, "19_pause");
+        run(20, MinecraftClient::scheduleStop);
+    }
+
+    private static void taxiOnly() {
+        YompixSplash.markShown();
+        cmd(200, "time set 4000");
+        cmd(5, "lifecraft money " + P + " 5000");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var v = Story.place(p.getServerWorld(), "school_front");
+            p.teleport(p.getServerWorld(), v.x, v.y, v.z + 6, 180, 5);
+            com.yompix.lifecraft.life.Taxi.call(p, "shop_door");
+        });
+        for (int i = 0; i < 6; i++) shot(100, "t" + i);
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var cars = p.getServerWorld().getEntitiesByClass(com.yompix.lifecraft.entity.CarEntity.class, p.getBoundingBox().expand(60), c -> c.isTaxi() && c.hasPassengers());
+            if (!cars.isEmpty()) p.startRiding(cars.get(0), true);
+        });
+        for (int i = 6; i < 12; i++) shot(100, "t" + i);
         run(20, MinecraftClient::scheduleStop);
     }
 
