@@ -161,6 +161,17 @@ public final class DevAutotest {
             shot(20, "t_back");
             run(5, c -> { c.player.setYaw(90); c.player.setPitch(20); c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK); });
             shot(20, "t_3rd");
+            // такси само везёт: игрок пассажир, руль у таксиста
+            server(2, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                if (p.getVehicle() instanceof com.yompix.lifecraft.entity.CarEntity car) {
+                    car.setRoute(java.util.List.of(car.getPos().add(-25, 0, 0)), 0.5f, () -> com.yompix.lifecraft.LifeCraft.LOG.info("[ride] arrived, controller={}", car.getControllingPassenger()));
+                    com.yompix.lifecraft.LifeCraft.LOG.info("[ride] start at {} controller={}", car.getPos(), car.getControllingPassenger());
+                }
+            });
+            shot(40, "t_ride1");
+            server(2, s -> com.yompix.lifecraft.LifeCraft.LOG.info("[ride] player now at {} vehicle={}", s.getPlayerManager().getPlayer(P).getPos(), s.getPlayerManager().getPlayer(P).getVehicle()));
+            shot(60, "t_ride2");
             server(2, s -> {
                 for (var car : s.getPlayerManager().getPlayer(P).getServerWorld().getEntitiesByClass(com.yompix.lifecraft.entity.CarEntity.class, s.getPlayerManager().getPlayer(P).getBoundingBox().expand(10), c -> true))
                     for (var e : car.getPassengerList())
