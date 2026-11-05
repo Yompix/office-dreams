@@ -106,6 +106,16 @@
         [
          "tp",
          "home_bed"
+        ],
+        [
+         "spawn",
+         "mom",
+         "home_kitchen"
+        ],
+        [
+         "spawn",
+         "dad",
+         "home_living"
         ]
        ],
        "shots": [
@@ -543,7 +553,7 @@
        ],
        "do": [
         [
-         "spawn",
+         "tp_npc",
          "mom",
          "home_living"
         ],

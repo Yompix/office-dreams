@@ -171,8 +171,8 @@ def blocks():
 
     colors = ['pink', 'purple', 'cyan', 'blue', 'yellow', 'green', 'red', 'orange']
     for c in colors + ['off']:
-        model(f'neon_{c}', {'t': t(f'neon_{c}')}, [el([0, 6.5, 14], [16, 9.5, 16], 't')])
-        model(f'neon_floor_{c}', {'t': t(f'neon_{c}')}, [el([0, 0, 6.5], [16, 1, 9.5], 't')])
+        model(f'neon_{c}', {'t': t(f'neon_{c}')}, [el([0, 5.5, 13.5], [16, 10.5, 16], 't')])
+        model(f'neon_floor_{c}', {'t': t(f'neon_{c}')}, [el([0, 0, 5], [16, 1.2, 11], 't')])
     facing_state('neon', lambda st: f"neon_{st['color'] if st['lit'] == 'true' else 'off'}", {'color': colors, 'lit': ['true', 'false']})
     facing_state('neon_floor', lambda st: f"neon_floor_{st['color'] if st['lit'] == 'true' else 'off'}", {'color': colors, 'lit': ['true', 'false']})
     block_item('neon', 'neon_pink')

@@ -215,9 +215,9 @@ def blocks():
         c = rgb(col)
         on = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
         d = ImageDraw.Draw(on)
-        d.rectangle([0, 0, 15, 15], fill=shade(c, 0.85))
-        d.rectangle([0, 5, 15, 10], fill=c)
-        d.rectangle([0, 7, 15, 8], fill=(255, 255, 255, 255))
+        d.rectangle([0, 0, 15, 15], fill=c)
+        d.rectangle([0, 3, 15, 12], fill=shade(c, 1.25))
+        d.rectangle([0, 6, 15, 9], fill=(255, 255, 255, 255))
         for x in range(0, 16, 4):
             d.point([(x, 6), (x + 2, 9)], fill=shade(c, 1.3))
         save(on, 'block', f'neon_{name}.png')

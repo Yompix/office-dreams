@@ -480,6 +480,7 @@ public final class TownBuilder {
     private static void house(B b, BlockState[] style, Random r, String name) {
         b.place(name + "_door", 0, 0, 4, 180);
         b.place(name + "_living", 0, 0, -2, 0);
+        b.place(name + "_kitchen", -2, 0, -7, 90);
         b.place(name + "_bed", -3, 0, -8, 90);
         b.place(name + "_yard", -3, 0, 6, 0);
         b.place(name + "_yard2", 3, 0, 6, 0);

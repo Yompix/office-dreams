@@ -88,7 +88,7 @@ chapters = []
 m = 'c1m1'
 ch1 = {'id': 'c1', 'title': 'Глава 1', 'subtitle': 'Новенький', 'age': 7, 'missions': []}
 ch1['missions'].append({'id': m, 'title': 'Новый дом', 'steps': [
-    {'type': 'cutscene', 'id': 'intro', 'do': [['age', 7], ['edu', 1], ['time', 23000], ['tp', 'home_bed']],
+    {'type': 'cutscene', 'id': 'intro', 'do': [['age', 7], ['edu', 1], ['time', 23000], ['tp', 'home_bed'], ['spawn', 'mom', 'home_kitchen'], ['spawn', 'dad', 'home_living']],
      'shots': [{'from': 'cam_city_far', 'to': 'cam_city_near', 'sec': 9}, {'from': 'cam_school_a', 'to': 'cam_school_b', 'sec': 7},
                {'from': 'cam_home_a', 'to': 'cam_home_b', 'sec': 7}],
      'lines': lines(m,
@@ -153,7 +153,7 @@ ch1['missions'].append({'id': m, 'title': 'Первый день позади', 
          ('mom', 'Ну рассказывай! Как первый день?'),
          choices=[('Я нашёл друга! Его зовут Тёма.', 'c1_told_tema', [('mom', 'Как здорово! Обязательно позови его в гости.')]),
                   ('Там есть один задира, Глеб…', 'c1_told_gleb', [('mom', 'Задиры обычно просто хотят внимания. Будь собой, и всё наладится.')])],
-         do=[['spawn', 'mom', 'home_living'], ['time', 13500]]),
+         do=[['tp_npc', 'mom', 'home_living'], ['time', 13500]]),
     dialog(m, ('mom', 'А теперь мыть руки и спать. Завтра снова в школу!')),
     step('sleep', 'Ляг спать в свою кровать (ПКМ по кровати)'),
     {'type': 'title', 'title': 'Прошло три года', 'subtitle': 'Тебе 10 лет · 4 класс', 'do': [['age', 10], ['edu', 4], ['time', 1000]]},
