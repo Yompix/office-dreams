@@ -588,10 +588,23 @@ func speed() -> float:
 	return _v
 
 
-## Кровь на руках: 1 — как после дома, меньше — отмыл (под ногтями остаётся).
+## Кровь на руках (три состояния по листу постановки «24»): 1 — засохшая на ладонях и пальцах (как после дома);
+## 0 — отмыл в ведре: ладони чистые, под ногтями тёмное (set_nails); разбитые костяшки после провала — set_knuckles.
 func set_blood(v: float) -> void:
 	for sm in _blood_mats:
 		sm.set_shader_parameter("blood", v)
+
+
+## Тёмное под ногтями: 1 — есть (с самого начала и после мытья), 0 — нет.
+func set_nails(v: float) -> void:
+	for sm in _blood_mats:
+		sm.set_shader_parameter("nails", v)
+
+
+## Разбитые костяшки (после провала на заправке): 1 — свежие ссадины и кровь с тыльной стороны кисти.
+func set_knuckles(v: float) -> void:
+	for sm in _blood_mats:
+		sm.set_shader_parameter("knuckles", v)
 
 
 func _process(delta: float) -> void:
@@ -1347,6 +1360,12 @@ uniform vec3 hl1 = vec3(0.0, -99.0, 0.0);
 uniform vec3 hr0 = vec3(0.0, -99.0, 0.0);
 uniform vec3 hr1 = vec3(0.0, -99.0, 0.0);
 uniform float blood = 1.0;
+uniform float nails = 0.0;      // тёмное под ногтями (остаётся после мытья)
+uniform float knuckles = 0.0;   // разбитые костяшки — свежая кровь с тыльной стороны (после провала)
+uniform vec3 tips[10];          // кончики пальцев: 0–4 левая, 5–9 правая
+uniform vec3 kn[8];             // костяшки (основания пальцев): 0–3 левая, 4–7 правая
+uniform vec3 dors_l = vec3(0.0, 1.0, 0.0);   // тыльная сторона кисти (мир)
+uniform vec3 dors_r = vec3(0.0, 1.0, 0.0);
 varying vec3 vW;
 float h3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
 float n3(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -1363,8 +1382,22 @@ void fragment() {
 	m *= smoothstep(0.45, 0.68, n3(vW * 46.0 + 1.7) * 0.7 + n);   // пятнами и разводами: между ними — кожа
 	float fresh = smoothstep(0.68, 0.85, n3(vW * 33.0 + 4.0));
 	c = mix(c, mix(vec3(0.085, 0.022, 0.016), vec3(0.15, 0.016, 0.012), fresh), m * 0.9);   // засохшая — бурая, свежая — тёмно-красная
+	vec3 wN = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+	// под ногтями: тёмные серпики у самых кончиков пальцев, с тыльной стороны (где ноготь)
+	float dt = 1.0;
+	for (int i = 0; i < 10; i++) { dt = min(dt, distance(vW, tips[i])); }
+	vec3 dors = distance(vW, tips[2]) < distance(vW, tips[7]) ? dors_l : dors_r;
+	float mn = nails * (1.0 - smoothstep(0.006, 0.013, dt)) * smoothstep(-0.2, 0.35, dot(wN, dors));
+	c = mix(c, vec3(0.06, 0.02, 0.015), mn * 0.85);
+	// разбитые костяшки: свежая кровь и ссадины по линии оснований пальцев, только тыльная сторона
+	float dk = 1.0;
+	for (int i = 0; i < 8; i++) { dk = min(dk, distance(vW, kn[i])); }
+	vec3 dors2 = distance(vW, kn[1]) < distance(vW, kn[5]) ? dors_l : dors_r;
+	float nk = n3(vW * 120.0);
+	float mk = knuckles * (1.0 - smoothstep(0.012, 0.024, dk + (nk - 0.5) * 0.01)) * smoothstep(0.1, 0.5, dot(wN, dors2));
+	c = mix(c, mix(vec3(0.32, 0.03, 0.025), vec3(0.12, 0.01, 0.01), step(0.62, nk)), mk);   // ссадина — алая, трещины — тёмные
 	ALBEDO = c;
-	ROUGHNESS = mix(rough, mix(0.68, 0.32, fresh), m);
+	ROUGHNESS = mix(mix(rough, mix(0.68, 0.32, fresh), m), 0.25, mk);   // свежая кровь блестит
 	SPECULAR = 0.5;
 	SSS_STRENGTH = 0.35 * (1.0 - m);
 }
@@ -1389,6 +1422,7 @@ func enable_blood() -> void:
 					sm.set_shader_parameter("has_tex", true)
 				sm.set_shader_parameter("albedo", src.albedo_color)
 			mi.set_surface_override_material(i, sm)
+			sm.set_shader_parameter("nails", 1.0)   # кровь под ногтями — с самого начала (отмыть её в ведре не выйдет)
 			_blood_mats.append(sm)
 
 
@@ -1401,11 +1435,27 @@ func _update_blood() -> void:
 	var hr0: Vector3 = g.call("hand_r")
 	var hl1: Vector3 = hl0 + (g.call("middle_02_l") - hl0) * 1.05
 	var hr1: Vector3 = hr0 + (g.call("middle_02_r") - hr0) * 1.05
+	var tips := PackedVector3Array()   # кончики: продолжение последней фаланги на её длину × 0,8
+	var kn := PackedVector3Array()
+	for sd in ["_l", "_r"]:
+		for f in ["thumb", "index", "middle", "ring", "pinky"]:
+			var a: Vector3 = g.call(f + "_02" + sd)
+			var b: Vector3 = g.call(f + "_03" + sd)
+			tips.append(b + (b - a) * 0.8)
+		for f in ["index", "middle", "ring", "pinky"]:
+			kn.append(g.call(f + "_01" + sd))
+	# тыльная сторона кисти: нормаль к плоскости «запястье — указательный — мизинец», наружу от ладони
+	var dl: Vector3 = (kn[0] - hl0).cross(kn[3] - hl0).normalized()
+	var dr: Vector3 = (kn[7] - hr0).cross(kn[4] - hr0).normalized()
 	for sm in _blood_mats:
 		sm.set_shader_parameter("hl0", hl0)
 		sm.set_shader_parameter("hl1", hl1)
 		sm.set_shader_parameter("hr0", hr0)
 		sm.set_shader_parameter("hr1", hr1)
+		sm.set_shader_parameter("tips", tips)
+		sm.set_shader_parameter("kn", kn)
+		sm.set_shader_parameter("dors_l", dl)
+		sm.set_shader_parameter("dors_r", dr)
 
 
 ## Ветер и толчки — в симулятор прядей: порывы (медленные волны силы), а не дрожь; толчок затухает за ~0,3 с.

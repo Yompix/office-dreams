@@ -425,8 +425,10 @@ static func _scene_now(id: String) -> String:
 
 ## Начать с контрольной точки (продолжить или «переиграть отсюда»): что видно — по флагам, сцена — с начала.
 func _resume_at(id: String) -> void:
-	if float(flags.get("washed", 0)) > 0.0:   # отмыл руки на заправке (прогулка главы 1)
-		(actors.noah as Actor).set_blood(0.3)
+	if float(flags.get("washed", 0)) > 0.0:   # отмыл руки на заправке (прогулка главы 1): ладони чистые, под ногтями тёмное
+		(actors.noah as Actor).set_blood(0.0)
+	if float(flags.get("lapse1", 0)) > 0.0 and _chapter_of(id) == 1:   # провал на заправке: костяшки разбиты до конца главы
+		(actors.noah as Actor).set_knuckles(1.0)
 	if float(flags.get("lamp", 0)) > 0.0:
 		scene.car.break_lamp()
 	# Дэнни: с рацией (раньше после загрузки был без неё) и не возвращается, если потерялся в деревне (danny_lost)
@@ -1102,6 +1104,7 @@ func _attach_nozzle(a: Actor) -> void:
 func _lapse_after() -> void:
 	_place({"who": "noah", "at": [13.0, 0.0, -4.1], "face": -100, "clip": "Idle"})
 	_attach_nozzle(actors.noah)
+	(actors.noah as Actor).set_knuckles(1.0)   # кровь, третье состояние: разбитые костяшки (лист «24»)
 	scene.crack_door()
 	var dead := float(flags.get("shadow", 0)) >= 1.0
 	var r: Actor = actors.roman
@@ -1191,7 +1194,7 @@ func _fx(k: String) -> void:
 		"hands_out":   # руки из воды: кисти свободны
 			(actors.noah as Actor).reach = {}
 		"wash_hands":   # прогулка на заправке: Ной отмыл ладони в ведре для стёкол — под ногтями осталось
-			(actors.noah as Actor).set_blood(0.3)
+			(actors.noah as Actor).set_blood(0.0)   # кровь, второе состояние: ладони чистые, под ногтями тёмное
 			StationProps.pink_water(scene.station_root)
 			sfx.play("splash", -16.0)
 		"black":
