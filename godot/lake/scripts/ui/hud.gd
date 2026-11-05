@@ -813,7 +813,8 @@ func _process(delta: float) -> void:
 			pick(idx)
 	var pw := 1.0 if (prompt_lbl.get_meta("on", false) and sub_text.text == "" and note.text == "" and _opts.is_empty()) else 0.0
 	prompt_lbl.modulate.a = move_toward(prompt_lbl.modulate.a, pw, delta * 5.0)
-	goal_lbl.modulate.a = move_toward(goal_lbl.modulate.a, 1.0 if (goal_lbl.get_meta("on", false) and _opts.is_empty()) else 0.0, delta * 2.0)
+	# цель прячется, пока на экране подсказка действия («Разбить лёд — [E]»): они в одной полосе вверху и наезжали друг на друга
+	goal_lbl.modulate.a = move_toward(goal_lbl.modulate.a, 1.0 if (goal_lbl.get_meta("on", false) and _opts.is_empty() and hint.text == "") else 0.0, delta * 4.0)
 	if _toast_t > 0.0 and not get_tree().paused:   # плашка «запомнит» не тает под паузой
 		_toast_t -= delta
 		toast.modulate.a = clampf(_toast_t, 0.0, 1.0)

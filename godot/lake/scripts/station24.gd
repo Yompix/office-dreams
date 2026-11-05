@@ -90,6 +90,8 @@ static func fx(g, k: String) -> bool:
 			_car_depart(g)
 		"danny_alone":   # «Он остаётся»: маленькая фигура под навесом, тихо шипит рация
 			g.sfx.play("radio_hiss", -22.0)
+		"iris_looks_away":   # ведро, шаг 7: Айрис смотрит на Ноя, Дэнни — на его руки; Айрис первой отводит глаза
+			_iris_looks_away(g)
 		"blanket_carry":   # багажник: Ной вытягивает одеяло из-под ящика, встряхивает и берёт под мышку
 			_blanket_carry(g)
 		"blanket_give":   # «Укройся»: Ной отдаёт одеяло Айрис, она встряхивает его и закутывает Дэнни по плечи
@@ -627,9 +629,9 @@ float band(float x, float c, float w) { float d = abs(fract(x - c + 0.5) - 0.5);
 float h2(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 void fragment() {
 	vec2 p = UV * scale;
-	vec3 base = vec3(0.084, 0.018, 0.010);
-	vec3 green = vec3(0.012, 0.035, 0.022);
-	vec3 mustard = vec3(0.26, 0.15, 0.04);
+	vec3 base = vec3(0.13, 0.03, 0.016);   // светлее, чем в багажнике под лампочкой: ночью под навесом плед читается
+	vec3 green = vec3(0.02, 0.055, 0.035);
+	vec3 mustard = vec3(0.4, 0.24, 0.07);
 	float gu = band(p.x, 0.0, 0.34);
 	float gv = band(p.y, 0.0, 0.34);
 	float mu = band(p.x, 0.5, 0.05);
@@ -670,6 +672,24 @@ static func _folded() -> Node3D:
 		b.position = Vector3(i * 0.003, i * 0.027, -i * 0.002)
 		n.add_child(b)
 	return n
+
+
+## Ведро, шаг 7 (лист «24»): Айрис со ступеньки смотрит на Ноя, Дэнни рядом — на его руки. Айрис первой отводит глаза
+## и лёгким касанием плеча разворачивает мальчика к себе. Ничего не говорит (подпись убрана — всё в кадре).
+static func _iris_looks_away(g) -> void:
+	var ia: Actor = g.actors.iris
+	var da: Actor = g.actors.danny
+	g._look({"who": "iris", "at": "noah"})
+	g._look({"who": "danny", "at": "noah_hands"})
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(1.5)
+	tw.tween_callback(func():   # отвела глаза — на мальчика; левой рукой — к его плечу (он слева от неё)
+		g._look({"who": "iris", "at": "danny"})
+		ia.reach = {"_l": _bone(da, "upperarm_r") + Vector3(0, 0.04, 0)})
+	tw.tween_interval(0.45)
+	tw.tween_callback(func(): g._look({"who": "danny", "at": "iris"}))
+	tw.tween_interval(0.9)
+	tw.tween_callback(func(): ia.clear_hands())
 
 
 ## Прикрепить предмет к кости так, чтобы он встал в мировое положение xf (кость — в текущей позе героя).
@@ -728,7 +748,7 @@ static func _blanket_carry(g) -> void:
 		var fwd := na.global_transform.basis.z.normalized()
 		var left := up.cross(fwd).normalized()   # у героя, смотрящего к +Z, левая сторона — +X
 		var sh := _bone(na, "upperarm_l")
-		var p := sh - up * 0.18 - left * 0.03 + fwd * 0.09   # перед подмышкой, прижато плечом к рёбрам
+		var p := sh - up * 0.2 + fwd * 0.17   # зажато под мышкой: задний край у плеча, остальное торчит вперёд (не внутри груди)
 		var xf := Transform3D(Basis(fwd, left, up).orthonormalized(), p)   # длинной стороной вперёд, стопка — поперёк
 		_attach_world(na, "upperarm_l", f, xf, "blanket_carry")
 		na.set_meta("blanket_carry", true))
@@ -744,22 +764,22 @@ static func _wrap(da: Actor) -> MeshInstance3D:
 	var chest := _bone(da, "spine_03")
 	var waist := _bone(da, "spine_01") - up * 0.06
 	var half := (_bone(da, "upperarm_l") - _bone(da, "upperarm_r")).length() * 0.5
-	var rx := half + 0.085
-	var rz := 0.125
+	var rx := half + 0.15   # поверх пуховой куртки с рукавами (меньше — оболочка пряталась внутри куртки, торчал только ворот)
+	var rz := 0.2
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var NT := 14
 	var NA := 44
 	var span := TAU + 0.5
-	var a0 := PI + 0.3
+	var a0 := PI - 0.25   # запах — посередине спереди: руки выходят между краями
 	var rows := []
 	for i in NT + 1:
 		var t := float(i) / NT
 		var c: Vector3 = neck.lerp(chest, smoothstep(0.0, 0.45, t)) if t < 0.45 else chest.lerp(waist, (t - 0.45) / 0.55)
-		c += fwd * 0.03 * smoothstep(0.1, 0.5, t)
+		c += fwd * 0.04 * smoothstep(0.1, 0.5, t)
 		var k := smoothstep(0.0, 0.3, t)   # у шеи — узко (подоткнуто под подбородок), к плечам — во всю ширину
-		var ax := lerpf(0.085, rx, k) * (1.0 + 0.05 * smoothstep(0.7, 1.0, t))
-		var az := lerpf(0.08, rz, k)
+		var ax := lerpf(0.11, rx, k) * (1.0 + 0.05 * smoothstep(0.7, 1.0, t))
+		var az := lerpf(0.105, rz, k)
 		var row := []
 		for j in NA + 1:
 			var u := float(j) / NA
@@ -1053,7 +1073,7 @@ static func _roman_window(g) -> void:
 		ra.ap.play("LayToIdle", 0.3)   # поднимается с пола, держась за голову
 		ra.clear_hands()
 		return
-	g._place({"who": "roman", "at": [26.35, 0.38, -9.2], "face": 0, "clip": "Idle"})
+	g._place({"who": "roman", "at": [26.35, 0.38, -9.2], "face": -90, "clip": "Idle"})   # лицом к витрине: с улицы видно лицо и трубку
 	if float(f.get("police_late", 0)) > 0.0:   # с оборванным шнуром в руке
 		var cord := MeshInstance3D.new()
 		var cm := CylinderMesh.new()
