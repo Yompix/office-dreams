@@ -45,6 +45,18 @@ public class CitizenRenderer extends BipedEntityRenderer<CitizenEntity, PlayerEn
         }
         super.render(e, yaw, tickDelta, m, buffers, light);
         m.pop();
+        if (e.hasQuest()) {
+            // жёлтый «!» над головой — житель просит о помощи
+            m.push();
+            float bob = MathHelper.sin((e.age + tickDelta) * 0.12f) * 0.08f;
+            m.translate(0, e.getHeight() + 0.75f + bob, 0);
+            m.multiply(dispatcher.getRotation());
+            m.scale(0.06f, -0.06f, 0.06f);
+            var tr = getTextRenderer();
+            tr.draw("!", -tr.getWidth("!") / 2f, 0, 0xFFFFD000, true, m.peek().getPositionMatrix(), buffers,
+                    net.minecraft.client.font.TextRenderer.TextLayerType.SEE_THROUGH, 0, net.minecraft.client.render.LightmapTextureManager.MAX_LIGHT_COORDINATE);
+            m.pop();
+        }
     }
 
     @Override

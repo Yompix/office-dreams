@@ -56,7 +56,22 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
                 .cuboid(-13, 14, -15, 2, 10, 2).cuboid(11, 14, -15, 2, 10, 2)
                 .cuboid(-13, 14, -3, 1, 10, 1).cuboid(12, 14, -3, 1, 10, 1), ModelTransform.NONE);
         r.addChild("roof", box(-13, 24, -15, 13, 26, 10), ModelTransform.NONE);
-        r.addChild("glass", box(-12.5f, 14, -14.5f, 12.5f, 24, 9.5f), ModelTransform.NONE);
+        r.addChild("glass", ModelPartBuilder.create().uv(0, 0)
+                .cuboid(-12.5f, 14, 9, 25, 10, 0.4f)          // лобовое
+                .cuboid(-12.5f, 14, -14.4f, 25, 10, 0.4f)     // заднее
+                .cuboid(-13, 15, -13, 0.4f, 9, 21)            // левое
+                .cuboid(12.6f, 15, -13, 0.4f, 9, 21), ModelTransform.NONE);
+        r.addChild("dashboard", ModelPartBuilder.create().uv(0, 0).cuboid(-12.5f, 14, 6.5f, 25, 3, 2.5f).cuboid(-12.5f, 13, 4, 25, 1, 5), ModelTransform.NONE);
+        r.addChild("gauges", ModelPartBuilder.create().uv(0, 0).cuboid(-9.5f, 16.2f, 6.4f, 5, 1.5f, 0.2f).cuboid(2, 15.5f, 6.4f, 6, 1.5f, 0.2f), ModelTransform.NONE);
+        r.addChild("seats", ModelPartBuilder.create().uv(0, 0)
+                .cuboid(-11, 14, -4, 8, 1.5f, 7).cuboid(-11, 14, -5.5f, 8, 8, 1.5f)
+                .cuboid(3, 14, -4, 8, 1.5f, 7).cuboid(3, 14, -5.5f, 8, 8, 1.5f)
+                .cuboid(-11, 14, -13.5f, 22, 1.5f, 6).cuboid(-11, 14, -14, 22, 7, 1.2f), ModelTransform.NONE);
+        ModelPartData wheel = r.addChild("steering", ModelPartBuilder.create().uv(0, 0)
+                .cuboid(-3, -0.4f, -0.3f, 6, 0.8f, 0.6f).cuboid(-0.4f, -3, -0.3f, 0.8f, 6, 0.6f)
+                .cuboid(-3, -3, -0.3f, 6, 0.8f, 0.6f).cuboid(-3, 2.2f, -0.3f, 6, 0.8f, 0.6f)
+                .cuboid(-3, -3, -0.3f, 0.8f, 6, 0.6f).cuboid(2.2f, -3, -0.3f, 0.8f, 6, 0.6f), ModelTransform.of(-6.7f, 18.5f, 5.2f, -0.45f, 0, 0));
+        wheel.addChild("column", box(-0.5f, -0.5f, 0.2f, 0.5f, 0.5f, 3), ModelTransform.NONE);
         r.addChild("bumpers", ModelPartBuilder.create().uv(0, 0).cuboid(-15, 5, 25, 30, 4, 2).cuboid(-15, 5, -27, 30, 4, 2), ModelTransform.NONE);
         r.addChild("grille", box(-6, 8, 25, 6, 12, 25.5f), ModelTransform.NONE);
         r.addChild("plates", ModelPartBuilder.create().uv(0, 0).cuboid(-4, 6, 27, 8, 2, 0.3f).cuboid(-4, 6, -27.3f, 8, 2, 0.3f), ModelTransform.NONE);
@@ -111,6 +126,11 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         part("bumpers", m, solid, light, 0xFF9EA3AA);
         part("grille", m, solid, light, 0xFF141518);
         part("plates", m, solid, light, 0xFFF4F4F4);
+        part("dashboard", m, solid, light, 0xFF26282D);
+        part("gauges", m, solid, LightmapTextureManager.MAX_LIGHT_COORDINATE, 0xFF6FE3FF);
+        part("seats", m, solid, light, car.isTaxi() ? 0xFF3B2F25 : 0xFF2E3138);
+        root.getChild("steering").roll = -steer * 2.2f;
+        part("steering", m, solid, light, 0xFF141414);
         for (String w : WHEELS) {
             ModelPart wheel = root.getChild(w);
             m.push();
@@ -125,7 +145,7 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         part("taillights", m, solid, driven ? full : light, driven ? 0xFFFF2A2A : 0xFF8A1A1A);
         if (car.isTaxi()) part("taxi_sign", m, solid, full, 0xFFFFE14D);
         VertexConsumer glass = buffers.getBuffer(RenderLayer.getEntityTranslucent(BASE));
-        root.getChild("glass").render(m, glass, light, ov, 0xB0203448);
+        root.getChild("glass").render(m, glass, light, ov, 0x5A6A8AA8);
         if (night && driven) beams(m, buffers);
         m.pop();
         super.render(car, yaw, tickDelta, m, buffers, light);

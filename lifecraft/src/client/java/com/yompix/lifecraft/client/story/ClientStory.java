@@ -9,10 +9,26 @@ public final class ClientStory {
     private ClientStory() {}
 
     public static NbtCompound objective = new NbtCompound();
+    /** Адреса города (для карты и такси): id → {name, x, z}; плюс ox/oz — центр города. */
+    public static NbtCompound places = new NbtCompound();
+    /** Своя метка на карте (ставится на карте M). */
+    @Nullable public static Vec3d waypoint;
+    /** Кто сейчас говорит (id существа → до какого времени шевелить губами). */
+    public static final java.util.Map<Integer, Long> talking = new java.util.HashMap<>();
+
+    public static void talk(int entity, long ms) {
+        talking.put(entity, System.currentTimeMillis() + ms);
+    }
+
+    public static boolean isTalking(int entity) {
+        Long t = talking.get(entity);
+        return t != null && t > System.currentTimeMillis();
+    }
     public static String title = "", subtitle = "";
     public static long titleAt = -1;
     public static String countdown = "";
     public static long countdownAt = -1;
+    public static long sirenAt = -1;
     public static String achName = "", achDesc = "";
     public static long achAt = -1;
     public static String missionDone = "";

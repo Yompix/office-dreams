@@ -120,6 +120,10 @@ public final class Jobs {
             return;
         }
         stack.decrement(1);
+        if (d.taskKind.equals("quest")) {
+            SideQuests.letterDelivered(p);
+            return;
+        }
         int reward = d.taskKind.equals("courier") ? d.taskReward : 10;
         d.taskKind = "";
         d.taskPos = null;

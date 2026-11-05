@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -25,6 +26,9 @@ public final class LifeEvents {
         Life.DATA.identifier(); // регистрируем данные игрока при старте
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> server.execute(() -> onJoin(handler.player)));
         ServerLifecycleEvents.SERVER_STARTED.register(TownBuilder::autoBuildIfCityWorld);
+        net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT.register((player, world, hand, entity, hit) ->
+                !world.isClient && hand == net.minecraft.util.Hand.MAIN_HAND && player instanceof ServerPlayerEntity sp && SideQuests.catFound(sp, entity)
+                        ? net.minecraft.util.ActionResult.SUCCESS : net.minecraft.util.ActionResult.PASS);
         ServerTickEvents.END_SERVER_TICK.register(LifeEvents::tick);
         ServerTickEvents.END_SERVER_TICK.register(s -> s.getPlayerManager().getPlayerList().forEach(p -> {
             com.yompix.lifecraft.story.Story.tick(p);
@@ -46,6 +50,8 @@ public final class LifeEvents {
             p.sendMessage(Text.literal("📱 Нажми G (или ПКМ телефоном), чтобы открыть телефон").formatted(Formatting.AQUA), false);
         }
         com.yompix.lifecraft.story.Story.onJoin(p);
+        NbtCompound places = Taxi.placesNbt(p.getServerWorld());
+        if (places != null) LifeNet.send(p, "places", places);
         Life.sync(p);
     }
 
@@ -63,10 +69,13 @@ public final class LifeEvents {
         }
         lastTimeOfDay = tod;
         CityLife.worldTick(server);
+        SideQuests.tick(server, server.getTicks() / 20);
+        Police.tick(server);
         int second = server.getTicks() / 20;
         String today = CityLife.event(world);
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
             CityLife.playerTick(p, second);
+            Taxi.tick(p);
             Achievements.check(p);
             if (!Life.get(p).today.equals(today)) {
                 Life.get(p).today = today;

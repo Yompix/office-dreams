@@ -40,7 +40,9 @@ public class LifeCraftClient implements ClientModInitializer {
     public static LifeData data = new LifeData();
     public static long dataVersion;
 
-    private static KeyBinding phoneKey, hornKey;
+    private static KeyBinding phoneKey, hornKey, mapKey, radioKey;
+    private static int station = -1;
+    private static final String[][] STATIONS = {{"Новоград FM", "pigstep"}, {"Ретро 90", "cat"}, {"Чилл-волна", "strad"}, {"Рок-Радио", "otherside"}, {"Ночной джаз", "wait"}};
     private static final Map<Integer, CarEngineSound> ENGINES = new HashMap<>();
     private static int screenshotIn = -1;
     private static boolean hudWasHidden;
@@ -55,6 +57,8 @@ public class LifeCraftClient implements ClientModInitializer {
                 ModContent.LAMP_POST, ModContent.COMPUTER, ModContent.SCHOOL_DESK, ModContent.MAILBOX, ModContent.SLOT_MACHINE, ModContent.ROULETTE, ModContent.ATM);
 
         phoneKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.phone", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.lifecraft"));
+        mapKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.map", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.lifecraft"));
+        radioKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.radio", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.lifecraft"));
         hornKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.lifecraft.horn", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "category.lifecraft"));
 
         LifeCraft.CLIENT = new ClientHooks() {
@@ -126,6 +130,15 @@ public class LifeCraftClient implements ClientModInitializer {
             case "cutscene" -> show(client, new com.yompix.lifecraft.client.story.CutsceneScreen(n));
             case "credits" -> show(client, new com.yompix.lifecraft.client.story.CreditsScreen());
             case "objective" -> com.yompix.lifecraft.client.story.ClientStory.objective = n;
+            case "dialog_view" -> show(client, new com.yompix.lifecraft.client.story.DialogScreen(n, true));
+            case "siren" -> {
+                com.yompix.lifecraft.client.story.ClientStory.sirenAt = System.currentTimeMillis();
+                if (client.player != null) client.player.playSound(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), 1f, 1.6f);
+            }
+            case "places" -> com.yompix.lifecraft.client.story.ClientStory.places = n;
+            case "dialog_close" -> {
+                if (client.currentScreen instanceof com.yompix.lifecraft.client.story.DialogScreen ds) ds.forceClose();
+            }
             case "title" -> {
                 com.yompix.lifecraft.client.story.ClientStory.title(n.getString("title"), n.getString("subtitle"));
                 if (client.player != null) client.player.playSound(ModContent.LEVEL_UP, 0.7f, 0.8f);
@@ -144,7 +157,8 @@ public class LifeCraftClient implements ClientModInitializer {
             case "achievement" -> com.yompix.lifecraft.client.story.ClientStory.achievement(n.getString("name"), n.getString("desc"));
             case "ambient" -> {
                 var e = client.world == null ? null : client.world.getEntityById(n.getInt("entity"));
-                if (e != null) client.getSoundManager().play(new net.minecraft.client.sound.PositionedSoundInstance(LifeCraft.id("voice." + n.getString("voice")),
+                if (e != null) com.yompix.lifecraft.client.story.ClientStory.talk(e.getId(), 1800);
+                if (e != null && !n.getString("voice").isEmpty()) client.getSoundManager().play(new net.minecraft.client.sound.PositionedSoundInstance(LifeCraft.id("voice." + n.getString("voice")),
                         net.minecraft.sound.SoundCategory.VOICE, 1f, 1f, net.minecraft.util.math.random.Random.create(), false, 0,
                         net.minecraft.client.sound.SoundInstance.AttenuationType.LINEAR, e.getX(), e.getEyeY(), e.getZ(), false));
             }
@@ -202,6 +216,18 @@ public class LifeCraftClient implements ClientModInitializer {
             }
         }
         while (hornKey.wasPressed()) send("horn");
+        while (radioKey.wasPressed()) {
+            if (!(client.player.getVehicle() instanceof CarEntity)) continue;
+            station = station + 1 >= STATIONS.length ? -1 : station + 1;
+            if (station < 0) {
+                com.yompix.lifecraft.client.screen.PhoneScreen.stopMusic();
+                client.player.sendMessage(net.minecraft.text.Text.literal("📻 Радио выключено"), true);
+            } else {
+                com.yompix.lifecraft.client.screen.PhoneScreen.play(STATIONS[station][1]);
+                client.player.sendMessage(net.minecraft.text.Text.literal("📻 " + STATIONS[station][0] + "  (R — следующая станция)"), true);
+            }
+        }
+        while (mapKey.wasPressed()) if (client.currentScreen == null) client.setScreen(new com.yompix.lifecraft.client.screen.MapScreen());
         ENGINES.values().removeIf(s -> s.isDone());
         if (screenshotIn >= 0 && --screenshotIn == 0) {
             ScreenshotRecorder.saveScreenshot(client.runDirectory, client.getFramebuffer(),

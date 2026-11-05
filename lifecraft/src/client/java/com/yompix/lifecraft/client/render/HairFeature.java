@@ -61,6 +61,15 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         part("beanie", b().cuboid(-4.7f, -9.7f, -4.7f, 9.4f, 3.4f, 9.4f).cuboid(-4.95f, -6.7f, -4.95f, 9.9f, 1.3f, 9.9f).cuboid(-1.1f, -11f, -1.1f, 2.2f, 1.5f, 2.2f));
         part("glasses_frame", b().cuboid(-4.4f, -4.7f, -4.65f, 8.8f, 0.6f, 0.4f).cuboid(-4.55f, -4.7f, -4.4f, 0.4f, 0.6f, 4.2f).cuboid(4.15f, -4.7f, -4.4f, 0.4f, 0.6f, 4.2f)
                 .cuboid(-3.9f, -4.3f, -4.62f, 0.4f, 1.8f, 0.35f).cuboid(-0.85f, -4.3f, -4.62f, 0.4f, 1.8f, 0.35f).cuboid(0.45f, -4.3f, -4.62f, 0.4f, 1.8f, 0.35f).cuboid(3.5f, -4.3f, -4.62f, 0.4f, 1.8f, 0.35f));
+        part("bow", b().cuboid(-2.6f, -10.2f, 1.8f, 2.2f, 1.6f, 1).cuboid(0.4f, -10.2f, 1.8f, 2.2f, 1.6f, 1).cuboid(-0.5f, -9.9f, 1.7f, 1, 1, 1.2f));
+        part("bow_pony", b().cuboid(-2.4f, -7.3f, 5.6f, 2, 1.5f, 0.8f).cuboid(0.4f, -7.3f, 5.6f, 2, 1.5f, 0.8f).cuboid(-0.5f, -7f, 5.5f, 1, 1, 1));
+        part("long_girl", b().cuboid(-4.8f, -8.2f, -4.2f, 1.1f, 11, 8.6f).cuboid(3.7f, -8.2f, -4.2f, 1.1f, 11, 8.6f).cuboid(-4.7f, -8.2f, 3.5f, 9.4f, 12.5f, 1.4f)
+                .cuboid(-4.2f, 2.5f, 3.3f, 8.4f, 2.5f, 1.2f));
+        // лицо: веки моргают, губы шевелятся при разговоре
+        part("skirt", b().cuboid(-4.4f, 9.5f, -2.4f, 8.8f, 2, 4.8f).cuboid(-4.9f, 11.5f, -2.9f, 9.8f, 2, 5.8f).cuboid(-5.3f, 13.5f, -3.3f, 10.6f, 1.6f, 6.6f));
+        part("lids", b().cuboid(-3.02f, -4.02f, -4.06f, 2.04f, 1.04f, 0.05f).cuboid(0.98f, -4.02f, -4.06f, 2.04f, 1.04f, 0.05f));
+        part("mouth_open", b().cuboid(-1.1f, -2.05f, -4.07f, 2.2f, 1.3f, 0.05f));
+        part("mouth_wide", b().cuboid(-1.4f, -2.2f, -4.07f, 2.8f, 1.8f, 0.05f));
         part("glasses_lens", b().cuboid(-3.6f, -4.2f, -4.6f, 2.8f, 1.6f, 0.3f).cuboid(0.8f, -4.2f, -4.6f, 2.8f, 1.6f, 0.3f));
     }
 
@@ -118,7 +127,7 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
                     render("fringe", m, hair, light, hc);
                 }
                 switch (style) {
-                    case "long" -> render("long", m, hair, light, hc);
+                    case "long" -> render(look.has("girl") ? "long_girl" : "long", m, hair, light, hc);
                     case "bob" -> render("bob", m, hair, light, hc);
                     case "ponytail" -> render("ponytail", m, hair, light, hc);
                     case "slick" -> {
@@ -130,6 +139,18 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
             }
         }
         if (look.has("beard")) render("beard", m, hair, light, color(look, "beard", 0.95f));
+        VertexConsumer flat = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID));
+        if (look.has("bow")) render(style.equals("ponytail") ? "bow_pony" : "bow", m, flat, light, color(look, "bow", 1f));
+        if (look.has("skin")) {
+            long t = e.age + e.getId() * 37L;
+            boolean blink = t % 90 < 3 || (t % 230 > 100 && t % 230 < 103);
+            if (blink && !look.has("glasses")) render("lids", m, flat, light, color(look, "skin", 0.82f));
+            if (com.yompix.lifecraft.client.story.ClientStory.isTalking(e.getId()) || e.getActivity() == CitizenEntity.Activity.TALK) {
+                int phase = (int) ((System.currentTimeMillis() / 110 + e.getId()) % 4);
+                if (phase == 1) render("mouth_open", m, flat, light, 0xFF5A1A1A);
+                else if (phase == 2) render("mouth_wide", m, flat, light, 0xFF4A1414);
+            }
+        }
         if (look.has("mustache")) render("mustache", m, hair, light, color(look, "mustache", 0.95f));
         VertexConsumer solid = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(SOLID));
         if (look.has("helmet")) render("helmet", m, solid, light, color(look, "helmet", 1f));
@@ -143,6 +164,12 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
             parts.get("glasses_lens").render(m, lens, light, ov, g.equals("shades") ? 0xF0101010 : 0x70A8D8FF);
         }
         m.pop();
+        if (look.has("skirt")) {
+            m.push();
+            getContextModel().body.rotate(m);
+            render("skirt", m, buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR)), light, color(look, "skirt", 0.95f));
+            m.pop();
+        }
     }
 
     private void render(String name, MatrixStack m, VertexConsumer vc, int light, int color) {

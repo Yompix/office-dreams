@@ -44,6 +44,9 @@ public final class Shop {
             new Entry("Транспорт", "Машина: белая", () -> ModContent.CARS[4], 1, 900, 12),
             new Entry("Транспорт", "Машина: чёрная (премиум)", () -> ModContent.CARS[3], 1, 1500, 12),
             new Entry("Транспорт", "Такси", () -> ModContent.CARS[5], 1, 750, 12),
+            new Entry("Питомцы", "Собака (верный друг)", () -> Items.BONE, 1, 150, 1),
+            new Entry("Питомцы", "Кошка", () -> Items.COD, 1, 120, 1),
+            new Entry("Питомцы", "Попугай", () -> Items.WHEAT_SEEDS, 1, 90, 1),
             new Entry("Разное", "Банковская карта", () -> ModContent.BANK_CARD, 1, 20, 1),
             new Entry("Разное", "Телефон (запасной)", () -> ModContent.PHONE, 1, 120, 1),
             new Entry("Разное", "Цветы", () -> Items.POPPY, 3, 6, 1),
@@ -66,6 +69,23 @@ public final class Shop {
         return today.equals("fair") ? Math.max(1, p * 7 / 10) : p;
     }
 
+    /** Питомец появляется рядом уже ручным и с именем. */
+    private static void pet(ServerPlayerEntity p, String name) {
+        var w = p.getServerWorld();
+        net.minecraft.entity.passive.TameableEntity pet = name.startsWith("Собака") ? net.minecraft.entity.EntityType.WOLF.create(w)
+                : name.startsWith("Кошка") ? net.minecraft.entity.EntityType.CAT.create(w) : net.minecraft.entity.EntityType.PARROT.create(w);
+        if (pet == null) return;
+        pet.refreshPositionAndAngles(p.getX() + 1, p.getY(), p.getZ() + 1, p.getYaw(), 0);
+        pet.setOwner(p);
+        pet.setTamed(true, true);
+        String[] names = {"Бобик", "Шарик", "Мурка", "Барсик", "Кеша", "Рекс", "Симба", "Лаки"};
+        pet.setCustomName(net.minecraft.text.Text.literal(names[p.getRandom().nextInt(names.length)]));
+        pet.setPersistent();
+        w.spawnEntity(pet);
+        Achievements.give(p, "pet");
+        Life.message(p, "Зоомагазин", "Знакомься: " + pet.getCustomName().getString() + "! Присядь и нажми на питомца, чтобы он сидел или шёл за тобой.");
+    }
+
     static void buy(ServerPlayerEntity p, int index, boolean delivery) {
         if (index < 0 || index >= CATALOG.size()) return;
         Entry e = CATALOG.get(index);
@@ -74,6 +94,10 @@ public final class Shop {
             return;
         }
         if (!Life.pay(p, price(e, delivery, CityLife.event(p.getServerWorld())), e.name())) return;
+        if (e.category().equals("Питомцы")) {
+            pet(p, e.name());
+            return;
+        }
         if (e.category().equals("Транспорт")) Achievements.give(p, "car");
         School.give(p, new ItemStack(e.item().get(), e.count()));
         Life.sound(p, ModContent.CASH, 1.2f);

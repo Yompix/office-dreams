@@ -627,6 +627,7 @@ public final class TownBuilder {
         int bx1 = 8, bx2 = 16;
         building(b, bx1, z1 + 2, bx2, z2, 6, Blocks.QUARTZ_PILLAR.getDefaultState(), Blocks.QUARTZ_BLOCK.getDefaultState(), Blocks.POLISHED_DIORITE.getDefaultState());
         b.door(12, 0, z2, Direction.SOUTH, Blocks.IRON_DOOR, false);
+        b.place("bank_door", 12, 0, z2 + 2, 0);
         b.set(13, 1, z2 + 1, Blocks.STONE_BUTTON.getDefaultState().with(net.minecraft.block.ButtonBlock.FACING, Direction.SOUTH));
         b.set(11, 1, z2 - 1, Blocks.STONE_BUTTON.getDefaultState().with(net.minecraft.block.ButtonBlock.FACING, Direction.NORTH));
         for (int x = 10; x <= 14; x += 2) b.set(x, 0, z1 + 3, ModContent.ATM.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.SOUTH));

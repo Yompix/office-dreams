@@ -21,6 +21,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +41,8 @@ public class PhoneScreen extends LifeScreen {
             new App("messages", "СМС", 0xFF34C759), new App("map", "Карта", 0xFF3AA0E6), new App("shop", "Магазин", 0xFFE05A47),
             new App("casino", "Казино", 0xFF8E1B3A), new App("music", "Музыка", 0xFFFF375F), new App("camera", "Камера", 0xFF4B4F58),
             new App("weather", "Погода", 0xFF64B5F6), new App("story", "Сюжет", 0xFFFFB300), new App("trophy", "Награды", 0xFFC99A2E),
-            new App("home", "Дом", 0xFFA0785A));
+            new App("home", "Дом", 0xFFA0785A),
+            new App("taxi", "Такси", 0xFFF7C600), new App("friends", "Друзья", 0xFF7E57C2));
 
     private static final String[][] DISCS = {{"cat", "C418 — cat"}, {"chirp", "C418 — chirp"}, {"mall", "C418 — mall"}, {"mellohi", "C418 — mellohi"},
             {"stal", "C418 — stal"}, {"strad", "C418 — strad"}, {"wait", "C418 — wait"}, {"pigstep", "Lena Raine — Pigstep"},
@@ -159,6 +161,8 @@ public class PhoneScreen extends LifeScreen {
                 case "story" -> story(ctx, cy);
                 case "trophy" -> trophies(ctx, cy);
                 case "home" -> homes(ctx, cy);
+                case "taxi" -> taxi(ctx, cy);
+                case "friends" -> friends(ctx, cy);
                 default -> {}
             }
         }
@@ -437,7 +441,7 @@ public class PhoneScreen extends LifeScreen {
         button(ctx, sx + 8, yy + 2, sw - 16, 14, "Стоп", 0xFF8E8E93, !playing.isEmpty(), PhoneScreen::stopMusic);
     }
 
-    private static void play(String id) {
+    public static void play(String id) {
         stopMusic();
         SoundEvent ev = discSound(id);
         if (ev == null) return;
@@ -467,7 +471,7 @@ public class PhoneScreen extends LifeScreen {
         return e == null ? null : e.value();
     }
 
-    private static void stopMusic() {
+    public static void stopMusic() {
         if (music != null) mc().getSoundManager().stop(music);
         music = null;
         playing = "";
@@ -490,6 +494,62 @@ public class PhoneScreen extends LifeScreen {
             ctx.getMatrices().pop();
             yy += 24;
         }
+    }
+
+    /** Вызов такси: куда ехать и сколько стоит. */
+    private void taxi(DrawContext ctx, int y) {
+        var places = com.yompix.lifecraft.client.story.ClientStory.places;
+        ctx.drawText(textRenderer, "Куда поедем?", sx + 8, y, 0xFF222222, false);
+        int yy = y + 12 - scroll;
+        var wp = com.yompix.lifecraft.client.story.ClientStory.waypoint;
+        if (wp != null) {
+            int price = com.yompix.lifecraft.life.Taxi.price(mc().player.getPos(), wp);
+            roundRect(ctx, sx + 6, yy, sw - 12, 16, 0xFFFFF3C4);
+            ctx.drawText(textRenderer, "★ Метка на карте", sx + 10, yy + 4, 0xFF8A6D00, false);
+            final Vec3d to = wp;
+            button(ctx, sx + sw - 44, yy + 2, 36, 12, "$" + price, 0xFFF7C600, LifeCraftClient.data.money >= price,
+                    () -> callTaxi((int) Math.floor(to.x) + "," + (int) Math.floor(to.z)));
+            yy += 18;
+        }
+        for (String id : places.getKeys()) {
+            if (!(places.get(id) instanceof net.minecraft.nbt.NbtCompound pl)) continue;
+            Vec3d to = new Vec3d(pl.getInt("x"), mc().player.getY(), pl.getInt("z"));
+            int price = com.yompix.lifecraft.life.Taxi.price(mc().player.getPos(), to);
+            roundRect(ctx, sx + 6, yy, sw - 12, 16, 0xFFFFFFFF);
+            ctx.drawText(textRenderer, pl.getString("name"), sx + 10, yy + 4, 0xFF333333, false);
+            button(ctx, sx + sw - 44, yy + 2, 36, 12, "$" + price, 0xFFF7C600, LifeCraftClient.data.money >= price, () -> callTaxi(id));
+            yy += 18;
+        }
+        if (com.yompix.lifecraft.life.Jobs.Job.of(LifeCraftClient.data.job) == com.yompix.lifecraft.life.Jobs.Job.TAXI)
+            button(ctx, sx + 8, yy + 4, sw - 16, 14, "Принять вызов игрока", 0xFF2FA84F, true, () -> LifeCraftClient.send("taxi_accept"));
+    }
+
+    private void callTaxi(String dest) {
+        net.minecraft.nbt.NbtCompound n = new net.minecraft.nbt.NbtCompound();
+        n.putString("dest", dest);
+        LifeCraftClient.send("taxi_call", n);
+        close();
+    }
+
+    /** Друзья онлайн: где они и что у них по жизни. */
+    private void friends(DrawContext ctx, int y) {
+        var list = mc().getNetworkHandler() == null ? java.util.List.<net.minecraft.client.network.PlayerListEntry>of() : new java.util.ArrayList<>(mc().getNetworkHandler().getPlayerList());
+        ctx.drawText(textRenderer, "В городе сейчас: " + list.size(), sx + 8, y, 0xFF222222, false);
+        int yy = y + 12 - scroll;
+        for (var e : list) {
+            String name = e.getProfile().getName();
+            var pl = mc().world.getPlayers().stream().filter(p -> p.getGameProfile().getName().equals(name)).findFirst().orElse(null);
+            roundRect(ctx, sx + 6, yy, sw - 12, 26, 0xFFFFFFFF);
+            ctx.drawText(textRenderer, name + (name.equals(mc().player.getGameProfile().getName()) ? " (ты)" : ""), sx + 10, yy + 3, 0xFF4527A0, false);
+            String where = pl == null ? "далеко" : (int) pl.distanceTo(mc().player) + " м от тебя";
+            ctx.drawText(textRenderer, where, sx + 10, yy + 14, 0xFF777777, false);
+            if (pl != null && pl != mc().player) {
+                final Vec3d at = pl.getPos();
+                button(ctx, sx + sw - 46, yy + 6, 38, 13, "Метка", 0xFF7E57C2, true, () -> com.yompix.lifecraft.client.story.ClientStory.waypoint = at);
+            }
+            yy += 28;
+        }
+        wrap(ctx, "Сюжет общий: если друг ушёл дальше, ты подхватишь его историю при входе. Деньги можно перевести в «Банке».", sx + 8, yy + 2, sw - 16, 0xFF888888);
     }
 
     private void homes(DrawContext ctx, int y) {

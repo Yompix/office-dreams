@@ -66,22 +66,30 @@ for line in lines:
     if os.path.exists(dst) and not force and not only:
         continue
     sp, pitch = speaker_and_pitch(line)
-    best = (-1, None)
+    best = (-1, None, 0)
     with tempfile.TemporaryDirectory() as tmp:
-        for attempt in range(4):
+        # минимум 3 дубля, максимум 8; берём самый чистый: точность слов + уверенность распознавания каждого слова
+        for attempt in range(8):
             wav = os.path.join(tmp, f'{attempt}.wav')
-            tts.tts_to_file(text=line['text'], speaker=sp, language='ru', file_path=wav)
-            heard = ''.join(s.text for s in asr.transcribe(pcm16k(wav), language='ru')[0])
-            score = difflib.SequenceMatcher(None, norm(heard), norm(line['text'])).ratio()
+            tts.tts_to_file(text=line['text'], speaker=sp, language='ru', file_path=wav,
+                            temperature=0.55, top_p=0.8, top_k=40, repetition_penalty=6.0, length_penalty=1.0)
+            segs = list(asr.transcribe(pcm16k(wav), language='ru', word_timestamps=True)[0])
+            heard = ''.join(s_.text for s_ in segs)
+            words = [w for s_ in segs for w in (s_.words or [])]
+            minp = min((w.probability for w in words), default=0)
+            sim = difflib.SequenceMatcher(None, norm(heard), norm(line['text'])).ratio()
+            dur = len(pcm16k(wav)) / 16000
+            cps = len(line['text']) / max(dur, 0.1)
+            dur_ok = 7 <= cps <= 22
+            score = sim * 0.7 + minp * 0.3 - (0 if dur_ok else 0.2)
             if score > best[0]:
-                best = (score, wav)
-            if score >= 0.88:
+                best = (score, wav, sim)
+            if attempt >= 2 and sim >= 0.96 and minp >= 0.55 and dur_ok:
                 break
-        score, wav = best
-        k = 2 ** (pitch / 12)
-        af = f'asetrate=24000*{k:.4f},aresample=24000,atempo={1 / k:.4f},' if pitch else ''
-        af += 'silenceremove=start_periods=1:start_threshold=-45dB,loudnorm=I=-18:TP=-2'
-        subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', wav, '-af', af, '-ac', '1', '-ar', '24000', '-c:a', 'libvorbis', '-q:a', '5', dst], check=True)
+        score, wav, sim = best
+        af = f'rubberband=pitch={2 ** (pitch / 12):.4f}:formant=preserved,' if pitch else ''
+        af += 'highpass=f=70,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,loudnorm=I=-18:TP=-2'
+        subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', wav, '-af', af, '-ac', '1', '-ar', '24000', '-c:a', 'libvorbis', '-q:a', '6', dst], check=True)
     done += 1
-    print(f'{vid:12s} {sp:18s} {score:.2f}  {line["text"][:60]}', flush=True)
+    print(f'{vid:12s} {sp:18s} {score:.2f} {sim:.2f}  {line["text"][:60]}', flush=True)
 print('готово:', done)

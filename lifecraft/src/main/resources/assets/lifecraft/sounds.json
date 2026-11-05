@@ -140,6 +140,30 @@
       }
     ]
   },
+  "voice.c1m1c_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1c_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1c_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1c_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1c_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1c_03",
+        "stream": true
+      }
+    ]
+  },
   "voice.c1m1_04": {
     "sounds": [
       {
@@ -152,6 +176,22 @@
     "sounds": [
       {
         "name": "lifecraft:voice/c1m1_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1c_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1c_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1c_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1c_05",
         "stream": true
       }
     ]
@@ -208,6 +248,22 @@
     "sounds": [
       {
         "name": "lifecraft:voice/c1m2_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2c_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2c_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2c_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2c_02",
         "stream": true
       }
     ]
@@ -272,6 +328,22 @@
     "sounds": [
       {
         "name": "lifecraft:voice/c1m2_10",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2c_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2c_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2c_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2c_04",
         "stream": true
       }
     ]
@@ -844,6 +916,22 @@
       }
     ]
   },
+  "voice.c5m1c_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1c_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1c_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1c_02",
+        "stream": true
+      }
+    ]
+  },
   "voice.c5m1_03": {
     "sounds": [
       {
@@ -904,6 +992,22 @@
     "sounds": [
       {
         "name": "lifecraft:voice/c5m2_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m2c_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m2c_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m2c_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m2c_02",
         "stream": true
       }
     ]

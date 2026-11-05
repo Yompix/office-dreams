@@ -44,6 +44,23 @@ public class CarEntity extends Entity {
     public boolean braking;
     private int hits;
 
+    // автопилот (такси с водителем): маршрут по дорогам и что сделать по приезду
+    @Nullable private java.util.List<Vec3d> route;
+    private int routeIndex;
+    private float autoMax = 0.5f;
+    @Nullable private Runnable onArrive;
+
+    public void setRoute(java.util.List<Vec3d> points, float maxSpeed, @Nullable Runnable arrive) {
+        route = points.isEmpty() ? null : points;
+        routeIndex = 0;
+        autoMax = maxSpeed;
+        onArrive = arrive;
+    }
+
+    public boolean onRoute() {
+        return route != null;
+    }
+
     // плавное движение для тех, кто не за рулём
     private int lerpTicks;
     private double lerpX, lerpY, lerpZ, lerpYaw;
@@ -200,9 +217,30 @@ public class CarEntity extends Entity {
         if (getControllingPassenger() instanceof PlayerEntity p) {
             fwd = p.forwardSpeed;
             side = p.sidewaysSpeed;
+        } else if (route != null) {
+            Vec3d t = route.get(routeIndex);
+            double dx = t.x - getX(), dz = t.z - getZ(), dist = Math.sqrt(dx * dx + dz * dz);
+            boolean last = routeIndex == route.size() - 1;
+            if (dist < (last ? 2.5 : 3.5)) {
+                if (last) {
+                    route = null;
+                    speed *= 0.3f;
+                    Runnable r = onArrive;
+                    onArrive = null;
+                    if (r != null) r.run();
+                } else routeIndex++;
+            } else {
+                float want = (float) Math.toDegrees(Math.atan2(-dx, dz));
+                float diff = MathHelper.wrapDegrees(want - getYaw());
+                side = MathHelper.clamp(-diff / 18f, -1, 1);
+                // тормозим перед поворотами и у цели
+                float limit = Math.abs(diff) > 50 ? 0.18f : last && dist < 10 ? 0.22f : autoMax;
+                fwd = speed < limit ? 1 : speed > limit + 0.05f ? -1 : 0;
+                if (horizontalCollision && speed < 0.05f) setYaw(getYaw() + MathHelper.clamp(diff, -20, 20));
+            }
         }
         braking = false;
-        float max = isTouchingWater() ? 0.15f : 0.95f;
+        float max = isTouchingWater() ? 0.15f : route != null ? autoMax + 0.05f : 0.95f;
         if (fwd > 0) {
             speed += speed < 0 ? 0.05f : 0.018f * (1 - speed / max * 0.6f);
         } else if (fwd < 0) {

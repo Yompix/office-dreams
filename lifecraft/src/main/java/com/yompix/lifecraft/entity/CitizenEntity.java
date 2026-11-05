@@ -50,6 +50,7 @@ public class CitizenEntity extends PathAwareEntity {
 
     private static final TrackedData<Integer> SKIN = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Integer> ACTIVITY = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<Boolean> QUEST = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private Role role = Role.CITIZEN;
     private boolean stationary;
     private int removeIn = -1;
@@ -65,7 +66,8 @@ public class CitizenEntity extends PathAwareEntity {
     public static DefaultAttributeContainer.Builder createAttributes() {
         return MobEntity.createMobAttributes()
                 .add(EntityAttributes.GENERIC_MAX_HEALTH, 20)
-                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.25);
+                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.25)
+                .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 48);
     }
 
     public static boolean isSlim(int skin) {
@@ -99,11 +101,13 @@ public class CitizenEntity extends PathAwareEntity {
         super.initDataTracker(builder);
         builder.add(SKIN, 2);
         builder.add(ACTIVITY, 0);
+        builder.add(QUEST, false);
     }
 
     @Override
     protected void initGoals() {
         goalSelector.add(0, new SwimGoal(this));
+        goalSelector.add(4, new ScheduleGoal(this));
         goalSelector.add(5, new WanderAroundFarGoal(this, 0.6) {
             @Override
             public boolean canStart() {
@@ -166,7 +170,17 @@ public class CitizenEntity extends PathAwareEntity {
             Random r = getRandom();
             PlayerEntity near = getWorld().getClosestPlayer(this, 5);
             Activity next;
-            if (near != null && getActivity() != Activity.WAVE && r.nextInt(3) == 0) next = Activity.WAVE;
+            CitizenEntity buddy = r.nextInt(4) == 0 ? getWorld().getEntitiesByClass(CitizenEntity.class, getBoundingBox().expand(3), e -> e != this && !e.lockedActivity && e.storyId.isEmpty()).stream().findFirst().orElse(null) : null;
+            if (buddy != null) {
+                // два жителя остановились поболтать
+                getNavigation().stop();
+                buddy.getNavigation().stop();
+                getLookControl().lookAt(buddy, 30, 30);
+                buddy.getLookControl().lookAt(this, 30, 30);
+                buddy.dataTracker.set(ACTIVITY, Activity.TALK.ordinal());
+                buddy.activityTicks = 120;
+                next = Activity.TALK;
+            } else if (near != null && getActivity() != Activity.WAVE && r.nextInt(3) == 0) next = Activity.WAVE;
             else {
                 int x = r.nextInt(100);
                 next = x < 50 ? Activity.IDLE : x < 65 ? Activity.PHONE : x < 78 ? Activity.TALK : x < 88 ? Activity.THINK : x < 94 ? Activity.CHEER : Activity.IDLE;
@@ -178,6 +192,76 @@ public class CitizenEntity extends PathAwareEntity {
         }
     }
 
+    public boolean hasQuest() {
+        return dataTracker.get(QUEST);
+    }
+
+    public void setQuest(boolean q) {
+        dataTracker.set(QUEST, q);
+        if (q) setCustomNameVisible(true);
+    }
+
+    public boolean isStationary() {
+        return stationary;
+    }
+
+    public boolean isKid() {
+        return getScale() < 0.85f;
+    }
+
+    /** Распорядок дня: утром дети в школу, взрослые на работу; вечером парк и казино; ночью по домам. */
+    static class ScheduleGoal extends net.minecraft.entity.ai.goal.Goal {
+        private final CitizenEntity c;
+        private net.minecraft.util.math.Vec3d target;
+        private int cooldown;
+
+        ScheduleGoal(CitizenEntity c) {
+            this.c = c;
+            setControls(java.util.EnumSet.of(Control.MOVE));
+        }
+
+        @Override
+        public boolean canStart() {
+            if (c.stationary || c.lockedActivity || !c.storyId.isEmpty() || c.hasVehicle()) return false;
+            if (--cooldown > 0) return false;
+            cooldown = 200 + c.getRandom().nextInt(200);
+            if (!(c.getWorld() instanceof net.minecraft.server.world.ServerWorld w)) return false;
+            long t = w.getTimeOfDay() % 24000;
+            String[] where;
+            if (c.isKid()) where = t < 1500 || t > 15000 ? HOMES : t < 9000 ? new String[]{"school_yard", "school_front"} : new String[]{"park_center", "shop_door", "school_yard"};
+            else where = t < 1500 || t > 16500 ? HOMES : t < 10500 ? new String[]{"office_door", "shop_door", "bank_door", "dealer_door"}
+                    : new String[]{"park_center", "casino_door", "shop_door", "park_center"};
+            double[] p = com.yompix.lifecraft.world.TownState.get(w).place(where[c.getRandom().nextInt(where.length)]);
+            if (p == null) return false;
+            target = new net.minecraft.util.math.Vec3d(p[0] - 5 + c.getRandom().nextInt(11), p[1], p[2] - 5 + c.getRandom().nextInt(11));
+            return c.squaredDistanceTo(target) > 64;
+        }
+
+        private static final String[] HOMES = {"home_yard", "lisa_yard", "tema_yard", "gleb_yard", "house4_yard", "house6_yard"};
+
+        @Override
+        public void start() {
+            step();
+        }
+
+        private void step() {
+            // далёкую цель проходим кусками по 30 блоков — так навигация не сдаётся
+            net.minecraft.util.math.Vec3d d = target.subtract(c.getPos());
+            net.minecraft.util.math.Vec3d go = d.length() > 30 ? c.getPos().add(d.normalize().multiply(30)) : target;
+            c.getNavigation().startMovingTo(go.x, target.y, go.z, 0.7);
+        }
+
+        @Override
+        public boolean shouldContinue() {
+            return target != null && c.squaredDistanceTo(target) > 9 && !c.lockedActivity;
+        }
+
+        @Override
+        public void tick() {
+            if (c.getNavigation().isIdle()) step();
+        }
+    }
+
     public Role getRole() {
         return role;
     }
@@ -185,7 +269,8 @@ public class CitizenEntity extends PathAwareEntity {
     @Override
     protected ActionResult interactMob(PlayerEntity player, Hand hand) {
         if (hand != Hand.MAIN_HAND) return ActionResult.PASS;
-        if (!getWorld().isClient && !Story.onTalk((ServerPlayerEntity) player, this)) LifeActions.talk(this, (ServerPlayerEntity) player);
+        if (!getWorld().isClient && !Story.onTalk((ServerPlayerEntity) player, this)
+                && !com.yompix.lifecraft.life.SideQuests.talk((ServerPlayerEntity) player, this)) LifeActions.talk(this, (ServerPlayerEntity) player);
         return ActionResult.success(getWorld().isClient);
     }
 

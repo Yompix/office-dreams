@@ -123,6 +123,14 @@ public final class Story {
         RUNS.remove(p.getUuid());
         TownState town = TownState.get(p.getServerWorld());
         if (town.places.isEmpty()) return;
+        // игра с друзьями: новичок подхватывает сюжет того, кто ушёл дальше всех
+        ServerPlayerEntity lead = leader(p);
+        if (lead != null && (!d.storyStarted || stepKey(Life.get(lead)) > stepKey(d))) {
+            copyProgress(Life.get(lead), d);
+            p.sendMessage(net.minecraft.text.Text.literal("Ты присоединился к сюжету друзей: " + str(chapter(d) != null ? chapter(d) : new JsonObject(), "title", "")).formatted(Formatting.AQUA), false);
+            run(p).timer = 20;
+            return;
+        }
         if (!d.storyStarted) {
             d.storyStarted = true;
             d.chapter = d.mission = d.step = 0;
@@ -130,6 +138,35 @@ public final class Story {
         } else if (!d.storyDone) {
             run(p).timer = 20;
         }
+    }
+
+    /** Игрок онлайн, который дальше всех по сюжету (кроме p). */
+    @Nullable
+    static ServerPlayerEntity leader(ServerPlayerEntity p) {
+        ServerPlayerEntity best = null;
+        for (ServerPlayerEntity q : p.getServer().getPlayerManager().getPlayerList()) {
+            if (q == p || !active(q)) continue;
+            if (best == null || stepKey(Life.get(q)) > stepKey(Life.get(best))) best = q;
+        }
+        return best;
+    }
+
+    static void copyProgress(LifeData from, LifeData to) {
+        to.storyStarted = true;
+        to.storyDone = from.storyDone;
+        to.chapter = from.chapter;
+        to.mission = from.mission;
+        to.step = from.step;
+        to.stepCount = 0;
+        for (String f : from.flags) if (!f.startsWith("entered:")) to.flags.add(f);
+        to.age = from.age;
+        if (from.edu > to.edu) to.edu = from.edu;
+    }
+
+    public static int playersInStory(ServerPlayerEntity p) {
+        int n = 0;
+        for (ServerPlayerEntity q : p.getServer().getPlayerManager().getPlayerList()) if (active(q)) n++;
+        return n;
     }
 
     /** Клиент догрузил мир и закрыл экран загрузки — можно показывать кат-сцены и разговоры. */
@@ -210,6 +247,22 @@ public final class Story {
             }
         }
         enter(p, d, true);
+        // друзья в той же истории идут дальше вместе
+        for (ServerPlayerEntity q : p.getServer().getPlayerManager().getPlayerList()) {
+            if (q == p || !active(q)) continue;
+            LifeData dq = Life.get(q);
+            boolean newMission = dq.mission != d.mission || dq.chapter != d.chapter;
+            dq.flags.remove("entered:" + stepKey(dq));
+            copyProgress(d, dq);
+            LifeNet.send(q, "dialog_close", new NbtCompound());
+            if (newMission && m != null) {
+                LifeNet.send(q, "mission_done", text("title", str(m, "title", "")));
+                Life.earn(q, 15, "миссия выполнена");
+                com.yompix.lifecraft.life.Achievements.give(q, "coop");
+                com.yompix.lifecraft.life.Achievements.give(p, "coop");
+            }
+            enter(q, dq, true);
+        }
     }
 
     private static void finish(ServerPlayerEntity p, LifeData d) {
@@ -231,9 +284,12 @@ public final class Story {
         if ((type.equals("talk") || type.equals("party")) && str(s, "npc", "").equals(c.getStoryId())) {
             Run r = run(p);
             if (!r.dialogSent) {
-                sendDialog(p, s.getAsJsonArray("lines"), s.has("choices") ? s.getAsJsonArray("choices") : null);
-                r.dialogSent = true;
-                r.waitingDialog = true;
+                for (ServerPlayerEntity q : p.getServer().getPlayerManager().getPlayerList()) {
+                    if (!active(q) || q.distanceTo(p) > 32) continue;
+                    sendDialog(q, linesFor(q, s), s.has("choices") && q == p ? s.getAsJsonArray("choices") : null);
+                    run(q).dialogSent = true;
+                    run(q).waitingDialog = true;
+                }
             }
             return true;
         }
@@ -320,6 +376,11 @@ public final class Story {
         NbtCompound n = new NbtCompound();
         n.putString(k, v);
         return n;
+    }
+
+    /** Если в сюжете несколько игроков и у шага есть реплики для компании — берём их. */
+    static JsonArray linesFor(ServerPlayerEntity p, JsonObject s) {
+        return playersInStory(p) > 1 && s.has("coop") ? s.getAsJsonArray("coop") : s.getAsJsonArray("lines");
     }
 
     static void sendDialog(ServerPlayerEntity p, JsonArray lines, @Nullable JsonArray choices) {

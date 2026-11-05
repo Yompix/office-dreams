@@ -77,7 +77,10 @@ public final class LifeHud {
             double ang = Math.toDegrees(Math.atan2(-dx, dz)) - mc.player.getYaw();
             String[] arrows = {"↑", "↗", "→", "↘", "↓", "↙", "←", "↖"};
             String arrow = arrows[(int) Math.floorMod(Math.round(ang / 45.0), 8)];
-            String t = (d.taskKind.equals("taxi") ? "Такси" : "Посылка") + ": " + arrow + " " + dist + " м";
+            String kind = d.taskKind.equals("taxi") ? "Везёшь клиента" : d.taskKind.equals("taxi_wait") ? "Такси подъедет сюда"
+                    : d.taskKind.equals("taxi_ride") ? "Едем" : d.taskKind.startsWith("pickup:") ? "Забери клиента"
+                    : d.taskKind.startsWith("quest") ? "Задание" : "Посылка";
+            String t = kind + ": " + arrow + " " + dist + " м";
             int ty = y + h + 3;
             ctx.fill(x, ty, x + tr.getWidth(t) + 10, ty + 13, 0x88302010);
             ctx.drawTextWithShadow(tr, t, x + 5, ty + 3, (now / 400) % 2 == 0 ? 0xFFFFC34D : 0xFFFFE6A8);

@@ -239,7 +239,7 @@ def lang():
         en[f'subtitles.{NS}.{n}'] = e
     extra = {
         f'entity.{NS}.car': ('Машина', 'Car'), f'entity.{NS}.citizen': ('Житель', 'Citizen'), f'entity.{NS}.seat': ('Сиденье', 'Seat'),
-        f'itemGroup.{NS}': ('LifeCraft — жизнь', 'LifeCraft'), 'key.lifecraft.phone': ('Телефон', 'Phone'), 'key.lifecraft.horn': ('Гудок', 'Car horn'),
+        f'itemGroup.{NS}': ('LifeCraft — жизнь', 'LifeCraft'), 'key.lifecraft.phone': ('Телефон', 'Phone'), 'key.lifecraft.horn': ('Гудок', 'Car horn'), 'key.lifecraft.map': ('Карта и задания', 'Map and quests'), 'key.lifecraft.radio': ('Радио в машине', 'Car radio'),
         'category.lifecraft': ('LifeCraft', 'LifeCraft'), 'generator.lifecraft.city': ('LifeCraft: Город', 'LifeCraft: City'),
     }
     for k, (r, e) in extra.items():

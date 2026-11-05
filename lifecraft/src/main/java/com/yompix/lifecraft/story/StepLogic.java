@@ -33,7 +33,7 @@ final class StepLogic {
         ServerWorld w = p.getServerWorld();
         switch (type(s)) {
             case "dialog" -> {
-                Story.sendDialog(p, s.getAsJsonArray("lines"), s.has("choices") ? s.getAsJsonArray("choices") : null);
+                Story.sendDialog(p, Story.linesFor(p, s), s.has("choices") ? s.getAsJsonArray("choices") : null);
                 r.waitingDialog = true;
                 r.dialogSent = true;
             }

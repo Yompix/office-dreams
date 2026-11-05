@@ -54,6 +54,8 @@
   "itemGroup.lifecraft": "LifeCraft",
   "key.lifecraft.phone": "Phone",
   "key.lifecraft.horn": "Car horn",
+  "key.lifecraft.map": "Map and quests",
+  "key.lifecraft.radio": "Car radio",
   "category.lifecraft": "LifeCraft",
   "generator.lifecraft.city": "LifeCraft: City"
 }

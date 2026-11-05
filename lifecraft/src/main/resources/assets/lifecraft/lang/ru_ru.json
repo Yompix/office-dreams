@@ -54,6 +54,8 @@
   "itemGroup.lifecraft": "LifeCraft — жизнь",
   "key.lifecraft.phone": "Телефон",
   "key.lifecraft.horn": "Гудок",
+  "key.lifecraft.map": "Карта и задания",
+  "key.lifecraft.radio": "Радио в машине",
   "category.lifecraft": "LifeCraft",
   "generator.lifecraft.city": "LifeCraft: Город"
 }

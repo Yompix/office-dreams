@@ -80,6 +80,17 @@ public final class StoryHud {
                 ctx.drawText(tr, sub, w / 2 - tr.getWidth(sub) / 2, (int) (h * 0.32f) + 30, a | 0xFFFFFF, true);
             }
         }
+        // мигалка полиции при штрафе
+        if (ClientStory.sirenAt > 0) {
+            float t = (now - ClientStory.sirenAt) / 1000f;
+            if (t > 2.4f) ClientStory.sirenAt = -1;
+            else {
+                int a = (int) (70 * (1 - t / 2.4f)) << 24;
+                boolean red = (now / 180) % 2 == 0;
+                ctx.fillGradient(0, 0, w / 2, h, a | (red ? 0xFF2020 : 0x2040FF), 0);
+                ctx.fillGradient(w / 2, 0, w, h, a | (red ? 0x2040FF : 0xFF2020), 0);
+            }
+        }
         // награда: плашка выезжает справа
         if (ClientStory.achAt > 0) {
             float t = (now - ClientStory.achAt) / 1000f;

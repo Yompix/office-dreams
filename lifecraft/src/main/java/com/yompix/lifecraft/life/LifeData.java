@@ -43,6 +43,8 @@ public class LifeData {
 
     // потребности и прогресс
     public int energy = 100, mood = 70, talks;
+    public String questType = "", questNpc = "", questItem = "", questText = "";
+    public int questReward, questsDone, fines;
     public String today = "";
     public java.util.Set<String> achievements = new java.util.HashSet<>();
 
@@ -124,6 +126,13 @@ public class LifeData {
         n.putInt("energy", energy);
         n.putInt("mood", mood);
         n.putInt("talks", talks);
+        n.putString("questType", questType);
+        n.putString("questNpc", questNpc);
+        n.putString("questItem", questItem);
+        n.putString("questText", questText);
+        n.putInt("questReward", questReward);
+        n.putInt("questsDone", questsDone);
+        n.putInt("fines", fines);
         n.putString("today", today);
         n.put("achievements", strings(achievements));
         return n;
@@ -164,6 +173,13 @@ public class LifeData {
         if (n.contains("energy")) d.energy = n.getInt("energy");
         if (n.contains("mood")) d.mood = n.getInt("mood");
         d.talks = n.getInt("talks");
+        d.questType = n.getString("questType");
+        d.questNpc = n.getString("questNpc");
+        d.questItem = n.getString("questItem");
+        d.questText = n.getString("questText");
+        d.questReward = n.getInt("questReward");
+        d.questsDone = n.getInt("questsDone");
+        d.fines = n.getInt("fines");
         d.today = n.getString("today");
         for (NbtElement e : n.getList("achievements", NbtElement.STRING_TYPE)) d.achievements.add(e.asString());
         return d;

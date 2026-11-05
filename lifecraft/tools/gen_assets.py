@@ -453,19 +453,19 @@ def entities():
     save(glow, 'entity', 'car', 'glow.png')
 
     variants = {
-        'teacher':    dict(skin='e9c1a0', hair='5a3a22', top='sweater', shirt='7b4fa1', pants='2b2b3a', shoes='3a2416', style='bob', glasses=True, slim=True, dress=True),
+        'teacher':    dict(skin='e9c1a0', hair='5a3a22', top='sweater', shirt='7b4fa1', pants='2b2b3a', shoes='3a2416', style='bob', glasses=True, slim=True, dress=True, girl=True),
         'shopkeeper': dict(skin='d9a47c', hair='1f1f1f', top='tshirt', shirt='e05a47', pants='3c4a6b', shoes='222222', style='short', apron=True),
         'student':    dict(skin='f0c8a6', hair='a0662e', top='tshirt', shirt='2c6ecb', pants='3a3a46', shoes='eeeeee', style='short', bag=True),
-        'student2':   dict(skin='c99067', hair='2a1a10', top='tshirt', shirt='e8e8e8', pants='5a2a3a', shoes='222222', style='ponytail', bag=True, slim=True, dress=True),
+        'student2':   dict(skin='c99067', hair='2a1a10', top='tshirt', shirt='e8e8e8', pants='5a2a3a', shoes='222222', style='ponytail', bag=True, slim=True, dress=True, girl=True),
         'worker':     dict(skin='e0b48f', hair='7a5230', top='jacket', shirt='f28c28', inner='dfe6ee', pants='2f3b55', shoes='4a3020', style='short', helmet=True, beard='7a5230'),
         'office':     dict(skin='efc9a8', hair='3a2a1a', top='suit', shirt='2a2d36', inner='f4f4f4', pants='2a2d36', shoes='111111', style='short', tie='c62828'),
         'police':     dict(skin='d8a982', hair='222222', top='jacket', shirt='1d3f8a', inner='9fb8e8', pants='1b2440', shoes='111111', style='buzz', cap='1b2440', badge=True),
-        'grandma':    dict(skin='edc7ab', hair='d9d9d9', top='sweater', shirt='9c5a7a', pants='5a3a4a', shoes='3a2a2a', style='bob', glasses=True, slim=True, dress=True),
+        'grandma':    dict(skin='edc7ab', hair='d9d9d9', top='sweater', shirt='9c5a7a', pants='5a3a4a', shoes='3a2a2a', style='bob', glasses=True, slim=True, dress=True, girl=True),
         # герои сюжета
-        'mom':        dict(skin='efc6a4', hair='6b3d1f', top='sweater', shirt='e91e63', pants='37474f', shoes='5d4037', style='long', slim=True, blush=True),
+        'mom':        dict(skin='efc6a4', hair='6b3d1f', top='sweater', shirt='e91e63', pants='37474f', shoes='5d4037', style='long', slim=True, blush=True, girl=True),
         'dad':        dict(skin='e2b48e', hair='3e2723', top='jacket', shirt='1565c0', inner='eceff1', pants='263238', shoes='3e2723', style='short', beard='3e2723'),
         'tema':       dict(skin='f3cbb0', hair='d2691e', top='hoodie', shirt='2e7d32', pants='37474f', shoes='fafafa', style='curly', freckles=True),
-        'lisa':       dict(skin='f6d2b8', hair='f2d16b', top='tshirt', shirt='ffca28', pants='ad1457', shoes='fafafa', style='ponytail', slim=True, dress=True, blush=True),
+        'lisa':       dict(skin='f6d2b8', hair='f2d16b', top='tshirt', shirt='ffca28', pants='ad1457', shoes='fafafa', style='ponytail', slim=True, dress=True, blush=True, girl=True, bow='ff4f9a'),
         'gleb':       dict(skin='dcae8a', hair='212121', top='jacket', shirt='b71c1c', inner='212121', pants='1c1c1c', shoes='212121', style='buzz', scar=True),
         'instructor': dict(skin='e0b08a', hair='9e9e9e', top='jacket', shirt='ef6c00', inner='fff3e0', pants='455a64', shoes='3e2723', style='bald', mustache='757575'),
         'baron':      dict(skin='e8c0a0', hair='0d0d0d', top='suit', shirt='111111', inner='ffd54f', pants='111111', shoes='111111', style='slick', tie='ffc107', glasses='gold', mustache='0d0d0d'),
@@ -486,15 +486,22 @@ def entities():
         hair = r.choice(hairs[:7]) if r.random() < 0.85 else r.choice(hairs[7:])
         v = dict(skin=r.choice(skins), hair=hair, shirt=r.choice(clothes), pants=r.choice(pants), shoes=r.choice(['fafafa', '212121', '5d4037', 'e53935', '1e88e5']),
                  top=r.choice(['tshirt', 'tshirt', 'hoodie', 'jacket', 'sweater'] + (['dress'] if girl else ['suit'])), inner=r.choice(clothes),
-                 style=r.choice(['long', 'ponytail', 'bob', 'curly'] if girl else ['short', 'buzz', 'curly', 'slick', 'bald', 'short']), slim=girl)
-        if girl and r.random() < 0.5: v['blush'] = True
+                 style=r.choice(['long', 'long', 'ponytail', 'ponytail', 'bob', 'curly'] if girl else ['short', 'buzz', 'curly', 'slick', 'bald', 'short']), slim=girl)
+        if girl:
+            v['blush'] = True
+            v['girl'] = True
+            if r.random() < 0.45: v['bow'] = r.choice(['ff4f9a', 'e53935', 'ffffff', '7e57c2', '29b6f6'])
+            if v['top'] in ('suit', 'jacket') and r.random() < 0.5: v['top'] = 'dress'
         if r.random() < 0.25: v['glasses'] = r.choice([True, 'shades'])
         if not girl and r.random() < 0.25: v['beard'] = v['hair']
         if r.random() < 0.2: v['cap'] = r.choice(clothes)
         elif r.random() < 0.12: v['beanie'] = r.choice(clothes)
         if r.random() < 0.15: v['freckles'] = True
         if r.random() < 0.2: v['bag'] = True
-        if v['top'] == 'dress': v['dress'] = True
+        if v['top'] == 'dress':
+            v['dress'] = True
+            v['top'] = 'tshirt'
+        if girl and r.random() < 0.35: v['dress'] = True
         save(skin(v), 'entity', 'citizen', f'c{i:02d}.png')
         looks.append(look(v))
     with open(os.path.join(ROOT, 'citizen_looks.json'), 'w') as f:
@@ -513,7 +520,10 @@ def entities():
 
 def look(v):
     """Что рисовать объёмом поверх головы: причёска, борода, усы, головной убор, очки."""
-    out = {'style': v.get('style', 'short'), 'hair': v['hair']}
+    out = {'style': v.get('style', 'short'), 'hair': v['hair'], 'skin': v['skin']}
+    if v.get('girl'): out['girl'] = True
+    if v.get('bow'): out['bow'] = v['bow']
+    if v.get('dress'): out['skirt'] = v['pants']
     if v.get('beard'): out['beard'] = v['beard']
     if v.get('mustache'): out['mustache'] = v['mustache']
     if v.get('helmet'): out['helmet'] = 'f2c032'
@@ -581,6 +591,12 @@ def skin(v):
     d.point([(fx + 3, fy + 5), (fx + 4, fy + 5)], fill=shade(S, 0.88))
     d.line([fx + 3, fy + 6, fx + 4, fy + 6], fill=rgb('a0524a'))
     d.point([(fx + 2, fy + 6)], fill=shade(S, 0.8)) if not v.get('slim') else None
+    if v.get('girl'):
+        lash = rgb('1a1010')
+        d.point([(fx, fy + 3), (fx + 7, fy + 3), (fx + 1, fy + 3), (fx + 6, fy + 3)], fill=lash)
+        d.point([(fx + 1, fy + 4), (fx + 6, fy + 4)], fill=rgb('ffffff'))
+        d.line([fx + 3, fy + 6, fx + 4, fy + 6], fill=rgb('d6455a'))
+        d.point([(fx + 3, fy + 7), (fx + 4, fy + 7)], fill=shade(S, 0.93))
     if v.get('blush'):
         d.point([(fx + 1, fy + 5), (fx + 6, fy + 5)], fill=rgb('f48fb1'))
     if v.get('freckles'):
@@ -727,6 +743,8 @@ def gui():
     icon('story', 'ffb300', lambda d: (d.rectangle([3, 3, 12, 13], fill=rgb('ffffff')), d.rectangle([3, 3, 4, 13], fill=rgb('b07d00')), d.polygon([(8, 5), (9, 7), (11, 7), (9, 9), (10, 11), (8, 10), (6, 11), (7, 9), (5, 7), (7, 7)], fill=rgb('ffb300'))))
     icon('online', '6a1b9a', lambda d: (d.ellipse([3, 3, 12, 12], outline=rgb('ffffff')), d.line([7, 3, 7, 12], fill=rgb('ffffff')), d.line([3, 7, 12, 7], fill=rgb('ffffff')), d.ellipse([9, 9, 14, 14], fill=rgb('ffd54f'))))
     icon('trophy', 'c99a2e', lambda d: (d.rectangle([5, 3, 10, 8], fill=rgb('ffe082')), d.line([3, 4, 5, 6], fill=rgb('ffe082')), d.line([12, 4, 10, 6], fill=rgb('ffe082')), d.rectangle([7, 9, 8, 11], fill=rgb('ffe082')), d.rectangle([5, 12, 10, 13], fill=rgb('ffe082'))))
+    icon('taxi', 'f7c600', lambda d: (d.rectangle([2, 7, 13, 11], fill=rgb('222222')), d.polygon([(4, 7), (5, 4), (10, 4), (11, 7)], fill=rgb('222222')), d.rectangle([6, 2, 9, 3], fill=rgb('222222')), d.ellipse([3, 10, 6, 13], fill=rgb('ffffff')), d.ellipse([9, 10, 12, 13], fill=rgb('ffffff'))))
+    icon('friends', '7e57c2', lambda d: (d.ellipse([3, 3, 7, 7], fill=rgb('ffffff')), d.ellipse([9, 3, 13, 7], fill=rgb('e1d5f5')), d.rectangle([2, 8, 8, 13], fill=rgb('ffffff')), d.rectangle([8, 8, 14, 13], fill=rgb('e1d5f5'))))
     icon('casino', '8e1b3a', lambda d: (d.ellipse([3, 7, 7, 11], fill=rgb('ff3b4f')), d.ellipse([8, 8, 12, 12], fill=rgb('ff3b4f')), d.line([5, 7, 8, 3, 10, 8], fill=rgb('5bd16a')), d.point([(4, 8), (9, 9)], fill=rgb('ffffff'))))
 
     # символы игрового автомата 16x16

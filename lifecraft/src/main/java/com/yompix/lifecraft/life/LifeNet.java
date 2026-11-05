@@ -67,6 +67,8 @@ public final class LifeNet {
         switch (type) {
             case "hello" -> Life.sync(p);
             case "ready" -> com.yompix.lifecraft.story.Story.onClientReady(p);
+            case "taxi_call" -> Taxi.call(p, d.getString("dest"));
+            case "taxi_accept" -> Taxi.accept(p);
             case "dialog_done" -> com.yompix.lifecraft.story.Story.onDialogDone(p, d.getInt("choice"));
             case "cutscene_done" -> com.yompix.lifecraft.story.Story.onCutsceneDone(p);
             case "credits_done" -> com.yompix.lifecraft.story.Story.onCreditsDone(p);

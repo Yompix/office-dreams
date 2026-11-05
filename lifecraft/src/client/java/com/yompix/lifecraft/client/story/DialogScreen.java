@@ -32,6 +32,14 @@ public class DialogScreen extends LifeScreen {
     private long lineAt = System.currentTimeMillis();
     private boolean choosing, finished;
 
+    private boolean viewOnly;
+
+    /** Разговор вне сюжета (побочные задания): по окончании ничего не отправляем на сервер. */
+    public DialogScreen(NbtCompound n, boolean viewOnly) {
+        this(n);
+        this.viewOnly = viewOnly;
+    }
+
     public DialogScreen(NbtCompound n) {
         super("Разговор");
         lines.addAll(read(n.getList("lines", NbtElement.COMPOUND_TYPE)));
@@ -55,7 +63,10 @@ public class DialogScreen extends LifeScreen {
 
     private void startLine() {
         lineAt = System.currentTimeMillis();
-        if (index < lines.size()) Voice.play(lines.get(index).voice());
+        if (index < lines.size()) {
+            Voice.play(lines.get(index).voice());
+            if (lines.get(index).entity() >= 0) ClientStory.talk(lines.get(index).entity(), 60L * lines.get(index).text().length() + 400);
+        }
     }
 
     private int shownChars(Line l) {
@@ -98,15 +109,24 @@ public class DialogScreen extends LifeScreen {
     private void finish() {
         finished = true;
         Voice.stop();
-        NbtCompound n = new NbtCompound();
-        n.putInt("choice", choice);
-        LifeCraftClient.send("dialog_done", n);
+        if (!viewOnly) {
+            NbtCompound n = new NbtCompound();
+            n.putInt("choice", choice);
+            LifeCraftClient.send("dialog_done", n);
+        }
         super.close();
     }
 
     @Override
     public void close() {
         // разговор нельзя просто закрыть — только дослушать
+    }
+
+    /** Друг уже ответил за компанию — сюжет пошёл дальше, это окно больше не нужно. */
+    public void forceClose() {
+        finished = true;
+        Voice.stop();
+        super.close();
     }
 
     @Override
