@@ -99,6 +99,20 @@ public final class TownBuilder {
         b.cam("cam_school_b", 0, 4, 20, 180, 2);
         b.cam("cam_home_a", -56, 9, -28, 180, 22);
         b.cam("cam_home_b", -56, 4, -36, 180, 8);
+        b.cam("cam_school_far", 0, 18, 45, 180, 20);
+        b.cam("cam_yard_a", -14, 4, 22, 200, 10);
+        b.cam("cam_yard_b", 12, 3, 18, 160, 8);
+        b.cam("cam_park_a", 0, 10, -24, 180, 25);
+        b.cam("cam_park_b", 10, 4, -38, 150, 10);
+        b.cam("cam_night_street", -60, 3, 24, -90, 3);
+        b.cam("cam_night_street_b", -20, 3, 24, -90, 3);
+        b.cam("cam_casino_a", 0, 6, 28, 0, 10);
+        b.cam("cam_casino_b", -4, 3, 38, 0, 5);
+        b.cam("cam_sky_high", 0, 80, -60, 0, 45);
+        b.cam("cam_dealer_a", -48, 6, 30, 0, 12);
+        b.cam("cam_dealer_b", -44, 3, 38, 10, 5);
+        b.cam("cam_office_a", 48, 7, 24, 180, 12);
+        b.cam("cam_office_b", 48, 3, 12, 180, 4);
 
         state.school = origin.add(0, 0, 5);
         rules0(world);
@@ -334,6 +348,7 @@ public final class TownBuilder {
         b.place("prom_1", -3, 0, 12, 180);
         b.place("prom_2", 3, 0, 12, 180);
         b.place("prom_3", 6, 0, 10, 180);
+        b.place("goal_school", -12, 0, 11, 90);
         b.label(0, 8, 2, "🏫 ШКОЛА №1", Formatting.GOLD);
         b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.YELLOW);
     }
@@ -494,6 +509,7 @@ public final class TownBuilder {
         b.place(name + "_yard", -3, 0, 6, 0);
         b.place(name + "_yard2", 3, 0, 6, 0);
         b.place(name + "_yard3", 0, 0, 7, 0);
+        if (name.equals("lisa")) b.place("clue_cat", 5, 0, 7, 0);
         int x1 = -6, x2 = 6, z1 = -10, z2 = 2, h = 5;
         b.fill(x1, -1, z1, x2, -1, z2, style[1]);
         b.walls(x1, 0, z1, x2, h - 1, z2, style[0]);

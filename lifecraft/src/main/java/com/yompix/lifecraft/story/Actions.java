@@ -73,6 +73,11 @@ final class Actions {
                 Vec3d v = Story.place(w, a.get(1).getAsString());
                 if (v != null) Story.spawnCar(p, v, Story.placeYaw(w, a.get(1).getAsString()), a.get(2).getAsInt(), false);
             }
+            case "ball" -> {
+                Vec3d v = Story.place(w, a.get(1).getAsString());
+                if (v != null && w.getEntitiesByClass(com.yompix.lifecraft.entity.BallEntity.class, new net.minecraft.util.math.Box(BlockPos.ofFloored(v)).expand(20), e -> true).isEmpty())
+                    com.yompix.lifecraft.world.TownBuilder.ball(w, Story.ground(w, v));
+            }
             case "msg" -> Life.message(p, a.get(1).getAsString(), a.get(2).getAsString());
             default -> {}
         }

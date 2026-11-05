@@ -110,6 +110,20 @@ final class StepLogic {
             case "money" -> {
                 if (d.money >= Story.num(s, "amount", 0)) Story.advance(p);
             }
+            case "ball" -> {
+                Vec3d goal = Story.place(w, Story.str(s, "place", ""));
+                if (goal == null) {
+                    Story.advance(p);
+                    return;
+                }
+                double rad = s.has("radius") ? s.get("radius").getAsDouble() : 2.5;
+                var balls = w.getEntitiesByClass(com.yompix.lifecraft.entity.BallEntity.class, new Box(BlockPos.ofFloored(goal)).expand(rad), e -> true);
+                if (!balls.isEmpty()) {
+                    Story.say(p, "ГОООЛ!", Formatting.GOLD);
+                    p.playSoundToPlayer(ModContent.LEVEL_UP, SoundCategory.MASTER, 1f, 1.2f);
+                    Story.advance(p);
+                }
+            }
             case "buy" -> {
                 int have = Story.count(p, Story.item(Story.str(s, "item", ""))) + (s.has("alt") ? Story.count(p, Story.item(Story.str(s, "alt", ""))) : 0);
                 if (have >= Story.num(s, "count", 1)) Story.advance(p);
@@ -272,6 +286,8 @@ final class StepLogic {
             }
             case "lesson":
                 return Story.place(w, "classroom1");
+            case "ball":
+                return Story.place(w, Story.str(s, "place", ""));
             case "sleep":
                 return Story.place(w, "home_bed");
             case "buy":
