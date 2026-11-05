@@ -47,9 +47,11 @@ var _exit := false
 var _e_prev := true          # клавиша E была нажата в прошлом кадре (нажатие до начала прогулки не считаем)
 var _looks := {}             # кто куда смотрел до прогулки — вернуть в конце
 var _tight := false          # камере тесно (вплотную к стене): она над плечом — смотрит дальше вперёд, а не в землю
+var _side := 1.0             # за каким плечом камера: 1 — за правым, −1 — за левым (идёт вдоль стены справа)
 var _opened := {}            # id двери → узел-петля, на котором повёрнута створка
 var _intro := false          # надписи вступления ещё идут (герой уже ходит): осмотр и зоны — после них
 var _closer := {}            # двери с доводчиком: id → {piv, ang, at, open}
+var _leaf := {}              # створки открытых дверей: id → {piv, hinge (x, z), dir0 (куда от петли при закрытой), len}
 var _use_later := false      # «Осмотреть» нажали во время вступления — осмотреть, как только оно кончится
 static var _ring: Texture2D
 
@@ -304,7 +306,24 @@ func _free(x: float, z: float) -> bool:
 			continue
 		if x > float(b[0]) - RAD and x < float(b[2]) + RAD and z > float(b[1]) - RAD and z < float(b[3]) + RAD:
 			return false
+	for id in _leaf:   # створка — препятствие там, где она сейчас (закрытая, приоткрытая, открытая), а не одной полосой
+		if _leaf_dist(id, Vector2(x, z)) < RAD + 0.05:
+			return false
 	return true
+
+
+## Расстояние от точки до полотна створки (отрезок от петли к свободному краю) при угле ang (INF — как стоит сейчас).
+func _leaf_dist(id: String, p: Vector2, ang := INF) -> float:
+	var lf: Dictionary = _leaf[id]
+	var piv = lf.piv
+	if not is_instance_valid(piv):
+		return 1e9
+	var r: float = piv.rotation.y if is_inf(ang) else ang
+	var h: Vector2 = lf.hinge
+	var e: Vector2 = h + (lf.dir0 as Vector2).rotated(-r) * float(lf.len)
+	var dv := e - h
+	var t := clampf((p - h).dot(dv) / maxf(dv.length_squared(), 1e-6), 0.0, 1.0)
+	return p.distance_to(h + dv * t)
 
 
 func _floor(x: float, z: float) -> float:
@@ -415,6 +434,7 @@ func _use(s: Dictionary) -> void:
 	_used[id] = int(_used.get(id, 0)) + 1
 	if s.has("cam"):
 		g._cam_free = s.cam
+		g._cam_free_to = []   # без этого план точки доезжал до наезда прошлой точки (разговор с Дэнни — на трассе, запись 5 ноя)
 		g._cut("free")
 	for b in s.get("beats", []):
 		await g._beat(b)
@@ -454,6 +474,18 @@ func _open_door(s: Dictionary) -> void:
 		for l in leaves:
 			(l as Node3D).reparent(piv, true)
 		_opened[id] = piv
+		var far := 0.0   # длина полотна и куда оно идёт от петли (пока закрыто): по габаритам створки в осях петли
+		var mid := Vector2.ZERO
+		var inv := piv.global_transform.affine_inverse()
+		for l in leaves:
+			if l is MeshInstance3D:
+				var bx: AABB = (inv * (l as MeshInstance3D).global_transform) * (l as MeshInstance3D).get_aabb()
+				for k in 8:
+					var c: Vector3 = bx.get_endpoint(k)
+					far = maxf(far, Vector2(c.x, c.z).length())
+				mid = Vector2(bx.get_center().x, bx.get_center().z)
+		if far > 0.2 and mid.length() > 0.05:
+			_leaf[id] = {"piv": piv, "hinge": Vector2(piv.global_position.x, piv.global_position.z), "dir0": mid.normalized(), "len": far}
 		var ang := deg_to_rad(float(s.get("open", 90.0)))
 		var grip := _door_handle(piv, leaves)   # ручка у свободного края створки, со стороны героя (оси петли)
 		var tw: Tween = g.create_tween()
@@ -517,25 +549,39 @@ func _door_handle(piv: Node3D, leaves: Array) -> Vector3:
 	return dir * (w * 0.85) + Vector3(0, box.position.y + 1.02, 0) + nrm * 0.06
 
 
-## Доводчик (дверь с "closer"): герой отошёл от проёма дальше 1,7 м — створка медленно закрывается, колокольчик звякает
-## тише; подошёл ближе 1,3 м — открывается снова (толкнул). Проём при этом проходим всегда.
+## Доводчик (дверь с "closer"): отошёл от двери дальше 2,4 м — створка медленно закрывается, колокольчик звякает тише;
+## подходит ближе 2,1 м — открывается заранее (раньше открывалась в 1,3 м
+## от петли за 0,6 с, и герой успевал войти в закрытую створку наполовину — владелец, 5 ноя). Створка двигается каждый
+## кадр и не проходит сквозь героя: упрётся — ждёт, пока он отойдёт.
 func _closers() -> void:
+	var dt: float = g._dt()
 	for id in _closer:
 		var c: Dictionary = _closer[id]
 		var piv: Node3D = c.piv
 		if not is_instance_valid(piv):
 			continue
 		var dist := Vector2(a.position.x, a.position.z).distance_to(c.at)
-		if bool(c.open) and dist > 1.7:
+		if bool(c.open) and dist > 2.4:
 			c.open = false
-			var tw := piv.create_tween()
-			tw.tween_property(piv, "rotation:y", 0.0, 2.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-			tw.tween_callback(func(): g.sfx.play("door_chime", -16.0, 1.05))
-		elif not bool(c.open) and dist < 1.3:
+			c.chimed = false
+		elif not bool(c.open) and dist < 2.1:
 			c.open = true
-			var tw := piv.create_tween()
-			tw.tween_property(piv, "rotation:y", float(c.ang), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 			g.sfx.play("door_chime", -12.0)
+		var want := float(c.ang) if bool(c.open) else 0.0
+		var cur := piv.rotation.y
+		if absf(want - cur) < 0.002:
+			piv.rotation.y = want
+			if not bool(c.open) and not bool(c.get("chimed", true)):
+				c.chimed = true
+				g.sfx.play("door_chime", -16.0, 1.05)
+			continue
+		var k := 7.0 if bool(c.open) else 1.4   # открывается быстро, доводчик тянет медленно и дожимает у косяка
+		var nxt := lerpf(cur, want, 1.0 - exp(-dt * k))
+		nxt = move_toward(nxt, want, dt * 0.05)
+		var me := Vector2(a.position.x, a.position.z)
+		if _leaf.has(id) and _leaf_dist(id, me, nxt) < RAD + 0.03 and _leaf_dist(id, me, nxt) < _leaf_dist(id, me, cur):
+			continue   # створка упёрлась бы в героя — стоит, пока он не отойдёт
+		piv.rotation.y = nxt
 
 
 ## В списке препятствий: убрать прямоугольники из out (по первым четырём числам), добавить add.
@@ -554,6 +600,19 @@ func _swap(key: String, out: Array, add: Array) -> void:
 ## Камера после точки: за спину героя, если он стоит лицом к стене / человеку — иначе туда же, куда была.
 func _yaw_after(_s: Dictionary) -> float:
 	return a.rotation.y
+
+
+## Герой в зоне, которая ещё не срабатывала (и доступна сейчас)?
+func _zone_here() -> bool:
+	for z in d.get("zones", []):
+		if _zones.has(JSON.stringify(z.rect)) or (z.has("if") and not g._cond(z["if"])):
+			continue
+		if z.get("manual", false) and g.autoplay:
+			continue
+		var rc: Array = z.rect
+		if a.position.x >= float(rc[0]) and a.position.x <= float(rc[2]) and a.position.z >= float(rc[1]) and a.position.z <= float(rc[3]):
+			return true
+	return false
 
 
 func _zones_check() -> void:
@@ -590,31 +649,63 @@ func _zones_check() -> void:
 # ---------------------------------------------------------------------------------------------------- камера
 
 func place_cam(cam: Camera3D) -> void:
-	# за правым плечом: герой чуть левее середины кадра, впереди видно, куда идёт
+	# за правым плечом: герой чуть левее середины кадра, впереди видно, куда идёт; идёт вдоль стены справа — камера
+	# за левым плечом (раньше вжималась в стену и смотрела в штукатурку — запись 5 ноя, от таксофона к витрине)
 	var f := Vector3(sin(yaw), 0.0, cos(yaw))
 	var r := f.cross(Vector3.UP)
 	var head := a.global_position + Vector3(0, 1.5, 0)
-	var eye := head - f * DIST + r * 0.38 + Vector3(0, RISE - pitch * 0.55, 0)   # смотрит вверх — камера чуть ниже
-	eye.y = maxf(eye.y, a.global_position.y + 0.45)
-	eye = _cam_clear(head + r * 0.2, eye)
+	var res := {}
+	for sv in [_side, -_side]:
+		var sd := float(sv)
+		var e0 := head - f * DIST + r * 0.38 * sd + Vector3(0, RISE - pitch * 0.55, 0)   # смотрит вверх — камера чуть ниже
+		e0.y = maxf(e0.y, a.global_position.y + 0.45)
+		var e1 := _cam_clear(head + r * 0.2 * sd, e0)
+		res[sd] = [e1, _tight, e1.distance_to(head)]
+	var cur: Array = res[_side]
+	var oth: Array = res[-_side]
+	if (bool(cur[1]) and not bool(oth[1])) or float(oth[2]) > float(cur[2]) + 0.6:
+		_side = -_side
+		cur = oth
+	var eye: Vector3 = cur[0]
+	_tight = bool(cur[1])
 	cam.fov = 56.0
 	var up := Vector3(0, pitch * 2.6, 0)   # взгляд вверх / вниз (палец справа на телефоне)
 	if _tight:   # над плечом: цель дальше и выше — в кадре дорога впереди и макушка героя, а не одна земля
-		cam.look_at_from_position(eye, head + f * 3.6 + r * 0.22 + Vector3(0, -0.3, 0) + up)
+		cam.look_at_from_position(eye, head + f * 3.6 + r * 0.22 * _side + Vector3(0, -0.3, 0) + up)
 	else:
-		cam.look_at_from_position(eye, head + f * 1.4 + r * 0.22 + Vector3(0, -0.38, 0) + up)
+		cam.look_at_from_position(eye, head + f * 1.4 + r * 0.22 * _side + Vector3(0, -0.38, 0) + up)
 
 
 ## После сглаживания (game._smooth_cam тянет камеру с упреждением) — если всё же въехала в постройку, вытолкнуть к герою.
 func clamp_cam(cam: Camera3D) -> void:
 	var head := a.global_position + Vector3(0, 1.5, 0)
+	# сглаженная камера на развороте может пройти сквозь героя — держим её снаружи тела (ось тела — чуть за точкой стояния)
+	var bf := Vector3(sin(a.rotation.y), 0.0, cos(a.rotation.y))
+	var ax := a.global_position - bf * 0.12
+	var off := Vector2(cam.global_position.x - ax.x, cam.global_position.z - ax.z)
+	if cam.global_position.y < a.global_position.y + 1.95 and off.length() < 0.45:
+		var out := off.normalized() if off.length() > 0.01 else Vector2(-bf.x, -bf.z)
+		cam.global_position = Vector3(ax.x + out.x * 0.48, cam.global_position.y, ax.z + out.y * 0.48)
 	var p := cam.global_position
 	if not _cam_in(p):
 		return
 	for i in range(1, 21):
 		var q := p.lerp(head, i / 20.0)
+		if q.distance_to(head) < 0.55:   # ближе — камера в голове или куртке героя (запись 5 ноя: у витрины 0,3 с изнутри куртки)
+			break
 		if not _cam_in(q):
 			cam.global_position = q
+			return
+	# вдоль отрезка свободного места нет (герой вплотную к стене): обойти голову сбоку на 0,75 м — ближе к прежней стороне
+	var back := Vector3(p.x - head.x, 0.0, p.z - head.z)
+	if back.length() < 0.01:
+		back = -Vector3(sin(yaw), 0.0, cos(yaw))
+	back = back.normalized()
+	var f := Vector3(sin(yaw), 0.0, cos(yaw))
+	for deg in [35.0, -35.0, 70.0, -70.0, 105.0, -105.0, 140.0, -140.0]:
+		var q := head + back.rotated(Vector3.UP, deg_to_rad(deg)) * 0.75 + Vector3(0, 0.3, 0)
+		if not _cam_in(q):
+			cam.look_at_from_position(q, head + f * 1.4 + Vector3(0, -0.38, 0))
 			return
 
 
@@ -757,6 +848,10 @@ func _auto_go(s: Dictionary) -> void:
 			a.position.y = move_toward(a.position.y, _floor(a.position.x, a.position.z), dt * 2.4)
 			yaw = lerp_angle(yaw, a.rotation.y, 1.0 - exp(-dt * 2.0))
 			_closers()
+			if _zone_here():   # автопрогон тоже проходит зоны (окрик Айрис у края площадки), потом идёт дальше
+				a.stop_walk()
+				await _zones_check()
+				a.walk_to(Vector3(pt.x, _floor(pt.x, pt.y), pt.y), SPEED, "Rk_Walk", "Idle")
 		if a.walking:
 			a.stop_walk()
 			a.position = Vector3(pt.x, _floor(pt.x, pt.y), pt.y)

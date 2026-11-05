@@ -669,6 +669,7 @@ func _shots(list: Array, dir: String, pre: Array = []) -> void:
 		if String(sh).begins_with("@"):   # свой план: @x:y:z:куда_x:куда_y:куда_z:угол (точки прогулок)
 			var v := Array(String(sh).substr(1).split(":")).map(func(x): return float(x))
 			_cam_free = [[v[0], v[1], v[2]], [v[3], v[4], v[5]], v[6]]
+			_cam_free_to = []
 			_cut("free")
 			sh = "free%d" % n
 		else:

@@ -60,6 +60,7 @@ func build(lang: String, is_pc: bool) -> void:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		if nm.contains("window_lit"):
 			windows.append(mi)
+	_snow_banks()
 	var lb := Label3D.new()                                  # вывеска магазина
 	lb.text = "МАГАЗИН" if lang == "ru" else "STORE"
 	lb.font_size = 120
@@ -200,6 +201,69 @@ func build(lang: String, is_pc: bool) -> void:
 
 
 ## Дверь дома Агнес открыта (створку — внутрь, к стене).
+## Валы снега вдоль улицы — вместо гладких белых брусков из модели (bank, bank.001: прямоугольник 1,2 × 0,5 м во всю
+## улицу, Ной «проваливался» в него по колено): неровные, снегом Poly Haven (как сугробы бурана), с расчищенными проходами
+## к калитке Агнес, к колодцу и к магазину — там, где ходят. В данных прогулки по деревне (c3v) валы — препятствие,
+## проходы — нет (tools/lake/story/ch3_walk.py). Сугробы у стен домов — тем же снегом.
+const BANK_X := 5.2
+const BANK_Z := Vector2(-96.0, 16.0)
+const BANK_GAPS := {-1: [Vector2(-46.3, -43.7), Vector2(-41.6, -38.4)], 1: [Vector2(-30.3, -25.7)]}
+
+func _snow_banks() -> void:
+	var m := Ch2.snow_mat()
+	for n in model.find_children("bank*", "MeshInstance3D", true, false):
+		(n as MeshInstance3D).visible = false
+	for n in model.find_children("drift*", "MeshInstance3D", true, false):
+		(n as MeshInstance3D).material_override = m
+	var nz := FastNoiseLite.new()
+	nz.seed = 11
+	nz.frequency = 0.35
+	for sx in [-1, 1]:
+		var z0 := BANK_Z.x
+		for gap in BANK_GAPS[sx]:
+			_bank(sx * BANK_X, z0, (gap as Vector2).x, m, nz)
+			z0 = (gap as Vector2).y
+		_bank(sx * BANK_X, z0, BANK_Z.y, m, nz)
+
+
+## Один вал от z0 до z1: сечение — бугор (выше к середине), высота и ширина гуляют по шуму; у прохода — срез лопатой
+## (за 0,45 м до нуля), основание чуть под землёй. Не шире 0,71 м от оси — в данных препятствие 4,5…5,9.
+func _bank(x: float, z0: float, z1: float, m: Material, nz: FastNoiseLite) -> void:
+	var n := maxi(2, int(ceil((z1 - z0) / 0.2)))
+	var k_n := 10
+	var rows: Array = []
+	for i in n + 1:
+		var z := lerpf(z0, z1, float(i) / n)
+		var cut := smoothstep(0.0, 0.45, minf(z - z0, z1 - z))
+		var h := (0.4 + 0.07 * nz.get_noise_2d(x * 3.0, z)) * cut
+		var w := (0.62 + 0.05 * nz.get_noise_2d(z, x * 3.0 + 40.0)) * lerpf(0.75, 1.0, cut)
+		var dx := 0.04 * nz.get_noise_2d(z * 0.5, x + 7.0)
+		var row: Array[Vector3] = []
+		for k in k_n + 1:
+			var s := float(k) / k_n * 2.0 - 1.0
+			var bump := pow(maxf(0.0, 1.0 - s * s), 0.75) * (1.0 + 0.12 * nz.get_noise_2d(z * 2.0, s * 3.0 + x))
+			row.append(Vector3(x + dx + s * w, h * bump - 0.03, z))
+		rows.append(row)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in n:
+		for k in k_n:
+			var a: Vector3 = rows[i][k]
+			var b: Vector3 = rows[i][k + 1]
+			var c: Vector3 = rows[i + 1][k]
+			var d: Vector3 = rows[i + 1][k + 1]
+			for p in [a, b, c, b, d, c]:   # по часовой, если смотреть сверху (лицом вверх)
+				st.set_uv(Vector2(p.x, p.z))
+				st.add_vertex(p)
+	st.index()
+	st.generate_normals()
+	var mi := MeshInstance3D.new()
+	mi.name = "snow_bank"
+	mi.mesh = st.commit()
+	mi.material_override = m
+	add_child(mi)
+
+
 func open_door() -> void:
 	for n in model.find_children("agnes_door*", "MeshInstance3D", true, false):
 		var d := n as MeshInstance3D
