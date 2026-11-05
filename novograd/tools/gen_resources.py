@@ -323,6 +323,7 @@ def data():
     gen['structure_overrides'] = []
     gen['features'] = False
     gen['lakes'] = False
+    preset['dimensions']['minecraft:overworld']['generator'] = {'type': f'{NS}:island', 'biome_source': {'type': 'minecraft:fixed', 'biome': f'{NS}:city'}}
     w(f'{D}/{NS}/worldgen/world_preset/city.json', preset)
     w(f'{D}/minecraft/tags/worldgen/world_preset/normal.json', {'replace': False, 'values': [f'{NS}:city']})
 

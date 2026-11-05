@@ -144,6 +144,10 @@ public final class ModContent {
             .entries((ctx, entries) -> entries.addAll(TAB))
             .build());
 
+    static {
+        Registry.register(Registries.CHUNK_GENERATOR, Novograd.id("island"), com.yompix.novograd.world.IslandChunkGenerator.CODEC);
+    }
+
     public static void init() {
         FabricDefaultAttributeRegistry.register(CITIZEN, CitizenEntity.createAttributes());
     }

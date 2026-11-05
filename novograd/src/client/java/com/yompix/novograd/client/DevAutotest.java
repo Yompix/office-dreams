@@ -46,6 +46,35 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("tour")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                d.storyStarted = true;
+                d.storyDone = true;
+                d.chapter = 99;
+            });
+            for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); c.options.hudHidden = true; });
+            cmd(10, "gamemode spectator " + P);
+            cmd(5, "time set 6000");
+            // точка: x, z, высота над землёй, yaw, pitch, имя
+            String[][] spots = {{"456", "-120", "90", "180", "28", "t_downtown"}, {"456", "-408", "3", "180", "-12", "t_downtown_street"},
+                    {"-560", "40", "30", "90", "25", "t_port"}, {"-600", "-520", "12", "60", "15", "t_beach"}, {"430", "330", "40", "160", "30", "t_industry"},
+                    {"-300", "260", "25", "200", "30", "t_suburb"}, {"-200", "-700", "50", "180", "20", "t_hills"}, {"560", "-820", "40", "120", "25", "t_airfield"},
+                    {"24", "300", "6", "0", "5", "t_highway"}, {"200", "200", "120", "135", "45", "t_overview"}};
+            for (String[] v : spots) {
+                server(5, s -> {
+                    ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                    int x = Integer.parseInt(v[0]), z = Integer.parseInt(v[1]);
+                    int y = com.yompix.novograd.world.Island.surface(x, z) + Integer.parseInt(v[2]);
+                    p.teleport(p.getServerWorld(), x + 0.5, y, z + 0.5, Float.parseFloat(v[3]), Float.parseFloat(v[4]));
+                });
+                shot(200, v[5]);
+            }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("gta")) {
             YompixSplash.markShown();
             server(150, s -> {
