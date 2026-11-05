@@ -28,6 +28,12 @@ public final class Fitness {
     private static final Map<UUID, Double> WALKED = new HashMap<>();
     private static final Map<UUID, Long> LAST_WORKOUT = new HashMap<>();
 
+    /** Вес хранится «по-взрослому»; ребёнку показываем по возрасту: первоклассник ~25 кг. */
+    public static float shown(LifeData d) {
+        if (d.age <= 0 || d.age >= 18) return d.weight;
+        return d.weight * Math.max(0.38f, Math.min(1f, 0.38f + (d.age - 7) * 0.058f));
+    }
+
     public static String describe(float kg) {
         return kg < 52 ? "худой" : kg < 75 ? "в норме" : kg < 90 ? "полноват" : kg < 105 ? "толстый" : "очень толстый";
     }
@@ -37,7 +43,7 @@ public final class Fitness {
         float before = d.weight;
         d.weight = Math.max(45, Math.min(130, d.weight + kg));
         if ((int) (before / 5) != (int) (d.weight / 5) && kg > 0)
-            p.sendMessage(Text.literal("⚖ Вес " + Math.round(d.weight) + " кг — " + describe(d.weight) + ". Фастфуд — в меру!").formatted(Formatting.GOLD), true);
+            p.sendMessage(Text.literal("⚖ Вес " + Math.round(shown(d)) + " кг — " + describe(d.weight) + ". Фастфуд — в меру!").formatted(Formatting.GOLD), true);
         apply(p, d);
         Life.sync(p);
     }
@@ -73,7 +79,7 @@ public final class Fitness {
 
     public static void weigh(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
-        p.sendMessage(Text.literal("⚖ Весы: " + String.format("%.1f", d.weight) + " кг (" + describe(d.weight) + "). Форма: " + d.fitness + "/100. Тренировок: " + d.workouts)
+        p.sendMessage(Text.literal("⚖ Весы: " + String.format("%.1f", shown(d)) + " кг (" + describe(d.weight) + "). Форма: " + d.fitness + "/100. Тренировок: " + d.workouts)
                 .formatted(Formatting.AQUA), false);
         Achievements.give(p, "scales");
     }
@@ -129,7 +135,7 @@ public final class Fitness {
             d.workouts++;
             d.energy = Math.max(0, d.energy - 12);
             d.mood = Math.min(100, d.mood + 4);
-            p.sendMessage(Text.literal("💪 Тренировка: " + score + "%. Сгорело " + String.format("%.1f", burn) + " кг, вес " + String.format("%.1f", d.weight) + " кг, форма " + d.fitness + "/100")
+            p.sendMessage(Text.literal("💪 Тренировка: " + score + "%. Сгорело " + String.format("%.1f", burn) + " кг, вес " + String.format("%.1f", shown(d)) + " кг, форма " + d.fitness + "/100")
                     .formatted(Formatting.GREEN), false);
             com.yompix.lifecraft.story.Story.onJobDone(p, "workout");
             if (d.workouts >= 10) Achievements.give(p, "athlete");

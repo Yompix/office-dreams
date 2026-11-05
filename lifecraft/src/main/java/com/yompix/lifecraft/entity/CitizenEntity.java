@@ -396,8 +396,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             String[] where;
             chosen = null;
             if (c.isKid()) where = t < 1500 || t > 15000 ? HOMES : t < 9000 ? new String[]{"school_yard", "school_front"} : new String[]{"park_center", "shop_door", "school_yard"};
-            else where = t < 1500 || t > 16500 ? HOMES : t < 10500 ? new String[]{"office_door", "shop_door", "bank_door", "dealer_door"}
-                    : new String[]{"park_center", "casino_door", "shop_door", "park_center"};
+            else where = t < 1500 || t > 16500 ? HOMES : t < 10500 ? new String[]{"office_door", "shop_door", "bank_door", "dealer_door", "gym_door", "pizza_door"}
+                    : t < 12500 ? new String[]{"park_center", "casino_door", "shop_door", "pizza_door", "gym_door"}
+                    : new String[]{"club_door", "pizza_door", "casino_door", "park_center"};
             chosen = where[c.getRandom().nextInt(where.length)];
             double[] p = com.yompix.lifecraft.world.TownState.get(w).place(chosen);
             if (p == null) return false;

@@ -192,6 +192,36 @@ def blocks():
     facing_state('roulette')
     block_item('roulette')
 
+    V = 'minecraft:block/'
+    model('treadmill', {'belt': V + 'black_concrete', 'frame': V + 'iron_block', 'panel': V + 'gray_concrete', 'screen': V + 'light_blue_concrete'}, [
+        el([2, 0, 1], [14, 2, 15], 'frame'), el([3, 2, 1], [13, 2.5, 15], 'belt'),
+        el([2, 2, 2], [3, 13, 3], 'frame'), el([13, 2, 2], [14, 13, 3], 'frame'),
+        el([2, 11, 1], [14, 14, 4], 'panel', extra={'up': 'screen'})], particle='frame')
+    facing_state('treadmill')
+    block_item('treadmill')
+    model('barbell', {'bench': V + 'black_wool', 'metal': V + 'iron_block', 'plate': V + 'black_concrete'}, [
+        el([5, 0, 6], [11, 5, 10], 'metal'), el([4, 5, 3], [12, 7, 13], 'bench'),
+        el([2, 7, 11], [3, 13, 12], 'metal'), el([13, 7, 11], [14, 13, 12], 'metal'),
+        el([0, 13, 11], [16, 14, 12], 'metal'), el([0, 11, 10], [2, 16, 13], 'plate'), el([14, 11, 10], [16, 16, 13], 'plate')], particle='metal')
+    facing_state('barbell')
+    block_item('barbell')
+    model('scales', {'base': V + 'white_concrete', 'metal': V + 'iron_block', 'screen': V + 'lime_concrete'}, [
+        el([3, 0, 3], [13, 1.5, 13], 'base'), el([7, 1.5, 3], [9, 13, 5], 'metal'),
+        el([5, 13, 2.5], [11, 16, 5], 'metal', extra={'north': 'screen'})], particle='base')
+    facing_state('scales')
+    block_item('scales')
+    model('dj_deck', {'body': V + 'black_concrete', 'deck': V + 'jukebox_top', 'neon': V + 'magenta_concrete', 'knob': V + 'light_blue_concrete'}, [
+        el([0, 0, 3], [16, 11, 13], 'body', extra={'north': 'neon'}),
+        el([1, 11, 4], [7, 12, 10], 'deck'), el([9, 11, 4], [15, 12, 10], 'deck'),
+        el([7.5, 11, 9], [8.5, 13, 11], 'knob'), el([3, 11, 11], [13, 14, 12.5], 'body')], particle='body')
+    facing_state('dj_deck')
+    block_item('dj_deck')
+    model('pizza_oven', {'brick': V + 'bricks', 'mouth': V + 'black_concrete', 'fire': V + 'magma', 'top': V + 'polished_andesite'}, [
+        el([0, 0, 0], [16, 12, 16], 'brick'), el([3, 2, -0.1], [13, 9, 0.1], 'mouth', faces=['north']),
+        el([4, 2.2, 0.2], [12, 4, 6], 'fire'), el([2, 12, 2], [14, 14, 14], 'brick'), el([6, 14, 6], [10, 16, 10], 'top')], particle='brick')
+    facing_state('pizza_oven')
+    block_item('pizza_oven')
+
 
 BLOCKS = {
     'asphalt': ('Асфальт', 'Asphalt', 'pickaxe'), 'asphalt_line': ('Асфальт с разметкой', 'Asphalt with line', 'pickaxe'),
@@ -203,12 +233,14 @@ BLOCKS = {
     'job_board': ('Доска вакансий', 'Job board', 'axe'), 'mailbox': ('Почтовый ящик', 'Mailbox', 'pickaxe'),
     'shop_counter': ('Прилавок с кассой', 'Shop counter', 'axe'), 'computer': ('Компьютер', 'Computer', 'pickaxe'),
     'slot_machine': ('Игровой автомат', 'Slot machine', 'pickaxe'), 'roulette': ('Стол рулетки', 'Roulette table', 'axe'),
+    'treadmill': ('Беговая дорожка', 'Treadmill', 'pickaxe'), 'barbell': ('Скамья со штангой', 'Barbell bench', 'pickaxe'),
+    'scales': ('Весы', 'Scales', 'pickaxe'), 'dj_deck': ('Диджейский пульт', 'DJ deck', 'pickaxe'), 'pizza_oven': ('Печь для пиццы', 'Pizza oven', 'pickaxe'),
     'clue': ('Улика', 'Clue', 'pickaxe'), 'neon': ('Неоновая трубка', 'Neon tube', 'pickaxe'), 'neon_floor': ('Неоновая полоса', 'Neon strip', 'pickaxe'),
 }
 ITEMS = {
     'phone': ('Телефон', 'Phone'), 'banknote': ('Купюра $10', '$10 banknote'), 'bank_card': ('Банковская карта', 'Bank card'),
     'parcel': ('Посылка', 'Parcel'), 'scooter': ('Электроскутер', 'E-scooter'), 'suit': ('Костюм для выпускного', 'Prom suit'), 'diploma': ('Диплом', 'Diploma'), 'textbook': ('Учебник', 'Textbook'),
-    'burger': ('Бургер', 'Burger'), 'cola': ('Кола', 'Cola'),
+    'burger': ('Бургер', 'Burger'), 'cola': ('Кола', 'Cola'), 'pizza': ('Пицца', 'Pizza'), 'salad': ('Салат', 'Salad'),
     'car_red': ('Машина (красная)', 'Car (red)'), 'car_blue': ('Машина (синяя)', 'Car (blue)'), 'car_yellow': ('Машина (жёлтая)', 'Car (yellow)'),
     'car_black': ('Машина (чёрная)', 'Car (black)'), 'car_white': ('Машина (белая)', 'Car (white)'), 'car_taxi': ('Такси', 'Taxi'),
 }

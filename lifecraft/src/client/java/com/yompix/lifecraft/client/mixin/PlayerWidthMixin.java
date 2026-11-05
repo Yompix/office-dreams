@@ -16,5 +16,6 @@ public class PlayerWidthMixin {
     private void lifecraft$width(AbstractClientPlayerEntity player, MatrixStack m, float amount, CallbackInfo ci) {
         float w = PlayerWeight.width(player);
         if (w != 1f) m.scale(w, 1f, w);
+        if (Boolean.getBoolean("lifecraft.autotest.log") && player.age % 40 == 0) com.yompix.lifecraft.LifeCraft.LOG.info("[width] {} {}", player.getName().getString(), w);
     }
 }

@@ -415,6 +415,23 @@ def items():
         d.rectangle([3, 12, 12, 13], fill=rgb('d8913c'))
     item('burger', burger)
 
+    def pizza(d, img):
+        d.pieslice([1, 1, 14, 14], 0, 360, fill=rgb('e8b25a'))
+        d.pieslice([2, 2, 13, 13], 0, 360, fill=rgb('d8452b'))
+        for (x, y) in [(5, 5), (9, 4), (10, 9), (5, 10), (7, 7)]:
+            d.ellipse([x - 1, y - 1, x + 1, y + 1], fill=rgb('f6e3a1'))
+        d.point([(6, 8), (11, 6), (8, 11)], fill=rgb('3f8f2f'))
+        d.line([(7, 1), (7, 14)], fill=rgb('c99a48'))
+    item('pizza', pizza)
+
+    def salad(d, img):
+        d.chord([1, 6, 14, 15], 0, 180, fill=rgb('f0f0f0'))
+        d.ellipse([2, 4, 13, 10], fill=rgb('4caf50'))
+        d.point([(4, 6), (9, 5), (11, 7)], fill=rgb('e53935'))
+        d.point([(6, 7), (8, 6)], fill=rgb('ffeb3b'))
+        d.point([(5, 5), (10, 8)], fill=rgb('81c784'))
+    item('salad', salad)
+
     def cola(d, img):
         d.rectangle([5, 2, 10, 14], fill=rgb('d7262c'))
         d.rectangle([5, 2, 10, 3], fill=rgb('c0c4c8'))

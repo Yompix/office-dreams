@@ -46,6 +46,85 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("c6")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var d = Life.get(p);
+                d.storyStarted = true;
+                d.storyDone = true;
+                d.age = 18;
+                d.chapter = 5;
+                d.mission = 0;
+                d.step = 0;
+                d.prevMode = -1;
+                Story.onJoin(p);
+                Story.onClientReady(p);
+            });
+            for (int i = 0; i < 4; i++) shot(80, "c6_" + i);
+            for (int i = 0; i < 8; i++) { key(60, GLFW.GLFW_KEY_SPACE); shot(20, "c6_k" + i); }
+            server(5, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                com.yompix.lifecraft.LifeCraft.LOG.info("[c6] chapter {} mission {} step {} done {}", d.chapter, d.mission, d.step, d.storyDone);
+            });
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("east")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                d.storyStarted = true;
+                d.storyDone = true;
+                d.chapter = 99;
+            });
+            for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); c.options.hudHidden = false; });
+            cmd(10, "gamemode spectator " + P);
+            cmd(5, "time set 6000");
+            boolean quick = Boolean.getBoolean("lifecraft.quick");
+            String[][] views = quick ? new String[0][] : new String[][]{{"cam_east_a", "e_aerial"}, {"cam_east_b", "e_aerial2"}, {"cam_pizza_a", "e_pizza"}, {"cam_club_a", "e_club_out"}};
+            for (String[] v : views) {
+                server(5, s -> {
+                    ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                    double[] c = com.yompix.lifecraft.world.TownState.get(p.getServerWorld()).place(v[0]);
+                    if (c != null) p.teleport(p.getServerWorld(), c[0], c[1], c[2], (float) c[3], (float) c[4]);
+                });
+                shot(60, v[1]);
+            }
+            String[][] inside = quick ? new String[0][] : new String[][]{{"pizza_counter", "0", "e_pizza_in", "20"}, {"gym_center", "180", "e_gym_in", "15"}, {"club_floor", "180", "e_club_in", "10"}};
+            for (String[] v : inside) {
+                if (v[2].equals("e_club_in")) cmd(5, "time set 16000");
+                server(5, s -> {
+                    ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                    double[] c = com.yompix.lifecraft.world.TownState.get(p.getServerWorld()).place(v[0]);
+                    if (c != null) p.teleport(p.getServerWorld(), c[0], c[1] + 1.2, c[2], (float) c[3] + Float.parseFloat(v[1]), Float.parseFloat(v[3]));
+                });
+                shot(60, v[2]);
+            }
+            cmd(5, "gamemode creative " + P);
+            run(5, c -> c.setScreen(new com.yompix.lifecraft.client.screen.RhythmScreen("run")));
+            shot(60, "e_rhythm");
+            run(5, c -> c.setScreen(null));
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                Life.get(p).weight = 105;
+                Life.sync(p);
+                com.yompix.lifecraft.life.Fitness.apply(p, Life.get(p));
+                double[] c = com.yompix.lifecraft.world.TownState.get(p.getServerWorld()).place("gym_door");
+                p.teleport(p.getServerWorld(), c[0], c[1], c[2] + 3, 0, 10);
+            });
+            run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT));
+            shot(30, "e_fat");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                Life.get(p).weight = 55;
+                Life.sync(p);
+            });
+            shot(20, "e_slim");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("home")) {
             YompixSplash.markShown();
             server(150, s -> {

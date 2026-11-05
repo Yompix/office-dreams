@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "lifecraft:block/barbell"
+    },
+    "facing=east": {
+      "model": "lifecraft:block/barbell",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "lifecraft:block/barbell",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "lifecraft:block/barbell",
+      "y": 270
+    }
+  }
+}

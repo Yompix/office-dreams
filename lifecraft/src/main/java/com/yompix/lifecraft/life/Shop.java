@@ -21,6 +21,8 @@ public final class Shop {
     public static final List<Entry> CATALOG = List.of(
             new Entry("Еда", "Бургер", () -> ModContent.BURGER, 1, 8, 1),
             new Entry("Еда", "Кола", () -> ModContent.COLA, 1, 4, 1),
+            new Entry("Еда", "Салат (−вес)", () -> ModContent.SALAD, 1, 6, 1),
+            new Entry("Еда", "Пицца", () -> ModContent.PIZZA, 1, 10, 1),
             new Entry("Еда", "Хлеб ×3", () -> Items.BREAD, 3, 5, 1),
             new Entry("Еда", "Торт", () -> Items.CAKE, 1, 25, 1),
             new Entry("Еда", "Яблоки ×5", () -> Items.APPLE, 5, 6, 1),

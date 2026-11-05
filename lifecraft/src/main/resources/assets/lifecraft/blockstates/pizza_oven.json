@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "lifecraft:block/pizza_oven"
+    },
+    "facing=east": {
+      "model": "lifecraft:block/pizza_oven",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "lifecraft:block/pizza_oven",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "lifecraft:block/pizza_oven",
+      "y": 270
+    }
+  }
+}

@@ -51,6 +51,13 @@ public final class TownBuilder {
     public static void autoBuildIfCityWorld(MinecraftServer server) {
         ServerWorld world = server.getOverworld();
         TownState state = TownState.get(world);
+        if (state.built && state.origin != null && state.place("pizza_door") == null) {
+            // мир из прошлой версии: достраиваем новый квартал на востоке
+            LifeCraft.LOG.info("LifeCraft 0.4: достраиваю восточный квартал");
+            east(world, state.origin);
+            state.markDirty();
+            return;
+        }
         if (state.built) return;
         BlockPos spawn = world.getSpawnPos();
         if (!world.getBiome(spawn).matchesKey(CITY_BIOME)) return;
@@ -85,6 +92,7 @@ public final class TownBuilder {
         plot(world, origin, centers[1], centers[2], BlockRotation.CLOCKWISE_180, TownBuilder::casino);
         plot(world, origin, centers[2], centers[2], BlockRotation.CLOCKWISE_180, b2 -> houses(b2, "tema", "house6"));
         streetLife(b);
+        east(world, origin);
         ball(world, origin.add(0, 0, 11));
         ball(world, origin.add(4, 0, -44));
         // точки сюжета на дорогах и камеры
@@ -487,6 +495,175 @@ public final class TownBuilder {
                     if (Math.abs(dx) <= rad && Math.abs(dz) <= rad && !(Math.abs(dx) == 2 && Math.abs(dz) == 2)) b.set(x + dx, dy, z + dz, leaves);
                 }
         for (int y = 0; y < h; y++) b.set(x, y, z, log);
+    }
+
+
+    // ---------------------------------------------------------------- восточный квартал (0.4)
+    /** Новый столбец кварталов за дорогой x=72: спортзал, пиццерия с «Жир-Бургером», клуб «Неон». */
+    static void east(ServerWorld world, BlockPos origin) {
+        B b = new B(world, origin.getX(), origin.getY(), origin.getZ(), BlockRotation.NONE);
+        BlockState side = ModContent.SIDEWALK.getDefaultState(), asphalt = ModContent.ASPHALT.getDefaultState();
+        BlockState lineX = ModContent.ASPHALT_LINE.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.EAST);
+        BlockState lineZ = ModContent.ASPHALT_LINE.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.NORTH);
+        BlockState grass = Blocks.GRASS_BLOCK.getDefaultState();
+        // земля под кварталом
+        b.fill(EDGE + 1, -1, -EDGE, 126, -1, EDGE, grass);
+        b.fill(EDGE + 1, 0, -EDGE, 126, 12, EDGE, Blocks.AIR.getDefaultState());
+        // продолжения улиц на восток и новая улица x=120
+        for (int c : ROADS) {
+            b.fill(EDGE + 1, -1, c - 6, 126, -1, c + 6, side);
+            b.fill(EDGE + 1, -1, c - 4, 126, -1, c + 4, asphalt);
+            for (int x = EDGE + 1; x <= 113; x++) if (Math.floorMod(x, 4) < 2) b.set(x, -1, c, lineX);
+        }
+        b.fill(114, -1, -EDGE, 126, -1, EDGE, side);
+        b.fill(116, -1, -EDGE, 124, -1, EDGE, asphalt);
+        for (int z = -EDGE; z <= EDGE; z++) if (nearestRoadDist(z) > 8 && Math.floorMod(z, 4) < 2) b.set(120, -1, z, lineZ);
+        for (int c : ROADS) {
+            for (int d = -4; d <= 4; d++) {
+                b.set(113, -1, c + d, ModContent.CROSSWALK.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.EAST));
+                b.set(120 + d, -1, c - 7, ModContent.CROSSWALK.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.NORTH));
+                b.set(120 + d, -1, c + 7, ModContent.CROSSWALK.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.NORTH));
+            }
+            trafficLight(b, 114, c - 6, Direction.WEST);
+            trafficLight(b, 126, c + 6, Direction.EAST);
+        }
+        // фонари и неон вдоль новых улиц
+        for (int x = EDGE + 4; x <= 110; x += 12)
+            for (int c : ROADS) {
+                eastLamp(b, x, c - 6, Direction.SOUTH);
+                eastLamp(b, x, c + 6, Direction.NORTH);
+            }
+        for (int z = -EDGE + 4; z <= EDGE - 4; z += 12) if (nearestRoadDist(z) > 8) eastLamp(b, 114, z, Direction.EAST);
+        for (int z = -EDGE + 2; z <= EDGE - 2; z++)
+            if (nearestRoadDist(z) > 8) b.set(115, 0, z, neon(ModContent.NEON_FLOOR, NeonBlock.Color.PURPLE, Direction.EAST));
+        plot(world, origin, 96, -48, BlockRotation.NONE, TownBuilder::gym);
+        plot(world, origin, 96, 0, BlockRotation.NONE, TownBuilder::pizzeria);
+        plot(world, origin, 96, 48, BlockRotation.CLOCKWISE_180, TownBuilder::club);
+        b.car(100, 26, -90, 3);
+        b.car(88, -22, 90, 0);
+        // камеры для главы 6
+        b.cam("cam_east_a", 150, 34, 4, 90, 24);
+        b.cam("cam_east_b", 128, 16, -26, 60, 14);
+        b.cam("cam_pizza_a", 106, 5, 20, 155, 8);
+        b.cam("cam_pizza_b", 96, 3, 13, 180, 4);
+        b.cam("cam_club_a", 86, 4, 30, 200, 6);
+        TownState.get(world).markDirty();
+    }
+
+    private static void eastLamp(B b, int x, int z, Direction face) {
+        for (int y = 0; y < 3; y++) b.set(x, y, z, ModContent.LAMP_POST.getDefaultState());
+        b.set(x, 3, z, ModContent.STREET_LAMP.getDefaultState().with(HorizontalFacingBlock.FACING, face));
+    }
+
+    private static BlockState facing(Block block, Direction d) {
+        return block.getDefaultState().with(HorizontalFacingBlock.FACING, d);
+    }
+
+    /** Фитнес «Атлант»: беговые дорожки, штанги, весы, зеркала, маты. */
+    private static void gym(B b) {
+        int x1 = -15, x2 = 15, z1 = -14, z2 = 4, h = 7;
+        building(b, x1, z1, x2, z2, h, Blocks.GRAY_CONCRETE.getDefaultState(), Blocks.BLACK_CONCRETE.getDefaultState(), Blocks.GRAY_WOOL.getDefaultState());
+        for (int x = x1 + 1; x <= x2 - 1; x++) b.fill(x, 1, z2, x, h - 2, z2, Blocks.LIGHT_GRAY_STAINED_GLASS.getDefaultState());
+        b.fill(-1, 0, z2, 1, 2, z2, Blocks.AIR.getDefaultState());
+        b.fill(x1 + 1, 1, z1, x2 - 1, 4, z1, Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState()); // зеркала
+        for (int x = -12; x <= 12; x += 3) b.set(x, 0, -12, facing(ModContent.TREADMILL, Direction.NORTH));
+        for (int x = -10; x <= 10; x += 5) b.set(x, 0, -6, facing(ModContent.BARBELL, Direction.SOUTH));
+        b.set(11, 0, 1, facing(ModContent.SCALES, Direction.WEST));
+        b.set(-12, 0, 1, facing(ModContent.SCALES, Direction.EAST));
+        b.fill(-6, 0, -3, 6, 0, 0, Blocks.LIME_CARPET.getDefaultState());
+        for (int z = -10; z <= 0; z += 5) {
+            b.set(x2 - 1, 0, z, Blocks.IRON_BLOCK.getDefaultState());
+            b.set(x2 - 1, 1, z, Blocks.CAULDRON.getDefaultState());
+        }
+        lights(b, x1, z1, x2, z2, h - 1);
+        b.label(0, h + 2, z2, "💪 ФИТНЕС «АТЛАНТ»", Formatting.AQUA);
+        b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.CYAN);
+        b.mailbox(-8, 0, z2 + 2);
+        b.citizen(-4, 0, -2, CitizenEntity.RANDOM_FROM + 13, CitizenEntity.Role.CITIZEN, true, "Спортсмен Денис", 180).lockActivity(CitizenEntity.Activity.CHEER);
+        b.citizen(4, 0, -1, CitizenEntity.RANDOM_FROM + 22, CitizenEntity.Role.CITIZEN, true, "Йога Света", 0).lockActivity(CitizenEntity.Activity.THINK);
+        b.place("gym_door", 0, 0, 6, 180);
+        b.place("gym_center", 0, 0, -3, 180);
+    }
+
+    /** Пиццерия «Мама Мия»: печи, прилавок, столики, полосатый навес; рядом киоск «Жир-Бургер». */
+    private static void pizzeria(B b) {
+        int x1 = -12, x2 = 12, z1 = -12, z2 = 4, h = 5;
+        building(b, x1, z1, x2, z2, h, Blocks.WHITE_TERRACOTTA.getDefaultState(), Blocks.RED_TERRACOTTA.getDefaultState(), Blocks.WHITE_CONCRETE.getDefaultState());
+        for (int x = x1 + 1; x <= x2 - 1; x++)
+            for (int z = z1 + 1; z <= z2 - 1; z++) if ((x + z) % 2 == 0) b.set(x, -1, z, Blocks.BLACK_CONCRETE.getDefaultState());
+        for (int x = x1 + 2; x <= x2 - 2; x++) if (Math.abs(x) > 1) b.fill(x, 1, z2, x, 2, z2, Blocks.GLASS.getDefaultState());
+        b.fill(-1, 0, z2, 1, 2, z2, Blocks.AIR.getDefaultState());
+        for (int x = x1; x <= x2; x++) b.set(x, h - 1, z2 + 1, (x % 2 == 0 ? Blocks.RED_WOOL : Blocks.WHITE_WOOL).getDefaultState()); // навес
+        for (int x = -4; x <= 4; x += 4) b.set(x, 0, z1 + 1, facing(ModContent.PIZZA_OVEN, Direction.SOUTH));
+        for (int x = -4; x <= 4; x++) b.set(x, 0, -5, facing(ModContent.SHOP_COUNTER, Direction.SOUTH));
+        b.set(5, 0, -5, facing(ModContent.PIZZA_OVEN, Direction.SOUTH));
+        for (int[] t : new int[][]{{-8, -1}, {-8, 2}, {8, -1}, {8, 2}}) {
+            b.set(t[0], 0, t[1], Blocks.OAK_FENCE.getDefaultState());
+            b.set(t[0], 1, t[1], Blocks.WHITE_CARPET.getDefaultState());
+            b.stairs(t[0] - 1, 0, t[1], Direction.WEST, Blocks.OAK_STAIRS);
+            b.stairs(t[0] + 1, 0, t[1], Direction.EAST, Blocks.OAK_STAIRS);
+        }
+        lights(b, x1, z1, x2, z2, h - 1);
+        b.label(0, h + 2, z2, "🍕 ПИЦЦЕРИЯ «МАМА МИЯ»", Formatting.GOLD);
+        b.neonLine(x1, x2, h, z2 + 1, NeonBlock.Color.ORANGE);
+        b.mailbox(-10, 0, z2 + 2);
+        b.citizen(-2, 0, -7, CitizenEntity.RANDOM_FROM + 31, CitizenEntity.Role.SHOPKEEPER, true, "Пиццайоло Луиджи", 0);
+        // киоск «Жир-Бургер»
+        int kx1 = 15, kx2 = 20;
+        building(b, kx1, -3, kx2, 3, 4, Blocks.YELLOW_CONCRETE.getDefaultState(), Blocks.RED_CONCRETE.getDefaultState(), Blocks.RED_CONCRETE.getDefaultState());
+        b.fill(kx1 + 1, 1, 3, kx2 - 1, 2, 3, Blocks.AIR.getDefaultState());
+        b.set(17, 0, 2, facing(ModContent.SHOP_COUNTER, Direction.SOUTH));
+        b.set(18, 0, 2, facing(ModContent.SHOP_COUNTER, Direction.SOUTH));
+        b.citizen(17, 0, 1, CitizenEntity.RANDOM_FROM + 4, CitizenEntity.Role.SHOPKEEPER, true, "Кассир «Жир-Бургера»", 0);
+        b.label(17, 6, 3, "🍔 ЖИР-БУРГЕР", Formatting.RED);
+        b.place("pizza_door", 0, 0, 7, 180);
+        b.place("pizza_door2", 3, 0, 7, 180);
+        b.place("pizza_door3", -3, 0, 8, 180);
+        b.place("pizza_door4", 6, 0, 9, 200);
+        b.place("pizza_counter", 0, 0, -3, 180);
+    }
+
+    /** Клуб «Неон»: светящийся танцпол, диджейский пульт на сцене, бар, неон на стенах. */
+    private static void club(B b) {
+        int x1 = -16, x2 = 16, z1 = -16, z2 = 4, h = 8;
+        building(b, x1, z1, x2, z2, h, Blocks.BLACK_CONCRETE.getDefaultState(), Blocks.PURPLE_CONCRETE.getDefaultState(), Blocks.POLISHED_BLACKSTONE.getDefaultState());
+        b.fill(-1, 0, z2, 1, 2, z2, Blocks.AIR.getDefaultState());
+        Block[] glass = {Blocks.MAGENTA_STAINED_GLASS, Blocks.LIGHT_BLUE_STAINED_GLASS, Blocks.LIME_STAINED_GLASS, Blocks.PURPLE_STAINED_GLASS};
+        for (int x = -8; x <= 8; x++)
+            for (int z = -9; z <= 1; z++) {
+                b.set(x, -2, z, Blocks.SEA_LANTERN.getDefaultState());
+                b.set(x, -1, z, glass[Math.floorMod(x / 2 + z / 2, 4)].getDefaultState());
+            }
+        b.fill(-5, 0, -15, 5, 0, -12, Blocks.POLISHED_BLACKSTONE_BRICKS.getDefaultState()); // сцена
+        b.set(0, 1, -12, facing(ModContent.DJ_DECK, Direction.SOUTH));
+        b.set(-1, 1, -12, facing(ModContent.DJ_DECK, Direction.SOUTH));
+        for (int x : new int[]{-4, 4}) {
+            b.set(x, 1, -14, Blocks.NOTE_BLOCK.getDefaultState());
+            b.set(x, 2, -14, Blocks.NOTE_BLOCK.getDefaultState());
+            b.set(x, 3, -14, Blocks.JUKEBOX.getDefaultState());
+        }
+        for (int z = -10; z <= -2; z++) b.set(13, 0, z, facing(ModContent.SHOP_COUNTER, Direction.WEST));
+        b.citizen(14, 0, -6, CitizenEntity.RANDOM_FROM + 9, CitizenEntity.Role.SHOPKEEPER, true, "Бармен Стас", 90);
+        for (int y = 2; y <= 5; y += 3) {
+            for (int x = x1 + 1; x <= x2 - 1; x++) b.set(x, y, z1 + 1, neon(ModContent.NEON, y == 2 ? NeonBlock.Color.PINK : NeonBlock.Color.CYAN, Direction.NORTH));
+        }
+        for (int x = -12; x <= 12; x += 4)
+            for (int z = -12; z <= 0; z += 4) {
+                b.set(x, h - 1, z, Blocks.SEA_LANTERN.getDefaultState());
+                b.set(x, h - 2, z, Blocks.END_ROD.getDefaultState());
+            }
+        Random r = b.world.getRandom();
+        for (int i = 0; i < 7; i++)
+            b.citizen(-6 + r.nextInt(13), 0, -8 + r.nextInt(9), CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, true, Names.full(r), r.nextInt(360))
+                    .lockActivity(CitizenEntity.Activity.DANCE);
+        b.label(0, h + 2, z2, "🎧 КЛУБ «НЕОН»", Formatting.LIGHT_PURPLE);
+        b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.PURPLE);
+        b.neonLine(x1, x2, 3, z2 + 1, NeonBlock.Color.PINK);
+        b.mailbox(10, 0, z2 + 2);
+        b.place("club_door", 0, 0, 7, 180);
+        b.place("club_floor", 0, 0, -4, 180);
+        b.place("club_dj", 0, 1, -13, 0);
+        b.place("club_bar", 10, 0, -6, 270);
     }
 
     // ---------------------------------------------------------------- дома
