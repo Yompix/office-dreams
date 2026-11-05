@@ -55,7 +55,7 @@ public class LifeCraftClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModContent.BALL, com.yompix.lifecraft.client.render.BallRenderer::new);
         EntityModelLayerRegistry.registerModelLayer(com.yompix.lifecraft.client.render.ScooterRenderer.LAYER, com.yompix.lifecraft.client.render.ScooterRenderer::modelData);
         EntityRendererRegistry.register(ModContent.SCOOTER, com.yompix.lifecraft.client.render.ScooterRenderer::new);
-        EntityRendererRegistry.register(ModContent.CITIZEN, CitizenRenderer::new);
+        EntityRendererRegistry.register(ModContent.CITIZEN, com.yompix.lifecraft.client.render.CitizenGeoRenderer::new);
         EntityRendererRegistry.register(ModContent.SEAT, EmptyEntityRenderer::new);
         BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getCutout(), ModContent.TV, ModContent.TRAFFIC_LIGHT, ModContent.STREET_LAMP,
                 ModContent.LAMP_POST, ModContent.COMPUTER, ModContent.SCHOOL_DESK, ModContent.MAILBOX, ModContent.SLOT_MACHINE, ModContent.ROULETTE, ModContent.ATM);

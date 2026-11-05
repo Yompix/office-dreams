@@ -100,6 +100,21 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         return 0xFF000000 | r << 16 | g << 8 | b;
     }
 
+    /** Голова уже в пространстве головы ванильной модели (лицо в −z, макушка y = −8). */
+    public void head(MatrixStack m, VertexConsumerProvider buffers, int light, CitizenEntity e) {
+        renderHead(m, buffers, light, e, false);
+    }
+
+    /** Корпус в пространстве тела ванильной модели (шея y = 0, пояс y = 12). */
+    public void skirt(MatrixStack m, VertexConsumerProvider buffers, int light, CitizenEntity e) {
+        JsonArray all = looks();
+        if (e.getSkin() >= all.size()) return;
+        JsonObject look = all.get(e.getSkin()).getAsJsonObject();
+        this.buffers = buffers;
+        hairTag = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR));
+        if (look.has("skirt")) render("skirt", m, hairTag, light, color(look, "skirt", 0.95f));
+    }
+
     @Override
     public void render(MatrixStack m, VertexConsumerProvider buffers, int light, CitizenEntity e, float limbAngle, float limbDistance,
                        float tickDelta, float animationProgress, float headYaw, float headPitch) {
@@ -109,6 +124,17 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         JsonObject look = all.get(skin).getAsJsonObject();
         m.push();
         getContextModel().head.rotate(m);
+        renderHead(m, buffers, light, e, true);
+    }
+
+    private void renderHead(MatrixStack m, VertexConsumerProvider buffers, int light, CitizenEntity e, boolean vanilla) {
+        JsonArray all = looks();
+        int skin = e.getSkin();
+        if (skin >= all.size() || e.isInvisible()) {
+            if (vanilla) m.pop();
+            return;
+        }
+        JsonObject look = all.get(skin).getAsJsonObject();
         this.buffers = buffers;
         VertexConsumer hair = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(HAIR));
         hairTag = hair;
@@ -165,12 +191,14 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
             VertexConsumer lens = buffers.getBuffer(RenderLayer.getEntityTranslucent(SOLID));
             parts.get("glasses_lens").render(m, lens, light, ov, g.equals("shades") ? 0xF0101010 : 0x70A8D8FF);
         }
-        m.pop();
-        if (look.has("skirt")) {
-            m.push();
-            getContextModel().body.rotate(m);
-            render("skirt", m, hairTag, light, color(look, "skirt", 0.95f));
+        if (vanilla) {
             m.pop();
+            if (look.has("skirt")) {
+                m.push();
+                getContextModel().body.rotate(m);
+                render("skirt", m, hairTag, light, color(look, "skirt", 0.95f));
+                m.pop();
+            }
         }
     }
 

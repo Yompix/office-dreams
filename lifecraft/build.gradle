@@ -7,7 +7,9 @@ group = project.maven_group
 
 base { archivesName = project.archives_base_name }
 
-repositories {}
+repositories {
+    maven { name = 'GeckoLib'; url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
+}
 
 loom {
     splitEnvironmentSourceSets()
@@ -24,6 +26,9 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    // GeckoLib (MIT): модели и покадровая анимация жителей; вшита в мод — ставить отдельно не нужно
+    modImplementation "software.bernie.geckolib:geckolib-fabric-1.21.1:4.8.4"
+    include "software.bernie.geckolib:geckolib-fabric-1.21.1:4.8.4"
 }
 
 processResources {

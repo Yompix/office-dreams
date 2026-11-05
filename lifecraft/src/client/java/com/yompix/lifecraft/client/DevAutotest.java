@@ -46,6 +46,69 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("geo")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                d.storyStarted = true;
+                d.storyDone = true;
+            });
+            for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> {
+                if (c.currentScreen != null) c.setScreen(null);
+                c.setCameraEntity(c.player);
+                c.options.hudHidden = false;
+            });
+            cmd(20, "time set 5000");
+            cmd(5, "gamemode creative " + P);
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                double bx = 0.5, bz = 10.5;
+                int y = Story.topY(w, 0, 10);
+                CitizenEntity.Activity[] acts = {CitizenEntity.Activity.IDLE, CitizenEntity.Activity.TALK, CitizenEntity.Activity.WAVE, CitizenEntity.Activity.PHONE,
+                        CitizenEntity.Activity.THINK, CitizenEntity.Activity.DANCE, CitizenEntity.Activity.CHEER, CitizenEntity.Activity.SIT};
+                int[] skins = {8, 11, 9, 10, 14, 17, 12, 16};
+                for (int i = 0; i < acts.length; i++) {
+                    CitizenEntity c = new CitizenEntity(com.yompix.lifecraft.ModContent.CITIZEN, w);
+                    c.setup(skins[i], CitizenEntity.Role.CITIZEN, true, acts[i].name());
+                    c.refreshPositionAndAngles(bx - 10.5 + i * 3, y, bz, 0, 0);
+                    c.setHeadYaw(0);
+                    c.setBodyYaw(0);
+                    w.spawnEntity(c);
+                    c.lockActivity(acts[i]);
+                }
+                // двое идут и бегут
+                for (int i = 0; i < 2; i++) {
+                    CitizenEntity c = new CitizenEntity(com.yompix.lifecraft.ModContent.CITIZEN, w);
+                    c.setup(20 + i * 5, CitizenEntity.Role.CITIZEN, false, i == 0 ? "WALK" : "RUN");
+                    c.refreshPositionAndAngles(bx - 8 + i * 4, y, bz + 3, 90, 0);
+                    w.spawnEntity(c);
+                    c.getNavigation().startMovingTo(bx + 12, y, bz + 3, i == 0 ? 0.6 : 1.3);
+                }
+                p.teleport(w, bx, y + 1.2, bz + 10, 180, 8);
+            });
+            shot(30, "g1");
+            shot(7, "g2");
+            shot(7, "g3");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                p.teleport(p.getServerWorld(), -7.5, p.getY(), 13.2, 180, 12);
+            });
+            shot(30, "g4");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                p.teleport(p.getServerWorld(), 5.5, p.getY(), 13.2, 180, 12);
+            });
+            shot(30, "g5");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                p.teleport(p.getServerWorld(), -14, p.getY(), 12, -100, 5);
+            });
+            shot(30, "g6");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (System.getProperty("lifecraft.autotest").equals("taxi")) {
             taxiOnly();
             return;

@@ -29,7 +29,7 @@ import net.minecraft.world.World;
  * У каждого свой скин, рост, походка и «занятие» (машет, болтает, сидит в телефоне, танцует, думает) —
  * занятие видит клиент и анимирует руки и голову.
  */
-public class CitizenEntity extends PathAwareEntity {
+public class CitizenEntity extends PathAwareEntity implements software.bernie.geckolib.animatable.GeoEntity {
     /** 0–7 горожане, 8–15 герои сюжета, дальше 40 случайных горожан (чётные — девушки). */
     public static final String[] SKINS;
     public static final int RANDOM_FROM = 16, RANDOM_COUNT = 40;
@@ -52,6 +52,37 @@ public class CitizenEntity extends PathAwareEntity {
     private static final TrackedData<Integer> ACTIVITY = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Boolean> QUEST = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private Role role = Role.CITIZEN;
+    private final software.bernie.geckolib.animatable.instance.AnimatableInstanceCache geoCache = software.bernie.geckolib.util.GeckoLibUtil.createInstanceCache(this);
+
+    // ---- анимации GeckoLib: ходьба/бег по скорости, занятие — отдельной анимацией, удар по мячу — разово
+    private static final software.bernie.geckolib.animation.RawAnimation IDLE = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.idle");
+    private static final software.bernie.geckolib.animation.RawAnimation WALK = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.walk");
+    private static final software.bernie.geckolib.animation.RawAnimation RUN = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.run");
+    private static final java.util.Map<Activity, software.bernie.geckolib.animation.RawAnimation> ACTS = new java.util.EnumMap<>(Activity.class);
+
+    static {
+        for (Activity a : Activity.values())
+            if (a != Activity.IDLE) ACTS.put(a, software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen." + a.name().toLowerCase()));
+    }
+
+    @Override
+    public void registerControllers(software.bernie.geckolib.animation.AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new software.bernie.geckolib.animation.AnimationController<>(this, "body", 5, state -> {
+            Activity a = getActivity();
+            double v = getVelocity().horizontalLengthSquared();
+            boolean moving = state.isMoving() && v > 1e-4;
+            if (a != Activity.IDLE && (!moving || a == Activity.DANCE || a == Activity.SIT)) return state.setAndContinue(ACTS.get(a));
+            if (moving) return state.setAndContinue(v > 0.012 ? RUN : WALK);
+            return state.setAndContinue(IDLE);
+        }));
+        controllers.add(new software.bernie.geckolib.animation.AnimationController<>(this, "action", 2, state -> software.bernie.geckolib.animation.PlayState.STOP)
+                .triggerableAnim("kick", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.kick")));
+    }
+
+    @Override
+    public software.bernie.geckolib.animatable.instance.AnimatableInstanceCache getAnimatableInstanceCache() {
+        return geoCache;
+    }
     private boolean stationary;
     private int removeIn = -1;
     private String storyId = "";
@@ -386,6 +417,7 @@ public class CitizenEntity extends PathAwareEntity {
                 net.minecraft.util.math.Vec3d dir = mate != null ? mate.getPos().subtract(ball.getPos())
                         : new net.minecraft.util.math.Vec3d(c.getRandom().nextGaussian(), 0, c.getRandom().nextGaussian());
                 ball.kick(dir, 0.45 + c.getRandom().nextDouble() * 0.35, 0.08 + c.getRandom().nextDouble() * 0.2);
+                c.triggerAnim("action", "kick");
                 if (c.getRandom().nextInt(6) == 0) c.dataTracker.set(ACTIVITY, Activity.CHEER.ordinal());
                 else c.dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
             }
