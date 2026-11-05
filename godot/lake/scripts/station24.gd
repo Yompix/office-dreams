@@ -122,6 +122,12 @@ static func tick(g) -> void:
 			if fa is Actor and is_instance_valid(fa):
 				via = (_bone(fa, "hand_r") + _bone(fa, "middle_01_r")) * 0.5 + (fa as Actor).palm_normal("_r").normalized() * 0.02
 		StationProps.cord_update(root, bool(g.flags.get("_cord_ripped", 0.0) > 0.0), via)
+	if root.has_meta("torn_cord_by"):   # оборванный шнур в кулаке Романа (отъезд, ветка police_late)
+		var rb = root.get_meta("torn_cord_by")
+		var tc := root.get_node_or_null("torn_cord") as MeshInstance3D
+		if rb is Actor and is_instance_valid(rb) and tc:
+			var top := (_bone(rb, "hand_r") + _bone(rb, "middle_01_r")) * 0.5 + (rb as Actor).palm_normal("_r").normalized() * 0.025
+			StationProps.cord_mesh(tc, top, top + Vector3(0.02, -0.42, 0.03), 0.0045, 0.0, 0.011)
 	var na = g.actors.get("noah")
 	if na is Actor and (na as Actor).has_meta("left_on_nozzle"):
 		var hn := (na as Actor).skel.get_node_or_null("nozzle_in_hand") as Node3D
@@ -169,17 +175,16 @@ static func _blood_drop(g) -> void:
 	m.roughness = 0.1
 	m.metallic_specular = 0.8
 	d.material_override = m
-	hn.add_child(d)
-	d.position = Vector3(0.022, 0.12, 0.03)
+	g.scene.station_root.add_child(d)
+	# с разбитых костяшек (тыльная сторона кисти, у основания пальцев) — вниз по пальцам и рукояти, потом в снег.
+	# Путь — в мировых осях: раньше капля шла вдоль кости кисти, и у опущенной руки ползла вверх.
+	var p0: Vector3 = hn.global_transform * Vector3(0.017, 0.11, 0.024)
+	d.global_position = p0
 	var tw := d.create_tween()
 	tw.tween_interval(0.6)
-	tw.tween_property(d, "position", Vector3(0.022, 0.02, 0.03), 1.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_callback(func():
-		var gp := d.global_position
-		d.reparent(g.scene.station_root, true)
-		var tf := d.create_tween()
-		tf.tween_property(d, "global_position", Vector3(gp.x, 0.02, gp.z), 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tf.tween_callback(d.queue_free))
+	tw.tween_property(d, "global_position", p0 + Vector3(0.0, -0.06, 0.0), 1.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_property(d, "global_position", Vector3(p0.x, 0.02, p0.z), 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(d.queue_free)
 
 
 ## Разжал пальцы: пистолет падает, повисает на шланге у колонки и качается; Ной идёт к машине.
@@ -269,11 +274,20 @@ static func _memory_dock(g) -> void:
 				wm2.albedo_color = wm2.albedo_color.darkened(0.35)
 				wm2.roughness = 0.18
 				(mi as MeshInstance3D).set_surface_override_material(0, wm2)
+		# Death01 кладёт кисти центром кости на «землю» — на мостках они уходили в доски на 3 см, и во вспышке был виден
+		# только рукав. Ладони — на доски (верх досок + полкисти), локти при этом — вверх, а не в доски.
+		var top := set_.global_position.y + 0.02 + 0.022
+		var rh := {}
+		for s in ["_r", "_l"]:
+			var hp := _bone(an, "hand" + s)
+			rh[s] = Vector3(hp.x, maxf(hp.y, top), hp.z)
+		an.reach = rh
+		an.reach_pole = {"_r": Vector3.UP, "_l": Vector3.UP}
 	g.set_meta("dock_prev", [g._shot, g._cam_free])
 	var hand := Vector3.ZERO
 	var an2 := set_.get_node_or_null("anna_dock") as Actor
 	if an2:
-		hand = an2.skel.global_transform * an2.skel.get_bone_global_pose(an2.skel.find_bone("hand_r")).origin
+		hand = an2.reach.get("_r", an2.skel.global_transform * an2.skel.get_bone_global_pose(an2.skel.find_bone("hand_r")).origin)
 	else:
 		hand = DOCK
 	g._cam_free = [[hand.x - 0.35, hand.y + 0.9, hand.z + 0.25], [hand.x, hand.y, hand.z], 34]
@@ -1074,19 +1088,23 @@ static func _roman_window(g) -> void:
 		ra.clear_hands()
 		return
 	g._place({"who": "roman", "at": [26.35, 0.38, -9.2], "face": -90, "clip": "Idle"})   # лицом к витрине: с улицы видно лицо и трубку
-	if float(f.get("police_late", 0)) > 0.0:   # с оборванным шнуром в руке
-		var cord := MeshInstance3D.new()
-		var cm := CylinderMesh.new()
-		cm.top_radius = 0.004
-		cm.bottom_radius = 0.004
-		cm.height = 0.7
-		cord.mesh = cm
-		var m := StandardMaterial3D.new()
-		m.albedo_color = Color(0.1, 0.1, 0.1)
-		cord.material_override = m
-		_hold(ra, cord)
-		cord.position = Vector3(0.0, -0.25, 0.03)
-		cord.rotation_degrees = Vector3.ZERO
+	if float(f.get("police_late", 0)) > 0.0:   # с оборванным шнуром в руке (лист: «шнур оборван, звонка не показывать»)
+		# обрывок витого бежевого шнура свисает из кулака перед собой — на фоне тёмного свитера его видно и с улицы
+		# (был чёрный прут 4 мм у бедра — сквозь витрину на дальнем плане не читался). Шнур — каждый кадр за кистью (tick)
+		var cord := root.get_node_or_null("torn_cord") as MeshInstance3D
+		if cord == null:
+			cord = MeshInstance3D.new()
+			cord.name = "torn_cord"
+			var m := StandardMaterial3D.new()
+			m.albedo_color = Color(0.45, 0.41, 0.34)   # как витой шнур трубки
+			m.roughness = 0.6
+			cord.material_override = m
+			root.add_child(cord)
+		root.set_meta("torn_cord_by", ra)
+		var b := ra.global_transform.basis
+		ra.reach = {"_r": ra.global_position + Vector3(0, 1.12, 0) + b.z.normalized() * 0.3 - b.x.normalized() * 0.1}
+		ra.set_meta("auto_grip", false)
+		ra.grip = {"_r": 0.95}
 		g._look({"who": "roman", "at": [21.0, 1.6, -2.0]})   # на дверь
 		return
 	if float(f.get("police", 0)) > 0.0:   # у телефона: трубка у уха

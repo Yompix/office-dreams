@@ -45,6 +45,82 @@ static func _cyl(parent: Node3D, r: float, h: float, pos: Vector3, m: Material, 
 	return mi
 
 
+## Цилиндр от точки a (радиус ra) до точки b (радиус rb, по умолчанию тот же) — в осях родителя.
+static func _rod(parent: Node3D, a: Vector3, b: Vector3, ra: float, m: Material, rb := -1.0) -> MeshInstance3D:
+	var mi := _cyl(parent, ra if rb < 0.0 else rb, a.distance_to(b), (a + b) * 0.5, m, ra)
+	mi.basis = _along(b - a)
+	return mi
+
+
+## Капсула от точки a до точки b (концы скруглены радиусом r).
+static func _capsule(parent: Node3D, a: Vector3, b: Vector3, r: float, m: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var cm := CapsuleMesh.new()
+	cm.radius = r
+	cm.height = a.distance_to(b) + 2.0 * r
+	cm.radial_segments = 20
+	mi.mesh = cm
+	mi.material_override = m
+	parent.add_child(mi)
+	mi.position = (a + b) * 0.5
+	mi.basis = _along(b - a)
+	return mi
+
+
+## Поворот, который ставит ось Y по направлению d.
+static func _along(d: Vector3) -> Basis:
+	var n := d.normalized()
+	if n.dot(Vector3.UP) < -0.9999:
+		return Basis(Vector3.RIGHT, PI)
+	return Basis(Quaternion(Vector3.UP, n))
+
+
+## Пистолет заправочной колонки в правой руке Ноя — в осях кости hand_r: +Y — от запястья к пальцам, +Z — от мизинца
+## к указательному, −X — сторона ладони (замер костей пальцев). Был коробкой с трубкой, и коробка шла вдоль пальцев
+## сквозь ладонь — на крупном плане это было видно. Теперь: обрезиненная рукоять с рёбрами поперёк ладони (в кулаке),
+## литой корпус, стальной носик с пружиной у основания, рычаг под пальцами, защитная скоба, муфта шланга с гайкой.
+## Носик — на прежней линии: при заправке он входит в горловину там же, где раньше.
+const NOZZLE_HOSE := Vector3(-0.026, 0.096, -0.094)   # куда входит шланг: муфта со стороны мизинца
+const NOZZLE_SB := Vector3(0.0, 0.105, 0.0806)        # основание носика (носик — на прежней линии)
+const NOZZLE_SD := Vector3(0.0, 0.259, 0.966)         # направление носика: вдоль рукояти, к указательному, чуть к пальцам
+static func nozzle_parts(parent: Node3D) -> void:
+	var rubber := _mat(Color(0.025, 0.025, 0.028), 0.8)
+	# металл не зеркальный: ночью зеркальная сталь отражает тёмное небо и выглядит чёрной трубкой (проверено кадром)
+	var alu := _mat(Color(0.62, 0.63, 0.64), 0.45, 0.5)
+	var steel := _mat(Color(0.75, 0.76, 0.78), 0.32, 0.55)
+	var wire := _mat(Color(0.05, 0.05, 0.055), 0.5, 0.4)
+	var hp := Vector3(-0.026, 0.096, -0.058)   # рукоять: от мизинца…
+	var hi := Vector3(-0.026, 0.096, 0.06)     # …к указательному
+	_rod(parent, hp, hi, 0.0155, rubber)
+	for k in 5:   # рёбра на резине
+		var z := -0.042 + k * 0.021
+		_rod(parent, Vector3(hp.x, hp.y, z - 0.002), Vector3(hp.x, hp.y, z + 0.002), 0.0168, rubber)
+	_rod(parent, hp, NOZZLE_HOSE, 0.0175, alu)   # муфта шланга
+	var nut := _rod(parent, Vector3(hp.x, hp.y, -0.068), Vector3(hp.x, hp.y, -0.08), 0.0205, alu)
+	(nut.mesh as CylinderMesh).radial_segments = 6   # гайка — шестигранник
+	var sb := NOZZLE_SB
+	var sd := NOZZLE_SD
+	_capsule(parent, Vector3(-0.026, 0.097, 0.036), sb + Vector3(0.0, 0.0, 0.006), 0.019, alu)   # литой корпус — от кулака к носику
+	_rod(parent, sb - sd * 0.004, sb + sd * 0.01, 0.0145, alu)   # гайка носика
+	_rod(parent, sb, sb + sd * 0.155, 0.0105, steel, 0.0094)   # носик
+	for k in 6:   # пружина у основания носика
+		var t := MeshInstance3D.new()
+		var tm := TorusMesh.new()
+		tm.inner_radius = 0.0104
+		tm.outer_radius = 0.0128
+		t.mesh = tm
+		t.material_override = steel
+		parent.add_child(t)
+		t.position = sb + sd * (0.012 + k * 0.0065)
+		t.basis = _along(sd)
+	_rod(parent, sb + sd * 0.149, sb + sd * 0.156, 0.0101, wire)   # кромка на конце носика
+	_box(parent, Vector3(0.007, 0.014, 0.085), Vector3(-0.06, 0.104, 0.008), rubber)   # рычаг — под пальцами (чёрный пластик)
+	for pr in [[Vector3(-0.076, 0.1, -0.05), Vector3(-0.076, 0.1, 0.058)],   # защитная скоба вокруг рычага
+			[Vector3(-0.076, 0.1, 0.058), Vector3(-0.03, 0.1, 0.07)],
+			[Vector3(-0.076, 0.1, -0.05), Vector3(-0.03, 0.098, -0.062)]]:
+		_rod(parent, pr[0], pr[1], 0.0034, wire)
+
+
 static func _text(parent: Node3D, t: String, pos: Vector3, size: int, col: Color, px := 0.0016, rot := Vector3.ZERO, w := 0.0, kind := "notice") -> Label3D:
 	var lb := Label3D.new()
 	lb.text = t
@@ -213,6 +289,31 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 	_box(st, Vector3(0.05, 0.04, 0.24), Vector3(0, 0.36, 0), _mat(Color(0.08, 0.08, 0.08), 0.7))
 	out["bucket"] = bk
 	return out
+
+
+## Заправка: где запястье и как повёрнута кисть, чтобы носик пистолета вошёл в горловину вниз под 28° на 7 см.
+## Хват — «как молоток» (рукоять поперёк ладони, носик продолжает её), поэтому крен вокруг носика подбирается так,
+## чтобы пальцы смотрели по предплечью (от примерного локтя к запястью), — запястье не выламывается. [запястье, базис]
+static func nozzle_grip(na: Node3D, sk: Skeleton3D, car: Node3D) -> Array:
+	var f_at: Vector3 = car.to_global(FILLER)
+	var inn := (car.global_transform.basis.orthonormalized() * Vector3(1, 0, 0)).normalized()   # внутрь кузова
+	var a := deg_to_rad(28.0)
+	var sd := (inn * cos(a) + Vector3.DOWN * sin(a)).normalized()
+	var ph := NOZZLE_SB + NOZZLE_SD.normalized() * 0.085   # точка носика на срезе горловины: 7 см носика — внутри
+	var sh := sk.global_transform * sk.get_bone_global_pose(sk.find_bone("upperarm_r")).origin
+	var out := -na.global_transform.basis.x.normalized()   # правая сторона героя
+	var w_at := f_at - inn * 0.12
+	var b := Basis()
+	for it in 4:
+		var el := sh + (w_at - sh) * 0.5 + Vector3.DOWN * 0.12 + out * 0.08   # примерный локоть: ниже и снаружи
+		var f := (w_at - el).normalized()
+		var fp := f - sd * f.dot(sd)
+		if fp.length() < 0.001:
+			fp = Vector3.DOWN - sd * Vector3.DOWN.dot(sd)
+		var w := -fp.normalized()
+		b = Basis(sd.cross(w), sd * 0.259 - w * 0.966, sd * 0.966 + w * 0.259)
+		w_at = f_at - b * ph
+	return [w_at, b]
 
 
 ## Лючок бака на левом заднем крыле машины (машина у колонки: нос к −Z, левый бок — к колонке Ноя). Замер кузова

@@ -42,11 +42,13 @@ var reach := {}:                # кисть — в точку (мир): {"_r": 
 		reach = v
 		reach_pole = {}         # локоть и ладонь задаются заново к каждой новой цели — не тянутся из прошлой сцены
 		reach_palm = {}
+		reach_basis = {}
 		if v.is_empty():
 			reach_lean = 0.0    # руки свободны — корпус больше не тянется
 var reach_lean := 0.0           # цель дальше длины руки: корпус наклоняется к ней, не больше стольких градусов (0 — стоит как в клипе)
 var reach_pole := {}            # куда смотрит локоть (мир): {"_r": Vector3}; по умолчанию — вниз, наружу и чуть назад
 var reach_palm := {}            # куда повёрнута ладонь (мир): {"_r": Vector3}; по умолчанию — как в клипе
+var reach_basis := {}           # кисть целиком (мир): {"_r": Basis} — предмет в руке встаёт точно (пистолет носиком в горловину)
 var _reach_w := 0.0
 var _palm_tw := {}              # поворот ладони прошлого кадра (рад) — для непрерывности
 var grip := {}                  # держит предмет: {"_r": 0…1, "_l": 0…1} — пальцы обхватывают
@@ -1162,6 +1164,12 @@ func _update_reach(delta: float) -> void:
 		# 3) ладонь: поворот вокруг оси предплечья (60% — предплечье, 40% — кисть), не больше 100°
 		if reach_palm.has(side):
 			_turn_palm(side, (reach_palm[side] as Vector3).normalized(), e)
+		# 3б) кисть целиком — в заданный базис (запястье уже в цели, поворот его не сдвигает)
+		if reach_basis.has(side) and skel.get_bone_parent(bh) >= 0:
+			var ws: Basis = sgt.basis.orthonormalized().inverse() * (reach_basis[side] as Basis).orthonormalized()
+			var pg := skel.get_bone_global_pose(skel.get_bone_parent(bh)).basis.orthonormalized()
+			var tq := Quaternion((pg.inverse() * ws).orthonormalized())
+			skel.set_bone_pose_rotation(bh, skel.get_bone_pose_rotation(bh).slerp(tq, e))
 		# 4) осмотр рук: кисть — в линию с предплечьем (в клипе она свисает), иначе пальцы смотрят в пол
 		if gesture in ["check_hands", "look_hands"] and _bi("middle_01" + side) >= 0:
 			var fa := ((sgt * skel.get_bone_global_pose(bh)).origin - (sgt * skel.get_bone_global_pose(bl)).origin).normalized()

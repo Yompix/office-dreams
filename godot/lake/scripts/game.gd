@@ -1100,27 +1100,7 @@ func _attach_nozzle(a: Actor) -> void:
 	var dark := StandardMaterial3D.new()
 	dark.albedo_color = Color(0.03, 0.03, 0.035)
 	dark.roughness = 0.5
-	var steel := StandardMaterial3D.new()
-	steel.albedo_color = Color(0.55, 0.56, 0.58)
-	steel.metallic = 0.9
-	steel.roughness = 0.3
-	var h := MeshInstance3D.new()
-	var hb := BoxMesh.new()
-	hb.size = Vector3(0.035, 0.13, 0.05)
-	h.mesh = hb
-	h.material_override = dark
-	h.position = Vector3(0.0, 0.07, 0.02)
-	ba.add_child(h)
-	var sp := MeshInstance3D.new()
-	var sc := CylinderMesh.new()
-	sc.top_radius = 0.009
-	sc.bottom_radius = 0.011
-	sc.height = 0.17
-	sp.mesh = sc
-	sp.material_override = steel
-	sp.position = Vector3(0.0, 0.11, 0.1)
-	sp.rotation_degrees = Vector3(75, 0, 0)
-	ba.add_child(sp)
+	StationProps.nozzle_parts(ba)   # рукоять в кулаке, корпус, носик с пружиной, рычаг, скоба, муфта шланга
 	var hose := MeshInstance3D.new()
 	var hc := CylinderMesh.new()
 	hc.top_radius = 0.016
@@ -1381,7 +1361,11 @@ func _fx(k: String) -> void:
 				stub.visible = false
 			StationProps.fuel_flap(scene.car, true)
 			StationProps.holster(scene.station_root, false)
-			na.reach = {"_r": scene.car.to_global(StationProps.FILLER + Vector3(-0.07, 0.03, 0.0))}
+			# носик — в горловину (раньше кисть шла к точке у лючка как придётся, и носик смотрел вверх мимо горловины)
+			var gr := StationProps.nozzle_grip(na, na.skel, scene.car)
+			na.reach = {"_r": gr[0]}
+			na.reach_basis = {"_r": gr[1]}
+			na.reach_lean = 12.0   # горловина низко (0,9 м): корпус чуть наклоняется к ней
 			_hose = MeshInstance3D.new()
 			var hm := StandardMaterial3D.new()
 			hm.albedo_color = Color(0.03, 0.03, 0.035)
@@ -2381,7 +2365,7 @@ func _process(delta: float) -> void:
 		if hn == null and has_meta("nozzle_node") and is_instance_valid(get_meta("nozzle_node")):
 			hn = get_meta("nozzle_node")
 		if hn:
-			StationProps.hose_mesh(_hose, HOSE_FROM, hn.global_transform * Vector3(0.0, 0.01, -0.01))
+			StationProps.hose_mesh(_hose, HOSE_FROM, hn.global_transform * StationProps.NOZZLE_HOSE)   # шланг входит в муфту пистолета
 	_beat_t += delta
 	if _beat_t >= 30.0:   # пульс BootGuard: запуск жив; закрытие после 2 минут — уже не «вылет при загрузке»
 		_beat_t = 0.0
