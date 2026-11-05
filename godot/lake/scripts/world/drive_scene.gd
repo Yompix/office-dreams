@@ -401,14 +401,14 @@ func _staff_gate(lang: String) -> void:
 		cafe_root.add_child(b)
 	var sign := Label3D.new()
 	sign.text = "ТОЛЬКО ДЛЯ ПЕРСОНАЛА" if lang == "ru" else "STAFF ONLY"
-	sign.font_size = 34
+	sign.font_size = 30
 	sign.pixel_size = 0.0016
 	sign.modulate = Color(0.92, 0.9, 0.84)
 	sign.outline_size = 0
 	sign.shaded = true
 	sign.position = Vector3(33.0, y0 + 0.74, z + 0.025)   # на калитке, лицом в зал (+z)
 	cafe_root.add_child(sign)
-	var plate := uv_box(Vector3(0.62, 0.12, 0.006), Vector3(33.0, y0 + 0.74, z + 0.0255), null)
+	var plate := uv_box(Vector3(0.72, 0.12, 0.006), Vector3(33.0, y0 + 0.74, z + 0.0255), null)
 	var pmat := StandardMaterial3D.new()
 	pmat.albedo_color = Color(0.12, 0.2, 0.16)
 	pmat.roughness = 0.6
