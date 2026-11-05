@@ -49,6 +49,7 @@ var _looks := {}             # кто куда смотрел до прогул�
 var _tight := false          # камере тесно (вплотную к стене): она над плечом — смотрит дальше вперёд, а не в землю
 var _opened := {}            # id двери → узел-петля, на котором повёрнута створка
 var _intro := false          # надписи вступления ещё идут (герой уже ходит): осмотр и зоны — после них
+var _closer := {}            # двери с доводчиком: id → {piv, ang, at, open}
 var _use_later := false      # «Осмотреть» нажали во время вступления — осмотреть, как только оно кончится
 static var _ring: Texture2D
 
@@ -86,20 +87,25 @@ func run() -> void:
 	g._cut("explore")
 	var intro: Array = d.get("intro", [])
 	if g.autoplay or "--walkauto" in OS.get_cmdline_user_args():   # --walkauto: проверки управления (--qtetest) проходят прогулку сами
-		for b in intro:
+		var k0 := 0
+		while k0 < intro.size() and _before_control(intro[k0]):
+			await g._beat(intro[k0])
+			k0 += 1
+		_handover()
+		for b in intro.slice(k0):
 			await g._beat(b)
-		g._cut("explore")
 		await _auto()
 	else:
 		# Игрок ведёт героя сразу (владелец, 4 ноя: «не во всех локациях на телефоне получается ходить»): раньше всё
 		# вступление (надписи, реплики — 3–9 с) шло до управления, а камера и джойстик уже были прогулочные — палец
-		# и клавиши не слушались. Теперь до управления — только общие планы вступления (шаги со склейкой «shot»),
+		# и клавиши не слушались. Теперь до управления — только общие планы вступления (шаги со склейкой «shot») и
+		# постановка с действием игрока («pre»: заправка на «24» — Ной у колонки, ходить в это время нельзя);
 		# надписи и реплики идут уже на ходу; осмотр и зоны — после них.
 		var k := 0
-		while k < intro.size() and (intro[k] as Dictionary).has("shot"):
+		while k < intro.size() and _before_control(intro[k]):
 			await g._beat(intro[k])
 			k += 1
-		g._cut("explore")
+		_handover()
 		if k < intro.size():
 			_intro_walk(intro.slice(k))
 		await _loop()
@@ -107,6 +113,7 @@ func run() -> void:
 			g._skip = true
 			await g.get_tree().process_frame
 	g.hud.prompt("")
+	g.hud.goal("")
 	for m in _marks.values():
 		if is_instance_valid(m):
 			(m as Node).queue_free()
@@ -127,6 +134,25 @@ func run() -> void:
 
 
 # ---------------------------------------------------------------------------------------------------- игрок ведёт
+
+## Шаг вступления идёт до управления: общий план («shot») или постановка с действием игрока («pre»).
+func _before_control(b) -> bool:
+	return b is Dictionary and ((b as Dictionary).has("shot") or bool((b as Dictionary).get("pre", false)))
+
+
+## Управление — игроку: камера плавно уезжает за правое плечо героя (если до этого шла постановка — с её плана),
+## вверху слева — цель прогулки («goal»), внизу — подсказка, как ходить (пока игрок не сдвинулся).
+func _handover() -> void:
+	if bool(d.get("glide", false)) and g._shot != "explore":   # проезд камеры — только где задан (на других прогулках
+		g.glide_to_explore(1.6)                                 # прошлый план бывает за стеной: была бы съёмка сквозь неё)
+	else:
+		g._cut("explore")
+	var gl = d.get("goal")
+	if gl is Dictionary:
+		g.hud.goal(g.hud.T(gl))
+	_t = 0.0   # подсказка «WASD — идти» — с этой минуты (а не с начала вступления)
+
+
 
 ## Надписи и реплики вступления — пока игрок уже ведёт героя (склейки из них убраны: камера — прогулочная).
 func _intro_walk(beats: Array) -> void:
@@ -149,6 +175,7 @@ func _loop() -> void:
 		if not _intro:
 			_t += dt   # время прогулки — после надписей вступления (подсказка «как ходить», «поторопить»)
 		_tick(dt)
+		_closers()
 		var e: bool = Input.is_physical_key_pressed(KEY_E)
 		var lmb: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not TouchCtl.enabled   # телефон: касание джойстика — не «осмотреть»
 		var press: bool = (e and not _e_prev) or Input.is_action_just_pressed("ui_accept") \
@@ -427,8 +454,25 @@ func _open_door(s: Dictionary) -> void:
 		for l in leaves:
 			(l as Node3D).reparent(piv, true)
 		_opened[id] = piv
+		var ang := deg_to_rad(float(s.get("open", 90.0)))
+		var grip := _door_handle(piv, leaves)   # ручка у свободного края створки, со стороны героя (оси петли)
 		var tw: Tween = g.create_tween()
-		tw.tween_property(piv, "rotation:y", deg_to_rad(float(s.get("open", 90.0))), 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		if grip != Vector3.INF:
+			# рука на ручке: кисть берётся за холодную ручку и толкает — створка уходит от руки, а не сама;
+			# первую половину хода кисть идёт вместе с ручкой, потом отпускает
+			a.reach = {"_r": piv.global_transform * grip}
+			a.reach_palm = {"_r": (piv.global_transform.basis * Vector3(0, 0, 1)).normalized()}
+			tw.tween_interval(0.4)
+			tw.tween_method(func(r: float):
+				piv.rotation.y = r
+				if a.reach.has("_r") and absf(r) < absf(ang) * 0.45:
+					a.reach["_r"] = piv.global_transform * grip
+				elif a.reach.has("_r"):
+					a.reach = {}, 0.0, ang, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		else:
+			tw.tween_property(piv, "rotation:y", ang, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		if s.get("closer", false):   # доводчик: дверь за спиной медленно закрывается (см. _closers)
+			_closer[id] = {"piv": piv, "ang": ang, "at": Vector2(float(hinge[0]), float(hinge[1])), "open": true}
 	else:
 		_opened[id] = null
 	if s.has("sfx"):
@@ -441,6 +485,57 @@ func _open_door(s: Dictionary) -> void:
 				d[key] = []
 			(d[key] as Array).append_array(s[key])
 	await g._wait(0.5)   # створка приоткрылась — дальше игрок идёт сам
+
+
+## Ручка двери (оси петли): у свободного края створки (85 % ширины), на высоте ~1 м над полом створки, на 6 см от
+## полотна в сторону героя. Нет створки — Vector3.INF.
+func _door_handle(piv: Node3D, leaves: Array) -> Vector3:
+	var inv := piv.global_transform.affine_inverse()
+	var box := AABB()
+	var first := true
+	for l in leaves:
+		if not (l is MeshInstance3D):
+			continue
+		var mi := l as MeshInstance3D
+		var bb := inv * (mi.global_transform * mi.get_aabb())
+		box = bb if first else box.merge(bb)
+		first = false
+	if first:
+		return Vector3.INF
+	# дальний от петли край створки — по горизонтали
+	var far := Vector3(box.end.x if absf(box.end.x) > absf(box.position.x) else box.position.x, 0.0,
+		box.end.z if absf(box.end.z) > absf(box.position.z) else box.position.z)
+	var along := Vector3(far.x, 0, far.z)
+	var w := along.length()
+	if w < 0.3:
+		return Vector3.INF
+	var dir := along / w
+	var nrm := dir.cross(Vector3.UP)   # поперёк полотна
+	var me := inv * a.global_position
+	if nrm.dot(Vector3(me.x, 0, me.z) - dir * dir.dot(Vector3(me.x, 0, me.z))) < 0.0:
+		nrm = -nrm
+	return dir * (w * 0.85) + Vector3(0, box.position.y + 1.02, 0) + nrm * 0.06
+
+
+## Доводчик (дверь с "closer"): герой отошёл от проёма дальше 1,7 м — створка медленно закрывается, колокольчик звякает
+## тише; подошёл ближе 1,3 м — открывается снова (толкнул). Проём при этом проходим всегда.
+func _closers() -> void:
+	for id in _closer:
+		var c: Dictionary = _closer[id]
+		var piv: Node3D = c.piv
+		if not is_instance_valid(piv):
+			continue
+		var dist := Vector2(a.position.x, a.position.z).distance_to(c.at)
+		if bool(c.open) and dist > 1.7:
+			c.open = false
+			var tw := piv.create_tween()
+			tw.tween_property(piv, "rotation:y", 0.0, 2.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tw.tween_callback(func(): g.sfx.play("door_chime", -16.0, 1.05))
+		elif not bool(c.open) and dist < 1.3:
+			c.open = true
+			var tw := piv.create_tween()
+			tw.tween_property(piv, "rotation:y", float(c.ang), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			g.sfx.play("door_chime", -12.0)
 
 
 ## В списке препятствий: убрать прямоугольники из out (по первым четырём числам), добавить add.
@@ -657,6 +752,7 @@ func _auto_go(s: Dictionary) -> void:
 			left -= dt
 			a.position.y = move_toward(a.position.y, _floor(a.position.x, a.position.z), dt * 2.4)
 			yaw = lerp_angle(yaw, a.rotation.y, 1.0 - exp(-dt * 2.0))
+			_closers()
 		if a.walking:
 			a.stop_walk()
 			a.position = Vector3(pt.x, _floor(pt.x, pt.y), pt.y)

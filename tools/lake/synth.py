@@ -9,7 +9,9 @@
   frogs      — глава 5: летняя ночь у озера, лягушки (хор с перекличкой, петля);
   ice_crack  — глава 5: лёд трещит и проваливается (низкий гул, щелчки, хруст);
   pump_run   — глава 1, заправка «24»: насос колонки качает — гул мотора, шум топлива в горловине, тиканье счётчика
-               (9 с; играет, пока игрок держит кнопку, отпустил — стоп).
+               (9 с; играет, пока игрок держит кнопку, отпустил — стоп);
+  car_arrive, engine_off, belt_click — «24», вступление: машина подкатывает к колонке, ключ — мотор глохнет, ремень;
+  phone_pickup, dial_tone, phone_dial — «24», прилавок: трубку сняли, гудок, набор номера.
   python3 tools/lake/synth.py   → godot/lake/snd/<имя>.ogg"""
 import os, subprocess, wave
 import numpy as np
@@ -221,6 +223,112 @@ def pump_run():
     x = 0.55 * motor + 0.9 * flow + 0.18 * tick
     x *= np.clip((9.0 - t) / 0.3, 0, 1)                                              # без щелчка в конце
     save('pump_run', x, 0.7)
+
+
+def car_arrive():
+    """Глава 1, заправка «24», вступление: машина сбрасывает ход и подкатывает к колонке — мотор на сбросе газа,
+    шины по укатанному снегу (хруст стихает к остановке), под конец — холостые обороты. 6,6 с."""
+    dur = 6.6
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    k = np.clip(t / 6.0, 0, 1)
+    v = (1 - k) ** 1.0                                                               # скорость: от ~45 км/ч к нулю
+    rpm = 0.55 + 0.45 * v                                                            # обороты падают к холостым
+    f0 = 38.0 * rpm * (1 + 0.006 * np.sin(2 * np.pi * 0.9 * t))
+    ph = 2 * np.pi * np.cumsum(f0) / SR
+    eng = np.sin(ph) + 0.6 * np.sin(2 * ph) + 0.35 * np.sin(3 * ph) + 0.15 * np.sin(4.5 * ph)
+    eng = lowpass(eng, 420.0, 2) * (0.7 + 0.3 * v)
+    crunch = lowpass(rng.normal(0, 1, n), 1500.0, 1) - lowpass(rng.normal(0, 1, n), 120.0, 1) * 0.5
+    grit = np.clip(lowpass(rng.normal(0, 1, n), 25.0, 1) * 9, 0.2, 1.6)              # неровный хруст наста
+    crunch *= grit * v ** 0.7
+    hiss = lowpass(rng.normal(0, 1, n), 3000.0, 1) * 0.25 * v                        # снежная пыль из-под колёс
+    x = 0.6 * eng + 0.5 * crunch + hiss
+    x *= np.clip(t / 0.6, 0, 1) * np.clip((dur - t) / 0.4, 0, 1)                     # издалека — нарастает
+    save('car_arrive', x, 0.7)
+
+
+def engine_off():
+    """Ключ на себя: щелчок замка зажигания, мотор глохнет с вздохом, остывающий двигатель тикает. 2,4 с."""
+    dur = 2.4
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    click = np.zeros(n)
+    for c0, f, a in ((0.02, 3200, 0.8), (0.07, 2100, 0.5)):                         # ключ: два щелчка замка
+        i = int(c0 * SR)
+        tt = np.arange(500) / SR
+        click[i:i + 500] += a * np.sin(2 * np.pi * f * tt) * np.exp(-tt / 0.003)
+    dying = np.clip((0.85 - t) / 0.7, 0, 1)                                          # мотор глохнет за 0,7 с
+    f0 = 36.0 * (0.4 + 0.6 * dying)
+    ph = 2 * np.pi * np.cumsum(f0) / SR
+    eng = (np.sin(ph) + 0.5 * np.sin(2 * ph) + 0.3 * np.sin(3 * ph)) * dying ** 1.5
+    shudder = np.exp(-((t - 0.8) / 0.05) ** 2) * np.sin(2 * np.pi * 22 * t)          # последний толчок кузова
+    tick = np.zeros(n)
+    for c0 in (1.25, 1.75, 2.1):                                                     # остывающий металл
+        i = int(c0 * SR)
+        tt = np.arange(300) / SR
+        if i + 300 < n:
+            tick[i:i + 300] += np.sin(2 * np.pi * 5200 * tt) * np.exp(-tt / 0.0015)
+    x = 0.5 * click + 0.7 * lowpass(eng, 380.0, 2) + 0.4 * shudder + 0.12 * tick
+    save('engine_off', x, 0.7)
+
+
+def belt_click():
+    """Ремень безопасности: щелчок пряжки и шорох ленты, уезжающей вверх. 1,0 с."""
+    dur = 1.0
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    click = np.zeros(n)
+    i = int(0.02 * SR)
+    tt = np.arange(700) / SR
+    click[i:i + 700] += np.sin(2 * np.pi * 2600 * tt) * np.exp(-tt / 0.004) + 0.5 * np.sin(2 * np.pi * 4100 * tt) * np.exp(-tt / 0.002)
+    slide = lowpass(rng.normal(0, 1, n), 2500.0, 1) - lowpass(rng.normal(0, 1, n), 400.0, 1)
+    slide *= np.clip((t - 0.08) / 0.05, 0, 1) * np.clip((0.75 - t) / 0.3, 0, 1)
+    x = 0.8 * click + 0.25 * slide
+    save('belt_click', x, 0.6)
+
+
+def phone_pickup():
+    """Трубку сняли с рычагов (или положили): пластиковый стук и щелчок рычага. 0,4 с."""
+    dur = 0.4
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    x = np.zeros(n)
+    for c0, f, a, d in ((0.0, 900, 0.7, 0.012), (0.03, 2400, 0.5, 0.004), (0.11, 1800, 0.35, 0.003)):
+        i = int(c0 * SR)
+        tt = np.arange(n - i) / SR
+        x[i:] += a * np.sin(2 * np.pi * f * tt) * np.exp(-tt / d)
+    x += 0.15 * lowpass(rng.normal(0, 1, n), 2000.0, 1) * np.exp(-t / 0.03)
+    save('phone_pickup', x, 0.6)
+
+
+def dial_tone():
+    """Гудок в трубке (425 Гц, ровный), слышен из трубки у Романа — тихо, с хрипом линии. 3 с."""
+    dur = 3.0
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    x = np.sin(2 * np.pi * 425 * t) * (0.9 + 0.1 * np.sin(2 * np.pi * 0.7 * t))
+    x = lowpass(x + 0.08 * rng.normal(0, 1, n), 1800.0, 1)
+    x *= np.clip(t / 0.05, 0, 1) * np.clip((dur - t) / 0.2, 0, 1)
+    save('dial_tone', x, 0.5)
+
+
+def phone_dial():
+    """Набор номера на кнопочном аппарате: короткие щелчки кнопок с тонами (10 цифр, неровный темп). 2 с."""
+    dur = 2.0
+    n = int(dur * SR)
+    x = np.zeros(n)
+    tones = [(697, 1209), (770, 1336), (852, 1477), (941, 1336), (697, 1336), (770, 1209), (852, 1336), (697, 1477), (941, 1209), (770, 1477)]
+    c = 0.05
+    for k, (fa, fb) in enumerate(tones):
+        i = int(c * SR)
+        m = int(0.09 * SR)
+        if i + m >= n:
+            break
+        tt = np.arange(m) / SR
+        x[i:i + m] += 0.3 * (np.sin(2 * np.pi * fa * tt) + np.sin(2 * np.pi * fb * tt)) * np.clip((0.09 - tt) / 0.01, 0, 1)
+        x[i:i + 300] += 0.6 * np.sin(2 * np.pi * 3000 * tt[:300]) * np.exp(-tt[:300] / 0.002)   # кнопка
+        c += 0.13 + 0.05 * ((k * 7) % 3)
+    save('phone_dial', x, 0.55)
 
 
 if __name__ == '__main__':

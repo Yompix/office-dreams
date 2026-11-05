@@ -597,3 +597,124 @@ func fit_wheel(a: Actor) -> void:
 	column.look_at(to_global(end), Vector3.UP)
 	column.rotate_object_local(Vector3.RIGHT, PI / 2)   # цилиндр стоит по Y — кладём вдоль направления на щиток
 	column.scale = Vector3(1.0, c.distance_to(end) / 0.35, 1.0)
+
+
+## Дверь — передняя водителя ("l") и пассажира ("r"), задние ("rl", "rr"). Кузов, стёкла и обивка в модели — по одной сетке на машину,
+## поэтому дверь вырезается из них по шву: передний край — у стойки A (z −0,60), задний — у стойки B (z 0,44), снизу —
+## порог, сверху — крыша; треугольники двери переходят в отдельную сетку на петле у переднего края. Закрытая дверь
+## выглядит как раньше (те же треугольники на тех же местах). Вырезается один раз; door_open(side, 0…1) — открыть.
+const DOOR_Z := Vector2(-0.6, 0.44)     # передняя дверь: от стойки A до стойки B
+const DOOR_ZR := Vector2(0.47, 1.5)     # задняя ("rl" / "rr"): от стойки B до заднего крыла
+func door(side: String) -> Node3D:
+	var nm := "door_pivot_" + side
+	var pv := get_node_or_null(nm) as Node3D
+	if pv:
+		return pv
+	var sx := -1.0 if side.ends_with("l") else 1.0
+	var zr := DOOR_ZR if side.length() == 2 else DOOR_Z
+	pv = Node3D.new()
+	pv.name = nm
+	add_child(pv)
+	pv.position = Vector3(sx * 0.86, 0.0, zr.x)
+	var inv := global_transform.affine_inverse()
+	for part in [["body", 0.22, 1.0], ["glass", 0.9, 1.52], ["door_" + side.right(1), -1.0, 3.0]]:
+		var src := find_child(String(part[0]), true, false) as MeshInstance3D
+		if src == null or src.mesh == null:
+			continue
+		var xf := inv * src.global_transform   # вершины сетки → оси машины
+		var keep := ArrayMesh.new()
+		var cut := ArrayMesh.new()
+		for s in src.mesh.get_surface_count():
+			var arr := src.mesh.surface_get_arrays(s)
+			var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX] if arr[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+			if idx.is_empty():
+				idx.resize(vs.size())
+				for i in vs.size():
+					idx[i] = i
+			var ik := PackedInt32Array()
+			var ic := PackedInt32Array()
+			for t in range(0, idx.size() - 2, 3):
+				var c := xf * ((vs[idx[t]] + vs[idx[t + 1]] + vs[idx[t + 2]]) / 3.0)
+				var on := c.x * sx > 0.5 and c.z > zr.x and c.z < zr.y and c.y > float(part[1]) and c.y < float(part[2])
+				var dst := ic if on else ik
+				dst.append(idx[t])
+				dst.append(idx[t + 1])
+				dst.append(idx[t + 2])
+			var mat := src.get_active_material(s)
+			for pair in [[keep, ik], [cut, ic]]:
+				var am: ArrayMesh = pair[0]
+				var ii: PackedInt32Array = pair[1]
+				if ii.is_empty():
+					continue
+				var a2 := arr.duplicate()
+				a2[Mesh.ARRAY_INDEX] = ii
+				am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a2)
+				am.surface_set_material(am.get_surface_count() - 1, mat)
+		if cut.get_surface_count() == 0:
+			continue
+		for s in src.mesh.get_surface_count():   # переопределённые материалы — теперь в самих сетках
+			src.set_surface_override_material(s, null)
+		src.mesh = keep
+		var dm := MeshInstance3D.new()
+		dm.name = String(part[0]) + "_door_" + side
+		dm.mesh = cut
+		dm.layers = src.layers
+		dm.cast_shadow = src.cast_shadow
+		pv.add_child(dm)
+		dm.transform = pv.transform.affine_inverse() * xf
+	return pv
+
+
+## Открыть / закрыть дверь ("l", "r" — передние, "rl", "rr" — задние): k — доля (1 — настежь, 62°); dur — секунды.
+func door_open(side: String, k: float, dur := 0.6) -> Tween:
+	var pv := door(side)
+	var tw := pv.create_tween()
+	tw.tween_property(pv, "rotation_degrees:y", (-62.0 if side.ends_with("l") else 62.0) * k, dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	return tw
+
+
+## Мотор заглушён ключом: подсветка приборов, шкалы, магнитола и лампа бензина гаснут за dur секунд; фары — сразу.
+func dash_off(dur := 0.6) -> void:
+	lights(false)
+	fuel_blink = false
+	if fuel_lamp:
+		fuel_lamp.visible = false
+	var tw := create_tween().set_parallel()
+	if dash_light:
+		tw.tween_property(dash_light, "light_energy", 0.0, dur)
+	if radio_glow:
+		radio_glow.visible = false
+	for n in get_children():   # шкалы спидометра и тахометра — светящиеся квадраты у щитка
+		if n is MeshInstance3D and (n as MeshInstance3D).material_override is StandardMaterial3D:
+			var m := (n as MeshInstance3D).material_override as StandardMaterial3D
+			if m.emission_enabled and m.emission_texture != null:
+				tw.tween_property(m, "emission_energy_multiplier", 0.0, dur)
+	if clock:
+		tw.tween_property(clock, "modulate:a", 0.0, dur)
+	for l in lamps:   # стёкла фар больше не светятся
+		var lm := l.material_override as StandardMaterial3D
+		if lm:
+			lm = lm.duplicate() as StandardMaterial3D
+			l.material_override = lm
+			tw.tween_property(lm, "emission_energy_multiplier", 0.0, dur * 0.5)
+
+
+## Мотор заведён (отъезд): фары, подсветка приборов и шкал снова горят.
+func dash_on(dur := 0.4) -> void:
+	lights(true)
+	var tw := create_tween().set_parallel()
+	if dash_light:
+		tw.tween_property(dash_light, "light_energy", 0.35, dur)
+	for n in get_children():
+		if n is MeshInstance3D and (n as MeshInstance3D).material_override is StandardMaterial3D:
+			var m := (n as MeshInstance3D).material_override as StandardMaterial3D
+			if m.emission_enabled and m.emission_texture != null:
+				tw.tween_property(m, "emission_energy_multiplier", 0.6, dur)
+	if clock:
+		tw.tween_property(clock, "modulate:a", 1.0, dur)
+	for l in lamps:
+		var lm := l.material_override as StandardMaterial3D
+		if lm:
+			tw.tween_property(lm, "emission_energy_multiplier", 3.0, dur * 0.5)
+

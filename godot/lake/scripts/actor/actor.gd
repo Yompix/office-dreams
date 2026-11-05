@@ -397,6 +397,12 @@ func seat_depth() -> float:
 	return d
 
 
+## Закончить жест раньше времени (Роман узнал Ноя — руки расходятся): руки и взгляд — как были до жеста.
+func end_gesture() -> void:
+	if gesture != "":
+		_gest_t = 0.0
+
+
 ## Руки свободны: цели IK, снимок рук до жеста и хват сброшены — жест, начатый в этом же шаге сценария, по окончании
 ## не вернёт руки к старым целям (ведро: «руки из воды» и осмотр ладоней в одном шаге).
 func clear_hands() -> void:
@@ -410,7 +416,8 @@ func clear_hands() -> void:
 
 
 ## Жест на dur секунд. Руки — к точкам у своего тела каждый кадр (идут вместе с героем): pockets — в карманы,
-## look_hands — ладони перед собой и взгляд на них, check_hands — то же, потом перевернуть (ногти, костяшки), behind — за спину, give — протянуть руку, palm_to — ладонь на
+## look_hands — ладони перед собой и взгляд на них, check_hands — то же, потом перевернуть (ногти, костяшки),
+## collar — поднять воротник, warm_hands — дышать в ладони, behind — за спину, give — протянуть руку, palm_to — ладонь на
 ## кость другого героя (голова, плечо), take_hand — взять за руку, sleeve — взгляд на свой рукав.
 ## Головой: nod — кивок, shake — «нет»; tremble — дрожь. После — руки и взгляд как были.
 func do_gesture(kind: String, dur := 2.0, other: Actor = null, bone := "head") -> void:
@@ -490,6 +497,26 @@ func _update_gesture(dt: float) -> void:
 			grip = {"_r": g, "_l": g}
 			palm = {"_r": up * cos(k) - right * sin(k), "_l": up * cos(k) + right * sin(k)}
 			look_target = c
+		"collar":   # поднять воротник ребром ладони: кисти к бокам шеи, потом чуть вверх (ёжится на холоде)
+			var hd: Vector3 = bp.call("head")
+			var nk := hd - up * 0.13
+			var lift := smoothstep(0.35, 0.8, 1.0 - _gest_t / _gest_dur) * 0.05
+			r = {"_r": nk + right * 0.085 + fwd * 0.03 + up * lift, "_l": nk - right * 0.085 + fwd * 0.03 + up * lift}
+			palm = {"_r": -right, "_l": right}
+		"arms_crossed":   # руки скрещены на животе (Роман на табурете): кисти — к противоположным локтям, ладонями к себе
+			var c := pv + up * 0.3 + fwd * 0.17
+			r = {"_r": c - right * 0.12, "_l": c + right * 0.13 + up * 0.03}
+			palm = {"_r": -fwd, "_l": -fwd}
+		"palms_out":   # пустые ладони вперёд, на уровне груди: «не надо» / отшатнулся
+			var c := ch + fwd * 0.3 - up * 0.05
+			r = {"_r": c + right * 0.16, "_l": c - right * 0.16}
+			palm = {"_r": fwd, "_l": fwd}
+		"warm_hands":   # дышит в сложенные лодочкой ладони: кисти у рта, ладони друг к другу
+			var hd: Vector3 = bp.call("head")
+			var m := hd + fwd * 0.12 - up * 0.07
+			r = {"_r": m + right * 0.025, "_l": m - right * 0.025}
+			palm = {"_r": -right + up * 0.4, "_l": right + up * 0.4}
+			look_target = m + fwd * 0.6 - up * 0.2
 		"behind":
 			r = {"_r": pv - fwd * 0.17 + right * 0.06 + up * 0.04, "_l": pv - fwd * 0.17 - right * 0.06 + up * 0.04}
 		"sleeve":

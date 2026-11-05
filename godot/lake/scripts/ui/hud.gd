@@ -19,6 +19,7 @@ var silent_lbl: Label
 var toast: Label
 var hint: Label
 var prompt_lbl: Label        # прогулка: «E   Поговорить с Дэнни» внизу кадра
+var goal_lbl: Label          # прогулка: цель вверху слева («Заплатить — в магазине»), пока игрок ведёт героя
 var scrim: TextureRect      # мягкое затемнение низа кадра под субтитрами и текстом рассказчика
 var fade: ColorRect
 var title: Label
@@ -256,6 +257,13 @@ func _ready() -> void:
 	prompt_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # длинная подсказка — в две строки, а не за край экрана
 	prompt_lbl.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	prompt_lbl.modulate.a = 0.0
+	goal_lbl = _label(root, 28, font_b, Color(1.0, 0.95, 0.86))
+	goal_lbl.anchor_left = 0.035
+	goal_lbl.anchor_right = 0.6
+	goal_lbl.anchor_top = 0.105   # под плашкой «Айрис это запомнит» (вверху слева) — не одна на другой
+	goal_lbl.anchor_bottom = 0.16
+	goal_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	goal_lbl.modulate.a = 0.0
 	title = _label(root, 64, font_b, Color.WHITE)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -270,6 +278,7 @@ func set_phone(on: bool) -> void:
 		return
 	get_tree().root.content_scale_factor = PHONE_SCALE   # весь интерфейс на 30 % крупнее; раскладка — по долям экрана
 	toast.anchor_left = 0.08   # подальше от выреза камеры
+	goal_lbl.anchor_left = 0.08
 	choice_box.anchor_left = 0.08
 	choice_box.anchor_right = 0.92
 	prompt_lbl.anchor_left = 0.24
@@ -712,6 +721,13 @@ func pick_number(n: int) -> void:   # клавиши 1–9: номер сред�
 				return
 
 
+## Цель прогулки вверху слева: появляется, когда управление переходит к игроку; пустая строка — убрать (тает).
+func goal(text: String) -> void:
+	if text != "":
+		goal_lbl.text = "▸  " + text
+	goal_lbl.set_meta("on", text != "")
+
+
 ## Подсказка прогулки внизу кадра («E   Осмотреть»); пустая строка — убрать (тает).
 func prompt(text: String) -> void:
 	if text != "":
@@ -752,6 +768,7 @@ func _process(delta: float) -> void:
 			pick(idx)
 	var pw := 1.0 if (prompt_lbl.get_meta("on", false) and sub_text.text == "" and note.text == "" and _opts.is_empty()) else 0.0
 	prompt_lbl.modulate.a = move_toward(prompt_lbl.modulate.a, pw, delta * 5.0)
+	goal_lbl.modulate.a = move_toward(goal_lbl.modulate.a, 1.0 if (goal_lbl.get_meta("on", false) and _opts.is_empty()) else 0.0, delta * 2.0)
 	if _toast_t > 0.0 and not get_tree().paused:   # плашка «запомнит» не тает под паузой
 		_toast_t -= delta
 		toast.modulate.a = clampf(_toast_t, 0.0, 1.0)

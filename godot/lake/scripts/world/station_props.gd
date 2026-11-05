@@ -526,3 +526,215 @@ static func receiver(root: Node3D, a: Actor, in_hand: bool) -> void:
 	m.material_override = _mat(Color(0.05, 0.05, 0.055), 0.5, 0.3)
 	m.position = Vector3(0.0, 0.08, 0.035)
 	ba.add_child(m)
+
+
+## Неон «24» на столбе у трассы: цифра «4» гаснет на полсекунды и загорается с треском (лист «24», шаг 1). Цифры в модели —
+## одна сетка на сторону, поэтому «4» вырезается из неё по середине (с трассы «4» справа); вырезается один раз.
+static func neon_four(root: Node3D) -> Array:
+	var out: Array = []
+	for n in root.find_children("sign_24*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var four := mi.get_node_or_null("four") as MeshInstance3D
+		if four == null:
+			var face := 1.0 if mi.global_position.x < 5.6 else -1.0   # сторона к трассе (−X): «4» к +Z; обратная — к −Z
+			var keep := ArrayMesh.new()
+			var cut := ArrayMesh.new()
+			for si in mi.mesh.get_surface_count():
+				var arr := mi.mesh.surface_get_arrays(si)
+				var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+				var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX] if arr[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+				if idx.is_empty():
+					idx.resize(vs.size())
+					for i in vs.size():
+						idx[i] = i
+				var ik := PackedInt32Array()
+				var ic := PackedInt32Array()
+				for t in range(0, idx.size() - 2, 3):
+					var c := mi.global_transform * ((vs[idx[t]] + vs[idx[t + 1]] + vs[idx[t + 2]]) / 3.0)
+					var dst := ic if (c.z - 6.0) * face > 0.0 else ik
+					dst.append_array([idx[t], idx[t + 1], idx[t + 2]])
+				var mat := mi.get_active_material(si)
+				for pair in [[keep, ik], [cut, ic]]:
+					if (pair[1] as PackedInt32Array).is_empty():
+						continue
+					var a2 := arr.duplicate()
+					a2[Mesh.ARRAY_INDEX] = pair[1]
+					(pair[0] as ArrayMesh).add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a2)
+					(pair[0] as ArrayMesh).surface_set_material((pair[0] as ArrayMesh).get_surface_count() - 1, mat)
+			if cut.get_surface_count() == 0:
+				continue
+			for si in mi.mesh.get_surface_count():
+				mi.set_surface_override_material(si, null)
+			mi.mesh = keep
+			four = MeshInstance3D.new()
+			four.name = "four"
+			four.mesh = cut
+			mi.add_child(four)
+		out.append(four)
+	for f in out:   # мигнуть: гаснет, дрожит, загорается
+		var tw := (f as Node3D).create_tween()
+		tw.tween_property(f, "visible", false, 0.0)
+		tw.tween_interval(0.35)
+		tw.tween_property(f, "visible", true, 0.0)
+		tw.tween_interval(0.06)
+		tw.tween_property(f, "visible", false, 0.0)
+		tw.tween_interval(0.1)
+		tw.tween_property(f, "visible", true, 0.0)
+	return out
+
+
+# ------------------------------------------------------------------ магазин: прилавок Романа (лист «24», эпизод 5)
+const FLOOR_S := 0.38                               # пол магазина
+const STOOL := Vector3(26.45, FLOOR_S, -9.5)        # высокий табурет за прилавком
+const PHONE_AT := Vector3(26.95, 1.2, -8.93)        # телефон на полке под прилавком, со стороны Романа
+const SOCKET := Vector3(27.25, 0.62, -8.79)         # розетка на задней стенке прилавка — шнур в стену
+const CIG_RACK := Vector3(27.45, FLOOR_S, -10.35)   # стойка с сигаретами за спиной Романа
+
+## Прилавок изнутри: высокий табурет Романа, полка под столешницей с телефоном (трубка лежит на рычагах, витой шнур
+## к трубке, шнур в розетку), стойка с сигаретами за спиной у Романа. Всё один раз (повторный вызов — те же узлы).
+static func counter_props(root: Node3D) -> Dictionary:
+	var out := {}
+	var cp := root.get_node_or_null("counter_props") as Node3D
+	if cp:
+		for k in ["stool", "phone", "receiver", "cigs"]:
+			out[k] = cp.find_child(k, true, false)
+		return out
+	cp = Node3D.new()
+	cp.name = "counter_props"
+	root.add_child(cp)
+	var metal := _mat(Color(0.32, 0.33, 0.35), 0.4, 0.7)
+	var vinyl := _mat(Color(0.16, 0.03, 0.03), 0.55)
+	var st := Node3D.new()   # табурет: сиденье в 0,76 м над полом, три ноги, кольцо для ног
+	st.name = "stool"
+	cp.add_child(st)
+	st.position = STOOL
+	_cyl(st, 0.19, 0.06, Vector3(0, 0.76, 0), vinyl)
+	for k in 3:
+		var a := TAU * k / 3.0
+		var leg := _cyl(st, 0.014, 0.78, Vector3(cos(a) * 0.12, 0.38, sin(a) * 0.12), metal)
+		leg.rotation = Vector3(sin(a) * 0.12, 0, -cos(a) * 0.12)
+	var ring := MeshInstance3D.new()
+	var tm := TorusMesh.new()
+	tm.inner_radius = 0.15
+	tm.outer_radius = 0.17
+	ring.mesh = tm
+	ring.material_override = metal
+	ring.position = Vector3(0, 0.3, 0)
+	st.add_child(ring)
+	out["stool"] = st
+	# полка под столешницей (со стороны Романа) и телефон на ней
+	var wood := _mat(Color(0.22, 0.17, 0.12), 0.8)
+	_box(cp, Vector3(0.7, 0.025, 0.3), Vector3(PHONE_AT.x, PHONE_AT.y - 0.06, -8.93), wood)
+	var ph := Node3D.new()
+	ph.name = "phone"
+	cp.add_child(ph)
+	ph.position = PHONE_AT
+	ph.rotation_degrees.y = 15.0
+	var plast := _mat(Color(0.52, 0.48, 0.4), 0.45)   # бежевый пластик 90-х
+	_box(ph, Vector3(0.2, 0.07, 0.17), Vector3(0, -0.012, 0), plast)
+	_box(ph, Vector3(0.09, 0.012, 0.07), Vector3(0.02, 0.028, -0.02), _mat(Color(0.12, 0.12, 0.12), 0.5))   # кнопки
+	var rc := Node3D.new()
+	rc.name = "receiver"
+	ph.add_child(rc)
+	rc.position = Vector3(-0.035, 0.045, 0.0)
+	_box(rc, Vector3(0.05, 0.035, 0.21), Vector3(0, 0, 0), plast)
+	for zz in [-0.09, 0.09]:
+		_box(rc, Vector3(0.06, 0.045, 0.055), Vector3(0, -0.012, zz), plast)
+	out["phone"] = ph
+	out["receiver"] = rc
+	for nm in ["cord_rx", "cord_wall"]:   # витой шнур трубки и шнур в розетку — тянутся каждый кадр (game.gd)
+		var cm := MeshInstance3D.new()
+		cm.name = nm
+		cm.material_override = _mat(Color(0.45, 0.41, 0.34) if nm == "cord_rx" else Color(0.1, 0.1, 0.1), 0.6)
+		cp.add_child(cm)
+	_box(cp, Vector3(0.07, 0.11, 0.015), SOCKET + Vector3(0, 0, -0.008), _mat(Color(0.85, 0.83, 0.78), 0.5))   # розетка
+	cord_update(root)
+	# стойка с сигаретами: открытый шкафчик, пачки рядами (часть упадёт, когда Роман отшатнётся)
+	var rk := Node3D.new()
+	rk.name = "cigs"
+	cp.add_child(rk)
+	rk.position = CIG_RACK
+	var dark := _mat(Color(0.12, 0.1, 0.08), 0.75)
+	_box(rk, Vector3(0.6, 1.3, 0.04), Vector3(0, 0.95, -0.17), dark)
+	for sx in [-1, 1]:
+		_box(rk, Vector3(0.03, 1.3, 0.36), Vector3(sx * 0.3, 0.95, 0), dark)
+	for row in 4:
+		_box(rk, Vector3(0.6, 0.02, 0.36), Vector3(0, 0.55 + row * 0.3, 0), dark)
+		for i in 6:   # пачки: красные, белые, синие — с белой полосой
+			var col: Color = [Color(0.72, 0.08, 0.06), Color(0.9, 0.88, 0.84), Color(0.1, 0.2, 0.5)][(i + row) % 3]
+			var pk := _box(rk, Vector3(0.055, 0.09, 0.025), Vector3(-0.22 + i * 0.088, 0.61 + row * 0.3, 0.12), _mat(col, 0.5))
+			pk.name = "pack_%d_%d" % [row, i]
+			_box(pk, Vector3(0.056, 0.02, 0.026), Vector3(0, 0.02, 0), _mat(Color(0.95, 0.93, 0.9), 0.5))
+	return out
+
+
+## Шнуры телефона по положению трубки и аппарата: витой — от аппарата к трубке (где бы она ни была: на рычагах, у уха
+## Романа, в кулаке Ноя), прямой — от аппарата в розетку (вырван — свисает с аппарата).
+static func cord_update(root: Node3D, ripped := false) -> void:
+	var cp := root.get_node_or_null("counter_props") as Node3D
+	if cp == null:
+		return
+	var ph := cp.find_child("phone", true, false) as Node3D
+	var rc := cp.find_child("receiver", true, false) as Node3D
+	var crx := cp.get_node("cord_rx") as MeshInstance3D
+	var cw := cp.get_node("cord_wall") as MeshInstance3D
+	if ph == null or rc == null:
+		return
+	var a := ph.global_transform * Vector3(-0.09, -0.01, 0.05)
+	var b := rc.global_transform * Vector3(0, -0.02, 0.1)
+	cord_mesh(crx, a, b, 0.006, 0.12, 0.012)
+	var c := ph.global_transform * Vector3(0.09, -0.03, -0.06)
+	var w := c + Vector3(0.05, -0.45, 0.02) if ripped else SOCKET
+	cord_mesh(cw, c, w, 0.004, 0.05, 0.0)
+
+
+## Шнур: провисающая кривая от a до b, радиус r; coil — витки (размах), 0 — гладкий.
+static func cord_mesh(mi: MeshInstance3D, a: Vector3, b: Vector3, r: float, sag: float, coil: float) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var mid := (a + b) * 0.5 + Vector3(0, -sag - a.distance_to(b) * 0.25, 0)
+	var N := 40 if coil > 0.0 else 14
+	var pts: Array[Vector3] = []
+	for i in N + 1:
+		var t := float(i) / N
+		var u := 1.0 - t
+		pts.append(a * u * u + mid * 2.0 * u * t + b * t * t)
+	var turns := a.distance_to(b) / 0.012 * 0.5 if coil > 0.0 else 0.0
+	for i in N:
+		var p0: Vector3 = pts[i]
+		var p1: Vector3 = pts[i + 1]
+		var dir := (p1 - p0).normalized()
+		var side := dir.cross(Vector3.UP).normalized() if absf(dir.dot(Vector3.UP)) < 0.95 else dir.cross(Vector3.RIGHT).normalized()
+		var up := side.cross(dir).normalized()
+		if coil > 0.0:   # витки: смещение по кругу вокруг оси шнура
+			var ph0 := TAU * turns * float(i) / N
+			var ph1 := TAU * turns * float(i + 1) / N
+			p0 += (side * cos(ph0) + up * sin(ph0)) * coil
+			p1 += (side * cos(ph1) + up * sin(ph1)) * coil
+		for k in 5:
+			var a0 := TAU * k / 5.0
+			var a1 := TAU * (k + 1) / 5.0
+			var o0 := (side * cos(a0) + up * sin(a0)) * r
+			var o1 := (side * cos(a1) + up * sin(a1)) * r
+			st.set_normal(o0.normalized()); st.add_vertex(p0 + o0)
+			st.set_normal(o1.normalized()); st.add_vertex(p0 + o1)
+			st.set_normal(o1.normalized()); st.add_vertex(p1 + o1)
+			st.set_normal(o0.normalized()); st.add_vertex(p0 + o0)
+			st.set_normal(o1.normalized()); st.add_vertex(p1 + o1)
+			st.set_normal(o0.normalized()); st.add_vertex(p1 + o0)
+	mi.mesh = st.commit()
+
+
+## Лампа дневного света над рядом мигает (лист: «над одним рядом мигает лампа»): трубка гаснет и вспыхивает неровно.
+static func tube_flicker(root: Node3D) -> void:
+	for n in root.find_children("tube_lamp_004", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.has_meta("flicker"):
+			return
+		mi.set_meta("flicker", true)
+		var tw := mi.create_tween().set_loops()
+		for sd in [[true, 1.8], [false, 0.07], [true, 0.05], [false, 0.09], [true, 2.6], [false, 0.06], [true, 0.35], [false, 0.05], [true, 1.2]]:
+			var on: bool = sd[0]
+			tw.tween_callback(func(): mi.visible = on)
+			tw.tween_interval(float(sd[1]))
+

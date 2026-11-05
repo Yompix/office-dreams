@@ -90,6 +90,10 @@ var c3 := {}                  # состояние главы 3 (scripts/chapter
 var _ex: Explore = null        # прогулка идёт (scripts/explore.gd): камера за плечом, точки осмотра
 var _asked := {}              # разговоры с выбором тем: что уже спрошено (ключ разговора → {номер темы: да})
 var _cam_free: Array = []     # план «free»: [позиция, куда смотрит, угол] — прямо из шага сценария ("cam")
+var _cam_free_to: Array = []  # наезд / проезд: из "cam" в "cam_to" за время шага (dur), плавно в начале и в конце
+var _glide_from := Transform3D.IDENTITY   # передача управления: камера плавно уезжает с последнего плана за плечо героя
+var _glide := Vector2(1.0, 0.0)           # x — прошло (сек), y — длительность; x ≥ y — проезда нет
+var _cam_move := Vector2.ZERO # начало проезда (секунды игры) и его длительность
 var c2 := {}                  # состояние главы 2 (scripts/chapter2.gd): двойник в зеркале, пост, зеркало туалета…
 const IN_CAR := ["pov", "hands", "noah", "iris", "two", "notebook", "radio", "glovebox", "road", "cluster", "pills", "back",
 	"deer_eye", "mirror", "mirror_back", "noah_van", "iris_van", "zoe_van", "danny_van", "agnes_van", "van_inside", "van_mirror"]    # планы из салона: снаружи слышно глухо
@@ -552,8 +556,10 @@ func _beat(b: Dictionary):
 		_cut(String(b.shot))
 	if b.has("look"):
 		_look(b.look)
-	if b.has("cam"):   # свой план прямо в шаге: [позиция, куда смотрит, угол]
+	if b.has("cam"):   # свой план прямо в шаге: [позиция, куда смотрит, угол]; "cam_to" — куда камера доедет за dur
 		_cam_free = b.cam
+		_cam_free_to = b.get("cam_to", [])
+		_cam_move = Vector2(_t, float(b.get("dur", 2.0)))
 		_cut("free")
 	if b.has("explore"):   # прогулка: игрок сам ведёт героя до выхода (scripts/explore.gd)
 		await _explore(String(b.explore))
@@ -707,8 +713,18 @@ func _place_cam() -> void:
 	elif _shot == "free" and _cam_free.size() >= 2:
 		var p0: Array = _cam_free[0]
 		var p1: Array = _cam_free[1]
-		cam.fov = float(_cam_free[2]) if _cam_free.size() > 2 else 44.0
-		cam.look_at_from_position(Vector3(p0[0], p0[1], p0[2]), Vector3(p1[0], p1[1], p1[2]))
+		var e0 := Vector3(p0[0], p0[1], p0[2])
+		var e1 := Vector3(p1[0], p1[1], p1[2])
+		var fv := float(_cam_free[2]) if _cam_free.size() > 2 else 44.0
+		if _cam_free_to.size() >= 2:   # наезд / проезд за время шага
+			var k := smoothstep(0.0, 1.0, clampf((_t - _cam_move.x) / maxf(_cam_move.y, 0.05), 0.0, 1.0))
+			var q0: Array = _cam_free_to[0]
+			var q1: Array = _cam_free_to[1]
+			e0 = e0.lerp(Vector3(q0[0], q0[1], q0[2]), k)
+			e1 = e1.lerp(Vector3(q1[0], q1[1], q1[2]), k)
+			fv = lerpf(fv, float(_cam_free_to[2]) if _cam_free_to.size() > 2 else fv, k)
+		cam.fov = fv
+		cam.look_at_from_position(e0, e1)
 	elif Ch2.cam(self, _shot) or Ch3.cam(self, _shot) or Ch4.cam(self, _shot) or Ch5.cam(self, _shot):   # планы глав 2–5, которые зависят от того, где герои
 		pass
 	elif _shot in ["mirror", "mirror_back", "mirror_self", "mirror_zoe"]:   # глазами Ноя — в зеркало заднего вида
@@ -1163,7 +1179,7 @@ func _lapse_black() -> void:
 
 
 func _fx(k: String) -> void:
-	if Ch2.fx(self, k) or Ch3.fx(self, k) or Ch4.fx(self, k) or Ch5.fx(self, k):   # события глав 2–5 (scripts/chapter2.gd … chapter5.gd)
+	if St24.fx(self, k) or Ch2.fx(self, k) or Ch3.fx(self, k) or Ch4.fx(self, k) or Ch5.fx(self, k):   # магазин «24» (scripts/station24.gd), главы 2–5
 		return
 	_fx_sound(k)
 	if k.begins_with("snd:"):   # просто звук: "snd:имя" или "snd:имя:громкость_дБ"
@@ -1233,6 +1249,30 @@ func _fx(k: String) -> void:
 
 		"ice_stage1", "ice_stage2":   # стадии льда без игрока (постановка, проверка кадрами): 1 — трещины, 2 — пластины
 			_qte_world("ice", true, 0.5, 1 if k == "ice_stage1" else 2)
+		"car_arrive":   # заправка, вступление: машина сбавляет ход на трассе и сворачивает под навес к колонке
+			_car_arrive(6.0)
+			sfx.play("car_arrive", -6.0)
+		"neon_flicker":   # «4» на столбе гаснет на полсекунды и загорается с треском
+			StationProps.neon_four(scene.station_root)
+			sfx.play("static_burst", -26.0, 1.7)
+			sfx.play("static_burst", -30.0, 1.9, 0.42)
+		"key_off":   # Ной поворачивает ключ: мотор глохнет, приборы и лампа бензина гаснут
+			_key_off()
+		"unbuckle":   # Айрис отстёгивает ремень: щелчок пряжки, лента уезжает вверх
+			_unbuckle()
+		"fuel_flap_open":   # Ной у бака открывает лючок (в глубине кадра, пока дети на ступеньке)
+			StationProps.fuel_flap(scene.car, true)
+		"door_l_open", "door_l_close", "door_r_open", "door_r_close", "door_rl_open", "door_rl_close", "door_rr_open", "door_rr_close":
+			var sd := k.get_slice("_", 1)   # двери седана (вырезаны из кузова, car.gd): l, r — передние; rl, rr — задние
+			var op := k.ends_with("open")
+			if op and sd == "l" and is_instance_valid(scene.station_root):   # у водителя дверь примёрзла: рывок, хруст наледи
+				sfx.play("ice_crack", -14.0, 1.3)
+				var tw := scene.car.door_open(sd, 0.06, 0.12)
+				tw.tween_interval(0.25)
+				tw.tween_property(scene.car.door(sd), "rotation_degrees:y", -44.0, 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)   # до островка колонки 0,76 м — не настежь
+			else:
+				scene.car.door_open(sd, 1.0 if op else 0.0, 0.7 if op else 0.45)
+			sfx.play("car_door", -8.0 if op else -4.0, 1.1 if op else 1.0)
 		"knuckles":   # костяшки сбиты (третье состояние крови: после провала) — для постановки и проверки кадрами
 			(actors.noah as Actor).set_knuckles(1.0)
 		"hands_out":   # руки из воды: кисти свободны
@@ -1729,6 +1769,77 @@ func _ice_strike() -> void:
 	_strike_tw = create_tween()
 	_strike_tw.tween_method(mv, up, hit, 0.09).set_ease(Tween.EASE_IN)
 	_strike_tw.tween_method(mv, hit, up, 0.3).set_ease(Tween.EASE_OUT).set_delay(0.08)
+
+
+## Управление — игроку (прогулка): камера плавно уезжает с последнего плана постановки за правое плечо героя.
+func glide_to_explore(dur := 1.4) -> void:
+	_glide_from = cam.global_transform
+	_glide = Vector2(0.0, dur)
+	_cut("explore")
+
+
+## Машина подъезжает к колонке: с трассы — дугой под навес к месту стоянки (park_at_station), сбрасывая скорость до нуля
+## (путь — кривая Безье, вход на площадку севернее столба с неоном). Колёса крутятся по скорости, руль — по кривизне.
+func _car_arrive(dur: float) -> void:
+	var car: Car = scene.car
+	var end := car.position
+	var p0 := Vector3(0.5, 0.0, 34.0)
+	var p1 := Vector3(0.5, 0.0, 16.0)
+	var p2 := Vector3(end.x, 0.0, 13.0)
+	var bez := func(t: float) -> Vector3:
+		var u := 1.0 - t
+		return p0 * (u * u * u) + p1 * (3.0 * u * u * t) + p2 * (3.0 * u * t * t) + end * (t * t * t)
+	var st := {"yaw": 0.0}
+	car.ride = true
+	car.lights(true)   # ночь: подъезжает с фарами (гаснут вместе с мотором — dash_off)
+	var tw := create_tween()
+	tw.tween_method(func(k: float):
+		var t := 1.0 - (1.0 - k) * (1.0 - k)   # к колонке — тормозит до нуля
+		var p: Vector3 = bez.call(t)
+		var d: Vector3 = (bez.call(minf(t + 0.004, 1.0)) as Vector3) - (bez.call(maxf(t - 0.004, 0.0)) as Vector3)
+		var yaw := atan2(-d.x, -d.z) if d.length() > 1e-5 else float(st.yaw)
+		car.position = p
+		car.rotation.y = yaw
+		car.speed = 2.0 * (1.0 - k) * 41.0 / dur   # путь ~41 м: скорость — производная от «тормозящей» доли пути
+		car.steer = clampf(-wrapf(yaw - float(st.yaw), -PI, PI) * 55.0, -0.9, 0.9)
+		st.yaw = yaw, 0.0, 1.0, dur)
+	tw.tween_callback(func():
+		car.position = end
+		car.rotation.y = 0.0
+		car.speed = 0.0
+		car.steer = 0.0
+		car.ride = false)
+
+
+## Ключ: правая рука Ноя к замку зажигания (справа от рулевой колонки), поворот на себя — мотор глохнет, приборы гаснут.
+func _key_off() -> void:
+	var na: Actor = actors.noah
+	var key := scene.car.to_global(Vector3(-0.17, 0.8, -0.36))
+	na.reach = {"_r": key}
+	na.reach_palm = {"_r": scene.car.global_transform.basis.x}
+	var tw := create_tween()
+	tw.tween_interval(0.45)
+	tw.tween_callback(func():
+		sfx.play("engine_off", -6.0)
+		scene.car.dash_off(0.6))
+	tw.tween_interval(0.7)
+	tw.tween_callback(func(): na.reach = {})
+
+
+## Айрис отстёгивает ремень: правая рука к пряжке у левого бедра, щелчок — и рука провожает ленту вверх, к плечу.
+func _unbuckle() -> void:
+	var ia: Actor = actors.iris
+	var buckle := scene.car.to_global(Vector3(0.14, 0.62, 0.42))
+	var shoulder := scene.car.to_global(Vector3(0.52, 1.12, 0.36))
+	ia.reach = {"_r": buckle}
+	var tw := create_tween()
+	tw.tween_interval(0.5)
+	tw.tween_callback(func(): sfx.play("belt_click", -8.0))
+	tw.tween_method(func(p: Vector3):
+		if ia.reach.has("_r"):
+			ia.reach["_r"] = p, buckle, shoulder, 0.55).set_trans(Tween.TRANS_SINE)
+	tw.tween_interval(0.2)
+	tw.tween_callback(func(): ia.reach = {})
 
 
 ## Кнопка действия зажата: E, пробел, Enter, A на геймпаде, мышь или палец на экране.
@@ -2280,10 +2391,14 @@ func _process(delta: float) -> void:
 		_steer_in = TouchCtl.move.x
 	# ручная камера: лёгкое дыхание кадра, тряска после рывков; дорога потряхивает вид из машины
 	_shake = maxf(0.0, _shake - delta * 0.8)
+	St24.tick(self)   # шнуры телефона у прилавка «24» (если он на месте)
 	_place_cam()
 	_smooth_cam(delta)
 	if _shot == "explore" and _ex != null:   # прогулка: сглаживание не заводит камеру в стену магазина
 		_ex.clamp_cam(cam)
+	if _glide.x < _glide.y:   # передача управления: с последнего плана — за плечо героя, плавно в начале и в конце
+		_glide.x += delta
+		cam.global_transform = _glide_from.interpolate_with(cam.global_transform, smoothstep(0.0, 1.0, _glide.x / _glide.y))
 	var road := 0.004 if _shot in ["pov", "road", "hands"] else 0.002
 	# тряска — плавный шум (две несоизмеримые частоты), а не новое случайное число каждый кадр (дёргало кадр)
 	var jx := (sin(_t * 13.1) + sin(_t * 19.7 + 1.3)) * 0.5
