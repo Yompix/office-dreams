@@ -46,6 +46,16 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("pause")) {
+            YompixSplash.markShown();
+            for (int i = 0; i < 4; i++) key(40, GLFW.GLFW_KEY_SPACE);
+            run(10, c -> c.setScreen(new com.yompix.lifecraft.client.menu.LifePauseScreen()));
+            shot(20, "pause");
+            run(5, c -> c.setScreen(new net.minecraft.client.gui.screen.OpenToLanScreen(c.currentScreen)));
+            shot(20, "lan");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("gfx")) {
             YompixSplash.markShown();
             server(150, s -> {

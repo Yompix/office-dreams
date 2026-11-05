@@ -33,7 +33,19 @@ public class LifePauseScreen extends Screen {
                 new Btn("Сюжет", () -> mc.setScreen(new PhoneScreen("story"))),
                 new Btn("Награды", () -> mc.setScreen(new PhoneScreen("trophy"))),
                 new Btn("Настройки", () -> mc.setScreen(new OptionsScreen(this, mc.options))),
+                friends(mc),
                 new Btn("Сохранить и выйти", this::quit)};
+    }
+
+    /** «Открыть для друзей» (стандартное «Открыть для сети»): с модом e4mc — играть вдвоём через интернет. */
+    private Btn friends(MinecraftClient mc) {
+        var server = mc.getServer();
+        if (server == null) return new Btn("Ты в гостях у друга", () -> {});
+        if (server.isRemote()) return new Btn("Мир открыт для друзей ✓", () -> {
+            if (mc.player != null) mc.player.sendMessage(Text.literal("Мир уже открыт. Адрес для друга — в чате (с модом e4mc) или порт " + server.getServerPort()), false);
+            mc.setScreen(null);
+        });
+        return new Btn("Открыть для друзей", () -> mc.setScreen(new net.minecraft.client.gui.screen.OpenToLanScreen(this)));
     }
 
     private void quit() {
