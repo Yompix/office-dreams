@@ -41,11 +41,79 @@ public final class LifeActions {
     }
 
 
-    /** Те же фразы, что озвучены в tools/story.py (AMBIENT). */
-    private static final java.util.Map<String, String[]> AMBIENT = java.util.Map.of(
-            "kid", new String[]{"Привет!", "Пошли играть в футбол!", "У меня завтра контрольная…", "Ты видел новую приставку?", "Мама зовёт обедать!"},
-            "adult", new String[]{"Добрый день!", "Хорошая погода сегодня.", "Опять пробки на Центральной…", "Не подскажете, где банк?", "Удачи!"},
-            "old", new String[]{"Здравствуй, внучек!", "Шапку надень, простудишься!", "Раньше хлеб был вкуснее.", "Ох, молодёжь…"});
+    /** Фразы прохожих с тегами (озвучены tools/voice.py, список — assets/lifecraft/ambient.json). */
+    private record Phrase(String key, String text, java.util.Set<String> tags) {}
+
+    private static java.util.Map<String, java.util.List<Phrase>> ambient;
+    /** Что недавно звучало рядом (чтобы соседи не повторяли друг за другом) и что каждый житель уже говорил. */
+    private static final java.util.ArrayDeque<String> RECENT = new java.util.ArrayDeque<>();
+    private static final java.util.Map<java.util.UUID, java.util.ArrayDeque<String>> SAID = new java.util.HashMap<>();
+    /** Кто с кем уже здоровался сегодня: житель+игрок → день. */
+    private static final java.util.Map<String, Long> GREETED = new java.util.HashMap<>();
+
+    private static java.util.Map<String, java.util.List<Phrase>> ambient() {
+        if (ambient != null) return ambient;
+        ambient = new java.util.HashMap<>();
+        try (var in = LifeActions.class.getResourceAsStream("/assets/lifecraft/ambient.json")) {
+            var root = com.google.gson.JsonParser.parseReader(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+            for (var e : root.entrySet()) {
+                java.util.List<Phrase> list = new java.util.ArrayList<>();
+                for (var el : e.getValue().getAsJsonArray()) {
+                    var o = el.getAsJsonObject();
+                    java.util.Set<String> tags = new java.util.HashSet<>();
+                    o.getAsJsonArray("tags").forEach(t -> tags.add(t.getAsString()));
+                    list.add(new Phrase(o.get("key").getAsString(), o.get("text").getAsString(), tags));
+                }
+                ambient.put(e.getKey(), list);
+            }
+        } catch (Exception ex) {
+            com.yompix.lifecraft.LifeCraft.LOG.warn("ambient.json: {}", ex.toString());
+        }
+        return ambient;
+    }
+
+    /**
+     * Фраза по ситуации: при первой встрече за день — приветствие по времени суток, дальше — темы,
+     * уместные сейчас (дождь, вечер, ребёнку или взрослому), без повторов своих и чужих недавних фраз.
+     */
+    private static Phrase pick(CitizenEntity c, ServerPlayerEntity p, String group) {
+        var list = ambient().getOrDefault(group, java.util.List.of());
+        var w = p.getServerWorld();
+        long t = w.getTimeOfDay() % 24000;
+        int hour = (int) ((t / 1000 + 6) % 24);
+        String time = hour >= 5 && hour < 11 ? "morning" : hour < 17 ? "day" : hour < 22 ? "evening" : "night";
+        LifeData d = Life.get(p);
+        boolean kid = d.age > 0 ? d.age < 18 : d.edu <= LifeData.SCHOOL_END;
+        String key = c.getUuid() + "/" + p.getUuid();
+        long day = w.getTimeOfDay() / 24000;
+        boolean met = GREETED.getOrDefault(key, -1L) == day;
+        GREETED.put(key, day);
+        var said = SAID.computeIfAbsent(c.getUuid(), u -> new java.util.ArrayDeque<>());
+        java.util.function.Predicate<Phrase> fits = ph -> {
+            var tg = ph.tags();
+            if (tg.contains("to_kid") && !kid) return false;
+            if (tg.contains("to_adult") && kid) return false;
+            if (tg.contains("rain")) return w.isRaining();
+            boolean timed = tg.contains("morning") || tg.contains("day") || tg.contains("evening") || tg.contains("night");
+            return !timed || tg.contains(time);
+        };
+        java.util.List<Phrase> pool;
+        if (!met) pool = list.stream().filter(ph -> ph.tags().contains("greet") && fits.test(ph)).toList();
+        else if (said.size() >= 3 && p.getRandom().nextInt(3) == 0) pool = list.stream().filter(ph -> ph.tags().contains("again")).toList();
+        else {
+            pool = list.stream().filter(ph -> !ph.tags().contains("greet") && !ph.tags().contains("again") && fits.test(ph)
+                    && !said.contains(ph.key()) && !RECENT.contains(group + ph.key())).toList();
+            if (pool.isEmpty()) pool = list.stream().filter(ph -> !ph.tags().contains("greet") && !ph.tags().contains("again") && fits.test(ph) && !said.contains(ph.key())).toList();
+            if (pool.isEmpty()) pool = list.stream().filter(ph -> ph.tags().contains("again")).toList();
+        }
+        if (pool.isEmpty()) pool = list;
+        Phrase ph = pool.get(p.getRandom().nextInt(pool.size()));
+        said.addLast(ph.key());
+        while (said.size() > 5) said.removeFirst();
+        RECENT.addLast(group + ph.key());
+        while (RECENT.size() > 6) RECENT.removeFirst();
+        return ph;
+    }
 
     public static void talk(CitizenEntity c, ServerPlayerEntity p) {
         switch (c.getRole()) {
@@ -58,17 +126,23 @@ public final class LifeActions {
                 LifeData ld = Life.get(p);
                 if (++ld.talks >= 20) Achievements.give(p, "friend");
                 ld.mood = Math.min(100, ld.mood + 1);
-                // голос прохожего: детский, взрослый или пожилой
+                if (c.asleep()) {
+                    p.sendMessage(Text.literal("Тсс… житель спит.").formatted(Formatting.GRAY), true);
+                    return;
+                }
+                // голос прохожего: детский, взрослый или пожилой; пол и тембр — свои у каждого жителя
                 String group = c.getScale() < 0.85f ? "kid" : (c.getSkin() == 7 || c.getSkin() == 13) ? "old" : "adult";
-                String[] lines = AMBIENT.get(group);
-                int i = p.getRandom().nextInt(lines.length);
+                Phrase ph = pick(c, p, group);
+                String sex = CitizenEntity.isSlim(c.getSkin()) ? "f" : "m";
+                int v = 1 + (c.getUuid().hashCode() & 1);
                 net.minecraft.nbt.NbtCompound vn = new net.minecraft.nbt.NbtCompound();
-                vn.putString("voice", "amb_" + group + "_" + String.format("%02d", i + 1));
+                vn.putString("voice", "amb_" + group + "_" + sex + v + "_" + ph.key());
                 vn.putInt("entity", c.getId());
                 LifeNet.send(p, "ambient", vn);
+                c.getLookControl().lookAt(p, 30, 30);
                 c.lockActivity(null);
                 String name = c.hasCustomName() ? c.getCustomName().getString() : "Житель";
-                p.sendMessage(Text.literal(name + ": ").formatted(Formatting.YELLOW).append(Text.literal(lines[i]).formatted(Formatting.WHITE)), false);
+                p.sendMessage(Text.literal(name + ": ").formatted(Formatting.YELLOW).append(Text.literal(ph.text()).formatted(Formatting.WHITE)), false);
             }
         }
     }

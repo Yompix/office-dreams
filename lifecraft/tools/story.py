@@ -155,13 +155,14 @@ m = 'c1m3'
 ch1['missions'].append({'id': m, 'title': 'Пропавший рюкзак', 'steps': [
     dialog(m, ('tema', 'Беда! Глеб утащил мой рюкзак! Там мой обед и коллекция наклеек!'),
               ('tema', 'Он всегда прячет вещи в парке, в кустах у фонтана. Поможешь найти?'),
-           do=[['tp_npc', 'tema', 'school_yard']]),
+           do=[['tp_npc', 'tema', 'school_yard'], ['act', 'tema', 'UPSET', 'player']]),
     step('collect', 'Найди рюкзак Тёмы в парке у фонтана', clues=[{'place': 'clue_backpack', 'name': 'Рюкзак Тёмы'}]),
     talk(m, 'tema', 'Верни рюкзак Тёме во дворе школы',
          ('tema', 'Ты нашёл его! Ты лучший! Держи наклейку — самую редкую, с алмазом.'),
-         do=[['spawn', 'gleb', 'school_yard']]),
+         do=[['spawn', 'gleb', 'school_yard'], ['act', 'tema', 'HUG', 'player']]),
     talk(m, 'gleb', 'Поговори с Глебом',
          ('gleb', 'Эй! Это ты нашёл рюкзак? Это была проверка, понял?'),
+         do=[['act', 'gleb', 'ARGUE', 'player'], ['act', 'tema', 'UPSET', 'gleb']],
          choices=[('Ещё раз тронешь Тёму — расскажу учительнице.', 'c1_threat', [('gleb', 'Ябеда… Ладно-ладно, не трону. Пока что.')]),
                   ('Может, хватит всех обижать? Давай лучше в футбол сыграем.', 'c1_peace',
                    [('gleb', 'В футбол? Хм… А ты нормальный, новенький. Посмотрим.')])]),
@@ -235,7 +236,8 @@ ch2['missions'].append({'id': m, 'title': 'День рождения Лизы', 
     dialog(m, ('gleb', 'Ты… ты правда быстрее… Ладно. Признаю. Ты не лузер.'),
               ('gleb', 'Знаешь, у меня дома не очень весело. Батя всё время в казино… Поэтому я и злой такой.'),
            choices=[('Хочешь, будем вместе ходить в школу?', 'gleb_friend', [('gleb', 'Правда? Ну… можно. Только Тёме не говори, что я согласился так быстро.')]),
-                    ('Это не повод обижать других.', 'gleb_cold', [('gleb', 'Да знаю я… Ладно. Попробую исправиться.')])]),
+                    ('Это не повод обижать других.', 'gleb_cold', [('gleb', 'Да знаю я… Ладно. Попробую исправиться.')])],
+           do=[['act', 'gleb', 'HANDSHAKE', 'player']]),
 ]})
 
 m = 'c2m3'
@@ -472,7 +474,7 @@ ch5['missions'].append({'id': m, 'title': 'Ва-банк', 'steps': [
               ('tema', 'Ты спас меня. Опять. Как тогда с рюкзаком… Друзья навсегда?'),
            choices=[('Друзья навсегда.', 'end_friends', [('tema', 'И больше никаких казино. Только приложения!')]),
                     ('Только если обещаешь больше не играть.', 'end_promise', [('tema', 'Обещаю. Честно-честно.')])],
-           do=[['despawn', 'baron'], ['flag', 'casino_fair'], ['money', 1000]]),
+           do=[['despawn', 'baron'], ['spawn', 'guard', 'casino_door3'], ['fight', 'guard', 'petrov', 140], ['act', 'gleb', 'CHEER'], ['flag', 'casino_fair'], ['money', 1000]]),
     {'type': 'cutscene', 'id': 'ending',
      'shots': [{'from': 'cam_city_near', 'to': 'cam_city_far', 'sec': 10}],
      'lines': lines(m,
@@ -492,15 +494,71 @@ story = {'characters': CHARS, 'chapters': chapters}
 with open(OUT, 'w', encoding='utf-8') as f:
     json.dump(story, f, ensure_ascii=False, indent=1)
 
-# фразы жителей для озвучки «на улице»
+# фразы жителей «на улице»: ключ, текст, когда уместно. Теги: morning/day/evening/night — время суток,
+# to_kid/to_adult — кому говорят, rain — в дождь, greet — приветствие при первой встрече, again — подошёл снова.
 AMBIENT = {
-    'kid': ['Привет!', 'Пошли играть в футбол!', 'У меня завтра контрольная…', 'Ты видел новую приставку?', 'Мама зовёт обедать!'],
-    'adult': ['Добрый день!', 'Хорошая погода сегодня.', 'Опять пробки на Центральной…', 'Не подскажете, где банк?', 'Удачи!'],
-    'old': ['Здравствуй, внучек!', 'Шапку надень, простудишься!', 'Раньше хлеб был вкуснее.', 'Ох, молодёжь…'],
+    'kid': [
+        ('hi', 'Привет!', 'greet'),
+        ('morning', 'Доброе утро!', 'greet morning'),
+        ('dusk', 'Привет! Уже темнеет…', 'greet evening night'),
+        ('football', 'Пошли играть в футбол!', 'day evening'),
+        ('test', 'У меня завтра контрольная…', 'day evening'),
+        ('console', 'Ты видел новую приставку?', 'day evening'),
+        ('lunch', 'Мама зовёт обедать!', 'day'),
+        ('dog', 'А у тебя есть собака?', 'morning day evening'),
+        ('race', 'Спорим, я быстрее добегу до школы?', 'morning day'),
+        ('holidays', 'Каникулы скорее бы!', 'morning day'),
+        ('late', 'Мне уже домой пора, а то влетит!', 'evening night'),
+        ('puddles', 'Ура, лужи! Кто больше набрызгает?', 'rain'),
+        ('again', 'Мы же уже виделись сегодня!', 'again'),
+    ],
+    'adult': [
+        ('morning', 'Доброе утро!', 'greet morning'),
+        ('day', 'Добрый день!', 'greet day'),
+        ('evening', 'Добрый вечер!', 'greet evening'),
+        ('night_kid', 'Поздно уже. Беги домой, родители волнуются.', 'greet night to_kid'),
+        ('night', 'Тоже не спится?', 'greet night to_adult'),
+        ('weather', 'Хорошая погода сегодня.', 'morning day'),
+        ('rain', 'Ну и дождь сегодня… Зонт забыл.', 'rain'),
+        ('traffic', 'Опять пробки на Центральной…', 'morning evening to_adult'),
+        ('bank', 'Не подскажете, где банк?', 'day to_adult'),
+        ('luck', 'Удачи!', 'morning day evening'),
+        ('club', 'Говорят, в клубе «Неон» сегодня вечеринка.', 'evening night to_adult'),
+        ('coffee', 'Кофе на углу — лучший в городе.', 'morning'),
+        ('work', 'Работа, работа… Когда же отпуск?', 'day evening to_adult'),
+        ('school', 'А ты почему не в школе?', 'morning day to_kid'),
+        ('study', 'Учись хорошо — в жизни пригодится.', 'day evening to_kid'),
+        ('tired', 'Ох, ну и денёк был. Домой бы поскорее.', 'evening'),
+        ('again', 'Мы же только что говорили.', 'again'),
+    ],
+    'old': [
+        ('hi_kid', 'Здравствуй, внучек!', 'greet morning day evening to_kid'),
+        ('hi', 'Здравствуй, милок.', 'greet morning day evening to_adult'),
+        ('hat', 'Шапку надень, простудишься!', 'rain to_kid'),
+        ('bread', 'Раньше хлеб был вкуснее.', 'morning day'),
+        ('youth', 'Ох, молодёжь…', 'day evening'),
+        ('walk', 'В моё время мы пешком ходили!', 'day evening'),
+        ('pies', 'Заходи на пирожки!', 'day evening'),
+        ('night', 'Ночь на дворе, а ты гуляешь! Иди спать.', 'greet night'),
+        ('again', 'Я же тебе уже говорила… Или не тебе?', 'again'),
+    ],
+}
+AMB_SPEAKERS = {
+    'kid': {'f': ['Gracie Wise', 'Lilya Stainthorpe'], 'm': ['Andrew Chipper', 'Kumar Dahl']},
+    'adult': {'f': ['Tammie Ema', 'Nova Hogarth'], 'm': ['Abrahan Mack', 'Baldur Sanjin']},
+    'old': {'f': ['Brenda Stern', 'Uta Obando'], 'm': ['Wulf Carlevaro', 'Filip Traverse']},
 }
 for group, phrases in AMBIENT.items():
-    for i, ph in enumerate(phrases):
-        voice_lines.append({'id': f'amb_{group}_{i + 1:02d}', 'who': f'amb_{group}', 'text': ph})
+    for sex, speakers in AMB_SPEAKERS[group].items():
+        for k, sp in enumerate(speakers):
+            for key, ph, _ in phrases:
+                if group == 'old' and key == 'again' and sex == 'm':
+                    ph = 'Я же тебе уже говорил… Или не тебе?'
+                voice_lines.append({'id': f'amb_{group}_{sex}{k + 1}_{key}', 'who': f'amb_{group}', 'text': ph,
+                                    'speaker': sp, 'pitch': 4.0 if group == 'kid' else 0.0})
+# сервер берёт фразы отсюда (тот же текст, что озвучен)
+with open(os.path.join(HERE, '..', 'src', 'main', 'resources', 'assets', 'lifecraft', 'ambient.json'), 'w', encoding='utf-8') as f:
+    json.dump({g: [{'key': k, 'text': t, 'tags': tags.split()} for k, t, tags in ps] for g, ps in AMBIENT.items()}, f, ensure_ascii=False, indent=1)
 
 with open(VOICES, 'w', encoding='utf-8') as f:
     json.dump(voice_lines, f, ensure_ascii=False, indent=1)

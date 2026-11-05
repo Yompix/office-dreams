@@ -43,6 +43,8 @@ def pcm16k(f):
 
 def speaker_and_pitch(line):
     who, vid = line['who'], line['id']
+    if 'speaker' in line:
+        return line['speaker'], line.get('pitch', 0.0)
     if who in AMBIENT:
         n = int(vid.rsplit('_', 1)[1])
         sp = AMBIENT[who][n % len(AMBIENT[who])]

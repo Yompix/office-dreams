@@ -504,6 +504,12 @@
          "tp_npc",
          "tema",
          "school_yard"
+        ],
+        [
+         "act",
+         "tema",
+         "UPSET",
+         "player"
         ]
        ]
       },
@@ -531,6 +537,12 @@
          "spawn",
          "gleb",
          "school_yard"
+        ],
+        [
+         "act",
+         "tema",
+         "HUG",
+         "player"
         ]
        ],
        "npc": "tema",
@@ -568,6 +580,20 @@
           }
          ]
         }
+       ],
+       "do": [
+        [
+         "act",
+         "gleb",
+         "ARGUE",
+         "player"
+        ],
+        [
+         "act",
+         "tema",
+         "UPSET",
+         "gleb"
+        ]
        ],
        "npc": "gleb",
        "hint": "Поговори с Глебом"
@@ -1047,6 +1073,14 @@
           }
          ]
         }
+       ],
+       "do": [
+        [
+         "act",
+         "gleb",
+         "HANDSHAKE",
+         "player"
+        ]
        ]
       }
      ]
@@ -2558,6 +2592,22 @@
         [
          "despawn",
          "baron"
+        ],
+        [
+         "spawn",
+         "guard",
+         "casino_door3"
+        ],
+        [
+         "fight",
+         "guard",
+         "petrov",
+         140
+        ],
+        [
+         "act",
+         "gleb",
+         "CHEER"
         ],
         [
          "flag",

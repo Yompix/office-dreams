@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LifeCraftClient implements ClientModInitializer {
+    private static net.minecraft.client.sound.SoundInstance ambientVoice;
     public static LifeData data = new LifeData();
     public static long dataVersion;
 
@@ -165,9 +166,13 @@ public class LifeCraftClient implements ClientModInitializer {
             case "ambient" -> {
                 var e = client.world == null ? null : client.world.getEntityById(n.getInt("entity"));
                 if (e != null) com.yompix.lifecraft.client.story.ClientStory.talk(e.getId(), 1800);
-                if (e != null && !n.getString("voice").isEmpty()) client.getSoundManager().play(new net.minecraft.client.sound.PositionedSoundInstance(LifeCraft.id("voice." + n.getString("voice")),
-                        net.minecraft.sound.SoundCategory.VOICE, 1f, 1f, net.minecraft.util.math.random.Random.create(), false, 0,
-                        net.minecraft.client.sound.SoundInstance.AttenuationType.LINEAR, e.getX(), e.getEyeY(), e.getZ(), false));
+                if (e != null && !n.getString("voice").isEmpty()) {
+                    if (ambientVoice != null) client.getSoundManager().stop(ambientVoice);
+                    ambientVoice = new net.minecraft.client.sound.PositionedSoundInstance(LifeCraft.id("voice." + n.getString("voice")),
+                            net.minecraft.sound.SoundCategory.VOICE, 1f, 1f, net.minecraft.util.math.random.Random.create(), false, 0,
+                            net.minecraft.client.sound.SoundInstance.AttenuationType.LINEAR, e.getX(), e.getEyeY(), e.getZ(), false);
+                    client.getSoundManager().play(ambientVoice);
+                }
             }
             case "open_phone" -> client.setScreen(new PhoneScreen(n.getString("app")));
             case "open_lesson" -> client.setScreen(new LessonScreen(n));

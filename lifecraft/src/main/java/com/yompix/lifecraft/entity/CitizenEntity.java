@@ -46,7 +46,14 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     public enum Role { CITIZEN, TEACHER, SHOPKEEPER, CROUPIER, DEALER, BANKER }
 
-    public enum Activity { IDLE, TALK, WAVE, PHONE, SIT, DANCE, CHEER, THINK }
+    public enum Activity {
+        IDLE, TALK, WAVE, PHONE, SIT, DANCE, CHEER, THINK, SLEEP, ARGUE, LAUGH, FIGHT, HUG, HANDSHAKE, UPSET;
+
+        /** Сценка на время разговора: снимается, когда диалог закончился. */
+        public boolean scene() {
+            return this == TALK || this == ARGUE || this == LAUGH || this == FIGHT || this == HUG || this == HANDSHAKE || this == UPSET;
+        }
+    }
 
     private static final TrackedData<Integer> SKIN = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Integer> ACTIVITY = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.INTEGER);
@@ -73,12 +80,14 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             if (hasVehicle()) return state.setAndContinue(RIDE); // в машине — сидит на сиденье
             double v = getVelocity().horizontalLengthSquared();
             boolean moving = state.isMoving() && v > 1e-4;
-            if (a != Activity.IDLE && (!moving || a == Activity.DANCE || a == Activity.SIT)) return state.setAndContinue(ACTS.get(a));
+            if (a != Activity.IDLE && (!moving || a == Activity.DANCE || a == Activity.SIT || a == Activity.FIGHT || a == Activity.SLEEP)) return state.setAndContinue(ACTS.get(a));
             if (moving) return state.setAndContinue(v > 0.012 ? RUN : WALK);
             return state.setAndContinue(IDLE);
         }));
         controllers.add(new software.bernie.geckolib.animation.AnimationController<>(this, "action", 2, state -> software.bernie.geckolib.animation.PlayState.STOP)
-                .triggerableAnim("kick", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.kick")));
+                .triggerableAnim("kick", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.kick"))
+                .triggerableAnim("hit", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.hit"))
+                .triggerableAnim("highfive", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.highfive")));
     }
 
     @Override
@@ -93,6 +102,11 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     private int busyTicks;
     @org.jetbrains.annotations.Nullable private net.minecraft.util.math.Vec3d busyAt;
     private boolean lockedActivity;
+    /** Свой дом (см. {@link HomeGoal}); hidden — ушёл в свою комнату, не видно; homeActive — сейчас живёт «дома». */
+    String home = "";
+    boolean hidden, homeActive;
+    /** С кем сейчас общаемся/дерёмся на улице. */
+    @org.jetbrains.annotations.Nullable private CitizenEntity partner;
 
     public CitizenEntity(EntityType<? extends PathAwareEntity> type, World world) {
         super(type, world);
@@ -143,6 +157,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @Override
     protected void initGoals() {
         goalSelector.add(0, new SwimGoal(this));
+        goalSelector.add(1, new HomeGoal(this));
         goalSelector.add(2, new PlayBallGoal(this));
         goalSelector.add(3, new BusyGoal(this));
         goalSelector.add(4, new ScheduleGoal(this));
@@ -201,29 +216,31 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @Override
     public void tick() {
         super.tick();
-        if (getWorld().isClient) return;
+        if (getWorld().isClient) {
+            if (asleep()) { bodyYaw = prevBodyYaw = headYaw = prevHeadYaw = getYaw(); }
+            return;
+        }
         if (removeIn > 0 && --removeIn == 0) discard();
         if (busyTicks > 0 && --busyTicks == 0) {
             dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
             equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, net.minecraft.item.ItemStack.EMPTY);
             busyAt = null;
         }
-        if (lockedActivity || busyTicks > 0) return;
+        if (busyTicks > 0 && partner != null) {
+            if (getActivity() == Activity.FIGHT) fightTick();
+            else if (!partner.isRemoved() && age % 10 == 0) face(partner);
+        }
+        if (busyTicks == 0) partner = null;
+        if (lockedActivity || busyTicks > 0 || homeActive) return;
         // жители сами меняют занятия: машут проходящим, болтают по телефону, задумываются
         if (--activityTicks <= 0) {
             Random r = getRandom();
             PlayerEntity near = getWorld().getClosestPlayer(this, 5);
             Activity next;
             CitizenEntity buddy = r.nextInt(4) == 0 ? getWorld().getEntitiesByClass(CitizenEntity.class, getBoundingBox().expand(3), e -> e != this && !e.lockedActivity && e.storyId.isEmpty()).stream().findFirst().orElse(null) : null;
-            if (buddy != null) {
-                // два жителя остановились поболтать
-                getNavigation().stop();
-                buddy.getNavigation().stop();
-                getLookControl().lookAt(buddy, 30, 30);
-                buddy.getLookControl().lookAt(this, 30, 30);
-                buddy.dataTracker.set(ACTIVITY, Activity.TALK.ordinal());
-                buddy.activityTicks = 120;
-                next = Activity.TALK;
+            if (buddy != null && !buddy.homeActive && buddy.busyTicks == 0) {
+                meet(buddy, r);
+                return;
             } else if (near != null && getActivity() != Activity.WAVE && r.nextInt(3) == 0) next = Activity.WAVE;
             else {
                 int x = r.nextInt(100);
@@ -233,6 +250,73 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, next == Activity.PHONE
                     ? new net.minecraft.item.ItemStack(com.yompix.lifecraft.ModContent.PHONE) : net.minecraft.item.ItemStack.EMPTY);
             activityTicks = next == Activity.WAVE ? 40 : 80 + r.nextInt(160);
+        }
+    }
+
+    /** Встреча двух жителей: поболтать, пожать руки, обняться, посмеяться, поспорить — а иногда и подраться. */
+    private void meet(CitizenEntity o, Random r) {
+        getNavigation().stop();
+        o.getNavigation().stop();
+        face(o);
+        o.face(this);
+        boolean girl = isSlim(getSkin()) || isSlim(o.getSkin());
+        boolean old = getSkin() == 7 || o.getSkin() == 7;
+        int x = r.nextInt(100);
+        Activity me, them;
+        int ticks;
+        if (x < 30) { me = Activity.TALK; them = Activity.TALK; ticks = 140; }
+        else if (x < 45) { me = Activity.HANDSHAKE; them = Activity.HANDSHAKE; ticks = 50; }
+        else if (x < 55 && girl) { me = Activity.HUG; them = Activity.HUG; ticks = 60; }
+        else if (x < 70) { me = Activity.TALK; them = Activity.LAUGH; ticks = 100; }
+        else if (x < 78) { me = Activity.WAVE; them = Activity.WAVE; ticks = 40; triggerAnim("action", "highfive"); o.triggerAnim("action", "highfive"); }
+        else if (x < 92 || old) { me = Activity.ARGUE; them = r.nextBoolean() ? Activity.ARGUE : Activity.UPSET; ticks = 120; }
+        else { me = Activity.FIGHT; them = Activity.FIGHT; ticks = 110; }
+        if (me == Activity.HUG || me == Activity.HANDSHAKE) {
+            // подойти вплотную: обниматься и жать руки на расстоянии руки
+            net.minecraft.util.math.Vec3d mid = getPos().add(o.getPos()).multiply(0.5), dir = o.getPos().subtract(getPos()).normalize().multiply(me == Activity.HUG ? 0.32 : 0.45);
+            refreshPositionAndAngles(mid.x - dir.x, getY(), mid.z - dir.z, getYaw(), 0);
+            o.refreshPositionAndAngles(mid.x + dir.x, o.getY(), mid.z + dir.z, o.getYaw(), 0);
+            face(o);
+            o.face(this);
+        }
+        partner = o;
+        o.partner = this;
+        busy(me, ticks, null, net.minecraft.item.ItemStack.EMPTY);
+        o.busy(them, ticks, null, net.minecraft.item.ItemStack.EMPTY);
+        activityTicks = ticks + 40;
+        o.activityTicks = ticks + 40;
+        if (me == Activity.FIGHT && getWorld() instanceof net.minecraft.server.world.ServerWorld w) {
+            PlayerEntity p = w.getClosestPlayer(this, 16);
+            if (p != null) p.sendMessage(net.minecraft.text.Text.literal("⚠ На улице драка!").formatted(net.minecraft.util.Formatting.RED), true);
+        }
+    }
+
+    public void face(net.minecraft.entity.Entity o) {
+        float yaw = (float) (Math.toDegrees(Math.atan2(o.getZ() - getZ(), o.getX() - getX())) - 90);
+        setYaw(yaw);
+        setBodyYaw(yaw);
+        setHeadYaw(yaw);
+    }
+
+    /** Сюжетная драка/сценка с другим жителем (см. story Actions «fight»). */
+    public void sceneWith(CitizenEntity o, Activity a, int ticks) {
+        partner = o;
+        face(o);
+        busy(a, ticks, null, net.minecraft.item.ItemStack.EMPTY);
+        lockedActivity = false;
+    }
+
+    /** Удары в драке: каждый пропущенный — откидывает голову назад, слышен шлепок. */
+    private void fightTick() {
+        if (partner == null || getActivity() != Activity.FIGHT) return;
+        if (partner.isRemoved() || squaredDistanceTo(partner) > 9) { partner = null; return; }
+        face(partner);
+        if (squaredDistanceTo(partner) > 1.8) getNavigation().startMovingTo(partner, 0.6);
+        else getNavigation().stop();
+        int phase = (age + getId() * 7) % 24;
+        if (phase == 5 || phase == 16) {
+            partner.triggerAnim("action", "hit");
+            getWorld().playSound(null, partner.getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, net.minecraft.sound.SoundCategory.NEUTRAL, 0.7f, 0.9f + getRandom().nextFloat() * 0.3f);
         }
     }
 
@@ -247,6 +331,44 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     public boolean isStationary() {
         return stationary;
+    }
+
+    /** Обычный горожанин, который живёт своей жизнью (не сюжетный, не продавец, не стоит на месте). */
+    boolean livesInTown() {
+        return role == Role.CITIZEN && storyId.isEmpty() && !stationary && !lockedActivity && !hasVehicle() && removeIn < 0;
+    }
+
+    public void setHome(String h) {
+        home = h;
+    }
+
+    String home() {
+        if (home.isEmpty()) home = HomeGoal.HOUSES[(getUuid().hashCode() & 0x7fffffff) % HomeGoal.HOUSES.length];
+        return home;
+    }
+
+    /** Своя «привычка» 0..1: кто раньше встаёт, кто позже ложится. */
+    float personal() {
+        return (float) ((getUuid().getLeastSignificantBits() >>> 11) % 1000) / 1000f;
+    }
+
+    void setActivity(Activity a, net.minecraft.item.ItemStack held) {
+        dataTracker.set(ACTIVITY, a.ordinal());
+        equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, held);
+    }
+
+    public boolean asleep() {
+        return getActivity() == Activity.SLEEP;
+    }
+
+    @Override
+    public boolean isPushable() {
+        return !asleep() && !isInvisible() && super.isPushable();
+    }
+
+    @Override
+    public boolean isCollidable() {
+        return false;
     }
 
     public boolean isKid() {
@@ -466,6 +588,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         nbt.putString("Role", role.name());
         nbt.putBoolean("Stationary", stationary);
         nbt.putString("StoryId", storyId);
+        nbt.putString("Home", home);
+        nbt.putBoolean("Hidden", hidden);
+        nbt.putBoolean("Asleep", asleep());
     }
 
     @Override
@@ -479,5 +604,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         }
         stationary = nbt.getBoolean("Stationary");
         storyId = nbt.getString("StoryId");
+        home = nbt.getString("Home");
+        hidden = nbt.getBoolean("Hidden");
+        if (nbt.getBoolean("Asleep")) dataTracker.set(ACTIVITY, Activity.SLEEP.ordinal());
     }
 }

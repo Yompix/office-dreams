@@ -212,6 +212,85 @@ ANIMS = {
     }, loop=False),
 }
 
+# ---- 0.4: сон и общение. Записаны сразу в верном знаке: предплечье вперёд = −X, голень назад = +X
+NEW = {
+    'sleep': anim(4.0, {
+        'root': {'rotation': track(lambda t: [-90, 0, 0], 4.0, 2), 'position': track(lambda t: [0, 2.2, 0], 4.0, 2)},
+        'chest': {'scale': track(lambda t: [1, 1, 1 + sine(t, 4, 0.03)], 4.0)},
+        'head': {'rotation': track(lambda t: [-8, 0, 12 + sine(t, 4, 2)], 4.0)},
+        'right_arm': {'rotation': track(lambda t: [-6, 0, 6], 4.0, 2)},
+        'left_arm': {'rotation': track(lambda t: [-30, 25, -4], 4.0, 2)},
+        'left_forearm': {'rotation': track(lambda t: [-55, 0, 0], 4.0, 2)},
+        'right_leg': {'rotation': track(lambda t: [0, 0, 3], 4.0, 2)},
+        'left_leg': {'rotation': track(lambda t: [-12, 0, -2], 4.0, 2)},
+        'left_shin': {'rotation': track(lambda t: [18, 0, 0], 4.0, 2)},
+    }),
+    'argue': anim(1.6, {
+        'right_arm': {'rotation': track(lambda t: [-70 + sine(t, 0.4, 14), -10, 6], 1.6)},
+        'right_forearm': {'rotation': track(lambda t: [-15 - max(0, sine(t, 0.4, 20)), 0, 0], 1.6)},
+        'left_arm': {'rotation': track(lambda t: [-8, 0, -38], 1.6, 2)},
+        'left_forearm': {'rotation': track(lambda t: [-75, 30, 0], 1.6, 2)},
+        'chest': {'rotation': track(lambda t: [7 + sine(t, 0.8, 3), sine(t, 1.6, 8), 0], 1.6)},
+        'head': {'rotation': track(lambda t: [sine(t, 0.4, 7), sine(t, 0.8, 10), 0], 1.6)},
+    }),
+    'laugh': anim(1.0, {
+        'chest': {'rotation': track(lambda t: [-10 + sine(t, 0.25, 4), 0, sine(t, 1.0, 3)], 1.0)},
+        'head': {'rotation': track(lambda t: [-16 + sine(t, 0.25, 6), 0, 0], 1.0)},
+        'right_arm': {'rotation': track(lambda t: [-22, -20, 4], 1.0, 2)},
+        'right_forearm': {'rotation': track(lambda t: [-70 + sine(t, 0.25, 5), 0, 0], 1.0)},
+        'left_arm': {'rotation': track(lambda t: [-5 + sine(t, 0.5, 6), 0, -8], 1.0)},
+        'root': {'position': track(lambda t: [0, abs(math.sin(2 * math.pi * t / 0.5)) * 0.4, 0], 1.0)},
+    }),
+    'fight': anim(1.2, {
+        # стойка боксёра, левый джеб, правый прямой
+        'right_arm': {'rotation': track(lambda t: [-95 if 0.65 < t < 0.85 else -55, 15 if 0.65 < t < 0.85 else 25, 0], 1.2, 24)},
+        'right_forearm': {'rotation': track(lambda t: [-10 if 0.65 < t < 0.85 else -105, 0, 0], 1.2, 24)},
+        'left_arm': {'rotation': track(lambda t: [-95 if 0.15 < t < 0.35 else -60, -15 if 0.15 < t < 0.35 else -25, 0], 1.2, 24)},
+        'left_forearm': {'rotation': track(lambda t: [-10 if 0.15 < t < 0.35 else -100, 0, 0], 1.2, 24)},
+        'chest': {'rotation': track(lambda t: [10, 18 if 0.65 < t < 0.85 else -14 if 0.15 < t < 0.35 else 0, 0], 1.2, 24)},
+        'head': {'rotation': track(lambda t: [8, 0, 0], 1.2, 2)},
+        'right_leg': {'rotation': track(lambda t: [14, 0, 4], 1.2, 2)},
+        'left_leg': {'rotation': track(lambda t: [-16, 0, -4], 1.2, 2)},
+        'right_shin': {'rotation': track(lambda t: [14, 0, 0], 1.2, 2)},
+        'left_shin': {'rotation': track(lambda t: [10, 0, 0], 1.2, 2)},
+        'root': {'position': track(lambda t: [0, -0.6 + abs(math.sin(2 * math.pi * t / 0.6)) * 0.5, 0], 1.2)},
+    }),
+    'hug': anim(2.0, {
+        'right_arm': {'rotation': track(lambda t: [-80, -38, 0], 2.0, 2)},
+        'left_arm': {'rotation': track(lambda t: [-80, 38, 0], 2.0, 2)},
+        'right_forearm': {'rotation': track(lambda t: [-40, -20, 0], 2.0, 2)},
+        'left_forearm': {'rotation': track(lambda t: [-40, 20, 0], 2.0, 2)},
+        'chest': {'rotation': track(lambda t: [8, 0, sine(t, 2.0, 4)], 2.0)},
+        'head': {'rotation': track(lambda t: [6, 25, 6], 2.0, 2)},
+    }),
+    'handshake': anim(1.0, {
+        'right_arm': {'rotation': track(lambda t: [-48 + sine(t, 0.33, 7), -12, 0], 1.0)},
+        'right_forearm': {'rotation': track(lambda t: [-28, 0, 0], 1.0, 2)},
+        'chest': {'rotation': track(lambda t: [5, -6, 0], 1.0, 2)},
+        'head': {'rotation': track(lambda t: [4 + sine(t, 0.5, 3), 0, 0], 1.0)},
+    }),
+    'upset': anim(3.0, {
+        'head': {'rotation': track(lambda t: [28, 0, sine(t, 3, 4)], 3.0)},
+        'chest': {'rotation': track(lambda t: [14 + sine(t, 0.75, 2), 0, 0], 3.0)},
+        'right_arm': {'rotation': track(lambda t: [-38, -22, 0], 3.0, 2)},
+        'left_arm': {'rotation': track(lambda t: [-38, 22, 0], 3.0, 2)},
+        'right_forearm': {'rotation': track(lambda t: [-95, 0, 0], 3.0, 2)},
+        'left_forearm': {'rotation': track(lambda t: [-95, 0, 0], 3.0, 2)},
+    }),
+    'hit': anim(0.6, {
+        'chest': {'rotation': track(lambda t: [-28 * math.sin(math.pi * t / 0.6), 0, 10 * math.sin(math.pi * t / 0.6)], 0.6, 6)},
+        'head': {'rotation': track(lambda t: [-22 * math.sin(math.pi * t / 0.6), 0, 0], 0.6, 6)},
+        'right_arm': {'rotation': track(lambda t: [0, 0, 40 * math.sin(math.pi * t / 0.6)], 0.6, 6)},
+        'left_arm': {'rotation': track(lambda t: [0, 0, -40 * math.sin(math.pi * t / 0.6)], 0.6, 6)},
+        'root': {'position': track(lambda t: [0, 0, 2.5 * math.sin(math.pi * t / 0.6)], 0.6, 6)},
+    }, loop=False),
+    'highfive': anim(0.8, {
+        'right_arm': {'rotation': track(lambda t: [-150 + (25 if t > 0.45 else 0), -10, 10], 0.8, 16)},
+        'right_forearm': {'rotation': track(lambda t: [-15, 0, 0], 0.8, 2)},
+        'chest': {'rotation': track(lambda t: [-4, 0, 0], 0.8, 2)},
+    }, loop=False),
+}
+
 
 def fix_joints():
     """Локти и колени гнутся только в свою сторону: предплечье вперёд (−X), голень назад (+X).
@@ -219,6 +298,7 @@ def fix_joints():
     for name, a in ANIMS.items():
         for bone, ch in a['bones'].items():
             flip = (bone.endswith('_forearm') and name != 'ride') or (bone.endswith('_shin') and name not in ('sit', 'ride'))
+            flip = flip and name not in NEW
             if flip and 'rotation' in ch:
                 for k, v in ch['rotation'].items():
                     ch['rotation'][k] = [-v[0], v[1], v[2]]
@@ -226,6 +306,7 @@ def fix_joints():
 
 def main():
     fix_joints()
+    ANIMS.update(NEW)
     os.makedirs(f'{ROOT}/geo', exist_ok=True)
     os.makedirs(f'{ROOT}/animations', exist_ok=True)
     for slim in (False, True):

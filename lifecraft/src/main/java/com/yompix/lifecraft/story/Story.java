@@ -312,7 +312,7 @@ public final class Story {
         }
         for (String id : NPC_IDS) {
             CitizenEntity c = Npcs.find(p.getServerWorld(), id);
-            if (c != null && c.getActivity() == CitizenEntity.Activity.TALK) c.lockActivity(null);
+            if (c != null && c.getActivity().scene()) c.lockActivity(null);
         }
         advance(p);
     }
@@ -419,7 +419,8 @@ public final class Story {
             CitizenEntity c = Npcs.find(p.getServerWorld(), who);
             if (c != null) {
                 ln.putInt("entity", c.getId());
-                c.lockActivity(CitizenEntity.Activity.TALK);
+                // сюжетная сценка (спор, слёзы, рукопожатие) важнее обычного «говорит»
+                if (!c.getActivity().scene() || c.getActivity() == CitizenEntity.Activity.TALK) c.lockActivity(CitizenEntity.Activity.TALK);
             }
             out.add(ln);
         }

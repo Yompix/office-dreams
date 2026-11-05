@@ -46,6 +46,91 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("home")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                d.storyStarted = true;
+                d.storyDone = true;
+            });
+            for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); c.options.hudHidden = false; });
+            cmd(10, "gamemode creative " + P);
+            cmd(5, "gamerule doDaylightCycle true");
+            cmd(5, "time set 12950");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                double[] door = com.yompix.lifecraft.world.TownState.get(w).place("gleb_door");
+                double rad = Math.toRadians(door[3]);
+                for (int i = 0; i < 4; i++) {
+                    CitizenEntity c = new CitizenEntity(com.yompix.lifecraft.ModContent.CITIZEN, w);
+                    c.setup(CitizenEntity.RANDOM_FROM + i * 3, CitizenEntity.Role.CITIZEN, false, "Сосед " + i);
+                    c.setHome("gleb");
+                    c.refreshPositionAndAngles(door[0] - Math.sin(rad) * -6 + (i - 1.5) * 2, door[1], door[2] + Math.cos(rad) * -6, 0, 0);
+                    w.spawnEntity(c);
+                }
+                // камера на крыльце, смотрит на дверь
+                p.teleport(w, door[0] + Math.sin(rad) * 5 + Math.cos(rad) * 3, door[1] + 1.5, door[2] - Math.cos(rad) * 5 + Math.sin(rad) * 3, (float) door[3] - 30, 10);
+            });
+            shot(60, "h_walk");
+            shot(100, "h_door");
+            shot(100, "h_door2");
+            cmd(5, "time set 18500");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                double[] bed = com.yompix.lifecraft.world.TownState.get(w).place("gleb_bed");
+                double[] liv = com.yompix.lifecraft.world.TownState.get(w).place("gleb_living");
+                p.teleport(w, liv[0], liv[1] + 0.2, liv[2], 0, 20);
+                p.lookAt(net.minecraft.command.argument.EntityAnchorArgumentType.EntityAnchor.EYES, new net.minecraft.util.math.Vec3d(bed[0], bed[1], bed[2]));
+                for (var c : w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(20), c -> true))
+                    com.yompix.lifecraft.LifeCraft.LOG.info("[home] {} act {} inv {} at {}", c.getName().getString(), c.getActivity(), c.isInvisible(), c.getPos());
+            });
+            shot(500, "h_night");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                double[] liv = com.yompix.lifecraft.world.TownState.get(p.getServerWorld()).place("gleb_living");
+                p.teleport(p.getServerWorld(), liv[0] + 3, liv[1] + 0.2, liv[2] + 1, 0, 15);
+                p.lookAt(net.minecraft.command.argument.EntityAnchorArgumentType.EntityAnchor.EYES, new net.minecraft.util.math.Vec3d(liv[0] - 2, liv[1], liv[2] - 1));
+            });
+            shot(20, "h_night2");
+            cmd(5, "time set 23700");
+            shot(200, "h_morning");
+            shot(200, "h_morning2");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                for (var c : p.getServerWorld().getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(30), c -> c.getName().getString().startsWith("Сосед")))
+                    com.yompix.lifecraft.LifeCraft.LOG.info("[home-am] {} act {} inv {} at {}", c.getName().getString(), c.getActivity(), c.isInvisible(), c.getPos());
+            });
+            // встречи на улице: ставим пары лицом к лицу
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                int y = Story.topY(w, 0, 10);
+                CitizenEntity.Activity[] acts = {CitizenEntity.Activity.HANDSHAKE, CitizenEntity.Activity.HUG, CitizenEntity.Activity.ARGUE, CitizenEntity.Activity.FIGHT, CitizenEntity.Activity.LAUGH, CitizenEntity.Activity.UPSET};
+                for (int i = 0; i < acts.length; i++) {
+                    CitizenEntity a1 = new CitizenEntity(com.yompix.lifecraft.ModContent.CITIZEN, w), a2 = new CitizenEntity(com.yompix.lifecraft.ModContent.CITIZEN, w);
+                    a1.setup(CitizenEntity.RANDOM_FROM + 2 * i, CitizenEntity.Role.CITIZEN, true, "A" + i);
+                    a2.setup(CitizenEntity.RANDOM_FROM + 2 * i + 5, CitizenEntity.Role.CITIZEN, true, "B" + i);
+                    double x = -12.5 + i * 5;
+                    double gap = acts[i] == CitizenEntity.Activity.HUG ? 0.65 : acts[i] == CitizenEntity.Activity.HANDSHAKE ? 0.9 : 1.4;
+                    a1.refreshPositionAndAngles(x - gap / 2, y, 10.5, -90, 0);
+                    a2.refreshPositionAndAngles(x + gap / 2, y, 10.5, 90, 0);
+                    w.spawnEntity(a1);
+                    w.spawnEntity(a2);
+                    a1.sceneWith(a2, acts[i], 2000);
+                    a2.sceneWith(a1, acts[i] == CitizenEntity.Activity.LAUGH || acts[i] == CitizenEntity.Activity.UPSET ? CitizenEntity.Activity.TALK : acts[i], 2000);
+                }
+                p.teleport(w, 0.5, y + 1.2, 18.5, 180, 10);
+            });
+            cmd(5, "time set 5000");
+            shot(40, "i1");
+            shot(9, "i2");
+            shot(9, "i3");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("geo")) {
             YompixSplash.markShown();
             server(150, s -> {

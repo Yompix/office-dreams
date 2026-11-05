@@ -77,7 +77,25 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
 
     @Override
     public void render(CitizenEntity e, float yaw, float tickDelta, MatrixStack m, VertexConsumerProvider buffers, int light) {
+        if (e.isInvisible()) return; // ушёл к себе в комнату
         super.render(e, yaw, tickDelta, m, buffers, light);
+        if (e.asleep()) {
+            // «Z z z» поднимаются над спящим
+            var tr = getTextRenderer();
+            float time = (e.age + tickDelta) * 0.03f;
+            for (int i = 0; i < 3; i++) {
+                float k = (time + i / 3f) % 1f;
+                m.push();
+                m.translate(0.15 + k * 0.35, 0.55 + k * 0.9, 0);
+                m.multiply(dispatcher.getRotation());
+                float sc = 0.02f + k * 0.025f;
+                m.scale(sc, -sc, sc);
+                int alpha = (int) (255 * Math.sin(k * Math.PI));
+                tr.draw("Z", -tr.getWidth("Z") / 2f, 0, (Math.max(alpha, 8) << 24) | 0xDDEEFF, false, m.peek().getPositionMatrix(), buffers,
+                        net.minecraft.client.font.TextRenderer.TextLayerType.NORMAL, 0, LightmapTextureManager.MAX_LIGHT_COORDINATE);
+                m.pop();
+            }
+        }
         if (e.hasQuest()) {
             m.push();
             float bob = MathHelper.sin((e.age + tickDelta) * 0.12f) * 0.08f;
@@ -117,6 +135,7 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
         public void setCustomAnimations(CitizenEntity e, long instanceId, AnimationState<CitizenEntity> state) {
             var head = getAnimationProcessor().getBone("neck");
             var data = state.getData(DataTickets.ENTITY_MODEL_DATA);
+            if (head != null && e.asleep()) { head.setRotX(0); head.setRotY(0); head.setRotZ(0); return; }
             if (head != null && data != null) {
                 // ставим, а не прибавляем: иначе поворот копится каждый кадр и голову «колбасит»
                 head.setRotX(data.headPitch() * MathHelper.RADIANS_PER_DEGREE);

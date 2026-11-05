@@ -1,5 +1,7 @@
 package com.yompix.lifecraft.story;
 
+import com.yompix.lifecraft.entity.CitizenEntity;
+
 import com.google.gson.JsonArray;
 import com.yompix.lifecraft.life.Life;
 import com.yompix.lifecraft.life.LifeData;
@@ -69,6 +71,30 @@ final class Actions {
             case "spawn" -> Npcs.spawn(p, a.get(1).getAsString(), a.get(2).getAsString());
             case "tp_npc" -> Npcs.spawn(p, a.get(1).getAsString(), a.get(2).getAsString());
             case "despawn" -> Npcs.despawn(p, a.get(1).getAsString());
+            case "act" -> {
+                // ["act", npc, "ARGUE"|"none", (на кого смотреть)]
+                CitizenEntity c = Npcs.find(w, a.get(1).getAsString());
+                if (c != null) {
+                    String act = a.get(2).getAsString();
+                    c.lockActivity(act.equals("none") ? null : CitizenEntity.Activity.valueOf(act));
+                    if (a.size() > 3) {
+                        CitizenEntity o = Npcs.find(w, a.get(3).getAsString());
+                        if (o != null) c.face(o);
+                        else if (a.get(3).getAsString().equals("player")) c.face(p);
+                    }
+                }
+            }
+            case "fight" -> {
+                // ["fight", a, b, тиков]: двое сходятся и дерутся; потом проигравший (a) расстроен
+                CitizenEntity x = Npcs.find(w, a.get(1).getAsString()), y = Npcs.find(w, a.get(2).getAsString());
+                int t = a.size() > 3 ? a.get(3).getAsInt() : 120;
+                if (x != null && y != null) {
+                    var dir = y.getPos().subtract(x.getPos());
+                    if (dir.lengthSquared() > 4) x.refreshPositionAndAngles(y.getX() - dir.normalize().x * 1.3, y.getY(), y.getZ() - dir.normalize().z * 1.3, 0, 0);
+                    x.sceneWith(y, CitizenEntity.Activity.FIGHT, t);
+                    y.sceneWith(x, CitizenEntity.Activity.FIGHT, t);
+                }
+            }
             case "car" -> {
                 Vec3d v = Story.place(w, a.get(1).getAsString());
                 if (v != null) Story.spawnCar(p, v, Story.placeYaw(w, a.get(1).getAsString()), a.get(2).getAsInt(), false);
