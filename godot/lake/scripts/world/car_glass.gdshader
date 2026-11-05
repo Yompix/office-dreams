@@ -10,8 +10,8 @@ render_mode blend_mix, cull_disabled, depth_draw_opaque, specular_schlick_ggx;
 uniform vec4 in_color : source_color = vec4(0.45, 0.52, 0.6, 0.16);
 uniform float in_rough = 0.05;
 uniform vec3 out_color : source_color = vec3(0.025, 0.03, 0.036);
-uniform float out_front = 0.26;     // лобовое и передние боковые
-uniform float out_rear = 0.58;      // задние боковые и заднее
+uniform float out_front = 0.30;     // лобовое и передние боковые
+uniform float out_rear = 0.66;      // задние боковые и заднее (на ПК салон светлее — тонировка плотнее)
 uniform float rear_from = 0.40;     // граница по оси машины (вперёд — −Z): под стойкой B (z 0,33…0,61)
 uniform float rear_to = 0.55;
 uniform float fresnel_pow = 4.0;
