@@ -172,6 +172,43 @@ def blocks():
     save(cnt, 'block', 'shop_counter.png')
     save(noise((16, 16), rgb('efeae0'), 3, 16), 'block', 'shop_counter_top.png')
 
+    # Игровой автомат: красный корпус, три окошка, мигающие лампочки
+    frames = []
+    for f in range(6):
+        img = noise((16, 16), rgb('b3122e'), 5, 30)
+        d = ImageDraw.Draw(img)
+        d.rectangle([1, 1, 14, 3], fill=rgb('2a0710'))
+        d.text((2, -2), '777', fill=rgb('ffd54f'))
+        for i in range(3):
+            d.rectangle([2 + i * 4, 5, 4 + i * 4, 9], fill=rgb('f4f4f4'))
+            d.point([(3 + i * 4, 7)], fill=[rgb('e3242b'), rgb('ffd400'), rgb('5ad1ff')][(i + f) % 3])
+        d.rectangle([1, 11, 14, 12], fill=rgb('e0b040'))
+        d.rectangle([5, 13, 10, 14], fill=rgb('1a1a1a'))
+        for i in range(8):
+            on = (i + f) % 3 == 0
+            d.point([(i * 2, 0)], fill=rgb('fff59d') if on else rgb('7a5a20'))
+            d.point([(i * 2 + 1, 15)], fill=rgb('fff59d') if not on else rgb('7a5a20'))
+        frames.append(img)
+    anim(frames, 'block', 'slot_machine_front.png', frametime=5)
+    save(noise((16, 16), rgb('8a0f22'), 5, 31), 'block', 'slot_machine_side.png')
+
+    # Стол рулетки: колесо на зелёном сукне
+    rt = Image.new('RGBA', (32, 32), rgb('1b6b3a'))
+    d = ImageDraw.Draw(rt)
+    d.ellipse([2, 2, 29, 29], fill=rgb('6b3e1c'))
+    for i in range(37):
+        a0 = i * 360 / 37
+        col = rgb('1b8e3a') if i == 0 else (rgb('c62828') if i % 2 else rgb('1a1a1a'))
+        d.pieslice([4, 4, 27, 27], a0, a0 + 360 / 37, fill=col)
+    d.ellipse([9, 9, 22, 22], fill=rgb('8b5a2b'))
+    d.line([15, 10, 15, 21], fill=rgb('d4af37'))
+    d.line([10, 15, 21, 15], fill=rgb('d4af37'))
+    d.ellipse([14, 14, 17, 17], fill=rgb('f0d060'))
+    save(rt, 'block', 'roulette_top.png')
+    rs = noise((16, 16), rgb('4a2c14'), 5, 32)
+    ImageDraw.Draw(rs).rectangle([0, 0, 15, 2], fill=rgb('1b6b3a'))
+    save(rs, 'block', 'roulette_side.png')
+
     # Компьютер: монитор с бегущим кодом
     save(noise((16, 16), rgb('d7d9dc'), 3, 17), 'block', 'computer_body.png')
     frames = []

@@ -277,7 +277,7 @@ public class CarEntity extends Entity {
         double rx = -Math.cos(rad), rz = -Math.sin(rad);
         double x = getX() + fx * seat[1] + rx * seat[0];
         double z = getZ() + fz * seat[1] + rz * seat[0];
-        double y = getY() + 0.12;
+        double y = getY() - 0.32; // сидим низко, как в настоящей машине
         updater.accept(passenger, x, y, z);
         if (passenger instanceof LivingEntity le) le.setBodyYaw(getYaw());
     }

@@ -1,0 +1,119 @@
+{
+  "school_bell": {
+    "sounds": [
+      {
+        "name": "lifecraft:school_bell",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.school_bell"
+  },
+  "phone_notify": {
+    "sounds": [
+      {
+        "name": "lifecraft:phone_notify",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.phone_notify"
+  },
+  "phone_open": {
+    "sounds": [
+      {
+        "name": "lifecraft:phone_open",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.phone_open"
+  },
+  "phone_click": {
+    "sounds": [
+      {
+        "name": "lifecraft:phone_click",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.phone_click"
+  },
+  "car_horn": {
+    "sounds": [
+      {
+        "name": "lifecraft:car_horn",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.car_horn"
+  },
+  "car_engine": {
+    "sounds": [
+      {
+        "name": "lifecraft:car_engine",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.car_engine"
+  },
+  "car_start": {
+    "sounds": [
+      {
+        "name": "lifecraft:car_start",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.car_start"
+  },
+  "cash": {
+    "sounds": [
+      {
+        "name": "lifecraft:cash",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.cash"
+  },
+  "answer_right": {
+    "sounds": [
+      {
+        "name": "lifecraft:answer_right",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.answer_right"
+  },
+  "answer_wrong": {
+    "sounds": [
+      {
+        "name": "lifecraft:answer_wrong",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.answer_wrong"
+  },
+  "tv_switch": {
+    "sounds": [
+      {
+        "name": "lifecraft:tv_switch",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.tv_switch"
+  },
+  "level_up": {
+    "sounds": [
+      {
+        "name": "lifecraft:level_up",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.level_up"
+  },
+  "traffic_beep": {
+    "sounds": [
+      {
+        "name": "lifecraft:traffic_beep",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.traffic_beep"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "lifecraft:block/school_desk"
+    },
+    "facing=east": {
+      "model": "lifecraft:block/school_desk",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "lifecraft:block/school_desk",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "lifecraft:block/school_desk",
+      "y": 270
+    }
+  }
+}

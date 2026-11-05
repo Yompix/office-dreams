@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "front": "lifecraft:block/shop_counter",
+    "side": "lifecraft:block/shop_counter",
+    "top": "lifecraft:block/shop_counter_top",
+    "bottom": "lifecraft:block/shop_counter_top"
+  }
+}

@@ -45,7 +45,9 @@ public final class LifeEvents {
         ServerWorld world = server.getOverworld();
         long tod = world.getTimeOfDay() % 24000;
         long day = world.getTimeOfDay() / 24000 + 1;
-        if (lastTimeOfDay >= 0) {
+        long step = Math.floorMod(tod - lastTimeOfDay, 24000);
+        // звоним только при обычном ходе времени: не при /time set и не после сна
+        if (lastTimeOfDay >= 0 && step > 0 && step < 200) {
             for (long bell = School.DAY_START; bell <= School.DAY_END; bell += 1000) {
                 if (crossed(lastTimeOfDay, tod, bell)) ringBell(world, bell == School.DAY_END);
             }

@@ -230,6 +230,10 @@ public final class TownBuilder {
                 for (int col = a + 1; col <= c - 1; col += 2)
                     b.set(col, 0, z1 + 6 + row * 2, ModContent.SCHOOL_DESK.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.NORTH));
             b.set(mid, h - 1, -10, Blocks.SEA_LANTERN.getDefaultState());
+            b.set(a + 1, h - 1, -13, Blocks.SEA_LANTERN.getDefaultState());
+            b.set(c - 1, h - 1, -13, Blocks.SEA_LANTERN.getDefaultState());
+            b.set(a + 1, h - 1, -7, Blocks.SEA_LANTERN.getDefaultState());
+            b.set(c - 1, h - 1, -7, Blocks.SEA_LANTERN.getDefaultState());
             b.set(a + 1, 0, -6, Blocks.BOOKSHELF.getDefaultState());
             b.set(c - 1, 0, -6, Blocks.BOOKSHELF.getDefaultState());
         }
@@ -507,7 +511,19 @@ public final class TownBuilder {
         b.fill(x1 + 1, 0, z1 + 1, x2 - 1, 0, z2 - 1, Blocks.RED_CARPET.getDefaultState());
         b.fill(-6, 0, z2, -4, 2, z2, Blocks.AIR.getDefaultState());
         b.fill(-7, 3, z2 + 1, -3, 3, z2 + 1, Blocks.GOLD_BLOCK.getDefaultState());
-        for (int x = x1 + 1; x <= x2 - 1; x++) b.set(x, h - 1, z2, Blocks.SHROOMLIGHT.getDefaultState());
+        for (int x = x1 + 1; x <= x2 - 1; x++) {
+            b.set(x, h - 1, z2, Blocks.SHROOMLIGHT.getDefaultState());
+            b.set(x, h, z2 + 1, (x % 2 == 0 ? Blocks.MAGENTA_STAINED_GLASS : Blocks.PURPLE_STAINED_GLASS).getDefaultState());
+            if (Math.abs(x + 5) > 2 && x % 3 != 0) b.fill(x, 1, z2, x, 3, z2, Blocks.PURPLE_STAINED_GLASS.getDefaultState());
+        }
+        for (int x : new int[]{-8, -2}) for (int y = 0; y < 4; y++) b.set(x, y, z2 + 1, Blocks.GOLD_BLOCK.getDefaultState());
+        for (int z = z2 + 1; z <= z2 + 8; z++) b.fill(-6, -1, z, -4, -1, z, Blocks.RED_CONCRETE.getDefaultState());
+        for (int z = z2 + 2; z <= z2 + 8; z += 3) {
+            b.set(-7, 0, z, Blocks.GOLD_BLOCK.getDefaultState());
+            b.set(-7, 1, z, Blocks.SEA_LANTERN.getDefaultState());
+            b.set(-3, 0, z, Blocks.GOLD_BLOCK.getDefaultState());
+            b.set(-3, 1, z, Blocks.SEA_LANTERN.getDefaultState());
+        }
         // автоматы вдоль стен
         for (int x = x1 + 2; x <= x2 - 2; x += 2) b.set(x, 0, z1 + 1, ModContent.SLOT_MACHINE.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.SOUTH));
         for (int z = z1 + 3; z <= z2 - 3; z += 2) b.set(x1 + 1, 0, z, ModContent.SLOT_MACHINE.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.EAST));
@@ -671,6 +687,7 @@ public final class TownBuilder {
             NbtCompound n = new NbtCompound();
             n.putString("text", Text.Serialization.toJsonString(Text.literal(text).formatted(color, Formatting.BOLD), world.getRegistryManager()));
             n.putString("billboard", "center");
+            n.putString("alignment", "center");
             n.putInt("background", 0x99000000);
             n.putByte("shadow", (byte) 1);
             NbtCompound tr = new NbtCompound();

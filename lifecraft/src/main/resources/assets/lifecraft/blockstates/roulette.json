@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "lifecraft:block/roulette"
+    },
+    "facing=east": {
+      "model": "lifecraft:block/roulette",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "lifecraft:block/roulette",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "lifecraft:block/roulette",
+      "y": 270
+    }
+  }
+}

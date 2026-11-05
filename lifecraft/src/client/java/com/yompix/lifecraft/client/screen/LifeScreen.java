@@ -40,9 +40,18 @@ public abstract class LifeScreen extends Screen {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
         hits.clear();
-        renderBackground(ctx, mouseX, mouseY, delta);
+        background(ctx);
         draw(ctx, delta);
         super.render(ctx, mouseX, mouseY, delta);
+    }
+
+    /** Свой фон вместо ванильного размытия (иначе оно ложится поверх нашего окна). */
+    protected void background(DrawContext ctx) {
+        ctx.fillGradient(0, 0, width, height, 0x60000000, 0xA0000000);
+    }
+
+    @Override
+    public final void renderBackground(DrawContext ctx, int mouseX, int mouseY, float delta) {
     }
 
     protected abstract void draw(DrawContext ctx, float delta);

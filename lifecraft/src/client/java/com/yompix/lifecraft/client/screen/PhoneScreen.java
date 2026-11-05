@@ -37,7 +37,7 @@ public class PhoneScreen extends LifeScreen {
 
     private static final List<App> APPS = List.of(
             new App("bank", "Банк", 0xFF2FA84F), new App("school", "Школа", 0xFFF29B2B), new App("jobs", "Работа", 0xFF5A6ACF),
-            new App("messages", "Сообщения", 0xFF34C759), new App("map", "Карта", 0xFF3AA0E6), new App("shop", "Магазин", 0xFFE05A47),
+            new App("messages", "СМС", 0xFF34C759), new App("map", "Карта", 0xFF3AA0E6), new App("shop", "Магазин", 0xFFE05A47),
             new App("casino", "Казино", 0xFF8E1B3A), new App("music", "Музыка", 0xFFFF375F), new App("camera", "Камера", 0xFF4B4F58),
             new App("weather", "Погода", 0xFF64B5F6));
 
@@ -204,7 +204,7 @@ public class PhoneScreen extends LifeScreen {
             String label = ap.title();
             ctx.getMatrices().push();
             ctx.getMatrices().translate(x + iw / 2f, y + iw + 2, 0);
-            ctx.getMatrices().scale(0.75f, 0.75f, 1);
+            ctx.getMatrices().scale(0.7f, 0.7f, 1);
             ctx.drawText(textRenderer, label, -textRenderer.getWidth(label) / 2, 0, 0xFFFFFFFF, true);
             ctx.getMatrices().pop();
             if (ap.id().equals("messages") && d.unread > 0) {
@@ -316,7 +316,7 @@ public class PhoneScreen extends LifeScreen {
             if (j == Jobs.Job.NONE) continue;
             boolean can = d.edu >= j.minEdu;
             boolean mine = j == cur;
-            roundRect(ctx, sx + 6, yy, sw - 12, 44, mine ? 0xFFDDE8FF : 0xFFFFFFFF);
+            roundRect(ctx, sx + 6, yy, sw - 12, 54, mine ? 0xFFDDE8FF : 0xFFFFFFFF);
             ctx.drawText(textRenderer, j.title, sx + 10, yy + 3, can ? 0xFF222222 : 0xFF999999, false);
             ctx.getMatrices().push();
             ctx.getMatrices().translate(sx + 10, yy + 13, 0);
@@ -330,10 +330,14 @@ public class PhoneScreen extends LifeScreen {
                 LifeCraftClient.send("job_select", n);
             });
             else {
-                String req = Jobs.eduName(j.minEdu);
-                ctx.drawText(textRenderer, req, sx + sw - 10 - textRenderer.getWidth(req), yy + 3, 0xFFE53935, false);
+                String req = "нужно: " + Jobs.eduName(j.minEdu);
+                ctx.getMatrices().push();
+                ctx.getMatrices().translate(sx + sw - 10, yy + 46, 0);
+                ctx.getMatrices().scale(0.7f, 0.7f, 1);
+                ctx.drawText(textRenderer, req, -textRenderer.getWidth(req), 0, 0xFFE53935, false);
+                ctx.getMatrices().pop();
             }
-            yy += 48;
+            yy += 58;
         }
     }
 
@@ -481,7 +485,7 @@ public class PhoneScreen extends LifeScreen {
     }
 
     @Override
-    public void renderBackground(DrawContext ctx, int mouseX, int mouseY, float delta) {
-        ctx.fillGradient(0, 0, width, height, 0x40000000, 0x80000000);
+    protected void background(DrawContext ctx) {
+        ctx.fillGradient(0, 0, width, height, 0x30000000, 0x70000000);
     }
 }

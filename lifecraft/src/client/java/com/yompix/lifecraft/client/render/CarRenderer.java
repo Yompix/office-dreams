@@ -52,18 +52,18 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         r.addChild("hood", box(-14, 14, 11, 14, 15, 24), ModelTransform.NONE);
         r.addChild("trunk", box(-14, 14, -24, 14, 15, -16), ModelTransform.NONE);
         r.addChild("pillars", ModelPartBuilder.create().uv(0, 0)
-                .cuboid(-13, 14, 8, 2, 8, 2).cuboid(11, 14, 8, 2, 8, 2)
-                .cuboid(-13, 14, -15, 2, 8, 2).cuboid(11, 14, -15, 2, 8, 2)
-                .cuboid(-13, 14, -3, 1, 8, 1).cuboid(12, 14, -3, 1, 8, 1), ModelTransform.NONE);
-        r.addChild("roof", box(-13, 22, -15, 13, 24, 10), ModelTransform.NONE);
-        r.addChild("glass", box(-12.5f, 14, -14.5f, 12.5f, 22, 9.5f), ModelTransform.NONE);
+                .cuboid(-13, 14, 8, 2, 10, 2).cuboid(11, 14, 8, 2, 10, 2)
+                .cuboid(-13, 14, -15, 2, 10, 2).cuboid(11, 14, -15, 2, 10, 2)
+                .cuboid(-13, 14, -3, 1, 10, 1).cuboid(12, 14, -3, 1, 10, 1), ModelTransform.NONE);
+        r.addChild("roof", box(-13, 24, -15, 13, 26, 10), ModelTransform.NONE);
+        r.addChild("glass", box(-12.5f, 14, -14.5f, 12.5f, 24, 9.5f), ModelTransform.NONE);
         r.addChild("bumpers", ModelPartBuilder.create().uv(0, 0).cuboid(-15, 5, 25, 30, 4, 2).cuboid(-15, 5, -27, 30, 4, 2), ModelTransform.NONE);
         r.addChild("grille", box(-6, 8, 25, 6, 12, 25.5f), ModelTransform.NONE);
         r.addChild("plates", ModelPartBuilder.create().uv(0, 0).cuboid(-4, 6, 27, 8, 2, 0.3f).cuboid(-4, 6, -27.3f, 8, 2, 0.3f), ModelTransform.NONE);
         r.addChild("headlights", ModelPartBuilder.create().uv(0, 0).cuboid(-13, 10, 25, 5, 3, 0.6f).cuboid(8, 10, 25, 5, 3, 0.6f), ModelTransform.NONE);
         r.addChild("taillights", ModelPartBuilder.create().uv(0, 0).cuboid(-13, 10, -25.6f, 4, 3, 0.6f).cuboid(9, 10, -25.6f, 4, 3, 0.6f), ModelTransform.NONE);
         r.addChild("mirrors", ModelPartBuilder.create().uv(0, 0).cuboid(-17, 14, 7, 2, 2, 2).cuboid(15, 14, 7, 2, 2, 2), ModelTransform.NONE);
-        r.addChild("taxi_sign", box(-5, 24, -6, 5, 27, -1), ModelTransform.NONE);
+        r.addChild("taxi_sign", box(-5, 26, -6, 5, 29, -1), ModelTransform.NONE);
         float[][] wheels = {{13, 16}, {-13, 16}, {13, -16}, {-13, -16}};
         for (int i = 0; i < 4; i++) {
             ModelPartData w = r.addChild(WHEELS[i], box(-2.5f, -5, -5, 2.5f, 5, 5), ModelTransform.pivot(wheels[i][0], 5, wheels[i][1]));

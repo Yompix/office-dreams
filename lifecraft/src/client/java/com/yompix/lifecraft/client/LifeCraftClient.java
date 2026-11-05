@@ -76,6 +76,7 @@ public class LifeCraftClient implements ClientModInitializer {
         });
         ClientTickEvents.END_CLIENT_TICK.register(LifeCraftClient::tick);
         HudRenderCallback.EVENT.register(LifeHud::render);
+        DevAutotest.init();
     }
 
     public static void send(String type, NbtCompound data) {
