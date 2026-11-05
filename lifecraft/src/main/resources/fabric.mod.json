@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "lifecraft",
+  "version": "${version}",
+  "name": "LifeCraft",
+  "description": "Симулятор жизни: школа, работа, деньги, телефон, машины, телевизоры и целый город.",
+  "authors": ["Yompix"],
+  "license": "All-Rights-Reserved",
+  "icon": "assets/lifecraft/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.yompix.lifecraft.LifeCraft"],
+    "client": ["com.yompix.lifecraft.client.LifeCraftClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
