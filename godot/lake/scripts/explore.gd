@@ -834,6 +834,14 @@ func _auto() -> void:
 					ds["door"] = true
 					await _auto_go(ds)
 					await _use(ds)
+					# путь — когда створка открылась: приоткрытая перекрывала проём, пути не было, и Ной шёл к кассе
+					# напрямик — сквозь косяк и стеллаж (журнал «нет пути», 5 ноя)
+					var id := String(dr.id)
+					var left := 3.0
+					while _leaf.has(id) and left > 0.0 and is_instance_valid(_leaf[id].piv) \
+							and absf(wrapf((_leaf[id].piv as Node3D).rotation.y - deg_to_rad(float(dr.get("open", 90.0))), -PI, PI)) > 0.05:
+						await g.get_tree().process_frame
+						left -= g._dt()
 		await _auto_go(e)
 		await _use(e)
 
@@ -846,6 +854,10 @@ func _auto_go(s: Dictionary) -> void:
 		return
 	for p in _path(Vector2(a.position.x, a.position.z), w):   # в обход машины, колонок и крыльца — по точкам "nav"
 		var pt: Vector2 = p
+		# точка рядом (шаг из запаса препятствия у точки осмотра) — только для расчёта пути: шагом к ней герой ходил
+		# кругами (разворот на месте), сразу к следующей
+		if pt.distance_to(Vector2(a.position.x, a.position.z)) < 0.6:
+			continue
 		a.walk_to(Vector3(pt.x, _floor(pt.x, pt.y), pt.y), SPEED, "Rk_Walk", "Idle")
 		g._walks[String(d.get("who", "noah"))] = true
 		var left := 20.0
