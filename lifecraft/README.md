@@ -30,7 +30,7 @@
    - в официальном лаунчере — через установщик https://fabricmc.net/use/installer/ (выбери 1.21.1 и нажми «Установить»);
    - в TLauncher — просто выбери в списке версию **Fabric 1.21.1**.
 2. Скачай **Fabric API** для 1.21.1: https://modrinth.com/mod/fabric-api/versions?g=1.21.1
-3. Скачай мод: [`dist/lifecraft-0.1.0.jar`](dist/lifecraft-0.1.0.jar)
+3. Скачай мод: [`download/lifecraft-0.1.0.jar`](download/lifecraft-0.1.0.jar)
 4. Положи оба файла (`fabric-api-….jar` и `lifecraft-0.1.0.jar`) в папку `mods`:
    - Windows: нажми Win+R, вставь `%appdata%\.minecraft\mods` и нажми Enter;
    - если папки `mods` нет, создай её.
@@ -39,7 +39,7 @@
 ### Как начать игру
 
 - **Новый мир с городом.** «Одиночная игра» → «Создать мир» → «Другие настройки мира» → «Тип мира» → **LifeCraft: Город**. Город построится сам, а ты появишься перед школой.
-- **Готовая карта.** Скачай [`dist/LifeCraft-Gorod-map.zip`](dist/LifeCraft-Gorod-map.zip) и распакуй в `%appdata%\.minecraft\saves`. Мир появится в списке как «LifeCraft Город».
+- **Готовая карта.** Скачай [`download/LifeCraft-Gorod-map.zip`](download/LifeCraft-Gorod-map.zip) и распакуй в `%appdata%\.minecraft\saves`. Мир появится в списке как «LifeCraft Город».
 - **Город в своём мире.** Команда `/lifecraft town` (нужны читы) строит город 160×160 вокруг игрока.
 
 ### Ресурспак
