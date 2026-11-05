@@ -52,6 +52,7 @@ var reach_basis := {}           # кисть целиком (мир): {"_r": Bas
 var _reach_w := 0.0
 var _palm_tw := {}              # поворот ладони прошлого кадра (рад) — для непрерывности
 var grip := {}                  # держит предмет: {"_r": 0…1, "_l": 0…1} — пальцы обхватывают
+var point := {}                 # указательный вытянут, остальные поджаты: {"_l": 0…1} (кнопки таксофона, угол плаката)
 var _grip_w := {"_r": 0.0, "_l": 0.0}
 var walking := false
 var _hair: Array[ShaderMaterial] = []
@@ -426,6 +427,7 @@ func end_gesture() -> void:
 ## не вернёт руки к старым целям (ведро: «руки из воды» и осмотр ладоней в одном шаге).
 func clear_hands() -> void:
 	reach = {}
+	point = {}
 	_gest_reach0 = {}
 	_gest_palm0 = {}
 	_gest_pole0 = {}
@@ -538,6 +540,19 @@ func _update_gesture(dt: float) -> void:
 			look_target = m + fwd * 0.6 - up * 0.2
 		"behind":
 			r = {"_r": pv - fwd * 0.17 + right * 0.06 + up * 0.04, "_l": pv - fwd * 0.17 - right * 0.06 + up * 0.04}
+		"shade_eyes":   # прикрыть глаза ладонью козырьком (у витрины — от света навеса)
+			var he: Vector3 = bp.call("head")
+			r = {"_r": he + fwd * 0.13 + up * 0.07 + right * 0.03}
+			palm = {"_r": -up * 0.7 - fwd * 0.3}
+		"shade_eyes_l":   # то же левой рукой (витрина: камера справа — правое плечо свободно, отражение не заслонено)
+			var hl: Vector3 = bp.call("head")
+			r = {"_l": hl + fwd * 0.13 + up * 0.07 - right * 0.03}
+			palm = {"_l": -up * 0.7 - fwd * 0.3}
+		"walkie_talk":   # рацию — к губам, большим пальцем на кнопку (Дэнни: «Мама. Приём…»)
+			var hw: Vector3 = bp.call("head")
+			r = {"_r": hw + fwd * 0.11 - up * 0.1 + right * 0.03}
+			palm = {"_r": -right * 0.6 - fwd * 0.4}
+			look_target = hw + fwd * 0.8 - up * 0.3
 		"sleeve":
 			look_target = bp.call("lowerarm_r")
 		"chest":   # прижать к груди (спрятать под куртку): на уровне груди, а не живота
@@ -1323,6 +1338,22 @@ func _update_grip(delta: float) -> void:
 				_rot_now(_bi(String(j[0]) + side), curl, deg_to_rad(float(j[1])) * w * 0.6)
 			else:
 				_rot(_bi(String(j[0]) + side), curl, deg_to_rad(float(j[1])) * w * 0.6)
+	for side in point:   # указательный вытянут (жмёт кнопку, расправляет угол), средний, безымянный и мизинец поджаты
+		var pw := clampf(float(point[side]), 0.0, 1.0)
+		var ph := _bi("hand" + side)
+		if pw < 0.001 or ph < 0:
+			continue
+		var pc := (skel.global_transform * skel.get_bone_global_pose(ph)).basis.x.normalized() * (1.0 if side == "_l" else -1.0)
+		for f in ["middle", "ring", "pinky"]:
+			for j in [["_01", 85.0], ["_02", 95.0], ["_03", 60.0]]:
+				_rot_now(_bi(f + String(j[0]) + side), pc, deg_to_rad(float(j[1])) * pw)
+		for j in ["_01", "_02", "_03"]:   # в клипах покоя указательный согнут почти в кулак — выпрямить по позе скелета
+			var ib := _bi("index" + j + side)
+			if ib >= 0:
+				var rq := skel.get_bone_rest(ib).basis.get_rotation_quaternion()
+				skel.set_bone_pose_rotation(ib, skel.get_bone_pose_rotation(ib).slerp(rq, pw))
+		for j in [["thumb_02", 30.0], ["thumb_03", 25.0]]:   # большой — прижат к среднему
+			_rot_now(_bi(String(j[0]) + side), pc, deg_to_rad(float(j[1])) * pw * 0.6)
 
 
 ## Повернуть кость так, чтобы она смотрела (от себя к дочерней) по направлению dir (мир); w — доля поворота.

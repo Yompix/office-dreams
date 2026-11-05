@@ -154,7 +154,7 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 	_box(vm, Vector3(0.62, 1.86, 0.86), Vector3(0, 0.93, 0), red)
 	var glass := _mat(Color(0.75, 0.85, 0.9, 0.18), 0.05)
 	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	var inner := _mat(Color(0.9, 0.93, 0.85), 0.8, 0.0, Color(0.95, 0.97, 0.88), 0.55)
+	var inner := _mat(Color(0.88, 0.93, 0.98), 0.8, 0.0, Color(0.84, 0.92, 1.0), 0.6)   # бело-голубое нутро (лист «24»)
 	_box(vm, Vector3(0.02, 1.08, 0.56), Vector3(-0.3, 1.15, -0.1), inner)   # светлое нутро за стеклом
 	var cols := [Color(0.8, 0.12, 0.08), Color(0.15, 0.3, 0.7), Color(0.85, 0.7, 0.1), Color(0.2, 0.5, 0.2), Color(0.5, 0.25, 0.08)]
 	for row in 4:
@@ -171,8 +171,8 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 	vt.shaded = false   # светящаяся надпись — видна и в темноте
 	var vl := OmniLight3D.new()   # стекло светится на снег
 	vl.position = Vector3(-0.6, 1.2, -0.1)
-	vl.light_color = Color(0.95, 0.97, 0.88)
-	vl.light_energy = 0.35
+	vl.light_color = Color(0.82, 0.9, 1.0)   # бело-голубой свет ложится на лицо Ноя
+	vl.light_energy = 0.5
 	vl.omni_range = 2.2
 	vm.add_child(vl)
 	out["vending"] = vm
@@ -190,12 +190,16 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 	_box(ph, Vector3(0.05, 0.55, 0.3), Vector3(-0.29, 1.8, 0.15), blue)
 	_box(ph, Vector3(0.05, 0.55, 0.3), Vector3(0.29, 1.8, 0.15), blue)
 	_box(ph, Vector3(0.3, 0.5, 0.14), Vector3(0, 1.45, 0.07), _mat(Color(0.62, 0.64, 0.66), 0.4, 0.7))   # корпус
+	var key_m := _mat(Color(0.7, 0.71, 0.72), 0.42, 0.55)   # металлические кнопки (лист «24»: «палец на металлических кнопках»)
+	var digits := ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"]
 	for k in 4:
 		for j in 3:
-			_box(ph, Vector3(0.045, 0.035, 0.012), Vector3(-0.06 + j * 0.06, 1.5 - k * 0.055, 0.145), dark)
+			var kb := _box(ph, Vector3(0.045, 0.035, 0.012), Vector3(-0.06 + j * 0.06, 1.5 - k * 0.055, 0.145), key_m)
+			_text(kb, digits[k * 3 + j], Vector3(0, 0, 0.0065), 40, Color(0.08, 0.08, 0.09), 0.0006, Vector3.ZERO, 0.0, "label")
 	var rcv := _box(ph, Vector3(0.07, 0.24, 0.07), Vector3(-0.2, 1.42, 0.12), dark)   # трубка на рычаге
 	rcv.name = "receiver"
-	_cyl(ph, 0.008, 0.45, Vector3(-0.2, 1.12, 0.13), dark)                 # витой шнур
+	var pcs := _cyl(ph, 0.008, 0.45, Vector3(-0.2, 1.12, 0.13), dark)      # стальной шнур (трубка на рычаге)
+	pcs.name = "payphone_cord"
 	out["payphone"] = ph
 	var bd := Node3D.new()
 	side.add_child(bd)
@@ -210,13 +214,35 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 	_text(n1, "ПРОДАМ\nДРОВА\nтел. 2-14" if ru else "FIREWOOD\nFOR SALE\ncall 2-14", Vector3(0, 0, 0.003), 46, ink, 0.0016, Vector3.ZERO, 0.0, "hand")
 	var n2 := _box(bd, Vector3(0.27, 0.34, 0.004), Vector3(-0.42, 1.33, 0.048), paper2, Vector3(0, 0, -4))
 	_text(n2, "ПРОПАЛА\nСОБАКА\n\nрыжая,\nзовут Лиса" if ru else "LOST\nDOG\n\nginger,\nanswers\nto Foxy", Vector3(0, 0, 0.003), 38, ink, 0.0016, Vector3.ZERO, 0.0, "hand")
+	var flut: Array = []   # что треплет ветер: [узел, поворот в покое, размах, фаза] — StationProps.flutter
+	for k in 7:   # бахрома отрывных номеров; два уже оторваны (лист «24»); каждая — на шарнире по верхнему краю
+		if k == 2 or k == 5:
+			continue
+		var fp := Node3D.new()
+		n2.add_child(fp)
+		fp.position = Vector3(-0.105 + k * 0.035, -0.17, 0.001)
+		fp.rotation_degrees = Vector3(0, 0, (k % 3 - 1) * 4.0)
+		_box(fp, Vector3(0.028, 0.07, 0.002), Vector3(0, -0.035, 0.0), paper2)
+		flut.append([fp, 0.0, -14.0, k * 1.37])
 	# выцветший плакат санатория: голубое небо, ели, белый корпус
 	var pst := Node3D.new()
 	bd.add_child(pst)
 	pst.position = Vector3(0.22, 1.5, 0.048)
 	pst.rotation_degrees = Vector3(0, 0, 1.5)
-	_box(pst, Vector3(0.6, 0.7, 0.004), Vector3.ZERO, _mat(Color(0.7, 0.78, 0.8), 0.95))
-	_box(pst, Vector3(0.52, 0.3, 0.003), Vector3(0, 0.06, 0.003), _mat(Color(0.62, 0.75, 0.82), 0.95))
+	var pmat := _mat(Color(0.7, 0.78, 0.8), 0.95)
+	_box(pst, Vector3(0.6, 0.6, 0.004), Vector3(0, 0.05, 0), pmat)            # плакат без правого нижнего угла:
+	_box(pst, Vector3(0.5, 0.1, 0.004), Vector3(-0.05, -0.3, 0), pmat)        # угол — отдельный и загнут
+	var flap := Node3D.new()   # загнувшийся угол: Ной расправляет его пальцем — и он снова загибается (лист «24»)
+	flap.name = "poster_corner"
+	pst.add_child(flap)
+	flap.position = Vector3(0.25, -0.25, 0.0)
+	var fl := _box(flap, Vector3(0.1, 0.1, 0.004), Vector3(0, -0.05, 0), pmat)
+	pmat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	flap.rotation_degrees = Vector3(-58, 0, 0)
+	fl.name = "flap"
+	flut.append([flap, -52.0, -12.0, 0.4])
+	root.set_meta("flutter", flut)
+	_box(pst, Vector3(0.52, 0.26, 0.003), Vector3(0, 0.04, 0.003), _mat(Color(0.62, 0.75, 0.82), 0.95))   # небо — ниже названия (край не режет буквы)
 	_box(pst, Vector3(0.24, 0.09, 0.003), Vector3(0.03, -0.02, 0.005), _mat(Color(0.93, 0.93, 0.9), 0.9))   # корпус
 	for k in 4:
 		_box(pst, Vector3(0.03, 0.022, 0.002), Vector3(-0.05 + k * 0.05, -0.01, 0.007), _mat(Color(0.35, 0.42, 0.48), 0.9))
@@ -288,6 +314,7 @@ static func build(root: Node3D, lang: String) -> Dictionary:
 	st.rotation_degrees = Vector3(0, 0, -14)
 	_box(st, Vector3(0.05, 0.04, 0.24), Vector3(0, 0.36, 0), _mat(Color(0.08, 0.08, 0.08), 0.7))
 	out["bucket"] = bk
+	snow_banks(root)
 	return out
 
 
@@ -608,13 +635,23 @@ static func trunk_take_blanket(car: Node3D) -> void:
 
 ## Таксофон: Ной снял трубку (она у него в правой руке, на рычаге пусто) или повесил обратно.
 static func receiver(root: Node3D, a: Actor, in_hand: bool) -> void:
-	var r := root.find_child("receiver", true, false) as Node3D
+	var ph := root.find_child("payphone", true, false) as Node3D   # своя трубка: у прилавка в магазине тоже есть «receiver»
+	if ph == null:
+		return
+	var r := ph.get_node_or_null("receiver") as Node3D
 	if r:
 		r.visible = not in_hand
+	var pcs := ph.get_node_or_null("payphone_cord") as Node3D
+	if pcs:
+		pcs.visible = not in_hand
 	var old := a.skel.get_node_or_null("receiver_hand")
 	if old:
 		old.queue_free()
+	var live := root.get_node_or_null("payphone_cord_live") as MeshInstance3D
 	if not in_hand:
+		if live:
+			live.queue_free()
+		root.remove_meta("payphone_cord_by")
 		return
 	var ba := BoneAttachment3D.new()
 	ba.name = "receiver_hand"
@@ -626,7 +663,146 @@ static func receiver(root: Node3D, a: Actor, in_hand: bool) -> void:
 	m.mesh = bm
 	m.material_override = _mat(Color(0.05, 0.05, 0.055), 0.5, 0.3)
 	m.position = Vector3(0.0, 0.08, 0.035)
+	m.name = "rcv"
 	ba.add_child(m)
+	if live == null:   # стальной шнур от аппарата к трубке в руке — расправляется (каждый кадр: St24.tick → payphone_cord)
+		live = MeshInstance3D.new()
+		live.name = "payphone_cord_live"
+		live.material_override = _mat(Color(0.5, 0.52, 0.55), 0.35, 0.85)
+		live.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(live)
+	root.set_meta("payphone_cord_by", a)
+	payphone_cord(root)
+
+
+## Сугробы по краям площадки (tools/lake/station.py — гладкие «капли» одного цвета: под холодными лампами навеса
+## выглядели синим пластиком, кадры трассы 5 ноя). Наст: мелкая рябь — карта нормалей из шума по трём осям (без шва на
+## шаре), неровная белизна пятнами, почти без блеска. Один материал на все сугробы.
+static func snow_banks(root: Node3D) -> void:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.93, 0.94, 0.97)
+	m.roughness = 0.94
+	m.metallic_specular = 0.22
+	var nz := FastNoiseLite.new()
+	nz.frequency = 0.07
+	nz.fractal_octaves = 4
+	var nt := NoiseTexture2D.new()
+	nt.noise = nz
+	nt.width = 256
+	nt.height = 256
+	nt.seamless = true
+	nt.as_normal_map = true
+	nt.bump_strength = 5.0
+	m.normal_enabled = true
+	m.normal_texture = nt
+	m.normal_scale = 0.9
+	var an := FastNoiseLite.new()
+	an.frequency = 0.025
+	var at := NoiseTexture2D.new()
+	at.noise = an
+	at.width = 256
+	at.height = 256
+	at.seamless = true
+	var gr := Gradient.new()
+	gr.set_color(0, Color(0.74, 0.77, 0.82))
+	gr.set_color(1, Color(1.0, 1.0, 1.0))
+	at.color_ramp = gr
+	m.albedo_texture = at
+	m.uv1_triplanar = true
+	m.uv1_scale = Vector3(0.7, 0.7, 0.7)
+	for mi in root.find_children("snowbank*", "MeshInstance3D", true, false):
+		(mi as MeshInstance3D).material_override = m
+
+
+## Стальной шнур таксофона: от низа корпуса к нижнему концу трубки в руке Ноя, с лёгким провисом.
+static func payphone_cord(root: Node3D) -> void:
+	var live := root.get_node_or_null("payphone_cord_live") as MeshInstance3D
+	var a = root.get_meta("payphone_cord_by", null)
+	var ph := root.find_child("payphone", true, false) as Node3D
+	if live == null or not (a is Actor) or not is_instance_valid(a) or ph == null:
+		return
+	var ba := (a as Actor).skel.get_node_or_null("receiver_hand") as Node3D
+	var rc := ba.get_node_or_null("rcv") as Node3D if ba else null
+	if rc == null:
+		return
+	var e0: Vector3 = rc.global_transform * Vector3(0, -0.1, 0)
+	var e1: Vector3 = rc.global_transform * Vector3(0, 0.1, 0)
+	var b: Vector3 = e0 if e0.y < e1.y else e1   # нижний конец трубки (микрофон)
+	cord_mesh(live, ph.to_global(Vector3(-0.2, 1.25, 0.13)), b, 0.007, 0.04, 0.0)
+
+
+## Бумажки на кнопках шевелятся на ветру: бахрома объявления про собаку, загнутый угол плаката (пока его не держат).
+static func flutter(root: Node3D, t: float) -> void:
+	for e in root.get_meta("flutter", []):
+		var n := e[0] as Node3D
+		if n == null or not is_instance_valid(n) or n.has_meta("held"):
+			continue
+		var ph := float(e[3])
+		var w := 0.5 + 0.5 * (0.6 * sin(t * 2.3 + ph) + 0.4 * sin(t * 5.1 + ph * 1.7))   # 0…1, порывами
+		n.rotation_degrees.x = float(e[1]) + float(e[2]) * w
+
+
+## Следы шин на снегу площадки: их машина — от трассы к колонке (под колёса); при late — вторые, свежие, рядом с их
+## следами от трассы и к краю площадки, к чёрной машине. Две колеи по 0,2 м, колея машины 1,5 м.
+static func tire_tracks(root: Node3D, late: bool) -> void:
+	if root.get_node_or_null("tracks_ours") == null:
+		# по кривой подъезда (game._car_arrive), с того места, где колёса сошли с трассы, до задних колёс у колонки
+		_tracks(root, "tracks_ours", [Vector3(2.66, 0, 22.84), Vector3(6.54, 0, 13.56), Vector3(14.3, 0, 8.5), Vector3(14.3, 0, -3.7)], 0.62)
+	if late and root.get_node_or_null("tracks_black") == null:
+		# от трассы рядом с их следами, вдоль края площадки — к дальнему краю, под передние колёса чёрной машины
+		_tracks(root, "tracks_black", [Vector3(2.2, 0, 21.5), Vector3(5.4, 0, 13.0), Vector3(5.6, 0, 2.0), Vector3(5.2, 0, -8.0),
+			Vector3(4.8, 0, -18.0), Vector3(7.0, 0, -21.8), Vector3(9.5, 0, -22.6)], 0.8)
+
+
+static func _tracks(root: Node3D, nm: String, c: Array, alpha: float) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var segs := (c.size() - 1) / 3   # кубические кривые Безье: точки 0-1-2-3, 3-4-5-6…
+	var per := 60
+	var pts: Array[Vector3] = []
+	for sg in segs:
+		var q0: Vector3 = c[sg * 3]
+		var q1: Vector3 = c[sg * 3 + 1]
+		var q2: Vector3 = c[sg * 3 + 2]
+		var q3: Vector3 = c[sg * 3 + 3]
+		for i in range(0 if sg == 0 else 1, per + 1):
+			var u := float(i) / per
+			var v := 1.0 - u
+			pts.append(q0 * v * v * v + q1 * 3.0 * v * v * u + q2 * 3.0 * v * u * u + q3 * u * u * u)
+	var N := pts.size() - 1
+	for sv in [-0.75, 0.75]:
+		var side := float(sv)
+		for i in N:
+			var p0: Vector3 = pts[i]
+			var p1: Vector3 = pts[i + 1]
+			var d := (p1 - p0).normalized()
+			var nrm := Vector3(-d.z, 0, d.x)
+			var w0 := 0.1 * (1.0 + 0.12 * sin(i * 1.7))
+			var w1 := 0.1 * (1.0 + 0.12 * sin((i + 1) * 1.7))
+			var a0 := p0 + nrm * (side - w0)
+			var b0 := p0 + nrm * (side + w0)
+			var a1 := p1 + nrm * (side - w1)
+			var b1 := p1 + nrm * (side + w1)
+			var y := Vector3(0, 0.012, 0)
+			var fa := clampf(float(i) / 8.0, 0.0, 1.0) * clampf(float(N - i) / 4.0, 0.0, 1.0)   # у трассы колея сходит на нет
+			var fb := clampf(float(i + 1) / 8.0, 0.0, 1.0) * clampf(float(N - i - 1) / 4.0, 0.0, 1.0)
+			for q in [[a0, fa, 0.0], [a1, fb, 0.0], [b0, fa, 1.0], [b0, fa, 1.0], [a1, fb, 0.0], [b1, fb, 1.0]]:   # лицом вверх (по часовой)
+				st.set_color(Color(1, 1, 1, float(q[1])))
+				st.set_uv(Vector2(float(q[2]), float(i) * 0.25))
+				st.set_normal(Vector3.UP)
+				st.add_vertex((q[0] as Vector3) + y)
+	var mi := MeshInstance3D.new()
+	mi.name = nm
+	mi.mesh = st.commit()
+	var m := StandardMaterial3D.new()   # колея в свежем снегу ночью: продавленная, в тени — тёмная, без блеска
+	m.albedo_color = Color(0.13, 0.15, 0.19, alpha)
+	m.vertex_color_use_as_albedo = true
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.roughness = 1.0
+	m.render_priority = 1
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
 
 
 ## Неон «24» на столбе у трассы: цифра «4» гаснет на полсекунды и загорается с треском (лист «24», шаг 1). Цифры в модели —

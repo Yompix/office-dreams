@@ -168,8 +168,31 @@ DANNY_IRIS = [[18.75, 1.3, -2.35], [20.0, 0.85, -3.65], 42]       # «Укрой
 IRIS_STEP_OTS = [[20.65, 1.3, -3.2], [13.6, 0.8, -8.1], 40]      # ведро, шаг 7: через плечо Айрис (и Дэнни) со ступеньки на Ноя
 
 
+TRUNK_TOP = [[14.6, 2.05, -2.15], [14.3, 1.0, -3.0], 40]      # багажник сверху над правым плечом Ноя: чехол удочек, ящик, плед
+VEND_COIN = [[19.75, 1.55, -10.2], [20.3, 1.25, -10.85], 44]    # автомат сбоку справа: рука у щели, батончики за стеклом
+VEND_ROMAN = [[20.05, 1.62, -10.45], [26.2, 1.7, -9.35], 24]   # от автомата сквозь витрину: Роман поднимает голову
+TRUNK_IRON = [[14.48, 1.72, -2.25], [14.33, 1.06, -2.97], 30]  # deer = 2: монтировка крупно, рука над ней
+
+
 def talks(j):
     spots = {sp.get('id'): sp for sp in j['explore']['st24']['spots']}
+    spots['trunk']['stand'] = [14.3, -2.55]   # у самого бампера: из прежней точки (метр от машины) рука не доставала в багажник
+    spots['vending']['stand'] = [19.88, -11.0]   # плечи у модели Ноя ~22 см позади точки стояния — из 19,65 рука не доставала до щели
+    for b in spots['trunk'].get('beats', []):   # багажник: подписи-описания → план сверху и действия (лист «24»)
+        nt = (b.get('note') or {}).get('ru', '') if isinstance(b.get('note'), dict) else ''
+        if nt.startswith('Отцовские удочки') or b.get('ref') == 'trunk_top':
+            b.pop('note', None)
+            b['ref'] = 'trunk_top'
+            b['cam'] = TRUNK_TOP
+            b['dur'] = 3.0
+        elif nt.startswith('Монтировка брошена') or b.get('fx') == 'trunk_iron':
+            b.pop('note', None)
+            b['fx'] = 'trunk_iron'
+            b['cam'] = TRUNK_IRON
+            b['dur'] = 2.8
+        elif nt.startswith('Ной не помнит'):   # мысль Ноя остаётся; на ней он касается чехла удочек
+            b['fx'] = 'touch_rods'
+            b['cam'] = TRUNK_TOP
     for b in spots['bucket'].get('after', []) + spots['bucket'].get('beats', []):   # ведро, шаг 7: подпись → взгляды и касание
         nt = (b.get('note') or {}).get('ru', '') if isinstance(b.get('note'), dict) else ''
         if nt.startswith('Айрис смотрит с крыльца') or b.get('fx') == 'iris_looks_away':
@@ -178,6 +201,66 @@ def talks(j):
             b['fx'] = 'iris_looks_away'
             b['cam'] = IRIS_STEP_OTS
             b['dur'] = 3.4
+    vb = spots['vending']['beats']   # автомат: подписи-описания → действие (лист «24»)
+    for b in vb:
+        nt = (b.get('note') or {}).get('ru', '') if isinstance(b.get('note'), dict) else ''
+        if nt.startswith('Автомат: кофе') or b.get('fx') == 'vend_coin':
+            b.pop('note', None)
+            b['fx'] = 'vend_coin'
+            b['cam'] = VEND_COIN
+            b['dur'] = 4.4
+    for o in spots['vending']['ask']['opts']:
+        out = []
+        for b in o.get('beats', []):
+            nt = (b.get('note') or {}).get('ru', '') if isinstance(b.get('note'), dict) else ''
+            an = (b.get('anim') or {}).get('clip', '')
+            if an == 'Punch_Jab' or b.get('fx') == 'vend_slap':   # ладонью, а не кулаком
+                out.append({'fx': 'vend_slap', 'cam': VEND_COIN, 'dur': 3.9})
+            elif nt.startswith('Ной бьёт ладонью'):
+                b.pop('note', None)
+                b['dur'] = 0.1
+                out.append(b)
+            elif nt.startswith('В голове звенит'):
+                b.pop('note', None)
+                b['dur'] = 1.6
+                out.append(b)
+            elif nt.startswith('За витриной кассир') or (b.get('look') or {}).get('at') == 'noah' and b.get('cam') == VEND_ROMAN:
+                b.pop('note', None)
+                b['cam'] = VEND_ROMAN
+                b['dur'] = 2.6
+                out.append(b)
+            elif nt.startswith('Ной отходит') or b.get('fx') == 'vend_tap':
+                out.append({'fx': 'vend_tap', 'dur': 1.4})
+            else:
+                out.append(b)
+        o['beats'] = out
+    ib = spots['iris']['beats']   # разговор с Айрис: блокнот на коленях, «Нормально.» не поднимая глаз, прячет под худи
+    if not any(b.get('fx') == 'iris_notebook' for b in ib):
+        ib[0]['fx'] = 'iris_notebook'
+    for b in ib:
+        nt = (b.get('note') or {}).get('ru', '') if isinstance(b.get('note'), dict) else ''
+        if b.get('say') == 'noah' and b.get('ru') == 'Ты как?':
+            b.pop('look', None)   # не поднимает глаз
+        if nt.startswith('Она прячет блокнот') or b.get('fx') == 'iris_notebook_hide':
+            b.pop('note', None)
+            b.pop('gesture', None)
+            b['fx'] = 'iris_notebook_hide'
+            b['dur'] = 2.0
+        if b.get('say') == 'iris' and b.get('ru', '').startswith(('Иди плати', 'Плати и сразу')):
+            b['look'] = {'who': 'iris', 'at': 'noah'}   # подняла глаза — уже без блокнота
+    db = spots['danny']['beats']   # разговор с Дэнни: «Ной прячет руки в карманы» — жестом (подпись убрана)
+    for b in db:
+        nt = (b.get('note') or {}).get('ru', '') if isinstance(b.get('note'), dict) else ''
+        if nt.startswith('Ной прячет руки'):
+            b.pop('note', None)
+    for o in spots['danny']['ask']['opts']:
+        for b in o.get('beats', []):
+            nt = (b.get('note') or {}).get('ru', '') if isinstance(b.get('note'), dict) else ''
+            if nt.startswith('Он жмёт кнопку') or b.get('gesture', {}).get('do') == 'walkie_talk':
+                b.pop('note', None)
+                b['gesture'] = {'who': 'danny', 'do': 'walkie_talk', 'dur': 3.4}   # рацию к губам, кнопка — шипение
+            elif nt.startswith('Он смотрит на пустую трассу'):
+                b.pop('note', None)
     for o in spots['trunk']['ask']['opts']:   # «Взять одеяло»: из-под ящика, встряхнул — под мышку (носит, пока не отдаст)
         for b in o.get('beats', []):
             if b.get('fx') in ('trunk_blanket', 'blanket_carry'):
@@ -197,6 +280,113 @@ def talks(j):
                 b['fx'] = 'blanket_give'
                 b['dur'] = 3.6
                 b['cam'] = DANNY_IRIS
+
+
+# ---------- эпизод 3: доска, таксофон, витрина, трасса, чёрная машина — подписи-описания → кадры и действия ----------
+BOARD_MED = [[24.65, 1.62, 2.55], [25.2, 1.48, 1.02], 36]        # средний на доску: надписи читаются, Ной справа от доски
+POSTER_A = [[24.95, 1.6, 2.05], [25.47, 1.5, 1.05], 30]          # плакат целиком, палец Ноя на загнутом углу
+POSTER_B = [[25.38, 1.74, 1.78], [25.47, 1.74, 1.05], 26]        # наезд — на название санатория (место главы 4), целиком
+CORNER_CU = [[25.4, 1.36, 1.62], [25.72, 1.2, 1.05], 30]         # убрал палец — угол снова загибается
+PHONE_MED = [[24.15, 1.62, 2.15], [23.2, 1.5, 1.3], 40]          # таксофон в ¾: трубка у уха, стальной шнур
+PHONE_KEYS = [[23.42, 1.52, 1.5], [23.19, 1.42, 1.15], 34]       # крупно палец на металлических кнопках
+PHONE_FACE = [[22.74, 1.63, 1.27], [23.2, 1.64, 1.58], 28]       # лицо Ноя на длинных гудках: спереди слева, мимо стенки козырька
+WINDOW_GLASS = [[20.25, 2.1, -5.8], [26.0, 1.0, -8.6], 40]       # сверху из-за плеча сквозь стекло: Роман у телевизора, ниже —
+                                                                 # отражение лица Ноя поверх магазина (рука-козырёк его не заслоняет)
+ROAD_MED = [[3.5, 1.35, -1.6], [6.2, 1.45, -3.0], 40]            # Ной у края площадки лицом к трассе, за ним огни заправки
+ROAD_POV_L = [[6.05, 1.74, -3.0], [2.5, 0.4, 14.0], 50]          # его глазами: влево — их следы с трассы, позёмок…
+ROAD_POV_R = [[6.05, 1.74, -3.0], [0.0, 1.0, -16.0], 50]         # …и вправо — пусто в обе стороны
+TRACK_A = [[6.22, 1.74, -3.12], [5.3, 0.0, -7.5], 46]            # late: вторые следы — свежие, у самых ног…
+TRACK_B = [[6.22, 1.74, -3.12], [9.1, 0.8, -23.6], 28]           # …камера ведёт по ним до чёрной машины
+BC_OTS_A = [[10.98, 1.74, -14.5], [9.5, 1.15, -23.15], 30]       # через плечо Ноя на машину…
+BC_OTS_B = [[10.92, 1.72, -14.75], [9.45, 1.2, -23.3], 16]       # …медленный наезд на лобовое
+BC_REVERSE = [[9.55, 1.3, -22.4], [10.6, 1.62, -15.3], 11]       # от машины на Ноя: отступает на шаг, не отводя глаз
+WARN_CAM = [[19.2, 1.5, -10.8], [19.4, 1.15, -4.6], 26]          # Айрис встаёт со ступеньки: «Ной! Не ходи туда.»
+WARN_ZONE = [4.8, -13.4, 20.0, -12.0]                            # край площадки перед чёрной машиной (до точки «Присмотреться»)
+
+
+def _nt(b):
+    return (b.get('note') or {}).get('ru', '') if isinstance(b.get('note'), dict) else ''
+
+
+def walk_spots(j):
+    w = j['explore']['st24']
+    spots = {sp.get('id'): sp for sp in w['spots']}
+    # доска: средний план — надписи читаются; палец расправляет угол плаката, наезд на название; угол снова загибается
+    sp = spots['board']
+    sp['stand'] = [26.0, 1.42]   # справа от доски: левой рукой до угла плаката, сам не заслоняет доску
+    sp['face'] = 190
+    sp['where'] = [25.3, 1.8]
+    sp['cam'] = BOARD_MED
+    sp['beats'] = [
+        {'ref': 'board', 'fx': 'board_look', 'cam': BOARD_MED, 'look': {'who': 'noah', 'at': [24.83, 1.4, 1.05]}, 'dur': 3.6},
+        {'ref': 'board', 'fx': 'poster_corner', 'look': {'who': 'noah', 'at': [25.6, 1.4, 1.05]}, 'cam': POSTER_A, 'cam_to': POSTER_B, 'dur': 4.0},
+        {'ref': 'board', 'cam': CORNER_CU, 'dur': 1.4},
+        {'look': {'who': 'noah', 'at': None}},
+    ]
+    # таксофон: трубка ледяная — вздрогнул; набор — пальцем по кнопкам крупно; длинные гудки — лицо; мысль Ноя остаётся
+    sp = spots['phone']
+    sp['stand'] = [23.2, 1.5]   # ближе: плечо Ноя — за точкой стояния, из 1,8 палец не доставал до кнопок
+    sp['cam'] = PHONE_MED
+    sp['beats'] = [
+        {'ref': 'phone', 'anim': {'who': 'noah', 'clip': 'Idle_TalkingPhone'}, 'fx': 'phone_pick', 'cam': PHONE_MED, 'dur': 0.9},
+        {'ref': 'phone', 'fx': 'phone_cold', 'dur': 2.2},
+    ]
+    for o in sp['ask']['opts']:
+        if o.get('ru') == 'Набрать домашний':
+            thought = next((b for b in o['beats'] if _nt(b).startswith('Дома некому')), None)
+            if thought is None:
+                thought = next(b for b in o['beats'] if b.get('ref') == 'phone_home')
+            thought['fx'] = 'phone_lower'   # на седьмом гудке медленно опускает трубку
+            thought['ref'] = 'phone_home'
+            thought.pop('cam', None)
+            o['beats'] = [
+                {'ref': 'phone', 'fx': 'phone_dial_home', 'cam': PHONE_KEYS, 'dur': 2.9},
+                {'ref': 'phone', 'fx': 'phone_ringback', 'cam': PHONE_FACE, 'look': {'who': 'noah', 'at': [23.2, 1.5, 0.6]}, 'dur': 4.6},
+                thought,
+            ]
+    # витрина: вплотную к стеклу, ладонь козырьком, отражение поверх магазина, пятно дыхания, тишина
+    sp = spots['window']
+    sp['stand'] = [20.85, -6.45]
+    sp['face'] = 105
+    sp['cam'] = WINDOW_GLASS
+    sp['beats'] = [
+        {'ref': 'window', 'anim': {'who': 'noah', 'clip': 'Idle'}, 'fx': 'window_look', 'look': {'who': 'noah', 'at': 'roman'}, 'cam': WINDOW_GLASS, 'dur': 4.6},
+        {'look': {'who': 'noah', 'at': None}},
+    ]
+    # трасса: огляделся; его глазами — пусто в обе стороны, позёмок заметает их следы; late — вторые следы до чёрной машины
+    sp = spots['road']
+    sp['stand'] = [6.2, -3.0]
+    sp['cam'] = ROAD_MED
+    sp['beats'] = [
+        {'ref': 'road', 'anim': {'who': 'noah', 'clip': 'Rk_LookAround'}, 'fx': 'road_look', 'cam': ROAD_MED, 'dur': 2.2},
+        {'ref': 'road', 'cam': ROAD_POV_L, 'cam_to': ROAD_POV_R, 'dur': 4.6},
+        {'ref': 'road', 'if': {'late': '>0'}, 'fx': 'road_late', 'cam': TRACK_A, 'cam_to': TRACK_B, 'dur': 4.8,
+         'place': {'who': 'noah', 'at': [6.2, 0.0, -3.0], 'face': 172, 'clip': 'Idle'}},   # повернулся к следам (кадр — его глазами)
+        {'anim': {'who': 'noah', 'clip': 'Idle'}},
+    ]
+    # чёрная машина: через плечо — наезд на лобовое (стёкла тёмные, в них красный неон); мысль Ноя — отступает на шаг
+    sp = spots['blackcar']
+    keep = next((b for b in sp['beats'] if _nt(b).startswith('Водителя не видно')), None)
+    if keep is None:
+        keep = next(b for b in sp['beats'] if b.get('ref') == 'bc_thought')
+    keep.update({'ref': 'bc_thought', 'fx': 'step_back', 'cam': BC_REVERSE, 'dur': 3.4})
+    sp['beats'] = [
+        {'ref': 'blackcar', 'fx': 'blackcar_look', 'look': {'who': 'noah', 'at': [9.4, 1.2, -23.2]}, 'cam': BC_OTS_A, 'cam_to': BC_OTS_B, 'dur': 4.8},
+        keep,
+        {'look': {'who': 'noah', 'at': None}},
+    ]
+    # окрик Айрис — у края площадки, раньше точки «Присмотреться»: встаёт со ступеньки, шаг за ним; Ной останавливается
+    for z in w.get('zones', []):
+        if any(b.get('say') == 'iris' and b.get('ru') == 'Ной! Не ходи туда.' for b in z.get('beats', [])):
+            say = next(b for b in z['beats'] if b.get('say') == 'iris')
+            say['look'] = {'who': 'iris', 'at': 'noah'}
+            z['rect'] = WARN_ZONE
+            z['beats'] = [
+                {'fx': 'iris_warn', 'cam': WARN_CAM, 'dur': 0.8},
+                say,
+                {'look': {'who': 'noah', 'at': 'iris'}, 'dur': 1.0},
+                {'look': {'who': 'noah', 'at': None}},
+            ]
 
 
 def lapse(j):
@@ -433,6 +623,7 @@ def main():
             b['fx'] = 'fuel_flap_open'
     shop(j)
     talks(j)
+    walk_spots(j)
     lapse(j)
     episode7(j)
     # Роман на табурете у телевизора — с самого начала прогулки (видно сквозь витрину), а не только у прилавка

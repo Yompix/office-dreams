@@ -3687,7 +3687,7 @@
      "r": 1.3,
      "stand": [
       14.3,
-      -1.75
+      -2.55
      ],
      "face": 180,
      "label": {
@@ -3717,28 +3717,62 @@
        "dur": 1.2
       },
       {
-       "note": {
-        "ru": "Отцовские удочки. Ящик с инструментами. Свёрнутое старое одеяло.",
-        "en": "Their father’s fishing rods. A toolbox. An old folded blanket."
-       },
-       "dur": 3.0
+       "dur": 3.0,
+       "ref": "trunk_top",
+       "cam": [
+        [
+         14.6,
+         2.05,
+         -2.15
+        ],
+        [
+         14.3,
+         1.0,
+         -3.0
+        ],
+        40
+       ]
       },
       {
-       "note": {
-        "ru": "Монтировка брошена сверху. На ней бурое и шерсть.",
-        "en": "The tire iron lies on top. Dark stains, and fur."
-       },
        "dur": 2.8,
        "if": {
         "deer": "==2"
-       }
+       },
+       "fx": "trunk_iron",
+       "cam": [
+        [
+         14.48,
+         1.72,
+         -2.25
+        ],
+        [
+         14.33,
+         1.06,
+         -2.97
+        ],
+        30
+       ]
       },
       {
        "note": {
         "ru": "Ной не помнит, чтобы отец хоть раз взял его на рыбалку.",
         "en": "Noah can’t remember his father ever taking him fishing."
        },
-       "dur": 3.0
+       "dur": 3.0,
+       "fx": "touch_rods",
+       "cam": [
+        [
+         14.6,
+         2.05,
+         -2.15
+        ],
+        [
+         14.3,
+         1.0,
+         -3.0
+        ],
+        40
+       ]
       }
      ],
      "ask": {
@@ -3792,7 +3826,7 @@
      ],
      "r": 1.3,
      "stand": [
-      19.65,
+      19.88,
       -11.0
      ],
      "face": 90,
@@ -3815,11 +3849,21 @@
      ],
      "beats": [
       {
-       "note": {
-        "ru": "Автомат: кофе, шоколад. Ной бросает монету. Автомат её глотает — и ничего.",
-        "en": "A vending machine: coffee, chocolate. Noah drops in a coin. The machine swallows it. Nothing."
-       },
-       "dur": 3.4
+       "dur": 4.4,
+       "fx": "vend_coin",
+       "cam": [
+        [
+         19.75,
+         1.55,
+         -10.2
+        ],
+        [
+         20.3,
+         1.25,
+         -10.85
+        ],
+        44
+       ]
       }
      ],
      "ask": {
@@ -3830,56 +3874,53 @@
         "en": "Hit the glass",
         "beats": [
          {
-          "anim": {
-           "who": "noah",
-           "clip": "Punch_Jab"
-          },
-          "fx": "snd:knock:-2",
-          "dur": 0.5
+          "fx": "vend_slap",
+          "cam": [
+           [
+            19.75,
+            1.55,
+            -10.2
+           ],
+           [
+            20.3,
+            1.25,
+            -10.85
+           ],
+           44
+          ],
+          "dur": 3.9
          },
          {
-          "note": {
-           "ru": "Ной бьёт ладонью по стеклу. Батончик падает.",
-           "en": "Noah slams his palm against the glass. A candy bar drops."
-          },
-          "dur": 2.6,
+          "dur": 0.1,
           "set": {
            "choco": 1
           }
          },
          {
-          "note": {
-           "ru": "В голове звенит — громче удара.",
-           "en": "His head rings — louder than the blow."
-          },
-          "dur": 2.4,
+          "dur": 1.6,
           "fx": "hum_spike",
           "if": {
            "pills": "==0"
           }
          },
          {
-          "note": {
-           "ru": "За витриной кассир поднимает голову.",
-           "en": "Behind the window, the cashier looks up."
-          },
-          "dur": 2.4,
+          "dur": 2.6,
           "look": {
            "who": "roman",
            "at": "noah"
           },
           "cam": [
            [
-            25.2,
-            1.95,
-            -11.05
+            20.05,
+            1.62,
+            -10.45
            ],
            [
-            26.3,
+            26.2,
             1.7,
-            -9.3
+            -9.35
            ],
-           42
+           24
           ]
          },
          {
@@ -3899,10 +3940,7 @@
         "en": "Walk away",
         "beats": [
          {
-          "note": {
-           "ru": "Ной отходит.",
-           "en": "Noah walks away."
-          },
+          "fx": "vend_tap",
           "dur": 1.4
          }
         ]
@@ -3918,67 +3956,114 @@
       1.12
      ],
      "where": [
-      24.55,
-      1.75
+      25.3,
+      1.8
      ],
      "r": 1.4,
      "stand": [
-      24.55,
-      1.75
+      26.0,
+      1.42
      ],
-     "face": 165,
+     "face": 190,
      "label": {
       "ru": "Осмотреть доску",
       "en": "Look at the notice board"
      },
      "cam": [
       [
-       25.75,
+       24.65,
        1.62,
-       2.75
+       2.55
       ],
       [
-       25.25,
+       25.2,
        1.48,
-       1.0
+       1.02
       ],
-      34
+      36
      ],
      "beats": [
       {
-       "note": {
-        "ru": "«Продам дрова». «Пропала собака, рыжая, зовут Лиса».",
-        "en": "“Firewood for sale.” “Lost dog, ginger, answers to Foxy.”"
-       },
-       "dur": 3.4,
+       "ref": "board",
+       "fx": "board_look",
+       "cam": [
+        [
+         24.65,
+         1.62,
+         2.55
+        ],
+        [
+         25.2,
+         1.48,
+         1.02
+        ],
+        36
+       ],
        "look": {
         "who": "noah",
         "at": [
-         25.0,
-         1.5,
-         1.0
+         24.83,
+         1.4,
+         1.05
         ]
-       }
+       },
+       "dur": 3.6
       },
       {
-       "note": {
-        "ru": "Выцветший плакат: санаторий «Тихие сосны». Сон, тишина, сосновый воздух.",
-        "en": "A faded poster: Quiet Pines Sanatorium. Sleep, silence, pine air."
+       "ref": "board",
+       "fx": "poster_corner",
+       "look": {
+        "who": "noah",
+        "at": [
+         25.6,
+         1.4,
+         1.05
+        ]
        },
-       "dur": 3.6,
        "cam": [
         [
-         25.47,
-         1.52,
-         2.3
+         24.95,
+         1.6,
+         2.05
         ],
         [
          25.47,
          1.5,
-         1.0
+         1.05
         ],
-        32
-       ]
+        30
+       ],
+       "cam_to": [
+        [
+         25.38,
+         1.74,
+         1.78
+        ],
+        [
+         25.47,
+         1.74,
+         1.05
+        ],
+        26
+       ],
+       "dur": 4.0
+      },
+      {
+       "ref": "board",
+       "cam": [
+        [
+         25.4,
+         1.36,
+         1.62
+        ],
+        [
+         25.72,
+         1.2,
+         1.05
+        ],
+        30
+       ],
+       "dur": 1.4
       },
       {
        "look": {
@@ -4002,7 +4087,7 @@
      "r": 1.35,
      "stand": [
       23.2,
-      1.8
+      1.5
      ],
      "face": 180,
      "label": {
@@ -4011,29 +4096,44 @@
      },
      "cam": [
       [
-       23.95,
-       1.6,
-       3.1
+       24.15,
+       1.62,
+       2.15
       ],
       [
-       23.15,
-       1.4,
-       1.0
+       23.2,
+       1.5,
+       1.3
       ],
       40
      ],
      "beats": [
       {
-       "note": {
-        "ru": "Таксофон. Трубка ледяная. Гудок есть.",
-        "en": "A payphone. The receiver is ice-cold. There’s a dial tone."
-       },
-       "dur": 3.0,
+       "ref": "phone",
        "anim": {
         "who": "noah",
         "clip": "Idle_TalkingPhone"
        },
-       "fx": "phone_pick"
+       "fx": "phone_pick",
+       "cam": [
+        [
+         24.15,
+         1.62,
+         2.15
+        ],
+        [
+         23.2,
+         1.5,
+         1.3
+        ],
+        40
+       ],
+       "dur": 0.9
+      },
+      {
+       "ref": "phone",
+       "fx": "phone_cold",
+       "dur": 2.2
       }
      ],
      "ask": {
@@ -4044,18 +4144,48 @@
         "en": "Dial home",
         "beats": [
          {
-          "note": {
-           "ru": "Пальцы сами набирают домашний номер.",
-           "en": "His fingers dial home on their own."
-          },
-          "dur": 2.6
+          "ref": "phone",
+          "fx": "phone_dial_home",
+          "cam": [
+           [
+            23.42,
+            1.52,
+            1.5
+           ],
+           [
+            23.19,
+            1.42,
+            1.15
+           ],
+           34
+          ],
+          "dur": 2.9
          },
          {
-          "note": {
-           "ru": "Длинные гудки. Пять. Шесть.",
-           "en": "Long rings. Five. Six."
+          "ref": "phone",
+          "fx": "phone_ringback",
+          "cam": [
+           [
+            22.74,
+            1.63,
+            1.27
+           ],
+           [
+            23.2,
+            1.64,
+            1.58
+           ],
+           28
+          ],
+          "look": {
+           "who": "noah",
+           "at": [
+            23.2,
+            1.5,
+            0.6
+           ]
           },
-          "dur": 3.2
+          "dur": 4.6
          },
          {
           "note": {
@@ -4065,7 +4195,9 @@
           "dur": 2.8,
           "set": {
            "phoned": 1
-          }
+          },
+          "fx": "phone_lower",
+          "ref": "phone_home"
          }
         ]
        },
@@ -4103,48 +4235,55 @@
      ],
      "r": 1.2,
      "stand": [
-      20.45,
+      20.85,
       -6.45
      ],
-     "face": 108,
+     "face": 105,
      "label": {
       "ru": "Заглянуть в витрину",
       "en": "Look through the window"
      },
      "cam": [
       [
-       19.55,
-       2.05,
-       -5.6
+       20.25,
+       2.1,
+       -5.8
       ],
       [
-       26.4,
-       1.55,
-       -9.4
+       26.0,
+       1.0,
+       -8.6
       ],
-      26
+      40
      ],
      "beats": [
       {
-       "note": {
-        "ru": "За стеклом — кассир. Он смотрит телевизор. Звука не слышно.",
-        "en": "Behind the glass, the cashier. He’s watching TV. No sound."
-       },
-       "dur": 3.4,
-       "anim": {
-        "who": "noah",
-        "clip": "Rk_Watching"
-       },
-       "look": {
-        "who": "noah",
-        "at": "roman"
-       }
-      },
-      {
+       "ref": "window",
        "anim": {
         "who": "noah",
         "clip": "Idle"
        },
+       "fx": "window_look",
+       "look": {
+        "who": "noah",
+        "at": "roman"
+       },
+       "cam": [
+        [
+         20.25,
+         2.1,
+         -5.8
+        ],
+        [
+         26.0,
+         1.0,
+         -8.6
+        ],
+        40
+       ],
+       "dur": 4.6
+      },
+      {
        "look": {
         "who": "noah",
         "at": null
@@ -4165,7 +4304,7 @@
      ],
      "r": 1.6,
      "stand": [
-      5.4,
+      6.2,
       -3.0
      ],
      "face": -90,
@@ -4175,50 +4314,112 @@
      },
      "cam": [
       [
-       7.7,
-       2.1,
-       -1.3
+       3.5,
+       1.35,
+       -1.6
       ],
       [
-       0.5,
-       0.9,
-       -6.0
+       6.2,
+       1.45,
+       -3.0
       ],
-      55
+      40
      ],
      "beats": [
       {
-       "note": {
-        "ru": "Трасса пустая в обе стороны. Снег заметает их следы.",
-        "en": "The highway is empty both ways. Snow is filling in their tracks."
-       },
-       "dur": 3.4,
+       "ref": "road",
        "anim": {
         "who": "noah",
         "clip": "Rk_LookAround"
-       }
-      },
-      {
-       "note": {
-        "ru": "Ещё одни следы шин сворачивают к краю площадки — к чёрной машине.",
-        "en": "Another set of tire tracks turns off to the edge of the lot — to the black car."
        },
-       "dur": 3.4,
+       "fx": "road_look",
        "cam": [
         [
-         8.7,
-         2.2,
-         -6.2
+         3.5,
+         1.35,
+         -1.6
         ],
         [
-         9.2,
-         0.7,
-         -24.0
+         6.2,
+         1.45,
+         -3.0
         ],
-        30
+        40
        ],
+       "dur": 2.2
+      },
+      {
+       "ref": "road",
+       "cam": [
+        [
+         6.05,
+         1.74,
+         -3.0
+        ],
+        [
+         2.5,
+         0.4,
+         14.0
+        ],
+        50
+       ],
+       "cam_to": [
+        [
+         6.05,
+         1.74,
+         -3.0
+        ],
+        [
+         0.0,
+         1.0,
+         -16.0
+        ],
+        50
+       ],
+       "dur": 4.6
+      },
+      {
+       "ref": "road",
        "if": {
         "late": ">0"
+       },
+       "fx": "road_late",
+       "cam": [
+        [
+         6.22,
+         1.74,
+         -3.12
+        ],
+        [
+         5.3,
+         0.0,
+         -7.5
+        ],
+        46
+       ],
+       "cam_to": [
+        [
+         6.22,
+         1.74,
+         -3.12
+        ],
+        [
+         9.1,
+         0.8,
+         -23.6
+        ],
+        28
+       ],
+       "dur": 4.8,
+       "place": {
+        "who": "noah",
+        "at": [
+         6.2,
+         0.0,
+         -3.0
+        ],
+        "face": 172,
+        "clip": "Idle"
        }
       },
       {
@@ -4268,26 +4469,65 @@
      ],
      "beats": [
       {
-       "note": {
-        "ru": "Чёрный седан у края площадки. Мотор заглушен, стёкла тёмные.",
-        "en": "A black sedan at the edge of the lot. Engine off, dark windows."
-       },
-       "dur": 3.2,
+       "ref": "blackcar",
+       "fx": "blackcar_look",
        "look": {
         "who": "noah",
         "at": [
-         9.2,
+         9.4,
          1.2,
-         -24.0
+         -23.2
         ]
-       }
+       },
+       "cam": [
+        [
+         10.98,
+         1.74,
+         -14.5
+        ],
+        [
+         9.5,
+         1.15,
+         -23.15
+        ],
+        30
+       ],
+       "cam_to": [
+        [
+         10.92,
+         1.72,
+         -14.75
+        ],
+        [
+         9.45,
+         1.2,
+         -23.3
+        ],
+        16
+       ],
+       "dur": 4.8
       },
       {
        "note": {
         "ru": "Водителя не видно. Но Ной уверен: на него смотрят.",
         "en": "He can’t see the driver. But Noah is sure he’s being watched."
        },
-       "dur": 3.2
+       "dur": 3.4,
+       "ref": "bc_thought",
+       "fx": "step_back",
+       "cam": [
+        [
+         9.55,
+         1.3,
+         -22.4
+        ],
+        [
+         10.6,
+         1.62,
+         -15.3
+        ],
+        11
+       ]
       },
       {
        "look": {
@@ -4336,16 +4576,13 @@
        "look": {
         "who": "noah",
         "at": "iris"
-       }
+       },
+       "fx": "iris_notebook"
       },
       {
        "say": "noah",
        "ru": "Ты как?",
        "en": "You okay?",
-       "look": {
-        "who": "iris",
-        "at": "noah"
-       },
        "vo": "st24_iris_b94330"
       },
       {
@@ -4355,16 +4592,8 @@
        "vo": "st24_iris_c6d8a0"
       },
       {
-       "note": {
-        "ru": "Она прячет блокнот под куртку.",
-        "en": "She tucks the notebook under her jacket."
-       },
-       "dur": 2.4,
-       "gesture": {
-        "who": "iris",
-        "do": "chest",
-        "dur": 1.8
-       }
+       "dur": 2.0,
+       "fx": "iris_notebook_hide"
       },
       {
        "say": "iris",
@@ -4373,7 +4602,11 @@
        "if": {
         "trust": ">=2"
        },
-       "vo": "st24_iris_01aa08"
+       "vo": "st24_iris_01aa08",
+       "look": {
+        "who": "iris",
+        "at": "noah"
+       }
       },
       {
        "say": "iris",
@@ -4382,7 +4615,11 @@
        "if": {
         "trust": "<2"
        },
-       "vo": "st24_iris_f14539"
+       "vo": "st24_iris_f14539",
+       "look": {
+        "who": "iris",
+        "at": "noah"
+       }
       },
       {
        "say": "iris",
@@ -4487,10 +4724,6 @@
        }
       },
       {
-       "note": {
-        "ru": "Ной прячет руки в карманы.",
-        "en": "Noah shoves his hands into his pockets."
-       },
        "dur": 2.2,
        "set": {
         "danny_hands": 1
@@ -4558,12 +4791,13 @@
           "vo": "st24_danny_a14e3e"
          },
          {
-          "note": {
-           "ru": "Он жмёт кнопку. Шипение.",
-           "en": "He presses the button. Static."
-          },
           "dur": 2.2,
-          "fx": "snd:static_burst:-14"
+          "fx": "snd:static_burst:-14",
+          "gesture": {
+           "who": "danny",
+           "do": "walkie_talk",
+           "dur": 3.4
+          }
          },
          {
           "say": "danny",
@@ -4599,10 +4833,6 @@
           "vo": "st24_danny_5fd011"
          },
          {
-          "note": {
-           "ru": "Он смотрит на пустую трассу.",
-           "en": "He looks at the empty road."
-          },
           "dur": 2.4,
           "look": {
            "who": "danny",
@@ -4736,19 +4966,53 @@
     {
      "rect": [
       4.8,
-      -17.8,
+      -13.4,
       20.0,
-      -16.3
+      -12.0
      ],
      "if": {
       "late": ">0"
      },
      "beats": [
       {
+       "fx": "iris_warn",
+       "cam": [
+        [
+         19.2,
+         1.5,
+         -10.8
+        ],
+        [
+         19.4,
+         1.15,
+         -4.6
+        ],
+        26
+       ],
+       "dur": 0.8
+      },
+      {
        "say": "iris",
        "ru": "Ной! Не ходи туда.",
        "en": "Noah! Don’t go over there.",
-       "vo": "st24_z0_0514cb"
+       "vo": "st24_z0_0514cb",
+       "look": {
+        "who": "iris",
+        "at": "noah"
+       }
+      },
+      {
+       "look": {
+        "who": "noah",
+        "at": "iris"
+       },
+       "dur": 1.0
+      },
+      {
+       "look": {
+        "who": "noah",
+        "at": null
+       }
       }
      ]
     }

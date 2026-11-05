@@ -569,8 +569,12 @@ func _zones_check() -> void:
 			_zones[key] = true
 			busy = true
 			g.hud.prompt("")
+			_vel = Vector2.ZERO   # остановился (окрик, лёд): не шагает на месте, пока идут шаги зоны
+			a.play("Idle", 0.0, 0.3)
 			for b in z.get("beats", []):
 				await g._beat(b)
+			if g._shot != "explore":   # в шагах зоны был свой план (окрик Айрис) — назад за плечо героя
+				g._cut("explore")
 			if z.has("to"):   # после шагов — на безопасное место [x, z, лицом]: отступил от тонкого льда, вытащили из полыньи
 				var to: Array = z.to
 				a.stop_walk()

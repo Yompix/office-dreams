@@ -12,7 +12,10 @@
                (9 с; играет, пока игрок держит кнопку, отпустил — стоп);
   car_arrive, engine_off, belt_click — «24», вступление: машина подкатывает к колонке, ключ — мотор глохнет, ремень;
   phone_pickup, dial_tone, phone_dial — «24», прилавок: трубку сняли, гудок, набор номера;
-  breath_ragged, groan — «24», провал: рваное дыхание Ноя, стон Романа за стеклом.
+  breath_ragged, groan — «24», провал: рваное дыхание Ноя, стон Романа за стеклом;
+  coin, vend_motor, slap, candy_drop — «24», автомат: монета, моторчик спирали, ладонь по стеклу, батончик в лоток;
+  ringback, metal_tick — «24»: длинный гудок вызова в таксофоне, потрескивание остывающей чёрной машины;
+  snow_gust — «24», трасса: порыв ветра гонит позёмок — шорох снега по насту волнами.
   python3 tools/lake/synth.py   → godot/lake/snd/<имя>.ogg"""
 import os, subprocess, wave
 import numpy as np
@@ -415,6 +418,106 @@ def wrapper():
         x[i:i + m] += rng.uniform(0.3, 1.0) * burst
     x = x - lowpass(x, 1500.0, 1)                                            # только верх — сухо, без «гула»
     save('wrapper', x, 0.45)
+
+
+
+def coin():
+    """«24», автомат: монета звякает о край щели и скатывается внутрь — звон и затихающий перекат. 1,1 с."""
+    n = int(1.1 * SR)
+    t = np.arange(n) / SR
+    x = np.zeros(n)
+    for f, a, d in ((3150, 1.0, 0.09), (4720, 0.6, 0.06), (6890, 0.35, 0.04)):   # звон металла
+        x += a * np.sin(2 * np.pi * f * t) * np.exp(-t / d)
+    x[:int(0.004 * SR)] += rng.normal(0, 0.8, int(0.004 * SR))
+    for k in range(9):   # перекат по жёлобу: удары всё чаще и тише, глуше
+        c = 0.22 + 0.62 * (1 - (1 - k / 9.0) ** 1.6)
+        i = int(c * SR)
+        m = int(0.03 * SR)
+        if i + m >= n:
+            break
+        tt = np.arange(m) / SR
+        g = 0.55 * (1 - k / 10.0)
+        x[i:i + m] += g * (np.sin(2 * np.pi * (2600 - 120 * k) * tt) * np.exp(-tt / 0.012))
+    x = lowpass(x, 7000.0, 1)
+    save('coin', x, 0.5)
+
+
+def vend_motor():
+    """«24», автомат: моторчик спирали — жужжание с подъёмом, щелчок упора. 0,8 с."""
+    n = int(0.8 * SR)
+    t = np.arange(n) / SR
+    f = 95 + 25 * np.minimum(t / 0.15, 1.0)
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    saw = 2 * (ph / (2 * np.pi) % 1.0) - 1
+    env = np.minimum(t / 0.03, 1.0) * np.clip((0.68 - t) / 0.05, 0, 1)
+    x = lowpass(saw, 1400.0, 2) * env * (1 + 0.3 * np.sin(2 * np.pi * 31 * t))
+    i = int(0.68 * SR)
+    m = int(0.02 * SR)
+    x[i:i + m] += rng.normal(0, 1.2, m) * np.exp(-np.arange(m) / SR / 0.004)   # щелчок упора
+    save('vend_motor', x, 0.45)
+
+
+def slap():
+    """«24», автомат: ладонью по стеклу — глухой шлепок и дребезг стекла в раме. 0,5 с."""
+    n = int(0.5 * SR)
+    t = np.arange(n) / SR
+    thump = np.sin(2 * np.pi * 120 * t) * np.exp(-t / 0.035)
+    hit = lowpass(rng.normal(0, 1, n), 2500.0, 1) * np.exp(-t / 0.01)
+    rattle = np.zeros(n)
+    for k in range(7):
+        i = int((0.03 + k * 0.028 + 0.004 * rng.normal()) * SR)
+        m = int(0.012 * SR)
+        rattle[i:i + m] += (0.5 * (1 - k / 8.0)) * rng.normal(0, 1, m) * np.exp(-np.arange(m) / SR / 0.003)
+    rattle = rattle - lowpass(rattle, 1800.0, 1)
+    save('slap', thump + 0.8 * hit + rattle, 0.75)
+
+
+def candy_drop():
+    """«24», автомат: батончик падает в металлический лоток — стук и короткий звон. 0,45 с."""
+    n = int(0.45 * SR)
+    t = np.arange(n) / SR
+    x = np.sin(2 * np.pi * 220 * t) * np.exp(-t / 0.03) + 0.5 * np.sin(2 * np.pi * 1450 * t) * np.exp(-t / 0.05)
+    x += lowpass(rng.normal(0, 1, n), 3000.0, 1) * np.exp(-t / 0.006)
+    i = int(0.11 * SR)   # подскок
+    x[i:] += 0.35 * x[:-i]
+    save('candy_drop', x, 0.6)
+
+
+def ringback():
+    """«24», таксофон: длинный гудок вызова — 425 Гц, 1 с, с мягким началом и концом (играется несколько раз)."""
+    n = int(1.15 * SR)
+    t = np.arange(n) / SR
+    env = np.minimum(t / 0.02, 1.0) * np.clip((1.0 - t) / 0.03, 0, 1)
+    x = np.sin(2 * np.pi * 425 * t) * env
+    x = x + 0.08 * np.sin(2 * np.pi * 850 * t) * env   # линия — чуть «грязнее» чистого тона
+    save('ringback', lowpass(x, 3400.0, 1), 0.45)
+
+
+def metal_tick():
+    """«24», чёрная машина: остывающий металл потрескивает — редкие сухие щелчки. 3 с."""
+    n = int(3.0 * SR)
+    x = np.zeros(n)
+    for c in (0.35, 0.9, 1.15, 1.9, 2.55):
+        i = int((c + 0.03 * rng.normal()) * SR)
+        m = int(0.012 * SR)
+        tt = np.arange(m) / SR
+        x[i:i + m] += rng.uniform(0.5, 1.0) * (np.sin(2 * np.pi * rng.uniform(2200, 3400) * tt) * np.exp(-tt / 0.003))
+    save('metal_tick', x, 0.5)
+
+def snow_gust():
+    """«24», трасса: порыв ветра — нарастает и спадает двумя волнами; сверху сухой шорох позёмка по насту. 4,5 с."""
+    n = int(4.5 * SR)
+    t = np.arange(n) / SR
+    noise = rng.normal(0, 1, n)
+    wind = lowpass(noise, 520.0, 2)                                           # низ: сам ветер
+    hiss = noise - lowpass(noise, 2600.0, 1)                                  # верх: снежная крупа по насту
+    hiss = lowpass(hiss, 7500.0, 1)
+    waves = 0.15 + 0.85 * (np.sin(np.pi * np.clip(t / 2.3, 0, 1)) ** 2 * (t < 2.3) +
+                           0.8 * np.sin(np.pi * np.clip((t - 1.9) / 2.6, 0, 1)) ** 2 * (t >= 1.9))
+    grain = 0.6 + 0.4 * lowpass(np.abs(rng.normal(0, 1, n)), 12.0, 2) / 0.35  # неровно, крупой
+    fade = np.minimum(t / 0.3, 1.0) * np.clip((4.5 - t) / 0.6, 0, 1)
+    x = (1.0 * wind + 0.32 * hiss * grain) * waves * fade
+    save('snow_gust', x, 0.55)
 
 
 if __name__ == '__main__':

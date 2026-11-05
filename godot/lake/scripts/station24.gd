@@ -6,6 +6,9 @@ class_name St24
 
 const TOP := 1.445                              # верх столешницы (по ней кладутся руки и деньги)
 const NOAH_AT := Vector3(26.4, 0.38, -7.62)     # Ной у прилавка, лицом к −Z
+const TIP := 0.19                               # от запястья до кончика вытянутого указательного (зонд скелета Ноя, 5 ноя)
+const TIP_L := Vector3(-0.005, 0.19, 0.045)     # кончик выпрямленного указательного в осях кисти (сустав сбоку от оси кисти)
+const GLASS_X := 21.11                          # наружная сторона стекла витрины (tools/lake/station.py: x 21,11–21,14)
 
 
 ## Шаги сценария магазина ("fx"). Только в сценах заправки (s5…, s6…).
@@ -94,6 +97,52 @@ static func fx(g, k: String) -> bool:
 			_iris_looks_away(g)
 		"blanket_carry":   # багажник: Ной вытягивает одеяло из-под ящика, встряхивает и берёт под мышку
 			_blanket_carry(g)
+		"touch_rods":   # багажник, мысль Ноя о рыбалке: пальцы касаются чехла отцовских удочек
+			_touch_rods(g)
+		"vend_coin":   # автомат: монета из кармана в щель, кнопка — спираль на четверть, батончик повис
+			_vend_coin(g)
+		"vend_slap":   # автомат: ладонью по стеклу — батончик падает в лоток, Ной нагибается и достаёт
+			_vend_slap(g)
+		"vend_tap":   # автомат: постучал пальцем по стеклу и отошёл
+			_vend_tap(g)
+		"poster_corner":   # доска: Ной расправляет пальцем загнувшийся угол плаката; убрал палец — угол снова загнулся
+			_poster_corner(g)
+		"phone_cold":   # таксофон: трубка ледяная — Ной вздрагивает, прижимая её к уху; гудок
+			g.sfx.play("dial_tone", -16.0, 1.0, 0.25, 1.8)
+			(g.actors.noah as Actor).do_gesture("tremble", 0.5)
+		"phone_lower":   # на седьмом гудке медленно опускает трубку
+			(g.actors.noah as Actor).play("Idle", 0.0, 1.6)
+		"board_look":   # доска: бумажки на кнопках шевелятся на ветру; Ной читает объявление про собаку
+			g.sfx.play("page_turn", -24.0, 1.4, 0.3)
+		"road_look":   # трасса: следы их машины, позёмок волнами заметает их прямо в кадре
+			_road_look(g, false)
+		"road_late":   # late: рядом — вторые следы, свежие, сворачивают к краю площадки, к чёрной машине
+			_road_look(g, true)
+		"iris_warn":   # чёрная машина: Айрис встаёт со ступеньки и делает шаг за Ноем
+			_iris_warn(g)
+		"phone_dial_home":   # крупно палец на металлических кнопках: набирает без заминки, каждая пищит
+			_phone_dial_home(g)
+		"phone_ringback":   # длинные гудки — пять, шесть, семь; лицо Ноя не меняется
+			for ri in 3:
+				g.sfx.play("ringback", -12.0, 1.0, 0.1 + ri * 1.55)
+		"window_look":   # витрина: вплотную к стеклу, ладонь козырьком; пятно от дыхания на стекле; звуки гаснут
+			_window_look(g)
+		"blackcar_look":   # чёрная машина: потрескивает остывающий металл, ветер (сердце — под конец, на шаге назад)
+			g.sfx.play("metal_tick", -10.0)
+			g.sfx.play("metal_tick", -14.0, 0.9, 2.6)
+		"step_back":   # отступил на шаг, не отводя глаз; сердцебиение Ноя в миксе
+			var na: Actor = g.actors.noah
+			g.sfx.play("heartbeat", -16.0, 1.0, 0.3)
+			var back := -na.global_transform.basis.z.normalized() * 0.4
+			na.play("Idle", 0.0, 0.2)
+			g.create_tween().tween_property(na, "global_position", na.global_position + back, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			g.sfx.play("snow_steps", -16.0, 1.1, 0.05, 0.5)
+		"iris_notebook":   # Айрис рисует в блокноте на коленях, не поднимая глаз
+			_iris_notebook(g, true)
+		"iris_notebook_hide":   # закрывает блокнот, прячет под полу худи и прижимает локтем
+			_iris_notebook(g, false)
+		"trunk_iron":   # багажник при deer = 2: рука Ноя останавливается над монтировкой и не касается
+			_trunk_iron(g)
 		"blanket_give":   # «Укройся»: Ной отдаёт одеяло Айрис, она встряхивает его и закутывает Дэнни по плечи
 			_blanket_give(g)
 		"choco_give":   # «Держи»: Дэнни берёт батончик обеими руками, прячет во внутренний карман, прижимает ладонью
@@ -128,6 +177,9 @@ static func tick(g) -> void:
 		if rb is Actor and is_instance_valid(rb) and tc:
 			var top := (_bone(rb, "hand_r") + _bone(rb, "middle_01_r")) * 0.5 + (rb as Actor).palm_normal("_r").normalized() * 0.025
 			StationProps.cord_mesh(tc, top, top + Vector3(0.02, -0.42, 0.03), 0.0045, 0.0, 0.011)
+	if root.has_meta("payphone_cord_by"):   # таксофон: стальной шнур за трубкой в руке Ноя
+		StationProps.payphone_cord(root)
+	StationProps.flutter(root, g._t)   # бумажки на доске шевелятся на ветру
 	var na = g.actors.get("noah")
 	if na is Actor and (na as Actor).has_meta("left_on_nozzle"):
 		var hn := (na as Actor).skel.get_node_or_null("nozzle_in_hand") as Node3D
@@ -720,6 +772,560 @@ static func _attach_world(a: Actor, bone: String, item: Node3D, xf: Transform3D,
 
 
 ## Одеяло из багажника: правая рука под ящик, левая приподнимает ящик (лязг), одеяло встряхнуто — и под мышку.
+## Багажник по листу «24»: сверху над плечом Ноя — отцовские удочки в потёртом брезентовом чехле, металлический ящик
+## с инструментами, под ним — свёрнутое клетчатое одеяло. Было: две палочки вместо удочек, одеяло рядом с ящиком,
+## а что внутри — перечисляла подпись (убрана: всё в кадре). При deer = 2 сверху брошена монтировка в бурых пятнах
+## с прилипшей шерстью. Вызывается сразу, как багажник открылся (тот же кадр — без подмены на глазах).
+static func dress_trunk(g) -> void:
+	var car: Node3D = g.scene.car
+	var tr: Node3D = car.get_node_or_null("trunk_open")
+	if tr == null or tr.has_meta("dressed"):
+		return
+	tr.set_meta("dressed", true)
+	var old := tr.find_child("blanket", true, false) as Node3D
+	if old == null:
+		return
+	var niche := old.get_parent() as Node3D
+	var box: MeshInstance3D = null
+	var handle: MeshInstance3D = null
+	for c in niche.get_children():
+		if not c is MeshInstance3D:
+			continue
+		var mesh = (c as MeshInstance3D).mesh
+		if mesh is CylinderMesh:
+			c.queue_free()   # две палочки-удочки — заменяет чехол
+		elif mesh is BoxMesh:
+			var sz: Vector3 = (mesh as BoxMesh).size
+			if absf(sz.x - 0.42) < 0.01:
+				box = c
+			elif absf(sz.x - 0.3) < 0.01 and absf(sz.y - 0.02) < 0.005:
+				handle = c
+	old.name = "blanket_old"
+	old.queue_free()
+	var f := _folded()   # тот же клетчатый плед, что потом под мышкой у Ноя и на плечах у Дэнни
+	f.name = "blanket"
+	niche.add_child(f)
+	f.position = Vector3(-0.36, 0.013, 0.07)
+	if box:   # ящик — поверх одеяла
+		box.position.y += 0.08
+	if handle:
+		handle.position.y += 0.08
+	var canvas := StationProps._mat(Color(0.2, 0.22, 0.13), 0.92)   # выгоревший брезент
+	var rc := StationProps._rod(niche, Vector3(-0.64, 0.035, -0.17), Vector3(0.58, 0.035, -0.17), 0.032, canvas)
+	rc.name = "rod_case"
+	StationProps._rod(niche, Vector3(-0.6, 0.066, -0.17), Vector3(0.52, 0.066, -0.17), 0.0035, StationProps._mat(Color(0.05, 0.05, 0.05), 0.5))   # молния
+	StationProps._rod(niche, Vector3(-0.2, 0.035, -0.17), Vector3(-0.17, 0.035, -0.17), 0.034, StationProps._mat(Color(0.13, 0.11, 0.08), 0.8))   # ремешок
+	for k in 2:   # из открытого конца чехла — пробковые рукояти удилищ
+		var y := 0.03 + k * 0.017
+		var z := -0.18 + k * 0.02
+		StationProps._rod(niche, Vector3(0.56, y, z), Vector3(0.72, y, z), 0.011, StationProps._mat(Color(0.62, 0.47, 0.3), 0.85))
+		StationProps._rod(niche, Vector3(0.72, y, z), Vector3(0.735, y, z), 0.012, StationProps._mat(Color(0.08, 0.08, 0.08), 0.5))
+	if float(g.flags.get("deer", 0)) >= 2.0:   # монтировка: бурые пятна, прилипшая шерсть
+		var iron := Node3D.new()
+		iron.name = "tire_iron"
+		niche.add_child(iron)
+		var steel := StationProps._mat(Color(0.18, 0.18, 0.19), 0.45, 0.7)
+		var a := Vector3(-0.05, 0.08, -0.08)
+		var b := Vector3(0.36, 0.08, 0.06)
+		StationProps._rod(iron, a, b, 0.009, steel)
+		StationProps._rod(iron, b, b + Vector3(0.03, 0.0, 0.09), 0.011, steel)   # изогнутый конец с ключом
+		var blood := StationProps._mat(Color(0.2, 0.03, 0.02), 0.35)
+		var fur := StationProps._mat(Color(0.42, 0.3, 0.2), 0.95)
+		for k in 5:
+			var p := a.lerp(b, 0.55 + k * 0.08)
+			var sp := MeshInstance3D.new()
+			var sm := SphereMesh.new()
+			sm.radius = 0.012
+			sm.height = 0.012
+			sp.mesh = sm
+			sp.material_override = blood
+			iron.add_child(sp)
+			sp.position = p + Vector3(0, 0.004, 0)
+			sp.scale = Vector3(1.4, 0.5, 1.0)
+			if k % 2 == 0:
+				StationProps._box(iron, Vector3(0.022, 0.004, 0.006), p + Vector3(0.004, 0.011, 0.004), fur, Vector3(0, 30.0 * k, 12))
+
+
+## Мысль Ноя о рыбалке: он наклоняется в багажник и касается пальцами чехла удочек, потом убирает руку.
+static func _touch_rods(g) -> void:
+	var na: Actor = g.actors.noah
+	var car: Node3D = g.scene.car
+	na.clear_hands()
+	na.reach = {"_r": car.to_global(Vector3(0.14, 1.1, 1.87))}
+	na.reach_palm = {"_r": Vector3.DOWN}
+	na.reach_lean = 40.0   # наклонился в багажник: чехол — у дальнего борта
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(2.2)
+	tw.tween_callback(na.clear_hands)
+
+
+## deer = 2: рука Ноя тянется к одеялу и останавливается над монтировкой — не касается.
+static func _trunk_iron(g) -> void:
+	var na: Actor = g.actors.noah
+	var car: Node3D = g.scene.car
+	na.clear_hands()
+	na.reach = {"_r": car.to_global(Vector3(0.12, 1.22, 2.0))}
+	na.reach_palm = {"_r": Vector3.DOWN}
+	na.reach_lean = 32.0
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(2.0)
+	tw.tween_callback(na.clear_hands)
+
+
+## Автомат по листу «24» — подписи-описания убраны, всё действием. Батончик, который «повиснет», — третий ряд снизу,
+## середина (у машины ряды и столбцы — бруски за стеклом, см. StationProps.build).
+const VEND_BAR := Vector3(-0.322, 1.33, -0.1)
+static func _vend_bar(vm: Node3D) -> MeshInstance3D:
+	for c in vm.get_children():
+		if c is MeshInstance3D and (c as Node3D).position.distance_to(VEND_BAR) < 0.01:
+			return c
+	return null
+
+
+static func _vend_glass(vm: Node3D) -> MeshInstance3D:
+	for c in vm.get_children():
+		if c is MeshInstance3D and (c as MeshInstance3D).mesh is BoxMesh and absf(((c as MeshInstance3D).mesh as BoxMesh).size.y - 1.12) < 0.01 \
+				and absf(((c as MeshInstance3D).mesh as BoxMesh).size.x - 0.015) < 0.003:
+			return c
+	return null
+
+
+## Монета из кармана джинсов замёрзшими пальцами — в щель (звон, перекат внутри); кнопка — спираль поворачивается
+## на четверть и встаёт: батончик повис на краю. Автомат проглотил монету — и ничего.
+static func _vend_coin(g) -> void:
+	var na: Actor = g.actors.noah
+	var vm := g.scene.station_root.get_node_or_null("vending") as Node3D
+	if vm == null:
+		return
+	var bar := _vend_bar(vm)
+	if bar:
+		vm.set_meta("hang_bar", bar)   # повиснет и сдвинется — дальше (удар по стеклу) берём по ссылке, а не по месту
+	na.clear_hands()
+	var fwd := na.global_transform.basis.z.normalized()
+	var right := -na.global_transform.basis.x.normalized()
+	na.reach = {"_r": _bone(na, "pelvis") + fwd * 0.1 + right * 0.16 - Vector3(0, 0.03, 0)}   # передний карман джинсов
+	var coin := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.012
+	cm.bottom_radius = 0.012
+	cm.height = 0.0025
+	coin.mesh = cm
+	coin.material_override = StationProps._mat(Color(0.76, 0.72, 0.58), 0.3, 0.9)
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(0.65)
+	tw.tween_callback(func():   # монета между большим и указательным — к щели на панели
+		g.scene.station_root.add_child(coin)
+		_hold(na, coin)
+		coin.position = Vector3(-0.015, 0.11, 0.035)
+		coin.rotation_degrees = Vector3(0, 0, 90)
+		na.reach = {"_r": vm.to_global(Vector3(-0.43, 1.45, 0.29))})
+	tw.tween_interval(0.85)
+	tw.tween_callback(func():
+		coin.queue_free()
+		g.sfx.play("coin", -8.0))
+	tw.tween_interval(0.55)
+	tw.tween_callback(func(): na.reach = {"_r": vm.to_global(Vector3(-0.42, 1.24, 0.26))})   # к кнопке
+	tw.tween_interval(0.4)
+	tw.tween_callback(func():   # нажал: спираль на четверть — батончик сполз и повис на краю
+		na.reach = {"_r": vm.to_global(Vector3(-0.375, 1.24, 0.26))}
+		g.sfx.play("ui_click", -12.0)
+		g.sfx.play("vend_motor", -8.0, 1.0, 0.12)
+		if bar:
+			var bt := bar.create_tween().set_parallel()
+			bt.tween_property(bar, "position", VEND_BAR + Vector3(0.0, -0.035, 0.0), 0.55).set_delay(0.12)
+			bt.tween_property(bar, "rotation_degrees", Vector3(0, 0, -9.0), 0.55).set_delay(0.12))
+	tw.tween_interval(0.5)
+	tw.tween_callback(func():
+		na.clear_hands()
+		if bar:
+			g._look({"who": "noah", "at": [bar.global_position.x, bar.global_position.y, bar.global_position.z]}))
+
+
+## Ладонью — не кулаком — по стеклу рядом с батончиком: стекло дрожит, батончик срывается и гулко падает в лоток;
+## Ной нагибается, откидывает клапан лотка, достаёт батончик и убирает во внутренний карман.
+static func _vend_slap(g) -> void:
+	var na: Actor = g.actors.noah
+	var vm := g.scene.station_root.get_node_or_null("vending") as Node3D
+	if vm == null:
+		return
+	var bar: MeshInstance3D = vm.get_meta("hang_bar") if vm.has_meta("hang_bar") else _vend_bar(vm)
+	if bar and not is_instance_valid(bar):
+		bar = null
+	var glass := _vend_glass(vm)
+	na.clear_hands()
+	na.reach = {"_r": vm.to_global(Vector3(-0.355, 1.36, -0.08))}
+	na.reach_palm = {"_r": vm.global_transform.basis.x.normalized()}   # ладонь — к стеклу
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(0.22)
+	tw.tween_callback(func():
+		g.sfx.play("slap", -4.0)
+		g._shake = maxf(g._shake, 0.08)
+		if glass:   # стекло дрожит в раме
+			var x0 := glass.position.x
+			var gt := glass.create_tween()
+			for k in 4:
+				gt.tween_property(glass, "position:x", x0 + (0.004 if k % 2 == 0 else -0.003) * (1.0 - k * 0.22), 0.04)
+			gt.tween_property(glass, "position:x", x0, 0.05)
+		if bar:   # сорвался — вниз, в лоток
+			var bt := bar.create_tween()
+			bt.tween_interval(0.08)
+			bt.tween_property(bar, "position", Vector3(VEND_BAR.x + 0.01, 0.4, VEND_BAR.z), 0.32).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			bt.parallel().tween_property(bar, "rotation_degrees", Vector3(70, 0, -20), 0.32)
+			bt.tween_callback(func(): g.sfx.play("candy_drop", -6.0)))
+	tw.tween_interval(0.3)
+	tw.tween_callback(na.clear_hands)
+	tw.tween_interval(0.35)
+	tw.tween_callback(func():   # нагнулся к лотку
+		na.reach = {"_r": vm.to_global(Vector3(-0.4, 0.42, -0.08))}
+		na.reach_lean = 38.0)
+	tw.tween_interval(0.75)
+	tw.tween_callback(func():   # клапан — и батончик в руке
+		g.sfx.play("knock", -24.0, 1.8)
+		if bar:
+			_hold(na, bar)
+			bar.position = Vector3(0.0, 0.09, 0.03)
+			bar.rotation_degrees = Vector3(0, 0, 90))
+	tw.tween_interval(0.35)
+	tw.tween_callback(func():   # выпрямился, глянул — и во внутренний карман
+		na.reach_lean = 0.0
+		var b := na.global_transform.basis
+		na.reach = {"_r": na.global_position + Vector3(0, 1.2, 0) + b.z.normalized() * 0.32})
+	tw.tween_interval(0.6)
+	tw.tween_callback(func():
+		var b := na.global_transform.basis
+		na.reach = {"_r": _bone(na, "spine_03") + b.z.normalized() * 0.12 - b.x.normalized() * 0.06})
+	tw.tween_interval(0.45)
+	tw.tween_callback(func():
+		g.sfx.play("wrapper", -18.0)
+		if bar:
+			bar.visible = false
+		na.clear_hands())
+
+
+## «Отойти»: постучал пальцем по стеклу — дважды — и отошёл.
+static func _vend_tap(g) -> void:
+	var na: Actor = g.actors.noah
+	var vm := g.scene.station_root.get_node_or_null("vending") as Node3D
+	if vm == null:
+		return
+	na.clear_hands()
+	var near := vm.to_global(Vector3(-0.39, 1.34, -0.08))
+	var touch := vm.to_global(Vector3(-0.345, 1.34, -0.08))
+	na.reach = {"_r": near}
+	var tw: Tween = g.create_tween()
+	for k in 2:
+		tw.tween_interval(0.3 if k == 0 else 0.16)
+		tw.tween_callback(func():
+			na.reach["_r"] = touch
+			g.sfx.play("knock", -22.0, 1.9))
+		tw.tween_interval(0.12)
+		tw.tween_callback(func(): na.reach["_r"] = near)
+	tw.tween_interval(0.25)
+	tw.tween_callback(na.clear_hands)
+
+
+## Айрис с блокнотом (лист «24», разговор с Айрис): рисует на коленях и не поднимает глаз; на «Нормально.» закрывает
+## блокнот, прячет под полу худи и прижимает локтем (подпись «Она прячет блокнот…» убрана — всё в кадре).
+static func _iris_notebook(g, show: bool) -> void:
+	var ia: Actor = g.actors.get("iris")
+	if ia == null:
+		return
+	var nb := ia.skel.find_child("iris_notebook", true, false) as Node3D
+	if show:
+		if nb == null:
+			nb = Node3D.new()
+			nb.name = "iris_notebook"
+			StationProps._box(nb, Vector3(0.15, 0.012, 0.2), Vector3.ZERO, StationProps._mat(Color(0.14, 0.17, 0.26), 0.75))   # обложка
+			StationProps._box(nb, Vector3(0.14, 0.004, 0.19), Vector3(0.002, 0.008, 0.0), StationProps._mat(Color(0.9, 0.88, 0.82), 0.9))   # лист
+			for k in 3:   # штрихи карандаша на листе
+				StationProps._box(nb, Vector3(0.06 - k * 0.012, 0.0015, 0.003), Vector3(-0.01 + k * 0.01, 0.0105, -0.04 + k * 0.03), StationProps._mat(Color(0.25, 0.25, 0.28), 0.9), Vector3(0, 20 - k * 15, 0))
+			g.scene.station_root.add_child(nb)
+			_hold(ia, nb)
+			nb.position = Vector3(0.0, 0.1, 0.06)
+			nb.rotation_degrees = Vector3(0, 0, 90)
+		nb.visible = true
+		var b := ia.global_transform.basis
+		var lap := (_bone(ia, "thigh_l") + _bone(ia, "thigh_r")) * 0.5 + Vector3(0, 0.16, 0) + b.z.normalized() * 0.2
+		var rt := -b.x.normalized()
+		ia.reach = {"_r": lap + rt * 0.05, "_l": lap - rt * 0.09}
+		ia.reach_palm = {"_r": Vector3.UP, "_l": Vector3.DOWN}
+		ia.look_target = lap
+		return
+	ia.clear_hands()   # после жеста руки — как в позе сидя, а не снова на коленях с пустым блокнотом
+	ia.look_target = null
+	ia.do_gesture("chest", 1.8)   # к груди — под полу худи, локтем прижать
+	if nb:
+		var tw: Tween = g.create_tween()
+		tw.tween_interval(0.7)
+		tw.tween_callback(func():
+			g.sfx.play("cloth", -16.0)
+			nb.visible = false)
+
+
+## Доска объявлений: Ной задевает пальцем загнувшийся угол старого плаката санатория и расправляет его; камера
+## наезжает на название; палец убран — угол снова загибается. Шелест бумаги.
+static func _poster_corner(g) -> void:
+	var na: Actor = g.actors.noah
+	var flap := g.scene.station_root.find_child("poster_corner", true, false) as Node3D
+	if flap == null:
+		return
+	var pst := flap.get_parent() as Node3D
+	flap.set_meta("held", true)   # ветер его больше не треплет (StationProps.flutter)
+	var tip_up: Vector3 = flap.global_transform * Vector3(0.0, -0.085, 0.0)                  # загнутый край угла
+	var tip_flat: Vector3 = pst.global_transform * (flap.position + Vector3(0.0, -0.085, 0.006))   # тот же край — расправленный
+	na.clear_hands()
+	na.point = {"_l": 1.0}
+	na.set_meta("auto_grip", false)
+	var aim := func(p: Vector3, back: float) -> void:   # кончик пальца — в точку p (back — не доходя), ладонь вниз
+		_aim_finger(na, "_l", p, back)
+	aim.call(tip_up, 0.06)
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(0.55)
+	tw.tween_callback(func(): aim.call(tip_up, 0.0))
+	tw.tween_interval(0.15)
+	tw.tween_callback(func():   # задел пальцем и расправил
+		g.sfx.play("page_turn", -18.0, 1.3)
+		flap.create_tween().tween_property(flap, "rotation_degrees:x", 0.0, 0.35).set_trans(Tween.TRANS_SINE)
+		na.create_tween().tween_method(func(k: float): aim.call(tip_up.lerp(tip_flat, k), 0.0), 0.0, 1.0, 0.35))
+	tw.tween_interval(3.25)
+	tw.tween_callback(func():   # убрал палец — угол снова загнулся
+		aim.call(tip_flat, 0.09)
+		g.sfx.play("page_turn", -22.0, 1.5)
+		flap.create_tween().tween_property(flap, "rotation_degrees:x", -58.0, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT))
+	tw.tween_interval(0.5)
+	tw.tween_callback(func():
+		flap.remove_meta("held")
+		na.reach = {}
+		na.point = {}
+		na.set_meta("auto_grip", true))
+
+
+## Кончик вытянутого указательного — в точку p (back — не доходя по ходу пальца), ладонью к palm: запястье ставится так,
+## чтобы в точку пришёл именно кончик (он сбоку от оси кисти), а не продолжение предплечья.
+static func _aim_finger(na: Actor, side: String, p: Vector3, back: float, palm := Vector3.DOWN) -> void:
+	var fd: Vector3 = (p - _bone(na, "upperarm" + side)).normalized()
+	var b := _point_basis(side, fd, palm)
+	var tl := TIP_L if side == "_l" else Vector3(-TIP_L.x, TIP_L.y, TIP_L.z)
+	na.reach[side] = p - fd * back - b * tl
+	na.reach_basis[side] = b
+
+
+## Базис кисти «палец в точку»: пальцы (+Y кости) — по fdir, ладонь — к palm. У левой кисти ладонь — +X кости, у правой —
+## −X (зонд скелета: probe_geom, 5 ноя); +Z — от мизинца к указательному.
+static func _point_basis(side: String, fdir: Vector3, palm: Vector3) -> Basis:
+	var y := fdir.normalized()
+	var pn := palm - y * palm.dot(y)
+	if pn.length() < 0.01:
+		pn = Vector3.FORWARD - y * Vector3.FORWARD.dot(y)
+	pn = pn.normalized()
+	var x := pn if side == "_l" else -pn
+	return Basis(x, y, x.cross(y).normalized())
+
+
+## Таксофон: трубка у уха в правой руке (клип), указательный левой набирает номер на металлических кнопках —
+## без заминки, каждая кнопка пищит. Кисть — базисом: палец смотрит в кнопку (раньше рука шла по предплечью мимо).
+static func _phone_dial_home(g) -> void:
+	var na: Actor = g.actors.noah
+	var ph := g.scene.station_root.find_child("payphone", true, false) as Node3D
+	if ph == null:
+		return
+	var seq := [[1, 0], [0, 2], [2, 1], [1, 1], [3, 1], [0, 0], [2, 2]]   # (ряд, столбец) — домашний номер
+	na.reach_lean = 0.0
+	na.point = {"_l": 1.0}
+	na.set_meta("auto_grip", false)
+	var aim := func(key: Vector3, back: float) -> void:
+		_aim_finger(na, "_l", key, back)
+	var k0: Vector3 = ph.to_global(Vector3(-0.06 + 0.0 * 0.06, 1.5 - 1.0 * 0.055, 0.152))
+	aim.call(k0, 0.05)
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(0.45)   # рука поднимается к кнопкам
+	for i in seq.size():
+		var rk: int = seq[i][0]
+		var cj: int = seq[i][1]
+		var key: Vector3 = ph.to_global(Vector3(-0.06 + cj * 0.06, 1.5 - rk * 0.055, 0.152))   # лицо кнопки
+		tw.tween_callback(func(): aim.call(key, 0.03))
+		tw.tween_interval(0.13)
+		tw.tween_callback(func():
+			aim.call(key, -0.004)   # нажал
+			g.sfx.play("phone_dial", -14.0, 1.0 + 0.04 * float((rk * 3 + cj) % 5)))
+		tw.tween_interval(0.12)
+	tw.tween_callback(func(): aim.call(k0 + Vector3(-0.06, -0.12, 0.05), 0.12))   # рука уходит от кнопок
+	tw.tween_interval(0.3)
+	tw.tween_callback(func():
+		na.reach.erase("_l")
+		na.reach_basis.erase("_l")
+		na.point = {}
+		na.set_meta("auto_grip", true))
+
+
+## Витрина: Ной вплотную к стеклу, прикрывает глаза ладонью от света навеса; отражение Ноя лежит поверх магазина
+## (плоское отражение PlanarMirror — только на этот план: вторая отрисовка сцены, держать его всё время дорого); от дыхания
+## на стекле пятно — и тает; звуки улицы гаснут, остаётся гул неона.
+static func _window_look(g) -> void:
+	var na: Actor = g.actors.noah
+	var root: Node3D = g.scene.station_root
+	na.do_gesture("shade_eyes_l", 4.4)   # левой: камера над правым плечом видит отражение лица справа от головы
+	var hd := _bone(na, "head")
+	var f := Vector3(sin(na.rotation.y), 0.0, cos(na.rotation.y))   # куда смотрит Ной (лицом по +Z модели)
+	var mouth := hd + f * 0.1 + Vector3(0, -0.1, 0)
+	var fog := MeshInstance3D.new()
+	var qm := QuadMesh.new()
+	qm.size = Vector2(0.24, 0.15)
+	fog.mesh = qm
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.86, 0.89, 0.92, 0.0)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var gr := Gradient.new()   # мягкое пятно, без краёв
+	gr.set_color(0, Color(1, 1, 1, 1))
+	gr.set_color(1, Color(1, 1, 1, 0))
+	gr.add_point(0.5, Color(1, 1, 1, 0.55))
+	var gt := GradientTexture2D.new()
+	gt.gradient = gr
+	gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.5)
+	gt.fill_to = Vector2(1.0, 0.5)
+	gt.width = 64
+	gt.height = 64
+	m.albedo_texture = gt
+	fog.material_override = m
+	root.add_child(fog)
+	fog.global_position = Vector3(GLASS_X - 0.003, mouth.y, mouth.z)   # на наружной стороне стекла, напротив рта
+	fog.rotation_degrees = Vector3(0, 90, 0)
+	var tw: Tween = g.create_tween()
+	tw.tween_interval(1.0)
+	tw.tween_property(m, "albedo_color:a", 0.42, 0.45)
+	tw.tween_property(m, "albedo_color:a", 0.0, 1.9)
+	tw.tween_callback(fog.queue_free)
+	var pm := PlanarMirror.new()   # стекло окна между стойками z −7,2 и −4,8 (station.py)
+	root.add_child(pm)
+	pm.build(Vector3(GLASS_X - 0.004, 2.105, -6.0), Vector3(-1, 0, 0), Vector2(2.28, 2.05), g.cam)
+	var fq := clampi(Settings.fx, 0, 3)   # отражение — на 4 с: на «Высоком» и выше вдвое чётче (лицо — главное в кадре)
+	if fq >= 2:
+		pm._res = fq
+		pm.vp.size = Vector2i(1138, 1024)
+	var bits := 0   # в стекле — только сам Ной (его слой): улица, навес и колонки не рябят поверх магазина
+	for mi in na.find_children("*", "MeshInstance3D", true, false):
+		bits |= (mi as MeshInstance3D).layers
+	pm.cam.cull_mask = Car.DRIVER_LAYER if (bits & Car.DRIVER_LAYER) != 0 else bits
+	var lit: Array = []   # маска камеры отсекает и источники света (они тоже на слоях) — без этого Ной в стекле чёрный
+	for l in root.find_children("*", "Light3D", true, false):
+		if ((l as Light3D).layers & Car.DRIVER_LAYER) == 0:
+			(l as Light3D).layers |= Car.DRIVER_LAYER
+			lit.append(l)
+	var mm := pm.quad.material_override as StandardMaterial3D
+	mm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD   # ночью витрина отражает только светлое: лицо в свете из магазина
+	mm.albedo_color = Color(0.0, 0.0, 0.0, 1.0)
+	var tr: Tween = g.create_tween()
+	tr.tween_property(mm, "albedo_color", Color(0.62, 0.62, 0.66, 1.0), 0.6)
+	tr.tween_interval(3.6)
+	tr.tween_property(mm, "albedo_color", Color(0.0, 0.0, 0.0, 1.0), 0.5)
+	tr.tween_callback(func():
+		for l in lit:
+			if is_instance_valid(l):
+				(l as Light3D).layers &= ~Car.DRIVER_LAYER
+		pm.queue_free())
+	g.set_meta("hush_t", g._t + 4.4)   # звуки улицы гаснут — остаётся гул неона (фоны — game.gd)
+
+
+## Трасса (лист «24»): следы их машины (StationProps.tire_tracks) на глазах заносит позёмком; при late — вторые, свежие.
+## Позёмок — низкие волны снега вдоль земли, только на этот план.
+static func _road_look(g, late: bool) -> void:
+	var root: Node3D = g.scene.station_root
+	var tr := root.get_node_or_null("tracks_ours") as MeshInstance3D
+	if tr and not late:
+		var tm := tr.material_override as StandardMaterial3D
+		var tw: Tween = g.create_tween()
+		tw.tween_interval(0.8)
+		tw.tween_property(tm, "albedo_color:a", tm.albedo_color.a * 0.45, 3.6).set_trans(Tween.TRANS_SINE)
+	if root.get_node_or_null("drift") == null:
+		var d := CPUParticles3D.new()
+		d.name = "drift"
+		d.amount = Settings.pn(1400)
+		d.lifetime = 2.6
+		d.preprocess = 2.0
+		d.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		d.emission_box_extents = Vector3(3.8, 0.04, 13.0)   # полоса вдоль трассы: от Ноя до въезда (их следы)
+		d.position = Vector3(4.2, 0.08, 7.0)
+		d.direction = Vector3(0.12, 0.06, -1.0)
+		d.spread = 8.0
+		d.gravity = Vector3(0, -0.15, 0)
+		d.initial_velocity_min = 2.2
+		d.initial_velocity_max = 4.2
+		d.scale_amount_min = 0.5
+		d.scale_amount_max = 1.6
+		var qm := QuadMesh.new()
+		qm.size = Vector2(0.09, 0.03)
+		d.mesh = qm
+		var sm := StandardMaterial3D.new()
+		sm.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		sm.vertex_color_use_as_albedo = true
+		sm.albedo_color = Color(0.86, 0.9, 0.98, 0.5)
+		var gr := Gradient.new()
+		gr.set_color(0, Color(1, 1, 1, 1))
+		gr.set_color(1, Color(1, 1, 1, 0))
+		var gt := GradientTexture2D.new()
+		gt.gradient = gr
+		gt.fill = GradientTexture2D.FILL_RADIAL
+		gt.fill_from = Vector2(0.5, 0.5)
+		gt.fill_to = Vector2(1.0, 0.5)
+		gt.width = 32
+		gt.height = 32
+		sm.albedo_texture = gt
+		d.material_override = sm
+		var cr := Gradient.new()   # волнами: частица проявляется и гаснет
+		cr.set_color(0, Color(1, 1, 1, 0))
+		cr.set_color(1, Color(1, 1, 1, 0))
+		cr.add_point(0.3, Color(1, 1, 1, 0.85))
+		cr.add_point(0.7, Color(1, 1, 1, 0.6))
+		d.color_ramp = cr
+		root.add_child(d)
+		g.sfx.play("snow_gust", -10.0, 1.0, 0.3)   # порыв: шорох позёмка
+		var tw2: Tween = g.create_tween()
+		tw2.tween_interval(9.0 if late else 6.5)
+		tw2.tween_callback(func(): d.emitting = false)
+		tw2.tween_interval(2.8)
+		tw2.tween_callback(d.queue_free)
+
+
+## Чёрная машина (лист «24»): Ной зашёл в зону у края площадки — Айрис встаёт со ступеньки и делает шаг за ним (реплика —
+## следующим шагом). Через несколько секунд возвращается и садится обратно (план прогулки её не видит — она за спиной).
+static func _iris_warn(g) -> void:
+	var ir: Actor = g.actors.get("iris")
+	var na: Actor = g.actors.noah
+	if ir == null or not is_instance_valid(ir):
+		return
+	var up := Vector3(19.55, 0.0, -4.1)   # встала: на земле перед ступенькой
+	var to := na.global_position - up
+	var yaw := atan2(to.x, to.z)
+	var step := up + Vector3(to.x, 0.0, to.z).normalized() * 0.6
+	ir.stop_walk()
+	ir.play("Idle", 0.0, 0.45)
+	var tw: Tween = g.create_tween()
+	tw.tween_property(ir, "global_position", up, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(ir, "rotation:y", yaw, 0.45)
+	tw.tween_callback(func():
+		ir.placed()
+		ir.walk_to(step, 1.3, "Rk_Walk", "Idle", rad_to_deg(yaw)))
+	tw.tween_interval(5.0)
+	tw.tween_callback(func():   # постояла, глядя ему вслед, — и назад, на ступеньку к Дэнни
+		if is_instance_valid(ir):
+			ir.walk_to(up, 1.0, "Rk_Walk", "Idle", -90.0))
+	tw.tween_interval(1.4)
+	tw.tween_callback(func():
+		if is_instance_valid(ir):
+			g._place({"who": "iris", "at": [20.08, 0.38, -4.05], "face": -90, "clip": "Rk_SitIdle"}))
+	tw.tween_interval(0.06)
+	tw.tween_callback(func():
+		if is_instance_valid(ir):
+			g._sit("iris", Vector3(19.98, 0.48, -4.05))
+			g._look({"who": "iris", "at": "danny"}))
+
+
 static func _blanket_carry(g) -> void:
 	var na: Actor = g.actors.noah
 	var car: Node3D = g.scene.car
@@ -732,9 +1338,9 @@ static func _blanket_carry(g) -> void:
 			if bm is BoxMesh and absf((bm as BoxMesh).size.x - 0.42) < 0.01:
 				box = c
 	na.clear_hands()
-	var src: Vector3 = car.to_global(Vector3(0.3, 1.08, 2.05))
-	na.reach = {"_r": src, "_l": car.to_global(Vector3(-0.38, 1.12, 2.05))}
-	na.reach_lean = 30.0
+	var src: Vector3 = car.to_global(Vector3(-0.14, 1.07, 2.06))   # край одеяла из-под ящика
+	na.reach = {"_r": src, "_l": car.to_global(Vector3(-0.4, 1.2, 2.06))}   # левая — приподнимает ящик за ручку
+	na.reach_lean = 40.0
 	var f := _folded()
 	g.scene.station_root.add_child(f)
 	f.visible = false
@@ -749,8 +1355,11 @@ static func _blanket_carry(g) -> void:
 		f.position = Vector3(0.0, 0.1, 0.06))
 	tw.tween_interval(0.35)
 	tw.tween_callback(func():   # встряхнул: короткий рывок вверх, шорох
-		if box:
-			box.create_tween().tween_property(box, "position:y", box.position.y - 0.04, 0.15)
+		if box:   # одеяла под ящиком больше нет — ящик ложится на дно
+			box.create_tween().tween_property(box, "position:y", box.position.y - 0.12, 0.15)
+			for hc in box.get_parent().get_children():
+				if hc is MeshInstance3D and (hc as MeshInstance3D).mesh is BoxMesh and absf(((hc as MeshInstance3D).mesh as BoxMesh).size.x - 0.3) < 0.01:
+					hc.create_tween().tween_property(hc, "position:y", (hc as Node3D).position.y - 0.08, 0.15)
 		na.reach_lean = 0.0
 		na.reach = {"_r": na.global_position + Vector3(0, 1.15, 0) + na.global_transform.basis.z * 0.35}
 		g.sfx.play("cloth", -12.0))

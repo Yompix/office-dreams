@@ -1059,6 +1059,14 @@ func _station() -> void:
 		scene.station_root.add_child(blackcar)
 		blackcar.position = Vector3(9.2, 0.0, -24.0)
 		blackcar.rotation_degrees = Vector3(0, 200, 0)
+		var nr := OmniLight3D.new()   # в тёмных стёклах отражается красный неон «24»: блик на лобовом (лист «24»); над
+		nr.position = Vector3(9.5, 2.9, -24.1)   # крышей и коротким радиусом — только машина, не Ной у края площадки
+		nr.light_color = Color(1.0, 0.1, 0.06)
+		nr.light_energy = 0.4
+		nr.light_specular = 6.0
+		nr.omni_range = 2.6
+		scene.station_root.add_child(nr)
+	StationProps.tire_tracks(scene.station_root, float(flags.get("late", 0)) > 0.0)   # следы шин: их машина (и чёрная)
 
 
 ## Детская рация в руках у Дэнни.
@@ -1205,6 +1213,8 @@ func _fx(k: String) -> void:
 			_shake = 0.35
 		"trunk_open":   # прогулка: багажник открыт (накладка на кузов — scripts/world/station_props.gd)
 			StationProps.trunk(scene.car, true)
+			if is_instance_valid(scene.station_root):
+				St24.dress_trunk(self)   # «24»: чехол удочек, ящик поверх клетчатого одеяла (по листу)
 			sfx.play("trunk", -6.0)
 		"trunk_close":
 			StationProps.trunk(scene.car, false)
@@ -1213,6 +1223,11 @@ func _fx(k: String) -> void:
 			StationProps.trunk_take_blanket(scene.car)
 		"phone_pick", "phone_hang":   # таксофон: трубка в руке у Ноя / снова на рычаге
 			StationProps.receiver(scene.station_root, actors.noah, k == "phone_pick")
+			if k == "phone_pick":
+				sfx.play("phone_pickup", -12.0)
+			else:   # трубка ложится на рычаг с лязгом, внутри гремит вернувшаяся монета (лист «24», таксофон 3)
+				sfx.play("phone_pickup", -9.0, 0.72)
+				sfx.play("coin", -12.0, 0.85, 0.3)
 		"ice_ready":   # ведро: Ной присел, правая рука занесена над коркой льда; до льда тянется корпусом
 			var na: Actor = actors.noah
 			na.reach = {"_r": ICE_AT + Vector3(0.02, 0.16, -0.02)}
@@ -1700,6 +1715,10 @@ func _sound(delta: float) -> void:
 		if _blizzard:
 			bliz = -9.0 if inside else (-15.0 if indoor else -3.0)
 			forest -= 10.0
+	if has_meta("hush_t") and _t < float(get_meta("hush_t")):   # «24», витрина: за стеклом тишина — остаётся гул неона
+		forest = off
+		bliz = off
+		neon = -4.0
 	sfx.bed("car_interior", car, lerpf(0.7, 1.0, k))
 	sfx.bed("wind_forest", forest)
 	sfx.bed("station_hum", neon)
