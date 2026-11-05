@@ -586,21 +586,8 @@ static func snow_mat() -> StandardMaterial3D:
 ## Стёкла в инее: мотор заглушен — стёкла белеют (снаружи — снег, изнутри — дыхание); false — печка отогрела, как было.
 static func frost(g, on: bool, t := -1.0) -> void:
 	var car: Car = g.scene.car
-	if car.m_glass == null:
-		return
-	if not g.c2.has("glass0"):
-		g.c2["glass0"] = [car.m_glass.albedo_color, car.m_glass.roughness]
-	var c0: Array = g.c2["glass0"]
-	var col: Color = Color(0.8, 0.84, 0.9, 0.6) if on else c0[0]
-	var rough: float = 0.75 if on else float(c0[1])
 	g.c2["frost"] = on
-	if t <= 0.0:
-		car.m_glass.albedo_color = col
-		car.m_glass.roughness = rough
-		return
-	var tw: Tween = g.create_tween().set_parallel()
-	tw.tween_property(car.m_glass, "albedo_color", col, t)
-	tw.tween_property(car.m_glass, "roughness", rough, t)
+	car.set_frost(1.0 if on else 0.0, t)   # иней — параметр шейдера стекла (car_glass.gdshader): белое, матовое, 0,6
 
 
 ## Имя на запотевшем стекле пассажира: Айрис пишет изнутри — снаружи читается задом наперёд.

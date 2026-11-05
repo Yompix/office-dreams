@@ -48,3 +48,15 @@ xvfb-run … godot … --write-movie /путь/door.avi --fixed-fps 12 --path . 
 Каждый кадр прогулки: план, позиция камеры и героя, угол камеры, «камера внутри препятствия?» (`in=true` — в стене),
 что уже осмотрено (лог `CAM …`). С `--autoplay --realtime --write-movie … --fixed-fps 12 --explore phone,window` —
 та же камера, что в записи; искать `in=true` и строку журнала «автопрогон: нет пути» (переход напрямик).
+
+## Стекло и машина снаружи — `probe_car.gd`
+
+Седан при разном свете (`--lights keep,day,dusk,sunny,lake_day` — свет через `DriveScene.set_daylight`, `keep` — свет
+самой сцены) с камер в осях машины (`--views rear_top,top,rear,side,front,inside,inside_side`) → `car_<свет>_<вид>.png`,
+надписи интерфейса скрыты. `--oldglass` — прежнее стекло (кадры «было»), `--frost 1` — иней (гл. 2). Для ПК (Forward+,
+Vulkan) — `--rendering-driver vulkan --rendering-method forward_plus` (в облаке — программный lavapipe).
+
+```
+xvfb-run … godot … --resolution 960x540 --path . --script ../../tools/lake/qa/probe_car.gd -- \
+  --scene s5 --quality 2 --lights keep,day,dusk --views rear_top,top,inside --snapdir /путь [--oldglass]
+```

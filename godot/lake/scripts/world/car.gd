@@ -55,7 +55,7 @@ var m_plastic: StandardMaterial3D
 var m_plastic2: StandardMaterial3D
 var m_fabric: StandardMaterial3D
 var m_roof: StandardMaterial3D
-var m_glass: StandardMaterial3D
+var m_glass: ShaderMaterial   # стёкла: снаружи тонировка и Френель, изнутри вуаль (car_glass.gdshader)
 var m_paint: StandardMaterial3D
 var m_chrome: StandardMaterial3D
 
@@ -69,12 +69,10 @@ func setup(pc: bool) -> void:
 	m_paint.metallic = 0.4
 	m_chrome = _m(Color(0.6, 0.6, 0.62), 0.25)
 	m_chrome.metallic = 0.9
-	m_glass = StandardMaterial3D.new()
-	m_glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m_glass.albedo_color = Color(0.45, 0.52, 0.6, 0.16)   # стекло видно снаружи (блик, лёгкая тень), изнутри — лёгкая вуаль
-	m_glass.roughness = 0.05
-	m_glass.metallic_specular = 0.9
-	m_glass.cull_mode = BaseMaterial3D.CULL_DISABLED
+	# стекло: снаружи — тонировка и отражение под острым углом (сзади-сверху машина не «кабриолет»), заднее темнее
+	# лобового; изнутри — прежняя лёгкая вуаль (Color(0.45, 0.52, 0.6, 0.16)), кадры в салоне те же
+	m_glass = ShaderMaterial.new()
+	m_glass.shader = preload("res://scripts/world/car_glass.gdshader")
 	# машина целиком — модель tools/lake/car.py (кузов, стёкла, колёса, салон); детали — по именам
 	var model := Prefetch.scene("res://assets/models/sedan.glb").instantiate() as Node3D
 	add_child(model)
@@ -673,6 +671,17 @@ func door_open(side: String, k: float, dur := 0.6) -> Tween:
 	var tw := pv.create_tween()
 	tw.tween_property(pv, "rotation_degrees:y", (-62.0 if side.ends_with("l") else 62.0) * k, dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	return tw
+
+
+## Иней на стёклах (гл. 2): k 0…1 — доля, t — секунды (≤ 0 — сразу). С обеих сторон одинаково.
+func set_frost(k: float, t := -1.0) -> void:
+	if m_glass == null:
+		return
+	if t <= 0.0:
+		m_glass.set_shader_parameter("frost", k)
+		return
+	var k0 := float(m_glass.get_shader_parameter("frost")) if m_glass.get_shader_parameter("frost") != null else 0.0
+	create_tween().tween_method(func(v: float) -> void: m_glass.set_shader_parameter("frost", v), k0, k, t)
 
 
 ## Мотор заглушён ключом: подсветка приборов, шкалы, магнитола и лампа бензина гаснут за dur секунд; фары — сразу.
