@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "novograd:block/crosswalk"
+    },
+    "facing=east": {
+      "model": "novograd:block/crosswalk",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "novograd:block/crosswalk",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "novograd:block/crosswalk",
+      "y": 270
+    }
+  }
+}

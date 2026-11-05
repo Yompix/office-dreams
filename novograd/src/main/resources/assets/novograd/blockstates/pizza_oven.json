@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "novograd:block/pizza_oven"
+    },
+    "facing=east": {
+      "model": "novograd:block/pizza_oven",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "novograd:block/pizza_oven",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "novograd:block/pizza_oven",
+      "y": 270
+    }
+  }
+}

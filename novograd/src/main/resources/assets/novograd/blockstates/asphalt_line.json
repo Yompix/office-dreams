@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "novograd:block/asphalt_line"
+    },
+    "facing=east": {
+      "model": "novograd:block/asphalt_line",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "novograd:block/asphalt_line",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "novograd:block/asphalt_line",
+      "y": 270
+    }
+  }
+}

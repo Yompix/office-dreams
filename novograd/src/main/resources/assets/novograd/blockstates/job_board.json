@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "novograd:block/job_board"
+    },
+    "facing=east": {
+      "model": "novograd:block/job_board",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "novograd:block/job_board",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "novograd:block/job_board",
+      "y": 270
+    }
+  }
+}
