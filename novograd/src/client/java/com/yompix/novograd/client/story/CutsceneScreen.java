@@ -140,6 +140,23 @@ public class CutsceneScreen extends LifeScreen {
                     pitch = pitchTo(x, y, z, look);
                 }
                 // камера не должна оказаться внутри стены или контейнера — поднимаем её над препятствием
+                // как камера в GTA: стена между камерой и героем — подъезжаем ближе к герою (но не вплотную)
+                var focus = trk != null ? trk : fol;
+                if (focus != null) {
+                    Vec3d eye = focus.getLerpedPos(delta).add(0, focus.getHeight() * 0.8, 0);
+                    Vec3d want = new Vec3d(x, y, z);
+                    var hit = mc().world.raycast(new net.minecraft.world.RaycastContext(eye, want,
+                            net.minecraft.world.RaycastContext.ShapeType.COLLIDER, net.minecraft.world.RaycastContext.FluidHandling.NONE, focus));
+                    if (hit.getType() != net.minecraft.util.hit.HitResult.Type.MISS) {
+                        Vec3d dir = want.subtract(eye);
+                        double len = Math.max(0.01, dir.length());
+                        double d = Math.max(2.5, hit.getPos().distanceTo(eye) - 0.6);
+                        Vec3d p2 = eye.add(dir.multiply(d / len));
+                        x = p2.x; y = p2.y; z = p2.z;
+                        yaw = yawTo(x, z, eye);
+                        pitch = pitchTo(x, y, z, eye);
+                    }
+                }
                 y = clearY(x, y, z);
                 // сглаживание: камера-оператор не дёргается, а «ведёт» героя
                 long now = System.nanoTime();

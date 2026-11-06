@@ -252,13 +252,14 @@ public final class GunWorldFx {
                 m.translate(x - cam.x, y - cam.y, z - cam.z);
                 m.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.lerp(td, b.pYaw, b.yaw)));
                 m.multiply(RotationAxis.POSITIVE_X.rotationDegrees(MathHelper.lerp(td, b.pPitch, b.pitch)));
+                // гильзы крупнее настоящих (в 2 раза), иначе на экране их не видно
                 switch (b.type) {
-                    case 0 -> cuboid(vc, m, 0.011f, 0.011f, 0.024f, 0, 0, light);
-                    case 1 -> cuboid(vc, m, 0.011f, 0.011f, 0.036f, 0, 0, light);
+                    case 0 -> cuboid(vc, m, 0.02f, 0.02f, 0.045f, 0, 0, light);
+                    case 1 -> cuboid(vc, m, 0.02f, 0.02f, 0.065f, 0, 0, light);
                     case 2 -> {
-                        cuboid(vc, m, 0.018f, 0.018f, 0.04f, 16, 0, light);
-                        m.translate(0, 0, 0.044f);
-                        cuboid(vc, m, 0.0195f, 0.0195f, 0.008f, 0, 0, light);
+                        cuboid(vc, m, 0.032f, 0.032f, 0.07f, 16, 0, light);
+                        m.translate(0, 0, 0.077f);
+                        cuboid(vc, m, 0.034f, 0.034f, 0.012f, 0, 0, light);
                     }
                     case 3 -> cuboid(vc, m, 0.035f, 0.11f, 0.06f, 0, 8, light);
                     default -> cuboid(vc, m, 0.035f, 0.13f, 0.07f, 16, 8, light);

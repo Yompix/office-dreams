@@ -611,7 +611,9 @@ public final class CarModels {
                 b.box("trim", -bx, 43.5f, -56.2f, bx, 44.4f, -10.4f);
                 b.box("stripe", -bx - 0.3f, 24, -54, -bx, 30, -14);
                 b.box("stripe", bx, 24, -54, bx + 0.3f, 30, -14);
-                b.box("trim", -bx, 15, -56.4f, bx, 43, -56);                      // задние створки
+                b.box("accent", -bx + 0.6f, 15.6f, -56.4f, bx - 0.6f, 42.4f, -56);  // задние створки
+                b.box("trim", -bx, 15, -56.3f, bx, 15.6f, -56.1f);
+                b.box("stripe", -bx + 0.6f, 24, -56.5f, bx - 0.6f, 30, -56.35f);  // полоса и сзади
                 b.box("chrome", -0.2f, 15, -56.6f, 0.2f, 43, -56.3f);
                 b.box("under", -8, 7, -56, 8, 10, s.wsB);                           // рама
                 b.box("trim", -W - 0.3f, 5, -57, W + 0.3f, 8, -55.6f);             // задний бампер

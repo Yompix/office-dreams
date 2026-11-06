@@ -318,7 +318,7 @@ public final class GunAnim {
         switch (in.gun) {
             case "pistol" -> {
                 p.b("slide")[2] = 0.9f * det;
-                lerp3(p.support, p.support, new float[]{m.sight[0] - 0.2f, m.sight[1] - 0.9f, m.sight[2] + 0.2f + 0.9f * det}, handW);
+                lerp3(p.support, p.support, new float[]{m.sight[0] - 0.9f, m.sight[1] - 0.8f, m.muzzle[2] + 1.6f + 0.9f * det}, handW);
             }
             case "smg", "rifle" -> {
                 float[] d = m.magDir;

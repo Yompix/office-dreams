@@ -1786,9 +1786,9 @@ public final class DevAutotest {
             run(25, c -> c.options.useKey.setPressed(false));
             // перезарядка: замораживаем анимацию на моменте «магазин вынут» (у дробовика — патрон в руке)
             run(5, c -> ArsenalClient.send("reload", 0));
-            run(3, c -> GunFx.testFreezeP = slot == 2 ? 0.3f : 0.36f);
+            run(3, c -> GunFx.testFreezeP = slot == 2 ? 0.55f : 0.36f);
             shot(3, "gun_" + g + "_reload");
-            run(1, c -> GunFx.testFreezeP = slot == 2 ? 0.52f : 0.62f);
+            run(1, c -> GunFx.testFreezeP = slot == 2 ? 0.85f : 0.62f);
             shot(3, "gun_" + g + "_reload2");
             run(1, c -> GunFx.testFreezeP = -1);
             run(70, c -> GunFx.inspect());
@@ -1807,7 +1807,7 @@ public final class DevAutotest {
         });
         run(10, c -> c.options.attackKey.setPressed(true));
         run(2, c -> c.options.attackKey.setPressed(false));
-        run(3, c -> GunFx.testFreezeP = 0.2f);
+        run(14, c -> GunFx.testFreezeP = 0.2f);
         shot(3, "gun_pistol_empty_drop");
         run(1, c -> GunFx.testFreezeP = 0.74f);
         shot(3, "gun_pistol_empty_rack");

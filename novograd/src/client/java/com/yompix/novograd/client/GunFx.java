@@ -143,9 +143,10 @@ public final class GunFx {
         if (testFlashNs > 0) Novograd.LOG.info("[guns] shot {}", id(g));
         MinecraftClient c = MinecraftClient.getInstance();
         float aim = 1f - ads * 0.4f;
-        kzV += 9f * k.kickZ / 0.05f * aim;
-        kpV += 9f * k.rise * aim * (0.85f + RNG.nextFloat() * 0.3f);
-        rollV += (RNG.nextFloat() - 0.35f) * 60f * k.kickZ / 0.05f * aim;
+        // скорость пружины ≈ пик·ω/0.75: назад на kickZ блоков, вверх на rise градусов
+        kzV += 23f * k.kickZ * aim;
+        kpV += 17f * k.rise * aim * (0.85f + RNG.nextFloat() * 0.3f);
+        rollV += (RNG.nextFloat() - 0.35f) * 500f * k.kickZ * aim;
         sideV += (RNG.nextFloat() - 0.5f) * 1.2f * aim;
         shakeV += 14f * k.shake;
         // подброс камеры: вверх и чуть вбок, потом часть возвращается
@@ -168,8 +169,9 @@ public final class GunFx {
         else ejectCasing(k == Kind.RIFLE ? 1 : 0);
         if (c.world != null && muzzleWorld != null) GunWorldFx.smoke(muzzleWorld, 1f);
         if (testFlashNs > 0) {
-            kz = 0.06f * kzV;
-            kp = 0.06f * kpV;
+            kz = 0.044f * kzV;
+            kp = 0.058f * kpV;
+            roll = 0.05f * rollV;
             shake = 0.05f * shakeV;
         }
     }
@@ -693,7 +695,7 @@ public final class GunFx {
         float kick = me ? kp * 0.02f : 0;
         boolean low = e.isSprinting() && !firing && aim < 0.5f;
         float aimPitch = -MathHelper.HALF_PI + MathHelper.clamp(hp, -1.2f, 1.2f);
-        float hipPitch = -0.95f + MathHelper.clamp(hp, -1.0f, 0.8f) * 0.6f;
+        float hipPitch = -1.25f + MathHelper.clamp(hp, -1.0f, 0.8f) * 0.6f;
         float pitch = low ? -0.7f : MathHelper.lerp(aim, hipPitch, aimPitch);
         float rp = me ? reloadProgress(st.getItem()) : -1;
         if (rp >= 0) pitch = MathHelper.lerp(smooth(0, 0.18f, rp) * (1 - smooth(0.82f, 1, rp)), pitch, -0.7f);

@@ -117,9 +117,10 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         wheelPart.render(m, solid, light, OV, 0xFF141414);
         // полоски, ливрея, служебная окраска
         boolean lightPaint = brightness(car.color()) > 140;
-        p(root, "stripe", m, solid, light, type == CarBody.POLICE ? 0xFFE8B400 : type == CarBody.TRUCK ? 0xFFD7262C : lightPaint ? 0xFF15161A : 0xFFF2F2F2);
+        p(root, "stripe", m, solid, light, type == CarBody.POLICE ? 0xFFE8B400 : type == CarBody.TRUCK ? ((car.color() & 0xFFFFFF) == com.yompix.novograd.gta.VehicleJobs.FIRE_COLOR ? 0xFFF2F2F2 : 0xFFD7262C) : lightPaint ? 0xFF15161A : 0xFFF2F2F2);
         p(root, "livery", m, solid, light, LifeShade.shade(0xFF16243F, dull));
-        p(root, "accent", m, solid, light, type == CarBody.TRUCK ? LifeShade.shade(0xFFEDEDE8, dull) : type == CarBody.VAN ? 0xFFE0662A : color);
+        boolean fireTruck = type == CarBody.TRUCK && (car.color() & 0xFFFFFF) == com.yompix.novograd.gta.VehicleJobs.FIRE_COLOR;
+        p(root, "accent", m, solid, light, fireTruck ? color : type == CarBody.TRUCK ? LifeShade.shade(0xFFEDEDE8, dull) : type == CarBody.VAN ? 0xFFE0662A : color);
         p(root, "pushbar", m, solid, light, 0xFF141414);
         p(root, "check", m, solid, light, 0xFF141414);
         // вмятины и царапины
