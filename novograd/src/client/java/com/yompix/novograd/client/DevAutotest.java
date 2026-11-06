@@ -230,6 +230,36 @@ public final class DevAutotest {
             runoverMode();
             return;
         }
+        if (mode.equals("taxi")) {
+            // такси по острову: вызвать к гаражу, сесть, доехать до Сити-Банка; лог расстояния до цели
+            YompixSplash.markShown();
+            pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            cmd(5, "time set 6000");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                p.teleport(w, 120, Story.topY(w, 120, -720) + 1, -720, 0, 0);
+                Life.get(p).money += 2000;
+            });
+            server(40, s -> com.yompix.novograd.life.Taxi.call(s.getPlayerManager().getPlayer(P), "bank_tower"));
+            for (int i = 0; i < 40; i++) {
+                final int n = i;
+                server(100, s -> {
+                    ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                    var cid = com.yompix.novograd.life.Taxi.carOf(p);
+                    var car = cid == null ? null : p.getServerWorld().getEntity(cid);
+                    if (car != null && p.getVehicle() == null && car.squaredDistanceTo(p) < 64 * 64 && n > 2) p.startRiding(car, true);
+                    var to = Story.place(p.getServerWorld(), "bank_tower");
+                    com.yompix.novograd.Novograd.LOG.info("[taxitest] t={} riding={} task={} pos={} car={} distToBank={}", n * 5, p.getVehicle() != null, Life.get(p).taskKind,
+                            p.getBlockPos().toShortString(), car == null ? "-" : car.getBlockPos().toShortString(), to == null ? -1 : (int) Math.sqrt(p.squaredDistanceTo(to)));
+                });
+                if (i % 8 == 4) shot(1, "taxi_" + i);
+            }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("phone")) {
             // телефон целиком, такси, новости, карта, титры (проверка после чистки старой игры)
             YompixSplash.markShown();

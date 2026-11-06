@@ -73,6 +73,12 @@ public final class Taxi {
     private static final Map<UUID, Order> WAITING = new HashMap<>();   // клиент → заказ, пока едет машина
     private static final Map<UUID, UUID> CARS = new HashMap<>();       // клиент → машина-такси
 
+    /** Для автотеста: машина-такси игрока. */
+    @Nullable
+    public static UUID carOf(ServerPlayerEntity p) {
+        return CARS.get(p.getUuid());
+    }
+
     /** Эта машина — такси, вызванное этим игроком? (тогда он садится пассажиром, а не угоняет) */
     public static boolean isClientOf(ServerPlayerEntity p, CarEntity car) {
         return car.getUuid().equals(CARS.get(p.getUuid()));
@@ -146,6 +152,7 @@ public final class Taxi {
     /** Машина службы с водителем выезжает к клиенту. */
     private static void dispatchNpc(ServerPlayerEntity p, Order o) {
         ServerWorld w = p.getServerWorld();
+        island = w.getChunkManager().getChunkGenerator() instanceof com.yompix.novograd.world.IslandChunkGenerator;
         TownState t = TownState.get(w);
         if (t.origin == null) {
             p.sendMessage(Text.literal("В этом мире нет дорог Новограда — такси не приедет").formatted(Formatting.RED), false);
@@ -155,16 +162,17 @@ public final class Taxi {
         }
         Vec3d start = roadPointAround(t, p.getPos(), 36);
         CarEntity car = new CarEntity(ModContent.CAR, w);
-        car.refreshPositionAndAngles(start.x, t.origin.getY(), start.z, 0, 0);
+        double sy = island ? com.yompix.novograd.story.Story.topY(w, (int) Math.floor(start.x), (int) Math.floor(start.z)) + 0.2 : t.origin.getY();
+        car.refreshPositionAndAngles(start.x, sy, start.z, 0, 0);
         car.setVariant(5);
         w.spawnEntity(car);
         CitizenEntity driver = new CitizenEntity(ModContent.CITIZEN, w);
         driver.setup(CitizenEntity.randomSkin(w.getRandom()), CitizenEntity.Role.CITIZEN, true, "Таксист " + Names.random(w.getRandom()));
-        driver.refreshPositionAndAngles(start.x, t.origin.getY(), start.z, 0, 0);
+        driver.refreshPositionAndAngles(start.x, sy, start.z, 0, 0);
         w.spawnEntity(driver);
         driver.startRiding(car, true);
         // переднее пассажирское место занято сумкой водителя — клиент садится назад, обзор не закрывает водитель
-        net.minecraft.entity.decoration.ArmorStandEntity bag = new net.minecraft.entity.decoration.ArmorStandEntity(w, start.x, t.origin.getY(), start.z);
+        net.minecraft.entity.decoration.ArmorStandEntity bag = new net.minecraft.entity.decoration.ArmorStandEntity(w, start.x, sy, start.z);
         bag.setInvisible(true);
         bag.setNoGravity(true);
         bag.setInvulnerable(true);
@@ -184,13 +192,16 @@ public final class Taxi {
     }
 
     /** Как в GTA: в такси можно пропустить дорогу — экран темнеет, и ты уже на месте. */
+    private static final Map<UUID, Integer> STUCK = new HashMap<>();
+
     public static void skip(ServerPlayerEntity p) {
         UUID cid = CARS.get(p.getUuid());
         LifeData d = Life.get(p);
         ServerWorld w = p.getServerWorld();
         if (cid == null || !(w.getEntity(cid) instanceof CarEntity car) || p.getVehicle() != car || !"taxi_ride".equals(d.taskKind) || d.taskPos == null) return;
         TownState t = TownState.get(w);
-        Vec3d drop = nearestRoad(t, Vec3d.ofCenter(d.taskPos));
+        Vec3d drop = island ? Vec3d.ofCenter(d.taskPos) : nearestRoad(t, Vec3d.ofCenter(d.taskPos));
+        STUCK.remove(p.getUuid());
         net.minecraft.nbt.NbtCompound n = new net.minecraft.nbt.NbtCompound();
         n.putString("label", "Такси");
         LifeNet.send(p, "taxi_fade", n);
@@ -221,12 +232,21 @@ public final class Taxi {
         Order o = WAITING.get(p.getUuid());
         if (o != null && !CARS.containsKey(p.getUuid()) && w.getTime() - o.at() > 400) dispatchNpc(p, o);
         UUID cid = CARS.get(p.getUuid());
+        if (cid != null && w.getEntity(cid) instanceof CarEntity stuckCar && p.getVehicle() == stuckCar && "taxi_ride".equals(Life.get(p).taskKind)) {
+            // застряли в пробке/на объезде дольше 20 секунд — довозим «за кадром», как пропуск поездки
+            int st = stuckCar.getVelocity().horizontalLengthSquared() < 0.0004 ? STUCK.merge(p.getUuid(), 1, Integer::sum) : 0;
+            if (st == 0) STUCK.remove(p.getUuid());
+            if (st > 20) {
+                skip(p);
+                return;
+            }
+        }
         if (cid != null && w.getEntity(cid) instanceof CarEntity car) {
             Order ord = WAITING.get(p.getUuid());
             if (ord != null && p.getVehicle() == car && !car.onRoute()) {
                 WAITING.remove(p.getUuid());
                 TownState t = TownState.get(w);
-                Vec3d drop = nearestRoad(t, ord.dest());
+                Vec3d drop = island ? ord.dest() : nearestRoad(t, ord.dest());
                 Life.get(p).taskKind = "taxi_ride";
                 Life.get(p).taskPos = BlockPos.ofFloored(ord.dest());
                 Life.sync(p);
@@ -287,7 +307,18 @@ public final class Taxi {
     }
 
     /** Ближайшая точка на дорогах (на осевой). */
+    /** Мир «Новоград: Город» (остров) — дороги берём с острова, а не из сетки старого центра. */
+    static boolean island() {
+        return island;
+    }
+
+    private static boolean island;
+
     static Vec3d nearestRoad(TownState t, Vec3d p) {
+        if (island) {
+            int[] n = com.yompix.novograd.world.IslandRoads.nearestNode(p.x, p.z);
+            if (n != null) return new Vec3d(n[0] + 0.5, p.y, n[1] + 0.5);
+        }
         double bestD = Double.MAX_VALUE;
         Vec3d best = p;
         double lo = gx(t, 0), hi = gx(t, TownBuilder.ROADS.length - 1);
@@ -321,6 +352,17 @@ public final class Taxi {
 
     /** Маршрут: по дорогам до перекрёстков (поиск в ширину по сетке), машина едет по правой полосе. */
     public static List<Vec3d> route(TownState t, Vec3d from, Vec3d to) {
+        if (island) {
+            // по настоящим дорогам острова (тот же путь, что рисует навигатор)
+            List<int[]> path = com.yompix.novograd.world.IslandRoads.route(from.x, from.z, to.x, to.z);
+            List<Vec3d> center = new ArrayList<>();
+            center.add(new Vec3d(from.x, from.y, from.z));
+            for (int[] q : path) center.add(new Vec3d(q[0] + 0.5, from.y, q[1] + 0.5));
+            Vec3d last = center.get(center.size() - 1);
+            // до самой двери: последний короткий отрезок от перекрёстка к цели
+            if (path.isEmpty() || Math.hypot(last.x - to.x, last.z - to.z) < 40) center.add(new Vec3d(to.x, from.y, to.z));
+            return lane(center, from.y);
+        }
         int n = TownBuilder.ROADS.length;
         Vec3d a = nearestRoad(t, from), b = nearestRoad(t, to);
         // соседние перекрёстки для точки на дороге
