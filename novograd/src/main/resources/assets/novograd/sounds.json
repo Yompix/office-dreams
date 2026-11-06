@@ -1872,6 +1872,30 @@
       }
     ]
   },
+  "ambience.city_day": {
+    "sounds": [
+      {
+        "name": "novograd:ambience/city_day",
+        "stream": true
+      }
+    ]
+  },
+  "ambience.city_night": {
+    "sounds": [
+      {
+        "name": "novograd:ambience/city_night",
+        "stream": true
+      }
+    ]
+  },
+  "ambience.beach": {
+    "sounds": [
+      {
+        "name": "novograd:ambience/beach",
+        "stream": true
+      }
+    ]
+  },
   "gunshot": {
     "sounds": [
       {
@@ -1918,6 +1942,48 @@
     "sounds": [
       {
         "name": "novograd:explosion"
+      }
+    ]
+  },
+  "pistol_reload": {
+    "sounds": [
+      {
+        "name": "novograd:pistol_reload"
+      }
+    ]
+  },
+  "smg_reload": {
+    "sounds": [
+      {
+        "name": "novograd:smg_reload"
+      }
+    ]
+  },
+  "rifle_reload": {
+    "sounds": [
+      {
+        "name": "novograd:rifle_reload"
+      }
+    ]
+  },
+  "shotgun_reload": {
+    "sounds": [
+      {
+        "name": "novograd:shotgun_reload"
+      }
+    ]
+  },
+  "sniper_reload": {
+    "sounds": [
+      {
+        "name": "novograd:sniper_reload"
+      }
+    ]
+  },
+  "gun_dry": {
+    "sounds": [
+      {
+        "name": "novograd:gun_dry"
       }
     ]
   },
@@ -2158,48 +2224,6 @@
       {
         "name": "novograd:radio/tekhno_podval_2",
         "stream": true
-      }
-    ]
-  },
-  "pistol_reload": {
-    "sounds": [
-      {
-        "name": "novograd:pistol_reload"
-      }
-    ]
-  },
-  "smg_reload": {
-    "sounds": [
-      {
-        "name": "novograd:smg_reload"
-      }
-    ]
-  },
-  "rifle_reload": {
-    "sounds": [
-      {
-        "name": "novograd:rifle_reload"
-      }
-    ]
-  },
-  "shotgun_reload": {
-    "sounds": [
-      {
-        "name": "novograd:shotgun_reload"
-      }
-    ]
-  },
-  "sniper_reload": {
-    "sounds": [
-      {
-        "name": "novograd:sniper_reload"
-      }
-    ]
-  },
-  "gun_dry": {
-    "sounds": [
-      {
-        "name": "novograd:gun_dry"
       }
     ]
   }

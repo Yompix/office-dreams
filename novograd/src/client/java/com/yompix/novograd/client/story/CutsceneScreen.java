@@ -172,9 +172,56 @@ public class CutsceneScreen extends LifeScreen {
         return (float) -Math.toDegrees(Math.atan2(look.y - y, h));
     }
 
+    /** Какой кадр сейчас по времени. */
+    private int shotIndex(float time) {
+        float t = time;
+        for (int i = 0; i < shots.size(); i++) {
+            if (t <= shots.get(i).sec()) return i;
+            t -= shots.get(i).sec();
+        }
+        return shots.size() - 1;
+    }
+
+    private int waitingShot = -1, waitTicks;
+    private float black = 1;
+    private boolean sentHold;
+
+    /** Местность вокруг камеры прогрузилась и отрисована? */
+    private boolean areaReady() {
+        var w = mc().world;
+        if (w == null || cam == null) return true;
+        int cx = (int) Math.floor(cam.getX()) >> 4, cz = (int) Math.floor(cam.getZ()) >> 4;
+        for (int dx = -2; dx <= 2; dx++)
+            for (int dz = -2; dz <= 2; dz++)
+                if (!w.getChunkManager().isChunkLoaded(cx + dx, cz + dz)) return false;
+        return mc().worldRenderer.isTerrainRenderComplete();
+    }
+
     @Override
     public void tick() {
         if (cam == null) return;
+        // новый кадр: ждём, пока местность вокруг камеры прогрузится (до 4 с), время сцены стоит, экран тёмный
+        int si = shotIndex(Math.min(elapsed(), total));
+        if (si != waitingShot && waitTicks == 0) {
+            waitingShot = si;
+            waitTicks = 1;
+        }
+        if (waitTicks > 0) {
+            if (areaReady() && waitTicks > 3 || waitTicks > 80) waitTicks = 0;
+            else {
+                waitTicks++;
+                startAt += 50; // остановили время сцены
+                if (subIndex >= 0) subAt += 50;
+            }
+        }
+        boolean holding = waitTicks > 0;
+        if (holding != sentHold) {
+            sentHold = holding;
+            net.minecraft.nbt.NbtCompound n = new net.minecraft.nbt.NbtCompound();
+            n.putBoolean("on", holding);
+            NovogradClient.send("cut_hold", n);
+        }
+        black += ((waitTicks > 4 ? 1 : 0) - black) * 0.25f;
         float time = elapsed();
         place(Math.min(time, total), 0);
         // субтитры идут по очереди: следующая — когда голос закончился
@@ -240,7 +287,12 @@ public class CutsceneScreen extends LifeScreen {
         ctx.fill(0, 0, width, bar, 0xFF000000);
         ctx.fill(0, height - bar, width, height, 0xFF000000);
         float fade = Math.min(1, elapsed() / 1.2f);
-        if (fade < 1) ctx.fill(0, 0, width, height, (int) ((1 - fade) * 255) << 24);
+        float dark = Math.max(1 - fade, black);
+        if (dark > 0.01f) ctx.fill(0, 0, width, height, (int) (Math.min(1, dark) * 255) << 24);
+        if (black > 0.5f) {
+            String l = "Загрузка сцены…";
+            ctx.drawText(textRenderer, l, width / 2 - textRenderer.getWidth(l) / 2, height / 2 - 4, 0x99FFFFFF, false);
+        }
         if (subIndex >= 0 && subIndex < subs.size()) {
             Sub s = subs.get(subIndex);
             var lines = textRenderer.wrapLines(Text.literal(s.text()), Math.min(width - 40, 380));

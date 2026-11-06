@@ -743,7 +743,7 @@ public final class Island {
         cam("cam_bridge", -640, 20, -700, 126, 10);
         cam("cam_mtn", 200, 40, -1350, 200, 15);
         cam("cam_desert", 450, 25, 1300, 30, 10);
-        cam("cam_island_far", 260, 160, 260, 135, 38);
+        cam("cam_island_far", 140, 70, 140, 135, 30);
         cam("cam_dt_a", 300, 70, -120, 210, 18);
         cam("cam_dt_b", 456, 4, -330, 180, -6);
         cam("cam_port_a", -480, 34, 70, 100, 18);

@@ -326,6 +326,7 @@ public class NovogradClient implements ClientModInitializer {
         while (radioDownKey.wasPressed()) CarRadio.volume(client, -0.1f);
         while (radioUpKey.wasPressed()) CarRadio.volume(client, 0.1f);
         CarRadio.tick(client);
+        CityAmbience.tick(client);
         while (mapKey.wasPressed()) if (client.currentScreen == null) client.setScreen(new com.yompix.novograd.client.screen.MapScreen());
         ENGINES.values().removeIf(s -> s.isDone());
         if (screenshotIn >= 0 && --screenshotIn == 0) {

@@ -57,6 +57,8 @@ public final class Director {
         Set<UUID> extras = new HashSet<>();
         /** Зритель: сцену ставит напарник, а этот игрок её только смотрит (актёры общие). */
         boolean viewer;
+        /** Клиент ждёт загрузку местности — сцена стоит. */
+        boolean hold;
         JsonObject step;
         final List<int[]> bursts = new ArrayList<>(); // [индекс очереди, осталось, кд]
         final List<Object[]> burstInfo = new ArrayList<>();
@@ -125,6 +127,13 @@ public final class Director {
         double y = v.y + (t == null && r == null ? 1.6 : 0);
         // камера не уходит в землю: над рельефом острова минимум на 1.7 блока
         if (t == null) y = Math.max(y, com.yompix.novograd.world.Island.surface((int) Math.floor(v.x), (int) Math.floor(v.z)) + 2.7);
+        // камера не внутри здания: поднимаем до воздуха (крыша, балкон)
+        net.minecraft.util.math.BlockPos.Mutable bp = new net.minecraft.util.math.BlockPos.Mutable(v.x, y, v.z);
+        w.getChunk(bp);
+        for (int i = 0; i < 80 && (!w.getBlockState(bp).isAir() || !w.getBlockState(bp.up()).isAir()); i++) {
+            y += 1;
+            bp.setY((int) Math.floor(y));
+        }
         return new double[]{v.x, y, v.z, yaw, pitch};
     }
 
@@ -145,6 +154,12 @@ public final class Director {
         return new Vec3d(v.x + dx, Math.max(v.y, com.yompix.novograd.world.Island.surface(x, z) + 1) + up, v.z + dz);
     }
 
+    /** Клиент: «жду загрузку» / «показываю». */
+    public static void hold(ServerPlayerEntity p, boolean on) {
+        Scene sc = SCENES.get(p.getUuid());
+        if (sc != null) sc.hold = on;
+    }
+
     public static boolean running(ServerPlayerEntity p) {
         return SCENES.containsKey(p.getUuid());
     }
@@ -153,6 +168,16 @@ public final class Director {
         Scene sc = SCENES.get(p.getUuid());
         if (sc == null) return;
         ServerWorld w = p.getServerWorld();
+        // актёры живут, даже если «зритель» далеко от них
+        if (sc.t % 20 == 0) for (UUID u : sc.actors.values()) {
+            Entity e = w.getEntity(u);
+            if (e != null) w.getChunkManager().addTicket(net.minecraft.server.world.ChunkTicketType.PORTAL, e.getChunkPos(), 2, e.getBlockPos());
+        }
+        if (sc.hold) {
+            Vec3d at = camAt(w, sc, 0);
+            if (at != null && w.getTime() % 10 == 0 && p.squaredDistanceTo(at) > 24 * 24) p.teleport(w, at.x, at.y, at.z, p.getYaw(), p.getPitch());
+            return;
+        }
         sc.t++;
         if (!sc.viewer) run(p, sc, sc.t);
         // очереди выстрелов
@@ -175,7 +200,9 @@ public final class Director {
         }
         // держим «зрителя» рядом с камерой, чтобы герои в кадре были загружены и видны
         if (sc.t % 10 == 0) {
-            Vec3d at = camAt(w, sc);
+            // заранее (за 1.5 с) переносим «зрителя» к следующему кадру, чтобы местность успела загрузиться
+            Vec3d at = camAt(w, sc, 30);
+            if (at == null) at = camAt(w, sc, 0);
             if (at != null && p.squaredDistanceTo(at) > 24 * 24) p.teleport(w, at.x, at.y, at.z, p.getYaw(), p.getPitch());
         }
         int total = 0;
@@ -184,8 +211,8 @@ public final class Director {
     }
 
     @Nullable
-    private static Vec3d camAt(ServerWorld w, Scene sc) {
-        int t = sc.t;
+    private static Vec3d camAt(ServerWorld w, Scene sc, int ahead) {
+        int t = sc.t + ahead;
         for (Shot s : sc.shots) {
             if (t <= s.ticks || s == sc.shots.get(sc.shots.size() - 1)) {
                 String who = !s.follow.isEmpty() ? s.follow : s.track;
@@ -262,6 +289,7 @@ public final class Director {
                 String id = a.get(1).getAsString(), place = a.get(2).getAsString();
                 Vec3d at = pos(w, place);
                 if (at == null) return;
+                w.getChunk(net.minecraft.util.math.BlockPos.ofFloored(at)); // район актёра загружен, иначе он потеряется
                 CitizenEntity c;
                 if (isCharacter(id)) {
                     c = Npcs.spawn(p, id, base(place));
@@ -312,6 +340,7 @@ public final class Director {
                 String id = a.get(1).getAsString(), place = a.get(2).getAsString();
                 Vec3d at = pos(w, place);
                 if (at == null) return;
+                w.getChunk(net.minecraft.util.math.BlockPos.ofFloored(at));
                 CarEntity car = new CarEntity(ModContent.CAR, w);
                 float yaw = a.size() > 4 ? a.get(4).getAsFloat() : Story.placeYaw(w, base(place));
                 car.refreshPositionAndAngles(at.x, Story.ground(w, at).getY(), at.z, yaw, 0);

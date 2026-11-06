@@ -297,7 +297,7 @@ def find(ch, mid):
 # ---------- вступление: машина гонщика пролетает по деловому центру, камера за ней
 intro = ch1['missions'][0]['steps'][0]
 intro['shots'].insert(1, F('racer', 7, (9, 2.5, 2.5)))
-intro['shots'].insert(2, S('dt_2+14,10,2', 'dt_2+6,18,3', 4, track='racer'))
+intro['shots'].insert(2, S('dt_2+0,30,3', 'dt_2+0,16,2.5', 4, track='racer'))
 intro['actors'] = [[0, 'car', 'racer', 'dt_1', 2], [0.2, 'drive', 'racer', ['dt_2', 'dt_3'], 0.95]]
 
 # ---------- a1m2: Сторм приезжает на старт, выходит и наезжает на Ники

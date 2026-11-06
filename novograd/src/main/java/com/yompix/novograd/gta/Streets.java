@@ -36,10 +36,15 @@ public final class Streets {
         for (ServerPlayerEntity p : w.getPlayers()) {
             Island.Zone here = Island.zone(p.getBlockX(), p.getBlockZ());
             if (here == Island.Zone.CORE || here == Island.Zone.SEA) continue;
+            // плотность по району: центр и Ривьера кипят, пригород спокойнее, деревня почти пустая
+            boolean busy = here == Island.Zone.DOWNTOWN || here == Island.Zone.RIVIERA;
+            int wantPeople = busy ? 26 : here == Island.Zone.VILLAGE ? 7 : PEOPLE;
+            int wantCars = busy ? 11 : here == Island.Zone.VILLAGE ? 3 : CARS;
             long people = w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(64, 20, 64), CitizenEntity::isAmbient).size();
-            if (people < PEOPLE) pedestrian(w, p);
+            if (people < wantPeople) pedestrian(w, p);
+            if (busy && people < wantPeople - 4) pedestrian(w, p);
             long cars = w.getEntitiesByClass(CarEntity.class, p.getBoundingBox().expand(80, 20, 80), CarEntity::isAmbient).size();
-            if (cars < CARS) traffic(w, p);
+            if (cars < wantCars) traffic(w, p);
         }
     }
 

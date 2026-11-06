@@ -129,6 +129,15 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("fresh")) {
+            // новая игра как у игрока: вступление без пропуска, потом несколько минут жизни
+            YompixSplash.markShown();
+            pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            for (int i = 0; i < 20; i++) shot(50, "fresh_c" + i);
+            for (int i = 0; i < 8; i++) shot(200, "fresh_" + i);
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("island3")) {
             YompixSplash.markShown();
             pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));

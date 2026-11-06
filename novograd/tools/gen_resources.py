@@ -302,6 +302,8 @@ def sounds():
     out['yompix_jingle'] = {'sounds': [{'name': f'{NS}:yompix_jingle', 'stream': True}]}
     out['yompix_intro'] = {'sounds': [{'name': f'{NS}:yompix_intro', 'stream': True}]}
     out['siren'] = {'sounds': [{'name': f'{NS}:siren_soft', 'volume': 0.7}]}  # мягкая сирена (tools/gen_siren.py)
+    for amb in ('city_day', 'city_night', 'beach'):  # фон города (tools/gen_ambience.py)
+        out['ambience.' + amb] = {'sounds': [{'name': f'{NS}:ambience/{amb}', 'stream': True}]}
     for snd in ('gunshot', 'smg_shot', 'shotgun_shot', 'rifle_shot', 'sniper_shot', 'reload', 'explosion',
                 'pistol_reload', 'smg_reload', 'rifle_reload', 'shotgun_reload', 'sniper_reload', 'gun_dry'):
         out[snd] = {'sounds': [{'name': f'{NS}:{snd}'}]}
