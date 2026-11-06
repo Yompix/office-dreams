@@ -45,7 +45,7 @@ public final class LifeHud {
     }
 
     private static float scale() {
-        return Math.max(0.5f, Math.min(2f, NovogradConfig.get().hudScale));
+        return NovogradConfig.hud();
     }
 
     public static void render(DrawContext ctx, RenderTickCounter tick) {

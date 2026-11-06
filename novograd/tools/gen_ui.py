@@ -492,6 +492,8 @@ if __name__ == '__main__':
     grain()
     for i, (dk, lt, ac) in enumerate([((30, 6, 40), (255, 120, 190), PINK), ((6, 20, 44), (110, 230, 255), CYAN),
                                       ((40, 10, 6), (255, 190, 90), GOLD), ((16, 6, 40), (190, 140, 255), PURPLE)]):
+        if os.path.exists(os.path.join(UI, '..', 'keyart', 'night.png')):
+            continue  # с 0.3.2 панели — настоящие кадры острова (textures/gui/keyart)
         halftone_panel(os.path.join(MENU, 'bg%d.png' % (i + 1)), os.path.join(UI, 'panel%d.png' % (i + 1)), dk, lt, ac)
     star(os.path.join(UI, 'star.png'), True)
     star(os.path.join(UI, 'star_empty.png'), False)

@@ -32,7 +32,16 @@ public final class CarHud {
             CarEntity.handbrakeInput = inCar && c.options.jumpKey.isPressed();
         });
         ClientTickEvents.END_CLIENT_TICK.register(CarHud::tickMarks);
-        HudRenderCallback.EVENT.register((ctx, t) -> speedo(ctx));
+        HudRenderCallback.EVENT.register((ctx, t) -> {
+            float k = NovogradConfig.hud();
+            int sh = ctx.getScaledWindowHeight();
+            ctx.getMatrices().push();
+            ctx.getMatrices().translate(0, sh, 0);
+            ctx.getMatrices().scale(k, k, 1);
+            ctx.getMatrices().translate(0, -sh, 0);
+            speedo(ctx);
+            ctx.getMatrices().pop();
+        });
         WorldRenderEvents.AFTER_TRANSLUCENT.register(CarHud::renderMarks);
     }
 

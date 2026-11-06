@@ -144,7 +144,7 @@ public final class Director {
 
     /** Место со сдвигом: «gang_yard+3,-2». */
     @Nullable
-    static Vec3d pos(ServerWorld w, String spec) {
+    public static Vec3d pos(ServerWorld w, String spec) {
         String b = base(spec);
         Vec3d v = Story.place(w, b);
         if (v == null || b.length() == spec.length()) return v;

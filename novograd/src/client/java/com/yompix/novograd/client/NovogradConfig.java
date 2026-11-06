@@ -26,7 +26,7 @@ public final class NovogradConfig {
     /** Радар (мини-карта) слева внизу. */
     public boolean minimap = true;
     /** Масштаб HUD (0.75..1.5). */
-    public float hudScale = 1f;
+    public float hudScale = 0.85f;
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static NovogradConfig cfg;
@@ -83,6 +83,13 @@ public final class NovogradConfig {
             else if (!want && on) changed |= m.disable(pk[0]);
         }
         if (changed) mc.options.refreshResourcePacks(m);
+    }
+
+    /** Итоговый размер HUD: настройка игрока × поправка на маленький экран / крупный масштаб интерфейса. */
+    public static float hud() {
+        var mc = net.minecraft.client.MinecraftClient.getInstance();
+        float auto = mc.getWindow() == null ? 1 : Math.max(0.55f, Math.min(1f, mc.getWindow().getScaledHeight() / 420f));
+        return Math.max(0.4f, Math.min(1.6f, get().hudScale * auto));
     }
 
     /** Применить к системам игры (вызывать после изменения). */

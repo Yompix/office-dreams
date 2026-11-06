@@ -34,7 +34,7 @@ public class YompixSplash extends Screen {
             "1000001000001",
             "1100001000011",
             "0111111111110"};
-    private static final long TOTAL = 11400;
+    private static final long TOTAL = 11400 + 3920;
 
     private final Screen next;
     private long start = System.currentTimeMillis();
@@ -286,14 +286,52 @@ public class YompixSplash extends Screen {
      * Вторая часть: «загрузочный арт» — комикс-панели с ночным городом врезаются одна за другой, затем
      * закат над Новоградом и удар логотипа «НОВОГРАД» с подзаголовком «ТЁМНЫЕ УЛИЦЫ». Плёночное зерно, полосы кино.
      */
+    /** Монтаж настоящих кадров острова (после комикс-панелей, до логотипа): наезд камеры, жёсткие склейки, подписи районов. */
+    private static final long MONT_AT = 1750, MONT_LEN = 3920, MONT_SHOT = 560;
+    private static final String[][] MONT = {{"bridge", "МОСТ ЧЕРЕЗ ПРОЛИВ"}, {"night", "ДЕЛОВОЙ ЦЕНТР"}, {"chase", "СЕВЕРНАЯ ТРАССА"},
+            {"port", "ПОРТ НОВОГРАДА"}, {"strip", "РИВЬЕРА"}, {"casino", "СТРИП"}, {"desert", "ПУСТОШЬ"}};
+
+    private void montage(DrawContext ctx, long t) {
+        int i = (int) Math.min(MONT.length - 1, t / MONT_SHOT);
+        float k = (t - i * MONT_SHOT) / (float) MONT_SHOT;
+        Identifier id = Novograd.id("textures/gui/keyart/" + MONT[i][0] + ".png");
+        float zoom = 1.16f - 0.12f * k;                       // медленный наезд
+        float pan = i % 2 == 0 ? 0.35f + 0.3f * k : 0.65f - 0.3f * k; // и проезд в сторону
+        ctx.fill(0, 0, width, height, 0xFF000000);
+        Ui.cover(ctx, id, 0, 0, width, height, 800, 450, zoom, pan, 1);
+        // подпись района: розовая плашка слева внизу
+        float in = Ui.easeOut(Math.min(1, k * 4));
+        int bx = (int) (24 - (1 - in) * 120), by = (int) (height * 0.78f);
+        String cap = MONT[i][1];
+        int cw = textRenderer.getWidth(cap) * 2 + 18;
+        ctx.fill(bx, by, bx + cw, by + 24, 0xE8FF2E88);
+        ctx.getMatrices().push();
+        ctx.getMatrices().translate(bx + 9, by + 5, 0);
+        ctx.getMatrices().scale(2f, 2f, 1);
+        ctx.drawText(textRenderer, cap, 0, 0, 0xFFFFFFFF, true);
+        ctx.getMatrices().pop();
+        // белая вспышка на склейке
+        float since = (t - i * MONT_SHOT);
+        if (since < 90) ctx.fill(0, 0, width, height, (int) ((1 - since / 90f) * 170) << 24 | 0xFFFFFF);
+        Ui.vignette(ctx, width, height, 0.8f);
+        Ui.letterbox(ctx, width, height, 1);
+        Ui.grain(ctx, width, height, 0.35f);
+    }
+
     private void title(DrawContext ctx, long t) {
+        if (t >= MONT_AT && t < MONT_AT + MONT_LEN) {
+            montage(ctx, t - MONT_AT);
+            return;
+        }
+        boolean afterMontage = t >= MONT_AT + MONT_LEN;
+        if (afterMontage) t -= MONT_LEN;
         float w = width, h = height;
         // 1) комикс-панели: три кадра с ударом и вспышкой
         float[][] P = {{0.28f, 0.50f, 0.48f, 0.70f, -3f, -1}, {0.73f, 0.31f, 0.44f, 0.36f, 2.5f, 1}, {0.74f, 0.70f, 0.40f, 0.34f, -1.5f, 1}};
         long[] at = {0, 380, 760};
         float shake = 0;
         float panelsOut = Ui.easeOut((t - 1750) / 450f);
-        if (panelsOut < 1) {
+        if (panelsOut < 1 && !afterMontage) {
             // за панелями — тёмный растр-фон
             ctx.fill(0, 0, width, height, 0xFF0A0612);
             for (int i = 0; i < 3; i++) {

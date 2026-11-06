@@ -64,6 +64,13 @@ public final class Minimap {
         if (tex == null || Math.abs(px - (ox + SIZE / 2)) > 140 || Math.abs(pz - (oz + SIZE / 2)) > 140) bake((int) px, (int) pz);
 
         int W = 132, H = 96, x = 12, y = ctx.getScaledWindowHeight() - H - 22;
+        // весь радар уменьшаем от левого нижнего угла (размер HUD в настройках + маленький экран)
+        float K = NovogradConfig.hud();
+        int SH = ctx.getScaledWindowHeight();
+        ctx.getMatrices().push();
+        ctx.getMatrices().translate(0, SH, 0);
+        ctx.getMatrices().scale(K, K, 1);
+        ctx.getMatrices().translate(0, -SH, 0);
         int cx = x + W / 2, cy = y + H / 2 + 14; // игрок ниже центра — впереди видно больше
         boolean inCar = pl.getVehicle() instanceof CarEntity;
         float want = inCar ? 0.55f + (float) Math.max(0, 0.35 - pl.getVehicle().getVelocity().horizontalLength()) : 1.1f;
@@ -74,7 +81,7 @@ public final class Minimap {
         // рамка
         ctx.fill(x - 3, y - 3, x + W + 3, y + H + 3, 0xC0000000);
         ctx.fill(x - 2, y - 2, x + W + 2, y + H + 2, 0xFF111418);
-        ctx.enableScissor(x, y, x + W, y + H);
+        ctx.enableScissor((int) (x * K), (int) (SH - (SH - y) * K), (int) ((x + W) * K), (int) (SH - (SH - y - H) * K));
         var m = ctx.getMatrices();
         m.push();
         m.translate(cx, cy, 0);
@@ -172,6 +179,7 @@ public final class Minimap {
         ctx.fill(x, by0, x + (int) (half * hp), by0 + 4, hp < 0.3f && (pl.age / 6) % 2 == 0 ? 0xFFE53935 : 0xFF5BC236);
         ctx.fill(x + half + 2, by0, x + W, by0 + 4, 0xFF1A2A3A);
         ctx.fill(x + half + 2, by0, x + half + 2 + (int) ((W - half - 2) * armor), by0 + 4, 0xFF3FA9F5);
+        ctx.getMatrices().pop();
     }
 
     private static void blip(DrawContext ctx, MinecraftClient mc, double px, double pz, double tx, double tz, float yaw, int cx, int cy, int x, int y, int W, int H, int col, String label) {

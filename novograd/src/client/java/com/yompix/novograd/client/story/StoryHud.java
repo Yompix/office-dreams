@@ -30,7 +30,7 @@ public final class StoryHud {
     private static long bannerAt = -1;
 
     private static float scale() {
-        return Math.max(0.5f, Math.min(2f, com.yompix.novograd.client.NovogradConfig.get().hudScale));
+        return com.yompix.novograd.client.NovogradConfig.hud();
     }
 
     /** Строки, разбитые по ширине. */

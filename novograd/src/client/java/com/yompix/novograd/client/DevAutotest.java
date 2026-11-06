@@ -129,6 +129,60 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("splash")) {
+            pre(1, c -> {});
+            for (int i = 0; i < 16; i++) preShot(i == 0 ? 60 : 22, "splash_" + i);
+            pre(40, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("keyart")) {
+            // кадры для заставки: без интерфейса, красивое время суток, машины в кадре
+            YompixSplash.markShown();
+            pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); c.options.hudHidden = true; });
+            cmd(5, "gamemode spectator " + P);
+            cmd(5, "gamerule doDaylightCycle false");
+            // {имя кадра, место камеры, на что смотреть, время суток, машины: «вариант@место»}
+            String[][] shots = {
+                    {"strip", "riv_strip+0,140,4", "riv_strip+0,40", "12600", "2@riv_strip+-3,60;9@riv_strip+3,80;10@riv_strip+-3,100"},
+                    {"bridge", "bridge_n+60,30,14", "bridge_n+-120,0", "12300", "6@bridge_n+20,-2;9@bridge_n+0,2"},
+                    {"night", "dt_2+3,30,2", "dt_2+0,-40,12", "17000", "5@dt_2+-3,10;0@dt_2+3,20"},
+                    {"chase", "race_start+30,-5,2", "race_start+-20,0", "13000", "9@race_start+10,-2;6@race_start+22,-2;6@race_start+30,2"},
+                    {"desert", "desert_road+40,-30,6", "desert_mesa", "11800", "8@desert_road+0,-20"},
+                    {"mountains", "mtn_road+40,60,30", "mtn_top", "1500", "7@mtn_road+0,40"},
+                    {"port", "port_dock+60,40,18", "port_dock", "12800", ""},
+                    {"casino", "riv_casino+0,4,2", "riv_casino+0,-14,3", "18000", ""},
+            };
+            for (String[] sh : shots) {
+                server(5, s -> {
+                    ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                    var w = p.getServerWorld();
+                    w.setTimeOfDay(Long.parseLong(sh[3]));
+                    for (String carSpec : sh[4].split(";")) {
+                        if (carSpec.isEmpty()) continue;
+                        String[] cs = carSpec.split("@");
+                        var at = com.yompix.novograd.story.Director.pos(w, cs[1]);
+                        if (at == null) continue;
+                        w.getChunk(net.minecraft.util.math.BlockPos.ofFloored(at));
+                        var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, w);
+                        car.refreshPositionAndAngles(at.x, Story.topY(w, (int) at.x, (int) at.z), at.z, (float) (Math.random() * 360), 0);
+                        car.setVariant(Integer.parseInt(cs[0]));
+                        if (car.isPolice()) car.toggleLight(com.yompix.novograd.entity.CarEntity.HAZARD);
+                        w.spawnEntity(car);
+                    }
+                    double[] v = com.yompix.novograd.story.Director.camera(w, sh[1]);
+                    var look = com.yompix.novograd.story.Director.pos(w, sh[2]);
+                    if (v == null || look == null) return;
+                    float yaw = (float) Math.toDegrees(Math.atan2(-(look.x - v[0]), look.z - v[2]));
+                    float pitch = (float) -Math.toDegrees(Math.atan2(look.y - v[1], Math.hypot(look.x - v[0], look.z - v[2])));
+                    p.teleport(w, v[0], v[1], v[2], yaw, pitch);
+                });
+                shot(260, "keyart_" + sh[0]);
+            }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("fresh")) {
             // новая игра как у игрока: вступление без пропуска, потом несколько минут жизни
             YompixSplash.markShown();

@@ -133,7 +133,12 @@ public final class CarRadio {
         TextRenderer tr = mc.textRenderer;
         float a = age < 200 ? age / 200f : age > 2600 ? (3200 - age) / 600f : 1;
         int alpha = (int) (a * 255) << 24;
-        int cx = ctx.getScaledWindowWidth() / 2, y = 18;
+        int cx = ctx.getScaledWindowWidth() / 2, y = 44; // ниже компаса
+        float K = NovogradConfig.hud();
+        ctx.getMatrices().push();
+        ctx.getMatrices().translate(cx, y, 0);
+        ctx.getMatrices().scale(K * 0.8f, K * 0.8f, 1);
+        ctx.getMatrices().translate(-cx, -y, 0);
         int st = NovogradConfig.get().radioStation;
         int col = 0xFFFFFF;
         String genre = "";
@@ -160,5 +165,6 @@ public final class CarRadio {
                 ctx.fill(cx - 27 + i * 6, y + 44 - h, cx - 23 + i * 6, y + 44, alpha | col);
             }
         }
+        ctx.getMatrices().pop();
     }
 }
