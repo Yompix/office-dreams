@@ -2100,6 +2100,13 @@ public final class DevAutotest {
             c.createIntegratedServerLoader().createAndStart(info.getLevelName(), info, net.minecraft.world.gen.GeneratorOptions.createRandom(),
                     drm -> drm.get(net.minecraft.registry.RegistryKeys.WORLD_PRESET).getOrThrow(city).createDimensionsRegistryHolder(), new com.yompix.novograd.client.menu.LifeMenuScreen());
         });
+        server(1, sv -> { // без вступления и сюжета: только город
+            ServerPlayerEntity p = sv.getPlayerManager().getPlayer(P);
+            if (p == null) return;
+            var d = Life.get(p);
+            d.storyStarted = true;
+            d.storyDone = true;
+        });
         run(200, c -> { if (c.currentScreen != null) c.setScreen(null); });
         cmd(5, "gamemode creative " + P);
         cmd(5, "difficulty peaceful");

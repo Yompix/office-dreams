@@ -189,7 +189,7 @@ public class CutsceneScreen extends LifeScreen {
             a = 80; b = 76;
             r = (float) (Math.sin(tt * 0.9) * 2.2 + Math.sin(tt * 2.3) * 0.6);
         } else if (track) { // крупный план героя: медленный наезд
-            a = 58; b = 46;
+            a = 66; b = 58;
             r = shake > 0 ? (idx % 2 == 0 ? 5 : -5) : 0;
         } else { // общий план: лёгкий наезд, ровный горизонт
             a = 72; b = 62;
