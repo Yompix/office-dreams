@@ -608,32 +608,88 @@ public class CarEntity extends Entity {
             }
         }
         braking = false;
-        float max = isTouchingWater() ? 0.15f : isScooter() ? 0.42f : isBike() ? 1.25f * (1 + engine() * 0.12f) : route != null ? autoMax + 0.05f : 0.95f * (1 + engine() * 0.12f);
-        if (nitroOn()) max *= 1.55f;
+        boolean player = getControllingPassenger() instanceof PlayerEntity;
+        boolean fourWheels = !isBike() && !isScooter();
+        CarBody b = fourWheels ? body() : CarBody.SEDAN;
+        float max = isTouchingWater() ? 0.15f : route != null && !player ? autoMax + 0.05f : topSpeed();
+        if (route != null && !player && nitroOn()) max *= 1.55f;
+        // ручник — только у водителя на его клиенте (физику машины игрока считает его клиент)
+        handbrake = player && fourWheels && getWorld().isClient && handbrakeInput && !wrecked();
         if (wrecked()) {
             fwd = 0;
             max = 0;
         }
-        if (fwd > 0) {
-            speed += speed < 0 ? 0.05f : (nitroOn() ? 0.04f : isBike() ? 0.028f : 0.018f) * (1 - speed / Math.max(max, 0.01f) * 0.6f);
-        } else if (fwd < 0) {
-            if (speed > 0.02f) {
-                speed -= 0.05f;
-                braking = true;
+        float sp = Math.abs(speed);
+        if (!player) {
+            // автопилот (такси, трафик, полиция): прежняя простая модель, под неё настроены маршруты
+            if (fwd > 0) {
+                speed += speed < 0 ? 0.05f : (nitroOn() ? 0.04f : isBike() ? 0.028f : 0.018f) * (1 - speed / Math.max(max, 0.01f) * 0.6f);
+            } else if (fwd < 0) {
+                if (speed > 0.02f) {
+                    speed -= 0.05f;
+                    braking = true;
+                } else {
+                    speed = Math.max(speed - 0.012f, -0.25f);
+                }
             } else {
-                speed = Math.max(speed - 0.012f, -0.25f);
+                speed *= isOnGround() ? 0.975f : 0.995f;
+                if (Math.abs(speed) < 0.004f) speed = 0;
             }
+            speed = MathHelper.clamp(speed, -0.25f, max);
         } else {
-            speed *= isOnGround() ? 0.975f : 0.995f;
-            if (Math.abs(speed) < 0.004f) speed = 0;
+            // игрок: мягкий старт, тяга падает к максималке, настоящий тормоз, задний ход, торможение мотором
+            if (fwd > 0) {
+                if (speed < -0.01f) {
+                    speed = Math.min(0, speed + 0.045f * b.brake);
+                    braking = true;
+                } else {
+                    float f = MathHelper.clamp(speed / Math.max(max, 0.01f), 0, 1.2f);
+                    float launch = 0.6f + 0.4f * MathHelper.clamp(f * 5, 0, 1);       // сцепление: с места чуть мягче
+                    float torque = launch * Math.max(0.04f, 1 - f * f * 0.92f);        // к максималке тяга уходит плавно
+                    float base = nitroOn() ? 0.042f : isScooter() ? 0.016f : isBike() ? 0.03f : 0.021f * b.accel * (1 + engine() * 0.1f);
+                    speed += base * torque;
+                }
+            } else if (fwd < 0) {
+                if (speed > 0.01f) {
+                    speed = Math.max(0, speed - (0.03f + sp * 0.045f) * b.brake);
+                    braking = true;
+                } else {
+                    speed = Math.max(speed - 0.011f * (1 - Math.min(1, -speed / 0.28f) * 0.7f), -0.28f);
+                }
+            } else {
+                speed *= isOnGround() ? 0.984f : 0.996f;
+                speed -= Math.signum(speed) * Math.min(Math.abs(speed), 0.0016f);
+            }
+            if (handbrake) {
+                speed -= Math.signum(speed) * Math.min(Math.abs(speed), 0.009f + sp * 0.012f);
+                braking = true;
+            }
+            // после нитро скорость спадает плавно, а не обрывается
+            if (speed > max) speed = Math.max(max, speed * 0.97f);
+            speed = Math.max(speed, -0.28f);
         }
-        speed = MathHelper.clamp(speed, -0.25f, max);
-        steer = MathHelper.lerp(0.25f, steer, side);
-        float grip = MathHelper.clamp(Math.abs(speed) * 6, 0, 1);
-        float turn = -steer * 4.2f * grip * Math.signum(speed) * (1 - Math.min(Math.abs(speed), 0.9f) * 0.45f);
+        // руль: на скорости поворот меньше и плавнее (без «дёрганья» на прямой)
+        sp = Math.abs(speed);
+        steer = MathHelper.lerp(player ? 0.22f + 0.12f * (1 - Math.min(sp, 1)) : 0.25f, steer, side);
+        float grip = MathHelper.clamp(sp * 6, 0, 1);
+        float turnK = player ? 4.5f * b.turn * (1 - Math.min(sp, 1.2f) * 0.42f) : 4.2f * (1 - Math.min(sp, 0.9f) * 0.45f);
+        if (handbrake && sp > 0.15f) turnK *= 1.75f;
+        float turn = -steer * turnK * grip * Math.signum(speed);
         setYaw(getYaw() + turn);
 
-        double rad = Math.toRadians(getYaw());
+        // занос: направление движения догоняет нос машины; ручник и слабое сцепление — дольше
+        if (!player || !fourWheels || Float.isNaN(moveYaw) || sp < 0.06f) moveYaw = getYaw();
+        else {
+            float diff = MathHelper.wrapDegrees(getYaw() - moveYaw);
+            float traction = handbrake ? 0.045f : MathHelper.clamp(0.55f * b.grip - sp * 0.12f, 0.2f, 0.75f);
+            moveYaw += diff * traction;
+            diff = MathHelper.wrapDegrees(getYaw() - moveYaw);
+            if (Math.abs(diff) > 65) moveYaw = getYaw() - Math.signum(diff) * 65;
+            speed -= speed * Math.min(Math.abs(diff), 60) / 60f * 0.018f; // боком машина теряет скорость
+        }
+        slip = MathHelper.wrapDegrees(getYaw() - moveYaw);
+
+        double rad = Math.toRadians(moveYaw);
         Vec3d dir = new Vec3d(-Math.sin(rad), 0, Math.cos(rad));
         Vec3d v = getVelocity();
         double vy = isOnGround() ? -0.04 : (v.y - 0.08) * 0.98;
@@ -643,6 +699,7 @@ public class CarEntity extends Entity {
             if (Math.abs(speed) > 0.45f && !getWorld().isClient)
                 getWorld().playSound(null, getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, SoundCategory.NEUTRAL, 0.7f, 1.4f);
             speed *= 0.25f;
+            moveYaw = getYaw();
         }
     }
 
