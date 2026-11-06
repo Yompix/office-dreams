@@ -28,6 +28,13 @@ public final class NewsTv {
 
     /** Где ищем стену под экран. */
     private static final String[] ANCHORS = {"downtown_plaza", "riv_strip", "port_gate"};
+    /** Сдвиг от точки (riv_strip — перекрёсток: вдоль улиц стен нет, ищем от середины квартала). */
+    private static final int[][] SHIFT = {{0, 0}, {0, 24}, {0, 0}};
+
+    private static double[] anchor(int i) {
+        double[] pl = Island.PLACES.get(ANCHORS[i]);
+        return pl == null ? null : new double[]{pl[0] + SHIFT[i][0], 0, pl[2] + SHIFT[i][1]};
+    }
     public static final int W = 9, H = 5;
 
     static final class State extends PersistentState {
@@ -74,12 +81,16 @@ public final class NewsTv {
             ServerWorld w = s.getOverworld();
             for (ServerPlayerEntity p : s.getPlayerManager().getPlayerList()) {
                 if (p.getServerWorld() != w) continue;
-                for (String a : ANCHORS) {
-                    double[] pl = Island.PLACES.get(a);
+                for (int ai = 0; ai < ANCHORS.length; ai++) {
+                    String a = ANCHORS[ai];
+                    double[] pl = anchor(ai);
                     if (pl == null || st.done.contains(a)) continue;
-                    if (Math.hypot(pl[0] - p.getX(), pl[2] - p.getZ()) > 72) continue;
-                    if (!loadedAround(w, (int) pl[0], (int) pl[2], 32)) continue;
-                    long[] scr = build(w, (int) Math.floor(pl[0]), (int) Math.floor(pl[2]));
+                    if (Math.hypot(pl[0] - p.getX(), pl[2] - p.getZ()) > 60) continue;
+                    if (!loadedAround(w, (int) pl[0], (int) pl[2], 48)) continue;
+                    // дома вокруг могут достраиваться позже — несколько попыток, отдельный экран на опорах — только под конец
+                    int tries = TRIES.merge(a, 1, Integer::sum);
+                    long[] scr = build(w, (int) Math.floor(pl[0]), (int) Math.floor(pl[2]), tries >= 60);
+                    if (scr == null && tries < 90) continue;
                     st.done.add(a);
                     if (scr != null) st.screens.add(scr);
                     st.markDirty();
@@ -107,7 +118,9 @@ public final class NewsTv {
     }
 
     /** Ищем глухую стену 11×7 (на высоте 4–10 над землёй) в 6–34 блоках от точки; вешаем экран. */
-    private static long[] build(ServerWorld w, int x, int z) {
+    private static final Map<String, Integer> TRIES = new HashMap<>();
+
+    private static long[] build(ServerWorld w, int x, int z, boolean standalone) {
         int y = Island.surface(x, z) + 1;
         BlockPos at = new BlockPos(x, y, z);
         BlockPos bestWall = null;
@@ -115,10 +128,8 @@ public final class NewsTv {
         int bestK = 999;
         for (Direction dir : Direction.Type.HORIZONTAL) {
             Direction side = dir.rotateYClockwise();
-            for (int k = 6; k <= 26 && k < bestK; k++) {
+            for (int k = 6; k <= 44 && k < bestK; k++) {
                 BlockPos c = at.offset(dir, k);
-                if (System.getProperty("novograd.autotest") != null && !w.getBlockState(c.up(7)).isAir())
-                    com.yompix.novograd.Novograd.LOG.info("[pulse] экран: {} k={} {} full={}", dir, k, w.getBlockState(c.up(7)), solid(w, c.up(7)));
                 if (!solid(w, c.up(7))) continue;
                 if (!solid(w, c.offset(side, 3).up(7)) || !solid(w, c.offset(side, -3).up(7))) continue; // ствол пальмы, столб — не стена
                 int good = 0; // фасад с окнами и вывесками: хватит 85% сплошной стены
@@ -127,8 +138,6 @@ public final class NewsTv {
                         BlockPos b = c.offset(side, u).up(v);
                         if (solid(w, b) && free(w, b.offset(dir.getOpposite()))) good++;
                     }
-                if (System.getProperty("novograd.autotest") != null)
-                    com.yompix.novograd.Novograd.LOG.info("[pulse] экран: стена {} в {} блоках, сплошь {}/77", dir, k, good);
                 if (good >= 66) {
                     bestK = k;
                     bestWall = c;
@@ -152,6 +161,7 @@ public final class NewsTv {
             return new long[]{front.up(7).asLong(), face.getId()};
         }
         // стены нет — отдельно стоящий экран на двух опорах, лицом к точке
+        if (!standalone) return null;
         for (Direction dir : Direction.Type.HORIZONTAL) {
             Direction side = dir.rotateYClockwise();
             BlockPos c = at.offset(dir, 7);
@@ -273,8 +283,9 @@ public final class NewsTv {
     }
 
     public static String debugTp(ServerPlayerEntity p, int i) {
-        String a = ANCHORS[Math.max(0, Math.min(ANCHORS.length - 1, i))];
-        double[] pl = Island.PLACES.get(a);
+        int ai = Math.max(0, Math.min(ANCHORS.length - 1, i));
+        String a = ANCHORS[ai];
+        double[] pl = anchor(ai);
         ServerWorld w = p.getServerWorld();
         int x = (int) pl[0], z = (int) pl[2];
         w.getChunk(x >> 4, z >> 4);
