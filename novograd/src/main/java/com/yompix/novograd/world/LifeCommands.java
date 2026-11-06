@@ -61,7 +61,7 @@ public final class LifeCommands {
                             ctx.getSource().sendFeedback(() -> Text.literal("Образование " + p.getName().getString() + ": " + d.eduName()), true);
                             return 1;
                         }))))));
-            // /novograd shops — для теста: поставить перед собой «Шмот-Базар», бутик «Бархат», цирюльню и зал (стиль SA)
+        // /novograd shops — для теста: поставить перед собой «Шмот-Базар», бутик «Бархат», цирюльню и зал (стиль SA)
         CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(literal("novograd")
                 .then(literal("shops").requires(s -> s.hasPermissionLevel(2)).executes(ctx -> {
                     ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
@@ -75,5 +75,5 @@ public final class LifeCommands {
                     ctx.getSource().sendFeedback(() -> Text.literal("👕 Магазины стиля построены перед тобой"), true);
                     return 1;
                 }))));
-}
+    }
 }
