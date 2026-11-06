@@ -1,4 +1,7 @@
 {
+  "block.novograd.billboard": "Рекламный щит",
+  "block.novograd.elevator_panel": "Панель лифта",
+  "block.novograd.elevator_floor": "Пол кабины лифта",
   "block.novograd.asphalt": "Асфальт",
   "block.novograd.asphalt_line": "Асфальт с разметкой",
   "block.novograd.asphalt_edge": "Асфальт с краевой линией",
@@ -100,6 +103,7 @@
   "key.novograd.right": "Правый поворотник",
   "key.novograd.hazard": "Аварийка",
   "key.novograd.map": "Карта и задания",
+  "key.novograd.inspect": "Осмотреть оружие",
   "key.novograd.radio": "Радио: следующая станция",
   "key.novograd.radio_down": "Радио: тише",
   "key.novograd.radio_up": "Радио: громче",
@@ -107,5 +111,7 @@
   "key.novograd.cinema": "Кино-камера в машине",
   "key.novograd.grade": "Графика: красивая / лёгкая / выкл",
   "category.novograd": "Новоград",
-  "generator.novograd.city": "Новоград: Город"
+  "generator.novograd.city": "Новоград: Город",
+  "key.novograd.studio": "Киностудия (свой фильм)",
+  "item.novograd.parachute": "Парашют"
 }

@@ -1,4 +1,7 @@
 {
+  "block.novograd.billboard": "Billboard",
+  "block.novograd.elevator_panel": "Elevator Panel",
+  "block.novograd.elevator_floor": "Elevator Cab Floor",
   "block.novograd.asphalt": "Asphalt",
   "block.novograd.asphalt_line": "Asphalt with line",
   "block.novograd.asphalt_edge": "Asphalt edge",
@@ -100,6 +103,7 @@
   "key.novograd.right": "Right turn signal",
   "key.novograd.hazard": "Hazard lights",
   "key.novograd.map": "Map and quests",
+  "key.novograd.inspect": "Inspect weapon",
   "key.novograd.radio": "Radio: next station",
   "key.novograd.radio_down": "Radio: volume down",
   "key.novograd.radio_up": "Radio: volume up",
@@ -107,5 +111,7 @@
   "key.novograd.cinema": "Cinematic camera",
   "key.novograd.grade": "Graphics: pretty / light / off",
   "category.novograd": "Novograd",
-  "generator.novograd.city": "Novograd: City"
+  "generator.novograd.city": "Novograd: City",
+  "key.novograd.studio": "Film studio",
+  "item.novograd.parachute": "Parachute"
 }

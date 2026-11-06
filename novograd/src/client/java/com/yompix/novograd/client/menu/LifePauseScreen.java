@@ -39,6 +39,10 @@ public class LifePauseScreen extends Screen {
             com.yompix.novograd.client.FilmMode.toggle(mc);
             mc.setScreen(null);
         }, true);
+        menu.add(() -> com.yompix.novograd.client.studio.Studio.active() ? "Киностудия ✓" : "Киностудия (F7)", "", () -> {
+            mc.setScreen(null);
+            com.yompix.novograd.client.studio.Studio.toggle(mc);
+        }, true);
         menu.add("Настройки игры", "", () -> mc.setScreen(new SettingsScreen(this)));
         menu.add("Настройки Minecraft", "", () -> mc.setScreen(new OptionsScreen(this, mc.options)));
         friends(mc);

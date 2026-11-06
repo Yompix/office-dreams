@@ -24,6 +24,9 @@ public final class FilmMode {
             StringBuilder tip = new StringBuilder("🎬 Режим кино: интерфейс скрыт. Выход — пауза → «Режим кино» или F1.");
             if (FabricLoader.getInstance().isModLoaded("flashback")) tip.append(" Запись видео — кнопка Flashback в меню паузы.");
             if (FabricLoader.getInstance().isModLoaded("freecam")) tip.append(" F4 — свободная камера.");
+            tip.append(" Своё кино с кадрами и актёрами — F7 «Киностудия».");
+            if (FabricLoader.getInstance().isModLoaded("bbs")) tip.append(" BBS (актёры, камера, анимации) — его клавиша в «Управление» → BBS.");
+            if (FabricLoader.getInstance().isModLoaded("replaymod")) tip.append(" Replay Mod: запись повторов — меню паузы → Replay Viewer.");
             if (FabricLoader.getInstance().isModLoaded("camerautils")) tip.append(" Зум — Camera Utils (клавиша в настройках управления).");
             if (mc.player != null) mc.player.sendMessage(Text.literal(tip.toString()).formatted(Formatting.LIGHT_PURPLE), false);
         } else {

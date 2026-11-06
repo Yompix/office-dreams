@@ -41,7 +41,7 @@ public final class LifeHud {
 
     /** Во время разговора и кат-сцены HUD прячется, как в кино. */
     public static boolean cinematic(MinecraftClient mc) {
-        return mc.currentScreen instanceof com.yompix.novograd.client.story.DialogScreen || mc.currentScreen instanceof com.yompix.novograd.client.story.CutsceneScreen;
+        return com.yompix.novograd.client.studio.Studio.playing() || mc.currentScreen instanceof com.yompix.novograd.client.story.DialogScreen || mc.currentScreen instanceof com.yompix.novograd.client.story.CutsceneScreen;
     }
 
     private static float scale() {

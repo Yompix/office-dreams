@@ -11,8 +11,13 @@
     "GunCooldownMixin",
     "GunCameraMixin",
     "GunPoseMixin",
+    "GunInputMixin",
+    "GunMoveMixin",
+    "GunCrosshairMixin",
     "HudBarsMixin",
-    "VehicleCameraMixin"
+    "VehicleCameraMixin",
+    "GameRendererAccessor",
+    "StudioCameraMixin"
   ],
   "injectors": {
     "defaultRequire": 1
