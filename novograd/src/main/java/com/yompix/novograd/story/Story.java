@@ -537,6 +537,7 @@ public final class Story {
     // ------------------------------------------------------------------------------------ места, возраст, кат-сцены
     @Nullable
     public static Vec3d place(ServerWorld w, String name) {
+        if (name.indexOf('+', 1) > 0) return Director.pos(w, name); // «место+dx,dz[,вверх]»
         if (name.startsWith("@")) {
             // точка прямо координатами: «@x,z» (для побочных миссий по всему острову)
             String[] xz = name.substring(1).split(",");
@@ -549,6 +550,7 @@ public final class Story {
     }
 
     public static float placeYaw(ServerWorld w, String name) {
+        if (name.indexOf('+', 1) > 0) name = name.substring(0, name.indexOf('+', 1));
         double[] v = TownState.get(w).place(name);
         if (v == null) v = com.yompix.novograd.world.Island.place(name);
         return v == null ? 0 : (float) v[3];

@@ -40,6 +40,10 @@ CHARS = {
     'marco':    dict(name='Марко «Синий»', skin='c33', voice='Gilberto Mathias', color='4fc3f7'),
     'harris':   dict(name='Шеф Харрис', skin='police', voice='Baldur Sanjin', color='90a4ae'),
     'lena':     dict(name='Лена Вуд', skin='c28', voice='Tammie Ema', color='ffd54f'),
+    'crow':     dict(name='Виктор Кроу', skin='c37', voice='Wulf Carlevaro', color='e53935'),
+    'sofi':     dict(name='Софи', skin='c26', voice='Daisy Studious', color='f48fb1'),
+    'ray':      dict(name='Рэй', skin='c19', voice='Eugenio Mataracı', color='4db6ac'),
+    'shakal':   dict(name='Шакал', skin='c31', voice='Ferran Simen', color='ffb300'),
 }
 
 voice_lines = []
@@ -250,7 +254,6 @@ ch3['missions'].append({'id': m, 'title': 'Взлётная полоса', 'step
               ('gleb', 'Или лучший гонщик острова! Ники уже спрашивала, когда следующий заезд.'),
            choices=[('Остаюсь с полицией.', 'end_cop', [('petrov', 'Добро пожаловать в команду, напарник.')]),
                     ('Моё место — на трассе.', 'end_racer', [('gleb', 'Вот это я понимаю! Гараж всегда твой.')])]),
-    {'type': 'credits'},
 ]})
 chapters.append(ch3)
 
@@ -328,7 +331,7 @@ a1m3b = mission(m, 'Клуб «Неон»', [
     dialog(m, ('nika', 'Сегодня отмечаем твою победу в «Неоне». И познакомлю тебя с Розой — она знает в этом городе всех.')),
     step('goto', 'Езжай в клуб «Неон» в деловом центре', place='club_neon', radius=8, do=[['time', 16500]]),
     scene(m, [S('cam_club', 'club_neon+6,14,6', 7), S('club_neon+5,-3,2', 'club_neon+3,-2,2', 5, track='rosa'), F('rosa', 4, (3, 1.7, -1.2))],
-          [[0, 'spawn', 'd1', 'club_neon+2,-3', 'citizen'], [0, 'spawn', 'd2', 'club_neon-2,-4', 'citizen'], [0, 'spawn', 'd3', 'club_neon+0,-6', 'citizen'],
+          [[0, 'spawn', 'd1', 'club_neon+2,-3', 'citizen'], [0, 'spawn', 'd2', 'club_neon+-2,-4', 'citizen'], [0, 'spawn', 'd3', 'club_neon+0,-6', 'citizen'],
            [0, 'act', 'd1', 'DANCE'], [0, 'act', 'd2', 'DANCE'], [0, 'act', 'd3', 'DANCE'],
            [0, 'spawn', 'rosa', 'club_neon+4,-8'], [0, 'spawn', 'nika', 'club_neon+1,-1'], [0, 'act', 'nika', 'DANCE'],
            [7, 'walk', 'rosa', 'club_neon+1,0'], [12, 'act', 'rosa', 'TALK', 'player']],
@@ -389,7 +392,7 @@ m = 'a2m1'
 find(ch2, m)['steps'].insert(1, scene(m,
     [S('cam_ind_a', 'gang_yard+14,12,6', 6), S('gang_yard+6,6,2', 'gang_yard+4,4,2', 6, track='kirpich'), F('kirpich', 4, (3, 1.8, 1.5))],
     [[0, 'spawn', 'gleb', 'gang_yard+0,2'], [0, 'act', 'gleb', 'UPSET'], [0, 'spawn', 'kirpich', 'gang_yard+8,-6'],
-     [0, 'spawn', 'g1', 'gang_yard-3,4', 'gang'], [0, 'spawn', 'g2', 'gang_yard+3,4', 'gang'], [0.5, 'act', 'g1', 'AIM', 'gleb'], [0.5, 'act', 'g2', 'AIM', 'gleb'],
+     [0, 'spawn', 'g1', 'gang_yard+-3,4', 'gang'], [0, 'spawn', 'g2', 'gang_yard+3,4', 'gang'], [0.5, 'act', 'g1', 'AIM', 'gleb'], [0.5, 'act', 'g2', 'AIM', 'gleb'],
      [3, 'walk', 'kirpich', 'gang_yard+1,0'], [8, 'act', 'kirpich', 'LAUGH', 'gleb'], [12, 'act', 'kirpich', 'ARGUE', 'gleb']],
     ('narrator', 'Промзона. Здесь заканчиваются дороги и начинаются правила «Чёрных Ящеров».'),
     ('kirpich', 'Не бойся, Джейк. Твой братишка уже едет. Посмотрим, сколько ты для него стоишь.'),
@@ -429,10 +432,10 @@ a2m3c = mission(m, 'Предложение Марко', [
          ('marco', 'Брик продаст тебя, как только ты станешь не нужен. Я — нет.'),
          choices=[('Я подумаю.', 'a2_marco_maybe', [('marco', 'Думай быстро. В Новограде долго не думают.')]),
                   ('Нет. Я не предаю.', 'a2_marco_no', [('marco', 'Жаль. Тогда мы ещё встретимся — по другую сторону ствола.')])]),
-    scene(m, [S('beach_lot+16,8,3', 'beach_lot+10,4,2', 5, track='l_car', shake=0.5), S('beach_lot-4,6,2', 'beach_lot-3,4,2', 6, track='b1', shake=0.8), F('marco_car', 4, (8, 2.5, 2))],
+    scene(m, [S('beach_lot+16,8,3', 'beach_lot+10,4,2', 5, track='l_car', shake=0.5), S('beach_lot+-4,6,2', 'beach_lot+-3,4,2', 6, track='b1', shake=0.8), F('marco_car', 4, (8, 2.5, 2))],
           [[0, 'spawn', 'b1', 'beach_lot+6,-4', 'gang', 'Синий'], [0, 'spawn', 'b2', 'beach_lot+8,2', 'gang', 'Синий'],
            [0, 'car', 'l_car', 'beach_lot+0,70', 3, 180], [0.1, 'drive', 'l_car', ['beach_lot+0,12'], 0.95],
-           [4.5, 'spawn', 'l1', 'beach_lot-2,10', 'gang', 'Ящер'], [4.5, 'spawn', 'l2', 'beach_lot+3,11', 'gang', 'Ящер'],
+           [4.5, 'spawn', 'l1', 'beach_lot+-2,10', 'gang', 'Ящер'], [4.5, 'spawn', 'l2', 'beach_lot+3,11', 'gang', 'Ящер'],
            [5, 'shoot', 'l1', 'b1', 5, 0], [5.4, 'shoot', 'l2', 'b2', 5, 0], [5.3, 'shoot', 'b1', 'l1', 3, 0],
            [7, 'die', 'b1'], [8, 'die', 'b2'], [0, 'car', 'marco_car', 'beach_lot+10,-8', 4, 0],
            [6, 'despawn', 'marco'], [11, 'drive', 'marco_car', ['beach_lot+10,-90'], 0.95]],
@@ -469,7 +472,7 @@ m = 'a3m1'
 find(ch3, m)['steps'].insert(1, scene(m,
     [S('police_station+8,8,3', 'police_station+5,5,2', 5, track='petrov'), F('petrov', 4, (3.2, 1.7, 1.4))],
     [[0, 'spawn', 'petrov', 'police_station+10,6'], [0.2, 'walk', 'petrov', 'police_station+1,1'],
-     [0, 'spawn', 'harris', 'police_station-4,2'], [0, 'act', 'harris', 'TALK', 'petrov'], [6, 'face', 'petrov', 'player']],
+     [0, 'spawn', 'harris', 'police_station+-4,2'], [0, 'act', 'harris', 'TALK', 'petrov'], [6, 'face', 'petrov', 'player']],
     ('narrator', 'Участок. Камера два на три метра и ночь, чтобы подумать о своих ошибках.'),
     ('harris', 'Питерсон, этот парень — пустое место. Не трать время.'),
     ('petrov', 'Это вы так думаете, шеф.')))
@@ -484,9 +487,9 @@ a3m2b = mission(m, 'Журналистка', [
          ('lena', 'Нужны фото. Без них в редакции меня никто слушать не будет.')),
     step('goto', 'Тихо подойди к переулку за клубом', place='dt_alley', radius=14),
     scene(m, [S('dt_alley+14,6,3', 'dt_alley+12,4,2.5', 6, track='harris'), S('dt_alley+4,-5,2', 'dt_alley+3,-4,1.8', 5, track='courier')],
-          [[0, 'spawn', 'harris', 'dt_alley-6,-2'], [0, 'spawn', 'courier', 'dt_alley-14,0', 'gang', 'Курьер Ящеров'],
-           [0.3, 'walk', 'courier', 'dt_alley-7,-1'], [4, 'act', 'courier', 'HANDSHAKE', 'harris'], [4, 'act', 'harris', 'HANDSHAKE', 'courier'],
-           [8, 'act', 'harris', 'LAUGH', 'courier'], [10, 'walk', 'courier', 'dt_alley-20,0']],
+          [[0, 'spawn', 'harris', 'dt_alley+-6,-2'], [0, 'spawn', 'courier', 'dt_alley+-14,0', 'gang', 'Курьер Ящеров'],
+           [0.3, 'walk', 'courier', 'dt_alley+-7,-1'], [4, 'act', 'courier', 'HANDSHAKE', 'harris'], [4, 'act', 'harris', 'HANDSHAKE', 'courier'],
+           [8, 'act', 'harris', 'LAUGH', 'courier'], [10, 'walk', 'courier', 'dt_alley+-20,0']],
           ('narrator', 'Конверт переходит из рук в руки. Шеф полиции Новограда пересчитывает деньги прямо на месте.'),
           ('harris', 'Передай Брику: облав на этой неделе не будет. Но цена растёт.')),
     step('collect', 'Сфотографируй встречу (ПКМ по метке в переулке)', clues=[{'place': 'dt_alley+2,-3', 'name': 'Фото: Харрис и курьер'}]),
@@ -519,9 +522,9 @@ a3m3c = mission(m, 'Шеф Харрис', [
          ('petrov', 'Харрис… Я подозревал, но не думал, что настолько.'),
          ('petrov', 'С этим я пойду к прокурору. Сегодня же.')),
     scene(m, [S('police_station+10,6,3', 'police_station+7,4,2', 5, track='harris'), S('police_station+3,-3,2', 'police_station+2,-2,1.8', 6, track='harris')],
-          [[0, 'spawn', 'harris', 'police_station-6,4'], [0, 'spawn', 'petrov', 'police_station+3,2'],
+          [[0, 'spawn', 'harris', 'police_station+-6,4'], [0, 'spawn', 'petrov', 'police_station+3,2'],
            [0, 'spawn', 'c1', 'police_station+6,-3', 'police'], [0, 'spawn', 'c2', 'police_station+7,3', 'police'],
-           [0.5, 'walk', 'petrov', 'police_station-4,3'], [0.8, 'walk', 'c1', 'police_station-5,1'], [1, 'walk', 'c2', 'police_station-5,6'],
+           [0.5, 'walk', 'petrov', 'police_station+-4,3'], [0.8, 'walk', 'c1', 'police_station+-5,1'], [1, 'walk', 'c2', 'police_station+-5,6'],
            [4, 'act', 'harris', 'UPSET'], [5, 'act', 'c1', 'AIM', 'harris'], [5, 'act', 'c2', 'AIM', 'harris'], [6, 'act', 'petrov', 'ARGUE', 'harris']],
           ('petrov', 'Шеф Харрис, вы арестованы за взятки и пособничество банде.'),
           ('harris', 'Ты пожалеешь, Питерсон. Брик всё равно уйдёт.'),
@@ -542,6 +545,227 @@ end['actors'] = [[0, 'spawn', 'kirpich', 'airfield_hangar+2,4'], [0, 'act', 'kir
                  [0, 'car', 'cop_car', 'airfield_hangar+6,12', 6, 0], [0.5, 'walk', 'kirpich', 'airfield_hangar+5,11'],
                  [0.6, 'walk', 'c1', 'airfield_hangar+7,10'], [0.6, 'walk', 'c2', 'airfield_hangar+3,10'],
                  [5.5, 'ride', 'kirpich', 'cop_car'], [6, 'drive', 'cop_car', ['airfield_hangar+6,60', 'airfield'], 0.6]]
+
+
+# =====================================================================================  АКТ IV (0.3)
+ch4 = {'id': 'a4', 'title': 'Акт IV', 'subtitle': 'Город казино', 'age': 22, 'missions': []}
+m = 'a4m1'
+ch4['missions'].append(mission(m, 'Ривьера зовёт', [
+    {'type': 'title', 'title': 'Акт IV', 'subtitle': 'Город казино', 'do': [['time', 9000]]},
+    scene(m, [S('cam_bridge', 'bridge_n+30,0,12', 7), S('cam_riv_far', 'cam_riv_strip', 9)],
+          [],
+          ('narrator', 'Прошло полгода. Новоград затих. А за проливом, на острове Ривьера, жизнь только начиналась.'),
+          ('narrator', 'Город казино, отелей и людей, которые никогда не спят. И у каждого здесь — своя ставка.')),
+    dialog(m, ('nika', 'Слушай, гонщик. На Ривьере большой заезд — «Кубок Стрипа». Приз — сто тысяч.'),
+              ('nika', 'Его проводит Виктор Кроу. Хозяин всех казино острова. Едем вместе?'),
+           choices=[('Сто тысяч? Едем.', 'a4_money', [('nika', 'Вот это настрой! Встречаемся на мосту.')]),
+                    ('Кроу? Звучит как неприятности.', 'a4_wary', [('nika', 'На Ривьере всё — неприятности. Зато какие красивые.')])],
+           do=[['car', 'garage_door', 0]]),
+    step('goto', 'Езжай на Ривьеру по северному мосту (карта — M)', place='bridge_n', radius=14, vehicle=True),
+    scene(m, [F('nika_car', 6, (9, 3, 3)), S('bridge_n+-60,10,4', 'bridge_n+-90,8,3', 5, track='nika_car')],
+          [[0, 'car', 'nika_car', 'bridge_n+-6,2', 2, 90], [0.1, 'drive', 'nika_car', ['bridge_n+-200,2', 'riv_ring_e+0,-444'], 0.9]],
+          ('nika', 'Догоняй! Ривьера не ждёт!')),
+    step('goto', 'Доберись до Стрипа — главной улицы Ривьеры', place='riv_strip', radius=12, vehicle=True),
+]))
+
+m = 'a4m2'
+ch4['missions'].append(mission(m, 'Софи', [
+    scene(m, [S('riv_casino+12,10,4', 'riv_casino+6,6,2.5', 6, track='crow'), F('crow', 4, (3, 1.8, 1.4)), S('riv_casino+3,4,2', 'riv_casino+2,3,1.8', 5, track='sofi')],
+          [[0, 'spawn', 'crow', 'riv_casino+8,-6'], [0, 'spawn', 'g1', 'riv_casino+10,-7', 'gang', 'Охрана Кроу'], [0, 'spawn', 'g2', 'riv_casino+6,-8', 'gang', 'Охрана Кроу'],
+           [0.3, 'walk', 'crow', 'riv_casino+1,1'], [0.5, 'walk', 'g1', 'riv_casino+3,0'], [0.5, 'walk', 'g2', 'riv_casino+-1,0'],
+           [0, 'spawn', 'sofi', 'riv_casino+0,3'], [6, 'act', 'crow', 'TALK', 'sofi'], [8, 'act', 'sofi', 'UPSET'], [10, 'walk', 'crow', 'riv_casino+20,-10']],
+          ('narrator', 'Казино «Золотая корона». Сюда приходят с деньгами, а уходят с надеждой.'),
+          ('crow', 'Софи, дорогая. Опять проигрыши за твоим столом? Ещё один такой вечер — и ты уволена.'),
+          ('sofi', 'Да, мистер Кроу.')),
+    talk(m, 'sofi', 'Поговори с крупье Софи у казино',
+         ('sofi', 'Ты не местный. Видно по глазам — ещё не проиграл.'),
+         ('sofi', 'Хочешь совет? Кубок Стрипа подстроен. Побеждает только Шакал — водитель Кроу.'),
+         ('sofi', 'Кто обгоняет Шакала, тот потом пропадает. Двое ребят в прошлом году. Их машины нашли в заливе.'),
+         choices=[('Тогда я буду первым, кто вернётся.', 'a4_brave', [('sofi', 'Хотела бы я в это верить.')]),
+                  ('Почему ты мне это говоришь?', 'a4_why', [('sofi', 'Потому что Кроу держит и меня. Долгом моего отца.')])],
+         do=[['spawn', 'sofi', 'riv_casino+0,3']]),
+]))
+
+m = 'a4m3'
+ch4['missions'].append(mission(m, 'Кубок Стрипа', [
+    scene(m, [S('riv_strip+16,0,4', 'riv_strip+8,0,3', 5, track='shakal'), F('shakal', 4, (3, 1.7, 1.2))],
+          [[0, 'spawn', 'shakal', 'riv_strip+10,6'], [0, 'car', 'sh_car', 'riv_strip+4,3', 3, 270], [0.2, 'walk', 'shakal', 'riv_strip+5,5'], [5, 'act', 'shakal', 'LAUGH', 'player']],
+          ('shakal', 'Новенький из Новограда? Смешно. Здесь асфальт горячий, а повороты — острые.')),
+    step('carrace', 'Кубок Стрипа: проезжай отметки раньше Шакала', start='riv_strip',
+         points=['riv_strip+-240,0', 'riv_strip+-240,-300', 'riv_strip+240,-300', 'riv_strip+240,300', 'riv_strip+0,300', 'riv_strip'],
+         rival='Шакал', rival_speed=82, rival_engine=2, variant=3, do=[['time', 15500], ['despawn', 'shakal']]),
+    dialog(m, ('nika', 'Ты сделал Шакала! На его же улицах!'),
+              ('nika', 'Только… Кроу не заплатит. Он сказал, что гонка «не засчитана». И забрал мою машину в счёт ставки.'),
+           do=[['money', 3000]]),
+]))
+
+m = 'a4m4'
+ch4['missions'].append(mission(m, 'Машина Ники', [
+    dialog(m, ('nika', 'Мою «Молнию» держат в гараже у отеля «Лазурь». Охрана, камеры… но для тебя это не проблема, да?')),
+    step('steal', 'Угони машину Ники из гаража отеля «Лазурь» и пригони к докам у пролива', place='riv_hotel', to='riv_docks', variant=2),
+    step('escape', 'Охрана отеля вызвала полицию Ривьеры — оторвись!', stars=2, why='угон у отеля'),
+    dialog(m, ('nika', 'Моя девочка! Ни царапины! Я тебе должна, по-настоящему.'), do=[['money', 1500]]),
+]))
+
+m = 'a4m5'
+ch4['missions'].append(mission(m, 'Рэй', [
+    dialog(m, ('sofi', 'Мне нужна твоя помощь. Есть человек — Рэй. Он возит грузы для Кроу на катерах.'),
+              ('sofi', 'Рэй хочет уйти от Кроу, но люди Кроу пришли за ним. Он на пристани на западе. Поспеши!')),
+    step('goto', 'Езжай на западную пристань Ривьеры', place='riv_marina', radius=14, do=[['spawn', 'ray', 'riv_marina+4,0']]),
+    step('clear', 'Отбей Рэя у людей Кроу', place='riv_marina', count=6),
+    talk(m, 'ray', 'Поговори с Рэем',
+         ('ray', 'Спасибо, друг. Ещё минута — и меня бы отправили кормить рыб.'),
+         ('ray', 'Кроу возит через мои катера не только деньги. Оружие. Для обеих банд Новограда.'),
+         ('ray', 'Это он стравливал Ящеров и Синих. Пока они воевали, он скупал город.')),
+]))
+
+m = 'a4m6'
+ch4['missions'].append(mission(m, 'Вилла Кроу', [
+    dialog(m, ('lena', 'Привет, герой. Я на Ривьере, пишу про Кроу. Рэй передал мне, что ты в деле.'),
+              ('lena', 'На вилле Кроу есть сейф с бухгалтерией. Если достанешь — я напечатаю всё на первой полосе.')),
+    step('goto', 'Тихо подберись к вилле Кроу на севере острова', place='riv_villa', radius=16),
+    step('collect', 'Найди сейф с бухгалтерией (ПКМ по метке)', clues=[{'place': 'riv_villa+4,-3', 'name': 'Сейф Кроу'}]),
+    step('clear', 'Охрана заметила! Прорывайся', place='riv_villa', count=5),
+    step('escape', 'Уходи от полиции, которую вызвала охрана', stars=3, why='налёт на виллу'),
+    dialog(m, ('lena', 'Это… это всё. Взятки, имена, суммы. Шеф Харрис был мелочью. Кроу платит половине полиции острова.')),
+]))
+
+m = 'a4m7'
+ch4['missions'].append(mission(m, 'Разведка', [
+    dialog(m, ('sofi', 'Бумаги — это хорошо. Но Кроу откупится от любого суда. Его сила — в деньгах.'),
+              ('sofi', 'Каждую пятницу в хранилище «Короны» лежит вся выручка острова. Если её не станет — Кроу конец.'),
+              ('sofi', 'Я знаю, где схема хранилища. И у кого расписание охраны.')),
+    step('collect', 'Найди схему хранилища и расписание охраны у казино', clues=[{'place': 'riv_casino+6,-4', 'name': 'Схема хранилища'}, {'place': 'riv_casino+-6,-2', 'name': 'Расписание охраны'}]),
+    dialog(m, ('ray', 'Уходить будем морем. Мой катер будет ждать у доков на проливе. Главное — довези деньги до воды.')),
+]))
+
+m = 'a4m8'
+ch4['missions'].append(mission(m, 'Подготовка', [
+    dialog(m, ('nika', 'Я в деле. Моя машина — ваша. Но её надо подготовить: нитро и броня.'),
+              ('ray', 'А тебе — бронежилет. Купи в оружейном «Калибр» в Новограде.')),
+    step('buy', 'Купи бронежилет в оружейном «Калибр» (Новоград)', item='novograd:body_armor', count=1),
+    step('tune', 'Поставь нитро в Нитро-Гараже: заезжай в гараж и нажми ПКМ по механику'),
+    dialog(m, ('sofi', 'Пятница. Сегодня. Я открою служебную дверь в полночь.'), do=[['time', 18000]]),
+]))
+
+m = 'a4m9'
+ch4['missions'].append(mission(m, 'Ограбление «Золотой короны»', [
+    step('goto', 'Езжай к казино «Золотая корона» — Софи ждёт у служебного входа', place='riv_casino', radius=10),
+    scene(m, [S('riv_casino+10,8,3', 'riv_casino+5,5,2', 5, track='sofi'), F('sofi', 4, (3, 1.7, -1.3))],
+          [[0, 'spawn', 'sofi', 'riv_casino+3,2'], [0.5, 'walk', 'sofi', 'riv_casino+0,-2'], [3, 'act', 'sofi', 'WAVE', 'player'], [6, 'smoke', 'riv_casino+0,-4']],
+          ('sofi', 'Дверь открыта. У тебя три минуты, пока охрана меняется. Удачи.')),
+    step('clear', 'Хранилище! Разберись с охраной Кроу', place='riv_casino', count=8),
+    step('collect', 'Забери деньги из хранилища', clues=[{'place': 'riv_casino+2,-6', 'name': 'Мешки с деньгами'}]),
+    step('escape', 'Вся полиция Ривьеры на хвосте! Уходи', stars=4, why='ограбление казино'),
+    step('goto', 'Доставь деньги к докам у пролива — там ждёт катер Рэя', place='riv_docks', radius=10),
+    dialog(m, ('ray', 'Есть! Всё на борту! Кроу сегодня проснётся нищим!'), do=[['money', 20000]]),
+]))
+
+m = 'a4m10'
+ch4['missions'].append(mission(m, 'Заложница', [
+    scene(m, [S('riv_docks+14,8,3', 'riv_docks+8,5,2', 5, track='crow'), S('riv_docks+3,3,2', 'riv_docks+2,2,1.8', 5, track='sofi', shake=0.4), F('crow_car', 5, (9, 2.5, 2.5))],
+          [[0, 'spawn', 'crow', 'riv_docks+10,-6'], [0, 'spawn', 'sofi', 'riv_docks+9,-5'], [0, 'act', 'sofi', 'UPSET'],
+           [0, 'spawn', 'g1', 'riv_docks+12,-3', 'gang', 'Охрана Кроу'], [0.3, 'act', 'g1', 'AIM', 'player'],
+           [0, 'car', 'crow_car', 'riv_docks+14,-8', 3, 0], [2, 'act', 'crow', 'ARGUE', 'player'],
+           [8, 'ride', 'sofi', 'crow_car'], [8.3, 'ride', 'crow', 'crow_car'], [9, 'drive', 'crow_car', ['riv_ring_e+0,-200', 'bridge_n'], 0.95]],
+          ('crow', 'Красиво сработано. Правда. Но ты кое-что забыл: у меня осталась Софи.'),
+          ('crow', 'Верни деньги — получишь её живой. Не вернёшь… ну, ты понял.'),
+          ('sofi', 'Не слушай его! Беги!')),
+    step('chase', 'Догони машину Кроу и разбей её — спаси Софи', points=['riv_docks', 'riv_ring_e', 'bridge_n', 'race_start'], driver='Виктор Кроу', variant=3),
+    dialog(m, ('sofi', 'Ты… ты пришёл за мной. Он сбежал, но я цела.'),
+              ('petrov', 'Это Питерсон. Слышал, у вас там жарко. Кроу видели на горной дороге — он рвётся на север, в Седые горы.')),
+]))
+chapters.append(ch4)
+
+# =====================================================================================  АКТ V (0.3)
+ch5 = {'id': 'a5', 'title': 'Акт V', 'subtitle': 'Седые горы', 'age': 22, 'missions': []}
+m = 'a5m1'
+ch5['missions'].append(mission(m, 'Беглец', [
+    {'type': 'title', 'title': 'Акт V', 'subtitle': 'Седые горы', 'do': [['time', 7000]]},
+    scene(m, [S('cam_mtn', 'mtn_road+20,0,30', 9)], [],
+          ('narrator', 'Седые горы. Сюда не доходят ни деньги Ривьеры, ни законы Новограда.'),
+          ('narrator', 'Здесь Кроу надеялся переждать. Он ошибся.')),
+    dialog(m, ('petrov', 'Мои люди перекрыли перевал. Кроу где-то на горной дороге. Ищи его машину.')),
+    step('goto', 'Езжай на горную дорогу на севере острова', place='mtn_road', radius=16, vehicle=True),
+]))
+
+m = 'a5m2'
+ch5['missions'].append(mission(m, 'Серпантин', [
+    scene(m, [F('crow_car', 6, (10, 3, 3), shake=0.3)],
+          [[0, 'car', 'crow_car', 'mtn_road+0,-40', 3, 180], [0.1, 'drive', 'crow_car', ['outer_nw+600,0', 'outer_nw'], 0.95]],
+          ('narrator', 'Чёрный седан Кроу выскакивает из-за поворота и уходит на запад.')),
+    step('chase', 'Погоня по горной дороге! Разбей машину Кроу', points=['mtn_road', 'outer_nw+600,0', 'outer_nw', 'riv_ring_e+0,-1000'], driver='Виктор Кроу', variant=3),
+    dialog(m, ('petrov', 'Машина разбита, но Кроу ушёл пешком в лес. Его люди забрали его на вертолёте. Чёрт!'),
+              ('lena', 'У меня есть зацепка. Кроу владеет землёй в пустоши на юге. Там старые шахты.')),
+]))
+
+m = 'a5m3'
+ch5['missions'].append(mission(m, 'Пустошь', [
+    scene(m, [S('cam_desert', 'desert_mesa+20,10,10', 8)], [],
+          ('narrator', 'Пустошь. Красная земля, кактусы и столовые горы. Идеальное место, чтобы спрятать то, что не должно найтись.')),
+    step('goto', 'Езжай в пустошь на юге, к столовой горе', place='desert_mesa', radius=18, vehicle=True),
+    step('clear', 'Наёмники Кроу охраняют склад оружия — зачисти', place='desert_mesa', count=7),
+    dialog(m, ('ray', 'Это склад, через который Кроу снабжал банды. Тонны оружия. Взорвём?'),
+           choices=[('Взрывай. Пусть знает.', 'a5_boom', [('ray', 'С удовольствием!')]),
+                    ('Пусть полиция заберёт как улику.', 'a5_evidence', [('petrov', 'Правильно. Это потопит его в суде.')])],
+           do=[['wanted_clear']]),
+]))
+
+m = 'a5m4'
+ch5['missions'].append(mission(m, 'Сосновка', [
+    dialog(m, ('lena', 'Беда. Люди Кроу едут в деревню Сосновка на востоке. Там прячется свидетель — бывший бухгалтер Кроу.')),
+    step('goto', 'Спеши в деревню Сосновка на востоке острова', place='village', radius=18, vehicle=True),
+    step('clear', 'Защити деревню от людей Кроу', place='village', count=6),
+    talk(m, 'lena', 'Поговори с Леной',
+         ('lena', 'Свидетель жив. Он даст показания. С этим Кроу не отвертится.'),
+         ('lena', 'Но Кроу знает, что проиграл. Такие люди в конце опаснее всего.'),
+         do=[['spawn', 'lena', 'village+4,2']]),
+]))
+
+m = 'a5m5'
+ch5['missions'].append(mission(m, 'Тайник у озера', [
+    dialog(m, ('ray', 'Свидетель сказал, что у Кроу есть тайник на озере Ясное: паспорта, деньги, план побега.')),
+    step('goto', 'Езжай к пристани на озере Ясное', place='lake_dock', radius=14),
+    step('collect', 'Найди тайник Кроу у пристани', clues=[{'place': 'lake_dock+3,-2', 'name': 'Тайник Кроу'}]),
+    dialog(m, ('ray', 'Билет на самолёт… сегодня ночью, с аэродрома Новограда. Он хочет улететь!'),
+              ('petrov', 'Аэродром мой человек не удержит. Нужна скорость. Нужны все мы.')),
+]))
+
+m = 'a5m6'
+ch5['missions'].append(mission(m, 'Большое кольцо', [
+    dialog(m, ('nika', 'Шакал прикрывает отход Кроу. Он ждёт на большом кольце. Последняя гонка, гонщик. Сделай его!')),
+    step('carrace', 'Большое кольцо острова: обгони Шакала', start='outer_east',
+         points=['outer_ne', 'mtn_road+0,-200', 'outer_nw', 'outer_nw+0,1000'], rival='Шакал', rival_speed=88, rival_engine=2, variant=0),
+    dialog(m, ('shakal', 'Ладно… ладно! Ты лучший. Кроу на аэродроме. Ангар номер два. Я больше в этом не участвую.'),
+              ('nika', 'Вот теперь ты — король трассы.'), do=[['money', 5000]]),
+]))
+
+m = 'a5m7'
+ch5['missions'].append(mission(m, 'Последний рейс', [
+    step('goto', 'Езжай на аэродром — Кроу в ангаре', place='airfield_hangar', radius=16, do=[['time', 19000]]),
+    scene(m, [S('airfield_hangar+20,10,4', 'airfield_hangar+12,6,3', 5, track='crow'), F('crow', 4, (3, 1.8, 1.5))],
+          [[0, 'spawn', 'crow', 'airfield_hangar+2,4'], [0, 'spawn', 'm1', 'airfield_hangar+5,3', 'gang', 'Наёмник'], [0, 'spawn', 'm2', 'airfield_hangar+-2,3', 'gang', 'Наёмник'],
+           [0.5, 'act', 'm1', 'AIM', 'player'], [0.5, 'act', 'm2', 'AIM', 'player'], [2, 'act', 'crow', 'ARGUE', 'player']],
+          ('crow', 'Ты отнял у меня казино, деньги, людей. Но самолёт ты не отнимешь.'),
+          ('crow', 'Убейте его. Медленно.')),
+    step('clear', 'Финальная битва в ангаре: возьми Кроу', place='airfield_hangar', count=8, boss='Виктор Кроу'),
+    scene(m, [S('airfield_hangar+14,8,3', 'airfield_hangar+9,5,2', 6, track='crow'), F('cop_car', 6, (9, 3, 2.5)), S('cam_air_a', 'cam_island_far', 10), S('cam_riv_far', 'cam_riv_strip', 9)],
+          [[0, 'spawn', 'crow', 'airfield_hangar+2,4'], [0, 'act', 'crow', 'UPSET'], [0, 'spawn', 'petrov', 'airfield_hangar+5,6'],
+           [0, 'spawn', 'c1', 'airfield_hangar+4,3', 'police'], [0, 'car', 'cop_car', 'airfield_hangar+6,12', 6, 0],
+           [0.5, 'walk', 'crow', 'airfield_hangar+5,11'], [0.6, 'walk', 'c1', 'airfield_hangar+7,10'],
+           [5.5, 'ride', 'crow', 'cop_car'], [6, 'drive', 'cop_car', ['airfield_hangar+6,60', 'airfield'], 0.6]],
+          ('narrator', 'Виктора Кроу взяли у трапа его же самолёта. На этот раз — без адвокатов и без взяток.'),
+          ('narrator', 'Лена напечатала всё. Софи открыла свой бар на Стрипе. Рэй возит туристов на катере.'),
+          ('narrator', 'А Новоград и Ривьера… они всё ещё не спят. И, кажется, всё ещё ждут тебя.'),
+          do=[['wanted_clear']]),
+    dialog(m, ('petrov', 'Ну что, напарник. Два города спасены. Что дальше?'),
+              ('nika', 'Дальше — гонки! Честные. На Ривьере открывается новая трасса.'),
+              ('sofi', 'А в моём баре для тебя всегда свободный столик.'),
+           choices=[('Остаюсь в Новограде.', 'end2_novograd', [('gleb', 'Гараж ждёт, брат!')]),
+                    ('Переезжаю на Ривьеру.', 'end2_riviera', [('sofi', 'Тогда добро пожаловать домой.')])]),
+    {'type': 'credits'},
+]))
+chapters.append(ch5)
 
 # =====================================================================================  ПОБОЧНЫЕ МИССИИ (100)
 import random as _r
@@ -670,6 +894,33 @@ for i in range(8):
     add(f'heat{i+1:02d}', f'Испытание: {2 + i // 2}★', 'Розыск', 'nika', 300 + i * 150, 1, [
         say(('nika', f'Спорим, ты не уйдёшь от {2 + i // 2} звёзд? Ставлю {300 + i * 150} долларов.')),
         step('escape', f'Уйди от розыска {2 + i // 2}★', stars=2 + i // 2, why='спор с Ники')])
+
+# ---------- 0.3: Ривьера и загород (после основных — чтобы старые миссии не сдвинулись)
+DISTRICTS['ривьера'] = (-1550, -1090, -410, 410)
+DISTRICTS['ривьера-север'] = (-1780, -950, -890, -440)
+riv = ['ривьера', 'ривьера-север']
+for i in range(8):
+    dd = riv[i % 2]
+    route = walk(dd, 7 + i % 3)
+    add(f'rivrace{i+1:02d}', f'Ночная гонка Ривьеры #{i+1}', 'Гонки Ривьеры', 'shakal', 800 + i * 150, 3, [
+        say(('shakal', f'Хочешь реванша, новичок? Улицы Ривьеры, {7 + i % 3} отметок. Проигравший платит.')),
+        step('carrace', 'Гонка по Ривьере: проезжай отметки первым', start=route[0], points=route[1:], rival='Шакал',
+             rival_speed=70 + i * 2, rival_engine=2, variant=i % 6)])
+for i in range(8):
+    dd = riv[i % 2]
+    place = spot(dd)
+    add(f'rivjob{i+1:02d}', f'Заказ Рэя #{i+1}', 'Контрабанда Рэя', 'ray', 700 + i * 100, 3, [
+        say(('ray', 'Люди Кроу держат мой груз. Забери его — плачу щедро.')),
+        step('goto', 'Езжай к складу людей Кроу', place=place, radius=14),
+        step('clear', 'Разберись с охраной', place=place, count=4 + i % 3),
+        step('goto', 'Отвези груз на пристань Ривьеры', place='riv_marina', radius=12)])
+far = [('Седые горы', 'mtn_road', ['mtn_road', 'outer_nw+600,0', 'outer_nw']), ('Пустошь', 'desert_road', ['desert_road', 'desert_road+600,300', 'outer_se']),
+       ('Большое кольцо', 'outer_east', ['outer_east', 'outer_ne', 'mtn_road+0,-200'])]
+for i in range(6):
+    name, start, pts = far[i % 3]
+    add(f'farrace{i+1:02d}', f'Заезд: {name} #{i + 1}', 'Загородные гонки', 'nika', 1000 + i * 200, 3, [
+        say(('nika', f'Загородный заезд: {name}. Длинные прямые, крутые повороты — как ты любишь.')),
+        step('carrace', f'Заезд «{name}»: приди первым', start=start, points=pts[1:] + [pts[0]], rival='Ракета', rival_speed=78 + i * 2, rival_engine=2, variant=i % 6)])
 
 print('побочных миссий:', len(side))
 

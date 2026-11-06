@@ -26,16 +26,16 @@ import net.minecraft.world.World;
 public class MapScreen extends LifeScreen {
     private static final Identifier TEX = Novograd.id("dynamic/city_map");
     private static final int SIZE = 256;
-    /** Весь остров: 512×512, 4 блока на пиксель, от −1024 до +1024. */
+    /** Весь остров: 1024×1024, 4 блока на пиксель, от −2048 до +2048. */
     private static final Identifier ISLAND = Novograd.id("dynamic/island_map");
     private static NativeImageBackedTexture islandTex;
 
     private static void bakeIsland() {
         if (islandTex != null) return;
-        NativeImage img = new NativeImage(512, 512, false);
-        for (int pz = 0; pz < 512; pz++)
-            for (int px = 0; px < 512; px++) {
-                int argb = com.yompix.novograd.world.Island.mapColor(-1024 + px * 4 + 2, -1024 + pz * 4 + 2);
+        NativeImage img = new NativeImage(1024, 1024, false);
+        for (int pz = 0; pz < 1024; pz++)
+            for (int px = 0; px < 1024; px++) {
+                int argb = com.yompix.novograd.world.Island.mapColor(-2048 + px * 4 + 2, -2048 + pz * 4 + 2);
                 int abgr = 0xFF000000 | (argb & 0xFF) << 16 | (argb & 0xFF00) | (argb >> 16 & 0xFF);
                 img.setColor(px, pz, abgr);
             }
@@ -119,7 +119,7 @@ public class MapScreen extends LifeScreen {
         ctx.enableScissor(mapX, mapY, mapX + mapW, mapY + mapH);
         // весь остров (вода, районы, трасса), сверху — подробная карта вокруг игрока
         ctx.fill(mapX, mapY, mapX + mapW, mapY + mapH, 0xFF1E5A8C);
-        int il = sx(-1024), it = sy(-1024), isz = (int) (2048 * zoom);
+        int il = sx(-2048), it = sy(-2048), isz = (int) (4096 * zoom);
         ctx.drawTexture(ISLAND, il, it, 0, 0, isz, isz, isz, isz);
         for (String[] lab : com.yompix.novograd.world.Island.LABELS) {
             int lx = sx(Integer.parseInt(lab[1])), ly = sy(Integer.parseInt(lab[2]));
