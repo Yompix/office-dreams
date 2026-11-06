@@ -50,8 +50,9 @@ public final class GunHud {
             ctx.fill(cx, cy, cx + 1, cy + 1, a | 0xFFFFFF);
         }
         float age = (System.nanoTime() - hitAt) / 1e9f;
-        if (age < 0.3f) {
-            float k = 1 - age / 0.3f;
+        float life = GunFx.testFlashNs > 0 ? 1.2f : 0.3f;
+        if (age < life) {
+            float k = 1 - age / life;
             int col = ((int) (k * 255) << 24) | (kill ? 0xFF3A3A : 0xFFFFFF);
             int off = 4 + Math.round((1 - k) * 2), n = kill ? 5 : 4;
             for (int i = 0; i < n; i++) {

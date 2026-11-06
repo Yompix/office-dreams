@@ -23,7 +23,7 @@ import java.util.Set;
  * Анимируем только оружие в руках у себя (от первого и от третьего лица); у NPC и других — в покое.
  */
 public class GunGeoRenderer extends GeoItemRenderer<GunItem> {
-    private static final Set<String> MOVING = Set.of("slide", "mag", "trigger", "hammer", "bolt", "handle", "pump", "shell");
+    private static final Set<String> MOVING = Set.of("slide", "mag", "trigger", "hammer", "bolt", "handle", "pump", "shell", "stock");
     private boolean animate;
 
     public GunGeoRenderer(GunItem item) {
@@ -70,6 +70,9 @@ public class GunGeoRenderer extends GeoItemRenderer<GunItem> {
                 bone.setRotY(t[4] * (float) Math.PI / 180f);
                 bone.setRotZ(t[5] * (float) Math.PI / 180f);
                 bone.setHidden(t[6] > 0.5f);
+            } else if (n.equals("stock")) {
+                // приклад в прицеле — у щеки, его не видно (иначе закрывает пол-экрана)
+                bone.setHidden(animate && GunAnim.POSE.hideStock && perspectiveFirst());
             } else {
                 bone.setPosX(0);
                 bone.setPosY(0);
@@ -81,6 +84,10 @@ public class GunGeoRenderer extends GeoItemRenderer<GunItem> {
             }
         }
         super.renderRecursively(m, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
+    }
+
+    private boolean perspectiveFirst() {
+        return renderPerspective != null && renderPerspective.isFirstPerson();
     }
 
     static final class Model extends GeoModel<GunItem> {

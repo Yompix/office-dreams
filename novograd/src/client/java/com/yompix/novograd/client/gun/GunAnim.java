@@ -18,6 +18,8 @@ public final class GunAnim {
 
     public static final class Pose {
         public String gun;
+        /** В прицеле прячем приклад (ставит GunFx). */
+        public boolean hideStock;
         /** Всё оружие: сдвиг (блоки) и поворот (градусы) вокруг рукояти. */
         public float tx, ty, tz, rx, ry, rz;
         /** Точки рук в пикселях предмета. */
@@ -214,7 +216,9 @@ public final class GunAnim {
                     float[] sl = p.b("slide");
                     sl[2] = t < 0.785f ? m.slideKick + 0.35f * pullB : m.slideKick * (1 - s(0.785f, 0.80f, t));
                     p.b("hammer")[3] = 38;
-                    rackHand = new float[]{m.sight[0] - 0.2f, m.sight[1] - 0.9f, m.sight[2] + 0.2f + sl[2]};
+                    rackHand = new float[]{m.sight[0] - 1.0f, m.sight[1] - 0.8f, m.sight[2] - 2.6f + sl[2]};
+                    p.tz += -0.05f * win(t, 0.64f, 0.70f, 0.8f, 0.9f);
+                    p.tx += 0.02f * win(t, 0.64f, 0.70f, 0.8f, 0.9f);
                 }
                 case "smg" -> {
                     p.b("handle")[2] = 2.4f * pullB;
@@ -257,13 +261,13 @@ public final class GunAnim {
         float T = Math.max(0.5f, in.reloadSec);
         float t = in.reloadP * T;
         float tilt = s(0, 0.3f, t) * (1 - s(T - 0.3f, T, t));
-        p.rz += 24 * tilt;
-        p.rx += 10 * tilt;
-        p.tx += -0.03f * tilt;
-        p.ty += 0.03f * tilt;
+        p.rz += -40 * tilt;
+        p.rx += 8 * tilt;
+        p.tx += -0.07f * tilt;
+        p.ty += 0.06f * tilt;
         float[] port = m.magHand; // центр патрона в окне
         float[] entry = add(port, 0, -1.4f, 0.6f);
-        float[] pouch = add(m.grip, -4, -10, -3);
+        float[] pouch = add(m.grip, -3.5f, -6.5f, -2);
         float[] shell = p.b("shell");
         shell[6] = 1;
         float start = 0.4f, per = 0.35f;
@@ -274,13 +278,13 @@ public final class GunAnim {
             float q = (t - start - i * per) / per;
             float[] h = new float[3];
             float[] prev = i == 0 ? m.support : port;
-            lerp3(h, prev, pouch, s(0, 0.4f, q));
-            lerp3(h, h, entry, s(0.4f, 0.8f, q));
-            float push = s(0.8f, 1f, q);
+            lerp3(h, prev, pouch, s(0, 0.3f, q));
+            lerp3(h, h, entry, s(0.3f, 0.7f, q));
+            float push = s(0.72f, 1f, q);
             float[] in2 = add(port, 0, 0.3f, -1.4f);
             lerp3(h, h, in2, push);
             hand = h;
-            if (q > 0.3f && q < 0.97f) {
+            if (q > 0.22f && q < 0.97f) {
                 shell[6] = 0;
                 shell[0] = h[0] - port[0];
                 shell[1] = h[1] - port[1];

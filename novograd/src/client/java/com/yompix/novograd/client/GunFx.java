@@ -47,10 +47,10 @@ public final class GunFx {
 
     /** Свойства ствола для анимации: отдача модели (блоки назад, градусы вверх), тряска, расстояние мушки от глаза в прицеле, зум. */
     public enum Kind {
-        PISTOL(0.07f, 10f, 0.6f, true, -0.34f, 0.86f, 4f, 0.05f),
-        SMG(0.035f, 2.6f, 0.25f, true, -0.24f, 0.82f, 6f, 0.035f),
-        SHOTGUN(0.13f, 9f, 1.4f, true, -0.22f, 0.86f, 12f, 0.16f),
-        RIFLE(0.05f, 3.4f, 0.35f, true, -0.22f, 0.76f, 5f, 0.04f),
+        PISTOL(0.07f, 10f, 0.6f, true, -0.37f, 0.86f, 4f, 0.05f),
+        SMG(0.035f, 2.6f, 0.25f, true, -0.33f, 0.82f, 6f, 0.035f),
+        SHOTGUN(0.13f, 9f, 1.4f, true, -0.27f, 0.86f, 12f, 0.16f),
+        RIFLE(0.05f, 3.4f, 0.35f, true, -0.52f, 0.76f, 5f, 0.04f),
         SNIPER(0.14f, 8f, 1.2f, true, -0.12f, 0.2f, 10f, 0.12f);
 
         final float kickZ, rise, shake, adsZ, zoom, crossBase, bloomAdd;
@@ -202,7 +202,7 @@ public final class GunFx {
     public static void onCooldown(ItemCooldownManager mgr, Item item, int duration) {
         MinecraftClient c = MinecraftClient.getInstance();
         if (c.player == null || mgr != c.player.getItemCooldownManager() || !(item instanceof GunItem g)) return;
-        if (duration <= g.spec().cooldown() + 4) return;
+        if (duration < 6) return; // темп стрельбы держит сервер без кулдауна — любой кулдаун ствола = перезарядка
         reloadItem = item;
         reloadStart = System.nanoTime();
         reloadLen = duration * 50_000_000L;
@@ -378,6 +378,7 @@ public final class GunFx {
         IN.inspectP = ip;
         IN.trigger = c.options.attackKey.isPressed() && c.currentScreen == null ? 1 : 0;
         GunAnim.evaluate(meta, IN);
+        GunAnim.POSE.hideStock = ads > 0.8f;
     }
 
     private static void cameraRecoil(net.minecraft.client.network.ClientPlayerEntity p, float dt, long now) {
@@ -695,7 +696,7 @@ public final class GunFx {
         float kick = me ? kp * 0.02f : 0;
         boolean low = e.isSprinting() && !firing && aim < 0.5f;
         float aimPitch = -MathHelper.HALF_PI + MathHelper.clamp(hp, -1.2f, 1.2f);
-        float hipPitch = -1.25f + MathHelper.clamp(hp, -1.0f, 0.8f) * 0.6f;
+        float hipPitch = -1.4f + MathHelper.clamp(hp, -1.0f, 0.8f) * 0.6f;
         float pitch = low ? -0.7f : MathHelper.lerp(aim, hipPitch, aimPitch);
         float rp = me ? reloadProgress(st.getItem()) : -1;
         if (rp >= 0) pitch = MathHelper.lerp(smooth(0, 0.18f, rp) * (1 - smooth(0.82f, 1, rp)), pitch, -0.7f);

@@ -216,8 +216,9 @@ public final class Elevators {
             boolean wasSneak = SNEAK.getOrDefault(id, false);
             SNEAK.put(id, sneak);
             if (pad == Integer.MIN_VALUE) continue;
+            if (now - HINT.getOrDefault(id, -999L) <= 2) HINT.put(id, now); // всё ещё в кабине — без повторной подсказки
             double above = p.getY() - (pad + 1);
-            if (now - HINT.getOrDefault(id, -999L) > 60) {
+            if (now - HINT.getOrDefault(id, -999L) > 2) { // подсказка — когда зашёл в кабину
                 HINT.put(id, now);
                 p.sendMessage(Text.literal("Лифт: прыжок — вверх · Shift — вниз · ПКМ по панели — выбор этажа").formatted(Formatting.YELLOW), true);
             }

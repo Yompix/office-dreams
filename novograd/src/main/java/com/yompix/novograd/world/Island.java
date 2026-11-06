@@ -161,6 +161,7 @@ public final class Island {
         }
         int hw = highwayDist(x, z);
         if (hw < 14) h = (int) (h * Math.max(0, (hw - 8) / 6.0));
+        h = (int) (h * stationFade(x, z)); // склоны плавно спускаются к площадке заправки
         return G + h;
     }
 
@@ -175,6 +176,7 @@ public final class Island {
 
     /** Строит весь столбец (x, z): земля, вода, дороги, здания, деревья. */
     public static void column(int x, int z, Column c) {
+        if (lighthouse(x, z, c)) return;
         Zone zn = zone(x, z);
         int s = surface(x, z);
         c.set(-64, BEDROCK);
@@ -244,7 +246,7 @@ public final class Island {
             int t = alongZ ? z : x;
             if (d == 0) c.set(s, Blocks.YELLOW_CONCRETE.getDefaultState());
             else if (d == 4 && Math.floorMod(t, 6) < 3) c.set(s, Blocks.WHITE_CONCRETE.getDefaultState());
-            if (d == 7) c.set(s + 1, Blocks.POLISHED_ANDESITE_SLAB.getDefaultState()); // отбойник-бордюр
+            if (d == 7 && station(x, z) == null) c.set(s + 1, Blocks.POLISHED_ANDESITE_SLAB.getDefaultState()); // отбойник-бордюр (кроме съезда на заправку)
         } else {
             if (station(x, z) != null) { // съезд на заправку
                 c.set(s, asphalt);
@@ -489,9 +491,21 @@ public final class Island {
         for (int i = 0; i < STATIONS.length; i++) {
             int[] st = STATIONS[i];
             int a = (st[0] == 0 ? z : x) - st[2], b = ((st[0] == 0 ? x : z) - st[1]) * st[3];
-            if (a >= -12 && a <= 12 && b >= 8 && b <= 26) return new int[]{a, b, i};
+            if (a >= -12 && a <= 12 && b >= 7 && b <= 26) return new int[]{a, b, i};
         }
         return null;
+    }
+
+    /** 0 — на площадке заправки, 1 — дальше 10 блоков от неё. */
+    private static double stationFade(int x, int z) {
+        double f = 1;
+        for (int[] st : STATIONS) {
+            int a = Math.abs((st[0] == 0 ? z : x) - st[2]), b = ((st[0] == 0 ? x : z) - st[1]) * st[3];
+            int da = Math.max(0, a - 12), db = Math.max(0, Math.max(7 - b, b - 26));
+            if (b < 0) continue;
+            f = Math.min(f, Math.min(1, Math.max(da, db) / 10.0));
+        }
+        return f;
     }
 
     /** Заправка: навес с колонками, магазинчик с кассой, холодильником и полками, щит-стела у дороги, парковка. */
@@ -627,6 +641,63 @@ public final class Island {
                 return zn == Zone.DOWNTOWN ? 0xFF7FA3C8 : zn == Zone.RIVIERA ? 0xFFE8B4C8 : zn == Zone.INDUSTRIAL ? 0xFF8C7A62 : 0xFF8DB86A;
             }
         }
+    }
+
+    /** Есть ли на участке (px, pz) точка сюжета — такие участки не превращаем в стройку. */
+    static boolean placeInLot(long px, long pz) {
+        for (double[] v : PLACES.values())
+            if (Math.floorDiv((int) Math.floor(v[0]) + 24, 48) == px && Math.floorDiv((int) Math.floor(v[2]) + 24, 48) == pz) return true;
+        return false;
+    }
+
+    /** Маяк у входа в порт (север): x, z центра. */
+    public static final int LIGHTHOUSE_X = -700, LIGHTHOUSE_Z = -460;
+
+    /** Маяк: островок из камня, полосатая башня с винтовой… лесами внутри, галерея и фонарь наверху. Внутрь — через дверь с юга. */
+    private static boolean lighthouse(int x, int z, Column c) {
+        int dx = x - LIGHTHOUSE_X, dz = z - LIGHTHOUSE_Z;
+        if (Math.abs(dx) > 6 || Math.abs(dz) > 6) return false;
+        double d = Math.sqrt(dx * dx + dz * dz);
+        if (d > 6.2) return false;
+        int top = G + 26;
+        c.set(-64, BEDROCK);
+        for (int y = -63; y <= G; y++) c.set(y, y < G - 6 ? STONE : Blocks.STONE_BRICKS.getDefaultState());
+        if (d > 4.2) { // каменный островок с тумбами
+            if (d > 5.6 && (dx + dz) % 3 == 0) c.set(G + 1, Blocks.POLISHED_BLACKSTONE_WALL.getDefaultState());
+            return true;
+        }
+        if (d > 2.2 && d <= 3.3) { // стены башни: красно-белые полосы
+            for (int y = G + 1; y < top; y++) {
+                boolean door = dx == 0 && dz == 3 && y <= G + 2;
+                if (door) continue;
+                boolean window = (y - G) % 8 == 5 && (dx == 0 || dz == 0);
+                c.set(y, window ? Blocks.GLASS.getDefaultState() : ((y - G) / 4) % 2 == 0 ? Blocks.WHITE_CONCRETE.getDefaultState() : Blocks.RED_CONCRETE.getDefaultState());
+            }
+            if (dx == 0 && dz == 3) {
+                BlockState door = Blocks.SPRUCE_DOOR.getDefaultState().with(net.minecraft.block.DoorBlock.FACING, Direction.NORTH);
+                c.set(G + 1, door.with(net.minecraft.block.DoorBlock.HALF, net.minecraft.block.enums.DoubleBlockHalf.LOWER));
+                c.set(G + 2, door.with(net.minecraft.block.DoorBlock.HALF, net.minecraft.block.enums.DoubleBlockHalf.UPPER));
+            }
+        }
+        if (d <= 3.3) c.set(top, Blocks.STONE_BRICKS.getDefaultState()); // пол галереи
+        if (dx == 1 && dz == 0) for (int y = G + 1; y <= top; y++) c.set(y, Blocks.SCAFFOLDING.getDefaultState().with(net.minecraft.block.ScaffoldingBlock.DISTANCE, 0)); // подъём
+        if (d > 3.3) { // галерея с перилами
+            c.set(top, Blocks.STONE_BRICK_SLAB.getDefaultState().with(net.minecraft.block.SlabBlock.TYPE, net.minecraft.block.enums.SlabType.TOP));
+            if (d > 3.7) c.set(top + 1, Blocks.IRON_BARS.getDefaultState());
+            return true;
+        }
+        // фонарная комната: стекло, фонарь в центре, купол
+        if (d > 2.2) {
+            for (int y = top + 1; y <= top + 3; y++) if (!(dx == 0 && dz == 3 && y <= top + 2)) c.set(y, Blocks.YELLOW_STAINED_GLASS.getDefaultState());
+        } else if (dx == 0 && dz == 0) {
+            c.set(top + 1, Blocks.POLISHED_BLACKSTONE_WALL.getDefaultState());
+            c.set(top + 2, Blocks.SEA_LANTERN.getDefaultState());
+            c.set(top + 3, Blocks.GLOWSTONE.getDefaultState());
+        }
+        c.set(top + 4, Blocks.RED_CONCRETE.getDefaultState());
+        if (d <= 2.2) c.set(top + 5, Blocks.RED_CONCRETE.getDefaultState());
+        if (dx == 0 && dz == 0) c.set(top + 6, Blocks.LIGHTNING_ROD.getDefaultState());
+        return true;
     }
 
     /** Для автотестов и отладки: что стоит на участке с центром у (x, z) — см. Buildings.info; null — не городской участок. */

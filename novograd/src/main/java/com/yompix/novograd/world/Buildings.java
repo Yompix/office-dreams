@@ -97,9 +97,9 @@ final class Buildings {
     /** Параметры одной высотки (всё — от номера участка). */
     record Spec(long px, long pz, int half, int n, BlockState frame, BlockState glass, BlockState lit, int use, int roof, Block carpet, Block planks) {}
 
-    private static final BlockState STAIR_WALL = st(Blocks.SMOOTH_STONE), STAIR_FLOOR = st(Blocks.POLISHED_ANDESITE),
+    private static final BlockState STAIR_WALL = st(Blocks.SMOOTH_STONE), STAIR_FLOOR = st(Blocks.POLISHED_DIORITE),
             LIFT_WALL = st(Blocks.POLISHED_ANDESITE), LIFT_FRONT = st(Blocks.SMOOTH_QUARTZ), LIGHT = st(Blocks.SEA_LANTERN);
-    private static final Block STEP = Blocks.POLISHED_ANDESITE_STAIRS;
+    private static final Block STEP = Blocks.POLISHED_DIORITE_STAIRS;
 
     static boolean inStair(int lx, int lz) {
         return lx >= -4 && lx <= 3 && lz >= -9 && lz <= -5;
@@ -138,11 +138,81 @@ final class Buildings {
         Spec sp = new Spec(px, pz, half, n, frame, glass, st(Blocks.YELLOW_STAINED_GLASS), use, roof,
                 CARPETS[(int) (hash(px, pz, 26) * CARPETS.length)], PLANKS[(int) (hash(px, pz, 27) * PLANKS.length)]);
         int ax = Math.abs(lx), az = Math.abs(lz);
+        if (hash(px, pz, 28) < 0.07 && !Island.placeInLot(px, pz)) {
+            construction(lx, lz, px, pz, s, c);
+            return;
+        }
         if (ax > half || az > half) {
             plaza(lx, lz, s, c, sp);
             return;
         }
         highrise(lx, lz, s, c, sp);
+    }
+
+    /** Стройка: забор, бетонный каркас будущей башни, леса (по ним можно влезть), башенный кран, бытовки, поддоны. */
+    private static void construction(int lx, int lz, long px, long pz, int s, Island.Column c) {
+        int ax = Math.abs(lx), az = Math.abs(lz);
+        int floors = 3 + (int) (hash(px, pz, 29) * 4), top = 4 * floors, H = top + 14;
+        c.set(s, (lx * 7 + lz * 3) % 5 == 0 ? st(Blocks.GRAVEL) : st(Blocks.COARSE_DIRT));
+        if (ax == 17 || az == 17) { // забор с воротами
+            if (!(lz == 17 && ax <= 3)) {
+                c.set(s + 1, st(Blocks.WHITE_CONCRETE));
+                c.set(s + 2, st(Blocks.WHITE_CONCRETE));
+                if (Math.floorMod(lx + lz, 8) == 0) c.set(s + 3, st(Blocks.ORANGE_CONCRETE));
+            }
+            return;
+        }
+        // башенный кран: мачта, стрела, противовес, кабина, крюк с грузом
+        if (lx == 13 && lz == -13) {
+            for (int y = 1; y <= H + 2; y++) c.set(s + y, y % 3 == 0 ? st(Blocks.YELLOW_CONCRETE) : st(Blocks.YELLOW_STAINED_GLASS));
+            c.set(s + H + 3, Blocks.REDSTONE_LAMP.getDefaultState().with(Properties.LIT, true));
+            return;
+        }
+        if (lz == -13 && lx >= -14 && lx <= 16) {
+            c.set(s + H, st(Blocks.YELLOW_CONCRETE));
+            if (lx > 13) c.set(s + H - 1, st(Blocks.GRAY_CONCRETE)); // противовес
+            if (lx == 12) c.set(s + H - 1, st(Blocks.LIGHT_BLUE_STAINED_GLASS)); // кабина крановщика
+            if (lx == -6) {
+                for (int y = H - 1; y >= top + 4; y--) c.set(s + y, st(Blocks.CHAIN));
+                c.set(s + top + 3, st(Blocks.BRICKS));
+            }
+        }
+        if (lz == -13 && lx == 14) c.set(s + H + 1, st(Blocks.IRON_BARS));
+        // бытовки и стройматериалы
+        if (lx >= -15 && lx <= -10 && lz >= 13 && lz <= 15) {
+            for (int y = 1; y <= 3; y++) c.set(s + y, (y == 2 && lz == 13 && (lx == -13 || lx == -11)) ? st(Blocks.GLASS) : st(Blocks.BLUE_CONCRETE));
+            if (lx == -12 && lz == 13) door(c, s + 1, Blocks.IRON_DOOR, Direction.NORTH, DoorHinge.LEFT);
+            return;
+        }
+        if (lx >= 8 && lx <= 11 && lz >= 13 && lz <= 15) {
+            c.set(s + 1, Blocks.OAK_SLAB.getDefaultState());
+            if ((lx + lz) % 2 == 0) c.set(s + 2, st(lx < 10 ? Blocks.BRICKS : Blocks.STRIPPED_OAK_LOG));
+            return;
+        }
+        if (ax > 11 && !(lz == 12 && ax <= 11)) return;
+        // леса у южного фасада (левая часть) — лезть вверх, как по лестнице
+        if (lz == 12) {
+            if (lx >= -11 && lx <= -5) for (int y = 1; y <= top; y++) c.set(s + y, Blocks.SCAFFOLDING.getDefaultState().with(net.minecraft.block.ScaffoldingBlock.DISTANCE, 0));
+            return;
+        }
+        if (ax > 11 || az > 11) return;
+        // каркас: колонны, перекрытия (верхнее — наполовину), арматура торчит из колонн
+        boolean pillar = Math.floorMod(lx + 11, 5) == 0 && Math.floorMod(lz + 11, 5) == 0 || (ax == 11 && az == 11);
+        for (int k = 1; k <= floors; k++) {
+            int L = s + 4 * k;
+            boolean last = k == floors;
+            if (!last || lx < 0) c.set(L, st(Blocks.LIGHT_GRAY_CONCRETE));
+            if (pillar) for (int y = L - 3; y < L; y++) c.set(y, st(Blocks.GRAY_CONCRETE));
+        }
+        if (pillar) {
+            c.set(s + top + 1, st(Blocks.IRON_BARS));
+            c.set(s + top + 2, st(Blocks.IRON_BARS));
+        }
+        if (lx >= -10 && lx <= -8 && lz == 8) c.set(s + 1, st(Blocks.HAY_BLOCK)); // мешки с цементом
+        if (lx == 4 && lz == 6) { // бетономешалка
+            c.set(s + 1, st(Blocks.ORANGE_CONCRETE));
+            c.set(s + 2, st(Blocks.CAULDRON));
+        }
     }
 
     /** Площадь перед башней: плитка, клумбы, козырёк над входом. */
@@ -206,7 +276,10 @@ final class Buildings {
         if (role == 0) return k == n ? (sp.roof() == POOL ? st(Blocks.SMOOTH_SANDSTONE) : sp.frame()) : st(Blocks.SMOOTH_STONE);
         // перекрытие между этажами: снизу — потолок со светильниками, сверху — пол
         int W = (k - 1 >= n - 2 ? sp.half() - 3 : sp.half()) - 1;
-        if (below == 2 && light(lx, lz, k - 1, sp, W)) return LIGHT;
+        int Wk = (k >= n - 2 ? sp.half() - 3 : sp.half()) - 1;
+        // светильник в перекрытии виден и сверху как плитка — над ним должен лежать ковёр (офис, коридор), не паркет комнаты
+        boolean coveredAbove = k >= n || sp.use() == OFFICE || unit(lx, lz, Wk) == -1;
+        if (below == 2 && coveredAbove && light(lx, lz, k - 1, sp, W)) return LIGHT;
         return floorMat(lx, lz, k, sp, (k >= n - 2 ? sp.half() - 3 : sp.half()) - 1);
     }
 
@@ -274,6 +347,7 @@ final class Buildings {
         if (wallX || outerZ || mid || (innerZ && !doorway)) for (int y = L + 1; y <= L + 3; y++) c.set(y, STAIR_WALL);
         if (doorway) c.set(L + 3, LIGHT); // свет над дверью на лестницу
         if (outerZ && (lx == -3 || lx == 2)) c.set(L + 3, LIGHT);
+        if (mid && lx == -1) c.set(L + 2, LIGHT);
         if (roof) {
             c.set(L + 4, STAIR_WALL); // будка выхода на крышу
             return;
@@ -296,7 +370,7 @@ final class Buildings {
         if (roof) c.set(L + 4, LIFT_WALL);
         if (cabin) return;
         if (doorway) {
-            c.set(L + 3, st(Blocks.POLISHED_BLACKSTONE)); // табло над дверью
+            c.set(L + 3, Blocks.REDSTONE_LAMP.getDefaultState().with(Properties.LIT, true)); // горящее табло над дверью — и свет в кабине
             return;
         }
         for (int y = L + 1; y <= L + 3; y++) c.set(y, lx == 6 ? LIFT_FRONT : LIFT_WALL);
@@ -501,6 +575,10 @@ final class Buildings {
 
     /** Обстановка комнаты: кровать у дальней стены, кухня (или мини-бар и стол в отеле), телевизор с диваном, ванна. */
     private static void furnish(Room r, int L, Island.Column c, boolean hotel, double seed, int k) {
+        if (r.d() >= 9 && r.w() >= 7) {
+            furnishBig(r, L, c, hotel, seed);
+            return;
+        }
         int i = r.i(), j = r.j(), w = r.w(), d = r.d();
         Direction in = r.in(), along = r.along();
         if (i == w / 2 && j == d / 2) c.set(L + 3, hanging()); // светильник под потолком
@@ -579,6 +657,118 @@ final class Buildings {
             return;
         }
         if (j == 0 && i == 0 && w >= 5) c.set(L + 1, st(POTS[(int) (seed * 31 % 1 * POTS.length)]));
+    }
+
+    /**
+     * Большая квартира (или люкс в отеле): спальня за перегородкой с дверью, гостиная с телевизором и диваном,
+     * кухня (в отеле — бар) и обеденный стол, книжные полки, цветы, ванна у входа.
+     */
+    private static void furnishBig(Room r, int L, Island.Column c, boolean hotel, double seed) {
+        int i = r.i(), j = r.j(), w = r.w(), d = r.d();
+        Direction in = r.in(), along = r.along();
+        int part = d - 4;                  // перегородка спальни
+        int mid = w / 2;                   // дверь в спальню
+        BlockState wall = st(hotel ? Blocks.SMOOTH_SANDSTONE : Blocks.WHITE_CONCRETE);
+        if (j == part) {
+            if (i == mid) {
+                door(c, L + 1, hotel ? Blocks.DARK_OAK_DOOR : Blocks.BIRCH_DOOR, in, DoorHinge.LEFT);
+                c.set(L + 3, wall);
+            } else for (int y = L + 1; y <= L + 3; y++) c.set(y, wall);
+            return;
+        }
+        if (j > part) { // спальня
+            if (i == mid && j == d - 2) c.set(L + 3, hanging());
+            if (j >= d - 2 && i <= 1) {
+                bed(c, L + 1, hotel ? Blocks.WHITE_BED : BEDS[(int) (seed * BEDS.length)], in, j == d - 1);
+                return;
+            }
+            if (j == d - 1 && i == 2) {
+                c.set(L + 1, st(Blocks.BARREL).with(Properties.FACING, Direction.UP));
+                c.set(L + 2, st(Blocks.LANTERN));
+                return;
+            }
+            if (i == w - 1 && j >= d - 2) { // шкаф
+                c.set(L + 1, st(Blocks.BOOKSHELF));
+                c.set(L + 2, st(Blocks.BOOKSHELF));
+                return;
+            }
+            if (i == w - 1 && j == d - 3) { // рабочий стол с компьютером
+                c.set(L + 1, slabTop(Blocks.BIRCH_SLAB));
+                c.set(L + 2, facing(ModContent.COMPUTER, along.getOpposite()));
+                return;
+            }
+            if (i == w - 2 && j == d - 3) {
+                c.set(L + 1, stairs(Blocks.SPRUCE_STAIRS, along.getOpposite()));
+                return;
+            }
+            if (i >= 2 && i <= w - 3 && j >= d - 2 && j <= d - 2) c.set(L + 1, st(RUGS[(int) (seed * 7 % 1 * RUGS.length)]));
+            if (hotel && i == w - 1 && j == part + 1) c.set(L + 1, facing(ModContent.TV, along.getOpposite()));
+            return;
+        }
+        // гостиная и кухня (j от 1 до part−1), у двери (j = 0) — прихожая и ванна
+        int jt = Math.max(2, part / 2);
+        if (i == mid && j == jt) c.set(L + 3, hanging());
+        if (i == w - 2 && j == part - 1 && part >= 4) c.set(L + 3, hanging());
+        if (i == r.doorI() && j <= 1) return;
+        if (j == 0) {
+            if (i == w - 1 && r.doorI() < w - 2) c.set(L + 1, water3()); // ванна
+            else if (i == w - 2 && r.doorI() < w - 3) c.set(L + 1, st(Blocks.QUARTZ_SLAB)); // раковина
+            else if (i == 0) c.set(L + 1, st(POTS[(int) (seed * 13 % 1 * POTS.length)]));
+            return;
+        }
+        if (i == w - 1) { // кухня вдоль стены: холодильник, плита, мойка, столешница (в отеле — бар)
+            int t = j - 1;
+            if (hotel) {
+                if (t <= 2) {
+                    c.set(L + 1, st(Blocks.BARREL).with(Properties.FACING, Direction.UP));
+                    if (t == 1) c.set(L + 2, st(Blocks.BREWING_STAND));
+                }
+                return;
+            }
+            switch (t) {
+                case 0 -> { c.set(L + 1, st(Blocks.SMOOTH_QUARTZ)); c.set(L + 2, st(Blocks.SMOOTH_QUARTZ)); }
+                case 1 -> c.set(L + 1, facing(Blocks.SMOKER, along.getOpposite()));
+                case 2 -> c.set(L + 1, water3());
+                case 3 -> { c.set(L + 1, st(Blocks.BARREL).with(Properties.FACING, Direction.UP)); c.set(L + 2, st(Blocks.POTTED_BAMBOO)); }
+                default -> {}
+            }
+            return;
+        }
+        // обеденный стол со стульями
+        if (part >= 5 && mid < w - 4 && j == part - 1 && i >= w - 4 && i <= w - 3) {
+            c.set(L + 1, slabTop(Blocks.DARK_OAK_SLAB));
+            if (i == w - 3) c.set(L + 2, st(Blocks.POTTED_WHITE_TULIP));
+            return;
+        }
+        if (part >= 5 && mid < w - 4 && j == part - 2 && i >= w - 4 && i <= w - 3) {
+            c.set(L + 1, stairs(Blocks.DARK_OAK_STAIRS, in.getOpposite()));
+            return;
+        }
+        // телевизор, диван, столик, ковёр, книжные полки
+        int sofaI = Math.min(4, w - 4);
+        if (i == 0 && j == jt) {
+            c.set(L + 1, st(Blocks.BARREL).with(Properties.FACING, Direction.UP));
+            c.set(L + 2, facing(ModContent.TV, along));
+            return;
+        }
+        if (i == 0 && Math.abs(j - jt) == 2) {
+            c.set(L + 1, st(Blocks.BOOKSHELF));
+            c.set(L + 2, st(Blocks.BOOKSHELF));
+            return;
+        }
+        if (i == sofaI && Math.abs(j - jt) <= 1) {
+            c.set(L + 1, stairs(hotel ? Blocks.DARK_OAK_STAIRS : (seed > 0.5 ? Blocks.SPRUCE_STAIRS : Blocks.POLISHED_BLACKSTONE_STAIRS), along));
+            return;
+        }
+        if (i == sofaI - 2 && j == jt) {
+            c.set(L + 1, trapTop(Blocks.SPRUCE_TRAPDOOR));
+            return;
+        }
+        if (i >= 1 && i < sofaI && Math.abs(j - jt) <= 1) {
+            c.set(L + 1, st(hotel ? Blocks.WHITE_CARPET : RUGS[(int) (seed * 977 % 1 * RUGS.length)]));
+            return;
+        }
+        if (i == 0 && j == part - 1) c.set(L + 1, st(Blocks.FLOWERING_AZALEA));
     }
 
     // ------------------------------------------------------------------ крыша и терраса
@@ -687,10 +877,11 @@ final class Buildings {
         }
     }
 
-    /** Для автотестов: {тип (0 офисы, 1 жилая башня, 2 отель, 3 казино, 4 парк, 5 дома, 6 склад, 7 контейнеры), полуширина, этажей}. */
+    /** Для автотестов: {тип (0 офисы, 1 жилая башня, 2 отель, 3 казино, 4 парк, 5 дома, 6 склад, 7 контейнеры, 8 стройка), полуширина, этажей}. */
     static int[] info(Island.Zone zn, long px, long pz) {
         switch (zn) {
             case DOWNTOWN -> {
+                if (hash(px, pz, 28) < 0.07 && !Island.placeInLot(px, pz)) return new int[]{8, 11, 3 + (int) (hash(px, pz, 29) * 4)};
                 double centerBoost = 1 - Math.min(1, Math.hypot(px * 48 - 430, pz * 48 + 430) / 380.0);
                 return new int[]{hash(px, pz, 25) < 0.3 ? 1 : 0, 13 + (int) (hash(px, pz, 22) * 4), 6 + (int) (hash(px, pz, 23) * 10 + centerBoost * 12)};
             }

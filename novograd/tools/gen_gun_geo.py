@@ -114,6 +114,7 @@ def pistol():
 def smg():
     g = Gun('smg')
     g.bone('body', 'root', (8, 8, 8))
+    g.bone('stock', 'root', (8, 8, 14))
     g.bone('bolt', 'root', (9, 9.4, 6.8))
     g.bone('handle', 'root', (6.7, 9.8, 1.8))
     g.bone('mag', 'root', (8, 7.8, 5.9))
@@ -135,9 +136,10 @@ def smg():
     g.box('body', (7.55, 6.4, 7.6), (8.45, 6.8, 10.0), 'polymer')
     g.box('body', (7.55, 6.8, 7.6), (8.45, 7.8, 8.0), 'polymer')
     g.box('body', (6.9, 8.6, 10.4), (7.05, 9.0, 11.3), 'steel_hi')  # переводчик
-    g.box('body', (7.65, 9.4, 12.5), (8.35, 9.8, 18.0), 'steel')  # приклад-рамка
-    g.box('body', (7.65, 7.9, 12.5), (8.35, 8.3, 18.0), 'steel')
-    g.box('body', (7.1, 7.2, 18.0), (8.9, 10.5, 18.8), 'rubber', decals={'south': [('grooves', 5)]})
+    g.box('stock', (7.65, 9.4, 12.5), (8.35, 9.8, 13.6), 'steel')  # приклад-рамка (уходит вниз, к плечу)
+    g.box('stock', (7.65, 8.3, 13.4), (8.35, 8.7, 18.0), 'steel')
+    g.box('stock', (7.65, 6.6, 12.5), (8.35, 7.0, 18.0), 'steel')
+    g.box('stock', (7.1, 5.8, 18.0), (8.9, 9.2, 18.8), 'rubber', decals={'south': [('grooves', 5)]})
     g.box('body', (7.45, 7.75, 5.0), (8.55, 7.85, 6.8), 'steel_dark')  # горловина
     g.box('bolt', (8.92, 9.0, 6.0), (9.04, 9.8, 7.6), 'bright')
     g.box('handle', (6.2, 9.65, 1.6), (6.5, 10.15, 2.2), 'steel_dark')
@@ -157,6 +159,7 @@ def smg():
 def shotgun():
     g = Gun('shotgun')
     g.bone('body', 'root', (8, 8, 8))
+    g.bone('stock', 'root', (8, 8, 14))
     g.bone('pump', 'root', (8, 8.4, -0.5))
     g.bone('trigger', 'root', (8, 7.4, 7.3))
     g.bone('shell', 'root', (8, 7.1, 5.3))
@@ -172,9 +175,9 @@ def shotgun():
     g.box('body', (7.55, 6.3, 6.4), (8.45, 6.7, 9.2), 'steel')
     g.box('body', (7.55, 6.7, 6.4), (8.45, 7.4, 6.8), 'steel')
     g.box('body', (7.1, 5.6, 9.3), (8.9, 9.1, 12.6), 'wood', rot=('x', -18, (8, 9.0, 10.0)))
-    g.box('body', (7.1, 6.9, 12.0), (8.9, 10.2, 17.0), 'wood')
-    g.box('body', (7.12, 6.3, 16.9), (8.88, 10.05, 21.4), 'wood')
-    g.box('body', (7.05, 6.1, 21.4), (8.95, 10.15, 22.2), 'rubber', decals={'south': [('grooves', 6)]})
+    g.box('stock', (7.1, 6.7, 12.0), (8.9, 9.7, 17.0), 'wood')
+    g.box('stock', (7.12, 5.8, 16.9), (8.88, 9.3, 21.4), 'wood')
+    g.box('stock', (7.05, 5.6, 21.4), (8.95, 9.4, 22.2), 'rubber', decals={'south': [('grooves', 6)]})
     g.box('body', (8.9, 8.2, 8.2), (9.05, 8.6, 9.0), 'steel_dark')  # предохранитель
     g.box('pump', (7.05, 7.35, -3.6), (8.95, 9.3, 2.4), 'polymer', decals={'east': [('grooves_v', 7)], 'west': [('grooves_v', 7)], 'down': [('grooves_h', 7)]})
     g.box('pump', (7.25, 7.2, -3.4), (8.75, 7.4, 2.2), 'polymer')
@@ -190,6 +193,7 @@ def shotgun():
 def rifle():
     g = Gun('rifle')
     g.bone('body', 'root', (8, 8, 8))
+    g.bone('stock', 'root', (8, 8, 14))
     g.bone('bolt', 'root', (9.0, 9.7, 11.0))
     g.bone('mag', 'root', (8, 7.7, 5.0))
     g.bone('trigger', 'root', (8, 7.6, 9.4))
@@ -205,8 +209,8 @@ def rifle():
     g.box('body', (7.05, 7.9, -3.8), (8.95, 9.9, 1.6), 'wood', decals={'east': [('fgroove',)], 'west': [('fgroove',)]})
     g.box('body', (7.05, 9.8, 0.9), (8.95, 10.3, 1.7), 'steel')
     g.box('body', (7.05, 7.7, 1.6), (8.95, 10.3, 13.6), 'steel', decals={'east': [('rivets', 4), ('port', 0.25, 0.55, 0.62, 0.98)], 'west': [('rivets', 4), ('text', 0.55, 0.35)]})
-    g.box('body', (7.15, 10.3, 3.2), (8.85, 10.8, 13.5), 'steel_hi', decals={'up': [('ribs_z', 3)]})
-    g.box('body', (7.5, 10.8, 3.4), (8.5, 10.95, 13.3), 'steel_hi')
+    g.box('body', (7.15, 10.3, 3.2), (8.85, 10.65, 13.5), 'steel_hi', decals={'up': [('ribs_z', 3)]})
+    g.box('body', (7.5, 10.65, 3.4), (8.5, 10.78, 13.3), 'steel_hi')
     g.box('body', (7.4, 10.3, 1.8), (8.6, 11.0, 3.2), 'steel')
     g.box('body', (7.5, 11.0, 2.2), (7.8, 11.4, 3.6), 'steel_dark')
     g.box('body', (8.2, 11.0, 2.2), (8.5, 11.4, 3.6), 'steel_dark')
@@ -215,9 +219,9 @@ def rifle():
     g.box('body', (7.55, 6.3, 8.0), (8.45, 6.7, 11.4), 'steel')
     g.box('body', (7.55, 6.7, 8.0), (8.45, 7.7, 8.4), 'steel')
     g.box('body', (7.25, 3.6, 10.8), (8.75, 7.75, 12.8), 'wood_dark', rot=('x', -16, (8, 7.7, 11.8)), decals={'east': [('checker',)], 'west': [('checker',)]})
-    g.box('body', (7.15, 7.4, 13.6), (8.85, 10.1, 16.6), 'wood')
-    g.box('body', (7.17, 6.0, 14.0), (8.83, 9.95, 21.8), 'wood', rot=('x', 7, (8, 9.95, 14.0)))
-    g.box('body', (7.1, 5.4, 21.6), (8.9, 9.95, 22.3), 'steel', rot=('x', 7, (8, 9.95, 14.0)))
+    g.box('stock', (7.15, 7.2, 13.6), (8.85, 9.9, 16.0), 'wood')
+    g.box('stock', (7.17, 5.8, 14.0), (8.83, 9.6, 21.8), 'wood', rot=('x', 8, (8, 9.6, 14.0)))
+    g.box('stock', (7.1, 5.2, 21.6), (8.9, 9.6, 22.3), 'steel', rot=('x', 8, (8, 9.6, 14.0)))
     g.box('bolt', (8.95, 9.5, 9.0), (9.15, 9.9, 12.4), 'bright')
     g.box('bolt', (9.15, 9.42, 11.3), (9.95, 9.98, 11.9), 'steel_hi')
     # изогнутый магазин
@@ -236,6 +240,7 @@ def rifle():
 def sniper():
     g = Gun('sniper')
     g.bone('body', 'root', (8, 8, 8))
+    g.bone('stock', 'root', (8, 8, 14))
     g.bone('bolt', 'root', (8, 9.6, 11.0))
     g.bone('mag', 'root', (8, 7.4, 8.4))
     g.bone('trigger', 'root', (8, 7.2, 11.0))
@@ -247,10 +252,10 @@ def sniper():
     g.octo('body', (8, 9.6), 3.5, 12.0, 0.75, 'steel', decals={'east': [('port', 0.62, 0.3, 0.85, 0.85)]})
     g.box('body', (7.2, 4.0, 11.4), (8.8, 7.4, 13.4), 'olive', rot=('x', -10, (8, 7.3, 12.4)), decals={'east': [('checker',)], 'west': [('checker',)]})
     g.box('body', (7.15, 6.6, 11.6), (8.85, 9.2, 15.5), 'olive')
-    g.box('body', (7.15, 9.0, 13.5), (8.85, 10.6, 20.5), 'olive_dark', decals={'up': [('stripe', 0.3, 0.7)]})
-    g.box('body', (7.15, 5.2, 15.5), (8.85, 6.6, 21.6), 'olive')
-    g.box('body', (7.15, 5.2, 20.5), (8.85, 10.6, 21.6), 'olive')
-    g.box('body', (7.1, 5.0, 21.6), (8.9, 10.8, 22.4), 'rubber', decals={'south': [('grooves', 6)]})
+    g.box('stock', (7.15, 9.0, 13.5), (8.85, 10.6, 20.5), 'olive_dark', decals={'up': [('stripe', 0.3, 0.7)]})
+    g.box('stock', (7.15, 5.2, 15.5), (8.85, 6.6, 21.6), 'olive')
+    g.box('stock', (7.15, 5.2, 20.5), (8.85, 10.6, 21.6), 'olive')
+    g.box('stock', (7.1, 5.0, 21.6), (8.9, 10.8, 22.4), 'rubber', decals={'south': [('grooves', 6)]})
     g.box('body', (7.55, 6.5, 10.4), (8.45, 6.9, 12.4), 'steel')
     g.box('body', (7.55, 6.9, 10.4), (8.45, 7.2, 10.8), 'steel')
     # прицел

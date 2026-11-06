@@ -1775,13 +1775,13 @@ public final class DevAutotest {
             run(5, c -> c.player.getInventory().selectedSlot = slot);
             shot(30, "gun_" + g + "_idle");
             run(2, c -> c.options.attackKey.setPressed(true));
-            shot(i == 1 || i == 3 ? 6 : 2, "gun_" + g + "_fire");
+            shot(6, "gun_" + g + "_fire");
             run(1, c -> c.options.attackKey.setPressed(false));
             run(25, c -> c.options.useKey.setPressed(true));
             run(19, c -> com.yompix.novograd.Novograd.LOG.info("[guns] ads {}", GunFx.debug()));
             shot(1, "gun_" + g + "_ads");
             run(2, c -> c.options.attackKey.setPressed(true));
-            shot(2, "gun_" + g + "_ads_fire");
+            shot(6, "gun_" + g + "_ads_fire");
             run(1, c -> c.options.attackKey.setPressed(false));
             run(25, c -> c.options.useKey.setPressed(false));
             // перезарядка: замораживаем анимацию на моменте «магазин вынут» (у дробовика — патрон в руке)
@@ -1821,11 +1821,21 @@ public final class DevAutotest {
         shot(10, "gun_casings");
         run(5, c -> { c.player.setPitch(5); c.player.setYaw(c.player.getYaw() - 40); });
         // хитмаркер: свинья без ИИ перед игроком
-        cmd(5, "execute as " + P + " at @s anchored eyes positioned ^ ^-1 ^7 run summon minecraft:pig ~ ~ ~ {NoAI:1b,Silent:1b}");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            var pig = new net.minecraft.entity.passive.PigEntity(net.minecraft.entity.EntityType.PIG, w);
+            var look = p.getRotationVec(1f).multiply(1, 0, 1).normalize();
+            double px = p.getX() + look.x * 6, pz = p.getZ() + look.z * 6;
+            pig.refreshPositionAndAngles(px, p.getY(), pz, 0, 0);
+            pig.setAiDisabled(true);
+            w.spawnEntity(pig);
+            look(p, p.getX(), p.getY(), p.getZ(), px, p.getY() - 1.17, pz); // взгляд из глаз в середину свиньи
+        });
         run(30, c -> c.player.getInventory().selectedSlot = 0);
         run(30, c -> c.options.useKey.setPressed(true));
         run(15, c -> c.options.attackKey.setPressed(true));
-        shot(3, "gun_hitmarker");
+        shot(8, "gun_hitmarker");
         run(1, c -> c.options.attackKey.setPressed(false));
         run(5, c -> c.options.useKey.setPressed(false));
         cmd(5, "kill @e[type=minecraft:pig,distance=..20]");
@@ -2075,6 +2085,8 @@ public final class DevAutotest {
             var w = p.getServerWorld();
             w.getChunk((int) Math.floor(x) >> 4, (int) Math.floor(z) >> 4);
             p.teleport(w, x, y, z, yaw, pitch);
+            p.getAbilities().flying = true; // зависнуть на месте для кадра (в кабине прыжок всё равно работает)
+            p.sendAbilitiesUpdate();
         });
     }
 
@@ -2147,7 +2159,7 @@ public final class DevAutotest {
             liftGo(5, X + 7, Z - 1, 3);
             shot(8, "city_lift_fade");
             shot(70, "city_office_arrive");
-            key(10, GLFW.GLFW_KEY_SPACE); // прыжок в кабине — этажом выше
+            hold(10, c -> c.options.jumpKey, 6); // прыжок в кабине — этажом выше
             shot(60, "city_jump_up");
             server(5, sv -> com.yompix.novograd.Novograd.LOG.info("[city] после прыжка игрок на y={}", sv.getPlayerManager().getPlayer(P).getY()));
             int W = h - 1;
@@ -2203,6 +2215,19 @@ public final class DevAutotest {
         if (store != null && (only.isEmpty() || only.equals("house"))) {
             tp(5, store[0] + 0.5, s + 2, store[1] + 7.5, 180, 10);
             shot(220, "city_warehouse");
+        }
+        if (only.isEmpty() || only.equals("extra")) {
+            int[] site = findLot(192, 672, -672, -192, 8, 0);
+            com.yompix.novograd.Novograd.LOG.info("[city] стройка {}", java.util.Arrays.toString(site));
+            if (site != null) {
+                tp(5, site[0] - 0.5, s + 6, site[1] + 26.5, 180, 0);
+                shot(220, "city_construction");
+            }
+            int lx = com.yompix.novograd.world.Island.LIGHTHOUSE_X, lz = com.yompix.novograd.world.Island.LIGHTHOUSE_Z;
+            tp(5, lx + 18.5, G + 8, lz + 18.5, 135, 5);
+            shot(220, "city_lighthouse");
+            tp(5, lx + 0.5, G + 1, lz + 4.5, 180, -10);
+            shot(60, "city_lighthouse_door");
         }
         if (only.isEmpty() || only.equals("road")) {
             tp(5, -150.5, G + 3, 746.5, 0, 8);
