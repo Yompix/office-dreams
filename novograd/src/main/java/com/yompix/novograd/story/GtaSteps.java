@@ -117,23 +117,12 @@ final class GtaSteps {
             case "clear" -> {
                 Vec3d at = Story.place(w, Story.str(s, "place", ""));
                 if (at == null) return;
-                int n = Story.num(s, "count", 4);
-                var rnd = w.getRandom();
-                for (int i = 0; i < n; i++) {
-                    Vec3d v = at.add(rnd.nextInt(11) - 5, 0, rnd.nextInt(11) - 5);
-                    CitizenEntity g = npc(w, v, CitizenEntity.Role.GANG, "Ящер " + com.yompix.novograd.life.Names.random(rnd, false), CitizenEntity.RANDOM_FROM + 1 + 2 * rnd.nextInt(20));
-                    g.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(rnd.nextInt(3) == 0 ? ModContent.SMG : ModContent.PISTOL));
-                    track(p, g);
+                // игрок далеко — банда появится, когда он подъедет (иначе она останется в выгруженном районе)
+                if (p.squaredDistanceTo(at) > 64 * 64) {
+                    r.countdown = -2;
+                    return;
                 }
-                String boss = Story.str(s, "boss", "");
-                if (!boss.isEmpty()) {
-                    CitizenEntity b = npc(w, at, CitizenEntity.Role.GANG, boss, CitizenEntity.RANDOM_FROM + 39);
-                    var hp = b.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
-                    if (hp != null) hp.setBaseValue(80);
-                    b.setHealth(80);
-                    b.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(ModContent.SMG));
-                    track(p, b);
-                }
+                spawnGang(p, s, at);
             }
             case "chase" -> {
                 List<Vec3d> pts = points(w, s.getAsJsonArray("points"));
@@ -164,6 +153,28 @@ final class GtaSteps {
                 r.target = c.getUuid();
             }
             default -> {}
+        }
+    }
+
+    /** Банда для шага «clear» вокруг места. */
+    private static void spawnGang(ServerPlayerEntity p, JsonObject s, Vec3d at) {
+        ServerWorld w = p.getServerWorld();
+        int n = Story.num(s, "count", 4);
+        var rnd = w.getRandom();
+        for (int i = 0; i < n; i++) {
+            Vec3d v = at.add(rnd.nextInt(11) - 5, 0, rnd.nextInt(11) - 5);
+            CitizenEntity g = npc(w, v, CitizenEntity.Role.GANG, "Ящер " + com.yompix.novograd.life.Names.random(rnd, false), CitizenEntity.RANDOM_FROM + 1 + 2 * rnd.nextInt(20));
+            g.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(rnd.nextInt(3) == 0 ? ModContent.SMG : ModContent.PISTOL));
+            track(p, g);
+        }
+        String boss = Story.str(s, "boss", "");
+        if (!boss.isEmpty()) {
+            CitizenEntity b = npc(w, at, CitizenEntity.Role.GANG, boss, CitizenEntity.RANDOM_FROM + 39);
+            var hp = b.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+            if (hp != null) hp.setBaseValue(80);
+            b.setHealth(80);
+            b.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(ModContent.SMG));
+            track(p, b);
         }
     }
 
@@ -199,6 +210,13 @@ final class GtaSteps {
             }
             case "clear" -> {
                 Vec3d where = Story.place(w, Story.str(s, "place", ""));
+                if (r.countdown == -2) { // банда ещё не вызвана — ждём, пока игрок подъедет
+                    if (where != null && p.squaredDistanceTo(where) < 64 * 64) {
+                        r.countdown = -1;
+                        spawnGang(p, s, where);
+                    }
+                    return;
+                }
                 if (where != null && p.squaredDistanceTo(where) > 70 * 70) return; // враги в незагруженном районе — ждём игрока
                 List<UUID> l = SPAWNED.getOrDefault(p.getUuid(), List.of());
                 int alive = 0;

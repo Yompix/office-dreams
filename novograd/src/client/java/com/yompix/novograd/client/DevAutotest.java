@@ -129,6 +129,34 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("island3")) {
+            YompixSplash.markShown();
+            pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            cmd(5, "gamemode spectator " + P);
+            cmd(5, "time set 6000");
+            String[] cams = {"cam_riv_far", "cam_riv_strip", "cam_bridge", "cam_mtn", "cam_desert", "lake_dock+0,-60,20", "village+30,0,15", "shop_clothes+0,-25,6", "riv_casino+0,25,8", "cam_island_far"};
+            for (String cn : cams) {
+                server(5, s -> {
+                    ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                    var w = p.getServerWorld();
+                    double[] v = com.yompix.novograd.story.Director.camera(w, cn);
+                    if (v == null) return;
+                    w.getChunk((int) v[0] >> 4, (int) v[2] >> 4);
+                    float yaw = (float) v[3], pitch = (float) v[4];
+                    if (cn.contains("+")) { // смотрим на базовое место
+                        var b = Story.place(w, cn.substring(0, cn.indexOf('+')));
+                        yaw = (float) Math.toDegrees(Math.atan2(-(b.x - v[0]), b.z - v[2]));
+                        pitch = 20;
+                    }
+                    p.teleport(w, v[0], v[1], v[2], yaw, pitch);
+                });
+                shot(140, "isl3_" + cn.replaceAll("[^a-z_]", ""));
+            }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("missions")) {
             // проходим все миссии сюжета по шагам: шаг запускается без ошибок, цель есть, герой разговора на месте
             YompixSplash.markShown();

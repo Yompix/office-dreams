@@ -103,8 +103,7 @@ public final class ArsenalClient {
         if (s.getItem() instanceof GunItem g) {
             int mag = g.mag(s), max = g.spec().magazine();
             int reserve = c.player.isCreative() ? -1 : c.player.getInventory().count(ModContent.AMMO);
-            boolean reloading = c.player.getItemCooldownManager().getCooldownProgress(g, delta) > 0 && c.player.getItemCooldownManager().getCooldownProgress(g, delta) < 1
-                    && mag == max && !c.player.isCreative();
+            boolean reloading = GunFx.reloadProgress(g) >= 0; // по настоящей длинной перезарядке, а не по любому кулдауну выстрела
             String big = String.valueOf(mag), small = " / " + max + (reserve >= 0 ? "  ·  " + reserve : "  ·  ∞");
             // счётчик патронов — в плашке оружия справа вверху (LifeHud); здесь только подсказки
             int x = w / 2 + 96, y = h - 4;

@@ -121,6 +121,7 @@ public final class Heists {
                 int pay = min + p.getRandom().nextInt(max - min + 1);
                 Life.earn(p, pay, "ограбление банка");
                 Activities.title(p, "ОГРАБЛЕНИЕ УДАЛОСЬ", BANKS[h.bank][0] + " · +$" + pay);
+                com.yompix.novograd.life.Achievements.give(p, "heist");
                 Life.sync(p);
                 end(p);
             }
@@ -206,6 +207,7 @@ public final class Heists {
             bag.setDespawnImmediately();
             Life.earn(p, pay, "налёт на магазин");
             Activities.title(p, "КАССА ВЗЯТА", "+$" + pay + " · полиция уже едет");
+            com.yompix.novograd.life.Achievements.give(p, "holdup");
             Wanted.add(p, 0, "налёт на магазин", 2);
             clerk.lockActivity(null);
             Life.sync(p);
@@ -274,6 +276,7 @@ public final class Heists {
             w.spawnParticles(ParticleTypes.HAPPY_VILLAGER, van.getX(), van.getY() + 1, van.getZ(), 30, 1, 1, 1, 0.1);
             Life.earn(p, pay, "инкассатор");
             Activities.title(p, "ИНКАССАТОР ВЗЯТ", "+$" + pay);
+            com.yompix.novograd.life.Achievements.give(p, "armored");
             Wanted.add(p, 0, "нападение на инкассаторов", 3);
             Life.sync(p);
         }
@@ -330,6 +333,7 @@ public final class Heists {
         if (d.money >= price) {
             d.money -= price;
             d.flags.add("biz:" + inside);
+            com.yompix.novograd.life.Achievements.give(p, "tycoon");
             Activities.title(p, "БИЗНЕС КУПЛЕН", BUSINESS[inside][0] + " · +$" + BUSINESS[inside][3] + " каждый день");
             w.playSound(null, p.getBlockPos(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.7f, 1.1f);
             Life.sync(p);
@@ -393,6 +397,7 @@ public final class Heists {
             RAMPAGE.remove(p.getUuid());
             Life.earn(p, 2500, "бойня");
             Activities.title(p, "БОЙНЯ ПРОЙДЕНА", "+$2500");
+            com.yompix.novograd.life.Achievements.give(p, "rampage");
             LifeNet.send(p, "act_timer", sec(-1));
             Life.sync(p);
         } else if (rp.left <= 0) {

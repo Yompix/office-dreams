@@ -54,6 +54,7 @@ public final class Wanted {
         x.stars = Math.min(5, Math.max(min, x.stars + add));
         x.lastSeen = p.getServerWorld().getTime();
         x.seen = true;
+        if (x.stars >= 5) com.yompix.novograd.life.Achievements.give(p, "stars5");
         if (x.stars > before) {
             p.sendMessage(Text.literal("★ Розыск: " + "★".repeat(x.stars) + " — " + why).formatted(Formatting.RED), true);
             p.playSoundToPlayer(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.MASTER, 1f, 0.6f);

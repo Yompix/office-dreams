@@ -100,6 +100,7 @@ public final class Activities {
                 int pay = 250 + (n % 10 == 0 ? 2500 : 0);
                 Life.earn(p, pay, "тайник " + n + "/" + PACKAGES);
                 w.playSound(null, p.getBlockPos(), SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.PLAYERS, 0.8f, 1.4f);
+                if (n >= PACKAGES) com.yompix.novograd.life.Achievements.give(p, "packages50");
                 title(p, "ТАЙНИК " + n + "/" + PACKAGES, n % 10 == 0 ? "Бонус! +$" + pay + " и патроны" : "+$" + pay);
                 if (n % 10 == 0) p.getInventory().insertStack(new ItemStack(ModContent.AMMO, 64));
                 Life.sync(p);
@@ -122,6 +123,7 @@ public final class Activities {
             if (air >= 26) {
                 int pay = air * 4;
                 Life.earn(p, pay, "трюк");
+                com.yompix.novograd.life.Achievements.give(p, "stunt");
                 title(p, "ТРЮКОВОЙ ПРЫЖОК!", String.format("%.1f с в воздухе · +$%d", air / 20f, pay));
                 Life.sync(p);
             }

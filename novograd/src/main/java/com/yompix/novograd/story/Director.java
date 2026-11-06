@@ -116,7 +116,7 @@ public final class Director {
 
     /** Точка камеры: [x, y, z, yaw, pitch]. */
     @Nullable
-    static double[] camera(ServerWorld w, String name) {
+    public static double[] camera(ServerWorld w, String name) {
         Vec3d v = pos(w, name);
         if (v == null) return null;
         double[] r = com.yompix.novograd.world.Island.place(base(name));
