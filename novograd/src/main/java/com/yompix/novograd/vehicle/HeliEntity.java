@@ -148,7 +148,7 @@ public class HeliEntity extends MotorVehicle {
         CitizenEntity gunner = cop(w, h, true);
         pilot.startRiding(h, true);
         gunner.startRiding(h, true);
-        w.playSound(null, h.getBlockPos(), ModContent.SIREN, SoundCategory.NEUTRAL, 3f, 0.9f);
+        w.playSound(null, h.getBlockPos(), ModContent.SIREN, SoundCategory.NEUTRAL, 1.6f, 0.9f);
         return h;
     }
 
@@ -246,7 +246,7 @@ public class HeliEntity extends MotorVehicle {
             }
             w.spawnParticles(ParticleTypes.END_ROD, to.x, to.y + 0.2, to.z, 1, 0.8, 0, 0.8, 0.0);
         }
-        if (age % 40 == 0) w.playSound(null, getBlockPos(), ModContent.SIREN, SoundCategory.NEUTRAL, 2.5f, 0.85f);
+        if (age % 48 == 0) w.playSound(null, getBlockPos(), ModContent.SIREN, SoundCategory.NEUTRAL, 1.6f, 0.9f);
         // стрелок: очередь по цели, если видит её
         CitizenEntity g = gunner();
         if (g == null || --shootCd > 0 || com.yompix.novograd.gta.Wanted.stars(t) < 3 || t.isCreative()) return;

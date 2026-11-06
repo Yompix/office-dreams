@@ -129,6 +129,69 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("missions")) {
+            // проходим все миссии сюжета по шагам: шаг запускается без ошибок, цель есть, герой разговора на месте
+            YompixSplash.markShown();
+            pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+            cmd(5, "gamemode creative " + P);
+            cmd(5, "effect give " + P + " minecraft:resistance 99999 4 true");
+            var chs = com.yompix.novograd.story.Story.root().getAsJsonArray("chapters");
+            for (int ci = 0; ci < chs.size(); ci++) {
+                var ms = chs.get(ci).getAsJsonObject().getAsJsonArray("missions");
+                for (int mi = 0; mi < ms.size(); mi++) {
+                    var steps = ms.get(mi).getAsJsonObject().getAsJsonArray("steps");
+                    for (int si = 0; si < steps.size(); si++) {
+                        final int fc = ci, fm = mi, fs = si;
+                        String type = steps.get(si).getAsJsonObject().get("type").getAsString();
+                        String npc = steps.get(si).getAsJsonObject().has("npc") ? steps.get(si).getAsJsonObject().get("npc").getAsString() : "";
+                        String mid = ms.get(mi).getAsJsonObject().get("id").getAsString();
+                        run(2, c -> { if (c.currentScreen != null) c.setScreen(null); });
+                        server(3, s -> {
+                            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                            var d = Life.get(p);
+                            d.storyStarted = true;
+                            d.storyDone = false;
+                            d.chapter = fc;
+                            d.mission = fm;
+                            d.step = fs;
+                            try {
+                                Story.reenter(p);
+                            } catch (Throwable e) {
+                                com.yompix.novograd.Novograd.LOG.error("[mcheck] {} {} {} ОШИБКА входа: {}", mid, fs, type, e.toString());
+                            }
+                        });
+                        server(25, s -> {
+                            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                            if (p.hasVehicle()) p.stopRiding();
+                            var t = Story.debugTarget(p);
+                            if (t != null) {
+                                var w = p.getServerWorld();
+                                w.getChunk((int) t.x >> 4, (int) t.z >> 4);
+                                p.teleport(w, t.x, Story.topY(w, (int) t.x, (int) t.z) + 1, t.z, p.getYaw(), 0);
+                            }
+                        });
+                        server(30, s -> {
+                            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                            var d = Life.get(p);
+                            var t = Story.debugTarget(p);
+                            String note = "";
+                            if (!npc.isEmpty()) {
+                                var n = com.yompix.novograd.story.Npcs.find(p.getServerWorld(), npc);
+                                note = n == null ? " НЕТ ГЕРОЯ " + npc : " герой " + npc + " в " + (int) n.distanceTo(p) + " м";
+                            }
+                            boolean needT = java.util.Set.of("goto", "talk", "collect", "carrace", "steal", "clear", "chase", "tune").contains(type);
+                            String status = needT && t == null ? "НЕТ ЦЕЛИ" : "ок";
+                            if (!npc.isEmpty() && (note.contains("НЕТ") || note.matches(".* в ([3-9][0-9]|[0-9]{3,}) м"))) status = "ГЕРОЙ ДАЛЕКО/НЕТ";
+                            com.yompix.novograd.Novograd.LOG.info("[mcheck] {} шаг {} {} — {}{} (сейчас {}/{}/{})", mid, fs, type, status,
+                                    t == null ? "" : " цель " + (int) t.x + "," + (int) t.y + "," + (int) t.z, note, d.chapter, d.mission, d.step);
+                        });
+                    }
+                }
+            }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.startsWith("scene")) {
             // «scene:глава:миссия:шаг» — прыгнуть прямо в кат-сцену и снимать её; потом радар и вода
             String[] a = mode.split(":");

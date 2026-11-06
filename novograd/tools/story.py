@@ -303,7 +303,7 @@ intro['actors'] = [[0, 'car', 'racer', 'dt_1', 2], [0.2, 'drive', 'racer', ['dt_
 # ---------- a1m2: Сторм приезжает на старт, выходит и наезжает на Ники
 m = 'a1m2'
 find(ch1, m)['steps'].insert(0, scene(m,
-    [S('race_start+22,-5,3', 'race_start+12,-4,2.5', 6, track='storm_car'), F('storm', 4, (3.5, 1.6, 1.5)), S('race_start+4,6,2', 'race_start+2,4,2', 5, track='nika')],
+    [S('race_start+22,-5,3', 'race_start+12,-4,2.5', 6, track='storm_car'), F('shtorm', 4, (3.5, 1.6, 1.5)), S('race_start+4,6,2', 'race_start+2,4,2', 5, track='nika')],
     [[0, 'spawn', 'nika', 'race_start+2,-3'], [0, 'act', 'nika', 'TALK'], [0, 'car', 'storm_car', 'race_start+60,0', 2, 90],
      [0.2, 'drive', 'storm_car', ['race_start+6,0'], 0.7], [5.5, 'spawn', 'shtorm', 'race_start+6,2'], [5.6, 'walk', 'shtorm', 'race_start+3,-2'],
      [8, 'face', 'nika', 'shtorm'], [9, 'act', 'shtorm', 'ARGUE', 'nika'], [11, 'act', 'nika', 'LAUGH', 'shtorm']],

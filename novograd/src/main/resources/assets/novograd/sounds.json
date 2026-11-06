@@ -1864,6 +1864,14 @@
       }
     ]
   },
+  "siren": {
+    "sounds": [
+      {
+        "name": "novograd:siren_soft",
+        "volume": 0.7
+      }
+    ]
+  },
   "gunshot": {
     "sounds": [
       {
@@ -1875,13 +1883,6 @@
     "sounds": [
       {
         "name": "novograd:smg_shot"
-      }
-    ]
-  },
-  "siren": {
-    "sounds": [
-      {
-        "name": "novograd:siren"
       }
     ]
   },

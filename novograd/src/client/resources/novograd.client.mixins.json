@@ -4,7 +4,9 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "PlayerWidthMixin",
-    "ArsenalFovMixin"
+    "ArsenalFovMixin",
+    "PlayerSkinMixin",
+    "PlayerStyleScaleMixin"
   ],
   "injectors": {
     "defaultRequire": 1

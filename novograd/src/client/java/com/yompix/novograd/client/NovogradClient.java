@@ -160,6 +160,7 @@ public class NovogradClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_TRANSLUCENT.register(com.yompix.novograd.client.story.StoryHud::renderWorld);
         ArsenalClient.init(); // колесо оружия (TAB), перезарядка (R пешком), прицел, гранаты
         VehiclesClient.init(); // модели и звуки мотоцикла, катера, вертолёта, самолёта
+        com.yompix.novograd.client.style.StyleClient.init(); // одежда, цирюльня, гардероб, спортзал (стиль SA)
         DevAutotest.init();
     }
 
@@ -192,7 +193,6 @@ public class NovogradClient implements ClientModInitializer {
             case "dialog_view" -> show(client, new com.yompix.novograd.client.story.DialogScreen(n, true));
             case "siren" -> {
                 com.yompix.novograd.client.story.ClientStory.sirenAt = System.currentTimeMillis();
-                if (client.player != null) client.player.playSound(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), 1f, 1.6f);
             }
             case "players" -> com.yompix.novograd.client.story.ClientStory.players = n;
             case "places" -> com.yompix.novograd.client.story.ClientStory.places = n;

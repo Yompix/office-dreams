@@ -100,7 +100,7 @@ public final class Director {
         Vec3d v = pos(w, name);
         if (v == null) return null;
         double[] r = com.yompix.novograd.world.Island.place(base(name));
-        double[] t = com.yompix.novograd.world.TownState.get(w).place(base(name));
+        double[] t = r != null ? null : com.yompix.novograd.world.TownState.get(w).place(base(name));
         double yaw = t != null ? t[3] : r != null ? r[3] : 0, pitch = t == null && r != null ? r[4] : 0;
         double y = v.y + (t == null && r == null ? 1.6 : 0);
         // камера не уходит в землю: над рельефом острова минимум на 1.7 блока

@@ -544,16 +544,25 @@ public final class Story {
             int x = Integer.parseInt(xz[0].trim()), z = Integer.parseInt(xz[1].trim());
             return new Vec3d(x + 0.5, com.yompix.novograd.world.Island.surface(x, z) + 1, z + 0.5);
         }
-        double[] v = TownState.get(w).place(name);
-        if (v == null) v = com.yompix.novograd.world.Island.place(name);
+        // точки острова главнее одноимённых точек старого центра (race_1… — это трасса, а не дворы)
+        double[] v = com.yompix.novograd.world.Island.place(name);
+        if (v == null) v = TownState.get(w).place(name);
         return v == null ? null : new Vec3d(v[0], v[1], v[2]);
     }
 
     public static float placeYaw(ServerWorld w, String name) {
         if (name.indexOf('+', 1) > 0) name = name.substring(0, name.indexOf('+', 1));
-        double[] v = TownState.get(w).place(name);
-        if (v == null) v = com.yompix.novograd.world.Island.place(name);
+        double[] v = com.yompix.novograd.world.Island.place(name);
+        if (v == null) v = TownState.get(w).place(name);
         return v == null ? 0 : (float) v[3];
+    }
+
+    /** Для автотеста: куда сейчас ведёт цель шага (или null). */
+    @Nullable
+    public static Vec3d debugTarget(ServerPlayerEntity p) {
+        LifeData d = Life.get(p);
+        JsonObject s = step(d);
+        return s == null ? null : StepLogic.target(p, d, run(p), s);
     }
 
     /** Начать текущий шаг заново (проиграл гонку, упустил беглеца). */

@@ -259,7 +259,7 @@ public class CarEntity extends Entity {
         if (isPolice() && chaseTarget != null) {
             if (!chaseTarget.isAlive() || chaseTarget.squaredDistanceTo(this) > 120 * 120) chase(null);
             else {
-                if (age % 40 == 0) w.playSound(null, getBlockPos(), ModContent.SIREN, SoundCategory.NEUTRAL, 2.5f, 1f);
+                if (age % 48 == 0) w.playSound(null, getBlockPos(), ModContent.SIREN, SoundCategory.NEUTRAL, 1.6f, 1f);
                 if (age % 15 == 0 && getControllingPassenger() == null) {
                     Vec3d tp = chaseTarget.getPos();
                     setRoute(java.util.List.of(tp), chaseTarget.hasVehicle() ? 0.9f : 0.6f, null);

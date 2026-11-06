@@ -361,7 +361,7 @@ def panorama():
 APP_COLORS = {'bank': (70, 230, 120), 'school': (255, 170, 60), 'jobs': (120, 140, 255), 'messages': (70, 230, 150), 'map': (60, 190, 255),
               'shop': (255, 100, 90), 'casino': (255, 60, 120), 'music': (255, 70, 140), 'camera': (200, 200, 220), 'weather': (110, 200, 255),
               'story': (255, 196, 40), 'trophy': (255, 210, 80), 'home': (230, 160, 110), 'taxi': (255, 215, 0), 'friends': (180, 140, 255),
-              'missions': (255, 60, 70)}
+              'missions': (255, 60, 70), 'style': (255, 90, 170)}
 
 
 def glyph(d, app, c, S):
@@ -438,6 +438,12 @@ def glyph(d, app, c, S):
         d.pieslice(P((4, 34), (34, 64)), 180, 360, fill=c)
         d.ellipse(P((34, 12), (54, 32)), fill=c)
         d.pieslice(P((28, 34), (60, 66)), 180, 360, fill=c)
+    elif app == 'style':
+        # вешалка с футболкой
+        d.arc(P((26, 6), (38, 18)), 180, 30, fill=c, width=w)
+        d.line(P((32, 18), (32, 22)), fill=c, width=w)
+        d.line(P((32, 22), (8, 34), (56, 34), (32, 22)), fill=c, width=w)
+        d.polygon(P((18, 34), (46, 34), (52, 40), (46, 44), (44, 56), (20, 56), (18, 44), (12, 40)), fill=c)
     elif app == 'missions':
         d.ellipse(P((12, 12), (52, 52)), outline=c, width=w)
         d.ellipse(P((24, 24), (40, 40)), outline=c, width=w)
