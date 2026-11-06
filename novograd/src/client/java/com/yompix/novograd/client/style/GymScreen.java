@@ -321,8 +321,16 @@ public class GymScreen extends LifeScreen {
 
     /** Для автотеста: нажать «жать»/шаг. */
     public void autotest(int i) {
-        if (state == State.BENCH) benchPress();
-        if (state == State.RUN) runKey(i % 2 == 0 ? -1 : 1);
+        if (state == State.BENCH) {
+            float pos = 0.5f + 0.5f * MathHelper.sin(phase * 2.2f);
+            float half = Math.max(0.05f, 0.17f - reps * 0.009f);
+            float center = 0.5f + 0.18f * MathHelper.sin(reps * 1.7f);
+            if (Math.abs(pos - center) <= half * 0.7f || i % 23 == 0) benchPress();
+        }
+        if (state == State.RUN) {
+            float t = (System.currentTimeMillis() - startAt) / 1000f;
+            if (speed < 0.5f + 0.2f * MathHelper.sin(t * 0.45f)) runKey(lastKey == 1 ? -1 : 1);
+        }
     }
 
     public boolean idle() {

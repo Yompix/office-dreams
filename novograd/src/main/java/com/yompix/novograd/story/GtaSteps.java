@@ -164,18 +164,24 @@ final class GtaSteps {
             }
             case "steal" -> {
                 var e = r.target == null ? null : w.getEntity(r.target);
+                if (e != null && r.ticks % 20 == 0) w.getChunkManager().addTicket(net.minecraft.server.world.ChunkTicketType.PORTAL, e.getChunkPos(), 2, e.getBlockPos());
                 Vec3d to = Story.place(w, Story.str(s, "to", ""));
-                if (e == null) {
+                Vec3d from = Story.place(w, Story.str(s, "place", ""));
+                if (e == null && from != null && p.squaredDistanceTo(from) > 90 * 90) return; // машина стоит в незагруженном районе — ждём, пока игрок доедет
+                if (e == null && r.ticks > 60) {
                     Story.say(p, "Машину потеряли — попробуй ещё раз", Formatting.RED);
                     Story.reenter(p);
                     return;
                 }
+                if (e == null) return;
                 if (to != null && p.getVehicle() == e && e.squaredDistanceTo(to) < 64 && ((CarEntity) e).slow()) {
                     p.stopRiding();
                     Story.advance(p);
                 }
             }
             case "clear" -> {
+                Vec3d where = Story.place(w, Story.str(s, "place", ""));
+                if (where != null && p.squaredDistanceTo(where) > 70 * 70) return; // враги в незагруженном районе — ждём игрока
                 List<UUID> l = SPAWNED.getOrDefault(p.getUuid(), List.of());
                 int alive = 0;
                 for (UUID u : l) if (w.getEntity(u) instanceof CitizenEntity c && c.isAlive()) {
@@ -191,9 +197,14 @@ final class GtaSteps {
             case "chase" -> {
                 var e = r.target == null ? null : w.getEntity(r.target);
                 if (!(e instanceof CarEntity car)) {
-                    Story.advance(p);
+                    // машину-цель потеряли (выгрузилась) — погоня заново, а не «засчитано»
+                    if (r.ticks > 40) {
+                        Story.say(p, "Цель потеряна — ещё раз!", Formatting.RED);
+                        Story.reenter(p);
+                    }
                     return;
                 }
+                if (r.ticks % 20 == 0) w.getChunkManager().addTicket(net.minecraft.server.world.ChunkTicketType.PORTAL, car.getChunkPos(), 2, car.getBlockPos());
                 if (r.countdown > 0 && --r.countdown == 0) {
                     List<Vec3d> pts = points(w, s.getAsJsonArray("points"));
                     car.setRoute(pts.subList(1, pts.size()), 0.85f, () -> r.rivalIndex = 999);
@@ -215,7 +226,15 @@ final class GtaSteps {
         List<Vec3d> pts = points(w, s.getAsJsonArray("points"));
         Vec3d start = Story.place(w, Story.str(s, "start", ""));
         var rival = r.target == null ? null : w.getEntity(r.target);
-        if (!(rival instanceof CarEntity rc) || start == null) return;
+        if (start == null) return;
+        CarEntity rc = rival instanceof CarEntity c0 ? c0 : null;
+        if (rc == null && r.countdown != 0) {
+            // соперника выгрузило/сломало до старта — начинаем заезд заново
+            if (r.ticks % 40 == 0) Story.reenter(p);
+            return;
+        }
+        // машина соперника всегда «живёт», даже если уехала далеко от игрока
+        if (rc != null && r.ticks % 20 == 0) w.getChunkManager().addTicket(net.minecraft.server.world.ChunkTicketType.PORTAL, rc.getChunkPos(), 2, rc.getBlockPos());
         if (r.countdown < 0) {
             // ждём: игрок за рулём у старта
             boolean ready = p.getVehicle() instanceof CarEntity mine && mine.getControllingPassenger() == p && p.squaredDistanceTo(start) < 12 * 12;
@@ -229,10 +248,10 @@ final class GtaSteps {
                 LifeNet.send(p, "countdown", Story.text("text", n == 0 ? "ГАЗ!" : String.valueOf(n)));
                 p.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), SoundCategory.MASTER, 1f, n == 0 ? 2f : 1f);
             }
-            if (--r.countdown == 0) rc.setRoute(pts, Story.num(s, "rival_speed", 75) / 100f, () -> r.rivalIndex = 999);
+            if (--r.countdown == 0 && rc != null) rc.setRoute(pts, Story.num(s, "rival_speed", 75) / 100f, () -> r.rivalIndex = 999);
             return;
         }
-        if (d.stepCount < pts.size() && p.squaredDistanceTo(pts.get(d.stepCount)) < 7 * 7) {
+        if (d.stepCount < pts.size() && horiz(p.getPos(), pts.get(d.stepCount)) < 10 * 10 && Math.abs(p.getY() - pts.get(d.stepCount).y) < 8) {
             d.stepCount++;
             p.playSoundToPlayer(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.MASTER, 1f, 1.2f);
         }
@@ -246,6 +265,11 @@ final class GtaSteps {
         }
     }
 
+    private static double horiz(Vec3d a, Vec3d b) {
+        double dx = a.x - b.x, dz = a.z - b.z;
+        return dx * dx + dz * dz;
+    }
+
     // ------------------------------------------------------------------ метка цели и прогресс
     static Vec3d target(ServerPlayerEntity p, LifeData d, Story.Run r, JsonObject s) {
         ServerWorld w = p.getServerWorld();
@@ -257,6 +281,7 @@ final class GtaSteps {
             case "steal": {
                 var e = r.target == null ? null : w.getEntity(r.target);
                 if (e != null && p.getVehicle() != e) return e.getPos().add(0, 2, 0);
+                if (e == null) return Story.place(w, Story.str(s, "place", ""));
                 return Story.place(w, Story.str(s, "to", ""));
             }
             case "clear":

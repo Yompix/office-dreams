@@ -6,7 +6,12 @@
     "PlayerWidthMixin",
     "ArsenalFovMixin",
     "PlayerSkinMixin",
-    "PlayerStyleScaleMixin"
+    "PlayerStyleScaleMixin",
+    "GunHeldItemMixin",
+    "GunCooldownMixin",
+    "GunCameraMixin",
+    "GunPoseMixin",
+    "HudBarsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

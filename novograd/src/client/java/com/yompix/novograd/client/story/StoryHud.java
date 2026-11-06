@@ -131,11 +131,16 @@ public final class StoryHud {
             }
             // цель — внизу по центру над хотбаром, как субтитры
             int maxW = Math.max(170, Math.min(300, (int) ((w - 2 * 156) / sc)));
+            // коротко, как в GTA: одна строка цели и строка «прогресс · расстояние».
+            // Где и как — только первые секунды после новой цели, потом прячутся.
+            boolean fresh = now - bannerAt < 9000;
             java.util.List<String[]> lines = new java.util.ArrayList<>();
-            for (String l : wrapStr(tr, hint, maxW)) lines.add(new String[]{l, "FFFFFF"});
-            if (!whereLine.isEmpty()) for (String l : wrapStr(tr, whereLine, maxW)) lines.add(new String[]{l, "7FE3FF"});
-            if (!how.isEmpty()) for (String l : wrapStr(tr, how, maxW)) lines.add(new String[]{l, "C4BEDA"});
-            if (!extra.isEmpty()) for (String l : wrapStr(tr, extra, maxW)) lines.add(new String[]{l, "9FE6FF"});
+            java.util.List<String> hl = wrapStr(tr, hint, maxW);
+            for (int i = 0; i < Math.min(2, hl.size()); i++) lines.add(new String[]{hl.get(i), "FFFFFF"});
+            String info = extra.isEmpty() ? dist : dist.isEmpty() ? extra : extra + "  ·  " + dist;
+            if (fresh && !where.isEmpty()) info = where + (info.isEmpty() ? "" : "  ·  " + info);
+            if (!info.isEmpty()) lines.add(new String[]{info, "7FE3FF"});
+            if (fresh && !how.isEmpty()) for (String l : wrapStr(tr, how, maxW)) lines.add(new String[]{l, "C4BEDA"});
             int lh = 10, total = lines.size() * lh + 12;
             m.push();
             m.translate(w / 2f, h - 74, 0);
@@ -144,7 +149,7 @@ public final class StoryHud {
             int bw = 0;
             for (String[] l : lines) bw = Math.max(bw, tr.getWidth(l[0]));
             bw = Math.max(bw, tr.getWidth(mission.toUpperCase()) + 16) + 24;
-            ctx.fillGradient(-bw / 2, top - 2, bw / 2, 4, 0x00000000, 0x90000000);
+            ctx.fillGradient(-bw / 2, top - 2, bw / 2, 4, 0x00000000, 0x60000000);
             // ярлык миссии
             String mt = mission.toUpperCase();
             int mw = tr.getWidth(mt) + 14;

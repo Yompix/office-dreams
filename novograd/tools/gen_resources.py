@@ -255,9 +255,14 @@ SOUNDS = {
 }
 
 
+# объёмные модели оружия делает tools/gen_guns.py — не перетираем их плоскими
+GUN_MODELS = {'pistol', 'smg', 'shotgun', 'rifle', 'sniper', 'knife', 'grenade', 'molotov'}
+
+
 def items():
     for n in ITEMS:
-        gen_item(n)
+        if n not in GUN_MODELS:
+            gen_item(n)
 
 
 def lang():
@@ -297,7 +302,8 @@ def sounds():
     out['yompix_jingle'] = {'sounds': [{'name': f'{NS}:yompix_jingle', 'stream': True}]}
     out['yompix_intro'] = {'sounds': [{'name': f'{NS}:yompix_intro', 'stream': True}]}
     out['siren'] = {'sounds': [{'name': f'{NS}:siren_soft', 'volume': 0.7}]}  # мягкая сирена (tools/gen_siren.py)
-    for snd in ('gunshot', 'smg_shot', 'shotgun_shot', 'rifle_shot', 'sniper_shot', 'reload', 'explosion'):
+    for snd in ('gunshot', 'smg_shot', 'shotgun_shot', 'rifle_shot', 'sniper_shot', 'reload', 'explosion',
+                'pistol_reload', 'smg_reload', 'rifle_reload', 'shotgun_reload', 'sniper_reload', 'gun_dry'):
         out[snd] = {'sounds': [{'name': f'{NS}:{snd}'}]}
     # радио в машине (tools/gen_radio.py)
     for st in ('neon88', 'beat_ulic', 'nochnoy_port', 'trassa128', 'rock_volna', 'jazz_polnoch', 'palma_fm', 'klassika', 'country_road', 'tekhno_podval'):

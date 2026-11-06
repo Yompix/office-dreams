@@ -30,8 +30,25 @@ public final class Npcs {
         return w.getServer().getOverworld().getEntity(u) instanceof CitizenEntity c && c.isAlive() ? c : null;
     }
 
+
+    /** Герой для разговора: если его район не загружен или он пропал — поставить снова на его место. */
+    @Nullable
+    public static CitizenEntity ensure(ServerPlayerEntity p, String id) {
+        ServerWorld w = p.getServerWorld();
+        CitizenEntity c = find(w, id);
+        if (c != null) return c;
+        String place = TownState.get(w).storyPlaces.get(id);
+        Vec3d at = place == null ? null : Story.place(w, place);
+        if (at == null || p.squaredDistanceTo(at) > 80 * 80) return null; // далеко — метка ведёт на место, герой появится, когда подъедешь
+        w.getChunk(BlockPos.ofFloored(at));
+        c = find(w, id); // после загрузки района он мог найтись
+        return c != null ? c : spawn(p, id, place);
+    }
+
     public static CitizenEntity spawn(ServerPlayerEntity p, String id, String place) {
         ServerWorld w = p.getServerWorld();
+        TownState.get(w).storyPlaces.put(id, place);
+        TownState.get(w).markDirty();
         Vec3d at = Story.place(w, place);
         if (at == null) at = p.getPos();
         CitizenEntity c = find(w, id);

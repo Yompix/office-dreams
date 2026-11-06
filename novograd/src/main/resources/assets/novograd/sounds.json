@@ -2160,5 +2160,47 @@
         "stream": true
       }
     ]
+  },
+  "pistol_reload": {
+    "sounds": [
+      {
+        "name": "novograd:pistol_reload"
+      }
+    ]
+  },
+  "smg_reload": {
+    "sounds": [
+      {
+        "name": "novograd:smg_reload"
+      }
+    ]
+  },
+  "rifle_reload": {
+    "sounds": [
+      {
+        "name": "novograd:rifle_reload"
+      }
+    ]
+  },
+  "shotgun_reload": {
+    "sounds": [
+      {
+        "name": "novograd:shotgun_reload"
+      }
+    ]
+  },
+  "sniper_reload": {
+    "sounds": [
+      {
+        "name": "novograd:sniper_reload"
+      }
+    ]
+  },
+  "gun_dry": {
+    "sounds": [
+      {
+        "name": "novograd:gun_dry"
+      }
+    ]
   }
 }

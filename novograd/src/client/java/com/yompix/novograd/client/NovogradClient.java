@@ -159,6 +159,7 @@ public class NovogradClient implements ClientModInitializer {
         HudRenderCallback.EVENT.register((ctx, t) -> com.yompix.novograd.client.story.StoryHud.render(ctx));
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_TRANSLUCENT.register(com.yompix.novograd.client.story.StoryHud::renderWorld);
         ArsenalClient.init(); // колесо оружия (TAB), перезарядка (R пешком), прицел, гранаты
+        GunFx.init(); // оружие от первого лица: отдача, перезарядка, вспышка; поза «целится»
         VehiclesClient.init(); // модели и звуки мотоцикла, катера, вертолёта, самолёта
         com.yompix.novograd.client.style.StyleClient.init(); // одежда, цирюльня, гардероб, спортзал (стиль SA)
         DevAutotest.init();

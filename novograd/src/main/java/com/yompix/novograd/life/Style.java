@@ -105,6 +105,7 @@ public final class Style {
         send(p, "looks", n);
         broadcast(p);
         apply(p, true);
+        Life.sync(p);
     }
 
     private static NbtCompound entry(ServerPlayerEntity p) {

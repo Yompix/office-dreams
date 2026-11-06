@@ -112,7 +112,7 @@ public final class ShopBuilder {
         // касса
         b.counter(3, 8, -13, Blocks.STRIPPED_DARK_OAK_LOG.getDefaultState(), Blocks.DARK_OAK_SLAB.getDefaultState());
         b.set(6, 1, -13, Blocks.LANTERN.getDefaultState());
-        b.mirror(8, -6, Blocks.DARK_OAK_PLANKS);
+        b.mirror(9, -12, Blocks.DARK_OAK_PLANKS);
         b.lights(Blocks.GLOWSTONE.getDefaultState());
         b.neonLine(NeonBlock.Color.GREEN);
         b.label(0, 8, 0, "👕 " + StyleCatalog.CHEAP_NAME.toUpperCase() + " · одежда недорого", Formatting.GREEN);
@@ -150,7 +150,9 @@ public final class ShopBuilder {
         b.set(7, 0, -10, Blocks.POTTED_BAMBOO.getDefaultState());
         b.set(-8, 0, -14, Blocks.POTTED_BAMBOO.getDefaultState());
         // касса из чёрного камня с золотом
-        b.counter(2, 7, -14, Blocks.POLISHED_BLACKSTONE_BRICKS.getDefaultState(), Blocks.GOLD_BLOCK.getDefaultState());
+        b.counter(2, 7, -13, Blocks.POLISHED_BLACKSTONE_BRICKS.getDefaultState(), Blocks.SMOOTH_QUARTZ_SLAB.getDefaultState());
+        b.set(2, 0, -12, Blocks.GOLD_BLOCK.getDefaultState());
+        b.set(7, 0, -12, Blocks.GOLD_BLOCK.getDefaultState());
         // люстры
         for (int[] l : new int[][]{{-4, -5}, {4, -5}, {0, -10}}) {
             b.set(l[0], 5, l[1], Blocks.CHAIN.getDefaultState());
@@ -159,7 +161,7 @@ public final class ShopBuilder {
         b.lights(Blocks.SEA_LANTERN.getDefaultState());
         b.neonLine(NeonBlock.Color.PURPLE);
         b.label(0, 8, 0, "💎 " + StyleCatalog.LUX_NAME.toUpperCase() + " · одежда класса люкс", Formatting.LIGHT_PURPLE);
-        b.npc(4, -15, CitizenEntity.RANDOM_FROM + 14, CitizenEntity.Role.BOUTIQUE, "Стилист Виолетта");
+        b.npc(4, -14, CitizenEntity.RANDOM_FROM + 14, CitizenEntity.Role.BOUTIQUE, "Стилист Виолетта");
     }
 
     // ------------------------------------------------------------------ цирюльня
@@ -369,8 +371,7 @@ public final class ShopBuilder {
 
         void counter(int x1, int x2, int z, BlockState body, BlockState top) {
             fill(x1, 0, z, x2, 0, z, body);
-            if (top.contains(Properties.SLAB_TYPE)) fill(x1, 1, z, x2, 1, z, top);
-            else fill(x1, 0, z + 1, x2, 0, z + 1, top.getBlock() == Blocks.GOLD_BLOCK ? Blocks.GOLD_BLOCK.getDefaultState() : top);
+            fill(x1, 1, z, x2, 1, z, top);
         }
 
         void rack(int x1, int x2, int z, Block fence) {

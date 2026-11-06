@@ -35,6 +35,9 @@ public class GunItem extends Item {
 
     private final Spec spec;
 
+    /** Клиент: «у себя» прозвучал выстрел — отдача, вспышка у дула, тряска (ставит client/GunFx). На сервере не вызывается. */
+    public static java.util.function.Consumer<GunItem> clientShot = g -> {};
+
     public GunItem(Settings settings, Spec spec) {
         super(settings);
         this.spec = spec;
@@ -64,7 +67,10 @@ public class GunItem extends Item {
         boolean canFire = mag(stack) > 0;
         user.getItemCooldownManager().set(this, spec.cooldown);
         if (!world.isClient) fire((ServerWorld) world, user, stack);
-        else if (canFire) user.setPitch(user.getPitch() - spec.recoil * (spec.scope && user.isSneaking() ? 0.5f : 1f)); // отдача
+        else if (canFire) {
+            user.setPitch(user.getPitch() - spec.recoil * (spec.scope && user.isSneaking() ? 0.5f : 1f)); // отдача
+            clientShot.accept(this);
+        }
         return TypedActionResult.success(stack, world.isClient);
     }
 
@@ -73,7 +79,10 @@ public class GunItem extends Item {
         if (!spec.auto || (getMaxUseTime(stack, user) - remaining) % spec.cooldown != 0 || !(user instanceof PlayerEntity p)) return;
         if (p.getItemCooldownManager().isCoolingDown(this)) return; // перезарядка
         if (!world.isClient) fire((ServerWorld) world, p, stack);
-        else if (mag(stack) > 0) p.setPitch(p.getPitch() - spec.recoil);
+        else if (mag(stack) > 0) {
+            p.setPitch(p.getPitch() - spec.recoil);
+            clientShot.accept(this);
+        }
     }
 
     @Override
@@ -91,7 +100,7 @@ public class GunItem extends Item {
         if (mag <= 0) {
             if (!reload(w, p, stack, false)) {
                 p.sendMessage(Text.literal("Нет патронов! Купи в оружейном «Калибр»").formatted(Formatting.RED), true);
-                w.playSound(null, p.getBlockPos(), net.minecraft.sound.SoundEvents.BLOCK_DISPENSER_FAIL, SoundCategory.PLAYERS, 0.6f, 1.8f);
+                w.playSound(null, p.getBlockPos(), Arsenal.GUN_DRY, SoundCategory.PLAYERS, 0.8f, 1f);
                 if (p.isUsingItem()) p.stopUsingItem();
             }
             return;
@@ -120,7 +129,7 @@ public class GunItem extends Item {
         stack.set(Arsenal.MAG, mag + got);
         p.getItemCooldownManager().set(this, spec.reload);
         if (p.isUsingItem()) p.stopUsingItem();
-        w.playSound(null, p.getBlockPos(), Arsenal.RELOAD, SoundCategory.PLAYERS, 0.9f, 1f);
+        w.playSound(null, p.getBlockPos(), Arsenal.reloadSound(this), SoundCategory.PLAYERS, 0.9f, 1f);
         p.sendMessage(Text.literal("⟳ Перезарядка… " + (mag + got) + " / " + spec.magazine).formatted(Formatting.YELLOW), true);
         return true;
     }

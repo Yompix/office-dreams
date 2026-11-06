@@ -58,6 +58,17 @@ public final class Arsenal {
     public static final SoundEvent RIFLE_SHOT = sound("rifle_shot");
     public static final SoundEvent SNIPER_SHOT = sound("sniper_shot");
     public static final SoundEvent RELOAD = sound("reload");
+    public static final SoundEvent GUN_DRY = sound("gun_dry");
+    private static final java.util.Map<String, SoundEvent> RELOADS = new java.util.HashMap<>();
+
+    static {
+        for (String g : List.of("pistol", "smg", "shotgun", "rifle", "sniper")) RELOADS.put(g, sound(g + "_reload"));
+    }
+
+    /** Звук перезарядки своего ствола (магазин, затвор; у дробовика — патроны по одному). */
+    public static SoundEvent reloadSound(Item gun) {
+        return RELOADS.getOrDefault(Registries.ITEM.getId(gun).getPath(), RELOAD);
+    }
     public static final RegistryEntry.Reference<SoundEvent> EXPLOSION = Registry.registerReference(Registries.SOUND_EVENT, Novograd.id("explosion"), SoundEvent.of(Novograd.id("explosion")));
 
     // ---------- патроны в магазине ----------

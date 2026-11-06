@@ -57,14 +57,13 @@ public final class Cubes {
     public static final class Paint {
         private final ModelPart root;
         private final MatrixStack m;
-        private final VertexConsumer solid, glass;
+        private final VertexConsumerProvider buffers;
         private final int light;
 
         public Paint(ModelPart root, MatrixStack m, VertexConsumerProvider buffers, int light) {
             this.root = root;
             this.m = m;
-            this.solid = buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(BASE));
-            this.glass = buffers.getBuffer(RenderLayer.getEntityTranslucent(BASE));
+            this.buffers = buffers; // слой берём при каждой отрисовке: смена слоя закрывает предыдущий буфер
             this.light = light;
         }
 
@@ -73,16 +72,16 @@ public final class Cubes {
         }
 
         public void p(String name, int argb) {
-            root.getChild(name).render(m, solid, light, OverlayTexture.DEFAULT_UV, argb);
+            root.getChild(name).render(m, buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(BASE)), light, OverlayTexture.DEFAULT_UV, argb);
         }
 
         /** Светится сама (фары, огни). */
         public void glow(String name, int argb) {
-            root.getChild(name).render(m, solid, FULL, OverlayTexture.DEFAULT_UV, argb);
+            root.getChild(name).render(m, buffers.getBuffer(RenderLayer.getEntityCutoutNoCull(BASE)), FULL, OverlayTexture.DEFAULT_UV, argb);
         }
 
         public void glass(String name, int argb) {
-            root.getChild(name).render(m, glass, light, OverlayTexture.DEFAULT_UV, argb);
+            root.getChild(name).render(m, buffers.getBuffer(RenderLayer.getEntityTranslucent(BASE)), light, OverlayTexture.DEFAULT_UV, argb);
         }
     }
 

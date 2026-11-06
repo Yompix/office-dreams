@@ -25,6 +25,8 @@ public class TownState extends PersistentState {
     public final java.util.Map<String, double[]> places = new java.util.HashMap<>();
     /** Герои сюжета: id → UUID жителя. */
     public final java.util.Map<String, java.util.UUID> storyNpcs = new java.util.HashMap<>();
+    /** Где по сюжету стоит каждый герой (имя места). */
+    public final java.util.Map<String, String> storyPlaces = new java.util.HashMap<>();
 
     public void place(String name, double x, double y, double z, float yaw, float pitch) {
         places.put(name, new double[]{x, y, z, yaw, pitch});
@@ -95,6 +97,9 @@ public class TownState extends PersistentState {
         NbtCompound npcs = new NbtCompound();
         storyNpcs.forEach(npcs::putUuid);
         nbt.put("storyNpcs", npcs);
+        NbtCompound sp = new NbtCompound();
+        storyPlaces.forEach(sp::putString);
+        nbt.put("storyPlaces", sp);
         return nbt;
     }
 
@@ -113,6 +118,8 @@ public class TownState extends PersistentState {
         }
         NbtCompound npcs = nbt.getCompound("storyNpcs");
         for (String k : npcs.getKeys()) if (npcs.containsUuid(k)) s.storyNpcs.put(k, npcs.getUuid(k));
+        NbtCompound sp = nbt.getCompound("storyPlaces");
+        for (String k : sp.getKeys()) s.storyPlaces.put(k, sp.getString(k));
         return s;
     }
 }

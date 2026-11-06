@@ -192,6 +192,14 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("style")) {
+            style();
+            return;
+        }
+        if (mode.equals("guns")) {
+            guns();
+            return;
+        }
         if (mode.startsWith("scene")) {
             // «scene:глава:миссия:шаг» — прыгнуть прямо в кат-сцену и снимать её; потом радар и вода
             String[] a = mode.split(":");
@@ -1153,6 +1161,289 @@ public final class DevAutotest {
             } catch (ReflectiveOperationException ignored) {
             }
         }
+    }
+
+    /** «style»: магазины одежды, цирюльня, зал и гардероб (стиль SA) — строит их у игрока и снимает экраны. */
+    private static void style() {
+        YompixSplash.markShown();
+        pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+        run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+        final double[] o = new double[3];
+        server(60, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var d = Life.get(p);
+            d.storyStarted = true;
+            d.storyDone = true;
+            d.chapter = 99;
+            d.age = 22;
+            d.money = 25000;
+            d.look = new com.yompix.novograd.life.Appearance();
+            d.wardrobe.clear();
+            d.wardrobe.addAll(com.yompix.novograd.life.StyleCatalog.STARTER);
+            d.strength = 20;
+            d.stamina = 10;
+            d.gymDay = -1;
+            Story.applyAge(p, 22);
+            Life.sync(p);
+            var w = p.getServerWorld();
+            w.setTimeOfDay(6000);
+            w.setWeather(6000, 0, false, false);
+            // площадка далеко от города (за краем острова), чтобы не трогать улицы
+            int bx = 2600, bz = 2600;
+            w.getChunk(bx >> 4, bz >> 4);
+            int by = Math.max(w.getSeaLevel() + 1, w.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, bx, bz));
+            net.minecraft.util.math.BlockPos at = new net.minecraft.util.math.BlockPos(bx, by, bz);
+            for (int x = -52; x <= 52; x++)
+                for (int z = -42; z <= 18; z++) {
+                    w.setBlockState(at.add(x, -1, z), (Math.abs(z - 6) <= 3 ? net.minecraft.block.Blocks.BLACK_CONCRETE : net.minecraft.block.Blocks.SMOOTH_STONE).getDefaultState(), 2);
+                    w.setBlockState(at.add(x, -2, z), net.minecraft.block.Blocks.STONE.getDefaultState(), 2);
+                    for (int y = 0; y < 12; y++) w.setBlockState(at.add(x, y, z), net.minecraft.block.Blocks.AIR.getDefaultState(), 2);
+                }
+            for (int x = -52; x <= 52; x += 4) w.setBlockState(at.add(x, -1, 6), net.minecraft.block.Blocks.YELLOW_CONCRETE.getDefaultState(), 2);
+            p.teleport(w, bx + 0.5, by, bz + 10.5, 180, 0);
+            o[0] = at.getX();
+            o[1] = at.getY();
+            o[2] = at.getZ();
+            java.util.List<com.yompix.novograd.world.ShopBuilder.Spot> spots = new java.util.ArrayList<>();
+            var kinds = com.yompix.novograd.world.ShopBuilder.Kind.values();
+            for (int i = 0; i < kinds.length; i++)
+                spots.add(new com.yompix.novograd.world.ShopBuilder.Spot(kinds[i], at.add((i - 1) * 24 - 12, 0, -22), net.minecraft.util.math.Direction.SOUTH));
+            com.yompix.novograd.world.ShopBuilder.placeAll(w, spots);
+            p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
+        });
+        for (int i = 0; i < 6; i++) key(10, GLFW.GLFW_KEY_SPACE);
+        run(5, c -> { if (c.currentScreen != null) c.setScreen(null); c.options.hudHidden = true; });
+        run(40, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        // фасады снаружи
+        styleGo(40, o, 0, 14, 180, 8, "style_street");
+        // «Шмот-Базар»: внутри, потом экран магазина
+        styleGo(20, o, -36, -3, 180, 10, "style_cheap_inside");
+        server(5, s -> com.yompix.novograd.life.Style.open(s.getPlayerManager().getPlayer(P), "cheap"));
+        run(5, c -> c.options.hudHidden = false);
+        shot(30, "style_cheap_screen");
+        styleScreen(5, 0, 6, 2);      // олимпийка с лампасами
+        shot(20, "style_cheap_tracksuit");
+        key(5, GLFW.GLFW_KEY_ENTER);
+        styleScreen(15, 1, 1, 0);     // спортивные штаны
+        key(5, GLFW.GLFW_KEY_ENTER);
+        styleScreen(15, 2, 1, 0);     // кроссовки белые
+        key(5, GLFW.GLFW_KEY_ENTER);
+        styleScreen(15, 3, 0, 1);     // кепка чёрная
+        key(5, GLFW.GLFW_KEY_ENTER);
+        shot(20, "style_cheap_bought");
+        // «Бархат»
+        run(5, c -> c.setScreen(null));
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            p.teleport(p.getServerWorld(), o[0] - 12 + 0.5, o[1], o[2] - 25 + 0.5, 180, 10);
+        });
+        run(5, c -> c.options.hudHidden = true);
+        shot(30, "style_lux_inside");
+        server(5, s -> com.yompix.novograd.life.Style.open(s.getPlayerManager().getPlayer(P), "lux"));
+        run(5, c -> c.options.hudHidden = false);
+        styleScreen(20, 0, 4, 0);     // костюм-тройка
+        shot(20, "style_lux_suit");
+        key(5, GLFW.GLFW_KEY_ENTER);
+        styleScreen(15, 1, 0, 0);     // брюки
+        key(5, GLFW.GLFW_KEY_ENTER);
+        styleScreen(15, 2, 0, 0);     // лаковые туфли
+        key(5, GLFW.GLFW_KEY_ENTER);
+        styleScreen(15, 3, 1, 0);     // федора
+        key(5, GLFW.GLFW_KEY_ENTER);
+        styleScreen(15, 4, 1, 0);     // авиаторы
+        key(5, GLFW.GLFW_KEY_ENTER);
+        shot(20, "style_lux_bought");
+        // цирюльня
+        run(5, c -> c.setScreen(null));
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            p.teleport(p.getServerWorld(), o[0] + 12 + 0.5, o[1], o[2] - 25 + 0.5, 180, 10);
+        });
+        run(5, c -> c.options.hudHidden = true);
+        shot(30, "style_barber_inside");
+        server(5, s -> com.yompix.novograd.life.Style.open(s.getPlayerManager().getPlayer(P), "barber"));
+        run(5, c -> c.options.hudHidden = false);
+        styleScreen(20, 3, 3, -1);    // внешность: кожа 4
+        key(5, GLFW.GLFW_KEY_ENTER);
+        styleScreen(15, 0, 4, -1);    // ирокез
+        shot(20, "style_barber_mohawk");
+        styleScreen(5, 0, 5, -1);     // афро
+        shot(20, "style_barber_afro");
+        key(5, GLFW.GLFW_KEY_ENTER);
+        styleScreen(15, 1, 7, -1);    // неон розовый
+        key(5, GLFW.GLFW_KEY_ENTER);
+        styleScreen(15, 2, 5, -1);    // борода с усами
+        key(5, GLFW.GLFW_KEY_ENTER);
+        shot(20, "style_barber_done");
+        // гардероб: снять шляпу и посмотреть
+        run(5, c -> c.setScreen(null));
+        server(5, s -> com.yompix.novograd.life.Style.open(s.getPlayerManager().getPlayer(P), "cheap"));
+        run(10, c -> c.setScreen(null));
+        server(5, s -> com.yompix.novograd.life.Style.open(s.getPlayerManager().getPlayer(P), "wardrobe"));
+        styleScreen(20, 0, 0, -1);
+        shot(20, "style_wardrobe");
+        // зал
+        run(5, c -> c.setScreen(null));
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            p.teleport(p.getServerWorld(), o[0] + 36 + 0.5, o[1], o[2] - 25 + 0.5, 180, 10);
+        });
+        run(5, c -> c.options.hudHidden = true);
+        shot(30, "style_gym_inside");
+        server(5, s -> com.yompix.novograd.life.Style.open(s.getPlayerManager().getPlayer(P), "gym"));
+        run(5, c -> c.options.hudHidden = false);
+        shot(20, "style_gym_menu");
+        run(5, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.style.GymScreen g) g.autostart("bench"); });
+        for (int i = 0; i < 260; i++) {
+            final int k = i;
+            run(1, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.style.GymScreen g) g.autotest(k); });
+            if (i == 70) shot(0, "style_gym_bench");
+        }
+        shot(40, "style_gym_result");
+        run(5, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.style.GymScreen g) g.close(); });
+        server(140, s -> com.yompix.novograd.life.Style.open(s.getPlayerManager().getPlayer(P), "gym"));
+        run(10, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.style.GymScreen g) g.autostart("run"); });
+        for (int i = 0; i < 440; i++) {
+            final int k = i;
+            run(1, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.style.GymScreen g && k % 3 == 0) g.autotest(k / 3); });
+            if (i == 200) shot(0, "style_gym_run");
+        }
+        shot(40, "style_gym_run_result");
+        // телефон → «Стиль»
+        run(5, c -> c.setScreen(new PhoneScreen(null)));
+        shot(30, "style_phone");
+        run(5, c -> com.yompix.novograd.client.style.StyleClient.phone());
+        shot(30, "style_app");
+        // герой на улице: вид спереди и сзади
+        run(5, c -> c.setScreen(null));
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            p.teleport(p.getServerWorld(), o[0] - 12 + 0.5, o[1], o[2] - 18 + 0.5, 0, 0);
+        });
+        run(5, c -> { c.options.hudHidden = true; c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT); });
+        shot(40, "style_hero_front");
+        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
+        shot(20, "style_hero_back");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            com.yompix.novograd.life.Style.open(p, "lux");
+        });
+        run(10, c -> c.setScreen(null));
+        server(5, s -> com.yompix.novograd.life.Style.open(s.getPlayerManager().getPlayer(P), "wardrobe"));
+        styleScreen(15, 0, 0, -1);
+        key(5, GLFW.GLFW_KEY_DOWN);
+        key(5, GLFW.GLFW_KEY_ENTER);
+        styleScreen(10, 3, 0, -1);
+        key(5, GLFW.GLFW_KEY_ENTER);
+        run(10, c -> c.setScreen(null));
+        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT));
+        shot(30, "style_hero_front2");
+        server(5, s -> {
+            var d = Life.get(s.getPlayerManager().getPlayer(P));
+            com.yompix.novograd.Novograd.LOG.info("[style] money {} str {} sta {} look {} wardrobe {}", d.money, d.strength, d.stamina, d.look.toNbt(), d.wardrobe);
+        });
+        run(20, MinecraftClient::scheduleStop);
+    }
+
+    private static void styleGo(int delay, double[] o, int dx, int dz, float yaw, float pitch, String name) {
+        server(delay, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            p.teleport(p.getServerWorld(), o[0] + dx + 0.5, o[1], o[2] + dz + 0.5, yaw, pitch);
+        });
+        shot(40, name);
+    }
+
+    private static void styleScreen(int delay, int tab, int row, int color) {
+        run(delay, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.style.StyleShopScreen s) s.pick(tab, row, color); });
+    }
+
+    /** Оружие: от первого лица (покой, выстрел, перезарядка), от третьего, иконки в инвентаре, жители с оружием. */
+    private static void guns() {
+        YompixSplash.markShown();
+        GunFx.testFlashNs = 120_000_000L;
+        pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+        run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+        server(40, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var d = Life.get(p);
+            d.storyStarted = true;
+            d.storyDone = true;
+            d.chapter = 99;
+            d.age = 22;
+            Story.applyAge(p, 22);
+            Life.sync(p);
+        });
+        for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+        run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        cmd(5, "gamemode survival " + P);
+        cmd(5, "effect give " + P + " minecraft:resistance 99999 4 true");
+        cmd(5, "time set 6000");
+        cmd(2, "clear " + P);
+        String[] guns = {"pistol", "smg", "shotgun", "rifle", "sniper", "knife", "grenade", "molotov"};
+        for (String g : guns) cmd(2, "give " + P + " novograd:" + g);
+        cmd(2, "give " + P + " novograd:ammo 64");
+        cmd(2, "give " + P + " novograd:ammo 64");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            w.getChunk(216 >> 4, -200 >> 4);
+            p.teleport(w, 216.5, Story.topY(w, 216, -200) + 1, -200.5, 0, 0);
+        });
+        run(60, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        for (int i = 0; i < 5; i++) {
+            final int slot = i;
+            String g = guns[i];
+            run(5, c -> c.player.getInventory().selectedSlot = slot);
+            shot(30, "gun_" + g + "_idle");
+            run(2, c -> c.options.useKey.setPressed(true));
+            shot(i == 1 || i == 3 ? 6 : 2, "gun_" + g + "_fire");
+            run(1, c -> c.options.useKey.setPressed(false));
+            run(25, c -> ArsenalClient.send("reload", 0));
+            shot(10, "gun_" + g + "_reload");
+            run(40, c -> {});
+        }
+        // прицеливание (ПКМ держим, но в кулдауне — смотрим положение)
+        run(5, c -> c.player.getInventory().selectedSlot = 3);
+        run(20, c -> c.options.useKey.setPressed(true));
+        shot(14, "gun_rifle_ads");
+        run(1, c -> c.options.useKey.setPressed(false));
+        // от третьего лица
+        run(20, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT));
+        for (int i : new int[]{0, 3, 4}) {
+            run(5, c -> c.player.getInventory().selectedSlot = i);
+            shot(20, "gun_tp_front_" + guns[i]);
+        }
+        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
+        for (int i : new int[]{0, 2, 3}) {
+            run(5, c -> c.player.getInventory().selectedSlot = i);
+            shot(20, "gun_tp_back_" + guns[i]);
+        }
+        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
+        // иконки
+        run(10, c -> c.setScreen(new net.minecraft.client.gui.screen.ingame.InventoryScreen(c.player)));
+        shot(20, "gun_inventory");
+        run(5, c -> c.setScreen(null));
+        // жители с оружием целятся друг в друга
+        server(10, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            CitizenEntity a1 = new CitizenEntity(com.yompix.novograd.ModContent.CITIZEN, w), a2 = new CitizenEntity(com.yompix.novograd.ModContent.CITIZEN, w);
+            a1.setup(CitizenEntity.RANDOM_FROM + 3, CitizenEntity.Role.CITIZEN, true, "G1");
+            a2.setup(CitizenEntity.RANDOM_FROM + 8, CitizenEntity.Role.CITIZEN, true, "G2");
+            double y = p.getY();
+            a1.refreshPositionAndAngles(p.getX() - 2, y, p.getZ() + 4, -90, 0);
+            a2.refreshPositionAndAngles(p.getX() + 2, y, p.getZ() + 4, 90, 0);
+            a1.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(com.yompix.novograd.ModContent.PISTOL));
+            a2.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(com.yompix.novograd.gta.Arsenal.RIFLE));
+            w.spawnEntity(a1);
+            w.spawnEntity(a2);
+            a1.sceneWith(a2, CitizenEntity.Activity.AIM, 2000);
+            a2.sceneWith(a1, CitizenEntity.Activity.AIM, 2000);
+            p.teleport(w, p.getX(), y, p.getZ(), 0, 15);
+        });
+        run(5, c -> c.player.getInventory().selectedSlot = 8);
+        shot(40, "gun_npc");
+        run(20, MinecraftClient::scheduleStop);
     }
 
     private static void pressKey(MinecraftClient c, int key) {

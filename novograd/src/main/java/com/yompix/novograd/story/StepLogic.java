@@ -286,8 +286,11 @@ final class StepLogic {
                 return Story.place(w, Story.str(s, "place", ""));
             case "talk":
             case "party": {
-                CitizenEntity c = Npcs.find(w, Story.str(s, "npc", ""));
-                return c != null ? c.getPos().add(0, c.getHeight() + 0.3, 0) : Story.place(w, Story.str(s, "place", ""));
+                String npc = Story.str(s, "npc", "");
+                CitizenEntity c = Npcs.ensure(p, npc);
+                if (c != null) return c.getPos().add(0, c.getHeight() + 0.3, 0);
+                String home = com.yompix.novograd.world.TownState.get(w).storyPlaces.get(npc);
+                return home != null ? Story.place(w, home) : Story.place(w, Story.str(s, "place", ""));
             }
             case "lesson":
                 return Story.place(w, "classroom1");

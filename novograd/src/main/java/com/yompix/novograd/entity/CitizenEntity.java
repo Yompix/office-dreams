@@ -350,6 +350,14 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @Override
     public void tick() {
         super.tick();
+        // двойник героя (старая копия из выгруженного района) — убрать, главный тот, кто записан в TownState
+        if (!getWorld().isClient && !storyId.isEmpty() && age % 40 == 7 && getWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
+            java.util.UUID main = com.yompix.novograd.world.TownState.get(sw).storyNpcs.get(storyId);
+            if (main != null && !main.equals(getUuid())) {
+                discard();
+                return;
+            }
+        }
         if (getWorld().isClient) {
             if (asleep()) { bodyYaw = prevBodyYaw = headYaw = prevHeadYaw = getYaw(); }
             return;
