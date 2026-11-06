@@ -94,6 +94,12 @@ public final class Minimap {
         NbtCompound o = ClientStory.objective;
         boolean has = o.contains("x");
         double tx = o.getDouble("x"), tz = o.getDouble("z");
+        // своя метка с карты (M) важнее: маршрут ведёт к ней, как в GTA
+        var wp = ClientStory.waypoint;
+        if (wp != null) {
+            if (Math.hypot(wp.x - px, wp.z - pz) < 8) ClientStory.waypoint = null; // доехал — метка снимается
+            else { has = true; tx = wp.x; tz = wp.z; }
+        }
         if (has) {
             int col = 0xFFB04CFF;
             var path = GpsRoute.route(px, pz, tx, tz);
@@ -104,6 +110,22 @@ public final class Minimap {
                 for (int i = 1; i < path.size(); i++) seg(ctx, path.get(i - 1)[0], path.get(i - 1)[1], path.get(i)[0], path.get(i)[1], col);
                 seg2(ctx, l[0], l[1], tx, tz, col);
             }
+        }
+        // значки мест рядом (банк, оружейный, гараж, магазины…)
+        NbtCompound pls = ClientStory.places;
+        for (String id : pls.getKeys()) {
+            if (!(pls.get(id) instanceof NbtCompound pc)) continue;
+            String[] ic = PlaceIcons.of(id);
+            if (ic == null) continue;
+            double ix = pc.getInt("x") + 0.5, iz = pc.getInt("z") + 0.5;
+            if (Math.abs(ix - px) > 110 / zoom || Math.abs(iz - pz) > 110 / zoom) continue;
+            var mm = ctx.getMatrices();
+            mm.push();
+            mm.translate(ix, iz, 0);
+            mm.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180 + yaw)); // значок всегда прямо
+            mm.scale(1 / zoom, 1 / zoom, 1);
+            PlaceIcons.draw(ctx, mc.textRenderer, ic, 0, 0);
+            mm.pop();
         }
         // полиция и банды рядом
         double r = 90 / zoom;

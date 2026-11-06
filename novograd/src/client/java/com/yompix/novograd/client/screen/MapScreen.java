@@ -54,6 +54,7 @@ public class MapScreen extends LifeScreen {
         super("Карта");
         Vec3d p = mc().player.getPos();
         NbtCompound pl = ClientStory.places;
+        double mouseX = mc().mouse.getX() * width / mc().getWindow().getWidth(), mouseY = mc().mouse.getY() * height / mc().getWindow().getHeight();
         cx = pl.contains("ox") ? pl.getInt("ox") : p.x;
         cz = pl.contains("oz") ? pl.getInt("oz") : p.z;
         if (Math.abs(p.x - cx) > 100 || Math.abs(p.z - cz) > 100) {
@@ -133,12 +134,19 @@ public class MapScreen extends LifeScreen {
         for (String id : pl.getKeys()) {
             if (!(pl.get(id) instanceof NbtCompound p)) continue;
             int x = sx(p.getInt("x") + 0.5), y = sy(p.getInt("z") + 0.5);
-            ctx.fill(x - 2, y - 2, x + 3, y + 3, 0xFFFFFFFF);
-            ctx.fill(x - 1, y - 1, x + 2, y + 2, id.contains("casino") ? 0xFFFF2FB4 : id.contains("school") ? 0xFFFFC107 : 0xFF42A5F5);
-            String name = p.getString("name");
-            int tw = textRenderer.getWidth(name);
-            ctx.fill(x - tw / 2 - 2, y + 4, x + tw / 2 + 2, y + 14, 0xAA000000);
-            ctx.drawText(textRenderer, name, x - tw / 2, y + 5, 0xFFFFFFFF, false);
+            String[] ic = com.yompix.novograd.client.PlaceIcons.of(id);
+            if (ic != null) com.yompix.novograd.client.PlaceIcons.draw(ctx, textRenderer, ic, x, y);
+            else {
+                ctx.fill(x - 2, y - 2, x + 3, y + 3, 0xFFFFFFFF);
+                ctx.fill(x - 1, y - 1, x + 2, y + 2, 0xFF42A5F5);
+            }
+            // название — при наведении мыши или когда карта приближена (меньше каши из подписей)
+            if (zoom > 2.2f || Math.abs(mouseX - x) < 7 && Math.abs(mouseY - y) < 7) {
+                String name = p.getString("name");
+                int tw = textRenderer.getWidth(name);
+                ctx.fill(x - tw / 2 - 2, y + 7, x + tw / 2 + 2, y + 17, 0xCC000000);
+                ctx.drawText(textRenderer, name, x - tw / 2, y + 8, 0xFFFFFFFF, false);
+            }
         }
         long now = System.currentTimeMillis();
         // цель сюжета
