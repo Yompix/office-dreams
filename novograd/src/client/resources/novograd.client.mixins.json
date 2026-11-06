@@ -3,7 +3,8 @@
   "package": "com.yompix.novograd.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "PlayerWidthMixin"
+    "PlayerWidthMixin",
+    "ArsenalFovMixin"
   ],
   "injectors": {
     "defaultRequire": 1

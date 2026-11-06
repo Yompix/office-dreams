@@ -13,7 +13,7 @@ public class CarEngineSound extends MovingSoundInstance {
     private int idle;
 
     public CarEngineSound(CarEntity car) {
-        super(ModContent.CAR_ENGINE, SoundCategory.NEUTRAL, Random.create());
+        super(car.isBike() ? com.yompix.novograd.vehicle.Vehicles.BIKE_ENGINE : ModContent.CAR_ENGINE, SoundCategory.NEUTRAL, Random.create());
         this.car = car;
         this.repeat = true;
         this.repeatDelay = 0;

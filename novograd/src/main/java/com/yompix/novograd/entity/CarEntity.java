@@ -314,7 +314,7 @@ public class CarEntity extends Entity {
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
-        return getPassengerList().size() < (isScooter() ? 1 : SEATS.length);
+        return getPassengerList().size() < (isScooter() ? 1 : isBike() ? 2 : SEATS.length);
     }
 
     @Nullable
@@ -553,14 +553,14 @@ public class CarEntity extends Entity {
             }
         }
         braking = false;
-        float max = isTouchingWater() ? 0.15f : isScooter() ? 0.42f : route != null ? autoMax + 0.05f : 0.95f * (1 + engine() * 0.12f);
+        float max = isTouchingWater() ? 0.15f : isScooter() ? 0.42f : isBike() ? 1.25f * (1 + engine() * 0.12f) : route != null ? autoMax + 0.05f : 0.95f * (1 + engine() * 0.12f);
         if (nitroOn()) max *= 1.55f;
         if (wrecked()) {
             fwd = 0;
             max = 0;
         }
         if (fwd > 0) {
-            speed += speed < 0 ? 0.05f : (nitroOn() ? 0.04f : 0.018f) * (1 - speed / Math.max(max, 0.01f) * 0.6f);
+            speed += speed < 0 ? 0.05f : (nitroOn() ? 0.04f : isBike() ? 0.028f : 0.018f) * (1 - speed / Math.max(max, 0.01f) * 0.6f);
         } else if (fwd < 0) {
             if (speed > 0.02f) {
                 speed -= 0.05f;
@@ -633,7 +633,7 @@ public class CarEntity extends Entity {
     protected void updatePassengerPosition(Entity passenger, PositionUpdater updater) {
         if (!hasPassenger(passenger)) return;
         int i = seatOf(passenger);
-        double[] seat = isScooter() ? new double[]{0, -0.15} : SEATS[Math.max(0, Math.min(i, SEATS.length - 1))];
+        double[] seat = isScooter() ? new double[]{0, -0.15} : isBike() ? new double[]{0, i == 0 ? -0.1 : -0.62} : SEATS[Math.max(0, Math.min(i, SEATS.length - 1))];
         double rad = Math.toRadians(getYaw());
         double fx = -Math.sin(rad), fz = Math.cos(rad);
         double rx = -Math.cos(rad), rz = -Math.sin(rad);
@@ -641,7 +641,7 @@ public class CarEntity extends Entity {
         double z = getZ() + fz * seat[1] + rz * seat[0];
         float sc = passenger instanceof LivingEntity le ? le.getScale() : 1f;
         // бёдра ровно на подушке сиденья (с учётом роста); ребёнок сидит на бустере, чтобы видеть дорогу
-        double y = getY() + (isScooter() ? 0.7 - 0.75 * sc : 0.645 - 0.75 * sc + (1 - sc) * 0.35);
+        double y = getY() + (isScooter() ? 0.7 - 0.75 * sc : isBike() ? (i == 0 ? 0.86 : 0.95) - 0.75 * sc : 0.645 - 0.75 * sc + (1 - sc) * 0.35);
         updater.accept(passenger, x, y, z);
         if (yawTick == age && YAW_DONE.getOrDefault(passenger, -1) != age) {
             YAW_DONE.put(passenger, age);
@@ -701,7 +701,7 @@ public class CarEntity extends Entity {
 
     @Override
     public ItemStack getPickBlockStack() {
-        return new ItemStack(isScooter() ? ModContent.SCOOTER_ITEM : ModContent.CARS[Math.min(getVariant(), ModContent.CARS.length - 1)]);
+        return new ItemStack(isBike() ? com.yompix.novograd.vehicle.Vehicles.BIKE_ITEM : isScooter() ? ModContent.SCOOTER_ITEM : ModContent.CARS[Math.min(getVariant(), ModContent.CARS.length - 1)]);
     }
 
     @Override
@@ -726,11 +726,16 @@ public class CarEntity extends Entity {
 
     @Override
     protected Text getDefaultName() {
-        return Text.translatable(isScooter() ? "item.novograd.scooter" : "item.novograd.car_" + VARIANTS[getVariant()]);
+        return Text.translatable(isBike() ? "entity.novograd.bike" : isScooter() ? "item.novograd.scooter" : "item.novograd.car_" + VARIANTS[getVariant()]);
     }
 
     public boolean isScooter() {
         return getType() == ModContent.SCOOTER;
+    }
+
+    /** Мотоцикл (vehicle/Vehicles): та же машина, двое седоков, быстрее разгон и выше скорость. */
+    public boolean isBike() {
+        return getType() == com.yompix.novograd.vehicle.Vehicles.BIKE;
     }
 
     /** Сервер не пересчитывает столкновения машины игрока — иначе на бордюрах её дёргает назад («moved wrongly»). */

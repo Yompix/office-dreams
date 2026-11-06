@@ -298,18 +298,22 @@ public final class DevAutotest {
             return;
         }
         if (mode.equals("ui")) {
-            // оформление «Тёмные улицы»: заставка, меню, пауза, настройки, телефон, HUD, разговор, загрузка
-            YompixSplash.markShown();
+            // оформление «Тёмные улицы»: до входа в мир — настоящая заставка, главное меню, настройки, ванильные настройки
+            // с панорамой и экран загрузки; в мире — пауза, телефон, HUD, «миссия пройдена», разговор
+            pre(1, c -> {});
+            int[] at = {30, 22, 22, 20, 14, 12, 12, 10, 12, 16, 20, 26};
+            for (int i = 0; i < at.length; i++) preShot(at[i], "ui_splash_" + i);
+            pre(60, c -> { if (!(c.currentScreen instanceof com.yompix.novograd.client.menu.LifeMenuScreen)) c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen()); });
+            preShot(50, "ui_menu");
+            pre(5, c -> c.setScreen(new com.yompix.novograd.client.menu.SettingsScreen(c.currentScreen)));
+            preShot(25, "ui_settings_menu");
+            pre(5, c -> c.setScreen(new net.minecraft.client.gui.screen.option.OptionsScreen(new com.yompix.novograd.client.menu.LifeMenuScreen(), c.options)));
+            preShot(25, "ui_options_vanilla");
+            pre(5, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            preShot(30, "ui_loading");
             for (int i = 0; i < 4; i++) key(40, GLFW.GLFW_KEY_SPACE);
             run(10, c -> c.setScreen(null));
             cmd(5, "time set 13000");
-            run(5, c -> c.setScreen(new YompixSplash(null)));
-            int[] at = {30, 22, 22, 20, 14, 12, 12, 10, 12, 16, 20, 30};
-            for (int i = 0; i < at.length; i++) shot(at[i], "ui_splash_" + i);
-            run(5, c -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen()));
-            shot(40, "ui_menu");
-            run(5, c -> c.setScreen(new net.minecraft.client.gui.screen.MessageScreen(net.minecraft.text.Text.literal("…"))));
-            shot(20, "ui_loading");
             run(5, c -> c.setScreen(new com.yompix.novograd.client.menu.LifePauseScreen()));
             shot(25, "ui_pause");
             run(5, c -> c.setScreen(new com.yompix.novograd.client.menu.SettingsScreen(c.currentScreen)));
@@ -318,7 +322,7 @@ public final class DevAutotest {
             key(2, GLFW.GLFW_KEY_DOWN);
             shot(15, "ui_settings_gfx");
             run(5, c -> c.setScreen(new net.minecraft.client.gui.screen.option.OptionsScreen(c.currentScreen, c.options)));
-            shot(20, "ui_options_vanilla");
+            shot(20, "ui_options_ingame");
             run(5, c -> c.setScreen(new PhoneScreen(null)));
             shot(25, "ui_phone");
             run(5, c -> c.setScreen(new PhoneScreen("jobs")));
@@ -1107,11 +1111,36 @@ public final class DevAutotest {
         STEPS.add(new Step(delay, action));
     }
 
+    private static final List<Step> PRE = new ArrayList<>();
+    private static int preIndex = -1, preTimer;
+
+    /** Шаг до входа в мир (меню, заставка): идёт, пока игрока ещё нет. */
+    private static void pre(int delay, Consumer<MinecraftClient> action) {
+        PRE.add(new Step(delay, action));
+    }
+
+    private static void preShot(int delay, String name) {
+        pre(delay, c -> ScreenshotRecorder.saveScreenshot(c.runDirectory, name + ".png", c.getFramebuffer(), t -> {}));
+    }
+
     private static void shot(int delay, String name) {
         STEPS.add(new Step(delay, c -> ScreenshotRecorder.saveScreenshot(c.runDirectory, name + ".png", c.getFramebuffer(), t -> {})));
     }
 
     static {
+        ClientTickEvents.END_CLIENT_TICK.register(c -> {
+            if (PRE.isEmpty() || c.player != null || c.getOverlay() != null || preIndex >= PRE.size()) return;
+            if (preIndex < 0) {
+                // ждём, пока появится заставка или меню
+                if (!(c.currentScreen instanceof YompixSplash) && !(c.currentScreen instanceof com.yompix.novograd.client.menu.LifeMenuScreen)) return;
+                preIndex = 0;
+                preTimer = PRE.get(0).delay();
+            }
+            if (--preTimer > 0) return;
+            PRE.get(preIndex).action().accept(c);
+            preIndex++;
+            if (preIndex < PRE.size()) preTimer = PRE.get(preIndex).delay();
+        });
         ClientTickEvents.END_CLIENT_TICK.register(c -> {
             if (STEPS.isEmpty() || c.player == null || c.world == null) return;
             if (index < 0) {

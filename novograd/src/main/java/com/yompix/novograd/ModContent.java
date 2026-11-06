@@ -150,6 +150,7 @@ public final class ModContent {
 
     public static void init() {
         FabricDefaultAttributeRegistry.register(CITIZEN, CitizenEntity.createAttributes());
+        com.yompix.novograd.gta.Arsenal.register(); // оружие, броня, аптечки, колесо оружия
     }
 
     private static AbstractBlock.Settings stone(MapColor color) {

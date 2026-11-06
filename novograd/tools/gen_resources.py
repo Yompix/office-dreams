@@ -240,7 +240,7 @@ BLOCKS = {
 ITEMS = {
     'phone': ('Телефон', 'Phone'), 'banknote': ('Купюра $10', '$10 banknote'), 'banknote_50': ('Купюра $50', '$50 banknote'), 'banknote_100': ('Купюра $100', '$100 banknote'), 'bank_card': ('Банковская карта', 'Bank card'),
     'parcel': ('Посылка', 'Parcel'), 'scooter': ('Электроскутер', 'E-scooter'), 'suit': ('Костюм для выпускного', 'Prom suit'), 'diploma': ('Диплом', 'Diploma'), 'textbook': ('Учебник', 'Textbook'),
-    'burger': ('Бургер', 'Burger'), 'cola': ('Кола', 'Cola'), 'pizza': ('Пицца', 'Pizza'), 'pistol': ('Пистолет', 'Pistol'), 'smg': ('Автомат', 'SMG'), 'ammo': ('Патроны', 'Ammo'), 'bat': ('Бита', 'Baseball bat'), 'car_police': ('Полицейская машина', 'Police car'), 'salad': ('Салат', 'Salad'),
+    'burger': ('Бургер', 'Burger'), 'cola': ('Кола', 'Cola'), 'pizza': ('Пицца', 'Pizza'), 'pistol': ('Пистолет', 'Pistol'), 'smg': ('Автомат', 'SMG'), 'ammo': ('Патроны', 'Ammo'), 'bat': ('Бита', 'Baseball bat'), 'shotgun': ('Дробовик', 'Shotgun'), 'rifle': ('Автомат «АК»', 'Assault rifle'), 'sniper': ('Снайперская винтовка', 'Sniper rifle'), 'grenade': ('Граната', 'Grenade'), 'molotov': ('Коктейль Молотова', 'Molotov cocktail'), 'knife': ('Нож', 'Knife'), 'body_armor': ('Бронежилет', 'Body armor'), 'medkit': ('Аптечка', 'Medkit'), 'car_police': ('Полицейская машина', 'Police car'), 'salad': ('Салат', 'Salad'),
     'car_red': ('Машина (красная)', 'Car (red)'), 'car_blue': ('Машина (синяя)', 'Car (blue)'), 'car_yellow': ('Машина (жёлтая)', 'Car (yellow)'),
     'car_black': ('Машина (чёрная)', 'Car (black)'), 'car_white': ('Машина (белая)', 'Car (white)'), 'car_taxi': ('Такси', 'Taxi'),
 }
@@ -270,7 +270,7 @@ def lang():
         ru[f'subtitles.{NS}.{n}'] = r
         en[f'subtitles.{NS}.{n}'] = e
     extra = {
-        f'entity.{NS}.car': ('Машина', 'Car'), f'entity.{NS}.scooter': ('Электроскутер', 'E-scooter'), f'entity.{NS}.ball': ('Мяч', 'Ball'), f'entity.{NS}.citizen': ('Житель', 'Citizen'), f'entity.{NS}.seat': ('Сиденье', 'Seat'),
+        f'entity.{NS}.car': ('Машина', 'Car'), f'entity.{NS}.scooter': ('Электроскутер', 'E-scooter'), f'entity.{NS}.ball': ('Мяч', 'Ball'), f'entity.{NS}.citizen': ('Житель', 'Citizen'), f'entity.{NS}.seat': ('Сиденье', 'Seat'), f'entity.{NS}.grenade': ('Граната', 'Grenade'), f'entity.{NS}.molotov': ('Коктейль Молотова', 'Molotov cocktail'),
         f'itemGroup.{NS}': ('Новоград — тёмные улицы', 'Novograd: Dark Streets'), 'key.novograd.phone': ('Телефон', 'Phone'), 'key.novograd.horn': ('Гудок', 'Car horn'), 'key.novograd.lights': ('Фары вкл/выкл', 'Headlights'), 'key.novograd.nitro': ('Нитро', 'Nitro'), 'key.novograd.left': ('Левый поворотник', 'Left turn signal'), 'key.novograd.right': ('Правый поворотник', 'Right turn signal'), 'key.novograd.hazard': ('Аварийка', 'Hazard lights'), 'key.novograd.map': ('Карта и задания', 'Map and quests'), 'key.novograd.radio': ('Радио: следующая станция', 'Radio: next station'), 'key.novograd.radio_down': ('Радио: тише', 'Radio: volume down'), 'key.novograd.radio_up': ('Радио: громче', 'Radio: volume up'), 'key.novograd.job': ('Подработка за рулём (такси / патруль)', 'Vehicle side job'), 'key.novograd.cinema': ('Кино-камера в машине', 'Cinematic camera'), 'key.novograd.grade': ('Графика: красивая / лёгкая / выкл', 'Graphics: pretty / light / off'),
         'category.novograd': ('Новоград', 'Novograd'), 'generator.novograd.city': ('Новоград: Город', 'Novograd: City'),
     }
@@ -293,7 +293,7 @@ def sounds():
         out['voice.' + line['id']] = {'sounds': [{'name': f"{NS}:voice/{line['id']}", 'stream': True}]}
     out['yompix_jingle'] = {'sounds': [{'name': f'{NS}:yompix_jingle', 'stream': True}]}
     out['yompix_intro'] = {'sounds': [{'name': f'{NS}:yompix_intro', 'stream': True}]}
-    for snd in ('gunshot', 'smg_shot', 'siren'):
+    for snd in ('gunshot', 'smg_shot', 'siren', 'shotgun_shot', 'rifle_shot', 'sniper_shot', 'reload', 'explosion'):
         out[snd] = {'sounds': [{'name': f'{NS}:{snd}'}]}
     # радио в машине (tools/gen_radio.py)
     for st in ('neon88', 'beat_ulic', 'nochnoy_port', 'trassa128'):

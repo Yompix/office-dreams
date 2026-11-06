@@ -1233,6 +1233,41 @@
       }
     ]
   },
+  "shotgun_shot": {
+    "sounds": [
+      {
+        "name": "novograd:shotgun_shot"
+      }
+    ]
+  },
+  "rifle_shot": {
+    "sounds": [
+      {
+        "name": "novograd:rifle_shot"
+      }
+    ]
+  },
+  "sniper_shot": {
+    "sounds": [
+      {
+        "name": "novograd:sniper_shot"
+      }
+    ]
+  },
+  "reload": {
+    "sounds": [
+      {
+        "name": "novograd:reload"
+      }
+    ]
+  },
+  "explosion": {
+    "sounds": [
+      {
+        "name": "novograd:explosion"
+      }
+    ]
+  },
   "radio.neon88": {
     "sounds": [
       {

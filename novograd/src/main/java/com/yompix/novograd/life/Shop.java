@@ -24,7 +24,16 @@ public final class Shop {
             new Entry("Оружие", "Бита", () -> ModContent.BAT, 1, 80, LifeData.SCHOOL_END + 1),
             new Entry("Оружие", "Пистолет", () -> ModContent.PISTOL, 1, 400, LifeData.SCHOOL_END + 1),
             new Entry("Оружие", "Автомат", () -> ModContent.SMG, 1, 1200, LifeData.SCHOOL_END + 1),
-            new Entry("Оружие", "Патроны ×30", () -> ModContent.AMMO, 30, 60, LifeData.SCHOOL_END + 1),
+            new Entry("Оружие", "Нож", () -> com.yompix.novograd.gta.Arsenal.KNIFE, 1, 150, LifeData.SCHOOL_END + 1),
+            new Entry("Тяжёлое", "Дробовик", () -> com.yompix.novograd.gta.Arsenal.SHOTGUN, 1, 1600, LifeData.SCHOOL_END + 1),
+            new Entry("Тяжёлое", "Автомат «АК»", () -> com.yompix.novograd.gta.Arsenal.RIFLE, 1, 2600, LifeData.SCHOOL_END + 1),
+            new Entry("Тяжёлое", "Снайперская винтовка", () -> com.yompix.novograd.gta.Arsenal.SNIPER, 1, 4200, LifeData.SCHOOL_END + 1),
+            new Entry("Тяжёлое", "Граната", () -> com.yompix.novograd.gta.Arsenal.GRENADE, 1, 250, LifeData.SCHOOL_END + 1),
+            new Entry("Тяжёлое", "Коктейль Молотова", () -> com.yompix.novograd.gta.Arsenal.MOLOTOV, 1, 140, LifeData.SCHOOL_END + 1),
+            new Entry("Снаряжение", "Патроны ×30", () -> ModContent.AMMO, 30, 60, LifeData.SCHOOL_END + 1),
+            new Entry("Снаряжение", "Патроны ×64 (выгодно)", () -> ModContent.AMMO, 64, 115, LifeData.SCHOOL_END + 1),
+            new Entry("Снаряжение", "Бронежилет", () -> com.yompix.novograd.gta.Arsenal.ARMOR, 1, 650, LifeData.SCHOOL_END + 1),
+            new Entry("Снаряжение", "Аптечка", () -> com.yompix.novograd.gta.Arsenal.MEDKIT, 1, 70, LifeData.SCHOOL_END + 1),
             new Entry("Еда", "Салат (−вес)", () -> ModContent.SALAD, 1, 6, 1),
             new Entry("Еда", "Пицца", () -> ModContent.PIZZA, 1, 10, 1),
             new Entry("Еда", "Хлеб ×3", () -> Items.BREAD, 3, 5, 1),
@@ -57,7 +66,13 @@ public final class Shop {
             new Entry("Разное", "Банковская карта", () -> ModContent.BANK_CARD, 1, 20, 1),
             new Entry("Разное", "Телефон (запасной)", () -> ModContent.PHONE, 1, 120, 1),
             new Entry("Разное", "Цветы", () -> Items.POPPY, 3, 6, 1),
-            new Entry("Разное", "Удочка", () -> Items.FISHING_ROD, 1, 30, 1));
+            new Entry("Разное", "Удочка", () -> Items.FISHING_ROD, 1, 30, 1),
+            new Entry("Разное", "Аптечка", () -> com.yompix.novograd.gta.Arsenal.MEDKIT, 1, 90, 1));
+
+    /** Разделы оружейного «Калибра»: их продают только там и только лично. */
+    public static boolean gunCategory(String category) {
+        return category.equals("Оружие") || category.equals("Тяжёлое") || category.equals("Снаряжение");
+    }
 
     /** delivery = покупка через телефон, +20% за доставку. */
     private static final java.util.Map<java.util.UUID, Long> AT_GUNSHOP = new java.util.HashMap<>();
@@ -115,7 +130,7 @@ public final class Shop {
             p.sendMessage(Text.literal("Это можно купить только взрослым (после школы)").formatted(Formatting.RED), true);
             return;
         }
-        if (e.category().equals("Оружие") && (delivery || p.getServerWorld().getTime() - AT_GUNSHOP.getOrDefault(p.getUuid(), -10000L) > 2400)) {
+        if (gunCategory(e.category()) && (delivery || p.getServerWorld().getTime() - AT_GUNSHOP.getOrDefault(p.getUuid(), -10000L) > 2400)) {
             p.sendMessage(Text.literal("Оружие продают только в «Калибре», лично").formatted(Formatting.RED), true);
             return;
         }

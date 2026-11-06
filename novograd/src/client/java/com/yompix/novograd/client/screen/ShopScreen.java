@@ -40,7 +40,7 @@ public class ShopScreen extends LifeScreen {
         String money = "$" + NovogradClient.data.money;
         ctx.drawText(textRenderer, money, x + w - 8 - textRenderer.getWidth(money), y + 7, 0xFFFFF4B0, true);
         List<String> tabs = new ArrayList<>();
-        for (Shop.Entry e : Shop.CATALOG) if (!tabs.contains(e.category()) && e.category().equals("Оружие") == guns) tabs.add(e.category());
+        for (Shop.Entry e : Shop.CATALOG) if (!tabs.contains(e.category()) && Shop.gunCategory(e.category()) == guns) tabs.add(e.category());
         int tx = x + 6;
         for (String t : tabs) {
             int tw = textRenderer.getWidth(t) + 10;
