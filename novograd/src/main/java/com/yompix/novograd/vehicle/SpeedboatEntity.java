@@ -79,7 +79,7 @@ public class SpeedboatEntity extends MotorVehicle {
             float grip = MathHelper.clamp(Math.abs(speed) * 5, 0.25f, 1);
             turn = -steer * 3.4f * grip * (speed < 0 ? -1 : 1) * (1 - Math.min(Math.abs(speed), 1f) * 0.3f);
             // держимся на поверхности: мягкая пружина + лёгкая волна
-            double wave = Math.sin((age + getId() * 7) * 0.12) * 0.04;
+            double wave = getControllingPassenger() != null ? Math.sin((age + getId() * 7) * 0.12) * 0.04 : 0; // пустой стоит ровно (качку рисует модель)
             double target = surf - DRAFT + wave - (wrecked() ? 1.6 : 0) + Math.min(Math.abs(speed), 1) * 0.08;
             vy = (target - getY()) * 0.25 + vy * 0.5;
         } else {
@@ -106,6 +106,11 @@ public class SpeedboatEntity extends MotorVehicle {
     @Override
     protected double crashSpeed() {
         return 0.9;
+    }
+
+    @Override
+    protected float crashDamage() {
+        return 12;
     }
 
     @Override

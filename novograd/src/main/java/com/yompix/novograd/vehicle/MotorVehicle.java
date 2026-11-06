@@ -127,9 +127,13 @@ public abstract class MotorVehicle extends CarEntity {
         if (lastPos != null && !wrecked()) {
             Vec3d d = pos.subtract(lastPos);
             double h = Math.sqrt(d.x * d.x + d.z * d.z);
+            // удар засчитываем, только если и на следующем тике стоим (пропущенный пакет — не авария)
             if (d.lengthSquared() < 400) {
-                if (lastH > crashSpeed() && h < lastH * 0.35) crash((float) (lastH - h) * 30);
-                else if (lastVy < -0.55 && d.y > -0.08 && landed) crash((float) -lastVy * 28);
+                if (pendingCrash > 0) {
+                    if (h < 0.3 && d.y > -0.15) crash(pendingCrash);
+                    pendingCrash = 0;
+                } else if (lastH > crashSpeed() && h < lastH * 0.35) pendingCrash = (float) (lastH - h) * crashDamage();
+                else if (lastVy < -0.55 && d.y > -0.08 && landed) pendingCrash = (float) -lastVy * crashDamage();
             }
             lastH = h;
             lastVy = d.y;
@@ -147,6 +151,13 @@ public abstract class MotorVehicle extends CarEntity {
     protected double crashSpeed() {
         return 0.7;
     }
+
+    /** Урон за удар на скорости 1 блок/тик (до множителя брони машины ×2.2). */
+    protected float crashDamage() {
+        return 28;
+    }
+
+    private float pendingCrash;
 
     protected void crash(float dmg) {
         getWorld().playSound(null, getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, SoundCategory.NEUTRAL, 1.2f, 0.7f);

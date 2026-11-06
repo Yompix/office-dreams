@@ -202,7 +202,7 @@ def skyline_fg(W=1024, H=256):
 def grain(n=128):
     rng = np.random.default_rng(1)
     v = rng.integers(0, 256, (n, n)).astype(np.uint8)
-    a = (rng.random((n, n)) * 70).astype(np.uint8)
+    a = (rng.random((n, n)) ** 2 * 45).astype(np.uint8)
     img = np.stack([v, v, v, a], -1)
     Image.fromarray(img, 'RGBA').save(os.path.join(UI, 'grain.png'))
 

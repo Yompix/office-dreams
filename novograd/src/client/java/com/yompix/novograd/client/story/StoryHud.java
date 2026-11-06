@@ -84,7 +84,7 @@ public final class StoryHud {
         TextRenderer tr = mc.textRenderer;
         int w = ctx.getScaledWindowWidth(), h = ctx.getScaledWindowHeight();
         long now = System.currentTimeMillis();
-        boolean hud = mc.player != null && !mc.options.hudHidden && !mc.getDebugHud().shouldShowDebugHud();
+        boolean hud = mc.player != null && !mc.options.hudHidden && !mc.getDebugHud().shouldShowDebugHud() && !com.yompix.novograd.client.LifeHud.cinematic(mc);
         if (hud && com.yompix.novograd.client.NovogradClient.wantedStars >= 1 && (now / 400) % 2 == 0) {
             ctx.fill(0, 0, w, 2, 0x88FF2A2A);
             ctx.fill(0, 2, w, 4, 0x882A6AFF);

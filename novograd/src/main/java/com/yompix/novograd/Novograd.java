@@ -22,6 +22,7 @@ public class Novograd implements ModInitializer {
     @Override
     public void onInitialize() {
         ModContent.init();
+        com.yompix.novograd.vehicle.Vehicles.register(); // мотоцикл, катер, вертолёт, самолёт
         LifeNet.init();
         LifeEvents.init();
         LifeCommands.init();

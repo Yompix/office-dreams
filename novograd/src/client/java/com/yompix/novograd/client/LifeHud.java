@@ -39,13 +39,18 @@ public final class LifeHud {
         return (v < 0 ? "-" : "") + b;
     }
 
+    /** Во время разговора и кат-сцены HUD прячется, как в кино. */
+    public static boolean cinematic(MinecraftClient mc) {
+        return mc.currentScreen instanceof com.yompix.novograd.client.story.DialogScreen || mc.currentScreen instanceof com.yompix.novograd.client.story.CutsceneScreen;
+    }
+
     private static float scale() {
         return Math.max(0.5f, Math.min(2f, NovogradConfig.get().hudScale));
     }
 
     public static void render(DrawContext ctx, RenderTickCounter tick) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.player == null || mc.options.hudHidden || mc.getDebugHud().shouldShowDebugHud()) return;
+        if (mc.player == null || mc.options.hudHidden || mc.getDebugHud().shouldShowDebugHud() || cinematic(mc)) return;
         LifeData d = NovogradClient.data;
         TextRenderer tr = mc.textRenderer;
         long now = System.currentTimeMillis();

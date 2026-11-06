@@ -112,7 +112,10 @@ public final class Wanted {
             }
             if (was != seen || now % 40 == 0) sync(p, x);
             reinforce(p, x, cops.size());
-            if (x.stars >= 3 && p.getVehicle() instanceof CarEntity && now - x.lastBlock > 20 * 25) {
+            // вертолёт полиции с 4★: кружит, светит прожектором, стрелок бьёт очередями
+            if (x.stars >= 4 && now % 100 == 0 && com.yompix.novograd.vehicle.HeliEntity.countPolice(w, p.getPos(), 200) < (x.stars >= 5 ? 2 : 1))
+                com.yompix.novograd.vehicle.HeliEntity.spawnPolice(w, p.getPos(), p);
+            if (x.stars >= 3 && p.getVehicle() instanceof CarEntity cv && (!(cv instanceof com.yompix.novograd.vehicle.MotorVehicle)) && now - x.lastBlock > 20 * 25) {
                 if (roadblock(p)) x.lastBlock = now;
             }
             // задержание: полицейский вплотную, а ты стоишь (или машина стоит)

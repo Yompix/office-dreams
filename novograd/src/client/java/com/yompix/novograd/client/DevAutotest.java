@@ -300,6 +300,11 @@ public final class DevAutotest {
         if (mode.equals("ui")) {
             // оформление «Тёмные улицы»: до входа в мир — настоящая заставка, главное меню, настройки, ванильные настройки
             // с панорамой и экран загрузки; в мире — пауза, телефон, HUD, «миссия пройдена», разговор
+            // транспорт (параллельная работа) ещё не регистрируется при запуске — подгружаем класс заранее, пока реестры открыты
+            try {
+                Class.forName("com.yompix.novograd.vehicle.Vehicles");
+            } catch (Throwable ignored) {
+            }
             pre(1, c -> {});
             int[] at = {30, 22, 22, 20, 14, 12, 12, 10, 12, 16, 20, 26};
             for (int i = 0; i < at.length; i++) preShot(at[i], "ui_splash_" + i);
@@ -310,10 +315,13 @@ public final class DevAutotest {
             pre(5, c -> c.setScreen(new net.minecraft.client.gui.screen.option.OptionsScreen(new com.yompix.novograd.client.menu.LifeMenuScreen(), c.options)));
             preShot(25, "ui_options_vanilla");
             pre(5, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
-            preShot(30, "ui_loading");
+            preShot(2, "ui_loading");
             for (int i = 0; i < 4; i++) key(40, GLFW.GLFW_KEY_SPACE);
             run(10, c -> c.setScreen(null));
+            cmd(5, "gamemode creative " + P);
+            cmd(5, "kill @e[type=novograd:citizen,distance=..40]");
             cmd(5, "time set 13000");
+            run(5, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); c.setScreen(null); });
             run(5, c -> c.setScreen(new com.yompix.novograd.client.menu.LifePauseScreen()));
             shot(25, "ui_pause");
             run(5, c -> c.setScreen(new com.yompix.novograd.client.menu.SettingsScreen(c.currentScreen)));

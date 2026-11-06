@@ -104,9 +104,12 @@ public abstract class LifeScreen extends Screen {
         Ui.slant(ctx, x, y, 2, h, skew, enabled ? lighten(c, 0.2f) : c);
         ctx.fill(x + skew / 2, y + h - 1, x + w - skew / 2, y + h, enabled ? c : 0xFF35313F);
         int tw = textRenderer.getWidth(label);
-        int tx = x + (w - tw) / 2 + (int) (k * 1.5f);
-        int ty = y + (h - 8) / 2 + (h >= 12 ? 0 : 0);
-        ctx.drawText(textRenderer, label, tx, ty, enabled ? 0xFFFFFFFF : 0xFF8A8598, enabled);
+        float fs = tw > w - 6 ? Math.max(0.6f, (w - 6) / (float) tw) : 1f;
+        ctx.getMatrices().push();
+        ctx.getMatrices().translate(x + w / 2f + k * 1.5f, y + h / 2f - 4 * fs + 0.5f, 0);
+        ctx.getMatrices().scale(fs, fs, 1);
+        ctx.drawText(textRenderer, label, -tw / 2, 0, enabled ? 0xFFFFFFFF : 0xFF8A8598, enabled);
+        ctx.getMatrices().pop();
         if (enabled) area(x, y, w, h, action);
     }
 

@@ -79,7 +79,7 @@ public class LifeMenuScreen extends Screen {
         int sel = menu.selected;
         menu.clear();
         menu.rowH = 15;
-        menu.subH = 23;
+        menu.subH = 25;
         menu.rowGap = 2;
         menu.scale = 1.4f;
         MinecraftClient mc = MinecraftClient.getInstance();
@@ -189,7 +189,7 @@ public class LifeMenuScreen extends Screen {
         String ver = "Minecraft 1.21.1 · © Yompix Games";
         if (textRenderer.getWidth(tip) + 64 + textRenderer.getWidth(ver) + 20 < width)
             ctx.drawText(textRenderer, ver, width - textRenderer.getWidth(ver) - 8, height - 14, 0x80FFFFFF, false);
-        Ui.grain(ctx, width, height, 0.35f);
+        Ui.grain(ctx, width, height, 0.25f);
         super.render(ctx, mouseX, mouseY, delta);
     }
 

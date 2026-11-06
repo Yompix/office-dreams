@@ -274,10 +274,10 @@ public final class Ui {
         ctx.fill(x - 10, y + 2, x - 8, y + h - 2, alpha(hov > 0.5f ? CYAN : 0x40FFFFFF, appear));
         int tx = x + 6 + (int) (6 * hov);
         int col = !enabled ? 0xFF6E6880 : hov > 0.5f ? WHITE : 0xFFE6E2F0;
-        int ty = sub == null || sub.isEmpty() ? y + (int) ((h - 8 * s) / 2) : y + 3;
+        int ty = sub == null || sub.isEmpty() ? y + (int) ((h - 8 * s) / 2) : y + 2;
         big(ctx, tr, label.toUpperCase(), tx, ty, s, alpha(col, appear), 0);
         if (sub != null && !sub.isEmpty())
-            small(ctx, tr, sub, tx + 1, y + h - 10, 0.85f, alpha(hov > 0.5f ? 0xFFFFE1EE : 0xFF9C96B0, appear), 0);
+            small(ctx, tr, sub, tx + 1, y + 4 + (int) (9 * s), 0.8f, alpha(hov > 0.5f ? 0xFFFFE1EE : 0xFF9C96B0, appear), 0);
     }
 
     public static MinecraftClient mc() {

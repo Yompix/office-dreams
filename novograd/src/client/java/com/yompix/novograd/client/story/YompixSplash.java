@@ -361,7 +361,7 @@ public class YompixSplash extends Screen {
         // кино: полосы, зерно, виньетка
         Ui.vignette(ctx, width, height, 0.7f);
         Ui.letterbox(ctx, width, height, 1);
-        Ui.grain(ctx, width, height, 0.4f);
+        Ui.grain(ctx, width, height, 0.3f);
     }
 
     private static int lerpColor(int a, int b, float k) {

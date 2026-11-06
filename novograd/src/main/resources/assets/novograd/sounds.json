@@ -116,6 +116,42 @@
     ],
     "subtitle": "subtitles.novograd.traffic_beep"
   },
+  "bike_engine": {
+    "sounds": [
+      {
+        "name": "novograd:bike_engine",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.novograd.bike_engine"
+  },
+  "boat_engine": {
+    "sounds": [
+      {
+        "name": "novograd:boat_engine",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.novograd.boat_engine"
+  },
+  "heli_rotor": {
+    "sounds": [
+      {
+        "name": "novograd:heli_rotor",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.novograd.heli_rotor"
+  },
+  "plane_engine": {
+    "sounds": [
+      {
+        "name": "novograd:plane_engine",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.novograd.plane_engine"
+  },
   "voice.a1m1_01": {
     "sounds": [
       {

@@ -241,6 +241,7 @@ ITEMS = {
     'phone': ('Телефон', 'Phone'), 'banknote': ('Купюра $10', '$10 banknote'), 'banknote_50': ('Купюра $50', '$50 banknote'), 'banknote_100': ('Купюра $100', '$100 banknote'), 'bank_card': ('Банковская карта', 'Bank card'),
     'parcel': ('Посылка', 'Parcel'), 'scooter': ('Электроскутер', 'E-scooter'), 'suit': ('Костюм для выпускного', 'Prom suit'), 'diploma': ('Диплом', 'Diploma'), 'textbook': ('Учебник', 'Textbook'),
     'burger': ('Бургер', 'Burger'), 'cola': ('Кола', 'Cola'), 'pizza': ('Пицца', 'Pizza'), 'pistol': ('Пистолет', 'Pistol'), 'smg': ('Автомат', 'SMG'), 'ammo': ('Патроны', 'Ammo'), 'bat': ('Бита', 'Baseball bat'), 'shotgun': ('Дробовик', 'Shotgun'), 'rifle': ('Автомат «АК»', 'Assault rifle'), 'sniper': ('Снайперская винтовка', 'Sniper rifle'), 'grenade': ('Граната', 'Grenade'), 'molotov': ('Коктейль Молотова', 'Molotov cocktail'), 'knife': ('Нож', 'Knife'), 'body_armor': ('Бронежилет', 'Body armor'), 'medkit': ('Аптечка', 'Medkit'), 'car_police': ('Полицейская машина', 'Police car'), 'salad': ('Салат', 'Salad'),
+    'bike': ('Мотоцикл', 'Motorcycle'), 'speedboat': ('Катер', 'Speedboat'), 'helicopter': ('Вертолёт', 'Helicopter'), 'plane': ('Самолёт', 'Plane'),  # vehicle/Vehicles
     'car_red': ('Машина (красная)', 'Car (red)'), 'car_blue': ('Машина (синяя)', 'Car (blue)'), 'car_yellow': ('Машина (жёлтая)', 'Car (yellow)'),
     'car_black': ('Машина (чёрная)', 'Car (black)'), 'car_white': ('Машина (белая)', 'Car (white)'), 'car_taxi': ('Такси', 'Taxi'),
 }
@@ -250,6 +251,7 @@ SOUNDS = {
     'car_engine': ('Мотор', 'Car engine'), 'car_start': ('Заводится мотор', 'Engine starts'), 'cash': ('Касса', 'Cash register'),
     'answer_right': ('Верный ответ', 'Right answer'), 'answer_wrong': ('Ошибка', 'Wrong answer'), 'tv_switch': ('Переключение канала', 'TV switch'),
     'level_up': ('Фанфары', 'Fanfare'), 'traffic_beep': ('Сигнал светофора', 'Traffic beep'),
+    'bike_engine': ('Мотоцикл', 'Motorcycle engine'), 'boat_engine': ('Мотор катера', 'Boat engine'), 'heli_rotor': ('Винт вертолёта', 'Helicopter rotor'), 'plane_engine': ('Мотор самолёта', 'Plane engine'),
 }
 
 
@@ -270,6 +272,7 @@ def lang():
         ru[f'subtitles.{NS}.{n}'] = r
         en[f'subtitles.{NS}.{n}'] = e
     extra = {
+        f'entity.{NS}.bike': ('Мотоцикл', 'Motorcycle'), f'entity.{NS}.speedboat': ('Катер', 'Speedboat'), f'entity.{NS}.helicopter': ('Вертолёт', 'Helicopter'), f'entity.{NS}.police_helicopter': ('Полицейский вертолёт', 'Police helicopter'), f'entity.{NS}.plane': ('Самолёт', 'Plane'),
         f'entity.{NS}.car': ('Машина', 'Car'), f'entity.{NS}.scooter': ('Электроскутер', 'E-scooter'), f'entity.{NS}.ball': ('Мяч', 'Ball'), f'entity.{NS}.citizen': ('Житель', 'Citizen'), f'entity.{NS}.seat': ('Сиденье', 'Seat'), f'entity.{NS}.grenade': ('Граната', 'Grenade'), f'entity.{NS}.molotov': ('Коктейль Молотова', 'Molotov cocktail'),
         f'itemGroup.{NS}': ('Новоград — тёмные улицы', 'Novograd: Dark Streets'), 'key.novograd.phone': ('Телефон', 'Phone'), 'key.novograd.horn': ('Гудок', 'Car horn'), 'key.novograd.lights': ('Фары вкл/выкл', 'Headlights'), 'key.novograd.nitro': ('Нитро', 'Nitro'), 'key.novograd.left': ('Левый поворотник', 'Left turn signal'), 'key.novograd.right': ('Правый поворотник', 'Right turn signal'), 'key.novograd.hazard': ('Аварийка', 'Hazard lights'), 'key.novograd.map': ('Карта и задания', 'Map and quests'), 'key.novograd.radio': ('Радио: следующая станция', 'Radio: next station'), 'key.novograd.radio_down': ('Радио: тише', 'Radio: volume down'), 'key.novograd.radio_up': ('Радио: громче', 'Radio: volume up'), 'key.novograd.job': ('Подработка за рулём (такси / патруль)', 'Vehicle side job'), 'key.novograd.cinema': ('Кино-камера в машине', 'Cinematic camera'), 'key.novograd.grade': ('Графика: красивая / лёгкая / выкл', 'Graphics: pretty / light / off'),
         'category.novograd': ('Новоград', 'Novograd'), 'generator.novograd.city': ('Новоград: Город', 'Novograd: City'),
