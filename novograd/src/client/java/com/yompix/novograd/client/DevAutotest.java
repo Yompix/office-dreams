@@ -134,7 +134,9 @@ public final class DevAutotest {
             String[] a = mode.split(":");
             int ch = Integer.parseInt(a[1]), mi = Integer.parseInt(a[2]), st = Integer.parseInt(a[3]);
             YompixSplash.markShown();
-            server(150, s -> {
+            pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+            server(60, s -> {
                 ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
                 var d = Life.get(p);
                 d.storyStarted = true;
@@ -146,7 +148,6 @@ public final class DevAutotest {
                 Story.applyAge(p, 22);
                 Life.sync(p);
             });
-            for (int i = 0; i < 3; i++) key(10, GLFW.GLFW_KEY_SPACE);
             run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
             cmd(5, "time set 13500");
             server(5, s -> Story.reenter(s.getPlayerManager().getPlayer(P)));
@@ -158,7 +159,8 @@ public final class DevAutotest {
             server(5, s -> {
                 ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
                 var w = p.getServerWorld();
-                p.teleport(w, 216.5, Story.topY(w, 216, -200), -200.5, 0, 10);
+                w.getChunk(216 >> 4, -200 >> 4);
+                p.teleport(w, 216.5, Story.topY(w, 216, -200) + 1, -200.5, 0, 10);
             });
             run(40, c -> {});
             server(5, s -> {
@@ -177,13 +179,15 @@ public final class DevAutotest {
                 p.stopRiding();
                 p.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
                 var w = p.getServerWorld();
-                p.teleport(w, -600.5, Story.topY(w, -600, 40) + 6, 40.5, 90, 25);
+                w.getChunk(-640 >> 4, -600 >> 4);
+                p.teleport(w, -640.5, Story.topY(w, -640, -600) + 5, -600.5, 90, 20);
             });
             shot(80, "water_1");
             shot(30, "water_2");
             server(5, s -> {
                 ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
                 var w = p.getServerWorld();
+                w.getChunk(-300 >> 4, -850 >> 4);
                 p.teleport(w, -300.5, Story.topY(w, -300, -850) + 3, -850.5, 0, 10);
             });
             shot(80, "trees_1");

@@ -570,7 +570,7 @@ public final class Island {
         put("port_dock", -640, 10, 90);
         put("port_gate", -560, 24, 90);
         put("port_warehouse", -585, -60, 90);
-        put("beach_bar", -610, -300, 90);
+        put("beach_bar", -603, -560, 90);
         put("hill_top", -200, -870, 0);
         put("airfield", 600, -905, 270);
         put("airfield_hangar", 460, -870, 0);
@@ -585,7 +585,7 @@ public final class Island {
         put("dt_alley", 317, -216, 90);
         put("chop_shop", 509, 552, 180);
         put("port_crane", -600, 70, 90);
-        put("beach_lot", -605, -408, 90);
+        put("beach_lot", -598, -520, 90);
         put("hw_nw", -552, -720, 0);
         put("hw_south", 200, 744, 90);
         put("hw_east", 744, 400, 0);
@@ -596,7 +596,7 @@ public final class Island {
         cam("cam_club", 360, 25, -230, 180, 20);
         cam("cam_suburb", -240, 18, 250, 145, 20);
         cam("cam_chop", 540, 22, 590, 141, 22);
-        cam("cam_beach", -560, 20, -380, 122, 15);
+        cam("cam_beach", -560, 18, -495, 122, 15);
         cam("cam_casino", 640, 40, -560, 135, 20);
         cam("cam_hw_south", 230, 15, 760, 60, 10);
         cam("cam_island_far", 260, 160, 260, 135, 38);

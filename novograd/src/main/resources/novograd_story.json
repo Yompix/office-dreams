@@ -276,8 +276,8 @@
        "type": "cutscene",
        "shots": [
         {
-         "from": "race_start+20,-14,4",
-         "to": "race_start+12,-8,3",
+         "from": "race_start+22,-5,3",
+         "to": "race_start+12,-4,2.5",
          "sec": 6,
          "track": "storm_car"
         },
@@ -1123,8 +1123,8 @@
        "type": "cutscene",
        "shots": [
         {
-         "from": "race_start+30,-20,10",
-         "to": "race_start+18,-12,6",
+         "from": "race_start+30,-5,8",
+         "to": "race_start+18,-4,5",
          "sec": 5,
          "track": "cop_car1"
         },

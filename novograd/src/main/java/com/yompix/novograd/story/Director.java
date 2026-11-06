@@ -103,6 +103,8 @@ public final class Director {
         double[] t = com.yompix.novograd.world.TownState.get(w).place(base(name));
         double yaw = t != null ? t[3] : r != null ? r[3] : 0, pitch = t == null && r != null ? r[4] : 0;
         double y = v.y + (t == null && r == null ? 1.6 : 0);
+        // камера не уходит в землю: над рельефом острова минимум на 1.7 блока
+        if (t == null) y = Math.max(y, com.yompix.novograd.world.Island.surface((int) Math.floor(v.x), (int) Math.floor(v.z)) + 2.7);
         return new double[]{v.x, y, v.z, yaw, pitch};
     }
 
