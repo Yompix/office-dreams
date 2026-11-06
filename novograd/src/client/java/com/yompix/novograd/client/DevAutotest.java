@@ -1,5 +1,9 @@
 package com.yompix.novograd.client;
 
+import net.minecraft.client.util.InputUtil;
+
+import net.minecraft.client.option.KeyBinding;
+
 import com.yompix.novograd.client.screen.OnlineCasinoScreen;
 import com.yompix.novograd.client.screen.PhoneScreen;
 import com.yompix.novograd.client.story.YompixSplash;
@@ -126,6 +130,90 @@ public final class DevAutotest {
                 });
                 shot(200, v[5]);
             }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("reel")) {
+            // короткий ролик: оружие от первого лица и со стороны, маслкар с дрифтом, вертолёт
+            YompixSplash.markShown();
+            pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            cmd(5, "gamemode creative " + P);
+            cmd(5, "time set 6500");
+            cmd(5, "gamerule doDaylightCycle false");
+            cmd(5, "effect give " + P + " minecraft:resistance 99999 4 true");
+            // --- оружие
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                w.getChunk(504 >> 4, -190 >> 4);
+                p.teleport(w, 504.5, Story.topY(w, 504, -190) + 0.1, -190.5, 180, 4);
+                p.getInventory().clear();
+                p.getInventory().setStack(0, new net.minecraft.item.ItemStack(com.yompix.novograd.gta.Arsenal.RIFLE));
+                p.getInventory().setStack(1, new net.minecraft.item.ItemStack(com.yompix.novograd.gta.Arsenal.SHOTGUN));
+                p.getInventory().setStack(2, new net.minecraft.item.ItemStack(com.yompix.novograd.ModContent.PISTOL));
+                p.getInventory().setStack(8, new net.minecraft.item.ItemStack(com.yompix.novograd.ModContent.AMMO, 64));
+                p.getInventory().selectedSlot = 0;
+                for (int i = 0; i < 4; i++) {
+                    CitizenEntity g = new CitizenEntity(com.yompix.novograd.ModContent.CITIZEN, w);
+                    g.setup(CitizenEntity.RANDOM_FROM + 39 - i * 2, CitizenEntity.Role.GANG, true, "Бандит");
+                    g.refreshPositionAndAngles(502 + i * 1.5, Story.topY(w, 503, -205), -205.5, 0, 0);
+                    w.spawnEntity(g);
+                }
+            });
+            run(60, c -> { c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON); c.player.getInventory().selectedSlot = 0; });
+            run(1, c -> com.yompix.novograd.Novograd.LOG.info("[reel] guns {}", System.currentTimeMillis()));
+            hold(30, c -> c.options.useKey, 50);
+            run(10, c -> pressKey(c, GLFW.GLFW_KEY_R));
+            run(50, c -> c.player.getInventory().selectedSlot = 1);
+            hold(25, c -> c.options.useKey, 6);
+            run(20, c -> {});
+            hold(5, c -> c.options.useKey, 6);
+            run(30, c -> { c.player.getInventory().selectedSlot = 2; c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT); });
+            hold(20, c -> c.options.useKey, 30);
+            run(20, c -> c.player.getInventory().selectedSlot = 0);
+            hold(10, c -> c.options.useKey, 40);
+            // --- маслкар
+            server(10, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                w.getChunk(200 >> 4, -744 >> 4);
+                var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, w);
+                car.refreshPositionAndAngles(200.5, Story.topY(w, 200, -742), -742.5, -90, 0);
+                car.setVariant(9);
+                car.setTune(true, 2, 0);
+                w.spawnEntity(car);
+                p.getInventory().selectedSlot = 7;
+                p.teleport(w, 200.5, car.getY() + 1, -742.5, -90, 10);
+                p.startRiding(car, true);
+            });
+            run(40, c -> { c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK); com.yompix.novograd.Novograd.LOG.info("[reel] car {}", System.currentTimeMillis()); });
+            hold(5, c -> c.options.forwardKey, 140);
+            run(1, c -> { KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.forwardKey.getBoundKeyTranslationKey()), true); KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.leftKey.getBoundKeyTranslationKey()), true); KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.jumpKey.getBoundKeyTranslationKey()), true); });
+            run(14, c -> { KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.leftKey.getBoundKeyTranslationKey()), false); KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.jumpKey.getBoundKeyTranslationKey()), false); });
+            run(60, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.forwardKey.getBoundKeyTranslationKey()), false));
+            run(10, c -> pressKey(c, GLFW.GLFW_KEY_B)); // кино-камера
+            hold(5, c -> c.options.forwardKey, 120);
+            run(5, c -> pressKey(c, GLFW.GLFW_KEY_B));
+            // --- вертолёт
+            server(10, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                p.stopRiding();
+                var w = p.getServerWorld();
+                w.getChunk(460 >> 4, -890 >> 4);
+                var heli = new com.yompix.novograd.vehicle.HeliEntity(com.yompix.novograd.vehicle.Vehicles.HELI, w);
+                heli.refreshPositionAndAngles(460.5, Story.topY(w, 460, -895), -895.5, 90, 0);
+                w.spawnEntity(heli);
+                p.teleport(w, 460.5, heli.getY() + 1, -895.5, 90, 10);
+                p.startRiding(heli, true);
+            });
+            run(30, c -> { c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK); com.yompix.novograd.Novograd.LOG.info("[reel] heli {}", System.currentTimeMillis()); });
+            hold(5, c -> c.options.jumpKey, 140);
+            run(1, c -> { KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.forwardKey.getBoundKeyTranslationKey()), true); KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.jumpKey.getBoundKeyTranslationKey()), true); });
+            run(100, c -> { KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.jumpKey.getBoundKeyTranslationKey()), false); });
+            run(60, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.forwardKey.getBoundKeyTranslationKey()), false));
+            run(5, c -> com.yompix.novograd.Novograd.LOG.info("[reel] end {}", System.currentTimeMillis()));
             run(20, MinecraftClient::scheduleStop);
             return;
         }
@@ -1875,6 +1963,12 @@ public final class DevAutotest {
         });
         shot(20, "drive_marks_top");
         run(20, MinecraftClient::scheduleStop);
+    }
+
+    /** Держать клавишу ticks тиков (имитация зажатой кнопки). */
+    private static void hold(int delay, java.util.function.Function<MinecraftClient, KeyBinding> kb, int ticks) {
+        run(delay, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(kb.apply(c).getBoundKeyTranslationKey()), true));
+        run(ticks, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(kb.apply(c).getBoundKeyTranslationKey()), false));
     }
 
     private static void key(int delay, int key) {

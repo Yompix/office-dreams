@@ -11,7 +11,8 @@
     "GunCooldownMixin",
     "GunCameraMixin",
     "GunPoseMixin",
-    "HudBarsMixin"
+    "HudBarsMixin",
+    "VehicleCameraMixin"
   ],
   "injectors": {
     "defaultRequire": 1
