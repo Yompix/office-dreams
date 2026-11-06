@@ -305,11 +305,9 @@ public class NovogradClient implements ClientModInitializer {
             client.setScreen(s);
         }
         while (phoneKey.wasPressed()) {
-            if (client.currentScreen == null && client.player.getInventory().count(ModContent.PHONE) > 0) {
+            if (client.currentScreen == null) { // телефон всегда с собой, как в GTA (предмет не нужен)
                 client.setScreen(new PhoneScreen(null));
                 client.player.playSound(ModContent.PHONE_OPEN, 0.5f, 1f);
-            } else if (client.currentScreen == null) {
-                client.player.sendMessage(net.minecraft.text.Text.literal("У тебя нет телефона — купи в магазине"), true);
             }
         }
         while (hornKey.wasPressed()) send("horn");
