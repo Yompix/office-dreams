@@ -334,6 +334,121 @@ NEW = {
 }
 
 
+# ---- сбили машиной: полёт и падение на спину, лежит (дышит), встаёт; мёртвый — замирает раскинув руки.
+# Тоже сразу в верном знаке (fix_joints их не трогает). Корень −90 по X — лёг на спину головой назад.
+LIE = {
+    'root': ([-90, 0, 0], [0, 2.2, 0]),
+    'chest': [0, 0, 0], 'head': [0, 20, 0],
+    'right_arm': [-15, 0, 65], 'left_arm': [-5, 0, -70],
+    'right_forearm': [-20, 0, 0], 'left_forearm': [-10, 0, 0],
+    'right_leg': [0, 0, 8], 'left_leg': [-10, 0, -10],
+    'right_shin': [5, 0, 0], 'left_shin': [25, 0, 0],
+}
+DEAD = {
+    'chest': [0, 0, 4], 'head': [0, 55, 8],
+    'right_arm': [-35, 0, 95], 'left_arm': [8, 0, -60],
+    'right_forearm': [-45, 0, 0], 'left_forearm': [-5, 0, 0],
+    'right_leg': [0, 0, 14], 'left_leg': [-28, 0, -6],
+    'right_shin': [8, 0, 0], 'left_shin': [48, 0, 0],
+}
+
+
+def ko_bones(keys, length, fps=20):
+    """keys: кость → [(время, [x,y,z]), ...] (rotation) или ('pos', [...]) для позиции корня."""
+    out = {}
+    for bone, ch in keys.items():
+        out[bone] = {k: poses(v, length, fps) for k, v in ch.items()}
+    return out
+
+
+def knockdown():
+    L = 1.0
+    r = LIE
+    return anim(L, ko_bones({
+        'root': {'rotation': [(0, [0, 0, 0]), (0.12, [-25, 0, 4]), (0.35, [-70, 0, -8]), (0.55, [-102, 0, 6]), (0.7, [-86, 0, -3]),
+                              (0.82, [-92, 0, 1]), (1.0, r['root'][0])],
+                 'position': [(0, [0, 0, 0]), (0.35, [0, 3, 0]), (0.55, [0, 2, 0]), (0.7, [0, 2.8, 0]), (0.82, [0, 2.0, 0]), (1.0, r['root'][1])]},
+        'chest': {'rotation': [(0, [0, 0, 0]), (0.1, [28, 0, 0]), (0.3, [-15, 10, 0]), (0.6, [-10, -5, 0]), (0.75, [6, 0, 0]), (1.0, r['chest'])]},
+        'head': {'rotation': [(0, [0, 0, 0]), (0.1, [-28, 0, 0]), (0.3, [20, 0, 0]), (0.6, [-15, 0, 10]), (0.72, [10, 0, -5]), (1.0, r['head'])]},
+        'right_arm': {'rotation': [(0, [0, 0, 0]), (0.12, [-60, 0, 40]), (0.3, [-150, 0, 70]), (0.5, [-120, 0, 30]), (0.65, [-60, 0, 85]),
+                                   (0.8, [-20, 0, 72]), (1.0, r['right_arm'])]},
+        'left_arm': {'rotation': [(0, [0, 0, 0]), (0.12, [-90, 0, -30]), (0.3, [-60, 0, -95]), (0.5, [-160, 0, -40]), (0.65, [-40, 0, -82]),
+                                  (0.8, [-10, 0, -62]), (1.0, r['left_arm'])]},
+        'right_forearm': {'rotation': [(0, [0, 0, 0]), (0.2, [-45, 0, 0]), (0.45, [-10, 0, 0]), (0.65, [-50, 0, 0]), (1.0, r['right_forearm'])]},
+        'left_forearm': {'rotation': [(0, [0, 0, 0]), (0.25, [-60, 0, 0]), (0.5, [-20, 0, 0]), (0.7, [-35, 0, 0]), (1.0, r['left_forearm'])]},
+        'right_leg': {'rotation': [(0, [0, 0, 0]), (0.1, [-35, 0, 0]), (0.35, [-62, 0, 8]), (0.55, [-22, 0, 10]), (0.7, [-5, 0, 6]), (1.0, r['right_leg'])]},
+        'left_leg': {'rotation': [(0, [0, 0, 0]), (0.1, [-20, 0, 0]), (0.35, [-42, 0, -6]), (0.55, [-48, 0, -10]), (0.72, [-15, 0, -6]), (1.0, r['left_leg'])]},
+        'right_shin': {'rotation': [(0, [0, 0, 0]), (0.3, [50, 0, 0]), (0.6, [15, 0, 0]), (1.0, r['right_shin'])]},
+        'left_shin': {'rotation': [(0, [0, 0, 0]), (0.3, [30, 0, 0]), (0.55, [72, 0, 0]), (0.8, [30, 0, 0]), (1.0, r['left_shin'])]},
+    }, L), loop=False)
+
+
+def lying():
+    """Лежит после удара: дышит, держится за бок, чуть шевелит ногой и головой."""
+    L = 3.0
+    r = LIE
+    still = lambda v: track(lambda t: v, L, 2)
+    return anim(L, {
+        'root': {'rotation': still(r['root'][0]), 'position': still(r['root'][1])},
+        'chest': {'rotation': still(r['chest']), 'scale': track(lambda t: [1, 1, 1 + sine(t, 1.5, 0.035)], L)},
+        'head': {'rotation': track(lambda t: [r['head'][0] + sine(t, 3, 4), r['head'][1], sine(t, 3, 5)], L)},
+        'right_arm': {'rotation': still(r['right_arm'])},
+        'left_arm': {'rotation': track(lambda t: [r['left_arm'][0] + sine(t, 3, 6), 0, r['left_arm'][2] + sine(t, 3, 5)], L)},
+        'right_forearm': {'rotation': still(r['right_forearm'])},
+        'left_forearm': {'rotation': still(r['left_forearm'])},
+        'right_leg': {'rotation': still(r['right_leg'])},
+        'left_leg': {'rotation': track(lambda t: [r['left_leg'][0] - max(0, sine(t, 3, 14)), 0, r['left_leg'][2]], L)},
+        'right_shin': {'rotation': still(r['right_shin'])},
+        'left_shin': {'rotation': track(lambda t: [r['left_shin'][0] + max(0, sine(t, 3, 22)), 0, 0], L)},
+    })
+
+
+def dead():
+    """Погиб: из позы «лежит» обмякает — голова набок, руки раскинуты; последний кадр держится."""
+    L = 0.8
+    keys = {'root': {'rotation': [(0, LIE['root'][0]), (L, LIE['root'][0])], 'position': [(0, LIE['root'][1]), (L, LIE['root'][1])]}}
+    for b, v in DEAD.items():
+        keys[b] = {'rotation': [(0, LIE[b]), (0.25, [(LIE[b][c] + v[c]) / 2 for c in range(3)]), (L, v)]}
+    return anim(L, ko_bones(keys, L), loop=False)
+
+
+def getup():
+    L = 1.5
+    r = LIE
+    return anim(L, ko_bones({
+        'root': {'rotation': [(0, r['root'][0]), (0.45, r['root'][0]), (0.95, [-8, 0, 0]), (1.5, [0, 0, 0])],
+                 'position': [(0, r['root'][1]), (0.45, r['root'][1]), (0.95, [0, -4, 0]), (1.5, [0, 0, 0])]},
+        'waist': {'rotation': [(0, [0, 0, 0]), (0.45, [82, 0, 0]), (0.95, [30, 0, 0]), (1.5, [0, 0, 0])]},
+        'chest': {'rotation': [(0, r['chest']), (0.45, [10, 0, 0]), (0.95, [15, 0, 0]), (1.5, [0, 0, 0])]},
+        'head': {'rotation': [(0, r['head']), (0.4, [0, 0, 0]), (0.95, [-12, 0, 0]), (1.5, [0, 0, 0])]},
+        'right_arm': {'rotation': [(0, r['right_arm']), (0.3, [30, 0, 20]), (0.6, [-20, 0, 12]), (0.95, [-45, 0, 10]), (1.5, [0, 0, 0])]},
+        'left_arm': {'rotation': [(0, r['left_arm']), (0.3, [30, 0, -20]), (0.6, [-20, 0, -12]), (0.95, [-45, 0, -10]), (1.5, [0, 0, 0])]},
+        'right_forearm': {'rotation': [(0, r['right_forearm']), (0.3, [0, 0, 0]), (0.95, [-30, 0, 0]), (1.5, [0, 0, 0])]},
+        'left_forearm': {'rotation': [(0, r['left_forearm']), (0.3, [0, 0, 0]), (0.95, [-30, 0, 0]), (1.5, [0, 0, 0])]},
+        'right_leg': {'rotation': [(0, r['right_leg']), (0.45, [-10, 0, 4]), (0.95, [-70, 0, 0]), (1.2, [-30, 0, 0]), (1.5, [0, 0, 0])]},
+        'left_leg': {'rotation': [(0, r['left_leg']), (0.45, [-45, 0, -4]), (0.95, [-62, 0, 0]), (1.2, [-25, 0, 0]), (1.5, [0, 0, 0])]},
+        'right_shin': {'rotation': [(0, r['right_shin']), (0.45, [30, 0, 0]), (0.95, [110, 0, 0]), (1.2, [50, 0, 0]), (1.5, [0, 0, 0])]},
+        'left_shin': {'rotation': [(0, r['left_shin']), (0.45, [85, 0, 0]), (0.95, [100, 0, 0]), (1.2, [45, 0, 0]), (1.5, [0, 0, 0])]},
+    }, L), loop=False)
+
+
+def drag():
+    """Хватает обеими руками и выдёргивает водителя из машины (угон по-ГТА)."""
+    L = 0.9
+    return anim(L, ko_bones({
+        'right_arm': {'rotation': [(0, [0, 0, 0]), (0.25, [-100, -10, 0]), (0.45, [-95, -10, 0]), (0.75, [-40, 20, 10]), (0.9, [0, 0, 0])]},
+        'left_arm': {'rotation': [(0, [0, 0, 0]), (0.25, [-95, 10, 0]), (0.45, [-90, 10, 0]), (0.75, [-35, -20, -10]), (0.9, [0, 0, 0])]},
+        'right_forearm': {'rotation': [(0, [0, 0, 0]), (0.25, [-20, 0, 0]), (0.6, [-75, 0, 0]), (0.9, [0, 0, 0])]},
+        'left_forearm': {'rotation': [(0, [0, 0, 0]), (0.25, [-20, 0, 0]), (0.6, [-70, 0, 0]), (0.9, [0, 0, 0])]},
+        'chest': {'rotation': [(0, [0, 0, 0]), (0.25, [18, 0, 0]), (0.6, [-14, 28, 0]), (0.9, [0, 0, 0])]},
+        'waist': {'rotation': [(0, [0, 0, 0]), (0.6, [-6, 12, 0]), (0.9, [0, 0, 0])]},
+        'head': {'rotation': [(0, [0, 0, 0]), (0.3, [10, 0, 0]), (0.6, [-8, 15, 0]), (0.9, [0, 0, 0])]},
+    }, L), loop=False)
+
+
+KO = {'knockdown': knockdown(), 'down': lying(), 'dead': dead(), 'getup': getup(), 'drag': drag()}
+
+
 def fix_joints():
     """Локти и колени гнутся только в свою сторону: предплечье вперёд (−X), голень назад (+X).
     Ключи выше записаны «наоборот» — переворачиваем (сидячие позы уже записаны верно)."""
@@ -349,6 +464,7 @@ def fix_joints():
 def main():
     fix_joints()
     ANIMS.update(NEW)
+    ANIMS.update(KO)
     os.makedirs(f'{ROOT}/geo', exist_ok=True)
     os.makedirs(f'{ROOT}/animations', exist_ok=True)
     for slim in (False, True):

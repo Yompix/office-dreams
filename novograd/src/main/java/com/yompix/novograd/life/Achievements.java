@@ -58,6 +58,7 @@ public final class Achievements {
         add("bullseye", "В яблочко", "Приземлиться в центр мишени");
         add("arcade", "Неоновый рекорд", "Набрать 500 очков в автомате");
         add("darts", "Меткий глаз", "Выиграть партию в дартс");
+        add("bowling", "Боулинг", "Сбить машиной 5 пешеходов за раз");
     }
 
     private static void add(String id, String name, String desc) {

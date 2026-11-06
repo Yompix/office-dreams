@@ -58,6 +58,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     private static final TrackedData<Integer> SKIN = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Integer> ACTIVITY = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Boolean> QUEST = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    /** Сбит машиной: 0 — на ногах, 1 — упал и лежит, 2 — встаёт, 3 — погиб (падение), 4 — погиб уже лёжа. */
+    private static final TrackedData<Integer> KNOCK = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    public static final int KO_NONE = 0, KO_DOWN = 1, KO_GETUP = 2, KO_DEAD = 3, KO_DEAD_LYING = 4;
     private Role role = Role.CITIZEN;
     private final software.bernie.geckolib.animatable.instance.AnimatableInstanceCache geoCache = software.bernie.geckolib.util.GeckoLibUtil.createInstanceCache(this);
 
@@ -67,6 +70,12 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     private static final software.bernie.geckolib.animation.RawAnimation RUN = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.run");
     private static final software.bernie.geckolib.animation.RawAnimation RIDE = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.ride");
     private static final java.util.Map<Activity, software.bernie.geckolib.animation.RawAnimation> ACTS = new java.util.EnumMap<>(Activity.class);
+    /** Падение после удара машиной: полёт → лежит (дышит) / встаёт / погиб и замер. Индекс — фаза KNOCK. */
+    private static final software.bernie.geckolib.animation.RawAnimation[] KO_ANIMS = {null,
+            software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.knockdown").thenLoop("animation.citizen.down"),
+            software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.getup"),
+            software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.knockdown").thenPlayAndHold("animation.citizen.dead"),
+            software.bernie.geckolib.animation.RawAnimation.begin().thenPlayAndHold("animation.citizen.dead")};
 
     static {
         for (Activity a : Activity.values())
@@ -76,6 +85,13 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @Override
     public void registerControllers(software.bernie.geckolib.animation.AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new software.bernie.geckolib.animation.AnimationController<>(this, "body", 5, state -> {
+            int ko = knockPhase();
+            if (ko != KO_NONE && !hasVehicle()) {
+                // сбили: почти без плавного перехода — удар резкий
+                state.getController().transitionLength(ko == KO_GETUP || ko == KO_DEAD_LYING ? 4 : 1);
+                return state.setAndContinue(KO_ANIMS[Math.min(ko, KO_ANIMS.length - 1)]);
+            }
+            state.getController().transitionLength(5);
             Activity a = getActivity();
             if (hasVehicle()) return state.setAndContinue(RIDE); // в машине — сидит на сиденье
             double v = getVelocity().horizontalLengthSquared();
@@ -87,7 +103,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         controllers.add(new software.bernie.geckolib.animation.AnimationController<>(this, "action", 2, state -> software.bernie.geckolib.animation.PlayState.STOP)
                 .triggerableAnim("kick", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.kick"))
                 .triggerableAnim("hit", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.hit"))
-                .triggerableAnim("highfive", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.highfive")));
+                .triggerableAnim("highfive", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.highfive"))
+                .triggerableAnim("drag", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.drag")));
     }
 
     @Override
@@ -154,6 +171,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         builder.add(SKIN, 2);
         builder.add(ACTIVITY, 0);
         builder.add(QUEST, false);
+        builder.add(KNOCK, KO_NONE);
     }
 
     @Override
@@ -163,6 +181,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         if (getNavigation() instanceof net.minecraft.entity.ai.pathing.MobNavigation nav) nav.setCanPathThroughDoors(true);
         goalSelector.add(1, new net.minecraft.entity.ai.goal.LongDoorInteractGoal(this, true));
         goalSelector.add(0, new CombatGoal(this));
+        goalSelector.add(0, new JackGoal(this));
         goalSelector.add(0, new DirectedGoal(this));
         goalSelector.add(1, new HomeGoal(this));
         goalSelector.add(2, new PlayBallGoal(this));
@@ -358,11 +377,14 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
                 return;
             }
         }
+        if (knockPhase() != KO_NONE) { bodyYaw = prevBodyYaw = headYaw = prevHeadYaw = getYaw(); }
         if (getWorld().isClient) {
             if (asleep()) { bodyYaw = prevBodyYaw = headYaw = prevHeadYaw = getYaw(); }
             return;
         }
         if (removeIn > 0 && --removeIn == 0) discard();
+        if (knockTick()) return;
+        revengeTick();
         // бандиты: подошёл к их району с оружием в руках (или ты их враг по сюжету) — нападают
         if (role == Role.GANG && foe == null && age % 20 == 0) {
             var pl = getWorld().getClosestPlayer(this, 12);
@@ -581,10 +603,6 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         return getActivity() == Activity.SLEEP;
     }
 
-    @Override
-    public boolean isPushable() {
-        return !asleep() && !isInvisible() && super.isPushable();
-    }
 
     @Override
     public boolean isCollidable() {
@@ -798,7 +816,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @Override
     public boolean damage(DamageSource source, float amount) {
         boolean hurt = super.damage(source, amount);
-        if (hurt && !getWorld().isClient) {
+        if (hurt && !getWorld().isClient && isDead() && knockPhase() < KO_DEAD)
+            dataTracker.set(KNOCK, knockPhase() == KO_NONE ? KO_DEAD : KO_DEAD_LYING); // падает и остаётся лежать, а не ванильный красный «завал»
+        if (hurt && !getWorld().isClient && !runOverHit) {
             if (source.getAttacker() instanceof net.minecraft.server.network.ServerPlayerEntity p) {
                 com.yompix.novograd.gta.Crime.hurt(p, this, isDead());
                 if (!isDead()) {
@@ -809,6 +829,295 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             } else if (source.getAttacker() instanceof CitizenEntity o && !isDead() && (role == Role.GANG || role == Role.POLICE)) attack(o);
         }
         return hurt;
+    }
+
+    // ------------------------------------------------------------------ сбили машиной (см. CarEntity.runOver)
+    /** Пока идёт удар машиной: damage() не зовёт Crime.hurt — розыск решает Wanted.runOver (видела ли полиция). */
+    public static boolean runOverHit;
+    private int downTicks, getupTicks;
+    private boolean airborne;
+    @org.jetbrains.annotations.Nullable private net.minecraft.util.math.Vec3d knockFrom;
+    @org.jetbrains.annotations.Nullable private net.minecraft.entity.LivingEntity knockedBy;
+    /** Сколько тиков лежит труп (ванилла — 20). */
+    private static final int CORPSE_TICKS = 140;
+
+    public int knockPhase() {
+        return dataTracker.get(KNOCK);
+    }
+
+    public boolean knockedDown() {
+        int k = knockPhase();
+        return k == KO_DOWN || k == KO_GETUP;
+    }
+
+    /** Сюжетные и «работающие» жители (герои, продавцы, актёры сцен, квестовые): машина их только отталкивает. */
+    public boolean storyProtected() {
+        return !storyId.isEmpty() || hasQuest() || stationary || lockedActivity || directTo != null || removeIn >= 0
+                || (role != Role.CITIZEN && role != Role.POLICE && role != Role.GANG);
+    }
+
+    /** Сбит: летит, падает на спину и лежит ticks тиков, потом встаёт. from — откуда удар (машина). */
+    public void knockDown(net.minecraft.util.math.Vec3d from, @org.jetbrains.annotations.Nullable net.minecraft.entity.LivingEntity by, int ticks) {
+        if (isDead() || hasVehicle()) return;
+        knockFrom = from;
+        knockedBy = by;
+        if (knockPhase() == KO_DOWN) {
+            downTicks = Math.max(downTicks, ticks);
+            return;
+        }
+        // лицом к машине — падает назад, по ходу удара
+        float yaw = (float) Math.toDegrees(Math.atan2(-(from.x - getX()), from.z - getZ()));
+        setYaw(yaw);
+        setBodyYaw(yaw);
+        setHeadYaw(yaw);
+        getNavigation().stop();
+        busyTicks = 0;
+        busyAt = null;
+        partner = null;
+        foe = null;
+        fleeTicks = 0;
+        jackCar = null;
+        jacker = null;
+        dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
+        equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, net.minecraft.item.ItemStack.EMPTY);
+        dataTracker.set(KNOCK, KO_DOWN);
+        downTicks = ticks;
+        getupTicks = 0;
+        airborne = true;
+    }
+
+    /** Сервер: лежит, встаёт, после — убегает (бандит или полицейский — в бой). true — сегодня больше ничего не делаем. */
+    private boolean knockTick() {
+        int k = knockPhase();
+        if (k == KO_NONE || k >= KO_DEAD) return k >= KO_DEAD;
+        getNavigation().stop();
+        if (!isOnGround()) airborne = true;
+        else if (airborne) {
+            airborne = false;
+            if (getVelocity().y < -0.05 || age % 2 == 0)
+                getWorld().playSound(null, getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_PLAYER_BIG_FALL, net.minecraft.sound.SoundCategory.NEUTRAL, 0.9f, 0.8f);
+        }
+        if (k == KO_DOWN) {
+            if (isOnGround() && --downTicks <= 0) {
+                dataTracker.set(KNOCK, KO_GETUP);
+                getupTicks = 30;
+            }
+            return true;
+        }
+        if (--getupTicks > 0) return true;
+        dataTracker.set(KNOCK, KO_NONE);
+        var by = knockedBy;
+        knockedBy = null;
+        if ((role == Role.GANG || role == Role.POLICE && by instanceof net.minecraft.server.network.ServerPlayerEntity sp && com.yompix.novograd.gta.Wanted.stars(sp) > 0)
+                && by != null && by.isAlive() && distanceTo(by) < 40) attack(by);
+        else if (knockFrom != null) panic(by != null ? by.getPos() : knockFrom);
+        return false;
+    }
+
+    @Override
+    protected boolean isImmobile() {
+        return super.isImmobile() || knockedDown();
+    }
+
+    @Override
+    public boolean isPushable() {
+        return !asleep() && !isInvisible() && knockPhase() == KO_NONE && super.isPushable();
+    }
+
+    @Override
+    protected void updatePostDeath() {
+        if (knockPhase() < KO_DEAD) {
+            super.updatePostDeath();
+            return;
+        }
+        // упал и лежит, как в ГТА; потом тело исчезает
+        deathTime++;
+        if (deathTime >= CORPSE_TICKS && !getWorld().isClient() && !isRemoved()) {
+            getWorld().sendEntityStatus(this, net.minecraft.entity.EntityStatuses.ADD_DEATH_PARTICLES);
+            remove(RemovalReason.KILLED);
+        }
+    }
+
+    // ------------------------------------------------------------------ угон: хозяин машины возвращается и выкидывает угонщика
+    @org.jetbrains.annotations.Nullable private CarEntity jackCar;
+    @org.jetbrains.annotations.Nullable private net.minecraft.server.network.ServerPlayerEntity jacker;
+    private int jackTicks, revengeTicks;
+    /** Мстит без угонщика: вернуть машину и уехать. */
+    private boolean reclaim;
+
+    /** Игрок выкинул этого водителя из машины. Кто-то убегает, а кто-то — бежит назад и вытаскивает угонщика (как в GTA 5). */
+    public void carjacked(net.minecraft.server.network.ServerPlayerEntity p, CarEntity car) {
+        var r = getRandom();
+        if (role == Role.POLICE) {
+            com.yompix.novograd.gta.Wanted.add(p, 1, "угон у полицейского", 2);
+            attack(p);
+            return;
+        }
+        boolean angry = !storyProtected() && !p.isCreative() && (role == Role.GANG || r.nextInt(100) < (isSlim(getSkin()) ? 30 : 50));
+        if (!angry) {
+            shout(p, r.nextBoolean() ? "«Помогите! Машину угнали!»" : "«Эй! Это моя машина!»");
+            panic(p.getPos());
+            return;
+        }
+        jackCar = car;
+        jacker = p;
+        jackTicks = 220;
+        reclaim = false;
+        busyTicks = 0;
+        lockedActivity = false;
+        fleeTicks = 0;
+        shout(p, role == Role.GANG ? "«Ты чё, совсем страх потерял?!»" : "«А ну вылезай из моей машины!»");
+    }
+
+    private void shout(net.minecraft.server.network.ServerPlayerEntity p, String line) {
+        String who = getCustomName() != null ? getCustomName().getString() : "Водитель";
+        if (p.squaredDistanceTo(this) < 32 * 32) p.sendMessage(net.minecraft.text.Text.literal(who + ": " + line).formatted(net.minecraft.util.Formatting.GOLD), false);
+        getWorld().playSound(null, getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_VILLAGER_NO, net.minecraft.sound.SoundCategory.NEUTRAL, 1.2f,
+                isSlim(getSkin()) ? 1.05f : 0.7f);
+    }
+
+    /** Угонщик уехал — ругается и уходит прочь. */
+    private void giveUp() {
+        var p = jacker;
+        var car = jackCar;
+        jackCar = null;
+        jacker = null;
+        reclaim = false;
+        if (p != null) shout(p, getRandom().nextBoolean() ? "«Вернись, ворюга! Я в полицию позвоню!»" : "«Да чтоб ты разбился!»");
+        if (role != Role.GANG) panic(car != null ? car.getPos() : getPos());
+    }
+
+    /** Вытащить угонщика из машины: рывок, толчок, удар — и драка. */
+    private void pullOut(net.minecraft.server.network.ServerPlayerEntity p, CarEntity car) {
+        getNavigation().stop();
+        face(p);
+        triggerAnim("action", "drag");
+        p.stopRiding();
+        net.minecraft.util.math.Vec3d away = p.getPos().subtract(car.getPos()).multiply(1, 0, 1);
+        if (away.lengthSquared() < 0.01) away = p.getPos().subtract(getPos()).multiply(1, 0, 1);
+        away = away.lengthSquared() < 0.01 ? new net.minecraft.util.math.Vec3d(1, 0, 0) : away.normalize();
+        p.setVelocity(away.x * 0.55, 0.32, away.z * 0.55);
+        p.velocityModified = true;
+        getWorld().playSound(null, car.getBlockPos(), net.minecraft.sound.SoundEvents.BLOCK_IRON_DOOR_OPEN, net.minecraft.sound.SoundCategory.NEUTRAL, 0.9f, 1.1f);
+        getWorld().playSound(null, p.getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, net.minecraft.sound.SoundCategory.NEUTRAL, 1f, 0.8f);
+        p.damage(getDamageSources().mobAttack(this), 2f);
+        shout(p, role == Role.GANG ? "«Вылезай, сказал!»" : "«Вылезай! Это моя машина!»");
+        jackCar = car;
+        jacker = null;
+        reclaim = true;
+        foe = p;
+        fleeTicks = 0;
+        // бандит дерётся до конца, горожанин — немного побьёт и заберёт машину
+        revengeTicks = role == Role.GANG ? 0 : 80 + getRandom().nextInt(60);
+    }
+
+    /** Отмщение кулаками закончилось: если угонщик не отвечает — сесть в свою машину и уехать. */
+    private void revengeTick() {
+        if (revengeTicks <= 0 || --revengeTicks > 0) return;
+        if (foe instanceof net.minecraft.server.network.ServerPlayerEntity p && getAttacker() == p && age - getLastAttackedTime() < 60) {
+            revengeTicks = 60; // игрок даёт сдачи — дерёмся дальше
+            return;
+        }
+        foe = null;
+        dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
+        if (jackCar == null || !reclaim) return;
+        jackTicks = 200; // JackGoal: дойти до машины и сесть
+    }
+
+    static class JackGoal extends net.minecraft.entity.ai.goal.Goal {
+        private final CitizenEntity c;
+
+        JackGoal(CitizenEntity c) {
+            this.c = c;
+            setControls(java.util.EnumSet.of(Control.MOVE, Control.LOOK));
+        }
+
+        @Override
+        public boolean canStart() {
+            return c.jackCar != null && c.foe == null && c.fleeTicks == 0 && !c.hasVehicle() && c.knockPhase() == KO_NONE;
+        }
+
+        @Override
+        public boolean shouldContinue() {
+            return canStart();
+        }
+
+        @Override
+        public boolean shouldRunEveryTick() {
+            return true;
+        }
+
+        @Override
+        public void stop() {
+            c.getNavigation().stop();
+        }
+
+        @Override
+        public void tick() {
+            CarEntity car = c.jackCar;
+            if (car == null || car.isRemoved() || car.wrecked() || --c.jackTicks <= 0) {
+                if (c.jacker != null) c.giveUp();
+                else c.jackCar = null;
+                return;
+            }
+            double d = Math.sqrt(c.squaredDistanceTo(car.getX(), c.getY(), car.getZ()));
+            if (c.reclaim) {
+                // своя машина свободна — сесть за руль и уехать; угонщик снова в ней — вытаскивать заново
+                net.minecraft.entity.Entity drv = car.getFirstPassenger();
+                if (drv instanceof net.minecraft.server.network.ServerPlayerEntity p && car.getControllingPassenger() == p) {
+                    c.reclaim = false;
+                    c.jacker = p;
+                    c.jackTicks = 200;
+                    return;
+                }
+                if (d > 40) {
+                    c.jackCar = null;
+                    return;
+                }
+                if (d > 2.6) {
+                    if (c.age % 5 == 0) c.getNavigation().startMovingTo(car.getX(), car.getY(), car.getZ(), 1.2);
+                    return;
+                }
+                c.jackCar = null;
+                c.reclaim = false;
+                if (!car.getPassengerList().isEmpty() || !(c.getWorld() instanceof net.minecraft.server.world.ServerWorld w)) return;
+                if (c.startRiding(car, true)) {
+                    c.getWorld().playSound(null, car.getBlockPos(), com.yompix.novograd.ModContent.CAR_START, net.minecraft.sound.SoundCategory.NEUTRAL, 0.8f, 1f);
+                    var route = com.yompix.novograd.gta.FunUtil.wander(w, car.getX(), car.getZ(), 6, w.getRandom());
+                    if (!route.isEmpty()) car.setRoute(route, 0.55f, null);
+                }
+                return;
+            }
+            var p = c.jacker;
+            if (p == null || p.isRemoved() || p.isDead()) {
+                c.jackCar = null;
+                c.jacker = null;
+                return;
+            }
+            c.getLookControl().lookAt(p, 40, 40);
+            if (p.getVehicle() != car) {
+                // угонщик сам вышел — бьём его тут же
+                c.jackCar = null;
+                c.jacker = null;
+                if (c.distanceTo(p) < 16) {
+                    c.jackCar = car;
+                    c.reclaim = true;
+                    c.foe = p;
+                    c.revengeTicks = c.role == Role.GANG ? 0 : 100;
+                } else c.giveUp();
+                return;
+            }
+            double sp = car.hitSpeed();
+            if (sp > 0.3 && d > 5 || d > 30) {
+                c.giveUp();
+                return;
+            }
+            if (d > 2.7 || sp > 0.2) {
+                if (c.age % 4 == 0) c.getNavigation().startMovingTo(car.getX(), car.getY(), car.getZ(), 1.45);
+                return;
+            }
+            c.pullOut(p, car);
+        }
     }
 
     @Override

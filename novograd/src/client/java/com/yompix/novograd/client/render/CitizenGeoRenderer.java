@@ -109,6 +109,20 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
         }
     }
 
+    /** Сбитый машиной (и любой погибший житель) падает анимацией и лежит — без ванильного заваливания набок. */
+    @Override
+    protected float getDeathMaxRotation(CitizenEntity e) {
+        return e.knockPhase() >= CitizenEntity.KO_DEAD ? 0 : super.getDeathMaxRotation(e);
+    }
+
+    /** Красная вспышка — только в момент удара, а не всё время, пока тело лежит. */
+    @Override
+    public int getPackedOverlay(CitizenEntity e, float u, float partialTick) {
+        if (e.knockPhase() >= CitizenEntity.KO_DEAD)
+            return net.minecraft.client.render.OverlayTexture.packUv(net.minecraft.client.render.OverlayTexture.getU(u), net.minecraft.client.render.OverlayTexture.getV(e.hurtTime > 0));
+        return super.getPackedOverlay(e, u, partialTick);
+    }
+
     static class Model extends GeoModel<CitizenEntity> {
         @Override
         public Identifier getModelResource(CitizenEntity e) {
@@ -135,7 +149,7 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
         public void setCustomAnimations(CitizenEntity e, long instanceId, AnimationState<CitizenEntity> state) {
             var head = getAnimationProcessor().getBone("neck");
             var data = state.getData(DataTickets.ENTITY_MODEL_DATA);
-            if (head != null && e.asleep()) { head.setRotX(0); head.setRotY(0); head.setRotZ(0); return; }
+            if (head != null && (e.asleep() || e.knockPhase() != CitizenEntity.KO_NONE)) { head.setRotX(0); head.setRotY(0); head.setRotZ(0); return; }
             if (head != null && data != null) {
                 // ставим, а не прибавляем: иначе поворот копится каждый кадр и голову «колбасит»
                 head.setRotX(data.headPitch() * MathHelper.RADIANS_PER_DEGREE);

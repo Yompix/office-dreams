@@ -83,6 +83,74 @@ public final class Wanted {
                 c -> c.getRole() == CitizenEntity.Role.POLICE && c.isAlive()).isEmpty();
     }
 
+    // ------------------------------------------------------------------ сбил человека машиной (CarEntity.runOver)
+    /**
+     * Видит ли полиция место: полицейский-житель в пределах r с прямой видимостью на цель
+     * или патрульная машина с экипажем, от которой цель не закрыта стенами.
+     */
+    public static boolean policeSees(ServerWorld w, net.minecraft.entity.Entity target, double r) {
+        var box = target.getBoundingBox().expand(r);
+        for (CitizenEntity c : w.getEntitiesByClass(CitizenEntity.class, box, c -> c.getRole() == CitizenEntity.Role.POLICE && c.isAlive() && c != target)) {
+            if (c.hasVehicle() ? clearLine(w, c.getEyePos(), target, c.getVehicle()) : c.canSee(target)) return true;
+        }
+        for (CarEntity car : w.getEntitiesByClass(CarEntity.class, box, car -> car.isPolice() && !car.wrecked() && car.hasNpcDriver() && car != target.getVehicle()))
+            if (clearLine(w, car.getPos().add(0, 1.3, 0), target, car)) return true;
+        return false;
+    }
+
+    private static boolean clearLine(ServerWorld w, Vec3d from, net.minecraft.entity.Entity target, net.minecraft.entity.Entity self) {
+        Vec3d to = target.getPos().add(0, target.getHeight() * 0.7, 0);
+        return w.raycast(new net.minecraft.world.RaycastContext(from, to, net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
+                net.minecraft.world.RaycastContext.FluidHandling.NONE, self)).getType() == net.minecraft.util.hit.HitResult.Type.MISS;
+    }
+
+    private static final Map<UUID, long[]> STREAK = new HashMap<>();
+    private static long lastHitNews = -100000;
+
+    /**
+     * Наезд на человека. Как в GTA: звезда только если это видела полиция (коп рядом или патрульная машина
+     * в ~40 блоках и цель у них на виду). Сбил полицейского — розыск всегда, насмерть — больше звёзд.
+     */
+    public static void runOver(ServerPlayerEntity p, CarEntity car, net.minecraft.entity.LivingEntity victim, boolean killed) {
+        ServerWorld w = p.getServerWorld();
+        boolean cop = victim instanceof CitizenEntity c && c.getRole() == CitizenEntity.Role.POLICE;
+        boolean gang = victim instanceof CitizenEntity c && c.getRole() == CitizenEntity.Role.GANG;
+        boolean seen = !p.isCreative() && (cop || policeSees(w, victim, 40) || policeSees(w, car, 40));
+        if (seen) {
+            if (cop) add(p, killed ? 1 : 0, killed ? "сбил полицейского насмерть" : "наезд на полицейского", killed ? 4 : 2);
+            else add(p, killed ? 1 : 0, killed ? "сбил человека насмерть" : "наезд на пешехода", killed ? 2 : 1);
+        }
+        // свидетели: прохожие разбегаются, полиция (если видела) — за тобой, друзья бандита — в бой
+        for (CitizenEntity c : w.getEntitiesByClass(CitizenEntity.class, victim.getBoundingBox().expand(18), c -> c != victim && c.isAlive() && !c.hasVehicle())) {
+            if (c.getRole() == CitizenEntity.Role.POLICE) {
+                if (seen) c.attack(p);
+            } else if (c.getRole() == CitizenEntity.Role.GANG && gang) c.attack(p);
+            else if (!c.knockedDown()) c.panic(victim.getPos());
+        }
+        // новость о ДТП — изредка, не за каждого
+        long now = w.getTime();
+        if (killed && !cop && now - lastHitNews > 20 * 120 && w.getRandom().nextInt(3) == 0) {
+            lastHitNews = now;
+            String[] h = seen
+                    ? new String[]{"ДТП в Новограде: водитель сбил пешехода, полиция начала погоню", "Наезд на пешехода на глазах у патруля — водитель скрывается"}
+                    : new String[]{"Водитель сбил пешехода и скрылся с места ДТП. Полиция ищет свидетелей", "Смертельный наезд в Новограде: виновник уехал, номера никто не запомнил"};
+            News.post(p.getServer(), h[w.getRandom().nextInt(h.length)], "ЭКСТРЕННО");
+        } else if (cop && killed && now - lastHitNews > 20 * 60) {
+            lastHitNews = now;
+            News.post(p.getServer(), "Сбит полицейский: в городе объявлен план «Перехват»", "ЭКСТРЕННО");
+        }
+    }
+
+    /** Серия за пару секунд: «Боулинг» — пятерых за раз. */
+    public static void runOverStreak(ServerPlayerEntity p, int victims, int kills) {
+        long now = p.getServerWorld().getTime();
+        long[] s = STREAK.computeIfAbsent(p.getUuid(), u -> new long[2]);
+        if (now - s[1] > 60) s[0] = 0;
+        s[0] += victims;
+        s[1] = now;
+        if (s[0] >= 5) com.yompix.novograd.life.Achievements.give(p, "bowling");
+    }
+
     /** Раз в секунду. */
     public static void tick(MinecraftServer server) {
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {

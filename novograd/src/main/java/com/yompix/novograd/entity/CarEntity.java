@@ -374,8 +374,8 @@ public class CarEntity extends Entity {
             for (Entity e : new java.util.ArrayList<>(getPassengerList()))
                 if (e instanceof CitizenEntity c && seatOf(c) == 0) {
                     c.stopRiding();
-                    c.panic(player.getPos());
                     getWorld().playSound(null, getBlockPos(), net.minecraft.sound.SoundEvents.BLOCK_IRON_DOOR_OPEN, SoundCategory.NEUTRAL, 0.8f, 1.2f);
+                    c.carjacked(sp0, this); // убегает — или возвращается и вытаскивает угонщика (как в GTA 5)
                 }
             com.yompix.novograd.gta.Crime.carjack(sp0);
             if (isPolice()) com.yompix.novograd.gta.Wanted.add(sp0, 2, "угон полицейской машины", 2);
@@ -444,6 +444,10 @@ public class CarEntity extends Entity {
             if (!getWorld().isClient && getControllingPassenger() == null) drive();
         }
         if (!getWorld().isClient && !isScooter() && !isBike()) crashCheck();
+        if (!(this instanceof com.yompix.novograd.vehicle.MotorVehicle)) {
+            if (!getWorld().isClient) runOver();
+            else if (isLogicalSideForUpdatingMovement()) runOverClient();
+        }
         // поворот машины передаём пассажирам в updatePassengerPosition — после их тика,
         // тогда камера поворачивается плавно между кадрами, а не ступеньками раз в тик
         tickYawDelta = MathHelper.wrapDegrees(getYaw() - yawBefore);
@@ -488,6 +492,143 @@ public class CarEntity extends Entity {
             dataTracker.set(WOBBLE, 10);
             getWorld().playSound(null, getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, SoundCategory.NEUTRAL, 1f, 0.7f);
             java.util.Arrays.fill(stepLen, 0);
+        }
+    }
+
+    // ------------------------------------------------------------------ сбить пешехода (как в ГТА)
+    /** Сервер: как машина реально двигалась за тик (у игрока физику считает клиент — берём по позиции). */
+    private Vec3d hitMotion = Vec3d.ZERO;
+    @Nullable private Vec3d hitLast;
+    private final java.util.Map<Entity, Long> hitCooldown = new java.util.WeakHashMap<>();
+    /** Только у водителя на клиенте: кого уже «почувствовали» (машина теряет скорость один раз за удар). */
+    private final java.util.Map<Entity, Integer> clientHits = new java.util.WeakHashMap<>();
+
+    /** Скорость машины в блоках за тик (сервер, по факту движения). */
+    public double hitSpeed() {
+        return hitMotion.horizontalLength();
+    }
+
+    /** Половина длины и ширины кузова (бокс сущности квадратный, а машина длинная). */
+    private double halfLen() {
+        return isScooter() ? 0.8 : isBike() ? 1.1 : exhaustBack() + 0.35;
+    }
+
+    private double halfWid() {
+        return isScooter() || isBike() ? 0.45 : body() == CarBody.TRUCK || body() == CarBody.VAN ? 1.15 : 1.0;
+    }
+
+    /** Кого задевает машина, едущая по dir: точка в кузове (с запасом) и впереди по ходу. */
+    private java.util.List<LivingEntity> inPath(Vec3d dir) {
+        double rad = Math.toRadians(getYaw());
+        Vec3d fwd = new Vec3d(-Math.sin(rad), 0, Math.cos(rad)), side = new Vec3d(-Math.cos(rad), 0, -Math.sin(rad));
+        double hl = halfLen(), hw = halfWid();
+        java.util.List<LivingEntity> out = new java.util.ArrayList<>();
+        for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(hl + 0.6, 0.2, hl + 0.6),
+                e -> e instanceof LivingEntity le && le.isAlive() && !e.hasVehicle() && !isConnectedThroughVehicle(e) && !e.isSpectator()
+                        && !(e instanceof net.minecraft.entity.decoration.ArmorStandEntity) && !e.isInvisible()
+                        && !(e instanceof PlayerEntity pl && (pl.isCreative() || pl.isSpectator())))) {
+            Vec3d rel = e.getPos().subtract(getPos());
+            if (e.getY() > getY() + 1.6 || e.getY() + e.getHeight() < getY() + 0.1) continue;
+            double r = e.getWidth() / 2 + 0.15;
+            double along = rel.dotProduct(fwd), lat = rel.dotProduct(side);
+            if (Math.abs(along) > hl + r || Math.abs(lat) > hw + r) continue;
+            if (rel.multiply(1, 0, 1).dotProduct(dir) < -0.2) continue; // сзади по ходу — не наш удар
+            out.add((LivingEntity) e);
+        }
+        return out;
+    }
+
+    /** Кто за рулём: игрок или житель-водитель (такси, полиция, трафик). */
+    @Nullable
+    private LivingEntity driver() {
+        LivingEntity p = getControllingPassenger();
+        if (p != null) return p;
+        for (Entity e : getPassengerList()) if (e instanceof CitizenEntity c && seatOf(c) == 0) return c;
+        return null;
+    }
+
+    /**
+     * Сервер: наехали на человека. Медленно — толчок и синяк, быстро — полёт через капот и смерть.
+     * Сюжетных героев и работников только отталкиваем — миссии не ломаются.
+     */
+    private void runOver() {
+        Vec3d now = getPos();
+        if (hitLast != null) {
+            Vec3d d = now.subtract(hitLast);
+            if (d.lengthSquared() > 36) d = Vec3d.ZERO; // телепорт
+            // пакеты движения игрока приходят неровно: пустой тик — не остановка
+            hitMotion = d.horizontalLengthSquared() > 1e-6 ? d : hitMotion.multiply(0.5);
+        }
+        hitLast = now;
+        double s = hitSpeed();
+        if (s < 0.12 || wrecked() || !(getWorld() instanceof net.minecraft.server.world.ServerWorld w)) return;
+        Vec3d dir = new Vec3d(hitMotion.x, 0, hitMotion.z).normalize();
+        long t = w.getTime();
+        int victims = 0, kills = 0;
+        LivingEntity drv = driver();
+        for (LivingEntity v : inPath(dir)) {
+            if (t - hitCooldown.getOrDefault(v, -100L) < 14) continue;
+            hitCooldown.put(v, t);
+            boolean safe = v instanceof CitizenEntity c && c.storyProtected();
+            Vec3d side = new Vec3d(-dir.z, 0, dir.x);
+            if (v.getPos().subtract(getPos()).dotProduct(side) < 0) side = side.multiply(-1);
+            if (safe) {
+                // герой сюжета / продавец / актёр: отшагивает в сторону, без урона
+                v.setVelocity(side.x * 0.45 + dir.x * s * 0.4, 0.2, side.z * 0.45 + dir.z * s * 0.4);
+                v.velocityModified = true;
+                w.playSound(null, v.getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, SoundCategory.NEUTRAL, 0.6f, 0.8f);
+                continue;
+            }
+            float dmg = (float) Math.max(1, (s - 0.1) * 40);
+            boolean knock = s >= 0.22;
+            var src = w.getDamageSources().create(net.minecraft.entity.damage.DamageTypes.FLY_INTO_WALL, this, drv);
+            CitizenEntity.runOverHit = true;
+            try {
+                v.damage(src, dmg);
+            } finally {
+                CitizenEntity.runOverHit = false;
+            }
+            boolean dead = !v.isAlive();
+            if (Boolean.getBoolean("novograd.debugcar"))
+                Novograd.LOG.info("[runover] hit {} speed {} dmg {} hp {} dead {}", v.getName().getString(), String.format("%.2f", s), dmg, v.getHealth(), dead);
+            // полёт: по ходу машины и вверх, чуть в сторону; медленно — просто отпихнуло с дороги
+            double fwdK = knock ? s * 1.05 + 0.12 : s * 0.6 + 0.1;
+            double up = knock ? Math.min(0.62, 0.18 + s * 0.45) : 0.18;
+            double sideK = knock ? (random.nextDouble() - 0.3) * 0.25 : 0.35;
+            v.setVelocity(dir.x * fwdK + side.x * sideK, up, dir.z * fwdK + side.z * sideK);
+            v.velocityModified = true;
+            v.fallDistance = 0;
+            if (v instanceof CitizenEntity c && (knock || dead)) c.knockDown(getPos(), drv, 50 + random.nextInt(50));
+            // звук: глухой удар, на скорости — ещё и металл
+            w.playSound(null, v.getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, SoundCategory.NEUTRAL, 1.2f, 0.55f);
+            if (knock) w.playSound(null, v.getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_PLAYER_BIG_FALL, SoundCategory.NEUTRAL, 1.0f, 0.7f);
+            if (s > 0.45) w.playSound(null, getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_ZOMBIE_ATTACK_IRON_DOOR, SoundCategory.NEUTRAL, 0.55f, 1.3f);
+            // машина теряет скорость (у автопилота — здесь, у игрока — на его клиенте), на скорости мнётся
+            if (getControllingPassenger() == null) speed *= isBike() || isScooter() ? 0.55f : body() == CarBody.TRUCK ? 0.9f : 0.75f;
+            if (s > 0.45 && health() > 12) {
+                dataTracker.set(HEALTH, Math.max(12, health() - (int) Math.round((s - 0.4) * 12)));
+            }
+            dataTracker.set(WOBBLE, knock ? 8 : 4);
+            victims++;
+            if (dead) kills++;
+            if (drv instanceof ServerPlayerEntity sp) com.yompix.novograd.gta.Wanted.runOver(sp, this, v, dead);
+        }
+        if (victims > 0 && drv instanceof ServerPlayerEntity sp) com.yompix.novograd.gta.Wanted.runOverStreak(sp, victims, kills);
+    }
+
+    /** Клиент водителя: удар чувствуется сразу — машина теряет скорость (сервер шлёт только урон и полёт жертвы). */
+    private void runOverClient() {
+        if (Math.abs(speed) < 0.12f) return;
+        double rad = Math.toRadians(Float.isNaN(moveYaw) ? getYaw() : moveYaw);
+        Vec3d dir = new Vec3d(-Math.sin(rad), 0, Math.cos(rad)).multiply(Math.signum(speed));
+        for (LivingEntity v : inPath(dir)) {
+            if (age - clientHits.getOrDefault(v, -100) < 14) continue;
+            clientHits.put(v, age);
+            if (v instanceof CitizenEntity c && c.storyProtected()) {
+                speed *= 0.5f; // в героя «упёрлись»
+                continue;
+            }
+            speed *= isBike() || isScooter() ? 0.55f : body() == CarBody.TRUCK ? 0.9f : 0.78f;
         }
     }
 
