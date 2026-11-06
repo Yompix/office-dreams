@@ -39,8 +39,6 @@ public final class Shop {
             new Entry("Еда", "Хлеб ×3", () -> Items.BREAD, 3, 5, 1),
             new Entry("Еда", "Торт", () -> Items.CAKE, 1, 25, 1),
             new Entry("Еда", "Яблоки ×5", () -> Items.APPLE, 5, 6, 1),
-            new Entry("Учёба", "Учебник (подсказка на уроке)", () -> ModContent.TEXTBOOK, 1, 15, 1),
-            new Entry("Учёба", "Тетради ×4", () -> Items.BOOK, 4, 6, 1),
             new Entry("Одежда", "Костюм для выпускного", () -> ModContent.SUIT, 1, 60, 1),
             new Entry("Одежда", "Кожаная куртка", () -> Items.LEATHER_CHESTPLATE, 1, 45, 1),
             new Entry("Одежда", "Кепка", () -> Items.LEATHER_HELMET, 1, 15, 1),

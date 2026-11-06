@@ -33,7 +33,7 @@ import java.util.List;
 
 /**
  * Главное меню Novograd вместо обычного меню Майнкрафта: живой фон из кадров Новограда,
- * неоновый логотип, кнопки «Продолжить», «Новая жизнь» (сразу мир-город), миры, сеть, настройки, авторы.
+ * неоновый логотип, кнопки «Продолжить», «Новая игра» (сразу мир-город), миры, сеть, настройки, авторы.
  */
 /** Версия мода из fabric.mod.json — показывается на главном экране. */
 public class LifeMenuScreen extends Screen {
@@ -87,7 +87,7 @@ public class LifeMenuScreen extends Screen {
             LevelSummary s = last;
             menu.add("Продолжить", s.getDisplayName(), () -> mc.createIntegratedServerLoader().start(s.getName(), () -> mc.setScreen(this)));
         }
-        menu.add("Новая жизнь", last == null ? "начать сюжет в Новограде" : "", this::newLife);
+        menu.add("Новая игра", last == null ? "начать сюжет в Новограде" : "", this::newLife);
         menu.add("Мои миры", "", () -> mc.setScreen(new SelectWorldScreen(this)));
         menu.add("Играть с друзьями", "", () -> mc.setScreen(new MultiplayerScreen(this)));
         menu.add("Настройки игры", "", () -> mc.setScreen(new SettingsScreen(this)));

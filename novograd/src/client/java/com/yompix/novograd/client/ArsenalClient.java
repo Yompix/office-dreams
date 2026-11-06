@@ -106,16 +106,8 @@ public final class ArsenalClient {
             boolean reloading = c.player.getItemCooldownManager().getCooldownProgress(g, delta) > 0 && c.player.getItemCooldownManager().getCooldownProgress(g, delta) < 1
                     && mag == max && !c.player.isCreative();
             String big = String.valueOf(mag), small = " / " + max + (reserve >= 0 ? "  ·  " + reserve : "  ·  ∞");
-            int x = w / 2 + 96, y = h - 20;
-            int bw = c.textRenderer.getWidth(big) * 2 + c.textRenderer.getWidth(small) + 12;
-            ctx.fill(x - 4, y - 6, x + bw, y + 14, 0x99000000);
-            ctx.fill(x - 4, y - 6, x - 2, y + 14, mag == 0 ? 0xFFFF3EA5 : 0xFFFFC94A);
-            ctx.getMatrices().push();
-            ctx.getMatrices().translate(x + 2, y - 3, 0);
-            ctx.getMatrices().scale(2f, 2f, 1f);
-            ctx.drawText(c.textRenderer, big, 0, 0, mag == 0 ? 0xFFFF3EA5 : 0xFFFFFFFF, true);
-            ctx.getMatrices().pop();
-            ctx.drawText(c.textRenderer, small, x + 4 + c.textRenderer.getWidth(big) * 2, y + 4, 0xFF9FE9FF, true);
+            // счётчик патронов — в плашке оружия справа вверху (LifeHud); здесь только подсказки
+            int x = w / 2 + 96, y = h - 4;
             if (reloading) ctx.drawText(c.textRenderer, "ПЕРЕЗАРЯДКА", x, y - 16, 0xFFFFC94A, true);
             else if (mag == 0 && reserve == 0) ctx.drawText(c.textRenderer, "НЕТ ПАТРОНОВ", x, y - 16, 0xFFFF3EA5, true);
         }

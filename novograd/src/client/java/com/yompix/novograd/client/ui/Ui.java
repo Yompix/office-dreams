@@ -82,7 +82,8 @@ public final class Ui {
         m.translate(x, y, 0);
         m.scale(scale, scale, 1);
         int w = tr.getWidth(s);
-        ctx.drawText(tr, s, align == 1 ? -w / 2 : align == 2 ? -w : 0, 0, color, true);
+        boolean light = ((color >> 16 & 255) + (color >> 8 & 255) + (color & 255)) > 200;
+        ctx.drawText(tr, s, align == 1 ? -w / 2 : align == 2 ? -w : 0, 0, color, light);
         m.pop();
     }
 

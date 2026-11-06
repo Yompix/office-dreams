@@ -122,7 +122,7 @@ public final class LifeHud {
         int ammo = 0;
         var inv = mc.player.getInventory();
         for (int i = 0; i < inv.size(); i++) if (inv.getStack(i).isOf(ModContent.AMMO)) ammo += inv.getStack(i).getCount();
-        String a = mc.player.isCreative() ? "∞" : String.valueOf(ammo);
+        String a = (st.getItem() instanceof com.yompix.novograd.item.GunItem g ? g.mag(st) + " / " : "") + (mc.player.isCreative() ? "∞" : String.valueOf(ammo));
         String name = st.getName().getString().toUpperCase();
         int bw = Math.max(70, tr.getWidth(name) + 34);
         int x = right - bw;

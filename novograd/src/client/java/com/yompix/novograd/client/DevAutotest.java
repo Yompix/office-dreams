@@ -360,11 +360,15 @@ public final class DevAutotest {
                 o.putDouble("z", c.player.getZ() + 25);
                 com.yompix.novograd.client.story.ClientStory.objective = o;
             });
-            shot(20, "ui_hud_banner");
-            shot(60, "ui_hud");
+            for (int i = 0; i < 6; i++) key(4, GLFW.GLFW_KEY_SPACE);
+            run(2, c -> { if (c.currentScreen != null) c.setScreen(null); com.yompix.novograd.client.story.ClientStory.titleAt = -1; com.yompix.novograd.client.story.ClientStory.missionDoneAt = -1; });
+            shot(16, "ui_hud_banner");
+            run(40, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            shot(4, "ui_hud");
             run(2, c -> com.yompix.novograd.client.story.ClientStory.missionDone("Новый дом"));
             shot(14, "ui_passed");
-            run(80, c -> com.yompix.novograd.client.story.StoryHud.gtaTitle("ЗАДЕРЖАН", "Штраф $250 · оружие изъято"));
+            run(80, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            run(2, c -> com.yompix.novograd.client.story.StoryHud.gtaTitle("ЗАДЕРЖАН", "Штраф $250 · оружие изъято"));
             shot(20, "ui_busted");
             run(90, c -> com.yompix.novograd.client.story.ClientStory.title("Глава 2", "Тёмные улицы"));
             shot(40, "ui_chapter");

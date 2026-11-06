@@ -188,10 +188,10 @@ public class PhoneScreen extends LifeScreen {
         ctx.disableScissor();
         // текстовые поля банка следуют за телефоном
         toField.setX(sx + 8);
-        toField.setY(sy + 128);
+        toField.setY(sy + 132);
         toField.setWidth(sw - 16);
         amountField.setX(sx + 8);
-        amountField.setY(sy + 146);
+        amountField.setY(sy + 149);
         amountField.setWidth(sw - 16);
         toField.visible = amountField.visible = "bank".equals(app) && a > 0.95f;
     }
@@ -273,7 +273,7 @@ public class PhoneScreen extends LifeScreen {
         if (d.casinoWon + d.casinoLost > 0) ctx.drawText(textRenderer, "Казино: +" + d.casinoWon + " / −" + d.casinoLost, sx + 8, ly + 20, 0xFFFF5A7A, false);
         button(ctx, sx + 8, y + 72, (sw - 20) / 2, 14, "Снять $50", 0xFF3A7BD5, d.money >= 50, () -> atm("withdraw", 50));
         button(ctx, sx + 12 + (sw - 20) / 2, y + 72, (sw - 20) / 2, 14, "Внести", 0xFF3A7BD5, true, () -> atm("deposit", 0));
-        ctx.drawText(textRenderer, "Перевод другу", sx + 8, y + 92, 0xFFB8B2CC, false);
+        ctx.drawText(textRenderer, "Перевод другу", sx + 8, y + 89, 0xFFB8B2CC, false);
         button(ctx, sx + 8, y + 150, sw - 16, 14, "Перевести", 0xFF2FA84F, !toField.getText().isEmpty() && !amountField.getText().isEmpty(), () -> {
             NbtCompound n = new NbtCompound();
             n.putString("to", toField.getText());

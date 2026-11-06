@@ -185,7 +185,7 @@ public final class StoryHud {
                     int sw = (int) (tr.getWidth(ClientStory.subtitle) * 1.4f) + 30;
                     int slide = (int) ((1 - Ui.easeOut(MathHelper.clamp(t - 0.8f, 0, 1) / 0.6f)) * 60);
                     Ui.slant(ctx, w / 2 - sw / 2 + slide, h / 2 + 10, sw, 18, 6, Ui.alpha(0xE0FFC428, sub));
-                    Ui.big(ctx, tr, ClientStory.subtitle, w / 2f + slide + 3, h / 2f + 14, 1.4f, Ui.alpha(0xFF07050C, sub), 1);
+                    Ui.small(ctx, tr, ClientStory.subtitle, w / 2f + slide + 3, h / 2f + 14, 1.4f, Ui.alpha(0xFF07050C, sub), 1);
                 }
                 Ui.grain(ctx, w, h, 0.3f * alpha);
             }

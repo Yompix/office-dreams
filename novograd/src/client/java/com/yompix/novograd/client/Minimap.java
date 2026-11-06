@@ -57,7 +57,7 @@ public final class Minimap {
 
     public static void render(DrawContext ctx) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.player == null || mc.world == null || mc.options.hudHidden || !NovogradConfig.get().minimap) return;
+        if (mc.player == null || mc.world == null || mc.options.hudHidden || !NovogradConfig.get().minimap || LifeHud.cinematic(mc)) return;
         var pl = mc.player;
         float delta = mc.getRenderTickCounter().getTickDelta(true);
         double px = MathHelper.lerp(delta, pl.prevX, pl.getX()), pz = MathHelper.lerp(delta, pl.prevZ, pl.getZ());
