@@ -142,8 +142,7 @@ public final class Economy {
         m.price.put(ticker, Math.max(1, p * (1 + pct)));
         m.markDirty();
         String name = Arrays.stream(STOCKS).filter(x -> x[0].equals(ticker)).findFirst().map(x -> x[1]).orElse(ticker);
-        for (ServerPlayerEntity pl : s.getPlayerManager().getPlayerList())
-            pl.sendMessage(Text.literal("📈 Биржа: " + name + " " + (pct >= 0 ? "+" : "") + Math.round(pct * 100) + "% — " + news).formatted(pct >= 0 ? Formatting.GREEN : Formatting.RED), false);
+        News.market(s, name, pct, (pct >= 0 ? "+" : "") + Math.round(pct * 100) + "% — " + news); // бегущая строка и лента «Новости»
     }
 
     private static long lastHour = -1;

@@ -186,7 +186,7 @@ public class LifeMenuScreen extends Screen {
         String tip = TIPS[(int) (t / 6) % TIPS.length].replace("Совет: ", "");
         float tipA = Math.min(1, Math.min((t % 6) / 0.4f, (6 - t % 6) / 0.4f));
         ctx.drawText(textRenderer, tip, 64, height - 14, Ui.alpha(0xFFE8E4F2, tipA), false);
-        String ver = "Minecraft 1.21.1 · © Yompix Games";
+        String ver = "Minecraft 1.21.1 · создатель и сценарист Yompix · © Yompix Games";
         if (textRenderer.getWidth(tip) + 64 + textRenderer.getWidth(ver) + 20 < width)
             ctx.drawText(textRenderer, ver, width - textRenderer.getWidth(ver) - 8, height - 14, 0x80FFFFFF, false);
         Ui.grain(ctx, width, height, 0.25f);

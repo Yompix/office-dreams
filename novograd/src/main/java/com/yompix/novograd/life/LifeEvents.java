@@ -43,6 +43,7 @@ public final class LifeEvents {
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Heists::tick);
         com.yompix.novograd.gta.FunHooks.init(); // уличные события, скорая/пожарные/пицца, война банд, парашют, автоматы
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Economy::tick);
+        ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.News::tick);
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.world.ShopPlacer::tick);
         ServerTickEvents.END_SERVER_TICK.register(s -> s.getPlayerManager().getPlayerList().forEach(p -> {
             com.yompix.novograd.story.Story.tick(p);

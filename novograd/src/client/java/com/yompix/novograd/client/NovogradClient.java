@@ -155,6 +155,7 @@ public class NovogradClient implements ClientModInitializer {
         });
         HudRenderCallback.EVENT.register(LifeHud::render);
         HudRenderCallback.EVENT.register((ctx, t) -> CarRadio.render(ctx));
+        HudRenderCallback.EVENT.register((ctx, t) -> NewsHud.render(ctx));
         HudRenderCallback.EVENT.register((ctx, t) -> { if (!CinemaCam.active()) Minimap.render(ctx); });
         HudRenderCallback.EVENT.register((ctx, t) -> CinemaCam.render(ctx));
         HudRenderCallback.EVENT.register((ctx, t) -> com.yompix.novograd.client.studio.Studio.render(ctx));
@@ -192,6 +193,8 @@ public class NovogradClient implements ClientModInitializer {
                 if (!n.contains("x")) Minimap.actTimer = -1;
             }
             case "act_timer" -> Minimap.actTimer = n.getInt("sec");
+            case "news" -> NewsHud.push(n);
+            case "news_feed" -> com.yompix.novograd.client.screen.NewsScreen.feed = n;
             case "eco_state" -> com.yompix.novograd.client.screen.FinanceScreen.state = n;
             case "cut_actor" -> com.yompix.novograd.client.story.CutsceneScreen.ACTORS.put(n.getString("name"), n.getInt("id"));
             case "cutscene" -> show(client, new com.yompix.novograd.client.story.CutsceneScreen(n));

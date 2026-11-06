@@ -214,7 +214,7 @@ public class MapScreen extends LifeScreen {
         var d = NovogradClient.data;
         var o = ClientStory.objective;
         if (tab.equals("story")) {
-            if (d.storyDone) yy += wrap(ctx, "Сюжет пройден! Город твой.", x + 6, yy, w - 12, 0xFF7CFF8A);
+            if (d.storyDone) yy += wrap(ctx, "Сюжет пройден — Новоград твой. Свободная игра: ограбления, бизнесы, районы.", x + 6, yy, w - 12, 0xFF7CFF8A);
             else if (o.contains("mission")) {
                 ctx.drawText(textRenderer, o.getString("chapter"), x + 6, yy, 0xFFFFC107, false);
                 yy += 12;
@@ -229,7 +229,7 @@ public class MapScreen extends LifeScreen {
                 yy += 20;
             } else yy += wrap(ctx, "Сюжет идёт в мире «Новоград: Город».", x + 6, yy, w - 12, 0xFFAAAAAA);
             // главы
-            String[] chapters = {"1. Новенький", "2. Друзья и деньги", "3. Выпускной", "4. Взрослая жизнь", "5. Барон"};
+            String[] chapters = {"Акт I · Уличные гонки", "Акт II · Чёрные Ящеры", "Акт III · Под прикрытием", "Акт IV · Город казино", "Акт V · Седые горы"};
             for (int i = 0; i < chapters.length; i++) {
                 boolean done = d.storyDone || i < d.chapter, cur = !d.storyDone && i == d.chapter;
                 ctx.drawText(textRenderer, (done ? "✔ " : cur ? "▶ " : "· ") + chapters[i], x + 6, yy, done ? 0xFF7CFF8A : cur ? 0xFFFFC107 : 0xFF777777, false);
@@ -245,7 +245,7 @@ public class MapScreen extends LifeScreen {
             }
             ctx.drawText(textRenderer, "Работа: " + com.yompix.novograd.life.Jobs.Job.of(d.job).title, x + 6, yy, 0xFFC8D0E8, false);
             yy += 11;
-            ctx.drawText(textRenderer, "Энергия " + d.energy + "% · настроение " + d.mood + "%", x + 6, yy, 0xFFC8D0E8, false);
+            ctx.drawText(textRenderer, "На карте $" + d.money + (d.dirty > 0 ? " · грязные $" + d.dirty : ""), x + 6, yy, 0xFFC8D0E8, false);
             yy += 16;
         }
         // такси до метки
