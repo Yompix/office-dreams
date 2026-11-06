@@ -75,7 +75,7 @@ public final class Auction {
 
     static boolean sellable(ServerPlayerEntity p, CarEntity car) {
         return !(car instanceof com.yompix.novograd.vehicle.MotorVehicle) && !car.isScooter() && !car.wrecked()
-                && !p.getUuid().equals(Impound.ownerOf(car)) && car.getCommandTags().stream().noneMatch(t -> t.startsWith("nv_") && !t.equals("nv_ambulance") && !t.equals("nv_firetruck"));
+                && !p.getUuid().equals(Impound.ownerOf(car)) && car.getCommandTags().stream().noneMatch(t -> t.equals("nv_betrace") || t.equals("nv_rent") || t.startsWith("nv_owned:"));
     }
 
     static void tickPlayer(ServerPlayerEntity p) {

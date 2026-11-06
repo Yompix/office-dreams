@@ -2366,7 +2366,7 @@ public final class DevAutotest {
         run(5, c -> c.options.hudHidden = false);
         if (mode.equals("pulsenight")) { // ночная погоня: прожекторы, огни вертолётов, окно эфира
             pc.accept(5, "tv 1");
-            pc.accept(120, "tv view 1");
+            pc.accept(400, "tv view 1");
             shot(60, "pulse_tv_riviera");
             pc.accept(5, "tv 0");
             cmd(100, "time set 18000");
@@ -2389,7 +2389,7 @@ public final class DevAutotest {
         pc.accept(120, "tv view 0");
         shot(60, "pulse_tv");
         pc.accept(5, "tv 1");
-        pc.accept(120, "tv view 1");
+        pc.accept(400, "tv view 1");
         shot(60, "pulse_tv_riviera");
         // 2. граффити: тег банды → держим Shift → свой тег
         pc.accept(5, "col tp tag 0");

@@ -131,7 +131,7 @@ public class DriveScreen extends LifeScreen {
         int fee = state.getInt("impoundFee");
         if (l.isEmpty()) {
             bigText(ctx, "Твоих машин тут нет", x + w / 2, cy + 20, 1.6f, 0xFFFFB74D);
-            wrap(ctx, "Если бросить свою машину посреди дороги, через пару минут её увезёт эвакуатор. Забрать — здесь, у полицейского участка, за $" + fee + ".", x + 20, cy + 50, w - 40, 0xFFB0BEC5);
+            wrap(ctx, "Если бросить свою машину посреди дороги, через 5 минут её увезёт эвакуатор. Забрать — здесь, у полицейского участка, за $" + fee + ".", x + 20, cy + 50, w - 40, 0xFFB0BEC5);
             return;
         }
         for (int i = 0; i < Math.min(l.size(), 8); i++) {

@@ -787,7 +787,7 @@ public class CarEntity extends Entity {
         CarBody b = fourWheels ? body() : CarBody.SEDAN;
         float max = isTouchingWater() ? 0.15f : route != null && !player ? autoMax + 0.05f : topSpeed();
         // бензин кончился — мотор глохнет, машина катится и встаёт (gta/Fuel); вне асфальта — медленнее (у багги наоборот)
-        if (player && usesFuel() && fuel() <= 0 && fwd > 0) fwd = 0;
+        if (player && usesFuel() && fuel() <= 0 && (fwd > 0 || fwd < 0 && speed <= 0.01f)) fwd = 0; // тормоз работает, газ и задний ход — нет
         if (player && !isBike() && !isScooter()) max *= com.yompix.novograd.gta.Fuel.surfaceFactor(this);
         if (route != null && !player && nitroOn()) max *= 1.55f;
         // ручник — только у водителя на его клиенте (физику машины игрока считает его клиент)
@@ -858,7 +858,8 @@ public class CarEntity extends Entity {
         if (!player || !fourWheels || Float.isNaN(moveYaw) || sp < 0.06f) moveYaw = getYaw();
         else {
             float diff = MathHelper.wrapDegrees(getYaw() - moveYaw);
-            float traction = handbrake ? 0.045f : MathHelper.clamp(0.55f * b.grip * com.yompix.novograd.gta.Fuel.wetGrip(this) - sp * 0.12f, 0.12f, 0.75f); // дождь — скользко
+            float wet = com.yompix.novograd.gta.Fuel.wetGrip(this); // дождь — скользко
+            float traction = handbrake ? 0.045f : MathHelper.clamp(0.55f * b.grip * wet - sp * 0.12f, wet < 1 ? 0.12f : 0.2f, 0.75f);
             moveYaw += diff * traction;
             diff = MathHelper.wrapDegrees(getYaw() - moveYaw);
             if (Math.abs(diff) > 65) moveYaw = getYaw() - Math.signum(diff) * 65;

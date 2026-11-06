@@ -220,8 +220,10 @@ public final class RaceBets {
             car.setTune(true, 2, 0);
             car.toggleLight(CarEntity.HEADLIGHTS);
             car.addCommandTag("nv_betrace");
+            car.setAmbient(true); // если останется в выгруженных чанках — Streets уберёт, как трафик
             CitizenEntity drv = FunUtil.citizen(w, at, CitizenEntity.Role.CITIZEN, DRIVERS[r.who[i]]);
             drv.setCustomNameVisible(true);
+            drv.setAmbient(true);
             drv.startRiding(car, true);
             r.cars.add(car.getUuid());
         }

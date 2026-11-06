@@ -24,7 +24,7 @@ import java.util.UUID;
 
 /**
  * Эвакуатор и штрафстоянка.
- *  • Машина, брошенная посреди дороги (не на обочине и не на парковке) больше 3 минут, пока рядом никого нет, — эвакуируется.
+ *  • Машина, брошенная посреди дороги (на полосе, не у бордюра и не на парковке) больше 5 минут, пока рядом никого нет, — эвакуируется.
  *  • Чужая/угнанная — просто увозят. Своя (хозяин в CarEntity.owner или тег «nv_owned:&lt;uuid&gt;») — на «Штрафстоянку»
  *    у полицейского участка: СМС хозяину, забрать там же за $200 (всё как было: цвет, тюнинг, бензин).
  */
@@ -33,7 +33,7 @@ public final class Impound {
 
     public static final int FEE = 200;
     public static final String LOT = "police_station+16,10";
-    private static final int IDLE_TICKS = 20 * 180;
+    private static final int IDLE_TICKS = 20 * 300;
 
     /** Машина → {кто последний вёл, когда, где стояла (x*31+z), с какого тика стоит}. */
     private static final Map<UUID, long[]> SEEN = new HashMap<>();
@@ -61,7 +61,7 @@ public final class Impound {
         if (!Island.road(ix, iz)) return false;
         Island.Zone zn = Island.zone(ix, iz);
         if (zn == Island.Zone.CORE) return false; // старый центр — дворы и парковки
-        if (Island.urban(zn)) return Math.min(Island.gridDist(ix), Island.gridDist(iz)) <= 3;
+        if (Island.urban(zn)) return Math.min(Island.gridDist(ix), Island.gridDist(iz)) <= 2; // полосы, не у бордюра
         return true;
     }
 
@@ -102,7 +102,7 @@ public final class Impound {
     }
 
     /** Название стоянки в записях гаража (world/Garage: «impound:police»). */
-    public static final String LOT_ID = "police";
+    public static final String LOT_ID = "у полицейского участка";
 
     static void tow(ServerWorld w, CarEntity car) {
         UUID owner = ownerOf(car);

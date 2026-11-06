@@ -78,7 +78,7 @@ public final class NewsTv {
                     double[] pl = Island.PLACES.get(a);
                     if (pl == null || st.done.contains(a)) continue;
                     if (Math.hypot(pl[0] - p.getX(), pl[2] - p.getZ()) > 72) continue;
-                    if (!loadedAround(w, (int) pl[0], (int) pl[2], 40)) continue;
+                    if (!loadedAround(w, (int) pl[0], (int) pl[2], 32)) continue;
                     long[] scr = build(w, (int) Math.floor(pl[0]), (int) Math.floor(pl[2]));
                     st.done.add(a);
                     if (scr != null) st.screens.add(scr);
@@ -115,8 +115,10 @@ public final class NewsTv {
         int bestK = 999;
         for (Direction dir : Direction.Type.HORIZONTAL) {
             Direction side = dir.rotateYClockwise();
-            for (int k = 6; k <= 34 && k < bestK; k++) {
+            for (int k = 6; k <= 26 && k < bestK; k++) {
                 BlockPos c = at.offset(dir, k);
+                if (System.getProperty("novograd.autotest") != null && !w.getBlockState(c.up(7)).isAir())
+                    com.yompix.novograd.Novograd.LOG.info("[pulse] экран: {} k={} {} full={}", dir, k, w.getBlockState(c.up(7)), solid(w, c.up(7)));
                 if (!solid(w, c.up(7))) continue;
                 if (!solid(w, c.offset(side, 3).up(7)) || !solid(w, c.offset(side, -3).up(7))) continue; // ствол пальмы, столб — не стена
                 int good = 0; // фасад с окнами и вывесками: хватит 85% сплошной стены
