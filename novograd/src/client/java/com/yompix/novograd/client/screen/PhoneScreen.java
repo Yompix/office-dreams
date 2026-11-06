@@ -509,11 +509,13 @@ public class PhoneScreen extends LifeScreen {
         java.util.List<Object[]> list = new java.util.ArrayList<>();
         java.util.Set<String> seen = new java.util.HashSet<>();
         var me = mc().player.getPos();
-        for (String id : places.getKeys()) {
-            if (!(places.get(id) instanceof net.minecraft.nbt.NbtCompound pl)) continue;
-            String name = pl.getString("name");
-            if (name.isEmpty() || !seen.add(name)) continue;
-            Vec3d to = new Vec3d(pl.getInt("x"), me.y, pl.getInt("z"));
+        // только места Новограда и Ривьеры из списка такси (без старых адресов)
+        for (var en : com.yompix.novograd.life.Taxi.PLACES.entrySet()) {
+            String id = en.getKey(), name = en.getValue();
+            Vec3d to = null;
+            if (places.get(id) instanceof net.minecraft.nbt.NbtCompound pl) to = new Vec3d(pl.getInt("x"), me.y, pl.getInt("z"));
+            else if (com.yompix.novograd.world.Island.PLACES.get(id) instanceof double[] v) to = new Vec3d(v[0], me.y, v[2]);
+            if (to == null || !seen.add(name)) continue;
             list.add(new Object[]{id, name, to, to.squaredDistanceTo(me)});
         }
         list.sort(java.util.Comparator.comparingDouble(o -> (double) o[3]));

@@ -28,7 +28,7 @@ public final class Names {
     }
 
     public static String full(Random r, boolean female) {
-        return random(r, female) + " " + LAST[r.nextInt(LAST.length)] + (female ? "а" : "");
+        return random(r, female) + " " + LAST[r.nextInt(LAST.length)]; // фамилии американские: «Эмили Смит», без «-а»
     }
 
     private static final List<String> FEMALE_EXTRA = Arrays.asList("Зина", "Анна", "Валя", "Мария", "Марья", "Ирина", "Нина", "Галина", "Ольга", "Татьяна", "Баба", "Сьюзи", "Грейс", "Сара", "Бетти", "Нэнси");

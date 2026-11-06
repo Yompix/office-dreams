@@ -979,6 +979,14 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     public void readCustomDataFromNbt(NbtCompound nbt) {
         super.readCustomDataFromNbt(nbt);
         dataTracker.set(SKIN, nbt.getInt("Skin"));
+        // старые сохранения: «Эмили Смита» → «Эмили Смит», учительницы и старые герои → обычные горожане
+        if (getCustomName() != null) {
+            String n = getCustomName().getString();
+            String fixed = n.replaceAll("(Смит|Джонсон|Браун|Миллер|Дэвис|Уилсон|Тейлор|Андерсон|Мур|Кларк)а$", "$1")
+                    .replace("Миссис Нэнси", "Миссис Нэнси Мур").replace("Лейтенант Петров", "Лейтенант Питерсон");
+            if (n.startsWith("Миссис Анна") || n.startsWith("Мистер Стив") && !n.contains("Механик")) fixed = com.yompix.novograd.life.Names.full(getRandom());
+            if (!fixed.equals(n)) setCustomName(net.minecraft.text.Text.literal(fixed));
+        }
         try {
             role = Role.valueOf(nbt.getString("Role"));
         } catch (IllegalArgumentException e) {

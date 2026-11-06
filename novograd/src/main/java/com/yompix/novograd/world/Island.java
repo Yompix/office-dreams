@@ -709,7 +709,7 @@ public final class Island {
     }
 
     /** Точки сюжета на острове: x, z, yaw (y — по земле). Улицы на линиях ≡ 24 (mod 48), тротуары — ±5 от них. */
-    private static final java.util.Map<String, double[]> PLACES = new java.util.HashMap<>();
+    public static final java.util.Map<String, double[]> PLACES = new java.util.HashMap<>();
 
     static {
         // гонки: старт на северной трассе, круг по кольцу

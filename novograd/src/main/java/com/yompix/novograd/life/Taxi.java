@@ -34,42 +34,38 @@ public final class Taxi {
     public static final Map<String, String> PLACES = new LinkedHashMap<>();
 
     static {
-        PLACES.put("home_door", "Дом");
-        PLACES.put("parking", "Стоянка «Центр»");
-        PLACES.put("shop_door", "Супермаркет");
-        PLACES.put("office_door", "Офис");
-        PLACES.put("park_center", "Парк");
-        PLACES.put("casino_door", "Казино «Фортуна»");
-        PLACES.put("bank_door", "Банк");
-        PLACES.put("dealer_door", "Автосалон");
-        PLACES.put("lisa_door", "Дом на Кленовой");
-        PLACES.put("tema_door", "Дом Томми");
-        PLACES.put("gleb_door", "Дом Джейка");
-        PLACES.put("house4_door", "Дом на Садовой");
-        PLACES.put("house6_door", "Дом на Речной");
+        // Новоград
+        PLACES.put("garage_door", "Нитро-Гараж");
+        PLACES.put("downtown_plaza", "Деловой центр");
+        PLACES.put("bank_tower", "Сити-Банк");
+        PLACES.put("club_neon", "Клуб «Неон»");
+        PLACES.put("casino_dt", "Казино «Корона»");
         PLACES.put("bar_door", "Бар «Ржавый якорь»");
+        PLACES.put("pizza_door", "Пиццерия «Мама Мия»");
+        PLACES.put("burger_door", "Жир-Бургер");
+        PLACES.put("gunshop_door", "Оружие «Калибр»");
+        PLACES.put("police_station", "Полиция");
+        PLACES.put("hospital", "Больница");
+        PLACES.put("chop_shop", "Разборка у промзоны");
+        PLACES.put("port_gate", "Порт");
+        PLACES.put("beach_bar", "Пляжный бар");
+        PLACES.put("suburb_safehouse", "Убежище в пригороде");
         PLACES.put("shop_clothes", "Шмот-Базар");
         PLACES.put("shop_barber", "Цирюльня «Острая бритва»");
         PLACES.put("shop_gym", "Зал «Железо»");
-        PLACES.put("shop_boutique", "Бутик «Бархат» (Ривьера)");
+        PLACES.put("airfield_hangar", "Аэродром");
+        // Ривьера
         PLACES.put("riv_strip", "Стрип (Ривьера)");
         PLACES.put("riv_casino", "Казино «Золотая корона»");
         PLACES.put("riv_hotel", "Отель «Лазурь»");
         PLACES.put("riv_marina", "Пристань Ривьеры");
         PLACES.put("riv_beach", "Пляж Ривьеры");
+        PLACES.put("shop_boutique", "Бутик «Бархат»");
+        // за городом
         PLACES.put("village", "Деревня Сосновка");
         PLACES.put("lake_dock", "Озеро Ясное");
-        PLACES.put("desert_mesa", "Пустошь");
         PLACES.put("mtn_top", "Седые горы");
-        PLACES.put("airfield_hangar", "Аэродром");
-        PLACES.put("pizza_door", "Пиццерия «Мама Мия»");
-        PLACES.put("burger_door", "Жир-Бургер");
-        PLACES.put("club_door", "Клуб «Неон»");
-        PLACES.put("police_station", "Полиция");
-        PLACES.put("hospital", "Больница");
-        PLACES.put("gunshop_door", "Оружие «Калибр»");
-        PLACES.put("gang_turf", "Район «Чёрных Ящеров»");
-        PLACES.put("garage_door", "Нитро-Гараж");
+        PLACES.put("desert_mesa", "Пустошь");
     }
 
     record Order(UUID client, Vec3d dest, String destName, int price, long at) {}
@@ -185,6 +181,31 @@ public final class Taxi {
         Life.get(p).taskKind = "taxi_wait";
         Life.get(p).taskPos = BlockPos.ofFloored(pickup);
         Life.sync(p);
+    }
+
+    /** Как в GTA: в такси можно пропустить дорогу — экран темнеет, и ты уже на месте. */
+    public static void skip(ServerPlayerEntity p) {
+        UUID cid = CARS.get(p.getUuid());
+        LifeData d = Life.get(p);
+        ServerWorld w = p.getServerWorld();
+        if (cid == null || !(w.getEntity(cid) instanceof CarEntity car) || p.getVehicle() != car || !"taxi_ride".equals(d.taskKind) || d.taskPos == null) return;
+        TownState t = TownState.get(w);
+        Vec3d drop = nearestRoad(t, Vec3d.ofCenter(d.taskPos));
+        net.minecraft.nbt.NbtCompound n = new net.minecraft.nbt.NbtCompound();
+        n.putString("label", "Такси");
+        LifeNet.send(p, "taxi_fade", n);
+        p.stopRiding();
+        for (net.minecraft.entity.Entity e : new java.util.ArrayList<>(car.getPassengerList())) e.discard();
+        car.discard();
+        CARS.remove(p.getUuid());
+        w.getChunk(net.minecraft.util.math.BlockPos.ofFloored(drop));
+        int y = com.yompix.novograd.story.Story.topY(w, (int) Math.floor(drop.x), (int) Math.floor(drop.z));
+        p.teleport(w, drop.x, y + 0.1, drop.z, p.getYaw(), p.getPitch());
+        d.taskKind = "";
+        d.taskPos = null;
+        Life.sync(p);
+        p.sendMessage(Text.literal("Водитель: «Приехали! Хорошего дня»").formatted(Formatting.YELLOW), false);
+        Achievements.give(p, "taxi_ride");
     }
 
     private static void arrivedForClient(UUID client, CarEntity car) {
