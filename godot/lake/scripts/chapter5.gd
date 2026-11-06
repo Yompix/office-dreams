@@ -1528,7 +1528,13 @@ static func cam(g, shot: String) -> bool:
 			var ang := 22.0
 			if shot.ends_with("_visit") or shot.ends_with("_summer"):
 				ang = 30.0
-			if not face(g, who, ang, 1.0, 0.02, 38.0) and (shot.ends_with("_ice") or shot.ends_with("_shore") or shot.ends_with("_snow")):
+			var dist := 1.0
+			if shot == "iris_coat":   # у плаща Айрис стоит боком к фасаду: с +22° камера уходила за стену и снимала её через окно
+				ang = -22.0           # (верх кадра — чёрная стена) — снимаем со стороны комнаты
+			elif shot == "iris_window":   # лицом к заиндевевшему окну, до стены 0,25 м: спереди камера вставала снаружи и снимала
+				ang = 96.0                # сквозь доски, которыми окно заколочено (кадр перечёркивала доска), — сбоку изнутри:
+				dist = 0.9                # профиль слева, камера в комнате (x 2,46 < 2,8 — внутренняя сторона фасада)
+			if not face(g, who, ang, dist, 0.02, 38.0) and (shot.ends_with("_ice") or shot.ends_with("_shore") or shot.ends_with("_snow")):
 				_look(c, L(16.0, 2.6, 22.0), L(3.0, 0.0, 9.0), 46.0)   # героя нет на месте — общий план озера, а не салон машины
 			return true
 		_:
