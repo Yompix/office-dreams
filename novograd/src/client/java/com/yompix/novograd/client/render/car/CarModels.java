@@ -626,9 +626,12 @@ public final class CarModels {
     /** Вмятины и царапины: тёмные пятна на панелях, появляются по мере повреждения. */
     private static void dents(B b, S s) {
         float W = s.W;
-        float[][] d1 = {{1, s.belt - 4, s.wF - 1}, {-1, s.sill + 3, -9}, {1, s.sill + 2.2f, s.zR + 5}};
-        float[][] d2 = {{-1, s.belt - 3, s.wF + 3}, {1, s.belt - 5, -3}, {-1, s.belt - 2.5f, s.zR + 4}, {1, s.sill + 4, 6}};
-        float[][] d3 = {{1, s.belt - 3, -12}, {-1, s.sill + 2, 3}, {-1, s.belt - 6, -15}, {1, s.belt - 2, s.zF - 4}};
+        // только на дверях между колёсами — над аркой пятно висело бы в воздухе
+        float[][] d1 = {{1, s.belt - 4, 5}, {-1, s.sill + 3, -7}, {1, s.sill + 2.5f, -9}};
+        float[][] d2 = {{-1, s.belt - 3.5f, 4}, {1, s.belt - 5.5f, -4}, {-1, s.belt - 3, -9}, {1, s.sill + 4, 3}};
+        float[][] d3 = {{1, s.belt - 3, -10}, {-1, s.sill + 2.5f, 1}, {-1, s.belt - 5, -3}, {1, s.belt - 2.5f, 0}};
+        float zMin = s.wR + s.r + 3.8f, zMax = s.wF - s.r - 8.8f;
+        for (float[][] arr : new float[][][]{d1, d2, d3}) for (float[] p : arr) p[2] = Math.max(zMin, Math.min(zMax, p[2]));
         String[] g = {"dent1", "dent2", "dent3"};
         float[][][] all = {d1, d2, d3};
         for (int i = 0; i < 3; i++)

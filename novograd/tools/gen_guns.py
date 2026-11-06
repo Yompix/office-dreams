@@ -304,10 +304,10 @@ def knife():
         box([7.75, 9.2, 4], [8.25, 9.5, 8.4], 'metal_hi'),                           # обух
     ]
     d = {
-        'firstperson_righthand': {'rotation': [-20, 0, 0], 'translation': [0, 4, -2], 'scale': [1, 1, 1]},
-        'firstperson_lefthand': {'rotation': [-20, 0, 0], 'translation': [0, 4, -2], 'scale': [1, 1, 1]},
-        'thirdperson_righthand': {'rotation': [90, 0, 0], 'translation': [0, 4, 1], 'scale': [0.85] * 3},
-        'thirdperson_lefthand': {'rotation': [90, 0, 0], 'translation': [0, 4, 1], 'scale': [0.85] * 3},
+        'firstperson_righthand': {'rotation': [50, 12, 0], 'translation': [-1, 4.5, -1], 'scale': [0.75] * 3},
+        'firstperson_lefthand': {'rotation': [50, 12, 0], 'translation': [-1, 4.5, -1], 'scale': [0.75] * 3},
+        'thirdperson_righthand': {'rotation': [125, 0, 0], 'translation': [0, 3, -1], 'scale': [0.85] * 3},
+        'thirdperson_lefthand': {'rotation': [125, 0, 0], 'translation': [0, 3, -1], 'scale': [0.85] * 3},
         'gui': {'rotation': [24, -118, 0], 'translation': [0, 0, 0], 'scale': [0.95] * 3},
         'ground': {'rotation': [0, 90, 0], 'translation': [0, 2, 0], 'scale': [0.5] * 3},
         'fixed': {'rotation': [0, 90, 0], 'translation': [0, 0, 0], 'scale': [1] * 3},
@@ -317,8 +317,8 @@ def knife():
 
 def throwable_display():
     return {
-        'firstperson_righthand': {'rotation': [0, -20, 0], 'translation': [0, 3, 0], 'scale': [0.9] * 3},
-        'firstperson_lefthand': {'rotation': [0, -20, 0], 'translation': [0, 3, 0], 'scale': [0.9] * 3},
+        'firstperson_righthand': {'rotation': [10, -25, 0], 'translation': [-1, 4.5, -2], 'scale': [0.55] * 3},
+        'firstperson_lefthand': {'rotation': [10, -25, 0], 'translation': [-1, 4.5, -2], 'scale': [0.55] * 3},
         'thirdperson_righthand': {'rotation': [0, 0, 0], 'translation': [0, 1, 1], 'scale': [0.6] * 3},
         'thirdperson_lefthand': {'rotation': [0, 0, 0], 'translation': [0, 1, 1], 'scale': [0.6] * 3},
         'gui': {'rotation': [24, -135, 0], 'translation': [0, 0, 0], 'scale': [1.2] * 3},

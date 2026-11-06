@@ -1527,6 +1527,11 @@ public final class DevAutotest {
             shot(10, "gun_" + g + "_reload");
             run(40, c -> {});
         }
+        for (int i = 5; i < 8; i++) {
+            final int slot = i;
+            run(5, c -> c.player.getInventory().selectedSlot = slot);
+            shot(20, "gun_" + guns[i] + "_idle");
+        }
         // прицеливание (ПКМ держим, но в кулдауне — смотрим положение)
         run(5, c -> c.player.getInventory().selectedSlot = 3);
         run(20, c -> c.options.useKey.setPressed(true));
@@ -1534,7 +1539,7 @@ public final class DevAutotest {
         run(1, c -> c.options.useKey.setPressed(false));
         // от третьего лица
         run(20, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT));
-        for (int i : new int[]{0, 3, 4}) {
+        for (int i : new int[]{0, 3, 4, 5}) {
             run(5, c -> c.player.getInventory().selectedSlot = i);
             shot(20, "gun_tp_front_" + guns[i]);
         }
@@ -1549,6 +1554,8 @@ public final class DevAutotest {
             ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
             p.teleport(p.getServerWorld(), p.getX(), p.getY(), p.getZ(), 0, 10);
         });
+        cmd(2, "kill @e[type=novograd:citizen,distance=..40]");
+        cmd(2, "kill @e[type=minecraft:item,distance=..40]");
         run(10, c -> {
             for (int i = 0; i < 5; i++) {
                 var d = new net.minecraft.client.network.OtherClientPlayerEntity(c.world, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Gun" + i));
@@ -1595,7 +1602,6 @@ public final class DevAutotest {
             p.teleport(w, p.getX(), y, p.getZ(), 0, 15);
         });
         run(5, c -> c.player.getInventory().selectedSlot = 8);
-        shot(40, "gun_npc0");
         shot(40, "gun_npc");
         run(20, MinecraftClient::scheduleStop);
     }
@@ -1738,6 +1744,14 @@ public final class DevAutotest {
         shot(20, "drive_marks");
         run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
         shot(20, "drive_first_person");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var car = p.getVehicle();
+            p.stopRiding();
+            p.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+            if (car != null) look(p, car.getX() + 1, car.getY() + 9, car.getZ() + 3, car.getX() - 6, car.getY(), car.getZ());
+        });
+        shot(20, "drive_marks_top");
         run(20, MinecraftClient::scheduleStop);
     }
 

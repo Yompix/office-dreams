@@ -123,9 +123,9 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         p(root, "pushbar", m, solid, light, 0xFF141414);
         p(root, "check", m, solid, light, 0xFF141414);
         // вмятины и царапины
-        if (hp < 80 || wrecked) p(root, "dent1", m, solid, light, LifeShade.shade(color, 0.55f));
-        if (hp < 55 || wrecked) p(root, "dent2", m, solid, light, LifeShade.shade(color, 0.5f));
-        if (hp < 32 || wrecked) p(root, "dent3", m, solid, light, LifeShade.shade(color, 0.45f));
+        if (hp < 80 || wrecked) p(root, "dent1", m, solid, light, dent(color, 0.62f));
+        if (hp < 55 || wrecked) p(root, "dent2", m, solid, light, dent(color, 0.55f));
+        if (hp < 32 || wrecked) p(root, "dent3", m, solid, light, dent(color, 0.5f));
         // передний бампер повисает на одном креплении
         ModelPart bumper = root.getChild("bumper_f");
         bumper.roll = hp < 45 && !wrecked ? 0.16f : wrecked ? 0.3f : 0;
@@ -196,6 +196,15 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
             case SUV, PICKUP -> 0xFF6E7278;
             default -> 0xFFB4B9C1;
         };
+    }
+
+    /** Вмятина: краска темнеет и сереет (царапины до грунта). */
+    private static int dent(int argb, float k) {
+        int r = (argb >> 16) & 255, g = (argb >> 8) & 255, b = argb & 255;
+        r = (int) (r * (1 - k) * 0.6f + 52 * k);
+        g = (int) (g * (1 - k) * 0.6f + 50 * k);
+        b = (int) (b * (1 - k) * 0.6f + 48 * k);
+        return 0xFF000000 | r << 16 | g << 8 | b;
     }
 
     private static int brightness(int rgb) {

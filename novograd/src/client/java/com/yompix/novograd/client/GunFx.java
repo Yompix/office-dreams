@@ -358,7 +358,7 @@ public final class GunFx {
         m.push();
         model.getTransformation().getTransformation(mode).apply(left, m);
         m.translate(k.mx / 16f - 0.5f, k.my / 16f - 0.5f, k.mz / 16f - 0.5f);
-        float size = k.flash / 16f * flashScale;
+        float size = k.flash * 1.35f / 16f * flashScale;
         VertexConsumer vc = buffers.getBuffer(RenderLayer.getEyes(FLASH));
         // звезда навстречу камере
         m.push();

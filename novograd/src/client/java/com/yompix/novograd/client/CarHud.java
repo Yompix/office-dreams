@@ -8,19 +8,15 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -28,8 +24,6 @@ import java.util.Map;
  */
 public final class CarHud {
     private CarHud() {}
-
-    private static final net.minecraft.util.Identifier WHITE = com.yompix.novograd.Novograd.id("textures/entity/car/base.png");
 
     public static void init() {
         ClientTickEvents.START_CLIENT_TICK.register(c -> {
@@ -138,40 +132,30 @@ public final class CarHud {
 
     private static void renderMarks(WorldRenderContext ctx) {
         MinecraftClient c = MinecraftClient.getInstance();
-        if (MARKS.isEmpty() || c.world == null) return;
+        if (MARKS.isEmpty() || c.world == null || ctx.consumers() == null) return;
         Vec3d cam = ctx.camera().getPos();
         MatrixStack m = ctx.matrixStack() != null ? ctx.matrixStack() : new MatrixStack();
-        m.push();
-        m.translate(-cam.x, -cam.y, -cam.z);
         Matrix4f mat = m.peek().getPositionMatrix();
-        // свой буфер и сразу рисуем — иначе слой может не дорисоваться после прозрачных
-        var imm = c.getBufferBuilders().getEntityVertexConsumers();
-        RenderLayer layer = RenderLayer.getEntityTranslucent(WHITE);
-        VertexConsumer vc = imm.getBuffer(layer);
+        // прозрачные цветные четырёхугольники без текстуры; координаты — от камеры (без потери точности)
+        VertexConsumer vc = ctx.consumers().getBuffer(RenderLayer.getDebugQuads());
         long now = c.world.getTime();
         float hw = 0.13f;
-        for (Iterator<Mark> it = MARKS.iterator(); it.hasNext(); ) {
-            Mark k = it.next();
+        for (Mark k : MARKS) {
             if (k.a.squaredDistanceTo(cam) > 70 * 70) continue;
             float age = (now - k.born) / (float) LIFE;
-            int alpha = (int) (150 * (1 - age * age));
+            int alpha = (int) (170 * (1 - age * age));
             if (alpha <= 4) continue;
             Vec3d d = k.b.subtract(k.a);
             double len = Math.sqrt(d.x * d.x + d.z * d.z);
             if (len < 1e-4) continue;
             float px = (float) (-d.z / len * hw), pz = (float) (d.x / len * hw);
-            int light = WorldRenderer.getLightmapCoordinates(c.world, BlockPos.ofFloored(k.a.x, k.a.y + 0.3, k.a.z));
-            quad(vc, mat, k.a, k.b, px, pz, alpha, light);
+            float ax = (float) (k.a.x - cam.x), ay = (float) (k.a.y - cam.y), az = (float) (k.a.z - cam.z);
+            float bx = (float) (k.b.x - cam.x), by = (float) (k.b.y - cam.y), bz = (float) (k.b.z - cam.z);
+            int r = 16, g = 16, bl = 18;
+            vc.vertex(mat, ax - px, ay, az - pz).color(r, g, bl, alpha);
+            vc.vertex(mat, ax + px, ay, az + pz).color(r, g, bl, alpha);
+            vc.vertex(mat, bx + px, by, bz + pz).color(r, g, bl, alpha);
+            vc.vertex(mat, bx - px, by, bz - pz).color(r, g, bl, alpha);
         }
-        imm.draw(layer);
-        m.pop();
-    }
-
-    private static void quad(VertexConsumer vc, Matrix4f mat, Vec3d a, Vec3d b, float px, float pz, int alpha, int light) {
-        int r = 18, g = 18, bl = 20;
-        vc.vertex(mat, (float) a.x - px, (float) a.y, (float) a.z - pz).color(r, g, bl, alpha).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0, 1, 0);
-        vc.vertex(mat, (float) a.x + px, (float) a.y, (float) a.z + pz).color(r, g, bl, alpha).texture(0, 0.1f).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0, 1, 0);
-        vc.vertex(mat, (float) b.x + px, (float) b.y, (float) b.z + pz).color(r, g, bl, alpha).texture(0.1f, 0.1f).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0, 1, 0);
-        vc.vertex(mat, (float) b.x - px, (float) b.y, (float) b.z - pz).color(r, g, bl, alpha).texture(0.1f, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0, 1, 0);
     }
 }
