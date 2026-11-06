@@ -99,7 +99,60 @@ def box(a, b, mat, faces=None, rot=None, shade=True):
     return e
 
 
+def _rx(a):
+    a = math.radians(a); c, s = math.cos(a), math.sin(a)
+    return np.array([[1, 0, 0], [0, c, -s], [0, s, c]])
+
+
+def _ry(a):
+    a = math.radians(a); c, s = math.cos(a), math.sin(a)
+    return np.array([[c, 0, s], [0, 1, 0], [-s, 0, c]])
+
+
+def _rz(a):
+    a = math.radians(a); c, s = math.cos(a), math.sin(a)
+    return np.array([[c, -s, 0], [s, c, 0], [0, 0, 1]])
+
+
+def euler_xyz(R):
+    """Углы для display.rotation (Minecraft: R = Rx·Ry·Rz)."""
+    b = math.asin(max(-1, min(1, R[0][2])))
+    a = math.atan2(-R[1][2], R[2][2])
+    c = math.atan2(-R[0][1], R[0][0])
+    return [round(math.degrees(v), 2) for v in (a, b, c)]
+
+
+def corners(elements):
+    pts = []
+    for el in elements:
+        f, t = el['from'], el['to']
+        cs = [np.array([x, y, z], float) for x in (f[0], t[0]) for y in (f[1], t[1]) for z in (f[2], t[2])]
+        if 'rotation' in el:
+            r = el['rotation']; o = np.array(r['origin'], float)
+            R = {'x': _rx, 'y': _ry, 'z': _rz}[r['axis']](r['angle'])
+            cs = [R @ (p - o) + o for p in cs]
+        pts += cs
+    return np.array(pts) / 16 - 0.5
+
+
+def fit(elements, tilt, fill=0.95, yaw=-112, pitch=22):
+    """Иконка: стволом вправо-вверх на tilt градусов, вписать в слот."""
+    R = _rz(tilt) @ _rx(pitch) @ _ry(yaw)
+    rot = euler_xyz(R)
+    R2 = _rx(rot[0]) @ _ry(rot[1]) @ _rz(rot[2])
+    q = corners(elements) @ R2.T
+    lo, hi = q.min(0), q.max(0)
+    sc = fill / max(hi[0] - lo[0], hi[1] - lo[1])
+    cx, cy = (lo[0] + hi[0]) / 2 * sc, (lo[1] + hi[1]) / 2 * sc
+    return {'rotation': rot, 'translation': [round(-cx * 16, 2), round(-cy * 16, 2), 0], 'scale': [round(min(sc, 1.6), 3)] * 3}
+
+
+GUI_TILT = {'pistol': 0, 'smg': 18, 'shotgun': 32, 'rifle': 32, 'sniper': 34, 'knife': 40, 'grenade': 0, 'molotov': 0}
+
+
 def model(name, elements, display):
+    display['gui'] = fit(elements, GUI_TILT[name], 0.7 if name in ('grenade', 'molotov') else 0.86 if name == 'pistol' else 0.95,
+                         yaw=-135 if name in ('grenade', 'molotov') else -112)
     m = {'credit': 'Novograd: tools/gen_guns.py', 'texture_size': [64, 64],
          'textures': {'0': 'novograd:item/gun_atlas', 'particle': 'novograd:item/gun_atlas'},
          'elements': elements, 'display': display}
@@ -107,16 +160,16 @@ def model(name, elements, display):
         json.dump(m, f, indent=1)
 
 
-def gun_display(grip, length, fp=(0, 0, 0), fp_scale=0.85, tp_scale=0.85, gui_scale=None, gui_shift=(0, 0)):
+def gun_display(grip, length, fp=(0, 0, 0), fp_scale=0.85, tp_scale=0.85, gui_scale=None, gui_shift=(0, 0), fp_pitch=0):
     """grip — точка рукояти (x, y, z) в пикселях модели; length — длина ствола-приклада (для иконки)."""
     gx, gy, gz = (grip[0] - 8, grip[1] - 8, grip[2] - 8)
     gs = gui_scale or min(0.9, 15.0 / length)
     tp = [round(-gx * tp_scale, 2), round(-gy * tp_scale + 1.0, 2), round(-gz * tp_scale - 1.0, 2)]
     return {
         # от первого лица ствол уходит вперёд, чуть к центру экрана
-        'firstperson_righthand': {'rotation': [0, 4, 0], 'translation': [round(fp[0] - gx * fp_scale, 2), round(fp[1] - gy * fp_scale, 2), round(fp[2] - gz * fp_scale, 2)],
+        'firstperson_righthand': {'rotation': [fp_pitch, 4, 0], 'translation': [round(fp[0] - gx * fp_scale, 2), round(fp[1] - gy * fp_scale, 2), round(fp[2] - gz * fp_scale, 2)],
                                   'scale': [fp_scale] * 3},
-        'firstperson_lefthand': {'rotation': [0, 4, 0], 'translation': [round(fp[0] - gx * fp_scale, 2), round(fp[1] - gy * fp_scale, 2), round(fp[2] - gz * fp_scale, 2)],
+        'firstperson_lefthand': {'rotation': [fp_pitch, 4, 0], 'translation': [round(fp[0] - gx * fp_scale, 2), round(fp[1] - gy * fp_scale, 2), round(fp[2] - gz * fp_scale, 2)],
                                  'scale': [fp_scale] * 3},
         # от третьего лица руки подняты (прицел) — рукоять в кулаке, ствол вперёд
         'thirdperson_righthand': {'rotation': [0, 0, 0], 'translation': tp, 'scale': [tp_scale] * 3},
@@ -166,7 +219,7 @@ def smg():
         box([7.2, 7, 18.5], [8.8, 10.4, 19.3], 'polymer'),                           # затыльник
         box([9, 9.3, 7.5], [9.6, 9.8, 8.4], 'metal_hi'),                             # рукоять затвора
     ]
-    model('smg', e, gun_display((8, 6, 11), 20, fp=(-2, 1.8, -3), fp_scale=0.85, tp_scale=0.75, gui_shift=(0, 0)))
+    model('smg', e, gun_display((8, 6, 11), 20, fp=(-2, 1.6, -3), fp_pitch=3, fp_scale=0.85, tp_scale=0.75, gui_shift=(0, 0)))
 
 
 def shotgun():
@@ -184,7 +237,7 @@ def shotgun():
         box([7.1, 6.8, 15], [8.9, 10.2, 22], 'wood'),                                # приклад
         box([7.05, 6.2, 21.5], [8.95, 10.3, 22.6], 'polymer'),                       # затыльник
     ]
-    model('shotgun', e, gun_display((8, 6.5, 14.5), 29, fp=(-2.5, 1.6, -4), fp_scale=0.8, tp_scale=0.8, gui_shift=(0, 0)))
+    model('shotgun', e, gun_display((8, 6.5, 14.5), 29, fp=(-2.5, 1.2, -4), fp_scale=0.8, fp_pitch=5, tp_scale=0.8, gui_shift=(0, 0)))
 
 
 def rifle():
@@ -208,7 +261,7 @@ def rifle():
         box([7.2, 6.4, 17], [8.8, 10, 22], 'wood'),                                  # приклад
         box([7.15, 6.2, 22], [8.85, 10.1, 22.6], 'polymer'),                         # затыльник
     ]
-    model('rifle', e, gun_display((8, 6.5, 13), 32, fp=(-2.5, 1.6, -4), fp_scale=0.78, tp_scale=0.8, gui_shift=(0, 0)))
+    model('rifle', e, gun_display((8, 6.5, 13), 32, fp=(-2.5, 1.2, -4), fp_pitch=5, fp_scale=0.78, tp_scale=0.8, gui_shift=(0, 0)))
 
 
 def sniper():
@@ -237,7 +290,7 @@ def sniper():
         box([7.35, 10.4, 15], [8.65, 11, 20], 'olive_dark'),                          # щека
         box([7.1, 5.6, 21.5], [8.9, 10.6, 22.3], 'polymer'),                          # затыльник
     ]
-    model('sniper', e, gun_display((8, 6.8, 12.5), 37, fp=(-2.5, 1.4, -4.5), fp_scale=0.75, tp_scale=0.8, gui_shift=(0, 0)))
+    model('sniper', e, gun_display((8, 6.8, 12.5), 37, fp=(-2.5, 1.0, -4.5), fp_pitch=5, fp_scale=0.75, tp_scale=0.8, gui_shift=(0, 0)))
 
 
 def knife():

@@ -703,35 +703,133 @@ public class CarEntity extends Entity {
         }
     }
 
+    // только клиент: подвеска, коробка передач, занос (для модели, звука, спидометра и следов шин)
+    public float suspY, prevSuspY;
+    private float suspV, pitchV, rollV;
+    /** Передача: −1 задний ход, 0 нейтраль, 1..N. Обороты 0..1. */
+    public int gear;
+    public float rpm, throttle;
+    /** Визуальный занос (угол между носом и движением) и «шины визжат» — для следов и дыма. */
+    public float slipVis;
+    public boolean skidding;
+    private double lastY = Double.NaN;
+
     private void clientAnimations() {
         prevWheelRot = wheelRot;
         prevVisualSteer = visualSteer;
         prevRoll = roll;
         prevPitchLean = pitchLean;
+        prevSuspY = suspY;
         double rad = Math.toRadians(getYaw());
         double dx = getX() - prevX, dz = getZ() - prevZ;
         double along = dx * -Math.sin(rad) + dz * Math.cos(rad);
+        double lateral = dx * -Math.cos(rad) + dz * -Math.sin(rad);
         float lastSpeed = clientSpeed;
         clientSpeed = (float) along;
+        float accel = clientSpeed - lastSpeed;
         // тормозим — стопы ярко; едем назад — белые огни заднего хода
         boolean slowing = Math.abs(clientSpeed) < Math.abs(lastSpeed) - 0.004f && Math.abs(lastSpeed) > 0.03f;
         brakeGlow = slowing || braking ? 1 : Math.max(0, brakeGlow - 0.1f);
         reverseGlow = clientSpeed < -0.01f ? 1 : Math.max(0, reverseGlow - 0.2f);
         if ((light(LEFT) || light(RIGHT) || light(HAZARD)) && getWorld().getTime() % 8 == 0 && com.yompix.novograd.Novograd.CLIENT.player() != null && hasPassenger(com.yompix.novograd.Novograd.CLIENT.player()))
             getWorld().playSound(getX(), getY(), getZ(), net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(), net.minecraft.sound.SoundCategory.NEUTRAL, 0.15f, (getWorld().getTime() / 8) % 2 == 0 ? 1.9f : 1.6f, false);
+        float spd = Math.abs(clientSpeed);
+        // занос со стороны: нос смотрит не туда, куда едет машина
+        float slideDeg = Math.hypot(dx, dz) > 0.12 ? (float) Math.toDegrees(Math.atan2(lateral, Math.abs(along))) : 0;
+        slipVis = MathHelper.lerp(0.5f, slipVis, slideDeg);
         wheelRot += (float) (along / (5.0 / 16.0));
         float yawRate = MathHelper.wrapDegrees(getYaw() - lastYaw);
         lastYaw = getYaw();
         float targetSteer = isLogicalSideForUpdatingMovement() ? steer : MathHelper.clamp(-yawRate / 4f, -1, 1);
         visualSteer = MathHelper.lerp(0.3f, visualSteer, targetSteer);
-        roll = MathHelper.lerp(0.12f, roll, MathHelper.clamp(yawRate * Math.abs(clientSpeed) * 0.8f, -2.5f, 2.5f));
-        pitchLean = MathHelper.lerp(0.1f, pitchLean, MathHelper.clamp((clientSpeed - lastSpeed) * -30f, -1.5f, 1.5f));
+
+        // подвеска: пружина с затуханием — крен в повороте, клевок при торможении, приседание при разгоне, кочки
+        if (isBike() || isScooter()) {
+            // мотоцикл и скутер — прежние наклоны (BikeRenderer умножает крен сам)
+            roll = MathHelper.lerp(0.12f, roll, MathHelper.clamp(yawRate * Math.abs(clientSpeed) * 0.8f, -2.5f, 2.5f));
+            pitchLean = MathHelper.lerp(0.1f, pitchLean, MathHelper.clamp((clientSpeed - lastSpeed) * -30f, -1.5f, 1.5f));
+        } else {
+        boolean heavy = !isBike() && !isScooter() && (body() == CarBody.VAN || body() == CarBody.TRUCK || body() == CarBody.SUV || body() == CarBody.LIMO);
+        float soft = heavy ? 1.35f : body() == CarBody.SPORTS ? 0.6f : 1f;
+        float rollTarget = MathHelper.clamp(yawRate * spd * 1.1f * soft, -4.5f, 4.5f);
+        rollV += (rollTarget - roll) * 0.22f;
+        rollV *= 0.68f;
+        roll += rollV;
+        float pitchTarget = MathHelper.clamp(-accel * 55f * soft, -3.2f, 3.2f);
+        pitchV += (pitchTarget - pitchLean) * 0.2f;
+        pitchV *= 0.7f;
+        pitchLean += pitchV;
+        }
+        if (!Double.isNaN(lastY)) {
+            double dy = getY() - lastY;
+            if (Math.abs(dy) > 0.04 && Math.abs(dy) < 1.3) suspV -= (float) dy * 2.6f; // въехали на бордюр / спрыгнули
+        }
+        lastY = getY();
+        suspV += -suspY * 0.3f;
+        suspV *= 0.72f;
+        suspY = MathHelper.clamp(suspY + suspV, -3.5f, 3.5f);
+        if (getWobble() > 0) suspV += (random.nextFloat() - 0.5f) * 0.4f;
+
+        // коробка передач: передача и обороты по скорости относительно максималки
+        float top = Math.max(0.2f, isScooter() ? 0.42f : 0.95f * (isBike() ? 1.3f : body().top) * (1 + engine() * 0.12f));
+        int n = isScooter() ? 1 : isBike() ? 5 : body().gears;
+        boolean driven = getControllingPassenger() != null || hasNpcDriver();
+        throttle = MathHelper.lerp(0.25f, throttle, accel > 0.002f && clientSpeed > 0 ? 1 : 0);
+        if (!driven) {
+            gear = 0;
+            rpm = MathHelper.lerp(0.1f, rpm, 0);
+        } else if (clientSpeed < -0.01f) {
+            gear = -1;
+            rpm = MathHelper.lerp(0.3f, rpm, 0.2f + Math.min(1, spd / 0.28f) * 0.5f);
+        } else if (spd < 0.012f) {
+            gear = 0;
+            rpm = MathHelper.lerp(0.2f, rpm, 0.12f + throttle * 0.3f);
+        } else {
+            float f = MathHelper.clamp(spd / top, 0, 1.2f);
+            // короткие первые передачи, длинные последние
+            float pos = (float) Math.pow(Math.min(f, 1f), 0.8f) * n;
+            int g = MathHelper.clamp((int) pos + 1, 1, n);
+            // чуть держим передачу при сбросе газа — без дребезга между передачами
+            if (gear >= 1 && g == gear - 1 && pos > gear - 1 - 0.12f) g = gear;
+            gear = g;
+            float inGear = MathHelper.clamp(pos - (gear - 1), 0, 1.15f);
+            float target = 0.22f + inGear * 0.72f + throttle * 0.06f;
+            rpm = MathHelper.lerp(Math.abs(target - rpm) > 0.3f ? 0.25f : 0.4f, rpm, target);
+        }
+
+        // визг шин: занос, резкий тормоз на скорости, пробуксовка на старте у мощных машин
+        boolean onGround = isOnGround() || getVelocity().y > -0.1;
+        skidding = onGround && !isBike() && !isScooter() && !wrecked() && (
+                (Math.abs(slipVis) > 11 && spd > 0.18f)
+                        || (handbrake && spd > 0.15f)
+                        || (accel < -0.035f && spd > 0.22f)
+                        || (accel > 0.022f && spd < 0.35f && (body() == CarBody.MUSCLE || body() == CarBody.SPORTS || nitroOn())));
+        if (skidding && age % 2 == 0) {
+            for (int side = -1; side <= 1; side += 2) {
+                double bx = getX() + Math.sin(rad) * 1.0 - Math.cos(rad) * 0.8 * side;
+                double bz = getZ() - Math.cos(rad) * 1.0 - Math.sin(rad) * 0.8 * side;
+                getWorld().addParticle(net.minecraft.particle.ParticleTypes.POOF, bx, getY() + 0.15, bz, (random.nextDouble() - 0.5) * 0.04, 0.03, (random.nextDouble() - 0.5) * 0.04);
+            }
+        }
         // выхлоп
         if (getControllingPassenger() != null && age % (Math.abs(clientSpeed) > 0.2f ? 2 : 6) == 0) {
-            double bx = getX() + Math.sin(rad) * 1.75 - Math.cos(rad) * 0.5;
-            double bz = getZ() - Math.cos(rad) * 1.75 - Math.sin(rad) * 0.5;
+            double back = isBike() || isScooter() ? 1.0 : exhaustBack();
+            double bx = getX() + Math.sin(rad) * back - Math.cos(rad) * 0.5;
+            double bz = getZ() - Math.cos(rad) * back - Math.sin(rad) * 0.5;
             getWorld().addParticle(net.minecraft.particle.ParticleTypes.SMOKE, bx, getY() + 0.3, bz, Math.sin(rad) * 0.03, 0.02, -Math.cos(rad) * 0.03);
         }
+    }
+
+    /** Где выхлопная труба (блоков назад от центра) — у длинных кузовов дальше. */
+    private double exhaustBack() {
+        return switch (body()) {
+            case LIMO -> 2.45;
+            case TRUCK -> 2.2;
+            case PICKUP -> 2.05;
+            case VAN -> 1.85;
+            case HATCH -> 1.5;
+            default -> 1.75;
+        };
     }
 
     private void pushOthers() {

@@ -62,6 +62,7 @@ public class GymScreen extends LifeScreen {
             gain = n.getInt("gain");
             value = n.getInt("value");
             resultAt = System.currentTimeMillis();
+            sentAt = 0;
             state = State.RESULT;
         }
     }
@@ -74,9 +75,12 @@ public class GymScreen extends LifeScreen {
         StyleClient.send("gym_start", n);
     }
 
+    private long sentAt;
+
     private void finish(int score) {
         if (finished) return;
         finished = true;
+        sentAt = System.currentTimeMillis();
         NbtCompound n = new NbtCompound();
         n.putString("ex", ex);
         n.putInt("score", score);
@@ -157,40 +161,56 @@ public class GymScreen extends LifeScreen {
         float half = Math.max(0.05f, 0.17f - reps * 0.009f);
         float center = 0.5f + 0.18f * MathHelper.sin(reps * 1.7f);
         lift = Ui.approach(lift, 0, 0.08f);
-        int gh = Math.min(150, height - y - 40), gx = width / 2 + 60, gy = y + 6;
-        // шкала
-        ctx.fill(gx - 2, gy - 2, gx + 18, gy + gh + 2, 0xC0000000);
-        ctx.fill(gx, gy, gx + 16, gy + gh, 0xFF1A1424);
+        int pw = Math.min(460, width - 40), ph = Math.min(220, height - y - 26), px = width / 2 - pw / 2;
+        ctx.fill(px, y, px + pw, y + ph, 0xF0080510);
+        Ui.panel(ctx, px, y, pw, ph, Ui.RED);
+        // счёт
+        Ui.big(ctx, textRenderer, "ПОВТОРЫ  " + reps + " / 15", px + 12, y + 10, 1.5f, Ui.WHITE, 0);
+        StringBuilder sb = new StringBuilder("ПРОМАХИ  ");
+        for (int i = 0; i < 3; i++) sb.append(i < misses ? "✖ " : "○ ");
+        Ui.big(ctx, textRenderer, sb.toString(), px + 12, y + 30, 1.1f, misses > 0 ? Ui.RED : 0xFFB8B2CC, 0);
+        Ui.small(ctx, textRenderer, "время " + (int) t + " с", px + 12, y + 46, 0.8f, 0xFFB8B2CC, 0);
+        // шкала справа
+        int gh = ph - 30, gx = px + pw - 46, gy = y + 14;
+        ctx.fill(gx - 2, gy - 2, gx + 22, gy + gh + 2, 0xFF000000);
+        ctx.fill(gx, gy, gx + 20, gy + gh, 0xFF1A1424);
         int zt = gy + (int) ((1 - (center + half)) * gh), zb = gy + (int) ((1 - (center - half)) * gh);
-        ctx.fill(gx, zt, gx + 16, zb, 0xC03CD070);
+        ctx.fill(gx, zt, gx + 20, zb, 0xE03CD070);
+        ctx.fill(gx, zt, gx + 20, zt + 1, 0xFFB8FFC8);
         int my = gy + (int) ((1 - pos) * gh);
-        ctx.fill(gx - 5, my - 1, gx + 21, my + 2, Ui.WHITE);
-        ctx.fill(gx - 5, my - 2, gx - 2, my + 3, Ui.GOLD);
-        // штанга над скамьёй: поднимается на удачный повтор
-        int bx = width / 2 - 90, by = y + gh / 2 + 10 - (int) (lift * 34);
-        ctx.fill(bx - 30, y + gh / 2 + 44, bx + 70, y + gh / 2 + 50, 0xFF3A3040);       // скамья
-        ctx.fill(bx - 40, by, bx + 80, by + 3, 0xFFD0D0D8);                            // гриф
+        ctx.fill(gx - 7, my - 1, gx + 27, my + 2, Ui.WHITE);
+        ctx.fill(gx - 9, my - 3, gx - 5, my + 4, Ui.GOLD);
+        Ui.small(ctx, textRenderer, "ЖМИ!", gx + 10, gy + gh + 4, 0.8f, Ui.GOLD, 1);
+        // скамья, атлет и штанга
+        int cx = px + pw / 2 - 30, floor = y + ph - 22;
+        ctx.fill(cx - 70, floor, cx + 70, floor + 3, 0xFF3A3448);                 // пол
+        ctx.fill(cx - 50, floor - 22, cx + 40, floor - 16, 0xFF2A2236);           // скамья
+        ctx.fill(cx - 44, floor - 16, cx - 38, floor, 0xFF4A4458);
+        ctx.fill(cx + 28, floor - 16, cx + 34, floor, 0xFF4A4458);
+        ctx.fill(cx - 46, floor - 30, cx + 16, floor - 22, Ui.PINK);              // торс лёжа
+        ctx.fill(cx + 16, floor - 32, cx + 28, floor - 22, 0xFFE0B48F);           // голова
+        ctx.fill(cx - 66, floor - 26, cx - 46, floor - 20, 0xFF2F4A7A);           // ноги
+        ctx.fill(cx - 70, floor - 20, cx - 64, floor, 0xFF2F4A7A);
+        int barY = floor - 52 - (int) (lift * 26);
+        ctx.fill(cx - 22, barY + 2, cx - 18, floor - 28, 0xFFE0B48F);             // руки
+        ctx.fill(cx + 2, barY + 2, cx + 6, floor - 28, 0xFFE0B48F);
+        ctx.fill(cx - 64, barY, cx + 52, barY + 3, 0xFFD0D0D8);                   // гриф
         for (int s : new int[]{-1, 1}) {
-            int px = s < 0 ? bx - 38 : bx + 70;
-            ctx.fill(px, by - 12, px + 8, by + 15, 0xFF202028);
-            ctx.fill(px + (s < 0 ? -6 : 8), by - 9, px + (s < 0 ? 0 : 14), by + 12, Ui.RED);
+            int bx = s < 0 ? cx - 62 : cx + 42;
+            ctx.fill(bx, barY - 13, bx + 8, barY + 16, 0xFF202028);
+            ctx.fill(bx + (s < 0 ? -7 : 8), barY - 10, bx + (s < 0 ? 0 : 15), barY + 13, Ui.RED);
         }
         float hitFlash = (System.currentTimeMillis() - lastHitAt) / 300f, missFlash = (System.currentTimeMillis() - lastMissAt) / 400f;
-        if (hitFlash < 1) Ui.big(ctx, textRenderer, "+1", bx + 20, by - 26 - hitFlash * 10, 1.6f, Ui.alpha(Ui.MONEY, 1 - hitFlash), 1);
-        if (missFlash < 1) Ui.big(ctx, textRenderer, "МИМО", bx + 20, by - 26, 1.4f, Ui.alpha(Ui.RED, 1 - missFlash), 1);
-        // счёт
-        Ui.big(ctx, textRenderer, "ПОВТОРЫ " + reps, 20, y + 6, 1.4f, Ui.WHITE, 0);
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 3; i++) sb.append(i < misses ? "✖ " : "○ ");
-        Ui.big(ctx, textRenderer, sb.toString(), 20, y + 24, 1.2f, Ui.RED, 0);
-        Ui.small(ctx, textRenderer, "время " + (int) t + " с", 20, y + 42, 0.8f, 0xFFB8B2CC, 0);
+        if (hitFlash < 1) Ui.big(ctx, textRenderer, "+1", cx, barY - 30 - hitFlash * 10, 1.8f, Ui.alpha(Ui.MONEY, 1 - hitFlash), 1);
+        if (missFlash < 1) Ui.big(ctx, textRenderer, "МИМО", cx, barY - 30, 1.5f, Ui.alpha(Ui.RED, 1 - missFlash), 1);
         if (finished) {
-            center(ctx, "Отдышись…", width / 2, y + gh + 14, Ui.GOLD);
+            center(ctx, "Отдышись…", px + pw / 2, y + ph + 4, Ui.GOLD);
             if (t >= 6.5f && state == State.BENCH && !sentBench) {
                 sentBench = true;
                 sendNow(reps);
             }
         }
+        waitCheck();
     }
 
     private boolean sentBench;
@@ -234,39 +254,57 @@ public class GymScreen extends LifeScreen {
             if (Math.abs(speed - bandC) <= bandH) inBand += dt;
             belt += speed * dt * 120;
             if (t >= RUN_TIME) {
-                finished = true;
                 finish(Math.round(100 * inBand / RUN_TIME));
             }
         }
-        int w = Math.min(320, width - 40), x = width / 2 - w / 2, gy = y + 20;
+        int pw = Math.min(460, width - 40), ph = Math.min(220, height - y - 26), px = width / 2 - pw / 2;
+        ctx.fill(px, y, px + pw, y + ph, 0xF0080510);
+        Ui.panel(ctx, px, y, pw, ph, Ui.CYAN);
+        Ui.big(ctx, textRenderer, String.format("%.0f", Math.max(0, RUN_TIME - t)) + " С", px + 12, y + 10, 1.5f, Ui.WHITE, 0);
+        int pct = Math.round(100 * inBand / Math.max(0.1f, Math.min(t, RUN_TIME)));
+        Ui.big(ctx, textRenderer, "В ТЕМПЕ " + pct + "%", px + pw - 12, y + 10, 1.3f, pct >= 60 ? Ui.MONEY : Ui.GOLD, 2);
+        int w = pw - 24, x = px + 12, gy = y + 42;
         // шкала темпа
-        ctx.fill(x - 2, gy - 2, x + w + 2, gy + 16, 0xC0000000);
+        Ui.small(ctx, textRenderer, "ТЕМП", x, gy - 9, 0.8f, 0xFFB8B2CC, 0);
+        ctx.fill(x - 2, gy - 2, x + w + 2, gy + 16, 0xFF000000);
         ctx.fill(x, gy, x + w, gy + 14, 0xFF1A1424);
-        ctx.fill(x + (int) ((bandC - bandH) * w), gy, x + (int) ((bandC + bandH) * w), gy + 14, 0xC03CD070);
+        ctx.fill(x + (int) ((bandC - bandH) * w), gy, x + (int) ((bandC + bandH) * w), gy + 14, 0xE03CD070);
         int sx = x + (int) (MathHelper.clamp(speed, 0, 1) * w);
         ctx.fill(sx - 1, gy - 5, sx + 2, gy + 19, Ui.WHITE);
-        Ui.small(ctx, textRenderer, "ТЕМП", x, gy - 11, 0.8f, 0xFFB8B2CC, 0);
-        // лента дорожки
-        int ly = gy + 40, lw = w, lh = 26;
-        ctx.fill(x, ly, x + lw, ly + lh, 0xFF202028);
-        for (int i = -1; i < lw / 16 + 2; i++) {
-            int lx = x + (int) (i * 16 - (belt % 16));
-            if (lx < x || lx + 3 > x + lw) continue;
-            ctx.fill(lx, ly + 3, lx + 3, ly + lh - 3, 0xFF3A3A48);
+        // дорожка и бегун
+        int lh = 14, ly = y + ph - 34;
+        int lx0 = px + pw / 2 - 90, lw = 180;
+        ctx.fill(lx0 + lw - 10, ly - 70, lx0 + lw - 4, ly, 0xFF606070);              // стойка с пультом
+        ctx.fill(lx0 + lw - 24, ly - 74, lx0 + lw + 2, ly - 66, 0xFF404050);
+        ctx.fill(lx0 + lw - 20, ly - 72, lx0 + lw - 6, ly - 68, Ui.alpha(Ui.CYAN, 0.8f));
+        ctx.fill(lx0, ly, lx0 + lw, ly + lh, 0xFF202028);
+        for (int i = -1; i < lw / 14 + 2; i++) {
+            int lx = lx0 + (int) (i * 14 - (belt % 14));
+            if (lx < lx0 || lx + 3 > lx0 + lw) continue;
+            ctx.fill(lx, ly + 2, lx + 3, ly + lh - 2, 0xFF3A3A48);
         }
-        ctx.fill(x, ly + lh, x + lw, ly + lh + 4, Ui.CYAN);
-        // бегун (силуэт качается в такт)
+        ctx.fill(lx0, ly + lh, lx0 + lw, ly + lh + 3, Ui.CYAN);
         float step = MathHelper.sin(belt * 0.08f);
-        int rx = x + lw / 2, ry = ly - 4;
-        ctx.fill(rx - 3, ry - 30, rx + 3, ry - 24, 0xFFE0B48F);
-        ctx.fill(rx - 4, ry - 24, rx + 4, ry - 12, Ui.PINK);
-        ctx.fill(rx - 3 + (int) (step * 4), ry - 12, rx + (int) (step * 4), ry, 0xFF2F4A7A);
-        ctx.fill(rx - (int) (step * 4), ry - 12, rx + 3 - (int) (step * 4), ry, 0xFF2F4A7A);
-        // таймер и процент
-        Ui.big(ctx, textRenderer, String.format("%.0f", Math.max(0, RUN_TIME - t)) + " с", 20, y + 6, 1.4f, Ui.WHITE, 0);
-        int pct = Math.round(100 * inBand / Math.max(0.1f, Math.min(t, RUN_TIME)));
-        Ui.big(ctx, textRenderer, "в темпе " + pct + "%", width - 20, y + 6, 1.2f, pct >= 60 ? Ui.MONEY : Ui.GOLD, 2);
-        if (finished) center(ctx, "Финиш! Считаем…", width / 2, ly + lh + 14, Ui.GOLD);
+        int rx = lx0 + lw / 2, ry = ly;
+        int bob = (int) (Math.abs(step) * 2);
+        ctx.fill(rx - 5, ry - 58 - bob, rx + 5, ry - 48 - bob, 0xFFE0B48F);          // голова
+        ctx.fill(rx - 7, ry - 48 - bob, rx + 7, ry - 26 - bob, Ui.PINK);             // торс
+        ctx.fill(rx - 3 + (int) (step * 9), ry - 46 - bob, rx + 2 + (int) (step * 9), ry - 32 - bob, 0xFFE0B48F); // руки
+        ctx.fill(rx - 3 - (int) (step * 9), ry - 46 - bob, rx + 2 - (int) (step * 9), ry - 32 - bob, 0xFFC09070);
+        ctx.fill(rx - 5 + (int) (step * 8), ry - 26, rx + (int) (step * 8), ry, 0xFF2F4A7A); // ноги
+        ctx.fill(rx - (int) (step * 8), ry - 26, rx + 5 - (int) (step * 8), ry, 0xFF233A62);
+        if (finished) center(ctx, "Финиш! Считаем…", width / 2, y + ph + 4, Ui.GOLD);
+        waitCheck();
+    }
+
+    /** Ответ сервера не пришёл за 6 с — вернуться в меню, а не висеть. */
+    private void waitCheck() {
+        if (finished && sentAt > 0 && System.currentTimeMillis() - sentAt > 6000) {
+            sentAt = 0;
+            deny = "Тренер не засчитал подход — попробуй ещё раз";
+            denyAt = System.currentTimeMillis();
+            state = State.MENU;
+        }
     }
 
     private void runKey(int dir) {
@@ -280,6 +318,7 @@ public class GymScreen extends LifeScreen {
     private void result(DrawContext ctx, int y) {
         boolean str = ex.equals("bench");
         int w = Math.min(260, width - 40), x = width / 2 - w / 2, h = 110;
+        ctx.fill(x, y, x + w, y + h, 0xF0080510);
         Ui.panel(ctx, x, y, w, h, str ? Ui.RED : Ui.CYAN);
         Ui.big(ctx, textRenderer, "ПОДХОД ЗАКОНЧЕН", width / 2f, y + 10, 1.4f, Ui.WHITE, 1);
         String g = gain > 0 ? (str ? "СИЛА +" : "ВЫНОСЛИВОСТЬ +") + gain : "Без прироста";

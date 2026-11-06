@@ -1217,7 +1217,7 @@ public final class DevAutotest {
         // фасады снаружи
         styleGo(40, o, 0, 14, 180, 8, "style_street");
         // «Шмот-Базар»: внутри, потом экран магазина
-        styleGo(20, o, -36, -3, 180, 10, "style_cheap_inside");
+        styleGo(20, o, -36, -25, 180, 10, "style_cheap_inside");
         server(5, s -> com.yompix.novograd.life.Style.open(s.getPlayerManager().getPlayer(P), "cheap"));
         run(5, c -> c.options.hudHidden = false);
         shot(30, "style_cheap_screen");
@@ -1270,7 +1270,7 @@ public final class DevAutotest {
         styleScreen(5, 0, 5, -1);     // афро
         shot(20, "style_barber_afro");
         key(5, GLFW.GLFW_KEY_ENTER);
-        styleScreen(15, 1, 7, -1);    // неон розовый
+        styleScreen(15, 1, 0, -1);    // чёрный
         key(5, GLFW.GLFW_KEY_ENTER);
         styleScreen(15, 2, 5, -1);    // борода с усами
         key(5, GLFW.GLFW_KEY_ENTER);
@@ -1360,7 +1360,7 @@ public final class DevAutotest {
     /** Оружие: от первого лица (покой, выстрел, перезарядка), от третьего, иконки в инвентаре, жители с оружием. */
     private static void guns() {
         YompixSplash.markShown();
-        GunFx.testFlashNs = 120_000_000L;
+        GunFx.testFlashNs = 700_000_000L;
         pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
         run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
         server(40, s -> {
@@ -1426,6 +1426,18 @@ public final class DevAutotest {
             shot(20, "gun_tp_back_" + guns[i]);
         }
         run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
+        // вид сбоку: скелеты-иссушители (модель как у игрока) с разным оружием
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            p.teleport(p.getServerWorld(), p.getX(), p.getY(), p.getZ(), 0, 12);
+        });
+        String[] side = {"pistol", "smg", "shotgun", "rifle", "sniper"};
+        for (int i = 0; i < side.length; i++)
+            cmd(2, "execute at " + P + " run summon minecraft:wither_skeleton ~" + (i * 1.6 - 3.2) + " ~ ~6 {NoAI:1b,PersistenceRequired:1b,Silent:1b,Rotation:[90f,0f],"
+                    + "HandItems:[{id:\"novograd:" + side[i] + "\",count:1},{}]}");
+        run(5, c -> c.player.getInventory().selectedSlot = 8);
+        shot(30, "gun_side");
+        cmd(2, "kill @e[type=minecraft:wither_skeleton]");
         // иконки
         run(10, c -> c.setScreen(new net.minecraft.client.gui.screen.ingame.InventoryScreen(c.player)));
         shot(20, "gun_inventory");

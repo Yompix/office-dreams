@@ -89,6 +89,7 @@ public final class GunFx {
     /** Только для автотеста: держать вспышку дольше, чтобы попала на скриншот. */
     public static long testFlashNs;
 
+
     public static void init() {
         GunItem.clientShot = GunFx::onShot;
     }
@@ -106,6 +107,10 @@ public final class GunFx {
         flashUntil = now + (k == Kind.SMG || k == Kind.RIFLE ? 38_000_000L : 55_000_000L) + testFlashNs;
         flashSpin = RNG.nextFloat() * 360f;
         flashScale = 0.8f + RNG.nextFloat() * 0.45f;
+        if (testFlashNs > 0) {
+            recoil = 0.05f * recoilV;
+            shake = 0.05f * shakeV;
+        }
     }
 
     /** Из ItemCooldownManager.set: длинный «кулдаун» у ствола = перезарядка. */
@@ -139,6 +144,7 @@ public final class GunFx {
         float dt = lastNanos == 0 ? 0.016f : Math.min(0.05f, (now - lastNanos) / 1e9f);
         if (dt <= 0) return;
         lastNanos = now;
+        if (testFlashNs > 0 && now < flashUntil) return; // автотест: держим позу выстрела до скриншота
         // мелкими шагами — пружины жёсткие
         int n = Math.max(1, (int) Math.ceil(dt / 0.004f));
         float h = dt / n;
@@ -225,7 +231,7 @@ public final class GunFx {
         float rp = main ? reloadProgress(item.getItem()) : -1;
         if (rp >= 0) {
             float in = smooth(0f, 0.18f, rp) * (1 - smooth(0.82f, 1f, rp));
-            m.translate(0.04f * in * s, -0.13f * in, 0.06f * in);
+            m.translate(0.02f * in * s, -0.06f * in, 0.03f * in);
             m.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-22f * in));
             m.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(28f * in * s));
             m.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-12f * in * s));
@@ -261,6 +267,9 @@ public final class GunFx {
             flash(c, player, item, mode, !right, m, buffers, k);
         m.pop();
     }
+
+    /** Руки тоньше ванильных: оружие в них не выглядит игрушечным. */
+    private static final float ARM_SCALE = 0.68f;
 
     /** Сейчас рисуем руку от первого лица — поза «целится» не нужна. */
     public static boolean fpArm;
@@ -311,7 +320,7 @@ public final class GunFx {
         // ось руки модели: от кулака к плечу — это -Y
         org.joml.Quaternionf q = new org.joml.Quaternionf().rotationTo(0, -1, 0, local.x, local.y, local.z);
         m.multiply(q);
-        float sc = 1f / Math.max(0.05f, tf.scale.x());
+        float sc = ARM_SCALE / Math.max(0.05f, tf.scale.x());
         m.scale(sc, sc, sc);
         boolean rightArm = mainArm != left; // основная рука правая, если не левша
         // кулак в модели руки: низ кубоида (y≈10.5), центр по x

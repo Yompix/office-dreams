@@ -60,11 +60,13 @@ public class StyleAppScreen extends LifeScreen {
             ty += wrap(ctx, "Переодеться можно в своём убежище или в магазине одежды. Убежища продаются по городу — ищи дверь с табличкой «продаётся».",
                     px + 8, ty, pw - 16, 0xFFFFC428) + 4;
         }
-        String[] where = {"👕 " + StyleCatalog.CHEAP_NAME + " — уличная одежда, дёшево", "💎 " + StyleCatalog.LUX_NAME + " — люкс для тех, кто поднялся",
-                "✂ " + StyleCatalog.BARBER_NAME + " — стрижки, цвет, бороды", "💪 " + StyleCatalog.GYM_NAME + " — сила и выносливость"};
-        for (String s : where) {
+        String[] where = {StyleCatalog.CHEAP_NAME + " — уличная одежда, дёшево", StyleCatalog.LUX_NAME + " — люкс для тех, кто поднялся",
+                StyleCatalog.BARBER_NAME + " — стрижки, цвет, бороды", StyleCatalog.GYM_NAME + " — сила и выносливость"};
+        int[] dots = {0xFF5BE36A, 0xFFB04DFF, Ui.CYAN, Ui.GOLD};
+        for (int i = 0; i < where.length; i++) {
             if (ty > height - 34) break;
-            Ui.small(ctx, textRenderer, s, px + 8, ty, 0.8f, 0xFFDCD8E8, 0);
+            ctx.fill(px + 8, ty + 1, px + 13, ty + 6, dots[i]);
+            Ui.small(ctx, textRenderer, where[i], px + 17, ty, 0.8f, 0xFFDCD8E8, 0);
             ty += 10;
         }
         // низ

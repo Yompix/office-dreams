@@ -109,7 +109,7 @@ public final class OnlineCasino {
         else if (ps == ds) win = h.bet;
         else win = 0;
         h.done = true;
-        payout(p, h.bet, win);
+        payout(p, h.bet, win, "в блэкджек");
     }
 
     private static void send(ServerPlayerEntity p, Hand h) {
@@ -124,50 +124,125 @@ public final class OnlineCasino {
     }
 
     // ---------------------------------------------------------------- «Краш»: множитель растёт, успей забрать
-    record Crash(int bet, long start, double point) {}
+    /**
+     * Раунд игрока. Время — счётчик тиков сервера (не время мира: его меняют /time и сон).
+     * auto — автовывод ×100 (0 — нет). Раунд живёт, пока не выведен или не крашнулся; выплата ровно одна.
+     */
+    private static final class Crash {
+        final int bet, auto;
+        final long start;
+        final double point;
 
-    private static final Map<UUID, Crash> CRASH = new HashMap<>();
-
-    /** Множитель через t тиков: 1.00 → ×2 примерно за 11 секунд. */
-    public static double mult(long ticks) {
-        return Math.floor(Math.exp(ticks * 0.0032) * 100) / 100;
+        Crash(int bet, long start, double point, int auto) {
+            this.bet = bet;
+            this.start = start;
+            this.point = point;
+            this.auto = auto;
+        }
     }
 
-    static void crashStart(ServerPlayerEntity p, int bet) {
-        if (!adult(p) || CRASH.containsKey(p.getUuid()) || !betOk(bet) || !Life.pay(p, bet, "")) return;
-        double u = p.getRandom().nextDouble();
-        double point = Math.max(1.0, Math.floor(0.97 / (1 - u) * 100) / 100);
-        CRASH.put(p.getUuid(), new Crash(bet, p.getServerWorld().getTime(), point));
+    private static final Map<UUID, Crash> CRASH = new HashMap<>();
+    /** Последние 10 точек краша у каждого игрока (новые — в начале). */
+    private static final Map<UUID, java.util.ArrayDeque<Integer>> CRASH_HISTORY = new HashMap<>();
+    private static final java.util.Random CRASH_RNG = new java.util.Random();
+
+    /** Множитель через t тиков (см. {@link CasinoMath#crashMult}). */
+    public static double mult(long ticks) {
+        return CasinoMath.crashMult(ticks);
+    }
+
+    private static long now(ServerPlayerEntity p) {
+        return p.getServer() == null ? 0 : p.getServer().getTicks();
+    }
+
+    static void crashStart(ServerPlayerEntity p, int bet, int auto) {
+        if (!adult(p) || CRASH.containsKey(p.getUuid())) return;
+        boolean autoOk = false;
+        for (int v : CasinoMath.CRASH_AUTO) autoOk |= v == auto;
+        if (!autoOk || !betOk(bet) || !Life.pay(p, bet, "")) return;
+        double point = CasinoMath.crashPoint(new java.util.Random(CRASH_RNG.nextLong() ^ p.getRandom().nextLong()));
+        CRASH.put(p.getUuid(), new Crash(bet, now(p), point, auto));
         NbtCompound n = new NbtCompound();
-        n.putLong("start", p.getServerWorld().getTime());
+        n.putInt("bet", bet);
+        n.putInt("auto", auto);
+        n.putLong("e", 0);
         LifeNet.send(p, "crash_start", n);
+        tick(p); // мгновенный краш на ×1.00 — сразу
     }
 
     static void crashCashout(ServerPlayerEntity p) {
         Crash c = CRASH.get(p.getUuid());
         if (c == null) return;
-        double m = mult(p.getServerWorld().getTime() - c.start());
-        if (m >= c.point()) return; // уже поздно — краш обработает tick
-        CRASH.remove(p.getUuid());
-        int win = (int) Math.floor(c.bet() * m);
-        payout(p, c.bet(), win);
+        double m = mult(now(p) - c.start);
+        if (m >= c.point) return; // уже поздно — краш обработает tick
+        cashout(p, c, m);
+    }
+
+    /** Вывод: раунд снимается до выплаты, поэтому второй раз заплатить нельзя. Точку краша сообщаем сразу. */
+    private static void cashout(ServerPlayerEntity p, Crash c, double m) {
+        if (CRASH.remove(p.getUuid()) != c) return;
+        int win = (int) Math.floor(c.bet * m + 1e-9);
+        payout(p, c.bet, win, "в краше");
+        remember(p, c.point);
         NbtCompound n = new NbtCompound();
         n.putDouble("at", m);
         n.putInt("win", win);
+        n.putDouble("point", c.point);
+        n.putLong("e", now(p) - c.start);
+        n.putIntArray("hist", history(p));
         LifeNet.send(p, "crash_cashout", n);
     }
 
-    /** Каждый тик: у кого множитель дошёл до точки краша — ставка сгорает. */
+    private static void remember(ServerPlayerEntity p, double point) {
+        var h = CRASH_HISTORY.computeIfAbsent(p.getUuid(), u -> new java.util.ArrayDeque<>());
+        h.addFirst((int) Math.round(point * 100));
+        while (h.size() > 10) h.removeLast();
+    }
+
+    private static int[] history(ServerPlayerEntity p) {
+        var h = CRASH_HISTORY.get(p.getUuid());
+        return h == null ? new int[0] : h.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    /** Клиент открыл «Краш»: идёт ли раунд и история. */
+    static void crashState(ServerPlayerEntity p) {
+        NbtCompound n = new NbtCompound();
+        Crash c = CRASH.get(p.getUuid());
+        n.putBoolean("running", c != null);
+        if (c != null) {
+            n.putInt("bet", c.bet);
+            n.putInt("auto", c.auto);
+            n.putLong("e", now(p) - c.start);
+        }
+        n.putIntArray("hist", history(p));
+        LifeNet.send(p, "crash_state", n);
+    }
+
+    /** Каждый тик: автовывод, краш, а раз в 4 тика — сверка времени с клиентом. */
     public static void tick(ServerPlayerEntity p) {
         Crash c = CRASH.get(p.getUuid());
         if (c == null) return;
-        double m = mult(p.getServerWorld().getTime() - c.start());
-        if (m >= c.point()) {
+        long e = now(p) - c.start;
+        double m = mult(e);
+        double auto = c.auto / 100.0;
+        if (c.auto > 0 && m >= auto && auto < c.point) {
+            cashout(p, c, auto); // ровно на заданном множителе
+            return;
+        }
+        if (m >= c.point) {
             CRASH.remove(p.getUuid());
-            payout(p, c.bet(), 0);
+            payout(p, c.bet, 0, "в краше");
+            remember(p, c.point);
             NbtCompound n = new NbtCompound();
-            n.putDouble("point", c.point());
+            n.putDouble("point", c.point);
+            n.putIntArray("hist", history(p));
             LifeNet.send(p, "crash_end", n);
+            return;
+        }
+        if (e % 4 == 0) {
+            NbtCompound n = new NbtCompound();
+            n.putLong("e", e);
+            LifeNet.send(p, "crash_sync", n);
         }
     }
 
@@ -177,25 +252,14 @@ public final class OnlineCasino {
         boolean won = p.getRandom().nextInt(100) < 49; // 2% — заведению
         boolean landedHeads = won == heads;
         int win = won ? bet * 2 : 0;
-        payout(p, bet, win);
+        payout(p, bet, win, "в монетку");
         NbtCompound n = new NbtCompound();
         n.putBoolean("heads", landedHeads);
         n.putInt("win", win);
         LifeNet.send(p, "coin_result", n);
     }
 
-    private static void payout(ServerPlayerEntity p, int bet, int win) {
-        LifeData d = Life.get(p);
-        d.money += win;
-        if (win > bet) {
-            d.casinoWon += win - bet;
-            Life.sound(p, ModContent.CASH, 1f);
-            d.mood = Math.min(100, d.mood + 3);
-        } else if (win < bet) {
-            d.casinoLost += bet - win;
-            d.mood = Math.max(0, d.mood - 2);
-        }
-        if (win >= bet * 10) Achievements.give(p, "jackpot");
-        Life.sync(p);
+    private static void payout(ServerPlayerEntity p, int bet, int win, String where) {
+        CasinoGames.settle(p, bet, win, where);
     }
 }

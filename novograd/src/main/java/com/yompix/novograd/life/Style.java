@@ -64,7 +64,7 @@ public final class Style {
     private record Session(String kind, Vec3d pos, long time) {}
 
     private static final Map<UUID, Session> SESSION = new HashMap<>();
-    private static final Map<UUID, Long> GYM_START = new HashMap<>(), GYM_LAST = new HashMap<>();
+    private static final Map<UUID, Long> GYM_START = new HashMap<>(), GYM_LAST = new HashMap<>(), GYM_REAL = new HashMap<>();
     private static final Map<UUID, Boolean> SPRINT = new HashMap<>();
     private static final Identifier STR_ID = Novograd.id("gym_strength"), STA_ID = Novograd.id("gym_stamina"), FALL_ID = Novograd.id("gym_fall");
 
@@ -291,15 +291,19 @@ public final class Style {
                 : left <= 0 ? "На сегодня хватит: мышцам нужен отдых. Приходи завтра"
                 : now - GYM_LAST.getOrDefault(p.getUuid(), -10000L) < 100 ? "Передохни полминуты между подходами" : "";
         n.putString("deny", why);
-        if (why.isEmpty()) GYM_START.put(p.getUuid(), now);
+        if (why.isEmpty()) {
+            GYM_START.put(p.getUuid(), now);
+            GYM_REAL.put(p.getUuid(), System.currentTimeMillis());
+        }
         send(p, "gym_start", n);
     }
 
     private static void gymResult(ServerPlayerEntity p, String ex, int score) {
-        Long start = GYM_START.remove(p.getUuid());
-        if (start == null || !at(p, "gym")) return;
+        Long start = GYM_START.remove(p.getUuid()), real = GYM_REAL.remove(p.getUuid());
+        if (start == null || real == null || !at(p, "gym")) return;
         long now = p.getServerWorld().getTime();
-        if (now - start < 20 * 6) return; // подход не бывает короче шести секунд
+        // подход не бывает короче шести секунд (по часам: сервер под нагрузкой может тикать медленнее)
+        if (System.currentTimeMillis() - real < 5500 && now - start < 20 * 6) return;
         GYM_LAST.put(p.getUuid(), now);
         LifeData d = Life.get(p);
         newDay(p, d);
@@ -326,8 +330,6 @@ public final class Style {
         n.putInt("value", str ? d.strength : d.stamina);
         send(p, "gym_result", n);
         if (gain > 0) {
-            com.yompix.novograd.gta.Activities.title(p, str ? "СИЛА +" + gain : "ВЫНОСЛИВОСТЬ +" + gain,
-                    (str ? "Сила " + d.strength : "Выносливость " + d.stamina) + " / " + StyleCatalog.STAT_MAX);
             p.getServerWorld().playSound(null, p.getBlockPos(), ModContent.LEVEL_UP, SoundCategory.PLAYERS, 0.6f, 1.1f);
         }
         if (d.strength >= 50 && d.stamina >= 50) Achievements.give(p, "athlete");

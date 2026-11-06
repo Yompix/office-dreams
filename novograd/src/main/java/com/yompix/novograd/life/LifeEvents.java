@@ -40,12 +40,14 @@ public final class LifeEvents {
                         ? net.minecraft.util.ActionResult.SUCCESS : net.minecraft.util.ActionResult.PASS);
         ServerTickEvents.END_SERVER_TICK.register(LifeEvents::tick);
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Activities::tick);
+        ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Heists::tick);
         ServerTickEvents.END_SERVER_TICK.register(s -> s.getPlayerManager().getPlayerList().forEach(p -> {
             com.yompix.novograd.story.Story.tick(p);
             OnlineCasino.tick(p);
         }));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> com.yompix.novograd.story.Story.onLeave(handler.player));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> com.yompix.novograd.gta.Activities.onLeave(handler.player));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> com.yompix.novograd.gta.Heists.onLeave(handler.player));
     }
 
     private static void onJoin(ServerPlayerEntity p) {

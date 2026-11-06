@@ -233,6 +233,7 @@ public final class Wanted {
         LifeNet.send(p, "gta_title", n);
         Life.sync(p);
         if (!Life.get(p).flags.contains("scripted_bust")) com.yompix.novograd.story.Story.failMission(p, "Тебя задержали");
+        Heists.onDownfall(p);
     }
 
     /** Погиб: больница, счёт за лечение. */
@@ -250,5 +251,6 @@ public final class Wanted {
         LifeNet.send(p, "gta_title", n);
         Life.sync(p);
         com.yompix.novograd.story.Story.failMission(p, "Ты погиб");
+        Heists.onDownfall(p);
     }
 }

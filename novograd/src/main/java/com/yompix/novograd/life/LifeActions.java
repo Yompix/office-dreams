@@ -122,8 +122,7 @@ public final class LifeActions {
         switch (c.getRole()) {
             case TEACHER -> {}
             case SHOPKEEPER -> Shop.open(p, false);
-            case CROUPIER -> openCasino(p, "slots");
-            case DEALER -> openCasino(p, "roulette");
+            case CROUPIER, DEALER -> openCasino(p, "hall"); // игровой стол: выбор игры
             case BANKER -> LifeNet.send(p, "open_phone", Jobs.app("bank"));
             case GUNSMITH -> Shop.openGuns(p);
             case MECHANIC -> com.yompix.novograd.gta.Garage.open(p);

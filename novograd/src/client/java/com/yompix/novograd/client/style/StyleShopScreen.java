@@ -89,6 +89,7 @@ public class StyleShopScreen extends LifeScreen {
     private static Appearance real() {
         Appearance a = d().look.copy();
         a.custom = true;
+        if (mc().currentScreen instanceof StyleShopScreen s && s.barber()) a.hat = ""; // у цирюльника шапку снимают
         return a;
     }
 
@@ -454,13 +455,13 @@ public class StyleShopScreen extends LifeScreen {
         ctx.fill(x, y + h - 1, x + w, y + h, Ui.alpha(acc, 0.6f));
         // герой
         if (!dragging && System.currentTimeMillis() - idleSince > 2500) yaw += 0.35f;
-        float size = Math.min(h * 0.40f, w * 0.75f);
+        float size = Math.min(h * 0.34f, w * 0.6f);
         ctx.enableScissor(x, y, x + w, y + h);
         hero(ctx, cx, floorY, size, yaw);
         ctx.disableScissor();
         if (kind.equals("wardrobe")) {
             boolean mcSkin = !d().look.custom;
-            button(ctx, x + 6, y + 6, w - 12, 13, mcSkin ? "Скин Minecraft: ВКЛ" : "Скин Minecraft: ВЫКЛ", 0xFF7E57C2, true, () -> {
+            button(ctx, x + 6, y + 6, w - 12, 13, mcSkin ? "Свой скин Minecraft: ДА" : "Свой скин Minecraft: НЕТ", 0xFF7E57C2, true, () -> {
                 NbtCompound n = new NbtCompound();
                 n.putBoolean("custom", mcSkin);
                 StyleClient.send("vanilla_skin", n);
@@ -492,7 +493,17 @@ public class StyleShopScreen extends LifeScreen {
         Quaternionf q2 = new Quaternionf().rotateX(6 * MathHelper.RADIANS_PER_DEGREE);
         q.mul(q2);
         float scale = e.getScale();
+        // на витрине — без оружия в руках: на кадр выбираем пустую ячейку хотбара
+        int slot = -1;
+        if (e instanceof net.minecraft.entity.player.PlayerEntity pl) {
+            slot = pl.getInventory().selectedSlot;
+            for (int i = 0; i < 9; i++) if (pl.getInventory().getStack(i).isEmpty()) {
+                pl.getInventory().selectedSlot = i;
+                break;
+            }
+        }
         InventoryScreen.drawEntity(ctx, cx, floorY - size * 0.9f, size / scale, new Vector3f(0, e.getHeight() / 2f, 0), q, q2, e);
+        if (slot >= 0) ((net.minecraft.entity.player.PlayerEntity) e).getInventory().selectedSlot = slot;
         e.bodyYaw = saveBody;
         e.prevBodyYaw = savePrevBody;
         e.setYaw(saveYaw);
