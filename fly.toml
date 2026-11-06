@@ -1,0 +1,30 @@
+# Free/cheap self-hosting for Office Dreams (Fly.io or any Docker host).
+# The whole game + the airdrop wallet key live in one SQLite file on the volume,
+# so the volume MUST be persistent and the machine MUST stay always-on.
+app = "office-dreams"
+primary_region = "waw"   # Warsaw — close to Ukraine; change if you like
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  DB_PATH = "data/officedreams.sqlite"
+
+[mounts]
+  source = "od_data"          # persistent volume → holds the database
+  destination = "/app/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false  # never sleep: the bot + giveaway/market timers must keep running
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "get"
+    path = "/healthz"
