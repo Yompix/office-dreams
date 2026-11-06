@@ -46,6 +46,60 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("story")) {
+            YompixSplash.markShown();
+            for (int i = 0; i < 6; i++) shot(100, "s_" + i);
+            for (int i = 0; i < 10; i++) { key(40, GLFW.GLFW_KEY_SPACE); shot(10, "s_k" + i); }
+            server(5, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                com.yompix.novograd.Novograd.LOG.info("[story] chapter {} mission {} step {} started {}", d.chapter, d.mission, d.step, d.storyStarted);
+            });
+            run(5, c -> c.setScreen(null));
+            run(5, c -> NovogradClient.send("side_list"));
+            shot(30, "s_missions");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("side")) {
+            YompixSplash.markShown();
+            server(150, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var d = Life.get(p);
+                d.storyStarted = true;
+                d.storyDone = true;
+                d.age = 22;
+                d.edu = 16;
+                Story.applyAge(p, 22);
+                com.yompix.novograd.story.SideMissions.start(p, "race01");
+            });
+            for (int i = 0; i < 3; i++) key(30, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            shot(40, "side_race");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var d = Life.get(p);
+                com.yompix.novograd.Novograd.LOG.info("[side] active {} step {}", d.side, d.sideStep);
+                com.yompix.novograd.story.SideMissions.cancel(p);
+                com.yompix.novograd.story.SideMissions.start(p, "turf01");
+            });
+            for (int i = 0; i < 3; i++) key(30, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var d = Life.get(p);
+                var t = Story.place(p.getServerWorld(), ((com.google.gson.JsonObject) com.yompix.novograd.story.SideMissions.get("turf01").getAsJsonArray("steps").get(1)).get("place").getAsString());
+                p.teleport(p.getServerWorld(), t.x, t.y, t.z, 0, 10);
+                com.yompix.novograd.Novograd.LOG.info("[side] turf at {} step {}", t, d.sideStep);
+            });
+            shot(60, "side_turf");
+            server(5, s -> {
+                var d = Life.get(s.getPlayerManager().getPlayer(P));
+                com.yompix.novograd.Novograd.LOG.info("[side] after goto: {} step {} count {}", d.side, d.sideStep, d.stepCount);
+            });
+            shot(80, "side_turf2");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("tour")) {
             YompixSplash.markShown();
             server(150, s -> {

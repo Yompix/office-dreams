@@ -71,12 +71,12 @@ public final class Island {
         return Zone.COUNTRY;
     }
 
-    static boolean urban(Zone z) {
+    public static boolean urban(Zone z) {
         return z == Zone.DOWNTOWN || z == Zone.INDUSTRIAL || z == Zone.SUBURB;
     }
 
     /** Расстояние до ближайшей линии сетки улиц (24 mod 48). */
-    private static int gridDist(int t) {
+    public static int gridDist(int t) {
         int m = Math.floorMod(t - 24, 48);
         return Math.min(m, 48 - m);
     }
@@ -502,6 +502,67 @@ public final class Island {
                 return zn == Zone.DOWNTOWN ? 0xFF7FA3C8 : zn == Zone.INDUSTRIAL ? 0xFF8C7A62 : 0xFF8DB86A;
             }
         }
+    }
+
+    /** Точки сюжета на острове: x, z, yaw (y — по земле). Улицы на линиях ≡ 24 (mod 48), тротуары — ±5 от них. */
+    private static final java.util.Map<String, double[]> PLACES = new java.util.HashMap<>();
+
+    static {
+        // гонки: старт на северной трассе, круг по кольцу
+        put("race_start", 120, -744, 270);
+        put("race_1", 420, -744, 270);
+        put("race_2", 744, -600, 0);
+        put("race_3", 744, -200, 0);
+        put("race_4", 744, 24, 0);
+        put("race_5", 400, 24, 90);
+        put("race_finish", 168, 24, 90);
+        // второй заезд: по деловому центру
+        put("dt_1", 216, -168, 270);
+        put("dt_2", 504, -168, 270);
+        put("dt_3", 504, -504, 180);
+        put("dt_4", 216, -504, 90);
+        put("dt_5", 216, -264, 0);
+        // места
+        put("downtown_plaza", 432, -413, 180);
+        put("bank_tower", 480, -317, 180);
+        put("gang_hq", 432, 451, 180);
+        put("gang_yard", 432, 432, 180);
+        put("port_dock", -640, 10, 90);
+        put("port_gate", -560, 24, 90);
+        put("port_warehouse", -585, -60, 90);
+        put("beach_bar", -610, -300, 90);
+        put("hill_top", -200, -870, 0);
+        put("airfield", 600, -905, 270);
+        put("airfield_hangar", 460, -870, 0);
+        put("suburb_safehouse", -312, 269, 180);
+        put("industry_street", 408, 300, 180);
+        put("hw_north", 24, -700, 0);
+        put("hw_west", -552, -300, 0);
+        // камеры кат-сцен
+        cam("cam_island_far", 260, 160, 260, 135, 38);
+        cam("cam_dt_a", 300, 70, -120, 210, 18);
+        cam("cam_dt_b", 456, 4, -330, 180, -6);
+        cam("cam_port_a", -480, 34, 70, 100, 18);
+        cam("cam_port_b", -590, 8, 30, 80, 4);
+        cam("cam_ind_a", 360, 42, 320, 210, 28);
+        cam("cam_ind_b", 432, 5, 470, 180, 2);
+        cam("cam_air_a", 520, 30, -840, 110, 14);
+    }
+
+    private static void put(String name, double x, double z, float yaw) {
+        PLACES.put(name, new double[]{x + 0.5, 0, z + 0.5, yaw, 0});
+    }
+
+    /** Камера для кат-сцен: высота над землёй и наклон. */
+    private static void cam(String name, double x, double up, double z, float yaw, float pitch) {
+        PLACES.put(name, new double[]{x + 0.5, up, z + 0.5, yaw, pitch});
+    }
+
+    /** Точка сюжета (или null). y — по поверхности острова. */
+    public static double[] place(String name) {
+        double[] v = PLACES.get(name);
+        if (v == null) return null;
+        return new double[]{v[0], surface((int) Math.floor(v[0]), (int) Math.floor(v[2])) + 1 + v[1], v[2], v[3], v[4]};
     }
 
     /** Подписи районов на карте и точки для сюжета. */

@@ -42,7 +42,7 @@ public class PhoneScreen extends LifeScreen {
             new App("casino", "Казино", 0xFF8E1B3A), new App("music", "Музыка", 0xFFFF375F), new App("camera", "Камера", 0xFF4B4F58),
             new App("weather", "Погода", 0xFF64B5F6), new App("story", "Сюжет", 0xFFFFB300), new App("trophy", "Награды", 0xFFC99A2E),
             new App("home", "Дом", 0xFFA0785A),
-            new App("taxi", "Такси", 0xFFF7C600), new App("friends", "Друзья", 0xFF7E57C2));
+            new App("taxi", "Такси", 0xFFF7C600), new App("friends", "Друзья", 0xFF7E57C2), new App("missions", "Задания", 0xFFD32F2F));
 
     private static final String[][] DISCS = {{"cat", "C418 — cat"}, {"chirp", "C418 — chirp"}, {"mall", "C418 — mall"}, {"mellohi", "C418 — mellohi"},
             {"stal", "C418 — stal"}, {"strad", "C418 — strad"}, {"wait", "C418 — wait"}, {"pigstep", "Lena Raine — Pigstep"},
@@ -88,6 +88,11 @@ public class PhoneScreen extends LifeScreen {
     private boolean opened;
 
     private void openApp(@Nullable String id) {
+        if ("missions".equals(id)) {
+            // список побочных миссий — отдельный экран, данные приходят с сервера
+            NovogradClient.send("side_list");
+            return;
+        }
         app = id;
         appOpenedAt = System.currentTimeMillis();
         scroll = 0;

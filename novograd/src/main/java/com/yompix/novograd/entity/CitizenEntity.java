@@ -203,7 +203,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     /**
      * Имя и пол совпадают. Случайное имя («Егор Козлов») меняем под внешность;
-     * заданное («Продавец Зина», «Сергей Олегович») — оставляем, а внешность подбираем под имя.
+     * заданное («Продавщица Сьюзи», «Мистер Стив») — оставляем, а внешность подбираем под имя.
      */
     private String matchGender(String name) {
         boolean female = isSlim(getSkin());
@@ -763,7 +763,16 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     // ------------------------------------------------------------------ бой и паника
     @org.jetbrains.annotations.Nullable private net.minecraft.entity.LivingEntity foe;
     private int fleeTicks, shootCooldown;
-    private boolean tempCop;
+    private boolean tempCop, ambient;
+
+    /** Прохожий «фоновой» жизни острова: исчезает, когда игрок далеко. */
+    public void setAmbient(boolean a) {
+        ambient = a;
+    }
+
+    public boolean isAmbient() {
+        return ambient;
+    }
 
     /** Полиция подкрепления исчезает, когда розыск снят. */
     public void removeWhenIdle() {
@@ -898,6 +907,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         nbt.putBoolean("Stationary", stationary);
         nbt.putString("StoryId", storyId);
         nbt.putString("Home", home);
+        nbt.putBoolean("Ambient", ambient);
         nbt.putBoolean("Hidden", hidden);
         nbt.putBoolean("Asleep", asleep());
     }
@@ -914,6 +924,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         stationary = nbt.getBoolean("Stationary");
         storyId = nbt.getString("StoryId");
         home = nbt.getString("Home");
+        ambient = nbt.getBoolean("Ambient");
         hidden = nbt.getBoolean("Hidden");
         if (nbt.getBoolean("Asleep")) dataTracker.set(ACTIVITY, Activity.SLEEP.ordinal());
         // жители из старых версий: имя и внешность по полу

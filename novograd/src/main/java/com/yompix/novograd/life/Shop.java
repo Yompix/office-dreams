@@ -65,7 +65,7 @@ public final class Shop {
     /** Оружейный «Калибр»: только оружие, только взрослым и только в магазине (не доставкой). */
     public static void openGuns(ServerPlayerEntity p) {
         if (!Life.get(p).adult()) {
-            p.sendMessage(Text.literal("Оружейник Борис: «Тебе сколько лет? Иди уроки делай.»").formatted(Formatting.GOLD), false);
+            p.sendMessage(Text.literal("Оружейник Боб: «Тебе сколько лет? Иди уроки делай.»").formatted(Formatting.GOLD), false);
             return;
         }
         AT_GUNSHOP.put(p.getUuid(), p.getServerWorld().getTime());

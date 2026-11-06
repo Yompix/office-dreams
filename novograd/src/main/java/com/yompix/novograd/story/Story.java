@@ -56,6 +56,7 @@ public final class Story {
         int ticks, timer, countdown = -1, rivalIndex, violations;
         boolean waitingDialog, dialogSent, started, ready;
         Vec3d lastCarPos;
+        java.util.UUID target;
         int lastStep = -1;
     }
 
@@ -84,6 +85,7 @@ public final class Story {
 
     @Nullable
     static JsonObject mission(LifeData d) {
+        if (!d.side.isEmpty()) return SideMissions.get(d.side);
         JsonObject c = chapter(d);
         if (c == null) return null;
         JsonArray ms = c.getAsJsonArray("missions");
@@ -95,7 +97,8 @@ public final class Story {
         JsonObject m = mission(d);
         if (m == null) return null;
         JsonArray ss = m.getAsJsonArray("steps");
-        return d.step < ss.size() ? ss.get(d.step).getAsJsonObject() : null;
+        int i = d.side.isEmpty() ? d.step : d.sideStep;
+        return i < ss.size() ? ss.get(i).getAsJsonObject() : null;
     }
 
     static String str(JsonObject o, String k, String def) {
@@ -112,7 +115,7 @@ public final class Story {
 
     public static boolean active(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
-        return d.storyStarted && !d.storyDone;
+        return d.storyStarted && !d.storyDone || !d.side.isEmpty();
     }
 
     // ------------------------------------------------------------------------------------ старт и вход в шаг
@@ -209,7 +212,8 @@ public final class Story {
         return !d.flags.contains("entered:" + stepKey(d));
     }
 
-    static int stepKey(LifeData d) {
+    public static int stepKey(LifeData d) {
+        if (!d.side.isEmpty()) return 50_000_000 + Math.floorMod(d.side.hashCode(), 1_000_000) * 10 + d.sideStep;
         return d.chapter * 10000 + d.mission * 100 + d.step;
     }
 
@@ -240,6 +244,10 @@ public final class Story {
     /** Шаг выполнен — следующий. */
     public static void advance(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
+        if (!d.side.isEmpty()) {
+            SideMissions.advance(p, d);
+            return;
+        }
         JsonObject m = mission(d);
         d.flags.remove("entered:" + stepKey(d));
         d.step++;
@@ -520,13 +528,27 @@ public final class Story {
     // ------------------------------------------------------------------------------------ места, возраст, кат-сцены
     @Nullable
     public static Vec3d place(ServerWorld w, String name) {
+        if (name.startsWith("@")) {
+            // точка прямо координатами: «@x,z» (для побочных миссий по всему острову)
+            String[] xz = name.substring(1).split(",");
+            int x = Integer.parseInt(xz[0].trim()), z = Integer.parseInt(xz[1].trim());
+            return new Vec3d(x + 0.5, com.yompix.novograd.world.Island.surface(x, z) + 1, z + 0.5);
+        }
         double[] v = TownState.get(w).place(name);
+        if (v == null) v = com.yompix.novograd.world.Island.place(name);
         return v == null ? null : new Vec3d(v[0], v[1], v[2]);
     }
 
     public static float placeYaw(ServerWorld w, String name) {
         double[] v = TownState.get(w).place(name);
+        if (v == null) v = com.yompix.novograd.world.Island.place(name);
         return v == null ? 0 : (float) v[3];
+    }
+
+    /** Начать текущий шаг заново (проиграл гонку, упустил беглеца). */
+    public static void reenter(ServerPlayerEntity p) {
+        LifeData d = Life.get(p);
+        enter(p, d, false);
     }
 
     /** Безопасная точка на земле рядом с местом. */

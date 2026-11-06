@@ -95,6 +95,9 @@ public final class LifeNet {
             case "photo" -> Achievements.give(p, "photo");
             case "slots" -> Casino.spin(p, d.getInt("bet"));
             case "roulette" -> Casino.roulette(p, d.getInt("bet"), d.getString("kind"), d.getInt("number"));
+            case "side_list" -> com.yompix.novograd.story.SideMissions.sendList(p);
+            case "side_start" -> com.yompix.novograd.story.SideMissions.start(p, d.getString("id"));
+            case "side_cancel" -> com.yompix.novograd.story.SideMissions.cancel(p);
             case "garage" -> com.yompix.novograd.gta.Garage.action(p, d.getString("action"), d.getInt("value"));
             case "nitro" -> {
                 if (p.getVehicle() instanceof CarEntity car && car.getControllingPassenger() == p && !car.fireNitro())

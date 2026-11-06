@@ -100,6 +100,7 @@ public final class LifeEvents {
         SideQuests.tick(server, server.getTicks() / 20);
         com.yompix.novograd.gta.Wanted.tick(server);
         com.yompix.novograd.gta.Population.tick(server);
+        com.yompix.novograd.gta.Streets.tick(server);
         Police.tick(server);
         int second = server.getTicks() / 20;
         String today = CityLife.event(world);

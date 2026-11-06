@@ -37,6 +37,9 @@ public class LifeData {
     public boolean storyStarted, storyDone;
     public int chapter, mission, step, stepCount;
     public java.util.Set<String> flags = new java.util.HashSet<>();
+    /** Побочная миссия, которая идёт сейчас (пусто — нет), и её шаг. */
+    public String side = "";
+    public int sideStep;
     public int prevMode = -1;       // режим игры до кат-сцены
     public long returnPos;
     public float returnYaw;
@@ -95,6 +98,8 @@ public class LifeData {
     public NbtCompound toNbt() {
         NbtCompound n = new NbtCompound();
         n.putInt("money", money);
+        n.putString("side", side);
+        n.putInt("sideStep", sideStep);
         n.putFloat("weight", weight);
         n.putInt("fitness", fitness);
         n.putInt("workouts", workouts);
@@ -147,6 +152,8 @@ public class LifeData {
     public static LifeData fromNbt(NbtCompound n) {
         LifeData d = new LifeData();
         if (n.contains("money")) d.money = n.getInt("money");
+        d.side = n.getString("side");
+        d.sideStep = n.getInt("sideStep");
         if (n.contains("weight")) d.weight = n.getFloat("weight");
         if (n.contains("fitness")) d.fitness = n.getInt("fitness");
         d.workouts = n.getInt("workouts");

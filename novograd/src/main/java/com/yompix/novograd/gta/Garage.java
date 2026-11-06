@@ -27,7 +27,7 @@ public final class Garage {
     public static void open(ServerPlayerEntity p) {
         CarEntity c = car(p);
         if (c == null) {
-            p.sendMessage(Text.literal("Механик Стас: «Загоняй машину в гараж — тогда поговорим»").formatted(Formatting.YELLOW), false);
+            p.sendMessage(Text.literal("Механик Стив: «Загоняй машину в гараж — тогда поговорим»").formatted(Formatting.YELLOW), false);
             return;
         }
         LifeNet.send(p, "open_garage", info(p, c));

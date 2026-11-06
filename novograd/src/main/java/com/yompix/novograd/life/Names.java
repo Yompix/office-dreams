@@ -9,11 +9,9 @@ import java.util.List;
 public final class Names {
     private Names() {}
 
-    private static final String[] MALE = {"Саша", "Дима", "Ваня", "Миша", "Петя", "Артём", "Егор", "Никита", "Илья", "Максим",
-            "Кирилл", "Паша", "Лёша", "Рома", "Денис", "Костя", "Витя", "Гоша"};
-    private static final String[] FEMALE = {"Маша", "Аня", "Катя", "Оля", "Лена", "Соня", "Даша", "Вика", "Полина", "Алина",
-            "Настя", "Юля", "Света", "Ира", "Женя", "Лиза", "Таня", "Вера"};
-    private static final String[] LAST = {"Иванов", "Смирнов", "Кузнецов", "Попов", "Волков", "Соколов", "Лебедев", "Козлов", "Новиков", "Морозов"};
+    private static final String[] MALE = {"Майк", "Джон", "Дэвид", "Крис", "Джейсон", "Райан", "Тайлер", "Брэндон", "Кевин", "Эрик", "Ник", "Алекс", "Сэм", "Дэнни", "Тони", "Билли", "Лиам", "Джонатан"};
+    private static final String[] FEMALE = {"Эмили", "Джессика", "Эшли", "Сара", "Хлоя", "Меган", "Кейт", "Лора", "Эмма", "Оливия", "Мия", "Эбби", "Холли", "Рэйчел", "Джулия", "Мэри", "Кэти", "Грейс"};
+    private static final String[] LAST = {"Смит", "Джонсон", "Браун", "Миллер", "Дэвис", "Уилсон", "Тейлор", "Андерсон", "Мур", "Кларк"};
     private static final List<String> MALE_L = Arrays.asList(MALE), FEMALE_L = Arrays.asList(FEMALE), LAST_L = Arrays.asList(LAST);
 
     public static String random(Random r) {
@@ -33,8 +31,8 @@ public final class Names {
         return random(r, female) + " " + LAST[r.nextInt(LAST.length)] + (female ? "а" : "");
     }
 
-    private static final List<String> FEMALE_EXTRA = Arrays.asList("Зина", "Анна", "Валя", "Мария", "Марья", "Ирина", "Нина", "Галина", "Ольга", "Татьяна", "Баба");
-    private static final List<String> MALE_EXTRA = Arrays.asList("Олег", "Гена", "Аркадий", "Сергей", "Стас", "Луиджи", "Пётр", "Петров", "Дед", "Семёныч");
+    private static final List<String> FEMALE_EXTRA = Arrays.asList("Зина", "Анна", "Валя", "Мария", "Марья", "Ирина", "Нина", "Галина", "Ольга", "Татьяна", "Баба", "Сьюзи", "Грейс", "Сара", "Бетти", "Нэнси");
+    private static final List<String> MALE_EXTRA = Arrays.asList("Олег", "Гена", "Аркадий", "Сергей", "Стас", "Луиджи", "Пётр", "Петров", "Дед", "Семёныч", "Стив", "Боб", "Джо", "Дэн", "Рэй", "Фрэнк", "Гарри", "Питерсон");
 
     /** Пол по имени (для жителей с заданными именами): true — женский, false — мужской, null — непонятно. */
     public static Boolean genderOf(String name) {
@@ -54,8 +52,6 @@ public final class Names {
             String p = parts[i];
             if (female && MALE_L.contains(p)) { parts[i] = FEMALE[k % FEMALE.length]; changed = true; }
             else if (!female && FEMALE_L.contains(p)) { parts[i] = MALE[k % MALE.length]; changed = true; }
-            else if (female && LAST_L.contains(p)) { parts[i] = p + "а"; changed = true; }
-            else if (!female && p.endsWith("а") && LAST_L.contains(p.substring(0, p.length() - 1))) { parts[i] = p.substring(0, p.length() - 1); changed = true; }
         }
         return changed ? String.join(" ", parts) : name;
     }

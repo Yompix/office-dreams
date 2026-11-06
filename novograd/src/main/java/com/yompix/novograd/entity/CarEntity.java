@@ -135,6 +135,16 @@ public class CarEntity extends Entity {
         return getVariant() == 5;
     }
 
+    private boolean ambient;
+
+    public void setAmbient(boolean a) {
+        ambient = a;
+    }
+
+    public boolean isAmbient() {
+        return ambient;
+    }
+
     public boolean isPolice() {
         return getVariant() == POLICE;
     }
@@ -700,6 +710,7 @@ public class CarEntity extends Entity {
         paint(nbt.getInt("Paint"));
         dataTracker.set(TUNE, nbt.getInt("Tune"));
         if (nbt.contains("Health")) dataTracker.set(HEALTH, nbt.getInt("Health"));
+        ambient = nbt.getBoolean("Ambient");
         owner = nbt.containsUuid("Owner") ? nbt.getUuid("Owner") : null;
     }
 
@@ -709,6 +720,7 @@ public class CarEntity extends Entity {
         nbt.putInt("Paint", dataTracker.get(PAINT));
         nbt.putInt("Tune", tune());
         nbt.putInt("Health", health());
+        nbt.putBoolean("Ambient", ambient);
         if (owner != null) nbt.putUuid("Owner", owner);
     }
 

@@ -80,7 +80,9 @@ final class StepLogic {
                 r.timer = 150;
             }
             case "credits" -> LifeNet.send(p, "credits", new NbtCompound());
-            default -> {}
+            default -> {
+                if (GtaSteps.handles(type(s))) GtaSteps.enter(p, d, r, s);
+            }
         }
     }
 
@@ -136,7 +138,9 @@ final class StepLogic {
             case "title" -> {
                 if (--r.timer <= 0) Story.advance(p);
             }
-            default -> {}
+            default -> {
+                if (GtaSteps.handles(type(s))) GtaSteps.tick(p, d, r, s);
+            }
         }
     }
 
@@ -276,6 +280,7 @@ final class StepLogic {
     @Nullable
     static Vec3d target(ServerPlayerEntity p, LifeData d, Story.Run r, JsonObject s) {
         ServerWorld w = p.getServerWorld();
+        if (GtaSteps.handles(type(s))) return GtaSteps.target(p, d, r, s);
         switch (type(s)) {
             case "goto":
                 return Story.place(w, Story.str(s, "place", ""));
@@ -329,6 +334,7 @@ final class StepLogic {
     }
 
     static String extra(ServerPlayerEntity p, LifeData d, Story.Run r, JsonObject s) {
+        if (GtaSteps.handles(type(s))) return GtaSteps.extra(p, d, r, s);
         return switch (type(s)) {
             case "collect" -> "Найдено " + d.stepCount + "/" + s.getAsJsonArray("clues").size();
             case "race" -> "Отметка " + Math.min(d.stepCount + 1, s.getAsJsonArray("points").size()) + "/" + s.getAsJsonArray("points").size();

@@ -26,6 +26,22 @@ import net.minecraft.world.World;
 public class MapScreen extends LifeScreen {
     private static final Identifier TEX = Novograd.id("dynamic/city_map");
     private static final int SIZE = 256;
+    /** Весь остров: 512×512, 4 блока на пиксель, от −1024 до +1024. */
+    private static final Identifier ISLAND = Novograd.id("dynamic/island_map");
+    private static NativeImageBackedTexture islandTex;
+
+    private static void bakeIsland() {
+        if (islandTex != null) return;
+        NativeImage img = new NativeImage(512, 512, false);
+        for (int pz = 0; pz < 512; pz++)
+            for (int px = 0; px < 512; px++) {
+                int argb = com.yompix.novograd.world.Island.mapColor(-1024 + px * 4 + 2, -1024 + pz * 4 + 2);
+                int abgr = 0xFF000000 | (argb & 0xFF) << 16 | (argb & 0xFF00) | (argb >> 16 & 0xFF);
+                img.setColor(px, pz, abgr);
+            }
+        islandTex = new NativeImageBackedTexture(img);
+        mc().getTextureManager().registerTexture(ISLAND, islandTex);
+    }
     private static NativeImageBackedTexture texture;
     private static int texX = Integer.MIN_VALUE, texZ;
     private double cx, cz;
@@ -44,7 +60,8 @@ public class MapScreen extends LifeScreen {
             cx = p.x;
             cz = p.z;
         }
-        bake((int) cx - SIZE / 2, (int) cz - SIZE / 2);
+        bake((int) mc().player.getX() - SIZE / 2, (int) mc().player.getZ() - SIZE / 2);
+        bakeIsland();
     }
 
     /** Рисуем карту в текстуру один раз (цвета карты Майнкрафта, с тенью по высоте). */
@@ -100,7 +117,14 @@ public class MapScreen extends LifeScreen {
         ctx.drawText(textRenderer, help, mapX + mapW - textRenderer.getWidth(help), 8, 0x88FFFFFF, false);
         ctx.fill(mapX - 1, mapY - 1, mapX + mapW + 1, mapY + mapH + 1, 0xFF3A3F55);
         ctx.enableScissor(mapX, mapY, mapX + mapW, mapY + mapH);
-        ctx.fill(mapX, mapY, mapX + mapW, mapY + mapH, 0xFF1E2A1E);
+        // весь остров (вода, районы, трасса), сверху — подробная карта вокруг игрока
+        ctx.fill(mapX, mapY, mapX + mapW, mapY + mapH, 0xFF1E5A8C);
+        int il = sx(-1024), it = sy(-1024), isz = (int) (2048 * zoom);
+        ctx.drawTexture(ISLAND, il, it, 0, 0, isz, isz, isz, isz);
+        for (String[] lab : com.yompix.novograd.world.Island.LABELS) {
+            int lx = sx(Integer.parseInt(lab[1])), ly = sy(Integer.parseInt(lab[2]));
+            ctx.drawText(textRenderer, lab[0], lx - textRenderer.getWidth(lab[0]) / 2, ly, 0xFFFFF3C4, true);
+        }
         // текстура карты
         int left = sx(texX), top = sy(texZ), size = (int) (SIZE * zoom);
         ctx.drawTexture(TEX, left, top, 0, 0, size, size, size, size);
@@ -245,7 +269,7 @@ public class MapScreen extends LifeScreen {
     @Override
     public boolean mouseScrolled(double mx, double my, double h, double v) {
         float old = zoom;
-        zoom = MathHelper.clamp(zoom * (v > 0 ? 1.2f : 1 / 1.2f), 0.6f, 6f);
+        zoom = MathHelper.clamp(zoom * (v > 0 ? 1.2f : 1 / 1.2f), 0.12f, 6f);
         // приближаем к курсору
         double wx = cx + (mx - mapX - mapW / 2f) / old, wz = cz + (my - mapY - mapH / 2f) / old;
         cx = wx - (mx - mapX - mapW / 2f) / zoom;

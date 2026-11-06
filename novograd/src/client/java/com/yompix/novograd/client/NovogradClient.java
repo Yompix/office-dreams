@@ -209,6 +209,7 @@ public class NovogradClient implements ClientModInitializer {
                 }
             }
             case "open_phone" -> client.setScreen(new PhoneScreen(n.getString("app")));
+            case "side_list" -> client.setScreen(new com.yompix.novograd.client.screen.MissionsScreen(n));
             case "open_garage" -> client.setScreen(new com.yompix.novograd.client.screen.GarageScreen(n));
             case "garage_info" -> {
                 if (client.currentScreen instanceof com.yompix.novograd.client.screen.GarageScreen g) g.update(n);

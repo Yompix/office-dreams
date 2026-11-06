@@ -290,7 +290,7 @@ public final class TownBuilder {
         int[][] rooms = {{-14, -6}, {-4, 4}, {6, 14}};
         b.fill(x1 + 1, 0, -5, x2 - 1, h - 2, -5, white);
         for (int x : new int[]{-5, 5}) b.fill(x, 0, z1 + 1, x, h - 2, -5, white);
-        String[] teachers = {"Марья Ивановна", "Анна Петровна", "Сергей Олегович"};
+        String[] teachers = {"Миссис Нэнси", "Миссис Анна", "Мистер Стив"};
         Random r0 = b.world.getRandom();
         for (int i = 0; i < rooms.length; i++) {
             int a = rooms[i][0], c = rooms[i][1], mid = (a + c) / 2;
@@ -382,8 +382,8 @@ public final class TownBuilder {
         b.set(1, 1, z2 + 1, Blocks.STONE_BUTTON.getDefaultState().with(net.minecraft.block.ButtonBlock.FACING, Direction.SOUTH));
         // кассы
         for (int x : new int[]{-6, -5, 5, 6}) b.set(x, 0, 1, ModContent.SHOP_COUNTER.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.SOUTH));
-        b.citizen(-5, 0, 0, 1, CitizenEntity.Role.SHOPKEEPER, true, "Продавец Зина", 180);
-        b.citizen(5, 0, 0, 1, CitizenEntity.Role.SHOPKEEPER, true, "Продавец Олег", 180);
+        b.citizen(-5, 0, 0, 1, CitizenEntity.Role.SHOPKEEPER, true, "Продавщица Сьюзи", 180);
+        b.citizen(5, 0, 0, 1, CitizenEntity.Role.SHOPKEEPER, true, "Продавец Майк", 180);
         // стеллажи и холодильники
         for (int z = -10; z <= -3; z += 3) {
             for (int x = x1 + 3; x <= x2 - 3; x++) {
@@ -483,7 +483,7 @@ public final class TownBuilder {
             int x = -15 + r.nextInt(31), z = -15 + r.nextInt(31);
             if (Math.abs(x) > 2 && Math.abs(z) > 2 && x * x + z * z > 40 && b.get(x, 0, z).isAir()) b.set(x, 0, z, flowers[r.nextInt(flowers.length)]);
         }
-        b.citizen(-7, 0, 4, 7, CitizenEntity.Role.CITIZEN, false, "Баба Валя", 0);
+        b.citizen(-7, 0, 4, 7, CitizenEntity.Role.CITIZEN, false, "Бабушка Бетти", 0);
         b.story(b.citizen(5, 0, 7, 6, CitizenEntity.Role.CITIZEN, true, "Лейтенант Петров", 0), "petrov");
         b.citizen(9, 0, 9, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0).randomizeBody(r, false);
         b.citizen(-9, 0, -9, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0).randomizeBody(r, true);
@@ -590,8 +590,8 @@ public final class TownBuilder {
         b.label(0, h + 2, z2, "💪 ФИТНЕС «АТЛАНТ»", Formatting.AQUA);
         b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.CYAN);
         b.mailbox(-8, 0, z2 + 2);
-        b.citizen(-4, 0, -2, CitizenEntity.RANDOM_FROM + 13, CitizenEntity.Role.CITIZEN, true, "Спортсмен Денис", 180).lockActivity(CitizenEntity.Activity.CHEER);
-        b.citizen(4, 0, -1, CitizenEntity.RANDOM_FROM + 22, CitizenEntity.Role.CITIZEN, true, "Йога Света", 0).lockActivity(CitizenEntity.Activity.THINK);
+        b.citizen(-4, 0, -2, CitizenEntity.RANDOM_FROM + 13, CitizenEntity.Role.CITIZEN, true, "Спортсмен Дэнни", 180).lockActivity(CitizenEntity.Activity.CHEER);
+        b.citizen(4, 0, -1, CitizenEntity.RANDOM_FROM + 22, CitizenEntity.Role.CITIZEN, true, "Йога Сара", 0).lockActivity(CitizenEntity.Activity.THINK);
         b.place("gym_door", 0, 0, 6, 180);
         b.place("gym_center", 0, 0, -3, 180);
     }
@@ -618,7 +618,7 @@ public final class TownBuilder {
         b.label(0, h + 2, z2, "🍕 ПИЦЦЕРИЯ «МАМА МИЯ»", Formatting.GOLD);
         b.neonLine(x1, x2, h, z2 + 1, NeonBlock.Color.ORANGE);
         b.mailbox(-10, 0, z2 + 2);
-        b.citizen(-2, 0, -7, CitizenEntity.RANDOM_FROM + 31, CitizenEntity.Role.SHOPKEEPER, true, "Пиццайоло Луиджи", 0);
+        b.citizen(-2, 0, -7, CitizenEntity.RANDOM_FROM + 31, CitizenEntity.Role.SHOPKEEPER, true, "Повар Тони", 0);
         // киоск «Жир-Бургер»
         int kx1 = 15, kx2 = 20;
         building(b, kx1, -3, kx2, 3, 4, Blocks.YELLOW_CONCRETE.getDefaultState(), Blocks.RED_CONCRETE.getDefaultState(), Blocks.RED_CONCRETE.getDefaultState());
@@ -655,7 +655,7 @@ public final class TownBuilder {
             b.set(x, 3, -14, Blocks.JUKEBOX.getDefaultState());
         }
         for (int z = -10; z <= -2; z++) b.set(13, 0, z, facing(ModContent.SHOP_COUNTER, Direction.WEST));
-        b.citizen(14, 0, -6, CitizenEntity.RANDOM_FROM + 9, CitizenEntity.Role.SHOPKEEPER, true, "Бармен Стас", 90);
+        b.citizen(14, 0, -6, CitizenEntity.RANDOM_FROM + 9, CitizenEntity.Role.SHOPKEEPER, true, "Бармен Рэй", 90);
         for (int y = 2; y <= 5; y += 3) {
             for (int x = x1 + 1; x <= x2 - 1; x++) b.set(x, y, z1 + 1, neon(ModContent.NEON, y == 2 ? NeonBlock.Color.PINK : NeonBlock.Color.CYAN, Direction.NORTH));
         }
@@ -730,8 +730,8 @@ public final class TownBuilder {
         lights(b, x1, z1, x2, z2, h - 1);
         b.label(0, h + 2, z2, "🚔 ПОЛИЦИЯ НОВОГРАДА", Formatting.BLUE);
         b.neonLine(x1, x2, h, z2 + 1, NeonBlock.Color.BLUE);
-        CitizenEntity c1 = b.citizen(-3, 0, -6, CitizenEntity.skinIndex("police"), CitizenEntity.Role.POLICE, true, "Дежурный Иван", 180);
-        CitizenEntity c2 = b.citizen(5, 0, 6, CitizenEntity.skinIndex("police"), CitizenEntity.Role.POLICE, true, "Патрульный Олег", 180);
+        CitizenEntity c1 = b.citizen(-3, 0, -6, CitizenEntity.skinIndex("police"), CitizenEntity.Role.POLICE, true, "Дежурный Джо", 180);
+        CitizenEntity c2 = b.citizen(5, 0, 6, CitizenEntity.skinIndex("police"), CitizenEntity.Role.POLICE, true, "Патрульный Дэн", 180);
         for (int i = 0; i < 2; i++) {
             CarEntity car = new CarEntity(ModContent.CAR, b.world);
             BlockPos p = b.pos(-8 + i * 16, 0, 11);
@@ -752,7 +752,7 @@ public final class TownBuilder {
         for (int x = -12; x <= 12; x += 4) if (Math.abs(x) > 2) b.bed(x, 0, -9, Direction.NORTH, Blocks.WHITE_BED);
         lights(b, x1, z1, x2, z2, h - 1);
         b.label(0, h + 2, z2, "✚ БОЛЬНИЦА", Formatting.RED);
-        b.citizen(4, 0, -3, CitizenEntity.RANDOM_FROM + 6, CitizenEntity.Role.CITIZEN, true, "Доктор Вера", 180);
+        b.citizen(4, 0, -3, CitizenEntity.RANDOM_FROM + 6, CitizenEntity.Role.CITIZEN, true, "Доктор Грейс", 180);
         b.place("hospital", 0, 0, 7, 180);
     }
 
@@ -766,7 +766,7 @@ public final class TownBuilder {
         lights(b, x1, z1, x2, z2, h - 1);
         b.label(0, h + 2, z2, "🔫 ОРУЖИЕ «КАЛИБР» 18+", Formatting.GOLD);
         b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.ORANGE);
-        b.citizen(0, 0, -4, CitizenEntity.RANDOM_FROM + 17, CitizenEntity.Role.GUNSMITH, true, "Оружейник Борис", 0);
+        b.citizen(0, 0, -4, CitizenEntity.RANDOM_FROM + 17, CitizenEntity.Role.GUNSMITH, true, "Оружейник Боб", 0);
         b.place("gunshop_door", 0, 0, 7, 180);
         // двор банды: граффити, бочки, старый диван
         int gz = -16;
@@ -795,7 +795,7 @@ public final class TownBuilder {
         lights(b, x1, z1, x2, z2, h - 1);
         b.label(0, h + 2, z2, "🔧 НИТРО-ГАРАЖ · тюнинг · покраска", Formatting.YELLOW);
         b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.YELLOW);
-        b.citizen(9, 0, -2, CitizenEntity.RANDOM_FROM + 25, CitizenEntity.Role.MECHANIC, true, "Механик Стас", 270);
+        b.citizen(9, 0, -2, CitizenEntity.RANDOM_FROM + 25, CitizenEntity.Role.MECHANIC, true, "Механик Стив", 270);
         b.place("garage_door", 0, 0, 7, 180);
         b.place("garage_bay", 0, 0, -4, 180);
     }
@@ -894,7 +894,7 @@ public final class TownBuilder {
         b.car(-10, -6, 30, 3);
         b.car(-5, -7, -30, 4);
         b.set(-13, 0, -2, ModContent.SHOP_COUNTER.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.EAST));
-        b.citizen(-14, 0, -2, 5, CitizenEntity.Role.SHOPKEEPER, true, "Автодилер Гена", -90);
+        b.citizen(-14, 0, -2, 5, CitizenEntity.Role.SHOPKEEPER, true, "Автодилер Фрэнк", -90);
         b.place("dealer_door", -8, 0, 5, 0);
         b.place("dealer_desk", -12, 0, -4, 0);
         b.place("drive_start", 8, 0, 0, 90);
@@ -968,7 +968,7 @@ public final class TownBuilder {
         b.set(11, 1, z2 - 1, Blocks.STONE_BUTTON.getDefaultState().with(net.minecraft.block.ButtonBlock.FACING, Direction.NORTH));
         for (int x = 10; x <= 14; x += 2) b.set(x, 0, z1 + 3, ModContent.ATM.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.SOUTH));
         b.set(15, 0, -4, ModContent.SHOP_COUNTER.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.WEST));
-        b.citizen(15, 0, -6, 5, CitizenEntity.Role.BANKER, true, "Банкир Аркадий", -90);
+        b.citizen(15, 0, -6, 5, CitizenEntity.Role.BANKER, true, "Банкир Гарри", -90);
         lights(b, bx1, z1 + 2, bx2, z2, 5);
         b.mailbox(16, 0, z2 + 2);
         b.label(12, 8, z2, "🏦 БАНК", Formatting.GREEN);
