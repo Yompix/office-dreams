@@ -123,7 +123,9 @@ public final class LifeNet {
                     p.getWorld().playSound(null, car.getBlockPos(), ModContent.CAR_HORN, SoundCategory.NEUTRAL, 1.2f, car.isTaxi() ? 1.1f : 1f);
                 }
             }
-            default -> Novograd.LOG.debug("Неизвестный пакет {}", type);
+            default -> {
+                if (!com.yompix.novograd.gta.FunHooks.handle(p, type, d)) Novograd.LOG.debug("Неизвестный пакет {}", type);
+            }
         }
     }
 

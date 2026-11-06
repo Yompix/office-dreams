@@ -23,26 +23,45 @@ import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
 /**
  * Клиент арсенала: колесо оружия (держи TAB), перезарядка (R пешком — в машине R листает радио),
- * прицел снайперки (присесть), счётчик патронов у панели, полёт гранат.
+ * стрельба (ЛКМ), прицел (ПКМ, у снайперки — оптика), осмотр (Y), подсказки у панели, полёт гранат.
  */
 public final class ArsenalClient {
     private ArsenalClient() {}
 
-    private static KeyBinding radioKey;
+    private static KeyBinding radioKey, inspectKey;
     private static boolean reloadWas, wheelWas;
     private static float zoom = 1f, prevZoom = 1f;
+    // стрельба: щелчок ЛКМ (из GunInputMixin), темп, предсказание магазина, прицел
+    private static boolean clicked, triggerWas, aimSent;
+    private static int sinceShot = 99, aimTicks, pending, lastStackMag = -1;
+    private static Item lastGun;
+
+    /** ЛКМ со стволом (MinecraftClient.doAttack): запомнить щелчок до ближайшего тика. */
+    public static void click() {
+        clicked = true;
+    }
+
+    /** Сколько тиков подряд зажата ПКМ со стволом. */
+    public static int aimHeldTicks() {
+        return aimTicks;
+    }
 
     public static void init() {
+        inspectKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.inspect", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_Y, "category.novograd"));
+        GunItem.renderProvider = com.yompix.novograd.client.gun.GunGeoRenderer::provider;
+        com.yompix.novograd.client.gun.GunWorldFx.init();
         EntityRendererRegistry.register(Arsenal.GRENADE_ENTITY, FlyingItemEntityRenderer::new);
         EntityRendererRegistry.register(Arsenal.MOLOTOV_ENTITY, FlyingItemEntityRenderer::new);
         ClientTickEvents.END_CLIENT_TICK.register(ArsenalClient::tick);
         HudRenderCallback.EVENT.register((ctx, t) -> hud(ctx, t.getTickDelta(false)));
+        HudRenderCallback.EVENT.register((ctx, t) -> com.yompix.novograd.client.gun.GunHud.render(ctx, t.getTickDelta(false)));
     }
 
     public static void send(String action, int value) {
@@ -81,11 +100,75 @@ public final class ArsenalClient {
         boolean tab = held(wheelKey());
         if (tab && !wheelWas && c.currentScreen == null && WeaponWheelScreen.hasWeapons(c.player)) c.setScreen(new WeaponWheelScreen());
         wheelWas = tab;
-        // прицел снайперки: присесть с винтовкой в руках
-        boolean scope = c.currentScreen == null && c.options.getPerspective() == Perspective.FIRST_PERSON && c.player.isSneaking()
-                && c.player.getMainHandStack().getItem() instanceof GunItem g && g.spec().scope();
-        zoom += ((scope ? 0.18f : 1f) - zoom) * 0.5f;
-        if (Math.abs(zoom - 1f) < 0.01f) zoom = 1f;
+        guns(c);
+        // зум в прицеле: у пистолета чуть-чуть, у «АК» сильнее, у снайперки — оптика
+        float target = 1f;
+        if (c.currentScreen == null && c.options.getPerspective() == Perspective.FIRST_PERSON && c.player.getMainHandStack().getItem() instanceof GunItem g
+                && GunFx.adsTarget && GunFx.reloadProgress(g) < 0)
+            target = GunFx.kind(g).zoomTarget();
+        zoom += (target - zoom) * (target < 0.5f ? 0.5f : 0.35f);
+        if (Math.abs(zoom - 1f) < 0.005f) zoom = 1f;
+    }
+
+    /** ЛКМ — огонь, ПКМ — прицел, Y — осмотр. Темп и патроны предсказываем, решает сервер. */
+    private static void guns(MinecraftClient c) {
+        var p = c.player;
+        ItemStack st = p.getMainHandStack();
+        boolean free = c.currentScreen == null && !p.isSpectator() && p.isAlive();
+        if (!(st.getItem() instanceof GunItem g)) {
+            clicked = false;
+            triggerWas = false;
+            aimTicks = 0;
+            GunFx.adsTarget = false;
+            if (aimSent) {
+                send("aim", 0);
+                aimSent = false;
+            }
+            lastGun = null;
+            return;
+        }
+        // магазин: сколько выстрелов ещё не подтвердил сервер
+        int m = g.mag(st);
+        if (g != lastGun) {
+            pending = 0;
+            lastStackMag = m;
+            lastGun = g;
+            sinceShot = 99;
+        }
+        if (m < lastStackMag) pending = Math.max(0, pending - (lastStackMag - m));
+        else if (m > lastStackMag) pending = 0;
+        lastStackMag = m;
+        int predicted = p.isCreative() ? Math.max(1, m) : m - pending;
+        GunFx.predictedMag = predicted;
+        // прицел
+        boolean aim = free && c.options.useKey.isPressed();
+        aimTicks = aim ? aimTicks + 1 : 0;
+        GunFx.adsTarget = aim;
+        if (aim) p.setSprinting(false);
+        if (aim != aimSent) {
+            send("aim", aim ? 1 : 0);
+            aimSent = aim;
+        }
+        // осмотр
+        if (free && inspectKey != null) while (inspectKey.wasPressed()) GunFx.inspect();
+        // спуск
+        sinceShot++;
+        boolean held = free && c.options.attackKey.isPressed();
+        boolean edge = clicked || held && !triggerWas;
+        boolean reloading = p.getItemCooldownManager().isCoolingDown(g);
+        if (free && !reloading && sinceShot >= g.spec().cooldown() && (edge || held && g.spec().auto())) {
+            if (predicted > 0) {
+                send("fire", GunFx.adsAmount() > 0.5f ? 1 : 0);
+                sinceShot = 0;
+                pending++;
+                GunFx.onShot(g);
+            } else if (edge) {
+                send("fire", 0); // пусто: сервер сам перезарядит или скажет «нет патронов»
+                sinceShot = 0;
+            }
+        }
+        clicked = false;
+        triggerWas = held;
     }
 
     /** Множитель поля зрения (вызывается из ArsenalFovMixin). */

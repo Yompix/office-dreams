@@ -143,8 +143,14 @@ public final class Activities {
 
     private static final Map<UUID, Job> JOBS = new HashMap<>();
 
+    /** Идёт подработка (такси / патруль). */
+    public static boolean busy(ServerPlayerEntity p) {
+        return JOBS.containsKey(p.getUuid());
+    }
+
     /** Клавиша J в машине: начать / закончить подработку. */
     public static void toggle(ServerPlayerEntity p) {
+        if (!JOBS.containsKey(p.getUuid()) && VehicleJobs.toggle(p)) return; // скорая, пожарные, пицца — gta/VehicleJobs
         Job j = JOBS.get(p.getUuid());
         if (j != null) {
             stop(p, "Подработка окончена.");
@@ -158,7 +164,7 @@ public final class Activities {
         if (car.isTaxi()) j.kind = "taxi";
         else if (car.isPolice()) j.kind = "vigilante";
         else {
-            p.sendMessage(Text.literal("Эта машина не подходит: нужно такси (жёлтое) или полицейская").formatted(Formatting.YELLOW), true);
+            p.sendMessage(Text.literal("Эта машина не подходит: такси, полиция, скорая, пожарная или мотоцикл/скутер (пицца)").formatted(Formatting.YELLOW), true);
             return;
         }
         JOBS.put(p.getUuid(), j);
@@ -276,6 +282,7 @@ public final class Activities {
                 c.removeLater(140);
                 int pay = 40 + j.timer / 20 + j.level * 10;
                 Life.earn(p, pay, "такси");
+                if (j.level % 5 == 0) Economy.shock(p.getServer(), "TAXI", 0.03, "таксисты возят без отдыха — выручка растёт");
                 title(p, "ПАССАЖИР ДОВЕЗЁН", "+$" + pay + " · заказ " + j.level);
                 j.level++;
                 Life.sync(p);

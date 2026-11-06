@@ -402,7 +402,7 @@ def reload_sounds():
 
 if __name__ == '__main__':
     atlas()
-    flash()
-    pistol(); smg(); shotgun(); rifle(); sniper(); knife(); grenade(); molotov()
+    # пистолет, ПП, дробовик, «АК», снайперка и вспышка теперь — tools/gen_gun_geo.py (GeckoLib, кости, анимации)
+    knife(); grenade(); molotov()
     reload_sounds()
     print('guns ok')

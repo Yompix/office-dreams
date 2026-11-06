@@ -59,6 +59,20 @@ public final class Arsenal {
     public static final SoundEvent SNIPER_SHOT = sound("sniper_shot");
     public static final SoundEvent RELOAD = sound("reload");
     public static final SoundEvent GUN_DRY = sound("gun_dry");
+    // детали перезарядки и отклик — играются у самого стрелка по кадрам анимации (client/gun)
+    public static final SoundEvent MAG_OUT = sound("gun_mag_out");
+    public static final SoundEvent MAG_IN = sound("gun_mag_in");
+    public static final SoundEvent SLIDE_BACK = sound("gun_slide_back");
+    public static final SoundEvent SLIDE_RELEASE = sound("gun_slide_release");
+    public static final SoundEvent BOLT_BACK = sound("gun_bolt_back");
+    public static final SoundEvent BOLT_FWD = sound("gun_bolt_fwd");
+    public static final SoundEvent SHELL_IN = sound("gun_shell_in");
+    public static final SoundEvent PUMP = sound("gun_pump");
+    public static final SoundEvent HANDLING = sound("gun_handling");
+    public static final SoundEvent HIT_MARKER = sound("hit_marker");
+    public static final SoundEvent HIT_KILL = sound("hit_kill");
+    public static final SoundEvent CASING = sound("casing");
+    public static final SoundEvent CASING_SHELL = sound("casing_shell");
     private static final java.util.Map<String, SoundEvent> RELOADS = new java.util.HashMap<>();
 
     static {
@@ -116,7 +130,75 @@ public final class Arsenal {
         return !s.isEmpty() && (s.getItem() instanceof GunItem || s.getItem() instanceof ThrowableItem || s.isOf(KNIFE) || s.isOf(ModContent.BAT));
     }
 
-    /** Клиент → сервер: «reload» (R пешком) и «wheel» (выбор в колесе оружия, value = слот инвентаря). */
+    /**
+     * Сервер → клиенты: выстрел (вспышка, трассеры, гильзы, искры; стрелку — хитмаркер).
+     * ends — концы лучей (x, y, z подряд), what — что задели: 0 мимо, 1 блок (биты 2..4 — грань), 2 существо; hit — 0/1 попал/2 убил.
+     */
+    public record ShotFx(int shooter, int kind, float fx, float fy, float fz, float[] ends, byte[] what, byte hit) implements CustomPayload {
+        public static final Id<ShotFx> ID = new Id<>(Novograd.id("shot_fx"));
+        public static final PacketCodec<RegistryByteBuf, ShotFx> CODEC = PacketCodec.of((v, buf) -> {
+            buf.writeVarInt(v.shooter);
+            buf.writeByte(v.kind);
+            buf.writeFloat(v.fx);
+            buf.writeFloat(v.fy);
+            buf.writeFloat(v.fz);
+            buf.writeVarInt(v.what.length);
+            for (int i = 0; i < v.what.length; i++) {
+                buf.writeFloat(v.ends[i * 3]);
+                buf.writeFloat(v.ends[i * 3 + 1]);
+                buf.writeFloat(v.ends[i * 3 + 2]);
+                buf.writeByte(v.what[i]);
+            }
+            buf.writeByte(v.hit);
+        }, buf -> {
+            int shooter = buf.readVarInt(), kind = buf.readByte();
+            float fx = buf.readFloat(), fy = buf.readFloat(), fz = buf.readFloat();
+            int n = Math.min(64, buf.readVarInt());
+            float[] ends = new float[n * 3];
+            byte[] what = new byte[n];
+            for (int i = 0; i < n; i++) {
+                ends[i * 3] = buf.readFloat();
+                ends[i * 3 + 1] = buf.readFloat();
+                ends[i * 3 + 2] = buf.readFloat();
+                what[i] = buf.readByte();
+            }
+            return new ShotFx(shooter, kind, fx, fy, fz, ends, what, buf.readByte());
+        });
+
+        @Override
+        public Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+    }
+
+    /** Сервер → клиенты: игрок entity целится (ПКМ) или опустил оружие — поза от третьего лица. */
+    public record AimS2C(int entity, boolean aiming) implements CustomPayload {
+        public static final Id<AimS2C> ID = new Id<>(Novograd.id("aim"));
+        public static final PacketCodec<RegistryByteBuf, AimS2C> CODEC = PacketCodec.tuple(
+                PacketCodecs.VAR_INT, AimS2C::entity, PacketCodecs.BOOL, AimS2C::aiming, AimS2C::new);
+
+        @Override
+        public Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+    }
+
+    /** Кто сейчас в прицеле (ПКМ) — кучнее стрельба. */
+    private static final java.util.Set<java.util.UUID> AIMING = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    public static boolean aiming(PlayerEntity p) {
+        return AIMING.contains(p.getUuid());
+    }
+
+    /** Разослать эффекты выстрела всем игрокам рядом (и самому стрелку). */
+    public static void sendShotFx(ServerWorld w, net.minecraft.entity.LivingEntity shooter, net.minecraft.util.math.Vec3d from, int kind,
+                                  float[] ends, byte[] what, byte hit) {
+        ShotFx fx = new ShotFx(shooter.getId(), kind, (float) from.x, (float) from.y, (float) from.z, ends, what, hit);
+        for (ServerPlayerEntity p : w.getPlayers())
+            if (p == shooter || p.squaredDistanceTo(shooter) < 160 * 160) ServerPlayNetworking.send(p, fx);
+    }
+
+    /** Клиент → сервер: «reload» (R пешком), «wheel» (колесо оружия, value = слот), «fire» (ЛКМ, value = 1 в прицеле), «aim» (0/1). */
     public record C2S(String action, int value) implements CustomPayload {
         public static final Id<C2S> ID = new Id<>(Novograd.id("arsenal"));
         public static final PacketCodec<RegistryByteBuf, C2S> CODEC = PacketCodec.tuple(
@@ -133,8 +215,14 @@ public final class Arsenal {
             for (Item i : List.of(KNIFE, SHOTGUN, RIFLE, SNIPER, GRENADE, MOLOTOV, ARMOR, MEDKIT)) e.add(i);
         });
         PayloadTypeRegistry.playC2S().register(C2S.ID, C2S.CODEC);
+        PayloadTypeRegistry.playS2C().register(ShotFx.ID, ShotFx.CODEC);
+        PayloadTypeRegistry.playS2C().register(AimS2C.ID, AimS2C.CODEC);
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((h, s) -> {
+            AIMING.remove(h.player.getUuid());
+            GunItem.forget(h.player.getUuid());
+        });
         ServerPlayNetworking.registerGlobalReceiver(C2S.ID, (payload, ctx) -> handle(ctx.player(), payload.action(), payload.value()));
-        // стрельба из машины: ПКМ по «своей» машине (прицел внутри кузова) не садит/не открывает её, а стреляет
+        // стрельба из машины: ПКМ (прицел) по «своей» машине не садит и не открывает её
         UseEntityCallback.EVENT.register((player, world, hand, entity, hit) ->
                 player.hasVehicle() && player.isConnectedThroughVehicle(entity) && isWeapon(player.getStackInHand(hand)) ? ActionResult.FAIL : ActionResult.PASS);
         ServerTickEvents.END_WORLD_TICK.register(Arsenal::pickups);
@@ -142,6 +230,17 @@ public final class Arsenal {
 
     private static void handle(ServerPlayerEntity p, String action, int value) {
         switch (action) {
+            case "fire" -> {
+                ItemStack s = p.getMainHandStack();
+                if (s.getItem() instanceof GunItem g && p.isAlive() && !p.isSpectator()) g.trigger(p, s, (value & 1) != 0);
+            }
+            case "aim" -> {
+                boolean on = value != 0 && p.getMainHandStack().getItem() instanceof GunItem;
+                if (on ? AIMING.add(p.getUuid()) : AIMING.remove(p.getUuid())) {
+                    AimS2C pkt = new AimS2C(p.getId(), on);
+                    for (ServerPlayerEntity o : net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(p)) ServerPlayNetworking.send(o, pkt);
+                }
+            }
             case "reload" -> {
                 ItemStack s = p.getMainHandStack();
                 if (s.getItem() instanceof GunItem g) g.reload(p.getServerWorld(), p, s, true);

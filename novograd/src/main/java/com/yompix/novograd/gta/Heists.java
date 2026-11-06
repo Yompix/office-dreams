@@ -164,9 +164,20 @@ public final class Heists {
         LifeNet.send(p, "act_timer", sec(-1));
     }
 
+    /** Идёт ограбление банка, бойня или погоня за инкассатором (у радара одна голубая метка). */
+    public static boolean busy(ServerPlayerEntity p) {
+        return HEISTS.containsKey(p.getUuid()) || RAMPAGE.containsKey(p.getUuid()) || TRUCK.containsKey(p.getUuid());
+    }
+
+    /** Касса этого продавца уже пуста (её забрали во время уличного события). */
+    public static void markRobbed(CitizenEntity clerk) {
+        ROBBED.put(clerk.getUuid(), clerk.getWorld().getTime());
+    }
+
     /** Погиб или задержан — сорвалось всё, что было в процессе. */
     public static void onDownfall(ServerPlayerEntity p, boolean busted) {
         Economy.onDownfall(p, busted);
+        FunHooks.onDownfall(p, busted); // уличные события, подработки, война банд
         if (HEISTS.containsKey(p.getUuid())) fail(p, "Деньги потеряны");
         if (RAMPAGE.containsKey(p.getUuid())) {
             RAMPAGE.remove(p.getUuid());

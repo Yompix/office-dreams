@@ -66,6 +66,20 @@ public class IslandChunkGenerator extends ChunkGenerator {
                     chunk.setBlockState(m, s, false);
                     ocean.trackUpdate(fx, y, fz, s);
                     surface.trackUpdate(fx, y, fz, s);
+                    // заборы, стёкла, перила и ступени соединятся с соседями, когда чанк достроится
+                    net.minecraft.block.Block b = s.getBlock();
+                    if (b instanceof net.minecraft.block.PaneBlock || b instanceof net.minecraft.block.FenceBlock
+                            || b instanceof net.minecraft.block.WallBlock || b instanceof net.minecraft.block.StairsBlock)
+                        chunk.markBlockForPostProcessing(m);
+                    // кровати, сундуки и т.п.: блок-сущность создастся при загрузке чанка (как у ванильных построек)
+                    if (s.hasBlockEntity()) {
+                        net.minecraft.nbt.NbtCompound be = new net.minecraft.nbt.NbtCompound();
+                        be.putInt("x", x);
+                        be.putInt("y", y);
+                        be.putInt("z", z);
+                        be.putString("id", "DUMMY");
+                        chunk.addPendingBlockEntityNbt(be);
+                    }
                 });
             }
         return CompletableFuture.completedFuture(chunk);

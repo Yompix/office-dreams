@@ -30,7 +30,7 @@ public final class Island {
     public enum Zone { SEA, BEACH, PORT, CORE, DOWNTOWN, INDUSTRIAL, SUBURB, COUNTRY, AIRFIELD, RIVIERA, VILLAGE }
 
     // ------------------------------------------------------------------ шум
-    private static double hash(long x, long z, long salt) {
+    static double hash(long x, long z, long salt) {
         long h = x * 0x9E3779B97F4A7C15L ^ z * 0xC2B2AE3D27D4EB4FL ^ salt * 0x165667B19E3779F9L;
         h ^= h >>> 31;
         h *= 0xBF58476D1CE4E5B9L;
@@ -145,6 +145,7 @@ public final class Island {
         Zone zn = zone(x, z);
         if (zn == Zone.SEA) return lake(x, z) > 0 ? G - 2 - (int) (lake(x, z) * 10) : G - 6;
         if (zn != Zone.COUNTRY) return G;
+        if (station(x, z) != null) return G; // площадка заправки ровная
         // холмы за городом: выше к северу, на крайнем севере — горы, у дорог — ровно
         double hills = noise(x, z, 140, 11) * 0.7 + noise(x, z, 45, 12) * 0.3;
         double north = Math.max(0, Math.min(1, (-z - 560) / 300.0));
@@ -212,6 +213,14 @@ public final class Island {
             highway(x, z, s, hw, c);
             return;
         }
+        if (zn == Zone.COUNTRY) {
+            int[] st = station(x, z);
+            if (st != null) {
+                gasStation(st[0], st[1], st[2], s, c);
+                return;
+            }
+            if (!desert || s <= G + 15) if (roadBillboard(x, z, s, c)) return;
+        }
         switch (zn) {
             case DOWNTOWN, INDUSTRIAL, SUBURB, RIVIERA, VILLAGE -> city(x, z, s, zn, c);
             case PORT -> port(x, z, s, c);
@@ -237,6 +246,10 @@ public final class Island {
             else if (d == 4 && Math.floorMod(t, 6) < 3) c.set(s, Blocks.WHITE_CONCRETE.getDefaultState());
             if (d == 7) c.set(s + 1, Blocks.POLISHED_ANDESITE_SLAB.getDefaultState()); // отбойник-бордюр
         } else {
+            if (station(x, z) != null) { // съезд на заправку
+                c.set(s, asphalt);
+                return;
+            }
             c.set(s, Blocks.COARSE_DIRT.getDefaultState());
             boolean alongZ = isAlongZ(x, z);
             int t = alongZ ? z : x;
@@ -322,11 +335,14 @@ public final class Island {
         // участок: координаты внутри (-17..17) и «номер» участка для случайностей
         int lx = Math.floorMod(x + 24, 48) - 24, lz = Math.floorMod(z + 24, 48) - 24;
         long px = Math.floorDiv(x + 24, 48), pz = Math.floorDiv(z + 24, 48);
+        // район участка — по его центру, иначе на границе районов здание режется пополам (полоска небоскрёба в пригороде)
+        Zone lotZone = zone((int) px * 48, (int) pz * 48);
+        if (urban(lotZone)) zn = lotZone;
         switch (zn) {
-            case DOWNTOWN -> tower(lx, lz, px, pz, s, c);
-            case RIVIERA -> resort(lx, lz, px, pz, s, c);
-            case INDUSTRIAL -> industry(lx, lz, px, pz, s, c);
-            default -> suburb(lx, lz, px, pz, s, c);
+            case DOWNTOWN -> Buildings.tower(lx, lz, px, pz, s, c);
+            case RIVIERA -> Buildings.resort(lx, lz, px, pz, s, c);
+            case INDUSTRIAL -> Buildings.industry(lx, lz, px, pz, s, c);
+            default -> Buildings.suburb(lx, lz, px, pz, s, c);
         }
     }
 
@@ -335,101 +351,8 @@ public final class Island {
         return ModContent.NEON_FLOOR.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.NORTH).with(NeonBlock.COLOR, cs[Math.floorMod(t / 16, cs.length)]);
     }
 
-    /** Небоскрёб: стеклянные стены с рамой, этажи, светящиеся окна, крыша с вертолётной площадкой или антенной. */
-    private static void tower(int lx, int lz, long px, long pz, int s, Column c) {
-        double r = hash(px, pz, 21);
-        int half = 11 + (int) (hash(px, pz, 22) * 6);              // 11..16
-        double centerBoost = 1 - Math.min(1, Math.hypot(px * 48 - 430, pz * 48 + 430) / 380.0);
-        int h = 24 + (int) (hash(px, pz, 23) * 40 + centerBoost * 50); // до ~110
-        int style = (int) (r * 4);
-        BlockState glass = switch (style) {
-            case 0 -> Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState();
-            case 1 -> Blocks.GRAY_STAINED_GLASS.getDefaultState();
-            case 2 -> Blocks.CYAN_STAINED_GLASS.getDefaultState();
-            default -> Blocks.BLACK_STAINED_GLASS.getDefaultState();
-        };
-        BlockState frame = switch (style) {
-            case 0 -> Blocks.WHITE_CONCRETE.getDefaultState();
-            case 1 -> Blocks.LIGHT_GRAY_CONCRETE.getDefaultState();
-            case 2 -> Blocks.QUARTZ_BLOCK.getDefaultState();
-            default -> Blocks.GRAY_CONCRETE.getDefaultState();
-        };
-        int ax = Math.abs(lx), az = Math.abs(lz);
-        if (ax > half || az > half) {
-            // площадь перед башней: плитка и клумбы
-            c.set(s, (ax + az) % 7 == 0 ? Blocks.POLISHED_ANDESITE.getDefaultState() : Blocks.SMOOTH_STONE.getDefaultState());
-            if (ax == half + 3 && az % 6 == 0 && az <= half) c.set(s + 1, Blocks.AZALEA_LEAVES.getDefaultState());
-            return;
-        }
-        boolean wall = ax == half || az == half, corner = ax == half && az == half;
-        // ступенчатый верх: верхние этажи уже
-        int top = h;
-        if (ax > half - 3 || az > half - 3) top = h - 6;
-        for (int y = s + 1; y <= s + top; y++) {
-            int floor = (y - s) % 4;
-            if (wall) {
-                boolean door = y <= s + 3 && (lx == 0 || lx == 1) && lz == half;
-                if (door) { if (y == s + 1 || y == s + 2) continue; }
-                if (corner || floor == 0) c.set(y, frame);
-                else {
-                    // светящиеся окна вразнобой
-                    boolean lit = hash(px * 31 + lx + lz, y, pz) < 0.18;
-                    c.set(y, lit && floor == 2 ? Blocks.YELLOW_STAINED_GLASS.getDefaultState() : glass);
-                }
-            } else if (floor == 0) c.set(y, frame);
-            else if (floor == 2 && ax % 6 == 0 && az % 6 == 0) c.set(y, Blocks.SEA_LANTERN.getDefaultState());
-        }
-        c.set(s + top + 1, frame);
-        // крыша
-        if (hash(px, pz, 24) < 0.5) {
-            if (Math.abs(lx) <= 4 && Math.abs(lz) <= 4) c.set(s + top + 1, Blocks.GRAY_CONCRETE.getDefaultState());
-            if ((Math.abs(lx) == 2 && Math.abs(lz) <= 2) || (lz == 0 && Math.abs(lx) <= 2)) c.set(s + top + 1, Blocks.YELLOW_CONCRETE.getDefaultState());
-        } else if (lx == 0 && lz == 0) {
-            for (int y = 1; y <= 12; y++) c.set(s + top + 1 + y, Blocks.IRON_BARS.getDefaultState());
-            c.set(s + top + 14, Blocks.REDSTONE_LAMP.getDefaultState().with(net.minecraft.block.RedstoneLampBlock.LIT, true));
-        }
-    }
-
-    /** Промзона: склады, трубы с дымом, контейнеры, заборы, граффити. */
-    private static void industry(int lx, int lz, long px, long pz, int s, Column c) {
-        int kind = (int) (hash(px, pz, 31) * 3);
-        int ax = Math.abs(lx), az = Math.abs(lz);
-        c.set(s, (lx * 3 + lz) % 5 == 0 ? Blocks.GRAVEL.getDefaultState() : Blocks.COARSE_DIRT.getDefaultState());
-        if (ax == 17 || az == 17) { // забор участка
-            if (!(lz == 17 && ax <= 3)) for (int y = 1; y <= 2; y++) c.set(s + y, Blocks.IRON_BARS.getDefaultState());
-            return;
-        }
-        if (kind < 2) {
-            int hx = 13, hz = 9 + (int) (hash(px, pz, 32) * 5);
-            if (ax <= hx && az <= hz) {
-                int h = 8 + (int) (hash(px, pz, 33) * 5);
-                BlockState wallB = hash(px, pz, 34) < 0.5 ? Blocks.LIGHT_GRAY_TERRACOTTA.getDefaultState() : Blocks.BROWN_TERRACOTTA.getDefaultState();
-                boolean wall = ax == hx || az == hz;
-                for (int y = s + 1; y <= s + h; y++) {
-                    if (wall) {
-                        boolean gate = lz == hz && ax <= 3 && y <= s + 5;
-                        if (gate) continue;
-                        boolean graffiti = az == hz && y <= s + 3 && hash(lx, y, px * 7 + pz) < 0.12;
-                        c.set(y, graffiti ? (hash(lx, y, 5) < 0.5 ? Blocks.LIME_CONCRETE : Blocks.MAGENTA_CONCRETE).getDefaultState()
-                                : (y - s) % 3 == 0 ? Blocks.GRAY_CONCRETE.getDefaultState() : wallB);
-                    }
-                }
-                c.set(s + h + 1, Blocks.GRAY_CONCRETE.getDefaultState());
-                if (ax % 6 == 3 && az < hz - 1) c.set(s + h + 1, Blocks.GLASS.getDefaultState()); // световые полосы на крыше
-                // труба с дымом
-                if (kind == 0 && lx == hx - 3 && lz == -hz + 3) {
-                    for (int y = s + h + 2; y <= s + h + 16; y++) c.set(y, Blocks.BRICKS.getDefaultState());
-                    c.set(s + h + 17, Blocks.CAMPFIRE.getDefaultState());
-                }
-            }
-        } else {
-            // площадка с контейнерами
-            container(lx, lz, px, pz, s, c);
-        }
-    }
-
     /** Контейнеры 6×3, в 1–3 яруса, разных цветов. */
-    private static void container(int lx, int lz, long px, long pz, int s, Column c) {
+    static void container(int lx, int lz, long px, long pz, int s, Column c) {
         int cx = Math.floorMod(lx + 17, 8), cz = Math.floorMod(lz + 17, 4);
         if (cx >= 7 || cz >= 3) return;
         long id = (long) Math.floorDiv(lx + 17, 8) * 13 + Math.floorDiv(lz + 17, 4) + px * 101 + pz * 977;
@@ -439,49 +362,6 @@ public final class Island {
             BlockState col = colors[(int) (hash(id, k, 42) * colors.length)].getDefaultState();
             for (int y = 1; y <= 3; y++) c.set(s + k * 3 + y, (cx == 0 || cx == 6) && y != 2 ? Blocks.GRAY_CONCRETE.getDefaultState() : col);
         }
-    }
-
-    /** Пригород: четыре домика на участке, газоны, заборчики, деревья во дворах. */
-    private static void suburb(int lx, int lz, long px, long pz, int s, Column c) {
-        int qx = lx < 0 ? -1 : 1, qz = lz < 0 ? -1 : 1;
-        int hx = lx - qx * 9, hz = lz - qz * 9;      // координаты внутри четверти (центр дома в ±9)
-        long id = px * 4 + (qx + 1) + (pz * 4 + (qz + 1)) * 131;
-        int ax = Math.abs(hx), az = Math.abs(hz);
-        if (Math.abs(lx) == 17 || Math.abs(lz) == 17) {
-            c.set(s + 1, Blocks.OAK_FENCE.getDefaultState());
-            return;
-        }
-        if (ax <= 4 && az <= 4) {
-            net.minecraft.block.Block[] walls = {Blocks.WHITE_TERRACOTTA, Blocks.YELLOW_TERRACOTTA, Blocks.LIGHT_BLUE_TERRACOTTA, Blocks.PINK_TERRACOTTA, Blocks.BRICKS, Blocks.OAK_PLANKS};
-            net.minecraft.block.Block[] roofs = {Blocks.RED_NETHER_BRICKS, Blocks.DARK_OAK_PLANKS, Blocks.DEEPSLATE_TILES, Blocks.SPRUCE_PLANKS};
-            BlockState wall = walls[(int) (hash(id, 0, 51) * walls.length)].getDefaultState();
-            BlockState roof = roofs[(int) (hash(id, 0, 52) * roofs.length)].getDefaultState();
-            boolean edge = ax == 4 || az == 4;
-            for (int y = s + 1; y <= s + 4; y++) {
-                if (!edge) { if (y == s + 4) c.set(y, Blocks.OAK_PLANKS.getDefaultState()); continue; }
-                boolean window = (y == s + 2 || y == s + 3) && (ax == 2 || az == 2) && !(ax == 4 && az == 4);
-                boolean door = hz * -qz == 4 && hx == 0 && y <= s + 2;
-                if (door) continue;
-                c.set(y, window ? Blocks.GLASS_PANE.getDefaultState() : wall);
-            }
-            // двускатная крыша
-            int roofH = 4 - ax;
-            for (int k = 0; k <= Math.max(0, roofH); k++) c.set(s + 5 + k, roof);
-            return;
-        }
-        // двор: газон, дорожка к двери, дерево
-        if (hx == 0 && hz * -qz > 4) c.set(s, Blocks.DIRT_PATH.getDefaultState());
-        if (ax == 6 && az == 6 && hash(id, 1, 53) < 0.6) tree(s, c, 4 + (int) (hash(id, 2, 54) * 2), false);
-        else if (ax <= 7 && az <= 7 && (Math.abs(ax - 6) <= 1 && Math.abs(az - 6) <= 1) && hash(id, 1, 53) < 0.6) leaves(s, c, 4 + (int) (hash(id, 2, 54) * 2), ax == 6 || az == 6);
-    }
-
-    private static void tree(int s, Column c, int h, boolean birch) {
-        for (int y = 1; y <= h; y++) c.set(s + y, (birch ? Blocks.BIRCH_LOG : Blocks.OAK_LOG).getDefaultState());
-        for (int y = h - 1; y <= h + 1; y++) if (y > h) c.set(s + y, Blocks.OAK_LEAVES.getDefaultState().with(net.minecraft.block.LeavesBlock.PERSISTENT, true));
-    }
-
-    private static void leaves(int s, Column c, int h, boolean near) {
-        for (int y = h - 1; y <= h + (near ? 1 : 0); y++) c.set(s + y, Blocks.OAK_LEAVES.getDefaultState().with(net.minecraft.block.LeavesBlock.PERSISTENT, true));
     }
 
     // ------------------------------------------------------------------ порт, пляж, аэродром, загород
@@ -569,41 +449,6 @@ public final class Island {
         c.set(s, Blocks.GRASS_BLOCK.getDefaultState());
     }
 
-    /** Ривьера: курортные отели и казино — ниже небоскрёбов, белые с цветными козырьками, неон и пальмы. */
-    private static void resort(int lx, int lz, long px, long pz, int s, Column c) {
-        double r = hash(px, pz, 81);
-        int half = 13 + (int) (hash(px, pz, 82) * 3);
-        boolean casino = r < 0.35;
-        int h = casino ? 14 + (int) (hash(px, pz, 83) * 8) : 22 + (int) (hash(px, pz, 84) * 30);
-        int ax = Math.abs(lx), az = Math.abs(lz);
-        net.minecraft.block.Block[] accents = {Blocks.PINK_CONCRETE, Blocks.CYAN_CONCRETE, Blocks.ORANGE_CONCRETE, Blocks.LIME_CONCRETE, Blocks.MAGENTA_CONCRETE};
-        BlockState accent = accents[(int) (hash(px, pz, 85) * accents.length)].getDefaultState();
-        if (ax > half || az > half) {
-            c.set(s, (ax + az) % 4 == 0 ? Blocks.SMOOTH_SANDSTONE.getDefaultState() : Blocks.CUT_SANDSTONE.getDefaultState());
-            if (ax == half + 2 && az % 8 == 0 && az <= half) { // пальмы вдоль фасада
-                for (int y = 1; y <= 5; y++) c.set(s + y, Blocks.JUNGLE_LOG.getDefaultState());
-                c.set(s + 6, Blocks.JUNGLE_LEAVES.getDefaultState().with(net.minecraft.block.LeavesBlock.PERSISTENT, true));
-            }
-            if (casino && lz == half + 2 && ax <= half) c.set(s + 1, Blocks.RED_CARPET.getDefaultState()); // красная дорожка к казино
-            return;
-        }
-        boolean wall = ax == half || az == half;
-        for (int y = s + 1; y <= s + h; y++) {
-            int floor = (y - s) % 4;
-            if (wall) {
-                boolean door = y <= s + 3 && ax <= 2 && lz == half;
-                if (door) { if (y <= s + 3) continue; }
-                if (casino && y >= s + h - 3) c.set(y, NeonBlockState((int) (px * 7 + pz + y)).getBlock() == ModContent.NEON_FLOOR ? ModContent.NEON.getDefaultState() : accent);
-                else if (floor == 0) c.set(y, accent);
-                else c.set(y, casino ? Blocks.GOLD_BLOCK.getDefaultState() : (hash(px * 17 + lx + lz, y, pz) < 0.22 ? Blocks.YELLOW_STAINED_GLASS : Blocks.WHITE_STAINED_GLASS).getDefaultState());
-            } else if (floor == 0) c.set(y, Blocks.WHITE_CONCRETE.getDefaultState());
-            else if (floor == 2 && ax % 5 == 0 && az % 5 == 0) c.set(y, Blocks.SEA_LANTERN.getDefaultState());
-        }
-        c.set(s + h + 1, Blocks.WHITE_CONCRETE.getDefaultState());
-        // бассейн на крыше отеля
-        if (!casino && ax <= 5 && az <= 4) c.set(s + h + 1, ax == 5 || az == 4 ? Blocks.WHITE_CONCRETE.getDefaultState() : WATER);
-    }
-
     /** Пустошь: кактусы, сухие кусты, редкие валуны. */
     private static void desert(int x, int z, int s, Column c) {
         double r = hash(x, z, 92);
@@ -635,6 +480,127 @@ public final class Island {
         if (forest < 0.4 && r < 0.3) c.set(s + 1, (hash(x, z, 77) < 0.5 ? Blocks.SHORT_GRASS : Blocks.DANDELION).getDefaultState());
     }
 
+    // ------------------------------------------------------------------ заправки и щиты у трасс
+    /** Заправки «Нефтяник»: {ось (0 — трасса вдоль z на x=c, 1 — вдоль x на z=c), c, центр вдоль трассы, сторона}. */
+    private static final int[][] STATIONS = {{1, 744, -150, 1}, {0, 744, -400, 1}, {1, 24, 1100, -1}, {0, 24, 1300, -1}};
+
+    /** Если (x, z) на заправке: {вдоль трассы от центра −12..12, от оси трассы 8..26, номер}. */
+    static int[] station(int x, int z) {
+        for (int i = 0; i < STATIONS.length; i++) {
+            int[] st = STATIONS[i];
+            int a = (st[0] == 0 ? z : x) - st[2], b = ((st[0] == 0 ? x : z) - st[1]) * st[3];
+            if (a >= -12 && a <= 12 && b >= 8 && b <= 26) return new int[]{a, b, i};
+        }
+        return null;
+    }
+
+    /** Заправка: навес с колонками, магазинчик с кассой, холодильником и полками, щит-стела у дороги, парковка. */
+    private static void gasStation(int a, int b, int idx, int s, Column c) {
+        int[] stn = STATIONS[idx];
+        Direction toRoad = stn[0] == 0 ? (stn[3] > 0 ? Direction.WEST : Direction.EAST) : (stn[3] > 0 ? Direction.NORTH : Direction.SOUTH);
+        Direction along = stn[0] == 0 ? Direction.SOUTH : Direction.EAST;
+        int aa = Math.abs(a);
+        BlockState white = Blocks.WHITE_CONCRETE.getDefaultState(), green = Blocks.GREEN_CONCRETE.getDefaultState();
+        if (b >= 20 && aa <= 7) { // магазин
+            boolean wall = b == 20 || b == 26 || aa == 7;
+            c.set(s, Blocks.SMOOTH_QUARTZ.getDefaultState());
+            c.set(s + 5, wall ? green : (Math.floorMod(a, 4) == 0 && b == 23) ? Blocks.SEA_LANTERN.getDefaultState() : white);
+            if (wall) {
+                if (b == 20 && a == 0) {
+                    BlockState d = Blocks.WAXED_COPPER_DOOR.getDefaultState().with(net.minecraft.block.DoorBlock.FACING, toRoad.getOpposite());
+                    c.set(s + 1, d.with(net.minecraft.block.DoorBlock.HALF, net.minecraft.block.enums.DoubleBlockHalf.LOWER));
+                    c.set(s + 2, d.with(net.minecraft.block.DoorBlock.HALF, net.minecraft.block.enums.DoubleBlockHalf.UPPER));
+                    c.set(s + 3, Blocks.GLASS.getDefaultState());
+                } else for (int y = s + 1; y <= s + 3; y++) c.set(y, b == 20 && aa <= 5 ? Blocks.GLASS.getDefaultState() : white);
+                c.set(s + 4, green);
+                return;
+            }
+            if (b == 22 && a >= -6 && a <= -4) { // касса
+                c.set(s + 1, a == -5 ? ModContent.SHOP_COUNTER.getDefaultState().with(HorizontalFacingBlock.FACING, toRoad) : Blocks.SMOOTH_QUARTZ.getDefaultState());
+                if (a == -4) c.set(s + 2, Blocks.BREWING_STAND.getDefaultState()); // кофе-машина
+                return;
+            }
+            if (b == 25 && a >= -6 && a <= -4) {
+                c.set(s + 1, Blocks.BARREL.getDefaultState().with(net.minecraft.state.property.Properties.FACING, toRoad));
+                c.set(s + 2, Blocks.BARREL.getDefaultState().with(net.minecraft.state.property.Properties.FACING, toRoad));
+                return;
+            }
+            if ((b == 23 && a >= 0 && a <= 4) || (b == 25 && a >= -1 && a <= 5)) { // полки с товаром
+                BlockState shelf = Blocks.CHISELED_BOOKSHELF.getDefaultState().with(HorizontalFacingBlock.FACING, b == 25 ? toRoad : (a % 2 == 0 ? toRoad : toRoad.getOpposite()));
+                c.set(s + 1, shelf);
+                c.set(s + 2, shelf);
+                return;
+            }
+            if (a == 6 && b >= 22 && b <= 24) { // холодильник с напитками
+                c.set(s + 1, Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState());
+                c.set(s + 2, Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState());
+                return;
+            }
+            if (a == -6 && b == 21) c.set(s + 1, ModContent.ATM.getDefaultState().with(HorizontalFacingBlock.FACING, along));
+            return;
+        }
+        c.set(s, ModContent.ASPHALT.getDefaultState());
+        if ((b == 19 && aa <= 7 && Math.floorMod(a, 3) == 0) || (b >= 20 && (aa == 9 || aa == 12))) c.set(s, white); // разметка парковки
+        if (b >= 11 && b <= 17 && aa <= 9) { // навес
+            boolean edge = aa == 9 || b == 11 || b == 17;
+            c.set(s + 5, edge ? green : (aa % 4 == 0 && b == 14) ? Blocks.SEA_LANTERN.getDefaultState() : white);
+            if (edge) c.set(s + 6, Blocks.SMOOTH_QUARTZ_SLAB.getDefaultState());
+        }
+        if (b == 14 && aa >= 3 && aa <= 6) { // островки с колонками
+            c.set(s, Blocks.SMOOTH_STONE.getDefaultState());
+            if (aa == 3 || aa == 6) {
+                c.set(s + 1, Blocks.RED_CONCRETE.getDefaultState());
+                c.set(s + 2, Blocks.LIGHT_GRAY_CONCRETE.getDefaultState());
+                c.set(s + 3, Blocks.RED_CONCRETE.getDefaultState());
+            } else if (aa == 4) for (int y = 1; y <= 4; y++) c.set(s + y, white);
+            else c.set(s + 1, Blocks.COMPOSTER.getDefaultState());
+            return;
+        }
+        if (b == 10 && a >= -12 && a <= -7) { // стела с рекламой у дороги
+            Direction face = toRoad;
+            boolean right = along == face.getOpposite().rotateYClockwise();
+            int col = right ? a + 12 : -7 - a;
+            for (int row = 0; row < 3; row++) c.set(s + 7 - row, CityBlocks.billboard(5, face, col, row));
+            if (a == -11 || a == -8) for (int y = 1; y <= 4; y++) c.set(s + y, Blocks.POLISHED_DEEPSLATE_WALL.getDefaultState());
+            return;
+        }
+        if (b == 18 && aa == 12) lampPost(s, c, toRoad);
+        if (b == 25 && (a == 10 || a == 11)) { // мусорный бак
+            c.set(s + 1, Blocks.GREEN_TERRACOTTA.getDefaultState());
+            c.set(s + 2, Blocks.DARK_OAK_TRAPDOOR.getDefaultState());
+        }
+    }
+
+    /** Рекламный щит 6×3 на двух ногах у трассы: каждые 400 блоков, по очереди с разных сторон. */
+    private static boolean roadBillboard(int x, int z, int s, Column c) {
+        for (int[] r : ROADS) {
+            boolean alongZ = r[0] == 0;
+            int along = alongZ ? z : x, across = (alongZ ? x : z) - r[1];
+            if (along < r[2] + 20 || along > r[3] - 20) continue;
+            int rel = along - r[2] - 200, cell = Math.floorDiv(rel, 400), a = Math.floorMod(rel, 400);
+            if (a > 5) continue;
+            int side = (cell & 1) == 0 ? 1 : -1;
+            if (across * side != 13 || highwayDist(x, z) != 13) continue;
+            Direction face = alongZ ? (side > 0 ? Direction.WEST : Direction.EAST) : (side > 0 ? Direction.NORTH : Direction.SOUTH);
+            Direction alongDir = alongZ ? Direction.SOUTH : Direction.EAST;
+            int base = G;
+            for (int k = 0; k <= 5; k++) {
+                int t = along - a + k;
+                int sx = alongZ ? x : t, sz = alongZ ? t : z;
+                if (zone(sx, sz) != Zone.COUNTRY) return false;
+                base = Math.max(base, surface(sx, sz));
+            }
+            if (base > s + 6) return false; // склон слишком крутой — щит повис бы
+            int ad = Math.floorMod(cell * 7 + r[1] + r[0] * 3, 5);
+            int col = alongDir == face.getOpposite().rotateYClockwise() ? a : 5 - a;
+            int y0 = base + 4;
+            for (int row = 0; row < 3; row++) c.set(y0 + 2 - row, CityBlocks.billboard(ad, face, col, row));
+            if (a == 1 || a == 4) for (int y = s + 1; y < y0; y++) c.set(y, Blocks.POLISHED_DEEPSLATE_WALL.getDefaultState());
+            return true;
+        }
+        return false;
+    }
+
     // ------------------------------------------------------------------ карта (M)
     /** Цвет точки для карты острова. */
     public static int mapColor(int x, int z) {
@@ -661,6 +627,14 @@ public final class Island {
                 return zn == Zone.DOWNTOWN ? 0xFF7FA3C8 : zn == Zone.RIVIERA ? 0xFFE8B4C8 : zn == Zone.INDUSTRIAL ? 0xFF8C7A62 : 0xFF8DB86A;
             }
         }
+    }
+
+    /** Для автотестов и отладки: что стоит на участке с центром у (x, z) — см. Buildings.info; null — не городской участок. */
+    public static int[] lotInfo(int x, int z) {
+        long px = Math.floorDiv(x + 24, 48), pz = Math.floorDiv(z + 24, 48);
+        Zone zn = zone((int) px * 48, (int) pz * 48);
+        if (!urban(zn)) return null;
+        return Buildings.info(zn, px, pz);
     }
 
     /** Точки сюжета на острове: x, z, yaw (y — по земле). Улицы на линиях ≡ 24 (mod 48), тротуары — ±5 от них. */

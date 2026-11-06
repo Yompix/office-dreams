@@ -44,14 +44,22 @@ public final class Weapons {
      */
     public static Entity fire(ServerWorld w, LivingEntity shooter, Vec3d from, Vec3d dir0, float damage, double spread, double range, int pellets,
                               net.minecraft.sound.SoundEvent sound, float volume) {
+        int kind = shooter.getMainHandStack().getItem() instanceof com.yompix.novograd.item.GunItem g ? g.kindIndex()
+                : pellets > 1 ? 2 : sound == ModContent.SMG_SHOT ? 1 : 0;
+        return fire(w, shooter, from, dir0, damage, spread, range, pellets, sound, volume, kind);
+    }
+
+    /**
+     * То же с видом ствола (kind — GunItem.kindIndex): клиенты получают пакет Arsenal.ShotFx и рисуют вспышку, трассеры,
+     * гильзы, искры; стрелок-игрок — ещё и хитмаркер.
+     */
+    public static Entity fire(ServerWorld w, LivingEntity shooter, Vec3d from, Vec3d dir0, float damage, double spread, double range, int pellets,
+                              net.minecraft.sound.SoundEvent sound, float volume, int kind) {
         var r = w.getRandom();
         Vec3d aim = dir0.normalize();
-        // звук и вспышка у ствола: правее и ниже глаз, где оружие в руке
         w.playSound(null, shooter.getBlockPos(), sound, SoundCategory.PLAYERS, volume, 0.95f + r.nextFloat() * 0.1f);
-        Vec3d right = aim.crossProduct(new Vec3d(0, 1, 0)).normalize();
-        Vec3d muzzle = from.add(aim.multiply(1.3)).add(right.multiply(0.32)).add(0, -0.28, 0);
-        w.spawnParticles(ParticleTypes.SMALL_FLAME, muzzle.x, muzzle.y, muzzle.z, pellets > 1 ? 5 : 2, 0.01, 0.01, 0.01, 0.005);
-        w.spawnParticles(ParticleTypes.SMOKE, muzzle.x, muzzle.y, muzzle.z, pellets > 1 ? 4 : 1, 0.02, 0.02, 0.02, 0.01);
+        float[] ends = new float[pellets * 3];
+        byte[] what = new byte[pellets];
         java.util.Map<Entity, Float> hits = new java.util.LinkedHashMap<>();
         for (int i = 0; i < pellets; i++) {
             Vec3d dir = aim.add((r.nextDouble() - 0.5) * spread, (r.nextDouble() - 0.5) * spread, (r.nextDouble() - 0.5) * spread).normalize();
@@ -63,12 +71,11 @@ public final class Weapons {
                     e -> e != shooter && !e.isSpectator() && e.isAlive() && (e instanceof LivingEntity || e instanceof CarEntity) && !shooter.isConnectedThroughVehicle(e),
                     from.squaredDistanceTo(end));
             if (hit != null) end = hit.getPos();
-            // след пули (у дроби — короче и реже)
             double len = end.distanceTo(from);
-            for (double t = 2.5; t < len; t += pellets > 1 ? 3.2 : 1.6) {
-                Vec3d p = from.add(dir.multiply(t));
-                w.spawnParticles(ParticleTypes.WHITE_SMOKE, p.x, p.y, p.z, 1, 0, 0, 0, 0);
-            }
+            ends[i * 3] = (float) end.x;
+            ends[i * 3 + 1] = (float) end.y;
+            ends[i * 3 + 2] = (float) end.z;
+            what[i] = (byte) (hit != null ? 2 : block.getType() != HitResult.Type.MISS ? 1 : 0);
             if (hit != null) {
                 float dmg = pellets > 1 ? damage * (float) Math.max(0.35, 1 - len / range * 0.65) : damage;
                 hits.merge(hit.getEntity(), dmg, Float::sum);
@@ -76,7 +83,7 @@ public final class Weapons {
             } else if (block.getType() != HitResult.Type.MISS) {
                 var st = w.getBlockState(block.getBlockPos());
                 w.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, st), end.x, end.y, end.z, pellets > 1 ? 3 : 6, 0.05, 0.05, 0.05, 0.1);
-                w.spawnParticles(ParticleTypes.CRIT, end.x, end.y, end.z, pellets > 1 ? 1 : 3, 0.05, 0.05, 0.05, 0.15);
+                what[i] = (byte) (1 | (block.getSide().getId() << 2)); // грань — для искр и следа от пули
             }
         }
         Entity first = null;
@@ -91,6 +98,13 @@ public final class Weapons {
                 victim.damage(src, e.getValue());
             }
         }
+        // хитмаркер: 1 — попал, 2 — убил
+        byte hitFlag = 0;
+        for (Entity v : hits.keySet()) {
+            if (v instanceof LivingEntity le && !(le instanceof net.minecraft.entity.decoration.ArmorStandEntity)) hitFlag = (byte) Math.max(hitFlag, le.isDead() ? 2 : 1);
+            else if (v instanceof CarEntity) hitFlag = (byte) Math.max(hitFlag, 1);
+        }
+        Arsenal.sendShotFx(w, shooter, from, kind, ends, what, hitFlag);
         // горожане в панике, полиция слышит выстрел
         Crime.gunshot(w, shooter, from);
         return first;

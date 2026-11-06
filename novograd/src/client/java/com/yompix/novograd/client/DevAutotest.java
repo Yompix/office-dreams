@@ -38,6 +38,7 @@ public final class DevAutotest {
     public static void init() {
         if (System.getProperty("novograd.autotest") == null) return;
         String mode = System.getProperty("novograd.autotest");
+        if (mode.startsWith("fun")) return; // свой сценарий — FunAutotest (FunClient.init)
         if (mode.startsWith("mp")) {
             // игра по сети: A проходит разговоры пробелом, B просто смотрит; оба делают снимки
             YompixSplash.markShown();
@@ -164,16 +165,24 @@ public final class DevAutotest {
             });
             run(60, c -> { c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON); c.player.getInventory().selectedSlot = 0; });
             run(1, c -> com.yompix.novograd.Novograd.LOG.info("[reel] guns {}", System.currentTimeMillis()));
-            hold(30, c -> c.options.useKey, 50);
-            run(10, c -> pressKey(c, GLFW.GLFW_KEY_R));
-            run(50, c -> c.player.getInventory().selectedSlot = 1);
-            hold(25, c -> c.options.useKey, 6);
-            run(20, c -> {});
-            hold(5, c -> c.options.useKey, 6);
-            run(30, c -> { c.player.getInventory().selectedSlot = 2; c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT); });
-            hold(20, c -> c.options.useKey, 30);
-            run(20, c -> c.player.getInventory().selectedSlot = 0);
-            hold(10, c -> c.options.useKey, 40);
+            // управление как в шутере: ЛКМ (attackKey) — огонь, ПКМ (useKey) — прицел, Y — осмотр
+            hold(30, c -> c.options.attackKey, 30);                       // очередь от бедра
+            run(15, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.useKey.getBoundKeyTranslationKey()), true));
+            hold(15, c -> c.options.attackKey, 40);                       // очередь в прицеле
+            run(10, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.useKey.getBoundKeyTranslationKey()), false));
+            run(10, c -> ArsenalClient.send("reload", 0));                 // перезарядка
+            run(60, c -> GunFx.inspect());                                      // осмотр
+            run(65, c -> c.player.getInventory().selectedSlot = 1);
+            hold(25, c -> c.options.attackKey, 3);                        // дробовик: выстрел, помпа
+            run(25, c -> {});
+            hold(5, c -> c.options.attackKey, 3);
+            run(25, c -> ArsenalClient.send("reload", 0));                 // патроны по одному
+            run(60, c -> { c.player.getInventory().selectedSlot = 2; c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT); });
+            run(10, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.useKey.getBoundKeyTranslationKey()), true));
+            for (int i = 0; i < 4; i++) hold(10, c -> c.options.attackKey, 2); // пистолет в прицеле от третьего лица
+            run(15, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.useKey.getBoundKeyTranslationKey()), false));
+            run(20, c -> { c.player.getInventory().selectedSlot = 0; c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON); });
+            hold(10, c -> c.options.attackKey, 40);
             // --- маслкар
             server(10, s -> {
                 ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
@@ -214,6 +223,29 @@ public final class DevAutotest {
             run(100, c -> { KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.jumpKey.getBoundKeyTranslationKey()), false); });
             run(60, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.forwardKey.getBoundKeyTranslationKey()), false));
             run(5, c -> com.yompix.novograd.Novograd.LOG.info("[reel] end {}", System.currentTimeMillis()));
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("studio")) {
+            // Киностудия: два дубля-актёра, облёт, фильтры, кинополосы
+            YompixSplash.markShown();
+            pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            cmd(5, "time set 13000");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                p.teleport(w, 40, Story.topY(w, 40, 20) + 1, 20, 0, 0);
+            });
+            run(80, c -> com.yompix.novograd.client.studio.Studio.devDemo(c, 0));
+            shot(30, "studio_free");
+            run(5, c -> com.yompix.novograd.client.studio.Studio.devDemo(c, 1));
+            shot(10, "studio_orbit_set");
+            run(5, c -> com.yompix.novograd.client.studio.Studio.devDemo(c, 2));
+            for (int i = 0; i < 6; i++) shot(i == 0 ? 20 : 45, "studio_play_" + i);
+            run(5, c -> com.yompix.novograd.client.studio.Studio.devDemo(c, 3));
+            shot(30, "studio_noir");
             run(20, MinecraftClient::scheduleStop);
             return;
         }
@@ -300,6 +332,10 @@ public final class DevAutotest {
                 shot(260, "keyart_" + sh[0]);
             }
             run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.startsWith("city")) { // город изнутри: лифт, офисы, квартиры, отель, дома, склад, заправка (новый мир)
+            city();
             return;
         }
         if (mode.equals("fresh")) {
@@ -1684,7 +1720,7 @@ public final class DevAutotest {
         run(delay, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.style.StyleShopScreen s) s.pick(tab, row, color); });
     }
 
-    /** Оружие: от первого лица (покой, выстрел, перезарядка), от третьего, иконки в инвентаре, жители с оружием. */
+    /** Оружие: от первого лица (покой, выстрел, прицел, перезарядка, осмотр), гильзы, хитмаркер, от третьего (и в прицеле), иконки, жители с оружием. */
     private static void guns() {
         YompixSplash.markShown();
         GunFx.testFlashNs = 700_000_000L;
@@ -1725,38 +1761,86 @@ public final class DevAutotest {
         cmd(2, "kill @e[type=novograd:citizen,distance=..40]");
         cmd(2, "kill @e[type=minecraft:item,distance=..40]");
         run(60, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        // каждый ствол: покой, выстрел от бедра, прицел (ADS), выстрел в прицеле, перезарядка (магазин снаружи), осмотр
         for (int i = 0; i < 5; i++) {
             final int slot = i;
             String g = guns[i];
             run(5, c -> c.player.getInventory().selectedSlot = slot);
             shot(30, "gun_" + g + "_idle");
-            run(2, c -> c.options.useKey.setPressed(true));
+            run(2, c -> c.options.attackKey.setPressed(true));
             shot(i == 1 || i == 3 ? 6 : 2, "gun_" + g + "_fire");
-            run(1, c -> c.options.useKey.setPressed(false));
-            run(25, c -> ArsenalClient.send("reload", 0));
-            shot(10, "gun_" + g + "_reload");
-            run(40, c -> {});
+            run(1, c -> c.options.attackKey.setPressed(false));
+            run(25, c -> c.options.useKey.setPressed(true));
+            shot(20, "gun_" + g + "_ads");
+            run(2, c -> c.options.attackKey.setPressed(true));
+            shot(2, "gun_" + g + "_ads_fire");
+            run(1, c -> c.options.attackKey.setPressed(false));
+            run(25, c -> c.options.useKey.setPressed(false));
+            // перезарядка: замораживаем анимацию на моменте «магазин вынут» (у дробовика — патрон в руке)
+            run(5, c -> ArsenalClient.send("reload", 0));
+            run(3, c -> GunFx.testFreezeP = slot == 2 ? 0.3f : 0.36f);
+            shot(3, "gun_" + g + "_reload");
+            run(1, c -> GunFx.testFreezeP = slot == 2 ? 0.52f : 0.62f);
+            shot(3, "gun_" + g + "_reload2");
+            run(1, c -> GunFx.testFreezeP = -1);
+            run(70, c -> GunFx.inspect());
+            run(1, c -> GunFx.testFreezeP = 0.3f);
+            shot(3, "gun_" + g + "_inspect");
+            run(1, c -> GunFx.testFreezeP = 0.68f);
+            shot(3, "gun_" + g + "_inspect2");
+            run(1, c -> GunFx.testFreezeP = -1);
+            run(60, c -> {});
         }
-        for (int i = 5; i < 8; i++) {
-            final int slot = i;
-            run(5, c -> c.player.getInventory().selectedSlot = slot);
-            shot(20, "gun_" + guns[i] + "_idle");
-        }
-        // прицеливание (ПКМ держим, но в кулдауне — смотрим положение)
+        // пустой магазин: пистолет стреляет до щелчка — затвор на задержке, магазин падает, новый, затвор
+        run(5, c -> c.player.getInventory().selectedSlot = 0);
+        server(5, s -> {
+            var st = s.getPlayerManager().getPlayer(P).getMainHandStack();
+            st.set(com.yompix.novograd.gta.Arsenal.MAG, 1);
+        });
+        run(10, c -> c.options.attackKey.setPressed(true));
+        run(2, c -> c.options.attackKey.setPressed(false));
+        run(3, c -> GunFx.testFreezeP = 0.2f);
+        shot(3, "gun_pistol_empty_drop");
+        run(1, c -> GunFx.testFreezeP = 0.74f);
+        shot(3, "gun_pistol_empty_rack");
+        run(1, c -> GunFx.testFreezeP = -1);
+        run(60, c -> {});
+        // гильзы на земле: очередь из «АК» и смотрим под ноги
         run(5, c -> c.player.getInventory().selectedSlot = 3);
-        run(20, c -> c.options.useKey.setPressed(true));
-        shot(14, "gun_rifle_ads");
-        run(1, c -> c.options.useKey.setPressed(false));
-        // от третьего лица
+        run(30, c -> c.options.attackKey.setPressed(true));
+        run(24, c -> c.options.attackKey.setPressed(false));
+        run(25, c -> { c.player.setPitch(62); c.player.setYaw(c.player.getYaw() + 40); });
+        shot(10, "gun_casings");
+        run(5, c -> { c.player.setPitch(5); c.player.setYaw(c.player.getYaw() - 40); });
+        // хитмаркер: свинья без ИИ перед игроком
+        cmd(5, "execute as " + P + " at @s anchored eyes positioned ^ ^-1 ^7 run summon minecraft:pig ~ ~ ~ {NoAI:1b,Silent:1b}");
+        run(30, c -> c.player.getInventory().selectedSlot = 0);
+        run(30, c -> c.options.useKey.setPressed(true));
+        run(15, c -> c.options.attackKey.setPressed(true));
+        shot(3, "gun_hitmarker");
+        run(1, c -> c.options.attackKey.setPressed(false));
+        run(5, c -> c.options.useKey.setPressed(false));
+        cmd(5, "kill @e[type=minecraft:pig,distance=..20]");
+        // от третьего лица: от бедра и в прицеле
         run(20, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT));
-        for (int i : new int[]{0, 3, 4, 5}) {
+        for (int i : new int[]{0, 3, 4}) {
             run(5, c -> c.player.getInventory().selectedSlot = i);
             shot(20, "gun_tp_front_" + guns[i]);
+            run(2, c -> c.options.useKey.setPressed(true));
+            shot(20, "gun_tp_ads_front_" + guns[i]);
+            run(2, c -> c.options.useKey.setPressed(false));
         }
         run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
         for (int i : new int[]{0, 2, 3}) {
             run(5, c -> c.player.getInventory().selectedSlot = i);
             shot(20, "gun_tp_back_" + guns[i]);
+            run(2, c -> c.options.useKey.setPressed(true));
+            shot(20, "gun_tp_ads_back_" + guns[i]);
+            run(2, c -> c.options.useKey.setPressed(false));
+        }
+        for (int i = 5; i < 8; i++) {
+            final int slot = i;
+            run(5, c -> c.player.getInventory().selectedSlot = slot);
         }
         run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
         // вид сбоку: «манекены»-игроки (та же модель и поза) с каждым стволом, стоят боком
@@ -1966,6 +2050,156 @@ public final class DevAutotest {
     }
 
     /** Держать клавишу ticks тиков (имитация зажатой кнопки). */
+    // ------------------------------------------------------------------ «city»: здания изнутри в новом мире
+    private static int[] findLot(int x0, int x1, int z0, int z1, int type, int minFloors) {
+        for (int x = x0; x <= x1; x += 48)
+            for (int z = z0; z <= z1; z += 48) {
+                int[] in = com.yompix.novograd.world.Island.lotInfo(x, z);
+                if (in != null && in[0] == type && in[2] >= minFloors) return new int[]{Math.floorDiv(x + 24, 48) * 48, Math.floorDiv(z + 24, 48) * 48, in[1], in[2]};
+            }
+        return null;
+    }
+
+    private static void tp(int delay, double x, double y, double z, float yaw, float pitch) {
+        server(delay, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            if (p == null) return;
+            var w = p.getServerWorld();
+            w.getChunk((int) Math.floor(x) >> 4, (int) Math.floor(z) >> 4);
+            p.teleport(w, x, y, z, yaw, pitch);
+        });
+    }
+
+    private static void liftMenu(int delay, int px, int py, int pz) {
+        server(delay, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            if (p != null) com.yompix.novograd.world.Elevators.openMenu(p, new net.minecraft.util.math.BlockPos(px, py, pz), net.minecraft.util.math.Direction.WEST);
+        });
+    }
+
+    private static void liftGo(int delay, int x, int z, int floor) {
+        run(delay, c -> {
+            net.minecraft.nbt.NbtCompound d = new net.minecraft.nbt.NbtCompound();
+            d.putInt("x", x);
+            d.putInt("z", z);
+            d.putInt("floor", floor);
+            net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(new com.yompix.novograd.world.Elevators.C2S(d));
+            c.setScreen(null);
+        });
+    }
+
+    private static void city() {
+        YompixSplash.markShown();
+        String only = System.getProperty("novograd.autotest").contains(":") ? System.getProperty("novograd.autotest").split(":")[1] : "";
+        pre(60, c -> {
+            var data = new net.minecraft.resource.DataConfiguration(new net.minecraft.resource.DataPackSettings(List.of("vanilla", "fabric"), List.of()),
+                    net.minecraft.resource.featuretoggle.FeatureFlags.DEFAULT_ENABLED_FEATURES);
+            var info = new net.minecraft.world.level.LevelInfo("CityTest" + System.currentTimeMillis() % 100000, net.minecraft.world.GameMode.CREATIVE, false,
+                    net.minecraft.world.Difficulty.PEACEFUL, true, new net.minecraft.world.GameRules(), data);
+            var city = net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD_PRESET, com.yompix.novograd.Novograd.id("city"));
+            c.createIntegratedServerLoader().createAndStart(info.getLevelName(), info, net.minecraft.world.gen.GeneratorOptions.createRandom(),
+                    drm -> drm.get(net.minecraft.registry.RegistryKeys.WORLD_PRESET).getOrThrow(city).createDimensionsRegistryHolder(), new com.yompix.novograd.client.menu.LifeMenuScreen());
+        });
+        run(200, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        cmd(5, "gamemode creative " + P);
+        cmd(5, "difficulty peaceful");
+        cmd(5, "time set 6000");
+        cmd(5, "gamerule doDaylightCycle false");
+        cmd(5, "gamerule doMobSpawning false");
+        int G = com.yompix.novograd.world.Island.G;
+        int[] off = findLot(192, 672, -672, -192, 0, 12), homes = findLot(192, 672, -672, -192, 1, 8);
+        int[] hotel = findLot(-1536, -1104, -384, 384, 2, 7), casino = null;
+        for (int x = -1536; x <= -1104 && casino == null; x += 48)
+            for (int z = -384; z <= 384; z += 48) {
+                int[] in = com.yompix.novograd.world.Island.lotInfo(x, z);
+                if (in != null && in[0] == 3 && !(Math.floorDiv(x + 24, 48) == -27 && Math.floorDiv(z + 24, 48) == -1)) { casino = new int[]{Math.floorDiv(x + 24, 48) * 48, Math.floorDiv(z + 24, 48) * 48, in[1]}; break; }
+            }
+        int[] store = findLot(192, 672, 192, 672, 6, 0);
+        com.yompix.novograd.Novograd.LOG.info("[city] офисы {} жилая {} отель {} казино {} склад {}", java.util.Arrays.toString(off), java.util.Arrays.toString(homes),
+                java.util.Arrays.toString(hotel), java.util.Arrays.toString(casino), java.util.Arrays.toString(store));
+        int s = G;
+        if (off != null && (only.isEmpty() || only.equals("lift"))) {
+            int X = off[0], Z = off[1], h = off[2], n = off[3];
+            tp(5, X + 0.5, s + 2, Z + h + 10, 180, -12);
+            shot(200, "city_tower_ext");
+            tp(5, X + 0.5, s + 1, Z + h - 2, 180, 8);
+            shot(120, "city_lobby");
+            tp(5, X - 2.5, s + 1, Z + 0.5, -90, 5);
+            shot(80, "city_lobby_lifts");
+            tp(5, X + 7.5, s + 1, Z - 0.5, -90, 0);
+            liftMenu(40, X + 8, s + 2, Z - 1);
+            shot(30, "city_lift_menu");
+            liftGo(5, X + 7, Z - 1, 3);
+            shot(8, "city_lift_fade");
+            shot(70, "city_office_arrive");
+            key(10, GLFW.GLFW_KEY_SPACE); // прыжок в кабине — этажом выше
+            shot(60, "city_jump_up");
+            server(5, sv -> com.yompix.novograd.Novograd.LOG.info("[city] после прыжка игрок на y={}", sv.getPlayerManager().getPlayer(P).getY()));
+            int W = h - 1;
+            tp(5, X - W + 1.5, s + 4 * 4 + 1, Z + W - 0.5, -135, 10);
+            shot(80, "city_office_wide");
+            tp(5, X + 5.5, s + 4 * 4 + 1, Z + 3.5, -45, 15);
+            shot(60, "city_meeting");
+            tp(5, X - 2.5, s + 4 * 2 + 1, Z - 7.5, -90, 25);
+            shot(60, "city_stairs");
+            tp(5, X + 7.5, s + 4 * 4 + 1, Z - 0.5, -90, 0);
+            liftMenu(30, X + 8, s + 4 * 4 + 2, Z - 1);
+            liftGo(20, X + 7, Z - 1, n);
+            shot(80, "city_roof_arrive");
+            tp(5, X - 7.5, s + 4 * n + 4, Z + 7.5, -135, 25);
+            shot(80, "city_roof");
+            tp(5, X - h - 12, s + 4 * n - 6, Z + h + 12, -135, 15);
+            shot(120, "city_tower_top");
+        }
+        if (homes != null && (only.isEmpty() || only.equals("homes"))) {
+            int X = homes[0], Z = homes[1], h = homes[2];
+            tp(5, X - 3 + 0.5, s + 9, Z - 3.5, 0, 10);
+            shot(200, "city_apt_corridor");
+            tp(5, X - 1.5, s + 9, Z + 0.5, 45, 20);
+            shot(80, "city_apartment");
+            tp(5, X - h + 2.5, s + 9, Z + h - 2.5, -135, 20);
+            shot(60, "city_apartment2");
+        }
+        if (hotel != null && (only.isEmpty() || only.equals("hotel"))) {
+            int X = hotel[0], Z = hotel[1], h = hotel[2], n = hotel[3];
+            tp(5, X + 0.5, s + 2, Z + h + 9, 180, -10);
+            shot(220, "city_hotel_ext");
+            tp(5, X + 0.5, s + 1, Z + h - 2, 180, 8);
+            shot(100, "city_hotel_lobby");
+            tp(5, X + 4.5, s + 5, Z + 5.5, -45, 20);
+            shot(80, "city_hotel_room");
+            tp(5, X - 6.5, s + 4 * n + 3, Z + 8.5, -150, 25);
+            shot(80, "city_hotel_pool");
+        }
+        if (casino != null && (only.isEmpty() || only.equals("hotel"))) {
+            int X = casino[0], Z = casino[1], h = casino[2];
+            tp(5, X + 0.5, s + 3, Z + h - 2, 180, 12);
+            shot(200, "city_casino");
+        }
+        if (only.isEmpty() || only.equals("house")) {
+            int X = -240 + 9, Z = 240 + 9;
+            tp(5, X + 0.5, s + 2, Z + 12, 180, 0);
+            shot(220, "city_house_ext");
+            tp(5, X + 0.5, s + 1, Z + 3.3, 180, 15);
+            shot(80, "city_house_living");
+            tp(5, X + 0.5, s + 1, Z - 0.5, 180, 25);
+            shot(60, "city_house_bedroom");
+        }
+        if (store != null && (only.isEmpty() || only.equals("house"))) {
+            tp(5, store[0] + 0.5, s + 2, store[1] + 7.5, 180, 10);
+            shot(220, "city_warehouse");
+        }
+        if (only.isEmpty() || only.equals("road")) {
+            tp(5, -150.5, G + 3, 746.5, 0, 8);
+            shot(220, "city_gas");
+            tp(5, -149.5, G + 1, 765.5, 0, 10);
+            shot(80, "city_gas_shop");
+            tp(5, -349.5, G + 3, 744.5, 0, -8);
+            shot(160, "city_billboard");
+        }
+        run(20, MinecraftClient::scheduleStop);
+    }
+
     private static void hold(int delay, java.util.function.Function<MinecraftClient, KeyBinding> kb, int ticks) {
         run(delay, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(kb.apply(c).getBoundKeyTranslationKey()), true));
         run(ticks, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(kb.apply(c).getBoundKeyTranslationKey()), false));

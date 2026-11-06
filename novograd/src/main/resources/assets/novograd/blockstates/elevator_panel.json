@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "novograd:block/elevator_panel"
+    },
+    "facing=east": {
+      "model": "novograd:block/elevator_panel",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "novograd:block/elevator_panel",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "novograd:block/elevator_panel",
+      "y": 270
+    }
+  }
+}

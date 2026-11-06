@@ -129,6 +129,7 @@ public class MapScreen extends LifeScreen {
         // текстура карты
         int left = sx(texX), top = sy(texZ), size = (int) (SIZE * zoom);
         ctx.drawTexture(TEX, left, top, 0, 0, size, size, size, size);
+        com.yompix.novograd.client.FunClient.drawMap(ctx, textRenderer, this::sx, this::sy, zoom, mapX, mapY, mapH); // районы банд
         // подписи мест
         NbtCompound pl = ClientStory.places;
         for (String id : pl.getKeys()) {

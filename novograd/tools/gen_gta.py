@@ -88,8 +88,12 @@ item('pistol', pistol)
 item('smg', smg)
 item('ammo', ammo)
 item('bat', bat)
-write('gunshot', shot(0.9, 14, 90, 1))
-write('smg_shot', shot(0.35, 30, 140, 2))
+# выстрелы теперь синтезирует gen_gun_sfx.py (щелчок + тело + механика + эхо-хвост)
+import sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gen_gun_sfx as _sfx
+write('gunshot', _sfx.pistol_shot() * 0.95)
+write('smg_shot', _sfx.smg_shot() * 0.95)
 write('siren', siren())
 print('ok')
 
@@ -255,9 +259,9 @@ for _name, _fn in (('shotgun', shotgun), ('rifle', rifle), ('sniper', sniper), (
                    ('knife', knife), ('body_armor', body_armor), ('medkit', medkit)):
     item(_name, _fn, _name in ('shotgun', 'rifle', 'sniper'))
 kevlar_layer()
-write('shotgun_shot', shotgun_sound())
-write('rifle_shot', shot(0.55, 20, 120, 4))
-write('sniper_shot', sniper_sound())
+write('shotgun_shot', _sfx.shotgun_shot() / (np.max(np.abs(_sfx.shotgun_shot())) + 1e-9) * 0.95)
+write('rifle_shot', _sfx.rifle_shot() * 0.95)
+write('sniper_shot', _sfx.sniper_shot() / (np.max(np.abs(_sfx.sniper_shot())) + 1e-9) * 0.95)
 write('reload', reload_sound())
 write('explosion', explosion_sound())
 print('arsenal ok')

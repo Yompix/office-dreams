@@ -3,11 +3,12 @@ package com.yompix.novograd.item;
 import com.yompix.novograd.ModContent;
 import com.yompix.novograd.gta.Arsenal;
 import com.yompix.novograd.gta.Weapons;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
@@ -17,26 +18,41 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.UseAction;
 import net.minecraft.world.World;
+import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
- * Огнестрел: пистолет, автомат, дробовик, «АК», снайперка. ПКМ — выстрел (у автоматического — держи ПКМ).
- * В оружии свой магазин; пустой — перезарядка сама, или R пешком. Патроны — «Патроны» из «Калибра».
- * Работает и из машины (водителем или пассажиром).
+ * Огнестрел: пистолет, ПП, дробовик, «АК», снайперка. Управление как в шутерах: ЛКМ — огонь (у автоматического — держи),
+ * ПКМ — прицел (ADS). Клиент шлёт «спуск» пакетом, сервер сам проверяет темп, патроны и попадания.
+ * В оружии свой магазин; пустой — перезарядка сама, или R пешком. Перезарядка с пустого магазина дольше (надо передёрнуть затвор),
+ * дробовик заряжается по патрону. Работает и из машины (водителем или пассажиром).
+ * Модель — GeckoLib (кости: затвор, магазин, спуск, помпа…), анимации ведёт клиент (client/gun/GunAnim).
  */
-public class GunItem extends Item {
+public class GunItem extends Item implements GeoItem {
     /**
-     * @param pellets дробинок за выстрел; spread — разброс; range — дальность; magazine — патронов в магазине;
-     *                reload — тиков перезарядки; recoil — отдача (градусы); scope — прицел с приближением (присесть)
+     * @param pellets дробинок за выстрел; spread — разброс от бедра; range — дальность; magazine — патронов в магазине;
+     *                reload — тиков перезарядки с пустого магазина; recoil — подброс камеры (градусы); scope — оптика
      */
     public record Spec(float damage, int cooldown, boolean auto, int pellets, double spread, double range, int magazine, int reload,
                        float recoil, SoundEvent sound, float volume, boolean scope) {}
 
     private final Spec spec;
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
-    /** Клиент: «у себя» прозвучал выстрел — отдача, вспышка у дула, тряска (ставит client/GunFx). На сервере не вызывается. */
-    public static java.util.function.Consumer<GunItem> clientShot = g -> {};
+    /** Клиент ставит сюда фабрику GeoRenderProvider (на сервере не нужна). */
+    public static java.util.function.Function<GunItem, Object> renderProvider = g -> null;
+
+    /** Когда игрок стрелял последний раз (тик мира) — сервер держит темп стрельбы. */
+    private static final Map<UUID, Long> LAST_SHOT = new ConcurrentHashMap<>();
 
     public GunItem(Settings settings, Spec spec) {
         super(settings);
@@ -53,71 +69,83 @@ public class GunItem extends Item {
         return spec;
     }
 
+    /** pistol / smg / shotgun / rifle / sniper */
+    public String gunId() {
+        return Registries.ITEM.getId(this).getPath();
+    }
+
+    /** Номер вида для пакетов эффектов: 0 пистолет, 1 ПП, 2 дробовик, 3 «АК», 4 снайперка. */
+    public int kindIndex() {
+        return switch (gunId()) {
+            case "smg" -> 1;
+            case "shotgun" -> 2;
+            case "rifle" -> 3;
+            case "sniper" -> 4;
+            default -> 0;
+        };
+    }
+
     public int mag(ItemStack stack) {
         return Math.min(spec.magazine, stack.getOrDefault(Arsenal.MAG, spec.magazine));
     }
 
+    /** ПКМ — прицел, а не выстрел: сам предмет ничего не делает (стреляет пакет «fire» по ЛКМ). */
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        ItemStack stack = user.getStackInHand(hand);
-        if (spec.auto) {
-            user.setCurrentHand(hand);
-            return TypedActionResult.consume(stack);
-        }
-        boolean canFire = mag(stack) > 0;
-        user.getItemCooldownManager().set(this, spec.cooldown);
-        if (!world.isClient) fire((ServerWorld) world, user, stack);
-        else if (canFire) {
-            user.setPitch(user.getPitch() - spec.recoil * (spec.scope && user.isSneaking() ? 0.5f : 1f)); // отдача
-            clientShot.accept(this);
-        }
-        return TypedActionResult.success(stack, world.isClient);
+        return TypedActionResult.pass(user.getStackInHand(hand));
     }
 
     @Override
-    public void usageTick(World world, LivingEntity user, ItemStack stack, int remaining) {
-        if (!spec.auto || (getMaxUseTime(stack, user) - remaining) % spec.cooldown != 0 || !(user instanceof PlayerEntity p)) return;
-        if (p.getItemCooldownManager().isCoolingDown(this)) return; // перезарядка
-        if (!world.isClient) fire((ServerWorld) world, p, stack);
-        else if (mag(stack) > 0) {
-            p.setPitch(p.getPitch() - spec.recoil);
-            clientShot.accept(this);
-        }
-    }
-
-    @Override
-    public int getMaxUseTime(ItemStack stack, LivingEntity user) {
-        return spec.auto ? 72000 : 0;
+    public int getMaxUseTime(ItemStack stack, net.minecraft.entity.LivingEntity user) {
+        return 0;
     }
 
     @Override
     public UseAction getUseAction(ItemStack stack) {
-        return spec.auto ? UseAction.BOW : UseAction.NONE;
+        return UseAction.NONE;
     }
 
-    private void fire(ServerWorld w, PlayerEntity p, ItemStack stack) {
+    /** Спуск от клиента (ЛКМ). Сервер держит темп: раньше cooldown−1 тиков после прошлого выстрела — не стреляем. */
+    public void trigger(ServerPlayerEntity p, ItemStack stack, boolean aiming) {
+        ServerWorld w = p.getServerWorld();
+        long now = w.getTime();
+        Long last = LAST_SHOT.get(p.getUuid());
+        if (last != null && now - last < Math.max(1, spec.cooldown - 1) && now >= last) return;
+        if (p.getItemCooldownManager().isCoolingDown(this)) return; // перезарядка
+        LAST_SHOT.put(p.getUuid(), now);
+        fire(w, p, stack, aiming);
+    }
+
+    public static void forget(UUID id) {
+        LAST_SHOT.remove(id);
+    }
+
+    private void fire(ServerWorld w, PlayerEntity p, ItemStack stack, boolean aiming) {
         int mag = mag(stack);
         if (mag <= 0) {
             if (!reload(w, p, stack, false)) {
                 p.sendMessage(Text.literal("Нет патронов! Купи в оружейном «Калибр»").formatted(Formatting.RED), true);
                 w.playSound(null, p.getBlockPos(), Arsenal.GUN_DRY, SoundCategory.PLAYERS, 0.8f, 1f);
-                if (p.isUsingItem()) p.stopUsingItem();
             }
             return;
         }
         if (!p.isCreative()) stack.set(Arsenal.MAG, mag - 1);
-        double spread = spec.scope && p.isSneaking() ? 0.002 : spec.spread;
-        Weapons.fire(w, p, p.getEyePos(), p.getRotationVec(1f), spec.damage, spread, spec.range, spec.pellets, spec.sound, spec.volume);
+        double spread = spec.spread;
+        if (aiming) spread *= spec.scope ? 0.03 : 0.35;      // в прицеле кучнее (в оптике — почти точно)
+        else if (p.getVelocity().horizontalLengthSquared() > 0.01) spread *= 1.3; // на бегу от бедра — шире
+        if (p.isSneaking()) spread *= 0.8;
+        Weapons.fire(w, p, p.getEyePos(), p.getRotationVec(1f), spec.damage, spread, spec.range, spec.pellets, spec.sound, spec.volume, kindIndex());
         if (mag - 1 <= 0 && !p.isCreative()) reload(w, p, stack, false); // последний патрон — сразу перезаряжаем
-        else if (spec.magazine > 1) p.sendMessage(Text.literal("▮ " + (p.isCreative() ? mag : mag - 1) + " / " + spec.magazine + "   запас " + reserve(p))
-                .formatted(Formatting.GOLD), true);
     }
 
-    private static int reserve(PlayerEntity p) {
-        return p.isCreative() ? 999 : p.getInventory().count(ModContent.AMMO);
+    /** Тиков на перезарядку: с пустого дольше (затвор), дробовик — по 7 тиков на патрон (+ помпа, если пуст). */
+    public int reloadTicks(int magBefore, int got) {
+        boolean empty = magBefore <= 0;
+        if (spec.pellets > 1) return 8 + 7 * got + (empty ? 10 : 0);
+        return empty ? spec.reload : Math.round(spec.reload * 0.78f);
     }
 
-    /** Перезарядка: берём патроны из инвентаря, оружие «занято» reload тиков. */
+    /** Перезарядка: берём патроны из инвентаря, оружие «занято» на время анимации. */
     public boolean reload(ServerWorld w, PlayerEntity p, ItemStack stack, boolean manual) {
         int mag = mag(stack);
         if (mag >= spec.magazine || p.getItemCooldownManager().isCoolingDown(this) && manual) return false;
@@ -127,10 +155,9 @@ public class GunItem extends Item {
             return false;
         }
         stack.set(Arsenal.MAG, mag + got);
-        p.getItemCooldownManager().set(this, spec.reload);
-        if (p.isUsingItem()) p.stopUsingItem();
-        w.playSound(null, p.getBlockPos(), Arsenal.reloadSound(this), SoundCategory.PLAYERS, 0.9f, 1f);
-        p.sendMessage(Text.literal("⟳ Перезарядка… " + (mag + got) + " / " + spec.magazine).formatted(Formatting.YELLOW), true);
+        p.getItemCooldownManager().set(this, reloadTicks(mag, got));
+        // остальные слышат звук перезарядки целиком; у самого стрелка звуки идут по кадрам анимации (клиент)
+        w.playSound(p, p.getBlockPos(), Arsenal.reloadSound(this), SoundCategory.PLAYERS, 0.9f, 1f);
         return true;
     }
 
@@ -160,11 +187,25 @@ public class GunItem extends Item {
         tooltip.add(Text.literal("Магазин: " + mag(stack) + " / " + spec.magazine).formatted(Formatting.GOLD));
         String dmg = spec.pellets > 1 ? spec.pellets + "×" + fmt(spec.damage) : fmt(spec.damage);
         tooltip.add(Text.literal("Урон " + dmg + " · дальность " + (int) spec.range + " м" + (spec.auto ? " · очередь" : "")).formatted(Formatting.GRAY));
-        if (spec.scope) tooltip.add(Text.literal("Присядь — прицел с приближением").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("R — перезарядка (пешком)").formatted(Formatting.DARK_GRAY));
+        tooltip.add(Text.literal("ЛКМ — огонь, ПКМ — " + (spec.scope ? "оптика" : "прицел")).formatted(Formatting.AQUA));
+        tooltip.add(Text.literal("R — перезарядка (пешком), Y — осмотреть").formatted(Formatting.DARK_GRAY));
     }
 
     private static String fmt(float f) {
         return f == (int) f ? String.valueOf((int) f) : String.valueOf(f);
+    }
+
+    // ---------- GeckoLib ----------
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {}
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return geoCache;
+    }
+
+    @Override
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        if (renderProvider.apply(this) instanceof GeoRenderProvider p) consumer.accept(p);
     }
 }

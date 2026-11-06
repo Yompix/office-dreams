@@ -2226,5 +2226,102 @@
         "stream": true
       }
     ]
+  },
+  "gun_mag_out": {
+    "sounds": [
+      {
+        "name": "novograd:gun_mag_out"
+      }
+    ]
+  },
+  "gun_mag_in": {
+    "sounds": [
+      {
+        "name": "novograd:gun_mag_in"
+      }
+    ]
+  },
+  "gun_slide_back": {
+    "sounds": [
+      {
+        "name": "novograd:gun_slide_back"
+      }
+    ]
+  },
+  "gun_slide_release": {
+    "sounds": [
+      {
+        "name": "novograd:gun_slide_release"
+      }
+    ]
+  },
+  "gun_bolt_back": {
+    "sounds": [
+      {
+        "name": "novograd:gun_bolt_back"
+      }
+    ]
+  },
+  "gun_bolt_fwd": {
+    "sounds": [
+      {
+        "name": "novograd:gun_bolt_fwd"
+      }
+    ]
+  },
+  "gun_shell_in": {
+    "sounds": [
+      {
+        "name": "novograd:gun_shell_in"
+      }
+    ]
+  },
+  "gun_pump": {
+    "sounds": [
+      {
+        "name": "novograd:gun_pump"
+      }
+    ]
+  },
+  "gun_handling": {
+    "sounds": [
+      {
+        "name": "novograd:gun_handling"
+      }
+    ]
+  },
+  "hit_marker": {
+    "sounds": [
+      {
+        "name": "novograd:hit_marker"
+      }
+    ]
+  },
+  "hit_kill": {
+    "sounds": [
+      {
+        "name": "novograd:hit_kill"
+      }
+    ]
+  },
+  "casing_shell": {
+    "sounds": [
+      {
+        "name": "novograd:casing_shell"
+      }
+    ]
+  },
+  "casing": {
+    "sounds": [
+      {
+        "name": "novograd:casing_0"
+      },
+      {
+        "name": "novograd:casing_1"
+      },
+      {
+        "name": "novograd:casing_2"
+      }
+    ]
   }
 }
