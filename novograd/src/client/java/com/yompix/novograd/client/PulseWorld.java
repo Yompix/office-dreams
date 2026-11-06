@@ -229,7 +229,7 @@ public final class PulseWorld {
         boolean blink = (ms / 600) % 2 == 0;
         String time = feed.getString("time");
         tr.draw(big ? "НОВОГРАД-24" : "НОВОСТИ 24", x0 + 3, y0 + 2, 0xFFFFFFFF, false, mat, imm, POL, 0, L);
-        String live = (blink ? "● " : "  ") + (big ? "ПРЯМОЙ ЭФИР  " : "") + time;
+        String live = (blink ? "● " : "  ") + (big ? "ЭФИР " : "") + time;
         tr.draw(live, x0 + W - 3 - tr.getWidth(live), y0 + 2, 0xFFFFE0E0, false, mat, imm, POL, 0, L);
         // главная новость: рубрика + бегущий заголовок крупно
         String[] h = {"Новоград-24: круглосуточные новости острова", "ГОРОД"};

@@ -231,6 +231,8 @@ public final class DriveAutotest {
         server(5, s -> Novograd.LOG.info("[drv] fines total {}", com.yompix.novograd.gta.Fines.total(pl(s))));
         server(5, s -> pl(s).stopRiding());
         server(5, s -> DriveHooks.debug(pl(s), "fine 3"));
+        run(10, c -> c.setScreen(new com.yompix.novograd.client.screen.PhoneScreen(null)));
+        shot(40, "drv_phone_home");
         run(10, c -> c.setScreen(new com.yompix.novograd.client.screen.DriveScreen()));
         shot(30, "drv_phone_fines");
         run(5, c -> { if (c.currentScreen != null) c.currentScreen.close(); });
@@ -251,7 +253,7 @@ public final class DriveAutotest {
                 p.teleport(p.getServerWorld(), at.x + 6, Story.topY(p.getServerWorld(), (int) at.x + 6, (int) at.z) + 0.1, at.z, 90, 15);
             }
         });
-        shot(50, "drv_impound_lot");
+        shot(120, "drv_impound_lot");
         server(5, s -> {
             ServerPlayerEntity p = pl(s);
             Vec3d at = Story.place(p.getServerWorld(), com.yompix.novograd.gta.Impound.LOT);
@@ -265,7 +267,7 @@ public final class DriveAutotest {
 
     private static void air() {
         place(5, "airfield_hangar+14,18", 5, 0, 90, 10);
-        shot(50, "drv_air_counter");
+        shot(140, "drv_air_counter");
         place(5, "airfield_hangar+14,18", 0, 0, 90, 10);
         shot(30, "drv_air_screen");
         server(5, s -> DriveHooks.debug(pl(s), "fly riv"));
@@ -277,23 +279,32 @@ public final class DriveAutotest {
     }
 
     private static void boat() {
-        place(5, "riv_marina", 5, 3, 90, 10);
-        shot(60, "drv_boat_club");
-        place(5, "riv_marina", 0, 0, 90, 10);
+        place(5, com.yompix.novograd.gta.BoatClub.CLUB, 5, 3, 90, 10);
+        shot(140, "drv_boat_club");
+        place(5, com.yompix.novograd.gta.BoatClub.CLUB, 0, 0, 90, 10);
         shot(30, "drv_boat_screen");
+        server(5, s -> DriveHooks.debug(pl(s), "water"));
         server(5, s -> com.yompix.novograd.gta.BoatClub.action(pl(s), "race"));
         run(5, c -> { if (c.currentScreen != null) c.currentScreen.close(); });
         run(5, c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
         shot(40, "drv_boat_start");
-        hold(5, c -> c.options.forwardKey, 120);
+        run(5, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.forwardKey.getBoundKeyTranslationKey()), true));
+        for (int i = 0; i < 7; i++) server(10, s -> {
+            var v = pl(s).getVehicle();
+            var bs = pl(s).getServerWorld().getEntitiesByClass(com.yompix.novograd.vehicle.SpeedboatEntity.class, pl(s).getBoundingBox().expand(30), e -> e.getCommandTags().contains("nv_boatrace"));
+            for (var b : bs) Novograd.LOG.info("[drv] race boat {} hp {} wrecked {} riders {} player vehicle {}", b.getPos(), b.health(), b.wrecked(), b.getPassengerList().size(), v);
+        });
+        run(1, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.forwardKey.getBoundKeyTranslationKey()), false));
         shot(1, "drv_boat_race");
         server(5, s -> Novograd.LOG.info("[drv] boat at {} vehicle {}", pl(s).getPos(), pl(s).getVehicle()));
         server(5, s -> pl(s).stopRiding());
     }
 
     private static void bets() {
+        place(5, com.yompix.novograd.gta.RaceBets.DESK, 4, 0, 180, 10);
+        shot(140, "drv_bets_desk");
         place(5, com.yompix.novograd.gta.RaceBets.DESK, 0, 0, 180, 10);
-        shot(60, "drv_bets_screen");
+        shot(40, "drv_bets_screen");
         server(5, s -> com.yompix.novograd.gta.RaceBets.bet(pl(s), 0, 500));
         run(5, c -> { if (c.currentScreen != null) c.currentScreen.close(); });
         server(5, s -> {
@@ -313,20 +324,24 @@ public final class DriveAutotest {
             Novograd.LOG.info("[drv] auction gate {}", at);
             if (at == null) return;
             w.getChunk((int) at.x >> 4, (int) at.z >> 4);
-            CarEntity car = com.yompix.novograd.gta.FunUtil.car(w, new Vec3d(at.x + 10, Story.topY(w, (int) at.x + 10, (int) at.z), at.z), 90, CarEntity.CLASSIC);
+            CarEntity car = com.yompix.novograd.gta.FunUtil.car(w, new Vec3d(at.x + 10, at.y, at.z), 90, CarEntity.CLASSIC);
             p.teleport(w, car.getX(), car.getY(), car.getZ(), 90, 0);
             p.startRiding(car, true);
             CARS.put(102, car);
         });
-        run(40, c -> {});
+        shot(140, "drv_auction_gate");
         server(5, s -> {
             ServerPlayerEntity p = pl(s);
             Vec3d at = Story.place(p.getServerWorld(), com.yompix.novograd.gta.Auction.GATE);
-            if (at != null) CARS.get(102).refreshPositionAndAngles(at.x + 1, CARS.get(102).getY(), at.z, 90, 0);
+            if (at == null) return;
+            p.stopRiding();
+            CARS.get(102).refreshPositionAndAngles(at.x + 1, CARS.get(102).getY(), at.z, 90, 0);
+            p.startRiding(CARS.get(102), true);
         });
         shot(30, "drv_auction_screen");
         server(5, s -> com.yompix.novograd.gta.Auction.sell(pl(s)));
-        shot(70, "drv_auction_bids");
+        for (int i = 0; i < 3; i++) server(20, s -> Novograd.LOG.info("[drv] after sell at {} vehicle {}", pl(s).getPos(), pl(s).getVehicle()));
+        shot(10, "drv_auction_bids");
         shot(140, "drv_auction_sold");
     }
 
@@ -335,7 +350,8 @@ public final class DriveAutotest {
             ServerPlayerEntity p = pl(s);
             ServerWorld w = p.getServerWorld();
             w.setWeather(0, 6000, true, true);
-            int y = Story.topY(w, 456, -330);
+            w.getChunk(456 >> 4, -330 >> 4);
+            int y = com.yompix.novograd.world.Island.surface(456, -330) + 1;
             p.teleport(w, 456.5, y, -330.5, 0, 0);
             CarEntity car = com.yompix.novograd.gta.FunUtil.car(w, new Vec3d(456.5, y, -330.5), 180, 2);
             p.startRiding(car, true);
@@ -363,7 +379,7 @@ public final class DriveAutotest {
             p.stopRiding();
             int x = (int) Math.floor(at.x + dx), z = (int) Math.floor(at.z + dz);
             w.getChunk(x >> 4, z >> 4);
-            p.teleport(w, at.x + dx, Story.topY(w, x, z) + 0.1, at.z + dz, yaw, pitch);
+            p.teleport(w, at.x + dx, at.y + 0.1, at.z + dz, yaw, pitch);
         });
     }
 

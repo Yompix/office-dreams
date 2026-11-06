@@ -48,8 +48,7 @@ public final class Airport {
         for (int i = 0; i < PORTS.length; i++) {
             Vec3d at = Story.place(w, PORTS[i][1]);
             if (at == null || p.squaredDistanceTo(at) > 48 * 48) continue;
-            int y = Story.topY(w, (int) Math.floor(at.x), (int) Math.floor(at.z));
-            Vec3d m = new Vec3d(at.x, y, at.z);
+            Vec3d m = at;
             if (p.age % 40 < 10)
                 FunUtil.marker(w, m, "nv_air_" + PORTS[i][0], new ItemStack(Items.ELYTRA), Text.literal("✈ Авиакасса · " + PORTS[i][2]).formatted(Formatting.AQUA), true);
             final int here = i;

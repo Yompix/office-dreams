@@ -435,7 +435,9 @@ public final class Collectibles {
             return;
         }
         Jump j = JUMP.computeIfAbsent(p.getUuid(), u -> new Jump());
-        if (car.isOnGround() || car.isTouchingWater()) {
+        // onGround у машины игрока на сервере ненадёжен (её двигает клиент) — проверяем опору под колёсами сами
+        boolean ground = !p.getServerWorld().isSpaceEmpty(car, car.getBoundingBox().offset(0, -0.25, 0)) || car.isTouchingWater();
+        if (ground) {
             if (j.air && j.idx >= 0) {
                 int[] jp = jumps().get(j.idx);
                 Vec3d lip = lip(jp);
@@ -469,6 +471,8 @@ public final class Collectibles {
                 if (v.x * dd[0] + v.z * dd[1] > 0.15 || car.getPos().subtract(from).dotProduct(new Vec3d(dd[0], 0, dd[1])) >= 0) j.idx = i;
                 break;
             }
+            if (System.getProperty("novograd.autotest") != null && from.squaredDistanceTo(lip(l.get(0))) < 40 * 40)
+                com.yompix.novograd.Novograd.LOG.info("[pulse] отрыв от земли: {} трамплин {}", from, j.idx);
         }
         j.ticks++;
     }

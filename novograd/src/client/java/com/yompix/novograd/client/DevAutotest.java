@@ -2364,6 +2364,26 @@ public final class DevAutotest {
             com.yompix.novograd.Novograd.LOG.info("[pulse] {} → {}", what, r);
         });
         run(5, c -> c.options.hudHidden = false);
+        if (mode.equals("pulsenight")) { // ночная погоня: прожекторы, огни вертолётов, окно эфира
+            pc.accept(5, "tv 1");
+            pc.accept(120, "tv view 1");
+            shot(60, "pulse_tv_riviera");
+            pc.accept(5, "tv 0");
+            cmd(100, "time set 18000");
+            server(5, s -> com.yompix.novograd.gta.Wanted.add(s.getPlayerManager().getPlayer(P), 3, "проверка", 3));
+            for (int i = 0; i < 4; i++) {
+                final int k = i;
+                run(i == 0 ? 200 : 5, c -> { c.player.setYaw(k * 90); c.player.setPitch(-22); });
+                shot(30, "pulse_night_" + i);
+            }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("pulsejump")) {
+            pulseJump(pc);
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         // 1. видеостена на деловой площади
         pc.accept(5, "tv 0");
         pc.accept(120, "tv view 0");
@@ -2384,29 +2404,7 @@ public final class DevAutotest {
         shot(200, "pulse_photo_spot");
         run(5, c -> NovogradClient.takePhoto());
         server(30, s -> com.yompix.novograd.Novograd.LOG.info("[pulse] photo0 done={}", Life.get(s.getPlayerManager().getPlayer(P)).flags.contains("col:photo:0")));
-        // 4. уникальный прыжок: машина в 14 блоках до трамплина, газ
-        pc.accept(5, "col tp jump 0");
-        shot(200, "pulse_ramp");
-        server(5, s -> {
-            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
-            var w = p.getServerWorld();
-            var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, w);
-            car.refreshPositionAndAngles(p.getX(), p.getY() + 0.2, p.getZ(), p.getYaw(), 0);
-            car.setVariant(0);
-            car.setTune(true, 2, 0);
-            w.spawnEntity(car);
-            p.startRiding(car, true);
-        });
-        run(30, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
-        run(5, c -> c.options.forwardKey.setPressed(true));
-        for (int i = 0; i < 6; i++) shot(12, "pulse_jump_" + i);
-        run(30, c -> c.options.forwardKey.setPressed(false));
-        server(40, s -> {
-            var d = Life.get(s.getPlayerManager().getPlayer(P));
-            com.yompix.novograd.Novograd.LOG.info("[pulse] jump0 done={} jumps={}", d.flags.contains("col:jump:0"), com.yompix.novograd.gta.Collectibles.count(d, "jump"));
-        });
-        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
-        server(5, s -> s.getPlayerManager().getPlayer(P).stopRiding());
+        pulseJump(pc);
         // 5. ларёк карт и приложение «Коллекции»
         pc.accept(5, "col tp stall 0");
         shot(200, "pulse_stall");
@@ -2472,6 +2470,32 @@ public final class DevAutotest {
                     com.yompix.novograd.gta.Collectibles.count(d, "photo"), com.yompix.novograd.gta.Collectibles.count(d, "jump"), com.yompix.novograd.gta.Collectibles.count(d, "pkg"));
         });
         run(20, MinecraftClient::scheduleStop);
+    }
+
+    /** Уникальный прыжок: машина в 16 блоках до трамплина, газ в пол. */
+    private static void pulseJump(java.util.function.BiConsumer<Integer, String> pc) {
+        pc.accept(5, "col tp jump 0");
+        shot(200, "pulse_ramp");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, w);
+            car.refreshPositionAndAngles(p.getX(), p.getY() + 0.2, p.getZ(), p.getYaw(), 0);
+            car.setVariant(0);
+            car.setTune(true, 2, 0);
+            w.spawnEntity(car);
+            p.startRiding(car, true);
+        });
+        run(30, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
+        run(5, c -> c.options.forwardKey.setPressed(true));
+        for (int i = 0; i < 6; i++) shot(12, "pulse_jump_" + i);
+        run(30, c -> c.options.forwardKey.setPressed(false));
+        server(40, s -> {
+            var d = Life.get(s.getPlayerManager().getPlayer(P));
+            com.yompix.novograd.Novograd.LOG.info("[pulse] jump0 done={} jumps={}", d.flags.contains("col:jump:0"), com.yompix.novograd.gta.Collectibles.count(d, "jump"));
+        });
+        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
+        server(5, s -> s.getPlayerManager().getPlayer(P).stopRiding());
     }
 
     private static void runoverMode() {

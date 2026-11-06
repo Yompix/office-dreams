@@ -118,13 +118,16 @@ public final class NewsTv {
             for (int k = 6; k <= 34 && k < bestK; k++) {
                 BlockPos c = at.offset(dir, k);
                 if (!solid(w, c.up(7))) continue;
-                boolean ok = true;
-                for (int u = -5; u <= 5 && ok; u++)
-                    for (int v = 4; v <= 10 && ok; v++) {
+                if (!solid(w, c.offset(side, 3).up(7)) || !solid(w, c.offset(side, -3).up(7))) continue; // ствол пальмы, столб — не стена
+                int good = 0; // фасад с окнами и вывесками: хватит 85% сплошной стены
+                for (int u = -5; u <= 5; u++)
+                    for (int v = 4; v <= 10; v++) {
                         BlockPos b = c.offset(side, u).up(v);
-                        ok = solid(w, b) && free(w, b.offset(dir.getOpposite()));
+                        if (solid(w, b) && free(w, b.offset(dir.getOpposite()))) good++;
                     }
-                if (ok) {
+                if (System.getProperty("novograd.autotest") != null)
+                    com.yompix.novograd.Novograd.LOG.info("[pulse] экран: стена {} в {} блоках, сплошь {}/77", dir, k, good);
+                if (good >= 66) {
                     bestK = k;
                     bestWall = c;
                     bestDir = dir;

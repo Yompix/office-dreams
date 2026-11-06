@@ -53,8 +53,13 @@ public final class HousingAutotest {
                     new com.yompix.novograd.client.menu.LifeMenuScreen());
         }));
         else PRE.add(new Step(60, c -> c.createIntegratedServerLoader().start(world, () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen()))));
+        server(1, s -> { // без вступления: сюжет пройден
+            var d = Life.get(pl(s));
+            d.storyStarted = true;
+            d.storyDone = true;
+        });
         run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
-        run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        run(100, c -> { if (c.currentScreen != null) c.setScreen(null); });
         cmd(5, "gamemode creative " + P);
         cmd(5, "time set 6000");
         cmd(5, "gamerule doDaylightCycle false");

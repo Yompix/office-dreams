@@ -34,6 +34,7 @@ public final class DriveHooks {
 
     public static void init() {
         ServerTickEvents.END_SERVER_TICK.register(DriveHooks::tick);
+        com.yompix.novograd.world.Garage.IMPOUND_RELEASE = Impound::phoneRelease; // своя штрафстоянка у участка
         ServerPlayConnectionEvents.JOIN.register((h, sender, server) -> server.execute(() -> sendPlaces(h.player)));
         ServerPlayConnectionEvents.DISCONNECT.register((h, server) -> {
             BoatClub.onLeave(h.player);
@@ -121,12 +122,7 @@ public final class DriveHooks {
         n.put("fines", Fines.list(p).copy());
         n.putInt("finesTotal", Fines.total(p));
         NbtList imp = new NbtList();
-        for (var e : Impound.list(p)) {
-            NbtCompound c = new NbtCompound();
-            c.putString("name", Impound.name(((NbtCompound) e).getInt("v")));
-            c.putLong("day", ((NbtCompound) e).getLong("day"));
-            imp.add(c);
-        }
+        for (var e : Impound.list(p)) imp.add(e);
         n.put("impound", imp);
         n.putInt("impoundFee", Impound.FEE);
         n.putLong("day", Life.day(p));
@@ -297,6 +293,18 @@ public final class DriveHooks {
             case "places" -> {
                 sendPlaces(p);
                 return "Значки отправлены";
+            }
+            case "water" -> {
+                // разрез берега у игрока: x, верх воды, дно
+                StringBuilder sb = new StringBuilder("sea=" + w.getSeaLevel() + " coast=" + BoatClub.coast(p.getBlockZ()) + " ");
+                int z = p.getBlockZ();
+                for (int x = p.getBlockX() + 20; x > p.getBlockX() - 100; x -= 6) {
+                    w.getChunk(x >> 4, z >> 4);
+                    int top = w.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, x, z), floor = w.getTopY(net.minecraft.world.Heightmap.Type.OCEAN_FLOOR, x, z);
+                    sb.append(x).append(':').append(top).append('/').append(floor).append(' ');
+                }
+                com.yompix.novograd.Novograd.LOG.info("[drv] water {}", sb);
+                return sb.toString();
             }
             case "state" -> {
                 return state(p).toString();

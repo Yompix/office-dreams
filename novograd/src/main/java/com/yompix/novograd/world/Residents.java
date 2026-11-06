@@ -61,7 +61,7 @@ public final class Residents {
         String name = "";
         int skin;
         String homeKey = "", homeKind = "";
-        Vec3d homePos, homeDoor, homeGround, homeStreet;
+        Vec3d homePos, homeDoor, homeGround, homeStreet, homeBed;
         boolean homeUp;
         String work = "", workLabel = "";
         Vec3d workPos, workGround, workStreet, lunch;
@@ -118,7 +118,7 @@ public final class Residents {
     }
 
     // ------------------------------------------------------------------ генерация города жильцов
-    private record Home(String key, String kind, Vec3d pos, Vec3d door, Vec3d ground, Vec3d street, boolean up) {}
+    private record Home(String key, String kind, Vec3d pos, Vec3d door, Vec3d ground, Vec3d street, boolean up, Vec3d bed) {}
 
     private record Spot(String place, String kind, String label, Vec3d pos, Vec3d ground, Vec3d street, boolean up, boolean night) {}
 
@@ -134,14 +134,22 @@ public final class Residents {
                 int cx = (int) px * 48, cz = (int) pz * 48;
                 int[] info = Island.lotInfo(cx, cz);
                 if (info == null || (info[0] != 1 && info[0] != 2)) return null;
-                int s = Island.surface(cx, cz), half = info[1];
+                int s = Island.surface(cx, cz), half = info[1], n = info[2];
                 int[] d = UNIT_DOOR[u];
+                // кровать — как её ставит Buildings.furnish: у дальней стены комнаты, в углу (i = 0, изножье j = d − 2)
+                int W = (k >= n - 2 ? half - 3 : half) - 1;
+                int[] bed = switch (u) {
+                    case 0 -> new int[]{-W, -6 - (W - 5 - 2)};
+                    case 1 -> new int[]{5, -6 - (W - 5 - 2)};
+                    case 2 -> new int[]{-W, W + 2 - 2 - 1};
+                    default -> new int[]{2, W - 4 - 2 + 5};
+                };
                 Direction in = u < 2 ? Direction.NORTH : Direction.SOUTH;
                 Vec3d door = new Vec3d(cx + d[0] + 0.5, s + 4 * k + 1, cz + d[1] + 0.5);
                 Vec3d pos = door.add(in.getOffsetX() * 2.5, 0, in.getOffsetZ() * 2.5);
                 Vec3d corridor = door.add(-in.getOffsetX() * 1.5, 0, -in.getOffsetZ() * 1.5);
                 return new Home(key, "башня, " + (k + 1) + " этаж", pos, corridor, new Vec3d(cx + 0.5, s + 1, cz + half - 2.5),
-                        new Vec3d(cx + 3.5, s + 1, cz + half + 4.5), true);
+                        new Vec3d(cx + 3.5, s + 1, cz + half + 4.5), true, new Vec3d(cx + bed[0] + 0.5, s + 4 * k + 1, cz + bed[1] + 0.5));
             }
             if (a[0].equals("H")) {
                 long px = Long.parseLong(a[1]), pz = Long.parseLong(a[2]);
@@ -150,7 +158,7 @@ public final class Residents {
                 int s = Island.surface(cx, cz);
                 Vec3d door = new Vec3d(hx + 0.5, s + 1, cz + qz * 14 + 0.5);
                 return new Home(key, cx < -840 ? "вилла на Ривьере" : "дом в пригороде", new Vec3d(hx + 0.5, s + 1, cz + qz * 10 + 0.5), door,
-                        door, new Vec3d(hx + 0.5, s + 1, cz + qz * 19 + 0.5), false);
+                        door, new Vec3d(hx + 0.5, s + 1, cz + qz * 19 + 0.5), false, new Vec3d(cx + qx * 6 + 0.5, s + 1, cz + qz * 7 + 0.5));
             }
         } catch (RuntimeException e) {
             return null;
@@ -308,6 +316,7 @@ public final class Residents {
         res.homeKind = h.kind();
         res.homePos = h.pos();
         res.homeDoor = h.door();
+        res.homeBed = h.bed();
         // соседи по подъезду выходят не в одну точку
         double jx = jitter(res.seed, 8), jz = jitter(res.seed, 16);
         res.homeGround = h.up() ? h.ground().add(jx, 0, jz * 0.5) : h.ground();
@@ -342,10 +351,10 @@ public final class Residents {
             if (a != null && w.getEntity(a.uuid) instanceof CitizenEntity c) {
                 c.lockActivity(null);
                 c.setStationary(false);
-                c.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new ItemStack(Items.CHEST));
                 a.leaving = true;
                 a.goal = r.homeUp ? r.homeDoor : r.homeStreet;
-                c.direct(a.goal, 0.6);
+                go(c, a.goal, 0.6);
+                c.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new ItemStack(Items.CHEST)); // с вещами
             }
             if (h != null) {
                 applyHome(r, h);
@@ -584,7 +593,7 @@ public final class Residents {
             Vec3d to = exit != null ? exit : a.goal != null ? a.goal : c.getPos();
             if (c.squaredDistanceTo(to) < 4 || c.directTo == null && now > a.until) c.discard();
             else if (c.directTo == null) {
-                c.direct(to, 0.6);
+                go(c, to, 0.6);
                 a.until = now + 400;
             }
             return;
@@ -597,7 +606,7 @@ public final class Residents {
             Vec3d lift = r.homeUp && Math.abs(c.getY() - r.homeDoor.y) < 3 ? r.homeDoor : new Vec3d(c.getX(), c.getY(), c.getZ());
             if (c.squaredDistanceTo(lift) < 4 || now > a.until + 600) c.discard();
             else if (c.directTo == null) {
-                c.direct(lift, 0.6);
+                go(c, lift, 0.6);
                 if (a.mode != m) a.until = now;
             }
             a.mode = m;
@@ -610,22 +619,22 @@ public final class Residents {
                 if (a.lying) wake(c, a);
                 if (changed || c.directTo == null && c.squaredDistanceTo(target) > 4) {
                     a.goal = target;
-                    c.direct(target, 0.6);
+                    go(c, target, 0.6);
                 }
                 if (c.directTo == null && c.squaredDistanceTo(target) < 4 && (m == Mode.LEAVE_HOME || m == Mode.LEAVE_WORK)) c.discard(); // уехал
             }
             case SLEEP -> {
                 if (a.lying) return;
                 if (c.squaredDistanceTo(target) > 9) {
-                    if (c.directTo == null) c.direct(target, 0.5);
+                    if (c.directTo == null) go(c, target, 0.5);
                     return;
                 }
-                lieDown(w, c, a, target);
+                lieDown(w, c, a, target, r.homeBed);
             }
             default -> {
                 if (a.lying) wake(c, a);
                 if (c.squaredDistanceTo(target) > 36) {
-                    if (c.directTo == null || changed) c.direct(target, 0.6);
+                    if (c.directTo == null || changed) go(c, target, 0.6);
                     return;
                 }
                 if (c.directTo != null || now < a.until && !changed) return;
@@ -633,6 +642,12 @@ public final class Residents {
                 doThing(w, r, m, c, target);
             }
         }
+    }
+
+    /** Идти по делам: не отвлекаясь на болтовню и потасовки с прохожими (занятие «в пути»). */
+    private static void go(CitizenEntity c, Vec3d to, double speed) {
+        c.direct(to, speed);
+        c.busy(CitizenEntity.Activity.IDLE, 400, null, ItemStack.EMPTY);
     }
 
     /** Чем занят на месте: работа, обед, досуг, дома. */
@@ -711,9 +726,10 @@ public final class Residents {
     }
 
     /** Лечь в свою кровать (как в HomeGoal: ноги у изножья, голова на подушке). */
-    private static void lieDown(ServerWorld w, CitizenEntity c, Active a, Vec3d home) {
-        BlockPos at = BlockPos.ofFloored(home);
-        for (BlockPos b : BlockPos.iterate(at.add(-7, -1, -7), at.add(7, 1, 7))) {
+    private static void lieDown(ServerWorld w, CitizenEntity c, Active a, Vec3d home, @Nullable Vec3d bedHint) {
+        BlockPos at = BlockPos.ofFloored(bedHint != null ? bedHint : home);
+        int r = bedHint != null ? 2 : 7;
+        for (BlockPos b : BlockPos.iterate(at.add(-r, -1, -r), at.add(r, 1, r))) {
             BlockState s = w.getBlockState(b);
             if (!(s.getBlock() instanceof BedBlock) || s.get(BedBlock.PART) != BedPart.FOOT) continue;
             Direction d = s.get(BedBlock.FACING);

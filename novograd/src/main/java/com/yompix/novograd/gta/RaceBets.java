@@ -29,7 +29,7 @@ import java.util.*;
 public final class RaceBets {
     private RaceBets() {}
 
-    public static final String DESK = "race_start+0,16";
+    public static final String DESK = "race_start+-6,8"; // обочина за отбойником, ровно
     static final String[] DRIVERS = {"Вадим «Турбо»", "Кира Скорость", "Гоша Дрифт", "Ахмед «Ночь»", "Сэм Ракета", "Нина Нитро", "Боря Шумахер", "Лёха Север"};
     static final int[] CARS = {CarEntity.SUPERCAR, 9, 2, CarEntity.CLASSIC, CarEntity.BUGGY, 3, CarEntity.COMPACT, 7};
     static final int[] BETS = {100, 500, 1000, 5000};
@@ -80,8 +80,7 @@ public final class RaceBets {
         ServerWorld w = p.getServerWorld();
         Vec3d at = Story.place(w, DESK);
         if (at == null || p.squaredDistanceTo(at) > 48 * 48) return;
-        int y = Story.topY(w, (int) Math.floor(at.x), (int) Math.floor(at.z));
-        Vec3d m = new Vec3d(at.x, y, at.z);
+        Vec3d m = at;
         if (p.age % 40 < 10)
             FunUtil.marker(w, m, "nv_racebets", new ItemStack(Items.GOLD_INGOT), Text.literal("⚑ Тотализатор · ставки на гонщиков").formatted(Formatting.GOLD), true);
         DriveHooks.walkIn(p, "bets", m, () -> open(p));

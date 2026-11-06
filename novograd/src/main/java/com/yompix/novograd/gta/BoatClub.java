@@ -31,7 +31,7 @@ import java.util.*;
 public final class BoatClub {
     private BoatClub() {}
 
-    public static final String CLUB = "riv_marina";
+    public static final String CLUB = "riv_marina+0,-9"; // рядом с бизнесом «Пристань», не поверх
     public static final int FEE = 200, RENT = 120, BUY = 3800, LIMIT = 20 * 240;
     static final String[] RIVALS = {"Капитан Марко", "Лиза «Волна»", "Дед Михалыч"};
     static final float[] RIVAL_K = {1.12f, 1.24f, 1.42f};
@@ -54,7 +54,7 @@ public final class BoatClub {
 
     /** Маршрут: вдоль берега на север, мористее на юг, обратно к пристани. */
     static List<Vec3d> route() {
-        int[][] pts = {{22, 150}, {24, -150}, {26, -420}, {70, -260}, {80, 60}, {80, 420}, {70, 720}, {30, 620}, {16, 330}};
+        int[][] pts = {{40, 150}, {40, -150}, {42, -420}, {90, -260}, {100, 60}, {100, 420}, {90, 720}, {45, 620}, {28, 330}};
         List<Vec3d> l = new ArrayList<>();
         for (int[] p : pts) l.add(new Vec3d(coast(p[1]) - p[0] + 0.5, Island.G, p[1] + 0.5));
         return l;
@@ -83,8 +83,7 @@ public final class BoatClub {
         ServerWorld w = p.getServerWorld();
         Vec3d at = Story.place(w, CLUB);
         if (at != null && p.squaredDistanceTo(at) < 48 * 48) {
-            int y = Story.topY(w, (int) Math.floor(at.x), (int) Math.floor(at.z));
-            Vec3d m = new Vec3d(at.x, y, at.z);
+            Vec3d m = at;
             if (p.age % 40 < 10)
                 FunUtil.marker(w, m, "nv_boatclub", new ItemStack(Items.OAK_BOAT), Text.literal("⚓ Яхт-клуб «Ривьера»").formatted(Formatting.AQUA), true);
             DriveHooks.walkIn(p, "boat", m, () -> {
@@ -122,11 +121,29 @@ public final class BoatClub {
         n.putInt("buy", BUY);
     }
 
+    /** Чистая вода у пристани: от берега на запад первая точка, где вокруг 5×5 вода глубиной от 2 блоков. */
+    static Vec3d water(ServerWorld w, int z) {
+        int x0 = coast(z);
+        for (int x = x0 + 6; x > x0 - 90; x--) {
+            boolean ok = true;
+            for (int dx = -2; dx <= 2 && ok; dx++)
+                for (int dz = -2; dz <= 2 && ok; dz++) {
+                    net.minecraft.util.math.BlockPos q = new net.minecraft.util.math.BlockPos(x + dx, Island.G - 1, z + dz);
+                    ok = w.getFluidState(q).isIn(net.minecraft.registry.tag.FluidTags.WATER) && w.getFluidState(q.down()).isIn(net.minecraft.registry.tag.FluidTags.WATER)
+                            && w.isAir(q.up()) && w.isAir(q.up(2));
+                }
+            if (ok) return new Vec3d(x - 14 + 0.5, Island.G - 1, z + 0.5); // с запасом от берега
+        }
+        return start();
+    }
+
     private static SpeedboatEntity spawnBoat(ServerPlayerEntity p, int color) {
         ServerWorld w = p.getServerWorld();
         Vec3d s = start();
         w.getChunk((int) Math.floor(s.x) >> 4, (int) Math.floor(s.z) >> 4);
-        double y = w.getSeaLevel() - 0.3;
+        s = water(w, 300);
+        net.minecraft.util.math.BlockPos wp = net.minecraft.util.math.BlockPos.ofFloored(s.x, Island.G - 1, s.z);
+        double y = wp.getY() + w.getFluidState(wp).getHeight(w, wp) - SpeedboatEntity.DRAFT;
         SpeedboatEntity b = new SpeedboatEntity(Vehicles.SPEEDBOAT, w);
         b.refreshPositionAndAngles(s.x, y, s.z, 180, 0);
         b.paint(color);
@@ -150,10 +167,14 @@ public final class BoatClub {
                 if (!Life.pay(p, FEE, "взнос за гонку катеров")) return;
                 SpeedboatEntity b = spawnBoat(p, 0xF2C032);
                 b.addCommandTag("nv_boatrace");
-                p.teleport(p.getServerWorld(), b.getX(), b.getY() + 0.5, b.getZ(), 180, 10);
+                b.setTune(true, 1, 2); // гоночный катер клуба: нитро, мотор, усиленный корпус
+                List<Vec3d> cps = route();
+                float yaw = FunUtil.yawTo(b.getPos(), cps.get(0)); // носом к первому буйку
+                b.setYaw(yaw);
+                p.teleport(p.getServerWorld(), b.getX(), b.getY() + 0.5, b.getZ(), yaw, 10);
                 p.startRiding(b, true);
                 Race r = new Race();
-                r.cps = route();
+                r.cps = cps;
                 r.boat = b.getUuid();
                 RACES.put(p.getUuid(), r);
                 FunUtil.title(p, "ГОНКА КАТЕРОВ", "Пройди " + r.cps.size() + " буйков · рекорд клуба " + time(rivalTicks(0)));

@@ -138,7 +138,7 @@ public class DriveScreen extends LifeScreen {
             NbtCompound c = l.getCompound(i);
             int ry = cy + i * 22;
             ctx.fill(x + 10, ry, x + w - 10, ry + 19, 0x40202830);
-            ctx.drawText(textRenderer, "▶ " + c.getString("name") + "  · с " + c.getLong("day") + "-го дня", x + 16, ry + 6, 0xFFFFFFFF, false);
+            ctx.drawText(textRenderer, "▶ " + c.getString("name"), x + 16, ry + 6, 0xFFFFFFFF, false);
             final int idx = i;
             if (!phone) button(ctx, x + w - 130, ry + 2, 114, 15, "Забрать $" + fee, 0xFFF9A825, state.getInt("money") >= fee, () -> {
                 NbtCompound n = new NbtCompound();
@@ -208,14 +208,14 @@ public class DriveScreen extends LifeScreen {
         button(ctx, x + 14, cy + 52, lw, 20, "Купить катер · $" + state.getInt("buy"), 0xFF6A1B9A, state.getInt("money") >= state.getInt("buy") && state.getInt("act") >= 1, () -> boatAct("buy"));
         wrap(ctx, "Пройди все буйки (столбы света) вдоль берега и вернись к пристани за 4 минуты. Обгони капитанов клуба — приз $300 / $700 / $1500.", x + 14, cy + 80, lw, 0xFFB0BEC5);
         int bx = x + w / 2 + 6;
-        ctx.drawText(textRenderer, "РЕКОРДЫ КЛУБА", bx, cy, 0xFF80DEEA, true);
+        ctx.drawText(textRenderer, "РЕКОРДЫ КЛУБА", bx, cy + 4, 0xFF80DEEA, true);
         NbtList b = state.getList("board", NbtElement.COMPOUND_TYPE);
         java.util.List<NbtCompound> rows = new java.util.ArrayList<>();
         for (NbtElement e : b) rows.add((NbtCompound) e);
         rows.sort(java.util.Comparator.comparingInt(c -> c.getInt("t")));
         for (int i = 0; i < Math.min(rows.size(), 8); i++) {
             NbtCompound c = rows.get(i);
-            int ry = cy + 14 + i * 13;
+            int ry = cy + 18 + i * 13;
             int col = c.getBoolean("me") ? 0xFFFFEB3B : 0xFFFFFFFF;
             ctx.drawText(textRenderer, (i + 1) + ". " + c.getString("name"), bx, ry, col, false);
             textRight(ctx, time(c.getInt("t")), x + w - 16, ry, col);

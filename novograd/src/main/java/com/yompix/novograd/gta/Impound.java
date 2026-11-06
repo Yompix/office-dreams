@@ -101,34 +101,60 @@ public final class Impound {
         tow(w, car);
     }
 
+    /** Название стоянки в записях гаража (world/Garage: «impound:police»). */
+    public static final String LOT_ID = "police";
+
     static void tow(ServerWorld w, CarEntity car) {
         UUID owner = ownerOf(car);
         SEEN.remove(car.getUuid());
         DRIVER.remove(car.getUuid());
         if (owner != null) {
-            DriveState st = DriveState.get(w.getServer());
-            NbtCompound rec = new NbtCompound();
-            rec.putInt("v", car.getVariant());
-            rec.putInt("paint", car.color() == CarEntity.COLORS[car.getVariant()] ? 0 : car.color());
-            rec.putInt("tune", car.tune());
-            rec.putInt("hp", car.health());
-            rec.putInt("fuel", car.fuel());
-            rec.putLong("day", w.getTimeOfDay() / 24000L + 1);
-            rec.putString("tags", String.join(",", car.getCommandTags()));
-            DriveState.list(st.of(owner), "impound").add(rec);
-            st.markDirty();
-            ServerPlayerEntity p = w.getServer().getPlayerManager().getPlayer(owner);
-            if (p != null) Life.message(p, "Штрафстоянка", "Твою машину (" + name(car.getVariant()) + ") эвакуировали: бросил посреди дороги. Забрать — штрафстоянка у полицейского участка, $" + FEE + ".");
+            if (car.getOwner() == null) car.setOwner(owner); // хозяин по тегу nv_owned
+            String nm = name(car.getVariant());
+            // машины игроков хранит world/Garage (агент жилья): там же цвет, тюнинг, бензин — всё NBT машины
+            if (com.yompix.novograd.world.Garage.impound(car, LOT_ID)) {
+                ServerPlayerEntity p = w.getServer().getPlayerManager().getPlayer(owner);
+                if (p != null) Life.message(p, "Штрафстоянка", "Твою машину (" + nm + ") эвакуировали: бросил посреди дороги. Забрать — штрафстоянка у полицейского участка, $" + FEE + ".");
+                return;
+            }
         }
         car.discard();
     }
 
+    /** Названия машин для сервера (переводы item.novograd.car_* есть только у клиента). */
+    static final String[] NAMES = {"Седан", "Хэтчбек", "Спорткупе", "Люкс-седан", "Фургон", "Такси", "Полицейская машина", "Внедорожник",
+            "Пикап", "Маслкар", "Лимузин", "Грузовик", "Суперкар «Молния»", "Классика 70-х", "Лоурайдер", "Багги", "Малолитражка «Кроха»",
+            "Бронефургон спецназа", "Скорая помощь", "Пожарная машина"};
+
     public static String name(int v) {
-        return Text.translatable("item.novograd.car_" + CarEntity.VARIANTS[Math.max(0, Math.min(v, CarEntity.VARIANTS.length - 1))]).getString();
+        return NAMES[Math.max(0, Math.min(v, NAMES.length - 1))];
     }
 
+    /** Машины игрока на этой стоянке: {id, name, day}. */
     public static NbtList list(ServerPlayerEntity p) {
-        return DriveState.list(DriveState.get(p.getServer()).of(p), "impound");
+        NbtList out = new NbtList();
+        for (NbtCompound rec : com.yompix.novograd.world.Garage.impounded(p.getServer(), p.getUuid())) {
+            if (!rec.getString("where").equals("impound:" + LOT_ID)) continue;
+            NbtCompound c = new NbtCompound();
+            c.putInt("id", rec.getInt("id"));
+            NbtCompound data = rec.getCompound("data");
+            c.putString("name", rec.getString("type").endsWith(":car") ? name(data.getInt("Variant")) : rec.getString("name"));
+            out.add(c);
+        }
+        return out;
+    }
+
+    /** Телефон → «Дом» → забрать со стоянки: наша стоянка выдаёт только на месте (world/Garage.IMPOUND_RELEASE). */
+    static boolean phoneRelease(ServerPlayerEntity p, NbtCompound rec) {
+        if (!rec.getString("where").equals("impound:" + LOT_ID)) return false;
+        Vec3d at = Story.place(p.getServerWorld(), LOT);
+        if (at != null && p.squaredDistanceTo(at) < 14 * 14) {
+            retrieveId(p, rec.getInt("id"));
+            return true;
+        }
+        if (at != null) FunUtil.target(p, at, "Штрафстоянка");
+        p.sendMessage(Text.literal("⚠ Машина на штрафстоянке у полицейского участка — приезжай, $" + FEE + " (метка на радаре)").formatted(Formatting.GOLD), false);
+        return true;
     }
 
     // ------------------------------------------------------------------ сама стоянка: метка у участка
@@ -136,8 +162,7 @@ public final class Impound {
         ServerWorld w = p.getServerWorld();
         Vec3d at = Story.place(w, LOT);
         if (at == null || p.squaredDistanceTo(at) > 40 * 40) return;
-        int y = Story.topY(w, (int) Math.floor(at.x), (int) Math.floor(at.z));
-        Vec3d m = new Vec3d(at.x, y, at.z);
+        Vec3d m = at;
         if (p.age % 40 < 10)
             FunUtil.marker(w, m, "nv_impound", new ItemStack(Items.TRIPWIRE_HOOK), Text.literal("⚠ Штрафстоянка").formatted(Formatting.GOLD), true);
         DriveHooks.walkIn(p, "impound", m, () -> {
@@ -147,29 +172,28 @@ public final class Impound {
         });
     }
 
-    /** Забрать машину i со штрафстоянки (только у самой стоянки). */
+    /** Забрать машину i (номер в списке) со штрафстоянки — только у самой стоянки. */
     public static void retrieve(ServerPlayerEntity p, int i) {
+        NbtList l = list(p);
+        if (i < 0 || i >= l.size()) return;
+        retrieveId(p, l.getCompound(i).getInt("id"));
+    }
+
+    private static void retrieveId(ServerPlayerEntity p, int id) {
         ServerWorld w = p.getServerWorld();
         Vec3d at = Story.place(w, LOT);
         if (at == null || p.squaredDistanceTo(at) > 14 * 14) {
             p.sendMessage(Text.literal("Забрать машину можно только на штрафстоянке у полицейского участка").formatted(Formatting.RED), true);
             return;
         }
-        NbtList l = list(p);
-        if (i < 0 || i >= l.size()) return;
         if (!Life.pay(p, FEE, "штрафстоянка")) return;
-        NbtCompound rec = l.getCompound(i);
-        l.remove(i);
-        DriveState.get(p.getServer()).markDirty();
         Vec3d spot = at.add(3, 0, 3);
-        int y = Story.topY(w, (int) Math.floor(spot.x), (int) Math.floor(spot.z));
-        CarEntity car = FunUtil.car(w, new Vec3d(spot.x, y, spot.z), p.getYaw(), rec.getInt("v"));
-        if (rec.getInt("paint") != 0) car.paint(rec.getInt("paint"));
-        car.setTune((rec.getInt("tune") & 1) != 0, (rec.getInt("tune") >> 1) & 3, (rec.getInt("tune") >> 3) & 3);
-        car.setFuel(rec.getInt("fuel"));
-        car.setOwner(p.getUuid());
-        for (String t : rec.getString("tags").split(",")) if (!t.isBlank()) car.addCommandTag(t);
+        CarEntity car = com.yompix.novograd.world.Garage.release(p, id, new Vec3d(spot.x, at.y, spot.z), p.getYaw());
+        if (car == null) {
+            Life.earn(p, FEE, "возврат — машины нет");
+            return;
+        }
         w.playSound(null, car.getBlockPos(), ModContent.CAR_START, net.minecraft.sound.SoundCategory.NEUTRAL, 0.8f, 1f);
-        Activities.title(p, "МАШИНА ВОЗВРАЩЕНА", name(rec.getInt("v")) + " ждёт у ворот");
+        Activities.title(p, "МАШИНА ВОЗВРАЩЕНА", name(car.getVariant()) + " ждёт у ворот");
     }
 }

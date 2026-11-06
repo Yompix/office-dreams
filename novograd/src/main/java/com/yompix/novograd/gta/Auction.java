@@ -82,8 +82,7 @@ public final class Auction {
         ServerWorld w = p.getServerWorld();
         Vec3d at = Story.place(w, GATE);
         if (at == null || p.squaredDistanceTo(at) > 60 * 60) return;
-        int y = Story.topY(w, (int) Math.floor(at.x), (int) Math.floor(at.z));
-        Vec3d m = new Vec3d(at.x, y, at.z);
+        Vec3d m = at;
         if (p.age % 40 < 10)
             FunUtil.marker(w, m, "nv_auction", new ItemStack(Items.NAME_TAG), Text.literal("⚒ Аукцион угнанных машин").formatted(Formatting.RED), true);
         DriveHooks.walkIn(p, "auction", m, 4.5, () -> {

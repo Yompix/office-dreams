@@ -108,7 +108,7 @@ public final class DriveClient {
             float h = ((tod + 6000) % 24000) / 1000f;
             if (h >= 4.5f && h <= 9f) f = h < 6 ? (h - 4.5f) / 1.5f : 1 - (h - 6) / 3f;
         }
-        if (w.isRaining()) f = Math.max(f, w.isThundering() ? 0.7f : 0.45f);
+        if (w.isRaining()) f = Math.max(f, w.isThundering() ? 0.8f : 0.6f);
         if (mc.player.getZ() < -1150 && w.isRaining()) f = Math.max(f, 0.9f);
         if (CinemaCam.active()) f *= 0.5f;
         return MathHelper.clamp(f, 0, 1);
