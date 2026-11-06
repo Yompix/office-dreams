@@ -95,18 +95,15 @@ public final class Minimap {
         boolean has = o.contains("x");
         double tx = o.getDouble("x"), tz = o.getDouble("z");
         if (has) {
-            int sx = snap(px), sz = snap(pz), ex = snap(tx), ez = snap(tz);
             int col = 0xFFB04CFF;
-            boolean onX = Math.abs(pz - sz) < Math.abs(px - sx); // стоим на улице вдоль X
-            if (onX) {
-                seg(ctx, px, sz, ex, sz, col);
-                seg(ctx, ex, sz, ex, ez, col);
-            } else {
-                seg(ctx, sx, pz, sx, ez, col);
-                seg(ctx, sx, ez, ex, ez, col);
+            var path = GpsRoute.route(px, pz, tx, tz);
+            if (path.isEmpty()) seg2(ctx, px, pz, tx, tz, col); // дороги нет — напрямик
+            else {
+                int[] f = path.get(0), l = path.get(path.size() - 1);
+                seg2(ctx, px, pz, f[0], f[1], col);
+                for (int i = 1; i < path.size(); i++) seg(ctx, path.get(i - 1)[0], path.get(i - 1)[1], path.get(i)[0], path.get(i)[1], col);
+                seg2(ctx, l[0], l[1], tx, tz, col);
             }
-            seg(ctx, ex, ez, tx, ez, col);
-            seg(ctx, tx, ez, tx, tz, col);
         }
         // полиция и банды рядом
         double r = 90 / zoom;
@@ -201,6 +198,17 @@ public final class Minimap {
 
     private static int snap(double v) {
         return (int) (Math.round((v - 24) / 48.0) * 48 + 24);
+    }
+
+    /** Отрезок под любым углом — цепочкой точек. */
+    private static void seg2(DrawContext ctx, double ax, double az, double bx, double bz, int col) {
+        double len = Math.hypot(bx - ax, bz - az);
+        int n = Math.max(1, (int) (len / 2));
+        double w = 1.4 / zoom;
+        for (int i = 0; i <= n; i++) {
+            double x = ax + (bx - ax) * i / n, z = az + (bz - az) * i / n;
+            fillF(ctx, x - w, z - w, x + w, z + w, col);
+        }
     }
 
     private static void seg(DrawContext ctx, double ax, double az, double bx, double bz, int col) {

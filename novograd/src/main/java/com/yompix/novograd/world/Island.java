@@ -131,6 +131,15 @@ public final class Island {
         return best;
     }
 
+    /** Есть ли здесь дорога: трасса (в т.ч. мост) или улица города/старого центра. Для навигатора. */
+    public static boolean road(int x, int z) {
+        if (highwayDist(x, z) <= 6) return true;
+        Zone zn = zone(x, z);
+        if (zn == Zone.SEA) return false;
+        if (zn == Zone.CORE) return true; // старый центр — сплошь улицы и дворы
+        return urban(zn) && Math.min(gridDist(x), gridDist(z)) <= 4;
+    }
+
     /** Высота поверхности (y верхнего блока земли). */
     public static int surface(int x, int z) {
         Zone zn = zone(x, z);

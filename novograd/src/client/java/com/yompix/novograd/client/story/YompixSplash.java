@@ -84,7 +84,7 @@ public class YompixSplash extends Screen {
         }
         if (!voice && t > 2700) {
             voice = true;
-            play("voice.yompix");
+            // без голоса: заставка только с музыкой
         }
         if (t > TOTAL) {
             close();

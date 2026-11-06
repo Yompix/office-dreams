@@ -129,6 +129,37 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("gps")) {
+            // навигатор: от гаража до старта гонок, от центра до Ривьеры — по дорогам
+            YompixSplash.markShown();
+            pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            cmd(5, "gamemode creative " + P);
+            cmd(5, "time set 6000");
+            double[][] trips = {{60, 60, 120, -744}, {430, -430, -1320, 24}, {-300, 300, 600, -905}};
+            for (int i = 0; i < trips.length; i++) {
+                double[] tr = trips[i];
+                final int n = i;
+                server(5, s -> {
+                    ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                    var w = p.getServerWorld();
+                    w.getChunk((int) tr[0] >> 4, (int) tr[1] >> 4);
+                    p.teleport(w, tr[0], Story.topY(w, (int) tr[0], (int) tr[1]) + 1, tr[1], 0, 0);
+                });
+                run(5, c -> {
+                    var o = new net.minecraft.nbt.NbtCompound();
+                    o.putString("hint", "Тест навигатора " + n);
+                    o.putString("mission", "GPS");
+                    o.putDouble("x", tr[2]); o.putDouble("y", -56); o.putDouble("z", tr[3]);
+                    com.yompix.novograd.client.story.ClientStory.objective = o;
+                    NovogradConfig.get().hudScale = 1.6f;
+                });
+                shot(60, "gps_" + i);
+            }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("splash")) {
             pre(1, c -> {});
             for (int i = 0; i < 16; i++) preShot(i == 0 ? 60 : 22, "splash_" + i);

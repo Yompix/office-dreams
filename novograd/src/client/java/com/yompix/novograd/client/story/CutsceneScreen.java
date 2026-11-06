@@ -221,7 +221,7 @@ public class CutsceneScreen extends LifeScreen {
             n.putBoolean("on", holding);
             NovogradClient.send("cut_hold", n);
         }
-        black += ((waitTicks > 4 ? 1 : 0) - black) * 0.25f;
+        black += ((waitTicks > 10 ? 1 : 0) - black) * 0.12f;
         float time = elapsed();
         place(Math.min(time, total), 0);
         // субтитры идут по очереди: следующая — когда голос закончился
@@ -289,10 +289,7 @@ public class CutsceneScreen extends LifeScreen {
         float fade = Math.min(1, elapsed() / 1.2f);
         float dark = Math.max(1 - fade, black);
         if (dark > 0.01f) ctx.fill(0, 0, width, height, (int) (Math.min(1, dark) * 255) << 24);
-        if (black > 0.5f) {
-            String l = "Загрузка сцены…";
-            ctx.drawText(textRenderer, l, width / 2 - textRenderer.getWidth(l) / 2, height / 2 - 4, 0x99FFFFFF, false);
-        }
+
         if (subIndex >= 0 && subIndex < subs.size()) {
             Sub s = subs.get(subIndex);
             var lines = textRenderer.wrapLines(Text.literal(s.text()), Math.min(width - 40, 380));
