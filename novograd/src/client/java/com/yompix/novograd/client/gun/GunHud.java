@@ -49,6 +49,13 @@ public final class GunHud {
             bar(ctx, cx, cy + g + 1, 1, len, a);
             ctx.fill(cx, cy, cx + 1, cy + 1, a | 0xFFFFFF);
         }
+        // в прицеле — маленькая точка (как у коллиматора): куда летит пуля, ровно над мушкой
+        float ads = GunFx.adsAmount();
+        if (ads > 0.6f && !(c.player.getMainHandStack().getItem() == com.yompix.novograd.gta.Arsenal.SNIPER)) {
+            int a = (int) (Math.min(1, (ads - 0.6f) * 2.5f) * 220) << 24;
+            ctx.fill(cx - 1, cy - 1, cx + 2, cy + 2, a);
+            ctx.fill(cx, cy, cx + 1, cy + 1, a | 0xFF3B3B);
+        }
         float age = (System.nanoTime() - hitAt) / 1e9f;
         float life = GunFx.testFlashNs > 0 ? 1.2f : 0.3f;
         if (age < life) {

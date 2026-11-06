@@ -473,7 +473,11 @@ public final class GunFx {
         // прицел: мушка/целик — в центр экрана
         float dX = sc * (meta.sight[0] - meta.grip[0]) / 16f, dY = sc * (meta.sight[1] - meta.grip[1]) / 16f, dZ = sc * (meta.sight[2] - meta.grip[2]) / 16f;
         float hipX = 0.34f * s, hipY = -0.34f, hipZ = -0.58f;
-        float x = MathHelper.lerp(a, hipX, -dX * s), y = MathHelper.lerp(a, hipY, -dY), z = MathHelper.lerp(a, hipZ, k.adsZ - dZ);
+        // в прицеле ствол чуть ниже линии взгляда и дальше от глаза: мушка видна поверх ствольной коробки,
+        // а задняя часть оружия не закрывает центр экрана (у снайперки — оптика, её не трогаем)
+        float adsDrop = k == Kind.SNIPER ? 0 : k == Kind.PISTOL ? 0.045f : 0.06f;
+        float adsBack = k == Kind.SNIPER ? 0 : k == Kind.PISTOL ? 0.1f : 0.16f;
+        float x = MathHelper.lerp(a, hipX, -dX * s), y = MathHelper.lerp(a, hipY, -dY - adsDrop), z = MathHelper.lerp(a, hipZ, k.adsZ - dZ - adsBack);
 
         m.push();
         m.translate(x, y - 0.5f * draw + equipProgress * -0.6f, z);
