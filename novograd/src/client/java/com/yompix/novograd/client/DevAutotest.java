@@ -1383,12 +1383,19 @@ public final class DevAutotest {
         for (String g : guns) cmd(2, "give " + P + " novograd:" + g);
         cmd(2, "give " + P + " novograd:ammo 64");
         cmd(2, "give " + P + " novograd:ammo 64");
+        cmd(2, "item replace entity " + P + " hotbar.8 with minecraft:air");
+        // открытая площадка на пляже: видно оружие на фоне неба и моря
         server(5, s -> {
             ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
             var w = p.getServerWorld();
-            w.getChunk(216 >> 4, -200 >> 4);
-            p.teleport(w, 216.5, Story.topY(w, 216, -200) + 1, -200.5, 0, 0);
+            int x = -600, z = -520;
+            w.getChunk(x >> 4, z >> 4);
+            int y = com.yompix.novograd.world.Island.surface(x, z) + 1;
+            p.teleport(w, x + 0.5, y, z + 0.5, 60, 0);
         });
+        cmd(10, "execute at " + P + " run fill ~-12 ~-1 ~-12 ~12 ~-1 ~12 minecraft:smooth_stone");
+        cmd(2, "execute at " + P + " run fill ~-12 ~ ~-12 ~12 ~8 ~12 minecraft:air");
+        cmd(2, "kill @e[type=novograd:citizen,distance=..40]");
         run(60, c -> { if (c.currentScreen != null) c.setScreen(null); });
         for (int i = 0; i < 5; i++) {
             final int slot = i;
@@ -1442,6 +1449,7 @@ public final class DevAutotest {
             p.teleport(w, p.getX(), y, p.getZ(), 0, 15);
         });
         run(5, c -> c.player.getInventory().selectedSlot = 8);
+        shot(40, "gun_npc0");
         shot(40, "gun_npc");
         run(20, MinecraftClient::scheduleStop);
     }

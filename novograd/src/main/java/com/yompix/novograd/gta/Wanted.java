@@ -232,6 +232,7 @@ public final class Wanted {
         n.putString("sub", "Штраф $" + fine + ", оружие изъято");
         LifeNet.send(p, "gta_title", n);
         Life.sync(p);
+        if (!Life.get(p).flags.contains("scripted_bust")) com.yompix.novograd.story.Story.failMission(p, "Тебя задержали");
     }
 
     /** Погиб: больница, счёт за лечение. */
@@ -248,5 +249,6 @@ public final class Wanted {
         n.putString("sub", "Врачи спасли тебя. Счёт за лечение: $" + bill);
         LifeNet.send(p, "gta_title", n);
         Life.sync(p);
+        com.yompix.novograd.story.Story.failMission(p, "Ты погиб");
     }
 }

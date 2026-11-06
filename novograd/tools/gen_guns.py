@@ -145,7 +145,7 @@ def pistol():
         box([7.8, 6.6, 7.2], [8.2, 7.1, 7.6], 'metal_hi'),                           # спуск
         box([7.7, 9.7, 10.9], [8.3, 10.3, 11.4], 'metal'),                           # курок
     ]
-    model('pistol', e, gun_display((8, 6, 9.5), 11, fp=(0, -0.5, 0), fp_scale=0.9, tp_scale=0.75, gui_scale=1.05, gui_shift=(0, 1)))
+    model('pistol', e, gun_display((8, 6, 9.5), 11, fp=(-2, 2.2, -2.5), fp_scale=0.9, tp_scale=0.75, gui_scale=1.05, gui_shift=(0, 1)))
 
 
 def smg():
@@ -166,7 +166,7 @@ def smg():
         box([7.2, 7, 18.5], [8.8, 10.4, 19.3], 'polymer'),                           # затыльник
         box([9, 9.3, 7.5], [9.6, 9.8, 8.4], 'metal_hi'),                             # рукоять затвора
     ]
-    model('smg', e, gun_display((8, 6, 11), 20, fp=(0, -0.5, 0.5), fp_scale=0.85, tp_scale=0.75, gui_shift=(0, 0)))
+    model('smg', e, gun_display((8, 6, 11), 20, fp=(-2, 1.8, -3), fp_scale=0.85, tp_scale=0.75, gui_shift=(0, 0)))
 
 
 def shotgun():
@@ -184,7 +184,7 @@ def shotgun():
         box([7.1, 6.8, 15], [8.9, 10.2, 22], 'wood'),                                # приклад
         box([7.05, 6.2, 21.5], [8.95, 10.3, 22.6], 'polymer'),                       # затыльник
     ]
-    model('shotgun', e, gun_display((8, 6.5, 14.5), 29, fp=(0, 0, 1.5), fp_scale=0.8, tp_scale=0.8, gui_shift=(0, 0)))
+    model('shotgun', e, gun_display((8, 6.5, 14.5), 29, fp=(-2.5, 1.6, -4), fp_scale=0.8, tp_scale=0.8, gui_shift=(0, 0)))
 
 
 def rifle():
@@ -208,7 +208,7 @@ def rifle():
         box([7.2, 6.4, 17], [8.8, 10, 22], 'wood'),                                  # приклад
         box([7.15, 6.2, 22], [8.85, 10.1, 22.6], 'polymer'),                         # затыльник
     ]
-    model('rifle', e, gun_display((8, 6.5, 13), 32, fp=(0, 0, 1.5), fp_scale=0.78, tp_scale=0.8, gui_shift=(0, 0)))
+    model('rifle', e, gun_display((8, 6.5, 13), 32, fp=(-2.5, 1.6, -4), fp_scale=0.78, tp_scale=0.8, gui_shift=(0, 0)))
 
 
 def sniper():
@@ -237,7 +237,7 @@ def sniper():
         box([7.35, 10.4, 15], [8.65, 11, 20], 'olive_dark'),                          # щека
         box([7.1, 5.6, 21.5], [8.9, 10.6, 22.3], 'polymer'),                          # затыльник
     ]
-    model('sniper', e, gun_display((8, 6.8, 12.5), 37, fp=(0, 0, 2), fp_scale=0.75, tp_scale=0.8, gui_shift=(0, 0)))
+    model('sniper', e, gun_display((8, 6.8, 12.5), 37, fp=(-2.5, 1.4, -4.5), fp_scale=0.75, tp_scale=0.8, gui_shift=(0, 0)))
 
 
 def knife():

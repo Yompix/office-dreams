@@ -290,7 +290,8 @@
        "radius": 10,
        "vehicle": true
       }
-     ]
+     ],
+     "start": "garage_bay"
     },
     {
      "id": "a1m2",
@@ -508,7 +509,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "race_start+2,-3"
     },
     {
      "id": "a1m2b",
@@ -619,7 +621,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "suburb_street"
     },
     {
      "id": "a1m3",
@@ -689,7 +692,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "garage_bay"
     },
     {
      "id": "a1m3b",
@@ -867,7 +871,8 @@
        "npc": "rosa",
        "hint": "Поговори с Розой у барной стойки"
       }
-     ]
+     ],
+     "start": "club_neon"
     },
     {
      "id": "a1m3c",
@@ -988,7 +993,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "hw_west"
     },
     {
      "id": "a1m3d",
@@ -1137,7 +1143,8 @@
         }
        ]
       }
-     ]
+     ],
+     "start": "garage_door"
     },
     {
      "id": "a1m4",
@@ -1277,7 +1284,8 @@
         }
        ]
       }
-     ]
+     ],
+     "start": "race_start"
     }
    ]
   },
@@ -1470,7 +1478,8 @@
        "npc": "kirpich",
        "hint": "Поговори с Бриком"
       }
-     ]
+     ],
+     "start": "gang_hq"
     },
     {
      "id": "a2m2",
@@ -1514,7 +1523,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "bank_tower"
     },
     {
      "id": "a2m2b",
@@ -1630,7 +1640,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "chop_shop"
     },
     {
      "id": "a2m3",
@@ -1686,7 +1697,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "port_warehouse"
     },
     {
      "id": "a2m3b",
@@ -1731,7 +1743,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "port_crane"
     },
     {
      "id": "a2m3c",
@@ -2015,7 +2028,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "beach_lot"
     },
     {
      "id": "a2m3d",
@@ -2091,7 +2105,8 @@
         }
        ]
       }
-     ]
+     ],
+     "start": "casino_dt"
     },
     {
      "id": "a2m4",
@@ -2228,7 +2243,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "gang_yard+8,-6"
     }
    ]
   },
@@ -2370,7 +2386,8 @@
        "npc": "petrov",
        "hint": "Поговори с лейтенантом Питерсоным в участке"
       }
-     ]
+     ],
+     "start": "police_station+10,6"
     },
     {
      "id": "a3m2",
@@ -2416,7 +2433,8 @@
         }
        ]
       }
-     ]
+     ],
+     "start": "gang_hq"
     },
     {
      "id": "a3m2b",
@@ -2587,7 +2605,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "club_neon"
     },
     {
      "id": "a3m3",
@@ -2632,7 +2651,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "industry_street"
     },
     {
      "id": "a3m3b",
@@ -2812,7 +2832,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "club_neon"
     },
     {
      "id": "a3m3c",
@@ -2965,7 +2986,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "police_station"
     },
     {
      "id": "a3m4",
@@ -3167,7 +3189,8 @@
         }
        ]
       }
-     ]
+     ],
+     "start": "industry_street"
     }
    ]
   },
@@ -3327,7 +3350,8 @@
        "radius": 12,
        "vehicle": true
       }
-     ]
+     ],
+     "start": "bridge_n"
     },
     {
      "id": "a4m2",
@@ -3496,7 +3520,8 @@
        "npc": "sofi",
        "hint": "Поговори с крупье Софи у казино"
       }
-     ]
+     ],
+     "start": "riv_casino+0,3"
     },
     {
      "id": "a4m3",
@@ -3606,7 +3631,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "riv_strip"
     },
     {
      "id": "a4m4",
@@ -3651,7 +3677,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "riv_hotel"
     },
     {
      "id": "a4m5",
@@ -3713,7 +3740,8 @@
        "npc": "ray",
        "hint": "Поговори с Рэем"
       }
-     ]
+     ],
+     "start": "riv_marina"
     },
     {
      "id": "a4m6",
@@ -3772,7 +3800,8 @@
         }
        ]
       }
-     ]
+     ],
+     "start": "riv_villa"
     },
     {
      "id": "a4m7",
@@ -3822,7 +3851,8 @@
         }
        ]
       }
-     ]
+     ],
+     "start": "riv_casino+6,-4"
     },
     {
      "id": "a4m8",
@@ -3869,7 +3899,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "riv_strip"
     },
     {
      "id": "a4m9",
@@ -3978,7 +4009,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "riv_casino"
     },
     {
      "id": "a4m10",
@@ -4127,7 +4159,8 @@
         }
        ]
       }
-     ]
+     ],
+     "start": "riv_docks"
     }
    ]
   },
@@ -4192,7 +4225,8 @@
        "radius": 16,
        "vehicle": true
       }
-     ]
+     ],
+     "start": "mtn_road"
     },
     {
      "id": "a5m2",
@@ -4267,7 +4301,8 @@
         }
        ]
       }
-     ]
+     ],
+     "start": "mtn_road"
     },
     {
      "id": "a5m3",
@@ -4343,7 +4378,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "desert_mesa"
     },
     {
      "id": "a5m4",
@@ -4396,7 +4432,8 @@
        "npc": "lena",
        "hint": "Поговори с Леной"
       }
-     ]
+     ],
+     "start": "village"
     },
     {
      "id": "a5m5",
@@ -4443,7 +4480,8 @@
         }
        ]
       }
-     ]
+     ],
+     "start": "lake_dock"
     },
     {
      "id": "a5m6",
@@ -4495,7 +4533,8 @@
         ]
        ]
       }
-     ]
+     ],
+     "start": "outer_east"
     },
     {
      "id": "a5m7",
@@ -4759,7 +4798,8 @@
       {
        "type": "credits"
       }
-     ]
+     ],
+     "start": "airfield_hangar"
     }
    ]
   }

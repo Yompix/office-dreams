@@ -939,6 +939,27 @@ for vid, sp, text in [
 ]:
     voice_lines.append({'id': vid, 'who': 'narrator', 'text': text, 'speaker': sp})
 
+# ---------- точка старта каждой миссии (свободная игра: миссия ждёт игрока на жёлтой метке, как в GTA SA)
+ACT_HOME = {'a1': 'garage_door', 'a2': 'gang_yard', 'a3': 'police_station', 'a4': 'riv_strip', 'a5': 'mtn_road'}
+npc_at = {}
+for ch in chapters:
+    for mi in ch['missions']:
+        start = None
+        for st in mi['steps']:
+            for a_ in st.get('do', []):
+                if a_[0] in ('spawn', 'tp_npc'): npc_at[a_[1]] = a_[2]
+            for cue in st.get('actors', []):
+                if cue[1] == 'spawn' and cue[2] in CHARS: npc_at[cue[2]] = cue[3]
+            if start: continue
+            t_ = st.get('type')
+            if t_ == 'talk' and st.get('npc') in npc_at: start = npc_at[st['npc']]
+            elif t_ in ('goto', 'steal', 'clear') and st.get('place'): start = st['place']
+            elif t_ == 'carrace': start = st.get('start')
+            elif t_ == 'chase': start = st['points'][0]
+            elif t_ == 'collect': start = st['clues'][0]['place']
+        start = {'a1m3d': 'garage_door', 'a1m4': 'race_start', 'a3m3b': 'club_neon'}.get(mi['id'], start)
+        mi.setdefault('start', start or ACT_HOME.get(ch['id'], 'garage_door'))
+
 story = {'characters': CHARS, 'chapters': chapters, 'side': side}
 with open(OUT, 'w', encoding='utf-8') as f:
     json.dump(story, f, ensure_ascii=False, indent=1)

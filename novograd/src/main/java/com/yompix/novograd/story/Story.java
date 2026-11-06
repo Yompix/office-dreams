@@ -206,6 +206,21 @@ public final class Story {
         }
         JsonObject s = step(d);
         if (s == null) return;
+        if (idle(d)) {
+            // подошёл к метке миссии — начинаем (и у друзей на том же месте сюжета тоже)
+            Vec3d at = missionStart(p, d);
+            if (r.ticks % 100 == 0) sendIdle(p, d);
+            if (at != null && p.squaredDistanceTo(at) < 5 * 5) {
+                String key = "started:" + d.chapter + ":" + d.mission;
+                for (ServerPlayerEntity q : p.getServer().getPlayerManager().getPlayerList()) {
+                    LifeData dq = Life.get(q);
+                    if (!active(q) || stepKey(dq) != stepKey(d)) continue;
+                    dq.flags.add(key);
+                    enter(q, dq, true);
+                }
+            }
+            return;
+        }
         StepLogic.tick(p, d, r, s);
     }
 
@@ -219,9 +234,67 @@ public final class Story {
     }
 
     /** Войти в текущий шаг. doActions=false при повторном входе после перезахода — чтобы не выдать награды дважды. */
+    /** Свободная игра: новая миссия ждёт, пока игрок сам придёт на жёлтую метку (кроме самой первой). */
+    public static boolean idle(LifeData d) {
+        return d.side.isEmpty() && !d.storyDone && d.step == 0 && !(d.chapter == 0 && d.mission == 0)
+                && mission(d) != null && !d.flags.contains("started:" + d.chapter + ":" + d.mission);
+    }
+
+    /** Где начинается текущая миссия (метка «M» на карте). */
+    @Nullable
+    public static Vec3d missionStart(ServerPlayerEntity p, LifeData d) {
+        JsonObject m = mission(d);
+        return m == null ? null : place(p.getServerWorld(), str(m, "start", "garage_door"));
+    }
+
+    private static void sendIdle(ServerPlayerEntity p, LifeData d) {
+        JsonObject m = mission(d), c = chapter(d);
+        Vec3d at = missionStart(p, d);
+        NbtCompound n = new NbtCompound();
+        n.putString("chapter", c == null ? "" : str(c, "title", "") + " · " + str(c, "subtitle", ""));
+        n.putString("mission", "Свободная игра");
+        n.putString("hint", "Новая миссия «" + str(m, "title", "") + "» — жёлтая метка");
+        n.putString("type", "free");
+        if (at != null) {
+            n.putDouble("x", at.x);
+            n.putDouble("y", at.y);
+            n.putDouble("z", at.z);
+        }
+        n.putString("how", "Гуляй сколько хочешь: миссия начнётся, когда подойдёшь к метке");
+        LifeNet.send(p, "objective", n);
+    }
+
+    /** Погиб или задержан посреди миссии — «МИССИЯ ПРОВАЛЕНА», миссия ждёт на метке снова (как в GTA SA). */
+    public static void failMission(ServerPlayerEntity p, String why) {
+        if (!active(p)) return;
+        LifeData d = Life.get(p);
+        if (!d.side.isEmpty()) {
+            SideMissions.cancel(p);
+            return;
+        }
+        if (idle(d) || d.chapter == 0 && d.mission == 0) return;
+        GtaSteps.cleanup(p);
+        Director.stop(p);
+        d.flags.remove("entered:" + stepKey(d));
+        d.flags.remove("started:" + d.chapter + ":" + d.mission);
+        d.step = 0;
+        d.stepCount = 0;
+        NbtCompound n = new NbtCompound();
+        n.putString("title", "МИССИЯ ПРОВАЛЕНА");
+        n.putString("sub", why + " · миссия снова ждёт на жёлтой метке");
+        LifeNet.send(p, "gta_title", n);
+        enter(p, d, false);
+    }
+
     static void enter(ServerPlayerEntity p, LifeData d, boolean doActions) {
         JsonObject s = step(d);
         Run r = run(p);
+        if (idle(d)) {
+            r.lastStep = stepKey(d);
+            sendIdle(p, d);
+            Life.sync(p);
+            return;
+        }
         r.lastStep = stepKey(d);
         r.waitingDialog = false;
         r.dialogSent = false;
@@ -297,6 +370,7 @@ public final class Story {
     public static boolean onTalk(ServerPlayerEntity p, CitizenEntity c) {
         if (!active(p)) return false;
         LifeData d = Life.get(p);
+        if (idle(d)) return false;
         JsonObject s = step(d);
         if (s == null) return false;
         String type = str(s, "type", "");

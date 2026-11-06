@@ -111,6 +111,7 @@ public final class Minimap {
                 else if (ce.getRole() == CitizenEntity.Role.GANG) c = 0xFFFF4040;
                 else if (!ce.getStoryId().isEmpty()) c = 0xFF7CFF8A;
             } else if (e instanceof CarEntity car && car.isPolice()) c = (pl.age / 5) % 2 == 0 ? 0xFF4FA3FF : 0xFFFF4040;
+            else if (e instanceof net.minecraft.entity.player.PlayerEntity) c = 0xFFFF9EF5; // друзья онлайн — розовые
             if (c == 0) continue;
             float s = 2.2f / zoom;
             fillF(ctx, e.getX() - s, e.getZ() - s, e.getX() + s, e.getZ() + s, 0xFF000000);
@@ -129,8 +130,15 @@ public final class Minimap {
             double k = Math.min(1, Math.min(kx, ky));
             int bx = (int) (cx + sxp * k), by = (int) (cy + syp * k);
             boolean pulse = (System.currentTimeMillis() / 400) % 2 == 0;
-            ctx.fill(bx - 4, by - 4, bx + 4, by + 4, 0xFF000000);
-            ctx.fill(bx - 3, by - 3, bx + 3, by + 3, pulse ? 0xFFFFD000 : 0xFFFFE860);
+            if (o.getString("type").equals("free")) {
+                // метка новой миссии — жёлтая «М», как контакт в GTA
+                ctx.fill(bx - 5, by - 5, bx + 5, by + 5, 0xFF000000);
+                ctx.fill(bx - 4, by - 4, bx + 4, by + 4, 0xFFFFD000);
+                ctx.drawText(mc.textRenderer, "M", bx - 2, by - 3, 0xFF000000, false);
+            } else {
+                ctx.fill(bx - 4, by - 4, bx + 4, by + 4, 0xFF000000);
+                ctx.fill(bx - 3, by - 3, bx + 3, by + 3, pulse ? 0xFFFFD000 : 0xFFFFE860);
+            }
             int dist = (int) Math.sqrt(dx * dx + dz * dz);
             if (k < 1 || dist > 25) {
                 String ds = dist >= 1000 ? String.format("%.1f км", dist / 1000f) : dist + " м";

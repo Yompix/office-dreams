@@ -37,17 +37,19 @@ public final class GunFx {
 
     /** Свойства ствола для анимации. muzzle — дуло в пикселях модели (см. tools/gen_guns.py). */
     public enum Kind {
-        PISTOL(1.0f, 0.55f, false, 8, 9.1f, 1.6f, 3.2f),
-        SMG(0.42f, 0.22f, true, 8, 9f, -0.5f, 3.0f),
-        SHOTGUN(1.7f, 1.5f, true, 8, 9.6f, -7f, 5.0f),
-        RIFLE(0.55f, 0.32f, true, 8, 9.4f, -9.5f, 3.8f),
-        SNIPER(2.0f, 1.25f, true, 8, 9.4f, -14.5f, 4.6f);
+        PISTOL(1.0f, 0.55f, false, 8, 9.1f, 1.6f, 3.2f, new float[]{8, 5.6f, 10.2f}, new float[]{8.4f, 4.6f, 9.4f}),
+        SMG(0.42f, 0.22f, true, 8, 9f, -0.5f, 3.0f, new float[]{8, 5.6f, 11.4f}, new float[]{8, 6.8f, 5f}),
+        SHOTGUN(1.7f, 1.5f, true, 8, 9.6f, -7f, 5.0f, new float[]{8, 6.4f, 14.6f}, new float[]{8, 7.6f, 0f}),
+        RIFLE(0.55f, 0.32f, true, 8, 9.4f, -9.5f, 3.8f, new float[]{8, 6f, 13.6f}, new float[]{8, 7.8f, 2.5f}),
+        SNIPER(2.0f, 1.25f, true, 8, 9.4f, -14.5f, 4.6f, new float[]{8, 6.2f, 12.8f}, new float[]{8, 7.4f, 0.5f});
 
         final float kick, shake, flash;
         final boolean twoHanded;
         final float mx, my, mz;
+        /** Где кулак правой руки (рукоять) и левой (цевьё/магазин; у пистолета — поддерживает снизу), пиксели модели. */
+        final float[] grip, support;
 
-        Kind(float kick, float shake, boolean twoHanded, float mx, float my, float mz, float flash) {
+        Kind(float kick, float shake, boolean twoHanded, float mx, float my, float mz, float flash, float[] grip, float[] support) {
             this.kick = kick;
             this.shake = shake;
             this.twoHanded = twoHanded;
@@ -55,6 +57,8 @@ public final class GunFx {
             this.my = my;
             this.mz = mz;
             this.flash = flash;
+            this.grip = grip;
+            this.support = support;
         }
     }
 
@@ -250,10 +254,71 @@ public final class GunFx {
         }
 
         ModelTransformationMode mode = right ? ModelTransformationMode.FIRST_PERSON_RIGHT_HAND : ModelTransformationMode.FIRST_PERSON_LEFT_HAND;
+        if (main && !player.isInvisible()) arms(c, player, item, k, mode, !right, rp, m, buffers, light);
         r.renderItem(player, item, mode, !right, m, buffers, light);
         // вспышка у дула — 1–2 кадра после выстрела
         if (main && System.nanoTime() < flashUntil && kind(item.getItem()) == lastKind)
             flash(c, player, item, mode, !right, m, buffers, k);
+        m.pop();
+    }
+
+    /** Сейчас рисуем руку от первого лица — поза «целится» не нужна. */
+    public static boolean fpArm;
+
+    /**
+     * Руки держат оружие: кулак — на рукояти (и на цевье у длинных стволов), плечо — за краем экрана.
+     * Считаем в пространстве модели оружия, поэтому руки двигаются вместе с отдачей и перезарядкой.
+     */
+    private static void arms(MinecraftClient c, AbstractClientPlayerEntity player, ItemStack item, Kind k, ModelTransformationMode mode, boolean left,
+                             float reload, MatrixStack m, VertexConsumerProvider buffers, int light) {
+        if (!(c.getEntityRenderDispatcher().getRenderer(player) instanceof net.minecraft.client.render.entity.PlayerEntityRenderer pr)) return;
+        var model = c.getItemRenderer().getModel(item, player.getWorld(), player, 0);
+        var tf = model.getTransformation().getTransformation(mode);
+        float s = left ? -1 : 1;
+        // плечи в пространстве руки-камеры
+        org.joml.Vector3f mainShoulder = new org.joml.Vector3f(0.62f * s, -0.95f, 0.15f), offShoulder = new org.joml.Vector3f(-0.42f * s, -0.95f, 0.1f);
+        // левая рука при перезарядке уходит вниз, к «магазину»
+        float[] sup = k.support.clone();
+        if (reload >= 0 && k != Kind.SHOTGUN) {
+            float away = smooth(0.18f, 0.32f, reload) * (1 - smooth(0.5f, 0.64f, reload));
+            sup[1] -= 5f * away;
+            sup[2] += 2f * away;
+        }
+        fpArm = true;
+        try {
+            arm(pr, player, m, tf, left, k.grip, mainShoulder, true, buffers, light);
+            if (k.twoHanded || k == Kind.PISTOL) arm(pr, player, m, tf, left, sup, offShoulder, false, buffers, light);
+        } finally {
+            fpArm = false;
+        }
+    }
+
+    private static void arm(net.minecraft.client.render.entity.PlayerEntityRenderer pr, AbstractClientPlayerEntity player, MatrixStack m,
+                            net.minecraft.client.render.model.json.Transformation tf, boolean left, float[] at, org.joml.Vector3f shoulder, boolean mainArm,
+                            VertexConsumerProvider buffers, int light) {
+        m.push();
+        tf.apply(left, m);
+        m.translate(-0.5f, -0.5f, -0.5f);
+        float gx = at[0] / 16f, gy = at[1] / 16f, gz = at[2] / 16f;
+        if (left) gx = 1 - gx; // зеркальная модель для левой руки
+        m.translate(gx, gy, gz);
+        // где кулак на экране и куда смотреть, чтобы рука уходила к плечу
+        Matrix4f pos = m.peek().getPositionMatrix();
+        org.joml.Vector3f fist = pos.transformPosition(new org.joml.Vector3f());
+        org.joml.Vector3f toShoulder = new org.joml.Vector3f(shoulder).sub(fist);
+        Matrix4f inv = new Matrix4f(pos).invert();
+        org.joml.Vector3f local = inv.transformDirection(toShoulder).normalize();
+        // ось руки модели: от кулака к плечу — это -Y
+        org.joml.Quaternionf q = new org.joml.Quaternionf().rotationTo(0, -1, 0, local.x, local.y, local.z);
+        m.multiply(q);
+        float sc = 1f / Math.max(0.05f, tf.scale.x());
+        m.scale(sc, sc, sc);
+        boolean rightArm = mainArm != left; // основная рука правая, если не левша
+        // кулак в модели руки: низ кубоида (y≈10.5), центр по x
+        m.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(rightArm ? -70 : 70));
+        m.translate(rightArm ? 6f / 16f : -6f / 16f, -10.5f / 16f, 0);
+        if (rightArm) pr.renderRightArm(m, buffers, light, player);
+        else pr.renderLeftArm(m, buffers, light, player);
         m.pop();
     }
 
@@ -309,7 +374,7 @@ public final class GunFx {
     /** Поза «целится» от третьего лица (после ванильной setAngles). */
     public static void pose(BipedEntityModel<?> model, LivingEntity e) {
         ItemStack st = e.getMainHandStack();
-        if (!(st.getItem() instanceof GunItem)) return;
+        if (fpArm || !(st.getItem() instanceof GunItem)) return;
         Kind k = kind(st.getItem());
         boolean right = e.getMainArm() == Arm.RIGHT;
         ModelPart main = right ? model.rightArm : model.leftArm, off = right ? model.leftArm : model.rightArm;

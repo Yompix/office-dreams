@@ -71,7 +71,11 @@ final class Actions {
             case "spawn" -> Npcs.spawn(p, a.get(1).getAsString(), a.get(2).getAsString());
             case "tp_npc" -> Npcs.spawn(p, a.get(1).getAsString(), a.get(2).getAsString());
             case "despawn" -> Npcs.despawn(p, a.get(1).getAsString());
-            case "busted" -> com.yompix.novograd.gta.Wanted.busted(p);
+            case "busted" -> {
+                d.flags.add("scripted_bust"); // арест по сюжету — это не провал миссии
+                com.yompix.novograd.gta.Wanted.busted(p);
+                d.flags.remove("scripted_bust");
+            }
             case "wanted_clear" -> com.yompix.novograd.gta.Wanted.clear(p);
             case "wanted" -> com.yompix.novograd.gta.Wanted.add(p, 0, a.size() > 2 ? a.get(2).getAsString() : "розыск", a.get(1).getAsInt());
             case "act" -> {

@@ -1,5 +1,7 @@
 package com.yompix.novograd.story;
 
+import com.yompix.novograd.life.Life;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.yompix.novograd.ModContent;
@@ -46,6 +48,8 @@ final class GtaSteps {
     static void cleanup(ServerPlayerEntity p) {
         List<UUID> l = SPAWNED.remove(p.getUuid());
         if (l == null) return;
+        // общие с напарником соперники остаются, пока они нужны другу
+        for (List<UUID> other : SPAWNED.values()) if (other == l) return;
         for (UUID u : l) {
             var e = p.getServerWorld().getEntity(u);
             if (e instanceof CarEntity car) car.getPassengerList().forEach(x -> { if (!(x instanceof ServerPlayerEntity)) x.discard(); });
@@ -86,7 +90,21 @@ final class GtaSteps {
         d.stepCount = 0;
         r.countdown = -1;
         r.rivalIndex = 0;
-        switch (Story.str(s, "type", "")) {
+        // игра с друзьями: если напарник на том же шаге уже вызвал соперника/банду/машину — делим их, а не спавним второй раз
+        String type = Story.str(s, "type", "");
+        if (java.util.Set.of("steal", "clear", "chase", "carrace").contains(type)) {
+            for (ServerPlayerEntity q : p.getServer().getPlayerManager().getPlayerList()) {
+                if (q == p || !Story.active(q) || Story.stepKey(Life.get(q)) != Story.stepKey(d)) continue;
+                List<UUID> theirs = SPAWNED.get(q.getUuid());
+                if (theirs == null || theirs.isEmpty()) continue;
+                SPAWNED.put(p.getUuid(), theirs);
+                Story.Run rq = Story.run(q);
+                r.target = rq.target;
+                if (rq.countdown == 0) r.countdown = 0; // заезд уже идёт — сразу в гонке
+                return;
+            }
+        }
+        switch (type) {
             case "escape" -> Wanted.add(p, 0, Story.str(s, "why", "погоня"), Story.num(s, "stars", 2));
             case "steal" -> {
                 Vec3d at = Story.place(w, Story.str(s, "place", ""));

@@ -30,8 +30,10 @@ import java.util.UUID;
  * Анимации (колёса, руль, крен, фары, выхлоп) рисует клиент по движению машины.
  */
 public class CarEntity extends Entity {
-    public static final String[] VARIANTS = {"red", "blue", "yellow", "black", "white", "taxi", "police"};
-    public static final int[] COLORS = {0xD7262C, 0x2C6ECB, 0xF2C032, 0x2A2C31, 0xE8E8EA, 0xF7C600, 0xF2F4F7};
+    /** Кузова: 0 седан, 1 хэтчбек, 2 спорткупе, 3 люкс-седан, 4 фургон, 5 такси, 6 полиция, 7 внедорожник,
+     *  8 пикап, 9 маслкар, 10 лимузин, 11 грузовик (см. CarBody). */
+    public static final String[] VARIANTS = {"red", "blue", "yellow", "black", "white", "taxi", "police", "suv", "pickup", "muscle", "limo", "truck"};
+    public static final int[] COLORS = {0xD7262C, 0x2C6ECB, 0xF2C032, 0x2A2C31, 0xE8E8EA, 0xF7C600, 0xF2F4F7, 0x3E4B3C, 0xB5462A, 0xF07A12, 0x15161A, 0xE4E4DE};
     public static final int POLICE = 6;
     /** Тюнинг: цвет (0 — заводской), нитро, двигатель 0–2, броня 0–2; здоровье машины 0–100. */
     private static final TrackedData<Integer> PAINT = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
@@ -147,6 +149,25 @@ public class CarEntity extends Entity {
 
     public boolean isPolice() {
         return getVariant() == POLICE;
+    }
+
+    /** Тип кузова (форма и характер езды). */
+    public CarBody body() {
+        return CarBody.of(getVariant());
+    }
+
+    /** Ручник (Пробел) у водителя на этом клиенте; ставит клиентский тик (CarHud). Сервер его не читает. */
+    public static boolean handbrakeInput;
+    /** Только у водителя: ручник сейчас затянут. */
+    public boolean handbrake;
+    /** Направление движения кузова (отстаёт от носа машины в заносе) и угол заноса в градусах. */
+    private float moveYaw = Float.NaN;
+    public float slip;
+
+    /** Предел скорости игрока на этой машине (без маршрута): кузов, тюнинг двигателя, нитро. */
+    public float topSpeed() {
+        float max = isScooter() ? 0.42f : isBike() ? 1.25f * (1 + engine() * 0.12f) : 0.95f * body().top * (1 + engine() * 0.12f);
+        return nitroOn() ? max * 1.55f : max;
     }
 
     /** Цвет кузова с учётом покраски в гараже. */
@@ -422,6 +443,7 @@ public class CarEntity extends Entity {
             }
             if (!getWorld().isClient && getControllingPassenger() == null) drive();
         }
+        if (!getWorld().isClient && !isScooter() && !isBike()) crashCheck();
         // поворот машины передаём пассажирам в updatePassengerPosition — после их тика,
         // тогда камера поворачивается плавно между кадрами, а не ступеньками раз в тик
         tickYawDelta = MathHelper.wrapDegrees(getYaw() - yawBefore);
@@ -434,6 +456,39 @@ public class CarEntity extends Entity {
         }
         checkBlockCollision();
         pushOthers();
+    }
+
+    // ------------------------------------------------------------------ удары: вмятины от аварий
+    private final double[] stepLen = new double[8];
+    private double lastCX = Double.NaN, lastCZ;
+
+    /**
+     * Сервер: по пути за последние тики ловим резкую остановку (удар о стену или машину) — кузов мнётся, машину трясёт.
+     * Аварии сами по себе машину не взрывают: ниже 12 «здоровья» от ударов не опускается.
+     */
+    private void crashCheck() {
+        if (Double.isNaN(lastCX)) {
+            lastCX = getX();
+            lastCZ = getZ();
+            return;
+        }
+        double d = Math.hypot(getX() - lastCX, getZ() - lastCZ);
+        lastCX = getX();
+        lastCZ = getZ();
+        System.arraycopy(stepLen, 1, stepLen, 0, stepLen.length - 1);
+        stepLen[stepLen.length - 1] = d > 6 ? 0 : d; // телепорт — не удар
+        double before = 0, after = 0;
+        for (int i = 0; i < 4; i++) before += stepLen[i];
+        for (int i = 4; i < 8; i++) after += stepLen[i];
+        if (before > 2.2 && after < before * 0.3 && age > 40 && !wrecked()) {
+            int dmg = (int) Math.round((before / 4 - 0.45) * 40) + 3;
+            dmg = Math.round(dmg * (1.2f - armor() * 0.35f));
+            int h = Math.max(Math.min(health(), 12), health() - dmg);
+            if (h < health()) dataTracker.set(HEALTH, h);
+            dataTracker.set(WOBBLE, 10);
+            getWorld().playSound(null, getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, SoundCategory.NEUTRAL, 1f, 0.7f);
+            java.util.Arrays.fill(stepLen, 0);
+        }
     }
 
     /** Физика: газ, тормоз, задний ход, руль зависит от скорости, гравитация, ступеньки до 1 блока. */

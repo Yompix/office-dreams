@@ -53,8 +53,11 @@ public final class Director {
     private static final class Scene {
         final List<JsonArray> cues = new ArrayList<>();
         final List<Shot> shots = new ArrayList<>();
-        final Map<String, UUID> actors = new HashMap<>();
-        final Set<UUID> extras = new HashSet<>();
+        Map<String, UUID> actors = new HashMap<>();
+        Set<UUID> extras = new HashSet<>();
+        /** Зритель: сцену ставит напарник, а этот игрок её только смотрит (актёры общие). */
+        boolean viewer;
+        JsonObject step;
         final List<int[]> bursts = new ArrayList<>(); // [индекс очереди, осталось, кд]
         final List<Object[]> burstInfo = new ArrayList<>();
         int t, next;
@@ -80,6 +83,23 @@ public final class Director {
                 for (int i = 0; i < 3 && i < o.size(); i++) s.off[i] = o.get(i).getAsDouble();
             }
             sc.shots.add(s);
+        }
+        sc.step = step;
+        // игра с друзьями: эту же сцену уже ставит напарник — смотрим вместе, второй раз актёров не зовём
+        for (Map.Entry<UUID, Scene> en : SCENES.entrySet()) {
+            Scene other = en.getValue();
+            if (other.step == step && !other.viewer && !en.getKey().equals(p.getUuid())) {
+                sc.viewer = true;
+                sc.actors = other.actors;
+                sc.extras = other.extras;
+                sc.t = other.t;
+                SCENES.put(p.getUuid(), sc);
+                for (Map.Entry<String, UUID> a : other.actors.entrySet()) {
+                    Entity e = w.getEntity(a.getValue());
+                    if (e != null) announceTo(p, a.getKey(), e);
+                }
+                return;
+            }
         }
         if (step.has("actors")) for (JsonElement e : step.getAsJsonArray("actors")) sc.cues.add(e.getAsJsonArray());
         sc.cues.sort(Comparator.comparingDouble(a -> a.get(0).getAsDouble()));
@@ -134,7 +154,7 @@ public final class Director {
         if (sc == null) return;
         ServerWorld w = p.getServerWorld();
         sc.t++;
-        run(p, sc, sc.t);
+        if (!sc.viewer) run(p, sc, sc.t);
         // очереди выстрелов
         for (int i = sc.bursts.size() - 1; i >= 0; i--) {
             int[] b = sc.bursts.get(i);
@@ -210,7 +230,19 @@ public final class Director {
         return actor(w, sc, id) instanceof CitizenEntity c ? c : null;
     }
 
+    /** Сообщить о новом актёре всем, кто смотрит эту сцену (постановщику и зрителям). */
     private static void announce(ServerPlayerEntity p, String name, Entity e) {
+        Scene mine = SCENES.get(p.getUuid());
+        announceTo(p, name, e);
+        if (mine == null) return;
+        for (Map.Entry<UUID, Scene> en : SCENES.entrySet()) {
+            if (en.getKey().equals(p.getUuid()) || en.getValue().actors != mine.actors) continue;
+            ServerPlayerEntity q = p.getServer().getPlayerManager().getPlayer(en.getKey());
+            if (q != null) announceTo(q, name, e);
+        }
+    }
+
+    private static void announceTo(ServerPlayerEntity p, String name, Entity e) {
         NbtCompound n = new NbtCompound();
         n.putString("name", name);
         n.putInt("id", e.getId());
@@ -385,7 +417,15 @@ public final class Director {
     /** Конец сцены: массовку и машины убрать, героев отпустить. */
     public static void stop(ServerPlayerEntity p) {
         Scene sc = SCENES.remove(p.getUuid());
-        if (sc == null) return;
+        if (sc == null || sc.viewer) return;
+        // напарник ещё смотрит — он доиграет и уберёт массовку сам
+        for (Map.Entry<UUID, Scene> en : SCENES.entrySet()) {
+            if (en.getValue().actors == sc.actors) {
+                en.getValue().viewer = false;
+                en.getValue().cues.clear();
+                return;
+            }
+        }
         ServerWorld w = p.getServerWorld();
         for (UUID u : sc.extras) {
             Entity e = w.getEntity(u);
