@@ -20,7 +20,6 @@ public final class PlayerWeight {
 
     /** 62 кг — обычная ширина; 100 кг — на треть шире; 50 — чуть уже. */
     public static float width(PlayerEntity p) {
-        float kg = kg(p);
-        return Math.max(0.9f, Math.min(1.45f, 1f + (kg - 62f) / 110f));
+        return 1f; // в Новограде веса нет — все обычного телосложения (ширина от силы — в PlayerStyleScaleMixin)
     }
 }

@@ -56,11 +56,11 @@
   "item.novograd.speedboat": "Speedboat",
   "item.novograd.helicopter": "Helicopter",
   "item.novograd.plane": "Plane",
-  "item.novograd.car_red": "Car (red)",
-  "item.novograd.car_blue": "Car (blue)",
-  "item.novograd.car_yellow": "Car (yellow)",
-  "item.novograd.car_black": "Car (black)",
-  "item.novograd.car_white": "Car (white)",
+  "item.novograd.car_red": "Sedan (red)",
+  "item.novograd.car_blue": "Hatchback (blue)",
+  "item.novograd.car_yellow": "Sports coupe (yellow)",
+  "item.novograd.car_black": "Luxury sedan (black)",
+  "item.novograd.car_white": "Van (white)",
   "item.novograd.car_taxi": "Taxi",
   "subtitles.novograd.school_bell": "School bell",
   "subtitles.novograd.phone_notify": "Phone notification",
@@ -107,5 +107,10 @@
   "key.novograd.cinema": "Cinematic camera",
   "key.novograd.grade": "Graphics: pretty / light / off",
   "category.novograd": "Novograd",
-  "generator.novograd.city": "Novograd: City"
+  "generator.novograd.city": "Novograd: City",
+  "item.novograd.car_suv": "SUV",
+  "item.novograd.car_pickup": "Pickup truck",
+  "item.novograd.car_muscle": "Muscle car",
+  "item.novograd.car_limo": "Limousine",
+  "item.novograd.car_truck": "Box truck"
 }

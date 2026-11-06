@@ -41,6 +41,7 @@ public final class LifeEvents {
         ServerTickEvents.END_SERVER_TICK.register(LifeEvents::tick);
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Activities::tick);
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Heists::tick);
+        ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.world.ShopPlacer::tick);
         ServerTickEvents.END_SERVER_TICK.register(s -> s.getPlayerManager().getPlayerList().forEach(p -> {
             com.yompix.novograd.story.Story.tick(p);
             OnlineCasino.tick(p);
@@ -52,7 +53,7 @@ public final class LifeEvents {
 
     private static void onJoin(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
-        d.weight = 75; // веса в Новограде нет
+        d.weight = 70; // веса в Новограде нет (70 — обычное телосложение)
         d.fitness = 0;
         Fitness.apply(p, d);
         boolean storyWorld = !TownState.get(p.getServerWorld()).places.isEmpty();

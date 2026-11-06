@@ -48,6 +48,10 @@ public final class Taxi {
         PLACES.put("house4_door", "Дом на Садовой");
         PLACES.put("house6_door", "Дом на Речной");
         PLACES.put("bar_door", "Бар «Ржавый якорь»");
+        PLACES.put("shop_clothes", "Шмот-Базар");
+        PLACES.put("shop_barber", "Цирюльня «Острая бритва»");
+        PLACES.put("shop_gym", "Зал «Железо»");
+        PLACES.put("shop_boutique", "Бутик «Бархат» (Ривьера)");
         PLACES.put("riv_strip", "Стрип (Ривьера)");
         PLACES.put("riv_casino", "Казино «Золотая корона»");
         PLACES.put("riv_hotel", "Отель «Лазурь»");

@@ -56,11 +56,11 @@
   "item.novograd.speedboat": "Катер",
   "item.novograd.helicopter": "Вертолёт",
   "item.novograd.plane": "Самолёт",
-  "item.novograd.car_red": "Машина (красная)",
-  "item.novograd.car_blue": "Машина (синяя)",
-  "item.novograd.car_yellow": "Машина (жёлтая)",
-  "item.novograd.car_black": "Машина (чёрная)",
-  "item.novograd.car_white": "Машина (белая)",
+  "item.novograd.car_red": "Седан (красный)",
+  "item.novograd.car_blue": "Хэтчбек (синий)",
+  "item.novograd.car_yellow": "Спорткупе (жёлтое)",
+  "item.novograd.car_black": "Люкс-седан (чёрный)",
+  "item.novograd.car_white": "Фургон (белый)",
   "item.novograd.car_taxi": "Такси",
   "subtitles.novograd.school_bell": "Школьный звонок",
   "subtitles.novograd.phone_notify": "Сообщение на телефон",
@@ -107,5 +107,10 @@
   "key.novograd.cinema": "Кино-камера в машине",
   "key.novograd.grade": "Графика: красивая / лёгкая / выкл",
   "category.novograd": "Новоград",
-  "generator.novograd.city": "Новоград: Город"
+  "generator.novograd.city": "Новоград: Город",
+  "item.novograd.car_suv": "Внедорожник",
+  "item.novograd.car_pickup": "Пикап",
+  "item.novograd.car_muscle": "Маслкар",
+  "item.novograd.car_limo": "Лимузин",
+  "item.novograd.car_truck": "Грузовик"
 }
