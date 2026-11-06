@@ -193,6 +193,7 @@ public final class Story {
 
     /** Каждый тик: таймеры, проверки целей. */
     public static void tick(ServerPlayerEntity p) {
+        Director.tick(p);
         if (!active(p)) return;
         LifeData d = Life.get(p);
         Run r = run(p);
@@ -335,6 +336,7 @@ public final class Story {
     static final String[] NPC_IDS = {"mom", "dad", "tema", "lisa", "gleb", "teacher", "irina", "instructor", "petrov", "baron", "guard", "marco", "zhanna", "coach"};
 
     public static void onCutsceneDone(ServerPlayerEntity p) {
+        Director.stop(p);
         LifeData d = Life.get(p);
         if (d.prevMode >= 0) restoreAfterCutscene(p, d);
         JsonObject s = step(d);
@@ -502,7 +504,14 @@ public final class Story {
     private static String how(JsonObject s) {
         return switch (str(s, "type", "")) {
             case "goto" -> s.has("vehicle") ? "Садись в машину (ПКМ) и езжай к жёлтой метке" : "Иди к жёлтому лучу — стрелка вверху показывает, куда";
-            case "talk" -> "Подойди к герою с «!» над головой и нажми ПКМ";
+            case "talk" -> "Подойди к герою с «!» над головой и нажми ПКМ (он отмечен на радаре)";
+            case "carrace" -> "Садись в машину, встань на старт. Проезжай жёлтые отметки по порядку раньше соперника. N — нитро";
+            case "tune" -> "Заезжай в Нитро-Гараж (метка на радаре), выйди и нажми ПКМ по механику → «Нитро»";
+            case "escape" -> "Уезжай подальше от полиции: звёзды гаснут, когда тебя не видят. Или перекрасься в Нитро-Гараже";
+            case "steal" -> "Найди машину (метка на радаре), нажми ПКМ — выкинешь водителя. Потом вези её к метке и остановись";
+            case "clear" -> "Отбейся от всех врагов у метки: возьми пистолет в руку и стреляй ПКМ. Сколько осталось — в задании";
+            case "chase" -> "Догони машину-цель (красная метка на радаре): тарань её или стреляй, пока она не разобьётся";
+            case "dialog", "cutscene", "title", "credits" -> "";
             case "party" -> "Подойди к герою праздника и нажми ПКМ";
             case "lesson" -> "Зайди в класс и нажми ПКМ по доске или учительнице";
             case "money" -> "Заработай на работе: телефон (G) → «Работа»";
@@ -570,16 +579,28 @@ public final class Story {
         d.returnYaw = p.getYaw();
         NbtList shots = new NbtList();
         Vec3d first = null;
+        Director.start(p, s, shots);
         for (JsonElement e : s.getAsJsonArray("shots")) {
             JsonObject sh = e.getAsJsonObject();
-            double[] a = TownState.get(w).place(str(sh, "from", "")), b = TownState.get(w).place(str(sh, "to", ""));
-            if (a == null || b == null) continue;
+            double[] a = sh.has("from") ? Director.camera(w, str(sh, "from", "")) : null;
+            double[] b = sh.has("to") ? Director.camera(w, str(sh, "to", "")) : a;
+            String track = str(sh, "track", ""), follow = str(sh, "follow", "");
+            if ((a == null || b == null) && track.isEmpty() && follow.isEmpty()) continue;
             NbtCompound sn = new NbtCompound();
-            sn.put("from", doubles(a));
-            sn.put("to", doubles(b));
+            if (a != null) sn.put("from", doubles(a));
+            if (b != null) sn.put("to", doubles(b));
             sn.putFloat("sec", sh.get("sec").getAsFloat());
+            sn.putString("track", track);
+            sn.putString("follow", follow);
+            if (sh.has("off")) {
+                double[] o = new double[3];
+                for (int i = 0; i < 3 && i < sh.getAsJsonArray("off").size(); i++) o[i] = sh.getAsJsonArray("off").get(i).getAsDouble();
+                sn.put("off", doubles(o));
+            }
+            if (sh.has("shake")) sn.putFloat("shake", sh.get("shake").getAsFloat());
+            if (sh.has("fov")) sn.putFloat("fov", sh.get("fov").getAsFloat());
             shots.add(sn);
-            if (first == null) first = new Vec3d(a[0], a[1], a[2]);
+            if (first == null && a != null) first = new Vec3d(a[0], a[1], a[2]);
         }
         p.changeGameMode(GameMode.SPECTATOR);
         if (first != null) p.teleport(w, first.x, first.y, first.z, p.getYaw(), p.getPitch());

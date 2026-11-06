@@ -271,7 +271,7 @@ def lang():
         en[f'subtitles.{NS}.{n}'] = e
     extra = {
         f'entity.{NS}.car': ('Машина', 'Car'), f'entity.{NS}.scooter': ('Электроскутер', 'E-scooter'), f'entity.{NS}.ball': ('Мяч', 'Ball'), f'entity.{NS}.citizen': ('Житель', 'Citizen'), f'entity.{NS}.seat': ('Сиденье', 'Seat'),
-        f'itemGroup.{NS}': ('Новоград — тёмные улицы', 'Novograd: Dark Streets'), 'key.novograd.phone': ('Телефон', 'Phone'), 'key.novograd.horn': ('Гудок', 'Car horn'), 'key.novograd.lights': ('Фары вкл/выкл', 'Headlights'), 'key.novograd.nitro': ('Нитро', 'Nitro'), 'key.novograd.left': ('Левый поворотник', 'Left turn signal'), 'key.novograd.right': ('Правый поворотник', 'Right turn signal'), 'key.novograd.hazard': ('Аварийка', 'Hazard lights'), 'key.novograd.map': ('Карта и задания', 'Map and quests'), 'key.novograd.radio': ('Радио в машине', 'Car radio'), 'key.novograd.grade': ('Графика: красивая / лёгкая / выкл', 'Graphics: pretty / light / off'),
+        f'itemGroup.{NS}': ('Новоград — тёмные улицы', 'Novograd: Dark Streets'), 'key.novograd.phone': ('Телефон', 'Phone'), 'key.novograd.horn': ('Гудок', 'Car horn'), 'key.novograd.lights': ('Фары вкл/выкл', 'Headlights'), 'key.novograd.nitro': ('Нитро', 'Nitro'), 'key.novograd.left': ('Левый поворотник', 'Left turn signal'), 'key.novograd.right': ('Правый поворотник', 'Right turn signal'), 'key.novograd.hazard': ('Аварийка', 'Hazard lights'), 'key.novograd.map': ('Карта и задания', 'Map and quests'), 'key.novograd.radio': ('Радио: следующая станция', 'Radio: next station'), 'key.novograd.radio_down': ('Радио: тише', 'Radio: volume down'), 'key.novograd.radio_up': ('Радио: громче', 'Radio: volume up'), 'key.novograd.job': ('Подработка за рулём (такси / патруль)', 'Vehicle side job'), 'key.novograd.cinema': ('Кино-камера в машине', 'Cinematic camera'), 'key.novograd.grade': ('Графика: красивая / лёгкая / выкл', 'Graphics: pretty / light / off'),
         'category.novograd': ('Новоград', 'Novograd'), 'generator.novograd.city': ('Новоград: Город', 'Novograd: City'),
     }
     for k, (r, e) in extra.items():
@@ -295,6 +295,9 @@ def sounds():
     out['yompix_intro'] = {'sounds': [{'name': f'{NS}:yompix_intro', 'stream': True}]}
     for snd in ('gunshot', 'smg_shot', 'siren'):
         out[snd] = {'sounds': [{'name': f'{NS}:{snd}'}]}
+    # радио в машине (tools/gen_radio.py)
+    for st in ('neon88', 'beat_ulic', 'nochnoy_port', 'trassa128'):
+        out['radio.' + st] = {'sounds': [{'name': f'{NS}:radio/{st}', 'stream': True}]}
     w(f'{A}/sounds.json', out)
 
 

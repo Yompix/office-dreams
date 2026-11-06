@@ -1,6 +1,7 @@
 package com.yompix.novograd.client.story;
 
 import com.yompix.novograd.Novograd;
+import com.yompix.novograd.client.ui.Ui;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -33,7 +34,7 @@ public class YompixSplash extends Screen {
             "1000001000001",
             "1100001000011",
             "0111111111110"};
-    private static final long TOTAL = 8600;
+    private static final long TOTAL = 11400;
 
     private final Screen next;
     private long start = System.currentTimeMillis();
@@ -281,36 +282,86 @@ public class YompixSplash extends Screen {
         if (flash > 0.02f) ctx.fill(0, 0, width, height, (int) (flash * 230) << 24 | 0xFFFFFF);
     }
 
+    /**
+     * Вторая часть: «загрузочный арт» — комикс-панели с ночным городом врезаются одна за другой, затем
+     * закат над Новоградом и удар логотипа «НОВОГРАД» с подзаголовком «ТЁМНЫЕ УЛИЦЫ». Плёночное зерно, полосы кино.
+     */
     private void title(DrawContext ctx, long t) {
-        // силуэт города поднимается снизу, окна загораются
-        Random r = Random.create(3);
-        float rise = MathHelper.clamp(t / 1200f, 0, 1);
-        int x = 0;
-        while (x < width) {
-            int w = 18 + r.nextInt(30), h = 30 + r.nextInt(90);
-            int top = height - (int) (h * rise);
-            ctx.fill(x, top, x + w - 2, height, 0xFF141225);
-            for (int wy = top + 6; wy < height - 4; wy += 9)
-                for (int wx = x + 4; wx < x + w - 6; wx += 7)
-                    if (r.nextFloat() < 0.4f && t > 600 + r.nextInt(1500)) ctx.fill(wx, wy, wx + 3, wy + 4, 0xFFFFD166);
-            x += w;
+        float w = width, h = height;
+        // 1) комикс-панели: три кадра с ударом и вспышкой
+        float[][] P = {{0.28f, 0.50f, 0.48f, 0.70f, -3f, -1}, {0.73f, 0.31f, 0.44f, 0.36f, 2.5f, 1}, {0.74f, 0.70f, 0.40f, 0.34f, -1.5f, 1}};
+        long[] at = {0, 380, 760};
+        float shake = 0;
+        float panelsOut = Ui.easeOut((t - 1750) / 450f);
+        if (panelsOut < 1) {
+            // за панелями — тёмный растр-фон
+            ctx.fill(0, 0, width, height, 0xFF0A0612);
+            for (int i = 0; i < 3; i++) {
+                float k = (t - at[i]) / 240f;
+                if (k <= 0) continue;
+                float e = Ui.easeOut(k);
+                float sc = 1.35f - 0.35f * e;
+                float side = P[i][5];
+                float px = w * P[i][0] + (1 - e) * side * w * 0.5f + panelsOut * side * w * 0.8f;
+                float py = h * P[i][1] + MathHelper.sin(t / 900f + i) * 2;
+                float rot = P[i][4] + (1 - e) * side * 8;
+                Ui.comic(ctx, Ui.panel(i == 0 ? 0 : i == 1 ? 1 : 2), px, py, w * P[i][2], h * P[i][3], rot, sc, Math.min(1, k * 2) * (1 - panelsOut),
+                        0.2f + 0.6f * clamp01(t / 2400f));
+                float since = t - at[i] - 200;
+                if (since > 0 && since < 300) shake = Math.max(shake, (float) Math.exp(-since / 90.0) * 5);
+            }
+            // вспышки удара
+            for (long a0 : at) {
+                float since = t - a0 - 200;
+                if (since > 0 && since < 260) ctx.fill(0, 0, width, height, (int) (Math.exp(-since / 70.0) * 150) << 24 | 0xFFFFFF);
+            }
         }
-        float k = MathHelper.clamp((t - 300) / 900f, 0, 1);
-        float scale = 4.5f + (1 - k) * 3;
-        String s = "НОВОГРАД";
-        ctx.getMatrices().push();
-        ctx.getMatrices().translate(width / 2f, height / 2f - 30, 0);
-        ctx.getMatrices().scale(scale, scale, 1);
-        int a = (int) (k * 255) << 24;
-        ctx.getMatrices().push();
-        ctx.getMatrices().translate(0.35f, 0.35f, 0);
-        ctx.drawText(textRenderer, s, -textRenderer.getWidth(s) / 2, 0, a | 0x6A3DFF, false);
-        ctx.getMatrices().pop();
-        ctx.drawText(textRenderer, s, -textRenderer.getWidth(s) / 2, 0, a | 0xFFFFFF, false);
-        ctx.getMatrices().pop();
-        float sub = MathHelper.clamp((t - 1300) / 600f, 0, 1);
-        String st = "жизнь, которую строишь ты";
-        ctx.drawText(textRenderer, st, width / 2 - textRenderer.getWidth(st) / 2, height / 2 + 26, (int) (sub * 255) << 24 | 0xFFC107, true);
+        // 2) закат над городом: медленный наезд
+        float sky = Ui.easeOut((t - 1650) / 700f);
+        if (sky > 0) {
+            float zoom = 1.18f - 0.08f * clamp01((t - 1650) / 4500f);
+            Ui.cover(ctx, Ui.SKYLINE, 0, 0, width, height, Ui.SKYLINE_SIZE[0], Ui.SKYLINE_SIZE[1], zoom, 0.55f, sky);
+            ctx.fillGradient(0, 0, width, height, (int) (sky * 40) << 24, (int) (sky * 120) << 24);
+        }
+        // 3) удар логотипа
+        long hit = 2150;
+        float lk = (t - hit) / 260f;
+        if (lk > 0) {
+            float e = Ui.easeOut(lk);
+            float lw = Math.min(w * 0.7f, 420);
+            float scale = 2.6f - 1.6f * e + (lk > 1 ? 0.03f * clamp01((t - hit - 260) / 4000f) : 0);
+            float sw = lw * scale, sh = sw * Ui.LOGO_SIZE[1] / Ui.LOGO_SIZE[0];
+            float since = t - hit - 240;
+            if (since > 0) shake = Math.max(shake, (float) Math.exp(-since / 120.0) * 8);
+            Random sr = Random.create(t / 30);
+            float ox = (sr.nextFloat() - 0.5f) * shake, oy = (sr.nextFloat() - 0.5f) * shake;
+            float lx = w / 2 - sw / 2 + ox, ly = h * 0.42f - sh / 2 + oy;
+            // красный и бирюзовый «двойники» расходятся после удара
+            float ab = since > 0 ? (float) Math.exp(-since / 200.0) * 10 : 0;
+            if (ab > 0.4f) {
+                Ui.tint(ctx, Ui.LOGO, lx + ab, ly, sw, sh, Ui.LOGO_SIZE[0], Ui.LOGO_SIZE[1], 1f, 0.15f, 0.45f, 0.6f);
+                Ui.tint(ctx, Ui.LOGO, lx - ab, ly, sw, sh, Ui.LOGO_SIZE[0], Ui.LOGO_SIZE[1], 0.1f, 0.9f, 1f, 0.6f);
+            }
+            Ui.tex(ctx, Ui.LOGO, lx, ly, sw, sh, Ui.LOGO_SIZE[0], Ui.LOGO_SIZE[1], Math.min(1, lk * 3));
+            if (since > 0 && since < 300) ctx.fill(0, 0, width, height, (int) (Math.exp(-since / 80.0) * 200) << 24 | 0xFFFFFF);
+            // подзаголовок выезжает справа
+            float sk = Ui.easeOut((t - hit - 500) / 450f);
+            if (sk > 0) {
+                float subW = lw * 0.58f;
+                Ui.subtitle(ctx, w / 2 - subW / 2 + (1 - sk) * w * 0.6f + ox, ly + sh * 0.92f, subW, sk);
+            }
+            // мелкая подпись студии внизу
+            float ck = clamp01((t - hit - 1200) / 600f);
+            if (ck > 0) {
+                String c = "YOMPIX GAMES";
+                int cw = c.length() * 8;
+                Ui.spaced(ctx, textRenderer, c, (int) (w / 2 - cw / 2f), (int) (h * 0.9f) - 14, (int) (ck * 200) << 24 | 0xFFFFFF, 2);
+            }
+        }
+        // кино: полосы, зерно, виньетка
+        Ui.vignette(ctx, width, height, 0.7f);
+        Ui.letterbox(ctx, width, height, 1);
+        Ui.grain(ctx, width, height, 0.4f);
     }
 
     private static int lerpColor(int a, int b, float k) {

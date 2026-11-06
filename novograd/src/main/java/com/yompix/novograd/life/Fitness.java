@@ -39,6 +39,7 @@ public final class Fitness {
     }
 
     public static void ate(ServerPlayerEntity p, float kg) {
+        if (true) return; // веса в Новограде нет: еда просто лечит
         LifeData d = Life.get(p);
         float before = d.weight;
         d.weight = Math.max(45, Math.min(130, d.weight + kg));

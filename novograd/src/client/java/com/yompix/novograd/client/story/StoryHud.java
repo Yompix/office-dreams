@@ -1,6 +1,7 @@
 package com.yompix.novograd.client.story;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import com.yompix.novograd.client.ui.Ui;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -26,51 +27,85 @@ public final class StoryHud {
         gtaAt = System.currentTimeMillis();
     }
 
-    /** Звёзды розыска в правом верхнем углу; мигают, когда полиция тебя потеряла. */
-    private static void wanted(DrawContext ctx, TextRenderer tr, int w, long now) {
-        int stars = com.yompix.novograd.client.NovogradClient.wantedStars;
-        if (stars <= 0) return;
-        boolean blink = !com.yompix.novograd.client.NovogradClient.wantedSeen && (now / 300) % 2 == 0;
-        int x = w - 5 * 13 - 6, y = 6;
-        for (int i = 0; i < 5; i++) {
-            boolean on = i < stars;
-            int col = on ? (blink ? 0xFF8A7020 : 0xFFFFD54F) : 0x55FFFFFF;
-            ctx.getMatrices().push();
-            ctx.getMatrices().translate(x + i * 13 + 6, y + 6, 0);
-            ctx.getMatrices().scale(1.6f, 1.6f, 1);
-            ctx.drawText(tr, "★", -tr.getWidth("★") / 2, -4, col, true);
-            ctx.getMatrices().pop();
+    private static long bannerAt = -1;
+
+    private static float scale() {
+        return Math.max(0.5f, Math.min(2f, com.yompix.novograd.client.NovogradConfig.get().hudScale));
+    }
+
+    /** Строки, разбитые по ширине. */
+    private static java.util.List<String> wrapStr(TextRenderer tr, String s, int w) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        for (var l : tr.getTextHandler().wrapLines(s, w, net.minecraft.text.Style.EMPTY)) out.add(l.getString());
+        return out;
+    }
+
+    /** Компас-лента сверху по центру: стороны света и метка цели. */
+    private static void compass(DrawContext ctx, TextRenderer tr, int w, Vec3d t, MinecraftClient mc) {
+        int cw = 150, cx = w / 2, y = 4;
+        float yaw = MathHelper.wrapDegrees(mc.player.getYaw());
+        ctx.fillGradient(cx - cw / 2, y, cx + cw / 2, y + 13, 0x900B0812, 0x600B0812);
+        ctx.fill(cx - cw / 2, y + 13, cx + cw / 2, y + 14, 0x60FFFFFF);
+        ctx.enableScissor(cx - cw / 2, y, cx + cw / 2, y + 30);
+        String[] names = {"Ю", "ЮЗ", "З", "СЗ", "С", "СВ", "В", "ЮВ"};
+        float pxPerDeg = cw / 140f;
+        for (int i = 0; i < 16; i++) {
+            float deg = i * 22.5f;
+            float rel = MathHelper.wrapDegrees(deg - yaw);
+            if (Math.abs(rel) > 75) continue;
+            int x = (int) (cx + rel * pxPerDeg);
+            if (i % 2 == 0) {
+                String n = names[i / 2];
+                boolean main = n.length() == 1;
+                ctx.drawText(tr, n, x - tr.getWidth(n) / 2, y + 3, main ? (n.equals("С") ? 0xFFFF5A6E : 0xFFFFFFFF) : 0xFFA9A3BC, true);
+            } else ctx.fill(x, y + 8, x + 1, y + 12, 0x80FFFFFF);
         }
-        if (stars >= 1 && (now / 400) % 2 == 0) {
-            ctx.fill(0, 0, w, 2, 0x88FF2A2A);
-            ctx.fill(0, 2, w, 4, 0x882A6AFF);
+        ctx.disableScissor();
+        ctx.fill(cx, y + 12, cx + 1, y + 16, 0xFFFFFFFF);
+        if (t != null) {
+            double dx = t.x - mc.player.getX(), dz = t.z - mc.player.getZ();
+            float want = (float) Math.toDegrees(Math.atan2(-dx, dz));
+            float rel = MathHelper.wrapDegrees(want - mc.player.getYaw());
+            boolean edge = Math.abs(rel) > 68;
+            int x = (int) (cx + MathHelper.clamp(rel, -68, 68) * pxPerDeg);
+            int col = Math.abs(rel) < 12 ? 0xFF66FF88 : Ui.GOLD;
+            // ромб-метка
+            for (int i = 0; i < 4; i++) ctx.fill(x - i, y + 15 + i, x + i + 1, y + 16 + i, col);
+            for (int i = 0; i < 3; i++) ctx.fill(x - 2 + i, y + 19 + i, x + 3 - i, y + 20 + i, col);
+            String dist = (int) Math.sqrt(t.squaredDistanceTo(mc.player.getPos())) + " м";
+            Ui.small(ctx, tr, dist, x, y + 24, 0.75f, 0xFFFFFFFF, 1);
+            if (edge) Ui.big(ctx, tr, rel < 0 ? "‹" : "›", rel < 0 ? cx - cw / 2 - 6 : cx + cw / 2 + 6, y + 2, 1.3f, col, 1);
+            if (Math.abs(rel) > 100) Ui.small(ctx, tr, "развернись", cx, y + 33, 0.8f, Ui.GOLD, 1);
         }
     }
-    private static long bannerAt = -1;
 
     public static void render(DrawContext ctx) {
         MinecraftClient mc = MinecraftClient.getInstance();
         TextRenderer tr = mc.textRenderer;
         int w = ctx.getScaledWindowWidth(), h = ctx.getScaledWindowHeight();
         long now = System.currentTimeMillis();
-        wanted(ctx, tr, w, now);
+        boolean hud = mc.player != null && !mc.options.hudHidden && !mc.getDebugHud().shouldShowDebugHud();
+        if (hud && com.yompix.novograd.client.NovogradClient.wantedStars >= 1 && (now / 400) % 2 == 0) {
+            ctx.fill(0, 0, w, 2, 0x88FF2A2A);
+            ctx.fill(0, 2, w, 4, 0x882A6AFF);
+        }
         if (gtaAt > 0) {
             float gt = (now - gtaAt) / 1000f;
             if (gt > 5) gtaAt = -1;
             else {
+                // «ЗАДЕРЖАН» / «ТЫ ПОГИБ»: тёмный кадр, полоса через экран, крупные буквы с обводкой
                 float a = gt < 0.4f ? gt / 0.4f : gt > 4.2f ? (5 - gt) / 0.8f : 1;
-                ctx.fill(0, 0, w, h, (int) (a * 150) << 24);
-                ctx.getMatrices().push();
-                ctx.getMatrices().translate(w / 2f, h / 2f - 20, 0);
-                ctx.getMatrices().scale(3.4f, 3.4f, 1);
-                int col = gtaTitle.startsWith("ТЫ") ? 0xC62828 : 0x42A5F5;
-                ctx.drawText(tr, gtaTitle, -tr.getWidth(gtaTitle) / 2, 0, (int) (a * 255) << 24 | col, true);
-                ctx.getMatrices().pop();
-                ctx.drawText(tr, gtaSub, w / 2 - tr.getWidth(gtaSub) / 2, h / 2 + 16, (int) (a * 255) << 24 | 0xFFFFFF, true);
+                boolean dead = gtaTitle.startsWith("ТЫ");
+                ctx.fill(0, 0, w, h, (int) (a * 140) << 24 | (dead ? 0x200000 : 0x000818));
+                int band = (int) (34 * Ui.easeOut(gt / 0.35f));
+                ctx.fillGradient(0, h / 2 - 20 - band / 2 - 4, w, h / 2 - 20 + band / 2 + 18, (int) (a * 200) << 24, (int) (a * 200) << 24);
+                float s = 3.4f + Math.max(0, 0.3f - gt) * 4;
+                Ui.big(ctx, tr, gtaTitle, w / 2f, h / 2f - 22, s, Ui.alpha(dead ? 0xFFE53935 : 0xFF4FA8FF, a), 1);
+                Ui.big(ctx, tr, gtaSub, w / 2f, h / 2f + 14, 1f, Ui.alpha(0xFFFFFFFF, a), 1);
             }
         }
         var o = ClientStory.objective;
-        if (o.contains("hint") && !o.getString("hint").isEmpty() && ClientStory.titleAt < 0) {
+        if (hud && o.contains("hint") && !o.getString("hint").isEmpty() && ClientStory.titleAt < 0) {
             String mission = o.getString("mission"), hint = o.getString("hint"), extra = o.getString("extra");
             String where = o.getString("where"), how = o.getString("how");
             // новая цель — заметный баннер и звук
@@ -83,53 +118,56 @@ public final class StoryHud {
             String dist = "";
             if (t != null && mc.player != null) dist = (int) Math.sqrt(t.squaredDistanceTo(mc.player.getPos())) + " м";
             String whereLine = where.isEmpty() ? (dist.isEmpty() ? "" : "📍 " + dist) : "📍 " + where + (dist.isEmpty() ? "" : " · " + dist);
+            float sc = scale();
+            var m = ctx.getMatrices();
+            // компас сверху
+            if (mc.player != null) {
+                m.push();
+                m.translate(w / 2f, 0, 0);
+                m.scale(sc, sc, 1);
+                m.translate(-w / 2f, 0, 0);
+                compass(ctx, tr, w, t, mc);
+                m.pop();
+            }
+            // цель — внизу по центру над хотбаром, как субтитры
+            int maxW = Math.max(170, Math.min(300, (int) ((w - 2 * 156) / sc)));
             java.util.List<String[]> lines = new java.util.ArrayList<>();
-            lines.add(new String[]{mission, "FFC107"});
-            lines.add(new String[]{"▶ " + hint, "FFFFFF"});
-            if (!whereLine.isEmpty()) lines.add(new String[]{whereLine, "7FE3FF"});
-            if (!how.isEmpty()) lines.add(new String[]{how, "B0BEC5"});
-            if (!extra.isEmpty()) lines.add(new String[]{extra, "9FE6FF"});
+            for (String l : wrapStr(tr, hint, maxW)) lines.add(new String[]{l, "FFFFFF"});
+            if (!whereLine.isEmpty()) for (String l : wrapStr(tr, whereLine, maxW)) lines.add(new String[]{l, "7FE3FF"});
+            if (!how.isEmpty()) for (String l : wrapStr(tr, how, maxW)) lines.add(new String[]{l, "C4BEDA"});
+            if (!extra.isEmpty()) for (String l : wrapStr(tr, extra, maxW)) lines.add(new String[]{l, "9FE6FF"});
+            int lh = 10, total = lines.size() * lh + 12;
+            m.push();
+            m.translate(w / 2f, h - 74, 0);
+            m.scale(sc, sc, 1);
+            int top = -total;
             int bw = 0;
             for (String[] l : lines) bw = Math.max(bw, tr.getWidth(l[0]));
-            bw += 16;
-            int x = w / 2 - bw / 2, y = 4, bh = lines.size() * 10 + 6;
-            ctx.fill(x, y, x + bw, y + bh, 0xA0000000);
-            ctx.fill(x, y, x + bw, y + 1, 0xFFFFC107);
+            bw = Math.max(bw, tr.getWidth(mission.toUpperCase()) + 16) + 24;
+            ctx.fillGradient(-bw / 2, top - 2, bw / 2, 4, 0x00000000, 0x90000000);
+            // ярлык миссии
+            String mt = mission.toUpperCase();
+            int mw = tr.getWidth(mt) + 14;
+            Ui.slant(ctx, -mw / 2, top - 4, mw, 11, 3, 0xE00B0812);
+            ctx.fill(-mw / 2 + 2, top + 6, mw / 2 + 1, top + 7, Ui.GOLD);
+            ctx.drawText(tr, mt, -tr.getWidth(mt) / 2 + 1, top - 2, Ui.GOLD, false);
             for (int i = 0; i < lines.size(); i++) {
                 String[] l = lines.get(i);
-                ctx.drawText(tr, l[0], w / 2 - tr.getWidth(l[0]) / 2, y + 4 + i * 10, 0xFF000000 | Integer.parseInt(l[1], 16), true);
+                Ui.outlined(ctx, tr, l[0], -tr.getWidth(l[0]) / 2, top + 11 + i * lh, 0xFF000000 | Integer.parseInt(l[1], 16));
             }
-            // стрелка-компас: куда повернуть
-            if (t != null && mc.player != null) {
-                double dx = t.x - mc.player.getX(), dz = t.z - mc.player.getZ();
-                float want = (float) Math.toDegrees(Math.atan2(-dx, dz));
-                float rel = MathHelper.wrapDegrees(want - mc.player.getYaw());
-                int ax = w / 2, ay = y + bh + 16;
-                ctx.getMatrices().push();
-                ctx.getMatrices().translate(ax, ay, 0);
-                ctx.getMatrices().multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Z.rotationDegrees(rel));
-                int col = Math.abs(rel) < 20 ? 0xFF66FF88 : 0xFFFFC107;
-                for (int i = 0; i < 7; i++) ctx.fill(-i, -9 + i * 2, i + 1, -7 + i * 2, col);
-                ctx.fill(-2, 4, 3, 10, col);
-                ctx.getMatrices().pop();
-                if (Math.abs(rel) > 100) {
-                    String back = "развернись";
-                    ctx.drawText(tr, back, ax - tr.getWidth(back) / 2, ay + 13, 0xFFFFC107, true);
-                }
-            }
-            // баннер «НОВАЯ ЦЕЛЬ»
+            m.pop();
+            // баннер «НОВАЯ ЦЕЛЬ»: косая розовая плашка проезжает через экран
             float bt = (now - bannerAt) / 1000f;
             if (bannerAt > 0 && bt < 3.2f) {
                 float a = bt < 0.3f ? bt / 0.3f : bt > 2.6f ? (3.2f - bt) / 0.6f : 1;
-                int al = (int) (a * 255) << 24;
-                ctx.fill(0, h / 3 - 18, w, h / 3 + 26, (int) (a * 150) << 24);
-                ctx.getMatrices().push();
-                ctx.getMatrices().translate(w / 2f, h / 3f - 12, 0);
-                ctx.getMatrices().scale(1.6f, 1.6f, 1);
-                ctx.drawText(tr, "НОВАЯ ЦЕЛЬ", -tr.getWidth("НОВАЯ ЦЕЛЬ") / 2, 0, al | 0xFFC107, true);
-                ctx.getMatrices().pop();
-                ctx.drawText(tr, hint, w / 2 - tr.getWidth(hint) / 2, h / 3 + 4, al | 0xFFFFFF, true);
-                if (!whereLine.isEmpty()) ctx.drawText(tr, whereLine, w / 2 - tr.getWidth(whereLine) / 2, h / 3 + 15, al | 0x7FE3FF, true);
+                int by = h / 3 - 16;
+                int slide = (int) ((1 - Ui.easeOut(bt / 0.4f)) * w);
+                int hw = Math.max(tr.getWidth(hint), (int) (tr.getWidth("НОВАЯ ЦЕЛЬ") * 2f)) + 40;
+                Ui.slant(ctx, w / 2 - hw / 2 - slide, by, hw, 22, 8, Ui.alpha(0xE8FF2E88, a));
+                Ui.slant(ctx, w / 2 - hw / 2 - slide, by + 22, hw, 24, 8, Ui.alpha(0xD00B0812, a));
+                Ui.big(ctx, tr, "НОВАЯ ЦЕЛЬ", w / 2f - slide + 4, by + 4, 2f, Ui.alpha(0xFFFFFFFF, a), 1);
+                ctx.drawText(tr, hint, w / 2 - tr.getWidth(hint) / 2 - slide, by + 26, Ui.alpha(0xFFFFFFFF, a), true);
+                if (!whereLine.isEmpty()) ctx.drawText(tr, whereLine, w / 2 - tr.getWidth(whereLine) / 2 - slide, by + 36, Ui.alpha(0xFF7FE3FF, a), true);
             }
         }
         // заставка главы / «прошло три года»
@@ -138,42 +176,35 @@ public final class StoryHud {
             if (t > 7f) ClientStory.titleAt = -1;
             else {
                 float alpha = t < 1 ? t : t > 6 ? 7 - t : 1;
-                ctx.fill(0, 0, w, h, (int) (alpha * 230) << 24);
-                int a = (int) (alpha * 255) << 24;
+                ctx.fill(0, 0, w, h, (int) (alpha * 220) << 24 | 0x05020C);
+                Ui.letterbox(ctx, w, h, alpha);
                 float scale = 3f + Math.min(t, 1) * 0.4f;
-                ctx.getMatrices().push();
-                ctx.getMatrices().translate(w / 2f, h / 2f - 22, 0);
-                ctx.getMatrices().scale(scale, scale, 1);
-                ctx.drawText(tr, ClientStory.title, -tr.getWidth(ClientStory.title) / 2, 0, a | 0xFFFFFF, true);
-                ctx.getMatrices().pop();
+                Ui.big(ctx, tr, ClientStory.title.toUpperCase(), w / 2f, h / 2f - 24, scale, Ui.alpha(0xFFFFFFFF, alpha), 1);
                 float sub = MathHelper.clamp(t - 0.8f, 0, 1) * alpha;
                 if (sub > 0.05f) {
-                    ctx.getMatrices().push();
-                    ctx.getMatrices().translate(w / 2f, h / 2f + 14, 0);
-                    ctx.getMatrices().scale(1.6f, 1.6f, 1);
-                    ctx.drawText(tr, ClientStory.subtitle, -tr.getWidth(ClientStory.subtitle) / 2, 0, (int) (sub * 255) << 24 | 0xFFC107, true);
-                    ctx.getMatrices().pop();
+                    int sw = (int) (tr.getWidth(ClientStory.subtitle) * 1.4f) + 30;
+                    int slide = (int) ((1 - Ui.easeOut(MathHelper.clamp(t - 0.8f, 0, 1) / 0.6f)) * 60);
+                    Ui.slant(ctx, w / 2 - sw / 2 + slide, h / 2 + 10, sw, 18, 6, Ui.alpha(0xE0FFC428, sub));
+                    Ui.big(ctx, tr, ClientStory.subtitle, w / 2f + slide + 3, h / 2f + 14, 1.4f, Ui.alpha(0xFF07050C, sub), 1);
                 }
-                int line = (int) (Math.min(t, 1.2f) / 1.2f * 120);
-                ctx.fill(w / 2 - line, h / 2 + 6, w / 2 + line, h / 2 + 7, a | 0xFFC107);
+                Ui.grain(ctx, w, h, 0.3f * alpha);
             }
         }
-        // «МИССИЯ ВЫПОЛНЕНА» в стиле GTA
+        // «МИССИЯ ПРОЙДЕНА»: золотые буквы, под ними награда и название
         if (ClientStory.missionDoneAt > 0) {
             float t = (now - ClientStory.missionDoneAt) / 1000f;
             if (t > 4.5f) ClientStory.missionDoneAt = -1;
             else {
                 float alpha = t < 0.3f ? t / 0.3f : t > 3.8f ? (4.5f - t) / 0.7f : 1;
-                int a = (int) (alpha * 255) << 24;
-                float s = 2.6f + (t < 0.3f ? (0.3f - t) * 3 : 0);
-                ctx.getMatrices().push();
-                ctx.getMatrices().translate(w / 2f, h * 0.32f, 0);
-                ctx.getMatrices().scale(s, s, 1);
-                String txt = "МИССИЯ ВЫПОЛНЕНА";
-                ctx.drawText(tr, txt, -tr.getWidth(txt) / 2, 0, a | 0xFFC107, true);
-                ctx.getMatrices().pop();
-                String sub = ClientStory.missionDone + "   +$15";
-                ctx.drawText(tr, sub, w / 2 - tr.getWidth(sub) / 2, (int) (h * 0.32f) + 30, a | 0xFFFFFF, true);
+                float pop = 1 + (t < 0.25f ? (0.25f - t) * 2.4f : 0);
+                float tw = Math.min(w * 0.62f, 300) * pop, th = tw * Ui.PASSED_SIZE[1] / Ui.PASSED_SIZE[0];
+                float cy = h * 0.3f;
+                ctx.fillGradient(0, (int) (cy - th * 0.7f), w, (int) (cy + th * 0.5f + 34), 0, 0);
+                ctx.fill(0, (int) (cy - th * 0.65f), w, (int) (cy + th * 0.5f + 32), (int) (alpha * 110) << 24);
+                Ui.tex(ctx, Ui.PASSED, w / 2f - tw / 2, cy - th / 2, tw, th, Ui.PASSED_SIZE[0], Ui.PASSED_SIZE[1], alpha);
+                float ra = MathHelper.clamp((t - 0.35f) / 0.3f, 0, 1) * alpha;
+                Ui.big(ctx, tr, "+$15", w / 2f, cy + th / 2 + 4, 2f, Ui.alpha(Ui.MONEY, ra), 1);
+                Ui.big(ctx, tr, ClientStory.missionDone, w / 2f, cy + th / 2 + 22, 1f, Ui.alpha(0xFFFFFFFF, ra), 1);
             }
         }
         // мигалка полиции при штрафе
@@ -187,19 +218,19 @@ public final class StoryHud {
                 ctx.fillGradient(w / 2, 0, w, h, a | (red ? 0x2040FF : 0xFF2020), 0);
             }
         }
-        // награда: плашка выезжает справа
+        // награда: косая плашка выезжает справа
         if (ClientStory.achAt > 0) {
             float t = (now - ClientStory.achAt) / 1000f;
             if (t > 5f) ClientStory.achAt = -1;
             else {
-                float k = t < 0.4f ? t / 0.4f : t > 4.4f ? (5f - t) / 0.6f : 1;
-                int bw = Math.max(tr.getWidth(ClientStory.achDesc), tr.getWidth(ClientStory.achName)) + 34;
-                int bx = w - (int) (bw * k) - 4, by = h / 2 - 50;
-                ctx.fill(bx, by, bx + bw, by + 28, 0xE0201A0A);
-                ctx.fill(bx, by, bx + 2, by + 28, 0xFFFFC107);
-                ctx.drawText(tr, "★", bx + 8, by + 10, 0xFFFFC107, false);
-                ctx.drawText(tr, "Награда: " + ClientStory.achName, bx + 22, by + 5, 0xFFFFC107, true);
-                ctx.drawText(tr, ClientStory.achDesc, bx + 22, by + 16, 0xFFDDDDDD, false);
+                float k = t < 0.4f ? Ui.easeOut(t / 0.4f) : t > 4.4f ? (5f - t) / 0.6f : 1;
+                int bw = Math.max(tr.getWidth(ClientStory.achDesc), tr.getWidth(ClientStory.achName) + 50) + 40;
+                int bx = w - (int) (bw * k), by = h / 2 - 50;
+                Ui.slant(ctx, bx, by, bw + 10, 30, 8, 0xE80B0812);
+                ctx.fill(bx + 8, by + 29, bx + bw + 10, by + 30, Ui.GOLD);
+                Ui.tint(ctx, Ui.STAR, bx + 10, by + 7, 16, 16, 32, 32, 1f, 0.84f, 0.3f, 1);
+                ctx.drawText(tr, "НАГРАДА · " + ClientStory.achName, bx + 32, by + 6, Ui.GOLD, true);
+                ctx.drawText(tr, ClientStory.achDesc, bx + 32, by + 17, 0xFFDDDDDD, false);
             }
         }
         if (ClientStory.countdownAt > 0) {
@@ -207,12 +238,7 @@ public final class StoryHud {
             if (t > 1f) ClientStory.countdownAt = -1;
             else {
                 float s = 5 - t * 2;
-                int a = (int) ((1 - t) * 255) << 24;
-                ctx.getMatrices().push();
-                ctx.getMatrices().translate(w / 2f, h / 2f - 20, 0);
-                ctx.getMatrices().scale(s, s, 1);
-                ctx.drawText(tr, ClientStory.countdown, -tr.getWidth(ClientStory.countdown) / 2, 0, a | 0xFFFFFF, true);
-                ctx.getMatrices().pop();
+                Ui.big(ctx, tr, ClientStory.countdown, w / 2f, h / 2f - 20, s, Ui.alpha(ClientStory.countdown.matches("\\d+") ? 0xFFFFFFFF : Ui.MONEY, 1 - t), 1);
             }
         }
     }

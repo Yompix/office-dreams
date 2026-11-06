@@ -96,7 +96,7 @@ public final class TownBuilder {
         plot(world, origin, centers[1], centers[0], BlockRotation.NONE, TownBuilder::park);
         plot(world, origin, centers[2], centers[0], BlockRotation.NONE, b2 -> houses(b2, "lisa", "house4"));
         plot(world, origin, centers[0], centers[1], BlockRotation.NONE, TownBuilder::shop);
-        plot(world, origin, centers[1], centers[1], BlockRotation.NONE, TownBuilder::school);
+        plot(world, origin, centers[1], centers[1], BlockRotation.NONE, TownBuilder::parking);
         plot(world, origin, centers[2], centers[1], BlockRotation.NONE, TownBuilder::office);
         plot(world, origin, centers[0], centers[2], BlockRotation.CLOCKWISE_180, TownBuilder::dealership);
         plot(world, origin, centers[1], centers[2], BlockRotation.CLOCKWISE_180, TownBuilder::casino);
@@ -266,6 +266,62 @@ public final class TownBuilder {
     }
 
     // ---------------------------------------------------------------- школа (центр)
+    /** Стоянка вместо школы: разметка, фонари, машины (можно угнать), будка охранника. */
+    private static void parking(B b) {
+        Random r = b.world.getRandom();
+        b.fill(-16, -1, -16, 16, -1, 16, Blocks.GRAY_CONCRETE.getDefaultState());
+        b.fill(-16, 0, -16, 16, 3, 16, Blocks.AIR.getDefaultState());
+        for (int x = -14; x <= 14; x += 4) {
+            b.fill(x, -1, -14, x, -1, -9, Blocks.WHITE_CONCRETE.getDefaultState());
+            b.fill(x, -1, 9, x, -1, 14, Blocks.WHITE_CONCRETE.getDefaultState());
+        }
+        for (int x = -16; x <= 16; x++) {
+            b.set(x, 0, -16, Blocks.SMOOTH_STONE_SLAB.getDefaultState());
+            b.set(x, 0, 16, Blocks.SMOOTH_STONE_SLAB.getDefaultState());
+        }
+        for (int x = -12; x <= 12; x += 8) {
+            if (r.nextInt(3) > 0) b.car(x, -11, 0, r.nextInt(6));
+            if (r.nextInt(3) > 0) b.car(x + 2, 11, 180, r.nextInt(6));
+        }
+        lamp(b, -15, 0, Direction.EAST);
+        lamp(b, 15, 0, Direction.WEST);
+        b.fill(-3, 0, -3, 1, 2, 1, Blocks.YELLOW_CONCRETE.getDefaultState());
+        b.fill(-2, 0, -2, 0, 1, 0, Blocks.AIR.getDefaultState());
+        b.set(-1, 1, 1, Blocks.GLASS_PANE.getDefaultState());
+        b.set(-1, 0, 1, Blocks.AIR.getDefaultState());
+        b.fill(-4, 3, -4, 2, 3, 2, Blocks.SMOOTH_STONE_SLAB.getDefaultState());
+        b.label(0, 5, 0, "🅿 СТОЯНКА «ЦЕНТР»", Formatting.YELLOW);
+        b.citizen(-1, 0, -1, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, true, "Охранник стоянки", 180).lockActivity(CitizenEntity.Activity.SIT);
+        b.place("parking", 0, 0, 6, 180);
+    }
+
+    /** Бар «Ржавый якорь» вместо фитнеса: стойка, бочки, столики, свои завсегдатаи. */
+    private static void bar(B b) {
+        Random r = b.world.getRandom();
+        int x1 = -15, x2 = 15, z1 = -14, z2 = 4, h = 6;
+        building(b, x1, z1, x2, z2, h, Blocks.DARK_OAK_PLANKS.getDefaultState(), Blocks.SPRUCE_PLANKS.getDefaultState(), Blocks.BROWN_WOOL.getDefaultState());
+        for (int x = x1 + 1; x <= x2 - 1; x += 3) b.fill(x, 1, z2, x, 2, z2, Blocks.ORANGE_STAINED_GLASS.getDefaultState());
+        b.fill(-1, 0, z2, 1, 2, z2, Blocks.AIR.getDefaultState());
+        b.fill(-10, 0, -11, 10, 0, -11, Blocks.DARK_OAK_PLANKS.getDefaultState()); // стойка
+        b.fill(-10, 1, -11, 10, 1, -11, Blocks.DARK_OAK_SLAB.getDefaultState());
+        for (int x = -12; x <= 12; x += 2) b.set(x, 0, -13, Blocks.BARREL.getDefaultState());
+        for (int x = -9; x <= 9; x += 3) b.set(x, 0, -9, Blocks.SPRUCE_FENCE.getDefaultState());
+        for (int[] t : new int[][]{{-9, -2}, {-3, -2}, {3, -2}, {9, -2}}) {
+            b.set(t[0], 0, t[1], Blocks.SPRUCE_FENCE.getDefaultState());
+            b.set(t[0], 1, t[1], Blocks.SPRUCE_PRESSURE_PLATE.getDefaultState());
+            b.stairs(t[0] - 1, 0, t[1], Direction.EAST, Blocks.SPRUCE_STAIRS);
+            b.stairs(t[0] + 1, 0, t[1], Direction.WEST, Blocks.SPRUCE_STAIRS);
+        }
+        lights(b, x1, z1, x2, z2, h - 1);
+        b.label(0, h + 2, z2, "⚓ БАР «РЖАВЫЙ ЯКОРЬ»", Formatting.GOLD);
+        b.neonLine(x1, x2, h - 1, z2 + 1, NeonBlock.Color.ORANGE);
+        b.citizen(0, 0, -12, CitizenEntity.RANDOM_FROM + 21, CitizenEntity.Role.CITIZEN, true, "Бармен Джо", 0).lockActivity(CitizenEntity.Activity.TALK);
+        b.citizen(-4, 0, -9, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, true, Names.random(r), 180).lockActivity(CitizenEntity.Activity.LAUGH);
+        b.citizen(5, 0, -9, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, true, Names.random(r), 180).lockActivity(CitizenEntity.Activity.TALK);
+        b.place("bar_door", 0, 0, 6, 180);
+        b.place("bar_center", 0, 0, -3, 180);
+    }
+
     private static void school(B b) {
         BlockState wall = Blocks.BRICKS.getDefaultState(), floor = Blocks.OAK_PLANKS.getDefaultState(), white = Blocks.WHITE_CONCRETE.getDefaultState();
         int x1 = -15, x2 = 15, z1 = -16, z2 = 2, h = 6;
@@ -547,7 +603,7 @@ public final class TownBuilder {
         for (int z = -EDGE + 4; z <= EDGE - 4; z += 12) if (nearestRoadDist(z) > 8) eastLamp(b, 114, z, Direction.EAST);
         for (int z = -EDGE + 2; z <= EDGE - 2; z++)
             if (nearestRoadDist(z) > 8) b.set(115, 0, z, neon(ModContent.NEON_FLOOR, NeonBlock.Color.PURPLE, Direction.EAST));
-        plot(world, origin, 96, -48, BlockRotation.NONE, TownBuilder::gym);
+        plot(world, origin, 96, -48, BlockRotation.NONE, TownBuilder::bar);
         plot(world, origin, 96, 0, BlockRotation.NONE, TownBuilder::pizzeria);
         plot(world, origin, 96, 48, BlockRotation.CLOCKWISE_180, TownBuilder::club);
         b.car(100, 26, -90, 3);

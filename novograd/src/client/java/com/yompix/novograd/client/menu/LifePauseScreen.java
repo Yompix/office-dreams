@@ -1,24 +1,23 @@
 package com.yompix.novograd.client.menu;
 
+import com.yompix.novograd.client.LifeHud;
 import com.yompix.novograd.client.NovogradClient;
 import com.yompix.novograd.client.screen.PhoneScreen;
 import com.yompix.novograd.client.story.ClientStory;
+import com.yompix.novograd.client.ui.MenuList;
+import com.yompix.novograd.client.ui.Ui;
+import com.yompix.novograd.life.Jobs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.MessageScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.OptionsScreen;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.MathHelper;
 
-/** Пауза в стиле Novograd: что сейчас по сюжету, деньги и кнопки. */
+/** Пауза в стиле «Тёмных улиц»: слева список, справа карточка — что сейчас по сюжету, деньги, день. */
 public class LifePauseScreen extends Screen {
-    private record Btn(String label, Runnable action) {}
-
     private final long opened = System.currentTimeMillis();
-    private Btn[] buttons;
+    private final MenuList menu = new MenuList();
 
     public LifePauseScreen() {
         super(Text.literal("Пауза"));
@@ -27,25 +26,37 @@ public class LifePauseScreen extends Screen {
     @Override
     protected void init() {
         MinecraftClient mc = MinecraftClient.getInstance();
-        buttons = new Btn[]{
-                new Btn("Продолжить", () -> mc.setScreen(null)),
-                new Btn("Телефон", () -> mc.setScreen(new PhoneScreen(null))),
-                new Btn("Сюжет", () -> mc.setScreen(new PhoneScreen("story"))),
-                new Btn("Награды", () -> mc.setScreen(new PhoneScreen("trophy"))),
-                new Btn("Настройки", () -> mc.setScreen(new OptionsScreen(this, mc.options))),
-                friends(mc),
-                new Btn("Сохранить и выйти", this::quit)};
+        int sel = menu.selected;
+        menu.clear();
+        menu.rowH = 15;
+        menu.rowGap = 2;
+        menu.scale = 1.35f;
+        menu.add("Продолжить", "", () -> mc.setScreen(null));
+        menu.add("Телефон", "", () -> mc.setScreen(new PhoneScreen(null)));
+        menu.add("Сюжет", "", () -> mc.setScreen(new PhoneScreen("story")));
+        menu.add("Награды", "", () -> mc.setScreen(new PhoneScreen("trophy")));
+        menu.add("Настройки игры", "", () -> mc.setScreen(new SettingsScreen(this)));
+        menu.add("Настройки Minecraft", "", () -> mc.setScreen(new OptionsScreen(this, mc.options)));
+        friends(mc);
+        menu.add("Сохранить и выйти", "", this::quit);
+        menu.selected = Math.min(sel, menu.items.size() - 1);
     }
 
     /** «Открыть для друзей» (стандартное «Открыть для сети»): с модом e4mc — играть вдвоём через интернет. */
-    private Btn friends(MinecraftClient mc) {
+    private void friends(MinecraftClient mc) {
         var server = mc.getServer();
-        if (server == null) return new Btn("Ты в гостях у друга", () -> {});
-        if (server.isRemote()) return new Btn("Мир открыт для друзей ✓", () -> {
-            if (mc.player != null) mc.player.sendMessage(Text.literal("Мир уже открыт. Адрес для друга — в чате (с модом e4mc) или порт " + server.getServerPort()), false);
-            mc.setScreen(null);
-        });
-        return new Btn("Открыть для друзей", () -> mc.setScreen(new net.minecraft.client.gui.screen.OpenToLanScreen(this)));
+        if (server == null) {
+            menu.add(() -> "Ты в гостях у друга", "", () -> {}, false);
+            return;
+        }
+        if (server.isRemote()) {
+            menu.add("Мир открыт для друзей ✓", "", () -> {
+                if (mc.player != null) mc.player.sendMessage(Text.literal("Мир уже открыт. Адрес для друга — в чате (с модом e4mc) или порт " + server.getServerPort()), false);
+                mc.setScreen(null);
+            });
+            return;
+        }
+        menu.add("Открыть для друзей", "", () -> mc.setScreen(new net.minecraft.client.gui.screen.OpenToLanScreen(this)));
     }
 
     private void quit() {
@@ -59,34 +70,67 @@ public class LifePauseScreen extends Screen {
 
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
-        float a = MathHelper.clamp((System.currentTimeMillis() - opened) / 250f, 0, 1);
-        ctx.fillGradient(0, 0, width, height, (int) (a * 120) << 24, (int) (a * 200) << 24);
-        for (int x = 0; x < width * 0.45f; x += 4) ctx.fill(x, 0, x + 4, height, (int) (a * 170 * (1 - x / (width * 0.45f))) << 24);
-        int lx = 28 - (int) ((1 - a) * 40), ly = height / 2 - 80;
-        ctx.getMatrices().push();
-        ctx.getMatrices().translate(lx, ly, 0);
-        ctx.getMatrices().scale(2.6f, 2.6f, 1);
-        ctx.drawText(textRenderer, "ПАУЗА", 0, 0, 0xFFFFFFFF, true);
-        ctx.getMatrices().pop();
-        var o = ClientStory.objective;
-        String sub = o.contains("mission") ? o.getString("chapter") + " · " + o.getString("mission") : "Свободная жизнь в Новограде";
-        ctx.drawText(textRenderer, sub, lx, ly + 26, 0xFFFFC107, true);
-        ctx.drawText(textRenderer, "$" + NovogradClient.data.money + " · " + NovogradClient.data.eduName(), lx, ly + 38, 0xFFB0FFC0, false);
-        int by = ly + 56;
-        for (Btn b : buttons) {
-            boolean hov = mouseX >= lx && mouseX < lx + 170 && mouseY >= by && mouseY < by + 16;
-            if (hov) {
-                ctx.fill(lx, by, lx + 170, by + 16, 0x40FFFFFF);
-                ctx.fill(lx, by, lx + 3, by + 16, 0xFFFF2FB4);
-            }
-            ctx.getMatrices().push();
-            ctx.getMatrices().translate(lx + 10 + (hov ? 6 : 0), by + 3, 0);
-            ctx.getMatrices().scale(1.2f, 1.2f, 1);
-            ctx.drawText(textRenderer, b.label(), 0, 0, (int) (a * 255) << 24 | 0xFFFFFF, true);
-            ctx.getMatrices().pop();
-            by += 20;
-        }
+        float a = Ui.easeOut((System.currentTimeMillis() - opened) / 280f);
+        SettingsScreen.backdrop(ctx, width, height, a);
+        int lx = 24, top = Math.max(8, height / 2 - 110);
+        // шапка: маленький логотип и «ПАУЗА»
+        float lw = Math.min(96, width * 0.22f);
+        int lh = Ui.logo(ctx, lx - 2 + (1 - a) * -24, top, lw, a);
+        float pw = Math.min(118, width * 0.27f);
+        float ph = pw * Ui.PAUSE_SIZE[1] / Ui.PAUSE_SIZE[0];
+        Ui.tex(ctx, Ui.PAUSE, lx - 2 + (1 - a) * -40, top + lh + 2, pw, ph, Ui.PAUSE_SIZE[0], Ui.PAUSE_SIZE[1], a);
+        int my = top + lh + (int) ph + 10;
+        menu.render(ctx, textRenderer, lx + 10, my, 170, mouseX, mouseY);
+        card(ctx, a);
+        // нижняя полоса
+        ctx.fill(0, height - 18, width, height, 0xE0050309);
+        ctx.fill(0, height - 19, width, height - 18, Ui.alpha(Ui.PINK, 0.8f));
+        ctx.drawText(textRenderer, "↑↓ выбор   Enter открыть   Esc вернуться в игру", 10, height - 13, 0xB0FFFFFF, false);
+        Ui.grain(ctx, width, height, 0.25f);
         super.render(ctx, mouseX, mouseY, delta);
+    }
+
+    /** Карточка справа: задание, деньги, день, учёба и работа. */
+    private void card(DrawContext ctx, float a) {
+        int cw = Math.min(190, width - 250);
+        if (cw < 120) return;
+        int cx = width - cw - 20 + (int) ((1 - a) * 40), cy = Math.max(14, height / 2 - 100);
+        var d = NovogradClient.data;
+        var o = ClientStory.objective;
+        // деньги — крупно, зелёным
+        Ui.slant(ctx, cx, cy, cw, 26, 6, 0xE00B0812);
+        ctx.fill(cx, cy + 26, cx + cw, cy + 27, Ui.MONEY);
+        Ui.big(ctx, textRenderer, "$" + LifeHud.money(d.money), cx + cw - 10, cy + 6, 2f, Ui.MONEY, 2);
+        ctx.drawText(textRenderer, "НАЛИЧНЫЕ", cx + 10, cy + 10, 0xFF9C96B0, false);
+        int y = cy + 34;
+        int ch = 96;
+        Ui.panel(ctx, cx, y, cw, ch, Ui.GOLD);
+        if (o.contains("mission")) {
+            Ui.small(ctx, textRenderer, o.getString("chapter").toUpperCase(), cx + 8, y + 7, 0.8f, Ui.GOLD, 0);
+            Ui.big(ctx, textRenderer, trim(o.getString("mission"), (int) ((cw - 16) / 1.3f)), cx + 8, y + 17, 1.3f, 0xFFFFFFFF, 0);
+            var lines = textRenderer.wrapLines(Text.literal("▶ " + o.getString("hint")), cw - 16);
+            for (int i = 0; i < lines.size() && i < 4; i++) ctx.drawText(textRenderer, lines.get(i), cx + 8, y + 34 + i * 10, 0xFFDCD8E8, false);
+        } else {
+            Ui.small(ctx, textRenderer, "СВОБОДНАЯ ИГРА", cx + 8, y + 7, 0.8f, Ui.GOLD, 0);
+            Ui.big(ctx, textRenderer, "Новоград твой", cx + 8, y + 17, 1.3f, 0xFFFFFFFF, 0);
+            ctx.drawText(textRenderer, "Работай, катайся, ищи задания в телефоне.", cx + 8, y + 34, 0xFFDCD8E8, false);
+        }
+        int sy = y + ch + 6;
+        Ui.panel(ctx, cx, sy, cw, 44, Ui.CYAN);
+        var w = MinecraftClient.getInstance().world;
+        String day = w == null ? "" : "ДЕНЬ " + (w.getTimeOfDay() / 24000 + 1) + " · " + LifeHud.clock(w.getTimeOfDay() % 24000);
+        ctx.drawText(textRenderer, day, cx + 8, sy + 7, 0xFFFFFFFF, true);
+        ctx.drawText(textRenderer, "Работа: " + Jobs.Job.of(d.job).title, cx + 8, sy + 19, 0xFFB8B2CC, false);
+        ctx.drawText(textRenderer, "Розыск", cx + 8, sy + 30, 0xFF8A8598, false);
+        int stars = NovogradClient.wantedStars;
+        for (int i = 0; i < 5; i++)
+            Ui.tex(ctx, i < stars ? Ui.STAR : Ui.STAR_EMPTY, cx + 50 + i * 11, sy + 29, 10, 10, 32, 32, a);
+    }
+
+    private String trim(String s, int w) {
+        if (textRenderer.getWidth(s) <= w) return s;
+        while (s.length() > 1 && textRenderer.getWidth(s + "…") > w) s = s.substring(0, s.length() - 1);
+        return s + "…";
     }
 
     @Override
@@ -95,15 +139,13 @@ public class LifePauseScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
-        int lx = 28, by = height / 2 - 80 + 56;
-        for (Btn b : buttons) {
-            if (button == 0 && mx >= lx && mx < lx + 170 && my >= by && my < by + 16) {
-                client.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1f));
-                b.action().run();
-                return true;
-            }
-            by += 20;
-        }
+        if (button == 0 && menu.click(mx, my)) return true;
         return super.mouseClicked(mx, my, button);
+    }
+
+    @Override
+    public boolean keyPressed(int key, int scan, int mods) {
+        if (menu.key(key)) return true;
+        return super.keyPressed(key, scan, mods);
     }
 }

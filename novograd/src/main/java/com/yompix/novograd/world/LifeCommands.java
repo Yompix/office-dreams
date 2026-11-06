@@ -17,6 +17,15 @@ public final class LifeCommands {
     private LifeCommands() {}
 
     public static void init() {
+        // коды как в старых криминальных играх: /cheat BOGACH, ZDOROV, ARSENAL, TISHINA, HAOS, TACHKA, NOCH, DEN, LIVEN, SOLNCE
+        CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(literal("cheat")
+                .requires(s -> s.getServer().isSingleplayer() || s.hasPermissionLevel(2))
+                .then(argument("code", com.mojang.brigadier.arguments.StringArgumentType.greedyString()).executes(ctx -> {
+                    ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
+                    String r = com.yompix.novograd.gta.Activities.cheat(p, com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "code"));
+                    ctx.getSource().sendFeedback(() -> Text.literal(r == null ? "Код не сработал" : "✔ Код принят: " + r), false);
+                    return r == null ? 0 : 1;
+                }))));
         CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(literal("novograd")
                 .then(literal("info").executes(ctx -> {
                     ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();

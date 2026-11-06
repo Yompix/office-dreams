@@ -129,6 +129,67 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.startsWith("scene")) {
+            // «scene:глава:миссия:шаг» — прыгнуть прямо в кат-сцену и снимать её; потом радар и вода
+            String[] a = mode.split(":");
+            int ch = Integer.parseInt(a[1]), mi = Integer.parseInt(a[2]), st = Integer.parseInt(a[3]);
+            YompixSplash.markShown();
+            server(150, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var d = Life.get(p);
+                d.storyStarted = true;
+                d.storyDone = false;
+                d.chapter = ch;
+                d.mission = mi;
+                d.step = st;
+                d.age = 22;
+                Story.applyAge(p, 22);
+                Life.sync(p);
+            });
+            for (int i = 0; i < 3; i++) key(10, GLFW.GLFW_KEY_SPACE);
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            cmd(5, "time set 13500");
+            server(5, s -> Story.reenter(s.getPlayerManager().getPlayer(P)));
+            for (int i = 0; i < 14; i++) shot(36, "scene_" + i);
+            run(20, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            // радар в машине по деловому центру
+            cmd(10, "gamemode survival " + P);
+            cmd(5, "time set 6000");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                p.teleport(w, 216.5, Story.topY(w, 216, -200), -200.5, 0, 10);
+            });
+            run(40, c -> {});
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, p.getServerWorld());
+                car.refreshPositionAndAngles(p.getX(), p.getY(), p.getZ(), 180, 0);
+                p.getServerWorld().spawnEntity(car);
+                p.startRiding(car, true);
+            });
+            shot(60, "radar_car");
+            key(5, GLFW.GLFW_KEY_R);
+            shot(15, "radar_radio");
+            // вода и деревья
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                p.stopRiding();
+                p.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+                var w = p.getServerWorld();
+                p.teleport(w, -600.5, Story.topY(w, -600, 40) + 6, 40.5, 90, 25);
+            });
+            shot(80, "water_1");
+            shot(30, "water_2");
+            server(5, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                p.teleport(w, -300.5, Story.topY(w, -300, -850) + 3, -850.5, 0, 10);
+            });
+            shot(80, "trees_1");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("gta")) {
             YompixSplash.markShown();
             server(150, s -> {
@@ -233,6 +294,94 @@ public final class DevAutotest {
                 com.yompix.novograd.gta.Wanted.busted(p);
             });
             shot(30, "g_busted");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
+        if (mode.equals("ui")) {
+            // оформление «Тёмные улицы»: заставка, меню, пауза, настройки, телефон, HUD, разговор, загрузка
+            YompixSplash.markShown();
+            for (int i = 0; i < 4; i++) key(40, GLFW.GLFW_KEY_SPACE);
+            run(10, c -> c.setScreen(null));
+            cmd(5, "time set 13000");
+            run(5, c -> c.setScreen(new YompixSplash(null)));
+            int[] at = {30, 22, 22, 20, 14, 12, 12, 10, 12, 16, 20, 30};
+            for (int i = 0; i < at.length; i++) shot(at[i], "ui_splash_" + i);
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen()));
+            shot(40, "ui_menu");
+            run(5, c -> c.setScreen(new net.minecraft.client.gui.screen.MessageScreen(net.minecraft.text.Text.literal("…"))));
+            shot(20, "ui_loading");
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.menu.LifePauseScreen()));
+            shot(25, "ui_pause");
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.menu.SettingsScreen(c.currentScreen)));
+            shot(20, "ui_settings");
+            key(2, GLFW.GLFW_KEY_TAB);
+            key(2, GLFW.GLFW_KEY_DOWN);
+            shot(15, "ui_settings_gfx");
+            run(5, c -> c.setScreen(new net.minecraft.client.gui.screen.option.OptionsScreen(c.currentScreen, c.options)));
+            shot(20, "ui_options_vanilla");
+            run(5, c -> c.setScreen(new PhoneScreen(null)));
+            shot(25, "ui_phone");
+            run(5, c -> c.setScreen(new PhoneScreen("jobs")));
+            shot(20, "ui_phone_jobs");
+            run(5, c -> c.setScreen(new PhoneScreen("bank")));
+            shot(20, "ui_phone_bank");
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.ShopScreen(true)));
+            shot(20, "ui_shop");
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.AtmScreen(1200, 340)));
+            shot(20, "ui_atm");
+            run(5, c -> c.setScreen(null));
+            cmd(5, "novograd money " + P + " 12450");
+            cmd(5, "give " + P + " novograd:pistol");
+            cmd(5, "give " + P + " novograd:ammo 24");
+            run(5, c -> {
+                c.player.getInventory().selectedSlot = 0;
+                for (int i = 0; i < 9; i++) if (c.player.getInventory().getStack(i).isOf(com.yompix.novograd.ModContent.PISTOL)) c.player.getInventory().selectedSlot = i;
+                NovogradClient.wantedStars = 3;
+                NovogradClient.wantedSeen = true;
+                var o = new net.minecraft.nbt.NbtCompound();
+                o.putString("chapter", "Глава 1");
+                o.putString("mission", "Новый дом");
+                o.putString("hint", "Доберись до мастерской Глеба на Портовой");
+                o.putString("where", "Портовая улица, 12");
+                o.putDouble("x", c.player.getX() + 60);
+                o.putDouble("y", c.player.getY());
+                o.putDouble("z", c.player.getZ() + 25);
+                com.yompix.novograd.client.story.ClientStory.objective = o;
+            });
+            shot(20, "ui_hud_banner");
+            shot(60, "ui_hud");
+            run(2, c -> com.yompix.novograd.client.story.ClientStory.missionDone("Новый дом"));
+            shot(14, "ui_passed");
+            run(80, c -> com.yompix.novograd.client.story.StoryHud.gtaTitle("ЗАДЕРЖАН", "Штраф $250 · оружие изъято"));
+            shot(20, "ui_busted");
+            run(90, c -> com.yompix.novograd.client.story.ClientStory.title("Глава 2", "Тёмные улицы"));
+            shot(40, "ui_chapter");
+            run(110, c -> {
+                var n = new net.minecraft.nbt.NbtCompound();
+                var lines = new net.minecraft.nbt.NbtList();
+                var l = new net.minecraft.nbt.NbtCompound();
+                l.putString("who", "tema");
+                l.putString("name", "Тёма");
+                l.putInt("color", 0xFF7A3D);
+                l.putString("text", "Слушай, если хочешь в этом городе выжить — держись подальше от Портовой после заката. Там свои правила.");
+                l.putString("voice", "");
+                lines.add(l);
+                n.put("lines", lines);
+                var choices = new net.minecraft.nbt.NbtList();
+                for (String t : new String[]{"Я сам разберусь.", "Кто там главный?", "Поехали вместе."}) {
+                    var ch = new net.minecraft.nbt.NbtCompound();
+                    ch.putString("text", t);
+                    ch.put("reply", new net.minecraft.nbt.NbtList());
+                    choices.add(ch);
+                }
+                n.put("choices", choices);
+                c.setScreen(new com.yompix.novograd.client.story.DialogScreen(n, true));
+            });
+            shot(30, "ui_dialog_typing");
+            shot(60, "ui_dialog");
+            key(5, GLFW.GLFW_KEY_SPACE);
+            key(15, GLFW.GLFW_KEY_DOWN);
+            shot(15, "ui_dialog_choice");
             run(20, MinecraftClient::scheduleStop);
             return;
         }

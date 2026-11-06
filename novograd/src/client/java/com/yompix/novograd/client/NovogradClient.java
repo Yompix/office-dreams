@@ -61,11 +61,9 @@ public class NovogradClient implements ClientModInitializer {
     public static LifeData data = new LifeData();
     public static long dataVersion;
 
-    private static KeyBinding phoneKey, hornKey, mapKey, radioKey, gradeKey, lightsKey, leftKey, rightKey, hazardKey, nitroKey;
+    private static KeyBinding phoneKey, hornKey, mapKey, radioKey, radioDownKey, radioUpKey, jobKey, cinemaKey, gradeKey, lightsKey, leftKey, rightKey, hazardKey, nitroKey;
     public static int wantedStars;
     public static boolean wantedSeen;
-    private static int station = -1;
-    private static final String[][] STATIONS = {{"Новоград FM", "pigstep"}, {"Ретро 90", "cat"}, {"Чилл-волна", "strad"}, {"Рок-Радио", "otherside"}, {"Ночной джаз", "wait"}};
     private static final Map<Integer, CarEngineSound> ENGINES = new HashMap<>();
     private static int screenshotIn = -1;
     private static boolean hudWasHidden;
@@ -90,6 +88,13 @@ public class NovogradClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.END.register(c -> camLog());
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c -> tickLog());
         radioKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.radio", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.novograd"));
+        jobKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.job", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_J, "category.novograd"));
+        cinemaKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.cinema", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.novograd"));
+        radioDownKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.radio_down", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_MINUS, "category.novograd"));
+        radioUpKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.radio_up", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_EQUAL, "category.novograd"));
+        NovogradConfig.load();
+        NovogradConfig.registerPacks();
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.CLIENT_STARTED.register(c -> NovogradConfig.applyPacks());
         hornKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.horn", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "category.novograd"));
         lightsKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.lights", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_L, "category.novograd"));
         leftKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.left", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_Z, "category.novograd"));
@@ -148,6 +153,9 @@ public class NovogradClient implements ClientModInitializer {
                 });
         });
         HudRenderCallback.EVENT.register(LifeHud::render);
+        HudRenderCallback.EVENT.register((ctx, t) -> CarRadio.render(ctx));
+        HudRenderCallback.EVENT.register((ctx, t) -> { if (!CinemaCam.active()) Minimap.render(ctx); });
+        HudRenderCallback.EVENT.register((ctx, t) -> CinemaCam.render(ctx));
         HudRenderCallback.EVENT.register((ctx, t) -> com.yompix.novograd.client.story.StoryHud.render(ctx));
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_TRANSLUCENT.register(com.yompix.novograd.client.story.StoryHud::renderWorld);
         DevAutotest.init();
@@ -168,6 +176,14 @@ public class NovogradClient implements ClientModInitializer {
                 dataVersion++;
             }
             case "dialog" -> show(client, new com.yompix.novograd.client.story.DialogScreen(n));
+            case "act_target" -> {
+                Minimap.actLabel = n.contains("x") ? n.getString("label") : "";
+                Minimap.actX = n.getDouble("x");
+                Minimap.actZ = n.getDouble("z");
+                if (!n.contains("x")) Minimap.actTimer = -1;
+            }
+            case "act_timer" -> Minimap.actTimer = n.getInt("sec");
+            case "cut_actor" -> com.yompix.novograd.client.story.CutsceneScreen.ACTORS.put(n.getString("name"), n.getInt("id"));
             case "cutscene" -> show(client, new com.yompix.novograd.client.story.CutsceneScreen(n));
             case "credits" -> show(client, new com.yompix.novograd.client.story.CreditsScreen());
             case "objective" -> com.yompix.novograd.client.story.ClientStory.objective = n;
@@ -291,18 +307,17 @@ public class NovogradClient implements ClientModInitializer {
             }
         while (gradeKey.wasPressed()) {
             client.player.sendMessage(net.minecraft.text.Text.literal("Графика Новограда: " + com.yompix.novograd.client.render.ColorGrade.cycle()), true);
+            var g = com.yompix.novograd.client.render.ColorGrade.class;
+            NovogradConfig.get().graphics = !com.yompix.novograd.client.render.ColorGrade.enabled ? 0 : com.yompix.novograd.client.render.ColorGrade.quality > 0.5f ? 2 : 1;
+            NovogradConfig.save();
         }
-        while (radioKey.wasPressed()) {
-            if (!(client.player.getVehicle() instanceof CarEntity)) continue;
-            station = station + 1 >= STATIONS.length ? -1 : station + 1;
-            if (station < 0) {
-                com.yompix.novograd.client.screen.PhoneScreen.stopMusic();
-                client.player.sendMessage(net.minecraft.text.Text.literal("📻 Радио выключено"), true);
-            } else {
-                com.yompix.novograd.client.screen.PhoneScreen.play(STATIONS[station][1]);
-                client.player.sendMessage(net.minecraft.text.Text.literal("📻 " + STATIONS[station][0] + "  (R — следующая станция)"), true);
-            }
-        }
+        while (radioKey.wasPressed()) CarRadio.next(client);
+        while (jobKey.wasPressed()) send("activity");
+        while (cinemaKey.wasPressed()) CinemaCam.toggle(client);
+        CinemaCam.tick(client);
+        while (radioDownKey.wasPressed()) CarRadio.volume(client, -0.1f);
+        while (radioUpKey.wasPressed()) CarRadio.volume(client, 0.1f);
+        CarRadio.tick(client);
         while (mapKey.wasPressed()) if (client.currentScreen == null) client.setScreen(new com.yompix.novograd.client.screen.MapScreen());
         ENGINES.values().removeIf(s -> s.isDone());
         if (screenshotIn >= 0 && --screenshotIn == 0) {

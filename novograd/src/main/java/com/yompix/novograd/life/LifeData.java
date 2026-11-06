@@ -65,7 +65,7 @@ public class LifeData {
     }
 
     public boolean adult() {
-        return edu > SCHOOL_END;
+        return true; // в Новограде все взрослые: школы и детства нет
     }
 
     public void addMessage(String from, String text, long day) {

@@ -77,7 +77,11 @@
   "key.novograd.right": "Right turn signal",
   "key.novograd.hazard": "Hazard lights",
   "key.novograd.map": "Map and quests",
-  "key.novograd.radio": "Car radio",
+  "key.novograd.radio": "Radio: next station",
+  "key.novograd.radio_down": "Radio: volume down",
+  "key.novograd.radio_up": "Radio: volume up",
+  "key.novograd.job": "Vehicle side job",
+  "key.novograd.cinema": "Cinematic camera",
   "key.novograd.grade": "Graphics: pretty / light / off",
   "category.novograd": "Novograd",
   "generator.novograd.city": "Novograd: City"

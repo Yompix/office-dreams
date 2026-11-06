@@ -77,7 +77,11 @@
   "key.novograd.right": "Правый поворотник",
   "key.novograd.hazard": "Аварийка",
   "key.novograd.map": "Карта и задания",
-  "key.novograd.radio": "Радио в машине",
+  "key.novograd.radio": "Радио: следующая станция",
+  "key.novograd.radio_down": "Радио: тише",
+  "key.novograd.radio_up": "Радио: громче",
+  "key.novograd.job": "Подработка за рулём (такси / патруль)",
+  "key.novograd.cinema": "Кино-камера в машине",
   "key.novograd.grade": "Графика: красивая / лёгкая / выкл",
   "category.novograd": "Новоград",
   "generator.novograd.city": "Новоград: Город"

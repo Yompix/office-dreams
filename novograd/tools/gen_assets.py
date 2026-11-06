@@ -680,7 +680,10 @@ def skin(v):
         B = rgb(v['beard'])
         d.rectangle([fx, fy + 6, fx + 7, fy + 7], fill=B)
         d.point([(fx, fy + 5), (fx + 7, fy + 5)], fill=B)
-        d.line([fx + 3, fy + 6, fx + 4, fy + 6], fill=rgb('7a3b2e'))
+        # рот в бороде: тёмные губы и светлая кожа под ними, чтобы было видно, где рот
+        d.line([fx + 2, fy + 6, fx + 5, fy + 6], fill=rgb('5a2a22'))
+        d.line([fx + 3, fy + 6, fx + 4, fy + 6], fill=rgb('8e3f36'))
+        d.point([(fx + 3, fy + 5), (fx + 4, fy + 5)], fill=shade(B, 0.85))
         for k in ('right', 'left'):
             rect(r[k], 0, 6, 7, 7, B)
     if v.get('mustache'):

@@ -26,7 +26,8 @@ import net.minecraft.world.level.LevelInfo;
 import net.minecraft.world.level.storage.LevelSummary;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import com.yompix.novograd.client.ui.MenuList;
+import com.yompix.novograd.client.ui.Ui;
 import java.util.Comparator;
 import java.util.List;
 
@@ -44,17 +45,15 @@ public class LifeMenuScreen extends Screen {
     private static final String[] TIPS = {
             "Совет: клавиша G открывает телефон, а в нём — карта и дневник сюжета.",
             "Совет: золотой столб света показывает, куда идти по сюжету.",
-            "Совет: учебник из магазина убирает один неверный ответ на уроке.",
             "Совет: вечером Новоград загорается неоном — прокатись по ночному городу!",
-            "Совет: в выходные по городу проходят ярмарки, концерты и салюты.",
-            "Совет: устал? Поспи или выпей колы — энергия вернётся.",
-            "Совет: казино — только для взрослых и только на игровые деньги.",
+            "Совет: звёзды розыска гаснут, если оторваться от полиции и спрятаться.",
+            "Совет: в машине клавиша R включает радио, N — нитро.",
+            "Совет: побочные задания — в телефоне, приложение «Задания».",
+            "Совет: казино — только на игровые деньги.",
             "Совет: купи свой дом в телефоне — будешь просыпаться там."};
     private static final long START = System.currentTimeMillis();
 
-    private record Btn(String label, String sub, Runnable action) {}
-
-    private final List<Btn> buttons = new ArrayList<>();
+    private final MenuList menu = new MenuList();
     @Nullable private LevelSummary last;
     private int mouseX, mouseY;
 
@@ -77,23 +76,30 @@ public class LifeMenuScreen extends Screen {
     }
 
     private void rebuild() {
-        buttons.clear();
+        int sel = menu.selected;
+        menu.clear();
+        menu.rowH = 15;
+        menu.subH = 23;
+        menu.rowGap = 2;
+        menu.scale = 1.4f;
         MinecraftClient mc = MinecraftClient.getInstance();
         if (last != null) {
             LevelSummary s = last;
-            buttons.add(new Btn("Продолжить", s.getDisplayName(), () -> mc.createIntegratedServerLoader().start(s.getName(), () -> mc.setScreen(this))));
+            menu.add("Продолжить", s.getDisplayName(), () -> mc.createIntegratedServerLoader().start(s.getName(), () -> mc.setScreen(this)));
         }
-        buttons.add(new Btn("Новая жизнь", "начать сюжет в Новограде", this::newLife));
-        buttons.add(new Btn("Мои миры", "", () -> mc.setScreen(new SelectWorldScreen(this))));
-        buttons.add(new Btn("Играть с друзьями", "", () -> mc.setScreen(new MultiplayerScreen(this))));
-        buttons.add(new Btn("Настройки", "", () -> mc.setScreen(new OptionsScreen(this, mc.options))));
-        buttons.add(new Btn("Авторы", "", () -> mc.setScreen(new CreditsScreen() {
+        menu.add("Новая жизнь", last == null ? "начать сюжет в Новограде" : "", this::newLife);
+        menu.add("Мои миры", "", () -> mc.setScreen(new SelectWorldScreen(this)));
+        menu.add("Играть с друзьями", "", () -> mc.setScreen(new MultiplayerScreen(this)));
+        menu.add("Настройки игры", "", () -> mc.setScreen(new SettingsScreen(this)));
+        menu.add("Настройки Minecraft", "", () -> mc.setScreen(new OptionsScreen(this, mc.options)));
+        menu.add("Авторы", "", () -> mc.setScreen(new CreditsScreen() {
             @Override
             public void close() {
                 mc.setScreen(LifeMenuScreen.this);
             }
-        })));
-        buttons.add(new Btn("Выход", "", mc::scheduleStop));
+        }));
+        menu.add("Выход", "", mc::scheduleStop);
+        menu.selected = Math.min(sel, menu.items.size() - 1);
     }
 
     /** Новый мир «Новоград: Город» одним нажатием — сразу начинается сюжет. */
@@ -112,97 +118,78 @@ public class LifeMenuScreen extends Screen {
                 drm -> drm.get(RegistryKeys.WORLD_PRESET).getOrThrow(city).createDimensionsRegistryHolder(), this);
     }
 
-    /** Фон: кадры города медленно наезжают и сменяются с растворением. */
+    /** Фон: ночной город на закате медленно плывёт, справа — комикс-панели из кадров Новограда. */
     public static void drawBackground(DrawContext ctx, int width, int height) {
         float t = (System.currentTimeMillis() - START) / 1000f;
-        float per = 8f;
-        int i = (int) (t / per) % BACKGROUNDS.length;
-        float local = t % per;
-        draw(ctx, BACKGROUNDS[i], width, height, local / per, 1f);
-        if (local > per - 1.5f) {
-            float a = (local - (per - 1.5f)) / 1.5f;
-            draw(ctx, BACKGROUNDS[(i + 1) % BACKGROUNDS.length], width, height, 0, a);
-        }
+        float pan = 0.5f + 0.5f * MathHelper.sin(t * 0.05f);
+        Ui.cover(ctx, Ui.SKYLINE, 0, 0, width, height, Ui.SKYLINE_SIZE[0], Ui.SKYLINE_SIZE[1], 1.12f + 0.03f * MathHelper.sin(t * 0.08f), pan, 1f);
     }
 
-    private static void draw(DrawContext ctx, Identifier tex, int width, int height, float k, float alpha) {
-        float zoom = 1.06f + k * 0.08f;
-        int w = (int) (width * zoom), h = (int) (height * zoom);
-        int x = -(w - width) / 2 - (int) (k * width * 0.03f), y = -(h - height) / 2;
-        ctx.setShaderColor(1, 1, 1, alpha);
-        com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-        ctx.drawTexture(tex, x, y, 0, 0, w, h, w, h);
-        ctx.setShaderColor(1, 1, 1, 1);
+    /** Наклонённая комикс-панель с рамкой; плавает и чуть качается. */
+    private static void comicPanel(DrawContext ctx, int i, float cx, float cy, float w, float rot, float appear) {
+        if (appear <= 0) return;
+        float h = w * 9 / 16f;
+        var m = ctx.getMatrices();
+        m.push();
+        m.translate(cx + (1 - appear) * 160, cy, 0);
+        m.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Z.rotationDegrees(rot));
+        ctx.fill((int) (-w / 2) + 5, (int) (-h / 2) + 6, (int) (w / 2) + 5, (int) (h / 2) + 6, (int) (appear * 150) << 24);
+        ctx.fill((int) (-w / 2) - 3, (int) (-h / 2) - 3, (int) (w / 2) + 3, (int) (h / 2) + 3, Ui.alpha(0xFFF4EEE0, appear));
+        Ui.tex(ctx, Ui.panel(i), -w / 2, -h / 2, w, h, Ui.PANEL_SIZE[0], Ui.PANEL_SIZE[1], appear);
+        m.pop();
     }
 
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
-        drawBackground(ctx, width, height);
-        // затемнение слева под меню и снизу
-        ctx.fillGradient(0, 0, width, height, 0x22000000, 0x99000000);
-        for (int x = 0; x < width * 0.55f; x += 4) {
-            int a = (int) (200 * (1 - x / (width * 0.55f)));
-            ctx.fill(x, 0, x + 4, height, a << 24);
-        }
         float t = (System.currentTimeMillis() - START) / 1000f;
-        // светлячки
-        for (int i = 0; i < 26; i++) {
-            float px = (i * 97 + t * (8 + i % 5)) % width, py = height - ((i * 53 + t * (10 + i % 7) * 2) % (height + 20));
-            int a = (int) (90 + 80 * Math.sin(t * 2 + i));
-            ctx.fill((int) px, (int) py, (int) px + 2, (int) py + 2, a << 24 | (i % 2 == 0 ? 0xFF2FB4 : 0x22E5FF));
+        drawBackground(ctx, width, height);
+        // комикс-панели справа: «арт загрузочного экрана»
+        float pw = Math.min(width * 0.36f, 230);
+        int shift = (int) (t / 7) % 4;
+        float[][] slots = {{0.70f, 0.30f, -5f}, {0.84f, 0.52f, 4f}, {0.66f, 0.73f, -2f}};
+        for (int k = 0; k < slots.length; k++) {
+            float bob = MathHelper.sin(t * 0.7f + k * 1.9f) * 3;
+            float ap = Ui.easeOut((t - 0.35f - k * 0.18f) / 0.5f);
+            comicPanel(ctx, k + shift, width * slots[k][0], height * slots[k][1] + bob, pw * (k == 1 ? 0.92f : 1f), slots[k][2] + MathHelper.sin(t * 0.4f + k) * 0.6f, ap);
         }
-        // логотип с неоновым свечением
-        int lx = 28, ly = height / 2 - 92;
-        float pulse = 0.75f + 0.25f * MathHelper.sin(t * 2.4f);
-        for (int g = 3; g >= 1; g--) {
-            ctx.getMatrices().push();
-            ctx.getMatrices().translate(lx + g * 0.6f, ly + g * 1.2f, 0);
-            ctx.getMatrices().scale(4f, 4f, 1);
-            int a = (int) (60 * pulse / g);
-            ctx.drawText(textRenderer, "НОВОГРАД", 0, 0, a << 24 | 0xA855F7, false);
-            ctx.getMatrices().pop();
+        // затемнение под меню
+        for (int x = 0; x < width * 0.6f; x += 4) {
+            int a = (int) (215 * Math.pow(1 - x / (width * 0.6f), 1.3));
+            ctx.fill(x, 0, x + 4, height, a << 24 | 0x07040E);
         }
-        ctx.getMatrices().push();
-        ctx.getMatrices().translate(lx, ly, 0);
-        ctx.getMatrices().scale(4f, 4f, 1);
-        ctx.drawText(textRenderer, "НОВОГРАД", 0, 0, 0xFFFFFFFF, true);
-        ctx.getMatrices().pop();
-        ctx.drawText(textRenderer, "жизнь, которую строишь ты", lx + 2, ly + 38, 0xFFFFC107, true);
-        ctx.drawText(textRenderer, "Yompix Games", lx + 2, ly + 50, 0xFF8A5CFF, false);
-        // значок версии рядом с названием
+        Ui.vignette(ctx, width, height, 0.8f);
+        // логотип
+        int lx = 26;
+        float lw = Math.min(width * 0.42f, 230);
+        float la = Ui.easeOut(t / 0.6f);
+        int ly = Math.max(10, height / 2 - 112);
+        int lh = Ui.logo(ctx, lx - 4 + (1 - la) * -30, ly, lw, la);
+        float sa = Ui.easeOut((t - 0.3f) / 0.5f);
+        int sh = Ui.subtitle(ctx, lx + 4 + (1 - sa) * 30, ly + lh - 2, lw * 0.55f, sa);
+        // пункты меню
+        menu.render(ctx, textRenderer, lx + 10, ly + lh + sh + 12, 200, mouseX, mouseY);
+        // студия и версия сверху справа
+        String studio = "YOMPIX GAMES";
+        int sw = studio.length() * 8;
+        Ui.spaced(ctx, textRenderer, studio, width - sw - 10, 8, 0xCCFFFFFF, 2);
         String badge = "v" + VERSION;
-        int vbw = textRenderer.getWidth(badge) + 8, bxv = lx + 2 + textRenderer.getWidth("Yompix Games") + 8;
-        ctx.fill(bxv, ly + 48, bxv + vbw, ly + 60, 0xCC8A5CFF);
-        ctx.drawText(textRenderer, badge, bxv + 4, ly + 50, 0xFFFFFFFF, false);
-        // кнопки
-        int by = ly + 72;
-        for (int i = 0; i < buttons.size(); i++) {
-            Btn b = buttons.get(i);
-            float appear = MathHelper.clamp((t - 0.2f - i * 0.07f) / 0.35f, 0, 1);
-            int bx = lx - (int) ((1 - appear) * 60);
-            int bw = 190, bh = b.sub().isEmpty() ? 16 : 22;
-            boolean hov = mouseX >= bx && mouseX < bx + bw && mouseY >= by && mouseY < by + bh;
-            int slide = hov ? 8 : 0;
-            if (hov) {
-                ctx.fill(bx, by, bx + bw, by + bh, 0x55FFFFFF & 0x40FFFFFF);
-                ctx.fill(bx, by, bx + 3, by + bh, 0xFFFF2FB4);
-            }
-            int col = (int) (appear * 255) << 24 | (i == 0 ? 0xFFC107 : 0xFFFFFF);
-            ctx.getMatrices().push();
-            ctx.getMatrices().translate(bx + 10 + slide, by + 3, 0);
-            ctx.getMatrices().scale(1.25f, 1.25f, 1);
-            ctx.drawText(textRenderer, b.label(), 0, 0, col, true);
-            ctx.getMatrices().pop();
-            if (!b.sub().isEmpty()) ctx.drawText(textRenderer, b.sub(), bx + 10 + slide, by + 14, (int) (appear * 170) << 24 | 0xC0C8E0, false);
-            by += bh + 4;
-        }
-        // совет дня и версия
-        String tip = TIPS[(int) (t / 6) % TIPS.length];
-        ctx.drawText(textRenderer, tip, width - textRenderer.getWidth(tip) - 8, height - 24, 0xCCFFFFFF, true);
-        String ver = "Новоград " + VERSION + " · Minecraft 1.21.1 · © Yompix Games";
-        ctx.drawText(textRenderer, ver, width - textRenderer.getWidth(ver) - 8, height - 12, 0x88FFFFFF, false);
+        int bw = textRenderer.getWidth(badge) + 8;
+        Ui.slant(ctx, width - bw - 14, 20, bw + 4, 11, 3, Ui.PINK);
+        ctx.drawText(textRenderer, badge, width - bw - 10, 22, 0xFFFFFFFF, false);
+        // нижняя полоса: совет дня
+        ctx.fill(0, height - 20, width, height, 0xE0050309);
+        ctx.fill(0, height - 21, width, height - 20, Ui.alpha(Ui.PINK, 0.8f));
+        Ui.slant(ctx, 6, height - 17, 50, 14, 4, Ui.CYAN);
+        ctx.drawText(textRenderer, "СОВЕТ", 15, height - 14, 0xFF07050C, false);
+        String tip = TIPS[(int) (t / 6) % TIPS.length].replace("Совет: ", "");
+        float tipA = Math.min(1, Math.min((t % 6) / 0.4f, (6 - t % 6) / 0.4f));
+        ctx.drawText(textRenderer, tip, 64, height - 14, Ui.alpha(0xFFE8E4F2, tipA), false);
+        String ver = "Minecraft 1.21.1 · © Yompix Games";
+        if (textRenderer.getWidth(tip) + 64 + textRenderer.getWidth(ver) + 20 < width)
+            ctx.drawText(textRenderer, ver, width - textRenderer.getWidth(ver) - 8, height - 14, 0x80FFFFFF, false);
+        Ui.grain(ctx, width, height, 0.35f);
         super.render(ctx, mouseX, mouseY, delta);
     }
 
@@ -212,18 +199,14 @@ public class LifeMenuScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
-        if (button != 0) return super.mouseClicked(mx, my, button);
-        int lx = 28, by = height / 2 - 92 + 72;
-        for (Btn b : buttons) {
-            int bh = b.sub().isEmpty() ? 16 : 22;
-            if (mx >= lx && mx < lx + 190 && my >= by && my < by + bh) {
-                MinecraftClient.getInstance().getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.master(net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK, 1f));
-                b.action().run();
-                return true;
-            }
-            by += bh + 4;
-        }
+        if (button == 0 && menu.click(mx, my)) return true;
         return super.mouseClicked(mx, my, button);
+    }
+
+    @Override
+    public boolean keyPressed(int key, int scan, int mods) {
+        if (menu.key(key)) return true;
+        return super.keyPressed(key, scan, mods);
     }
 
     @Override

@@ -32,6 +32,7 @@ public final class Wanted {
         int stars;
         long lastSeen, arrest;
         int spawnTick;
+        long lastBlock;
         boolean seen;
     }
 
@@ -111,6 +112,9 @@ public final class Wanted {
             }
             if (was != seen || now % 40 == 0) sync(p, x);
             reinforce(p, x, cops.size());
+            if (x.stars >= 3 && p.getVehicle() instanceof CarEntity && now - x.lastBlock > 20 * 25) {
+                if (roadblock(p)) x.lastBlock = now;
+            }
             // задержание: полицейский вплотную, а ты стоишь (или машина стоит)
             boolean slow = p.getVelocity().horizontalLengthSquared() < 0.01 && (!(p.getVehicle() instanceof CarEntity car) || car.slow());
             boolean grabbed = cops.stream().anyMatch(c -> c.distanceTo(p) < 2.2 && !c.hasVehicle());
@@ -155,9 +159,49 @@ public final class Wanted {
         }
     }
 
+    /** Блокпост на 3★ и выше: две патрульные машины поперёк улицы впереди, копы целятся. */
+    private static boolean roadblock(ServerPlayerEntity p) {
+        ServerWorld w = p.getServerWorld();
+        var v = p.getVehicle().getVelocity();
+        if (v.horizontalLengthSquared() < 0.04) return false;
+        boolean alongX = Math.abs(v.x) > Math.abs(v.z);
+        double sx = Math.signum(alongX ? v.x : v.z);
+        int street = (int) (Math.round(((alongX ? p.getZ() : p.getX()) - 24) / 48.0) * 48 + 24);
+        int ahead = (int) ((alongX ? p.getX() : p.getZ()) + sx * 55);
+        int y = Story.topY(w, alongX ? ahead : street, alongX ? street : ahead);
+        if (!w.getBlockState(new BlockPos(alongX ? ahead : street, y - 1, alongX ? street : ahead)).isOf(ModContent.ASPHALT)
+                && !w.getBlockState(new BlockPos(alongX ? ahead : street, y - 1, alongX ? street : ahead)).isOf(ModContent.ASPHALT_LINE)) return false;
+        for (int side : new int[]{-2, 2}) {
+            double cx = alongX ? ahead + 0.5 : street + side + 0.5, cz = alongX ? street + side + 0.5 : ahead + 0.5;
+            CarEntity c = new CarEntity(ModContent.CAR, w);
+            c.refreshPositionAndAngles(cx, y, cz, alongX ? 0 : 90, 0); // поперёк дороги
+            c.setVariant(CarEntity.POLICE);
+            c.toggleLight(CarEntity.HAZARD);
+            c.setAmbient(true);
+            w.spawnEntity(c);
+            double bx = alongX ? cx - sx * 2.5 : cx, bz = alongX ? cz : cz - sx * 2.5;
+            CitizenEntity cop = cop(w, bx, y, bz);
+            cop.attack(p);
+        }
+        p.sendMessage(Text.literal("🚧 Впереди полицейский блокпост!").formatted(Formatting.RED), true);
+        return true;
+    }
+
     private static CitizenEntity cop(ServerWorld w, double x, double y, double z) {
         CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, w);
-        c.setup(CitizenEntity.skinIndex("police"), CitizenEntity.Role.POLICE, false, "Полицейский");
+        boolean swat = false;
+        for (ServerPlayerEntity pl : w.getPlayers()) if (stars(pl) >= 5 && pl.squaredDistanceTo(x, y, z) < 80 * 80) swat = true;
+        c.setup(CitizenEntity.skinIndex("police"), CitizenEntity.Role.POLICE, false, swat ? "Спецназ" : "Полицейский");
+        if (swat) {
+            // спецназ: шлем, бронежилет, автомат
+            c.equipStack(net.minecraft.entity.EquipmentSlot.HEAD, new net.minecraft.item.ItemStack(net.minecraft.item.Items.NETHERITE_HELMET));
+            c.equipStack(net.minecraft.entity.EquipmentSlot.CHEST, new net.minecraft.item.ItemStack(net.minecraft.item.Items.NETHERITE_CHESTPLATE));
+            c.refreshPositionAndAngles(x, y, z, 0, 0);
+            c.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(ModContent.SMG));
+            c.removeWhenIdle();
+            w.spawnEntity(c);
+            return c;
+        }
         c.refreshPositionAndAngles(x, y, z, 0, 0);
         c.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(ModContent.PISTOL));
         c.removeWhenIdle();

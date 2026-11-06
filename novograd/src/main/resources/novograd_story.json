@@ -41,6 +41,36 @@
    "skin": "c15",
    "voice": "Viktor Menelaos",
    "color": "7cff8a"
+  },
+  "rosa": {
+   "name": "Роза",
+   "skin": "c22",
+   "voice": "Sofia Hellen",
+   "color": "ff8a65"
+  },
+  "vince": {
+   "name": "Винс",
+   "skin": "c17",
+   "voice": "Craig Gutsy",
+   "color": "b0bec5"
+  },
+  "marco": {
+   "name": "Марко «Синий»",
+   "skin": "c33",
+   "voice": "Gilberto Mathias",
+   "color": "4fc3f7"
+  },
+  "harris": {
+   "name": "Шеф Харрис",
+   "skin": "police",
+   "voice": "Baldur Sanjin",
+   "color": "90a4ae"
+  },
+  "lena": {
+   "name": "Лена Вуд",
+   "skin": "c28",
+   "voice": "Tammie Ema",
+   "color": "ffd54f"
   }
  },
  "chapters": [
@@ -78,6 +108,21 @@
          "sec": 9
         },
         {
+         "follow": "racer",
+         "sec": 7,
+         "off": [
+          9,
+          2.5,
+          2.5
+         ]
+        },
+        {
+         "from": "dt_2+14,10,2",
+         "to": "dt_2+6,18,3",
+         "sec": 4,
+         "track": "racer"
+        },
+        {
          "from": "cam_dt_a",
          "to": "cam_dt_b",
          "sec": 7
@@ -109,6 +154,25 @@
          "text": "Ты приехал сюда помочь брату. Ты ещё не знаешь, во что ввязался.",
          "voice": "a1m1_03"
         }
+       ],
+       "actors": [
+        [
+         0,
+         "car",
+         "racer",
+         "dt_1",
+         2
+        ],
+        [
+         0.2,
+         "drive",
+         "racer",
+         [
+          "dt_2",
+          "dt_3"
+         ],
+         0.95
+        ]
        ]
       },
       {
@@ -208,6 +272,112 @@
      "id": "a1m2",
      "title": "Ники «Нитро»",
      "steps": [
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "race_start+20,-14,4",
+         "to": "race_start+12,-8,3",
+         "sec": 6,
+         "track": "storm_car"
+        },
+        {
+         "follow": "storm",
+         "sec": 4,
+         "off": [
+          3.5,
+          1.6,
+          1.5
+         ]
+        },
+        {
+         "from": "race_start+4,6,2",
+         "to": "race_start+2,4,2",
+         "sec": 5,
+         "track": "nika"
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "nika",
+         "race_start+2,-3"
+        ],
+        [
+         0,
+         "act",
+         "nika",
+         "TALK"
+        ],
+        [
+         0,
+         "car",
+         "storm_car",
+         "race_start+60,0",
+         2,
+         90
+        ],
+        [
+         0.2,
+         "drive",
+         "storm_car",
+         [
+          "race_start+6,0"
+         ],
+         0.7
+        ],
+        [
+         5.5,
+         "spawn",
+         "shtorm",
+         "race_start+6,2"
+        ],
+        [
+         5.6,
+         "walk",
+         "shtorm",
+         "race_start+3,-2"
+        ],
+        [
+         8,
+         "face",
+         "nika",
+         "shtorm"
+        ],
+        [
+         9,
+         "act",
+         "shtorm",
+         "ARGUE",
+         "nika"
+        ],
+        [
+         11,
+         "act",
+         "nika",
+         "LAUGH",
+         "shtorm"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "На трассу всегда приезжают двое: тот, кто хочет выиграть, и тот, кто не умеет проигрывать.",
+         "voice": "a1m2s_01"
+        },
+        {
+         "who": "shtorm",
+         "text": "Ники, ты правда поставишь меня против новичка?",
+         "voice": "a1m2s_02"
+        },
+        {
+         "who": "nika",
+         "text": "Я ставлю на тех, кто приезжает первым, Сторм. Сегодня посмотрим.",
+         "voice": "a1m2s_03"
+        }
+       ]
+      },
       {
        "type": "talk",
        "lines": [
@@ -317,6 +487,117 @@
      ]
     },
     {
+     "id": "a1m2b",
+     "title": "Работа на колёсах",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "gleb",
+         "text": "Пока ты гоняешь, гараж простаивает. Клиент из пригорода ждёт свою машину.",
+         "voice": "a1m2b_01"
+        },
+        {
+         "who": "gleb",
+         "text": "Отгони её на Тихую улицу. Аккуратно, это первая наша работа за месяц.",
+         "voice": "a1m2b_02"
+        }
+       ],
+       "do": [
+        [
+         "car",
+         "garage_door",
+         1
+        ]
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Отгони машину клиенту в пригород, на Тихую улицу",
+       "place": "suburb_street",
+       "radius": 9,
+       "vehicle": true,
+       "time": 240
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "cam_suburb",
+         "to": "suburb_street+10,8,3",
+         "sec": 6,
+         "track": "client"
+        },
+        {
+         "from": "suburb_street+3,4,2",
+         "to": "suburb_street+2,3,2",
+         "sec": 5,
+         "track": "client"
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "client",
+         "suburb_house",
+         "citizen",
+         "Мистер Тейлор"
+        ],
+        [
+         0.5,
+         "walk",
+         "client",
+         "suburb_street+2,2"
+        ],
+        [
+         6,
+         "act",
+         "client",
+         "HANDSHAKE",
+         "player"
+        ],
+        [
+         9,
+         "act",
+         "client",
+         "LAUGH",
+         "player"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Мистер Тейлор обходит машину три раза. Потом довольно хлопает по капоту.",
+         "voice": "a1m2bs_01"
+        },
+        {
+         "who": "narrator",
+         "text": "Первые честные деньги в Новограде. Брат был бы горд.",
+         "voice": "a1m2bs_02"
+        }
+       ]
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "gleb",
+         "text": "Клиент доволен! Половина — твоя. Видишь, и без гонок можно жить.",
+         "voice": "a1m2b_03"
+        }
+       ],
+       "do": [
+        [
+         "money",
+         250
+        ]
+       ]
+      }
+     ]
+    },
+    {
      "id": "a1m3",
      "title": "Закись азота",
      "steps": [
@@ -387,9 +668,555 @@
      ]
     },
     {
+     "id": "a1m3b",
+     "title": "Клуб «Неон»",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "nika",
+         "text": "Сегодня отмечаем твою победу в «Неоне». И познакомлю тебя с Розой — она знает в этом городе всех.",
+         "voice": "a1m3b_01"
+        }
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Езжай в клуб «Неон» в деловом центре",
+       "place": "club_neon",
+       "radius": 8,
+       "do": [
+        [
+         "time",
+         16500
+        ]
+       ]
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "cam_club",
+         "to": "club_neon+6,14,6",
+         "sec": 7
+        },
+        {
+         "from": "club_neon+5,-3,2",
+         "to": "club_neon+3,-2,2",
+         "sec": 5,
+         "track": "rosa"
+        },
+        {
+         "follow": "rosa",
+         "sec": 4,
+         "off": [
+          3,
+          1.7,
+          -1.2
+         ]
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "d1",
+         "club_neon+2,-3",
+         "citizen"
+        ],
+        [
+         0,
+         "spawn",
+         "d2",
+         "club_neon-2,-4",
+         "citizen"
+        ],
+        [
+         0,
+         "spawn",
+         "d3",
+         "club_neon+0,-6",
+         "citizen"
+        ],
+        [
+         0,
+         "act",
+         "d1",
+         "DANCE"
+        ],
+        [
+         0,
+         "act",
+         "d2",
+         "DANCE"
+        ],
+        [
+         0,
+         "act",
+         "d3",
+         "DANCE"
+        ],
+        [
+         0,
+         "spawn",
+         "rosa",
+         "club_neon+4,-8"
+        ],
+        [
+         0,
+         "spawn",
+         "nika",
+         "club_neon+1,-1"
+        ],
+        [
+         0,
+         "act",
+         "nika",
+         "DANCE"
+        ],
+        [
+         7,
+         "walk",
+         "rosa",
+         "club_neon+1,0"
+        ],
+        [
+         12,
+         "act",
+         "rosa",
+         "TALK",
+         "player"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Клуб «Неон». Здесь не спрашивают, откуда деньги. Здесь спрашивают только — сколько.",
+         "voice": "a1m3bs_01"
+        },
+        {
+         "who": "rosa",
+         "text": "Так вот кто обогнал Сторма. Садись, гонщик, угощаю.",
+         "voice": "a1m3bs_02"
+        }
+       ]
+      },
+      {
+       "type": "talk",
+       "lines": [
+        {
+         "who": "rosa",
+         "text": "Скажу тебе по секрету: Сторм не сам по себе. Его гонки оплачивает Марко — главарь «Синих».",
+         "voice": "a1m3b_02"
+        },
+        {
+         "who": "rosa",
+         "text": "«Синие» и «Ящеры» делят город. А твой брат должен Ящерам… Понимаешь, во что ты влез?",
+         "voice": "a1m3b_03"
+        }
+       ],
+       "choices": [
+        {
+         "text": "Спасибо, Роза. Я буду осторожен.",
+         "flag": "a1_rosa_ok",
+         "reply": [
+          {
+           "who": "rosa",
+           "text": "Осторожность — лучшее, что можно купить в Новограде.",
+           "voice": "a1m3b_04"
+          }
+         ]
+        },
+        {
+         "text": "Мне плевать, кто чей. Я тут ради брата.",
+         "flag": "a1_rosa_hard",
+         "reply": [
+          {
+           "who": "rosa",
+           "text": "Так говорят все. А потом выбирают сторону.",
+           "voice": "a1m3b_05"
+          }
+         ]
+        }
+       ],
+       "npc": "rosa",
+       "hint": "Поговори с Розой у барной стойки"
+      }
+     ]
+    },
+    {
+     "id": "a1m3c",
+     "title": "Западная трасса",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "nika",
+         "text": "Новый вызов! Винс, механик Сторма, хочет реванша на западной трассе — вдоль пляжа.",
+         "voice": "a1m3c_01"
+        },
+        {
+         "who": "nika",
+         "text": "Шоссе длинное и быстрое. Нитро береги на последнюю прямую.",
+         "voice": "a1m3c_02"
+        }
+       ]
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "hw_west+16,6,3",
+         "to": "hw_west+8,-4,2",
+         "sec": 5,
+         "track": "vince"
+        },
+        {
+         "follow": "vince_car",
+         "sec": 5,
+         "off": [
+          8,
+          2.2,
+          -2.5
+         ]
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "car",
+         "vince_car",
+         "hw_west+3,0",
+         5,
+         180
+        ],
+        [
+         0,
+         "spawn",
+         "vince",
+         "hw_west+5,-2"
+        ],
+        [
+         0.3,
+         "act",
+         "vince",
+         "ARGUE",
+         "player"
+        ],
+        [
+         4,
+         "ride",
+         "vince",
+         "vince_car"
+        ],
+        [
+         5,
+         "drive",
+         "vince_car",
+         [
+          "hw_west+0,-60"
+         ],
+         0.6
+        ]
+       ],
+       "lines": [
+        {
+         "who": "vince",
+         "text": "Ты сделал Сторма, но меня ты не сделаешь. Я эту трассу знаю наизусть.",
+         "voice": "a1m3cs_01"
+        }
+       ]
+      },
+      {
+       "type": "carrace",
+       "hint": "Гонка по западной трассе против Винса",
+       "start": "hw_west",
+       "points": [
+        "hw_nw",
+        "race_start",
+        "race_1"
+       ],
+       "rival": "Винс",
+       "rival_speed": 74,
+       "rival_engine": 2,
+       "variant": 5
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "nika",
+         "text": "Красавчик! Винс в бешенстве. Держи деньги.",
+         "voice": "a1m3c_03"
+        },
+        {
+         "who": "nika",
+         "text": "Только… будь осторожен. Винс не прощает проигрышей.",
+         "voice": "a1m3c_04"
+        }
+       ],
+       "do": [
+        [
+         "money",
+         1200
+        ]
+       ]
+      }
+     ]
+    },
+    {
+     "id": "a1m3d",
+     "title": "Сломанные тормоза",
+     "steps": [
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "garage_door+12,10,4",
+         "to": "garage_door+8,6,3",
+         "sec": 5,
+         "track": "vince"
+        },
+        {
+         "from": "garage_door+3,3,1.6",
+         "to": "garage_door+2,2,1.5",
+         "sec": 4,
+         "track": "vince"
+        },
+        {
+         "follow": "vince",
+         "sec": 4,
+         "off": [
+          4,
+          2,
+          0
+         ]
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "vince",
+         "garage_door+14,8"
+        ],
+        [
+         0.2,
+         "walk",
+         "vince",
+         "garage_door+1,1"
+        ],
+        [
+         0,
+         "car",
+         "jake_car",
+         "garage_door",
+         1
+        ],
+        [
+         6,
+         "act",
+         "vince",
+         "AIM",
+         "jake_car"
+        ],
+        [
+         7,
+         "smoke",
+         "garage_door"
+        ],
+        [
+         9,
+         "run",
+         "vince",
+         "garage_door+30,-20"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Ночью к гаражу подходит человек в тёмной куртке. Пара минут с ключом — и тормоза уже не держат.",
+         "voice": "a1m3ds_01"
+        },
+        {
+         "who": "narrator",
+         "text": "Утром брат найдёт следы. А ты — того, кто их оставил.",
+         "voice": "a1m3ds_02"
+        }
+       ]
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "gleb",
+         "text": "Кто-то копался в моей машине! Тормозные шланги перерезаны!",
+         "voice": "a1m3d_01"
+        },
+        {
+         "who": "gleb",
+         "text": "Соседи видели Винса. Он ещё в городе — сидит у Сторма в машине. Догони его!",
+         "voice": "a1m3d_02"
+        }
+       ]
+      },
+      {
+       "type": "chase",
+       "hint": "Догони машину Винса и разбей её",
+       "points": [
+        "race_finish",
+        "race_5",
+        "race_4",
+        "hw_east"
+       ],
+       "driver": "Винс",
+       "variant": 5
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "vince",
+         "text": "Ладно, ладно! Это не я придумал! Сторм заплатил!",
+         "voice": "a1m3d_03"
+        },
+        {
+         "who": "vince",
+         "text": "А Сторму платит Марко. «Синие» хотят, чтобы твой брат не вернул долг «Ящерам». Тогда Брик ослабнет.",
+         "voice": "a1m3d_04"
+        }
+       ],
+       "choices": [
+        {
+         "text": "Передай Марко: я не пешка.",
+         "flag": "a1_msg",
+         "reply": [
+          {
+           "who": "vince",
+           "text": "Передам… если доживу.",
+           "voice": "a1m3d_05"
+          }
+         ]
+        },
+        {
+         "text": "Убирайся из города.",
+         "flag": "a1_out",
+         "reply": [
+          {
+           "who": "vince",
+           "text": "Уже уехал!",
+           "voice": "a1m3d_06"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
      "id": "a1m4",
      "title": "Облава",
      "steps": [
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "race_start+30,-20,10",
+         "to": "race_start+18,-12,6",
+         "sec": 5,
+         "track": "cop_car1"
+        },
+        {
+         "follow": "cop_car2",
+         "sec": 4,
+         "off": [
+          7,
+          2.5,
+          3
+         ],
+         "shake": 0.6
+        },
+        {
+         "from": "race_start+8,10,2",
+         "to": "race_start+5,6,2",
+         "sec": 4,
+         "track": "cop1"
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "car",
+         "cop_car1",
+         "race_start+90,4",
+         6,
+         90
+        ],
+        [
+         0,
+         "car",
+         "cop_car2",
+         "race_start+110,-4",
+         6,
+         90
+        ],
+        [
+         0.1,
+         "drive",
+         "cop_car1",
+         [
+          "race_start+10,3"
+         ],
+         0.9
+        ],
+        [
+         0.6,
+         "drive",
+         "cop_car2",
+         [
+          "race_start+14,-4"
+         ],
+         0.9
+        ],
+        [
+         8.5,
+         "spawn",
+         "cop1",
+         "race_start+8,4",
+         "police"
+        ],
+        [
+         8.5,
+         "spawn",
+         "cop2",
+         "race_start+12,-2",
+         "police"
+        ],
+        [
+         8.8,
+         "act",
+         "cop1",
+         "AIM",
+         "player"
+        ],
+        [
+         9,
+         "act",
+         "cop2",
+         "AIM",
+         "player"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Сирены. Сначала одна, потом сразу пять. Кто-то сдал трассу.",
+         "voice": "a1m4s_01"
+        }
+       ]
+      },
       {
        "type": "dialog",
        "lines": [
@@ -450,6 +1277,117 @@
          "kirpich",
          "gang_yard"
         ],
+        [
+         "despawn",
+         "gleb"
+        ]
+       ]
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "cam_ind_a",
+         "to": "gang_yard+14,12,6",
+         "sec": 6
+        },
+        {
+         "from": "gang_yard+6,6,2",
+         "to": "gang_yard+4,4,2",
+         "sec": 6,
+         "track": "kirpich"
+        },
+        {
+         "follow": "kirpich",
+         "sec": 4,
+         "off": [
+          3,
+          1.8,
+          1.5
+         ]
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "gleb",
+         "gang_yard+0,2"
+        ],
+        [
+         0,
+         "act",
+         "gleb",
+         "UPSET"
+        ],
+        [
+         0,
+         "spawn",
+         "kirpich",
+         "gang_yard+8,-6"
+        ],
+        [
+         0,
+         "spawn",
+         "g1",
+         "gang_yard-3,4",
+         "gang"
+        ],
+        [
+         0,
+         "spawn",
+         "g2",
+         "gang_yard+3,4",
+         "gang"
+        ],
+        [
+         0.5,
+         "act",
+         "g1",
+         "AIM",
+         "gleb"
+        ],
+        [
+         0.5,
+         "act",
+         "g2",
+         "AIM",
+         "gleb"
+        ],
+        [
+         3,
+         "walk",
+         "kirpich",
+         "gang_yard+1,0"
+        ],
+        [
+         8,
+         "act",
+         "kirpich",
+         "LAUGH",
+         "gleb"
+        ],
+        [
+         12,
+         "act",
+         "kirpich",
+         "ARGUE",
+         "gleb"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Промзона. Здесь заканчиваются дороги и начинаются правила «Чёрных Ящеров».",
+         "voice": "a2m1s_01"
+        },
+        {
+         "who": "kirpich",
+         "text": "Не бойся, Джейк. Твой братишка уже едет. Посмотрим, сколько ты для него стоишь.",
+         "voice": "a2m1s_02"
+        }
+       ],
+       "do": [
         [
          "despawn",
          "gleb"
@@ -555,6 +1493,122 @@
      ]
     },
     {
+     "id": "a2m2b",
+     "title": "Налёт на разборку",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "kirpich",
+         "text": "«Синие» налетели на мою разборку у южных складов. Забрали двоих моих и пару тачек.",
+         "voice": "a2m2b_01"
+        },
+        {
+         "who": "kirpich",
+         "text": "Езжай туда и покажи, чья это земля.",
+         "voice": "a2m2b_02"
+        }
+       ],
+       "do": [
+        [
+         "give",
+         "novograd:ammo",
+         60
+        ]
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Езжай к разборке «Ящеров» в промзоне",
+       "place": "chop_shop",
+       "radius": 12
+      },
+      {
+       "type": "clear",
+       "hint": "Выбей «Синих» с разборки",
+       "place": "chop_shop",
+       "count": 6
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "cam_chop",
+         "to": "chop_shop+10,10,4",
+         "sec": 4,
+         "track": "marco_car"
+        },
+        {
+         "follow": "marco_car",
+         "sec": 5,
+         "off": [
+          9,
+          2.5,
+          3
+         ],
+         "shake": 0.4
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "car",
+         "marco_car",
+         "chop_shop+6,4",
+         4,
+         0
+        ],
+        [
+         0,
+         "spawn",
+         "marco",
+         "chop_shop+4,2"
+        ],
+        [
+         0.3,
+         "ride",
+         "marco",
+         "marco_car"
+        ],
+        [
+         0.5,
+         "drive",
+         "marco_car",
+         [
+          "chop_shop+6,60",
+          "hw_south"
+         ],
+         0.9
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Пока ты разбирался с его людьми, сам Марко «Синий» спокойно уехал. Он запомнил твоё лицо.",
+         "voice": "a2m2bs_01"
+        }
+       ]
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "kirpich",
+         "text": "Ты выбил их! И даже видел Марко? Значит, скоро он сам тебя найдёт.",
+         "voice": "a2m2b_03"
+        }
+       ],
+       "do": [
+        [
+         "money",
+         500
+        ]
+       ]
+      }
+     ]
+    },
+    {
      "id": "a2m3",
      "title": "Засада в порту",
      "steps": [
@@ -611,6 +1665,411 @@
      ]
     },
     {
+     "id": "a2m3b",
+     "title": "Контейнер",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "kirpich",
+         "text": "В порту стоит мой фургон с контейнером. Таможня его опечатала. Забери и привези во двор.",
+         "voice": "a2m3b_01"
+        }
+       ]
+      },
+      {
+       "type": "steal",
+       "hint": "Угони фургон у портового крана и пригони во двор «Ящеров»",
+       "place": "port_crane",
+       "to": "gang_yard",
+       "variant": 4
+      },
+      {
+       "type": "escape",
+       "hint": "Портовая охрана вызвала полицию — оторвись!",
+       "stars": 2,
+       "why": "угон с таможни"
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "kirpich",
+         "text": "Ни царапины! Ещё тысяча с долга брата.",
+         "voice": "a2m3b_02"
+        }
+       ],
+       "do": [
+        [
+         "money",
+         400
+        ]
+       ]
+      }
+     ]
+    },
+    {
+     "id": "a2m3c",
+     "title": "Предложение Марко",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Сообщение с незнакомого номера: «Пляж, парковка у бара. Один. — М.»",
+         "voice": "a2m3c_01"
+        }
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Езжай на пляжную парковку",
+       "place": "beach_lot",
+       "radius": 10,
+       "do": [
+        [
+         "spawn",
+         "marco",
+         "beach_lot+4,0"
+        ]
+       ]
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "cam_beach",
+         "to": "beach_lot+12,6,4",
+         "sec": 5,
+         "track": "marco"
+        },
+        {
+         "from": "beach_lot+6,3,2",
+         "to": "beach_lot+5,2,2",
+         "sec": 6,
+         "track": "marco"
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "marco",
+         "beach_lot+8,-6"
+        ],
+        [
+         0,
+         "spawn",
+         "b1",
+         "beach_lot+10,-8",
+         "gang",
+         "Синий"
+        ],
+        [
+         0,
+         "spawn",
+         "b2",
+         "beach_lot+12,-4",
+         "gang",
+         "Синий"
+        ],
+        [
+         0.5,
+         "walk",
+         "marco",
+         "beach_lot+3,0"
+        ],
+        [
+         6,
+         "act",
+         "marco",
+         "TALK",
+         "player"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "marco",
+         "text": "Ты храбрый. Это мне нравится. Брик тебя использует, ты же понимаешь?",
+         "voice": "a2m3cs_01"
+        }
+       ]
+      },
+      {
+       "type": "talk",
+       "lines": [
+        {
+         "who": "marco",
+         "text": "Работай на меня. Я закрою долг твоего брата в тот же день.",
+         "voice": "a2m3c_02"
+        },
+        {
+         "who": "marco",
+         "text": "Брик продаст тебя, как только ты станешь не нужен. Я — нет.",
+         "voice": "a2m3c_03"
+        }
+       ],
+       "choices": [
+        {
+         "text": "Я подумаю.",
+         "flag": "a2_marco_maybe",
+         "reply": [
+          {
+           "who": "marco",
+           "text": "Думай быстро. В Новограде долго не думают.",
+           "voice": "a2m3c_04"
+          }
+         ]
+        },
+        {
+         "text": "Нет. Я не предаю.",
+         "flag": "a2_marco_no",
+         "reply": [
+          {
+           "who": "marco",
+           "text": "Жаль. Тогда мы ещё встретимся — по другую сторону ствола.",
+           "voice": "a2m3c_05"
+          }
+         ]
+        }
+       ],
+       "npc": "marco",
+       "hint": "Поговори с Марко"
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "beach_lot+16,8,3",
+         "to": "beach_lot+10,4,2",
+         "sec": 5,
+         "track": "l_car",
+         "shake": 0.5
+        },
+        {
+         "from": "beach_lot-4,6,2",
+         "to": "beach_lot-3,4,2",
+         "sec": 6,
+         "track": "b1",
+         "shake": 0.8
+        },
+        {
+         "follow": "marco_car",
+         "sec": 4,
+         "off": [
+          8,
+          2.5,
+          2
+         ]
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "b1",
+         "beach_lot+6,-4",
+         "gang",
+         "Синий"
+        ],
+        [
+         0,
+         "spawn",
+         "b2",
+         "beach_lot+8,2",
+         "gang",
+         "Синий"
+        ],
+        [
+         0,
+         "car",
+         "l_car",
+         "beach_lot+0,70",
+         3,
+         180
+        ],
+        [
+         0.1,
+         "drive",
+         "l_car",
+         [
+          "beach_lot+0,12"
+         ],
+         0.95
+        ],
+        [
+         4.5,
+         "spawn",
+         "l1",
+         "beach_lot-2,10",
+         "gang",
+         "Ящер"
+        ],
+        [
+         4.5,
+         "spawn",
+         "l2",
+         "beach_lot+3,11",
+         "gang",
+         "Ящер"
+        ],
+        [
+         5,
+         "shoot",
+         "l1",
+         "b1",
+         5,
+         0
+        ],
+        [
+         5.4,
+         "shoot",
+         "l2",
+         "b2",
+         5,
+         0
+        ],
+        [
+         5.3,
+         "shoot",
+         "b1",
+         "l1",
+         3,
+         0
+        ],
+        [
+         7,
+         "die",
+         "b1"
+        ],
+        [
+         8,
+         "die",
+         "b2"
+        ],
+        [
+         0,
+         "car",
+         "marco_car",
+         "beach_lot+10,-8",
+         4,
+         0
+        ],
+        [
+         6,
+         "despawn",
+         "marco"
+        ],
+        [
+         11,
+         "drive",
+         "marco_car",
+         [
+          "beach_lot+10,-90"
+         ],
+         0.95
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Разговор прерывают визг шин и выстрелы. Брик проследил за тобой.",
+         "voice": "a2m3cs_02"
+        },
+        {
+         "who": "kirpich",
+         "text": "Говорил с Марко? Хорошо, что отказал. Иначе мои ребята стреляли бы по тебе.",
+         "voice": "a2m3cs_03"
+        }
+       ],
+       "do": [
+        [
+         "despawn",
+         "marco"
+        ]
+       ]
+      }
+     ]
+    },
+    {
+     "id": "a2m3d",
+     "title": "Казино «Корона»",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "kirpich",
+         "text": "Большое дело готовится в казино «Корона». Нужен план: когда выезжает фургон с выручкой.",
+         "voice": "a2m3d_01"
+        },
+        {
+         "who": "kirpich",
+         "text": "Иди туда как обычный игрок и найди расписание в служебном коридоре.",
+         "voice": "a2m3d_02"
+        }
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Езжай к казино «Корона» в деловом центре",
+       "place": "casino_dt",
+       "radius": 10,
+       "do": [
+        [
+         "spawn",
+         "lena",
+         "casino_dt+4,3"
+        ]
+       ]
+      },
+      {
+       "type": "collect",
+       "hint": "Найди расписание инкассаторов (ПКМ по метке)",
+       "clues": [
+        {
+         "place": "casino_dt+3,-4",
+         "name": "Расписание фургона"
+        }
+       ]
+      },
+      {
+       "type": "talk",
+       "lines": [
+        {
+         "who": "lena",
+         "text": "Лена Вуд, «Вестник Новограда». Я видела, как ты выходил из служебного коридора.",
+         "voice": "a2m3d_03"
+        },
+        {
+         "who": "lena",
+         "text": "Не бойся, я не к копам. Я пишу про Брика. И про того, кто его прикрывает в полиции.",
+         "voice": "a2m3d_04"
+        },
+        {
+         "who": "lena",
+         "text": "Шеф Харрис. Слышал это имя? Запомни. Когда понадобится правда — найди меня в «Неоне».",
+         "voice": "a2m3d_05"
+        }
+       ],
+       "npc": "lena",
+       "hint": "Кто-то следит за тобой — поговори с девушкой у входа"
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "kirpich",
+         "text": "Расписание у тебя? Отлично. Фургон пойдёт по северной трассе. Готовься.",
+         "voice": "a2m3d_06"
+        }
+       ]
+      }
+     ]
+    },
+    {
      "id": "a2m4",
      "title": "Большое дело",
      "steps": [
@@ -642,6 +2101,53 @@
        ],
        "npc": "kirpich",
        "hint": "Вернись к Брику в промзону"
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "cam_casino",
+         "to": "casino_dt+14,12,5",
+         "sec": 4,
+         "track": "van"
+        },
+        {
+         "follow": "van",
+         "sec": 6,
+         "off": [
+          10,
+          3,
+          -3
+         ]
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "car",
+         "van",
+         "casino_dt",
+         4,
+         0
+        ],
+        [
+         0.5,
+         "drive",
+         "van",
+         [
+          "casino_dt+0,60",
+          "dt_3"
+         ],
+         0.7
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Бронефургон «Короны» выезжает ровно по расписанию. В нём — недельная выручка казино.",
+         "voice": "a2m4s_01"
+        }
+       ]
       },
       {
        "type": "chase",
@@ -722,6 +2228,76 @@
          "petrov",
          "police_station"
         ]
+       ]
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "police_station+8,8,3",
+         "to": "police_station+5,5,2",
+         "sec": 5,
+         "track": "petrov"
+        },
+        {
+         "follow": "petrov",
+         "sec": 4,
+         "off": [
+          3.2,
+          1.7,
+          1.4
+         ]
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "petrov",
+         "police_station+10,6"
+        ],
+        [
+         0.2,
+         "walk",
+         "petrov",
+         "police_station+1,1"
+        ],
+        [
+         0,
+         "spawn",
+         "harris",
+         "police_station-4,2"
+        ],
+        [
+         0,
+         "act",
+         "harris",
+         "TALK",
+         "petrov"
+        ],
+        [
+         6,
+         "face",
+         "petrov",
+         "player"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Участок. Камера два на три метра и ночь, чтобы подумать о своих ошибках.",
+         "voice": "a3m1s_01"
+        },
+        {
+         "who": "harris",
+         "text": "Питерсон, этот парень — пустое место. Не трать время.",
+         "voice": "a3m1s_02"
+        },
+        {
+         "who": "petrov",
+         "text": "Это вы так думаете, шеф.",
+         "voice": "a3m1s_03"
+        }
        ]
       },
       {
@@ -819,6 +2395,177 @@
      ]
     },
     {
+     "id": "a3m2b",
+     "title": "Журналистка",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "tema",
+         "text": "Брик что-то говорил по телефону про «шефа». Тебе это имя что-нибудь говорит?",
+         "voice": "a3m2b_01"
+        },
+        {
+         "who": "tema",
+         "text": "Найди ту журналистку, Лену. Похоже, она копает в ту же сторону.",
+         "voice": "a3m2b_02"
+        }
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Найди Лену в клубе «Неон»",
+       "place": "club_neon",
+       "radius": 8,
+       "do": [
+        [
+         "spawn",
+         "lena",
+         "club_neon+2,-2"
+        ],
+        [
+         "time",
+         17000
+        ]
+       ]
+      },
+      {
+       "type": "talk",
+       "lines": [
+        {
+         "who": "lena",
+         "text": "Харрис встречается с людьми Брика каждую пятницу. В переулке за клубом. Сегодня пятница.",
+         "voice": "a3m2b_03"
+        },
+        {
+         "who": "lena",
+         "text": "Нужны фото. Без них в редакции меня никто слушать не будет.",
+         "voice": "a3m2b_04"
+        }
+       ],
+       "npc": "lena",
+       "hint": "Поговори с Леной"
+      },
+      {
+       "type": "goto",
+       "hint": "Тихо подойди к переулку за клубом",
+       "place": "dt_alley",
+       "radius": 14
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "dt_alley+14,6,3",
+         "to": "dt_alley+12,4,2.5",
+         "sec": 6,
+         "track": "harris"
+        },
+        {
+         "from": "dt_alley+4,-5,2",
+         "to": "dt_alley+3,-4,1.8",
+         "sec": 5,
+         "track": "courier"
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "harris",
+         "dt_alley-6,-2"
+        ],
+        [
+         0,
+         "spawn",
+         "courier",
+         "dt_alley-14,0",
+         "gang",
+         "Курьер Ящеров"
+        ],
+        [
+         0.3,
+         "walk",
+         "courier",
+         "dt_alley-7,-1"
+        ],
+        [
+         4,
+         "act",
+         "courier",
+         "HANDSHAKE",
+         "harris"
+        ],
+        [
+         4,
+         "act",
+         "harris",
+         "HANDSHAKE",
+         "courier"
+        ],
+        [
+         8,
+         "act",
+         "harris",
+         "LAUGH",
+         "courier"
+        ],
+        [
+         10,
+         "walk",
+         "courier",
+         "dt_alley-20,0"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Конверт переходит из рук в руки. Шеф полиции Новограда пересчитывает деньги прямо на месте.",
+         "voice": "a3m2bs_01"
+        },
+        {
+         "who": "harris",
+         "text": "Передай Брику: облав на этой неделе не будет. Но цена растёт.",
+         "voice": "a3m2bs_02"
+        }
+       ]
+      },
+      {
+       "type": "collect",
+       "hint": "Сфотографируй встречу (ПКМ по метке в переулке)",
+       "clues": [
+        {
+         "place": "dt_alley+2,-3",
+         "name": "Фото: Харрис и курьер"
+        }
+       ]
+      },
+      {
+       "type": "escape",
+       "hint": "Тебя заметили! Уходи от людей Харриса",
+       "stars": 2,
+       "why": "слежка за шефом полиции"
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "lena",
+         "text": "Фото у тебя? Это бомба. Но теперь Харрис знает, что за ним следят.",
+         "voice": "a3m2b_05"
+        }
+       ],
+       "do": [
+        [
+         "despawn",
+         "harris"
+        ]
+       ]
+      }
+     ]
+    },
+    {
      "id": "a3m3",
      "title": "Крыса",
      "steps": [
@@ -858,6 +2605,339 @@
          "car",
          "industry_street",
          0
+        ]
+       ]
+      }
+     ]
+    },
+    {
+     "id": "a3m3b",
+     "title": "Похищение",
+     "steps": [
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "cam_club",
+         "to": "club_neon+8,10,4",
+         "sec": 4,
+         "track": "lena"
+        },
+        {
+         "from": "club_neon+4,4,2",
+         "to": "club_neon+3,3,2",
+         "sec": 5,
+         "track": "lena",
+         "shake": 0.4
+        },
+        {
+         "follow": "kid_car",
+         "sec": 5,
+         "off": [
+          9,
+          2.5,
+          2.5
+         ]
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "lena",
+         "club_neon+0,2"
+        ],
+        [
+         0,
+         "act",
+         "lena",
+         "TALK"
+        ],
+        [
+         0,
+         "car",
+         "kid_car",
+         "club_neon+8,6",
+         3,
+         90
+        ],
+        [
+         1,
+         "spawn",
+         "k1",
+         "club_neon+10,4",
+         "gang",
+         "Ящер"
+        ],
+        [
+         1,
+         "spawn",
+         "k2",
+         "club_neon+10,8",
+         "gang",
+         "Ящер"
+        ],
+        [
+         1.2,
+         "run",
+         "k1",
+         "club_neon+1,2"
+        ],
+        [
+         1.4,
+         "run",
+         "k2",
+         "club_neon+0,3"
+        ],
+        [
+         4.5,
+         "act",
+         "lena",
+         "UPSET"
+        ],
+        [
+         6,
+         "fight",
+         "k1",
+         "lena",
+         40
+        ],
+        [
+         8,
+         "ride",
+         "lena",
+         "kid_car"
+        ],
+        [
+         8.3,
+         "despawn",
+         "k1"
+        ],
+        [
+         8.3,
+         "despawn",
+         "k2"
+        ],
+        [
+         9,
+         "drive",
+         "kid_car",
+         [
+          "dt_1",
+          "dt_2"
+         ],
+         0.95
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Лену хватают прямо у входа в «Неон». Харрис решил вопрос по-своему.",
+         "voice": "a3m3bs_01"
+        },
+        {
+         "who": "lena",
+         "text": "Пусти! Помогите!",
+         "voice": "a3m3bs_02"
+        }
+       ],
+       "do": [
+        [
+         "despawn",
+         "lena"
+        ]
+       ]
+      },
+      {
+       "type": "chase",
+       "hint": "Догони машину похитителей и разбей её",
+       "points": [
+        "dt_1",
+        "dt_2",
+        "dt_3",
+        "dt_4"
+       ],
+       "driver": "Похититель",
+       "variant": 3
+      },
+      {
+       "type": "clear",
+       "hint": "Освободи Лену: разберись с похитителями",
+       "place": "dt_4",
+       "count": 3
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "lena",
+         "text": "Ты… ты пришёл. Спасибо. Флешка с фото у меня — они её не нашли.",
+         "voice": "a3m3b_01"
+        },
+        {
+         "who": "lena",
+         "text": "Отвези её Питерсону. Пусть Харрис ответит за всё.",
+         "voice": "a3m3b_02"
+        }
+       ],
+       "do": [
+        [
+         "spawn",
+         "lena",
+         "dt_4+2,2"
+        ]
+       ]
+      }
+     ]
+    },
+    {
+     "id": "a3m3c",
+     "title": "Шеф Харрис",
+     "steps": [
+      {
+       "type": "goto",
+       "hint": "Отвези улики лейтенанту Питерсону в участок",
+       "place": "police_station",
+       "radius": 8,
+       "do": [
+        [
+         "spawn",
+         "petrov",
+         "police_station+2,0"
+        ],
+        [
+         "despawn",
+         "lena"
+        ]
+       ]
+      },
+      {
+       "type": "talk",
+       "lines": [
+        {
+         "who": "petrov",
+         "text": "Харрис… Я подозревал, но не думал, что настолько.",
+         "voice": "a3m3c_01"
+        },
+        {
+         "who": "petrov",
+         "text": "С этим я пойду к прокурору. Сегодня же.",
+         "voice": "a3m3c_02"
+        }
+       ],
+       "npc": "petrov",
+       "hint": "Отдай улики Питерсону"
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "police_station+10,6,3",
+         "to": "police_station+7,4,2",
+         "sec": 5,
+         "track": "harris"
+        },
+        {
+         "from": "police_station+3,-3,2",
+         "to": "police_station+2,-2,1.8",
+         "sec": 6,
+         "track": "harris"
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "harris",
+         "police_station-6,4"
+        ],
+        [
+         0,
+         "spawn",
+         "petrov",
+         "police_station+3,2"
+        ],
+        [
+         0,
+         "spawn",
+         "c1",
+         "police_station+6,-3",
+         "police"
+        ],
+        [
+         0,
+         "spawn",
+         "c2",
+         "police_station+7,3",
+         "police"
+        ],
+        [
+         0.5,
+         "walk",
+         "petrov",
+         "police_station-4,3"
+        ],
+        [
+         0.8,
+         "walk",
+         "c1",
+         "police_station-5,1"
+        ],
+        [
+         1,
+         "walk",
+         "c2",
+         "police_station-5,6"
+        ],
+        [
+         4,
+         "act",
+         "harris",
+         "UPSET"
+        ],
+        [
+         5,
+         "act",
+         "c1",
+         "AIM",
+         "harris"
+        ],
+        [
+         5,
+         "act",
+         "c2",
+         "AIM",
+         "harris"
+        ],
+        [
+         6,
+         "act",
+         "petrov",
+         "ARGUE",
+         "harris"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "petrov",
+         "text": "Шеф Харрис, вы арестованы за взятки и пособничество банде.",
+         "voice": "a3m3cs_01"
+        },
+        {
+         "who": "harris",
+         "text": "Ты пожалеешь, Питерсон. Брик всё равно уйдёт.",
+         "voice": "a3m3cs_02"
+        },
+        {
+         "who": "petrov",
+         "text": "Не в этот раз.",
+         "voice": "a3m3cs_03"
+        }
+       ],
+       "do": [
+        [
+         "despawn",
+         "harris"
         ]
        ]
       }
@@ -911,9 +2991,24 @@
        ],
        "shots": [
         {
+         "from": "airfield_hangar+14,8,3",
+         "to": "airfield_hangar+9,5,2",
+         "sec": 6,
+         "track": "kirpich"
+        },
+        {
+         "follow": "cop_car",
+         "sec": 6,
+         "off": [
+          9,
+          3,
+          2.5
+         ]
+        },
+        {
          "from": "cam_air_a",
          "to": "cam_island_far",
-         "sec": 12
+         "sec": 10
         },
         {
          "from": "cam_dt_a",
@@ -937,6 +3032,76 @@
          "text": "А город… город живёт дальше. И у него на тебя ещё много планов.",
          "voice": "a3m4_04"
         }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "kirpich",
+         "airfield_hangar+2,4"
+        ],
+        [
+         0,
+         "act",
+         "kirpich",
+         "UPSET"
+        ],
+        [
+         0,
+         "spawn",
+         "c1",
+         "airfield_hangar+4,3",
+         "police"
+        ],
+        [
+         0,
+         "spawn",
+         "c2",
+         "airfield_hangar+0,3",
+         "police"
+        ],
+        [
+         0,
+         "car",
+         "cop_car",
+         "airfield_hangar+6,12",
+         6,
+         0
+        ],
+        [
+         0.5,
+         "walk",
+         "kirpich",
+         "airfield_hangar+5,11"
+        ],
+        [
+         0.6,
+         "walk",
+         "c1",
+         "airfield_hangar+7,10"
+        ],
+        [
+         0.6,
+         "walk",
+         "c2",
+         "airfield_hangar+3,10"
+        ],
+        [
+         5.5,
+         "ride",
+         "kirpich",
+         "cop_car"
+        ],
+        [
+         6,
+         "drive",
+         "cop_car",
+         [
+          "airfield_hangar+6,60",
+          "airfield"
+         ],
+         0.6
+        ]
        ]
       },
       {

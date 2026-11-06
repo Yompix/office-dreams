@@ -136,6 +136,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     }
 
     public void randomizeBody(Random r, boolean kid) {
+        kid = false; // в Новограде детей на улицах нет — взрослый город
         float scale = kid ? 0.62f + r.nextFloat() * 0.2f : 0.92f + r.nextFloat() * 0.14f;
         setScale(scale);
         var speed = getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
@@ -162,6 +163,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         if (getNavigation() instanceof net.minecraft.entity.ai.pathing.MobNavigation nav) nav.setCanPathThroughDoors(true);
         goalSelector.add(1, new net.minecraft.entity.ai.goal.LongDoorInteractGoal(this, true));
         goalSelector.add(0, new CombatGoal(this));
+        goalSelector.add(0, new DirectedGoal(this));
         goalSelector.add(1, new HomeGoal(this));
         goalSelector.add(2, new PlayBallGoal(this));
         goalSelector.add(3, new BusyGoal(this));
@@ -229,6 +231,59 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     public void setStationary(boolean s) {
         stationary = s;
         anchor = s ? getPos() : null;
+    }
+
+    /** Режиссёр кат-сцены ведёт героя в точку (идёт или бежит), там он и остаётся. */
+    @org.jetbrains.annotations.Nullable public net.minecraft.util.math.Vec3d directTo;
+    public double directSpeed = 0.6;
+
+    public void direct(net.minecraft.util.math.Vec3d to, double speed) {
+        directTo = to;
+        directSpeed = speed;
+        lockedActivity = false;
+        busyTicks = 0;
+        foe = null;
+        dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
+        getNavigation().startMovingTo(to.x, to.y, to.z, speed);
+    }
+
+    static class DirectedGoal extends net.minecraft.entity.ai.goal.Goal {
+        private final CitizenEntity c;
+        private int stuck;
+
+        DirectedGoal(CitizenEntity c) {
+            this.c = c;
+            setControls(java.util.EnumSet.of(Control.MOVE, Control.LOOK));
+        }
+
+        @Override
+        public boolean canStart() {
+            return c.directTo != null && !c.hasVehicle();
+        }
+
+        @Override
+        public boolean shouldRunEveryTick() {
+            return true;
+        }
+
+        @Override
+        public void tick() {
+            var to = c.directTo;
+            if (to == null) return;
+            double d = c.squaredDistanceTo(to.x, c.getY(), to.z);
+            if (d < 1.2) {
+                c.getNavigation().stop();
+                c.directTo = null;
+                if (c.stationary) c.anchor = c.getPos();
+                return;
+            }
+            if (c.getNavigation().isIdle()) {
+                if (++stuck > 30) { // путь не находится — просто «дошёл» (в кадре важнее не застрять)
+                    c.refreshPositionAndAngles(to.x, to.y, to.z, c.getYaw(), 0);
+                    stuck = 0;
+                } else c.getNavigation().startMovingTo(to.x, to.y, to.z, c.directSpeed);
+            } else stuck = 0;
+        }
     }
 
     /** Где сюжетный герой «живёт» сейчас: гуляет рядом, но далеко не уходит. */

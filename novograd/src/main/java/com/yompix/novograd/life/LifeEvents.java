@@ -39,15 +39,19 @@ public final class LifeEvents {
                 !world.isClient && hand == net.minecraft.util.Hand.MAIN_HAND && player instanceof ServerPlayerEntity sp && SideQuests.catFound(sp, entity)
                         ? net.minecraft.util.ActionResult.SUCCESS : net.minecraft.util.ActionResult.PASS);
         ServerTickEvents.END_SERVER_TICK.register(LifeEvents::tick);
+        ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Activities::tick);
         ServerTickEvents.END_SERVER_TICK.register(s -> s.getPlayerManager().getPlayerList().forEach(p -> {
             com.yompix.novograd.story.Story.tick(p);
             OnlineCasino.tick(p);
         }));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> com.yompix.novograd.story.Story.onLeave(handler.player));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> com.yompix.novograd.gta.Activities.onLeave(handler.player));
     }
 
     private static void onJoin(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
+        d.weight = 75; // веса в Новограде нет
+        d.fitness = 0;
         Fitness.apply(p, d);
         boolean storyWorld = !TownState.get(p.getServerWorld()).places.isEmpty();
         if (!d.started && storyWorld) {
@@ -72,7 +76,7 @@ public final class LifeEvents {
         long day = world.getTimeOfDay() / 24000 + 1;
         long step = Math.floorMod(tod - lastTimeOfDay, 24000);
         // звоним только при обычном ходе времени: не при /time set и не после сна
-        if (lastTimeOfDay >= 0 && step > 0 && step < 200) {
+        if (false && lastTimeOfDay >= 0 && step > 0 && step < 200) { // школьного звонка в Новограде нет
             for (long bell = School.DAY_START; bell <= School.DAY_END; bell += 1000) {
                 if (crossed(lastTimeOfDay, tod, bell)) ringBell(world, bell == School.DAY_END);
             }
@@ -113,7 +117,6 @@ public final class LifeEvents {
                 Life.sync(p);
             }
             Jobs.tickTaxi(p);
-            Fitness.tick(p);
             LifeData d = Life.get(p);
             if (tod >= 1000 && d.lastAllowanceDay != day) {
                 d.lastAllowanceDay = day;

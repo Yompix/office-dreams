@@ -61,7 +61,7 @@ public final class CityLife {
             String text = switch (ev) {
                 case "fair" -> "Сегодня в городе ярмарка: в магазине скидка 30% на всё!";
                 case "concert" -> "Вечером в 18:00 в парке концерт! Приходите танцевать!";
-                case "fireworks" -> "Сегодня День города! В 21:00 над школой — праздничный салют!";
+                case "fireworks" -> "Сегодня День города! В 21:00 над центром — праздничный салют!";
                 default -> "";
             };
             if (!text.isEmpty()) for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) Life.message(p, "Новоград-гид", text);
@@ -114,6 +114,13 @@ public final class CityLife {
     /** Раз в секунду для игрока: энергия и настроение. */
     public static void playerTick(ServerPlayerEntity p, int second) {
         LifeData d = Life.get(p);
+        // В Новограде нет голода, усталости и настроения: держим шкалы полными и выходим
+        if (d.energy < 100 || d.mood < 100) {
+            d.energy = 100;
+            d.mood = 100;
+            Life.sync(p);
+        }
+        if (true) return;
         boolean changed = false;
         if (p.isSleeping()) {
             if (d.energy < 100) {

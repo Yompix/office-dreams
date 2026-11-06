@@ -35,7 +35,7 @@ public final class Taxi {
 
     static {
         PLACES.put("home_door", "Дом");
-        PLACES.put("school_front", "Школа");
+        PLACES.put("parking", "Стоянка «Центр»");
         PLACES.put("shop_door", "Супермаркет");
         PLACES.put("office_door", "Офис");
         PLACES.put("park_center", "Парк");
@@ -47,8 +47,7 @@ public final class Taxi {
         PLACES.put("gleb_door", "Дом Глеба");
         PLACES.put("house4_door", "Дом на Садовой");
         PLACES.put("house6_door", "Дом на Речной");
-        PLACES.put("school_yard", "Школьный двор");
-        PLACES.put("gym_door", "Фитнес «Атлант»");
+        PLACES.put("bar_door", "Бар «Ржавый якорь»");
         PLACES.put("pizza_door", "Пиццерия «Мама Мия»");
         PLACES.put("burger_door", "Жир-Бургер");
         PLACES.put("club_door", "Клуб «Неон»");

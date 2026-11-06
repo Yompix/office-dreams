@@ -53,8 +53,11 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         curly.cuboid(-4.9f, -8.2f, -3f, 1.3f, 3, 6).cuboid(3.6f, -8.2f, -3f, 1.3f, 3, 6);
         part("curly", curly);
         part("bald_ring", b().cuboid(-4.4f, -5.2f, -1f, 0.7f, 2, 5).cuboid(3.7f, -5.2f, -1f, 0.7f, 2, 5).cuboid(-4.4f, -5.2f, 3.6f, 8.8f, 2, 0.8f));
-        part("beard", b().cuboid(-4.3f, -3.3f, -4.75f, 8.6f, 3.5f, 1.2f).cuboid(-4.35f, -3.6f, -4f, 0.8f, 3.4f, 4.5f).cuboid(3.55f, -3.6f, -4f, 0.8f, 3.4f, 4.5f)
-                .cuboid(-3f, -0.3f, -5f, 6, 1.8f, 1.6f));
+        // борода — вокруг рта, сам рот открыт (видно губы и как он говорит)
+        part("beard", b().cuboid(-4.3f, -3.3f, -4.7f, 2.0f, 3.5f, 1.1f).cuboid(2.3f, -3.3f, -4.7f, 2.0f, 3.5f, 1.1f)
+                .cuboid(-2.3f, -0.85f, -4.75f, 4.6f, 1.05f, 1.15f)
+                .cuboid(-4.35f, -3.6f, -4f, 0.8f, 3.4f, 4.5f).cuboid(3.55f, -3.6f, -4f, 0.8f, 3.4f, 4.5f)
+                .cuboid(-2.6f, 0.2f, -4.9f, 5.2f, 1.2f, 1.4f));
         part("mustache", b().cuboid(-2.7f, -3.5f, -4.85f, 5.4f, 1, 0.9f).cuboid(-3.2f, -3f, -4.8f, 1, 1.2f, 0.8f).cuboid(2.2f, -3f, -4.8f, 1, 1.2f, 0.8f));
         part("cap", b().cuboid(-4.6f, -9.3f, -4.6f, 9.2f, 2.6f, 9.2f).cuboid(-4.6f, -7.2f, -7.6f, 9.2f, 0.6f, 3.2f).cuboid(-0.6f, -9.8f, -0.6f, 1.2f, 0.5f, 1.2f));
         part("helmet", b().cuboid(-4.9f, -9.8f, -4.9f, 9.8f, 3.2f, 9.8f).cuboid(-5.5f, -7f, -5.5f, 11, 0.7f, 11).cuboid(-0.8f, -10.4f, -4.9f, 1.6f, 0.8f, 9.8f));

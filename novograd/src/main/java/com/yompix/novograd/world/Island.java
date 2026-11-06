@@ -205,10 +205,45 @@ public final class Island {
         }
         if (road <= 6) {
             c.set(s, side);
+            // светофор на углу перекрёстка
+            if (dx == 5 && dz == 5) {
+                for (int y = 1; y <= 3; y++) c.set(s + y, ModContent.LAMP_POST.getDefaultState());
+                Direction f = Math.floorMod(x - 24, 48) < 24 ? (Math.floorMod(z - 24, 48) < 24 ? Direction.SOUTH : Direction.NORTH) : (Math.floorMod(z - 24, 48) < 24 ? Direction.EAST : Direction.WEST);
+                c.set(s + 4, ModContent.TRAFFIC_LIGHT.getDefaultState().with(HorizontalFacingBlock.FACING, f));
+                return;
+            }
             if (road == 6 && dx >= 7 && dz >= 7) {
                 int t = dx == 6 ? z : x;
-                if (Math.floorMod(t, 16) == 8) lampPost(s, c, dx == 6 ? (Math.floorMod(x - 24, 48) < 24 ? Direction.WEST : Direction.EAST) : Direction.NORTH);
-                if (zn == Zone.DOWNTOWN && Math.floorMod(t, 16) == 0) c.set(s + 1, NeonBlockState(t));
+                int m = Math.floorMod(t, 16);
+                if (m == 8) lampPost(s, c, dx == 6 ? (Math.floorMod(x - 24, 48) < 24 ? Direction.WEST : Direction.EAST) : Direction.NORTH);
+                else if (zn == Zone.DOWNTOWN && m == 0) c.set(s + 1, NeonBlockState(t));
+                else if (m == 4) c.set(s + 1, Blocks.COMPOSTER.getDefaultState()); // урна
+                else if (m == 12 || m == 13) { // скамейка
+                    Direction back = dx == 6 ? (Math.floorMod(x - 24, 48) < 24 ? Direction.EAST : Direction.WEST) : (Math.floorMod(z - 24, 48) < 24 ? Direction.SOUTH : Direction.NORTH);
+                    c.set(s + 1, Blocks.SPRUCE_STAIRS.getDefaultState().with(net.minecraft.block.StairsBlock.FACING, back.getOpposite()));
+                } else if (zn == Zone.SUBURB && (m == 0 || m == 1 || m == 15)) {
+                    c.set(s + 1, Blocks.OAK_LEAVES.getDefaultState().with(net.minecraft.block.LeavesBlock.PERSISTENT, true)); // живая изгородь
+                } else if (m == 2 && Math.floorMod(t, 64) == 2) c.set(s + 1, Blocks.RED_NETHER_BRICK_WALL.getDefaultState()); // гидрант
+            }
+            // автобусная остановка: навес со стеклом посреди квартала
+            if (road == 5 && dx >= 7 && dz >= 7) {
+                int t = dx == 5 ? z : x;
+                int m = Math.floorMod(t - 24, 96);
+                if (m >= 44 && m <= 50) {
+                    if (m == 44 || m == 50) for (int y = 1; y <= 3; y++) c.set(s + y, Blocks.IRON_BARS.getDefaultState());
+                    c.set(s + 4, Blocks.SMOOTH_STONE_SLAB.getDefaultState());
+                    if (m == 47) c.set(s + 3, Blocks.YELLOW_CONCRETE.getDefaultState());
+                }
+            }
+            if (road == 6 && dx >= 7 && dz >= 7) {
+                int t = dx == 6 ? z : x;
+                int m = Math.floorMod(t - 24, 96);
+                if (m >= 44 && m <= 50) {
+                    c.set(s + 1, m == 47 ? Blocks.YELLOW_CONCRETE.getDefaultState() : Blocks.GLASS_PANE.getDefaultState());
+                    c.set(s + 2, Blocks.GLASS_PANE.getDefaultState());
+                    c.set(s + 3, Blocks.GLASS_PANE.getDefaultState());
+                    c.set(s + 4, Blocks.SMOOTH_STONE_SLAB.getDefaultState());
+                }
             }
             return;
         }
@@ -415,11 +450,16 @@ public final class Island {
         long cellX = Math.floorDiv(x, 14), cellZ = Math.floorDiv(z, 14);
         int lx = Math.floorMod(x, 14), lz = Math.floorMod(z, 14);
         double r = hash(cellX, cellZ, 61);
-        if (r < 0.35 && lx == 7 && lz == 7) {
+        if (r < 0.45 && lx == 7 && lz == 7) {
             for (int y = 1; y <= 6; y++) c.set(s + y, Blocks.JUNGLE_LOG.getDefaultState());
             c.set(s + 7, Blocks.JUNGLE_LEAVES.getDefaultState().with(net.minecraft.block.LeavesBlock.PERSISTENT, true));
-        } else if (r < 0.35 && (Math.abs(lx - 7) + Math.abs(lz - 7) == 1)) {
+        } else if (r < 0.45 && (Math.abs(lx - 7) + Math.abs(lz - 7) == 1)) {
+            c.set(s + 7, Blocks.JUNGLE_LEAVES.getDefaultState().with(net.minecraft.block.LeavesBlock.PERSISTENT, true));
             c.set(s + 6, Blocks.JUNGLE_LEAVES.getDefaultState().with(net.minecraft.block.LeavesBlock.PERSISTENT, true));
+        } else if (r < 0.45 && (Math.abs(lx - 7) == 2 && lz == 7 || Math.abs(lz - 7) == 2 && lx == 7 || Math.abs(lx - 7) == 1 && Math.abs(lz - 7) == 1)) {
+            c.set(s + 6, Blocks.JUNGLE_LEAVES.getDefaultState().with(net.minecraft.block.LeavesBlock.PERSISTENT, true)); // свисающие листья
+        } else if (r > 0.6 && r < 0.75 && lz == 3 && (lx == 3 || lx == 4)) {
+            c.set(s + 1, (lx == 3 ? Blocks.WHITE_CARPET : Blocks.LIGHT_BLUE_CARPET).getDefaultState()); // шезлонг/полотенце
         } else if (r > 0.75 && lx == 4 && lz == 4) {
             c.set(s + 1, Blocks.OAK_FENCE.getDefaultState());
             c.set(s + 2, Blocks.OAK_FENCE.getDefaultState());
@@ -538,7 +578,27 @@ public final class Island {
         put("industry_street", 408, 300, 180);
         put("hw_north", 24, -700, 0);
         put("hw_west", -552, -300, 0);
+        // новые места сюжета 0.2
+        put("suburb_street", -264, 216, 0);
+        put("suburb_house", -259, 232, 180);
+        put("club_neon", 365, -269, 180);
+        put("dt_alley", 317, -216, 90);
+        put("chop_shop", 509, 552, 180);
+        put("port_crane", -600, 70, 90);
+        put("beach_lot", -605, -408, 90);
+        put("hw_nw", -552, -720, 0);
+        put("hw_south", 200, 744, 90);
+        put("hw_east", 744, 400, 0);
+        put("hw_sw", -552, 600, 0);
+        put("casino_dt", 600, -600, 180);
+        put("farm", -400, -820, 0);
         // камеры кат-сцен
+        cam("cam_club", 360, 25, -230, 180, 20);
+        cam("cam_suburb", -240, 18, 250, 145, 20);
+        cam("cam_chop", 540, 22, 590, 141, 22);
+        cam("cam_beach", -560, 20, -380, 122, 15);
+        cam("cam_casino", 640, 40, -560, 135, 20);
+        cam("cam_hw_south", 230, 15, 760, 60, 10);
         cam("cam_island_far", 260, 160, 260, 135, 38);
         cam("cam_dt_a", 300, 70, -120, 210, 18);
         cam("cam_dt_b", 456, 4, -330, 180, -6);

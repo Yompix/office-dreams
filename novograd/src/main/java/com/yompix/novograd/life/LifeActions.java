@@ -18,7 +18,7 @@ public final class LifeActions {
 
     public static void useBlock(LifeBlock.Kind kind, BlockState state, ServerWorld world, BlockPos pos, ServerPlayerEntity p, ItemStack stack) {
         switch (kind) {
-            case CHALKBOARD -> School.start(p);
+            case CHALKBOARD -> {}
             case DESK -> SeatBlockHelper.sit(world, pos, p, 0.3);
             case ATM -> Bank.useAtm(p, stack);
             case JOB_BOARD -> Jobs.jobBoard(p);
@@ -27,10 +27,7 @@ public final class LifeActions {
             case COMPUTER -> Jobs.computer(p);
             case SLOT_MACHINE -> openCasino(p, "slots");
             case ROULETTE -> openCasino(p, "roulette");
-            case TREADMILL -> Fitness.openWorkout(p, "run");
-            case BARBELL -> Fitness.openWorkout(p, "lift");
-            case SCALES -> Fitness.weigh(p);
-            case DJ_DECK -> Fitness.openWorkout(p, "dj");
+            case TREADMILL, BARBELL, SCALES, DJ_DECK -> {}
             case PIZZA_OVEN -> Jobs.pizzaOrder(p);
         }
     }
@@ -122,7 +119,7 @@ public final class LifeActions {
 
     public static void talk(CitizenEntity c, ServerPlayerEntity p) {
         switch (c.getRole()) {
-            case TEACHER -> School.start(p);
+            case TEACHER -> {}
             case SHOPKEEPER -> Shop.open(p, false);
             case CROUPIER -> openCasino(p, "slots");
             case DEALER -> openCasino(p, "roulette");

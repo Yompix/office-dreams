@@ -27,7 +27,7 @@ public class SnackItem extends Item {
     public ItemStack finishUsing(ItemStack stack, World world, LivingEntity user) {
         if (user instanceof ServerPlayerEntity p) {
             CityLife.ate(p, drink);
-            com.yompix.novograd.life.Fitness.ate(p, kg);
+            p.heal(drink ? 2 : 5); // еда лечит, как аптечка
         }
         return super.finishUsing(stack, world, user);
     }
