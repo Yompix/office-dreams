@@ -377,8 +377,18 @@ public final class DevAutotest {
         }
         if (mode.equals("missions")) {
             // проходим все миссии сюжета по шагам: шаг запускается без ошибок, цель есть, герой разговора на месте
+            // -Dnovograd.newworld=true — в только что созданном мире (проверка новой генерации города)
             YompixSplash.markShown();
-            pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            if (Boolean.getBoolean("novograd.newworld")) pre(60, c -> {
+                var data = new net.minecraft.resource.DataConfiguration(new net.minecraft.resource.DataPackSettings(List.of("vanilla", "fabric"), List.of()),
+                        net.minecraft.resource.featuretoggle.FeatureFlags.DEFAULT_ENABLED_FEATURES);
+                var info = new net.minecraft.world.level.LevelInfo("MissionTest" + System.currentTimeMillis() % 100000, net.minecraft.world.GameMode.CREATIVE, false,
+                        net.minecraft.world.Difficulty.NORMAL, true, new net.minecraft.world.GameRules(), data);
+                var city = net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD_PRESET, com.yompix.novograd.Novograd.id("city"));
+                c.createIntegratedServerLoader().createAndStart(info.getLevelName(), info, net.minecraft.world.gen.GeneratorOptions.createRandom(),
+                        drm -> drm.get(net.minecraft.registry.RegistryKeys.WORLD_PRESET).getOrThrow(city).createDimensionsRegistryHolder(), new com.yompix.novograd.client.menu.LifeMenuScreen());
+            });
+            else pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
             run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
             cmd(5, "gamemode creative " + P);
             cmd(5, "effect give " + P + " minecraft:resistance 99999 4 true");

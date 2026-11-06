@@ -50,7 +50,7 @@ public final class GunFx {
         PISTOL(0.07f, 10f, 0.6f, true, -0.37f, 0.86f, 4f, 0.05f),
         SMG(0.035f, 2.6f, 0.25f, true, -0.33f, 0.82f, 6f, 0.035f),
         SHOTGUN(0.13f, 9f, 1.4f, true, -0.27f, 0.86f, 12f, 0.16f),
-        RIFLE(0.05f, 3.4f, 0.35f, true, -0.52f, 0.76f, 5f, 0.04f),
+        RIFLE(0.05f, 3.4f, 0.35f, true, -0.6f, 0.76f, 5f, 0.04f),
         SNIPER(0.14f, 8f, 1.2f, true, -0.12f, 0.2f, 10f, 0.12f);
 
         final float kickZ, rise, shake, adsZ, zoom, crossBase, bloomAdd;
