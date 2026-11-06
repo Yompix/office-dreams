@@ -354,7 +354,7 @@ SC['c4_s5_diary'] = {'beats': [
 SC['c4_s5_diary_no'] = {'beats': [
     {'fx': 'diary_hold', 'shot': 'iris_pine', **N('Айрис прижимает дневник к груди.', 'Iris presses the diary to her chest.', 2.2)},
     S('iris', 'Нет.', 'No.', shot='iris_pine'),
-    C(5, [O('Отобрать силой', 'Take it by force', 'c4_s5_diary_force'),
+    C(8, [O('Отобрать силой', 'Take it by force', 'c4_s5_diary_force'),   # обычный выбор — 8 с (решение редактора 4 ноя, п. 6)
           O('Отступить', 'Back off', 'c4_s5_diary_keep')], shot='noah_pine', silent='c4_s5_diary_keep')]}
 
 SC['c4_s5_diary_force'] = {'beats': [

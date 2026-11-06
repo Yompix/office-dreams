@@ -222,7 +222,7 @@ HIDE_SCENES = {
     'c4_s6_hide': {'beats': [
         {'fx': 'snd:snow_steps:-14', 'shot': 'hut', **note('Шаги вокруг избушки. Снег скрипит у самой стены.', 'Footsteps circle the hut. The snow creaks right by the wall.', 3.0)},
         {'shot': 'hut', **note('Дверь приоткрыта — на ладонь. В щель тянет холодом. И светом.', 'The door is ajar — a hand’s width. Cold seeps through the gap. And light.', 3.0)},
-        {'choice': {'t': 7, 'opts': [
+        {'choice': {'t': 6, 'opts': [
             {'ru': 'Закрыть дверь — медленно', 'en': 'Close the door — slowly', 'go': 'c4_s6_door'},
             {'ru': 'Не трогать — замереть', 'en': 'Leave it — freeze', 'go': 'c4_s6_still'},
             {'silent': True, 'go': 'c4_s6_still'}]}},

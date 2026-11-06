@@ -48,6 +48,8 @@ var _miss_in: Array = []
 var _qte_missin := ""      # --missin c3_s3_birth,c5_s4_iris: в каких сценах автопрогон проваливает действие
 var _stop := ""              # --stop s4: на этой сцене прогон заканчивается
 var _fast_to := ""           # --fastto s5_calm: до этой сцены прогон бегом, дальше — обычный темп (запись одной ветки)
+var _recap_ok := false       # «Ранее…» с текстом — только после «Продолжить», переигровки с карты глав или запуска прямо с него
+                             # (решение редактора 4 ноя, п. 6); игра подряд — переход главы без пересказа
 var _fast := false            # --fast: каждая пауза не дольше 0,7 с, ходьба — сразу на место (быстрый лист кадров)
 var deer: Deer                # олень на трассе (сцена 3): едет назад вместе с дорогой
 var blackcar: BlackCar        # чёрная машина Хейла (с конца главы 1)
@@ -264,6 +266,7 @@ func _ready() -> void:
 	if ("--inputtest" in args or "--uitest" in args) and ResourceLoader.exists("res://scripts/dev/input_test.gd"):
 		add_child((load("res://scripts/dev/input_test.gd") as GDScript).new())   # проверка управления (только в проекте, не в сборке)
 	if autoplay or "--scene" in args or "--menu-skip" in args:
+		_recap_ok = start.ends_with("_recap")   # запуск прямо с «Ранее…» (проверка) — показать его
 		if "--restore" in args and "--scene" in args:   # проверка с середины главы — как «продолжить»: свет и кто где, потом сцена
 			_resume_at(start)
 		else:
@@ -407,6 +410,7 @@ func _load_save() -> bool:
 	hud.lang = lang
 	if String(j.get("clock", "")) != "" and is_instance_valid(scene.car):   # часы в машине — как были (не «03:12» по умолчанию)
 		scene.car.clock.text = String(j.clock)
+	_recap_ok = true   # «Продолжить»: напомнить, что было («Ранее…»)
 	_resume_at(String(j.scene))
 	return true
 
@@ -516,7 +520,14 @@ func _run(id: String) -> void:
 		return
 	if sc.has("time"):
 		scene.car.clock.text = sc.time
+	var recap_skip := id.ends_with("_recap") and not _recap_ok
+	if recap_skip:
+		_log("«Ранее…» без текста: игра идёт подряд")
+	if not id.ends_with("_recap"):
+		_recap_ok = false   # дальше по главам подряд — без пересказа
 	for b in sc.beats:
+		if recap_skip and b.has("text"):
+			continue
 		var go = await _beat(b)
 		if go is String and go != "":
 			_run(go)
@@ -2729,4 +2740,5 @@ func _play_checkpoint(id: String) -> void:
 	for k in snap:
 		flags[k] = snap[k]
 	_save(id)
+	_recap_ok = true   # переигровка с карты глав: тоже с «Ранее…»
 	_resume_at(id)

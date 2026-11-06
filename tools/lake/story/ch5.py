@@ -274,7 +274,7 @@ SC['c5_s2'] = {'save': True, 'beats': [
            O('Смотреть на отца', 'Look at Dad', 'c5_s2_dad')], shot='gap_close', silent='c5_s2_shut')]}
 
 SC['c5_s2_look6'] = {'beats': [
-    C(6, [O('Смотреть на маму', 'Look at Mom', 'c5_s2_mom'),
+    C(8, [O('Смотреть на маму', 'Look at Mom', 'c5_s2_mom'),   # обычный выбор — 8 с (решение редактора 4 ноя, п. 6)
           O('Смотреть на отца', 'Look at Dad', 'c5_s2_dad')], shot='gap_close', silent='c5_s2_shut')]}
 
 SC['c5_s2_mom'] = {'beats': [
