@@ -39,7 +39,7 @@ public class PhoneScreen extends LifeScreen {
     private static final List<App> APPS = List.of(
             new App("bank", "Банк", 0xFF2FA84F), new App("jobs", "Работа", 0xFF5A6ACF),
             new App("messages", "СМС", 0xFF34C759), new App("map", "Карта", 0xFF3AA0E6), new App("shop", "Магазин", 0xFFE05A47),
-            new App("casino", "Казино", 0xFF8E1B3A), new App("music", "Музыка", 0xFFFF375F), new App("camera", "Камера", 0xFF4B4F58),
+            new App("casino", "Казино", 0xFF8E1B3A), new App("music", "Радио", 0xFFFF375F), new App("camera", "Камера", 0xFF4B4F58),
             new App("weather", "Погода", 0xFF64B5F6), new App("story", "Сюжет", 0xFFFFB300), new App("trophy", "Награды", 0xFFC99A2E),
             new App("home", "Дом", 0xFFA0785A),
             new App("taxi", "Такси", 0xFFF7C600), new App("friends", "Друзья", 0xFF7E57C2), new App("missions", "Задания", 0xFFD32F2F),
@@ -431,16 +431,24 @@ public class PhoneScreen extends LifeScreen {
         wrap(ctx, "Казино «Фортуна» сейчас закрыто — загляни позже.", sx + 8, y + 26, sw - 16, 0xFFD0CBE0);
     }
 
+    /** «Радио»: станции Новограда в наушниках — слушай пешком; в машине играет та же станция. */
     private void music(DrawContext ctx, int y) {
         int yy = y - scroll;
-        for (String[] disc : DISCS) {
-            boolean on = playing.equals(disc[0]);
-            roundRect(ctx, sx + 6, yy, sw - 12, 16, on ? 0xFF4A1830 : 0xFF1C1626);
-            ctx.drawText(textRenderer, (on ? "♪ " : "") + disc[1], sx + 10, yy + 4, on ? 0xFFFF375F : 0xFFE6E2F0, false);
-            area(sx + 6, yy, sw - 12, 16, () -> play(disc[0]));
-            yy += 18;
+        var st = com.yompix.novograd.client.CarRadio.STATIONS;
+        int cur = com.yompix.novograd.client.NovogradConfig.get().radioStation;
+        for (int i = 0; i < st.length; i++) {
+            boolean on = com.yompix.novograd.client.CarRadio.pocket && cur == i;
+            int col = 0xFF000000 | Integer.parseInt(st[i][3], 16);
+            roundRect(ctx, sx + 6, yy, sw - 12, 20, on ? 0xFF4A1830 : 0xFF1C1626);
+            ctx.fill(sx + 8, yy + 3, sx + 10, yy + 17, col);
+            ctx.drawText(textRenderer, (on ? "♪ " : "") + st[i][0], sx + 14, yy + 2, on ? col : 0xFFE6E2F0, false);
+            Ui.small(ctx, textRenderer, st[i][2], sx + 14, yy + 12, 0.7f, 0xFF9A93AE, 0);
+            final int idx = i;
+            area(sx + 6, yy, sw - 12, 20, () -> com.yompix.novograd.client.CarRadio.pocket(idx));
+            yy += 22;
         }
-        button(ctx, sx + 8, yy + 2, sw - 16, 14, "Стоп", 0xFF8E8E93, !playing.isEmpty(), PhoneScreen::stopMusic);
+        button(ctx, sx + 8, yy + 2, sw - 16, 14, "Выключить", 0xFF8E8E93, com.yompix.novograd.client.CarRadio.pocket, () -> com.yompix.novograd.client.CarRadio.pocket(-1));
+        Ui.small(ctx, textRenderer, "В машине: R — станция, Shift+R — назад", sx + sw / 2f, yy + 22, 0.7f, 0xFF9A93AE, 1);
     }
 
     public static void play(String id) {

@@ -241,6 +241,12 @@ public final class DevAutotest {
             shot(30, "phone_home");
             run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.PhoneScreen("taxi")));
             shot(30, "phone_taxi");
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.PhoneScreen("music")));
+            run(5, c -> com.yompix.novograd.client.CarRadio.pocket(2));
+            shot(30, "phone_radio");
+            run(5, c -> { c.setScreen(null); for (char ch : "HESOYAM".toCharArray()) { var n = new net.minecraft.nbt.NbtCompound(); } });
+            server(5, sv -> com.yompix.novograd.gta.Cheats.apply(sv.getPlayerManager().getPlayer(P), "HESOYAM"));
+            shot(10, "phone_cheat");
             run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.NewsScreen()));
             shot(30, "phone_news");
             run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.FinanceScreen()));

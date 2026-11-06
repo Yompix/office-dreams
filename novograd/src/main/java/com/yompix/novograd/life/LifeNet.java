@@ -74,6 +74,7 @@ public final class LifeNet {
             case "stock_trade" -> com.yompix.novograd.gta.Economy.trade(p, d.getString("t"), d.getInt("qty"));
             case "biz_upgrade" -> com.yompix.novograd.gta.Heists.upgrade(p, d.getInt("i"));
             case "taxi_skip" -> Taxi.skip(p);
+            case "cheat_code" -> com.yompix.novograd.gta.Cheats.apply(p, d.getString("code"));
             case "news_feed" -> com.yompix.novograd.gta.News.sendFeed(p);
             case "cut_line" -> com.yompix.novograd.story.Director.speak(p, d.getString("who"));
             case "cut_hold" -> com.yompix.novograd.story.Director.hold(p, d.getBoolean("on"));

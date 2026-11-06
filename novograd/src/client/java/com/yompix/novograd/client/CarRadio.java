@@ -63,29 +63,34 @@ public final class CarRadio {
     }
 
     private static Track playing;
+    /** Радио в наушниках (телефон → «Радио»): играет и пешком. */
+    public static boolean pocket;
     private static int playingStation = -2;
     private static long shownAt = -100000;
     private static String toast = "";
 
     public static void tick(MinecraftClient mc) {
         boolean inCar = mc.player != null && mc.player.getVehicle() instanceof CarEntity car && !car.isScooter();
-        int want = inCar ? NovogradConfig.get().radioStation : -1;
+        // главное меню: вместо музыки Minecraft — наше радио
+        boolean menu = mc.world == null && mc.currentScreen instanceof com.yompix.novograd.client.menu.LifeMenuScreen;
+        boolean cut = mc.currentScreen instanceof com.yompix.novograd.client.story.CutsceneScreen;
+        int want = cut ? -1 : inCar || pocket && mc.player != null ? NovogradConfig.get().radioStation : menu ? 0 : -1;
         if (want >= STATIONS.length) want = 0;
-        boolean ended = playing != null && !mc.getSoundManager().isPlaying(playing) && mc.player.age % 20 == 0;
+        boolean ended = playing != null && !mc.getSoundManager().isPlaying(playing) && System.currentTimeMillis() / 50 % 20 == 0;
         if (want != playingStation || ended && want >= 0) {
             stop(mc);
             if (want >= 0) {
                 // следующий трек станции: не тот, что играл последним
-                int tr = (lastTrack[want] + 1 + mc.world.random.nextInt(TRACKS - 1)) % TRACKS;
+                int tr = (lastTrack[want] + 1 + (int) (Math.random() * (TRACKS - 1))) % TRACKS;
                 lastTrack[want] = tr;
                 playing = new Track(STATIONS[want][1] + "_" + tr);
-                if (ended && mc.world.random.nextInt(3) == 0) { // иногда ведущий между песнями
+                if (ended && mc.world != null && mc.world.random.nextInt(3) == 0) { // иногда ведущий между песнями
                     String id = "voice.radio_" + STATIONS[want][1].substring("radio.".length());
                     mc.getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.master(
                             net.minecraft.sound.SoundEvent.of(Novograd.id(id)), 1f, Math.min(1f, NovogradConfig.get().radioVolume + 0.3f)));
                 }
                 mc.getSoundManager().play(playing);
-                if (playingStation == -2 || playingStation != want) {
+                if (mc.player != null && (playingStation == -2 || playingStation != want)) {
                     show(STATIONS[want][0]);
                     // голос ведущего: «Неон 88 FM…»
                     String id = "voice.radio_" + STATIONS[want][1].substring("radio.".length());
@@ -106,9 +111,11 @@ public final class CarRadio {
     }
 
     public static void next(MinecraftClient mc) {
-        if (mc.player == null || !(mc.player.getVehicle() instanceof CarEntity)) return;
+        if (mc.player == null || !(mc.player.getVehicle() instanceof CarEntity)) return; // пешком R — перезарядка, станции — в телефоне
         var c = NovogradConfig.get();
-        c.radioStation = c.radioStation + 1 >= STATIONS.length ? -1 : c.radioStation + 1;
+        boolean back = net.minecraft.client.gui.screen.Screen.hasShiftDown(); // Shift+R — предыдущая станция
+        int n = STATIONS.length;
+        c.radioStation = back ? (c.radioStation < 0 ? n - 1 : c.radioStation - 1) : c.radioStation + 1 >= n ? -1 : c.radioStation + 1;
         if (c.radioStation < 0) show("РАДИО ВЫКЛ");
         NovogradConfig.save();
     }
@@ -118,6 +125,23 @@ public final class CarRadio {
         c.radioVolume = Math.max(0, Math.min(1, Math.round((c.radioVolume + delta) * 10) / 10f));
         NovogradConfig.save();
         show("ГРОМКОСТЬ " + Math.round(c.radioVolume * 100) + "%");
+    }
+
+    /** Телефон → «Радио»: включить станцию в наушниках (i < 0 — выключить). */
+    public static void pocket(int i) {
+        var c = NovogradConfig.get();
+        if (i < 0) {
+            pocket = false;
+            show("РАДИО ВЫКЛ");
+            return;
+        }
+        pocket = true;
+        c.radioStation = i;
+        NovogradConfig.save();
+    }
+
+    public static boolean isPlaying(int i) {
+        return playing != null && playingStation == i;
     }
 
     private static void show(String s) {

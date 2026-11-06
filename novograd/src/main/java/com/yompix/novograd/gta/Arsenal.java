@@ -297,7 +297,7 @@ public final class Arsenal {
 
     /** Тратит патроны из инвентаря, сколько есть (до max). @return сколько взяли */
     public static int takeAmmo(PlayerEntity p, int max) {
-        if (p.isCreative()) return max;
+        if (p.isCreative() || Cheats.infiniteAmmo(p)) return max;
         int got = 0;
         var inv = p.getInventory();
         for (int i = 0; i < inv.size() && got < max; i++) {

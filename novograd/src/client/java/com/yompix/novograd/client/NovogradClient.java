@@ -128,6 +128,7 @@ public class NovogradClient implements ClientModInitializer {
             send("hello", new NbtCompound());
         });
         ClientTickEvents.END_CLIENT_TICK.register(NovogradClient::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(c -> { if (c.player == null) CarRadio.tick(c); }); // радио в главном меню
         // заставка студии при запуске, своё главное меню и пауза вместо ванильных
         ClientTickEvents.END_CLIENT_TICK.register(c -> {
             if (c.currentScreen instanceof net.minecraft.client.gui.screen.TitleScreen) {
@@ -335,6 +336,7 @@ public class NovogradClient implements ClientModInitializer {
         while (cinemaKey.wasPressed()) CinemaCam.toggle(client);
         CinemaCam.tick(client);
         TaxiClient.tick(client);
+        CheatInput.tick(client);
         while (studioKey.wasPressed()) com.yompix.novograd.client.studio.Studio.toggle(client);
         com.yompix.novograd.client.studio.Studio.tick(client);
         while (radioDownKey.wasPressed()) CarRadio.volume(client, -0.1f);

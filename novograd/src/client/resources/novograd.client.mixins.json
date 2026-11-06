@@ -18,7 +18,8 @@
     "VehicleCameraMixin",
     "GameRendererAccessor",
     "StudioCameraMixin",
-    "CineLabelMixin"
+    "CineLabelMixin",
+    "NoVanillaMusicMixin"
   ],
   "injectors": {
     "defaultRequire": 1
