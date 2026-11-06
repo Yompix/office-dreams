@@ -13,7 +13,7 @@ import net.minecraft.util.math.random.Random;
 
 /**
  * Радио в машине: свои станции Новограда. Садишься — играет последняя станция, вышел — замолкает.
- * R — следующая станция, «-»/«=» — тише/громче (и в «Настройках игры»). Громкость меняется на лету.
+ * R или колесо мыши — следующая станция, «-»/«=» — тише/громче (и в «Настройках игры»). Громкость меняется на лету.
  */
 public final class CarRadio {
     private CarRadio() {}
@@ -125,6 +125,24 @@ public final class CarRadio {
         c.radioVolume = Math.max(0, Math.min(1, Math.round((c.radioVolume + delta) * 10) / 10f));
         NovogradConfig.save();
         show("ГРОМКОСТЬ " + Math.round(c.radioVolume * 100) + "%");
+    }
+
+    private static long lastScroll;
+
+    /** Колесо мыши в машине: dir = 1 — следующая станция, -1 — предыдущая. true — колесо занято радио. */
+    public static boolean scroll(MinecraftClient mc, int dir) {
+        if (mc.player == null || !(mc.player.getVehicle() instanceof CarEntity car) || car.isScooter()) return false;
+        long now = System.currentTimeMillis();
+        if (now - lastScroll < 120) return true; // тачпад шлёт много событий — не пролетать станции
+        lastScroll = now;
+        var c = NovogradConfig.get();
+        int n = STATIONS.length;
+        int cur = c.radioStation; // -1 = выкл: стоит между последней и первой
+        int i = (cur + 1 + dir + (n + 1)) % (n + 1) - 1;
+        c.radioStation = i;
+        if (i < 0) show("РАДИО ВЫКЛ");
+        NovogradConfig.save();
+        return true;
     }
 
     /** Телефон → «Радио»: включить станцию в наушниках (i < 0 — выключить). */

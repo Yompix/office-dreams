@@ -448,7 +448,7 @@ public class PhoneScreen extends LifeScreen {
             yy += 22;
         }
         button(ctx, sx + 8, yy + 2, sw - 16, 14, "Выключить", 0xFF8E8E93, com.yompix.novograd.client.CarRadio.pocket, () -> com.yompix.novograd.client.CarRadio.pocket(-1));
-        Ui.small(ctx, textRenderer, "В машине: R — станция, Shift+R — назад", sx + sw / 2f, yy + 22, 0.7f, 0xFF9A93AE, 1);
+        Ui.small(ctx, textRenderer, "В машине: колесо мыши или R — станция", sx + sw / 2f, yy + 22, 0.7f, 0xFF9A93AE, 1);
     }
 
     public static void play(String id) {

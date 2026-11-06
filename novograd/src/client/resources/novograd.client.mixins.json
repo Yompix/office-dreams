@@ -19,7 +19,8 @@
     "GameRendererAccessor",
     "StudioCameraMixin",
     "CineLabelMixin",
-    "NoVanillaMusicMixin"
+    "NoVanillaMusicMixin",
+    "RadioScrollMixin"
   ],
   "injectors": {
     "defaultRequire": 1
