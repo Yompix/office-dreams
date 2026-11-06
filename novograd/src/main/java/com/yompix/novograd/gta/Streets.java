@@ -90,7 +90,7 @@ public final class Streets {
             CarEntity car = new CarEntity(ModContent.CAR, w);
             Vec3d next = route.get(1);
             car.refreshPositionAndAngles(start.x, y, start.z, (float) Math.toDegrees(Math.atan2(-(next.x - start.x), next.z - start.z)), 0);
-            car.setVariant(r.nextInt(6));
+            pickCar(car, Island.zone(gx, gz), r);
             car.setAmbient(true);
             w.spawnEntity(car);
             CitizenEntity drv = new CitizenEntity(ModContent.CITIZEN, w);
@@ -103,6 +103,39 @@ public final class Streets {
             drive(car, route, r);
             return;
         }
+    }
+
+    // ------------------------------------------------------------------ какие машины где ездят
+    // варианты: 0 седан, 1 хэтчбек, 2 спорткупе, 3 люкс, 4 фургон, 5 такси, 7 внедорожник, 8 пикап, 9 маслкар, 10 лимузин, 11 грузовик
+    private static final int[][] MIX_RIVIERA = {{3, 25}, {2, 20}, {10, 7}, {9, 10}, {7, 15}, {0, 10}, {5, 8}, {1, 5}};
+    private static final int[][] MIX_INDUSTRY = {{4, 24}, {8, 24}, {11, 12}, {0, 12}, {1, 8}, {7, 8}, {5, 5}, {9, 4}};
+    private static final int[][] MIX_CITY = {{0, 25}, {5, 18}, {1, 15}, {3, 10}, {7, 10}, {4, 8}, {2, 7}, {9, 4}, {8, 3}};
+    private static final int[][] MIX_SUBURB = {{0, 22}, {1, 18}, {7, 18}, {8, 15}, {4, 8}, {9, 8}, {2, 4}, {5, 4}, {3, 3}};
+    /** Обычные «гражданские» цвета и яркие — для спорткаров. */
+    private static final int[] CIVIL = {0xE8E8EA, 0xB8BCC2, 0x2A2C31, 0x6B6F76, 0x1F3A68, 0xA32025, 0x2F4A35, 0xCDBB95, 0x5A1E24, 0x7FA7C9, 0x34506B, 0x8C8F5A};
+    private static final int[] BRIGHT = {0xF2C032, 0xF07A12, 0x7BC639, 0xD7262C, 0x2C6ECB, 0xE8E8EA, 0x15161A, 0x9B3FD1};
+
+    /** Тип и цвет машины трафика по району: на Ривьере — люкс и спорткары, в промзоне — фургоны, пикапы и грузовики. */
+    private static void pickCar(CarEntity car, Island.Zone zone, net.minecraft.util.math.random.Random r) {
+        int[][] mix = switch (zone) {
+            case RIVIERA -> MIX_RIVIERA;
+            case INDUSTRIAL -> MIX_INDUSTRY;
+            case SUBURB, VILLAGE -> MIX_SUBURB;
+            default -> MIX_CITY;
+        };
+        int total = 0;
+        for (int[] e : mix) total += e[1];
+        int k = r.nextInt(total), v = 0;
+        for (int[] e : mix) {
+            if ((k -= e[1]) < 0) {
+                v = e[0];
+                break;
+            }
+        }
+        car.setVariant(v);
+        if (v == 5 || v == 10 || r.nextInt(3) == 0) return; // такси, лимузин и треть машин — заводского цвета
+        int[] pal = v == 2 || v == 9 ? BRIGHT : CIVIL;
+        car.paint(pal[r.nextInt(pal.length)]);
     }
 
     private static void drive(CarEntity car, List<Vec3d> route, net.minecraft.util.math.random.Random r) {

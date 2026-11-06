@@ -140,10 +140,10 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         else p(root, "head_l", m, solid, head ? FULL : light, head ? 0xFFFFF6C8 : 0xFFD8D4C0);
         float br = car.brakeGlow;
         boolean tailOn = (br > 0.1f || driven || head) && !wrecked;
-        int tail = br > 0.1f ? 0xFFFF1A1A : driven || head ? 0xFFC42020 : 0xFF6A1414;
-        p(root, "tail", m, solid, tailOn ? FULL : light, tailOn ? tail : 0xFF6A1414);
+        int tail = br > 0.1f ? 0xFFFF1A1A : driven || head ? 0xFFC42020 : 0xFF8E1A1A;
+        p(root, "tail", m, solid, tailOn ? FULL : light, tailOn ? tail : 0xFF8E1A1A);
         if (hp < 20 || wrecked) p(root, "tail_l", m, solid, light, 0xFF301010);
-        else p(root, "tail_l", m, solid, tailOn ? FULL : light, tailOn ? tail : 0xFF6A1414);
+        else p(root, "tail_l", m, solid, tailOn ? FULL : light, tailOn ? tail : 0xFF8E1A1A);
         boolean rev = car.reverseGlow > 0.1f && !wrecked;
         p(root, "rev", m, solid, rev ? FULL : light, rev ? 0xFFFFFFFF : 0xFF9A9A9A);
         boolean blink = (car.getWorld().getTime() / 8) % 2 == 0;

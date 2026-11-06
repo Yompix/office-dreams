@@ -209,8 +209,9 @@ public class NovogradClient implements ClientModInitializer {
             case "bj_state" -> {
                 if (client.currentScreen instanceof com.yompix.novograd.client.screen.OnlineCasinoScreen s) s.bj(n);
             }
-            case "crash_start", "crash_cashout", "crash_end" -> {
-                if (client.currentScreen instanceof com.yompix.novograd.client.screen.OnlineCasinoScreen s) s.crash(type, n);
+            case "crash_start", "crash_cashout", "crash_end", "crash_sync", "crash_state" -> com.yompix.novograd.client.screen.OnlineCasinoScreen.crashPacket(type, n);
+            case "cg" -> { // новые игры казино (покер, кости, колесо, бега, плинко, мины)
+                if (client.currentScreen instanceof com.yompix.novograd.client.screen.casino.CasinoScreen s && s.game().equals(n.getString("g"))) s.onServer(n);
             }
             case "coin_result" -> {
                 if (client.currentScreen instanceof com.yompix.novograd.client.screen.OnlineCasinoScreen s) s.coin(n);
@@ -250,7 +251,11 @@ public class NovogradClient implements ClientModInitializer {
             case "open_shop" -> client.setScreen(new ShopScreen(n.getBoolean("delivery"), n.getBoolean("guns")));
             case "open_cashier" -> client.setScreen(new CashierScreen(n));
             case "open_typing" -> client.setScreen(new TypingScreen(n));
-            case "open_casino" -> client.setScreen(n.getString("game").equals("roulette") ? new RouletteScreen() : new SlotsScreen());
+            case "open_casino" -> client.setScreen(switch (n.getString("game")) {
+                case "roulette" -> new RouletteScreen();
+                case "hall" -> new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen(); // игровой стол у крупье
+                default -> new SlotsScreen();
+            });
             case "slots_result" -> {
                 if (client.currentScreen instanceof SlotsScreen s) s.result(n);
             }

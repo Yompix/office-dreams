@@ -256,7 +256,7 @@ public class PhoneScreen extends LifeScreen {
             case "camera" -> NovogradClient.takePhoto();
             case "style" -> com.yompix.novograd.client.style.StyleClient.phone();
             case "casino" -> {
-                if (NovogradClient.data.adult()) mc().setScreen(new OnlineCasinoScreen());
+                if (NovogradClient.data.adult()) mc().setScreen(new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen());
                 else openApp("casino");
             }
             default -> openApp(id);

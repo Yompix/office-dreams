@@ -804,11 +804,11 @@ public class CarEntity extends Entity {
                         || (handbrake && spd > 0.15f)
                         || (accel < -0.035f && spd > 0.22f)
                         || (accel > 0.022f && spd < 0.35f && (body() == CarBody.MUSCLE || body() == CarBody.SPORTS || nitroOn())));
-        if (skidding && age % 2 == 0) {
+        if (skidding && (age % 3 == 0 || handbrake)) {
             for (int side = -1; side <= 1; side += 2) {
                 double bx = getX() + Math.sin(rad) * 1.0 - Math.cos(rad) * 0.8 * side;
                 double bz = getZ() - Math.cos(rad) * 1.0 - Math.sin(rad) * 0.8 * side;
-                getWorld().addParticle(net.minecraft.particle.ParticleTypes.POOF, bx, getY() + 0.15, bz, (random.nextDouble() - 0.5) * 0.04, 0.03, (random.nextDouble() - 0.5) * 0.04);
+                getWorld().addParticle(net.minecraft.particle.ParticleTypes.WHITE_SMOKE, bx, getY() + 0.1, bz, (random.nextDouble() - 0.5) * 0.03, 0.015, (random.nextDouble() - 0.5) * 0.03);
             }
         }
         // выхлоп

@@ -42,6 +42,19 @@ public class PokerScreen extends CasinoScreen {
         if (mc().player != null) mc().player.playSound(ModContent.PHONE_CLICK, 0.6f, 1.4f);
     }
 
+    /** «Совет»: отметить карты по упрощённой стратегии. */
+    public void advise() {
+        if (!drawn) hold = CasinoMath.pokerAdvice(hand);
+    }
+
+    public void draw() {
+        if (drawn) return;
+        startWait();
+        NbtCompound n = new NbtCompound();
+        n.putInt("hold", hold);
+        send("draw", n);
+    }
+
     @Override
     protected boolean busy() {
         return !drawn || waiting();
@@ -99,14 +112,9 @@ public class PokerScreen extends CasinoScreen {
                 send("deal");
             });
         } else {
-            button(ctx, gx + gw / 2 - 104, by, 66, 16, "Совет", 0xFF5B2A86, true, () -> hold = CasinoMath.pokerAdvice(hand));
+            button(ctx, gx + gw / 2 - 104, by, 66, 16, "Совет", 0xFF5B2A86, true, this::advise);
             button(ctx, gx + gw / 2 - 34, by, 66, 16, "Сброс", 0xFF455A64, true, () -> hold = 0);
-            button(ctx, gx + gw / 2 + 36, by, 70, 16, "ДОБОР", 0xFFE65100, !waiting(), () -> {
-                startWait();
-                NbtCompound n = new NbtCompound();
-                n.putInt("hold", hold);
-                send("draw", n);
-            });
+            button(ctx, gx + gw / 2 + 36, by, 70, 16, "ДОБОР", 0xFFE65100, !waiting(), this::draw);
         }
     }
 }

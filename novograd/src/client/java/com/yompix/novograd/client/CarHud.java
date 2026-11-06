@@ -138,13 +138,16 @@ public final class CarHud {
 
     private static void renderMarks(WorldRenderContext ctx) {
         MinecraftClient c = MinecraftClient.getInstance();
-        if (MARKS.isEmpty() || ctx.consumers() == null || c.world == null) return;
+        if (MARKS.isEmpty() || c.world == null) return;
         Vec3d cam = ctx.camera().getPos();
         MatrixStack m = ctx.matrixStack() != null ? ctx.matrixStack() : new MatrixStack();
         m.push();
         m.translate(-cam.x, -cam.y, -cam.z);
         Matrix4f mat = m.peek().getPositionMatrix();
-        VertexConsumer vc = ctx.consumers().getBuffer(RenderLayer.getEntityTranslucent(WHITE));
+        // свой буфер и сразу рисуем — иначе слой может не дорисоваться после прозрачных
+        var imm = c.getBufferBuilders().getEntityVertexConsumers();
+        RenderLayer layer = RenderLayer.getEntityTranslucent(WHITE);
+        VertexConsumer vc = imm.getBuffer(layer);
         long now = c.world.getTime();
         float hw = 0.13f;
         for (Iterator<Mark> it = MARKS.iterator(); it.hasNext(); ) {
@@ -160,6 +163,7 @@ public final class CarHud {
             int light = WorldRenderer.getLightmapCoordinates(c.world, BlockPos.ofFloored(k.a.x, k.a.y + 0.3, k.a.z));
             quad(vc, mat, k.a, k.b, px, pz, alpha, light);
         }
+        imm.draw(layer);
         m.pop();
     }
 

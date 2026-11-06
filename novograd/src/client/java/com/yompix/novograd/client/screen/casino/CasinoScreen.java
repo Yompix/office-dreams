@@ -44,6 +44,10 @@ public abstract class CasinoScreen extends LifeScreen {
         this.accent = accent;
     }
 
+    public String game() {
+        return game;
+    }
+
     protected static int bet() {
         return Casino.BETS[betIndex];
     }

@@ -180,10 +180,10 @@ public final class CarModels {
     // ------------------------------------------------------------------ размеры кузова
     /** Профиль: где кончается капот, где стоит лобовое, крыша, заднее стекло, багажник; колёса. */
     private static final class S {
-        float W = 15, zF = 27, zR = -27, sill = 3.5f, belt = 13.5f, hoodF = 12, trunkR = 13.5f;
+        float W = 15, zF = 29.5f, zR = -29, sill = 3.5f, belt = 13.5f, hoodF = 12, trunkR = 13.5f;
         float wsB = 11, roofF = 4, roofR = -14, rwB = -20, roof = 29;
         float inset = 2.4f;        // насколько кабина уже кузова (завал боковин)
-        float r = 5, ww = 4.4f, wF = 17, wR = -17;
+        float r = 5, ww = 4.4f, wF = 18.5f, wR = -18.5f;
         float pillarB = -6.5f;     // средняя стойка
         boolean bed, panelVan, trunk = true, steelies;
         float seatDrop;
@@ -197,13 +197,13 @@ public final class CarModels {
                 s.wsB = 9; s.roofF = 2.5f; s.roofR = -18; s.rwB = -21; s.r = 4.7f; s.wF = 15; s.wR = -15; s.trunk = false;
             }
             case SPORTS -> {
-                s.W = 16; s.zF = 28; s.zR = -27; s.sill = 3; s.belt = 11.5f; s.hoodF = 9; s.trunkR = 12;
-                s.wsB = 12; s.roofF = 0; s.roofR = -9; s.rwB = -21; s.roof = 27; s.inset = 3; s.r = 5.2f; s.ww = 5; s.wF = 17; s.wR = -17;
+                s.W = 16; s.zF = 30; s.zR = -28; s.sill = 3; s.belt = 12; s.hoodF = 9.5f; s.trunkR = 12.5f;
+                s.wsB = 10.5f; s.roofF = -0.5f; s.roofR = -11; s.rwB = -22; s.roof = 27.5f; s.inset = 3; s.r = 5.2f; s.ww = 5; s.wF = 18.5f; s.wR = -17.5f;
                 s.seatDrop = 2;
             }
             case LUXURY -> {
-                s.W = 15.5f; s.zF = 29; s.zR = -29; s.belt = 14; s.hoodF = 12.5f; s.trunkR = 14;
-                s.wsB = 11; s.roofF = 4; s.roofR = -15; s.rwB = -21.5f; s.roof = 29.5f; s.r = 5.3f; s.wF = 18.5f; s.wR = -18.5f;
+                s.W = 15.5f; s.zF = 32; s.zR = -31; s.belt = 14; s.hoodF = 12.5f; s.trunkR = 14;
+                s.wsB = 11; s.roofF = 4; s.roofR = -15; s.rwB = -22; s.roof = 29.5f; s.r = 5.3f; s.wF = 20.5f; s.wR = -19.5f;
             }
             case VAN -> {
                 s.W = 16; s.zF = 26; s.zR = -33; s.sill = 4.5f; s.belt = 15; s.hoodF = 13.5f; s.trunkR = 15;
@@ -225,13 +225,13 @@ public final class CarModels {
                 s.bed = true; s.trunk = false;
             }
             case MUSCLE -> {
-                s.W = 16; s.zF = 28; s.zR = -27; s.belt = 14; s.hoodF = 13.5f; s.trunkR = 14;
-                s.wsB = 9; s.roofF = 2; s.roofR = -11; s.rwB = -18; s.roof = 28; s.inset = 2.6f; s.r = 5.4f; s.ww = 5.2f; s.wF = 17; s.wR = -17;
+                s.W = 16; s.zF = 31; s.zR = -29; s.belt = 14; s.hoodF = 13.5f; s.trunkR = 14;
+                s.wsB = 9; s.roofF = 2; s.roofR = -11; s.rwB = -19; s.roof = 28; s.inset = 2.6f; s.r = 5.4f; s.ww = 5.2f; s.wF = 19.5f; s.wR = -18;
                 s.seatDrop = 1;
             }
             case LIMO -> {
-                s.W = 15.5f; s.zF = 29; s.zR = -50; s.belt = 14; s.hoodF = 12.5f; s.trunkR = 14;
-                s.wsB = 11; s.roofF = 4; s.roofR = -37; s.rwB = -43; s.roof = 29.5f; s.r = 5.3f; s.wF = 18.5f; s.wR = -40;
+                s.W = 15.5f; s.zF = 31; s.zR = -52; s.belt = 14; s.hoodF = 12.5f; s.trunkR = 14;
+                s.wsB = 11; s.roofF = 4; s.roofR = -37; s.rwB = -44; s.roof = 29.5f; s.r = 5.3f; s.wF = 20; s.wR = -41;
             }
             case TRUCK -> {
                 s.W = 16.5f; s.zF = 34; s.zR = -9; s.sill = 6; s.belt = 18; s.hoodF = 17; s.trunkR = 18;
@@ -556,7 +556,6 @@ public final class CarModels {
                 b.box("trim", -W + 1, s.trunkR + 3.2f, s.zR + 0.5f, W - 1, s.trunkR + 3.9f, s.zR + 4.6f);
                 b.sym("grille", W, s.sill + 2.2f, -12, W + 0.08f, s.belt - 2.4f, -7);
                 b.box("grille", -4, s.hoodF + 1.1f, s.zF - 9, 4, s.hoodF + 1.4f, s.zF - 4);
-                b.box("trim", -iw + 0.6f, s.roof + 1.4f, s.roofR, iw - 0.6f, s.roof + 1.5f, s.roofF); // чёрная крыша
             }
             case MUSCLE -> {
                 // воздухозаборник на капоте, две полосы через весь кузов, спойлер
@@ -635,8 +634,9 @@ public final class CarModels {
         for (int i = 0; i < 3; i++)
             for (float[] p : all[i]) {
                 float x = p[0] > 0 ? W : -W - 0.08f;
-                b.box(g[i], x, p[1], p[2] - 1.6f, x + 0.08f, p[1] + 1.4f, p[2] + 1.6f);
-                b.box(g[i], x, p[1] + 0.4f, p[2] + 1.6f, x + 0.08f, p[1] + 0.8f, p[2] + 3.4f); // царапина
+                b.box(g[i], x, p[1] - 0.6f, p[2] - 2.4f, x + 0.08f, p[1] + 2.0f, p[2] + 2.4f);
+                b.box(g[i], x - 0.01f, p[1] - 0.1f, p[2] - 1.4f, x + 0.09f, p[1] + 1.3f, p[2] + 1.0f); // глубже в центре
+                b.box(g[i], x, p[1] + 0.6f, p[2] + 2.4f, x + 0.08f, p[1] + 0.9f, p[2] + 6.4f); // царапина
             }
         // помятый капот и крыша
         b.box("dent2", -6, top(s, s.zF - 4) + 0.6f, s.zF - 7, -2, top(s, s.zF - 4) + 0.7f, s.zF - 3);

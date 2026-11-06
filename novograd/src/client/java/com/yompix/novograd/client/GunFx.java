@@ -97,6 +97,7 @@ public final class GunFx {
     /** Вызывается из GunItem на клиенте при каждом выстреле (и одиночном, и очередью). */
     public static void onShot(GunItem g) {
         Kind k = kind(g);
+        if (testFlashNs > 0) Novograd.LOG.info("[gunfx] shot {}", k);
         lastKind = k;
         float aim = 1f - ads * 0.35f; // в прицеле отдача ниже
         recoilV += 9f * k.kick * aim;

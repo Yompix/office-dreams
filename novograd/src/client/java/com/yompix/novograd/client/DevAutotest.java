@@ -1,5 +1,6 @@
 package com.yompix.novograd.client;
 
+import com.yompix.novograd.Novograd;
 import com.yompix.novograd.client.screen.OnlineCasinoScreen;
 import com.yompix.novograd.client.screen.PhoneScreen;
 import com.yompix.novograd.client.story.YompixSplash;
@@ -194,6 +195,14 @@ public final class DevAutotest {
         }
         if (mode.equals("style")) {
             style();
+            return;
+        }
+        if (mode.equals("casino")) {
+            casino();
+            return;
+        }
+        if (mode.equals("cars")) {
+            cars();
             return;
         }
         if (mode.equals("guns")) {
@@ -1163,6 +1172,115 @@ public final class DevAutotest {
         }
     }
 
+    /** «casino»: лобби, «Краш» с автовыводом, новые игры, затем зал «Золотая корона» на Ривьере и меню у дилера. */
+    private static void casino() {
+        YompixSplash.markShown();
+        pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+        run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+        server(60, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var d = Life.get(p);
+            d.storyStarted = true;
+            d.storyDone = true;
+            d.chapter = 99;
+            d.age = 22;
+            d.money = 50000;
+            Story.applyAge(p, 22);
+            Life.sync(p);
+            p.getServerWorld().setTimeOfDay(6000);
+            p.getServerWorld().setWeather(6000, 0, false, false);
+        });
+        run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        cmd(5, "gamemode creative " + P);
+        run(10, c -> c.setScreen(new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen()));
+        shot(30, "casino_lobby");
+        // «Краш»: несколько раундов с автовыводом ×1.5 — набирается история, потом ручной раунд
+        run(5, c -> c.setScreen(new OnlineCasinoScreen("crash")));
+        for (int i = 0; i < 6; i++) run(i == 0 ? 10 : 115, c -> NovogradClient.send("crash_start", cg(null, null, 25, "auto", 150)));
+        run(115, c -> NovogradClient.send("crash_start", cg(null, null, 50, "auto", 0)));
+        shot(40, "casino_crash_running");
+        shot(200, "casino_crash_after");
+        // покер
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.casino.PokerScreen()));
+        run(10, c -> NovogradClient.send("cg", cg("poker", "deal", 25, null, 0)));
+        run(20, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.screen.casino.PokerScreen ps) ps.advise(); });
+        shot(10, "casino_poker_hold");
+        run(5, c -> { if (c.currentScreen instanceof com.yompix.novograd.client.screen.casino.PokerScreen ps) ps.draw(); });
+        shot(30, "casino_poker_result");
+        // кости
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.casino.DiceScreen()));
+        run(10, c -> NovogradClient.send("cg", cg("dice", "roll", 50, "pick", 0)));
+        shot(8, "casino_dice_roll");
+        shot(40, "casino_dice_result");
+        // колесо
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.casino.WheelScreen()));
+        run(10, c -> NovogradClient.send("cg", cg("wheel", "spin", 50, "pick", 2)));
+        shot(30, "casino_wheel_spin");
+        shot(140, "casino_wheel_result");
+        // тараканьи бега
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.casino.RaceScreen()));
+        run(20, c -> NovogradClient.send("cg", cg("race", "run", 50, "pick", 0)));
+        shot(90, "casino_race_mid");
+        shot(130, "casino_race_finish");
+        // плинко
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.casino.PlinkoScreen()));
+        for (int i = 0; i < 4; i++) run(i == 0 ? 10 : 6, c -> NovogradClient.send("cg", cg("plinko", "drop", 25, "risk", 2)));
+        shot(14, "casino_plinko_drop");
+        shot(60, "casino_plinko_done");
+        // мины
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.casino.MinesScreen()));
+        run(10, c -> NovogradClient.send("cg", cg("mines", "start", 50, "mines", 3)));
+        for (int cell : new int[]{6, 12, 18}) run(8, c -> NovogradClient.send("cg", cg("mines", "open", 50, "cell", cell)));
+        shot(15, "casino_mines_play");
+        run(5, c -> NovogradClient.send("cg", cg("mines", "cash", 50, null, 0)));
+        shot(20, "casino_mines_end");
+        run(5, c -> c.setScreen(null));
+        // зал на Ривьере: подходим к «riv_casino» — он строится, потом снимаем внутри
+        cmd(5, "gamemode spectator " + P);
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            double[] pl = com.yompix.novograd.world.Island.place("riv_casino");
+            p.teleport(p.getServerWorld(), pl[0], pl[1] + 2, pl[2] + 8, 180, 10);
+        });
+        shot(160, "casino_riv_outside");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var st = com.yompix.novograd.world.CasinoBuilder.state(p.getServerWorld());
+            if (st.hall != null) p.teleport(p.getServerWorld(), st.hall.getX() + 0.5, st.hall.getY() + 3.5, st.hall.getZ() + 10.5, 180, 14);
+        });
+        shot(60, "casino_hall_north");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var st = com.yompix.novograd.world.CasinoBuilder.state(p.getServerWorld());
+            if (st.hall != null) p.teleport(p.getServerWorld(), st.hall.getX() + 0.5, st.hall.getY() + 4.5, st.hall.getZ() - 9.5, 0, 18);
+        });
+        shot(40, "casino_hall_south");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var st = com.yompix.novograd.world.CasinoBuilder.state(p.getServerWorld());
+            if (st.hall != null) p.teleport(p.getServerWorld(), st.hall.getX() - 9.5, st.hall.getY() + 5.5, st.hall.getZ() + 9.5, 225, 22);
+        });
+        shot(40, "casino_hall_corner");
+        // разговор с дилером → «игровой стол»
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var dealer = p.getServerWorld().getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(40),
+                    e -> e.getRole() == CitizenEntity.Role.DEALER).stream().findFirst();
+            dealer.ifPresent(e -> com.yompix.novograd.life.LifeActions.talk(e, p));
+        });
+        shot(30, "casino_hall_dealer_menu");
+        run(20, MinecraftClient::scheduleStop);
+    }
+
+    private static net.minecraft.nbt.NbtCompound cg(String g, String a, int bet, String k, int v) {
+        var n = new net.minecraft.nbt.NbtCompound();
+        if (g != null) n.putString("g", g);
+        if (a != null) n.putString("a", a);
+        n.putInt("bet", bet);
+        if (k != null) n.putInt(k, v);
+        return n;
+    }
+
     /** «style»: магазины одежды, цирюльня, зал и гардероб (стиль SA) — строит их у игрока и снимает экраны. */
     private static void style() {
         YompixSplash.markShown();
@@ -1403,7 +1521,8 @@ public final class DevAutotest {
             run(5, c -> c.player.getInventory().selectedSlot = slot);
             shot(30, "gun_" + g + "_idle");
             run(2, c -> c.options.useKey.setPressed(true));
-            shot(i == 1 || i == 3 ? 6 : 2, "gun_" + g + "_fire");
+            run(i == 1 || i == 3 ? 5 : 1, c -> Novograd.LOG.info("[gunfx] shoot step"));
+            shot(1, "gun_" + g + "_fire");
             run(1, c -> c.options.useKey.setPressed(false));
             run(25, c -> ArsenalClient.send("reload", 0));
             shot(10, "gun_" + g + "_reload");
@@ -1426,18 +1545,19 @@ public final class DevAutotest {
             shot(20, "gun_tp_back_" + guns[i]);
         }
         run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
-        // вид сбоку: скелеты-иссушители (модель как у игрока) с разным оружием
+        // вид сбоку: камера-невидимка справа от игрока
         server(5, s -> {
             ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
-            p.teleport(p.getServerWorld(), p.getX(), p.getY(), p.getZ(), 0, 12);
+            p.teleport(p.getServerWorld(), p.getX(), p.getY(), p.getZ(), 0, 8);
         });
-        String[] side = {"pistol", "smg", "shotgun", "rifle", "sniper"};
-        for (int i = 0; i < side.length; i++)
-            cmd(2, "execute at " + P + " run summon minecraft:wither_skeleton ~" + (i * 1.6 - 3.2) + " ~ ~6 {NoAI:1b,PersistenceRequired:1b,Silent:1b,Rotation:[90f,0f],"
-                    + "HandItems:[{id:\"novograd:" + side[i] + "\",count:1},{}]}");
-        run(5, c -> c.player.getInventory().selectedSlot = 8);
-        shot(30, "gun_side");
-        cmd(2, "kill @e[type=minecraft:wither_skeleton]");
+        for (int i : new int[]{0, 1, 2, 3, 4}) {
+            run(5, c -> c.player.getInventory().selectedSlot = i);
+            run(15, c -> sideCam(c, -2.6, 1.2, 0.9));
+            shot(4, "gun_tp_side_" + guns[i]);
+        }
+        run(5, c -> sideCam(c, -1.6, 1.6, -2.4));
+        shot(4, "gun_tp_34_rifle");
+        run(5, c -> { c.setCameraEntity(c.player); c.options.hudHidden = false; });
         // иконки
         run(10, c -> c.setScreen(new net.minecraft.client.gui.screen.ingame.InventoryScreen(c.player)));
         shot(20, "gun_inventory");
@@ -1466,8 +1586,165 @@ public final class DevAutotest {
         run(20, MinecraftClient::scheduleStop);
     }
 
+    /** Камера со стороны (смещение от игрока dx, dy, dz) смотрит на него. */
+    private static void sideCam(MinecraftClient c, double dx, double dy, double dz) {
+        var cam = new net.minecraft.entity.decoration.ArmorStandEntity(net.minecraft.entity.EntityType.ARMOR_STAND, c.world);
+        cam.setInvisible(true);
+        double x = c.player.getX() + dx, y = c.player.getY() + dy, z = c.player.getZ() + dz;
+        cam.setPosition(x, y - cam.getStandingEyeHeight(), z);
+        cam.lastRenderX = cam.prevX = x;
+        cam.lastRenderY = cam.prevY = y - cam.getStandingEyeHeight();
+        cam.lastRenderZ = cam.prevZ = z;
+        double lx = c.player.getX() - x, ly = c.player.getY() + 1.3 - y, lz = c.player.getZ() - z;
+        float yaw = (float) Math.toDegrees(Math.atan2(-lx, lz)), pitch = (float) -Math.toDegrees(Math.atan2(ly, Math.sqrt(lx * lx + lz * lz)));
+        cam.setYaw(yaw);
+        cam.prevYaw = yaw;
+        cam.setPitch(pitch);
+        cam.prevPitch = pitch;
+        cam.setHeadYaw(yaw);
+        c.options.hudHidden = true;
+        c.setCameraEntity(cam);
+    }
+
     private static void pressKey(MinecraftClient c, int key) {
         if (c.currentScreen != null) c.currentScreen.keyPressed(key, 0, 0);
+    }
+
+    // ------------------------------------------------------------------ машины: все кузова, повреждения, ночь, езда
+    private static void look(ServerPlayerEntity p, double cx, double cy, double cz, double tx, double ty, double tz) {
+        double dx = tx - cx, dy = ty - cy, dz = tz - cz;
+        float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+        float pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)));
+        p.teleport(p.getServerWorld(), cx, cy, cz, yaw, pitch);
+    }
+
+    private static final java.util.Map<Integer, com.yompix.novograd.entity.CarEntity> TEST_CARS = new java.util.HashMap<>();
+
+    private static void cars() {
+        YompixSplash.markShown();
+        pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+        run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+        server(40, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var d = Life.get(p);
+            d.storyStarted = true;
+            d.storyDone = true;
+            d.chapter = 99;
+            d.age = 22;
+            d.edu = 16;
+            Story.applyAge(p, 22);
+            Life.sync(p);
+        });
+        for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+        run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        cmd(5, "gamemode spectator " + P);
+        cmd(5, "gamerule doDaylightCycle false");
+        cmd(5, "gamerule doMobSpawning false");
+        cmd(5, "weather clear");
+        cmd(5, "time set 6000");
+        final int X0 = 420, Z = -905, N = com.yompix.novograd.entity.CarEntity.VARIANTS.length;
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            for (int x = X0 - 32; x < X0 + N * 9 + 32; x += 16) w.getChunk(x >> 4, Z >> 4);
+            look(p, X0 + N * 4.5, Story.topY(w, X0, Z) + 14, Z + 26, X0 + N * 4.5, Story.topY(w, X0, Z), Z);
+        });
+        run(80, c -> {});
+        server(5, s -> {
+            var w = s.getPlayerManager().getPlayer(P).getServerWorld();
+            for (int i = 0; i < N; i++) {
+                double x = X0 + i * 9 + 0.5;
+                var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, w);
+                car.refreshPositionAndAngles(x, Story.topY(w, (int) x, Z), Z + 0.5, 0, 0);
+                car.setVariant(i);
+                w.spawnEntity(car);
+                TEST_CARS.put(i, car);
+            }
+        });
+        shot(60, "cars_all");
+        for (int i = 0; i < N; i++) {
+            int ii = i;
+            server(5, s -> {
+                var car = TEST_CARS.get(ii);
+                look(s.getPlayerManager().getPlayer(P), car.getX() + 4.6, car.getY() + 2.1, car.getZ() + 6.2, car.getX(), car.getY() + 0.9, car.getZ() - 0.4);
+            });
+            shot(18, "car_" + i + "_" + com.yompix.novograd.entity.CarEntity.VARIANTS[i] + "_front");
+            server(5, s -> {
+                var car = TEST_CARS.get(ii);
+                look(s.getPlayerManager().getPlayer(P), car.getX() - 4.8, car.getY() + 2.3, car.getZ() - 7.4, car.getX(), car.getY() + 0.9, car.getZ() - 1);
+            });
+            shot(18, "car_" + i + "_" + com.yompix.novograd.entity.CarEntity.VARIANTS[i] + "_rear");
+        }
+        // сбоку — силуэты
+        for (int i : new int[]{0, 2, 8, 10, 11}) {
+            int ii = i;
+            server(5, s -> {
+                var car = TEST_CARS.get(ii);
+                look(s.getPlayerManager().getPlayer(P), car.getX() + 8.5, car.getY() + 1.2, car.getZ() - 0.8, car.getX(), car.getY() + 0.9, car.getZ() - 0.8);
+            });
+            shot(18, "car_" + i + "_side");
+        }
+        // повреждения: седан и полиция
+        server(5, s -> {
+            TEST_CARS.get(0).hitByBullet(27, null);
+            TEST_CARS.get(6).hitByBullet(38, null);
+            var car = TEST_CARS.get(0);
+            look(s.getPlayerManager().getPlayer(P), car.getX() + 5.5, car.getY() + 2.2, car.getZ() + 7.5, car.getX() + 4, car.getY() + 0.8, car.getZ());
+        });
+        shot(25, "cars_damage");
+        // ночь: фары, мигалка, такси
+        server(5, s -> {
+            for (int i : new int[]{0, 5, 6, 3}) TEST_CARS.get(i).toggleLight(com.yompix.novograd.entity.CarEntity.HEADLIGHTS);
+            TEST_CARS.get(6).toggleLight(com.yompix.novograd.entity.CarEntity.HAZARD);
+        });
+        cmd(5, "time set 18000");
+        server(5, s -> {
+            var car = TEST_CARS.get(4);
+            look(s.getPlayerManager().getPlayer(P), car.getX() + 2, car.getY() + 4, car.getZ() + 13, car.getX() + 2, car.getY() + 0.8, car.getZ());
+        });
+        shot(30, "cars_night");
+        cmd(5, "time set 6000");
+        // езда: спорткупе по взлётной полосе, спидометр, занос на ручнике и следы шин
+        cmd(5, "gamemode creative " + P);
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            for (int x = 300; x < 720; x += 16) w.getChunk(x >> 4, Z >> 4);
+            var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, w);
+            car.refreshPositionAndAngles(340.5, Story.topY(w, 340, Z - 8), Z - 7.5, -90, 0);
+            car.setVariant(2);
+            car.setTune(true, 2, 0);
+            w.spawnEntity(car);
+            p.teleport(w, 340.5, car.getY(), Z - 7.5, -90, 10);
+            p.startRiding(car, true);
+        });
+        run(30, c -> {
+            c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK);
+            c.options.forwardKey.setPressed(true);
+        });
+        shot(25, "drive_launch");
+        shot(55, "drive_speed");
+        run(5, c -> {
+            c.options.leftKey.setPressed(true);
+            c.options.jumpKey.setPressed(true);
+        });
+        shot(10, "drive_drift_1");
+        shot(10, "drive_drift_2");
+        run(5, c -> {
+            c.options.leftKey.setPressed(false);
+            c.options.jumpKey.setPressed(false);
+            c.options.forwardKey.setPressed(false);
+            c.options.backKey.setPressed(true);
+        });
+        shot(20, "drive_brake");
+        run(30, c -> {
+            c.options.backKey.setPressed(false);
+            c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT);
+        });
+        shot(20, "drive_marks");
+        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
+        shot(20, "drive_first_person");
+        run(20, MinecraftClient::scheduleStop);
     }
 
     private static void key(int delay, int key) {
