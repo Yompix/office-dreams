@@ -226,6 +226,10 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("runover")) {
+            runoverMode();
+            return;
+        }
         if (mode.equals("phone")) {
             // телефон целиком, такси, новости, карта, титры (проверка после чистки старой игры)
             YompixSplash.markShown();
@@ -2279,6 +2283,152 @@ public final class DevAutotest {
             tp(5, -349.5, G + 3, 744.5, 0, -8);
             shot(160, "city_billboard");
         }
+        run(20, MinecraftClient::scheduleStop);
+    }
+
+    private static double topLoaded(net.minecraft.server.world.ServerWorld w, int x, int z) {
+        w.getChunk(x >> 4, z >> 4);
+        return Story.topY(w, x, z);
+    }
+
+    private static void runoverMode() {
+        YompixSplash.markShown();
+        pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+        run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+        run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        cmd(5, "gamemode survival " + P);
+        cmd(5, "time set 6500");
+        cmd(5, "gamerule doDaylightCycle false");
+        cmd(5, "effect give " + P + " minecraft:resistance 99999 2 true");
+        cmd(5, "effect give " + P + " minecraft:regeneration 99999 2 true");
+        int[] ids = new int[8];
+        // --- 1. витрина: трое прохожих перед камерой — сбит и лежит, сбит насмерть
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            w.getChunk(200 >> 4, -742 >> 4);
+            double y = topLoaded(w, 210, -742);
+            for (var e : w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(400), e -> true)) if (e.squaredDistanceTo(210, y, -742) < 60 * 60) e.discard();
+            p.getInventory().clear();
+            p.teleport(w, 210.5, y, -747.5, 0, 14);
+            for (int i = 0; i < 2; i++) {
+                CitizenEntity c = new CitizenEntity(com.yompix.novograd.ModContent.CITIZEN, w);
+                c.setup(CitizenEntity.RANDOM_FROM + 3 + i * 7, CitizenEntity.Role.CITIZEN, false, "Прохожий");
+                c.refreshPositionAndAngles(208.5 + i * 4, y, -743.5, 90, 0);
+                w.spawnEntity(c);
+                ids[i] = c.getId();
+            }
+        });
+        run(30, c -> { c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON); c.options.hudHidden = true; });
+        server(5, s -> {
+            var w = s.getPlayerManager().getPlayer(P).getServerWorld();
+            if (w.getEntityById(ids[0]) instanceof CitizenEntity a) {
+                // удар «машиной» слева: летит вправо, падает на спину
+                a.setVelocity(0.55, 0.42, 0);
+                a.velocityModified = true;
+                a.knockDown(a.getPos().add(-2, 0, 0), null, 60);
+            }
+            if (w.getEntityById(ids[1]) instanceof CitizenEntity b) {
+                CitizenEntity.runOverHit = true;
+                b.damage(w.getDamageSources().flyIntoWall(), 40);
+                CitizenEntity.runOverHit = false;
+                b.setVelocity(0.6, 0.45, 0);
+                b.velocityModified = true;
+            }
+        });
+        for (int i = 0; i < 6; i++) shot(3, "ro_fall_" + i);
+        shot(25, "ro_lying");
+        shot(50, "ro_lying2");
+        shot(12, "ro_getup_a");
+        shot(10, "ro_getup_b");
+        shot(25, "ro_after");
+        run(5, c -> { com.yompix.novograd.Novograd.LOG.info("[runover] showcase done"); c.options.hudHidden = false; });
+        // --- 2. за рулём: маслкар разгоняется и сбивает троих; полицейский у дороги видит
+        server(10, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            double y = topLoaded(w, 200, -742);
+            var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, w);
+            car.refreshPositionAndAngles(170.5, topLoaded(w, 170, -742), -742.5, -90, 0);
+            car.setVariant(9);
+            w.spawnEntity(car);
+            p.teleport(w, 170.5, car.getY() + 1, -742.5, -90, 10);
+            p.startRiding(car, true);
+            for (int i = 0; i < 3; i++) {
+                CitizenEntity c = new CitizenEntity(com.yompix.novograd.ModContent.CITIZEN, w);
+                c.setup(CitizenEntity.RANDOM_FROM + 10 + i * 5, i == 2 ? CitizenEntity.Role.GANG : CitizenEntity.Role.CITIZEN, false, i == 2 ? "Бандит" : "Прохожий");
+                c.refreshPositionAndAngles(196.5 + i * 3, y, -742.5 + (i - 1) * 0.6, 90, 0);
+                w.spawnEntity(c);
+                ids[2 + i] = c.getId();
+            }
+            CitizenEntity cop = new CitizenEntity(com.yompix.novograd.ModContent.CITIZEN, w);
+            cop.setup(CitizenEntity.skinIndex("police"), CitizenEntity.Role.POLICE, false, "Полицейский");
+            cop.refreshPositionAndAngles(214.5, topLoaded(w, 214, -749), -749.5, 0, 0);
+            w.spawnEntity(cop);
+            ids[5] = cop.getId();
+        });
+        run(20, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
+        run(1, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.forwardKey.getBoundKeyTranslationKey()), true));
+        for (int i = 0; i < 16; i++) shot(4, "ro_drive_" + i);
+        run(1, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.forwardKey.getBoundKeyTranslationKey()), false));
+        run(1, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.backKey.getBoundKeyTranslationKey()), true));
+        run(25, c -> KeyBinding.setKeyPressed(InputUtil.fromTranslationKey(c.options.backKey.getBoundKeyTranslationKey()), false));
+        run(1, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT));
+        shot(5, "ro_drive_look");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            StringBuilder b = new StringBuilder();
+            for (int i = 2; i < 6; i++) b.append(w.getEntityById(ids[i]) instanceof CitizenEntity c ? c.getRole() + " hp=" + c.getHealth() + " ko=" + c.knockPhase() + " at " + c.getBlockPos() + "; " : "gone; ");
+            com.yompix.novograd.Novograd.LOG.info("[runover] after drive: stars={} car={} | {}", com.yompix.novograd.gta.Wanted.stars(p),
+                    p.getVehicle() instanceof com.yompix.novograd.entity.CarEntity car ? car.health() : -1, b);
+        });
+        shot(40, "ro_drive_after");
+        // --- 3. угон: водитель-бандит выкинут, бежит назад, вытаскивает игрока и бьёт
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            com.yompix.novograd.gta.Wanted.clear(p);
+            p.stopRiding();
+            for (var e : w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(80), e -> true)) e.discard();
+            double y = topLoaded(w, 260, -742);
+            var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, w);
+            car.refreshPositionAndAngles(260.5, y, -742.5, -90, 0);
+            car.setVariant(1);
+            w.spawnEntity(car);
+            CitizenEntity d = new CitizenEntity(com.yompix.novograd.ModContent.CITIZEN, w);
+            d.setup(CitizenEntity.RANDOM_FROM + 21, CitizenEntity.Role.GANG, false, "Водила");
+            d.refreshPositionAndAngles(260.5, y, -742.5, -90, 0);
+            w.spawnEntity(d);
+            d.startRiding(car, true);
+            ids[6] = d.getId();
+            ids[7] = car.getId();
+            p.teleport(w, 260.5, y, -745.5, 0, 15);
+        });
+        run(20, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            if (p.getServerWorld().getEntityById(ids[7]) instanceof com.yompix.novograd.entity.CarEntity car) car.interact(p, net.minecraft.util.Hand.MAIN_HAND);
+            if (p.getServerWorld().getEntityById(ids[7]) instanceof com.yompix.novograd.entity.CarEntity car && !p.hasVehicle()) car.interact(p, net.minecraft.util.Hand.MAIN_HAND);
+        });
+        for (int i = 0; i < 26; i++) {
+            shot(8, "ro_jack_" + i);
+            if (i % 4 == 0) server(1, s -> {
+                ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+                var w = p.getServerWorld();
+                com.yompix.novograd.Novograd.LOG.info("[runover] jack: player in car={} hp={} driver={}", p.hasVehicle(), p.getHealth(),
+                        w.getEntityById(ids[6]) instanceof CitizenEntity c ? c.getBlockPos() + " act=" + c.getActivity() + " veh=" + c.hasVehicle() : "gone");
+            });
+        }
+        run(1, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT));
+        shot(10, "ro_jack_front");
+        shot(40, "ro_jack_fight");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            com.yompix.novograd.Novograd.LOG.info("[runover] jack end: player in car={} hp={} driver={}", p.hasVehicle(), p.getHealth(),
+                    w.getEntityById(ids[6]) instanceof CitizenEntity c ? c.getBlockPos() + " act=" + c.getActivity() + " veh=" + c.hasVehicle() : "gone");
+        });
         run(20, MinecraftClient::scheduleStop);
     }
 

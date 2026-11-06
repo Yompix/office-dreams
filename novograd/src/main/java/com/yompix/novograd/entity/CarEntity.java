@@ -498,7 +498,9 @@ public class CarEntity extends Entity {
     // ------------------------------------------------------------------ сбить пешехода (как в ГТА)
     /** Сервер: как машина реально двигалась за тик (у игрока физику считает клиент — берём по позиции). */
     private Vec3d hitMotion = Vec3d.ZERO;
-    @Nullable private Vec3d hitLast;
+    /** Позиции за последние тики: пакеты движения от клиента приходят пачками, скорость берём по окну. */
+    private final Vec3d[] hitTrail = new Vec3d[6];
+    private int hitTrailN;
     private final java.util.Map<Entity, Long> hitCooldown = new java.util.WeakHashMap<>();
     /** Только у водителя на клиенте: кого уже «почувствовали» (машина теряет скорость один раз за удар). */
     private final java.util.Map<Entity, Integer> clientHits = new java.util.WeakHashMap<>();
@@ -553,13 +555,21 @@ public class CarEntity extends Entity {
      */
     private void runOver() {
         Vec3d now = getPos();
-        if (hitLast != null) {
-            Vec3d d = now.subtract(hitLast);
-            if (d.lengthSquared() > 36) d = Vec3d.ZERO; // телепорт
-            // пакеты движения игрока приходят неровно: пустой тик — не остановка
-            hitMotion = d.horizontalLengthSquared() > 1e-6 ? d : hitMotion.multiply(0.5);
+        Vec3d prev = hitTrail[hitTrailN % hitTrail.length];
+        Vec3d last = hitTrail[(hitTrailN + hitTrail.length - 1) % hitTrail.length];
+        if (last != null && now.squaredDistanceTo(last) > 36) java.util.Arrays.fill(hitTrail, null); // телепорт
+        prev = hitTrail[hitTrailN % hitTrail.length];
+        hitTrail[hitTrailN % hitTrail.length] = now;
+        hitTrailN++;
+        if (prev == null) {
+            hitMotion = Vec3d.ZERO;
+            return;
         }
-        hitLast = now;
+        // средняя скорость за окно, не больше того, что машина вообще может (защита от рывков синхронизации)
+        Vec3d m = now.subtract(prev).multiply(1.0 / hitTrail.length);
+        double cap = topSpeed() * 1.25 + 0.05;
+        if (m.horizontalLength() > cap) m = m.multiply(cap / m.horizontalLength());
+        hitMotion = m;
         double s = hitSpeed();
         if (s < 0.12 || wrecked() || !(getWorld() instanceof net.minecraft.server.world.ServerWorld w)) return;
         Vec3d dir = new Vec3d(hitMotion.x, 0, hitMotion.z).normalize();

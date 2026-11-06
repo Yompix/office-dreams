@@ -942,6 +942,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @org.jetbrains.annotations.Nullable private CarEntity jackCar;
     @org.jetbrains.annotations.Nullable private net.minecraft.server.network.ServerPlayerEntity jacker;
     private int jackTicks, revengeTicks;
+    /** Драка за машину — кулаками, даже у бандита. */
+    private boolean brawl;
     /** Мстит без угонщика: вернуть машину и уехать. */
     private boolean reclaim;
 
@@ -969,6 +971,10 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         shout(p, role == Role.GANG ? "«Ты чё, совсем страх потерял?!»" : "«А ну вылезай из моей машины!»");
     }
 
+    private void jackLog(String what) {
+        if (Boolean.getBoolean("novograd.debugcar")) com.yompix.novograd.Novograd.LOG.info("[jack] {} {}: {} foe={} car={} reclaim={}", getName().getString(), getId(), what, foe, jackCar, reclaim);
+    }
+
     private void shout(net.minecraft.server.network.ServerPlayerEntity p, String line) {
         String who = getCustomName() != null ? getCustomName().getString() : "Водитель";
         if (p.squaredDistanceTo(this) < 32 * 32) p.sendMessage(net.minecraft.text.Text.literal(who + ": " + line).formatted(net.minecraft.util.Formatting.GOLD), false);
@@ -978,6 +984,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     /** Угонщик уехал — ругается и уходит прочь. */
     private void giveUp() {
+        jackLog("give up");
         var p = jacker;
         var car = jackCar;
         jackCar = null;
@@ -989,6 +996,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     /** Вытащить угонщика из машины: рывок, толчок, удар — и драка. */
     private void pullOut(net.minecraft.server.network.ServerPlayerEntity p, CarEntity car) {
+        jackLog("pull out");
         getNavigation().stop();
         face(p);
         triggerAnim("action", "drag");
@@ -1006,9 +1014,10 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         jacker = null;
         reclaim = true;
         foe = p;
+        brawl = true;
         fleeTicks = 0;
-        // бандит дерётся до конца, горожанин — немного побьёт и заберёт машину
-        revengeTicks = role == Role.GANG ? 0 : 80 + getRandom().nextInt(60);
+        // немного побьёт (бандит — подольше) и заберёт машину; дал сдачи — драка продолжается
+        revengeTicks = (role == Role.GANG ? 160 : 80) + getRandom().nextInt(60);
     }
 
     /** Отмщение кулаками закончилось: если угонщик не отвечает — сесть в свою машину и уехать. */
@@ -1019,6 +1028,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             return;
         }
         foe = null;
+        brawl = false;
         dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
         if (jackCar == null || !reclaim) return;
         jackTicks = 200; // JackGoal: дойти до машины и сесть
@@ -1054,6 +1064,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
         @Override
         public void tick() {
+            if (c.foe != null) return; // сейчас дерёмся — CombatGoal
             CarEntity car = c.jackCar;
             if (car == null || car.isRemoved() || car.wrecked() || --c.jackTicks <= 0) {
                 if (c.jacker != null) c.giveUp();
@@ -1081,6 +1092,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
                 c.jackCar = null;
                 c.reclaim = false;
                 if (!car.getPassengerList().isEmpty() || !(c.getWorld() instanceof net.minecraft.server.world.ServerWorld w)) return;
+                c.jackLog("reclaim car");
                 if (c.startRiding(car, true)) {
                     c.getWorld().playSound(null, car.getBlockPos(), com.yompix.novograd.ModContent.CAR_START, net.minecraft.sound.SoundCategory.NEUTRAL, 0.8f, 1f);
                     var route = com.yompix.novograd.gta.FunUtil.wander(w, car.getX(), car.getZ(), 6, w.getRandom());
@@ -1103,7 +1115,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
                     c.jackCar = car;
                     c.reclaim = true;
                     c.foe = p;
-                    c.revengeTicks = c.role == Role.GANG ? 0 : 100;
+                    c.brawl = true;
+                    c.revengeTicks = c.role == Role.GANG ? 160 : 100;
                 } else c.giveUp();
                 return;
             }
@@ -1165,7 +1178,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     /** Отбой: разойтись (и исчезнуть, если это подкрепление). */
     public void standDown() {
+        jackLog("stand down");
         foe = null;
+        brawl = false;
         if (hasVehicle() && getVehicle() instanceof CarEntity car) car.chase(null);
         dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
         if (tempCop) removeLater(200);
@@ -1226,7 +1241,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             }
             c.getLookControl().lookAt(t, 40, 40);
             double d = c.distanceTo(t);
-            boolean gunner = c.role == Role.GANG || c.role == Role.POLICE && (!(t instanceof net.minecraft.server.network.ServerPlayerEntity p) || com.yompix.novograd.gta.Wanted.stars(p) >= 3);
+            boolean gunner = !c.brawl && c.role == Role.GANG || c.role == Role.POLICE && (!(t instanceof net.minecraft.server.network.ServerPlayerEntity p) || com.yompix.novograd.gta.Wanted.stars(p) >= 3);
             if (gunner) {
                 if (!(c.getMainHandStack().getItem() instanceof com.yompix.novograd.item.GunItem))
                     c.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(com.yompix.novograd.ModContent.PISTOL));
