@@ -390,7 +390,7 @@ find(ch1, m)['steps'].insert(0, scene(m,
 # ---------- Акт II: Брик держит Джейка во дворе
 m = 'a2m1'
 find(ch2, m)['steps'].insert(1, scene(m,
-    [S('cam_ind_a', 'gang_yard+12,10,12', 6), S('gang_yard+4,10,15', 'gang_yard+2,7,13', 6, track='kirpich'), F('kirpich', 4, (3.5, 2.4, 1.5))],
+    [S('cam_ind_a', 'gang_yard+12,10,12', 6), S('gang_yard+4,10,15', 'gang_yard+2,7,13', 6, track='kirpich'), S('gang_yard+-4,6,11', 'gang_yard+-2,4,10', 4, track='kirpich')],
     [[0, 'spawn', 'gleb', 'gang_yard+0,2'], [0, 'act', 'gleb', 'UPSET'], [0, 'spawn', 'kirpich', 'gang_yard+8,-6'],
      [0, 'spawn', 'g1', 'gang_yard+-3,4', 'gang'], [0, 'spawn', 'g2', 'gang_yard+3,4', 'gang'], [0.5, 'act', 'g1', 'AIM', 'gleb'], [0.5, 'act', 'g2', 'AIM', 'gleb'],
      [3, 'walk', 'kirpich', 'gang_yard+1,0'], [8, 'act', 'kirpich', 'LAUGH', 'gleb'], [12, 'act', 'kirpich', 'ARGUE', 'gleb']],

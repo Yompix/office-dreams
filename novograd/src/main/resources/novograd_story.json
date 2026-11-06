@@ -1350,13 +1350,10 @@
          "track": "kirpich"
         },
         {
-         "follow": "kirpich",
+         "from": "gang_yard+-4,6,11",
+         "to": "gang_yard+-2,4,10",
          "sec": 4,
-         "off": [
-          3.5,
-          2.4,
-          1.5
-         ]
+         "track": "kirpich"
         }
        ],
        "actors": [
@@ -1445,7 +1442,7 @@
          "gleb"
         ]
        ],
-       "grade": "film_blockbuster",
+       "grade": "film_cine",
        "card": true
       },
       {
