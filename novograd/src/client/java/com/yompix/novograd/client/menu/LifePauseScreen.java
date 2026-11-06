@@ -43,6 +43,7 @@ public class LifePauseScreen extends Screen {
             mc.setScreen(null);
             com.yompix.novograd.client.studio.Studio.toggle(mc);
         }, true);
+        menu.add("Чит-код (Ё)", "", () -> mc.setScreen(new com.yompix.novograd.client.screen.CheatScreen()));
         menu.add("Настройки игры", "", () -> mc.setScreen(new SettingsScreen(this)));
         menu.add("Настройки Minecraft", "", () -> mc.setScreen(new OptionsScreen(this, mc.options)));
         friends(mc);

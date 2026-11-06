@@ -13,9 +13,19 @@ public final class CheatInput {
     private static final StringBuilder BUF = new StringBuilder();
     private static final boolean[] DOWN = new boolean[26];
 
+    private static boolean graveDown;
+
     public static void tick(MinecraftClient mc) {
         if (mc.player == null || mc.currentScreen != null) return;
         long win = mc.getWindow().getHandle();
+        // ` (Ё) — окошко чит-кода: надёжно, буквы не открывают инвентарь, карту и телефон
+        boolean g = InputUtil.isKeyPressed(win, GLFW.GLFW_KEY_GRAVE_ACCENT);
+        if (g && !graveDown) {
+            graveDown = true;
+            mc.setScreen(new com.yompix.novograd.client.screen.CheatScreen());
+            return;
+        }
+        graveDown = g;
         for (int i = 0; i < 26; i++) {
             boolean now = InputUtil.isKeyPressed(win, GLFW.GLFW_KEY_A + i);
             if (now && !DOWN[i]) type((char) ('A' + i));
