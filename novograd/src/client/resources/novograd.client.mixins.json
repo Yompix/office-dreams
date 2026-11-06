@@ -17,7 +17,8 @@
     "HudBarsMixin",
     "VehicleCameraMixin",
     "GameRendererAccessor",
-    "StudioCameraMixin"
+    "StudioCameraMixin",
+    "CineLabelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

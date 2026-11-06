@@ -1724,6 +1724,13 @@ public final class DevAutotest {
     private static void guns() {
         YompixSplash.markShown();
         GunFx.testFlashNs = 700_000_000L;
+        // стрельба на улице даёт розыск — в автотесте полиция не нужна
+        ClientTickEvents.END_CLIENT_TICK.register(c -> {
+            if (c.getServer() != null && c.world != null && c.world.getTime() % 10 == 0) c.getServer().execute(() -> {
+                ServerPlayerEntity p = c.getServer().getPlayerManager().getPlayer(P);
+                if (p != null && com.yompix.novograd.gta.Wanted.stars(p) > 0) com.yompix.novograd.gta.Wanted.clear(p);
+            });
+        });
         pre(60, c -> c.createIntegratedServerLoader().start("Island", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
         run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
         server(40, s -> {
@@ -1771,7 +1778,8 @@ public final class DevAutotest {
             shot(i == 1 || i == 3 ? 6 : 2, "gun_" + g + "_fire");
             run(1, c -> c.options.attackKey.setPressed(false));
             run(25, c -> c.options.useKey.setPressed(true));
-            shot(20, "gun_" + g + "_ads");
+            run(19, c -> com.yompix.novograd.Novograd.LOG.info("[guns] ads {}", GunFx.debug()));
+            shot(1, "gun_" + g + "_ads");
             run(2, c -> c.options.attackKey.setPressed(true));
             shot(2, "gun_" + g + "_ads_fire");
             run(1, c -> c.options.attackKey.setPressed(false));

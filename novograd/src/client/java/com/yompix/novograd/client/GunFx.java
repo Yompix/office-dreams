@@ -140,6 +140,7 @@ public final class GunFx {
     /** Свой выстрел (ArsenalClient, сразу при нажатии — без ожидания сервера). */
     public static void onShot(GunItem g) {
         Kind k = kind(g);
+        if (testFlashNs > 0) Novograd.LOG.info("[guns] shot {}", id(g));
         MinecraftClient c = MinecraftClient.getInstance();
         float aim = 1f - ads * 0.4f;
         kzV += 9f * k.kickZ / 0.05f * aim;
@@ -219,9 +220,15 @@ public final class GunFx {
     /** 0..1 — ход перезарядки, или -1. */
     public static float reloadProgress(Item item) {
         if (reloadItem != item || reloadLen <= 0) return -1;
-        if (testFreezeP >= 0) return testFreezeP;
         float p = (System.nanoTime() - reloadStart) / (float) reloadLen;
-        return p >= 1 ? -1 : p;
+        if (p >= 1) return -1;
+        return testFreezeP >= 0 ? testFreezeP : p;
+    }
+
+    /** Для автотеста: состояние пружин. */
+    public static String debug() {
+        return String.format("ads=%.2f target=%s sway=%.2f/%.2f kz=%.3f kp=%.2f side=%.2f roll=%.2f land=%.2f air=%.2f sprint=%.2f pose=%s",
+                ads, adsTarget, swayX, swayY, kz, kp, side, roll, land, air, sprint, GunAnim.POSE.gun);
     }
 
     /** Осмотр (клавиша Y). */
@@ -235,13 +242,12 @@ public final class GunFx {
 
     public static float inspectProgress(Item item) {
         if (inspectItem != item) return -1;
-        if (testFreezeP >= 0) return testFreezeP;
         float p = (System.nanoTime() - inspectStart) / 1e9f / GunAnim.INSPECT_SEC;
         if (p >= 1) {
             inspectItem = null;
             return -1;
         }
-        return p;
+        return testFreezeP >= 0 ? testFreezeP : p;
     }
 
     public static float adsAmount() {
@@ -314,6 +320,8 @@ public final class GunFx {
             lastPitch = pitch;
         }
         float dy = MathHelper.wrapDegrees(yaw - lastYaw), dp = pitch - lastPitch;
+        lastYaw = yaw;
+        lastPitch = pitch;
         lagYaw = MathHelper.clamp(lagYaw + dy, -18f, 18f);
         lagPitch = MathHelper.clamp(lagPitch + dp, -14f, 14f);
         float back = 1f - (float) Math.exp(-dt * 9f);
@@ -461,7 +469,7 @@ public final class GunFx {
         float sc = meta.fpScale;
         // прицел: мушка/целик — в центр экрана
         float dX = sc * (meta.sight[0] - meta.grip[0]) / 16f, dY = sc * (meta.sight[1] - meta.grip[1]) / 16f, dZ = sc * (meta.sight[2] - meta.grip[2]) / 16f;
-        float hipX = 0.42f * s, hipY = -0.43f, hipZ = -0.6f;
+        float hipX = 0.34f * s, hipY = -0.34f, hipZ = -0.58f;
         float x = MathHelper.lerp(a, hipX, -dX * s), y = MathHelper.lerp(a, hipY, -dY), z = MathHelper.lerp(a, hipZ, k.adsZ - dZ);
 
         m.push();
@@ -560,7 +568,7 @@ public final class GunFx {
     }
 
     /** Руки тоньше ванильных: оружие в них не выглядит игрушечным. */
-    private static final float ARM_SCALE = 0.66f;
+    private static final float ARM_SCALE = 0.56f;
 
     /** Сейчас рисуем руку от первого лица — поза «целится» не нужна. */
     public static boolean fpArm;

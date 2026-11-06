@@ -651,7 +651,7 @@ def fit(g, tilt, fill=0.95, yaw=-112, pitch=22):
     return {'rotation': rot, 'translation': [round(-cx * 16, 2), round(-cy * 16, 2), 0], 'scale': [round(min(sc, 1.6), 3)] * 3}
 
 
-FP_SCALE = {'pistol': 0.9, 'smg': 0.82, 'shotgun': 0.78, 'rifle': 0.76, 'sniper': 0.72}
+FP_SCALE = {'pistol': 0.64, 'smg': 0.6, 'shotgun': 0.56, 'rifle': 0.56, 'sniper': 0.53}
 TP_SCALE = {'pistol': 0.75, 'smg': 0.75, 'shotgun': 0.8, 'rifle': 0.8, 'sniper': 0.8}
 GUI_TILT = {'pistol': 0, 'smg': 18, 'shotgun': 32, 'rifle': 32, 'sniper': 34}
 

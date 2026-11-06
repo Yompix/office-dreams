@@ -139,6 +139,8 @@ public class CutsceneScreen extends LifeScreen {
                     yaw = yawTo(x, z, look);
                     pitch = pitchTo(x, y, z, look);
                 }
+                // камера не должна оказаться внутри стены или контейнера — поднимаем её над препятствием
+                y = clearY(x, y, z);
                 // сглаживание: камера-оператор не дёргается, а «ведёт» героя
                 long now = System.nanoTime();
                 float dt = lastFrame == 0 ? 1 : Math.min(1, (now - lastFrame) / 1e9f * (fol != null ? 6f : trk != null ? 10f : 60f));
@@ -202,6 +204,21 @@ public class CutsceneScreen extends LifeScreen {
         com.yompix.novograd.client.studio.CineCam.cutscene = true;
         com.yompix.novograd.client.studio.CineCam.fov = MathHelper.lerp(k, a, b);
         com.yompix.novograd.client.studio.CineCam.roll = r;
+    }
+
+    private double clearY(double x, double y, double z) {
+        var w = mc().world;
+        if (w == null) return y;
+        for (int i = 0; i < 24; i++) {
+            boolean hit = false;
+            for (double dx = -0.3; dx <= 0.3 && !hit; dx += 0.6)
+                for (double dz = -0.3; dz <= 0.3 && !hit; dz += 0.6) {
+                    var bp = net.minecraft.util.math.BlockPos.ofFloored(x + dx, y + i, z + dz);
+                    if (!w.getBlockState(bp).getCollisionShape(w, bp).isEmpty()) hit = true;
+                }
+            if (!hit) return y + i;
+        }
+        return y;
     }
 
     private static float yawTo(double x, double z, Vec3d look) {
