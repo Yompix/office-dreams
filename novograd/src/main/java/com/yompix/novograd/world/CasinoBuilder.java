@@ -221,7 +221,7 @@ public final class CasinoBuilder {
                 if (Math.abs(z - cz) < 2) continue;
                 for (int y = s + 1; y <= s + 7; y++) set(w, x, y, z, y == s + 7 || y == s + 1 ? Blocks.GOLD_BLOCK.getDefaultState() : Blocks.QUARTZ_PILLAR.getDefaultState());
             }
-        // люстры: золотой крест под потолком, свет в центре и висячие фонари
+        // люстры: светящийся шар на цепи и четыре фонаря вокруг
         for (int lx : new int[]{-6, 0, 6})
             for (int lz : new int[]{-6, 0, 6}) {
                 if (lz == -6 && lx == 0) continue; // над баром
@@ -229,8 +229,8 @@ public final class CasinoBuilder {
                 set(w, x, s + 7, z, Blocks.CHAIN.getDefaultState());
                 set(w, x, s + 6, z, Blocks.GLOWSTONE.getDefaultState());
                 for (Direction d : Direction.Type.HORIZONTAL) {
-                    set(w, x + d.getOffsetX(), s + 6, z + d.getOffsetZ(), Blocks.GOLD_BLOCK.getDefaultState());
-                    set(w, x + d.getOffsetX(), s + 5, z + d.getOffsetZ(), Blocks.LANTERN.getDefaultState().with(LanternBlock.HANGING, true));
+                    set(w, x + d.getOffsetX(), s + 7, z + d.getOffsetZ(), Blocks.CHAIN.getDefaultState());
+                    set(w, x + d.getOffsetX(), s + 6, z + d.getOffsetZ(), Blocks.LANTERN.getDefaultState().with(LanternBlock.HANGING, true));
                 }
             }
         // неон по стенам под потолком второго яруса, цвета по кругу

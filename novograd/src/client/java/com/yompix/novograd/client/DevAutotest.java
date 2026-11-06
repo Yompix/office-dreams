@@ -1,6 +1,5 @@
 package com.yompix.novograd.client;
 
-import com.yompix.novograd.Novograd;
 import com.yompix.novograd.client.screen.OnlineCasinoScreen;
 import com.yompix.novograd.client.screen.PhoneScreen;
 import com.yompix.novograd.client.story.YompixSplash;
@@ -1514,6 +1513,7 @@ public final class DevAutotest {
         cmd(10, "execute at " + P + " run fill ~-12 ~-1 ~-12 ~12 ~-1 ~12 minecraft:smooth_stone");
         cmd(2, "execute at " + P + " run fill ~-12 ~ ~-12 ~12 ~8 ~12 minecraft:air");
         cmd(2, "kill @e[type=novograd:citizen,distance=..40]");
+        cmd(2, "kill @e[type=minecraft:item,distance=..40]");
         run(60, c -> { if (c.currentScreen != null) c.setScreen(null); });
         for (int i = 0; i < 5; i++) {
             final int slot = i;
@@ -1521,8 +1521,7 @@ public final class DevAutotest {
             run(5, c -> c.player.getInventory().selectedSlot = slot);
             shot(30, "gun_" + g + "_idle");
             run(2, c -> c.options.useKey.setPressed(true));
-            run(i == 1 || i == 3 ? 5 : 1, c -> Novograd.LOG.info("[gunfx] shoot step"));
-            shot(1, "gun_" + g + "_fire");
+            shot(i == 1 || i == 3 ? 6 : 2, "gun_" + g + "_fire");
             run(1, c -> c.options.useKey.setPressed(false));
             run(25, c -> ArsenalClient.send("reload", 0));
             shot(10, "gun_" + g + "_reload");
@@ -1545,19 +1544,34 @@ public final class DevAutotest {
             shot(20, "gun_tp_back_" + guns[i]);
         }
         run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
-        // вид сбоку: камера-невидимка справа от игрока
+        // вид сбоку: «манекены»-игроки (та же модель и поза) с каждым стволом, стоят боком
         server(5, s -> {
             ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
-            p.teleport(p.getServerWorld(), p.getX(), p.getY(), p.getZ(), 0, 8);
+            p.teleport(p.getServerWorld(), p.getX(), p.getY(), p.getZ(), 0, 10);
         });
-        for (int i : new int[]{0, 1, 2, 3, 4}) {
-            run(5, c -> c.player.getInventory().selectedSlot = i);
-            run(15, c -> sideCam(c, -2.6, 1.2, 0.9));
-            shot(4, "gun_tp_side_" + guns[i]);
-        }
-        run(5, c -> sideCam(c, -1.6, 1.6, -2.4));
-        shot(4, "gun_tp_34_rifle");
-        run(5, c -> { c.setCameraEntity(c.player); c.options.hudHidden = false; });
+        run(10, c -> {
+            for (int i = 0; i < 5; i++) {
+                var d = new net.minecraft.client.network.OtherClientPlayerEntity(c.world, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Gun" + i));
+                d.setId(-7000 - i);
+                double x = c.player.getX() + 3.2 - i * 1.6, z = c.player.getZ() + 4.5;
+                float yaw = i % 2 == 0 ? 90 : -90;
+                d.refreshPositionAndAngles(x, c.player.getY(), z, yaw, i == 4 ? -10 : 0);
+                d.setHeadYaw(yaw);
+                d.setBodyYaw(yaw);
+                d.prevBodyYaw = yaw;
+                d.prevHeadYaw = yaw;
+                d.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, new net.minecraft.item.ItemStack(net.minecraft.registry.Registries.ITEM.get(
+                        net.minecraft.util.Identifier.of("novograd", guns[i]))));
+                c.world.addEntity(d);
+            }
+            c.player.getInventory().selectedSlot = 8;
+            c.options.hudHidden = true;
+        });
+        shot(20, "gun_side");
+        run(5, c -> {
+            for (int i = 0; i < 5; i++) c.world.removeEntity(-7000 - i, net.minecraft.entity.Entity.RemovalReason.DISCARDED);
+            c.options.hudHidden = false;
+        });
         // иконки
         run(10, c -> c.setScreen(new net.minecraft.client.gui.screen.ingame.InventoryScreen(c.player)));
         shot(20, "gun_inventory");
@@ -1584,26 +1598,6 @@ public final class DevAutotest {
         shot(40, "gun_npc0");
         shot(40, "gun_npc");
         run(20, MinecraftClient::scheduleStop);
-    }
-
-    /** Камера со стороны (смещение от игрока dx, dy, dz) смотрит на него. */
-    private static void sideCam(MinecraftClient c, double dx, double dy, double dz) {
-        var cam = new net.minecraft.entity.decoration.ArmorStandEntity(net.minecraft.entity.EntityType.ARMOR_STAND, c.world);
-        cam.setInvisible(true);
-        double x = c.player.getX() + dx, y = c.player.getY() + dy, z = c.player.getZ() + dz;
-        cam.setPosition(x, y - cam.getStandingEyeHeight(), z);
-        cam.lastRenderX = cam.prevX = x;
-        cam.lastRenderY = cam.prevY = y - cam.getStandingEyeHeight();
-        cam.lastRenderZ = cam.prevZ = z;
-        double lx = c.player.getX() - x, ly = c.player.getY() + 1.3 - y, lz = c.player.getZ() - z;
-        float yaw = (float) Math.toDegrees(Math.atan2(-lx, lz)), pitch = (float) -Math.toDegrees(Math.atan2(ly, Math.sqrt(lx * lx + lz * lz)));
-        cam.setYaw(yaw);
-        cam.prevYaw = yaw;
-        cam.setPitch(pitch);
-        cam.prevPitch = pitch;
-        cam.setHeadYaw(yaw);
-        c.options.hudHidden = true;
-        c.setCameraEntity(cam);
     }
 
     private static void pressKey(MinecraftClient c, int key) {

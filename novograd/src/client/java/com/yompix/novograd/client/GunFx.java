@@ -80,6 +80,9 @@ public final class GunFx {
     private static float lastYaw = Float.NaN, lastPitch;
     private static long lastNanos, flashUntil, shotAt;
     private static float flashSpin, flashScale;
+    private static Item drawItem;
+    private static int drawSlot = -1;
+    private static long drawStart;
     private static Kind lastKind = Kind.PISTOL;
     // перезарядка: когда началась и сколько длится (мс)
     private static long reloadStart;
@@ -97,7 +100,6 @@ public final class GunFx {
     /** Вызывается из GunItem на клиенте при каждом выстреле (и одиночном, и очередью). */
     public static void onShot(GunItem g) {
         Kind k = kind(g);
-        if (testFlashNs > 0) Novograd.LOG.info("[gunfx] shot {}", k);
         lastKind = k;
         float aim = 1f - ads * 0.35f; // в прицеле отдача ниже
         recoilV += 9f * k.kick * aim;
@@ -199,12 +201,30 @@ public final class GunFx {
         Kind k = kind(item.getItem());
         float a = main ? ads : 0, sp = main ? sprint : 0, rc = main ? recoil : 0;
 
+        // «достать оружие»: своя анимация при смене ствола (ванильный equipProgress дёргается на каждом выстреле)
+        float draw = 0;
+        if (main) {
+            int slot = player.getInventory().selectedSlot;
+            if (item.getItem() != drawItem || slot != drawSlot) {
+                drawItem = item.getItem();
+                drawSlot = slot;
+                drawStart = System.nanoTime();
+            }
+            float dp = MathHelper.clamp((System.nanoTime() - drawStart) / 3.2e8f, 0, 1);
+            draw = (1 - dp) * (1 - dp);
+            equipProgress = 0;
+        }
+
         m.push();
         // база (как у ванили) → к центру при прицеливании
         float x = MathHelper.lerp(a, 0.56f, k == Kind.PISTOL ? 0.16f : 0.2f) * s;
         float y = MathHelper.lerp(a, -0.52f, -0.43f) + equipProgress * -0.6f;
         float z = MathHelper.lerp(a, -0.72f, -0.62f);
-        m.translate(x, y, z);
+        m.translate(x, y - 0.45f * draw, z);
+        if (draw > 0) {
+            m.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-35f * draw));
+            m.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-20f * draw * s));
+        }
 
         // ходьба: «восьмёрка» (мягче в прицеле)
         float stride = MathHelper.lerp(tickDelta, player.prevStrideDistance, player.strideDistance);

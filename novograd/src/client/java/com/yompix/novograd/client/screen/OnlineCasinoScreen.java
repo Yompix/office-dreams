@@ -290,7 +290,7 @@ public class OnlineCasinoScreen extends LifeScreen {
             button(ctx, bx + (i % 3) * 30, y + 37 + (i / 3) * 16, 28, 13, l, i == autoIndex ? 0xFFFFB300 : 0xFF3D1A55, !crashRunning(), () -> autoIndex = ai);
         }
         Ui.small(ctx, textRenderer, "3% раундов — краш сразу", bx, y + 74, 0.7f, 0xFF9E86B0, 0);
-        Ui.small(ctx, textRenderer, "Заведению ~5%, потолок ×100", bx, y + 83, 0.7f, 0xFF9E86B0, 0);
+        Ui.small(ctx, textRenderer, "Казино ~5% · макс. ×100", bx, y + 83, 0.7f, 0xFF9E86B0, 0);
         ctx.drawText(textRenderer, "Забери до краша!", gx, gy + gh + 2, 0xFF9E86B0, false);
     }
 

@@ -164,7 +164,7 @@ def gun_display(grip, length, fp=(0, 0, 0), fp_scale=0.85, tp_scale=0.85, gui_sc
     """grip — точка рукояти (x, y, z) в пикселях модели; length — длина ствола-приклада (для иконки)."""
     gx, gy, gz = (grip[0] - 8, grip[1] - 8, grip[2] - 8)
     gs = gui_scale or min(0.9, 15.0 / length)
-    tp = [round(-gx * tp_scale, 2), round(-gy * tp_scale + 1.0, 2), round(-gz * tp_scale - 1.0, 2)]
+    tp = [round(-gx * tp_scale, 2), round(-gy * tp_scale - 1.5, 2), round(-gz * tp_scale + 1.5, 2)]  # рукоять — в кулаке
     return {
         # от первого лица ствол уходит вперёд, чуть к центру экрана
         'firstperson_righthand': {'rotation': [fp_pitch, 4, 0], 'translation': [round(fp[0] - gx * fp_scale, 2), round(fp[1] - gy * fp_scale, 2), round(fp[2] - gz * fp_scale, 2)],
