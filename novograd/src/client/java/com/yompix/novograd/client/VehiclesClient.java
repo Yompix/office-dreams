@@ -42,6 +42,7 @@ public final class VehiclesClient {
         });
         Vehicles.clientTick = VehiclesClient::engine;
         HudRenderCallback.EVENT.register((ctx, t) -> hud(ctx));
+        CarHud.init(); // машины: ручник, спидометр с передачей, следы шин
     }
 
     private static void engine(MotorVehicle v) {

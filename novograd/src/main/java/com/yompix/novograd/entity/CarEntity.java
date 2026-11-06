@@ -851,7 +851,7 @@ public class CarEntity extends Entity {
         double z = getZ() + fz * seat[1] + rz * seat[0];
         float sc = passenger instanceof LivingEntity le ? le.getScale() : 1f;
         // бёдра ровно на подушке сиденья (с учётом роста); ребёнок сидит на бустере, чтобы видеть дорогу
-        double y = getY() + (isScooter() ? 0.7 - 0.75 * sc : isBike() ? (i == 0 ? 0.86 : 0.95) - 0.75 * sc : 0.645 - 0.75 * sc + (1 - sc) * 0.35);
+        double y = getY() + (isScooter() ? 0.7 - 0.75 * sc : isBike() ? (i == 0 ? 0.86 : 0.95) - 0.75 * sc : 0.645 - 0.75 * sc + (1 - sc) * 0.35 - seatDrop());
         updater.accept(passenger, x, y, z);
         if (yawTick == age && YAW_DONE.getOrDefault(passenger, -1) != age) {
             YAW_DONE.put(passenger, age);
@@ -859,6 +859,15 @@ public class CarEntity extends Entity {
             passenger.setHeadYaw(passenger.getHeadYaw() + tickYawDelta);
         }
         if (passenger instanceof LivingEntity le) le.setBodyYaw(getYaw());
+    }
+
+    /** Низкие кузова: сиденья ниже (спорткупе, маслкар), чтобы голова не торчала сквозь крышу. */
+    private double seatDrop() {
+        return switch (body()) {
+            case SPORTS -> 2 / 16.0;
+            case MUSCLE -> 1 / 16.0;
+            default -> 0;
+        };
     }
 
     @Override

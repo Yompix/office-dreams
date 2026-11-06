@@ -7,7 +7,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.random.Random;
 
-/** Мотор: тон растёт со скоростью, затихает, когда водитель вышел. */
+/** Мотор: тон по оборотам (передачи CarEntity.gear/rpm), громче под газом, затихает, когда водитель вышел. */
 public class CarEngineSound extends MovingSoundInstance {
     private final CarEntity car;
     private int idle;
@@ -37,12 +37,23 @@ public class CarEngineSound extends MovingSoundInstance {
         x = car.getX();
         y = car.getY();
         z = car.getZ();
-        float speed = Math.abs(car.clientSpeed);
         boolean driven = car.getControllingPassenger() != null || car.hasNpcDriver();
         idle = driven ? 0 : idle + 1;
-        float targetVol = driven ? 0.45f + speed * 0.5f : 0;
+        // тон — от оборотов: растёт на передаче и проседает при переключении; грузовики басовитее, спорткары звонче
+        float base = 1f;
+        if (!car.isBike() && !car.isScooter()) base = switch (car.body()) {
+            case TRUCK -> 0.72f;
+            case VAN, PICKUP, SUV -> 0.85f;
+            case MUSCLE -> 0.8f;
+            case SPORTS -> 1.12f;
+            case HATCH -> 1.08f;
+            default -> 1f;
+        };
+        float targetVol = driven ? 0.38f + car.rpm * 0.32f + car.throttle * 0.12f : 0;
         volume = MathHelper.lerp(0.15f, volume, targetVol);
-        pitch = MathHelper.lerp(0.2f, pitch, 0.7f + speed * 1.6f);
+        float targetPitch = (0.55f + car.rpm * 1.05f) * base;
+        // переключение вверх — тон падает быстро, разгон — плавно
+        pitch = MathHelper.lerp(targetPitch < pitch - 0.15f ? 0.45f : 0.22f, pitch, Math.max(0.5f, targetPitch));
         if (idle > 30) setDone();
     }
 }
