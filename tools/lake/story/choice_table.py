@@ -14,10 +14,12 @@ tools/lake/story_audit.py) и кода (godot/lake/scripts/**/*.gd); черно�
 Как считается:
 - выбор — шаг "choice" (варианты, "if" — условие показа, "silent" — молчание по таймеру) и "peek" (взгляд в зеркало);
   время вышло → молчание, а без молчания — первый показанный вариант (scripts/ui/hud.gd);
-- ветка варианта — от его сцены до следующего выбора или до сцены, куда можно попасть и из других вариантов;
-  флаги ветки — "set" в её шагах (с условиями шагов), провал действия ("qte" + "fail") — своя ветка;
+- ветка варианта — от его сцены до следующего выбора, до сцены, через которую обязательно проходят все остальные
+  варианты (ветки сошлись), или до контрольной точки (новый эпизод); флаги ветки — "set" в её шагах (с условиями
+  шагов), провал действия ("qte" + "fail") — своя ветка; сцены, куда ведут и некоторые другие варианты, — «вместе с …»;
 - отклик — флаг ветки читается дальше: условие шага/варианта/точки прогулки в сцене, до которой можно дойти
-  после выбора (не в той же сцене), карта главы, «Ранее…», код постановки (scripts/*.gd, кроме dev/);
+  после выбора (не в той же сцене и не в сцене самого выбора), карта главы, «Ранее…», код постановки (scripts/*.gd,
+  кроме dev/); «без флага» — флаг ставят только другие ветки этого выбора, а дальше игра проверяет, что его нет;
 - концовка — экран «Конец» (game.gd::_the_end) по флагам end_*; «решает концовку» — флаг в условии, от которого
   зависит, какие end_* можно поставить дальше (по графу сцен; цепочки — через флаги, которые он ставит)."""
 import collections, os, re, sys
@@ -500,10 +502,10 @@ def context(sid, i, depth=0):
         return cond_line
     if fx:
         return 'постановка ' + '; '.join(reversed(fx))
-    if depth < 2:
-        preds = sorted({s for s, kind, *_ in INC.get(sid, []) if kind in ('go', 'else')}, key=lambda x: POS.get(x, 0))
-        for p in preds:
-            t = context(p, len(SC[p]['beats']), depth + 1)
+    if depth < 2:   # предыдущая сцена — до того шага, с которого был переход сюда
+        preds = sorted({(s, i) for s, kind, c, i, _ in INC.get(sid, []) if kind in ('go', 'else')}, key=lambda x: (POS.get(x[0], 0), x[1]))
+        for p, i_edge in preds:
+            t = context(p, i_edge, depth + 1)
             if t != 'не определено по данным':
                 return t
     return 'не определено по данным'
@@ -643,9 +645,18 @@ def deferred(flag, set_sid, exclude=()):
     return sorted(out, key=lambda r: (r.kind not in STRONG, r.order))   # сначала сюжет и постановка, потом карта/«Ранее…»
 
 
+def mark_choices(t):
+    """«→ `сцена`» — с номером выбора, если сцена сразу приходит к выбору."""
+    def sub(m):
+        n = first_choice(m.group(2)) if 'NUM_AT' in globals() else None
+        return m.group(0) + (' (выбор №%d)' % n if n else '')
+    return re.sub(r'(→ |иначе → )`([a-z0-9_]+)`', sub, t)
+
+
 def read_txt(r, flag):
     c = r.cond or {}
     part = ' (`%s`%s)' % (A.cond_s({flag: c[flag]}), ', …' if len(c) > 1 else '') if flag in c else ''
+    r = r._replace(text=mark_choices(r.text))
     if r.kind in ('scene', 'option', 'walk'):
         return 'гл. %d · `%s`: %s%s' % (r.ch, r.sid, r.text, part)
     if r.kind == 'recap':
@@ -861,16 +872,6 @@ def ends_txt(es):
     return ', '.join('«%s»' % END_NAMES.get(k, k) for k in seen)
 
 
-def gate_chain(k):
-    """Цепочка до флага, который решает концовку сам: [via1, via2, …], и место решения последнего."""
-    chain, cur, seen = [], k, {k}
-    while GATES.get(cur, {}).get('via') and GATES[cur]['via'] not in seen:
-        cur = GATES[cur]['via']
-        seen.add(cur)
-        chain.append(cur)
-    return chain, GATES[cur]['where'] if cur in GATES else ''
-
-
 def chain_for(v, ends):
     """Цепочка от флага v к флагу, который решает именно эти концовки сам (по причинам с этими концовками)."""
     path, cur, seen = [v], v, {v}
@@ -979,6 +980,17 @@ def segment(start, stop, origin, start_beat=0, max_scenes=12, shared=None):
     return res
 
 
+def ends_set_txt(sets):
+    """«концовка «Лёд» (провал …), «Свидетель» (если действие удалось)» — end_* ветки с условием шага, если оно есть."""
+    by = collections.OrderedDict()
+    for k, v, conds, sid in sets:
+        if k in END_FLAGS:
+            by.setdefault(END_FLAGS[k], set()).add(conds[-1] if conds else '')
+    out = ['«%s»%s' % (END_NAMES.get(e, e), (' (%s)' % next(iter(cs))) if len(cs) == 1 and next(iter(cs)) else '')
+           for e, cs in by.items()]   # одна концовка при разных условиях (и удалось, и провал) — без условия
+    return ('**концовка %s**' % ', '.join(out)) if out else ''
+
+
 def sets_txt(sets):
     out, seen = [], set()
     for k, v, conds, sid in sets:
@@ -1003,9 +1015,14 @@ def flag_reads_txt(flag, set_sid, nmax=3, exclude=()):
         return '`%s` — дальше нигде не читается%s' % (flag, note), None
     kinds = {r.kind for r in rs}
     strength = 'strong' if kinds & STRONG else 'weak'
-    uniq, seen = [], set()   # одно место на сцену (первое по ходу игры)
+
+    def neg(r):   # условие «флага нет»: поставленный флаг эту строку убирает
+        return flag not in COUNTERS and bool(r.cond) and flag in r.cond and is_neg(r.cond[flag])
+
+    rs = sorted(rs, key=lambda r: (r.kind not in STRONG, neg(r), r.order))
+    uniq, seen = [], set()   # одно место на сцену (первое по ходу игры), сначала то, что флаг добавляет
     for r in rs:
-        key = (r.kind, r.sid) if r.sid else (r.kind, r.text)
+        key = ((r.kind, r.sid) if r.sid else (r.kind, r.text)) + (neg(r),)
         if key not in seen:
             seen.add(key)
             uniq.append(r)
@@ -1015,7 +1032,7 @@ def flag_reads_txt(flag, set_sid, nmax=3, exclude=()):
         return '`%s` (счётчик): дальше в %d %s%s — %s%s' % (
             flag, len(uniq), plural(len(uniq), 'месте', 'местах', 'местах'), (', пороги ' + ' '.join(thr)) if thr else '',
             '; '.join(ex), ' …' if len(uniq) > len(ex) else ''), strength
-    txts = [read_txt(r, flag) for r in uniq[:nmax]]
+    txts = [('убирает: ' if neg(r) else '') + read_txt(r, flag) for r in uniq[:nmax]]
     more = ' (+ ещё %d)' % (len(uniq) - nmax) if len(uniq) > nmax else ''
     return '`%s` → %s%s' % (flag, '; '.join(txts), more), strength
 
@@ -1029,9 +1046,11 @@ def is_neg(e):
     return (op == '==' and n == 0) or (op == '<=' and n == 0) or (op == '<' and n == 1)
 
 
-def absent_txt(k, origin, labs, nmax=2, exclude=()):
-    """Флаг ставят другие варианты, а этот — нет: где дальше читается «флага нет» (условие == 0)."""
-    rs = [r for r in deferred(k, origin, exclude) if r.cond and k in r.cond and is_neg(r.cond[k])]
+def absent_txt(k, origin, labs, nmax=1, exclude=()):
+    """Флаг ставят другие варианты, а этот — нет: где дальше читается «флага нет» (условие == 0). Шаги, которые
+    только ставят флаг (без реплики и перехода), не в счёт."""
+    rs = [r for r in deferred(k, origin, exclude) if r.cond and k in r.cond and is_neg(r.cond[k])
+          and not re.sub(r'^(разговор|прогулка `[^`]+`( \([^)]*\))?): ', '', r.text).startswith('ставит ')]
     if not rs:
         return None, None
     uniq, seen = [], set()
@@ -1108,7 +1127,7 @@ def stops_txt(stops, origin_num, sib=None):
             sid_, labs = info
             s = 'вместе с вариантом %s: `%s`' % (', '.join(sorted(set(labs))), sid_)
         elif kind == 'save':
-            s = 'дальше эпизод `%s`%s' % (info, (' («%s»)' % CP[info]) if info in CP else '')
+            s = 'дальше эпизод `%s`%s' % (info, (' — %s' % CP[info]) if info in CP else '')
         elif kind == 'far':
             s = 'длинная своя ветка (дальше `%s`)' % info
         elif kind == 'deadend':
@@ -1137,15 +1156,18 @@ def analyse_option(c, o, seg, siblings, segs=None, absent=()):
     for k, v, conds, sid in sets:
         if k not in [f for f, _ in flags]:
             flags.append((k, sid))
-    deferred_txt, strengths, counter_only = [], set(), True
+    deferred_txt, strengths = [], set()
     for k, sid in flags:
         t, s = flag_reads_txt(k, sid, exclude={c['sid']})
         deferred_txt.append(t)
         if s:
             strengths.add(s if (k not in COUNTERS or s == 'weak') else 'counter')
+    absent_strong = False
     for t, s in absent:   # чего нет в этой ветке, но есть в других
         deferred_txt.append(t)
-        strengths.add(s)
+        absent_strong |= s == 'strong'
+        if s == 'weak':
+            strengths.add('weak')
     other_walks = {w for t2, sg in (segs or {}).items() if t2 != o['go'] for w in sg.get('walks', [])}
     own_walks = [w for w in seg.get('walks', []) if w not in other_walks and w in WALK_INFO]
     walk_strong = False
@@ -1172,13 +1194,13 @@ def analyse_option(c, o, seg, siblings, segs=None, absent=()):
         if only:
             diff.append('**только этот вариант ведёт к %s**' % ends_txt(only))
         diff.append('дальше возможны: %s' % (ends_txt(mine) or 'никакие end_* (уже решено)'))
-    end_set = sorted({END_FLAGS[k] for k, *_ in sets if k in END_FLAGS})
+    end_set = ends_set_txt(sets)
     if end_set:
         end_direct = True
-        diff.append('**концовка %s**' % ends_txt(set(end_set)))
+        diff.append(end_set)
     gate_flags = [k for k, _ in flags if k in GATES]
     for k in gate_flags[:3]:
-        diff.append('на концовку: ' + gate_txt(k))
+        diff.append('на концовку: ' + gate_txt(k, 1 if k in COUNTERS else 2))
     if len(gate_flags) > 3:
         diff.append('и ещё %d флага на концовку' % (len(gate_flags) - 3))
     # статус
@@ -1191,6 +1213,8 @@ def analyse_option(c, o, seg, siblings, segs=None, absent=()):
         status, why = 'есть отклик', 'через действия на своей прогулке'
     elif 'counter' in strengths:
         status, why = 'есть отклик', 'только через счётчик'
+    elif absent_strong:
+        status, why = 'есть отклик', 'только тем, что не ставит флаг другого варианта'
     elif 'weak' in strengths:
         status, why = 'есть отклик', 'только карта главы / «Ранее…»'
     elif has_text or sets or any(k == 'choice' for k, _ in seg['stops']) or any(
@@ -1241,11 +1265,14 @@ def choice_rows(c):
     ent = entry_cond(c['sid'])
     for k, o in enumerate(c['opts']):
         seg = segs[o['go']]
-        own = {k for k, *_ in seg['sets']}
+        own = {f for f, *_ in seg['sets']}
         absent = []
-        for k in sorted({k for t2 in targets if t2 != o['go'] for k, *_ in segs[t2]['sets']} - own - COUNTERS - set(END_FLAGS) - LOCAL):
-            labs = sorted({p['lab'] for p in c['opts'] if p['go'] != o['go'] and k in {x for x, *_ in segs[p['go']]['sets']}})
-            t, st = absent_txt(k, o['go'], ('вариант ' + ', '.join(labs)) if labs else 'другой вариант', exclude={c['sid']})
+        sib_scenes = {x for t2 in targets if t2 != o['go'] for x in segs[t2]['scenes']}
+        for fk in sorted({f for t2 in targets if t2 != o['go'] for f, *_ in segs[t2]['sets']} - own - COUNTERS - set(END_FLAGS) - LOCAL):
+            if any(sp is None or sp not in sib_scenes for sp, _ in SETS.get(fk, [])):
+                continue   # флаг ставят и в других местах игры: его отсутствие здесь ничего не решает
+            labs = sorted({p['lab'] for p in c['opts'] if p['go'] != o['go'] and fk in {x for x, *_ in segs[p['go']]['sets']}})
+            t, st = absent_txt(fk, o['go'], ('вариант ' + ', '.join(labs)) if labs else 'другой вариант', exclude={c['sid']})
             if t:
                 absent.append((t, st))
         a = analyse_option(c, o, seg, c['opts'], segs, absent)
@@ -1368,9 +1395,9 @@ def qte_rows(q, num):
         diff = stops_txt(seg['stops'], None)
         if es != other and (es or other):
             diff.append('дальше возможны: %s' % (ends_txt(es) or 'никакие end_* (уже решено)'))
-        ends_here = sorted({END_FLAGS[k] for k, *_ in seg['sets'] if k in END_FLAGS})
+        ends_here = ends_set_txt(seg['sets'])
         if ends_here:
-            diff.append('**концовка %s**' % ends_txt(set(ends_here)))
+            diff.append(ends_here)
         for k in [k for k, _ in flags if k in GATES][:2]:
             diff.append('на концовку: ' + gate_txt(k))
         if 'strong' in strengths or ends_here or (es != other and (es or other)):
@@ -1384,12 +1411,13 @@ def qte_rows(q, num):
         else:
             st, why = 'нет отклика', 'ветка ничего не показывает и не ставит'
         if lab == 'удалось':
-            for k in [x for x in fail_flags if x not in COUNTERS and x not in END_FLAGS and x not in [f for f, _ in flags]]:
+            for k in [x for x in fail_flags if x not in COUNTERS and x not in END_FLAGS and x not in [f for f, _ in flags]
+                      and all(sp in seg_fail['scenes'] for sp, _ in SETS.get(x, []))]:
                 t, stt = absent_txt(k, sid, 'провал')
                 if t:
                     dtxt.append(t)
                     if stt == 'strong' and st != 'есть отклик':
-                        st, why = 'есть отклик', ''
+                        st, why = 'есть отклик', 'только тем, что не ставит флаг провала'
         if lab == 'удалось' and not flags and fail_flags:
             diff.insert(0, 'отличие от провала: не ставятся %s' % ', '.join('`%s`' % k for k in fail_flags))
         now = first_lines(sid, q['after']) if tgt is None else first_lines(tgt)
@@ -1447,8 +1475,13 @@ def action_row(num, sid, where_lbl, situation, label, beats, cond, walk_id):
     dtxt, strengths = [], set()
     unlock = []
     for k in flags:
+        after = [r for r in READS.get(k, []) if r.sid == sid and r.kind in ('scene', 'option')]   # та же сцена — после прогулки
+        if after:
+            dtxt.append('`%s` → сразу после прогулки/разговора: %s' % (k, '; '.join(read_txt(r, k) for r in after[:2])))
+            strengths.add('strong')
         t, st = flag_reads_txt(k, sid)
-        dtxt.append(t)
+        if not (after and st is None):
+            dtxt.append(t)
         if st:
             strengths.add(st if k not in COUNTERS else 'counter')
         for r in READS.get(k, []):   # та же прогулка/разговор: что сразу открывает (условие «> 0») или убирает («== 0»)
@@ -1634,12 +1667,12 @@ def main():
     COPIES.update(copies)
 
     # ---- сводка
-    L = ['# WHAT THE LAKE KEEPS — отклики на решения игрока', '',
+    H = ['# WHAT THE LAKE KEEPS — отклики на решения игрока', '',
          'Собрано `tools/lake/story/choice_table.py` из данных игры (`godot/lake/data/ch1–ch5.json`, разбор — '
          '`tools/lake/story_audit.py`) и кода постановки (`godot/lake/scripts/**/*.gd`). Руками не править: после правок '
          'данных — `python3 tools/lake/story/choice_table.py`. Черновик новых откликов (на утверждение) — '
-         '[`FLAG_RESPONSES_DRAFT.md`](FLAG_RESPONSES_DRAFT.md).', '',
-         '## Как читать', '',
+         '[`FLAG_RESPONSES_DRAFT.md`](FLAG_RESPONSES_DRAFT.md). Как читать таблицы — перед главой 1.', '']
+    LEGEND = ['## Как читать', '',
          '- Одна строка — один вариант выбора, в порядке прохождения. «м» — молчание: игрок ничего не нажал, пока шла '
          'полоска времени. Где молчания нет, по истечении времени игра сама берёт первый показанный вариант (`hud.gd`). '
          'Настройка «долгий выбор» даёт ×1,6 времени.',
@@ -1651,11 +1684,15 @@ def main():
          '- **Отложенно** — где эти флаги читаются дальше: сцены и варианты (условие `if`), прогулки, эпилог, карта главы '
          '(экран в конце главы и «дерево выборов» в меню), «Ранее…» (виден только после «Продолжить»), код постановки. '
          'Только места, куда можно попасть после этого выбора, и не та же сцена.',
-         '- **Статус:** «есть отклик» — флаг ветки где-то дальше меняет игру (или ветка сама решает концовку); с пометкой '
+         '- **Статус:** «есть отклик» — флаг ветки где-то дальше меняет игру (или ветка сама решает концовку). Пометки: '
          '«только через счётчик» — меняется лишь число (`trust`, `shadow`, `memory`…), которое действует по порогам; '
-         '«только карта главы / «Ранее…»» — в сюжете не видно; «только сразу» — своя сцена есть, дальше ничего не '
-         'меняется; «нет отклика» — вариант ничем не отличается (все варианты ведут в одну сцену или ветка пустая). '
-         'Для флагов без отклика — ссылка на предложенный отклик из черновика, если он там есть.',
+         '«только тем, что не ставит флаг другого варианта» — своего флага нет, но дальше есть место, где игра проверяет, '
+         'что флага другого варианта нет (`флаг==0`; например, «Никто» вместо «Пойду я» — роды без света тяжелее), — '
+         'считается только флаг, который ставится лишь в ветках этого выбора; «через действия на своей прогулке» — '
+         'вариант ведёт на прогулку, где можно сделать действие с откликом; «только карта главы / «Ранее…»» — в сюжете '
+         'не видно. «Только сразу» — своя сцена есть, дальше ничего не меняется. «Нет отклика» — вариант ничем не '
+         'отличается (все варианты ведут в одну сцену или ветка пустая). Для флагов без отклика — ссылка на '
+         'предложенный отклик из черновика, если он там есть.',
          '- **Концовка** — по графу сцен (без перебора флагов): какие `end_*` ещё можно поставить после варианта и какие '
          'флаги ветки влияют на выбор концовки (цепочки — через флаги, которые от них зависят).', '']
 
@@ -1663,15 +1700,19 @@ def main():
         cnt = collections.Counter()
         for r in rows:
             if r['st'] == 'есть отклик':
-                cnt['yes_counter' if r['why'] == 'только через счётчик' else ('yes_weak' if r['why'] else 'yes')] += 1
+                w = r['why']
+                cnt['yes_counter' if w == 'только через счётчик' else 'yes_absent' if w.startswith('только тем, что не ставит')
+                    else 'yes_weak' if w.startswith('только карта') else 'yes'] += 1
             else:
                 cnt[r['st']] += 1
         return cnt
 
+    L = list(H)
     L += ['## Сводка', '',
-          '| Глава | Выборов | Вариантов (из них молчание) | Есть отклик | — только через счётчик | — только карта/«Ранее…» | '
-          'Только сразу | Нет отклика | Действий с провалом | Действий на прогулках и в разговорах с флагом |',
-          '|---|---|---|---|---|---|---|---|---|---|']
+          '| Глава | Выборов | Вариантов (из них молчание) | Есть отклик | — из них только через счётчик | — только «без флага» '
+          'другого варианта | — только карта/«Ранее…» | Только сразу | Нет отклика | Действий с провалом | Действий на прогулках '
+          'и в разговорах с флагом |',
+          '|---|---|---|---|---|---|---|---|---|---|---|']
     tot = collections.Counter()
     console = []
     for ch in chs:
@@ -1682,22 +1723,35 @@ def main():
         nw = len(rows_w.get(ch, []))
         ncopy = len([c for c in cs if c['num'] in copies])
         nsil = len([r for r in rs if r['silent']])
-        L.append('| %d | %d%s | %d (%d) | %d | %d | %d | %d | %d | %d | %d |' % (
-            ch, len(cs), (' (%d — копии развилки)' % ncopy) if ncopy else '', len(rs), nsil,
-            st['yes'] + st['yes_counter'] + st['yes_weak'], st['yes_counter'], st['yes_weak'], st['только сразу'],
-            st['нет отклика'], nq, nw))
-        tot.update(dict(c=len(cs), o=len(rs), s=nsil, y=st['yes'] + st['yes_counter'] + st['yes_weak'], yc=st['yes_counter'],
-                        yw=st['yes_weak'], im=st['только сразу'], no=st['нет отклика'], q=nq, w=nw, cp=ncopy))
-        console.append('гл.%d: выборов %d, вариантов %d (молчание %d): отклик %d (счётчик %d, карта %d), только сразу %d, нет %d; '
-                       'действий с провалом %d, прогулки/разговоры с флагом %d' % (
-                           ch, len(cs), len(rs), nsil, st['yes'] + st['yes_counter'] + st['yes_weak'], st['yes_counter'],
-                           st['yes_weak'], st['только сразу'], st['нет отклика'], nq, nw))
-    L.append('| **Всего** | **%d**%s | **%d (%d)** | **%d** | %d | %d | **%d** | **%d** | %d | %d |' % (
-        tot['c'], (' (%d — копии)' % tot['cp']) if tot['cp'] else '', tot['o'], tot['s'], tot['y'], tot['yc'], tot['yw'],
-        tot['im'], tot['no'], tot['q'], tot['w']))
-    L += ['', 'Выбор — шаг с вариантами (`choice`) или взгляд в зеркало (`peek`). «Копии развилки» — тот же набор вариантов '
-          'в другой сцене (показывается одна из них, по флагам). Действия с провалом и действия на прогулках — в своих '
-          'таблицах в конце каждой главы.', '']
+        yes = st['yes'] + st['yes_counter'] + st['yes_weak'] + st['yes_absent']
+        L.append('| %d | %d%s | %d (%d) | %d | %d | %d | %d | %d | %d | %d | %d |' % (
+            ch, len(cs), (' (%d — копии развилки)' % ncopy) if ncopy else '', len(rs), nsil, yes, st['yes_counter'],
+            st['yes_absent'], st['yes_weak'], st['только сразу'], st['нет отклика'], nq, nw))
+        tot.update(dict(c=len(cs), o=len(rs), s=nsil, y=yes, yc=st['yes_counter'], ya=st['yes_absent'], yw=st['yes_weak'],
+                        im=st['только сразу'], no=st['нет отклика'], q=nq, w=nw, cp=ncopy))
+        console.append('гл.%d: выборов %d, вариантов %d (молчание %d): отклик %d (счётчик %d, «без флага» %d, карта %d), '
+                       'только сразу %d, нет %d; действий с провалом %d, прогулки/разговоры с флагом %d' % (
+                           ch, len(cs), len(rs), nsil, yes, st['yes_counter'], st['yes_absent'], st['yes_weak'],
+                           st['только сразу'], st['нет отклика'], nq, nw))
+    L.append('| **Всего** | **%d**%s | **%d (%d)** | **%d** | %d | %d | %d | **%d** | **%d** | %d | %d |' % (
+        tot['c'], (' (%d — копии)' % tot['cp']) if tot['cp'] else '', tot['o'], tot['s'], tot['y'], tot['yc'], tot['ya'],
+        tot['yw'], tot['im'], tot['no'], tot['q'], tot['w']))
+    L += ['', 'Выбор — шаг с вариантами (`choice`) или взгляд в зеркало (`peek`); «молчание» — вариант, если не выбрать за '
+          'отведённое время. «Копии развилки» — тот же набор вариантов в другой сцене (показывается одна из них, по флагам). '
+          'Действия с провалом и действия на прогулках — в своих таблицах в конце каждой главы. Статусы — в «Как читать».', '']
+    decisive = []
+    for c in CHOICES:   # варианты ведут к разным наборам возможных концовок
+        targets = {o['go'] for o in c['opts']}
+        es = [ends_reach(t) for t in targets]
+        if len(targets) > 1 and any(e != es[0] for e in es):
+            decisive.append('№%d (`%s`)' % (c['num'], c['sid']))
+    direct0 = sorted(k for k, g in GATES.items() if any(r['depth'] == 0 and r['kind'] == 'решает' for r in g['reasons']))
+    diff0 = sorted(k for k, g in GATES.items() if any(r['depth'] == 0 and r['kind'] == 'сложность' for r in g['reasons']))
+    L += ['**Концовку решают** (по данным и `game.gd`): выборы %s; флаги %s; сложность действий на льду — %s. Остальные '
+          'флаги влияют через них (%d флагов, цепочки — в разделе «Концовки»).' % (
+              ', '.join(decisive) or '—',
+              ', '.join('`%s` (%s)' % (k, ends_txt({e for r in GATES[k]['reasons'] if r['depth'] == 0 for e in r['ends']})) for k in direct0),
+              ', '.join('`%s`' % k for k in diff0), len(GATES) - len(set(direct0) | set(diff0))), '']
 
     # ---- концовки
     setters = collections.defaultdict(list)
@@ -1751,12 +1805,6 @@ def main():
           'перебора всех сочетаний флагов):', '']
     for k in chain:
         L.append('- `%s` → %s' % (k, reasons_line(k)))
-    decisive = []
-    for c in CHOICES:
-        targets = {o['go'] for o in c['opts']}
-        es = [ends_reach(t) for t in targets]
-        if len(targets) > 1 and any(e != es[0] for e in es):
-            decisive.append('№%d (`%s`)' % (c['num'], c['sid']))
     L += ['', '**Выборы, от варианта которых прямо зависит, какие концовки ещё возможны:** %s.' % (', '.join(decisive) or 'нет'), '']
 
     # ---- находки
@@ -1796,10 +1844,11 @@ def main():
         return [r for s, _ in SETS[k] if s for r in deferred(k, s)]
 
     local = [k for k in flags_set if READS.get(k) and not later(k) and all(s for s, _ in SETS[k])]
-    L.append('6. **Флаги, которые читаются только в той же сцене** (прогулка, разговор, развилка внутри сцены; дальше по '
-             'игре не влияют, %d): %s.' % (len(local), ', '.join('`%s` (%s)%s' % (k, places(k, 2), draft_mark(k)) for k in local) or 'нет'))
+    L.append('6. **Флаги, которые читаются только в той же сцене** (шаг прогулки, тема разговора, переход сразу после '
+             'прогулки, подсчёт доказательств, %d): %s.' % (len(local), ', '.join('`%s` (%s)%s' % (k, places(k, 2), draft_mark(k)) for k in local) or 'нет'))
     weak = [k for k in flags_set if later(k) and not any(r.kind in STRONG for r in later(k))]
-    L.append('7. **Флаги, которые дальше видно только в карте главы или в «Ранее…»** (в сюжете не меняют ничего, %d): %s.' % (
+    L.append('7. **Флаги, которые дальше видно только в карте главы или в «Ранее…»** (сам флаг в сюжете ничего не меняет; '
+             'у того же варианта могут быть другие флаги, %d): %s.' % (
         len(weak), ', '.join('`%s`' % k for k in weak) or 'нет'))
     init = {k for k, v in DATA['flags'].items() if v}
     noset = sorted(k for k in READS if k not in SETS and k not in init and k not in END_FLAGS)
@@ -1818,6 +1867,7 @@ def main():
         L.append('10. **Копии развилки** (тот же набор вариантов в другой сцене): %s.' % ', '.join('№%d = №%d' % (a, b) for a, b in sorted(copies.items())))
     L.append('')
 
+    L += LEGEND
     # ---- главы
     for ch in chs:
         title = A.txt(CHAPTERS[ch].get('title')) if ch > 1 else A.txt(DATA.get('title'))
@@ -1836,12 +1886,12 @@ def main():
                   'Необязательные: точку можно не осматривать, тему — не выбирать. Без таймера.', '']
             L += table(rows_w[ch])
         if plain_w.get(ch):
-            L += ['', '**Без флагов (ничего не ставят, только сцена на месте):** ' + '; '.join(plain_w[ch]) + '.']
+            L += ['', '**Без последствий** (ничего не ставят или только отметку «уже было»; сцена — на месте): ' + '; '.join(plain_w[ch]) + '.']
         L.append('')
     text = '\n'.join(L).rstrip() + '\n'
     print('\n'.join(console))
-    print('всего: выборов %d, вариантов %d: с откликом %d (только счётчик %d, только карта/«Ранее…» %d), только сразу %d, нет %d' % (
-        tot['c'], tot['o'], tot['y'], tot['yc'], tot['yw'], tot['im'], tot['no']))
+    print('всего: выборов %d, вариантов %d: с откликом %d (только счётчик %d, только «без флага» %d, только карта/«Ранее…» %d), '
+          'только сразу %d, нет %d' % (tot['c'], tot['o'], tot['y'], tot['yc'], tot['ya'], tot['yw'], tot['im'], tot['no']))
     print('концовку решают напрямую:', ', '.join(direct), '| сложность:', ', '.join(diffic), '| косвенно: %d' % len(chain))
     if check:
         return 0
