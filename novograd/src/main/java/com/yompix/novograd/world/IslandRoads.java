@@ -39,11 +39,16 @@ public final class IslandRoads {
 
     /** Ближайший к точке узел, от которого есть хоть одна дорога. */
     public static int[] nearestNode(double x, double z) {
+        int[] n = nearestNode(x, z, 7);
+        return n != null ? n : nearestNode(x, z, 22); // глушь — ищем дальше (до ~1 км)
+    }
+
+    private static int[] nearestNode(double x, double z, int r) {
         int bx = snap(x), bz = snap(z);
         int[] best = null;
         double bd = Double.MAX_VALUE;
-        for (int dx = -7; dx <= 7; dx++)
-            for (int dz = -7; dz <= 7; dz++) {
+        for (int dx = -r; dx <= r; dx++)
+            for (int dz = -r; dz <= r; dz++) {
                 int nx = bx + dx * STEP, nz = bz + dz * STEP;
                 if (!Island.road(nx, nz) || !(edge(nx, nz, nx + STEP, nz) || edge(nx, nz, nx - STEP, nz) || edge(nx, nz, nx, nz + STEP) || edge(nx, nz, nx, nz - STEP))) continue;
                 double d = Math.hypot(nx - x, nz - z);

@@ -240,7 +240,10 @@ public final class DevAutotest {
             server(5, s -> {
                 ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
                 var w = p.getServerWorld();
-                p.teleport(w, 120, Story.topY(w, 120, -720) + 1, -720, 0, 0);
+                String[] fr = System.getProperty("novograd.taxifrom", "120,-720").split(",");
+                int fx = Integer.parseInt(fr[0]), fz = Integer.parseInt(fr[1]);
+                w.getChunk(fx >> 4, fz >> 4);
+                p.teleport(w, fx, Story.topY(w, fx, fz) + 1, fz, 0, 0);
                 Life.get(p).money += 2000;
             });
             server(40, s -> com.yompix.novograd.life.Taxi.call(s.getPlayerManager().getPlayer(P), "bank_tower"));
@@ -250,7 +253,10 @@ public final class DevAutotest {
                     ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
                     var cid = com.yompix.novograd.life.Taxi.carOf(p);
                     var car = cid == null ? null : p.getServerWorld().getEntity(cid);
-                    if (car != null && p.getVehicle() == null && car.squaredDistanceTo(p) < 64 * 64 && n > 2) p.startRiding(car, true);
+                    if (car != null && p.getVehicle() == null && n > 2 && Life.get(p).taskKind.equals("taxi_wait")) { // «дошёл» до такси
+                        if (car.squaredDistanceTo(p) > 64 * 64) p.teleport(p.getServerWorld(), car.getX() + 2, car.getY(), car.getZ(), 0, 0);
+                        p.startRiding(car, true);
+                    }
                     var to = Story.place(p.getServerWorld(), "bank_tower");
                     com.yompix.novograd.Novograd.LOG.info("[taxitest] t={} riding={} task={} pos={} car={} distToBank={}", n * 5, p.getVehicle() != null, Life.get(p).taskKind,
                             p.getBlockPos().toShortString(), car == null ? "-" : car.getBlockPos().toShortString(), to == null ? -1 : (int) Math.sqrt(p.squaredDistanceTo(to)));

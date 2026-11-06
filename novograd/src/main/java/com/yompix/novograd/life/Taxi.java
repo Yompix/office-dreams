@@ -160,7 +160,15 @@ public final class Taxi {
             WAITING.remove(p.getUuid());
             return;
         }
-        Vec3d start = roadPointAround(t, p.getPos(), 36);
+        // игрок далеко от дорог (лес, горы, пустошь) — такси ждёт на ближайшей дороге, туда и подъезжает
+        Vec3d road = nearestRoad(t, p.getPos());
+        boolean offRoad = road.distanceTo(p.getPos()) > 40;
+        Vec3d start = offRoad ? roadPointAround(t, road, 30) : roadPointAround(t, p.getPos(), 36);
+        // держим участок с такси загруженным, пока игрок не сел (иначе далёкая машина «пропадает»)
+        release(p);
+        net.minecraft.util.math.ChunkPos cp = new net.minecraft.util.math.ChunkPos(net.minecraft.util.math.BlockPos.ofFloored(start));
+        w.setChunkForced(cp.x, cp.z, true);
+        FORCED.put(p.getUuid(), cp);
         CarEntity car = new CarEntity(ModContent.CAR, w);
         double sy = island ? com.yompix.novograd.story.Story.topY(w, (int) Math.floor(start.x), (int) Math.floor(start.z)) + 0.2 : t.origin.getY();
         car.refreshPositionAndAngles(start.x, sy, start.z, 0, 0);
@@ -180,12 +188,15 @@ public final class Taxi {
         w.spawnEntity(bag);
         bag.startRiding(car, true);
         CARS.put(p.getUuid(), car.getUuid());
-        Vec3d pickup = nearestRoad(t, p.getPos());
+        Vec3d pickup = road;
+        PICKUP.put(p.getUuid(), pickup);
+        WAIT_TICKS.remove(p.getUuid());
         List<Vec3d> r = route(t, start, pickup);
         com.yompix.novograd.Novograd.LOG.info("taxi route from {} to {}: {}", start, pickup, r);
         car.setRoute(r, 0.55f, () -> arrivedForClient(p.getUuid(), car));
         int secs = (int) (Math.sqrt(start.squaredDistanceTo(pickup)) / 9) + 3;
-        Life.message(p, "Такси", "Жёлтая машина едет к тебе, примерно " + secs + " с. Выйди к дороге — золотой столб покажет место.");
+        if (offRoad) Life.message(p, "Такси", "Здесь нет дорог — такси ждёт на ближайшей дороге, в " + (int) road.distanceTo(p.getPos()) + " м. Метка на радаре.");
+        else Life.message(p, "Такси", "Жёлтая машина едет к тебе, примерно " + secs + " с. Выйди к дороге — золотой столб покажет место.");
         Life.get(p).taskKind = "taxi_wait";
         Life.get(p).taskPos = BlockPos.ofFloored(pickup);
         Life.sync(p);
@@ -193,6 +204,14 @@ public final class Taxi {
 
     /** Как в GTA: в такси можно пропустить дорогу — экран темнеет, и ты уже на месте. */
     private static final Map<UUID, Integer> STUCK = new HashMap<>();
+    private static final Map<UUID, Integer> WAIT_TICKS = new HashMap<>();
+    private static final Map<UUID, Vec3d> PICKUP = new HashMap<>();
+    private static final Map<UUID, net.minecraft.util.math.ChunkPos> FORCED = new HashMap<>();
+
+    private static void release(ServerPlayerEntity p) {
+        var cp = FORCED.remove(p.getUuid());
+        if (cp != null) p.getServerWorld().setChunkForced(cp.x, cp.z, false);
+    }
 
     public static void skip(ServerPlayerEntity p) {
         UUID cid = CARS.get(p.getUuid());
@@ -231,6 +250,19 @@ public final class Taxi {
         ServerWorld w = p.getServerWorld();
         Order o = WAITING.get(p.getUuid());
         if (o != null && !CARS.containsKey(p.getUuid()) && w.getTime() - o.at() > 400) dispatchNpc(p, o);
+        // такси едет к игроку, но застряло — через 45 с просто ставим его на место посадки
+        if (o != null && CARS.get(p.getUuid()) != null && w.getEntity(CARS.get(p.getUuid())) instanceof CarEntity coming && p.getVehicle() != coming) {
+            Vec3d pick = PICKUP.get(p.getUuid());
+            int wt = WAIT_TICKS.merge(p.getUuid(), 1, Integer::sum);
+            if (pick != null && wt > 45 && coming.squaredDistanceTo(pick) > 12 * 12) {
+                int y = com.yompix.novograd.story.Story.topY(w, (int) Math.floor(pick.x), (int) Math.floor(pick.z));
+                w.getChunk(net.minecraft.util.math.BlockPos.ofFloored(pick));
+                coming.refreshPositionAndAngles(pick.x, y + 0.2, pick.z, coming.getYaw(), 0);
+                coming.setRoute(List.of(), 0.5f, null);
+                arrivedForClient(p.getUuid(), coming);
+                WAIT_TICKS.put(p.getUuid(), -100000);
+            }
+        }
         UUID cid = CARS.get(p.getUuid());
         if (cid != null && w.getEntity(cid) instanceof CarEntity stuckCar && p.getVehicle() == stuckCar && "taxi_ride".equals(Life.get(p).taskKind)) {
             // застряли в пробке/на объезде дольше 20 секунд — довозим «за кадром», как пропуск поездки
@@ -245,6 +277,7 @@ public final class Taxi {
             Order ord = WAITING.get(p.getUuid());
             if (ord != null && p.getVehicle() == car && !car.onRoute()) {
                 WAITING.remove(p.getUuid());
+                release(p);
                 TownState t = TownState.get(w);
                 Vec3d drop = island ? ord.dest() : nearestRoad(t, ord.dest());
                 Life.get(p).taskKind = "taxi_ride";
@@ -262,8 +295,8 @@ public final class Taxi {
                     CARS.remove(p.getUuid());
                 });
             }
-        } else if (cid != null) {
-            CARS.remove(p.getUuid());
+        } else if (cid != null && !WAITING.containsKey(p.getUuid())) {
+            CARS.remove(p.getUuid()); // поездка закончилась; пока ждём — машина может быть в незагруженном месте, не теряем её
         }
         // игрок-таксист подобрал клиента
         LifeData d = Life.get(p);
