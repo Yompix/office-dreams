@@ -286,6 +286,121 @@
    ]
   }
  },
+ "iris_v3": {
+  "_who": "Айрис, 15 — версия 3 (решение редактора 6 ноя): как iris_v2 (рост 1,52 м, стрижка прядями Cortu Johnstone, CC0), но чёлка выше на 1,8 см — кончики прядей надо лбом подняты, корни и вся причёска на месте (днём чёлка закрывала глаз). iris_v2 не тронута — рядом до утверждения",
+  "phenotype": {
+   "gender": 0,
+   "age": 0.277,
+   "muscle": 0.3,
+   "weight": 0.32,
+   "proportions": 0.5,
+   "height": 0.64,
+   "cupsize": 0.05,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.03,
+    "caucasian": 0.94,
+    "african": 0.03
+   }
+  },
+  "skin": "young_caucasian_female2/young_caucasian_female2.mhmat",
+  "hair": "cortu_short_messy_hair/cortu_short_messy_hair.mhclo",
+  "brows": "eyebrow002/eyebrow002.mhclo",
+  "clothes": [
+   "female_casualsuit01/female_casualsuit01.mhclo",
+   "toigo_ankle_boots_female/toigo_ankle_boots_female.mhclo"
+  ],
+  "targets": {
+   "head-round": 0.3,
+   "nose-scale-horiz-decr": 0.25,
+   "nose-point-up": 0.35,
+   "l-eye-scale-incr": 0.2,
+   "r-eye-scale-incr": 0.2,
+   "chin-width-decr": 0.25,
+   "mouth-lowerlip-volume-incr": 0.2,
+   "eyebrows-angle-down": 0.25
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "hoodie",
+    "tex": "jogging_melange",
+    "tint": [
+     0.62,
+     0.66,
+     0.6
+    ],
+    "off": 0.03,
+    "tile": 5,
+    "collar": false,
+    "sim": "cotton",
+    "inset": 0.006,
+    "frames": 36,
+    "tailor": {
+     "ease": 0.035,
+     "ease_top": 0.03,
+     "ease_cuff": 0.012,
+     "box": 2.6,
+     "slope": 0.1
+    },
+    "trims": {
+     "pockets": "kangaroo"
+    },
+    "hem": 0.06,
+    "belt": true,
+    "grow": 0.15,
+    "self_col": false,
+    "pin_fall": 0.2
+   },
+   {
+    "kind": "hood",
+    "name": "hood",
+    "down": true,
+    "tex": "jogging_melange",
+    "tint": [
+     0.62,
+     0.66,
+     0.6
+    ],
+    "off": 0.034,
+    "back": 0.03,
+    "tile": 5
+   }
+  ],
+  "tint": {
+   "female_casualsuit01_diffuse": [
+    0.4,
+    0.4,
+    0.48
+   ],
+   "BootsAnkle.png": [
+    0.2,
+    0.18,
+    0.18
+   ],
+   "short_messy_diff": [
+    0.24,
+    0.2,
+    0.18
+   ]
+  },
+  "hair_fx": {
+   "volume": {
+    "top": 0.006,
+    "front": 0.004,
+    "side": 0.0,
+    "back": 0.003
+   },
+   "scalp": [
+    0.15,
+    0.11,
+    0.09
+   ],
+   "lift": {
+    "fringe": 0.018
+   }
+  }
+ },
  "danny": {
   "_who": "Дэнни, 10: худой, шапка до глаз, детская рация; упрямый; шапка — в игре (своя модель)",
   "phenotype": {

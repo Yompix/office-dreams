@@ -187,7 +187,7 @@ static func _load_model(path: String) -> PackedScene:
 
 ## Новые версии героев заправки (порядок редактора от 5 ноя, п. 6): отдельные файлы рядом со старыми — старые не
 ## перезаписываются до утверждения эталона. Вернуть прежний облик: запуск с --looks1 (или LOOKS_V2 = false).
-const LOOKS := {"iris": "iris_v2", "danny": "danny_v2"}
+const LOOKS := {"iris": "iris_v3", "danny": "danny_v2"}   # iris_v3 — чёлка выше на 1,8 см (решение редактора 6 ноя); iris_v2 рядом
 static var LOOKS_V2 := true
 
 

@@ -283,6 +283,8 @@ def hair(s):
             a = np.empty(len(kb.data) * 3, np.float32); kb.data.foreach_get('co', a); kb.data.foreach_set('co', (a.reshape(-1, 3) + offl).ravel())
     o.data.vertices.foreach_set('co', (_co(o) + offl).ravel()); o.data.update()
     print('HAIR объём, макс см', round(float(amt.max()) * 100, 2))
+    if s.get('lift', {}).get('fringe'):   # чёлка выше (Айрис, решение редактора 6 ноя: «приподнять на 1–2 см, сохранив причёску»)
+        _fringe_lift(o, body, O, float(s['lift']['fringe']))
     if s.get('scalp'):   # кожа под волосами — в цвет волос (луч от кожи наружу упирается в волосы)
         bco = _world(body); M3b = np.array(body.matrix_world, np.float32)[:3, :3]; n = _normals(body) @ M3b.T; n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-9)
         tree = _bvh(o)[0]; near = (bco[:, 2] > O[2] - .06)
@@ -300,6 +302,33 @@ def hair(s):
             a = _img_get(simg); col = np.array(s['scalp'], np.float32); nz = .85 + .3 * RNG.random(m.shape, np.float32)
             a[..., :3] = a[..., :3] * (1 - m[..., None] * .9) + (col * nz[..., None]) * (m[..., None] * .9); _img_set(simg, a)
             print('HAIR кожа под волосами: вершин', int(hit.sum()))
+
+
+def _fringe_lift(o, body, O, lift):
+    """чёлка выше на lift (м): пряди надо лбом (спереди, по центру, ниже линии роста) — вверх и чуть вперёд, кончики на всю
+       величину, к линии роста волос сдвиг сходит на нет (корни на месте — та же причёска); виски, макушка, затылок не
+       двигаются; где прядь подошла ко лбу ближе 3 мм — отводится от кожи по нормали (не проходит сквозь лоб)"""
+    co = _world(o) - O                                     # оси головы: x — вбок, y — назад (лицо в −Y), z — вверх, 0 — между глаз
+    w = _ss(.0, -.012, co[:, 1]) * _ss(.085, .04, co[:, 2]) * _ss(.08, .06, np.abs(co[:, 0]))   # чёлка висит в 1–2 см перед лбом (лоб — 2 см перед глазами)
+    new = co.copy()
+    new[:, 2] += lift * w
+    new[:, 1] -= lift * .2 * w                              # лоб уходит назад кверху: прядь идёт вверх и чуть вперёд
+    tree = _bvh(body)[0]; pushed = 0
+    for i in np.nonzero(w > 1e-3)[0]:
+        p = Vector((new[i] + O).tolist())
+        loc, nrm, _, _ = tree.find_nearest(p)
+        if loc is None:
+            continue
+        gap = (p - loc).dot(nrm)
+        if gap < .003:
+            p = p + nrm * (.003 - gap); new[i] = np.array(p, np.float32) - O; pushed += 1
+    M3 = np.array(o.matrix_world.inverted(), np.float32)[:3, :3]
+    offl = (new - co) @ M3.T
+    if o.data.shape_keys:
+        for kb in o.data.shape_keys.key_blocks:
+            a = np.empty(len(kb.data) * 3, np.float32); kb.data.foreach_get('co', a); kb.data.foreach_set('co', (a.reshape(-1, 3) + offl).ravel())
+    o.data.vertices.foreach_set('co', (_co(o) + offl).ravel()); o.data.update()
+    print('HAIR чёлка выше: вершин', int((w > 1e-3).sum()), 'макс см', round(float(lift * w.max()) * 100, 2), 'отведено от лба', pushed)
 
 
 def beard(s):
