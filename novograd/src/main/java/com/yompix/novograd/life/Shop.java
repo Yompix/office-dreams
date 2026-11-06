@@ -136,7 +136,9 @@ public final class Shop {
             p.sendMessage(Text.literal("Оружие продают только в «Калибре», лично").formatted(Formatting.RED), true);
             return;
         }
-        if (!Life.pay(p, price(e, delivery, CityLife.event(p.getServerWorld())), e.name())) return;
+        int cost = price(e, delivery, CityLife.event(p.getServerWorld()));
+        // у оружейника берут и грязные наличные (чёрный рынок), в остальных магазинах — только чистые с карты
+        if (gunCategory(e.category()) ? !com.yompix.novograd.gta.Economy.payBlack(p, cost, e.name()) : !Life.pay(p, cost, e.name())) return;
         if (e.category().equals("Питомцы")) {
             pet(p, e.name());
             return;

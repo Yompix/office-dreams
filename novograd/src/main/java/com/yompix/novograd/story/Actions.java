@@ -111,6 +111,7 @@ final class Actions {
                 if (v != null && w.getEntitiesByClass(com.yompix.novograd.entity.BallEntity.class, new net.minecraft.util.math.Box(BlockPos.ofFloored(v)).expand(20), e -> true).isEmpty())
                     com.yompix.novograd.world.TownBuilder.ball(w, Story.ground(w, v));
             }
+            case "shock" -> com.yompix.novograd.gta.Economy.shock(p.getServer(), a.get(1).getAsString(), a.get(2).getAsDouble(), a.size() > 3 ? a.get(3).getAsString() : "новости");
             case "msg" -> Life.message(p, a.get(1).getAsString(), a.get(2).getAsString());
             default -> {}
         }

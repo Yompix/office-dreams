@@ -187,6 +187,7 @@ public class NovogradClient implements ClientModInitializer {
                 if (!n.contains("x")) Minimap.actTimer = -1;
             }
             case "act_timer" -> Minimap.actTimer = n.getInt("sec");
+            case "eco_state" -> com.yompix.novograd.client.screen.FinanceScreen.state = n;
             case "cut_actor" -> com.yompix.novograd.client.story.CutsceneScreen.ACTORS.put(n.getString("name"), n.getInt("id"));
             case "cutscene" -> show(client, new com.yompix.novograd.client.story.CutsceneScreen(n));
             case "credits" -> show(client, new com.yompix.novograd.client.story.CreditsScreen());

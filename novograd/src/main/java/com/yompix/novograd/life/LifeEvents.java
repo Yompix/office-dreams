@@ -41,6 +41,7 @@ public final class LifeEvents {
         ServerTickEvents.END_SERVER_TICK.register(LifeEvents::tick);
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Activities::tick);
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Heists::tick);
+        ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Economy::tick);
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.world.ShopPlacer::tick);
         ServerTickEvents.END_SERVER_TICK.register(s -> s.getPlayerManager().getPlayerList().forEach(p -> {
             com.yompix.novograd.story.Story.tick(p);

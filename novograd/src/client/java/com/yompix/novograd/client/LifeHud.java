@@ -82,6 +82,10 @@ public final class LifeHud {
         long tod = mc.world.getTimeOfDay() % 24000;
         String time = clock(tod) + "  ДЕНЬ " + (mc.world.getTimeOfDay() / 24000 + 1);
         int ty = flash && lastDiff != 0 ? 50 : 38;
+        if (d.dirty > 0) { // грязные наличные — красным под деньгами
+            Ui.small(ctx, tr, "грязные $" + money(d.dirty), r, ty, 0.85f, 0xFFFF5252, 2);
+            ty += 10;
+        }
         Ui.small(ctx, tr, time, r, ty, 0.8f, 0xFFE6E2F0, 2);
         if (d.unread > 0) {
             String msg = "✉ " + d.unread;

@@ -18,6 +18,10 @@ public class LifeData {
     public static final int SCHOOL_END = 11, UNI_END = 15;
 
     public int money = 50;
+    /** Грязные наличные (с ограблений): тратятся у оружейника, отмываются через бизнесы или у Рэя. */
+    public int dirty;
+    /** Акции: тикер → количество. */
+    public java.util.Map<String, Integer> shares = new java.util.HashMap<>();
     public int edu = 1;            // 1–11 класс школы, 12–15 курс университета, 16 — выпускник
     public int lessons;            // сданных уроков на текущем уровне
     public List<Integer> grades = new ArrayList<>();
@@ -103,6 +107,10 @@ public class LifeData {
     public NbtCompound toNbt() {
         NbtCompound n = new NbtCompound();
         n.putInt("money", money);
+        n.putInt("dirty", dirty);
+        NbtCompound sh = new NbtCompound();
+        shares.forEach(sh::putInt);
+        n.put("shares", sh);
         n.putString("side", side);
         n.putInt("sideStep", sideStep);
         n.putFloat("weight", weight);
@@ -164,6 +172,9 @@ public class LifeData {
     public static LifeData fromNbt(NbtCompound n) {
         LifeData d = new LifeData();
         if (n.contains("money")) d.money = n.getInt("money");
+        d.dirty = n.getInt("dirty");
+        NbtCompound sh = n.getCompound("shares");
+        for (String k : sh.getKeys()) d.shares.put(k, sh.getInt(k));
         d.side = n.getString("side");
         d.sideStep = n.getInt("sideStep");
         if (n.contains("weight")) d.weight = n.getFloat("weight");

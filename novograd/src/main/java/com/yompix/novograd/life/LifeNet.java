@@ -70,6 +70,9 @@ public final class LifeNet {
             case "taxi_call" -> Taxi.call(p, d.getString("dest"));
             case "taxi_accept" -> Taxi.accept(p);
             case "dialog_done" -> com.yompix.novograd.story.Story.onDialogDone(p, d.getInt("choice"));
+            case "eco_state" -> com.yompix.novograd.gta.Economy.sendState(p);
+            case "stock_trade" -> com.yompix.novograd.gta.Economy.trade(p, d.getString("t"), d.getInt("qty"));
+            case "biz_upgrade" -> com.yompix.novograd.gta.Heists.upgrade(p, d.getInt("i"));
             case "cut_hold" -> com.yompix.novograd.story.Director.hold(p, d.getBoolean("on"));
             case "activity" -> com.yompix.novograd.gta.Activities.toggle(p);
             case "cutscene_done" -> com.yompix.novograd.story.Story.onCutsceneDone(p);

@@ -119,7 +119,9 @@ public final class Heists {
             if (Wanted.stars(p) == 0) {
                 int min = (int) BANKS[h.bank][2], max = (int) BANKS[h.bank][3];
                 int pay = min + p.getRandom().nextInt(max - min + 1);
-                Life.earn(p, pay, "ограбление банка");
+                Economy.dirty(p, pay, "ограбление банка");
+                Economy.shock(p.getServer(), h.bank == 2 ? "KRON" : "CITY", h.bank == 2 ? -0.35 : -0.25, "ограблено хранилище: " + BANKS[h.bank][0]);
+                if (h.bank == 2) Economy.shock(p.getServer(), "RIVH", -0.06, "туристы пугаются ограблений на Ривьере");
                 Activities.title(p, "ОГРАБЛЕНИЕ УДАЛОСЬ", BANKS[h.bank][0] + " · +$" + pay);
                 com.yompix.novograd.life.Achievements.give(p, "heist");
                 Life.sync(p);
@@ -157,7 +159,8 @@ public final class Heists {
     }
 
     /** Погиб или задержан — сорвалось всё, что было в процессе. */
-    public static void onDownfall(ServerPlayerEntity p) {
+    public static void onDownfall(ServerPlayerEntity p, boolean busted) {
+        Economy.onDownfall(p, busted);
         if (HEISTS.containsKey(p.getUuid())) fail(p, "Деньги потеряны");
         if (RAMPAGE.containsKey(p.getUuid())) {
             RAMPAGE.remove(p.getUuid());
@@ -205,7 +208,7 @@ public final class Heists {
             bag.setVelocity(p.getPos().subtract(clerk.getPos()).normalize().multiply(0.25).add(0, 0.25, 0));
             w.spawnEntity(bag);
             bag.setDespawnImmediately();
-            Life.earn(p, pay, "налёт на магазин");
+            Economy.dirty(p, pay, "налёт на магазин");
             Activities.title(p, "КАССА ВЗЯТА", "+$" + pay + " · полиция уже едет");
             com.yompix.novograd.life.Achievements.give(p, "holdup");
             Wanted.add(p, 0, "налёт на магазин", 2);
@@ -274,7 +277,8 @@ public final class Heists {
             target(p, null, "");
             int pay = 3000 + p.getRandom().nextInt(4000);
             w.spawnParticles(ParticleTypes.HAPPY_VILLAGER, van.getX(), van.getY() + 1, van.getZ(), 30, 1, 1, 1, 0.1);
-            Life.earn(p, pay, "инкассатор");
+            Economy.dirty(p, pay, "инкассатор");
+            Economy.shock(p.getServer(), "CITY", -0.06, "разбит бронефургон банка");
             Activities.title(p, "ИНКАССАТОР ВЗЯТ", "+$" + pay);
             com.yompix.novograd.life.Achievements.give(p, "armored");
             Wanted.add(p, 0, "нападение на инкассаторов", 3);
@@ -296,12 +300,18 @@ public final class Heists {
         long today = day(w);
         long last = d.flags.stream().filter(f -> f.startsWith("biz_day=")).mapToLong(f -> Long.parseLong(f.substring(8))).max().orElse(today);
         if (today > last) {
-            int sum = 0;
-            for (int i = 0; i < BUSINESS.length; i++) if (d.flags.contains("biz:" + i)) sum += (int) BUSINESS[i][3];
-            if (sum > 0) {
-                Life.earn(p, sum, "доход бизнесов");
-                Life.message(p, "Бухгалтер", "Твои бизнесы принесли за день $" + sum + ".");
+            int sum = 0, washed = 0;
+            for (int i = 0; i < BUSINESS.length; i++) {
+                if (!d.flags.contains("biz:" + i)) continue;
+                int income = income(d, i);
+                int safe = Math.min(safe(d, i) + income * (int) Math.min(3, today - last), income * 3); // сейф вмещает 3 дня
+                setSafe(d, i, safe);
+                sum += income;
+                washed += Economy.launderDaily(p, income * 2); // бизнес отмывает грязные наличные
             }
+            if (sum > 0) Life.message(p, "Бухгалтер", "Бизнесы заработали $" + sum + " — деньги в сейфах, заезжай забрать."
+                    + (washed > 0 ? " Отмыто через бизнесы: $" + washed + " на карту." : ""));
+            if (washed > 0) Life.sync(p);
         }
         d.flags.removeIf(f -> f.startsWith("biz_day="));
         d.flags.add("biz_day=" + today);
@@ -323,12 +333,20 @@ public final class Heists {
                 it.setCustomNameVisible(true);
                 w.spawnEntity(it);
             } else it = have.get(0);
-            it.setCustomName(Text.literal(own ? "💼 " + BUSINESS[i][0] + " — твой бизнес, +$" + BUSINESS[i][3] + "/день"
+            it.setCustomName(Text.literal(own ? "💼 " + BUSINESS[i][0] + " — сейф $" + safe(d, i) + " · ур." + (level(d, i) + 1) + " · +$" + income(d, i) + "/день"
                     : "💼 " + BUSINESS[i][0] + " — продаётся $" + BUSINESS[i][2] + " (доход $" + BUSINESS[i][3] + "/день)").formatted(own ? Formatting.GREEN : Formatting.GOLD));
             if (p.squaredDistanceTo(it) < 2.2 * 2.2) inside = i;
         }
         Integer was = AT_BIZ.put(p.getUuid(), inside);
-        if (inside < 0 || was != null && was == inside || d.flags.contains("biz:" + inside)) return;
+        if (inside < 0 || was != null && was == inside) return;
+        if (d.flags.contains("biz:" + inside)) { // свой бизнес: забрать выручку из сейфа
+            int cash = safe(d, inside);
+            if (cash > 0) {
+                setSafe(d, inside, 0);
+                Life.earn(p, cash, "выручка: " + BUSINESS[inside][0]);
+            } else p.sendMessage(Text.literal("💼 Сейф пуст — выручка копится каждый день (до трёх дней)").formatted(Formatting.GRAY), true);
+            return;
+        }
         int price = (int) BUSINESS[inside][2];
         if (d.money >= price) {
             d.money -= price;
@@ -338,6 +356,82 @@ public final class Heists {
             w.playSound(null, p.getBlockPos(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 0.7f, 1.1f);
             Life.sync(p);
         } else p.sendMessage(Text.literal("💼 " + BUSINESS[inside][0] + ": нужно $" + price + ", у тебя $" + d.money).formatted(Formatting.YELLOW), true);
+    }
+
+    private static int level(LifeData d, int i) {
+        return (int) d.flags.stream().filter(f -> f.startsWith("bizlvl:" + i + "=")).mapToLong(f -> Long.parseLong(f.substring(f.indexOf('=') + 1))).max().orElse(0);
+    }
+
+    private static int income(LifeData d, int i) {
+        return (int) BUSINESS[i][3] * (2 + level(d, i)) / 2; // каждый уровень +50%
+    }
+
+    private static int safe(LifeData d, int i) {
+        return (int) d.flags.stream().filter(f -> f.startsWith("safe:" + i + "=")).mapToLong(f -> Long.parseLong(f.substring(f.indexOf('=') + 1))).max().orElse(0);
+    }
+
+    private static void setSafe(LifeData d, int i, int v) {
+        d.flags.removeIf(f -> f.startsWith("safe:" + i + "="));
+        d.flags.add("safe:" + i + "=" + v);
+    }
+
+    /** Улучшить бизнес (из телефона): +50% дохода и отмывки, до 3 уровня. */
+    public static void upgrade(ServerPlayerEntity p, int i) {
+        LifeData d = Life.get(p);
+        if (i < 0 || i >= BUSINESS.length || !d.flags.contains("biz:" + i)) return;
+        int lv = level(d, i);
+        if (lv >= 2) return;
+        int cost = (int) BUSINESS[i][2] * (lv + 1) / 2;
+        if (!Life.pay(p, cost, "улучшение: " + BUSINESS[i][0])) return;
+        d.flags.removeIf(f -> f.startsWith("bizlvl:" + i + "="));
+        d.flags.add("bizlvl:" + i + "=" + (lv + 1));
+        Activities.title(p, "БИЗНЕС УЛУЧШЕН", BUSINESS[i][0] + " · уровень " + (lv + 2) + " · +$" + income(d, i) + "/день");
+        Life.sync(p);
+        Economy.sendState(p);
+    }
+
+    public static net.minecraft.nbt.NbtList businessState(ServerPlayerEntity p) {
+        LifeData d = Life.get(p);
+        net.minecraft.nbt.NbtList l = new net.minecraft.nbt.NbtList();
+        for (int i = 0; i < BUSINESS.length; i++) {
+            NbtCompound c = new NbtCompound();
+            boolean own = d.flags.contains("biz:" + i);
+            c.putString("name", (String) BUSINESS[i][0]);
+            c.putBoolean("own", own);
+            c.putInt("price", (int) BUSINESS[i][2]);
+            c.putInt("income", own ? income(d, i) : (int) BUSINESS[i][3]);
+            c.putInt("safe", safe(d, i));
+            c.putInt("level", level(d, i));
+            c.putInt("upgrade", level(d, i) >= 2 ? 0 : (int) BUSINESS[i][2] * (level(d, i) + 1) / 2);
+            c.putInt("wash", own ? income(d, i) * 2 : 0);
+            l.add(c);
+        }
+        return l;
+    }
+
+    /** Рэй на пристани Ривьеры: отмывка всего сразу (70%). */
+    private static final Map<UUID, Boolean> AT_RAY = new HashMap<>();
+
+    private static void tickRay(ServerPlayerEntity p, LifeData d) {
+        ServerWorld w = p.getServerWorld();
+        Vec3d at = Story.place(w, "riv_marina+6,4");
+        if (at == null || p.squaredDistanceTo(at) > 48 * 48) return;
+        int y = w.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, (int) at.x, (int) at.z);
+        List<ItemEntity> have = w.getEntitiesByClass(ItemEntity.class, new net.minecraft.util.math.Box(at.x - 3, y - 4, at.z - 3, at.x + 3, y + 4, at.z + 3), e -> e.getCommandTags().contains("ray_wash"));
+        ItemEntity it;
+        if (have.isEmpty()) {
+            it = new ItemEntity(w, at.x, y + 0.3, at.z, new ItemStack(Items.EMERALD));
+            it.setVelocity(0, 0, 0);
+            it.setPickupDelayInfinite();
+            it.setNeverDespawn();
+            it.addCommandTag("ray_wash");
+            it.setCustomNameVisible(true);
+            it.setCustomName(Text.literal("💵 Рэй: отмою всё сразу, возьму 30%").formatted(Formatting.GREEN));
+            w.spawnEntity(it);
+        } else it = have.get(0);
+        boolean inside = p.squaredDistanceTo(it) < 2.2 * 2.2;
+        Boolean was = AT_RAY.put(p.getUuid(), inside);
+        if (inside && (was == null || !was)) Economy.launderRay(p);
     }
 
     // ------------------------------------------------------------------ бойни (черепа банд)
@@ -395,7 +489,7 @@ public final class Heists {
         if (alive < 3 && rp.gang.size() < 16) for (int k = 0; k < 3; k++) gangster(p, rp);
         if (rp.kills >= 10) {
             RAMPAGE.remove(p.getUuid());
-            Life.earn(p, 2500, "бойня");
+            Economy.dirty(p, 2500, "бойня");
             Activities.title(p, "БОЙНЯ ПРОЙДЕНА", "+$2500");
             com.yompix.novograd.life.Achievements.give(p, "rampage");
             LifeNet.send(p, "act_timer", sec(-1));
@@ -458,6 +552,7 @@ public final class Heists {
             tickTruck(p);
             tickRampage(p, d);
             if (t % 40 == 3) tickBusiness(p, d);
+            if (t % 20 == 13) tickRay(p, d);
         }
     }
 
