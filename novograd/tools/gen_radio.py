@@ -5,15 +5,18 @@
 import os, subprocess, wave
 import numpy as np
 
-SR = 32000
+SR = 24000
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..', 'src', 'main', 'resources', 'assets', 'novograd', 'sounds', 'radio')
 os.makedirs(OUT, exist_ok=True)
 rng = np.random.default_rng(88)
 
 
+T = 0  # транспонирование трека (полутона)
+
+
 def hz(n):  # MIDI → Гц
-    return 440.0 * 2 ** ((n - 69) / 12)
+    return 440.0 * 2 ** ((n + T - 69) / 12)
 
 
 def t_(sec):
@@ -139,18 +142,18 @@ def master(x, name, gain=0.85):
     with wave.open(tmp, 'wb') as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
         w.writeframes((x * 32000).astype(np.int16).tobytes())
-    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', tmp, '-c:a', 'libvorbis', '-q:a', '3', os.path.join(OUT, name + '.ogg')], check=True)
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', tmp, '-c:a', 'libvorbis', '-q:a', '2', os.path.join(OUT, name + '.ogg')], check=True)
     os.remove(tmp)
     print(name, round(len(x) / SR, 1), 'с')
 
 
 # ---------------------------------------------------------------- Неон 88: синтвейв
-def neon():
-    bpm = 100; beat = 60 / bpm; bars = 40
+def neon(name='neon88', v=0):
+    bpm = [100, 108, 94][v]; beat = 60 / bpm; bars = 36
     L = bars * 4 * beat
     buf = np.zeros(int(L * SR) + SR)
-    prog = [(57, 'm'), (53, 'M'), (48, 'M'), (55, 'M')]  # Am F C G
-    lead = [69, 72, 76, 74, 72, 69, 67, 69, 72, 71, 67, 64, 65, 67, 69, 72]
+    prog = [[(57, 'm'), (53, 'M'), (48, 'M'), (55, 'M')], [(57, 'm'), (55, 'M'), (53, 'M'), (52, 'M')], [(50, 'm'), (57, 'm'), (53, 'M'), (55, 'M')]][v]
+    lead = [int(x) for x in rng.choice([64, 65, 67, 69, 71, 72, 74, 76], 16)]
     for bar in range(bars):
         root, kind = prog[bar % 4]
         t0 = bar * 4 * beat
@@ -175,16 +178,16 @@ def neon():
                 vib = 1  # лёгкое эхо
                 place(buf, x, t0 + i * beat, 0.25)
                 place(buf, x, t0 + i * beat + beat * 0.75, 0.08)
-    master(buf[:int(L * SR)], 'neon88')
+    master(buf[:int(L * SR)], name)
 
 
 # ---------------------------------------------------------------- Бит Улиц: хип-хоп / трэп
-def beat_ulic():
-    bpm = 86; beat = 60 / bpm; bars = 36
+def beat_ulic(name='beat_ulic', v=0):
+    bpm = [86, 92, 78][v]; beat = 60 / bpm; bars = 32
     L = bars * 4 * beat
     buf = np.zeros(int(L * SR) + SR)
-    prog = [50, 50, 46, 45]  # Dm Dm Bb A
-    mel = [74, 77, 76, 74, 72, 74, 69, 70]
+    prog = [[50, 50, 46, 45], [48, 51, 53, 51], [45, 41, 43, 40]][v]
+    mel = [int(x) for x in rng.choice([69, 70, 72, 74, 76, 77], 8)]
     for bar in range(bars):
         r = prog[bar % 4]
         t0 = bar * 4 * beat
@@ -207,15 +210,17 @@ def beat_ulic():
                 t = t_(beat / 2)
                 x = (np.sin(2 * np.pi * hz(n) * t) + 0.3 * np.sin(4 * np.pi * hz(n) * t)) * np.exp(-t * 5)
                 place(buf, x, t0 + i * beat / 2, 0.16)
-    master(buf[:int(L * SR)], 'beat_ulic')
+    master(buf[:int(L * SR)], name)
 
 
 # ---------------------------------------------------------------- Ночной Порт: лоу-фай
-def lofi():
-    bpm = 74; beat = 60 / bpm; bars = 32
+def lofi(name='nochnoy_port', v=0):
+    bpm = [74, 70, 80][v]; beat = 60 / bpm; bars = 28
     L = bars * 4 * beat
     buf = np.zeros(int(L * SR) + SR)
-    prog = [[62, 65, 69, 72], [60, 64, 67, 71], [57, 60, 64, 67], [59, 62, 65, 69]]  # Dm9 Cmaj7 Am7 Bm7b5
+    prog = [[[62, 65, 69, 72], [60, 64, 67, 71], [57, 60, 64, 67], [59, 62, 65, 69]],
+            [[60, 64, 67, 71], [57, 60, 64, 67], [62, 65, 69, 72], [55, 59, 62, 65]],
+            [[65, 69, 72, 76], [64, 67, 71, 74], [62, 65, 69, 72], [60, 64, 67, 71]]][v]
     for bar in range(bars):
         t0 = bar * 4 * beat
         ch = prog[bar % 4]
@@ -232,16 +237,16 @@ def lofi():
     pops = rng.random(len(buf)) < 0.00004
     crackle[pops] += rng.uniform(-0.25, 0.25, pops.sum())
     buf += lowpass(crackle, 5000)
-    master(lowpass(buf[:int(L * SR)], 6500), 'nochnoy_port', 0.8)
+    master(lowpass(buf[:int(L * SR)], 6500), name, 0.8)
 
 
 # ---------------------------------------------------------------- Трасса 128: электро-хаус
-def trassa():
-    bpm = 128; beat = 60 / bpm; bars = 52
+def trassa(name='trassa128', v=0):
+    bpm = [128, 124, 132][v]; beat = 60 / bpm; bars = 48
     L = bars * 4 * beat
     buf = np.zeros(int(L * SR) + SR)
-    prog = [(52, 'm'), (48, 'M'), (55, 'M'), (50, 'M')]  # Em C G D
-    hook = [76, 76, 79, 76, 74, 71, 74, 76]
+    prog = [[(52, 'm'), (48, 'M'), (55, 'M'), (50, 'M')], [(57, 'm'), (53, 'M'), (48, 'M'), (55, 'M')], [(50, 'm'), (46, 'M'), (53, 'M'), (48, 'M')]][v]
+    hook = [int(x) for x in rng.choice([71, 74, 76, 79, 81], 8)]
     for bar in range(bars):
         root, kind = prog[bar % 4]
         t0 = bar * 4 * beat
@@ -268,8 +273,229 @@ def trassa():
                 place(buf, x, t0 + i * beat / 2, 0.22)
         if sec == 3:
             place(buf, pad([hz(n) for n in chord(root + 12, 'm' if kind == 'm' else 'M')], 4 * beat, 1800), t0, 0.4)
-    master(buf[:int(L * SR)], 'trassa128')
+    master(buf[:int(L * SR)], name)
 
+
+# ---------------------------------------------------------------- РОК-ВОЛНА: гитарный рок
+def guitar(notes, dur, drive=4.0):
+    """Перегруженная гитара: несколько пил + жёсткое клиппирование + фильтр «кабинета»."""
+    t = t_(dur)
+    x = sum(saw(hz(n), t, 0.004) for n in notes) / len(notes)
+    x = np.tanh(x * drive)
+    return lowpass(x, 3200) * env(len(t), 0.004, 0.1, 0.8, 0.05)
+
+
+def rock(name, v):
+    bpm = [138, 126, 146][v]; beat = 60 / bpm; bars = 40
+    L = bars * 4 * beat
+    buf = np.zeros(int(L * SR) + SR)
+    prog = [[40, 43, 45, 38], [45, 41, 43, 40], [38, 41, 36, 43]][v]  # пауэр-аккорды (корни)
+    riff = [int(x) for x in rng.choice([0, 0, 3, 5, 7, 10, 12], 8)]
+    for bar in range(bars):
+        t0 = bar * 4 * beat
+        r = prog[(bar // 2) % 4]
+        sec = (bar // 8) % 4
+        if sec == 0:  # куплет: глушёные восьмые
+            for e in range(8): place(buf, guitar([r + 12, r + 19], beat / 2 * 0.6, 3), t0 + e * beat / 2, 0.35)
+        elif sec == 3:  # соло
+            for e in range(8):
+                n = r + 24 + riff[(e + bar) % 8]
+                tt = t_(beat / 2)
+                lead = np.tanh(saw(hz(n) * (1 + 0.006 * np.sin(2 * np.pi * 6 * tt)), tt) * 5)
+                place(buf, lowpass(lead, 4000) * env(len(tt), 0.01, 0.1, 0.8, 0.05), t0 + e * beat / 2, 0.22)
+            place(buf, guitar([r + 12, r + 19, r + 24], 4 * beat, 5), t0, 0.25)
+        else:  # припев: открытые аккорды
+            for k in (0, 1.5, 2, 3.5): place(buf, guitar([r + 12, r + 19, r + 24], beat * (1.5 if k in (0, 2) else 0.5), 5), t0 + k * beat, 0.38)
+        for b in range(4):
+            place(buf, kick(0.3, 1.1), t0 + b * beat if b % 2 == 0 else t0 + b * beat + beat / 2, 0.8)
+            if b % 2: place(buf, snare(0.3, 200), t0 + b * beat, 0.7)
+            place(buf, hat(open_=sec != 0), t0 + b * beat + beat / 2, 0.25)
+            place(buf, hat(), t0 + b * beat, 0.25)
+        for e in range(8): place(buf, lowpass(saw(hz(r), t_(beat / 2 * 0.9)), 600) * env(int(beat / 2 * 0.9 * SR), 0.003, 0.05, 0.8, 0.03), t0 + e * beat / 2, 0.4)
+        if bar % 8 == 7: place(buf, mix(snare(0.8), hat(open_=True)), t0 + 3.5 * beat, 0.6)  # тарелка
+    master(buf[:int(L * SR)], name)
+
+
+# ---------------------------------------------------------------- ДЖАЗ «ПОЛНОЧЬ»: свинг
+def jazz(name, v):
+    bpm = [132, 118, 150][v]; beat = 60 / bpm; bars = 32
+    L = bars * 4 * beat
+    buf = np.zeros(int(L * SR) + SR)
+    keys = [50, 53, 48][v]
+    # ii–V–I–VI в мажоре, септаккорды
+    prog = [[2, 5, 9, 12], [7, 11, 14, 17], [0, 4, 7, 11], [9, 13, 16, 19]]
+    swing = beat * 0.66
+    for bar in range(bars):
+        t0 = bar * 4 * beat
+        ch = [keys + 12 + n for n in prog[bar % 4]]
+        # компинг пианино на слабые доли
+        for k in (1.5, 3.66) if bar % 2 else (0.66, 2.5):
+            for i, n in enumerate(ch): place(buf, epiano(hz(n), beat), t0 + k * beat + i * 0.01, 0.1)
+        # шагающий бас
+        walk = [ch[0] - 24, ch[1] - 24, ch[2] - 24, ch[0] - 23 + (1 if bar % 2 else -1)]
+        for b, n in enumerate(walk):
+            tt = t_(beat * 0.9)
+            place(buf, np.sin(2 * np.pi * hz(n) * tt) * np.exp(-tt * 3) * env(len(tt), 0.01, 0.1, 0.8, 0.1), t0 + b * beat, 0.5)
+        # райд со свингом и щётки
+        for b in range(4):
+            place(buf, hat(0.15), t0 + b * beat, 0.25)
+            if b % 2: place(buf, hat(0.08), t0 + b * beat + swing, 0.2)
+            if b % 2: place(buf, lowpass(snare(0.2, 180), 2500), t0 + b * beat, 0.18)
+        # «саксофон»: пила с вибрато через мягкий фильтр
+        if (bar // 4) % 2 == 1:
+            for e in range(4):
+                n = int(rng.choice(ch)) + 12 + int(rng.choice([0, 2, -1]))
+                tt = t_(beat * 0.95)
+                f = hz(n) * (1 + 0.008 * np.sin(2 * np.pi * 5.5 * tt) * np.minimum(1, tt * 3))
+                ph = 2 * np.pi * np.cumsum(f) / SR
+                sax = lowpass(np.tanh(np.sin(ph) * 2 + 0.4 * np.sin(2 * ph)), 2400)
+                place(buf, sax * env(len(tt), 0.05, 0.1, 0.8, 0.15), t0 + e * beat + (0.08 if e % 2 else 0), 0.16)
+    master(buf[:int(L * SR)], name, 0.8)
+
+
+# ---------------------------------------------------------------- ПАЛЬМА FM: регги
+def reggae(name, v):
+    bpm = [76, 82, 72][v]; beat = 60 / bpm; bars = 32
+    L = bars * 4 * beat
+    buf = np.zeros(int(L * SR) + SR)
+    prog = [[(55, 'M'), (60, 'M'), (62, 'M'), (60, 'M')], [(57, 'm'), (62, 'm'), (55, 'M'), (57, 'm')], [(53, 'M'), (55, 'M'), (57, 'm'), (55, 'M')]][v]
+    for bar in range(bars):
+        t0 = bar * 4 * beat
+        r, kind = prog[bar % 4]
+        for b in range(4):  # «скэнк» на слабую долю
+            for i, n in enumerate(chord(r + 12, 'm' if kind == 'm' else 'M')):
+                tt = t_(0.12)
+                place(buf, lowpass(sq(hz(n), tt, 0.4), 2500) * np.exp(-tt * 25), t0 + b * beat + beat / 2 + i * 0.004, 0.1)
+        # one drop: бочка с малым на 3
+        place(buf, kick(0.4, 1.0), t0 + 2 * beat, 0.8)
+        place(buf, snare(0.2, 240), t0 + 2 * beat, 0.4)
+        for e in range(8): place(buf, hat(0.04), t0 + e * beat / 2 + (0.06 if e % 2 else 0), 0.2)
+        # плотный бас
+        line = [r - 12, r - 12, r - 5, r - 8]
+        for b, n in enumerate(line):
+            tt = t_(beat * 0.7)
+            place(buf, lowpass(np.sin(2 * np.pi * hz(n) * tt) + 0.3 * tri(hz(n), tt), 400) * env(len(tt), 0.01, 0.1, 0.8, 0.1), t0 + b * beat + (0.5 * beat if b == 1 else 0), 0.6)
+        if bar % 8 >= 4:  # мелодика
+            for e in range(4):
+                n = r + 24 + int(rng.choice([0, 4, 7, 9, 12])) - (3 if kind == 'm' and e % 2 else 0)
+                tt = t_(beat * 0.8)
+                place(buf, (sq(hz(n), tt, 0.3) * 0.5 + np.sin(2 * np.pi * hz(n) * tt)) * env(len(tt), 0.02, 0.1, 0.7, 0.1) * 0.6, t0 + e * beat, 0.12)
+    master(buf[:int(L * SR)], name, 0.8)
+
+
+# ---------------------------------------------------------------- КЛАССИКА: струнные и рояль
+def strings(freqs, dur):
+    t = t_(dur)
+    x = sum(saw(f * (1 + 0.003 * np.sin(2 * np.pi * 5 * t + i)), t, 0.004) for i, f in enumerate(freqs)) / len(freqs)
+    return lowpass(x, 1800) * env(len(t), 0.6, 0.4, 0.85, 0.8)
+
+
+def piano(f, dur):
+    t = t_(dur)
+    x = np.sin(2 * np.pi * f * t) + 0.4 * np.sin(4 * np.pi * f * t) * np.exp(-t * 3) + 0.15 * np.sin(6 * np.pi * f * t) * np.exp(-t * 5)
+    return x * np.exp(-t * 1.6) * env(len(t), 0.002, 0.1, 1, 0.2)
+
+
+def classic(name, v):
+    bpm = [66, 72, 60][v]; beat = 60 / bpm; bars = 24
+    L = bars * 4 * beat
+    buf = np.zeros(int(L * SR) + SR)
+    prog = [[(57, 'm'), (53, 'M'), (60, 'M'), (55, 'M')], [(50, 'm'), (55, 'm'), (57, 'M'), (50, 'm')], [(48, 'M'), (57, 'm'), (53, 'M'), (55, 'M')]][v]
+    for bar in range(bars):
+        t0 = bar * 4 * beat
+        r, kind = prog[bar % 4]
+        ch = chord(r, 'm' if kind == 'm' else 'M')
+        place(buf, strings([hz(n) for n in [ch[0] - 12] + ch + [ch[0] + 12]], 4 * beat), t0, 0.3)
+        arp = ch + [ch[0] + 12, ch[1] + 12, ch[2] + 12, ch[1] + 12, ch[0] + 12]
+        for e in range(8): place(buf, piano(hz(arp[e] + 12), beat * 1.2), t0 + e * beat / 2, 0.16)
+        if bar >= 8 and bar % 2 == 0:  # мелодия скрипки
+            for e in range(2):
+                n = int(rng.choice(ch)) + 24
+                tt = t_(beat * 2)
+                f = hz(n) * (1 + 0.01 * np.sin(2 * np.pi * 6 * tt) * np.minimum(1, tt))
+                ph = 2 * np.pi * np.cumsum(f) / SR
+                place(buf, lowpass((ph / np.pi % 2 - 1), 3000) * env(len(tt), 0.2, 0.2, 0.8, 0.4), t0 + e * 2 * beat, 0.12)
+    master(buf[:int(L * SR)], name, 0.75)
+
+
+# ---------------------------------------------------------------- КАНТРИ-РОУД: банджо и «бум-чик»
+def country(name, v):
+    bpm = [112, 104, 120][v]; beat = 60 / bpm; bars = 32
+    L = bars * 4 * beat
+    buf = np.zeros(int(L * SR) + SR)
+    prog = [[55, 60, 62, 55], [57, 62, 64, 57], [52, 57, 59, 52]][v]
+    for bar in range(bars):
+        t0 = bar * 4 * beat
+        r = prog[bar % 4]
+        ch = chord(r + 12, 'M')
+        roll = [ch[0], ch[1], ch[2] + 12, ch[1], ch[0] + 12, ch[2], ch[1] + 12, ch[2]]
+        for e in range(16):  # банджо-ролл шестнадцатыми
+            tt = t_(beat / 4)
+            n = roll[e % 8] + 12
+            place(buf, lowpass(saw(hz(n), tt) * np.exp(-tt * 18) + np.sin(2 * np.pi * hz(n) * tt) * np.exp(-tt * 9), 5000), t0 + e * beat / 4, 0.07)
+        for b in range(4):  # бум-чик
+            if b % 2 == 0:
+                tt = t_(beat * 0.8)
+                place(buf, np.sin(2 * np.pi * hz(r - 12 + (7 if b == 2 else 0)) * tt) * np.exp(-tt * 4), t0 + b * beat, 0.45)
+                place(buf, kick(0.25, 0.8), t0 + b * beat, 0.6)
+            else:
+                place(buf, lowpass(snare(0.15, 210), 4000), t0 + b * beat, 0.35)
+                for i, n in enumerate(ch): place(buf, lowpass(saw(hz(n), t_(0.1)), 2500) * np.exp(-t_(0.1) * 20), t0 + b * beat + i * 0.008, 0.06)
+        if bar % 8 >= 4:  # «скрипка»
+            n = int(rng.choice(ch)) + 12
+            tt = t_(beat * 3.5)
+            f = hz(n) * (1 + 0.012 * np.sin(2 * np.pi * 6 * tt))
+            ph = 2 * np.pi * np.cumsum(f) / SR
+            place(buf, lowpass((ph / np.pi % 2 - 1), 3500) * env(len(tt), 0.15, 0.2, 0.8, 0.3), t0, 0.1)
+    master(buf[:int(L * SR)], name, 0.8)
+
+
+# ---------------------------------------------------------------- ТЕХНО «ПОДВАЛ»: кислотная линия
+def acid(n, dur, cutoff):
+    t = t_(dur)
+    x = saw(hz(n), t)
+    return np.tanh(lowpass(x, cutoff) * 3) * env(len(t), 0.003, 0.08, 0.6, 0.03)
+
+
+def techno(name, v):
+    bpm = [130, 136, 126][v]; beat = 60 / bpm; bars = 48
+    L = bars * 4 * beat
+    buf = np.zeros(int(L * SR) + SR)
+    root = [45, 43, 48][v]
+    pattern = [int(x) for x in rng.choice([0, 0, 12, 3, 7, 10, 15], 16)]
+    accents = rng.random(16) < 0.35
+    for bar in range(bars):
+        t0 = bar * 4 * beat
+        sec = (bar // 8) % 6
+        for b in range(4):
+            if sec != 3: place(buf, kick(0.28, 1.4), t0 + b * beat, 1.0)
+            place(buf, hat(0.04), t0 + b * beat + beat / 2, 0.35)
+            if sec >= 2 and b % 2: place(buf, clap(), t0 + b * beat, 0.4)
+        if sec >= 1:
+            sweep = 600 + 1800 * (0.5 + 0.5 * np.sin(bar / 4))
+            for s_ in range(16):
+                place(buf, acid(root + pattern[s_], beat / 4 * 0.9, sweep * (1.6 if accents[s_] else 1)), t0 + s_ * beat / 4, 0.22)
+        if sec == 3:
+            place(buf, pad([hz(root + 12), hz(root + 15), hz(root + 19)], 4 * beat, 1400), t0, 0.35)
+        if sec in (4, 5):
+            for s_ in range(16): place(buf, hat(0.02), t0 + s_ * beat / 4, 0.12)
+    master(buf[:int(L * SR)], name)
+
+
+STATIONS = [('neon88', neon), ('beat_ulic', beat_ulic), ('nochnoy_port', lofi), ('trassa128', trassa),
+            ('rock_volna', rock), ('jazz_polnoch', jazz), ('palma_fm', reggae), ('klassika', classic), ('country_road', country), ('tekhno_podval', techno)]
 
 if __name__ == '__main__':
-    neon(); beat_ulic(); lofi(); trassa()
+    import sys
+    only = sys.argv[1:]
+    for base, fn in STATIONS:
+        if only and base not in only:
+            continue
+        for v in range(3):
+            T = [0, 3, -2][v]
+            rng = np.random.default_rng(1000 + v * 17 + len(base))
+            fn(f'{base}_{v}', v)
+    # старые одиночные файлы больше не нужны
+    for old in ('neon88', 'beat_ulic', 'nochnoy_port', 'trassa128'):
+        f = os.path.join(OUT, old + '.ogg')
+        if os.path.exists(f): os.remove(f)

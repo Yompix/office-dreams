@@ -24,14 +24,23 @@ public final class CarRadio {
             {"БИТ УЛИЦ", "radio.beat_ulic", "хип-хоп и трэп", "FFD54F"},
             {"НОЧНОЙ ПОРТ", "radio.nochnoy_port", "лоу-фай для долгой дороги", "7FD3FF"},
             {"ТРАССА 128", "radio.trassa128", "электро для погонь", "7CFF8A"},
+            {"РОК-ВОЛНА", "radio.rock_volna", "гитарный рок", "FF5252"},
+            {"ДЖАЗ «ПОЛНОЧЬ»", "radio.jazz_polnoch", "свинг и саксофон", "FFB74D"},
+            {"ПАЛЬМА FM", "radio.palma_fm", "регги Ривьеры", "B2FF59"},
+            {"КЛАССИКА", "radio.klassika", "струнные и рояль", "E1BEE7"},
+            {"КАНТРИ-РОУД", "radio.country_road", "банджо и дорога", "D7A86E"},
+            {"ТЕХНО-ПОДВАЛ", "radio.tekhno_podval", "кислотное техно", "18FFFF"},
     };
+    /** Треков на станции (radio.<станция>_0..2) — играют по очереди без повтора подряд. */
+    private static final int TRACKS = 3;
+    private static final int[] lastTrack = new int[16];
 
     private static final class Track extends AbstractSoundInstance implements TickableSoundInstance {
         boolean done;
 
         Track(String event) {
             super(Novograd.id(event), SoundCategory.RECORDS, Random.create());
-            repeat = true;
+            repeat = false;
             relative = true;
             attenuationType = SoundInstance.AttenuationType.NONE;
             volume = NovogradConfig.get().radioVolume;
@@ -62,10 +71,19 @@ public final class CarRadio {
         boolean inCar = mc.player != null && mc.player.getVehicle() instanceof CarEntity car && !car.isScooter();
         int want = inCar ? NovogradConfig.get().radioStation : -1;
         if (want >= STATIONS.length) want = 0;
-        if (want != playingStation || playing != null && !mc.getSoundManager().isPlaying(playing) && want >= 0 && mc.player.age % 40 == 0) {
+        boolean ended = playing != null && !mc.getSoundManager().isPlaying(playing) && mc.player.age % 20 == 0;
+        if (want != playingStation || ended && want >= 0) {
             stop(mc);
             if (want >= 0) {
-                playing = new Track(STATIONS[want][1]);
+                // следующий трек станции: не тот, что играл последним
+                int tr = (lastTrack[want] + 1 + mc.world.random.nextInt(TRACKS - 1)) % TRACKS;
+                lastTrack[want] = tr;
+                playing = new Track(STATIONS[want][1] + "_" + tr);
+                if (ended && mc.world.random.nextInt(3) == 0) { // иногда ведущий между песнями
+                    String id = "voice.radio_" + STATIONS[want][1].substring("radio.".length());
+                    mc.getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.master(
+                            net.minecraft.sound.SoundEvent.of(Novograd.id(id)), 1f, Math.min(1f, NovogradConfig.get().radioVolume + 0.3f)));
+                }
                 mc.getSoundManager().play(playing);
                 if (playingStation == -2 || playingStation != want) {
                     show(STATIONS[want][0]);

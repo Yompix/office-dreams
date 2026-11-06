@@ -26,6 +26,7 @@ public class Novograd implements ModInitializer {
         LifeNet.init();
         LifeEvents.init();
         LifeCommands.init();
+        com.yompix.novograd.life.Style.init(); // одежда, цирюльня, гардероб, спортзал (стиль SA)
         LOG.info("Новоград загружен: школа, работа, деньги, машины и город");
     }
 }

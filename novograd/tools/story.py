@@ -930,6 +930,12 @@ for vid, sp, text in [
     ('radio_beat_ulic', 'Abrahan Mack', 'Бит Улиц! Самый жёсткий хип-хоп Новограда. Громче!'),
     ('radio_nochnoy_port', 'Alma María', 'Ночной Порт. Расслабься, дорога длинная.'),
     ('radio_trassa128', 'Ludvig Milivoj', 'Трасса сто двадцать восемь! Жми на газ — и не оглядывайся!'),
+    ('radio_rock_volna', 'Craig Gutsy', 'Рок-Волна! Громкие гитары для громких улиц. Не убавляй!'),
+    ('radio_jazz_polnoch', 'Royston Min', 'Джаз-клуб «Полночь». Налейте себе чего-нибудь и не спешите.'),
+    ('radio_palma_fm', 'Viktor Eka', 'Пальма эф эм, Ривьера! Солнце, море и регги до утра.'),
+    ('radio_klassika', 'Gracie Wise', 'Радио «Классика». Музыка, которая старше этого города.'),
+    ('radio_country_road', 'Dionisio Schuyler', 'Кантри-Роуд! Для тех, кто едет за город и не собирается возвращаться.'),
+    ('radio_tekhno_podval', 'Kazuhiko Atallah', 'Техно-Подвал. Бочка, бас и ничего лишнего.'),
 ]:
     voice_lines.append({'id': vid, 'who': 'narrator', 'text': text, 'speaker': sp})
 

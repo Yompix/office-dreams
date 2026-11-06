@@ -53,6 +53,11 @@ public class LifeData {
     public int questReward, questsDone, fines;
     public String today = "";
     public java.util.Set<String> achievements = new java.util.HashSet<>();
+    /** Стиль в духе SA: внешность, гардероб (купленные вещи «id#цвет»), спортзал — сила и выносливость 0–100. */
+    public Appearance look = new Appearance();
+    public java.util.Set<String> wardrobe = new java.util.HashSet<>();
+    public int strength, stamina, gymStrToday, gymStaToday;
+    public long gymDay = -1;
 
     public static int lessonsNeeded(int edu) {
         return edu <= SCHOOL_END ? 3 : 4;
@@ -146,6 +151,13 @@ public class LifeData {
         n.putInt("fines", fines);
         n.putString("today", today);
         n.put("achievements", strings(achievements));
+        n.put("look", look.toNbt());
+        n.put("wardrobe", strings(wardrobe));
+        n.putInt("strength", strength);
+        n.putInt("stamina", stamina);
+        n.putInt("gymStrToday", gymStrToday);
+        n.putInt("gymStaToday", gymStaToday);
+        n.putLong("gymDay", gymDay);
         return n;
     }
 
@@ -198,6 +210,13 @@ public class LifeData {
         d.fines = n.getInt("fines");
         d.today = n.getString("today");
         for (NbtElement e : n.getList("achievements", NbtElement.STRING_TYPE)) d.achievements.add(e.asString());
+        d.look = Appearance.fromNbt(n.getCompound("look"));
+        for (NbtElement e : n.getList("wardrobe", NbtElement.STRING_TYPE)) d.wardrobe.add(e.asString());
+        d.strength = n.getInt("strength");
+        d.stamina = n.getInt("stamina");
+        d.gymStrToday = n.getInt("gymStrToday");
+        d.gymStaToday = n.getInt("gymStaToday");
+        d.gymDay = n.contains("gymDay") ? n.getLong("gymDay") : -1;
         return d;
     }
 }

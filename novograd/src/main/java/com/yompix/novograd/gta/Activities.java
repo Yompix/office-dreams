@@ -367,6 +367,17 @@ public final class Activities {
     };
     private static final Map<UUID, Integer> INSIDE = new HashMap<>();
 
+    /** Своё убежище в радиусе r блоков (там бесплатный гардероб, см. life/Style). */
+    public static boolean nearOwnedSafehouse(ServerPlayerEntity p, double r) {
+        LifeData d = Life.get(p);
+        for (int i = 0; i < PROPS.length; i++) {
+            if (!d.flags.contains("prop:" + i)) continue;
+            double dx = (int) PROPS[i][1] + 0.5 - p.getX(), dz = (int) PROPS[i][2] + 0.5 - p.getZ();
+            if (dx * dx + dz * dz <= r * r) return true;
+        }
+        return false;
+    }
+
     private static void tickProps(ServerPlayerEntity p, LifeData d) {
         ServerWorld w = p.getServerWorld();
         int inside = -1;

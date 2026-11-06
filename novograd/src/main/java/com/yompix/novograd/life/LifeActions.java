@@ -27,7 +27,8 @@ public final class LifeActions {
             case COMPUTER -> Jobs.computer(p);
             case SLOT_MACHINE -> openCasino(p, "slots");
             case ROULETTE -> openCasino(p, "roulette");
-            case TREADMILL, BARBELL, SCALES, DJ_DECK -> {}
+            case TREADMILL, BARBELL -> { if (Style.near(p, CitizenEntity.Role.COACH, 32)) Style.open(p, "gym"); }
+            case SCALES, DJ_DECK -> {}
             case PIZZA_OVEN -> Jobs.pizzaOrder(p);
         }
     }
@@ -126,6 +127,10 @@ public final class LifeActions {
             case BANKER -> LifeNet.send(p, "open_phone", Jobs.app("bank"));
             case GUNSMITH -> Shop.openGuns(p);
             case MECHANIC -> com.yompix.novograd.gta.Garage.open(p);
+            case TAILOR -> Style.open(p, "cheap");
+            case BOUTIQUE -> Style.open(p, "lux");
+            case BARBER -> Style.open(p, "barber");
+            case COACH -> Style.open(p, "gym");
             case POLICE -> p.sendMessage(Text.literal(c.getName().getString() + ": «Проходите, гражданин. Не нарушайте.»").formatted(Formatting.BLUE), false);
             case GANG -> p.sendMessage(Text.literal(c.getName().getString() + ": «Чего уставился? Это наш район.»").formatted(Formatting.DARK_GREEN), false);
             default -> {

@@ -61,5 +61,19 @@ public final class LifeCommands {
                             ctx.getSource().sendFeedback(() -> Text.literal("Образование " + p.getName().getString() + ": " + d.eduName()), true);
                             return 1;
                         }))))));
-    }
+            // /novograd shops — для теста: поставить перед собой «Шмот-Базар», бутик «Бархат», цирюльню и зал (стиль SA)
+        CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(literal("novograd")
+                .then(literal("shops").requires(s -> s.hasPermissionLevel(2)).executes(ctx -> {
+                    ServerPlayerEntity p = ctx.getSource().getPlayerOrThrow();
+                    net.minecraft.util.math.Direction f = p.getHorizontalFacing(), side = f.rotateYClockwise();
+                    BlockPos base = p.getBlockPos().offset(f, 22);
+                    java.util.List<ShopBuilder.Spot> spots = new java.util.ArrayList<>();
+                    ShopBuilder.Kind[] kinds = ShopBuilder.Kind.values();
+                    for (int i = 0; i < kinds.length; i++)
+                        spots.add(new ShopBuilder.Spot(kinds[i], base.offset(side, (i - 1) * 24 - 12), f.getOpposite()));
+                    ShopBuilder.placeAll(p.getServerWorld(), spots);
+                    ctx.getSource().sendFeedback(() -> Text.literal("👕 Магазины стиля построены перед тобой"), true);
+                    return 1;
+                }))));
+}
 }

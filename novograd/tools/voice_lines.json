@@ -1027,5 +1027,41 @@
   "who": "narrator",
   "text": "Трасса сто двадцать восемь! Жми на газ — и не оглядывайся!",
   "speaker": "Ludvig Milivoj"
+ },
+ {
+  "id": "radio_rock_volna",
+  "who": "narrator",
+  "text": "Рок-Волна! Громкие гитары для громких улиц. Не убавляй!",
+  "speaker": "Craig Gutsy"
+ },
+ {
+  "id": "radio_jazz_polnoch",
+  "who": "narrator",
+  "text": "Джаз-клуб «Полночь». Налейте себе чего-нибудь и не спешите.",
+  "speaker": "Royston Min"
+ },
+ {
+  "id": "radio_palma_fm",
+  "who": "narrator",
+  "text": "Пальма эф эм, Ривьера! Солнце, море и регги до утра.",
+  "speaker": "Viktor Eka"
+ },
+ {
+  "id": "radio_klassika",
+  "who": "narrator",
+  "text": "Радио «Классика». Музыка, которая старше этого города.",
+  "speaker": "Gracie Wise"
+ },
+ {
+  "id": "radio_country_road",
+  "who": "narrator",
+  "text": "Кантри-Роуд! Для тех, кто едет за город и не собирается возвращаться.",
+  "speaker": "Dionisio Schuyler"
+ },
+ {
+  "id": "radio_tekhno_podval",
+  "who": "narrator",
+  "text": "Техно-Подвал. Бочка, бас и ничего лишнего.",
+  "speaker": "Kazuhiko Atallah"
  }
 ]

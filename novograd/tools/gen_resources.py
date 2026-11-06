@@ -299,8 +299,9 @@ def sounds():
     for snd in ('gunshot', 'smg_shot', 'siren', 'shotgun_shot', 'rifle_shot', 'sniper_shot', 'reload', 'explosion'):
         out[snd] = {'sounds': [{'name': f'{NS}:{snd}'}]}
     # радио в машине (tools/gen_radio.py)
-    for st in ('neon88', 'beat_ulic', 'nochnoy_port', 'trassa128'):
-        out['radio.' + st] = {'sounds': [{'name': f'{NS}:radio/{st}', 'stream': True}]}
+    for st in ('neon88', 'beat_ulic', 'nochnoy_port', 'trassa128', 'rock_volna', 'jazz_polnoch', 'palma_fm', 'klassika', 'country_road', 'tekhno_podval'):
+        for v in range(3):
+            out[f'radio.{st}_{v}'] = {'sounds': [{'name': f'{NS}:radio/{st}_{v}', 'stream': True}]}
     w(f'{A}/sounds.json', out)
 
 

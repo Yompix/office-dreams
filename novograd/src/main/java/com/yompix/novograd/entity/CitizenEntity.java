@@ -44,7 +44,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         for (int i = 0; i < RANDOM_COUNT; i++) SKINS[RANDOM_FROM + i] = String.format("c%02d", i);
     }
 
-    public enum Role { CITIZEN, TEACHER, SHOPKEEPER, CROUPIER, DEALER, BANKER, POLICE, GANG, GUNSMITH, MECHANIC }
+    public enum Role { CITIZEN, TEACHER, SHOPKEEPER, CROUPIER, DEALER, BANKER, POLICE, GANG, GUNSMITH, MECHANIC, TAILOR, BOUTIQUE, BARBER, COACH }
 
     public enum Activity {
         IDLE, TALK, WAVE, PHONE, SIT, DANCE, CHEER, THINK, SLEEP, ARGUE, LAUGH, FIGHT, HUG, HANDSHAKE, UPSET, AIM;

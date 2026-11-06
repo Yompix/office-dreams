@@ -41,6 +41,7 @@ public final class Achievements {
         add("speeding", "Гонщик", "Получить штраф за превышение");
         add("coop", "Вместе веселее", "Пройти миссию с другом");
         add("story", "Легенда Новограда", "Пройти сюжет");
+        add("fashion", "Модник", "Собрать 12 вещей в гардеробе");
     }
 
     private static void add(String id, String name, String desc) {
