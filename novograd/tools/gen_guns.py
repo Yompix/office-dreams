@@ -317,8 +317,8 @@ def knife():
 
 def throwable_display():
     return {
-        'firstperson_righthand': {'rotation': [10, -25, 0], 'translation': [-1, 4.5, -2], 'scale': [0.55] * 3},
-        'firstperson_lefthand': {'rotation': [10, -25, 0], 'translation': [-1, 4.5, -2], 'scale': [0.55] * 3},
+        'firstperson_righthand': {'rotation': [10, -25, 0], 'translation': [-1, 3, -2], 'scale': [0.6] * 3},
+        'firstperson_lefthand': {'rotation': [10, -25, 0], 'translation': [-1, 3, -2], 'scale': [0.6] * 3},
         'thirdperson_righthand': {'rotation': [0, 0, 0], 'translation': [0, 1, 1], 'scale': [0.6] * 3},
         'thirdperson_lefthand': {'rotation': [0, 0, 0], 'translation': [0, 1, 1], 'scale': [0.6] * 3},
         'gui': {'rotation': [24, -135, 0], 'translation': [0, 0, 0], 'scale': [1.2] * 3},

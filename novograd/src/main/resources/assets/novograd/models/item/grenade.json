@@ -427,13 +427,13 @@
    ],
    "translation": [
     -1,
-    4.5,
+    3,
     -2
    ],
    "scale": [
-    0.55,
-    0.55,
-    0.55
+    0.6,
+    0.6,
+    0.6
    ]
   },
   "firstperson_lefthand": {
@@ -444,13 +444,13 @@
    ],
    "translation": [
     -1,
-    4.5,
+    3,
     -2
    ],
    "scale": [
-    0.55,
-    0.55,
-    0.55
+    0.6,
+    0.6,
+    0.6
    ]
   },
   "thirdperson_righthand": {
