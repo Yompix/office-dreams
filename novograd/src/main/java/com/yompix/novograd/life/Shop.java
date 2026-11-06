@@ -62,6 +62,12 @@ public final class Shop {
             new Entry("Транспорт", "Люкс-седан (чёрный, премиум)", () -> ModContent.CARS[3], 1, 1500, 12),
             new Entry("Транспорт", "Лимузин", () -> ModContent.CARS[10], 1, 3000, 12),
             new Entry("Транспорт", "Такси", () -> ModContent.CARS[5], 1, 750, 12),
+            // 0.4: новые машины (редкие — по ходу сюжета, см. buy)
+            new Entry("Транспорт", "Малолитражка «Кроха»", () -> ModContent.CARS[16], 1, 480, 12),
+            new Entry("Транспорт", "Багги (бездорожье, горы, Пустошь)", () -> ModContent.CARS[15], 1, 2400, 12),
+            new Entry("Транспорт", "Лоурайдер (акт II)", () -> ModContent.CARS[14], 1, 3800, 12),
+            new Entry("Транспорт", "Классика 70-х (акт II)", () -> ModContent.CARS[13], 1, 4500, 12),
+            new Entry("Транспорт", "Суперкар «Молния» (акт IV)", () -> ModContent.CARS[12], 1, 12000, 12),
             new Entry("Питомцы", "Собака (верный друг)", () -> Items.BONE, 1, 150, 1),
             new Entry("Питомцы", "Кошка", () -> Items.COD, 1, 120, 1),
             new Entry("Питомцы", "Попугай", () -> Items.WHEAT_SEEDS, 1, 90, 1),
@@ -69,7 +75,17 @@ public final class Shop {
             new Entry("Разное", "Телефон (запасной)", () -> ModContent.PHONE, 1, 120, 1),
             new Entry("Разное", "Цветы", () -> Items.POPPY, 3, 6, 1),
             new Entry("Разное", "Удочка", () -> Items.FISHING_ROD, 1, 30, 1),
-            new Entry("Разное", "Аптечка", () -> com.yompix.novograd.gta.Arsenal.MEDKIT, 1, 90, 1));
+            new Entry("Разное", "Аптечка", () -> com.yompix.novograd.gta.Arsenal.MEDKIT, 1, 90, 1),
+            // новые стволы «Калибра» (в конце — номера старых товаров не сдвигаются); допуск по сюжету — Armory.locked
+            new Entry("Оружие", "Мачете", () -> com.yompix.novograd.gta.Armory.MACHETE, 1, 220, LifeData.SCHOOL_END + 1),
+            new Entry("Оружие", "Револьвер «Удав»", () -> com.yompix.novograd.gta.Armory.REVOLVER, 1, 750, LifeData.SCHOOL_END + 1),
+            new Entry("Оружие", "«Микро» (ПП)", () -> com.yompix.novograd.gta.Armory.MICRO, 1, 1500, LifeData.SCHOOL_END + 1),
+            new Entry("Оружие", "«Орёл» (тяжёлый пистолет)", () -> com.yompix.novograd.gta.Armory.EAGLE, 1, 1900, LifeData.SCHOOL_END + 1),
+            new Entry("Тяжёлое", "«Сайга» (автодробовик)", () -> com.yompix.novograd.gta.Armory.SAIGA, 1, 3200, LifeData.SCHOOL_END + 1),
+            new Entry("Тяжёлое", "«Карабин»", () -> com.yompix.novograd.gta.Armory.CARBINE, 1, 3600, LifeData.SCHOOL_END + 1),
+            new Entry("Тяжёлое", "«Пулемёт»", () -> com.yompix.novograd.gta.Armory.LMG, 1, 7500, LifeData.SCHOOL_END + 1),
+            new Entry("Тяжёлое", "«Гранатомёт»", () -> com.yompix.novograd.gta.Armory.RPG, 1, 15000, LifeData.SCHOOL_END + 1),
+            new Entry("Снаряжение", "Выстрел ПГ ×2", () -> com.yompix.novograd.gta.Armory.ROCKET, 2, 1200, LifeData.SCHOOL_END + 1));
 
     /** Разделы оружейного «Калибра»: их продают только там и только лично. */
     public static boolean gunCategory(String category) {
@@ -78,6 +94,11 @@ public final class Shop {
 
     /** delivery = покупка через телефон, +20% за доставку. */
     private static final java.util.Map<java.util.UUID, Long> AT_GUNSHOP = new java.util.HashMap<>();
+
+    /** Игрок сейчас у Боба в «Калибре» (окно магазина открыто не больше 2 минут назад) — для Мастерской. */
+    public static boolean atGunShop(ServerPlayerEntity p) {
+        return p.getServerWorld().getTime() - AT_GUNSHOP.getOrDefault(p.getUuid(), -10000L) <= 2400;
+    }
 
     /** Оружейный «Калибр»: только оружие, только взрослым и только в магазине (не доставкой). */
     public static void openGuns(ServerPlayerEntity p) {
@@ -141,6 +162,16 @@ public final class Shop {
         int act = com.yompix.novograd.gta.Economy.act(Life.get(p));
         if (it == com.yompix.novograd.gta.Arsenal.RIFLE && act < 1 || it == com.yompix.novograd.gta.Arsenal.SNIPER && act < 3) {
             p.sendMessage(Text.literal("Оружейник Боб: «Такой ствол — только проверенным людям. Приходи, когда тебя узнают в городе.»").formatted(Formatting.GOLD), false);
+            return;
+        }
+        String no = com.yompix.novograd.gta.Armory.locked(it, act);
+        if (no != null) {
+            p.sendMessage(Text.literal(no).formatted(Formatting.GOLD), false);
+            return;
+        }
+        // редкие машины — когда тебя узнают в городе: лоурайдер и классика с акта II, суперкар с акта IV
+        if ((it == ModContent.CARS[13] || it == ModContent.CARS[14]) && act < 1 || it == ModContent.CARS[12] && act < 3) {
+            p.sendMessage(Text.literal("Автодилер Фрэнк: «Такую машину держу для особых клиентов. Сделай себе имя в городе — и приходи.»").formatted(Formatting.GOLD), false);
             return;
         }
         int cost = price(e, delivery, CityLife.event(p.getServerWorld()));

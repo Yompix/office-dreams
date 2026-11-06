@@ -102,6 +102,7 @@ public final class CarHud {
             String n = car.nitroOn() ? "NOS!" : "NOS";
             ctx.drawText(tr, n, ix - tr.getWidth(n), y + ph + 3 > h - 10 ? y - 10 : y + ph + 3, car.nitroOn() ? 0xFF7FD8FF : 0xFF4A6A80, true);
         }
+        DriveClient.fuelGauge(ctx, car, x, y, pw, ph); // бензин справа от спидометра
     }
 
     // ------------------------------------------------------------------ следы шин

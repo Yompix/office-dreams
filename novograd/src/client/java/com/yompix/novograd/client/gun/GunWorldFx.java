@@ -94,22 +94,25 @@ public final class GunWorldFx {
         else if (shooter instanceof LivingEntity le) muzzle = thirdPersonMuzzle(le, eye);
         else muzzle = eye;
         int n = fx.what().length;
+        int kind = fx.kind() & 15;                 // бит 16 — выстрел с глушителем (Мастерская)
+        boolean quiet = (fx.kind() & 16) != 0;
         for (int i = 0; i < n; i++) {
             Vec3d end = new Vec3d(fx.ends()[i * 3], fx.ends()[i * 3 + 1], fx.ends()[i * 3 + 2]);
             int w = fx.what()[i] & 3;
             if (end.squaredDistanceTo(muzzle) > 4 && (n == 1 || i % 2 == 0))
-                TRACERS.add(new Tracer(muzzle, end, System.nanoTime(), n > 1 ? 0.012f : fx.kind() == 4 ? 0.03f : 0.02f));
+                TRACERS.add(new Tracer(muzzle, end, System.nanoTime(), n > 1 ? 0.012f : kind == 4 ? 0.03f : 0.02f));
             if (w == 1) impact(c, end, Direction.byId((fx.what()[i] >> 2) & 7), n > 1);
         }
         if (!fp) {
             // чужая вспышка и гильза
             if (shooter instanceof LivingEntity le) {
                 Vec3d dir = le.getRotationVec(1f);
-                FLASHES.add(new Flash(muzzle, dir, System.nanoTime(), fx.kind() == 2 || fx.kind() == 4 ? 0.55f : 0.38f, RND.nextInt(4)));
-                if (fx.kind() != 2 && fx.kind() != 4) {
+                float fs = (kind == 2 || kind == 4 ? 0.55f : 0.38f) * (quiet ? 0.3f : 1f);
+                FLASHES.add(new Flash(muzzle, dir, System.nanoTime(), fs, RND.nextInt(4)));
+                if (kind != 2 && kind != 4) {
                     Vec3d right = dir.crossProduct(new Vec3d(0, 1, 0)).normalize();
                     Vec3d port = muzzle.subtract(dir.multiply(0.35)).add(0, 0.05, 0);
-                    spawnBit(port, right.multiply(0.12).add(0, 0.12, 0).add(dir.multiply(-0.02)), fx.kind() == 3 ? 1 : 0);
+                    spawnBit(port, right.multiply(0.12).add(0, 0.12, 0).add(dir.multiply(-0.02)), kind == 3 ? 1 : 0);
                 }
                 c.world.addParticle(ParticleTypes.SMOKE, muzzle.x, muzzle.y, muzzle.z, dir.x * 0.02, 0.02, dir.z * 0.02);
             }

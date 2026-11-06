@@ -28,6 +28,14 @@ public class GunGeoRenderer extends GeoItemRenderer<GunItem> {
 
     public GunGeoRenderer(GunItem item) {
         super(new Model(item.gunId()));
+        addRenderLayer(new GunModsClient.AttachLayer(this)); // обвесы Мастерской
+        addRenderLayer(new GunModsClient.NeonLayer(this));   // окраска «Неон» светится
+    }
+
+    /** Окраска из Мастерской — своя текстура (та же раскладка UV). */
+    @Override
+    public Identifier getTextureLocation(GunItem animatable) {
+        return GunModsClient.texture(animatable.gunId(), getCurrentItemStack());
     }
 
     /** Фабрика для GunItem.renderProvider. */
@@ -74,13 +82,15 @@ public class GunGeoRenderer extends GeoItemRenderer<GunItem> {
                 // приклад в прицеле — у щеки, его не видно (иначе закрывает пол-экрана)
                 bone.setHidden(animate && GunAnim.POSE.hideStock && perspectiveFirst());
             } else {
+                // у гранатомёта после выстрела в трубе пусто (и у других игроков / NPC)
+                boolean emptyTube = n.equals("mag") && animatable.gunId().equals("rpg") && getCurrentItemStack() != null && animatable.mag(getCurrentItemStack()) <= 0;
                 bone.setPosX(0);
                 bone.setPosY(0);
                 bone.setPosZ(0);
                 bone.setRotX(0);
                 bone.setRotY(0);
                 bone.setRotZ(0);
-                bone.setHidden(n.equals("shell"));
+                bone.setHidden(n.equals("shell") || emptyTube);
             }
         }
         super.renderRecursively(m, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);

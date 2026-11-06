@@ -176,5 +176,62 @@ def main():
     print('gun sfx ok')
 
 
+# ---------------------------------------------------------------- новые стволы и глушитель (python3 tools/gen_gun_sfx.py new)
+def suppressed(seed, low=1.0):
+    """Выстрел с глушителем: глухой «пфт» + щелчок затвора, без хвоста эха."""
+    rng = np.random.default_rng(seed)
+    T = 0.45
+    t = np.arange(int(SR * T)) / SR
+    n = rng.standard_normal(len(t))
+    puff = lp(n, 10 + 6 * low) * 5 * env(t, 0.002, 60) + lp(hp(n, 12), 3) * env(t, 0.001, 140) * 0.8
+    k = np.clip(t - 0.03, 0, None)
+    mech = (t > 0.03) * (np.sin(2 * np.pi * 2600 * k) * 0.5 + hp(n, 3) * 0.5) * np.exp(-k * 150) * 0.6
+    return np.tanh((puff + mech) * 1.3) * 0.7
+
+
+def new_sounds():
+    out = {
+        'revolver_shot': shot(1.5, 201, crack=1.2, body=1.3, body_lp=30, body_decay=20, thump_f=(170, 50), thump=1.0, mech=0.1, tail=0.7, tail_decay=3,
+                              refl=((0.1, 0.4), (0.24, 0.25), (0.45, 0.14))),
+        'eagle_shot': shot(1.6, 202, crack=1.4, body=1.4, body_lp=32, body_decay=17, thump_f=(150, 45), thump=1.1, mech=0.35, tail=0.75, tail_decay=2.8,
+                           refl=((0.11, 0.4), (0.27, 0.26), (0.5, 0.15))),
+        'micro_shot': shot(0.4, 203, crack=0.8, body=0.5, body_lp=14, body_decay=55, thump_f=(280, 110), thump=0.35, mech=0.4, tail=0.25, tail_decay=8,
+                           refl=((0.06, 0.25), (0.13, 0.15))),
+        'saiga_shot': shot(1.2, 204, crack=1.0, body=1.5, body_lp=42, body_decay=16, thump_f=(140, 42), thump=1.1, mech=0.45, tail=0.7, tail_decay=3.5),
+        'carbine_shot': shot(0.8, 205, crack=1.4, body=0.85, body_lp=22, body_decay=30, thump_f=(200, 70), thump=0.7, mech=0.3, tail=0.5, tail_decay=5),
+        'lmg_shot': shot(0.75, 206, crack=1.3, body=1.1, body_lp=30, body_decay=26, thump_f=(160, 50), thump=0.9, mech=0.45, tail=0.55, tail_decay=5),
+        'silenced_shot': suppressed(207, 1.0),
+        'silenced_rifle': suppressed(208, 0.5),
+    }
+    # гранатомёт: хлопок вышибного заряда + шипение маршевого двигателя
+    rng = np.random.default_rng(209)
+    T = 1.8
+    t = np.arange(int(SR * T)) / SR
+    n = rng.standard_normal(len(t))
+    boom = shot(T, 210, crack=0.8, body=1.6, body_lp=50, body_decay=12, thump_f=(110, 35), thump=1.2, mech=0.0, tail=0.9, tail_decay=2.4)
+    hiss = hp(n, 3) * env(np.clip(t - 0.12, 0, None), 0.05, 1.6) * (t > 0.12) * 0.8
+    out['rpg_shot'] = np.tanh(boom + hiss)
+    # перезарядки: барабан (открыть, 6 патронов, закрыть), лента пулемёта, граната в трубу
+    out['revolver_reload'] = part(2.6, [(0.15, 1500, 2700, 60, 0.9)] + [(0.6 + 0.22 * i, 1300, 2600, 70, 0.6) for i in range(6)]
+                                  + [(2.15, 1900, 3300, 70, 1.0)], 211, [(0.1, 0.2, 0.2), (2.05, 2.15, 0.25)])
+    out['lmg_reload'] = part(5.0, [(0.3, 1300, 2500, 55, 0.9), (0.8, 1000, 1900, 40, 0.7), (2.4, 1200, 2300, 45, 0.9), (3.6, 1700, 3000, 65, 1.0),
+                                   (4.2, 1400, 2600, 55, 0.9), (4.5, 1800, 3200, 70, 1.0)], 212, [(0.9, 1.6, 0.3), (2.6, 3.4, 0.35)])
+    out['rpg_reload'] = part(3.2, [(0.3, 700, 1300, 30, 0.5), (2.0, 900, 1600, 35, 0.9), (2.3, 1500, 2700, 60, 1.0)], 213, [(1.2, 2.0, 0.25)])
+    for k, v in out.items():
+        write(k, v)
+    sj = os.path.join(ROOT, 'sounds.json')
+    with open(sj) as f:
+        d = json.load(f)
+    for k in out:
+        d[k] = {'sounds': [{'name': 'novograd:' + k}]}
+    with open(sj, 'w') as f:
+        f.write(json.dumps(d, indent=2, ensure_ascii=False))
+    print('new gun sfx ok')
+
+
 if __name__ == '__main__':
-    main()
+    import sys
+    if sys.argv[1:] == ['new']:
+        new_sounds()
+    else:
+        main()

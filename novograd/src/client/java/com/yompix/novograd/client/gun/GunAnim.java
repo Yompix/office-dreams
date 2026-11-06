@@ -57,6 +57,12 @@ public final class GunAnim {
         public int shells;
         public float inspectP = -1;
         public float trigger;             // 0..1 — палец на спуске
+        public boolean empty;             // магазин пуст (у гранатомёта не видно выстрела в трубе)
+    }
+
+    /** Новые стволы двигаются как похожие старые (см. GunItem.base); у револьвера и гранатомёта — свои анимации. */
+    static String base(String gun) {
+        return com.yompix.novograd.item.GunItem.base(gun);
     }
 
     public static final float INSPECT_SEC = 2.8f;
@@ -100,7 +106,10 @@ public final class GunAnim {
         float trig = Math.max(in.trigger, pulse(in.shotT, 0.02f, 0.1f));
         p.b("trigger")[3] = -22 * trig;
         float k = pulse(in.shotT, 0.022f, 0.075f);
-        switch (in.gun) {
+        String bg = base(in.gun);
+        switch (bg) {
+            case "revolver" -> p.b("hammer")[3] = 38 * k;
+            case "rpg" -> p.b("mag")[6] = in.empty && in.reloadP < 0 ? 1 : 0;
             case "pistol" -> {
                 p.b("slide")[2] = in.locked ? m.slideKick : m.slideKick * k;
                 p.b("hammer")[3] = 38 * Math.max(k, in.locked ? 1 : 0);
@@ -117,7 +126,9 @@ public final class GunAnim {
             default -> {}
         }
         if (in.reloadP >= 0) {
-            if (in.gun.equals("shotgun")) shotgunReload(m, p, in);
+            if (bg.equals("shotgun")) shotgunReload(m, p, in);
+            else if (bg.equals("revolver")) revolverReload(m, p, in);
+            else if (bg.equals("rpg")) rpgReload(m, p, in);
             else magReload(m, p, in);
         } else if (in.inspectP >= 0) inspect(m, p, in);
         // рука на цевье помпы ходит вместе с ней
@@ -211,7 +222,7 @@ public final class GunAnim {
             float[] rackHand = null;
             float rackW = win(t, 0.64f, 0.70f, 0.82f, 0.92f);
             float pullB = s(0.70f, 0.77f, t) * (1 - s(0.78f, 0.80f, t));
-            switch (in.gun) {
+            switch (base(in.gun)) {
                 case "pistol" -> {
                     float[] sl = p.b("slide");
                     sl[2] = t < 0.785f ? m.slideKick + 0.35f * pullB : m.slideKick * (1 - s(0.785f, 0.80f, t));
@@ -305,6 +316,56 @@ public final class GunAnim {
         else p.support[2] = m.support[2] + p.b("pump")[2];
     }
 
+    /** Револьвер: барабан откидывается влево, рука ускорителем заряжания вставляет шесть патронов, барабан на место. */
+    static void revolverReload(GunMeta m, Pose p, In in) {
+        float t = in.reloadP;
+        float tilt = s(0, 0.12f, t) * (1 - s(0.86f, 1, t));
+        p.rx += 28 * tilt;   // стволом вверх — гильзы высыпаются
+        p.rz += -14 * tilt;
+        p.ty += 0.04f * tilt;
+        float open = s(0.06f, 0.14f, t) * (1 - s(0.8f, 0.86f, t));
+        p.b("mag")[5] = 70 * open;
+        // рука: к барабану (выбросить гильзы), к поясу за ускорителем, к барабану, закрыть
+        float[] cyl = {m.magHand[0] - 1.0f * open, m.magHand[1] - 0.6f * open, m.magHand[2]};
+        float[] pouch = add(m.grip, -4, -8, -1);
+        float[] h = new float[3];
+        lerp3(h, m.support, cyl, s(0.04f, 0.14f, t));
+        lerp3(h, h, pouch, s(0.16f, 0.26f, t));
+        lerp3(h, h, add(cyl, 0, 0, -1.5f), s(0.26f, 0.34f, t));
+        lerp3(h, h, cyl, s(0.74f, 0.82f, t));
+        lerp3(h, h, m.support, s(0.86f, 0.96f, t));
+        System.arraycopy(h, 0, p.support, 0, 3);
+        float slap = bump(t, 0.8f, 0.88f);
+        p.rz += 6 * slap;
+    }
+
+    /** Гранатомёт: новый выстрел ПГ из-за спины — в трубу спереди. */
+    static void rpgReload(GunMeta m, Pose p, In in) {
+        float t = in.reloadP;
+        float tilt = s(0, 0.15f, t) * (1 - s(0.85f, 1, t));
+        p.rx += -16 * tilt;  // дулом вниз, к руке
+        p.ty += -0.05f * tilt;
+        p.tx += 0.04f * tilt;
+        float[] mag = p.b("mag");
+        float[] pouch = add(m.grip, -6, -12, 4);
+        float[] front = add(m.magHand, 0, -1.5f, -6);
+        float[] h = new float[3];
+        lerp3(h, m.support, pouch, s(0.05f, 0.25f, t));
+        lerp3(h, h, front, s(0.3f, 0.55f, t));
+        lerp3(h, h, m.magHand, s(0.55f, 0.7f, t));
+        lerp3(h, h, m.support, s(0.78f, 0.92f, t));
+        System.arraycopy(h, 0, p.support, 0, 3);
+        if (t < 0.28f) mag[6] = 1;
+        else if (t < 0.7f) {
+            mag[0] = h[0] - m.magHand[0];
+            mag[1] = h[1] - m.magHand[1];
+            mag[2] = h[2] - m.magHand[2];
+        }
+        p.magPos[0] = m.magHand[0] + mag[0];
+        p.magPos[1] = m.magHand[1] + mag[1];
+        p.magPos[2] = m.magHand[2] + mag[2];
+    }
+
     /** Осмотр (Y): повернуть одной стороной, другой, проверить патрон / магазин / затвор. */
     static void inspect(GunMeta m, Pose p, In in) {
         float t = in.inspectP;
@@ -319,7 +380,11 @@ public final class GunAnim {
         p.tz += 0.07f * a;
         float det = win(t, 0.62f, 0.68f, 0.74f, 0.8f);
         float handW = win(t, 0.56f, 0.62f, 0.8f, 0.86f);
-        switch (in.gun) {
+        switch (base(in.gun)) {
+            case "revolver" -> {
+                p.b("mag")[5] = 70 * det;
+                lerp3(p.support, p.support, m.magHand, handW);
+            }
             case "pistol" -> {
                 p.b("slide")[2] = 0.9f * det;
                 lerp3(p.support, p.support, new float[]{m.sight[0] - 0.9f, m.sight[1] - 0.8f, m.muzzle[2] + 1.6f + 0.9f * det}, handW);
@@ -356,6 +421,14 @@ public final class GunAnim {
     public record Cue(float at, String sound) {}
 
     public static Cue[] reloadCues(String gun, boolean empty, int shells, float sec) {
+        gun = base(gun);
+        if (gun.equals("revolver")) {
+            java.util.List<Cue> c = new java.util.ArrayList<>(java.util.List.of(new Cue(0.02f, "handling"), new Cue(0.1f, "mag_out")));
+            for (int i = 0; i < 6; i++) c.add(new Cue(0.3f + 0.07f * i, "shell_in"));
+            c.add(new Cue(0.84f, "mag_in"));
+            return c.toArray(new Cue[0]);
+        }
+        if (gun.equals("rpg")) return new Cue[]{new Cue(0.02f, "handling"), new Cue(0.3f, "handling"), new Cue(0.68f, "mag_in"), new Cue(0.76f, "bolt_fwd")};
         if (gun.equals("shotgun")) {
             java.util.List<Cue> c = new java.util.ArrayList<>();
             c.add(new Cue(0.02f, "handling"));
@@ -375,7 +448,8 @@ public final class GunAnim {
     }
 
     public static Cue[] inspectCues(String gun) {
-        return switch (gun) {
+        return switch (base(gun)) {
+            case "revolver" -> new Cue[]{new Cue(0.02f, "handling"), new Cue(0.64f, "mag_out"), new Cue(0.77f, "mag_in")};
             case "pistol" -> new Cue[]{new Cue(0.02f, "handling"), new Cue(0.64f, "slide_back"), new Cue(0.77f, "slide_release")};
             case "shotgun" -> new Cue[]{new Cue(0.02f, "handling"), new Cue(0.64f, "pump")};
             case "sniper" -> new Cue[]{new Cue(0.02f, "handling"), new Cue(0.64f, "bolt_back"), new Cue(0.77f, "bolt_fwd")};

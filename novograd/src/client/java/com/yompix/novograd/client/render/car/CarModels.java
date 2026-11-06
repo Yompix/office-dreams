@@ -238,6 +238,41 @@ public final class CarModels {
                 s.wsB = 25; s.roofF = 20; s.roofR = -9; s.rwB = -9; s.roof = 38; s.inset = 0.8f; s.r = 6.5f; s.ww = 5; s.wF = 25; s.wR = -40;
                 s.panelVan = true; s.trunk = false; s.steelies = true;
             }
+            // 0.4: новые кузова
+            case FIRETRUCK -> {
+                s.W = 16.5f; s.zF = 34; s.zR = -9; s.sill = 6; s.belt = 18; s.hoodF = 17; s.trunkR = 18;
+                s.wsB = 25; s.roofF = 20; s.roofR = -9; s.rwB = -9; s.roof = 38; s.inset = 0.8f; s.r = 6.5f; s.ww = 5; s.wF = 25; s.wR = -40;
+                s.panelVan = true; s.trunk = false; s.steelies = true;
+            }
+            case SUPERCAR -> {
+                s.W = 16.5f; s.zF = 31; s.zR = -29; s.sill = 2.6f; s.belt = 10.5f; s.hoodF = 7.5f; s.trunkR = 11.5f;
+                s.wsB = 13; s.roofF = -1; s.roofR = -12; s.rwB = -25; s.roof = 25.5f; s.inset = 3.6f; s.r = 5.4f; s.ww = 5.6f; s.wF = 19.5f; s.wR = -18.5f;
+                s.seatDrop = 3;
+            }
+            case CLASSIC -> {
+                s.W = 15.5f; s.zF = 33; s.zR = -30; s.belt = 13.5f; s.hoodF = 13; s.trunkR = 13.5f;
+                s.wsB = 8; s.roofF = -0.5f; s.roofR = -12; s.rwB = -21; s.roof = 27.5f; s.inset = 2.8f; s.r = 5.2f; s.wF = 21; s.wR = -18.5f;
+                s.seatDrop = 1;
+            }
+            case LOWRIDER -> {
+                s.W = 15.5f; s.zF = 33; s.zR = -34; s.sill = 2.4f; s.belt = 12.5f; s.hoodF = 11.5f; s.trunkR = 12.5f;
+                s.wsB = 10; s.roofF = 3; s.roofR = -15; s.rwB = -23; s.roof = 27; s.r = 4.5f; s.ww = 3.8f; s.wF = 21; s.wR = -21;
+                s.seatDrop = 1;
+            }
+            case COMPACT -> {
+                s.W = 13; s.zF = 19.5f; s.zR = -22; s.belt = 12.5f; s.hoodF = 11.5f; s.trunkR = 12.5f;
+                s.wsB = 8.5f; s.roofF = 1; s.roofR = -18; s.rwB = -21; s.roof = 28.5f; s.inset = 1.8f; s.r = 4.2f; s.ww = 3.8f; s.wF = 12.5f; s.wR = -13.5f; s.trunk = false;
+            }
+            case SWAT -> {
+                s.W = 16.5f; s.zF = 27; s.zR = -34; s.sill = 5.5f; s.belt = 17; s.hoodF = 15.5f; s.trunkR = 17;
+                s.wsB = 14; s.roofF = 9; s.roofR = -34; s.rwB = -34; s.roof = 37; s.inset = 0.6f; s.r = 6.5f; s.ww = 5.2f; s.wF = 17; s.wR = -23;
+                s.panelVan = true; s.trunk = false; s.steelies = true;
+            }
+            case AMBULANCE -> {
+                s.W = 16.5f; s.zF = 26; s.zR = -36; s.sill = 4.5f; s.belt = 15; s.hoodF = 13.5f; s.trunkR = 15;
+                s.wsB = 15; s.roofF = 9; s.roofR = -36; s.rwB = -36; s.roof = 38; s.inset = 0.5f; s.r = 5.5f; s.wF = 17; s.wR = -25;
+                s.panelVan = true; s.trunk = false; s.steelies = true;
+            }
             default -> {}
         }
         return s;
@@ -266,6 +301,7 @@ public final class CarModels {
 
     // ------------------------------------------------------------------ сборка
     private static CarModel build(CarBody t) {
+        if (t == CarBody.BUGGY) return buggy();
         S s = spec(t);
         B b = new B();
         float W = s.W, iw = W - s.inset; // полуширина кабины
@@ -341,10 +377,10 @@ public final class CarModels {
         if (t == CarBody.LIMO) for (float z : new float[]{-22, -30}) b.sym("trim", iw - 0.8f, s.belt, z - 1.4f, iw + 0.05f, s.roof, z);
         // швы дверей и ручки
         float doorF = s.wF - s.r - 1.6f;
-        float[] seams = s.panelVan ? new float[]{doorF, s.pillarB - 1.6f, s.pillarB - 20} : t == CarBody.SPORTS || t == CarBody.MUSCLE
+        float[] seams = s.panelVan ? new float[]{doorF, s.pillarB - 1.6f, s.pillarB - 20} : t == CarBody.SPORTS || t == CarBody.MUSCLE || twoDoor(t)
                 ? new float[]{doorF, -9} : t == CarBody.LIMO ? new float[]{doorF, s.pillarB - 0.7f, -36} : new float[]{doorF, s.pillarB - 0.7f, -17};
         for (float z : seams) b.sym("trim", W, s.sill + 1.2f, z - 0.15f, W + 0.06f, s.belt - 0.3f, z + 0.15f);
-        float[] handles = t == CarBody.SPORTS || t == CarBody.MUSCLE ? new float[]{-6} : new float[]{-4, -14};
+        float[] handles = t == CarBody.SPORTS || t == CarBody.MUSCLE || twoDoor(t) ? new float[]{-6} : new float[]{-4, -14};
         for (float z : handles) b.sym("chrome", W, s.belt - 2.6f, z - 1.2f, W + 0.35f, s.belt - 1.9f, z + 1.2f);
         // зеркала
         b.sym("paint", W - 0.5f, s.belt + 0.6f, s.wsB - 2.6f, W + 2.2f, s.belt + 3, s.wsB - 0.8f);
@@ -356,38 +392,38 @@ public final class CarModels {
                 -2 * W - 0.2f, -1.2f, -0.6f, 0.2f, 2.8f, 1.6f,           // относительно точки поворота у левого края
                 -2 * W + 2, 0.4f, 1.6f, -2, 1.4f, 1.9f);
         b.box("trim", -W - 0.2f, s.sill - 1.2f, s.zR - 1.6f, W + 0.2f, s.sill + 2.8f, s.zR + 0.6f);
-        if (t == CarBody.MUSCLE || t == CarBody.PICKUP || t == CarBody.TRUCK) {
+        if (t == CarBody.MUSCLE || t == CarBody.PICKUP || t.truck() || t == CarBody.CLASSIC || t == CarBody.LOWRIDER) {
             b.box("chrome", -W - 0.3f, s.sill + 0.3f, s.zR - 1.8f, W + 0.3f, s.sill + 2.2f, s.zR - 1.2f);
         }
         // решётка радиатора
         float gy1 = s.sill + 2.2f, gy2 = s.hoodF - 1.6f;
         switch (t) {
-            case LUXURY, LIMO -> {
+            case LUXURY, LIMO, LOWRIDER -> {
                 b.box("chrome", -5, gy1 - 0.4f, bz, 5, gy2 + 0.4f, bz + 0.5f);
                 b.box("grille", -4.2f, gy1, bz + 0.1f, 4.2f, gy2, bz + 0.6f);
                 for (float x = -3.4f; x < 3.6f; x += 1.4f) b.box("chrome", x, gy1, bz + 0.6f, x + 0.4f, gy2, bz + 0.8f);
                 b.box("chrome", -0.4f, s.hoodF + 0.4f, bz - 1.5f, 0.4f, s.hoodF + 1.8f, bz - 0.6f);   // фигурка на капоте
             }
-            case MUSCLE -> {
+            case MUSCLE, CLASSIC -> {
                 b.box("grille", -W + 3, gy1, bz, W - 3, gy2, bz + 0.4f);
                 b.box("chrome", -W + 2.6f, gy2, bz, W - 2.6f, gy2 + 0.4f, bz + 0.5f);
             }
-            case SUV, PICKUP, TRUCK, VAN -> {
+            case SUV, PICKUP, TRUCK, VAN, FIRETRUCK, SWAT, AMBULANCE -> {
                 b.box("grille", -7, gy1, bz, 7, gy2, bz + 0.5f);
                 for (float y = gy1 + 0.8f; y < gy2 - 0.4f; y += 1.6f) b.box(t == CarBody.VAN ? "trim" : "chrome", -7, y, bz + 0.5f, 7, y + 0.5f, bz + 0.7f);
             }
-            case SPORTS -> {
+            case SPORTS, SUPERCAR -> {
                 b.box("grille", -6, s.sill + 1, bz + 0.6f, 6, s.sill + 3.2f, bz + 1.7f);   // нижний воздухозаборник
                 b.box("trim", -W, s.sill - 1.5f, bz + 0.4f, W, s.sill - 1, bz + 2.6f);       // сплиттер
             }
             default -> b.box("grille", -5.5f, gy1, bz, 5.5f, gy2, bz + 0.4f);
         }
         // фары
-        float hy2 = s.hoodF - 1.0f, hy1 = hy2 - (t == CarBody.SPORTS ? 1.6f : t == CarBody.SUV || t == CarBody.TRUCK ? 3.2f : 2.6f);
-        float hx2 = W - 1.0f, hx1 = t == CarBody.MUSCLE ? W - 3.6f : W - 5.6f;
+        float hy2 = s.hoodF - 1.0f, hy1 = hy2 - (t == CarBody.SPORTS || t == CarBody.SUPERCAR ? 1.4f : t == CarBody.SUV || t.truck() || t == CarBody.SWAT ? 3.2f : 2.6f);
+        float hx2 = W - 1.0f, hx1 = t == CarBody.MUSCLE || t == CarBody.CLASSIC ? W - 3.6f : t == CarBody.SUPERCAR ? W - 7.5f : W - 5.6f;
         b.box("head", hx1, hy1, bz, hx2, hy2, bz + 0.5f);
         b.box("head_l", -hx2, hy1, bz, -hx1, hy2, bz + 0.5f);
-        if (t == CarBody.MUSCLE) {
+        if (t == CarBody.MUSCLE || t == CarBody.CLASSIC) {
             b.box("head", hx1 - 3.4f, hy1, bz, hx1 - 0.6f, hy2, bz + 0.5f);
             b.box("head_l", -hx1 + 0.6f, hy1, bz, -hx1 + 3.4f, hy2, bz + 0.5f);
         }
@@ -401,7 +437,7 @@ public final class CarModels {
         // задние огни, номер, выхлоп
         float rz = s.zR, ty2 = s.trunkR - 1.0f, ty1 = ty2 - 2.4f;
         boolean tallTail = !s.trunk && !s.bed && t != CarBody.HATCH || s.bed;
-        if (t == CarBody.TRUCK) {
+        if (t.truck()) {
             // огни внизу будки
             rz = -56;
             b.box("tail", W - 4, 9, rz - 0.4f, W - 0.5f, 11, rz);
@@ -414,27 +450,27 @@ public final class CarModels {
             b.sym("rev", W - 2.6f, y1 - 1.6f, rz - 0.4f, W - 0.4f, y1 - 0.4f, rz);
             b.sym("sig_l", W - 2.6f, y2 + 0.2f, rz - 0.4f, W - 0.4f, y2 + 1.2f, rz);
         } else {
-            float tx1 = t == CarBody.SPORTS || t == CarBody.MUSCLE ? W - 6.5f : W - 5;
+            float tx1 = t == CarBody.SPORTS || t == CarBody.MUSCLE || t == CarBody.SUPERCAR || t == CarBody.CLASSIC ? W - 6.5f : W - 5;
             b.box("tail", tx1, ty1, rz - 0.4f, W - 0.4f, ty2, rz);
             b.box("tail_l", -W + 0.4f, ty1, rz - 0.4f, -tx1, ty2, rz);
             b.sym("rev", tx1 - 2.2f, ty1 + 0.5f, rz - 0.4f, tx1 - 0.4f, ty2 - 0.5f, rz);
             if (t == CarBody.LUXURY || t == CarBody.LIMO) b.box("tail", -tx1, ty2 - 0.6f, rz - 0.4f, tx1, ty2 - 0.2f, rz); // светящаяся полоса через всю корму
         }
         // поворотники сзади — отдельно
-        if (t != CarBody.TRUCK && !tallTail) {
+        if (!t.truck() && !tallTail) {
             b.box("sig_l", W - 1.8f, ty1 - 1.2f, rz - 0.45f, W - 0.4f, ty1 - 0.3f, rz);
             b.box("sig_r", -W + 0.4f, ty1 - 1.2f, rz - 0.45f, -W + 1.8f, ty1 - 0.3f, rz);
-        } else if (tallTail && t != CarBody.TRUCK) {
+        } else if (tallTail && !t.truck()) {
             b.box("sig_r", -W + 0.4f, s.belt + 0.2f + (s.bed ? -0.6f : 4), rz - 0.45f, -W + 2.6f, s.belt + 1.2f + (s.bed ? -0.6f : 4), rz);
         }
-        float plY = t == CarBody.TRUCK ? 8 : s.sill + 3.2f;
-        if (t != CarBody.TRUCK) {
+        float plY = t.truck() ? 8 : s.sill + 3.2f;
+        if (!t.truck()) {
             b.box("plate", -3.6f, plY, rz - 0.3f, 3.6f, plY + 2, rz);
             b.box("plate_txt", -3, plY + 0.5f, rz - 0.4f, 3, plY + 1.5f, rz - 0.3f);
         }
         float ex = W - 5;
-        boolean dual = t == CarBody.SPORTS || t == CarBody.MUSCLE || t == CarBody.LUXURY;
-        float exZ = t == CarBody.TRUCK ? -11 : s.zR;
+        boolean dual = t == CarBody.SPORTS || t == CarBody.MUSCLE || t == CarBody.LUXURY || t == CarBody.SUPERCAR || t == CarBody.CLASSIC || t == CarBody.LOWRIDER;
+        float exZ = t.truck() ? -11 : s.zR;
         b.box("trim", ex - 2.6f, s.sill - 0.8f, exZ - 2.2f, ex, s.sill + 0.9f, exZ + 1);
         b.box("exhaust_tip", ex - 2.1f, s.sill - 0.4f, exZ - 2.3f, ex - 0.5f, s.sill + 0.5f, exZ - 2.2f);
         if (dual) {
@@ -446,10 +482,10 @@ public final class CarModels {
         extras(b, s, t, iw);
         dents(b, s);
 
-        float[][] wheels = t == CarBody.TRUCK
+        float[][] wheels = t.truck()
                 ? new float[][]{{W - 2.4f, s.wF}, {-W + 2.4f, s.wF}, {W - 2.4f, s.wR}, {-W + 2.4f, s.wR}, {W - 2.4f, s.wR + 13}, {-W + 2.4f, s.wR + 13}}
                 : new float[][]{{W - 2.3f, s.wF}, {-W + 2.3f, s.wF}, {W - 2.3f, s.wR}, {-W + 2.3f, s.wR}};
-        float[] spare = t == CarBody.SUV ? new float[]{0, s.belt + 0.5f, s.zR - 2.4f} : null;
+        float[] spare = t == CarBody.SUV ? new float[]{0, s.belt + 0.5f, s.zR - 2.4f} : t == CarBody.LOWRIDER ? new float[]{0, s.sill + 4.6f, s.zR - 3.4f} : null;
         return new CarModel(b.build(), new Wheel(s.r, s.ww, s.steelies), wheels, s.r, W - 3.3f, (hy1 + hy2) / 2, bz + 0.6f, spare);
     }
 
@@ -483,7 +519,7 @@ public final class CarModels {
             b.box("seam", x + 2, 10.25f - d, -3.5f, x + 6, 10.35f - d, 3.5f);
             b.box("seam", x + 2, 12 - d, -3.95f, x + 6, 22 - d, -3.85f);
         }
-        if (t != CarBody.SPORTS) {
+        if (t != CarBody.SPORTS && t != CarBody.SUPERCAR) {
             b.box("seat", -12, 7.6f, -17, 12, 10.2f, -9);
             b.box("seat", -12, 10.2f, -19, 12, 22.2f, -17);
             b.box("seat", -10, 22.5f, -18.8f, -5, 25.5f, -17.4f);
@@ -603,7 +639,71 @@ public final class CarModels {
                 b.sym("chrome", iw - 0.7f, s.belt + 0.3f, s.rwB, iw - 0.05f, s.belt + 0.55f, s.wsB);
             }
             case HATCH -> b.box("paint", -iw + 0.3f, s.roof + 0.4f, s.roofR - 1.6f, iw - 0.3f, s.roof + 1.4f, s.roofR); // спойлер над дверью
-            case TRUCK -> {
+            case SUPERCAR -> {
+                // большое антикрыло на стойках, воздухозаборники за дверями, жалюзи над мотором, диффузор
+                b.sym("trim", 6, s.trunkR, s.zR + 1.5f, 7, s.trunkR + 4.5f, s.zR + 3);
+                b.box("trim", -W, s.trunkR + 4.5f, s.zR, W, s.trunkR + 5.2f, s.zR + 5);
+                b.sym("trim", W - 0.2f, s.trunkR + 2.5f, s.zR, W + 0.2f, s.trunkR + 6.5f, s.zR + 5.4f);
+                b.sym("grille", W, s.sill + 1.5f, -14, W + 0.08f, s.belt - 1.4f, -6);
+                for (float z = s.rwB - 0.5f; z > s.zR + 1; z -= 1.2f) b.box("grille", -6, s.trunkR + 0.4f, z - 0.5f, 6, s.trunkR + 0.7f, z);
+                for (float x = -9; x <= 9; x += 3) b.box("trim", x - 0.3f, s.sill - 1.4f, s.zR - 1.4f, x + 0.3f, s.sill + 1.6f, s.zR + 3);
+                b.box("trim", -W, s.sill - 1.6f, s.zF - 2, W, s.sill - 1, s.zF + 2.4f);
+                b.box("grille", -3.5f, s.roof + 1.4f, s.roofR + 1, 3.5f, s.roof + 2.6f, s.roofR + 6); // воздухозаборник на крыше
+            }
+            case CLASSIC -> {
+                // хромированные молдинги, рамки окон, «горб» на капоте, накладки на крылья
+                b.sym("chrome", W, s.belt - 1.2f, s.zR + 2, W + 0.08f, s.belt - 0.8f, s.zF - 2);
+                b.sym("chrome", iw - 0.7f, s.belt + 0.3f, s.rwB, iw - 0.05f, s.belt + 0.55f, s.wsB);
+                b.box("hood", -5, s.belt + 0.2f, s.wsB + 4, 5, s.belt + 1.4f, s.zF - 5);
+                b.sym("stripe", W, s.sill + 2, s.wR + s.r + 2, W + 0.07f, s.sill + 2.8f, s.wF - s.r - 2);
+            }
+            case LOWRIDER -> {
+                // хром везде, тонкая полоса «пинстрайп» по борту, запаска в хромированном кожухе сзади (continental kit)
+                b.sym("chrome", W, s.sill + 2.2f, s.zR + 3, W + 0.08f, s.sill + 2.8f, s.zF - 3);
+                b.sym("chrome", iw - 0.7f, s.belt + 0.3f, s.rwB, iw - 0.05f, s.belt + 0.55f, s.wsB);
+                b.sym("stripe", W, s.belt - 2.2f, s.zR + 4, W + 0.07f, s.belt - 1.9f, s.zF - 4);
+                b.slab("stripe", -0.4f, 0.4f, s.hoodF + 0.6f, s.zF - 1, s.belt + 0.6f, s.wsB, 0.1f);
+                b.box("chrome", -4, s.sill + 0.6f, s.zR - 4.2f, 4, s.sill + 1.2f, s.zR - 0.6f);
+                b.sym("paint", W - 0.4f, s.sill + 0.4f, s.wR - s.r - 1, W + 0.15f, s.r * 2 + 1.2f, s.wR + s.r + 1); // юбки над задними колёсами
+            }
+            case COMPACT -> {
+                b.box("paint", -iw + 0.3f, s.roof + 0.4f, s.roofR - 1.4f, iw - 0.3f, s.roof + 1.4f, s.roofR);
+                b.sym("trim", W, s.sill + 1, s.wR + s.r + 1.5f, W + 0.4f, s.sill + 3, s.wF - s.r - 1.5f); // молдинги-«бамперы» по бортам
+            }
+            case SWAT -> {
+                // таран, мигалки, полоса, поручни и подножки, бойницы, прожектора
+                float z1 = s.zF + 1.6f, z2 = s.zF + 3.2f;
+                b.sym("pushbar", 5, s.sill - 1.5f, z1, 7.5f, s.hoodF + 2, z2);
+                b.box("pushbar", -9, s.sill + 1, z1 - 0.3f, 9, s.sill + 3.5f, z2 + 0.6f);
+                b.box("pushbar", -7.5f, s.hoodF - 1.6f, z1 - 0.3f, 7.5f, s.hoodF - 0.4f, z2);
+                b.box("bar_base", -9.5f, s.roof + 1.4f, 3, 9.5f, s.roof + 2.2f, 7.5f);
+                b.box("bar_red", 0.4f, s.roof + 2.2f, 3.5f, 9, s.roof + 4, 7);
+                b.box("bar_blue", -9, s.roof + 2.2f, 3.5f, -0.4f, s.roof + 4, 7);
+                b.sym("stripe", W, s.belt - 3, s.zR + 2, W + 0.07f, s.belt - 1.4f, s.wF - s.r - 2);
+                for (float z : new float[]{-12, -22}) b.sym("trim", W, s.belt + 4, z - 2.5f, W + 0.08f, s.belt + 5, z + 2.5f); // бойницы
+                b.sym("trim", iw - 2, s.roof + 1.4f, s.zR + 2, iw - 1, s.roof + 2.6f, 1);
+                b.sym("trim", W - 1, s.sill - 0.6f, s.wR + s.r + 2, W + 1.6f, s.sill + 0.2f, s.wF - s.r - 2);
+                b.box("trim", -0.15f, s.sill + 1, s.zR - 0.06f, 0.15f, s.roof - 1, s.zR);
+                b.sym("chrome", W - 3, s.roof + 1.4f, s.roofF - 3, W - 1, s.roof + 2.8f, s.roofF - 1);
+            }
+            case AMBULANCE -> {
+                // красная полоса и кресты по бортам и сзади, мигалки спереди и сзади, задние створки
+                b.sym("accent", W, s.belt - 3.2f, s.zR + 1, W + 0.06f, s.belt - 1.2f, s.zF - 2);
+                for (float side : new float[]{1, -1}) {
+                    float x = side > 0 ? W : -W - 0.07f, zc = -17, yc = s.belt + 9;
+                    b.box("stripe", x, yc - 4, zc - 1.3f, x + 0.07f, yc + 4, zc + 1.3f);
+                    b.box("stripe", x, yc - 1.3f, zc - 4, x + 0.07f, yc + 1.3f, zc + 4);
+                }
+                b.box("stripe", -1.3f, s.belt + 5, s.zR - 0.07f, 1.3f, s.belt + 13, s.zR);
+                b.box("stripe", -4, s.belt + 7.7f, s.zR - 0.07f, 4, s.belt + 10.3f, s.zR);
+                b.box("bar_base", -9.5f, s.roof + 1.4f, s.roofF - 5, 9.5f, s.roof + 2.2f, s.roofF - 1);
+                b.box("bar_red", 0.4f, s.roof + 2.2f, s.roofF - 4.5f, 9, s.roof + 4, s.roofF - 1.5f);
+                b.box("bar_blue", -9, s.roof + 2.2f, s.roofF - 4.5f, -0.4f, s.roof + 4, s.roofF - 1.5f);
+                b.sym("bar_red", W - 4, s.roof - 1.5f, s.zR - 0.4f, W - 1, s.roof, s.zR);
+                b.box("trim", -0.15f, s.sill + 1, s.zR - 0.06f, 0.15f, s.roof - 1, s.zR);
+                b.box("chrome", -6, s.sill - 0.6f, s.zR - 2.4f, 6, s.sill + 0.4f, s.zR); // ступенька
+            }
+            case TRUCK, FIRETRUCK -> {
                 // будка, рама, сдвоенные задние колёса, вертикальная выхлопная труба
                 float bx = W + 0.8f;
                 b.box("accent", -bx, 14, -56, bx, 44, -10.6f);
@@ -620,9 +720,110 @@ public final class CarModels {
                 b.box("trim", W - 4, 14, -11, W - 2.6f, 42, -9.6f);
                 b.box("chrome", W - 4.3f, 42, -11.3f, W - 2.3f, 43, -9.3f);
                 for (float wz : new float[]{s.wR, s.wR + 13}) b.sym("arch", W - 4, s.r * 2 + 0.4f, wz - s.r - 1, W + 0.4f, s.r * 2 + 1, wz + s.r + 1); // брызговики
+                if (t == CarBody.FIRETRUCK) {
+                    // пожарная: отсеки с рольставнями, лестница на крыше, катушка рукава, мигалки
+                    for (float z = -52; z < -14; z += 9.5f) b.sym("trim", bx + 0.25f, 16, z, bx + 0.32f, 40, z + 0.5f);
+                    for (float y = 18; y < 40; y += 3) b.sym("chrome", bx + 0.25f, y, -52, bx + 0.3f, y + 0.3f, -14);
+                    b.sym("chrome", 4.5f, 44.4f, -54, 5.5f, 45.4f, -4);
+                    for (float z = -52; z < -4; z += 3) b.box("chrome", -4.5f, 44.6f, z, 4.5f, 45.2f, z + 0.6f);
+                    b.box("trim", -2, 44.4f, -8, 2, 46.5f, -4);
+                    b.box("bar_base", -9.5f, s.roof + 1.4f, 14, 9.5f, s.roof + 2.2f, 18.5f);
+                    b.box("bar_red", 0.4f, s.roof + 2.2f, 14.5f, 9, s.roof + 4, 18);
+                    b.box("bar_blue", -9, s.roof + 2.2f, 14.5f, -0.4f, s.roof + 4, 18);
+                }
             }
             default -> {}
         }
+    }
+
+    private static boolean twoDoor(CarBody t) {
+        return t == CarBody.SUPERCAR || t == CarBody.CLASSIC || t == CarBody.COMPACT;
+    }
+
+    /**
+     * Багги: открытая трубчатая рама с каркасом безопасности, маленькая «ванна» кузова, огромные колёса с ходом подвески,
+     * двигатель сзади открыт, фары на дуге. Кабины и стёкол нет.
+     */
+    private static CarModel buggy() {
+        B b = new B();
+        float W = 14.5f, zF = 26, zR = -24, sill = 6.5f, r = 7, wF = 17, wR = -16;
+        // днище, «ванна» и капот
+        b.box("under", -W + 3, sill - 1, zR + 4, W - 3, sill + 0.6f, zF - 3);
+        b.sym("paint", W - 3.6f, sill, -14, W - 2.4f, sill + 6, 9);                  // боковины
+        b.slab("hood", -8, 8, sill + 7, wF - 4, sill + 2, zF - 0.5f, 1);              // короткий нос
+        b.box("paint", -8, sill, zF - 3, 8, sill + 3, zF);
+        b.box("paint", -W + 3.6f, sill, 8, W - 3.6f, sill + 8, 10);                  // перегородка у ног
+        b.box("paint", -W + 3.6f, sill, zR + 4, W - 3.6f, sill + 6, -14);            // моторный отсек
+        // трубчатая рама и каркас
+        float cy = 30;
+        b.sym("trim", W - 4.4f, sill, 7.5f, W - 3.4f, cy, 8.5f);                     // передние стойки
+        b.sym("trim", W - 4.4f, sill, -10.5f, W - 3.4f, cy, -9.5f);                  // задние стойки
+        b.sym("trim", W - 4.4f, cy - 1, -10.5f, W - 3.4f, cy, 8.5f);                 // продольные дуги
+        b.box("trim", -W + 3.4f, cy - 1, 7.5f, W - 3.4f, cy, 8.5f);
+        b.box("trim", -W + 3.4f, cy - 1, -10.5f, W - 3.4f, cy, -9.5f);
+        b.box("trim", -W + 3.4f, cy - 1, -1.5f, W - 3.4f, cy, -0.5f);
+        b.slab("trim", -0.5f, 0.5f, sill + 8, zF - 4, cy - 1, 8, 1);                  // диагональ к носу
+        b.symSlab("trim", W - 4.4f, W - 3.4f, sill + 6, -22, cy - 1, -10, 1);        // задние подкосы
+        b.sym("trim", W - 4, sill + 2, wR - 7, W + 2.2f, sill + 3, wR - 6);          // рычаги подвески
+        b.sym("trim", W - 4, sill + 2, wF + 6, W + 2.2f, sill + 3, wF + 7);
+        b.sym("chrome", W - 3, sill + 1, wF - 1, W - 1, sill + 9, wF);               // амортизаторы
+        b.sym("chrome", W - 3, sill + 1, wR, W - 1, sill + 9, wR + 1);
+        // крылья над колёсами (только сверху — колёса открыты)
+        b.sym("paint", W - 2.6f, r * 2 + 0.6f, wF - r - 1.5f, W + 3.2f, r * 2 + 1.4f, wF + r + 1.5f);
+        b.sym("paint", W - 2.6f, r * 2 + 0.6f, wR - r - 1.5f, W + 3.2f, r * 2 + 1.4f, wR + r + 1.5f);
+        // мотор сзади: блок, воздухоочиститель, выхлоп
+        b.box("under", -6, sill + 6, -22, 6, sill + 11, -14);
+        b.box("chrome", -4, sill + 11, -20, 4, sill + 12.5f, -16);
+        b.box("trim", -3, sill + 12.5f, -19, 3, sill + 14, -17);
+        b.box("trim", 4, sill + 4, zR - 1, 6.5f, sill + 6.5f, zR + 4);
+        b.box("exhaust_tip", 4.4f, sill + 4.4f, zR - 1.1f, 6.1f, sill + 6.1f, zR - 1);
+        // салон: два ковша, руль, приборы
+        for (float x : new float[]{-10, 2}) {
+            b.box("seat", x, sill + 0.6f, -7, x + 8, sill + 3, 1);
+            b.box("seat", x, sill + 3, -9, x + 8, sill + 15, -7);
+            b.box("seam", x + 2, sill + 3.05f, -6.5f, x + 6, sill + 3.15f, 0.5f);
+        }
+        b.box("floor", -W + 4, sill + 0.6f, -9, W - 4, sill + 1, 8);
+        b.box("dash", -W + 4, sill + 6, 6, W - 4, sill + 9, 8);
+        b.box("gauges", 4.5f, sill + 9, 7.4f, 9.5f, sill + 10.5f, 7.6f);
+        b.box("inner", -W + 4, sill + 1, 8.5f, W - 4, sill + 2, 9.5f);
+        b.box("headliner", -1, cy - 0.6f, -9, 1, cy - 0.5f, 7);
+        b.sym("mirror_glass", W - 3.4f, cy - 3, 8.5f, W - 2.4f, cy - 1.5f, 8.6f);
+        float[] c = new float[(3 + 16 + 1 + 1) * 6];
+        int k = 0;
+        float[][] fixed = {{-1.1f, -1.1f, -0.45f, 1.1f, 1.1f, 0.25f}, {-3.0f, -0.35f, -0.2f, -1.05f, 0.35f, 0.2f},
+                {1.05f, -0.35f, -0.2f, 3.0f, 0.35f, 0.2f}, {-0.35f, -3.0f, -0.2f, 0.35f, -1.05f, 0.2f}, {-0.45f, -0.45f, 0.3f, 0.45f, 0.45f, 1.6f}};
+        for (float[] f : fixed) for (float v : f) c[k++] = v;
+        for (int i = 0; i < 16; i++) {
+            float a = (float) (i * Math.PI * 2 / 16);
+            float cx = (float) Math.cos(a) * 3.1f, cyy = (float) Math.sin(a) * 3.1f;
+            c[k++] = cx - 0.45f; c[k++] = cyy - 0.45f; c[k++] = -0.3f; c[k++] = cx + 0.45f; c[k++] = cyy + 0.45f; c[k++] = 0.3f;
+        }
+        b.pivot("steering", 6, sill + 11, 4, -0.9f, java.util.Arrays.copyOf(c, k));
+        // фары на дуге и внизу, стопы
+        float hz = 8.6f;
+        b.box("head", 2, cy - 0.8f, hz, 5, cy + 2, hz + 1.2f);
+        b.box("head_l", -5, cy - 0.8f, hz, -2, cy + 2, hz + 1.2f);
+        b.box("head", 5.5f, sill + 1, zF, 7.5f, sill + 2.6f, zF + 0.5f);
+        b.box("head_l", -7.5f, sill + 1, zF, -5.5f, sill + 2.6f, zF + 0.5f);
+        b.box("sig_l", 6, sill + 2.8f, zF, 7.5f, sill + 3.6f, zF + 0.5f);
+        b.box("sig_r", -7.5f, sill + 2.8f, zF, -6, sill + 3.6f, zF + 0.5f);
+        b.box("tail", W - 6.5f, sill + 3, zR + 3.6f, W - 4, sill + 5, zR + 4);
+        b.box("tail_l", -W + 4, sill + 3, zR + 3.6f, -W + 6.5f, sill + 5, zR + 4);
+        b.box("rev", -1, sill + 3, zR + 3.6f, 1, sill + 4.5f, zR + 4);
+        b.box("plate", -3.2f, sill + 0.4f, zR + 3.6f, 3.2f, sill + 2.4f, zR + 3.9f);
+        b.box("plate_txt", -2.6f, sill + 0.9f, zR + 3.5f, 2.6f, sill + 1.9f, zR + 3.6f);
+        b.box("plate", -3.2f, sill - 0.6f, zF + 0.5f, 3.2f, sill + 1.2f, zF + 0.8f);
+        // передний бампер-дуга
+        b.pivot("bumper_f", W - 4, sill - 1, zF, 0, -2 * (W - 4) - 0.2f, -0.5f, 0, 0.2f, 1.5f, 1.8f);
+        b.box("pushbar", -6, sill + 3, zF + 0.2f, 6, sill + 4, zF + 1.4f);
+        b.box("arch", -1, -1, -1, 1, -0.9f, 1);
+        // вмятины: на «ванне»
+        b.sym("dent1", W - 2.4f, sill + 1.5f, -6, W - 2.32f, sill + 4, -1);
+        b.sym("dent2", W - 2.4f, sill + 2, 2, W - 2.32f, sill + 5, 6);
+        b.box("dent3", -4, sill + 7.2f, zF - 6, 3, sill + 7.3f, zF - 3);
+        float[][] wheels = {{W + 0.3f, wF}, {-W - 0.3f, wF}, {W + 0.3f, wR}, {-W - 0.3f, wR}};
+        return new CarModel(b.build(), new Wheel(r, 6, false), wheels, r, 6.5f, sill + 1.8f, zF + 0.6f, new float[]{0, sill + 9, zR - 0.5f});
     }
 
     /** Вмятины и царапины: тёмные пятна на панелях, появляются по мере повреждения. */

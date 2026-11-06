@@ -112,6 +112,18 @@ public final class News {
         else post(s, f[0], "ГОРОД");
     }
 
+    /** Последние n новостей {заголовок, время, рубрика} — для уличных экранов (gta/NewsTv). */
+    public static java.util.List<String[]> latest(int n) {
+        java.util.List<String[]> l = new java.util.ArrayList<>();
+        synchronized (FEED) {
+            for (String[] f : FEED) {
+                if (l.size() >= n) break;
+                l.add(f);
+            }
+        }
+        return l;
+    }
+
     /** Лента для приложения «Новости». */
     public static void sendFeed(ServerPlayerEntity p) {
         NbtList l = new NbtList();

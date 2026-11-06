@@ -285,6 +285,259 @@ def sniper():
     return g
 
 
+# ---------------------------------------------------------------- новые стволы (Мастерская «Калибра»)
+def revolver():
+    """Револьвер «Удав»: шесть зарядов, барабан откидывается влево (кость mag), курок."""
+    g = Gun('revolver')
+    g.bone('frame', 'root', (8, 8, 8))
+    g.bone('mag', 'root', (8, 8.2, 5.4))      # барабан, ось откидывания снизу
+    g.bone('trigger', 'root', (8, 7.9, 6.6))
+    g.bone('hammer', 'root', (8, 9.4, 8.4))
+    g.octo('frame', (8, 9.6), -1.6, 3.6, 0.5, 'steel_hi', decals={'north': [('bore', 0.5, 0.5, 0.32)]})
+    g.box('frame', (7.45, 8.55, -1.5), (8.55, 9.4, 3.6), 'steel', decals={'east': [('text', 0.2, 0.4)], 'west': [('text', 0.3, 0.4)]})
+    g.box('frame', (7.6, 10.0, -1.5), (8.4, 10.35, 3.6), 'steel', decals={'up': [('notches', 10)]})
+    g.box('frame', (7.85, 10.35, -1.3), (8.15, 10.9, -0.7), 'steel_dark', decals={'south': [('dot', 0.5, 0.3, (250, 120, 40))]})
+    g.box('frame', (7.4, 10.2, 3.6), (8.6, 10.55, 7.6), 'steel')
+    g.box('frame', (7.2, 7.9, 3.6), (8.8, 8.25, 8.0), 'steel')
+    g.box('frame', (7.15, 8.0, 6.9), (8.85, 10.4, 8.4), 'steel', decals={'east': [('rivets', 2)]})
+    g.box('frame', (7.6, 10.55, 7.6), (8.4, 10.8, 8.1), 'steel_dark')
+    g.box('frame', (7.1, 3.6, 7.6), (8.9, 8.1, 9.8), 'wood', rot=('x', -18, (8, 8, 8.4)),
+          decals={'east': [('checker',)], 'west': [('checker',)]})
+    g.box('frame', (7.15, 3.3, 7.5), (8.85, 3.7, 9.9), 'steel', rot=('x', -18, (8, 8, 8.4)))
+    g.box('frame', (7.6, 6.9, 5.0), (8.4, 7.25, 7.8), 'steel')
+    g.box('frame', (7.6, 7.25, 5.0), (8.4, 7.9, 5.35), 'steel')
+    g.octo('frame', (8, 8.35), 0.2, 3.7, 0.2, 'bright')
+    g.octo('mag', (8, 9.25), 3.95, 6.85, 0.98, 'steel_dark', decals={'east': [('ribs', 3)], 'west': [('ribs', 3)], 'north': [('holes', 2)]})
+    g.box('mag', (7.6, 8.85, 6.85), (8.4, 9.65, 6.95), 'brass')
+    g.box('trigger', (7.85, 6.9, 6.5), (8.15, 7.9, 6.85), 'steel_dark')
+    g.box('hammer', (7.75, 9.6, 8.2), (8.25, 10.9, 8.8), 'steel_dark')
+    g.meta = dict(grip=(8, 5.6, 8.9), support=(8.1, 4.7, 8.3), muzzle=(8, 9.6, -1.8), eject=(9.0, 9.4, 5.4),
+                  sight=(8, 10.72, 7.85), hip=(0.0, -2.0), mag_dir=(-1, 0, 0), mag_hand=(6.6, 9.25, 5.4),
+                  slide_kick=0.0, length=12)
+    return g
+
+
+def eagle():
+    """«Орёл»: тяжёлый пистолет, хромированный затвор."""
+    g = Gun('eagle')
+    g.bone('frame', 'root', (8, 8, 8))
+    g.bone('slide', 'root', (8, 9.4, 6))
+    g.bone('mag', 'root', (8, 7.3, 9.4))
+    g.bone('trigger', 'root', (8, 7.3, 6.6))
+    g.bone('hammer', 'root', (8, 9.6, 11.0))
+    gr = ('x', -14, (8, 7.3, 9.4))
+    g.box('slide', (6.9, 8.4, 0.4), (9.1, 10.5, 11.0), 'bright', decals={
+        'east': [('serr', 0.78, 0.97), ('port', 0.3, 0.45, 0.55, 0.95)], 'west': [('serr', 0.78, 0.97), ('text', 0.25, 0.55)]})
+    g.box('slide', (7.3, 10.5, 0.6), (8.7, 10.75, 10.9), 'steel_hi', decals={'up': [('stripe', 0.4, 0.6)]})
+    g.box('slide', (7.0, 8.5, 0.25), (9.0, 10.4, 0.4), 'steel_hi', decals={'north': [('bore', 0.5, 0.42, 0.25)]})
+    g.box('slide', (7.82, 10.75, 0.8), (8.18, 11.2, 1.4), 'steel_dark', decals={'south': [('dot', 0.5, 0.3, (240, 240, 240))]})
+    g.box('slide', (7.2, 10.75, 10.1), (7.72, 11.3, 10.75), 'steel_dark')
+    g.box('slide', (8.28, 10.75, 10.1), (8.8, 11.3, 10.75), 'steel_dark')
+    g.box('slide', (7.72, 10.75, 10.1), (8.28, 10.9, 10.75), 'steel_dark')
+    g.box('frame', (7.05, 7.3, 0.6), (8.95, 8.45, 10.7), 'steel_hi')
+    g.box('frame', (7.2, 7.0, 0.6), (8.8, 7.3, 4.5), 'steel_hi', decals={'east': [('rail', 4)], 'west': [('rail', 4)]})
+    g.box('frame', (7.55, 5.8, 4.9), (8.45, 6.2, 8.3), 'steel_hi')
+    g.box('frame', (7.55, 6.2, 4.9), (8.45, 7.3, 5.3), 'steel_hi')
+    g.box('frame', (7.1, 2.3, 8.0), (8.9, 7.35, 10.9), 'polymer', rot=gr, decals={'east': [('checker',)], 'west': [('checker',)], 'south': [('checker',)]})
+    g.box('frame', (7.25, 7.2, 10.4), (8.75, 7.95, 11.35), 'steel_hi')
+    g.box('mag', (7.3, 2.4, 8.3), (8.7, 7.25, 10.5), 'steel', rot=gr, decals={'east': [('holes', 4)], 'west': [('holes', 4)]})
+    g.box('mag', (7.45, 7.0, 8.5), (8.55, 7.32, 9.9), 'brass', rot=gr)
+    g.box('mag', (7.05, 1.9, 7.95), (8.95, 2.4, 11.05), 'steel_dark', rot=gr)
+    g.box('trigger', (7.85, 6.2, 6.3), (8.15, 7.3, 6.7), 'steel_dark')
+    g.box('hammer', (7.72, 9.5, 10.95), (8.28, 10.3, 11.5), 'steel_dark')
+    g.meta = dict(grip=(8, 5.2, 9.9), support=(8.1, 4.3, 9.2), muzzle=(8, 9.45, 0.2), eject=(9.1, 10.0, 5.0),
+                  sight=(8, 11.05, 10.4), hip=(0.0, -2.0), mag_dir=(0, -0.97, 0.24), mag_hand=(8, 2.8, 9.6),
+                  slide_kick=1.8, length=11)
+    return g
+
+
+def micro():
+    """«Микро»: компактный ПП, магазин в рукояти, рукоятка взвода сверху."""
+    g = Gun('micro')
+    g.bone('body', 'root', (8, 8, 8))
+    g.bone('bolt', 'root', (9, 9.1, 5.3))
+    g.bone('handle', 'root', (8, 10.6, 3.0))
+    g.bone('mag', 'root', (8, 7.9, 6.7))
+    g.bone('trigger', 'root', (8, 7.6, 4.6))
+    gr = ('x', -6, (8, 8, 6.7))
+    g.box('body', (7.0, 8.0, 1.5), (9.0, 10.3, 11.5), 'steel_dark', decals={'east': [('port', 0.32, 0.25, 0.55, 0.75), ('text', 0.65, 0.5)], 'west': [('rivets', 3)]})
+    g.box('body', (7.15, 10.3, 2.0), (8.85, 10.6, 11.0), 'steel', decals={'up': [('ribs_z', 4)]})
+    g.octo('body', (8, 9.0), -1.2, 1.5, 0.42, 'steel', decals={'north': [('bore', 0.5, 0.5, 0.3)]})
+    g.box('body', (7.3, 8.6, 1.0), (8.7, 9.4, 1.5), 'steel')
+    g.box('body', (7.55, 10.6, 2.0), (7.75, 11.2, 2.6), 'steel_dark')
+    g.box('body', (8.25, 10.6, 2.0), (8.45, 11.2, 2.6), 'steel_dark')
+    g.box('body', (7.6, 10.6, 10.2), (8.4, 11.1, 10.8), 'steel_dark')
+    g.box('body', (7.2, 3.6, 5.6), (8.8, 8.0, 7.8), 'polymer', rot=gr, decals={'east': [('checker',)], 'west': [('checker',)]})
+    g.box('body', (7.55, 6.6, 3.6), (8.45, 7.0, 5.7), 'steel_dark')
+    g.box('body', (7.55, 7.0, 3.6), (8.45, 8.0, 4.0), 'steel_dark')
+    g.box('body', (7.3, 8.2, 11.5), (8.7, 10.0, 12.3), 'steel', decals={'south': [('grooves', 3)]})
+    g.box('handle', (7.6, 10.6, 2.4), (8.4, 11.1, 3.2), 'polymer', decals={'up': [('grooves_h', 3)]})
+    g.box('bolt', (8.95, 8.6, 4.0), (9.05, 9.6, 6.6), 'bright')
+    g.box('mag', (7.4, 1.3, 5.85), (8.6, 7.9, 7.5), 'steel', rot=gr, decals={'east': [('ribs', 2)], 'west': [('ribs', 2)]})
+    g.box('mag', (7.3, 0.9, 5.75), (8.7, 1.35, 7.6), 'polymer', rot=gr)
+    g.box('trigger', (7.85, 7.0, 4.4), (8.15, 8.0, 4.8), 'steel_dark')
+    g.meta = dict(grip=(8, 5.6, 6.8), support=(8, 7.6, 1.6), muzzle=(8, 9.0, -1.4), eject=(9.0, 9.2, 5.3),
+                  sight=(8, 10.95, 10.5), hip=(0.0, -2.0), mag_dir=(0, -0.99, 0.1), mag_hand=(8, 1.6, 6.7),
+                  slide_kick=1.2, length=14)
+    return g
+
+
+def saiga():
+    """«Сайга»: самозарядный дробовик с коробчатым магазином на 8 патронов."""
+    g = Gun('saiga')
+    g.bone('body', 'root', (8, 8, 8))
+    g.bone('stock', 'root', (8, 8, 14))
+    g.bone('bolt', 'root', (9.0, 9.7, 10.4))
+    g.bone('mag', 'root', (8, 7.7, 5.0))
+    g.bone('trigger', 'root', (8, 7.6, 8.4))
+    g.octo('body', (8, 9.4), -7.0, 1.0, 0.5, 'steel_dark')
+    g.box('body', (7.4, 8.8, -8.6), (8.6, 10.0, -7.0), 'steel', decals={'east': [('slots', 3)], 'west': [('slots', 3)], 'north': [('bore', 0.5, 0.5, 0.36)]})
+    g.octo('body', (8, 10.25), -4.2, 1.4, 0.36, 'steel')
+    g.box('body', (7.55, 9.6, -5.0), (8.45, 10.65, -4.2), 'steel')
+    g.box('body', (7.85, 10.65, -4.9), (8.15, 11.4, -4.5), 'steel_dark')
+    g.box('body', (7.05, 8.0, -3.6), (8.95, 10.0, 1.6), 'polymer', decals={'east': [('vents', 3)], 'west': [('vents', 3)]})
+    g.box('body', (7.25, 9.9, -3.4), (8.75, 10.8, 1.0), 'polymer', decals={'up': [('stripe', 0.45, 0.55)]})
+    g.box('body', (7.05, 7.7, 1.6), (8.95, 10.3, 12.4), 'steel', decals={'east': [('rivets', 4), ('port', 0.22, 0.5, 0.55, 0.98)], 'west': [('rivets', 4), ('text', 0.5, 0.35)]})
+    g.box('body', (7.15, 10.3, 3.0), (8.85, 10.65, 12.3), 'steel_hi', decals={'up': [('ribs_z', 3)]})
+    g.box('body', (7.4, 10.3, 1.8), (8.6, 11.0, 3.0), 'steel')
+    g.box('body', (7.25, 3.6, 9.6), (8.75, 7.75, 11.6), 'polymer', rot=('x', -16, (8, 7.7, 10.6)), decals={'east': [('checker',)], 'west': [('checker',)]})
+    g.box('body', (7.55, 6.3, 6.8), (8.45, 6.7, 10.2), 'steel')
+    g.box('body', (7.55, 6.7, 6.8), (8.45, 7.7, 7.2), 'steel')
+    g.box('stock', (7.15, 7.2, 12.4), (8.85, 9.9, 14.8), 'polymer')
+    g.box('stock', (7.17, 5.8, 14.4), (8.83, 9.6, 20.6), 'polymer', rot=('x', 8, (8, 9.6, 14.4)), decals={'east': [('fgroove',)], 'west': [('fgroove',)]})
+    g.box('stock', (7.1, 5.2, 20.4), (8.9, 9.6, 21.1), 'rubber', rot=('x', 8, (8, 9.6, 14.4)), decals={'south': [('grooves', 5)]})
+    g.box('bolt', (8.95, 9.5, 7.8), (9.15, 9.9, 11.2), 'bright')
+    g.box('bolt', (9.15, 9.42, 10.1), (9.95, 9.98, 10.7), 'steel_hi')
+    g.box('mag', (7.15, 3.4, 3.2), (8.85, 7.75, 6.8), 'polymer', rot=('x', 6, (8, 7.7, 5.0)), decals={'east': [('ribs', 3)], 'west': [('ribs', 3)]})
+    g.box('mag', (7.1, 3.0, 3.1), (8.9, 3.5, 6.9), 'polymer', rot=('x', 6, (8, 7.7, 5.0)))
+    g.box('mag', (7.5, 7.6, 3.6), (8.5, 7.85, 6.4), 'red')
+    g.box('trigger', (7.85, 6.8, 8.2), (8.15, 7.7, 8.6), 'steel_dark')
+    g.meta = dict(grip=(8, 6.0, 11.2), support=(8, 7.95, -1.0), muzzle=(8, 9.4, -8.8), eject=(9.0, 10.0, 6.0),
+                  sight=(8, 11.15, 2.4), hip=(0.0, -2.0), mag_dir=(0, -0.99, -0.1), mag_hand=(8, 3.6, 5.0),
+                  slide_kick=2.4, length=30)
+    return g
+
+
+def carbine():
+    """«Карабин»: короткая автоматическая винтовка, планки сверху, прямой магазин."""
+    g = Gun('carbine')
+    g.bone('body', 'root', (8, 8, 8))
+    g.bone('stock', 'root', (8, 8, 14))
+    g.bone('bolt', 'root', (8, 10.2, 9.8))
+    g.bone('mag', 'root', (8, 6.9, 3.3))
+    g.bone('trigger', 'root', (8, 7.4, 7.0))
+    g.octo('body', (8, 9.3), -9.0, -3.6, 0.36, 'steel_dark')
+    g.box('body', (7.55, 8.85, -10.2), (8.45, 9.75, -9.0), 'steel', decals={'east': [('slots', 3)], 'west': [('slots', 3)], 'north': [('bore', 0.5, 0.5, 0.3)]})
+    g.box('body', (7.6, 9.3, -7.0), (8.4, 10.6, -6.4), 'steel_dark')
+    g.box('body', (7.85, 10.6, -6.9), (8.15, 11.6, -6.5), 'steel_dark')
+    g.box('body', (7.0, 8.0, -6.2), (9.0, 10.5, 1.0), 'polymer', decals={'east': [('vents', 4)], 'west': [('vents', 4)], 'down': [('grooves_h', 5)]})
+    g.box('body', (7.3, 10.5, -6.0), (8.7, 10.85, 1.0), 'steel_dark', decals={'up': [('railtop', 8)]})
+    g.box('body', (7.1, 9.1, 1.0), (8.9, 10.5, 9.8), 'steel_dark', decals={'east': [('port', 0.3, 0.15, 0.62, 0.85)], 'west': [('text', 0.4, 0.4)]})
+    g.box('body', (7.3, 10.5, 1.0), (8.7, 10.85, 9.8), 'steel_dark', decals={'up': [('railtop', 8)]})
+    g.box('body', (7.6, 10.85, 8.4), (8.4, 11.6, 9.4), 'steel_dark')
+    g.box('body', (7.15, 7.5, 1.6), (8.85, 9.1, 10.2), 'steel_dark', decals={'west': [('text', 0.5, 0.5)]})
+    g.box('body', (7.25, 6.9, 2.0), (8.75, 7.5, 4.6), 'steel_dark')
+    g.box('body', (7.3, 3.8, 8.8), (8.7, 7.55, 10.6), 'polymer', rot=('x', -20, (8, 7.5, 9.6)), decals={'east': [('checker',)], 'west': [('checker',)]})
+    g.box('body', (7.55, 6.6, 5.0), (8.45, 6.9, 8.8), 'steel_dark')
+    g.octo('stock', (8, 9.0), 10.2, 15.5, 0.55, 'steel_dark')
+    g.box('stock', (7.2, 6.6, 13.2), (8.8, 10.0, 18.8), 'polymer', decals={'east': [('fgroove',)], 'west': [('fgroove',)]})
+    g.box('stock', (7.15, 6.4, 18.8), (8.85, 10.1, 19.5), 'rubber', decals={'south': [('grooves', 5)]})
+    g.box('bolt', (7.2, 10.0, 9.8), (8.8, 10.4, 10.4), 'steel_dark')
+    g.box('body', (8.88, 9.3, 4.0), (8.95, 9.9, 7.0), 'bright')
+    g.box('mag', (7.35, 3.2, 2.15), (8.65, 6.95, 4.45), 'steel', rot=('x', 10, (8, 6.9, 3.3)), decals={'east': [('ribs', 2)], 'west': [('ribs', 2)]})
+    g.box('mag', (7.25, 2.8, 2.0), (8.75, 3.3, 4.6), 'polymer', rot=('x', 10, (8, 6.9, 3.3)))
+    g.box('mag', (7.5, 6.9, 2.4), (8.5, 7.1, 4.2), 'brass')
+    g.box('trigger', (7.85, 6.9, 6.8), (8.15, 7.5, 7.2), 'steel_dark')
+    g.meta = dict(grip=(8, 5.9, 9.9), support=(8, 8.0, -2.5), muzzle=(8, 9.3, -10.4), eject=(8.95, 9.6, 5.6),
+                  sight=(8, 11.45, 8.9), hip=(0.0, -2.0), mag_dir=(0, -0.98, -0.17), mag_hand=(8, 3.6, 3.3),
+                  slide_kick=2.0, length=30)
+    return g
+
+
+def lmg():
+    """«Пулемёт»: длинный ствол, сошки, короб на 100 патронов."""
+    g = Gun('lmg')
+    g.bone('body', 'root', (8, 8, 8))
+    g.bone('stock', 'root', (8, 8, 14))
+    g.bone('bolt', 'root', (9.05, 8.95, 4.4))
+    g.bone('mag', 'root', (8, 7.6, 5.1))
+    g.bone('trigger', 'root', (8, 7.6, 9.0))
+    g.octo('body', (8, 9.3), -14.0, 0.0, 0.48, 'steel_dark')
+    g.box('body', (7.45, 8.75, -15.4), (8.55, 9.85, -14.0), 'steel', decals={'east': [('slots', 3)], 'west': [('slots', 3)], 'north': [('bore', 0.5, 0.5, 0.3)]})
+    g.octo('body', (8, 8.4), -10.0, 0.0, 0.35, 'steel')
+    g.box('body', (7.25, 7.6, -12.5), (7.6, 7.95, -5.0), 'steel_hi')
+    g.box('body', (8.4, 7.6, -12.5), (8.75, 7.95, -5.0), 'steel_hi')
+    g.box('body', (7.3, 7.6, -12.8), (8.7, 8.2, -12.0), 'steel')
+    g.box('body', (7.85, 9.75, -12.6), (8.15, 10.6, -12.1), 'steel_dark')
+    g.box('body', (7.0, 7.9, -3.2), (9.0, 10.0, 1.8), 'polymer', decals={'east': [('vents', 3)], 'west': [('vents', 3)]})
+    g.box('body', (6.95, 7.6, 1.8), (9.05, 10.6, 12.0), 'steel', decals={'east': [('rivets', 4), ('text', 0.6, 0.3)], 'west': [('rivets', 4), ('port', 0.3, 0.55, 0.55, 0.95)]})
+    g.box('body', (7.05, 10.6, 2.0), (8.95, 11.0, 9.5), 'steel_hi', decals={'up': [('ribs_z', 4)]})
+    g.box('body', (7.6, 11.6, 3.0), (8.4, 11.85, 7.0), 'polymer')
+    g.box('body', (7.75, 11.0, 3.0), (8.25, 11.6, 3.4), 'polymer')
+    g.box('body', (7.75, 11.0, 6.6), (8.25, 11.6, 7.0), 'polymer')
+    g.box('body', (7.6, 11.0, 9.6), (8.4, 11.6, 10.3), 'steel_dark')
+    g.box('body', (7.25, 3.6, 10.2), (8.75, 7.65, 12.2), 'polymer', rot=('x', -16, (8, 7.6, 11.2)), decals={'east': [('checker',)], 'west': [('checker',)]})
+    g.box('body', (7.55, 6.2, 7.4), (8.45, 6.6, 10.8), 'steel')
+    g.box('body', (7.55, 6.6, 7.4), (8.45, 7.6, 7.8), 'steel')
+    g.box('stock', (7.15, 6.6, 12.0), (8.85, 10.2, 15.0), 'polymer')
+    g.box('stock', (7.17, 5.6, 14.4), (8.83, 9.9, 22.0), 'polymer', rot=('x', 6, (8, 9.9, 14.4)), decals={'east': [('fgroove',)], 'west': [('fgroove',)]})
+    g.box('stock', (7.1, 5.2, 21.8), (8.9, 9.9, 22.5), 'rubber', rot=('x', 6, (8, 9.9, 14.4)), decals={'south': [('grooves', 5)]})
+    g.box('bolt', (9.05, 8.7, 4.0), (9.9, 9.2, 4.7), 'steel_hi')
+    g.box('mag', (6.9, 3.6, 2.6), (9.1, 7.6, 7.6), 'olive', decals={'east': [('ribs', 3), ('text', 0.2, 0.3)], 'west': [('ribs', 3)]})
+    g.box('mag', (7.6, 7.6, 3.4), (8.4, 8.0, 4.4), 'brass')
+    g.box('mag', (7.6, 3.4, 4.6), (8.4, 3.6, 5.6), 'steel')
+    g.box('trigger', (7.85, 6.6, 8.8), (8.15, 7.6, 9.2), 'steel_dark')
+    g.meta = dict(grip=(8, 6.0, 11.7), support=(8, 7.8, -0.8), muzzle=(8, 9.3, -15.5), eject=(9.05, 9.0, 6.0),
+                  sight=(8, 11.35, 9.9), hip=(0.0, -2.0), mag_dir=(0, -1, 0), mag_hand=(8, 4.6, 5.1),
+                  slide_kick=2.4, length=38)
+    return g
+
+
+def rpg():
+    """«Гранатомёт»: труба, деревянная накладка, выстрел-граната спереди (кость mag)."""
+    g = Gun('rpg')
+    g.bone('body', 'root', (8, 8, 8))
+    g.bone('mag', 'root', (8, 9.6, -4.0))
+    g.bone('trigger', 'root', (8, 7.3, 6.0))
+    g.octo('body', (8, 9.6), -3.0, 15.0, 0.95, 'olive', decals={'up': [('stripe', 0.45, 0.55)]})
+    g.octo('body', (8, 9.6), -3.6, -3.0, 1.1, 'olive_dark', decals={'north': [('bore', 0.5, 0.5, 0.42)]})
+    g.octo('body', (8, 9.6), 15.0, 17.5, 1.3, 'olive_dark', decals={'south': [('bore', 0.5, 0.5, 0.42)]})
+    g.octo('body', (8, 9.6), 3.0, 9.0, 1.15, 'wood')
+    g.box('body', (7.85, 10.6, 0.0), (8.15, 11.4, 0.5), 'steel_dark')
+    g.box('body', (7.6, 10.6, 7.0), (8.4, 11.2, 7.6), 'steel_dark')
+    g.box('body', (6.2, 10.0, 6.0), (6.9, 11.2, 9.5), 'steel_dark', faces={'south': 'glass'}, decals={'south': [('lens',)]})
+    g.box('body', (7.3, 4.6, 7.8), (8.7, 8.6, 9.6), 'polymer', rot=('x', -12, (8, 8.6, 8.7)), decals={'east': [('checker',)], 'west': [('checker',)]})
+    g.box('body', (7.3, 5.4, 3.0), (8.7, 8.6, 4.6), 'polymer', decals={'east': [('grooves', 4)], 'west': [('grooves', 4)]})
+    g.box('body', (7.55, 7.0, 5.5), (8.45, 7.3, 8.0), 'steel')
+    g.octo('mag', (8, 9.6), -5.0, -3.6, 0.6, 'olive_dark')
+    g.octo('mag', (8, 9.6), -8.6, -5.0, 1.45, 'olive', decals={'east': [('stripe_h', 0.4, 0.6)], 'west': [('stripe_h', 0.4, 0.6)]})
+    g.octo('mag', (8, 9.6), -10.0, -8.6, 0.95, 'olive')
+    g.octo('mag', (8, 9.6), -11.2, -10.0, 0.4, 'steel')
+    g.box('trigger', (7.85, 6.4, 5.8), (8.15, 7.3, 6.2), 'steel_dark')
+    g.meta = dict(grip=(8, 6.6, 8.9), support=(8, 6.7, 3.8), muzzle=(8, 9.6, -3.7), eject=(8, 9.6, 17.0),
+                  sight=(8, 11.15, 7.3), hip=(0.0, -2.0), mag_dir=(0, 0, -1), mag_hand=(8, 9.6, -6.5),
+                  slide_kick=0.0, length=30)
+    return g
+
+
+# куда ставить обвесы Мастерской (пиксели предмета): глушитель — на дуло (радиус), прицел — на планку (x, низ, центр по z),
+# рукоятка — под цевьё (x, низ цевья, z); удлинённый магазин — по mag_hand/mag_dir
+ATTACH = {
+    'pistol':   dict(sil=(8, 9.25, 1.6, 0.55), scope=(8, 10.45, 6.0, 'dot')),
+    'eagle':    dict(sil=(8, 9.45, 0.2, 0.6), scope=(8, 10.75, 6.0, 'dot')),
+    'smg':      dict(sil=(8, 8.9, -3.5, 0.55), scope=(8, 10.75, 7.0, 'tube'), grip=(8, 7.6, 1.6)),
+    'micro':    dict(sil=(8, 9.0, -1.4, 0.5), scope=(8, 10.6, 6.5, 'dot')),
+    'rifle':    dict(sil=(8, 9.3, -10.2, 0.55), scope=(8, 10.78, 8.0, 'tube'), grip=(8, 7.9, -2.8)),
+    'carbine':  dict(sil=(8, 9.3, -10.4, 0.55), scope=(8, 10.85, 5.0, 'tube'), grip=(8, 8.0, -3.8)),
+    'saiga':    dict(scope=(8, 10.8, -1.2, 'dot'), grip=(8, 8.0, -2.4)),
+    'lmg':      dict(scope=(8, 11.0, 5.5, 'tube'), grip=(8, 7.9, -1.6)),
+    'sniper':   dict(sil=(8, 9.3, -15.2, 0.55)),
+    'shotgun':  dict(),
+    'revolver': dict(scope=(8, 10.35, 1.6, 'dot')),
+    'rpg':      dict(),
+}
+
+
 # ---------------------------------------------------------------- текстуры
 def face_dims(cube, face):
     a, b = cube['a'], cube['b']
@@ -543,6 +796,7 @@ def build(g):
                 info[(bn, ci, f)] = (w, h)
     pos, size = pack(rects)
     tex = np.zeros((size, size, 4), np.uint8)
+    tiles = {}
     for key, (x, y) in pos.items():
         bn, ci, f = key
         c = g.bones[bn]['cubes'][ci]
@@ -553,9 +807,11 @@ def build(g):
         # запас по краям (чтобы не было швов)
         pad = np.pad(tile, ((1, 1), (1, 1), (0, 0)), mode='edge')
         tex[y - 1:y + h + 1, x - 1:x + w + 1] = pad
+        tiles[key] = (x, y, w, h, mat)
     out = os.path.join(ROOT, 'textures', 'item', 'guns')
     os.makedirs(out, exist_ok=True)
     Image.fromarray(tex).save(os.path.join(out, g.name + '.png'))
+    skins(g.name, tex, tiles, out)
 
     # geo: пиксели предмета → Bedrock (x зеркальный, начало — центр предмета)
     def bx(x):
@@ -604,6 +860,70 @@ def build(g):
 
 def r3(v):
     return round(v, 4)
+
+
+# ---------------------------------------------------------------- окраска из Мастерской: золото, камуфляж, неон
+SKIN_SKIP = ('glass', 'bore', 'brass', 'red', 'rubber')
+
+
+def skins(name, tex, tiles, out):
+    """Варианты текстуры <gun>_gold/_camo/_neon (+ _neon_e — маска свечения). Раскладка UV та же, свой генератор случайных
+    чисел — основная текстура не меняется."""
+    rng = np.random.default_rng(sum(map(ord, name)) * 31 + 7)
+    base = tex[..., :3].astype(float)
+    alpha = tex[..., 3:4]
+    lum = (base[..., 0] * 0.3 + base[..., 1] * 0.59 + base[..., 2] * 0.11) / 255
+    gold, camo, neon = base.copy(), base.copy(), base.copy()
+    glow = np.zeros_like(base)
+    H = tex.shape[0]
+    # камуфляж: пятна четырёх цветов, общий для всех граней «мир» из размытого шума
+    pal = np.array([(88, 96, 60), (128, 112, 76), (52, 58, 36), (30, 30, 26)], float)
+    field = [blur(rng.normal(0, 1, (H, H)), 9) for _ in range(2)]
+    pick = np.where(field[0] > 0.12, 0, np.where(field[1] > 0.1, 1, np.where(field[0] < -0.15, 3, 2)))
+    for key, (x, y, w, h, mat) in tiles.items():
+        sl = (slice(y - 1, y + h + 1), slice(x - 1, x + w + 1))
+        kind = MAT[mat]['kind']
+        L = lum[sl]
+        if mat in SKIN_SKIP:
+            continue
+        if kind == 'metal':
+            t = np.clip(L * 2.2, 0, 1)[..., None]
+            gold[sl] = np.array([120, 76, 22]) * (1 - t) + np.array([255, 212, 110]) * t
+        elif kind == 'polymer':
+            gold[sl] = np.clip(base[sl] * 0.7, 0, 255)
+        k = np.clip(L / max(1e-3, MAT[mat]['c'][0] * 0.3 / 255 + MAT[mat]['c'][1] * 0.59 / 255 + MAT[mat]['c'][2] * 0.11 / 255), 0.55, 1.5)[..., None]
+        camo[sl] = np.clip(pal[pick[sl]] * k, 0, 255)
+        # неон: тёмный глянец, светящиеся кромки граней (металл — розовый, остальное — голубой)
+        col = np.array([255, 46, 136], float) if kind == 'metal' else np.array([40, 230, 255], float)
+        neon[sl] = base[sl] * 0.45 + np.array([10, 4, 18])
+        yy, xx = np.mgrid[0:h + 2, 0:w + 2]
+        e = np.minimum(np.minimum(xx - 1, w - xx), np.minimum(yy - 1, h - yy))
+        edge = (e <= 0).astype(float)
+        if w > 10 and h > 10:
+            edge = np.maximum(edge, ((yy - 1) == h // 2) * 0.8)
+        neon[sl] = neon[sl] * (1 - edge[..., None]) + col * edge[..., None]
+        glow[sl] = col * edge[..., None]
+    for suf, img in (('gold', gold), ('camo', camo), ('neon', neon)):
+        Image.fromarray(np.concatenate([np.clip(img, 0, 255), alpha], -1).astype(np.uint8)).save(os.path.join(out, f'{name}_{suf}.png'))
+    Image.fromarray(np.concatenate([np.clip(glow, 0, 255), alpha], -1).astype(np.uint8)).save(os.path.join(out, f'{name}_neon_e.png'))
+
+
+def attach_atlas():
+    """guns/attach.png 64×16: 4 клетки 16×16 — тёмная сталь, полимер, стекло (линза), красная точка."""
+    rng = np.random.default_rng(77)
+    img = np.zeros((16, 64, 4), np.uint8)
+    for i, c in enumerate([(34, 36, 40), (26, 27, 30), (20, 50, 80), (255, 40, 40)]):
+        cell = np.ones((16, 16, 3)) * np.array(c, float) + rng.normal(0, 3, (16, 16, 1))
+        if i == 2:
+            yy, xx = np.mgrid[0:16, 0:16]
+            d = np.hypot(xx - 6, yy - 6) / 16
+            cell += (np.clip(0.4 - d, 0, 1) * 300)[..., None] * np.array([0.5, 0.8, 1.0])
+        if i == 0:
+            cell[0, :] += 40
+            cell[:, 0] += 30
+        img[:, i * 16:(i + 1) * 16, :3] = np.clip(cell, 0, 255)
+        img[:, i * 16:(i + 1) * 16, 3] = 255
+    Image.fromarray(img).save(os.path.join(ROOT, 'textures', 'item', 'guns', 'attach.png'))
 
 
 # ---------------------------------------------------------------- модель предмета (display) и иконка
@@ -656,9 +976,12 @@ def fit(g, tilt, fill=0.95, yaw=-112, pitch=22):
     return {'rotation': rot, 'translation': [round(-cx * 16, 2), round(-cy * 16, 2), 0], 'scale': [round(min(sc, 1.6), 3)] * 3}
 
 
-FP_SCALE = {'pistol': 0.64, 'smg': 0.6, 'shotgun': 0.56, 'rifle': 0.56, 'sniper': 0.53}
-TP_SCALE = {'pistol': 0.75, 'smg': 0.75, 'shotgun': 0.8, 'rifle': 0.8, 'sniper': 0.8}
-GUI_TILT = {'pistol': 0, 'smg': 18, 'shotgun': 32, 'rifle': 32, 'sniper': 34}
+FP_SCALE = {'pistol': 0.64, 'smg': 0.6, 'shotgun': 0.56, 'rifle': 0.56, 'sniper': 0.53,
+            'revolver': 0.64, 'eagle': 0.62, 'micro': 0.62, 'saiga': 0.56, 'carbine': 0.56, 'lmg': 0.52, 'rpg': 0.5}
+TP_SCALE = {'pistol': 0.75, 'smg': 0.75, 'shotgun': 0.8, 'rifle': 0.8, 'sniper': 0.8,
+            'revolver': 0.75, 'eagle': 0.75, 'micro': 0.75, 'saiga': 0.8, 'carbine': 0.8, 'lmg': 0.8, 'rpg': 0.8}
+GUI_TILT = {'pistol': 0, 'smg': 18, 'shotgun': 32, 'rifle': 32, 'sniper': 34,
+            'revolver': 0, 'eagle': 0, 'micro': 10, 'saiga': 30, 'carbine': 30, 'lmg': 34, 'rpg': 34}
 
 
 def item_model(g):
@@ -671,7 +994,7 @@ def item_model(g):
     disp = {
         'firstperson_righthand': fp, 'firstperson_lefthand': fp,
         'thirdperson_righthand': tp, 'thirdperson_lefthand': tp,
-        'gui': fit(g, GUI_TILT[g.name], 0.86 if g.name == 'pistol' else 0.95),
+        'gui': fit(g, GUI_TILT[g.name], 0.86 if g.name in ('pistol', 'revolver', 'eagle', 'micro') else 0.95),
         'ground': {'rotation': [0, 90, 0], 'translation': [0, 2, 0], 'scale': [round(min(0.6, gs * 0.9), 3)] * 3},
         'fixed': {'rotation': [0, 90, 0], 'translation': [0, 0, 0], 'scale': [round(gs * 1.1, 3)] * 3},
         'head': {'rotation': [0, 90, 0], 'translation': [0, 6, 0], 'scale': [0.8] * 3},
@@ -744,18 +1067,33 @@ def bits():
     Image.fromarray(img).save(os.path.join(ROOT, 'textures', 'misc', 'gun_bits.png'))
 
 
+ALL = (pistol, smg, shotgun, rifle, sniper, revolver, eagle, micro, saiga, carbine, lmg, rpg)
+
+
 def main():
+    import sys
+    only = set(sys.argv[1:])  # можно перегенерировать только часть: python3 tools/gen_gun_geo.py lmg rpg
+    path = os.path.join(ROOT, 'guns', 'meta.json')
     meta = {}
-    for fn in (pistol, smg, shotgun, rifle, sniper):
+    if only and os.path.exists(path):
+        with open(path) as f:
+            meta = json.load(f)
+    for fn in ALL:
+        if only and fn.__name__ not in only:
+            continue
         g = fn()
         size = build(g)
         extra = item_model(g)
         piv = {bn: g.bones[bn]['pivot'] for bn in g.order}
-        meta[g.name] = dict(g.meta, **extra, pivots=piv, texture=size)
+        meta[g.name] = dict(g.meta, **extra, pivots=piv, texture=size, attach=ATTACH.get(g.name, {}))
         print(g.name, 'texture', size, 'cubes', sum(len(g.bones[b]['cubes']) for b in g.order))
     os.makedirs(os.path.join(ROOT, 'guns'), exist_ok=True)
-    with open(os.path.join(ROOT, 'guns', 'meta.json'), 'w') as f:
+    with open(path, 'w') as f:
         json.dump(meta, f, indent=1)
+    attach_atlas()
+    if only:
+        print('gun geo ok (часть)')
+        return
     flashes()
     bits()
     print('gun geo ok')

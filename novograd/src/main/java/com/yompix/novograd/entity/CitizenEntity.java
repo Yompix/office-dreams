@@ -47,7 +47,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     public enum Role { CITIZEN, TEACHER, SHOPKEEPER, CROUPIER, DEALER, BANKER, POLICE, GANG, GUNSMITH, MECHANIC, TAILOR, BOUTIQUE, BARBER, COACH }
 
     public enum Activity {
-        IDLE, TALK, WAVE, PHONE, SIT, DANCE, CHEER, THINK, SLEEP, ARGUE, LAUGH, FIGHT, HUG, HANDSHAKE, UPSET, AIM;
+        IDLE, TALK, WAVE, PHONE, SIT, DANCE, CHEER, THINK, SLEEP, ARGUE, LAUGH, FIGHT, HUG, HANDSHAKE, UPSET, AIM,
+        /** Уличные музыканты и танцоры (gta/StreetPerformers). */
+        GUITAR, SAX, BREAKDANCE;
 
         /** Сценка на время разговора: снимается, когда диалог закончился. */
         public boolean scene() {
@@ -577,7 +579,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     /** Обычный горожанин, который живёт своей жизнью (не сюжетный, не продавец, не стоит на месте). */
     boolean livesInTown() {
-        return role == Role.CITIZEN && storyId.isEmpty() && !stationary && !lockedActivity && !hasVehicle() && removeIn < 0;
+        return role == Role.CITIZEN && storyId.isEmpty() && !stationary && !lockedActivity && !hasVehicle() && removeIn < 0
+                && !com.yompix.novograd.world.Residents.is(this); // у жильцов острова свой распорядок (world/Residents)
     }
 
     public void setHome(String h) {
@@ -597,6 +600,11 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     void setActivity(Activity a, net.minecraft.item.ItemStack held) {
         dataTracker.set(ACTIVITY, a.ordinal());
         equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, held);
+    }
+
+    /** Спокоен: не дерётся, не убегает, не лежит после удара (жильцы острова слушаются распорядка только тогда). */
+    public boolean calm() {
+        return foe == null && fleeTicks <= 0 && knockPhase() == KO_NONE && !hasVehicle();
     }
 
     public boolean asleep() {
@@ -631,6 +639,13 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             cooldown = 200 + c.getRandom().nextInt(200);
             if (!(c.getWorld() instanceof net.minecraft.server.world.ServerWorld w)) return false;
             long t = w.getTimeOfDay() % 24000;
+            if (com.yompix.novograd.world.Residents.is(c)) return false; // жилец: распорядок ведёт world/Residents
+            if (com.yompix.novograd.world.Island.zone(c.getBlockX(), c.getBlockZ()) != com.yompix.novograd.world.Island.Zone.CORE) {
+                // остров: дела по соседству (магазин, бар, пляж, площадь) — места острова, а не дворы старого города
+                chosen = null;
+                target = com.yompix.novograd.world.Residents.islandErrand(c, t);
+                return target != null && c.squaredDistanceTo(target) > 64;
+            }
             String[] where;
             chosen = null;
             if (c.isKid()) where = t < 1500 || t > 15000 ? HOMES : t < 9000 ? new String[]{"school_yard", "school_front"} : new String[]{"park_center", "shop_door", "school_yard"};

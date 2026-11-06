@@ -81,7 +81,11 @@ public final class Arsenal {
 
     /** Звук перезарядки своего ствола (магазин, затвор; у дробовика — патроны по одному). */
     public static SoundEvent reloadSound(Item gun) {
-        return RELOADS.getOrDefault(Registries.ITEM.getId(gun).getPath(), RELOAD);
+        String id = Registries.ITEM.getId(gun).getPath();
+        if (gun == Armory.REVOLVER) return Armory.REVOLVER_RELOAD;
+        if (gun == Armory.LMG) return Armory.LMG_RELOAD;
+        if (gun == Armory.RPG) return Armory.RPG_RELOAD;
+        return RELOADS.getOrDefault(id, RELOADS.getOrDefault(GunItem.base(id), RELOAD));
     }
     public static final RegistryEntry.Reference<SoundEvent> EXPLOSION = Registry.registerReference(Registries.SOUND_EVENT, Novograd.id("explosion"), SoundEvent.of(Novograd.id("explosion")));
 
@@ -123,11 +127,12 @@ public final class Arsenal {
 
     /** Все виды оружия для колеса и проверок (в порядке колеса). */
     public static List<Item> weapons() {
-        return List.of(ModContent.BAT, KNIFE, ModContent.PISTOL, ModContent.SMG, SHOTGUN, RIFLE, SNIPER, GRENADE, MOLOTOV);
+        return List.of(ModContent.BAT, KNIFE, Armory.MACHETE, ModContent.PISTOL, Armory.REVOLVER, Armory.EAGLE, ModContent.SMG, Armory.MICRO,
+                SHOTGUN, Armory.SAIGA, RIFLE, Armory.CARBINE, Armory.LMG, SNIPER, Armory.RPG, GRENADE, MOLOTOV);
     }
 
     public static boolean isWeapon(ItemStack s) {
-        return !s.isEmpty() && (s.getItem() instanceof GunItem || s.getItem() instanceof ThrowableItem || s.isOf(KNIFE) || s.isOf(ModContent.BAT));
+        return !s.isEmpty() && (s.getItem() instanceof GunItem || s.getItem() instanceof ThrowableItem || s.isOf(KNIFE) || s.isOf(ModContent.BAT) || s.isOf(Armory.MACHETE));
     }
 
     /**
@@ -226,6 +231,7 @@ public final class Arsenal {
         UseEntityCallback.EVENT.register((player, world, hand, entity, hit) ->
                 player.hasVehicle() && player.isConnectedThroughVehicle(entity) && isWeapon(player.getStackInHand(hand)) ? ActionResult.FAIL : ActionResult.PASS);
         ServerTickEvents.END_WORLD_TICK.register(Arsenal::pickups);
+        Armory.register(); // новые стволы, Мастерская (обвесы), телохранители
     }
 
     private static void handle(ServerPlayerEntity p, String action, int value) {
@@ -241,6 +247,7 @@ public final class Arsenal {
                     for (ServerPlayerEntity o : net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(p)) ServerPlayNetworking.send(o, pkt);
                 }
             }
+            case "mod" -> GunMods.handle(p, value); // «Калибр» → Мастерская
             case "reload" -> {
                 ItemStack s = p.getMainHandStack();
                 if (s.getItem() instanceof GunItem g) g.reload(p.getServerWorld(), p, s, true);
@@ -266,7 +273,9 @@ public final class Arsenal {
                     p.playerScreenHandler.sendContentUpdates();
                 }
             }
-            default -> {}
+            default -> {
+                if (action.startsWith("guard")) Bodyguards.handle(p, action, value); // телефон → «Охрана»
+            }
         }
     }
 
@@ -297,12 +306,17 @@ public final class Arsenal {
 
     /** Тратит патроны из инвентаря, сколько есть (до max). @return сколько взяли */
     public static int takeAmmo(PlayerEntity p, int max) {
+        return takeAmmo(p, max, ModContent.AMMO);
+    }
+
+    /** То же для своего вида патронов (выстрелы ПГ у гранатомёта). */
+    public static int takeAmmo(PlayerEntity p, int max, Item ammo) {
         if (p.isCreative() || Cheats.infiniteAmmo(p)) return max;
         int got = 0;
         var inv = p.getInventory();
         for (int i = 0; i < inv.size() && got < max; i++) {
             var s = inv.getStack(i);
-            if (s.isOf(ModContent.AMMO)) {
+            if (s.isOf(ammo)) {
                 int n = Math.min(max - got, s.getCount());
                 s.decrement(n);
                 got += n;

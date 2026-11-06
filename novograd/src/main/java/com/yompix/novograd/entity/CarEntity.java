@@ -31,10 +31,17 @@ import java.util.UUID;
  */
 public class CarEntity extends Entity {
     /** Кузова: 0 седан, 1 хэтчбек, 2 спорткупе, 3 люкс-седан, 4 фургон, 5 такси, 6 полиция, 7 внедорожник,
-     *  8 пикап, 9 маслкар, 10 лимузин, 11 грузовик (см. CarBody). */
-    public static final String[] VARIANTS = {"red", "blue", "yellow", "black", "white", "taxi", "police", "suv", "pickup", "muscle", "limo", "truck"};
-    public static final int[] COLORS = {0xD7262C, 0x2C6ECB, 0xF2C032, 0x2A2C31, 0xE8E8EA, 0xF7C600, 0xF2F4F7, 0x3E4B3C, 0xB5462A, 0xF07A12, 0x15161A, 0xE4E4DE};
+     *  8 пикап, 9 маслкар, 10 лимузин, 11 грузовик; 0.4: 12 суперкар, 13 классика 70-х, 14 лоурайдер, 15 багги,
+     *  16 малолитражка, 17 спецназ (бронефургон), 18 скорая, 19 пожарная (см. CarBody). */
+    public static final String[] VARIANTS = {"red", "blue", "yellow", "black", "white", "taxi", "police", "suv", "pickup", "muscle", "limo", "truck",
+            "super", "classic", "lowrider", "buggy", "compact", "swat", "ambulance", "firetruck"};
+    public static final int[] COLORS = {0xD7262C, 0x2C6ECB, 0xF2C032, 0x2A2C31, 0xE8E8EA, 0xF7C600, 0xF2F4F7, 0x3E4B3C, 0xB5462A, 0xF07A12, 0x15161A, 0xE4E4DE,
+            0x7BC639, 0x6A2C1E, 0x5B2A86, 0xE07A1F, 0x7FC8D8, 0x1C1F24, 0xF5F7FA, 0xC4161C};
     public static final int POLICE = 6;
+    public static final int SUPERCAR = 12, CLASSIC = 13, LOWRIDER = 14, BUGGY = 15, COMPACT = 16, SWAT = 17, AMBULANCE = 18, FIRETRUCK = 19;
+    /** Бензин 0..FUEL_MAX (gta/Fuel): полный бак — 15–20 минут езды. */
+    public static final int FUEL_MAX = 1000;
+    private static final TrackedData<Integer> FUEL = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
     /** Тюнинг: цвет (0 — заводской), нитро, двигатель 0–2, броня 0–2; здоровье машины 0–100. */
     private static final TrackedData<Integer> PAINT = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Integer> TUNE = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
@@ -119,6 +126,20 @@ public class CarEntity extends Entity {
         builder.add(TUNE, 0);
         builder.add(HEALTH, 100);
         builder.add(NITRO, 0);
+        builder.add(FUEL, FUEL_MAX);
+    }
+
+    public int fuel() {
+        return dataTracker.get(FUEL);
+    }
+
+    public void setFuel(int f) {
+        dataTracker.set(FUEL, MathHelper.clamp(f, 0, FUEL_MAX));
+    }
+
+    /** Жжёт ли машина бензин: только легковые/мото у игрока; служебные, скутер, катер и авиация — нет. */
+    public boolean usesFuel() {
+        return !isScooter() && !(this instanceof com.yompix.novograd.vehicle.MotorVehicle) && (isBike() || !body().service());
     }
 
     public int getVariant() {
@@ -234,7 +255,7 @@ public class CarEntity extends Entity {
     /** Попадание пули: машина дымит, а при нуле — взрывается и горит. */
     public void hitByBullet(float dmg, net.minecraft.entity.LivingEntity shooter) {
         if (wrecked() || getWorld().isClient) return;
-        int h = health() - Math.round(dmg * (2.2f - armor() * 0.6f));
+        int h = health() - Math.round(dmg * (2.2f - armor() * 0.6f) * (body() == CarBody.SWAT ? 0.35f : 1f)); // спецназ — броня
         dataTracker.set(HEALTH, Math.max(0, h));
         dataTracker.set(WOBBLE, 6);
         if (h <= 0) wreck();
@@ -347,7 +368,7 @@ public class CarEntity extends Entity {
 
     /** В машине житель-водитель (такси): он всегда за рулём, даже если игрок сел позже. */
     public boolean hasNpcDriver() {
-        for (Entity e : getPassengerList()) if (e instanceof CitizenEntity) return true;
+        for (Entity e : getPassengerList()) if (e instanceof CitizenEntity && !(e instanceof BodyguardEntity)) return true; // охрана — не водитель
         return false;
     }
 
@@ -357,7 +378,7 @@ public class CarEntity extends Entity {
      */
     public int seatOf(Entity passenger) {
         java.util.List<Entity> order = new java.util.ArrayList<>(getPassengerList());
-        order.sort(java.util.Comparator.comparingInt(e -> e instanceof CitizenEntity ? 0 : e instanceof net.minecraft.entity.decoration.ArmorStandEntity ? 1 : 2));
+        order.sort(java.util.Comparator.comparingInt(e -> e instanceof BodyguardEntity ? 3 : e instanceof CitizenEntity ? 0 : e instanceof net.minecraft.entity.decoration.ArmorStandEntity ? 1 : 2));
         return Math.max(0, order.indexOf(passenger));
     }
 
@@ -379,6 +400,7 @@ public class CarEntity extends Entity {
                 }
             com.yompix.novograd.gta.Crime.carjack(sp0);
             if (isPolice()) com.yompix.novograd.gta.Wanted.add(sp0, 2, "угон полицейской машины", 2);
+            else if (body().service() && !isTaxi()) com.yompix.novograd.gta.Wanted.add(sp0, 1, "угон служебной машины", body() == CarBody.SWAT ? 3 : 1);
         }
         boolean driver = getPassengerList().isEmpty();
         if (driver && !isScooter() && !player.isCreative() && player instanceof ServerPlayerEntity sp) {
@@ -429,6 +451,7 @@ public class CarEntity extends Entity {
     public void tick() {
         if (dataTracker.get(WOBBLE) > 0) dataTracker.set(WOBBLE, dataTracker.get(WOBBLE) - 1);
         if (!getWorld().isClient && dataTracker.get(NITRO) > 0) dataTracker.set(NITRO, dataTracker.get(NITRO) - 1);
+        if (!getWorld().isClient && age % 20 == 0) com.yompix.novograd.gta.Fuel.carTick(this); // бензин
         gtaTick();
         super.tick();
         float yawBefore = getYaw();
@@ -516,7 +539,7 @@ public class CarEntity extends Entity {
     }
 
     private double halfWid() {
-        return isScooter() || isBike() ? 0.45 : body() == CarBody.TRUCK || body() == CarBody.VAN ? 1.15 : 1.0;
+        return isScooter() || isBike() ? 0.45 : body().truck() || body() == CarBody.VAN || body() == CarBody.SWAT || body() == CarBody.AMBULANCE ? 1.15 : body() == CarBody.COMPACT ? 0.85 : 1.0;
     }
 
     /** Кого задевает машина, едущая по dir: точка в кузове (с запасом) и впереди по ходу. */
@@ -763,6 +786,9 @@ public class CarEntity extends Entity {
         boolean fourWheels = !isBike() && !isScooter();
         CarBody b = fourWheels ? body() : CarBody.SEDAN;
         float max = isTouchingWater() ? 0.15f : route != null && !player ? autoMax + 0.05f : topSpeed();
+        // бензин кончился — мотор глохнет, машина катится и встаёт (gta/Fuel); вне асфальта — медленнее (у багги наоборот)
+        if (player && usesFuel() && fuel() <= 0 && fwd > 0) fwd = 0;
+        if (player && !isBike() && !isScooter()) max *= com.yompix.novograd.gta.Fuel.surfaceFactor(this);
         if (route != null && !player && nitroOn()) max *= 1.55f;
         // ручник — только у водителя на его клиенте (физику машины игрока считает его клиент)
         handbrake = player && fourWheels && getWorld().isClient && handbrakeInput && !wrecked();
@@ -802,7 +828,7 @@ public class CarEntity extends Entity {
                 }
             } else if (fwd < 0) {
                 if (speed > 0.01f) {
-                    speed = Math.max(0, speed - (0.03f + sp * 0.045f) * b.brake);
+                    speed = Math.max(0, speed - (0.03f + sp * 0.045f) * b.brake * (0.4f + 0.6f * com.yompix.novograd.gta.Fuel.wetGrip(this)));
                     braking = true;
                 } else {
                     speed = Math.max(speed - 0.011f * (1 - Math.min(1, -speed / 0.28f) * 0.7f), -0.28f);
@@ -832,7 +858,7 @@ public class CarEntity extends Entity {
         if (!player || !fourWheels || Float.isNaN(moveYaw) || sp < 0.06f) moveYaw = getYaw();
         else {
             float diff = MathHelper.wrapDegrees(getYaw() - moveYaw);
-            float traction = handbrake ? 0.045f : MathHelper.clamp(0.55f * b.grip - sp * 0.12f, 0.2f, 0.75f);
+            float traction = handbrake ? 0.045f : MathHelper.clamp(0.55f * b.grip * com.yompix.novograd.gta.Fuel.wetGrip(this) - sp * 0.12f, 0.12f, 0.75f); // дождь — скользко
             moveYaw += diff * traction;
             diff = MathHelper.wrapDegrees(getYaw() - moveYaw);
             if (Math.abs(diff) > 65) moveYaw = getYaw() - Math.signum(diff) * 65;
@@ -900,8 +926,9 @@ public class CarEntity extends Entity {
             roll = MathHelper.lerp(0.12f, roll, MathHelper.clamp(yawRate * Math.abs(clientSpeed) * 0.8f, -2.5f, 2.5f));
             pitchLean = MathHelper.lerp(0.1f, pitchLean, MathHelper.clamp((clientSpeed - lastSpeed) * -30f, -1.5f, 1.5f));
         } else {
-        boolean heavy = !isBike() && !isScooter() && (body() == CarBody.VAN || body() == CarBody.TRUCK || body() == CarBody.SUV || body() == CarBody.LIMO);
-        float soft = heavy ? 1.35f : body() == CarBody.SPORTS ? 0.6f : 1f;
+        boolean heavy = !isBike() && !isScooter() && (body() == CarBody.VAN || body().truck() || body() == CarBody.SUV || body() == CarBody.LIMO
+                || body() == CarBody.SWAT || body() == CarBody.AMBULANCE || body() == CarBody.LOWRIDER);
+        float soft = heavy ? 1.35f : body() == CarBody.SPORTS || body() == CarBody.SUPERCAR ? 0.6f : body() == CarBody.BUGGY ? 1.5f : 1f;
         float rollTarget = MathHelper.clamp(yawRate * spd * 1.1f * soft, -4.5f, 4.5f);
         rollV += (rollTarget - roll) * 0.22f;
         rollV *= 0.68f;
@@ -954,7 +981,7 @@ public class CarEntity extends Entity {
                 (Math.abs(slipVis) > 11 && spd > 0.18f)
                         || (handbrake && spd > 0.15f)
                         || (accel < -0.035f && spd > 0.22f)
-                        || (accel > 0.022f && spd < 0.35f && (body() == CarBody.MUSCLE || body() == CarBody.SPORTS || nitroOn())));
+                        || (accel > 0.022f && spd < 0.35f && (body() == CarBody.MUSCLE || body() == CarBody.SPORTS || body() == CarBody.SUPERCAR || body() == CarBody.CLASSIC || nitroOn())));
         if (skidding && (age % 3 == 0 || handbrake)) {
             for (int side = -1; side <= 1; side += 2) {
                 double bx = getX() + Math.sin(rad) * 1.0 - Math.cos(rad) * 0.8 * side;
@@ -975,7 +1002,11 @@ public class CarEntity extends Entity {
     private double exhaustBack() {
         return switch (body()) {
             case LIMO -> 2.45;
-            case TRUCK -> 2.2;
+            case TRUCK, FIRETRUCK -> 2.2;
+            case AMBULANCE, SWAT -> 1.95;
+            case LOWRIDER, CLASSIC -> 1.9;
+            case COMPACT -> 1.15;
+            case BUGGY -> 1.45;
             case PICKUP -> 2.05;
             case VAN -> 1.85;
             case HATCH -> 1.5;
@@ -1016,7 +1047,8 @@ public class CarEntity extends Entity {
     private double seatDrop() {
         return switch (body()) {
             case SPORTS -> 2 / 16.0;
-            case MUSCLE -> 1 / 16.0;
+            case MUSCLE, CLASSIC, LOWRIDER -> 1 / 16.0;
+            case SUPERCAR -> 3 / 16.0;
             default -> 0;
         };
     }
@@ -1080,6 +1112,7 @@ public class CarEntity extends Entity {
         paint(nbt.getInt("Paint"));
         dataTracker.set(TUNE, nbt.getInt("Tune"));
         if (nbt.contains("Health")) dataTracker.set(HEALTH, nbt.getInt("Health"));
+        if (nbt.contains("Fuel")) setFuel(nbt.getInt("Fuel"));
         ambient = nbt.getBoolean("Ambient");
         owner = nbt.containsUuid("Owner") ? nbt.getUuid("Owner") : null;
     }
@@ -1090,6 +1123,7 @@ public class CarEntity extends Entity {
         nbt.putInt("Paint", dataTracker.get(PAINT));
         nbt.putInt("Tune", tune());
         nbt.putInt("Health", health());
+        nbt.putInt("Fuel", fuel());
         nbt.putBoolean("Ambient", ambient);
         if (owner != null) nbt.putUuid("Owner", owner);
     }

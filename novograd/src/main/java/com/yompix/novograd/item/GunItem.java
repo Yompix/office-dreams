@@ -69,24 +69,57 @@ public class GunItem extends Item implements GeoItem {
         return spec;
     }
 
-    /** pistol / smg / shotgun / rifle / sniper */
+    /** pistol / smg / shotgun / rifle / sniper / revolver / eagle / micro / saiga / carbine / lmg / rpg */
     public String gunId() {
         return Registries.ITEM.getId(this).getPath();
+    }
+
+    /**
+     * «Основа» для анимаций и эффектов: новые стволы двигаются как похожие старые
+     * (Орёл — как пистолет, Микро — как ПП, Сайга/Карабин/Пулемёт — как «АК»); у револьвера и гранатомёта — свои.
+     */
+    public String animBase() {
+        return base(gunId());
+    }
+
+    public static String base(String id) {
+        return switch (id) {
+            case "eagle" -> "pistol";
+            case "micro" -> "smg";
+            case "saiga", "carbine", "lmg" -> "rifle";
+            default -> id;
+        };
+    }
+
+    /** Дробовик заряжается по патрону (остальные — магазином). */
+    public boolean shellByShell() {
+        return gunId().equals("shotgun");
     }
 
     /** Номер вида для пакетов эффектов: 0 пистолет, 1 ПП, 2 дробовик, 3 «АК», 4 снайперка. */
     public int kindIndex() {
         return switch (gunId()) {
-            case "smg" -> 1;
-            case "shotgun" -> 2;
-            case "rifle" -> 3;
+            case "smg", "micro" -> 1;
+            case "shotgun", "saiga", "rpg" -> 2;
+            case "rifle", "carbine", "lmg" -> 3;
             case "sniper" -> 4;
             default -> 0;
         };
     }
 
+    /** Ёмкость магазина с обвесом (удлинённый магазин +50%). */
+    public int magSize(ItemStack stack) {
+        return com.yompix.novograd.gta.GunMods.magSize(this, stack);
+    }
+
     public int mag(ItemStack stack) {
-        return Math.min(spec.magazine, stack.getOrDefault(Arsenal.MAG, spec.magazine));
+        int size = magSize(stack);
+        return Math.min(size, stack.getOrDefault(Arsenal.MAG, size));
+    }
+
+    /** Чем заряжается: выстрелы ПГ у гранатомёта, иначе обычные патроны. */
+    public Item ammoItem() {
+        return com.yompix.novograd.gta.Armory.ammoFor(this);
     }
 
     /** ПКМ — прицел, а не выстрел: сам предмет ничего не делает (стреляет пакет «fire» по ЛКМ). */
@@ -124,7 +157,7 @@ public class GunItem extends Item implements GeoItem {
         int mag = mag(stack);
         if (mag <= 0) {
             if (!reload(w, p, stack, false)) {
-                p.sendMessage(Text.literal("Нет патронов! Купи в оружейном «Калибр»").formatted(Formatting.RED), true);
+                p.sendMessage(Text.literal(ammoItem() == ModContent.AMMO ? "Нет патронов! Купи в оружейном «Калибр»" : "Нет выстрелов ПГ! Купи в оружейном «Калибр»").formatted(Formatting.RED), true);
                 w.playSound(null, p.getBlockPos(), Arsenal.GUN_DRY, SoundCategory.PLAYERS, 0.8f, 1f);
             }
             return;
@@ -134,24 +167,30 @@ public class GunItem extends Item implements GeoItem {
         if (aiming) spread *= spec.scope ? 0.03 : 0.35;      // в прицеле кучнее (в оптике — почти точно)
         else if (p.getVelocity().horizontalLengthSquared() > 0.01) spread *= 1.3; // на бегу от бедра — шире
         if (p.isSneaking()) spread *= 0.8;
-        Weapons.fire(w, p, p.getEyePos(), p.getRotationVec(1f), spec.damage, spread, spec.range, spec.pellets, spec.sound, spec.volume, kindIndex());
+        if (com.yompix.novograd.gta.GunMods.has(stack, com.yompix.novograd.gta.GunMods.GRIP)) spread *= 0.75; // рукоятка — кучнее
+        discharge(w, p, stack, spread);
         if (mag - 1 <= 0 && !p.isCreative()) reload(w, p, stack, false); // последний патрон — сразу перезаряжаем
+    }
+
+    /** Сам выстрел (у гранатомёта — ракета, см. RocketLauncherItem). */
+    protected void discharge(ServerWorld w, PlayerEntity p, ItemStack stack, double spread) {
+        Weapons.fire(w, p, p.getEyePos(), p.getRotationVec(1f), spec.damage, spread, spec.range, spec.pellets, spec.sound, spec.volume, kindIndex());
     }
 
     /** Тиков на перезарядку: с пустого дольше (затвор), дробовик — по 7 тиков на патрон (+ помпа, если пуст). */
     public int reloadTicks(int magBefore, int got) {
         boolean empty = magBefore <= 0;
-        if (spec.pellets > 1) return 8 + 7 * got + (empty ? 10 : 0);
+        if (shellByShell()) return 8 + 7 * got + (empty ? 10 : 0);
         return empty ? spec.reload : Math.round(spec.reload * 0.78f);
     }
 
     /** Перезарядка: берём патроны из инвентаря, оружие «занято» на время анимации. */
     public boolean reload(ServerWorld w, PlayerEntity p, ItemStack stack, boolean manual) {
-        int mag = mag(stack);
-        if (mag >= spec.magazine || p.getItemCooldownManager().isCoolingDown(this) && manual) return false;
-        int got = Arsenal.takeAmmo(p, spec.magazine - mag);
+        int mag = mag(stack), size = magSize(stack);
+        if (mag >= size || p.getItemCooldownManager().isCoolingDown(this) && manual) return false;
+        int got = Arsenal.takeAmmo(p, size - mag, ammoItem());
         if (got <= 0) {
-            if (manual) p.sendMessage(Text.literal("Нет патронов для перезарядки").formatted(Formatting.RED), true);
+            if (manual) p.sendMessage(Text.literal(ammoItem() == ModContent.AMMO ? "Нет патронов для перезарядки" : "Нет выстрелов ПГ — купи в «Калибре»").formatted(Formatting.RED), true);
             return false;
         }
         stack.set(Arsenal.MAG, mag + got);
@@ -169,12 +208,12 @@ public class GunItem extends Item implements GeoItem {
 
     @Override
     public boolean isItemBarVisible(ItemStack stack) {
-        return spec.magazine > 1 && mag(stack) < spec.magazine;
+        return spec.magazine > 1 && mag(stack) < magSize(stack);
     }
 
     @Override
     public int getItemBarStep(ItemStack stack) {
-        return Math.round(13f * mag(stack) / spec.magazine);
+        return Math.round(13f * mag(stack) / magSize(stack));
     }
 
     @Override
@@ -184,9 +223,11 @@ public class GunItem extends Item implements GeoItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        tooltip.add(Text.literal("Магазин: " + mag(stack) + " / " + spec.magazine).formatted(Formatting.GOLD));
-        String dmg = spec.pellets > 1 ? spec.pellets + "×" + fmt(spec.damage) : fmt(spec.damage);
+        tooltip.add(Text.literal("Магазин: " + mag(stack) + " / " + magSize(stack)).formatted(Formatting.GOLD));
+        String dmg = spec.damage <= 0 ? "взрыв" : spec.pellets > 1 ? spec.pellets + "×" + fmt(spec.damage) : fmt(spec.damage);
         tooltip.add(Text.literal("Урон " + dmg + " · дальность " + (int) spec.range + " м" + (spec.auto ? " · очередь" : "")).formatted(Formatting.GRAY));
+        String mods = com.yompix.novograd.gta.GunMods.describe(stack);
+        if (!mods.isEmpty()) tooltip.add(Text.literal("Мастерская: " + mods).formatted(Formatting.LIGHT_PURPLE));
         tooltip.add(Text.literal("ЛКМ — огонь, ПКМ — " + (spec.scope ? "оптика" : "прицел")).formatted(Formatting.AQUA));
         tooltip.add(Text.literal("R — перезарядка (пешком), Y — осмотреть").formatted(Formatting.DARK_GRAY));
     }

@@ -180,7 +180,7 @@ public class WeaponWheelScreen extends Screen {
     }
 
     private static String sub(Choice c, net.minecraft.entity.player.PlayerInventory inv) {
-        if (c.stack.getItem() instanceof GunItem g) return g.mag(c.stack) + "/" + g.spec().magazine();
+        if (c.stack.getItem() instanceof GunItem g) return g.mag(c.stack) + "/" + g.magSize(c.stack);
         if (c.stack.getItem() instanceof ThrowableItem && inv != null) return "×" + inv.count(c.stack.getItem());
         return "";
     }
@@ -188,7 +188,7 @@ public class WeaponWheelScreen extends Screen {
     private static String info(Choice c, net.minecraft.entity.player.PlayerInventory inv) {
         if (inv == null) return "";
         if (c.stack.getItem() instanceof GunItem g)
-            return "магазин " + g.mag(c.stack) + "/" + g.spec().magazine() + " · запас " + (inv.player.isCreative() ? "∞" : inv.count(ModContent.AMMO));
+            return "магазин " + g.mag(c.stack) + "/" + g.magSize(c.stack) + " · запас " + (inv.player.isCreative() ? "∞" : inv.count(g.ammoItem()));
         if (c.stack.getItem() instanceof ThrowableItem) return "осталось " + inv.count(c.stack.getItem());
         if (c.slot < 0) return "руки свободны";
         return "ближний бой";

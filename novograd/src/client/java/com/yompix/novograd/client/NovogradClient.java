@@ -154,6 +154,7 @@ public class NovogradClient implements ClientModInitializer {
                     ctx.drawText(tr, "© Yompix Games", 4, h - 20, 0xFF8A5CFF, true);
                 });
         });
+        PulseClient.init(); // коллекции, экраны и вертолёт «Новоград-24», прожекторы, подпольные бои
         HudRenderCallback.EVENT.register(LifeHud::render);
         HudRenderCallback.EVENT.register((ctx, t) -> CarRadio.render(ctx));
         HudRenderCallback.EVENT.register((ctx, t) -> NewsHud.render(ctx));
@@ -170,6 +171,8 @@ public class NovogradClient implements ClientModInitializer {
         com.yompix.novograd.client.style.StyleClient.init(); // одежда, цирюльня, гардероб, спортзал (стиль SA)
         ElevatorClient.init(); // меню этажей лифта и затемнение поездки
         FunClient.init(); // парашют, брандспойт, районы банд на карте, автоматы и дартс
+        HousingClient.init(); // недвижимость (телефон → «Дом»), значки жилья и гаражей
+        DriveClient.init(); // бензин, камеры скорости, туман, перелёты, экран «Авто»
         DevAutotest.init();
     }
 
@@ -274,7 +277,10 @@ public class NovogradClient implements ClientModInitializer {
             case "roulette_result" -> {
                 if (client.currentScreen instanceof RouletteScreen s) s.result(n);
             }
-            default -> com.yompix.novograd.client.FunClient.receive(client, type, n); // парашют, подработки, районы, автоматы
+            default -> {
+                if (!DriveClient.receive(client, type, n)) // дороги и транспорт 0.4
+                    com.yompix.novograd.client.FunClient.receive(client, type, n); // парашют, подработки, районы, автоматы
+            }
         }
     }
 

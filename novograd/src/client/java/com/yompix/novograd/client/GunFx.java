@@ -3,6 +3,7 @@ package com.yompix.novograd.client;
 import com.yompix.novograd.Novograd;
 import com.yompix.novograd.client.gun.GunAnim;
 import com.yompix.novograd.client.gun.GunMeta;
+import com.yompix.novograd.client.gun.GunModsClient;
 import com.yompix.novograd.client.gun.GunWorldFx;
 import com.yompix.novograd.gta.Arsenal;
 import com.yompix.novograd.item.GunItem;
@@ -51,7 +52,15 @@ public final class GunFx {
         SMG(0.035f, 2.6f, 0.25f, true, -0.33f, 0.82f, 6f, 0.035f),
         SHOTGUN(0.13f, 9f, 1.4f, true, -0.27f, 0.86f, 12f, 0.16f),
         RIFLE(0.05f, 3.4f, 0.35f, true, -0.6f, 0.76f, 5f, 0.04f),
-        SNIPER(0.14f, 8f, 1.2f, true, -0.12f, 0.2f, 10f, 0.12f);
+        SNIPER(0.14f, 8f, 1.2f, true, -0.12f, 0.2f, 10f, 0.12f),
+        // новые стволы «Калибра»: револьвер и «Орёл» бьют сильно, «Микро» трясётся, пулемёт тяжёлый, гранатомёт — толчок в плечо
+        REVOLVER(0.09f, 14f, 0.9f, true, -0.37f, 0.84f, 4f, 0.08f),
+        EAGLE(0.1f, 15f, 1.0f, true, -0.37f, 0.84f, 4.5f, 0.09f),
+        MICRO(0.03f, 2.2f, 0.35f, true, -0.33f, 0.84f, 7f, 0.045f),
+        SAIGA(0.11f, 7f, 1.2f, true, -0.5f, 0.84f, 11f, 0.13f),
+        CARBINE(0.045f, 3.0f, 0.3f, true, -0.6f, 0.74f, 4.5f, 0.035f),
+        LMG(0.05f, 3.2f, 0.45f, true, -0.62f, 0.78f, 6f, 0.03f),
+        RPG(0.2f, 6f, 2.2f, true, -0.45f, 0.82f, 8f, 0.2f);
 
         final float kickZ, rise, shake, adsZ, zoom, crossBase, bloomAdd;
         final boolean twoHanded;
@@ -79,12 +88,24 @@ public final class GunFx {
             case "shotgun" -> Kind.SHOTGUN;
             case "rifle" -> Kind.RIFLE;
             case "sniper" -> Kind.SNIPER;
+            case "revolver" -> Kind.REVOLVER;
+            case "eagle" -> Kind.EAGLE;
+            case "micro" -> Kind.MICRO;
+            case "saiga" -> Kind.SAIGA;
+            case "carbine" -> Kind.CARBINE;
+            case "lmg" -> Kind.LMG;
+            case "rpg" -> Kind.RPG;
             default -> Kind.PISTOL;
         };
     }
 
     public static String id(Item item) {
         return Registries.ITEM.getId(item).getPath();
+    }
+
+    /** Короткоствол (поза от бедра одной рукой, прицел ближе). */
+    static boolean pistolLike(Kind k) {
+        return k == Kind.PISTOL || k == Kind.REVOLVER || k == Kind.EAGLE;
     }
 
     private static final Identifier FLASH = Novograd.id("textures/misc/muzzle_flash.png");
@@ -133,6 +154,9 @@ public final class GunFx {
     /** Только для автотеста: заморозить анимации (перезарядка/осмотр) на этой доле. */
     public static float testFreezeP = -1;
     private static final GunAnim.In IN = new GunAnim.In();
+    /** Дуло с учётом глушителя (Мастерская) и был ли последний свой выстрел с глушителем. */
+    private static float[] muzzleNow;
+    private static boolean silencedShot;
 
     public static void init() {}
 
@@ -142,7 +166,10 @@ public final class GunFx {
         Kind k = kind(g);
         if (testFlashNs > 0) Novograd.LOG.info("[guns] shot {}", id(g));
         MinecraftClient c = MinecraftClient.getInstance();
-        float aim = 1f - ads * 0.4f;
+        ItemStack held = c.player != null ? c.player.getMainHandStack() : ItemStack.EMPTY;
+        boolean grip = com.yompix.novograd.gta.GunMods.has(held, com.yompix.novograd.gta.GunMods.GRIP); // рукоятка: меньше отдача
+        float aim = (1f - ads * 0.4f) * (grip ? 0.65f : 1f);
+        silencedShot = com.yompix.novograd.gta.GunMods.silenced(held);
         // скорость пружины ≈ пик·ω/0.75: назад на kickZ блоков, вверх на rise градусов
         kzV += 23f * k.kickZ * aim;
         kpV += 17f * k.rise * aim * (0.85f + RNG.nextFloat() * 0.3f);
@@ -150,7 +177,7 @@ public final class GunFx {
         sideV += (RNG.nextFloat() - 0.5f) * 1.2f * aim;
         shakeV += 14f * k.shake;
         // подброс камеры: вверх и чуть вбок, потом часть возвращается
-        float r = g.spec().recoil() * (ads > 0.5f ? 0.7f : 1f) * (0.9f + RNG.nextFloat() * 0.2f);
+        float r = g.spec().recoil() * (ads > 0.5f ? 0.7f : 1f) * (0.9f + RNG.nextFloat() * 0.2f) * (grip ? 0.6f : 1f);
         camPitch += r;
         camYaw += (RNG.nextFloat() - 0.5f) * r * 0.55f;
         bloom = Math.min(1f, bloom + k.bloomAdd * (ads > 0.5f ? 0.5f : 1f) * 3);
@@ -159,14 +186,15 @@ public final class GunFx {
         shotAt = now;
         shotItem = g;
         inspectItem = null;
-        flashUntil = now + (k == Kind.SMG || k == Kind.RIFLE ? 40_000_000L : 60_000_000L) + testFlashNs;
+        flashUntil = now + (k == Kind.SMG || k == Kind.RIFLE || k == Kind.MICRO || k == Kind.CARBINE || k == Kind.LMG ? 40_000_000L : 60_000_000L) + testFlashNs;
         flashSpin = RNG.nextFloat() * 360f;
         flashScale = 0.8f + RNG.nextFloat() * 0.45f;
         flashVariant = RNG.nextInt(4);
         // гильза: сразу (пистолет, ПП, «АК») или когда передёрнут помпу / затвор
         if (k == Kind.SHOTGUN) schedule(now + (long) ((GunAnim.PUMP_AT + 0.06f) * 1e9), 2);
         else if (k == Kind.SNIPER) schedule(now + (long) ((GunAnim.SNIPER_BOLT_AT + 0.62f * 0.28f) * 1e9), 1);
-        else ejectCasing(k == Kind.RIFLE ? 1 : 0);
+        else if (k == Kind.SAIGA) ejectCasing(2);
+        else if (k != Kind.REVOLVER && k != Kind.RPG) ejectCasing(k == Kind.RIFLE || k == Kind.CARBINE || k == Kind.LMG ? 1 : 0);
         if (c.world != null && muzzleWorld != null) GunWorldFx.smoke(muzzleWorld, 1f);
         if (testFlashNs > 0) {
             kz = 0.044f * kzV;
@@ -208,7 +236,7 @@ public final class GunFx {
         reloadLen = duration * 50_000_000L;
         inspectItem = null;
         // по длине понимаем, какая перезарядка: с пустого или нет, сколько патронов дробовику (см. GunItem.reloadTicks)
-        if (g.spec().pellets() > 1) {
+        if (g.shellByShell()) {
             reloadEmpty = (duration - 8) % 7 != 0;
             reloadShells = Math.max(0, (duration - 8 - (reloadEmpty ? 10 : 0)) / 7);
         } else {
@@ -370,7 +398,8 @@ public final class GunFx {
         GunMeta meta = GunMeta.get(id(item));
         IN.gun = id(item);
         IN.shotT = shotItem == item ? (hold ? 0.025f : sinceShot) : 99;
-        IN.locked = id(item).equals("pistol") && predictedMag <= 0 && !p.isCreative();
+        IN.locked = GunItem.base(id(item)).equals("pistol") && predictedMag <= 0 && !p.isCreative();
+        IN.empty = predictedMag <= 0 && !p.isCreative();
         IN.reloadP = rp;
         IN.reloadSec = reloadLen / 1e9f;
         IN.reloadEmpty = reloadEmpty;
@@ -470,13 +499,15 @@ public final class GunFx {
             equipProgress = 0;
         }
         float sc = meta.fpScale;
-        // прицел: мушка/целик — в центр экрана
-        float dX = sc * (meta.sight[0] - meta.grip[0]) / 16f, dY = sc * (meta.sight[1] - meta.grip[1]) / 16f, dZ = sc * (meta.sight[2] - meta.grip[2]) / 16f;
+        // прицел: мушка/целик — в центр экрана (с прицелом из Мастерской — его линза)
+        float[] sight = main ? GunModsClient.sight(meta, item) : meta.sight;
+        boolean scoped = sight != meta.sight;
+        float dX = sc * (sight[0] - meta.grip[0]) / 16f, dY = sc * (sight[1] - meta.grip[1]) / 16f, dZ = sc * (sight[2] - meta.grip[2]) / 16f;
         float hipX = 0.34f * s, hipY = -0.34f, hipZ = -0.58f;
         // в прицеле ствол чуть ниже линии взгляда и дальше от глаза: мушка видна поверх ствольной коробки,
         // а задняя часть оружия не закрывает центр экрана (у снайперки — оптика, её не трогаем)
-        float adsDrop = k == Kind.SNIPER ? 0 : k == Kind.PISTOL ? 0.045f : 0.06f;
-        float adsBack = k == Kind.SNIPER ? 0 : k == Kind.PISTOL ? 0.1f : 0.16f;
+        float adsDrop = k == Kind.SNIPER || scoped ? 0 : pistolLike(k) ? 0.045f : 0.06f;
+        float adsBack = k == Kind.SNIPER ? 0 : scoped ? 0.06f : pistolLike(k) ? 0.1f : 0.16f;
         float x = MathHelper.lerp(a, hipX, -dX * s), y = MathHelper.lerp(a, hipY, -dY - adsDrop), z = MathHelper.lerp(a, hipZ, k.adsZ - dZ - adsBack);
 
         m.push();
@@ -538,6 +569,7 @@ public final class GunFx {
         int lit = flashing ? 0xF000F0 : light; // «свет» от вспышки на руках и оружии
         ModelTransformationMode mode = right ? ModelTransformationMode.FIRST_PERSON_RIGHT_HAND : ModelTransformationMode.FIRST_PERSON_LEFT_HAND;
         Transformation tf = c.getItemRenderer().getModel(item, player.getWorld(), player, 0).getTransformation().getTransformation(mode);
+        muzzleNow = main ? GunModsClient.muzzle(meta, item) : meta.muzzle;
         if (main) trackPoints(c, player, m, tf, !right, meta, posed ? pose : null);
         if (main && !player.isInvisible()) arms(c, player, meta, posed ? pose : null, k, tf, !right, a, m, buffers, lit);
         r.renderItem(player, item, mode, !right, m, buffers, lit);
@@ -553,7 +585,7 @@ public final class GunFx {
         tf.apply(left, t);
         t.translate(-0.5f, -0.5f, -0.5f);
         Matrix4f mat = t.peek().getPositionMatrix();
-        muzzleWorld = toWorld(c, mat.transformPosition(px(meta.muzzle, left)));
+        muzzleWorld = toWorld(c, mat.transformPosition(px(muzzleNow, left)));
         float slide = pose != null && pose.bone("slide") != null ? pose.bone("slide")[2] : 0;
         ejectWorld = toWorld(c, mat.transformPosition(px(new float[]{meta.eject[0], meta.eject[1], meta.eject[2] + slide * 0.5f}, left)));
         magWorld = toWorld(c, mat.transformPosition(px(pose != null ? pose.magPos : meta.magHand, left)));
@@ -632,10 +664,12 @@ public final class GunFx {
     private static void flash(MatrixStack m, VertexConsumerProvider buffers, Transformation tf, boolean left, GunMeta meta, Kind k) {
         m.push();
         tf.apply(left, m);
-        float mx = left ? 16 - meta.muzzle[0] : meta.muzzle[0];
-        m.translate(mx / 16f - 0.5f, meta.muzzle[1] / 16f - 0.5f, meta.muzzle[2] / 16f - 0.5f);
-        float size = (k == Kind.SHOTGUN ? 5.5f : k == Kind.SNIPER ? 6f : k == Kind.PISTOL ? 3.6f : 4.2f) * 1.3f / 16f * flashScale;
+        float[] mz = muzzleNow != null ? muzzleNow : meta.muzzle;
+        float mx = left ? 16 - mz[0] : mz[0];
+        m.translate(mx / 16f - 0.5f, mz[1] / 16f - 0.5f, mz[2] / 16f - 0.5f);
+        float size = (k == Kind.SHOTGUN || k == Kind.SAIGA || k == Kind.RPG ? 5.5f : k == Kind.SNIPER ? 6f : pistolLike(k) ? 3.6f : 4.2f) * 1.3f / 16f * flashScale;
         if (ads > 0.5f) size *= 0.75f;
+        if (silencedShot) size *= 0.3f; // глушитель: еле заметная вспышка
         VertexConsumer vc = buffers.getBuffer(RenderLayer.getEyes(FLASH));
         float u0 = (flashVariant % 2) * 0.5f, v0 = (flashVariant / 2) * 0.5f;
         m.push();
@@ -710,9 +744,9 @@ public final class GunFx {
         off.pitch = pitch - kick + (low ? 0.15f : 0) + (aim < 0.5f ? 0.1f : 0);
         off.yaw = hy + MathHelper.lerp(aim, 0.75f, 0.62f) * s + (low ? -0.1f * s : 0);
         off.roll = 0;
-        if (k == Kind.PISTOL && aim < 0.5f && !firing) off.yaw = hy + 0.55f * s;
+        if (pistolLike(k) && aim < 0.5f && !firing) off.yaw = hy + 0.55f * s;
         // в прицеле голова чуть к прикладу
-        if (aim > 0.5f && k != Kind.PISTOL) {
+        if (aim > 0.5f && !pistolLike(k)) {
             model.head.roll = 0.12f * s * aim;
             model.hat.roll = model.head.roll;
         }

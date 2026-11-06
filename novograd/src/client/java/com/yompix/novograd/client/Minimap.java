@@ -127,6 +127,7 @@ public final class Minimap {
             PlaceIcons.draw(ctx, mc.textRenderer, ic, 0, 0);
             mm.pop();
         }
+        PulseClient.radar(ctx, px, pz, zoom); // коллекции: оставшиеся точки (после карты или половины набора)
         // полиция и банды рядом
         double r = 90 / zoom;
         for (Entity e : mc.world.getEntities()) {

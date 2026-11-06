@@ -112,10 +112,11 @@ public final class Streets {
 
     // ------------------------------------------------------------------ какие машины где ездят
     // варианты: 0 седан, 1 хэтчбек, 2 спорткупе, 3 люкс, 4 фургон, 5 такси, 7 внедорожник, 8 пикап, 9 маслкар, 10 лимузин, 11 грузовик
-    private static final int[][] MIX_RIVIERA = {{3, 25}, {2, 20}, {10, 7}, {9, 10}, {7, 15}, {0, 10}, {5, 8}, {1, 5}};
-    private static final int[][] MIX_INDUSTRY = {{4, 24}, {8, 24}, {11, 12}, {0, 12}, {1, 8}, {7, 8}, {5, 5}, {9, 4}};
-    private static final int[][] MIX_CITY = {{0, 25}, {5, 18}, {1, 15}, {3, 10}, {7, 10}, {4, 8}, {2, 7}, {9, 4}, {8, 3}};
-    private static final int[][] MIX_SUBURB = {{0, 22}, {1, 18}, {7, 18}, {8, 15}, {4, 8}, {9, 8}, {2, 4}, {5, 4}, {3, 3}};
+    // 0.4: 12 суперкар, 13 классика, 14 лоурайдер, 16 малолитражка (CarEntity.VARIANTS)
+    private static final int[][] MIX_RIVIERA = {{3, 25}, {2, 20}, {10, 7}, {9, 10}, {7, 15}, {0, 10}, {5, 8}, {1, 5}, {12, 9}, {13, 6}};
+    private static final int[][] MIX_INDUSTRY = {{4, 24}, {8, 24}, {11, 12}, {0, 12}, {1, 8}, {7, 8}, {5, 5}, {9, 4}, {14, 5}, {16, 4}};
+    private static final int[][] MIX_CITY = {{0, 25}, {5, 18}, {1, 15}, {3, 10}, {7, 10}, {4, 8}, {2, 7}, {9, 4}, {8, 3}, {16, 12}, {13, 2}, {14, 2}, {12, 1}};
+    private static final int[][] MIX_SUBURB = {{0, 22}, {1, 18}, {7, 18}, {8, 15}, {4, 8}, {9, 8}, {2, 4}, {5, 4}, {3, 3}, {16, 10}, {14, 5}, {13, 3}};
     /** Обычные «гражданские» цвета и яркие — для спорткаров. */
     private static final int[] CIVIL = {0xE8E8EA, 0xB8BCC2, 0x2A2C31, 0x6B6F76, 0x1F3A68, 0xA32025, 0x2F4A35, 0xCDBB95, 0x5A1E24, 0x7FA7C9, 0x34506B, 0x8C8F5A};
     private static final int[] BRIGHT = {0xF2C032, 0xF07A12, 0x7BC639, 0xD7262C, 0x2C6ECB, 0xE8E8EA, 0x15161A, 0x9B3FD1};
@@ -138,8 +139,9 @@ public final class Streets {
             }
         }
         car.setVariant(v);
+        car.setFuel(CarEntity.FUEL_MAX * (35 + r.nextInt(66)) / 100); // угнал — бензина сколько было
         if (v == 5 || v == 10 || r.nextInt(3) == 0) return; // такси, лимузин и треть машин — заводского цвета
-        int[] pal = v == 2 || v == 9 ? BRIGHT : CIVIL;
+        int[] pal = v == 2 || v == 9 || v == 12 || v == 14 ? BRIGHT : CIVIL;
         car.paint(pal[r.nextInt(pal.length)]);
     }
 

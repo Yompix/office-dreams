@@ -39,6 +39,8 @@ public final class DevAutotest {
         if (System.getProperty("novograd.autotest") == null) return;
         String mode = System.getProperty("novograd.autotest");
         if (mode.startsWith("fun")) return; // свой сценарий — FunAutotest (FunClient.init)
+        if (mode.startsWith("housing")) return; // недвижимость, жильцы, музыканты — HousingAutotest
+        if (mode.startsWith("drv")) return; // свой сценарий — DriveAutotest (DriveClient.init)
         if (mode.startsWith("mp")) {
             // игра по сети: A проходит разговоры пробелом, B просто смотрит; оба делают снимки
             YompixSplash.markShown();
@@ -228,6 +230,10 @@ public final class DevAutotest {
         }
         if (mode.equals("runover")) {
             runoverMode();
+            return;
+        }
+        if (mode.startsWith("pulse")) { // коллекции, «Хаос», экраны и вертолёт «Новоград-24», прожекторы, «Подвал»
+            pulseMode(mode);
             return;
         }
         if (mode.equals("taxi")) {
@@ -534,6 +540,10 @@ public final class DevAutotest {
         }
         if (mode.equals("guns")) {
             guns();
+            return;
+        }
+        if (mode.equals("armory")) {
+            armory(); // новые стволы, Мастерская, телохранители
             return;
         }
         if (mode.startsWith("scene")) {
@@ -2327,6 +2337,143 @@ public final class DevAutotest {
         return Story.topY(w, x, z);
     }
 
+    /** -Dnovograd.autotest=pulse — «Пульс города» (gta/Pulse): снимки run/screenshots/pulse_*.png, итоги в логе [pulse]. */
+    private static void pulseMode(String mode) {
+        YompixSplash.markShown();
+        pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+        run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+        run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        cmd(5, "gamemode survival " + P);
+        cmd(5, "time set 6000");
+        cmd(5, "gamerule doDaylightCycle false");
+        cmd(5, "weather clear");
+        cmd(5, "effect give " + P + " minecraft:resistance 99999 4 true");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var d = Life.get(p);
+            d.chapter = Math.max(d.chapter, 1);
+            d.money += 30000;
+            d.dirty += 5000;
+            Life.sync(p);
+            com.yompix.novograd.gta.News.post(s, "Прямо сейчас: вооружённый налёт на «Сити-Банк». Полиция стягивает силы", "ЭКСТРЕННО");
+            com.yompix.novograd.gta.Economy.shock(s, "PORT", 0.06, "Порт подписал контракт с крупной судоходной компанией");
+            com.yompix.novograd.gta.News.post(s, "Ночные гонки вернулись: полиция получает жалобы со всего центра", "ГОРОД");
+        });
+        java.util.function.BiConsumer<Integer, String> pc = (delay, what) -> server(delay, s -> {
+            String r = com.yompix.novograd.gta.Pulse.debug(s.getPlayerManager().getPlayer(P), what);
+            com.yompix.novograd.Novograd.LOG.info("[pulse] {} → {}", what, r);
+        });
+        run(5, c -> c.options.hudHidden = false);
+        // 1. видеостена на деловой площади
+        pc.accept(5, "tv 0");
+        pc.accept(120, "tv view 0");
+        shot(60, "pulse_tv");
+        pc.accept(5, "tv 1");
+        pc.accept(120, "tv view 1");
+        shot(60, "pulse_tv_riviera");
+        // 2. граффити: тег банды → держим Shift → свой тег
+        pc.accept(5, "col tp tag 0");
+        pc.accept(80, "col view 0");
+        shot(40, "pulse_tag_rival");
+        run(5, c -> c.options.sneakKey.setPressed(true));
+        shot(30, "pulse_tag_spraying");
+        run(40, c -> c.options.sneakKey.setPressed(false));
+        shot(50, "pulse_tag_mine");
+        // 3. фото-точка: встать, снять камерой
+        pc.accept(5, "col tp photo 0");
+        shot(200, "pulse_photo_spot");
+        run(5, c -> NovogradClient.takePhoto());
+        server(30, s -> com.yompix.novograd.Novograd.LOG.info("[pulse] photo0 done={}", Life.get(s.getPlayerManager().getPlayer(P)).flags.contains("col:photo:0")));
+        // 4. уникальный прыжок: машина в 14 блоках до трамплина, газ
+        pc.accept(5, "col tp jump 0");
+        shot(200, "pulse_ramp");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, w);
+            car.refreshPositionAndAngles(p.getX(), p.getY() + 0.2, p.getZ(), p.getYaw(), 0);
+            car.setVariant(0);
+            car.setTune(true, 2, 0);
+            w.spawnEntity(car);
+            p.startRiding(car, true);
+        });
+        run(30, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
+        run(5, c -> c.options.forwardKey.setPressed(true));
+        for (int i = 0; i < 6; i++) shot(12, "pulse_jump_" + i);
+        run(30, c -> c.options.forwardKey.setPressed(false));
+        server(40, s -> {
+            var d = Life.get(s.getPlayerManager().getPlayer(P));
+            com.yompix.novograd.Novograd.LOG.info("[pulse] jump0 done={} jumps={}", d.flags.contains("col:jump:0"), com.yompix.novograd.gta.Collectibles.count(d, "jump"));
+        });
+        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
+        server(5, s -> s.getPlayerManager().getPlayer(P).stopRiding());
+        // 5. ларёк карт и приложение «Коллекции»
+        pc.accept(5, "col tp stall 0");
+        shot(200, "pulse_stall");
+        pc.accept(5, "col give tag 49");
+        pc.accept(5, "col give photo 29");
+        run(20, c -> c.setScreen(new com.yompix.novograd.client.screen.CollectionsScreen()));
+        shot(30, "pulse_collections");
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.PhoneScreen(null)));
+        shot(30, "pulse_phone");
+        run(5, c -> c.setScreen(null));
+        // 6. хаос
+        pc.accept(5, "chaos");
+        run(10, c -> c.setScreen(new com.yompix.novograd.client.screen.CollectionsScreen()));
+        shot(30, "pulse_chaos");
+        run(5, c -> c.setScreen(null));
+        pc.accept(5, "chaos off");
+        // 7. ночь, погоня ★★★★, вертолёт «Новоград-24»: окно эфира, прожекторы
+        pc.accept(5, "tv 0");
+        cmd(20, "time set 18000");
+        pc.accept(5, "heli");
+        shot(160, "pulse_live");
+        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
+        run(5, c -> c.player.setPitch(-30));
+        shot(40, "pulse_searchlight");
+        run(5, c -> c.player.setPitch(-60));
+        shot(40, "pulse_heli_sky");
+        run(5, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
+        server(5, s -> com.yompix.novograd.gta.Wanted.clear(s.getPlayerManager().getPlayer(P)));
+        cmd(5, "time set 6000");
+        // 8. «Подвал»: вход, бой NPC, ставка, свой бой
+        pc.accept(30, "fight tp");
+        shot(60, "pulse_fight_door");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            p.teleport(p.getServerWorld(), com.yompix.novograd.gta.FightClub.EX + 0.5, p.getY(), com.yompix.novograd.gta.FightClub.EZ + 0.5, 0, 0);
+        });
+        shot(80, "pulse_fight_inside");
+        server(5, s -> com.yompix.novograd.gta.FightClub.bet(s.getPlayerManager().getPlayer(P), 1, 500));
+        pc.accept(5, "fight");
+        shot(30, "pulse_fight_bookie");
+        run(5, c -> c.setScreen(null));
+        run(5, c -> { c.player.setYaw(-50); c.player.setPitch(10); });
+        shot(500, "pulse_fight_npc");
+        shot(200, "pulse_fight_npc2");
+        pc.accept(250, "fight join 0");
+        shot(140, "pulse_fight_me");
+        server(5, s -> com.yompix.novograd.Novograd.LOG.info("[pulse] dirty after fights {}", Life.get(s.getPlayerManager().getPlayer(P)).dirty));
+        // 9. телевизор в квартире на канале «Новости 24»
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            int x = 200, z = -742;
+            w.getChunk(x >> 4, z >> 4);
+            int y = com.yompix.novograd.story.Story.topY(w, x, z);
+            p.teleport(w, x + 0.5, y, z + 0.5, 180, 15);
+            w.setBlockState(new net.minecraft.util.math.BlockPos(x, y, z - 2), com.yompix.novograd.ModContent.TV.getDefaultState()
+                    .with(com.yompix.novograd.block.TvBlock.CHANNEL, 1).with(net.minecraft.state.property.Properties.HORIZONTAL_FACING, net.minecraft.util.math.Direction.SOUTH));
+        });
+        shot(60, "pulse_tvblock");
+        server(5, s -> {
+            var d = Life.get(s.getPlayerManager().getPlayer(P));
+            com.yompix.novograd.Novograd.LOG.info("[pulse] итог: tag={} photo={} jump={} pkg={}", com.yompix.novograd.gta.Collectibles.count(d, "tag"),
+                    com.yompix.novograd.gta.Collectibles.count(d, "photo"), com.yompix.novograd.gta.Collectibles.count(d, "jump"), com.yompix.novograd.gta.Collectibles.count(d, "pkg"));
+        });
+        run(20, MinecraftClient::scheduleStop);
+    }
+
     private static void runoverMode() {
         YompixSplash.markShown();
         pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
@@ -2466,6 +2613,164 @@ public final class DevAutotest {
                     w.getEntityById(ids[6]) instanceof CitizenEntity c ? c.getBlockPos() + " act=" + c.getActivity() + " veh=" + c.hasVehicle() : "gone");
         });
         run(20, MinecraftClient::scheduleStop);
+    }
+
+    /** Автотест «armory»: новые стволы (огонь, прицел, перезарядка), обвесы и окраска, Мастерская, гранатомёт, телохранители. */
+    private static void armory() {
+        YompixSplash.markShown();
+        GunFx.testFlashNs = 700_000_000L;
+        ClientTickEvents.END_CLIENT_TICK.register(c -> {
+            if (c.getServer() != null && c.world != null && c.world.getTime() % 10 == 0) c.getServer().execute(() -> {
+                ServerPlayerEntity p = c.getServer().getPlayerManager().getPlayer(P);
+                if (p != null && com.yompix.novograd.gta.Wanted.stars(p) > 0) com.yompix.novograd.gta.Wanted.clear(p);
+            });
+        });
+        pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+        run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+        server(40, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var d = Life.get(p);
+            d.storyStarted = true;
+            d.storyDone = true;
+            d.chapter = 99;
+            d.age = 22;
+            d.money = 200000;
+            d.dirty = 30000;
+            Story.applyAge(p, 22);
+            Life.sync(p);
+        });
+        for (int i = 0; i < 4; i++) key(10, GLFW.GLFW_KEY_SPACE);
+        run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        cmd(5, "gamemode survival " + P);
+        cmd(5, "effect give " + P + " minecraft:resistance 99999 4 true");
+        cmd(5, "time set 6000");
+        cmd(2, "clear " + P);
+        String[] guns = {"revolver", "eagle", "micro", "saiga", "carbine", "lmg", "rpg", "machete"};
+        for (String g : guns) cmd(2, "give " + P + " novograd:" + g);
+        cmd(2, "give " + P + " novograd:ammo 64");
+        cmd(2, "give " + P + " novograd:ammo 64");
+        cmd(2, "give " + P + " novograd:rocket 8");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            int x = -600, z = -520;
+            w.getChunk(x >> 4, z >> 4);
+            int y = com.yompix.novograd.world.Island.surface(x, z) + 1;
+            p.teleport(w, x + 0.5, y, z + 0.5, 60, 0);
+        });
+        cmd(10, "execute at " + P + " run fill ~-14 ~-1 ~-14 ~14 ~-1 ~14 minecraft:smooth_stone");
+        cmd(2, "execute at " + P + " run fill ~-14 ~ ~-14 ~14 ~8 ~14 minecraft:air");
+        cmd(2, "kill @e[type=novograd:citizen,distance=..40]");
+        cmd(2, "kill @e[type=minecraft:item,distance=..40]");
+        run(60, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        for (int i = 0; i < 7; i++) {
+            final int slot = i;
+            String g = guns[i];
+            run(5, c -> c.player.getInventory().selectedSlot = slot);
+            shot(30, "arm_" + g + "_idle");
+            run(2, c -> c.options.attackKey.setPressed(true));
+            shot(6, "arm_" + g + "_fire");
+            run(1, c -> c.options.attackKey.setPressed(false));
+            run(25, c -> c.options.useKey.setPressed(true));
+            shot(20, "arm_" + g + "_ads");
+            run(2, c -> c.options.useKey.setPressed(false));
+            run(25, c -> ArsenalClient.send("reload", 0));
+            run(3, c -> GunFx.testFreezeP = 0.4f);
+            shot(3, "arm_" + g + "_reload");
+            run(1, c -> GunFx.testFreezeP = -1);
+            run(100, c -> {});
+        }
+        // обвесы и окраска
+        server(5, s -> {
+            var inv = s.getPlayerManager().getPlayer(P).getInventory();
+            inv.getStack(4).set(com.yompix.novograd.gta.GunMods.MODS, 1 | 2 | 4 | 8 | (1 << 8));   // карабин: всё + камуфляж
+            inv.getStack(1).set(com.yompix.novograd.gta.GunMods.MODS, 2 | 4 | (3 << 8));           // «Орёл»: точка, магазин, золото
+            inv.getStack(2).set(com.yompix.novograd.gta.GunMods.MODS, 1 | 4 | (2 << 8));           // «Микро»: глушитель, неон
+        });
+        for (int slot : new int[]{4, 1, 2}) {
+            run(5, c -> c.player.getInventory().selectedSlot = slot);
+            shot(30, "arm_mod" + slot + "_idle");
+            run(2, c -> c.options.useKey.setPressed(true));
+            shot(25, "arm_mod" + slot + "_ads");
+            run(2, c -> c.options.attackKey.setPressed(true));
+            shot(5, "arm_mod" + slot + "_ads_fire");
+            run(1, c -> { c.options.attackKey.setPressed(false); c.options.useKey.setPressed(false); });
+            run(1, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_FRONT));
+            shot(20, "arm_mod" + slot + "_3p");
+            run(1, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON));
+            run(40, c -> {});
+        }
+        // «Калибр» и Мастерская
+        server(5, s -> com.yompix.novograd.life.Shop.openGuns(s.getPlayerManager().getPlayer(P)));
+        shot(30, "arm_shop");
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.GunTuneScreen()));
+        shot(30, "arm_workshop");
+        run(5, c -> ArsenalClient.send("mod", 3 * 256 + 2)); // «Сайга»: удлинённый магазин за деньги
+        shot(20, "arm_workshop_bought");
+        run(5, c -> c.setScreen(null));
+        run(5, c -> c.player.getInventory().selectedSlot = 3);
+        shot(20, "arm_saiga_extmag");
+        // гранатомёт по машине
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, p.getServerWorld());
+            var look = p.getRotationVector().multiply(1, 0, 1).normalize().multiply(12);
+            car.refreshPositionAndAngles(p.getX() + look.x, p.getY(), p.getZ() + look.z, 0, 0);
+            p.getServerWorld().spawnEntity(car);
+        });
+        run(20, c -> { c.player.getInventory().selectedSlot = 6; c.player.setPitch(4); });
+        run(20, c -> c.options.attackKey.setPressed(true));
+        run(2, c -> c.options.attackKey.setPressed(false));
+        shot(4, "arm_rpg_launch");
+        shot(6, "arm_rpg_boom");
+        shot(30, "arm_rpg_after");
+        // телохранители
+        run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.BodyguardScreen()));
+        server(10, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            for (int t = 0; t < 3; t++) com.yompix.novograd.gta.Bodyguards.hire(p, t);
+            com.yompix.novograd.gta.Bodyguards.sendInfo(p);
+        });
+        shot(30, "arm_guards_phone");
+        run(5, c -> c.setScreen(null));
+        run(120, c -> c.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK));
+        shot(5, "arm_guards_arrive");
+        // бандиты нападают
+        server(20, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            for (int i = 0; i < 3; i++) {
+                var gang = new com.yompix.novograd.entity.CitizenEntity(com.yompix.novograd.ModContent.CITIZEN, w);
+                gang.refreshPositionAndAngles(p.getX() + 12 + i * 2, p.getY(), p.getZ() + 6 - i * 3, 0, 0);
+                gang.setup(CitizenEntity.randomSkin(w.getRandom()), CitizenEntity.Role.GANG, false, "Ящер");
+                w.spawnEntity(gang);
+                gang.attack(p);
+            }
+        });
+        shot(30, "arm_guards_fight1");
+        shot(40, "arm_guards_fight2");
+        shot(60, "arm_guards_fight3");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var w = p.getServerWorld();
+            for (var g : w.getEntitiesByClass(com.yompix.novograd.entity.BodyguardEntity.class, p.getBoundingBox().expand(60), e -> true))
+                com.yompix.novograd.Novograd.LOG.info("[armory] guard {} hp={} dist={} target={}", g.getName().getString(), g.getHealth(), g.distanceTo(p), g.target());
+            for (var c : w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(60), e -> e.getRole() == CitizenEntity.Role.GANG))
+                com.yompix.novograd.Novograd.LOG.info("[armory] gang hp={} alive={}", c.getHealth(), c.isAlive());
+            // в машину: охрана садится пассажирами
+            var car = new com.yompix.novograd.entity.CarEntity(com.yompix.novograd.ModContent.CAR, w);
+            car.refreshPositionAndAngles(p.getX() + 2, p.getY(), p.getZ(), 0, 0);
+            w.spawnEntity(car);
+            p.startRiding(car, true);
+        });
+        shot(80, "arm_guards_car");
+        server(5, s -> {
+            ServerPlayerEntity p = s.getPlayerManager().getPlayer(P);
+            var car = p.getVehicle();
+            com.yompix.novograd.Novograd.LOG.info("[armory] car passengers={} controller={}", car == null ? -1 : car.getPassengerList().size(),
+                    car instanceof com.yompix.novograd.entity.CarEntity ce ? ce.getControllingPassenger() : null);
+        });
+        run(40, MinecraftClient::scheduleStop);
     }
 
     private static void hold(int delay, java.util.function.Function<MinecraftClient, KeyBinding> kb, int ticks) {

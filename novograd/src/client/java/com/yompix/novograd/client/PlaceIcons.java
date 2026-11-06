@@ -10,6 +10,11 @@ public final class PlaceIcons {
     /** {символ, цвет} по имени места; null — не показывать значком. */
     public static String[] of(String id) {
         String s = id.toLowerCase();
+        if (s.startsWith("pulse_maps")) return new String[]{"?", "FF8F00"}; // ларёк «Карты коллекций»
+        if (s.startsWith("pulse_fight")) return new String[]{"✊", "8E1B1B"}; // подпольные бои «Подвал»
+        if (s.startsWith("realty_garage")) return new String[]{"P", "1E88E5"}; // свой гараж (world/Garage)
+        if (s.startsWith("realty_own")) return new String[]{"⌂", "2E7D32"}; // своё жильё
+        if (s.startsWith("realty")) return new String[]{"⌂", "EF6C00"}; // продаётся / сдаётся
         if (s.contains("bank") || s.contains("atm")) return new String[]{"$", "2E7D32"};
         if (s.contains("gun")) return new String[]{"⚔", "C62828"};
         if (s.contains("garage")) return new String[]{"🔧", "F9A825"};

@@ -449,6 +449,64 @@ def drag():
 KO = {'knockdown': knockdown(), 'down': lying(), 'dead': dead(), 'getup': getup(), 'drag': drag()}
 
 
+# ---- уличные музыканты и танцоры (gta/StreetPerformers). Знаки сразу верные: предплечье вперёд = −X, голень назад = +X
+def breakdance():
+    """Брейк: полтакта «топрок» (шаги с руками), потом присед и полный оборот на месте с выбросом ноги."""
+    L = 3.2
+
+    def half(t):
+        return t >= L / 2
+
+    def k(t):  # 0..1 внутри второй половины
+        return max(0.0, min(1.0, (t - L / 2) / (L / 2)))
+
+    return anim(L, {
+        'root': {'rotation': track(lambda t: [0, k(t) * 360 if half(t) else sine(t, 0.8, 15), 0], L, 64),
+                 'position': track(lambda t: [0, -7 * math.sin(math.pi * k(t)) if half(t) else abs(math.sin(2 * math.pi * t / 0.8)) * 1.2, 0], L, 64)},
+        'waist': {'rotation': track(lambda t: [25 * math.sin(math.pi * k(t)) if half(t) else 0, 0 if half(t) else sine(t, 0.8, -12), 0], L, 32)},
+        'chest': {'rotation': track(lambda t: [10 if half(t) else 4, 0, sine(t, 0.4, 6)], L, 32)},
+        'right_arm': {'rotation': track(lambda t: [-60, 0, 70] if half(t) else [-50 + sine(t, 0.8, 40), 0, 20], L, 32)},
+        'left_arm': {'rotation': track(lambda t: [-60, 0, -70] if half(t) else [-50 + sine(t, 0.8, 40, 0.5), 0, -20], L, 32)},
+        'right_forearm': {'rotation': track(lambda t: [-10, 0, 0] if half(t) else [-70 + sine(t, 0.8, 20), 0, 0], L, 32)},
+        'left_forearm': {'rotation': track(lambda t: [-10, 0, 0] if half(t) else [-70 + sine(t, 0.8, 20, 0.5), 0, 0], L, 32)},
+        'right_leg': {'rotation': track(lambda t: [-70 * math.sin(math.pi * k(t)), 0, 25 * math.sin(math.pi * k(t))] if half(t) else [sine(t, 0.8, 30), 0, 0], L, 32)},
+        'left_leg': {'rotation': track(lambda t: [-100 * math.sin(math.pi * k(t)), 0, -10] if half(t) else [sine(t, 0.8, 30, 0.5), 0, 0], L, 32)},
+        'right_shin': {'rotation': track(lambda t: [10, 0, 0] if half(t) else [max(0, sine(t, 0.8, 50)), 0, 0], L, 32)},
+        'left_shin': {'rotation': track(lambda t: [110 * math.sin(math.pi * k(t)), 0, 0] if half(t) else [max(0, sine(t, 0.8, 50, 0.5)), 0, 0], L, 32)},
+        'head': {'rotation': track(lambda t: [sine(t, 0.4, 8), 0, 0], L, 32)},
+    })
+
+
+BUSK = {
+    # гитара: левая рука держит гриф сбоку, правая бьёт по струнам, кивает в такт и покачивается
+    'guitar': anim(1.3, {
+        'right_arm': {'rotation': track(lambda t: [-28 + sine(t, 0.325, 9), -10, 12], 1.3, 32)},
+        'right_forearm': {'rotation': track(lambda t: [-55 + sine(t, 0.325, 14), 0, 0], 1.3, 32)},
+        'left_arm': {'rotation': track(lambda t: [-58, 28, -38 + sine(t, 1.3, 3)], 1.3, 16)},
+        'left_forearm': {'rotation': track(lambda t: [-48, 0, 0], 1.3, 2)},
+        'chest': {'rotation': track(lambda t: [6, sine(t, 1.3, 6), sine(t, 1.3, 2.5)], 1.3, 16)},
+        'waist': {'rotation': track(lambda t: [0, sine(t, 1.3, -3), 0], 1.3, 16)},
+        'head': {'rotation': track(lambda t: [14 + sine(t, 0.65, 7), 0, sine(t, 1.3, 4)], 1.3, 16)},
+        'right_leg': {'rotation': track(lambda t: [0, 0, 4], 1.3, 2)},
+        'left_leg': {'rotation': track(lambda t: [0, 0, -4], 1.3, 2)},
+        'root': {'position': track(lambda t: [0, -abs(math.sin(2 * math.pi * t / 0.65)) * 0.4, 0], 1.3, 16)},
+    }),
+    # саксофон: обе руки у груди (инструмент в правой), корпус качается, на сильную долю — наклон назад
+    'sax': anim(2.0, {
+        'right_arm': {'rotation': track(lambda t: [-62 + sine(t, 2.0, 4), -22, 6], 2.0, 16)},
+        'right_forearm': {'rotation': track(lambda t: [-78 + sine(t, 0.5, 4), 0, 0], 2.0, 32)},
+        'left_arm': {'rotation': track(lambda t: [-48 + sine(t, 2.0, 4), 24, -6], 2.0, 16)},
+        'left_forearm': {'rotation': track(lambda t: [-70 + sine(t, 0.5, 4, 0.5), 0, 0], 2.0, 32)},
+        'chest': {'rotation': track(lambda t: [sine(t, 2.0, 10), sine(t, 4.0, 5), 0], 2.0, 32)},
+        'head': {'rotation': track(lambda t: [sine(t, 2.0, -12) - 6, 0, 0], 2.0, 32)},
+        'right_shin': {'rotation': track(lambda t: [max(0, sine(t, 1.0, 14)), 0, 0], 2.0, 32)},
+        'left_shin': {'rotation': track(lambda t: [max(0, sine(t, 1.0, 14, 0.5)), 0, 0], 2.0, 32)},
+        'root': {'position': track(lambda t: [0, -abs(math.sin(2 * math.pi * t / 1.0)) * 0.6, 0], 2.0, 32)},
+    }),
+    'breakdance': breakdance(),
+}
+
+
 def fix_joints():
     """Локти и колени гнутся только в свою сторону: предплечье вперёд (−X), голень назад (+X).
     Ключи выше записаны «наоборот» — переворачиваем (сидячие позы уже записаны верно)."""
@@ -465,6 +523,7 @@ def main():
     fix_joints()
     ANIMS.update(NEW)
     ANIMS.update(KO)
+    ANIMS.update(BUSK)
     os.makedirs(f'{ROOT}/geo', exist_ok=True)
     os.makedirs(f'{ROOT}/animations', exist_ok=True)
     for slim in (False, True):

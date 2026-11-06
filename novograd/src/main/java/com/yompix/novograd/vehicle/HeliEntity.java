@@ -40,6 +40,9 @@ public class HeliEntity extends MotorVehicle {
     public float rotor, prevRotorAngle, rotorAngle;
     private double vx, vz;
 
+    /** Автопилот, заданный снаружи (вертолёт «Новоград-24»); только сервер, не сохраняется. */
+    @Nullable public java.util.function.Consumer<HeliEntity> ai;
+
     // полиция
     @Nullable private UUID targetId;
     private int leaveTicks, shootCd = 40;
@@ -93,6 +96,10 @@ public class HeliEntity extends MotorVehicle {
 
     @Override
     protected void physics(float fwd, float side, boolean up, boolean down) {
+        if (!getWorld().isClient && ai != null && hasNpcDriver()) { // вертолёт телеканала (gta/NewsHeli)
+            ai.accept(this);
+            return;
+        }
         if (!getWorld().isClient && isPolice() && hasNpcDriver()) {
             policeFlight();
             return;

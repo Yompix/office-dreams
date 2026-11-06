@@ -56,6 +56,7 @@ public final class ArsenalClient {
     public static void init() {
         inspectKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.inspect", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_Y, "category.novograd"));
         GunItem.renderProvider = com.yompix.novograd.client.gun.GunGeoRenderer::provider;
+        ArmoryClient.init(); // гранатомёт, телохранители, Мастерская
         com.yompix.novograd.client.gun.GunWorldFx.init();
         EntityRendererRegistry.register(Arsenal.GRENADE_ENTITY, FlyingItemEntityRenderer::new);
         EntityRendererRegistry.register(Arsenal.MOLOTOV_ENTITY, FlyingItemEntityRenderer::new);
@@ -105,7 +106,11 @@ public final class ArsenalClient {
         float target = 1f;
         if (c.currentScreen == null && c.options.getPerspective() == Perspective.FIRST_PERSON && c.player.getMainHandStack().getItem() instanceof GunItem g
                 && GunFx.adsTarget && GunFx.reloadProgress(g) < 0)
-            target = GunFx.kind(g).zoomTarget();
+        {
+            // прицел из Мастерской — свой зум (коллиматор ×1.4, оптика ×1.6)
+            Float z = com.yompix.novograd.client.gun.GunModsClient.zoom(com.yompix.novograd.client.gun.GunMeta.get(GunFx.id(g)), c.player.getMainHandStack());
+            target = z != null ? Math.min(z, GunFx.kind(g).zoomTarget()) : GunFx.kind(g).zoomTarget();
+        }
         zoom += (target - zoom) * (target < 0.5f ? 0.5f : 0.35f);
         if (Math.abs(zoom - 1f) < 0.005f) zoom = 1f;
     }
@@ -184,8 +189,8 @@ public final class ArsenalClient {
         if (z < 0.6f) scope(ctx, w, h);
         ItemStack s = c.player.getMainHandStack();
         if (s.getItem() instanceof GunItem g) {
-            int mag = g.mag(s), max = g.spec().magazine();
-            int reserve = c.player.isCreative() ? -1 : c.player.getInventory().count(ModContent.AMMO);
+            int mag = g.mag(s), max = g.magSize(s);
+            int reserve = c.player.isCreative() ? -1 : c.player.getInventory().count(g.ammoItem());
             boolean reloading = GunFx.reloadProgress(g) >= 0; // по настоящей длинной перезарядке, а не по любому кулдауну выстрела
             String big = String.valueOf(mag), small = " / " + max + (reserve >= 0 ? "  ·  " + reserve : "  ·  ∞");
             // счётчик патронов — в плашке оружия справа вверху (LifeHud); здесь только подсказки

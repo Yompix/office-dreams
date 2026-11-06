@@ -76,10 +76,17 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         float susp = MathHelper.lerp(tickDelta, car.prevSuspY, car.suspY);
         float wobble = car.getWobble() > 0 ? MathHelper.sin((car.getWobble() - tickDelta) * 1.3f) * car.getWobble() * 0.4f : 0;
         float idle = car.getControllingPassenger() != null || car.hasNpcDriver() ? MathHelper.sin((car.age + tickDelta) * 2.1f) * 0.12f : 0; // мотор потряхивает
-        m.translate(0, (0.3f + susp * 0.35f + idle) / 16f, 0);
+        // лоурайдер на гидравлике: на стоянке с водителем «прыгает» и качается
+        float hop = 0, hopPitch = 0;
+        if (type == CarBody.LOWRIDER && (car.getControllingPassenger() != null || car.hasNpcDriver()) && Math.abs(car.clientSpeed) < 0.03f) {
+            float ht = (car.age + tickDelta) * 0.22f;
+            hop = Math.max(0, MathHelper.sin(ht)) * 3.2f;
+            hopPitch = MathHelper.sin(ht * 0.5f) * 3f;
+        }
+        m.translate(0, (0.3f + susp * 0.35f + idle + hop) / 16f, 0);
         m.translate(0, 0.5f, 0);
         m.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll + wobble));
-        m.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch));
+        m.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch + hopPitch));
         m.translate(0, -0.5f, 0);
 
         int color = 0xFF000000 | car.color();
@@ -96,7 +103,10 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         p(root, "mirror_glass", m, solid, light, 0xFF8FA4B8);
         int hood = type == CarBody.POLICE && car.color() == CarEntity.COLORS[CarEntity.POLICE] ? LifeShade.shade(0xFF16243F, dull) : LifeShade.shade(color, 0.95f);
         p(root, "hood", m, solid, light, hood);
-        p(root, "roof", m, solid, light, type == CarBody.LIMO || type == CarBody.LUXURY ? LifeShade.shade(color, 0.85f) : color);
+        int roofCol = type == CarBody.LIMO || type == CarBody.LUXURY ? LifeShade.shade(color, 0.85f)
+                : type == CarBody.CLASSIC ? LifeShade.shade(0xFF1E1C1A, dull)                                      // виниловая крыша
+                : type == CarBody.COMPACT ? (brightness(car.color()) > 170 ? 0xFF22252A : LifeShade.shade(0xFFF2F2F0, dull)) : color; // двухцветная
+        p(root, "roof", m, solid, light, roofCol);
         p(root, "trim", m, solid, light, trim);
         p(root, "arch", m, solid, light, 0xFF101012);
         p(root, "chrome", m, solid, light, wrecked ? 0xFF404040 : 0xFFD2D6DC);
@@ -104,7 +114,8 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         p(root, "grille", m, solid, light, 0xFF111214);
         p(root, "plate", m, solid, light, 0xFFF2F2F0);
         p(root, "plate_txt", m, solid, light, 0xFF1A2550);
-        int seat = type == CarBody.TAXI ? 0xFF4B3A2A : type == CarBody.LUXURY || type == CarBody.LIMO ? 0xFFC9B48A : type == CarBody.SPORTS ? 0xFF8A1E1E : 0xFF33363D;
+        int seat = type == CarBody.TAXI ? 0xFF4B3A2A : type == CarBody.LUXURY || type == CarBody.LIMO ? 0xFFC9B48A : type == CarBody.SPORTS || type == CarBody.SUPERCAR ? 0xFF8A1E1E
+                : type == CarBody.LOWRIDER ? 0xFFE6DCC8 : type == CarBody.CLASSIC ? 0xFF6B4A2E : type == CarBody.BUGGY ? 0xFF1E1F22 : 0xFF33363D;
         p(root, "seat", m, solid, light, seat);
         p(root, "seam", m, solid, light, LifeShade.shade(seat, 0.72f));
         p(root, "dash", m, solid, light, 0xFF26282D);
@@ -117,10 +128,11 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         wheelPart.render(m, solid, light, OV, 0xFF141414);
         // полоски, ливрея, служебная окраска
         boolean lightPaint = brightness(car.color()) > 140;
-        p(root, "stripe", m, solid, light, type == CarBody.POLICE ? 0xFFE8B400 : type == CarBody.TRUCK ? ((car.color() & 0xFFFFFF) == com.yompix.novograd.gta.VehicleJobs.FIRE_COLOR ? 0xFFF2F2F2 : 0xFFD7262C) : lightPaint ? 0xFF15161A : 0xFFF2F2F2);
+        p(root, "stripe", m, solid, light, type == CarBody.POLICE ? 0xFFE8B400 : type == CarBody.FIRETRUCK ? 0xFFF2F2F2 : type == CarBody.AMBULANCE ? 0xFFD7262C
+                : type == CarBody.SWAT ? 0xFFB8BCC2 : type == CarBody.LOWRIDER ? 0xFFE3B34A : type == CarBody.TRUCK ? ((car.color() & 0xFFFFFF) == com.yompix.novograd.gta.VehicleJobs.FIRE_COLOR ? 0xFFF2F2F2 : 0xFFD7262C) : lightPaint ? 0xFF15161A : 0xFFF2F2F2);
         p(root, "livery", m, solid, light, LifeShade.shade(0xFF16243F, dull));
         boolean fireTruck = type == CarBody.TRUCK && (car.color() & 0xFFFFFF) == com.yompix.novograd.gta.VehicleJobs.FIRE_COLOR;
-        p(root, "accent", m, solid, light, fireTruck ? color : type == CarBody.TRUCK ? LifeShade.shade(0xFFEDEDE8, dull) : type == CarBody.VAN ? 0xFFE0662A : color);
+        p(root, "accent", m, solid, light, fireTruck || type == CarBody.FIRETRUCK ? color : type == CarBody.AMBULANCE ? LifeShade.shade(0xFFD7262C, dull) : type == CarBody.TRUCK ? LifeShade.shade(0xFFEDEDE8, dull) : type == CarBody.VAN ? 0xFFE0662A : color);
         p(root, "pushbar", m, solid, light, 0xFF141414);
         p(root, "check", m, solid, light, 0xFF141414);
         // вмятины и царапины
@@ -131,7 +143,8 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
         ModelPart bumper = root.getChild("bumper_f");
         bumper.roll = hp < 45 && !wrecked ? 0.16f : wrecked ? 0.3f : 0;
         bumper.pitch = hp < 45 ? 0.08f : 0;
-        bumper.render(m, solid, light, OV, type == CarBody.MUSCLE || type == CarBody.PICKUP || type == CarBody.TRUCK ? 0xFFD2D6DC : type == CarBody.SPORTS ? color : trim);
+        bumper.render(m, solid, light, OV, type == CarBody.MUSCLE || type == CarBody.PICKUP || type.truck() || type == CarBody.CLASSIC || type == CarBody.LOWRIDER ? 0xFFD2D6DC
+                : type == CarBody.SPORTS || type == CarBody.SUPERCAR ? color : trim);
 
         // ---- свет: фары по выключателю, габариты у заведённой, стопы ярче при торможении, задний ход, поворотники
         boolean head = car.light(CarEntity.HEADLIGHTS) && !wrecked;
@@ -156,7 +169,7 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
             p(root, "bar_base", m, solid, light, 0xFF141414);
             p(root, "taxi_sign", m, solid, driven ? FULL : light, driven ? 0xFFFFE14D : 0xFFC9A632);
         }
-        if (type == CarBody.POLICE) {
+        if (type.beacon()) {
             boolean phase = (car.getWorld().getTime() / 5) % 2 == 0;
             boolean siren = driven || car.light(CarEntity.HAZARD);
             p(root, "bar_base", m, solid, light, 0xFF141414);
@@ -177,7 +190,8 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
             int tint = switch (type) {
                 case LIMO, LUXURY -> 0xB0141A22;
                 case POLICE, SUV -> 0x90202A36;
-                case SPORTS -> 0x88202630;
+                case SWAT -> 0xC0101418;
+                case SPORTS, SUPERCAR -> 0x88202630;
                 default -> 0x6A5A6A84;
             };
             int front = hp < 45 ? 0xA8C8D0D6 : type == CarBody.LIMO || type == CarBody.LUXURY ? 0x7A2A3442 : 0x5A6A8AA8;
@@ -191,9 +205,10 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
 
     private static int rimColor(CarBody t, CarEntity car) {
         return switch (t) {
-            case POLICE, VAN, TRUCK -> 0xFF2C2E33;          // стальные диски
-            case MUSCLE, LUXURY, LIMO -> 0xFFE2E5EA;        // хром
-            case SPORTS -> brightness(car.color()) > 140 ? 0xFF2A2A2E : 0xFFB8BCC4;
+            case POLICE, VAN, TRUCK, SWAT, AMBULANCE, FIRETRUCK -> 0xFF2C2E33;          // стальные диски
+            case MUSCLE, LUXURY, LIMO, LOWRIDER, CLASSIC -> 0xFFE2E5EA;        // хром
+            case SPORTS, SUPERCAR -> brightness(car.color()) > 140 ? 0xFF2A2A2E : 0xFFB8BCC4;
+            case BUGGY -> 0xFFE0A030;
             case SUV, PICKUP -> 0xFF6E7278;
             default -> 0xFFB4B9C1;
         };

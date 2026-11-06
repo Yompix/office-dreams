@@ -79,8 +79,8 @@ public final class VehicleJobs {
     @Nullable
     public static Kind kindOf(CarEntity car) {
         if (car.isScooter() || car.isBike()) return Kind.PIZZA;
-        if (car.getCommandTags().contains("nv_ambulance") || car.getVariant() == 4 && car.color() == AMB_COLOR) return Kind.AMBULANCE;
-        if (car.getCommandTags().contains("nv_firetruck") || car.getVariant() == 11 && car.color() == FIRE_COLOR) return Kind.FIRE;
+        if (car.getCommandTags().contains("nv_ambulance") || car.getVariant() == 4 && car.color() == AMB_COLOR || car.getVariant() == CarEntity.AMBULANCE) return Kind.AMBULANCE;
+        if (car.getCommandTags().contains("nv_firetruck") || car.getVariant() == 11 && car.color() == FIRE_COLOR || car.getVariant() == CarEntity.FIRETRUCK) return Kind.FIRE;
         return null;
     }
 
@@ -507,7 +507,7 @@ public final class VehicleJobs {
                 car.paint(0xD32F2F);
                 w.spawnEntity(car);
             } else {
-                car = FunUtil.car(w, new Vec3d(at.x, y, at.z), Story.placeYaw(w, dp[0]), want == Kind.AMBULANCE ? 4 : 11);
+                car = FunUtil.car(w, new Vec3d(at.x, y, at.z), Story.placeYaw(w, dp[0]), want == Kind.AMBULANCE ? CarEntity.AMBULANCE : CarEntity.FIRETRUCK); // 0.4: свои кузова скорой и пожарной
                 car.paint(want == Kind.AMBULANCE ? AMB_COLOR : FIRE_COLOR);
                 car.addCommandTag(want == Kind.AMBULANCE ? "nv_ambulance" : "nv_firetruck");
             }

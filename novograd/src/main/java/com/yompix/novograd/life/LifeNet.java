@@ -102,7 +102,10 @@ public final class LifeNet {
             case "coin" -> OnlineCasino.coin(p, d.getInt("bet"), d.getBoolean("heads"));
             case "rhythm_done" -> Fitness.result(p, d.getString("mode"), d.getInt("score"));
             case "buy_house" -> CityLife.buyHouse(p, d.getString("id"));
-            case "photo" -> Achievements.give(p, "photo");
+            case "photo" -> {
+                Achievements.give(p, "photo");
+                com.yompix.novograd.gta.Collectibles.onPhoto(p); // фото-точки коллекции
+            }
             case "slots" -> Casino.spin(p, d.getInt("bet"));
             case "roulette" -> Casino.roulette(p, d.getInt("bet"), d.getString("kind"), d.getInt("number"));
             case "side_list" -> com.yompix.novograd.story.SideMissions.sendList(p);
@@ -128,6 +131,7 @@ public final class LifeNet {
                 }
             }
             default -> {
+                if (type.startsWith("drv_") && com.yompix.novograd.gta.DriveHooks.handle(p, type, d)) return; // дороги и транспорт 0.4
                 if (!com.yompix.novograd.gta.FunHooks.handle(p, type, d)) Novograd.LOG.debug("Неизвестный пакет {}", type);
             }
         }

@@ -1,4 +1,25 @@
 {
+  "busk.guitar": {
+    "sounds": [
+      {
+        "name": "novograd:busk/guitar"
+      }
+    ]
+  },
+  "busk.sax": {
+    "sounds": [
+      {
+        "name": "novograd:busk/sax"
+      }
+    ]
+  },
+  "busk.beat": {
+    "sounds": [
+      {
+        "name": "novograd:busk/beat"
+      }
+    ]
+  },
   "school_bell": {
     "sounds": [
       {
@@ -2321,6 +2342,90 @@
       },
       {
         "name": "novograd:casing_2"
+      }
+    ]
+  },
+  "revolver_shot": {
+    "sounds": [
+      {
+        "name": "novograd:revolver_shot"
+      }
+    ]
+  },
+  "eagle_shot": {
+    "sounds": [
+      {
+        "name": "novograd:eagle_shot"
+      }
+    ]
+  },
+  "micro_shot": {
+    "sounds": [
+      {
+        "name": "novograd:micro_shot"
+      }
+    ]
+  },
+  "saiga_shot": {
+    "sounds": [
+      {
+        "name": "novograd:saiga_shot"
+      }
+    ]
+  },
+  "carbine_shot": {
+    "sounds": [
+      {
+        "name": "novograd:carbine_shot"
+      }
+    ]
+  },
+  "lmg_shot": {
+    "sounds": [
+      {
+        "name": "novograd:lmg_shot"
+      }
+    ]
+  },
+  "silenced_shot": {
+    "sounds": [
+      {
+        "name": "novograd:silenced_shot"
+      }
+    ]
+  },
+  "silenced_rifle": {
+    "sounds": [
+      {
+        "name": "novograd:silenced_rifle"
+      }
+    ]
+  },
+  "rpg_shot": {
+    "sounds": [
+      {
+        "name": "novograd:rpg_shot"
+      }
+    ]
+  },
+  "revolver_reload": {
+    "sounds": [
+      {
+        "name": "novograd:revolver_reload"
+      }
+    ]
+  },
+  "lmg_reload": {
+    "sounds": [
+      {
+        "name": "novograd:lmg_reload"
+      }
+    ]
+  },
+  "rpg_reload": {
+    "sounds": [
+      {
+        "name": "novograd:rpg_reload"
       }
     ]
   }

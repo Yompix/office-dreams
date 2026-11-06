@@ -20,7 +20,8 @@
     "StudioCameraMixin",
     "CineLabelMixin",
     "NoVanillaMusicMixin",
-    "RadioScrollMixin"
+    "RadioScrollMixin",
+    "DriveFogMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -57,6 +57,13 @@ public final class Weapons {
                               net.minecraft.sound.SoundEvent sound, float volume, int kind) {
         var r = w.getRandom();
         Vec3d aim = dir0.normalize();
+        // глушитель (Мастерская «Калибра»): тихий звук, маленькая вспышка (бит 16 в kind), розыск — только при свидетелях
+        boolean quiet = GunMods.silenced(shooter.getMainHandStack());
+        if (quiet) {
+            sound = kind == 3 || kind == 4 ? Armory.SILENCED_RIFLE : Armory.SILENCED_SHOT;
+            volume = 0.45f;
+            kind |= 16;
+        }
         w.playSound(null, shooter.getBlockPos(), sound, SoundCategory.PLAYERS, volume, 0.95f + r.nextFloat() * 0.1f);
         float[] ends = new float[pellets * 3];
         byte[] what = new byte[pellets];
@@ -68,7 +75,8 @@ public final class Weapons {
             Vec3d end = block.getType() == HitResult.Type.MISS ? to : block.getPos();
             Box box = shooter.getBoundingBox().stretch(end.subtract(from)).expand(1);
             EntityHitResult hit = net.minecraft.entity.projectile.ProjectileUtil.raycast(shooter, from, end, box,
-                    e -> e != shooter && !e.isSpectator() && e.isAlive() && (e instanceof LivingEntity || e instanceof CarEntity) && !shooter.isConnectedThroughVehicle(e),
+                    e -> e != shooter && !e.isSpectator() && e.isAlive() && (e instanceof LivingEntity || e instanceof CarEntity) && !shooter.isConnectedThroughVehicle(e)
+                            && !(shooter instanceof com.yompix.novograd.entity.BodyguardEntity bg && (bg.isOwner(e) || e == bg.getVehicle() || e instanceof com.yompix.novograd.entity.BodyguardEntity)),
                     from.squaredDistanceTo(end));
             if (hit != null) end = hit.getPos();
             double len = end.distanceTo(from);
@@ -105,8 +113,9 @@ public final class Weapons {
             else if (v instanceof CarEntity) hitFlag = (byte) Math.max(hitFlag, 1);
         }
         Arsenal.sendShotFx(w, shooter, from, kind, ends, what, hitFlag);
-        // горожане в панике, полиция слышит выстрел
-        Crime.gunshot(w, shooter, from);
+        // горожане в панике, полиция слышит выстрел (с глушителем — только если видели)
+        if (quiet) GunMods.quietShot(w, shooter, from);
+        else Crime.gunshot(w, shooter, from);
         return first;
     }
 

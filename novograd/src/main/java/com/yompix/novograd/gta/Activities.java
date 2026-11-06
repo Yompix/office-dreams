@@ -373,12 +373,18 @@ public final class Activities {
     /** Название, x, z, цена. Купленное убежище — точка возрождения, там можно подлечиться. */
     private static final Object[][] PROPS = {
             {"Квартира в пригороде", -307, 262, 4000}, {"Домик у пляжа", -596, -600, 9000}, {"Лофт в промзоне", 461, 470, 7000},
-            {"Пентхаус в центре", 461, -400, 25000}, {"Ранчо за городом", -390, -812, 12000}, {"Ангар на аэродроме", 470, -860, 30000},
+            {"Пентхаус в центре", 384, -462, 60000}, {"Ранчо за городом", -390, -812, 12000}, {"Ангар на аэродроме", 470, -860, 30000},
     };
     private static final Map<UUID, Integer> INSIDE = new HashMap<>();
 
+    /** Убежища (название, x, z, цена) — их же показывает риелтор (world/Housing). Флаг владения — «prop:i». */
+    public static Object[][] props() {
+        return PROPS;
+    }
+
     /** Своё убежище в радиусе r блоков (там бесплатный гардероб, см. life/Style). */
     public static boolean nearOwnedSafehouse(ServerPlayerEntity p, double r) {
+        if (com.yompix.novograd.world.Housing.atAnyHome(p)) return true; // купленная/снятая квартира, дом, вилла
         LifeData d = Life.get(p);
         for (int i = 0; i < PROPS.length; i++) {
             if (!d.flags.contains("prop:" + i)) continue;
