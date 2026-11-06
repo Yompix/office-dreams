@@ -960,6 +960,33 @@ for ch in chapters:
         start = {'a1m3d': 'garage_door', 'a1m4': 'race_start', 'a3m3b': 'club_neon'}.get(mi['id'], start)
         mi.setdefault('start', start or ACT_HOME.get(ch['id'], 'garage_door'))
 
+# ---------- операторская работа: цветокор по настроению и титр на первой кат-сцене миссии
+DARK = ('Крыса', 'Предател', 'Похорон', 'Последн', 'Ловушк', 'Засада')
+
+
+def grade_for(mi, st, last):
+    names = ' '.join(str(sh.get(k, '')) for sh in st.get('shots', []) for k in ('from', 'to', 'follow', 'track'))
+    cues = ' '.join(str(a[1]) if len(a) > 1 else '' for a in st.get('actors', []))
+    if any(w in mi.get('title', '') for w in DARK) or 'die' in cues: return 'film_noir'
+    if any(w in names for w in ('club', 'casino', 'neon', 'strip')): return 'film_neon'
+    if last or any(w in names for w in ('desert', 'mtn', 'beach', 'riv_', 'sunset')): return 'film_sunset'
+    if any(sh.get('shake') for sh in st.get('shots', [])) or any(sh.get('follow') for sh in st.get('shots', [])): return 'film_blockbuster'
+    return 'film_cine'
+
+
+for ci, ch in enumerate(chapters):
+    for mj, mi in enumerate(ch['missions']):
+        first = True
+        last = ci == len(chapters) - 1 and mj == len(ch['missions']) - 1
+        for st in mi['steps']:
+            if st.get('type') != 'cutscene': continue
+            st.setdefault('grade', grade_for(mi, st, last))
+            if first: st['card'] = True
+            first = False
+for sm in side.values():
+    for st in sm['steps']:
+        if st.get('type') == 'cutscene': st.setdefault('grade', grade_for(sm, st, False))
+
 story = {'characters': CHARS, 'chapters': chapters, 'side': side}
 with open(OUT, 'w', encoding='utf-8') as f:
     json.dump(story, f, ensure_ascii=False, indent=1)

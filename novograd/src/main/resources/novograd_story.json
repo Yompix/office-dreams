@@ -197,7 +197,9 @@
          ],
          0.95
         ]
-       ]
+       ],
+       "grade": "film_blockbuster",
+       "card": true
       },
       {
        "type": "title",
@@ -401,7 +403,9 @@
          "text": "Я ставлю на тех, кто приезжает первым, Сторм. Сегодня посмотрим.",
          "voice": "a1m2s_03"
         }
-       ]
+       ],
+       "grade": "film_blockbuster",
+       "card": true
       },
       {
        "type": "talk",
@@ -603,7 +607,9 @@
          "text": "Первые честные деньги в Новограде. Брат был бы горд.",
          "voice": "a1m2bs_02"
         }
-       ]
+       ],
+       "grade": "film_cine",
+       "card": true
       },
       {
        "type": "dialog",
@@ -828,7 +834,9 @@
          "text": "Так вот кто обогнал Сторма. Садись, гонщик, угощаю.",
          "voice": "a1m3bs_02"
         }
-       ]
+       ],
+       "grade": "film_neon",
+       "card": true
       },
       {
        "type": "talk",
@@ -956,7 +964,9 @@
          "text": "Ты сделал Сторма, но меня ты не сделаешь. Я эту трассу знаю наизусть.",
          "voice": "a1m3cs_01"
         }
-       ]
+       ],
+       "grade": "film_blockbuster",
+       "card": true
       },
       {
        "type": "carrace",
@@ -1081,7 +1091,9 @@
          "text": "Утром брат найдёт следы. А ты — того, кто их оставил.",
          "voice": "a1m3ds_02"
         }
-       ]
+       ],
+       "grade": "film_blockbuster",
+       "card": true
       },
       {
        "type": "dialog",
@@ -1252,7 +1264,9 @@
          "text": "Сирены. Сначала одна, потом сразу пять. Кто-то сдал трассу.",
          "voice": "a1m4s_01"
         }
-       ]
+       ],
+       "grade": "film_blockbuster",
+       "card": true
       },
       {
        "type": "dialog",
@@ -1430,7 +1444,9 @@
          "despawn",
          "gleb"
         ]
-       ]
+       ],
+       "grade": "film_blockbuster",
+       "card": true
       },
       {
        "type": "goto",
@@ -1628,7 +1644,9 @@
          "text": "Пока ты разбирался с его людьми, сам Марко «Синий» спокойно уехал. Он запомнил твоё лицо.",
          "voice": "a2m2bs_01"
         }
-       ]
+       ],
+       "grade": "film_blockbuster",
+       "card": true
       },
       {
        "type": "dialog",
@@ -1838,7 +1856,9 @@
          "text": "Ты храбрый. Это мне нравится. Брик тебя использует, ты же понимаешь?",
          "voice": "a2m3cs_01"
         }
-       ]
+       ],
+       "grade": "film_sunset",
+       "card": true
       },
       {
        "type": "talk",
@@ -2032,7 +2052,8 @@
          "despawn",
          "marco"
         ]
-       ]
+       ],
+       "grade": "film_noir"
       }
      ],
      "start": "beach_lot"
@@ -2192,7 +2213,9 @@
          "text": "Бронефургон «Короны» выезжает ровно по расписанию. В нём — недельная выручка казино.",
          "voice": "a2m4s_01"
         }
-       ]
+       ],
+       "grade": "film_neon",
+       "card": true
       },
       {
        "type": "chase",
@@ -2352,7 +2375,9 @@
          "text": "Это вы так думаете, шеф.",
          "voice": "a3m1s_03"
         }
-       ]
+       ],
+       "grade": "film_blockbuster",
+       "card": true
       },
       {
        "type": "talk",
@@ -2585,7 +2610,9 @@
          "text": "Передай Брику: облав на этой неделе не будет. Но цена растёт.",
          "voice": "a3m2bs_02"
         }
-       ]
+       ],
+       "grade": "film_cine",
+       "card": true
       },
       {
        "type": "collect",
@@ -2804,7 +2831,9 @@
          "despawn",
          "lena"
         ]
-       ]
+       ],
+       "grade": "film_neon",
+       "card": true
       },
       {
        "type": "chase",
@@ -2998,7 +3027,9 @@
          "despawn",
          "harris"
         ]
-       ]
+       ],
+       "grade": "film_cine",
+       "card": true
       }
      ],
      "start": "police_station"
@@ -3162,7 +3193,9 @@
          ],
          0.6
         ]
-       ]
+       ],
+       "grade": "film_blockbuster",
+       "card": true
       },
       {
        "type": "dialog",
@@ -3255,7 +3288,9 @@
          "text": "Город казино, отелей и людей, которые никогда не спят. И у каждого здесь — своя ставка.",
          "voice": "a4m1s_02"
         }
-       ]
+       ],
+       "grade": "film_neon",
+       "card": true
       },
       {
        "type": "dialog",
@@ -3355,7 +3390,8 @@
          "text": "Догоняй! Ривьера не ждёт!",
          "voice": "a4m1s_03"
         }
-       ]
+       ],
+       "grade": "film_blockbuster"
       },
       {
        "type": "goto",
@@ -3479,7 +3515,9 @@
          "text": "Да, мистер Кроу.",
          "voice": "a4m2s_03"
         }
-       ]
+       ],
+       "grade": "film_neon",
+       "card": true
       },
       {
        "type": "talk",
@@ -3595,7 +3633,9 @@
          "text": "Новенький из Новограда? Смешно. Здесь асфальт горячий, а повороты — острые.",
          "voice": "a4m3s_01"
         }
-       ]
+       ],
+       "grade": "film_neon",
+       "card": true
       },
       {
        "type": "carrace",
@@ -3977,7 +4017,9 @@
          "text": "Дверь открыта. У тебя три минуты, пока охрана меняется. Удачи.",
          "voice": "a4m9s_01"
         }
-       ]
+       ],
+       "grade": "film_neon",
+       "card": true
       },
       {
        "type": "clear",
@@ -4150,7 +4192,9 @@
          "text": "Не слушай его! Беги!",
          "voice": "a4m10s_03"
         }
-       ]
+       ],
+       "grade": "film_sunset",
+       "card": true
       },
       {
        "type": "chase",
@@ -4226,7 +4270,9 @@
          "text": "Здесь Кроу надеялся переждать. Он ошибся.",
          "voice": "a5m1s_02"
         }
-       ]
+       ],
+       "grade": "film_sunset",
+       "card": true
       },
       {
        "type": "dialog",
@@ -4292,7 +4338,9 @@
          "text": "Чёрный седан Кроу выскакивает из-за поворота и уходит на запад.",
          "voice": "a5m2s_01"
         }
-       ]
+       ],
+       "grade": "film_blockbuster",
+       "card": true
       },
       {
        "type": "chase",
@@ -4344,7 +4392,9 @@
          "text": "Пустошь. Красная земля, кактусы и столовые горы. Идеальное место, чтобы спрятать то, что не должно найтись.",
          "voice": "a5m3s_01"
         }
-       ]
+       ],
+       "grade": "film_sunset",
+       "card": true
       },
       {
        "type": "goto",
@@ -4647,7 +4697,9 @@
          "text": "Убейте его. Медленно.",
          "voice": "a5m7s_02"
         }
-       ]
+       ],
+       "grade": "film_noir",
+       "card": true
       },
       {
        "type": "clear",
@@ -4781,7 +4833,8 @@
          0.12,
          "туристы возвращаются на Ривьеру"
         ]
-       ]
+       ],
+       "grade": "film_noir"
       },
       {
        "type": "dialog",

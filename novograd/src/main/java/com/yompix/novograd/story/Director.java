@@ -160,6 +160,30 @@ public final class Director {
         if (sc != null) sc.hold = on;
     }
 
+    /**
+     * Реплика в кат-сцене: говорящий жестикулирует, остальные герои поворачиваются к нему и замолкают
+     * (раньше все, у кого есть реплики, «болтали» всю сцену разом).
+     */
+    public static void speak(ServerPlayerEntity p, String who) {
+        Scene sc = SCENES.get(p.getUuid());
+        if (sc == null || sc.viewer) return;
+        ServerWorld w = p.getServerWorld();
+        Entity speaker = who.equals("player") ? p : actor(w, sc, who);
+        for (Map.Entry<String, UUID> en : sc.actors.entrySet()) {
+            if (!(w.getEntity(en.getValue()) instanceof CitizenEntity c)) continue;
+            var act = c.getActivity();
+            boolean free = act == CitizenEntity.Activity.IDLE || act == CitizenEntity.Activity.TALK;
+            if (!free) continue; // у героя своя сцена (целится, спорит, обнимает) — не трогаем
+            boolean still = c.getVelocity().horizontalLengthSquared() < 0.003;
+            if (en.getKey().equals(who)) {
+                c.lockActivity(CitizenEntity.Activity.TALK);
+            } else {
+                c.lockActivity(null);
+                if (speaker != null && still && speaker != c && speaker.squaredDistanceTo(c) < 24 * 24) c.face(speaker);
+            }
+        }
+    }
+
     public static boolean running(ServerPlayerEntity p) {
         return SCENES.containsKey(p.getUuid());
     }

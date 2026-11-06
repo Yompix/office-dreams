@@ -21,7 +21,7 @@ import java.util.List;
  * Работает на невидимом «операторе», игрок в это время стоит в режиме наблюдателя.
  */
 public class CutsceneScreen extends LifeScreen {
-    private record Shot(double[] from, double[] to, float sec, String track, String follow, double[] off, float shake) {}
+    private record Shot(double[] from, double[] to, float sec, String track, String follow, double[] off, float shake, float fov, float fov2, float roll) {}
 
     /** Актёры кат-сцены: имя в сценарии → id сущности на клиенте (сервер присылает «cut_actor»). */
     public static final java.util.Map<String, Integer> ACTORS = new java.util.HashMap<>();
@@ -29,7 +29,7 @@ public class CutsceneScreen extends LifeScreen {
     private float camYaw, camPitch;
     private long lastFrame;
 
-    private record Sub(String name, int color, String text, String voice) {}
+    private record Sub(String who, String name, int color, String text, String voice) {}
 
     private final List<Shot> shots = new ArrayList<>();
     private final List<Sub> subs = new ArrayList<>();
@@ -51,16 +51,24 @@ public class CutsceneScreen extends LifeScreen {
             double[] off = s.contains("off") ? arr(s.getList("off", NbtElement.DOUBLE_TYPE)) : new double[]{7, 3, 0, 0, 0};
             Shot sh = new Shot(s.contains("from") ? arr(s.getList("from", NbtElement.DOUBLE_TYPE)) : null,
                     s.contains("to") ? arr(s.getList("to", NbtElement.DOUBLE_TYPE)) : null, s.getFloat("sec"),
-                    s.getString("track"), s.getString("follow"), off, s.getFloat("shake"));
+                    s.getString("track"), s.getString("follow"), off, s.getFloat("shake"),
+                    s.contains("fov") ? s.getFloat("fov") : Float.NaN, s.contains("fov2") ? s.getFloat("fov2") : Float.NaN,
+                    s.contains("roll") ? s.getFloat("roll") : Float.NaN);
             shots.add(sh);
             t += sh.sec();
         }
         for (NbtElement e : n.getList("lines", NbtElement.COMPOUND_TYPE)) {
             NbtCompound c = (NbtCompound) e;
-            subs.add(new Sub(c.getString("name"), c.getInt("color"), c.getString("text"), c.getString("voice")));
+            subs.add(new Sub(c.getString("who"), c.getString("name"), c.getInt("color"), c.getString("text"), c.getString("voice")));
         }
         total = Math.max(t, 2);
+        grade = n.contains("grade") ? n.getString("grade") : "film_cine";
+        title = n.getString("title");
+        chapter = n.getString("chapter");
     }
+
+    /** Кинофильтр сцены, титр миссии (как в начале миссии GTA). */
+    private final String grade, title, chapter;
 
     private static double[] arr(NbtList l) {
         double[] v = new double[5];
@@ -115,6 +123,14 @@ public class CutsceneScreen extends LifeScreen {
                     x = MathHelper.lerp(k, f[0], to[0]);
                     y = MathHelper.lerp(k, f[1], to[1]);
                     z = MathHelper.lerp(k, f[2], to[2]);
+                    // камера идёт не по линейке, а дугой — как кран/дрон у оператора
+                    double mx = to[0] - f[0], mz = to[2] - f[2], dist = Math.sqrt(mx * mx + mz * mz);
+                    if (dist > 2) {
+                        double arc = Math.min(6, dist * 0.09) * Math.sin(Math.PI * k) * (shots.indexOf(s) % 2 == 0 ? 1 : -1);
+                        x += -mz / dist * arc;
+                        z += mx / dist * arc;
+                        y += Math.min(3, dist * 0.03) * Math.sin(Math.PI * k);
+                    }
                     yaw = (float) (f[3] + MathHelper.wrapDegrees(to[3] - f[3]) * k);
                     pitch = (float) MathHelper.lerp(k, f[4], to[4]);
                 } else return;
@@ -138,6 +154,7 @@ public class CutsceneScreen extends LifeScreen {
                     camPitch += (pitch - camPitch) * Math.min(1, dt * 1.5f);
                 }
                 float shake = s.shake();
+                cine(s, k, fol != null, trk != null, shake);
                 double sx = 0, sy = 0;
                 if (shake > 0) {
                     double tt = System.currentTimeMillis() / 1000.0;
@@ -161,6 +178,30 @@ public class CutsceneScreen extends LifeScreen {
             }
             t -= s.sec();
         }
+    }
+
+    /** Операторская работа: наезд зумом, голландский угол, «ручная» камера в погонях. */
+    private void cine(Shot s, float k, boolean follow, boolean track, float shake) {
+        float idx = shots.indexOf(s);
+        float a, b, r;
+        double tt = System.currentTimeMillis() / 1000.0;
+        if (follow) { // погоня: широкий угол, камера раскачивается
+            a = 80; b = 76;
+            r = (float) (Math.sin(tt * 0.9) * 2.2 + Math.sin(tt * 2.3) * 0.6);
+        } else if (track) { // крупный план героя: медленный наезд
+            a = 58; b = 46;
+            r = shake > 0 ? (idx % 2 == 0 ? 5 : -5) : 0;
+        } else { // общий план: лёгкий наезд, ровный горизонт
+            a = 72; b = 62;
+            r = 0;
+        }
+        if (!Float.isNaN(s.fov())) a = s.fov();
+        b = !Float.isNaN(s.fov2()) ? s.fov2() : !Float.isNaN(s.fov()) ? s.fov() : b;
+        if (!Float.isNaN(s.roll())) r = s.roll();
+        if (shake > 0) r += (float) (Math.sin(tt * 31) * shake * 1.5);
+        com.yompix.novograd.client.studio.CineCam.cutscene = true;
+        com.yompix.novograd.client.studio.CineCam.fov = MathHelper.lerp(k, a, b);
+        com.yompix.novograd.client.studio.CineCam.roll = r;
     }
 
     private static float yawTo(double x, double z, Vec3d look) {
@@ -223,6 +264,7 @@ public class CutsceneScreen extends LifeScreen {
         }
         black += ((waitTicks > 10 ? 1 : 0) - black) * 0.12f;
         float time = elapsed();
+        com.yompix.novograd.client.studio.CineCam.filter(mc(), grade);
         place(Math.min(time, total), 0);
         // субтитры идут по очереди: следующая — когда голос закончился
         if (subIndex < 0 || (!Voice.playing() && System.currentTimeMillis() - subAt > 1200)) {
@@ -230,6 +272,9 @@ public class CutsceneScreen extends LifeScreen {
                 subIndex++;
                 subAt = System.currentTimeMillis();
                 Voice.play(subs.get(subIndex).voice());
+                net.minecraft.nbt.NbtCompound ln = new net.minecraft.nbt.NbtCompound();
+                ln.putString("who", subs.get(subIndex).who());
+                NovogradClient.send("cut_line", ln);
             } else if (time >= total) {
                 end();
             }
@@ -240,6 +285,7 @@ public class CutsceneScreen extends LifeScreen {
         if (done) return;
         done = true;
         Voice.stop();
+        com.yompix.novograd.client.studio.CineCam.reset(mc());
         mc().options.hudHidden = hudWas;
         if (mc().player != null) mc().setCameraEntity(mc().player);
         ACTORS.clear();
@@ -255,6 +301,7 @@ public class CutsceneScreen extends LifeScreen {
     @Override
     public void removed() {
         if (done || cam == null) return;
+        com.yompix.novograd.client.studio.CineCam.reset(mc());
         mc().options.hudHidden = hudWas;
         if (mc().player != null) mc().setCameraEntity(mc().player);
         Voice.stop();
@@ -276,6 +323,31 @@ public class CutsceneScreen extends LifeScreen {
         return super.keyPressed(key, scan, mods);
     }
 
+    /** Титр миссии внизу справа: название крупно, акт — мелко, плавно появляется и уходит. */
+    private void titleCard(DrawContext ctx, int bar) {
+        if (title == null || title.isEmpty()) return;
+        float t = elapsed() - 1.4f;
+        if (t < 0 || t > 5.5f) return;
+        float a = Math.min(1, Math.min(t / 0.6f, (5.5f - t) / 0.8f));
+        int al = (int) (a * 255) << 24;
+        float slide = (1 - Math.min(1, t / 0.6f)) * 20;
+        int x = width - 24 + (int) slide, y = height - bar - 46;
+        var m = ctx.getMatrices();
+        m.push();
+        m.translate(x, y, 0);
+        m.scale(2.4f, 2.4f, 1);
+        String T = title.toUpperCase();
+        int w = textRenderer.getWidth(T);
+        ctx.drawText(textRenderer, T, -w + 1, 1, al, false);
+        ctx.drawText(textRenderer, T, -w, 0, al | 0xFFC83D, false);
+        m.pop();
+        if (chapter != null && !chapter.isEmpty()) {
+            int cw = textRenderer.getWidth(chapter);
+            ctx.drawText(textRenderer, chapter, x - cw, y + 24, al | 0xE0E0E0, true);
+        }
+        ctx.fill(x - (int) (w * 2.4f * Math.min(1, t / 0.9f)), y - 5, x, y - 4, al | 0xFF4FD8);
+    }
+
     @Override
     protected void background(DrawContext ctx) {
     }
@@ -286,6 +358,13 @@ public class CutsceneScreen extends LifeScreen {
         int bar = (int) (height * 0.12f);
         ctx.fill(0, 0, width, bar, 0xFF000000);
         ctx.fill(0, height - bar, width, height, 0xFF000000);
+        for (int i = 0; i < 10; i++) { // виньетка
+            int a = (int) (Math.pow((10 - i) / 10.0, 2.2) * 60) << 24;
+            int m = i * width / 50, wd = Math.max(1, width / 50);
+            ctx.fill(m, bar, m + wd, height - bar, a);
+            ctx.fill(width - m - wd, bar, width - m, height - bar, a);
+        }
+        titleCard(ctx, bar);
         float fade = Math.min(1, elapsed() / 1.2f);
         float dark = Math.max(1 - fade, black);
         if (dark > 0.01f) ctx.fill(0, 0, width, height, (int) (Math.min(1, dark) * 255) << 24);

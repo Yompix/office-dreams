@@ -683,7 +683,7 @@ public final class Story {
                 sn.put("off", doubles(o));
             }
             if (sh.has("shake")) sn.putFloat("shake", sh.get("shake").getAsFloat());
-            if (sh.has("fov")) sn.putFloat("fov", sh.get("fov").getAsFloat());
+            for (String k : new String[]{"fov", "fov2", "roll"}) if (sh.has(k)) sn.putFloat(k, sh.get(k).getAsFloat());
             shots.add(sn);
             if (first == null && a != null) first = new Vec3d(a[0], a[1], a[2]);
         }
@@ -692,6 +692,12 @@ public final class Story {
         NbtCompound n = new NbtCompound();
         n.put("shots", shots);
         n.put("lines", lines(p, s.getAsJsonArray("lines")));
+        if (s.has("grade")) n.putString("grade", str(s, "grade", ""));
+        JsonObject m = mission(d), c = chapter(d);
+        if (s.has("card") && d.side.isEmpty() && m != null) { // первая сцена миссии — титр с названием
+            n.putString("title", str(m, "title", ""));
+            if (c != null) n.putString("chapter", str(c, "title", ""));
+        }
         LifeNet.send(p, "cutscene", n);
     }
 
