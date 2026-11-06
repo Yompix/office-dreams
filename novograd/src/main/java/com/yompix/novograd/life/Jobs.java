@@ -63,7 +63,7 @@ public final class Jobs {
     static void select(ServerPlayerEntity p, String id) {
         Job j = Job.of(id);
         LifeData d = Life.get(p);
-        if (d.edu < j.minEdu) {
+        if (false) {
             p.sendMessage(Text.literal("Для работы «" + j.title + "» нужно образование: " + eduName(j.minEdu)).formatted(Formatting.RED), true);
             return;
         }
@@ -282,7 +282,7 @@ public final class Jobs {
 
     public static void computer(ServerPlayerEntity p) {
         if (job(p) != Job.PROGRAMMER) {
-            p.sendMessage(Text.literal("💻 Компьютер. Работать здесь могут программисты (нужен диплом вуза).").formatted(Formatting.GRAY), true);
+            p.sendMessage(Text.literal("💻 Компьютер. Работать здесь могут только программисты — устройся в приложении «Работа».").formatted(Formatting.GRAY), true);
             return;
         }
         if (!cooldownOk(p)) return;

@@ -383,7 +383,7 @@ public class CarEntity extends Entity {
         boolean driver = getPassengerList().isEmpty();
         if (driver && !isScooter() && !player.isCreative() && player instanceof ServerPlayerEntity sp) {
             var d = com.yompix.novograd.life.Life.get(sp);
-            boolean young = d.age > 0 ? d.age < 18 : d.edu <= com.yompix.novograd.life.LifeData.SCHOOL_END;
+            boolean young = false; // в Новограде все взрослые
             if (young) {
                 player.sendMessage(Text.literal("Водить машину можно с 18 лет и с правами. Пока — электроскутер (есть в магазине)!"), true);
                 return ActionResult.CONSUME;

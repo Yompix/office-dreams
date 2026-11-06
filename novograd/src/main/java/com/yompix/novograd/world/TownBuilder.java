@@ -540,7 +540,7 @@ public final class TownBuilder {
             if (Math.abs(x) > 2 && Math.abs(z) > 2 && x * x + z * z > 40 && b.get(x, 0, z).isAir()) b.set(x, 0, z, flowers[r.nextInt(flowers.length)]);
         }
         b.citizen(-7, 0, 4, 7, CitizenEntity.Role.CITIZEN, false, "Бабушка Бетти", 0);
-        b.story(b.citizen(5, 0, 7, 6, CitizenEntity.Role.CITIZEN, true, "Лейтенант Петров", 0), "petrov");
+        b.story(b.citizen(5, 0, 7, 6, CitizenEntity.Role.CITIZEN, true, "Лейтенант Питерсон", 0), "petrov");
         b.citizen(9, 0, 9, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0).randomizeBody(r, false);
         b.citizen(-9, 0, -9, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0).randomizeBody(r, true);
         b.citizen(-10, 0, 9, CitizenEntity.randomSkin(r), CitizenEntity.Role.CITIZEN, false, Names.random(r), 0).randomizeBody(r, true);

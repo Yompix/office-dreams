@@ -37,8 +37,8 @@ public final class SideQuests {
             new Fetch("Я с работы, умираю от голода. Купи мне бургер, а?", ModContent.BURGER, "бургер", 18),
             new Fetch("У жены сегодня день рождения, а я забыл цветы! Выручишь?", Items.POPPY, "цветы", 20),
             new Fetch("Бабушка просила хлеба, а я никак не дойду до магазина…", Items.BREAD, "хлеб", 10),
-            new Fetch("Сын хочет торт за пятёрку. Поможешь с тортом?", Items.CAKE, "торт", 35),
-            new Fetch("Мне бы учебник для внука — завтра у него контрольная.", ModContent.TEXTBOOK, "учебник", 25));
+            new Fetch("У дочки день рождения, а я без торта… Выручишь?", Items.CAKE, "торт", 35),
+            new Fetch("Принеси аптечку, а? После вчерашней разборки всё болит…", com.yompix.novograd.gta.Arsenal.MEDKIT, "аптечку", 30));
 
     private static int lastSecond;
 

@@ -34,24 +34,24 @@ public final class Shop {
             new Entry("Снаряжение", "Патроны ×64 (выгодно)", () -> ModContent.AMMO, 64, 115, LifeData.SCHOOL_END + 1),
             new Entry("Снаряжение", "Бронежилет", () -> com.yompix.novograd.gta.Arsenal.ARMOR, 1, 650, LifeData.SCHOOL_END + 1),
             new Entry("Снаряжение", "Аптечка", () -> com.yompix.novograd.gta.Arsenal.MEDKIT, 1, 70, LifeData.SCHOOL_END + 1),
-            new Entry("Еда", "Салат (−вес)", () -> ModContent.SALAD, 1, 6, 1),
+            new Entry("Еда", "Салат", () -> ModContent.SALAD, 1, 6, 1),
             new Entry("Еда", "Пицца", () -> ModContent.PIZZA, 1, 10, 1),
             new Entry("Еда", "Хлеб ×3", () -> Items.BREAD, 3, 5, 1),
             new Entry("Еда", "Торт", () -> Items.CAKE, 1, 25, 1),
             new Entry("Еда", "Яблоки ×5", () -> Items.APPLE, 5, 6, 1),
-            new Entry("Одежда", "Костюм для выпускного", () -> ModContent.SUIT, 1, 60, 1),
+            new Entry("Одежда", "Деловой костюм", () -> ModContent.SUIT, 1, 60, 1),
             new Entry("Одежда", "Кожаная куртка", () -> Items.LEATHER_CHESTPLATE, 1, 45, 1),
             new Entry("Одежда", "Кепка", () -> Items.LEATHER_HELMET, 1, 15, 1),
             new Entry("Одежда", "Джинсы", () -> Items.LEATHER_LEGGINGS, 1, 30, 1),
             new Entry("Одежда", "Кроссовки", () -> Items.LEATHER_BOOTS, 1, 25, 1),
             new Entry("Дом", "Телевизор", () -> ModContent.TV.asItem(), 1, 150, 1),
             new Entry("Дом", "Компьютер", () -> ModContent.COMPUTER.asItem(), 1, 400, 1),
-            new Entry("Дом", "Парта", () -> ModContent.SCHOOL_DESK.asItem(), 1, 40, 1),
+            new Entry("Дом", "Письменный стол", () -> ModContent.SCHOOL_DESK.asItem(), 1, 40, 1),
             new Entry("Дом", "Кровать", () -> Items.LIGHT_BLUE_BED, 1, 60, 1),
             new Entry("Дом", "Почтовый ящик", () -> ModContent.MAILBOX.asItem(), 1, 30, 1),
             new Entry("Дом", "Уличный фонарь", () -> ModContent.STREET_LAMP.asItem(), 1, 35, 1),
             new Entry("Дом", "Игровой автомат", () -> ModContent.SLOT_MACHINE.asItem(), 1, 900, 12),
-            new Entry("Транспорт", "Электроскутер (с любого возраста)", () -> ModContent.SCOOTER_ITEM, 1, 120, 1),
+            new Entry("Транспорт", "Электроскутер", () -> ModContent.SCOOTER_ITEM, 1, 120, 1),
             new Entry("Транспорт", "Седан (красный)", () -> ModContent.CARS[0], 1, 700, 12),
             new Entry("Транспорт", "Хэтчбек (синий)", () -> ModContent.CARS[1], 1, 650, 12),
             new Entry("Транспорт", "Фургон (белый)", () -> ModContent.CARS[4], 1, 900, 12),
@@ -82,7 +82,7 @@ public final class Shop {
     /** Оружейный «Калибр»: только оружие, только взрослым и только в магазине (не доставкой). */
     public static void openGuns(ServerPlayerEntity p) {
         if (!Life.get(p).adult()) {
-            p.sendMessage(Text.literal("Оружейник Боб: «Тебе сколько лет? Иди уроки делай.»").formatted(Formatting.GOLD), false);
+            p.sendMessage(Text.literal("Оружейник Боб: «Сейчас не продаю. Заходи позже.»").formatted(Formatting.GOLD), false);
             return;
         }
         AT_GUNSHOP.put(p.getUuid(), p.getServerWorld().getTime());
@@ -128,8 +128,8 @@ public final class Shop {
     static void buy(ServerPlayerEntity p, int index, boolean delivery) {
         if (index < 0 || index >= CATALOG.size()) return;
         Entry e = CATALOG.get(index);
-        if (Life.get(p).edu < e.minEdu()) {
-            p.sendMessage(Text.literal("Это можно купить только взрослым (после школы)").formatted(Formatting.RED), true);
+        if (false) { // ограничений по «образованию» больше нет
+            p.sendMessage(Text.literal("Пока недоступно").formatted(Formatting.RED), true);
             return;
         }
         if (gunCategory(e.category()) && (delivery || p.getServerWorld().getTime() - AT_GUNSHOP.getOrDefault(p.getUuid(), -10000L) > 2400)) {

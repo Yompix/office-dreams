@@ -35,7 +35,7 @@ public final class CityLife {
     private CityLife() {}
 
     public static final String[] EVENTS = {"", "fair", "concert", "fireworks"};
-    public static final String[][] HOUSES = {{"house4", "Дом на ул. Садовой", "2500"}, {"house6", "Дом на ул. Победы", "3000"}, {"gleb", "Дом по соседству с родителями", "2000"}};
+    public static final String[][] HOUSES = {{"house4", "Дом на ул. Садовой", "2500"}, {"house6", "Дом на ул. Победы", "3000"}, {"gleb", "Дом в пригороде", "2000"}};
 
     /** Какой праздник сегодня (по номеру дня). */
     public static String event(ServerWorld w) {
@@ -156,7 +156,7 @@ public final class CityLife {
             LifeData d = Life.get(p);
             if (d.flags.contains("house:" + id)) return;
             if (!d.adult()) {
-                p.sendMessage(Text.literal("Покупать дома можно только взрослым").formatted(Formatting.RED), true);
+                p.sendMessage(Text.literal("Сейчас этот дом не продаётся").formatted(Formatting.RED), true);
                 return;
             }
             if (!Life.pay(p, Integer.parseInt(h[2]), h[1])) return;

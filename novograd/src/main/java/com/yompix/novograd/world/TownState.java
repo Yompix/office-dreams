@@ -15,7 +15,7 @@ import java.util.List;
 /** Что знает город: построен ли он, где школа, и все почтовые ящики (это адреса для курьеров и такси). */
 public class TownState extends PersistentState {
     private static final Type<TownState> TYPE = new Type<>(TownState::new, TownState::fromNbt, DataFixTypes.LEVEL);
-    private static final String[] STREETS_X = {"ул. Школьная", "ул. Центральная", "ул. Садовая", "ул. Лесная"};
+    private static final String[] STREETS_X = {"ул. Портовая", "ул. Центральная", "ул. Садовая", "ул. Лесная"};
     private static final String[] STREETS_Z = {"пр. Мира", "ул. Пушкина", "ул. Гагарина", "ул. Победы"};
 
     public boolean built;

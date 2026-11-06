@@ -226,6 +226,32 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("phone")) {
+            // телефон целиком, такси, новости, карта, титры (проверка после чистки старой игры)
+            YompixSplash.markShown();
+            pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            run(100, c -> { if (c.player != null && c.player.isDead()) c.player.requestRespawn(); });
+            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            server(5, s -> {
+                com.yompix.novograd.gta.News.post(s, "Прямо сейчас: вооружённый налёт на «Сити-Банк». Полиция стягивает силы", "ЭКСТРЕННО");
+                com.yompix.novograd.gta.Economy.shock(s, "PORT", 0.06, "Порт подписал контракт с крупной судоходной компанией");
+            });
+            shot(40, "phone_news_banner");
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.PhoneScreen(null)));
+            shot(30, "phone_home");
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.PhoneScreen("taxi")));
+            shot(30, "phone_taxi");
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.NewsScreen()));
+            shot(30, "phone_news");
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.FinanceScreen()));
+            shot(30, "phone_finance");
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.screen.MapScreen()));
+            shot(30, "phone_map");
+            run(5, c -> c.setScreen(new com.yompix.novograd.client.story.CreditsScreen()));
+            shot(140, "phone_credits");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("studio")) {
             // Киностудия: два дубля-актёра, облёт, фильтры, кинополосы
             YompixSplash.markShown();

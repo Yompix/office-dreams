@@ -10,7 +10,7 @@ public final class LoadingOverlay {
     private LoadingOverlay() {}
 
     private static final String[] TIPS = {"Светофоры переключаются…", "Таксисты выезжают на линию…", "Неон на фасадах прогревается…",
-            "Полиция заступает на ночную смену…", "Тёма придумывает новый план…", "В гараже прогревают моторы…"};
+            "Полиция заступает на ночную смену…", "Чёрные Ящеры делят район…", "В гараже прогревают моторы…"};
 
     public static void draw(DrawContext ctx, int width, int height, String what) {
         var tr = MinecraftClient.getInstance().textRenderer;

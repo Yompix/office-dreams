@@ -22,7 +22,7 @@ public class LifeData {
     public int dirty;
     /** Акции: тикер → количество. */
     public java.util.Map<String, Integer> shares = new java.util.HashMap<>();
-    public int edu = 1;            // 1–11 класс школы, 12–15 курс университета, 16 — выпускник
+    public int edu = 16;           // 1–11 класс школы, 12–15 курс университета, 16 — выпускник
     public int lessons;            // сданных уроков на текущем уровне
     public List<Integer> grades = new ArrayList<>();
     public String job = "none";
@@ -180,7 +180,7 @@ public class LifeData {
         if (n.contains("weight")) d.weight = n.getFloat("weight");
         if (n.contains("fitness")) d.fitness = n.getInt("fitness");
         d.workouts = n.getInt("workouts");
-        if (n.contains("edu")) d.edu = Math.max(1, n.getInt("edu"));
+        d.edu = 16; // школы в Новограде нет — все взрослые
         d.lessons = n.getInt("lessons");
         if (n.get("grades") instanceof NbtIntArray arr) for (int g : arr.getIntArray()) d.grades.add(g);
         if (n.contains("job")) d.job = n.getString("job");

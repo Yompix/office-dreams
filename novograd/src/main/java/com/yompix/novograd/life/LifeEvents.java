@@ -65,8 +65,7 @@ public final class LifeEvents {
         } else if (!d.started) {
             d.started = true;
             School.give(p, new ItemStack(ModContent.PHONE));
-            Life.message(p, "Мама", "Доброе утро! Не опаздывай в школу: уроки с 8:00. Я положила тебе $50 на карту ❤");
-            Life.message(p, "Школа", "Добро пожаловать в 1 класс! Подойди к доске в классе или к учителю, чтобы начать урок.");
+            Life.message(p, "Неизвестный номер", "Добро пожаловать в Новоград. На карте $50 — на первое время. Не высовывайся.");
             p.sendMessage(Text.literal("📱 Нажми G (или ПКМ телефоном), чтобы открыть телефон").formatted(Formatting.AQUA), false);
         }
         com.yompix.novograd.story.Story.onJoin(p);
@@ -126,10 +125,7 @@ public final class LifeEvents {
             LifeData d = Life.get(p);
             if (tod >= 1000 && d.lastAllowanceDay != day) {
                 d.lastAllowanceDay = day;
-                if (!d.adult()) {
-                    d.money += 10;
-                    Life.message(p, "Мама", "День " + day + ". Карманные $10 на обед. Учись хорошо!");
-                } else if (Jobs.job(p) == Jobs.Job.NONE) {
+                if (Jobs.job(p) == Jobs.Job.NONE) {
                     Life.message(p, "Центр занятости", "Ты без работы. Загляни в приложение «Работа» — там вакансии.");
                 } else {
                     d.money = Math.max(0, d.money - 5);

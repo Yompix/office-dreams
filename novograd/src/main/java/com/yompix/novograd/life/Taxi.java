@@ -42,9 +42,9 @@ public final class Taxi {
         PLACES.put("casino_door", "Казино «Фортуна»");
         PLACES.put("bank_door", "Банк");
         PLACES.put("dealer_door", "Автосалон");
-        PLACES.put("lisa_door", "Дом Лизы");
-        PLACES.put("tema_door", "Дом Тёмы");
-        PLACES.put("gleb_door", "Дом Глеба");
+        PLACES.put("lisa_door", "Дом на Кленовой");
+        PLACES.put("tema_door", "Дом Томми");
+        PLACES.put("gleb_door", "Дом Джейка");
         PLACES.put("house4_door", "Дом на Садовой");
         PLACES.put("house6_door", "Дом на Речной");
         PLACES.put("bar_door", "Бар «Ржавый якорь»");

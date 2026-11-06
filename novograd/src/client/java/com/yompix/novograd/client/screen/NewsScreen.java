@@ -22,7 +22,7 @@ public class NewsScreen extends LifeScreen {
         int x = width / 2 - w / 2, y = height / 2 - h / 2;
         panel(ctx, x, y, w, h, 0xF0101418, 0xF0080A0D);
         title(ctx, "НОВОГРАД-24", x + 10, y + 8, 0xFFFF4040);
-        ctx.drawText(textRenderer, "город говорит о тебе", x + 120, y + 11, 0xFF90A4AE, false);
+        ctx.drawText(textRenderer, "город говорит о тебе", x + w - 10 - textRenderer.getWidth("город говорит о тебе"), y + 11, 0xFF90A4AE, false);
         var list = feed.getList("feed", NbtElement.COMPOUND_TYPE);
         int ry = y + 30;
         if (list.isEmpty()) wrap(ctx, "Пока тихо. Сделай что-нибудь громкое — и город заговорит.", x + 14, ry + 10, w - 28, 0xFFB0BEC5);

@@ -65,7 +65,7 @@ public class ShopScreen extends LifeScreen {
             ctx.drawItem(new ItemStack(e.item().get(), e.count()), x + 10, ry + 3);
             ctx.drawText(textRenderer, e.name(), x + 32, ry + 7, 0xFF333333, false);
             int price = Shop.price(e, delivery, NovogradClient.data.today);
-            boolean locked = NovogradClient.data.edu < e.minEdu();
+            boolean locked = false;
             boolean afford = NovogradClient.data.money >= price;
             String label = locked ? "18+" : "$" + price;
             button(ctx, x + w - 66, ry + 4, 56, 14, label, afford ? 0xFF2FA84F : 0xFFB0A090, !locked && afford, () -> {
@@ -79,7 +79,7 @@ public class ShopScreen extends LifeScreen {
             ry += 25;
         }
         ctx.disableScissor();
-        if (!adult && tab.equals("Транспорт")) center(ctx, "Машины продают только после школы", x + w / 2, y + h - 14, 0xFFB04030);
+        if (!adult && tab.equals("Транспорт")) center(ctx, "", x + w / 2, y + h - 14, 0xFFB04030);
     }
 
     @Override

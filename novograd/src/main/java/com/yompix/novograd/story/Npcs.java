@@ -21,7 +21,7 @@ public final class Npcs {
 
     /** Где герой «живёт», когда сюжету не нужен: учитель — в классе, Ирина — в офисе, Петров — в парке. */
     private static final Map<String, String> HOME = Map.of("teacher", "classroom1", "irina", "office_desk", "petrov", "park_center");
-    private static final java.util.Set<String> KIDS = java.util.Set.of("tema", "lisa", "gleb");
+    private static final java.util.Set<String> KIDS = java.util.Set.<String>of(); // детей в Новограде нет: все сюжетные герои взрослые;
 
     @Nullable
     public static CitizenEntity find(ServerWorld w, String id) {

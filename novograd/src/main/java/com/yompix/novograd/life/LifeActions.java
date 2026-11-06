@@ -35,7 +35,7 @@ public final class LifeActions {
 
     private static void openCasino(ServerPlayerEntity p, String game) {
         if (!Life.get(p).adult()) {
-            p.sendMessage(Text.literal("🔞 Охранник: «Сначала школу закончи, потом приходи»").formatted(Formatting.RED), false);
+            p.sendMessage(Text.literal("🔞 Охранник: «Сегодня закрыто, приходи завтра»").formatted(Formatting.RED), false);
             return;
         }
         NbtCompound n = new NbtCompound();
@@ -86,7 +86,7 @@ public final class LifeActions {
         int hour = (int) ((t / 1000 + 6) % 24);
         String time = hour >= 5 && hour < 11 ? "morning" : hour < 17 ? "day" : hour < 22 ? "evening" : "night";
         LifeData d = Life.get(p);
-        boolean kid = d.age > 0 ? d.age < 18 : d.edu <= LifeData.SCHOOL_END;
+        boolean kid = false;
         String key = c.getUuid() + "/" + p.getUuid();
         long day = w.getTimeOfDay() / 24000;
         boolean met = GREETED.getOrDefault(key, -1L) == day;

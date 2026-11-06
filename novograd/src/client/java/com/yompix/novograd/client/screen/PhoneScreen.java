@@ -169,6 +169,7 @@ public class PhoneScreen extends LifeScreen {
             area(sx, sy + 10, 18, 18, () -> openApp(null));
             ctx.drawText(textRenderer, info.title().toUpperCase(), sx + 24, sy + 15, 0xFFFFFFFF, true);
             int cy = sy + 32;
+            ctx.enableScissor(sx, sy + 28, sx + sw, sy + sh); // содержимое приложения не налезает на шапку при прокрутке
             switch (app) {
                 case "bank" -> bank(ctx, cy);
                 case "jobs" -> jobs(ctx, cy);
@@ -184,6 +185,7 @@ public class PhoneScreen extends LifeScreen {
                 case "friends" -> friends(ctx, cy);
                 default -> {}
             }
+            ctx.disableScissor();
         }
         ctx.getMatrices().pop();
         ctx.disableScissor();
@@ -222,12 +224,17 @@ public class PhoneScreen extends LifeScreen {
         Ui.big(ctx, textRenderer, "$" + LifeHud.money(d.money), sx + 13, by + 10, 1f, Ui.MONEY, 0);
         String job = Jobs.Job.of(d.job).title;
         Ui.small(ctx, textRenderer, job, sx + sw - 11, by + 12, 0.7f, 0xFFFFFFFF, 2);
-        int cols = 4, iw = 24, gapX = (sw - cols * iw) / (cols + 1);
+        // сетка подстраивается под экран: все приложения помещаются в телефон (5 колонок и иконки меньше, если тесно)
+        int top = 76, avail = sh - top - 14;
+        int cols = 4, rows = (APPS.size() + cols - 1) / cols;
+        if (rows * 31 > avail) { cols = 5; rows = (APPS.size() + cols - 1) / cols; }
+        int rowH = Math.min(31, avail / Math.max(1, rows));
+        int iw = Math.max(14, Math.min(24, Math.min(rowH - 8, (sw - 8) / cols - 6))), gapX = (sw - cols * iw) / (cols + 1);
         float t = seconds();
         for (int i = 0; i < APPS.size(); i++) {
             App ap = APPS.get(i);
             int col = i % cols, row = i / cols;
-            int x = sx + gapX + col * (iw + gapX), y = sy + 76 + row * 31;
+            int x = sx + gapX + col * (iw + gapX), y = sy + top + row * rowH;
             // иконки появляются волной
             float appear = MathHelper.clamp((t - i * 0.025f) / 0.25f, 0, 1);
             boolean hov = hover(x, y, iw, iw);
@@ -241,7 +248,8 @@ public class PhoneScreen extends LifeScreen {
             ctx.setShaderColor(1, 1, 1, 1);
             ctx.getMatrices().pop();
             String label = ap.title();
-            Ui.small(ctx, textRenderer, label, x + iw / 2f, y + iw + 1, 0.6f, hov ? Ui.PINK : 0xFFFFFFFF, 1);
+            float ls = Math.min(0.6f, (iw + gapX - 2) / (float) Math.max(1, textRenderer.getWidth(label))); // подпись не налезает на соседнюю
+            Ui.small(ctx, textRenderer, label, x + iw / 2f, y + iw + 1, ls, hov ? Ui.PINK : 0xFFFFFFFF, 1);
             if (ap.id().equals("messages") && d.unread > 0) {
                 ctx.fill(x + iw - 5, y - 3, x + iw + 4, y + 6, 0xFFFF2E4A);
                 center(ctx, String.valueOf(Math.min(9, d.unread)), x + iw, y - 2, 0xFFFFFFFF);
@@ -420,7 +428,7 @@ public class PhoneScreen extends LifeScreen {
 
     private void casino(DrawContext ctx, int y) {
         center(ctx, "18+", sx + sw / 2, y + 10, 0xFFE53935);
-        wrap(ctx, "Казино «Фортуна» пускает только взрослых. Закончи школу — и приходи: автоматы и рулетка в здании казино, а онлайн-слоты — прямо здесь.", sx + 8, y + 26, sw - 16, 0xFFD0CBE0);
+        wrap(ctx, "Казино «Фортуна» сейчас закрыто — загляни позже.", sx + 8, y + 26, sw - 16, 0xFFD0CBE0);
     }
 
     private void music(DrawContext ctx, int y) {
@@ -490,32 +498,59 @@ public class PhoneScreen extends LifeScreen {
         }
     }
 
-    /** Вызов такси: куда ехать и сколько стоит. */
+    /** Вызов такси: куда ехать и сколько стоит. Список — ближние сверху, листается колесом, не налезает на шапку. */
     private void taxi(DrawContext ctx, int y) {
         var places = com.yompix.novograd.client.story.ClientStory.places;
         ctx.drawText(textRenderer, "Куда поедем?", sx + 8, y, 0xFFFFFFFF, false);
-        int yy = y + 12 - scroll;
+        int top = y + 12, bottom = sy + sh - 6;
+        boolean taxiJob = com.yompix.novograd.life.Jobs.Job.of(NovogradClient.data.job) == com.yompix.novograd.life.Jobs.Job.TAXI;
+        if (taxiJob) bottom -= 20;
+        // места: только с названием, без повторов, ближние первыми
+        java.util.List<Object[]> list = new java.util.ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        var me = mc().player.getPos();
+        for (String id : places.getKeys()) {
+            if (!(places.get(id) instanceof net.minecraft.nbt.NbtCompound pl)) continue;
+            String name = pl.getString("name");
+            if (name.isEmpty() || !seen.add(name)) continue;
+            Vec3d to = new Vec3d(pl.getInt("x"), me.y, pl.getInt("z"));
+            list.add(new Object[]{id, name, to, to.squaredDistanceTo(me)});
+        }
+        list.sort(java.util.Comparator.comparingDouble(o -> (double) o[3]));
         var wp = com.yompix.novograd.client.story.ClientStory.waypoint;
+        int rows = list.size() + (wp != null ? 1 : 0);
+        int maxScroll = Math.max(0, rows * 18 - (bottom - top));
+        scroll = Math.max(0, Math.min(scroll, maxScroll));
+        ctx.enableScissor(sx, top, sx + sw, bottom);
+        int yy = top - scroll;
+        int bw = 40, nameW = sw - 12 - bw - 10;
         if (wp != null) {
-            int price = com.yompix.novograd.life.Taxi.price(mc().player.getPos(), wp);
+            int price = com.yompix.novograd.life.Taxi.price(me, wp);
             roundRect(ctx, sx + 6, yy, sw - 12, 16, 0xFF3A2E10);
-            ctx.drawText(textRenderer, "★ Метка на карте", sx + 10, yy + 4, 0xFFFFC428, false);
+            ctx.drawText(textRenderer, textRenderer.trimToWidth("★ Метка на карте", nameW), sx + 10, yy + 4, 0xFFFFC428, false);
             final Vec3d to = wp;
-            button(ctx, sx + sw - 44, yy + 2, 36, 12, "$" + price, 0xFFF7C600, NovogradClient.data.money >= price,
+            if (yy >= top - 2 && yy + 16 <= bottom + 2) button(ctx, sx + sw - bw - 8, yy + 2, bw, 12, "$" + price, 0xFFF7C600, NovogradClient.data.money >= price,
                     () -> callTaxi((int) Math.floor(to.x) + "," + (int) Math.floor(to.z)));
             yy += 18;
         }
-        for (String id : places.getKeys()) {
-            if (!(places.get(id) instanceof net.minecraft.nbt.NbtCompound pl)) continue;
-            Vec3d to = new Vec3d(pl.getInt("x"), mc().player.getY(), pl.getInt("z"));
-            int price = com.yompix.novograd.life.Taxi.price(mc().player.getPos(), to);
-            roundRect(ctx, sx + 6, yy, sw - 12, 16, 0xFF1C1626);
-            ctx.drawText(textRenderer, pl.getString("name"), sx + 10, yy + 4, 0xFFE6E2F0, false);
-            button(ctx, sx + sw - 44, yy + 2, 36, 12, "$" + price, 0xFFF7C600, NovogradClient.data.money >= price, () -> callTaxi(id));
+        for (Object[] o : list) {
+            if (yy + 16 >= top && yy <= bottom) {
+                String id = (String) o[0], name = (String) o[1];
+                int price = com.yompix.novograd.life.Taxi.price(me, (Vec3d) o[2]);
+                roundRect(ctx, sx + 6, yy, sw - 12, 16, 0xFF1C1626);
+                String shown = textRenderer.getWidth(name) > nameW ? textRenderer.trimToWidth(name, nameW - 6) + "…" : name;
+                ctx.drawText(textRenderer, shown, sx + 10, yy + 4, 0xFFE6E2F0, false);
+                if (yy >= top - 2 && yy + 16 <= bottom + 2) button(ctx, sx + sw - bw - 8, yy + 2, bw, 12, "$" + price, 0xFFF7C600, NovogradClient.data.money >= price, () -> callTaxi(id));
+            }
             yy += 18;
         }
-        if (com.yompix.novograd.life.Jobs.Job.of(NovogradClient.data.job) == com.yompix.novograd.life.Jobs.Job.TAXI)
-            button(ctx, sx + 8, yy + 4, sw - 16, 14, "Принять вызов игрока", 0xFF2FA84F, true, () -> NovogradClient.send("taxi_accept"));
+        ctx.disableScissor();
+        if (maxScroll > 0) { // полоса прокрутки
+            int barH = Math.max(12, (bottom - top) * (bottom - top) / (rows * 18));
+            int barY = top + (bottom - top - barH) * scroll / maxScroll;
+            ctx.fill(sx + sw - 3, barY, sx + sw - 1, barY + barH, 0x80FFFFFF);
+        }
+        if (taxiJob) button(ctx, sx + 8, bottom + 4, sw - 16, 14, "Принять вызов игрока", 0xFF2FA84F, true, () -> NovogradClient.send("taxi_accept"));
     }
 
     private void callTaxi(String dest) {
@@ -562,7 +597,7 @@ public class PhoneScreen extends LifeScreen {
         int yy = y + 24;
         if (d.flags.contains("own_home")) {
             roundRect(ctx, sx + 6, yy, sw - 12, 18, 0xFF143A20);
-            ctx.drawText(textRenderer, "Родительский дом — твой", sx + 10, yy + 5, 0xFF62E57E, false);
+            ctx.drawText(textRenderer, "Свой дом — твой", sx + 10, yy + 5, 0xFF62E57E, false);
             yy += 22;
         }
         for (String[] h : com.yompix.novograd.life.CityLife.HOUSES) {
@@ -585,7 +620,7 @@ public class PhoneScreen extends LifeScreen {
         LifeData d = NovogradClient.data;
         if (d.storyDone) {
             center(ctx, "Сюжет пройден!", sx + sw / 2, y + 10, 0xFF2FA84F);
-            wrap(ctx, "Город твой: работай, учись, покупай машины и дома. Тёма, Лиза и Глеб всегда рады тебя видеть.", sx + 8, y + 26, sw - 16, 0xFFD0CBE0);
+            wrap(ctx, "Город твой: гоняй, грабь банки, покупай бизнесы и захватывай районы. Ники, Брик и Роза всегда на связи.", sx + 8, y + 26, sw - 16, 0xFFD0CBE0);
             return;
         }
         if (!o.contains("mission")) {

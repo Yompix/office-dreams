@@ -23,7 +23,7 @@ public final class Casino {
 
     private static boolean allowed(ServerPlayerEntity p, int bet) {
         if (!Life.get(p).adult()) {
-            p.sendMessage(Text.literal("🔞 Казино только для взрослых. Сначала закончи школу!").formatted(Formatting.RED), true);
+            p.sendMessage(Text.literal("Казино сейчас закрыто").formatted(Formatting.RED), true);
             return false;
         }
         for (int b : BETS) if (b == bet) return true;
