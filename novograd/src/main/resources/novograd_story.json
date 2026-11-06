@@ -1344,8 +1344,8 @@
          "sec": 6
         },
         {
-         "from": "gang_yard+7,7,9",
-         "to": "gang_yard+5,5,7",
+         "from": "gang_yard+4,10,15",
+         "to": "gang_yard+2,7,13",
          "sec": 6,
          "track": "kirpich"
         },
