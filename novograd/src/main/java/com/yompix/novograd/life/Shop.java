@@ -136,6 +136,13 @@ public final class Shop {
             p.sendMessage(Text.literal("Оружие продают только в «Калибре», лично").formatted(Formatting.RED), true);
             return;
         }
+        // тяжёлое оружие — по ходу сюжета: «АК» с акта II, снайперка с акта IV
+        var it = e.item().get();
+        int act = com.yompix.novograd.gta.Economy.act(Life.get(p));
+        if (it == com.yompix.novograd.gta.Arsenal.RIFLE && act < 1 || it == com.yompix.novograd.gta.Arsenal.SNIPER && act < 3) {
+            p.sendMessage(Text.literal("Оружейник Боб: «Такой ствол — только проверенным людям. Приходи, когда тебя узнают в городе.»").formatted(Formatting.GOLD), false);
+            return;
+        }
         int cost = price(e, delivery, CityLife.event(p.getServerWorld()));
         // у оружейника берут и грязные наличные (чёрный рынок), в остальных магазинах — только чистые с карты
         if (gunCategory(e.category()) ? !com.yompix.novograd.gta.Economy.payBlack(p, cost, e.name()) : !Life.pay(p, cost, e.name())) return;

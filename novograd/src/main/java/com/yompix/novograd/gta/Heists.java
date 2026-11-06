@@ -64,6 +64,12 @@ public final class Heists {
             for (int i = 0; i < BANKS.length; i++) {
                 Vec3d at = Story.place(w, (String) BANKS[i][1]);
                 if (at == null || p.squaredDistanceTo(at) > 7 * 7) continue;
+                int need = i == 2 ? 4 : 2;
+                if (Economy.act(d) < need) {
+                    if (w.getTime() % 100 == 0) p.sendMessage(Text.literal(i == 2 ? "🏦 Хранилище «Короны» пока не по зубам — сначала разберись с Кроу (акт V)"
+                            : "🏦 Без команды банк не взять. Наберись опыта по сюжету (откроется с акта III)").formatted(Formatting.GRAY), true);
+                    return;
+                }
                 String cd = "heist_cd:" + i;
                 long last = d.flags.stream().filter(f -> f.startsWith(cd + "=")).mapToLong(f -> Long.parseLong(f.substring(cd.length() + 1))).max().orElse(-99);
                 if (day(w) - last < 2) {
@@ -414,6 +420,7 @@ public final class Heists {
 
     private static void tickRay(ServerPlayerEntity p, LifeData d) {
         ServerWorld w = p.getServerWorld();
+        if (Economy.act(d) < 3 || Economy.act(d) == 3 && d.mission < 5) return; // Рэй отмывает, только когда ты с ним знаком
         Vec3d at = Story.place(w, "riv_marina+6,4");
         if (at == null || p.squaredDistanceTo(at) > 48 * 48) return;
         int y = w.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, (int) at.x, (int) at.z);

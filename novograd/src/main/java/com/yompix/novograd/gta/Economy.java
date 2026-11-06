@@ -25,6 +25,11 @@ import java.util.*;
 public final class Economy {
     private Economy() {}
 
+    /** Насколько далеко игрок по сюжету: 0 — акт I … 4 — акт V, 5 — сюжет пройден. */
+    public static int act(LifeData d) {
+        return d.storyDone ? 5 : Math.max(0, d.chapter);
+    }
+
     // ------------------------------------------------------------------ грязные деньги
     public static void dirty(ServerPlayerEntity p, int amount, String why) {
         LifeData d = Life.get(p);
