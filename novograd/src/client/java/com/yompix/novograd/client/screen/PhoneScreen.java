@@ -227,9 +227,9 @@ public class PhoneScreen extends LifeScreen {
         String job = Jobs.Job.of(d.job).title;
         Ui.small(ctx, textRenderer, job, sx + sw - 11, by + 12, 0.7f, 0xFFFFFFFF, 2);
         // сетка подстраивается под экран: все приложения помещаются в телефон (5 колонок и иконки меньше, если тесно)
-        int top = 76, avail = sh - top - 14;
+        int top = 76, avail = sh - top - 18;
         int cols = 4, rows = (APPS.size() + cols - 1) / cols;
-        if (rows * 31 > avail) { cols = 5; rows = (APPS.size() + cols - 1) / cols; }
+        while (rows * 31 > avail && cols < 6) { cols++; rows = (APPS.size() + cols - 1) / cols; } // все приложения влезают в экран
         int rowH = Math.min(31, avail / Math.max(1, rows));
         int iw = Math.max(14, Math.min(24, Math.min(rowH - 8, (sw - 8) / cols - 6))), gapX = (sw - cols * iw) / (cols + 1);
         float t = seconds();
