@@ -180,13 +180,14 @@ def score_sh(TL):
     t = .55
     while t < silence - .3:   # пульс: 60 → ~110 уд/мин к камере
         k = t / silence; at(tr, t, pulse(vel=.4 + .3 * k)); t += 1.0 - .45 * k
-    sm = seg['smile']['start']
+    sm = (seg.get('smile') or seg.get('rec') or {'start': silence})['start']   # истории (st*): своего кадра «улыбка» нет
     at(tr, sm, braam(hz('D1'), 2.4, vel=.3))
     at(tr, sm, pad([hz('D3'), hz('F3'), hz('A3'), hz('C4')], max(1.5, silence - sm + .5), vel=.08, bright=900, att=2, rel=.6), pan=.1)
     at(tr, sm + 1.2, pad([hz('Eb4'), hz('D5')], max(1.0, silence - sm - .7), vel=.05, bright=1600, att=1.5, rel=.4), pan=.25)   # высокая секунда — тревога
     n = int((scare - silence) * SR)   # на камере пусто: тонкий высокий тон
     at(tr, silence + .2, np.sin(2 * np.pi * hz('C#7') * np.arange(n) / SR) * .012 * env(n, 1.2, .3))
-    r0 = seg['there']['start'] + .1
+    there = seg.get('there') or seg.get('rec2') or seg['lunge']
+    r0 = there['start'] + .1
     at(tr, r0, riser(jump - r0, vel=.36))
     # логотип: браам и мотив шкатулкой (ля-фа-ми-ре), пэд ре минор
     at(tr, end, braam(hz('D1'), 2.2, vel=.5)); at(tr, end, pad([hz('D3'), hz('F3'), hz('A3')], D - end + .3, vel=.12, bright=900, att=.4, rel=.6))
@@ -199,7 +200,7 @@ def score_sh(TL):
     g = np.ones(len(y)); tt = np.arange(len(y)) / SR
     def dip(a, b, fo=.25, fi=.3, lvl=0.0):
         k = np.clip((tt - a) / fo, 0, 1) * np.clip((b - tt) / fi, 0, 1); g[:] = np.minimum(g, 1 - (1 - lvl) * k)
-    dip(silence, seg['there']['start'], .4, .3, .12)   # на камере — почти тишина
+    dip(silence, there['start'], .4, .3, .12)   # на камере — почти тишина
     dip(jump + .05, end - .02, .05, .02, 0)            # после броска и в звонке — тишина
     return y * g[:, None]
 

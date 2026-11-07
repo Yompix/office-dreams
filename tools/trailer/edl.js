@@ -147,31 +147,30 @@ function shorts2(L) {
   return S;
 }
 
-// История №1 «Сестра в 3:31» (7 ноя): рассказ подписями от первого лица на анимации из игры + голоса героев; реклама — в конце, как продолжение
-// истории: «Эту ночь можно пережить самому» → логотип → подписка @yompixgames.
+// Страшная история №1 «Звонок из пустого кабинета» (7 ноя) — своя история, с сюжетом игры не связана; кадры — анимация движка как «съёмка»,
+// рассказ — подписями, без голосов персонажей игры. Реклама — в конце: вопрос → «любишь такие истории — сыграй в Hush Till Six» → логотип → подписка.
 function story1(L) {
   const S = [], cap = (ru, en) => ({ kind: 'hook', at: 0, dur: 99, lines: [T(ru, en)], nomerge: 1 });
-  S.push({ id: 'ext', shot: 'pro_ext', from: 'intro:2', t0: 0, cam: [.5, .45, 1.0, 1.12], fx: 'rain', dur: 3.0, card: cap('МНЕ БЫЛО 19, КОГДА Я УСТРОИЛСЯ НОЧНЫМ ОХРАННИКОМ', 'I WAS 19 WHEN I TOOK A NIGHT GUARD JOB'),
-    sfx: [['rain', 0, { gain: .32, cut: 9 }], ['drone_dread', 0, { gain: .22 }]], mark: 'build' });
-  S.push({ id: 'hall', shot: 'pro_hall', from: 'intro:0', t0: 1, cam: [.5, .5, 1.02, 1.12], cctv: T('CAM 02  ХОЛЛ', 'CAM 02  LOBBY'), clock: '22:04', dur: 2.8, card: cap('ОХРАННИК ДО МЕНЯ ПРОПАЛ. ПРЯМО СО СМЕНЫ', 'THE GUARD BEFORE ME VANISHED. MID-SHIFT') });
-  S.push({ id: 'booth', shot: 'fb_view', from: 'booth:0', t0: 2, cam: [.5, .5, 1.06, 1.18], dur: 2.4, card: cap('ОТ НЕГО ОСТАЛИСЬ ТРИ ПРАВИЛА', 'ALL HE LEFT WERE THREE RULES'), sfx: [['tick', .3, { gain: .35 }], ['tick', 1.3, { gain: .35 }]] });
-  rules(S, L, { callCam: [.5, .48, 1.12, 1.18], lead: .1, hold: .4, rule2: RULE2 });
-  S.push({ id: 'quiet', shot: 'monitors', from: 'journal:10', t0: 3, cam: [.5, .5, 1.04, 1.1], fx: 'flicker', dur: 2.2, card: cap('ТРИ НОЧИ БЫЛО ТИХО', 'THREE NIGHTS WERE QUIET') });
-  S.push({ id: 'lily', shot: 'gl_face', from: 'glass2:1', t0: 1, cam: [.5, .5, 1.1, 1.2], fx: 'rain', vo: [['g05', .5]], tail: .3, card: cap('НА ЧЕТВЁРТУЮ, В 3:31, В ДВЕРЬ ПОСТУЧАЛА СЕСТРА', 'ON THE FOURTH, AT 3:31, MY SISTER KNOCKED'),
-    sfx: [['rain', 0, { gain: .3, cut: 9 }], ['glass_hit', .2, { gain: .3 }], ['glass_hit', .7, { gain: .28 }]] });
-  S.push({ id: 'far', shot: 'gl_wide', from: 'glass2:2', t0: 1, cam: [.5, .5, 1.04, 1.1], fx: 'rain', vo: [['g06', .05]], tail: .3, card: cap('НО ОНА ДОЛЖНА БЫЛА СПАТЬ ЗА 300 КМ ОТСЮДА', 'BUT SHE WAS SUPPOSED TO BE ASLEEP 200 MILES AWAY') });
-  S.push({ id: 'lilycam', shot: 'entrance_empty', from: 'glass2:4', t0: 1, cam: [.5, .5, 1.0, 1.08], cctv: T('CAM 01  ВХОД', 'CAM 01  ENTRANCE'), clock: '03:31', fx: 'static', vo: [['g08', .1]], tail: .3,
-    card: cap('Я ПОСМОТРЕЛ НА КАМЕРУ. У ДВЕРИ — НИКОГО', 'I CHECKED THE CAMERA. NO ONE AT THE DOOR'), sfx: [['static', 0, { gain: .45, cut: .45 }]], mark: 'silence' });
-  S.push({ id: 'smile', shot: 'b_smile', from: 'branch_b:2', t0: .4, cam: [.5, .47, 1.0, 1.22], fx: 'rain', vo: [['b02', .25]], tail: .3, sfx: [['skin_stretch', 1.8, { gain: .45 }], ['drone_dread', 0, { gain: .3 }]] });
-  S.push({ id: 'there', shot: 'h_face_open', from: 'over_k5:0', t0: 1, cam: [.5, .5, 1.1, 1.2], fx: 'dark', vo: [['k5a', .15]], tail: .1 });
+  S.push({ id: 'hall', shot: 'pro_hall', from: 'intro:0', t0: 1, cam: [.5, .5, 1.02, 1.14], cctv: T('CAM 02  ХОЛЛ', 'CAM 02  LOBBY'), clock: '02:09', dur: 3.2,
+    card: cap('МОЙ ДРУГ РАБОТАЛ НОЧНЫМ УБОРЩИКОМ В ОФИСНОМ ЦЕНТРЕ', 'MY FRIEND WORKED NIGHTS AS A CLEANER IN AN OFFICE TOWER'), sfx: [['drone_dread', 0, { gain: .22 }], ['room_tone', 0, { gain: .3, cut: 12 }]], mark: 'build' });
+  S.push({ id: 'floor', shot: 'f7_cam_after', from: 'floor7:5', t0: 1, cam: [.5, .5, 1.0, 1.08], cctv: T('CAM 07  ЭТАЖ 7', 'CAM 07  FLOOR 7'), clock: '02:14', dur: 3.0,
+    card: cap('В 2:14 ОН МЫЛ ПОЛ НА СЕДЬМОМ ЭТАЖЕ. ОДИН', 'AT 2:14 HE WAS MOPPING THE 7TH FLOOR. ALONE'), sfx: [['mop_swish', .3, { gain: .35 }], ['mop_swish', 1.6, { gain: .3 }]] });
+  S.push({ id: 'ring', shot: 'monitors', from: 'journal:10', t0: 2, cam: [.5, .5, 1.04, 1.12], fx: 'flicker', dur: 3.0,
+    card: cap('В ПУСТОМ КАБИНЕТЕ ЗАЗВОНИЛ СТАЦИОНАРНЫЙ ТЕЛЕФОН', 'A DESK PHONE STARTED RINGING IN AN EMPTY OFFICE'), sfx: [['buzz', .2, { gain: .45, cut: .6 }], ['buzz', 1.0, { gain: .45, cut: .6 }], ['buzz', 1.8, { gain: .45, cut: .6 }]] });
+  S.push({ id: 'num', shot: 'booth_call', from: 'dg_it:1', t0: 3, cam: [.5, .48, 1.12, 1.2], dur: 3.0,
+    card: cap('НОМЕР НА ЭКРАНЕ — ЭТОГО ЖЕ КАБИНЕТА', 'THE NUMBER ON THE SCREEN WAS THAT SAME OFFICE'), sfx: [['phone_crackle', .4, { gain: .35 }]] });
+  S.push({ id: 'breath', shot: 'h_crouch', from: 'hide:2', t0: 2, cam: [.5, .5, 1.02, 1.1], dur: 3.4,
+    card: cap('В ТРУБКЕ ДЫШАЛИ. ПОТОМ ШЕПНУЛИ: «Я ПОД СТОЛОМ»', 'SOMEONE BREATHED. THEN WHISPERED: “I’M UNDER THE DESK”'), sfx: [['breath_close', .2, { gain: .35 }], ['whispers', 1.6, { gain: .3, cut: 1.6 }]], mark: 'silence' });
+  S.push({ id: 'look', shot: 'srv_dark', from: 'knock3:6', t0: 1.5, cam: [.5, .5, 1.04, 1.14], dur: 2.8,
+    card: cap('ОН ЗАГЛЯНУЛ ПОД СТОЛ. ТАМ НИКОГО НЕ БЫЛО', 'HE LOOKED UNDER THE DESK. NOTHING THERE'), sfx: [['heart_held', 0, { gain: .35 }]] });
+  S.push({ id: 'home', black: 2.2, card: { kind: 'big', at: .2, dur: 2.0, lines: [T('ОН УШЁЛ ДОМОЙ', 'HE WENT HOME')] }, sfx: [['door_slams', .1, { gain: .4 }]] });
+  S.push({ id: 'rec', shot: 'c13_back', from: 'cam13:1', t0: 1, cam: [.47, .42, 1.9, 2.3], cctv: T('ЗАПИСЬ  02:14', 'REC  02:14'), clock: '02:14', fx: 'static', dur: 3.6,
+    card: cap('УТРОМ ОХРАНА ПОКАЗАЛА ЕМУ ЗАПИСЬ С КАМЕРЫ', 'IN THE MORNING SECURITY SHOWED HIM THE TAPE'), sfx: [['static', 0, { gain: .4, cut: .5 }]] });
+  S.push({ id: 'rec2', shot: 'c13_face', from: 'over_stare:0', t0: 2.5, cam: [[.45, 1.5, -3.3], -.06, 1.5, 1.9], cctv: T('ЗАПИСЬ  02:15', 'REC  02:15'), clock: '02:15', fx: 'static', dur: 3.2,
+    card: cap('ПОД СТОЛОМ КТО-ТО СИДЕЛ. И СМОТРЕЛ ПРЯМО В КАМЕРУ', 'SOMEONE WAS SITTING UNDER THE DESK. STARING RIGHT AT THE CAMERA'), sfx: [['static', 0, { gain: .5, cut: 3 }], ['neck_crack', 2.2, { gain: .6 }]] });
   S.push({ id: 'lunge', shot: 'lunge_booth', t0: .55, cam: [.5, .5, 1, 1], scareAt: .75, dur: 1.6, sfx: [['jumpscare', .75, { gain: 1 }], ['scare', .75, { gain: .8 }]], mark: 'scare' });
-  S.push({ id: 'cut', black: 2.2, card: { kind: 'big', at: .3, dur: 1.9, lines: [T('Я НЕ ОТКРЫЛ', "I DIDN'T OPEN")] }, sfx: [['tinnitus', 0, { gain: .3, cut: 2 }]] });
-  S.push({ id: 'ring', black: 2.0, card: { kind: 'hook', at: 0, dur: 2.0, lines: [T('В 6:00 МНЕ ПОЗВОНИЛА СЕСТРА', 'AT 6 AM MY SISTER CALLED')], nomerge: 1 }, sfx: [['buzz', .3, { gain: .45, cut: .55 }], ['buzz', 1.0, { gain: .45, cut: .55 }]], mark: 'stinger' });
-  S.push({ id: 'call2', black: 0, vo: [['n20', 0]], tail: .6, card: { kind: 'phone', at: 0, name: T('Лили', 'Lily') } });
-  S.push({ id: 'me', black: 0, vo: [['n23m', 0]], tail: .35, card: { kind: 'phone', at: 0, name: T('Лили', 'Lily') } });
-  S.push({ id: 'dbl', shot: 'dbl_cam', from: 'over_phone:2', t0: 2.2, cam: [.72, .55, 2.3, 2.6], cctv: T('CAM 02  ХОЛЛ', 'CAM 02  LOBBY'), clock: '05:59', dur: 1.9, dz: [.4, .6, 1.0, 2.1],
-    sfx: [['phone_crackle', 0, { gain: .5 }], ['static', 1.5, { gain: .7, cut: .4 }]] });
-  S.push({ id: 'live', black: 2.6, card: { kind: 'big', at: .1, dur: 2.5, lines: [T('ЭТУ НОЧЬ МОЖНО ПЕРЕЖИТЬ САМОМУ', 'YOU CAN LIVE THROUGH THIS NIGHT YOURSELF')] }, sfx: [['boom', .1, { gain: .7 }]] });
+  S.push({ id: 'cut', black: 2.6, card: { kind: 'big', at: .3, dur: 2.3, lines: [T('ТЫ БЫ ВЫШЕЛ НА СЛЕДУЮЩУЮ СМЕНУ?', 'WOULD YOU GO BACK FOR THE NEXT SHIFT?')] }, sfx: [['tinnitus', 0, { gain: .3, cut: 2.4 }]], mark: 'stinger' });
+  S.push({ id: 'ad', black: 3.0, card: { kind: 'big', at: .1, dur: 2.9, lines: [T('ЛЮБИШЬ ТАКОЕ? СЫГРАЙ В НОЧНУЮ СМЕНУ САМ', 'LIKE THIS? PLAY A NIGHT SHIFT YOURSELF')] }, sfx: [['boom', .1, { gain: .7 }]] });
   S.push({ id: 'end', black: 3.2, card: { kind: 'end', at: 0, dur: 3.2, logo: 1 }, sfx: [['knock', 1.6, { gain: .6 }], ['knock', 2.05, { gain: .6 }], ['knock', 2.5, { gain: .6 }]], mark: 'end' });
   S.push({ id: 'cta', black: 3.0, card: { kind: 'cta', at: 0, dur: 3.0 } });
   return S;
