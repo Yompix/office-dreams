@@ -155,9 +155,11 @@ public final class GunMods {
     public static void quietShot(ServerWorld w, LivingEntity shooter, Vec3d at) {
         for (CitizenEntity c : w.getEntitiesByClass(CitizenEntity.class, shooter.getBoundingBox().expand(6), c -> c != shooter)) c.panic(at);
         if (!(shooter instanceof ServerPlayerEntity p) || p.isCreative()) return;
-        boolean cop = Wanted.policeSees(w, p, 24);
-        boolean witness = cop || !w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(10),
+        double sk = Skills.stealthMul(p); // навык скрытности (SA): свидетели замечают ближе
+        boolean cop = Wanted.policeSees(w, p, 24 * (0.4 + 0.6 * sk));
+        boolean witness = cop || !w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(10 * sk),
                 c -> c.isAlive() && c.getRole() != CitizenEntity.Role.GANG && !(c instanceof com.yompix.novograd.entity.BodyguardEntity) && c.canSee(p)).isEmpty();
         if (witness) Wanted.add(p, 0, cop ? "стрельба на глазах у полиции" : "свидетели видели стрельбу", cop ? 2 : 1);
+        else Skills.add(p, Skills.Skill.STEALTH, 1.5f); // тихо и без свидетелей — растёт скрытность
     }
 }

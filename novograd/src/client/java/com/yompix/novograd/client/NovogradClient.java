@@ -172,8 +172,14 @@ public class NovogradClient implements ClientModInitializer {
         DriveClient.init(); // бензин, камеры скорости, туман, перелёты, экран «Авто»
         CityClient.init(); // полицейская рация, автобус (подсказка, пропуск), автотест city
         PropsClient.init(); // живая улица: обломки, падающие фонари, искры от стен
+        TransitClient.init(); // кафе, супермаркеты, метро: меню, поезд, подсказки в вагоне
+        TransitAutotest.init(); // -Dnovograd.autotest=transit: кафе, метро, «Мираж»
+        com.yompix.novograd.client.story.CallClient.init(); // звонки героев: карточка, Y/N, субтитры разговора
         DevAutotest.init();
         LifeAutotest.init(); // -Dnovograd.autotest=life: прохожие, пляж, ларьки, вечер, дождь
+        OutdoorClient.init(); // навыки SA, охота и рыбалка, времена года и праздники; -Dnovograd.autotest=outdoor
+        com.yompix.novograd.client.cops.CopsClient.init(); // погоня, маски (K), колония, «Полицейские и воры»; автотест cops
+        UnderworldClient.init(); // тёмные дела: телефон → «Дела», подсказки во время дела; автотест heist
     }
 
     public static void send(String type, NbtCompound data) {
@@ -279,6 +285,9 @@ public class NovogradClient implements ClientModInitializer {
             }
             default -> {
                 if (type.startsWith("city_") && CityClient.receive(client, type, n)) return; // рация, автобус
+                if (type.startsWith("call_") && com.yompix.novograd.client.story.CallClient.receive(client, type, n)) return; // звонки героев
+                if (type.startsWith("uw_") && UnderworldClient.receive(client, type, n)) return; // тёмные дела
+                if (type.startsWith("out_") && OutdoorClient.receive(client, type, n)) return; // навыки, охота, рыбалка, праздники
                 if (!DriveClient.receive(client, type, n)) // дороги и транспорт 0.4
                     com.yompix.novograd.client.FunClient.receive(client, type, n); // парашют, подработки, районы, автоматы
             }
@@ -312,7 +321,7 @@ public class NovogradClient implements ClientModInitializer {
             client.setScreen(s);
         }
         while (phoneKey.wasPressed()) {
-            if (client.currentScreen == null) { // телефон всегда с собой, как в GTA (предмет не нужен)
+            if (client.currentScreen == null && !com.yompix.novograd.client.cops.CopsClient.blockPhone(client)) { // телефон всегда с собой (в колонии изъят)
                 client.setScreen(new PhoneScreen(null));
                 client.player.playSound(ModContent.PHONE_OPEN, 0.5f, 1f);
             }

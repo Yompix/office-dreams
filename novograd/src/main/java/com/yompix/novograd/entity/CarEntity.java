@@ -53,6 +53,8 @@ public class CarEntity extends Entity {
     private static final TrackedData<Integer> WOBBLE = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
     /** Свет: 1 — фары, 2 — левый поворотник, 4 — правый, 8 — аварийка. */
     private static final TrackedData<Integer> LIGHTS = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    /** Пробитые шины (полицейские шипы, gta/Pursuit): скорость и руль хуже, пока не починят. */
+    private static final TrackedData<Boolean> FLAT = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     public static final int HEADLIGHTS = 1, LEFT = 2, RIGHT = 4, HAZARD = 8;
 
     /** Посадочные места: x — вправо, z — вперёд (в блоках). */
@@ -129,6 +131,15 @@ public class CarEntity extends Entity {
         builder.add(HEALTH, 100);
         builder.add(NITRO, 0);
         builder.add(FUEL, FUEL_MAX);
+        builder.add(FLAT, false);
+    }
+
+    public boolean flat() {
+        return dataTracker.get(FLAT);
+    }
+
+    public void setFlat(boolean f) {
+        dataTracker.set(FLAT, f);
     }
 
     public int fuel() {
@@ -229,6 +240,7 @@ public class CarEntity extends Entity {
 
     public void repair() {
         dataTracker.set(HEALTH, 100);
+        dataTracker.set(FLAT, false);
     }
 
     public boolean wrecked() {
@@ -286,6 +298,8 @@ public class CarEntity extends Entity {
         var w = getWorld();
         // дым от повреждений, огонь у разбитой
         if (w.isClient) {
+            if (flat() && Math.abs(clientSpeed) > 0.08f && age % 2 == 0) // искры от дисков
+                w.addParticle(net.minecraft.particle.ParticleTypes.CRIT, getX() + (random.nextDouble() - 0.5) * 2, getY() + 0.15, getZ() + (random.nextDouble() - 0.5) * 2, 0, 0.05, 0);
             if (health() < 35 && age % 3 == 0) w.addParticle(net.minecraft.particle.ParticleTypes.LARGE_SMOKE, getX(), getY() + 1.1, getZ(), 0, 0.05, 0);
             if (wrecked() && age % 2 == 0) w.addParticle(net.minecraft.particle.ParticleTypes.FLAME, getX() + (random.nextDouble() - 0.5), getY() + 1, getZ() + (random.nextDouble() - 0.5), 0, 0.04, 0);
             if (nitroOn()) {
@@ -305,7 +319,7 @@ public class CarEntity extends Entity {
             if (!chaseTarget.isAlive() || chaseTarget.squaredDistanceTo(this) > 120 * 120) chase(null);
             else {
                 if (age % 48 == 0) w.playSound(null, getBlockPos(), ModContent.SIREN, SoundCategory.NEUTRAL, 1.6f, 1f);
-                if (age % 15 == 0 && getControllingPassenger() == null) {
+                if (age % 15 == 0 && getControllingPassenger() == null && !pursuitDriven) { // умную погоню ведёт gta/Pursuit
                     Vec3d tp = chaseTarget.getPos();
                     setRoute(java.util.List.of(tp), chaseTarget.hasVehicle() ? 0.9f : 0.6f, null);
                 }
@@ -321,7 +335,18 @@ public class CarEntity extends Entity {
 
     public void chase(@Nullable Entity target) {
         chaseTarget = target;
-        if (target == null) route = null;
+        if (target == null) {
+            route = null;
+            pursuitDriven = false;
+        }
+    }
+
+    /** Маршрут погони задаёт gta/Pursuit (подрезать, PIT, поиск по последней точке). */
+    public boolean pursuitDriven;
+
+    @Nullable
+    public Entity chaseTarget() {
+        return chaseTarget;
     }
 
     public void setOwner(@Nullable UUID owner) {
@@ -523,6 +548,7 @@ public class CarEntity extends Entity {
             dataTracker.set(WOBBLE, 10);
             getWorld().playSound(null, getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, SoundCategory.NEUTRAL, 1f, 0.7f);
             java.util.Arrays.fill(stepLen, 0);
+            if (getControllingPassenger() instanceof ServerPlayerEntity sk) com.yompix.novograd.gta.Skills.onCrash(sk); // авария обнуляет «чистую» езду
         }
     }
 
@@ -806,6 +832,7 @@ public class CarEntity extends Entity {
         if (player && usesFuel() && fuel() <= 0 && (fwd > 0 || fwd < 0 && speed <= 0.01f)) fwd = 0; // тормоз работает, газ и задний ход — нет
         if (player && !isBike() && !isScooter()) max *= com.yompix.novograd.gta.Fuel.surfaceFactor(this);
         if (route != null && !player && nitroOn()) max *= 1.55f;
+        if (flat()) max *= 0.5f; // пробитые шины (шипы полиции)
         // ручник — только у водителя на его клиенте (физику машины игрока считает его клиент)
         handbrake = player && fourWheels && getWorld().isClient && handbrakeInput && !wrecked();
         if (wrecked()) {
@@ -867,6 +894,11 @@ public class CarEntity extends Entity {
         float grip = MathHelper.clamp(sp * 6, 0, 1);
         float turnK = player ? 4.5f * b.turn * (1 - Math.min(sp, 1.2f) * 0.42f) : 4.2f * (1 - Math.min(sp, 0.9f) * 0.45f);
         if (handbrake && sp > 0.15f) turnK *= 1.75f;
+        if (player && getControllingPassenger() instanceof PlayerEntity sk) turnK *= com.yompix.novograd.gta.Skills.steerMul(sk, !fourWheels); // навык вождения/мотоцикла (SA)
+        if (flat()) {
+            turnK *= 0.6f; // на дисках руль слушается плохо, машину водит
+            if (sp > 0.1f) setYaw(getYaw() + (random.nextFloat() - 0.5f) * 1.6f * sp);
+        }
         float turn = -steer * turnK * grip * Math.signum(speed);
         setYaw(getYaw() + turn);
 
@@ -876,9 +908,12 @@ public class CarEntity extends Entity {
             float diff = MathHelper.wrapDegrees(getYaw() - moveYaw);
             float wet = com.yompix.novograd.gta.Fuel.wetGrip(this); // дождь — скользко
             float traction = handbrake ? 0.045f : MathHelper.clamp(0.55f * b.grip * wet - sp * 0.12f, wet < 1 ? 0.12f : 0.2f, 0.75f);
+            if (!handbrake && getControllingPassenger() instanceof PlayerEntity sk) traction = Math.min(0.85f, traction * com.yompix.novograd.gta.Skills.gripMul(sk, false)); // опытный водитель — меньше заносит
             moveYaw += diff * traction;
             diff = MathHelper.wrapDegrees(getYaw() - moveYaw);
             if (Math.abs(diff) > 65) moveYaw = getYaw() - Math.signum(diff) * 65;
+            if (!handbrake && getControllingPassenger() instanceof PlayerEntity sk && Math.abs(diff) > com.yompix.novograd.gta.Skills.maxSlide(sk))
+                moveYaw = getYaw() - Math.signum(diff) * com.yompix.novograd.gta.Skills.maxSlide(sk); // мастера не разворачивает
             speed -= speed * Math.min(Math.abs(diff), 60) / 60f * 0.018f; // боком машина теряет скорость
         }
         slip = MathHelper.wrapDegrees(getYaw() - moveYaw);
@@ -1137,6 +1172,7 @@ public class CarEntity extends Entity {
         dataTracker.set(TUNE, nbt.getInt("Tune"));
         if (nbt.contains("Health")) dataTracker.set(HEALTH, nbt.getInt("Health"));
         if (nbt.contains("Fuel")) setFuel(nbt.getInt("Fuel"));
+        setFlat(nbt.getBoolean("Flat"));
         ambient = nbt.getBoolean("Ambient");
         owner = nbt.containsUuid("Owner") ? nbt.getUuid("Owner") : null;
     }
@@ -1149,6 +1185,7 @@ public class CarEntity extends Entity {
         nbt.putInt("Health", health());
         nbt.putInt("Fuel", fuel());
         nbt.putBoolean("Ambient", ambient);
+        if (flat()) nbt.putBoolean("Flat", true);
         if (owner != null) nbt.putUuid("Owner", owner);
     }
 

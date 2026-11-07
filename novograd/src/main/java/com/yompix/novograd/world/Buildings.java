@@ -393,6 +393,7 @@ final class Buildings {
     }
 
     private static void lobby(int lx, int lz, int L, Island.Column c, Spec sp, int W) {
+        if (Venues.lobby(sp.px(), sp.pz(), lx, lz, L, c, W)) return; // кофейня в лобби (world/Venues)
         int ax = Math.abs(lx), az = Math.abs(lz), e = W - Math.max(ax, az);
         boolean hotel = sp.use() == HOTEL;
         if ((lx == 0 || lx == 1) && lz >= -2) {
@@ -894,6 +895,9 @@ final class Buildings {
             case INDUSTRIAL -> {
                 return new int[]{(int) (hash(px, pz, 31) * 3) >= 2 ? 7 : 6, 13, 1};
             }
+            case MIRAGE -> {
+                return DesertCity.info(px, pz);
+            }
             default -> {
                 return new int[]{5, 4, 1};
             }
@@ -960,7 +964,7 @@ final class Buildings {
     }
 
     /** Игровой зал в два этажа: автоматы, рулетки, бар, люстры. Автоматы и рулетки — настоящие (играть можно). */
-    private static void casinoHall(int lx, int lz, int s, Island.Column c, int I) {
+    static void casinoHall(int lx, int lz, int s, Island.Column c, int I) {
         int ax = Math.abs(lx), az = Math.abs(lz), m = Math.max(ax, az);
         boolean aisle = ax <= 1 && lz > -I + 3;
         c.set(s, m == I ? st(Blocks.BLACK_CONCRETE) : aisle ? st(Blocks.YELLOW_WOOL)
@@ -1004,7 +1008,7 @@ final class Buildings {
     }
 
     /** Парк Ривьеры: бассейн, шезлонги, зонтики, пальмы, бар и живая изгородь. */
-    private static void resortPark(int lx, int lz, long px, long pz, int s, Island.Column c) {
+    static void resortPark(int lx, int lz, long px, long pz, int s, Island.Column c) {
         int ax = Math.abs(lx), az = Math.abs(lz);
         c.set(s, (ax + az) % 3 == 0 ? st(Blocks.SMOOTH_SANDSTONE) : st(Blocks.CUT_SANDSTONE));
         if (ax == 17 || az == 17) { // изгородь с проходами

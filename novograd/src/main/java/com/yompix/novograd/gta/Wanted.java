@@ -47,8 +47,33 @@ public final class Wanted {
         return x == null ? 0 : x.stars;
     }
 
+    /** Видит ли полиция игрока прямо сейчас (обновляется раз в секунду). */
+    public static boolean seen(ServerPlayerEntity p) {
+        W x = ALL.get(p.getUuid());
+        return x != null && x.stars > 0 && x.seen;
+    }
+
+    /** Когда полиция последний раз видела игрока (время мира). */
+    public static long lastSeen(ServerPlayerEntity p) {
+        W x = ALL.get(p.getUuid());
+        return x == null ? 0 : x.lastSeen;
+    }
+
+    /** Снять n звёзд (смена образа — gta/Disguise). 0 — розыск снят. */
+    public static void reduce(ServerPlayerEntity p, int n) {
+        W x = ALL.get(p.getUuid());
+        if (x == null || x.stars == 0 || n <= 0) return;
+        x.stars = Math.max(0, x.stars - n);
+        x.lastSeen = p.getServerWorld().getTime();
+        if (x.stars == 0) {
+            p.sendMessage(Text.literal("✔ Полиция тебя потеряла").formatted(Formatting.GREEN), true);
+            clear(p);
+        } else sync(p, x);
+    }
+
     /** +add звёзд (не меньше min). */
     public static void add(ServerPlayerEntity p, int add, String why, int min) {
+        if (Pursuit.immune(p)) return; // «Полицейские и воры», тюрьма
         W x = w(p);
         int before = x.stars;
         x.stars = Math.min(5, Math.max(min, x.stars + add));
@@ -166,11 +191,12 @@ public final class Wanted {
                 if (d < 30 && c.canSee(p)) seen = true;
                 if (!c.chasing(p) && d < 48) c.attack(p);
             }
+            if (!seen) seen = Pursuit.extraSeen(p, x.stars); // вертолёт с прожектором видит открытое место
             boolean was = x.seen;
             x.seen = seen;
             if (seen) x.lastSeen = now;
             // скрылся: звёзды гаснут по одной
-            long hide = (8 + x.stars * 4) * 20L;
+            long hide = Pursuit.hideTicks(p, x.stars, (8 + x.stars * 4) * 20L); // вне зоны поиска — быстрее
             if (!seen && now - x.lastSeen > hide) {
                 x.stars--;
                 x.lastSeen = now;
@@ -285,6 +311,7 @@ public final class Wanted {
     /** Задержан: штраф, оружие изъято, участок. */
     public static void busted(ServerPlayerEntity p) {
         LifeData d = Life.get(p);
+        int starsAtBust = stars(p);
         int fine = Math.min(d.money, 50 + stars(p) * 60);
         d.money -= fine;
         var inv = p.getInventory();
@@ -294,13 +321,17 @@ public final class Wanted {
         }
         p.stopRiding();
         clear(p);
-        Vec3d at = Story.place(p.getServerWorld(), "police_station");
-        if (at == null) at = Story.place(p.getServerWorld(), "office_door");
-        if (at != null) p.teleport(p.getServerWorld(), at.x, at.y, at.z, p.getYaw(), 0);
-        NbtCompound n = new NbtCompound();
-        n.putString("title", "ЗАДЕРЖАН");
-        n.putString("sub", "Штраф $" + fine + ", оружие изъято");
-        LifeNet.send(p, "gta_title", n);
+        // не по сюжету — в тюрьму (gta/Prison): срок, взятка, адвокат или побег
+        boolean jailed = !d.flags.contains("scripted_bust") && Prison.jail(p, starsAtBust, fine);
+        if (!jailed) {
+            Vec3d at = Story.place(p.getServerWorld(), "police_station");
+            if (at == null) at = Story.place(p.getServerWorld(), "office_door");
+            if (at != null) p.teleport(p.getServerWorld(), at.x, at.y, at.z, p.getYaw(), 0);
+            NbtCompound n = new NbtCompound();
+            n.putString("title", "ЗАДЕРЖАН");
+            n.putString("sub", "Штраф $" + fine + ", оружие изъято");
+            LifeNet.send(p, "gta_title", n);
+        }
         Life.sync(p);
         if (!Life.get(p).flags.contains("scripted_bust")) com.yompix.novograd.story.Story.failMission(p, "Тебя задержали");
         Heists.onDownfall(p, true);

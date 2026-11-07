@@ -80,7 +80,25 @@ public final class Story {
 
     @Nullable
     static JsonObject chapter(LifeData d) {
-        return d.chapter < chapters().size() ? chapters().get(d.chapter).getAsJsonObject() : null;
+        if (d.chapter >= chapters().size()) return null;
+        JsonObject c = chapters().get(d.chapter).getAsJsonObject();
+        // глава-ветка (акт VI «Под присягой»): открыта только с одним из флагов need (end_cop / oath — звонок Питерсона, story/Calls)
+        if (c.has("need")) {
+            boolean ok = false;
+            for (JsonElement f : c.getAsJsonArray("need")) ok |= d.flags.contains(f.getAsString());
+            if (!ok) return null;
+        }
+        return c;
+    }
+
+    /** Ветка открылась уже после титров (принял присягу по телефону): продолжить сюжет с неё. */
+    public static void resume(ServerPlayerEntity p) {
+        LifeData d = Life.get(p);
+        if (!d.storyDone || chapter(d) == null) return;
+        d.storyDone = false;
+        d.step = 0;
+        d.flags.remove("entered:" + stepKey(d));
+        enter(p, d, true);
     }
 
     @Nullable

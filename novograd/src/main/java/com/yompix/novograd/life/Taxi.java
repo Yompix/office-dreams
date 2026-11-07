@@ -66,6 +66,27 @@ public final class Taxi {
         PLACES.put("lake_dock", "Озеро Ясное");
         PLACES.put("mtn_top", "Седые горы");
         PLACES.put("desert_mesa", "Пустошь");
+        // кафе, супермаркеты, метро (world/Venues, world/Metro)
+        PLACES.put("cafe_dt", "Кофейня «Бодрость»");
+        PLACES.put("cafe_suburb", "Кафе «Пончик»");
+        PLACES.put("cafe_riviera", "Кафе «Лазурь» (Ривьера)");
+        PLACES.put("cafe_beach", "Пляжное кафе «Чайка»");
+        PLACES.put("market_suburb", "Супермаркет «Корзинка»");
+        PLACES.put("metro_dt", "Метро «Деловой центр»");
+        PLACES.put("metro_north", "Метро «Пригород-Север»");
+        PLACES.put("metro_port", "Метро «Порт»");
+        PLACES.put("metro_suburb", "Метро «Пригород»");
+        PLACES.put("metro_riv", "Метро «Ривьера-Восток»");
+        PLACES.put("metro_strip", "Метро «Стрип»");
+        // «Мираж» — город казино в Пустоши (world/DesertCity)
+        PLACES.put("mirage_strip", "Мираж — Стрип");
+        PLACES.put("mirage_casino", "Казино «Мираж»");
+        PLACES.put("mirage_chapel", "Часовня «Навеки» (Мираж)");
+        PLACES.put("mirage_motel", "Мотель «Кактус» (Мираж)");
+        PLACES.put("mirage_pawn", "Ломбард «Фортуна» (Мираж)");
+        PLACES.put("cafe_mirage", "Дайнер «У Дасти» (Мираж)");
+        PLACES.put("market_mirage", "Мираж-Маркет");
+        PLACES.put("mirage_air", "Аэропорт «Мираж»");
     }
 
     record Order(UUID client, Vec3d dest, String destName, int price, long at) {}

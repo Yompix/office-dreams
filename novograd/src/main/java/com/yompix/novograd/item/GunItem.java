@@ -194,7 +194,7 @@ public class GunItem extends Item implements GeoItem {
             return false;
         }
         stack.set(Arsenal.MAG, mag + got);
-        p.getItemCooldownManager().set(this, reloadTicks(mag, got));
+        p.getItemCooldownManager().set(this, shellByShell() ? reloadTicks(mag, got) : Math.max(6, Math.round(reloadTicks(mag, got) * com.yompix.novograd.gta.Skills.reloadMul(p, kindIndex())))); // навык: быстрее
         // остальные слышат звук перезарядки целиком; у самого стрелка звуки идут по кадрам анимации (клиент)
         w.playSound(p, p.getBlockPos(), Arsenal.reloadSound(this), SoundCategory.PLAYERS, 0.9f, 1f);
         return true;

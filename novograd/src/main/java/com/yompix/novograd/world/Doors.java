@@ -17,7 +17,7 @@ import java.util.List;
 public final class Doors {
     private Doors() {}
 
-    private static final String[] SHOPS = {"shop_clothes", "shop_barber", "shop_gym", "shop_boutique"};
+    private static final String[] SHOPS = {"shop_clothes", "shop_barber", "shop_gym", "shop_boutique", "market_suburb", "market_mirage"};
 
     @Nullable
     public static LifeAi.Door shop(ServerWorld w, Vec3d p, double r) {
@@ -26,7 +26,7 @@ public final class Doors {
         TownState t = TownState.get(w);
         for (String s : SHOPS) {
             double[] v = Island.place(s);
-            if (v == null || !t.storyPlaces.containsKey("built:" + s)) continue;
+            if (v == null || !t.storyPlaces.containsKey("built:" + s) && !s.startsWith("market_")) continue;
             Vec3d door = new Vec3d(v[0], v[1], v[2]);
             double d = door.squaredDistanceTo(p);
             if (d >= bd || !w.isChunkLoaded(BlockPos.ofFloored(door))) continue;
@@ -64,7 +64,7 @@ public final class Doors {
             for (long pz = pz0 - n; pz <= pz0 + n; pz++) {
                 int cx = (int) px * 48, cz = (int) pz * 48;
                 int[] in = Island.lotInfo(cx, cz);
-                if (in == null) continue;
+                if (in == null || Venues.lot(px, pz)) continue; // кафе/супермаркет вместо домиков
                 Island.Zone zn = Island.zone(cx, cz);
                 int s = Island.surface(cx, cz);
                 if (zn == Island.Zone.SUBURB) {

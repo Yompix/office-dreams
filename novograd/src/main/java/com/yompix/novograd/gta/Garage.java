@@ -50,10 +50,10 @@ public final class Garage {
         CarEntity c = car(p);
         if (c == null) return;
         boolean ok = switch (act) {
-            case "paint" -> value >= 0 && value < PAINTS.length && Life.pay(p, PAINT, "покраска") && run(() -> c.paint(PAINTS[value]));
-            case "nitro" -> !c.hasNitro() && Life.pay(p, NITRO, "нитро") && run(() -> c.setTune(true, c.engine(), c.armor()));
-            case "engine" -> c.engine() < 2 && Life.pay(p, c.engine() == 0 ? ENGINE1 : ENGINE2, "двигатель") && run(() -> c.setTune(c.hasNitro(), c.engine() + 1, c.armor()));
-            case "armor" -> c.armor() < 2 && Life.pay(p, c.armor() == 0 ? ARMOR1 : ARMOR2, "броня") && run(() -> c.setTune(c.hasNitro(), c.engine(), c.armor() + 1));
+            case "paint" -> value >= 0 && value < PAINTS.length && Life.pay(p, com.yompix.novograd.story.Calls.tunePrice(p, PAINT), "покраска") && run(() -> c.paint(PAINTS[value]));
+            case "nitro" -> !c.hasNitro() && Life.pay(p, com.yompix.novograd.story.Calls.tunePrice(p, NITRO), "нитро") && run(() -> c.setTune(true, c.engine(), c.armor()));
+            case "engine" -> c.engine() < 2 && Life.pay(p, com.yompix.novograd.story.Calls.tunePrice(p, c.engine() == 0 ? ENGINE1 : ENGINE2), "двигатель") && run(() -> c.setTune(c.hasNitro(), c.engine() + 1, c.armor()));
+            case "armor" -> c.armor() < 2 && Life.pay(p, com.yompix.novograd.story.Calls.tunePrice(p, c.armor() == 0 ? ARMOR1 : ARMOR2), "броня") && run(() -> c.setTune(c.hasNitro(), c.engine(), c.armor() + 1));
             case "repair" -> c.health() < 100 && Life.pay(p, REPAIR, "ремонт") && run(c::repair);
             case "hide" -> Wanted.stars(p) > 0 && Life.pay(p, HIDE, "перекраска от полиции") && run(() -> {
                 c.paint(PAINTS[p.getRandom().nextInt(PAINTS.length)]);

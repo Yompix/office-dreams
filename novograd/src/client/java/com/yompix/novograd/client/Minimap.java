@@ -128,6 +128,7 @@ public final class Minimap {
             mm.pop();
         }
         PulseClient.radar(ctx, px, pz, zoom); // коллекции: оставшиеся точки (после карты или половины набора)
+        com.yompix.novograd.client.cops.CopsClient.radar(ctx, px, pz, zoom); // зона поиска полиции, воры на радаре копов
         // полиция и банды рядом
         double r = 90 / zoom;
         for (Entity e : mc.world.getEntities()) {

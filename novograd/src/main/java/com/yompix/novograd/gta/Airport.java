@@ -32,6 +32,7 @@ public final class Airport {
             {"nov", "airfield_hangar+14,18", "Аэропорт Новограда", "150"},
             {"riv", "riv_beach+40,0", "Гидроаэродром Ривьеры", "150"},
             {"des", "desert_road+18,6", "Полоса «Пустошь»", "220"},
+            {"mir", "mirage_air", "Аэропорт «Мираж»", "250"}, // город казино (world/DesertCity)
     };
 
     private record Flight(String to, long landAt) {}

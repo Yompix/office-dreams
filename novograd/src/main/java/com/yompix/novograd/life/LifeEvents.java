@@ -45,6 +45,7 @@ public final class LifeEvents {
         com.yompix.novograd.gta.Pulse.init(); // коллекции, «Хаос», экраны и вертолёт «Новоград-24», подпольные бои
         com.yompix.novograd.gta.DriveHooks.init(); // бензин, камеры и штрафы, эвакуатор, авиарейсы, яхт-клуб, тотализатор, аукцион
         com.yompix.novograd.gta.CityServices.init(); // светофоры, автобусы, скорая/пожарные/патрули, полицейская рация
+        com.yompix.novograd.gta.Underworld.init(); // тёмные дела: большие ограбления, заказы, контрабанда
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Economy::tick);
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.News::tick);
         ServerTickEvents.END_SERVER_TICK.register(com.yompix.novograd.gta.Cheats::tick);

@@ -73,6 +73,7 @@ public final class News {
     /** Активности сообщают о событии — может стать новостью. */
     public static void onTitle(ServerPlayerEntity p, String title, String sub) {
         if (p.getServer() == null) return;
+        com.yompix.novograd.story.Calls.onTitle(p, title); // герои потом позвонят и обсудят (story/Calls)
         String h = headline(title, sub == null ? "" : sub);
         if (h != null) post(p.getServer(), h, "ЭКСТРЕННО");
     }

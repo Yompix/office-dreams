@@ -97,6 +97,7 @@ public class PlaneEntity extends MotorVehicle {
         // поворот: в воздухе через крен, на земле — рулёжка
         steer = MathHelper.lerp(0.12f, steer, side);
         float turn = ground ? -steer * 2.2f * MathHelper.clamp(speed * 3, 0, 1) * (1 - Math.min(speed, 1) * 0.5f) : -steer * 2.0f;
+        if (getControllingPassenger() instanceof net.minecraft.entity.player.PlayerEntity pl) turn *= com.yompix.novograd.gta.Skills.flyMul(pl); // навык полёта (SA)
         setYaw(getYaw() + turn);
         double rad = Math.toRadians(pitch);
         Vec3d dir = forward();

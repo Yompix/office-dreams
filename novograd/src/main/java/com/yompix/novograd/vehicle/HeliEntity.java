@@ -110,13 +110,14 @@ public class HeliEntity extends MotorVehicle {
         boolean ground = isOnGround();
         if (lift) {
             double acc = 0.042 * (1 + engine() * 0.1);
+            if (getControllingPassenger() instanceof net.minecraft.entity.player.PlayerEntity pl) acc *= 0.85 + 0.15 * com.yompix.novograd.gta.Skills.flyMul(pl); // опытный пилот разгоняется резвее
             double drag = ground && !up ? 0.6 : 0.965;
             vx = vx * drag + dir.x * fwd * acc * (fwd < 0 ? 0.5 : 1);
             vz = vz * drag + dir.z * fwd * acc * (fwd < 0 ? 0.5 : 1);
             double want = up ? 0.34 : down ? -0.3 : 0;
             vy += (want - vy) * 0.12;
             steer = MathHelper.lerp(0.18f, steer, side);
-            setYaw(getYaw() - steer * 3.4f);
+            setYaw(getYaw() - steer * 3.4f * (getControllingPassenger() instanceof net.minecraft.entity.player.PlayerEntity pl ? com.yompix.novograd.gta.Skills.flyMul(pl) : 1)); // навык полёта (SA)
         } else {
             // винт не держит: падаем, разбитый — ещё и крутимся
             vx *= ground ? 0.5 : 0.99;
@@ -212,7 +213,8 @@ public class HeliEntity extends MotorVehicle {
             leaveTicks = 0;
             orbit += 0.012f;
             double r = 15;
-            want = t.getPos().add(Math.cos(orbit) * r, 0, Math.sin(orbit) * r);
+            Vec3d focus = com.yompix.novograd.gta.Pursuit.heliFocus(t); // потеряли из виду — кружим над зоной поиска
+            want = focus.add(Math.cos(orbit) * r, 0, Math.sin(orbit) * r);
             int topHere = w.getTopY(Heightmap.Type.MOTION_BLOCKING, getBlockX(), getBlockZ());
             int topThere = w.getTopY(Heightmap.Type.MOTION_BLOCKING, (int) Math.floor(want.x), (int) Math.floor(want.z));
             wantY = Math.max(t.getY() + 15, Math.max(topHere, topThere) + 7);
@@ -232,7 +234,10 @@ public class HeliEntity extends MotorVehicle {
         move(MovementType.SELF, getVelocity());
         if (horizontalCollision) setVelocity(getVelocity().x, 0.4, getVelocity().z);
         speed = (float) (vx * forward().x + vz * forward().z);
-        if (t != null) searchlight(w, t);
+        if (t != null) {
+            if (com.yompix.novograd.gta.Pursuit.lost(t)) com.yompix.novograd.gta.Pursuit.sweep(w, this, age); // прожектор шарит по району
+            else searchlight(w, t);
+        }
     }
 
     private void searchlight(ServerWorld w, ServerPlayerEntity t) {

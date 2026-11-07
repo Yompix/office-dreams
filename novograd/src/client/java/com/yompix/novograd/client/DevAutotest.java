@@ -44,6 +44,11 @@ public final class DevAutotest {
         if (mode.startsWith("city")) return; // свой сценарий — CityAutotest (CityClient.init)
         if (mode.startsWith("props")) return; // своё — PropsAutotest (PropsClient.init)
         if (mode.startsWith("life")) return; // повседневная жизнь горожан — LifeAutotest
+        if (mode.startsWith("transit")) return; // кафе, метро, «Мираж» — TransitAutotest
+        if (mode.startsWith("outdoor")) return; // навыки, охота, рыбалка, сезоны, праздники — OutdoorAutotest
+        if (mode.startsWith("calls")) return; // звонки героев — CallsAutotest (CallClient.init)
+        if (mode.startsWith("cops")) return; // погоня, маски, колония, «Полицейские и воры» — client/cops/CopsAutotest
+        if (mode.startsWith("heist")) return; // тёмные дела — HeistAutotest
         if (mode.startsWith("mp")) {
             // игра по сети: A проходит разговоры пробелом, B просто смотрит; оба делают снимки
             YompixSplash.markShown();
@@ -474,7 +479,7 @@ public final class DevAutotest {
             cmd(5, "gamemode creative " + P);
             cmd(5, "effect give " + P + " minecraft:resistance 99999 4 true");
             var chs = com.yompix.novograd.story.Story.root().getAsJsonArray("chapters");
-            for (int ci = 0; ci < chs.size(); ci++) {
+            for (int ci = Integer.getInteger("novograd.missions.from", 0); ci < chs.size(); ci++) { // -Dnovograd.missions.from=5 — только акт VI
                 var ms = chs.get(ci).getAsJsonObject().getAsJsonArray("missions");
                 for (int mi = 0; mi < ms.size(); mi++) {
                     var steps = ms.get(mi).getAsJsonObject().getAsJsonArray("steps");
@@ -489,6 +494,7 @@ public final class DevAutotest {
                             var d = Life.get(p);
                             d.storyStarted = true;
                             d.storyDone = false;
+                            d.flags.add("end_cop"); // акт VI «Под присягой» открыт только копу
                             d.chapter = fc;
                             d.mission = fm;
                             d.step = fs;
@@ -561,6 +567,7 @@ public final class DevAutotest {
                 var d = Life.get(p);
                 d.storyStarted = true;
                 d.storyDone = false;
+                if (ch >= 5) d.flags.add("end_cop"); // акт VI — ветка копа
                 d.chapter = ch;
                 d.mission = mi;
                 d.step = st;

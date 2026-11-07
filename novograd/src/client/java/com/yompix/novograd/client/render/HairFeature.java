@@ -150,6 +150,7 @@ public class HairFeature extends FeatureRenderer<CitizenEntity, PlayerEntityMode
         boolean blink = t % 90 < 3 || (t % 230 > 100 && t % 230 < 103);
         boolean talking = com.yompix.novograd.client.story.ClientStory.isTalking(e.getId()) || e.getActivity() == CitizenEntity.Activity.TALK;
         drawLook(m, buffers, light, look, blink, e.asleep(), talking, e.getId());
+        com.yompix.novograd.client.HolidayHats.render(m, buffers, light, e.getId()); // праздничные шапки и тыквы (world/Holidays)
         if (vanilla) {
             m.pop();
             if (look.has("skirt")) {

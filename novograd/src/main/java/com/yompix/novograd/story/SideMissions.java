@@ -40,6 +40,7 @@ public final class SideMissions {
         int done = 0;
         for (var e : all.entrySet()) {
             JsonObject m = e.getValue().getAsJsonObject();
+            if (m.has("hidden")) continue; // просьбы героев по телефону (story/Calls) — не в списке «Заданий»
             boolean ok = d.flags.contains("side:" + e.getKey());
             if (ok) done++;
             NbtCompound c = new NbtCompound();
@@ -55,7 +56,7 @@ public final class SideMissions {
         n.put("list", list);
         n.putString("active", d.side);
         n.putInt("done", done);
-        n.putInt("total", all.size());
+        n.putInt("total", (int) all.entrySet().stream().filter(e -> !e.getValue().getAsJsonObject().has("hidden")).count());
         LifeNet.send(p, "side_list", n);
     }
 
@@ -100,7 +101,8 @@ public final class SideMissions {
             LifeNet.send(p, "mission_done", Story.text("title", m == null ? "" : Story.str(m, "title", "")));
             p.playSoundToPlayer(ModContent.LEVEL_UP, SoundCategory.MASTER, 0.8f, 1f);
             if (reward > 0) Life.earn(p, reward, "задание выполнено");
-            d.flags.add("side:" + d.side);
+            if (m != null && m.has("hidden")) Calls.onHelpDone(p, d.side, Story.str(m, "who", "")); // просьба героя по телефону — +дружба
+            else d.flags.add("side:" + d.side);
             GtaSteps.cleanup(p);
             d.side = "";
             d.sideStep = 0;

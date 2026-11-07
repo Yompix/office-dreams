@@ -264,6 +264,7 @@ public final class NewsTv {
             case AIRFIELD -> "аэродром";
             case RIVIERA -> "Ривьера";
             case VILLAGE -> "Сосновка";
+            case MIRAGE -> "Мираж";
             case SEA -> "море";
             default -> "трасса за городом";
         };

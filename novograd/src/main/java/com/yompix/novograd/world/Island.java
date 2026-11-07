@@ -27,7 +27,7 @@ public final class Island {
     public static final int G = -57;
     public static final int HALF = 2000;
 
-    public enum Zone { SEA, BEACH, PORT, CORE, DOWNTOWN, INDUSTRIAL, SUBURB, COUNTRY, AIRFIELD, RIVIERA, VILLAGE }
+    public enum Zone { SEA, BEACH, PORT, CORE, DOWNTOWN, INDUSTRIAL, SUBURB, COUNTRY, AIRFIELD, RIVIERA, VILLAGE, MIRAGE }
 
     // ------------------------------------------------------------------ шум
     static double hash(long x, long z, long salt) {
@@ -51,7 +51,7 @@ public final class Island {
 
     // ------------------------------------------------------------------ районы
     /** Где кончается суша на западе (неровный берег). */
-    private static double coastX(int z) {
+    static double coastX(int z) {
         return -620 + (noise(0, z, 90, 7) - 0.5) * 40;
     }
 
@@ -90,11 +90,12 @@ public final class Island {
         if (x >= 156 && x <= 700 && z >= 156 && z <= 700) return Zone.INDUSTRIAL;
         if (Math.abs(x) <= 560 && Math.abs(z) <= 560) return Zone.SUBURB;
         if (x >= 1250 && x <= 1650 && z >= -250 && z <= 250) return Zone.VILLAGE;
+        if (DesertCity.inside(x, z)) return Zone.MIRAGE; // город казино в Пустоши
         return Zone.COUNTRY;
     }
 
     public static boolean urban(Zone z) {
-        return z == Zone.DOWNTOWN || z == Zone.INDUSTRIAL || z == Zone.SUBURB || z == Zone.RIVIERA || z == Zone.VILLAGE;
+        return z == Zone.DOWNTOWN || z == Zone.INDUSTRIAL || z == Zone.SUBURB || z == Zone.RIVIERA || z == Zone.VILLAGE || z == Zone.MIRAGE;
     }
 
     /** Расстояние до ближайшей линии сетки улиц (24 mod 48). */
@@ -114,10 +115,12 @@ public final class Island {
             // большое кольцо острова и дороги в горы, пустошь и деревню
             {0, 1700, -1700, 1700}, {1, -1700, -920, 1700}, {1, 1700, -920, 1700},
             {1, 24, 744, 1700}, {0, 24, -1700, -744}, {0, 24, 744, 1700},
+            // трасса через Пустошь в «Мираж» и дальше к восточному кольцу
+            {1, DesertCity.HIGHWAY_Z, 24, DesertCity.X0 + 8}, {1, DesertCity.HIGHWAY_Z, DesertCity.X1 - 8, 1700},
     };
 
     /** Трасса: расстояние до осевой ближайшей трассы (или большое число). */
-    private static int highwayDist(int x, int z) {
+    static int highwayDist(int x, int z) {
         int best = 99;
         for (int[] r : ROADS) {
             int along = r[0] == 0 ? z : x, across = r[0] == 0 ? x : z;
@@ -146,6 +149,7 @@ public final class Island {
         if (zn == Zone.SEA) return lake(x, z) > 0 ? G - 2 - (int) (lake(x, z) * 10) : G - 6;
         if (zn != Zone.COUNTRY) return G;
         if (station(x, z) != null) return G; // площадка заправки ровная
+        if (DesertCity.flat(x, z)) return G; // аэропорт «Миража», вывеска у трассы
         // холмы за городом: выше к северу, на крайнем севере — горы, у дорог — ровно
         double hills = noise(x, z, 140, 11) * 0.7 + noise(x, z, 45, 12) * 0.3;
         double north = Math.max(0, Math.min(1, (-z - 560) / 300.0));
@@ -174,8 +178,14 @@ public final class Island {
             GRASS = Blocks.GRASS_BLOCK.getDefaultState(), SAND = Blocks.SAND.getDefaultState(), WATER = Blocks.WATER.getDefaultState(),
             BEDROCK = Blocks.BEDROCK.getDefaultState();
 
-    /** Строит весь столбец (x, z): земля, вода, дороги, здания, деревья. */
+    /** Строит весь столбец (x, z): земля, вода, дороги, здания, деревья; сверху — эстакада метро; отметки для старых миров. */
     public static void column(int x, int z, Column c) {
+        base(x, z, c);
+        if (Metro.chunk(x >> 4, z >> 4)) Metro.column(x, z, c);
+        Retrofit.mark(x, z, c);
+    }
+
+    private static void base(int x, int z, Column c) {
         if (lighthouse(x, z, c)) return;
         Zone zn = zone(x, z);
         int s = surface(x, z);
@@ -215,6 +225,7 @@ public final class Island {
             highway(x, z, s, hw, c);
             return;
         }
+        if (Venues.column(x, z, s, c)) return; // кафе и супермаркеты (world/Venues)
         if (zn == Zone.COUNTRY) {
             int[] st = station(x, z);
             if (st != null) {
@@ -224,12 +235,14 @@ public final class Island {
             if (!desert || s <= G + 15) if (roadBillboard(x, z, s, c)) return;
         }
         switch (zn) {
-            case DOWNTOWN, INDUSTRIAL, SUBURB, RIVIERA, VILLAGE -> city(x, z, s, zn, c);
+            case DOWNTOWN, INDUSTRIAL, SUBURB, RIVIERA, VILLAGE, MIRAGE -> city(x, z, s, zn, c);
             case PORT -> port(x, z, s, c);
             case BEACH -> beach(x, z, s, c);
             case AIRFIELD -> airfield(x, z, s, c);
             case COUNTRY -> {
-                if (desert) desert(x, z, s, c);
+                if (desert) {
+                    if (!DesertCity.desert(x, z, s, c)) desert(x, z, s, c);
+                }
                 else if (s > G + 48) { if (s <= G + 62 && hash(x, z, 91) < 0.02) c.set(s + 1, Blocks.SPRUCE_SAPLING.getDefaultState()); }
                 else country(x, z, s, c);
             }
@@ -303,7 +316,7 @@ public final class Island {
                 int t = dx == 6 ? z : x;
                 int m = Math.floorMod(t, 16);
                 if (m == 8) lampPost(s, c, dx == 6 ? (Math.floorMod(x - 24, 48) < 24 ? Direction.WEST : Direction.EAST) : Direction.NORTH);
-                else if (zn == Zone.DOWNTOWN && m == 0) c.set(s + 1, NeonBlockState(t));
+                else if ((zn == Zone.DOWNTOWN || zn == Zone.MIRAGE) && m == 0) c.set(s + 1, NeonBlockState(t));
                 else if (m == 4) c.set(s + 1, Blocks.COMPOSTER.getDefaultState()); // урна
                 else if (m == 12 || m == 13) { // скамейка
                     Direction back = dx == 6 ? (Math.floorMod(x - 24, 48) < 24 ? Direction.EAST : Direction.WEST) : (Math.floorMod(z - 24, 48) < 24 ? Direction.SOUTH : Direction.NORTH);
@@ -344,6 +357,7 @@ public final class Island {
             case DOWNTOWN -> Buildings.tower(lx, lz, px, pz, s, c);
             case RIVIERA -> Buildings.resort(lx, lz, px, pz, s, c);
             case INDUSTRIAL -> Buildings.industry(lx, lz, px, pz, s, c);
+            case MIRAGE -> DesertCity.lot(lx, lz, px, pz, s, c);
             default -> Buildings.suburb(lx, lz, px, pz, s, c);
         }
     }
@@ -484,7 +498,7 @@ public final class Island {
 
     // ------------------------------------------------------------------ заправки и щиты у трасс
     /** Заправки «Нефтяник»: {ось (0 — трасса вдоль z на x=c, 1 — вдоль x на z=c), c, центр вдоль трассы, сторона}. */
-    private static final int[][] STATIONS = {{1, 744, -150, 1}, {0, 744, -400, 1}, {1, 24, 1100, -1}, {0, 24, 1300, -1}};
+    private static final int[][] STATIONS = {{1, 744, -150, 1}, {0, 744, -400, 1}, {1, 24, 1100, -1}, {0, 24, 1300, -1}, {1, 1368, 900, 1}};
 
     /** Если (x, z) на заправке: {вдоль трассы от центра −12..12, от оси трассы 8..26, номер}. */
     static int[] station(int x, int z) {
@@ -619,6 +633,7 @@ public final class Island {
     /** Цвет точки для карты острова. */
     public static int mapColor(int x, int z) {
         Zone zn = zone(x, z);
+        if (Metro.onLine(x, z)) return 0xFFD32F2F; // линия метро
         if (zn == Zone.SEA) return highwayDist(x, z) <= 7 ? 0xFF606670 : 0xFF1E5A8C;
         if (highwayDist(x, z) <= 7) return 0xFF505560;
         switch (zn) {
@@ -638,7 +653,7 @@ public final class Island {
                 int road = Math.min(gridDist(x), gridDist(z));
                 if (road <= 4) return 0xFF3E4148;
                 if (road <= 6) return 0xFFB8B8B0;
-                return zn == Zone.DOWNTOWN ? 0xFF7FA3C8 : zn == Zone.RIVIERA ? 0xFFE8B4C8 : zn == Zone.INDUSTRIAL ? 0xFF8C7A62 : 0xFF8DB86A;
+                return zn == Zone.DOWNTOWN ? 0xFF7FA3C8 : zn == Zone.MIRAGE ? 0xFFE0A050 : zn == Zone.RIVIERA ? 0xFFE8B4C8 : zn == Zone.INDUSTRIAL ? 0xFF8C7A62 : 0xFF8DB86A;
             }
         }
     }
@@ -805,6 +820,28 @@ public final class Island {
         cam("cam_ind_a", 360, 42, 320, 210, 28);
         cam("cam_ind_b", 432, 5, 470, 180, 2);
         cam("cam_air_a", 520, 30, -840, 110, 14);
+        // 0.6: кафе, супермаркеты, метро, «Мираж» (координаты совпадают с world/Venues, world/Metro, world/DesertCity)
+        int dtHalf = Buildings.info(Zone.DOWNTOWN, 9, -9)[1];
+        put("cafe_dt", 433, -432 + dtHalf + 2, 0);
+        put("cafe_suburb", 192, -13, 180);
+        put("cafe_riviera", -1248, 35, 180);
+        put("cafe_beach", (int) Math.floor(coastX(-472)) + 24 + 12, -472, 90);
+        put("cafe_mirage", 1200, 1379, 180);
+        put("market_suburb", 288, -12, 180);
+        put("market_mirage", 1248, 1332, 180);
+        put("metro_dt", 432, -414, 180);
+        put("metro_north", -240, -402, 0);
+        put("metro_port", -544, -48, 270);
+        put("metro_suburb", -544, 384, 270);
+        put("metro_riv", -928, 384, 90);
+        put("metro_strip", -1296, 30, 0);
+        put("mirage_strip", 1224, 1296, 0);
+        put("mirage_casino", 1201, 1265, 0);
+        put("mirage_chapel", 1248, 1213, 0);
+        put("mirage_motel", 1200, 1186, 180);
+        put("mirage_pawn", 1248, 1282, 180);
+        put("mirage_air", 1386, 1523, 180);
+        cam("cam_mirage", 1300, 45, 1160, 135, 18);
     }
 
     private static void put(String name, double x, double z, float yaw) {
@@ -829,5 +866,6 @@ public final class Island {
             {"Пляж", "-610", "-520"}, {"Аэродром", "600", "-905"}, {"Холмы и лес", "-200", "-800"}, {"Пригород", "-300", "300"},
             {"РИВЬЕРА", "-1320", "0"}, {"Пляж Ривьеры", "-1860", "-200"}, {"Северный мост", "-700", "-744"}, {"Южный мост", "-700", "744"},
             {"Горы Седые", "300", "-1450"}, {"Пустошь", "500", "1400"}, {"Озеро Ясное", "1320", "760"}, {"Деревня Сосновка", "1450", "0"},
-            {"Шмот-Базар", "-240", "135"}, {"Цирюльня", "-336", "135"}, {"Зал «Железо»", "-432", "135"}, {"Бутик «Бархат»", "-1680", "135"}};
+            {"Шмот-Базар", "-240", "135"}, {"Цирюльня", "-336", "135"}, {"Зал «Железо»", "-432", "135"}, {"Бутик «Бархат»", "-1680", "135"},
+            {"МИРАЖ", "1200", "1344"}, {"Стрип «Миража»", "1224", "1230"}, {"Аэропорт «Мираж»", "1200", "1560"}};
 }

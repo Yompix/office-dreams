@@ -15,7 +15,10 @@ public final class Crime {
         for (CitizenEntity c : w.getEntitiesByClass(CitizenEntity.class, shooter.getBoundingBox().expand(24), c -> c != shooter)) c.panic(at);
         Emergency.gunshot(w, shooter, at); // стреляли бандиты — патруль едет на место
         // стрельба: минимум одна звезда (две, если рядом полиция), но не прибавляет за каждый выстрел
-        if (shooter instanceof ServerPlayerEntity p && !p.isCreative()) Wanted.add(p, 0, "стрельба на улице", Wanted.policeNear(p, 40) ? 2 : 1);
+        if (shooter instanceof ServerPlayerEntity p && !p.isCreative()) {
+            boolean cops = Wanted.policeNear(p, 40);
+            if (!Disguise.unnoticed(p, cops)) Wanted.add(p, 0, "стрельба на улице", cops ? 2 : 1); // в маске прохожие не узнают
+        }
     }
 
     /** Игрок ранил или убил жителя. */
@@ -25,10 +28,12 @@ public final class Crime {
         if (cop) Wanted.add(p, killed ? 1 : 0, killed ? "убийство полицейского" : "нападение на полицейского", killed ? 4 : 3);
         else if (victim.getRole() == CitizenEntity.Role.GANG) {
             if (killed && Wanted.policeNear(p, 30)) Wanted.add(p, 0, "перестрелка", 2);
-        } else Wanted.add(p, killed ? 1 : 0, killed ? "убийство" : "нападение", killed ? 2 : 1);
+        } else if (!Disguise.unnoticed(p, Wanted.policeNear(p, 30))) Wanted.add(p, killed ? 1 : 0, killed ? "убийство" : "нападение", killed ? 2 : 1);
         // свидетели разбегаются, друзья бандита — в бой
         for (CitizenEntity c : p.getServerWorld().getEntitiesByClass(CitizenEntity.class, victim.getBoundingBox().expand(16), c -> c != victim)) {
-            if (c.getRole() == CitizenEntity.Role.GANG && victim.getRole() == CitizenEntity.Role.GANG) c.attack(p);
+            if (c.getRole() == CitizenEntity.Role.GANG && victim.getRole() == CitizenEntity.Role.GANG) {
+                if (!BigHeists.calm(c)) c.attack(p); // охрана ограбления до тревоги не слышит выстрела с глушителем (BigHeists решает сам)
+            }
             else if (c.getRole() == CitizenEntity.Role.POLICE) c.attack(p);
             else c.panic(victim.getPos());
         }

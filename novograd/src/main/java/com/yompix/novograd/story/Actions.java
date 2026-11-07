@@ -113,6 +113,11 @@ final class Actions {
             }
             case "shock" -> com.yompix.novograd.gta.Economy.shock(p.getServer(), a.get(1).getAsString(), a.get(2).getAsDouble(), a.size() > 3 ? a.get(3).getAsString() : "новости");
             case "msg" -> Life.message(p, a.get(1).getAsString(), a.get(2).getAsString());
+            case "heal" -> { // выпивка у Розы (звонки героев): здоровье и сытость
+                p.setHealth(p.getMaxHealth());
+                p.getHungerManager().add(20, 1f);
+                p.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.ABSORPTION, 20 * 120, 1));
+            }
             default -> {}
         }
     }

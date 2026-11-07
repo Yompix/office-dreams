@@ -68,6 +68,7 @@ public final class Dispatch {
             case CORE -> "в Старом городе";
             case AIRFIELD -> "у аэродрома";
             case VILLAGE -> "в Сосновке";
+            case MIRAGE -> "в Мираже";
             case SEA -> "на воде";
             default -> {
                 String best = "за городом";

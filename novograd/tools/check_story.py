@@ -117,7 +117,27 @@ for ch in story['chapters']:
         check_steps(f'{ch["id"]}/{m["id"]} «{m["title"]}»', m['steps'], spawned)
 for sid, sm in story['side'].items():
     check_steps(f'побочная {sid}', sm['steps'], set(CHARS))
-print(f'миссий: {n}, побочных: {len(story["side"])}')
+# звонки героев (story/Calls): герой, реплики, миссии из предложений, ссылки на другие звонки
+call_ids = {c['id'] for c in story.get('calls', [])}
+for c in story.get('calls', []):
+    w = f'звонок {c["id"]}'
+    if c.get('who') not in CHARS: problems.append(f'{w}: неизвестный герой «{c.get("who")}»')
+    if not c.get('lines'): problems.append(f'{w}: нет реплик')
+    check_lines(w, c.get('lines'))
+    o = c.get('offer')
+    if o:
+        check_lines(w + ' ответ', o.get('yes_lines'))
+        check_lines(w + ' отказ', o.get('no_lines'))
+        for a in o.get('do', []):
+            if a[0] in ('side', 'heist') and a[1] not in story['side']: problems.append(f'{w}: нет миссии «{a[1]}»')
+            if a[0] == 'bigheist' and (len(a) < 3 or a[2] not in story['side']): problems.append(f'{w}: bigheist без запасной миссии')
+    after = c.get('when', {}).get('after')
+    if after and after not in call_ids: problems.append(f'{w}: after — нет звонка «{after}»')
+hid = [k for k, v in story['side'].items() if v.get('hidden')]
+used = {a[-1] for c in story.get('calls', []) for a in c.get('offer', {}).get('do', []) if a[0] in ('side', 'heist', 'bigheist')}
+for k in hid:
+    if k not in used: warnings.append(f'просьба {k} не вызывается ни одним звонком')
+print(f'миссий: {n}, побочных: {len(story["side"])} (просьб по телефону: {len(hid)}), звонков: {len(story.get("calls", []))}')
 for w in warnings[:40]:
     print('  ⚠', w)
 for p in problems:

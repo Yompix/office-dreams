@@ -10,6 +10,13 @@ public final class PlaceIcons {
     /** {символ, цвет} по имени места; null — не показывать значком. */
     public static String[] of(String id) {
         String s = id.toLowerCase();
+        if (s.startsWith("metro_")) return new String[]{"М", "D32F2F"}; // станция метро (world/Metro)
+        if (s.startsWith("cafe_")) return new String[]{"К", "8D5524"}; // кафе (world/Venues)
+        if (s.startsWith("market_")) return new String[]{"С", "2E7D32"}; // супермаркет
+        if (s.startsWith("mirage_chapel")) return new String[]{"♥", "EC407A"}; // часовня «Навеки» (world/DesertCity)
+        if (s.startsWith("mirage_motel")) return new String[]{"⌂", "7CB342"};
+        if (s.startsWith("mirage_pawn")) return new String[]{"$", "F9A825"};
+        if (s.startsWith("mirage_air")) return new String[]{"✈", "546E7A"};
         if (s.startsWith("pulse_maps")) return new String[]{"?", "FF8F00"}; // ларёк «Карты коллекций»
         if (s.startsWith("pulse_fight")) return new String[]{"✊", "8E1B1B"}; // подпольные бои «Подвал»
         if (s.startsWith("realty_garage")) return new String[]{"P", "1E88E5"}; // свой гараж (world/Garage)

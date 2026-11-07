@@ -62,6 +62,8 @@ public class LifeData {
     public java.util.Set<String> wardrobe = new java.util.HashSet<>();
     public int strength, stamina, gymStrToday, gymStaToday;
     public long gymDay = -1;
+    /** Навыки как в SA (gta/Skills): id → очки 0..1000 (вождение, мотоцикл, полёт, стрельба по классам, плавание, скрытность…). */
+    public java.util.Map<String, Integer> skills = new java.util.HashMap<>();
 
     public static int lessonsNeeded(int edu) {
         return edu <= SCHOOL_END ? 3 : 4;
@@ -166,6 +168,9 @@ public class LifeData {
         n.putInt("gymStrToday", gymStrToday);
         n.putInt("gymStaToday", gymStaToday);
         n.putLong("gymDay", gymDay);
+        NbtCompound sk = new NbtCompound();
+        skills.forEach(sk::putInt);
+        n.put("skills", sk);
         return n;
     }
 
@@ -228,6 +233,8 @@ public class LifeData {
         d.gymStrToday = n.getInt("gymStrToday");
         d.gymStaToday = n.getInt("gymStaToday");
         d.gymDay = n.contains("gymDay") ? n.getLong("gymDay") : -1;
+        NbtCompound sk = n.getCompound("skills");
+        for (String k : sk.getKeys()) d.skills.put(k, sk.getInt(k));
         return d;
     }
 }

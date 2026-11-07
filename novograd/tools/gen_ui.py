@@ -361,7 +361,7 @@ def panorama():
 APP_COLORS = {'bank': (70, 230, 120), 'school': (255, 170, 60), 'jobs': (120, 140, 255), 'messages': (70, 230, 150), 'map': (60, 190, 255),
               'shop': (255, 100, 90), 'casino': (255, 60, 120), 'music': (255, 70, 140), 'camera': (200, 200, 220), 'weather': (110, 200, 255),
               'story': (255, 196, 40), 'trophy': (255, 210, 80), 'home': (230, 160, 110), 'taxi': (255, 215, 0), 'friends': (180, 140, 255),
-              'missions': (255, 60, 70), 'style': (255, 90, 170)}
+              'missions': (255, 60, 70), 'style': (255, 90, 170), 'contacts': (90, 230, 160)}
 
 
 def glyph(d, app, c, S):
@@ -444,6 +444,13 @@ def glyph(d, app, c, S):
         d.line(P((32, 18), (32, 22)), fill=c, width=w)
         d.line(P((32, 22), (8, 34), (56, 34), (32, 22)), fill=c, width=w)
         d.polygon(P((18, 34), (46, 34), (52, 40), (46, 44), (44, 56), (20, 56), (18, 44), (12, 40)), fill=c)
+    elif app == 'contacts':
+        # трубка старого телефона и волны звонка (звонки героев, story/Calls)
+        d.arc(P((10, 10), (54, 54)), 100, 170, fill=c, width=int(9 * k))
+        d.ellipse(P((8, 8), (22, 22)), fill=c)
+        d.ellipse(P((42, 42), (56, 56)), fill=c)
+        d.arc(P((30, 8), (56, 34)), 270, 360, fill=c, width=w)
+        d.arc(P((36, 2), (62, 28)), 270, 360, fill=c, width=w)
     elif app == 'missions':
         d.ellipse(P((12, 12), (52, 52)), outline=c, width=w)
         d.ellipse(P((24, 24), (40, 40)), outline=c, width=w)

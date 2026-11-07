@@ -57,6 +57,7 @@ public final class Weapons {
                               net.minecraft.sound.SoundEvent sound, float volume, int kind) {
         var r = w.getRandom();
         Vec3d aim = dir0.normalize();
+        if (shooter instanceof ServerPlayerEntity sk) spread *= Skills.spreadMul(sk, kind); // навык стрельбы (SA): кучнее
         // глушитель (Мастерская «Калибра»): тихий звук, маленькая вспышка (бит 16 в kind), розыск — только при свидетелях
         boolean quiet = GunMods.silenced(shooter.getMainHandStack());
         if (quiet) {
@@ -115,6 +116,7 @@ public final class Weapons {
             else if (v instanceof CarEntity) hitFlag = (byte) Math.max(hitFlag, 1);
         }
         Arsenal.sendShotFx(w, shooter, from, kind, ends, what, hitFlag);
+        if (shooter instanceof ServerPlayerEntity sk) Skills.onShot(sk, kind, hitFlag); // практика стрельбы
         // горожане в панике, полиция слышит выстрел (с глушителем — только если видели)
         if (quiet) GunMods.quietShot(w, shooter, from);
         else Crime.gunshot(w, shooter, from);

@@ -187,6 +187,27 @@ public final class Bodyguards {
         Activities.title(p, "ОХРАНА НАНЯТА", h.name + " · $" + TIER_FEE[tier] + " в сутки");
     }
 
+    /** Бойцы «Ящеров» от Брика (звонки героев, story/Calls): бесплатно на сутки, потом уходят сами. Сколько пришло. */
+    public static final String LOAN = "Ящер ";
+
+    public static int loan(ServerPlayerEntity p, int count) {
+        List<Hire> l = list(p);
+        int n = 0;
+        var r = p.getRandom();
+        while (n < count && l.size() < MAX) {
+            Hire h = new Hire();
+            h.tier = 1;
+            h.skin = CitizenEntity.RANDOM_FROM + 1 + 2 * r.nextInt(CitizenEntity.RANDOM_COUNT / 2);
+            h.name = LOAN + com.yompix.novograd.life.Names.full(r);
+            h.paidDay = day(p.getServerWorld());
+            l.add(h);
+            spawn(p, h, l.size() - 1, true);
+            n++;
+        }
+        if (n > 0) state(p.getServer()).markDirty();
+        return n;
+    }
+
     static void fire(ServerPlayerEntity p, int index, String why) {
         List<Hire> l = list(p);
         if (index < 0 || index >= l.size()) return;
@@ -220,6 +241,7 @@ public final class Bodyguards {
 
     /** Охранник ещё нанят (иначе исчезает сам). */
     public static boolean isActive(BodyguardEntity b) {
+        if (BigHeists.isCrew(b)) return true; // команда большого ограбления
         if (b.owner() == null || !(b.getWorld() instanceof ServerWorld w)) return false;
         ServerPlayerEntity p = w.getServer().getPlayerManager().getPlayer(b.owner());
         if (p == null || p.getServerWorld() != w) return false;
@@ -312,6 +334,10 @@ public final class Bodyguards {
             long today = day(w);
             for (int i = l.size() - 1; i >= 0; i--) {
                 Hire h = l.get(i);
+                if (h.paidDay < today && h.name.startsWith(LOAN)) { // подмога Брика — только на сутки
+                    fire(p, i, "Подмога Брика уехала");
+                    continue;
+                }
                 if (h.paidDay < today) {
                     if (Economy.payBlack(p, TIER_FEE[h.tier], "охрана «Щит» за сутки")) {
                         h.paidDay = today;

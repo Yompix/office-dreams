@@ -95,6 +95,12 @@
    "skin": "c31",
    "voice": "Ferran Simen",
    "color": "ffb300"
+  },
+  "diaz": {
+   "name": "Сержант Диас",
+   "skin": "c24",
+   "voice": "Ana Florence",
+   "color": "4dd0e1"
   }
  },
  "chapters": [
@@ -4884,6 +4890,2135 @@
      "start": "airfield_hangar"
     }
    ]
+  },
+  {
+   "id": "a6",
+   "title": "Акт VI",
+   "subtitle": "Под присягой",
+   "age": 22,
+   "need": [
+    "end_cop",
+    "oath"
+   ],
+   "missions": [
+    {
+     "id": "a6m1",
+     "title": "Значок",
+     "steps": [
+      {
+       "type": "title",
+       "title": "Акт VI",
+       "subtitle": "Под присягой",
+       "do": [
+        [
+         "time",
+         1500
+        ],
+        [
+         "spawn",
+         "petrov",
+         "police_station+1,1"
+        ]
+       ]
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "police_station+14,8,3",
+         "to": "police_station+8,5,2",
+         "sec": 6,
+         "track": "petrov"
+        },
+        {
+         "follow": "diaz",
+         "sec": 5,
+         "off": [
+          3.2,
+          1.7,
+          -1.4
+         ]
+        },
+        {
+         "follow": "petrov",
+         "sec": 4,
+         "off": [
+          3.2,
+          1.7,
+          1.4
+         ]
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "petrov",
+         "police_station+-2,2"
+        ],
+        [
+         0,
+         "spawn",
+         "diaz",
+         "police_station+6,-2"
+        ],
+        [
+         0,
+         "spawn",
+         "c1",
+         "police_station+-4,-2",
+         "police"
+        ],
+        [
+         0,
+         "spawn",
+         "c2",
+         "police_station+-5,1",
+         "police"
+        ],
+        [
+         0,
+         "spawn",
+         "c3",
+         "police_station+-4,4",
+         "police"
+        ],
+        [
+         0.5,
+         "act",
+         "c1",
+         "CHEER",
+         "petrov"
+        ],
+        [
+         0.5,
+         "act",
+         "c2",
+         "CHEER",
+         "petrov"
+        ],
+        [
+         0.5,
+         "act",
+         "petrov",
+         "TALK",
+         "c2"
+        ],
+        [
+         5,
+         "walk",
+         "diaz",
+         "police_station+2,0"
+        ],
+        [
+         9,
+         "act",
+         "diaz",
+         "WAVE",
+         "player"
+        ],
+        [
+         11,
+         "face",
+         "petrov",
+         "player"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Новоград. Утро после бури. Кроу сидит, Брик сидит, а город всё равно не спит.",
+         "voice": "a6m1s_01"
+        },
+        {
+         "who": "petrov",
+         "text": "Тише, тише. Сегодня у нас пополнение. Не стойте столбом — хлопайте.",
+         "voice": "a6m1s_02"
+        },
+        {
+         "who": "diaz",
+         "text": "Это и есть тот гонщик? Шеф, вы уверены, что он умеет ездить медленно?",
+         "voice": "a6m1s_03"
+        }
+       ],
+       "grade": "film_blockbuster",
+       "card": true
+      },
+      {
+       "type": "talk",
+       "lines": [
+        {
+         "who": "petrov",
+         "text": "Я теперь шеф. Смешно, да? Тот, кто три года ловил Брика, сидит в кресле Харриса.",
+         "voice": "a6m1_01"
+        },
+        {
+         "who": "petrov",
+         "text": "Значок, табельный, машина без мигалок. И напарник — сержант Диас. Она лучшая в участке, так что слушайся её.",
+         "voice": "a6m1_02"
+        }
+       ],
+       "choices": [
+        {
+         "text": "Служу Новограду.",
+         "flag": "a6_oath",
+         "reply": [
+          {
+           "who": "petrov",
+           "text": "Вот и славно. Только без пафоса — его тут не любят.",
+           "voice": "a6m1_03"
+          }
+         ]
+        },
+        {
+         "text": "А зарплата какая?",
+         "flag": "a6_salary",
+         "reply": [
+          {
+           "who": "petrov",
+           "text": "Меньше, чем у гонщика. Зато пенсия и уважение. Иногда.",
+           "voice": "a6m1_04"
+          }
+         ]
+        }
+       ],
+       "do": [
+        [
+         "give",
+         "novograd:pistol",
+         1
+        ],
+        [
+         "give",
+         "novograd:ammo",
+         90
+        ],
+        [
+         "flag",
+         "cop_badge"
+        ]
+       ],
+       "npc": "petrov",
+       "hint": "Поговори с шефом Питерсоном в участке"
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Сержант Ана Диас. Десять лет в патруле — и ни одного напарника, который продержался бы год.",
+         "voice": "a6m1_05"
+        },
+        {
+         "who": "diaz",
+         "text": "Первый вызов уже есть: драка у клуба «Неон». Машина у входа. Поехали.",
+         "voice": "a6m1_06"
+        }
+       ],
+       "do": [
+        [
+         "car",
+         "police_station+8,3",
+         3
+        ],
+        [
+         "spawn",
+         "diaz",
+         "police_station+3,1"
+        ]
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Вызов: драка у клуба «Неон». Езжай с Диас в деловой центр",
+       "place": "club_neon",
+       "radius": 10,
+       "vehicle": true
+      },
+      {
+       "type": "clear",
+       "hint": "Разними драку: уложи хулиганов",
+       "place": "club_neon",
+       "count": 3
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Неплохо для первого дня. В рапорте напишем «задержаны при сопротивлении». Так солиднее.",
+         "voice": "a6m1_07"
+        }
+       ],
+       "do": [
+        [
+         "money",
+         300
+        ]
+       ]
+      }
+     ],
+     "start": "police_station+-2,2"
+    },
+    {
+     "id": "a6m2",
+     "title": "Патруль",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Сегодня патруль по деловому центру. Смотри по сторонам и не превышай. Ну… сильно не превышай.",
+         "voice": "a6m2_01"
+        }
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Патруль: проедь по Центральной (первая точка)",
+       "place": "dt_1",
+       "radius": 10,
+       "vehicle": true
+      },
+      {
+       "type": "goto",
+       "hint": "Патруль: дальше по деловому центру",
+       "place": "dt_3",
+       "radius": 10,
+       "vehicle": true
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "dt_3+18,6,3",
+         "to": "dt_3+10,4,2",
+         "sec": 4,
+         "track": "speeder"
+        },
+        {
+         "follow": "speeder",
+         "sec": 5,
+         "off": [
+          9,
+          2.5,
+          2.5
+         ],
+         "shake": 0.4
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "car",
+         "speeder",
+         "dt_3+0,70",
+         2,
+         180
+        ],
+        [
+         0.1,
+         "drive",
+         "speeder",
+         [
+          "dt_3+0,-40",
+          "dt_4"
+         ],
+         0.95
+        ]
+       ],
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Сто шестьдесят по центру! Это же «Ракета» из уличных гонок. За ним!",
+         "voice": "a6m2s_01"
+        }
+       ],
+       "grade": "film_blockbuster",
+       "card": true
+      },
+      {
+       "type": "chase",
+       "hint": "Догони «Ракету» и останови его машину",
+       "points": [
+        "dt_3",
+        "dt_4",
+        "dt_5",
+        "race_finish"
+       ],
+       "driver": "Ракета",
+       "variant": 2
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Знакомый? Он орал, что гонял с тобой на кольце и что ты ему должен.",
+         "voice": "a6m2_02"
+        }
+       ],
+       "choices": [
+        {
+         "text": "Выпиши штраф и отпусти.",
+         "flag": "a6_soft",
+         "reply": [
+          {
+           "who": "diaz",
+           "text": "Мягкий ты. Ладно, первый раз — штраф.",
+           "voice": "a6m2_03"
+          }
+         ]
+        },
+        {
+         "text": "По закону — значит по закону.",
+         "flag": "a6_hard",
+         "reply": [
+          {
+           "who": "diaz",
+           "text": "Вот теперь ты похож на копа.",
+           "voice": "a6m2_04"
+          }
+         ]
+        }
+       ],
+       "do": [
+        [
+         "money",
+         400
+        ]
+       ]
+      }
+     ],
+     "start": "dt_1"
+    },
+    {
+     "id": "a6m3",
+     "title": "Ограбление в прямом эфире",
+     "steps": [
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "bank_tower+22,10,4",
+         "to": "bank_tower+12,6,3",
+         "sec": 5,
+         "track": "r1"
+        },
+        {
+         "from": "bank_tower+6,4,2",
+         "to": "bank_tower+4,3,1.8",
+         "sec": 5,
+         "track": "lena"
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "r1",
+         "bank_tower+14,-6",
+         "gang",
+         "Грабитель в маске"
+        ],
+        [
+         0,
+         "spawn",
+         "r2",
+         "bank_tower+16,-3",
+         "gang",
+         "Грабитель в маске"
+        ],
+        [
+         0.2,
+         "run",
+         "r1",
+         "bank_tower+1,0"
+        ],
+        [
+         0.4,
+         "run",
+         "r2",
+         "bank_tower+2,2"
+        ],
+        [
+         0,
+         "spawn",
+         "lena",
+         "bank_tower+8,6"
+        ],
+        [
+         4,
+         "act",
+         "r1",
+         "AIM",
+         "lena"
+        ],
+        [
+         5,
+         "act",
+         "lena",
+         "TALK",
+         "player"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Полдень. Сити-Банк. Четверо в масках решили, что в обеденный перерыв полиция тоже обедает.",
+         "voice": "a6m3s_01"
+        },
+        {
+         "who": "lena",
+         "text": "Лена Вуд, «Вестник Новограда». Мы ведём прямой репортаж от Сити-Банка!",
+         "voice": "a6m3s_02"
+        }
+       ],
+       "grade": "film_cine",
+       "card": true
+      },
+      {
+       "type": "goto",
+       "hint": "Ограбление Сити-Банка! Езжай к башне банка",
+       "place": "bank_tower",
+       "radius": 14
+      },
+      {
+       "type": "clear",
+       "hint": "Обезвредь грабителей",
+       "place": "bank_tower",
+       "count": 6
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "lena",
+         "text": "Офицер, пару слов для «Вестника»? Ой… это ты? В форме?",
+         "voice": "a6m3_01"
+        },
+        {
+         "who": "diaz",
+         "text": "Без комментариев. Особенно для журналисток, которые с моим напарником на «ты».",
+         "voice": "a6m3_02"
+        },
+        {
+         "who": "lena",
+         "text": "Один из грабителей крикнул «привет от Синих». Марко вернулся в город. Береги себя.",
+         "voice": "a6m3_03"
+        }
+       ],
+       "do": [
+        [
+         "money",
+         800
+        ],
+        [
+         "shock",
+         "CITY",
+         0.05,
+         "полиция сорвала ограбление Сити-Банка"
+        ]
+       ]
+      }
+     ],
+     "start": "bank_tower"
+    },
+    {
+     "id": "a6m4",
+     "title": "Ночная слежка",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "tema",
+         "text": "Привет, детектив! Звучит, а? Я перехватил переписку «Синих». Сегодня ночью у них встреча в переулке за «Неоном».",
+         "voice": "a6m4_01"
+        },
+        {
+         "who": "diaz",
+         "text": "Сидим тихо и смотрим. Никакой стрельбы, никаких гонок. Просто слежка.",
+         "voice": "a6m4_02"
+        }
+       ],
+       "do": [
+        [
+         "time",
+         18500
+        ]
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Займи позицию у переулка за клубом «Неон»",
+       "place": "dt_alley",
+       "radius": 16
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "dt_alley+16,7,3",
+         "to": "dt_alley+13,5,2.5",
+         "sec": 6,
+         "track": "marco"
+        },
+        {
+         "from": "dt_alley+3,-5,2",
+         "to": "dt_alley+2,-4,1.8",
+         "sec": 5,
+         "track": "courier"
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "marco",
+         "dt_alley+-6,-2"
+        ],
+        [
+         0,
+         "spawn",
+         "courier",
+         "dt_alley+-14,0",
+         "gang",
+         "Курьер «Синих»"
+        ],
+        [
+         0.3,
+         "walk",
+         "courier",
+         "dt_alley+-7,-1"
+        ],
+        [
+         4,
+         "act",
+         "courier",
+         "HANDSHAKE",
+         "marco"
+        ],
+        [
+         4,
+         "act",
+         "marco",
+         "HANDSHAKE",
+         "courier"
+        ],
+        [
+         7,
+         "act",
+         "marco",
+         "PHONE"
+        ],
+        [
+         10,
+         "walk",
+         "courier",
+         "dt_alley+-20,0"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "marco",
+         "text": "Груз в порту, контейнер двенадцать. Передай шефу: всё по плану.",
+         "voice": "a6m4s_01"
+        },
+        {
+         "who": "narrator",
+         "text": "«Шеф». Так в Новограде называли только одного человека. И он сейчас должен сидеть в тюрьме.",
+         "voice": "a6m4s_02"
+        }
+       ],
+       "do": [
+        [
+         "despawn",
+         "marco"
+        ]
+       ],
+       "grade": "film_cine",
+       "card": true
+      },
+      {
+       "type": "collect",
+       "hint": "Сфотографируй встречу (ПКМ по метке в переулке)",
+       "clues": [
+        {
+         "place": "dt_alley+2,-3",
+         "name": "Фото: Марко и курьер"
+        }
+       ]
+      },
+      {
+       "type": "chase",
+       "hint": "Курьер уходит на машине — догони его",
+       "points": [
+        "dt_2",
+        "dt_1",
+        "hw_north",
+        "race_1"
+       ],
+       "driver": "Курьер «Синих»",
+       "variant": 3
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Курьер молчит. Но в его телефоне всего один номер. Тюрьма «Чёрная скала». Камера Харриса.",
+         "voice": "a6m4_03"
+        },
+        {
+         "who": "diaz",
+         "text": "Харрис руководит бандой из камеры. Ну конечно. Он и полицией так руководил.",
+         "voice": "a6m4_04"
+        }
+       ]
+      }
+     ],
+     "start": "dt_alley"
+    },
+    {
+     "id": "a6m5",
+     "title": "Контейнер двенадцать",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Порт. Контейнер двенадцать. Ордер есть, поддержки нет — все на выезде. Как обычно.",
+         "voice": "a6m5_01"
+        }
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Езжай в порт, к складу у причала",
+       "place": "port_warehouse",
+       "radius": 12
+      },
+      {
+       "type": "clear",
+       "hint": "Охрана «Синих» открыла огонь — отбейся",
+       "place": "port_warehouse",
+       "count": 6
+      },
+      {
+       "type": "collect",
+       "hint": "Осмотри контейнер и найди накладные",
+       "clues": [
+        {
+         "place": "port_warehouse+3,2",
+         "name": "Контейнер №12"
+        },
+        {
+         "place": "port_warehouse+-4,-3",
+         "name": "Накладные"
+        }
+       ]
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "ray",
+         "text": "Это Рэй. Слышал, ты теперь при значке. Не смейся, но я рад.",
+         "voice": "a6m5_02"
+        },
+        {
+         "who": "ray",
+         "text": "Эти ящики идут морем на Ривьеру, в «Золотую корону». У казино новые хозяева — люди Харриса.",
+         "voice": "a6m5_03"
+        }
+       ],
+       "do": [
+        [
+         "money",
+         600
+        ]
+       ]
+      }
+     ],
+     "start": "port_warehouse"
+    },
+    {
+     "id": "a6m6",
+     "title": "Побег",
+     "steps": [
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "hw_south+20,10,4",
+         "to": "hw_south+10,6,3",
+         "sec": 5,
+         "track": "convoy"
+        },
+        {
+         "follow": "convoy",
+         "sec": 4,
+         "off": [
+          9,
+          3,
+          2.5
+         ]
+        },
+        {
+         "from": "hw_south+6,4,2",
+         "to": "hw_south+4,3,2",
+         "sec": 5,
+         "track": "harris",
+         "shake": 0.6
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "car",
+         "convoy",
+         "hw_south+0,-80",
+         6,
+         0
+        ],
+        [
+         0.1,
+         "drive",
+         "convoy",
+         [
+          "hw_south+0,-4"
+         ],
+         0.7
+        ],
+        [
+         0,
+         "car",
+         "blocker",
+         "hw_south+6,6",
+         4,
+         90
+        ],
+        [
+         6,
+         "spawn",
+         "g1",
+         "hw_south+5,3",
+         "gang",
+         "Наёмник"
+        ],
+        [
+         6,
+         "spawn",
+         "g2",
+         "hw_south+8,1",
+         "gang",
+         "Наёмник"
+        ],
+        [
+         6.2,
+         "spawn",
+         "cop",
+         "hw_south+-2,-2",
+         "police"
+        ],
+        [
+         6.5,
+         "shoot",
+         "g1",
+         "cop",
+         4,
+         0
+        ],
+        [
+         7.5,
+         "die",
+         "cop"
+        ],
+        [
+         8,
+         "spawn",
+         "harris",
+         "hw_south+-1,-1"
+        ],
+        [
+         9,
+         "act",
+         "harris",
+         "LAUGH",
+         "player"
+        ],
+        [
+         11,
+         "ride",
+         "harris",
+         "blocker"
+        ],
+        [
+         11.5,
+         "drive",
+         "blocker",
+         [
+          "hw_sw",
+          "port_gate"
+         ],
+         0.95
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Харриса везли на допрос в суд. Сорок минут по южной трассе. Он доехал только до половины.",
+         "voice": "a6m6s_01"
+        },
+        {
+         "who": "harris",
+         "text": "Передайте Питерсону: я вернусь за своим креслом.",
+         "voice": "a6m6s_02"
+        }
+       ],
+       "do": [
+        [
+         "despawn",
+         "harris"
+        ]
+       ],
+       "grade": "film_noir",
+       "card": true
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "petrov",
+         "text": "Харрис сбежал! Конвой расстрелян. Фургон уходит по южной трассе к порту — догони его!",
+         "voice": "a6m6_01"
+        }
+       ]
+      },
+      {
+       "type": "chase",
+       "hint": "Догони фургон с беглецом",
+       "points": [
+        "hw_south",
+        "hw_sw",
+        "port_gate",
+        "port_dock"
+       ],
+       "driver": "Люди Харриса",
+       "variant": 4
+      },
+      {
+       "type": "clear",
+       "hint": "Люди Харриса прикрывают отход — отбейся",
+       "place": "port_dock",
+       "count": 5
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Фургон пустой. Харрис ушёл морем. Чёрт возьми!",
+         "voice": "a6m6_02"
+        },
+        {
+         "who": "petrov",
+         "text": "Значит, он на Ривьере. Там у него деньги и казино. Готовьтесь, детективы.",
+         "voice": "a6m6_03"
+        }
+       ]
+      }
+     ],
+     "start": "hw_south"
+    },
+    {
+     "id": "a6m7",
+     "title": "Под прикрытием",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "petrov",
+         "text": "В «Золотой короне» новый управляющий — Ленни, бухгалтер Харриса. Идёшь туда как игрок с толстым кошельком.",
+         "voice": "a6m7_01"
+        },
+        {
+         "who": "diaz",
+         "text": "Я буду в фургоне, у тебя в ухе — мой голос. Не выигрывай слишком много. И не проигрывай мои деньги.",
+         "voice": "a6m7_02"
+        }
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Езжай в казино «Золотая корона» на Ривьере",
+       "place": "riv_casino",
+       "radius": 10,
+       "do": [
+        [
+         "spawn",
+         "sofi",
+         "riv_casino+3,2"
+        ],
+        [
+         "time",
+         17500
+        ]
+       ]
+      },
+      {
+       "type": "talk",
+       "lines": [
+        {
+         "who": "sofi",
+         "text": "Ты… в костюме? Тебе идёт. Ленни сидит в зале, за ним двое охранников.",
+         "voice": "a6m7_03"
+        },
+        {
+         "who": "sofi",
+         "text": "Ключ-карта от его сейфа — во внутреннем кармане. Я пролью на него коктейль, а ты не зевай.",
+         "voice": "a6m7_04"
+        }
+       ],
+       "npc": "sofi",
+       "hint": "Поговори с Софи у входа в казино"
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "riv_casino+10,6,3",
+         "to": "riv_casino+6,4,2",
+         "sec": 5,
+         "track": "lenny"
+        },
+        {
+         "follow": "sofi",
+         "sec": 4,
+         "off": [
+          3,
+          1.7,
+          -1.3
+         ]
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "lenny",
+         "riv_casino+-2,-4",
+         "citizen",
+         "Ленни"
+        ],
+        [
+         0,
+         "spawn",
+         "g1",
+         "riv_casino+-4,-5",
+         "gang",
+         "Охрана Ленни"
+        ],
+        [
+         0,
+         "spawn",
+         "sofi",
+         "riv_casino+4,1"
+        ],
+        [
+         0.4,
+         "walk",
+         "sofi",
+         "riv_casino+-1,-3"
+        ],
+        [
+         4,
+         "act",
+         "sofi",
+         "LAUGH",
+         "lenny"
+        ],
+        [
+         5,
+         "act",
+         "lenny",
+         "UPSET"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "sofi",
+         "text": "Ой! Простите, мистер, я такая неловкая! Давайте я вытру…",
+         "voice": "a6m7s_01"
+        },
+        {
+         "who": "diaz",
+         "text": "Карта у неё. Забирай записи из сейфа. Быстро.",
+         "voice": "a6m7s_02"
+        }
+       ],
+       "grade": "film_neon",
+       "card": true
+      },
+      {
+       "type": "collect",
+       "hint": "Найди ключ-карту и записи в сейфе",
+       "clues": [
+        {
+         "place": "riv_casino+2,-3",
+         "name": "Ключ-карта Ленни"
+        },
+        {
+         "place": "riv_casino+-5,-4",
+         "name": "Записи из сейфа"
+        }
+       ]
+      },
+      {
+       "type": "clear",
+       "hint": "Охрана поняла, кто ты. Прорывайся к выходу",
+       "place": "riv_casino",
+       "count": 6
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "В записях — адрес. Пустошь, склад у столовой горы. Там Харрис собирает людей и оружие.",
+         "voice": "a6m7_05"
+        },
+        {
+         "who": "petrov",
+         "text": "Армию? Тогда и мы придём не вдвоём.",
+         "voice": "a6m7_06"
+        }
+       ],
+       "do": [
+        [
+         "money",
+         1000
+        ]
+       ]
+      }
+     ],
+     "start": "riv_casino"
+    },
+    {
+     "id": "a6m8",
+     "title": "Спецназ",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "petrov",
+         "text": "Сегодня работает спецназ. Ты — с ними, в первой машине. Ничего героического: войди и выйди живым.",
+         "voice": "a6m8_01"
+        }
+       ],
+       "do": [
+        [
+         "give",
+         "novograd:body_armor",
+         1
+        ],
+        [
+         "give",
+         "novograd:ammo",
+         120
+        ]
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Езжай в пустошь, к точке сбора спецназа",
+       "place": "desert_road",
+       "radius": 18,
+       "vehicle": true
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "desert_mesa+40,14,8",
+         "to": "desert_mesa+26,10,6",
+         "sec": 6,
+         "track": "swat1"
+        },
+        {
+         "follow": "swat2",
+         "sec": 5,
+         "off": [
+          10,
+          3,
+          3
+         ],
+         "shake": 0.5
+        },
+        {
+         "from": "desert_mesa+10,6,3",
+         "to": "desert_mesa+8,4,2",
+         "sec": 4,
+         "track": "s1"
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "car",
+         "swat1",
+         "desert_mesa+80,0",
+         17,
+         90
+        ],
+        [
+         0,
+         "car",
+         "swat2",
+         "desert_mesa+95,6",
+         17,
+         90
+        ],
+        [
+         0.1,
+         "drive",
+         "swat1",
+         [
+          "desert_mesa+16,0"
+         ],
+         0.9
+        ],
+        [
+         0.4,
+         "drive",
+         "swat2",
+         [
+          "desert_mesa+20,6"
+         ],
+         0.9
+        ],
+        [
+         10,
+         "spawn",
+         "s1",
+         "desert_mesa+14,2",
+         "police",
+         "Спецназ"
+        ],
+        [
+         10,
+         "spawn",
+         "s2",
+         "desert_mesa+15,-2",
+         "police",
+         "Спецназ"
+        ],
+        [
+         10.5,
+         "act",
+         "s1",
+         "AIM",
+         "desert_mesa"
+        ],
+        [
+         10.5,
+         "act",
+         "s2",
+         "AIM",
+         "desert_mesa"
+        ],
+        [
+         10,
+         "spawn",
+         "diaz",
+         "desert_mesa+16,4"
+        ],
+        [
+         11,
+         "act",
+         "diaz",
+         "AIM",
+         "desert_mesa"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Шесть фургонов спецназа в пустоши. Так Новоград ещё никогда не стучался в дверь.",
+         "voice": "a6m8s_01"
+        },
+        {
+         "who": "diaz",
+         "text": "Пошли, пошли, пошли!",
+         "voice": "a6m8s_02"
+        }
+       ],
+       "grade": "film_sunset",
+       "card": true
+      },
+      {
+       "type": "goto",
+       "hint": "Штурм: к складу у столовой горы",
+       "place": "desert_mesa",
+       "radius": 18
+      },
+      {
+       "type": "clear",
+       "hint": "Зачисти склад и возьми Марко",
+       "place": "desert_mesa",
+       "count": 10,
+       "boss": "Марко «Синий»"
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "marco",
+         "text": "Ладно! Ладно, я сдаюсь! Харрис обещал нам весь город, когда вернёт себе кресло.",
+         "voice": "a6m8_02"
+        },
+        {
+         "who": "marco",
+         "text": "Его тут нет. Он знал о рейде заранее. У вас в участке крыса, детектив.",
+         "voice": "a6m8_03"
+        }
+       ],
+       "do": [
+        [
+         "wanted_clear"
+        ],
+        [
+         "money",
+         1500
+        ],
+        [
+         "shock",
+         "CITY",
+         0.06,
+         "спецназ взял склад оружия «Синих» в пустоши"
+        ]
+       ]
+      }
+     ],
+     "start": "desert_road"
+    },
+    {
+     "id": "a6m9",
+     "title": "Крыса",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Кто-то слил рейд Харрису. Кто-то из наших. Мне это очень не нравится.",
+         "voice": "a6m9_01"
+        },
+        {
+         "who": "tema",
+         "text": "Я проверил рабочие телефоны участка. Один номер каждый вечер звонил в «Чёрную скалу».",
+         "voice": "a6m9_02"
+        }
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Возвращайся в участок",
+       "place": "police_station",
+       "radius": 10
+      },
+      {
+       "type": "collect",
+       "hint": "Тихо найди улики в участке",
+       "clues": [
+        {
+         "place": "police_station+3,-2",
+         "name": "Журнал звонков"
+        },
+        {
+         "place": "police_station+-4,2",
+         "name": "Конверт в шкафчике"
+        }
+       ]
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "police_station+10,6,3",
+         "to": "police_station+7,4,2",
+         "sec": 4,
+         "track": "cole"
+        },
+        {
+         "follow": "cole_car",
+         "sec": 5,
+         "off": [
+          9,
+          2.5,
+          2.5
+         ],
+         "shake": 0.4
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "cole",
+         "police_station+2,-1",
+         "police",
+         "Сержант Коул"
+        ],
+        [
+         0,
+         "car",
+         "cole_car",
+         "police_station+10,6",
+         6,
+         90
+        ],
+        [
+         0.5,
+         "act",
+         "cole",
+         "UPSET"
+        ],
+        [
+         1.5,
+         "run",
+         "cole",
+         "police_station+9,5"
+        ],
+        [
+         3.5,
+         "ride",
+         "cole",
+         "cole_car"
+        ],
+        [
+         4,
+         "drive",
+         "cole_car",
+         [
+          "dt_5",
+          "dt_4"
+         ],
+         0.95
+        ]
+       ],
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Коул?! Двадцать лет в участке… Стоять!",
+         "voice": "a6m9s_01"
+        }
+       ],
+       "grade": "film_noir",
+       "card": true
+      },
+      {
+       "type": "chase",
+       "hint": "Догони машину сержанта Коула",
+       "points": [
+        "dt_5",
+        "dt_4",
+        "hw_east",
+        "industry_street"
+       ],
+       "driver": "Сержант Коул",
+       "variant": 6
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Коул рассказал всё. Харрис в городе. И у него Лена Вуд.",
+         "voice": "a6m9_03"
+        },
+        {
+         "who": "petrov",
+         "text": "Лена готовила статью о Харрисе. Он её заткнёт навсегда, если мы опоздаем.",
+         "voice": "a6m9_04"
+        }
+       ]
+      }
+     ],
+     "start": "police_station"
+    },
+    {
+     "id": "a6m10",
+     "title": "Заложница",
+     "steps": [
+      {
+       "type": "goto",
+       "hint": "Харрис держит Лену в клубе «Неон» — быстрее туда",
+       "place": "club_neon",
+       "radius": 12,
+       "do": [
+        [
+         "time",
+         19000
+        ]
+       ]
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "club_neon+10,5,3",
+         "to": "club_neon+7,4,2",
+         "sec": 5,
+         "track": "harris"
+        },
+        {
+         "from": "club_neon+3,3,1.8",
+         "to": "club_neon+2,2,1.7",
+         "sec": 5,
+         "track": "lena",
+         "shake": 0.3
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "harris",
+         "club_neon+0,-3"
+        ],
+        [
+         0,
+         "spawn",
+         "lena",
+         "club_neon+1,-3"
+        ],
+        [
+         0,
+         "act",
+         "lena",
+         "UPSET"
+        ],
+        [
+         0,
+         "spawn",
+         "g1",
+         "club_neon+3,-6",
+         "gang",
+         "Наёмник"
+        ],
+        [
+         0,
+         "spawn",
+         "g2",
+         "club_neon+-3,-5",
+         "gang",
+         "Наёмник"
+        ],
+        [
+         0.5,
+         "act",
+         "g1",
+         "AIM",
+         "player"
+        ],
+        [
+         0.5,
+         "act",
+         "g2",
+         "AIM",
+         "player"
+        ],
+        [
+         2,
+         "act",
+         "harris",
+         "ARGUE",
+         "player"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "harris",
+         "text": "Не подходи! Ещё шаг — и «Вестник» напишет некролог.",
+         "voice": "a6m10s_01"
+        },
+        {
+         "who": "lena",
+         "text": "Не слушай его! Он блефует!",
+         "voice": "a6m10s_02"
+        }
+       ],
+       "do": [
+        [
+         "despawn",
+         "harris"
+        ],
+        [
+         "despawn",
+         "lena"
+        ]
+       ],
+       "grade": "film_neon",
+       "card": true
+      },
+      {
+       "type": "clear",
+       "hint": "Разберись с наёмниками Харриса",
+       "place": "club_neon",
+       "count": 7
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "club_neon+12,8,3",
+         "to": "club_neon+8,5,2",
+         "sec": 4,
+         "track": "h_car"
+        },
+        {
+         "follow": "h_car",
+         "sec": 5,
+         "off": [
+          9,
+          2.5,
+          2.5
+         ],
+         "shake": 0.4
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "car",
+         "h_car",
+         "club_neon+8,6",
+         3,
+         90
+        ],
+        [
+         0,
+         "spawn",
+         "harris",
+         "club_neon+5,4"
+        ],
+        [
+         0,
+         "spawn",
+         "lena",
+         "club_neon+6,4"
+        ],
+        [
+         1,
+         "ride",
+         "lena",
+         "h_car"
+        ],
+        [
+         1.4,
+         "ride",
+         "harris",
+         "h_car"
+        ],
+        [
+         2,
+         "drive",
+         "h_car",
+         [
+          "dt_1",
+          "dt_2"
+         ],
+         0.95
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Харрис уходит через чёрный ход. Лена всё ещё у него.",
+         "voice": "a6m10s_03"
+        }
+       ],
+       "do": [
+        [
+         "despawn",
+         "harris"
+        ],
+        [
+         "despawn",
+         "lena"
+        ]
+       ],
+       "grade": "film_neon"
+      },
+      {
+       "type": "chase",
+       "hint": "Догони машину Харриса и разбей её",
+       "points": [
+        "dt_1",
+        "dt_2",
+        "hw_north",
+        "race_1"
+       ],
+       "driver": "Шеф Харрис",
+       "variant": 3
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "lena",
+         "text": "Ты успел… Он бросил меня на трассе и ушёл пешком в промзону.",
+         "voice": "a6m10_01"
+        },
+        {
+         "who": "diaz",
+         "text": "Промзона? Там старый двор «Ящеров». Поеду проверю. Отвези Лену и догоняй.",
+         "voice": "a6m10_02"
+        }
+       ],
+       "do": [
+        [
+         "spawn",
+         "lena",
+         "race_1+3,2"
+        ]
+       ]
+      }
+     ],
+     "start": "club_neon"
+    },
+    {
+     "id": "a6m11",
+     "title": "Напарник",
+     "steps": [
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "petrov",
+         "text": "Диас поехала во двор «Ящеров» одна и не выходит на связь. Найди её!",
+         "voice": "a6m11_01"
+        }
+       ],
+       "do": [
+        [
+         "despawn",
+         "lena"
+        ]
+       ]
+      },
+      {
+       "type": "goto",
+       "hint": "Езжай в промзону, во двор «Ящеров»",
+       "place": "gang_yard",
+       "radius": 14
+      },
+      {
+       "type": "clear",
+       "hint": "Люди Харриса окружили Диас — прорвись к ней",
+       "place": "gang_yard",
+       "count": 7
+      },
+      {
+       "type": "talk",
+       "lines": [
+        {
+         "who": "diaz",
+         "text": "Я в порядке… Царапина. Почти.",
+         "voice": "a6m11_02"
+        },
+        {
+         "who": "diaz",
+         "text": "Они готовят Харрису уход морем. Порт, кран у причала, полночь. Иди без меня — и только попробуй не вернуться.",
+         "voice": "a6m11_03"
+        }
+       ],
+       "choices": [
+        {
+         "text": "Я тебя не брошу.",
+         "flag": "a6_stay",
+         "reply": [
+          {
+           "who": "diaz",
+           "text": "Сентиментальный коп. Худший вид. Иди уже!",
+           "voice": "a6m11_04"
+          }
+         ]
+        },
+        {
+         "text": "Дождись скорую.",
+         "flag": "a6_go",
+         "reply": [
+          {
+           "who": "diaz",
+           "text": "Есть, напарник.",
+           "voice": "a6m11_05"
+          }
+         ]
+        }
+       ],
+       "do": [
+        [
+         "spawn",
+         "diaz",
+         "gang_yard+2,1"
+        ],
+        [
+         "act",
+         "diaz",
+         "SIT"
+        ]
+       ],
+       "npc": "diaz",
+       "hint": "Найди Диас"
+      }
+     ],
+     "start": "gang_yard"
+    },
+    {
+     "id": "a6m12",
+     "title": "Под присягой",
+     "steps": [
+      {
+       "type": "goto",
+       "hint": "Езжай в порт, к крану у причала",
+       "place": "port_crane",
+       "radius": 14,
+       "do": [
+        [
+         "time",
+         18000
+        ],
+        [
+         "despawn",
+         "diaz"
+        ]
+       ]
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "port_crane+18,8,4",
+         "to": "port_crane+11,5,3",
+         "sec": 5,
+         "track": "harris"
+        },
+        {
+         "follow": "harris",
+         "sec": 4,
+         "off": [
+          3.2,
+          1.8,
+          1.4
+         ]
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "harris",
+         "port_crane+2,3"
+        ],
+        [
+         0,
+         "spawn",
+         "m1",
+         "port_crane+5,2",
+         "gang",
+         "Наёмник"
+        ],
+        [
+         0,
+         "spawn",
+         "m2",
+         "port_crane+-2,2",
+         "gang",
+         "Наёмник"
+        ],
+        [
+         0.5,
+         "act",
+         "m1",
+         "AIM",
+         "player"
+        ],
+        [
+         0.5,
+         "act",
+         "m2",
+         "AIM",
+         "player"
+        ],
+        [
+         2,
+         "act",
+         "harris",
+         "ARGUE",
+         "player"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "harris",
+         "text": "Гонщик, крыса, а теперь ещё и коп. Сколько у тебя лиц?",
+         "voice": "a6m12s_01"
+        },
+        {
+         "who": "harris",
+         "text": "В камере я понял одну вещь: закон — это тот, у кого пистолет. Убейте его.",
+         "voice": "a6m12s_02"
+        }
+       ],
+       "do": [
+        [
+         "despawn",
+         "harris"
+        ]
+       ],
+       "grade": "film_sunset",
+       "card": true
+      },
+      {
+       "type": "clear",
+       "hint": "Финальная перестрелка в порту: возьми Харриса",
+       "place": "port_crane",
+       "count": 9,
+       "boss": "Шеф Харрис"
+      },
+      {
+       "type": "cutscene",
+       "shots": [
+        {
+         "from": "port_crane+14,8,3",
+         "to": "port_crane+9,5,2",
+         "sec": 6,
+         "track": "harris"
+        },
+        {
+         "follow": "cop_car",
+         "sec": 5,
+         "off": [
+          9,
+          3,
+          2.5
+         ]
+        },
+        {
+         "from": "police_station+12,6,3",
+         "to": "police_station+7,4,2",
+         "sec": 6,
+         "track": "petrov"
+        },
+        {
+         "from": "cam_dt_a",
+         "to": "cam_dt_b",
+         "sec": 8
+        }
+       ],
+       "actors": [
+        [
+         0,
+         "spawn",
+         "harris",
+         "port_crane+2,4"
+        ],
+        [
+         0,
+         "act",
+         "harris",
+         "UPSET"
+        ],
+        [
+         0,
+         "spawn",
+         "c1",
+         "port_crane+4,3",
+         "police"
+        ],
+        [
+         0,
+         "car",
+         "cop_car",
+         "port_crane+6,12",
+         6,
+         0
+        ],
+        [
+         0.5,
+         "walk",
+         "harris",
+         "port_crane+5,11"
+        ],
+        [
+         0.6,
+         "walk",
+         "c1",
+         "port_crane+7,10"
+        ],
+        [
+         5,
+         "ride",
+         "harris",
+         "cop_car"
+        ],
+        [
+         5.5,
+         "drive",
+         "cop_car",
+         [
+          "port_gate"
+         ],
+         0.6
+        ],
+        [
+         0,
+         "spawn",
+         "petrov",
+         "police_station+-1,1"
+        ],
+        [
+         0,
+         "spawn",
+         "diaz",
+         "police_station+2,1"
+        ],
+        [
+         0,
+         "spawn",
+         "lena",
+         "police_station+4,3"
+        ],
+        [
+         0,
+         "spawn",
+         "c2",
+         "police_station+-4,-2",
+         "police"
+        ],
+        [
+         0,
+         "spawn",
+         "c3",
+         "police_station+-4,3",
+         "police"
+        ],
+        [
+         11,
+         "act",
+         "c2",
+         "CHEER",
+         "player"
+        ],
+        [
+         11,
+         "act",
+         "c3",
+         "CHEER",
+         "player"
+        ],
+        [
+         12,
+         "act",
+         "petrov",
+         "HANDSHAKE",
+         "player"
+        ],
+        [
+         13,
+         "act",
+         "lena",
+         "CHEER",
+         "player"
+        ]
+       ],
+       "lines": [
+        {
+         "who": "narrator",
+         "text": "Бывшего шефа полиции Харриса взяли на причале. В наручниках, которые когда-то сам выдавал.",
+         "voice": "a6m12s_03"
+        },
+        {
+         "who": "petrov",
+         "text": "За мужество при исполнении… а, к чёрту речи. Ты молодец, детектив.",
+         "voice": "a6m12s_04"
+        },
+        {
+         "who": "narrator",
+         "text": "Лена напечатала всё. Диас вернулась в строй через неделю и первым делом выписала тебе штраф за парковку.",
+         "voice": "a6m12s_05"
+        }
+       ],
+       "do": [
+        [
+         "wanted_clear"
+        ],
+        [
+         "money",
+         5000
+        ],
+        [
+         "shock",
+         "CITY",
+         0.1,
+         "бывший шеф полиции Харрис снова за решёткой"
+        ]
+       ],
+       "grade": "film_sunset"
+      },
+      {
+       "type": "dialog",
+       "lines": [
+        {
+         "who": "petrov",
+         "text": "Ну что, детектив. Значок тебе идёт. Остаёшься?",
+         "voice": "a6m12_01"
+        },
+        {
+         "who": "diaz",
+         "text": "Скажи «да». Мне только начало нравиться работать с сумасшедшим.",
+         "voice": "a6m12_02"
+        }
+       ],
+       "choices": [
+        {
+         "text": "Остаюсь. Это мой город.",
+         "flag": "end3_badge",
+         "reply": [
+          {
+           "who": "petrov",
+           "text": "Тогда с понедельника — отдел особо тяжких. Добро пожаловать домой.",
+           "voice": "a6m12_03"
+          }
+         ]
+        },
+        {
+         "text": "Сдаю значок. Трасса зовёт.",
+         "flag": "end3_road",
+         "reply": [
+          {
+           "who": "nika",
+           "text": "Ну наконец-то! Я держала тебе место на старте.",
+           "voice": "a6m12_04"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "type": "credits"
+      }
+     ],
+     "start": "port_crane"
+    }
+   ]
   }
  ],
  "side": {
@@ -8923,6 +11058,2502 @@
      "variant": 5
     }
    ]
+  },
+  "call_nika_race": {
+   "title": "Заезд с Ники",
+   "category": "Просьба: Ники «Нитро»",
+   "giver": "Ники «Нитро»",
+   "who": "nika",
+   "reward": 900,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "nika",
+       "text": "Вот и ты! Правила простые: кто первый у последней отметки — тот платит за кофе. Проигравший, конечно.",
+       "voice": ""
+      }
+     ]
+    },
+    {
+     "type": "carrace",
+     "hint": "Гонка с Ники: проезжай отметки раньше неё",
+     "start": "@-408,-72",
+     "points": [
+      "@-408,-24",
+      "@-408,24",
+      "@-408,72",
+      "@-408,120",
+      "@-360,120",
+      "@-360,72",
+      "@-312,72",
+      "@-264,72"
+     ],
+     "rival": "Ники «Нитро»",
+     "rival_speed": 74,
+     "rival_engine": 2,
+     "variant": 2
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "nika",
+       "text": "Ладно, ладно, ты быстрее. Сегодня. Кофе за мной!",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_nika_ring": {
+   "title": "Ночь на кольце",
+   "category": "Просьба: Ники «Нитро»",
+   "giver": "Ники «Нитро»",
+   "who": "nika",
+   "reward": 1800,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "nika",
+       "text": "Большое кольцо, как в старые времена. Без копов, без Кроу — только ты, я и асфальт.",
+       "voice": ""
+      }
+     ]
+    },
+    {
+     "type": "carrace",
+     "hint": "Большое кольцо с Ники: приди первым",
+     "start": "outer_east",
+     "points": [
+      "outer_ne",
+      "mtn_road+0,-200",
+      "outer_nw",
+      "outer_nw+0,1000"
+     ],
+     "rival": "Ники «Нитро»",
+     "rival_speed": 86,
+     "rival_engine": 2,
+     "variant": 0
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "nika",
+       "text": "Вот теперь я верю, что ты король трассы. Только не зазнавайся.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_gleb_parts": {
+   "title": "Запчасти для Джейка",
+   "category": "Просьба: Джейк",
+   "giver": "Джейк",
+   "who": "gleb",
+   "reward": 450,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "gleb",
+       "text": "Ящик с запчастями у портовых ворот. Забери — и пулей в гараж!",
+       "voice": ""
+      }
+     ]
+    },
+    {
+     "type": "goto",
+     "hint": "Забери запчасти у ворот порта",
+     "place": "port_gate",
+     "radius": 7,
+     "time": 200
+    },
+    {
+     "type": "goto",
+     "hint": "Привези запчасти в Нитро-Гараж",
+     "place": "garage_door",
+     "radius": 8,
+     "time": 220
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "gleb",
+       "text": "Успел! Клиент даже не заметил, что мы опаздывали. Держи долю.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_gleb_client": {
+   "title": "Машина клиента",
+   "category": "Просьба: Джейк",
+   "giver": "Джейк",
+   "who": "gleb",
+   "reward": 500,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "gleb",
+       "text": "Машина у ворот гаража. Клиент ждёт на Тихой улице в пригороде. Без царапин!",
+       "voice": ""
+      }
+     ]
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "gleb",
+       "text": "Ключи в замке. Езжай!",
+       "voice": ""
+      }
+     ],
+     "do": [
+      [
+       "car",
+       "garage_door",
+       1
+      ]
+     ]
+    },
+    {
+     "type": "goto",
+     "hint": "Отгони машину клиенту на Тихую улицу",
+     "place": "suburb_street",
+     "radius": 9,
+     "vehicle": true,
+     "time": 260
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "gleb",
+       "text": "Клиент доволен и даже оставил на чай. Брат, ты лучший курьер на острове.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_rosa_drinks": {
+   "title": "Вечер у Розы",
+   "category": "Просьба: Роза",
+   "giver": "Роза",
+   "who": "rosa",
+   "reward": 0,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "goto",
+     "hint": "Езжай в клуб «Неон» — Роза ждёт у стойки",
+     "place": "club_neon",
+     "radius": 8,
+     "do": [
+      [
+       "spawn",
+       "rosa",
+       "club_neon+2,-2"
+      ]
+     ]
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "rosa",
+       "text": "Фирменный «Неон»: лёд, лайм и немного того, о чём мы не говорим.",
+       "voice": ""
+      },
+      {
+       "who": "rosa",
+       "text": "Пей. Ты выглядишь так, будто тебя переехал грузовик. Дважды.",
+       "voice": ""
+      }
+     ],
+     "do": [
+      [
+       "heal"
+      ]
+     ]
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "rosa",
+       "text": "Вот, уже лучше. Заходи ещё — для тебя тут всегда открыто.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_rosa_stalker": {
+   "title": "Неприятный гость",
+   "category": "Просьба: Роза",
+   "giver": "Роза",
+   "who": "rosa",
+   "reward": 600,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "goto",
+     "hint": "Езжай в клуб «Неон»",
+     "place": "club_neon",
+     "radius": 10
+    },
+    {
+     "type": "clear",
+     "hint": "Объясни назойливому гостю, что ему здесь не рады",
+     "place": "club_neon",
+     "count": 1,
+     "boss": "Назойливый тип"
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "rosa",
+       "text": "Он ушёл и, кажется, больше не вернётся. Девочки передают спасибо. И я тоже.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_kirpich_debtor": {
+   "title": "Должник Брика",
+   "category": "Просьба: Брик",
+   "giver": "Брик",
+   "who": "kirpich",
+   "reward": 700,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "goto",
+     "hint": "Найди должника в промзоне",
+     "place": "industry_street",
+     "radius": 12
+    },
+    {
+     "type": "clear",
+     "hint": "Напомни должнику про долг",
+     "place": "industry_street",
+     "count": 2,
+     "boss": "Должник Гарри"
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "kirpich",
+       "text": "Гарри вспомнил, что должен. Чудеса памяти. Твоя доля — у тебя на счету.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_kirpich_car": {
+   "title": "Заказ Брика",
+   "category": "Просьба: Брик",
+   "giver": "Брик",
+   "who": "kirpich",
+   "reward": 900,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "steal",
+     "hint": "Угони машину из пригорода и пригони на разборку",
+     "place": "suburb_house",
+     "to": "chop_shop",
+     "variant": 9
+    },
+    {
+     "type": "escape",
+     "hint": "Соседи вызвали полицию — оторвись!",
+     "stars": 1,
+     "why": "угон"
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "kirpich",
+       "text": "Машина на разборке. Чистая работа, гонщик.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_kirpich_mom": {
+   "title": "Лекарства для матери Брика",
+   "category": "Просьба: Брик",
+   "giver": "Брик",
+   "who": "kirpich",
+   "reward": 500,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "goto",
+     "hint": "Забери лекарства у аптекаря в порту",
+     "place": "port_gate",
+     "radius": 7,
+     "time": 200
+    },
+    {
+     "type": "goto",
+     "hint": "Отвези лекарства матери Брика в пригород",
+     "place": "suburb_house",
+     "radius": 8,
+     "time": 260
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "kirpich",
+       "text": "Мама звонила. Сказала, что «приходил вежливый мальчик». Это ты. Я… должен тебе.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_kirpich_heist": {
+   "title": "Наводка Брика",
+   "category": "Просьба: Брик",
+   "giver": "Брик",
+   "who": "kirpich",
+   "reward": 2500,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "kirpich",
+       "text": "Касса казино «Корона» в центре. Охраны мало, денег много. Возьми сумку — и уходи, пока не стало жарко.",
+       "voice": ""
+      }
+     ]
+    },
+    {
+     "type": "goto",
+     "hint": "Езжай к казино «Корона» в деловом центре",
+     "place": "casino_dt",
+     "radius": 10
+    },
+    {
+     "type": "clear",
+     "hint": "Разберись с охраной",
+     "place": "casino_dt",
+     "count": 4
+    },
+    {
+     "type": "collect",
+     "hint": "Забери сумку с выручкой",
+     "clues": [
+      {
+       "place": "casino_dt+3,-4",
+       "name": "Сумка с выручкой"
+      }
+     ]
+    },
+    {
+     "type": "escape",
+     "hint": "Уходи от полиции!",
+     "stars": 3,
+     "why": "налёт на казино"
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "kirpich",
+       "text": "Половина — твоя, половина — в мой адвокатский фонд. Приятно работать с профессионалом.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_petrov_witness": {
+   "title": "Свидетель",
+   "category": "Просьба: Лейтенант Питерсон",
+   "giver": "Лейтенант Питерсон",
+   "who": "petrov",
+   "reward": 600,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "goto",
+     "hint": "Забери свидетеля в переулке за «Неоном»",
+     "place": "dt_alley",
+     "radius": 10,
+     "vehicle": true
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "petrov",
+       "text": "Свидетель у тебя? Не гони и не останавливайся. Вези прямо в участок.",
+       "voice": ""
+      }
+     ]
+    },
+    {
+     "type": "goto",
+     "hint": "Отвези свидетеля в участок",
+     "place": "police_station",
+     "radius": 10,
+     "vehicle": true,
+     "time": 240
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "petrov",
+       "text": "Доставлен. Он дал показания. Ты только что посадил троих, даже не доставая ствол.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_petrov_tail": {
+   "title": "Подозреваемый",
+   "category": "Просьба: Лейтенант Питерсон",
+   "giver": "Лейтенант Питерсон",
+   "who": "petrov",
+   "reward": 700,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "petrov",
+       "text": "Подозреваемый уходит по Центральной. Мои не успевают — останови его.",
+       "voice": ""
+      }
+     ]
+    },
+    {
+     "type": "chase",
+     "hint": "Догони и разбей машину подозреваемого",
+     "points": [
+      "dt_2",
+      "dt_3",
+      "dt_4",
+      "dt_5"
+     ],
+     "driver": "Подозреваемый",
+     "variant": 3
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "petrov",
+       "text": "Взяли. Спасибо, гражданин. Неофициально — спасибо, друг.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_tema_drive": {
+   "title": "Флешка Томми",
+   "category": "Просьба: Томми",
+   "giver": "Томми",
+   "who": "tema",
+   "reward": 450,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "goto",
+     "hint": "Забери флешку у пляжного бара",
+     "place": "beach_bar",
+     "radius": 7,
+     "time": 220
+    },
+    {
+     "type": "goto",
+     "hint": "Отвези флешку в убежище в пригороде",
+     "place": "suburb_safehouse",
+     "radius": 8,
+     "time": 240
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "tema",
+       "text": "Получил! Там были котики. Честно. Ну, почти.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_lena_drop": {
+   "title": "Конверт для источника",
+   "category": "Просьба: Лена Вуд",
+   "giver": "Лена Вуд",
+   "who": "lena",
+   "reward": 550,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "goto",
+     "hint": "Отвези конверт на пляжную парковку",
+     "place": "beach_lot",
+     "radius": 10,
+     "vehicle": true,
+     "time": 260
+    },
+    {
+     "type": "collect",
+     "hint": "Оставь конверт в условленном месте",
+     "clues": [
+      {
+       "place": "beach_lot+3,2",
+       "name": "Тайник источника"
+      }
+     ]
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "lena",
+       "text": "Источник на связи. Завтра на первой полосе будет кое-что громкое. Спасибо.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_ray_boat": {
+   "title": "Катер Рэя",
+   "category": "Просьба: Рэй",
+   "giver": "Рэй",
+   "who": "ray",
+   "reward": 900,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "goto",
+     "hint": "Езжай на западную пристань Ривьеры",
+     "place": "riv_marina",
+     "radius": 14
+    },
+    {
+     "type": "clear",
+     "hint": "Отбей катер у людей Кроу",
+     "place": "riv_marina",
+     "count": 5
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "ray",
+       "text": "Мой красавец снова мой! Если надо будет переправить что-нибудь… или кого-нибудь — ты знаешь номер.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_shakal_race": {
+   "title": "Реванш Шакала",
+   "category": "Просьба: Шакал",
+   "giver": "Шакал",
+   "who": "shakal",
+   "reward": 1500,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "shakal",
+       "text": "Улицы Ривьеры, ты и я. Посмотрим, кто теперь король.",
+       "voice": ""
+      }
+     ]
+    },
+    {
+     "type": "carrace",
+     "hint": "Гонка по Ривьере против Шакала",
+     "start": "@-1032,-696",
+     "points": [
+      "@-984,-696",
+      "@-1080,-696",
+      "@-1080,-648",
+      "@-1080,-600",
+      "@-1128,-600",
+      "@-1176,-600",
+      "@-1224,-600"
+     ],
+     "rival": "Шакал",
+     "rival_speed": 82,
+     "rival_engine": 2,
+     "variant": 0
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "shakal",
+       "text": "Опять ты… Ладно. Хорошая гонка, правда.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
+  },
+  "call_vince_race": {
+   "title": "Гонка с Винсом",
+   "category": "Просьба: Винс",
+   "giver": "Винс",
+   "who": "vince",
+   "reward": 800,
+   "unlock": 0,
+   "hidden": true,
+   "steps": [
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "vince",
+       "text": "Западная трасса, как в тот раз. Только теперь без тормозных шлангов, честно.",
+       "voice": ""
+      }
+     ]
+    },
+    {
+     "type": "carrace",
+     "hint": "Гонка по западной трассе против Винса",
+     "start": "hw_west",
+     "points": [
+      "hw_nw",
+      "race_start",
+      "race_1"
+     ],
+     "rival": "Винс",
+     "rival_speed": 76,
+     "rival_engine": 2,
+     "variant": 5
+    },
+    {
+     "type": "dialog",
+     "lines": [
+      {
+       "who": "vince",
+       "text": "Опять второй. Знаешь, я начинаю к этому привыкать.",
+       "voice": ""
+      }
+     ]
+    }
+   ]
   }
- }
+ },
+ "calls": [
+  {
+   "id": "nika_hello",
+   "who": "nika",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 3,
+   "lines": [
+    {
+     "who": "nika",
+     "text": "Эй, гонщик! Это Ники. Записывай номер — теперь ты в моём списке.",
+     "voice": "call_nika_hello_01"
+    },
+    {
+     "who": "nika",
+     "text": "Если ночью станет скучно — звони. Если станет весело — тем более.",
+     "voice": "call_nika_hello_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "id": "nika_race",
+   "who": "nika",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 40,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "nika",
+     "text": "Не спишь? На Центральной собирается заезд. Ставки маленькие, зато Сторм нервничает.",
+     "voice": "call_nika_race_01"
+    },
+    {
+     "who": "nika",
+     "text": "Приезжай, покажем им, как ездят взрослые.",
+     "voice": "call_nika_race_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     3
+    ]
+   },
+   "offer": {
+    "q": "Поехать на заезд с Ники?",
+    "yes": "Уже еду!",
+    "no": "Не сегодня",
+    "do": [
+     [
+      "side",
+      "call_nika_race"
+     ]
+    ],
+    "yes_lines": [
+     {
+      "who": "nika",
+      "text": "Вот это я понимаю! Скидываю точку на карту.",
+      "voice": "call_nika_race_03"
+     }
+    ],
+    "no_lines": [
+     {
+      "who": "nika",
+      "text": "Скучный ты сегодня. Ладно, в другой раз.",
+      "voice": "call_nika_race_04"
+     }
+    ]
+   }
+  },
+  {
+   "id": "nika_crash",
+   "who": "nika",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 90,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "nika",
+     "text": "Мне уже трое написали, что ты разложил машину о столб. Живой?",
+     "voice": "call_nika_crash_01"
+    },
+    {
+     "who": "nika",
+     "text": "Машину не жалко, тебя жалко. Ну и машину тоже немного. Загони к Джейку.",
+     "voice": "call_nika_crash_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     1
+    ],
+    "event": "crash"
+   }
+  },
+  {
+   "id": "nika_stars",
+   "who": "nika",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 120,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "nika",
+     "text": "Ты в новостях! Пол-города копов гоняется за одной машиной. Угадай, за чьей.",
+     "voice": "call_nika_stars_01"
+    },
+    {
+     "who": "nika",
+     "text": "В следующий раз зови меня. Вдвоём от копов уходить веселее.",
+     "voice": "call_nika_stars_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     7
+    ],
+    "event": "escaped"
+   }
+  },
+  {
+   "id": "nika_penthouse",
+   "who": "nika",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "nika",
+     "text": "Пентхаус?! Серьёзно? Я ещё помню, как ты спал в гараже у Джейка на раскладушке.",
+     "voice": "call_nika_penthouse_01"
+    },
+    {
+     "who": "nika",
+     "text": "Зови на новоселье. И чтобы на крыше был вертолёт, а не просто вид.",
+     "voice": "call_nika_penthouse_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     1
+    ],
+    "event": "penthouse"
+   }
+  },
+  {
+   "id": "nika_storm",
+   "who": "nika",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "nika",
+     "text": "Сплетня дня: Сторм продал свою тачку, чтобы расплатиться с Марко.",
+     "voice": "call_nika_storm_01"
+    },
+    {
+     "who": "nika",
+     "text": "Теперь он ездит на мамином хэтчбеке. С наклейкой «Ребёнок в машине». Я плачу от счастья.",
+     "voice": "call_nika_storm_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     6
+    ]
+   }
+  },
+  {
+   "id": "nika_riviera",
+   "who": "nika",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "nika",
+     "text": "Ривьера — не наша трасса: тут всё блестит и пахнет деньгами.",
+     "voice": "call_nika_riviera_01"
+    },
+    {
+     "who": "nika",
+     "text": "Зато местные гонщики ездят как пенсионеры. Нам здесь понравится.",
+     "voice": "call_nika_riviera_02"
+    }
+   ],
+   "when": {
+    "from": [
+     3,
+     0
+    ]
+   }
+  },
+  {
+   "id": "nika_gym",
+   "who": "nika",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "nika",
+     "text": "Это правда, что ты ходишь в «Железо»? Роза говорит, у тебя плечи уже не влезают в дверь машины.",
+     "voice": "call_nika_gym_01"
+    },
+    {
+     "who": "nika",
+     "text": "Только не превращайся в Брика. Одного такого острову хватило.",
+     "voice": "call_nika_gym_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     4
+    ],
+    "event": "gym"
+   }
+  },
+  {
+   "id": "nika_friend",
+   "who": "nika",
+   "kind": "call",
+   "friend": 0,
+   "repeat": 0,
+   "prio": 2,
+   "lines": [
+    {
+     "who": "nika",
+     "text": "Слушай. Я договорилась с ребятами в гараже: тебе тюнинг со скидкой.",
+     "voice": "call_nika_friend_01"
+    },
+    {
+     "who": "nika",
+     "text": "Не благодари. Просто не продавай меня Сторму.",
+     "voice": "call_nika_friend_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     3
+    ],
+    "friend": 3
+   }
+  },
+  {
+   "id": "nika_ring",
+   "who": "nika",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 60,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "nika",
+     "text": "Знаешь, что самое странное? Город спасён, а мне скучно.",
+     "voice": "call_nika_ring_01"
+    },
+    {
+     "who": "nika",
+     "text": "Давай устроим гонку, как в старые времена: ночь, большое кольцо и никаких правил.",
+     "voice": "call_nika_ring_02"
+    }
+   ],
+   "when": {
+    "from": [
+     4,
+     6
+    ]
+   },
+   "offer": {
+    "q": "Ночная гонка по большому кольцу?",
+    "yes": "Погнали!",
+    "no": "Устал сегодня",
+    "do": [
+     [
+      "side",
+      "call_nika_ring"
+     ]
+    ],
+    "yes_lines": [
+     {
+      "who": "nika",
+      "text": "Жду у восточного въезда на кольцо. Не опаздывай!",
+      "voice": "call_nika_ring_03"
+     }
+    ]
+   }
+  },
+  {
+   "id": "gleb_mom",
+   "who": "gleb",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 2,
+   "lines": [
+    {
+     "who": "gleb",
+     "text": "Брат, мама звонила. Спрашивала, хорошо ли ты кушаешь и не связался ли с плохой компанией.",
+     "voice": "call_gleb_mom_01"
+    },
+    {
+     "who": "gleb",
+     "text": "Я сказал, что ты работаешь в автосервисе. Технически — не соврал.",
+     "voice": "call_gleb_mom_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     0
+    ],
+    "until": [
+     0,
+     7
+    ]
+   }
+  },
+  {
+   "id": "gleb_parts",
+   "who": "gleb",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 45,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "gleb",
+     "text": "Выручай! В порту лежат запчасти для клиента, а у меня руки в масле по локоть.",
+     "voice": "call_gleb_parts_01"
+    },
+    {
+     "who": "gleb",
+     "text": "Забери и привези в гараж. Только быстро — клиент злой, как Брик до кофе.",
+     "voice": "call_gleb_parts_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     1
+    ],
+    "until": [
+     0,
+     7
+    ]
+   },
+   "offer": {
+    "q": "Помочь Джейку с запчастями?",
+    "yes": "Сейчас привезу",
+    "no": "Занят",
+    "do": [
+     [
+      "side",
+      "call_gleb_parts"
+     ]
+    ],
+    "yes_lines": [
+     {
+      "who": "gleb",
+      "text": "Ты лучший! Ворота порта, ящик с нашей наклейкой.",
+      "voice": "call_gleb_parts_03"
+     }
+    ]
+   }
+  },
+  {
+   "id": "gleb_free",
+   "who": "gleb",
+   "kind": "call",
+   "friend": 2,
+   "repeat": 0,
+   "prio": 3,
+   "lines": [
+    {
+     "who": "gleb",
+     "text": "Брат… Я так и не сказал. Спасибо, что вытащил. Я думал, Брик меня уже не отпустит.",
+     "voice": "call_gleb_free_01"
+    },
+    {
+     "who": "gleb",
+     "text": "Гараж теперь наш на двоих. И первое правило гаража — никаких долгов Ящерам.",
+     "voice": "call_gleb_free_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     3
+    ]
+   }
+  },
+  {
+   "id": "gleb_client",
+   "who": "gleb",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 45,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "gleb",
+     "text": "Тут клиент из пригорода. Отгонишь ему машину? Он платит наличными и не задаёт вопросов.",
+     "voice": "call_gleb_client_01"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     3
+    ]
+   },
+   "offer": {
+    "q": "Отогнать машину клиенту?",
+    "yes": "Давай ключи",
+    "no": "Не сейчас",
+    "do": [
+     [
+      "side",
+      "call_gleb_client"
+     ]
+    ],
+    "yes_lines": [
+     {
+      "who": "gleb",
+      "text": "Машина у ворот гаража. Только без дрифта, это же клиент!",
+      "voice": "call_gleb_client_02"
+     }
+    ]
+   }
+  },
+  {
+   "id": "gleb_busted",
+   "who": "gleb",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 60,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "gleb",
+     "text": "Тебя опять повязали? Брат, у меня скоро будет скидочная карта в этом участке.",
+     "voice": "call_gleb_busted_01"
+    },
+    {
+     "who": "gleb",
+     "text": "Ладно. Главное — живой. Приезжай, ужин разогрею.",
+     "voice": "call_gleb_busted_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     0
+    ],
+    "event": "busted"
+   }
+  },
+  {
+   "id": "gleb_wasted",
+   "who": "gleb",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 60,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "gleb",
+     "text": "Мне из больницы звонили! Сказали, тебя собирали по кусочкам.",
+     "voice": "call_gleb_wasted_01"
+    },
+    {
+     "who": "gleb",
+     "text": "Ещё раз так сделаешь — сам добью. Шучу. Но не делай.",
+     "voice": "call_gleb_wasted_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     0
+    ],
+    "event": "wasted"
+   }
+  },
+  {
+   "id": "rosa_hello",
+   "who": "rosa",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 3,
+   "lines": [
+    {
+     "who": "rosa",
+     "text": "Это Роза. Не удивляйся: я знаю номера всех, кто хоть раз сидел за моей стойкой.",
+     "voice": "call_rosa_hello_01"
+    },
+    {
+     "who": "rosa",
+     "text": "Заходи в «Неон». Первый бокал — за счёт заведения. Второй тоже, если расскажешь что-нибудь интересное.",
+     "voice": "call_rosa_hello_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     4
+    ]
+   }
+  },
+  {
+   "id": "rosa_drinks",
+   "who": "rosa",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 50,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "rosa",
+     "text": "Сегодня в «Неоне» тихо, а я ненавижу тишину.",
+     "voice": "call_rosa_drinks_01"
+    },
+    {
+     "who": "rosa",
+     "text": "Заглянешь? Налью тебе фирменный, и все раны заживут.",
+     "voice": "call_rosa_drinks_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     4
+    ]
+   },
+   "offer": {
+    "q": "Заехать к Розе в «Неон»?",
+    "yes": "Уже еду",
+    "no": "В другой раз",
+    "do": [
+     [
+      "side",
+      "call_rosa_drinks"
+     ]
+    ],
+    "yes_lines": [
+     {
+      "who": "rosa",
+      "text": "Лёд уже в стакане.",
+      "voice": "call_rosa_drinks_03"
+     }
+    ]
+   }
+  },
+  {
+   "id": "rosa_marco",
+   "who": "rosa",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "rosa",
+     "text": "Сплетня, только для тебя: Марко «Синий» лично спрашивал, где ты пьёшь.",
+     "voice": "call_rosa_marco_01"
+    },
+    {
+     "who": "rosa",
+     "text": "Я сказала, что ты вообще не пьёшь. Он не поверил. Будь осторожен.",
+     "voice": "call_rosa_marco_02"
+    }
+   ],
+   "when": {
+    "from": [
+     1,
+     5
+    ]
+   }
+  },
+  {
+   "id": "rosa_bank",
+   "who": "rosa",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 90,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "rosa",
+     "text": "В баре все обсуждают налёт на банк. Описание грабителя очень похоже на одного моего клиента.",
+     "voice": "call_rosa_bank_01"
+    },
+    {
+     "who": "rosa",
+     "text": "Не волнуйся. Бармены слепы, глухи и очень любят чаевые.",
+     "voice": "call_rosa_bank_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     4
+    ],
+    "event": "bank"
+   }
+  },
+  {
+   "id": "rosa_stalker",
+   "who": "rosa",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 90,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "rosa",
+     "text": "Есть дело. Один тип второй вечер пристаёт к моим официанткам, а охрана его боится.",
+     "voice": "call_rosa_stalker_01"
+    },
+    {
+     "who": "rosa",
+     "text": "Объясни ему, что «Неон» — приличное место. Можно без слов.",
+     "voice": "call_rosa_stalker_02"
+    }
+   ],
+   "when": {
+    "from": [
+     1,
+     0
+    ]
+   },
+   "offer": {
+    "q": "Разобраться с назойливым гостем?",
+    "yes": "Сейчас буду",
+    "no": "Не моё дело",
+    "do": [
+     [
+      "side",
+      "call_rosa_stalker"
+     ]
+    ],
+    "yes_lines": [
+     {
+      "who": "rosa",
+      "text": "Он в красной рубашке. Ты его сразу узнаешь — он самый громкий.",
+      "voice": "call_rosa_stalker_03"
+     }
+    ]
+   }
+  },
+  {
+   "id": "rosa_business",
+   "who": "rosa",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "rosa",
+     "text": "Говорят, ты купил бизнес. Поздравляю: теперь ты тоже не спишь по ночам из-за налоговой.",
+     "voice": "call_rosa_business_01"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     4
+    ],
+    "event": "business"
+   }
+  },
+  {
+   "id": "rosa_friend",
+   "who": "rosa",
+   "kind": "call",
+   "friend": 0,
+   "repeat": 0,
+   "prio": 2,
+   "lines": [
+    {
+     "who": "rosa",
+     "text": "Для своих в «Неоне» всегда открыто. Заходи, когда тебя потреплет город.",
+     "voice": "call_rosa_friend_01"
+    },
+    {
+     "who": "rosa",
+     "text": "Раз в день — за счёт заведения. Лёд, лайм и немного заботы.",
+     "voice": "call_rosa_friend_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     4
+    ],
+    "friend": 3
+   }
+  },
+  {
+   "id": "brick_debtor",
+   "who": "kirpich",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 45,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "kirpich",
+     "text": "Работа есть. Один умник взял у меня денег и решил, что я забуду.",
+     "voice": "call_brick_debtor_01"
+    },
+    {
+     "who": "kirpich",
+     "text": "Я никогда не забываю. Напомни ему. Можно громко.",
+     "voice": "call_brick_debtor_02"
+    }
+   ],
+   "when": {
+    "from": [
+     1,
+     0
+    ],
+    "until": [
+     1,
+     7
+    ]
+   },
+   "offer": {
+    "q": "Взяться за работу Брика?",
+    "yes": "Сделаю",
+    "no": "Без меня",
+    "do": [
+     [
+      "side",
+      "call_kirpich_debtor"
+     ]
+    ],
+    "yes_lines": [
+     {
+      "who": "kirpich",
+      "text": "Гарри. Промзона, у складов. Не перепутай — Гарри толстый.",
+      "voice": "call_brick_debtor_03"
+     }
+    ]
+   }
+  },
+  {
+   "id": "brick_car",
+   "who": "kirpich",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 45,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "kirpich",
+     "text": "Есть заказ на тачку. Хозяин уехал в отпуск, а машина ему всё равно не нужна.",
+     "voice": "call_brick_car_01"
+    },
+    {
+     "who": "kirpich",
+     "text": "Пригони её на разборку — и брат на тысячу ближе к свободе.",
+     "voice": "call_brick_car_02"
+    }
+   ],
+   "when": {
+    "from": [
+     1,
+     1
+    ],
+    "until": [
+     1,
+     7
+    ]
+   },
+   "offer": {
+    "q": "Угнать машину для Брика?",
+    "yes": "Где она?",
+    "no": "Не сегодня",
+    "do": [
+     [
+      "side",
+      "call_kirpich_car"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "brick_rat",
+   "who": "kirpich",
+   "kind": "sms",
+   "friend": 0,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "kirpich",
+     "text": "Крыса. Я знаю, кто ты. Беги, пока можешь.",
+     "voice": ""
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     3
+    ],
+    "until": [
+     2,
+     6
+    ]
+   }
+  },
+  {
+   "id": "brick_prison",
+   "who": "kirpich",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 3,
+   "lines": [
+    {
+     "who": "kirpich",
+     "text": "Узнал голос? Это Брик. Да, звоню из «Чёрной скалы». Здесь телефоны дешевле сигарет.",
+     "voice": "call_brick_prison_01"
+    },
+    {
+     "who": "kirpich",
+     "text": "Я не злюсь. Ладно, злюсь. Но ты единственный, кто обыграл меня честно. Это уважение.",
+     "voice": "call_brick_prison_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     6
+    ]
+   }
+  },
+  {
+   "id": "brick_mom",
+   "who": "kirpich",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 60,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "kirpich",
+     "text": "Моя мать живёт в пригороде. Ей нужно отвезти лекарства, а мои парни днём не ездят.",
+     "voice": "call_brick_mom_01"
+    },
+    {
+     "who": "kirpich",
+     "text": "Сделаешь — буду должен. Брик долги помнит.",
+     "voice": "call_brick_mom_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     6
+    ],
+    "after": "brick_prison"
+   },
+   "offer": {
+    "q": "Отвезти лекарства матери Брика?",
+    "yes": "Отвезу",
+    "no": "Нет",
+    "do": [
+     [
+      "side",
+      "call_kirpich_mom"
+     ]
+    ],
+    "yes_lines": [
+     {
+      "who": "kirpich",
+      "text": "Только не говори ей, где я. Она думает, что я в командировке.",
+      "voice": "call_brick_mom_03"
+     }
+    ]
+   }
+  },
+  {
+   "id": "brick_backup",
+   "who": "kirpich",
+   "kind": "call",
+   "friend": 0,
+   "repeat": 0,
+   "prio": 2,
+   "lines": [
+    {
+     "who": "kirpich",
+     "text": "Я поговорил с ребятами. Если станет жарко — звони, пришлют пару бойцов. Бесплатно. Почти.",
+     "voice": "call_brick_backup_01"
+    },
+    {
+     "who": "kirpich",
+     "text": "Это не дружба. Это деловое уважение.",
+     "voice": "call_brick_backup_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     6
+    ],
+    "friend": 3
+   }
+  },
+  {
+   "id": "brick_heist",
+   "who": "kirpich",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 90,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "kirpich",
+     "text": "Есть одно дело. Большое. Не по телефону.",
+     "voice": "call_brick_heist_01"
+    },
+    {
+     "who": "kirpich",
+     "text": "Мои люди дадут наводку. Половина тебе, половина — в мой адвокатский фонд.",
+     "voice": "call_brick_heist_02"
+    }
+   ],
+   "when": {
+    "from": [
+     3,
+     0
+    ],
+    "friend": 2,
+    "after": "brick_prison"
+   },
+   "offer": {
+    "q": "Взять наводку Брика на налёт?",
+    "yes": "Я в деле",
+    "no": "Завязал",
+    "do": [
+     [
+      "bigheist",
+      "bank",
+      "call_kirpich_heist"
+     ]
+    ],
+    "yes_lines": [
+     {
+      "who": "kirpich",
+      "text": "Вот это разговор. Жди сообщения.",
+      "voice": "call_brick_heist_03"
+     }
+    ],
+    "no_lines": [
+     {
+      "who": "kirpich",
+      "text": "Завязал он… Ну-ну.",
+      "voice": "call_brick_heist_04"
+     }
+    ]
+   }
+  },
+  {
+   "id": "brick_contract",
+   "who": "kirpich",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 120,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "kirpich",
+     "text": "Есть люди, которым нужен человек для грязной работы. Без вопросов и без имён.",
+     "voice": "call_brick_contract_01"
+    },
+    {
+     "who": "kirpich",
+     "text": "Я дал им твой номер. Не благодари — просто не говори, что от меня.",
+     "voice": "call_brick_contract_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     6
+    ],
+    "after": "brick_prison"
+   },
+   "offer": {
+    "q": "Пусть заказчики напишут?",
+    "yes": "Пусть пишут",
+    "no": "Не надо",
+    "do": [
+     [
+      "contract"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "petrov_check",
+   "who": "petrov",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 2,
+   "lines": [
+    {
+     "who": "petrov",
+     "text": "Это Питерсон. Просто проверяю, что ты жив и не передумал.",
+     "voice": "call_petrov_check_01"
+    },
+    {
+     "who": "petrov",
+     "text": "Если Брик начнёт задавать вопросы — не геройствуй. Звони мне.",
+     "voice": "call_petrov_check_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     0
+    ],
+    "until": [
+     2,
+     6
+    ]
+   }
+  },
+  {
+   "id": "petrov_witness",
+   "who": "petrov",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 50,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "petrov",
+     "text": "Нужна помощь вне протокола. Свидетель боится садиться в патрульную машину.",
+     "voice": "call_petrov_witness_01"
+    },
+    {
+     "who": "petrov",
+     "text": "Забери его в переулке за «Неоном» и привези в участок. Тихо и быстро.",
+     "voice": "call_petrov_witness_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     6
+    ]
+   },
+   "offer": {
+    "q": "Помочь Питерсону со свидетелем?",
+    "yes": "Выезжаю",
+    "no": "Не могу",
+    "do": [
+     [
+      "side",
+      "call_petrov_witness"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "petrov_tail",
+   "who": "petrov",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 50,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "petrov",
+     "text": "Подозреваемый уходит по Центральной, а мои стоят в пробке. Ты рядом?",
+     "voice": "call_petrov_tail_01"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     1
+    ]
+   },
+   "offer": {
+    "q": "Перехватить подозреваемого?",
+    "yes": "Беру",
+    "no": "Я далеко",
+    "do": [
+     [
+      "side",
+      "call_petrov_tail"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "petrov_stars",
+   "who": "petrov",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 90,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "petrov",
+     "text": "Я видел сводку. Пять машин, вертолёт — и ты. Опять.",
+     "voice": "call_petrov_stars_01"
+    },
+    {
+     "who": "petrov",
+     "text": "Я этого не видел. Но в следующий раз за рулём той машины могу оказаться я.",
+     "voice": "call_petrov_stars_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     0
+    ],
+    "event": "stars4"
+   }
+  },
+  {
+   "id": "petrov_hero",
+   "who": "petrov",
+   "kind": "call",
+   "friend": 2,
+   "repeat": 90,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "petrov",
+     "text": "Мне доложили, что кто-то в одиночку остановил грабителей. По описанию — ты.",
+     "voice": "call_petrov_hero_01"
+    },
+    {
+     "who": "petrov",
+     "text": "Из тебя вышел бы отличный коп. Подумай об этом.",
+     "voice": "call_petrov_hero_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     0
+    ],
+    "event": "hero"
+   }
+  },
+  {
+   "id": "petrov_friend",
+   "who": "petrov",
+   "kind": "call",
+   "friend": 0,
+   "repeat": 0,
+   "prio": 2,
+   "lines": [
+    {
+     "who": "petrov",
+     "text": "Скажу один раз. Попадёшь в розыск — позвони. Я могу потерять пару рапортов.",
+     "voice": "call_petrov_friend_01"
+    },
+    {
+     "who": "petrov",
+     "text": "Раз в день. Не чаще. И я тебе этого не говорил.",
+     "voice": "call_petrov_friend_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     0
+    ],
+    "friend": 3
+   }
+  },
+  {
+   "id": "petrov_oath",
+   "who": "petrov",
+   "kind": "call",
+   "friend": 0,
+   "repeat": 0,
+   "prio": 5,
+   "lines": [
+    {
+     "who": "petrov",
+     "text": "Мне предложили кресло шефа. Кресло Харриса, представляешь?",
+     "voice": "call_petrov_oath_01"
+    },
+    {
+     "who": "petrov",
+     "text": "Мне нужен человек, которому я доверяю. Не за деньги — за присягу. Подумай.",
+     "voice": "call_petrov_oath_02"
+    }
+   ],
+   "when": {
+    "from": [
+     4,
+     6
+    ],
+    "no": [
+     "end_cop",
+     "oath"
+    ]
+   },
+   "offer": {
+    "q": "Принести присягу (сюжет «Под присягой»)?",
+    "yes": "Я в деле, шеф",
+    "no": "Не моё это",
+    "do": [
+     [
+      "oath"
+     ]
+    ],
+    "yes_lines": [
+     {
+      "who": "petrov",
+      "text": "Тогда жду в участке. Новая глава твоей жизни — на жёлтой метке.",
+      "voice": "call_petrov_oath_03"
+     }
+    ],
+    "no_lines": [
+     {
+      "who": "petrov",
+      "text": "Понимаю. Предложение остаётся в силе — звони.",
+      "voice": "call_petrov_oath_04"
+     }
+    ]
+   }
+  },
+  {
+   "id": "petrov_waiting",
+   "who": "petrov",
+   "kind": "call",
+   "friend": 0,
+   "repeat": 30,
+   "prio": 4,
+   "lines": [
+    {
+     "who": "petrov",
+     "text": "Напарник, ты где? В участке тебя ждут значок и сержант Диас. Она не любит ждать.",
+     "voice": "call_petrov_waiting_01"
+    }
+   ],
+   "when": {
+    "need": [
+     "cop_idle"
+    ]
+   }
+  },
+  {
+   "id": "tema_drive",
+   "who": "tema",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 50,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "tema",
+     "text": "Нужно передать флешку. Нет, не спрашивай, что на ней.",
+     "voice": "call_tema_drive_01"
+    },
+    {
+     "who": "tema",
+     "text": "Ладно, там котики. Шучу. Не шучу.",
+     "voice": "call_tema_drive_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     1
+    ]
+   },
+   "offer": {
+    "q": "Отвезти флешку Томми?",
+    "yes": "Давай",
+    "no": "Не сейчас",
+    "do": [
+     [
+      "side",
+      "call_tema_drive"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "tema_gossip",
+   "who": "tema",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "tema",
+     "text": "Знаешь, что я нашёл в базе? Харрис штрафовал свою тёщу за парковку. Сорок раз.",
+     "voice": "call_tema_gossip_01"
+    },
+    {
+     "who": "tema",
+     "text": "Человек принципов. Плохих, но принципов.",
+     "voice": "call_tema_gossip_02"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     5
+    ]
+   }
+  },
+  {
+   "id": "lena_news",
+   "who": "lena",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 90,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "lena",
+     "text": "Это Лена. Пишу заметку о перестрелке в промзоне. У тебя есть алиби?",
+     "voice": "call_lena_news_01"
+    },
+    {
+     "who": "lena",
+     "text": "Хотя неважно. Фотографий у меня всё равно нет. Пока нет.",
+     "voice": "call_lena_news_02"
+    }
+   ],
+   "when": {
+    "from": [
+     1,
+     6
+    ],
+    "event": "massacre"
+   }
+  },
+  {
+   "id": "lena_drop",
+   "who": "lena",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 60,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "lena",
+     "text": "Мой источник боится встречаться в городе. Отвезёшь ему конверт на пляжную парковку?",
+     "voice": "call_lena_drop_01"
+    }
+   ],
+   "when": {
+    "from": [
+     2,
+     5
+    ]
+   },
+   "offer": {
+    "q": "Отвезти конверт для Лены?",
+    "yes": "Отвезу",
+    "no": "Не сегодня",
+    "do": [
+     [
+      "side",
+      "call_lena_drop"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "lena_heist",
+   "who": "lena",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 120,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "lena",
+     "text": "Ограбление казино на первой полосе всех газет. Кроме моей.",
+     "voice": "call_lena_heist_01"
+    },
+    {
+     "who": "lena",
+     "text": "Потому что я знаю, кто это сделал, и пока молчу. Ты мне должен интервью.",
+     "voice": "call_lena_heist_02"
+    }
+   ],
+   "when": {
+    "from": [
+     3,
+     8
+    ],
+    "event": "bank"
+   }
+  },
+  {
+   "id": "sofi_bar",
+   "who": "sofi",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 2,
+   "lines": [
+    {
+     "who": "sofi",
+     "text": "Привет! Мой бар на Стрипе открылся. Пока там три стола и один кот.",
+     "voice": "call_sofi_bar_01"
+    },
+    {
+     "who": "sofi",
+     "text": "Но кот очень представительный. Заезжай.",
+     "voice": "call_sofi_bar_02"
+    }
+   ],
+   "when": {
+    "from": [
+     4,
+     6
+    ]
+   }
+  },
+  {
+   "id": "sofi_casino",
+   "who": "sofi",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 90,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "sofi",
+     "text": "Слышала, ты сорвал куш в казино. Совет бывшего крупье: уходи, пока выигрываешь.",
+     "voice": "call_sofi_casino_01"
+    },
+    {
+     "who": "sofi",
+     "text": "Никто не уходит. Но ты попробуй.",
+     "voice": "call_sofi_casino_02"
+    }
+   ],
+   "when": {
+    "from": [
+     3,
+     1
+    ],
+    "event": "casino"
+   }
+  },
+  {
+   "id": "ray_boat",
+   "who": "ray",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 60,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "ray",
+     "text": "Друг, у меня опять проблемы. Кроу сидит, а его люди остались.",
+     "voice": "call_ray_boat_01"
+    },
+    {
+     "who": "ray",
+     "text": "Они держат мой катер на западной пристани. Поможешь?",
+     "voice": "call_ray_boat_02"
+    }
+   ],
+   "when": {
+    "from": [
+     3,
+     4
+    ]
+   },
+   "offer": {
+    "q": "Отбить катер Рэя?",
+    "yes": "Еду",
+    "no": "Сам справишься",
+    "do": [
+     [
+      "side",
+      "call_ray_boat"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "ray_smuggle",
+   "who": "ray",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 120,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "ray",
+     "text": "Мой старый знакомый, Рыбак, ищет водителя для деликатного груза. Платит щедро, вопросов не задаёт.",
+     "voice": "call_ray_smuggle_01"
+    },
+    {
+     "who": "ray",
+     "text": "Дать ему твой номер?",
+     "voice": "call_ray_smuggle_02"
+    }
+   ],
+   "when": {
+    "from": [
+     3,
+     4
+    ]
+   },
+   "offer": {
+    "q": "Дать номер Рыбаку (контрабанда)?",
+    "yes": "Давай",
+    "no": "Не сейчас",
+    "do": [
+     [
+      "smuggle"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "ray_launder",
+   "who": "ray",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 120,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "ray",
+     "text": "Слышал, у тебя завелись грязные деньги. Я не спрашиваю откуда. Я спрашиваю — сколько.",
+     "voice": "call_ray_launder_01"
+    },
+    {
+     "who": "ray",
+     "text": "Заезжай на пристань, отмою быстро. Скидка для своих — почти никакая.",
+     "voice": "call_ray_launder_02"
+    }
+   ],
+   "when": {
+    "from": [
+     3,
+     4
+    ],
+    "event": "store"
+   }
+  },
+  {
+   "id": "vince_sorry",
+   "who": "vince",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "vince",
+     "text": "Это Винс. Не бросай трубку! Я хочу извиниться за тормоза.",
+     "voice": "call_vince_sorry_01"
+    },
+    {
+     "who": "vince",
+     "text": "Я тогда был идиотом. Сейчас тоже, но уже меньше. Давай реванш — честный.",
+     "voice": "call_vince_sorry_02"
+    }
+   ],
+   "when": {
+    "from": [
+     0,
+     7
+    ]
+   },
+   "offer": {
+    "q": "Гонка с Винсом?",
+    "yes": "Давай",
+    "no": "Обойдёшься",
+    "do": [
+     [
+      "side",
+      "call_vince_race"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "marco_offer",
+   "who": "marco",
+   "kind": "call",
+   "friend": 0,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "marco",
+     "text": "Ты всё ещё работаешь на Брика? Жаль. Моё предложение в силе.",
+     "voice": "call_marco_offer_01"
+    },
+    {
+     "who": "marco",
+     "text": "Но цена падает каждый день. Как и шансы Брика.",
+     "voice": "call_marco_offer_02"
+    }
+   ],
+   "when": {
+    "from": [
+     1,
+     5
+    ],
+    "until": [
+     1,
+     7
+    ]
+   }
+  },
+  {
+   "id": "shakal_race",
+   "who": "shakal",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 60,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "shakal",
+     "text": "Это Шакал. Без Кроу скучно. Давай гонку по Ривьере: только ты и я.",
+     "voice": "call_shakal_race_01"
+    }
+   ],
+   "when": {
+    "from": [
+     4,
+     5
+    ]
+   },
+   "offer": {
+    "q": "Реванш с Шакалом?",
+    "yes": "Принято",
+    "no": "В другой раз",
+    "do": [
+     [
+      "side",
+      "call_shakal_race"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "harris_prison",
+   "who": "harris",
+   "kind": "call",
+   "friend": 0,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "harris",
+     "text": "Узнаёшь? Шеф Харрис. Бывший, как пишут газеты.",
+     "voice": "call_harris_prison_01"
+    },
+    {
+     "who": "harris",
+     "text": "Думаешь, всё закончилось? В этом городе ничего не заканчивается. Передай Питерсону: кресло ещё тёплое.",
+     "voice": "call_harris_prison_02"
+    }
+   ],
+   "when": {
+    "from": [
+     4,
+     6
+    ]
+   }
+  },
+  {
+   "id": "diaz_coffee",
+   "who": "diaz",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 2,
+   "lines": [
+    {
+     "who": "diaz",
+     "text": "Это Диас. Не по службе. Ты пьёшь кофе? Нормальный, не из автомата в участке.",
+     "voice": "call_diaz_coffee_01"
+    },
+    {
+     "who": "diaz",
+     "text": "Ладно, забудь. Это был тест. Ты его прошёл.",
+     "voice": "call_diaz_coffee_02"
+    }
+   ],
+   "when": {
+    "from": [
+     5,
+     1
+    ]
+   }
+  },
+  {
+   "id": "diaz_shift",
+   "who": "diaz",
+   "kind": "call",
+   "friend": 1,
+   "repeat": 0,
+   "prio": 0,
+   "lines": [
+    {
+     "who": "diaz",
+     "text": "Смена закончилась, а Питерсон опять оставил мне рапорты. Сто сорок страниц.",
+     "voice": "call_diaz_shift_01"
+    },
+    {
+     "who": "diaz",
+     "text": "Если увидишь меня спящей в машине — не буди. Это засада. Очень тихая засада.",
+     "voice": "call_diaz_shift_02"
+    }
+   ],
+   "when": {
+    "from": [
+     5,
+     5
+    ]
+   }
+  }
+ ]
 }

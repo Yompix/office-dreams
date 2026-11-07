@@ -2445,5 +2445,143 @@
         "volume": 0.7
       }
     ]
+  },
+  "phone_ring": {
+    "sounds": [
+      {
+        "name": "novograd:phone_ring",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.novograd.phone_ring"
+  },
+  "phone_pickup": {
+    "sounds": [
+      {
+        "name": "novograd:phone_pickup",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.novograd.phone_pickup"
+  },
+  "voice.a6m1s_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m1s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m1s_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m1s_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m1s_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m1s_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m1_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m1_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m1_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m1_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m1_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m1_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m1_04": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m1_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m1_05": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m1_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m1_07": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m1_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m2s_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m2s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m2_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m2_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m3s_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m3s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m3_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m3_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m3_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m3_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m4_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m4_02",
+        "stream": true
+      }
+    ]
   }
 }

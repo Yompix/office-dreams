@@ -105,6 +105,7 @@ public final class LifeNet {
             case "photo" -> {
                 Achievements.give(p, "photo");
                 com.yompix.novograd.gta.Collectibles.onPhoto(p); // фото-точки коллекции
+                com.yompix.novograd.gta.Underworld.onPhoto(p); // разведка большого ограбления
             }
             case "slots" -> Casino.spin(p, d.getInt("bet"));
             case "roulette" -> Casino.roulette(p, d.getInt("bet"), d.getString("kind"), d.getInt("number"));
@@ -134,6 +135,9 @@ public final class LifeNet {
             default -> {
                 if (type.startsWith("drv_") && com.yompix.novograd.gta.DriveHooks.handle(p, type, d)) return; // дороги и транспорт 0.4
                 if (type.startsWith("city_") && com.yompix.novograd.gta.CityServices.handle(p, type, d)) return; // автобусы, службы города
+                if (type.startsWith("call_") && com.yompix.novograd.story.Calls.handle(p, type, d)) return; // звонки героев, «Контакты»
+                if (type.startsWith("out_") && com.yompix.novograd.gta.Outdoors.handle(p, type, d)) return; // навыки, охота, рыбалка, праздники
+                if (type.startsWith("uw_") && com.yompix.novograd.gta.Underworld.handle(p, type, d)) return; // тёмные дела
                 if (!com.yompix.novograd.gta.FunHooks.handle(p, type, d)) Novograd.LOG.debug("Неизвестный пакет {}", type);
             }
         }

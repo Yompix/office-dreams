@@ -399,6 +399,7 @@ public final class LifeAi {
 
     // ------------------------------------------------------------------ еда: ларёк с очередью
     private static boolean eat(ServerWorld w, CitizenEntity c, Brain b) {
+        if (Venues.goEat(w, c, b)) return true; // кафе: заказ у стойки, столик, еда сидя (world/Venues)
         Leisure.Vendor v = Leisure.nearestVendor(w, c.getPos(), 110);
         if (v != null && Leisure.joinQueue(w, v, c)) {
             b.doing = "queue";

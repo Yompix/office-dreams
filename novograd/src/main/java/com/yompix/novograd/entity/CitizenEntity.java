@@ -514,7 +514,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         if (knockTick()) return;
         revengeTick();
         // бандиты: подошёл к их району с оружием в руках (или ты их враг по сюжету) — нападают
-        if (role == Role.GANG && foe == null && age % 20 == 0) {
+        if (role == Role.GANG && foe == null && age % 20 == 0 && !com.yompix.novograd.gta.BigHeists.calm(this)) { // охрана ограбления до тревоги — не сама
             var pl = getWorld().getClosestPlayer(this, 12);
             if (pl instanceof net.minecraft.server.network.ServerPlayerEntity sp && !sp.isCreative() && !sp.isSpectator()
                     && (com.yompix.novograd.gta.Weapons.isGun(sp.getMainHandStack()) || com.yompix.novograd.life.Life.get(sp).flags.contains("gang_enemy")) && canSee(sp))
@@ -1421,6 +1421,13 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
                     || t instanceof net.minecraft.server.network.ServerPlayerEntity p && (p.isCreative() || p.isSpectator()
                     || c.role == Role.POLICE && com.yompix.novograd.gta.Wanted.stars(p) == 0)) {
                 c.standDown();
+                return;
+            }
+            // полиция потеряла цель из виду — прочёсывает район последней точки (gta/Pursuit), а не бежит «сквозь стены»
+            net.minecraft.util.math.Vec3d search = c.role == Role.POLICE ? com.yompix.novograd.gta.Pursuit.searchPoint(c, t) : null;
+            if (search != null) {
+                c.dataTracker.set(ACTIVITY, Activity.IDLE.ordinal());
+                if (c.age % 20 == 0 || c.getNavigation().isIdle()) c.getNavigation().startMovingTo(search.x, search.y, search.z, 1.05);
                 return;
             }
             c.getLookControl().lookAt(t, 40, 40);

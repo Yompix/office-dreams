@@ -39,6 +39,11 @@ public class LifePauseScreen extends Screen {
         menu.add("Настройки игры", "", () -> mc.setScreen(new SettingsScreen(this)));
         menu.add("Настройки Minecraft", "", () -> mc.setScreen(new OptionsScreen(this, mc.options)));
         friends(mc);
+        if (mc.getServer() == null || mc.getServer().isRemote()) // игра по сети — «Полицейские и воры» (gta/CopsAndRobbers)
+            menu.add("Полицейские и воры", "", () -> {
+                mc.setScreen(null);
+                com.yompix.novograd.client.cops.CopsClient.send("cnr_menu", new net.minecraft.nbt.NbtCompound());
+            });
         menu.add("Сохранить и выйти", "", this::quit);
         menu.selected = Math.min(sel, menu.items.size() - 1);
     }

@@ -21,7 +21,10 @@
     "CineLabelMixin",
     "NoVanillaMusicMixin",
     "RadioScrollMixin",
-    "DriveFogMixin"
+    "DriveFogMixin",
+    "SeasonColorsMixin",
+    "SeasonSnowMixin",
+    "SeasonFoliageMixin"
   ],
   "injectors": {
     "defaultRequire": 0

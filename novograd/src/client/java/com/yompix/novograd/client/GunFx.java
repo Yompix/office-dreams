@@ -169,6 +169,8 @@ public final class GunFx {
         ItemStack held = c.player != null ? c.player.getMainHandStack() : ItemStack.EMPTY;
         boolean grip = com.yompix.novograd.gta.GunMods.has(held, com.yompix.novograd.gta.GunMods.GRIP); // рукоятка: меньше отдача
         float aim = (1f - ads * 0.4f) * (grip ? 0.65f : 1f);
+        float skill = c.player != null ? com.yompix.novograd.gta.Skills.recoilMul(c.player, g.kindIndex()) : 1f; // навык стрельбы (SA): меньше отдача
+        aim *= 0.5f + 0.5f * skill;
         silencedShot = com.yompix.novograd.gta.GunMods.silenced(held);
         // скорость пружины ≈ пик·ω/0.75: назад на kickZ блоков, вверх на rise градусов
         kzV += 23f * k.kickZ * aim;
@@ -177,7 +179,7 @@ public final class GunFx {
         sideV += (RNG.nextFloat() - 0.5f) * 1.2f * aim;
         shakeV += 14f * k.shake;
         // подброс камеры: вверх и чуть вбок, потом часть возвращается
-        float r = g.spec().recoil() * (ads > 0.5f ? 0.7f : 1f) * (0.9f + RNG.nextFloat() * 0.2f) * (grip ? 0.6f : 1f);
+        float r = g.spec().recoil() * (ads > 0.5f ? 0.7f : 1f) * (0.9f + RNG.nextFloat() * 0.2f) * (grip ? 0.6f : 1f) * skill;
         camPitch += r;
         camYaw += (RNG.nextFloat() - 0.5f) * r * 0.55f;
         bloom = Math.min(1f, bloom + k.bloomAdd * (ads > 0.5f ? 0.5f : 1f) * 3);
@@ -240,7 +242,9 @@ public final class GunFx {
             reloadEmpty = (duration - 8) % 7 != 0;
             reloadShells = Math.max(0, (duration - 8 - (reloadEmpty ? 10 : 0)) / 7);
         } else {
-            reloadEmpty = duration >= g.spec().reload() - 1;
+            // навык стрельбы укорачивает перезарядку (GunItem.reload) — сравниваем с тем же множителем
+            float sk = c.player != null ? com.yompix.novograd.gta.Skills.reloadMul(c.player, g.kindIndex()) : 1f;
+            reloadEmpty = duration >= Math.max(6, Math.round(g.spec().reload() * sk)) - 1;
             reloadShells = 0;
         }
         cues = GunAnim.reloadCues(id(item), reloadEmpty, reloadShells, duration / 20f);

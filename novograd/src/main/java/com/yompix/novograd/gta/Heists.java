@@ -60,7 +60,7 @@ public final class Heists {
         ServerWorld w = p.getServerWorld();
         Heist h = HEISTS.get(p.getUuid());
         if (h == null) {
-            if (!Weapons.isGun(p.getMainHandStack()) || Story.active(p) && !Story.idle(d)) return;
+            if (!Weapons.isGun(p.getMainHandStack()) || Story.active(p) && !Story.idle(d) || BigHeists.inFinale(p)) return;
             for (int i = 0; i < BANKS.length; i++) {
                 Vec3d at = Story.place(w, (String) BANKS[i][1]);
                 if (at == null || p.squaredDistanceTo(at) > 7 * 7) continue;
@@ -178,6 +178,7 @@ public final class Heists {
     public static void onDownfall(ServerPlayerEntity p, boolean busted) {
         Economy.onDownfall(p, busted);
         FunHooks.onDownfall(p, busted); // уличные события, подработки, война банд
+        Underworld.onDownfall(p, busted); // большие ограбления, заказы, контрабанда
         if (HEISTS.containsKey(p.getUuid())) fail(p, "Деньги потеряны");
         if (RAMPAGE.containsKey(p.getUuid())) {
             RAMPAGE.remove(p.getUuid());
@@ -308,6 +309,7 @@ public final class Heists {
     private static final Object[][] BUSINESS = {
             {"Бар «Ржавый якорь»", "bar_door", 25000, 900}, {"Клуб «Неон»", "club_neon", 60000, 2400}, {"Стоянка «Центр»", "parking", 15000, 500},
             {"Отель «Лазурь»", "riv_hotel", 140000, 5500}, {"Пристань Ривьеры", "riv_marina", 45000, 1600}, {"Ферма в Сосновке", "village_farm", 20000, 700},
+            {"Казино «Мираж»", "mirage_casino", 250000, 9500}, // город казино в Пустоши (world/DesertCity)
     };
     private static final Map<UUID, Integer> AT_BIZ = new HashMap<>();
 

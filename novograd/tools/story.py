@@ -767,6 +767,232 @@ ch5['missions'].append(mission(m, 'Последний рейс', [
 ]))
 chapters.append(ch5)
 
+# =====================================================================================  АКТ VI (0.5): ПОД ПРИСЯГОЙ — вторая линия, за полицию
+# Открывается, если в финале акта III выбран «Остаюсь с полицией» (end_cop) или принята присяга по звонку Питерсона (oath).
+# Story.chapter(): глава с полем need недоступна без одного из флагов — гонщик после титров просто в свободной игре.
+CHARS['diaz'] = dict(name='Сержант Диас', skin='c24', voice='Ana Florence', color='4dd0e1')
+ch6 = {'id': 'a6', 'title': 'Акт VI', 'subtitle': 'Под присягой', 'age': 22, 'need': ['end_cop', 'oath'], 'missions': []}
+
+m = 'a6m1'
+ch6['missions'].append(mission(m, 'Значок', [
+    {'type': 'title', 'title': 'Акт VI', 'subtitle': 'Под присягой', 'do': [['time', 1500], ['spawn', 'petrov', 'police_station+1,1']]},
+    scene(m, [S('police_station+14,8,3', 'police_station+8,5,2', 6, track='petrov'), F('diaz', 5, (3.2, 1.7, -1.4)), F('petrov', 4, (3.2, 1.7, 1.4))],
+          [[0, 'spawn', 'petrov', 'police_station+-2,2'], [0, 'spawn', 'diaz', 'police_station+6,-2'],
+           [0, 'spawn', 'c1', 'police_station+-4,-2', 'police'], [0, 'spawn', 'c2', 'police_station+-5,1', 'police'], [0, 'spawn', 'c3', 'police_station+-4,4', 'police'],
+           [0.5, 'act', 'c1', 'CHEER', 'petrov'], [0.5, 'act', 'c2', 'CHEER', 'petrov'], [0.5, 'act', 'petrov', 'TALK', 'c2'],
+           [5, 'walk', 'diaz', 'police_station+2,0'], [9, 'act', 'diaz', 'WAVE', 'player'], [11, 'face', 'petrov', 'player']],
+          ('narrator', 'Новоград. Утро после бури. Кроу сидит, Брик сидит, а город всё равно не спит.'),
+          ('petrov', 'Тише, тише. Сегодня у нас пополнение. Не стойте столбом — хлопайте.'),
+          ('diaz', 'Это и есть тот гонщик? Шеф, вы уверены, что он умеет ездить медленно?')),
+    talk(m, 'petrov', 'Поговори с шефом Питерсоном в участке',
+         ('petrov', 'Я теперь шеф. Смешно, да? Тот, кто три года ловил Брика, сидит в кресле Харриса.'),
+         ('petrov', 'Значок, табельный, машина без мигалок. И напарник — сержант Диас. Она лучшая в участке, так что слушайся её.'),
+         choices=[('Служу Новограду.', 'a6_oath', [('petrov', 'Вот и славно. Только без пафоса — его тут не любят.')]),
+                  ('А зарплата какая?', 'a6_salary', [('petrov', 'Меньше, чем у гонщика. Зато пенсия и уважение. Иногда.')])],
+         do=[['give', 'novograd:pistol', 1], ['give', 'novograd:ammo', 90], ['flag', 'cop_badge']]),
+    dialog(m, ('diaz', 'Сержант Ана Диас. Десять лет в патруле — и ни одного напарника, который продержался бы год.'),
+              ('diaz', 'Первый вызов уже есть: драка у клуба «Неон». Машина у входа. Поехали.'),
+           do=[['car', 'police_station+8,3', 3], ['spawn', 'diaz', 'police_station+3,1']]),
+    step('goto', 'Вызов: драка у клуба «Неон». Езжай с Диас в деловой центр', place='club_neon', radius=10, vehicle=True),
+    step('clear', 'Разними драку: уложи хулиганов', place='club_neon', count=3),
+    dialog(m, ('diaz', 'Неплохо для первого дня. В рапорте напишем «задержаны при сопротивлении». Так солиднее.'), do=[['money', 300]]),
+]))
+
+m = 'a6m2'
+ch6['missions'].append(mission(m, 'Патруль', [
+    dialog(m, ('diaz', 'Сегодня патруль по деловому центру. Смотри по сторонам и не превышай. Ну… сильно не превышай.')),
+    step('goto', 'Патруль: проедь по Центральной (первая точка)', place='dt_1', radius=10, vehicle=True),
+    step('goto', 'Патруль: дальше по деловому центру', place='dt_3', radius=10, vehicle=True),
+    scene(m, [S('dt_3+18,6,3', 'dt_3+10,4,2', 4, track='speeder'), F('speeder', 5, (9, 2.5, 2.5), shake=0.4)],
+          [[0, 'car', 'speeder', 'dt_3+0,70', 2, 180], [0.1, 'drive', 'speeder', ['dt_3+0,-40', 'dt_4'], 0.95]],
+          ('diaz', 'Сто шестьдесят по центру! Это же «Ракета» из уличных гонок. За ним!')),
+    step('chase', 'Догони «Ракету» и останови его машину', points=['dt_3', 'dt_4', 'dt_5', 'race_finish'], driver='Ракета', variant=2),
+    dialog(m, ('diaz', 'Знакомый? Он орал, что гонял с тобой на кольце и что ты ему должен.'),
+           choices=[('Выпиши штраф и отпусти.', 'a6_soft', [('diaz', 'Мягкий ты. Ладно, первый раз — штраф.')]),
+                    ('По закону — значит по закону.', 'a6_hard', [('diaz', 'Вот теперь ты похож на копа.')])],
+           do=[['money', 400]]),
+]))
+
+m = 'a6m3'
+ch6['missions'].append(mission(m, 'Ограбление в прямом эфире', [
+    scene(m, [S('bank_tower+22,10,4', 'bank_tower+12,6,3', 5, track='r1'), S('bank_tower+6,4,2', 'bank_tower+4,3,1.8', 5, track='lena')],
+          [[0, 'spawn', 'r1', 'bank_tower+14,-6', 'gang', 'Грабитель в маске'], [0, 'spawn', 'r2', 'bank_tower+16,-3', 'gang', 'Грабитель в маске'],
+           [0.2, 'run', 'r1', 'bank_tower+1,0'], [0.4, 'run', 'r2', 'bank_tower+2,2'], [0, 'spawn', 'lena', 'bank_tower+8,6'],
+           [4, 'act', 'r1', 'AIM', 'lena'], [5, 'act', 'lena', 'TALK', 'player']],
+          ('narrator', 'Полдень. Сити-Банк. Четверо в масках решили, что в обеденный перерыв полиция тоже обедает.'),
+          ('lena', 'Лена Вуд, «Вестник Новограда». Мы ведём прямой репортаж от Сити-Банка!')),
+    step('goto', 'Ограбление Сити-Банка! Езжай к башне банка', place='bank_tower', radius=14),
+    step('clear', 'Обезвредь грабителей', place='bank_tower', count=6),
+    dialog(m, ('lena', 'Офицер, пару слов для «Вестника»? Ой… это ты? В форме?'),
+              ('diaz', 'Без комментариев. Особенно для журналисток, которые с моим напарником на «ты».'),
+              ('lena', 'Один из грабителей крикнул «привет от Синих». Марко вернулся в город. Береги себя.'),
+           do=[['money', 800], ['shock', 'CITY', 0.05, 'полиция сорвала ограбление Сити-Банка']]),
+]))
+
+m = 'a6m4'
+ch6['missions'].append(mission(m, 'Ночная слежка', [
+    dialog(m, ('tema', 'Привет, детектив! Звучит, а? Я перехватил переписку «Синих». Сегодня ночью у них встреча в переулке за «Неоном».'),
+              ('diaz', 'Сидим тихо и смотрим. Никакой стрельбы, никаких гонок. Просто слежка.'), do=[['time', 18500]]),
+    step('goto', 'Займи позицию у переулка за клубом «Неон»', place='dt_alley', radius=16),
+    scene(m, [S('dt_alley+16,7,3', 'dt_alley+13,5,2.5', 6, track='marco'), S('dt_alley+3,-5,2', 'dt_alley+2,-4,1.8', 5, track='courier')],
+          [[0, 'spawn', 'marco', 'dt_alley+-6,-2'], [0, 'spawn', 'courier', 'dt_alley+-14,0', 'gang', 'Курьер «Синих»'],
+           [0.3, 'walk', 'courier', 'dt_alley+-7,-1'], [4, 'act', 'courier', 'HANDSHAKE', 'marco'], [4, 'act', 'marco', 'HANDSHAKE', 'courier'],
+           [7, 'act', 'marco', 'PHONE'], [10, 'walk', 'courier', 'dt_alley+-20,0']],
+          ('marco', 'Груз в порту, контейнер двенадцать. Передай шефу: всё по плану.'),
+          ('narrator', '«Шеф». Так в Новограде называли только одного человека. И он сейчас должен сидеть в тюрьме.'),
+          do=[['despawn', 'marco']]),
+    step('collect', 'Сфотографируй встречу (ПКМ по метке в переулке)', clues=[{'place': 'dt_alley+2,-3', 'name': 'Фото: Марко и курьер'}]),
+    step('chase', 'Курьер уходит на машине — догони его', points=['dt_2', 'dt_1', 'hw_north', 'race_1'], driver='Курьер «Синих»', variant=3),
+    dialog(m, ('diaz', 'Курьер молчит. Но в его телефоне всего один номер. Тюрьма «Чёрная скала». Камера Харриса.'),
+              ('diaz', 'Харрис руководит бандой из камеры. Ну конечно. Он и полицией так руководил.')),
+]))
+
+m = 'a6m5'
+ch6['missions'].append(mission(m, 'Контейнер двенадцать', [
+    dialog(m, ('diaz', 'Порт. Контейнер двенадцать. Ордер есть, поддержки нет — все на выезде. Как обычно.')),
+    step('goto', 'Езжай в порт, к складу у причала', place='port_warehouse', radius=12),
+    step('clear', 'Охрана «Синих» открыла огонь — отбейся', place='port_warehouse', count=6),
+    step('collect', 'Осмотри контейнер и найди накладные', clues=[{'place': 'port_warehouse+3,2', 'name': 'Контейнер №12'}, {'place': 'port_warehouse+-4,-3', 'name': 'Накладные'}]),
+    dialog(m, ('ray', 'Это Рэй. Слышал, ты теперь при значке. Не смейся, но я рад.'),
+              ('ray', 'Эти ящики идут морем на Ривьеру, в «Золотую корону». У казино новые хозяева — люди Харриса.'),
+           do=[['money', 600]]),
+]))
+
+m = 'a6m6'
+ch6['missions'].append(mission(m, 'Побег', [
+    scene(m, [S('hw_south+20,10,4', 'hw_south+10,6,3', 5, track='convoy'), F('convoy', 4, (9, 3, 2.5)), S('hw_south+6,4,2', 'hw_south+4,3,2', 5, track='harris', shake=0.6)],
+          [[0, 'car', 'convoy', 'hw_south+0,-80', 6, 0], [0.1, 'drive', 'convoy', ['hw_south+0,-4'], 0.7],
+           [0, 'car', 'blocker', 'hw_south+6,6', 4, 90], [6, 'spawn', 'g1', 'hw_south+5,3', 'gang', 'Наёмник'], [6, 'spawn', 'g2', 'hw_south+8,1', 'gang', 'Наёмник'],
+           [6.2, 'spawn', 'cop', 'hw_south+-2,-2', 'police'], [6.5, 'shoot', 'g1', 'cop', 4, 0], [7.5, 'die', 'cop'],
+           [8, 'spawn', 'harris', 'hw_south+-1,-1'], [9, 'act', 'harris', 'LAUGH', 'player'], [11, 'ride', 'harris', 'blocker'], [11.5, 'drive', 'blocker', ['hw_sw', 'port_gate'], 0.95]],
+          ('narrator', 'Харриса везли на допрос в суд. Сорок минут по южной трассе. Он доехал только до половины.'),
+          ('harris', 'Передайте Питерсону: я вернусь за своим креслом.'),
+          do=[['despawn', 'harris']]),
+    dialog(m, ('petrov', 'Харрис сбежал! Конвой расстрелян. Фургон уходит по южной трассе к порту — догони его!')),
+    step('chase', 'Догони фургон с беглецом', points=['hw_south', 'hw_sw', 'port_gate', 'port_dock'], driver='Люди Харриса', variant=4),
+    step('clear', 'Люди Харриса прикрывают отход — отбейся', place='port_dock', count=5),
+    dialog(m, ('diaz', 'Фургон пустой. Харрис ушёл морем. Чёрт возьми!'),
+              ('petrov', 'Значит, он на Ривьере. Там у него деньги и казино. Готовьтесь, детективы.')),
+]))
+
+m = 'a6m7'
+ch6['missions'].append(mission(m, 'Под прикрытием', [
+    dialog(m, ('petrov', 'В «Золотой короне» новый управляющий — Ленни, бухгалтер Харриса. Идёшь туда как игрок с толстым кошельком.'),
+              ('diaz', 'Я буду в фургоне, у тебя в ухе — мой голос. Не выигрывай слишком много. И не проигрывай мои деньги.')),
+    step('goto', 'Езжай в казино «Золотая корона» на Ривьере', place='riv_casino', radius=10, do=[['spawn', 'sofi', 'riv_casino+3,2'], ['time', 17500]]),
+    talk(m, 'sofi', 'Поговори с Софи у входа в казино',
+         ('sofi', 'Ты… в костюме? Тебе идёт. Ленни сидит в зале, за ним двое охранников.'),
+         ('sofi', 'Ключ-карта от его сейфа — во внутреннем кармане. Я пролью на него коктейль, а ты не зевай.')),
+    scene(m, [S('riv_casino+10,6,3', 'riv_casino+6,4,2', 5, track='lenny'), F('sofi', 4, (3, 1.7, -1.3))],
+          [[0, 'spawn', 'lenny', 'riv_casino+-2,-4', 'citizen', 'Ленни'], [0, 'spawn', 'g1', 'riv_casino+-4,-5', 'gang', 'Охрана Ленни'],
+           [0, 'spawn', 'sofi', 'riv_casino+4,1'], [0.4, 'walk', 'sofi', 'riv_casino+-1,-3'], [4, 'act', 'sofi', 'LAUGH', 'lenny'], [5, 'act', 'lenny', 'UPSET']],
+          ('sofi', 'Ой! Простите, мистер, я такая неловкая! Давайте я вытру…'),
+          ('diaz', 'Карта у неё. Забирай записи из сейфа. Быстро.')),
+    step('collect', 'Найди ключ-карту и записи в сейфе', clues=[{'place': 'riv_casino+2,-3', 'name': 'Ключ-карта Ленни'}, {'place': 'riv_casino+-5,-4', 'name': 'Записи из сейфа'}]),
+    step('clear', 'Охрана поняла, кто ты. Прорывайся к выходу', place='riv_casino', count=6),
+    dialog(m, ('diaz', 'В записях — адрес. Пустошь, склад у столовой горы. Там Харрис собирает людей и оружие.'),
+              ('petrov', 'Армию? Тогда и мы придём не вдвоём.'), do=[['money', 1000]]),
+]))
+
+m = 'a6m8'
+ch6['missions'].append(mission(m, 'Спецназ', [
+    dialog(m, ('petrov', 'Сегодня работает спецназ. Ты — с ними, в первой машине. Ничего героического: войди и выйди живым.'),
+           do=[['give', 'novograd:body_armor', 1], ['give', 'novograd:ammo', 120]]),
+    step('goto', 'Езжай в пустошь, к точке сбора спецназа', place='desert_road', radius=18, vehicle=True),
+    scene(m, [S('desert_mesa+40,14,8', 'desert_mesa+26,10,6', 6, track='swat1'), F('swat2', 5, (10, 3, 3), shake=0.5), S('desert_mesa+10,6,3', 'desert_mesa+8,4,2', 4, track='s1')],
+          [[0, 'car', 'swat1', 'desert_mesa+80,0', 17, 90], [0, 'car', 'swat2', 'desert_mesa+95,6', 17, 90],
+           [0.1, 'drive', 'swat1', ['desert_mesa+16,0'], 0.9], [0.4, 'drive', 'swat2', ['desert_mesa+20,6'], 0.9],
+           [10, 'spawn', 's1', 'desert_mesa+14,2', 'police', 'Спецназ'], [10, 'spawn', 's2', 'desert_mesa+15,-2', 'police', 'Спецназ'],
+           [10.5, 'act', 's1', 'AIM', 'desert_mesa'], [10.5, 'act', 's2', 'AIM', 'desert_mesa'], [10, 'spawn', 'diaz', 'desert_mesa+16,4'], [11, 'act', 'diaz', 'AIM', 'desert_mesa']],
+          ('narrator', 'Шесть фургонов спецназа в пустоши. Так Новоград ещё никогда не стучался в дверь.'),
+          ('diaz', 'Пошли, пошли, пошли!')),
+    step('goto', 'Штурм: к складу у столовой горы', place='desert_mesa', radius=18),
+    step('clear', 'Зачисти склад и возьми Марко', place='desert_mesa', count=10, boss='Марко «Синий»'),
+    dialog(m, ('marco', 'Ладно! Ладно, я сдаюсь! Харрис обещал нам весь город, когда вернёт себе кресло.'),
+              ('marco', 'Его тут нет. Он знал о рейде заранее. У вас в участке крыса, детектив.'),
+           do=[['wanted_clear'], ['money', 1500], ['shock', 'CITY', 0.06, 'спецназ взял склад оружия «Синих» в пустоши']]),
+]))
+
+m = 'a6m9'
+ch6['missions'].append(mission(m, 'Крыса', [
+    dialog(m, ('diaz', 'Кто-то слил рейд Харрису. Кто-то из наших. Мне это очень не нравится.'),
+              ('tema', 'Я проверил рабочие телефоны участка. Один номер каждый вечер звонил в «Чёрную скалу».')),
+    step('goto', 'Возвращайся в участок', place='police_station', radius=10),
+    step('collect', 'Тихо найди улики в участке', clues=[{'place': 'police_station+3,-2', 'name': 'Журнал звонков'}, {'place': 'police_station+-4,2', 'name': 'Конверт в шкафчике'}]),
+    scene(m, [S('police_station+10,6,3', 'police_station+7,4,2', 4, track='cole'), F('cole_car', 5, (9, 2.5, 2.5), shake=0.4)],
+          [[0, 'spawn', 'cole', 'police_station+2,-1', 'police', 'Сержант Коул'], [0, 'car', 'cole_car', 'police_station+10,6', 6, 90],
+           [0.5, 'act', 'cole', 'UPSET'], [1.5, 'run', 'cole', 'police_station+9,5'], [3.5, 'ride', 'cole', 'cole_car'], [4, 'drive', 'cole_car', ['dt_5', 'dt_4'], 0.95]],
+          ('diaz', 'Коул?! Двадцать лет в участке… Стоять!')),
+    step('chase', 'Догони машину сержанта Коула', points=['dt_5', 'dt_4', 'hw_east', 'industry_street'], driver='Сержант Коул', variant=6),
+    dialog(m, ('diaz', 'Коул рассказал всё. Харрис в городе. И у него Лена Вуд.'),
+              ('petrov', 'Лена готовила статью о Харрисе. Он её заткнёт навсегда, если мы опоздаем.')),
+]))
+
+m = 'a6m10'
+ch6['missions'].append(mission(m, 'Заложница', [
+    step('goto', 'Харрис держит Лену в клубе «Неон» — быстрее туда', place='club_neon', radius=12, do=[['time', 19000]]),
+    scene(m, [S('club_neon+10,5,3', 'club_neon+7,4,2', 5, track='harris'), S('club_neon+3,3,1.8', 'club_neon+2,2,1.7', 5, track='lena', shake=0.3)],
+          [[0, 'spawn', 'harris', 'club_neon+0,-3'], [0, 'spawn', 'lena', 'club_neon+1,-3'], [0, 'act', 'lena', 'UPSET'],
+           [0, 'spawn', 'g1', 'club_neon+3,-6', 'gang', 'Наёмник'], [0, 'spawn', 'g2', 'club_neon+-3,-5', 'gang', 'Наёмник'],
+           [0.5, 'act', 'g1', 'AIM', 'player'], [0.5, 'act', 'g2', 'AIM', 'player'], [2, 'act', 'harris', 'ARGUE', 'player']],
+          ('harris', 'Не подходи! Ещё шаг — и «Вестник» напишет некролог.'),
+          ('lena', 'Не слушай его! Он блефует!'),
+          do=[['despawn', 'harris'], ['despawn', 'lena']]),
+    step('clear', 'Разберись с наёмниками Харриса', place='club_neon', count=7),
+    scene(m, [S('club_neon+12,8,3', 'club_neon+8,5,2', 4, track='h_car'), F('h_car', 5, (9, 2.5, 2.5), shake=0.4)],
+          [[0, 'car', 'h_car', 'club_neon+8,6', 3, 90], [0, 'spawn', 'harris', 'club_neon+5,4'], [0, 'spawn', 'lena', 'club_neon+6,4'],
+           [1, 'ride', 'lena', 'h_car'], [1.4, 'ride', 'harris', 'h_car'], [2, 'drive', 'h_car', ['dt_1', 'dt_2'], 0.95]],
+          ('narrator', 'Харрис уходит через чёрный ход. Лена всё ещё у него.'),
+          do=[['despawn', 'harris'], ['despawn', 'lena']]),
+    step('chase', 'Догони машину Харриса и разбей её', points=['dt_1', 'dt_2', 'hw_north', 'race_1'], driver='Шеф Харрис', variant=3),
+    dialog(m, ('lena', 'Ты успел… Он бросил меня на трассе и ушёл пешком в промзону.'),
+              ('diaz', 'Промзона? Там старый двор «Ящеров». Поеду проверю. Отвези Лену и догоняй.'),
+           do=[['spawn', 'lena', 'race_1+3,2']]),
+]))
+
+m = 'a6m11'
+ch6['missions'].append(mission(m, 'Напарник', [
+    dialog(m, ('petrov', 'Диас поехала во двор «Ящеров» одна и не выходит на связь. Найди её!'), do=[['despawn', 'lena']]),
+    step('goto', 'Езжай в промзону, во двор «Ящеров»', place='gang_yard', radius=14),
+    step('clear', 'Люди Харриса окружили Диас — прорвись к ней', place='gang_yard', count=7),
+    talk(m, 'diaz', 'Найди Диас',
+         ('diaz', 'Я в порядке… Царапина. Почти.'),
+         ('diaz', 'Они готовят Харрису уход морем. Порт, кран у причала, полночь. Иди без меня — и только попробуй не вернуться.'),
+         choices=[('Я тебя не брошу.', 'a6_stay', [('diaz', 'Сентиментальный коп. Худший вид. Иди уже!')]),
+                  ('Дождись скорую.', 'a6_go', [('diaz', 'Есть, напарник.')])],
+         do=[['spawn', 'diaz', 'gang_yard+2,1'], ['act', 'diaz', 'SIT']]),
+]))
+
+m = 'a6m12'
+ch6['missions'].append(mission(m, 'Под присягой', [
+    step('goto', 'Езжай в порт, к крану у причала', place='port_crane', radius=14, do=[['time', 18000], ['despawn', 'diaz']]),
+    scene(m, [S('port_crane+18,8,4', 'port_crane+11,5,3', 5, track='harris'), F('harris', 4, (3.2, 1.8, 1.4))],
+          [[0, 'spawn', 'harris', 'port_crane+2,3'], [0, 'spawn', 'm1', 'port_crane+5,2', 'gang', 'Наёмник'], [0, 'spawn', 'm2', 'port_crane+-2,2', 'gang', 'Наёмник'],
+           [0.5, 'act', 'm1', 'AIM', 'player'], [0.5, 'act', 'm2', 'AIM', 'player'], [2, 'act', 'harris', 'ARGUE', 'player']],
+          ('harris', 'Гонщик, крыса, а теперь ещё и коп. Сколько у тебя лиц?'),
+          ('harris', 'В камере я понял одну вещь: закон — это тот, у кого пистолет. Убейте его.'),
+          do=[['despawn', 'harris']]),
+    step('clear', 'Финальная перестрелка в порту: возьми Харриса', place='port_crane', count=9, boss='Шеф Харрис'),
+    scene(m, [S('port_crane+14,8,3', 'port_crane+9,5,2', 6, track='harris'), F('cop_car', 5, (9, 3, 2.5)),
+              S('police_station+12,6,3', 'police_station+7,4,2', 6, track='petrov'), S('cam_dt_a', 'cam_dt_b', 8)],
+          [[0, 'spawn', 'harris', 'port_crane+2,4'], [0, 'act', 'harris', 'UPSET'], [0, 'spawn', 'c1', 'port_crane+4,3', 'police'],
+           [0, 'car', 'cop_car', 'port_crane+6,12', 6, 0], [0.5, 'walk', 'harris', 'port_crane+5,11'], [0.6, 'walk', 'c1', 'port_crane+7,10'],
+           [5, 'ride', 'harris', 'cop_car'], [5.5, 'drive', 'cop_car', ['port_gate'], 0.6],
+           [0, 'spawn', 'petrov', 'police_station+-1,1'], [0, 'spawn', 'diaz', 'police_station+2,1'], [0, 'spawn', 'lena', 'police_station+4,3'],
+           [0, 'spawn', 'c2', 'police_station+-4,-2', 'police'], [0, 'spawn', 'c3', 'police_station+-4,3', 'police'],
+           [11, 'act', 'c2', 'CHEER', 'player'], [11, 'act', 'c3', 'CHEER', 'player'], [12, 'act', 'petrov', 'HANDSHAKE', 'player'], [13, 'act', 'lena', 'CHEER', 'player']],
+          ('narrator', 'Бывшего шефа полиции Харриса взяли на причале. В наручниках, которые когда-то сам выдавал.'),
+          ('petrov', 'За мужество при исполнении… а, к чёрту речи. Ты молодец, детектив.'),
+          ('narrator', 'Лена напечатала всё. Диас вернулась в строй через неделю и первым делом выписала тебе штраф за парковку.'),
+          do=[['wanted_clear'], ['money', 5000], ['shock', 'CITY', 0.1, 'бывший шеф полиции Харрис снова за решёткой']]),
+    dialog(m, ('petrov', 'Ну что, детектив. Значок тебе идёт. Остаёшься?'),
+              ('diaz', 'Скажи «да». Мне только начало нравиться работать с сумасшедшим.'),
+           choices=[('Остаюсь. Это мой город.', 'end3_badge', [('petrov', 'Тогда с понедельника — отдел особо тяжких. Добро пожаловать домой.')]),
+                    ('Сдаю значок. Трасса зовёт.', 'end3_road', [('nika', 'Ну наконец-то! Я держала тебе место на старте.')])]),
+    {'type': 'credits'},
+]))
+chapters.append(ch6)
+
 # =====================================================================================  ПОБОЧНЫЕ МИССИИ (100)
 import random as _r
 RND = _r.Random(2026)
@@ -922,6 +1148,287 @@ for i in range(6):
         say(('nika', f'Загородный заезд: {name}. Длинные прямые, крутые повороты — как ты любишь.')),
         step('carrace', f'Заезд «{name}»: приди первым', start=start, points=pts[1:] + [pts[0]], rival='Ракета', rival_speed=78 + i * 2, rival_engine=2, variant=i % 6)])
 
+
+# =====================================================================================  ЗВОНКИ ГЕРОЕВ (0.5, story/Calls.java)
+# Между миссиями, в свободной игре, герои звонят и пишут: шутки, сплетни, реакции на твои дела, приглашения, просьбы о помощи.
+# Просьбы — скрытые побочные миссии call_* (hidden: в «Заданиях» их нет, запускаются из звонка).
+def mid_of(mid):
+    """id миссии сюжета → [глава, миссия] (звонок доступен, когда эта миссия пройдена)."""
+    for ci_, ch_ in enumerate(chapters):
+        for mi_, m_ in enumerate(ch_['missions']):
+            if m_['id'] == mid: return [ci_, mi_]
+    raise KeyError(mid)
+
+
+def hidden(mid, title, who, reward, steps):
+    side[mid] = {'title': title, 'category': 'Просьба: ' + CHARS[who]['name'], 'giver': CHARS[who]['name'], 'who': who,
+                 'reward': reward, 'unlock': 0, 'hidden': True, 'steps': steps}
+
+
+def route_of(sid):
+    st = next(s for s in side[sid]['steps'] if s['type'] == 'carrace')
+    return st['start'], st['points']
+
+
+s_, p_ = route_of('race03')
+hidden('call_nika_race', 'Заезд с Ники', 'nika', 900, [
+    say(('nika', 'Вот и ты! Правила простые: кто первый у последней отметки — тот платит за кофе. Проигравший, конечно.')),
+    step('carrace', 'Гонка с Ники: проезжай отметки раньше неё', start=s_, points=p_, rival='Ники «Нитро»', rival_speed=74, rival_engine=2, variant=2),
+    say(('nika', 'Ладно, ладно, ты быстрее. Сегодня. Кофе за мной!'))])
+hidden('call_nika_ring', 'Ночь на кольце', 'nika', 1800, [
+    say(('nika', 'Большое кольцо, как в старые времена. Без копов, без Кроу — только ты, я и асфальт.')),
+    step('carrace', 'Большое кольцо с Ники: приди первым', start='outer_east', points=['outer_ne', 'mtn_road+0,-200', 'outer_nw', 'outer_nw+0,1000'],
+         rival='Ники «Нитро»', rival_speed=86, rival_engine=2, variant=0),
+    say(('nika', 'Вот теперь я верю, что ты король трассы. Только не зазнавайся.'))])
+hidden('call_gleb_parts', 'Запчасти для Джейка', 'gleb', 450, [
+    say(('gleb', 'Ящик с запчастями у портовых ворот. Забери — и пулей в гараж!')),
+    step('goto', 'Забери запчасти у ворот порта', place='port_gate', radius=7, time=200),
+    step('goto', 'Привези запчасти в Нитро-Гараж', place='garage_door', radius=8, time=220),
+    say(('gleb', 'Успел! Клиент даже не заметил, что мы опаздывали. Держи долю.'))])
+hidden('call_gleb_client', 'Машина клиента', 'gleb', 500, [
+    say(('gleb', 'Машина у ворот гаража. Клиент ждёт на Тихой улице в пригороде. Без царапин!')),
+    {'type': 'dialog', 'lines': [T('gleb', 'Ключи в замке. Езжай!')], 'do': [['car', 'garage_door', 1]]},
+    step('goto', 'Отгони машину клиенту на Тихую улицу', place='suburb_street', radius=9, vehicle=True, time=260),
+    say(('gleb', 'Клиент доволен и даже оставил на чай. Брат, ты лучший курьер на острове.'))])
+hidden('call_rosa_drinks', 'Вечер у Розы', 'rosa', 0, [
+    step('goto', 'Езжай в клуб «Неон» — Роза ждёт у стойки', place='club_neon', radius=8, do=[['spawn', 'rosa', 'club_neon+2,-2']]),
+    {'type': 'dialog', 'lines': [T('rosa', 'Фирменный «Неон»: лёд, лайм и немного того, о чём мы не говорим.'),
+                                T('rosa', 'Пей. Ты выглядишь так, будто тебя переехал грузовик. Дважды.')], 'do': [['heal']]},
+    say(('rosa', 'Вот, уже лучше. Заходи ещё — для тебя тут всегда открыто.'))])
+hidden('call_rosa_stalker', 'Неприятный гость', 'rosa', 600, [
+    step('goto', 'Езжай в клуб «Неон»', place='club_neon', radius=10),
+    step('clear', 'Объясни назойливому гостю, что ему здесь не рады', place='club_neon', count=1, boss='Назойливый тип'),
+    say(('rosa', 'Он ушёл и, кажется, больше не вернётся. Девочки передают спасибо. И я тоже.'))])
+hidden('call_kirpich_debtor', 'Должник Брика', 'kirpich', 700, [
+    step('goto', 'Найди должника в промзоне', place='industry_street', radius=12),
+    step('clear', 'Напомни должнику про долг', place='industry_street', count=2, boss='Должник Гарри'),
+    say(('kirpich', 'Гарри вспомнил, что должен. Чудеса памяти. Твоя доля — у тебя на счету.'))])
+hidden('call_kirpich_car', 'Заказ Брика', 'kirpich', 900, [
+    step('steal', 'Угони машину из пригорода и пригони на разборку', place='suburb_house', to='chop_shop', variant=9),
+    step('escape', 'Соседи вызвали полицию — оторвись!', stars=1, why='угон'),
+    say(('kirpich', 'Машина на разборке. Чистая работа, гонщик.'))])
+hidden('call_kirpich_mom', 'Лекарства для матери Брика', 'kirpich', 500, [
+    step('goto', 'Забери лекарства у аптекаря в порту', place='port_gate', radius=7, time=200),
+    step('goto', 'Отвези лекарства матери Брика в пригород', place='suburb_house', radius=8, time=260),
+    say(('kirpich', 'Мама звонила. Сказала, что «приходил вежливый мальчик». Это ты. Я… должен тебе.'))])
+hidden('call_kirpich_heist', 'Наводка Брика', 'kirpich', 2500, [
+    say(('kirpich', 'Касса казино «Корона» в центре. Охраны мало, денег много. Возьми сумку — и уходи, пока не стало жарко.')),
+    step('goto', 'Езжай к казино «Корона» в деловом центре', place='casino_dt', radius=10),
+    step('clear', 'Разберись с охраной', place='casino_dt', count=4),
+    step('collect', 'Забери сумку с выручкой', clues=[{'place': 'casino_dt+3,-4', 'name': 'Сумка с выручкой'}]),
+    step('escape', 'Уходи от полиции!', stars=3, why='налёт на казино'),
+    say(('kirpich', 'Половина — твоя, половина — в мой адвокатский фонд. Приятно работать с профессионалом.'))])
+hidden('call_petrov_witness', 'Свидетель', 'petrov', 600, [
+    step('goto', 'Забери свидетеля в переулке за «Неоном»', place='dt_alley', radius=10, vehicle=True),
+    say(('petrov', 'Свидетель у тебя? Не гони и не останавливайся. Вези прямо в участок.')),
+    step('goto', 'Отвези свидетеля в участок', place='police_station', radius=10, vehicle=True, time=240),
+    say(('petrov', 'Доставлен. Он дал показания. Ты только что посадил троих, даже не доставая ствол.'))])
+hidden('call_petrov_tail', 'Подозреваемый', 'petrov', 700, [
+    say(('petrov', 'Подозреваемый уходит по Центральной. Мои не успевают — останови его.')),
+    step('chase', 'Догони и разбей машину подозреваемого', points=['dt_2', 'dt_3', 'dt_4', 'dt_5'], driver='Подозреваемый', variant=3),
+    say(('petrov', 'Взяли. Спасибо, гражданин. Неофициально — спасибо, друг.'))])
+hidden('call_tema_drive', 'Флешка Томми', 'tema', 450, [
+    step('goto', 'Забери флешку у пляжного бара', place='beach_bar', radius=7, time=220),
+    step('goto', 'Отвези флешку в убежище в пригороде', place='suburb_safehouse', radius=8, time=240),
+    say(('tema', 'Получил! Там были котики. Честно. Ну, почти.'))])
+hidden('call_lena_drop', 'Конверт для источника', 'lena', 550, [
+    step('goto', 'Отвези конверт на пляжную парковку', place='beach_lot', radius=10, vehicle=True, time=260),
+    step('collect', 'Оставь конверт в условленном месте', clues=[{'place': 'beach_lot+3,2', 'name': 'Тайник источника'}]),
+    say(('lena', 'Источник на связи. Завтра на первой полосе будет кое-что громкое. Спасибо.'))])
+hidden('call_ray_boat', 'Катер Рэя', 'ray', 900, [
+    step('goto', 'Езжай на западную пристань Ривьеры', place='riv_marina', radius=14),
+    step('clear', 'Отбей катер у людей Кроу', place='riv_marina', count=5),
+    say(('ray', 'Мой красавец снова мой! Если надо будет переправить что-нибудь… или кого-нибудь — ты знаешь номер.'))])
+s_, p_ = route_of('rivrace02')
+hidden('call_shakal_race', 'Реванш Шакала', 'shakal', 1500, [
+    say(('shakal', 'Улицы Ривьеры, ты и я. Посмотрим, кто теперь король.')),
+    step('carrace', 'Гонка по Ривьере против Шакала', start=s_, points=p_, rival='Шакал', rival_speed=82, rival_engine=2, variant=0),
+    say(('shakal', 'Опять ты… Ладно. Хорошая гонка, правда.'))])
+hidden('call_vince_race', 'Гонка с Винсом', 'vince', 800, [
+    say(('vince', 'Западная трасса, как в тот раз. Только теперь без тормозных шлангов, честно.')),
+    step('carrace', 'Гонка по западной трассе против Винса', start='hw_west', points=['hw_nw', 'race_start', 'race_1'], rival='Винс', rival_speed=76, rival_engine=2, variant=5),
+    say(('vince', 'Опять второй. Знаешь, я начинаю к этому привыкать.'))])
+
+CALLS = []
+
+
+def call(cid, who, *pairs, frm=None, until=None, need=(), no=(), event=None, friend_min=0, done=None, after=None, offer=None,
+         friend=1, repeat=0, prio=0, sms=False):
+    """Звонок: реплики героя (озвучиваются), условия, предложение (offer). repeat — через сколько минут можно повторить (0 — один раз)."""
+    c = {'id': cid, 'who': who, 'kind': 'sms' if sms else 'call', 'friend': friend, 'repeat': repeat, 'prio': prio}
+    if sms: c['lines'] = [T(who, t) for w_, t in pairs]
+    else: c['lines'] = lines('call_' + cid, *pairs)
+    cond = {}
+    if frm: cond['from'] = mid_of(frm)
+    if until: cond['until'] = mid_of(until)
+    if need: cond['need'] = list(need)
+    if no: cond['no'] = list(no)
+    if event: cond['event'] = event
+    if friend_min: cond['friend'] = friend_min
+    if done is not None: cond['done'] = done
+    if after: cond['after'] = after
+    c['when'] = cond
+    if offer:
+        o = {'q': offer['q'], 'yes': offer.get('yes', 'Да'), 'no': offer.get('no', 'Нет'), 'do': offer.get('do', [])}
+        if offer.get('yes_lines'): o['yes_lines'] = lines('call_' + cid, *offer['yes_lines'])
+        if offer.get('no_lines'): o['no_lines'] = lines('call_' + cid, *offer['no_lines'])
+        c['offer'] = o
+    CALLS.append(c)
+
+
+# ---------- Ники «Нитро»
+call('nika_hello', 'nika', ('nika', 'Эй, гонщик! Это Ники. Записывай номер — теперь ты в моём списке.'),
+     ('nika', 'Если ночью станет скучно — звони. Если станет весело — тем более.'), frm='a1m2', prio=3)
+call('nika_race', 'nika', ('nika', 'Не спишь? На Центральной собирается заезд. Ставки маленькие, зато Сторм нервничает.'),
+     ('nika', 'Приезжай, покажем им, как ездят взрослые.'), frm='a1m3', repeat=40,
+     offer=dict(q='Поехать на заезд с Ники?', yes='Уже еду!', no='Не сегодня', do=[['side', 'call_nika_race']],
+                yes_lines=[('nika', 'Вот это я понимаю! Скидываю точку на карту.')], no_lines=[('nika', 'Скучный ты сегодня. Ладно, в другой раз.')]))
+call('nika_crash', 'nika', ('nika', 'Мне уже трое написали, что ты разложил машину о столб. Живой?'),
+     ('nika', 'Машину не жалко, тебя жалко. Ну и машину тоже немного. Загони к Джейку.'), frm='a1m2', event='crash', repeat=90)
+call('nika_stars', 'nika', ('nika', 'Ты в новостях! Пол-города копов гоняется за одной машиной. Угадай, за чьей.'),
+     ('nika', 'В следующий раз зови меня. Вдвоём от копов уходить веселее.'), frm='a1m4', event='escaped', repeat=120)
+call('nika_penthouse', 'nika', ('nika', 'Пентхаус?! Серьёзно? Я ещё помню, как ты спал в гараже у Джейка на раскладушке.'),
+     ('nika', 'Зови на новоселье. И чтобы на крыше был вертолёт, а не просто вид.'), frm='a1m2', event='penthouse')
+call('nika_storm', 'nika', ('nika', 'Сплетня дня: Сторм продал свою тачку, чтобы расплатиться с Марко.'),
+     ('nika', 'Теперь он ездит на мамином хэтчбеке. С наклейкой «Ребёнок в машине». Я плачу от счастья.'), frm='a1m3d')
+call('nika_riviera', 'nika', ('nika', 'Ривьера — не наша трасса: тут всё блестит и пахнет деньгами.'),
+     ('nika', 'Зато местные гонщики ездят как пенсионеры. Нам здесь понравится.'), frm='a4m1')
+call('nika_gym', 'nika', ('nika', 'Это правда, что ты ходишь в «Железо»? Роза говорит, у тебя плечи уже не влезают в дверь машины.'),
+     ('nika', 'Только не превращайся в Брика. Одного такого острову хватило.'), frm='a1m3b', event='gym')
+call('nika_friend', 'nika', ('nika', 'Слушай. Я договорилась с ребятами в гараже: тебе тюнинг со скидкой.'),
+     ('nika', 'Не благодари. Просто не продавай меня Сторму.'), frm='a1m3', friend_min=3, friend=0, prio=2)
+call('nika_ring', 'nika', ('nika', 'Знаешь, что самое странное? Город спасён, а мне скучно.'),
+     ('nika', 'Давай устроим гонку, как в старые времена: ночь, большое кольцо и никаких правил.'), frm='a5m7', repeat=60,
+     offer=dict(q='Ночная гонка по большому кольцу?', yes='Погнали!', no='Устал сегодня', do=[['side', 'call_nika_ring']],
+                yes_lines=[('nika', 'Жду у восточного въезда на кольцо. Не опаздывай!')]))
+
+# ---------- Джейк
+call('gleb_mom', 'gleb', ('gleb', 'Брат, мама звонила. Спрашивала, хорошо ли ты кушаешь и не связался ли с плохой компанией.'),
+     ('gleb', 'Я сказал, что ты работаешь в автосервисе. Технически — не соврал.'), frm='a1m1', until='a1m4', prio=2)
+call('gleb_parts', 'gleb', ('gleb', 'Выручай! В порту лежат запчасти для клиента, а у меня руки в масле по локоть.'),
+     ('gleb', 'Забери и привези в гараж. Только быстро — клиент злой, как Брик до кофе.'), frm='a1m2', until='a1m4', repeat=45,
+     offer=dict(q='Помочь Джейку с запчастями?', yes='Сейчас привезу', no='Занят', do=[['side', 'call_gleb_parts']],
+                yes_lines=[('gleb', 'Ты лучший! Ворота порта, ящик с нашей наклейкой.')]))
+call('gleb_free', 'gleb', ('gleb', 'Брат… Я так и не сказал. Спасибо, что вытащил. Я думал, Брик меня уже не отпустит.'),
+     ('gleb', 'Гараж теперь наш на двоих. И первое правило гаража — никаких долгов Ящерам.'), frm='a3m3', prio=3, friend=2)
+call('gleb_client', 'gleb', ('gleb', 'Тут клиент из пригорода. Отгонишь ему машину? Он платит наличными и не задаёт вопросов.'),
+     frm='a3m3', repeat=45,
+     offer=dict(q='Отогнать машину клиенту?', yes='Давай ключи', no='Не сейчас', do=[['side', 'call_gleb_client']],
+                yes_lines=[('gleb', 'Машина у ворот гаража. Только без дрифта, это же клиент!')]))
+call('gleb_busted', 'gleb', ('gleb', 'Тебя опять повязали? Брат, у меня скоро будет скидочная карта в этом участке.'),
+     ('gleb', 'Ладно. Главное — живой. Приезжай, ужин разогрею.'), frm='a1m1', event='busted', repeat=60)
+call('gleb_wasted', 'gleb', ('gleb', 'Мне из больницы звонили! Сказали, тебя собирали по кусочкам.'),
+     ('gleb', 'Ещё раз так сделаешь — сам добью. Шучу. Но не делай.'), frm='a1m1', event='wasted', repeat=60)
+
+# ---------- Роза
+call('rosa_hello', 'rosa', ('rosa', 'Это Роза. Не удивляйся: я знаю номера всех, кто хоть раз сидел за моей стойкой.'),
+     ('rosa', 'Заходи в «Неон». Первый бокал — за счёт заведения. Второй тоже, если расскажешь что-нибудь интересное.'), frm='a1m3b', prio=3)
+call('rosa_drinks', 'rosa', ('rosa', 'Сегодня в «Неоне» тихо, а я ненавижу тишину.'),
+     ('rosa', 'Заглянешь? Налью тебе фирменный, и все раны заживут.'), frm='a1m3b', repeat=50,
+     offer=dict(q='Заехать к Розе в «Неон»?', yes='Уже еду', no='В другой раз', do=[['side', 'call_rosa_drinks']],
+                yes_lines=[('rosa', 'Лёд уже в стакане.')]))
+call('rosa_marco', 'rosa', ('rosa', 'Сплетня, только для тебя: Марко «Синий» лично спрашивал, где ты пьёшь.'),
+     ('rosa', 'Я сказала, что ты вообще не пьёшь. Он не поверил. Будь осторожен.'), frm='a2m3c')
+call('rosa_bank', 'rosa', ('rosa', 'В баре все обсуждают налёт на банк. Описание грабителя очень похоже на одного моего клиента.'),
+     ('rosa', 'Не волнуйся. Бармены слепы, глухи и очень любят чаевые.'), frm='a1m3b', event='bank', repeat=90)
+call('rosa_stalker', 'rosa', ('rosa', 'Есть дело. Один тип второй вечер пристаёт к моим официанткам, а охрана его боится.'),
+     ('rosa', 'Объясни ему, что «Неон» — приличное место. Можно без слов.'), frm='a2m1', repeat=90,
+     offer=dict(q='Разобраться с назойливым гостем?', yes='Сейчас буду', no='Не моё дело', do=[['side', 'call_rosa_stalker']],
+                yes_lines=[('rosa', 'Он в красной рубашке. Ты его сразу узнаешь — он самый громкий.')]))
+call('rosa_business', 'rosa', ('rosa', 'Говорят, ты купил бизнес. Поздравляю: теперь ты тоже не спишь по ночам из-за налоговой.'),
+     frm='a1m3b', event='business')
+call('rosa_friend', 'rosa', ('rosa', 'Для своих в «Неоне» всегда открыто. Заходи, когда тебя потреплет город.'),
+     ('rosa', 'Раз в день — за счёт заведения. Лёд, лайм и немного заботы.'), frm='a1m3b', friend_min=3, friend=0, prio=2)
+
+# ---------- Брик
+call('brick_debtor', 'kirpich', ('kirpich', 'Работа есть. Один умник взял у меня денег и решил, что я забуду.'),
+     ('kirpich', 'Я никогда не забываю. Напомни ему. Можно громко.'), frm='a2m1', until='a2m4', repeat=45,
+     offer=dict(q='Взяться за работу Брика?', yes='Сделаю', no='Без меня', do=[['side', 'call_kirpich_debtor']],
+                yes_lines=[('kirpich', 'Гарри. Промзона, у складов. Не перепутай — Гарри толстый.')]))
+call('brick_car', 'kirpich', ('kirpich', 'Есть заказ на тачку. Хозяин уехал в отпуск, а машина ему всё равно не нужна.'),
+     ('kirpich', 'Пригони её на разборку — и брат на тысячу ближе к свободе.'), frm='a2m2', until='a2m4', repeat=45,
+     offer=dict(q='Угнать машину для Брика?', yes='Где она?', no='Не сегодня', do=[['side', 'call_kirpich_car']]))
+call('brick_rat', 'kirpich', ('kirpich', 'Крыса. Я знаю, кто ты. Беги, пока можешь.'), frm='a3m3', until='a3m4', sms=True, friend=0)
+call('brick_prison', 'kirpich', ('kirpich', 'Узнал голос? Это Брик. Да, звоню из «Чёрной скалы». Здесь телефоны дешевле сигарет.'),
+     ('kirpich', 'Я не злюсь. Ладно, злюсь. Но ты единственный, кто обыграл меня честно. Это уважение.'), frm='a3m4', prio=3)
+call('brick_mom', 'kirpich', ('kirpich', 'Моя мать живёт в пригороде. Ей нужно отвезти лекарства, а мои парни днём не ездят.'),
+     ('kirpich', 'Сделаешь — буду должен. Брик долги помнит.'), frm='a3m4', after='brick_prison', repeat=60,
+     offer=dict(q='Отвезти лекарства матери Брика?', yes='Отвезу', no='Нет', do=[['side', 'call_kirpich_mom']],
+                yes_lines=[('kirpich', 'Только не говори ей, где я. Она думает, что я в командировке.')]))
+call('brick_backup', 'kirpich', ('kirpich', 'Я поговорил с ребятами. Если станет жарко — звони, пришлют пару бойцов. Бесплатно. Почти.'),
+     ('kirpich', 'Это не дружба. Это деловое уважение.'), frm='a3m4', friend_min=3, friend=0, prio=2)
+call('brick_heist', 'kirpich', ('kirpich', 'Есть одно дело. Большое. Не по телефону.'),
+     ('kirpich', 'Мои люди дадут наводку. Половина тебе, половина — в мой адвокатский фонд.'), frm='a4m1', after='brick_prison', friend_min=2, repeat=90,
+     offer=dict(q='Взять наводку Брика на налёт?', yes='Я в деле', no='Завязал', do=[['bigheist', 'bank', 'call_kirpich_heist']],
+                yes_lines=[('kirpich', 'Вот это разговор. Жди сообщения.')], no_lines=[('kirpich', 'Завязал он… Ну-ну.')]))
+
+call('brick_contract', 'kirpich', ('kirpich', 'Есть люди, которым нужен человек для грязной работы. Без вопросов и без имён.'),
+     ('kirpich', 'Я дал им твой номер. Не благодари — просто не говори, что от меня.'), frm='a3m4', after='brick_prison', repeat=120,
+     offer=dict(q='Пусть заказчики напишут?', yes='Пусть пишут', no='Не надо', do=[['contract']]))
+
+# ---------- Питерсон
+call('petrov_check', 'petrov', ('petrov', 'Это Питерсон. Просто проверяю, что ты жив и не передумал.'),
+     ('petrov', 'Если Брик начнёт задавать вопросы — не геройствуй. Звони мне.'), frm='a3m1', until='a3m4', prio=2)
+call('petrov_witness', 'petrov', ('petrov', 'Нужна помощь вне протокола. Свидетель боится садиться в патрульную машину.'),
+     ('petrov', 'Забери его в переулке за «Неоном» и привези в участок. Тихо и быстро.'), frm='a3m4', repeat=50,
+     offer=dict(q='Помочь Питерсону со свидетелем?', yes='Выезжаю', no='Не могу', do=[['side', 'call_petrov_witness']]))
+call('petrov_tail', 'petrov', ('petrov', 'Подозреваемый уходит по Центральной, а мои стоят в пробке. Ты рядом?'),
+     frm='a3m2', repeat=50,
+     offer=dict(q='Перехватить подозреваемого?', yes='Беру', no='Я далеко', do=[['side', 'call_petrov_tail']]))
+call('petrov_stars', 'petrov', ('petrov', 'Я видел сводку. Пять машин, вертолёт — и ты. Опять.'),
+     ('petrov', 'Я этого не видел. Но в следующий раз за рулём той машины могу оказаться я.'), frm='a3m1', event='stars4', repeat=90)
+call('petrov_hero', 'petrov', ('petrov', 'Мне доложили, что кто-то в одиночку остановил грабителей. По описанию — ты.'),
+     ('petrov', 'Из тебя вышел бы отличный коп. Подумай об этом.'), frm='a3m1', event='hero', friend=2, repeat=90)
+call('petrov_friend', 'petrov', ('petrov', 'Скажу один раз. Попадёшь в розыск — позвони. Я могу потерять пару рапортов.'),
+     ('petrov', 'Раз в день. Не чаще. И я тебе этого не говорил.'), frm='a3m1', friend_min=3, friend=0, prio=2)
+call('petrov_oath', 'petrov', ('petrov', 'Мне предложили кресло шефа. Кресло Харриса, представляешь?'),
+     ('petrov', 'Мне нужен человек, которому я доверяю. Не за деньги — за присягу. Подумай.'), frm='a5m7', no=('end_cop', 'oath'), prio=5, friend=0,
+     offer=dict(q='Принести присягу (сюжет «Под присягой»)?', yes='Я в деле, шеф', no='Не моё это', do=[['oath']],
+                yes_lines=[('petrov', 'Тогда жду в участке. Новая глава твоей жизни — на жёлтой метке.')],
+                no_lines=[('petrov', 'Понимаю. Предложение остаётся в силе — звони.')]))
+call('petrov_waiting', 'petrov', ('petrov', 'Напарник, ты где? В участке тебя ждут значок и сержант Диас. Она не любит ждать.'),
+     need=('cop_idle',), prio=4, friend=0, repeat=30)
+
+# ---------- остальные
+call('tema_drive', 'tema', ('tema', 'Нужно передать флешку. Нет, не спрашивай, что на ней.'),
+     ('tema', 'Ладно, там котики. Шучу. Не шучу.'), frm='a3m2', repeat=50,
+     offer=dict(q='Отвезти флешку Томми?', yes='Давай', no='Не сейчас', do=[['side', 'call_tema_drive']]))
+call('tema_gossip', 'tema', ('tema', 'Знаешь, что я нашёл в базе? Харрис штрафовал свою тёщу за парковку. Сорок раз.'),
+     ('tema', 'Человек принципов. Плохих, но принципов.'), frm='a3m3c')
+call('lena_news', 'lena', ('lena', 'Это Лена. Пишу заметку о перестрелке в промзоне. У тебя есть алиби?'),
+     ('lena', 'Хотя неважно. Фотографий у меня всё равно нет. Пока нет.'), frm='a2m3d', event='massacre', repeat=90)
+call('lena_drop', 'lena', ('lena', 'Мой источник боится встречаться в городе. Отвезёшь ему конверт на пляжную парковку?'),
+     frm='a3m3c', repeat=60,
+     offer=dict(q='Отвезти конверт для Лены?', yes='Отвезу', no='Не сегодня', do=[['side', 'call_lena_drop']]))
+call('lena_heist', 'lena', ('lena', 'Ограбление казино на первой полосе всех газет. Кроме моей.'),
+     ('lena', 'Потому что я знаю, кто это сделал, и пока молчу. Ты мне должен интервью.'), frm='a4m9', event='bank', repeat=120)
+call('sofi_bar', 'sofi', ('sofi', 'Привет! Мой бар на Стрипе открылся. Пока там три стола и один кот.'),
+     ('sofi', 'Но кот очень представительный. Заезжай.'), frm='a5m7', prio=2)
+call('sofi_casino', 'sofi', ('sofi', 'Слышала, ты сорвал куш в казино. Совет бывшего крупье: уходи, пока выигрываешь.'),
+     ('sofi', 'Никто не уходит. Но ты попробуй.'), frm='a4m2', event='casino', repeat=90)
+call('ray_boat', 'ray', ('ray', 'Друг, у меня опять проблемы. Кроу сидит, а его люди остались.'),
+     ('ray', 'Они держат мой катер на западной пристани. Поможешь?'), frm='a4m5', repeat=60,
+     offer=dict(q='Отбить катер Рэя?', yes='Еду', no='Сам справишься', do=[['side', 'call_ray_boat']]))
+call('ray_smuggle', 'ray', ('ray', 'Мой старый знакомый, Рыбак, ищет водителя для деликатного груза. Платит щедро, вопросов не задаёт.'),
+     ('ray', 'Дать ему твой номер?'), frm='a4m5', repeat=120,
+     offer=dict(q='Дать номер Рыбаку (контрабанда)?', yes='Давай', no='Не сейчас', do=[['smuggle']]))
+call('ray_launder', 'ray', ('ray', 'Слышал, у тебя завелись грязные деньги. Я не спрашиваю откуда. Я спрашиваю — сколько.'),
+     ('ray', 'Заезжай на пристань, отмою быстро. Скидка для своих — почти никакая.'), frm='a4m5', event='store', repeat=120)
+call('vince_sorry', 'vince', ('vince', 'Это Винс. Не бросай трубку! Я хочу извиниться за тормоза.'),
+     ('vince', 'Я тогда был идиотом. Сейчас тоже, но уже меньше. Давай реванш — честный.'), frm='a1m4', repeat=0,
+     offer=dict(q='Гонка с Винсом?', yes='Давай', no='Обойдёшься', do=[['side', 'call_vince_race']]))
+call('marco_offer', 'marco', ('marco', 'Ты всё ещё работаешь на Брика? Жаль. Моё предложение в силе.'),
+     ('marco', 'Но цена падает каждый день. Как и шансы Брика.'), frm='a2m3c', until='a2m4', friend=0)
+call('shakal_race', 'shakal', ('shakal', 'Это Шакал. Без Кроу скучно. Давай гонку по Ривьере: только ты и я.'),
+     frm='a5m6', repeat=60,
+     offer=dict(q='Реванш с Шакалом?', yes='Принято', no='В другой раз', do=[['side', 'call_shakal_race']]))
+call('harris_prison', 'harris', ('harris', 'Узнаёшь? Шеф Харрис. Бывший, как пишут газеты.'),
+     ('harris', 'Думаешь, всё закончилось? В этом городе ничего не заканчивается. Передай Питерсону: кресло ещё тёплое.'), frm='a5m7', friend=0)
+call('diaz_coffee', 'diaz', ('diaz', 'Это Диас. Не по службе. Ты пьёшь кофе? Нормальный, не из автомата в участке.'),
+     ('diaz', 'Ладно, забудь. Это был тест. Ты его прошёл.'), frm='a6m2', prio=2)
+call('diaz_shift', 'diaz', ('diaz', 'Смена закончилась, а Питерсон опять оставил мне рапорты. Сто сорок страниц.'),
+     ('diaz', 'Если увидишь меня спящей в машине — не буди. Это засада. Очень тихая засада.'), frm='a6m6')
+print('звонков:', len(CALLS), 'просьб:', sum(1 for v in side.values() if v.get('hidden')))
 print('побочных миссий:', len(side))
 
 # ведущие радио: заставка станции при переключении
@@ -940,7 +1447,7 @@ for vid, sp, text in [
     voice_lines.append({'id': vid, 'who': 'narrator', 'text': text, 'speaker': sp})
 
 # ---------- точка старта каждой миссии (свободная игра: миссия ждёт игрока на жёлтой метке, как в GTA SA)
-ACT_HOME = {'a1': 'garage_door', 'a2': 'gang_yard', 'a3': 'police_station', 'a4': 'riv_strip', 'a5': 'mtn_road'}
+ACT_HOME = {'a1': 'garage_door', 'a2': 'gang_yard', 'a3': 'police_station', 'a4': 'riv_strip', 'a5': 'mtn_road', 'a6': 'police_station'}
 npc_at = {}
 for ch in chapters:
     for mi in ch['missions']:
@@ -987,7 +1494,7 @@ for sm in side.values():
     for st in sm['steps']:
         if st.get('type') == 'cutscene': st.setdefault('grade', grade_for(sm, st, False))
 
-story = {'characters': CHARS, 'chapters': chapters, 'side': side}
+story = {'characters': CHARS, 'chapters': chapters, 'side': side, 'calls': CALLS}
 with open(OUT, 'w', encoding='utf-8') as f:
     json.dump(story, f, ensure_ascii=False, indent=1)
 

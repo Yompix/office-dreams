@@ -45,7 +45,11 @@ public class PhoneScreen extends LifeScreen {
             new App("taxi", "Такси", 0xFFF7C600), new App("friends", "Друзья", 0xFF7E57C2), new App("missions", "Задания", 0xFFD32F2F),
             new App("style", "Стиль", 0xFFFF2E88), new App("finance", "Финансы", 0xFF2E7D32), new App("news", "Новости", 0xFFD32F2F), new App("guard", "Охрана", 0xFF28E6FF),
             new App("auto", "Авто", 0xFF00897B),
-            new App("collect", "Коллекции", 0xFFFF4FB8));
+            new App("collect", "Коллекции", 0xFFFF4FB8),
+            new App("skills", "Навыки", 0xFF28E6FF), new App("outdoor", "Природа", 0xFF7CB342), // навыки SA; охота, рыбалка, календарь (gta/Outdoors)
+            new App("cnr", "Копы и воры", 0xFF4FA3FF), // «Полицейские и воры» по сети (gta/CopsAndRobbers)
+            new App("contacts", "Контакты", 0xFF5AE6A0), // звонки героев и дружба (story/Calls)
+            new App("dark", "Дела", 0xFF8A1020));
 
     private static final String[][] DISCS = {{"cat", "C418 — cat"}, {"chirp", "C418 — chirp"}, {"mall", "C418 — mall"}, {"mellohi", "C418 — mellohi"},
             {"stal", "C418 — stal"}, {"strad", "C418 — strad"}, {"wait", "C418 — wait"}, {"pigstep", "Lena Raine — Pigstep"},
@@ -268,9 +272,17 @@ public class PhoneScreen extends LifeScreen {
             case "finance" -> mc().setScreen(new FinanceScreen());
             case "news" -> mc().setScreen(new NewsScreen());
             case "collect" -> mc().setScreen(new CollectionsScreen());
+            case "cnr" -> { // «Полицейские и воры» по сети (gta/CopsAndRobbers)
+                mc().setScreen(null);
+                com.yompix.novograd.client.cops.CopsClient.send("cnr_menu", new net.minecraft.nbt.NbtCompound());
+            }
+            case "contacts" -> mc().setScreen(new com.yompix.novograd.client.story.ContactsScreen()); // герои, дружба, бонусы
             case "home" -> mc().setScreen(new RealEstateScreen()); // риелтор: квартиры, дома, виллы, пентхаус (world/Housing)
             case "guard" -> mc().setScreen(new BodyguardScreen()); // агентство «Щит» — телохранители
+            case "dark" -> mc().setScreen(new DarkJobsScreen()); // тёмные дела: ограбления, заказы, контрабанда (gta/Underworld)
             case "auto" -> mc().setScreen(new DriveScreen()); // штрафы, штрафстоянка, бензин
+            case "skills" -> mc().setScreen(new SkillsScreen()); // навыки как в SA
+            case "outdoor" -> mc().setScreen(new OutdoorScreen("")); // календарь, охота, рыбалка
             case "casino" -> {
                 if (NovogradClient.data.adult()) mc().setScreen(new com.yompix.novograd.client.screen.casino.CasinoLobbyScreen());
                 else openApp("casino");
