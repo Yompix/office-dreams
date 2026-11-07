@@ -1,9 +1,10 @@
-# Lily (HTS) Ukrainian voice: trim/compress pauses, encode, word timings, loudness vs English
+# HTS: своя украинская запись реплик (Лили, Итан…): trim/compress pauses, encode, word timings, loudness vs English
 import json, re, subprocess, wave, numpy as np, os, sys
-S = '/tmp/claude-0/-home-user/0fa0b1a0-e4f5-529b-a67e-693eb4ab78d1/scratchpad/iris_uk'
-G = '/home/user/office-dreams/public/games/nightshift'
-MAP = {1:'ly04',2:'ly06',3:'ly08',4:'ly10',5:'b08',6:'b10',7:'x06',8:'x08',9:'g05',10:'g07',11:'g11',12:'g13',
-       13:'b04',14:'h04',15:'k5a',16:'k9a',17:'n20',18:'n39',19:'n42',20:'ch_whisper'}
+# usage: python3 tools/story/voice_uk.py <папка с N.wav/N.mp3> <карта.json {"N": "ключ"}>
+S = sys.argv[1]
+G = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../public/games/nightshift')
+MAP = {int(n): k for n, k in json.load(open(sys.argv[2])).items()
+       if any(os.path.exists(f'{S}/{n}.{e}') for e in ('wav', 'mp3', 'm4a', 'ogg'))}
 SR = 44100; FR = 441  # 10 ms
 def rd(p, sr):
     raw = subprocess.run(['ffmpeg','-v','error','-i',p,'-ac','1','-ar',str(sr),'-f','s16le','-'],capture_output=True).stdout
@@ -18,8 +19,8 @@ tim = json.load(open(G+'/timing_uk.json'))
 from faster_whisper import WhisperModel
 m = WhisperModel('small', device='cpu', compute_type='int8')
 rep = []
-for i, k in MAP.items():
-    a = rd(f'{S}/{i}.mp3', SR)
+for i, k in sorted(MAP.items()):
+    a = rd(next(f'{S}/{i}.{e}' for e in ('wav','mp3','m4a','ogg') if os.path.exists(f'{S}/{i}.{e}')), SR)
     n = len(a)//FR; e = 20*np.log10(np.sqrt((a[:n*FR].reshape(n,FR)**2).mean(1))+1e-9)
     on = e > max(e.max()-38, -50)
     idx = np.where(on)[0]; s0, s1 = max(idx[0]-8,0), min(idx[-1]+15,n)   # 80 ms in, 150 ms out
@@ -31,10 +32,10 @@ for i, k in MAP.items():
             if gap <= 45: keep.append(f)   # pauses capped at 0.45 s
     out = np.concatenate([a[f*FR:(f+1)*FR] for f in keep])
     fade = int(.01*SR); out[:fade] *= np.linspace(0,1,fade); out[-fade:] *= np.linspace(1,0,fade)
-    wr(f'{S}/{k}.wav', out, SR)
-    subprocess.run(['ffmpeg','-v','error','-y','-i',f'{S}/{k}.wav','-ac','1','-ar','44100','-b:a','64k',f'{G}/snd/uk/{k}.mp3'],check=True)
+    wr(f'{S}/_{k}.wav', out, SR)
+    subprocess.run(['ffmpeg','-v','error','-y','-i',f'{S}/_{k}.wav','-ac','1','-ar','44100','-b:a','64k',f'{G}/snd/uk/{k}.mp3'],check=True)
     dur = round(len(out)/SR, 2)
-    a16 = rd(f'{S}/{k}.wav', 16000)
+    a16 = rd(f'{S}/_{k}.wav', 16000)
     seg, _ = m.transcribe(a16, language='uk', word_timestamps=True)
     ww = [w for sg in seg for w in sg.words]
     t0, t1 = (ww[0].start, ww[-1].end) if ww else (.08, dur-.15)
