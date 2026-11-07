@@ -361,7 +361,7 @@ def panorama():
 APP_COLORS = {'bank': (70, 230, 120), 'school': (255, 170, 60), 'jobs': (120, 140, 255), 'messages': (70, 230, 150), 'map': (60, 190, 255),
               'shop': (255, 100, 90), 'casino': (255, 60, 120), 'music': (255, 70, 140), 'camera': (200, 200, 220), 'weather': (110, 200, 255),
               'story': (255, 196, 40), 'trophy': (255, 210, 80), 'home': (230, 160, 110), 'taxi': (255, 215, 0), 'friends': (180, 140, 255),
-              'missions': (255, 60, 70), 'style': (255, 90, 170), 'contacts': (90, 230, 160)}
+              'missions': (255, 60, 70), 'style': (255, 90, 170), 'contacts': (90, 230, 160), 'cnr': (80, 150, 255)}
 
 
 def glyph(d, app, c, S):
@@ -451,6 +451,14 @@ def glyph(d, app, c, S):
         d.ellipse(P((42, 42), (56, 56)), fill=c)
         d.arc(P((30, 8), (56, 34)), 270, 360, fill=c, width=w)
         d.arc(P((36, 2), (62, 28)), 270, 360, fill=c, width=w)
+    elif app == 'cnr':
+        # полицейская звезда-значок и маска вора («Полицейские и воры»)
+        import math as _m
+        pts = [(32 + (26 if i % 2 == 0 else 11) * _m.cos(_m.pi / 2 + i * _m.pi / 5), 30 - (26 if i % 2 == 0 else 11) * _m.sin(_m.pi / 2 + i * _m.pi / 5)) for i in range(10)]
+        d.polygon(P(*pts), fill=c)
+        d.rounded_rectangle(P((14, 48), (50, 60)), radius=int(5 * k), fill=(255, 60, 80, 255))
+        d.ellipse(P((20, 51), (28, 57)), fill=(10, 7, 16, 255))
+        d.ellipse(P((36, 51), (44, 57)), fill=(10, 7, 16, 255))
     elif app == 'missions':
         d.ellipse(P((12, 12), (52, 52)), outline=c, width=w)
         d.ellipse(P((24, 24), (40, 40)), outline=c, width=w)
