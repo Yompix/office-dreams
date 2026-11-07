@@ -24,7 +24,7 @@
 ## Установка
 
 1. Fabric Loader для Minecraft 1.21.1 и Fabric API.
-2. Мод [`download/novograd-0.4.0.jar`](download/novograd-0.4.0.jar) положить в `mods`.
+2. Мод [`download/novograd-0.4.1.jar`](download/novograd-0.4.1.jar) положить в `mods`.
 3. **Новый мир → Ещё → Тип мира: «Новоград: Город»** → Создать. Остров появится сам, а сюжет начнётся с заставки.
 
 Играть с другом: меню паузы → «Открыть для друзей» (через интернет нужен мод e4mc).
@@ -53,7 +53,7 @@ RIPAZHA — спорткар · CPKTNWT — взорвать машины вок
 
 ## Сборка «Новоград: Кино» (для съёмки и красивой картинки)
 
-[`download/Novograd-Kino-0.4.0.mrpack`](download/Novograd-Kino-0.4.0.mrpack) — открыть в Modrinth App или Prism Launcher («Добавить сборку» / «Импорт»). Лаунчер сам скачает:
+[`download/Novograd-Kino-0.4.1.mrpack`](download/Novograd-Kino-0.4.1.mrpack) — открыть в Modrinth App или Prism Launcher («Добавить сборку» / «Импорт»). Лаунчер сам скачает:
 - Sodium и Entity Culling — больше FPS; Iris + шейдеры Complementary Reimagined — кинокартинка (на слабом ноутбуке выключи шейдеры: Настройки → Графика → Шейдеры);
 - Flashback — запись повторов и экспорт видео с плавной камерой; Camera Utils — зум и кинорежим; Freecam — свободная камера;
 - Sound Physics Remastered и AmbientSounds — объёмный звук и природа; Particle Rain, Visuality, Wakes — дождь, частицы, следы от лодок; Continuity — красивые соединённые стёкла.
