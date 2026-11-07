@@ -176,6 +176,8 @@ public final class Buses {
         int dwell;
         @Nullable Stop atStop;
         @Nullable UUID car, driver;
+        /** Сама машина (поиск по UUID не находит сущность, пока её чанк только загружается). */
+        @Nullable CarEntity ref;
         final List<UUID> riders = new ArrayList<>();
         long deadUntil, lastMove;
         double lastS;
@@ -331,14 +333,15 @@ public final class Buses {
         if (t % 20 == 7 && !ensure(w)) return;
         if (!ready) return;
         for (Bus b : BUSES) {
-            CarEntity car = b.car == null ? null : w.getEntity(b.car) instanceof CarEntity c ? c : null;
+            CarEntity car = b.car == null ? null : b.ref != null && !b.ref.isRemoved() && b.car.equals(b.ref.getUuid()) ? b.ref : w.getEntity(b.car) instanceof CarEntity c ? c : null;
             if (b.car != null && (car == null || car.isRemoved())) {
                 release(w, b, null);
                 continue;
             }
             if (car != null) {
                 // угнали (водителя нет) или разбили
-                Entity drv = b.driver == null ? null : w.getEntity(b.driver);
+                Entity drv = null;
+                for (Entity e : car.getPassengerList()) if (e.getUuid().equals(b.driver)) drv = e;
                 if (car.wrecked() || drv == null || drv.getVehicle() != car) {
                     hijacked(w, b, car);
                     continue;
@@ -382,7 +385,7 @@ public final class Buses {
         if (playerNear(w, at, SPAWN_R) && w.isChunkLoaded(BlockPos.ofFloored(at)) && !playerNear(w, at, 18)) materialize(w, b);
     }
 
-    private static void materialize(ServerWorld w, Bus b) {
+    private static CarEntity materialize(ServerWorld w, Bus b) {
         Vec3d at = b.r.at(b.s);
         CarEntity car = new CarEntity(ModContent.CAR, w);
         car.refreshPositionAndAngles(at.x, at.y, at.z, b.r.yawAt(b.s), 0);
@@ -399,6 +402,7 @@ public final class Buses {
         w.spawnEntity(drv);
         drv.startRiding(car, true);
         b.car = car.getUuid();
+        b.ref = car;
         b.driver = drv.getUuid();
         b.riders.clear();
         int pax = rnd.nextInt(3);
@@ -417,6 +421,7 @@ public final class Buses {
             car.setVelocity(Vec3d.ZERO);
             car.toggleLight(CarEntity.RIGHT);
         } else depart(w, b, car);
+        return car;
     }
 
     /** Убрать машину (игрок далеко): автобус дальше едет «виртуально». */
@@ -570,7 +575,7 @@ public final class Buses {
     public static void onStop(MinecraftServer server) {
         ServerWorld w = server.getOverworld();
         for (Bus b : BUSES) {
-            if (b.car != null && w.getEntity(b.car) instanceof CarEntity car) {
+            if (b.car != null && carOf(w, b) instanceof CarEntity car) {
                 for (Entity e : new ArrayList<>(car.getPassengerList())) {
                     e.stopRiding();
                     if (!(e instanceof ServerPlayerEntity)) e.discard();
@@ -584,6 +589,13 @@ public final class Buses {
     }
 
     // ------------------------------------------------------------------ игрок: посадка, пропуск, подсказка
+    @Nullable
+    private static CarEntity carOf(ServerWorld w, Bus b) {
+        if (b.car == null) return null;
+        if (b.ref != null && !b.ref.isRemoved() && b.car.equals(b.ref.getUuid())) return b.ref;
+        return w.getEntity(b.car) instanceof CarEntity c ? c : null;
+    }
+
     @Nullable
     private static Bus busOf(CarEntity car) {
         for (Bus b : BUSES) if (b.car != null && b.car.equals(car.getUuid())) return b;
@@ -635,7 +647,7 @@ public final class Buses {
         Bus b = ridden(p);
         if (b == null) return;
         ServerWorld w = p.getServerWorld();
-        if (!(w.getEntity(b.car) instanceof CarEntity car)) return;
+        if (!(carOf(w, b) instanceof CarEntity car)) return;
         Stop next = b.r.nextStop(b.atStop != null ? b.atStop.s : b.s);
         NbtCompound n = new NbtCompound();
         n.putString("label", "АВТОБУС №" + b.r.num);
@@ -649,12 +661,10 @@ public final class Buses {
         w.getChunk(BlockPos.ofFloored(door));
         w.getChunk(BlockPos.ofFloored(next.lane));
         p.teleport(w, door.x, door.y + 0.1, door.z, b.r.yawAt(next.s), p.getPitch());
-        materialize(w, b);
-        if (b.car != null && w.getEntity(b.car) instanceof CarEntity nb) {
-            arrive(w, b, nb, next);
-            b.dwell = DWELL + 4;
-            REBOARD.put(p.getUuid(), new Object[]{nb.getUuid(), w.getTime() + 6}); // посадка через пару тиков, после телепорта у клиента
-        }
+        CarEntity nb = materialize(w, b);
+        arrive(w, b, nb, next);
+        b.dwell = DWELL + 4;
+        REBOARD.put(p.getUuid(), new Object[]{nb, w.getTime() + 6}); // посадка через пару тиков, после телепорта у клиента
         p.sendMessage(Text.literal("🚌 Остановка «" + next.name + "»").formatted(Formatting.YELLOW), true);
     }
 
@@ -668,8 +678,8 @@ public final class Buses {
             if (w.getTime() < (long) e.getValue()[1]) continue;
             it.remove();
             ServerPlayerEntity p = w.getServer().getPlayerManager().getPlayer(e.getKey());
-            Entity ce = w.getEntity((UUID) e.getValue()[0]);
-            boolean ok = p != null && p.getVehicle() == null && ce instanceof CarEntity car && p.startRiding(car, true);
+            Entity ce = (Entity) e.getValue()[0];
+            boolean ok = p != null && p.getVehicle() == null && ce instanceof CarEntity car && !car.isRemoved() && p.startRiding(car, true);
             if (Boolean.getBoolean("novograd.autotest.city") || !ok)
                 com.yompix.novograd.Novograd.LOG.info("[bus] reboard {} car {} ok {}", p == null ? "-" : p.getName().getString(), ce, ok);
         }
@@ -808,7 +818,7 @@ public final class Buses {
             }
             if (best == null) return "Нет остановок";
             for (Bus b : BUSES) if (b.r == br) {
-                if (b.car != null && w.getEntity(b.car) instanceof CarEntity c) dematerialize(w, b, c);
+                if (b.car != null && carOf(w, b) instanceof CarEntity c) dematerialize(w, b, c);
                 b.deadUntil = 0;
                 b.s = br.mod(best.s - 70);
                 b.dwell = 0;
