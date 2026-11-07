@@ -21,11 +21,11 @@ MODS = [
     ('bAo1Qhte', 'iris-', 'base'),
     ('ZUEjVQxa', 'camerautils-', 'base'),
     ('Cg10zLnR', 'freecam-', 'base'),
-    ('BYhL3BDk', 'sound-physics-', 'base'),
-    ('WuY7eJX9', 'wakes-', 'base'),
-    ('GBivJmD5', 'particlerain-', 'base'),
+    ('BYhL3BDk', 'sound-physics-', 'fx'),
+    ('WuY7eJX9', 'wakes-', 'fx'),
+    ('GBivJmD5', 'particlerain-', 'fx'),
     ('kSPJ4hQv', 'continuity-', 'base'),
-    ('dhKbgdIb', 'visuality-', 'base'),
+    ('dhKbgdIb', 'visuality-', 'fx'),
     ('HpMb5wGb', 'cloth-config-', 'base'),
     # производительность: сервер-логика, память, интерфейс, загрузка, отсечение невидимого
     ('N08Z8wog', 'lithium-', 'base'),
@@ -83,12 +83,25 @@ def bat(mods):
          'if not exist "%MC%\\shaderpacks" mkdir "%MC%\\shaderpacks"',
          'if not exist "%MC%\\config" mkdir "%MC%\\config"',
          'echo.',
+         'set BIG=N',
+         'set STUDIO=N',
+         'set SKINS=N',
+         'set REPLAY=N',
+         'set FX=Y',
+         'set SHADERS=true',
+         'echo Ноутбук или слабый компьютер (встроенная видеокарта, 8 ГБ памяти и меньше)?',
+         'set /p LITE="  Лёгкая сборка — без шейдеров и тяжёлых эффектов, игра не вылетает и не тормозит [Y/N]: "',
+         'if /i "%LITE%"=="Y" (',
+         '  set FX=N',
+         '  set SHADERS=false',
+         '  goto :afterask',
+         ')',
          'echo Что ещё поставить (Y — да, N — нет):',
          'set /p BIG="  Flashback (запись и монтаж видео, 200 МБ) и AmbientSounds (звуки природы)? [Y/N]: "',
          'set /p STUDIO="  BBS — киностудия как Blockbuster+Aperture (актёры, камера, анимации)? [Y/N]: "',
          'set /p SKINS="  Свои скины: CustomSkinLoader + SkinRestorer (скины видно и в онлайне)? [Y/N]: "',
-         'set REPLAY=N',
          'if /i not "%BIG%"=="Y" set /p REPLAY="  Replay Mod (запись повторов и пути камеры) вместо Flashback? [Y/N]: "',
+         ':afterask',
          'echo.',
          'echo Удаляю старые версии этих модов (чтобы не было дубликатов)...',
          'del /q "%MC%\\mods\\novograd-*.jar" >nul 2>&1',
@@ -99,7 +112,7 @@ def bat(mods):
             L.append(f'del /q "%MC%\\mods\\{m["prefix"]}*.jar" >nul 2>&1')
             L.append(f'del /q "%MC%\\mods_old\\{m["prefix"]}*.jar" >nul 2>&1')
     L += [f'copy /y "%~dp0{jar}" "%MC%\\mods\\" >nul', 'echo Скачиваю моды с modrinth.com ...']
-    cond = {'big': 'BIG', 'studio': 'STUDIO', 'skins': 'SKINS', 'replay': 'REPLAY'}
+    cond = {'big': 'BIG', 'studio': 'STUDIO', 'skins': 'SKINS', 'replay': 'REPLAY', 'fx': 'FX'}
     for m in mods:
         folder = 'shaderpacks' if m['group'] == 'shader' else 'mods'
         dst = f'%MC%\\{folder}\\{m["file"]}'
@@ -113,7 +126,8 @@ def bat(mods):
             L.append(f'echo   {m["file"]}')
             L.append(f'if not exist "{dst}" {line}')
     shader = next(m for m in mods if m['group'] == 'shader')['file']
-    L += ['echo enableShaders=true> "%MC%\\config\\iris.properties"',
+    L += ['if /i "%LITE%"=="Y" if not exist "%MC%\\config\\novograd.json" echo {"graphics":1,"hudScale":0.85}> "%MC%\\config\\novograd.json"',
+          'echo enableShaders=%SHADERS%> "%MC%\\config\\iris.properties"',
           f'echo shaderPack={shader}>> "%MC%\\config\\iris.properties"',
           'if not exist "%MC%\\mods\\fabric-api-*.jar" (',
           '  echo ОШИБКА: Fabric API не скачался. Проверь интернет и запусти УСТАНОВИТЬ.bat ещё раз.',
@@ -157,7 +171,7 @@ def main():
     for m in mods:
         if m['group'] == 'replay':
             continue  # Replay Mod и Flashback вместе не ставим: в Modrinth-сборке остаётся Flashback
-        optional = m['group'] in ('big', 'studio', 'skins')
+        optional = m['group'] in ('big', 'studio', 'skins', 'fx')
         server = 'required' if m['prefix'] == 'fabric-api-' else ('optional' if m['prefix'] == 'skinrestorer-' else 'unsupported')
         files.append({'path': ('shaderpacks/' if m['group'] == 'shader' else 'mods/') + m['file'],
                       'hashes': {'sha1': m['sha1'], 'sha512': m['sha512']},

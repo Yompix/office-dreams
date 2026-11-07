@@ -24,7 +24,7 @@ public final class Pregen {
     private Pregen() {}
 
     /** Участок держится загруженным ~10 с — за это время он генерируется и сохраняется, потом выгружается сам. */
-    private static final ChunkTicketType<ChunkPos> TICKET = ChunkTicketType.create("novograd_pregen", Comparator.comparingLong(ChunkPos::toLong), 200);
+    private static final ChunkTicketType<ChunkPos> TICKET = ChunkTicketType.create("novograd_pregen", Comparator.comparingLong(ChunkPos::toLong), 60);
     private static final ArrayDeque<ChunkPos> URGENT = new ArrayDeque<>();
     private static final Set<Long> QUEUED = new HashSet<>();
     private static final int HALF = 2048 / 16; // остров ±2 км в участках
@@ -108,10 +108,18 @@ public final class Pregen {
     public static void tick(MinecraftServer s) {
         ServerWorld w = s.getOverworld();
         if (!island(w)) return;
-        // нагрузка: средний тик сервера; тяжело — ждём
+        // первые 30 с после запуска мира — не мешаем входу в игру
+        if (s.getTicks() < 600) return;
+        // память: на слабых ноутбуках (мало ОЗУ) — только когда свободно больше 40%, иначе пауза
+        Runtime rt = Runtime.getRuntime();
+        double free = (rt.maxMemory() - (rt.totalMemory() - rt.freeMemory())) / (double) rt.maxMemory();
+        if (free < 0.4) return;
+        boolean weak = rt.maxMemory() < 3_500_000_000L;
+        // нагрузка: средний тик сервера; тяжело — ждём. Не больше одного участка за 4 тика (≤ 15 одновременно загруженных)
         float mspt = s.getAverageTickTime();
-        int budget = URGENT.isEmpty() ? (mspt < 25 ? 2 : mspt < 40 ? 1 : 0) : (mspt < 45 ? 6 : 2);
-        if (s.getTicks() % 2 != 0) return;
+        if (mspt > (URGENT.isEmpty() ? 25 : 40)) return;
+        if (s.getTicks() % (weak ? 8 : 4) != 0) return;
+        int budget = 1;
         var cm = w.getChunkManager();
         for (int n = 0; n < budget; n++) {
             ChunkPos c = URGENT.pollFirst();
