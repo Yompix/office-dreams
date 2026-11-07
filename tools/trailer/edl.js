@@ -124,9 +124,32 @@ function shorts(L) {
   return S;
 }
 
+// Shorts №2 «3 правила ночной смены» (7 ноя), ~32 с: крючок-загадка (охранник пропал, оставил правила) → три правила голосом сменщика →
+// правило ломается: стучит сестра, а на камере никого → улыбка → бросок → вопрос в комментарии → «подпишись» (YouTube + Telegram) → где играть.
+function shorts2(L) {
+  const S = [], H1 = T('ОХРАННИК ДО МЕНЯ ПРОПАЛ', 'THE GUARD BEFORE ME VANISHED'), H2 = T('ОН ОСТАВИЛ 3 ПРАВИЛА', 'HE LEFT 3 RULES');
+  S.push({ id: 'booth', shot: 'fb_view', from: 'booth:0', t0: 2, cam: [.5, .5, 1.06, 1.16], dur: 1.7, card: { kind: 'hook', at: 0, dur: 99, lines: [H1] },
+    sfx: [['knock', .05, { gain: .55 }], ['knock', .45, { gain: .55 }], ['knock', .85, { gain: .55 }], ['drone_dread', 0, { gain: .25 }]], mark: 'build' });
+  S.push({ id: 'hall', shot: 'pro_hall', from: 'intro:0', t0: 1, cam: [.5, .5, 1.02, 1.1], cctv: T('CAM 02  ХОЛЛ', 'CAM 02  LOBBY'), clock: '22:04', dur: 1.6, card: { kind: 'hook', at: 0, dur: 99, lines: [H1, H2] } });
+  rules(S, L, { callCam: [.5, .48, 1.12, 1.18], lead: .1, hold: .4, rule2: RULE2 });
+  const K1 = T('03:31. В ДВЕРЬ СТУЧИТ СЕСТРА', '3:31 AM. MY SISTER IS AT THE DOOR');
+  S.push({ id: 'lily', shot: 'gl_face', from: 'glass2:1', t0: 1, cam: [.5, .5, 1.1, 1.2], fx: 'rain', vo: [['g05', .1]], tail: .25, card: { kind: 'hook', at: 0, dur: 99, lines: [K1] },
+    sfx: [['rain', 0, { gain: .3, cut: 6 }], ['glass_hit', .25, { gain: .3 }], ['glass_hit', .95, { gain: .28 }]] });
+  S.push({ id: 'lilycam', shot: 'entrance_empty', from: 'glass2:4', t0: 1, cam: [.5, .5, 1.0, 1.08], cctv: T('CAM 01  ВХОД', 'CAM 01  ENTRANCE'), clock: '03:31', fx: 'static', vo: [['g08', .1]], tail: .2,
+    card: { kind: 'hook', at: 0, dur: 99, lines: [T('НО НА КАМЕРЕ — НИКОГО', 'BUT THE CAMERA SHOWS NO ONE')] }, sfx: [['static', 0, { gain: .45, cut: .45 }]], mark: 'silence' });
+  S.push({ id: 'smile', shot: 'b_smile', from: 'branch_b:2', t0: .4, cam: [.5, .47, 1.0, 1.22], fx: 'rain', vo: [['b02', .25]], tail: .3, sfx: [['skin_stretch', 1.8, { gain: .45 }], ['drone_dread', 0, { gain: .3 }]] });
+  S.push({ id: 'there', shot: 'h_face_open', from: 'over_k5:0', t0: 1, cam: [.5, .5, 1.1, 1.2], fx: 'dark', vo: [['k5a', .15]], tail: .1 });
+  S.push({ id: 'lunge', shot: 'lunge_booth', t0: .55, cam: [.5, .5, 1, 1], scareAt: .75, dur: 1.6, sfx: [['jumpscare', .75, { gain: 1 }], ['scare', .75, { gain: .8 }]], mark: 'scare' });
+  S.push({ id: 'cut', black: .45, sfx: [['tinnitus', 0, { gain: .3, cut: 1.6 }]] });
+  S.push({ id: 'q', black: 2.3, card: { kind: 'big', at: 0, dur: 2.25, lines: [T('А ТЫ БЫ ОТКРЫЛ?', 'WOULD YOU OPEN?')] }, sfx: [['boom', 0, { gain: .7 }]], mark: 'stinger' });
+  S.push({ id: 'cta', black: 3.0, card: { kind: 'cta', at: 0, dur: 3.0 }, sfx: [['knock', 1.2, { gain: .5 }], ['knock', 1.6, { gain: .5 }], ['knock', 2.0, { gain: .5 }]] });
+  S.push({ id: 'end', black: 2.6, card: { kind: 'end', at: 0, dur: 2.6, logo: 1 }, sfx: [['boom', 0, { gain: .8 }]], mark: 'end' });
+  return S;
+}
+
 // ------- сборка: время каждого сегмента, реплики, субтитры, надписи -------
 function build(fmt, L) {
-  const segs = (fmt === 'yt' ? youtube : fmt === 'sh' ? shorts : tiktok)(L), out = { fmt, lang: L, fps: FPS, W: fmt === 'yt' ? 1920 : 1080, H: fmt === 'yt' ? 1080 : 1920, segs: [], vo: [], sfx: [], subs: [], cards: [], marks: {} };
+  const segs = (fmt === 'yt' ? youtube : fmt === 'sh' ? shorts : fmt === 'sh2' ? shorts2 : tiktok)(L), out = { fmt, lang: L, fps: FPS, W: fmt === 'yt' ? 1920 : 1080, H: fmt === 'yt' ? 1080 : 1920, segs: [], vo: [], sfx: [], subs: [], cards: [], marks: {} };
   let t = 0;
   for (const s of segs) {
     const o = Object.assign({}, s), src = s.from ? beat(s.from) : null;

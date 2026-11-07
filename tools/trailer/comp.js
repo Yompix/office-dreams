@@ -107,6 +107,13 @@ function pageMain() {
       g.textAlign = 'center'; g.fillStyle = BONE; g.font = `600 ${pw * .13}px NSUI`; g.fillText(cd.name, W / 2, y + ph * .3);
       g.font = `400 ${pw * .065}px NSUI`; g.fillStyle = 'rgba(236,232,220,.6)'; const sec = Math.floor(t - cd.at0); g.fillText('00:' + String(Math.max(0, sec) + 1).padStart(2, '0'), W / 2, y + ph * .3 + pw * .12);
       g.fillStyle = RED; g.beginPath(); g.arc(W / 2, y + ph * .82, pw * .1, 0, 7); g.fill(); g.restore();
+    } else if (cd.kind === 'cta') {   // Shorts №2: «подпишись» — YouTube + Telegram (ссылки в профиле канала)
+      const a = fade(t, cd.at, cd.dur, .15, .2), k = sm(0, .3, lt), pulse = .9 + .1 * Math.sin(T * 6); g.save(); g.globalAlpha = a; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.shadowColor = 'rgba(0,0,0,.95)'; g.shadowBlur = 26 * U; const cy = H * .42;
+      g.font = `700 ${116 * U * (1 + .04 * (pulse - .9) * 10)}px NSUI`; g.fillStyle = RED; spaced(L === 'ru' ? 'ПОДПИШИСЬ' : 'SUBSCRIBE', W / 2, cy + (1 - k) * 20 * U, 6 * U);
+      g.font = `700 ${62 * U}px NSUI`; g.fillStyle = BONE; spaced('YOUTUBE + TELEGRAM', W / 2, cy + 130 * U, 4 * U);
+      g.font = `600 ${40 * U}px NSUI`; g.fillStyle = GOLD; for (const [i, l] of (L === 'ru' ? ['ТУТ — НОВЫЕ СТРАШИЛКИ', 'ССЫЛКА НА ТГ — В ПРОФИЛЕ'] : ['NEW SCARY STORIES HERE', 'TELEGRAM LINK IN PROFILE']).entries()) spaced(l, W / 2, cy + 230 * U + i * 60 * U, 4 * U);
+      g.restore();
     } else if (cd.kind === 'end') {
       const a = fade(t, cd.at, cd.dur, .6, .01);
       g.save(); g.globalAlpha = a;
@@ -204,7 +211,7 @@ function pageMain() {
     const img = seg.shot && man[seg.id] ? `http://tr.local/${index[seg.id]}/${man[seg.id][Math.min(i, man[seg.id].length - 1)]}` : null;
     if (seg.shot && !img && !PNG) throw new Error('нет кадров сегмента ' + seg.id + ' — сначала render.js');   // в --png без кадров — серая заглушка (проверка надписей)
     const cards = TL.cards.filter(cd => t >= cd.at - .01 && t < cd.at + cd.dur), subs = TL.subs.filter(sb => t >= sb.at && t < sb.end);
-    const o = { f, t, T: 100 + t, tau, seg, img, stub: !!(seg.shot && !img), bg: seg.id === 'end' ? bgUrl : null, cards, subs, L: TL.lang, subY: TL.fmt === 'sh' ? 1385 : 1240, tear: tears.has(f), png: !!PNG };
+    const o = { f, t, T: 100 + t, tau, seg, img, stub: !!(seg.shot && !img), bg: seg.id === 'end' ? bgUrl : null, cards, subs, L: TL.lang, subY: (TL.fmt || '').startsWith('sh') ? 1385 : 1240, tear: tears.has(f), png: !!PNG };
     const url = await p.evaluate(o => window.__comp(o), o);
     const buf = Buffer.from(url.split(',')[1], 'base64');
     if (PNG) fs.writeFileSync(path.join(PNG, `${TL.fmt}_${TL.lang}_${t.toFixed(2)}.png`), buf);
