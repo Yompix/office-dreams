@@ -235,7 +235,7 @@ def build_mix(TL, out):
             if s.get('cut'): y = y[:int(s['cut'] * SR)]
             y = y * 10 ** ((-26 - rms_db(y)) / 20) * s.get('gain', 1.0) * env(len(y), s.get('fadeIn', 0), .12 if s.get('cut') else min(.05, len(y) / SR / 4))[:, None]
             i = int(s['at'] * SR); m = min(len(y), len(Bd) - i); Bd[i:i + m] += y[:m]
-    mu = score_sh(TL) if TL['fmt'] in ('sh', 'sh2') else score(TL); Mx = np.zeros_like(V); n = min(len(mu), len(Mx)); Mx[:n] += mu[:n]
+    mu = score_sh(TL) if TL['fmt'] in ('sh', 'sh2', 'st1') else score(TL); Mx = np.zeros_like(V); n = min(len(mu), len(Mx)); Mx[:n] += mu[:n]
     w = int(5 * SR); loud = max(np.sqrt(np.mean(Mx[i:i + w] ** 2)) for i in range(0, max(1, len(Mx) - w), SR)); Mx *= 10 ** (-21 / 20) / (loud + 1e-12)   # громкие места музыки — −21 дБ
     # музыка уходит под голос: огибающая речи (атака 40 мс, спад 400 мс) → до −9 дБ
     e = np.abs(V).max(1)[::32]; fd = np.zeros_like(e); s_ = 0.0; a, r = np.exp(-32 / (.04 * SR)), np.exp(-32 / (.4 * SR))

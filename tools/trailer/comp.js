@@ -212,7 +212,7 @@ function pageMain() {
     const img = seg.shot && man[seg.id] ? `http://tr.local/${index[seg.id]}/${man[seg.id][Math.min(i, man[seg.id].length - 1)]}` : null;
     if (seg.shot && !img && !PNG) throw new Error('нет кадров сегмента ' + seg.id + ' — сначала render.js');   // в --png без кадров — серая заглушка (проверка надписей)
     const cards = TL.cards.filter(cd => t >= cd.at - .01 && t < cd.at + cd.dur), subs = TL.subs.filter(sb => t >= sb.at && t < sb.end);
-    const o = { f, t, T: 100 + t, tau, seg, img, stub: !!(seg.shot && !img), bg: seg.id === 'end' ? bgUrl : null, cards, subs, L: TL.lang, subY: (TL.fmt || '').startsWith('sh') ? 1385 : 1240, tear: tears.has(f), png: !!PNG };
+    const o = { f, t, T: 100 + t, tau, seg, img, stub: !!(seg.shot && !img), bg: seg.id === 'end' ? bgUrl : null, cards, subs, L: TL.lang, subY: /^(sh|st)/.test(TL.fmt || '') ? 1385 : 1240, tear: tears.has(f), png: !!PNG };
     const url = await p.evaluate(o => window.__comp(o), o);
     const buf = Buffer.from(url.split(',')[1], 'base64');
     if (PNG) fs.writeFileSync(path.join(PNG, `${TL.fmt}_${TL.lang}_${t.toFixed(2)}.png`), buf);
