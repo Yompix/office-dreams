@@ -88,12 +88,12 @@ public final class CityClient {
             float a = MathHelper.clamp(Math.min(age / 0.25f, (total - age) / 0.6f), 0, 1);
             int chars = Math.min(radio.length(), (int) (age * 42)); // «печатает» диспетчер
             String shown = radio.substring(0, chars);
-            int maxW = Math.min(w - 40, 420);
+            int maxW = Math.min(w / 3, 230); // компактно, в углу — середина экрана свободна
             var lines = tr.wrapLines(net.minecraft.text.Text.literal(radio), maxW);
             int lh = 10, boxH = lines.size() * lh + 16, boxW = 0;
             for (var l : lines) boxW = Math.max(boxW, tr.getWidth(l));
             boxW += 50;
-            int x0 = w / 2 - boxW / 2, y0 = 92; // под плашкой новостей «Новоград-24»
+            int x0 = 6, y0 = 6; // левый верхний угол, как рация в GTA
             ctx.fill(x0, y0, x0 + boxW, y0 + boxH, Ui.alpha(0xD0101820, a));
             ctx.fill(x0, y0, x0 + 3, y0 + boxH, Ui.alpha((now / 300) % 2 == 0 ? 0xFF2A6AFF : 0xFFFF2A3A, a)); // мигалка
             ctx.drawText(tr, "РАЦИЯ", x0 + 8, y0 + 4, Ui.alpha(0xFF7FB2FF, a), false);

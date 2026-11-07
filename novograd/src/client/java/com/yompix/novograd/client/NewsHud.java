@@ -35,7 +35,7 @@ public final class NewsHud {
         var tr = mc.textRenderer;
         int W = ctx.getScaledWindowWidth();
         float K = NovogradConfig.hud();
-        int h = 13, y = 62;
+        int h = 13, y = CarRadio.showing() ? 112 : 62; // под названием станции радио
         int al = (int) (a * 255) << 24;
         ctx.getMatrices().push();
         ctx.getMatrices().translate(W / 2f, y, 0);

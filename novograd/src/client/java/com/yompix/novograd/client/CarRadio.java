@@ -31,6 +31,21 @@ public final class CarRadio {
             {"КАНТРИ-РОУД", "radio.country_road", "банджо и дорога", "D7A86E"},
             {"ТЕХНО-ПОДВАЛ", "radio.tekhno_podval", "кислотное техно", "18FFFF"},
     };
+    /** Названия треков по станциям (порядок как в STATIONS). Музыка: Kevin MacLeod (incompetech.com), лицензия CC BY 4.0. */
+    private static final String[][] TITLES = {
+            {"Newer Wave", "Aerosol of my Love", "Laser Groove"},
+            {"District Four", "Basic Implosion", "Pyro Flow"},
+            {"Late Night Radio", "Chill Wave", "Backbay Lounge"},
+            {"Voltaic", "Cyborg Ninja", "Rhinoceros"},
+            {"Exhilarate", "RetroFuture Dirty", "Organic Grunge"},
+            {"Night in Venice", "Spy Glass", "In Your Arms"},
+            {"Montego", "Maccary Bay", "Paradise Found"},
+            {"Morning", "Facile", "Clear Air"},
+            {"Bama Country", "Guts and Bourbon", "Hillbilly Swing"},
+            {"Raving Energy (faster)", "Brain Dance", "Cloud Dancer"}
+    };
+    private static String nowTitle = "";
+
     /** Треков на станции (radio.<станция>_0..2) — играют по очереди без повтора подряд. */
     private static final int TRACKS = 3;
     private static final int[] lastTrack = new int[16];
@@ -84,12 +99,14 @@ public final class CarRadio {
                 int tr = (lastTrack[want] + 1 + (int) (Math.random() * (TRACKS - 1))) % TRACKS;
                 lastTrack[want] = tr;
                 playing = new Track(STATIONS[want][1] + "_" + tr);
+                nowTitle = want < TITLES.length ? "♪ Kevin MacLeod — " + TITLES[want][tr] : "";
                 if (ended && mc.world != null && mc.world.random.nextInt(3) == 0) { // иногда ведущий между песнями
                     String id = "voice.radio_" + STATIONS[want][1].substring("radio.".length());
                     mc.getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.master(
                             net.minecraft.sound.SoundEvent.of(Novograd.id(id)), 1f, Math.min(1f, NovogradConfig.get().radioVolume + 0.3f)));
                 }
                 mc.getSoundManager().play(playing);
+                if (mc.player != null && ended) show(STATIONS[want][0]); // новая песня — название станции и трека
                 if (mc.player != null && (playingStation == -2 || playingStation != want)) {
                     show(STATIONS[want][0]);
                     // голос ведущего: «Неон 88 FM…»
@@ -162,6 +179,11 @@ public final class CarRadio {
         return playing != null && playingStation == i;
     }
 
+    /** Плашка станции сейчас на экране (новости тогда ниже, чтобы не налезали). */
+    public static boolean showing() {
+        return System.currentTimeMillis() - shownAt < 3200;
+    }
+
     private static void show(String s) {
         toast = s;
         shownAt = System.currentTimeMillis();
@@ -198,6 +220,10 @@ public final class CarRadio {
         if (!genre.isEmpty()) {
             int gw = tr.getWidth(genre);
             ctx.drawText(tr, genre, cx - gw / 2, y + 22, alpha | 0xD0D0D0, true);
+            if (!nowTitle.isEmpty() && playing != null) {
+                int nw = tr.getWidth(nowTitle);
+                ctx.drawText(tr, nowTitle, cx - nw / 2, y + 47, alpha | 0xA8B4C8, true);
+            }
         }
         // эквалайзер-полоски
         if (playing != null && !genre.isEmpty()) {
