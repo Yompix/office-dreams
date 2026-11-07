@@ -59,4 +59,15 @@ public class NeonBlock extends FacingBlock {
         if (lit != state.get(LIT)) world.setBlockState(pos, state.with(LIT, lit), Block.NOTIFY_LISTENERS);
         world.scheduleBlockTick(pos, this, 80 + random.nextInt(60));
     }
+
+    /** Неон из генератора мира не получает onBlockAdded — случайный тик сам запускает цикл «горит ночью». */
+    @Override
+    protected boolean hasRandomTicks(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+        if (!world.getBlockTickScheduler().isQueued(pos, this)) scheduledTick(state, world, pos, random);
+    }
 }

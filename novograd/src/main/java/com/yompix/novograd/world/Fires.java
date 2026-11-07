@@ -117,8 +117,9 @@ public final class Fires {
      */
     public static int douse(ServerWorld w, Vec3d from, Vec3d dir, @Nullable ServerPlayerEntity p) {
         int out = 0;
-        for (Iterator<Spot> it = SPOTS.iterator(); it.hasNext(); ) {
-            Spot s = it.next();
+        // копия: взрыв машины/обрушение внутри цикла может поджечь новое место (ignite → SPOTS.add)
+        for (Spot s : new ArrayList<>(SPOTS)) {
+            if (!SPOTS.contains(s)) continue;
             if (s.w != w) continue;
             Vec3d to = s.at.add(0, 0.6, 0).subtract(from);
             double along = to.dotProduct(dir);
@@ -126,7 +127,7 @@ public final class Fires {
             s.ttl -= 14;
             w.spawnParticles(ParticleTypes.CLOUD, s.at.x, s.at.y + 0.8, s.at.z, 2, 0.4, 0.3, 0.4, 0.02);
             if (s.ttl > 0) continue;
-            it.remove();
+            SPOTS.remove(s);
             putOut(w, s);
             out++;
             if (p != null) {
@@ -148,8 +149,9 @@ public final class Fires {
         long t = server.getTicks();
         if (t % 2 != 0) return;
         List<Spot> spread = null;
-        for (Iterator<Spot> it = SPOTS.iterator(); it.hasNext(); ) {
-            Spot s = it.next();
+        // копия: взрыв машины/обрушение внутри цикла может поджечь новое место (ignite → SPOTS.add)
+        for (Spot s : new ArrayList<>(SPOTS)) {
+            if (!SPOTS.contains(s)) continue;
             ServerWorld w = s.w;
             s.age += 2;
             s.ttl -= 2;
@@ -159,7 +161,7 @@ public final class Fires {
             }
             if (w.hasRain(BlockPos.ofFloored(s.at).up())) s.ttl -= 4;
             if (s.ttl <= 0) {
-                it.remove();
+                SPOTS.remove(s);
                 if (s.block != null && !w.getBlockState(s.block).isAir() && flammable(w, s.block, w.getBlockState(s.block))) {
                     // сгорело: обугленный предмет исчезает, позже город его заменит
                     Vec3d c = Vec3d.ofCenter(s.block);
