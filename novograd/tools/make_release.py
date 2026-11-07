@@ -155,7 +155,7 @@ README = """Новоград: Кино для TLauncher
 
 Моды скачиваются с официального modrinth.com. Старые версии этих модов (и прошлые версии Новограда)
 удаляются, новые ставятся на их место. Другие твои моды не трогаются.
-Свой скин с CustomSkinLoader: положи картинку в .minecraft/CustomSkinLoader/LocalSkin/skins/<ник>.png
+Вылетает или тормозит? Запусти ПОЧИНИТЬ_ЗАПУСК.bat — он включит файл подкачки, выставит память для TLauncher,\nоблегчит настройки, выключит шейдеры и уберёт тяжёлые моды в mods_backup.\nСвой скин с CustomSkinLoader: положи картинку в .minecraft/CustomSkinLoader/LocalSkin/skins/<ник>.png
 """
 
 
@@ -167,6 +167,8 @@ def main():
         z.writestr('УСТАНОВИТЬ.bat', bat(mods).encode('utf-8'))
         z.write(JAR, jarname)
         z.writestr('ПРОЧТИ.txt', README.encode('utf-8'))
+        fix = open(os.path.join(ROOT, 'tools', 'fix_launch.bat'), encoding='utf-8').read().replace('\r\n', '\n').replace('\n', '\r\n')
+        z.writestr('ПОЧИНИТЬ_ЗАПУСК.bat', fix.encode('utf-8'))  # вылетает/тормозит — один запуск всё настраивает
     files = []
     for m in mods:
         if m['group'] == 'replay':
