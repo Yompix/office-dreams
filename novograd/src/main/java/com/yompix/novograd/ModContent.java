@@ -105,6 +105,9 @@ public final class ModContent {
     public static final Item BANKNOTE_100 = item("banknote_100", new Item(new Item.Settings()));
     public static final Item BANK_CARD = item("bank_card", new Item(new Item.Settings().maxCount(1)));
     public static final Item PARCEL = item("parcel", new Item(new Item.Settings().maxCount(1)));
+    /** Пакет с покупками и зонтик — в руках у прохожих (world/LifeAi). */
+    public static final Item SHOPPING_BAG = item("shopping_bag", new Item(new Item.Settings().maxCount(16)));
+    public static final Item UMBRELLA = item("umbrella", new Item(new Item.Settings().maxCount(1)));
     public static final Item DIPLOMA = item("diploma", new Item(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
     public static final Item TEXTBOOK = item("textbook", new Item(new Item.Settings().maxCount(16)));
     public static final Item SUIT = item("suit", new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));

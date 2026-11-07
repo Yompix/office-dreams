@@ -128,6 +128,7 @@ public final class LifeNet {
                 if (p.getVehicle() instanceof CarEntity car && car.getControllingPassenger() == p && now - HORN.getOrDefault(p.getUuid(), 0L) >= 12) {
                     HORN.put(p.getUuid(), now);
                     p.getWorld().playSound(null, car.getBlockPos(), ModContent.CAR_HORN, SoundCategory.NEUTRAL, 1.2f, car.isTaxi() ? 1.1f : 1f);
+                    com.yompix.novograd.world.LifeAi.honk(p, car); // прохожие впереди отскакивают
                 }
             }
             default -> {

@@ -49,7 +49,21 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     public enum Activity {
         IDLE, TALK, WAVE, PHONE, SIT, DANCE, CHEER, THINK, SLEEP, ARGUE, LAUGH, FIGHT, HUG, HANDSHAKE, UPSET, AIM,
         /** Уличные музыканты и танцоры (gta/StreetPerformers). */
-        GUITAR, SAX, BREAKDANCE;
+        GUITAR, SAX, BREAKDANCE,
+        /** 0.4.3: повседневная жизнь (world/LifeAi, world/Leisure). Новые — только в конец (номер уходит клиенту). */
+        EAT, SIT_EAT, DRINK, CARRY, BAGS, DOGWALK, PHONEWALK, UMBRELLA, JOG, TYPE, SWEEP, HAMMER, SMOKE, WATCH, STRETCH, LEAN, SITCROSS,
+        SUNBATHE, SWIM, HAIL, CLAP, POINT, SHRUG, RUMMAGE, DANCE2, DANCE3;
+
+        /** Занятие «на ходу»: при ходьбе играет своя походка (коробка, пакеты, поводок, телефон у уха, зонтик, пробежка). */
+        public boolean walking() {
+            return this == CARRY || this == BAGS || this == DOGWALK || this == PHONEWALK || this == UMBRELLA || this == JOG;
+        }
+
+        /** Поза, которая держится и при движении (сидит, лежит, плывёт, танцует). */
+        public boolean pose() {
+            return this == DANCE || this == SIT || this == FIGHT || this == SLEEP || this == SIT_EAT || this == TYPE || this == SITCROSS
+                    || this == SUNBATHE || this == SWIM || this == DANCE2 || this == DANCE3;
+        }
 
         /** Сценка на время разговора: снимается, когда диалог закончился. */
         public boolean scene() {
@@ -62,6 +76,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     private static final TrackedData<Boolean> QUEST = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     /** Сбит машиной: 0 — на ногах, 1 — упал и лежит, 2 — встаёт, 3 — погиб (падение), 4 — погиб уже лёжа. */
     private static final TrackedData<Integer> KNOCK = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    /** Реплика над головой (короткий разговор прохожих, world/LifeAi); пусто — молчит. */
+    private static final TrackedData<String> SAY = DataTracker.registerData(CitizenEntity.class, TrackedDataHandlerRegistry.STRING);
+    private int sayTicks;
     public static final int KO_NONE = 0, KO_DOWN = 1, KO_GETUP = 2, KO_DEAD = 3, KO_DEAD_LYING = 4;
     private Role role = Role.CITIZEN;
     private final software.bernie.geckolib.animatable.instance.AnimatableInstanceCache geoCache = software.bernie.geckolib.util.GeckoLibUtil.createInstanceCache(this);
@@ -72,6 +89,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     private static final software.bernie.geckolib.animation.RawAnimation RUN = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.run");
     private static final software.bernie.geckolib.animation.RawAnimation RIDE = software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen.ride");
     private static final java.util.Map<Activity, software.bernie.geckolib.animation.RawAnimation> ACTS = new java.util.EnumMap<>(Activity.class);
+    private static final java.util.Map<Activity, software.bernie.geckolib.animation.RawAnimation> WALK_ACTS = new java.util.EnumMap<>(Activity.class);
     /** Падение после удара машиной: полёт → лежит (дышит) / встаёт / погиб и замер. Индекс — фаза KNOCK. */
     private static final software.bernie.geckolib.animation.RawAnimation[] KO_ANIMS = {null,
             software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.knockdown").thenLoop("animation.citizen.down"),
@@ -82,6 +100,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     static {
         for (Activity a : Activity.values())
             if (a != Activity.IDLE) ACTS.put(a, software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen." + a.name().toLowerCase()));
+        for (Activity a : Activity.values())
+            if (a.walking()) WALK_ACTS.put(a, software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen." + a.name().toLowerCase() + (a == Activity.JOG ? "" : "_walk")));
     }
 
     @Override
@@ -98,9 +118,15 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             if (hasVehicle()) return state.setAndContinue(RIDE); // в машине — сидит на сиденье
             double v = getVelocity().horizontalLengthSquared();
             boolean moving = state.isMoving() && v > 1e-4;
-            if (a != Activity.IDLE && (!moving || a == Activity.DANCE || a == Activity.SIT || a == Activity.FIGHT || a == Activity.SLEEP)) return state.setAndContinue(ACTS.get(a));
+            if (moving && a.walking()) return state.setAndContinue(WALK_ACTS.get(a));
+            if (a != Activity.IDLE && (!moving || a.pose())) return state.setAndContinue(ACTS.get(a));
             if (moving) return state.setAndContinue(v > 0.012 ? RUN : WALK);
             return state.setAndContinue(IDLE);
+        }).setAnimationSpeedHandler(e -> {
+            // у каждого свой темп жестов — двое за одним делом не двигаются в такт (шаг и бег — без изменений, под скорость ног)
+            Activity a = e.getActivity();
+            if (a == Activity.IDLE && e.getVelocity().horizontalLengthSquared() > 1e-4 || e.knockPhase() != KO_NONE) return 1.0;
+            return 0.86 + Math.floorMod(e.getUuid().hashCode() >>> 3, 29) / 100.0;
         }));
         controllers.add(new software.bernie.geckolib.animation.AnimationController<>(this, "action", 2, state -> software.bernie.geckolib.animation.PlayState.STOP)
                 .triggerableAnim("kick", software.bernie.geckolib.animation.RawAnimation.begin().thenPlay("animation.citizen.kick"))
@@ -174,6 +200,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         builder.add(ACTIVITY, 0);
         builder.add(QUEST, false);
         builder.add(KNOCK, KO_NONE);
+        builder.add(SAY, "");
     }
 
     @Override
@@ -193,7 +220,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         goalSelector.add(5, new WanderAroundFarGoal(this, 0.6) {
             @Override
             public boolean canStart() {
-                return !stationary && getActivity() != Activity.SIT && getActivity() != Activity.DANCE && super.canStart();
+                return !stationary && !lifeManaged && !routeWalk && lifeHold == 0 && getActivity() != Activity.SIT && getActivity() != Activity.DANCE && super.canStart();
             }
         });
         goalSelector.add(6, new LookAtEntityGoal(this, PlayerEntity.class, 8f));
@@ -258,7 +285,61 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @org.jetbrains.annotations.Nullable public net.minecraft.util.math.Vec3d directTo;
     public double directSpeed = 0.6;
 
+    /** Путь по тротуару (world/Sidewalks): точки после directTo. Пусто — directTo последняя. */
+    public final java.util.ArrayDeque<net.minecraft.util.math.Vec3d> route = new java.util.ArrayDeque<>();
+    /** Что сделать, когда дошёл до конца пути (войти в дверь, сесть на скамейку…). */
+    @org.jetbrains.annotations.Nullable public Runnable onArrive;
+    /** Идёт по делам «повседневной жизни» (не сюжет): занятие и вещь в руке на ходу держатся. */
+    public boolean routeWalk;
+    @org.jetbrains.annotations.Nullable private Activity walkAct;
+
+    /** Идти по точкам пути: занятие на ходу (пакеты, телефон, зонтик…), по приходу — onArrive. */
+    public void walkRoute(java.util.List<net.minecraft.util.math.Vec3d> pts, double speed, @org.jetbrains.annotations.Nullable Activity act,
+                          net.minecraft.item.ItemStack held, @org.jetbrains.annotations.Nullable Runnable arrive) {
+        route.clear();
+        if (pts.isEmpty()) {
+            if (arrive != null) arrive.run();
+            return;
+        }
+        route.addAll(pts);
+        direct(route.poll(), speed);
+        routeWalk = true;
+        walkAct = act;
+        onArrive = arrive;
+        if (act != null) dataTracker.set(ACTIVITY, act.ordinal());
+        equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, held);
+    }
+
+    /** Бросить путь (испугался, драка, сбили). */
+    public void stopRoute() {
+        if (!routeWalk) return;
+        routeWalk = false;
+        route.clear();
+        onArrive = null;
+        walkAct = null;
+        directTo = null;
+        getNavigation().stop();
+    }
+
+    public boolean walkingRoute() {
+        return routeWalk && directTo != null;
+    }
+
+    /** Реплика над головой на ticks тиков. */
+    public void say(String line, int ticks) {
+        dataTracker.set(SAY, line);
+        sayTicks = ticks;
+    }
+
+    public String saying() {
+        return dataTracker.get(SAY);
+    }
+
     public void direct(net.minecraft.util.math.Vec3d to, double speed) {
+        routeWalk = false;
+        route.clear();
+        onArrive = null;
+        walkAct = null;
         directTo = to;
         directSpeed = speed;
         lockedActivity = false;
@@ -270,7 +351,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     static class DirectedGoal extends net.minecraft.entity.ai.goal.Goal {
         private final CitizenEntity c;
-        private int stuck;
+        private int stuck, kerbWait;
+        private boolean carNear;
 
         DirectedGoal(CitizenEntity c) {
             this.c = c;
@@ -292,16 +374,54 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             var to = c.directTo;
             if (to == null) return;
             double d = c.squaredDistanceTo(to.x, c.getY(), to.z);
-            if (d < 1.2) {
+            boolean more = c.routeWalk && !c.route.isEmpty();
+            if (d < (more ? 3.0 : 1.2)) {
+                if (more && to instanceof com.yompix.novograd.world.Sidewalks.Kerb && kerbWait < 90) {
+                    // у «зебры»: едет машина — ждём (и не дольше 4,5 с)
+                    if (kerbWait % 5 == 0) carNear = !c.getWorld().getEntitiesByClass(CarEntity.class, c.getBoundingBox().expand(11, 2, 11),
+                            car -> car.getVelocity().horizontalLengthSquared() > 0.004).isEmpty();
+                    kerbWait++;
+                    if (carNear) {
+                        c.getNavigation().stop();
+                        if (kerbWait == 1 && c.getRandom().nextInt(3) == 0) c.lifeHold = 0;
+                        return;
+                    }
+                }
+                kerbWait = 0;
+                if (more) { // следующая точка пути по тротуару
+                    c.directTo = c.route.poll();
+                    c.getNavigation().startMovingTo(c.directTo.x, c.directTo.y, c.directTo.z, c.directSpeed);
+                    stuck = 0;
+                    return;
+                }
                 c.getNavigation().stop();
                 c.directTo = null;
                 if (c.stationary) c.anchor = c.getPos();
+                if (c.routeWalk) {
+                    c.routeWalk = false;
+                    c.walkAct = null;
+                    Runnable r = c.onArrive;
+                    c.onArrive = null;
+                    if (r != null) r.run();
+                }
                 return;
             }
+            if (c.routeWalk && c.walkAct != null && c.getActivity() != c.walkAct && c.busyTicks == 0) c.dataTracker.set(ACTIVITY, c.walkAct.ordinal());
             if (c.getNavigation().isIdle()) {
-                if (++stuck > 30) { // путь не находится — просто «дошёл» (в кадре важнее не застрять)
-                    c.refreshPositionAndAngles(to.x, to.y, to.z, c.getYaw(), 0);
+                if (++stuck > 30) {
                     stuck = 0;
+                    if (c.routeWalk) {
+                        // прохожий застрял: на глазах у игрока не телепортируем — идём к следующей точке или сдаёмся
+                        if (com.yompix.novograd.world.Sidewalks.unseen(c)) c.refreshPositionAndAngles(to.x, to.y, to.z, c.getYaw(), 0);
+                        else if (!c.route.isEmpty()) c.directTo = c.route.poll();
+                        else c.directTo = null;
+                        if (c.directTo == null) {
+                            c.routeWalk = false;
+                            Runnable r = c.onArrive;
+                            c.onArrive = null;
+                            if (r != null) r.run();
+                        }
+                    } else c.refreshPositionAndAngles(to.x, to.y, to.z, c.getYaw(), 0); // путь не находится — просто «дошёл» (в кадре важнее не застрять)
                 } else c.getNavigation().startMovingTo(to.x, to.y, to.z, c.directSpeed);
             } else stuck = 0;
         }
@@ -409,7 +529,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             else if (!partner.isRemoved() && age % 10 == 0) face(partner);
         }
         if (busyTicks == 0) partner = null;
-        if (lockedActivity || busyTicks > 0 || homeActive || foe != null || fleeTicks > 0) return;
+        if (sayTicks > 0 && --sayTicks == 0) dataTracker.set(SAY, "");
+        if (lockedActivity || busyTicks > 0 || homeActive || foe != null || fleeTicks > 0 || routeWalk || lifeHold > 0 && --lifeHold > 0) return;
         // жители сами меняют занятия: машут проходящим, болтают по телефону, задумываются
         if (--activityTicks <= 0) {
             Random r = getRandom();
@@ -467,6 +588,24 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             PlayerEntity p = w.getClosestPlayer(this, 16);
             if (p != null) p.sendMessage(net.minecraft.text.Text.literal("⚠ На улице драка!").formatted(net.minecraft.util.Formatting.RED), true);
         }
+    }
+
+    /** Повернуться к точке. */
+    public void faceTo(net.minecraft.util.math.Vec3d o) {
+        float yaw = (float) (Math.toDegrees(Math.atan2(o.z - getZ(), o.x - getX())) - 90);
+        setYaw(yaw);
+        setBodyYaw(yaw);
+        setHeadYaw(yaw);
+    }
+
+    /** Занят делом (busy): стоит у полки, сидит, болтает. */
+    public boolean isBusy() {
+        return busyTicks > 0;
+    }
+
+    /** Есть ли собеседник (сценка встречи прохожих). */
+    public boolean hasPartner() {
+        return partner != null;
     }
 
     public void face(net.minecraft.entity.Entity o) {
@@ -640,6 +779,7 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             if (!(c.getWorld() instanceof net.minecraft.server.world.ServerWorld w)) return false;
             long t = w.getTimeOfDay() % 24000;
             if (com.yompix.novograd.world.Residents.is(c)) return false; // жилец: распорядок ведёт world/Residents
+            if (c.lifeManaged || c.routeWalk) return false; // прохожий острова: дела выбирает world/LifeAi
             if (com.yompix.novograd.world.Island.zone(c.getBlockX(), c.getBlockZ()) != com.yompix.novograd.world.Island.Zone.CORE) {
                 // остров: дела по соседству (магазин, бар, пляж, площадь) — места острова, а не дворы старого города
                 chosen = null;
@@ -874,6 +1014,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     /** Сбит: летит, падает на спину и лежит ticks тиков, потом встаёт. from — откуда удар (машина). */
     public void knockDown(net.minecraft.util.math.Vec3d from, @org.jetbrains.annotations.Nullable net.minecraft.entity.LivingEntity by, int ticks) {
         if (isDead() || hasVehicle()) return;
+        stopRoute();
+        lifeHold = 0;
+        if (hasNoGravity() && !stationary) setNoGravity(false);
         knockFrom = from;
         knockedBy = by;
         if (knockPhase() == KO_DOWN) {
@@ -1164,6 +1307,10 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @org.jetbrains.annotations.Nullable private net.minecraft.entity.LivingEntity foe;
     private int fleeTicks, shootCooldown;
     private boolean tempCop, ambient;
+    /** Сколько ещё тиков житель занят делом «повседневной жизни» без busy (LifeAi): сам занятие не меняет. */
+    public int lifeHold;
+    /** Дела выбирает world/LifeAi (прохожий острова, сцена пляжа/парка): свой распорядок и блуждание выключены. */
+    public boolean lifeManaged;
 
     /** Прохожий «фоновой» жизни острова: исчезает, когда игрок далеко. */
     public void setAmbient(boolean a) {
@@ -1185,6 +1332,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
 
     public void attack(net.minecraft.entity.LivingEntity target) {
         if (!storyId.isEmpty() && role != Role.GANG && role != Role.POLICE) return;
+        stopRoute();
+        lifeHold = 0;
         foe = target;
         fleeTicks = 0;
         if (busyTicks > 0) busyTicks = 1;
@@ -1204,6 +1353,9 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     /** Испуг: убежать подальше от опасности. */
     public void panic(net.minecraft.util.math.Vec3d from) {
         if (role == Role.POLICE || role == Role.GANG || stationary || !storyId.isEmpty() || hasVehicle() || asleep() || foe != null) return;
+        stopRoute(); // бросил дела — бежит
+        lifeHold = 0;
+        if (hasNoGravity() && !stationary) setNoGravity(false); // загорал/лежал — вскочил
         fleeTicks = 140 + getRandom().nextInt(80);
         net.minecraft.util.math.Vec3d away = getPos().subtract(from).multiply(1, 0, 1);
         if (away.lengthSquared() < 0.01) away = new net.minecraft.util.math.Vec3d(1, 0, 0);

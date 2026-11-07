@@ -96,6 +96,19 @@ public class CitizenGeoRenderer extends GeoEntityRenderer<CitizenEntity> {
                 m.pop();
             }
         }
+        String say = e.saying();
+        if (!say.isEmpty() && dispatcher.getSquaredDistanceToCamera(e) < 24 * 24) {
+            // реплика прохожего: короткая строка в «облачке» над головой
+            m.push();
+            m.translate(0, e.getHeight() + (e.hasCustomName() && e.isCustomNameVisible() ? 0.85f : 0.55f), 0);
+            m.multiply(dispatcher.getRotation());
+            m.scale(0.022f, -0.022f, 0.022f);
+            var tr = getTextRenderer();
+            float x = -tr.getWidth(say) / 2f;
+            tr.draw(say, x, 0, 0xFFFFFFFF, false, m.peek().getPositionMatrix(), buffers,
+                    net.minecraft.client.font.TextRenderer.TextLayerType.NORMAL, 0x99202830, light);
+            m.pop();
+        }
         if (e.hasQuest()) {
             m.push();
             float bob = MathHelper.sin((e.age + tickDelta) * 0.12f) * 0.08f;

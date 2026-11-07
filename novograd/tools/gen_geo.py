@@ -507,6 +507,246 @@ BUSK = {
 }
 
 
+# ---- 0.4.3: повседневная жизнь (world/LifeAi, world/Leisure). Знаки сразу верные: рука/предплечье вперёд = −X, голень назад = +X.
+def legs_walk(P, amp=28, knee=45, bob=0.5, lean=3, twist=6, arms=True, amp_arm=24, elbow=14):
+    """Ноги (и при желании руки) шага — как walk(), но сразу в верном знаке."""
+    b = {
+        'right_leg': {'rotation': track(lambda t: [sine(t, P, amp), 0, 0], P)},
+        'left_leg': {'rotation': track(lambda t: [sine(t, P, amp, 0.5), 0, 0], P)},
+        'right_shin': {'rotation': track(lambda t: [max(0, sine(t, P, knee, 0.25)) + 4, 0, 0], P)},
+        'left_shin': {'rotation': track(lambda t: [max(0, sine(t, P, knee, 0.75)) + 4, 0, 0], P)},
+        'waist': {'rotation': track(lambda t: [lean * 0.4, sine(t, P, -twist * 0.5), 0], P)},
+        'chest': {'rotation': track(lambda t: [lean, sine(t, P, twist), 0], P)},
+        'root': {'position': track(lambda t: [0, abs(math.sin(2 * math.pi * t / P)) * bob, 0], P)},
+    }
+    if arms:
+        b['right_arm'] = {'rotation': track(lambda t: [sine(t, P, amp_arm, 0.5), 0, 4], P)}
+        b['left_arm'] = {'rotation': track(lambda t: [sine(t, P, amp_arm), 0, -4], P)}
+        b['right_forearm'] = {'rotation': track(lambda t: [-elbow - max(0, sine(t, P, elbow * 0.6, 0.5)), 0, 0], P)}
+        b['left_forearm'] = {'rotation': track(lambda t: [-elbow - max(0, sine(t, P, elbow * 0.6)), 0, 0], P)}
+    return b
+
+
+def still(v, L):
+    return {'rotation': track(lambda t: v, L, 2)}
+
+
+def merged(base, over):
+    out = dict(base)
+    out.update(over)
+    return out
+
+
+SIT_LEGS = {
+    'right_leg': still([-85, 6, 0], 4.0), 'left_leg': still([-85, -6, 0], 4.0),
+    'right_shin': still([80, 0, 0], 4.0), 'left_shin': still([80, 0, 0], 4.0),
+    'root': {'position': track(lambda t: [0, -6, 0], 4.0, 2)},
+}
+CARRY_ARMS = {  # коробка перед собой
+    'right_arm': still([-48, -12, 0], 1.0), 'left_arm': still([-48, 12, 0], 1.0),
+    'right_forearm': still([-42, 0, 0], 1.0), 'left_forearm': still([-42, 0, 0], 1.0),
+}
+BAG_ARMS = {  # пакет в правой руке, рука чуть отведена
+    'right_arm': still([-4, 0, 10], 1.0), 'right_forearm': still([-6, 0, 0], 1.0),
+}
+LEASH_ARMS = {  # поводок в левой
+    'left_arm': still([-28, 0, -6], 1.0), 'left_forearm': still([-22, 0, 0], 1.0),
+}
+EAR_ARMS = {  # телефон у уха
+    'right_arm': still([-30, -25, 28], 1.0), 'right_forearm': still([-125, 0, 0], 1.0),
+    'head': still([4, 0, 10], 1.0),
+}
+UMB_ARMS = {  # зонтик над головой
+    'right_arm': still([-62, -10, 6], 1.0), 'right_forearm': still([-58, 0, 0], 1.0),
+}
+
+
+def eat(L=3.0, seated=False):
+    """Ест: рука ко рту — жуёт — рука вниз; голова в такт."""
+    b = {
+        'right_arm': {'rotation': poses([(0, [-30, -10, 4]), (0.5, [-58, -28, 4]), (1.2, [-58, -28, 4]), (1.7, [-30, -10, 4]), (L, [-30, -10, 4])], L, 20)},
+        'right_forearm': {'rotation': poses([(0, [-50, 0, 0]), (0.5, [-118, 0, 0]), (1.2, [-118, 0, 0]), (1.7, [-50, 0, 0]), (L, [-50, 0, 0])], L, 20)},
+        'left_arm': still([-22, 10, -4], L), 'left_forearm': still([-40, 0, 0], L),
+        'head': {'rotation': track(lambda t: [6 + (sine(t, 0.3, 3) if 0.5 < t < 2.4 else 0), 0, 0], L, 30)},
+    }
+    if seated:
+        b.update(SIT_LEGS)
+    return anim(L, b)
+
+
+def drink(L=3.5):
+    return anim(L, {
+        'right_arm': {'rotation': poses([(0, [-30, -10, 4]), (0.6, [-80, -30, 4]), (1.6, [-95, -30, 4]), (2.2, [-30, -10, 4]), (L, [-30, -10, 4])], L, 20)},
+        'right_forearm': {'rotation': poses([(0, [-50, 0, 0]), (0.6, [-110, 0, 0]), (1.6, [-100, 0, 0]), (2.2, [-50, 0, 0]), (L, [-50, 0, 0])], L, 20)},
+        'head': {'rotation': poses([(0, [0, 0, 0]), (0.6, [-18, 0, 0]), (1.6, [-24, 0, 0]), (2.2, [0, 0, 0]), (L, [0, 0, 0])], L, 20)},
+        'left_arm': still([-6, 0, -5], L),
+    })
+
+
+def walk_with(over, P=1.0, **kw):
+    return anim(P, merged(legs_walk(P, **kw), over))
+
+
+def stand_with(over, L=3.0):
+    base = {
+        'chest': {'rotation': track(lambda t: [sine(t, L, 1.2), 0, sine(t, L * 2, 0.8)], L)},
+        'right_arm': {'rotation': track(lambda t: [sine(t, L, 2), 0, 3], L)},
+        'left_arm': {'rotation': track(lambda t: [sine(t, L, 2, 0.3), 0, -3], L)},
+    }
+    return anim(L, merged(base, over))
+
+
+LIFE = {
+    'eat': eat(),
+    'sit_eat': eat(4.0, True),
+    'drink': drink(),
+    'carry': stand_with(CARRY_ARMS),
+    'carry_walk': walk_with(CARRY_ARMS, 1.0, lean=6),
+    'bags': stand_with(BAG_ARMS),
+    'bags_walk': walk_with(BAG_ARMS),
+    'dogwalk': stand_with(LEASH_ARMS),
+    'dogwalk_walk': walk_with(LEASH_ARMS, 1.1),
+    'phonewalk': stand_with(EAR_ARMS),
+    'phonewalk_walk': walk_with(EAR_ARMS, 1.05),
+    'umbrella': stand_with(UMB_ARMS),
+    'umbrella_walk': walk_with(UMB_ARMS, 0.9),
+    # пробежка: лёгкий бег, руки согнуты
+    'jog': anim(0.7, merged(legs_walk(0.7, 34, 70, 1.0, 8, 8, arms=False), {
+        'right_arm': {'rotation': track(lambda t: [sine(t, 0.7, 38, 0.5), 0, 6], 0.7)},
+        'left_arm': {'rotation': track(lambda t: [sine(t, 0.7, 38), 0, -6], 0.7)},
+        'right_forearm': still([-85, 0, 0], 0.7), 'left_forearm': still([-85, 0, 0], 0.7)})),
+    'type': anim(2.0, merged(SIT_LEGS, {
+        'right_arm': {'rotation': track(lambda t: [-38 + sine(t, 0.25, 2), -14, 0], 2.0, 32)},
+        'left_arm': {'rotation': track(lambda t: [-38 + sine(t, 0.25, 2, 0.5), 14, 0], 2.0, 32)},
+        'right_forearm': {'rotation': track(lambda t: [-52 + max(0, sine(t, 0.2, 6)), 0, 0], 2.0, 40)},
+        'left_forearm': {'rotation': track(lambda t: [-52 + max(0, sine(t, 0.2, 6, 0.5)), 0, 0], 2.0, 40)},
+        'head': {'rotation': track(lambda t: [10 + sine(t, 2.0, 2), sine(t, 2.0, 6), 0], 2.0, 16)},
+        'chest': still([6, 0, 0], 2.0)})),
+    'sweep': anim(1.6, {
+        'right_arm': {'rotation': track(lambda t: [-40, -20 + sine(t, 1.6, 25), 6], 1.6)},
+        'left_arm': {'rotation': track(lambda t: [-55, 25 + sine(t, 1.6, 25), -6], 1.6)},
+        'right_forearm': still([-30, 0, 0], 1.6), 'left_forearm': still([-40, 0, 0], 1.6),
+        'chest': {'rotation': track(lambda t: [14, sine(t, 1.6, 18), 0], 1.6)},
+        'head': still([14, 0, 0], 1.6),
+    }),
+    'hammer': anim(0.8, {
+        'right_arm': {'rotation': track(lambda t: [-120 + 70 * max(0, math.sin(2 * math.pi * t / 0.8)), -8, 8], 0.8, 16)},
+        'right_forearm': {'rotation': track(lambda t: [-40, 0, 0], 0.8, 2)},
+        'left_arm': still([-50, 15, -4], 0.8), 'left_forearm': still([-30, 0, 0], 0.8),
+        'chest': {'rotation': track(lambda t: [16 + sine(t, 0.8, 4), 0, 0], 0.8)},
+        'waist': still([10, 0, 0], 0.8), 'head': still([20, 0, 0], 0.8),
+    }),
+    'smoke': anim(5.0, {  # рука ко рту и обратно, вторая на поясе, перенос веса
+        'right_arm': {'rotation': poses([(0, [-20, -15, 4]), (1.0, [-20, -15, 4]), (1.6, [-55, -32, 4]), (2.6, [-55, -32, 4]), (3.2, [-20, -15, 4]), (5.0, [-20, -15, 4])], 5.0, 20)},
+        'right_forearm': {'rotation': poses([(0, [-60, 0, 0]), (1.0, [-60, 0, 0]), (1.6, [-120, 0, 0]), (2.6, [-120, 0, 0]), (3.2, [-60, 0, 0]), (5.0, [-60, 0, 0])], 5.0, 20)},
+        'left_arm': still([-10, 0, -32], 5.0), 'left_forearm': still([-80, 25, 0], 5.0),
+        'head': {'rotation': poses([(0, [0, 10, 0]), (2.0, [-6, 0, 0]), (3.0, [-10, 0, 0]), (4.0, [0, -12, 0]), (5.0, [0, 10, 0])], 5.0, 20)},
+        'waist': {'rotation': track(lambda t: [0, 0, sine(t, 5.0, 3)], 5.0)},
+        'right_leg': still([0, 0, 5], 5.0), 'left_leg': still([-6, 0, -2], 5.0), 'left_shin': still([10, 0, 0], 5.0),
+    }),
+    'watch': anim(4.0, {
+        'left_arm': {'rotation': poses([(0, [-5, 0, -4]), (0.6, [-58, 40, -4]), (2.4, [-58, 40, -4]), (3.0, [-5, 0, -4]), (4.0, [-5, 0, -4])], 4.0, 20)},
+        'left_forearm': {'rotation': poses([(0, [-5, 0, 0]), (0.6, [-75, 0, 0]), (2.4, [-75, 0, 0]), (3.0, [-5, 0, 0]), (4.0, [-5, 0, 0])], 4.0, 20)},
+        'head': {'rotation': poses([(0, [0, 0, 0]), (0.6, [28, -15, 0]), (2.4, [28, -15, 0]), (3.0, [0, 10, 0]), (4.0, [0, 0, 0])], 4.0, 20)},
+    }),
+    'stretch': anim(4.0, {
+        'right_arm': {'rotation': poses([(0, [0, 0, 4]), (1.0, [-170, 0, 20]), (2.4, [-175, 0, 12]), (3.2, [0, 0, 4]), (4.0, [0, 0, 4])], 4.0, 20)},
+        'left_arm': {'rotation': poses([(0, [0, 0, -4]), (1.0, [-170, 0, -20]), (2.4, [-175, 0, -12]), (3.2, [0, 0, -4]), (4.0, [0, 0, -4])], 4.0, 20)},
+        'chest': {'rotation': poses([(0, [0, 0, 0]), (1.0, [-12, 0, 0]), (2.4, [-14, 0, 5]), (3.2, [0, 0, 0]), (4.0, [0, 0, 0])], 4.0, 20)},
+        'head': {'rotation': poses([(0, [0, 0, 0]), (1.0, [-20, 0, 0]), (2.4, [-20, 0, 6]), (3.2, [0, 0, 0]), (4.0, [0, 0, 0])], 4.0, 20)},
+    }),
+    'lean': anim(6.0, {  # спиной к стене: руки скрещены, нога согнута
+        'root': {'rotation': track(lambda t: [6, 0, 0], 6.0, 2)},
+        'right_arm': still([-38, -35, 0], 6.0), 'left_arm': still([-34, 35, 0], 6.0),
+        'right_forearm': still([-80, -10, 0], 6.0), 'left_forearm': still([-75, 10, 0], 6.0),
+        'left_leg': still([-22, 0, 0], 6.0), 'left_shin': still([40, 0, 0], 6.0),
+        'head': {'rotation': track(lambda t: [-4, sine(t, 6.0, 18), 0], 6.0)},
+    }),
+    'sitcross': anim(5.0, merged(SIT_LEGS, {  # нога на ногу
+        'right_leg': still([-90, 20, -8], 5.0), 'right_shin': {'rotation': track(lambda t: [62 + sine(t, 2.5, 6), 0, 0], 5.0)},
+        'right_arm': still([-28, -12, 6], 5.0), 'right_forearm': still([-40, 0, 0], 5.0),
+        'left_arm': still([-14, 0, -12], 5.0), 'left_forearm': still([-30, 0, 0], 5.0),
+        'chest': {'rotation': track(lambda t: [-4 + sine(t, 5, 1.5), 0, 0], 5.0)},
+        'head': {'rotation': track(lambda t: [0, sine(t, 5, 15), 0], 5.0)},
+    })),
+    # загорает: лёг на спину, руки за головой, одно колено согнуто, дышит
+    'sunbathe': anim(4.0, {
+        'root': {'rotation': track(lambda t: LIE['root'][0], 4.0, 2), 'position': track(lambda t: LIE['root'][1], 4.0, 2)},
+        'chest': {'scale': track(lambda t: [1, 1, 1 + sine(t, 4, 0.03)], 4.0)},
+        'head': {'rotation': track(lambda t: [-10, 0, sine(t, 8, 4)], 4.0)},
+        'right_arm': still([-160, 0, 35], 4.0), 'left_arm': still([-160, 0, -35], 4.0),
+        'right_forearm': still([-115, 0, 0], 4.0), 'left_forearm': still([-115, 0, 0], 4.0),
+        'right_leg': still([-35, 0, 4], 4.0), 'right_shin': {'rotation': track(lambda t: [62 + sine(t, 4, 4), 0, 0], 4.0)},
+        'left_leg': still([0, 0, -4], 4.0),
+    }),
+    # плывёт кролем: тело лицом вниз, руки гребут по очереди, ноги бьют
+    'swim': anim(1.6, {
+        'root': {'rotation': track(lambda t: [80, sine(t, 1.6, 6), 0], 1.6), 'position': track(lambda t: [0, 3 + sine(t, 0.8, 0.6), -8], 1.6)},
+        'right_arm': {'rotation': track(lambda t: [-200 + 360 * ((t / 1.6) % 1), 0, 10], 1.6, 32)},
+        'left_arm': {'rotation': track(lambda t: [-200 + 360 * ((t / 1.6 + 0.5) % 1), 0, -10], 1.6, 32)},
+        'right_leg': {'rotation': track(lambda t: [sine(t, 0.4, 14), 0, 0], 1.6, 32)},
+        'left_leg': {'rotation': track(lambda t: [sine(t, 0.4, 14, 0.5), 0, 0], 1.6, 32)},
+        'head': {'rotation': track(lambda t: [-35, sine(t, 1.6, 25), 0], 1.6)},
+    }),
+    'hail': anim(1.2, {  # ловит такси: рука высоко, машет
+        'right_arm': {'rotation': track(lambda t: [-150, 0, 30 + sine(t, 0.6, 14)], 1.2)},
+        'right_forearm': {'rotation': track(lambda t: [-12, 0, 0], 1.2, 2)},
+        'chest': {'rotation': track(lambda t: [-4, -10, 0], 1.2, 2)},
+        'head': still([-6, -10, 0], 1.2),
+    }),
+    'clap': anim(0.6, {
+        'right_arm': {'rotation': track(lambda t: [-55, -25 - 12 * abs(math.sin(2 * math.pi * t / 0.6)), 0], 0.6, 12)},
+        'left_arm': {'rotation': track(lambda t: [-55, 25 + 12 * abs(math.sin(2 * math.pi * t / 0.6)), 0], 0.6, 12)},
+        'right_forearm': still([-45, 0, 0], 0.6), 'left_forearm': still([-45, 0, 0], 0.6),
+        'head': {'rotation': track(lambda t: [-4, 0, sine(t, 0.6, 3)], 0.6)},
+    }),
+    'point': anim(2.0, {
+        'right_arm': {'rotation': track(lambda t: [-88 + sine(t, 0.5, 6), -6, 0], 2.0, 16)},
+        'right_forearm': still([-4, 0, 0], 2.0),
+        'left_arm': still([-10, 0, -32], 2.0), 'left_forearm': still([-80, 25, 0], 2.0),
+        'chest': still([4, -12, 0], 2.0), 'head': {'rotation': track(lambda t: [0, -6 + sine(t, 1.0, 5), 0], 2.0)},
+    }),
+    'shrug': anim(2.4, {
+        'right_arm': {'rotation': poses([(0, [-4, 0, 4]), (0.5, [-30, 20, 30]), (1.4, [-30, 20, 30]), (1.9, [-4, 0, 4]), (2.4, [-4, 0, 4])], 2.4, 20)},
+        'left_arm': {'rotation': poses([(0, [-4, 0, -4]), (0.5, [-30, -20, -30]), (1.4, [-30, -20, -30]), (1.9, [-4, 0, -4]), (2.4, [-4, 0, -4])], 2.4, 20)},
+        'right_forearm': {'rotation': poses([(0, [-5, 0, 0]), (0.5, [-70, 0, 0]), (1.4, [-70, 0, 0]), (1.9, [-5, 0, 0]), (2.4, [-5, 0, 0])], 2.4, 20)},
+        'left_forearm': {'rotation': poses([(0, [-5, 0, 0]), (0.5, [-70, 0, 0]), (1.4, [-70, 0, 0]), (1.9, [-5, 0, 0]), (2.4, [-5, 0, 0])], 2.4, 20)},
+        'head': {'rotation': poses([(0, [0, 0, 0]), (0.5, [-4, 0, 14]), (1.4, [-4, 0, 14]), (1.9, [0, 0, 0]), (2.4, [0, 0, 0])], 2.4, 20)},
+        'chest': {'rotation': poses([(0, [0, 0, 0]), (0.5, [-3, 0, 0]), (1.4, [-3, 0, 0]), (1.9, [0, 0, 0]), (2.4, [0, 0, 0])], 2.4, 20)},
+    }),
+    'rummage': anim(2.0, {  # роется в урне
+        'waist': still([40, 0, 0], 2.0), 'chest': {'rotation': track(lambda t: [22, sine(t, 2.0, 10), 0], 2.0)},
+        'right_arm': {'rotation': track(lambda t: [-70 + sine(t, 0.5, 18), -10, 0], 2.0, 32)},
+        'left_arm': {'rotation': track(lambda t: [-70 + sine(t, 0.5, 18, 0.5), 10, 0], 2.0, 32)},
+        'right_forearm': still([-20, 0, 0], 2.0), 'left_forearm': still([-20, 0, 0], 2.0),
+        'head': {'rotation': track(lambda t: [10, sine(t, 1.0, 12), 0], 2.0)},
+        'right_leg': still([-20, 0, 4], 2.0), 'left_leg': still([-20, 0, -4], 2.0),
+        'right_shin': still([30, 0, 0], 2.0), 'left_shin': still([30, 0, 0], 2.0),
+        'root': {'position': track(lambda t: [0, -1.2, 0], 2.0, 2)},
+    }),
+    # танцы: шаг в сторону с «насосом» рук; «диско» — палец вверх-вниз
+    'dance2': anim(1.0, {
+        'root': {'position': track(lambda t: [sine(t, 1.0, 2.0), abs(math.sin(2 * math.pi * t / 0.5)) * 0.8, 0], 1.0)},
+        'right_arm': {'rotation': track(lambda t: [-60 + sine(t, 0.5, 25), 0, 10], 1.0)},
+        'left_arm': {'rotation': track(lambda t: [-60 + sine(t, 0.5, 25, 0.5), 0, -10], 1.0)},
+        'right_forearm': still([-90, 0, 0], 1.0), 'left_forearm': still([-90, 0, 0], 1.0),
+        'right_leg': {'rotation': track(lambda t: [0, 0, max(0, sine(t, 1.0, 14))], 1.0)},
+        'left_leg': {'rotation': track(lambda t: [0, 0, -max(0, sine(t, 1.0, 14, 0.5))], 1.0)},
+        'chest': {'rotation': track(lambda t: [sine(t, 0.5, 5), 0, sine(t, 1.0, 6)], 1.0)},
+        'head': {'rotation': track(lambda t: [sine(t, 0.5, 9), 0, 0], 1.0)},
+    }),
+    'dance3': anim(1.6, {
+        'right_arm': {'rotation': track(lambda t: [-160 if (t % 0.8) < 0.4 else -20, 0, 35 if (t % 0.8) < 0.4 else -10], 1.6, 32)},
+        'right_forearm': still([-6, 0, 0], 1.6),
+        'left_arm': still([-10, 0, -32], 1.6), 'left_forearm': still([-80, 25, 0], 1.6),
+        'waist': {'rotation': track(lambda t: [0, 0, sine(t, 0.8, 8)], 1.6)},
+        'root': {'position': track(lambda t: [0, abs(math.sin(2 * math.pi * t / 0.4)) * 0.6, 0], 1.6)},
+        'right_leg': {'rotation': track(lambda t: [0, 0, sine(t, 0.8, 8)], 1.6)},
+        'left_leg': {'rotation': track(lambda t: [0, 0, sine(t, 0.8, 8)], 1.6)},
+    }),
+}
+
+
 def fix_joints():
     """Локти и колени гнутся только в свою сторону: предплечье вперёд (−X), голень назад (+X).
     Ключи выше записаны «наоборот» — переворачиваем (сидячие позы уже записаны верно)."""
@@ -524,6 +764,7 @@ def main():
     ANIMS.update(NEW)
     ANIMS.update(KO)
     ANIMS.update(BUSK)
+    ANIMS.update(LIFE)
     os.makedirs(f'{ROOT}/geo', exist_ok=True)
     os.makedirs(f'{ROOT}/animations', exist_ok=True)
     for slim in (False, True):

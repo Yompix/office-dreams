@@ -132,5 +132,7 @@
   "item.novograd.car_compact": "Малолитражка «Кроха»",
   "item.novograd.car_swat": "Бронефургон спецназа",
   "item.novograd.car_ambulance": "Скорая помощь",
-  "item.novograd.car_firetruck": "Пожарная машина"
+  "item.novograd.car_firetruck": "Пожарная машина",
+  "item.novograd.shopping_bag": "Пакет из магазина",
+  "item.novograd.umbrella": "Зонтик"
 }

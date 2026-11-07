@@ -132,5 +132,7 @@
   "item.novograd.car_compact": "City Compact",
   "item.novograd.car_swat": "SWAT Armored Van",
   "item.novograd.car_ambulance": "Ambulance",
-  "item.novograd.car_firetruck": "Fire Truck"
+  "item.novograd.car_firetruck": "Fire Truck",
+  "item.novograd.shopping_bag": "Shopping Bag",
+  "item.novograd.umbrella": "Umbrella"
 }
