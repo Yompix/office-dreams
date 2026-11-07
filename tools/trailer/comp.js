@@ -112,7 +112,8 @@ function pageMain() {
       g.shadowColor = 'rgba(0,0,0,.95)'; g.shadowBlur = 26 * U; const cy = H * .42;
       g.font = `700 ${116 * U * (1 + .04 * (pulse - .9) * 10)}px NSUI`; g.fillStyle = RED; spaced(L === 'ru' ? 'ПОДПИШИСЬ' : 'SUBSCRIBE', W / 2, cy + (1 - k) * 20 * U, 6 * U);
       g.font = `700 ${62 * U}px NSUI`; g.fillStyle = BONE; spaced('YOUTUBE + TELEGRAM', W / 2, cy + 130 * U, 4 * U);
-      g.font = `600 ${40 * U}px NSUI`; g.fillStyle = GOLD; for (const [i, l] of (L === 'ru' ? ['ТУТ — НОВЫЕ СТРАШИЛКИ', 'ССЫЛКА НА ТГ — В ПРОФИЛЕ'] : ['NEW SCARY STORIES HERE', 'TELEGRAM LINK IN PROFILE']).entries()) spaced(l, W / 2, cy + 230 * U + i * 60 * U, 4 * U);
+      g.font = `700 ${70 * U}px NSUI`; g.fillStyle = GOLD; spaced('@YOMPIXGAMES', W / 2, cy + 235 * U, 4 * U);
+      g.font = `600 ${40 * U}px NSUI`; g.fillStyle = GOLD; g.font = `600 ${40 * U}px NSUI`; g.fillStyle = 'rgba(236,232,220,.85)'; spaced(L === 'ru' ? 'НОВЫЕ СТРАШИЛКИ КАЖДУЮ НЕДЕЛЮ' : 'NEW SCARY STORIES EVERY WEEK', W / 2, cy + 330 * U, 4 * U);
       g.restore();
     } else if (cd.kind === 'end') {
       const a = fade(t, cd.at, cd.dur, .6, .01);
