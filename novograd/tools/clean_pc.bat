@@ -1,14 +1,17 @@
 @echo off
+rem Novograd: PC cleanup. Batch part is ASCII only; the script itself (Russian) is below #PSSTART.
 chcp 65001 >nul
-title Новоград — очистка компьютера
-:: права администратора нужны для системных папок (временные файлы Windows, кэш обновлений)
+title Novograd - cleanup
+set "NVG_SELF=%~f0"
 net session >nul 2>&1
-if %errorlevel% neq 0 (
-  echo Запрашиваю права администратора...
-  powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
-  exit /b
-)
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$t=[IO.File]::ReadAllText('%~f0',[Text.Encoding]::UTF8); $m='#'+'PS'+'START'; iex ($t.Substring($t.IndexOf($m)+$m.Length))"
+if %errorlevel%==0 goto run
+echo Requesting administrator rights...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Start-Process -FilePath $env:NVG_SELF -Verb RunAs -ErrorAction Stop; exit 0 } catch { exit 1 }"
+if %errorlevel%==0 exit /b
+echo No admin rights - running anyway (system folders will be skipped).
+:run
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$t=[IO.File]::ReadAllText($env:NVG_SELF,[Text.Encoding]::UTF8); $m='#'+'PS'+'START'; iex ($t.Substring($t.IndexOf($m)+$m.Length))"
+if errorlevel 1 echo PowerShell error. Send a screenshot of this window.
 pause
 exit /b
 
@@ -93,15 +96,15 @@ foreach ($c in $cats) {
         $sh = New-Object -ComObject Shell.Application
         $size = 0; $cnt = 0
         foreach ($i in $sh.Namespace(10).Items()) { $size += $i.Size; $cnt++ }
-        $c.Size = $size; $c.Count = $cnt; $c.List = $null
+        $c.Size = $size; $c.Num = $cnt; $c.List = $null
     } else {
         $list = @(& $c.F)
         $c.List = $list
         $c.Size = ($list | Measure-Object -Property Length -Sum).Sum
         if (-not $c.Size) { $c.Size = 0 }
-        $c.Count = $list.Count
+        $c.Num = $list.Count
     }
-    if ($c.Count -gt 0 -and $c.Size -gt 1MB) { $found += $c }
+    if ($c.Num -gt 0 -and $c.Size -gt 1MB) { $found += $c }
 }
 
 # Старые версии игры в TLauncher (кроме 1.21.1 — на ней Новоград)
@@ -128,7 +131,7 @@ foreach ($c in $found) {
     $n++
     $total += $c.Size
     Write-Host ''
-    Write-Host ("[$n] " + $c.N + ' — ' + (GB $c.Size) + ' (' + $c.Count + ' файлов)') -ForegroundColor White
+    Write-Host ("[$n] " + $c.N + ' — ' + (GB $c.Size) + ' (' + $c.Num + ' файлов)') -ForegroundColor White
     Write-Host ('    ' + $c.D)
     $col = 'Green'; if ($c.S -match 'ВНИМАНИЕ|только') { $col = 'Yellow' }
     Write-Host ('    ' + $c.S) -ForegroundColor $col

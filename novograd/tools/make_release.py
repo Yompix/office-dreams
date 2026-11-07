@@ -165,7 +165,7 @@ def main():
         fix = open(os.path.join(ROOT, 'tools', 'fix_launch.bat'), encoding='utf-8').read().replace('\r\n', '\n').replace('\n', '\r\n')
         z.writestr('ПОЧИНИТЬ_ЗАПУСК.bat', fix.encode('utf-8'))  # вылетает/тормозит — один запуск всё настраивает
         clean = open(os.path.join(ROOT, 'tools', 'clean_pc.bat'), encoding='utf-8').read().replace('\r\n', '\n').replace('\n', '\r\n')
-        z.writestr('ОЧИСТКА_КОМПЬЮТЕРА.bat', clean.encode('utf-8'))  # находит мусор, показывает и удаляет только то, что выберешь
+        z.writestr('CLEAN-PC.bat', clean.encode('utf-8'))  # находит мусор, показывает и удаляет только то, что выберешь
     files = []
     for m in mods:
         if m['group'] in ('replay', 'studio'):
