@@ -160,14 +160,14 @@ function story1(L) {
   S.push({ id: 'num', shot: 'booth_call', from: 'dg_it:1', t0: 3, cam: [.5, .48, 1.12, 1.2], dur: 3.0,
     card: cap('НОМЕР НА ЭКРАНЕ — ЭТОГО ЖЕ КАБИНЕТА', 'THE NUMBER ON THE SCREEN WAS THAT SAME OFFICE'), sfx: [['phone_crackle', .4, { gain: .35 }]] });
   S.push({ id: 'breath', shot: 'h_crouch', from: 'hide:2', t0: 2, cam: [.5, .5, 1.02, 1.1], dur: 3.4,
-    card: cap('В ТРУБКЕ ДЫШАЛИ. ПОТОМ ШЕПНУЛИ: «Я ПОД СТОЛОМ»', 'SOMEONE BREATHED. THEN WHISPERED: “I’M UNDER THE DESK”'), sfx: [['breath_close', .2, { gain: .35 }], ['whispers', 1.6, { gain: .3, cut: 1.6 }]], mark: 'silence' });
-  S.push({ id: 'look', shot: 'srv_dark', from: 'knock3:6', t0: 1.5, cam: [.5, .5, 1.04, 1.14], dur: 2.8,
-    card: cap('ОН ЗАГЛЯНУЛ ПОД СТОЛ. ТАМ НИКОГО НЕ БЫЛО', 'HE LOOKED UNDER THE DESK. NOTHING THERE'), sfx: [['heart_held', 0, { gain: .35 }]] });
+    card: cap('В ТРУБКЕ ДЫШАЛИ. ПОТОМ ШЕПНУЛИ: «Я ЗА ТОБОЙ»', 'SOMEONE BREATHED. THEN WHISPERED: “I’M RIGHT BEHIND YOU”'), sfx: [['breath_close', .2, { gain: .35 }], ['whispers', 1.6, { gain: .3, cut: 1.6 }]], mark: 'silence' });
+  S.push({ id: 'look', shot: 'entrance_empty', from: 'glass2:4', t0: 1, cam: [.5, .55, 1.06, 1.16], dur: 2.8,
+    card: cap('ОН ОБЕРНУЛСЯ. НИКОГО', 'HE TURNED AROUND. NO ONE'), sfx: [['heart_held', 0, { gain: .35 }]] });
   S.push({ id: 'home', black: 2.2, card: { kind: 'big', at: .2, dur: 2.0, lines: [T('ОН УШЁЛ ДОМОЙ', 'HE WENT HOME')] }, sfx: [['door_slams', .1, { gain: .4 }]] });
   S.push({ id: 'rec', shot: 'c13_back', from: 'cam13:1', t0: 1, cam: [.47, .42, 1.9, 2.3], cctv: T('ЗАПИСЬ  02:14', 'REC  02:14'), clock: '02:14', fx: 'static', dur: 3.6,
-    card: cap('УТРОМ ОХРАНА ПОКАЗАЛА ЕМУ ЗАПИСЬ С КАМЕРЫ', 'IN THE MORNING SECURITY SHOWED HIM THE TAPE'), sfx: [['static', 0, { gain: .4, cut: .5 }]] });
+    card: cap('УТРОМ ОХРАНА ПОКАЗАЛА ЗАПИСЬ: ЗА НИМ ВСЮ НОЧЬ КТО-ТО ХОДИЛ', 'IN THE MORNING SECURITY SHOWED THE TAPE: SOMEONE FOLLOWED HIM ALL NIGHT'), sfx: [['static', 0, { gain: .4, cut: .5 }]] });
   S.push({ id: 'rec2', shot: 'c13_face', from: 'over_stare:0', t0: 2.5, cam: [[.45, 1.5, -3.3], -.06, 1.5, 1.9], cctv: T('ЗАПИСЬ  02:15', 'REC  02:15'), clock: '02:15', fx: 'static', dur: 3.2,
-    card: cap('ПОД СТОЛОМ КТО-ТО СИДЕЛ. И СМОТРЕЛ ПРЯМО В КАМЕРУ', 'SOMEONE WAS SITTING UNDER THE DESK. STARING RIGHT AT THE CAMERA'), sfx: [['static', 0, { gain: .5, cut: 3 }], ['neck_crack', 2.2, { gain: .6 }]] });
+    card: cap('В 2:15 ОНО ОСТАНОВИЛОСЬ. И ПОСМОТРЕЛО В КАМЕРУ', 'AT 2:15 IT STOPPED. AND LOOKED AT THE CAMERA'), sfx: [['static', 0, { gain: .5, cut: 3 }], ['neck_crack', 2.2, { gain: .6 }]] });
   S.push({ id: 'lunge', shot: 'lunge_booth', t0: .55, cam: [.5, .5, 1, 1], scareAt: .75, dur: 1.6, sfx: [['jumpscare', .75, { gain: 1 }], ['scare', .75, { gain: .8 }]], mark: 'scare' });
   S.push({ id: 'cut', black: 2.6, card: { kind: 'big', at: .3, dur: 2.3, lines: [T('ТЫ БЫ ВЫШЕЛ НА СЛЕДУЮЩУЮ СМЕНУ?', 'WOULD YOU GO BACK FOR THE NEXT SHIFT?')] }, sfx: [['tinnitus', 0, { gain: .3, cut: 2.4 }]], mark: 'stinger' });
   S.push({ id: 'ad', black: 3.0, card: { kind: 'big', at: .1, dur: 2.9, lines: [T('ЛЮБИШЬ ТАКОЕ? СЫГРАЙ В НОЧНУЮ СМЕНУ САМ', 'LIKE THIS? PLAY A NIGHT SHIFT YOURSELF')] }, sfx: [['boom', .1, { gain: .7 }]] });
