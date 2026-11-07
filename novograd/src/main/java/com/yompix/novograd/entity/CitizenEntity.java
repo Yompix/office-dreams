@@ -104,6 +104,13 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             if (a.walking()) WALK_ACTS.put(a, software.bernie.geckolib.animation.RawAnimation.begin().thenLoop("animation.citizen." + a.name().toLowerCase() + (a == Activity.JOG ? "" : "_walk")));
     }
 
+    /** Клиент: сглаженный квадрат скорости по позиции (блоки за тик). */
+    private double clientSpeedSq;
+
+    private double animSpeedSq() {
+        return Math.max(clientSpeedSq, getVelocity().horizontalLengthSquared());
+    }
+
     @Override
     public void registerControllers(software.bernie.geckolib.animation.AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new software.bernie.geckolib.animation.AnimationController<>(this, "body", 5, state -> {
@@ -116,8 +123,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             state.getController().transitionLength(5);
             Activity a = getActivity();
             if (hasVehicle()) return state.setAndContinue(RIDE); // в машине — сидит на сиденье
-            double v = getVelocity().horizontalLengthSquared();
-            boolean moving = state.isMoving() && v > 1e-4;
+            double v = animSpeedSq();
+            boolean moving = v > 2.5e-4; // ~0.016 блока за тик — уже шаг
             if (moving && a.walking()) return state.setAndContinue(WALK_ACTS.get(a));
             if (a != Activity.IDLE && (!moving || a.pose())) return state.setAndContinue(ACTS.get(a));
             if (moving) return state.setAndContinue(v > 0.012 ? RUN : WALK);
@@ -125,7 +132,13 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         }).setAnimationSpeedHandler(e -> {
             // у каждого свой темп жестов — двое за одним делом не двигаются в такт (шаг и бег — без изменений, под скорость ног)
             Activity a = e.getActivity();
-            if (a == Activity.IDLE && e.getVelocity().horizontalLengthSquared() > 1e-4 || e.knockPhase() != KO_NONE) return 1.0;
+            double sp = e.animSpeedSq();
+            if (sp > 2.5e-4 && !a.pose() && e.knockPhase() == KO_NONE) {
+                // шаг и бег — темп ног под реальную скорость, чтобы не «скользили»
+                double v = Math.sqrt(sp);
+                return sp > 0.012 ? Math.max(0.8, Math.min(1.5, v / 0.17)) : Math.max(0.6, Math.min(1.6, v / 0.075));
+            }
+            if (e.knockPhase() != KO_NONE) return 1.0;
             return 0.86 + Math.floorMod(e.getUuid().hashCode() >>> 3, 29) / 100.0;
         }));
         controllers.add(new software.bernie.geckolib.animation.AnimationController<>(this, "action", 2, state -> software.bernie.geckolib.animation.PlayState.STOP)
@@ -489,6 +502,31 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         }
     }
 
+    private void unperch() {
+        var w = getWorld();
+        net.minecraft.util.math.BlockPos below = net.minecraft.util.math.BlockPos.ofFloored(getX(), getY() - 0.2, getZ());
+        var st = w.getBlockState(below);
+        var shape = st.getCollisionShape(w, below);
+        if (shape.isEmpty()) return;
+        var box = shape.getBoundingBox();
+        if (box.maxX - box.minX > 0.6 && box.maxZ - box.minZ > 0.6) return; // обычная опора
+        // узкая опора (столб, фонарь, забор): ищем рядом твёрдую землю и спускаемся
+        for (int r = 1; r <= 3; r++)
+            for (int dx = -r; dx <= r; dx++)
+                for (int dz = -r; dz <= r; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != r) continue;
+                    net.minecraft.util.math.BlockPos.Mutable m = new net.minecraft.util.math.BlockPos.Mutable(below.getX() + dx, below.getY() + 1, below.getZ() + dz);
+                    for (int dy = 0; dy < 8; dy++, m.move(0, -1, 0)) {
+                        var g = w.getBlockState(m.down());
+                        if (w.getBlockState(m).isAir() && w.getBlockState(m.up()).isAir() && g.isSideSolidFullSquare(w, m.down(), net.minecraft.util.math.Direction.UP)) {
+                            refreshPositionAndAngles(m.getX() + 0.5, m.getY(), m.getZ() + 0.5, getYaw(), 0);
+                            getNavigation().stop();
+                            return;
+                        }
+                    }
+                }
+    }
+
     /** Исчезнуть через несколько тиков (клиент такси вышел и ушёл по делам). */
     public void removeLater(int ticks) {
         removeIn = ticks;
@@ -497,6 +535,15 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
     @Override
     public void tick() {
         super.tick();
+        if (getWorld().isClient) {
+            // скорость по реальному сдвигу (на клиенте getVelocity у мобов почти всегда ~0 — ноги стояли, а человек ехал)
+            double dx = getX() - prevX, dz = getZ() - prevZ;
+            double s = dx * dx + dz * dz;
+            if (s > 4) s = 0; // телепорт — не шаг
+            clientSpeedSq = clientSpeedSq * 0.55 + s * 0.45;
+        }
+        // стоит на макушке фонаря/столбика/забора (появился по карте высот или запрыгнул) — спуститься рядом на землю
+        if (!getWorld().isClient && age % 20 == 11 && isOnGround() && !hasVehicle()) unperch();
         // двойник героя (старая копия из выгруженного района) — убрать, главный тот, кто записан в TownState
         if (!getWorld().isClient && !storyId.isEmpty() && age % 40 == 7 && getWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
             java.util.UUID main = com.yompix.novograd.world.TownState.get(sw).storyNpcs.get(storyId);
