@@ -2911,5 +2911,1045 @@
         "stream": true
       }
     ]
+  },
+  "voice.a6m10_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m10_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m11_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m11_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m11_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m11_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m11_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m11_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m11_04": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m11_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m11_05": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m11_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m12s_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m12s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m12s_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m12s_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m12s_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m12s_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m12s_04": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m12s_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m12s_05": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m12s_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m12_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m12_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m12_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m12_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m12_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m12_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.a6m12_04": {
+    "sounds": [
+      {
+        "name": "novograd:voice/a6m12_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_hello_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_hello_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_hello_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_hello_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_race_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_race_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_race_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_race_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_race_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_race_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_race_04": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_race_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_crash_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_crash_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_crash_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_crash_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_stars_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_stars_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_stars_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_stars_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_penthouse_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_penthouse_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_penthouse_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_penthouse_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_storm_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_storm_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_storm_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_storm_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_riviera_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_riviera_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_riviera_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_riviera_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_gym_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_gym_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_gym_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_gym_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_friend_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_friend_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_friend_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_friend_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_ring_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_ring_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_ring_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_ring_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_nika_ring_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_nika_ring_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_mom_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_mom_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_mom_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_mom_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_parts_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_parts_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_parts_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_parts_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_parts_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_parts_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_free_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_free_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_free_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_free_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_client_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_client_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_client_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_client_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_busted_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_busted_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_busted_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_busted_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_wasted_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_wasted_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_gleb_wasted_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_gleb_wasted_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_hello_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_hello_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_hello_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_hello_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_drinks_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_drinks_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_drinks_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_drinks_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_drinks_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_drinks_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_marco_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_marco_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_marco_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_marco_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_bank_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_bank_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_bank_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_bank_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_stalker_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_stalker_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_stalker_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_stalker_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_stalker_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_stalker_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_business_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_business_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_friend_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_friend_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_rosa_friend_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_rosa_friend_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_debtor_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_debtor_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_debtor_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_debtor_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_debtor_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_debtor_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_car_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_car_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_car_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_car_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_prison_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_prison_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_prison_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_prison_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_mom_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_mom_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_mom_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_mom_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_mom_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_mom_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_backup_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_backup_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_backup_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_backup_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_heist_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_heist_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_heist_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_heist_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_heist_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_heist_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_heist_04": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_heist_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_contract_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_contract_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_brick_contract_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_brick_contract_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_check_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_check_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_check_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_check_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_witness_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_witness_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_witness_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_witness_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_tail_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_tail_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_stars_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_stars_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_stars_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_stars_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_hero_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_hero_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_hero_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_hero_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_friend_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_friend_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_friend_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_friend_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_oath_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_oath_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_oath_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_oath_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_oath_03": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_oath_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_oath_04": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_oath_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_petrov_waiting_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_petrov_waiting_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_tema_drive_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_tema_drive_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_tema_drive_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_tema_drive_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_tema_gossip_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_tema_gossip_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_tema_gossip_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_tema_gossip_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_lena_news_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_lena_news_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_lena_news_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_lena_news_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_lena_drop_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_lena_drop_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_lena_heist_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_lena_heist_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_lena_heist_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_lena_heist_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_sofi_bar_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_sofi_bar_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_sofi_bar_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_sofi_bar_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_sofi_casino_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_sofi_casino_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_sofi_casino_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_sofi_casino_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_ray_boat_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_ray_boat_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_ray_boat_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_ray_boat_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_ray_smuggle_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_ray_smuggle_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_ray_smuggle_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_ray_smuggle_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_ray_launder_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_ray_launder_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_ray_launder_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_ray_launder_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_vince_sorry_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_vince_sorry_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_vince_sorry_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_vince_sorry_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_marco_offer_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_marco_offer_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_marco_offer_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_marco_offer_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_shakal_race_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_shakal_race_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_harris_prison_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_harris_prison_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_harris_prison_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_harris_prison_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_diaz_coffee_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_diaz_coffee_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_diaz_coffee_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_diaz_coffee_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_diaz_shift_01": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_diaz_shift_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.call_diaz_shift_02": {
+    "sounds": [
+      {
+        "name": "novograd:voice/call_diaz_shift_02",
+        "stream": true
+      }
+    ]
   }
 }
