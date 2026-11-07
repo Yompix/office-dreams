@@ -98,9 +98,7 @@ def bat(mods):
          ')',
          'echo Что ещё поставить (Y — да, N — нет):',
          'set /p BIG="  Flashback (запись и монтаж видео, 200 МБ) и AmbientSounds (звуки природы)? [Y/N]: "',
-         'set /p STUDIO="  BBS — киностудия как Blockbuster+Aperture (актёры, камера, анимации)? [Y/N]: "',
          'set /p SKINS="  Свои скины: CustomSkinLoader + SkinRestorer (скины видно и в онлайне)? [Y/N]: "',
-         'if /i not "%BIG%"=="Y" set /p REPLAY="  Replay Mod (запись повторов и пути камеры) вместо Flashback? [Y/N]: "',
          ':afterask',
          'echo.',
          'echo Удаляю старые версии этих модов (чтобы не было дубликатов)...',
@@ -136,7 +134,6 @@ def bat(mods):
           'echo.',
           'echo Готово! Запускай в TLauncher версию Fabric 1.21.1.',
           'echo В игре: Новый мир - Ещё - Тип мира «Новоград: Город».',
-          'echo Своё кино: F7 — Киностудия Новограда. Если ставил BBS — его клавиши в Настройки - Управление.',
           'echo Шейдеры: включён быстрый MakeUp Ultra Fast. Хочешь красивее — Настройки - Графика - Шейдеры - Complementary.',
           'pause']
     return '\r\n'.join(L) + '\r\n'
@@ -146,12 +143,10 @@ README = """Новоград: Кино для TLauncher
 
 1. В TLauncher выбери версию Fabric 1.21.1, запусти один раз и закрой.
 2. Распакуй этот архив куда угодно и запусти УСТАНОВИТЬ.bat (нужен интернет).
-   Он спросит, что ещё поставить: Flashback (запись видео), BBS (киностудия как Blockbuster/Aperture),
-   свои скины (CustomSkinLoader + SkinRestorer), Replay Mod (если не Flashback).
+   Он спросит, что ещё поставить: Flashback (запись видео),
+   свои скины (CustomSkinLoader + SkinRestorer).
 3. Запусти Fabric 1.21.1 и создай новый мир: Ещё - Тип мира «Новоград: Город».
 
-Своё кино без лишних модов: F7 в игре — «Киностудия Новограда»: свободная камера, ключевые кадры,
-плавный пролёт, облёт, зум и наклон, дубли-актёры (сыграй все роли сам), кинофильтры.
 
 Моды скачиваются с официального modrinth.com. Старые версии этих модов (и прошлые версии Новограда)
 удаляются, новые ставятся на их место. Другие твои моды не трогаются.
@@ -171,7 +166,7 @@ def main():
         z.writestr('ПОЧИНИТЬ_ЗАПУСК.bat', fix.encode('utf-8'))  # вылетает/тормозит — один запуск всё настраивает
     files = []
     for m in mods:
-        if m['group'] == 'replay':
+        if m['group'] in ('replay', 'studio'):
             continue  # Replay Mod и Flashback вместе не ставим: в Modrinth-сборке остаётся Flashback
         optional = m['group'] in ('big', 'studio', 'skins', 'fx')
         server = 'required' if m['prefix'] == 'fabric-api-' else ('optional' if m['prefix'] == 'skinrestorer-' else 'unsupported')
@@ -180,7 +175,7 @@ def main():
                       'env': {'client': 'optional' if optional else 'required', 'server': server},
                       'downloads': [m['url']], 'fileSize': m['size']})
     index = {'formatVersion': 1, 'game': 'minecraft', 'versionId': VER, 'name': 'Новоград: Кино',
-             'summary': 'Новоград + быстрые шейдеры MakeUp и Complementary, Sodium, Lithium, ImmediatelyFast, съёмка кино (Flashback, BBS, Camera Utils, Freecam), свои скины, живые звуки',
+             'summary': 'Новоград + быстрые шейдеры MakeUp и Complementary, Sodium, Lithium, ImmediatelyFast, запись видео (Flashback), свои скины, живые звуки',
              'files': files, 'dependencies': {'minecraft': '1.21.1', 'fabric-loader': '0.16.14'}}
     shader = next(m for m in mods if m['group'] == 'shader')['file']
     with zipfile.ZipFile(os.path.join(OUT, f'Novograd-Kino-{VER}.mrpack'), 'w', zipfile.ZIP_DEFLATED) as z:

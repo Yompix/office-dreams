@@ -35,14 +35,6 @@ public class LifePauseScreen extends Screen {
         menu.add("Телефон", "", () -> mc.setScreen(new PhoneScreen(null)));
         menu.add("Сюжет", "", () -> mc.setScreen(new PhoneScreen("story")));
         menu.add("Награды", "", () -> mc.setScreen(new PhoneScreen("trophy")));
-        menu.add(() -> com.yompix.novograd.client.FilmMode.active ? "Режим кино ✓" : "Режим кино", "", () -> {
-            com.yompix.novograd.client.FilmMode.toggle(mc);
-            mc.setScreen(null);
-        }, true);
-        menu.add(() -> com.yompix.novograd.client.studio.Studio.active() ? "Киностудия ✓" : "Киностудия (F7)", "", () -> {
-            mc.setScreen(null);
-            com.yompix.novograd.client.studio.Studio.toggle(mc);
-        }, true);
         menu.add("Чит-код (Ё)", "", () -> mc.setScreen(new com.yompix.novograd.client.screen.CheatScreen()));
         menu.add("Настройки игры", "", () -> mc.setScreen(new SettingsScreen(this)));
         menu.add("Настройки Minecraft", "", () -> mc.setScreen(new OptionsScreen(this, mc.options)));

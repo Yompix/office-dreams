@@ -61,7 +61,7 @@ public class NovogradClient implements ClientModInitializer {
     public static LifeData data = new LifeData();
     public static long dataVersion;
 
-    private static KeyBinding phoneKey, hornKey, mapKey, radioKey, radioDownKey, radioUpKey, jobKey, cinemaKey, studioKey, gradeKey, lightsKey, leftKey, rightKey, hazardKey, nitroKey;
+    private static KeyBinding phoneKey, hornKey, mapKey, radioKey, radioDownKey, radioUpKey, jobKey, cinemaKey, gradeKey, lightsKey, leftKey, rightKey, hazardKey, nitroKey;
     public static int wantedStars;
     public static boolean wantedSeen;
     private static final Map<Integer, CarEngineSound> ENGINES = new HashMap<>();
@@ -90,7 +90,6 @@ public class NovogradClient implements ClientModInitializer {
         radioKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.radio", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.novograd"));
         jobKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.job", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_J, "category.novograd"));
         cinemaKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.cinema", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.novograd"));
-        studioKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.studio", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F7, "category.novograd"));
         radioDownKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.radio_down", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_MINUS, "category.novograd"));
         radioUpKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.novograd.radio_up", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_EQUAL, "category.novograd"));
         NovogradConfig.load();
@@ -161,8 +160,6 @@ public class NovogradClient implements ClientModInitializer {
         HudRenderCallback.EVENT.register((ctx, t) -> TaxiClient.render(ctx));
         HudRenderCallback.EVENT.register((ctx, t) -> { if (!CinemaCam.active()) Minimap.render(ctx); });
         HudRenderCallback.EVENT.register((ctx, t) -> CinemaCam.render(ctx));
-        HudRenderCallback.EVENT.register((ctx, t) -> com.yompix.novograd.client.studio.Studio.render(ctx));
-        ClientPlayConnectionEvents.DISCONNECT.register((h, c) -> com.yompix.novograd.client.studio.Studio.onDisconnect());
         HudRenderCallback.EVENT.register((ctx, t) -> com.yompix.novograd.client.story.StoryHud.render(ctx));
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_TRANSLUCENT.register(com.yompix.novograd.client.story.StoryHud::renderWorld);
         ArsenalClient.init(); // колесо оружия (TAB), перезарядка (R пешком), прицел, гранаты
@@ -341,13 +338,10 @@ public class NovogradClient implements ClientModInitializer {
         CinemaCam.tick(client);
         TaxiClient.tick(client);
         CheatInput.tick(client);
-        while (studioKey.wasPressed()) com.yompix.novograd.client.studio.Studio.toggle(client);
-        com.yompix.novograd.client.studio.Studio.tick(client);
         while (radioDownKey.wasPressed()) CarRadio.volume(client, -0.1f);
         while (radioUpKey.wasPressed()) CarRadio.volume(client, 0.1f);
         CarRadio.tick(client);
         CityAmbience.tick(client);
-        FilmMode.tick(client);
         while (mapKey.wasPressed()) if (client.currentScreen == null) client.setScreen(new com.yompix.novograd.client.screen.MapScreen());
         ENGINES.values().removeIf(s -> s.isDone());
         if (screenshotIn >= 0 && --screenshotIn == 0) {
