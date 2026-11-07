@@ -123,6 +123,7 @@ public class DebrisEntity extends Entity {
                 double vy = v.y;
                 setVelocity(v.x * 0.55, Math.abs(vy) > 0.12 ? -vy * 0.3 : 0, v.z * 0.55);
                 spin *= 0.6f;
+                if (spin < 2) rot += (Math.round(rot / 90f) * 90 - rot) * 0.35f; // лёг на бок или на дно
             } else setVelocity(v.multiply(0.98));
             if (horizontalCollision) setVelocity(-v.x * 0.4, v.y, -v.z * 0.4);
             rot += spin;

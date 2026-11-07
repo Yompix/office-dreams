@@ -273,6 +273,12 @@ public final class CarModels {
                 s.wsB = 15; s.roofF = 9; s.roofR = -36; s.rwB = -36; s.roof = 38; s.inset = 0.5f; s.r = 5.5f; s.wF = 17; s.wR = -25;
                 s.panelVan = true; s.trunk = false; s.steelies = true;
             }
+            case BUS -> {
+                // городской автобус: плоский нос, огромные окна, кабина спереди, салон на 7 блоков назад
+                s.W = 17; s.zF = 34; s.zR = -112; s.sill = 5; s.belt = 17; s.hoodF = 17; s.trunkR = 17;
+                s.wsB = 28; s.roofF = 32; s.roofR = -110; s.rwB = -110; s.roof = 46; s.inset = 0.5f; s.r = 6; s.ww = 5; s.wF = 18; s.wR = -86;
+                s.trunk = false; s.steelies = true;
+            }
             default -> {}
         }
         return s;
@@ -702,6 +708,18 @@ public final class CarModels {
                 b.sym("bar_red", W - 4, s.roof - 1.5f, s.zR - 0.4f, W - 1, s.roof, s.zR);
                 b.box("trim", -0.15f, s.sill + 1, s.zR - 0.06f, 0.15f, s.roof - 1, s.zR);
                 b.box("chrome", -6, s.sill - 0.6f, s.zR - 2.4f, 6, s.sill + 0.4f, s.zR); // ступенька
+            }
+            case BUS -> {
+                // стойки окон по всей длине, табло маршрута над лобовым, полоса, двери, кондиционер на крыше, решётка мотора сзади
+                for (float z = -100; z < 20; z += 15) b.sym("trim", iw - 0.8f, s.belt, z - 0.7f, iw + 0.05f, s.roof, z + 0.7f);
+                b.box("bar_base", -12, s.roof - 7, 30.2f, 12, s.roof - 1, 31.2f);
+                b.box("taxi_sign", -11, s.roof - 6.5f, 31.2f, 11, s.roof - 1.5f, 31.6f);
+                b.sym("taxi_sign", W, s.roof - 6, -30, W + 0.08f, s.roof - 2, -10);          // табло на борту
+                b.sym("stripe", W, s.sill + 5, s.zR + 1, W + 0.07f, s.sill + 8, s.zF - 3);
+                for (float z : new float[]{22, 8, -42, -56}) b.sym("trim", W, s.sill + 1, z - 0.2f, W + 0.08f, s.roof - 1, z + 0.2f); // двери
+                b.box("trim", -9, s.roof + 1.4f, -64, 9, s.roof + 4.4f, -40);
+                b.box("grille", -11, s.sill + 3, s.zR - 0.3f, 11, s.sill + 9, s.zR);
+                b.box("chrome", -W + 1, s.sill - 0.6f, s.zF - 1, W - 1, s.sill + 1, s.zF + 1.2f);
             }
             case TRUCK, FIRETRUCK -> {
                 // будка, рама, сдвоенные задние колёса, вертикальная выхлопная труба

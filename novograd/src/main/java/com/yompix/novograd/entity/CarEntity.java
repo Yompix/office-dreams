@@ -34,11 +34,13 @@ public class CarEntity extends Entity {
      *  8 пикап, 9 маслкар, 10 лимузин, 11 грузовик; 0.4: 12 суперкар, 13 классика 70-х, 14 лоурайдер, 15 багги,
      *  16 малолитражка, 17 спецназ (бронефургон), 18 скорая, 19 пожарная (см. CarBody). */
     public static final String[] VARIANTS = {"red", "blue", "yellow", "black", "white", "taxi", "police", "suv", "pickup", "muscle", "limo", "truck",
-            "super", "classic", "lowrider", "buggy", "compact", "swat", "ambulance", "firetruck"};
+            "super", "classic", "lowrider", "buggy", "compact", "swat", "ambulance", "firetruck", "bus"};
     public static final int[] COLORS = {0xD7262C, 0x2C6ECB, 0xF2C032, 0x2A2C31, 0xE8E8EA, 0xF7C600, 0xF2F4F7, 0x3E4B3C, 0xB5462A, 0xF07A12, 0x15161A, 0xE4E4DE,
-            0x7BC639, 0x6A2C1E, 0x5B2A86, 0xE07A1F, 0x7FC8D8, 0x1C1F24, 0xF5F7FA, 0xC4161C};
+            0x7BC639, 0x6A2C1E, 0x5B2A86, 0xE07A1F, 0x7FC8D8, 0x1C1F24, 0xF5F7FA, 0xC4161C, 0xC8322B};
     public static final int POLICE = 6;
-    public static final int SUPERCAR = 12, CLASSIC = 13, LOWRIDER = 14, BUGGY = 15, COMPACT = 16, SWAT = 17, AMBULANCE = 18, FIRETRUCK = 19;
+    public static final int SUPERCAR = 12, CLASSIC = 13, LOWRIDER = 14, BUGGY = 15, COMPACT = 16, SWAT = 17, AMBULANCE = 18, FIRETRUCK = 19, BUS = 20;
+    /** Стоит на красном или в очереди за стоящими (gta/TrafficLights): тиков осталось. Задние не объезжают такую машину. */
+    public int lightWait;
     /** Бензин 0..FUEL_MAX (gta/Fuel): полный бак — 15–20 минут езды. */
     public static final int FUEL_MAX = 1000;
     private static final TrackedData<Integer> FUEL = DataTracker.registerData(CarEntity.class, TrackedDataHandlerRegistry.INTEGER);
@@ -277,6 +279,7 @@ public class CarEntity extends Entity {
         route = null;
         chaseTarget = null;
         wreckTicks = 1200;
+        com.yompix.novograd.world.Destruction.carExploded(w, this); // стёкла, огонь, сигнализации вокруг
     }
 
     private void gtaTick() {
@@ -386,6 +389,10 @@ public class CarEntity extends Entity {
     public ActionResult interact(PlayerEntity player, Hand hand) {
         if (player.shouldCancelInteraction()) return ActionResult.PASS;
         if (getWorld().isClient) return ActionResult.SUCCESS;
+        if (player instanceof ServerPlayerEntity spBus) { // автобус на остановке: сесть пассажиром за $5 (gta/Buses)
+            ActionResult busR = com.yompix.novograd.gta.Buses.interact(this, spBus);
+            if (busR != null) return busR;
+        }
         if (wrecked()) {
             player.sendMessage(Text.literal("🔥 Машина разбита — её починят только в «Нитро-Гараже»"), true);
             return ActionResult.CONSUME;
@@ -470,6 +477,7 @@ public class CarEntity extends Entity {
         if (!(this instanceof com.yompix.novograd.vehicle.MotorVehicle)) {
             if (!getWorld().isClient) runOver();
             else if (isLogicalSideForUpdatingMovement()) runOverClient();
+            if (!getWorld().isClient) com.yompix.novograd.world.Destruction.carTick(this, hitMotion); // фонари, гидранты, урны, стёкла, сигнализации
         }
         // поворот машины передаём пассажирам в updatePassengerPosition — после их тика,
         // тогда камера поворачивается плавно между кадрами, а не ступеньками раз в тик
@@ -539,7 +547,7 @@ public class CarEntity extends Entity {
     }
 
     private double halfWid() {
-        return isScooter() || isBike() ? 0.45 : body().truck() || body() == CarBody.VAN || body() == CarBody.SWAT || body() == CarBody.AMBULANCE ? 1.15 : body() == CarBody.COMPACT ? 0.85 : 1.0;
+        return isScooter() || isBike() ? 0.45 : body().truck() || body() == CarBody.VAN || body() == CarBody.SWAT || body() == CarBody.AMBULANCE || body() == CarBody.BUS ? 1.15 : body() == CarBody.COMPACT ? 0.85 : 1.0;
     }
 
     /** Кого задевает машина, едущая по dir: точка в кузове (с запасом) и впереди по ходу. */
@@ -667,7 +675,7 @@ public class CarEntity extends Entity {
 
     /** Физика: газ, тормоз, задний ход, руль зависит от скорости, гравитация, ступеньки до 1 блока. */
     /** Кто впереди на полосе движения. */
-    private record Obstacle(double dist, double lat, boolean still, boolean living) {}
+    private record Obstacle(double dist, double lat, boolean still, boolean living, boolean player, boolean queued) {}
 
     private int blocked, dodgeTicks, reverse;
     private Vec3d legFrom;
@@ -676,15 +684,18 @@ public class CarEntity extends Entity {
     @org.jetbrains.annotations.Nullable
     private Obstacle scanAhead(Vec3d fwd, Vec3d side) {
         Obstacle best = null;
-        for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(11, 2, 11),
+        for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(17, 2, 17),
                 e -> !hasPassenger(e) && !e.hasVehicle() && (e instanceof CarEntity || e instanceof LivingEntity) && !(e instanceof net.minecraft.entity.decoration.ArmorStandEntity) && !e.isSpectator())) {
             Vec3d rel = e.getPos().subtract(getPos());
             double along = rel.dotProduct(fwd), lat = rel.dotProduct(side);
+            if (e instanceof CarEntity oc && oc.body() == CarBody.BUS && !oc.isBike() && !oc.isScooter()) along -= 7 * Math.max(0, rel.normalize().dotProduct(oc.getRotationVector().multiply(1, 0, 1).normalize())); // длинный автобус: его зад ближе центра
             double halfW = e instanceof CarEntity ? 2.0 : 1.4;
             if (along < 1.0 || along > 11 || Math.abs(lat - dodge) > halfW) continue;
             if (best == null || along < best.dist) {
-                boolean still = e.getVelocity().horizontalLengthSquared() < 0.003 && !(e instanceof CarEntity c && Math.abs(c.speed) > 0.05f);
-                best = new Obstacle(along, lat, still, e instanceof LivingEntity);
+                boolean queued = e instanceof CarEntity qc && qc.lightWait > 0;
+                boolean still = !queued && e.getVelocity().horizontalLengthSquared() < 0.003 && !(e instanceof CarEntity c && Math.abs(c.speed) > 0.05f);
+                boolean pl = e instanceof PlayerEntity || e instanceof CarEntity pc && pc.getControllingPassenger() instanceof PlayerEntity;
+                best = new Obstacle(along, lat, still, e instanceof LivingEntity, pl, queued);
             }
         }
         return best;
@@ -746,6 +757,10 @@ public class CarEntity extends Entity {
                 }
                 if (ob != null && ob.living && ob.dist < 7 && age % 50 == 0 && !getWorld().isClient)
                     getWorld().playSound(null, getBlockPos(), ModContent.CAR_HORN, SoundCategory.NEUTRAL, 0.6f, 1.1f);
+                else if (ob != null && ob.player && !ob.living && ob.dist < 9 && blocked > 20 && age % 30 == 0 && !getWorld().isClient)
+                    getWorld().playSound(null, getBlockPos(), ModContent.CAR_HORN, SoundCategory.NEUTRAL, 0.9f, body() == CarBody.BUS || body().truck() ? 0.75f : 1.05f); // игрок встал поперёк — сигналим
+                if (lightWait > 0) lightWait--;
+                if (ob != null && ob.queued && ob.dist < 12) lightWait = Math.max(lightWait, 8); // стоим в очереди на светофоре
                 double tx = t.x, tz = t.z;
                 if (dodge != 0) {
                     // перестраиваемся: цель — точка в 7 блоках впереди на соседней полосе
@@ -771,6 +786,7 @@ public class CarEntity extends Entity {
                 // тормозим перед поворотами, у цели и перед тем, кто впереди
                 float limit = Math.abs(diff) > 50 ? 0.18f : last && dist < 10 ? 0.22f : autoMax;
                 if (ob != null) limit = Math.min(limit, (float) Math.max(0, (ob.dist - (ob.living ? 3.2 : 4.6)) / 6.0) * autoMax);
+                if (!getWorld().isClient) limit = Math.min(limit, com.yompix.novograd.gta.TrafficLights.limit(this, fwdV, autoMax)); // красный — стоп-линия
                 if (reverse > 0) {
                     // задний ход, колёса прямо
                     reverse--;
@@ -1003,6 +1019,7 @@ public class CarEntity extends Entity {
     private double exhaustBack() {
         return switch (body()) {
             case LIMO -> 2.45;
+            case BUS -> 1.9;
             case TRUCK, FIRETRUCK -> 2.2;
             case AMBULANCE, SWAT -> 1.95;
             case LOWRIDER, CLASSIC -> 1.9;
@@ -1042,6 +1059,12 @@ public class CarEntity extends Entity {
             passenger.setHeadYaw(passenger.getHeadYaw() + tickYawDelta);
         }
         if (passenger instanceof LivingEntity le) le.setBodyYaw(getYaw());
+    }
+
+    /** Длинные кузова (автобус, грузовик) уходят далеко назад — не прятать их, пока видна только корма. */
+    @Override
+    public net.minecraft.util.math.Box getVisibilityBoundingBox() {
+        return !isBike() && !isScooter() && (body() == CarBody.BUS || body().truck()) ? getBoundingBox().expand(7.5, 1.5, 7.5) : super.getVisibilityBoundingBox();
     }
 
     /** Низкие кузова: сиденья ниже (спорткупе, маслкар), чтобы голова не торчала сквозь крышу. */

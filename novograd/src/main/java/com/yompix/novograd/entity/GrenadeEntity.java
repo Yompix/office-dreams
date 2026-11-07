@@ -91,6 +91,7 @@ public class GrenadeEntity extends ThrownItemEntity {
             w.playSound(null, at.x, at.y, at.z, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.PLAYERS, 1.2f, 0.8f);
             w.spawnParticles(ParticleTypes.FLAME, at.x, at.y + 0.2, at.z, 40, 1.2, 0.3, 1.2, 0.05);
             if (getOwner() instanceof LivingEntity o) Crime.gunshot(w, o, at);
+            com.yompix.novograd.world.Fires.igniteAround(w, at, 2.5, 3); // горят урны, скамейки, заборы, машины рядом
         }
     }
 
@@ -134,6 +135,7 @@ public class GrenadeEntity extends ThrownItemEntity {
         w.spawnParticles(ParticleTypes.LARGE_SMOKE, x, y + 0.5, z, 20, 1, 0.6, 1, 0.04);
         w.spawnParticles(ParticleTypes.LAVA, x, y, z, 8, 0.4, 0.2, 0.4, 0);
         if (getOwner() instanceof LivingEntity o) Crime.gunshot(w, o, getPos());
+        com.yompix.novograd.world.Destruction.explosion(w, getPos(), 2.6f, getOwner() instanceof LivingEntity o ? o : null); // стёкла, предметы, огонь
         discard();
     }
 

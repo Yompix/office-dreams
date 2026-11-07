@@ -73,6 +73,7 @@ public class RocketEntity extends ThrownItemEntity {
         for (CarEntity car : w.getEntitiesByClass(CarEntity.class, getBoundingBox().expand(4), c -> true))
             car.hitByBullet(60f * (float) Math.max(0.2, 1 - car.distanceTo(this) / 5), getOwner() instanceof LivingEntity o ? o : null);
         if (getOwner() instanceof LivingEntity o) Crime.gunshot(w, o, getPos());
+        com.yompix.novograd.world.Destruction.explosion(w, getPos(), 3.8f, getOwner() instanceof LivingEntity o ? o : null); // стёкла, предметы, огонь
         discard();
     }
 }

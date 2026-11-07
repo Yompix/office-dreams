@@ -14,6 +14,15 @@
   "block.novograd.lamp_post": "Столб",
   "block.novograd.street_lamp": "Уличный фонарь",
   "block.novograd.atm": "Банкомат",
+  "block.novograd.vending_machine": "Автомат с газировкой",
+  "block.novograd.payphone": "Таксофон",
+  "block.novograd.news_stand": "Газетный киоск",
+  "block.novograd.hotdog_cart": "Тележка с хот-догами",
+  "block.novograd.icecream_cart": "Тележка с мороженым",
+  "block.novograd.propane_tank": "Баллон с пропаном",
+  "block.novograd.traffic_cone": "Дорожный конус",
+  "block.novograd.street_lamp_broken": "Разбитый фонарь",
+  "entity.novograd.debris": "Обломок",
   "block.novograd.job_board": "Доска вакансий",
   "block.novograd.mailbox": "Почтовый ящик",
   "block.novograd.shop_counter": "Прилавок с кассой",
@@ -133,6 +142,7 @@
   "item.novograd.car_swat": "Бронефургон спецназа",
   "item.novograd.car_ambulance": "Скорая помощь",
   "item.novograd.car_firetruck": "Пожарная машина",
+  "item.novograd.car_bus": "Автобус",
   "item.novograd.shopping_bag": "Пакет из магазина",
   "item.novograd.umbrella": "Зонтик"
 }

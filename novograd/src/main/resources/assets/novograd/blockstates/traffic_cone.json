@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "novograd:block/traffic_cone"
+  },
+  "facing=east": {
+   "model": "novograd:block/traffic_cone",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "novograd:block/traffic_cone",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "novograd:block/traffic_cone",
+   "y": 270
+  }
+ }
+}

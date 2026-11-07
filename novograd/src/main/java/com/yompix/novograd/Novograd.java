@@ -30,6 +30,7 @@ public class Novograd implements ModInitializer {
         com.yompix.novograd.world.CasinoBuilder.init(); // зал казино «Золотая корона» на Ривьере
         com.yompix.novograd.world.Elevators.init(); // лифты в небоскрёбах и отелях, сесть на стул/диван
         com.yompix.novograd.world.Housing.init(); // недвижимость, гаражи, жильцы острова, уличные музыканты
+        com.yompix.novograd.world.Props.init(); // автоматы, таксофоны, киоски; ломающиеся фонари, гидранты, стёкла; пожары
         LOG.info("Новоград загружен: город, сюжет, машины, оружие");
     }
 }

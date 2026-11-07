@@ -2428,5 +2428,22 @@
         "name": "novograd:rpg_reload"
       }
     ]
+  },
+  "radio_static": {
+    "sounds": [
+      {
+        "name": "novograd:radio_static",
+        "volume": 0.6
+      }
+    ],
+    "subtitle": "Треск рации"
+  },
+  "radio_chirp": {
+    "sounds": [
+      {
+        "name": "novograd:radio_chirp",
+        "volume": 0.7
+      }
+    ]
   }
 }

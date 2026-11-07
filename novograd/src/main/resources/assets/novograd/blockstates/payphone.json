@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "novograd:block/payphone"
+  },
+  "facing=east": {
+   "model": "novograd:block/payphone",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "novograd:block/payphone",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "novograd:block/payphone",
+   "y": 270
+  }
+ }
+}

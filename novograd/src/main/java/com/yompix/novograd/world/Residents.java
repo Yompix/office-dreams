@@ -538,6 +538,7 @@ public final class Residents {
         if (!w.isChunkLoaded(bp)) return false;
         Vec3d pos = freeSpot(w, at[0]);
         if (pos == null) return false;
+        if (w.isSkyVisible(BlockPos.ofFloored(pos).up()) && !Sidewalks.unseen(w, pos.add(0, 1, 0))) return false; // на улице — не из воздуха на глазах
         CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, w);
         c.setup(r.skin, CitizenEntity.Role.CITIZEN, false, r.name);
         c.randomizeBody(net.minecraft.util.math.random.Random.create(r.seed), false);
@@ -579,8 +580,8 @@ public final class Residents {
             a.mode = null;
             return;
         }
-        if (a.leaving) { // переезжает: дошёл до улицы (или лифта) — исчез
-            if (a.goal == null || c.squaredDistanceTo(a.goal) < 4 || c.directTo == null) c.discard();
+        if (a.leaving) { // переезжает: дошёл до улицы (или лифта) — исчез (но не на глазах у игрока)
+            if ((a.goal == null || c.squaredDistanceTo(a.goal) < 4 || c.directTo == null) && Sidewalks.unseen(c)) c.discard();
             return;
         }
         double h = hour(w, r);
@@ -591,7 +592,7 @@ public final class Residents {
             if (a.lying) wake(c, a);
             Vec3d exit = c.getY() - (r.homeUp ? r.homeGround.y : c.getY()) > 3 && r.homeUp ? r.homeDoor : null;
             Vec3d to = exit != null ? exit : a.goal != null ? a.goal : c.getPos();
-            if (c.squaredDistanceTo(to) < 4 || c.directTo == null && now > a.until) c.discard();
+            if (c.squaredDistanceTo(to) < 4 || c.directTo == null && now > a.until) gone(c, exit == null);
             else if (c.directTo == null) {
                 go(c, to, 0.6);
                 a.until = now + 400;
@@ -604,7 +605,7 @@ public final class Residents {
         if (upstairs) {
             if (a.lying) wake(c, a);
             Vec3d lift = r.homeUp && Math.abs(c.getY() - r.homeDoor.y) < 3 ? r.homeDoor : new Vec3d(c.getX(), c.getY(), c.getZ());
-            if (c.squaredDistanceTo(lift) < 4 || now > a.until + 600) c.discard();
+            if (c.squaredDistanceTo(lift) < 4 || now > a.until + 600) gone(c, false);
             else if (c.directTo == null) {
                 go(c, lift, 0.6);
                 if (a.mode != m) a.until = now;
@@ -621,7 +622,7 @@ public final class Residents {
                     a.goal = target;
                     go(c, target, 0.6);
                 }
-                if (c.directTo == null && c.squaredDistanceTo(target) < 4 && (m == Mode.LEAVE_HOME || m == Mode.LEAVE_WORK)) c.discard(); // уехал
+                if (c.directTo == null && c.squaredDistanceTo(target) < 4 && (m == Mode.LEAVE_HOME || m == Mode.LEAVE_WORK)) gone(c, true); // уехал
             }
             case SLEEP -> {
                 if (a.lying) return;
@@ -633,7 +634,7 @@ public final class Residents {
             }
             default -> {
                 if (a.lying) wake(c, a);
-                if (c.squaredDistanceTo(target) > 36) {
+                if (c.squaredDistanceTo(target) > 36 && (!c.isBusy() || changed)) { // занят делом (плывёт, носит ящики) — не дёргать
                     if (c.directTo == null || changed) go(c, target, 0.6);
                     return;
                 }
@@ -644,10 +645,33 @@ public final class Residents {
         }
     }
 
-    /** Идти по делам: не отвлекаясь на болтовню и потасовки с прохожими (занятие «в пути»). */
+    /**
+     * Уйти «за кадр» (сел в машину/такси, уехал на лифте): только когда никто из игроков не смотрит.
+     * На глазах — ловит такси у бордюра (на улице) или ждёт лифт, посматривая на часы.
+     */
+    private static void gone(CitizenEntity c, boolean street) {
+        if (Sidewalks.unseen(c)) {
+            c.discard();
+            return;
+        }
+        if (!c.isBusy()) c.busy(street ? CitizenEntity.Activity.HAIL : CitizenEntity.Activity.WATCH, 60 + c.getRandom().nextInt(60), null, ItemStack.EMPTY);
+    }
+
+    /** Идти по делам по тротуарам (world/Sidewalks): не отвлекаясь на болтовню; в дождь — под зонтиком, кто-то говорит по телефону. */
     private static void go(CitizenEntity c, Vec3d to, double speed) {
-        c.direct(to, speed);
-        c.busy(CitizenEntity.Activity.IDLE, 400, null, ItemStack.EMPTY);
+        CitizenEntity.Activity act = null;
+        ItemStack held = ItemStack.EMPTY;
+        if (c.getWorld().isRaining() && c.getWorld().isSkyVisible(c.getBlockPos().up())) {
+            act = CitizenEntity.Activity.UMBRELLA;
+            held = new ItemStack(ModContent.UMBRELLA);
+            speed += 0.15;
+        } else if (c.getRandom().nextInt(5) == 0) {
+            act = CitizenEntity.Activity.PHONEWALK;
+            held = new ItemStack(ModContent.PHONE);
+        }
+        boolean indoors = !c.getWorld().isSkyVisible(c.getBlockPos().up()) || Math.abs(c.getY() - to.y) > 3;
+        c.walkRoute(indoors ? List.of(to) : Sidewalks.route(c.getPos(), to), speed, act, held, null);
+        if (c.directTo == null) c.direct(to, speed);
     }
 
     /** Чем занят на месте: работа, обед, досуг, дома. */
@@ -656,52 +680,82 @@ public final class Residents {
         int ticks = 600;
         switch (m) {
             case WORK -> {
-                if (r.work.equals("office")) {
+                if (r.work.equals("office")) { // за столом печатает; иногда — звонок, кофе, часы, потянуться
                     BlockPos chair = chair(w, BlockPos.ofFloored(at), 5);
-                    if (chair != null && rnd.nextInt(4) != 0) c.busy(CitizenEntity.Activity.SIT, ticks, Vec3d.ofBottomCenter(chair), ItemStack.EMPTY);
+                    int k = rnd.nextInt(10);
+                    if (chair != null && k < 7) c.busy(k < 5 ? CitizenEntity.Activity.TYPE : CitizenEntity.Activity.SIT, ticks, Vec3d.ofBottomCenter(chair), ItemStack.EMPTY);
+                    else if (k < 8) c.busy(CitizenEntity.Activity.DRINK, 200, at, new ItemStack(ModContent.COLA));
+                    else if (k < 9) c.busy(CitizenEntity.Activity.STRETCH, 120, at, ItemStack.EMPTY);
                     else c.busy(CitizenEntity.Activity.PHONE, ticks, at, new ItemStack(ModContent.PHONE));
                     return;
                 }
                 CitizenEntity.Activity act = switch (r.work) {
-                    case "bar", "food", "shop", "hotel", "bank" -> rnd.nextBoolean() ? CitizenEntity.Activity.TALK : CitizenEntity.Activity.THINK;
+                    case "bar" -> rnd.nextBoolean() ? CitizenEntity.Activity.TALK : rnd.nextBoolean() ? CitizenEntity.Activity.SWEEP : CitizenEntity.Activity.LAUGH;
+                    case "food", "shop", "bank" -> rnd.nextInt(3) == 0 ? CitizenEntity.Activity.SWEEP : rnd.nextBoolean() ? CitizenEntity.Activity.TALK : CitizenEntity.Activity.THINK;
+                    case "hotel" -> rnd.nextBoolean() ? CitizenEntity.Activity.SWEEP : CitizenEntity.Activity.TALK;
                     case "casino" -> rnd.nextBoolean() ? CitizenEntity.Activity.CHEER : CitizenEntity.Activity.TALK;
-                    case "police", "hospital" -> rnd.nextBoolean() ? CitizenEntity.Activity.PHONE : CitizenEntity.Activity.THINK;
+                    case "police" -> rnd.nextBoolean() ? CitizenEntity.Activity.PHONE : CitizenEntity.Activity.WATCH;
+                    case "hospital" -> rnd.nextBoolean() ? CitizenEntity.Activity.PHONE : CitizenEntity.Activity.THINK;
+                    case "port", "marina" -> CitizenEntity.Activity.CARRY;
+                    case "garage", "air" -> rnd.nextInt(3) == 0 ? CitizenEntity.Activity.THINK : CitizenEntity.Activity.HAMMER;
+                    case "farm" -> CitizenEntity.Activity.SWEEP;
+                    case "gym" -> rnd.nextBoolean() ? CitizenEntity.Activity.STRETCH : CitizenEntity.Activity.CHEER;
                     default -> CitizenEntity.Activity.THINK;
                 };
                 Item held = switch (r.work) {
-                    case "port" -> Items.CHEST;
-                    case "garage", "air" -> Items.IRON_INGOT;
-                    case "farm" -> Items.WHEAT;
-                    case "food" -> ModContent.BURGER;
+                    case "port", "marina" -> rnd.nextBoolean() ? Items.CHEST : ModContent.PARCEL;
+                    case "garage", "air" -> act == CitizenEntity.Activity.HAMMER ? Items.IRON_AXE : Items.IRON_INGOT;
+                    case "farm" -> Items.IRON_HOE;
+                    case "food" -> act == CitizenEntity.Activity.SWEEP ? Items.BRUSH : ModContent.BURGER;
                     case "police", "hospital" -> ModContent.PHONE;
-                    default -> Items.AIR;
+                    default -> act == CitizenEntity.Activity.SWEEP ? Items.BRUSH : Items.AIR;
                 };
+                if (act == CitizenEntity.Activity.CARRY) at = at.add(rnd.nextInt(13) - 6, 0, rnd.nextInt(13) - 6); // носит ящики туда-сюда
                 c.busy(act, ticks, at.add(rnd.nextInt(3) - 1, 0, rnd.nextInt(3) - 1), new ItemStack(held));
             }
-            case LUNCH -> c.busy(CitizenEntity.Activity.THINK, ticks, at, new ItemStack(rnd.nextBoolean() ? ModContent.BURGER : ModContent.COLA));
+            case LUNCH -> { // обед: на скамейке/стуле — сидя, иначе стоя с бургером или колой
+                BlockPos seat = chair(w, BlockPos.ofFloored(at), 6);
+                if (seat != null && rnd.nextBoolean()) c.busy(CitizenEntity.Activity.SIT_EAT, ticks, Vec3d.ofBottomCenter(seat), new ItemStack(ModContent.BURGER));
+                else if (rnd.nextBoolean()) c.busy(CitizenEntity.Activity.EAT, ticks, at, new ItemStack(ModContent.BURGER));
+                else c.busy(CitizenEntity.Activity.DRINK, ticks, at, new ItemStack(ModContent.COLA));
+            }
             case LEISURE -> {
+                CitizenEntity.Activity[] dances = {CitizenEntity.Activity.DANCE, CitizenEntity.Activity.DANCE2, CitizenEntity.Activity.DANCE3};
                 CitizenEntity.Activity act = switch (r.leisure) {
-                    case "club" -> CitizenEntity.Activity.DANCE;
-                    case "bar" -> rnd.nextBoolean() ? CitizenEntity.Activity.LAUGH : CitizenEntity.Activity.TALK;
+                    case "club" -> dances[rnd.nextInt(3)];
+                    case "bar" -> rnd.nextInt(3) == 0 ? CitizenEntity.Activity.DRINK : rnd.nextBoolean() ? CitizenEntity.Activity.LAUGH : CitizenEntity.Activity.TALK;
                     case "casino" -> rnd.nextBoolean() ? CitizenEntity.Activity.CHEER : CitizenEntity.Activity.THINK;
-                    case "park", "beach" -> {
+                    case "beach" -> {
+                        if (Island.zone(c.getBlockX(), c.getBlockZ()) == Island.Zone.BEACH && !w.isRaining()) { // на пляже — как все пляжники
+                            Leisure.beachActivity(w, c);
+                            yield null;
+                        }
+                        yield CitizenEntity.Activity.SMOKE;
+                    }
+                    case "park" -> {
                         BlockPos bench = chair(w, BlockPos.ofFloored(at), 6);
                         if (bench != null) {
-                            c.busy(CitizenEntity.Activity.SIT, ticks, Vec3d.ofBottomCenter(bench), ItemStack.EMPTY);
+                            c.busy(rnd.nextBoolean() ? CitizenEntity.Activity.SITCROSS : CitizenEntity.Activity.SIT, ticks, Vec3d.ofBottomCenter(bench), ItemStack.EMPTY);
                             yield null;
                         }
                         yield CitizenEntity.Activity.PHONE;
                     }
-                    default -> rnd.nextBoolean() ? CitizenEntity.Activity.PHONE : CitizenEntity.Activity.TALK;
+                    default -> { // прогулка: телефон, болтовня, покурить, часы
+                        CitizenEntity.Activity[] pool = {CitizenEntity.Activity.PHONE, CitizenEntity.Activity.TALK, CitizenEntity.Activity.SMOKE, CitizenEntity.Activity.WATCH, CitizenEntity.Activity.SHRUG};
+                        yield pool[rnd.nextInt(pool.length)];
+                    }
                 };
                 if (act != null) c.busy(act, ticks, at.add(rnd.nextInt(5) - 2, 0, rnd.nextInt(5) - 2),
-                        act == CitizenEntity.Activity.PHONE ? new ItemStack(ModContent.PHONE) : ItemStack.EMPTY);
+                        act == CitizenEntity.Activity.PHONE ? new ItemStack(ModContent.PHONE) : act == CitizenEntity.Activity.DRINK ? new ItemStack(ModContent.COLA) : ItemStack.EMPTY);
             }
             default -> { // дома: телефон, диван, кухня
                 BlockPos sofa = chair(w, BlockPos.ofFloored(at), 5);
-                if (sofa != null && rnd.nextBoolean()) c.busy(CitizenEntity.Activity.SIT, ticks, Vec3d.ofBottomCenter(sofa), ItemStack.EMPTY);
-                else c.busy(rnd.nextBoolean() ? CitizenEntity.Activity.PHONE : CitizenEntity.Activity.THINK, ticks, at,
-                        rnd.nextBoolean() ? new ItemStack(ModContent.PHONE) : new ItemStack(ModContent.COLA));
+                int k = rnd.nextInt(6);
+                if (sofa != null && k < 3) c.busy(k == 0 ? CitizenEntity.Activity.SITCROSS : k == 1 ? CitizenEntity.Activity.SIT_EAT : CitizenEntity.Activity.SIT, ticks,
+                        Vec3d.ofBottomCenter(sofa), k == 1 ? new ItemStack(ModContent.BURGER) : ItemStack.EMPTY);
+                else if (k == 3) c.busy(CitizenEntity.Activity.STRETCH, 160, at, ItemStack.EMPTY);
+                else if (k == 4) c.busy(CitizenEntity.Activity.DRINK, ticks, at, new ItemStack(ModContent.COLA));
+                else c.busy(CitizenEntity.Activity.PHONE, ticks, at, new ItemStack(ModContent.PHONE));
             }
         }
     }

@@ -38,9 +38,12 @@ public final class Streets {
             if (here == Island.Zone.CORE || here == Island.Zone.SEA) continue;
             // плотность по району: центр и Ривьера кипят, пригород спокойнее, деревня почти пустая
             boolean busy = here == Island.Zone.DOWNTOWN || here == Island.Zone.RIVIERA;
-            int wantPeople = busy ? 26 : here == Island.Zone.VILLAGE ? 7 : PEOPLE;
+            int wantPeople = (int) Math.round((busy ? 22 : here == Island.Zone.VILLAGE ? 6 : PEOPLE) * timeFactor(w, here) * com.yompix.novograd.world.Leisure.scale());
             int wantCars = busy ? 11 : here == Island.Zone.VILLAGE ? 3 : CARS;
             long people = w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(64, 20, 64), CitizenEntity::isAmbient).size();
+            // пляж днём — пляжники (world/Leisure); сцены: стройка, порт, патруль, клуб, ларьки
+            if (here == Island.Zone.BEACH || nearBeach(p)) com.yompix.novograd.world.Leisure.spawnBeach(w, p);
+            com.yompix.novograd.world.Leisure.scenesFor(w, p);
             if (people < wantPeople) pedestrian(w, p);
             if (busy && people < wantPeople - 4) pedestrian(w, p);
             long cars = w.getEntitiesByClass(CarEntity.class, p.getBoundingBox().expand(80, 20, 80), CarEntity::isAmbient).size();
@@ -52,12 +55,28 @@ public final class Streets {
         return new net.minecraft.util.math.Box(-Island.HALF, -64, -Island.HALF, Island.HALF, 320, Island.HALF);
     }
 
+    /** Сколько людей на улицах по времени суток и погоде: ночью пусто, в час пик людно, в дождь меньше. */
+    private static double timeFactor(ServerWorld w, Island.Zone zone) {
+        double h = ((w.getTimeOfDay() % 24000) / 1000.0 + 6) % 24;
+        double f = h < 5 ? 0.25 : h < 7 ? 0.5 : h < 9.5 ? 1.1 : h < 12 ? 0.9 : h < 14 ? 1.05 : h < 18 ? 0.9 : h < 21 ? 1.0 : h < 23 ? 0.7 : 0.4;
+        if (zone == Island.Zone.RIVIERA && (h >= 20 || h < 2)) f = Math.max(f, 0.9); // курорт гуляет ночью
+        if (w.isRaining()) f *= 0.6;
+        return f;
+    }
+
+    private static boolean nearBeach(ServerPlayerEntity p) {
+        int x = p.getBlockX(), z = p.getBlockZ();
+        return Island.zone(x - 40, z) == Island.Zone.BEACH || Island.zone(x + 40, z) == Island.Zone.BEACH;
+    }
+
     private static boolean walkable(Island.Zone z) {
         return Island.urban(z) || z == Island.Zone.BEACH || z == Island.Zone.PORT;
     }
 
     private static void pedestrian(ServerWorld w, ServerPlayerEntity p) {
         var r = w.getRandom();
+        // часть людей выходит из дверей (подъезд, офис, дом, магазин) — а не появляется из воздуха
+        if (r.nextInt(3) == 0 && com.yompix.novograd.world.LifeAi.spawnFromDoor(w, p)) return;
         for (int tries = 0; tries < 8; tries++) {
             double a = r.nextDouble() * Math.PI * 2, d = 30 + r.nextInt(26);
             int x = (int) (p.getX() + Math.cos(a) * d), z = (int) (p.getZ() + Math.sin(a) * d);
@@ -67,6 +86,8 @@ public final class Streets {
             if (Island.urban(zn) && road != 5) continue; // по тротуарам
             int y = Island.surface(x, z) + 1;
             if (!w.isAir(new net.minecraft.util.math.BlockPos(x, y, z))) continue;
+            // не на глазах у игрока (за спиной или далеко), последние попытки — хотя бы подальше
+            if (!com.yompix.novograd.world.Sidewalks.unseen(w, new Vec3d(x + 0.5, y + 1, z + 0.5)) && (tries < 6 || d < 45)) continue;
             CitizenEntity c = new CitizenEntity(ModContent.CITIZEN, w);
             int skin = CitizenEntity.randomSkin(r);
             c.setup(skin, CitizenEntity.Role.CITIZEN, false, Names.random(r, CitizenEntity.isSlim(skin)));

@@ -58,6 +58,7 @@ public final class Wanted {
         if (x.stars > before) {
             p.sendMessage(Text.literal("★ Розыск: " + "★".repeat(x.stars) + " — " + why).formatted(Formatting.RED), true);
             p.playSoundToPlayer(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), SoundCategory.MASTER, 1f, 0.6f);
+            Dispatch.wanted(p, why, x.stars); // сводка в полицейскую рацию
         }
         sync(p, x);
     }

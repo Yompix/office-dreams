@@ -26,7 +26,9 @@ public enum CarBody {
     COMPACT  (0.86f, 1.10f, 1.28f, 1.10f, 1.05f, 5, 950, 0.82f),
     SWAT     (0.90f, 0.82f, 0.80f, 1.00f, 0.90f, 5, 6200, 0.95f),
     AMBULANCE(0.94f, 0.90f, 0.88f, 0.98f, 0.95f, 5, 3200, 0.85f),
-    FIRETRUCK(0.80f, 0.66f, 0.72f, 0.95f, 0.80f, 6, 9000, 0.85f);
+    FIRETRUCK(0.80f, 0.66f, 0.72f, 0.95f, 0.80f, 6, 9000, 0.85f),
+    // городской автобус (gta/Buses): длинный кузов назад от кабины, как у грузовика
+    BUS      (0.72f, 0.55f, 0.80f, 0.95f, 0.80f, 6, 11000, 0.80f);
 
     /** Множители: максимальная скорость, разгон, поворот руля, сцепление шин (меньше — легче занос), тормоза. */
     public final float top, accel, turn, grip, brake;
@@ -52,7 +54,7 @@ public enum CarBody {
 
     /** Служебные машины: не жгут бензин игрока и не продаются у дилера. */
     public boolean service() {
-        return this == POLICE || this == TAXI || this == SWAT || this == AMBULANCE || this == FIRETRUCK;
+        return this == POLICE || this == TAXI || this == SWAT || this == AMBULANCE || this == FIRETRUCK || this == BUS;
     }
 
     /** Мигалка на крыше (полиция, спецназ, скорая, пожарные). */

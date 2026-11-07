@@ -14,6 +14,15 @@
   "block.novograd.lamp_post": "Lamp post",
   "block.novograd.street_lamp": "Street lamp",
   "block.novograd.atm": "ATM",
+  "block.novograd.vending_machine": "Soda vending machine",
+  "block.novograd.payphone": "Payphone",
+  "block.novograd.news_stand": "Newspaper stand",
+  "block.novograd.hotdog_cart": "Hot dog cart",
+  "block.novograd.icecream_cart": "Ice cream cart",
+  "block.novograd.propane_tank": "Propane tank",
+  "block.novograd.traffic_cone": "Traffic cone",
+  "block.novograd.street_lamp_broken": "Broken street lamp",
+  "entity.novograd.debris": "Debris",
   "block.novograd.job_board": "Job board",
   "block.novograd.mailbox": "Mailbox",
   "block.novograd.shop_counter": "Shop counter",
@@ -133,6 +142,7 @@
   "item.novograd.car_swat": "SWAT Armored Van",
   "item.novograd.car_ambulance": "Ambulance",
   "item.novograd.car_firetruck": "Fire Truck",
+  "item.novograd.car_bus": "City Bus",
   "item.novograd.shopping_bag": "Shopping Bag",
   "item.novograd.umbrella": "Umbrella"
 }

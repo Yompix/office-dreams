@@ -376,14 +376,20 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             double d = c.squaredDistanceTo(to.x, c.getY(), to.z);
             boolean more = c.routeWalk && !c.route.isEmpty();
             if (d < (more ? 3.0 : 1.2)) {
-                if (more && to instanceof com.yompix.novograd.world.Sidewalks.Kerb && kerbWait < 90) {
-                    // у «зебры»: едет машина — ждём (и не дольше 4,5 с)
-                    if (kerbWait % 5 == 0) carNear = !c.getWorld().getEntitiesByClass(CarEntity.class, c.getBoundingBox().expand(11, 2, 11),
-                            car -> car.getVelocity().horizontalLengthSquared() > 0.004).isEmpty();
+                if (more && to instanceof com.yompix.novograd.world.Sidewalks.Kerb && kerbWait < 440
+                        && c.getWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
+                    // у «зебры»: красный для пешехода (gta/TrafficLights) или едет машина — ждём (не дольше ~22 с)
+                    if (kerbWait % 5 == 0) {
+                        var next = c.route.peek();
+                        double dx = next.x - to.x, dz = next.z - to.z;
+                        int dir = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 0 : 2) : (dz > 0 ? 1 : 3);
+                        carNear = !com.yompix.novograd.gta.TrafficLights.canCross(sw, c.getBlockPos(), dir) || kerbWait < 90
+                                && !sw.getEntitiesByClass(CarEntity.class, c.getBoundingBox().expand(11, 2, 11), car -> car.getVelocity().horizontalLengthSquared() > 0.004).isEmpty();
+                    }
                     kerbWait++;
                     if (carNear) {
                         c.getNavigation().stop();
-                        if (kerbWait == 1 && c.getRandom().nextInt(3) == 0) c.lifeHold = 0;
+                        if (kerbWait % 40 == 1) c.getLookControl().lookAt(c.route.peek().x, c.getEyeY(), c.route.peek().z);
                         return;
                     }
                 }
@@ -583,6 +589,8 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
         busy(me, ticks, null, net.minecraft.item.ItemStack.EMPTY);
         o.busy(them, ticks, null, net.minecraft.item.ItemStack.EMPTY);
         activityTicks = ticks + 40;
+        if (com.yompix.novograd.world.Island.zone(getBlockX(), getBlockZ()) != com.yompix.novograd.world.Island.Zone.CORE || r.nextInt(2) == 0)
+            com.yompix.novograd.world.LifeAi.chat(this, o, me); // реплики над головами
         o.activityTicks = ticks + 40;
         if (me == Activity.FIGHT && getWorld() instanceof net.minecraft.server.world.ServerWorld w) {
             PlayerEntity p = w.getClosestPlayer(this, 16);
@@ -845,9 +853,18 @@ public class CitizenEntity extends PathAwareEntity implements software.bernie.ge
             case "shop_door" -> {
                 net.minecraft.item.Item[] goods = {net.minecraft.item.Items.BREAD, net.minecraft.item.Items.APPLE, com.yompix.novograd.ModContent.COLA,
                         net.minecraft.item.Items.MILK_BUCKET, net.minecraft.item.Items.CAKE, com.yompix.novograd.ModContent.BURGER};
-                busy(Activity.THINK, 300 + r.nextInt(200), in.add(r.nextInt(9) - 4, 0, r.nextInt(5) - 2), new net.minecraft.item.ItemStack(goods[r.nextInt(goods.length)]));
+                busy(r.nextBoolean() ? Activity.BAGS : Activity.THINK, 300 + r.nextInt(200), in.add(r.nextInt(9) - 4, 0, r.nextInt(5) - 2),
+                        new net.minecraft.item.ItemStack(r.nextBoolean() ? com.yompix.novograd.ModContent.SHOPPING_BAG : goods[r.nextInt(goods.length)]));
             }
             case "casino_door" -> busy(r.nextBoolean() ? Activity.CHEER : Activity.THINK, 400, in.add(r.nextInt(9) - 4, 0, r.nextInt(5) - 2), net.minecraft.item.ItemStack.EMPTY);
+            case "pizza_door", "burger_door" -> { // пиццерия/бургерная: за стол (стул — ступеньки внутри) и есть сидя
+                net.minecraft.util.math.BlockPos inB = net.minecraft.util.math.BlockPos.ofFloored(in);
+                net.minecraft.util.math.BlockPos seat = net.minecraft.util.math.BlockPos.findClosest(inB, 8, 2, b -> w.getBlockState(b).getBlock() instanceof net.minecraft.block.StairsBlock
+                        && w.getBlockState(b.up()).isAir() && w.getEntitiesByClass(CitizenEntity.class, new net.minecraft.util.math.Box(b).expand(0.2, 1, 0.2), e -> e != this).isEmpty()).orElse(null);
+                net.minecraft.item.ItemStack food = new net.minecraft.item.ItemStack(r.nextInt(3) == 0 ? com.yompix.novograd.ModContent.COLA : com.yompix.novograd.ModContent.BURGER);
+                if (seat != null) busy(Activity.SIT_EAT, 500 + r.nextInt(300), net.minecraft.util.math.Vec3d.ofBottomCenter(seat), food);
+                else busy(Activity.EAT, 300, in.add(r.nextInt(7) - 3, 0, r.nextInt(5) - 2), food);
+            }
             case "office_door", "bank_door" -> busy(Activity.PHONE, 400, in.add(r.nextInt(7) - 3, 0, 0), new net.minecraft.item.ItemStack(com.yompix.novograd.ModContent.PHONE));
             case "park_center" -> {
                 if (!isKid()) {

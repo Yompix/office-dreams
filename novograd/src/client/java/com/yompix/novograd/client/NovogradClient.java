@@ -170,7 +170,10 @@ public class NovogradClient implements ClientModInitializer {
         FunClient.init(); // парашют, брандспойт, районы банд на карте, автоматы и дартс
         HousingClient.init(); // недвижимость (телефон → «Дом»), значки жилья и гаражей
         DriveClient.init(); // бензин, камеры скорости, туман, перелёты, экран «Авто»
+        CityClient.init(); // полицейская рация, автобус (подсказка, пропуск), автотест city
+        PropsClient.init(); // живая улица: обломки, падающие фонари, искры от стен
         DevAutotest.init();
+        LifeAutotest.init(); // -Dnovograd.autotest=life: прохожие, пляж, ларьки, вечер, дождь
     }
 
     public static void send(String type, NbtCompound data) {
@@ -275,6 +278,7 @@ public class NovogradClient implements ClientModInitializer {
                 if (client.currentScreen instanceof RouletteScreen s) s.result(n);
             }
             default -> {
+                if (type.startsWith("city_") && CityClient.receive(client, type, n)) return; // рация, автобус
                 if (!DriveClient.receive(client, type, n)) // дороги и транспорт 0.4
                     com.yompix.novograd.client.FunClient.receive(client, type, n); // парашют, подработки, районы, автоматы
             }

@@ -169,6 +169,10 @@ public class CarRenderer extends EntityRenderer<CarEntity> {
             p(root, "bar_base", m, solid, light, 0xFF141414);
             p(root, "taxi_sign", m, solid, driven ? FULL : light, driven ? 0xFFFFE14D : 0xFFC9A632);
         }
+        if (type == CarBody.BUS) { // табло маршрута светится, пока за рулём водитель
+            p(root, "bar_base", m, solid, light, 0xFF141414);
+            p(root, "taxi_sign", m, solid, driven ? FULL : light, driven ? 0xFFFFA62B : 0xFF6A4A18);
+        }
         if (type.beacon()) {
             boolean phase = (car.getWorld().getTime() / 5) % 2 == 0;
             boolean siren = driven || car.light(CarEntity.HAZARD);

@@ -133,6 +133,7 @@ public final class LifeNet {
             }
             default -> {
                 if (type.startsWith("drv_") && com.yompix.novograd.gta.DriveHooks.handle(p, type, d)) return; // дороги и транспорт 0.4
+                if (type.startsWith("city_") && com.yompix.novograd.gta.CityServices.handle(p, type, d)) return; // автобусы, службы города
                 if (!com.yompix.novograd.gta.FunHooks.handle(p, type, d)) Novograd.LOG.debug("Неизвестный пакет {}", type);
             }
         }

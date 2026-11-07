@@ -217,6 +217,7 @@ public final class StreetEvents {
         runAway(w, thief, p, 1.05);
         w.playSound(null, v.getBlockPos(), SoundEvents.ENTITY_VILLAGER_HURT, SoundCategory.NEUTRAL, 1.2f, 1.4f);
         FunUtil.title(p, "ДЕРЖИ ВОРА!", "«Помогите! Сумку вырвал!» — догони вора");
+        Emergency.npcCrime(w, thief, at, "кража сумки", 20 * 40); // не успеешь — вора ловит патруль
         return true;
     }
 
@@ -571,6 +572,7 @@ public final class StreetEvents {
         e.timer = 20 * 70;
         e.pay = 400 + r.nextInt(500) + 150 * Economy.act(Life.get(p));
         Life.message(p, "Сканер полиции", "Вооружённое ограбление магазина рядом с тобой! Хозяин заплатит тому, кто остановит грабителей.");
+        if (!e.crew.isEmpty() && w.getEntity(e.crew.get(0)) instanceof CitizenEntity robber) Emergency.npcCrime(w, robber, e.at, "вооружённое ограбление магазина", 20 * 45);
         FunUtil.title(p, "ОГРАБЛЕНИЕ МАГАЗИНА", "Останови грабителей — или наведи ствол на продавца и войди в долю");
         return true;
     }

@@ -395,6 +395,8 @@ public final class Housing {
         });
         Garage.init();
         Residents.init();
+        LifeAi.init(); // мозг прохожих: нужды, характер, реакции, разговоры
+        Leisure.init(); // пляжи, ларьки с очередью, собачники, стройки, порт, патруль, клуб
         com.yompix.novograd.gta.StreetPerformers.init();
     }
 

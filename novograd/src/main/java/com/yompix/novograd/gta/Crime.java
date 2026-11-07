@@ -13,6 +13,7 @@ public final class Crime {
     /** Выстрел: прохожие разбегаются, полиция рядом — звезда (или две). */
     public static void gunshot(ServerWorld w, LivingEntity shooter, Vec3d at) {
         for (CitizenEntity c : w.getEntitiesByClass(CitizenEntity.class, shooter.getBoundingBox().expand(24), c -> c != shooter)) c.panic(at);
+        Emergency.gunshot(w, shooter, at); // стреляли бандиты — патруль едет на место
         // стрельба: минимум одна звезда (две, если рядом полиция), но не прибавляет за каждый выстрел
         if (shooter instanceof ServerPlayerEntity p && !p.isCreative()) Wanted.add(p, 0, "стрельба на улице", Wanted.policeNear(p, 40) ? 2 : 1);
     }

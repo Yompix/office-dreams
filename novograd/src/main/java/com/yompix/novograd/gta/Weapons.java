@@ -92,6 +92,7 @@ public final class Weapons {
                 var st = w.getBlockState(block.getBlockPos());
                 w.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, st), end.x, end.y, end.z, pellets > 1 ? 3 : 6, 0.05, 0.05, 0.05, 0.1);
                 what[i] = (byte) (1 | (block.getSide().getId() << 2)); // грань — для искр и следа от пули
+                com.yompix.novograd.world.Destruction.bulletHit(w, shooter, block.getBlockPos(), end, dir); // стёкла, фонари, баллоны, колонки
             }
         }
         Entity first = null;
@@ -101,6 +102,7 @@ public final class Weapons {
             if (first == null) first = victim;
             if (victim instanceof CarEntity car) {
                 car.hitByBullet(e.getValue(), shooter);
+                com.yompix.novograd.world.Destruction.carShot(car, shooter); // сигнализация у пустой машины
             } else {
                 if (shooter instanceof PlayerEntity && victim instanceof LivingEntity le) le.timeUntilRegen = 0;
                 victim.damage(src, e.getValue());

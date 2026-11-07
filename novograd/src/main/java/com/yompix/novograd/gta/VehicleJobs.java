@@ -384,6 +384,7 @@ public final class VehicleJobs {
                 if (i % 6 == 0) w.spawnParticles(ParticleTypes.FALLING_WATER, pt.x, pt.y, pt.z, 2, 0.2, 0.2, 0.2, 0);
             }
         if (w.getTime() % 8 == 0) w.playSound(null, car.getBlockPos(), SoundEvents.WEATHER_RAIN, SoundCategory.NEUTRAL, 0.6f, 1.6f);
+        com.yompix.novograd.world.Fires.douse(w, from, dir, p); // уличные пожары (урны, киоски, машины после взрывов)
         for (Fire f : j.fires) {
             if (f.heat <= 0) continue;
             Vec3d to = f.at.add(0, 1, 0).subtract(from);

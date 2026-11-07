@@ -41,6 +41,9 @@ public final class DevAutotest {
         if (mode.startsWith("fun")) return; // свой сценарий — FunAutotest (FunClient.init)
         if (mode.startsWith("housing")) return; // недвижимость, жильцы, музыканты — HousingAutotest
         if (mode.startsWith("drv")) return; // свой сценарий — DriveAutotest (DriveClient.init)
+        if (mode.startsWith("city")) return; // свой сценарий — CityAutotest (CityClient.init)
+        if (mode.startsWith("props")) return; // своё — PropsAutotest (PropsClient.init)
+        if (mode.startsWith("life")) return; // повседневная жизнь горожан — LifeAutotest
         if (mode.startsWith("mp")) {
             // игра по сети: A проходит разговоры пробелом, B просто смотрит; оба делают снимки
             YompixSplash.markShown();
