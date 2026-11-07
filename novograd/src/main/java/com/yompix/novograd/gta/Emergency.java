@@ -87,8 +87,19 @@ public final class Emergency {
         call(w, Kind.AMBULANCE, c.getPos(), dead ? null : c.getUuid(), null, what, 60 + w.random.nextInt(60));
     }
 
+    /** Где пожарные уже были: туда второй раз не едут (пожар потушен, остов догорает сам). */
+    private static final List<Vec3d> FIRE_DONE = new ArrayList<>();
+    private static final List<Long> FIRE_DONE_AT = new ArrayList<>();
+
     /** Публично: сообщить о пожаре (для world/Fires, взрывов). */
     public static void reportFire(ServerWorld w, Vec3d at) {
+        long now = w.getTime();
+        for (int i = FIRE_DONE.size() - 1; i >= 0; i--) {
+            if (now - FIRE_DONE_AT.get(i) > 20 * 120) {
+                FIRE_DONE.remove(i);
+                FIRE_DONE_AT.remove(i);
+            } else if (FIRE_DONE.get(i).squaredDistanceTo(at) < 30 * 30) return;
+        }
         call(w, Kind.FIRE, at, null, null, "возгорание", 80);
     }
 
@@ -198,6 +209,46 @@ public final class Emergency {
         return new Vec3d(px, Story.topY(w, (int) Math.floor(px), (int) Math.floor(pz)), pz);
     }
 
+    /** Путь по узлам дорог → точки по правой полосе; на поворотах — подход, угол и выход, чтобы не срезать на тротуар. */
+    private static List<Vec3d> lanes(List<int[]> nodes, double y) {
+        List<Vec3d> out = new ArrayList<>();
+        int n = nodes.size();
+        final double L = 2.5;
+        for (int i = 0; i < n; i++) {
+            int[] c = nodes.get(i);
+            int[] dout = i < n - 1 ? dir(c, nodes.get(i + 1)) : null, din = i > 0 ? dir(nodes.get(i - 1), c) : null;
+            if (din == null) din = dout;
+            if (dout == null) dout = din;
+            if (din == null) break;
+            double rinX = -din[1], rinZ = din[0], routX = -dout[1], routZ = dout[0];
+            if (din[0] == dout[0] && din[1] == dout[1] || din[0] == -dout[0] && din[1] == -dout[1]) {
+                if (i > 0) out.add(new Vec3d(c[0] + 0.5 + rinX * L, y, c[1] + 0.5 + rinZ * L));
+                if (din[0] == -dout[0] && din[1] == -dout[1]) out.add(new Vec3d(c[0] + 0.5 + routX * L, y, c[1] + 0.5 + routZ * L));
+            } else {
+                if (i > 0) out.add(new Vec3d(c[0] + 0.5 - din[0] * 9 + rinX * L, y, c[1] + 0.5 - din[1] * 9 + rinZ * L));
+                out.add(new Vec3d(c[0] + 0.5 + rinX * L + routX * L, y, c[1] + 0.5 + rinZ * L + routZ * L));
+                out.add(new Vec3d(c[0] + 0.5 + dout[0] * 9 + routX * L, y, c[1] + 0.5 + dout[1] * 9 + routZ * L));
+            }
+        }
+        return out;
+    }
+
+    /** Уехать с места: по дорогам к узлу в ~100 блоках (по ходу машины, если можно). */
+    private static List<Vec3d> away(ServerWorld w, CarEntity car) {
+        double rad = Math.toRadians(car.getYaw());
+        for (int i = 0; i < 6; i++) {
+            double a = rad + (i == 0 ? 0 : (w.random.nextDouble() - 0.5) * Math.PI * (i < 3 ? 1 : 2));
+            double tx = car.getX() - Math.sin(a) * 100, tz = car.getZ() + Math.cos(a) * 100;
+            List<int[]> nodes = IslandRoads.route(car.getX() - Math.sin(rad) * 20, car.getZ() + Math.cos(rad) * 20, tx, tz);
+            if (nodes.size() >= 2) return lanes(nodes, car.getY());
+        }
+        return FunUtil.wander(w, car.getX(), car.getZ(), 6, w.random);
+    }
+
+    private static int[] dir(int[] a, int[] b) {
+        return new int[]{Integer.signum(b[0] - a[0]), Integer.signum(b[1] - a[1])};
+    }
+
     private static void dispatch(ServerWorld w, Call c) {
         var r = w.getRandom();
         Vec3d goal = roadNear(w, c.at);
@@ -215,8 +266,8 @@ public final class Emergency {
             if (c.patient != null) PATIENTS.remove(c.patient);
             return;
         }
-        List<Vec3d> route = com.yompix.novograd.life.Taxi.route(com.yompix.novograd.world.TownState.get(w), from, goal);
-        if (route.size() < 2) route = List.of(goal);
+        List<Vec3d> route = lanes(IslandRoads.route(from.x, from.z, goal.x, goal.z), from.y);
+        route.add(goal);
         Unit u = new Unit(c.kind, goal);
         u.patient = c.patient;
         u.suspect = c.suspect;
@@ -238,7 +289,7 @@ public final class Emergency {
             m.startRiding(car, true);
             u.crew.add(m.getUuid());
         }
-        car.setRoute(route, c.kind == Kind.FIRE ? 0.55f : 0.66f, () -> arrived(w, u));
+        car.setRoute(route, c.kind == Kind.FIRE ? 0.5f : 0.56f, () -> arrived(w, u));
         UNITS.add(u);
         LAST.put(c.kind, w.getTime());
         String where = Dispatch.where(c.at);
@@ -323,7 +374,9 @@ public final class Emergency {
                 // угнали машину службы
                 if (car.getControllingPassenger() instanceof ServerPlayerEntity) return true;
                 // застряли надолго и никто не видит — подвозим к месту
-                if (now - u.started > 20 * 50 && !nearPlayer(w, car.getPos(), 36) && car.slow()) {
+                if (car.slow()) u.work++;
+                else u.work = 0;
+                if ((now - u.started > 20 * 50 || u.work > 12) && !nearPlayer(w, car.getPos(), 26) && car.slow()) {
                     car.refreshPositionAndAngles(u.target.x, u.target.y, u.target.z, car.getYaw(), 0);
                     car.setRoute(List.of(), 0.5f, null);
                     arrived(w, u);
@@ -395,7 +448,11 @@ public final class Emergency {
                         if (m.getRole() == CitizenEntity.Role.POLICE) m.standDown();
                         m.walkRoute(List.of(car.getPos()), 1.0, null, m.getMainHandStack().copy(), null);
                     }
-                    if (u.kind == Kind.FIRE) Dispatch.say(w.getServer(), "Расчёт 2: пожар " + Dispatch.where(spot) + " потушен, возвращаемся.");
+                    if (u.kind == Kind.FIRE) {
+                        Dispatch.say(w.getServer(), "Расчёт 2: пожар " + Dispatch.where(spot) + " потушен, возвращаемся.");
+                        FIRE_DONE.add(u.target);
+                        FIRE_DONE_AT.add(now);
+                    }
                     if (u.kind == Kind.POLICE && u.suspect == null && u.what.equals("стрельба")) crew.get(0).say("Никого. Гильзы есть…", 60);
                 }
             }
@@ -409,12 +466,12 @@ public final class Emergency {
                     }
                     u.stage = LEAVING;
                     u.stageAt = now;
-                    car.setRoute(FunUtil.wander(w, car.getX(), car.getZ(), 6, w.random), 0.5f, null);
+                    car.setRoute(away(w, car), 0.5f, null);
                 }
             }
             case LEAVING -> {
                 if (!nearPlayer(w, car.getPos(), 70) || now - u.stageAt > 20 * 45 && !nearPlayer(w, car.getPos(), 30) || !car.onRoute() && !nearPlayer(w, car.getPos(), 30)) return true;
-                if (!car.onRoute()) car.setRoute(FunUtil.wander(w, car.getX(), car.getZ(), 6, w.random), 0.5f, null);
+                if (!car.onRoute()) car.setRoute(away(w, car), 0.5f, null);
             }
         }
         return false;
@@ -435,6 +492,7 @@ public final class Emergency {
             w.spawnParticles(ParticleTypes.CLOUD, spot.x, spot.y + 1, spot.z, 2, 0.6, 0.3, 0.6, 0.02);
             com.yompix.novograd.world.Fires.douse(w, from, dir, null);
         }
+        com.yompix.novograd.world.Fires.douseAt(w, spot, 5, 60);
         if (u.work % 2 == 0) w.playSound(null, BlockPos.ofFloored(spot), SoundEvents.WEATHER_RAIN, SoundCategory.NEUTRAL, 0.7f, 1.6f);
         if (u.work == 16) {
             // догоревшие машины: остаётся обгоревший остов (через минуту его увезут сами)
@@ -574,7 +632,12 @@ public final class Emergency {
             }
             default -> {
                 StringBuilder sb = new StringBuilder("Выезды: ");
-                for (Unit u : UNITS) sb.append(u.kind).append(" stage ").append(u.stage).append(" work ").append(u.work).append("; ");
+                for (Unit u : UNITS) {
+                    sb.append(u.kind).append(" stage ").append(u.stage).append(" work ").append(u.work);
+                    if (u.car != null && w.getEntity(u.car) instanceof CarEntity c)
+                        sb.append(String.format(" car %.0f,%.0f v=%.2f route=%s → %.0f,%.0f", c.getX(), c.getZ(), c.speed, c.onRoute(), u.target.x, u.target.z));
+                    sb.append("; ");
+                }
                 sb.append(" ждут: ").append(PENDING.size());
                 return sb.toString();
             }

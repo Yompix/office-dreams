@@ -152,6 +152,7 @@ public final class LifeAi {
             say(c, b, pick(c.getRandom(), CALL_COPS), 80, ctx.now());
             return;
         }
+        if (b.talk != null && !TALKS.contains(b.talk)) b.talk = null; // разговор кончился без него
         if (react(w, c, b, ctx, true)) return;
         if (c.walkingRoute() || c.isBusy() || c.lifeHold > 0 || c.hasPartner() || b.talk != null) return;
         if (b.doing.equals("shopping") && leaveShop(w, c, b)) return; // выбрал — выходит с пакетом
@@ -269,7 +270,7 @@ public final class LifeAi {
         s[6] = 0.12f + (c.age > 6000 ? 0.45f : 0) + ((h >= 7 && h < 9.5) || (h >= 18 && h < 21) ? 0.35f : 0) + (rain ? 0.6f : 0) + (night ? 0.8f : 0); // домой/на работу
         s[7] = beachNear ? 0.6f + (h >= 11 && h < 17 ? 0.5f : 0) : 0;                                           // пляж
         s[8] = (h >= 20 || h < 3) ? (b.trait == Trait.PARTY ? 1.1f : 0.3f) : 0;                                 // клуб
-        s[9] = 0.3f;                                                                                             // постоять: покурить, часы, потянуться
+        s[9] = 0.18f;                                                                                            // постоять: покурить, часы, потянуться
         s[10] = day && !rain ? 0.08f : 0.02f;                                                                    // ловит такси
         int best = 4;
         float bs = -1;
@@ -330,6 +331,9 @@ public final class LifeAi {
         for (int i = 0; i < 4; i++) {
             double a = r.nextDouble() * Math.PI * 2, d = 30 + r.nextInt(40);
             Vec3d to = c.getPos().add(Math.cos(a) * d, 0, Math.sin(a) * d);
+            // жизнь — там, где игрок: половина прогулок ведёт мимо него (в 8–28 блоках)
+            var pl = w.getClosestPlayer(c, 90);
+            if (pl != null && r.nextBoolean() && i < 3) to = pl.getPos().add(Math.cos(a) * (8 + r.nextInt(20)), 0, Math.sin(a) * (8 + r.nextInt(20)));
             Island.Zone zn = Island.zone((int) to.x, (int) to.z);
             if (zn == Island.Zone.SEA || zn == Island.Zone.CORE || zn == Island.Zone.COUNTRY) continue;
             to = Sidewalks.nearestSidewalk(to);
@@ -576,7 +580,11 @@ public final class LifeAi {
                 if (m.walkingRoute()) continue;
                 m.faceTo(m == sp ? t.center : sp.getPos());
                 if (m == sp) m.busy(Activity.TALK, 70, null, ItemStack.EMPTY);
-                else m.busy(r.nextInt(3) == 0 ? Activity.LAUGH : r.nextInt(4) == 0 ? Activity.SHRUG : Activity.IDLE, 70, null, ItemStack.EMPTY);
+                else { // слушают: смеются, кивают-думают, пожимают плечами, хлопают по удачной шутке
+                    int k = r.nextInt(20);
+                    Activity a = k < 7 ? Activity.LAUGH : k < 11 ? Activity.THINK : k < 14 ? Activity.SHRUG : k < 15 ? Activity.CLAP : Activity.IDLE;
+                    m.busy(a, 70, null, ItemStack.EMPTY);
+                }
             }
             say(sp, brain(sp), line, 60, now);
         }

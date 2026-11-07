@@ -105,6 +105,7 @@ public final class Props {
     public static void init() {
         ItemGroupEvents.modifyEntriesEvent(RegistryKey.of(RegistryKeys.ITEM_GROUP, Novograd.id("main"))).register(e -> TAB.forEach(e::add));
         ServerTickEvents.END_SERVER_TICK.register(s -> {
+            long t0 = System.nanoTime();
             try {
                 Destruction.tick(s);
                 Fires.tick(s);
@@ -112,6 +113,10 @@ public final class Props {
             } catch (RuntimeException ex) {
                 Novograd.LOG.warn("Props tick", ex);
             }
+            long dt = System.nanoTime() - t0;
+            tickNanos += dt;
+            tickMax = Math.max(tickMax, dt);
+            ticks++;
         });
         ServerChunkEvents.CHUNK_LOAD.register((w, chunk) -> {
             if (w.getRegistryKey() == World.OVERWORLD) QUEUE.add(chunk.getPos().toLong());
@@ -409,13 +414,13 @@ public final class Props {
         Decor d = w.getPersistentStateManager().getOrCreate(Decor.TYPE, "novograd_decor" + DECOR_VERSION);
         long start = System.nanoTime();
         int n = 0, tries = Math.min(QUEUE.size(), 48);
-        while (tries-- > 0 && n < 4 && System.nanoTime() - start < 1_500_000) {
+        while (tries-- > 0 && n < 1 && System.nanoTime() - start < 1_500_000) { // один чанк за тик — без рывков на слабом ноутбуке
             long key = QUEUE.removeFirstLong();
             if (d.done.contains(key)) continue;
             ChunkPos cp = new ChunkPos(key);
             if (!w.isChunkLoaded(cp.x, cp.z)) continue; // выгрузился — вернётся в очередь при загрузке
             // соседи тоже должны быть загружены (не цепляем генерацию) — иначе в конец очереди, попробуем позже
-            if (!w.isChunkLoaded(cp.x + 1, cp.z) || !w.isChunkLoaded(cp.x - 1, cp.z) || !w.isChunkLoaded(cp.x, cp.z + 1) || !w.isChunkLoaded(cp.x, cp.z - 1)) {
+            if (!neighborsLoaded(w, cp)) {
                 QUEUE.add(key);
                 continue;
             }
@@ -425,6 +430,23 @@ public final class Props {
             n++;
         }
         if (QUEUE.size() > 20000) QUEUE.clear();
+    }
+
+    private static long tickNanos, tickMax, ticks;
+
+    /** Все 8 соседних чанков загружены: тогда чтение блоков у края не грузит чанк с диска (сервер не встаёт). */
+    private static boolean neighborsLoaded(ServerWorld w, ChunkPos cp) {
+        for (int dx = -1; dx <= 1; dx++)
+            for (int dz = -1; dz <= 1; dz++)
+                if ((dx != 0 || dz != 0) && !w.isChunkLoaded(cp.x + dx, cp.z + dz)) return false;
+        return true;
+    }
+
+    /** Автотест: сколько в среднем и максимум занимает тик живой улицы (мс), со сбросом. */
+    public static String perf() {
+        String r = String.format("avg %.3f ms, max %.2f ms over %d ticks", ticks == 0 ? 0 : tickNanos / 1e6 / ticks, tickMax / 1e6, ticks);
+        tickNanos = tickMax = ticks = 0;
+        return r;
     }
 
     /** Сколько чанков ждут расстановки (автотест). */

@@ -71,7 +71,7 @@ public final class PropsAutotest {
             p.teleport(w, X + 0.5, Story.topY(w, X, Z) + 0.2, Z + 0.5, 0, 10);
         });
         // ждём, пока загрузятся и обставятся чанки вокруг
-        for (int i = 0; i < 5; i++) server(60, s -> Novograd.LOG.info("[props] queue {} props near {}", Props.queued(), countProps(pl(s))));
+        for (int i = 0; i < 5; i++) server(60, s -> Novograd.LOG.info("[props] queue {} props near {} mspt {} props {}", Props.queued(), countProps(pl(s)), String.format("%.1f", s.getAverageTickTime()), Props.perf()));
         server(5, s -> { // без помех: прохожих и бандитов вокруг убираем
             ServerPlayerEntity p = pl(s);
             for (var e : p.getServerWorld().getEntitiesByClass(com.yompix.novograd.entity.CitizenEntity.class, p.getBoundingBox().expand(80), e -> true)) e.discard();
@@ -180,6 +180,7 @@ public final class PropsAutotest {
         server(1, s -> Novograd.LOG.info("[props] boom1 fires {} broken {}", Fires.count(), Destruction.brokenCount(pl(s).getServerWorld())));
         shot(15, "props_boom2");
         shot(50, "props_fire");
+        server(1, s -> Novograd.LOG.info("[props] fire mspt {} props {}", String.format("%.1f", s.getAverageTickTime()), Props.perf()));
         server(5, s -> Novograd.LOG.info("[props] after boom fires {} broken {} wanted {}: {}", Fires.count(), Destruction.brokenCount(pl(s).getServerWorld()),
                 com.yompix.novograd.gta.Wanted.stars(pl(s)), Destruction.debugBroken(pl(s).getServerWorld())));
         // --- 3. автомат с газировкой, газета
@@ -207,7 +208,7 @@ public final class PropsAutotest {
             p.teleport(w, X - 5.5, Story.topY(w, X, Z) + 4, Z + 2.5, -30, 22);
         });
         shot(30, "props_restored");
-        server(5, s -> Novograd.LOG.info("[props] mspt {} ms", String.format("%.2f", s.getAverageTickTime())));
+        server(5, s -> Novograd.LOG.info("[props] mspt {} ms props {}", String.format("%.2f", s.getAverageTickTime()), Props.perf()));
         run(20, MinecraftClient::scheduleStop);
         ClientTickEvents.END_CLIENT_TICK.register(PropsAutotest::tick);
     }

@@ -40,7 +40,7 @@ public final class Streets {
             boolean busy = here == Island.Zone.DOWNTOWN || here == Island.Zone.RIVIERA;
             int wantPeople = (int) Math.round((busy ? 22 : here == Island.Zone.VILLAGE ? 6 : PEOPLE) * timeFactor(w, here) * com.yompix.novograd.world.Leisure.scale());
             int wantCars = busy ? 11 : here == Island.Zone.VILLAGE ? 3 : CARS;
-            long people = w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(64, 20, 64), CitizenEntity::isAmbient).size();
+            long people = w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(64, 20, 64), c -> c.isAmbient() && !c.hasVehicle()).size(); // водители — не пешеходы
             // пляж днём — пляжники (world/Leisure); сцены: стройка, порт, патруль, клуб, ларьки
             if (here == Island.Zone.BEACH || nearBeach(p)) com.yompix.novograd.world.Leisure.spawnBeach(w, p);
             com.yompix.novograd.world.Leisure.scenesFor(w, p);

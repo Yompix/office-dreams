@@ -348,6 +348,7 @@ public final class Buses {
             if (car == null) virtualStep(w, b);
             else realStep(w, b, car);
         }
+        reboard(w);
         if (t % 40 == 11) signs(w);
         if (t % 20 == 5) hud(w);
         if (t % 200 == 13) strays(w);
@@ -650,13 +651,29 @@ public final class Buses {
         p.teleport(w, door.x, door.y + 0.1, door.z, b.r.yawAt(next.s), p.getPitch());
         materialize(w, b);
         if (b.car != null && w.getEntity(b.car) instanceof CarEntity nb) {
-            p.startRiding(nb, true);
             arrive(w, b, nb, next);
+            b.dwell = DWELL + 4;
+            REBOARD.put(p.getUuid(), new Object[]{nb.getUuid(), w.getTime() + 6}); // посадка через пару тиков, после телепорта у клиента
         }
         p.sendMessage(Text.literal("🚌 Остановка «" + next.name + "»").formatted(Formatting.YELLOW), true);
     }
 
     private static final Set<UUID> HUD_ON = new HashSet<>();
+    private static final Map<UUID, Object[]> REBOARD = new HashMap<>();
+
+    private static void reboard(ServerWorld w) {
+        if (REBOARD.isEmpty()) return;
+        for (Iterator<Map.Entry<UUID, Object[]>> it = REBOARD.entrySet().iterator(); it.hasNext(); ) {
+            var e = it.next();
+            if (w.getTime() < (long) e.getValue()[1]) continue;
+            it.remove();
+            ServerPlayerEntity p = w.getServer().getPlayerManager().getPlayer(e.getKey());
+            Entity ce = w.getEntity((UUID) e.getValue()[0]);
+            boolean ok = p != null && p.getVehicle() == null && ce instanceof CarEntity car && p.startRiding(car, true);
+            if (Boolean.getBoolean("novograd.autotest.city") || !ok)
+                com.yompix.novograd.Novograd.LOG.info("[bus] reboard {} car {} ok {}", p == null ? "-" : p.getName().getString(), ce, ok);
+        }
+    }
 
     private static void hud(ServerWorld w) {
         for (ServerPlayerEntity p : w.getPlayers()) {

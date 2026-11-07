@@ -508,7 +508,19 @@ public final class Leisure {
         if (kind == Kind.CLUBBER) at = a.add(g.size() * 1.0, 0, 0);
         Vec3d foot = new Vec3d(at.x, Island.surface((int) Math.floor(at.x), (int) Math.floor(at.z)) + 1, at.z);
         if (!w.getBlockState(BlockPos.ofFloored(foot)).getCollisionShape(w, BlockPos.ofFloored(foot)).isEmpty()) return;
-        if (!Sidewalks.unseen(w, foot.add(0, 1, 0)) && Sidewalks.playerNear(w, foot, 40)) return; // не появляться на глазах
+        Vec3d target = foot;
+        if (!Sidewalks.unseen(w, foot.add(0, 1, 0)) && Sidewalks.playerNear(w, foot, 40)) {
+            // место на виду — человек появляется в стороне (за спиной/за углом) и приходит сам
+            foot = null;
+            for (int i = 0; i < 8 && foot == null; i++) {
+                double ang = r.nextDouble() * Math.PI * 2, d = 25 + r.nextInt(25);
+                Vec3d q = Sidewalks.nearestSidewalk(target.add(Math.cos(ang) * d, 0, Math.sin(ang) * d));
+                BlockPos qb = BlockPos.ofFloored(q);
+                if (w.isChunkLoaded(qb) && w.getBlockState(qb).getCollisionShape(w, qb).isEmpty() && Island.zone(qb.getX(), qb.getZ()) != Island.Zone.SEA
+                        && Sidewalks.unseen(w, q.add(0, 1, 0))) foot = q;
+            }
+            if (foot == null) return;
+        }
         CitizenEntity c = citizen(w, foot, r);
         if (kind == Kind.COP) {
             c.setup(6, CitizenEntity.Role.POLICE, false, "Патрульный " + Names.random(r, false));
@@ -525,6 +537,7 @@ public final class Leisure {
         s.b = b != null ? b : a;
         SCENES.put(c.getUuid(), s);
         g.add(c.getUuid());
+        if (foot.squaredDistanceTo(target) > 9) c.walkRoute(Sidewalks.route(foot, target), 0.6, null, ItemStack.EMPTY, null); // идёт на место
     }
 
     private static void sceneTick(ServerWorld w) {

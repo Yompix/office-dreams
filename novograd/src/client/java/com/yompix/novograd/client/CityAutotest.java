@@ -72,7 +72,8 @@ public final class CityAutotest {
             ServerPlayerEntity p = pl(s);
             ServerWorld w = p.getServerWorld();
             for (int x = GX - 96; x <= GX + 96; x += 16) w.getChunk(x >> 4, GZ >> 4);
-            look(p, GX - 30, Story.topY(w, GX, GZ) + 14, GZ + 22, GX - 6, Story.topY(w, GX, GZ), GZ);
+            p.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+            look(p, GX - 62, Story.topY(w, GX, GZ) + 7, GZ + 3.5, GX - 10, Story.topY(w, GX, GZ), GZ + 2.5);
         });
         run(60, c -> {});
         server(5, s -> {
@@ -123,13 +124,30 @@ public final class CityAutotest {
     // ------------------------------------------------------------------ автобус: остановка, приезд, посадка, пропуск
     private static void bus() {
         server(5, s -> Novograd.LOG.info("[city] bus routes:\n{}", CityServices.debug(pl(s), "bus")));
-        cmd(5, "city bus tp 1 1");
+        server(5, s -> {
+            pl(s).changeGameMode(net.minecraft.world.GameMode.CREATIVE);
+            Novograd.LOG.info("[city] {}", CityServices.debug(pl(s), "bus tp 1 1"));
+        });
         run(80, c -> {});
         server(5, s -> {
             ServerPlayerEntity p = pl(s);
             Novograd.LOG.info("[city] at stop {}", p.getBlockPos().toShortString());
         });
-        shot(40, "city_bus_stop");
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            p.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+            // с дороги на навес: табличка «через N мин»
+            double rad = Math.toRadians(p.getYaw());
+            Vec3d f = new Vec3d(-Math.sin(rad), 0, Math.cos(rad));
+            Vec3d eye = p.getPos().add(f.multiply(9)).add(0, 2.2, 0);
+            look(p, eye.x - f.z * 3, eye.y, eye.z + f.x * 3, p.getX(), p.getY() + 1.6, p.getZ());
+        });
+        shot(30, "city_bus_stop");
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            p.changeGameMode(net.minecraft.world.GameMode.CREATIVE);
+            Novograd.LOG.info("[city] {}", CityServices.debug(p, "bus tp 1 1"));
+        });
         server(5, s -> Novograd.LOG.info("[city] {}", CityServices.debug(pl(s), "bus call")));
         for (int i = 0; i < 10; i++) {
             final int n = i;
@@ -142,23 +160,21 @@ public final class CityAutotest {
             });
             if (i % 2 == 1) shot(1, "city_bus_come_" + i);
         }
-        // сесть: ПКМ по автобусу на остановке
-        server(5, s -> {
-            ServerPlayerEntity p = pl(s);
-            p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
-            var w = p.getServerWorld();
-            var buses = w.getEntitiesByClass(CarEntity.class, p.getBoundingBox().expand(40), c -> c.getVariant() == CarEntity.BUS);
-            if (buses.isEmpty()) {
-                Novograd.LOG.info("[city] no bus to board");
-                return;
-            }
-            CarEntity b = buses.get(0);
-            var r = com.yompix.novograd.gta.Buses.interact(b, p);
-            Novograd.LOG.info("[city] board result {} riding {} money {}", r, p.getVehicle() == b, Life.get(p).money);
-            if (p.getVehicle() == null) {
-                p.teleport(w, b.getX() + 3, b.getY(), b.getZ(), 0, 0);
-            }
-        });
+        // сесть: ПКМ по автобусу, когда он встал на остановке (ждём до ~30 с — может стоять на красном)
+        for (int i = 0; i < 15; i++) {
+            final int n = i;
+            server(i == 0 ? 5 : 40, s -> {
+                ServerPlayerEntity p = pl(s);
+                if (p.getVehicle() != null) return;
+                var w = p.getServerWorld();
+                var buses = w.getEntitiesByClass(CarEntity.class, p.getBoundingBox().expand(40), c -> c.getVariant() == CarEntity.BUS && !c.onRoute() && c.slow());
+                if (buses.isEmpty()) return;
+                p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
+                CarEntity b = buses.get(0);
+                var r = com.yompix.novograd.gta.Buses.interact(b, p);
+                Novograd.LOG.info("[city] board try {} result {} riding {} money {}", n, r, p.getVehicle() == b, Life.get(p).money);
+            });
+        }
         run(5, c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
         shot(40, "city_bus_inside");
         shot(160, "city_bus_ride");
@@ -181,7 +197,8 @@ public final class CityAutotest {
             ServerWorld w = p.getServerWorld();
             int x = 552, z = -312;
             for (int dx = -64; dx <= 64; dx += 16) for (int dz = -64; dz <= 64; dz += 16) w.getChunk((x + dx) >> 4, (z + dz) >> 4);
-            look(p, x - 8.5, Story.topY(w, x, z) + 9, z + 30.5, x - 8.5, Story.topY(w, x, z), z + 10.5);
+            p.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+            look(p, x + 2.5, Story.topY(w, x, z) + 8, z + 34.5, x + 1, Story.topY(w, x, z), z + 14);
         });
         run(40, c -> {});
         server(5, s -> Novograd.LOG.info("[city] {}", CityServices.debug(pl(s), "amb")));

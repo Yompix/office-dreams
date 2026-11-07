@@ -136,6 +136,11 @@ public final class LifeAutotest {
         int total = st.values().stream().mapToInt(Integer::intValue).sum();
         Novograd.LOG.info("[life] {} t={} людей {} (жильцов {}), {} | {} | mspt {}", name, w.getTimeOfDay() % 24000, total, Residents.activeCount(), st,
                 Leisure.debug(), String.format("%.2f", s.getAverageTickTime()));
+        StringBuilder sb = new StringBuilder();
+        for (CitizenEntity c : w.getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(64, 30, 64), CitizenEntity::isAlive))
+            sb.append(String.format(" [%+.0f,%+.0f,%+.0f %s%s %s%s]", c.getX() - p.getX(), c.getY() - p.getY(), c.getZ() - p.getZ(), c.getActivity(),
+                    c.walkingRoute() ? "+w" : "", LifeAi.doing(c), c.isAmbient() ? "" : "!amb"));
+        Novograd.LOG.info("[life] где: {}", sb);
     }
 
     // ------------------------------------------------------------------ помощники

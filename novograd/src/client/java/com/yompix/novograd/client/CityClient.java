@@ -93,7 +93,7 @@ public final class CityClient {
             int lh = 10, boxH = lines.size() * lh + 16, boxW = 0;
             for (var l : lines) boxW = Math.max(boxW, tr.getWidth(l));
             boxW += 50;
-            int x0 = w / 2 - boxW / 2, y0 = 36;
+            int x0 = w / 2 - boxW / 2, y0 = 92; // под плашкой новостей «Новоград-24»
             ctx.fill(x0, y0, x0 + boxW, y0 + boxH, Ui.alpha(0xD0101820, a));
             ctx.fill(x0, y0, x0 + 3, y0 + boxH, Ui.alpha((now / 300) % 2 == 0 ? 0xFF2A6AFF : 0xFFFF2A3A, a)); // мигалка
             ctx.drawText(tr, "РАЦИЯ", x0 + 8, y0 + 4, Ui.alpha(0xFF7FB2FF, a), false);
