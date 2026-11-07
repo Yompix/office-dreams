@@ -182,8 +182,8 @@ def score_sh(TL):
         k = t / silence; at(tr, t, pulse(vel=.4 + .3 * k)); t += 1.0 - .45 * k
     sm = seg['smile']['start']
     at(tr, sm, braam(hz('D1'), 2.4, vel=.3))
-    at(tr, sm, pad([hz('D3'), hz('F3'), hz('A3'), hz('C4')], silence - sm + .5, vel=.08, bright=900, att=2, rel=.6), pan=.1)
-    at(tr, sm + 1.2, pad([hz('Eb4'), hz('D5')], silence - sm - .7, vel=.05, bright=1600, att=1.5, rel=.4), pan=.25)   # высокая секунда — тревога
+    at(tr, sm, pad([hz('D3'), hz('F3'), hz('A3'), hz('C4')], max(1.5, silence - sm + .5), vel=.08, bright=900, att=2, rel=.6), pan=.1)
+    at(tr, sm + 1.2, pad([hz('Eb4'), hz('D5')], max(1.0, silence - sm - .7), vel=.05, bright=1600, att=1.5, rel=.4), pan=.25)   # высокая секунда — тревога
     n = int((scare - silence) * SR)   # на камере пусто: тонкий высокий тон
     at(tr, silence + .2, np.sin(2 * np.pi * hz('C#7') * np.arange(n) / SR) * .012 * env(n, 1.2, .3))
     r0 = seg['there']['start'] + .1

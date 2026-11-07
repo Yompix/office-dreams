@@ -136,7 +136,7 @@ function shorts2(L) {
   S.push({ id: 'lily', shot: 'gl_face', from: 'glass2:1', t0: 1, cam: [.5, .5, 1.1, 1.2], fx: 'rain', vo: [['g05', .1]], tail: .25, card: { kind: 'hook', at: 0, dur: 99, lines: [K1] },
     sfx: [['rain', 0, { gain: .3, cut: 6 }], ['glass_hit', .25, { gain: .3 }], ['glass_hit', .95, { gain: .28 }]] });
   S.push({ id: 'lilycam', shot: 'entrance_empty', from: 'glass2:4', t0: 1, cam: [.5, .5, 1.0, 1.08], cctv: T('CAM 01  ВХОД', 'CAM 01  ENTRANCE'), clock: '03:31', fx: 'static', vo: [['g08', .1]], tail: .2,
-    card: { kind: 'hook', at: 0, dur: 99, lines: [T('НО НА КАМЕРЕ — НИКОГО', 'BUT THE CAMERA SHOWS NO ONE')] }, sfx: [['static', 0, { gain: .45, cut: .45 }]], mark: 'silence' });
+    card: { kind: 'hook', at: 0, dur: 99, lines: [T('НО НА КАМЕРЕ — НИКОГО', 'BUT THE CAMERA SHOWS NO ONE')], nomerge: 1 }, sfx: [['static', 0, { gain: .45, cut: .45 }]], mark: 'silence' });
   S.push({ id: 'smile', shot: 'b_smile', from: 'branch_b:2', t0: .4, cam: [.5, .47, 1.0, 1.22], fx: 'rain', vo: [['b02', .25]], tail: .3, sfx: [['skin_stretch', 1.8, { gain: .45 }], ['drone_dread', 0, { gain: .3 }]] });
   S.push({ id: 'there', shot: 'h_face_open', from: 'over_k5:0', t0: 1, cam: [.5, .5, 1.1, 1.2], fx: 'dark', vo: [['k5a', .15]], tail: .1 });
   S.push({ id: 'lunge', shot: 'lunge_booth', t0: .55, cam: [.5, .5, 1, 1], scareAt: .75, dur: 1.6, sfx: [['jumpscare', .75, { gain: 1 }], ['scare', .75, { gain: .8 }]], mark: 'scare' });
@@ -174,7 +174,7 @@ function build(fmt, L) {
     out.segs.push(o); t += dur;
   }
   // крючок TikTok: одна надпись на два сегмента — склеиваем, чтобы не мигала
-  out.cards = out.cards.reduce((a, c) => { const p = a[a.length - 1]; if (p && p.kind === 'hook' && c.kind === 'hook') { p.dur = c.at + c.dur - p.at; p.lines2 = c.lines; p.at2 = c.at; return a; } a.push(c); return a; }, []);
+  out.cards = out.cards.reduce((a, c) => { const p = a[a.length - 1]; if (p && p.kind === 'hook' && c.kind === 'hook' && !c.nomerge) { p.dur = c.at + c.dur - p.at; p.lines2 = c.lines; p.at2 = c.at; return a; } a.push(c); return a; }, []);
   out.dur = +t.toFixed(4); out.frames = Math.round(t * FPS);
   return out;
 }
