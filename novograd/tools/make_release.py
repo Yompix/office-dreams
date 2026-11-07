@@ -27,6 +27,14 @@ MODS = [
     ('kSPJ4hQv', 'continuity-', 'base'),
     ('dhKbgdIb', 'visuality-', 'base'),
     ('HpMb5wGb', 'cloth-config-', 'base'),
+    # производительность: сервер-логика, память, интерфейс, загрузка, отсечение невидимого
+    ('N08Z8wog', 'lithium-', 'base'),
+    ('sOzRw3CG', 'ferritecore-', 'base'),
+    ('aLnBqxFW', 'ImmediatelyFast-', 'base'),
+    ('NnNX8LBn', 'modernfix-', 'base'),
+    ('zze1l7gB', 'moreculling-', 'base'),
+    # шейдеры: быстрый MakeUp Ultra Fast — включён по умолчанию; Complementary — красивый, переключается в Iris
+    ('t4YRxQug', None, 'shader'),
     ('Bqen1mJX', None, 'shader'),
     ('nPzvTtsX', 'Flashback-', 'big'),
     ('54u7eI2t', 'AmbientSounds_', 'big'),
@@ -115,7 +123,7 @@ def bat(mods):
           'echo Готово! Запускай в TLauncher версию Fabric 1.21.1.',
           'echo В игре: Новый мир - Ещё - Тип мира «Новоград: Город».',
           'echo Своё кино: F7 — Киностудия Новограда. Если ставил BBS — его клавиши в Настройки - Управление.',
-          'echo Слабый ноутбук? Настройки - Графика - Шейдеры - выключить.',
+          'echo Шейдеры: включён быстрый MakeUp Ultra Fast. Хочешь красивее — Настройки - Графика - Шейдеры - Complementary.',
           'pause']
     return '\r\n'.join(L) + '\r\n'
 
@@ -156,7 +164,7 @@ def main():
                       'env': {'client': 'optional' if optional else 'required', 'server': server},
                       'downloads': [m['url']], 'fileSize': m['size']})
     index = {'formatVersion': 1, 'game': 'minecraft', 'versionId': VER, 'name': 'Новоград: Кино',
-             'summary': 'Новоград + шейдеры Complementary, Sodium, съёмка кино (Flashback, BBS, Camera Utils, Freecam), свои скины, живые звуки',
+             'summary': 'Новоград + быстрые шейдеры MakeUp и Complementary, Sodium, Lithium, ImmediatelyFast, съёмка кино (Flashback, BBS, Camera Utils, Freecam), свои скины, живые звуки',
              'files': files, 'dependencies': {'minecraft': '1.21.1', 'fabric-loader': '0.16.14'}}
     shader = next(m for m in mods if m['group'] == 'shader')['file']
     with zipfile.ZipFile(os.path.join(OUT, f'Novograd-Kino-{VER}.mrpack'), 'w', zipfile.ZIP_DEFLATED) as z:

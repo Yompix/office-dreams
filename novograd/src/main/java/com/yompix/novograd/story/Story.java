@@ -527,6 +527,7 @@ public final class Story {
     /** Текущая цель: название миссии, подсказка, координаты маркера, прогресс и таймер. */
     public static void sendObjective(ServerPlayerEntity p, LifeData d) {
         JsonObject s = step(d), m = mission(d), c = chapter(d);
+        com.yompix.novograd.world.Pregen.forMission(p, m); // места кат-сцен миссии строятся заранее, без «прогрузок»
         if (s == null || m == null || c == null) {
             LifeNet.send(p, "objective", new NbtCompound());
             return;
