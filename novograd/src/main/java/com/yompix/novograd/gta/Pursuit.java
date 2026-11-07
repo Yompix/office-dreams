@@ -78,8 +78,10 @@ public final class Pursuit {
 
     /** Вертолёт с прожектором видит игрока на открытом месте (не под крышей и не в тоннеле), если кружит рядом. */
     public static boolean extraSeen(ServerPlayerEntity p, int stars) {
-        if (stars < 3) return false;
         ServerWorld w = p.getServerWorld();
+        // экипаж патрульной машины видит дальше пешего копа (по прямой, без стен)
+        if (Wanted.policeSees(w, p.getVehicle() != null ? p.getVehicle() : p, 60)) return true;
+        if (stars < 3) return false;
         if (!w.isSkyVisible(p.getBlockPos().up())) return false;
         for (var h : w.getEntitiesByClass(com.yompix.novograd.vehicle.HeliEntity.class, p.getBoundingBox().expand(40, 60, 40), h -> h.isPolice() && !h.wrecked()))
             if (Math.hypot(h.getX() - p.getX(), h.getZ() - p.getZ()) < 30) return true;
@@ -242,7 +244,16 @@ public final class Pursuit {
                 if (idx % 2 == 1) sg = -sg; // вторая машина — с другого бока (зажать)
                 if (d > 22) aim = tp.add(s.vel.multiply(Math.min(28, d * 0.6))); // упреждение: перехват по курсу
                 else aim = tp.add(f.multiply(-0.8)).add(side.multiply(sg * 1.6)).add(s.vel.multiply(7)); // в заднее крыло — PIT
-                spd = (float) Math.min(1.2, ps + (d > 22 ? 0.35 : 0.18));
+                spd = (float) Math.min(d > 22 ? 1.35 : 1.2, ps + (d > 22 ? 0.45 : 0.3));
+                // «резинка» как в GTA: патруль не отстаёт от машины на прямой (если смотрит в её сторону)
+                double cy = Math.toRadians(car.getYaw());
+                Vec3d cf = new Vec3d(-Math.sin(cy), 0, Math.cos(cy));
+                if (d > 4 && d < 30 && cf.dotProduct(aim.subtract(car.getPos()).normalize()) > 0.8)
+                    car.speed = Math.max(car.speed, (float) Math.min(spd, ps + (d > 10 ? 0.35 : 0.25)));
+                if (d > 28 && ps > 0.5) { // отстали на трассе — нитро
+                    if (!car.hasNitro()) car.setTune(true, car.engine(), car.armor());
+                    car.fireNitro();
+                }
             } else {
                 aim = tp;
                 spd = d < 14 ? 0.35f : 0.85f;
@@ -259,7 +270,9 @@ public final class Pursuit {
             while (pts.size() > 1 && pts.get(0).squaredDistanceTo(car.getPos()) < 16) pts.remove(0);
             pts.add(aim);
             car.setRoute(pts, Math.max(spd, 0.8f), null);
-        } else car.setRoute(List.of(aim), spd, null);
+        } else if (!lost && tgt instanceof CarEntity && s.vel.horizontalLengthSquared() > 0.04)
+            car.setRoute(List.of(aim, aim.add(s.vel.normalize().multiply(30))), spd, null); // точка за целью — не тормозим «у финиша», а таранем
+        else car.setRoute(List.of(aim), spd, null);
     }
 
     /** Точка поиска вокруг последнего места: у каждого копа своя, меняется раз в 10 с; машинам — на дороге. */
@@ -305,7 +318,9 @@ public final class Pursuit {
                 double cr = Math.toRadians(c.getYaw());
                 Vec3d cf = new Vec3d(-Math.sin(cr), 0, Math.cos(cr));
                 double dist = rel.length();
-                if (dist < 3.8 && c.speed > 0.3f && ps > 0.22 && now - s.lastPit > 90 && along < 1.5
+                float cs = Math.max(c.speed, LAST_SPEED.getOrDefault(c, 0f)); // скорость до удара (после удара она падает)
+                LAST_SPEED.put(c, c.speed);
+                if (dist < 4.3 && cs > 0.3f && ps > 0.22 && now - s.lastPit > 90 && along < 1.5
                         && cf.dotProduct(rel.multiply(-1).normalize()) > 0.45) {
                     s.lastPit = now;
                     float kick = (float) (Math.signum(lat == 0 ? 1 : lat) * (35 + 25 * Math.min(1, ps)));
@@ -342,6 +357,8 @@ public final class Pursuit {
             } else s.boxTicks = 0;
         }
     }
+
+    private static final Map<CarEntity, Float> LAST_SPEED = new WeakHashMap<>();
 
     // ------------------------------------------------------------------ шипы
     private record Strip(Box box, Vec3d a, Vec3d b, long until) {}

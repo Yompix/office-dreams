@@ -57,6 +57,7 @@ public final class CopsAutotest {
         cmd(5, "effect give " + P + " minecraft:saturation 99999 4 true");
         int G = Island.G;
         if (only.isEmpty() || only.contains("chase")) chase(G);
+        if (only.isEmpty() || only.contains("pit")) pit(G);
         if (only.isEmpty() || only.contains("army")) army(G);
         if (only.isEmpty() || only.contains("search")) search(G);
         if (only.isEmpty() || only.contains("mask")) mask(G);
@@ -138,6 +139,59 @@ public final class CopsAutotest {
         run(5, c -> c.options.setPerspective(Perspective.FIRST_PERSON));
     }
 
+    /** PIT и «зажим»: игрок на пробитых шинах (медленно), две патрульные машины догоняют сзади. */
+    private static void pit(int G) {
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            ServerWorld w = p.getServerWorld();
+            Wanted.clear(p);
+            for (int k = 0; k < 6; k++) w.getChunk(1, (-1200 >> 4) - k);
+            p.teleport(w, 22.5, G + 1, -1190.5, 180, 0);
+        });
+        server(40, s -> {
+            ServerPlayerEntity p = pl(s);
+            ServerWorld w = p.getServerWorld();
+            int y = com.yompix.novograd.story.Story.topY(w, 22, -1200);
+            CarEntity car = FunUtil.car(w, new Vec3d(22.5, y, -1200.5), 180, 0);
+            car.setFlat(true);
+            p.startRiding(car, true);
+            Wanted.add(p, 0, "автотест: PIT", 2);
+            for (int k = 0; k < 2; k++) {
+                CarEntity cop = FunUtil.car(w, new Vec3d(18.5 + k * 8, y, -1185.5), 180, CarEntity.POLICE);
+                for (int i = 0; i < 2; i++) {
+                    CitizenEntity c = new CitizenEntity(com.yompix.novograd.ModContent.CITIZEN, w);
+                    c.setup(CitizenEntity.skinIndex("police"), CitizenEntity.Role.POLICE, false, "Полицейский");
+                    c.refreshPositionAndAngles(cop.getX(), cop.getY(), cop.getZ(), 0, 0);
+                    c.removeWhenIdle();
+                    w.spawnEntity(c);
+                    c.startRiding(cop, true);
+                }
+                cop.chase(p);
+            }
+        });
+        run(10, c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
+        run(5, c -> holdW = true);
+        for (int k = 0; k < 8; k++) {
+            server(30, s -> {
+                ServerPlayerEntity p = pl(s);
+                StringBuilder sb = new StringBuilder();
+                for (CarEntity c : p.getServerWorld().getEntitiesByClass(CarEntity.class, p.getBoundingBox().expand(60), CarEntity::isPolice))
+                    sb.append(String.format(" [id " + c.getId() + " %.1f sp %.2f route %s drv %s tgt %s pd %s]", c.distanceTo(p), c.speed, c.onRoute(), c.hasNpcDriver(), c.chaseTarget() == p, c.pursuitDriven));
+                Novograd.LOG.info("[cops] pit cops:{} stars {} car {}", sb, Wanted.stars(p), p.getVehicle());
+            });
+            if (k % 2 == 1) shot(1, "cops_pit_" + k / 2);
+        }
+        run(1, c -> {
+            holdW = false;
+            c.options.forwardKey.setPressed(false);
+        });
+        server(5, s -> {
+            Wanted.clear(pl(s));
+            pl(s).stopRiding();
+        });
+        run(5, c -> c.options.setPerspective(Perspective.FIRST_PERSON));
+    }
+
     /** 5★ на трассе: броневики с пулемётчиком, солдаты. */
     private static void army(int G) {
         server(5, s -> {
@@ -153,7 +207,7 @@ public final class CopsAutotest {
             CarEntity truck = null;
             for (CarEntity c : p.getServerWorld().getEntitiesByClass(CarEntity.class, p.getBoundingBox().expand(120), c -> c.getVariant() == CarEntity.SWAT))
                 if (truck == null || c.squaredDistanceTo(p) < truck.squaredDistanceTo(p)) truck = c;
-            if (truck != null) look(p, truck.getPos().add(7, 5, 7), truck.getPos().add(0, 1, 0));
+            if (truck != null) look(p, truck.getPos().add(2, 11, 7), truck.getPos().add(0, 1, 0));
             log(s, "army 17s");
         });
         shot(10, "cops_army_1");
@@ -202,6 +256,17 @@ public final class CopsAutotest {
             p.getAbilities().flying = false;
             p.sendAbilitiesUpdate();
             Novograd.LOG.info("[cops] ларёк: {}", com.yompix.novograd.world.TownState.get(p.getServerWorld()).storyPlaces.get("built:mask_shop"));
+            ServerWorld w = p.getServerWorld();
+            for (int z = 112; z <= 140; z++) {
+                StringBuilder sb = new StringBuilder();
+                for (int x = -252; x <= -212; x++) {
+                    int y = com.yompix.novograd.story.Story.topY(w, x, z);
+                    var b = w.getBlockState(new net.minecraft.util.math.BlockPos(x, y - 1, z)).getBlock();
+                    String id = net.minecraft.registry.Registries.BLOCK.getId(b).getPath();
+                    sb.append(id.contains("asphalt") || id.contains("crosswalk") ? '#' : id.equals("sidewalk") ? '.' : id.contains("grass") ? ',' : y - Island.G > 3 ? 'B' : '?');
+                }
+                Novograd.LOG.info("[cops] map z={} {}", z, sb);
+            }
         });
         shot(20, "cops_mask_shop");
         server(5, s -> {
@@ -233,7 +298,7 @@ public final class CopsAutotest {
                 p.teleport(p.getServerWorld(), Disguise.SHOP_X + 0.5, p.getY(), Disguise.SHOP_Z - 0.6, 0, 0);
                 Disguise.click(p, "buy:" + m);
             });
-            run(5, c -> { if (c.currentScreen != null) c.setScreen(null); });
+            run(15, c -> { if (c.currentScreen != null) c.setScreen(null); });
             server(5, s -> pl(s).teleport(pl(s).getServerWorld(), Disguise.SHOP_X - 3.5, pl(s).getY(), Disguise.SHOP_Z - 3.5, 0, 0));
             shot(25, "cops_mask_" + m);
         }
@@ -244,10 +309,24 @@ public final class CopsAutotest {
             Wanted.add(p, 0, "автотест: образ", 2);
             Novograd.LOG.info("[cops] образ: звёзд до {}", Wanted.stars(p));
         });
+        server(40, s -> { // «скрылся»: копов рядом нет
+            ServerPlayerEntity p = pl(s);
+            for (CitizenEntity c : p.getServerWorld().getEntitiesByClass(CitizenEntity.class, p.getBoundingBox().expand(120), c -> c.getRole() == CitizenEntity.Role.POLICE)) c.discard();
+            for (CarEntity c : p.getServerWorld().getEntitiesByClass(CarEntity.class, p.getBoundingBox().expand(120), CarEntity::isPolice)) c.discard();
+        });
+        server(5, s -> { // спрятался в «Шмот-Базаре»
+            ServerPlayerEntity p = pl(s);
+            p.teleport(p.getServerWorld(), -240.5, Island.surface(-240, 135) + 1, 135.5, 180, 0);
+        });
         server(60, s -> {
             ServerPlayerEntity p = pl(s);
-            p.teleport(p.getServerWorld(), Disguise.SHOP_X + 0.5, p.getY(), Disguise.SHOP_Z - 0.6, 0, 0);
-            Disguise.click(p, "outfit");
+            Novograd.LOG.info("[cops] образ: видят {}", Wanted.seen(p));
+            var a = Life.get(p).look;
+            a.top = "hoodie#1";
+            a.pants = "cargo#0";
+            a.hat = "beanie#0";
+            a.custom = true;
+            com.yompix.novograd.life.Style.broadcast(p);
             Disguise.click(p, "wear:pig");
         });
         server(60, s -> Novograd.LOG.info("[cops] образ: звёзд после {} (seen {})", Wanted.stars(pl(s)), Wanted.seen(pl(s))));
@@ -265,25 +344,22 @@ public final class CopsAutotest {
     private static void prison(int G) {
         server(5, s -> {
             ServerPlayerEntity p = pl(s);
+            Prison.ensureBuilt(p.getServer().getOverworld());
+            int y = com.yompix.novograd.story.Story.topY(p.getServerWorld(), Prison.X0 + 15, Prison.Z0 + 15);
+            look(p, new Vec3d(Prison.X0 - 12, y + 22, Prison.Z0 - 16), new Vec3d(Prison.X0 + 15, y - 4, Prison.Z0 + 15));
+        });
+        run(40, c -> { if (c.currentScreen != null) c.setScreen(null); });
+        shot(60, "cops_prison_aerial");
+        server(5, s -> {
+            ServerPlayerEntity p = pl(s);
+            p.getAbilities().flying = false;
+            p.sendAbilitiesUpdate();
             Wanted.add(p, 0, "автотест: арест", 3);
             Wanted.busted(p);
             Novograd.LOG.info("[cops] арест: в колонии {} y {}", Prison.inside(p), p.getY());
         });
         shot(60, "cops_prison_cell");
         run(30, c -> { if (c.currentScreen != null) c.setScreen(null); });
-        // вид сверху на колонию (камера-зритель отдельно не нужна: снимок с вышки)
-        server(5, s -> {
-            ServerPlayerEntity p = pl(s);
-            p.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
-            look(p, new Vec3d(Prison.X0 - 14, p.getY() + 22, Prison.Z0 - 14), new Vec3d(Prison.X0 + 15, p.getY(), Prison.Z0 + 15));
-        });
-        shot(60, "cops_prison_aerial");
-        server(5, s -> {
-            ServerPlayerEntity p = pl(s);
-            p.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);
-            p.getAbilities().flying = false;
-            p.sendAbilitiesUpdate();
-        });
         cmd(30, "time set 15000");
         server(30, s -> Prison.menu(pl(s)));
         shot(30, "cops_prison_menu");

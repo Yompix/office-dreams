@@ -166,6 +166,7 @@ public final class CopsAndRobbers {
             i++;
             p.stopRiding();
             Wanted.clear(p);
+            for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) w.getChunk(((int) Math.floor(at.x) >> 4) + dx, ((int) Math.floor(at.z) >> 4) + dz); // иначе высота неизвестна — упадёт в пустоту
             p.teleport(w, at.x, Story.topY(w, (int) Math.floor(at.x), (int) Math.floor(at.z)), at.z, p.getYaw(), 0);
             p.setHealth(p.getMaxHealth());
             CarEntity car = FunUtil.car(w, new Vec3d(at.x + 2.5, Story.topY(w, (int) Math.floor(at.x + 2.5), (int) Math.floor(at.z)), at.z), 0,
@@ -405,6 +406,9 @@ public final class CopsAndRobbers {
             n.putString("exit", exitName);
             n.put("score", score);
             CopsNet.send(p, "cnr", n);
+            // метка точки сбора у вора (другие системы могли перебить голубую метку)
+            if (breakUntil == 0 && ROBBERS.contains(u) && !CAUGHT.contains(u) && !ESCAPED.contains(u) && exit != null && now % 200 < 20)
+                FunUtil.target(p, exit, "Точка сбора · " + exitName);
         }
     }
 }

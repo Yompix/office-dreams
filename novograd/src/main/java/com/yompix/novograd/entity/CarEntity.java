@@ -540,16 +540,29 @@ public class CarEntity extends Entity {
         double before = 0, after = 0;
         for (int i = 0; i < 4; i++) before += stepLen[i];
         for (int i = 4; i < 8; i++) after += stepLen[i];
+        if (crashWait > 0) { // машина игрока: удар засчитываем, только если она и правда встала (а не пакеты движения пришли пачкой)
+            if (d > 0.8) crashWait = 0;
+            else if (--crashWait == 0) crash(crashDmg);
+        }
         if (before > 2.2 && after < before * 0.3 && age > 40 && !wrecked()) {
             int dmg = (int) Math.round((before / 4 - 0.45) * 40) + 3;
             dmg = Math.round(dmg * (1.2f - armor() * 0.35f));
-            int h = Math.max(Math.min(health(), 12), health() - dmg);
-            if (h < health()) dataTracker.set(HEALTH, h);
-            dataTracker.set(WOBBLE, 10);
-            getWorld().playSound(null, getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, SoundCategory.NEUTRAL, 1f, 0.7f);
             java.util.Arrays.fill(stepLen, 0);
-            if (getControllingPassenger() instanceof ServerPlayerEntity sk) com.yompix.novograd.gta.Skills.onCrash(sk); // авария обнуляет «чистую» езду
+            if (getControllingPassenger() instanceof PlayerEntity) {
+                crashWait = 4;
+                crashDmg = dmg;
+            } else crash(dmg);
         }
+    }
+
+    private int crashWait, crashDmg;
+
+    private void crash(int dmg) {
+        int h = Math.max(Math.min(health(), 12), health() - dmg);
+        if (h < health()) dataTracker.set(HEALTH, h);
+        dataTracker.set(WOBBLE, 10);
+        getWorld().playSound(null, getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, SoundCategory.NEUTRAL, 1f, 0.7f);
+        if (getControllingPassenger() instanceof ServerPlayerEntity sk) com.yompix.novograd.gta.Skills.onCrash(sk); // авария обнуляет «чистую» езду
     }
 
     // ------------------------------------------------------------------ сбить пешехода (как в ГТА)
@@ -711,7 +724,8 @@ public class CarEntity extends Entity {
     private Obstacle scanAhead(Vec3d fwd, Vec3d side) {
         Obstacle best = null;
         for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(17, 2, 17),
-                e -> !hasPassenger(e) && !e.hasVehicle() && (e instanceof CarEntity || e instanceof LivingEntity) && !(e instanceof net.minecraft.entity.decoration.ArmorStandEntity) && !e.isSpectator())) {
+                e -> !hasPassenger(e) && !e.hasVehicle() && !(pursuitDriven && chaseTarget != null && (e == chaseTarget || e == chaseTarget.getVehicle())) // погоня: цель не «помеха», её таранят
+                        && (e instanceof CarEntity || e instanceof LivingEntity) && !(e instanceof net.minecraft.entity.decoration.ArmorStandEntity) && !e.isSpectator())) {
             Vec3d rel = e.getPos().subtract(getPos());
             double along = rel.dotProduct(fwd), lat = rel.dotProduct(side);
             if (e instanceof CarEntity oc && oc.body() == CarBody.BUS && !oc.isBike() && !oc.isScooter()) along -= 7 * Math.max(0, rel.normalize().dotProduct(oc.getRotationVector().multiply(1, 0, 1).normalize())); // длинный автобус: его зад ближе центра

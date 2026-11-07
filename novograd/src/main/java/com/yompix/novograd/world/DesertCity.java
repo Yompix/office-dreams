@@ -119,7 +119,7 @@ public final class DesertCity {
     }
 
     private static BlockState neon(Direction f, NeonBlock.Color c) {
-        return ModContent.NEON.getDefaultState().with(HorizontalFacingBlock.FACING, f).with(NeonBlock.COLOR, c);
+        return ModContent.NEON.getDefaultState().with(HorizontalFacingBlock.FACING, f).with(NeonBlock.COLOR, c).with(NeonBlock.LIT, true); // «Мираж» не гаснет и днём
     }
 
     static void lot(int lx, int lz, long px, long pz, int s, Island.Column c) {
@@ -179,7 +179,10 @@ public final class DesertCity {
                 boolean corner = ax == th && az == th;
                 if (corner) c.set(y, neon(lx > 0 ? Direction.EAST : Direction.WEST, k.neon()));
                 else if (f == 0) c.set(y, st(k.accent() == Blocks.QUARTZ_PILLAR ? Blocks.QUARTZ_BLOCK : k.accent()));
-                else c.set(y, hash(lx * 31L + lz, y, idx) < 0.22 && f == 2 ? st(Blocks.YELLOW_STAINED_GLASS) : st(k.glass()));
+                else {
+                    double h = hash(lx * 31L + lz, y, idx);
+                    c.set(y, f == 2 && h < 0.14 ? st(Blocks.OCHRE_FROGLIGHT) : f == 2 && h < 0.26 ? st(Blocks.YELLOW_STAINED_GLASS) : st(k.glass())); // окна номеров: часть светится
+                }
             } else if (f == 0) c.set(y, st(Blocks.SMOOTH_STONE));
         }
         // корона: неоновое кольцо, у «Миража» — шпиль с огнём
@@ -405,7 +408,7 @@ public final class DesertCity {
                     if (lz == half && ax <= 1) continue;
                     c.set(y, ax == half && az == half ? st(wall) : y == s + 3 ? st(wall) : st(Blocks.GLASS));
                 } else if (y == s + 4) c.set(y, neon(face, nc));
-                else c.set(y, f == 2 && (lx + lz) % 3 != 0 ? st(hash(lx, y + lz, px * 7 + pz) < 0.3 ? Blocks.YELLOW_STAINED_GLASS : Blocks.GRAY_STAINED_GLASS) : st(wall));
+                else c.set(y, f == 2 && (lx + lz) % 3 != 0 ? st(hash(lx, y + lz, px * 7 + pz) < 0.15 ? Blocks.OCHRE_FROGLIGHT : hash(lx, y + lz, px * 7 + pz) < 0.3 ? Blocks.YELLOW_STAINED_GLASS : Blocks.GRAY_STAINED_GLASS) : st(wall));
             } else if (f == 0) c.set(y, st(Blocks.SMOOTH_STONE));
             else if (y <= s + 3 && ((ax == 4 && az <= 8) || (az == 4 && ax <= 8)) && f == 1) c.set(y, st(Blocks.BARREL));
         }

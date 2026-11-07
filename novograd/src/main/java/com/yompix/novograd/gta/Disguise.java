@@ -50,8 +50,8 @@ public final class Disguise {
 
     public static final String SHOP = "Маски и шмот";
     public static final int OUTFIT_PRICE = 150;
-    /** Ларёк: рядом с «Шмот-Базаром» (вход у x=−240, z=125, фасад на север), на тротуаре справа от входа. */
-    public static final int SHOP_X = -228, SHOP_Z = 122;
+    /** Ларёк: на углу участка справа от «Шмот-Базара» (вход у x=−240, z=125), прилавком к тротуару (z=125..127). */
+    public static final int SHOP_X = -226, SHOP_Z = 128;
 
     @org.jetbrains.annotations.Nullable
     public static Mask mask(String id) {
@@ -251,7 +251,9 @@ public final class Disguise {
         BlockState counter = Blocks.STRIPPED_DARK_OAK_LOG.getDefaultState().with(Properties.AXIS, Direction.Axis.X);
         for (int dx = -1; dx <= 1; dx++) {
             w.setBlockState(new BlockPos(x + dx, y, z), counter);
-            for (int h = 1; h <= 3; h++) w.setBlockState(new BlockPos(x + dx, y + h, z + 1), Blocks.AIR.getDefaultState());
+            for (int h = 0; h <= 3; h++) w.setBlockState(new BlockPos(x + dx, y + h, z + 1), Blocks.AIR.getDefaultState());
+            w.setBlockState(new BlockPos(x + dx, y - 1, z + 1), Blocks.SPRUCE_PLANKS.getDefaultState());
+            w.setBlockState(new BlockPos(x + dx, y - 1, z), Blocks.SPRUCE_PLANKS.getDefaultState());
             w.setBlockState(new BlockPos(x + dx, y + 3, z), Blocks.BLACK_WOOL.getDefaultState());
             w.setBlockState(new BlockPos(x + dx, y + 3, z - 1), (dx & 1) == 0 ? Blocks.YELLOW_CARPET.getDefaultState() : Blocks.BLACK_CARPET.getDefaultState());
             w.setBlockState(new BlockPos(x + dx, y + 3, z + 1), Blocks.BLACK_WOOL.getDefaultState());

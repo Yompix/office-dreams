@@ -72,7 +72,8 @@ public final class FunUtil {
 
     /** Игрок уже чем-то занят: подработка, ограбление, событие, война банд, прыжок — у радара одна голубая метка. */
     public static boolean busy(ServerPlayerEntity p) {
-        return Activities.busy(p) || Heists.busy(p) || StreetEvents.busy(p) || VehicleJobs.busy(p) || Territories.busy(p) || Skydive.busy(p) || Underworld.busy(p);
+        return Activities.busy(p) || Heists.busy(p) || StreetEvents.busy(p) || VehicleJobs.busy(p) || Territories.busy(p) || Skydive.busy(p) || Underworld.busy(p)
+                || CopsAndRobbers.immune(p) || Prison.inside(p); // «Полицейские и воры», колония
     }
 
     // ------------------------------------------------------------------ интерфейс

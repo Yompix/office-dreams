@@ -108,7 +108,7 @@ public final class TransitClient {
         if (mc.player != null && !mc.options.hudHidden) {
             if (mc.player.getVehicle() instanceof TrainEntity && hud != null && System.currentTimeMillis() - hudAt < 2000) {
                 boolean drv = hud.getBoolean("driver");
-                int y = h - 78;
+                int y = h - 104;
                 ctx.fill(w / 2 - 120, y - 4, w / 2 + 120, y + 30, 0xB0101418);
                 ctx.fill(w / 2 - 120, y - 4, w / 2 - 116, y + 30, 0xFF1E5AA8);
                 String top = hud.getInt("stop") >= 0 ? "Ⓜ Станция «" + hud.getString("here") + "»" + (hud.getBoolean("doors") ? " · двери открыты" : "")

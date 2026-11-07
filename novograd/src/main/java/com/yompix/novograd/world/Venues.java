@@ -298,7 +298,7 @@ public final class Venues {
                     door(c, s + 1, diner ? Blocks.IRON_DOOR : Blocks.SPRUCE_DOOR, Direction.SOUTH, lx == 0 ? DoorHinge.RIGHT : DoorHinge.LEFT);
                     c.set(s + 3, st(Blocks.GLASS));
                 } else for (int y = s + 1; y <= s + 3; y++) c.set(y, ax == 13 || ax == 6 ? st(st.trim()) : st(Blocks.GLASS));
-                c.set(s + 4, facing(ModContent.NEON, Direction.NORTH).with(NeonBlock.COLOR, st.neon()));
+                c.set(s + 4, facing(ModContent.NEON, Direction.NORTH).with(NeonBlock.LIT, true).with(NeonBlock.COLOR, st.neon()));
                 return;
             }
             for (int y = s + 1; y <= s + 4; y++) c.set(y, (y == s + 2 || y == s + 3) && lz != 12 && Math.floorMod(lz, 4) == 0 && lz < 6 ? st(Blocks.GLASS) : st(st.wall()));
@@ -427,7 +427,7 @@ public final class Venues {
                 for (int y = s + 1; y <= s + 4; y++) if (ax > 2) c.set(y, ax % 5 == 0 ? st(Blocks.LIGHT_GRAY_CONCRETE) : st(Blocks.GLASS));
                 if (ax <= 2) c.set(s + 4, st(Blocks.GLASS));
                 c.set(s + 5, st(brand));
-                c.set(s + 6, facing(ModContent.NEON, Direction.NORTH).with(NeonBlock.COLOR, style == 1 ? NeonBlock.Color.YELLOW : NeonBlock.Color.GREEN));
+                c.set(s + 6, facing(ModContent.NEON, Direction.NORTH).with(NeonBlock.LIT, true).with(NeonBlock.COLOR, style == 1 ? NeonBlock.Color.YELLOW : NeonBlock.Color.GREEN));
                 return;
             }
             for (int y = s + 1; y <= s + 6; y++) c.set(y, y == s + 5 ? st(brand) : st(Blocks.WHITE_CONCRETE));
@@ -514,7 +514,7 @@ public final class Venues {
             if (Math.floorMod(lx, 4) == 2) c.set(L + 2, st(Blocks.WHITE_CONCRETE));
             return true;
         }
-        if (lz >= -2 && lz <= -1 && lx >= -W + 1 && lx <= -3) return true; // проход за стойкой
+        if (lz >= -2 && lz <= 2 && lx >= -W + 1 && lx <= -3) return true; // проход за стойкой и место у неё (без ресепшена)
         if (lz >= 3) {
             int[][] t = lobbyTables(W);
             if (furniture(t, lx, lz, L, c, st, 0)) return true;
@@ -865,7 +865,7 @@ public final class Venues {
         final Site site;
         final Seat seat;
         int stage;
-        long t;
+        long t, since;
 
         Visit(Site site, Seat seat, long t) {
             this.site = site;
@@ -897,7 +897,7 @@ public final class Venues {
         Random r = c.getRandom();
         if (r.nextInt(5) < 2) return false;
         Site best = null;
-        double bd = 110 * 110;
+        double bd = 72 * 72;
         for (Site s : SITES) {
             if (s.kind() == Kind.MARKET) continue;
             double d = c.squaredDistanceTo(s.cx() + 0.5, c.getY(), s.cz() + 0.5);
@@ -913,6 +913,7 @@ public final class Venues {
         if (seat == null) return false;
         Vec3d[] e = entry(site);
         Visit v = new Visit(site, seat, Long.MAX_VALUE);
+        v.since = w.getTime();
         VISITS.put(c.getUuid(), v);
         b.doing = "cafe";
         c.lifeHold = 100000;
@@ -937,11 +938,26 @@ public final class Venues {
                 it.remove();
                 continue;
             }
+            if (v.stage == 0 && v.t == Long.MAX_VALUE && now - v.since > 20 * 100) { // не дошёл за 100 с — передумал
+                c.lifeHold = 0;
+                LifeAi.brain(c).doing = "";
+                it.remove();
+                continue;
+            }
+            if (v.stage == 1 && now - v.since > 20 * 40) { // застрял между столиками — просто садится
+                ItemStack food = c.getMainHandStack().isEmpty() ? new ItemStack(ModContent.BURGER) : c.getMainHandStack();
+                c.stopRoute();
+                LifeAi.sit(c, new LifeAi.BenchSpot(v.seat.at(), v.seat.yaw()), Activity.SIT_EAT, food, 400);
+                v.stage = 2;
+                v.t = now + 420;
+                continue;
+            }
             if (now < v.t) continue;
             Random r = c.getRandom();
             if (v.stage == 0) { // заказал — с едой к столику
                 v.stage = 1;
                 v.t = Long.MAX_VALUE;
+                v.since = now;
                 ItemStack food = new ItemStack(r.nextInt(3) == 0 ? ModContent.PIZZA : r.nextBoolean() ? ModContent.BURGER : ModContent.SALAD);
                 c.walkRoute(List.of(aisle(v.site, v.seat), v.seat.approach()), 0.45, null, food, () -> {
                     LifeAi.sit(c, new LifeAi.BenchSpot(v.seat.at(), v.seat.yaw()), Activity.SIT_EAT, food, 360 + r.nextInt(300));

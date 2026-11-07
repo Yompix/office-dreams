@@ -90,6 +90,15 @@ public final class TransitAutotest {
             int bx = (int) Math.floor(Island.place("cafe_beach")[0]);
             view("cafe_beach", new Vec3d(bx + 10, G + 6, -486), new Vec3d(bx - 10, G + 1, -472), 260);
         }
+        if (only.contains("feed")) { // прохожие обедают в кафе: ждём минуту у «Пончика»
+            view("feed_0", new Vec3d(201.5, G + 2.6, -9.5), new Vec3d(192, G + 1.5, 6), 200);
+            server(5, s -> Novograd.LOG.info("[transit] позвал в кафе: {}", Venues.debugFeed(pl(s).getServerWorld(), pl(s).getPos())));
+            for (int i = 1; i <= 6; i++) {
+                final int k = i;
+                server(300, s -> Novograd.LOG.info("[transit] кафе +{}с: {}", k * 15, Venues.debug()));
+                shot(5, "tr_feed_" + i);
+            }
+        }
         if (all || only.contains("market")) {
             view("market_front", new Vec3d(270, G + 8, -40), new Vec3d(288, G + 3, -10), 260);
             view("market_in", new Vec3d(288.5, G + 3.5, -7.5), new Vec3d(288, G + 1, 10), 80);
