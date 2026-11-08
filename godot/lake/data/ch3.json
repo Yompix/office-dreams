@@ -678,6 +678,16 @@
      "shot": "iris_out"
     },
     {
+     "say": "iris",
+     "ru": "По радио нас ищут. Машину надо спрятать.",
+     "en": "They’re looking for us on the radio. We have to hide the car.",
+     "if": {
+      "storm_radio": ">0",
+      "police": ">0"
+     },
+     "resp": "storm_radio"
+    },
+    {
      "fx": "agnes_door",
      "shot": "agnes_door",
      "note": {
@@ -1347,6 +1357,16 @@
      }
     },
     {
+     "say": "eva",
+     "ru": "Твоя сестра всю дорогу меня грела.",
+     "en": "Your sister kept me warm the whole way.",
+     "if": {
+      "iris_alone": ">0",
+      "eva_dead": "==0"
+     },
+     "resp": "iris_alone"
+    },
+    {
      "go": "c3_s4"
     }
    ]
@@ -1424,6 +1444,33 @@
       "en": "Iris is nodding off on the bench — she spent a long time whispering with Grandma first. Agnes smokes her pipe. Noah sits down beside her."
      },
      "dur": 3.6
+    },
+    {
+     "say": "iris",
+     "ru": "Я видела, как ты к нему подошёл. Что он сказал?",
+     "en": "I saw you go to him. What did he say?",
+     "if": {
+      "iris_saw": ">0"
+     },
+     "resp": "iris_saw"
+    },
+    {
+     "say": "noah",
+     "ru": "Спросил, есть ли таблетки.",
+     "en": "Asked if I still had pills.",
+     "if": {
+      "iris_saw": ">0"
+     },
+     "resp": "iris_saw"
+    },
+    {
+     "say": "agnes",
+     "ru": "Не помнишь — не стыдно. Стыдно — не хотеть помнить.",
+     "en": "Not remembering is no shame. Not wanting to is.",
+     "if": {
+      "agnes_knows": ">0"
+     },
+     "resp": "agnes_knows"
     },
     {
      "say": "agnes",

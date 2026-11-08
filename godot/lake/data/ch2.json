@@ -428,6 +428,18 @@
      }
     },
     {
+     "note": {
+      "ru": "Он завернулся в одеяло из багажника — то самое, с заправки.",
+      "en": "He’s wrapped in the blanket from the trunk — the one from the gas station."
+     },
+     "dur": 2.8,
+     "if": {
+      "blanket_given": ">0",
+      "danny": ">0"
+     },
+     "resp": "blanket_given"
+    },
+    {
      "shot": "noah",
      "note": {
       "ru": "Ной один со своими мыслями.",
@@ -1532,6 +1544,15 @@
       "en": "Warm yellow light, the smell of fried food, a TV up near the ceiling. A waitress and three truckers."
      },
      "dur": 3.4
+    },
+    {
+     "say": "iris",
+     "ru": "Ты бы правда сдался.",
+     "en": "You really would’ve given yourself up.",
+     "if": {
+      "stepped_out": ">0"
+     },
+     "resp": "stepped_out"
     },
     {
      "if": {

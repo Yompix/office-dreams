@@ -678,6 +678,24 @@
      "shot": "iris_coat"
     },
     {
+     "say": "iris",
+     "ru": "Ты тогда стоял, как будто он тебя выключил.",
+     "en": "You just stood there, like he’d switched you off.",
+     "if": {
+      "pine_freeze": ">0"
+     },
+     "resp": "pine_freeze"
+    },
+    {
+     "say": "noah",
+     "ru": "Ты тогда шприц у него выбила. Я так и не сказал спасибо.",
+     "en": "You knocked that syringe out of his hand. I never said thank you.",
+     "if": {
+      "iris_fought": ">0"
+     },
+     "resp": "iris_fought"
+    },
+    {
      "fx": "house5"
     },
     {
@@ -2078,6 +2096,15 @@
      "ru": "Вспомнил.",
      "en": "I remember.",
      "shot": "noah_shed"
+    },
+    {
+     "say": "iris",
+     "ru": "Теперь знаешь?",
+     "en": "Do you know now?",
+     "if": {
+      "belief_none": ">0"
+     },
+     "resp": "belief_none"
     },
     {
      "set": {
@@ -5437,6 +5464,18 @@
     },
     {
      "text": {
+      "ru": "В распечатке звонков той ночи — один вызов с таксофона «24». В пустой дом.",
+      "en": "The phone records for that night show one call from the “24” payphone. To an empty house."
+     },
+     "dur": 3.2,
+     "note": true,
+     "if": {
+      "phoned": ">0"
+     },
+     "resp": "phoned"
+    },
+    {
+     "text": {
       "ru": "Айрис — подо льдом.",
       "en": "Iris — under the ice."
      },
@@ -5494,6 +5533,19 @@
      "if": {
       "end_oblivion": ">0"
      }
+    },
+    {
+     "text": {
+      "ru": "Айрис потом часто говорила, кто её вытащил. Ни разу не сказала — как.",
+      "en": "Iris often told people who pulled her out. Never how."
+     },
+     "dur": 3.2,
+     "note": true,
+     "if": {
+      "iris_saved": ">0",
+      "iris_lost": "==0"
+     },
+     "resp": "iris_saved"
     },
     {
      "text": {
@@ -5712,6 +5764,22 @@
     },
     {
      "text": {
+      "ru": "Дэнни не отпускал руку Айрис до самой полиции.",
+      "en": "Danny didn’t let go of Iris’s hand until the police came."
+     },
+     "dur": 3.2,
+     "note": true,
+     "if": {
+      "danny_stayed": ">0",
+      "danny": ">0",
+      "danny_lost": "==0",
+      "danny_hale": "==0",
+      "iris_lost": "==0"
+     },
+     "resp": "danny_stayed"
+    },
+    {
+     "text": {
       "ru": "Агнес ждёт внука.",
       "en": "Agnes is waiting for her grandson."
      },
@@ -5745,6 +5813,18 @@
      "if": {
       "agnes_dead": ">0"
      }
+    },
+    {
+     "text": {
+      "ru": "Официантка Нина потом сказала: парень за всё заплатил. Даже за чай девочке.",
+      "en": "Nina the waitress said later: the boy paid for everything. Even the girl’s tea."
+     },
+     "dur": 3.2,
+     "note": true,
+     "if": {
+      "cafe_paid": ">0"
+     },
+     "resp": "cafe_paid"
     },
     {
      "text": {
@@ -6614,6 +6694,17 @@
         "diary_hale": ">0",
         "c5_box": "==0"
        }
+      },
+      {
+       "say": "iris",
+       "ru": "Код был в дневнике. Я его помню.",
+       "en": "The code was in the diary. I remember it.",
+       "if": {
+        "pine_diary": ">0",
+        "diary_hale": ">0",
+        "c5_box": "==0"
+       },
+       "resp": "pine_diary"
       },
       {
        "note": {

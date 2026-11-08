@@ -538,6 +538,8 @@ func _run(id: String) -> void:
 func _beat(b: Dictionary):
 	if b.has("if") and not _cond(b["if"]):   # условие не выполнено: шаг пропускается или переход в «else»
 		return String(b.get("else", ""))
+	if b.has("resp"):   # отклик на решение игрока (tools/lake/story/flag_responses.py) — в лог для проверки маршрутов
+		_log("отклик " + String(b.resp))
 	if b.get("mute", false) and float(settings.vol.get("master", 1.0)) > 0.01 and float(settings.vol.get("sfx", 1.0)) > 0.01:
 		return ""   # субтитр звука («Бьётся стекло…») — только если звук выключен: со звуком его заменяет звук
 	if b.get("station", false):

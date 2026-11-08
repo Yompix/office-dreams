@@ -564,6 +564,16 @@
      }
     },
     {
+     "say": "iris",
+     "ru": "Ты их так и не отдал.",
+     "en": "You never gave them up.",
+     "if": {
+      "pills_kept": ">0",
+      "pills_burned": "==0"
+     },
+     "resp": "pills_kept"
+    },
+    {
      "choice": {
       "t": 10,
       "opts": [
@@ -756,6 +766,16 @@
       "en": "Hale knows their sedan by heart. But in Agnes’s shed there’s her late husband’s old van."
      },
      "dur": 3.4
+    },
+    {
+     "say": "agnes",
+     "ru": "Отвар своё сделал. Теперь будешь помнить.",
+     "en": "The brew did its work. Now you’ll remember.",
+     "if": {
+      "brew": ">0",
+      "agnes_dead": "==0"
+     },
+     "resp": "brew"
     },
     {
      "say": "agnes",
@@ -1364,6 +1384,16 @@
      "dur": 2.4
     },
     {
+     "say": "noah",
+     "ru": "Красное окно. Я его уже видел — в машине.",
+     "en": "The red window. I saw it already — in the car.",
+     "if": {
+      "drawing1": ">0",
+      "drawings_shown": ">0"
+     },
+     "resp": "drawing1"
+    },
+    {
      "fx": "page_5",
      "shot": "drawing",
      "note": {
@@ -1873,6 +1903,15 @@
      "ru": "Ной. Ну наконец-то.",
      "en": "Noah. At last.",
      "shot": "hale"
+    },
+    {
+     "say": "hale",
+     "ru": "Ты оставил мой подарок в машине. Зря.",
+     "en": "You left my gift in the car. A mistake.",
+     "if": {
+      "pills_left": ">0"
+     },
+     "resp": "pills_left"
     },
     {
      "fx": "hale_look_van",
@@ -2770,6 +2809,17 @@
   "c4_s6_zoe_lost": {
    "beats": [
     {
+     "say": "zoe",
+     "ru": "Ной! Ты мне верил — найди меня!",
+     "en": "Noah! You believed me — find me!",
+     "if": {
+      "zoe_trust": ">=3",
+      "zoe": ">0",
+      "zoe_gone": "==0"
+     },
+     "resp": "zoe_trust"
+    },
+    {
      "set": {
       "zoe_taken4": 1,
       "zoe_taken": 1,
@@ -2889,6 +2939,16 @@
   },
   "c4_s6_agnes_lost": {
    "beats": [
+    {
+     "say": "agnes",
+     "ru": "Идите, внуки. Идите.",
+     "en": "Go, children. Go.",
+     "if": {
+      "agnes_warm": ">0",
+      "agnes_dead": "==0"
+     },
+     "resp": "agnes_warm"
+    },
     {
      "set": {
       "agnes_dead": 1
