@@ -461,6 +461,73 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("first")) {
+            // как новый игрок: новый мир «Новоград: Город», выживание, сюжет с начала — где Джейк, идёт ли первая миссия
+            YompixSplash.markShown();
+            pre(60, c -> {
+                var data = new net.minecraft.resource.DataConfiguration(new net.minecraft.resource.DataPackSettings(List.of("vanilla", "fabric"), List.of()),
+                        net.minecraft.resource.featuretoggle.FeatureFlags.DEFAULT_ENABLED_FEATURES);
+                var info = new net.minecraft.world.level.LevelInfo("FirstTest" + System.currentTimeMillis() % 100000, net.minecraft.world.GameMode.SURVIVAL, false,
+                        net.minecraft.world.Difficulty.NORMAL, false, new net.minecraft.world.GameRules(), data);
+                var city = net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD_PRESET, com.yompix.novograd.Novograd.id("city"));
+                c.createIntegratedServerLoader().createAndStart(info.getLevelName(), info, net.minecraft.world.gen.GeneratorOptions.createRandom(),
+                        drm -> drm.get(net.minecraft.registry.RegistryKeys.WORLD_PRESET).getOrThrow(city).createDimensionsRegistryHolder(), new com.yompix.novograd.client.menu.LifeMenuScreen());
+            });
+            for (int i = 0; i < 60; i++) {
+                final int k = i;
+                if (i % 3 == 0) key(10, GLFW.GLFW_KEY_SPACE);
+                server(30, s -> {
+                    var pl = s.getPlayerManager().getPlayer(P);
+                    if (pl == null) return;
+                    var d = Life.get(pl);
+                    var g = com.yompix.novograd.story.Npcs.find(pl.getServerWorld(), "gleb");
+                    com.yompix.novograd.Novograd.LOG.info("[first] t={} ch {} m {} st {} started {} player {} gleb {}", k, d.chapter, d.mission, d.step, d.storyStarted,
+                            pl.getBlockPos().toShortString(), g == null ? "НЕТ" : g.getBlockPos().toShortString() + (g.isAlive() ? "" : " мёртв") + " dist " + (int) g.distanceTo(pl));
+                });
+                if (i % 5 == 4) shot(1, "first_" + i);
+                if (i == 20) {
+                    // подойти к Джейку и нажать ПКМ, как игрок
+                    server(2, s -> {
+                        var pl = s.getPlayerManager().getPlayer(P);
+                        var g = com.yompix.novograd.story.Npcs.find(pl.getServerWorld(), "gleb");
+                        if (g != null) {
+                            var dir = pl.getPos().subtract(g.getPos()).normalize();
+                            pl.networkHandler.requestTeleport(g.getX() + dir.x * 1.8, g.getY(), g.getZ() + dir.z * 1.8, 0, 0);
+                        }
+                    });
+                    run(10, c -> {
+                        var g = c.world.getEntitiesByClass(com.yompix.novograd.entity.CitizenEntity.class, c.player.getBoundingBox().expand(6), e -> e.hasCustomName() && e.getCustomName().getString().startsWith("Джейк")).stream().findFirst().orElse(null);
+                        com.yompix.novograd.Novograd.LOG.info("[first] client sees gleb: {}", g);
+                        if (g != null) {
+                            c.player.lookAt(net.minecraft.command.argument.EntityAnchorArgumentType.EntityAnchor.EYES, g.getEyePos());
+                            c.interactionManager.interactEntity(c.player, g, net.minecraft.util.Hand.MAIN_HAND);
+                        }
+                    });
+                    shot(20, "first_talk");
+                }
+                if (i > 20 && i < 30) { key(5, GLFW.GLFW_KEY_1); key(5, GLFW.GLFW_KEY_SPACE); }
+                if (i == 30) {
+                    // сесть в машину Джейка у ворот и доехать до старта гонок
+                    server(5, s -> {
+                        var pl = s.getPlayerManager().getPlayer(P);
+                        var w = pl.getServerWorld();
+                        var cars = w.getEntitiesByClass(com.yompix.novograd.entity.CarEntity.class, pl.getBoundingBox().expand(40), e -> true);
+                        com.yompix.novograd.Novograd.LOG.info("[first] машин рядом: {}", cars.size());
+                        if (!cars.isEmpty()) {
+                            var car = cars.get(0);
+                            pl.startRiding(car, true);
+                            var to = com.yompix.novograd.story.Story.place(w, "race_start");
+                            com.yompix.novograd.Novograd.LOG.info("[first] race_start {}", to);
+                            if (to != null) car.teleport(w, to.x + 3, to.y + 1, to.z, java.util.Set.of(), car.getYaw(), 0);
+                        }
+                    });
+                    shot(60, "first_race_start");
+                }
+                if (i > 30) { key(3, GLFW.GLFW_KEY_SPACE); }
+            }
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("missions")) {
             // проходим все миссии сюжета по шагам: шаг запускается без ошибок, цель есть, герой разговора на месте
             // -Dnovograd.newworld=true — в только что созданном мире (проверка новой генерации города)
