@@ -21,7 +21,7 @@ if (EN) {   // статичные надписи страницы
     if (d.lastChild && d.lastChild.nodeType === 3) d.lastChild.textContent = tr(d.lastChild.textContent); }
 }
 const cv = $('cv'), g = cv.getContext('2d');
-let W = 1080, H = 1920, US = 1, CS = (() => { const q = /[?&]cs=([\d.]+)/.exec(location.search); return q ? Math.max(.25, Math.min(1, +q[1])) : 1; })();   // ?cs=0.5 — меньший холст (автопроверка кадров); холст движка: 1080×1920 вертикально или 1920×1080 горизонтально; US — масштаб надписей на холсте; CS — масштаб холста (слабый телефон — 2/3)
+let W = 1080, H = 1920, US = 1, CS = (() => { const q = /[?&]cs=([\d.]+)/.exec(location.search); return q ? Math.max(.25, Math.min(1, +q[1])) : window.nsTV ? .5 : 1; })();   // ТВ-приставка: холст 960×540 («Ретро» рисует мир 480×270 — чётче не станет, а 2D-слой вчетверо легче)   // ?cs=0.5 — меньший холст (автопроверка кадров); холст движка: 1080×1920 вертикально или 1920×1080 горизонтально; US — масштаб надписей на холсте; CS — масштаб холста (слабый телефон — 2/3)
 const dlgEl = $('dlg'), tapEl = $('tap'), chapEl = $('chap'), clockEl = $('clock'), noteEl = $('note'), ruleEl = $('rule'), choiceEl = $('choice'), uiEl = $('ui'), mgEl = $('mg'), smsEl = $('sms'), actEl = $('act');
 const LS = { get(k, d) { try { const v = localStorage.getItem('ns1_' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
              set(k, v) { try { localStorage.setItem('ns1_' + k, JSON.stringify(v)); } catch {} } };
@@ -127,7 +127,7 @@ function fetchSnd(k, urgent) {
   sndPump(); return j.done;
 }
 function sndPump() {
-  while (sndBusy < 4 && sndQ.length) { const j = sndQ.shift(); j.queued = false; sndBusy++;
+  while (sndBusy < (window.nsTV ? 2 : 4) && sndQ.length) { const j = sndQ.shift(); j.queued = false; sndBusy++;
     get(sndUrl(j.k), 'arraybuffer').then(b => { rawSnd[j.k] = b; if (AC && !isVoice(j.k) && !LAZY_RE.test(j.k)) return decodeOne(j.k, b); if (AC && voiceWant.has(j.k)) return decodeV(j.k); })
       .catch(() => {}).then(() => { sndBusy--; j.res(); sndPump(); }); }
 }
@@ -1832,6 +1832,7 @@ let camHud = false;
 function setCamHud(on) { if (on !== camHud) { camHud = on; clockEl.classList.toggle('dim', on); } }   // на экране камеры время показывает сама камера
 let holdN = -1;   // инструменты (__ns.seek): дорисовать кадр и держать его, не пересчитывая каждый кадр (листы кадров — без лишней нагрузки)
 function frame(tp) {
+  if (window.nsTV && lastP && tp - lastP < 30 && tp > lastP) return requestAnimationFrame(frame);   // ТВ-приставка: 30 кадров в секунду — вдвое меньше работы процессору, ровнее
   if (holdN === 0 && paused) { lastP = tp; return requestAnimationFrame(frame); }
   if (holdN > 0) holdN--;
   const fs = performance.now(), dt0 = Math.max(0, (tp - lastP) / 1000), dt = Math.min(.1, dt0); if (window.World && World.perf && (mode === 'play' || mode === 'menu')) World.perf(tp - lastP); lastP = tp; if (!paused) clockT += Math.min(dt0, 4);   // долгий кадр (шейдеры, сборка мусора) — звук уже ушёл вперёд; часы догоняют, чтобы субтитры не отставали
@@ -2135,7 +2136,7 @@ function afterSplash() {
 }
 studio();
 // остальные места догреваются в фоне по одному (World.warmMore: шейдеры собирает драйвер в своих потоках, кадр не рисуется): в меню и на паузе — подряд и с тенями, в игре — реже и без лишних кадров
-function warmBg() { const idle = mode === 'menu' || userPause; let p = null; try { p = window.World && World.warmMore && World.warmMore(idle); } catch (e) { console.warn(e); } if (p) p.then(() => setTimeout(warmBg, idle ? 40 : 700)); }
+function warmBg() { const idle = mode === 'menu' || userPause, tv = !!window.nsTV; let p = null; try { p = window.World && World.warmMore && World.warmMore(idle && !tv); } catch (e) { console.warn(e); } if (p) p.then(() => setTimeout(warmBg, idle ? (tv ? 400 : 40) : (tv ? 1500 : 700))); }   // ТВ: прогрев реже, без лишнего кадра — меню отвечает на пульт
 load(p => { loadP = p; const b = document.querySelector('#loadbar i'); if (b) b.style.width = p * 100 + '%'; }).catch(() => {}).then(() => {
   initAudio(); loaded = true; setTimeout(warmBg, 1600);
   if (splashDone) setTimeout(() => RESUME ? resumeAfterReload() : menu(), RESUME ? 0 : Math.max(0, 1200 - (now() - cardT) * 1000));   // карточку не мелькаем — хотя бы секунда
