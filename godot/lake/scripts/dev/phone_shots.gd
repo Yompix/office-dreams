@@ -2,6 +2,7 @@ extends SceneTree
 ## Снимки телефонного интерфейса в облаке (ключ --touch): главное меню, настройки, выбор, субтитры, пауза.
 ##   xvfb-run -a -s "-screen 0 1600x720x24" $GODOT --rendering-method gl_compatibility --resolution 1600x720 --path godot/lake \
 ##     --script res://scripts/dev/phone_shots.gd -- --touch --snapdir папка [--scene s1]
+## ВАЖНО: локальный override.cfg (960×540 для быстрых снимков) искажает телефонный интерфейс — на время снимков убрать его.
 var t := 0.0
 var step := 0
 var dir := "user://"
@@ -18,7 +19,7 @@ func _init() -> void:
 
 func _shot(n: String) -> void:
 	root.get_texture().get_image().save_png("%s/%s.png" % [dir, n])
-	print("SHOT ", n, " окно ", DisplayServer.window_get_size(), " холст ", root.get_visible_rect().size, " масштаб ", root.content_scale_factor)
+	print("SHOT ", n, " окно ", DisplayServer.window_get_size(), " холст ", root.get_visible_rect().size, " масштаб ", root.content_scale_factor, " база ", root.content_scale_size, " режим ", root.content_scale_mode, " size ", root.size)
 
 
 func _process(d: float) -> bool:
