@@ -12,7 +12,7 @@ from docx.enum.text import WD_COLOR_INDEX
 
 RU = {'noah': 'НОЙ', 'iris': 'АЙРИС', 'zoe': 'ЗОЯ', 'danny': 'ДЭННИ', 'eva': 'ЕВА', 'agnes': 'АГНЕС', 'hale': 'ХЕЙЛ',
       'roman': 'РОМАН', 'cop': 'ПОЛИЦЕЙСКИЙ', 'trucker': 'ДАЛЬНОБОЙЩИК', 'radio': 'РАДИО', 'anna': 'НОЙ — ЧУЖИМ ГОЛОСОМ',
-      'mom': 'АННА', 'victor': 'ВИКТОР'}
+      'mom': 'АННА', 'victor': 'ВИКТОР', 'nina': 'НИНА', 'waitress': 'НИНА', 'trucker_b': 'ДАЛЬНОБОЙЩИК 2', 'pyotr': 'ПЁТР'}
 CH_NAME = {1: 'Кровь на руках'}   # у главы 1 названия в данных нет (титр рисует game.gd)
 GRAY = RGBColor(0x66, 0x66, 0x66)
 BLUE = RGBColor(0x2F, 0x55, 0x8A)
@@ -80,9 +80,14 @@ def render(doc, sid, beats, data, chapters, olds, depth, cnt):
             p = para()
             nm = b.get('name')
             nm = (nm.get('ru') if isinstance(nm, dict) else nm) or RU.get(b['say'], b['say'].upper())
+            if b.get('thought'):   # мысли героя (сценарий v2)
+                nm += ' (про себя)'
             r = mark(p.add_run(nm + ': '))
             r.bold = True
-            mark(p.add_run(b['ru']))
+            rt = mark(p.add_run(b['ru']))
+            if b.get('thought'):
+                rt.italic = True
+                rt.font.color.rgb = RGBColor(0x3A, 0x4E, 0x6E)
             if cond:
                 small(p, cond)
             r2 = para().add_run('    ' + b['en'])
@@ -189,6 +194,44 @@ def render(doc, sid, beats, data, chapters, olds, depth, cnt):
             para().add_run('КОНЕЦ ГЛАВЫ %s%s' % (b['end'], (' → %s' % nx) if nx else ' · КОНЕЦ ИГРЫ')).bold = True
 
 
+def md_inline(p, txt):
+    import re
+    for i, part in enumerate(re.split(r'\*\*', txt)):
+        if not part:
+            continue
+        r = p.add_run(part.replace('`', ''))
+        r.bold = bool(i % 2)
+
+
+def md_to_doc(doc, md):
+    """Простой Markdown (заголовки #/##, списки -, 1., **жирный**) → абзацы Word."""
+    import re
+    buf = None
+    for line in md.split('\n'):
+        if line.startswith('# '):
+            doc.add_heading(line[2:].strip(), 1)
+            buf = None
+        elif line.startswith('## '):
+            doc.add_heading(line[3:].strip(), 2)
+            buf = None
+        elif re.match(r'^\s*- ', line):
+            buf = doc.add_paragraph(style='List Bullet')
+            md_inline(buf, re.sub(r'^\s*- ', '', line))
+        elif re.match(r'^\s*\d+\. ', line):
+            buf = doc.add_paragraph(style='List Number')
+            md_inline(buf, re.sub(r'^\s*\d+\. ', '', line))
+        elif not line.strip():
+            buf = None
+        elif buf is not None and line.startswith('  '):   # продолжение пункта
+            md_inline(buf, ' ' + line.strip())
+        else:
+            if buf is None:
+                buf = doc.add_paragraph()
+                md_inline(buf, line.strip())
+            else:
+                md_inline(buf, ' ' + line.strip())
+
+
 def main():
     args = [a for a in sys.argv[1:]]
     old = None
@@ -205,6 +248,11 @@ def main():
     for s in doc.sections:
         s.left_margin = s.right_margin = Cm(2.0)
     doc.add_heading('WHAT THE LAKE KEEPS', 0)
+    brief = os.path.join(A.ROOT, 'godot/lake/docs/EDITOR_BRIEF_V2.md')
+    if os.path.exists(brief) and '--no-brief' not in sys.argv:
+        md_to_doc(doc, open(brief, encoding='utf-8').read())
+        doc.add_page_break()
+        doc.add_heading('Сценарий', 1)
     doc.add_paragraph('Сценарий интерактивного фильма — версия для редактора (собрано %s).'
                       % datetime.date.today().strftime('%d.%m.%Y'))
     doc.add_paragraph('Собрано из данных игры (godot/lake/data/ch1–ch5.json): это ровно то, что идёт в игре. '
