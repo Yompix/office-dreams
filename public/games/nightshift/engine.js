@@ -27,7 +27,7 @@ const LS = { get(k, d) { try { const v = localStorage.getItem('ns1_' + k); retur
              set(k, v) { try { localStorage.setItem('ns1_' + k, JSON.stringify(v)); } catch {} } };
 const calm = () => !!LS.get('calm', false);   // настройка «меньше вспышек»
 // экран: горизонтальный (16:9) или вертикальный (9:16). На ПК по умолчанию горизонтальный, на телефоне — вертикальный; меняется в настройках
-const FINE = matchMedia('(pointer: fine)').matches;
+const FINE = matchMedia('(pointer: fine)').matches && !window.nsTV;   // ТВ-приставка (браузер с курсором) — не ПК
 let LAND = LS.get('land3', true);   // v3: кадры поставлены под 16:9 — по умолчанию горизонтально (в настройках можно вертикально)
 // точка, заданная в долях вертикального кадра (сценарий писался под 9:16), → доли текущего кадра (угол обзора по вертикали тот же)
 const scrX = x => LAND ? .5 + (x - .5) * (9 / 16) / (16 / 9) : x;

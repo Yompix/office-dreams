@@ -2786,6 +2786,7 @@ const DUST_FS = `varying float vA; void main(){ vec2 d = gl_PointCoord - .5; flo
 // собирался заново для каждого места и ещё раз, когда посреди сцены появлялись контровой свет или фонарь (297 программ на игру).
 // Теперь контровой свет и фонарь создаются сразу, недостающие лампы — пустые (сила 0, радиус 1 мм: шейдер их пропускает),
 // лампы внутри групп (кабина лифта, автомат) — прямо в сцене: отражение в стекле прячет группы, и число ламп не прыгает
+const TV_P = 4;
 function lightRig(L) {
   const cnt = o => { const n = { p: 0, m: 0, s: 0, h: 0 }; o.S.traverse(l => { if (l.isPointLight) n.p++; else if (l.isSpotLight) n[l.map ? 'm' : 's']++; else if (l.isHemisphereLight) n.h++; }); return n; };
   for (const k in L) { const o = L[k], S = o.S, nest = [];
@@ -2793,6 +2794,11 @@ function lightRig(L) {
     if (!o.rimC) { const l = o.rimC = new T.SpotLight(0xbfd4ff, 0, 3.2, .5, .7, 1.6); l.castShadow = false; S.add(l, l.target); }   // контровой — прожектор из-за головы на голову: стена за актёром не светится «нимбом»
     if (!o.torch && /^(corridor|stairs|basement)$/.test(k)) { const l = o.torch = new T.SpotLight(0xfff0d8, 0, 0, .3, .35, 1); S.add(l, l.target); }
     for (const l of [o.torch, o.etorch]) if (l) l.map = TX.torch; }   // фонарь — с «маской»: горячее пятно, кольцо отражателя, мягкий край
+  // ТВ-приставка: в каждом месте не больше TV_P точечных ламп (каждая лампа — расчёт в каждой точке кадра; 11 ламп на слабой видеокарте — 1 кадр/с).
+  // Остаются именные (настольная лампа, будка, свеча, свет на лицо…) и самые яркие; остальные просто не светят (картинка чуть темнее по углам)
+  if (window.nsTV) for (const k in L) { const o = L[k], keep = new Set([o.rim, o.faceL, o.slitLight, o.lamp, o.boothLight, o.candle].filter(Boolean)), pts = [];
+    o.S.traverse(l => { if (l.isPointLight && !keep.has(l)) pts.push(l); });
+    pts.sort((a, b) => b.intensity - a.intensity).slice(Math.max(0, TV_P - keep.size)).forEach(l => { l.parent.remove(l); l.visible = false; }); }
   const N = { p: 0, m: 0, s: 0, h: 0 }; for (const k in L) { const n = cnt(L[k]); for (const q in N) N[q] = Math.max(N[q], n[q]); }
   for (const k in L) { const o = L[k], S = o.S, n = cnt(o); o.pad = new Set();
     const spot = map => { const l = new T.SpotLight(0, 0, .001, .1, 0, 1); l.map = map; l.position.set(0, -60, 0); S.add(l, l.target); o.pad.add(l); };
@@ -3005,7 +3011,7 @@ function init() {
   if (CINE) cinePost();
   ST('плёнка');
   postMat = new T.ShaderMaterial({
-    uniforms: { tD: { value: window.__W3core.RT.texture }, uB: { value: new T.Vector2(V.BW, V.BH) }, uHD: { value: HD }, uLv: { value: 22 }, uCctv: { value: 0 }, uIr: { value: 0 }, uGam: { value: 1.25 }, uT: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 } },
+    uniforms: { tD: { value: window.__W3core.RT.texture }, uB: { value: new T.Vector2(V.BW, V.BH) }, uHD: { value: HD }, uLv: { value: 22 }, uCctv: { value: 0 }, uIr: { value: 0 }, uGam: { value: window.nsTV ? 1.08 : 1.25 }, uT: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }',
     fragmentShader: `uniform sampler2D tD; uniform vec2 uB; uniform float uHD, uLv, uCctv, uIr, uGam, uT, uVhs, uScare; varying vec2 vUv;
       float b2(vec2 a){ a = floor(a); return fract(dot(a, vec2(.5, a.y * .75))); }
@@ -3109,7 +3115,7 @@ function classifyLobby(o) {
 // на телефоне — четверть кадра раз в два кадра
 const _f = new T.Vector3(), _u = new T.Vector3(), BIAS = new T.Matrix4().set(.5, 0, 0, .5, 0, .5, 0, .5, 0, 0, .5, .5, 0, 0, 0, 1);
 function renderRefl(R, o, used, force) {
-  if (!force && !FINE && (reflN++ % 2)) return;
+  if (!force && !FINE && (reflN++ % (window.nsTV ? 8 : 2))) return;   // ТВ-приставка: отражение в стекле холла — раз в 8 кадров (это второй полный кадр сцены)
   const inside = cam.position.z < 6, e = cam.matrixWorld.elements;
   _f.set(-e[8], -e[9], -e[10]); _u.set(e[4], e[5], e[6]);
   rcam.position.set(cam.position.x, cam.position.y, 12 - cam.position.z); rcam.up.set(_u.x, _u.y, -_u.z);
@@ -3243,7 +3249,7 @@ function draw(g, W, H, id, o) {
   // на мониторах в будке: лицо вплотную к камере холла
   if (o.creep && !CO && sh.feeds && !used.has('monster') && L.lobby === loc) { const C = A.monster; if (C.root.parent !== loc.S) loc.S.add(C.root); C.root.position.set(5.6, 0, 3.0); C.root.rotation.y = .75; C.pose = 'monster'; C.look = new T.Vector3(7.45, 3.85, 5.45); C.update(T0, dt); crept = true; }
   if (CO) ;
-  else if (sh.feeds && (crept || ++feedT % 3 === 0)) renderFeeds(R, T0, sh, t);
+  else if (sh.feeds && (crept || ++feedT % (window.nsTV ? 6 : 3) === 0)) renderFeeds(R, T0, sh, t);   // ТВ: картинка мониторов будки — реже
   else if (!sh.feeds && loc === L.lobby && (newShot || ++feedT % 20 === 0)) renderFeeds(R, T0, null, t, newShot ? null : (feedT / 20 | 0) % 3);   // мониторы видны и в других кадрах будки: не чёрные, а камеры (по одной раз в ~2 с)
   aim(cam, sh.pos, sh.look, sh.fov, o.cx ?? .5, o.cy ?? .5, o.z ?? 1, o.sx || 0, o.sy || 0, (o.cctv ?? sh.cctv) || o.scare || sh.noDolly ? 0 : .5);   // камеры наблюдения и бросок — только объективом
   if (sh.roll) cam.rotateZ(typeof sh.roll === 'function' ? sh.roll(t) : sh.roll);   // завал горизонта: упал на пол, голова набок
