@@ -22,7 +22,9 @@ VOICES = {
 }
 # испанский, португальский, немецкий — дубляж теми же голосами, что английский (eleven_v4 говорит ими на любом языке),
 # голос матери Фрэнка — «Linda – Soft Mom» из голосов владельца
-for _l in ('es', 'pt', 'de'): VOICES[_l] = dict(VOICES['en'], **{'ГОЛОС': 'prqcFePeALHihEWRj5ll'})
+for _l in ('es', 'pt', 'de', 'uk'): VOICES[_l] = dict(VOICES['en'], **{'ГОЛОС': 'prqcFePeALHihEWRj5ll'})
+# украинский (8 ноя): Итана и Лили озвучивают владелец и актриса (tools/story/voice_uk.py), остальных — дубляж теми же голосами.
+# EXCLUDE='ИТАН,ЛИЛИ' — без них; OUTDIR=папка — нарезка в отдельную папку (потом voice_uk.py вставляет в игру с vl:'uk')
 SKIP = {'ch_katya', 'ch_monster'}   # плач и хрип — звуковые эффекты, не речь
 COPY = {'ch_katya'}                  # плач Лили без слов — новым языкам берём английскую запись (snd/en)
 ALIAS = {'n23m': ('n23', '???', 'phonefake')}   # «Да. Это я.» в трубке — та же запись Итана, что n23, от лица «оно» с эффектом телефона
@@ -30,16 +32,22 @@ SKIP_WHO = {'ГОЛОС'}                 # голос матери Фрэнка
 MAXC = 1250                          # символов в пакете (≈ кредитов за генерацию)
 def say_text(s):   # что читает голос: без тире реплики и без «(…)»
     return re.sub(r'^\s*—\s*', '', s).strip()
+EXCLUDE = set(filter(None, os.environ.get('EXCLUDE', '').split(',')))
+OUTDIR = os.environ.get('OUTDIR')
 ONLY = os.environ.get('ONLY')        # ONLY='^n\d\d$' — озвучить только эти ключи (добавка к готовому)
 BATCH = os.environ.get('BATCH', '')  # BATCH=n — свой файл пакетов batches_<lang>_n.json (не затирать основной)
 def bfile(lang): return os.path.join(ROOT, f'tools/story/batches_{lang}{"_" + BATCH if BATCH else ""}.json')
-def tfile(lang): return os.path.join(GAME, 'timing.json' if lang == 'ru' else f'timing_{lang}.json')
-def sdir(lang): return os.path.join(GAME, 'snd' if lang == 'ru' else f'snd/{lang}')
+def tfile(lang):
+    if OUTDIR: return os.path.join(OUTDIR, 'timing.json')
+    return os.path.join(GAME, 'timing.json' if lang == 'ru' else f'timing_{lang}.json')
+def sdir(lang):
+    if OUTDIR: return OUTDIR
+    return os.path.join(GAME, 'snd' if lang == 'ru' else f'snd/{lang}')
 
 def plan(lang):
     by = {}
     for k, L in LINES.items():
-        if k in SKIP or (L['who'] in SKIP_WHO and lang in ('ru', 'en')) or (ONLY and not re.match(ONLY, k)): continue
+        if k in SKIP or L['who'] in EXCLUDE or L['who'] == '???' or (L['who'] in SKIP_WHO and lang in ('ru', 'en')) or (ONLY and not re.match(ONLY, k)): continue
         by.setdefault(L['who'], []).append(k)
     out = []
     for who, keys in by.items():
@@ -69,12 +77,13 @@ NUM = {'ru': {'газ': 'гас', '13': 'тринадцать', '12': 'двен�
        'de': {'13': 'dreizehn', '12': 'zwolf', '3': 'drei', '6': 'sechs', '707': 'siebenhundertsieben', '40': 'vierzig', '200': 'zweihundert', '300': 'dreihundert',
               '2': 'zwei', '7': 'sieben', '10': 'zehn', '15': 'funfzehn', '18': 'achtzehn', '20': 'zwanzig', '21': 'einundzwanzig', '30': 'dreissig', 'gas': 'gus'}}
 # имя героя whisper слышит по-своему: в испанском «Izan», в португальском «Eitan» и т. п.
+NUM['uk'] = {'13': 'тринадцять', '12': 'дванадцять', '3': 'три', '6': 'шість', '40': 'сорок', '200': 'двісті', '300': 'триста', '20': 'двадцять', '7': 'сім', '10': 'десять', 'гас': 'гас', 'газ': 'гас'}
 for _l in ('es', 'pt', 'de'): NUM[_l].update({k: 'ethan' for k in ('izan', 'itan', 'eitan', 'ithan', 'etan', 'ethen', 'ean', 'isan')})
 def norm(w, lang):
     import unicodedata
     w = w.lower().replace('ё', 'е').replace('’', "'").replace('ß', 'ss')
     if lang in ('es', 'pt', 'de'): w = ''.join(c for c in unicodedata.normalize('NFD', w) if unicodedata.category(c) != 'Mn')   # á → a: whisper и текст расходятся в ударениях
-    w = re.sub(r"[^a-zа-я0-9']", '', w)
+    w = re.sub(r"[^a-zа-яіїєґ0-9']", '', w)
     return NUM[lang].get(w, w)
 def toks(text):   # так же режет слова engine.js chunks() и tools/i18n/build.js — менять вместе
     return [p for p in re.sub(r'[.,:;—?!…«»"()\-¿¡„“”]', ' ', text).split() if p]
@@ -148,7 +157,7 @@ def split(lang, idx, src, hints=()):
         if k0 in keys:
             subprocess.run(['cp', os.path.join(sdir(lang), k0 + '.mp3'), os.path.join(sdir(lang), a + '.mp3')], check=True)
             tim[a] = dict(tim[k0], who=who, fx=fx)
-    if lang not in ('ru', 'en'):
+    if lang not in ('ru', 'en') and not OUTDIR:
         for k in COPY:
             f = os.path.join(sdir(lang), k + '.mp3')
             if not os.path.exists(f): subprocess.run(['cp', os.path.join(sdir('en'), k + '.mp3'), f], check=True)

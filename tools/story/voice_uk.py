@@ -1,9 +1,9 @@
 # HTS: своя украинская запись реплик (Лили, Итан…): trim/compress pauses, encode, word timings, loudness vs English
 import json, re, subprocess, wave, numpy as np, os, sys
-# usage: python3 tools/story/voice_uk.py <папка с N.wav/N.mp3> <карта.json {"N": "ключ"}>
+# usage: python3 tools/story/voice_uk.py <папка с N.wav/N.mp3> <карта.json {"N": "ключ"}>  (N — номер или сам ключ: дубляж из voice.py OUTDIR=…)
 S = sys.argv[1]
 G = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../public/games/nightshift')
-MAP = {int(n): k for n, k in json.load(open(sys.argv[2])).items()
+MAP = {(int(n) if n.isdigit() else n): k for n, k in json.load(open(sys.argv[2])).items()
        if any(os.path.exists(f'{S}/{n}.{e}') for e in ('wav', 'mp3', 'm4a', 'ogg'))}
 SR = 44100; FR = 441  # 10 ms
 def rd(p, sr):
@@ -19,7 +19,7 @@ tim = json.load(open(G+'/timing_uk.json'))
 from faster_whisper import WhisperModel
 m = WhisperModel('small', device='cpu', compute_type='int8')
 rep = []
-for i, k in sorted(MAP.items()):
+for i, k in sorted(MAP.items(), key=lambda x: (isinstance(x[0], str), str(x[0]).zfill(4))):
     a = rd(next(f'{S}/{i}.{e}' for e in ('wav','mp3','m4a','ogg') if os.path.exists(f'{S}/{i}.{e}')), SR)
     n = len(a)//FR; e = 20*np.log10(np.sqrt((a[:n*FR].reshape(n,FR)**2).mean(1))+1e-9)
     on = e > max(e.max()-38, -50)
@@ -47,6 +47,6 @@ for i, k in sorted(MAP.items()):
     old = tim[k]['dur']
     tim[k].update(dur=dur, w=w, vl='uk'); tim[k].pop('ew', None); tim[k].pop('g', None)
     if abs(db) >= .3: tim[k]['g'] = g
-    rep.append(f'{i:2} {k:10} {old:5} -> {dur:5}  g={tim[k].get("g",1)}  heard: {" ".join(x.word for x in ww)}')
+    rep.append(f'{str(i):>4} {k:10} {old:5} -> {dur:5}  g={tim[k].get("g",1)}  heard: {" ".join(x.word for x in ww)}')
 json.dump(tim, open(G+'/timing_uk.json','w'), ensure_ascii=False, separators=(',',':'))
 print('\n'.join(rep))
