@@ -587,10 +587,14 @@ func _beat(b: Dictionary):
 	if b.has("say"):
 		var who := String(b.say)
 		var text := hud.T(b)
-		var dur := clampf(0.9 + text.length() / 15.0, 1.4, 9.0)
+		var dur := clampf(1.4 + text.length() / 11.5, 2.2, 12.0)   # без голоса — время прочесть спокойно (владелец 8 ноя: «всё происходит слишком быстро»); касание/клик — дальше
 		var vo: Dictionary = _voice_line(_vo_key(_scene_id, b))
-		hud.line(who, b.get("name", data.names.get(who, "")), b)   # "name" в реплике — своё имя (голос Хейла в главе 2 — «ГОЛОС»)
-		var lips := String(b.get("lips", who))   # чьи губы двигаются (говорит «чужой голос» — губы Ноя)
+		var thought := bool(b.get("thought", false))   # мысли героя (про себя): губы не двигаются, имя «… · про себя», текст другим цветом
+		var nm = b.get("name", data.names.get(who, ""))
+		if thought and nm is Dictionary:
+			nm = {"ru": String(nm.get("ru", "")) + " · про себя", "en": String(nm.get("en", "")) + " · thinking"}
+		hud.line(who, nm, b)   # "name" в реплике — своё имя (голос Хейла в главе 2 — «ГОЛОС»)
+		var lips := "-" if thought else String(b.get("lips", who))   # чьи губы двигаются (говорит «чужой голос» — губы Ноя)
 		if actors.has(lips):
 			for k in actors:
 				if k != lips and is_instance_valid(actors[k]):
@@ -610,13 +614,14 @@ func _beat(b: Dictionary):
 		if actors.has(lips) and is_instance_valid(actors[lips]):   # пропуск реплики: губы закрываются вместе с голосом
 			(actors[lips] as Actor).shut()
 		hud.clear_text()
+		await _wait(0.3)   # вдох между репликами — не «пулемётом»
 	elif b.has("text"):
 		hud.show_note(b.text, _on_black(b))
-		await _wait(float(b.get("dur", 2.5)))
+		await _wait(_read_t(b.text, float(b.get("dur", 2.5))))
 		hud.clear_text()
 	elif b.has("note") and b.note is Dictionary:
 		hud.show_note(b.note, _on_black(b))
-		await _wait(float(b.get("dur", 2.0)))
+		await _wait(_read_t(b.note, float(b.get("dur", 2.0))))
 		hud.clear_text()
 	elif b.has("dur"):
 		await _wait(float(b.dur))
@@ -629,7 +634,7 @@ func _beat(b: Dictionary):
 		elif c.has("shot"):
 			_cut(String(c.shot))
 		var opts: Array = (c.opts as Array).filter(func(o): return not (o as Dictionary).has("if") or _cond(o["if"]))
-		hud.choice(opts, float(c.get("t", 6)) * (1.6 if settings.choice_long else 1.0))
+		hud.choice(opts, float(c.get("t", 6)) * (1.6 if settings.choice_long else 1.25))   # время на выбор +25 %: варианты успеть прочесть на телефоне
 		if autoplay:
 			var want: int = (_forced.pop_front() if not _forced.is_empty() else _rng.randi() % opts.size())
 			get_tree().create_timer(1.0, false).timeout.connect(func(): if hud.choosing(): hud.pick(clampi(want, 0, opts.size() - 1)))
@@ -696,6 +701,12 @@ func _shots(list: Array, dir: String, pre: Array = []) -> void:
 
 func _on_black(b: Dictionary) -> bool:   # экран чёрный и не проявляется в этом шаге — текст посередине, как титр
 	return hud.fade.color.a > 0.85 and String(b.get("fx", "")) not in ["wake", "fade_in"]
+
+
+## Ремарка и надпись: не короче, чем её спокойно прочесть (длина в данных ставилась под голос и быстрый темп).
+func _read_t(txt, d: float) -> float:
+	var n := hud.T(txt).length() if txt is Dictionary else 0
+	return maxf(d * 1.3, 1.6 + n / 12.0)
 
 
 func _wait(t: float) -> void:
