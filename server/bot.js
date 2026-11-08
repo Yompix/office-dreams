@@ -183,7 +183,7 @@ async function handleMessage(ctx, m) {
   if (name === 'start' && arg === 'games') {
     // from the games site: Stars donation buttons for YOMPIX GAMES
     const mk = await Sp.invoiceMarkup(ctx, from.id);
-    return send(ctx, m.chat.id, '🎮 <b>YOMPIX GAMES</b>\n\nСпасибо, что хочешь поддержать игры! Выбери сумму в звёздах Telegram ⭐\n\nКаждый, кто поддержит, попадает в список спонсоров на сайте и в титрах «Ночной смены». Имя в списке можно поменять командой /sponsor Имя', mk);
+    return send(ctx, m.chat.id, '🔦 <b>HUSH TILL SIX</b> · YOMPIX GAMES\n\nСпасибо, что хочешь поддержать игру! 🖤\nВыбери сумму в звёздах Telegram ⭐\n\n🎬 <b>Твоё имя появится в игре</b> — в списке «Спонсоры игры» на экране концовки и на сайте игр.\n\n✏️ Поменять имя: /sponsor Имя\n🙈 Скрыть себя: /sponsor -\n\n🎮 Играть: https://yompix.github.io', mk);
   } else if (name === 'sponsor') {
     return send(ctx, m.chat.id, Sp.setOwn(ctx, from.id, arg));
   } else if (name === 'sponsors' && isOwner(ctx, from.id)) {
@@ -261,7 +261,7 @@ async function handlePayment(ctx, m) {
     const n = Number(parts[2]);
     if (!uid || uid !== m.from.id || sp.currency !== 'XTR' || sp.total_amount !== n) return;
     const r = Sp.record(ctx, m.from, sp.telegram_payment_charge_id, n, ctx.now());
-    if (!r.dup) await send(ctx, m.chat.id, `❤️ Спасибо за ${n} ⭐! Ты в списке спонсоров YOMPIX GAMES как «${esc(r.name)}».\n\nПоменять имя: /sponsor Имя\nСкрыть себя: /sponsor -`);
+    if (!r.dup) await send(ctx, m.chat.id, `❤️ Спасибо за ${n} ⭐! Ты теперь спонсор <b>HUSH TILL SIX</b> 🤝\n\n🎬 Твоё имя «${esc(r.name)}» появится в игре — в списке «Спонсоры игры» на экране концовки и на сайте игр (обновляется за минуту).\n\n✏️ Поменять имя: /sponsor Имя\n🙈 Скрыть себя: /sponsor -`);
     return;
   }
   if (sku === 'donate') {

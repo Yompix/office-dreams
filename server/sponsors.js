@@ -18,7 +18,7 @@ async function invoiceMarkup(ctx, uid) {
   const rows = [];
   for (const n of AMOUNTS) {
     const r = await ctx.tg.call('createInvoiceLink', {
-      title: 'Поддержать YOMPIX GAMES', description: `${n} ⭐ на развитие игры «Night Shift». Твоё имя появится в списке спонсоров игры.`,
+      title: 'Поддержать HUSH TILL SIX', description: `${n} ⭐ на развитие хоррора HUSH TILL SIX. Твоё имя появится в игре — в списке спонсоров на экране концовки и на сайте.`,
       payload: `${uid}:${SKU}:${n}:${crypto.randomBytes(4).toString('hex')}`,
       provider_token: '', currency: 'XTR', prices: [{ label: 'Поддержка', amount: n }],
     });
@@ -41,12 +41,12 @@ function record(ctx, from, chargeId, stars, now = Date.now()) {
 
 // the donor's own settings: /sponsor <name>, /sponsor - (hide), /sponsor + (show again)
 function setOwn(ctx, uid, arg) {
-  if (arg === '-') { kvSet(ctx, 'gsp_hide:' + uid, 1); ctx.cache.gsponsors = null; return 'Готово: тебя не видно в списке спонсоров. Вернуть: /sponsor +'; }
-  if (arg === '+') { kvSet(ctx, 'gsp_hide:' + uid, null); ctx.cache.gsponsors = null; return 'Готово: ты снова в списке спонсоров.'; }
+  if (arg === '-') { kvSet(ctx, 'gsp_hide:' + uid, 1); ctx.cache.gsponsors = null; return 'Готово: тебя не видно в списке спонсоров HUSH TILL SIX. Вернуть: /sponsor +'; }
+  if (arg === '+') { kvSet(ctx, 'gsp_hide:' + uid, null); ctx.cache.gsponsors = null; return 'Готово: ты снова в списке спонсоров HUSH TILL SIX.'; }
   const n = cleanName(arg);
   if (!n) return 'Напиши имя для списка спонсоров: /sponsor Имя\nСкрыть себя: /sponsor -';
   kvSet(ctx, 'gsp_name:' + uid, n); ctx.cache.gsponsors = null;
-  return `Готово: в списке спонсоров ты будешь как «${n}».`;
+  return `Готово: в игре HUSH TILL SIX ты будешь как «${n}».`;
 }
 
 // owner moderation: hide or show a sponsor by Telegram id
