@@ -212,8 +212,8 @@
     {
      "say": "noah",
      "shot": "noah",
-     "ru": "Айрис?.. Где мы?.. Чья это кровь?",
-     "en": "Iris…? Where are we…? Whose blood is this?"
+     "ru": "Айрис?.. Где мы? Чья это кровь?",
+     "en": "Iris? Where are we? …Whose blood is this?"
     },
     {
      "say": "iris",
@@ -466,14 +466,14 @@
     {
      "say": "radio",
      "shot": "radio",
-     "ru": "…рост около ста восьмидесяти, тёмная куртка, мужская, старого кроя…",
-     "en": "…about six feet tall, wearing a dark, old-fashioned man’s jacket…"
+     "ru": "…рост около ста восьмидесяти, был одет в тёмную куртку старого образца…",
+     "en": "…about six feet tall, last seen wearing an old dark jacket…"
     },
     {
      "shot": "iris",
      "dur": 2.2,
      "note": {
-      "ru": "Айрис закрывает уши и тихо напевает колыбельную — ту самую.",
+      "ru": "Айрис зажимает уши и тихо напевает колыбельную — ту самую.",
       "en": "Iris covers her ears and quietly hums the lullaby — the same one."
      },
      "fx": "lullaby_iris"
@@ -630,8 +630,8 @@
      "shot": "deer_lie",
      "dur": 3.2,
      "note": {
-      "ru": "Олень бьётся на дороге. Ноги сломаны. Он дышит — и кричит.",
-      "en": "The deer thrashes on the road. Its legs are broken. It breathes — and screams."
+      "ru": "Олень бьётся на дороге. Ноги сломаны. Он ещё дышит — и кричит.",
+      "en": "The deer thrashes on the road. Its legs are broken. It’s still breathing — and screaming."
      }
     },
     {
@@ -786,7 +786,7 @@
      },
      "dur": 2.6,
      "note": {
-      "ru": "Крик оленя тянется за машиной. Айрис закрывает уши.",
+      "ru": "Крик оленя тянется за машиной. Айрис зажимает уши.",
       "en": "The deer’s scream trails after the car. Iris covers her ears."
      }
     },
@@ -922,7 +922,7 @@
      "shot": "cluster",
      "dur": 2.2,
      "note": {
-      "ru": "Мигает лампа бензина.",
+      "ru": "Мигает лампочка бензина.",
       "en": "The fuel light is blinking."
      }
     },
@@ -931,8 +931,8 @@
      "shot": "noah",
      "dur": 2.6,
      "note": {
-      "ru": "В голове у Ноя нарастает гул. Края мира пульсируют.",
-      "en": "A hum builds inside Noah’s head. The edges of the world pulse."
+      "ru": "В голове у Ноя нарастает гул. По краям в глазах пульсирует темнота.",
+      "en": "A hum builds inside Noah’s head. Darkness pulses at the edges of his vision."
      }
     },
     {
@@ -1043,7 +1043,7 @@
     {
      "say": "iris",
      "shot": "iris",
-     "ru": "Ты же их ненавидел.",
+     "ru": "Ты же их всегда ненавидел.",
      "en": "You always hated them.",
      "look": "noah"
     },
@@ -1374,7 +1374,7 @@
     {
      "say": "danny",
      "shot": "st_danny",
-     "ru": "Мама сказала ждать. Она… уже долго.",
+     "ru": "Мама сказала ждать. Её… уже долго нет.",
      "en": "Mom told me to wait. She’s been gone… a long time."
     },
     {
@@ -2653,8 +2653,8 @@
      "look": "window",
      "dur": 2.8,
      "note": {
-      "ru": "Айрис плачет беззвучно.",
-      "en": "Iris is crying without a sound."
+      "ru": "Айрис беззвучно плачет.",
+      "en": "Iris is crying silently."
      }
     },
     {
@@ -2744,8 +2744,8 @@
      "shot": "back",
      "dur": 2.8,
      "note": {
-      "ru": "Айрис молча протягивает Дэнни свои варежки.",
-      "en": "Without a word, Iris hands Danny her mittens."
+      "ru": "Айрис протягивает Дэнни свои варежки.",
+      "en": "Iris hands Danny her mittens."
      },
      "gesture": {
       "who": "iris",
@@ -2806,7 +2806,7 @@
          {
           "say": "noah",
           "ru": "Воду. Почему-то всегда воду.",
-          "en": "Water. For some reason, always water.",
+          "en": "Water. I don’t know why. Always water.",
           "shot": "noah",
           "vo": "s7_talk_a3bc038"
          },
@@ -2868,8 +2868,8 @@
          },
          {
           "say": "iris",
-          "ru": "Ты уже спрашивал.",
-          "en": "You already asked.",
+          "ru": "Не надо.",
+          "en": "Don’t.",
           "shot": "iris",
           "if": {
            "asked": ">0"
@@ -2885,8 +2885,8 @@
          },
          {
           "note": {
-           "ru": "Она сжимает блокнот так, что белеют пальцы.",
-           "en": "She grips the notebook until her knuckles go white."
+           "ru": "Она прижимает блокнот к груди обеими руками.",
+           "en": "She clutches the notebook to her chest with both hands."
           },
           "dur": 2.4,
           "shot": "notebook",
@@ -2939,8 +2939,8 @@
          },
          {
           "say": "danny",
-          "ru": "Можно я теперь съем шоколадку?",
-          "en": "Can I eat the chocolate now?",
+          "ru": "А шоколадку теперь можно?",
+          "en": "Can I have the chocolate now?",
           "shot": "back",
           "if": {
            "lapse1": "==0",
@@ -2951,7 +2951,7 @@
          {
           "say": "iris",
           "ru": "Можно.",
-          "en": "You can.",
+          "en": "Go ahead.",
           "shot": "iris",
           "expr": {
            "who": "iris",
@@ -3009,7 +3009,7 @@
          {
           "say": "noah",
           "ru": "Зря я их выбросил?",
-          "en": "Was I wrong to throw them out?",
+          "en": "Maybe I shouldn’t have tossed them.",
           "shot": "noah",
           "if": {
            "pills": "==0",
@@ -3019,7 +3019,7 @@
          },
          {
           "say": "noah",
-          "ru": "Может, надо было выпить?",
+          "ru": "Может, надо было принять?",
           "en": "Maybe I should have taken one.",
           "shot": "noah",
           "if": {
@@ -3031,7 +3031,7 @@
          {
           "say": "iris",
           "ru": "На них ты спишь с открытыми глазами.",
-          "en": "On them you sleep with your eyes open.",
+          "en": "When you take them, you’re asleep with your eyes open.",
           "shot": "iris",
           "if": {
            "pills": "==0",

@@ -287,7 +287,7 @@
     },
     {
      "text": {
-      "ru": "Ной бежал с поста полиции.",
+      "ru": "Ной прорвался через пост полиции.",
       "en": "Noah ran the police checkpoint."
      },
      "dur": 2.4,
@@ -309,7 +309,7 @@
     },
     {
      "text": {
-      "ru": "В туалете кафе в зеркале был мокрый мальчик.",
+      "ru": "В зеркале в туалете кафе — мокрый мальчик.",
       "en": "In the diner bathroom mirror — a soaking wet boy."
      },
      "dur": 2.6,
@@ -396,7 +396,7 @@
      "shot": "wheel",
      "note": {
       "ru": "Колёса буксуют. Машина садится в сугроб — в двухстах метрах от деревни.",
-      "en": "The wheels spin. The car sinks into a drift — two hundred yards from the village."
+      "en": "The wheels spin. The car sinks into a drift — two hundred meters from the village."
      },
      "dur": 3.0
     },
@@ -417,8 +417,8 @@
      "fx": "eva_ditch",
      "shot": "eva_ditch",
      "note": {
-      "ru": "В фарах — чужой пикап в кювете, полузанесённый снегом. Мотор заглох, фары едва светят.",
-      "en": "In the headlights — someone’s pickup in the ditch, half buried in snow. The engine’s dead; the headlights barely glow."
+      "ru": "В свете фар — чужой пикап в кювете, полузанесённый снегом. Мотор заглох, его фары еле светят.",
+      "en": "Their headlights pick out a pickup in the ditch, half buried in snow. Its engine’s dead; its lights barely glow."
      },
      "dur": 3.0
     },
@@ -433,8 +433,8 @@
     },
     {
      "say": "eva",
-     "ru": "Я соврала… Не через месяц. Сейчас.",
-     "en": "I lied… It’s not next month. It’s now.",
+     "ru": "Простите… я соврала. Не через месяц. Сейчас.",
+     "en": "I’m sorry… I lied. It’s not next month. It’s now.",
      "shot": "eva_ditch_in"
     },
     {
@@ -558,8 +558,8 @@
     },
     {
      "say": "eva",
-     "ru": "Я соврала… Не через месяц.",
-     "en": "I lied… It’s not next month.",
+     "ru": "Простите… я соврала. Не через месяц.",
+     "en": "I’m sorry… I lied. It’s not next month.",
      "shot": "eva",
      "if": {
       "eva": ">0"
@@ -582,7 +582,7 @@
      "fx": "noah_dig",
      "shot": "wheel_out",
      "note": {
-      "ru": "Ной — механик. Спустить колёса и подложить коврики.",
+      "ru": "Ной — механик, он знает, что делать: приспустить колёса, подложить коврики.",
       "en": "Noah is a mechanic. He knows the trick: let some air out of the tires, wedge the floor mats under them."
      },
      "dur": 2.8
@@ -592,7 +592,7 @@
      "t": 6.0,
      "n": 12,
      "hint": {
-      "ru": "Быстро жми E / пробел — подкопать, спустить, подложить",
+      "ru": "Быстро жми E / пробел — подкопать, приспустить, подложить",
       "en": "Mash E / Space — dig, deflate, wedge"
      },
      "fail": "c3_s1_walk"
@@ -705,7 +705,7 @@
     {
      "note": {
       "ru": "Она видит в его лице мать. Потом смотрит на Айрис — и отступает, пропуская всех в тепло.",
-      "en": "She sees his mother in his face. Then she looks at Iris — and steps aside, letting them all into the warmth."
+      "en": "She sees his mother in his face. Then she looks at Iris — and steps aside to let them in out of the cold."
      },
      "dur": 3.4,
      "shot": "agnes_door"
@@ -732,7 +732,7 @@
       "t": 10,
       "opts": [
        {
-        "ru": "«Ты — наша бабушка?»",
+        "ru": "«Вы — наша бабушка?»",
         "en": "“Are you our grandmother?”",
         "go": "c3_s2_gran"
        },
@@ -771,14 +771,14 @@
     },
     {
      "say": "noah",
-     "ru": "Ты — наша бабушка?",
+     "ru": "Вы — наша бабушка?",
      "en": "Are you our grandmother?",
      "shot": "noah_house"
     },
     {
      "say": "agnes",
      "ru": "Была. Пока ваш отец не запретил.",
-     "en": "I was. Until your father forbade it.",
+     "en": "I was. Until your father put a stop to it.",
      "shot": "agnes"
     },
     {
@@ -833,7 +833,7 @@
     },
     {
      "say": "agnes",
-     "ru": "Знаю. Это ему сделали.",
+     "ru": "Знаю. Это с ним сделали.",
      "en": "I know. Somebody did that to him.",
      "shot": "agnes"
     },
@@ -892,8 +892,8 @@
     },
     {
      "say": "agnes",
-     "ru": "Без света не справлюсь. Генератор-то в сарае есть, а бензину нет. Бензин — в магазине, у Петра.",
-     "en": "I can’t do this without light. There’s a generator in the shed, but no gas. Gas is at the store — Pyotr’s place.",
+     "ru": "Без света не управлюсь. Генератор в сарае есть, да бензину нету. Бензин у Петра, в магазине.",
+     "en": "I can’t do this in the dark. There’s a generator in the shed, but no gas. Pyotr’s got gas, at the store.",
      "shot": "agnes_candle"
     },
     {
@@ -1115,14 +1115,14 @@
      "fx": "zoe_storm",
      "shot": "house_door",
      "note": {
-      "ru": "Зоя уходит в метель. Долго. Потом — шаги на крыльце.",
+      "ru": "Зоя уходит в метель. Её долго нет. Потом — шаги на крыльце.",
       "en": "Zoe walks out into the storm. She’s gone a long time. Then — footsteps on the porch."
      },
      "dur": 3.0
     },
     {
      "say": "zoe",
-     "ru": "На краю деревни стоит машина. Чёрная. С выключенными фарами.",
+     "ru": "Там, на краю деревни, машина стоит. Чёрная. Фары не горят.",
      "en": "There’s a car at the edge of the village. Black. Headlights off.",
      "shot": "zoe_house"
     },
@@ -1219,14 +1219,14 @@
     },
     {
      "say": "agnes",
-     "ru": "Держи здесь! Сильнее!",
+     "ru": "Вот тут держи! Крепче!",
      "en": "Press here! Harder!",
      "shot": "agnes_bed"
     },
     {
      "note": {
       "ru": "Ноя трясёт после провала у магазина. Агнес кладёт его ладони поверх рук Айрис: «Дави!»",
-      "en": "Noah is still shaking from the blackout at the store. Agnes presses his palms over Iris’s hands: “Push down!”"
+      "en": "Noah is still shaking from the blackout at the store. Agnes presses his palms over Iris’s hands: “Press!”"
      },
      "dur": 3.0,
      "shot": "iris_bed",
@@ -1326,8 +1326,8 @@
      "fx": "eva_baby",
      "shot": "eva_bed",
      "note": {
-      "ru": "За полночь. Ева, белая и мокрая, держит девочку.",
-      "en": "Past midnight. Eva, pale and soaked, holds her baby girl."
+      "ru": "За полночь. Ева, бледная, вся в поту, держит девочку.",
+      "en": "Past midnight. Eva, pale and drenched in sweat, holds her baby girl."
      },
      "dur": 3.0
     },
@@ -1440,8 +1440,8 @@
      "fx": "night_stove",
      "shot": "stove_two",
      "note": {
-      "ru": "Айрис клюёт носом на лавке — перед этим она долго шепталась с бабушкой. Агнес курит трубку. Ной садится рядом.",
-      "en": "Iris is nodding off on the bench — she spent a long time whispering with Grandma first. Agnes smokes her pipe. Noah sits down beside her."
+      "ru": "Айрис долго шепталась с бабушкой, теперь клюёт носом на лавке. Агнес курит трубку. Ной садится рядом с ней.",
+      "en": "Iris whispered with Grandma for a long time; now she’s nodding off on the bench. Agnes smokes her pipe. Noah sits down next to Agnes."
      },
      "dur": 3.6
     },
@@ -1474,8 +1474,8 @@
     },
     {
      "say": "agnes",
-     "ru": "Озеро своих не отпускает, милок. Кто утоп — тот при нём и остаётся. А злость его — в том, кто видел.",
-     "en": "The lake doesn’t let its own go, dear. Whoever drowns stays with it. And its anger lives in whoever saw.",
+     "ru": "Озеро своих не отпускает, милок. Кто утоп — тот при нём и остаётся. А злость свою в том оставляет, кто видел.",
+     "en": "The lake keeps its own, sonny. Whoever drowns stays with it. And the anger — it goes into whoever saw.",
      "shot": "agnes_stove"
     },
     {
@@ -1670,7 +1670,7 @@
     },
     {
      "note": {
-      "ru": "Ной поворачивается — в кармане гремят таблетки. Агнес слышит.",
+      "ru": "Ной шевелится — в кармане гремят таблетки. Агнес слышит.",
       "en": "Noah shifts — the pills rattle in his pocket. Agnes hears it."
      },
      "dur": 2.6,
@@ -1678,8 +1678,8 @@
     },
     {
      "say": "agnes",
-     "ru": "Дай мне его отраву.",
-     "en": "Give me his poison.",
+     "ru": "Дай-ка сюда докторову отраву.",
+     "en": "Give me that doctor’s poison.",
      "shot": "agnes_stove"
     },
     {
@@ -1701,12 +1701,12 @@
         "go": "c3_s4_give"
        },
        {
-        "ru": "Не отдавать и принять таблетку на ночь",
+        "ru": "Оставить себе и выпить таблетку на ночь",
         "en": "Keep them and take a pill for the night",
         "go": "c3_s4_take"
        },
        {
-        "ru": "Не отдавать и не пить ничего",
+        "ru": "Оставить себе и ничего не пить",
         "en": "Keep them and take nothing",
         "go": "c3_s4_keep"
        },
@@ -1733,15 +1733,15 @@
      "fx": "burn_pills",
      "shot": "stove_fire",
      "note": {
-      "ru": "Агнес бросает в печь всё, что было у него в кармане. Пластик съёживается в огне.",
-      "en": "Agnes throws everything from his pocket into the stove. The plastic shrivels in the fire."
+      "ru": "Агнес бросает пузырёк в печь. Пластик съёживается в огне.",
+      "en": "Agnes tosses the bottle into the stove. The plastic shrivels in the fire."
      },
      "dur": 3.0
     },
     {
      "say": "agnes",
      "ru": "Пей. Спать будешь крепко.",
-     "en": "Drink. You’ll sleep soundly.",
+     "en": "Drink up. You’ll sleep like a log.",
      "shot": "agnes_stove"
     },
     {
@@ -1781,8 +1781,8 @@
     },
     {
      "say": "agnes",
-     "ru": "Ты так похож на него сейчас. На отца.",
-     "en": "You look so much like him right now. Like your father.",
+     "ru": "Сейчас ты прямо как он. Как отец.",
+     "en": "Right now you look just like him. Your father.",
      "shot": "agnes_stove"
     },
     {
@@ -1838,7 +1838,7 @@
        },
        {
         "ru": "Не пить",
-        "en": "Don’t drink",
+        "en": "Don’t drink it",
         "go": "c3_s4_brew_no"
        },
        {
@@ -1871,7 +1871,7 @@
     {
      "say": "agnes",
      "ru": "Пей. Спать будешь крепко.",
-     "en": "Drink. You’ll sleep soundly.",
+     "en": "Drink up. You’ll sleep like a log.",
      "shot": "agnes_stove"
     },
     {
@@ -1927,8 +1927,8 @@
      "fx": "fade_in",
      "shot": "axe_back",
      "note": {
-      "ru": "Ной открывает глаза. Он стоит босиком в снегу у последнего дома — лицом к лесу, к озеру. В руке — топор из поленницы.",
-      "en": "Noah opens his eyes. He is standing barefoot in the snow by the last house — facing the forest, the lake. In his hand — an axe from the woodpile."
+      "ru": "Ночь. Ной стоит босиком в снегу у последнего дома — лицом к лесу, к озеру. В руке — топор из поленницы.",
+      "en": "Night. Noah stands barefoot in the snow by the last house — facing the forest, the lake. In his hand — an axe from the woodpile."
      },
      "dur": 4.0
     },
@@ -1980,7 +1980,7 @@
     },
     {
      "say": "agnes",
-     "ru": "Это была она.",
+     "ru": "Это она была.",
      "en": "That was her.",
      "shot": "agnes",
      "if": {
@@ -2048,8 +2048,8 @@
       "t": 10,
       "opts": [
        {
-        "ru": "«Подожди. Я тебе обещал — и нарушил. Прости»",
-        "en": "“Wait. I made you a promise — and broke it. I’m sorry”",
+        "ru": "«Подожди. Я тебе обещал — и не сдержал. Прости»",
+        "en": "“Wait. I promised you — and I broke it. I’m sorry”",
         "go": "c3_s5_sorry",
         "if": {
          "promise": ">0"
@@ -2087,8 +2087,8 @@
    "beats": [
     {
      "say": "noah",
-     "ru": "Подожди. Я тебе обещал — и нарушил. Прости.",
-     "en": "Wait. I made you a promise — and broke it. I’m sorry.",
+     "ru": "Подожди. Я тебе обещал — и не сдержал. Прости.",
+     "en": "Wait. I promised you — and I broke it. I’m sorry.",
      "shot": "noah_house"
     },
     {
@@ -2144,7 +2144,7 @@
     {
      "note": {
       "ru": "«Ты и тогда врал». Дэнни выходит в буран.",
-      "en": "“You lied that time too.” Danny walks out into the storm."
+      "en": "“You lied back then too.” Danny walks out into the storm."
      },
      "dur": 3.0,
      "shot": "danny_door"
@@ -2315,21 +2315,21 @@
      "fx": "fade_in",
      "shot": "street_end",
      "note": {
-      "ru": "Под утро буран стихает. В конце улицы загораются фары — чёрный седан. Гаснут.",
-      "en": "Toward morning the storm dies down. At the end of the street, headlights come on — the black sedan. They go out."
+      "ru": "Под утро буран стихает. В конце улицы вспыхивают фары — чёрный седан. И гаснут.",
+      "en": "Toward morning the storm dies down. At the end of the street, headlights flare — the black sedan. Then they go out."
      },
      "dur": 3.6
     },
     {
      "say": "agnes",
      "ru": "Это он. Он и тогда приезжал. После Ани.",
-     "en": "It’s him. He came back then too. After Annie.",
+     "en": "It’s him. He showed up back then too. After Annie.",
      "shot": "agnes_window"
     },
     {
      "say": "iris",
      "ru": "До дачи двадцать километров. Лесом.",
-     "en": "It’s twenty kilometers to the cabin. Through the woods.",
+     "en": "Twenty kilometers to the lake house. Through the woods.",
      "shot": "iris_house"
     },
     {
@@ -2403,8 +2403,8 @@
      "fx": "cellar",
      "shot": "cellar",
      "note": {
-      "ru": "Подпол. Темнота и запах картошки. Тишина — час.",
-      "en": "The cellar. Darkness and the smell of potatoes. Silence — for an hour."
+      "ru": "Подпол. Темно, пахнет картошкой. Час — ни звука.",
+      "en": "The cellar. Dark, the smell of potatoes. An hour without a sound."
      },
      "dur": 3.0
     },
@@ -2440,7 +2440,7 @@
     },
     {
      "note": {
-      "ru": "До света у Хейла нет их следа. Но лесом ночью, с младенцем, до дачи не дойти.",
+      "ru": "До рассвета Хейл их следа не найдёт. Но ночью, лесом, с младенцем до дачи не дойти.",
       "en": "Hale won’t pick up their trail before daylight. But at night, through the woods, with a baby — they’d never make it to the lake house."
      },
      "dur": 3.6,

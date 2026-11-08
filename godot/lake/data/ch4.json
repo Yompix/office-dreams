@@ -414,7 +414,7 @@
     },
     {
      "text": {
-      "ru": "Ева умерла родами. Девочку назвали Анной.",
+      "ru": "Ева умерла в родах. Девочку назвали Анной.",
       "en": "Eva died giving birth. They named the girl Anna."
      },
      "dur": 2.8,
@@ -426,7 +426,7 @@
     {
      "text": {
       "ru": "Зоя пропала ночью у кафе. На снегу остался её браслет.",
-      "en": "Zoe vanished in the night at the diner. Her bracelet was left in the snow."
+      "en": "Zoe vanished from the diner in the night. Her bracelet lay in the snow."
      },
      "dur": 2.8,
      "note": true,
@@ -437,7 +437,7 @@
     {
      "text": {
       "ru": "Ночью Ной стоял босиком в снегу с топором и говорил чужим голосом.",
-      "en": "In the night Noah stood barefoot in the snow with an axe, speaking in someone else’s voice."
+      "en": "That night Noah stood barefoot in the snow with an axe, talking in someone else’s voice."
      },
      "dur": 3.2,
      "note": true,
@@ -448,7 +448,7 @@
     {
      "text": {
       "ru": "Ночью сквозь помехи пел женский голос. Та самая колыбельная.",
-      "en": "In the night a woman sang over the radio. That same lullaby."
+      "en": "That night a woman’s voice sang through the static. The same lullaby."
      },
      "dur": 3.0,
      "note": true,
@@ -553,8 +553,8 @@
     },
     {
      "note": {
-      "ru": "В кармане у Ноя — ещё и запасной пузырёк, тот, что был в куртке.",
-      "en": "Noah still has the spare bottle in his pocket, too — the one from his jacket."
+      "ru": "У Ноя в кармане куртки — ещё и запасной пузырёк.",
+      "en": "And Noah still has the spare bottle in his jacket pocket."
      },
      "dur": 2.4,
      "shot": "noah_yard",
@@ -762,8 +762,8 @@
      "fx": "shed_open",
      "shot": "shed",
      "note": {
-      "ru": "Их седан Хейл знает наизусть. А в сарае у Агнес — старая буханка покойного деда.",
-      "en": "Hale knows their sedan by heart. But in Agnes’s shed there’s her late husband’s old van."
+      "ru": "Их машину Хейл знает. А в сарае у Агнес — старая буханка, ещё дедова.",
+      "en": "Hale knows their car. But in Agnes’s shed there’s an old van — Grandpa’s."
      },
      "dur": 3.4
     },
@@ -779,8 +779,8 @@
     },
     {
      "say": "agnes",
-     "ru": "Лет восемь не заводилась. Ты ж у нас механик?",
-     "en": "Hasn’t started in eight years. You’re the mechanic, aren’t you?",
+     "ru": "Лет восемь не заводилась. Ты ж механик, милок?",
+     "en": "Hasn’t started in eight years. You’re the mechanic, aren’t you, sonny?",
      "shot": "agnes_shed"
     },
     {
@@ -791,8 +791,8 @@
     },
     {
      "note": {
-      "ru": "Всё на месте. Осталось только «с толкача».",
-      "en": "Everything’s in place. All that’s left is a push start."
+      "ru": "Ной проверяет мотор — всё цело. Осталось завести с толкача.",
+      "en": "Noah checks the engine — it’s all there. Now it needs a push start."
      },
      "dur": 2.6,
      "shot": "van_engine"
@@ -834,7 +834,7 @@
     {
      "note": {
       "ru": "Время уходит.",
-      "en": "Time is slipping away."
+      "en": "Time’s running out."
      },
      "dur": 1.8,
      "shot": "yard"
@@ -922,7 +922,7 @@
    "beats": [
     {
      "note": {
-      "ru": "Зоя долго смотрит в окно. Потом начинает сама, ни на кого не глядя.",
+      "ru": "Зоя долго смотрит в окно. Потом заговаривает сама, ни на кого не глядя.",
       "en": "Zoe stares out the window for a long time. Then she starts talking, not looking at anyone."
      },
      "dur": 3.2,
@@ -949,7 +949,7 @@
     {
      "say": "zoe",
      "ru": "Ладно. Раз уж мы все тут… в одной буханке.",
-     "en": "Okay. Since we’re all here… in one old van.",
+     "en": "Okay. Since we’re all in the same… van.",
      "shot": "zoe_van"
     },
     {
@@ -974,7 +974,7 @@
      "fx": "zoe_laugh",
      "say": "zoe",
      "ru": "Не помню. В том-то и фишка. Мама заплатила — и я не помню.",
-     "en": "I don’t remember. That’s the whole point. Mom paid, and I don’t remember.",
+     "en": "I don’t remember. That’s the thing. Mom paid, and I don’t remember.",
      "shot": "zoe_van"
     },
     {
@@ -1057,15 +1057,15 @@
      "fx": "zoe_window",
      "shot": "zoe_van",
      "note": {
-      "ru": "Зоя отворачивается к окну. Но — благодарно.",
-      "en": "Zoe turns to the window. But she’s grateful."
+      "ru": "Зоя молча кивает и отворачивается к окну.",
+      "en": "Zoe gives a small nod and turns to the window."
      },
      "dur": 2.6
     },
     {
      "note": {
       "ru": "Айрис утыкается в блокнот.",
-      "en": "Iris buries her face in her notebook."
+      "en": "Iris buries herself in her notebook."
      },
      "dur": 2.2,
      "shot": "iris_van"
@@ -1092,7 +1092,7 @@
     {
      "say": "zoe",
      "ru": "Ну спасибо.",
-     "en": "Gee, thanks.",
+     "en": "Wow. Thanks.",
      "shot": "zoe_van"
     },
     {
@@ -1288,7 +1288,7 @@
     },
     {
      "note": {
-      "ru": "Изолента рвётся. Ещё раз — медленнее. Держит. Но время ушло.",
+      "ru": "Изолента рвётся. Ещё раз — медленнее. Держит. Но время потеряно.",
       "en": "The tape tears. Again — slower. It holds. But it’s cost them time."
      },
      "dur": 3.0,
@@ -1351,8 +1351,8 @@
      "fx": "page_1",
      "shot": "drawing",
      "note": {
-      "ru": "Рисунки, как комикс. Лестница. Отец с ремнём.",
-      "en": "The drawings run like a comic. The stairs. Dad with his belt."
+      "ru": "Рисунки — как комикс. Лестница. Отец с ремнём.",
+      "en": "The drawings read like a comic strip. The stairs. Dad with his belt."
      },
      "dur": 2.8
     },
@@ -1421,8 +1421,8 @@
     },
     {
      "say": "iris",
-     "ru": "Он шёл ко мне. Ты встал. А потом… это был не совсем ты.",
-     "en": "He was coming for me. You stood up. And then… it wasn’t quite you.",
+     "ru": "Он шёл ко мне. Ты встал между нами. А потом… это был не совсем ты.",
+     "en": "He was coming for me. You got between us. And then… it wasn’t really you.",
      "shot": "iris_stop"
     },
     {
@@ -1476,7 +1476,7 @@
     {
      "say": "iris",
      "ru": "Ты меня спас, дурак.",
-     "en": "You saved me, stupid.",
+     "en": "You saved me, idiot.",
      "shot": "iris_stop"
     },
     {
@@ -1534,7 +1534,7 @@
      "fx": "iris_cry",
      "shot": "hug",
      "note": {
-      "ru": "И впервые за всю дорогу плачет вслух.",
+      "ru": "И впервые за всю дорогу плачет — в голос.",
       "en": "And for the first time on the whole trip, she cries out loud."
      },
      "dur": 3.0
@@ -1576,8 +1576,8 @@
       "t": 8,
       "opts": [
        {
-        "ru": "Тихо посмотреть",
-        "en": "Take a quiet look",
+        "ru": "Заглянуть в блокнот",
+        "en": "Sneak a look",
         "go": "c4_s3_peek"
        },
        {
@@ -1639,8 +1639,8 @@
      "fx": "notebook_take",
      "shot": "iris_awake",
      "note": {
-      "ru": "Она забирает блокнот и отворачивается к стене.",
-      "en": "She takes the notebook back and turns to the wall."
+      "ru": "Она забирает блокнот и отворачивается к окну.",
+      "en": "She takes the notebook back and turns to the window."
      },
      "dur": 2.6
     },
@@ -1784,7 +1784,7 @@
     },
     {
      "note": {
-      "ru": "Дэнни смотрит на него долго.",
+      "ru": "Дэнни долго смотрит на него.",
       "en": "Danny looks at him for a long time."
      },
      "dur": 2.4,
@@ -1917,7 +1917,7 @@
      "fx": "hale_look_van",
      "say": "hale",
      "ru": "Агнесса… Сколько лет.",
-     "en": "Agnessa… It’s been so long.",
+     "en": "Agnessa… It’s been years.",
      "shot": "hale"
     },
     {
@@ -1929,7 +1929,7 @@
     {
      "say": "hale",
      "ru": "Я понимаю, ты напуган. Ты болен, Ной, и ты сам это знаешь.",
-     "en": "I understand, you’re frightened. You’re ill, Noah, and you know it.",
+     "en": "I understand. You’re frightened. You’re ill, Noah, and you know it.",
      "shot": "hale"
     },
     {
@@ -1966,8 +1966,8 @@
         "go": "c4_s5_diary"
        },
        {
-        "ru": "Напасть — монтировка",
-        "en": "Attack — the tire iron",
+        "ru": "Напасть с монтировкой",
+        "en": "Attack with the tire iron",
         "go": "c4_s5_attack"
        },
        {
@@ -2059,7 +2059,7 @@
    "beats": [
     {
      "note": {
-      "ru": "Ной сомневается. Хейл протягивает руку.",
+      "ru": "Ной колеблется. Хейл протягивает руку.",
       "en": "Noah wavers. Hale holds out his hand."
      },
      "dur": 2.6,
@@ -2118,7 +2118,7 @@
     {
      "say": "iris",
      "ru": "Делай как знаешь.",
-     "en": "Do what you think is right.",
+     "en": "Fine. Your call.",
      "shot": "iris_pine"
     },
     {
@@ -2344,7 +2344,7 @@
      "fx": "noah_down",
      "shot": "fight",
      "note": {
-      "ru": "Таблетка ещё в крови. Ной слабый и медленный — санитар валит его в снег.",
+      "ru": "Таблетка ещё действует. Ной слабый и медленный — санитар валит его в снег.",
       "en": "The pill is still in his system. Noah is weak and slow — the orderly takes him down into the snow."
      },
      "dur": 3.2
@@ -2363,7 +2363,7 @@
      "shot": "hit_two",
      "note": {
       "ru": "Айрис бьёт Хейла по руке. Шприц — в снегу.",
-      "en": "Iris strikes Hale’s hand. The syringe drops into the snow."
+      "en": "Iris knocks Hale’s hand aside. The syringe drops into the snow."
      },
      "dur": 2.6
     },
@@ -2499,8 +2499,8 @@
      "fx": "woods_dusk",
      "shot": "woods",
      "note": {
-      "ru": "Темнеет. Снег по колено. Впереди — охотничья избушка.",
-      "en": "It’s getting dark. Knee-deep snow. Ahead — a hunting hut."
+      "ru": "Темнеет. Ноги вязнут в снегу. Впереди — охотничья избушка.",
+      "en": "It’s getting dark. Their feet sink into the snow. Ahead — a hunting hut."
      },
      "dur": 3.0
     },
@@ -2508,7 +2508,7 @@
      "fx": "hut_in",
      "shot": "hut",
      "note": {
-      "ru": "Спрятаться. Сквозь щели в стенах пляшет луч фонаря.",
+      "ru": "Они прячутся внутри. Сквозь щели в стенах пляшет луч фонаря.",
       "en": "They hide. Through the gaps in the walls, a flashlight beam dances."
      },
      "dur": 3.0
@@ -2533,8 +2533,8 @@
      "fx": "iris_rock",
      "shot": "baby_hut",
      "note": {
-      "ru": "Девочка у Айрис на руках. Укачать — медленно, в ритм, не торопясь.",
-      "en": "The baby is in Iris’s arms. Rock her — slowly, in rhythm, no rushing."
+      "ru": "Девочка на руках у Айрис начинает хныкать. Её надо укачать — медленно, в ритм.",
+      "en": "The baby in Iris’s arms starts to fuss. She needs rocking — slowly, in rhythm."
      },
      "dur": 3.0
     },
@@ -2616,7 +2616,7 @@
      "fx": "hut_run",
      "shot": "woods_run",
      "note": {
-      "ru": "Бежать дальше — в темноту.",
+      "ru": "Они бегут дальше — в темноту.",
       "en": "They run on — into the dark."
      },
      "dur": 2.2
@@ -2743,15 +2743,15 @@
      "fx": "wake",
      "shot": "zoe_after",
      "note": {
-      "ru": "Ной приходит в себя. Зоя рядом. У Ноя разбиты руки.",
-      "en": "Noah comes to. Zoe is beside him. Noah’s hands are split open."
+      "ru": "Ной приходит в себя. Зоя рядом. Руки у него разбиты в кровь.",
+      "en": "Noah comes to. Zoe is beside him. His hands are torn up."
      },
      "dur": 3.0
     },
     {
      "note": {
       "ru": "Санитар стонет в снегу. «Второй он» вытащил её — жёстко.",
-      "en": "The orderly groans in the snow. “The other him” got her out — the hard way."
+      "en": "The orderly groans in the snow. The other Noah got her out — the hard way."
      },
      "dur": 3.0,
      "shot": "zoe_after",
@@ -2762,7 +2762,7 @@
     {
      "note": {
       "ru": "Хейл отползает в темноту. «Второй он» вытащил её — жёстко.",
-      "en": "Hale crawls off into the dark. “The other him” got her out — the hard way."
+      "en": "Hale crawls off into the dark. The other Noah got her out — the hard way."
      },
      "dur": 3.0,
      "shot": "zoe_after",
@@ -2853,8 +2853,8 @@
     },
     {
      "say": "agnes",
-     "ru": "Идите. Идите, кому говорю. Я старая. Я его задержу.",
-     "en": "Go. Go on, I said. I’m old. I’ll hold him off.",
+     "ru": "Идите. Идите, кому говорю. Я своё пожила. Я его задержу.",
+     "en": "Go. Go on, I said. I’ve had my life. I’ll hold him off.",
      "shot": "agnes_snow"
     },
     {
@@ -2866,8 +2866,8 @@
     },
     {
      "say": "agnes",
-     "ru": "Это ты ему сказал. Аню. Ты её отдал.",
-     "en": "It was you who told him. About Annie. You gave her away.",
+     "ru": "Это ты ему сказал. Про Аню. Ты её выдал.",
+     "en": "You told him. About Annie. You gave her up.",
      "shot": "agnes_snow",
      "if": {
       "agnes_knows_hale": ">0"
@@ -2894,7 +2894,7 @@
         "go": "c4_s6_agnes_save"
        },
        {
-        "ru": "Уйти",
+        "ru": "Идти дальше",
         "en": "Keep going",
         "go": "c4_s6_agnes_lost"
        },
@@ -3046,7 +3046,7 @@
     {
      "say": "iris",
      "ru": "Дэнни. Иди ко мне.",
-     "en": "Danny. Come here, to me.",
+     "en": "Danny. Come to me.",
      "shot": "iris_woods"
     },
     {
@@ -3078,8 +3078,8 @@
    "beats": [
     {
      "note": {
-      "ru": "Дэнни смотрит на разбитые руки Ноя. И уходит на голос.",
-      "en": "Danny looks at Noah’s battered hands. And walks toward the voice."
+      "ru": "Дэнни смотрит на Ноя — и пятится. Уходит на голос.",
+      "en": "Danny looks at Noah — and backs away. He walks toward the voice."
      },
      "dur": 3.0,
      "shot": "danny_woods"
@@ -3168,8 +3168,8 @@
     },
     {
      "note": {
-      "ru": "Ной стучит зубами. Штаны — ледяная корка.",
-      "en": "Noah’s teeth are chattering. His trousers are a crust of ice."
+      "ru": "Ной стучит зубами. Штаны заледенели коркой.",
+      "en": "Noah’s teeth are chattering. His jeans are stiff with ice."
      },
      "dur": 2.6,
      "if": {
@@ -3186,7 +3186,7 @@
     },
     {
      "say": "iris",
-     "ru": "Мы приехали.",
+     "ru": "Пришли.",
      "en": "We’re here.",
      "shot": "iris_lake"
     },
@@ -3352,7 +3352,7 @@
      "gap": 0.75,
      "hint": {
       "ru": "Медленно… Жми E / пробел редко, в ритм — не торопись",
-      "en": "Slowly… Press E / Space rarely, in rhythm — don’t rush"
+      "en": "Slowly… Press E / Space with long pauses, in rhythm — don’t rush"
      },
      "fail": "c4_s6_creak"
     },
@@ -3439,8 +3439,8 @@
     {
      "shot": "hut",
      "note": {
-      "ru": "Агнес закашливается в кулак. Айрис прижимает к её губам край шарфа.",
-      "en": "Agnes coughs into her fist. Iris presses the end of her scarf to her lips."
+      "ru": "Агнес закашливается в кулак. Айрис прижимает ей к губам край шарфа.",
+      "en": "Agnes coughs into her fist. Iris presses the end of her scarf to Grandma’s lips."
      },
      "dur": 3.2,
      "if": {
@@ -3491,14 +3491,14 @@
          {
           "say": "agnes",
           "ru": "Упрямой. В восемь лет ушла пешком в город — за котёнком. Двенадцать вёрст. И принесла.",
-          "en": "Stubborn. At eight she walked to town on her own — for a kitten. Twelve versts. And she brought it home.",
+          "en": "Stubborn. At eight she walked to town on her own — for a kitten. Eight miles. And she brought it home.",
           "shot": "agnes_van",
           "vo": "c4_s4_road_a771c4f"
          },
          {
           "say": "agnes",
-          "ru": "Ты в неё. Тоже упёртый.",
-          "en": "You take after her. Just as pigheaded.",
+          "ru": "Ты в неё, милок. Такой же упёртый.",
+          "en": "You take after her, sonny. Just as pigheaded.",
           "shot": "agnes_van",
           "vo": "c4_s4_road_adba54b"
          }
@@ -3522,7 +3522,7 @@
          {
           "say": "danny",
           "ru": "Трясёт, как на тракторе. Мне нравится.",
-          "en": "It shakes like a tractor. I like it.",
+          "en": "It’s like riding a tractor. I like it.",
           "shot": "danny_van",
           "vo": "c4_s4_road_a9bc986"
          }
@@ -3545,8 +3545,8 @@
          },
          {
           "say": "zoe",
-          "ru": "Нет. Но спасибо, что спросил. Это редкость.",
-          "en": "No. But thanks for asking. That’s rare.",
+          "ru": "Нет. Но спасибо, что спросил. Обычно не спрашивают.",
+          "en": "No. But thanks for asking. Nobody ever does.",
           "shot": "zoe_van",
           "vo": "c4_s4_road_a12888e"
          }
@@ -3565,8 +3565,8 @@
          },
          {
           "say": "iris",
-          "ru": "Не разбудишь. Ты сам за рулём «выпадаешь» — я видела.",
-          "en": "You won’t. You blank out at the wheel yourself — I’ve seen it.",
+          "ru": "Не разбудишь. Ты сам за рулём отключаешься. Я видела.",
+          "en": "You won’t. You zone out at the wheel yourself. I’ve seen it.",
           "shot": "iris_van",
           "vo": "c4_s4_road_a4830e6"
          }
@@ -3753,8 +3753,8 @@
     },
     {
      "say": "noah",
-     "ru": "Мама. Потом расскажу. Поехали.",
-     "en": "Mom. I’ll tell you later. Let’s go.",
+     "ru": "Про маму. Потом расскажу. Поехали.",
+     "en": "About Mom. I’ll tell you later. Let’s go.",
      "shot": "sana_back",
      "if": {
       "ev_archive": ">0"

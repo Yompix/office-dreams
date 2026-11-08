@@ -122,6 +122,15 @@ def beats_of(j, where):
     return j['scenes'][where]['beats']
 
 
+def _alts(anchor):
+    """Якорь и его вид после редактуры script_edits.json (правки могут идти до или после этого скрипта)."""
+    try:
+        edits = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'script_edits.json'), encoding='utf-8'))
+    except OSError:
+        edits = []
+    return [anchor] + [e['new_ru'] for e in edits if e['old_ru'].startswith(anchor)]
+
+
 def main():
     total = 0
     for ch in range(1, 6):
@@ -135,7 +144,8 @@ def main():
             if pos == 'start':
                 i = 0
             else:
-                hits = [k for k, b in enumerate(beats) if 'resp' not in b and _ru(b).startswith(anchor)]
+                alts = _alts(anchor)
+                hits = [k for k, b in enumerate(beats) if 'resp' not in b and any(_ru(b).startswith(a) for a in alts)]
                 if not hits:
                     raise SystemExit('ch%d %s: нет шага «%s»' % (ch, where, anchor))
                 if pos == 'before':
