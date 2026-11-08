@@ -115,7 +115,7 @@ async function load(onp) {
 // Реплики декодируются по мере надобности: все 273 сразу — это ~210 МБ памяти, телефон от этого тормозит и вылетает.
 // Нужны реплики текущей сцены и следующих за ней (чтобы склейка не ждала); старые отпускаются, держим не больше VOICE_KEEP
 const voiceWant = new Set(), voiceOrder = [], sndJob = {}, sndQ = []; let sndBusy = 0, voiceMiss = 0;   // voiceMiss — реплика должна была прозвучать, а буфера не было (проверяют тесты)
-const VOICE_KEEP = 32, isVoice = k => !!TIM[k], LAZY_RE = /^(shift|end_|theme$)/;   // большая музыка (смена 96 с, финалы, тема титула 110 с — 39 МБ в памяти) декодируется по надобности и отпускается, когда сменилась (music)
+const VOICE_KEEP = window.nsTV ? 16 : 32, isVoice = k => !!TIM[k], LAZY_RE = /^(shift|end_|theme$)/;   // большая музыка (смена 96 с, финалы, тема титула 110 с — 39 МБ в памяти) декодируется по надобности и отпускается, когда сменилась (music)
 const sceneKeys = sc => { const ks = []; for (const b of (sc && sc.beats) || []) for (const k of b.say || []) ks.push(k); return ks; };
 const objKeys = o => { const ks = new Set(); JSON.stringify(o, (k, v) => { if (typeof v === 'string' && isVoice(v)) ks.add(v); return v; }); return [...ks]; };   // все ключи реплик внутри объекта (события смены, странности, звонки)
 const decQ = {};   // идущие декодирования реплик — чтобы не декодировать одну дважды
@@ -171,7 +171,8 @@ const filt = (type, f, q) => { const n = AC.createBiquadFilter(); n.type = type;
 function initAudio() {   // контекст создаём заранее (он «спит» до нажатия), звуки раскодируем в фоне
   if (decoding) return decoding;
   const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return (decoding = Promise.resolve());
-  AC = new Ctx();
+  AC = null; if (window.nsTV) try { AC = new Ctx({ latencyHint: 'playback', sampleRate: 24000 }); } catch (e) { try { AC = new Ctx({ latencyHint: 'playback' }); } catch (e2) {} }   // ТВ-приставка: звук 24 кГц и крупный буфер — вдвое меньше работы процессору и памяти (реплики занимают вдвое меньше)
+  if (!AC) AC = new Ctx();
   const muted = LS.get('mute', false);
   // сумма всех шин → компрессор → общая громкость игрока → выход. Ползунок «Громкость» стоит после компрессора:
   // до него компрессор возвращал часть убавленного, и ползунок почти не менял громкость
@@ -191,7 +192,7 @@ function initAudio() {   // контекст создаём заранее (он
     musicSend = AC.createGain(); musicSend.gain.value = 1; uMus.connect(musicSend); musicSend.connect(lowSend);
     sfxLow = AC.createGain(); sfxLow.gain.value = VOL.sfx; sfxLow.connect(lowSend); }   // низ звуков — через ползунок «Звуки», как и сами звуки
   // пространство: реверберация (импульс — шум с затуханием) и «за стеклом/дверью» — глухой фильтр
-  { const len = AC.sampleRate * 2.4 | 0, ir = AC.createBuffer(2, len, AC.sampleRate);
+  { const len = AC.sampleRate * (window.nsTV ? 1.3 : 2.4) | 0, ir = AC.createBuffer(2, len, AC.sampleRate);   // ТВ: эхо короче — свёртка дешевле
     for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2) * (i < 90 ? i / 90 : 1); }
     revIn = AC.createConvolver(); revIn.buffer = ir; const rg = AC.createGain(); rg.gain.value = .55; revIn.connect(rg); rg.connect(master);
     voiceRev = AC.createGain(); voiceRev.gain.value = voiceOn() ? VOL.voice : 0; voiceRev.connect(revIn);   // эхо голосов — через свой кран: выключили озвучку — нет и эха
