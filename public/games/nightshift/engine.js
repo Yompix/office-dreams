@@ -66,14 +66,15 @@ function voiceLevel() { if (!analyser) return 0; analyser.getByteTimeDomainData(
 // XHR вместо fetch: так файлы читаются и внутри Android-приложения (file://)
 function get(url, type) { return new Promise((ok, no) => { const x = new XMLHttpRequest(); x.open('GET', url); x.responseType = type; x.timeout = 60000; x.onload = () => (x.status === 200 || x.status === 0) && x.response ? ok(x.response) : no(); x.onerror = x.ontimeout = x.onabort = () => { LD.bad++; no(); }; x.send(); }); }   // тайм-аут: на слабом Wi-Fi приставки «вечная» загрузка не держит игру
 // загрузка по шагам — для строки под полосой (ТВ-приставка или долгая загрузка): что уже есть и что зависло
-const LD = { m: 0, s: 0, w: '', bad: 0, err: [], t0: performance.now() };
+const LD = { m: 0, s: 0, w: '', bad: 0, err: [], t0: performance.now(), prev: (() => { try { return localStorage.getItem('ns1_ldStep') || ''; } catch (e) { return ''; } })() };   // prev — шаг, на котором прошлая загрузка не закончилась (зависла)
+window.__ldStep = st => { LD.w = st; try { localStorage.setItem('ns1_ldStep', st); } catch (e) {} };
 const within = (p, ms, tag) => Promise.race([p, new Promise(r => setTimeout(() => { LD.err.push(tag); r(false); }, ms))]);   // шаг не ответил — идём дальше без него
 addEventListener('error', e => { if (LD.err.length < 4 && e && e.message) LD.err.push(String(e.message).slice(0, 70)); });
 function ldInfo() {
   const el = document.getElementById('loadinfo'); if (!el) return; const sec = (performance.now() - LD.t0) / 1000;
   if (!window.nsTV && sec < 12) return;
   el.textContent = `модели ${LD.m}/7 · звуки ${LD.s}/${SNDS.length} · мир ${LD.w || '…'} · ${Math.round(sec)} с` + (LD.bad ? ` · сбоев сети ${LD.bad}` : '') + (window.nsLegacy ? ` · legacy ${window.nsLegacy}` : '')
-    + (LD.err.length ? ' · ' + LD.err.join(' · ') : '') + (sec > 25 ? ' · ' + ((window.__W3core && window.__W3core.GPU && window.__W3core.GPU.name) || 'GPU ?') + ' ' + (/Chrome\/[\d.]+/.exec(navigator.userAgent) || [''])[0] : '');
+    + (LD.err.length ? ' · ' + LD.err.join(' · ') : '') + (LD.prev ? ' · прошлый раз остановилось: ' + LD.prev : '') + (sec > 25 ? ' · ' + ((window.__W3core && window.__W3core.GPU && window.__W3core.GPU.name) || 'GPU ?') + ' ' + (/Chrome\/[\d.]+/.exec(navigator.userAgent) || [''])[0] : '');
 }
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
@@ -84,7 +85,21 @@ async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
   const models = within(window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => { LD.m++; tick(4); }).catch(e => { LD.err.push('модели: ' + String(e && e.message || e).slice(0, 50)); return false; }) : Promise.resolve(false), window.nsTV ? 70000 : 150000, 'модели не догрузились');   // не догрузились — игра идёт на запасных фигурах, а не висит
-  const world = Promise.all([models, within(Promise.resolve(window.NS_FONTS).catch(() => null), 15000, 'шрифты')]).then(() => new Promise(r => setTimeout(() => { LD.w = 'сборка'; ldInfo(); try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(true); LD.w = 'готов'; } else LD.w = 'нет WebGL'; } catch (e) { console.error(e); LD.w = 'ошибка'; LD.err.push(String(e && e.message || e).slice(0, 70)); } worldTried = true; tick(); r(); }, 30)));   // иероглифы (NSCJK) — до текстур с надписями
+  const yieldT = (ms = 30) => new Promise(r => setTimeout(r, ms));   // дать браузеру нарисовать строку загрузки
+  const world = Promise.all([models, within(Promise.resolve(window.NS_FONTS).catch(() => null), 15000, 'шрифты')]).then(async () => {
+    LD.w = 'сборка'; ldInfo(); await yieldT();
+    try {
+      if (window.World && World.init()) {
+        World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7;
+        // прогрев первых мест: на ТВ — по одному с паузой (экран живой, видно, какое место собирается), прошлый раз зависло на прогреве — без него
+        if (window.nsTV) { if (!/^прогрев/.test(LD.prev || '')) for (let i = 0; i < 5; i++) { LD.w = 'прогрев ' + (i + 1) + '/5'; ldInfo(); await yieldT(); if (!World.warm(true, 1)) break; } }
+        else World.warm(true);
+        LD.w = 'готов';
+      } else LD.w = 'нет WebGL';
+    } catch (e) { console.error(e); LD.w = 'ошибка'; LD.err.push(String(e && e.message || e).slice(0, 70)); }
+    try { localStorage.removeItem('ns1_ldStep'); } catch (e) {}
+    worldTried = true; tick();
+  });   // иероглифы (NSCJK) — до текстур с надписями
   // версии timing_<язык>.json — поднимать при каждой новой нарезке/сборке (кэш браузера)
   const TIMV = { en: 13, uk: 9, es: 2, pt: 2, de: 2, fr: 3, it: 3, pl: 3, tr: 3, zh: 3, ja: 3, ko: 3 };
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским

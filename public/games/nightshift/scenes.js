@@ -2988,9 +2988,10 @@ function init() {
     console.error(`shader ${nm}: ${(gl.getProgramInfoLog(prog) || '').trim().slice(0, 240)} | vs: ${lg(vs)} | fs: ${lg(fs)} | units ${gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)}`);
   };
   if (CINE) { R.shadowMap.enabled = true; R.shadowMap.type = FINE ? T.PCFSoftShadowMap : T.PCFShadowMap; }   // на телефоне тени попроще
-  makeTextures(); A = window.__W3chars.cast();
+  const ST = window.__ldStep || (() => {});   // шаг сборки — в строку загрузки и в память (ТВ-приставка зависла — при следующем запуске видно где)
+  ST('текстуры'); makeTextures(); ST('герои'); A = window.__W3chars.cast();
   if (CINE) { R.shadowMap.autoUpdate = false; for (const k in A) A[k].root.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); }
-  L.lobby = buildLobby(); L.corridor = buildCorridor(); L.server = buildServer(); L.stairs = buildStairs(); L.basement = buildBasement();
+  ST('холл'); L.lobby = buildLobby(); ST('коридор'); L.corridor = buildCorridor(); ST('серверная'); L.server = buildServer(); ST('лестница'); L.stairs = buildStairs(); ST('подвал'); L.basement = buildBasement(); ST('свет');
   for (const k in L) L[k].name = k;
   window.__lightN = lightRig(L);
   if (CINE) for (const k in L) cineLoc(R, L[k]);
@@ -3002,6 +3003,7 @@ function init() {
   // цветная кайма в 1 пиксель, строки, лёгкая бочка); у камер наблюдения бочка сильнее и пересвет
   window.__W3core.RT = new T.WebGLRenderTarget(V.RW, V.RH, CINE ? { type: T.HalfFloatType, samples: 4 } : { magFilter: T.NearestFilter, minFilter: T.NearestFilter });
   if (CINE) cinePost();
+  ST('плёнка');
   postMat = new T.ShaderMaterial({
     uniforms: { tD: { value: window.__W3core.RT.texture }, uB: { value: new T.Vector2(V.BW, V.BH) }, uHD: { value: HD }, uLv: { value: 22 }, uCctv: { value: 0 }, uIr: { value: 0 }, uGam: { value: 1.25 }, uT: { value: 0 }, uVhs: { value: .7 }, uScare: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }',
@@ -3293,10 +3295,10 @@ const WARM = ['door_katya', 'exterior', 'pro_ext', 'pro_two', 'pro_offer', 'hall
   'f7_close', 'lunge_server', 'cam_m2'], WARM1 = 5;   // первые WARM1 — до меню: титул, улица и сменщик в прологе (будка и мониторы — первыми в фоне)
 let warmQ = null, warmBusy = null;
 const warmIds = () => warmQ || (warmQ = WARM.filter(id => SH[ALIAS[id] || id]));
-function warm(first) {
-  if (first && navigator.webdriver && !/[?&]warm=bg/.test(location.search)) first = false;   // автотесты и снимки кадров (Playwright): всё до меню, как раньше — в медленном программном рендере сборка посреди сцены сбивает их часы
+function warm(first, n) {   // n — сколько мест собрать сейчас (ТВ: по одному, между ними кадр загрузки)
+  if (first && navigator.webdriver && !/[?&]warm=bg/.test(location.search) && !n) first = false;   // автотесты и снимки кадров (Playwright): всё до меню, как раньше — в медленном программном рендере сборка посреди сцены сбивает их часы
   const c = document.createElement('canvas'); c.width = 54; c.height = 96; const g = c.getContext('2d'), q = warmIds();
-  for (const id of q.splice(0, first ? WARM1 : q.length)) draw(g, 54, 96, id, { t: 1, T: 1 });
+  for (const id of q.splice(0, n || (first ? WARM1 : q.length))) { if (window.__ldStep) window.__ldStep('прогрев ' + id); draw(g, 54, 96, id, { t: 1, T: 1 }); }
   return q.length;
 }
 // один кадр из очереди прогрева; обещание — когда его шейдеры собраны (null — очередь пуста). Персонажи, камера и «прошлый кадр» остаются как были:
