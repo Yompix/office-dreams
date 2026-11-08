@@ -115,8 +115,8 @@
   "beats": [
    {
     "say": "noah",
-    "ru": "Ева! Где водитель?",
-    "en": "Eva! Where’s the driver?"
+    "ru": "Где водитель?",
+    "en": "Where’s the driver?"
    }
   ]
  },
@@ -574,8 +574,8 @@
   "beats": [
    {
     "say": "agnes",
-    "ru": "Ты — воду таскай. А ты, внучка, — со мной.",
-    "en": "You — haul water. And you, granddaughter — with me.",
+    "ru": "Ты — за водой. А ты, внучка, — со мной.",
+    "en": "You — fetch water. And you, granddaughter — with me.",
     "shot": "agnes"
    },
    {
@@ -864,19 +864,19 @@
   "op": "replace",
   "sid": "c3_s3_candles",
   "find": "Свечи и отсвет печи. Агнес работает на ощупь.",
-  "ru": "Свечи ближе. Ничего, я и на ощупь управлюсь.",
-  "en": "Bring the candles closer. Never mind, I can manage by touch.",
+  "ru": "Свечи ближе. Я и на ощупь управлюсь.",
+  "en": "Bring the candles closer. I can manage by touch.",
   "say": "agnes"
  },
  {
   "op": "insert",
   "sid": "c3_s3_candles",
-  "after": "Свечи ближе. Ничего, я и на ощупь управлюсь.",
+  "after": "Свечи ближе. Я и на ощупь управлюсь.",
   "beats": [
    {
     "say": "agnes",
-    "ru": "Ничего. Бабы при лучине рожали — и ты родишь.",
-    "en": "It’s all right. Women had babies by firelight for ages — and so will you.",
+    "ru": "Бабы при лучине рожали — и ты родишь.",
+    "en": "Women had babies by firelight for ages — you’ll have yours too.",
     "shot": "agnes_candle"
    },
    {
@@ -1670,12 +1670,6 @@
     "en": "Eleven years. Gone in a second.",
     "shot": "noah_stove",
     "thought": true
-   },
-   {
-    "say": "agnes",
-    "ru": "Травы мои. Хуже не будет.",
-    "en": "My herbs. Can’t make things worse.",
-    "shot": "agnes_stove"
    }
   ]
  },
@@ -1694,8 +1688,8 @@
   "beats": [
    {
     "say": "agnes",
-    "ru": "Спи теперь. Что придёт — то придёт.",
-    "en": "Sleep now. Whatever comes, comes.",
+    "ru": "А что ночью придёт — то и придёт.",
+    "en": "And whatever comes in the night — let it come.",
     "shot": "agnes_stove"
    }
   ]
@@ -1796,8 +1790,8 @@
   "beats": [
    {
     "say": "agnes",
-    "ru": "Спи теперь. Что придёт — то придёт.",
-    "en": "Sleep now. Whatever comes, comes.",
+    "ru": "А что ночью придёт — то и придёт.",
+    "en": "And whatever comes in the night — let it come.",
     "shot": "agnes_stove"
    }
   ]
