@@ -74,6 +74,16 @@ const MOOD := {
 }
 
 
+## Ключ героя в сцене → профиль (8 ноя): мать в гл. 5 — ключ "mom" (профиль Анны), официантка в гл. 2 — "waitress" (Нины);
+## Ной в 8 лет двигается как ребёнок (профиль Дэнни), а не как взрослый Ной.
+const ALIAS := {"mom": "anna", "waitress": "nina", "noah_kid": "danny"}
+
+
+static func who(key: String) -> String:
+	var k := key.trim_suffix("_double")
+	return String(ALIAS.get(k, k.trim_suffix("_young").trim_suffix("_kid")))
+
+
 static func of(key: String) -> Dictionary:
-	var base: Dictionary = P.get(key.trim_suffix("_double").trim_suffix("_young").trim_suffix("_kid"), DEFAULT)
+	var base: Dictionary = P.get(who(key), DEFAULT)
 	return base

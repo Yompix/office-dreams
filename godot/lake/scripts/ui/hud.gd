@@ -916,6 +916,8 @@ func show_settings(st: Settings) -> void:
 		["master", "Громкость: общая" if ru else "Volume: master", "slider", float(st.vol.master), 0.0, 1.0],
 		["music", "Музыка" if ru else "Music", "slider", float(st.vol.music), 0.0, 1.0],
 		["sfx", "Звуки" if ru else "Sound effects", "slider", float(st.vol.sfx), 0.0, 1.0],
+		["voice_on", "Озвучка" if ru else "Voice-over", "cycle", 1 if st.voice_on else 0, 2,
+			func(v: int) -> String: return on_off.call(v == 1)],
 		["voice", "Голоса" if ru else "Voices", "slider", float(st.vol.voice), 0.0, 1.0],
 		["subs_big", "Крупные субтитры" if ru else "Large subtitles", "cycle", 1 if st.subs_big else 0, 2,
 			func(v: int) -> String: return on_off.call(v == 1)],

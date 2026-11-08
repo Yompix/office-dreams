@@ -23,7 +23,7 @@ const STYLE := {
 
 ## Построить кости и симулятор для героя (если причёска длинная). Вернёт SpringBoneSimulator3D или null.
 static func build(a: Actor, hair: MeshInstance3D) -> SpringBoneSimulator3D:
-	var st: Dictionary = STYLE.get(a.key.trim_suffix("_double"), {})
+	var st: Dictionary = STYLE.get(Manner.who(a.key), STYLE.get(a.key.trim_suffix("_double"), {}))   # "mom" → anna, "waitress" → nina
 	if st.is_empty() or hair.skin == null:
 		return null
 	var sk := a.skel

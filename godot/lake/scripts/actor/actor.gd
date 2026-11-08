@@ -158,6 +158,7 @@ static var _prof_frame := -1
 static var prof_sections := false
 static var foot_lock_on := true   # стопы не едут по земле на ходу (8 ноя); стенд сравнения: false
 var _fl_hold := 0.0
+var _fl_yaw := 0.0
 var _fl := {}   # сторона → {"on": стоит, "p": точка на земле, "w": вес}
 static var stride_override := 0.0   # стенд: подбор естественной скорости шага
 static var sec_us := {}
@@ -1366,7 +1367,10 @@ func _update_grip(delta: float) -> void:
 ## опорную ногу неровно (мокап), а скорость героя задаёт код — без этого стопы ехали по земле ~0,25 м/с.
 func _foot_lock(dt: float) -> void:
 	var moving := (walking or _v > 0.05) and clip in STRIDE
-	_fl_hold = 0.4 if moving else maxf(_fl_hold - dt, 0.0)   # встал: ещё 0,4 с держим стопы, пока клип перетекает в «Idle»
+	var yaw_rate := absf(wrapf(rotation.y - _fl_yaw, -PI, PI)) / maxf(dt, 1e-4)
+	_fl_yaw = rotation.y
+	var turning := not moving and (_turn_to != null or yaw_rate > 0.6) and clip in STAND   # поворот на месте
+	_fl_hold = 0.4 if (moving or turning) else maxf(_fl_hold - dt, 0.0)   # встал: ещё 0,4 с держим стопы, пока клип перетекает в «Idle»
 	if not foot_lock_on or _fl_hold <= 0.0 or _bi("thigh_l") < 0 or clip in SEAT or clip in LIE:
 		_fl.clear()
 		return
@@ -1375,30 +1379,57 @@ func _foot_lock(dt: float) -> void:
 	var feet := {}
 	for side in ["_l", "_r"]:
 		feet[side] = (sgt * skel.get_bone_global_pose(_bi("foot" + side))).origin
-	var low: float = minf(feet["_l"].y, feet["_r"].y)
+	# разворот на месте: стопы стоят и не крутятся с телом; отстала больше чем на 28° — переставляем (по одной)
+	var stepping := false
+	for side in ["_l", "_r"]:
+		var st0: Dictionary = _fl.get(side, {})
+		if not st0.is_empty() and st0.get("step", false):
+			stepping = true
 	for side in ["_l", "_r"]:
 		var f: Vector3 = feet[side]
 		var other: Vector3 = feet["_r" if side == "_l" else "_l"]
-		var st: Dictionary = _fl.get(side, {"on": false, "p": f, "w": 0.0})
-		var down := f.y <= other.y + 0.012   # ниже (или вровень с) другой стопы — опорная
-		if down and not st.on:
-			st.on = true
+		var st: Dictionary = _fl.get(side, {"on": false, "p": f, "w": 0.0, "yaw": rotation.y, "step": false})
+		if turning:
+			if st.get("step", false):
+				if float(st.w) < 0.05:   # переставили: снова встала
+					st.step = false
+					st.on = true
+					st.p = f
+					st.yaw = rotation.y
+			elif not st.on:
+				st.on = true
+				st.p = f
+				st.yaw = rotation.y
+			elif absf(wrapf(rotation.y - float(st.yaw), -PI, PI)) > 0.49 and not stepping:
+				st.on = false
+				st.step = true
+				stepping = true
+		else:
+			var down := f.y <= other.y + 0.012   # ниже (или вровень с) другой стопы — опорная
+			if down and not st.on:
+				st.on = true
+				st.p = f
+				st.yaw = rotation.y
+			elif not down and st.on:
+				st.on = false
+			if not moving:   # остановка: стопы отпускаем плавно к позе «Idle»
+				st.on = false
+		if st.on and Vector2(f.x - st.p.x, f.z - st.p.z).length() > 0.3:   # слишком далеко (рывок) — отпустить
 			st.p = f
-		elif not down and st.on:
-			st.on = false
-		if not moving:   # остановка: стопы отпускаем плавно к позе «Idle»
-			st.on = false
-		if st.on and Vector2(f.x - st.p.x, f.z - st.p.z).length() > 0.3:   # слишком далеко (разворот, рывок) — отпустить
-			st.p = f
-		st.w = move_toward(float(st.w), 1.0 if st.on else 0.0, dt * (12.0 if st.on else (3.0 if not moving else 8.0)))
+			st.yaw = rotation.y
+		var rate := 12.0 if st.on else (10.0 if st.get("step", false) else (3.0 if not moving else 8.0))
+		st.w = move_toward(float(st.w), 1.0 if st.on else 0.0, dt * rate)
 		_fl[side] = st
 		if float(st.w) < 0.01:
 			continue
 		var tgt: Vector3 = Vector3(st.p.x, f.y, st.p.z).lerp(f, 1.0 - float(st.w))   # высоту ведёт клип: перекат с пятки на носок
-		_leg_ik(side, tgt, gb.z)
+		var yaw_fix := 0.0
+		if turning:
+			yaw_fix = wrapf(float(st.yaw) - rotation.y, -PI, PI) * float(st.w)
+		_leg_ik(side, tgt, gb.z, yaw_fix)
 
 
-func _leg_ik(side: String, tgt: Vector3, fwd: Vector3) -> void:
+func _leg_ik(side: String, tgt: Vector3, fwd: Vector3, yaw_fix := 0.0) -> void:
 	var bt := _bi("thigh" + side)
 	var bc := _bi("calf" + side)
 	var bf := _bi("foot" + side)
@@ -1406,6 +1437,8 @@ func _leg_ik(side: String, tgt: Vector3, fwd: Vector3) -> void:
 		return
 	var sgt := skel.global_transform
 	var foot_b := (sgt * skel.get_bone_global_pose(bf)).basis   # поворот стопы из клипа — вернуть после IK
+	if absf(yaw_fix) > 0.0001:   # на развороте стопа остаётся смотреть, куда стояла
+		foot_b = Basis(Vector3.UP, yaw_fix) * foot_b
 	var h := (sgt * skel.get_bone_global_pose(bt)).origin
 	var k := (sgt * skel.get_bone_global_pose(bc)).origin
 	var a0 := (sgt * skel.get_bone_global_pose(bf)).origin

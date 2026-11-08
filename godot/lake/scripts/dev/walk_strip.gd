@@ -3,6 +3,7 @@ extends SceneTree
 ##   xvfb-run -a godot --path godot/lake --rendering-driver opengl3 --script res://scripts/dev/walk_strip.gd -- --who noah --out ПАПКА [--nolock]
 var out := "/tmp/walk_strip"
 var who := "noah"
+var turn := false
 var world: Node3D
 var cam: Camera3D
 var a: Actor
@@ -17,6 +18,7 @@ func _initialize() -> void:
 		out = args[args.find("--out") + 1]
 	if "--who" in args:
 		who = args[args.find("--who") + 1]
+	turn = "--turn" in args
 	if "--nolock" in args:
 		Actor.foot_lock_on = false
 	DirAccess.make_dir_recursive_absolute(out)
@@ -64,12 +66,19 @@ func _checker() -> ImageTexture:
 
 func _process(_d: float) -> bool:
 	t += DT
-	if t > 0.3 and t < 0.33:
-		a.walk_to(Vector3(0, 0, 20), 1.15, "Rk_Walk", "Idle")
-	var z := a.position.z
-	cam.fov = 32.0
-	cam.look_at_from_position(Vector3(3.2, 0.55, z + 0.2), Vector3(0, 0.45, z))
-	if t > 2.5 and fmod(t - 2.5, 0.1) < DT and n < 12:
+	if turn:
+		if t > 0.5 and t < 0.53:
+			a.face_to(deg_to_rad(150.0))
+		cam.fov = 40.0
+		cam.look_at_from_position(Vector3(0.01, 3.0, 0.9), Vector3(0, 0.0, 0.0))
+	else:
+		if t > 0.3 and t < 0.33:
+			a.walk_to(Vector3(0, 0, 20), 1.15, "Rk_Walk", "Idle")
+		var z := a.position.z
+		cam.fov = 32.0
+		cam.look_at_from_position(Vector3(3.2, 0.55, z + 0.2), Vector3(0, 0.45, z))
+	var t0 := 0.5 if turn else 2.5
+	if t > t0 and fmod(t - t0, 0.1) < DT and n < 12:
 		root.get_viewport().get_texture().get_image().save_png("%s/%s_%02d.png" % [out, who, n])
 		n += 1
 	if n >= 12:

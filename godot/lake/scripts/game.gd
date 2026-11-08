@@ -1572,7 +1572,7 @@ func _voice_line(key: String) -> Dictionary:
 			var j = JSON.parse_string(FileAccess.get_file_as_string(tf))
 			if j is Dictionary:
 				_vo = j
-	if key == "" or not _vo.has(key) or _fast:
+	if key == "" or not _vo.has(key) or _fast or not settings.voice_on:   # озвучка выключена — реплика идёт по тексту (время чтения)
 		return {}
 	var v: Dictionary = _vo[key]
 	if not sfx.voice("res://snd/vo/%s/%s.ogg" % [lang, key], float(v.get("g", 1.0))):
@@ -2567,6 +2567,8 @@ func _on_setting(key: String, v: Variant) -> void:
 		"master", "music", "sfx", "voice":
 			settings.vol[key] = float(v)
 			sfx.set_volumes(settings.vol)
+		"voice_on":
+			settings.voice_on = int(v) == 1
 		"subs_big":
 			settings.subs_big = int(v) == 1
 			hud.set_subs_big(settings.subs_big)

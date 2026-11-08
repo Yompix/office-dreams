@@ -13,6 +13,7 @@ var vsync := true
 var brightness := 1.0             # 0,6…1,5
 var vol := {"master": 1.0, "music": 0.8, "sfx": 1.0, "voice": 1.0}
 var subs_big := false
+var voice_on := false             # озвучка (8 ноя, владелец: «убери озвучку, потом сам озвучу») — по умолчанию выкл, файлы на месте
 var choice_long := false          # больше времени на выбор (×1,6)
 var lang := ""
 var hw_checked := false           # качество сверено с видеокартой этой сборкой (старые настройки — «Высокое» на встроенной)
@@ -30,6 +31,7 @@ func load_cfg() -> void:
 	for k in vol:
 		vol[k] = float(c.get_value("audio", k, vol[k]))
 	subs_big = bool(c.get_value("game", "subs_big", subs_big))
+	voice_on = bool(c.get_value("game", "voice_on2", voice_on))   # ключ v2: прежнее «вкл» по умолчанию не переносим
 	choice_long = bool(c.get_value("game", "choice_long", choice_long))
 	lang = String(c.get_value("game", "lang", lang))
 	hw_checked = int(c.get_value("video", "hw", 0)) >= 2
@@ -45,6 +47,7 @@ func save() -> void:
 	for k in vol:
 		c.set_value("audio", k, vol[k])
 	c.set_value("game", "subs_big", subs_big)
+	c.set_value("game", "voice_on2", voice_on)
 	c.set_value("game", "choice_long", choice_long)
 	c.set_value("game", "lang", lang)
 	c.save(PATH)
