@@ -1,0 +1,2482 @@
+[
+ {
+  "op": "replace",
+  "sid": "c4_s1",
+  "find": "На рассвете седан Хейла медленно уезжает из деревни — к лесной дороге. Только тогда, задами, огородами, они возвращаются к дому Агнес.",
+  "ru": "Уехал. К лесу подался. Ну, пошли домой — задами, огородами.",
+  "en": "He’s gone. Off toward the woods. Come on, let’s go home — out the back, through the gardens.",
+  "say": "agnes"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s1",
+  "after": "Он был здесь. Ночью. Прямо тут.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Я её запирал. Точно запирал.",
+    "en": "I locked it. I know I locked it.",
+    "shot": "noah_yard"
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "«Ты же знаешь, что бывает без них». Не знаю. И боюсь узнать.",
+    "en": "“You know what happens without them.” I don’t. And I’m scared to find out.",
+    "shot": "noah_yard"
+   },
+   {
+    "say": "zoe",
+    "ru": "«С. Х.»… Погоди. Он что, и тебя лечит?",
+    "en": "“S. H.”… Wait. He’s your doctor too?",
+    "shot": "zoe_yard",
+    "if": {
+     "zoe": ">0",
+     "zoe_gone": "==0"
+    }
+   },
+   {
+    "say": "noah",
+    "ru": "Одиннадцать лет. От головы.",
+    "en": "Eleven years. For headaches.",
+    "shot": "noah_yard",
+    "if": {
+     "zoe": ">0",
+     "zoe_gone": "==0"
+    }
+   },
+   {
+    "say": "zoe",
+    "ru": "От головы. Ну да. Он всех от головы лечит.",
+    "en": "Headaches. Sure. He treats everybody for headaches.",
+    "shot": "zoe_yard",
+    "if": {
+     "zoe": ">0",
+     "zoe_gone": "==0"
+    }
+   },
+   {
+    "say": "agnes",
+    "ru": "Мягко стелет. Да жёстко спать.",
+    "en": "He makes a soft bed. It’s a hard one to sleep in.",
+    "shot": "yard"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1",
+  "find": "У Ноя в кармане куртки — ещё и запасной пузырёк.",
+  "ru": "А в кармане — ещё и запасной. Его же. Два пузырька на одного меня.",
+  "en": "And there’s the spare in my pocket. His too. Two bottles, one of me.",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s1",
+  "after": "Ты их так и не отдал.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Ну? И что ты с этим сделаешь?",
+    "en": "Well? What are you going to do with it?",
+    "shot": "iris_yard"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_pocket",
+  "find": "Ной суёт пузырёк в карман.",
+  "ru": "Пусть будет. На всякий случай.",
+  "en": "I’ll hang on to it. Just in case.",
+  "say": "noah"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_pocket",
+  "find": "Айрис смотрит на карман. Молчит.",
+  "ru": "На всякий случай. Он так и написал: «Ты же знаешь».",
+  "en": "Just in case. That’s exactly what he wrote: “You know.”",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s1_pocket",
+  "after": "На всякий случай. Он так и написал: «Ты же знаешь».",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Айрис…",
+    "en": "Iris…",
+    "shot": "noah_yard"
+   },
+   {
+    "say": "iris",
+    "ru": "Всё. Молчу. Твоя голова.",
+    "en": "Fine. Not another word. It’s your head.",
+    "shot": "iris_yard"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_snow",
+  "find": "Пузырёк летит в сугроб и тонет в нём без звука.",
+  "ru": "Вот так. Пусть лежит там до весны.",
+  "en": "There. Let it sit there till spring.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_snow",
+  "find": "Следом — и запасной, из кармана.",
+  "ru": "И этот тоже. Чтоб не тянуло.",
+  "en": "This one too. So I’m not tempted.",
+  "say": "noah"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_snow",
+  "find": "Айрис выдыхает.",
+  "ru": "Ты… правда?",
+  "en": "You… really?",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s1_snow",
+  "after": "Ты… правда?",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Правда. Только не смотри так.",
+    "en": "Really. Don’t look at me like that.",
+    "shot": "noah_yard"
+   },
+   {
+    "say": "iris",
+    "ru": "Как? Я никак не смотрю.",
+    "en": "Like what? I’m not looking at you like anything.",
+    "shot": "iris_yard"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_iris",
+  "find": "Айрис сжимает пузырёк в кулаке.",
+  "ru": "Я? Почему я?",
+  "en": "Me? Why me?",
+  "say": "iris"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_iris",
+  "find": "Ной отдаёт ей и запасной — из кармана.",
+  "ru": "И запасной. Пусть оба будут у тебя.",
+  "en": "And the spare. You keep them both.",
+  "say": "noah"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s1_iris",
+  "after": "И запасной. Пусть оба будут у тебя.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Потому что тебе я верю. А себе — не очень.",
+    "en": "Because I trust you. Me — not so much.",
+    "shot": "noah_yard"
+   },
+   {
+    "say": "iris",
+    "ru": "Ладно. Только попросишь обратно — не отдам. Даже если будешь кричать.",
+    "en": "Okay. But if you ask for them back, I won’t give them. Even if you yell.",
+    "shot": "iris_yard"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_leave",
+  "find": "Ной не трогает пузырёк. Тот так и остаётся на сиденье.",
+  "ru": "Не трону. Пусть лежит, где он его положил.",
+  "en": "I’m not touching it. Let it lie where he left it.",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s1_leave",
+  "after": "Не трону. Пусть лежит, где он его положил.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Правильно. Вернётся — пусть видит, что ты не взял.",
+    "en": "Good. When he comes back, let him see you didn’t take it.",
+    "shot": "iris_yard"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_leave",
+  "find": "Запасной пузырёк — по-прежнему у него в кармане.",
+  "ru": "Только запасной всё ещё в кармане. Ну и пусть.",
+  "en": "Except the spare’s still in my pocket. Fine. Whatever.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_van",
+  "find": "Их машину Хейл знает. А в сарае у Агнес — старая буханка, ещё дедова.",
+  "ru": "На вашей далеко не уедете — он её знает. А в сарае у меня дедова буханка.",
+  "en": "You won’t get far in yours — he knows it. But I’ve got Grandpa’s old van in the shed.",
+  "say": "agnes"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_van",
+  "find": "Ной проверяет мотор — всё цело. Осталось завести с толкача.",
+  "ru": "Живая. Только сама не схватит — надо с толкача. Все назад, толкаем!",
+  "en": "She’s alive. But she won’t catch on her own — we’ll have to push. Everybody round the back!",
+  "say": "noah"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_van2",
+  "find": "Мотор чихает и глохнет. Толкают ещё — всем миром. И ещё.",
+  "ru": "Заглохла. Ещё раз! Все разом — и… раз!",
+  "en": "She died. Again! All together — and… push!",
+  "say": "noah"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_van2",
+  "find": "Время уходит.",
+  "ru": "Каждая минута — ему в подарок. Давай, старушка. Давай.",
+  "en": "Every minute’s a gift to him. Come on, old girl. Come on.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_vango",
+  "find": "Буханка кашляет чёрным дымом — и заводится.",
+  "ru": "Есть! Схватила!",
+  "en": "Yes! She caught!",
+  "say": "noah"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s1_vango",
+  "find": "Зоя хлопает в ладоши.",
+  "ru": "Механик, я почти влюбилась. Шучу. Наполовину.",
+  "en": "Mechanic, I think I’m in love. Kidding. Half kidding.",
+  "say": "zoe"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s1_vango",
+  "after": "Механик, я почти влюбилась. Шучу. Наполовину.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Поехали уже.",
+    "en": "Can we just go?",
+    "shot": "iris_yard",
+    "if": {
+     "zoe": ">0",
+     "zoe_gone": "==0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "delete",
+  "sid": "c4_s1_vango",
+  "find": "И главное: чёрная машина буханку не знает."
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s2",
+  "after": "Лесная дорога. Буханку трясёт на каждой кочке.",
+  "beats": [
+   {
+    "say": "agnes",
+    "ru": "Колеи держись, милок. Съедешь — до весны не откопаем.",
+    "en": "Stay in the ruts, sonny. Slide off and we won’t dig out till spring.",
+    "shot": "agnes_van"
+   },
+   {
+    "say": "noah",
+    "ru": "Руль тугой. Будто сам знает, куда ехать.",
+    "en": "Stiff wheel. Like it knows where it’s going.",
+    "shot": "noah_van"
+   },
+   {
+    "say": "agnes",
+    "ru": "Знает. Дед на ней сорок лет одной дорогой ездил.",
+    "en": "It does. Grandpa drove the same road in it for forty years.",
+    "shot": "agnes_van"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s2_zoe",
+  "find": "Зоя долго смотрит в окно. Потом заговаривает сама, ни на кого не глядя.",
+  "ru": "Можно я скажу? Пока смелость есть.",
+  "en": "Can I say something? While I’ve still got the nerve.",
+  "say": "zoe"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s2_zoe",
+  "after": "Помню только, что отчим после этого стал очень добрый.",
+  "beats": [
+   {
+    "say": "zoe",
+    "ru": "Там есть белая комната. Заходишь во вторник — выходишь, а уже четверг.",
+    "en": "There’s a white room there. You go in on a Tuesday, you come out, and it’s Thursday.",
+    "shot": "zoe_van"
+   },
+   {
+    "say": "noah",
+    "ru": "Зоя…",
+    "en": "Zoe…",
+    "shot": "noah_van"
+   },
+   {
+    "say": "zoe",
+    "ru": "Не делай такое лицо. Я начну реветь, а мне не идёт.",
+    "en": "Don’t make that face. I’ll start crying, and it doesn’t suit me.",
+    "shot": "zoe_van"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s2_zoe",
+  "find": "Тишина. Только мотор.",
+  "ru": "«Тех, кто что-то видел». А что видел я?",
+  "en": "“People who saw something.” So what did I see?",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s2_zoe",
+  "after": "Откуда мы знаем, что она не с ним?",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Он каждый раз знает, где мы. Каждый раз, Ной.",
+    "en": "He always knows where we are. Every single time, Noah.",
+    "shot": "iris_van",
+    "if": {
+     "jealous": "==0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s2_zoe",
+  "after": "Она врёт. Она с ним заодно. Он её подослал.",
+  "beats": [
+   {
+    "say": "zoe",
+    "ru": "Проверь. Высади меня на повороте — и посмотри, кто за мной приедет.",
+    "en": "Test it. Drop me at the next turn and see who comes to pick me up.",
+    "shot": "zoe_van"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s2_believe",
+  "find": "Зоя молча кивает и отворачивается к окну.",
+  "ru": "…Ого. Ладно.",
+  "en": "…Wow. Okay.",
+  "say": "zoe"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s2_believe",
+  "find": "Айрис утыкается в блокнот.",
+  "ru": "Ну конечно. Ей ты веришь.",
+  "en": "Of course. Her you believe.",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s2_believe",
+  "after": "Ну конечно. Ей ты веришь.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Айрис, я не про это…",
+    "en": "Iris, that’s not what I…",
+    "shot": "noah_van"
+   },
+   {
+    "say": "iris",
+    "ru": "Рули, Ной.",
+    "en": "Just drive, Noah.",
+    "shot": "iris_van"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s2_doubt",
+  "after": "Ну спасибо.",
+  "beats": [
+   {
+    "say": "zoe",
+    "ru": "Нет, правда. Взвесил, подумал. Очень по-взрослому.",
+    "en": "No, really. Weighed it up, thought it through. Very mature.",
+    "shot": "zoe_van"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s2_doubt",
+  "find": "Зоя молчит до конца дороги.",
+  "ru": "Она больше на меня не смотрит. Молодец, Ной.",
+  "en": "She won’t look at me now. Nice one, Noah.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s2_enough",
+  "find": "Обе замолкают.",
+  "ru": "Я просто спросила.",
+  "en": "I was just asking.",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s2_enough",
+  "after": "Я просто спросила.",
+  "beats": [
+   {
+    "say": "zoe",
+    "ru": "Есть, капитан. Молчу.",
+    "en": "Aye, captain. Shutting up.",
+    "shot": "zoe_van"
+   },
+   {
+    "say": "noah",
+    "ru": "Он там, снаружи. Не здесь. Хватит грызться.",
+    "en": "He’s out there. Not in here. Quit going at each other.",
+    "shot": "noah_van"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s2_quiet",
+  "find": "Ной молчит. Зоя хмыкает и отворачивается к окну.",
+  "ru": "Ясно. Можешь не отвечать — я и так поняла.",
+  "en": "Got it. You don’t have to answer. I get it.",
+  "say": "zoe"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s2_quiet",
+  "after": "Ясно. Можешь не отвечать — я и так поняла.",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Скажу — будет хуже. Промолчу — тоже. Отлично.",
+    "en": "Say something, it gets worse. Say nothing — same. Great.",
+    "shot": "noah_van"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s2_radio",
+  "find": "У Дэнни в кармане трещит рация — детская, на её волне может говорить кто угодно. Голос — мягкий, вежливый.",
+  "ru": "Рация! Это мама! Мам? Мама?",
+  "en": "My walkie! It’s Mom! Mom? Mommy?",
+  "say": "danny"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s2_phone",
+  "find": "У Агнес в кармане оживает старый кнопочный телефон — на горке поймалась связь. Номер не определён. Она включает громкую связь.",
+  "ru": "Звонит… На горке связь поймалась. Номер не кажет. Алло?",
+  "en": "It’s ringing… We’ve got a signal up on the hill. No number. Hello?",
+  "say": "agnes"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s2_hale",
+  "after": "Давай поговорим как взрослые люди.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Где Зоя? Дайте ей сказать.",
+    "en": "Where’s Zoe? Let her talk.",
+    "shot": "noah_van"
+   },
+   {
+    "say": "hale",
+    "ru": "Она спит, Ной. Ей давно не было так спокойно. Тебе бы тоже не помешало.",
+    "en": "She’s asleep, Noah. She hasn’t been this calm in a long time. You could use some of that yourself.",
+    "shot": "van_inside"
+   },
+   {
+    "say": "noah",
+    "ru": "Если с ней что-то…",
+    "en": "If anything happens to her…",
+    "shot": "noah_van"
+   },
+   {
+    "say": "hale",
+    "ru": "Я врач, Ной. Я никому не делаю больно. Скоро увидимся.",
+    "en": "I’m a doctor, Noah. I don’t hurt people. See you soon.",
+    "shot": "van_inside"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s2_hale",
+  "after": "Не отвечай ему. Никогда.",
+  "beats": [
+   {
+    "say": "agnes",
+    "ru": "Голос у него всё тот же. Ласковый.",
+    "en": "Same voice as ever. So gentle.",
+    "shot": "agnes_van"
+   },
+   {
+    "say": "danny",
+    "ru": "Это не мама была. Это дядя какой-то.",
+    "en": "That wasn’t Mom. That was some man.",
+    "shot": "danny_van",
+    "if": {
+     "danny": ">0",
+     "danny_lost": "==0"
+    }
+   },
+   {
+    "say": "iris",
+    "ru": "Это детская рация, Дэнни. Её кто угодно может поймать.",
+    "en": "It’s a toy walkie, Danny. Anybody can get on it.",
+    "shot": "iris_van",
+    "if": {
+     "danny": ">0",
+     "danny_lost": "==0"
+    }
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "«Пока она принимает лекарства». Как я. Одиннадцать лет — как я.",
+    "en": "“As long as she takes her medication.” Like me. Eleven years, like me.",
+    "shot": "noah_van"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3",
+  "find": "Буханка закипает у заброшенной автобусной остановки. Из-под капота валит пар.",
+  "ru": "Всё, закипела. Стоим. Автобуса тут, похоже, лет десять не было.",
+  "en": "That’s it, she’s boiling over. We wait. Looks like no bus has stopped here in ten years.",
+  "say": "noah"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3",
+  "find": "Лопнул шланг. Изолента — в дедовом ящике.",
+  "ru": "Шланг лопнул. Изолента — в дедовом ящике. До озера хватит. Наверное.",
+  "en": "Split hose. There’s tape in Grandpa’s toolbox. It’ll hold till the lake. Probably.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_tape2",
+  "find": "Изолента рвётся. Ещё раз — медленнее. Держит. Но время потеряно.",
+  "ru": "Рвётся. Ещё раз, медленнее… Держит. Только время ушло.",
+  "en": "It tears. Again, slower… It holds. But we’ve lost time.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_iris",
+  "find": "Айрис сидит на лавке остановки с блокнотом. Потом сама протягивает его брату.",
+  "ru": "Ной. Сядь. Пожалуйста.",
+  "en": "Noah. Sit down. Please.",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_iris",
+  "after": "Ной. Сядь. Пожалуйста.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Я не могу это сказать. Словами — не могу. Я нарисовала.",
+    "en": "I can’t say it. Not in words. So I drew it.",
+    "shot": "iris_stop"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_pages",
+  "after": "Рисунки — как комикс. Лестница. Отец с ремнём.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Это он. Он нашёл мамин дневник.",
+    "en": "That’s him. He found Mom’s diary.",
+    "if": {
+     "drawings_shown": ">0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_pages",
+  "find": "Айрис за дверью. Ной встаёт между ними.",
+  "ru": "Это я. Встал между ними.",
+  "en": "That’s me. Standing between them.",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_pages",
+  "after": "Лицо Ноя. Глаза пустые, как дырки.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Я не знала, как нарисовать глаза. Там ничего не было.",
+    "en": "I didn’t know how to draw your eyes. There was nothing in them.",
+    "if": {
+     "drawings_shown": ">0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_pages",
+  "find": "Нож. Отец на полу.",
+  "ru": "Нож. Папа на полу. …Это я. Это правда я.",
+  "en": "A knife. Dad on the floor. …That’s me. It really was me.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_pages",
+  "find": "Айрис держит брата за руку. А он её не слышит.",
+  "ru": "Она держит меня за руку. А я её не слышу.",
+  "en": "She’s holding my hand. And I can’t hear her.",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_pages",
+  "after": "Она держит меня за руку. А я её не слышу.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Я тебя звала. Долго звала. Ты не слышал.",
+    "en": "I kept calling you. For so long. You didn’t hear me.",
+    "if": {
+     "drawings_shown": ">0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_talk",
+  "after": "Он шёл ко мне. Ты встал между нами. А потом… это был не совсем ты.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Не совсем я — это как?",
+    "en": "Not really me — what does that mean?",
+    "shot": "noah_stop"
+   },
+   {
+    "say": "iris",
+    "ru": "Ты был спокойный. Совсем. Вот это было страшнее всего.",
+    "en": "You were calm. Totally calm. That was the scariest part.",
+    "shot": "iris_stop"
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Я убил папу. А она молчала всю дорогу — чтобы я не узнал.",
+    "en": "I killed Dad. And she kept quiet the whole way — so I wouldn’t find out.",
+    "shot": "noah_stop"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_sorry",
+  "after": "Ты меня спас, дурак.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Я его убил, Айрис.",
+    "en": "I killed him, Iris.",
+    "shot": "noah_stop"
+   },
+   {
+    "say": "iris",
+    "ru": "А он бы убил меня. Понимаешь? Ты выбрал меня.",
+    "en": "And he would’ve killed me. Get it? You chose me.",
+    "shot": "iris_stop"
+   },
+   {
+    "say": "iris",
+    "ru": "Всё. Пошли, пока я не разревелась.",
+    "en": "That’s it. Let’s go before I start bawling.",
+    "shot": "iris_stop"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_notme",
+  "after": "Ну да. Конечно.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Удобно. Не ты — значит, и спросить не с кого.",
+    "en": "Convenient. If it wasn’t you, there’s nobody to blame.",
+    "shot": "iris_stop"
+   },
+   {
+    "say": "noah",
+    "ru": "Айрис, я правда не помню.",
+    "en": "Iris, I really don’t remember.",
+    "shot": "noah_stop"
+   },
+   {
+    "say": "iris",
+    "ru": "Зато я помню. За нас двоих.",
+    "en": "Well, I do. For both of us.",
+    "shot": "iris_stop"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_hug",
+  "find": "Ной просто обнимает её. Она не отстраняется.",
+  "ru": "Она вся трясётся. Всю дорогу держалась — а теперь трясётся.",
+  "en": "She’s shaking all over. Held it together the whole way — and now she’s shaking.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_hug",
+  "find": "И впервые за всю дорогу плачет — в голос.",
+  "ru": "Я думала, ты и меня тоже… Я так боялась, Ной.",
+  "en": "I thought you were going to… me too… I was so scared, Noah.",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_hug",
+  "after": "Я думала, ты и меня тоже… Я так боялась, Ной.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Я здесь. Это я. Я здесь.",
+    "en": "I’m here. It’s me. I’m here.",
+    "shot": "hug"
+   },
+   {
+    "say": "iris",
+    "ru": "Только попробуй ещё раз пропасть.",
+    "en": "Don’t you dare disappear on me again.",
+    "shot": "hug"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_quiet",
+  "find": "Ной молчит. Айрис закрывает блокнот.",
+  "ru": "Ладно. Я и не ждала, что ты что-то скажешь.",
+  "en": "Fine. I didn’t expect you to say anything.",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_quiet",
+  "after": "Ладно. Я и не ждала, что ты что-то скажешь.",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Надо было сказать хоть что-нибудь. Хоть «прости».",
+    "en": "I should’ve said something. Anything. Even “sorry.”",
+    "shot": "noah_stop"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_sleep",
+  "find": "Айрис уснула в буханке. Блокнот — у неё на коленях.",
+  "ru": "Уснула. Первый раз с той ночи.",
+  "en": "She’s asleep. First time since that night.",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_sleep",
+  "after": "Уснула. Первый раз с той ночи.",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Блокнот на коленях. Она с ним даже спит.",
+    "en": "The notebook’s on her lap. She even sleeps with it."
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_peek",
+  "find": "Ной осторожно вытягивает блокнот у неё из-под руки.",
+  "ru": "Только посмотрю. Одну страницу. Она не узнает.",
+  "en": "Just a look. One page. She won’t know.",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_woke",
+  "after": "Ты рылся в моих вещах.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Айрис, я только…",
+    "en": "Iris, I just…",
+    "shot": "noah_door"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_woke",
+  "find": "Она забирает блокнот и отворачивается к окну.",
+  "ru": "Отдай.",
+  "en": "Give it here.",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s3_woke",
+  "after": "Отдай.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Я бы сама показала. Когда смогла бы. Теперь — не знаю.",
+    "en": "I would’ve shown you myself. When I could. Now — I don’t know.",
+    "shot": "iris_awake"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s3_leave",
+  "find": "Ной не трогает блокнот. Пусть спит.",
+  "ru": "Не моё. Захочет — сама покажет.",
+  "en": "Not mine. If she wants to, she’ll show me.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s4",
+  "find": "Дэнни садится рядом, пока Ной возится с мотором.",
+  "ru": "Можно я с тобой посижу? Я мешать не буду.",
+  "en": "Can I sit with you? I won’t bug you.",
+  "say": "danny"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4",
+  "after": "Можно я с тобой посижу? Я мешать не буду.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Сиди. Только к мотору не лезь — горячий.",
+    "en": "Sure. Just keep away from the engine — it’s hot.",
+    "shot": "noah_engine"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4",
+  "after": "Он упал. Головой. Об эту… стойку. Ты потом плакал. Ты не хотел.",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Пустые глаза. Как на рисунке у Айрис.",
+    "en": "Empty eyes. Like in Iris’s drawing.",
+    "shot": "noah_engine",
+    "if": {
+     "drawings_shown": ">0"
+    }
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Пустые глаза. Как в её блокноте.",
+    "en": "Empty eyes. Like in her notebook.",
+    "shot": "noah_engine",
+    "if": {
+     "drawings_peeked": ">0"
+    }
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Пустые глаза. Это был я. Опять я.",
+    "en": "Empty eyes. That was me. Me again.",
+    "shot": "noah_engine",
+    "if": {
+     "drawings_shown": "==0",
+     "drawings_peeked": "==0"
+    }
+   },
+   {
+    "say": "danny",
+    "ru": "Я никому ещё не говорил. Даже Айрис.",
+    "en": "I haven’t told anybody yet. Not even Iris.",
+    "shot": "danny_stop"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s4_thanks",
+  "find": "Дэнни кивает.",
+  "ru": "Ты только больше так не делай. Ладно?",
+  "en": "Just don’t do it again. Okay?",
+  "say": "danny"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4_thanks",
+  "after": "Ты только больше так не делай. Ладно?",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Постараюсь, Дэнни. Честно.",
+    "en": "I’ll try, Danny. Honest.",
+    "shot": "noah_engine"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s4_secret",
+  "find": "Дэнни долго смотрит на него.",
+  "ru": "Это секрет?",
+  "en": "Is it a secret?",
+  "say": "danny"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4_secret",
+  "after": "Это секрет?",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Да. Наш с тобой.",
+    "en": "Yeah. Just yours and mine.",
+    "shot": "noah_engine"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4_secret",
+  "after": "Ладно.",
+  "beats": [
+   {
+    "say": "danny",
+    "ru": "Мама тоже так говорила. Когда пила.",
+    "en": "Mom used to say that too. When she was drinking.",
+    "shot": "danny_stop"
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Отлично, Ной. Учишь ребёнка молчать. Как его учили взрослые.",
+    "en": "Great, Noah. Teaching a kid to keep his mouth shut. Like the grown-ups taught him.",
+    "shot": "noah_engine"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s4_truth",
+  "find": "Дэнни кивает. Айрис у буханки всё слышала.",
+  "ru": "Даже полиции?",
+  "en": "Even the police?",
+  "say": "danny"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4_truth",
+  "after": "Даже полиции?",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Даже полиции.",
+    "en": "Even the police.",
+    "shot": "noah_engine"
+   },
+   {
+    "say": "iris",
+    "ru": "…Правильно сказал. Что смотришь? Правильно, говорю.",
+    "en": "…That was the right thing to say. What are you looking at? I said it was right.",
+    "shot": "iris_stop"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s4_quiet",
+  "find": "Ной молчит. Дэнни встаёт и уходит к буханке.",
+  "ru": "Ладно. Я тогда пойду.",
+  "en": "Okay. I’ll go, then.",
+  "say": "danny"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4_quiet",
+  "after": "Ладно. Я тогда пойду.",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Он мне всё рассказал. А я ему — ничего.",
+    "en": "He told me everything. And I told him nothing.",
+    "shot": "noah_engine"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s4_road",
+  "find": "Снова в пути. Мотор тянет ровно — шланг держит.",
+  "ru": "Шланг держит. Пока держит.",
+  "en": "The hose is holding. For now.",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4_road",
+  "after": "Ты в неё, милок. Такой же упёртый.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "А потом? Когда выросла?",
+    "en": "And later? When she grew up?",
+    "shot": "noah_van"
+   },
+   {
+    "say": "agnes",
+    "ru": "А потом замуж вышла. И тихая стала. Я, дура старая, думала — повзрослела.",
+    "en": "Then she got married. And went quiet. Old fool that I am, I thought she’d just grown up.",
+    "shot": "agnes_van"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4_road",
+  "after": "Трясёт, как на тракторе. Мне нравится.",
+  "beats": [
+   {
+    "say": "danny",
+    "ru": "А мы маму по дороге не встретим?",
+    "en": "Are we gonna see my mom on the way?",
+    "shot": "danny_van"
+   },
+   {
+    "say": "noah",
+    "ru": "Не знаю, Дэнни. Честно — не знаю.",
+    "en": "I don’t know, Danny. Honestly, I don’t.",
+    "shot": "noah_van"
+   },
+   {
+    "say": "danny",
+    "ru": "Я рацию включённой держу. Вдруг она позовёт.",
+    "en": "I keep my walkie on. In case she calls.",
+    "shot": "danny_van"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4_road",
+  "after": "Нет. Но спасибо, что спросил. Обычно не спрашивают.",
+  "beats": [
+   {
+    "say": "zoe",
+    "ru": "Знаешь, что смешно? Я дорогу в «Сосны» помню. Каждый поворот.",
+    "en": "Know what’s funny? I remember the way to Quiet Pines. Every turn.",
+    "shot": "zoe_van"
+   },
+   {
+    "say": "noah",
+    "ru": "Мы туда не поедем.",
+    "en": "We’re not going there.",
+    "shot": "noah_van"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4_road",
+  "after": "Не разбудишь. Ты сам за рулём отключаешься. Я видела.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Это было один раз.",
+    "en": "That was one time.",
+    "shot": "noah_van"
+   },
+   {
+    "say": "iris",
+    "ru": "Не один. Я считаю, Ной.",
+    "en": "Not one. I’ve been counting, Noah.",
+    "shot": "iris_van"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4_road",
+  "after": "«Айрис, поспи»",
+  "beats": [
+   {
+    "ru": "«Ева, как малышка?»",
+    "en": "“Eva, how’s the baby?”",
+    "if": {
+     "eva_alive": ">0"
+    },
+    "beats": [
+     {
+      "say": "noah",
+      "ru": "Ева, как она? Не замёрзла?",
+      "en": "Eva, how is she? Is she warm enough?",
+      "shot": "noah_van"
+     },
+     {
+      "say": "eva",
+      "ru": "Спит. Тёплая. Простите, что мы вам столько хлопот…",
+      "en": "Asleep. Warm. I’m sorry we’re so much trouble…",
+      "shot": "van_inside"
+     },
+     {
+      "say": "eva",
+      "ru": "Ной. Если будет опасно — скажи. Я с ней сразу уйду.",
+      "en": "Noah. If it gets dangerous, tell me. I’ll take her and go.",
+      "shot": "van_inside"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s4_road",
+  "find": "Ели, снег, ели. Буханку покачивает на колеях.",
+  "ru": "Ели, снег, ели. Если ни о чём не думать — почти спокойно.",
+  "en": "Firs, snow, firs. If I don’t think about anything, it’s almost calm.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s4_road",
+  "find": "Ной притормаживает. Тот самый указатель — у поворота в лес. «Тихие сосны», два километра.",
+  "ru": "Тот самый указатель. «Тихие сосны». Два километра.",
+  "en": "That same sign. “Quiet Pines.” Two kilometers.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s4_road",
+  "find": "У поворота в лес — ржавый указатель: «Санаторий „Тихие сосны“». Агнес просит притормозить.",
+  "ru": "Притормози-ка, милок. Глянь на указатель. «Тихие сосны». Его это.",
+  "en": "Slow down, sonny. Look at that sign. “Quiet Pines.” That’s his.",
+  "say": "agnes"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s4_road",
+  "after": "Только без меня. Я туда не вернусь. Ни за что.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "А если он там? Это же его место.",
+    "en": "What if he’s there? It’s his place.",
+    "shot": "iris_van"
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Правда про маму — в двух километрах. Или он. Или и то, и другое.",
+    "en": "The truth about Mom — two kilometers away. Or him. Or both.",
+    "shot": "noah_van"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_sana",
+  "find": "На воротах цепь. Снег во дворе нетронутый — сюда не приезжали с осени.",
+  "ru": "Цепь. Снег нетронутый — с осени никто не ездил. Значит, его тут нет.",
+  "en": "A chain. The snow’s untouched — nobody’s driven in since fall. So he’s not here.",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_sana",
+  "after": "Стой у ворот. Если кто поедет — кричи.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Я тебе что, сторожевая собака?",
+    "en": "What am I, a guard dog?",
+    "shot": "iris_van"
+   },
+   {
+    "say": "noah",
+    "ru": "Ты единственная, кому я верю. Постой. Пожалуйста.",
+    "en": "You’re the only one I trust. Stay here. Please.",
+    "shot": "noah_van"
+   },
+   {
+    "say": "iris",
+    "ru": "…Десять минут. Потом лезу за тобой.",
+    "en": "…Ten minutes. Then I’m coming in after you.",
+    "shot": "iris_van"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_sana",
+  "find": "Окно пристройки. Доска держится на одном гвозде.",
+  "ru": "Окно. Доска на одном гвозде. Хоть где-то повезло.",
+  "en": "A window. The board’s hanging on one nail. Finally, some luck.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_sana",
+  "find": "Айрис так и простояла всё это время у ворот.",
+  "ru": "Двадцать минут, Ной! Я уже лезть собиралась.",
+  "en": "Twenty minutes, Noah! I was about to climb in.",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_sana",
+  "after": "Про маму. Потом расскажу. Поехали.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Потом — это когда? Ной, это и моя мама.",
+    "en": "Later when? Noah, she’s my mom too.",
+    "shot": "sana_back",
+    "if": {
+     "ev_archive": ">0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_sana",
+  "after": "Ничего. Поехали.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Врёшь. У тебя лицо как у меня, когда я вру.",
+    "en": "Liar. You’ve got the same face I get when I lie.",
+    "shot": "sana_back",
+    "if": {
+     "ev_archive": "==0",
+     "c4_anna": ">0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_sana",
+  "after": "Ной прячет папки под сиденье буханки.",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "«Кричит по ночам. Зовёт маму». Это про меня. Я не помню, чтобы кричал.",
+    "en": "“Screams at night. Calls for his mother.” That’s me. I don’t remember screaming.",
+    "if": {
+     "c4_card": ">0"
+    }
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "И свежая строчка, его почерком: «Отец умер. Возобновить».",
+    "en": "And a fresh line, in his handwriting: “Father dead. Resume.”",
+    "if": {
+     "c4_card": ">0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5",
+  "find": "Поперёк дороги лежит сосна.",
+  "ru": "Ной, стой! Дерево!",
+  "en": "Noah, stop! A tree!",
+  "say": "iris"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5",
+  "find": "Спил свежий, ровный. Её свалили.",
+  "ru": "Спил ровный. Пилой. Её не ветром свалило.",
+  "en": "A clean cut. A saw. The wind didn’t do this.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5",
+  "find": "В зеркале — чёрный седан.",
+  "ru": "Сзади, милок. Приехал.",
+  "en": "Behind us, sonny. He’s here.",
+  "say": "agnes"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5",
+  "after": "Из-за руля выходит санитар: огромный, белый халат под пуховиком. Молчит.",
+  "beats": [
+   {
+    "say": "zoe",
+    "ru": "Это санитар. Он не разговаривает. Вообще. Только держит.",
+    "en": "That’s the orderly. He doesn’t talk. Ever. He just holds you down.",
+    "if": {
+     "zoe": ">0",
+     "zoe_gone": "==0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5",
+  "find": "С заднего сиденья — доктор Хейл, главный врач санатория «Тихие сосны». Очки, хорошее пальто, шарф. Впервые видно его лицо.",
+  "ru": "Доктор Хейл. Мой врач. Одиннадцать лет одно и то же: «Как голова, Ной?»",
+  "en": "Dr. Hale. My doctor. Eleven years of the same thing: “How’s the head, Noah?”",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5",
+  "after": "Ной. Ну наконец-то.",
+  "beats": [
+   {
+    "say": "hale",
+    "ru": "Как голова? Ты плохо спишь — это видно даже отсюда.",
+    "en": "How’s the head? You’re not sleeping — I can see it from here.",
+    "shot": "hale"
+   },
+   {
+    "say": "noah",
+    "ru": "Вы были у нашей машины. Ночью.",
+    "en": "You were at our car. Last night.",
+    "shot": "noah_pine"
+   },
+   {
+    "say": "hale",
+    "ru": "Она была открыта, Ной.",
+    "en": "It was unlocked, Noah.",
+    "shot": "hale"
+   },
+   {
+    "say": "noah",
+    "ru": "Я её запирал.",
+    "en": "I locked it.",
+    "shot": "noah_pine"
+   },
+   {
+    "say": "hale",
+    "ru": "Тебе кажется, что запирал. С тобой такое бывает. Ты же знаешь.",
+    "en": "You think you locked it. That happens with you. You know it does.",
+    "shot": "hale"
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Я запирал. Я помню, что запирал. …Ведь помню?",
+    "en": "I locked it. I remember locking it. …Don’t I?",
+    "shot": "noah_pine"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5",
+  "after": "Не смей. Не смей звать меня по имени.",
+  "beats": [
+   {
+    "say": "hale",
+    "ru": "Ты же сама прислала ко мне Анну, Агнесса. Я помню.",
+    "en": "You sent Anna to me yourself, Agnessa. I remember.",
+    "shot": "hale"
+   },
+   {
+    "say": "agnes",
+    "ru": "…И я помню. Всё помню.",
+    "en": "…So do I. I remember everything.",
+    "shot": "agnes_pine"
+   },
+   {
+    "say": "noah",
+    "ru": "Мама к вам ходила. За неделю до озера. Она боялась отца.",
+    "en": "Mom came to see you. A week before the lake. She was afraid of Dad.",
+    "shot": "noah_pine",
+    "if": {
+     "c4_anna": ">0"
+    }
+   },
+   {
+    "say": "hale",
+    "ru": "Твоя мама была очень несчастным человеком. Я пытался ей помочь. Не успел.",
+    "en": "Your mother was a very unhappy woman. I tried to help her. I ran out of time.",
+    "shot": "hale",
+    "if": {
+     "c4_anna": ">0"
+    }
+   },
+   {
+    "say": "noah",
+    "ru": "«Отец умер. Возобновить». Это ваш почерк.",
+    "en": "“Father dead. Resume.” That’s your handwriting.",
+    "shot": "noah_pine",
+    "if": {
+     "c4_card": ">0"
+    }
+   },
+   {
+    "say": "hale",
+    "ru": "Ты был в архиве. Значит, видел: одиннадцать лет. Кто ещё был с тобой все эти годы?",
+    "en": "You’ve been in the archive. Then you saw it: eleven years. Who else was there for you all that time?",
+    "shot": "hale",
+    "if": {
+     "c4_card": ">0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5",
+  "find": "Ты убил отца. Следующей будет она.",
+  "ru": "Ты убил отца. Посмотри на сестру, Ной. Ты уверен, что она — не следующая?",
+  "en": "You killed your father. Look at your sister, Noah. Are you sure she isn’t next?"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5",
+  "after": "Ты убил отца. Посмотри на сестру, Ной. Ты уверен, что она — не следующая?",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Не слушай его. Ной, не слушай!",
+    "en": "Don’t listen to him. Noah, don’t listen!",
+    "shot": "iris_pine"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5",
+  "after": "Как тогда — это когда ты стёр ему маму.",
+  "beats": [
+   {
+    "say": "hale",
+    "ru": "Айрис, детка, у тебя губы синие. В машине тепло.",
+    "en": "Iris, sweetheart, your lips are blue. It’s warm in the car.",
+    "shot": "hale"
+   },
+   {
+    "say": "iris",
+    "ru": "Лучше я тут замёрзну.",
+    "en": "I’d rather freeze out here.",
+    "shot": "iris_pine"
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Самое страшное — я почти ему верю.",
+    "en": "The worst part is, I almost believe him.",
+    "shot": "noah_pine"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5_talk",
+  "after": "Несчастный случай, Ной. Ты спал. Ты не мог этого видеть.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Тогда почему я всё время вижу воду?",
+    "en": "Then why do I always see water?",
+    "shot": "noah_pine"
+   },
+   {
+    "say": "hale",
+    "ru": "Тебе сказали, что она утонула. Остальное дорисовал мозг. С детьми так бывает.",
+    "en": "You were told she drowned. Your mind filled in the rest. Children do that.",
+    "shot": "hale"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_talk",
+  "find": "Вспышка. Ночь. Фары на берегу озера. Этот самый седан.",
+  "ru": "Ночь. Фары на берегу. Эта машина. Эта самая.",
+  "en": "Night. Headlights on the shore. This car. This exact car.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_talk",
+  "find": "Хейл впервые теряет спокойствие.",
+  "ru": "Это не воспоминание, Ной. Это симптом.",
+  "en": "That’s not a memory, Noah. That’s a symptom.",
+  "say": "hale"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_doubt",
+  "find": "Ной колеблется. Хейл протягивает руку.",
+  "ru": "Спал. Может, правда спал? Он же врач. Он одиннадцать лет…",
+  "en": "Asleep. Maybe I really was asleep? He’s a doctor. Eleven years he’s…",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_doubt",
+  "find": "Айрис тянет брата за рукав назад.",
+  "ru": "Не верь ему! Слышишь? Не верь!",
+  "en": "Don’t believe him! You hear me? Don’t!",
+  "say": "iris"
+ },
+ {
+  "op": "before",
+  "sid": "c4_s5_diary",
+  "find": "Айрис. Отдай ему дневник.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "У нас мамин дневник. Он вам нужен? Забирайте — и отпустите нас.",
+    "en": "We’ve got Mom’s diary. You want it? Take it — and let us go.",
+    "shot": "noah_pine"
+   },
+   {
+    "say": "hale",
+    "ru": "Дневник Анны… Она всегда много писала.",
+    "en": "Anna’s diary… She always did write a lot.",
+    "shot": "hale"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5_diary",
+  "after": "Делай как знаешь.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Я тебе верю. Сама не знаю почему.",
+    "en": "I trust you. I don’t even know why.",
+    "shot": "iris_pine"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_diary_no",
+  "find": "Айрис прижимает дневник к груди.",
+  "ru": "Ты с ума сошёл? Отдать ему маму?",
+  "en": "Are you crazy? Give him Mom?",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5_diary_no",
+  "after": "Нет.",
+  "beats": [
+   {
+    "say": "hale",
+    "ru": "Айрис, детка. Это просто тетрадка. Она никого не вернёт.",
+    "en": "Iris, sweetheart. It’s just a notebook. It won’t bring anyone back.",
+    "shot": "hale"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_diary_force",
+  "find": "Ной вырывает дневник у сестры.",
+  "ru": "Ной! Не надо! Отдай!",
+  "en": "Noah! Don’t! Give it back!",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5_diary_force",
+  "after": "Ной! Не надо! Отдай!",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Она смотрит на меня, как на него. Как на папу.",
+    "en": "She’s looking at me like she looked at him. Like at Dad.",
+    "shot": "noah_pine"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5_diary_keep",
+  "after": "Ну что ж.",
+  "beats": [
+   {
+    "say": "hale",
+    "ru": "Значит, по-другому. Мне жаль, Ной. Правда жаль.",
+    "en": "Then we’ll do it the other way. I’m sorry, Noah. I really am.",
+    "shot": "hale"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_diary_hale",
+  "find": "Хейл листает дневник. Прячет во внутренний карман.",
+  "ru": "Её почерк. Она всегда так сильно нажимала на ручку.",
+  "en": "Her handwriting. She always pressed so hard with the pen.",
+  "say": "hale"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5_diary_hale",
+  "after": "Спасибо. А теперь — ты.",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Конечно. Он и не собирался нас отпускать.",
+    "en": "Of course. He was never going to let us go.",
+    "shot": "noah_pine"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_diary_hale",
+  "find": "Санитар делает шаг вперёд.",
+  "ru": "Ной… Он идёт к тебе.",
+  "en": "Noah… He’s coming for you.",
+  "say": "iris"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_attack",
+  "find": "Ной выхватывает из буханки монтировку.",
+  "ru": "Монтировка под сиденьем. Руки нашли её раньше, чем я подумал.",
+  "en": "Tire iron, under the seat. My hands found it before I thought.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_attack",
+  "find": "Санитар перехватывает его руку.",
+  "ru": "Осторожнее с ним. Он мне нужен целым.",
+  "en": "Careful with him. I need him in one piece.",
+  "say": "hale"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_lapse",
+  "find": "Ной приходит в себя. Санитар лежит в снегу и больше не встаёт.",
+  "ru": "…Снег. Почему я в снегу? Почему он не встаёт?",
+  "en": "…Snow. Why am I in the snow? Why isn’t he getting up?",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_lapse",
+  "find": "Костяшки Ноя в крови. Монтировка — в снегу.",
+  "ru": "Руки в крови. Опять. Опять я.",
+  "en": "Blood on my hands. Again. Me, again.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_lapse",
+  "find": "Хейл пятится к машине.",
+  "ru": "Вот видишь, Ной. Вот что бывает без таблеток.",
+  "en": "You see, Noah? This is what happens without the pills.",
+  "say": "hale"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5_lapse",
+  "after": "Вот видишь, Ной. Вот что бывает без таблеток.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Ной? Это ты? Посмотри на меня. Ной!",
+    "en": "Noah? Is that you? Look at me. Noah!",
+    "shot": "iris_pine"
+   },
+   {
+    "say": "danny",
+    "ru": "У тебя глаза были пустые. Совсем.",
+    "en": "Your eyes were empty. All the way.",
+    "shot": "noah_pine",
+    "if": {
+     "danny": ">0",
+     "danny_lost": "==0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_weak",
+  "find": "Таблетка ещё действует. Ной слабый и медленный — санитар валит его в снег.",
+  "ru": "Руки ватные. Это таблетка. Его таблетка.",
+  "en": "My arms are like cotton. It’s the pill. His pill.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_weak",
+  "find": "Хейл достаёт шприц.",
+  "ru": "Тише, тише. Сейчас станет легче.",
+  "en": "Shh, shh. You’ll feel better in a moment.",
+  "say": "hale"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5_weak",
+  "after": "Айрис бьёт Хейла по руке. Шприц — в снегу.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Не смей его трогать!",
+    "en": "Don’t you touch him!",
+    "shot": "hit_two"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5_run",
+  "after": "В лес! Все — в лес!",
+  "beats": [
+   {
+    "say": "hale",
+    "ru": "Ной, там мороз. У вас младенец. Не делай глупостей.",
+    "en": "Noah, it’s freezing out there. You have a baby with you. Don’t be foolish.",
+    "shot": "hale",
+    "if": {
+     "baby": ">0"
+    }
+   },
+   {
+    "say": "hale",
+    "ru": "Куда ты побежишь, Ной? Ты же всегда возвращаешься.",
+    "en": "Where are you going to run, Noah? You always come back.",
+    "shot": "hale",
+    "if": {
+     "baby": "==0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_freeze",
+  "find": "Ной молчит. Хейл подходит и мягко берёт его под локоть.",
+  "ru": "Не могу пошевелиться. Его голос — и я опять маленький.",
+  "en": "I can’t move. That voice — and I’m a little kid again.",
+  "thought": true
+ },
+ {
+  "op": "before",
+  "sid": "c4_s5_freeze",
+  "find": "Вот и умница.",
+  "beats": [
+   {
+    "say": "hale",
+    "ru": "Пойдём. Тебе нужно поспать.",
+    "en": "Come along. You need to sleep.",
+    "shot": "hale"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_freeze",
+  "find": "Айрис вырывает брата у него из рук — и тянет в лес.",
+  "ru": "Очнись! Ной, ну пожалуйста! Бежим!",
+  "en": "Wake up! Noah, please! Run!",
+  "say": "iris"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_chase",
+  "find": "Все бросаются в лес. Снег по колено.",
+  "ru": "Бегом! Держитесь вместе!",
+  "en": "Run! Stay together!",
+  "say": "noah"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_chase",
+  "find": "Айрис тащит Дэнни за руку: «Дэнни, не отставай!» Хейл слышит имя.",
+  "ru": "Дэнни, не отставай! Дэнни!",
+  "en": "Danny, keep up! Danny!",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s5_chase",
+  "after": "Дэнни, не отставай! Дэнни!",
+  "beats": [
+   {
+    "say": "hale",
+    "ru": "Дэнни… Значит, Дэнни.",
+    "en": "Danny… So it’s Danny.",
+    "shot": "woods_back",
+    "if": {
+     "danny": ">0",
+     "danny_lost": "==0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_chase",
+  "find": "За ними — санитар с фонарём.",
+  "ru": "Сзади фонарь. Санитар. Он даже не бежит — просто идёт.",
+  "en": "A flashlight behind us. The orderly. He’s not even running — just walking.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s5_chase",
+  "find": "За ними — Хейл. Один. Не торопится.",
+  "ru": "Сзади — Хейл. Один. Идёт, как на прогулке.",
+  "en": "Hale’s behind us. Alone. Strolling, like he’s out for a walk.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6",
+  "find": "Темнеет. Ноги вязнут в снегу. Впереди — охотничья избушка.",
+  "ru": "Темнеет. Впереди — охотничья избушка.",
+  "en": "Dusk. Up ahead — a hunting hut.",
+  "note": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6",
+  "find": "Они прячутся внутри. Сквозь щели в стенах пляшет луч фонаря.",
+  "ru": "Щели в стенах. Я вижу его фонарь. Значит, и он…",
+  "en": "Gaps in the walls. I can see his flashlight. Which means he can…",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_hide",
+  "find": "Шаги вокруг избушки. Снег скрипит у самой стены.",
+  "ru": "Он здесь. Прямо за стенкой.",
+  "en": "He’s here. Right behind the wall.",
+  "say": "iris"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_hide",
+  "find": "Дверь приоткрыта — на ладонь. В щель тянет холодом. И светом.",
+  "ru": "Дверь. Мы не закрыли дверь.",
+  "en": "The door. We didn’t close the door.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_door",
+  "find": "Ной ползёт к двери. Пальцы — на холодной доске.",
+  "ru": "Медленно. Петли старые. Только не скрипни.",
+  "en": "Slowly. Old hinges. Just don’t creak.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_creak",
+  "find": "Петля скрипит. Луч дёргается к двери…",
+  "ru": "Скрипнула. Всё. Сейчас он…",
+  "en": "It creaked. That’s it. Now he’ll…",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_still",
+  "find": "Ной не дышит. Полоса света ложится на пол — у самых его ботинок. И уходит.",
+  "ru": "Не дышать. Свет — у самых ботинок. …Ушёл.",
+  "en": "Don’t breathe. The light’s right at my boots. …Gone.",
+  "thought": true
+ },
+ {
+  "op": "before",
+  "sid": "c4_s6_wait",
+  "find": "Дэнни трясётся. Ной кладёт ладонь ему на затылок — тише, тише.",
+  "beats": [
+   {
+    "say": "danny",
+    "ru": "Ной… мне страшно.",
+    "en": "Noah… I’m scared.",
+    "shot": "hut",
+    "if": {
+     "danny": ">0",
+     "danny_lost": "==0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_wait",
+  "find": "Дэнни трясётся. Ной кладёт ладонь ему на затылок — тише, тише.",
+  "ru": "Тише. Я тут. Тише, Дэнни.",
+  "en": "Shh. I’m here. Shh, Danny.",
+  "say": "noah"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_wait",
+  "find": "Агнес закашливается в кулак. Айрис прижимает ей к губам край шарфа.",
+  "ru": "Бабушка, тише… Вот, в шарф.",
+  "en": "Grandma, shh… Here, into the scarf.",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_baby",
+  "after": "^",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Ушёл. Уходим — тихо, по одному.",
+    "en": "He’s gone. We go — quietly, one at a time.",
+    "shot": "hut",
+    "if": {
+     "baby": "==0"
+    }
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_baby",
+  "find": "Маленькая Анна начинает хныкать.",
+  "ru": "Нет. Только не сейчас, маленькая.",
+  "en": "No. Not now, little one.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_baby",
+  "find": "Ева прижимает её к себе и укачивает. Медленно. В ритм.",
+  "ru": "Ш-ш-ш… Аннушка. Мама тут. Мама тут.",
+  "en": "Shh… Annie. Mama’s here. Mama’s here.",
+  "say": "eva"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_rock_iris",
+  "find": "Девочка на руках у Айрис начинает хныкать. Её надо укачать — медленно, в ритм.",
+  "ru": "Тише, маленькая… Я не умею. Ну пожалуйста, тише.",
+  "en": "Shh, little one… I don’t know how. Please, please, shh.",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_quiet",
+  "after": "Тишина. Луч скользит по стене — и уходит мимо.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Уходим. Пока не вернулся. Тихо, по одному.",
+    "en": "We go. Before he comes back. Quietly, one at a time.",
+    "shot": "hut"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_cry",
+  "find": "Плач.",
+  "ru": "Нет. Нет-нет-нет.",
+  "en": "No. No, no, no.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_cry",
+  "find": "Луч останавливается. Поворачивается к избушке.",
+  "ru": "Он услышал.",
+  "en": "He heard.",
+  "say": "iris"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_cry",
+  "find": "Они бегут дальше — в темноту.",
+  "ru": "Бежим! За мной, быстро!",
+  "en": "Run! Follow me, fast!",
+  "say": "noah"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_zoe",
+  "find": "На тропе санитар хватает Зою.",
+  "ru": "Пусти! Пусти меня!",
+  "en": "Let go! Let go of me!",
+  "say": "zoe"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_zoe",
+  "find": "На тропе из темноты — Хейл. Шприц — Зое в шею.",
+  "ru": "Тише, Зоя. Тише. Сейчас поспишь.",
+  "en": "Shh, Zoe. Shh. You’ll sleep in a moment.",
+  "say": "hale"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_zoe",
+  "after": "Ной!",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Зоя. Дети. Я не успею и туда, и туда.",
+    "en": "Zoe. The kids. I can’t get to both.",
+    "shot": "noah_woods"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_zoe_save",
+  "find": "Ной приходит в себя. Зоя рядом. Руки у него разбиты в кровь.",
+  "ru": "…Где я? Зоя. Руки разбиты. Опять.",
+  "en": "…Where am I? Zoe. My hands are torn up. Again.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_zoe_save",
+  "find": "Санитар стонет в снегу. «Второй он» вытащил её — жёстко.",
+  "ru": "Ты его голыми руками… Ной, у тебя лицо было чужое.",
+  "en": "You did that with your bare hands… Noah, your face was a stranger’s.",
+  "say": "zoe"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_zoe_save",
+  "find": "Хейл отползает в темноту. «Второй он» вытащил её — жёстко.",
+  "ru": "Хейл уполз. Ной… ты дрался, будто тебя там не было.",
+  "en": "Hale crawled off. Noah… you fought like you weren’t even there.",
+  "say": "zoe"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_zoe_save",
+  "after": "Хейл уполз. Ной… ты дрался, будто тебя там не было.",
+  "beats": [
+   {
+    "say": "noah",
+    "ru": "Ты цела?",
+    "en": "Are you hurt?",
+    "shot": "zoe_after"
+   },
+   {
+    "say": "zoe",
+    "ru": "Цела. Не смотри так. Пошли, пока он не встал.",
+    "en": "I’m fine. Don’t look at me like that. Let’s go before he gets up.",
+    "shot": "zoe_after"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_zoe_pull",
+  "find": "Ной сбивает санитара с ног. Зоя вырывается.",
+  "ru": "Зоя, руку! Давай, давай!",
+  "en": "Zoe, your hand! Come on, come on!",
+  "say": "noah"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_zoe_pull",
+  "find": "Ной сбивает Хейла с ног. Шприц летит в снег. Зоя вырывается.",
+  "ru": "Зоя! Руку! Пока он не встал!",
+  "en": "Zoe! Your hand! Before he gets up!",
+  "say": "noah"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_zoe_pull",
+  "after": "Зоя! Руку! Пока он не встал!",
+  "beats": [
+   {
+    "say": "zoe",
+    "ru": "Я… я в порядке. Бежим.",
+    "en": "I’m… I’m okay. Run.",
+    "shot": "zoe_trail"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_zoe_lost",
+  "find": "Зою уводят к чёрной машине. Её крик — всё тише.",
+  "ru": "Её уводят. Крик всё тише. А я бегу.",
+  "en": "They’re dragging her off. The screaming’s fading. And I’m running.",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_zoe_lost",
+  "after": "Её уводят. Крик всё тише. А я бегу.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Мы бы её не отбили, Ной. Слышишь? Не отбили бы.",
+    "en": "We couldn’t have gotten her back, Noah. You hear me? We couldn’t.",
+    "shot": "iris_woods"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_agnes",
+  "find": "Бабушка отстаёт. Задыхается. Садится в снег.",
+  "ru": "Всё, милок. Не могу. Ноги не идут.",
+  "en": "That’s it, sonny. I can’t. My legs won’t go.",
+  "say": "agnes"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_agnes",
+  "after": "Идите. Идите, кому говорю. Я своё пожила. Я его задержу.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Бабушка, вставай! Ну пожалуйста!",
+    "en": "Grandma, get up! Please!",
+    "shot": "iris_woods"
+   },
+   {
+    "say": "agnes",
+    "ru": "Не реви. Брата береги. Он у тебя один.",
+    "en": "Don’t cry. Look after your brother. He’s the only one you’ve got.",
+    "shot": "agnes_snow"
+   }
+  ]
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_agnes",
+  "after": "Хейл молчит.",
+  "beats": [
+   {
+    "say": "agnes",
+    "ru": "Врач… Аню ты тоже лечил. Где она теперь?",
+    "en": "A doctor… You treated Annie too. And where is she now?",
+    "shot": "agnes_snow",
+    "if": {
+     "agnes_knows_hale": "==0"
+    }
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Я её знаю всего один день. Один день — и всё?",
+    "en": "I’ve only known her one day. One day — and that’s it?",
+    "shot": "noah_woods"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_agnes_save",
+  "find": "Ной возвращается и тащит бабушку на себе. Она подвернула ногу.",
+  "ru": "Брось, дурень! Брось, кому говорю… Нога подвернулась.",
+  "en": "Put me down, you fool! Put me down, I said… My ankle’s twisted.",
+  "say": "agnes"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_agnes_save",
+  "find": "Погоня ближе. Но она жива.",
+  "ru": "Не брошу. Держитесь крепче.",
+  "en": "I’m not leaving you. Hold on tight.",
+  "say": "noah"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_agnes_save",
+  "after": "Не брошу. Держитесь крепче.",
+  "beats": [
+   {
+    "say": "agnes",
+    "ru": "Упрямый. Весь в неё.",
+    "en": "Stubborn. Just like her.",
+    "shot": "woods_carry"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_agnes_lost",
+  "find": "Они уходят. Позади — голос бабушки, ровный.",
+  "ru": "Не оборачиваться. Только не оборачиваться.",
+  "en": "Don’t look back. Just don’t look back.",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_agnes_lost",
+  "find": "Колыбельная. Та самая.",
+  "ru": "Она поёт. Эту песню я знаю. Откуда я её знаю?",
+  "en": "She’s singing. I know this song. How do I know this song?",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_agnes_lost",
+  "after": "Потом — тишина.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Ной… Бабушка…",
+    "en": "Noah… Grandma…",
+    "shot": "iris_woods"
+   },
+   {
+    "say": "noah",
+    "ru": "Не останавливайся. Пожалуйста. Только не сейчас.",
+    "en": "Don’t stop. Please. Not now.",
+    "shot": "noah_woods"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_danny",
+  "find": "Дэнни замирает.",
+  "ru": "Мама?..",
+  "en": "Mom?..",
+  "say": "danny"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_danny",
+  "after": "Мама?..",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Он врёт. Мамы там нет. А Дэнни этого не знает.",
+    "en": "He’s lying. His mom isn’t there. And Danny doesn’t know that.",
+    "shot": "noah_woods"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_danny_iris",
+  "find": "Дэнни долго стоит. Потом идёт к Айрис.",
+  "ru": "А мама… правда там?",
+  "en": "Is my mom… really there?",
+  "say": "danny"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_danny_iris",
+  "after": "А мама… правда там?",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Нет, Дэнни. Прости. Её там нет.",
+    "en": "No, Danny. I’m sorry. She’s not there.",
+    "shot": "iris_woods"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_danny_no",
+  "find": "Дэнни смотрит на Ноя — и пятится. Уходит на голос.",
+  "ru": "У тебя руки в крови. Ты опять… Я к маме.",
+  "en": "Your hands are all bloody. You did it again… I want my mom.",
+  "say": "danny"
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_danny_run",
+  "find": "Ной догоняет его — Дэнни кусает его за руку и убегает к машине.",
+  "ru": "Пусти! Пусти, ты страшный!",
+  "en": "Let go! Let go, you’re scary!",
+  "say": "danny"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_danny_run",
+  "after": "Пусти! Пусти, ты страшный!",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Укусил. До крови. И правильно.",
+    "en": "He bit me. Drew blood. Fair enough.",
+    "shot": "danny_woods"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s6_danny_go",
+  "find": "Дэнни уходит на голос.",
+  "ru": "Пусть идёт. Со мной ему страшнее, чем с ним.",
+  "en": "Let him go. He’s more scared of me than of him.",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s6_danny_hale",
+  "after": "Фонарь гаснет. Где-то далеко хлопает дверь машины.",
+  "beats": [
+   {
+    "say": "iris",
+    "ru": "Он его забрал. Ной… он забрал Дэнни.",
+    "en": "He took him. Noah… he took Danny.",
+    "shot": "woods_dark"
+   },
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Это я его отдал. Не Хейл — я.",
+    "en": "I’m the one who gave him away. Not Hale. Me.",
+    "shot": "woods_dark"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s7",
+  "find": "На берегу — старая дача, лодочный сарай, мостки под снегом. То самое место.",
+  "ru": "Дача. Сарай. Мостки. Я их знаю. Откуда я их знаю?",
+  "en": "A house. A boathouse. A dock. I know them. How do I know them?",
+  "thought": true
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s7",
+  "after": "Пришли.",
+  "beats": [
+   {
+    "say": "agnes",
+    "ru": "Ну здравствуй, Аня. Привела я их.",
+    "en": "Hello, Annie. I’ve brought them.",
+    "shot": "dacha",
+    "if": {
+     "agnes_dead": "==0"
+    }
+   },
+   {
+    "say": "noah",
+    "ru": "Это здесь было? С мамой?",
+    "en": "Is this where it happened? With Mom?",
+    "shot": "iris_lake"
+   },
+   {
+    "say": "iris",
+    "ru": "Здесь. Не спрашивай пока. Просто смотри.",
+    "en": "Here. Don’t ask yet. Just look.",
+    "shot": "iris_lake"
+   }
+  ]
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s7",
+  "find": "Ной смотрит на сарай. Щель в досках.",
+  "ru": "Сарай. Щель в досках. Почему мне страшно на неё смотреть?",
+  "en": "The boathouse. A gap in the boards. Why am I scared to look at it?",
+  "thought": true
+ },
+ {
+  "op": "replace",
+  "sid": "c4_s7",
+  "find": "На другом берегу медленно загораются две фары. Чёрный седан объезжает озеро.",
+  "ru": "Ной. Фары. На том берегу.",
+  "en": "Noah. Headlights. On the far shore.",
+  "say": "iris"
+ },
+ {
+  "op": "insert",
+  "sid": "c4_s7",
+  "after": "Ной. Фары. На том берегу.",
+  "beats": [
+   {
+    "say": "noah",
+    "thought": true,
+    "ru": "Он объезжает озеро. Он знал, куда мы идём. Всегда знал.",
+    "en": "He’s driving around the lake. He knew where we were going. He always knew.",
+    "shot": "lake_far"
+   }
+  ]
+ }
+]
