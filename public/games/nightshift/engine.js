@@ -132,6 +132,8 @@ function voiceFx(k) {
   if (fx === 'muffle') return [{ to: [[muffle, 1.5], [voiceRev, .35]] }];
   if (fx === 'near') return [{ to: [[voiceG, 1.05]] }];
   if (fx === 'fake') return [{ rate: .95, to: [[voiceG, 1], [voiceRev, .05]] }, { rate: .5, gain: .1, dt: .03, cut: durOf(k), to: [[voiceG, 1]] }];
+  // свои записи (украинский: владелец — Итан) суше студийных: вслух — то же эхо помещения, что у собеседника, мысли — лёгкий воздух
+  if (who === 'ИТАН' && m.vl) return [aloud ? { to: [[voiceG, 1], [voiceRev, .22]] } : { to: [[voiceG, 1], [voiceRev, .045]] }];
   if (who === 'ИТАН') return [aloud ? { to: [[voiceG, 1], [voiceRev, .12]] } : {}];
   if (who === '???') return [{ rate: .97, to: [[voiceG, 1], [voiceRev, .3]] }, { rate: .5, gain: .16, cut: durOf(k), to: [[voiceG, 1], [voiceRev, .3]] }];
   return [{ to: [[voiceG, 1], [voiceRev, .2]] }];
