@@ -12,7 +12,7 @@
     "start": "node server/index.js",
     "setup-bot": "node scripts/setup-bot.js",
     "dev": "DEV_AUTH=1 PORT=8080 node server/index.js",
-    "test": "node build.js && node test/i18n.js && node test/engine.js && node test/events.js && node test/server.js",
+    "test": "node build.js && node tools/tv/legacy.js --check && node test/i18n.js && node test/engine.js && node test/events.js && node test/server.js",
     "test:e2e": "node test/e2e.js"
   }
 }

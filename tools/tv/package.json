@@ -1,0 +1,6 @@
+{
+  "name": "hush-tv-legacy",
+  "private": true,
+  "description": "Hush Till Six: копия скриптов игры для старых браузеров (ТВ-приставки) — node tools/tv/legacy.js",
+  "dependencies": { "esbuild": "0.24.0" }
+}

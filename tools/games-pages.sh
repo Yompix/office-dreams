@@ -8,6 +8,7 @@ DST="${1:?укажи папку с клоном yompix.github.io}"
 SITE=https://yompix.github.io
 mkdir -p "$DST"
 find "$DST" -mindepth 1 -maxdepth 1 ! -name .git ! -name README.md -exec rm -rf {} +   # старая копия (кроме .git и README)
+node "$(dirname "$0")/tv/legacy.js" --check || { echo "сначала: node tools/tv/legacy.js"; exit 1; }   # копии скриптов для ТВ-приставок и старых браузеров (legacy/) свежие
 cp -a "$SRC/." "$DST/"
 find "$DST" -name '_*' ! -path '*/.git/*' -exec rm -rf {} +                    # черновики вроде _preview.html не выкладываем
 touch "$DST/.nojekyll"                                   # отдавать файлы как есть, без Jekyll

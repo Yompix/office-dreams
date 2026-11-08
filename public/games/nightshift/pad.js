@@ -93,15 +93,21 @@ function std(p) {
 }
 // клавиатура как пульт: стрелки/WASD — крестовина, Enter/пробел — A, Esc/Backspace — B. Нужна и без пульта, и на Steam Deck,
 // когда Steam Input шлёт игре клавиши вместо кнопок (шаблоны «Клавиатура», «Веб-браузер»): раньше меню на клавиши не отвечало
-const KB = { ArrowUp: 12, ArrowDown: 13, ArrowLeft: 14, ArrowRight: 15, KeyW: 12, KeyS: 13, KeyA: 14, KeyD: 15, Enter: 0, NumpadEnter: 0, Space: 0, Escape: 1, Backspace: 1 };
+const KB = { ArrowUp: 12, ArrowDown: 13, ArrowLeft: 14, ArrowRight: 15, KeyW: 12, KeyS: 13, KeyA: 14, KeyD: 15, Enter: 0, NumpadEnter: 0, Space: 0, Escape: 1, Backspace: 1,
+  // пульт ТВ-приставки (Android TV): «Назад» — B, ▶︎‖ и «Меню» — пауза (Start), каналы ± — камеры смены (LB/RB)
+  GoBack: 1, BrowserBack: 1, MediaPlayPause: 9, MediaPlay: 9, MediaPause: 9, ContextMenu: 9, ChannelUp: 4, ChannelDown: 5, PageUp: 4, PageDown: 5 };
+// старые WebView на приставках отдают у пульта только keyCode (key — 'Unidentified'): крестовина 19–22, ОК 23/66, «Назад» 4, «Меню» 82
+const KC = { 19: 12, 20: 13, 21: 14, 22: 15, 23: 0, 66: 0, 13: 0, 4: 1, 27: 1, 82: 9, 85: 9, 166: 1 };
+let bKeyT = 0;   // «Назад» пришёл клавишей — переход по истории (ниже) тот же раз не повторяет B
 const kb = [], kbL = []; let kbUsed = false, touched = false;   // kbL — нажатие держится до кадра: короткое касание клавиши (Steam Input) не теряется
 addEventListener('keydown', e => {
-  const i = KB[e.code] ?? KB[e.key]; if (!e.isTrusted || i == null || e.ctrlKey || e.altKey || e.metaKey) return;
+  const i = KB[e.code] ?? KB[e.key] ?? (e.key && e.key !== 'Unidentified' ? null : KC[e.keyCode]); if (!e.isTrusted || i == null || e.ctrlKey || e.altKey || e.metaKey) return;
+  if (i === 1) bKeyT = tnow();
   if (e.code === 'Space' || e.key === ' ') { if (!kbUsed && !layer()) return; }   // пробел в кат-сцене без кнопок — движку как было (листает реплики)
   e.preventDefault(); e.stopImmediatePropagation(); kbUsed = true;
   if (!e.repeat) kb[i] = kbL[i] = true;
 }, true);
-addEventListener('keyup', e => { const i = KB[e.code] ?? KB[e.key]; if (e.isTrusted && i != null) { kb[i] = false; if (kbUsed) { e.preventDefault(); e.stopImmediatePropagation(); } } }, true);
+addEventListener('keyup', e => { const i = KB[e.code] ?? KB[e.key] ?? (e.key && e.key !== 'Unidentified' ? null : KC[e.keyCode]); if (e.isTrusted && i != null) { kb[i] = false; if (kbUsed) { e.preventDefault(); e.stopImmediatePropagation(); } } }, true);
 addEventListener('blur', () => kb.fill(false));
 function read() {
   const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(p => p && p.connected !== false) : [];
@@ -250,6 +256,11 @@ addEventListener('selectstart', e => { if (!(e.target.closest && e.target.closes
 /* ---------- ПК-версия: окно ушло в фон — пауза (а звук там глушит main.js), если в настройках «Звук в фоне» выключен ---------- */
 if (DESK) addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });   // Ctrl + колесо не увеличивает страницу
 if (DESK) addEventListener('blur', () => { const n = NS(); if (DESK.bgSound && DESK.bgSound()) return; if (IN_GAME.includes(n.mode) && !n.userPause && $('bMenu')) $('bMenu').click(); });
+/* ---------- ТВ-приставка: кнопка «Назад» пульта браузер отдаёт как шаг по истории — ловим и делаем B (пауза, закрыть, назад в меню) ---------- */
+if (window.nsTV && history.pushState) {
+  const arm = () => { try { history.pushState({ nsTv: 1 }, ''); } catch (e) {} };
+  arm(); addEventListener('popstate', () => { arm(); if (tnow() - bKeyT > 400) { padOn(); pressB(); } });
+}
 window.__pad = { get on() { return on; }, get cur() { return cur; }, get root() { return curRoot; }, get frames() { return frames; }, layer, sync };   // для автопроверки (tools/desktop/check.js)
 requestAnimationFrame(frame);
 })();
