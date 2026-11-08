@@ -1420,5 +1420,302 @@
    }
   ],
   "chest_flat": 0.35
+ },
+ "orderly_v2": {
+  "_who": "Санитар — версия 2 (стандарт героев, 8 ноя): рост ≈2,0 м вместо 2,38 («огромный» — шириной, не ростом); остальное как в orderly",
+  "phenotype": {
+   "gender": 1,
+   "age": 0.47,
+   "muscle": 0.95,
+   "weight": 0.6,
+   "proportions": 0.5,
+   "height": 0.735,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.03,
+    "caucasian": 0.95,
+    "african": 0.02
+   }
+  },
+  "skin": "middleage_caucasian_male/middleage_caucasian_male.mhmat",
+  "hair": "short02/short02.mhclo",
+  "brows": "eyebrow001/eyebrow001.mhclo",
+  "clothes": [
+   "male_worksuit01/male_worksuit01.mhclo",
+   "toigo_ankle_boots_male/toigo_ankle_boots_male.mhclo"
+  ],
+  "targets": {
+   "head-square": 0.55,
+   "chin-width-incr": 0.45,
+   "chin-prominent-incr": 0.3,
+   "nose-volume-incr": 0.3,
+   "l-eye-bag-incr": 0.3,
+   "r-eye-bag-incr": 0.3,
+   "mouth-scale-horiz-decr": 0.2,
+   "neck-scale-horiz-incr": 0.5,
+   "torso-vshape-incr": 0.6,
+   "measure-shoulder-dist-incr": 0.5,
+   "torso-muscle-pectoral-decr": 1.0,
+   "measure-bust-circ-decr": 0.6
+  },
+  "garments": [
+   {
+    "kind": "vest",
+    "name": "robe",
+    "tex": "stretch_poplin",
+    "tint": [
+     0.82,
+     0.86,
+     0.9
+    ],
+    "off": 0.024,
+    "tile": 5,
+    "rough": 0.8,
+    "band": 0.4,
+    "hem": 0.0
+   },
+   {
+    "kind": "jacket",
+    "name": "puffer",
+    "tex": "bi_stretch",
+    "tint": [
+     0.1,
+     0.12,
+     0.17
+    ],
+    "off": 0.055,
+    "tile": 5,
+    "rough": 0.7,
+    "band": 0.5,
+    "hem": 0.06,
+    "sim": "puffer",
+    "inset": 0.01,
+    "frames": 30,
+    "tailor": {
+     "ease": 0.045,
+     "ease_top": 0.05,
+     "ease_cuff": 0.03,
+     "box": 3.5,
+     "slope": 0.03
+    },
+    "neck": "stand",
+    "trims": {
+     "zip": true
+    },
+    "belt": false,
+    "grow": 0.1,
+    "self_col": false,
+    "pin_fall": 0.2,
+    "quilt": [
+     0.085,
+     0.016
+    ]
+   }
+  ],
+  "gray": {
+   "worksuit01": [
+    0.72,
+    0.3
+   ]
+  },
+  "chest_flat": 0.5,
+  "chest_flat_top": -0.1
+ },
+ "noah_kid_v2": {
+  "_who": "Ной в 8 лет — версия 2 (8 ноя): рост ≈1,28 м вместо 1,10 (так выглядел 5-летний); остальное как в noah_kid",
+  "brows": "eyebrow005/eyebrow005.mhclo",
+  "clothes": [
+   "male_casualsuit03/male_casualsuit03.mhclo"
+  ],
+  "hair": "short02/short02.mhclo",
+  "phenotype": {
+   "age": 0.131,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "gender": 1,
+   "height": 0.65,
+   "muscle": 0.28,
+   "proportions": 0.5,
+   "race": {
+    "african": 0.03,
+    "asian": 0.02,
+    "caucasian": 0.95
+   },
+   "weight": 0.28
+  },
+  "skin": "young_caucasian_male/young_caucasian_male.mhmat",
+  "targets": {
+   "chin-prominent-incr": 0.15,
+   "head-oval": 0.35,
+   "l-cheek-bones-incr": 0.15,
+   "r-cheek-bones-incr": 0.15,
+   "nose-hump-incr": 0.1,
+   "mouth-scale-horiz-decr": 0.1,
+   "l-eye-scale-incr": 0.12,
+   "r-eye-scale-incr": 0.12
+  },
+  "tint": {
+   "short02": [
+    0.35,
+    0.3,
+    0.28
+   ]
+  },
+  "retint": {
+   "casualsuit03": [
+    0.55,
+    0.62,
+    0.7
+   ]
+  }
+ },
+ "victor_v2": {
+  "_who": "Виктор — версия 2 (8 ноя): рост ≈1,88 м вместо 2,03 (крупный — шириной), тёмные волосы с проседью (волосы — тёмно-серые: ровная проседь)",
+  "phenotype": {
+   "gender": 1,
+   "age": 0.6,
+   "muscle": 0.62,
+   "weight": 0.62,
+   "proportions": 0.5,
+   "height": 0.62,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.02,
+    "caucasian": 0.96,
+    "african": 0.02
+   }
+  },
+  "skin": "middleage_caucasian_male/middleage_caucasian_male.mhmat",
+  "hair": "short04/short04.mhclo",
+  "brows": "eyebrow007/eyebrow007.mhclo",
+  "clothes": [
+   "male_casualsuit05/male_casualsuit05.mhclo",
+   "shoes04/shoes04.mhclo"
+  ],
+  "targets": {
+   "head-square": 0.4,
+   "chin-width-incr": 0.35,
+   "chin-prominent-incr": 0.25,
+   "nose-hump-incr": 0.35,
+   "l-eye-bag-incr": 0.55,
+   "r-eye-bag-incr": 0.55,
+   "l-cheek-bones-incr": 0.3,
+   "r-cheek-bones-incr": 0.3,
+   "mouth-angles-down": 0.3,
+   "neck-scale-horiz-incr": 0.3,
+   "torso-muscle-pectoral-decr": 0.6,
+   "measure-bust-circ-decr": 0.3
+  },
+  "retint": {
+   "casualsuit05": [
+    0.32,
+    0.3,
+    0.27
+   ]
+  },
+  "chest_flat": 0.3,
+  "gray": {
+   "short04_diffuse": [
+    0.045,
+    0.6
+   ]
+  }
+ },
+ "hale_v2": {
+  "_who": "Доктор Хейл — версия 2 (8 ноя): волосы седые, как задумано (у v1 перекраска не срабатывала — картинка волос называется male02_diffuse_black, а ключ был culturalibre_hair_02); остальное как в hale",
+  "phenotype": {
+   "gender": 1,
+   "age": 0.738,
+   "muscle": 0.4,
+   "weight": 0.48,
+   "proportions": 0.6,
+   "height": 0.6,
+   "cupsize": 0.5,
+   "firmness": 0.5,
+   "race": {
+    "asian": 0.02,
+    "caucasian": 0.96,
+    "african": 0.02
+   }
+  },
+  "skin": "old_caucasian_male/old_caucasian_male.mhmat",
+  "hair": "culturalibre_hair_02/culturalibre_hair_02.mhclo",
+  "brows": "eyebrow006/eyebrow006.mhclo",
+  "clothes": [
+   "toigo_male_suit_3/toigo_male_suit_3.mhclo",
+   "frankyaye_glasses_library_male/frankyaye_glasses_library_male.mhclo",
+   "toigo_ankle_boots_male/toigo_ankle_boots_male.mhclo"
+  ],
+  "targets": {
+   "head-rectangular": 0.4,
+   "nose-scale-vert-incr": 0.3,
+   "nose-point-width-decr": 0.3,
+   "chin-height-incr": 0.25,
+   "mouth-scale-horiz-decr": 0.2,
+   "l-cheek-volume-decr": 0.3,
+   "r-cheek-volume-decr": 0.3,
+   "torso-muscle-pectoral-decr": 1.0,
+   "torso-scale-depth-decr": 0.2,
+   "measure-bust-circ-decr": 0.6
+  },
+  "garments": [
+   {
+    "kind": "jacket",
+    "name": "coat",
+    "tex": "poly_wool_herringbone",
+    "tint": [
+     0.5,
+     0.44,
+     0.38
+    ],
+    "off": 0.032,
+    "tile": 6,
+    "rough": 0.85,
+    "band": 0.4,
+    "sim": "wool",
+    "inset": 0.01,
+    "frames": 36,
+    "tailor": {
+     "ease": 0.03,
+     "ease_top": 0.035,
+     "ease_cuff": 0.022,
+     "box": 4.0,
+     "slope": 0.02
+    },
+    "neck": "turn",
+    "trims": {
+     "buttons": 4,
+     "pockets": "welt"
+    },
+    "hem": 0.09,
+    "belt": false,
+    "drop": 0.45,
+    "grow": 0.08,
+    "self_col": false,
+    "pin_fall": 0.2
+   },
+   {
+    "kind": "scarf",
+    "name": "scarf",
+    "tex": "wool_boucle",
+    "tint": [
+     0.36,
+     0.12,
+     0.12
+    ],
+    "off": 0.058,
+    "tile": 9,
+    "rough": 0.95
+   }
+  ],
+  "chest_flat": 0.35,
+  "gray": {
+   "male02_diffuse": [
+    0.42,
+    0.8
+   ]
+  }
  }
 }

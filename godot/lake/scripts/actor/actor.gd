@@ -130,7 +130,7 @@ const LOOPS := ["Idle", "Idle_FoldArms", "Idle_Lantern", "Idle_No", "Idle_Rail",
 	"Rk_Phone", "Rk_Pointing", "Rk_SitIdle", "Rk_SitIdle2", "Rk_SitTalk", "Rk_SitTalk2", "Rk_Watching"]
 ## естественная скорость шага клипа на метр длины ноги (м/с): у одного клипа шаг пропорционален ноге, темп тот же —
 ## поэтому Айрис (нога 0,59 м) в «Rk_Walk» идёт 0,85 м/с, Ной (0,95 м) — 1,38 м/с. Замер: scenes/dev/anim_lab.tscn --lab walk.
-const STRIDE := {"Rk_Walk": 1.45, "Walk": 1.13, "Walk_Formal": 1.12, "Walk_Carry": 0.73, "Crouch_Fwd": 0.96, "Jog_Fwd": 2.7,
+const STRIDE := {"Rk_Walk": 1.35, "Walk": 1.10, "Walk_Formal": 1.12, "Walk_Carry": 0.73, "Crouch_Fwd": 0.96, "Jog_Fwd": 2.7,
 	"Sprint": 4.4, "Zombie_Walk_Fwd": 1.10}
 ## классы клипов для слоя «жизнь»: стоит — всё; сидит / на корточках — дыхание и голова; идёт, действует — дыхание
 const STAND := ["Idle", "Idle_FoldArms", "Idle_Lantern", "Idle_No", "Idle_Rail", "Idle_Rail_Call", "Idle_Talking", "Idle_TalkingPhone",
@@ -156,6 +156,9 @@ static var prof_us := 0
 static var prof_frames := 0
 static var _prof_frame := -1
 static var prof_sections := false
+static var foot_lock_on := true   # стопы не едут по земле на ходу (8 ноя); стенд сравнения: false
+var _fl_hold := 0.0
+var _fl := {}   # сторона → {"on": стоит, "p": точка на земле, "w": вес}
 static var stride_override := 0.0   # стенд: подбор естественной скорости шага
 static var sec_us := {}
 ## камера, по которой решается, виден ли герой (дальних и невидимых считаем реже)
@@ -187,7 +190,7 @@ static func _load_model(path: String) -> PackedScene:
 
 ## Новые версии героев заправки (порядок редактора от 5 ноя, п. 6): отдельные файлы рядом со старыми — старые не
 ## перезаписываются до утверждения эталона. Вернуть прежний облик: запуск с --looks1 (или LOOKS_V2 = false).
-const LOOKS := {"iris": "iris_v3", "danny": "danny_v2"}   # iris_v3 — чёлка выше на 1,8 см (решение редактора 6 ноя); iris_v2 рядом
+const LOOKS := {"iris": "iris_v3", "danny": "danny_v2", "orderly": "orderly_v2", "noah_kid": "noah_kid_v2", "victor": "victor_v2", "hale": "hale_v2"}   # 8 ноя: санитар 2,00 м, Ной-ребёнок 1,30, Виктор 1,87 с проседью, Хейл седой; iris_v3 — чёлка выше на 1,8 см (решение редактора 6 ноя); iris_v2 рядом
 static var LOOKS_V2 := true
 
 
@@ -661,7 +664,7 @@ func drive(v: Vector3, delta: float, face_dir := Vector3.ZERO) -> void:
 		_walk_clip = "Rk_Walk"
 		if clip != "Rk_Walk":
 			play("Rk_Walk")
-		ap.speed_scale = clampf(sp / (float(STRIDE.get("Rk_Walk", 1.45)) * leg), 0.55, 1.45)
+		ap.speed_scale = clampf(sp / (float(STRIDE.get("Rk_Walk", 1.35)) * leg), 0.35, 1.45)
 	elif clip == "Rk_Walk":
 		ap.speed_scale = 1.0
 		play("Idle")
@@ -772,6 +775,7 @@ func _tick(delta: float) -> void:
 	_update_gesture(dt)
 	_update_reach(dt)
 	_update_grip(dt)
+	_foot_lock(dt)
 	var q3 := Time.get_ticks_usec()
 	_face_update(dt)
 	var q4 := Time.get_ticks_usec()
@@ -871,7 +875,7 @@ func _update_walk(delta: float) -> void:
 	if stride_override > 0.0:
 		nat = stride_override
 	if nat > 0.0:
-		ap.speed_scale = clampf(_v / nat, 0.55, 1.45)
+		ap.speed_scale = clampf(_v / nat, 0.35, 1.45)
 
 
 # ---------------------------------------------------------------------------------------------------------------- тело
@@ -1357,6 +1361,77 @@ func _update_grip(delta: float) -> void:
 
 
 ## Повернуть кость так, чтобы она смотрела (от себя к дочерней) по направлению dir (мир); w — доля поворота.
+## Стопы на ходу (8 ноя): опорная стопа «прибита» к месту, где встала, пока не оторвётся от земли; бедро и голень
+## доворачиваются двухзвенной IK (колено — вперёд по ходу), стопа сохраняет свой поворот из клипа. Клип сам ставит
+## опорную ногу неровно (мокап), а скорость героя задаёт код — без этого стопы ехали по земле ~0,25 м/с.
+func _foot_lock(dt: float) -> void:
+	var moving := (walking or _v > 0.05) and clip in STRIDE
+	_fl_hold = 0.4 if moving else maxf(_fl_hold - dt, 0.0)   # встал: ещё 0,4 с держим стопы, пока клип перетекает в «Idle»
+	if not foot_lock_on or _fl_hold <= 0.0 or _bi("thigh_l") < 0 or clip in SEAT or clip in LIE:
+		_fl.clear()
+		return
+	var sgt := skel.global_transform
+	var gb := global_transform.basis.orthonormalized()
+	var feet := {}
+	for side in ["_l", "_r"]:
+		feet[side] = (sgt * skel.get_bone_global_pose(_bi("foot" + side))).origin
+	var low: float = minf(feet["_l"].y, feet["_r"].y)
+	for side in ["_l", "_r"]:
+		var f: Vector3 = feet[side]
+		var other: Vector3 = feet["_r" if side == "_l" else "_l"]
+		var st: Dictionary = _fl.get(side, {"on": false, "p": f, "w": 0.0})
+		var down := f.y <= other.y + 0.012   # ниже (или вровень с) другой стопы — опорная
+		if down and not st.on:
+			st.on = true
+			st.p = f
+		elif not down and st.on:
+			st.on = false
+		if not moving:   # остановка: стопы отпускаем плавно к позе «Idle»
+			st.on = false
+		if st.on and Vector2(f.x - st.p.x, f.z - st.p.z).length() > 0.3:   # слишком далеко (разворот, рывок) — отпустить
+			st.p = f
+		st.w = move_toward(float(st.w), 1.0 if st.on else 0.0, dt * (12.0 if st.on else (3.0 if not moving else 8.0)))
+		_fl[side] = st
+		if float(st.w) < 0.01:
+			continue
+		var tgt: Vector3 = Vector3(st.p.x, f.y, st.p.z).lerp(f, 1.0 - float(st.w))   # высоту ведёт клип: перекат с пятки на носок
+		_leg_ik(side, tgt, gb.z)
+
+
+func _leg_ik(side: String, tgt: Vector3, fwd: Vector3) -> void:
+	var bt := _bi("thigh" + side)
+	var bc := _bi("calf" + side)
+	var bf := _bi("foot" + side)
+	if bt < 0 or bc < 0 or bf < 0:
+		return
+	var sgt := skel.global_transform
+	var foot_b := (sgt * skel.get_bone_global_pose(bf)).basis   # поворот стопы из клипа — вернуть после IK
+	var h := (sgt * skel.get_bone_global_pose(bt)).origin
+	var k := (sgt * skel.get_bone_global_pose(bc)).origin
+	var a0 := (sgt * skel.get_bone_global_pose(bf)).origin
+	var la := h.distance_to(k)
+	var lb := k.distance_to(a0)
+	var to := tgt - h
+	if to.length() < 0.05 or la < 0.05 or lb < 0.05:
+		return
+	var dir := to.normalized()
+	var d := clampf(to.length(), absf(la - lb) + 0.02, (la + lb) * 0.999)
+	var pp := fwd - dir * fwd.dot(dir)
+	if pp.length() < 0.001:
+		return
+	pp = pp.normalized()
+	var ca := clampf((la * la + d * d - lb * lb) / (2.0 * la * d), -1.0, 1.0)
+	var knee := h + dir * (la * ca) + pp * (la * sqrt(maxf(0.0, 1.0 - ca * ca)))
+	_aim_bone("thigh" + side, "calf" + side, (knee - h).normalized(), 1.0)
+	var k2 := (sgt * skel.get_bone_global_pose(bc)).origin
+	_aim_bone("calf" + side, "foot" + side, (h + dir * d - k2).normalized(), 1.0)
+	var par := skel.get_bone_parent(bf)
+	if par >= 0:
+		var pg := (sgt * skel.get_bone_global_pose(par)).basis.orthonormalized()
+		skel.set_bone_pose_rotation(bf, Quaternion((pg.inverse() * foot_b.orthonormalized()).orthonormalized()))
+
+
+
 func _aim_bone(bone: String, child: String, dir: Vector3, w: float) -> void:
 	var b := _bi(bone)
 	var c := _bi(child)
