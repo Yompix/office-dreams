@@ -25,6 +25,24 @@ NAR = {'n1': (0.0, 1.94, 'Мама умерла сорок дней назад.'
 MOM = {'m1': (0.0, 3.54, 'Сынок… Не открывай дверь. Это не я.'), 'm2': (4.46, 8.28, 'Сынок, открой. Это я. Я замёрзла.'),
        'm3': (9.34, 12.30, 'Не открывай. Он уже научился говорить как я.'), 'm4': (13.30, 17.12, 'Открой! Открой! ОТКРОЙ!'),
        'm5': (17.88, 20.08, 'Поздно. Он уже внутри.')}
+# ------------------------------------------------------------ язык: STORY_LANG=en — английские голоса, субтитры и экран телефона
+LANG = os.environ.get('STORY_LANG', 'ru')
+EN = {'пятница, 7 ноября': 'Friday, November 7', 'сейчас': 'now', 'Голосовое сообщение (0:04)': 'Voice message (0:04)',
+      'Мама ♥': 'Mom ♥', 'была в сети 40 дней назад': 'last seen 40 days ago', '26 сентября': 'September 26',
+      'Сынок, ты поел?': 'Did you eat, sweetie?', 'Да, мам': 'Yeah, mom', 'Купи хлеба по дороге': 'Grab some bread on the way',
+      'Позвони мне завтра. Люблю': 'Call me tomorrow. Love you', 'Сегодня': 'Today', 'Вы заблокировали этот контакт': 'You blocked this contact',
+      'Разблокировать': 'Unblock', 'Больше страшных историй': 'More scary stories',
+      'там же — моя хоррор-игра Hush Till Six': 'also there: my horror game Hush Till Six', 'и новые проекты': 'and new projects'}
+def tr(s): return EN.get(s, s) if LANG == 'en' else s
+if LANG == 'en':
+    NAR = {'n1': (0.0, 1.94, 'Mom died forty days ago.'), 'n2': (3.04, 5.68, 'Yesterday, she sent me a voice message.'),
+           'n3': (6.94, 11.10, 'I figured someone hacked her number. I blocked it. Went to bed.'),
+           'n4': (12.34, 14.50, 'At 3:12, the doorbell rang.'), 'n5': (15.58, 16.92, 'I looked through the peephole.'),
+           'n6': (18.00, 18.74, 'No one was there.')}
+    MOM = {'m1': (0.0, 3.62, "Sweetheart… Don't open the door. It's not me."), 'm2': (4.66, 8.90, "Sweetheart, open up. It's me. I'm so cold."),
+           'm3': (9.70, 12.38, "Don't open it. He's learned to sound like me."), 'm4': (13.12, 17.32, 'Open up! Open up! OPEN UP!'),
+           'm5': (18.14, 20.82, "Too late. He's already inside.")}
+VO_NAR, VO_MOM = ('en_nar1', 'en_mom2') if LANG == 'en' else ('nar1', 'mom1')
 # реплика: (ключ, время в ролике, обработка: room / phone / door)
 LINES = [('n1', .5, 'room'), ('n2', 3.5, 'room'), ('m1', 8.2, 'phone'), ('n3', 13.0, 'room'), ('n4', 19.4, 'room'),
          ('n5', 23.9, 'room'), ('n6', 26.6, 'room'), ('m2', 29.2, 'door'), ('m3', 35.6, 'phone'), ('m4', 41.2, 'door'),
@@ -57,7 +75,7 @@ def subs(img, t):
         if not (at - .05 <= t < at + d + .5): continue
         al = ease((t - at + .05) / .2) * ease((at + d + .5 - t) / .25)
         mom = k[0] == 'm'
-        f = F(58 if not mom else 60, 'SemiBold'); words = (('«' + txt + '»') if mom else txt).split(); lines, cur = [], ''
+        f = F(58 if not mom else 60, 'SemiBold'); words = ((('«' + txt + '»') if LANG != 'en' else ('“' + txt + '”')) if mom else txt).split(); lines, cur = [], ''
         for w in words:
             if f.getlength((cur + ' ' + w).strip()) > 900: lines.append(cur); cur = w
             else: cur = (cur + ' ' + w).strip()
@@ -124,16 +142,16 @@ def screen_lock(o, t):
     for y in range(PH_H):                      # тёмные обои
         c = int(14 + 18 * (y / PH_H)); d.line([(0, y), (PH_W, y)], fill=(c // 2, c // 2 + 2, c + 8))
     d.text((PH_W / 2, 330), o['time'], font=F(190, 'Bold'), fill=(232, 234, 240), anchor='mm')
-    d.text((PH_W / 2, 470), 'пятница, 7 ноября', font=F(44, 'Regular'), fill=(190, 194, 205), anchor='mm')
+    d.text((PH_W / 2, 470), tr('пятница, 7 ноября'), font=F(44, 'Regular'), fill=(190, 194, 205), anchor='mm')
     if o.get('note') and t > .35:
         a = ease((t - .35) / .3); y0 = 640 - 40 * (1 - a)
         card = Image.new('RGBA', (PH_W, PH_H)); dc = ImageDraw.Draw(card)
         dc.rounded_rectangle((40, y0, PH_W - 40, y0 + 190), 38, fill=(60, 62, 72, int(225 * a)))
         dc.ellipse((70, y0 + 40, 170, y0 + 140), fill=(120, 96, 110, int(255 * a)))
         dc.text((120, y0 + 90), 'М', font=F(52, 'Bold'), fill=(255, 255, 255, int(255 * a)), anchor='mm')
-        dc.text((200, y0 + 62), 'Мама ♥', font=F(44, 'Bold'), fill=(245, 245, 248, int(255 * a)), anchor='lm')
-        dc.text((PH_W - 80, y0 + 62), 'сейчас', font=F(34, 'Regular'), fill=(180, 182, 190, int(255 * a)), anchor='rm')
-        dc.text((200, y0 + 125), 'Голосовое сообщение (0:04)', font=F(40, 'Regular'), fill=(215, 216, 222, int(255 * a)), anchor='lm')
+        dc.text((200, y0 + 62), tr('Мама ♥'), font=F(44, 'Bold'), fill=(245, 245, 248, int(255 * a)), anchor='lm')
+        dc.text((PH_W - 80, y0 + 62), tr('сейчас'), font=F(34, 'Regular'), fill=(180, 182, 190, int(255 * a)), anchor='rm')
+        dc.text((200, y0 + 125), tr('Голосовое сообщение (0:04)'), font=F(40, 'Regular'), fill=(215, 216, 222, int(255 * a)), anchor='lm')
         im.paste(card, (0, 0), card)
     d.rounded_rectangle((PH_W / 2 - 140, PH_H - 40, PH_W / 2 + 140, PH_H - 28), 6, fill=(200, 200, 205))
     return im
@@ -161,9 +179,9 @@ def screen_chat(o, t, T):
         rr(d, (x0, y, x0 + w, y + 110), 32, (43, 82, 120) if out else (38, 40, 46))
         d.text((x0 + 32, y + 50), txt, font=f, fill=(236, 238, 242), anchor='lm')
         d.text((x0 + w - 24, y + 88), tm, font=F(26, 'Regular'), fill=(150, 160, 175), anchor='rm'); y += 135
-    chip('26 сентября'); msg('Сынок, ты поел?', '19:02'); msg('Да, мам', '19:40', True)
-    msg('Купи хлеба по дороге', '19:41'); msg('Позвони мне завтра. Люблю', '21:15')
-    chip('Сегодня')
+    chip(tr('26 сентября')); msg(tr('Сынок, ты поел?'), '19:02'); msg(tr('Да, мам'), '19:40', True)
+    msg(tr('Купи хлеба по дороге'), '19:41'); msg(tr('Позвони мне завтра. Люблю'), '21:15')
+    chip(tr('Сегодня'))
     p = max(0, min(1, (T - o['play']) / o['dur'])) if T >= o['play'] else 0
     playing = o['play'] <= T < o['play'] + o['dur']
     if o['state'] == 1:
@@ -171,7 +189,7 @@ def screen_chat(o, t, T):
     else:
         bubble_voice(d, y, 1, False, '0:04', '03:07'); y += 175
         if o['state'] >= 2:
-            ban = 'Вы заблокировали этот контакт'; chip(ban)
+            ban = tr('Вы заблокировали этот контакт'); chip(ban)
             if o['state'] == 2: bubble_voice(d, y, p, playing, '0:03', '03:19'); y += 175
             else:
                 bubble_voice(d, y, 1, False, '0:03', '03:19'); y += 175
@@ -179,10 +197,10 @@ def screen_chat(o, t, T):
     d.rectangle((0, 0, PH_W, 190), fill=(26, 28, 34))
     d.text((40, 120), '‹', font=F(80, 'Regular'), fill=(110, 160, 230), anchor='lm')
     d.ellipse((100, 75, 190, 165), fill=(120, 96, 110)); d.text((145, 120), 'М', font=F(46, 'Bold'), fill='white', anchor='mm')
-    d.text((215, 98), 'Мама ♥', font=F(46, 'Bold'), fill=(240, 240, 245), anchor='lm')
-    d.text((215, 148), 'была в сети 40 дней назад', font=F(32, 'Regular'), fill=(140, 144, 155), anchor='lm')
+    d.text((215, 98), tr('Мама ♥'), font=F(46, 'Bold'), fill=(240, 240, 245), anchor='lm')
+    d.text((215, 148), tr('была в сети 40 дней назад'), font=F(32, 'Regular'), fill=(140, 144, 155), anchor='lm')
     d.rectangle((0, PH_H - 130, PH_W, PH_H), fill=(26, 28, 34))
-    d.text((PH_W / 2, PH_H - 65), 'Разблокировать', font=F(40, 'SemiBold'), fill=(232, 90, 90) if o['state'] >= 2 else (110, 160, 230), anchor='mm')
+    d.text((PH_W / 2, PH_H - 65), tr('Разблокировать'), font=F(40, 'SemiBold'), fill=(232, 90, 90) if o['state'] >= 2 else (110, 160, 230), anchor='mm')
     return im
 
 def phone_frame(scr, t, n, glow=1.0, off=0.0):
@@ -206,11 +224,11 @@ def phone_frame(scr, t, n, glow=1.0, off=0.0):
 def end_card(t):
     im = Image.new('RGB', (W, H)); d = ImageDraw.Draw(im)
     a = ease(t / .6); b = ease((t - .9) / .6); c = ease((t - 1.8) / .6)
-    d.text((W / 2, 800), 'Больше страшных историй', font=F(64, 'SemiBold'), fill=tuple(int(v * a) for v in (235, 233, 228)), anchor='mm')
+    d.text((W / 2, 800), tr('Больше страшных историй'), font=F(64, 'SemiBold'), fill=tuple(int(v * a) for v in (235, 233, 228)), anchor='mm')
     d.text((W / 2, 905), '@yompixgames', font=F(92, 'Bold'), fill=tuple(int(v * b) for v in (232, 60, 60)), anchor='mm')
     d.text((W / 2, 1000), 'YouTube  ·  Telegram', font=F(46, 'Regular'), fill=tuple(int(v * b) for v in (200, 198, 192)), anchor='mm')
-    d.text((W / 2, 1180), 'там же — моя хоррор-игра Hush Till Six', font=F(44, 'Regular'), fill=tuple(int(v * c * .85) for v in (200, 198, 192)), anchor='mm')
-    d.text((W / 2, 1245), 'и новые проекты', font=F(44, 'Regular'), fill=tuple(int(v * c * .85) for v in (200, 198, 192)), anchor='mm')
+    d.text((W / 2, 1180), tr('там же — моя хоррор-игра Hush Till Six'), font=F(44, 'Regular'), fill=tuple(int(v * c * .85) for v in (200, 198, 192)), anchor='mm')
+    d.text((W / 2, 1245), tr('и новые проекты'), font=F(44, 'Regular'), fill=tuple(int(v * c * .85) for v in (200, 198, 192)), anchor='mm')
     return np.asarray(im).astype(np.float32)
 
 # ------------------------------------------------------------ рендер
@@ -277,7 +295,7 @@ def audio():
         put(np.tile(x, (int((b - a) * SR / len(x)) + 2, 1)), a, g, fi, fo, until=b)
     # голоса
     for k, at, fx in LINES:
-        src, (a, b, _) = ('nar1', NAR[k]) if k in NAR else ('mom1', MOM[k])
+        src, (a, b, _) = (VO_NAR, NAR[k]) if k in NAR else (VO_MOM, MOM[k])
         put(load(os.path.join(VO, src + '.mp3'), max(0, a - .05), b - a + .35, FX[fx]), at - .05, 1.0, .02, .2)
     # атмосфера
     loop(sfx('rain'), 0, 3.4, .35, .3, .4)
@@ -303,5 +321,7 @@ if __name__ == '__main__':
     render(); audio()
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', os.path.join(TMP, 'v.mp4'), '-i', os.path.join(TMP, 'a.wav'), '-map', '0:v', '-map', '1:a',
                     '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', OUT], check=True)
+    if os.environ.get('AUDIO_OUT'):
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', os.path.join(TMP, 'a.wav'), '-c:a', 'aac', '-b:a', '192k', os.environ['AUDIO_OUT']], check=True)
     os.remove(os.path.join(TMP, 'v.mp4')); os.remove(os.path.join(TMP, 'a.wav'))
     print(OUT, T_END, 'с')
