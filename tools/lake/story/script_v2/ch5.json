@@ -109,7 +109,8 @@
      "danny_lost": "==0",
      "danny_hale": "==0",
      "agnes_dead": "==0"
-    }
+    },
+    "shot": "danny_room"
    },
    {
     "say": "agnes",
@@ -200,7 +201,7 @@
    {
     "say": "iris",
     "ru": "Письмо я отдам только следователю. Сама. Из рук в руки.",
-    "en": "I’m giving this letter to the police and no one else. Myself. Hand to hand.",
+    "en": "This letter goes to the police and nobody else. I’ll hand it over myself.",
     "if": {
      "hub_seen": "==0",
      "c5_letter": ">0"
@@ -608,7 +609,7 @@
   "sid": "c5_s1_pills",
   "find": "Ной встаёт, чтобы идти к сараю, — и голову будто сжимает обручем. В ушах звенит.",
   "ru": "Только встал — и голову как обручем. Звенит. Не сейчас. Пожалуйста, не сейчас.",
-  "en": "I barely stand up — and it’s like a band around my head. Ringing. Not now. Please, not now.",
+  "en": "I stand up — and it’s like a band tightening round my head. Ringing. Not now. Please, not now.",
   "thought": true
  },
  {
@@ -619,7 +620,8 @@
    {
     "say": "iris",
     "ru": "Ной? Опять голова?",
-    "en": "Noah? Your head again?"
+    "en": "Noah? Your head again?",
+    "shot": "iris_room"
    },
    {
     "say": "noah",
@@ -801,12 +803,14 @@
    {
     "say": "noah",
     "ru": "Если что — кричи. Громко.",
-    "en": "If anything happens — shout. Loud."
+    "en": "If anything happens — shout. Loud.",
+    "shot": "noah_room"
    },
    {
     "say": "danny",
     "ru": "Я умею громко. Мама говорила — даже слишком.",
-    "en": "I can do loud. Mom says too loud."
+    "en": "I can do loud. Mom says too loud.",
+    "shot": "danny_room"
    }
   ]
  },
@@ -839,9 +843,16 @@
   "thought": true
  },
  {
+  "op": "replace",
+  "sid": "c5_s1_go2",
+  "find": "Айрис плачет беззвучно.",
+  "ru": "Айрис отворачивается. Плечи дрожат.",
+  "en": "Iris turns away. Her shoulders are shaking."
+ },
+ {
   "op": "insert",
   "sid": "c5_s1_go2",
-  "after": "Айрис плачет беззвучно.",
+  "after": "Айрис отворачивается. Плечи дрожат.",
   "beats": [
    {
     "say": "iris",
@@ -923,7 +934,7 @@
   "sid": "c5_s2",
   "find": "На дороге — фары. Мама улыбается — и улыбка гаснет: это не та машина.",
   "ru": "Едет!.. Нет. Это не его машина.",
-  "en": "He’s here!.. No. That’s not his car.",
+  "en": "He’s here!… No. That’s not his car.",
   "say": "mom"
  },
  {
@@ -962,7 +973,7 @@
     "say": "noah",
     "thought": true,
     "ru": "Выйди. Выйди же!.. Не может. Ему восемь. Мне восемь.",
-    "en": "Get out there. Get out!.. He can’t. He’s eight. I’m eight."
+    "en": "Get out there. Get out!… He can’t. He’s eight. I’m eight."
    }
   ]
  },
@@ -971,7 +982,7 @@
   "sid": "c5_s2_mom",
   "find": "Она поворачивает голову к сараю. В свете фонаря он читает по губам: «Не смотри, малыш».",
   "ru": "Она смотрит на сарай. На меня. Одними губами: «Не смотри, малыш».",
-  "en": "She looks at the boathouse. At me. Just her lips: “Don’t look, baby.”",
+  "en": "She looks at the boathouse. At me. She mouths: “Don’t look, baby.”",
   "thought": true
  },
  {
@@ -1635,7 +1646,8 @@
    {
     "say": "noah",
     "ru": "Айрис, стой! Там лёд!",
-    "en": "Iris, stop! The ice!"
+    "en": "Iris, stop! The ice!",
+    "shot": "noah_ice"
    }
   ]
  },
@@ -1647,7 +1659,8 @@
    {
     "say": "noah",
     "ru": "Назад! Там лёд не держит!",
-    "en": "Get back! The ice won’t hold there!"
+    "en": "Get back! The ice won’t hold there!",
+    "shot": "noah_ice"
    }
   ]
  },
@@ -1701,7 +1714,7 @@
    {
     "say": "hale",
     "ru": "Аня?.. Нет. Нет, это невозможно.",
-    "en": "Anya?.. No. No, that’s impossible.",
+    "en": "Anya?… No. No, that’s impossible.",
     "shot": "hale_ice"
    }
   ]
@@ -1806,7 +1819,7 @@
     "say": "noah",
     "thought": true,
     "ru": "Тихо. Где он?.. Только что был здесь. Что я сделал?",
-    "en": "Quiet. Where is he?.. He was right here. What did I do?"
+    "en": "Quiet. Where is he?… He was right here. What did I do?"
    }
   ]
  },
@@ -1818,7 +1831,8 @@
    {
     "say": "iris",
     "ru": "Не могу! Он держит!",
-    "en": "I can’t! He’s holding on!"
+    "en": "I can’t! He’s holding on!",
+    "shot": "hole"
    }
   ]
  },
@@ -1858,7 +1872,8 @@
    {
     "say": "hale",
     "ru": "Ной… Руку. Пожалуйста.",
-    "en": "Noah… Your hand. Please."
+    "en": "Noah… Your hand. Please.",
+    "shot": "hale_water"
    }
   ]
  },
@@ -1894,12 +1909,13 @@
    {
     "say": "hale",
     "ru": "Зачем?.. Ты же мог…",
-    "en": "Why?.. You could have…"
+    "en": "Why?… You could have…"
    },
    {
     "say": "noah",
     "ru": "Мог. Но я — не ты.",
-    "en": "I could have. But I’m not you."
+    "en": "I could have. But I’m not you.",
+    "shot": "noah_crawl"
    }
   ]
  },
@@ -1981,7 +1997,8 @@
    {
     "say": "iris",
     "ru": "Ной, я рук не чувствую!",
-    "en": "Noah, I can’t feel my hands!"
+    "en": "Noah, I can’t feel my hands!",
+    "shot": "hole"
    }
   ]
  },
@@ -2014,7 +2031,8 @@
    {
     "say": "noah",
     "ru": "Живой он ответит. Мёртвый — нет.",
-    "en": "Alive, he answers for it. Dead, he doesn’t."
+    "en": "Alive, he answers for it. Dead, he doesn’t.",
+    "shot": "noah_crawl"
    }
   ]
  },
@@ -2090,7 +2108,7 @@
    {
     "say": "iris",
     "ru": "Ной!.. Ной…",
-    "en": "Noah!.. Noah…"
+    "en": "Noah!… Noah…"
    }
   ]
  },
@@ -2153,8 +2171,8 @@
   "op": "replace",
   "sid": "c5_shore",
   "find": "Седан стоит у сарая с работающим мотором. Ной открывает задние двери снаружи. В машине тепло.",
-  "ru": "Задние двери. Снаружи открываются. В машине тепло — он о них «позаботился».",
-  "en": "The back doors. They open from outside. It’s warm in the car — he “took care” of them.",
+  "ru": "Детский замок. Изнутри не открыть — только снаружи. Ну же…",
+  "en": "Child locks. Can’t open them from inside — only from out here. Come on…",
   "thought": true
  },
  {
@@ -2170,7 +2188,7 @@
   "sid": "c5_shore",
   "find": "Зоя сонная, но живая.",
   "ru": "Мы приехали?.. Ой. Это вы. Хорошо, что вы.",
-  "en": "Are we there?.. Oh. It’s you. Good. It’s you.",
+  "en": "Are we there?… Oh. It’s you. Good. It’s you.",
   "say": "zoe"
  },
  {
@@ -2398,7 +2416,8 @@
     "if": {
      "roman_dead": "==0",
      "orderly_dead": "==0"
-    }
+    },
+    "shot": "noah_visit"
    },
    {
     "say": "iris",
@@ -2420,7 +2439,8 @@
    {
     "say": "noah",
     "ru": "Остальное — тоже я. Мне и сидеть.",
-    "en": "The rest was me too. So I do the time."
+    "en": "The rest was me too. So I do the time.",
+    "shot": "noah_visit"
    }
   ]
  },
@@ -2435,7 +2455,8 @@
     "en": "Don’t waste your life on him, Iris.",
     "if": {
      "hale_saved": ">0"
-    }
+    },
+    "shot": "noah_visit"
    },
    {
     "say": "iris",
@@ -2463,7 +2484,8 @@
     "if": {
      "hale_saved": "==0",
      "hale_let_go": "==0"
-    }
+    },
+    "shot": "noah_visit"
    }
   ]
  },
@@ -2555,7 +2577,7 @@
     "say": "noah",
     "thought": true,
     "ru": "Айрис?.. Айрис!",
-    "en": "Iris?.. Iris!"
+    "en": "Iris?… Iris!"
    }
   ]
  },
@@ -2773,9 +2795,16 @@
   "thought": true
  },
  {
+  "op": "replace",
+  "sid": "c5_obl_forgot",
+  "find": "Айрис молча суёт ему в карман сложенный листок.",
+  "ru": "Айрис суёт ему в карман сложенный листок.",
+  "en": "Iris slips a folded piece of paper into his pocket."
+ },
+ {
   "op": "insert",
   "sid": "c5_obl_forgot",
-  "after": "Айрис молча суёт ему в карман сложенный листок.",
+  "after": "Айрис суёт ему в карман сложенный листок.",
   "beats": [
    {
     "say": "noah",
@@ -2966,8 +2995,8 @@
   "op": "replace",
   "sid": "c5_cards",
   "find": "Ева назвала дочь Анной, к мужу не вернулась и живёт у сестры на севере.",
-  "ru": "Ева живёт у сестры на севере. Дочь зовут Анной. Кольцо она всё-таки выбросила.",
-  "en": "Eva lives with her sister up north. Her daughter’s name is Anna. She finally threw the ring away."
+  "ru": "Ева живёт у сестры на севере. Дочку зовут Анной — имя ей дала Айрис.",
+  "en": "Eva lives with her sister up north. Her daughter is called Anna — Iris picked the name."
  },
  {
   "op": "replace",

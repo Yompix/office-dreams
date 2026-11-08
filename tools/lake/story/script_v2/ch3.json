@@ -2233,7 +2233,9 @@
     "en": "I told you. Black. No headlights.",
     "shot": "zoe_house",
     "if": {
-     "hale_here": ">0"
+     "hale_here": ">0",
+     "zoe": ">0",
+     "zoe_gone": "==0"
     }
    },
    {
