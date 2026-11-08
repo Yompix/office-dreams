@@ -2,8 +2,8 @@ extends SceneTree
 ## Замер скольжения стоп при ходьбе (8 ноя): герой идёт по прямой walk_to (разгон, ход, торможение) и drive (как на
 ## прогулке); пока стопа опорная (ниже всех 2 см от минимума и почти не поднимается), её скорость по земле должна быть ≈0.
 ## Печатает: средняя и 95-я перцентиль скорости опорной стопы (м/с), доля кадров «едет» (> 0,15 м/с).
-##   godot --headless --path godot/lake --script res://scripts/dev/foot_slip.gd -- [--who noah,iris,...] [--clip Rk_Walk] [--speed 1.15]
-## В сборку не входит.
+##   godot --headless --fixed-fps 60 --path godot/lake --script res://scripts/dev/foot_slip.gd -- [--who noah,iris,...] [--clip Rk_Walk] [--speed 1.15]
+## --fixed-fps 60 обязательно: шаг теста 1/60 с, без него кадры headless короче и drive врёт. В сборку не входит.
 var who: Array = ["noah", "iris", "danny", "zoe", "eva", "agnes", "hale", "roman", "orderly", "noah_kid", "victor", "anna", "nina"]
 var clip := "Rk_Walk"
 var speed := 1.15
@@ -66,21 +66,24 @@ func _process(_d: float) -> bool:
 			a.walk_to(Vector3(0, 0, 8.0), speed, clip, "Idle")
 	var phase := "start" if t < 1.6 else ("cruise" if a.position.z < 6.5 else "stop")
 	if mode == "drive":
-		var v := 0.0
-		if t < 6.0:
-			v = minf(speed, (t - 0.5) * 2.5)
-		else:
-			v = maxf(0.0, speed - (t - 6.0) * 3.5)
 		phase = "start" if t < 1.2 else ("cruise" if t < 6.0 else "stop")
-		a.position += Vector3(0, 0, v * DT)
-		a.drive(Vector3(0, 0, v), DT)
 	var fl := _foot("l")
 	var fr := _foot("r")
 	if prev.size() == 2:   # в каждый момент ходьбы одна стопа стоит: скольжение = меньшая из двух скоростей по земле
 		var vl := Vector2(fl.x - prev.l.x, fl.z - prev.l.z).length() / DT
 		var vr := Vector2(fr.x - prev.r.x, fr.z - prev.r.z).length() / DT
 		samples[phase].append(minf(vl, vr))
+		if OS.get_environment("SLIP_DUMP") != "" and phase == "stop":
+			print("D %.3f v=%.2f vl=%.2f vr=%.2f clip=%s on=%s" % [t, a.speed(), vl, vr, a.clip, str(a._fl.get("_l", {}).get("on", "-")) + "/" + str(a._fl.get("_r", {}).get("on", "-"))])
 	prev = {"l": fl, "r": fr}
+	if mode == "drive":   # двигаем ПОСЛЕ замера стоп: иначе корень уже сдвинут, а поза ещё прошлого кадра
+		var v := 0.0
+		if t < 6.0:
+			v = minf(speed, (t - 0.5) * 2.5)
+		else:
+			v = maxf(0.0, speed - (t - 6.0) * 3.5)
+		a.position += Vector3(0, 0, v * DT)
+		a.drive(Vector3(0, 0, v), DT)
 	var done := (mode == "walk" and not a.walking and t > 1.0) or (mode == "drive" and t > 7.5) or t > 14.0
 	if done:
 		var line := "%-9s" % who[i]

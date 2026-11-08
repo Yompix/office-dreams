@@ -1370,7 +1370,7 @@ func _foot_lock(dt: float) -> void:
 	var yaw_rate := absf(wrapf(rotation.y - _fl_yaw, -PI, PI)) / maxf(dt, 1e-4)
 	_fl_yaw = rotation.y
 	var turning := not moving and (_turn_to != null or yaw_rate > 0.6) and clip in STAND   # поворот на месте
-	_fl_hold = 0.4 if (moving or turning) else maxf(_fl_hold - dt, 0.0)   # встал: ещё 0,4 с держим стопы, пока клип перетекает в «Idle»
+	_fl_hold = 0.7 if (moving or turning) else maxf(_fl_hold - dt, 0.0)   # встал: ещё 0,7 с держим стопы, пока клип перетекает в «Idle»
 	if not foot_lock_on or _fl_hold <= 0.0 or _bi("thigh_l") < 0 or clip in SEAT or clip in LIE:
 		_fl.clear()
 		return
@@ -1412,17 +1412,27 @@ func _foot_lock(dt: float) -> void:
 				st.yaw = rotation.y
 			elif not down and st.on:
 				st.on = false
-			if not moving:   # остановка: стопы отпускаем плавно к позе «Idle»
-				st.on = false
+			if not moving:
+				# остановка (8 ноя): раньше отпускали обе стопы разом — 0,3 с обе ехали к позе «Idle» по полу (до 1,5 м/с).
+				# Теперь опорная стоит, пока вторая не встанет (0,25 с), потом сама делает короткий шаг с подъёмом.
+				if st.on and _fl_hold < 0.45:
+					st.on = false
+					st.step = true
+				elif not st.on and not st.get("step", false):
+					st.on = false
 		if st.on and Vector2(f.x - st.p.x, f.z - st.p.z).length() > 0.3:   # слишком далеко (рывок) — отпустить
 			st.p = f
 			st.yaw = rotation.y
-		var rate := 12.0 if st.on else (10.0 if st.get("step", false) else (3.0 if not moving else 8.0))
+		if st.get("step", false) and moving:
+			st.step = false
+		var rate := 12.0 if st.on else ((10.0 if turning else 5.0) if st.get("step", false) else (3.0 if not moving else 8.0))
 		st.w = move_toward(float(st.w), 1.0 if st.on else 0.0, dt * rate)
 		_fl[side] = st
 		if float(st.w) < 0.01:
 			continue
 		var tgt: Vector3 = Vector3(st.p.x, f.y, st.p.z).lerp(f, 1.0 - float(st.w))   # высоту ведёт клип: перекат с пятки на носок
+		if st.get("step", false):   # переступает: стопа отрывается от пола (дуга 5 см), а не едет по нему
+			tgt.y += 0.05 * sin(PI * float(st.w))
 		var yaw_fix := 0.0
 		if turning:
 			yaw_fix = wrapf(float(st.yaw) - rotation.y, -PI, PI) * float(st.w)
