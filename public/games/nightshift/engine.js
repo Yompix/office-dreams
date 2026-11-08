@@ -64,7 +64,17 @@ let voiceOut = null, voiceRev = null, directG = null, AC = null, revIn = null, m
 // громкость голоса сейчас (для движения рта)
 function voiceLevel() { if (!analyser) return 0; analyser.getByteTimeDomainData(abuf); let q = 0; for (let i = 0; i < abuf.length; i += 2) { const v = (abuf[i] - 128) / 128; q += v * v; } return Math.min(1, Math.sqrt(q / (abuf.length / 2)) * 6); }
 // XHR вместо fetch: так файлы читаются и внутри Android-приложения (file://)
-function get(url, type) { return new Promise((ok, no) => { const x = new XMLHttpRequest(); x.open('GET', url); x.responseType = type; x.onload = () => (x.status === 200 || x.status === 0) && x.response ? ok(x.response) : no(); x.onerror = no; x.send(); }); }
+function get(url, type) { return new Promise((ok, no) => { const x = new XMLHttpRequest(); x.open('GET', url); x.responseType = type; x.timeout = 60000; x.onload = () => (x.status === 200 || x.status === 0) && x.response ? ok(x.response) : no(); x.onerror = x.ontimeout = x.onabort = () => { LD.bad++; no(); }; x.send(); }); }   // тайм-аут: на слабом Wi-Fi приставки «вечная» загрузка не держит игру
+// загрузка по шагам — для строки под полосой (ТВ-приставка или долгая загрузка): что уже есть и что зависло
+const LD = { m: 0, s: 0, w: '', bad: 0, err: [], t0: performance.now() };
+const within = (p, ms, tag) => Promise.race([p, new Promise(r => setTimeout(() => { LD.err.push(tag); r(false); }, ms))]);   // шаг не ответил — идём дальше без него
+addEventListener('error', e => { if (LD.err.length < 4 && e && e.message) LD.err.push(String(e.message).slice(0, 70)); });
+function ldInfo() {
+  const el = document.getElementById('loadinfo'); if (!el) return; const sec = (performance.now() - LD.t0) / 1000;
+  if (!window.nsTV && sec < 12) return;
+  el.textContent = `модели ${LD.m}/7 · звуки ${LD.s}/${SNDS.length} · мир ${LD.w || '…'} · ${Math.round(sec)} с` + (LD.bad ? ` · сбоев сети ${LD.bad}` : '') + (window.nsLegacy ? ` · legacy ${window.nsLegacy}` : '')
+    + (LD.err.length ? ' · ' + LD.err.join(' · ') : '') + (sec > 25 ? ' · ' + ((window.__W3core && window.__W3core.GPU && window.__W3core.GPU.name) || 'GPU ?') + ' ' + (/Chrome\/[\d.]+/.exec(navigator.userAgent) || [''])[0] : '');
+}
 let loadP = 0;
 // реплики (их ключи — в timing.json) в английской версии лежат в snd/en/
 const VOICE_RE = /^ch_(katya|whisper)$/;
@@ -73,14 +83,15 @@ const sndUrl = k => (TIM[k] && TIM[k].vl ? 'snd/' + TIM[k].vl + '/' : VL !== 'ru
 async function load(onp) {
   let done = 0; const total = SNDS.length + 2 + 7 * 4, tick = (n = 1) => onp(Math.min(1, (done += n) / total));   // модели тяжёлые: каждая считается за 4
   // 3D-мир строится кодом прямо здесь; заодно прогреваем шейдеры, чтобы первая сцена не дёргалась
-  const models = window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => tick(4)).catch(() => false) : Promise.resolve(false);
-  const world = Promise.all([models, Promise.resolve(window.NS_FONTS).catch(() => null)]).then(() => new Promise(r => setTimeout(() => { try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(true); } } catch (e) { console.error(e); } worldTried = true; tick(); r(); }, 30)));   // иероглифы (NSCJK) — до текстур с надписями
+  const models = within(window.__W3chars && window.__W3chars.load ? window.__W3chars.load(() => { LD.m++; tick(4); }).catch(e => { LD.err.push('модели: ' + String(e && e.message || e).slice(0, 50)); return false; }) : Promise.resolve(false), window.nsTV ? 70000 : 150000, 'модели не догрузились');   // не догрузились — игра идёт на запасных фигурах, а не висит
+  const world = Promise.all([models, within(Promise.resolve(window.NS_FONTS).catch(() => null), 15000, 'шрифты')]).then(() => new Promise(r => setTimeout(() => { LD.w = 'сборка'; ldInfo(); try { if (window.World && World.init()) { World.vhs = VHS_LV[LS.get('vhs', vhsDef())] ?? .7; World.warm(true); LD.w = 'готов'; } else LD.w = 'нет WebGL'; } catch (e) { console.error(e); LD.w = 'ошибка'; LD.err.push(String(e && e.message || e).slice(0, 70)); } worldTried = true; tick(); r(); }, 30)));   // иероглифы (NSCJK) — до текстур с надписями
   // версии timing_<язык>.json — поднимать при каждой новой нарезке/сборке (кэш браузера)
   const TIMV = { en: 13, uk: 9, es: 2, pt: 2, de: 2, fr: 3, it: 3, pl: 3, tr: 3, zh: 3, ja: 3, ko: 3 };
   // сначала тайминги: по ним sndUrl решает, где лежит реплика (английские — в snd/en/); иначе пролог грузился русским
   const tm = get(EN ? 'timing_' + LNG + '.json?v=' + (TIMV[LNG] || 1) : 'timing.json?v=17', 'json').then(j => { TIM = j || {}; tick(); }).catch(tick);
-  const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; tick(); }).catch(tick));
-  await Promise.all([world, ...sn, tm]);
+  const sn = SNDS.map(k => tm.then(() => get(sndUrl(k), 'arraybuffer')).then(b => { rawSnd[k] = b; LD.s++; tick(); }).catch(tick));
+  const info = setInterval(ldInfo, 1000);
+  await Promise.all([world, within(Promise.all([...sn, tm]), window.nsTV ? 60000 : 150000, 'звуки догрузятся в игре')]); clearInterval(info);   // звуки, не успевшие за минуту, докачает очередь в фоне
   // остальные реплики (их много) докачиваются в фоне, уже во время игры — очередью по 4, в порядке сцен; нужные сейчас встают вперёд (voiceReady)
   const order = [...storySfx()]; for (const sc of Object.values(S.scenes)) order.push(...sceneKeys(sc)); order.push(...Object.keys(TIM));
   for (const k of order) if (!SNDS.includes(k)) fetchSnd(k);
@@ -2104,7 +2115,7 @@ function studio() {
 function afterSplash() {
   if (loaded) return RESUME ? resumeAfterReload() : menu();
   mode = 'load'; cardT = now();
-  uiEl.innerHTML = `<div class="screen boot"><div class="card">${ICON.phones}<span>${tr('18+ · жестокость и кровь · лучше в наушниках · в игре есть вспышки света и резкие звуки')}</span></div><div id="loadbar"><i style="width:${loadP * 100}%"></i></div></div>`;
+  uiEl.innerHTML = `<div class="screen boot"><div class="card">${ICON.phones}<span>${tr('18+ · жестокость и кровь · лучше в наушниках · в игре есть вспышки света и резкие звуки')}</span></div><div id="loadbar"><i style="width:${loadP * 100}%"></i></div><div id="loadinfo"></div></div>`; ldInfo();
 }
 studio();
 // остальные места догреваются в фоне по одному (World.warmMore: шейдеры собирает драйвер в своих потоках, кадр не рисуется): в меню и на паузе — подряд и с тенями, в игре — реже и без лишних кадров
