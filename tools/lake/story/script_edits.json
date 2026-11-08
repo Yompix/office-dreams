@@ -1,0 +1,1829 @@
+[
+ {
+  "ch": "ch1",
+  "sid": "s1_talk",
+  "old_ru": "Айрис?.. Где мы?.. Чья это кровь?",
+  "new_ru": "Айрис?.. Где мы? Чья это кровь?",
+  "old_en": "Iris…? Where are we…? Whose blood is this?",
+  "new_en": "Iris? Where are we? …Whose blood is this?",
+  "why": "лишние многоточия в EN («Iris…?», «we…?») — так не пишут; в RU одно лишнее"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s2_b",
+  "old_ru": "…рост около ста восьмидесяти, тёмная куртка, мужская, старого кроя…",
+  "new_ru": "…рост около ста восьмидесяти, был одет в тёмную куртку старого образца…",
+  "old_en": "…about six feet tall, wearing a dark, old-fashioned man’s jacket…",
+  "new_en": "…about six feet tall, last seen wearing an old dark jacket…",
+  "why": "ориентировка по радио звучит иначе; «куртка, мужская» — нагромождение; в EN «man’s jacket» лишнее для мужчины"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s2_b",
+  "old_ru": "Айрис закрывает уши и тихо напевает колыбельную — ту самую.",
+  "new_ru": "Айрис зажимает уши и тихо напевает колыбельную — ту самую.",
+  "old_en": "Iris covers her ears and quietly hums the lullaby — the same one.",
+  "new_en": "Iris covers her ears and quietly hums the lullaby — the same one.",
+  "why": "по-русски уши «зажимают», а не «закрывают»"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s3_hit",
+  "old_ru": "Олень бьётся на дороге. Ноги сломаны. Он дышит — и кричит.",
+  "new_ru": "Олень бьётся на дороге. Ноги сломаны. Он ещё дышит — и кричит.",
+  "old_en": "The deer thrashes on the road. Its legs are broken. It breathes — and screams.",
+  "new_en": "The deer thrashes on the road. Its legs are broken. It’s still breathing — and screaming.",
+  "why": "«дышит — и кричит» без «ещё» звучит странно; EN дословный"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s3_leave",
+  "old_ru": "Крик оленя тянется за машиной. Айрис закрывает уши.",
+  "new_ru": "Крик оленя тянется за машиной. Айрис зажимает уши.",
+  "old_en": "The deer’s scream trails after the car. Iris covers her ears.",
+  "new_en": "The deer’s scream trails after the car. Iris covers her ears.",
+  "why": "«зажимает уши» — естественнее"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s4",
+  "old_ru": "Мигает лампа бензина.",
+  "new_ru": "Мигает лампочка бензина.",
+  "old_en": "The fuel light is blinking.",
+  "new_en": "The fuel light is blinking.",
+  "why": "так говорят водители: «лампочка бензина»"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s4",
+  "old_ru": "В голове у Ноя нарастает гул. Края мира пульсируют.",
+  "new_ru": "В голове у Ноя нарастает гул. По краям в глазах пульсирует темнота.",
+  "old_en": "A hum builds inside Noah’s head. The edges of the world pulse.",
+  "new_en": "A hum builds inside Noah’s head. Darkness pulses at the edges of his vision.",
+  "why": "«края мира пульсируют» — книжная, непонятная фраза; описываем, что он видит"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s4_b",
+  "old_ru": "Ты же их ненавидел.",
+  "new_ru": "Ты же их всегда ненавидел.",
+  "old_en": "You always hated them.",
+  "new_en": "You always hated them.",
+  "why": "прошедшее время без «всегда» звучит так, будто он их больше не ненавидит; EN уже с «always»"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s5",
+  "old_ru": "Мама сказала ждать. Она… уже долго.",
+  "new_ru": "Мама сказала ждать. Её… уже долго нет.",
+  "old_en": "Mom told me to wait. She’s been gone… a long time.",
+  "new_en": "Mom told me to wait. She’s been gone… a long time.",
+  "why": "«Она… уже долго» — грамматически оборвано, непонятно что «долго»"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s7_iris",
+  "old_ru": "Айрис плачет беззвучно.",
+  "new_ru": "Айрис беззвучно плачет.",
+  "old_en": "Iris is crying without a sound.",
+  "new_en": "Iris is crying silently.",
+  "why": "порядок слов; EN естественнее"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s7_c",
+  "old_ru": "Айрис молча протягивает Дэнни свои варежки.",
+  "new_ru": "Айрис протягивает Дэнни свои варежки.",
+  "old_en": "Without a word, Iris hands Danny her mittens.",
+  "new_en": "Iris hands Danny her mittens.",
+  "why": "следующая строка — «Молчание.»: «молча» повторяет её"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s7_talk",
+  "old_ru": "Воду. Почему-то всегда воду.",
+  "new_ru": "Воду. Почему-то всегда воду.",
+  "old_en": "Water. For some reason, always water.",
+  "new_en": "Water. I don’t know why. Always water.",
+  "why": "EN — дословный перевод, вслух так не говорят"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s7_talk",
+  "old_ru": "Ты уже спрашивал.",
+  "new_ru": "Не надо.",
+  "old_en": "You already asked.",
+  "new_en": "Don’t.",
+  "why": "нелогично: если в начале выбрали «Мы возвращаемся», Ной про дом не спрашивал"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s7_talk",
+  "old_ru": "Она сжимает блокнот так, что белеют пальцы.",
+  "new_ru": "Она прижимает блокнот к груди обеими руками.",
+  "old_en": "She grips the notebook until her knuckles go white.",
+  "new_en": "She clutches the notebook to her chest with both hands.",
+  "why": "повтор: «белые пальцы» уже были в первой сцене"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s7_talk",
+  "old_ru": "Можно я теперь съем шоколадку?",
+  "new_ru": "А шоколадку теперь можно?",
+  "old_en": "Can I eat the chocolate now?",
+  "new_en": "Can I have the chocolate now?",
+  "why": "по-детски живее; «eat the chocolate» — калька"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s7_talk",
+  "old_ru": "Можно.",
+  "new_ru": "Можно.",
+  "old_en": "You can.",
+  "new_en": "Go ahead.",
+  "why": "«You can.» — дословно, так не отвечают"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s7_talk",
+  "old_ru": "Зря я их выбросил?",
+  "new_ru": "Зря я их выбросил?",
+  "old_en": "Was I wrong to throw them out?",
+  "new_en": "Maybe I shouldn’t have tossed them.",
+  "why": "EN книжный, в разговоре так не спрашивают"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s7_talk",
+  "old_ru": "Может, надо было выпить?",
+  "new_ru": "Может, надо было принять?",
+  "old_en": "Maybe I should have taken one.",
+  "new_en": "Maybe I should have taken one.",
+  "why": "«надо было выпить» без слова «таблетку» звучит как про алкоголь"
+ },
+ {
+  "ch": "ch1",
+  "sid": "s7_talk",
+  "old_ru": "На них ты спишь с открытыми глазами.",
+  "new_ru": "На них ты спишь с открытыми глазами.",
+  "old_en": "On them you sleep with your eyes open.",
+  "new_en": "When you take them, you’re asleep with your eyes open.",
+  "why": "EN «On them you sleep» — калька с русского"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_recap",
+  "old_ru": "Олень на дороге. Ной уехал, а он кричал.",
+  "new_ru": "Олень на дороге. Ной уехал, а олень кричал.",
+  "old_en": "A deer on the road. Noah drove away while it screamed.",
+  "new_en": "A deer on the road. Noah drove away while it screamed.",
+  "why": "«он» читается как Ной — неясно, кто кричал"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_recap",
+  "old_ru": "Олень на дороге. Ной сидел с ним, пока он не затих.",
+  "new_ru": "Олень на дороге. Ной сидел с ним, пока тот не затих.",
+  "old_en": "A deer on the road. Noah sat with it until it went still.",
+  "new_en": "A deer on the road. Noah sat with it until it went still.",
+  "why": "«с ним, пока он» — путаница местоимений"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s1",
+  "old_ru": "Ной один со своими мыслями.",
+  "new_ru": "Не спит только Ной.",
+  "old_en": "Noah is alone with his thoughts.",
+  "new_en": "Only Noah is awake.",
+  "why": "книжный штамп; проще и точнее по кадру"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s1_b",
+  "old_ru": "Вода. Мостки. Мокрые волосы матери.",
+  "new_ru": "Вода. Мостки. Мамины мокрые волосы.",
+  "old_en": "Water. The dock. His mother’s wet hair.",
+  "new_en": "Water. The dock. Mom’s wet hair.",
+  "why": "вспышка — изнутри Ноя, он говорит «мама», не «мать»"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s2",
+  "old_ru": "Идёт спиной вперёд против ветра и машет обеими руками.",
+  "new_ru": "Пятится против ветра и машет обеими руками.",
+  "old_en": "She walks backwards into the wind, waving with both arms.",
+  "new_en": "She walks backwards into the wind, waving with both arms.",
+  "why": "«идёт спиной вперёд» — неуклюже, есть слово «пятится»"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s2_back",
+  "old_ru": "Зоя. Можно просто Зоя. Можно «спасительница», если очень хочется.",
+  "new_ru": "Зоя. Просто Зоя. Можешь не улыбаться, я привыкла.",
+  "old_en": "Zoe. Just Zoe. Or “savior,” if you really want.",
+  "new_en": "Zoe. Just Zoe. You don’t have to smile, I’m used to it.",
+  "why": "спасли её, а не она — «спасительница» нелогично; шутка теперь отвечает на взгляд Айрис"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s2_ride",
+  "old_ru": "На её запястье — пластиковый больничный браслет. Заметив взгляд Ноя, она прячет браслет в рукав.",
+  "new_ru": "На её запястье — пластиковый больничный браслет. Поймав взгляд Ноя, она натягивает рукав.",
+  "old_en": "A plastic hospital bracelet on her wrist. She catches Noah looking and tucks it into her sleeve.",
+  "new_en": "A plastic hospital bracelet on her wrist. She catches Noah looking and tucks it into her sleeve.",
+  "why": "повтор «браслет» дважды в одной фразе"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s2_ride",
+  "old_ru": "В зеркале: на её запястье — пластиковый больничный браслет. Заметив взгляд, она прячет браслет в рукав.",
+  "new_ru": "В зеркале: на её запястье — пластиковый больничный браслет. Поймав его взгляд, она натягивает рукав.",
+  "old_en": "In the mirror: a plastic hospital bracelet on her wrist. She catches him looking and tucks it into her sleeve.",
+  "new_en": "In the mirror: a plastic hospital bracelet on her wrist. She catches him looking and tucks it into her sleeve.",
+  "why": "повтор «браслет»; «заметив взгляд» — чей, неясно"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s2_q",
+  "old_ru": "Сувенир. Из санатория. Скучный был санаторий.",
+  "new_ru": "Сувенир. Из санатория. Скучный был санаторий.",
+  "old_en": "A souvenir. From a sanatorium. Boring sanatorium.",
+  "new_en": "A souvenir. From a sanatorium. Boring place.",
+  "why": "EN: калька повтора, по-английски звучит коряво"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s3_order",
+  "old_ru": "Если меня вернут туда — я оттуда уже не выйду.",
+  "new_ru": "Если меня вернут — я оттуда уже не выйду.",
+  "old_en": "If they send me back there, I’m never getting out.",
+  "new_en": "If they send me back there, I’m never getting out.",
+  "why": "«туда — оттуда» тавтология"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s3_zoe_ok",
+  "old_ru": "Айрис смотрит на Зою так, будто та украла у неё что-то.",
+  "new_ru": "Айрис смотрит на Зою так, будто та у неё что-то украла.",
+  "old_en": "Iris looks at Zoe as if she’d stolen something from her.",
+  "new_en": "Iris looks at Zoe as if she’d stolen something from her.",
+  "why": "естественный порядок слов"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s3_out",
+  "old_ru": "Стой здесь. Мы вернёмся.",
+  "new_ru": "Ждите здесь. Мы вернёмся.",
+  "old_en": "Stay right here. We’ll be back.",
+  "new_en": "Stay right here. We’ll be back.",
+  "why": "полицейский весь разговор на «вы»; «стой здесь» — он сидит в машине"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s3_out",
+  "old_ru": "Ждать Ной не стал.",
+  "new_ru": "Ждать Ной не собирается.",
+  "old_en": "Noah doesn’t wait.",
+  "new_en": "Noah doesn’t wait.",
+  "why": "прошедшее время выбивается из настоящего, EN тоже в настоящем"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s3_turn",
+  "old_ru": "Ной разворачивается до поста. Лесная дорога в объезд.",
+  "new_ru": "Ной разворачивается, не доезжая до поста. В объезд — лесом.",
+  "old_en": "Noah turns around before the checkpoint. A forest road, the long way.",
+  "new_en": "Noah turns around short of the checkpoint. The long way, through the woods.",
+  "why": "«разворачивается до поста» — канцелярит, повтор кнопки"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s3_turn",
+  "old_ru": "Проехали. Но потеряли час.",
+  "new_ru": "Объехали. Но потеряли час.",
+  "old_en": "They got around it. But they lost an hour.",
+  "new_en": "They got around it. But they lost an hour.",
+  "why": "«проехали» двусмысленно (и сленг «забудь»), а они именно объехали"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s3_road",
+  "old_ru": "Нормально. Не спрашивай, ладно? Просто довези нас.",
+  "new_ru": "Нормально. Просто довези нас, ладно?",
+  "old_en": "Fine. Don’t ask, okay? Just get us there.",
+  "new_en": "Fine. Just get us there, okay?",
+  "why": "«Не спрашивай, ладно?» дословно повторяет реплику Зои в той же сцене; Айрис — короче"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s3_road",
+  "old_ru": "Она поёт, когда добрая. А когда пьёт — спит. Я ей вторую рацию оставил.",
+  "new_ru": "Она поёт, когда добрая. А когда пьёт — спит. Я ей вторую рацию оставил.",
+  "old_en": "She sings when she’s nice. When she drinks, she sleeps. I left her the other walkie-talkie.",
+  "new_en": "She sings when she’s happy. When she drinks, she sleeps. I left her the other walkie-talkie.",
+  "why": "EN: «when she’s nice» — калька «когда добрая»"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s3_road",
+  "old_ru": "Не спрашивай дальше, ладно? Я начну врать, а ты заметишь. Ты такой.",
+  "new_ru": "Не спрашивай дальше, ладно? Я начну врать, а ты заметишь. Ты такой.",
+  "old_en": "Don’t ask any more, okay? I’ll start lying and you’ll notice. You’re that kind.",
+  "new_en": "Don’t ask any more, okay? I’ll start lying and you’ll catch it. You’re like that.",
+  "why": "EN: «You’re that kind» — неживое"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s3_road",
+  "old_ru": "Айрис, куда мы вообще едем?",
+  "new_ru": "Айрис. Куда мы всё-таки едем?",
+  "old_en": "Iris, where are we actually going?",
+  "new_en": "Iris. Where are we actually going?",
+  "why": "«вообще» уже было в вопросе Зое; «всё-таки» — он спрашивает не впервые"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s4_eva",
+  "old_ru": "Ной — механик. Он смотрит на её машину через окно: сломана полуось. Дальше она не поедет.",
+  "new_ru": "Ной — механик. Ему хватает взгляда в окно: колесо вывернуто, полуось сломана. Эта машина отъездилась.",
+  "old_en": "Noah’s a mechanic. He looks at her car through the window: a broken axle. It’s not going anywhere.",
+  "new_en": "Noah’s a mechanic. One look through the window is enough: the wheel’s twisted, the axle’s broken. That car’s done.",
+  "why": "полуось в окно не видно — нужен видимый признак; «дальше она не поедет» читается как про Еву"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s4_eva",
+  "old_ru": "Мне надо к сестре. На север. Мне… через месяц.",
+  "new_ru": "Мне надо к сестре. На север. Мне рожать… через месяц.",
+  "old_en": "I need to get to my sister’s. Up north. I’m due… next month.",
+  "new_en": "I need to get to my sister’s. Up north. I’m due… next month.",
+  "why": "«Мне… через месяц» — непонятно, что через месяц"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s4_eva",
+  "old_ru": "Айрис садится рядом. Ева поправляет ей капюшон — как мама. Айрис позволяет.",
+  "new_ru": "Айрис садится рядом. Ева поправляет ей капюшон — как мама. Айрис не отстраняется.",
+  "old_en": "Iris sits down next to her. Eva fixes her hood — like a mom would. Iris lets her.",
+  "new_en": "Iris sits down next to her. Eva fixes her hood — like a mom would. Iris lets her.",
+  "why": "«позволяет» без дополнения — калька с let her"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s4_p3",
+  "old_ru": "Таблетки уходят в воду. Больше их нет.",
+  "new_ru": "Вода уносит таблетки. Все.",
+  "old_en": "The pills swirl away. There are no more.",
+  "new_en": "The pills swirl away. All of them.",
+  "why": "«уходят в воду» — неточно; «больше их нет» плоско"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s4_z",
+  "old_ru": "«Тебе надо ехать с кем-то другим»",
+  "new_ru": "«Тебе лучше ехать с кем-нибудь другим»",
+  "old_en": "“You should ride with someone else”",
+  "new_en": "“You should find another ride”",
+  "why": "живая речь; EN естественнее"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s4_z1",
+  "old_ru": "Зоя смотрит на него иначе.",
+  "new_ru": "Зоя смотрит на него — уже без улыбки.",
+  "old_en": "Zoe looks at him differently.",
+  "new_en": "Zoe looks at him — not smiling now.",
+  "why": "«иначе» — пусто, ничего не играется"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s4_z2",
+  "old_ru": "Он берёт её за руку. Она не отнимает руки.",
+  "new_ru": "Он берёт её за руку. Она не убирает руку.",
+  "old_en": "He takes her hand. She doesn’t pull away.",
+  "new_en": "He takes her hand. She doesn’t pull away.",
+  "why": "«не отнимает руки» — книжно"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s4_z3",
+  "old_ru": "Тебе надо ехать с кем-то другим.",
+  "new_ru": "Тебе лучше ехать с кем-нибудь другим.",
+  "old_en": "You should ride with someone else.",
+  "new_en": "You should find another ride.",
+  "why": "в пару к кнопке"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s5_walk",
+  "old_ru": "Айрис видела всё — из окна.",
+  "new_ru": "Айрис всё видела из окна.",
+  "old_en": "Iris saw everything — from the window.",
+  "new_en": "Iris saw everything — from the window.",
+  "why": "лишнее тире, порядок слов"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s5_stay",
+  "old_ru": "Ночью кто-то трогает ручку их машины.",
+  "new_ru": "Ночью кто-то дёргает ручку их машины.",
+  "old_en": "In the night, someone tries the handle on their car.",
+  "new_en": "In the night, someone tries the handle on their car.",
+  "why": "«трогает» — не то; пробуют открыть — «дёргает»"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s5_stay",
+  "old_ru": "Утром седана нет. Только следы шин, заметённые снегом.",
+  "new_ru": "Утром седана нет. Только следы шин — их уже заметает.",
+  "old_en": "In the morning the sedan is gone. Only tire tracks, drifting over with snow.",
+  "new_en": "In the morning the sedan is gone. Only tire tracks, already drifting over.",
+  "why": "заметённые следы не увидишь — логика"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s6_alone",
+  "old_ru": "Я поняла.",
+  "new_ru": "Ничего. Я понимаю.",
+  "old_en": "I understand.",
+  "new_en": "It’s okay. I understand.",
+  "why": "голос Евы — мягко, без обиды; «Я поняла» звучит сухо, как упрёк"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_s6_alone",
+  "old_ru": "Когда они отъезжают, к Еве подходит один из дальнобойщиков и кивает на свой пикап.",
+  "new_ru": "Когда они отъезжают, к Еве подходит один из дальнобойщиков и кивает на свою фуру.",
+  "old_en": "As they pull away, one of the truckers walks over to Eva and nods toward his pickup.",
+  "new_en": "As they pull away, one of the truckers walks over to Eva and nods toward his rig.",
+  "why": "у дальнобойщика фура, а не пикап"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm",
+  "old_ru": "Белая мгла. Фары упираются в снег в двух шагах. Где кончается дорога — не видно.",
+  "new_ru": "Белая мгла. Фары упираются в снег в двух шагах. Где кончается дорога — не видно.",
+  "old_en": "A white haze. The headlights hit snow two steps ahead. There’s no telling where the road ends.",
+  "new_en": "Whiteout. The headlights hit snow two steps ahead. There’s no telling where the road ends.",
+  "why": "EN: «white haze» — дымка, а это буран: whiteout"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_slip",
+  "old_ru": "Порыв сносит машину к обочине. Ной тормозит — задом её разворачивает в сугроб.",
+  "new_ru": "Порыв сносит машину к обочине. Ной тормозит — машину разворачивает и задом сажает в сугроб.",
+  "old_en": "A gust shoves the car toward the shoulder. Noah brakes — the back end swings round into a drift.",
+  "new_en": "A gust shoves the car toward the shoulder. Noah brakes — the back end swings round into a drift.",
+  "why": "«задом её разворачивает» — корявое безличное"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_wait",
+  "old_ru": "Не едь. Подождём, пока стихнет.",
+  "new_ru": "Стой. Переждём, пока стихнет.",
+  "old_en": "Don’t drive. Let’s wait till it dies down.",
+  "new_en": "Stop. Let’s wait till it dies down.",
+  "why": "«не едь» — просторечная ошибка; машина и так стоит"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_wait",
+  "old_ru": "Про бабушку",
+  "new_ru": "«Расскажи про бабушку»",
+  "old_en": "About Grandma",
+  "new_en": "“Tell me about Grandma”",
+  "why": "остальные кнопки здесь — реплики в кавычках"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_wait",
+  "old_ru": "Агнес. Мамина мама. Папа запрещал о ней даже говорить.",
+  "new_ru": "Агнес. Её зовут Агнес. При папе о ней даже говорить было нельзя.",
+  "old_en": "Agnes. Mom’s mom. Dad wouldn’t even let us talk about her.",
+  "new_en": "Agnes. Her name’s Agnes. We couldn’t even mention her around Dad.",
+  "why": "почти дословный повтор её же реплики минутой раньше («Мамина мама. Папа запрещал»)"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_wait",
+  "old_ru": "Приходишь к нему с бедой. Уходишь без беды.",
+  "new_ru": "Приходишь к нему с бедой. Уходишь без беды.",
+  "old_en": "You go to him with something wrong. You leave without it.",
+  "new_en": "You go to him with a problem. You leave without it.",
+  "why": "EN: «something wrong» — неуклюже"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_wait",
+  "old_ru": "Машину увижу. На ощупь.",
+  "new_ru": "Машину найду. На ощупь.",
+  "old_en": "I’ll find the car. By feel.",
+  "new_en": "I’ll find the car. By feel.",
+  "why": "«увижу на ощупь» — нелогично; EN уже «find»"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_inside",
+  "old_ru": "В машине без мотора холод приходит быстро.",
+  "new_ru": "Без мотора машина выстывает быстро.",
+  "old_en": "Without the engine running, the cold creeps into the car fast.",
+  "new_en": "With the engine off, the car goes cold fast.",
+  "why": "«холод приходит» — книжно"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_inside",
+  "old_ru": "И ты уехала?",
+  "new_ru": "И вы уехали?",
+  "old_en": "And you left?",
+  "new_en": "And you left?",
+  "why": "Айрис 15, Еве 26, Ной говорит ей «вы» — подростку естественно «вы»"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_inside",
+  "old_ru": "Слушай. Он правда не помнит, что было дома?",
+  "new_ru": "Слушай. Он правда ничего не помнит? Совсем?",
+  "old_en": "Listen. Does he really not remember what happened at home?",
+  "new_en": "Listen. Does he really not remember anything? At all?",
+  "why": "Зоя не знает, что было дома (знает только то, что видела) — утечка знания"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_inside",
+  "old_ru": "Он не потеряется?",
+  "new_ru": "Он не потеряется?",
+  "old_en": "He won’t get lost?",
+  "new_en": "What if he gets lost?",
+  "why": "EN: детский вопрос звучит как калька"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_back",
+  "old_ru": "…на трассе на север — затор: сложилась фура. Движение закрыто до утра.",
+  "new_ru": "…на северной трассе сложилась фура. Движение перекрыто до утра.",
+  "old_en": "…northbound highway: a jackknifed truck. The road is closed until morning.",
+  "new_en": "…a jackknifed semi on the northbound highway. The road is closed until morning.",
+  "why": "«на трассе на север — затор:» тяжело на слух; EN — semi, как в остальной главе"
+ },
+ {
+  "ch": "ch2",
+  "sid": "c2_storm_back",
+  "old_ru": "На боковых дорогах заносы. Если машина встала — держите выхлопную трубу свободной от снега и приоткройте окно.",
+  "new_ru": "На боковых дорогах заносы. Если машина встала — откопайте выхлопную трубу и приоткройте окно.",
+  "old_en": "Heavy drifts on side roads. If your car gets stuck, keep the exhaust pipe clear of snow and leave a window open.",
+  "new_en": "Heavy drifts on side roads. If your car gets stuck, keep the exhaust pipe clear and crack a window.",
+  "why": "«держите свободной от снега» — канцелярит; EN «leave a window open» — не то"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_recap",
+  "old_ru": "Ной бежал с поста полиции.",
+  "new_ru": "Ной прорвался через пост полиции.",
+  "old_en": "Noah ran the police checkpoint.",
+  "new_en": "Noah ran the police checkpoint.",
+  "why": "«бежал с поста» звучит как дезертир; речь о том, что проскочил пост"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_recap",
+  "old_ru": "В туалете кафе в зеркале был мокрый мальчик.",
+  "new_ru": "В зеркале в туалете кафе — мокрый мальчик.",
+  "old_en": "In the diner bathroom mirror — a soaking wet boy.",
+  "new_en": "In the diner bathroom mirror — a soaking wet boy.",
+  "why": "корявый порядок слов, «был» лишнее"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s1",
+  "old_ru": "Колёса буксуют. Машина садится в сугроб — в двухстах метрах от деревни.",
+  "new_ru": "Колёса буксуют. Машина садится в сугроб — в двухстах метрах от деревни.",
+  "old_en": "The wheels spin. The car sinks into a drift — two hundred yards from the village.",
+  "new_en": "The wheels spin. The car sinks into a drift — two hundred meters from the village.",
+  "why": "в главе метрика (двадцать километров) — не мешать ярды и километры"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s1_evacar",
+  "old_ru": "В фарах — чужой пикап в кювете, полузанесённый снегом. Мотор заглох, фары едва светят.",
+  "new_ru": "В свете фар — чужой пикап в кювете, полузанесённый снегом. Мотор заглох, его фары еле светят.",
+  "old_en": "In the headlights — someone’s pickup in the ditch, half buried in snow. The engine’s dead; the headlights barely glow.",
+  "new_en": "Their headlights pick out a pickup in the ditch, half buried in snow. Its engine’s dead; its lights barely glow.",
+  "why": "«фары» дважды и непонятно чьи"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s1_evacar",
+  "old_ru": "Я соврала… Не через месяц. Сейчас.",
+  "new_ru": "Простите… я соврала. Не через месяц. Сейчас.",
+  "old_en": "I lied… It’s not next month. It’s now.",
+  "new_en": "I’m sorry… I lied. It’s not next month. It’s now.",
+  "why": "голос Евы — извиняется за всё"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s1_dig",
+  "old_ru": "Я соврала… Не через месяц.",
+  "new_ru": "Простите… я соврала. Не через месяц.",
+  "old_en": "I lied… It’s not next month.",
+  "new_en": "I’m sorry… I lied. It’s not next month.",
+  "why": "голос Евы — извиняется; в паре с той же репликой в другой ветке"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s1_dig",
+  "old_ru": "Ной — механик. Спустить колёса и подложить коврики.",
+  "new_ru": "Ной — механик, он знает, что делать: приспустить колёса, подложить коврики.",
+  "old_en": "Noah is a mechanic. He knows the trick: let some air out of the tires, wedge the floor mats under them.",
+  "new_en": "Noah is a mechanic. He knows the trick: let some air out of the tires, wedge the floor mats under them.",
+  "why": "инфинитивы без связки; «спустить колёса» = в ноль, нужно «приспустить»"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s1_dig",
+  "old_ru": "Быстро жми E / пробел — подкопать, спустить, подложить",
+  "new_ru": "Быстро жми E / пробел — подкопать, приспустить, подложить",
+  "old_en": "Mash E / Space — dig, deflate, wedge",
+  "new_en": "Mash E / Space — dig, deflate, wedge",
+  "why": "как в ремарке: приспустить, а не спустить"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s2",
+  "old_ru": "Она видит в его лице мать. Потом смотрит на Айрис — и отступает, пропуская всех в тепло.",
+  "new_ru": "Она видит в его лице мать. Потом смотрит на Айрис — и отступает, пропуская всех в тепло.",
+  "old_en": "She sees his mother in his face. Then she looks at Iris — and steps aside, letting them all into the warmth.",
+  "new_en": "She sees his mother in his face. Then she looks at Iris — and steps aside to let them in out of the cold.",
+  "why": "«into the warmth» — книжно, калька"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s2",
+  "old_ru": "«Ты — наша бабушка?»",
+  "new_ru": "«Вы — наша бабушка?»",
+  "old_en": "“Are you our grandmother?”",
+  "new_en": "“Are you our grandmother?”",
+  "why": "первая встреча с незнакомой старухой — тихий Ной скажет «вы»; соседний выбор «Помогите» тоже на «вы»"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s2_gran",
+  "old_ru": "Ты — наша бабушка?",
+  "new_ru": "Вы — наша бабушка?",
+  "old_en": "Are you our grandmother?",
+  "new_en": "Are you our grandmother?",
+  "why": "то же: «вы» при первой встрече"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s2_gran",
+  "old_ru": "Была. Пока ваш отец не запретил.",
+  "new_ru": "Была. Пока ваш отец не запретил.",
+  "old_en": "I was. Until your father forbade it.",
+  "new_en": "I was. Until your father put a stop to it.",
+  "why": "«forbade» — книжно"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s2_quiet",
+  "old_ru": "Знаю. Это ему сделали.",
+  "new_ru": "Знаю. Это с ним сделали.",
+  "old_en": "I know. Somebody did that to him.",
+  "new_en": "I know. Somebody did that to him.",
+  "why": "«это ему сделали» — неуклюже"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s3_dark",
+  "old_ru": "Без света не справлюсь. Генератор-то в сарае есть, а бензину нет. Бензин — в магазине, у Петра.",
+  "new_ru": "Без света не управлюсь. Генератор в сарае есть, да бензину нету. Бензин у Петра, в магазине.",
+  "old_en": "I can’t do this without light. There’s a generator in the shed, but no gas. Gas is at the store — Pyotr’s place.",
+  "new_en": "I can’t do this in the dark. There’s a generator in the shed, but no gas. Pyotr’s got gas, at the store.",
+  "why": "«бензин» трижды, тяжёлая фраза; деревенская речь"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s3_zoe",
+  "old_ru": "Зоя уходит в метель. Долго. Потом — шаги на крыльце.",
+  "new_ru": "Зоя уходит в метель. Её долго нет. Потом — шаги на крыльце.",
+  "old_en": "Zoe walks out into the storm. She’s gone a long time. Then — footsteps on the porch.",
+  "new_en": "Zoe walks out into the storm. She’s gone a long time. Then — footsteps on the porch.",
+  "why": "«Долго.» — оборванный, непонятный обрубок"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s3_zoe",
+  "old_ru": "На краю деревни стоит машина. Чёрная. С выключенными фарами.",
+  "new_ru": "Там, на краю деревни, машина стоит. Чёрная. Фары не горят.",
+  "old_en": "There’s a car at the edge of the village. Black. Headlights off.",
+  "new_en": "There’s a car at the edge of the village. Black. Headlights off.",
+  "why": "«с выключенными фарами» — протокол, а не живая речь Зои"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s3_birth",
+  "old_ru": "Держи здесь! Сильнее!",
+  "new_ru": "Вот тут держи! Крепче!",
+  "old_en": "Press here! Harder!",
+  "new_en": "Press here! Harder!",
+  "why": "деревенская речь Агнес; «Держи здесь» — калька"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s3_birth",
+  "old_ru": "Ноя трясёт после провала у магазина. Агнес кладёт его ладони поверх рук Айрис: «Дави!»",
+  "new_ru": "Ноя трясёт после провала у магазина. Агнес кладёт его ладони поверх рук Айрис: «Дави!»",
+  "old_en": "Noah is still shaking from the blackout at the store. Agnes presses his palms over Iris’s hands: “Push down!”",
+  "new_en": "Noah is still shaking from the blackout at the store. Agnes presses his palms over Iris’s hands: “Press!”",
+  "why": "«Push» в сцене родов читается как «тужься» — путаница"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s3_alive",
+  "old_ru": "За полночь. Ева, белая и мокрая, держит девочку.",
+  "new_ru": "За полночь. Ева, бледная, вся в поту, держит девочку.",
+  "old_en": "Past midnight. Eva, pale and soaked, holds her baby girl.",
+  "new_en": "Past midnight. Eva, pale and drenched in sweat, holds her baby girl.",
+  "why": "«белая и мокрая» — неестественно"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s4",
+  "old_ru": "Айрис клюёт носом на лавке — перед этим она долго шепталась с бабушкой. Агнес курит трубку. Ной садится рядом.",
+  "new_ru": "Айрис долго шепталась с бабушкой, теперь клюёт носом на лавке. Агнес курит трубку. Ной садится рядом с ней.",
+  "old_en": "Iris is nodding off on the bench — she spent a long time whispering with Grandma first. Agnes smokes her pipe. Noah sits down beside her.",
+  "new_en": "Iris whispered with Grandma for a long time; now she’s nodding off on the bench. Agnes smokes her pipe. Noah sits down next to Agnes.",
+  "why": "«перед этим» — коряво; непонятно, рядом с кем садится Ной"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s4",
+  "old_ru": "Озеро своих не отпускает, милок. Кто утоп — тот при нём и остаётся. А злость его — в том, кто видел.",
+  "new_ru": "Озеро своих не отпускает, милок. Кто утоп — тот при нём и остаётся. А злость свою в том оставляет, кто видел.",
+  "old_en": "The lake doesn’t let its own go, dear. Whoever drowns stays with it. And its anger lives in whoever saw.",
+  "new_en": "The lake keeps its own, sonny. Whoever drowns stays with it. And the anger — it goes into whoever saw.",
+  "why": "по словарю: «The lake keeps its own», милок = sonny; «its anger» = злость озера — неверный смысл (злость утопшей)"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s4_pills",
+  "old_ru": "Ной поворачивается — в кармане гремят таблетки. Агнес слышит.",
+  "new_ru": "Ной шевелится — в кармане гремят таблетки. Агнес слышит.",
+  "old_en": "Noah shifts — the pills rattle in his pocket. Agnes hears it.",
+  "new_en": "Noah shifts — the pills rattle in his pocket. Agnes hears it.",
+  "why": "«поворачивается» — непонятно куда и зачем"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s4_pills",
+  "old_ru": "Дай мне его отраву.",
+  "new_ru": "Дай-ка сюда докторову отраву.",
+  "old_en": "Give me his poison.",
+  "new_en": "Give me that doctor’s poison.",
+  "why": "«его отраву» — непонятно чью (Хейла в сцене нет)"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s4_pills",
+  "old_ru": "Не отдавать и принять таблетку на ночь",
+  "new_ru": "Оставить себе и выпить таблетку на ночь",
+  "old_en": "Keep them and take a pill for the night",
+  "new_en": "Keep them and take a pill for the night",
+  "why": "«Не отдавать и принять» — канцелярит"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s4_pills",
+  "old_ru": "Не отдавать и не пить ничего",
+  "new_ru": "Оставить себе и ничего не пить",
+  "old_en": "Keep them and take nothing",
+  "new_en": "Keep them and take nothing",
+  "why": "«Не отдавать и не пить ничего» — канцелярит"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s4_give",
+  "old_ru": "Агнес бросает в печь всё, что было у него в кармане. Пластик съёживается в огне.",
+  "new_ru": "Агнес бросает пузырёк в печь. Пластик съёживается в огне.",
+  "old_en": "Agnes throws everything from his pocket into the stove. The plastic shrivels in the fire.",
+  "new_en": "Agnes tosses the bottle into the stove. The plastic shrivels in the fire.",
+  "why": "«всё, что было в кармане» — выходит, и ключи, и всё прочее"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s4_give",
+  "old_ru": "Пей. Спать будешь крепко.",
+  "new_ru": "Пей. Спать будешь крепко.",
+  "old_en": "Drink. You’ll sleep soundly.",
+  "new_en": "Drink up. You’ll sleep like a log.",
+  "why": "живее по-английски"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s4_brew_yes",
+  "old_ru": "Пей. Спать будешь крепко.",
+  "new_ru": "Пей. Спать будешь крепко.",
+  "old_en": "Drink. You’ll sleep soundly.",
+  "new_en": "Drink up. You’ll sleep like a log.",
+  "why": "как в той же реплике выше"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s4_take",
+  "old_ru": "Ты так похож на него сейчас. На отца.",
+  "new_ru": "Сейчас ты прямо как он. Как отец.",
+  "old_en": "You look so much like him right now. Like your father.",
+  "new_en": "Right now you look just like him. Your father.",
+  "why": "«Ты так похож на него сейчас» — книжный порядок"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s4_brew",
+  "old_ru": "Не пить",
+  "new_ru": "Не пить",
+  "old_en": "Don’t drink",
+  "new_en": "Don’t drink it",
+  "why": "пара к «Drink it»"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s5_lapse",
+  "old_ru": "Ной открывает глаза. Он стоит босиком в снегу у последнего дома — лицом к лесу, к озеру. В руке — топор из поленницы.",
+  "new_ru": "Ночь. Ной стоит босиком в снегу у последнего дома — лицом к лесу, к озеру. В руке — топор из поленницы.",
+  "old_en": "Noah opens his eyes. He is standing barefoot in the snow by the last house — facing the forest, the lake. In his hand — an axe from the woodpile.",
+  "new_en": "Night. Noah stands barefoot in the snow by the last house — facing the forest, the lake. In his hand — an axe from the woodpile.",
+  "why": "логика: «открывает глаза», а через три строки «приходит в себя» — он ещё в провале"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s5_lapse",
+  "old_ru": "Это была она.",
+  "new_ru": "Это она была.",
+  "old_en": "That was her.",
+  "new_en": "That was her.",
+  "why": "живая разговорная интонация"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s5_danny",
+  "old_ru": "«Подожди. Я тебе обещал — и нарушил. Прости»",
+  "new_ru": "«Подожди. Я тебе обещал — и не сдержал. Прости»",
+  "old_en": "“Wait. I made you a promise — and broke it. I’m sorry”",
+  "new_en": "“Wait. I promised you — and I broke it. I’m sorry”",
+  "why": "«обещал — и нарушил» — нарушают обещание, а не «обещал»"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s5_sorry",
+  "old_ru": "Подожди. Я тебе обещал — и нарушил. Прости.",
+  "new_ru": "Подожди. Я тебе обещал — и не сдержал. Прости.",
+  "old_en": "Wait. I made you a promise — and broke it. I’m sorry.",
+  "new_en": "Wait. I promised you — and I broke it. I’m sorry.",
+  "why": "то же, реплика к выбору"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s5_go_lie",
+  "old_ru": "«Ты и тогда врал». Дэнни выходит в буран.",
+  "new_ru": "«Ты и тогда врал». Дэнни выходит в буран.",
+  "old_en": "“You lied that time too.” Danny walks out into the storm.",
+  "new_en": "“You lied back then too.” Danny walks out into the storm.",
+  "why": "«that time too» — неестественно"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s6",
+  "old_ru": "Под утро буран стихает. В конце улицы загораются фары — чёрный седан. Гаснут.",
+  "new_ru": "Под утро буран стихает. В конце улицы вспыхивают фары — чёрный седан. И гаснут.",
+  "old_en": "Toward morning the storm dies down. At the end of the street, headlights come on — the black sedan. They go out.",
+  "new_en": "Toward morning the storm dies down. At the end of the street, headlights flare — the black sedan. Then they go out.",
+  "why": "«Гаснут.» оторвано от подлежащего"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s6",
+  "old_ru": "Это он. Он и тогда приезжал. После Ани.",
+  "new_ru": "Это он. Он и тогда приезжал. После Ани.",
+  "old_en": "It’s him. He came back then too. After Annie.",
+  "new_en": "It’s him. He showed up back then too. After Annie.",
+  "why": "«came back» = «вернулся» — неверный смысл"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s6",
+  "old_ru": "До дачи двадцать километров. Лесом.",
+  "new_ru": "До дачи двадцать километров. Лесом.",
+  "old_en": "It’s twenty kilometers to the cabin. Through the woods.",
+  "new_en": "Twenty kilometers to the lake house. Through the woods.",
+  "why": "по словарю дача = the lake house, не cabin"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s6_cellar",
+  "old_ru": "Подпол. Темнота и запах картошки. Тишина — час.",
+  "new_ru": "Подпол. Темно, пахнет картошкой. Час — ни звука.",
+  "old_en": "The cellar. Darkness and the smell of potatoes. Silence — for an hour.",
+  "new_en": "The cellar. Dark, the smell of potatoes. An hour without a sound.",
+  "why": "«Тишина — час» — коряво"
+ },
+ {
+  "ch": "ch3",
+  "sid": "c3_s6_neighbor",
+  "old_ru": "До света у Хейла нет их следа. Но лесом ночью, с младенцем, до дачи не дойти.",
+  "new_ru": "До рассвета Хейл их следа не найдёт. Но ночью, лесом, с младенцем до дачи не дойти.",
+  "old_en": "Hale won’t pick up their trail before daylight. But at night, through the woods, with a baby — they’d never make it to the lake house.",
+  "new_en": "Hale won’t pick up their trail before daylight. But at night, through the woods, with a baby — they’d never make it to the lake house.",
+  "why": "«у Хейла нет их следа» — калька"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_recap",
+  "old_ru": "Ева умерла родами. Девочку назвали Анной.",
+  "new_ru": "Ева умерла в родах. Девочку назвали Анной.",
+  "old_en": "Eva died giving birth. They named the girl Anna.",
+  "new_en": "Eva died giving birth. They named the girl Anna.",
+  "why": "«умерла родами» — архаично"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_recap",
+  "old_ru": "Зоя пропала ночью у кафе. На снегу остался её браслет.",
+  "new_ru": "Зоя пропала ночью у кафе. На снегу остался её браслет.",
+  "old_en": "Zoe vanished in the night at the diner. Her bracelet was left in the snow.",
+  "new_en": "Zoe vanished from the diner in the night. Her bracelet lay in the snow.",
+  "why": "EN: калька «in the night at the diner»"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_recap",
+  "old_ru": "Ночью Ной стоял босиком в снегу с топором и говорил чужим голосом.",
+  "new_ru": "Ночью Ной стоял босиком в снегу с топором и говорил чужим голосом.",
+  "old_en": "In the night Noah stood barefoot in the snow with an axe, speaking in someone else’s voice.",
+  "new_en": "That night Noah stood barefoot in the snow with an axe, talking in someone else’s voice.",
+  "why": "EN: «In the night» — неестественно"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_recap",
+  "old_ru": "Ночью сквозь помехи пел женский голос. Та самая колыбельная.",
+  "new_ru": "Ночью сквозь помехи пел женский голос. Та самая колыбельная.",
+  "old_en": "In the night a woman sang over the radio. That same lullaby.",
+  "new_en": "That night a woman’s voice sang through the static. The same lullaby.",
+  "why": "EN: потеряны «помехи», «In the night» неестественно"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s1",
+  "old_ru": "В кармане у Ноя — ещё и запасной пузырёк, тот, что был в куртке.",
+  "new_ru": "У Ноя в кармане куртки — ещё и запасной пузырёк.",
+  "old_en": "Noah still has the spare bottle in his pocket, too — the one from his jacket.",
+  "new_en": "And Noah still has the spare bottle in his jacket pocket.",
+  "why": "«в кармане… тот, что был в куртке» — путаная фраза"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s1_van",
+  "old_ru": "Их седан Хейл знает наизусть. А в сарае у Агнес — старая буханка покойного деда.",
+  "new_ru": "Их машину Хейл знает. А в сарае у Агнес — старая буханка, ещё дедова.",
+  "old_en": "Hale knows their sedan by heart. But in Agnes’s shed there’s her late husband’s old van.",
+  "new_en": "Hale knows their car. But in Agnes’s shed there’s an old van — Grandpa’s.",
+  "why": "«знает наизусть» про машину — неестественно; «седан» путает с машиной Хейла"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s1_van",
+  "old_ru": "Лет восемь не заводилась. Ты ж у нас механик?",
+  "new_ru": "Лет восемь не заводилась. Ты ж механик, милок?",
+  "old_en": "Hasn’t started in eight years. You’re the mechanic, aren’t you?",
+  "new_en": "Hasn’t started in eight years. You’re the mechanic, aren’t you, sonny?",
+  "why": "голос Агнес: деревенское «милок»"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s1_van",
+  "old_ru": "Всё на месте. Осталось только «с толкача».",
+  "new_ru": "Ной проверяет мотор — всё цело. Осталось завести с толкача.",
+  "old_en": "Everything’s in place. All that’s left is a push start.",
+  "new_en": "Noah checks the engine — it’s all there. Now it needs a push start.",
+  "why": "непонятно, кто проверил и что «на месте»"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s1_van2",
+  "old_ru": "Время уходит.",
+  "new_ru": "Время уходит.",
+  "old_en": "Time is slipping away.",
+  "new_en": "Time’s running out.",
+  "why": "EN: «slipping away» — книжно"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s2_zoe",
+  "old_ru": "Зоя долго смотрит в окно. Потом начинает сама, ни на кого не глядя.",
+  "new_ru": "Зоя долго смотрит в окно. Потом заговаривает сама, ни на кого не глядя.",
+  "old_en": "Zoe stares out the window for a long time. Then she starts talking, not looking at anyone.",
+  "new_en": "Zoe stares out the window for a long time. Then she starts talking, not looking at anyone.",
+  "why": "«начинает сама» — непонятно, что начинает"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s2_zoe",
+  "old_ru": "Ладно. Раз уж мы все тут… в одной буханке.",
+  "new_ru": "Ладно. Раз уж мы все тут… в одной буханке.",
+  "old_en": "Okay. Since we’re all here… in one old van.",
+  "new_en": "Okay. Since we’re all in the same… van.",
+  "why": "EN: обыграть «в одной лодке», живее"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s2_zoe",
+  "old_ru": "Не помню. В том-то и фишка. Мама заплатила — и я не помню.",
+  "new_ru": "Не помню. В том-то и фишка. Мама заплатила — и я не помню.",
+  "old_en": "I don’t remember. That’s the whole point. Mom paid, and I don’t remember.",
+  "new_en": "I don’t remember. That’s the thing. Mom paid, and I don’t remember.",
+  "why": "EN: «the whole point» — не тот смысл"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s2_believe",
+  "old_ru": "Зоя отворачивается к окну. Но — благодарно.",
+  "new_ru": "Зоя молча кивает и отворачивается к окну.",
+  "old_en": "Zoe turns to the window. But she’s grateful.",
+  "new_en": "Zoe gives a small nod and turns to the window.",
+  "why": "«отворачивается… но — благодарно» — книжно и нелогично"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s2_believe",
+  "old_ru": "Айрис утыкается в блокнот.",
+  "new_ru": "Айрис утыкается в блокнот.",
+  "old_en": "Iris buries her face in her notebook.",
+  "new_en": "Iris buries herself in her notebook.",
+  "why": "EN: «buries her face in» — не тот смысл"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s2_doubt",
+  "old_ru": "Ну спасибо.",
+  "new_ru": "Ну спасибо.",
+  "old_en": "Gee, thanks.",
+  "new_en": "Wow. Thanks.",
+  "why": "EN: «Gee» — устарело для 20-летней"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s3_tape2",
+  "old_ru": "Изолента рвётся. Ещё раз — медленнее. Держит. Но время ушло.",
+  "new_ru": "Изолента рвётся. Ещё раз — медленнее. Держит. Но время потеряно.",
+  "old_en": "The tape tears. Again — slower. It holds. But it’s cost them time.",
+  "new_en": "The tape tears. Again — slower. It holds. But it’s cost them time.",
+  "why": "«время ушло» = «слишком поздно», а смысл — потеряли время"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s3_pages",
+  "old_ru": "Рисунки, как комикс. Лестница. Отец с ремнём.",
+  "new_ru": "Рисунки — как комикс. Лестница. Отец с ремнём.",
+  "old_en": "The drawings run like a comic. The stairs. Dad with his belt.",
+  "new_en": "The drawings read like a comic strip. The stairs. Dad with his belt.",
+  "why": "пунктуация; EN «run like a comic» — калька"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s3_talk",
+  "old_ru": "Он шёл ко мне. Ты встал. А потом… это был не совсем ты.",
+  "new_ru": "Он шёл ко мне. Ты встал между нами. А потом… это был не совсем ты.",
+  "old_en": "He was coming for me. You stood up. And then… it wasn’t quite you.",
+  "new_en": "He was coming for me. You got between us. And then… it wasn’t really you.",
+  "why": "«Ты встал» двусмысленно (поднялся)"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s3_sorry",
+  "old_ru": "Ты меня спас, дурак.",
+  "new_ru": "Ты меня спас, дурак.",
+  "old_en": "You saved me, stupid.",
+  "new_en": "You saved me, idiot.",
+  "why": "EN: «stupid» как обращение звучит по-детски"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s3_hug",
+  "old_ru": "И впервые за всю дорогу плачет вслух.",
+  "new_ru": "И впервые за всю дорогу плачет — в голос.",
+  "old_en": "And for the first time on the whole trip, she cries out loud.",
+  "new_en": "And for the first time on the whole trip, she cries out loud.",
+  "why": "«плачет вслух» — калька, по-русски «в голос»"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s3_sleep",
+  "old_ru": "Тихо посмотреть",
+  "new_ru": "Заглянуть в блокнот",
+  "old_en": "Take a quiet look",
+  "new_en": "Sneak a look",
+  "why": "кнопка не говорит, на что смотреть"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s3_woke",
+  "old_ru": "Она забирает блокнот и отворачивается к стене.",
+  "new_ru": "Она забирает блокнот и отворачивается к окну.",
+  "old_en": "She takes the notebook back and turns to the wall.",
+  "new_en": "She takes the notebook back and turns to the window.",
+  "why": "в буханке нет «стены» — логика места"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s4_secret",
+  "old_ru": "Дэнни смотрит на него долго.",
+  "new_ru": "Дэнни долго смотрит на него.",
+  "old_en": "Danny looks at him for a long time.",
+  "new_en": "Danny looks at him for a long time.",
+  "why": "порядок слов"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s5",
+  "old_ru": "Агнесса… Сколько лет.",
+  "new_ru": "Агнесса… Сколько лет.",
+  "old_en": "Agnessa… It’s been so long.",
+  "new_en": "Agnessa… It’s been years.",
+  "why": "EN: живее"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s5",
+  "old_ru": "Я понимаю, ты напуган. Ты болен, Ной, и ты сам это знаешь.",
+  "new_ru": "Я понимаю, ты напуган. Ты болен, Ной, и ты сам это знаешь.",
+  "old_en": "I understand, you’re frightened. You’re ill, Noah, and you know it.",
+  "new_en": "I understand. You’re frightened. You’re ill, Noah, and you know it.",
+  "why": "EN: запятая-сплайс, «I understand, you’re…» неграмотно"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s5",
+  "old_ru": "Напасть — монтировка",
+  "new_ru": "Напасть с монтировкой",
+  "old_en": "Attack — the tire iron",
+  "new_en": "Attack with the tire iron",
+  "why": "«Напасть — монтировка» — обрывок"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s5_doubt",
+  "old_ru": "Ной сомневается. Хейл протягивает руку.",
+  "new_ru": "Ной колеблется. Хейл протягивает руку.",
+  "old_en": "Noah wavers. Hale holds out his hand.",
+  "new_en": "Noah wavers. Hale holds out his hand.",
+  "why": "«сомневается» — слабее и книжнее по смыслу"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s5_diary",
+  "old_ru": "Делай как знаешь.",
+  "new_ru": "Делай как знаешь.",
+  "old_en": "Do what you think is right.",
+  "new_en": "Fine. Your call.",
+  "why": "EN: «Do what you think is right» — книжно; это горькая уступка"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s5_weak",
+  "old_ru": "Таблетка ещё в крови. Ной слабый и медленный — санитар валит его в снег.",
+  "new_ru": "Таблетка ещё действует. Ной слабый и медленный — санитар валит его в снег.",
+  "old_en": "The pill is still in his system. Noah is weak and slow — the orderly takes him down into the snow.",
+  "new_en": "The pill is still in his system. Noah is weak and slow — the orderly takes him down into the snow.",
+  "why": "«таблетка в крови» — неуклюже, рядом «костяшки в крови»"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s5_weak",
+  "old_ru": "Айрис бьёт Хейла по руке. Шприц — в снегу.",
+  "new_ru": "Айрис бьёт Хейла по руке. Шприц — в снегу.",
+  "old_en": "Iris strikes Hale’s hand. The syringe drops into the snow.",
+  "new_en": "Iris knocks Hale’s hand aside. The syringe drops into the snow.",
+  "why": "EN: «strikes Hale’s hand» — неестественно"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6",
+  "old_ru": "Темнеет. Снег по колено. Впереди — охотничья избушка.",
+  "new_ru": "Темнеет. Ноги вязнут в снегу. Впереди — охотничья избушка.",
+  "old_en": "It’s getting dark. Knee-deep snow. Ahead — a hunting hut.",
+  "new_en": "It’s getting dark. Their feet sink into the snow. Ahead — a hunting hut.",
+  "why": "повтор «Снег по колено» двумя строками выше"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6",
+  "old_ru": "Спрятаться. Сквозь щели в стенах пляшет луч фонаря.",
+  "new_ru": "Они прячутся внутри. Сквозь щели в стенах пляшет луч фонаря.",
+  "old_en": "They hide. Through the gaps in the walls, a flashlight beam dances.",
+  "new_en": "They hide. Through the gaps in the walls, a flashlight beam dances.",
+  "why": "инфинитив «Спрятаться.» в описании — как команда"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_rock_iris",
+  "old_ru": "Девочка у Айрис на руках. Укачать — медленно, в ритм, не торопясь.",
+  "new_ru": "Девочка на руках у Айрис начинает хныкать. Её надо укачать — медленно, в ритм.",
+  "old_en": "The baby is in Iris’s arms. Rock her — slowly, in rhythm, no rushing.",
+  "new_en": "The baby in Iris’s arms starts to fuss. She needs rocking — slowly, in rhythm.",
+  "why": "описание дублировало подсказку инфинитивами; не было причины укачивать"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_cry",
+  "old_ru": "Бежать дальше — в темноту.",
+  "new_ru": "Они бегут дальше — в темноту.",
+  "old_en": "They run on — into the dark.",
+  "new_en": "They run on — into the dark.",
+  "why": "инфинитив в описании"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_zoe_save",
+  "old_ru": "Ной приходит в себя. Зоя рядом. У Ноя разбиты руки.",
+  "new_ru": "Ной приходит в себя. Зоя рядом. Руки у него разбиты в кровь.",
+  "old_en": "Noah comes to. Zoe is beside him. Noah’s hands are split open.",
+  "new_en": "Noah comes to. Zoe is beside him. His hands are torn up.",
+  "why": "повтор «Ноя»; EN «split open» — неточно"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_zoe_save",
+  "old_ru": "Санитар стонет в снегу. «Второй он» вытащил её — жёстко.",
+  "new_ru": "Санитар стонет в снегу. «Второй он» вытащил её — жёстко.",
+  "old_en": "The orderly groans in the snow. “The other him” got her out — the hard way.",
+  "new_en": "The orderly groans in the snow. The other Noah got her out — the hard way.",
+  "why": "словарь: «второй он» = the other Noah"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_zoe_save",
+  "old_ru": "Хейл отползает в темноту. «Второй он» вытащил её — жёстко.",
+  "new_ru": "Хейл отползает в темноту. «Второй он» вытащил её — жёстко.",
+  "old_en": "Hale crawls off into the dark. “The other him” got her out — the hard way.",
+  "new_en": "Hale crawls off into the dark. The other Noah got her out — the hard way.",
+  "why": "словарь: «второй он» = the other Noah"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_agnes",
+  "old_ru": "Идите. Идите, кому говорю. Я старая. Я его задержу.",
+  "new_ru": "Идите. Идите, кому говорю. Я своё пожила. Я его задержу.",
+  "old_en": "Go. Go on, I said. I’m old. I’ll hold him off.",
+  "new_en": "Go. Go on, I said. I’ve had my life. I’ll hold him off.",
+  "why": "голос Агнес: «Я старая» — плоско"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_agnes",
+  "old_ru": "Это ты ему сказал. Аню. Ты её отдал.",
+  "new_ru": "Это ты ему сказал. Про Аню. Ты её выдал.",
+  "old_en": "It was you who told him. About Annie. You gave her away.",
+  "new_en": "You told him. About Annie. You gave her up.",
+  "why": "«сказал. Аню.» — неграмотно; «отдал» → «выдал» (предал)"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_agnes",
+  "old_ru": "Уйти",
+  "new_ru": "Идти дальше",
+  "old_en": "Keep going",
+  "new_en": "Keep going",
+  "why": "«Уйти» звучит как бросить всех; в EN «Keep going»"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_danny_iris",
+  "old_ru": "Дэнни. Иди ко мне.",
+  "new_ru": "Дэнни. Иди ко мне.",
+  "old_en": "Danny. Come here, to me.",
+  "new_en": "Danny. Come to me.",
+  "why": "EN: «Come here, to me» — калька"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s7",
+  "old_ru": "Ной стучит зубами. Штаны — ледяная корка.",
+  "new_ru": "Ной стучит зубами. Штаны заледенели коркой.",
+  "old_en": "Noah’s teeth are chattering. His trousers are a crust of ice.",
+  "new_en": "Noah’s teeth are chattering. His jeans are stiff with ice.",
+  "why": "«Штаны — ледяная корка» — неуклюже; EN «trousers… crust» книжно"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s7",
+  "old_ru": "Мы приехали.",
+  "new_ru": "Пришли.",
+  "old_en": "We’re here.",
+  "new_en": "We’re here.",
+  "why": "логика: буханку бросили, через лес шли пешком — «приехали» неверно"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_door",
+  "old_ru": "Медленно… Жми E / пробел редко, в ритм — не торопись",
+  "new_ru": "Медленно… Жми E / пробел редко, в ритм — не торопись",
+  "old_en": "Slowly… Press E / Space rarely, in rhythm — don’t rush",
+  "new_en": "Slowly… Press E / Space with long pauses, in rhythm — don’t rush",
+  "why": "EN: «rarely» — не то слово"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_wait",
+  "old_ru": "Агнес закашливается в кулак. Айрис прижимает к её губам край шарфа.",
+  "new_ru": "Агнес закашливается в кулак. Айрис прижимает ей к губам край шарфа.",
+  "old_en": "Agnes coughs into her fist. Iris presses the end of her scarf to her lips.",
+  "new_en": "Agnes coughs into her fist. Iris presses the end of her scarf to Grandma’s lips.",
+  "why": "«к её губам» — неясно, к чьим"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s4_road",
+  "old_ru": "Упрямой. В восемь лет ушла пешком в город — за котёнком. Двенадцать вёрст. И принесла.",
+  "new_ru": "Упрямой. В восемь лет ушла пешком в город — за котёнком. Двенадцать вёрст. И принесла.",
+  "old_en": "Stubborn. At eight she walked to town on her own — for a kitten. Twelve versts. And she brought it home.",
+  "new_en": "Stubborn. At eight she walked to town on her own — for a kitten. Eight miles. And she brought it home.",
+  "why": "EN: «versts» — непонятное игроку слово (12 вёрст ≈ 8 миль)"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s4_road",
+  "old_ru": "Ты в неё. Тоже упёртый.",
+  "new_ru": "Ты в неё, милок. Такой же упёртый.",
+  "old_en": "You take after her. Just as pigheaded.",
+  "new_en": "You take after her, sonny. Just as pigheaded.",
+  "why": "голос Агнес: «милок»"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s4_road",
+  "old_ru": "Трясёт, как на тракторе. Мне нравится.",
+  "new_ru": "Трясёт, как на тракторе. Мне нравится.",
+  "old_en": "It shakes like a tractor. I like it.",
+  "new_en": "It’s like riding a tractor. I like it.",
+  "why": "EN: «shakes like a tractor» — калька"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s4_road",
+  "old_ru": "Нет. Но спасибо, что спросил. Это редкость.",
+  "new_ru": "Нет. Но спасибо, что спросил. Обычно не спрашивают.",
+  "old_en": "No. But thanks for asking. That’s rare.",
+  "new_en": "No. But thanks for asking. Nobody ever does.",
+  "why": "«Это редкость» — книжно для Зои"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s4_road",
+  "old_ru": "Не разбудишь. Ты сам за рулём «выпадаешь» — я видела.",
+  "new_ru": "Не разбудишь. Ты сам за рулём отключаешься. Я видела.",
+  "old_en": "You won’t. You blank out at the wheel yourself — I’ve seen it.",
+  "new_en": "You won’t. You zone out at the wheel yourself. I’ve seen it.",
+  "why": "«выпадаешь» в кавычках — неестественно"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_sana",
+  "old_ru": "Мама. Потом расскажу. Поехали.",
+  "new_ru": "Про маму. Потом расскажу. Поехали.",
+  "old_en": "Mom. I’ll tell you later. Let’s go.",
+  "new_en": "About Mom. I’ll tell you later. Let’s go.",
+  "why": "«Мама.» как ответ на «что там?» — непонятно"
+ },
+ {
+  "ch": "ch4",
+  "sid": "c4_s6_danny_no",
+  "old_ru": "Дэнни смотрит на разбитые руки Ноя. И уходит на голос.",
+  "new_ru": "Дэнни смотрит на Ноя — и пятится. Уходит на голос.",
+  "old_en": "Danny looks at Noah’s battered hands. And walks toward the voice.",
+  "new_en": "Danny looks at Noah — and backs away. He walks toward the voice.",
+  "why": "«разбитые руки» — и в ветке, где Ной не дрался; страх Дэнни перед Ноем — по библии"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_recap",
+  "old_ru": "«Второй он» убил санитара.",
+  "new_ru": "«Второй он» убил санитара.",
+  "old_en": "“The other him” killed the orderly.",
+  "new_en": "“The other Noah” killed the orderly.",
+  "why": "глоссарий: «второй он» = the other Noah"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_recap",
+  "old_ru": "Дэнни ушёл на голос Хейла.",
+  "new_ru": "Дэнни ушёл на голос Хейла.",
+  "old_en": "Danny walked toward Hale’s voice.",
+  "new_en": "Danny followed Hale’s voice.",
+  "why": "EN естественнее"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_recap",
+  "old_ru": "Ной нёс бабушку на себе. Она подвернула ногу.",
+  "new_ru": "Бабушка подвернула ногу. Ной нёс её на себе.",
+  "old_en": "Noah carried Grandma on his back. She twisted her ankle.",
+  "new_en": "Grandma twisted her ankle. Noah carried her on his back.",
+  "why": "причина после следствия — переставил"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s1",
+  "old_ru": "Ной отдирает доски с окна. В дом входит серый свет.",
+  "new_ru": "В дом пробивается серый свет.",
+  "old_en": "Noah pries the boards off a window. Gray light comes into the house.",
+  "new_en": "Gray light seeps into the house.",
+  "why": "«свет входит в дом» — книжно"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s1",
+  "old_ru": "На лёд у мостков не ходите. Там ключи бьют — лёд и в лютый мороз не держит.",
+  "new_ru": "Неча на лёд у мостков ходить. Там ключи бьют — лёд и в лютый мороз не держит.",
+  "old_en": "Stay off the ice by the dock. There’s springs under there — it won’t hold, not even in a hard freeze.",
+  "new_en": "Stay off the ice by the dock. There’s springs under there — it won’t hold, not even in a hard freeze.",
+  "why": "голос Агнес («неча»)"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s1",
+  "old_ru": "Она мне тут косы заплетала. Я думала, это сон.",
+  "new_ru": "Мама мне тут косы заплетала. Я думала, это сон.",
+  "old_en": "She used to braid my hair here. I thought I’d dreamed that.",
+  "new_en": "Mom used to braid my hair here. I thought it was a dream.",
+  "why": "«она» без опоры в сцене — непонятно кто"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s1_hub",
+  "old_ru": "Печь растапливается. Можно поговорить — с кем захочешь.",
+  "new_ru": "Печь разгорается. Можно поговорить — с кем захочешь.",
+  "old_en": "The stove is warming up. You can talk to whoever you want.",
+  "new_en": "The stove is catching. You can talk to whoever you want.",
+  "why": "«печь растапливается» — неверно, её растапливают"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_t_iris",
+  "old_ru": "Айрис рисует пальцем на заиндевевшем стекле мостки.",
+  "new_ru": "На заиндевевшем стекле Айрис рисует пальцем мостки.",
+  "old_en": "Iris draws the dock with her finger on the frosted glass.",
+  "new_en": "Iris draws the dock with her finger on the frosted glass.",
+  "why": "порядок слов: «стекле мостки» читалось криво"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_t_iris",
+  "old_ru": "Но пальцем она дорисовывает на стекле второго человечка — рядом с первым.",
+  "new_ru": "Но всё-таки дорисовывает на мостках двух человечков — рядом.",
+  "old_en": "But with her finger she adds a second stick figure on the glass — next to the first.",
+  "new_en": "But she still adds two stick figures on the dock — side by side.",
+  "why": "«второго — рядом с первым», а первого человечка не было (рисовала мостки); теперь эхо финального рисунка"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_t_iris",
+  "old_ru": "«Зачем ты везла меня сюда?»",
+  "new_ru": "«Зачем ты меня сюда везла?»",
+  "old_en": "“Why did you bring me here?”",
+  "new_en": "“Why did you bring me here?”",
+  "why": "живой порядок слов"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_t_iris",
+  "old_ru": "Зачем ты везла меня сюда? Только честно.",
+  "new_ru": "Зачем ты меня сюда везла? Только честно.",
+  "old_en": "Why did you bring me here? Honestly.",
+  "new_en": "Why did you bring me here? Honestly.",
+  "why": "живой порядок слов"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_t_iris",
+  "old_ru": "Чтобы ты вспомнил. Ты один видел, что было той ночью. Без тебя ему ничего не будет.",
+  "new_ru": "Чтобы ты вспомнил. Ты один видел, что тут было. Без тебя Хейлу ничего не будет.",
+  "old_en": "So you’d remember. You’re the only one who saw what happened that night. Without you, nothing happens to him.",
+  "new_en": "So you’d remember. You’re the only one who saw what happened here. Without you, Hale gets away with it.",
+  "why": "«той ночью»/«ему» путались с ночью смерти отца; EN буквален"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_t_iris",
+  "old_ru": "Ты отдал ему маму. Второй раз.",
+  "new_ru": "Ты отдал ему маму. Он её уже второй раз забирает.",
+  "old_en": "You gave Mom to him. A second time.",
+  "new_en": "You gave him Mom. That’s twice he’s taken her.",
+  "why": "«отдал второй раз» — нелогично: Ной отдал впервые, забирает Хейл второй раз"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_t_zoe",
+  "old_ru": "Спасибо за тогда. В буханке. Мне редко верят.",
+  "new_ru": "Спасибо, что тогда поверил. В буханке. Мне редко верят.",
+  "old_en": "Thanks for back there. In the van. People don’t usually believe me.",
+  "new_en": "Thanks for believing me. Back in the van. People usually don’t.",
+  "why": "«спасибо за тогда» — калька"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_t_zoe",
+  "old_ru": "Я тут последний раз был в восемь.",
+  "new_ru": "Последний раз я тут был в восемь лет.",
+  "old_en": "Last time I was here, I was eight.",
+  "new_en": "Last time I was here, I was eight.",
+  "why": "«был в восемь» — обрубок"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_t_danny",
+  "old_ru": "Если спросят — я скажу, как было. Ты сам велел.",
+  "new_ru": "Если спросят — я скажу, как было. Ты сам так сказал.",
+  "old_en": "If anybody asks, I’ll tell them how it was. You told me to.",
+  "new_en": "If anybody asks, I’ll tell them how it was. You told me to.",
+  "why": "«велел» — не детское слово"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_t_danny_try",
+  "old_ru": "Дэнни долго смотрит на него. Честно — это тоже ответ.",
+  "new_ru": "Дэнни долго смотрит на него. Честное «не знаю» — тоже ответ.",
+  "old_en": "Danny looks at him for a long time. An honest “I don’t know” is an answer too.",
+  "new_en": "Danny looks at him for a long time. An honest “I don’t know” is an answer too.",
+  "why": "«Честно — это тоже ответ» — неграмотно; сверено с EN"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_t_eva",
+  "old_ru": "Ты меня тогда у кафе не взял. А потом всё равно вытащил из сугроба.",
+  "new_ru": "Ты меня тогда у кафе не взял. А потом всё равно вытащил из сугроба.",
+  "old_en": "You didn’t take me with you at the diner. And then you pulled me out of a snowdrift anyway.",
+  "new_en": "You left me behind at the diner. And then you pulled me out of a snowdrift anyway.",
+  "why": "EN живее"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s1_go",
+  "old_ru": "Взрослых в доме больше нет. С малышкой должен остаться кто-то один — и он уже не выйдет к озеру.",
+  "new_ru": "Ни Евы, ни бабушки рядом нет. С малышкой должен остаться кто-то один — и к озеру он уже не пойдёт.",
+  "old_en": "There are no grown-ups left in the house. Someone has to stay with the baby — and whoever stays won’t come down to the lake.",
+  "new_en": "No Eva, no Grandma. Someone has to stay with the baby — and whoever stays won’t go down to the lake.",
+  "why": "«взрослых больше нет» — а Зоя (20) взрослая и её тут же выбирают"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s2",
+  "old_ru": "Мама сидит рядом и тихо напевает ту самую колыбельную.",
+  "new_ru": "Маленький Ной сидит рядом с мамой. Она тихо напевает ту самую колыбельную.",
+  "old_en": "Mom sits beside him, softly humming that same lullaby.",
+  "new_en": "Little Noah sits beside Mom. She softly hums that same lullaby.",
+  "why": "непонятно, что мы уже в воспоминании и кто «рядом»"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s2",
+  "old_ru": "Скоро приедет дядя Саймон, и поедем к бабушке. Только тихо, Айрис спит.",
+  "new_ru": "Скоро приедет дядя Саймон и отвезёт нас к бабушке. Только тихо, Айрис спит.",
+  "old_en": "Uncle Simon will be here soon, and then we’re going to Grandma’s. Shh, Iris is sleeping.",
+  "new_en": "Uncle Simon will be here soon to take us to Grandma’s. Shh, Iris is sleeping.",
+  "why": "повтор «приедет… поедем»"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s2",
+  "old_ru": "Ной, в сарай. Быстро. Сиди тихо, как мышка, что бы ни было.",
+  "new_ru": "Ной, в сарай. Быстро. Сиди тихо, как мышка, что бы ни случилось.",
+  "old_en": "Noah, into the boathouse. Quick. Quiet as a mouse, no matter what.",
+  "new_en": "Noah, into the boathouse. Quick. Quiet as a mouse, no matter what.",
+  "why": "«что бы ни было» — неестественно"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s2_mom",
+  "old_ru": "Она поворачивает голову к сараю. В свете фонаря видно губы: «Не смотри, малыш».",
+  "new_ru": "Она поворачивает голову к сараю. В свете фонаря он читает по губам: «Не смотри, малыш».",
+  "old_en": "She turns her head toward the boathouse. In the lantern light he can read her lips: “Don’t look, baby.”",
+  "new_en": "She turns her head toward the boathouse. In the lantern light he can read her lips: “Don’t look, baby.”",
+  "why": "«видно губы:» — кривая конструкция"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s2_after",
+  "old_ru": "Айрис утыкается лбом ему в плечо — будто наконец донесла то, что несла одна всю дорогу.",
+  "new_ru": "Айрис утыкается лбом ему в плечо — будто наконец сбросила то, что одна тащила всю дорогу.",
+  "old_en": "Iris presses her forehead to his shoulder — as if she could finally set down what she’d carried alone the whole way.",
+  "new_en": "Iris presses her forehead to his shoulder — as if she could finally set down what she’d carried alone the whole way.",
+  "why": "«донесла то, что несла» — тавтология"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s2_after",
+  "old_ru": "Тогда она с тобой.",
+  "new_ru": "Значит, она с тобой, милок.",
+  "old_en": "Then she’s with you.",
+  "new_en": "So she’s with you, sonny.",
+  "why": "«Тогда» звучит как условие; голос Агнес"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s3",
+  "old_ru": "Хейл за рулём сам. На заднем сиденье — заложники. Двери на детском замке.",
+  "new_ru": "Хейл сам за рулём. На заднем сиденье — заложники. Двери на детском замке.",
+  "old_en": "Hale is at the wheel himself. In the back seat — the hostages. Child locks on the doors.",
+  "new_en": "Hale is at the wheel himself. In the back seat — the hostages. Child locks on the doors.",
+  "why": "порядок слов"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s3",
+  "old_ru": "Ной выходит на мостки и спускается на лёд — подальше от дома, где младенец.",
+  "new_ru": "Ной выходит на мостки и спускается на лёд — подальше от дома, где малышка.",
+  "old_en": "Noah walks out onto the dock and down onto the ice — away from the house with the baby.",
+  "new_en": "Noah walks out onto the dock and down onto the ice — away from the house with the baby.",
+  "why": "везде «малышка», тут вдруг «младенец»"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s3",
+  "old_ru": "Хейл достаёт мамин дневник и вырывает несколько страниц — те, где про него.",
+  "new_ru": "Хейл достаёт мамин дневник, вырывает несколько страниц — те, где про него, — и поджигает.",
+  "old_en": "Hale takes out Mom’s diary and tears out a few pages — the ones about him.",
+  "new_en": "Hale takes out Mom’s diary, tears out a few pages — the ones about him — and sets them on fire.",
+  "why": "дальше «страницы горят», но никто их не поджигал"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s3_iris",
+  "old_ru": "Ты мне тогда сказал: не ходи к озеру одна. А я не одна.",
+  "new_ru": "Ты мне тогда сказал: не ходи к озеру одна. А я не одна.",
+  "old_en": "That night you told me not to go to the lake alone. Well, I’m not alone.",
+  "new_en": "You told me once: don’t go to the lake alone. Well, I’m not alone.",
+  "why": "EN добавлял «that night», которого нет в RU и сюжете"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s3_remember",
+  "old_ru": "Хейл берёт Айрис за руку — крепко, как врач берёт буйного пациента.",
+  "new_ru": "Хейл крепко берёт Айрис за локоть — как буйную пациентку.",
+  "old_en": "Hale takes Iris by the arm — firmly, the way a doctor takes hold of a violent patient.",
+  "new_en": "Hale grips Iris by the elbow — the way you’d hold a violent patient.",
+  "why": "повтор «берёт… берёт»"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s3_smile",
+  "old_ru": "Звук уходит. Ной улыбается — и это не его улыбка.",
+  "new_ru": "Звуки пропадают. Ной улыбается — и это не его улыбка.",
+  "old_en": "The sound drains away. Noah smiles — and it isn’t his smile.",
+  "new_en": "The sound drains away. Noah smiles — and it isn’t his smile.",
+  "why": "«звук уходит» — калька"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s3_smile",
+  "old_ru": "«Второй он» стряхивает её, как ветку. Айрис падает на тёмный лёд; Хейл отступает туда же.",
+  "new_ru": "«Второй он» отмахивается от неё, как от ветки. Айрис падает на тёмный лёд; Хейл отступает туда же.",
+  "old_en": "“The other him” shakes her off like a twig. Iris falls onto the dark ice; Hale backs onto it too.",
+  "new_en": "“The other Noah” brushes her off like a branch. Iris falls onto the dark ice; Hale backs onto it too.",
+  "why": "«стряхивает, как ветку» — неточно; глоссарий EN"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s3_smile",
+  "old_ru": "Из сарая кричит Айрис. «Второй он» не слышит. Хейл пятится — прямо на тёмный лёд.",
+  "new_ru": "Из сарая кричит Айрис. «Второй он» не слышит. Хейл пятится — прямо на тёмный лёд.",
+  "old_en": "Iris screams from the boathouse. “The other him” doesn’t hear. Hale backs away — straight onto the dark ice.",
+  "new_en": "Iris screams from the boathouse. “The other Noah” doesn’t hear. Hale backs away — straight onto the dark ice.",
+  "why": "глоссарий: the other Noah"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s4",
+  "old_ru": "На вытянутую руку — запястье Айрис и воротник Хейла. Схватить можно только одного.",
+  "new_ru": "На расстоянии вытянутой руки — запястье Айрис и воротник Хейла. Схватить можно только одного.",
+  "old_en": "Within arm’s reach — Iris’s wrist and Hale’s collar. He can only grab one.",
+  "new_en": "Within arm’s reach — Iris’s wrist and Hale’s collar. He can only grab one.",
+  "why": "«на вытянутую руку» — обрубок"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s4_shadow_alone",
+  "old_ru": "«Второй он» не ложится на лёд. Он подходит к Хейлу и наступает ботинком ему на пальцы.",
+  "new_ru": "«Второй он» не ложится на лёд. Он подходит к Хейлу и наступает ботинком ему на пальцы.",
+  "old_en": "“The other him” doesn’t lie down on the ice. He walks up to Hale and steps on his fingers.",
+  "new_en": "“The other Noah” doesn’t lie down on the ice. He walks up to Hale and steps on his fingers.",
+  "why": "глоссарий: the other Noah"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_s4_shadow",
+  "old_ru": "«Второй он» не ложится на лёд. Он подходит к Хейлу и наступает ботинком ему на пальцы.",
+  "new_ru": "«Второй он» не ложится на лёд. Он подходит к Хейлу и наступает ботинком ему на пальцы.",
+  "old_en": "“The other him” doesn’t lie down on the ice. He walks up to Hale and steps on his fingers.",
+  "new_en": "“The other Noah” doesn’t lie down on the ice. He walks up to Hale and steps on his fingers.",
+  "why": "глоссарий: the other Noah"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_patrol",
+  "old_ru": "Письмо Саймона из маминой шкатулки Айрис отдаёт следователю сама.",
+  "new_ru": "Айрис сама отдаёт следователю письмо Саймона из маминой шкатулки.",
+  "old_en": "Iris hands Simon’s letter from Mom’s tin box to the investigator herself.",
+  "new_en": "Iris herself hands the investigator Simon’s letter from Mom’s tin box.",
+  "why": "перевёрнутый порядок слов"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_patrol",
+  "old_ru": "Под сиденьем брошенной буханки патрульные нашли папки из архива «Тихих сосен». С его почерком.",
+  "new_ru": "Под сиденьем брошенной буханки патрульные нашли папки из архива «Тихих сосен», исписанные почерком Хейла.",
+  "old_en": "Under the seat of the abandoned van, the officers found folders from the Quiet Pines archive. In his handwriting.",
+  "new_en": "Under the seat of the abandoned van, the officers found folders from the Quiet Pines archive, in Hale’s handwriting.",
+  "why": "«С его почерком» — неграмотно и неясно чьим"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_visit8",
+  "old_ru": "Восемь лет. Судья сказал: за папу — ты меня защищал. А остальное…",
+  "new_ru": "Восемь лет. Про папу судья сказал — ты меня защищал. А остальное…",
+  "old_en": "Eight years. The judge said that with Dad, you were protecting me. But the rest…",
+  "new_en": "Eight years. The judge said that with Dad, you were protecting me. But the rest…",
+  "why": "«за папу — ты меня защищал» — косноязычно"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_shadow_dark",
+  "old_ru": "«Второй он» смотрит, как Айрис уходит под лёд.",
+  "new_ru": "«Второй он» смотрит, как Айрис уходит под лёд.",
+  "old_en": "“The other him” watches Iris slip under the ice.",
+  "new_en": "“The other Noah” watches Iris slip under the ice.",
+  "why": "глоссарий: the other Noah"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_ice_epi",
+  "old_ru": "Хейла судят. Правду о нём суду рассказала Айрис.",
+  "new_ru": "Хейла судят. Правду о нём рассказала Айрис.",
+  "old_en": "Hale stands trial. Iris told the court the truth about him.",
+  "new_en": "Hale stands trial. Iris told the court the truth about him.",
+  "why": "повтор «судят… суду»"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_cards",
+  "old_ru": "Ной — в тюрьме. Срок — три года.",
+  "new_ru": "Ной — в тюрьме. Три года.",
+  "old_en": "Noah — in prison. Three years.",
+  "new_en": "Noah — in prison. Three years.",
+  "why": "единообразие с карточками «Восемь лет»"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_cards",
+  "old_ru": "Зою через месяц мать снова отвезла в «Тихие сосны». Ей кажется, что сегодня четверг.",
+  "new_ru": "Через месяц мать снова отвезла Зою в «Тихие сосны». Ей всё кажется, что сегодня четверг.",
+  "old_en": "A month later, her mother took Zoe back to Quiet Pines. She thinks it’s Thursday.",
+  "new_en": "A month later, her mother took Zoe back to Quiet Pines. She keeps thinking it’s Thursday.",
+  "why": "порядок слов; «всё кажется» — как навязчивость"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_cards",
+  "old_ru": "За Дэнни приехала мама — трезвая. На прощание он отдал Айрис свою рацию.",
+  "new_ru": "За Дэнни приехала мама — трезвая. На прощание он отдал Айрис свою рацию.",
+  "old_en": "Danny’s mom came for him — sober. As a goodbye, he gave Iris his walkie-talkie.",
+  "new_en": "Danny’s mom came for him — sober. He gave Iris his walkie-talkie to say goodbye.",
+  "why": "«As a goodbye» — калька"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_cards",
+  "old_ru": "Дэнни рассказал полиции, как доктор выманил его в лесу.",
+  "new_ru": "Дэнни рассказал полиции, как в лесу доктор заманил его к себе.",
+  "old_en": "Danny told the police how the doctor lured him away in the woods.",
+  "new_en": "Danny told the police how the doctor lured him away in the woods.",
+  "why": "«выманил его в лесу» — криво"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_cards",
+  "old_ru": "Дэнни рассказал, как доктор выманил его в лесу. Ему никто не поверил.",
+  "new_ru": "Дэнни рассказал, как в лесу доктор заманил его к себе. Ему никто не поверил.",
+  "old_en": "Danny told everyone how the doctor lured him away in the woods. No one believed him.",
+  "new_en": "Danny told everyone how the doctor lured him away in the woods. No one believed him.",
+  "why": "«выманил его в лесу» — криво"
+ },
+ {
+  "ch": "ch5",
+  "sid": "c5_cards",
+  "old_ru": "Хейла убил «второй он».",
+  "new_ru": "Хейла убил «второй он».",
+  "old_en": "“The other him” killed Hale.",
+  "new_en": "“The other Noah” killed Hale.",
+  "why": "глоссарий: the other Noah"
+ }
+]

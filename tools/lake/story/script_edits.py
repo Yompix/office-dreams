@@ -8,7 +8,7 @@
 ВАЖНО: если chN.py / chN_walk.py / gestures.py пересобрали данные — после них снова запустить этот скрипт."""
 import json, os, sys
 
-ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../..')
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../..')
 DATA = os.path.join(ROOT, 'godot/lake/data')
 EDITS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'script_edits.json')
 
