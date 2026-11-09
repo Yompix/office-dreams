@@ -21,6 +21,6 @@ HTML
 
 Бесплатная интерактивная хоррор-игра в браузере: https://yompix.github.io
 
-Файлы копируются из `web` репозитория office-dreams скриптом `tools/games-pages.sh` — правки делать там.
+Файлы копируются из `games/hush-till-six/web` закрытого репозитория office-dreams скриптом `games/hush-till-six/tools/games-pages.sh` — правки делать там.
 MD
 echo "готово: $DST"
