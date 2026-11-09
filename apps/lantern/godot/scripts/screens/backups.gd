@@ -14,50 +14,44 @@ var last_result := {}      # для автотестов: последнее д�
 
 func _ready() -> void:
 	horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	var v := UI.vbox(14)
+	var v := UI.vbox(10)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(v)
-	v.add_child(UI.h1("Копии миров"))
-	v.add_child(UI.para("Резервная копия — zip с папкой мира. Её можно восстановить, отправить в облако (Pro) или передать другу по коду.", 15, UI.MUTED))
-	var cols := UI.cols(20)
-	v.add_child(cols)
-	# --- на этом устройстве
-	var lp := UI.panel(18)
-	lp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var lv := UI.vbox(10)
-	lp.add_child(lv)
-	var lh := UI.hbox(8)
-	var lt := UI.h3("На этом устройстве")
-	lt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lh.add_child(lt)
-	if not Cfg.mobile():
-		lh.add_child(UI.button("Папка", "ghost", func(): OS.shell_open(ProjectSettings.globalize_path(Cfg.sub("backups")))))
-	lv.add_child(lh)
-	_local = UI.vbox(8)
-	lv.add_child(_local)
-	cols.add_child(lp)
-	# --- облако
-	var cp := UI.panel(18)
-	cp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var cv := UI.vbox(10)
-	cp.add_child(cv)
-	var ch := UI.hbox(8)
-	ch.add_child(UI.h3("Облако LANTERN"))
-	ch.add_child(UI.pill("Pro", Color("ffb648")))
-	cv.add_child(ch)
-	_cloud = UI.vbox(8)
-	cv.add_child(_cloud)
-	cv.add_child(UI.gap(4))
-	cv.add_child(UI.label("ПОЛУЧИТЬ КОПИЮ ПО КОДУ", 12, UI.MUTED, UI.font_bold))
+	app.set_title("Копии миров", "Восстановить, отправить в облако или другу" if UI.compact() else "Резервная копия — zip с папкой мира. Её можно восстановить, отправить в облако (Pro) или передать другу по коду.")
+	# --- получить по коду (самое частое действие — сверху)
+	v.add_child(UI.section("Получить копию по коду"))
+	var gp := UI.panel(16)
+	var gv := UI.vbox(10)
+	gp.add_child(gv)
 	var gr := UI.hbox(8)
-	_code_in = UI.line_edit("", "Код, напр. 7KQ-M2X")
+	_code_in = UI.line_edit("", "Код, например 7KQ-M2X")
 	_code_in.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_code_in.max_length = 12
+	_code_in.add_theme_font_override("font", UI.font_bold)
 	gr.add_child(_code_in)
-	gr.add_child(UI.button("Скачать", "primary", func(): fetch_shared(_code_in.text)))
-	cv.add_child(gr)
-	cv.add_child(UI.para("Код действует сутки. Так можно перенести мир на второй компьютер или передать другу — Pro нужна только тому, кто отправляет.", 13, UI.DIM))
-	cols.add_child(cp)
+	gr.add_child(UI.button("Скачать", "primary", func(): fetch_shared(_code_in.text), "download"))
+	gv.add_child(gr)
+	gv.add_child(UI.para("Код действует сутки. Так можно перенести мир на второй компьютер или передать другу — Pro нужна только тому, кто отправляет.", 12, UI.DIM))
+	v.add_child(gp)
+	# --- на этом устройстве
+	var lh := UI.hbox(8)
+	var ls := UI.section("На этом устройстве")
+	ls.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lh.add_child(ls)
+	if not Cfg.mobile():
+		lh.add_child(UI.button("Папка", "link", func(): OS.shell_open(ProjectSettings.globalize_path(Cfg.sub("backups"))), "folder"))
+	v.add_child(lh)
+	_local = UI.vbox(8)
+	v.add_child(_local)
+	# --- облако
+	var ch := UI.hbox(8)
+	ch.add_child(UI.section("Облако LANTERN"))
+	var pp := UI.pill("Pro", UI.AMBER)
+	ch.add_child(pp)
+	v.add_child(ch)
+	_cloud = UI.vbox(8)
+	v.add_child(_cloud)
+	v.add_child(UI.gap(16))
 	Social.changed.connect(func(w): if w in ["cloud", "eco", "conn"] and is_inside_tree(): _render_cloud())
 	_render_local()
 	_render_cloud()
@@ -79,79 +73,78 @@ func _render_local() -> void:
 		c.queue_free()
 	var list: Array = app.server.list_backups()
 	if list.is_empty():
-		_local.add_child(UI.para("Копий пока нет. Нажмите «Резервная копия» на панели сервера — или скачайте копию из облака / по коду.", 14, UI.DIM))
+		_local.add_child(UI.list_row(UI.icon_tile("download", UI.MUTED, 44, 22), "Копий пока нет", "«Резервная копия» на экране мира — или скачайте по коду", null))
 		return
 	for b in list:
 		var info := ServerHost.inspect_backup(b.path)
-		var p := UI.panel(12, UI.CARD, 12)
-		var v := UI.vbox(6)
-		p.add_child(v)
-		var t := UI.label(b.name, 14, UI.TEXT, UI.font_bold)
-		t.clip_text = true
-		t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		v.add_child(t)
 		var ed: String = {"java": "Java", "bedrock": "Bedrock"}.get(info.get("edition", ""), "?")
-		v.add_child(UI.para("%s · мир «%s» · %s · %s" % [ed, info.get("world", "?"), _mb(b.size), _date(b.time)], 12, UI.MUTED))
+		var r := UI.list_row(UI.icon_tile("java" if info.get("edition", "") == "java" else "phone", UI.JAVA if info.get("edition", "") == "java" else UI.BEDROCK, 44, 22), "Мир «%s»" % info.get("world", "?"), "%s · %s · %s" % [ed, _mb(b.size), _date(b.time)], null)
+		var v: VBoxContainer = r.get_meta("text")
 		var row := UI.flow(6)
-		var rb := UI.button("Восстановить", "secondary", func(): restore(b.path))
+		var rb := UI.button("Восстановить", "tonal", func(): restore(b.path), "refresh")
 		rb.disabled = not info.ok or Cfg.mobile()
 		rb.tooltip_text = "" if info.ok else info.get("error", "")
 		row.add_child(rb)
-		var ub := UI.button("В облако", "secondary", func(): upload(b.path))
+		var ub := UI.button("В облако", "secondary", func(): upload(b.path), "upload")
 		ub.disabled = not Social.online()
 		row.add_child(ub)
-		row.add_child(UI.button("Удалить", "ghost", func():
+		row.add_child(UI.icon_button("trash", func():
 			DirAccess.remove_absolute(b.path)
-			_render_local()))
+			_render_local(), "Удалить", UI.MUTED))
 		for btn in row.get_children():
-			btn.custom_minimum_size.y = 38
+			btn.custom_minimum_size.y = 40
+		v.add_child(UI.gap(4))
 		v.add_child(row)
-		_local.add_child(p)
+		_local.add_child(r)
 
 
 func _render_cloud() -> void:
 	for c in _cloud.get_children():
 		c.queue_free()
 	if not Social.online():
-		_cloud.add_child(UI.para("Нет связи с сервером LANTERN.", 14, UI.YELLOW))
+		_cloud.add_child(UI.list_row(UI.icon_tile("wifi", UI.YELLOW, 44, 22), "Нет связи с сервером LANTERN", "Облако появится, когда вернётся интернет", null))
 		return
 	var c: Dictionary = Social.cloud
 	if c.is_empty():
-		_cloud.add_child(UI.label("Загружаем…", 14, UI.DIM))
+		_cloud.add_child(FX.skeleton(72))
 		return
 	if not c.get("enabled", false):
-		_cloud.add_child(UI.para("Облако выключено на этом сервере LANTERN (нет постоянного хранилища). Копии можно хранить на устройстве.", 14, UI.YELLOW))
+		_cloud.add_child(UI.list_row(UI.icon_tile("cloud", UI.MUTED, 44, 22), "Облако выключено на этом сервере", "Копии можно хранить на устройстве", null))
 		return
 	if not c.get("pro", false):
-		_cloud.add_child(UI.para("До %d копий по %d МБ в облаке — с LANTERN Pro. Копии не пропадут, даже если сломается компьютер." % [int(c.get("slots", 3)), int(c.get("max_mb", 100))], 14, UI.MUTED))
-		var b := UI.button("Узнать о Pro", "primary", func(): app.go("shop", true, {"kind": "pro"}))
-		b.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		_cloud.add_child(b)
+		var pp := UI.panel(16)
+		var pv := UI.vbox(10)
+		pp.add_child(pv)
+		var ph := UI.hbox(12)
+		ph.add_child(UI.icon_tile("cloud", UI.AMBER, 44, 22))
+		var pt := UI.para("До %d копий по %d МБ в облаке — с LANTERN Pro. Не пропадут, даже если сломается компьютер." % [int(c.get("slots", 3)), int(c.get("max_mb", 100))], 14, UI.TEXT)
+		pt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		ph.add_child(pt)
+		pv.add_child(ph)
+		var pb := UI.button("Узнать о Pro", "primary", func(): app.go("shop", true, {"kind": "pro"}))
+		pv.add_child(pb)
+		_cloud.add_child(pp)
 	else:
-		_cloud.add_child(UI.para("До %d копий по %d МБ. Самая старая заменяется новой." % [int(c.get("slots", 3)), int(c.get("max_mb", 100))], 13, UI.DIM))
+		_cloud.add_child(UI.para("До %d копий по %d МБ. Самая старая заменяется новой." % [int(c.get("slots", 3)), int(c.get("max_mb", 100))], 12, UI.DIM))
 	for it in c.get("list", []):
-		var p := UI.panel(12, UI.CARD, 12)
-		var v := UI.vbox(6)
-		p.add_child(v)
-		var nm := UI.label(it.name, 14, UI.TEXT, UI.font_bold)
-		nm.clip_text = true
-		nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		v.add_child(nm)
-		v.add_child(UI.label("%s · %s" % [_mb(int(it.size)), _date(int(it.ts) / 1000)], 12, UI.MUTED))
+		var r := UI.list_row(UI.icon_tile("cloud", UI.BEDROCK, 44, 22), String(it.name).get_basename(), "%s · %s" % [_mb(int(it.size)), _date(int(it.ts) / 1000)], null)
+		var v: VBoxContainer = r.get_meta("text")
 		if String(it.get("share", "")) != "":
-			var sr := UI.flow(8)
+			var sr := UI.hbox(8)
 			sr.add_child(UI.label("Код для друга:", 13, UI.MUTED))
-			sr.add_child(UI.label(RoomCode.pretty(it.share), 18, Color("ffb648"), UI.font_black))
-			sr.add_child(UI.button("Копировать", "ghost", func(): UI.copy(RoomCode.pretty(it.share)); app.toast("Код скопирован")))
+			var cl := UI.label(RoomCode.pretty(it.share), 18, UI.AMBER, UI.font_black)
+			sr.add_child(cl)
+			sr.add_child(UI.icon_button("copy", func(): UI.copy(RoomCode.pretty(it.share)); app.toast("Код скопирован"), "Копировать", UI.MUTED))
 			v.add_child(sr)
 		var row := UI.flow(6)
-		row.add_child(UI.button("Скачать", "secondary", func(): download_cloud(it)))
-		row.add_child(UI.button("Код для друга", "secondary", func(): Social.request("cloud_share", {"id": it.id})))
-		row.add_child(UI.button("Удалить", "ghost", func(): Social.request("cloud_delete", {"id": it.id})))
+		row.add_child(UI.button("Скачать", "tonal", func(): download_cloud(it), "download"))
+		row.add_child(UI.button("Код для друга", "secondary", func(): Social.request("cloud_share", {"id": it.id}), "share"))
+		row.add_child(UI.icon_button("trash", func(): Social.request("cloud_delete", {"id": it.id}), "Удалить", UI.MUTED))
 		for btn in row.get_children():
-			btn.custom_minimum_size.y = 38
+			btn.custom_minimum_size.y = 40
+		v.add_child(UI.gap(4))
 		v.add_child(row)
-		_cloud.add_child(p)
+		_cloud.add_child(r)
 
 
 func _auth() -> PackedStringArray:

@@ -7,6 +7,7 @@ extends Node
 ##   proc     — запуск процессов в папке с пробелами/скобками/&, чтение вывода, принудительная остановка (Windows: cmd/taskkill)
 ##   syscheck — экран «Проверка системы» (+скриншот)
 ##   phone    — экраны в портретном телефоне (--shots, окно 412×892), нужен relay и social_seed.js
+##   tour     — обход ВСЕХ экранов и сценариев для дизайн-скриншотов (tests/design_shots.sh), нужен relay и social_seed.js
 ## Код выхода 0 — успех.
 
 var app
@@ -32,6 +33,7 @@ func run(a) -> void:
 		"proc": code = await _proc()
 		"syscheck": code = await _syscheck()
 		"phone": code = await _phone()
+		"tour": code = await _tour()
 		"java", "bedrock": code = await _host(Cfg.autotest)
 		_: _log("неизвестный режим")
 	_log("EXIT %d" % code)
@@ -490,6 +492,8 @@ func _phone() -> int:
 func _overflow(n: Node, limit: float, where: String) -> bool:
 	if not (n is Control) or not (n as Control).is_visible_in_tree():
 		return false
+	if n is ScrollContainer and (n as ScrollContainer).horizontal_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED and n != app._screen_root:
+		return false   # строка, которая листается вбок (вкладки, награды сезона), — так и задумано
 	var deeper := false
 	for c in n.get_children():
 		if _overflow(c, limit, where):
@@ -502,3 +506,289 @@ func _overflow(n: Node, limit: float, where: String) -> bool:
 		_log("ШИРЕ ЭКРАНА [%s] %s %s (%d px) «%s»" % [where, n.get_class(), n.name, int(w), t])
 		return true
 	return w > limit or deeper
+
+
+# ------------------------------------------------------------------ дизайн-обход: все экраны и сценарии (tests/design_shots.sh)
+func _find_button(root: Node, text: String) -> Button:
+	for b in root.find_children("*", "Button", true, false):
+		if b.is_visible_in_tree() and (b as Button).text == text and not (b as Button).disabled:
+			return b
+	return null
+
+
+func _scroll_down(px := 100000) -> void:
+	var r = app._screen_root
+	if r is ScrollContainer:
+		(r as ScrollContainer).scroll_vertical = px
+	await get_tree().create_timer(0.3).timeout
+
+
+func _tour() -> int:
+	var fails := 0
+	var phone := UI.compact()
+	if not await _wait(func(): return Social.conn in ["need_register", "online"], 20, "связь с relay"):
+		return 1
+	app.go("home", true)
+	await _shot("00_home_offline")
+	# --- первый запуск: знакомство → ник → «как играть»
+	if Social.conn == "need_register":
+		Overlays.register(app)
+		await get_tree().create_timer(0.5).timeout
+		await _shot("01_onboard_welcome")
+		var ov: Node = app.get_node("RegisterOverlay")
+		_find_button(ov, "Начать").pressed.emit()
+		await get_tree().create_timer(0.5).timeout
+		var e: LineEdit = ov.find_children("*", "LineEdit", true, false)[0]
+		e.text = "Стив"
+		await _shot("02_onboard_nick")
+		_find_button(ov, "Готово").pressed.emit()
+		await _wait(func(): return Social.online(), 10, "профиль создан")
+		await get_tree().create_timer(0.6).timeout
+		await _shot("03_onboard_howto")
+	await _close_overlays()
+	var tag_file := data.path_join("autotest-tag.txt")
+	var f := FileAccess.open(tag_file, FileAccess.WRITE)
+	f.store_string(Social.me.tag)
+	f.close()
+	await _wait(func(): return Social.incoming.size() >= 3, 30, "заявки в друзья")
+	await get_tree().create_timer(0.3).timeout
+	app.go("friends", true)
+	await get_tree().create_timer(0.8).timeout
+	await _shot("30_friends_requests")
+	for u in Social.incoming.duplicate():
+		Social.request("friend_accept", {"id": u.id})
+	await _wait(func(): return Social.friends.size() >= 3, 10, "друзья приняты")
+	await _wait(func(): return FileAccess.file_exists(tag_file + ".ok"), 30, "боты готовы")
+	await get_tree().create_timer(1.0).timeout
+	Social.request("eco")
+	if Cfg.autotest_args.has("rec"):
+		return await _rec_all()
+	app.go("home", true)
+	await get_tree().create_timer(0.6).timeout
+	await _shot("10_home")
+	await _scroll_down()
+	await _shot("10b_home_bottom")
+	app.play_sheet()
+	await _shot("11_play_sheet")
+	await _close_overlays()
+	if Cfg.mobile():
+		app.host_on_pc_sheet()
+		await _shot("12_host_on_pc")
+		await _close_overlays()
+	# --- мастер «Создать мир» (ПК)
+	if not Cfg.mobile() and not Cfg.autotest_args.has("nohost"):
+		app.go("setup", true)
+		await _shot("13_host_step1_edition")
+		var scr = app._screen
+		scr._pick("java")
+		await _shot("14_host_step2_world")
+		scr._goto(3)
+		scr._eula.button_pressed = true
+		await _shot("15_host_step3_launch")
+		# комната без настоящего сервера: открываем её на relay и показываем экран мира
+		var s: ServerHost = app.server
+		s.edition = "java"
+		s.opts = {"world": "Наш мир", "crossplay": true, "internet": true, "gamemode": "survival"}
+		s.state = "running"
+		s.last_status = "Сервер работает. Зовите друзей!"
+		s.players = PackedStringArray(["Алекс", "Маша_Кубик"])
+		app.relay_host.start(Cfg.relay_url(), "both", "Наш мир", 25565, 19132, app.host_extra())
+		await _wait(func(): return app.relay_host.stats().code != "", 10, "комната открыта")
+		app.go("host", true)
+		await _shot("16_host_room")
+		if Cfg.autotest_args.has("hostonly"):
+			await get_tree().create_timer(float(Cfg.autotest_args.get("hostwait", "3"))).timeout
+			_log("host: живы")
+			app.relay_host.stop()
+			s.state = "idle"
+			app.go(String(Cfg.autotest_args.hostonly), true)
+			await get_tree().create_timer(2.0).timeout
+			_log("host→ ок")
+			return 0
+		app.relay_host.stop()
+		s.state = "idle"
+		s.players = PackedStringArray()
+	# --- мастер «Зайти к другу»
+	var code := ""
+	for fr in Social.friends:
+		var a: Variant = fr.get("activity")
+		if a is Dictionary and a.get("activity", "") == "hosting":
+			code = a.code
+	app.go("join", true)
+	await _shot("20_join_step1_code")
+	var js = app._screen
+	js._input.text = code.substr(0, 4)
+	js._input.grab_focus()
+	js._render_tiles()
+	await _shot("21_join_typing")
+	js._input.text = RoomCode.pretty(code)
+	js._render_tiles()
+	js._next_from_code()
+	await _shot("22_join_step2_game")
+	js._plays = "both"
+	js._connect()
+	await _shot("23_join_connecting")
+	if not await _wait(func(): return app.relay_join.stats().state == "online", 15, "вошли в комнату друга"):
+		fails += 1
+	await _wait(func(): return Social.room_code == app.relay_join.code, 5, "чат комнаты открыт")
+	Social.room_say("Всем привет! Я с телефона")
+	await get_tree().create_timer(1.5).timeout
+	await _shot("24_join_step3_in_world")
+	await _scroll_down(int(900 if phone else 500))
+	await _shot("25_join_where_to_find")
+	await _scroll_down()
+	await _shot("26_join_room_chat")
+	js._qr_help()
+	await _shot("27_join_qr_help")
+	await _close_overlays()
+	app.relay_join.stop()
+	# --- друзья и чат
+	app.go("friends", true)
+	await get_tree().create_timer(0.8).timeout
+	await _shot("31_friends")
+	app.go("friends", true, {"chat": int(Social.friends[0].id)})
+	await get_tree().create_timer(1.0).timeout
+	Social.send_dm(int(Social.friends[0].id), "Уже иду! :)")
+	await get_tree().create_timer(1.0).timeout
+	await _shot("32_chat")
+	app.go("friends", true)
+	await get_tree().create_timer(0.4).timeout
+	app._screen._qr_sheet(Social.me.tag)
+	await _shot("33_friend_qr")
+	await _close_overlays()
+	app.go("campfire", true)
+	await get_tree().create_timer(1.0).timeout
+	await _shot("34_campfire")
+	app.go("rooms", true)
+	await get_tree().create_timer(1.5).timeout
+	await _shot("35_rooms")
+	app.go("quests", true)
+	await get_tree().create_timer(1.0).timeout
+	await _shot("40_quests")
+	await _scroll_down()
+	await _shot("40b_quests_bottom")
+	app.go("quests", true, {"tab": "season"})
+	await get_tree().create_timer(1.0).timeout
+	await _shot("41_season")
+	app.go("quests", true, {"tab": "achievements"})
+	await get_tree().create_timer(1.0).timeout
+	await _shot("42_achievements")
+	app.go("shop", true)
+	await get_tree().create_timer(1.0).timeout
+	await _shot("43_shop")
+	app.go("shop", true, {"kind": "pro"})
+	await get_tree().create_timer(0.8).timeout
+	await _shot("44_shop_pro")
+	Overlays.purchase(app, "sparks_1200", func(): Social.request("shop"))
+	await _shot("45_purchase_sheet")
+	_press("Купить", true)
+	await get_tree().create_timer(1.6).timeout
+	await _shot("46_purchase_done")
+	await _close_overlays()
+	Overlays.ad(app, true)
+	await get_tree().create_timer(0.3).timeout
+	await _shot("47_ad")
+	await _close_overlays()
+	app.go("profile", true)
+	await get_tree().create_timer(1.0).timeout
+	await _shot("50_profile")
+	app.go("backups", true)
+	await get_tree().create_timer(1.0).timeout
+	await _shot("51_backups")
+	app.go("settings", true)
+	await get_tree().create_timer(0.6).timeout
+	await _shot("52_settings")
+	if not Cfg.mobile():
+		app.go("syscheck", true)
+		await get_tree().create_timer(4.0).timeout
+		await _shot("53_syscheck")
+	app.go("home", true)
+	await get_tree().create_timer(0.4).timeout
+	if phone:
+		app._nav["more"].pressed.emit()
+		await _shot("54_more_sheet")
+		await _close_overlays()
+	app.toast("Код K7M-2QX скопирован — отправьте его друзьям", UI.JAVA)
+	await _shot("55_toast")
+	_log("FAILS=%d" % fails)
+	return 1 if fails else 0
+
+
+# ------------------------------------------------------------------ запись анимаций кадрами (tour --anim=1 --rec=1)
+func _rec(name: String, sec: float, action: Callable) -> void:
+	var dir := shots.path_join("anim_" + name)
+	DirAccess.make_dir_recursive_absolute(dir)
+	Engine.time_scale = 0.3
+	var frames := []
+	var times := []
+	await get_tree().process_frame
+	action.call()
+	var t0 := Time.get_ticks_usec()
+	var last := t0
+	var game := 0.0
+	while game < sec:
+		await get_tree().process_frame
+		var now := Time.get_ticks_usec()
+		game += (now - last) / 1000000.0 * Engine.time_scale
+		last = now
+		var img := get_viewport().get_texture().get_image()
+		img.resize(img.get_width() / 2, img.get_height() / 2, Image.INTERPOLATE_BILINEAR)
+		frames.append(img)
+		times.append(game)
+	Engine.time_scale = 1.0
+	var f := FileAccess.open(dir.path_join("times.txt"), FileAccess.WRITE)
+	for i in frames.size():
+		frames[i].save_png(dir.path_join("%03d.png" % i))
+		f.store_line(str(times[i]))
+	f.close()
+	_log("анимация %s: %d кадров" % [name, frames.size()])
+
+
+func _rec_all() -> int:
+	app.go("home", true)
+	await get_tree().create_timer(0.8).timeout
+	await _rec("tabs", 0.9, func(): app.go("friends"))
+	await get_tree().create_timer(0.4).timeout
+	await _rec("sheet", 0.9, func(): app.play_sheet())
+	await _close_overlays()
+	await _rec("push", 0.9, func(): app.go("join"))
+	var code := ""
+	for fr in Social.friends:
+		var a: Variant = fr.get("activity")
+		if a is Dictionary and a.get("activity", "") == "hosting":
+			code = a.code
+	var js = app._screen
+	await get_tree().create_timer(0.4).timeout
+	await _rec("code_typing", 1.0, func():
+		for i in 6:
+			js._input.text = code.substr(0, i + 1)
+			js._render_tiles()
+			await get_tree().create_timer(0.12 * Engine.time_scale).timeout)
+	await _rec("wizard_step", 0.9, func(): js._next_from_code())
+	js._plays = "both"
+	await _rec("connect_success", 2.2, func(): js._connect())
+	app.relay_join.stop()
+	# экран мира: «переворот» цифр кода и искры (сервер не запускаем — только комната на relay)
+	var s: ServerHost = app.server
+	s.edition = "java"
+	s.opts = {"world": "Наш мир", "crossplay": true, "internet": true}
+	s.state = "running"
+	s.players = PackedStringArray(["Алекс"])
+	app.relay_host.start(Cfg.relay_url(), "both", "Наш мир", 25565, 19132, app.host_extra())
+	await _wait(func(): return app.relay_host.stats().code != "", 10, "комната открыта")
+	await _rec("code_reveal", 2.0, func():
+		app.go("host", true)
+		await get_tree().create_timer(0.9 * Engine.time_scale).timeout
+		var scr = app._screen
+		if scr and scr.get("_code_card"):
+			FX.burst(app, scr._code_card.get_global_rect().get_center() - app.global_position, 34)
+			app.toast("Друг зашёл в ваш мир!", UI.JAVA))
+	app.relay_host.stop()
+	s.state = "idle"
+	app.go("quests", true)
+	await get_tree().create_timer(0.8).timeout
+	await _rec("segmented", 0.8, func(): app._screen._seg.get_meta("tabs")["season"].pressed.emit())
+	app.go("campfire", true)
+	await get_tree().create_timer(0.5).timeout
+	await _rec("campfire", 1.6, func(): pass)
+	return 0

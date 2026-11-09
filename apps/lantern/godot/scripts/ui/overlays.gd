@@ -1,6 +1,7 @@
 class_name Overlays
 extends RefCounted
-## Окна поверх приложения: регистрация ника, лист покупки (как в Google Play), тестовая реклама.
+## Окна поверх приложения: знакомство и ник при первом запуске, нижние листы (на ПК — диалоги),
+## лист покупки (как в Google Play), тестовая реклама.
 
 const PRODUCTS := {
 	"sparks_500": {"title": "500 искр", "desc": "Искры для магазина косметики", "uah": "79,99 ₴", "usd": "$1.99"},
@@ -10,13 +11,16 @@ const PRODUCTS := {
 }
 
 
-static func _dim(app: Control) -> ColorRect:
+static func _dim(app: Control, alpha := 0.6) -> ColorRect:
 	var ov := ColorRect.new()
 	ov.color = Color(0, 0, 0, 0)
 	ov.set_anchors_preset(Control.PRESET_FULL_RECT)
 	ov.mouse_filter = Control.MOUSE_FILTER_STOP
 	app.add_child(ov)
-	ov.create_tween().tween_property(ov, "color:a", 0.62, 0.2)
+	if FX.on():
+		ov.create_tween().tween_property(ov, "color:a", alpha, 0.22)
+	else:
+		ov.color.a = alpha
 	return ov
 
 
@@ -25,93 +29,373 @@ static func _center(ov: Control, child: Control) -> void:
 	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
 	ov.add_child(cc)
 	cc.add_child(child)
-	child.pivot_offset = child.size / 2
-	child.scale = Vector2(0.94, 0.94)
-	child.modulate.a = 0
-	var tw := child.create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(child, "scale", Vector2.ONE, 0.25)
-	tw.tween_property(child, "modulate:a", 1.0, 0.18)
+	if FX.on():
+		child.modulate.a = 0
+		child.scale = Vector2(0.94, 0.94)
+		child.resized.connect(func(): child.pivot_offset = child.size / 2)
+		var tw := child.create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(child, "scale", Vector2.ONE, 0.3)
+		tw.tween_property(child, "modulate:a", 1.0, 0.18)
 
 
-# ------------------------------------------------------------------ ник при первом запуске
+static func _safe_bottom(app: Control) -> float:
+	return float(app.get("_safe").y) if app.get("_safe") is Vector2 else 0.0
+
+
+# ------------------------------------------------------------------ нижний лист (на ПК — диалог по центру)
+
+## Возвращает VBox для содержимого. Закрывается тапом по затемнению, «Назад» или Overlays.close_sheet().
+static func sheet(app: Control, title := "", sub := "", light := false) -> VBoxContainer:
+	var ov := _dim(app, 0.55)
+	ov.set_meta("sheet", true)
+	var phone := UI.compact()
+	var bg := Color("f7f8fa") if light else Color("1b1f28")
+	var p := PanelContainer.new()
+	var st := UI.elevated(bg, UI.R_XL, 0)
+	st.shadow_offset = Vector2(0, -2)
+	if phone:
+		st.corner_radius_bottom_left = 0
+		st.corner_radius_bottom_right = 0
+	st.content_margin_left = 20
+	st.content_margin_right = 20
+	st.content_margin_top = 10 if phone else 24
+	st.content_margin_bottom = (20 + _safe_bottom(app)) if phone else 24
+	p.add_theme_stylebox_override("panel", st)
+	p.mouse_filter = Control.MOUSE_FILTER_STOP
+	var v := UI.vbox(14)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# высокий лист (телефон лёжа) прокручивается, а не уходит за экран
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.add_child(v)
+	p.add_child(sc)
+	var fit := func():
+		if not is_instance_valid(v):
+			return
+		var maxh: float = app.get_viewport_rect().size.y * 0.86 - 48 - _safe_bottom(app)
+		sc.custom_minimum_size.y = minf(v.get_combined_minimum_size().y, maxh)
+	v.minimum_size_changed.connect(fit)
+	fit.call_deferred()
+	if phone:
+		var handle := Panel.new()
+		handle.custom_minimum_size = Vector2(36, 4)
+		handle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		handle.add_theme_stylebox_override("panel", UI.box(Color(0.5, 0.5, 0.5, 0.45), 99))
+		v.add_child(handle)
+	if title != "":
+		var hv := UI.vbox(4)
+		var tl := UI.label(title, 20, Color("202124") if light else UI.TEXT, UI.font_black)
+		tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		tl.custom_minimum_size.x = 120
+		hv.add_child(tl)
+		if sub != "":
+			hv.add_child(UI.para(sub, 14, Color("5f6368") if light else UI.MUTED))
+		v.add_child(hv)
+	var body := UI.vbox(12)
+	v.add_child(body)
+	ov.set_meta("panel", p)
+	ov.gui_input.connect(func(e):
+		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+			if not p.get_global_rect().has_point(ov.get_global_transform() * e.position):
+				close_sheet(app))
+	if phone:
+		var col := UI.vbox(0)
+		col.set_anchors_preset(Control.PRESET_FULL_RECT)
+		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(UI.spacer(false))
+		col.add_child(p)
+		ov.add_child(col)
+		if FX.on():
+			p.modulate.a = 0
+			# через кадр (после раскладки) — выезд снизу с пружинкой; твин живёт вместе с листом
+			p.create_tween().tween_callback(func():
+				var y := p.position.y
+				p.position.y = y + p.size.y * 0.6
+				p.modulate.a = 1
+				p.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).tween_property(p, "position:y", y, 0.34))
+	else:
+		p.custom_minimum_size.x = 480
+		_center(ov, p)
+	return body
+
+
+## Закрыть верхний лист (если есть). true — что-то закрыли.
+static func close_sheet(app: Control) -> bool:
+	for i in range(app.get_child_count() - 1, -1, -1):
+		var ov := app.get_child(i)
+		if ov is ColorRect and ov.has_meta("sheet") and not ov.is_queued_for_deletion() and not ov.has_meta("closing"):
+			_fade_out(ov)
+			return true
+	return false
+
+
+static func _fade_out(ov: Control) -> void:
+	ov.set_meta("closing", true)
+	ov.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if not FX.on():
+		ov.queue_free()
+		return
+	var p: Control = ov.get_meta("panel") if ov.has_meta("panel") else null
+	var tw := ov.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_property(ov, "color:a", 0.0, 0.2)
+	if p and UI.compact():
+		tw.tween_property(p, "position:y", p.position.y + p.size.y, 0.2)
+	elif p:
+		tw.tween_property(p, "modulate:a", 0.0, 0.15)
+	tw.chain().tween_callback(ov.queue_free)
+
+
+## Кнопка «Назад» на Android: закрыть верхнее окно.
+static func close_top(app: Control) -> bool:
+	if close_sheet(app):
+		return true
+	for i in range(app.get_child_count() - 1, -1, -1):
+		var ov := app.get_child(i)
+		if ov is ColorRect and ov.mouse_filter == Control.MOUSE_FILTER_STOP and not ov.is_queued_for_deletion():
+			if ov.has_meta("page_back") and (ov.get_meta("page_back") as Callable).call():
+				return true
+			ov.queue_free()
+			return true
+	return false
+
+
+# ------------------------------------------------------------------ первый запуск: знакомство → ник → «как играть»
 static func register(app: Control) -> void:
 	if app.has_node("RegisterOverlay"):
 		return
-	var ov := _dim(app)
+	var ov := ColorRect.new()
 	ov.name = "RegisterOverlay"
-	var p := UI.panel(30, UI.PANEL, 22)
-	p.custom_minimum_size = Vector2(UI.dialog_width(520), 0)
-	var v := UI.vbox(14)
-	p.add_child(v)
-	var icon := LanternIcon.new().setup(3, null, 96)
-	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	v.add_child(icon)
-	var t := UI.h2("Как вас зовут в игре?")
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(t)
-	var d := UI.para("Ник видят друзья. Пароль не нужен — профиль привязан к этому устройству. Получите тег вида Ник#4821, по нему вас добавят в друзья.", 14, UI.MUTED)
-	d.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(d)
+	ov.color = UI.BG
+	ov.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ov.mouse_filter = Control.MOUSE_FILTER_STOP
+	app.add_child(ov)
+	var glow := preload("res://scripts/ui/backdrop.gd").new()
+	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ov.add_child(glow)
+	var safe: Vector2 = app.get("_safe") if app.get("_safe") is Vector2 else Vector2.ZERO
+	var m := MarginContainer.new()
+	m.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var side := 24 if UI.compact() else 0
+	m.add_theme_constant_override("margin_left", side)
+	m.add_theme_constant_override("margin_right", side)
+	m.add_theme_constant_override("margin_top", int(safe.x) + 8)
+	m.add_theme_constant_override("margin_bottom", int(safe.y) + 24)
+	ov.add_child(m)
+	var center := CenterContainer.new()
+	m.add_child(center)
+	var stage := Control.new()   # страницы сменяются сдвигом по горизонтали
+	stage.clip_contents = false
+	center.add_child(stage)
+	var vp := app.get_viewport_rect().size
+	var w := minf(440.0, vp.x - side * 2)
+	var h := vp.y - safe.x - safe.y - 32
+	if not UI.compact():
+		h = minf(h, 720)
+	stage.custom_minimum_size = Vector2(w, h)
+	var state := {"page": 0, "nick": null, "err": null, "waiting": false}
+	var pages: Array[Control] = []
+
+	var show_page := func(i: int, dir: int) -> void:
+		var old: Control = pages[state.page]
+		var nw: Control = pages[i]
+		state.page = i
+		nw.visible = true
+		if FX.on() and old != nw:
+			nw.position.x = 60 * dir
+			nw.modulate.a = 0
+			var tw := nw.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tw.tween_property(nw, "position:x", 0.0, 0.3)
+			tw.tween_property(nw, "modulate:a", 1.0, 0.22)
+			var to := old.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			to.tween_property(old, "position:x", -60.0 * dir, 0.2)
+			to.tween_property(old, "modulate:a", 0.0, 0.16)
+			to.chain().tween_callback(func(): old.visible = false; old.position.x = 0)
+		elif old != nw:
+			old.visible = false
+		if i == 1 and state.nick:
+			(state.nick as LineEdit).grab_focus.call_deferred()
+
+	var mk_page := func() -> VBoxContainer:
+		var pv := UI.vbox(16)
+		pv.set_anchors_preset(Control.PRESET_FULL_RECT)
+		pv.visible = pages.is_empty()
+		stage.add_child(pv)
+		pages.append(pv)
+		return pv
+
+	var dots := func(n: int) -> Control:
+		var r := UI.hbox(6)
+		r.alignment = BoxContainer.ALIGNMENT_CENTER
+		for i in 3:
+			var d := Panel.new()
+			d.custom_minimum_size = Vector2(22 if i == n else 8, 8)
+			d.add_theme_stylebox_override("panel", UI.box(UI.accent() if i == n else Color(1, 1, 1, 0.18), 99))
+			r.add_child(d)
+		return r
+
+	# --- 1. знакомство
+	var p1: VBoxContainer = mk_page.call()
+	var top1 := UI.hbox(0)
+	top1.add_child(UI.spacer())
+	top1.add_child(UI.button("Позже", "ghost", func(): ov.queue_free()))
+	p1.add_child(top1)
+	p1.add_child(UI.spacer(false))
+	var li := LanternIcon.new().setup(7, {"flame": "flame_amber"}, 132)
+	li.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	p1.add_child(li)
+	var t1 := UI.label("LANTERN", 34, UI.TEXT, UI.font_black)
+	t1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	p1.add_child(t1)
+	var s1 := UI.para("Minecraft с друзьями — по короткому коду. Java и Bedrock, без VPN и настройки роутера.", 16, UI.MUTED)
+	s1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	p1.add_child(s1)
+	p1.add_child(UI.spacer(false))
+	p1.add_child(dots.call(0))
+	var b1 := UI.button("Начать", "primary", func(): show_page.call(1, 1))
+	b1.custom_minimum_size.y = 56
+	b1.add_theme_font_size_override("font_size", 17)
+	p1.add_child(b1)
+
+	# --- 2. ник
+	var p2: VBoxContainer = mk_page.call()
+	var top2 := UI.hbox(0)
+	top2.add_child(UI.icon_button("back", func(): show_page.call(0, -1), "Назад"))
+	p2.add_child(top2)
+	p2.add_child(UI.gap(8))
+	p2.add_child(UI.h1("Как вас зовут в игре?"))
+	p2.add_child(UI.para("Ник видят друзья. Пароль не нужен — профиль живёт на этом устройстве. Вы получите тег вида Ник#4821: по нему вас добавят в друзья.", 15, UI.MUTED))
+	p2.add_child(UI.gap(4))
 	var e := UI.line_edit("", "Ник: 3–16 букв, цифр или _")
 	e.max_length = 16
+	e.custom_minimum_size.y = 56
 	e.add_theme_font_override("font", UI.font_bold)
 	e.add_theme_font_size_override("font_size", 20)
-	v.add_child(e)
-	var err := UI.label("", 14, Color("ffb3ba"))
-	v.add_child(err)
-	var row := UI.hbox(10)
-	var later := UI.button("Позже", "ghost", func(): ov.queue_free())
-	var ok := UI.button("Готово", "primary", func():
-		err.text = ""
+	p2.add_child(e)
+	state.nick = e
+	var err := UI.para("", 14, Color("ff9d9d"))
+	err.visible = false
+	p2.add_child(err)
+	p2.add_child(UI.spacer(false))
+	p2.add_child(dots.call(1))
+	var ok := UI.button("Готово", "primary")
+	ok.custom_minimum_size.y = 56
+	ok.add_theme_font_size_override("font_size", 17)
+	ok.pressed.connect(func():
+		err.visible = false
+		state.waiting = true
+		ok.text = "Создаём профиль…"
 		Social.register(e.text))
-	ok.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(later)
-	row.add_child(ok)
-	v.add_child(row)
+	p2.add_child(ok)
 	e.text_submitted.connect(func(_t): ok.pressed.emit())
+
+	# --- 3. как играть
+	var p3: VBoxContainer = mk_page.call()
+	p3.add_child(UI.gap(32))
+	var hi := UI.h1("Готово!")
+	p3.add_child(hi)
+	var tagl := UI.para("", 15, UI.MUTED)
+	p3.add_child(tagl)
+	p3.add_child(UI.gap(4))
+	p3.add_child(UI.caption("Как играть вместе"))
+	var go_host := func():
+		ov.queue_free()
+		if app.has_method("play_option"):
+			if Cfg.mobile():
+				app.host_on_pc_sheet()
+			else:
+				app.go("setup")
+	p3.add_child(_how_card("1", "plus", UI.accent(), "Создайте мир", "На компьютере: выберите Java или Bedrock — получите код. Друзья зайдут по нему." if not Cfg.mobile() else "Мир создаётся на компьютере (LANTERN для ПК). Код получат друзья.", go_host))
+	p3.add_child(_how_card("2", "play", UI.BEDROCK, "Или зайдите к другу", "Введите код из 6 символов, который прислал друг, — мир появится прямо в Minecraft.", func(): ov.queue_free(); app.go("join")))
+	p3.add_child(UI.spacer(false))
+	p3.add_child(dots.call(2))
+	var b3 := UI.button("Осмотрюсь сам", "secondary", func(): ov.queue_free())
+	b3.custom_minimum_size.y = 52
+	p3.add_child(b3)
+
+	ov.set_meta("page_back", func() -> bool:
+		if state.page == 1:
+			show_page.call(0, -1)
+			return true
+		return false)
 	var on_fail := func(what, text):
 		if what == "register":
 			err.text = text
+			err.visible = true
+			ok.text = "Готово"
+			state.waiting = false
 	var on_change := func(what):
-		if what == "me" and Social.online():
-			ov.queue_free()
+		if what == "me" and Social.online() and state.waiting:
+			state.waiting = false
+			tagl.text = "Ваш тег — %s. Отправьте его друзьям, чтобы они добавили вас." % Social.me.get("tag", "")
+			show_page.call(2, 1)
+			FX.burst(ov, Vector2(ov.size.x / 2, ov.size.y * 0.25), 30)
 	Social.failed.connect(on_fail)
 	Social.changed.connect(on_change)
 	ov.tree_exiting.connect(func():
 		Social.failed.disconnect(on_fail)
 		Social.changed.disconnect(on_change))
-	_center(ov, p)
-	e.grab_focus.call_deferred()
+	if FX.on():
+		ov.modulate.a = 0
+		ov.create_tween().tween_property(ov, "modulate:a", 1.0, 0.25)
+		FX.stagger(p1, 0.05)
 
 
-# ------------------------------------------------------------------ лист покупки
+static func _how_card(n: String, icon: String, col: Color, title: String, desc: String, cb: Callable) -> Control:
+	var p := PanelContainer.new()
+	var st := UI.box(Color(col, 0.10), UI.R_L, 0, Color(col, 0.3), 1)
+	UI._hpad(st, 16, 16)
+	p.add_theme_stylebox_override("panel", st)
+	var row := UI.hbox(14)
+	p.add_child(row)
+	var tile := PanelContainer.new()
+	tile.custom_minimum_size = Vector2(48, 48)
+	tile.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	tile.add_theme_stylebox_override("panel", UI.box(col, UI.R_M))
+	var ic := UIcon.make(icon, 24, UI.ON_ACCENT)
+	ic.stroke = 2.6
+	ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	tile.add_child(ic)
+	row.add_child(tile)
+	var v := UI.vbox(4)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_child(UI.label(title, 17, UI.TEXT, UI.font_black))
+	v.add_child(UI.para(desc, 14, UI.MUTED))
+	row.add_child(v)
+	UI.tappable(p, cb, st)
+	return p
+
+
+# ------------------------------------------------------------------ лист покупки (как в Google Play)
 static func purchase(app: Control, product: String, on_success := Callable()) -> void:
 	var info: Dictionary = PRODUCTS.get(product, {})
-	var ov := _dim(app)
-	var sheet := PanelContainer.new()
-	var st := UI.box(Color("f7f8fa"), 18, 26)
-	sheet.add_theme_stylebox_override("panel", st)
-	sheet.custom_minimum_size = Vector2(UI.dialog_width(520), 0)
-	var v := UI.vbox(12)
-	sheet.add_child(v)
+	var v := sheet(app, "", "", true)
+	var ov: Control = v.get_parent().get_parent()
+	while not (ov is ColorRect):
+		ov = ov.get_parent()
 	var top := UI.hbox(10)
-	var gp := UI.label("▶ Google Play", 15, Color("3c4043"), UI.font_bold)
-	top.add_child(gp)
+	top.add_child(UI.label("▶ Google Play", 15, Color("3c4043"), UI.font_bold))
 	top.add_child(UI.spacer())
 	if Social.demo:
 		top.add_child(UI.pill("ДЕМО", Color("d93025")))
 	v.add_child(top)
 	var row := UI.hbox(14)
-	var ic := UI.texture("res://assets/img/icon.png", 56, 56)
-	row.add_child(ic)
+	row.add_child(UI.texture("res://assets/img/icon.png", 56, 56))
 	var tv := UI.vbox(2)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tv.add_child(UI.label(info.get("title", product), 18, Color("202124"), UI.font_bold))
+	var tt := UI.label(info.get("title", product), 17, Color("202124"), UI.font_bold)
+	tt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tt.custom_minimum_size.x = 120
+	tv.add_child(tt)
 	tv.add_child(UI.label("LANTERN (by Yompix)", 13, Color("5f6368")))
 	row.add_child(tv)
 	var pv := UI.vbox(0)
-	pv.add_child(UI.label(info.get("uah", ""), 18, Color("202124"), UI.font_bold))
-	pv.add_child(UI.label(info.get("usd", ""), 13, Color("5f6368")))
+	var pr := UI.label(info.get("uah", ""), 17, Color("202124"), UI.font_bold)
+	pr.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	pv.add_child(pr)
+	var pu := UI.label(info.get("usd", ""), 13, Color("5f6368"))
+	pu.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	pv.add_child(pu)
 	row.add_child(pv)
 	v.add_child(row)
 	v.add_child(UI.para(info.get("desc", ""), 14, Color("5f6368")))
@@ -119,59 +403,69 @@ static func purchase(app: Control, product: String, on_success := Callable()) ->
 	line.color = Color("e0e0e0")
 	line.custom_minimum_size.y = 1
 	v.add_child(line)
-	v.add_child(UI.label("Способ оплаты: " + ("тестовая карта (ДЕМО — деньги не списываются)" if Social.demo else "Google Play"), 13, Color("3c4043")))
+	v.add_child(UI.para("Способ оплаты: " + ("тестовая карта (ДЕМО — деньги не списываются)" if Social.demo else "Google Play"), 13, Color("3c4043")))
 	if product == "lantern_pro_month":
-		v.add_child(UI.label("Подписку можно отменить в любой момент в Google Play.", 12, Color("5f6368")))
+		v.add_child(UI.para("Подписку можно отменить в любой момент в Google Play.", 12, Color("5f6368")))
 	var buy := UI.button("Купить", "primary")
-	buy.add_theme_stylebox_override("normal", UI.box(Color("1a73e8"), 10, 14))
-	buy.add_theme_stylebox_override("hover", UI.box(Color("3b87ee"), 10, 14))
-	buy.add_theme_stylebox_override("pressed", UI.box(Color("1557b0"), 10, 14))
-	buy.add_theme_color_override("font_color", Color.WHITE)
-	buy.add_theme_color_override("font_hover_color", Color.WHITE)
+	for st in [["normal", Color("1a73e8")], ["hover", Color("3b87ee")], ["pressed", Color("1557b0")], ["hover_pressed", Color("1557b0")], ["disabled", Color("8ab4f8")]]:
+		buy.add_theme_stylebox_override(st[0], UI.box(st[1], 99, 12))
+	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_disabled_color"]:
+		buy.add_theme_color_override(k, Color.WHITE)
 	v.add_child(buy)
-	var cancel := UI.button("Отмена", "ghost", func(): ov.queue_free())
+	var cancel := UI.button("Отмена", "ghost", func(): close_sheet(app))
 	cancel.add_theme_color_override("font_color", Color("1a73e8"))
 	v.add_child(cancel)
 	buy.pressed.connect(func():
 		if not Social.demo:
 			Store.buy(product)
-			ov.queue_free()
+			close_sheet(app)
 			return
 		buy.disabled = true
 		buy.text = "Обработка…"
 		Social.request("demo_purchase", {"product": product})
 		await app.get_tree().create_timer(0.9).timeout
+		if not is_instance_valid(v):
+			return
 		for c in v.get_children():
 			c.queue_free()
-		var ok := UI.vbox(10)
-		var check := UI.label("✓", 64, Color("1e8e3e"), UI.font_black)
-		check.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		ok.add_child(check)
+		var okb := UI.vbox(10)
+		var ring := PanelContainer.new()
+		ring.custom_minimum_size = Vector2(80, 80)
+		ring.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		ring.add_theme_stylebox_override("panel", UI.box(Color("1e8e3e"), 99))
+		var ck := UIcon.make("check", 40, Color.WHITE)
+		ck.stroke = 3.0
+		ck.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		ck.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		ring.add_child(ck)
+		okb.add_child(ring)
 		var tl := UI.label("Покупка выполнена", 20, Color("202124"), UI.font_bold)
 		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		ok.add_child(tl)
-		var sub := UI.label(info.get("title", "") + " — уже у вас" + ("  (ДЕМО)" if Social.demo else ""), 14, Color("5f6368"))
+		okb.add_child(tl)
+		var sub := UI.para(info.get("title", "") + " — уже у вас" + ("  (ДЕМО)" if Social.demo else ""), 14, Color("5f6368"))
 		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		ok.add_child(sub)
-		v.add_child(ok)
-		check.pivot_offset = Vector2(40, 40)
-		check.scale = Vector2(0.2, 0.2)
-		check.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).tween_property(check, "scale", Vector2.ONE, 0.4)
+		okb.add_child(sub)
+		okb.add_child(UI.gap(8))
+		v.add_child(okb)
+		if FX.on():
+			ring.pivot_offset = Vector2(40, 40)
+			ring.scale = Vector2(0.2, 0.2)
+			ring.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).tween_property(ring, "scale", Vector2.ONE, 0.4)
+			ring.create_tween().tween_callback(func(): FX.burst(ov, ring.get_global_rect().get_center() - ov.global_position, 30))
 		if on_success.is_valid():
 			on_success.call()
 		if Cfg.autotest == "":
 			await app.get_tree().create_timer(1.8).timeout
 			if is_instance_valid(ov):
-				ov.queue_free())
-	_center(ov, sheet)
+				_fade_out(ov))
 
 
 # ------------------------------------------------------------------ тестовая реклама
 static func ad(app: Control, rewarded: bool, on_done := Callable()) -> void:
-	var ov := _dim(app)
-	ov.color = Color(0, 0, 0, 0.92)
-	var p := UI.panel(30, Color("1b2333"), 18)
-	p.custom_minimum_size = Vector2(UI.dialog_width(620), 380)
+	var ov := _dim(app, 0.92)
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UI.elevated(Color("1b2130"), UI.R_XL, 24))
+	p.custom_minimum_size = Vector2(UI.dialog_width(560), 380)
 	var v := UI.vbox(14)
 	p.add_child(v)
 	var top := UI.hbox(8)
@@ -180,8 +474,10 @@ static func ad(app: Control, rewarded: bool, on_done := Callable()) -> void:
 	var cnt := UI.label("5", 18, UI.TEXT, UI.font_black)
 	top.add_child(cnt)
 	v.add_child(top)
-	var big := UI.label("Здесь будет реклама", 30, UI.TEXT, UI.font_black)
+	var big := UI.label("Здесь будет реклама", 28, UI.TEXT, UI.font_black)
 	big.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	big.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	big.custom_minimum_size.x = 120
 	big.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	big.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	v.add_child(big)
@@ -191,7 +487,7 @@ static func ad(app: Control, rewarded: bool, on_done := Callable()) -> void:
 	var bar := ProgressBar.new()
 	bar.show_percentage = false
 	bar.max_value = 5.0
-	bar.custom_minimum_size.y = 8
+	bar.custom_minimum_size.y = 6
 	v.add_child(bar)
 	var close := UI.button("Закрыть", "secondary", func(): ov.queue_free())
 	close.disabled = true
@@ -208,6 +504,7 @@ static func ad(app: Control, rewarded: bool, on_done := Callable()) -> void:
 	close.disabled = false
 	close.text = "Забрать +20 искр" if rewarded else "Закрыть"
 	if rewarded:
+		close.remove_theme_stylebox_override("normal")
 		Social.request("ad_reward")
 	if on_done.is_valid():
 		on_done.call()

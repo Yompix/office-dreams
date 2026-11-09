@@ -12,20 +12,13 @@ var results := []     # [{key, ok: "ok"|"warn"|"bad"|"info", title, text}] — �
 
 func _ready() -> void:
 	horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	var v := UI.vbox(14)
+	var v := UI.vbox(10)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(v)
-	var head := UI.hbox(12)
-	var hv := UI.vbox(2)
-	hv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hv.add_child(UI.h1("Проверка системы"))
-	hv.add_child(UI.para("Проверим, всё ли готово, чтобы создать мир на этом компьютере. Ничего не меняем и не устанавливаем.", 15, UI.MUTED))
-	head.add_child(hv)
-	var again := UI.button("Проверить ещё раз", "secondary", run)
-	again.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	head.add_child(again)
-	v.add_child(head)
-	_list = UI.vbox(10)
+	app.set_title("Проверка системы", "Можно ли создать мир на этом компьютере")
+	app.set_actions([UI.icon_button("refresh", run, "Проверить ещё раз")])
+	v.add_child(UI.para("Проверим, всё ли готово, чтобы создать мир на этом компьютере. Ничего не меняем и не устанавливаем.", 14, UI.MUTED))
+	_list = UI.vbox(8)
 	v.add_child(_list)
 	run()
 
@@ -95,20 +88,30 @@ func run() -> void:
 
 func _add(key: String, ok: String, title: String, text: String) -> Control:
 	results.append({"key": key, "ok": ok, "title": title, "text": text})
-	var p := UI.panel(14, UI.CARD, 14)
-	var row := UI.hbox(12)
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UI._hpad(UI.box(UI.CARD, UI.R_L), 14, 12))
+	var row := UI.hbox(14)
 	p.add_child(row)
 	var col: Color = {"ok": UI.JAVA, "warn": UI.YELLOW, "bad": UI.RED}.get(ok, UI.BEDROCK)
-	var icon := UI.label({"ok": "✓", "warn": "!", "bad": "✗"}.get(ok, "i"), 20, col, UI.font_black)
-	icon.custom_minimum_size.x = 26
+	var tile := PanelContainer.new()
+	tile.custom_minimum_size = Vector2(36, 36)
+	tile.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	tile.add_theme_stylebox_override("panel", UI.box(Color(col, 0.16), 99))
+	var icon := UI.label({"ok": "✓", "warn": "!", "bad": "✗"}.get(ok, "i"), 18, col, UI.font_black)
 	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	row.add_child(icon)
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	tile.add_child(icon)
+	row.add_child(tile)
 	var v := UI.vbox(2)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	v.add_child(UI.label(title, 16, UI.TEXT, UI.font_bold))
-	var t := UI.para(text, 14, UI.MUTED)
+	var tl := UI.label(title, 15, UI.TEXT, UI.font_bold)
+	tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tl.custom_minimum_size.x = 120
+	v.add_child(tl)
+	var t := UI.para(text, 13, UI.MUTED)
 	v.add_child(t)
 	row.add_child(v)
+	p.set_meta("tile", tile)
 	p.set_meta("icon", icon)
 	p.set_meta("text", t)
 	p.set_meta("idx", results.size() - 1)
@@ -121,7 +124,9 @@ func _set_row(row: Control, ok: String, text: String) -> void:
 		return
 	var icon: Label = row.get_meta("icon")
 	icon.text = {"ok": "✓", "warn": "!", "bad": "✗"}.get(ok, "i")
-	icon.add_theme_color_override("font_color", {"ok": UI.JAVA, "warn": UI.YELLOW, "bad": UI.RED}.get(ok, UI.BEDROCK))
+	var col: Color = {"ok": UI.JAVA, "warn": UI.YELLOW, "bad": UI.RED}.get(ok, UI.BEDROCK)
+	icon.add_theme_color_override("font_color", col)
+	(row.get_meta("tile") as PanelContainer).add_theme_stylebox_override("panel", UI.box(Color(col, 0.16), 99))
 	(row.get_meta("text") as Label).text = text
 	var i: int = row.get_meta("idx")
 	if i < results.size():

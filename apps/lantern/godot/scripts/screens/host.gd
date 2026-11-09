@@ -1,5 +1,5 @@
-extends HBoxContainer
-## Панель запущенного мира: код для друзей, QR, состояние, игроки, журнал, кнопки.
+extends BoxContainer
+## «Мой мир»: большой код комнаты (копировать, поделиться, QR), живой статус, игроки, журнал, кнопки.
 
 var app
 var arg := {}
@@ -8,7 +8,8 @@ var _state_pill: PanelContainer
 var _status: Label
 var _bar: ProgressBar
 var _bar_lbl: Label
-var _code_lbl: Label
+var _code_row: HBoxContainer
+var _code_tiles: Array[Label] = []
 var _code_hint: Label
 var _qr: TextureRect
 var _relay_lbl: Label
@@ -19,7 +20,11 @@ var _log: RichTextLabel
 var _cmd: LineEdit
 var _btns := {}
 var _last_code := "?"
+var _shown_code := ""
 var _tick := 0.0
+var _last_peers := -1
+var _code_card: PanelContainer
+var _log_body: Control
 
 const STATES := {
 	"installing": ["Готовим сервер", UI.YELLOW],
@@ -34,12 +39,20 @@ const STATES := {
 
 func _ready() -> void:
 	var s: ServerHost = app.server
-	add_theme_constant_override("separation", 20)
-	# ================= левая колонка
+	var compact := UI.compact()
+	vertical = compact
+	add_theme_constant_override("separation", 16 if compact else 24)
+	app.set_title(s.opts.get("world", "Мой мир"), "Java Edition" + (" + телефоны" if s.opts.get("crossplay", false) else "") if s.edition == "java" else "Bedrock Edition")
 	var left := UI.vbox(16)
-	left.custom_minimum_size.x = 430
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(left)
-	var head := UI.panel(20)
+	var right := left if compact else UI.vbox(16)
+	if not compact:
+		right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		add_child(right)
+
+	# --- состояние сервера
+	var head := UI.panel(18)
 	var hv := UI.vbox(10)
 	head.add_child(hv)
 	var hr := UI.hbox(12)
@@ -47,20 +60,19 @@ func _ready() -> void:
 	hr.add_child(UI.texture("res://assets/img/mini_grass.png" if s.edition == "java" else "res://assets/img/mini_stone.png", 44, 44))
 	var tv := UI.vbox(0)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var wl := UI.label(s.opts.get("world", "Мир"), 22, UI.TEXT, UI.font_black)
+	var wl := UI.label(s.opts.get("world", "Мир"), 19, UI.TEXT, UI.font_black)
 	wl.clip_text = true
 	wl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	tv.add_child(wl)
 	var sub := "Java Edition" + (" + телефоны" if s.opts.get("crossplay", false) and s.edition == "java" else "") if s.edition == "java" else "Bedrock Edition"
-	tv.add_child(UI.label(sub, 14, UI.MUTED))
+	tv.add_child(UI.label(sub, 13, UI.MUTED))
 	hr.add_child(tv)
 	_state_pill = UI.pill("…", UI.MUTED)
-	_state_pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	hr.add_child(_state_pill)
 	_status = UI.para("", 14, UI.MUTED)
 	hv.add_child(_status)
 	_bar = ProgressBar.new()
-	_bar.custom_minimum_size.y = 10
+	_bar.custom_minimum_size.y = 6
 	_bar.show_percentage = false
 	_bar.max_value = 1.0
 	hv.add_child(_bar)
@@ -68,86 +80,139 @@ func _ready() -> void:
 	hv.add_child(_bar_lbl)
 	left.add_child(head)
 
-	var inv := UI.panel(20)
-	inv.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var iv := UI.vbox(10)
-	inv.add_child(iv)
-	iv.add_child(UI.label("КОД ДЛЯ ДРУЗЕЙ", 13, UI.MUTED, UI.font_bold))
-	var cr := UI.hbox(14)
-	iv.add_child(cr)
-	var cv := UI.vbox(8)
-	cv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cr.add_child(cv)
-	_code_lbl = UI.label("······", 46, UI.accent(), UI.font_black)
-	cv.add_child(_code_lbl)
-	var cb := UI.button("Скопировать код", "secondary", _copy_code)
-	cv.add_child(cb)
-	_btns["copy"] = cb
+	# --- код для друзей
+	_code_card = PanelContainer.new()
+	var cst := UI.box(Color("201a10"), UI.R_XL, 0, Color(UI.accent(), 0.35), 1)
+	UI._hpad(cst, 20, 20)
+	_code_card.add_theme_stylebox_override("panel", cst)
+	var cv := UI.vbox(14)
+	_code_card.add_child(cv)
+	var ctop := UI.hbox(8)
+	var cap := UI.caption("Код для друзей", UI.accent())
+	cap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ctop.add_child(cap)
+	_relay_lbl = UI.label("", 13, UI.DIM, UI.font_bold)
+	if compact:
+		var qb := UI.icon_button("qr", _qr_sheet, "QR-код", UI.accent().lightened(0.2), Color(UI.accent(), 0.15))
+		ctop.add_child(qb)
+		_btns["qr"] = qb
+	else:
+		ctop.add_child(_relay_lbl)
+	cv.add_child(ctop)
+	var cmid := UI.hbox(16)
+	cv.add_child(cmid)
+	_code_row = UI.hbox(6 if compact else 8)
+	_code_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_code_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_code_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	for i in 6:
+		if i == 3:
+			_code_row.add_child(UI.label("–", 26, UI.DIM, UI.font_black))
+		var tile := PanelContainer.new()
+		tile.add_theme_stylebox_override("panel", UI.box(Color(0, 0, 0, 0.35), UI.R_M))
+		tile.custom_minimum_size = Vector2(34 if compact else 52, 58 if compact else 68)
+		if compact:
+			tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var l := UI.label("·", 30 if compact else 36, UI.accent().lightened(0.15), UI.font_black)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		tile.add_child(l)
+		_code_row.add_child(tile)
+		_code_tiles.append(l)
+	cmid.add_child(_code_row)
 	_qr = TextureRect.new()
-	_qr.custom_minimum_size = Vector2(150, 150)
+	_qr.custom_minimum_size = Vector2(132, 132)
 	_qr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_qr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	cr.add_child(_qr)
-	_code_hint = UI.para("Друг открывает LANTERN → «Зайти к другу» → вводит код. Мир появится у него в игре сам.", 14, UI.MUTED)
-	iv.add_child(_code_hint)
-	_relay_lbl = UI.label("", 13, UI.DIM)
-	iv.add_child(_relay_lbl)
-	iv.add_child(UI.spacer(false))
-	iv.add_child(UI.label("В ТОЙ ЖЕ WI-FI СЕТИ", 13, UI.MUTED, UI.font_bold))
-	_lan_box = UI.vbox(4)
-	iv.add_child(_lan_box)
-	left.add_child(inv)
+	_qr.visible = not compact
+	if not compact:
+		cmid.add_child(_qr)
+	var acts: BoxContainer = UI.vbox(8) if compact else UI.hbox(8)
+	var cb := UI.button("Скопировать код", "primary", _copy_code, "copy")
+	cb.clip_text = true
+	cb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	acts.add_child(cb)
+	_btns["copy"] = cb
+	var sh := UI.button("Поделиться ссылкой", "tonal", _share, "share")
+	sh.clip_text = true
+	sh.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	acts.add_child(sh)
+	_btns["share"] = sh
+	cv.add_child(acts)
+	if compact:
+		cv.add_child(_relay_lbl)
+	_code_hint = UI.para("Друг открывает LANTERN → «Зайти к другу» → вводит код. Мир сам появится у него в Minecraft.", 13, UI.MUTED)
+	cv.add_child(_code_hint)
+	left.add_child(_code_card)
 
-	# ================= правая колонка
-	var right := UI.vbox(16)
-	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(right)
+	# --- игроки
 	var pp := UI.panel(18)
-	var pv := UI.vbox(10)
+	var pv := UI.vbox(12)
 	pp.add_child(pv)
-	_players_title = UI.h3("Игроки")
+	_players_title = UI.h3("В мире: 0")
 	pv.add_child(_players_title)
-	_players_box = HFlowContainer.new()
-	_players_box.add_theme_constant_override("h_separation", 8)
-	_players_box.add_theme_constant_override("v_separation", 8)
+	_players_box = UI.flow(8)
 	pv.add_child(_players_box)
-	right.add_child(pp)
+	left.add_child(pp)
 
-	var lp := UI.panel(14, Color("0c0f15"))
-	lp.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var lv := UI.vbox(10)
+	# --- кнопки управления
+	var br := UI.flow(8)
+	_btns["stop"] = UI.button("Остановить", "danger", _stop, "stop")
+	_btns["restart"] = UI.button("Перезапуск", "secondary", func(): app.server.restart(), "refresh")
+	_btns["start"] = UI.button("Запустить снова", "primary", func(): app.server.host(app.server.edition, app.server.opts), "play")
+	_btns["backup"] = UI.button("Резервная копия", "secondary", _backup, "download")
+	_btns["folder"] = UI.button("Папка мира", "secondary", func(): OS.shell_open(ProjectSettings.globalize_path(app.server.world_path())), "folder")
+	_btns["copies"] = UI.button("Копии миров", "ghost", func(): app.go("backups", true), "cloud")
+	_btns["check"] = UI.button("Проверка системы", "secondary", func(): app.go("syscheck", true), "info")
+	for k in ["stop", "restart", "start", "backup", "folder", "copies", "check"]:
+		br.add_child(_btns[k])
+	right.add_child(br)
+
+	# --- та же Wi-Fi сеть
+	var lp := UI.panel(18)
+	var lv := UI.vbox(8)
 	lp.add_child(lv)
 	var lh := UI.hbox(10)
-	lh.add_child(UI.label("ЖУРНАЛ СЕРВЕРА", 13, UI.MUTED, UI.font_bold))
+	lh.add_child(UI.icon("wifi", 20, UI.MUTED))
+	lh.add_child(UI.label("В той же Wi-Fi сети", 15, UI.TEXT, UI.font_bold))
 	lv.add_child(lh)
+	lv.add_child(UI.para("Друзья рядом могут зайти и без кода — по адресу:", 13, UI.MUTED))
+	_lan_box = UI.vbox(4)
+	lv.add_child(_lan_box)
+	right.add_child(lp)
+
+	# --- журнал сервера
+	var logp := UI.panel(14, Color("0b0d12"))
+	logp.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var lgv := UI.vbox(10)
+	logp.add_child(lgv)
+	var lgh := UI.button("Журнал сервера и команды", "ghost", Callable(), "chevron_down")
+	lgh.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	lgh.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	lgh.add_theme_color_override("font_color", UI.MUTED)
+	lgv.add_child(lgh)
+	var body := UI.vbox(10)
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	lgv.add_child(body)
+	_log_body = body
+	body.visible = not compact
+	lgh.pressed.connect(func(): body.visible = not body.visible)
 	_log = RichTextLabel.new()
 	_log.scroll_following = true
 	_log.selection_enabled = true
 	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_log.custom_minimum_size.y = 220 if compact else 160
 	_log.bbcode_enabled = false
-	lv.add_child(_log)
-	_cmd = UI.line_edit("", "Команда серверу, например: op ВашНик   (Enter — отправить)")
+	body.add_child(_log)
+	_cmd = UI.line_edit("", "Команда серверу, например: op ВашНик")
 	_cmd.add_theme_font_override("font", UI.font_mono)
 	_cmd.add_theme_font_size_override("font_size", 14)
 	_cmd.text_submitted.connect(func(t):
 		if t.strip_edges() != "":
 			app.server.command(t.strip_edges().trim_prefix("/"))
 			_cmd.text = "")
-	lv.add_child(_cmd)
-	right.add_child(lp)
-
-	var br := UI.hbox(10)
-	right.add_child(br)
-	_btns["stop"] = UI.button("■  Стоп", "danger", _stop)
-	_btns["restart"] = UI.button("Перезапуск", "secondary", func(): app.server.restart())
-	_btns["start"] = UI.button("▶  Запустить снова", "primary", func(): app.server.host(app.server.edition, app.server.opts))
-	_btns["folder"] = UI.button("Папка мира", "secondary", func(): OS.shell_open(ProjectSettings.globalize_path(app.server.world_path())))
-	_btns["backup"] = UI.button("Резервная копия", "secondary", _backup)
-	_btns["copies"] = UI.button("Копии миров", "ghost", func(): app.go("backups", true))
-	_btns["check"] = UI.button("Проверка системы", "secondary", func(): app.go("syscheck", true))
-	for k in ["stop", "restart", "start", "folder", "backup", "copies", "check"]:
-		_btns[k].size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		br.add_child(_btns[k])
+	body.add_child(_cmd)
+	right.add_child(logp)
 
 	s.state_changed.connect(_on_state)
 	s.status.connect(func(t): _status.text = t)
@@ -161,6 +226,7 @@ func _ready() -> void:
 	_on_state(s.state)
 	_on_players(s.players)
 	_refresh_relay()
+	FX.stagger(left, 0.05)
 
 
 func _process(d: float) -> void:
@@ -190,8 +256,8 @@ func _on_state(st: String) -> void:
 	var info: Array = STATES.get(st, ["", UI.MUTED])
 	var l: Label = _state_pill.get_meta("label")
 	l.text = info[0]
-	l.add_theme_color_override("font_color", (info[1] as Color).lightened(0.25))
-	_state_pill.add_theme_stylebox_override("panel", _pill_box(info[1]))
+	l.add_theme_color_override("font_color", (info[1] as Color).lightened(0.3))
+	_state_pill.add_theme_stylebox_override("panel", UI._hpad(UI.box(Color(info[1], 0.15), 99), 10, 3))
 	var busy := st in ["installing", "starting"]
 	_bar.visible = busy
 	_bar_lbl.visible = busy and _bar_lbl.text != ""
@@ -203,31 +269,24 @@ func _on_state(st: String) -> void:
 	_btns.check.visible = st == "error"
 	if st == "error":
 		_status.text = "Что-то пошло не так: " + app.server.last_error
-		_status.add_theme_color_override("font_color", Color("ffb3ba"))
+		_status.add_theme_color_override("font_color", Color("ff9d9d"))
 	else:
-		_status.remove_theme_color_override("font_color")
+		_status.add_theme_color_override("font_color", UI.MUTED)
 	if st == "running":
 		_status.text = "Сервер работает. Зовите друзей!"
 	_refresh_lan()
 
 
-func _pill_box(c: Color) -> StyleBoxFlat:
-	var s := UI.box(Color(c, 0.16), 99, 0, Color(c, 0.45), 1)
-	s.content_margin_left = 12
-	s.content_margin_right = 12
-	s.content_margin_top = 4
-	s.content_margin_bottom = 4
-	return s
-
-
 func _on_players(list: PackedStringArray) -> void:
 	for c in _players_box.get_children():
 		c.queue_free()
-	_players_title.text = "Игроки онлайн: %d" % list.size()
+	_players_title.text = "В мире: %d" % list.size()
 	if list.is_empty():
 		_players_box.add_child(UI.label("Пока никого. Отправьте друзьям код!", 14, UI.DIM))
 	for n in list:
-		_players_box.add_child(UI.pill("●  " + n, UI.accent()))
+		var chip := UI.pill("●  " + n, UI.JAVA)
+		_players_box.add_child(chip)
+		FX.enter(chip, Vector2(0, 8))
 
 
 func _refresh_lan() -> void:
@@ -247,16 +306,33 @@ func _refresh_lan() -> void:
 		ports.append(["Bedrock", ServerHost.BEDROCK_PORT])
 	for p in ports:
 		var row := UI.hbox(8)
-		row.add_child(UI.label(p[0], 14, UI.MUTED))
+		var nl := UI.label(p[0], 14, UI.MUTED)
+		nl.custom_minimum_size.x = 72
+		row.add_child(nl)
 		var addr := "%s:%d" % [ips[0], p[1]]
-		var al := UI.label(addr, 15, UI.TEXT, UI.font_mono)
+		var al := UI.label(addr, 14, UI.TEXT, UI.font_mono)
 		al.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		al.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		al.clip_text = true
 		row.add_child(al)
-		var b := UI.button("Копировать", "ghost", func(): UI.copy(addr); app.toast("Адрес скопирован"))
-		b.custom_minimum_size.y = 32
-		row.add_child(b)
+		row.add_child(UI.icon_button("copy", func(): UI.copy(addr); app.toast("Адрес скопирован"), "Копировать", UI.MUTED))
 		_lan_box.add_child(row)
+
+
+func _set_code(c: String) -> void:
+	if c == _shown_code:
+		return
+	var reveal := _shown_code == "" or _shown_code.contains("·")
+	_shown_code = c
+	var chars := c.replace("-", "")
+	for i in 6:
+		_code_tiles[i].text = chars[i] if i < chars.length() else "·"
+	if reveal and not c.contains("·"):
+		FX.flip_in(_code_tiles, 0.08)
+		var st: StyleBoxFlat = _code_card.get_theme_stylebox("panel")
+		if FX.on():
+			var tw := _code_card.create_tween()
+			tw.tween_property(st, "border_color", Color(UI.accent(), 0.9), 0.25)
+			tw.tween_property(st, "border_color", Color(UI.accent(), 0.35), 0.8)
 
 
 func _refresh_relay() -> void:
@@ -264,47 +340,82 @@ func _refresh_relay() -> void:
 	var r: Dictionary = app.relay_host.stats()
 	var code: String = r.get("code", "")
 	if not s.opts.get("internet", true):
-		_code_lbl.text = "—"
+		_set_code("······")
 		_code_hint.text = "Интернет-комната выключена: зайти смогут только друзья из вашей Wi-Fi сети."
 		_relay_lbl.text = ""
 		_qr.texture = null
 		_btns.copy.disabled = true
+		_btns.share.disabled = true
 		return
 	var shown: bool = code != "" and r.state in ["online", "reconnecting"]
 	_btns.copy.disabled = not shown
+	_btns.share.disabled = not shown
+	if _btns.has("qr"):
+		_btns.qr.disabled = not shown
 	if shown:
-		_code_lbl.text = RoomCode.pretty(code)
+		_set_code(RoomCode.pretty(code))
 	elif s.state in ["installing", "starting"]:
-		_code_lbl.text = "······"
+		_set_code("······")
 	if code != _last_code:
 		_last_code = code
 		if code != "":
-			var ed := s.edition if not (s.edition == "java" and s.opts.get("crossplay", false)) else "both"
-			var q := QR.encode(Invite.link(code, ed, s.opts.get("world", "Мир"), Cfg.relay_url()), QR.ECC_M)
-			_qr.texture = ImageTexture.create_from_image(q.to_image(6, Color("0b0e14"), Color("eef1f7")))
+			_qr.texture = ImageTexture.create_from_image(QR.encode(_invite_link(), QR.ECC_M).to_image(6, Color("0b0e14"), Color("eef1f7")))
 		else:
 			_qr.texture = null
 	match r.state:
 		"online":
-			var who := "друзей пока нет" if r.peers == 0 else "друзей подключено: %d" % r.peers
-			_relay_lbl.text = "● Комната открыта — %s" % who
+			var peers := int(r.peers)
+			_relay_lbl.text = "● друзей в мире: %d" % peers
 			_relay_lbl.add_theme_color_override("font_color", UI.JAVA)
+			if _last_peers >= 0 and peers > _last_peers:
+				FX.burst(app, _code_card.get_global_rect().get_center() - app.global_position, 34)
+				app.toast("Друг зашёл в ваш мир!", UI.JAVA)
+			_last_peers = peers
 		"connecting":
-			_relay_lbl.text = "Открываем комнату…"
+			_relay_lbl.text = "открываем комнату…"
 			_relay_lbl.add_theme_color_override("font_color", UI.DIM)
 		"reconnecting", "error":
 			_relay_lbl.text = "⚠ " + str(r.error)
 			_relay_lbl.add_theme_color_override("font_color", UI.YELLOW)
 		_:
-			_relay_lbl.text = "Код появится, когда сервер запустится" if s.state in ["installing", "starting"] else ""
+			_relay_lbl.text = "код появится после запуска" if s.state in ["installing", "starting"] else ""
 			_relay_lbl.add_theme_color_override("font_color", UI.DIM)
+
+
+func _invite_link() -> String:
+	var s: ServerHost = app.server
+	var ed := s.edition if not (s.edition == "java" and s.opts.get("crossplay", false)) else "both"
+	return Invite.link(app.relay_host.stats().get("code", ""), ed, s.opts.get("world", "Мир"), Cfg.relay_url())
 
 
 func _copy_code() -> void:
 	var r: Dictionary = app.relay_host.stats()
 	if r.code != "":
 		UI.copy(RoomCode.pretty(r.code))
-		app.toast("Код %s скопирован — отправьте его друзьям" % RoomCode.pretty(r.code))
+		app.toast("Код %s скопирован — отправьте его друзьям" % RoomCode.pretty(r.code), UI.JAVA)
+
+
+## Поделиться: готовое сообщение с кодом и ссылкой (вставьте в любой мессенджер).
+func _share() -> void:
+	var r: Dictionary = app.relay_host.stats()
+	if r.code == "":
+		return
+	UI.copy("Заходи в мой мир «%s» в Minecraft через LANTERN!\nКод: %s\n%s" % [app.server.opts.get("world", "Мир"), RoomCode.pretty(r.code), _invite_link()])
+	app.toast("Приглашение со ссылкой скопировано — вставьте его в чат", UI.JAVA)
+
+
+func _qr_sheet() -> void:
+	var v: VBoxContainer = Overlays.sheet(app, "QR-код комнаты", "Друг наводит камеру телефона — LANTERN откроется сам и подключится")
+	var t := TextureRect.new()
+	t.texture = _qr.texture
+	t.custom_minimum_size = Vector2(240, 240)
+	t.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	v.add_child(t)
+	var cl := UI.label(_shown_code, 30, UI.accent(), UI.font_black)
+	cl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(cl)
 
 
 func _stop() -> void:
