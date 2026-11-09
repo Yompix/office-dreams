@@ -1,5 +1,5 @@
 @echo off
-rem Novograd: PC cleanup. Batch part is ASCII only; the script itself (Russian) is below #PSSTART.
+rem Novograd: PC cleanup. Batch part is ASCII only; the script itself (Russian) is below the marker line.
 chcp 65001 >nul
 title Novograd - cleanup
 set "NVG_SELF=%~f0"
@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Start-Process -Fil
 if %errorlevel%==0 exit /b
 echo No admin rights - running anyway (system folders will be skipped).
 :run
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$t=[IO.File]::ReadAllText($env:NVG_SELF,[Text.Encoding]::UTF8); $m='#'+'PS'+'START'; iex ($t.Substring($t.IndexOf($m)+$m.Length))"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$t=[IO.File]::ReadAllText($env:NVG_SELF,[Text.Encoding]::UTF8); $m=[string][char]10+'#'+'PS'+'START'; $i=$t.IndexOf($m); if($i -lt 0){throw 'marker not found'}; iex ($t.Substring($i+$m.Length))"
 if errorlevel 1 echo PowerShell error. Send a screenshot of this window.
 pause
 exit /b

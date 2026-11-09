@@ -1,5 +1,5 @@
 @echo off
-rem Novograd full installer for the official Minecraft launcher. Batch part is ASCII only; the script (Russian) is below #PSSTART.
+rem Novograd full installer for the official Minecraft launcher. Batch part is ASCII only; the script (Russian) is below the marker line.
 chcp 65001 >nul
 title Novograd - install
 set "NVG_SELF=%~f0"
@@ -9,7 +9,7 @@ if not exist "%~dp0files\mods" (
   pause
   exit /b
 )
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$t=[IO.File]::ReadAllText($env:NVG_SELF,[Text.Encoding]::UTF8); $m='#'+'PS'+'START'; iex ($t.Substring($t.IndexOf($m)+$m.Length))"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$t=[IO.File]::ReadAllText($env:NVG_SELF,[Text.Encoding]::UTF8); $m=[string][char]10+'#'+'PS'+'START'; $i=$t.IndexOf($m); if($i -lt 0){throw 'marker not found'}; iex ($t.Substring($i+$m.Length))"
 if errorlevel 1 echo PowerShell error. Send a screenshot of this window.
 pause
 exit /b
