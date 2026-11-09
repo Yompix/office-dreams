@@ -161,7 +161,7 @@ public final class StoryHud {
                 Ui.outlined(ctx, tr, l[0], -tr.getWidth(l[0]) / 2, top + 11 + i * lh, 0xFF000000 | Integer.parseInt(l[1], 16));
             }
             m.pop();
-            // баннер «НОВАЯ ЦЕЛЬ»: косая розовая плашка проезжает через экран
+            // баннер «НОВАЯ ЦЕЛЬ»: косая красная плашка проезжает через экран
             float bt = (now - bannerAt) / 1000f;
             if (bannerAt > 0 && bt < 3.2f) {
                 float a = bt < 0.3f ? bt / 0.3f : bt > 2.6f ? (3.2f - bt) / 0.6f : 1;

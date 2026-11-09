@@ -21,7 +21,7 @@ import java.util.List;
  * Оружие из рюкзака встаёт в текущую ячейку панели. Сверху — «Кулаки» (пустая ячейка).
  */
 public class WeaponWheelScreen extends Screen {
-    private static final int PINK = 0xFFFF3EA5, CYAN = 0xFF35E0FF, GOLD = 0xFFFFC94A;
+    private static final int PINK = 0xFFD42A3A, CYAN = 0xFF3FB8B0, GOLD = 0xFFFFC94A;
 
     private record Choice(int slot, ItemStack stack, String name, int accent) {}
 
@@ -144,7 +144,7 @@ public class WeaponWheelScreen extends Screen {
             ArsenalClient.ring(m, cx, cy, out - (on ? 4 : 2), out, a0, a1, on ? c.accent : (c.accent & 0x00FFFFFF) | 0x70000000, 12);
         }
         ArsenalClient.ring(m, cx, cy, 0, r1 - 4, 0, (float) (Math.PI * 2), 0xD80A0A12, 40);
-        ArsenalClient.ring(m, cx, cy, r1 - 6, r1 - 4, 0, (float) (Math.PI * 2), 0x90FF3EA5, 40);
+        ArsenalClient.ring(m, cx, cy, r1 - 6, r1 - 4, 0, (float) (Math.PI * 2), 0x90D42A3A, 40);
         // иконки
         var inv = client.player == null ? null : client.player.getInventory();
         for (int i = 0; i < n; i++) {

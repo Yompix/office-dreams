@@ -408,7 +408,7 @@ public class CutsceneScreen extends LifeScreen {
             int cw = textRenderer.getWidth(chapter);
             ctx.drawText(textRenderer, chapter, x - cw, y + 24, al | 0xE0E0E0, true);
         }
-        ctx.fill(x - (int) (w * 2.4f * Math.min(1, t / 0.9f)), y - 5, x, y - 4, al | 0xFF4FD8);
+        ctx.fill(x - (int) (w * 2.4f * Math.min(1, t / 0.9f)), y - 5, x, y - 4, al | 0xD42A3A);
     }
 
     @Override

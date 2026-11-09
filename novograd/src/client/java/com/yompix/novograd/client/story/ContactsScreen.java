@@ -54,7 +54,7 @@ public class ContactsScreen extends LifeScreen {
             // сердечки дружбы
             for (int k = 0; k < 10; k++) {
                 int hx = x + 48 + k * 8, hy = ry + 15;
-                ctx.fill(hx, hy, hx + 6, hy + 5, k < fr ? 0xFFFF4F8A : 0xFF383736);
+                ctx.fill(hx, hy, hx + 6, hy + 5, k < fr ? 0xFFD0404E : 0xFF383736);
             }
             if (c.contains("perk")) {
                 boolean on = c.getBoolean("perkOn");

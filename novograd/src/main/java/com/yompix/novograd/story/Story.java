@@ -378,7 +378,7 @@ public final class Story {
     private static void finish(ServerPlayerEntity p, LifeData d) {
         d.storyDone = true;
         d.achievements.add("story");
-        Life.message(p, "Новоград", "Сюжет пройден! Теперь город твой: работай, учись, копи на машины, играй в казино с друзьями. Удачи!");
+        Life.message(p, "Новоград", "Сюжет пройден. Город твой: дела, бизнесы, районы, казино — живи как хочешь. Только не расслабляйся.");
         LifeNet.send(p, "objective", new NbtCompound());
         Life.sync(p);
     }

@@ -39,7 +39,7 @@ public class CreditsScreen extends LifeScreen {
                 bigText(ctx, l[1], width / 2, (int) y, 2.4f, 0xFFFFD54F);
                 y += 30;
             } else if (l[0].equals("B")) {
-                bigText(ctx, l[1], width / 2, (int) y, 1.8f, 0xFFFF4FD8);
+                bigText(ctx, l[1], width / 2, (int) y, 1.8f, 0xFFD42A3A);
                 y += 24;
             } else if (l[0].equals("H")) {
                 center(ctx, l[1], width / 2, (int) y, 0xFF8FC3FF);

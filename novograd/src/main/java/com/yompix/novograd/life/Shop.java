@@ -68,7 +68,7 @@ public final class Shop {
             new Entry("Транспорт", "Лоурайдер (акт II)", () -> ModContent.CARS[14], 1, 3800, 12),
             new Entry("Транспорт", "Классика 70-х (акт II)", () -> ModContent.CARS[13], 1, 4500, 12),
             new Entry("Транспорт", "Суперкар «Молния» (акт IV)", () -> ModContent.CARS[12], 1, 12000, 12),
-            new Entry("Питомцы", "Собака (верный друг)", () -> Items.BONE, 1, 150, 1),
+            new Entry("Питомцы", "Собака (сторожевая)", () -> Items.BONE, 1, 150, 1),
             new Entry("Питомцы", "Кошка", () -> Items.COD, 1, 120, 1),
             new Entry("Питомцы", "Попугай", () -> Items.WHEAT_SEEDS, 1, 90, 1),
             new Entry("Разное", "Банковская карта", () -> ModContent.BANK_CARD, 1, 20, 1),
@@ -143,7 +143,7 @@ public final class Shop {
         pet.setPersistent();
         w.spawnEntity(pet);
         Achievements.give(p, "pet");
-        Life.message(p, "Зоомагазин", "Знакомься: " + pet.getCustomName().getString() + "! Присядь и нажми на питомца, чтобы он сидел или шёл за тобой.");
+        Life.message(p, "Зоомагазин", "Питомец: " + pet.getCustomName().getString() + ". Присядь и нажми на него, чтобы сидел или шёл за тобой.");
     }
 
     static void buy(ServerPlayerEntity p, int index, boolean delivery) {

@@ -200,7 +200,7 @@ public class MapScreen extends LifeScreen {
     /** Правая панель: сюжет, задания и такси до выбранной точки. */
     private void panel(DrawContext ctx, int x, int y, int w, int h) {
         ctx.fill(x, y, x + w, y + h, 0xE0181C2C);
-        ctx.fill(x, y, x + w, y + 1, 0xFFFF2FB4);
+        ctx.fill(x, y, x + w, y + 1, 0xFFD42A3A);
         String[][] tabs = {{"story", "Сюжет"}, {"tasks", "Задания"}};
         int tx = x + 4;
         for (String[] t : tabs) {
@@ -259,7 +259,7 @@ public class MapScreen extends LifeScreen {
                 NovogradClient.send("taxi_call", n);
                 close();
             });
-            button(ctx, x + 6, by + 19, w - 12, 15, "Убрать метку", 0xFF5E35B1, true, () -> ClientStory.waypoint = null);
+            button(ctx, x + 6, by + 19, w - 12, 15, "Убрать метку", 0xFF4A4A50, true, () -> ClientStory.waypoint = null);
         } else {
             wrap(ctx, "ПКМ по карте — поставить метку, туда можно вызвать такси.", x + 6, by + 6, w - 12, 0xFF888888);
         }

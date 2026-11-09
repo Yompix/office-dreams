@@ -196,7 +196,7 @@ public final class ArsenalClient {
             // счётчик патронов — в плашке оружия справа вверху (LifeHud); здесь только подсказки
             int x = w / 2 + 96, y = h - 4;
             if (reloading) ctx.drawText(c.textRenderer, "ПЕРЕЗАРЯДКА", x, y - 16, 0xFFFFC94A, true);
-            else if (mag == 0 && reserve == 0) ctx.drawText(c.textRenderer, "НЕТ ПАТРОНОВ", x, y - 16, 0xFFFF3EA5, true);
+            else if (mag == 0 && reserve == 0) ctx.drawText(c.textRenderer, "НЕТ ПАТРОНОВ", x, y - 16, 0xFFE5383B, true);
         }
     }
 

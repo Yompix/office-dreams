@@ -565,7 +565,7 @@ public final class Studio {
             ctx.drawText(tr, "● REC  дубль " + (data.takes.size() + 1), 10, Math.max(6, barH / 2 - 4), 0xFFFF3B3B, false);
         if (playing) {
             int len = Math.max(1, Math.max(total(), takesLength()));
-            ctx.fill(0, H - 2, W * Math.min(playTick, len) / len, H, 0x80FF4FD8);
+            ctx.fill(0, H - 2, W * Math.min(playTick, len) / len, H, 0x80D42A3A);
         }
         long age = System.currentTimeMillis() - toastAt;
         if (age < 2600 && !toast.isEmpty()) {
@@ -577,7 +577,7 @@ public final class Studio {
         if (playing || recording) return;
         String head = "КИНОСТУДИЯ  ·  кадров " + data.keys.size() + "  ·  дублей " + data.takes.size() + "/4  ·  " + FILTERS[data.filter]
                 + "  ·  зум " + Math.round(fov) + "°" + (Math.abs(roll) > 0.5 ? "  ·  наклон " + Math.round(roll) + "°" : "");
-        ctx.drawText(tr, head, 8, Math.max(4, barH / 2 - 4), 0xFFFF4FD8, true);
+        ctx.drawText(tr, head, 8, Math.max(4, barH / 2 - 4), 0xFFD42A3A, true);
         if (!hints) return;
         String[] lines = {
                 "WASD — лететь · пробел/Shift — выше/ниже · Ctrl — быстрее · ← → — скорость полёта",

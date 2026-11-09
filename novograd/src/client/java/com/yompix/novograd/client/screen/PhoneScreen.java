@@ -39,16 +39,16 @@ public class PhoneScreen extends LifeScreen {
     private static final List<App> APPS = List.of(
             new App("bank", "Банк", 0xFF2FA84F), new App("jobs", "Работа", 0xFF5A6ACF),
             new App("messages", "СМС", 0xFF34C759), new App("map", "Карта", 0xFF3AA0E6), new App("shop", "Магазин", 0xFFE05A47),
-            new App("casino", "Казино", 0xFF8E1B3A), new App("music", "Радио", 0xFFFF375F), new App("camera", "Камера", 0xFF4B4F58),
-            new App("weather", "Погода", 0xFF64B5F6), new App("story", "Сюжет", 0xFFFFB300), new App("trophy", "Награды", 0xFFC99A2E),
+            new App("casino", "Казино", 0xFF8E1B3A), new App("music", "Радио", 0xFFC8323F), new App("camera", "Камера", 0xFF4B4F58),
+            new App("weather", "Погода", 0xFF5B8FB0), new App("story", "Сюжет", 0xFFFFB300), new App("trophy", "Награды", 0xFFC99A2E),
             new App("home", "Дом", 0xFFA0785A),
-            new App("taxi", "Такси", 0xFFF7C600), new App("friends", "Друзья", 0xFF7E57C2), new App("missions", "Задания", 0xFFD32F2F),
+            new App("taxi", "Такси", 0xFFE0B020), new App("friends", "Друзья", 0xFF6A5F80), new App("missions", "Задания", 0xFFD32F2F),
             new App("style", "Стиль", 0xFFD42A3A), new App("finance", "Финансы", 0xFF2E7D32), new App("news", "Новости", 0xFFD32F2F), new App("guard", "Охрана", 0xFF3FB8B0),
             new App("auto", "Авто", 0xFF00897B),
             new App("collect", "Коллекции", 0xFFC2405A),
             new App("skills", "Навыки", 0xFF3FB8B0), new App("outdoor", "Природа", 0xFF7CB342), // навыки SA; охота, рыбалка, календарь (gta/Outdoors)
-            new App("cnr", "Копы и воры", 0xFF4FA3FF), // «Полицейские и воры» по сети (gta/CopsAndRobbers)
-            new App("contacts", "Контакты", 0xFF5AE6A0), // звонки героев и дружба (story/Calls)
+            new App("cnr", "Копы и воры", 0xFF3F7FC0), // «Полицейские и воры» по сети (gta/CopsAndRobbers)
+            new App("contacts", "Контакты", 0xFF4FA886), // звонки героев и дружба (story/Calls)
             new App("dark", "Дела", 0xFF8A1020));
 
     private static final String[][] DISCS = {{"cat", "C418 — cat"}, {"chirp", "C418 — chirp"}, {"mall", "C418 — mall"}, {"mellohi", "C418 — mellohi"},
