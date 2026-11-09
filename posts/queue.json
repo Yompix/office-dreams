@@ -1,37 +1,90 @@
 [
- {
-  "id": "2026-10-19-whats-new",
-  "at": "2026-10-19T16:00:00Z",
-  "text": "<b>🛠 What's new in Office Dreams</b>\n\n🏙 <b>The City is open:</b> tap \"Go to the city\" and walk a neon street. Coffee shop, Academy, Contract board, Game store, Mall and Arena, each with people to talk to. Their timers keep running while you are away.\n⚔️ <b>Studio Battle</b> in the Arena: 30 seconds of tapping. Your rival is a live player, a recording of a real player or a training bot, and the game always shows which one.\n🐈 <b>19 city secrets</b> to find by tapping (the cat, the kiosk, the moon…), plus a shiny find on the sidewalk every 5 minutes.\n🎵 <b>10 music tracks</b>, shuffled, with \"Next track\" in Settings.\n📘 A new beginner tutorial in plain words. Skip it or replay it from Help.\n\nOpen the game and take a walk through the City 👇",
-  "photo": "shot-city.jpg"
- },
- {
-  "id": "2026-10-20-office-calls",
-  "at": "2026-10-20T16:00:00Z",
-  "text": "<b>📞 The office phone is ringing</b>\n\nEvery 2–3 game days (a game day is 90 seconds) a story event lands on your desk, and you decide how it ends.\n⏰ Urgent deadline from the Boss, 🎉 Office party, ☕ Out of coffee, 💌 Fan letter, 🏆 Award nomination… 12 events, each with 2–3 choices.\n📧 Careful with the Suspicious email: follow its link and you lose cash. Real rewards never ask for your wallet through a link.\n🛡 Same in real life: the only official bot is @officedream1_bot.\n\n👉 Open Quests and make your call.",
-  "photo": "shot-team.jpg"
- },
- {
-  "id": "2026-10-21-airdrop-fund",
-  "at": "2026-10-21T16:00:00Z",
-  "text": "<b>🪂 Airdrop fund: where we are</b>\n\n📊 As of Oct 18: <b>$17.79</b> of the <b>$5,000</b> launch fund (about 0.4%) and <b>7</b> verified players.\n🎮 You earn airdrop points by playing: releases, upgrades, quests, floors, goals, daily missions, check-ins and more. The server counts them.\n✅ Only verified players get a share. Get verified once with any contribution: a $1 deposit in SOL, a donation in Telegram Stars or any shop purchase. It is not refunded and gives no points.\n💰 The fund grows from Stars and SOL donations and the $1 deposits. Shop purchases do not count toward it.\n🔔 At $5,000 the server freezes everyone's points by itself, and 90,000,000 OFFX are split by points among verified players. Then you claim your share in the game to your Solana wallet (fee: 0.01 SOL).\n\nCheck your points in Airdrop → Points 👇\n<i>Points are not money. Crypto is risky: the OFFX price is set by the market.</i>"
- },
- {
-  "id": "2026-10-22-tower-stars",
-  "at": "2026-10-22T16:00:00Z",
-  "text": "<b>🏢 Six floors, 30 stars</b>\n\nYour studio starts in the Basement and climbs a neon tower: Accounting, Design, Marketing, Game Dev and finally the CEO Office.\n⭐ Every open floor can be renovated up to ★5. Each star gives a bonus: Basement +6% cash per tap, Accounting −4% salaries, Marketing +5% sales.\n💰 The cheapest first step: Basement ★1 costs $540 of in-game cash.\n👑 Collect all 30 stars to become a Tower legend, with a golden crown over the roof.\n\n👉 Open Empire and give your Basement its first star.",
-  "photo": "shot-tower.jpg"
- },
- {
-  "id": "2026-10-23-ideas-bugs",
-  "at": "2026-10-23T16:00:00Z",
-  "text": "<b>💡 Catch ideas, squash bugs</b>\n\nYour office comes alive while a project is running.\n💡 A light bulb pops up over one of your employees and stays for 12 seconds. Tap it for a burst of progress (6% of the project) plus cash.\n🐞 After your first release, bugs start crawling across the floor. Squash one within 10 seconds for cash, or it eats 2% of your project.\n👀 Tip: both only show up while a project is running, so keep an eye on the office during a build.\n\n👉 Hire your first employee and catch your first idea.",
-  "photo": "shot-office.jpg"
- },
- {
-  "id": "2026-10-24-official-bot",
-  "at": "2026-10-24T16:00:00Z",
-  "text": "<b>🛡 Official bot: @officedream1_bot only</b>\n\n🎮 Office Dreams lives in one bot: @officedream1_bot. The game: <a href=\"https://t.me/officedream1_bot/play\">t.me/officedream1_bot/play</a>. Any other bot is fake.\n🔑 Never share your seed phrase or private key (the secret words or code that open your wallet). The \"Suspicious email\" quest in the game teaches the same: real rewards never ask for your wallet data through a link.\n🪂 The airdrop is claimed only inside the game (Airdrop → Token). When it starts, the bot messages every player and posts in this channel.\n👤 In the in-game Top, Telegram names that pretend to be staff (Admin, Support…) are shown as \"Player #1234\".\n💬 News: @officedream. Questions: @vtmjs.\n\nCheck the bot name before you tap 👇\n<i>Points are not money. Crypto is risky: the OFFX price is set by the market.</i>",
-  "photo": "cover-640x360.png"
- }
+  {
+    "id": "2026-10-19-whats-new",
+    "at": "2026-10-19T16:00:00Z",
+    "text": "<b>🛠 What's new in Office Dreams</b>\n\n🏙 <b>The City is open:</b> tap \"Go to the city\" and walk a neon street. Coffee shop, Academy, Contract board, Game store, Mall and Arena, each with people to talk to. Their timers keep running while you are away.\n⚔️ <b>Studio Battle</b> in the Arena: 30 seconds of tapping. Your rival is a live player, a recording of a real player or a training bot, and the game always shows which one.\n🐈 <b>19 city secrets</b> to find by tapping (the cat, the kiosk, the moon…), plus a shiny find on the sidewalk every 5 minutes.\n🎵 <b>10 music tracks</b>, shuffled, with \"Next track\" in Settings.\n📘 A new beginner tutorial in plain words. Skip it or replay it from Help.\n\nOpen the game and take a walk through the City 👇",
+    "photo": "shot-city.jpg"
+  },
+  {
+    "id": "2026-10-20-office-calls",
+    "at": "2026-10-20T16:00:00Z",
+    "text": "<b>📞 The office phone is ringing</b>\n\nEvery 2–3 game days (a game day is 90 seconds) a story event lands on your desk, and you decide how it ends.\n⏰ Urgent deadline from the Boss, 🎉 Office party, ☕ Out of coffee, 💌 Fan letter, 🏆 Award nomination… 12 events, each with 2–3 choices.\n📧 Careful with the Suspicious email: follow its link and you lose cash. Real rewards never ask for your wallet through a link.\n🛡 Same in real life: the only official bot is @officedream1_bot.\n\n👉 Open Quests and make your call.",
+    "photo": "shot-team.jpg"
+  },
+  {
+    "id": "2026-10-21-airdrop-fund",
+    "at": "2026-10-21T16:00:00Z",
+    "text": "<b>🪂 Airdrop fund: where we are</b>\n\n📊 As of Oct 18: <b>$17.79</b> of the <b>$5,000</b> launch fund (about 0.4%) and <b>7</b> verified players.\n🎮 You earn airdrop points by playing: releases, upgrades, quests, floors, goals, daily missions, check-ins and more. The server counts them.\n✅ Only verified players get a share. Get verified once with any contribution: a $1 deposit in SOL, a donation in Telegram Stars or any shop purchase. It is not refunded and gives no points.\n💰 The fund grows from Stars and SOL donations and the $1 deposits. Shop purchases do not count toward it.\n🔔 At $5,000 the server freezes everyone's points by itself, and 90,000,000 OFFX are split by points among verified players. Then you claim your share in the game to your Solana wallet (fee: 0.01 SOL).\n\nCheck your points in Airdrop → Points 👇\n<i>Points are not money. Crypto is risky: the OFFX price is set by the market.</i>"
+  },
+  {
+    "id": "2026-10-22-tower-stars",
+    "at": "2026-10-22T16:00:00Z",
+    "text": "<b>🏢 Six floors, 30 stars</b>\n\nYour studio starts in the Basement and climbs a neon tower: Accounting, Design, Marketing, Game Dev and finally the CEO Office.\n⭐ Every open floor can be renovated up to ★5. Each star gives a bonus: Basement +6% cash per tap, Accounting −4% salaries, Marketing +5% sales.\n💰 The cheapest first step: Basement ★1 costs $540 of in-game cash.\n👑 Collect all 30 stars to become a Tower legend, with a golden crown over the roof.\n\n👉 Open Empire and give your Basement its first star.",
+    "photo": "shot-tower.jpg"
+  },
+  {
+    "id": "2026-10-23-ideas-bugs",
+    "at": "2026-10-23T16:00:00Z",
+    "text": "<b>💡 Catch ideas, squash bugs</b>\n\nYour office comes alive while a project is running.\n💡 A light bulb pops up over one of your employees and stays for 12 seconds. Tap it for a burst of progress (6% of the project) plus cash.\n🐞 After your first release, bugs start crawling across the floor. Squash one within 10 seconds for cash, or it eats 2% of your project.\n👀 Tip: both only show up while a project is running, so keep an eye on the office during a build.\n\n👉 Hire your first employee and catch your first idea.",
+    "photo": "shot-office.jpg"
+  },
+  {
+    "id": "2026-10-24-official-bot",
+    "at": "2026-10-24T16:00:00Z",
+    "text": "<b>🛡 Official bot: @officedream1_bot only</b>\n\n🎮 Office Dreams lives in one bot: @officedream1_bot. The game: <a href=\"https://t.me/officedream1_bot/play\">t.me/officedream1_bot/play</a>. Any other bot is fake.\n🔑 Never share your seed phrase or private key (the secret words or code that open your wallet). The \"Suspicious email\" quest in the game teaches the same: real rewards never ask for your wallet data through a link.\n🪂 The airdrop is claimed only inside the game (Airdrop → Token). When it starts, the bot messages every player and posts in this channel.\n👤 In the in-game Top, Telegram names that pretend to be staff (Admin, Support…) are shown as \"Player #1234\".\n💬 News: @officedream. Questions: @vtmjs.\n\nCheck the bot name before you tap 👇\n<i>Points are not money. Crypto is risky: the OFFX price is set by the market.</i>",
+    "photo": "cover-640x360.png"
+  },
+  {
+    "id": "2026-11-10-night-shift",
+    "at": "2026-11-10T16:00:00Z",
+    "text": "<b>😱 New game from our studio — «Night Shift»</b>\n\nA short interactive horror, right inside Telegram. You are the lone night guard of an empty office building.\n\n🕯 <b>Four rules. One night. Four endings.</b>\nYour sister is at the glass door at 3 a.m. — but is it really her?\n👁 Watch the cameras, keep the rules, decide who to let in. One wrong move and you don't make it to morning.\n\n🎮 Free to play: @officedream1_bot → Studio → Games.\nBest with headphones, in the dark.",
+    "photo": "posts/nightshift.webp",
+    "button": "🎮 Play in Telegram"
+  },
+  {
+    "id": "2026-11-13-airdrop-how",
+    "at": "2026-11-13T16:00:00Z",
+    "text": "<b>🪂 How the airdrop works — plainly</b>\n\n🎮 You earn airdrop points just by playing: releases, upgrades, quests, floors, daily missions and check-ins. The server counts them from real progress — nothing you can fake.\n✅ Only verified players share the airdrop. Verify once with any contribution (a $1 deposit in SOL, Telegram Stars, or any shop purchase).\n🔔 When the launch fund reaches $5,000, the server freezes everyone's points by itself and splits 90,000,000 OFFX by points. You claim your share in the game.\n\n👉 Check your points in Airdrop → Points.\n<i>Points are not money. Crypto is risky: the OFFX price is set by the market, and can go down.</i>",
+    "button": "🪂 Open Airdrop"
+  },
+  {
+    "id": "2026-11-16-city-walk",
+    "at": "2026-11-16T16:00:00Z",
+    "text": "<b>🏙 Take a walk through the City</b>\n\nTap «Go to the city» and stroll a neon street: Coffee shop, Academy, Contract board, Game store, Mall and Arena — each with people to talk to and timers that keep running while you're away.\n🐈 19 city secrets to find by tapping (the cat, the kiosk, the moon…), plus a shiny find on the sidewalk every few minutes.\n\n👉 Open the game and explore.",
+    "photo": "shot-city.jpg",
+    "button": "🏙 Walk the City"
+  },
+  {
+    "id": "2026-11-19-arena-battle",
+    "at": "2026-11-19T16:00:00Z",
+    "text": "<b>⚔️ Studio Battle — 30 seconds</b>\n\nIn the Arena you tap for 30 seconds against another studio. Your team multiplies every tap, so hiring and upgrades make you hit harder.\n🤖 Your rival is a live player, a recording of a real player, or a training bot — and the game always shows which one. No rigged fights.\n🏆 Wins give trophies and coins, and climb you through the leagues.\n\n👉 Open Quests → Arena and win your first battle.",
+    "photo": "shot-team.jpg",
+    "button": "⚔️ To the Arena"
+  },
+  {
+    "id": "2026-11-22-safety-bot",
+    "at": "2026-11-22T16:00:00Z",
+    "text": "<b>🛡 Stay safe — one official bot only</b>\n\n🎮 Office Dreams lives in a single bot: @officedream1_bot. Any other bot is fake.\n🔑 Never share your seed phrase or private key — the secret words or code that open your wallet. No real reward ever asks for them through a link.\n🪂 The airdrop is claimed only inside the game (Airdrop → Token). When it starts, the bot messages every player and posts here.\n💬 Questions: @vtmjs.\n<i>Points are not money. Crypto is risky: the OFFX price is set by the market, and can go down.</i>",
+    "photo": "cover-640x360.png",
+    "button": "▶️ Open the game"
+  },
+  {
+    "id": "2026-11-25-invite-friends",
+    "at": "2026-11-25T16:00:00Z",
+    "text": "<b>👥 Better with friends</b>\n\nInvite a friend from the Airdrop → Friends tab and you both get a bonus — crystals and a head start.\n🎁 The more friends playing, the faster the whole community grows and the sooner the airdrop fund fills.\n\n👉 Grab your invite link in the game and send it to someone who'd like a cosy tycoon (or a scary night shift).",
+    "button": "👥 Invite a friend"
+  },
+  {
+    "id": "2026-11-28-daily",
+    "at": "2026-11-28T16:00:00Z",
+    "text": "<b>✅ Small things, every day</b>\n\n📆 Daily check-in: open the game once a day for a growing reward — keep the streak.\n🎯 Daily missions: a few simple tasks (tap Work, ship a game, solve a quest) for a crystal.\n💡 While a project runs, catch the light-bulb ideas and squash the bugs on the office floor for extra cash.\n\n👉 Two minutes a day keeps your points climbing.",
+    "photo": "shot-office.jpg",
+    "button": "✅ Claim today"
+  },
+  {
+    "id": "2026-12-01-token-honest",
+    "at": "2026-12-01T16:00:00Z",
+    "text": "<b>🪙 About the OFFX token — honestly</b>\n\n🔗 OFFX is a token on Solana, tied to the game. You get it through the airdrop by playing — not by buying hype.\n📉 Right now the pool is tiny, so the price is very jumpy and the chart may be empty. That's normal for an early, low-liquidity token.\n🧭 Our plan is simple: a real, fun game first → real players → real demand. No promises of profit, no price games.\n\n👉 See the token in Airdrop → Token.\n<i>Points are not money. Crypto is risky: the OFFX price is set by the market, and can go down.</i>",
+    "button": "🪙 Airdrop → Token"
+  }
 ]
