@@ -141,6 +141,7 @@ func _connect() -> void:
 	var relay: String = r.relay if r.relay != "" else Cfg.relay_url()
 	var java := _plays in ["java", "both"]
 	var bedrock := _plays in ["bedrock", "both"]
+	app.relay_join.token = Social.token
 	app.relay_join.start(relay, r.code, java, bedrock, int(Cfg.autotest_args.get("join_java_port", 25565)), int(Cfg.autotest_args.get("join_bedrock_port", 19132)))
 	_shown_state = "-"
 	_show_room()
@@ -212,8 +213,14 @@ func _show_room() -> void:
 	tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(tl)
+	if st.state == "online" and Social.online():
+		top.add_child(UI.button("♥ Нравится", "ghost", func(): app.relay_join.like()))
 	if st.state in ["connecting", "online"]:
-		top.add_child(UI.button("Отключиться", "danger", func(): app.relay_join.stop(); _shown_state = "-"; _show_room()))
+		top.add_child(UI.button("Отключиться", "danger", func():
+			app.relay_join.stop()
+			_shown_state = "-"
+			_show_room()
+			Store.show_interstitial(app)))
 	if st.state == "error":
 		v.add_child(UI.para(st.error, 15, Color("ffb3ba")))
 		v.add_child(UI.button("Попробовать ещё раз", "primary", _connect))
@@ -251,7 +258,16 @@ func _show_room() -> void:
 	if not java_on and not bed_on:
 		var need := "Java" if ed == "java" else "Bedrock"
 		v.add_child(UI.para("Этот мир для %s. Переключите «Я играю на» и подключитесь снова." % need, 15, UI.YELLOW))
-	v.add_child(UI.spacer(false))
+	if Social.online():
+		if Social.room_code != app.relay_join.code:
+			Social.enter_room(app.relay_join.code)
+		var chat := ChatBox.new().setup("room")
+		chat.custom_minimum_size.y = 150
+		chat.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		v.add_child(UI.label("ЧАТ КОМНАТЫ", 12, UI.MUTED, UI.font_bold))
+		v.add_child(chat)
+	else:
+		v.add_child(UI.spacer(false))
 	_status_lbl = UI.label("Не закрывайте приложение, пока играете.", 13, UI.DIM)
 	v.add_child(_status_lbl)
 	_traffic_lbl = UI.label("", 13, UI.DIM)

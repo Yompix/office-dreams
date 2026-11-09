@@ -93,6 +93,20 @@ func _ready() -> void:
 
 	# --- обновления
 	r.add_child(UI.gap(46))
+	var pm := UI.panel(22)
+	var mv := UI.vbox(10)
+	pm.add_child(mv)
+	mv.add_child(UI.h3("Тест покупок и рекламы"))
+	var demo := CheckButton.new()
+	demo.text = "ДЕМО-режим (деньги не списываются)"
+	demo.button_pressed = Social.demo
+	demo.add_theme_font_override("font", UI.font_bold)
+	demo.toggled.connect(func(b):
+		Social.set_demo(b)
+		app.toast("ДЕМО включён" if b else "ДЕМО выключен: демо-покупки и демо-искры стёрты"))
+	mv.add_child(demo)
+	mv.add_child(UI.para("Покупки показывают лист «как в Google Play», но ничего не списывают; реклама — тестовый экран на 5 секунд. Настоящие покупки и AdMob включатся, когда автор настроит Google Play.", 13, UI.DIM))
+	r.add_child(pm)
 	var pu := UI.panel(22)
 	var uv := UI.vbox(10)
 	pu.add_child(uv)

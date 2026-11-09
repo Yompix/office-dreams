@@ -8,7 +8,7 @@
 ```
 cd relay && npm install && PORT=8080 node server.js
 curl http://127.0.0.1:8080/healthz
-npm test            # самопроверка: хост-эхо, два друга, TCP/UDP-потоки, ошибки
+npm test            # relay (хост-эхо, TCP/UDP-потоки) + симуляция 3 игроков: друзья, чаты, задания, магазин, сезон
 ```
 
 ## Railway (новый сервис из этого же репозитория)
@@ -23,6 +23,13 @@ npm test            # самопроверка: хост-эхо, два друг
 6. Health check path в Railway: `/healthz`.
 
 Railway даёт HTTPS/WebSocket — этого достаточно: UDP Bedrock идёт внутри WebSocket-кадров.
+
+### Профили, друзья, задания — нужен том (Volume)
+Аккаунты, друзья, сообщения (24 ч), задания, покупки косметики хранятся в SQLite (`node:sqlite`, нужен Node ≥ 22.13).
+Railway → сервис relay → **Volumes → New Volume**, Mount Path `/data`. Relay сам найдёт `RAILWAY_VOLUME_MOUNT_PATH`
+и создаст `/data/lantern.db` (или задайте `DB_PATH`). **Без тома** всё работает, но после каждого перезапуска профили обнуляются.
+Для релиза в Google Play: `DEMO_PURCHASES=0` (выключить демо-покупки) и `GOOGLE_SERVICE_ACCOUNT_JSON` (секрет, см.
+`godot/playtogether/docs/MONETIZATION.md`).
 
 ## Переменные окружения (необязательно)
 | имя | по умолчанию | смысл |

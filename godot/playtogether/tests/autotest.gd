@@ -235,8 +235,8 @@ func _host(ed: String) -> int:
 		o["online_mode"] = false
 	if ed == "java":
 		o.merge({"version": Cfg.autotest_args.get("mc", "latest"), "online_mode": false, "crossplay": Cfg.autotest_args.get("crossplay", "1") == "1", "memory_mb": 1536})
-	app.go("host", true, {})
 	s.host(ed, o)
+	app.go("host", true, {})
 	if not await _wait(func(): return s.state == "running" or s.state == "error", 1500, "сервер запущен (Done)"):
 		return 1
 	if s.state == "error":

@@ -83,7 +83,9 @@ func _card(ed: String, title: String, tag: String, desc: String, img: String, co
 	body.add_child(UI.gap(4))
 	var row := UI.hbox(12)
 	body.add_child(row)
-	var b1 := UI.button("Создать мир", "primary", func(): app.go("setup", false, {"edition": ed}))
+	var mobile := OS.has_feature("mobile")
+	var b1 := UI.button("Создать мир" if not mobile else "Создать — на ПК", "primary", func(): app.go("setup", false, {"edition": ed}))
+	b1.disabled = mobile
 	b1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b1.add_theme_stylebox_override("normal", UI.box(color, 12, 14))
 	b1.add_theme_stylebox_override("hover", UI.box(color.lightened(0.12), 12, 14))

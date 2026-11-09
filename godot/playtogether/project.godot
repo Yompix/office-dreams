@@ -28,6 +28,9 @@ Social="*res://scripts/social/social_client.gd"
 window/size/viewport_width=1280
 window/size/viewport_height=800
 window/energy_saving/keep_screen_on=false
+window/stretch/mode.mobile="canvas_items"
+window/stretch/aspect.mobile="expand"
+window/handheld/orientation=0
 
 [gui]
 

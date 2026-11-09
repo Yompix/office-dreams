@@ -75,3 +75,40 @@ lantern://join?v=1&c=K7M2QX&e=both&n=<имя мира, URL-кодировано>
 ## 4. Совместимость
 * Изменения, ломающие формат, — только с повышением `v`. Relay отвечает `bad_version` клиенту новее себя.
 * Android-сборка использует те же скрипты `scripts/join/*` и `scripts/qr/qr.gd` без изменений.
+
+## 5. Профили, друзья, чаты, экономика (то же соединение `/ws`, JSON)
+
+Хранилище — SQLite (`node:sqlite`, файл `DB_PATH` или `$RAILWAY_VOLUME_MOUNT_PATH/lantern.db`; без тома — в памяти,
+после перезапуска всё сбрасывается). Код: `relay/social.js`, `relay/economy.js`; тесты: `node relay/test_social.js`.
+
+**Профиль без пароля.** Клиент один раз создаёт токен устройства (32 случайных байта, hex) и хранит его в `user://device.cfg`.
+Сервер хранит только `sha256("lantern:"+токен)`.
+```
+→ {"t":"hello","token":"…"}            ← {"t":"welcome","me":{id,nick,tag,lantern,title,equip,online}}  или {"t":"need_register"}
+→ {"t":"register","token":"…","nick":"Стив"}   ← welcome | {"t":"register_err","error":"Такой ник нельзя"}
+```
+Ник: 3–16 символов (буквы, цифры, «_»), фильтр мата, запрет служебных имён. Тег — `Ник#1234`.
+Сервер шлёт `{"t":"state", me, friends[], incoming[], outgoing[], blocked[]}` и `{"t":"friend", friend}` при смене статуса.
+
+| команда | поля | смысл |
+|---|---|---|
+| `presence` | `activity: idle/hosting/playing, world, edition, version, code` | статус для друзей (код комнаты видят только друзья) |
+| `friend_add` | `tag` | заявка (встречная — сразу дружба); лимит 30/час |
+| `friend_accept` / `friend_decline` / `friend_remove` | `id` | |
+| `block` / `unblock` | `id` | блок скрывает сообщения и статус, удаляет из друзей |
+| `report` | `id, reason, msg_id?, block?` | жалоба (таблица `reports`), лимит 10/час |
+| `dm` | `to, text` | только друзьям; ≤300 символов, ссылки → «[ссылка]», мат → «***», 20/мин |
+| `history` | `with` | последние 100 сообщений за 24 ч |
+| `invite` | `to, code, world, edition` | друг получает `{"t":"invite",…}` |
+| `room_enter` / `room_chat` | `code` / `text` | чат комнаты (в памяти, 100 последних, удаляется с комнатой) |
+| `rooms` | `edition, tag, q` | открытые комнаты (также `GET /rooms?edition=&tag=&q=`) |
+| `eco`, `quest_claim{id,period}`, `streak_claim`, `achievements`, `set_title{title}` | | задания, серия, достижения |
+| `shop`, `buy{item}`, `wear{item}`, `season`, `season_claim{tier,track}` | | косметика и сезон |
+| `referral{tag}`, `top`, `ad_reward` | | рефералы, топ недели, награда за рекламу (≤3/день) |
+| `purchase{product,token}` | | проверка покупки Google Play (заготовка) |
+| `demo_purchase{product}`, `demo_wipe` | | ДЕМО-режим (выключается `DEMO_PURCHASES=0`) |
+
+Хозяин может передать в `{"t":"host"}` поля `token` (чей мир — для заданий и «Фонаря») и
+`public: {title, tags[], version, slots}` — тогда комната попадает в список открытых. Друг передаёт `token` в `{"t":"join"}`;
+`{"t":"like"}` из соединения друга — лайк комнате (1 раз в день).
+Время «вместе» считает relay: раз в минуту +1 хозяину и каждому другу-аккаунту, если у друга есть живые потоки.
