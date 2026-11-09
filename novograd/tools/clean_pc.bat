@@ -1,7 +1,8 @@
 @echo off
 rem Novograd: PC cleanup. Batch part is ASCII only; the script itself (Russian) is below the marker line.
 chcp 65001 >nul
-title Novograd - cleanup
+title Novograd - cleanup v2
+echo CLEAN-PC v2
 set "NVG_SELF=%~f0"
 net session >nul 2>&1
 if %errorlevel%==0 goto run
