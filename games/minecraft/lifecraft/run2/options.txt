@@ -1,0 +1,10 @@
+onboardAccessibility:false
+lang:ru_ru
+guiScale:2
+renderDistance:8
+simulationDistance:6
+pauseOnLostFocus:false
+tutorialStep:none
+skipMultiplayerWarning:true
+joinedFirstServer:true
+soundCategory_master:0.0

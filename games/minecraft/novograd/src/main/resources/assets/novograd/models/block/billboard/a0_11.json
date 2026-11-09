@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "novograd:block/billboard/a0_11",
+    "side": "novograd:block/billboard_frame",
+    "top": "novograd:block/billboard_frame"
+  }
+}

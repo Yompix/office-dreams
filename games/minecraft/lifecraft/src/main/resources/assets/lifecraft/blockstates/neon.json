@@ -1,0 +1,244 @@
+{
+  "variants": {
+    "facing=north,color=pink,lit=true": {
+      "model": "lifecraft:block/neon_pink"
+    },
+    "facing=east,color=pink,lit=true": {
+      "model": "lifecraft:block/neon_pink",
+      "y": 90
+    },
+    "facing=south,color=pink,lit=true": {
+      "model": "lifecraft:block/neon_pink",
+      "y": 180
+    },
+    "facing=west,color=pink,lit=true": {
+      "model": "lifecraft:block/neon_pink",
+      "y": 270
+    },
+    "facing=north,color=pink,lit=false": {
+      "model": "lifecraft:block/neon_off"
+    },
+    "facing=east,color=pink,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 90
+    },
+    "facing=south,color=pink,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 180
+    },
+    "facing=west,color=pink,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 270
+    },
+    "facing=north,color=purple,lit=true": {
+      "model": "lifecraft:block/neon_purple"
+    },
+    "facing=east,color=purple,lit=true": {
+      "model": "lifecraft:block/neon_purple",
+      "y": 90
+    },
+    "facing=south,color=purple,lit=true": {
+      "model": "lifecraft:block/neon_purple",
+      "y": 180
+    },
+    "facing=west,color=purple,lit=true": {
+      "model": "lifecraft:block/neon_purple",
+      "y": 270
+    },
+    "facing=north,color=purple,lit=false": {
+      "model": "lifecraft:block/neon_off"
+    },
+    "facing=east,color=purple,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 90
+    },
+    "facing=south,color=purple,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 180
+    },
+    "facing=west,color=purple,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 270
+    },
+    "facing=north,color=cyan,lit=true": {
+      "model": "lifecraft:block/neon_cyan"
+    },
+    "facing=east,color=cyan,lit=true": {
+      "model": "lifecraft:block/neon_cyan",
+      "y": 90
+    },
+    "facing=south,color=cyan,lit=true": {
+      "model": "lifecraft:block/neon_cyan",
+      "y": 180
+    },
+    "facing=west,color=cyan,lit=true": {
+      "model": "lifecraft:block/neon_cyan",
+      "y": 270
+    },
+    "facing=north,color=cyan,lit=false": {
+      "model": "lifecraft:block/neon_off"
+    },
+    "facing=east,color=cyan,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 90
+    },
+    "facing=south,color=cyan,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 180
+    },
+    "facing=west,color=cyan,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 270
+    },
+    "facing=north,color=blue,lit=true": {
+      "model": "lifecraft:block/neon_blue"
+    },
+    "facing=east,color=blue,lit=true": {
+      "model": "lifecraft:block/neon_blue",
+      "y": 90
+    },
+    "facing=south,color=blue,lit=true": {
+      "model": "lifecraft:block/neon_blue",
+      "y": 180
+    },
+    "facing=west,color=blue,lit=true": {
+      "model": "lifecraft:block/neon_blue",
+      "y": 270
+    },
+    "facing=north,color=blue,lit=false": {
+      "model": "lifecraft:block/neon_off"
+    },
+    "facing=east,color=blue,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 90
+    },
+    "facing=south,color=blue,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 180
+    },
+    "facing=west,color=blue,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 270
+    },
+    "facing=north,color=yellow,lit=true": {
+      "model": "lifecraft:block/neon_yellow"
+    },
+    "facing=east,color=yellow,lit=true": {
+      "model": "lifecraft:block/neon_yellow",
+      "y": 90
+    },
+    "facing=south,color=yellow,lit=true": {
+      "model": "lifecraft:block/neon_yellow",
+      "y": 180
+    },
+    "facing=west,color=yellow,lit=true": {
+      "model": "lifecraft:block/neon_yellow",
+      "y": 270
+    },
+    "facing=north,color=yellow,lit=false": {
+      "model": "lifecraft:block/neon_off"
+    },
+    "facing=east,color=yellow,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 90
+    },
+    "facing=south,color=yellow,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 180
+    },
+    "facing=west,color=yellow,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 270
+    },
+    "facing=north,color=green,lit=true": {
+      "model": "lifecraft:block/neon_green"
+    },
+    "facing=east,color=green,lit=true": {
+      "model": "lifecraft:block/neon_green",
+      "y": 90
+    },
+    "facing=south,color=green,lit=true": {
+      "model": "lifecraft:block/neon_green",
+      "y": 180
+    },
+    "facing=west,color=green,lit=true": {
+      "model": "lifecraft:block/neon_green",
+      "y": 270
+    },
+    "facing=north,color=green,lit=false": {
+      "model": "lifecraft:block/neon_off"
+    },
+    "facing=east,color=green,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 90
+    },
+    "facing=south,color=green,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 180
+    },
+    "facing=west,color=green,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 270
+    },
+    "facing=north,color=red,lit=true": {
+      "model": "lifecraft:block/neon_red"
+    },
+    "facing=east,color=red,lit=true": {
+      "model": "lifecraft:block/neon_red",
+      "y": 90
+    },
+    "facing=south,color=red,lit=true": {
+      "model": "lifecraft:block/neon_red",
+      "y": 180
+    },
+    "facing=west,color=red,lit=true": {
+      "model": "lifecraft:block/neon_red",
+      "y": 270
+    },
+    "facing=north,color=red,lit=false": {
+      "model": "lifecraft:block/neon_off"
+    },
+    "facing=east,color=red,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 90
+    },
+    "facing=south,color=red,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 180
+    },
+    "facing=west,color=red,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 270
+    },
+    "facing=north,color=orange,lit=true": {
+      "model": "lifecraft:block/neon_orange"
+    },
+    "facing=east,color=orange,lit=true": {
+      "model": "lifecraft:block/neon_orange",
+      "y": 90
+    },
+    "facing=south,color=orange,lit=true": {
+      "model": "lifecraft:block/neon_orange",
+      "y": 180
+    },
+    "facing=west,color=orange,lit=true": {
+      "model": "lifecraft:block/neon_orange",
+      "y": 270
+    },
+    "facing=north,color=orange,lit=false": {
+      "model": "lifecraft:block/neon_off"
+    },
+    "facing=east,color=orange,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 90
+    },
+    "facing=south,color=orange,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 180
+    },
+    "facing=west,color=orange,lit=false": {
+      "model": "lifecraft:block/neon_off",
+      "y": 270
+    }
+  }
+}

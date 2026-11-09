@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "lifecraft:block/atm"
+    },
+    "facing=east": {
+      "model": "lifecraft:block/atm",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "lifecraft:block/atm",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "lifecraft:block/atm",
+      "y": 270
+    }
+  }
+}

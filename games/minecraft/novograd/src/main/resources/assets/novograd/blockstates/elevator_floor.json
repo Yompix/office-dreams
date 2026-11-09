@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=north,roof=false": {
+      "model": "novograd:block/elevator_floor"
+    },
+    "facing=north,roof=true": {
+      "model": "novograd:block/elevator_floor"
+    },
+    "facing=east,roof=false": {
+      "model": "novograd:block/elevator_floor"
+    },
+    "facing=east,roof=true": {
+      "model": "novograd:block/elevator_floor"
+    },
+    "facing=south,roof=false": {
+      "model": "novograd:block/elevator_floor"
+    },
+    "facing=south,roof=true": {
+      "model": "novograd:block/elevator_floor"
+    },
+    "facing=west,roof=false": {
+      "model": "novograd:block/elevator_floor"
+    },
+    "facing=west,roof=true": {
+      "model": "novograd:block/elevator_floor"
+    }
+  }
+}

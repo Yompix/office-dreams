@@ -1,0 +1,131 @@
+{
+ "parent": "block/block",
+ "textures": {
+  "front": "novograd:block/payphone_front",
+  "side": "novograd:block/payphone_side",
+  "pole": "novograd:block/lamp_pole",
+  "particle": "novograd:block/payphone_front"
+ },
+ "elements": [
+  {
+   "from": [
+    7,
+    0,
+    7
+   ],
+   "to": [
+    9,
+    13,
+    9
+   ],
+   "faces": {
+    "north": {
+     "texture": "#pole"
+    },
+    "south": {
+     "texture": "#pole"
+    },
+    "east": {
+     "texture": "#pole"
+    },
+    "west": {
+     "texture": "#pole"
+    },
+    "up": {
+     "texture": "#pole"
+    },
+    "down": {
+     "texture": "#pole"
+    }
+   }
+  },
+  {
+   "from": [
+    3,
+    12,
+    5
+   ],
+   "to": [
+    13,
+    27,
+    11
+   ],
+   "faces": {
+    "north": {
+     "texture": "#front",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
+    },
+    "south": {
+     "texture": "#side",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
+    },
+    "east": {
+     "texture": "#side",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
+    },
+    "west": {
+     "texture": "#side",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ]
+    },
+    "up": {
+     "texture": "#side"
+    },
+    "down": {
+     "texture": "#side"
+    }
+   }
+  },
+  {
+   "from": [
+    2,
+    27,
+    4
+   ],
+   "to": [
+    14,
+    28,
+    12
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side"
+    },
+    "south": {
+     "texture": "#side"
+    },
+    "east": {
+     "texture": "#side"
+    },
+    "west": {
+     "texture": "#side"
+    },
+    "up": {
+     "texture": "#side"
+    },
+    "down": {
+     "texture": "#side"
+    }
+   }
+  }
+ ]
+}

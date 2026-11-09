@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "novograd:block/hotdog_cart"
+  },
+  "facing=east": {
+   "model": "novograd:block/hotdog_cart",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "novograd:block/hotdog_cart",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "novograd:block/hotdog_cart",
+   "y": 270
+  }
+ }
+}

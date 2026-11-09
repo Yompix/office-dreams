@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "novograd:block/barbell"
+    },
+    "facing=east": {
+      "model": "novograd:block/barbell",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "novograd:block/barbell",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "novograd:block/barbell",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "lifecraft:block/mailbox"
+    },
+    "facing=east": {
+      "model": "lifecraft:block/mailbox",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "lifecraft:block/mailbox",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "lifecraft:block/mailbox",
+      "y": 270
+    }
+  }
+}

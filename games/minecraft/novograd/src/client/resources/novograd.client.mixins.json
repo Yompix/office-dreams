@@ -1,0 +1,32 @@
+{
+  "required": true,
+  "package": "com.yompix.novograd.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "PlayerWidthMixin",
+    "ArsenalFovMixin",
+    "PlayerSkinMixin",
+    "PlayerStyleScaleMixin",
+    "GunHeldItemMixin",
+    "GunCooldownMixin",
+    "GunCameraMixin",
+    "GunPoseMixin",
+    "GunInputMixin",
+    "GunMoveMixin",
+    "GunCrosshairMixin",
+    "HudBarsMixin",
+    "VehicleCameraMixin",
+    "GameRendererAccessor",
+    "StudioCameraMixin",
+    "CineLabelMixin",
+    "NoVanillaMusicMixin",
+    "RadioScrollMixin",
+    "DriveFogMixin",
+    "SeasonColorsMixin",
+    "SeasonSnowMixin",
+    "SeasonFoliageMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "variants": {
+    "facing=north,light=0": {
+      "model": "lifecraft:block/traffic_light_red"
+    },
+    "facing=east,light=0": {
+      "model": "lifecraft:block/traffic_light_red",
+      "y": 90
+    },
+    "facing=south,light=0": {
+      "model": "lifecraft:block/traffic_light_red",
+      "y": 180
+    },
+    "facing=west,light=0": {
+      "model": "lifecraft:block/traffic_light_red",
+      "y": 270
+    },
+    "facing=north,light=1": {
+      "model": "lifecraft:block/traffic_light_yellow"
+    },
+    "facing=east,light=1": {
+      "model": "lifecraft:block/traffic_light_yellow",
+      "y": 90
+    },
+    "facing=south,light=1": {
+      "model": "lifecraft:block/traffic_light_yellow",
+      "y": 180
+    },
+    "facing=west,light=1": {
+      "model": "lifecraft:block/traffic_light_yellow",
+      "y": 270
+    },
+    "facing=north,light=2": {
+      "model": "lifecraft:block/traffic_light_green"
+    },
+    "facing=east,light=2": {
+      "model": "lifecraft:block/traffic_light_green",
+      "y": 90
+    },
+    "facing=south,light=2": {
+      "model": "lifecraft:block/traffic_light_green",
+      "y": 180
+    },
+    "facing=west,light=2": {
+      "model": "lifecraft:block/traffic_light_green",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,327 @@
+{
+ "kid": [
+  {
+   "key": "hi",
+   "text": "Привет!",
+   "tags": [
+    "greet"
+   ]
+  },
+  {
+   "key": "morning",
+   "text": "Доброе утро!",
+   "tags": [
+    "greet",
+    "morning"
+   ]
+  },
+  {
+   "key": "dusk",
+   "text": "Привет! Уже темнеет…",
+   "tags": [
+    "greet",
+    "evening",
+    "night"
+   ]
+  },
+  {
+   "key": "football",
+   "text": "Пошли играть в футбол!",
+   "tags": [
+    "day",
+    "evening"
+   ]
+  },
+  {
+   "key": "test",
+   "text": "У меня завтра контрольная…",
+   "tags": [
+    "day",
+    "evening"
+   ]
+  },
+  {
+   "key": "console",
+   "text": "Ты видел новую приставку?",
+   "tags": [
+    "day",
+    "evening"
+   ]
+  },
+  {
+   "key": "lunch",
+   "text": "Мама зовёт обедать!",
+   "tags": [
+    "day"
+   ]
+  },
+  {
+   "key": "dog",
+   "text": "А у тебя есть собака?",
+   "tags": [
+    "morning",
+    "day",
+    "evening"
+   ]
+  },
+  {
+   "key": "race",
+   "text": "Спорим, я быстрее добегу до школы?",
+   "tags": [
+    "morning",
+    "day"
+   ]
+  },
+  {
+   "key": "holidays",
+   "text": "Каникулы скорее бы!",
+   "tags": [
+    "morning",
+    "day"
+   ]
+  },
+  {
+   "key": "late",
+   "text": "Мне уже домой пора, а то влетит!",
+   "tags": [
+    "evening",
+    "night"
+   ]
+  },
+  {
+   "key": "puddles",
+   "text": "Ура, лужи! Кто больше набрызгает?",
+   "tags": [
+    "rain"
+   ]
+  },
+  {
+   "key": "again",
+   "text": "Мы же уже виделись сегодня!",
+   "tags": [
+    "again"
+   ]
+  }
+ ],
+ "adult": [
+  {
+   "key": "morning",
+   "text": "Доброе утро!",
+   "tags": [
+    "greet",
+    "morning"
+   ]
+  },
+  {
+   "key": "day",
+   "text": "Добрый день!",
+   "tags": [
+    "greet",
+    "day"
+   ]
+  },
+  {
+   "key": "evening",
+   "text": "Добрый вечер!",
+   "tags": [
+    "greet",
+    "evening"
+   ]
+  },
+  {
+   "key": "night_kid",
+   "text": "Поздно уже. Беги домой, родители волнуются.",
+   "tags": [
+    "greet",
+    "night",
+    "to_kid"
+   ]
+  },
+  {
+   "key": "night",
+   "text": "Тоже не спится?",
+   "tags": [
+    "greet",
+    "night",
+    "to_adult"
+   ]
+  },
+  {
+   "key": "weather",
+   "text": "Хорошая погода сегодня.",
+   "tags": [
+    "morning",
+    "day"
+   ]
+  },
+  {
+   "key": "rain",
+   "text": "Ну и дождь сегодня… Зонт забыл.",
+   "tags": [
+    "rain"
+   ]
+  },
+  {
+   "key": "traffic",
+   "text": "Опять пробки на Центральной…",
+   "tags": [
+    "morning",
+    "evening",
+    "to_adult"
+   ]
+  },
+  {
+   "key": "bank",
+   "text": "Не подскажете, где банк?",
+   "tags": [
+    "day",
+    "to_adult"
+   ]
+  },
+  {
+   "key": "luck",
+   "text": "Удачи!",
+   "tags": [
+    "morning",
+    "day",
+    "evening"
+   ]
+  },
+  {
+   "key": "club",
+   "text": "Говорят, в клубе «Неон» сегодня вечеринка.",
+   "tags": [
+    "evening",
+    "night",
+    "to_adult"
+   ]
+  },
+  {
+   "key": "coffee",
+   "text": "Кофе на углу — лучший в городе.",
+   "tags": [
+    "morning"
+   ]
+  },
+  {
+   "key": "work",
+   "text": "Работа, работа… Когда же отпуск?",
+   "tags": [
+    "day",
+    "evening",
+    "to_adult"
+   ]
+  },
+  {
+   "key": "school",
+   "text": "А ты почему не в школе?",
+   "tags": [
+    "morning",
+    "day",
+    "to_kid"
+   ]
+  },
+  {
+   "key": "study",
+   "text": "Учись хорошо — в жизни пригодится.",
+   "tags": [
+    "day",
+    "evening",
+    "to_kid"
+   ]
+  },
+  {
+   "key": "tired",
+   "text": "Ох, ну и денёк был. Домой бы поскорее.",
+   "tags": [
+    "evening"
+   ]
+  },
+  {
+   "key": "again",
+   "text": "Мы же только что говорили.",
+   "tags": [
+    "again"
+   ]
+  }
+ ],
+ "old": [
+  {
+   "key": "hi_kid",
+   "text": "Здравствуй, внучек!",
+   "tags": [
+    "greet",
+    "morning",
+    "day",
+    "evening",
+    "to_kid"
+   ]
+  },
+  {
+   "key": "hi",
+   "text": "Здравствуй, милок.",
+   "tags": [
+    "greet",
+    "morning",
+    "day",
+    "evening",
+    "to_adult"
+   ]
+  },
+  {
+   "key": "hat",
+   "text": "Шапку надень, простудишься!",
+   "tags": [
+    "rain",
+    "to_kid"
+   ]
+  },
+  {
+   "key": "bread",
+   "text": "Раньше хлеб был вкуснее.",
+   "tags": [
+    "morning",
+    "day"
+   ]
+  },
+  {
+   "key": "youth",
+   "text": "Ох, молодёжь…",
+   "tags": [
+    "day",
+    "evening"
+   ]
+  },
+  {
+   "key": "walk",
+   "text": "В моё время мы пешком ходили!",
+   "tags": [
+    "day",
+    "evening"
+   ]
+  },
+  {
+   "key": "pies",
+   "text": "Заходи на пирожки!",
+   "tags": [
+    "day",
+    "evening"
+   ]
+  },
+  {
+   "key": "night",
+   "text": "Ночь на дворе, а ты гуляешь! Иди спать.",
+   "tags": [
+    "greet",
+    "night"
+   ]
+  },
+  {
+   "key": "again",
+   "text": "Я же тебе уже говорила… Или не тебе?",
+   "tags": [
+    "again"
+   ]
+  }
+ ]
+}

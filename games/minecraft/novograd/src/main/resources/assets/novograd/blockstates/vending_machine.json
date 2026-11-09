@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "novograd:block/vending_machine"
+  },
+  "facing=east": {
+   "model": "novograd:block/vending_machine",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "novograd:block/vending_machine",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "novograd:block/vending_machine",
+   "y": 270
+  }
+ }
+}

@@ -1,0 +1,1767 @@
+{
+  "school_bell": {
+    "sounds": [
+      {
+        "name": "lifecraft:school_bell",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.school_bell"
+  },
+  "phone_notify": {
+    "sounds": [
+      {
+        "name": "lifecraft:phone_notify",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.phone_notify"
+  },
+  "phone_open": {
+    "sounds": [
+      {
+        "name": "lifecraft:phone_open",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.phone_open"
+  },
+  "phone_click": {
+    "sounds": [
+      {
+        "name": "lifecraft:phone_click",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.phone_click"
+  },
+  "car_horn": {
+    "sounds": [
+      {
+        "name": "lifecraft:car_horn",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.car_horn"
+  },
+  "car_engine": {
+    "sounds": [
+      {
+        "name": "lifecraft:car_engine",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.car_engine"
+  },
+  "car_start": {
+    "sounds": [
+      {
+        "name": "lifecraft:car_start",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.car_start"
+  },
+  "cash": {
+    "sounds": [
+      {
+        "name": "lifecraft:cash",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.cash"
+  },
+  "answer_right": {
+    "sounds": [
+      {
+        "name": "lifecraft:answer_right",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.answer_right"
+  },
+  "answer_wrong": {
+    "sounds": [
+      {
+        "name": "lifecraft:answer_wrong",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.answer_wrong"
+  },
+  "tv_switch": {
+    "sounds": [
+      {
+        "name": "lifecraft:tv_switch",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.tv_switch"
+  },
+  "level_up": {
+    "sounds": [
+      {
+        "name": "lifecraft:level_up",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.level_up"
+  },
+  "traffic_beep": {
+    "sounds": [
+      {
+        "name": "lifecraft:traffic_beep",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.lifecraft.traffic_beep"
+  },
+  "voice.c1m1_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1c_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1c_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1c_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1c_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1c_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1c_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1c_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1c_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1c_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1c_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1_08": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1_08",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1_09": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1_09",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m1_10": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m1_10",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2s_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2s_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2s_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2c_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2c_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2c_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2c_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_08": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_08",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_09": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_09",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_10": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_10",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2c_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2c_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2c_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2c_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_11": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_11",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m2_12": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m2_12",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m3_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m3_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m3_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m3_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m3_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m3_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m3_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m3_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m3_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m3_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m3_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m3_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m4_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m4_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m4_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m4_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m4_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m4_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m4_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m4_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m4s_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m4s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m4s_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m4s_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m5_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m5_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m5_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m5_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m5_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m5_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m5_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m5_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c1m5_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c1m5_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m1_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m1_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m1_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m1_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m1_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m1_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m1_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m1_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m1_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m1_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m1_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m1_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m1_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m1_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m2_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m2_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m2_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m2_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m2_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m2_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m2_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m2_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m2_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m2_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m2_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m2_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m2_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m2_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m2_08": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m2_08",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m2_09": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m2_09",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m2_10": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m2_10",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m2_11": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m2_11",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m3_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m3_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m3_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m3_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m3_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m3_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m3_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m3_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m4_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m4_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m4_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m4_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c2m4_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c2m4_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m1_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m1_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m1_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m1_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m1_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m1_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m1_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m1_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m1_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m1_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m1_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m1_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m1_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m1_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m1_08": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m1_08",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m2_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m2_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m2_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m2_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m2_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m2_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m3_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m3_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m3_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m3_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m4s_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m4s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m4s_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m4s_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m4_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m4_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m4_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m4_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m4_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m4_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m4_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m4_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m4_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m4_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m4_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m4_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m4_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m4_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m4_08": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m4_08",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m4_09": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m4_09",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m5_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m5_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m5s_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m5s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m5s_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m5s_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m5_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m5_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m5_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m5_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c3m5_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c3m5_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m1s_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m1s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m1s_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m1s_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m1_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m1_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m1_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m1_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m1_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m1_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m1_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m1_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m1_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m1_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m2_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m2_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m2_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m2_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m2_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m2_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m2_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m2_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m3_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m3_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m3_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m3_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m3_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m3_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m3_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m3_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m4_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m4_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m4_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m4_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m4_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m4_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m4_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m4_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m4_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m4_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m4s_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m4s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c4m4s_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c4m4s_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1s_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1s_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1s_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1c_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1c_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1c_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1c_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m1_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m1_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m2_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m2_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m2_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m2_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m2_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m2_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m2c_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m2c_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m2c_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m2c_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m2_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m2_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m2_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m2_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_08": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_08",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_09": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_09",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_10": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_10",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_11": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_11",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_12": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_12",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_13": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_13",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_14": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_14",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_15": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_15",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3_16": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3_16",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3s_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3s_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3s_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c5m3s_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c5m3s_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m1s_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m1s_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m1s_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m1s_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m1_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m1_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m1_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m1_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m1_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m1_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m1_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m1_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m1_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m1_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m1_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m1_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m1_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m1_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m1_08": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m1_08",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m2_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m2_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m2_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m2_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m2_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m2_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m2_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m2_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m2_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m2_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m2_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m2_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m2_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m2_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m2_08": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m2_08",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m2_09": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m2_09",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m2_10": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m2_10",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m3_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m3_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m3_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m3_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m3_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m3_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m3_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m3_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m3_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m3_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m3_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m3_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m3_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m3_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m3_08": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m3_08",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m3_09": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m3_09",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m4_01": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m4_01",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m4_02": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m4_02",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m4_03": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m4_03",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m4_04": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m4_04",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m4_05": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m4_05",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m4_06": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m4_06",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m4_07": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m4_07",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m4_08": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m4_08",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m4_09": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m4_09",
+        "stream": true
+      }
+    ]
+  },
+  "voice.c6m4_10": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/c6m4_10",
+        "stream": true
+      }
+    ]
+  },
+  "voice.yompix": {
+    "sounds": [
+      {
+        "name": "lifecraft:voice/yompix",
+        "stream": true
+      }
+    ]
+  },
+  "yompix_jingle": {
+    "sounds": [
+      {
+        "name": "lifecraft:yompix_jingle",
+        "stream": true
+      }
+    ]
+  },
+  "yompix_intro": {
+    "sounds": [
+      {
+        "name": "lifecraft:yompix_intro",
+        "stream": true
+      }
+    ]
+  }
+}

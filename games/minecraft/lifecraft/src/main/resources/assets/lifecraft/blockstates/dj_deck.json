@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "lifecraft:block/dj_deck"
+    },
+    "facing=east": {
+      "model": "lifecraft:block/dj_deck",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "lifecraft:block/dj_deck",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "lifecraft:block/dj_deck",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "novograd:block/lamp_post"
+    },
+    "facing=east": {
+      "model": "novograd:block/lamp_post",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "novograd:block/lamp_post",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "novograd:block/lamp_post",
+      "y": 270
+    }
+  }
+}

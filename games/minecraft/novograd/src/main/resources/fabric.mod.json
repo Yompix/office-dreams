@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "novograd",
+  "version": "${version}",
+  "name": "Новоград: Тёмные улицы",
+  "description": "Криминальная история в открытом городе от Yompix Games: уличные гонки, банда «Чёрные Ящеры», работа под прикрытием. Розыск и погони, перестрелки, угон и тюнинг машин.",
+  "authors": [
+    "Yompix"
+  ],
+  "license": "All-Rights-Reserved",
+  "icon": "assets/novograd/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.yompix.novograd.Novograd"
+    ],
+    "client": [
+      "com.yompix.novograd.client.NovogradClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "geckolib": ">=4.8.4"
+  },
+  "mixins": [
+    {
+      "config": "novograd.client.mixins.json",
+      "environment": "client"
+    }
+  ]
+}

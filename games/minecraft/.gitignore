@@ -1,0 +1,8 @@
+# Готовые сборки (jar, zip, mrpack — по 70–100 МБ) в git не храним: владельцу — файлом в чате.
+# Сборки до 9 ноя остались в истории ветки lifecraft (git show lifecraft:novograd/download/<файл>).
+*/download/*.jar
+*/download/*.zip
+*/download/*.mrpack
+build/
+.gradle/
+run/

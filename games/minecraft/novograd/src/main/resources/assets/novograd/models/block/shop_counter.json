@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "front": "novograd:block/shop_counter",
+    "side": "novograd:block/shop_counter",
+    "top": "novograd:block/shop_counter_top",
+    "bottom": "novograd:block/shop_counter_top"
+  }
+}

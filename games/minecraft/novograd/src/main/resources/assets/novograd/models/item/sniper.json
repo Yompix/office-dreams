@@ -1,0 +1,146 @@
+{
+ "credit": "Novograd: tools/gen_gun_geo.py (GeckoLib)",
+ "parent": "builtin/entity",
+ "gui_light": "front",
+ "textures": {
+  "particle": "novograd:item/gun_atlas"
+ },
+ "display": {
+  "firstperson_righthand": {
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "translation": [
+    0.0,
+    1.007,
+    -2.597
+   ],
+   "scale": [
+    0.53,
+    0.53,
+    0.53
+   ]
+  },
+  "firstperson_lefthand": {
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "translation": [
+    0.0,
+    1.007,
+    -2.597
+   ],
+   "scale": [
+    0.53,
+    0.53,
+    0.53
+   ]
+  },
+  "thirdperson_righthand": {
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "translation": [
+    0.0,
+    0.02,
+    -2.42
+   ],
+   "scale": [
+    0.8,
+    0.8,
+    0.8
+   ]
+  },
+  "thirdperson_lefthand": {
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "translation": [
+    0.0,
+    0.02,
+    -2.42
+   ],
+   "scale": [
+    0.8,
+    0.8,
+    0.8
+   ]
+  },
+  "gui": {
+   "rotation": [
+    130.82,
+    -57.9,
+    102.65
+   ],
+   "translation": [
+    -1.25,
+    -0.57,
+    0
+   ],
+   "scale": [
+    0.461,
+    0.461,
+    0.461
+   ]
+  },
+  "ground": {
+   "rotation": [
+    0,
+    90,
+    0
+   ],
+   "translation": [
+    0,
+    2,
+    0
+   ],
+   "scale": [
+    0.355,
+    0.355,
+    0.355
+   ]
+  },
+  "fixed": {
+   "rotation": [
+    0,
+    90,
+    0
+   ],
+   "translation": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    0.434,
+    0.434,
+    0.434
+   ]
+  },
+  "head": {
+   "rotation": [
+    0,
+    90,
+    0
+   ],
+   "translation": [
+    0,
+    6,
+    0
+   ],
+   "scale": [
+    0.8,
+    0.8,
+    0.8
+   ]
+  }
+ }
+}

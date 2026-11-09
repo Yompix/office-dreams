@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "novograd:block/asphalt_edge",
+    "bottom": "novograd:block/asphalt",
+    "side": "novograd:block/asphalt"
+  }
+}
