@@ -1,0 +1,39 @@
+; Играем вместе — by Yompix
+config_version=5
+
+[application]
+
+config/name="Играем вместе"
+config/description="Minecraft с друзьями: Java и Bedrock. by Yompix"
+config/version="1.0.0"
+run/main_scene="res://main.tscn"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="IgraemVmeste"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+run/low_processor_mode=true
+boot_splash/bg_color=Color(0.0627, 0.0745, 0.1, 1)
+boot_splash/show_image=false
+config/icon="res://icon.png"
+config/windows_native_icon="res://icon.ico"
+
+[autoload]
+
+Cfg="*res://scripts/core/config.gd"
+Net="*res://scripts/core/net.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=800
+window/energy_saving/keep_screen_on=false
+
+[gui]
+
+common/snap_controls_to_pixels=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.0627, 0.0745, 0.1, 1)

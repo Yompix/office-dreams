@@ -1,0 +1,15 @@
+{
+  "name": "igraem-vmeste-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Relay for «Играем вместе» (by Yompix): Minecraft Java/Bedrock rooms over WebSocket",
+  "main": "server.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
