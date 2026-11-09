@@ -208,7 +208,7 @@ static func para(text: String, size := 15, color := MUTED) -> Label:
 
 
 static func h1(text: String) -> Label:
-	return label(text, 34, TEXT, font_black)
+	return label(text, 26 if compact() else 34, TEXT, font_black)
 
 
 static func h2(text: String) -> Label:
@@ -250,9 +250,41 @@ static func button(text: String, kind := "secondary", cb := Callable()) -> Butto
 
 
 static func panel(pad := 22, color := PANEL, radius := 18) -> PanelContainer:
+	if compact():
+		pad = mini(pad, 12)   # телефон: каждый пиксель ширины на счету
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", box(color, radius, pad, LINE, 1))
 	return p
+
+
+## Узкий экран (телефон в портрете, телефон лёжа или маленькое окно): одна колонка, нижнее меню, крупные кнопки.
+static func compact() -> bool:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.root == null:
+		return false
+	var s := tree.root.get_visible_rect().size
+	return s.x < 760 or s.y < 560
+
+
+## Колонки рядом на ПК и друг под другом на телефоне.
+static func cols(sep := 20) -> BoxContainer:
+	var b: BoxContainer = VBoxContainer.new() if compact() else HBoxContainer.new()
+	b.add_theme_constant_override("separation", sep)
+	return b
+
+
+## Ряд кнопок, который переносится на следующую строку, если не помещается.
+static func flow(sep := 8) -> HFlowContainer:
+	var f := HFlowContainer.new()
+	f.add_theme_constant_override("h_separation", sep)
+	f.add_theme_constant_override("v_separation", sep)
+	return f
+
+
+## Ширина окна-диалога: не шире экрана.
+static func dialog_width(w: float) -> float:
+	var tree := Engine.get_main_loop() as SceneTree
+	return minf(w, tree.root.get_visible_rect().size.x - 24) if tree and tree.root else w
 
 
 static func vbox(sep := 12) -> VBoxContainer:

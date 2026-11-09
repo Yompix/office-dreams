@@ -21,22 +21,28 @@ func _ready() -> void:
 	hv.add_child(UI.label("Играй с друзьями — Java и Bedrock", 19, UI.MUTED, UI.font_bold))
 	head.add_child(hv)
 	add_child(head)
-	var cards := UI.hbox(20)
+	var compact := UI.compact()
+	if compact:
+		head.get_child(0).custom_minimum_size = Vector2(60, 60)
+		(logo.get_child(0) as Label).add_theme_font_size_override("font_size", 30)
+		(hv.get_child(1) as Label).add_theme_font_size_override("font_size", 14)
+	var cards := UI.cols(20)
 	cards.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(cards)
 	cards.add_child(_card("java", "Java Edition", "Для компьютера: лицензия или TLauncher", "Сервер Paper — быстрый и надёжный. Можно пустить друзей с телефона (кроссплей).", "res://assets/img/card_java.png", UI.JAVA))
 	cards.add_child(_card("bedrock", "Bedrock Edition", "Телефон, планшет, Windows, консоли", "Официальный сервер Bedrock от Mojang. Мир сам появится у друга во вкладке «Друзья».", "res://assets/img/card_bedrock.png", UI.BEDROCK))
 	# --- быстрый вход
 	var p := UI.panel(18)
-	var row := UI.hbox(14)
+	var row: BoxContainer = UI.cols(10) if compact else UI.hbox(14)
 	p.add_child(row)
 	var t := UI.vbox(2)
 	t.add_child(UI.h3("Есть код от друга?"))
 	t.add_child(UI.label("6 символов, например K7M-2QX", 14, UI.MUTED))
 	row.add_child(t)
-	row.add_child(UI.spacer())
+	if not compact:
+		row.add_child(UI.spacer())
 	var e := UI.line_edit("", "Код комнаты")
-	e.custom_minimum_size.x = 260
+	e.custom_minimum_size.x = 0 if compact else 260
 	e.add_theme_font_override("font", UI.font_bold)
 	e.add_theme_font_size_override("font_size", 20)
 	e.max_length = 64
@@ -66,24 +72,26 @@ func _card(ed: String, title: String, tag: String, desc: String, img: String, co
 	ast.corner_radius_bottom_left = 0
 	ast.corner_radius_bottom_right = 0
 	art.add_theme_stylebox_override("panel", ast)
-	art.custom_minimum_size.y = 230
+	art.custom_minimum_size.y = 120 if UI.compact() else 230
 	art.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var pic := UI.texture(img, 0, 220)
+	var pic := UI.texture(img, 0, 110 if UI.compact() else 220)
 	art.add_child(pic)
 	v.add_child(art)
 	var m := MarginContainer.new()
 	for s in ["left", "right", "top", "bottom"]:
-		m.add_theme_constant_override("margin_" + s, 24)
+		m.add_theme_constant_override("margin_" + s, 16 if UI.compact() else 24)
 	v.add_child(m)
 	var body := UI.vbox(10)
 	m.add_child(body)
 	body.add_child(UI.pill(tag, color))
-	body.add_child(UI.label(title, 30, UI.TEXT, UI.font_black))
+	body.add_child(UI.label(title, 24 if UI.compact() else 30, UI.TEXT, UI.font_black))
 	body.add_child(UI.para(desc, 15, UI.MUTED))
 	body.add_child(UI.gap(4))
 	var row := UI.hbox(12)
 	body.add_child(row)
-	var b1 := UI.button("Создать мир", "primary", func(): app.go("setup", false, {"edition": ed}))
+	var mobile := Cfg.mobile()
+	var b1 := UI.button("Создать мир" if not mobile else "Создать — на ПК", "primary", func(): app.go("setup", false, {"edition": ed}))
+	b1.disabled = mobile
 	b1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b1.add_theme_stylebox_override("normal", UI.box(color, 12, 14))
 	b1.add_theme_stylebox_override("hover", UI.box(color.lightened(0.12), 12, 14))

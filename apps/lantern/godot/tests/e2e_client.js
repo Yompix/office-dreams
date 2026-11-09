@@ -66,8 +66,11 @@ function slp(port) {
     });
     s.on('data', (d) => {
       buf = Buffer.concat([buf, d]);
-      const i = buf.indexOf('{'); const j = buf.lastIndexOf('}');
-      if (i >= 0 && j > i) { try { const js = JSON.parse(buf.subarray(i, j + 1).toString()); clearTimeout(t); s.destroy(); resolve(js); } catch {} }
+      // байт длины строки тоже может оказаться «{» (JSON ровно 123 байта) — пробуем с каждой «{»
+      const j = buf.lastIndexOf('}');
+      for (let i = buf.indexOf('{'); i >= 0 && i < j; i = buf.indexOf('{', i + 1)) {
+        try { const js = JSON.parse(buf.subarray(i, j + 1).toString()); clearTimeout(t); s.destroy(); resolve(js); return; } catch {}
+      }
     });
     s.on('error', () => { clearTimeout(t); resolve(null); });
   });

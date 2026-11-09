@@ -23,7 +23,7 @@ func _ready() -> void:
 	add_child(head)
 	if Social.demo:
 		add_child(preload("res://scripts/screens/quests.gd")._demo_banner())
-	var tabs := UI.hbox(6)
+	var tabs := UI.flow(6)
 	for k in KINDS:
 		var b := UI.button(k[1], "secondary", func(): _kind = k[0]; _render())
 		b.custom_minimum_size = Vector2(0, 38)
@@ -33,10 +33,10 @@ func _ready() -> void:
 	_body = UI.vbox(0)
 	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(_body)
-	add_child(UI.label("Только внешний вид — никаких преимуществ в игре и случайных наград.", 12, UI.DIM))
+	add_child(UI.para("Только внешний вид — никаких преимуществ в игре и случайных наград.", 12, UI.DIM))
 	if arg is Dictionary and arg.has("kind"):
 		_kind = arg.kind
-	Social.changed.connect(func(w): if w in ["shop", "eco", "conn"] and is_inside_tree(): _render())
+	Social.changed.connect(func(w): if w in ["shop", "eco", "conn"] and is_inside_tree() and not _typing(): _render())
 	Social.request("shop")
 	Social.request("eco")
 	_render()
@@ -59,7 +59,7 @@ func _render() -> void:
 	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	var g := GridContainer.new()
-	g.columns = 4
+	g.columns = 2 if UI.compact() else 4
 	g.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	g.add_theme_constant_override("h_separation", 12)
 	g.add_theme_constant_override("v_separation", 12)
@@ -98,13 +98,15 @@ func _preview(it: Dictionary) -> Control:
 
 func _card(it: Dictionary, equip: Dictionary) -> Control:
 	var worn: bool = equip.get(it.kind, "") == it.id
-	var p := UI.panel(14, UI.CARD if not worn else Color(UI.accent(), 0.10), 16)
+	var p := UI.panel(10 if UI.compact() else 14, UI.CARD if not worn else Color(UI.accent(), 0.10), 16)
 	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v := UI.vbox(8)
 	p.add_child(v)
 	v.add_child(_preview(it))
 	var nl := UI.label(it.name, 15, UI.TEXT, UI.font_bold)
 	nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	nl.custom_minimum_size.x = 60
 	v.add_child(nl)
 	var b: Button
 	if it.get("season", null) != null and not it.owned:
@@ -121,16 +123,25 @@ func _card(it: Dictionary, equip: Dictionary) -> Control:
 		b.disabled = true
 	else:
 		b = UI.button("Надеть", "secondary", func(): Social.request("wear", {"item": it.id}))
+	if UI.compact():
+		b.clip_text = true
+		b.add_theme_font_size_override("font_size", 14)
 	v.add_child(b)
 	return p
 
 
 func _pro() -> void:
-	var cols := UI.hbox(20)
+	var cols := UI.cols(20)
 	cols.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_body.add_child(cols)
+	# Pro-карточка выше экрана (особенно на телефоне) — прокручиваем
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cols.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(cols)
+	_body.add_child(sc)
 	var pro := UI.panel(24, Color("1d1a14"), 20)
-	pro.add_theme_stylebox_override("panel", UI.box(Color("1f1a12"), 20, 24, Color("ffb648"), 2))
+	pro.add_theme_stylebox_override("panel", UI.box(Color("1f1a12"), 20, 16 if UI.compact() else 24, Color("ffb648"), 2))
 	pro.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v := UI.vbox(10)
 	pro.add_child(v)
@@ -143,14 +154,30 @@ func _pro() -> void:
 	hv.add_child(UI.label(("Активна до " + Time.get_date_string_from_unix_time(until / 1000) + (" (ДЕМО)" if Social.demo else "")) if active else "99,99 ₴ в месяц · $2.49", 15, UI.JAVA if active else UI.MUTED, UI.font_bold))
 	hr.add_child(hv)
 	v.add_child(hr)
-	for line in ["Без рекламы совсем", "Свой код комнаты (например YOMPIX)", "Облачные резервные копии миров", "Особая косметика каждый месяц", "Поддержка автора LANTERN — Yompix"]:
+	for line in ["Без рекламы совсем", "Свой код комнаты (например STEVE)", "Облачные резервные копии миров", "Особая косметика каждый месяц", "Поддержка автора LANTERN — Yompix"]:
 		var r := UI.hbox(8)
 		r.add_child(UI.label("✓", 16, Color("ffb648"), UI.font_black))
-		r.add_child(UI.label(line, 16, UI.TEXT))
+		var ll := UI.para(line, 16, UI.TEXT)
+		ll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		r.add_child(ll)
 		v.add_child(r)
 	v.add_child(UI.spacer(false))
 	if active:
 		v.add_child(UI.pill("✓ Pro активна", UI.JAVA))
+		v.add_child(UI.label("СВОЙ КОД КОМНАТЫ", 12, UI.MUTED, UI.font_bold))
+		var vr := UI.hbox(8)
+		var ve := UI.line_edit(String(Social.eco.get("vanity", "")), "Например STEVE")
+		ve.max_length = 8
+		ve.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		ve.add_theme_font_override("font", UI.font_black)
+		vr.add_child(ve)
+		vr.add_child(UI.button("Сохранить", "primary", func(): Social.request("vanity_set", {"code": ve.text})))
+		if String(Social.eco.get("vanity", "")) != "":
+			vr.add_child(UI.button("Убрать", "ghost", func(): Social.request("vanity_clear")))
+		v.add_child(vr)
+		v.add_child(UI.para("3–8 символов: латиница и цифры 2–9. Друзья вводят его вместо случайного кода. Работает, пока активна Pro; один мир за раз.", 12, UI.DIM))
+		var cb := UI.button("Облачные копии миров", "secondary", func(): app.go("backups", true))
+		v.add_child(cb)
 	else:
 		v.add_child(UI.button("Оформить Pro", "primary", func(): _buy("lantern_pro_month")))
 	cols.add_child(pro)
@@ -177,3 +204,9 @@ func _buy(product: String) -> void:
 		Store.buy(product)
 		return
 	Overlays.purchase(app, product, func(): Social.request("shop"))
+
+
+## Не перерисовывать, пока игрок печатает свой код (иначе поле сбросится)
+func _typing() -> bool:
+	var f := get_viewport().gui_get_focus_owner()
+	return f is LineEdit and is_ancestor_of(f)

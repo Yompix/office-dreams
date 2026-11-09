@@ -10,14 +10,24 @@ var _screen: Control
 var _nav := {}
 var _toast: PanelContainer
 var _closing := false
+const SCROLL_IN_COMPACT := ["home", "join", "setup", "profile"]
 var current := ""
 var _brand: Control
 var _me_btn: Button
 
 
+var _compact := false
+var _arg: Variant = null
+var _deeplink_seen := ""
+
+
 func _ready() -> void:
 	get_tree().set_auto_accept_quit(false)
-	get_window().min_size = Vector2i(1120, 740)
+	if OS.has_feature("mobile"):
+		_apply_mobile_scale()
+	elif not Cfg.phone_preview():
+		get_window().min_size = Vector2i(1120, 740)
+	get_window().size_changed.connect(_on_resize)
 	get_window().title = "LANTERN — by Yompix"
 	server = ServerHost.new()
 	server.name = "Server"
@@ -37,11 +47,55 @@ func _ready() -> void:
 		t.name = "Autotest"
 		add_child(t)
 		t.run(self)
-	else:
+	elif not open_deeplink(DeepLink.from_launch()):
 		go("home")
 
 
+## Телефон: 1 логический пиксель ≈ 1 dp, чтобы шрифты и кнопки были привычного размера
+## и в портрете, и лёжа (а не «ПК 1280×800, уменьшенный до ширины телефона»).
+func _apply_mobile_scale() -> void:
+	var w := get_window()
+	var dpi := float(DisplayServer.screen_get_dpi())
+	var k := clampf(dpi / 160.0, 1.0, 4.0) if dpi > 0 else 2.0
+	w.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	w.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
+	w.content_scale_size = Vector2i(Vector2(w.size) / k)
+
+
+func _on_resize() -> void:
+	if OS.has_feature("mobile"):
+		_apply_mobile_scale()
+	await get_tree().process_frame
+	if UI.compact() != _compact and _content:
+		# повернули телефон / сузили окно — пересобираем оболочку и текущий экран
+		for c in get_children():
+			if c.name != "Autotest" and c != server:
+				c.queue_free()
+		_screen = null
+		_nav.clear()
+		await get_tree().process_frame
+		_build()
+		go(current if current != "" else "home", true, _arg)
+
+
+## lantern://join?…&c=КОД — зайти к другу; lantern://friend?tag=Ник%231234 — добавить в друзья.
+func open_deeplink(url: String) -> bool:
+	if url == "" or url == _deeplink_seen:
+		return false
+	_deeplink_seen = url
+	var d := DeepLink.parse(url)
+	match d.get("kind", ""):
+		"join":
+			go("join", true, {"input": url, "edition": d.get("edition", "") if d.get("edition", "") != "" else Cfg.get_value("join", "plays", "both")})
+			return true
+		"friend":
+			go("friends", true, {"add": d.tag})
+			return true
+	return false
+
+
 func _build() -> void:
+	_compact = UI.compact()
 	var bg := ColorRect.new()
 	bg.color = UI.BG
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -55,13 +109,13 @@ func _build() -> void:
 	# --- шапка
 	var bar := MarginContainer.new()
 	for side in ["left", "right"]:
-		bar.add_theme_constant_override("margin_" + side, 28)
-	bar.add_theme_constant_override("margin_top", 16)
-	bar.add_theme_constant_override("margin_bottom", 8)
+		bar.add_theme_constant_override("margin_" + side, 12 if _compact else 28)
+	bar.add_theme_constant_override("margin_top", 8 if _compact else 16)
+	bar.add_theme_constant_override("margin_bottom", 4 if _compact else 8)
 	root.add_child(bar)
 	var row := UI.hbox(14)
 	bar.add_child(row)
-	var logo := UI.texture("res://assets/img/icon.png", 40, 40)
+	var logo := UI.texture("res://assets/img/icon.png", 32 if _compact else 40, 32 if _compact else 40)
 	row.add_child(logo)
 	var titles := UI.vbox(-4)
 	titles.add_child(UI.label("LANTERN", 20, UI.TEXT, UI.font_black))
@@ -73,15 +127,16 @@ func _build() -> void:
 	_brand.add_theme_constant_override("separation", 12)
 	row.add_child(_brand)
 	row.add_child(UI.spacer())
-	for item in [["home", "Главная"], ["rooms", "Комнаты"], ["friends", "Друзья"], ["campfire", "Костёр"], ["quests", "Задания"], ["shop", "Магазин"], ["settings", "Настройки"]]:
-		var b := UI.button(item[1], "ghost", go.bind(item[0]))
-		b.custom_minimum_size = Vector2(0, 40)
-		b.add_theme_font_size_override("font_size", 15)
-		row.add_child(b)
-		_nav[item[0]] = b
+	if not _compact:
+		for item in [["home", "Главная"], ["rooms", "Комнаты"], ["friends", "Друзья"], ["campfire", "Костёр"], ["quests", "Задания"], ["shop", "Магазин"], ["settings", "Настройки"]]:
+			var b := UI.button(item[1], "ghost", go.bind(item[0]))
+			b.custom_minimum_size = Vector2(0, 40)
+			b.add_theme_font_size_override("font_size", 15)
+			row.add_child(b)
+			_nav[item[0]] = b
 	_me_btn = Button.new()
 	_me_btn.flat = true
-	_me_btn.custom_minimum_size = Vector2(150, 44)
+	_me_btn.custom_minimum_size = Vector2(120 if _compact else 150, 44)
 	_me_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_me_btn.pressed.connect(func(): go("profile"))
 	row.add_child(_me_btn)
@@ -90,16 +145,62 @@ func _build() -> void:
 	_content = MarginContainer.new()
 	_content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	for side in ["left", "right"]:
-		_content.add_theme_constant_override("margin_" + side, 28)
-	_content.add_theme_constant_override("margin_top", 8)
-	_content.add_theme_constant_override("margin_bottom", 22)
+		_content.add_theme_constant_override("margin_" + side, 12 if _compact else 28)
+	_content.add_theme_constant_override("margin_top", 4 if _compact else 8)
+	_content.add_theme_constant_override("margin_bottom", 8 if _compact else 22)
 	root.add_child(_content)
+	if _compact:
+		root.add_child(_bottom_nav())
 	# --- всплывашка
 	_toast = UI.panel(14, UI.CARD_HI, 14)
 	_toast.add_child(UI.label("", 15))
 	_toast.modulate.a = 0
 	_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_toast)
+
+
+## Нижнее меню телефона: 4 главных раздела + «Ещё».
+func _bottom_nav() -> Control:
+	var p := PanelContainer.new()
+	var st := UI.box(UI.PANEL, 0, 0, UI.LINE, 0)
+	st.border_width_top = 1
+	st.border_color = UI.LINE
+	st.content_margin_top = 4
+	st.content_margin_bottom = 6
+	p.add_theme_stylebox_override("panel", st)
+	var row := UI.hbox(0)
+	p.add_child(row)
+	for item in [["home", "⌂", "Главная"], ["join", "➤", "Зайти"], ["friends", "♥", "Друзья"], ["shop", "✦", "Магазин"], ["more", "≡", "Ещё"]]:
+		var b := Button.new()
+		b.flat = true
+		b.text = "%s\n%s" % [item[1], item[2]]
+		b.add_theme_font_size_override("font_size", 12)
+		b.custom_minimum_size = Vector2(0, 54)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.focus_mode = Control.FOCUS_NONE
+		if item[0] == "more":
+			b.pressed.connect(_more_menu.bind(b))
+		else:
+			b.pressed.connect(go.bind(item[0]))
+		row.add_child(b)
+		_nav[item[0]] = b
+	return p
+
+
+func _more_menu(b: Button) -> void:
+	var pm := PopupMenu.new()
+	var items := [["rooms", "Открытые миры"], ["campfire", "Костёр"], ["quests", "Задания и сезон"], ["profile", "Профиль"], ["backups", "Копии миров"], ["settings", "Настройки"]]
+	if server.state in ["installing", "starting", "running", "stopping", "error"]:
+		items.push_front(["host", "Мой сервер"])
+	for i in items.size():
+		pm.add_item(items[i][1], i)
+	pm.add_theme_font_size_override("font_size", 17)
+	pm.id_pressed.connect(func(id): go(items[id][0]))
+	pm.popup_hide.connect(pm.queue_free)
+	add_child(pm)
+	var r := b.get_global_rect()
+	pm.reset_size()
+	pm.popup(Rect2i(Vector2i(int(size.x - pm.size.x - 8), int(r.position.y - pm.size.y - 4)), Vector2i.ZERO))
 
 
 ## Сервер заработал → открываем комнату на relay; остановился → закрываем.
@@ -119,6 +220,9 @@ func _on_server_state(s: String) -> void:
 
 func host_extra() -> Dictionary:
 	var d := {"token": Social.token}
+	# LANTERN Pro: relay выдаст свой код комнаты (если он задан и Pro активна)
+	if Social.eco.get("pro", false) and String(Social.eco.get("vanity", "")) != "":
+		d["vanity"] = true
 	if server.opts.get("public", false):
 		d["public"] = {"title": server.opts.get("public_title", server.opts.get("world", "Мир")), "tags": server.opts.get("tags", []),
 			"version": server.opts.get("mc_version", "") if server.edition == "java" else "", "slots": server.opts.get("max_players", 10)}
@@ -206,8 +310,8 @@ func invite_popup(d: Dictionary) -> void:
 	row.add_child(UI.button("Не сейчас", "ghost", func(): p.queue_free()))
 	v.add_child(row)
 	add_child(p)
-	p.position = Vector2(size.x - 420, 80)
-	p.custom_minimum_size.x = 390
+	p.custom_minimum_size.x = UI.dialog_width(390)
+	p.position = Vector2(size.x - p.custom_minimum_size.x - 12, 70)
 	get_tree().create_timer(20).timeout.connect(func(): if is_instance_valid(p): p.queue_free())
 
 
@@ -220,9 +324,13 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 			toast("Сначала выберите Java или Bedrock и нажмите «Создать мир»")
 			return
 	current = name
-	_brand.modulate.a = 0.0 if name == "home" else 1.0
+	_arg = arg
+	_brand.modulate.a = 0.0 if name == "home" and not _compact else 1.0
+	var nav_key := name
+	if _compact and not _nav.has(name):
+		nav_key = "more"
 	for k in _nav:
-		var on: bool = k == name
+		var on: bool = k == nav_key
 		var b: Button = _nav[k]
 		b.add_theme_color_override("font_color", UI.accent() if on else UI.MUTED)
 		b.add_theme_color_override("font_hover_color", UI.accent() if on else UI.TEXT)
@@ -241,10 +349,20 @@ func go(name: String, force := false, arg: Variant = null) -> void:
 		"quests": scr = preload("res://scripts/screens/quests.gd").new()
 		"shop": scr = preload("res://scripts/screens/shop.gd").new()
 		"profile": scr = preload("res://scripts/screens/profile.gd").new()
+		"syscheck": scr = preload("res://scripts/screens/syscheck.gd").new()
+		"backups": scr = preload("res://scripts/screens/backups.gd").new()
 	scr.set("app", self)
 	if arg != null:
 		scr.set("arg", arg)
 	_screen = scr
+	if _compact and not (scr is ScrollContainer) and name in SCROLL_IN_COMPACT:
+		# телефон: длинные экраны прокручиваются целиком
+		var sc := ScrollContainer.new()
+		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sc.add_child(scr)
+		_screen = sc
+		scr = sc
 	_content.add_child(scr)
 	scr.modulate.a = 0
 	scr.position.y = 14
@@ -269,6 +387,11 @@ func toast(text: String, color := UI.TEXT) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		_quit()
+	elif what == NOTIFICATION_APPLICATION_RESUMED and _content and Cfg.autotest == "":
+		# Android: ссылка lantern:// пришла, когда приложение уже было открыто (onNewIntent → setIntent)
+		open_deeplink(DeepLink.from_launch())
+	elif what == NOTIFICATION_WM_GO_BACK_REQUEST and current != "home":
+		go("home")   # кнопка «Назад» на Android
 
 
 func _quit() -> void:

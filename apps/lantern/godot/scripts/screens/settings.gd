@@ -12,7 +12,7 @@ var _relay_st: Label
 
 func _ready() -> void:
 	horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	var cols := UI.hbox(20)
+	var cols := UI.cols(20)
 	cols.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(cols)
 	var l := UI.vbox(16)
@@ -67,9 +67,16 @@ func _ready() -> void:
 	dr.add_child(UI.button("Изменить…", "secondary", _pick_dir))
 	dr.add_child(UI.button("Открыть", "ghost", func(): OS.shell_open(ProjectSettings.globalize_path(Cfg.data_dir()))))
 	dv.add_child(dr)
-	dv.add_child(UI.button("Вернуть папку по умолчанию", "ghost", func():
+	if Cfg.server_root() != Cfg.data_dir():
+		dv.add_child(UI.para("Серверы и Java — в %s (Java на Windows не понимает русские буквы в пути)." % Cfg.server_root(), 13, UI.DIM))
+	var tools := UI.flow(8)
+	tools.add_child(UI.button("Вернуть папку по умолчанию", "ghost", func():
 		Cfg.set_value("app", "data_dir", "")
 		_dir.text = Cfg.data_dir()))
+	tools.add_child(UI.button("Копии миров", "secondary", func(): app.go("backups", true)))
+	if not Cfg.mobile():
+		tools.add_child(UI.button("Проверка системы", "secondary", func(): app.go("syscheck", true)))
+	dv.add_child(tools)
 	l.add_child(pd)
 
 	# --- relay
@@ -92,7 +99,22 @@ func _ready() -> void:
 	l.add_child(pr)
 
 	# --- обновления
-	r.add_child(UI.gap(46))
+	if not UI.compact():
+		r.add_child(UI.gap(46))
+	var pm := UI.panel(22)
+	var mv := UI.vbox(10)
+	pm.add_child(mv)
+	mv.add_child(UI.h3("Тест покупок и рекламы"))
+	var demo := CheckButton.new()
+	demo.text = "ДЕМО-режим (деньги не списываются)"
+	demo.button_pressed = Social.demo
+	demo.add_theme_font_override("font", UI.font_bold)
+	demo.toggled.connect(func(b):
+		Social.set_demo(b)
+		app.toast("ДЕМО включён" if b else "ДЕМО выключен: демо-покупки и демо-искры стёрты"))
+	mv.add_child(demo)
+	mv.add_child(UI.para("Покупки показывают лист «как в Google Play», но ничего не списывают; реклама — тестовый экран на 5 секунд. Настоящие покупки и AdMob включатся, когда автор настроит Google Play.", 13, UI.DIM))
+	r.add_child(pm)
 	var pu := UI.panel(22)
 	var uv := UI.vbox(10)
 	pu.add_child(uv)
@@ -133,7 +155,10 @@ func _pick_dir() -> void:
 		Cfg.set_value("app", "data_dir", d.path_join("LANTERN"))
 		DirAccess.make_dir_recursive_absolute(Cfg.data_dir())
 		_dir.text = Cfg.data_dir()
-		app.toast("Новые миры будут в этой папке"))
+		if Cfg.is_windows() and not Cfg.is_ascii_path(Cfg.data_dir()):
+			app.toast("В пути есть русские буквы — серверы и Java всё равно будут в " + Cfg.server_root(), UI.YELLOW)
+		else:
+			app.toast("Новые миры будут в этой папке"))
 	add_child(fd)
 	fd.popup_centered(Vector2i(800, 500))
 

@@ -28,6 +28,7 @@ var unread := {}             # friend id -> int
 var room_msgs: Array = []
 var room_code := ""
 var demo := true             # ДЕМО-режим покупок и рекламы (настройка)
+var cloud := {}              # LANTERN Pro: {enabled, pro, list:[{id,name,size,ts,share,share_until}], max_mb, slots}
 
 var _ws := WebSocketPeer.new()
 var _active := false
@@ -46,14 +47,14 @@ func _ready() -> void:
 		c.set_value("device", "token", token)
 		c.save(TOKEN_FILE)
 	demo = Cfg.get_value("app", "demo", true)
-	if Cfg.autotest in ["core", "java", "bedrock"]:
+	if Cfg.autotest in ["core", "java", "bedrock", "proc"]:
 		return   # e2e сервера не трогает социальную часть
 	_next_try = 0
 
 
 func _process(_d: float) -> void:
 	var now := Time.get_ticks_msec()
-	if Cfg.autotest in ["core", "java", "bedrock"]:
+	if Cfg.autotest in ["core", "java", "bedrock", "proc"]:
 		return
 	if not _active:
 		if now >= _next_try:
@@ -221,6 +222,18 @@ func _on_msg(m: Dictionary) -> void:
 			changed.emit("season")
 			if str(m.get("error", "")) != "":
 				failed.emit("season", m.error)
+		"vanity":
+			eco["vanity"] = m.get("code", "")
+			changed.emit("eco")
+			if str(m.get("error", "")) != "":
+				failed.emit("vanity", m.error)
+			else:
+				notice.emit({"kind": "info", "text": ("Ваш код комнаты: " + m.code) if m.get("code", "") != "" else "Свой код отключён"})
+		"cloud":
+			cloud = m
+			changed.emit("cloud")
+			if str(m.get("error", "")) != "":
+				failed.emit("cloud", m.error)
 		"achievements":
 			achievements = m
 			changed.emit("achievements")
@@ -282,3 +295,12 @@ func set_demo(on: bool) -> void:
 	Cfg.set_value("app", "demo", on)
 	if not on:
 		_send({"t": "demo_wipe"})
+
+
+## HTTP-адрес relay (для облачных копий): wss://host/ws → https://host
+func http_base() -> String:
+	var u := Cfg.relay_url()
+	u = u.replace("wss://", "https://").replace("ws://", "http://")
+	if u.ends_with("/ws"):
+		u = u.substr(0, u.length() - 3)
+	return u.trim_suffix("/")

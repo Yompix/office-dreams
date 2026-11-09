@@ -1,0 +1,227 @@
+extends ScrollContainer
+## Копии миров: резервные копии на этом устройстве, облако LANTERN Pro, получение копии по коду от друга
+## или со второго устройства. Восстановление — в папку сервера (старый мир не удаляется, а переименовывается).
+
+var app
+var arg
+
+var _local: VBoxContainer
+var _cloud: VBoxContainer
+var _code_in: LineEdit
+var _busy := false
+var last_result := {}      # для автотестов: последнее действие {what, ok, error, ...}
+
+
+func _ready() -> void:
+	horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var v := UI.vbox(14)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_child(v)
+	v.add_child(UI.h1("Копии миров"))
+	v.add_child(UI.para("Резервная копия — zip с папкой мира. Её можно восстановить, отправить в облако (Pro) или передать другу по коду.", 15, UI.MUTED))
+	var cols := UI.cols(20)
+	v.add_child(cols)
+	# --- на этом устройстве
+	var lp := UI.panel(18)
+	lp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var lv := UI.vbox(10)
+	lp.add_child(lv)
+	var lh := UI.hbox(8)
+	var lt := UI.h3("На этом устройстве")
+	lt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lh.add_child(lt)
+	if not Cfg.mobile():
+		lh.add_child(UI.button("Папка", "ghost", func(): OS.shell_open(ProjectSettings.globalize_path(Cfg.sub("backups")))))
+	lv.add_child(lh)
+	_local = UI.vbox(8)
+	lv.add_child(_local)
+	cols.add_child(lp)
+	# --- облако
+	var cp := UI.panel(18)
+	cp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var cv := UI.vbox(10)
+	cp.add_child(cv)
+	var ch := UI.hbox(8)
+	ch.add_child(UI.h3("Облако LANTERN"))
+	ch.add_child(UI.pill("Pro", Color("ffb648")))
+	cv.add_child(ch)
+	_cloud = UI.vbox(8)
+	cv.add_child(_cloud)
+	cv.add_child(UI.gap(4))
+	cv.add_child(UI.label("ПОЛУЧИТЬ КОПИЮ ПО КОДУ", 12, UI.MUTED, UI.font_bold))
+	var gr := UI.hbox(8)
+	_code_in = UI.line_edit("", "Код, напр. 7KQ-M2X")
+	_code_in.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_code_in.max_length = 12
+	gr.add_child(_code_in)
+	gr.add_child(UI.button("Скачать", "primary", func(): fetch_shared(_code_in.text)))
+	cv.add_child(gr)
+	cv.add_child(UI.para("Код действует сутки. Так можно перенести мир на второй компьютер или передать другу — Pro нужна только тому, кто отправляет.", 13, UI.DIM))
+	cols.add_child(cp)
+	Social.changed.connect(func(w): if w in ["cloud", "eco", "conn"] and is_inside_tree(): _render_cloud())
+	_render_local()
+	_render_cloud()
+	if Social.online():
+		Social.request("cloud_list")
+
+
+static func _mb(n: int) -> String:
+	return "%.1f МБ" % (n / 1048576.0) if n >= 104858 else "%d КБ" % maxi(1, n / 1024)
+
+
+static func _date(unix: int) -> String:
+	var d := Time.get_datetime_dict_from_unix_time(unix + int(Time.get_time_zone_from_system().get("bias", 0)) * 60)
+	return "%02d.%02d.%d %02d:%02d" % [d.day, d.month, d.year, d.hour, d.minute]
+
+
+func _render_local() -> void:
+	for c in _local.get_children():
+		c.queue_free()
+	var list: Array = app.server.list_backups()
+	if list.is_empty():
+		_local.add_child(UI.para("Копий пока нет. Нажмите «Резервная копия» на панели сервера — или скачайте копию из облака / по коду.", 14, UI.DIM))
+		return
+	for b in list:
+		var info := ServerHost.inspect_backup(b.path)
+		var p := UI.panel(12, UI.CARD, 12)
+		var v := UI.vbox(6)
+		p.add_child(v)
+		var t := UI.label(b.name, 14, UI.TEXT, UI.font_bold)
+		t.clip_text = true
+		t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		v.add_child(t)
+		var ed: String = {"java": "Java", "bedrock": "Bedrock"}.get(info.get("edition", ""), "?")
+		v.add_child(UI.para("%s · мир «%s» · %s · %s" % [ed, info.get("world", "?"), _mb(b.size), _date(b.time)], 12, UI.MUTED))
+		var row := UI.flow(6)
+		var rb := UI.button("Восстановить", "secondary", func(): restore(b.path))
+		rb.disabled = not info.ok or Cfg.mobile()
+		rb.tooltip_text = "" if info.ok else info.get("error", "")
+		row.add_child(rb)
+		var ub := UI.button("В облако", "secondary", func(): upload(b.path))
+		ub.disabled = not Social.online()
+		row.add_child(ub)
+		row.add_child(UI.button("Удалить", "ghost", func():
+			DirAccess.remove_absolute(b.path)
+			_render_local()))
+		for btn in row.get_children():
+			btn.custom_minimum_size.y = 38
+		v.add_child(row)
+		_local.add_child(p)
+
+
+func _render_cloud() -> void:
+	for c in _cloud.get_children():
+		c.queue_free()
+	if not Social.online():
+		_cloud.add_child(UI.para("Нет связи с сервером LANTERN.", 14, UI.YELLOW))
+		return
+	var c: Dictionary = Social.cloud
+	if c.is_empty():
+		_cloud.add_child(UI.label("Загружаем…", 14, UI.DIM))
+		return
+	if not c.get("enabled", false):
+		_cloud.add_child(UI.para("Облако выключено на этом сервере LANTERN (нет постоянного хранилища). Копии можно хранить на устройстве.", 14, UI.YELLOW))
+		return
+	if not c.get("pro", false):
+		_cloud.add_child(UI.para("До %d копий по %d МБ в облаке — с LANTERN Pro. Копии не пропадут, даже если сломается компьютер." % [int(c.get("slots", 3)), int(c.get("max_mb", 100))], 14, UI.MUTED))
+		var b := UI.button("Узнать о Pro", "primary", func(): app.go("shop", true, {"kind": "pro"}))
+		b.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		_cloud.add_child(b)
+	else:
+		_cloud.add_child(UI.para("До %d копий по %d МБ. Самая старая заменяется новой." % [int(c.get("slots", 3)), int(c.get("max_mb", 100))], 13, UI.DIM))
+	for it in c.get("list", []):
+		var p := UI.panel(12, UI.CARD, 12)
+		var v := UI.vbox(6)
+		p.add_child(v)
+		var nm := UI.label(it.name, 14, UI.TEXT, UI.font_bold)
+		nm.clip_text = true
+		nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		v.add_child(nm)
+		v.add_child(UI.label("%s · %s" % [_mb(int(it.size)), _date(int(it.ts) / 1000)], 12, UI.MUTED))
+		if String(it.get("share", "")) != "":
+			var sr := UI.flow(8)
+			sr.add_child(UI.label("Код для друга:", 13, UI.MUTED))
+			sr.add_child(UI.label(RoomCode.pretty(it.share), 18, Color("ffb648"), UI.font_black))
+			sr.add_child(UI.button("Копировать", "ghost", func(): UI.copy(RoomCode.pretty(it.share)); app.toast("Код скопирован")))
+			v.add_child(sr)
+		var row := UI.flow(6)
+		row.add_child(UI.button("Скачать", "secondary", func(): download_cloud(it)))
+		row.add_child(UI.button("Код для друга", "secondary", func(): Social.request("cloud_share", {"id": it.id})))
+		row.add_child(UI.button("Удалить", "ghost", func(): Social.request("cloud_delete", {"id": it.id})))
+		for btn in row.get_children():
+			btn.custom_minimum_size.y = 38
+		v.add_child(row)
+		_cloud.add_child(p)
+
+
+func _auth() -> PackedStringArray:
+	return PackedStringArray(["Authorization: Bearer " + Social.token])
+
+
+func restore(path: String) -> void:
+	var r: Dictionary = await app.server.restore_backup(path)
+	last_result = r.merged({"what": "restore"})
+	if r.ok:
+		app.toast("Мир «%s» восстановлен — он запустится при следующем «Создать мир» (%s)" % [r.world, "Java" if r.edition == "java" else "Bedrock"], UI.JAVA)
+	else:
+		app.toast("Не получилось: " + r.error, UI.RED)
+
+
+func upload(path: String) -> void:
+	if _busy:
+		return
+	if not Social.cloud.get("pro", false):
+		app.toast("Облачные копии — функция LANTERN Pro", UI.YELLOW)
+		app.go("shop", true, {"kind": "pro"})
+		return
+	_busy = true
+	app.toast("Отправляем копию в облако…")
+	var r: Dictionary = await Net.put_file(Social.http_base() + "/cloud/upload?name=" + path.get_file().uri_encode(), path, _auth())
+	_busy = false
+	last_result = r.merged({"what": "upload"})
+	if r.ok:
+		app.toast("Копия в облаке ✓", UI.JAVA)
+		Social.request("cloud_list")
+	else:
+		app.toast("Не получилось: " + r.error, UI.RED)
+
+
+func download_cloud(it: Dictionary) -> void:
+	await _download(Social.http_base() + "/cloud/file/" + String(it.id), String(it.name))
+
+
+func fetch_shared(code: String) -> void:
+	var c := code.strip_edges().to_upper().replace("-", "").replace(" ", "")
+	if c.length() != 6:
+		app.toast("Код — 6 символов", UI.YELLOW)
+		return
+	await _download(Social.http_base() + "/cloud/share/" + c, "")
+
+
+func _download(url: String, name: String) -> void:
+	if _busy:
+		return
+	if Social.token == "":
+		return
+	_busy = true
+	var stamp := Time.get_datetime_string_from_system().replace(":", "-").replace("T", "_")
+	var fname := name if name.ends_with(".zip") else "из-облака-%s.zip" % stamp
+	var dest := Cfg.sub("backups").path_join(fname.get_file().replace("/", "_"))
+	if FileAccess.file_exists(dest):
+		dest = dest.get_basename() + "-" + stamp + ".zip"
+	app.toast("Скачиваем копию…")
+	var r: Dictionary = await Net.download(url, dest, {}, Callable(), _auth())
+	_busy = false
+	last_result = r.merged({"what": "download", "path": dest})
+	if r.ok:
+		var info := ServerHost.inspect_backup(dest)
+		if not info.ok:
+			DirAccess.remove_absolute(dest)
+			app.toast("Это не копия мира: " + info.error, UI.RED)
+			last_result.ok = false
+		else:
+			app.toast("Копия мира «%s» скачана — нажмите «Восстановить»" % info.world, UI.JAVA)
+	else:
+		app.toast("Не получилось: " + r.error, UI.RED)
+	if is_inside_tree():
+		_render_local()

@@ -1,4 +1,4 @@
-extends HBoxContainer
+extends BoxContainer
 ## Зайти к другу: по коду комнаты мир появляется в списке игры сам; по адресу — ссылка или инструкция.
 
 var app
@@ -19,6 +19,7 @@ const PLAYS := [["java", "Java"], ["bedrock", "Bedrock"], ["both", "Оба"]]
 
 
 func _ready() -> void:
+	vertical = UI.compact()   # телефон: колонки друг под другом
 	add_theme_constant_override("separation", 20)
 	_plays = arg.get("edition", Cfg.get_value("join", "plays", "both"))
 	var left := UI.vbox(16)
@@ -32,6 +33,7 @@ func _ready() -> void:
 	var p := UI.panel(22)
 	var pv := UI.vbox(14)
 	p.add_child(pv)
+	var compact := UI.compact()
 	var row := UI.hbox(12)
 	_input = UI.line_edit(arg.get("input", ""), "Код, например K7M-2QX")
 	_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -40,11 +42,17 @@ func _ready() -> void:
 	_input.add_theme_font_size_override("font_size", 24)
 	_input.text_submitted.connect(func(_t): _connect())
 	row.add_child(_input)
+	if compact:
+		# телефон: поле на всю ширину, кнопки под ним
+		pv.add_child(row)
+		row = UI.hbox(8)
 	var paste := UI.button("Вставить", "secondary", func(): _input.text = DisplayServer.clipboard_get().strip_edges())
-	paste.custom_minimum_size.y = 60
+	paste.custom_minimum_size.y = 52 if compact else 60
 	row.add_child(paste)
 	var go := UI.button("Подключиться", "primary", _connect)
-	go.custom_minimum_size = Vector2(190, 60)
+	go.custom_minimum_size = Vector2(0 if compact else 190, 52 if compact else 60)
+	if compact:
+		go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(go)
 	pv.add_child(row)
 	_err = UI.label("", 14, Color("ffb3ba"))
@@ -54,7 +62,9 @@ func _ready() -> void:
 	sr.add_child(UI.label("Я играю на:", 15, UI.MUTED))
 	for it in PLAYS:
 		var b := UI.button(it[1], "secondary", func(): _plays = it[0]; Cfg.set_value("join", "plays", _plays); _update_seg())
-		b.custom_minimum_size = Vector2(110, 38)
+		b.custom_minimum_size = Vector2(0 if compact else 110, 38)
+		if compact:
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_seg[it[0]] = b
 		sr.add_child(b)
 	pv.add_child(sr)
@@ -70,13 +80,16 @@ func _ready() -> void:
 	var rv := UI.vbox(12)
 	right.add_child(rv)
 	rv.add_child(UI.h3("Недавние"))
-	var sc := ScrollContainer.new()
-	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	rv.add_child(sc)
 	_recent_box = UI.vbox(8)
 	_recent_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sc.add_child(_recent_box)
+	if compact:
+		rv.add_child(_recent_box)   # весь экран и так прокручивается
+	else:
+		var sc := ScrollContainer.new()
+		sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		rv.add_child(sc)
+		sc.add_child(_recent_box)
 	_fill_recent()
 	var st: Dictionary = app.relay_join.stats()
 	if st.state in ["connecting", "online"]:
@@ -141,6 +154,7 @@ func _connect() -> void:
 	var relay: String = r.relay if r.relay != "" else Cfg.relay_url()
 	var java := _plays in ["java", "both"]
 	var bedrock := _plays in ["bedrock", "both"]
+	app.relay_join.token = Social.token
 	app.relay_join.start(relay, r.code, java, bedrock, int(Cfg.autotest_args.get("join_java_port", 25565)), int(Cfg.autotest_args.get("join_bedrock_port", 19132)))
 	_shown_state = "-"
 	_show_room()
@@ -192,8 +206,11 @@ func _show_room() -> void:
 	var v := UI.vbox(12)
 	p.add_child(v)
 	_result.add_child(p)
-	var top := UI.hbox(12)
+	var top: Container = UI.vbox(8) if UI.compact() else UI.hbox(12)
 	v.add_child(top)
+	var actions: Container = top
+	if UI.compact():
+		actions = UI.flow(8)   # телефон: заголовок на всю ширину, кнопки под ним
 	var title := ""
 	var color := UI.YELLOW
 	match st.state:
@@ -212,8 +229,16 @@ func _show_room() -> void:
 	tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(tl)
+	if st.state == "online" and Social.online():
+		actions.add_child(UI.button("♥ Нравится", "ghost", func(): app.relay_join.like()))
 	if st.state in ["connecting", "online"]:
-		top.add_child(UI.button("Отключиться", "danger", func(): app.relay_join.stop(); _shown_state = "-"; _show_room()))
+		actions.add_child(UI.button("Отключиться", "danger", func():
+			app.relay_join.stop()
+			_shown_state = "-"
+			_show_room()
+			Store.show_interstitial(app)))
+	if actions != top:
+		top.add_child(actions)
 	if st.state == "error":
 		v.add_child(UI.para(st.error, 15, Color("ffb3ba")))
 		v.add_child(UI.button("Попробовать ещё раз", "primary", _connect))
@@ -251,7 +276,16 @@ func _show_room() -> void:
 	if not java_on and not bed_on:
 		var need := "Java" if ed == "java" else "Bedrock"
 		v.add_child(UI.para("Этот мир для %s. Переключите «Я играю на» и подключитесь снова." % need, 15, UI.YELLOW))
-	v.add_child(UI.spacer(false))
+	if Social.online():
+		if Social.room_code != app.relay_join.code:
+			Social.enter_room(app.relay_join.code)
+		var chat := ChatBox.new().setup("room")
+		chat.custom_minimum_size.y = 300 if UI.compact() else 150
+		chat.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		v.add_child(UI.label("ЧАТ КОМНАТЫ", 12, UI.MUTED, UI.font_bold))
+		v.add_child(chat)
+	else:
+		v.add_child(UI.spacer(false))
 	_status_lbl = UI.label("Не закрывайте приложение, пока играете.", 13, UI.DIM)
 	v.add_child(_status_lbl)
 	_traffic_lbl = UI.label("", 13, UI.DIM)
@@ -262,7 +296,10 @@ func _edition_block(title: String, color: Color, steps: Array, manual: String, a
 	var p := UI.panel(16, Color(color, 0.07), 14)
 	var v := UI.vbox(8)
 	p.add_child(v)
-	v.add_child(UI.label(title, 16, color.lightened(0.2), UI.font_bold))
+	var tl := UI.label(title, 16, color.lightened(0.2), UI.font_bold)
+	tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tl.custom_minimum_size.x = 120
+	v.add_child(tl)
 	for i in steps.size():
 		var r := UI.hbox(10)
 		r.add_child(UI.label("%d." % (i + 1), 15, color, UI.font_black))
@@ -270,10 +307,11 @@ func _edition_block(title: String, color: Color, steps: Array, manual: String, a
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		r.add_child(l)
 		v.add_child(r)
-	var mr := UI.hbox(8)
+	var mr: Container = UI.flow(8) if UI.compact() else UI.hbox(8)
 	mr.add_child(UI.label(manual + ":", 13, UI.MUTED))
 	mr.add_child(UI.label(addr, 14, UI.TEXT, UI.font_mono))
-	mr.add_child(UI.spacer())
+	if not UI.compact():
+		mr.add_child(UI.spacer())
 	var cb := UI.button("Копировать", "ghost", func(): UI.copy(addr); app.toast("Скопировано: " + addr))
 	cb.custom_minimum_size.y = 32
 	mr.add_child(cb)

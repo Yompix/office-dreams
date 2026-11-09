@@ -28,8 +28,16 @@ function main() {
   });
   if (process.env.LANTERN !== 'off') {
     try {
-      const dbPath = cfg.dbPath === ':memory:' ? ':memory:' : require('path').join(require('path').dirname(cfg.dbPath), 'lantern.sqlite');
-      lantern = require('../apps/lantern/relay/server.js').attach(server, { wsPath: '/lantern/ws', dbPath });
+      const path = require('path');
+      const mem = cfg.dbPath === ':memory:';
+      const dataDir = mem ? '' : path.dirname(cfg.dbPath);
+      lantern = require('../apps/lantern/relay/server.js').attach(server, {
+        wsPath: '/lantern/ws',
+        dbPath: mem ? ':memory:' : path.join(dataDir, 'lantern.sqlite'),
+        // облачные копии миров «Про»: на том же диске, что и база сайта, — не больше 1 ГБ и всегда 1 ГБ свободно
+        cloudDir: mem ? '' : path.join(dataDir, 'lantern-cloud'),
+        cloudTotalMb: 1024,
+      });
     } catch (e) { lantern = null; ctx.log('lantern relay disabled:', e.message); }
   }
   server.keepAliveTimeout = 65000;

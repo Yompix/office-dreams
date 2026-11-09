@@ -56,7 +56,7 @@ func _process(_d: float) -> void:
 
 
 func server_dir() -> String:
-	return Cfg.sub("servers/" + edition)
+	return Cfg.server_sub("servers/" + edition)
 
 
 func _set_state(s: String) -> void:
@@ -277,7 +277,7 @@ static func _safe_name(s: String) -> String:
 ## Найти Java нужной версии (своя → системная) или скачать Temurin JRE.
 func ensure_java(major: int) -> String:
 	major = max(major, 21)
-	var rt := Cfg.sub("runtime").path_join("jre-%d" % major)
+	var rt := Cfg.server_sub("runtime").path_join("jre-%d" % major)
 	var exe := rt.path_join("bin/java.exe" if Cfg.is_windows() else "bin/java")
 	if FileAccess.file_exists(exe):
 		return exe
@@ -309,7 +309,7 @@ func _system_java(major: int) -> String:
 	var out := []
 	var home := OS.get_environment("JAVA_HOME")
 	var cands := []
-	if home != "":
+	if home != "" and FileAccess.file_exists(home.path_join("bin/java.exe" if Cfg.is_windows() else "bin/java")):
 		cands.append(home.path_join("bin/java.exe" if Cfg.is_windows() else "bin/java"))
 	cands.append("java")
 	for c in cands:
@@ -571,6 +571,63 @@ func backup() -> String:
 	if err != "":
 		last_error = err
 		return ""
+	return out
+
+
+## Что внутри копии: {ok, edition, world, error}. Java: <мир>/level.dat (+ _nether, _the_end), Bedrock: worlds/<мир>/level.dat.
+static func inspect_backup(zip: String) -> Dictionary:
+	var z := ZIPReader.new()
+	if z.open(zip) != OK:
+		return {"ok": false, "error": "файл не открылся — это не zip-копия мира"}
+	var files := z.get_files()
+	z.close()
+	for f in files:
+		var parts := String(f).split("/", false)
+		if parts.size() == 3 and parts[0] == "worlds" and parts[2] == "level.dat":
+			return {"ok": true, "edition": "bedrock", "world": parts[1]}
+		if parts.size() == 2 and parts[1] == "level.dat" and not (parts[0].ends_with("_nether") or parts[0].ends_with("_the_end")):
+			return {"ok": true, "edition": "java", "world": parts[0]}
+	return {"ok": false, "error": "в архиве нет мира Minecraft (level.dat)"}
+
+
+## Восстановить мир из копии (своей, из облака или от друга). Текущая папка мира с тем же именем
+## не удаляется, а переименовывается в «<мир>.before-<время>». Сервер должен быть остановлен.
+func restore_backup(zip: String) -> Dictionary:
+	if is_alive():
+		return {"ok": false, "error": "Сначала остановите сервер"}
+	var info := inspect_backup(zip)
+	if not info.ok:
+		return info
+	var saved := edition
+	edition = info.edition
+	var dir := server_dir()
+	edition = saved
+	var stamp := Time.get_datetime_string_from_system().replace(":", "-").replace("T", "_")
+	var tops: Array = ["worlds/" + info.world] if info.edition == "bedrock" else [info.world, info.world + "_nether", info.world + "_the_end"]
+	for t in tops:
+		if DirAccess.dir_exists_absolute(dir.path_join(t)):
+			DirAccess.rename_absolute(dir.path_join(t), dir.path_join(t + ".before-" + stamp))
+	var err := Archive.unzip(zip, dir)
+	if err != "":
+		return {"ok": false, "error": err}
+	# следующий запуск этого издания откроет восстановленный мир
+	var o: Dictionary = Cfg.get_value("host", info.edition, {})
+	o["world"] = info.world
+	Cfg.set_value("host", info.edition, o)
+	return {"ok": true, "edition": info.edition, "world": info.world}
+
+
+func list_backups() -> Array:
+	var out := []
+	var dir := Cfg.sub("backups")
+	var d := DirAccess.open(dir)
+	if d == null:
+		return out
+	for f in d.get_files():
+		if f.ends_with(".zip"):
+			var p := dir.path_join(f)
+			out.append({"path": p, "name": f, "size": FileAccess.get_size(p), "time": FileAccess.get_modified_time(p)})
+	out.sort_custom(func(a, b): return a.time > b.time)
 	return out
 
 

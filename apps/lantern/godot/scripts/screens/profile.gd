@@ -1,4 +1,4 @@
-extends HBoxContainer
+extends BoxContainer
 ## Профиль: фонарь, ник и тег, титул, уровень, искры, серия, код друга.
 
 var app
@@ -6,6 +6,7 @@ var arg
 
 
 func _ready() -> void:
+	vertical = UI.compact()   # телефон: колонки друг под другом
 	add_theme_constant_override("separation", 20)
 	Social.changed.connect(func(w): if w in ["me", "eco", "conn"] and is_inside_tree(): _render())
 	Social.request("eco")
@@ -28,7 +29,7 @@ func _render() -> void:
 	var e: Dictionary = Social.eco
 	var me: Dictionary = Social.me
 	var left := UI.panel(28)
-	left.custom_minimum_size.x = 420
+	left.custom_minimum_size.x = 0 if UI.compact() else 420
 	var lv := UI.vbox(12)
 	left.add_child(lv)
 	var li := LanternIcon.new().setup(int(e.get("lantern", {}).get("level", 1)), e.get("equip", {}), 180)

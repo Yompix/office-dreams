@@ -160,7 +160,9 @@ class Social {
       case 'room_enter': return this.roomEnter(ws, msg);
       case 'room_chat': return this.roomChat(ws, uid, msg);
       case 'state': return this.sendState(uid);
-      default: if (this.eco && this.ecoCmds.has(t)) return this.eco.handle(ws, uid, msg, (w, o) => this.send(w, o));
+      default:
+        if (this.pro && this.proCmds.has(t)) return this.pro.handle(ws, uid, msg, (w, o) => this.send(w, o));
+        if (this.eco && this.ecoCmds.has(t)) return this.eco.handle(ws, uid, msg, (w, o) => this.send(w, o));
     }
   }
 
@@ -240,7 +242,7 @@ class Social {
       p.world = cleanText(msg.world).slice(0, LIMITS.titleMax);
       p.edition = ['java', 'bedrock', 'both'].includes(msg.edition) ? msg.edition : '';
       p.version = String(msg.version || '').replace(/[^0-9a-zA-Z.\- ]/g, '').slice(0, 16);
-      if (typeof msg.code === 'string' && /^[2-9A-HJKMNP-Z]{6}$/.test(msg.code)) p.code = msg.code;
+      if (typeof msg.code === 'string' && /^[2-9A-Z]{3,8}$/.test(msg.code)) p.code = msg.code;
     }
     this.presence.set(uid, p);
     this.notifyFriends(uid);
@@ -335,7 +337,7 @@ class Social {
     const to = msg.to >>> 0;
     if (!this.areFriends(uid, to) || this.blocked(uid, to)) return this.err(ws, 'invite', 'Приглашать можно только друзей');
     if (this.limited(uid, 'msg')) return this.err(ws, 'invite', 'Слишком часто');
-    if (!/^[2-9A-HJKMNP-Z]{6}$/.test(String(msg.code))) return this.err(ws, 'invite', 'Нет кода комнаты');
+    if (!/^[2-9A-Z]{3,8}$/.test(String(msg.code))) return this.err(ws, 'invite', 'Нет кода комнаты');
     this.push(to, { t: 'invite', from: this.pub(this.user(uid)), code: msg.code, world: cleanText(msg.world).slice(0, LIMITS.titleMax), edition: msg.edition });
     this.send(ws, { t: 'invite_ok' });
     if (this.eco) this.eco.event(uid, 'invite');

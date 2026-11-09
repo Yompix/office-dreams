@@ -2,13 +2,13 @@
 
 Сервер-посредник для приложения LANTERN: друзья заходят в мир Minecraft (Java и Bedrock) по
 коду комнаты. Relay только пересылает данные игры между хозяином и друзьями; ничего не хранит
-на диске и не пишет содержимое в журнал. Протокол — `godot/playtogether/docs/PROTOCOL.md`.
+на диске и не пишет содержимое в журнал. Протокол — `apps/lantern/godot/docs/PROTOCOL.md`.
 
 ## Запуск локально
 ```
 cd relay && npm install && PORT=8080 node server.js
 curl http://127.0.0.1:8080/healthz
-npm test            # самопроверка: хост-эхо, два друга, TCP/UDP-потоки, ошибки
+npm test            # relay (хост-эхо, TCP/UDP-потоки) + симуляция 3 игроков: друзья, чаты, задания, магазин, сезон + Pro (свой код, облако)
 ```
 
 ## Где работает сейчас
@@ -25,11 +25,24 @@ Relay подключён к серверу сайта Office Dreams (`server/ind
 3. **Networking → Generate Domain** (HTTP). Порт берётся из `$PORT` автоматически.
 4. Проверка: `https://<домен>/healthz` → `{"ok":true,"app":"lantern-relay",...}`.
 5. Адрес для приложения: `wss://<домен>/ws`. Его нужно вписать в
-   `godot/playtogether/scripts/core/config.gd` (`DEFAULT_RELAY`) и пересобрать приложение,
+   `apps/lantern/godot/scripts/core/config.gd` (`DEFAULT_RELAY`) и пересобрать приложение,
    либо каждый игрок вставляет его в «Настройки → Сервер-посредник».
 6. Health check path в Railway: `/healthz`.
 
 Railway даёт HTTPS/WebSocket — этого достаточно: UDP Bedrock идёт внутри WebSocket-кадров.
+
+### Профили, друзья, задания — нужен том (Volume)
+Аккаунты, друзья, сообщения (24 ч), задания, покупки косметики хранятся в SQLite (`node:sqlite`, нужен Node ≥ 22.13).
+Railway → сервис relay → **Volumes → New Volume**, Mount Path `/data`. Relay сам найдёт `RAILWAY_VOLUME_MOUNT_PATH`
+и создаст `/data/lantern.db` (или задайте `DB_PATH`). **Без тома** всё работает, но после каждого перезапуска профили обнуляются.
+Для релиза в Google Play: `DEMO_PURCHASES=0` (выключить демо-покупки) и `GOOGLE_SERVICE_ACCOUNT_JSON` (секрет, см.
+`apps/lantern/godot/docs/MONETIZATION.md`).
+
+### LANTERN Pro: облачные копии миров — тот же том
+Если том подключён, relay хранит zip-копии миров в `<том>/cloud` (или `CLOUD_DIR`). Без тома облако выключено,
+приложение так и пишет; свой код комнаты (тоже Pro) работает и без тома, но резервы обнулятся при перезапуске.
+Оценка места: `CLOUD_SLOTS × CLOUD_MAX_MB` на игрока (по умолчанию 3 × 100 МБ), общий потолок `CLOUD_TOTAL_MB`
+(4 ГБ). Размер тома в Railway подберите под число Pro-подписчиков (Hobby — до 5 ГБ, Pro — больше).
 
 ## Переменные окружения (необязательно)
 | имя | по умолчанию | смысл |
@@ -43,5 +56,10 @@ Railway даёт HTTPS/WebSocket — этого достаточно: UDP Bedroc
 | `IDLE_MS` | 90000 | отключать молчащих |
 | `RESUME_MS` | 300000 | сколько держать код после обрыва хозяина |
 | `QUIET` | — | `1` — не писать журнал |
+| `CLOUD_DIR` | `<том>/cloud` | где хранить облачные копии (пусто и нет тома — облако выключено) |
+| `CLOUD_MAX_MB` | 100 | максимум одной копии |
+| `CLOUD_SLOTS` | 3 | копий на игрока (старые заменяются) |
+| `CLOUD_TOTAL_MB` | 4096 | всего на relay |
+| `CLOUD_KEEP_DAYS` | 30 | сколько хранить после окончания Pro |
 
 Трафик: одна игра Java ≈ 50–300 КБ/с на игрока. Учитывайте лимиты тарифа Railway.

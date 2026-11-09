@@ -27,22 +27,30 @@ func _ready() -> void:
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.add_child(_list)
 	var row := UI.hbox(6)
+	var stickers: BoxContainer = row
+	if UI.compact():
+		# телефон: стикеры отдельной строкой над полем ввода
+		stickers = UI.hbox(4)
+		add_child(stickers)
 	for st in ["Привет!", "GG", "Го!", "♥"]:
 		var b := UI.button(st, "ghost", func(): _send(st))
 		b.custom_minimum_size = Vector2(0, 38)
 		b.tooltip_text = "Стикер"
-		row.add_child(b)
+		if UI.compact():
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		stickers.add_child(b)
 	_input = UI.line_edit("", "Сообщение…" if mode == "dm" else "Написать всем в комнате…")
 	_input.max_length = 300
 	_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_input.custom_minimum_size.y = 40
+	_input.custom_minimum_size.y = 46 if UI.compact() else 40
 	_input.text_submitted.connect(func(t): _send(t))
 	row.add_child(_input)
 	var sb := UI.button("➤", "primary", func(): _send(_input.text))
 	sb.custom_minimum_size = Vector2(46, 40)
 	row.add_child(sb)
 	add_child(row)
-	add_child(UI.label("Будьте вежливы. Сообщения хранятся сутки. Не сообщайте личные данные.", 11, UI.DIM))
+	var rules := UI.para("Будьте вежливы. Сообщения хранятся сутки. Не сообщайте личные данные.", 11, UI.DIM)
+	add_child(rules)
 	Social.changed.connect(_on_changed)
 	_render()
 

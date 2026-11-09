@@ -38,11 +38,15 @@ const { Economy, ECO_CMDS } = require('./economy');
 let social = null;            // создаётся в attach(): путь к базе задаёт тот, кто запускает relay
 let wss = null;
 
-function makeSocial(dbPath) {
+const { Pro, PRO_CMDS } = require('./pro');
+
+function makeSocial(dbPath, opts = {}) {
   const s = new Social({ dbPath });
   s.bindRooms(rooms);
   s.eco = new Economy(s);
   s.ecoCmds = ECO_CMDS;
+  s.pro = new Pro(s, rooms, { cloudDir: opts.cloudDir, totalMb: opts.cloudTotalMb });
+  s.proCmds = PRO_CMDS;
   return s;
 }
 const SOCIAL_CMDS = new Set(['hello', 'register', 'presence', 'friend_add', 'friend_accept', 'friend_decline', 'friend_remove',
@@ -55,7 +59,7 @@ function makeCode() {
     const b = crypto.randomBytes(6);
     let s = '';
     for (let i = 0; i < 6; i++) s += ALPHABET[b[i] % ALPHABET.length];
-    if (!rooms.has(s)) return s;
+    if (!rooms.has(s) && !social.pro.reserved(s)) return s;
   }
   return null;
 }
@@ -143,7 +147,9 @@ function onHost(ws, msg) {
     for (const j of room.joiners) send(j.ws, { t: 'host_back' });
   } else {
     if (rooms.size >= CFG.maxRooms) return send(ws, { t: 'error', error: 'busy' });
-    const code = makeCode();
+    // LANTERN Pro: свой код комнаты (если просили, Pro активна и код сейчас не занят открытой комнатой)
+    const vanity = msg.vanity && owner ? social.pro.codeForHost(owner.id) : '';
+    const code = vanity || makeCode();
     if (!code) return send(ws, { t: 'error', error: 'busy' });
     room = { code, token: crypto.randomBytes(16).toString('hex'), edition: msg.edition, name, host: ws,
       joiners: new Set(), streams: new Map(), tokens: CFG.roomBytesPerSec, tokenTs: Date.now(), bytes: 0,
@@ -159,7 +165,7 @@ function onHost(ws, msg) {
   }
   ws._role = 'host';
   ws._room = room;
-  send(ws, { t: 'room', code: room.code, token: room.token, v: PROTO,
+  send(ws, { t: 'room', code: room.code, token: room.token, v: PROTO, vanity: !!(msg.vanity && owner && social.pro.vanityOf(owner.id) === room.code),
     limits: { joiners: CFG.maxJoiners, streams: CFG.maxStreams, bytesPerSec: CFG.roomBytesPerSec } });
 }
 
@@ -228,7 +234,7 @@ function onText(ws, text) {
   try { msg = JSON.parse(text); } catch { return ws.close(4002, 'bad json'); }
   if (!msg || typeof msg.t !== 'string') return;
   if (msg.t === 'ping') return send(ws, { t: 'pong', ts: msg.ts });
-  if (SOCIAL_CMDS.has(msg.t) || ECO_CMDS.has(msg.t)) return social.handle(ws, msg);
+  if (SOCIAL_CMDS.has(msg.t) || ECO_CMDS.has(msg.t) || PRO_CMDS.has(msg.t)) return social.handle(ws, msg);
   if (msg.t === 'like' && ws._role === 'joiner') return likeRoom(ws);
   if (msg.t === 'room_meta' && ws._role === 'host') { ws._room.meta = Social.roomMeta(msg.public); return; }
   if (!ws._role) {
@@ -273,6 +279,7 @@ function onBinary(ws, data) {
 
 // HTTP: /healthz и /rooms (url — уже без префикса)
 function onHttp(req, res, url) {
+  if (social.pro.http(req, res, url)) return;
   if (url === '/healthz' || url === '/') {
     let joiners = 0;
     for (const r of rooms.values()) joiners += r.joiners.size;
@@ -318,7 +325,7 @@ function onConnection(ws, req) {
 function attach(httpServer, opts = {}) {
   if (wss) throw new Error('relay already attached');
   const wsPath = opts.wsPath || '/ws';
-  social = makeSocial(opts.dbPath || ':memory:');
+  social = makeSocial(opts.dbPath || ':memory:', opts);
   wss = new WebSocketServer({ noServer: true, maxPayload: CFG.maxFrame, perMessageDeflate: false });
   wss.on('connection', onConnection);
   httpServer.on('upgrade', (req, socket, head) => {

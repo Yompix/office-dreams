@@ -4,6 +4,9 @@ extends Node
 ##   screens  — скриншоты всех экранов (--shots=папка)
 ##   java     — Paper(+Geyser) → relay → прокси друга; ждёт внешний клиент (файл ready/done)
 ##   bedrock  — Bedrock Dedicated Server → relay → прокси друга; то же
+##   proc     — запуск процессов в папке с пробелами/скобками/&, чтение вывода, принудительная остановка (Windows: cmd/taskkill)
+##   syscheck — экран «Проверка системы» (+скриншот)
+##   phone    — экраны в портретном телефоне (--shots, окно 412×892), нужен relay и social_seed.js
 ## Код выхода 0 — успех.
 
 var app
@@ -26,6 +29,9 @@ func run(a) -> void:
 		"core": code = await _core()
 		"screens": code = await _screens()
 		"social": code = await _social()
+		"proc": code = await _proc()
+		"syscheck": code = await _syscheck()
+		"phone": code = await _phone()
 		"java", "bedrock": code = await _host(Cfg.autotest)
 		_: _log("неизвестный режим")
 	_log("EXIT %d" % code)
@@ -35,6 +41,8 @@ func run(a) -> void:
 
 
 func _shot(name: String) -> void:
+	if Cfg.phone_preview():
+		_overflow(app._content, get_viewport().get_visible_rect().size.x, name)
 	if shots == "" or DisplayServer.get_name() == "headless":
 		return
 	await get_tree().create_timer(0.8).timeout
@@ -66,6 +74,10 @@ func _core() -> int:
 		[Invite.link("ABC234", "bedrock", "Мир", ""), {"kind": "room", "code": "ABC234", "edition": "bedrock", "name": "Мир"}],
 		["lantern://join?v=9&c=ABC234", {"ok": false}],
 		["play.example.com", {"kind": "address", "address": "play.example.com:25565"}],
+		["steve", {"kind": "room", "code": "STEVE"}],
+		["lantern://join?v=1&c=YOMP2X&e=java", {"kind": "room", "code": "YOMP2X", "edition": "java"}],
+		["ab", {"ok": false}],
+		["2345", {"ok": false}],
 		["minecraft://?addExternalServer=Мир|a.b.c:1234", {"kind": "address", "address": "a.b.c:1234", "edition": "bedrock"}],
 	]
 	for c in cases:
@@ -235,8 +247,8 @@ func _host(ed: String) -> int:
 		o["online_mode"] = false
 	if ed == "java":
 		o.merge({"version": Cfg.autotest_args.get("mc", "latest"), "online_mode": false, "crossplay": Cfg.autotest_args.get("crossplay", "1") == "1", "memory_mb": 1536})
-	app.go("host", true, {})
 	s.host(ed, o)
+	app.go("host", true, {})
 	if not await _wait(func(): return s.state == "running" or s.state == "error", 1500, "сервер запущен (Done)"):
 		return 1
 	if s.state == "error":
@@ -286,3 +298,207 @@ func _host(ed: String) -> int:
 	if s.state != "stopped":
 		return 1
 	return 0 if ok and result.get("ok", false) and bk != "" else 1
+
+
+# ------------------------------------------------------------------ процессы (ПК)
+func _proc() -> int:
+	var fails := 0
+	var cwd := Cfg.sub("LANTERN test (1) & more")
+	var p := ManagedProcess.new()
+	var lines: PackedStringArray = []
+	p.line.connect(func(t): lines.append(t))
+	var err := p.start("cmd" if Cfg.is_windows() else "/bin/pwd", PackedStringArray(["/c", "cd"]) if Cfg.is_windows() else PackedStringArray(), cwd)
+	if err != "":
+		_log("start FAIL " + err)
+		return 1
+	await _wait(func(): p.poll(); return not p.running, 20, "процесс вывел папку и завершился")
+	var joined := "\n".join(lines)
+	_log("вывод: " + joined + " код " + str(p.exit_code))
+	if not joined.contains("(1) & more"):
+		_log("FAIL: неверная папка запуска")
+		fails += 1
+	var q := ManagedProcess.new()
+	err = q.start("ping" if Cfg.is_windows() else "sleep", PackedStringArray(["-n", "120", "127.0.0.1"]) if Cfg.is_windows() else PackedStringArray(["120"]), cwd)
+	if err != "":
+		_log("start2 FAIL " + err)
+		return 1
+	await get_tree().create_timer(1.5).timeout
+	q.poll()
+	if not q.running:
+		_log("FAIL: долгий процесс сразу завершился")
+		fails += 1
+	q.kill()
+	if not await _wait(func(): q.poll(); return not q.running, 15, "принудительная остановка (kill/taskkill)"):
+		fails += 1
+	_log("FAILS=%d" % fails)
+	return 1 if fails else 0
+
+
+# ------------------------------------------------------------------ проверка системы
+func _syscheck() -> int:
+	app.go("syscheck", true)
+	await get_tree().create_timer(6.0).timeout
+	var scr = app._screen
+	for r in scr.results:
+		_log("%s [%s] %s — %s" % [r.key, r.ok, r.title, r.text.replace("\n", " ")])
+	await _shot("40_syscheck")
+	var bad := 0
+	for r in scr.results:
+		if r.ok == "bad" and r.key in ["data", "paper", "adoptium"]:
+			bad += 1
+	return 1 if bad else 0
+
+
+# ------------------------------------------------------------------ телефон (портрет 412×892): вход, друзья, чат, магазин, Pro, копии, ссылки
+func _phone() -> int:
+	var fails := 0
+	if not await _wait(func(): return Social.conn in ["need_register", "online"], 20, "связь с relay"):
+		return 1
+	if Social.conn == "need_register":
+		Overlays.register(app)
+		await get_tree().create_timer(0.6).timeout
+		await _shot("50_phone_register")
+		Social.register("Стив")
+		await _wait(func(): return Social.online(), 10, "профиль создан")
+	await _close_overlays()
+	var tag_file := data.path_join("autotest-tag.txt")
+	var f := FileAccess.open(tag_file, FileAccess.WRITE)
+	f.store_string(Social.me.tag)
+	f.close()
+	await _wait(func(): return Social.incoming.size() >= 3, 30, "заявки в друзья")
+	for u in Social.incoming.duplicate():
+		Social.request("friend_accept", {"id": u.id})
+	await _wait(func(): return Social.friends.size() >= 3, 10, "друзья приняты")
+	await _wait(func(): return FileAccess.file_exists(tag_file + ".ok"), 30, "боты готовы")
+	await get_tree().create_timer(1.0).timeout
+	app.go("home", true)
+	await _shot("51_phone_home")
+	# --- зайти по коду друга (бот хостит «Новоград», Java + Bedrock)
+	var code := ""
+	for fr in Social.friends:
+		var a: Variant = fr.get("activity")
+		if a is Dictionary and a.get("activity", "") == "hosting":
+			code = a.code
+	_log("код друга: " + code)
+	app.go("join", true, {"input": RoomCode.pretty(code), "edition": "both"})
+	if not await _wait(func(): return app.relay_join.stats().state == "online", 15, "вошли в комнату друга"):
+		fails += 1
+	await _wait(func(): return Social.room_code == app.relay_join.code, 5, "чат комнаты открыт")
+	Social.room_say("Всем привет! Я с телефона")
+	await get_tree().create_timer(1.2).timeout
+	await _shot("52_phone_join_room")
+	app.relay_join.stop()
+	# --- друзья и личный чат
+	app.go("friends", true)
+	await get_tree().create_timer(1.0).timeout
+	await _shot("53_phone_friends")
+	app.go("friends", true, {"chat": int(Social.friends[0].id)})
+	await get_tree().create_timer(1.2).timeout
+	Social.send_dm(int(Social.friends[0].id), "Уже иду! :)")
+	await get_tree().create_timer(0.8).timeout
+	await _shot("54_phone_chat")
+	# --- магазин, Pro, свой код
+	app.go("shop", true)
+	await get_tree().create_timer(1.0).timeout
+	await _shot("55_phone_shop")
+	Social.request("demo_purchase", {"product": "lantern_pro_month"})
+	await _wait(func(): return Social.eco.get("pro", false), 5, "Pro (ДЕМО) активна")
+	Social.request("vanity_set", {"code": "yompix"})
+	await get_tree().create_timer(0.5).timeout
+	Social.request("vanity_set", {"code": "ste-ve"})
+	if not await _wait(func(): return Social.eco.get("vanity", "") == "STEVE", 5, "свой код STEVE"):
+		fails += 1
+	app.go("shop", true, {"kind": "pro"})
+	await get_tree().create_timer(1.0).timeout
+	await _shot("56_phone_pro")
+	# --- копии миров: своя копия → облако → код → скачать по коду → восстановить
+	var bdir := Cfg.sub("backups")
+	var zp := bdir.path_join("java-Mir_Stiva-2026-11-09_12-00-00.zip")
+	var z := ZIPPacker.new()
+	z.open(zp)
+	for fn in ["Mir_Stiva/level.dat", "Mir_Stiva/region/r.0.0.mca", "Mir_Stiva_nether/level.dat"]:
+		z.start_file(fn)
+		z.write_file(("LANTERN test " + fn).to_utf8_buffer())
+		z.close_file()
+	z.close()
+	app.go("backups", true)
+	Social.request("cloud_list")
+	await _wait(func(): return Social.cloud.get("pro", false), 5, "облако: Pro видна")
+	var scr = app._screen
+	await scr.upload(zp)
+	if not scr.last_result.get("ok", false):
+		_log("FAIL облако: " + str(scr.last_result))
+		fails += 1
+	await _wait(func(): return Social.cloud.get("list", []).size() > 0, 5, "копия в списке облака")
+	Social.request("cloud_share", {"id": Social.cloud.list[0].id})
+	await _wait(func(): return String(Social.cloud.get("shared", "")) != "", 5, "код для друга")
+	var share: String = Social.cloud.get("shared", "")
+	_log("код копии: " + share)
+	await get_tree().create_timer(0.8).timeout
+	await _shot("57_phone_backups")
+	await scr.fetch_shared(RoomCode.pretty(share))
+	if not scr.last_result.get("ok", false):
+		_log("FAIL скачивание по коду: " + str(scr.last_result))
+		fails += 1
+	else:
+		var rr: Dictionary = await app.server.restore_backup(scr.last_result.path)
+		_log("восстановление: " + str(rr))
+		var wd := Cfg.server_sub("servers/java").path_join("Mir_Stiva/level.dat")
+		if not rr.get("ok", false) or not FileAccess.file_exists(wd):
+			fails += 1
+	# --- ссылки lantern://
+	Social.request("rooms")
+	await _wait(func(): return Social.rooms.size() >= 3, 5, "открытые миры")
+	var nyuta := ""
+	for r in Social.rooms:
+		if r.get("host") is Dictionary and String(r.host.nick) == "Нюта":
+			nyuta = r.host.tag
+	_log("ссылка: " + DeepLink.friend_link(nyuta))
+	app.open_deeplink(DeepLink.friend_link(nyuta))
+	if not await _wait(func(): return Social.outgoing.any(func(u): return u.tag == nyuta), 5, "заявка Нюте по ссылке lantern://friend"):
+		fails += 1
+	await get_tree().create_timer(0.6).timeout
+	await _shot("58_phone_friend_link")
+	var link := Invite.link(code, "both", "Новоград", "")
+	app.open_deeplink(link)
+	if not await _wait(func(): return app.relay_join.stats().state == "online" and app.relay_join.code == code, 15, "вход по ссылке lantern://join"):
+		fails += 1
+	app.relay_join.stop()
+	if DeepLink.parse("lantern://friend?tag=x").kind != "" or DeepLink.parse("lantern://evil?c=ABC234").kind != "":
+		_log("FAIL: неверные ссылки приняты")
+		fails += 1
+	# --- меню «Ещё» и поворот
+	app.go("home", true)
+	await get_tree().create_timer(0.5).timeout
+	app._nav["more"].pressed.emit()
+	await get_tree().create_timer(0.6).timeout
+	await _shot("59_phone_more")
+	for c in app.get_children():
+		if c is PopupMenu:
+			c.hide()
+	get_window().size = Vector2i(892, 412)
+	await get_tree().create_timer(1.0).timeout
+	app.go("join", true, {"edition": "both"})
+	await get_tree().create_timer(0.8).timeout
+	await _shot("60_phone_landscape_join")
+	_log("FAILS=%d" % fails)
+	return 1 if fails else 0
+
+
+
+## Телефонный вид: найти элементы, которые шире экрана (самые глубокие), и записать в журнал.
+func _overflow(n: Node, limit: float, where: String) -> bool:
+	if not (n is Control) or not (n as Control).is_visible_in_tree():
+		return false
+	var deeper := false
+	for c in n.get_children():
+		if _overflow(c, limit, where):
+			deeper = true
+	var w := (n as Control).get_combined_minimum_size().x
+	if w > limit and not deeper:
+		var t := ""
+		if n is Label or n is Button:
+			t = String(n.text).substr(0, 50)
+		_log("ШИРЕ ЭКРАНА [%s] %s %s (%d px) «%s»" % [where, n.get_class(), n.name, int(w), t])
+		return true
+	return w > limit or deeper

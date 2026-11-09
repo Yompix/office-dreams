@@ -7,19 +7,36 @@ const ALPHABET := "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
 const LENGTH := 6
 
 
+## Свой код LANTERN Pro: 3–8 символов, латиница и цифры 2–9 (без 0 и 1), хотя бы одна буква.
+const VANITY_ALPHABET := "23456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
 ## Привести ввод к виду кода или "" (если это не код).
 static func normalize(text: String) -> String:
 	var c := text.strip_edges().to_upper().replace("-", "").replace(" ", "")
-	if c.length() != LENGTH:
+	if is_random(c):
+		return c
+	if c.length() < 3 or c.length() > 8:
 		return ""
+	var letter := false
+	for ch in c:
+		if not VANITY_ALPHABET.contains(ch):
+			return ""
+		letter = letter or (ch >= "A" and ch <= "Z")
+	return c if letter else ""
+
+
+static func is_random(c: String) -> bool:
+	if c.length() != LENGTH:
+		return false
 	for ch in c:
 		if not ALPHABET.contains(ch):
-			return ""
-	return c
+			return false
+	return true
 
 
 static func pretty(code: String) -> String:
-	return code.substr(0, 3) + "-" + code.substr(3) if code.length() == LENGTH else code
+	return code.substr(0, 3) + "-" + code.substr(3) if is_random(code) else code
 
 
 ## Адрес host[:port] (для игры в одной сети без relay).

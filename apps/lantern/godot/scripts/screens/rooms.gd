@@ -1,4 +1,4 @@
-extends HBoxContainer
+extends BoxContainer
 ## Открытые миры (как в Multiplayer Master): фильтры, карточки, «Зайти». Справа — популярные миры недели.
 
 var app
@@ -15,6 +15,7 @@ var _tick := 0.0
 
 
 func _ready() -> void:
+	vertical = UI.compact()   # телефон: колонки друг под другом
 	add_theme_constant_override("separation", 20)
 	var left := UI.vbox(14)
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -38,7 +39,7 @@ func _ready() -> void:
 		r1.add_child(b)
 	r1.add_child(UI.spacer())
 	_q = UI.line_edit("", "Поиск по названию")
-	_q.custom_minimum_size = Vector2(260, 40)
+	_q.custom_minimum_size = Vector2(0 if UI.compact() else 260, 40)
 	_q.text_submitted.connect(func(_t): _load())
 	r1.add_child(_q)
 	fv.add_child(r1)

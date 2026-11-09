@@ -143,7 +143,9 @@ func _ready() -> void:
 	_btns["start"] = UI.button("▶  Запустить снова", "primary", func(): app.server.host(app.server.edition, app.server.opts))
 	_btns["folder"] = UI.button("Папка мира", "secondary", func(): OS.shell_open(ProjectSettings.globalize_path(app.server.world_path())))
 	_btns["backup"] = UI.button("Резервная копия", "secondary", _backup)
-	for k in ["stop", "restart", "start", "folder", "backup"]:
+	_btns["copies"] = UI.button("Копии миров", "ghost", func(): app.go("backups", true))
+	_btns["check"] = UI.button("Проверка системы", "secondary", func(): app.go("syscheck", true))
+	for k in ["stop", "restart", "start", "folder", "backup", "copies", "check"]:
 		_btns[k].size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		br.add_child(_btns[k])
 
@@ -198,6 +200,7 @@ func _on_state(st: String) -> void:
 	_btns.restart.visible = st == "running"
 	_btns.start.visible = st in ["stopped", "error"]
 	_btns.backup.disabled = busy
+	_btns.check.visible = st == "error"
 	if st == "error":
 		_status.text = "Что-то пошло не так: " + app.server.last_error
 		_status.add_theme_color_override("font_color", Color("ffb3ba"))
@@ -318,5 +321,4 @@ func _backup() -> void:
 	if p == "":
 		app.toast("Не получилось: " + app.server.last_error, UI.RED)
 	else:
-		app.toast("Копия сохранена: " + p.get_file())
-		OS.shell_open(ProjectSettings.globalize_path(p.get_base_dir()))
+		app.toast("Копия сохранена: %s — она в «Копиях миров»" % p.get_file())

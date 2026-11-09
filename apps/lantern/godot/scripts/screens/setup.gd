@@ -18,6 +18,9 @@ var _internet: CheckButton
 var _mem: HSlider
 var _mem_lbl: Label
 var _eula: CheckBox
+var _public: CheckButton
+var _ptitle: LineEdit
+var _ptags := {}
 var _start: Button
 var _sum: Label
 
@@ -127,6 +130,29 @@ func _ready() -> void:
 	_internet.toggled.connect(func(_b): _update())
 	v3.add_child(_internet)
 	v3.add_child(UI.para("Друзья вводят короткий код — и мир появляется у них в игре. Без VPN, Radmin и настройки роутера. Друзья в той же Wi-Fi сети увидят мир и без кода.", 14, UI.DIM))
+	v3.add_child(UI.gap(4))
+	_public = CheckButton.new()
+	_public.text = "Открытый мир (виден всем в «Комнатах»)"
+	_public.button_pressed = saved.get("public", false)
+	_public.add_theme_font_override("font", UI.font_bold)
+	v3.add_child(_public)
+	var pub_box := UI.vbox(8)
+	_ptitle = UI.line_edit(saved.get("public_title", ""), "Название для списка, например «Выживание с нуля»")
+	_ptitle.max_length = 40
+	pub_box.add_child(_ptitle)
+	var tg := HFlowContainer.new()
+	tg.add_theme_constant_override("h_separation", 6)
+	for t in ["выживание", "творчество", "pvp", "мини-игры", "новоград", "приключения"]:
+		var cb := CheckBox.new()
+		cb.text = "#" + t
+		cb.button_pressed = t in saved.get("tags", [])
+		_ptags[t] = cb
+		tg.add_child(cb)
+	pub_box.add_child(tg)
+	pub_box.add_child(UI.para("Без открытого мира зайти можно только по коду. Не пишите в названии личные данные.", 13, UI.DIM))
+	pub_box.visible = _public.button_pressed
+	_public.toggled.connect(func(b): pub_box.visible = b)
+	v3.add_child(pub_box)
 	form.add_child(p3)
 
 	# ---------------- правая колонка
@@ -231,6 +257,9 @@ func _opts() -> Dictionary:
 		"max_players": int(_players.value),
 		"internet": _internet.button_pressed,
 		"eula": _eula.button_pressed,
+		"public": _public.button_pressed and _internet.button_pressed,
+		"public_title": _ptitle.text.strip_edges(),
+		"tags": _ptags.keys().filter(func(k): return _ptags[k].button_pressed),
 	}
 	if edition == "java":
 		o["version"] = "latest" if _version.selected <= 0 else _versions[_version.selected - 1]

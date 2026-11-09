@@ -14,12 +14,19 @@ func _ready() -> void:
 	var head := UI.hbox(12)
 	head.add_child(UI.h1("Задания"))
 	head.add_child(UI.spacer())
+	var tabs: Container = head
+	if UI.compact():
+		add_child(head)
+		tabs = UI.hbox(6)
 	for it in [["quests", "Задания и серия"], ["season", "Сезон"], ["achievements", "Достижения"]]:
 		var b := UI.button(it[1], "secondary", func(): _tab = it[0]; _render())
-		b.custom_minimum_size = Vector2(150, 40)
+		b.custom_minimum_size = Vector2(0 if UI.compact() else 150, 40)
+		if UI.compact():
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			b.add_theme_font_size_override("font_size", 13)
 		_tabs[it[0]] = b
-		head.add_child(b)
-	add_child(head)
+		tabs.add_child(b)
+	add_child(tabs)
 	if Social.demo:
 		add_child(_demo_banner())
 	_body = UI.vbox(0)
@@ -39,6 +46,8 @@ static func _demo_banner() -> Control:
 	p.add_theme_stylebox_override("panel", UI.box(Color(UI.RED, 0.14), 10, 8, Color(UI.RED, 0.5), 1))
 	var l := UI.label("ДЕМО: деньги не списываются, реклама тестовая. Выключить — Настройки → «Тест покупок и рекламы».", 13, Color("ffb3ba"), UI.font_bold)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size.x = 120
 	p.add_child(l)
 	return p
 
