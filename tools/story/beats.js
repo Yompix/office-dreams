@@ -13,7 +13,7 @@ const fs = require('fs'), path = require('path');
   const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
   const p = await b.newPage({ viewport: land ? { width: 960, height: 540 } : { width: 432, height: 768 } }); const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 200)));
   await p.addInitScript(l => { localStorage.setItem('ns1_land3', l ? 'true' : 'false'); localStorage.setItem('ns1_tutDone', '1'); localStorage.setItem('ns1_qa', 'false'); }, land);
-  await p.goto(`http://127.0.0.1:${port}/nightshift/index.html?gfx=${gfx}&lang=${lang}${rs ? '&rs=' + rs : ''}`);
+  await p.goto(`http://127.0.0.1:${port}/nightshift/index.html?gfx=${gfx}&lang=${lang}${rs ? "&rs=" + rs : ""}${process.env.QS ? "&" + process.env.QS : ""}`);
   await p.waitForFunction(() => window.__ns && window.__ns.mode === 'menu', null, { timeout: 300000 });
   const flags = JSON.parse(fl || '{}');
   for (const part of spec.split(';').filter(Boolean)) {
