@@ -193,7 +193,7 @@ public final class Disguise {
             boolean own = owns(d, mk.id());
             if (on.equals(mk.id())) m.button("off", "Снять: " + mk.name(), 0xFF8E8E93, true);
             else if (own) m.button("wear:" + mk.id(), "Надеть: " + mk.name(), 0xFF2FA84F, true);
-            else m.button("buy:" + mk.id(), mk.name() + " — $" + mk.price(), 0xFFFF2E88, d.money + d.dirty >= mk.price());
+            else m.button("buy:" + mk.id(), mk.name() + " — $" + mk.price(), 0xFFD42A3A, d.money + d.dirty >= mk.price());
         }
         m.button("outfit", "Сменный комплект одежды — $" + OUTFIT_PRICE, 0xFF28E6FF, d.money + d.dirty >= OUTFIT_PRICE);
         m.open(p);
