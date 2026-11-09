@@ -1781,86 +1781,6 @@
       }
     ]
   },
-  "voice.radio_neon88": {
-    "sounds": [
-      {
-        "name": "novograd:voice/radio_neon88",
-        "stream": true
-      }
-    ]
-  },
-  "voice.radio_beat_ulic": {
-    "sounds": [
-      {
-        "name": "novograd:voice/radio_beat_ulic",
-        "stream": true
-      }
-    ]
-  },
-  "voice.radio_nochnoy_port": {
-    "sounds": [
-      {
-        "name": "novograd:voice/radio_nochnoy_port",
-        "stream": true
-      }
-    ]
-  },
-  "voice.radio_trassa128": {
-    "sounds": [
-      {
-        "name": "novograd:voice/radio_trassa128",
-        "stream": true
-      }
-    ]
-  },
-  "voice.radio_rock_volna": {
-    "sounds": [
-      {
-        "name": "novograd:voice/radio_rock_volna",
-        "stream": true
-      }
-    ]
-  },
-  "voice.radio_jazz_polnoch": {
-    "sounds": [
-      {
-        "name": "novograd:voice/radio_jazz_polnoch",
-        "stream": true
-      }
-    ]
-  },
-  "voice.radio_palma_fm": {
-    "sounds": [
-      {
-        "name": "novograd:voice/radio_palma_fm",
-        "stream": true
-      }
-    ]
-  },
-  "voice.radio_klassika": {
-    "sounds": [
-      {
-        "name": "novograd:voice/radio_klassika",
-        "stream": true
-      }
-    ]
-  },
-  "voice.radio_country_road": {
-    "sounds": [
-      {
-        "name": "novograd:voice/radio_country_road",
-        "stream": true
-      }
-    ]
-  },
-  "voice.radio_tekhno_podval": {
-    "sounds": [
-      {
-        "name": "novograd:voice/radio_tekhno_podval",
-        "stream": true
-      }
-    ]
-  },
   "voice.yompix": {
     "sounds": [
       {
@@ -3948,6 +3868,86 @@
     "sounds": [
       {
         "name": "novograd:voice/call_diaz_shift_02",
+        "stream": true
+      }
+    ]
+  },
+  "radio.neon88_3": {
+    "sounds": [
+      {
+        "name": "novograd:radio/neon88_3",
+        "stream": true
+      }
+    ]
+  },
+  "radio.beat_ulic_3": {
+    "sounds": [
+      {
+        "name": "novograd:radio/beat_ulic_3",
+        "stream": true
+      }
+    ]
+  },
+  "radio.nochnoy_port_3": {
+    "sounds": [
+      {
+        "name": "novograd:radio/nochnoy_port_3",
+        "stream": true
+      }
+    ]
+  },
+  "radio.trassa128_3": {
+    "sounds": [
+      {
+        "name": "novograd:radio/trassa128_3",
+        "stream": true
+      }
+    ]
+  },
+  "radio.rock_volna_3": {
+    "sounds": [
+      {
+        "name": "novograd:radio/rock_volna_3",
+        "stream": true
+      }
+    ]
+  },
+  "radio.jazz_polnoch_3": {
+    "sounds": [
+      {
+        "name": "novograd:radio/jazz_polnoch_3",
+        "stream": true
+      }
+    ]
+  },
+  "radio.palma_fm_3": {
+    "sounds": [
+      {
+        "name": "novograd:radio/palma_fm_3",
+        "stream": true
+      }
+    ]
+  },
+  "radio.klassika_3": {
+    "sounds": [
+      {
+        "name": "novograd:radio/klassika_3",
+        "stream": true
+      }
+    ]
+  },
+  "radio.country_road_3": {
+    "sounds": [
+      {
+        "name": "novograd:radio/country_road_3",
+        "stream": true
+      }
+    ]
+  },
+  "radio.tekhno_podval_3": {
+    "sounds": [
+      {
+        "name": "novograd:radio/tekhno_podval_3",
         "stream": true
       }
     ]

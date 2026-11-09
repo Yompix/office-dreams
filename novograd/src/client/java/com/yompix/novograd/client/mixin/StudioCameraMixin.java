@@ -14,6 +14,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /** Киностудия и кат-сцены: наклон камеры (голландский угол) и зум. */
 @Mixin(GameRenderer.class)
 public class StudioCameraMixin {
+    /** Кат-сцена: поставить камеру до отрисовки мира этого кадра (плавно, без отставания на кадр). */
+    @Inject(method = "renderWorld", at = @At("HEAD"))
+    private void novograd$cutsceneCamera(net.minecraft.client.render.RenderTickCounter counter, CallbackInfo ci) {
+        com.yompix.novograd.client.story.CutsceneScreen.preFrame(counter.getTickDelta(true));
+    }
+
     @Inject(method = "tiltViewWhenHurt", at = @At("TAIL"))
     private void novograd$roll(MatrixStack m, float delta, CallbackInfo ci) {
         float r = CineCam.roll(delta);

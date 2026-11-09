@@ -461,6 +461,47 @@ public final class DevAutotest {
             run(20, MinecraftClient::scheduleStop);
             return;
         }
+        if (mode.equals("nogrief")) {
+            // город — не стройка: копать/ставить в выживании нельзя; фразы девушек и парней
+            YompixSplash.markShown();
+            pre(60, c -> c.createIntegratedServerLoader().start("Fresh2", () -> c.setScreen(new com.yompix.novograd.client.menu.LifeMenuScreen())));
+            cmd(80, "gamemode survival " + P);
+            cmd(5, "give " + P + " minecraft:dirt 16");
+            run(20, c -> {
+                var hit = c.crosshairTarget;
+                c.player.setPitch(80);
+            });
+            run(5, c -> {
+                if (c.crosshairTarget instanceof net.minecraft.util.hit.BlockHitResult bh) {
+                    var pos = bh.getBlockPos();
+                    var before = c.world.getBlockState(pos).getBlock();
+                    for (int i = 0; i < 40; i++) c.interactionManager.updateBlockBreakingProgress(pos, bh.getSide());
+                    com.yompix.novograd.Novograd.LOG.info("[nogrief] copать {} -> client {} flag={}", before, c.world.getBlockState(pos).getBlock(), NovogradClient.noGrief);
+                    c.player.getInventory().selectedSlot = 0;
+                    c.interactionManager.interactBlock(c.player, net.minecraft.util.Hand.MAIN_HAND, bh);
+                }
+            });
+            server(40, s -> {
+                var p = s.getPlayerManager().getPlayer(P);
+                var pos = p.getBlockPos().down();
+                com.yompix.novograd.Novograd.LOG.info("[nogrief] сервер: под ногами {} над {} dirt в руке {}", p.getServerWorld().getBlockState(pos).getBlock(), p.getServerWorld().getBlockState(pos.up()).getBlock(), p.getMainHandStack().getCount());
+                // фразы жителей: ближайшие девушка и парень
+                var w = p.getServerWorld();
+                var list = w.getEntitiesByClass(com.yompix.novograd.entity.CitizenEntity.class, p.getBoundingBox().expand(64), e -> e.getRole() == com.yompix.novograd.entity.CitizenEntity.Role.CITIZEN && e.getStoryId().isEmpty() && !e.isKid());
+                int f = 0, m = 0;
+                for (var e : list) {
+                    boolean fem = com.yompix.novograd.entity.CitizenEntity.isSlim(e.getSkin());
+                    if ((fem && f < 4) || (!fem && m < 4)) {
+                        for (int i = 0; i < 2; i++) com.yompix.novograd.life.LifeActions.talk(e, p);
+                        if (fem) f++; else m++;
+                    }
+                }
+                com.yompix.novograd.Novograd.LOG.info("[nogrief] поговорили: девушек {} парней {}", f, m);
+            });
+            shot(20, "nogrief");
+            run(20, MinecraftClient::scheduleStop);
+            return;
+        }
         if (mode.equals("first")) {
             // как новый игрок: новый мир «Новоград: Город», выживание, сюжет с начала — где Джейк, идёт ли первая миссия
             YompixSplash.markShown();

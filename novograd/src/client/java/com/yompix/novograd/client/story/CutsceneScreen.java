@@ -28,6 +28,15 @@ public class CutsceneScreen extends LifeScreen {
     private double camX = Double.NaN, camY, camZ;
     private float camYaw, camPitch;
     private long lastFrame;
+    private int lastShot = -1;
+    /** Открытая кат-сцена: камера ставится до отрисовки мира (StudioCameraMixin), а не после — без отставания и дрожи. */
+    @org.jetbrains.annotations.Nullable public static CutsceneScreen current;
+
+    /** Каждый кадр, до отрисовки мира. */
+    public static void preFrame(float delta) {
+        CutsceneScreen c = current;
+        if (c != null && c.cam != null && c.mc().currentScreen == c) c.place(Math.min(c.elapsed(), c.total), delta);
+    }
 
     private record Sub(String who, String name, int color, String text, String voice) {}
 
@@ -86,6 +95,7 @@ public class CutsceneScreen extends LifeScreen {
             hudWas = mc().options.hudHidden;
             mc().options.hudHidden = true;
             place(0, 0);
+            current = this;
             mc().setCameraEntity(cam);
         }
     }
@@ -96,15 +106,31 @@ public class CutsceneScreen extends LifeScreen {
         return id == null || mc().world == null ? null : mc().world.getEntityById(id);
     }
 
+    /** Кто говорит текущую реплику: актёр сцены или герой рядом с тем же именем. */
+    @org.jetbrains.annotations.Nullable
+    private net.minecraft.entity.Entity speaker() {
+        if (subIndex < 0 || subIndex >= subs.size() || mc().world == null || cam == null) return null;
+        Sub sub = subs.get(subIndex);
+        var e = actor(sub.who());
+        if (e != null) return e;
+        if (sub.name().isEmpty()) return null;
+        for (var en : mc().world.getEntitiesByClass(net.minecraft.entity.LivingEntity.class, cam.getBoundingBox().expand(48),
+                x -> x.hasCustomName() && x.getCustomName().getString().startsWith(sub.name()))) return en;
+        return null;
+    }
+
     private void place(float time, float delta) {
         float t = time;
         for (Shot s : shots) {
             if (t <= s.sec() || s == shots.get(shots.size() - 1)) {
                 float k = MathHelper.clamp(t / s.sec(), 0, 1);
-                k = k * k * (3 - 2 * k); // плавный старт и остановка
+                k = k * k * k * (k * (k * 6 - 15) + 10); // плавный разгон и торможение, как у операторского крана
                 double[] f = s.from(), to = s.to() != null ? s.to() : s.from();
                 var fol = actor(s.follow());
                 var trk = actor(s.track());
+                // как в кино: на крупном плане камера «переводит взгляд» на того, кто сейчас говорит
+                var sp = speaker();
+                if (trk != null && sp != null && sp != trk && sp.squaredDistanceTo(trk) < 20 * 20) trk = sp;
                 double x, y, z;
                 float yaw, pitch;
                 if (fol != null) {
@@ -160,10 +186,13 @@ public class CutsceneScreen extends LifeScreen {
                 y = clearY(x, y, z);
                 // сглаживание: камера-оператор не дёргается, а «ведёт» героя
                 long now = System.nanoTime();
-                float dt = lastFrame == 0 ? 1 : Math.min(1, (now - lastFrame) / 1e9f * (fol != null ? 6f : trk != null ? 10f : 60f));
+                float dt = lastFrame == 0 ? 1 : Math.min(1, (now - lastFrame) / 1e9f * (fol != null ? 6f : trk != null ? 9f : 14f));
                 lastFrame = now;
-                boolean cut = Double.isNaN(camX) || Math.abs(camX - x) + Math.abs(camZ - z) > 30;
-                if (cut || (fol == null && trk == null)) {
+                int shotIdx = shots.indexOf(s);
+                // склейка — новый план: камера сразу на месте; внутри плана — без рывков (обход стены, подъём над препятствием)
+                boolean cut = Double.isNaN(camX) || shotIdx != lastShot || Math.abs(camX - x) + Math.abs(camZ - z) > 30;
+                lastShot = shotIdx;
+                if (cut) {
                     camX = x; camY = y; camZ = z; camYaw = yaw; camPitch = pitch;
                 } else {
                     camX += (x - camX) * dt;
@@ -299,7 +328,7 @@ public class CutsceneScreen extends LifeScreen {
         black += ((waitTicks > 10 ? 1 : 0) - black) * 0.12f;
         float time = elapsed();
         com.yompix.novograd.client.studio.CineCam.filter(mc(), grade);
-        place(Math.min(time, total), 0);
+        // камера — в preFrame каждый кадр
         // субтитры идут по очереди: следующая — когда голос закончился
         if (subIndex < 0 || (!Voice.playing() && System.currentTimeMillis() - subAt > 1200)) {
             if (subIndex + 1 < subs.size()) {
@@ -388,8 +417,12 @@ public class CutsceneScreen extends LifeScreen {
 
     @Override
     protected void draw(DrawContext ctx, float delta) {
-        if (cam != null) place(Math.min(elapsed(), total), delta);
-        int bar = (int) (height * 0.12f);
+        current = this;
+        // кинополосы въезжают плавно в начале сцены и уезжают в конце
+        float e = elapsed(), in = MathHelper.clamp(e / 0.7f, 0, 1), out = MathHelper.clamp((total - e) / 0.6f, 0, 1);
+        float kb = Math.min(in, out);
+        kb = kb * kb * (3 - 2 * kb);
+        int bar = (int) (height * 0.12f * kb);
         ctx.fill(0, 0, width, bar, 0xFF000000);
         ctx.fill(0, height - bar, width, height, 0xFF000000);
         for (int i = 0; i < 10; i++) { // виньетка

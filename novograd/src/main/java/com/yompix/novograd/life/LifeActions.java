@@ -80,7 +80,8 @@ public final class LifeActions {
      * уместные сейчас (дождь, вечер, ребёнку или взрослому), без повторов своих и чужих недавних фраз.
      */
     private static Phrase pick(CitizenEntity c, ServerPlayerEntity p, String group) {
-        var list = ambient().getOrDefault(group, java.util.List.of());
+        var list = ambient().getOrDefault(group, ambient().getOrDefault(group.replaceAll("_[mf]$", ""), java.util.List.of()));
+        boolean wanted = com.yompix.novograd.gta.Wanted.stars(p) > 0;
         var w = p.getServerWorld();
         long t = w.getTimeOfDay() % 24000;
         int hour = (int) ((t / 1000 + 6) % 24);
@@ -96,12 +97,14 @@ public final class LifeActions {
             var tg = ph.tags();
             if (tg.contains("to_kid") && !kid) return false;
             if (tg.contains("to_adult") && kid) return false;
+            if (tg.contains("wanted")) return wanted;
             if (tg.contains("rain")) return w.isRaining();
             boolean timed = tg.contains("morning") || tg.contains("day") || tg.contains("evening") || tg.contains("night");
             return !timed || tg.contains(time);
         };
         java.util.List<Phrase> pool;
-        if (!met) pool = list.stream().filter(ph -> ph.tags().contains("greet") && fits.test(ph)).toList();
+        if (wanted && p.getRandom().nextInt(2) == 0) pool = list.stream().filter(ph -> ph.tags().contains("wanted")).toList();
+        else if (!met) pool = list.stream().filter(ph -> ph.tags().contains("greet") && fits.test(ph)).toList();
         else if (said.size() >= 3 && p.getRandom().nextInt(3) == 0) pool = list.stream().filter(ph -> ph.tags().contains("again")).toList();
         else {
             pool = list.stream().filter(ph -> !ph.tags().contains("greet") && !ph.tags().contains("again") && fits.test(ph)
@@ -109,6 +112,7 @@ public final class LifeActions {
             if (pool.isEmpty()) pool = list.stream().filter(ph -> !ph.tags().contains("greet") && !ph.tags().contains("again") && fits.test(ph) && !said.contains(ph.key())).toList();
             if (pool.isEmpty()) pool = list.stream().filter(ph -> ph.tags().contains("again")).toList();
         }
+        if (pool.isEmpty()) pool = list.stream().filter(ph -> !ph.tags().contains("wanted") || wanted).toList();
         if (pool.isEmpty()) pool = list;
         Phrase ph = pool.get(p.getRandom().nextInt(pool.size()));
         said.addLast(ph.key());
@@ -142,8 +146,8 @@ public final class LifeActions {
                 }
                 // голос прохожего: детский, взрослый или пожилой; пол и тембр — свои у каждого жителя
                 String group = c.getScale() < 0.85f ? "kid" : (c.getSkin() == 7 || c.getSkin() == 13) ? "old" : "adult";
-                Phrase ph = pick(c, p, group);
                 String sex = CitizenEntity.isSlim(c.getSkin()) ? "f" : "m";
+                Phrase ph = pick(c, p, group + "_" + sex); // девушки говорят от своего лица: «устала», «забыла»
                 int v = 1 + (c.getUuid().hashCode() & 1);
                 net.minecraft.nbt.NbtCompound vn = new net.minecraft.nbt.NbtCompound();
                 vn.putString("voice", ""); // прохожие говорят только текстом (озвучены лишь сюжетные герои)

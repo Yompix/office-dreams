@@ -37,6 +37,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NovogradClient implements ClientModInitializer {
+    /** Сервер сказал: город — не стройка (выживание): копать не начинаем, блоки не «моргают». */
+    public static volatile boolean noGrief;
+
     private static net.minecraft.client.sound.SoundInstance ambientVoice;
     private static double lastCamX = Double.NaN;
 
@@ -70,6 +73,10 @@ public class NovogradClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        // город — не стройка: в выживании даже не начинаем копать (сервер всё равно не даст)
+        net.fabricmc.fabric.api.event.player.AttackBlockCallback.EVENT.register((player, world, hand, pos, dir) ->
+                world.isClient && noGrief && !player.isCreative() && !player.isSpectator() ? net.minecraft.util.ActionResult.FAIL : net.minecraft.util.ActionResult.PASS);
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((h, c) -> noGrief = false);
         EntityModelLayerRegistry.registerModelLayer(CarRenderer.LAYER, CarRenderer::modelData);
         EntityRendererRegistry.register(ModContent.CAR, CarRenderer::new);
         EntityModelLayerRegistry.registerModelLayer(com.yompix.novograd.client.render.BallRenderer.LAYER, com.yompix.novograd.client.render.BallRenderer::modelData);
@@ -205,6 +212,7 @@ public class NovogradClient implements ClientModInitializer {
             }
             case "act_timer" -> Minimap.actTimer = n.getInt("sec");
             case "news" -> NewsHud.push(n);
+            case "nogrief" -> noGrief = n.getBoolean("on");
             case "taxi_fade" -> TaxiClient.fade();
             case "news_feed" -> com.yompix.novograd.client.screen.NewsScreen.feed = n;
             case "eco_state" -> com.yompix.novograd.client.screen.FinanceScreen.state = n;

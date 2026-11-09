@@ -33,28 +33,28 @@ public final class CarRadio {
     };
     /** Названия треков по станциям (порядок как в STATIONS). Музыка: Kevin MacLeod (incompetech.com), лицензия CC BY 4.0. */
     private static final String[][] TITLES = {
-            {"Newer Wave", "Aerosol of my Love", "Laser Groove"},
-            {"District Four", "Basic Implosion", "Pyro Flow"},
-            {"Late Night Radio", "Chill Wave", "Backbay Lounge"},
-            {"Voltaic", "Cyborg Ninja", "Rhinoceros"},
-            {"Exhilarate", "RetroFuture Dirty", "Organic Grunge"},
-            {"Night in Venice", "Spy Glass", "In Your Arms"},
-            {"Montego", "Maccary Bay", "Paradise Found"},
-            {"Morning", "Facile", "Clear Air"},
-            {"Bama Country", "Guts and Bourbon", "Hillbilly Swing"},
-            {"Raving Energy (faster)", "Brain Dance", "Cloud Dancer"}
+            {"Newer Wave", "Aerosol of my Love", "Laser Groove", "Mega Hyper Ultrastorm"},
+            {"District Four", "Basic Implosion", "Pyro Flow", "Chillin Hard"},
+            {"Late Night Radio", "Chill Wave", "Backbay Lounge", "ZigZag"},
+            {"Voltaic", "Cyborg Ninja", "Rhinoceros", "Rising Tide (faster)"},
+            {"Exhilarate", "RetroFuture Dirty", "Organic Grunge", "Motherlode"},
+            {"Night in Venice", "Spy Glass", "In Your Arms", "George Street Shuffle"},
+            {"Montego", "Maccary Bay", "Paradise Found", "Yallahs"},
+            {"Morning", "Facile", "Clear Air", "Evening"},
+            {"Bama Country", "Guts and Bourbon", "Hillbilly Swing", "Fireflies and Stardust"},
+            {"Raving Energy (faster)", "Brain Dance", "Cloud Dancer", "Flying Kerfuffle"}
     };
     private static String nowTitle = "";
 
     /** Треков на станции (radio.<станция>_0..2) — играют по очереди без повтора подряд. */
-    private static final int TRACKS = 3;
+    private static final int TRACKS = 4;
     private static final int[] lastTrack = new int[16];
 
     private static final class Track extends AbstractSoundInstance implements TickableSoundInstance {
         boolean done;
 
         Track(String event) {
-            super(Novograd.id(event), SoundCategory.RECORDS, Random.create());
+            super(Novograd.id(event), SoundCategory.MASTER, Random.create());
             repeat = false;
             relative = true;
             attenuationType = SoundInstance.AttenuationType.NONE;
@@ -100,19 +100,13 @@ public final class CarRadio {
                 lastTrack[want] = tr;
                 playing = new Track(STATIONS[want][1] + "_" + tr);
                 nowTitle = want < TITLES.length ? "♪ Kevin MacLeod — " + TITLES[want][tr] : "";
-                if (ended && mc.world != null && mc.world.random.nextInt(3) == 0) { // иногда ведущий между песнями
-                    String id = "voice.radio_" + STATIONS[want][1].substring("radio.".length());
-                    mc.getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.master(
-                            net.minecraft.sound.SoundEvent.of(Novograd.id(id)), 1f, Math.min(1f, NovogradConfig.get().radioVolume + 0.3f)));
-                }
                 mc.getSoundManager().play(playing);
                 if (mc.player != null && ended) show(STATIONS[want][0]); // новая песня — название станции и трека
                 if (mc.player != null && (playingStation == -2 || playingStation != want)) {
                     show(STATIONS[want][0]);
-                    // голос ведущего: «Неон 88 FM…»
-                    String id = "voice.radio_" + STATIONS[want][1].substring("radio.".length());
-                    mc.getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.master(
-                            net.minecraft.sound.SoundEvent.of(Novograd.id(id)), 1f, Math.min(1f, NovogradConfig.get().radioVolume + 0.3f)));
+                    // переключение станции — короткий треск эфира, без голоса ведущего
+                    if (playingStation >= 0) mc.getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.master(
+                            net.minecraft.sound.SoundEvent.of(Novograd.id("radio_static")), 1.4f, Math.min(1f, NovogradConfig.get().radioVolume * 0.5f)));
                 }
             }
             playingStation = want;

@@ -71,14 +71,20 @@ public class SettingsScreen extends Screen {
         var o = mc.options;
         switch (tab) {
             case 0 -> {
-                rows.add(new Row("Радио в машине", "Громкость радиостанций, когда ты за рулём.", () -> pct(cfg().radioVolume),
+                rows.add(new Row("Громкость радио", "Радио в машине, в наушниках (телефон → «Радио») и в главном меню.", () -> pct(cfg().radioVolume),
                         () -> cfg().radioVolume, v -> cfg().radioVolume = v, null, null));
                 rows.add(new Row("Голоса героев", "Озвучка разговоров и кат-сцен.", () -> pct(cfg().voiceVolume),
                         () -> cfg().voiceVolume, v -> cfg().voiceVolume = v, null, null));
                 rows.add(new Row("Общая громкость", "Громкость всей игры (настройка Minecraft).", () -> pct(o.getSoundVolumeOption(SoundCategory.MASTER).getValue()),
                         () -> o.getSoundVolumeOption(SoundCategory.MASTER).getValue().floatValue(), v -> o.getSoundVolumeOption(SoundCategory.MASTER).setValue((double) v), null, null));
-                rows.add(new Row("Музыка", "Фоновая музыка Minecraft.", () -> pct(o.getSoundVolumeOption(SoundCategory.MUSIC).getValue()),
-                        () -> o.getSoundVolumeOption(SoundCategory.MUSIC).getValue().floatValue(), v -> o.getSoundVolumeOption(SoundCategory.MUSIC).setValue((double) v), null, null));
+                // музыки Minecraft в Новограде нет (вместо неё радио) — вместо её ползунка выбор станции
+                rows.add(new Row("Радиостанция", "Что играет в машине и в наушниках. Колесо мыши в машине тоже листает станции.", () -> {
+                            int s = cfg().radioStation;
+                            return s < 0 || s >= com.yompix.novograd.client.CarRadio.STATIONS.length ? "ВЫКЛ" : com.yompix.novograd.client.CarRadio.STATIONS[s][0];
+                        }, null, null, d -> {
+                            int n = com.yompix.novograd.client.CarRadio.STATIONS.length;
+                            cfg().radioStation = Math.floorMod(cfg().radioStation + 1 + d, n + 1) - 1; // -1 = выкл
+                        }, null));
                 rows.add(new Row("Все звуки Minecraft", "Погода, существа, блоки и остальное.", () -> "›", null, null, null,
                         () -> mc.setScreen(new SoundOptionsScreen(this, o))));
             }
