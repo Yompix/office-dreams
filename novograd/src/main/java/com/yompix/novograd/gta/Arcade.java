@@ -104,7 +104,7 @@ public final class Arcade {
                 int prize = Math.min(250, score / 10);
                 if (prize > 0) Life.earn(p, prize, "рекорд автомата: " + score);
                 FunUtil.title(p, "НОВЫЙ РЕКОРД!", score + " очков" + (prize > 0 ? " · автомат выплюнул $" + prize : ""));
-            } else FunUtil.hint(p, score + " очков (рекорд " + best + ")", Formatting.LIGHT_PURPLE);
+            } else FunUtil.hint(p, score + " очков (рекорд " + best + ")", Formatting.GOLD);
             Life.sync(p);
             return;
         }

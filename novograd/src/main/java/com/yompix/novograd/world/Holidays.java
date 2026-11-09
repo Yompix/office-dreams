@@ -617,7 +617,7 @@ public final class Holidays {
             if (d.flags.add(key)) {
                 d.mood = Math.min(100, d.mood + 15);
                 Life.earn(p, 300, "День города: премия от мэрии");
-            } else p.sendMessage(Text.literal("С праздником, Новоград!").formatted(Formatting.LIGHT_PURPLE), true);
+            } else p.sendMessage(Text.literal("С праздником, Новоград!").formatted(Formatting.GOLD), true);
         });
     }
 

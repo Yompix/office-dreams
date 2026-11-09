@@ -121,7 +121,7 @@ public final class Calls {
         state(p.getServer()).markDirty();
         if (after > before)
             p.sendMessage(Text.literal("♥ " + name(who) + ": дружба " + after + "/" + MAX_FRIEND + (before < PERK_LEVEL && after >= PERK_LEVEL && perkText(who) != null
-                    ? " — открыт бонус: " + perkText(who) : "")).formatted(Formatting.LIGHT_PURPLE), false);
+                    ? " — открыт бонус: " + perkText(who) : "")).formatted(Formatting.GOLD), false);
     }
 
     // ---------------------------------------------------------------- сценарии

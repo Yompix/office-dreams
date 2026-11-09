@@ -387,13 +387,13 @@ public final class Collectibles {
         int[] st = SPRAY.get(p.getUuid());
         if (st == null || st[0] != near) SPRAY.put(p.getUuid(), st = new int[]{near, 0});
         if (!p.isSneaking() || !facing || p.hasVehicle()) {
-            if (st[1] == 0) p.sendMessage(Text.literal("Тег банды на стене — держи Shift, глядя на стену, чтобы закрасить своим").formatted(Formatting.LIGHT_PURPLE), true);
+            if (st[1] == 0) p.sendMessage(Text.literal("Тег банды на стене — держи Shift, глядя на стену, чтобы закрасить своим").formatted(Formatting.GOLD), true);
             return;
         }
         st[1] += 5;
         float k = Math.min(1, st[1] / (float) SPRAY_TICKS);
         int bars = (int) (k * 10);
-        p.sendMessage(Text.literal("Граффити  " + "▮".repeat(bars) + "▯".repeat(10 - bars)).formatted(Formatting.LIGHT_PURPLE), true);
+        p.sendMessage(Text.literal("Граффити  " + "▮".repeat(bars) + "▯".repeat(10 - bars)).formatted(Formatting.GOLD), true);
         int[] cols = {0xFF2E88, 0x3FD8FF, 0x7CFF4A, 0xFFD000};
         int c = cols[(st[1] / 5) % cols.length];
         w.spawnParticles(new DustParticleEffect(new Vector3f((c >> 16 & 255) / 255f, (c >> 8 & 255) / 255f, (c & 255) / 255f), 1.4f),
