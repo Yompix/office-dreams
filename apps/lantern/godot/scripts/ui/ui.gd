@@ -1,6 +1,6 @@
 class_name UI
 extends RefCounted
-## Стиль «Играем вместе»: тёмная тема, скруглённые карточки, акцентный цвет из настроек.
+## Стиль LANTERN: тёмная тема, скруглённые карточки, акцентный цвет из настроек.
 
 const BG := Color("10131a")
 const PANEL := Color("171b25")
@@ -21,6 +21,19 @@ static var font_black: Font = preload("res://assets/fonts/Montserrat-ExtraBold.t
 static var font_mono: Font = preload("res://assets/fonts/JetBrainsMono-Regular.ttf")
 
 
+static var _fallback_done := false
+
+
+## Символы (✓ ✦ ➤ ♥ ★ …) берём из Noto Sans Symbols 2, если их нет в основном шрифте.
+static func _fallbacks() -> void:
+	if _fallback_done:
+		return
+	_fallback_done = true
+	var sym: Font = load("res://assets/fonts/NotoSansSymbols2.ttf")
+	for f in [font_regular, font_bold, font_black, font_mono]:
+		f.fallbacks = [sym]
+
+
 static func accent() -> Color:
 	return Cfg.accent()
 
@@ -38,6 +51,7 @@ static func box(color: Color, radius := 16, pad := 0, border := Color(0, 0, 0, 0
 
 
 static func make_theme() -> Theme:
+	_fallbacks()
 	var t := Theme.new()
 	var a := accent()
 	t.default_font = font_regular
@@ -186,7 +200,7 @@ static func label(text: String, size := 16, color := TEXT, font: Font = null) ->
 	return l
 
 
-static func wrap(text: String, size := 15, color := MUTED) -> Label:
+static func para(text: String, size := 15, color := MUTED) -> Label:
 	var l := label(text, size, color)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.custom_minimum_size.x = 120
@@ -270,6 +284,7 @@ static func gap(px: int) -> Control:
 
 static func pill(text: String, color: Color) -> PanelContainer:
 	var p := PanelContainer.new()
+	p.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	var s := box(Color(color, 0.16), 99, 0, Color(color, 0.45), 1)
 	s.content_margin_left = 12
 	s.content_margin_right = 12
@@ -296,7 +311,7 @@ static func field(caption: String, ctrl: Control, hint := "") -> VBoxContainer:
 	v.add_child(label(caption, 14, MUTED, font_bold))
 	v.add_child(ctrl)
 	if hint != "":
-		v.add_child(wrap(hint, 13, DIM))
+		v.add_child(para(hint, 13, DIM))
 	return v
 
 

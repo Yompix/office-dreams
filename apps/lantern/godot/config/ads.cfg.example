@@ -1,0 +1,7 @@
+; Скопируйте в config/ads.cfg и впишите свои ID из AdMob. Пустые поля = тестовые ID Google.
+; Файл ads.cfg не коммитьте, если не хотите (ID рекламы не секрет, но так проще менять).
+[admob]
+enabled=false
+app_id=""
+rewarded=""
+interstitial=""

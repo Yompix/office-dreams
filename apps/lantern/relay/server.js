@@ -1,12 +1,14 @@
 'use strict';
-// Relay «Играем вместе» (by Yompix): комнаты Minecraft поверх WebSocket.
+// Relay LANTERN (by Yompix): комнаты Minecraft поверх WebSocket.
 // Хост держит одно WS-соединение, каждый друг — своё. Relay пересылает бинарные кадры
 // [u32 sid][payload] между другом и хостом, переводя номера потоков. Содержимое кадров не читается и не пишется в логи.
 // Протокол: godot/playtogether/docs/PROTOCOL.md
 
 const http = require('http');
 const crypto = require('crypto');
+const path = require('path');
 const { WebSocketServer } = require('ws');
+const { Social } = require('./social');
 
 const env = (k, d) => (process.env[k] !== undefined ? Number(process.env[k]) : d);
 const CFG = {
@@ -32,6 +34,14 @@ const ipConns = new Map();    // ip -> count
 const ipJoins = new Map();    // ip -> [timestamps]
 let nextSid = 1;
 let stats = { started: Date.now(), roomsCreated: 0, joins: 0 };
+const vol = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+const social = new Social({ dbPath: process.env.DB_PATH || (vol ? path.join(vol, 'lantern.db') : ':memory:') });
+social.bindRooms(rooms);
+const { Economy, ECO_CMDS } = require('./economy');
+social.eco = new Economy(social);
+social.ecoCmds = ECO_CMDS;
+const SOCIAL_CMDS = new Set(['hello', 'register', 'presence', 'friend_add', 'friend_accept', 'friend_decline', 'friend_remove',
+  'block', 'unblock', 'report', 'dm', 'history', 'invite', 'room_enter', 'room_chat', 'rooms', 'state']);
 
 function log(...a) { if (process.env.QUIET !== '1') console.log(new Date().toISOString(), ...a); }
 
@@ -93,6 +103,7 @@ function closeRoom(room, why) {
   if (room.closed) return;
   room.closed = true;
   rooms.delete(room.code);
+  social.roomClosed(room.code);
   clearTimeout(room.resumeTimer);
   for (const j of room.joiners) {
     send(j.ws, { t: 'error', error: why || 'room_closed' });
@@ -118,10 +129,12 @@ function onHost(ws, msg) {
     const r = rooms.get(normCode(msg.code));
     if (r && !r.host && r.token === String(msg.resume)) room = r;
   }
+  const owner = social.userByToken(msg.token);
   if (room) {
     clearTimeout(room.resumeTimer);
     room.host = ws;
     room.name = name;
+    room.meta = Social.roomMeta(msg.public);
     for (const j of room.joiners) send(j.ws, { t: 'host_back' });
   } else {
     if (rooms.size >= CFG.maxRooms) return send(ws, { t: 'error', error: 'busy' });
@@ -129,9 +142,14 @@ function onHost(ws, msg) {
     if (!code) return send(ws, { t: 'error', error: 'busy' });
     room = { code, token: crypto.randomBytes(16).toString('hex'), edition: msg.edition, name, host: ws,
       joiners: new Set(), streams: new Map(), tokens: CFG.roomBytesPerSec, tokenTs: Date.now(), bytes: 0,
-      created: Date.now(), closed: false };
+      created: Date.now(), closed: false, ownerId: owner ? owner.id : 0, meta: Social.roomMeta(msg.public) };
     rooms.set(code, room);
     stats.roomsCreated++;
+    if (owner) {
+      social.eco.addStat(owner.id, 'hosts', 1);
+      social.eco.addStat(owner.id, 'hosts_' + msg.edition, 1);
+      social.eco.checkAchievements(owner.id);
+    }
     log('room', code, msg.edition);
   }
   ws._role = 'host';
@@ -150,12 +168,27 @@ function onJoin(ws, msg) {
   const room = rooms.get(normCode(msg.code));
   if (!room) return send(ws, { t: 'error', error: 'not_found' });
   if (room.joiners.size >= CFG.maxJoiners) return send(ws, { t: 'error', error: 'full' });
-  const j = { ws, room, streams: new Map(), id: crypto.randomBytes(3).toString('hex') };
+  const ju = social.userByToken(msg.token);
+  const j = { ws, room, streams: new Map(), id: crypto.randomBytes(3).toString('hex'), userId: ju ? ju.id : 0 };
   room.joiners.add(j);
   ws._role = 'joiner';
   ws._joiner = j;
   stats.joins++;
+  if (j.userId) {
+    social.eco.addStat(j.userId, 'joins', 1);
+    if (room.meta && room.ownerId !== j.userId) social.eco.event(j.userId, 'join_public', 1);
+    social.eco.visit(room.ownerId, j.userId);
+    social.eco.checkAchievements(j.userId);
+  }
   send(ws, { t: 'joined', v: PROTO, code: room.code, edition: room.edition, name: room.name, host: !!room.host });
+}
+
+function likeRoom(ws) {
+  const j = ws._joiner;
+  if (!j.userId) return send(ws, { t: 'like', error: 'Нужен профиль' });
+  const e = social.eco.like(j.room.ownerId, j.userId);
+  if (!e) { j.room.likes = j.room.likes || new Set(); j.room.likes.add(j.userId); }
+  send(ws, { t: 'like', error: e });
 }
 
 function joinerOpen(j, msg) {
@@ -190,6 +223,9 @@ function onText(ws, text) {
   try { msg = JSON.parse(text); } catch { return ws.close(4002, 'bad json'); }
   if (!msg || typeof msg.t !== 'string') return;
   if (msg.t === 'ping') return send(ws, { t: 'pong', ts: msg.ts });
+  if (SOCIAL_CMDS.has(msg.t) || ECO_CMDS.has(msg.t)) return social.handle(ws, msg);
+  if (msg.t === 'like' && ws._role === 'joiner') return likeRoom(ws);
+  if (msg.t === 'room_meta' && ws._role === 'host') { ws._room.meta = Social.roomMeta(msg.public); return; }
   if (!ws._role) {
     if (Number(msg.v || 1) > PROTO) return send(ws, { t: 'error', error: 'bad_version', v: PROTO });
     if (msg.t === 'host') return onHost(ws, msg);
@@ -235,8 +271,13 @@ const server = http.createServer((req, res) => {
     let joiners = 0;
     for (const r of rooms.values()) joiners += r.joiners.size;
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
-    return res.end(JSON.stringify({ ok: true, app: 'igraem-vmeste-relay', v: PROTO, rooms: rooms.size, joiners,
+    return res.end(JSON.stringify({ ok: true, app: 'lantern-relay', v: PROTO, rooms: rooms.size, joiners,
       uptime: Math.round((Date.now() - stats.started) / 1000) }));
+  }
+  if (req.url.startsWith('/rooms')) {
+    const u = new URL(req.url, 'http://x');
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    return res.end(JSON.stringify({ rooms: social.publicRooms({ edition: u.searchParams.get('edition'), tag: u.searchParams.get('tag'), q: u.searchParams.get('q') }) }));
   }
   res.writeHead(404); res.end();
 });
@@ -260,6 +301,7 @@ wss.on('connection', (ws, req) => {
     if (c <= 0) ipConns.delete(ws._ip); else ipConns.set(ws._ip, c);
     if (ws._role === 'host' && ws._room && ws._room.host === ws && !ws._room.closed) hostGone(ws._room);
     if (ws._role === 'joiner') dropJoiner(ws._joiner);
+    social.detach(ws);
   });
   ws.on('error', () => {});
 });
@@ -273,6 +315,7 @@ setInterval(() => {
   for (const r of rooms.values()) if (now - r.created > CFG.roomMaxMs) closeRoom(r, 'expired');
   for (const [ip, l] of ipJoins) if (!l.length || now - l[l.length - 1] > 60_000) ipJoins.delete(ip);
 }, 15_000).unref();
+setInterval(() => social.tickPlaytime(), 60_000).unref();
 
 server.listen(CFG.port, () => log(`relay listening on :${CFG.port} path /ws`));
 
@@ -280,4 +323,4 @@ function shutdown() { for (const r of [...rooms.values()]) closeRoom(r, 'server_
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
-module.exports = { server, rooms, CFG, normCode, ALPHABET };
+module.exports = { server, rooms, CFG, normCode, ALPHABET, social };

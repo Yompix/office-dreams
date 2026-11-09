@@ -1,6 +1,6 @@
 class_name RelayLink
 extends RefCounted
-## Соединение с relay «Играем вместе» по WebSocket (протокол v1, docs/PROTOCOL.md).
+## Соединение с relay LANTERN по WebSocket (протокол v1, docs/PROTOCOL.md).
 ## Кадры: текст — JSON-команды, бинарные — [u32 sid big-endian][данные].
 ## Используется только из одного потока (хост-мост или прокси друга). Общий код ПК и Android.
 
@@ -93,7 +93,7 @@ static func error_text(code: String) -> String:
 		"full": return "В комнате уже максимум друзей."
 		"rate": return "Слишком много попыток. Подождите минуту."
 		"busy": return "Сервер-посредник перегружен. Попробуйте позже."
-		"bad_version": return "Нужна новая версия «Играем вместе»."
+		"bad_version": return "Нужна новая версия LANTERN."
 		"host_left", "host_ended", "room_closed": return "Хозяин закрыл мир."
 		"server_restart": return "Сервер-посредник перезапускается. Попробуйте через минуту."
 		"expired": return "Комната устарела. Попросите друга запустить мир заново."

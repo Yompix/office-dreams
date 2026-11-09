@@ -1,4 +1,4 @@
-# Процедурная графика «Играем вместе»: свои пиксельные кубы (без ассетов Mojang).
+# Процедурная графика LANTERN: свои пиксельные кубы (без ассетов Mojang).
 import math, random, sys, os
 from PIL import Image, ImageDraw, ImageFilter
 OUT = sys.argv[1] if len(sys.argv) > 1 else "assets/img"
@@ -88,15 +88,61 @@ d.rectangle([px+10*SS, py+ph-26*SS-18*SS, px+pw-10*SS, py+ph-26*SS], fill=(134,9
 d.ellipse([px+pw//2-6*SS, py+ph-18*SS, px+pw//2+6*SS, py+ph-6*SS], fill=(90,96,120))
 save(img, "card_bedrock.png", (440, 320))
 
-# --- иконка приложения
+# --- иконка приложения: светящийся кубический фонарь (LANTERN)
+def lantern_tex(face_light):
+    t = [[None]*16 for _ in range(16)]
+    for y in range(16):
+        for x in range(16):
+            edge = x < 2 or x > 13 or y < 2 or y > 13 or (y in (5,) and 1 < x < 14)
+            bar = False
+            if edge:
+                t[y][x] = (58, 52, 50) if (x + y) % 3 else (74, 66, 60)
+            elif bar:
+                t[y][x] = (66, 58, 54)
+            else:
+                d = ((x - 7.5) ** 2 + (y - 8) ** 2) ** 0.5
+                k = max(0.0, 1 - d / 9) * face_light
+                t[y][x] = (min(255, int(255 * (0.85 + 0.15 * k))), min(255, int(150 + 95 * k)), min(255, int(40 + 140 * k * k)))
+    return t
+def cap_tex():
+    return [[(46, 42, 42) if (x + y) % 4 else (62, 56, 52) for x in range(16)] for y in range(16)]
+def draw_lantern(S, scale=1.0, bg=True):
+    img = Image.new("RGBA", (S, S), (0,0,0,0)); d = ImageDraw.Draw(img)
+    if bg:
+        d.rounded_rectangle([int(S*0.03), int(S*0.03), int(S*0.97), int(S*0.97)], radius=int(S*0.22), fill=(18, 19, 28))
+    glow = Image.new("RGBA", (S, S), (0,0,0,0)); gd = ImageDraw.Draw(glow)
+    cx, cy = S*0.5, S*0.56
+    for i in range(30, 0, -1):
+        r = S*0.46*i/30
+        gd.ellipse([cx-r, cy-r, cx+r, cy+r], fill=(255, 150, 40, int(3 + (30-i)*3.6)))
+    glow = glow.filter(ImageFilter.GaussianBlur(S*0.03))
+    if bg:
+        mask = Image.new("L", (S, S), 0); ImageDraw.Draw(mask).rounded_rectangle([int(S*0.03), int(S*0.03), int(S*0.97), int(S*0.97)], radius=int(S*0.22), fill=255)
+        glow.putalpha(Image.composite(glow.split()[3], Image.new("L", (S,S), 0), mask))
+    img = Image.alpha_composite(img, glow); d = ImageDraw.Draw(img)
+    s = S*0.30*scale
+    base_y = cy + S*0.5*s/S*1.0 + s*0.45
+    cube(d, cx, base_y, s, lantern_tex(1.0), lantern_tex(0.8), lantern_tex(0.95))
+    top_c = base_y - 1.5*s
+    c = s*0.42
+    co = top_c + 0.5*c
+    cube(d, cx, co, c, cap_tex(), cap_tex(), cap_tex())
+    cap_top = co - 1.5*c
+    hr = c*0.55
+    d.arc([cx-hr, cap_top-hr*1.6, cx+hr, cap_top+hr*0.4], 180, 360, fill=(92, 82, 74), width=max(2, int(S*0.02)))
+    return img
 S = 256*SS
-img = Image.new("RGBA", (S, S), (0,0,0,0)); d = ImageDraw.Draw(img)
-d.rounded_rectangle([8*SS, 8*SS, S-8*SS, S-8*SS], radius=56*SS, fill=(22,26,36))
-d.rounded_rectangle([8*SS, 8*SS, S-8*SS, S-8*SS], radius=56*SS, outline=(76,201,110), width=6*SS)
-cube(d, S*0.5, S*0.86, 104*SS, g_top, g_side, tex("grass_side",21))
-img.resize((256,256), Image.LANCZOS).save(os.path.join(OUT, "icon.png"))
-img.resize((256,256), Image.LANCZOS).save(os.path.join(OUT, "..", "..", "icon.png"))
-img.resize((256,256), Image.LANCZOS).save(os.path.join(OUT, "..", "..", "icon.ico"), sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
+icon = draw_lantern(S)
+icon.resize((256,256), Image.LANCZOS).save(os.path.join(OUT, "icon.png"))
+icon.resize((256,256), Image.LANCZOS).save(os.path.join(OUT, "..", "..", "icon.png"))
+icon.resize((256,256), Image.LANCZOS).save(os.path.join(OUT, "..", "..", "icon.ico"), sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
+big = draw_lantern(512*SS)
+big.resize((512,512), Image.LANCZOS).save(os.path.join(OUT, "icon_512.png"))
+# Android adaptive: передний план без фона (432x432, сам фонарь в центре 66%), фон — сплошной
+fg = draw_lantern(432*SS, 0.8, bg=False)
+fg.resize((432,432), Image.LANCZOS).save(os.path.join(OUT, "android_fg.png"))
+Image.new("RGBA", (432,432), (18,19,28,255)).save(os.path.join(OUT, "android_bg.png"))
+g_top, g_side = tex("grass_top", 1), tex("grass_side", 2)
 
 # --- маленькие кубики для заголовков (32px)
 for name, t in [("mini_grass", (g_top, g_side, tex("grass_side",31))), ("mini_stone", (tex("deep",32),tex("deep",33),tex("deep",34)))]:

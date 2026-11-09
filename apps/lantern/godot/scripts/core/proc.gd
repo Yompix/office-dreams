@@ -36,7 +36,7 @@ func start(exe: String, args: PackedStringArray, cwd := "") -> String:
 			path = "/bin/sh"
 			argv = PackedStringArray(["-c", "cd \"$0\" && exec \"$@\"", cwd, exe])
 			argv.append_array(args)
-	var info := OS.execute_with_pipe(path, argv, false)
+	var info := OS.execute_with_pipe(path, argv, true)
 	if info.is_empty():
 		return "не удалось запустить " + exe.get_file()
 	pid = info["pid"]

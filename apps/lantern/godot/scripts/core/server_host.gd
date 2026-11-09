@@ -24,6 +24,26 @@ var proc: ManagedProcess
 var started_msec := 0
 var _stop_deadline := 0
 var _installed := {}
+var history: PackedStringArray = []
+var last_status := ""
+var last_progress := ["", 0.0]
+
+
+func _log(t: String) -> void:
+	history.append(t)
+	if history.size() > 1500:
+		history = history.slice(history.size() - 1200)
+	log_line.emit(t)
+
+
+func _status(t: String) -> void:
+	last_status = t
+	status.emit(t)
+
+
+func _progress(label: String, f: float) -> void:
+	last_progress = [label, f]
+	progress.emit(label, f)
 
 
 func _process(_d: float) -> void:
@@ -31,7 +51,7 @@ func _process(_d: float) -> void:
 		proc.poll()
 	if state == "stopping" and _stop_deadline > 0 and Time.get_ticks_msec() > _stop_deadline:
 		_stop_deadline = 0
-		log_line.emit("[Играем вместе] Сервер не остановился вовремя — завершаем принудительно.")
+		_log("[LANTERN] Сервер не остановился вовремя — завершаем принудительно.")
 		proc.kill()
 
 
@@ -46,14 +66,14 @@ func _set_state(s: String) -> void:
 
 func _fail(msg: String) -> bool:
 	last_error = msg
-	status.emit("Ошибка: " + msg)
-	log_line.emit("[Играем вместе] Ошибка: " + msg)
+	_status("Ошибка: " + msg)
+	_log("[LANTERN] Ошибка: " + msg)
 	_set_state("error")
 	return false
 
 
 func _install_info() -> Dictionary:
-	var p := server_dir().path_join("igraem-install.json")
+	var p := server_dir().path_join("lantern-install.json")
 	if FileAccess.file_exists(p):
 		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(p))
 		if d is Dictionary:
@@ -62,7 +82,7 @@ func _install_info() -> Dictionary:
 
 
 func _save_install_info(d: Dictionary) -> void:
-	var f := FileAccess.open(server_dir().path_join("igraem-install.json"), FileAccess.WRITE)
+	var f := FileAccess.open(server_dir().path_join("lantern-install.json"), FileAccess.WRITE)
 	f.store_string(JSON.stringify(d, "  "))
 
 
@@ -74,6 +94,7 @@ func host(ed: String, o: Dictionary) -> bool:
 		return false
 	edition = ed
 	opts = o
+	_last_err = ""
 	players = []
 	players_changed.emit(players)
 	_set_state("installing")
@@ -84,10 +105,10 @@ func host(ed: String, o: Dictionary) -> bool:
 
 
 func _dl(label: String, url: String, dest: String, checksum := {}) -> bool:
-	status.emit(label)
+	_status(label)
 	var res: Dictionary = await Net.download(url, dest, checksum, func(done: int, total: int):
-		progress.emit(label, float(done) / total if total > 0 else -1.0))
-	progress.emit(label, 1.0)
+		_progress(label, float(done) / total if total > 0 else -1.0))
+	_progress(label, 1.0)
 	if not res.ok:
 		return _fail("%s — %s" % [label, res.error])
 	return true
@@ -97,8 +118,12 @@ func _install_java() -> bool:
 	var dir := server_dir()
 	var info := _install_info()
 	# --- Paper
-	status.emit("Узнаём последнюю версию Paper…")
+	_status("Узнаём последнюю версию Paper…")
 	var version: String = opts.get("version", "latest")
+	if opts.get("crossplay", false) and version != "latest":
+		# Geyser поддерживает только самую новую версию Java Edition
+		_log("[LANTERN] Кроссплей с телефонами работает только на последней версии Minecraft — ставим её.")
+		version = "latest"
 	if version == "" or version == "latest":
 		var pr: Dictionary = await Net.get_json(FILL)
 		if not pr.ok:
@@ -140,7 +165,7 @@ func _install_java() -> bool:
 	DirAccess.make_dir_recursive_absolute(plugins)
 	if opts.get("crossplay", false):
 		for p in [["geyser", "Geyser-Spigot.jar"], ["floodgate", "floodgate-spigot.jar"]]:
-			status.emit("Проверяем %s…" % p[1])
+			_status("Проверяем %s…" % p[1])
 			var gr: Dictionary = await Net.get_json(GEYSER % p[0])
 			var dest := plugins.path_join(p[1])
 			if not gr.ok:
@@ -159,6 +184,7 @@ func _install_java() -> bool:
 			if FileAccess.file_exists(plugins.path_join(f)):
 				DirAccess.rename_absolute(plugins.path_join(f), plugins.path_join(f + ".off"))
 	if opts.get("crossplay", false):
+		_geyser_config(plugins.path_join("Geyser-Spigot/config.yml"))
 		for f in ["Geyser-Spigot.jar", "floodgate-spigot.jar"]:
 			if FileAccess.file_exists(plugins.path_join(f + ".off")):
 				DirAccess.remove_absolute(plugins.path_join(f + ".off"))
@@ -166,10 +192,10 @@ func _install_java() -> bool:
 	if not opts.get("eula", false):
 		return _fail("нужно принять лицензионное соглашение Minecraft (EULA)")
 	var f := FileAccess.open(dir.path_join("eula.txt"), FileAccess.WRITE)
-	f.store_string("# Принято пользователем в приложении «Играем вместе»: https://aka.ms/MinecraftEULA\neula=true\n")
+	f.store_string("# Принято пользователем в приложении LANTERN: https://aka.ms/MinecraftEULA\neula=true\n")
 	f.close()
 	write_properties(dir.path_join("server.properties"), {
-		"motd": opts.get("world", "Мир") + " — Играем вместе",
+		"motd": opts.get("world", "Мир") + " — LANTERN",
 		"level-name": _safe_name(opts.get("world", "world")),
 		"max-players": str(opts.get("max_players", 10)),
 		"difficulty": opts.get("difficulty", "normal"),
@@ -184,10 +210,28 @@ func _install_java() -> bool:
 	return true
 
 
+## Geyser 2.12+ по умолчанию слушает только NetherNet (WebRTC). LANTERN передаёт RakNet по UDP 19132,
+## поэтому включаем «both»: RakNet на 19132, NetherNet на 19134. Остальные настройки Geyser дополнит сам.
+static func _geyser_config(path: String) -> void:
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	if not FileAccess.file_exists(path):
+		var f := FileAccess.open(path, FileAccess.WRITE)
+		f.store_string("bedrock:\n  port: %d\n  webrtc-port: %d\n  transport: both\n" % [BEDROCK_PORT, BEDROCK_PORT + 2])
+		return
+	var txt := FileAccess.get_file_as_string(path)
+	var re_t := RegEx.create_from_string("(?m)^(  transport:)\\s*\\S+")
+	var re_w := RegEx.create_from_string("(?m)^(  webrtc-port:)\\s*0\\s*$")
+	var out := re_t.sub(txt, "$1 both")
+	out = re_w.sub(out, "$1 %d" % (BEDROCK_PORT + 2))
+	if out != txt:
+		var f := FileAccess.open(path, FileAccess.WRITE)
+		f.store_string(out)
+
+
 func _offline_or_fail(info: Dictionary, msg: String) -> bool:
 	# Без интернета запускаем то, что уже скачано.
 	if info.get("paper_jar", "") != "" and FileAccess.file_exists(server_dir().path_join(info.paper_jar)) and info.get("java", "") != "" and FileAccess.file_exists(info.java):
-		log_line.emit("[Играем вместе] Нет связи с сайтом обновлений, запускаем уже скачанную версию.")
+		_log("[LANTERN] Нет связи с сайтом обновлений, запускаем уже скачанную версию.")
 		_installed = info
 		if opts.get("eula", false):
 			return true
@@ -214,11 +258,20 @@ static func paper_versions(data: Dictionary) -> PackedStringArray:
 	return out
 
 
+## Имя папки мира: латиница, цифры и «_» (кириллица — транслитом), чтобы сервер не споткнулся о кодировку.
 static func _safe_name(s: String) -> String:
+	const TR := {"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya","і":"i","ї":"yi","є":"ye","ґ":"g"}
 	var r := ""
 	for c in s.strip_edges():
-		r += c if not ("\\/:*?\"<>|".contains(c)) else "_"
-	return r if r != "" else "world"
+		var lc := c.to_lower()
+		if TR.has(lc):
+			var t: String = TR[lc]
+			r += t.capitalize() if c != lc and t != "" else t
+		elif (lc >= "a" and lc <= "z") or (c >= "0" and c <= "9") or c == "-" or c == "_":
+			r += c
+		elif c == " ":
+			r += "_"
+	return r.substr(0, 40) if r != "" else "world"
 
 
 ## Найти Java нужной версии (своя → системная) или скачать Temurin JRE.
@@ -230,9 +283,9 @@ func ensure_java(major: int) -> String:
 		return exe
 	var sys_java := _system_java(major)
 	if sys_java != "":
-		log_line.emit("[Играем вместе] Используем установленную Java: " + sys_java)
+		_log("[LANTERN] Используем установленную Java: " + sys_java)
 		return sys_java
-	status.emit("Ищем Java %d (Eclipse Temurin)…" % major)
+	_status("Ищем Java %d (Eclipse Temurin)…" % major)
 	var os_name := "windows" if Cfg.is_windows() else ("mac" if OS.get_name() == "macOS" else "linux")
 	var r: Dictionary = await Net.get_json(ADOPTIUM % [major, os_name])
 	if not r.ok or not (r.data is Array) or r.data.is_empty():
@@ -242,7 +295,7 @@ func ensure_java(major: int) -> String:
 	var arc := Cfg.sub("downloads").path_join(pkg.name)
 	if not await _dl("Скачиваем Java %d (%s)" % [major, r.data[0].version.semver], pkg.link, arc, {"sha256": pkg.checksum}):
 		return ""
-	status.emit("Распаковываем Java…")
+	_status("Распаковываем Java…")
 	await get_tree().process_frame
 	var err := Archive.unzip(arc, rt, 1) if pkg.name.ends_with(".zip") else Archive.untar_gz(arc, rt, 1)
 	DirAccess.remove_absolute(arc)
@@ -275,7 +328,7 @@ func _install_bedrock() -> bool:
 	var dir := server_dir()
 	var info := _install_info()
 	var exe := dir.path_join("bedrock_server.exe" if Cfg.is_windows() else "bedrock_server")
-	status.emit("Узнаём последнюю версию Bedrock Dedicated Server…")
+	_status("Узнаём последнюю версию Bedrock Dedicated Server…")
 	var r: Dictionary = await Net.get_json(BEDROCK_LINKS)
 	var url := ""
 	if r.ok:
@@ -284,7 +337,7 @@ func _install_bedrock() -> bool:
 				url = l.downloadUrl
 	if url == "":
 		if FileAccess.file_exists(exe):
-			log_line.emit("[Играем вместе] Нет связи с minecraft.net, запускаем уже скачанную версию.")
+			_log("[LANTERN] Нет связи с minecraft.net, запускаем уже скачанную версию.")
 		else:
 			return _fail("не удалось получить ссылку на Bedrock Dedicated Server: " + r.get("error", "ссылка не найдена"))
 	elif info.get("bedrock_url", "") != url or not FileAccess.file_exists(exe):
@@ -293,7 +346,7 @@ func _install_bedrock() -> bool:
 		var zip := Cfg.sub("downloads").path_join(url.get_file())
 		if not await _dl("Скачиваем Bedrock Dedicated Server " + url.get_file().get_basename().trim_prefix("bedrock-server-"), url, zip):
 			return false
-		status.emit("Распаковываем сервер…")
+		_status("Распаковываем сервер…")
 		await get_tree().process_frame
 		var err := Archive.unzip(zip, dir, 0, PackedStringArray(["server.properties", "allowlist.json", "permissions.json"]))
 		DirAccess.remove_absolute(zip)
@@ -304,16 +357,19 @@ func _install_bedrock() -> bool:
 		info.bedrock_url = url
 		info.bedrock_version = url.get_file().get_basename().trim_prefix("bedrock-server-")
 	write_properties(dir.path_join("server.properties"), {
-		"server-name": opts.get("world", "Мир") + " — Играем вместе",
+		"server-name": opts.get("world", "Мир") + " — LANTERN",
 		"level-name": _safe_name(opts.get("world", "world")),
 		"max-players": str(opts.get("max_players", 10)),
 		"difficulty": opts.get("difficulty", "normal"),
 		"gamemode": opts.get("gamemode", "survival"),
 		"server-port": str(opts.get("port", BEDROCK_PORT)),
 		"server-portv6": str(int(opts.get("port", BEDROCK_PORT)) + 1),
-		"online-mode": "true",
+		"online-mode": "true" if opts.get("online_mode", true) else "false",
 		"allow-cheats": "false",
 		"enable-lan-visibility": "true",
+		"allow-list": "false",
+		# BDS 1.26+ по умолчанию слушает NetherNet (WebRTC); LANTERN передаёт RakNet по UDP
+		"transport": "raknet",
 	}, false)
 	_save_install_info(info)
 	_installed = info
@@ -378,32 +434,43 @@ func _launch() -> bool:
 			"-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
 			"-Dterminal.jline=false", "-Dterminal.ansi=false", "-DPaper.IgnoreJavaVersion=false",
 			"-jar", _installed.paper_jar, "--nogui"])
-		status.emit("Запускаем сервер Java…")
+		_status("Запускаем сервер Java…")
 		err = proc.start(_installed.java, args, dir)
 	else:
 		if not Cfg.is_windows():
 			OS.set_environment("LD_LIBRARY_PATH", dir)
-		status.emit("Запускаем сервер Bedrock…")
+		_status("Запускаем сервер Bedrock…")
+		# Только для автотестов в песочнице без IPv6: заглушка сокетов для BDS (см. tests/e2e.sh)
+		var pre := OS.get_environment("LANTERN_TEST_BDS_PRELOAD")
+		if pre != "":
+			OS.set_environment("LD_PRELOAD", pre)
 		err = proc.start(dir.path_join("bedrock_server.exe" if Cfg.is_windows() else "bedrock_server"), PackedStringArray(), dir)
+		if pre != "":
+			OS.unset_environment("LD_PRELOAD")
 	if err != "":
 		return _fail(err)
 	started_msec = Time.get_ticks_msec()
-	log_line.emit("[Играем вместе] Сервер запущен (процесс %d). Папка: %s" % [proc.pid, dir])
+	_log("[LANTERN] Сервер запущен (процесс %d). Папка: %s" % [proc.pid, dir])
 	return true
 
 
 static var _re_join := RegEx.create_from_string("^\\[[^\\]]*\\]:? ?(?:\\[[^\\]]*\\]:? )?([\\.\\w]{1,32}) joined the game")
-static var _re_left := RegEx.create_from_string("^\\[[^\\]]*\\]:? ?(?:\\[[^\\]]*\\]:? )?([\\.\\w]{1,32}) left the game")
+static var _re_left := RegEx.create_from_string("^\\[[^\\]]*\\]:? ?(?:\\[[^\\]]*\\]:? )?([\\.\\w]{1,32}) (?:left the game|lost connection)")
 static var _re_bconn := RegEx.create_from_string("Player connected: ([^,]+),")
 static var _re_bdisc := RegEx.create_from_string("Player disconnected: ([^,]+),")
 
 
+var _last_err := ""
+
+
 func _on_line(t: String) -> void:
-	log_line.emit(t)
+	_log(t)
+	if (t.contains("ERROR") or t.contains("Exception")) and _last_err == "":
+		_last_err = t.substr(t.find("]") + 1).strip_edges() if t.begins_with("[") else t
 	if state == "starting":
-		if (edition == "java" and t.contains("Done (")) or (edition == "bedrock" and t.contains("Server started.")):
+		if (edition == "java" and t.contains("Done (") and t.contains("help")) or (edition == "bedrock" and t.contains("Server started.")):
 			_set_state("running")
-			status.emit("Сервер работает")
+			_status("Сервер работает")
 	var m := _re_join.search(t) if edition == "java" else _re_bconn.search(t)
 	if m:
 		var n := m.get_string(1).strip_edges()
@@ -427,15 +494,16 @@ func _on_exit(code: int) -> void:
 	players_changed.emit(players)
 	var was := state
 	_stop_deadline = 0
-	log_line.emit("[Играем вместе] Сервер завершился (код %d)." % code)
+	_log("[LANTERN] Сервер завершился (код %d)." % code)
 	if was == "stopping":
 		_set_state("stopped")
-		status.emit("Сервер остановлен, мир сохранён")
+		_status("Сервер остановлен, мир сохранён")
 	else:
 		var hint := ""
 		if edition == "java" and Time.get_ticks_msec() - started_msec < 15000:
 			hint = " Возможно, порт 25565 уже занят другим сервером или не хватает памяти."
-		_fail("сервер неожиданно остановился (код %d).%s Подробности — в журнале." % [code, hint])
+		var why := (" Последняя ошибка: " + _last_err.substr(0, 160) + ".") if _last_err != "" else ""
+		_fail("сервер неожиданно остановился (код %d).%s%s Подробности — в журнале." % [code, why, hint])
 
 
 func command(cmd: String) -> void:
@@ -448,7 +516,7 @@ func stop() -> void:
 		_set_state("stopped")
 		return
 	_set_state("stopping")
-	status.emit("Сохраняем мир и останавливаем сервер…")
+	_status("Сохраняем мир и останавливаем сервер…")
 	proc.write_line("stop")
 	_stop_deadline = Time.get_ticks_msec() + 45000
 
