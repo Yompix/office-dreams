@@ -12,6 +12,7 @@ var edition := "java"     # java / bedrock / both
 var world_name := "Мир"
 var java_port := 25565
 var bedrock_port := 19132
+var extra := {}          # token владельца, публичная карточка комнаты
 
 var _thread: Thread
 var _run := false
@@ -20,8 +21,9 @@ var _stats := {"state": "off", "code": "", "streams": 0, "peers": 0, "rx": 0, "t
 var _events: Array = []
 
 
-func start(url: String, ed: String, name: String, jport := 25565, bport := 19132) -> void:
+func start(url: String, ed: String, name: String, jport := 25565, bport := 19132, hello_extra := {}) -> void:
 	stop()
+	extra = hello_extra
 	relay_url = url
 	edition = ed
 	world_name = name
@@ -102,6 +104,7 @@ func _loop() -> void:
 					connected = true
 					backoff = 1000
 					var hello := {"t": "host", "v": RelayLink.PROTO, "edition": edition, "name": world_name}
+					hello.merge(extra)
 					if token != "":
 						hello["code"] = code
 						hello["resume"] = token

@@ -19,7 +19,7 @@ func _draw() -> void:
 	var c := Vector2(size.x * 0.82, -size.y * 0.1)
 	for i in 18:
 		var r := size.x * (0.65 - i * 0.03)
-		draw_circle(c, r, Color(a, 0.006 + i * 0.0012))
+		draw_circle(c, r, Color(a, 0.004 + i * 0.0007))
 	var c2 := Vector2(-size.x * 0.05, size.y * 1.05)
 	for i in 14:
 		draw_circle(c2, size.x * (0.4 - i * 0.025), Color(UI.BEDROCK, 0.005 + i * 0.001))

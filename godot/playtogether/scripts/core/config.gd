@@ -1,15 +1,16 @@
 extends Node
-## Настройки «Играем вместе»: папка данных, акцент, недавние серверы, последние параметры мира.
+## Настройки LANTERN: папка данных, акцент, недавние серверы, последние параметры мира.
 ## Никаких паролей и ключей здесь нет.
 
-const APP_NAME := "Играем вместе"
+const APP_NAME := "LANTERN"
 const APP_VERSION := "1.0.0"
 const AUTHOR := "Yompix"
 const SETTINGS_PATH := "user://settings.cfg"
 ## Адрес relay по умолчанию. После деплоя на Railway впишите сюда домен сервиса (см. relay/README.md).
-const DEFAULT_RELAY := "wss://igraem-relay.up.railway.app/ws"
+const DEFAULT_RELAY := "wss://lantern-relay.up.railway.app/ws"
 
 const ACCENTS := {
+	"amber": Color("ffb648"),
 	"green": Color("4cc96e"),
 	"sky": Color("4aa8ff"),
 	"violet": Color("9d7bff"),
@@ -80,7 +81,7 @@ func relay_url() -> String:
 
 
 func accent() -> Color:
-	return ACCENTS.get(get_value("app", "accent", "green"), ACCENTS["green"])
+	return ACCENTS.get(get_value("app", "accent", "amber"), ACCENTS["amber"])
 
 
 func set_accent(key: String) -> void:

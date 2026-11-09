@@ -18,6 +18,8 @@ var want_java := true
 var want_bedrock := true
 var java_port := 25565       # предпочитаемый локальный порт Java (если занят — любой свободный)
 var bedrock_port := 19132    # Bedrock ищет LAN-миры только на 19132
+var token := ""              # профиль LANTERN (для заданий и «Фонаря»), можно пусто
+var _want_like := false
 
 var _thread: Thread
 var _run := false
@@ -41,6 +43,10 @@ func start(url: String, room_code: String, java := true, bedrock := true, jport 
 	_st("state", "connecting")
 	_thread = Thread.new()
 	_thread.start(_loop)
+
+
+func like() -> void:
+	_want_like = true
 
 
 func stop() -> void:
@@ -100,7 +106,7 @@ func _loop() -> void:
 		for ev in link.poll():
 			match ev.k:
 				"open":
-					link.send_json({"t": "join", "v": RelayLink.PROTO, "code": code})
+					link.send_json({"t": "join", "v": RelayLink.PROTO, "code": code, "token": token})
 				"closed":
 					_st("state", "error")
 					_st("error", "связь с сервером-посредником потеряна" if ev.was_open else "сервер-посредник недоступен — проверьте интернет")
@@ -185,13 +191,16 @@ func _loop() -> void:
 				break
 			OS.delay_usec(2000)
 			continue
+		if _want_like:
+			_want_like = false
+			link.send_json({"t": "like"})
 		if now - last_ping > 20000:
 			last_ping = now
 			link.send_json({"t": "ping", "ts": now})
 		# --- Java: объявление и новые подключения
 		if lan and now - last_ad > 1500:
 			last_ad = now
-			lan.put_packet(announcement(name + " — Играем вместе", tcp_server.get_local_port()).to_utf8_buffer())
+			lan.put_packet(announcement(name + " — LANTERN", tcp_server.get_local_port()).to_utf8_buffer())
 		if tcp_server:
 			while tcp_server.is_connection_available():
 				var c := tcp_server.take_connection()

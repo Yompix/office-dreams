@@ -1,16 +1,17 @@
-; Играем вместе — by Yompix
+; LANTERN — by Yompix
 config_version=5
 
 [application]
 
-config/name="Играем вместе"
+config/name="LANTERN"
 config/description="Minecraft с друзьями: Java и Bedrock. by Yompix"
 config/version="1.0.0"
 run/main_scene="res://main.tscn"
 config/use_custom_user_dir=true
-config/custom_user_dir_name="IgraemVmeste"
+config/custom_user_dir_name="LANTERN"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 run/low_processor_mode=true
+run/flush_stdout_on_print=true
 boot_splash/bg_color=Color(0.0627, 0.0745, 0.1, 1)
 boot_splash/show_image=false
 config/icon="res://icon.png"
@@ -20,6 +21,7 @@ config/windows_native_icon="res://icon.ico"
 
 Cfg="*res://scripts/core/config.gd"
 Net="*res://scripts/core/net.gd"
+Social="*res://scripts/social/social_client.gd"
 
 [display]
 
@@ -37,3 +39,7 @@ renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.0627, 0.0745, 0.1, 1)
+
+[debug]
+
+gdscript/warnings/inference_on_variant=1

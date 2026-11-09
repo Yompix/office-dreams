@@ -1,13 +1,13 @@
 {
-  "name": "igraem-vmeste-relay",
+  "name": "lantern-relay",
   "version": "1.0.0",
   "private": true,
-  "description": "Relay for «Играем вместе» (by Yompix): Minecraft Java/Bedrock rooms over WebSocket",
+  "description": "Relay for LANTERN (by Yompix): Minecraft Java/Bedrock rooms over WebSocket",
   "main": "server.js",
-  "engines": { "node": ">=20" },
+  "engines": { "node": ">=22.13" },
   "scripts": {
     "start": "node server.js",
-    "test": "node test.js"
+    "test": "node test.js && node test_social.js"
   },
   "dependencies": {
     "ws": "^8.18.0"

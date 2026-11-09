@@ -2,7 +2,7 @@ extends Node
 ## Загрузки по HTTPS: JSON, файлы с прогрессом и проверкой контрольных сумм.
 ## Прокси берётся из HTTPS_PROXY (если задан), корневые сертификаты — из SSL_CERT_FILE (если задан).
 
-const UA := "IgraemVmeste/1.0 (by Yompix; +minecraft server helper)"
+const UA := "LANTERN/1.0 (by Yompix; +minecraft server helper)"
 
 var _proxy_host := ""
 var _proxy_port := 0
